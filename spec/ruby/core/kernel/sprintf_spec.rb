@@ -5,7 +5,7 @@ describe "Kernel#sprintf" do
   it "is a private method" do
     Kernel.should have_private_instance_method(:sprintf)
   end
-  
+
   it "treats nil arguments as zero-width strings in %s slots" do
     sprintf("%s%d%s%s", nil, 4, 'a', 'b').should == '4ab'
   end
@@ -66,9 +66,61 @@ describe "Kernel#sprintf" do
     sprintf("% 010.8x", 123).should == "  0000007b"
   end
 
+  ruby_bug "svn r29502", "1.9.2.135" do
+    describe "with negative values" do
+      describe "with format %x" do
+        it "precedes the number with '..'" do
+          [ ["%0x",     "..f85"],
+            ["%#0x",    "0x..f85"],
+            ["%08x",    "..ffff85"],
+            ["%#08x",   "0x..ff85"],
+            ["%8.10x",  "..ffffff85"],
+            ["%08.10x", "..ffffff85"],
+            ["%10.8x",  "  ..ffff85"],
+            ["%010.8x", "  ..ffff85"],
+          ].should be_computed_by_function(:sprintf, -123)
+        end
+      end
+
+      describe "with format %u" do
+        it "precedes the number with '-'" do
+          [ ["%u",        "-123"],
+            ["%0u",       "-123"],
+            ["%#u",       "-123"],
+            ["%#0u",      "-123"],
+            ["%8u",       "    -123"],
+            ["%08u",      "-0000123"],
+            ["%#8u",      "    -123"],
+            ["%#08u",     "-0000123"],
+            ["%30u",      "                          -123"],
+            ["%030u",     "-00000000000000000000000000123"],
+            ["%#30u",     "                          -123"],
+            ["%#030u",    "-00000000000000000000000000123"],
+            ["%24.30u",   "-000000000000000000000000000123"],
+            ["%024.30u",  "-000000000000000000000000000123"],
+            ["%#24.30u",  "-000000000000000000000000000123"],
+            ["%#024.30u", "-000000000000000000000000000123"],
+            ["%30.24u",   "     -000000000000000000000123"],
+            ["%030.24u",  "     -000000000000000000000123"],
+            ["%#30.24u",  "     -000000000000000000000123"],
+            ["%#030.24u", "     -000000000000000000000123"],
+          ].should be_computed_by_function(:sprintf, -123)
+        end
+      end
+
+      describe "with format %b or %B" do
+        it "precedes the number with '..'" do
+          [ ["%.7b", "..11011"],
+            ["%.7B", "..11011"],
+            ["%0b",  "..1011"],
+          ].should be_computed_by_function(:sprintf, -5)
+        end
+      end
+    end
+  end
+
   it "passes some tests for negative %x" do
     sprintf("%x", -123).should == "..f85"
-    sprintf("%0x", -123).should == "f85"
     sprintf("% x", -123).should == "-7b"
     sprintf("%+x", -123).should == "-7b"
     sprintf("%+0x", -123).should == "-7b"
@@ -76,7 +128,6 @@ describe "Kernel#sprintf" do
     sprintf("% 0x", -123).should == "-7b"
 
     sprintf("%#x", -123).should == "0x..f85"
-    sprintf("%#0x", -123).should == "0xf85"
     sprintf("%# x", -123).should == "-0x7b"
     sprintf("%#+x", -123).should == "-0x7b"
     sprintf("%#+0x", -123).should == "-0x7b"
@@ -84,7 +135,6 @@ describe "Kernel#sprintf" do
     sprintf("%# 0x", -123).should == "-0x7b"
 
     sprintf("%8x", -123).should == "   ..f85"
-    sprintf("%08x", -123).should == "ffffff85"
     sprintf("% 8x", -123).should == "     -7b"
     sprintf("%+8x", -123).should == "     -7b"
     sprintf("%+08x", -123).should == "-000007b"
@@ -92,23 +142,18 @@ describe "Kernel#sprintf" do
     sprintf("% 08x", -123).should == "-000007b"
 
     sprintf("%#8x", -123).should == " 0x..f85"
-    sprintf("%#08x", -123).should == "0xffff85"
     sprintf("%# 8x", -123).should == "   -0x7b"
     sprintf("%#+8x", -123).should == "   -0x7b"
     sprintf("%#+08x", -123).should == "-0x0007b"
     sprintf("%#+ 8x", -123).should == "   -0x7b"
     sprintf("%# 08x", -123).should == "-0x0007b"
 
-    sprintf("%8.10x", -123).should == "ffffffff85"
-    sprintf("%08.10x", -123).should == "ffffffff85"
     sprintf("% 8.10x", -123).should == "-000000007b"
     sprintf("%+8.10x", -123).should == "-000000007b"
     sprintf("%+08.10x", -123).should == "-000000007b"
     sprintf("%+ 8.10x", -123).should == "-000000007b"
     sprintf("% 08.10x", -123).should == "-000000007b"
 
-    sprintf("%10.8x", -123).should == "  ffffff85"
-    sprintf("%010.8x", -123).should == "  ffffff85"
     sprintf("% 10.8x", -123).should == " -0000007b"
     sprintf("%+10.8x", -123).should == " -0000007b"
     sprintf("%+010.8x", -123).should == " -0000007b"
@@ -143,33 +188,6 @@ describe "Kernel#sprintf" do
 
 
     platform_is :wordsize => 32 do
-      sprintf("%u", -123).should == "..4294967173"
-      sprintf("%0u", -123).should == "4294967173"
-      sprintf("%#u", -123).should == "..4294967173"
-      sprintf("%#0u", -123).should == "4294967173"
-      sprintf("%8u", -123).should == "..4294967173"
-      sprintf("%08u", -123).should == "4294967173"
-      sprintf("%#8u", -123).should == "..4294967173"
-      sprintf("%#08u", -123).should == "4294967173"
-
-      sprintf("%30u", -123).should == "                  ..4294967173"
-      sprintf("%030u", -123).should == "....................4294967173"
-
-      sprintf("%#30u", -123).should == "                  ..4294967173"
-      sprintf("%#030u", -123).should == "....................4294967173"
-
-      sprintf("%24.30u", -123).should == "....................4294967173"
-      sprintf("%024.30u", -123).should == "....................4294967173"
-
-      sprintf("%#24.30u", -123).should == "....................4294967173"
-      sprintf("%#024.30u", -123).should == "....................4294967173"
-
-
-      sprintf("%30.24u", -123).should == "      ..............4294967173"
-      sprintf("%030.24u", -123).should == "      ..............4294967173"
-
-      sprintf("%#30.24u", -123).should == "      ..............4294967173"
-      sprintf("%#030.24u", -123).should == "      ..............4294967173"
     end
 
     platform_is :wordsize => 64 do
@@ -255,14 +273,10 @@ describe "Kernel#sprintf" do
 
   it "passes kstephens's tests" do
     sprintf("%*1$.*2$3$d", 10, 5, 1).should == "     00001"
-    sprintf("%.7b", -5).should == "1111011"
-    sprintf("%.7B", -5).should == "1111011"
     sprintf("%b", 0).should == "0"
     sprintf("%B", 0).should == "0"
     sprintf("%b", -5).should == "..1011"
     sprintf("%B", -5).should == "..1011"
-    sprintf("%0b", -5).should == "1011"
-    sprintf("%0x", -125).should == "f83"
     sprintf("%+b", -5).should == "-101"
     sprintf("%+b", 10).should == "+1010"
     sprintf("%+b", 0).should == "+0"

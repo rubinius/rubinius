@@ -7,6 +7,19 @@ describe "C-API Symbol function" do
     @s = CApiSymbolSpecs.new
   end
 
+  describe "rb_intern" do
+    it "converts a string to a symbol, uniquely" do
+      @s.rb_intern("test_symbol").should === :test_symbol
+      @s.rb_intern_c_compare("test_symbol", :test_symbol).should == true
+    end
+  end
+
+  describe "rb_id2name" do
+    it "converts a symbol to a C char array" do
+      @s.rb_id2name(:test_symbol).should === "test_symbol"
+    end
+  end
+
   describe "rb_is_const_id" do
     it "returns true given a const-like symbol" do
       @s.rb_is_const_id(:Foo).should == true

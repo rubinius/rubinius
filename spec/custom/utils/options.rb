@@ -2,12 +2,6 @@
 #
 class MSpecOptions
   def compiler
-    # The require is inside the method because this file has to be able to be
-    # loaded in MRI and there are parts of the custom ensemble that are
-    # Rubinius specific (primarily iseq, which could potentially be fixed by
-    # better structuring the compiler).
-    require 'spec/custom/runner/relates'
-
     on("--compiler", "Run only the compile part of the compiler specs") do
       SpecDataRelation.enable :compiler
     end
@@ -20,8 +14,14 @@ class MSpecOptions
   end
 
   def profiler
-    on("--profile", "Show profiler data at the end") do
+    on("--profiler", "Show profiler data at the end") do
       config[:profiler] = true
+    end
+  end
+
+  def agent
+    on("--agent", "Start the Rubinius agent") do
+      config[:flags] << "-Xagent.start"
     end
   end
 end

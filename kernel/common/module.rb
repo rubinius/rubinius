@@ -199,7 +199,7 @@ class Module
       @method_table.delete name
       Rubinius::VM.reset_method_cache(name)
 
-      # Use __respond_to_eh__ to avoid hitting unexpected #respod_to?
+      # Use __respond_to_eh__ to avoid hitting unexpected #respond_to?
       # overrides.
       method_removed(name) if __respond_to_eh__ :method_removed
     end
@@ -436,8 +436,12 @@ class Module
   end
 
   def module_exec(*args, &prc)
-    instance_exec(*args, &prc)
+    raise LocalJumpError, "Missing block" unless block_given?
+    env = prc.block
+    static_scope = env.method.scope.using_current_as(self)
+    return env.call_under(self, static_scope, *args)
   end
+
   alias_method :class_exec, :module_exec
 
   def constants

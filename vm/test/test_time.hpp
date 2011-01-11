@@ -16,7 +16,7 @@ public:
   }
 
   void test_create() {
-    Time* tm = Time::now(state);
+    Time* tm = Time::now(state, G(time_class));
 
     TS_ASSERT(kind_of<Integer>(tm->seconds(state)));
     TS_ASSERT(kind_of<Integer>(tm->useconds(state)));

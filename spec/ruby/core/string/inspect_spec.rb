@@ -3,6 +3,17 @@ require File.expand_path('../../../spec_helper', __FILE__)
 require File.expand_path('../fixtures/classes.rb', __FILE__)
 
 describe "String#inspect" do
+  ruby_version_is "1.9" do
+    before :each do
+      Encoding.default_external = Encoding::UTF_8
+      @orig_exteenc = Encoding.default_external
+    end
+
+    after :each do
+      Encoding.default_external = @orig_exteenc
+    end
+  end
+
   it "taints the result if self is tainted" do
     "foo".taint.inspect.tainted?.should == true
     "foo\n".taint.inspect.tainted?.should == true

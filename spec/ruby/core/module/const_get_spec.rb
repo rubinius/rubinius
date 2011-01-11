@@ -61,6 +61,18 @@ describe "Module#const_get" do
     end.should raise_error(NameError)
   end
 
+  ruby_version_is "1.9" do
+    it "raises a NameError if the constant is defined in the receiver's supperclass and the inherit flag is false" do
+      lambda do
+        ConstantSpecs::ContainerA::ChildA.const_get(:CS_CONST4, false)
+      end.should raise_error(NameError)
+    end
+
+    it "searches into the receiver superclasses if the inherit flag is true" do
+      ConstantSpecs::ContainerA::ChildA.const_get(:CS_CONST4, true).should == :const4
+    end
+  end
+
   describe "with statically assigned constants" do
     it "searches the immediate class or module first" do
       ConstantSpecs::ClassA.const_get(:CS_CONST10).should == :const10_10

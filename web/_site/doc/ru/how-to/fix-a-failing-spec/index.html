@@ -111,39 +111,41 @@
 
       
 
-        <p>Make sure you have read:</p>
+        <p>Убедитесь, что вы прочитали следующие разделы:</p>
 
 <ul>
   <li><a href="getting-started/">Приступая к работе</a></li>
   <li><a href="specs/">Спецификации</a></li>
 </ul>
 
-<p>Then, follow these steps to fix a failing spec:</p>
+<p>После этого, для исправления неработающей спецификации проделайте следующее:</p>
 
 <ol>
-  <li>Run <code>rake</code> to ensure that all CI specs are passing.</li>
-  <li>Run <code>bin/mspec spec/some/spec_file.rb</code> to confirm the spec fails.</li>
-  <li>Edit a file somewhere in Rubinius (probably under the kernel directory).</li>
-  <li>Run <code>rake build</code> to build your change.</li>
-  <li>Run <code>bin/mspec spec/some/spec_file.rb</code> to see if your change makes the
-spec pass.</li>
-  <li>Repeat until your spec passes.</li>
-  <li>Run <code>rake</code> to ensure there are no regressions.</li>
-  <li>Change directory to Rubinius root if not already there.</li>
-  <li>Run <code>git status, git add, git commit</code>, etc. Any changes made to the spec
-files under the spec/ruby directory must be in a different commit from
-changes made to other Rubinius source code files.</li>
-  <li>Run <code>git format-patch origin</code>, which will extract commits that the current
-branch accumulated since the last pull from origin, or `git format-patch
--N&rsquo;, where N is the number (1, 2, etc.) of commits for which you want to
-generate patches.</li>
-  <li>Create a gist with your patch and link to it in a ticket on the issue
-tracker at http://github.com/evanphx/rubinius/issues. You can add multiple
-patches to one ticket.</li>
+  <li>Выполните <code>rake</code> для проверки, что все CI спецификации работают.</li>
+  <li>Выполните <code>bin/mspec spec/some/spec_file.rb</code> и убедитесь, что спецификация
+не проходит.</li>
+  <li>Отредактируйте нужный файл в Rubinius (скорей всего файл будет из
+директории kernel).</li>
+  <li>Выполните <code>rake build</code>, чтобы пересобрать проект с изменениями.</li>
+  <li>Выполните <code>bin/mspec spec/some/spec_file.rb</code> для проверки проходит ли
+спецификация.</li>
+  <li>Повторяйте шаги пока спецификация не пройдет.</li>
+  <li>Выполните <code>rake</code> чтобы убедится, что все спецификации проходят.</li>
+  <li>Перейдите в корневую директорию Rubinius (если вы еще не там).</li>
+  <li>Выполните <code>git status, git add, git commit</code> и т.д. Любые изменения,
+сделанные в директории spec/ruby должны быть оформлены отдельным
+коммитом.</li>
+  <li>Запустите <code>git format-patch origin</code>, эта команда соберет все коммиты,
+сделанные в текущей ветке с момента последнего pull-a или `git format-patch
+-N&rsquo;, где N &ndash; число (1, 2, и т.п.) коммитов, из которых вы хотите сделать
+патчи.</li>
+  <li>Создайте gist с вашим патчем и добавьте ссылку на него в тикет в трекере
+http://github.com/evanphx/rubinius/issues. В один тикет можно помещать
+несколько патчей.</li>
 </ol>
 
-<p>When your patch is accepted by the Rubinius project, you&rsquo;ll get a commit bit
-for the Rubinius repository. Let Evan know what your Github username is.</p>
+<p>Когда ваш патч принят в Rubinius вы можете стать коммитером проекта. Свяжитесь
+с evan-ом, сообщив ему ваш юзернейм на сайте Github.</p>
 
 
     </div>

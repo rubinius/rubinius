@@ -140,7 +140,7 @@ describe "Bignum#<=>" do
     end
   end
 
-  ruby_bug "[ruby-dev:38672] [Bug #1645]", "1.8.7.248" do
+  ruby_bug "[ruby-dev:38672] [Bug #1645]", "1.8.7.302" do
     it "returns 1 when self is negative and other is -Infinity" do
       (-Float::MAX.to_i*2 <=> -infinity_value).should == 1
     end

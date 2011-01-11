@@ -74,7 +74,7 @@ describe "String#scan" do
     lambda { "cruel world".scan(mock('x')) }.should raise_error(TypeError)
   end
 
-  ruby_bug "#4087", "1.9.2" do
+  ruby_bug "#4087", "1.9.2.135" do
     it "taints the results if the String argument is tainted" do
       a = "hello hello hello".scan("hello".taint)
       a.each { |m| m.tainted?.should be_true }
@@ -177,7 +177,7 @@ describe "String#scan with pattern and block" do
     $~.should == nil
   end
 
-  ruby_bug "#4087", "1.9.2" do
+  ruby_bug "#4087", "1.9.2.135" do
     it "taints the results if the String argument is tainted" do
       "hello hello hello".scan("hello".taint).each { |m| m.tainted?.should be_true }
     end

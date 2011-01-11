@@ -6,6 +6,7 @@ require File.expand_path('../shared/float', __FILE__)
 
 describe "Array#pack with format 'F'" do
   it_behaves_like :array_pack_basic, 'F'
+  it_behaves_like :array_pack_basic_float, 'F'
   it_behaves_like :array_pack_arguments, 'F'
   it_behaves_like :array_pack_no_platform, 'F'
   it_behaves_like :array_pack_numeric_basic, 'F'
@@ -22,6 +23,7 @@ end
 
 describe "Array#pack with format 'f'" do
   it_behaves_like :array_pack_basic, 'f'
+  it_behaves_like :array_pack_basic_float, 'f'
   it_behaves_like :array_pack_arguments, 'f'
   it_behaves_like :array_pack_no_platform, 'f'
   it_behaves_like :array_pack_numeric_basic, 'f'

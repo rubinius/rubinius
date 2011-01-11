@@ -676,7 +676,7 @@ module Kernel
 
   def `(str) #`
     str = StringValue(str) unless str.kind_of?(String)
-    pid, output = Process.spawn(str)
+    pid, output = Process.replace(str)
 
     Process.waitpid(pid)
     return output

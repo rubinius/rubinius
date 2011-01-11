@@ -1,5 +1,6 @@
 require File.expand_path('../../../../spec_helper', __FILE__)
 require File.expand_path('../shared/constants', __FILE__)
+require File.expand_path('../../../../core/file/shared/read', __FILE__)
 
 describe "Digest::SHA1.file" do
 

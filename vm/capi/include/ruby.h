@@ -763,6 +763,9 @@ VALUE rb_uint2big(unsigned long number);
   /** Remove and return an element from the Array. */
   VALUE   rb_ary_delete(VALUE self_handle, VALUE item);
 
+  /** Remove and return the element at index from the Array. */
+  VALUE   rb_ary_delete_at(VALUE self_handle, long idx);
+
   /** Return shallow copy of the Array. The elements are not dupped. */
   VALUE   rb_ary_dup(VALUE self_handle);
 
@@ -1170,10 +1173,12 @@ VALUE rb_uint2big(unsigned long number);
   int     rb_io_wait_writable(int fd);
 
   void    rb_io_set_nonblock(rb_io_t* io);
+  void    rb_io_check_closed(rb_io_t* io);
   void    rb_io_check_readable(rb_io_t* io);
   void    rb_io_check_writable(rb_io_t* io);
 
   void    rb_thread_wait_fd(int fd);
+  void    rb_thread_fd_writable(int fd);
   void    rb_thread_wait_for(struct timeval time);
 
   /** Mark ruby object ptr. */

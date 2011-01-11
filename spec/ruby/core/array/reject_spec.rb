@@ -29,18 +29,32 @@ describe "Array#reject" do
     array.reject { true }.should == []
   end
 
-  not_compliant_on :ironruby do
-    it "returns subclass instance on Array subclasses" do
-      ArraySpecs::MyArray[1, 2, 3].reject { |x| x % 2 == 0 }.should be_kind_of(ArraySpecs::MyArray)
+  ruby_version_is "" ... "1.9.3" do
+    not_compliant_on :ironruby do
+      it "returns subclass instance on Array subclasses" do
+        ArraySpecs::MyArray[1, 2, 3].reject { |x| x % 2 == 0 }.should be_kind_of(ArraySpecs::MyArray)
+      end
+    end
+
+    deviates_on :ironruby do
+      it "does not return subclass instance on Array subclasses" do
+        ArraySpecs::MyArray[1, 2, 3].reject { |x| x % 2 == 0 }.should be_kind_of(Array)
+      end
     end
   end
 
-  deviates_on :ironruby do
+  ruby_version_is "1.9.3" do
     it "does not return subclass instance on Array subclasses" do
       ArraySpecs::MyArray[1, 2, 3].reject { |x| x % 2 == 0 }.should be_kind_of(Array)
     end
+
+    it "does not retain instance variables" do
+      array = []
+      array.instance_variable_set("@variable", "value")
+      array.reject { false }.instance_variable_get("@variable").should == nil
+    end
   end
-  
+
   it_behaves_like :enumeratorize, :reject 
 end
 
@@ -100,11 +114,17 @@ describe "Array#reject!" do
     it "raises a TypeError on a frozen array" do
       lambda { ArraySpecs.frozen_array.reject! {} }.should raise_error(TypeError)
     end
+    it "raises a TypeError on an empty frozen array" do
+      lambda { ArraySpecs.empty_frozen_array.reject! {} }.should raise_error(TypeError)
+    end
   end
 
   ruby_version_is "1.9" do
     it "raises a RuntimeError on a frozen array" do
       lambda { ArraySpecs.frozen_array.reject! {} }.should raise_error(RuntimeError)
+    end
+    it "raises a RuntimeError on an empty frozen array" do
+      lambda { ArraySpecs.empty_frozen_array.reject! {} }.should raise_error(RuntimeError)
     end
   end
   

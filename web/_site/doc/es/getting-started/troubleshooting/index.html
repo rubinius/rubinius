@@ -126,7 +126,10 @@ $ rake distclean
 $ rake
 </code></pre>
 
-<p>Error:</p>
+<h3 id="rubinius-no-puede-encontrar-el-directorio-runtime">Rubinius no puede encontrar el directorio <code>runtime</code></h3>
+
+<p>Despues de construir o instalar Rubinius, ocurre el siguiente error al
+intentar ejecutar Rubinius:</p>
 
 <pre><code>ERROR: unable to find runtime directory
 
@@ -143,7 +146,7 @@ You may have configured Rubinius for a different install
 directory but you have not run 'rake install' yet.
 </code></pre>
 
-<p>Solución:</p>
+<h4 id="solucin">Solución</h4>
 
 <p>Si ha configurado Rubinius con &ndash;prefix, ejecute <code>rake install</code>.</p>
 
@@ -154,8 +157,21 @@ directory but you have not run 'rake install' yet.
 <p>Si cambió el nombre del directorio de origen después de la
   construcción de Rubinius, vuelva a configurar y a construir.</p>
 
-<p>En general, no cambie el nombre del directorio fuente donde realizó
-  la construcción de Rubinius después de que esta ha terminado.</p>
+<p>En general, no cambie el nombre del directorio de instalación
+  despues de la instalación de Rubinius o el nombre del directorio
+  fuente de si realizo una construcción para desarrollador.</p>
+
+<h3 id="la-construccin-de-rubinius-termina-en-error-de-segmentacin-en-freebsd">La construcción de Rubinius termina en error de segmentación en FreeBSD</h3>
+
+<p>En FreeBSD, incluyendo hasta la version 8.1 estable, existe un
+problema con <em>execinfo</em> que cause un error al iniciar Rubinius.</p>
+
+<h4 id="solucin-1">Solución</h4>
+
+<p>Deshabilite execinfo al configurar Rubinius:</p>
+
+<pre><code> ./configure --without-execinfo
+</code></pre>
 
 
     </div>

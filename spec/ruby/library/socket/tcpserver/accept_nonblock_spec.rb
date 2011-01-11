@@ -15,6 +15,7 @@ describe "Socket::TCPServer.accept_nonblock" do
     lambda { @server.accept_nonblock}.should raise_error(Errno::EAGAIN)
 
     c = TCPSocket.new("127.0.0.1", SocketSpecs.port)
+    sleep 0.1
     s = @server.accept_nonblock
 
     # commenting while we get some input on the current JRuby situation

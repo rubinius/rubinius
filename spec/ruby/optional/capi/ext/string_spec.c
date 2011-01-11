@@ -313,6 +313,12 @@ VALUE string_spec_RSTRING_ptr_assign_funcall(VALUE self, VALUE str) {
   rb_funcall(str, rb_intern("<<"), 1, rb_str_new2("e"));
   return str;
 }
+
+VALUE string_spec_RSTRING_ptr_write(VALUE self, VALUE str, VALUE text) {
+  strcpy(RSTRING(str)->ptr, RSTRING_PTR(text));
+  RSTRING(str)->len = RSTRING_LEN(text);
+  return Qnil;
+}
 #endif
 
 #ifdef HAVE_RSTRING_LEN
@@ -348,8 +354,8 @@ VALUE string_spec_RSTRING_PTR_assign(VALUE self, VALUE str, VALUE chr) {
 }
 
 VALUE string_spec_RSTRING_PTR_after_funcall(VALUE self, VALUE str, VALUE cb) {
-  // Silence gcc 4.3.2 warning about computed value not used
-  if(RSTRING_PTR(str)) { // force it out
+  /* Silence gcc 4.3.2 warning about computed value not used */
+  if(RSTRING_PTR(str)) { /* force it out */
     rb_funcall(cb, rb_intern("call"), 1, str);
   }
 
@@ -507,6 +513,7 @@ void Init_string_spec() {
   rb_define_method(cls, "RSTRING_ptr_iterate", string_spec_RSTRING_ptr_iterate, 1);
   rb_define_method(cls, "RSTRING_ptr_assign", string_spec_RSTRING_ptr_assign, 2);
   rb_define_method(cls, "RSTRING_ptr_assign_call", string_spec_RSTRING_ptr_assign_call, 1);
+  rb_define_method(cls, "RSTRING_ptr_write", string_spec_RSTRING_ptr_write, 2);
   rb_define_method(cls, "RSTRING_ptr_assign_funcall",
       string_spec_RSTRING_ptr_assign_funcall, 1);
   rb_define_method(cls, "RSTRING_len", string_spec_RSTRING_len, 1);

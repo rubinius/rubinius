@@ -9,6 +9,17 @@ describe "IO.foreach" do
     ScratchPad.record []
   end
 
+  ruby_version_is "1.9" do
+    before :each do
+      Encoding.default_external = Encoding::UTF_8
+      @orig_exteenc = Encoding.default_external
+    end
+
+    after :each do
+      Encoding.default_external = @orig_exteenc
+    end
+  end
+
   it "raises TypeError if the first parameter is nil" do
     lambda { IO.foreach(nil) {} }.should raise_error(TypeError)
   end

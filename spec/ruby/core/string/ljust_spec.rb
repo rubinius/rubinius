@@ -16,7 +16,7 @@ describe "String#ljust with length, padding" do
     "OK".ljust(6, "abcd").should == "OKabcd"
     "OK".ljust(8, "abcd").should == "OKabcdab"
   end
-  
+
   it "pads with whitespace if no padstr is given" do
     "hello".ljust(20).should == "hello               "
   end
@@ -46,7 +46,7 @@ describe "String#ljust with length, padding" do
 
     "o".ljust(obj, "_o").should == "o_o"
   end
-  
+
   it "raises a TypeError when length can't be converted to an integer" do
     lambda { "hello".ljust("x")       }.should raise_error(TypeError)
     lambda { "hello".ljust("x", "y")  }.should raise_error(TypeError)
@@ -66,17 +66,23 @@ describe "String#ljust with length, padding" do
     lambda { "hello".ljust(20, Object.new)}.should raise_error(TypeError)
     lambda { "hello".ljust(20, mock('x')) }.should raise_error(TypeError)
   end
-  
+
   it "raises an ArgumentError when padstr is empty" do
     lambda { "hello".ljust(10, '') }.should raise_error(ArgumentError)
   end
-  
+
   it "returns subclass instances when called on subclasses" do
     StringSpecs::MyString.new("").ljust(10).should be_kind_of(StringSpecs::MyString)
     StringSpecs::MyString.new("foo").ljust(10).should be_kind_of(StringSpecs::MyString)
     StringSpecs::MyString.new("foo").ljust(10, StringSpecs::MyString.new("x")).should be_kind_of(StringSpecs::MyString)
-    
+
     "".ljust(10, StringSpecs::MyString.new("x")).should be_kind_of(String)
     "foo".ljust(10, StringSpecs::MyString.new("x")).should be_kind_of(String)
+  end
+
+  it "when padding is tainted and self is untainted returns a tainted string if and only if length is longer than self" do
+    "hello".ljust(4, 'X'.taint).tainted?.should be_false
+    "hello".ljust(5, 'X'.taint).tainted?.should be_false
+    "hello".ljust(6, 'X'.taint).tainted?.should be_true
   end
 end

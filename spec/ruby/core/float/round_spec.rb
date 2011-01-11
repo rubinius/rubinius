@@ -6,5 +6,6 @@ describe "Float#round" do
     0.4.round.should == 0
     -2.8.round.should == -3
     0.0.round.should == 0
+    0.49999999999999994.round.should == 0 # see http://jira.codehaus.org/browse/JRUBY-5048
   end
 end

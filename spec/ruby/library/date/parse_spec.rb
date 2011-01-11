@@ -148,19 +148,19 @@ ruby_version_is "1.8.7" do
 
     ruby_version_is "" ... "1.9" do
       it "parses a YY.MM.DD string into a Date object" do
-	d = Date.parse("10.01.07")
-	d.year.should  == 10
-	d.month.should == 1
-	d.day.should   == 7
+        d = Date.parse("10.01.07")
+        d.year.should  == 10
+        d.month.should == 1
+        d.day.should   == 7
       end
     end
 
     ruby_version_is "1.9" do
       it "parses a YY.MM.DD string into a Date object" do
-	d = Date.parse("10.01.07")
-	d.year.should  == 2010
-	d.month.should == 1
-	d.day.should   == 7
+        d = Date.parse("10.01.07")
+        d.year.should  == 2010
+        d.month.should == 1
+        d.day.should   == 7
       end
     end
 

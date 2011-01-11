@@ -206,6 +206,7 @@ describe "Array#flatten!" do
     # see [ruby-core:23663]
     it "raises a RuntimeError on frozen arrays when the array would not be modified" do
       lambda { ArraySpecs.frozen_array.flatten! }.should raise_error(RuntimeError)
+      lambda { ArraySpecs.empty_frozen_array.flatten! }.should raise_error(RuntimeError)
     end
   end
 end

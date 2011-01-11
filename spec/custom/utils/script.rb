@@ -1,13 +1,17 @@
-require 'spec/custom/utils/options'
-require 'spec/custom/runner/actions/gcstats'
-require 'spec/custom/runner/actions/profiler'
-
 # Registers custom actions, etc. for all MSpec scripts
 #
 class MSpecScript
   def custom_register
     GCStatsAction.new.register if config[:gc_stats]
     ProfilerAction.new.register if config[:profiler]
+  end
+end
+
+# Custom options for mspec
+#
+class MSpecMain
+  def custom_options(options)
+    options.agent
   end
 end
 

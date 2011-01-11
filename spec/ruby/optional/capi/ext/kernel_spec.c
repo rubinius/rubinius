@@ -35,11 +35,13 @@ VALUE kernel_spec_rb_block_proc(VALUE self) {
 #ifdef HAVE_RB_ENSURE
 VALUE kernel_spec_rb_ensure(VALUE self, VALUE main_proc, VALUE arg,
                             VALUE ensure_proc, VALUE arg2) {
-  VALUE main_array = rb_ary_new();
+  VALUE main_array, ensure_array;
+
+  main_array = rb_ary_new();
   rb_ary_push(main_array, main_proc);
   rb_ary_push(main_array, arg);
 
-  VALUE ensure_array = rb_ary_new();
+  ensure_array = rb_ary_new();
   rb_ary_push(ensure_array, ensure_proc);
   rb_ary_push(ensure_array, arg2);
 
@@ -88,11 +90,13 @@ VALUE kernel_spec_call_proc_with_raised_exc(VALUE arg_array, VALUE raised_exc) {
 
 VALUE kernel_spec_rb_rescue(VALUE self, VALUE main_proc, VALUE arg,
                             VALUE raise_proc, VALUE arg2) {
-  VALUE main_array = rb_ary_new();
+  VALUE main_array, raise_array;
+
+  main_array = rb_ary_new();
   rb_ary_push(main_array, main_proc);
   rb_ary_push(main_array, arg);
 
-  VALUE raise_array = rb_ary_new();
+  raise_array = rb_ary_new();
   rb_ary_push(raise_array, raise_proc);
   rb_ary_push(raise_array, arg2);
 
@@ -103,11 +107,13 @@ VALUE kernel_spec_rb_rescue(VALUE self, VALUE main_proc, VALUE arg,
 
 #ifdef HAVE_RB_RESCUE2
 VALUE kernel_spec_rb_rescue2(int argc, VALUE *args, VALUE self) {
-  VALUE main_array = rb_ary_new();
+  VALUE main_array, raise_array;
+
+  main_array = rb_ary_new();
   rb_ary_push(main_array, args[0]);
   rb_ary_push(main_array, args[1]);
 
-  VALUE raise_array = rb_ary_new();
+  raise_array = rb_ary_new();
   rb_ary_push(raise_array, args[2]);
   rb_ary_push(raise_array, args[3]);
 
@@ -141,20 +147,19 @@ static VALUE kernel_spec_rb_yield(VALUE self, VALUE obj) {
 }
 #endif
 
-#ifdef HAVE_RB_YIELD_VALUES
-static VALUE kernel_spec_rb_yield_values(VALUE self, VALUE obj1, VALUE obj2) {
-  return rb_yield_values(2, obj1, obj2);
-}
-#endif
-
 #ifdef HAVE_RB_YIELD_SPLAT
 static VALUE kernel_spec_rb_yield_splat(VALUE self, VALUE ary) {
   return rb_yield_splat(ary);
 }
 #endif
 
-#ifdef HAVE_RB_EXEC_RECURSIVE
+#ifdef HAVE_RB_YIELD_VALUES
+static VALUE kernel_spec_rb_yield_values(VALUE self, VALUE obj1, VALUE obj2) {
+  return rb_yield_values(2, obj1, obj2);
+}
+#endif
 
+#ifdef HAVE_RB_EXEC_RECURSIVE
 static VALUE do_rec(VALUE obj, VALUE arg, int is_rec) {
   if(is_rec) {
     return obj;

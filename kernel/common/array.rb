@@ -571,14 +571,16 @@ class Array
   # or nil is given. If a non-positive number is given or the array is empty,
   # does nothing. Returns nil if the loop has finished without getting interrupted.
   def cycle(n = nil, &block)
-    return to_enum(:cycle, n) unless block_given?
-    if n
-      n = Type.coerce_to n, Fixnum, :to_int
-      n.times do
+    return to_enum :cycle, n unless block_given?
+
+    # Don't use nil? because, historically, lame code has overridden that method
+    if n.equal? nil
+      while true
         each { |x| yield x }
       end
     else
-      while true
+      n = Type.coerce_to n, Fixnum, :to_int
+      n.times do
         each { |x| yield x }
       end
     end
@@ -1494,6 +1496,8 @@ class Array
 
   # Shuffles elements in self in place.
   def shuffle!
+    Ruby.check_frozen
+
     size.times do |i|
       r = i + Kernel.rand(size - i)
       @tuple.swap(i,r)

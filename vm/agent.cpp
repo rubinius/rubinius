@@ -2,6 +2,7 @@
 #include <limits.h>
 #include <sys/types.h>
 #include <sys/socket.h>
+#include <sys/stat.h>
 #include <netinet/in.h>
 #include <netdb.h>
 #include <arpa/inet.h>
@@ -40,6 +41,7 @@ namespace rubinius {
     , server_fd_(-1)
     , verbose_(false)
     , max_fd_(0)
+    , exit_(false)
     , vars_(0)
   {
     FD_ZERO(&fds_);
@@ -204,11 +206,13 @@ namespace rubinius {
     // It's possible we call code that wants this to thread
     // to be setup as a fully managed thread, so lets just make it one.
     NativeMethod::init_thread(state_);
+    set_delete_on_exit();
 
     while(1) {
       fd_set read_fds = fds_;
 
       int ret = select(max_fd_ + 1, &read_fds, 0, 0, 0);
+      if(exit_) return;
 
       if(ret < 0) {
         if(errno == EINTR || errno == EAGAIN) continue;
@@ -282,6 +286,8 @@ namespace rubinius {
         }
       }
     }
+
+    NativeMethod::cleanup_thread(state_);
   }
 
   static char tmp_path[PATH_MAX];
@@ -300,6 +306,19 @@ namespace rubinius {
     remove_tmp_path();
   }
 
+  void QueryAgent::shutdown(STATE) {
+    if(!state->shared.agent()) return;
+    state->shared.agent()->shutdown_i();
+  }
+
+  void QueryAgent::shutdown_i() {
+    exit_ = true;
+    wakeup();
+    cleanup();
+
+    if(!in_self_p()) join();
+  }
+
   void QueryAgent::make_discoverable() {
     // Create a tmp file containing the information to be used
     // by console to find us.
@@ -312,65 +331,74 @@ namespace rubinius {
       tmpdir = getenv("TMPDIR");
     }
 
-    if(tmpdir) {
-      std::ostringstream ss;
-      pid_t pid = getpid();
-      ss << tmpdir << "/rubinius-agent." << pid;
+    if(!tmpdir) {
+      struct stat st;
 
-      strncpy(tmp_path, ss.str().c_str(), ss.str().size());
-      std::ofstream stream(tmp_path);
+      if(!stat("/tmp", &st) && S_ISDIR(st.st_mode) && (st.st_mode & S_IRWXU) == S_IRWXU) {
+        tmpdir = "/tmp";
+      } else {
+        fputs("agent: unable to write discovery file", stderr);
+        return;
+      }
+    }
 
-      // Couldn't open the path, for whatever reason.
-      if(!stream) return;
+    std::ostringstream ss;
+    pid_t pid = getpid();
+    ss << tmpdir << "/rubinius-agent." << pid;
 
-      int argc = shared_.env()->argc();
-      char** argv = shared_.env()->argv();
+    strncpy(tmp_path, ss.str().c_str(), ss.str().size());
+    std::ofstream stream(tmp_path);
 
-      if(stream) {
-        stream << pid << "\n";
-        stream << port() << "\n";
+    // Couldn't open the path, for whatever reason.
+    if(!stream) return;
 
-        for(int i = 0; i < argc; i++) {
-          stream << argv[i] << " ";
-        }
-        stream << "\n";
+    int argc = shared_.env()->argc();
+    char** argv = shared_.env()->argv();
 
-        char buf[PATH_MAX];
+    if(stream) {
+      stream << pid << "\n";
+      stream << port() << "\n";
+
+      for(int i = 0; i < argc; i++) {
+        stream << argv[i] << " ";
+      }
+      stream << "\n";
+
+      char buf[PATH_MAX];
 #ifdef __APPLE__
-        uint32_t size = PATH_MAX;
-        if(_NSGetExecutablePath(buf, &size) == 0) {
+      uint32_t size = PATH_MAX;
+      if(_NSGetExecutablePath(buf, &size) == 0) {
+        stream << buf << "\n";
+      } else if(realpath(argv[0], buf)) {
+        stream << buf << "\n";
+      } else {
+        stream << argv[0] << "\n";
+      }
+#elif defined(__linux__)
+      {
+        std::ifstream exe("/proc/self/exe");
+        if(exe) {
+          char buf[PATH_MAX];
+          exe.get(buf, PATH_MAX);
+
           stream << buf << "\n";
         } else if(realpath(argv[0], buf)) {
           stream << buf << "\n";
         } else {
           stream << argv[0] << "\n";
         }
-#elif defined(__linux__)
-        {
-          std::ifstream exe("/proc/self/exe");
-          if(exe) {
-            char buf[PATH_MAX];
-            exe.get(buf, PATH_MAX);
-
-            stream << buf << "\n";
-          } else if(realpath(argv[0], buf)) {
-            stream << buf << "\n";
-          } else {
-            stream << argv[0] << "\n";
-          }
-        }
+      }
 #else
-        if(realpath(argv[0], buf)) {
-          stream << buf << "\n";
-        } else {
-          stream << argv[0] << "\n";
-        }
+      if(realpath(argv[0], buf)) {
+        stream << buf << "\n";
+      } else {
+        stream << argv[0] << "\n";
+      }
 #endif
 
-        stream.close();
+      stream.close();
 
-        atexit(remove_tmp_path);
-      }
+      atexit(remove_tmp_path);
     }
   }
 }

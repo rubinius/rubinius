@@ -138,6 +138,10 @@ extern "C" {
     return rb_funcall(self_handle, rb_intern("delete"), 1, item);
   }
 
+  VALUE rb_ary_delete_at(VALUE self_handle, long idx) {
+    return rb_funcall(self_handle, rb_intern("delete_at"), 1, INT2FIX(idx));
+  }
+
   VALUE rb_ary_dup(VALUE self_handle) {
     return rb_funcall2(self_handle, rb_intern("dup"), 0, NULL);
   }

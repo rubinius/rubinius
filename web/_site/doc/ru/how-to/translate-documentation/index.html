@@ -111,34 +111,33 @@
 
       
 
-        <p>There are two translation tasks:</p>
+        <p>Существуют два вида задач перевода:</p>
 
 <ol>
-  <li>updating an existing translation</li>
-  <li>creating a completely new translation</li>
+  <li>изменение существующего перевода</li>
+  <li>добавление перевода на другой язык</li>
 </ol>
 
-<p>Begin by reading <a href="/doc/ru/how-to/write-documentation/">How-To - Write
-Documentation</a></p>
+<p>Начните с чтения <a href="/doc/ru/how-to/write-documentation/">Написание
+документации</a></p>
 
-<h3 id="updating-an-existing-translation">Updating an Existing Translation</h3>
+<h3 id="section">Изменение существующего перевода</h3>
 
-<p>To update an existing translation, open the topic file under <code>web/doc/LANG</code>
-and edit the existing text or add newly translated text.</p>
+<p>Чтобы изменить существующий перевод откройте нужный файл в директории
+<code>web/doc/LANG</code> и отредактируйте существующий перевод или добавьте свой.</p>
 
-<h3 id="creating-a-new-translation">Creating a New Translation</h3>
+<h3 id="section-1">Добавление перевода на другой язык</h3>
 
-<p>To create a new language translation:</p>
+<p>Чтобы начать перевод:</p>
 
 <ol>
-  <li>Copy <code>web/doc/en</code> to <code>web/doc/LANG</code> where <em>LANG</em> is the
-<a href="http://en.wikipedia.org/wiki/List_of_ISO_639-2_codes">ISO-639-1</a> code for
-the language translation you are creating.</li>
-  <li>Edit the links in the Table of Contents to point to the location of the
-files for the translation. (Note that for some reason the <code>page.base_dir</code>
-attribute is not available when these files are being rendered by Jekyll.
-This needs to be investigated.)</li>
-  <li>Translate the English text to the target language.</li>
+  <li>Скопируйте <code>web/doc/en</code> в <code>web/doc/LANG</code>, где <em>LANG</em> это
+<a href="http://en.wikipedia.org/wiki/List_of_ISO_639-2_codes">ISO-639-2</a> код для
+языка, для которого вы делаете перевод.</li>
+  <li>Отредактируйте ссылки в содержании, чтобы они указывали на правильные файлы
+в переводе. (По некоторы причинам атрибут <code>page.base_dir</code> недоступен, когда
+при обработкех этих файлов Jekyll. С этим моментом предстоит разобраться.)</li>
+  <li>Переведите английский текст на выбранный вами язык.</li>
 </ol>
 
 

@@ -24,23 +24,12 @@ ruby_version_is "1.9" do
       a.should be_kind_of(Array)
     end
 
-    ruby_version_is '' ... '1.9' do
-      it "raises a TypeError on a frozen array" do
-        lambda { ArraySpecs.frozen_array.sort_by! {} }.should raise_error(TypeError)
-      end
-
-      it "temporarily freezes self and recovers after sorted" do
-        a = [1, 2, 3]
-        a.sort_by! { |x,y| a.frozen?.should == true; x <=> y }
-        a.frozen?.should == false
-      end
+    it "raises a RuntimeError on a frozen array" do
+      lambda { ArraySpecs.frozen_array.sort_by! {}}.should raise_error(RuntimeError)
     end
 
-    ruby_version_is '1.9' do
-      it "raises a RuntimeError on a frozen array" do
-        lambda { ArraySpecs.frozen_array.sort_by! {}}.should raise_error(RuntimeError)
-      end
-
+    it "raises a RuntimeError on an empty frozen array" do
+      lambda { ArraySpecs.empty_frozen_array.sort_by! {}}.should raise_error(RuntimeError)
     end
 
     it "returns the specified value when it would break in the given block" do

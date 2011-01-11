@@ -105,6 +105,12 @@ static VALUE array_spec_rb_ary_delete(VALUE self, VALUE array, VALUE item) {
 }
 #endif
 
+#ifdef HAVE_RB_ARY_DELETE_AT
+static VALUE array_spec_rb_ary_delete_at(VALUE self, VALUE array, VALUE index) {
+  return rb_ary_delete_at(array, NUM2LONG(index));
+}
+#endif
+
 #ifdef HAVE_RB_ARY_DUP
 static VALUE array_spec_rb_ary_dup(VALUE self, VALUE array) {
   return rb_ary_dup(array);
@@ -146,6 +152,30 @@ static VALUE array_spec_rb_ary_new(VALUE self) {
 #ifdef HAVE_RB_ARY_NEW2
 static VALUE array_spec_rb_ary_new2(VALUE self, VALUE length) {
   return rb_ary_new2(NUM2LONG(length));
+}
+
+#ifdef HAVE_RARRAY
+static VALUE array_spec_rb_ary_new2_assign(VALUE self, VALUE ary, VALUE content, VALUE length) {
+  int i;
+  for (i = 0; i < NUM2INT(length); i++) {
+    RARRAY(ary)->ptr[i] = content;
+  }
+  RARRAY(ary)->len = i;
+  return ary;
+}
+#endif
+#endif
+
+#ifdef HAVE_RB_ARY_NEW3
+static VALUE array_spec_rb_ary_new3(VALUE self, VALUE first, VALUE second, VALUE third) {
+  return rb_ary_new3(3, first, second, third);
+}
+#endif
+
+#ifdef HAVE_RB_ARY_NEW4
+static VALUE array_spec_rb_ary_new4(VALUE self, VALUE first, VALUE second, VALUE third) {
+  VALUE values[3] = {first, second, third};
+  return rb_ary_new4(3, values);
 }
 #endif
 
@@ -196,7 +226,7 @@ static VALUE array_spec_rb_assoc_new(VALUE self, VALUE first, VALUE second) {
 
 #if defined(HAVE_RB_ITERATE) && defined(HAVE_RB_EACH)
 static VALUE copy_ary(VALUE el, VALUE new_ary) {
-  rb_ary_push(new_ary, el);
+  return rb_ary_push(new_ary, el);
 }
 
 static VALUE array_spec_rb_iterate(VALUE self, VALUE ary) {
@@ -285,6 +315,10 @@ void Init_array_spec() {
   rb_define_method(cls, "rb_ary_delete", array_spec_rb_ary_delete, 2);
 #endif
 
+#ifdef HAVE_RB_ARY_DELETE_AT
+  rb_define_method(cls, "rb_ary_delete_at", array_spec_rb_ary_delete_at, 2);
+#endif
+
 #ifdef HAVE_RB_ARY_DUP
   rb_define_method(cls, "rb_ary_dup", array_spec_rb_ary_dup, 1);
 #endif
@@ -311,6 +345,17 @@ void Init_array_spec() {
 
 #ifdef HAVE_RB_ARY_NEW2
   rb_define_method(cls, "rb_ary_new2", array_spec_rb_ary_new2, 1);
+#ifdef HAVE_RARRAY
+  rb_define_method(cls, "rb_ary_new2_assign", array_spec_rb_ary_new2_assign, 3);
+#endif
+#endif
+
+#ifdef HAVE_RB_ARY_NEW3
+  rb_define_method(cls, "rb_ary_new3", array_spec_rb_ary_new3, 3);
+#endif
+
+#ifdef HAVE_RB_ARY_NEW4
+  rb_define_method(cls, "rb_ary_new4", array_spec_rb_ary_new4, 3);
 #endif
 
 #ifdef HAVE_RB_ARY_POP

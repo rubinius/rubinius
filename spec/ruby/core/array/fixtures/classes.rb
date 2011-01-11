@@ -35,6 +35,12 @@ module ArraySpecs
     frozen_array
   end
 
+  def self.empty_frozen_array
+    frozen_array = []
+    frozen_array.freeze
+    frozen_array
+  end
+
   def self.recursive_array
     a = [1, 'two', 3.0]
     5.times { a << a }

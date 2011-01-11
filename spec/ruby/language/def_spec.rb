@@ -501,7 +501,7 @@ describe "The def keyword" do
         }.call
       end
 
-      DefSpecsLambdaVisibility.private_instance_methods.should include("some_method")
+      DefSpecsLambdaVisibility.should have_private_instance_method("some_method")
     end
   end
 end
