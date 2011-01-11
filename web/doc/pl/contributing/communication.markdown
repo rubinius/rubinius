@@ -1,18 +1,19 @@
 ---
 layout: doc_pl
-title: Communication
-previous: Contributing
+title: Komunikacja
+previous: Udział w projekcie
 previous_url: contributing
-next: Style Guide
+next: Styl programowania
 next_url: contributing/style-guide
 review: true
 ---
 
-The Rubinius team appreciates and prizes your contributions. Since Rubinius is
-a large and sometimes complex project, communication can be a challenge at
-times. We rely heavily on IRC, however, there are other communication channels
-as well. Below is a list of places we can be reached:
+Zespół pracujący nad projektem Rubinius docenia Twój wkład w
+projekt. Ponieważ Rubinius jest dużym i skomplikowanym projektem
+poprawna komunikacja może być czasami wyzwaniem. Odnośnie komunikacji
+polegamy w głównej mierze na kanale IRC, ponadto możesz się z nami
+skontaktować przy pomocy poniższych sposobów:
 
-* IRC: `#rubinius` on irc.freenode.net
+* IRC: `#rubinius` na irc.freenode.net
 * Twitter: [twitter.com/rubinius](http://twitter.com/rubinius)
-* Mailing List: [Google Groups](http://groups.google.com/group/rubinius-dev)
+* Lista mailingowa: [Google Groups](http://groups.google.com/group/rubinius-dev)
