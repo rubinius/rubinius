@@ -1,10 +1,10 @@
 #include <vector>
-#include <cerrno>
+#include <errno.h>
 
 #include <iostream>
 #include <fstream>
-#include <cstdarg>
-#include <cstring>
+#include <stdarg.h>
+#include <string.h>
 #include <sstream>
 
 #include <sys/resource.h>

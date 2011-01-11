@@ -7,7 +7,7 @@
 
 #include "type_info.hpp"
 #include <ctype.h> // For isdigit and friends
-#include <cerrno> // For ERANGE
+#include <errno.h> // For ERANGE
 
 // copied from ruby 1.8.x source, ruby.h
 /* need to include <ctype.h> to use these macros */

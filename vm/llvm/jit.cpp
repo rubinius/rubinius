@@ -34,7 +34,7 @@ namespace autogen_types {
 #include <sstream>
 #include <fstream>
 #include <iomanip>
-#include <cstdlib>
+#include <stdlib.h>
 #include <dlfcn.h>
 
 #include "llvm/jit_compiler.hpp"

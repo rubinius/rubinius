@@ -4,7 +4,7 @@
 
 #include "objectmemory.hpp"
 
-#include <cassert>
+#include <assert.h>
 
 namespace rubinius {
   size_t ObjectHeader::slow_size_in_bytes(STATE) const {

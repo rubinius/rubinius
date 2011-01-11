@@ -4,9 +4,9 @@
 #include <sstream>
 #include <string>
 
-#include <cstdarg>
-#include <cstdlib>
-#include <cstring>
+#include <stdarg.h>
+#include <stdlib.h>
+#include <string.h>
 
 #include "builtin/nativemethod.hpp"
 

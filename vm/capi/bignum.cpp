@@ -1,5 +1,4 @@
 #include <math.h>
-#include <cmath>
 
 #include "builtin/bignum.hpp"
 #include "builtin/object.hpp"

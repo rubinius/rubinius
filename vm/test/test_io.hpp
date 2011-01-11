@@ -3,7 +3,7 @@
 #include "builtin/io.hpp"
 #include "builtin/string.hpp"
 
-#include <cstdio>
+#include <stdio.h>
 #include <sys/stat.h>
 
 class TestIO : public CxxTest::TestSuite, public VMTest {

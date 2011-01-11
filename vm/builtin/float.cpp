@@ -11,8 +11,8 @@
 
 #include <gdtoa.h>
 
-#include <cstring>
-#include <cmath>
+#include <string.h>
+#include <math.h>
 #include <iostream>
 #include <sstream>
 

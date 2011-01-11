@@ -1,6 +1,6 @@
-#include <cctype>
-#include <cstring>
-#include <cmath>
+#include <ctype.h>
+#include <string.h>
+#include <math.h>
 #include <iomanip>
 
 #include "objectmemory.hpp"

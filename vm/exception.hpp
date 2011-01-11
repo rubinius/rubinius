@@ -2,8 +2,8 @@
 #define RBX_EXCEPTION_HPP
 
 #include <string>
-#include <cstdlib>
-#include <cstring>
+#include <stdlib.h>
+#include <string.h>
 
 #include "object_types.hpp"
 #include "prelude.hpp"

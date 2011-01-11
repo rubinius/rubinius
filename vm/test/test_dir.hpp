@@ -3,7 +3,7 @@
 #include "builtin/dir.hpp"
 #include "builtin/string.hpp"
 
-#include <cstdio>
+#include <stdio.h>
 #include <sys/stat.h>
 
 class TestDir : public CxxTest::TestSuite, public VMTest {

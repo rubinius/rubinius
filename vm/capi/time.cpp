@@ -1,5 +1,4 @@
 #include <math.h>
-#include <cmath>
 
 #include "builtin/object.hpp"
 #include "builtin/time.hpp"

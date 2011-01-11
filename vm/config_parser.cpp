@@ -1,5 +1,5 @@
-#include <cstring>
-#include <cstdlib>
+#include <string.h>
+#include <stdlib.h>
 #include <string>
 #include <fstream>
 

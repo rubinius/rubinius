@@ -8,7 +8,7 @@
 #include "capi/capi.hpp"
 #include "capi/include/ruby.h"
 
-#include <cstring>
+#include <string.h>
 
 using namespace rubinius;
 using namespace rubinius::capi;
