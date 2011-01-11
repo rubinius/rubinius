@@ -590,6 +590,14 @@ class Configure
     ENV[which] || ""
   end
 
+  def default_link_libs
+    libs = []
+    unless @host =~ /haiku/
+      libs << "m"
+    end
+    libs
+  end
+
   def check_program(run=true, link_libs=[])
     begin
       basename = "rbx-configure-test"
@@ -598,13 +606,9 @@ class Configure
         yield f
       end
 
-      if link_libs.empty?
-        libs = ""
-      else
-        libs = link_libs.map { |l| "-l#{l}" }.join(" ")
-      end
+      libs = (default_link_libs + link_libs).map { |l| "-l#{l}" }.join(" ")
 
-      cmd = "#{@cxx} #{env('CFLAGS')} -lstdc++ -lm #{libs} -o #{basename} #{source} >>#{@log.path} 2>&1"
+      cmd = "#{@cxx} #{env('CFLAGS')} -lstdc++ #{libs} -o #{basename} #{source} >>#{@log.path} 2>&1"
       @log.log cmd
       system cmd
       return $?.exitstatus unless run
