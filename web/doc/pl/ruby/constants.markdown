@@ -1,5 +1,5 @@
 ---
-layout: doc_en
+layout: doc_pl
 title: Constants
 previous: Methods
 previous_url: ruby/methods

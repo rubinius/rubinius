@@ -1,5 +1,5 @@
 ---
-layout: doc_en
+layout: doc_pl
 title: How-To - Write Documentation
 previous: Write a Blog Post
 previous_url: how-to/write-a-blog-post

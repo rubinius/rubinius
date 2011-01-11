@@ -1,5 +1,5 @@
 ---
-layout: doc_en
+layout: doc_pl
 title: Coding Style Guide
 previous: Communication
 previous_url: contributing/communication
