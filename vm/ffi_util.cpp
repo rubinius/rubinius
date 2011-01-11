@@ -152,6 +152,14 @@ unsigned int ffi_cast(unsigned int val) {
   return val;
 }
 
+#ifndef major
+#define major(x) x
+#endif
+
+#ifndef minor
+#define minor(x) 0
+#endif
+
 long ffi_major(dev_t n) {
   return major(n);
 }
