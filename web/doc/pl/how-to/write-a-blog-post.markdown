@@ -1,5 +1,5 @@
 ---
-layout: doc_pl
+layout: doc_en
 title: How-To - Write a Blog Post
 previous: Fix a Failing Spec
 previous_url: how-to/fix-a-failing-spec

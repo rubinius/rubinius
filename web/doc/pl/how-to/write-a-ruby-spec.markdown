@@ -1,5 +1,5 @@
 ---
-layout: doc_pl
+layout: doc_en
 title: How-To - Write a Ruby Spec
 previous: Write a Ticket
 previous_url: how-to/write-a-ticket

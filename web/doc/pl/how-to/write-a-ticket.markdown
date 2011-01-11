@@ -1,5 +1,5 @@
 ---
-layout: doc_pl
+layout: doc_en
 title: How-To - Write a Ticket
 previous: How-To
 previous_url: how-to

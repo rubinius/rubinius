@@ -1,5 +1,5 @@
 ---
-layout: doc_pl
+layout: doc_en
 title: Local Variables
 previous: Blocks & Procs
 previous_url: ruby/blocks-and-procs

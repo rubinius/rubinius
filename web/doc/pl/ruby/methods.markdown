@@ -1,5 +1,5 @@
 ---
-layout: doc_pl
+layout: doc_en
 title: Methods
 previous: Scripts
 previous_url: ruby/scripts

@@ -1,5 +1,5 @@
 ---
-layout: doc_pl
+layout: doc_en
 title: Debugger
 previous: Tools
 previous_url: tools
