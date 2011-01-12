@@ -169,7 +169,7 @@ namespace rubinius {
   }
 
   Object* Float::compare(STATE, Integer* other) {
-    if(std::isinf(this->val)) {
+    if(isinf(this->val)) {
       if(this->val > 0) {
           return Fixnum::from(1);
       } else {
@@ -221,7 +221,7 @@ namespace rubinius {
   }
 
   Object* Float::fisinf(STATE) {
-    if(std::isinf(this->val) != 0) {
+    if(isinf(this->val) != 0) {
       return this->val < 0 ? Fixnum::from(-1) : Fixnum::from(1);
     } else {
       return Qnil;
@@ -229,7 +229,7 @@ namespace rubinius {
   }
 
   Object* Float::fisnan(STATE) {
-    return std::isnan(this->val) == 1 ? Qtrue : Qfalse;
+    return isnan(this->val) == 1 ? Qtrue : Qfalse;
   }
 
   Integer* Float::fround(STATE) {

@@ -32,7 +32,7 @@ namespace rubinius {
         ptr = reinterpret_cast<char*>(ba->raw_bytes());
       } else {
         ByteArray* new_ba = ByteArray::create_pinned(env->state(), byte_size);
-        std::memcpy(new_ba->raw_bytes(), string->byte_address(), byte_size);
+        memcpy(new_ba->raw_bytes(), string->byte_address(), byte_size);
         string->data(env->state(), new_ba);
 
         ptr = reinterpret_cast<char*>(new_ba->raw_bytes());
@@ -211,7 +211,7 @@ extern "C" {
     if(size != len) {
       if(size < len) {
         ByteArray* ba = ByteArray::create_pinned(env->state(), len+1);
-        std::memcpy(ba->raw_bytes(), string->byte_address(), size);
+        memcpy(ba->raw_bytes(), string->byte_address(), size);
         string->data(env->state(), ba);
       }
 
@@ -283,7 +283,7 @@ extern "C" {
       rb_raise(rb_eArgError, "NULL pointer given");
     }
 
-    return rb_tainted_str_new(string, std::strlen(string));
+    return rb_tainted_str_new(string, strlen(string));
   }
 
   VALUE rb_tainted_str_new(const char* string, long size) {
