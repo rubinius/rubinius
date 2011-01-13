@@ -322,9 +322,9 @@ struct RString {
 #define RSTRING(str)    capi_rstring_struct(str)
 
 struct RArray {
-  size_t len;
-  union {
-    size_t capa;
+  ssize_t len;
+  struct {
+    ssize_t capa;
     VALUE shared;
   } aux;
   VALUE *ptr;

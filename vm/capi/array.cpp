@@ -37,49 +37,105 @@ namespace rubinius {
       handle->update(env);
     }
 
+    /* We were in C-land and now we are returning to Ruby-land. Since the C
+     * program can freely assign to RArray.len and RArray.ptr, we account
+     * for that when updating the Ruby Array with the C structure contents.
+     *
+     * Note that we must copy the total elements in the cached C array
+     * regardless of the value of the len parameter because the C array
+     * contents can be changed indepedently from the len parameter.
+     *
+     * See Handle::as_rarray below.
+     */
     void flush_cached_rarray(NativeMethodEnvironment* env, Handle* handle) {
       if(handle->is_rarray()) {
         Array* array = as<Array>(handle->object());
+        Tuple* tuple = array->tuple();
         RArray* rarray = handle->as_rarray(env);
 
-        size_t size = array->size();
+        size_t size = tuple->num_fields();
+        size_t num = 0;
 
-        if(size != rarray->len) {
-          Tuple* tuple = Tuple::create(env->state(), rarray->len);
-          array->tuple(env->state(), tuple);
-          array->start(env->state(), Fixnum::from(0));
-          array->total(env->state(), Fixnum::from(rarray->len));
+        if(rarray->ptr != rarray->dmwmb) {
+          // This is a very bad C extension. Assume len is valid.
+          num = rarray->len;
+        } else {
+          num = rarray->aux.capa;
         }
 
-        for(size_t i = 0; i < size; i++) {
-          array->set(env->state(), i, env->get_object(rarray->ptr[i]));
+        if(num > size) {
+          tuple = Tuple::create(env->state(), rarray->aux.capa);
+          array->tuple(env->state(), tuple);
+        }
+
+        array->start(env->state(), Fixnum::from(0));
+        array->total(env->state(), Fixnum::from(rarray->len));
+
+        for(size_t i = 0; i < num; i++) {
+          tuple->put(env->state(), i, env->get_object(rarray->ptr[i]));
         }
       }
     }
 
+    /* We were in Ruby-land and we are heading to C-land. In Ruby-land, we
+     * may have updated the existing Array elements, appended new elements,
+     * or shifted off elements. We account for this when updating the C
+     * structure contents.
+     *
+     * We are potentially writing into a C structure that exists and that
+     * may have been changed in C-land. It is possible for C code to change
+     * both the len and ptr values of an RArray. We DO NOT EVER encourage
+     * doing this, but we must account for it. The C code may also merely
+     * change the contents of the array pointed to by ptr. Updating that
+     * array with the current elements in the Ruby Array is the purpose of
+     * this code.
+     */
     void update_cached_rarray(NativeMethodEnvironment* env, Handle* handle) {
       if(handle->is_rarray()) {
         Array* array = c_as<Array>(handle->object());
+        Tuple* tuple = array->tuple();
         RArray* rarray = handle->as_rarray(env);
 
-        size_t size = array->size();
+        ssize_t size = tuple->num_fields();
+        ssize_t start = array->start()->to_native();
+        ssize_t num = 0;
 
-        if(rarray->len != size) {
-          delete[] rarray->dmwmb;
-          rarray->dmwmb = rarray->ptr = new VALUE[size];
-          rarray->aux.capa = rarray->len = size;
+        if(rarray->ptr != rarray->dmwmb) {
+          // This is a very bad C extension. Assume len is valid
+          // and do not change its value.
+          num = rarray->len;
+        } else {
+          if(rarray->aux.capa < size) {
+            delete[] rarray->dmwmb;
+            rarray->dmwmb = rarray->ptr = new VALUE[size];
+            rarray->aux.capa = size;
+          }
+          num = rarray->aux.capa;
+          rarray->len = array->size();
         }
 
-        for(size_t i = 0; i < size; i++) {
-          rarray->ptr[i] = env->get_handle(array->get(env->state(), i));
+        for(ssize_t i = 0, j = start; i < num && j < size; i++, j++) {
+          rarray->ptr[i] = env->get_handle(tuple->at(j));
         }
       }
     }
 
+    /* It is possible to create an Array in MRI whose capacity exceeds its
+     * current length (eg rb_ary_new2(long length)). The same is true in
+     * Rubinius where Array has a size() attribute and is backed by an
+     * instance of Tuple, whose size will always be gte Array::size().  The
+     * RArray structure in MRI accounts for this and we must as well when
+     * updating and syncing the cached values. For example:
+     *
+     *   for(i = 0; i < len; i++) {
+     *     RARRAY(ary)->ptr[i] = obj
+     *   }
+     *   RARRAY(ary)->len = len
+     */
     RArray* Handle::as_rarray(NativeMethodEnvironment* env) {
       if(type_ != cRArray) {
         Array* array = c_as<Array>(object());
-        size_t size = array->size();
+        size_t size = array->tuple()->num_fields();
 
         RArray* ary = new RArray;
         VALUE* ptr = new VALUE[size];
@@ -88,7 +144,8 @@ namespace rubinius {
         }
 
         ary->dmwmb = ary->ptr = ptr;
-        ary->aux.capa = ary->len = size;
+        ary->len = array->size();
+        ary->aux.capa = size;
         ary->aux.shared = Qfalse;
 
         type_ = cRArray;
