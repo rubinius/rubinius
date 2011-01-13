@@ -464,22 +464,39 @@ module Daedalus
     end
 
     def objects
+      # This partitions the list into .o's first and .a's last. This
+      # is because gcc on some platforms require that static libraries
+      # be linked last. This is because gcc builds a list of undefined
+      # symbols, and then when it hits a .a, looks in the archive
+      # to try and resolve those symbols. So if a .o needs something
+      # from a .a, the .a MUST come after the .o
       objects = []
+      archives = []
 
       @files.each do |x|
         if x.respond_to? :object_path
-          objects << x.object_path
+          if File.extname(x.object_path) == ".a"
+            archives << x.object_path
+          else
+            objects << x.object_path
+          end
         else
-          objects.concat x.objects
+          x.objects.each do |obj|
+            if File.extname(obj) == ".a"
+              archives << obj
+            else
+              objects << obj
+            end
+          end
         end
       end
 
-      objects.sort
+      objects.sort + archives
     end
 
     def consider(ctx, tasks)
       @files.each { |x| x.consider(ctx, tasks) }
-      tasks.post << self unless tasks.empty?
+      tasks.post << self unless tasks.empty? and File.exists?(@path)
     end
 
     def build(ctx)

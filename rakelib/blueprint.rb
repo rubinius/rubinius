@@ -32,7 +32,10 @@ Daedalus.blueprint do |i|
   gcc.ldflags << "-lstdc++"
   gcc.ldflags << "-L/usr/local/lib -L/opt/local/lib -ldl"
 
-  gcc.ldflags << '-Wl,--export-dynamic' if RUBY_PLATFORM =~ /linux|openbsd/i
+  if RUBY_PLATFORM =~ /linux|openbsd/i
+    gcc.ldflags << '-Wl,--export-dynamic' << "-lrt" << "-lcrypt"
+  end
+
   gcc.ldflags << '-rdynamic'            if RUBY_PLATFORM =~ /bsd/
 
   # Files
@@ -133,7 +136,7 @@ Daedalus.blueprint do |i|
 
   test_files = files.dup
   test_files << i.source_file("vm/test/runner.cpp") { |f|
-    tests = Dir["vm/test/**/test_*.hpp"]
+    tests = Dir["vm/test/**/test_*.hpp"].sort
 
     f.depends_on tests
 
