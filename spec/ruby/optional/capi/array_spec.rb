@@ -7,23 +7,6 @@ describe "C-API Array function" do
     @s = CApiArraySpecs.new
   end
 
-  ruby_version_is ""..."1.9" do
-    describe "RARRAY" do
-      it "is sync'd with the object properly" do
-        a2 = [1]
-
-        ary = [:foo]
-
-        @s.RARRAY_len(ary).should == 1
-        ary[0].should == :foo
-
-        ary[0] = :bar
-        @s.RARRAY_len(a2).should == 1
-        ary[0].should == :bar
-      end
-    end
-  end
-
   describe "rb_ary_new" do
     it "returns an empty array" do
       @s.rb_ary_new.should == []
@@ -38,8 +21,8 @@ describe "C-API Array function" do
     ruby_version_is ""..."1.9" do
       it "returns an array which can be assigned to from C" do
         ary = @s.rb_ary_new2(5)
-        @s.rb_ary_new2_assign(ary, :set, 5)
-        ary.should == [:set] * 5
+        @s.RARRAY_ptr_assign(ary, :set, 4)
+        ary.should == [:set, :set, :set, :set]
       end
     end
   end
@@ -184,57 +167,101 @@ describe "C-API Array function" do
 
   ruby_version_is ""..."1.9" do
     describe "RARRAY" do
+      before :each do
+        @array = (-2..5).to_a
+        ScratchPad.record []
+      end
+
       it "returns a struct with a pointer to a C array of the array's elements" do
-        a = [1, 2, 3]
-        b = []
-        @s.RARRAY_ptr_iterate(a) do |e|
-          b << e
+        @s.RARRAY_ptr_iterate(@array) do |e|
+          ScratchPad << e
         end
-        a.should == b
+        ScratchPad.recorded.should == [-2, -1, 0, 1, 2, 3, 4, 5]
       end
 
       it "allows assigning to the elements of the C array" do
-        a = [1, 2, 3]
-        @s.RARRAY_ptr_assign(a, :nasty)
-        a.should == [:nasty, :nasty, :nasty]
+        @s.RARRAY_ptr_assign(@array, :nasty, 2)
+        @array.should == [:nasty, :nasty]
       end
 
       it "allows changing the array and calling an rb_ary_xxx function" do
-        a = [1, 2, 3]
-        @s.RARRAY_ptr_assign_call(a)
-        a.should == [1, 5, 7, 9]
+        @s.RARRAY_ptr_assign_call(@array)
+        @array.should == [-2, 5, 7, 1, 2, 3, 4, 5, 9]
       end
 
       it "allows changing the array and calling a method via rb_funcall" do
-        a = [1, 2, 3]
-        @s.RARRAY_ptr_assign_funcall(a)
-        a.should == [1, 1, 2, 3]
+        @s.RARRAY_ptr_assign_funcall(@array)
+        @array.should == [-2, 1, 2, 1, 2, 3, 4, 5, 3]
       end
 
       it "returns a struct with the length of the array" do
-        @s.RARRAY_len([1, 2, 3]).should == 3
+        @s.RARRAY_len(@array).should == 8
       end
 
-      it "is sync'd with the ruby Array object" do
-        ary = Array.new(1000)
+      describe "when the Array is mutated in Ruby" do
+        it "returns the length when #shift is called" do
+          @array.shift.should == -2
+          @s.RARRAY_len(@array).should == 7
+        end
 
-        @s.RARRAY_len(ary).should == 1000
-        ary.clear  # shrink the array.
+        it "returns the length when #unshift is called" do
+          @array.unshift(-5).should == [-5, -2, -1, 0, 1, 2, 3, 4, 5]
+          @s.RARRAY_len(@array).should == 9
+        end
 
-        @s.RARRAY_len(ary).should == 0
+        it "returns the length when #pop is called" do
+          @array.pop.should == 5
+          @s.RARRAY_len(@array).should == 7
+        end
 
-        # This extra check is to be sure that if there is a handle for
-        # the ruby object it is updated.
-        ary.size.should == 0
+        it "returns the length when #push is called" do
+          @array.push(-5).should == [-2, -1, 0, 1, 2, 3, 4, 5, -5]
+          @s.RARRAY_len(@array).should == 9
+        end
 
-        # Now check that it can sync growing too
-        1000.times { ary << 1 }
+        it "returns the length when #<< is called" do
+          @array.<<(-5).should == [-2, -1, 0, 1, 2, 3, 4, 5, -5]
+          @s.RARRAY_len(@array).should == 9
+        end
 
-        @s.RARRAY_len(ary).should == 1000
+        it "returns the length when #concat is called" do
+          @array.concat([1, 2, 3, 4, 5]).should == [-2, -1, 0, 1, 2, 3, 4, 5, 1, 2, 3, 4, 5]
+          @s.RARRAY_len(@array).should == 13
+        end
 
-        # Again, check that the possible handle doesn't confuse or misupdate
-        # the ruby object.
-        ary.size == 1000
+        it "returns the length when #clear is called" do
+          @array.clear
+          @s.RARRAY_len(@array).should == 0
+        end
+
+        it "returns the length when #[]= is called" do
+          @array[3] = 9
+          @s.RARRAY_len(@array).should == 8
+          @array.should == [-2, -1, 0, 9, 2, 3, 4, 5]
+        end
+
+        # This spec is partially redundant. The specific cases are tested
+        # in distinct specs so that a failure of an individual case is
+        # easily recognized. This spec is more complex and tests possible
+        # interactions between multiple mutations.
+        it "returns the length during multiple mutations" do
+          @s.RARRAY_len(@array).should == 8
+
+          @array.unshift(@array.pop).pop
+          @s.RARRAY_len(@array).should == 7
+          @array.should == [5, -2, -1, 0, 1, 2, 3]
+
+          @array.push(@array.shift).shift
+          @s.RARRAY_len(@array).should == 6
+          @array.should == [-1, 0, 1, 2, 3, 5]
+
+          @array.clear
+          @s.RARRAY_len(@array).should == 0
+
+          @array << -5 << 2 << -4 << 3
+          @s.RARRAY_len(@array).should == 4
+          @array.should == [-5, 2, -4, 3]
+        end
       end
     end
   end

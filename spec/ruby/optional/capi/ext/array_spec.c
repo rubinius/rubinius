@@ -8,6 +8,15 @@ extern "C" {
 #endif
 
 #ifdef HAVE_RARRAY
+static VALUE array_spec_RARRAY_ptr_assign(VALUE self, VALUE ary, VALUE content, VALUE length) {
+  int i;
+  for (i = 0; i < NUM2INT(length); i++) {
+    RARRAY(ary)->ptr[i] = content;
+  }
+  RARRAY(ary)->len = i;
+  return ary;
+}
+
 static VALUE array_spec_RARRAY_ptr_assign_call(VALUE self, VALUE array) {
   VALUE* ptr;
 
@@ -43,17 +52,6 @@ static VALUE array_spec_RARRAY_ptr_iterate(VALUE self, VALUE array) {
     rb_yield(ptr[i]);
   }
   return Qnil;
-}
-
-static VALUE array_spec_RARRAY_ptr_assign(VALUE self, VALUE array, VALUE value) {
-  int i;
-  VALUE* ptr;
-
-  ptr = RARRAY(array)->ptr;
-  for(i = 0; i < RARRAY_LEN(array); i++) {
-    ptr[i] = value;
-  }
-  return array;
 }
 #endif
 
@@ -153,17 +151,6 @@ static VALUE array_spec_rb_ary_new(VALUE self) {
 static VALUE array_spec_rb_ary_new2(VALUE self, VALUE length) {
   return rb_ary_new2(NUM2LONG(length));
 }
-
-#ifdef HAVE_RARRAY
-static VALUE array_spec_rb_ary_new2_assign(VALUE self, VALUE ary, VALUE content, VALUE length) {
-  int i;
-  for (i = 0; i < NUM2INT(length); i++) {
-    RARRAY(ary)->ptr[i] = content;
-  }
-  RARRAY(ary)->len = i;
-  return ary;
-}
-#endif
 #endif
 
 #ifdef HAVE_RB_ARY_NEW3
@@ -289,7 +276,7 @@ void Init_array_spec() {
 
 #ifdef HAVE_RARRAY
   rb_define_method(cls, "RARRAY_ptr_iterate", array_spec_RARRAY_ptr_iterate, 1);
-  rb_define_method(cls, "RARRAY_ptr_assign", array_spec_RARRAY_ptr_assign, 2);
+  rb_define_method(cls, "RARRAY_ptr_assign", array_spec_RARRAY_ptr_assign, 3);
   rb_define_method(cls, "RARRAY_ptr_assign_call",
       array_spec_RARRAY_ptr_assign_call, 1);
   rb_define_method(cls, "RARRAY_ptr_assign_funcall",
@@ -345,9 +332,6 @@ void Init_array_spec() {
 
 #ifdef HAVE_RB_ARY_NEW2
   rb_define_method(cls, "rb_ary_new2", array_spec_rb_ary_new2, 1);
-#ifdef HAVE_RARRAY
-  rb_define_method(cls, "rb_ary_new2_assign", array_spec_rb_ary_new2_assign, 3);
-#endif
 #endif
 
 #ifdef HAVE_RB_ARY_NEW3
