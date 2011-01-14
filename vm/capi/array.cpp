@@ -30,11 +30,10 @@ namespace rubinius {
       return array;
     }
 
-    void capi_update_array(NativeMethodEnvironment* env, VALUE ary_handle) {
+    void capi_update_array(NativeMethodEnvironment* env, VALUE array) {
       if(!env) env = NativeMethodEnvironment::get();
 
-      Handle* handle = Handle::from(ary_handle);
-      handle->update(env);
+      Handle::from(array)->update(env);
     }
 
     /* We were in C-land and now we are returning to Ruby-land. Since the C
@@ -172,13 +171,13 @@ extern "C" {
     return h->as_rarray(env);
   }
 
-  VALUE rb_Array(VALUE obj_handle) {
+  VALUE rb_Array(VALUE object) {
     NativeMethodEnvironment* env = NativeMethodEnvironment::get();
 
-    Object* obj = env->get_object(obj_handle);
+    Object* obj = env->get_object(object);
 
     if (kind_of<Array>(obj)) {
-      return obj_handle;
+      return object;
     }
 
     Array* array = Array::create(env->state(), 1);
@@ -187,51 +186,51 @@ extern "C" {
     return env->get_handle(array);
   }
 
-  VALUE rb_ary_clear(VALUE self_handle) {
-    return rb_funcall2(self_handle, rb_intern("clear"), 0, NULL);
+  VALUE rb_ary_clear(VALUE self) {
+    return rb_funcall2(self, rb_intern("clear"), 0, NULL);
   }
 
-  VALUE rb_ary_delete(VALUE self_handle, VALUE item) {
-    return rb_funcall(self_handle, rb_intern("delete"), 1, item);
+  VALUE rb_ary_delete(VALUE self, VALUE item) {
+    return rb_funcall(self, rb_intern("delete"), 1, item);
   }
 
-  VALUE rb_ary_delete_at(VALUE self_handle, long idx) {
-    return rb_funcall(self_handle, rb_intern("delete_at"), 1, INT2FIX(idx));
+  VALUE rb_ary_delete_at(VALUE self, long idx) {
+    return rb_funcall(self, rb_intern("delete_at"), 1, INT2FIX(idx));
   }
 
-  VALUE rb_ary_dup(VALUE self_handle) {
-    return rb_funcall2(self_handle, rb_intern("dup"), 0, NULL);
+  VALUE rb_ary_dup(VALUE self) {
+    return rb_funcall2(self, rb_intern("dup"), 0, NULL);
   }
 
   /* @todo Check 64-bit? */
-  VALUE rb_ary_entry(VALUE self_handle, int index) {
+  VALUE rb_ary_entry(VALUE self, int index) {
     NativeMethodEnvironment* env = NativeMethodEnvironment::get();
 
-    Array* self = capi_get_array(env, self_handle);
-    return env->get_handle(self->aref(env->state(), Fixnum::from(index)));
+    Array* array = capi_get_array(env, self);
+    return env->get_handle(array->aref(env->state(), Fixnum::from(index)));
   }
 
-  VALUE rb_ary_each(VALUE self_handle) {
+  VALUE rb_ary_each(VALUE self) {
     NativeMethodEnvironment* env = NativeMethodEnvironment::get();
 
-    Array* self = capi_get_array(env, self_handle);
-    for(size_t i = 0; i < self->size(); i++) {
-      rb_yield(env->get_handle(self->get(env->state(), i)));
+    Array* array = capi_get_array(env, self);
+    for(size_t i = 0; i < array->size(); i++) {
+      rb_yield(env->get_handle(array->get(env->state(), i)));
     }
 
-    return self_handle;
+    return self;
   }
 
   VALUE rb_ary_includes(VALUE self, VALUE obj) {
     return rb_funcall(self, rb_intern("include?"), 1, obj);
   }
 
-  VALUE rb_ary_join(VALUE self_handle, VALUE separator_handle) {
-    return rb_funcall(self_handle, rb_intern("join"), 1, separator_handle);
+  VALUE rb_ary_join(VALUE self, VALUE separator) {
+    return rb_funcall(self, rb_intern("join"), 1, separator);
   }
 
-  VALUE rb_ary_to_s(VALUE self_handle) {
-    return rb_funcall(self_handle, rb_intern("to_s"), 0);
+  VALUE rb_ary_to_s(VALUE self) {
+    return rb_funcall(self, rb_intern("to_s"), 0);
   }
 
   /** By default, Arrays have space for 16 elements. */
@@ -274,18 +273,18 @@ extern "C" {
     return env->get_handle(array);
   }
 
-  VALUE rb_ary_new4(unsigned long length, const VALUE* object_handles) {
+  VALUE rb_ary_new4(unsigned long length, const VALUE* objects) {
     NativeMethodEnvironment* env = NativeMethodEnvironment::get();
 
     Array* array = Array::create(env->state(), length);
     array->start(env->state(), Fixnum::from(0));
     array->total(env->state(), Fixnum::from(length));
 
-    if (object_handles) {
+    if (objects) {
       for(std::size_t i = 0; i < length; ++i) {
         // @todo determine if we need to check these objects for whether
         // they are arrays and flush any caches
-        Object* object = env->get_object(object_handles[i]);
+        Object* object = env->get_object(objects[i]);
         array->set(env->state(), i, object);
       }
     }
@@ -293,53 +292,51 @@ extern "C" {
     return env->get_handle(array);
   }
 
-  VALUE rb_ary_pop(VALUE self_handle) {
+  VALUE rb_ary_pop(VALUE self) {
     NativeMethodEnvironment* env = NativeMethodEnvironment::get();
 
-    Array* self = capi_get_array(env, self_handle);
-    Object* obj = self->pop(env->state());
-    capi_update_array(env, self_handle);
+    Array* array = capi_get_array(env, self);
+    Object* obj = array->pop(env->state());
+    capi_update_array(env, self);
 
     return env->get_handle(obj);
   }
 
-  VALUE rb_ary_push(VALUE self_handle, VALUE object_handle) {
+  VALUE rb_ary_push(VALUE self, VALUE object) {
     NativeMethodEnvironment* env = NativeMethodEnvironment::get();
 
-    Array* self = capi_get_array(env, self_handle);
-    self->append(env->state(), env->get_object(object_handle));
-    capi_update_array(env, self_handle);
+    Array* array = capi_get_array(env, self);
+    array->append(env->state(), env->get_object(object));
+    capi_update_array(env, self);
 
-    return self_handle;
+    return self;
   }
 
-  VALUE rb_ary_reverse(VALUE self_handle) {
-    return rb_funcall2(self_handle, rb_intern("reverse"), 0, NULL);
+  VALUE rb_ary_reverse(VALUE self) {
+    return rb_funcall2(self, rb_intern("reverse"), 0, NULL);
   }
 
-  VALUE rb_ary_shift(VALUE self_handle) {
+  VALUE rb_ary_shift(VALUE self) {
     NativeMethodEnvironment* env = NativeMethodEnvironment::get();
 
-    Array* self = capi_get_array(env, self_handle);
-    Object* obj = self->shift(env->state());
-    capi_update_array(env, self_handle);
+    Array* array = capi_get_array(env, self);
+    Object* obj = array->shift(env->state());
+    capi_update_array(env, self);
 
     return env->get_handle(obj);
   }
 
-  size_t rb_ary_size(VALUE self_handle) {
+  size_t rb_ary_size(VALUE self) {
     NativeMethodEnvironment* env = NativeMethodEnvironment::get();
 
-    Array* self = capi_get_array(env, self_handle);
-
-    return self->size();
+    return capi_get_array(env, self)->size();
   }
 
-  void rb_ary_store(VALUE self_handle, long int index, VALUE object_handle) {
+  void rb_ary_store(VALUE self, long int index, VALUE object) {
     NativeMethodEnvironment* env = NativeMethodEnvironment::get();
 
-    Array* self = capi_get_array(env, self_handle);
-    size_t total = self->size();
+    Array* array = capi_get_array(env, self);
+    size_t total = array->size();
 
     if(index < 0) {
       index += total;
@@ -351,26 +348,26 @@ extern "C" {
       rb_raise(rb_eIndexError, error.str().c_str());
     }
 
-    self->set(env->state(), index, env->get_object(object_handle));
-    capi_update_array(env, self_handle);
+    array->set(env->state(), index, env->get_object(object));
+    capi_update_array(env, self);
   }
 
-  VALUE rb_ary_unshift(VALUE self_handle, VALUE object_handle) {
+  VALUE rb_ary_unshift(VALUE self, VALUE object) {
     NativeMethodEnvironment* env = NativeMethodEnvironment::get();
 
-    Array* self = capi_get_array(env, self_handle);
-    self->unshift(env->state(), env->get_object(object_handle));
-    capi_update_array(env, self_handle);
+    Array* array = capi_get_array(env, self);
+    array->unshift(env->state(), env->get_object(object));
+    capi_update_array(env, self);
 
-    return self_handle;
+    return self;
   }
 
   VALUE rb_assoc_new(VALUE first, VALUE second) {
     return rb_funcall(rb_cArray, rb_intern("[]"), 2, first, second);
   }
 
-  VALUE rb_ary_aref(int argc, VALUE *argv, VALUE self_handle) {
-    return rb_funcall2(self_handle, rb_intern("[]"), argc, argv);
+  VALUE rb_ary_aref(int argc, VALUE *argv, VALUE self) {
+    return rb_funcall2(self, rb_intern("[]"), argc, argv);
   }
 
   VALUE rb_each(VALUE ary) {
