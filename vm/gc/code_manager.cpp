@@ -9,7 +9,7 @@ namespace rubinius {
     : next(0)
   {
     resources = new CodeResource*[size];
-    memset(resources, 0, sizeof(CodeManager*) * size);
+    memset(resources, 0, sizeof(CodeResource*) * size);
   }
 
   CodeManager::Chunk::~Chunk() {
