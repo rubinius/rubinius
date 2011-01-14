@@ -310,16 +310,29 @@ extern "C" {
   } CApiMethodKind;
 
 struct RString {
-  size_t len;
+  ssize_t len;
   char *ptr;
   char *dmwmb;
-  union {
-    size_t capa;
+  struct {
+    ssize_t capa;
     VALUE shared;
   } aux;
 };
 
-#define RSTRING(str)    capi_rstring_struct(str)
+#define RSTRING_CACHE_UNSAFE    1
+#define RSTRING_CACHE_SAFE      2
+
+#ifdef RSTRING_NOT_MODIFIED
+  /* Define this macro if the C extension never modifies, but
+   * only reads from, RSTRING(str)->ptr and RSTRING(str)->len.
+   */
+#define RSTRING(str)    capi_rstring_struct(str, RSTRING_CACHE_SAFE);
+#else
+  /* The default is to update the string when RSTRING(str)->len is
+   * modified. We raise an exception if RSTRING(str)->ptr is changed.
+   */
+#define RSTRING(str)    capi_rstring_struct(str, RSTRING_CACHE_UNSAFE)
+#endif
 
 struct RArray {
   ssize_t len;
@@ -700,7 +713,7 @@ VALUE rb_uint2big(unsigned long number);
 
   struct RArray* capi_rarray_struct(VALUE ary_handle);
   struct RData* capi_rdata_struct(VALUE data_handle);
-  struct RString* capi_rstring_struct(VALUE str_handle);
+  struct RString* capi_rstring_struct(VALUE str_handle, int cache_level);
   struct RFloat* capi_rfloat_struct(VALUE data_handle);
   struct RIO* capi_rio_struct(VALUE handle);
 

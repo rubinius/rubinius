@@ -147,9 +147,13 @@ namespace rubinius {
         object_ = 0;
       }
 
+      RString* get_rstring() {
+        return as_.rstring;
+      }
+
       RArray* as_rarray(NativeMethodEnvironment* env);
       RData*  as_rdata(NativeMethodEnvironment* env);
-      RString* as_rstring(NativeMethodEnvironment* env);
+      RString* as_rstring(NativeMethodEnvironment* env, int cache_level);
       RFloat* as_rfloat(NativeMethodEnvironment* env);
       RIO* as_rio(NativeMethodEnvironment* env);
 

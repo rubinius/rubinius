@@ -20,47 +20,110 @@ namespace rubinius {
       if(!env) env = NativeMethodEnvironment::get();
 
       Handle* handle = Handle::from(str_handle);
-      return c_as<String>(handle->object());
+      String* string = c_as<String>(handle->object());
+      handle->flush(env);
+
+      return string;
     }
 
-    void repin_string(NativeMethodEnvironment* env, String* string, RString* str) {
+    void capi_update_string(NativeMethodEnvironment* env, VALUE ary_handle) {
+      if(!env) env = NativeMethodEnvironment::get();
+
+      Handle* handle = Handle::from(ary_handle);
+      handle->update(env);
+    }
+
+    /* We use the garbage collector's feature to "pin" an Object at a
+     * particular memory location to allow C code to write directly into the
+     * contets of a Ruby String (actually, a ByteArray, which provides the
+     * storage for String). Since any method on String that mutates self may
+     * cause a new ByteArray to be created, we always check whether the
+     * String is pinned and update the RString structure unconditionally.
+     */
+    void ensure_pinned(NativeMethodEnvironment* env, String* string, RString* rstring) {
       ByteArray* ba = string->data();
       size_t byte_size = ba->size();
 
-      char* ptr = 0;
-      if(ba->pinned_p()) {
-        ptr = reinterpret_cast<char*>(ba->raw_bytes());
-      } else {
-        ByteArray* new_ba = ByteArray::create_pinned(env->state(), byte_size);
-        memcpy(new_ba->raw_bytes(), string->byte_address(), byte_size);
-        string->data(env->state(), new_ba);
-
-        ptr = reinterpret_cast<char*>(new_ba->raw_bytes());
+      if(!ba->pinned_p()) {
+        ba = ByteArray::create_pinned(env->state(), byte_size);
+        memcpy(ba->raw_bytes(), string->byte_address(), byte_size);
+        string->data(env->state(), ba);
       }
 
-      ptr[byte_size-1] = 0;
+      char* ptr = reinterpret_cast<char*>(ba->raw_bytes());
 
-      str->dmwmb = str->ptr = ptr;
-      str->len = string->size();
-      str->aux.capa = byte_size;
+      ptr[byte_size-1] = 0;
+      rstring->dmwmb = rstring->ptr = ptr;
+      rstring->len = string->size();
+      rstring->aux.capa = byte_size;
+      rstring->aux.shared = Qfalse;
     }
 
-    RString* Handle::as_rstring(NativeMethodEnvironment* env) {
+    /* We are in C-land returning to Ruby-land. The value of RString.len
+     * may have changed. We raise an exception if the value of len exceeds
+     * the capacity of the underlying ByteArray or if the value of ptr has
+     * changed.
+     */
+    void flush_cached_rstring(NativeMethodEnvironment* env, Handle* handle) {
+      if(handle->is_rstring()) {
+        String* string = c_as<String>(handle->object());
+        RString* rstring = handle->get_rstring();
+
+        if(rstring->ptr != rstring->dmwmb) {
+          rb_raise(rb_eRuntimeError,
+              "changing the value of RSTRING(obj)->ptr is not supported");
+        }
+
+        if(rstring->len > string->data()->size()) {
+          rb_raise(rb_eRuntimeError,
+              "RSTRING(obj)->len must be <= capacity of the String");
+        } else if(rstring->len != string->num_bytes()->to_native()) {
+          // TODO: encoding support will need to define whether ->len
+          // means bytes or characters.
+          string->num_bytes(env->state(), Fixnum::from(rstring->len));
+          string->characters(env->state(), Fixnum::from(rstring->len));
+          string->hash_value(env->state(), reinterpret_cast<Fixnum*>(RBX_Qnil));
+        }
+      }
+    }
+
+    /* We were in Ruby-land and we are heading into C-land. In Ruby-land, we
+     * may have updated the existing String bytes, appended more, shifted the
+     * start of the String, or replaced the ByteArray so we ensure that the
+     * RString structure contents are update.
+     */
+    void update_cached_rstring(NativeMethodEnvironment* env, Handle* handle) {
+      if(handle->is_rstring()) {
+        String* string = c_as<String>(handle->object());
+        RString* rstring = handle->get_rstring();
+
+        ensure_pinned(env, string, rstring);
+      }
+    }
+
+    RString* Handle::as_rstring(NativeMethodEnvironment* env, int cache_level) {
       String* string = c_as<String>(object());
 
       if(type_ != cRString) {
+        type_ = cRString;
+
         string->unshare(env->state());
 
         RString* str = new RString;
-        str->aux.shared = Qfalse;
-
-        type_ = cRString;
         as_.rstring = str;
+
+        if(cache_level == RSTRING_CACHE_UNSAFE) {
+          flush_ = flush_cached_rstring;
+          update_ = update_cached_rstring;
+          env->check_tracked_handle(this, true);
+        } else {
+          env->check_tracked_handle(this, false);
+        }
       }
 
-      // We always repin because the ByteArray could have changed between
-      // the last time we used this handle and now.
-      repin_string(env, string, as_.rstring);
+      // The underlying String may have changed since we last got the
+      // associated RString structure.
+      ensure_pinned(env, string, as_.rstring);
 
       return as_.rstring;
     }
@@ -68,13 +131,12 @@ namespace rubinius {
 }
 
 extern "C" {
-  struct RString* capi_rstring_struct(VALUE str_handle) {
+  struct RString* capi_rstring_struct(VALUE str_handle, int cache_level) {
     NativeMethodEnvironment* env = NativeMethodEnvironment::get();
 
     Handle* handle = Handle::from(str_handle);
-    env->check_tracked_handle(handle, false);
 
-    return handle->as_rstring(env);
+    return handle->as_rstring(env, cache_level);
   }
 
   VALUE rb_String(VALUE object_handle) {
@@ -97,6 +159,7 @@ extern "C" {
 
     String* self = capi_get_string(env, self_handle);
     self->append(env->state(), capi_get_string(env, other_handle));
+    capi_update_string(env, self_handle);
 
     return self_handle;
   }
@@ -119,6 +182,7 @@ extern "C" {
 
     String* string = capi_get_string(env, self_handle);
     string->append(env->state(), other, size);
+    capi_update_string(env, self_handle);
 
     return self_handle;
   }
@@ -132,6 +196,7 @@ extern "C" {
 
     String* self = capi_get_string(env, self_handle);
     self->append(env->state(), other, length);
+    capi_update_string(env, self_handle);
 
     return self_handle;
   }
@@ -220,6 +285,7 @@ extern "C" {
       string->characters(env->state(), Fixnum::from(len));
       string->hash_value(env->state(), reinterpret_cast<Fixnum*>(RBX_Qnil));
     }
+    capi_update_string(env, self_handle);
 
     return self_handle;
   }
@@ -313,7 +379,7 @@ extern "C" {
     NativeMethodEnvironment* env = NativeMethodEnvironment::get();
 
     Handle* handle = Handle::from(self);
-    RString* rstring = handle->as_rstring(env);
+    RString* rstring = handle->as_rstring(env, RSTRING_CACHE_SAFE);
 
     return rstring->ptr;
   }
@@ -342,7 +408,7 @@ extern "C" {
   char* rb_str_ptr_readonly(VALUE self) {
     NativeMethodEnvironment* env = NativeMethodEnvironment::get();
 
-    RString* rstr = Handle::from(self)->as_rstring(env);
+    RString* rstr = Handle::from(self)->as_rstring(env, RSTRING_CACHE_SAFE);
 
     return rstr->ptr;
   }
@@ -364,6 +430,7 @@ extern "C" {
 
     string->byte_address()[len] = 0;
     string->num_bytes(env->state(), Fixnum::from(len));
+    capi_update_string(env, self);
   }
 
   long rb_str_hash(VALUE self) {
