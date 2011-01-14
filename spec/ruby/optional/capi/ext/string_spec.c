@@ -302,6 +302,7 @@ VALUE string_spec_RSTRING_ptr_assign_call(VALUE self, VALUE str) {
   char *ptr = RSTRING(str)->ptr;
 
   ptr[1] = 'x';
+  RSTRING(str)->len = 2;
   rb_str_concat(str, rb_str_new2("d"));
   return str;
 }

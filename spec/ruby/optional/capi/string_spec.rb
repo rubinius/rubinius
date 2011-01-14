@@ -264,7 +264,7 @@ describe "C-API String function" do
       it "allows changing the string and calling a rb_str_xxx function" do
         str = "abc"
         @s.RSTRING_ptr_assign_call(str)
-        str.should == "axcd"
+        str.should == "axd"
       end
 
       it "allows changing the string and calling a method via rb_funcall" do
