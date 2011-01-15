@@ -6,25 +6,34 @@ extern "C" {
 #endif
 
 #ifdef HAVE_RB_SCAN_ARGS
-VALUE util_spec_rb_scan_args(VALUE self, VALUE _argv, VALUE spec, VALUE additional_ret_args) {
-  int i, argc;
-  int argv_len = RARRAY_LEN(_argv);
-  VALUE argv[4]; // argument array for rb_scan_args
-  VALUE args[4]; // return array for rb_scan_args
-  VALUE return_array = rb_ary_new();
+VALUE util_spec_rb_scan_args(VALUE self, VALUE argv, VALUE fmt, VALUE expected, VALUE acc) {
+  int i, result, argc = RARRAY_LEN(argv);
+  VALUE args[4], failed, a1, a2, a3, a4;
 
-  VALUE reverse_argv = rb_ary_reverse(rb_ary_dup(_argv));
-  for (i = 0; i < argv_len; i++) {
-    argv[i] = rb_ary_pop(reverse_argv);
+  failed = rb_intern("failed");
+  a1 = a2 = a2 = a4 = failed;
+
+  for(i = 0; i < argc; i++) {
+    args[i] = rb_ary_entry(argv, i);
   }
 
-  rb_scan_args(argv_len, argv, RSTRING_PTR(spec), &args[0], &args[1], &args[2], &args[3]);
+  result = rb_scan_args(argc, args, RSTRING_PTR(fmt), &a1, &a2, &a3, &a4);
 
-  argc = argv_len + NUM2INT(additional_ret_args);
-  for (i = 0; i < argc; i++) {
-    rb_ary_push(return_array, args[i]);
+  switch(NUM2INT(expected)) {
+  case 4:
+    rb_ary_unshift(acc, a4);
+  case 3:
+    rb_ary_unshift(acc, a3);
+  case 2:
+    rb_ary_unshift(acc, a2);
+  case 1:
+    rb_ary_unshift(acc, a1);
+    break;
+  default:
+    rb_raise(rb_eException, "unexpected number of arguments returned by rb_scan_args");
   }
-  return return_array;
+
+  return INT2NUM(result);
 }
 #endif
 
@@ -32,7 +41,7 @@ void Init_util_spec() {
   VALUE cls = rb_define_class("CApiUtilSpecs", rb_cObject);
 
 #ifdef HAVE_RB_SCAN_ARGS
-  rb_define_method(cls, "rb_scan_args", util_spec_rb_scan_args, 3);
+  rb_define_method(cls, "rb_scan_args", util_spec_rb_scan_args, 4);
 #endif
 }
 
