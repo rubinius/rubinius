@@ -1,1 +1,0 @@
-fails:C-API Util function rb_scan_args should assign all required and all optional arguments and splat the rest
