@@ -6,3 +6,4 @@ fails:Marshal::load loads an Array with proc
 fails:Marshal::load loads a Random
 fails:Marshal::load returns a trusted object if source is trusted
 fails:Marshal::load returns an untrusted object if source is untrusted
+fails:Marshal::load invokes respond_to? for _load when the stream needs _load

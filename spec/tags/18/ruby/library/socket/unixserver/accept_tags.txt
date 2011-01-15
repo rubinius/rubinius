@@ -1,0 +1,2 @@
+unstable:UNIXServer#accept can be interrupted by Thread#kill
+unstable:UNIXServer#accept can be interrupted by Thread#raise
