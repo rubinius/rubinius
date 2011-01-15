@@ -480,6 +480,7 @@ module Rubinius
       def initialize(line, arguments)
         @line = line
         @optional = 0
+        @arguments = nil
 
         @splat_index = -1
         @required_args = 0

@@ -6,6 +6,7 @@ require File.expand_path('../shared/string', __FILE__)
 
 describe "Array#pack with format 'A'" do
   it_behaves_like :array_pack_basic, 'A'
+  it_behaves_like :array_pack_basic_non_float, 'A'
   it_behaves_like :array_pack_no_platform, 'A'
   it_behaves_like :array_pack_string, 'A'
 
@@ -32,6 +33,7 @@ end
 
 describe "Array#pack with format 'a'" do
   it_behaves_like :array_pack_basic, 'a'
+  it_behaves_like :array_pack_basic_non_float, 'a'
   it_behaves_like :array_pack_no_platform, 'a'
   it_behaves_like :array_pack_string, 'a'
 

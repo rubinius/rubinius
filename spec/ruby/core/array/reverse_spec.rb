@@ -7,16 +7,24 @@ describe "Array#reverse" do
     [1, 3, 5, 2].reverse.should == [2, 5, 3, 1]
   end
 
-  it "returns subclass instance on Array subclasses" do
-    ArraySpecs::MyArray[1, 2, 3].reverse.should be_kind_of(ArraySpecs::MyArray)
-  end
-
   it "properly handles recursive arrays" do
     empty = ArraySpecs.empty_recursive_array
     empty.reverse.should == empty
 
     array = ArraySpecs.recursive_array
     array.reverse.should == [array, array, array, array, array, 3.0, 'two', 1]
+  end
+
+  ruby_version_is "" ... "1.9.3" do
+    it "returns subclass instance on Array subclasses" do
+      ArraySpecs::MyArray[1, 2, 3].reverse.should be_kind_of(ArraySpecs::MyArray)
+    end
+  end
+
+  ruby_version_is "1.9.3" do
+    it "does not return subclass instance on Array subclasses" do
+      ArraySpecs::MyArray[1, 2, 3].reverse.should be_kind_of(Array)
+    end
   end
 end
 

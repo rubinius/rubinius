@@ -21,6 +21,7 @@ namespace rubinius {
     bool verbose_;
     fd_set fds_;
     int max_fd_;
+    bool exit_;
 
     int control_[2];
     int loopback_[2];
@@ -85,5 +86,8 @@ typedef int int_fd_t;
 
     void on_fork();
     void cleanup();
+
+    static void shutdown(STATE);
+    void shutdown_i();
   };
 }

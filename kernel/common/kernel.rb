@@ -73,9 +73,13 @@ module Kernel
   module_function :Integer
 
   def Array(obj)
-    if obj.respond_to?(:to_ary)
-      Type.coerce_to(obj, Array, :to_ary)
-    elsif obj.respond_to?(:to_a)
+    if obj.respond_to? :to_ary
+      ary = Type.convert_to obj, Array, :to_ary
+    end
+
+    return ary unless ary.equal? nil
+
+    if obj.respond_to? :to_a
       Type.coerce_to(obj, Array, :to_a)
     else
       [obj]

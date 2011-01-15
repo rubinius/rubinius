@@ -1,7 +1,7 @@
 #include <iostream>
 #include <sstream>
 
-#include <cstdarg>
+#include <stdarg.h>
 
 #include "builtin/object.hpp"
 #include "builtin/bignum.hpp"

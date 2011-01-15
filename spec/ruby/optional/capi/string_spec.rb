@@ -69,6 +69,13 @@ describe "C-API String function" do
         @s.rb_str_resize(str, 4).should == "abcd"
         @s.RSTRING_LEN(str).should == 4
       end
+
+      it "returns a string which can be assigned to from C" do
+        str = "hello"
+        buf = @s.rb_str_buf_new(str.size, nil)
+        @s.RSTRING_ptr_write(buf, str)
+        buf.should == str
+      end
     end
 
     ruby_version_is "1.8.7" do
@@ -100,8 +107,10 @@ describe "C-API String function" do
       @s.rb_str_new2.should == "hello"
     end
 
-    it "rb_str_new2 should raise ArgumentError if passed NULL" do
-      lambda { @s.rb_str_new2_with_null }.should raise_error(ArgumentError)
+    ruby_version_is ""..."1.9" do
+      it "rb_str_new2 should raise ArgumentError if passed NULL" do
+        lambda { @s.rb_str_new2_with_null }.should raise_error(ArgumentError)
+      end
     end
   end
 
@@ -128,7 +137,7 @@ describe "C-API String function" do
     it "returns a frozen copy of the string" do
       str1 = "hi"
       str2 = @s.rb_str_new4 str1
-      str1.should == str2 
+      str1.should == str2
       str1.should_not equal(str2)
       str2.frozen?.should == true
     end
@@ -235,36 +244,38 @@ describe "C-API String function" do
     end
   end
 
-  describe "RSTRING" do
-    it "returns struct with a pointer to the string's contents" do
-      str = "xyz"
-      chars = []
-      @s.RSTRING_ptr_iterate(str) do |c|
-        chars << c
+  ruby_version_is ""..."1.9" do
+    describe "RSTRING" do
+      it "returns struct with a pointer to the string's contents" do
+        str = "xyz"
+        chars = []
+        @s.RSTRING_ptr_iterate(str) do |c|
+          chars << c
+        end
+        chars.should == [120, 121, 122]
       end
-      chars.should == [120, 121, 122]
-    end
 
-    it "allows changing the characters in the string" do
-      str = "abc"
-      @s.RSTRING_ptr_assign(str, 70)
-      str.should == "FFF"
-    end
+      it "allows changing the characters in the string" do
+        str = "abc"
+        @s.RSTRING_ptr_assign(str, 70)
+        str.should == "FFF"
+      end
 
-    it "allows changing the string and calling a rb_str_xxx function" do
-      str = "abc"
-      @s.RSTRING_ptr_assign_call(str)
-      str.should == "axcd"
-    end
+      it "allows changing the string and calling a rb_str_xxx function" do
+        str = "abc"
+        @s.RSTRING_ptr_assign_call(str)
+        str.should == "axd"
+      end
 
-    it "allows changing the string and calling a method via rb_funcall" do
-      str = "abc"
-      @s.RSTRING_ptr_assign_funcall(str)
-      str.should == "axce"
-    end
+      it "allows changing the string and calling a method via rb_funcall" do
+        str = "abc"
+        @s.RSTRING_ptr_assign_funcall(str)
+        str.should == "axce"
+      end
 
-    it "returns a struct with the string's length" do
-      @s.RSTRING_len("dewdrops").should == 8
+      it "returns a struct with the string's length" do
+        @s.RSTRING_len("dewdrops").should == 8
+      end
     end
   end
 
@@ -344,7 +355,7 @@ describe "C-API String function" do
       str = @s.rb_str_resize("test", 12)
       str.size.should == 12
       @s.RSTRING_LEN(str).should == 12
-      str[0, 5].should == "test\x00"
+      str[0, 4].should == "test"
     end
   end
 
@@ -353,40 +364,54 @@ describe "C-API String function" do
       @s.rb_str_intern("symbol").should == :symbol
     end
 
-    it "raises an ArgumentError if passed an empty string" do
-      lambda { @s.rb_str_intern("") }.should raise_error(ArgumentError)
+    ruby_version_is ""..."1.9" do
+      it "raises an ArgumentError if passed an empty string" do
+        lambda { @s.rb_str_intern("") }.should raise_error(ArgumentError)
+      end
+
+      it "raises an ArgumentError if the passed string contains NULL characters" do
+        lambda { @s.rb_str_intern("no\0no") }.should raise_error(ArgumentError)
+      end
     end
 
-    it "raises an ArgumentError if the passed string contains NULL characters" do
-      lambda { @s.rb_str_intern("no\0no") }.should raise_error(ArgumentError)
-    end
-  end
+    ruby_version_is "1.9" do
+      it "returns a symbol even if passed an empty string" do
+        @s.rb_str_intern("").should == "".to_sym
+      end
 
-  describe "rb_str2cstr" do
-    it "returns a pointer to the string's content and its length" do
-      str, len = @s.rb_str2cstr('any str', true)
-      str.should == 'any str'
-      len.should == 7
-    end
-
-    it "allows changing the characters in the string" do
-      str = 'any str'
-      # Hardcoded to set "foo\0"
-      @s.rb_str2cstr_replace(str)
-      str.should == "foo\0str"
+      it "returns a symbol even if the passed string contains NULL characters" do
+        @s.rb_str_intern("no\0no").should == "no\0no".to_sym
+      end
     end
   end
 
-  describe "STR2CSTR" do
-    it "returns a pointer to the string's content" do
-      @s.STR2CSTR('any str').should == 'any str'
+  ruby_version_is ""..."1.9" do
+    describe "rb_str2cstr" do
+      it "returns a pointer to the string's content and its length" do
+        str, len = @s.rb_str2cstr('any str', true)
+        str.should == 'any str'
+        len.should == 7
+      end
+
+      it "allows changing the characters in the string" do
+        str = 'any str'
+        # Hardcoded to set "foo\0"
+        @s.rb_str2cstr_replace(str)
+        str.should == "foo\0str"
+      end
     end
 
-    it "allows changing the characters in the string" do
-      str = 'any str'
-      # Hardcoded to set "foo\0"
-      @s.STR2CSTR_replace(str)
-      str.should == "foo\0str"
+    describe "STR2CSTR" do
+      it "returns a pointer to the string's content" do
+        @s.STR2CSTR('any str').should == 'any str'
+      end
+
+      it "allows changing the characters in the string" do
+        str = 'any str'
+        # Hardcoded to set "foo\0"
+        @s.STR2CSTR_replace(str)
+        str.should == "foo\0str"
+      end
     end
   end
 

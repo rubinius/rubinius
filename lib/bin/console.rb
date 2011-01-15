@@ -210,7 +210,12 @@ help              - You're lookin' at it
     attr_reader :pid, :port, :command, :path
 
     def self.find_all
-      agents = Dir["#{ENV['TMPDIR']}/rubinius-agent.*"]
+      unless dir = ENV['TMPDIR']
+        dir = "/tmp"
+        return [] unless File.directory?(dir) and File.readable?(dir)
+      end
+
+      agents = Dir["#{dir}/rubinius-agent.*"]
 
       return [] unless agents
 
@@ -284,10 +289,13 @@ else
         i += 1
       end
 
-      which = Readline.readline.strip.to_i
+      which = Readline.readline.strip
 
-      unless agent = agents[which - 1]
-        puts "Invalid choise"
+      # Let the user out
+      exit 0 if "quit" =~ /#{which}/i
+
+      unless agent = agents[which.to_i - 1]
+        puts "Invalid choice"
         exit 1
       end
     end

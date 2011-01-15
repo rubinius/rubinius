@@ -27,6 +27,26 @@ describe "Marshal::load" do
     new_obj_metaclass_ancestors[0].should == Meths
     new_obj_metaclass_ancestors[1].should == UserHashInitParams
   end
+  
+  # FIXME: Not proud of these next two specs, but unsure how to check for respond_to?
+  # on object and class cleanly
+  it "invokes respond_to? for marshal_load when the stream needs marshal_load" do
+    obj = UserDefinedWithRespondToMarshalLoad.new
+    data = Marshal.dump(obj)
+    
+    catch(:RespondTo) do
+      Marshal.load(data)
+    end.should_not be_nil
+  end
+  
+  it "invokes respond_to? for _load when the stream needs _load" do
+    obj = UserDefinedWithRespondToLoad.new
+    data = Marshal.dump(obj)
+    
+    catch(:RespondTo) do
+      Marshal.load(data)
+    end.should be_nil
+  end
 
   it "loads a user-marshaled extended object" do
     obj = UserMarshal.new.extend(Meths)

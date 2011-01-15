@@ -1,6 +1,14 @@
 require File.expand_path('../caller_fixture1', __FILE__)
 
 module KernelSpecs
+  def self.Array_function(arg)
+    Array(arg)
+  end
+
+  def self.Array_method(arg)
+    Kernel.Array(arg)
+  end
+
   class Method
     def abort(*msg)
       super

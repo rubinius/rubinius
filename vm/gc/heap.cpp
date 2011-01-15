@@ -1,5 +1,5 @@
-#include <cstdlib>
-#include <cstring>
+#include <stdlib.h>
+#include <string.h>
 #include "gc/heap.hpp"
 #include "instruments/stats.hpp"
 
@@ -9,7 +9,7 @@ namespace rubinius {
     : size_(bytes)
     , owner_(true)
   {
-    start_ = reinterpret_cast<address>(std::malloc(size_));
+    start_ = reinterpret_cast<address>(malloc(size_));
     last_ = (void*)((uintptr_t)start_ + bytes - 1);
 
     int red_zone = bytes / 1024;
@@ -33,7 +33,7 @@ namespace rubinius {
 
   Heap::~Heap() {
     if(owner_) {
-      std::free(start_);
+      free(start_);
     }
   }
 

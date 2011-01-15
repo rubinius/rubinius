@@ -217,7 +217,7 @@ module Kernel
   #   k.instance_exec(5) {|x| @secret+x }   #=> 104
 
   def instance_exec(*args, &prc)
-    raise ArgumentError, "Missing block" unless block_given?
+    raise LocalJumpError, "Missing block" unless block_given?
     env = prc.block
 
     static_scope = env.method.scope

@@ -7,94 +7,96 @@ next: Ruby
 next_url: ruby
 ---
 
-The following guidelines aim to keep the Rubinius codebase maintainable. When
-in doubt about a guideline here, ask us in the #rubinius IRC channel on
+Следующие правила позволяют поддерживать код Rubinius в порядке. Если у вас
+возникают вопросы по стилю, задайте их на IRC канале #rubinius на сервере
 irc.freenode.net.
 
 
-## All Code
+## Любой код
 
-  * Configure your editor for soft tabs, not hard tabs
-  * Expand tabs to two spaces
-  * Leave a trailing newline at the end of each file
-
-
-## C++ Code
-
-  * No space between condition and paren.
-      Use `if(1)` NOT `if (1)`
-
-  * Put the opening brace on the same line as the function declaration or
-    conditional
-
-  * Always use curly braces, even if they can be left out.
-
-  * Prefer parentheses to implicit precedence rules (within reason)
-
-  * Alternate versions of functions should be named why they are different
-    from the primary.  If there is a function 'person()' and you want a
-    version that takes the name of the person, it should be
-    'person_with_name(char \*name)' or 'person_with_details(char \*name, ...)'.
-    NOT 'person1(char \*name)'.
+  * Настройте ваш редактор на использование мягкой табуляции
+  * Заменяйте знаки табуляции двумя пробелами
+  * В конце любого файла оставляйте пустую строку
 
 
-## Ruby Code
+## C++ код
 
-  * Методы: Try to keep your methods short--one screenful and try to adhere
-    to DRY within reason. Generally common functionality should be abstracted
-    to helper methods (which you can make 'private') but in some cases,
-    particularly working with Core, sometimes trying to DRY things up is just
-    an obstacle if you have to maneuver around several different error
-    conditions, for example.
+  * Не вставляйте пробел между условием и скобкой.
+      Используйте `if(1)`, а НЕ `if (1)`
 
-  * Method names: should be clear, expressive and meaningful. Avoid using
-    underscores to 'protect' the method ('\_\_send\_\_') with some exceptions.
+  * Открывающую фигурную скобку помещайте на одну строчку с условием или
+    объявлением функции.
 
-  * Smalltalk-style method names are OK, meaning that you could have a method
-    `SomeClass.make_from` when it is intended to be invoked as
-    `SomeClass.make_from file` or `SomeClass.make_from :file => name`. There
-    the parameter name _completes_ the method name and makes for more natural
-    reading.
+  * Всегда используйте фигурные скобки, даже если их можно опустить.
 
-  * Variable names: make them clear and meaningful (with some well-known
-    exceptions like using 'i' for a counter.) Try to avoid shadowing method
-    names, for example within Array use 'idx' in favour of 'index' because the
-    latter is also a method name.
+  * Используйте скобки для явной приоритизации (в пределах разумного).
 
-  * Postconditions: use postconditions only *if* your expression is a
-    one-liner *and* you do not have many conditions.
+  * Альтернативные варианты функций должны именоваться таким образом, чтобы
+    было понятно, чем они отличаются от основной. Допустим, есть функция
+    'person()' и вы хотите сделать альтернативную функцию, которая принимает
+    дополнительный параметр "имя", в таком случае имя функции должно быть
+    'person_with_name(char \*name)' или 'person_with_details(char \*name, ...)',
+    а ни в коем случае не 'person1(char \*name)'.
 
-  * Blocks: Use either `do ... end` or `{...}`, spaces between the delimiters
-    and code (`foo { |arg| code }`). Split long or complex expressions over
-    multiple lines like this:
+
+## Ruby код
+
+  * Методы: Пытайтесь реализовывать ваши методы коротко--не более 1 экрана и
+    пытайтесь придерживаться принципа DRY в разумных пределах. В целом, общая
+    функциональность должна быть абстрагирована в методы-помощники (которые
+    вы можете сделать приватными), но в некоторых случаях, особенно работая с
+    Core, слепое следование DRY может мешать вам, например если вы вынуждены
+    маневрировать среди различных ошибочных условий.
+
+  * Имена методов должны быть ясными, выразительными и осмысленными. За
+    некоторым исключением, старайтесь не использовать знаки подчеркивания для
+    "защиты" методов ('\_\_send\_\_').
+
+  * Допускается именивание методов в стиле Smalltalk. Имеется ввиду, что если
+    у вас есть метод `SomeClass.make_from` и он вызывается как
+    `SomeClass.make_from file` или `SomeClass.make_from :file => name`. В этом
+    случае имя параметра _дополняет_ имя метода и повышает общую читабельность.
+
+  * Имена переменных должны быть ясными и осмысленными (естественно, можно
+    использовать имя 'i' для счетчика). Пытайтесь не перекрывать названия
+    методов переменными, например внутри класса Array используйте 'idx'
+    вместо 'index', поскольку последнее является именем метода.
+
+  * Используйте постусловия только *если* ваше выражение помещается на одной
+    строчке *и* у вас не очень много условий.
+
+  * Блоки: Используйте или `do ... end` или `{...}`, а также пробелы между
+    разделителями и кодом (`foo { |arg| code }`). Разбивайте длинные и сложные
+    выражения на несколько строк, примерно как в следующем случае:
 
         mapped = foo.map do |elem|
           do_something_with elem
         end
 
-  * Module/Class definitions with scope qualifiers:
+  * Определение Module/Class с указание пространства имен:
 
         module Rubinius::Profiler
           class Sampler
           end
         end
 
-## Kernel Code
+## Код ядра
 
-The primary guideline for all kernel code is simple and efficient. Simple code
-is often more efficient and generally more comprehensible. There should be no
-metaprogramming code in bootstrap. Use the #attr_xxx methods throughout the
-kernel source. Also, alias methods using the #alias_method call next to the
-method definition. Specify private methods with the `private :sym` method next
-to the method definition.  Remember that the versions of the methods listed
-above in the alpha stage take a single, symbol argument.
+Первичное требование для всего кода ядра это простота и эффективность. Простой
+код зачастую более эффективен и более понятен. В коде, отвечающем за
+начальную загрузку не должно быть метапрограммирования. Используйте #attr_xxx
+методы внутри любых исходников ядра. Также, для задания алиасов методам
+используйте #alias_method, вызываемый сразу за описанием метода. Делайте методы
+приватным с помощью `private :sym` сразу после описания метода. Помните,
+что версии методов, описанных выше на стадии alpha принимают один символьный
+аргумент.
 
-## Documentation
+## Документация
 
-  * Use RDoc for documentation in Ruby code.
+  * Используйте RDoc для документирования в Ruby коде.
 
-  * Use Doxygen for documentation in C++ code.
+  * Используйте Doxygen для документирования в C++ коде.
 
-  * Use Markdown for documentation in the /doc directory. See [Markdown
-    syntax](http://daringfireball.net/projects/markdown/syntax) Set the text
-    width to 78 characters and use hard breaks.
+  * Используйте Markdown для документирования в директории /doc. Смотри
+    [Синтаксис Markdown](http://daringfireball.net/projects/markdown/syntax).
+    Установите ширину текста в 78 символов и используйте жесткие переносы.

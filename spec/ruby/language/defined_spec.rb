@@ -1263,4 +1263,10 @@ describe "The defined? keyword for super" do
       DefinedSpecs::Super.new.define_method_block_args.should == "super"
     end
   end
+  
+  describe "within an included module's method" do
+    it "returns 'super' when a superclass method exists in the including hierarchy" do
+      DefinedSpecs::Child.new.defined_super.should == "super"
+    end
+  end
 end

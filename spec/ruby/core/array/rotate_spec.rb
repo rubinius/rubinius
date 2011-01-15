@@ -28,8 +28,16 @@ ruby_version_is "1.9" do
       a.rotate.should_not equal(a)
     end
 
-    it "returns subclass instance for Array subclasses" do
-      ArraySpecs::MyArray[1, 2, 3].rotate.should be_kind_of(ArraySpecs::MyArray)
+    ruby_version_is "" ... "1.9.3" do
+      it "returns subclass instance for Array subclasses" do
+        ArraySpecs::MyArray[1, 2, 3].rotate.should be_kind_of(ArraySpecs::MyArray)
+      end
+    end
+
+    ruby_version_is "1.9.3" do
+      it "does not return subclass instance for Array subclasses" do
+        ArraySpecs::MyArray[1, 2, 3].rotate.should be_kind_of(Array)
+      end
     end
   end
 

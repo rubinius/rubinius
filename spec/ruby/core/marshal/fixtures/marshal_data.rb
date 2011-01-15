@@ -139,6 +139,50 @@ end
 Struct.new "Pyramid"
 Struct.new "Useful", :a, :b
 
+class UserDefinedWithRespondTo
+  def initialize(*names)
+    @names = names
+  end
+  def collected
+    @collected ||= []
+  end
+  attr_reader :marshal_dump_called, :_dump_called
+  def respond_to?(name)
+    collected << name
+    @names.include? name
+  end
+  def marshal_dump
+    @marshal_dump_called = true
+    "marshal_dump"
+  end
+  def _dump(depth)
+    @_dump_called = true
+    "_dump"
+  end
+end
+
+class UserDefinedWithRespondToMarshalLoad
+  def marshal_dump
+    "dump"
+  end
+  
+  def respond_to?(name)
+    throw :RespondTo if name == :marshal_load
+  end
+end
+
+class UserDefinedWithRespondToLoad
+  def _dump(depth)
+    "dump"
+  end
+  
+  class << self
+    def respond_to?(name)
+      throw :RespondTo if name == :_load
+    end
+  end
+end
+
 module MarshalSpec
   def self.random_data
     randomizer = Random.new(42)

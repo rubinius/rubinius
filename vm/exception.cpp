@@ -9,11 +9,11 @@
 #include "builtin/class.hpp"
 #include "builtin/symbol.hpp"
 
-#include <cctype>
+#include <ctype.h>
 #include <vector>
 #include <iostream>
 #include <cxxabi.h>
-#include <cassert>
+#include <assert.h>
 
 #ifdef USE_EXECINFO
 #include <execinfo.h>

@@ -7,7 +7,7 @@
 #include "builtin/fixnum.hpp"
 #include "builtin/compactlookuptable.hpp"
 
-#include <cstdarg>
+#include <stdarg.h>
 #include <iostream>
 
 namespace rubinius {

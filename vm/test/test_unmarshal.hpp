@@ -4,7 +4,7 @@
 
 #include <iostream>
 #include <sstream>
-#include <cmath>
+#include <math.h>
 
 class StringUnMarshaller : public UnMarshaller {
 public:

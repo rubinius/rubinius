@@ -111,80 +111,81 @@
 
       
 
-        <p>The following guidelines aim to keep the Rubinius codebase maintainable. When
-in doubt about a guideline here, ask us in the #rubinius IRC channel on
+        <p>Следующие правила позволяют поддерживать код Rubinius в порядке. Если у вас
+возникают вопросы по стилю, задайте их на IRC канале #rubinius на сервере
 irc.freenode.net.</p>
 
-<h2 id="all-code">All Code</h2>
+<h2 id="section">Любой код</h2>
 
 <ul>
-  <li>Configure your editor for soft tabs, not hard tabs</li>
-  <li>Expand tabs to two spaces</li>
-  <li>Leave a trailing newline at the end of each file</li>
+  <li>Настройте ваш редактор на использование мягкой табуляции</li>
+  <li>Заменяйте знаки табуляции двумя пробелами</li>
+  <li>В конце любого файла оставляйте пустую строку</li>
 </ul>
 
-<h2 id="c-code">C++ Code</h2>
+<h2 id="c-">C++ код</h2>
 
 <ul>
   <li>
-    <p>No space between condition and paren.
-  Use <code>if(1)</code> NOT <code>if (1)</code></p>
+    <p>Не вставляйте пробел между условием и скобкой.
+  Используйте <code>if(1)</code>, а НЕ <code>if (1)</code></p>
   </li>
   <li>
-    <p>Put the opening brace on the same line as the function declaration or
-conditional</p>
+    <p>Открывающую фигурную скобку помещайте на одну строчку с условием или
+объявлением функции.</p>
   </li>
   <li>
-    <p>Always use curly braces, even if they can be left out.</p>
+    <p>Всегда используйте фигурные скобки, даже если их можно опустить.</p>
   </li>
   <li>
-    <p>Prefer parentheses to implicit precedence rules (within reason)</p>
+    <p>Используйте скобки для явной приоритизации (в пределах разумного).</p>
   </li>
   <li>
-    <p>Alternate versions of functions should be named why they are different
-from the primary.  If there is a function &lsquo;person()&rsquo; and you want a
-version that takes the name of the person, it should be
-&lsquo;person_with_name(char *name)&rsquo; or &lsquo;person_with_details(char *name, &hellip;)&rsquo;.
-NOT &lsquo;person1(char *name)&rsquo;.</p>
+    <p>Альтернативные варианты функций должны именоваться таким образом, чтобы
+было понятно, чем они отличаются от основной. Допустим, есть функция
+&lsquo;person()&rsquo; и вы хотите сделать альтернативную функцию, которая принимает
+дополнительный параметр &ldquo;имя&rdquo;, в таком случае имя функции должно быть
+&lsquo;person_with_name(char *name)&rsquo; или &lsquo;person_with_details(char *name, &hellip;)&rsquo;,
+а ни в коем случае не &lsquo;person1(char *name)&rsquo;.</p>
   </li>
 </ul>
 
-<h2 id="ruby-code">Ruby Code</h2>
+<h2 id="ruby-">Ruby код</h2>
 
 <ul>
   <li>
-    <p>Методы: Try to keep your methods short&ndash;one screenful and try to adhere
-to DRY within reason. Generally common functionality should be abstracted
-to helper methods (which you can make &lsquo;private&rsquo;) but in some cases,
-particularly working with Core, sometimes trying to DRY things up is just
-an obstacle if you have to maneuver around several different error
-conditions, for example.</p>
+    <p>Методы: Пытайтесь реализовывать ваши методы коротко&ndash;не более 1 экрана и
+пытайтесь придерживаться принципа DRY в разумных пределах. В целом, общая
+функциональность должна быть абстрагирована в методы-помощники (которые
+вы можете сделать приватными), но в некоторых случаях, особенно работая с
+Core, слепое следование DRY может мешать вам, например если вы вынуждены
+маневрировать среди различных ошибочных условий.</p>
   </li>
   <li>
-    <p>Method names: should be clear, expressive and meaningful. Avoid using
-underscores to &lsquo;protect&rsquo; the method (&lsquo;__send__&rsquo;) with some exceptions.</p>
+    <p>Имена методов должны быть ясными, выразительными и осмысленными. За
+некоторым исключением, старайтесь не использовать знаки подчеркивания для
+&ldquo;защиты&rdquo; методов (&lsquo;__send__&rsquo;).</p>
   </li>
   <li>
-    <p>Smalltalk-style method names are OK, meaning that you could have a method
-<code>SomeClass.make_from</code> when it is intended to be invoked as
-<code>SomeClass.make_from file</code> or <code>SomeClass.make_from :file =&gt; name</code>. There
-the parameter name <em>completes</em> the method name and makes for more natural
-reading.</p>
+    <p>Допускается именивание методов в стиле Smalltalk. Имеется ввиду, что если
+у вас есть метод <code>SomeClass.make_from</code> и он вызывается как
+<code>SomeClass.make_from file</code> или <code>SomeClass.make_from :file =&gt; name</code>. В этом
+случае имя параметра <em>дополняет</em> имя метода и повышает общую читабельность.</p>
   </li>
   <li>
-    <p>Variable names: make them clear and meaningful (with some well-known
-exceptions like using &lsquo;i&rsquo; for a counter.) Try to avoid shadowing method
-names, for example within Array use &lsquo;idx&rsquo; in favour of &lsquo;index&rsquo; because the
-latter is also a method name.</p>
+    <p>Имена переменных должны быть ясными и осмысленными (естественно, можно
+использовать имя &lsquo;i&rsquo; для счетчика). Пытайтесь не перекрывать названия
+методов переменными, например внутри класса Array используйте &lsquo;idx&rsquo;
+вместо &lsquo;index&rsquo;, поскольку последнее является именем метода.</p>
   </li>
   <li>
-    <p>Postconditions: use postconditions only <em>if</em> your expression is a
-one-liner <em>and</em> you do not have many conditions.</p>
+    <p>Используйте постусловия только <em>если</em> ваше выражение помещается на одной
+строчке <em>и</em> у вас не очень много условий.</p>
   </li>
   <li>
-    <p>Blocks: Use either <code>do ... end</code> or <code>{...}</code>, spaces between the delimiters
-and code (<code>foo { |arg| code }</code>). Split long or complex expressions over
-multiple lines like this:</p>
+    <p>Блоки: Используйте или <code>do ... end</code> или <code>{...}</code>, а также пробелы между
+разделителями и кодом (<code>foo { |arg| code }</code>). Разбивайте длинные и сложные
+выражения на несколько строк, примерно как в следующем случае:</p>
 
     <pre><code>mapped = foo.map do |elem|
   do_something_with elem
@@ -192,7 +193,7 @@ end
 </code></pre>
   </li>
   <li>
-    <p>Module/Class definitions with scope qualifiers:</p>
+    <p>Определение Module/Class с указание пространства имен:</p>
 
     <pre><code>module Rubinius::Profiler
   class Sampler
@@ -202,29 +203,30 @@ end
   </li>
 </ul>
 
-<h2 id="kernel-code">Kernel Code</h2>
+<h2 id="section-1">Код ядра</h2>
 
-<p>The primary guideline for all kernel code is simple and efficient. Simple code
-is often more efficient and generally more comprehensible. There should be no
-metaprogramming code in bootstrap. Use the #attr_xxx methods throughout the
-kernel source. Also, alias methods using the #alias_method call next to the
-method definition. Specify private methods with the <code>private :sym</code> method next
-to the method definition.  Remember that the versions of the methods listed
-above in the alpha stage take a single, symbol argument.</p>
+<p>Первичное требование для всего кода ядра это простота и эффективность. Простой
+код зачастую более эффективен и более понятен. В коде, отвечающем за
+начальную загрузку не должно быть метапрограммирования. Используйте #attr_xxx
+методы внутри любых исходников ядра. Также, для задания алиасов методам
+используйте #alias_method, вызываемый сразу за описанием метода. Делайте методы
+приватным с помощью <code>private :sym</code> сразу после описания метода. Помните,
+что версии методов, описанных выше на стадии alpha принимают один символьный
+аргумент.</p>
 
-<h2 id="documentation">Documentation</h2>
+<h2 id="section-2">Документация</h2>
 
 <ul>
   <li>
-    <p>Use RDoc for documentation in Ruby code.</p>
+    <p>Используйте RDoc для документирования в Ruby коде.</p>
   </li>
   <li>
-    <p>Use Doxygen for documentation in C++ code.</p>
+    <p>Используйте Doxygen для документирования в C++ коде.</p>
   </li>
   <li>
-    <p>Use Markdown for documentation in the /doc directory. See <a href="http://daringfireball.net/projects/markdown/syntax">Markdown
-syntax</a> Set the text
-width to 78 characters and use hard breaks.</p>
+    <p>Используйте Markdown для документирования в директории /doc. Смотри
+<a href="http://daringfireball.net/projects/markdown/syntax">Синтаксис Markdown</a>.
+Установите ширину текста в 78 символов и используйте жесткие переносы.</p>
   </li>
 </ul>
 

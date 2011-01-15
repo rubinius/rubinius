@@ -1,5 +1,5 @@
 # vim: filetype=ruby
-require 'spec/custom/utils/script'
+require 'spec/custom/mspec'
 
 class MSpecScript
   set :capi, [

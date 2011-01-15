@@ -16,7 +16,7 @@
 #include <gdtoa.h>
 
 #include <unistd.h>
-#include <cstring>
+#include <string.h>
 #include <iostream>
 #include <ctype.h>
 
@@ -255,7 +255,7 @@ namespace rubinius {
   }
 
   String* String::append(STATE, const char* other) {
-    return append(state, other, std::strlen(other));
+    return append(state, other, strlen(other));
   }
 
   String* String::append(STATE, const char* other, native_int length) {
@@ -508,7 +508,7 @@ namespace rubinius {
           native_int klen = key->size();
           if(rem < klen) continue;
 
-          if(std::memcmp(in_p, key->byte_address(), klen) == 0) {
+          if(memcmp(in_p, key->byte_address(), klen) == 0) {
             String* str = as<String>(tbl->at(i+1));
             cur_p = str->byte_address();
             len = str->size();

@@ -277,6 +277,20 @@ describe "CApiModule" do
     end
   end
 
+  describe "rb_undef" do
+    it "undef'ines a method on a class" do
+      cls = Class.new do
+        def ruby_test_method
+          :ruby_test_method
+        end
+      end
+
+      cls.new.ruby_test_method.should == :ruby_test_method
+      @m.rb_undef cls, :ruby_test_method
+      cls.should_not have_instance_method(:ruby_test_method)
+    end
+  end
+
   describe "rb_class2name" do
     it "returns the module name" do
       @m.rb_class2name(CApiModuleSpecs::M).should == "CApiModuleSpecs::M"

@@ -2,7 +2,7 @@
 #define RBX_VM_GC_BAKER_HPP
 
 #include <iostream>
-#include <cstring>
+#include <string.h>
 
 #include "gc/heap.hpp"
 #include "gc/gc.hpp"

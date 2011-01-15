@@ -198,10 +198,9 @@ ruby_version_is "1.9" do
       100.times.map{ prng.rand(10...20) }.uniq.sort.should == (10...20).to_a
     end
 
-    it "allows the startpoint to be an object of a different class to the endpoint" do
-      lambda do
-        Random.new.rand(89..100.87)
-      end.should_not raise_error      
+    it "considers Integers as Floats if one end point is a float" do
+      Random.new(42).rand(0.0..1).should be_kind_of(Float)
+      Random.new(42).rand(0..1.0).should be_kind_of(Float)
     end
 
     it "raises an ArgumentError when the startpoint lacks #+ and #- methods" do

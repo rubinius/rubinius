@@ -29,7 +29,7 @@ describe "CApiGlobalSpecs" do
     @f.rb_f_global_variables.should == Kernel.global_variables
   end
 
-  not_supported_on :rubinius do
+  not_supported_on :rubinius, :jruby do
     it "rb_define_variable should define a new global variable" do
       @f.rb_define_variable("my_gvar", "ABC")
       $my_gvar.should == "ABC"
@@ -44,7 +44,7 @@ describe "CApiGlobalSpecs" do
     lambda { $ro_gvar = 10 }.should raise_error(NameError)
   end
 
-  not_supported_on :rubinius do
+  not_supported_on :rubinius, :jruby do
     it "rb_define_hooked_variable should define a C hooked global variable" do
       @f.rb_define_hooked_variable_2x("$hooked_gvar")
       $hooked_gvar = 2
@@ -52,18 +52,20 @@ describe "CApiGlobalSpecs" do
     end
   end
 
-  describe "rb_set_kcode" do
-    before :each do
-      @kcode = $KCODE
-    end
+  ruby_version_is ""..."1.9" do
+    describe "rb_set_kcode" do
+      before :each do
+        @kcode = $KCODE
+      end
 
-    after :each do
-      $KCODE = @kcode
-    end
+      after :each do
+        $KCODE = @kcode
+      end
 
-    it "sets the value of $KCODE" do
-      @f.rb_set_kcode("U")
-      $KCODE.should == "UTF8"
+      it "sets the value of $KCODE" do
+        @f.rb_set_kcode("U")
+        $KCODE.should == "UTF8"
+      end
     end
   end
 end

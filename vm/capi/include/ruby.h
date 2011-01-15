@@ -314,21 +314,34 @@ extern "C" {
   } CApiMethodKind;
 
 struct RString {
-  size_t len;
+  ssize_t len;
   char *ptr;
   char *dmwmb;
-  union {
-    size_t capa;
+  struct {
+    ssize_t capa;
     VALUE shared;
   } aux;
 };
 
-#define RSTRING(str)    capi_rstring_struct(str)
+#define RSTRING_CACHE_UNSAFE    1
+#define RSTRING_CACHE_SAFE      2
+
+#ifdef RSTRING_NOT_MODIFIED
+  /* Define this macro if the C extension never modifies, but
+   * only reads from, RSTRING(str)->ptr and RSTRING(str)->len.
+   */
+#define RSTRING(str)    capi_rstring_struct(str, RSTRING_CACHE_SAFE);
+#else
+  /* The default is to update the string when RSTRING(str)->len is
+   * modified. We raise an exception if RSTRING(str)->ptr is changed.
+   */
+#define RSTRING(str)    capi_rstring_struct(str, RSTRING_CACHE_UNSAFE)
+#endif
 
 struct RArray {
-  size_t len;
-  union {
-    size_t capa;
+  ssize_t len;
+  struct {
+    ssize_t capa;
     VALUE shared;
   } aux;
   VALUE *ptr;
@@ -700,12 +713,12 @@ VALUE rb_uint2big(unsigned long number);
    * RCLASS_SUPER(klass) is used in a boolean context to exit a loop in
    * the Digest extension. It's likely other extensions do the same thing.
    */
-  VALUE   capi_class_superclass(VALUE class_handle);
+  VALUE   capi_class_superclass(VALUE klass);
 
-  struct RArray* capi_rarray_struct(VALUE ary_handle);
-  struct RData* capi_rdata_struct(VALUE data_handle);
-  struct RString* capi_rstring_struct(VALUE str_handle);
-  struct RFloat* capi_rfloat_struct(VALUE data_handle);
+  struct RArray* capi_rarray_struct(VALUE array);
+  struct RData* capi_rdata_struct(VALUE data);
+  struct RString* capi_rstring_struct(VALUE string, int cache_level);
+  struct RFloat* capi_rfloat_struct(VALUE data);
   struct RIO* capi_rio_struct(VALUE handle);
 
 /* Real API */
@@ -759,28 +772,31 @@ VALUE rb_uint2big(unsigned long number);
   int     rb_is_class_id(ID sym);
 
   /** Return obj if it is an Array, or return wrapped (i.e. [obj]) */
-  VALUE   rb_Array(VALUE obj_handle);
+  VALUE   rb_Array(VALUE object);
 
   /** Remove all elements from the Array. Returns self. */
-  VALUE   rb_ary_clear(VALUE self_handle);
+  VALUE   rb_ary_clear(VALUE self);
 
   /** Remove and return an element from the Array. */
-  VALUE   rb_ary_delete(VALUE self_handle, VALUE item);
+  VALUE   rb_ary_delete(VALUE self, VALUE item);
+
+  /** Remove and return the element at index from the Array. */
+  VALUE   rb_ary_delete_at(VALUE self, long idx);
 
   /** Return shallow copy of the Array. The elements are not dupped. */
-  VALUE   rb_ary_dup(VALUE self_handle);
+  VALUE   rb_ary_dup(VALUE self);
 
   /** Return object at index. Out-of-bounds access returns Qnil. */
-  VALUE   rb_ary_entry(VALUE self_handle, int index);
+  VALUE   rb_ary_entry(VALUE self, int index);
 
   /** Return Qtrue if the array includes the item. */
   VALUE   rb_ary_includes(VALUE self, VALUE obj);
 
   /** Array#join. Returns String with all elements to_s, with optional separator String. */
-  VALUE   rb_ary_join(VALUE self_handle, VALUE separator_handle);
+  VALUE   rb_ary_join(VALUE self, VALUE separator);
 
   /** Array#to_s. Returns String with all elements to_s, without a separator string */
-  VALUE   rb_ary_to_s(VALUE self_handle);
+  VALUE   rb_ary_to_s(VALUE self);
 
   /** New, empty Array. */
   VALUE   rb_ary_new();
@@ -792,31 +808,31 @@ VALUE rb_uint2big(unsigned long number);
   VALUE   rb_ary_new3(unsigned long length, ...);
 
   /** New Array of given length, filled with copies of given object. */
-  VALUE   rb_ary_new4(unsigned long length, const VALUE* object_handle);
+  VALUE   rb_ary_new4(unsigned long length, const VALUE* object);
 
   /** Remove and return last element of Array or nil. */
-  VALUE   rb_ary_pop(VALUE self_handle);
+  VALUE   rb_ary_pop(VALUE self);
 
   /** Appends value to end of Array and returns self. */
-  VALUE   rb_ary_push(VALUE self_handle, VALUE object_handle);
+  VALUE   rb_ary_push(VALUE self, VALUE object);
 
   /** Returns a new Array with elements in reverse order. Elements not dupped. */
-  VALUE   rb_ary_reverse(VALUE self_handle);
+  VALUE   rb_ary_reverse(VALUE self);
 
   /** Remove and return first element of Array or nil. Changes other elements' indexes. */
-  VALUE   rb_ary_shift(VALUE self_handle);
+  VALUE   rb_ary_shift(VALUE self);
 
   /** Number of elements in given Array. @todo MRI specifies int return, problem? */
-  size_t  rb_ary_size(VALUE self_handle);
+  size_t  rb_ary_size(VALUE self);
 
   /** Store object at given index. Supports negative indexes. Returns object. */
-  void    rb_ary_store(VALUE self_handle, long int index, VALUE object_handle);
+  void    rb_ary_store(VALUE self, long int index, VALUE object);
 
   /** Add object to the front of Array. Changes old indexes +1. Returns object. */
-  VALUE   rb_ary_unshift(VALUE self_handle, VALUE object_handle);
+  VALUE   rb_ary_unshift(VALUE self, VALUE object);
 
   /** Returns the element at index, or returns a subarray or returns a subarray specified by a range. */
-  VALUE   rb_ary_aref(int argc, VALUE *argv, VALUE object_handle);
+  VALUE   rb_ary_aref(int argc, VALUE *argv, VALUE object);
 
   VALUE   rb_ary_each(VALUE ary);
 
@@ -829,7 +845,7 @@ VALUE rb_uint2big(unsigned long number);
   VALUE   rb_assoc_new(VALUE first, VALUE second);
 
   /** @see rb_ivar_get */
-  VALUE   rb_attr_get(VALUE obj_handle, ID attr_name);
+  VALUE   rb_attr_get(VALUE object, ID attr_name);
 
   void    rb_attr(VALUE klass, ID id, int read, int write, int ex);
 
@@ -873,13 +889,13 @@ VALUE rb_uint2big(unsigned long number);
   VALUE rb_call_super(int argc, const VALUE *argv);
 
   /** If object responds to #to_ary, returns the result of that call, otherwise nil. */
-  VALUE   rb_check_array_type(VALUE object_handle);
+  VALUE   rb_check_array_type(VALUE object);
 
   /** If object responds to #to_str, returns the result of that call, otherwise nil. */
-  VALUE   rb_check_string_type(VALUE object_handle);
+  VALUE   rb_check_string_type(VALUE object);
 
-  /** Raises an exception if obj_handle is frozen. */
-  void    rb_check_frozen(VALUE obj_handle);
+  /** Raises an exception if object is frozen. */
+  void    rb_check_frozen(VALUE object);
 
   /** check if obj is frozen. */
   VALUE     rb_obj_frozen_p(VALUE obj);
@@ -888,8 +904,8 @@ VALUE rb_uint2big(unsigned long number);
   /** raise error on class */
   NORETURN(void rb_error_frozen(const char* what));
 
-  /** Raises an exception if obj_handle is not the same type as 'type'. */
-  void    rb_check_type(VALUE obj_handle, int type);
+  /** Raises an exception if object is not the same type as 'type'. */
+  void    rb_check_type(VALUE object, int type);
 
 #define Check_Type(v,t) rb_check_type((VALUE)(v),(t))
 
@@ -901,7 +917,7 @@ VALUE rb_uint2big(unsigned long number);
    *
    *  @see rb_check_array_type() and rb_check_string_type().
    */
-  VALUE   rb_check_convert_type(VALUE object_handle, int type,
+  VALUE   rb_check_convert_type(VALUE object, int type,
       const char* type_name, const char* method_name);
 
   void    rb_check_safe_obj(VALUE obj);
@@ -911,28 +927,28 @@ VALUE rb_uint2big(unsigned long number);
   void    rb_secure_update(VALUE obj);
 
   /** Returns String representation of the class' name. */
-  VALUE   rb_class_name(VALUE class_handle);
+  VALUE   rb_class_name(VALUE klass);
 
   /** Calls the class method 'inherited' on super passing the class.
    *  If super is NULL, calls Object.inherited. */
-  VALUE   rb_class_inherited(VALUE super_handle, VALUE class_handle);
+  VALUE   rb_class_inherited(VALUE super, VALUE klass);
 
-  /** Returns a new, anonymous class inheriting from super_handle.
+  /** Returns a new, anonymous class inheriting from super.
    *  Does NOT call inherited() on the superclass. */
-  VALUE   rb_class_new(VALUE super_handle);
+  VALUE   rb_class_new(VALUE super);
 
   /** As Ruby's .new, with the given arguments. Returns the new object. */
-  VALUE   rb_class_new_instance(int arg_count, VALUE* args, VALUE class_handle);
+  VALUE   rb_class_new_instance(int arg_count, VALUE* args, VALUE klass);
 
   /** Returns the Class object this object is an instance of. */
-  VALUE   rb_class_of(VALUE object_handle);
+  VALUE   rb_class_of(VALUE object);
 
   /** Returns the Class object contained in the klass field of object
    * (ie, a metaclass if it's there) */
-  VALUE   CLASS_OF(VALUE object_handle);
+  VALUE   CLASS_OF(VALUE object);
 
   /** C string representation of the class' name. */
-  const char*   rb_class2name(VALUE class_handle);
+  const char*   rb_class2name(VALUE klass);
 
   /** Return the module referred to by qualified path (e.g. A::B::C) */
   VALUE   rb_path2class(const char*);
@@ -944,28 +960,28 @@ VALUE rb_uint2big(unsigned long number);
   VALUE   rb_f_global_variables();
 
   /** Returns object returned by invoking method on object if right type, or raises error. */
-  VALUE   rb_convert_type(VALUE object_handle, int type,
+  VALUE   rb_convert_type(VALUE object, int type,
       const char* type_name, const char* method_name);
 
   /** Nonzero if constant corresponding to Symbol exists in the Module. */
-  int     rb_const_defined(VALUE module_handle, ID const_id);
+  int     rb_const_defined(VALUE module, ID const_id);
 
   /** Returns non-zero if the constant is defined in the module. Does
    *  not search outside of the module itself. */
-  int     rb_const_defined_at(VALUE module_handle, ID const_id);
+  int     rb_const_defined_at(VALUE module, ID const_id);
 
   /** Retrieve constant from given module. */
-  VALUE   rb_const_get(VALUE module_handle, ID id_name);
+  VALUE   rb_const_get(VALUE module, ID id_name);
 
   /** Returns a constant defined in module only. Does not search
    *  outside of the module itself. */
-  VALUE   rb_const_get_at(VALUE module_handle, ID id_name);
+  VALUE   rb_const_get_at(VALUE module, ID id_name);
 
   /** Retrieve constant from given module. */
-  VALUE rb_const_get_from(VALUE module_handle, ID id_name);
+  VALUE rb_const_get_from(VALUE module, ID id_name);
 
   /** Set constant on the given module */
-  void rb_const_set(VALUE module_handle, ID name, VALUE const_handle);
+  void rb_const_set(VALUE module, ID name, VALUE constant);
 
   VALUE rb_mod_remove_const(VALUE mod, VALUE name);
   VALUE rb_mod_ancestors(VALUE mod);
@@ -982,19 +998,19 @@ VALUE rb_uint2big(unsigned long number);
   VALUE   rb_cstr_to_inum(const char* str, int base, int badcheck);
 
   /** Returns module's named class variable. @@ is optional. */
-  VALUE   rb_cv_get(VALUE module_handle, const char* name);
+  VALUE   rb_cv_get(VALUE module, const char* name);
 
   /** Set module's named class variable to given value. Returns the value. @@ is optional. */
-  VALUE   rb_cv_set(VALUE module_handle, const char* name, VALUE value);
+  VALUE   rb_cv_set(VALUE module, const char* name, VALUE value);
 
   /** Returns a value evaluating true if module has named class var. @@ is optional. */
-  VALUE   rb_cvar_defined(VALUE module_handle, ID name);
+  VALUE   rb_cvar_defined(VALUE module, ID name);
 
   /** Returns class variable by (Symbol) name from module. @@ is optional. */
-  VALUE   rb_cvar_get(VALUE module_handle, ID name);
+  VALUE   rb_cvar_get(VALUE module, ID name);
 
   /** Set module's named class variable to given value. Returns the value. @@ is optional. */
-  VALUE   rb_cvar_set(VALUE module_handle, ID name, VALUE value, int unused);
+  VALUE   rb_cvar_set(VALUE module, ID name, VALUE value, int unused);
 
   /** Set module's named class variable to given value. */
   void rb_define_class_variable(VALUE klass, const char* name, VALUE val);
@@ -1003,29 +1019,29 @@ VALUE rb_uint2big(unsigned long number);
       RUBY_DATA_FUNC mark, RUBY_DATA_FUNC free);
 
   /** Alias method by old name as new name. Methods are independent of eachother. */
-  void    rb_define_alias(VALUE module_handle, const char *new_name, const char *old_name);
+  void    rb_define_alias(VALUE module, const char *new_name, const char *old_name);
 
   /** Define an .allocate for the given class. Should take no args and return a VALUE. */
-  void    rb_define_alloc_func(VALUE class_handle, CApiAllocFunction allocator);
+  void    rb_define_alloc_func(VALUE klass, CApiAllocFunction allocator);
 
   /** Undefine the .allocate for the given class. */
-  void    rb_undef_alloc_func(VALUE class_handle);
+  void    rb_undef_alloc_func(VALUE klass);
 
   /** Ruby's attr_* for given name. Nonzeros to toggle read/write. */
-  void    rb_define_attr(VALUE module_handle, const char* attr_name,
+  void    rb_define_attr(VALUE module, const char* attr_name,
       int readable, int writable);
 
   /** Reopen or create new top-level class with given superclass and name. Returns the Class object. */
-  VALUE   rb_define_class(const char* name, VALUE superclass_handle);
+  VALUE   rb_define_class(const char* name, VALUE superclass);
 
   /** Reopen or create new class with superclass and name under parent module. Returns the Class object. */
-  VALUE   rb_define_class_under(VALUE parent_handle, const char* name, VALUE superclass_handle);
+  VALUE   rb_define_class_under(VALUE parent, const char* name, VALUE superclass);
 
   /** Define a toplevel constant */
   void    rb_define_global_const(const char* name, VALUE obj);
 
   /** Define a constant in given Module's namespace. */
-  void    rb_define_const(VALUE module_handle, const char* name, VALUE obj_handle);
+  void    rb_define_const(VALUE module, const char* name, VALUE object);
 
   /** Generate a NativeMethod to represent a method defined as a C function. Records file. */
   #define rb_define_method(mod, name, fptr, arity) \
@@ -1040,11 +1056,11 @@ VALUE rb_uint2big(unsigned long number);
   VALUE   rb_define_module(const char* name);
 
   /** Defines the method as a private instance method and a singleton method of module. */
-  void    rb_define_module_function(VALUE module_handle,
+  void    rb_define_module_function(VALUE module,
       const char* name, CApiGenericFunction func, int args);
 
   /** Reopen or create a new Module inside given parent Module. */
-  VALUE   rb_define_module_under(VALUE parent_handle, const char* name);
+  VALUE   rb_define_module_under(VALUE parent, const char* name);
 
   /** Generate a NativeMethod to represent a private method defined in the C function. */
   #define rb_define_private_method(mod, name, fptr, arity) \
@@ -1074,7 +1090,7 @@ VALUE rb_uint2big(unsigned long number);
   VALUE   rb_exc_new3(VALUE etype, VALUE str);
 
   /** Raises passed exception handle */
-  NORETURN(void rb_exc_raise(VALUE exc_handle));
+  NORETURN(void rb_exc_raise(VALUE exception));
 
   /** Return the current exception */
   VALUE   rb_errinfo();
@@ -1087,7 +1103,7 @@ VALUE rb_uint2big(unsigned long number);
 #define HAVE_RB_ERRINFO 1
 
   /** Remove a previously declared global variable. */
-  void    rb_free_global(VALUE global_handle);
+  void    rb_free_global(VALUE global);
 
   /** Freeze object and return it. */
   VALUE   rb_obj_freeze(VALUE obj);
@@ -1174,6 +1190,7 @@ VALUE rb_uint2big(unsigned long number);
   int     rb_io_wait_writable(int fd);
 
   void    rb_io_set_nonblock(rb_io_t* io);
+  void    rb_io_check_closed(rb_io_t* io);
   void    rb_io_check_readable(rb_io_t* io);
   void    rb_io_check_writable(rb_io_t* io);
 
@@ -1218,7 +1235,7 @@ VALUE rb_uint2big(unsigned long number);
   void rb_define_readonly_variable(const char* name, VALUE* addr);
 
   /** Include Module in another Module, just as Ruby's Module#include. */
-  void    rb_include_module(VALUE includer_handle, VALUE includee_handle);
+  void    rb_include_module(VALUE includer, VALUE includee);
 
   /** Convert string to an ID */
   ID      rb_intern(const char* string);
@@ -1231,37 +1248,37 @@ VALUE rb_uint2big(unsigned long number);
 #define RB_NUM_COERCE_FUNCS_NEED_OPID 1
 
   /** Call #initialize on the object with given arguments. */
-  void    rb_obj_call_init(VALUE object_handle, int arg_count, VALUE* args);
+  void    rb_obj_call_init(VALUE object, int arg_count, VALUE* args);
 
   /** Returns the Class object this object is an instance of. */
-  #define rb_obj_class(object_handle) rb_class_of((object_handle))
+  #define rb_obj_class(object) rb_class_of((object))
 
   /** String representation of the object's class' name. */
-  const char*   rb_obj_classname(VALUE object_handle);
+  const char*   rb_obj_classname(VALUE object);
 
   /** Returns true-ish if object is an instance of specific class. */
-  VALUE   rb_obj_is_instance_of(VALUE object_handle, VALUE class_handle);
+  VALUE   rb_obj_is_instance_of(VALUE object, VALUE klass);
 
   /** Returns true-ish if module is object's class or other ancestor. */
-  VALUE   rb_obj_is_kind_of(VALUE object_handle, VALUE module_handle);
+  VALUE   rb_obj_is_kind_of(VALUE object, VALUE module);
 
   /** Returns the object_id of the object. */
   VALUE   rb_obj_id(VALUE self);
 
   /** Return object's instance variable by name. @ optional. */
-  VALUE   rb_iv_get(VALUE self_handle, const char* name);
+  VALUE   rb_iv_get(VALUE self, const char* name);
 
   /** Set instance variable by name to given value. Returns the value. @ optional. */
-  VALUE   rb_iv_set(VALUE self_handle, const char* name, VALUE value);
+  VALUE   rb_iv_set(VALUE self, const char* name, VALUE value);
 
   /** Get object's instance variable. */
-  VALUE   rb_ivar_get(VALUE obj_handle, ID ivar_name);
+  VALUE   rb_ivar_get(VALUE object, ID ivar_name);
 
   /** Set object's instance variable to given value. */
-  VALUE   rb_ivar_set(VALUE obj_handle, ID ivar_name, VALUE value);
+  VALUE   rb_ivar_set(VALUE object, ID ivar_name, VALUE value);
 
-  /** Checks if obj_handle has an ivar named ivar_name. */
-  VALUE   rb_ivar_defined(VALUE obj_handle, ID ivar_name);
+  /** Checks if object has an ivar named ivar_name. */
+  VALUE   rb_ivar_defined(VALUE object, ID ivar_name);
 
   /** Allocate uninitialised instance of given class. */
   VALUE   rb_obj_alloc(VALUE klass);
@@ -1271,7 +1288,7 @@ VALUE rb_uint2big(unsigned long number);
   VALUE   rb_obj_dup(VALUE obj);
 
   /** Call #to_s on object. */
-  VALUE   rb_obj_as_string(VALUE obj_handle);
+  VALUE   rb_obj_as_string(VALUE object);
 
   VALUE   rb_obj_instance_eval(int argc, VALUE* argv, VALUE self);
 
@@ -1279,15 +1296,15 @@ VALUE rb_uint2big(unsigned long number);
 
   /** Return a clone of the object by calling the method bound
    * to Kernel#clone (i.e. does NOT call specialized #clone method
-   * on obj_handle if one exists).
+   * on object if one exists).
    */
-  VALUE rb_obj_clone(VALUE obj_handle);
+  VALUE rb_obj_clone(VALUE object);
 
   /** Adds the module's instance methods to the object. */
   void rb_extend_object(VALUE obj, VALUE mod);
 
   /** Call #inspect on an object. */
-  VALUE rb_inspect(VALUE obj_handle);
+  VALUE rb_inspect(VALUE object);
 
   /** Returns a Proc wrapping a C function. */
   VALUE rb_proc_new(VALUE (*func)(ANYARGS), VALUE val);
@@ -1299,7 +1316,7 @@ VALUE rb_uint2big(unsigned long number);
    *  Raise error of given class using formatted message.
    *
    */
-  NORETURN(void rb_raise(VALUE error_handle, const char* format_string, ...));
+  NORETURN(void rb_raise(VALUE error, const char* format_string, ...));
 
   /**
    *  Transfer control to the end of the innermost catch block
@@ -1376,7 +1393,7 @@ VALUE rb_uint2big(unsigned long number);
   VALUE   rb_require(const char* name);
 
   /** 1 if obj.respond_to? method_name evaluates true, 0 otherwise. */
-  int     rb_respond_to(VALUE obj_handle, ID method_name);
+  int     rb_respond_to(VALUE object, ID method_name);
 
   /** Returns the current $SAFE level. */
   int     rb_safe_level();
@@ -1425,10 +1442,10 @@ VALUE rb_uint2big(unsigned long number);
   void    rb_set_safe_level(int new_level);
 
   /** Returns the MetaClass object of the object. */
-  VALUE   rb_singleton_class(VALUE object_handle);
+  VALUE   rb_singleton_class(VALUE object);
 
   /** Tries to return a String using #to_str. Error raised if no or invalid conversion. */
-  VALUE   rb_String(VALUE object_handle);
+  VALUE   rb_String(VALUE object);
 
   /** Returns a Struct with the specified fields. */
   VALUE rb_struct_define(const char *name, ...);
@@ -1437,10 +1454,10 @@ VALUE rb_uint2big(unsigned long number);
   VALUE rb_struct_new(VALUE klass, ...);
 
   /** Returns the value of the key. */
-  VALUE rb_struct_aref(VALUE struct_handle, VALUE key);
+  VALUE rb_struct_aref(VALUE s, VALUE key);
 
   /** Sets the value of the key. */
-  VALUE rb_struct_aset(VALUE struct_handle, VALUE key, VALUE value);
+  VALUE rb_struct_aset(VALUE s, VALUE key, VALUE value);
 
   /** Sets the $KCODE variable. */
   void    rb_set_kcode(const char *code);
@@ -1480,16 +1497,16 @@ VALUE rb_uint2big(unsigned long number);
 #define HAVE_RB_STR_PTR_READONLY 1
 
   /** Appends other String to self and returns the modified self. */
-  VALUE   rb_str_append(VALUE self_handle, VALUE other_handle);
+  VALUE   rb_str_append(VALUE self, VALUE other);
 
   /** Appends other String to self and returns self. @see rb_str_append */
-  VALUE   rb_str_buf_append(VALUE self_handle, VALUE other_handle);
+  VALUE   rb_str_buf_append(VALUE self, VALUE other);
 
   /** Append given number of bytes from C string to and return the String. */
-  VALUE   rb_str_buf_cat(VALUE string_handle, const char* other, size_t size);
+  VALUE   rb_str_buf_cat(VALUE string, const char* other, size_t size);
 
   /** Append C string to and return the String. Uses strlen(). @see rb_str_buf_cat */
-  VALUE   rb_str_buf_cat2(VALUE string_handle, const char* other);
+  VALUE   rb_str_buf_cat2(VALUE string, const char* other);
 
   /**
    *  Return new empty String with preallocated storage.
@@ -1497,19 +1514,19 @@ VALUE rb_uint2big(unsigned long number);
   VALUE   rb_str_buf_new(long capacity);
 
   /** Return new String concatenated of the two. */
-  VALUE   rb_str_cat(VALUE string_handle, const char* other, size_t length);
+  VALUE   rb_str_cat(VALUE string, const char* other, size_t length);
 
   /** Return new String concatenated of the two. Uses strlen(). @see rb_str_cat */
-  VALUE   rb_str_cat2(VALUE string_handle, const char* other);
+  VALUE   rb_str_cat2(VALUE string, const char* other);
 
   /** Compare Strings as Ruby String#<=>. Returns -1, 0 or 1. */
-  int     rb_str_cmp(VALUE first_handle, VALUE second_handle);
+  int     rb_str_cmp(VALUE first, VALUE second);
 
   /** Append other String or character to self, and return the modified self. */
-  VALUE   rb_str_concat(VALUE self_handle, VALUE other_handle);
+  VALUE   rb_str_concat(VALUE self, VALUE other);
 
   /** As Ruby's String#dup, returns copy of self as a new String. */
-  VALUE   rb_str_dup(VALUE self_handle);
+  VALUE   rb_str_dup(VALUE self);
 
   /** Returns a symbol created from this string. */
   VALUE   rb_str_intern(VALUE self);
@@ -1543,13 +1560,13 @@ VALUE rb_uint2big(unsigned long number);
   VALUE   rb_str_freeze(VALUE str);
 
   /** Returns a new String created from concatenating self with other. */
-  VALUE   rb_str_plus(VALUE self_handle, VALUE other_handle);
+  VALUE   rb_str_plus(VALUE self, VALUE other);
 
   /** Makes str at least len characters. */
-  VALUE   rb_str_resize(VALUE self_handle, size_t len);
+  VALUE   rb_str_resize(VALUE self, size_t len);
 
   /** Splits self using the separator string. Returns Array of substrings. */
-  VALUE   rb_str_split(VALUE self_handle, const char* separator);
+  VALUE   rb_str_split(VALUE self, const char* separator);
 
   /**
    *  As Ruby's String#slice.
@@ -1559,16 +1576,16 @@ VALUE rb_uint2big(unsigned long number);
    *  may be negative. Normal String#slice border conditions
    *  apply.
    */
-  VALUE   rb_str_substr(VALUE self_handle, size_t starting_index, size_t length);
+  VALUE   rb_str_substr(VALUE self, size_t starting_index, size_t length);
 
   /** Return a new String containing given number of copies of self. */
-  VALUE   rb_str_times(VALUE self_handle, VALUE times);
+  VALUE   rb_str_times(VALUE self, VALUE times);
 
   /** Return an Integer obtained from String#to_i, using the given base. */
-  VALUE   rb_str2inum(VALUE self_handle, int base);
+  VALUE   rb_str2inum(VALUE self, int base);
 
   /** Try to return a String using #to_str. Error raised if no or invalid conversion. */
-  VALUE   rb_str_to_str(VALUE object_handle);
+  VALUE   rb_str_to_str(VALUE object);
 
   /** Call #to_s on object pointed to and _replace_ it with the String. */
   VALUE   rb_string_value(volatile VALUE* object_variable);
@@ -1583,7 +1600,7 @@ VALUE rb_uint2big(unsigned long number);
    * Returns an editable pointer to the String, the length is returned
    * in len parameter, which can be NULL.
    */
-  char*   rb_str2cstr(VALUE str_handle, long *len);
+  char*   rb_str2cstr(VALUE string, long *len);
 
   long    rb_str_hash(VALUE str);
 
@@ -1653,22 +1670,22 @@ VALUE rb_uint2big(unsigned long number);
   VALUE   rb_time_new(time_t sec, time_t usec);
 
   /** Returns an integer value representing the object's type. */
-  int     rb_type(VALUE object_handle);
+  int     rb_type(VALUE object);
 
   /** Call #to_sym on object. */
-  ID      rb_to_id(VALUE object_handle);
+  ID      rb_to_id(VALUE object);
 
   /** Converts an object to an Integer by calling #to_int. */
-  VALUE   rb_to_int(VALUE object_handle);
+  VALUE   rb_to_int(VALUE object);
 
   /** Module#undefine_method. Objects of class will not respond to name. @see rb_remove_method */
-  void    rb_undef_method(VALUE module_handle, const char* name);
+  void    rb_undef_method(VALUE module, const char* name);
   void    rb_undef(VALUE handle, ID name);
 
   /** Call block with given argument or raise error if no block given. */
-  VALUE   rb_yield(VALUE argument_handle);
+  VALUE   rb_yield(VALUE argument);
   VALUE   rb_yield_values(int n, ...);
-  VALUE   rb_yield_splat(VALUE array_handle);
+  VALUE   rb_yield_splat(VALUE array);
 
   VALUE   rb_apply(VALUE recv, ID mid, VALUE args);
 
@@ -1676,9 +1693,9 @@ VALUE rb_uint2big(unsigned long number);
 
   VALUE   rb_float_new(double val);
 
-  VALUE   rb_Float(VALUE object_handle);
+  VALUE   rb_Float(VALUE object);
 
-  VALUE   rb_Integer(VALUE object_handle);
+  VALUE   rb_Integer(VALUE object);
 
   NORETURN(void rb_num_zerodiv(void));
 

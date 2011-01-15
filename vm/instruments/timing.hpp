@@ -2,7 +2,7 @@
 #define RBX_INSTRUMENTS_TIMING_HPP
 
 #include <stdint.h>
-#include <cstdlib>
+#include <stdlib.h>
 #include "detection.hpp"
 
 // HACK figure out a better way to detect if we should use

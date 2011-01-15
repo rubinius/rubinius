@@ -1,7 +1,7 @@
 #ifndef RBX_BUILTIN_EXECUTABLE_HPP
 #define RBX_BUILTIN_EXECUTABLE_HPP
 
-#include <cassert>
+#include <assert.h>
 
 #include "builtin/object.hpp"
 #include "type_info.hpp"

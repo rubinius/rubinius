@@ -4,6 +4,10 @@ require File.expand_path('../../fixtures/classes', __FILE__)
 require 'socket'
 
 describe "Socket#getaddrinfo" do
+  before :all do
+    @do_not_reverse_lookup = BasicSocket.do_not_reverse_lookup
+  end
+    
   before :each do
     BasicSocket.do_not_reverse_lookup = false
   end
@@ -12,6 +16,10 @@ describe "Socket#getaddrinfo" do
     BasicSocket.do_not_reverse_lookup = false
   end
 
+  after :all do
+    BasicSocket.do_not_reverse_lookup = @do_not_reverse_lookup
+  end
+    
   it "gets the address information" do
     BasicSocket.do_not_reverse_lookup = true
     expected = []
@@ -89,8 +97,11 @@ describe "Socket#getaddrinfo" do
                                Socket::IPPROTO_TCP,
                                Socket::AI_PASSIVE)
 
-     expected = [["AF_INET6", 80, "::", "::", Socket::AF_INET6, Socket::SOCK_STREAM, Socket::IPPROTO_TCP]]
-     res.should == expected
+     expected = [
+       ["AF_INET6", 80, "::", "::", Socket::AF_INET6, Socket::SOCK_STREAM, Socket::IPPROTO_TCP],
+       ["AF_INET6", 80, "0:0:0:0:0:0:0:0", "0:0:0:0:0:0:0:0", Socket::AF_INET6, Socket::SOCK_STREAM, Socket::IPPROTO_TCP]
+     ]
+     res.each { |a| expected.should include (a) }
    end
 
    it "accepts empty addresses for IPv6 non-passive sockets" do
@@ -101,8 +112,11 @@ describe "Socket#getaddrinfo" do
                                Socket::IPPROTO_TCP,
                                0)
 
-     expected = [["AF_INET6", 80, "::1", "::1", Socket::AF_INET6, Socket::SOCK_STREAM, Socket::IPPROTO_TCP]]
-     res.should == expected
+     expected = [
+       ["AF_INET6", 80, "::1", "::1", Socket::AF_INET6, Socket::SOCK_STREAM, Socket::IPPROTO_TCP],
+       ["AF_INET6", 80, "0:0:0:0:0:0:0:1", "0:0:0:0:0:0:0:1", Socket::AF_INET6, Socket::SOCK_STREAM, Socket::IPPROTO_TCP]
+     ]
+     res.each { |a| expected.should include (a) }
    end
 end
 

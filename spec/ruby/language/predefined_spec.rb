@@ -587,4 +587,221 @@ describe "The predefined global constants" do
   it "includes TOPLEVEL_BINDING" do
     Object.const_defined?(:TOPLEVEL_BINDING).should == true
   end
+
+end
+
+describe "Processing RUBYOPT" do
+  before (:each) do
+    @rubyopt, ENV["RUBYOPT"] = ENV["RUBYOPT"], nil
+  end
+
+  after (:each) do
+    ENV["RUBYOPT"] = @rubyopt
+  end
+
+  it "adds the -I path to $LOAD_PATH" do
+    ENV["RUBYOPT"] = "-Ioptrubyspecincl"
+    result = ruby_exe("puts $LOAD_PATH.grep(/byspecin/)", :escape => true)
+    result.chomp[-15..-1].should == "optrubyspecincl"
+  end
+
+  it "sets $DEBUG to true for '-d'" do
+    ENV["RUBYOPT"] = '-d'
+    ruby_exe("puts $DEBUG", :escape => true).chomp.should == "true"
+  end
+
+  ruby_version_is "1.9" do
+    it "prints the version number for '-v'" do
+      ENV["RUBYOPT"] = '-v'
+      ruby_exe("").chomp.should == RUBY_DESCRIPTION
+    end
+  end
+
+  it "sets $VERBOSE to true for '-w'" do
+    ENV["RUBYOPT"] = '-w'
+    ruby_exe("p $VERBOSE", :escape => true).chomp.should == "true"
+  end
+
+  it "sets $VERBOSE to true for '-W'" do
+    ENV["RUBYOPT"] = '-W'
+    ruby_exe("p $VERBOSE", :escape => true).chomp.should == "true"
+  end
+
+  it "sets $VERBOSE to nil for '-W0'" do
+    ENV["RUBYOPT"] = '-W0'
+    ruby_exe("p $VERBOSE", :escape => true).chomp.should == "nil"
+  end
+
+  it "sets $VERBOSE to false for '-W1'" do
+    ENV["RUBYOPT"] = '-W1'
+    ruby_exe("p $VERBOSE", :escape => true).chomp.should == "false"
+  end
+
+  it "sets $VERBOSE to true for '-W2'" do
+    ENV["RUBYOPT"] = '-W2'
+    ruby_exe("p $VERBOSE", :escape => true).chomp.should == "true"
+  end
+
+  it "requires the file for '-r'" do
+    f = fixture __FILE__, "rubyopt"
+    ENV["RUBYOPT"] = "-r#{f}"
+    ruby_exe("").should =~ /^rubyopt.rb required/
+  end
+
+  ruby_version_is ""..."1.9" do
+    it "sets $KCODE to 'NONE' with '-K'" do
+      ENV["RUBYOPT"] = '-K'
+      ruby_exe("puts $KCODE", :escape => true).chomp.should == "NONE"
+    end
+
+    it "sets $KCODE to 'NONE' with '-Ka'" do
+      ENV["RUBYOPT"] = '-Ka'
+      ruby_exe("puts $KCODE", :escape => true).chomp.should == "NONE"
+    end
+
+    it "sets $KCODE to 'NONE' with '-KA'" do
+      ENV["RUBYOPT"] = '-KA'
+      ruby_exe("puts $KCODE", :escape => true).chomp.should == "NONE"
+    end
+
+    it "sets $KCODE to 'NONE' with '-Kn'" do
+      ENV["RUBYOPT"] = '-Kn'
+      ruby_exe("puts $KCODE", :escape => true).chomp.should == "NONE"
+    end
+
+    it "sets $KCODE to 'NONE' with '-KN'" do
+      ENV["RUBYOPT"] = '-KN'
+      ruby_exe("puts $KCODE", :escape => true).chomp.should == "NONE"
+    end
+
+    it "sets $KCODE to 'EUC' with '-Ke'" do
+      ENV["RUBYOPT"] = '-Ke'
+      ruby_exe("puts $KCODE", :escape => true).chomp.should == "EUC"
+    end
+
+    it "sets $KCODE to 'EUC' with '-KE'" do
+      ENV["RUBYOPT"] = '-KE'
+      ruby_exe("puts $KCODE", :escape => true).chomp.should == "EUC"
+    end
+
+    it "sets $KCODE to 'UTF8' with '-Ku'" do
+      ENV["RUBYOPT"] = '-Ku'
+      ruby_exe("puts $KCODE", :escape => true).chomp.should == "UTF8"
+    end
+
+    it "sets $KCODE to 'UTF8' with '-KU'" do
+      ENV["RUBYOPT"] = '-KU'
+      ruby_exe("puts $KCODE", :escape => true).chomp.should == "UTF8"
+    end
+
+    it "sets $KCODE to 'SJIS' with '-Ks'" do
+      ENV["RUBYOPT"] = '-Ks'
+      ruby_exe("puts $KCODE", :escape => true).chomp.should == "SJIS"
+    end
+
+    it "sets $KCODE to 'SJIS' with '-KS'" do
+      ENV["RUBYOPT"] = '-KS'
+      ruby_exe("puts $KCODE", :escape => true).chomp.should == "SJIS"
+    end
+  end
+
+  it "raises a RuntimeError for '-a'" do
+    ENV["RUBYOPT"] = '-a'
+    ruby_exe("", :args => '2>&1').should =~ /RuntimeError/
+  end
+
+  it "raises a RuntimeErrorError for '-p'" do
+    ENV["RUBYOPT"] = '-p'
+    ruby_exe("", :args => '2>&1').should =~ /RuntimeError/
+  end
+
+  it "raises a RuntimeErrorError for '-n'" do
+    ENV["RUBYOPT"] = '-n'
+    ruby_exe("", :args => '2>&1').should =~ /RuntimeError/
+  end
+
+  it "raises a RuntimeErrorError for '-y'" do
+    ENV["RUBYOPT"] = '-y'
+    ruby_exe("", :args => '2>&1').should =~ /RuntimeError/
+  end
+
+  it "raises a RuntimeErrorError for '-c'" do
+    ENV["RUBYOPT"] = '-c'
+    ruby_exe("", :args => '2>&1').should =~ /RuntimeError/
+  end
+
+  it "raises a RuntimeErrorError for '-s'" do
+    ENV["RUBYOPT"] = '-s'
+    ruby_exe("", :args => '2>&1').should =~ /RuntimeError/
+  end
+
+  it "raises a RuntimeErrorError for '-h'" do
+    ENV["RUBYOPT"] = '-h'
+    ruby_exe("", :args => '2>&1').should =~ /RuntimeError/
+  end
+
+  it "raises a RuntimeErrorError for '--help'" do
+    ENV["RUBYOPT"] = '--help'
+    ruby_exe("", :args => '2>&1').should =~ /RuntimeError/
+  end
+
+  it "raises a RuntimeErrorError for '-l'" do
+    ENV["RUBYOPT"] = '-l'
+    ruby_exe("", :args => '2>&1').should =~ /RuntimeError/
+  end
+
+  it "raises a RuntimeErrorError for '-S'" do
+    ENV["RUBYOPT"] = '-S irb'
+    ruby_exe("", :args => '2>&1').should =~ /RuntimeError/
+  end
+
+  it "raises a RuntimeErrorError for '-e'" do
+    ENV["RUBYOPT"] = '-e0'
+    ruby_exe("", :args => '2>&1').should =~ /RuntimeError/
+  end
+
+  it "raises a RuntimeErrorError for '-i'" do
+    ENV["RUBYOPT"] = '-i.bak'
+    ruby_exe("", :args => '2>&1').should =~ /RuntimeError/
+  end
+
+  it "raises a RuntimeErrorError for '-x'" do
+    ENV["RUBYOPT"] = '-x'
+    ruby_exe("", :args => '2>&1').should =~ /RuntimeError/
+  end
+
+  it "raises a RuntimeErrorError for '-C'" do
+    ENV["RUBYOPT"] = '-C'
+    ruby_exe("", :args => '2>&1').should =~ /RuntimeError/
+  end
+
+  it "raises a RuntimeErrorError for '-X'" do
+    ENV["RUBYOPT"] = '-X.'
+    ruby_exe("", :args => '2>&1').should =~ /RuntimeError/
+  end
+
+  it "raises a RuntimeErrorError for '-F'" do
+    ENV["RUBYOPT"] = '-F'
+    ruby_exe("", :args => '2>&1').should =~ /RuntimeError/
+  end
+
+  it "raises a RuntimeErrorError for '-0'" do
+    ENV["RUBYOPT"] = '-0'
+    ruby_exe("", :args => '2>&1').should =~ /RuntimeError/
+  end
+
+  it "raises a RuntimeErrorError for '--copyright'" do
+    ENV["RUBYOPT"] = '--copyright'
+    ruby_exe("", :args => '2>&1').should =~ /RuntimeError/
+  end
+
+  it "raises a RuntimeErrorError for '--version'" do
+    ENV["RUBYOPT"] = '--version'
+    ruby_exe("", :args => '2>&1').should =~ /RuntimeError/
+  end
+
+  it "raises a RuntimeErrorError for '--yydebug'" do
+    ENV["RUBYOPT"] = '--yydebug'
+    ruby_exe("", :args => '2>&1').should =~ /RuntimeError/
+  end
 end

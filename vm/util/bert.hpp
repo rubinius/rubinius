@@ -12,7 +12,7 @@
 #endif
 #include <string.h>
 
-#include <cstdio>
+#include <stdio.h>
 #include <ostream>
 #include <iostream>
 #include <vector>

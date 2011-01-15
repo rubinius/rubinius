@@ -46,10 +46,17 @@ class Dir
 
     class RecursiveDirectories < Node
       def call(env, start)
-        allow_dots = ((@flags & File::FNM_DOTMATCH) != 0)
-
         if start.nil? or File.exists? start
-          @next.call env, start
+          # Even though the recursive entry is zero width
+          # in this case, it's left seperator is still the
+          # dominant one, so we fix things up to use it.
+          if @separator
+            switched = @next.dup
+            switched.separator = @separator
+            switched.call env, start
+          else
+            @next.call env, start
+          end
         end
 
         stack = [start]

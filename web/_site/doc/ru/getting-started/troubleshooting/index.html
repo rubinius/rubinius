@@ -111,11 +111,12 @@
 
       
 
-        <p>The following are errors that you may encounter while building, installing, or
-running Rubinius along with suggested solutions.</p>
+        <p>Ниже приведены ошибки, с которыми вы можете столкнуться в процессе сборки,
+установки или использования Rubinius, вместе с возможными их решениями.</p>
 
-<p>For any error, a first step is to ensure you have a current, clean checkout of
-Rubinius. Before going further, consider running the following steps:</p>
+<p>При любой ошибке, первым делом удостоверьтесь, что вы работаете с чистой
+копией Rubinius. Перед тем, как двигаться дальше, попробуйте выполнить
+следующее:</p>
 
 <pre><code>$ git co master
 $ git reset --hard
@@ -124,7 +125,7 @@ $ rake distclean
 $ rake
 </code></pre>
 
-<p>Error:</p>
+<p>Ошибка:</p>
 
 <pre><code>ERROR: unable to find runtime directory
 
@@ -141,18 +142,19 @@ You may have configured Rubinius for a different install
 directory but you have not run 'rake install' yet.
 </code></pre>
 
-<p>Solution:</p>
+<p>Решение:</p>
 
-<p>If you configured rubinius with a &ndash;prefix, run rake install.</p>
+<p>Если вы конфигурировали rubinius с &ndash;prefix, выполните rake install.</p>
 
-<p>If you configured rubinius with a &ndash;prefix and renamed the install directory
-  after installing Rubinius, re-configure Rubinius and reinstall it.</p>
+<p>Если вы конфигурировали rubinius с &ndash;prefix и переименовали инсталяционную
+  директорию после установки Rubinius, выполните конфигурацию и установку
+  заново.</p>
 
-<p>If you renamed the source directory after building Rubinius, re-configure
-  and rebuild it.</p>
+<p>Если вы переименовали директорию c исходниками после сборки Rubinius,
+  выполните конфигурацию и установку вновь.</p>
 
-<p>In general, do not rename the source or build directory after building
-  Rubinius.</p>
+<p>Вообще, лучше не переименовывать директорию с исходниками или директорию 
+  где производилась сборка после сборки Rubinius.</p>
 
 
     </div>

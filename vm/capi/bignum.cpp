@@ -1,11 +1,12 @@
 #include <math.h>
-#include <cmath>
 
 #include "builtin/bignum.hpp"
 #include "builtin/object.hpp"
 
 #include "capi/capi.hpp"
 #include "capi/include/ruby.h"
+
+#include "missing/math.h"
 
 using namespace rubinius;
 using namespace rubinius::capi;
@@ -109,7 +110,7 @@ extern "C" {
 
     Bignum* big = c_as<Bignum>(env->get_object(obj));
     double d = big->to_double(env->state());
-    if(std::isinf(d)) {
+    if(isinf(d)) {
       rb_warn("Bignum out of Float range");
       if(big->mp_val()->sign == MP_NEG) {
         d = -HUGE_VAL;

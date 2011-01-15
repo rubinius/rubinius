@@ -12,7 +12,7 @@
 #include "dispatch.hpp"
 
 #include <iostream>
-#include <cmath>
+#include <math.h>
 
 /* Implementation certain Array methods. These methods are just
  * the ones the VM requires, not the entire set of all Array methods.

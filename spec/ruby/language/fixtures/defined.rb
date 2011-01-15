@@ -102,10 +102,16 @@ module DefinedSpecs
 
   module Mixin
     MixinConstant = 42
+    
+    def defined_super
+      defined? super()
+    end
   end
 
   class Parent
     ParentConstant = 42
+    
+    def defined_super; end
   end
 
   class Child < Parent
@@ -123,6 +129,10 @@ module DefinedSpecs
 
     def self.module_constant_defined
       defined? MixinConstant
+    end
+    
+    def defined_super
+      super
     end
   end
 

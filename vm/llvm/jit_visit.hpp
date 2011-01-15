@@ -1523,14 +1523,6 @@ namespace rubinius {
       visit_send_stack(which, 0);
     }
 
-    void visit_create_block(opcode which) {
-      // Push a placeholder and register which literal we would
-      // use for the block. The later send handles whether to actually
-      // emit the call to create the block (replacing the placeholder)
-      stack_push(constant(Qnil));
-      current_block_ = (int)which;
-    }
-
     bool in_inlined_block() {
       return for_inlined_method() && info().is_block;
     }
@@ -1579,7 +1571,7 @@ namespace rubinius {
       }
     }
 
-    void emit_create_block(opcode which) {
+    void emit_create_block(opcode which, bool push=false) {
       // if we're inside an inlined method that has a block
       // visible, that means that we've note yet emited the code to
       // actually create the block for this inlined block.
@@ -1629,7 +1621,11 @@ namespace rubinius {
           call_args.push_back((*i)->call_frame());
         }
 
-        stack_set_top(b().CreateCall(func, call_args.begin(), call_args.end(), "create_block"));
+        if(push) {
+          stack_push(b().CreateCall(func, call_args.begin(), call_args.end(), "create_block"));
+        } else {
+          stack_set_top(b().CreateCall(func, call_args.begin(), call_args.end(), "create_block"));
+        }
         return;
       };
 
@@ -1646,7 +1642,26 @@ namespace rubinius {
         ConstantInt::get(ls_->Int32Ty, which)
       };
 
-      stack_set_top(b().CreateCall(func, call_args, call_args+3, "create_block"));
+      if(push) {
+        stack_push(b().CreateCall(func, call_args, call_args+3, "create_block"));
+      } else {
+        stack_set_top(b().CreateCall(func, call_args, call_args+3, "create_block"));
+      }
+    }
+
+    void visit_create_block(opcode which) {
+      // If we're creating a block to pass directly to
+      // send_stack_with_block, delay doing so.
+      if(next_op() == InstructionSequence::insn_send_stack_with_block) {
+        // Push a placeholder and register which literal we would
+        // use for the block. The later send handles whether to actually
+        // emit the call to create the block (replacing the placeholder)
+        stack_push(constant(Qnil));
+        current_block_ = (int)which;
+      } else {
+        current_block_ = -1;
+        emit_create_block(which, true);
+      }
     }
 
     void visit_send_stack_with_block(opcode which, opcode args) {

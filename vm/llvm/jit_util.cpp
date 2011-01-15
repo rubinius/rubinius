@@ -30,7 +30,7 @@
 #include "inline_cache.hpp"
 #include "vmmethod.hpp"
 
-#include <cstdarg>
+#include <stdarg.h>
 
 #define both_fixnum_p(_p1, _p2) ((uintptr_t)(_p1) & (uintptr_t)(_p2) & TAG_FIXNUM)
 

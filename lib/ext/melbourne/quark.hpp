@@ -1,7 +1,7 @@
 #ifndef MEL_QUARK_HPP
 #define MEL_QUARK_HPP
 
-#include <cstddef>
+#include <stddef.h>
 
 namespace melbourne {
   typedef size_t quark;

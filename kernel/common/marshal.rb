@@ -913,5 +913,9 @@ module Marshal
     ms.construct
   end
 
+  class << self
+    alias_method :restore, :load
+  end
+
 end
 

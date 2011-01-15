@@ -3,6 +3,7 @@ describe :enumerable_find, :shared => true do
   before :each do
     @elements = [2, 4, 6, 8, 10]
     @numerous = EnumerableSpecs::Numerous.new(*@elements)
+    @empty = []
   end
   
   it "passes each entry in enum to block while block when block is false" do
@@ -38,6 +39,11 @@ describe :enumerable_find, :shared => true do
     times = 0
     fail_proc = lambda { times += 1; raise if times > 1; "cheeseburgers" }
     @numerous.send(@method, fail_proc) {|e| false }.should == "cheeseburgers"
+  end
+  
+  it "calls the ifnone proc when there are no elements" do
+    fail_proc = lambda { "yay" }
+    @empty.send(@method, fail_proc) {|e| true}.should == "yay"
   end
   
   ruby_version_is "" ... "1.8.7" do

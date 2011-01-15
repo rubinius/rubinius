@@ -68,7 +68,7 @@ describe "CApiBignumSpecs" do
       @s.rb_big2dbl(huge_bignum).should == infinity_value
     end
 
-    ruby_bug "#3362", "1.8.7.249" do
+    ruby_bug "#3362", "1.8.7.330" do
       it "returns -Infinity if the number is negative and too big for a double" do
         huge_bignum = -ensure_bignum(Float::MAX.to_i * 2)
         @s.rb_big2dbl(huge_bignum).should == -infinity_value

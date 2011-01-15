@@ -7,7 +7,7 @@
 
 #include "objectmemory.hpp"
 
-#include <cassert>
+#include <assert.h>
 #include <sys/time.h>
 
 namespace rubinius {

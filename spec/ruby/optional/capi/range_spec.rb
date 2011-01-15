@@ -33,10 +33,14 @@ describe "C-API Range function" do
     it "raises an ArgumentError when the given start and end can't be compared by using #<=>" do
       lambda { @s.rb_range_new(1, mock('x'))         }.should raise_error(ArgumentError)
       lambda { @s.rb_range_new(mock('x'), mock('y')) }.should raise_error(ArgumentError)
+    end
 
-      b = mock('x')
-      (a = mock('nil')).should_receive(:method_missing).with(:<=>, b).and_return(nil)
-      lambda { @s.rb_range_new(a, b) }.should raise_error(ArgumentError)
+    ruby_version_is ""..."1.9" do
+      it "raises an ArgumentError when the given start uses method_missing and end is mock" do
+        b = mock('x')
+        (a = mock('nil')).should_receive(:method_missing).with(:<=>, b).and_return(nil)
+        lambda { @s.rb_range_new(a, b) }.should raise_error(ArgumentError)
+      end
     end
   end
 end

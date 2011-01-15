@@ -29,18 +29,9 @@ describe "Kernel#respond_to?" do
     @a.respond_to?("protected_method", true).should == true
   end
   
-  ruby_version_is ""..."1.9.3" do
-    it "returns true if obj responds to the given protected method (include_private = false)" do
-      @a.respond_to?(:protected_method, false).should == true
-      @a.respond_to?("protected_method", false).should == true
-    end
-  end
-
-  ruby_version_is "1.9.3" do
-    it "returns false even if obj responds to the given protected method (include_private = false)" do
-      @a.respond_to?(:protected_method, false).should == false
-      @a.respond_to?("protected_method", false).should == false
-    end
+  it "returns true if obj responds to the given protected method (include_private = false)" do
+    @a.respond_to?(:protected_method, false).should == true
+    @a.respond_to?("protected_method", false).should == true
   end
 
   it "returns false even if obj responds to the given private method (include_private = false)" do

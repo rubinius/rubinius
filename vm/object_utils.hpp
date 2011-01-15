@@ -4,8 +4,8 @@
 #include <stdint.h>
 #include <sys/types.h>
 #include <sstream>
-#include <cstring>
-#include <cassert>
+#include <string.h>
+#include <assert.h>
 #include <vector>
 
 #include "builtin/object.hpp"

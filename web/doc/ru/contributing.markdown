@@ -7,81 +7,87 @@ next: Общение
 next_url: contributing/communication
 ---
 
-The Rubinius project welcomes your contributions. There are many things to do
-to help out. Most importantly, you should do something that interests you.
-That is the best way to have enthusiasm and energy for your work.
+Проект Rubinius приветствует ваш вклад в проект. Существует множество вещей,
+где требуется помощь. Самое важное, чтобы вы занимались именно тем, что
+интересно конкретно вам, поскольку это лучший способ поддержать ваш энтузиазм
+и желание работать.
 
-If you have questions about Rubinius, the best way to get answers is to chat
-with us in the #rubinius IRC channel on irc.freenode.net.
+Если у вас есть вопросы о Rubinius, лучшим способом получить ответы является
+общение с нами на IRC канале #rubinius на сервере irc.freenode.net.
 
-Below are several ideas for things to do on Rubinius.
-
-
-## Run Your Code
-
-Your code is often more vicious than the specs. Run your pet project under
-rubinius and report issues. See [How To Создание тикета](/doc/ru/how-to/write-a-ticket).
+Ниже описано неколько идей для вещей, которые можно сделать в Rubinius.
 
 
-## Ask For Help
+## Выполняйте ваш код
 
-Anything that we can do to help, we will. Make sure to do your own research
-too, if possible. Rubinius attempts to be a project that you can easily study,
-learn from, and hopefully extend.
-
-We will certainly accept and appreciate simple bug reports, but we can give
-priority to tickets that include simple steps to reproduce the issue. Even
-better are tickets that include RubySpecs that demonstrate the bug and a patch
-that fixes it.
+Зачастую ваш код более сложный и запутанный чем спеки. Запустите ваше детище
+под rubinius и сообщите о возникших проблемах. Смотрите [How To Создание
+тикета](/doc/ru/how-to/write-a-ticket).
 
 
-## Write Specs
+## Обращайтесь за помощью
 
-  1. Run `bin/mspec tag --list incomplete <dir>` to show specs that have been
-     tagged as incomplete. These specs may simply need review, or there could
-     be specs missing for a particular class.
+Мы поможем всем, чем сможем. Выполните собственное исследование, если это
+возможно. Rubinius стремиться быть проектом, который легко изучить,
+из которого можно научится чему-то новому и, мы надеемся, который несложно
+улучшать.
 
-     NOTE: You can specify the pseudo-directory ':files' for \<dir\>, which will
-     show tags for all the specs that should run on Rubinius. Or you can
-     specify any subdirectory of the spec/ directory to list tags for specs in
-     that subdirectory.
-
-  2. Find unspecified behaviors. See [How To Write a Ruby
-     Spec](/doc/ru/how-to/write-a-ruby-spec).
+Мы, безусловно, принимаем и поощряем просто отчеты об ошибках, но к тикетам,
+содержащим шаги для воспроизведения мы относимся с большим вниманием. Еще
+лучше, если в тикет включен RubySpec, который демонстрирует ошибку и патч,
+который эту ошибку исправляет.
 
 
-## Fix Failing Specs
+## Пишите спецификации
 
-  1. Run `bin/mspec tag --list fails <dir>` to show specs tagged as failing.
+  1. Выполните `bin/mspec tag --list incomplete <папка>`, чтобы просмотреть
+     спецификации, отмеченные как незавершенные. Или эти спецификации
+     просто нуждаются в пересмотре или они отсутствуют для определенного
+     класса.
 
-     NOTE: You can specify the pseudo-directory ':files' for \<dir\>, which will
-     show tags for all the specs that should run on Rubinius. Or you can
-     specify any subdirectory of the spec/ directory to list tags for specs in
-     that subdirectory.
+     Примечание: Вы можете указать псевдо-директорию ':files' для \<папки\>,
+     чтобы вывести теги для всех спецификаций, которые должны проходить на
+     Rubinius. Или вы можете указать любую поддиректорию директории spec,
+     чтобы вывести теги для спеков из этой поддиректории.
 
-  2. Pick a spec that looks interesting and see if you can write a patch that
-     will make it pass.
-
-
-## Write Docs
-
-Study how Rubinius works and write highlevel documentation that will help
-others learn about the implementation details.
+  2. Ищите неописанное поведение. Смотрите [Написание Ruby
+     спецификации](/doc/ru/how-to/write-a-ruby-spec).
 
 
-## Cleanup Code
+## Исправляйте падающие спецификации
 
-Search for tags like TODO, HACK, FIXME in the code and submit patches to fix
-them. Here's a command to search the code:
+  1. Выполните `bin/mspec tag --list fails <папка>`, чтобы увидеть спецификации,
+     помеченные как неработающие.
+
+     Примечание: Вы можете указать псевдо-директорию ':files' для \<папки\>,
+     чтобы вывести теги для всех спецификаций, которые должны проходить на
+     Rubinius. Или вы можете указать любую поддиректорию директории spec,
+     чтобы вывести теги для спеков из этой поддиректории.
+
+  2. Выберите интересующую вас спецификацию и попробуйте написать патч, который
+     исправляет ее.
+
+
+## Пишите документацию
+
+Изучите принципы работы Rubinius и напишите высокоуровневую документацию,
+которая поможет другим понять детали реализации.
+
+
+## Чистите код
+
+Ищите пометки типа TODO, HACK, FIXME в коде и отправляйте патчи, исправляющие
+их. Для их поиска вы можете воспользоваться следующей командой:
 
     `grep -re "@todo\|TODO\|HACK\|FIXME" .`
 
-Review the [Стиль кодирования](/doc/ru/contributing/style-guide/) for
-coding guidelines.
+По вопросам стиля кода обратитесь к [Стиль
+кодирования](/doc/ru/contributing/style-guide/).
 
 
-## Triage Tickets
+## Сортируйте тикеты
 
-  * Revive or close old tickets.
-  * Build minimal test cases that reproduce the bugs. Then see if there are
-    already RubySpecs for the issue. If not, consider writing some.
+  * Оживляйте или закрывайте устаревшие тикеты.
+  * Делайте небольшие тесты, воспроизводящие ошибки. После этого убедитесь,
+    что для этой проблемы уже существует RubySpec, если его нет, попробуйте
+    написать его.

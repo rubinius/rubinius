@@ -30,56 +30,111 @@ namespace rubinius {
       return array;
     }
 
-    void capi_update_array(NativeMethodEnvironment* env, VALUE ary_handle) {
+    void capi_update_array(NativeMethodEnvironment* env, VALUE array) {
       if(!env) env = NativeMethodEnvironment::get();
 
-      Handle* handle = Handle::from(ary_handle);
-      handle->update(env);
+      Handle::from(array)->update(env);
     }
 
+    /* We were in C-land and now we are returning to Ruby-land. Since the C
+     * program can freely assign to RArray.len and RArray.ptr, we account
+     * for that when updating the Ruby Array with the C structure contents.
+     *
+     * Note that we must copy the total elements in the cached C array
+     * regardless of the value of the len parameter because the C array
+     * contents can be changed indepedently from the len parameter.
+     *
+     * See Handle::as_rarray below.
+     */
     void flush_cached_rarray(NativeMethodEnvironment* env, Handle* handle) {
       if(handle->is_rarray()) {
         Array* array = as<Array>(handle->object());
+        Tuple* tuple = array->tuple();
         RArray* rarray = handle->as_rarray(env);
 
-        size_t size = array->size();
+        size_t size = tuple->num_fields();
+        size_t num = 0;
 
-        if(size != rarray->len) {
-          Tuple* tuple = Tuple::create(env->state(), rarray->len);
-          array->tuple(env->state(), tuple);
-          array->start(env->state(), Fixnum::from(0));
-          array->total(env->state(), Fixnum::from(rarray->len));
+        if(rarray->ptr != rarray->dmwmb) {
+          // This is a very bad C extension. Assume len is valid.
+          num = rarray->len;
+        } else {
+          num = rarray->aux.capa;
         }
 
-        for(size_t i = 0; i < size; i++) {
-          array->set(env->state(), i, env->get_object(rarray->ptr[i]));
+        if(num > size) {
+          tuple = Tuple::create(env->state(), rarray->aux.capa);
+          array->tuple(env->state(), tuple);
+        }
+
+        array->start(env->state(), Fixnum::from(0));
+        array->total(env->state(), Fixnum::from(rarray->len));
+
+        for(size_t i = 0; i < num; i++) {
+          tuple->put(env->state(), i, env->get_object(rarray->ptr[i]));
         }
       }
     }
 
+    /* We were in Ruby-land and we are heading to C-land. In Ruby-land, we
+     * may have updated the existing Array elements, appended new elements,
+     * or shifted off elements. We account for this when updating the C
+     * structure contents.
+     *
+     * We are potentially writing into a C structure that exists and that
+     * may have been changed in C-land. It is possible for C code to change
+     * both the len and ptr values of an RArray. We DO NOT EVER encourage
+     * doing this, but we must account for it. The C code may also merely
+     * change the contents of the array pointed to by ptr. Updating that
+     * array with the current elements in the Ruby Array is the purpose of
+     * this code.
+     */
     void update_cached_rarray(NativeMethodEnvironment* env, Handle* handle) {
       if(handle->is_rarray()) {
         Array* array = c_as<Array>(handle->object());
+        Tuple* tuple = array->tuple();
         RArray* rarray = handle->as_rarray(env);
 
-        size_t size = array->size();
+        ssize_t size = tuple->num_fields();
+        ssize_t start = array->start()->to_native();
+        ssize_t num = 0;
 
-        if(rarray->len != size) {
-          delete[] rarray->dmwmb;
-          rarray->dmwmb = rarray->ptr = new VALUE[size];
-          rarray->aux.capa = rarray->len = size;
+        if(rarray->ptr != rarray->dmwmb) {
+          // This is a very bad C extension. Assume len is valid
+          // and do not change its value.
+          num = rarray->len;
+        } else {
+          if(rarray->aux.capa < size) {
+            delete[] rarray->dmwmb;
+            rarray->dmwmb = rarray->ptr = new VALUE[size];
+            rarray->aux.capa = size;
+          }
+          num = rarray->aux.capa;
+          rarray->len = array->size();
         }
 
-        for(size_t i = 0; i < size; i++) {
-          rarray->ptr[i] = env->get_handle(array->get(env->state(), i));
+        for(ssize_t i = 0, j = start; i < num && j < size; i++, j++) {
+          rarray->ptr[i] = env->get_handle(tuple->at(j));
         }
       }
     }
 
+    /* It is possible to create an Array in MRI whose capacity exceeds its
+     * current length (eg rb_ary_new2(long length)). The same is true in
+     * Rubinius where Array has a size() attribute and is backed by an
+     * instance of Tuple, whose size will always be gte Array::size().  The
+     * RArray structure in MRI accounts for this and we must as well when
+     * updating and syncing the cached values. For example:
+     *
+     *   for(i = 0; i < len; i++) {
+     *     RARRAY(ary)->ptr[i] = obj
+     *   }
+     *   RARRAY(ary)->len = len
+     */
     RArray* Handle::as_rarray(NativeMethodEnvironment* env) {
       if(type_ != cRArray) {
         Array* array = c_as<Array>(object());
-        size_t size = array->size();
+        size_t size = array->tuple()->num_fields();
 
         RArray* ary = new RArray;
         VALUE* ptr = new VALUE[size];
@@ -88,7 +143,8 @@ namespace rubinius {
         }
 
         ary->dmwmb = ary->ptr = ptr;
-        ary->aux.capa = ary->len = size;
+        ary->len = array->size();
+        ary->aux.capa = size;
         ary->aux.shared = Qfalse;
 
         type_ = cRArray;
@@ -114,13 +170,13 @@ extern "C" {
     return h->as_rarray(env);
   }
 
-  VALUE rb_Array(VALUE obj_handle) {
+  VALUE rb_Array(VALUE object) {
     NativeMethodEnvironment* env = NativeMethodEnvironment::get();
 
-    Object* obj = env->get_object(obj_handle);
+    Object* obj = env->get_object(object);
 
     if (kind_of<Array>(obj)) {
-      return obj_handle;
+      return object;
     }
 
     Array* array = Array::create(env->state(), 1);
@@ -129,47 +185,51 @@ extern "C" {
     return env->get_handle(array);
   }
 
-  VALUE rb_ary_clear(VALUE self_handle) {
-    return rb_funcall2(self_handle, rb_intern("clear"), 0, NULL);
+  VALUE rb_ary_clear(VALUE self) {
+    return rb_funcall2(self, rb_intern("clear"), 0, NULL);
   }
 
-  VALUE rb_ary_delete(VALUE self_handle, VALUE item) {
-    return rb_funcall(self_handle, rb_intern("delete"), 1, item);
+  VALUE rb_ary_delete(VALUE self, VALUE item) {
+    return rb_funcall(self, rb_intern("delete"), 1, item);
   }
 
-  VALUE rb_ary_dup(VALUE self_handle) {
-    return rb_funcall2(self_handle, rb_intern("dup"), 0, NULL);
+  VALUE rb_ary_delete_at(VALUE self, long idx) {
+    return rb_funcall(self, rb_intern("delete_at"), 1, INT2FIX(idx));
+  }
+
+  VALUE rb_ary_dup(VALUE self) {
+    return rb_funcall2(self, rb_intern("dup"), 0, NULL);
   }
 
   /* @todo Check 64-bit? */
-  VALUE rb_ary_entry(VALUE self_handle, int index) {
+  VALUE rb_ary_entry(VALUE self, int index) {
     NativeMethodEnvironment* env = NativeMethodEnvironment::get();
 
-    Array* self = capi_get_array(env, self_handle);
-    return env->get_handle(self->aref(env->state(), Fixnum::from(index)));
+    Array* array = capi_get_array(env, self);
+    return env->get_handle(array->aref(env->state(), Fixnum::from(index)));
   }
 
-  VALUE rb_ary_each(VALUE self_handle) {
+  VALUE rb_ary_each(VALUE self) {
     NativeMethodEnvironment* env = NativeMethodEnvironment::get();
 
-    Array* self = capi_get_array(env, self_handle);
-    for(size_t i = 0; i < self->size(); i++) {
-      rb_yield(env->get_handle(self->get(env->state(), i)));
+    Array* array = capi_get_array(env, self);
+    for(size_t i = 0; i < array->size(); i++) {
+      rb_yield(env->get_handle(array->get(env->state(), i)));
     }
 
-    return self_handle;
+    return self;
   }
 
   VALUE rb_ary_includes(VALUE self, VALUE obj) {
     return rb_funcall(self, rb_intern("include?"), 1, obj);
   }
 
-  VALUE rb_ary_join(VALUE self_handle, VALUE separator_handle) {
-    return rb_funcall(self_handle, rb_intern("join"), 1, separator_handle);
+  VALUE rb_ary_join(VALUE self, VALUE separator) {
+    return rb_funcall(self, rb_intern("join"), 1, separator);
   }
 
-  VALUE rb_ary_to_s(VALUE self_handle) {
-    return rb_funcall(self_handle, rb_intern("to_s"), 0);
+  VALUE rb_ary_to_s(VALUE self) {
+    return rb_funcall(self, rb_intern("to_s"), 0);
   }
 
   /** By default, Arrays have space for 16 elements. */
@@ -212,18 +272,18 @@ extern "C" {
     return env->get_handle(array);
   }
 
-  VALUE rb_ary_new4(unsigned long length, const VALUE* object_handles) {
+  VALUE rb_ary_new4(unsigned long length, const VALUE* objects) {
     NativeMethodEnvironment* env = NativeMethodEnvironment::get();
 
     Array* array = Array::create(env->state(), length);
     array->start(env->state(), Fixnum::from(0));
     array->total(env->state(), Fixnum::from(length));
 
-    if (object_handles) {
+    if (objects) {
       for(std::size_t i = 0; i < length; ++i) {
         // @todo determine if we need to check these objects for whether
         // they are arrays and flush any caches
-        Object* object = env->get_object(object_handles[i]);
+        Object* object = env->get_object(objects[i]);
         array->set(env->state(), i, object);
       }
     }
@@ -231,53 +291,51 @@ extern "C" {
     return env->get_handle(array);
   }
 
-  VALUE rb_ary_pop(VALUE self_handle) {
+  VALUE rb_ary_pop(VALUE self) {
     NativeMethodEnvironment* env = NativeMethodEnvironment::get();
 
-    Array* self = capi_get_array(env, self_handle);
-    Object* obj = self->pop(env->state());
-    capi_update_array(env, self_handle);
+    Array* array = capi_get_array(env, self);
+    Object* obj = array->pop(env->state());
+    capi_update_array(env, self);
 
     return env->get_handle(obj);
   }
 
-  VALUE rb_ary_push(VALUE self_handle, VALUE object_handle) {
+  VALUE rb_ary_push(VALUE self, VALUE object) {
     NativeMethodEnvironment* env = NativeMethodEnvironment::get();
 
-    Array* self = capi_get_array(env, self_handle);
-    self->append(env->state(), env->get_object(object_handle));
-    capi_update_array(env, self_handle);
+    Array* array = capi_get_array(env, self);
+    array->append(env->state(), env->get_object(object));
+    capi_update_array(env, self);
 
-    return self_handle;
+    return self;
   }
 
-  VALUE rb_ary_reverse(VALUE self_handle) {
-    return rb_funcall2(self_handle, rb_intern("reverse"), 0, NULL);
+  VALUE rb_ary_reverse(VALUE self) {
+    return rb_funcall2(self, rb_intern("reverse"), 0, NULL);
   }
 
-  VALUE rb_ary_shift(VALUE self_handle) {
+  VALUE rb_ary_shift(VALUE self) {
     NativeMethodEnvironment* env = NativeMethodEnvironment::get();
 
-    Array* self = capi_get_array(env, self_handle);
-    Object* obj = self->shift(env->state());
-    capi_update_array(env, self_handle);
+    Array* array = capi_get_array(env, self);
+    Object* obj = array->shift(env->state());
+    capi_update_array(env, self);
 
     return env->get_handle(obj);
   }
 
-  size_t rb_ary_size(VALUE self_handle) {
+  size_t rb_ary_size(VALUE self) {
     NativeMethodEnvironment* env = NativeMethodEnvironment::get();
 
-    Array* self = capi_get_array(env, self_handle);
-
-    return self->size();
+    return capi_get_array(env, self)->size();
   }
 
-  void rb_ary_store(VALUE self_handle, long int index, VALUE object_handle) {
+  void rb_ary_store(VALUE self, long int index, VALUE object) {
     NativeMethodEnvironment* env = NativeMethodEnvironment::get();
 
-    Array* self = capi_get_array(env, self_handle);
-    size_t total = self->size();
+    Array* array = capi_get_array(env, self);
+    size_t total = array->size();
 
     if(index < 0) {
       index += total;
@@ -289,26 +347,26 @@ extern "C" {
       rb_raise(rb_eIndexError, error.str().c_str());
     }
 
-    self->set(env->state(), index, env->get_object(object_handle));
-    capi_update_array(env, self_handle);
+    array->set(env->state(), index, env->get_object(object));
+    capi_update_array(env, self);
   }
 
-  VALUE rb_ary_unshift(VALUE self_handle, VALUE object_handle) {
+  VALUE rb_ary_unshift(VALUE self, VALUE object) {
     NativeMethodEnvironment* env = NativeMethodEnvironment::get();
 
-    Array* self = capi_get_array(env, self_handle);
-    self->unshift(env->state(), env->get_object(object_handle));
-    capi_update_array(env, self_handle);
+    Array* array = capi_get_array(env, self);
+    array->unshift(env->state(), env->get_object(object));
+    capi_update_array(env, self);
 
-    return self_handle;
+    return self;
   }
 
   VALUE rb_assoc_new(VALUE first, VALUE second) {
     return rb_funcall(rb_cArray, rb_intern("[]"), 2, first, second);
   }
 
-  VALUE rb_ary_aref(int argc, VALUE *argv, VALUE self_handle) {
-    return rb_funcall2(self_handle, rb_intern("[]"), argc, argv);
+  VALUE rb_ary_aref(int argc, VALUE *argv, VALUE self) {
+    return rb_funcall2(self, rb_intern("[]"), argc, argv);
   }
 
   VALUE rb_each(VALUE ary) {

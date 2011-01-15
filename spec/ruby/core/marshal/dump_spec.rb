@@ -57,6 +57,70 @@ describe "Marshal.dump" do
     lambda { Marshal.dump(klass) }.should raise_error(TypeError)
     lambda { Marshal.dump(mod)   }.should raise_error(TypeError)
   end
+  
+  ruby_version_is ""..."1.9" do
+    it "invokes respond_to? for marshal_dump and _dump on user classes" do
+      obj = UserDefinedWithRespondTo.new
+      
+      result = Marshal.dump(obj)
+      
+      obj.collected.should == [:marshal_dump, :_dump]
+      obj.marshal_dump_called.should be_nil
+      obj._dump_called.should be_nil
+    end
+    
+    it "attempts to invoke marshal_dump if respond_to? :marshal_dump is true" do
+      obj = UserDefinedWithRespondTo.new(:marshal_dump)
+      
+      result = Marshal.dump(obj)
+      
+      obj.collected.should == [:marshal_dump]
+      obj.marshal_dump_called.should be_true
+      obj._dump_called.should be_nil
+    end
+    
+    it "attempts to invoke _dump if respond_to? :_dump is true" do
+      obj = UserDefinedWithRespondTo.new(:_dump)
+      
+      result = Marshal.dump(obj)
+      
+      obj.collected.should == [:marshal_dump, :_dump]
+      obj.marshal_dump_called.should be_nil
+      obj._dump_called.should be_true
+    end
+  end
+  
+  ruby_version_is "1.9" do
+    it "invokes respond_to? for marshal_dump and _dump on user classes" do
+      obj = UserDefinedWithRespondTo.new
+      
+      result = Marshal.dump(obj)
+      
+      obj.collected.should == [:marshal_dump, :_dump]
+      obj.marshal_dump_called.should be_nil
+      obj._dump_called.should be_nil
+    end
+    
+    it "attempts to invoke marshal_dump if respond_to? :marshal_dump is true" do
+      obj = UserDefinedWithRespondTo.new(:marshal_dump)
+      
+      result = Marshal.dump(obj)
+      
+      obj.collected.should == [:marshal_dump]
+      obj.marshal_dump_called.should be_true
+      obj._dump_called.should be_nil
+    end
+    
+    it "attempts to invoke _dump if respond_to? :_dump is true" do
+      obj = UserDefinedWithRespondTo.new(:_dump)
+      
+      result = Marshal.dump(obj)
+      
+      obj.collected.should == [:marshal_dump, :_dump]
+      obj.marshal_dump_called.should be_nil
+      obj._dump_called.should be_true
+    end
+  end
 
   it "raises a TypeError if _dump returns a non-string" do
     lambda { Marshal.dump(UserDefinedBad.new) }.should raise_error(TypeError)

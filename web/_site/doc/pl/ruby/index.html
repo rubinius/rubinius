@@ -121,7 +121,44 @@
       
 
         <p>One perspective to approach understanding how Rubinius implements Ruby begins
-with understanding how various concepts in Ruby work.</p>
+with understanding how various concepts in Ruby work. The purpose of this
+topic is to introduce Rubinius features by way of Ruby concepts that should
+already be familiar. The Rubinius documentation generally assumes that you are
+either familiar with Ruby or familiar with virtual machine and compiler
+concepts.</p>
+
+<p>Central to each of the topics below is the concept of <em>scope</em>. In Ruby syntax,
+scope is generally a derived concept. In other words, there are not syntax
+elements whose primary responsibility it is to delimit or reference scope. For
+this reason, it can be confusing to talk about scope. An example of this is a
+normal method definition:</p>
+
+<pre><code>a = 5
+
+def diligent(a)
+  puts a * 2
+end
+</code></pre>
+
+<p>Here, the <code>#diligent</code> method gives us a name with which to refer to the
+computation <code>puts a * 2</code>. But the method also defines a closed lexical scope
+for the variable <code>a</code>. The scope is closed because the <code>a = 5</code> above the method
+definition has no relation to the variable <code>a</code> in <code>#diligent</code>.</p>
+
+<p>Often it is asserted that everything in Ruby is an object. This is not quite
+true. <em>Most</em> things in Ruby are objects, but some things that are absolutely
+essential for running Ruby code are not necessarily objects that you can put
+your hands on. Instead, which of these &ldquo;execution environment&rdquo; things are
+objects in Ruby depends heavily on the implementation. Scope is one of these
+things.</p>
+
+<p>Essentially, <em>scope</em> as a concept is a context for answering questions such
+as: What is the value of <code>self</code> here? What local variables exist here? What
+value will the constant <code>APPLE</code> have at this point in the code?</p>
+
+<p>Each of the following elements of Ruby are discussed from the perspective of
+understanding how Rubinius implements them and how the concept of <em>scope</em> is
+involved in each one.</p>
 
 <ol>
   <li><a href="/doc/en/ruby/scripts/">Scripts</a></li>

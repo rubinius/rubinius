@@ -79,4 +79,10 @@ describe "String#rjust with length, padding" do
     "".rjust(10, StringSpecs::MyString.new("x")).should be_kind_of(String)
     "foo".rjust(10, StringSpecs::MyString.new("x")).should be_kind_of(String)
   end
+
+  it "when padding is tainted and self is untainted returns a tainted string if and only if length is longer than self" do
+    "hello".rjust(4, 'X'.taint).tainted?.should be_false
+    "hello".rjust(5, 'X'.taint).tainted?.should be_false
+    "hello".rjust(6, 'X'.taint).tainted?.should be_true
+  end
 end
