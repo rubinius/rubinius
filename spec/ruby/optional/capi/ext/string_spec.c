@@ -384,7 +384,7 @@ VALUE string_spec_StringValue(VALUE self, VALUE str) {
 
 #ifdef HAVE_RB_STR_HASH
 static VALUE string_spec_rb_str_hash(VALUE self, VALUE str) {
-  return LONG2NUM(rb_str_hash(str));
+  return INT2FIX(rb_str_hash(str));
 }
 #endif
 
