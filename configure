@@ -335,7 +335,7 @@ class Configure
   def md5_checksum(md5_path, full_path)
     md5 = Digest::MD5.new
 
-    File.open full_path do |file|
+    File.open full_path, "rb" do |file|
       until file.eof?
         md5 << file.read(1024)
       end

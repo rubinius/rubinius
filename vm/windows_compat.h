@@ -26,12 +26,12 @@ int pipe(int fildes[2]);
 char* realpath(const char* file_name, char* resolved_name);
 
 // setjmp/longjmp
-#ifndef setjmp
-#define setjmp _setjmp
+#ifndef _setjmp
+#define _setjmp setjmp
 #endif
 
-#ifndef longjmp
-#define longjmp _longjmp
+#ifndef _longjmp
+#define _longjmp longjmp
 #endif
 
 #endif

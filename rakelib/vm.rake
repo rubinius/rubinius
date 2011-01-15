@@ -144,7 +144,7 @@ EXTERNALS   = %W[ vm/external_libs/libtommath/libtommath.a
                   vm/external_libs/libgdtoa/libgdtoa.a
                   vm/external_libs/onig/.libs/libonig.a
                   vm/external_libs/libffi/.libs/libffi.a ]
-EXTERNALS   << "vm/external_libs/winpthread/libpthread.a" if BUILD_CONFIG[:windows]
+EXTERNALS   << "vm/external_libs/winpthreads/libpthread.a" if BUILD_CONFIG[:windows]
 
 INCLUDES    = EX_INC + %w[vm/test/cxxtest vm .]
 
