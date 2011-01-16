@@ -190,12 +190,12 @@ help              - You're lookin' at it
   end
 
   def start_gdb(args)
-    if args.strip.empty?
-      puts "Starting gdb for #{@pid}..."
-      system "gdb '#{@path}' '#{@pid}'"
-    else
+    if args and not args.strip.empty?
       puts "Running '#{args}' under gdb:"
       run_gdb(args)
+    else
+      puts "Starting gdb for #{@pid}..."
+      system "gdb '#{@path}' '#{@pid}'"
     end
   end
 
