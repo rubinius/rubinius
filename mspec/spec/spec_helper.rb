@@ -29,6 +29,7 @@ class MOSConfig < Hash
     self[:command]   = nil
     self[:ltags]     = []
     self[:files]     = []
+    self[:launch]    = []
   end
 end
 

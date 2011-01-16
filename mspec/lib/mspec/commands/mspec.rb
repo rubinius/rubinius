@@ -17,6 +17,7 @@ class MSpecMain < MSpecScript
     config[:flags]    = []
     config[:command]  = nil
     config[:options]  = []
+    config[:launch]   = []
   end
 
   def options(argv=ARGV)
@@ -146,6 +147,7 @@ class MSpecMain < MSpecScript
 
     argv = []
 
+    argv.concat config[:launch]
     argv.concat config[:flags]
     argv.concat config[:includes]
     argv.concat config[:requires]

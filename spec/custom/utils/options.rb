@@ -21,7 +21,7 @@ class MSpecOptions
 
   def agent
     on("--agent", "Start the Rubinius agent") do
-      config[:flags] << "-Xagent.start"
+      config[:launch] << "-Xagent.start"
     end
   end
 end

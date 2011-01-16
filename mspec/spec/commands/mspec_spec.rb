@@ -244,6 +244,14 @@ describe MSpecMain, "#run" do
     @script.run
   end
 
+  it "adds config[:launch] to the exec options" do
+    @script.should_receive(:exec).with("ruby",
+        "-Xlaunch.option", "-v", %r"#{MSPEC_HOME}/bin/mspec-run$")
+    @config[:launch] << "-Xlaunch.option"
+    @script.options []
+    @script.run
+  end
+
   it "calls #multi_exec if the command is 'ci' and the multi option is passed" do
     @script.should_receive(:multi_exec).and_return do |arg|
       arg.length.should == 3
