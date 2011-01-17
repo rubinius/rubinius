@@ -19,6 +19,18 @@
 
 #include <sys/time.h>
 
+/* HACK: returns a value that should identify a native thread
+ * for debugging threading issues. The winpthreads library
+ * defines pthread_t to be a structure not a pointer.
+ */
+intptr_t thread_debug_id() {
+#ifdef RBX_WINDOWS
+  return (intptr_t)(pthread_self()).p;
+#else
+  return (intptr_t)pthread_self();
+#endif
+}
+
 namespace rubinius {
 
 
@@ -78,7 +90,7 @@ namespace rubinius {
     vm->shared.gc_dependent(vm);
 
     if(cDebugThreading) {
-      std::cerr << "[THREAD " << pthread_self() << " started thread]\n";
+      std::cerr << "[THREAD " << thread_debug_id() << " started thread]\n";
     }
 
     vm->set_stack_bounds(reinterpret_cast<uintptr_t>(&calculate_stack), 4194304);
@@ -118,7 +130,7 @@ namespace rubinius {
     VM::discard(vm, vm);
 
     if(cDebugThreading) {
-      std::cerr << "[LOCK thread " << pthread_self() << " exitted]\n";
+      std::cerr << "[LOCK thread " << thread_debug_id() << " exitted]\n";
     }
 
     return 0;
@@ -238,7 +250,7 @@ namespace rubinius {
     case 0:
       break;
     case EDEADLK:
-      std::cerr << "Join deadlock: " << id << "/" << pthread_self() << "\n";
+      std::cerr << "Join deadlock: " << id << "/" << thread_debug_id() << "\n";
       break;
     case EINVAL:
       std::cerr << "Invalid thread id: " << id << "\n";

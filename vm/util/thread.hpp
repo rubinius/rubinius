@@ -16,6 +16,8 @@
 
 #include "util/atomic.hpp"
 
+intptr_t thread_debug_id();
+
 #define pthread_check(expr) if((expr) != 0) { assert(0 && "failed: " #expr); }
 
 namespace thread {
@@ -232,19 +234,19 @@ namespace thread {
     void lock() {
       if(locked_) return;
       if(cDebugLockGuard) {
-        std::cout << "[[ " << pthread_self() << "   Locking " << lock_.describe() << " ]]\n";
+        std::cout << "[[ " << thread_debug_id() << "   Locking " << lock_.describe() << " ]]\n";
       }
       lock_.lock();
       locked_ = true;
       if(cDebugLockGuard) {
-        std::cout << "[[ " << pthread_self() << "   Locked " << lock_.describe() << " ]]\n";
+        std::cout << "[[ " << thread_debug_id() << "   Locked " << lock_.describe() << " ]]\n";
       }
     }
 
     void unlock() {
       if(!locked_) return;
       if(cDebugLockGuard) {
-        std::cout << "[[ " << pthread_self() << " Unlocking " << lock_.describe() << " ]]\n";
+        std::cout << "[[ " << thread_debug_id() << " Unlocking " << lock_.describe() << " ]]\n";
       }
       lock_.unlock();
       locked_ = false;
@@ -324,7 +326,7 @@ namespace thread {
 
     void lock() {
       if(cDebugLockGuard) {
-        std::cout << "[[ " << pthread_self() << "   MLocking " << describe() << " ]]\n";
+        std::cout << "[[ " << thread_debug_id() << "   MLocking " << describe() << " ]]\n";
       }
 
       int err = pthread_mutex_lock(&native_);
@@ -343,7 +345,7 @@ namespace thread {
       owner_ = pthread_self();
 
       if(cDebugLockGuard) {
-        std::cout << "[[ " << pthread_self() << "    MLocked " << describe() << " ]]\n";
+        std::cout << "[[ " << thread_debug_id() << "    MLocked " << describe() << " ]]\n";
       }
     }
 
@@ -361,7 +363,7 @@ namespace thread {
 
     Code unlock() {
       if(cDebugLockGuard) {
-        std::cout << "[[ " << pthread_self() << "   MUnlocking " << describe() << " ]]\n";
+        std::cout << "[[ " << thread_debug_id() << "   MUnlocking " << describe() << " ]]\n";
       }
 
       int err = pthread_mutex_unlock(&native_);
@@ -407,24 +409,24 @@ namespace thread {
 
     void wait(Mutex& mutex) {
       if(cDebugLockGuard) {
-        std::cout << "[[ " << pthread_self() << "   CUnlocking " << mutex.describe() << " ]]\n";
+        std::cout << "[[ " << thread_debug_id() << "   CUnlocking " << mutex.describe() << " ]]\n";
       }
 
       pthread_check(pthread_cond_wait(&native_, mutex.native()));
 
       if(cDebugLockGuard) {
-        std::cout << "[[ " << pthread_self() << "   CLocked " << mutex.describe() << " ]]\n";
+        std::cout << "[[ " << thread_debug_id() << "   CLocked " << mutex.describe() << " ]]\n";
       }
     }
 
     Code wait_until(Mutex& mutex, const struct timespec* ts) {
       if(cDebugLockGuard) {
-        std::cout << "[[ " << pthread_self() << "   CUnlocking " << mutex.describe() << " ]]\n";
+        std::cout << "[[ " << thread_debug_id() << "   CUnlocking " << mutex.describe() << " ]]\n";
       }
 
       int err = pthread_cond_timedwait(&native_, mutex.native(), ts);
       if(cDebugLockGuard) {
-        std::cout << "[[ " << pthread_self() << "   CLocked " << mutex.describe() << " ]]\n";
+        std::cout << "[[ " << thread_debug_id() << "   CLocked " << mutex.describe() << " ]]\n";
       }
 
       if(err != 0) {
