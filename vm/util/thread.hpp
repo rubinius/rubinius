@@ -85,20 +85,6 @@ namespace thread {
       pthread_kill(thr, signal);
     }
 
-    static void block_all_signals() {
-      sigset_t set;
-      sigfillset(&set);
-
-      pthread_sigmask(SIG_BLOCK, &set, NULL);
-    }
-
-    static void mask_all_signals() {
-      sigset_t set;
-      sigfillset(&set);
-
-      pthread_sigmask(SIG_SETMASK, &set, NULL);
-    }
-
     pthread_t* native() {
       return &native_;
     }
