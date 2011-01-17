@@ -63,28 +63,23 @@ namespace thread {
     }
 
   public:
-    typedef pthread_t thread_t;
-
-    const static int cWakeupSignal = SIGVTALRM;
-
-    Thread(size_t stack_size = 0, pthread_t tid = 0)
-      : native_(tid)
+    Thread(size_t stack_size = 0, bool delete_on_exit = true)
+      : delete_on_exit_(delete_on_exit)
       , stack_size_(stack_size)
     {
-      delete_on_exit_ = (tid != 0);
     }
 
     virtual ~Thread() { }
 
-    static thread_t self() {
+    static pthread_t self() {
       return pthread_self();
     }
 
-    static bool equal_p(thread_t t1, thread_t t2) {
+    static bool equal_p(pthread_t t1, pthread_t t2) {
       return pthread_equal(t1, t2);
     }
 
-    static void signal(thread_t thr, int signal) {
+    static void signal(pthread_t thr, int signal) {
       pthread_kill(thr, signal);
     }
 
@@ -295,8 +290,6 @@ namespace thread {
 
   public:
     void init(bool rec=false) {
-      owner_ = 0;
-
       pthread_mutexattr_t attr;
       pthread_mutexattr_init(&attr);
       if(rec) {
@@ -343,7 +336,7 @@ namespace thread {
         std::cout << "Thread deadlock!\n";
         assert(0);
       case EINVAL:
-        std::cout << "Thread invalid (corrupt?)\n";
+        std::cout << "Mutex invalid (Thread corrupt?)\n";
         assert(0);
       }
 
@@ -370,8 +363,6 @@ namespace thread {
       if(cDebugLockGuard) {
         std::cout << "[[ " << pthread_self() << "   MUnlocking " << describe() << " ]]\n";
       }
-
-      owner_ = 0;
 
       int err = pthread_mutex_unlock(&native_);
       if(err != 0) {

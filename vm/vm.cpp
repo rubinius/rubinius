@@ -121,7 +121,7 @@ namespace rubinius {
 
     // Setup the main Thread, which is wrapper of the main native thread
     // when the VM boots.
-    thread.set(Thread::create(this, this, G(thread), pthread_self()), &globals().roots);
+    thread.set(Thread::create(this, this, G(thread), true), &globals().roots);
     thread->sleep(this, Qfalse);
 
     VM::set_current(this);

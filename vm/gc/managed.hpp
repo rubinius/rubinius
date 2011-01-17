@@ -52,7 +52,6 @@ namespace rubinius {
       , kind_(kind)
       , name_(kind == eRuby ? "<ruby>" : "<system>")
       , run_state_(eIndependent)
-      , os_thread_(0)
       , id_(id)
     {}
 

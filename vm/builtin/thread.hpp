@@ -202,7 +202,7 @@ namespace rubinius {
      *
      *  @see  Thread::allocate().
      */
-    static Thread* create(STATE, VM* target, Object* self, pthread_t tid = 0);
+    static Thread* create(STATE, VM* target, Object* self, bool main_thread = false);
 
     static void* in_new_thread(void*);
 

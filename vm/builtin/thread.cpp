@@ -29,7 +29,7 @@ namespace rubinius {
     G(thread)->set_object_type(state, Thread::type);
   }
 
-  Thread* Thread::create(STATE, VM* target, Object* self, pthread_t tid) {
+  Thread* Thread::create(STATE, VM* target, Object* self, bool main_thread) {
     Thread* thr = state->new_object<Thread>(G(thread));
 
     thr->thread_id(state, Fixnum::from(target->thread_id()));
@@ -44,7 +44,7 @@ namespace rubinius {
 
     new(&thr->init_lock_) thread::SpinLock();
 
-    if(tid == 0) thr->init_lock_.lock();
+    if(!main_thread) thr->init_lock_.lock();
 
     return thr;
   }
