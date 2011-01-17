@@ -253,7 +253,7 @@ int pthread_rwlock_rdlock (pthread_rwlock_t *rwlock_)
   return rwl_unref(rwlock_, ret);
 }
 
-int pthread_rwlock_timedrdlock (pthread_rwlock_t *rwlock_, struct timespec *ts)
+int pthread_rwlock_timedrdlock (pthread_rwlock_t *rwlock_, const struct timespec *ts)
 {
   rwlock_t *rwlock;
   int ret;
@@ -433,7 +433,7 @@ int pthread_rwlock_wrlock (pthread_rwlock_t *rwlock_)
   return rwl_unref(rwlock_,ret);
 }
 
-int pthread_rwlock_timedwrlock (pthread_rwlock_t *rwlock_, struct timespec *ts)
+int pthread_rwlock_timedwrlock (pthread_rwlock_t *rwlock_, const struct timespec *ts)
 {
   int ret;
   rwlock_t *rwlock;

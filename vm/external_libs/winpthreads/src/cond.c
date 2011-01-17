@@ -90,7 +90,7 @@ int pthread_condattr_init(pthread_condattr_t *a)
   return 0;
 }
 
-int pthread_condattr_getpshared(pthread_condattr_t *a, int *s)
+int pthread_condattr_getpshared(const pthread_condattr_t *a, int *s)
 {
   if (!a || !s)
     return EINVAL;
@@ -111,7 +111,7 @@ int pthread_condattr_setpshared(pthread_condattr_t *a, int s)
   return 0;
 }
 
-int pthread_cond_init(pthread_cond_t *c, pthread_condattr_t *a)
+int pthread_cond_init(pthread_cond_t *c, const pthread_condattr_t *a)
 {
     cond_t *_c;
     int r = 0;
@@ -372,7 +372,7 @@ int pthread_cond_wait (pthread_cond_t *c, pthread_mutex_t *external_mutex)
     return r;
 }
 
-int pthread_cond_timedwait(pthread_cond_t *c, pthread_mutex_t *external_mutex, struct timespec *t)
+int pthread_cond_timedwait(pthread_cond_t *c, pthread_mutex_t *external_mutex, const struct timespec *t)
 {
     sCondWaitHelper ch;
     DWORD dwr;

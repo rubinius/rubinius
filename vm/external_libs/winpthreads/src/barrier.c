@@ -105,7 +105,7 @@ int pthread_barrier_destroy(pthread_barrier_t *b_)
 }
 
 int
-pthread_barrier_init (pthread_barrier_t *b_, void *attr, unsigned int count)
+pthread_barrier_init (pthread_barrier_t *b_, const void *attr, unsigned int count)
 {
     barrier_t *b;
 

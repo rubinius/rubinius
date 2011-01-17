@@ -114,7 +114,6 @@ int sem_trywait(sem_t *sem)
 
 int sem_wait(sem_t *sem)
 {
-  DWORD dwr;
   int cur_v;
   _sem_t *sv;;
 

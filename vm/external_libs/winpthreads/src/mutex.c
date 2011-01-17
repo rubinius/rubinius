@@ -306,7 +306,7 @@ static inline void _UndoWaitCriticalSection(RTL_CRITICAL_SECTION *prc)
         InterlockedExchangeAdd(&prc->LockCount, -LockDelta);
 }
 
-int pthread_mutex_timedlock(pthread_mutex_t *m, struct timespec *ts)
+int pthread_mutex_timedlock(pthread_mutex_t *m, const struct timespec *ts)
 {
     unsigned long long t, ct;
 #ifndef USE_MUTEX_Mutex
@@ -446,7 +446,7 @@ static void _mutex_init_once(mutex_t *m)
 #endif
 }
 
-int pthread_mutex_init(pthread_mutex_t *m, pthread_mutexattr_t *a)
+int pthread_mutex_init(pthread_mutex_t *m, const pthread_mutexattr_t *a)
 {
     mutex_t *_m;
 
@@ -536,7 +536,7 @@ int pthread_mutexattr_destroy(pthread_mutexattr_t *a)
     return 0;
 }
 
-int pthread_mutexattr_gettype(pthread_mutexattr_t *a, int *type)
+int pthread_mutexattr_gettype(const pthread_mutexattr_t *a, int *type)
 {
     if (!a || !type)
       return EINVAL;
@@ -555,7 +555,7 @@ int pthread_mutexattr_settype(pthread_mutexattr_t *a, int type)
     return 0;
 }
 
-int pthread_mutexattr_getpshared(pthread_mutexattr_t *a, int *type)
+int pthread_mutexattr_getpshared(const pthread_mutexattr_t *a, int *type)
 {
     if (!a || !type)
       return EINVAL;
@@ -582,7 +582,7 @@ int pthread_mutexattr_setpshared(pthread_mutexattr_t * a, int type)
     return r;
 }
 
-int pthread_mutexattr_getprotocol(pthread_mutexattr_t *a, int *type)
+int pthread_mutexattr_getprotocol(const pthread_mutexattr_t *a, int *type)
 {
     *type = *a & (8 + 16);
 
@@ -599,7 +599,7 @@ int pthread_mutexattr_setprotocol(pthread_mutexattr_t *a, int type)
     return 0;
 }
 
-int pthread_mutexattr_getprioceiling(pthread_mutexattr_t *a, int * prio)
+int pthread_mutexattr_getprioceiling(const pthread_mutexattr_t *a, int * prio)
 {
     *prio = *a / PTHREAD_PRIO_MULT;
     return 0;

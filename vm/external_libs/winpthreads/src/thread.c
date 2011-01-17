@@ -784,7 +784,7 @@ int pthread_kill(pthread_t t, int sig)
     return pthread_cancel(t);
 }
 
-unsigned _pthread_get_state(pthread_attr_t *attr, unsigned flag)
+unsigned _pthread_get_state(const pthread_attr_t *attr, unsigned flag)
 {
     return (attr->p_state & flag);
 }
@@ -819,7 +819,7 @@ int pthread_attr_setdetachstate(pthread_attr_t *a, int flag)
     return _pthread_set_state(a, PTHREAD_CREATE_DETACHED, flag);
 }
 
-int pthread_attr_getdetachstate(pthread_attr_t *a, int *flag)
+int pthread_attr_getdetachstate(const pthread_attr_t *a, int *flag)
 {
     *flag = _pthread_get_state(a, PTHREAD_CREATE_DETACHED);
     return 0;
@@ -832,7 +832,7 @@ int pthread_attr_setinheritsched(pthread_attr_t *a, int flag)
   return _pthread_set_state(a, PTHREAD_INHERIT_SCHED, flag);
 }
 
-int pthread_attr_getinheritsched(pthread_attr_t *a, int *flag)
+int pthread_attr_getinheritsched(const pthread_attr_t *a, int *flag)
 {
     *flag = _pthread_get_state(a, PTHREAD_INHERIT_SCHED);
     return 0;
@@ -843,7 +843,7 @@ int pthread_attr_setscope(pthread_attr_t *a, int flag)
     return _pthread_set_state(a, PTHREAD_SCOPE_SYSTEM, flag);
 }
 
-int pthread_attr_getscope(pthread_attr_t *a, int *flag)
+int pthread_attr_getscope(const pthread_attr_t *a, int *flag)
 {
     *flag = _pthread_get_state(a, PTHREAD_SCOPE_SYSTEM);
     return 0;
@@ -861,7 +861,7 @@ int pthread_attr_setstackaddr(pthread_attr_t *attr, void *stack)
     return 0;
 }
 
-int pthread_attr_getstacksize(pthread_attr_t *attr, size_t *size)
+int pthread_attr_getstacksize(const pthread_attr_t *attr, size_t *size)
 {
     *size = attr->s_size;
     return 0;
@@ -976,7 +976,7 @@ int pthread_create_wrapper(void *args)
     return rslt;
 }
 
-int pthread_create(pthread_t *th, pthread_attr_t *attr, void *(* func)(void *), void *arg)
+int pthread_create(pthread_t *th, const pthread_attr_t *attr, void *(* func)(void *), void *arg)
 {
     HANDLE thrd = NULL;
     struct _pthread_v *tv;
