@@ -945,7 +945,7 @@ int pthread_create_wrapper(void *args)
       #endif      /* Call function and save return value */
       trslt = (intptr_t) tv->func(tv->ret_arg);
       #ifdef __SEH__
-	asm ("\t.tl_end: nop\n");
+	asm ("\tnop\n\t.tl_end: nop\n");
       #endif
       tv->ret_arg = (void*) trslt;
       /* Clean up destructors */

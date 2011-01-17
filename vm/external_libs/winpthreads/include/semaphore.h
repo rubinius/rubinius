@@ -1,6 +1,10 @@
 #ifndef WIN_SEMAPHORE
 #define WIN_SEMAPHORE
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 /* Set this to 0 to disable it */
 #define USE_SEM_CriticalSection_SpinCount	100
 
@@ -37,5 +41,9 @@ int sem_close(sem_t * sem);
 int sem_unlink(const char * name);
 
 int sem_getvalue(sem_t * sem, int * sval);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif /* WIN_SEMAPHORE */

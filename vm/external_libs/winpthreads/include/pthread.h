@@ -47,6 +47,10 @@
 
 #include <sys/timeb.h>
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 /* #define WINPTHREAD_DBG 1 */
 
 /* Compatibility stuff: */
@@ -614,6 +618,10 @@ int pthread_barrierattr_getpshared(void **attr, int *s);
 #define wordexp(...) (pthread_testcancel(), wordexp(__VA_ARGS__))
 #define wprintf(...) (pthread_testcancel(), wprintf(__VA_ARGS__))
 #define wscanf(...) (pthread_testcancel(), wscanf(__VA_ARGS__))
+#endif
+
+#ifdef __cplusplus
+}
 #endif
 
 #endif /* WIN_PTHREADS */
