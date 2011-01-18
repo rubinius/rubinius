@@ -129,7 +129,7 @@ do_R4(uint32_t *a, uint32_t *b, uint32_t *c, uint32_t *d, uint32_t *e, CHAR64LON
 /*
  * Hash a single 512-bit block. This is the core of the algorithm.
  */
-void SHA1_Transform(uint32_t state[5], const uint8_t buffer[64])
+void XSHA1_Transform(uint32_t state[5], const uint8_t buffer[64])
 {
     uint32_t a, b, c, d, e;
     CHAR64LONG16 *block;
@@ -197,9 +197,9 @@ void SHA1_Transform(uint32_t state[5], const uint8_t buffer[64])
 
 
 /*
- * SHA1_Init - Initialize new context
+ * XSHA1_Init - Initialize new context
  */
-void SHA1_Init(SHA1_CTX *context)
+void XSHA1_Init(XSHA1_CTX *context)
 {
 
     _DIAGASSERT(context != 0);
@@ -217,7 +217,7 @@ void SHA1_Init(SHA1_CTX *context)
 /*
  * Run your data through this.
  */
-void SHA1_Update(SHA1_CTX *context, const uint8_t *data, size_t len)
+void XSHA1_Update(XSHA1_CTX *context, const uint8_t *data, size_t len)
 {
     uint32_t i, j;
 
@@ -232,9 +232,9 @@ void SHA1_Update(SHA1_CTX *context, const uint8_t *data, size_t len)
     j = (j >> 3) & 63;
     if ((j + len) > 63) {
       (void)memcpy(&context->buffer[j], data, (i = 64-j));
-      SHA1_Transform(context->state, context->buffer);
+      XSHA1_Transform(context->state, context->buffer);
       for ( ; i + 63 < len; i += 64) {
-        SHA1_Transform(context->state, &data[i]);
+        XSHA1_Transform(context->state, &data[i]);
       }
       j = 0;
     } else {
@@ -248,7 +248,7 @@ void SHA1_Update(SHA1_CTX *context, const uint8_t *data, size_t len)
 /*
  * Add padding and return the message digest.
  */
-void SHA1_Finish(SHA1_CTX* context, uint8_t digest[20])
+void XSHA1_Finish(XSHA1_CTX* context, uint8_t digest[20])
 {
     size_t i;
     uint8_t finalcount[8];
@@ -260,11 +260,11 @@ void SHA1_Finish(SHA1_CTX* context, uint8_t digest[20])
       finalcount[i] = (uint8_t)((context->count[(i >= 4 ? 0 : 1)]
             >> ((3-(i & 3)) * 8) ) & 255);	 /* Endian independent */
     }
-    SHA1_Update(context, (const uint8_t *)"\200", 1);
+    XSHA1_Update(context, (const uint8_t *)"\200", 1);
     while ((context->count[0] & 504) != 448) {
-      SHA1_Update(context, (const uint8_t *)"\0", 1);
+      XSHA1_Update(context, (const uint8_t *)"\0", 1);
     }
-    SHA1_Update(context, finalcount, 8);  /* Should cause a SHA1_Transform() */
+    XSHA1_Update(context, finalcount, 8);  /* Should cause a XSHA1_Transform() */
 
     if (digest) {
       for (i = 0; i < 20; i++) {

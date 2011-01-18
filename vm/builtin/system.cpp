@@ -1016,12 +1016,12 @@ namespace rubinius {
   }
 
   String* System::sha1_hash(STATE, String* str) {
-    SHA1_CTX ctx;
-    SHA1_Init(&ctx);
-    SHA1_Update(&ctx, str->byte_address(), str->size());
+    XSHA1_CTX ctx;
+    XSHA1_Init(&ctx);
+    XSHA1_Update(&ctx, str->byte_address(), str->size());
 
     uint8_t digest[20];
-    SHA1_Finish(&ctx, digest);
+    XSHA1_Finish(&ctx, digest);
 
     char buf[40];
     static const char hex[] = {
