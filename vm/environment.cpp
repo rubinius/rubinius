@@ -111,7 +111,9 @@ namespace rubinius {
     std::set_terminate(cpp_exception_bug);
   }
 
+#ifndef RBX_WINDOWS
   static void null_func(int sig) {}
+#endif
 
 #ifdef USE_EXECINFO
 
@@ -217,11 +219,12 @@ namespace rubinius {
     if(write(2, msg, sizeof(msg)) == 0) exit(1);
 
     switch(sig) {
-    case SIGHUP:
-      if(write(2, "SIGHUP\n", 6) == 0) exit(1);
-      break;
     case SIGTERM:
       if(write(2, "SIGTERM\n", 7) == 0) exit(1);
+      break;
+#ifndef RBX_WINDOWS
+    case SIGHUP:
+      if(write(2, "SIGHUP\n", 6) == 0) exit(1);
       break;
     case SIGUSR1:
       if(write(2, "SIGUSR1\n", 7) == 0) exit(1);
@@ -229,6 +232,7 @@ namespace rubinius {
     case SIGUSR2:
       if(write(2, "SIGUSR2\n", 7) == 0) exit(1);
       break;
+#endif
     default:
       if(write(2, "UNKNOWN\n", 8) == 0) exit(1);
       break;
@@ -238,17 +242,20 @@ namespace rubinius {
   }
 
   void Environment::start_signals() {
+#ifndef RBX_WINDOWS
     struct sigaction action;
     action.sa_handler = null_func;
     action.sa_flags = 0;
     sigfillset(&action.sa_mask);
     sigaction(SIGVTALRM, &action, NULL);
+#endif
 
     state->set_run_signals(true);
     SignalHandler* handler = new SignalHandler(state);
     shared->set_signal_handler(handler);
     handler->run();
 
+#ifndef RBX_WINDOWS
     // Ignore sigpipe.
     signal(SIGPIPE, SIG_IGN);
 
@@ -271,14 +278,16 @@ namespace rubinius {
       void* ary[1];
       backtrace(ary, 1);
     }
-#endif
+#endif  // USE_EXEC_INFO
 
     // Setup some other signal that normally just cause the process
     // to terminate so that we print out a message, then terminate.
     signal(SIGHUP,  quit_handler);
-    signal(SIGTERM, quit_handler);
     signal(SIGUSR1, quit_handler);
     signal(SIGUSR2, quit_handler);
+#endif  // ifndef RBX_WINDOWS
+
+    signal(SIGTERM, quit_handler);
   }
 
   void Environment::load_vm_options(int argc, char**argv) {
