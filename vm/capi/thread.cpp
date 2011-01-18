@@ -8,6 +8,8 @@
 #include "capi/include/ruby.h"
 #include "builtin/thread.hpp"
 
+#include "windows_compat.h"
+
 using namespace rubinius;
 
 extern "C" {

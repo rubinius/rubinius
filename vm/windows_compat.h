@@ -33,6 +33,8 @@ char* realpath(const char* file_name, char* resolved_name);
 #define timezone  _timezone
 
 int nanosleep(const struct timespec *rqtp, struct timespec *rmtp);
+void timeradd(struct timeval *a, struct timeval *b, struct timeval *res);
+void timersub(struct timeval *a, struct timeval *b, struct timeval *res);
 
 #endif  // RBX_WINDOWS
 
