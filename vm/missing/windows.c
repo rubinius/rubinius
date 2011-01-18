@@ -25,8 +25,11 @@ char* realpath(const char* file_name, char* resolved_name) {
 }
 
 int setenv(const char *name, const char *value, int overwrite) {
+  if(getenv(name) && !overwrite) return 0;
+
   int size = 2 + strlen(name) + strlen(value);
   char* str = malloc(size);
+  snprintf(str, size, "%s=%s", name, value);
   return putenv(str);
 }
 
