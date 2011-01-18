@@ -32,6 +32,8 @@ char* realpath(const char* file_name, char* resolved_name);
 // time
 #define timezone  _timezone
 
+int nanosleep(const struct timespec *rqtp, struct timespec *rmtp);
+
 #endif  // RBX_WINDOWS
 
 // Keep this ifdef short so it's clear

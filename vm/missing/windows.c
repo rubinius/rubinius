@@ -3,6 +3,7 @@
 #include "windows_compat.h"
 #include <stdlib.h>
 #include <string.h>
+#include <time.h>
 #include <io.h>
 
 int uname(struct utsname *name) {
@@ -27,6 +28,10 @@ int setenv(const char *name, const char *value, int overwrite) {
   int size = 2 + strlen(name) + strlen(value);
   char* str = malloc(size);
   return putenv(str);
+}
+
+int nanosleep(const struct timespec *rqtp, struct timespec *rmtp) {
+  return 0;
 }
 
 #endif

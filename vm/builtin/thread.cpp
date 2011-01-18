@@ -17,19 +17,30 @@
 #include "vm/object_utils.hpp"
 #include "vm.hpp"
 
+#include "windows_compat.h"
+
 #include <sys/time.h>
 
 /* HACK: returns a value that should identify a native thread
  * for debugging threading issues. The winpthreads library
  * defines pthread_t to be a structure not a pointer.
  */
-intptr_t thread_debug_id() {
+intptr_t thread_debug_self() {
 #ifdef RBX_WINDOWS
   return (intptr_t)(pthread_self()).p;
 #else
   return (intptr_t)pthread_self();
 #endif
 }
+
+static intptr_t thread_debug_id(pthread_t thr) {
+#ifdef RBX_WINDOWS
+    return (intptr_t)thr.p;
+#else
+    return (intptr_t)thr;
+#endif
+}
+
 
 namespace rubinius {
 
@@ -90,7 +101,7 @@ namespace rubinius {
     vm->shared.gc_dependent(vm);
 
     if(cDebugThreading) {
-      std::cerr << "[THREAD " << thread_debug_id() << " started thread]\n";
+      std::cerr << "[THREAD " << thread_debug_self() << " started thread]\n";
     }
 
     vm->set_stack_bounds(reinterpret_cast<uintptr_t>(&calculate_stack), 4194304);
@@ -130,7 +141,7 @@ namespace rubinius {
     VM::discard(vm, vm);
 
     if(cDebugThreading) {
-      std::cerr << "[LOCK thread " << thread_debug_id() << " exitted]\n";
+      std::cerr << "[LOCK thread " << thread_debug_self() << " exitted]\n";
     }
 
     return 0;
@@ -158,16 +169,12 @@ namespace rubinius {
   Object* Thread::priority(STATE) {
     pthread_t id = vm_->os_thread();
 
-    if(id) {
-      int _policy;
-      struct sched_param params;
+    int _policy;
+    struct sched_param params;
 
-      pthread_check(pthread_getschedparam(id, &_policy, &params));
+    pthread_check(pthread_getschedparam(id, &_policy, &params));
 
-      return Fixnum::from(params.sched_priority);
-    }
-
-    return Qnil;
+    return Fixnum::from(params.sched_priority);
   }
 
   Object* Thread::raise(STATE, Exception* exc) {
@@ -236,7 +243,7 @@ namespace rubinius {
     pthread_t id = vm->os_thread();
 
     if(cDebugThreading) {
-      std::cerr << "[THREAD joining " << id << "]\n";
+      std::cerr << "[THREAD joining " << thread_debug_id(id) << "]\n";
     }
 
     init_lock_.unlock();
@@ -250,10 +257,10 @@ namespace rubinius {
     case 0:
       break;
     case EDEADLK:
-      std::cerr << "Join deadlock: " << id << "/" << thread_debug_id() << "\n";
+      std::cerr << "Join deadlock: " << thread_debug_id(id) << "/" << thread_debug_self() << "\n";
       break;
     case EINVAL:
-      std::cerr << "Invalid thread id: " << id << "\n";
+      std::cerr << "Invalid thread id: " << thread_debug_id(id) << "\n";
       break;
     case ESRCH:
       // This means that the thread finished execution and detached
