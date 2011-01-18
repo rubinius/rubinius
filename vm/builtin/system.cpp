@@ -61,6 +61,8 @@
 
 #include "agent.hpp"
 
+#include "windows_compat.h"
+
 #ifdef ENABLE_LLVM
 #include "llvm/jit.hpp"
 #include "llvm/jit_compiler.hpp"
@@ -179,6 +181,10 @@ namespace rubinius {
   }
 
   Object* System::vm_replace(STATE, String* str, CallFrame* calling_environment) {
+#ifdef RBX_WINDOWS
+    // TODO: Windows
+    return Primitives::failure();
+#else
     int fds[2];
 
     if(pipe(fds) != 0) return Primitives::failure();
@@ -275,10 +281,16 @@ namespace rubinius {
 
     return Tuple::from(state, 2, Fixnum::from(pid),
                        String::create(state, buf.c_str(), buf.size()));
+#endif  // RBX_WINDOWS
   }
 
   Object* System::vm_wait_pid(STATE, Fixnum* pid_obj, Object* no_hang,
-                              CallFrame* calling_environment) {
+                              CallFrame* calling_environment)
+  {
+#ifdef RBX_WINDOWS
+    // TODO: Windows
+    return Primitives::failure();
+#else
     pid_t input_pid = pid_obj->to_native();
     int options = 0;
     int status;
@@ -320,6 +332,7 @@ namespace rubinius {
     }
 
     return Tuple::from(state, 4, output, termsig, stopsig, Fixnum::from(pid));
+#endif  // RBX_WINDOWS
   }
 
   Object* System::vm_exit(STATE, Fixnum* code) {
@@ -329,6 +342,10 @@ namespace rubinius {
 
   Fixnum* System::vm_fork(VM* state)
   {
+#ifdef RBX_WINDOWS
+    // TODO: Windows
+    return force_as<Fixnum>(Primitives::failure());
+#else
     int result = 0;
 
 #ifdef ENABLE_LLVM
@@ -362,6 +379,7 @@ namespace rubinius {
     }
 
     return Fixnum::from(result);
+#endif
   }
 
   Object* System::vm_gc_start(STATE, Object* force) {
@@ -535,6 +553,10 @@ namespace rubinius {
   }
 
   Array* System::vm_times(STATE) {
+#ifdef RBX_WINDOWS
+    // TODO: Windows
+    return force_as<Array>(Primitives::failure());
+#else
     struct rusage buf;
 
     Array* ary = Array::create(state, 4);
@@ -548,6 +570,7 @@ namespace rubinius {
     ary->set(state, 3, Float::create(state, tv_to_dbl(&buf.ru_stime)));
 
     return ary;
+#endif
   }
 
   Class* System::vm_open_class(STATE, Symbol* name, Object* sup, StaticScope* scope) {
@@ -968,6 +991,10 @@ namespace rubinius {
   }
 
   String* System::vm_get_user_home(STATE, String* name) {
+#ifdef RBX_WINDOWS
+    // TODO: Windows
+    return force_as<String>(Primitives::failure());
+#else
     struct passwd *pwd;
     String* home = 0;
 
@@ -979,6 +1006,7 @@ namespace rubinius {
 
     endpwent();
     return home;
+#endif
   }
 
   IO* System::vm_agent_io(STATE) {
