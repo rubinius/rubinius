@@ -39,26 +39,4 @@ int nanosleep(const struct timespec *rqtp, struct timespec *rmtp) {
   return 0;
 }
 
-#define RBX_USEC_PER_SEC   1000000
-
-void timeradd(struct timeval *a, struct timeval *b, struct timeval *res) {
-  res->tv_sec = a->tv_sec + b->tv_sec;
-  res->tv_usec = a->tv_usec + b->tv_usec;
-
-  if(res->tv_usec >= RBX_USEC_PER_SEC) {
-    res->tv_sec++;
-    res->tv_usec -= RBX_USEC_PER_SEC;
-  }
-}
-
-void timersub(struct timeval *a, struct timeval *b, struct timeval *res) {
-  res->tv_sec = a->tv_sec - b->tv_sec;
-  res->tv_usec = a->tv_usec - b->tv_usec;
-
-  if(res->tv_usec < 0) {
-    res->tv_sec--;
-    res->tv_usec += RBX_USEC_PER_SEC;
-  }
-}
-
 #endif

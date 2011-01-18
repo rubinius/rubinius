@@ -33,8 +33,26 @@ char* realpath(const char* file_name, char* resolved_name);
 #define timezone  _timezone
 
 int nanosleep(const struct timespec *rqtp, struct timespec *rmtp);
-void timeradd(struct timeval *a, struct timeval *b, struct timeval *res);
-void timersub(struct timeval *a, struct timeval *b, struct timeval *res);
+
+#define RBX_USEC_PER_SEC   1000000
+#define timeradd(tvp, uvp, vvp)                       \
+  do {                                                \
+    (vvp)->tv_sec = (tvp)->tv_sec + (uvp)->tv_sec;    \
+    (vvp)->tv_usec = (tvp)->tv_usec + (uvp)->tv_usec; \
+    if ((vvp)->tv_usec >= RBX_USEC_PER_SEC) {         \
+      (vvp)->tv_sec++;                                \
+      (vvp)->tv_usec -= RBX_USEC_PER_SEC;             \
+    }                                                 \
+  } while (0)
+#define timersub(tvp, uvp, vvp)                       \
+  do {                                                \
+    (vvp)->tv_sec = (tvp)->tv_sec - (uvp)->tv_sec;    \
+    (vvp)->tv_usec = (tvp)->tv_usec - (uvp)->tv_usec; \
+    if ((vvp)->tv_usec < 0) {                         \
+      (vvp)->tv_sec--;                                \
+      (vvp)->tv_usec += RBX_USEC_PER_SEC;             \
+    }                                                 \
+  } while (0)
 
 #endif  // RBX_WINDOWS
 
