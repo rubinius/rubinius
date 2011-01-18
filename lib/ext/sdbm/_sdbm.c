@@ -22,9 +22,7 @@
 
 #define BYTESIZ		8
 
-#ifdef HAVE_UNISTD_H
 #include <unistd.h>
-#endif
 
 #ifdef BSD42
 #define SEEK_SET	L_SET

@@ -13,9 +13,7 @@
 #include "ossl.h"
 #include <rubyio.h>
 
-#if defined(HAVE_UNISTD_H)
-#  include <unistd.h> /* for read(), and write() */
-#endif
+#include <unistd.h> /* for read(), and write() */
 
 #define numberof(ary) (sizeof(ary)/sizeof(ary[0]))
 
