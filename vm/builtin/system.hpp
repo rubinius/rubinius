@@ -274,6 +274,9 @@ namespace rubinius {
     // Ruby.primitive :vm_set_finalizer
     static Object* vm_set_finalizer(STATE, Object* obj, Object* fin);
 
+    // Ruby.primitive :sha1_hash
+    static String* sha1_hash(STATE, String* str);
+
   public:   /* Type info */
 
     class Info : public TypeInfo {

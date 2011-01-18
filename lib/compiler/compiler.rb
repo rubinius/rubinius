@@ -15,12 +15,24 @@ module Rubinius
       end
     end
 
+    @object_db = Rubinius::Config['rbc.db']
+
     def self.compiled_name(file)
       if file.suffix? ".rb"
-        file + "c"
+        path = file + "c"
       else
-        file + ".compiled.rbc"
+        path = file + ".compiled.rbc"
       end
+
+      if db = @object_db and !File.exists?(path)
+        full = File.expand_path(file)
+        hash = Rubinius.invoke_primitive :sha1_hash, full
+        dir = hash[0,2]
+
+        path = "#{db}/#{dir}/#{hash}"
+      end
+
+      path
     end
 
     def self.compile(file, output=nil, line=1, transforms=:default)

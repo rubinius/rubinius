@@ -69,6 +69,21 @@ module Rubinius
 
       def run
         @name = "#{@input.file}c" unless @name
+
+        dir = File.dirname(@name)
+        unless File.directory?(dir)
+          parts = []
+
+          until dir == "/" or dir == "."
+            parts << dir
+            dir = File.dirname(dir)
+          end
+
+          parts.reverse_each do |d|
+            Dir.mkdir d unless File.directory?(d)
+          end
+        end
+
         @processor.dump @input, @name
         @input
       end

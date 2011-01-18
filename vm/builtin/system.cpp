@@ -56,6 +56,8 @@
 
 #include "agent.hpp"
 
+#include "util/sha1.h"
+
 #ifdef ENABLE_LLVM
 #include "llvm/jit.hpp"
 #include "llvm/jit_compiler.hpp"
@@ -1011,5 +1013,28 @@ namespace rubinius {
     if(!obj->reference_p()) return Qfalse;
     state->om->set_ruby_finalizer(obj, fin);
     return Qtrue;
+  }
+
+  String* System::sha1_hash(STATE, String* str) {
+    SHA1_CTX ctx;
+    SHA1_Init(&ctx);
+    SHA1_Update(&ctx, str->byte_address(), str->size());
+
+    uint8_t digest[20];
+    SHA1_Finish(&ctx, digest);
+
+    char buf[40];
+    static const char hex[] = {
+        '0', '1', '2', '3', '4', '5', '6', '7', '8', '9',
+        'a', 'b', 'c', 'd', 'e', 'f'
+    };
+
+    for(int i = 0; i < 20; i++) {
+      unsigned char byte = digest[i];
+      buf[i + i]     = hex[byte >> 4];
+      buf[i + i + 1] = hex[byte & 0x0f];
+    }
+
+    return String::create(state, buf, 40);
   }
 }
