@@ -50,10 +50,12 @@ namespace rubinius {
 
   unsigned long VM::cStackDepthMax = 655300;
 
+#ifndef RBX_WINDOWS
   // getrlimit can report there is 4G of stack (ie, unlimited).
   // Even when there is unlimited stack, we clamp the max to
   // this value (currently 128M)
   static rlim_t cMaxStack = (1024 * 1024 * 128);
+#endif
 
   VM::VM(uint32_t id, SharedState& shared)
     : ManagedThread(id, shared, ManagedThread::eRuby)
@@ -80,7 +82,6 @@ namespace rubinius {
   {
     probe.set(Qnil, &globals().roots);
     set_stack_size(cStackDepthMax);
-    os_thread_ = 0;
 
     if(shared.om) {
       young_start_ = shared.om->young_start();
@@ -260,6 +261,7 @@ namespace rubinius {
   }
 
   void VM::init_stack_size() {
+#ifndef RBX_WINDOWS
     struct rlimit rlim;
     if(getrlimit(RLIMIT_STACK, &rlim) == 0) {
       rlim_t space = rlim.rlim_cur/5;
@@ -273,6 +275,7 @@ namespace rubinius {
         cStackDepthMax = adjusted;
       }
     }
+#endif
   }
 
   TypeInfo* VM::find_type(int type) {
@@ -324,7 +327,11 @@ namespace rubinius {
     om->release_contention(this);
 
     if(interrupt_with_signal_) {
+#ifdef RBX_WINDOWS
+      // TODO: wake up the thread
+#else
       pthread_kill(os_thread_, SIGVTALRM);
+#endif
       return true;
     } else if(InflatedHeader* ih = waiting_header_) {
       // We shouldn't hold the VM lock and the IH lock at the same time,
