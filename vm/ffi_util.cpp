@@ -20,6 +20,7 @@
 #include <errno.h>
 #include <time.h>
 
+#include "windows_compat.h"
 #include "ffi_util.hpp"
 
 extern "C" {
@@ -187,8 +188,10 @@ int ffi_fstat(int filedes, struct stat *buf) {
   return fstat(filedes, buf);
 }
 
+#ifndef RBX_WINDOWS
 int ffi_lstat(const char *path, struct stat *buf) {
   return lstat(path, buf);
 }
+#endif
 
 }

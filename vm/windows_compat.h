@@ -25,6 +25,8 @@ int pipe(int fildes[2]);
 // file system
 char* realpath(const char* file_name, char* resolved_name);
 
+// time
+#define timezone  _timezone
 
 #endif  // RBX_WINDOWS
 
