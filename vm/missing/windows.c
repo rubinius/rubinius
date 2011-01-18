@@ -29,6 +29,8 @@ int setenv(const char *name, const char *value, int overwrite) {
 
   int size = 2 + strlen(name) + strlen(value);
   char* str = malloc(size);
+  if(!str) return -1;
+
   snprintf(str, size, "%s=%s", name, value);
   return putenv(str);
 }
