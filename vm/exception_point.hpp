@@ -3,9 +3,7 @@
 
 #include <setjmp.h>
 
-#ifdef RBX_WINDOWS
 #include "windows_compat.h"
-#endif
 
 namespace rubinius {
   class NativeMethodEnvironment;
@@ -38,6 +36,6 @@ namespace rubinius {
   };
 }
 
-#define PLACE_EXCEPTION_POINT(ep) _setjmp(ep.__jump_buffer)
+#define PLACE_EXCEPTION_POINT(ep) set_jump(ep.__jump_buffer)
 
 #endif

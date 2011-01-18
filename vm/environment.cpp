@@ -37,11 +37,10 @@
 #include <fstream>
 #include <sstream>
 #include <string>
-#ifdef RBX_WINDOWS
-#include "windows_compat.h"
-#else
+#ifndef RBX_WINDOWS
 #include <sys/utsname.h>
 #endif
+#include "windows_compat.h"
 #include <fcntl.h>
 #include <unistd.h>
 #include <sys/param.h>

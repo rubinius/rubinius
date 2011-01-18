@@ -35,7 +35,9 @@ namespace autogen_types {
 #include <fstream>
 #include <iomanip>
 #include <stdlib.h>
+#ifndef RBX_WINDOWS
 #include <dlfcn.h>
+#endif
 
 #include "llvm/jit_compiler.hpp"
 #include "llvm/jit_method.hpp"
