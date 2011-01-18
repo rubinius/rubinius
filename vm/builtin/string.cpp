@@ -13,6 +13,8 @@
 #include "objectmemory.hpp"
 #include "primitives.hpp"
 
+#include "windows_compat.h"
+
 #include <gdtoa.h>
 
 #include <unistd.h>

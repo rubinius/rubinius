@@ -3,6 +3,9 @@
 
 #ifdef RBX_WINDOWS
 
+// crypt
+char *crypt(const char *, const char *);
+
 // system
 
 // Adapted from BSD source code.
