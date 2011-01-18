@@ -6,7 +6,8 @@
 // crypt
 char *crypt(const char *, const char *);
 
-// system
+// environment
+int setenv(const char *name, const char *value, int overwrite);
 
 // Adapted from BSD source code.
 #define UNAME_NAMELEN    256

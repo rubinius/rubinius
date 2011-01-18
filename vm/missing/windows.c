@@ -1,6 +1,8 @@
 #ifdef RBX_WINDOWS
 
 #include "windows_compat.h"
+#include <stdlib.h>
+#include <string.h>
 #include <io.h>
 
 int uname(struct utsname *name) {
@@ -19,6 +21,12 @@ int pipe(int fildes[2]) {
 
 char* realpath(const char* file_name, char* resolved_name) {
   return _fullpath(file_name, resolved_name, MAX_PATH);
+}
+
+int setenv(const char *name, const char *value, int overwrite) {
+  int size = 2 + strlen(name) + strlen(value);
+  char* str = malloc(size);
+  return putenv(str);
 }
 
 #endif
