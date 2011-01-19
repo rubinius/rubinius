@@ -10,6 +10,8 @@
 #include "capi/capi.hpp"
 #include "capi/include/ruby.h"
 
+#include "windows_compat.h"
+
 #include <fcntl.h>
 
 using namespace rubinius;
@@ -150,7 +152,7 @@ extern "C" {
 
     fd_set fds;
     FD_ZERO(&fds);
-    FD_SET(fd, &fds);
+    FD_SET((int_fd_t)fd, &fds);
 
     int ready = 0;
 
@@ -196,7 +198,7 @@ extern "C" {
 
     fd_set fds;
     FD_ZERO(&fds);
-    FD_SET(fd, &fds);
+    FD_SET((int_fd_t)fd, &fds);
 
     int ready = 0;
 
@@ -224,7 +226,7 @@ extern "C" {
     fd_set fds;
 
     FD_ZERO(&fds);
-    FD_SET(fd, &fds);
+    FD_SET((int_fd_t)fd, &fds);
 
     int ready = 0;
 
@@ -247,7 +249,7 @@ extern "C" {
     fd_set fds;
 
     FD_ZERO(&fds);
-    FD_SET(fd, &fds);
+    FD_SET((int_fd_t)fd, &fds);
 
     int ready = 0;
 

@@ -5,6 +5,8 @@
 
 #include "util/thread.hpp"
 
+#include "windows_compat.h"
+
 namespace rubinius {
   class SharedState;
 
@@ -34,12 +36,6 @@ namespace rubinius {
 
   public:
     QueryAgent(SharedState& shared, VM* state);
-
-#ifdef RBX_WINDOWS
-typedef unsigned int int_fd_t;
-#else
-typedef int int_fd_t;
-#endif
 
     void set_verbose() {
       verbose_ = true;

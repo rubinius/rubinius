@@ -111,7 +111,7 @@ namespace rubinius {
         native_int descriptor = io->to_fd();
         highest = descriptor > highest ? descriptor : highest;
 
-        if(descriptor >= 0) FD_SET(descriptor, set);
+        if(descriptor >= 0) FD_SET((int_fd_t)descriptor, set);
       }
 
       return highest;
@@ -538,7 +538,7 @@ namespace rubinius {
     FD_ZERO(&set);
 
     native_int fd = descriptor()->to_native();
-    FD_SET(fd, &set);
+    FD_SET((int_fd_t)fd, &set);
 
     struct timeval tv = {0,0};
     int res = ::select(fd+1, &set, 0, 0, &tv);
@@ -595,7 +595,7 @@ namespace rubinius {
             // Pause before continuing
             fd_set fds;
             FD_ZERO(&fds);
-            FD_SET(fd, &fds);
+            FD_SET((int_fd_t)fd, &fds);
 
             ::select(fd+1, NULL, &fds, NULL, NULL);
 

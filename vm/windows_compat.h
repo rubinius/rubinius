@@ -56,7 +56,8 @@ int nanosleep(const struct timespec *rqtp, struct timespec *rmtp);
 
 #endif  // RBX_WINDOWS
 
-// Keep this ifdef short so it's clear
+// Keep these ifdef short so they are clear. Each one
+// defines a Windows and non-Windows alternative.
 #ifdef RBX_WINDOWS
 // MinGW defines setjmp in terms of _setjmp.
 #define set_jump(x)       setjmp(x)
@@ -64,6 +65,12 @@ int nanosleep(const struct timespec *rqtp, struct timespec *rmtp);
 #else
 #define set_jump(x)       _setjmp(x)
 #define long_jump(x, y)   _longjmp(x, y)
-#endif  // RBX_WINDOWS
+#endif
+
+#ifdef RBX_WINDOWS
+typedef unsigned int int_fd_t;
+#else
+typedef int int_fd_t;
+#endif
 
 #endif  // RBX_WINDOWS_COMPAT_H

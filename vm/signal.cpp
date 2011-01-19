@@ -15,6 +15,8 @@
 #include <sys/select.h>
 #endif
 
+#include "windows_compat.h"
+
 namespace rubinius {
   struct CallFrame;
 
@@ -77,7 +79,7 @@ namespace rubinius {
     for(;;) {
       fd_set fds;
       FD_ZERO(&fds);
-      FD_SET(read_fd_, &fds);
+      FD_SET((int_fd_t)read_fd_, &fds);
 
       int n = select(read_fd_ + 1, &fds, NULL, NULL, NULL);
       if(exit_) return;
