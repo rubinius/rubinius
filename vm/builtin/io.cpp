@@ -794,11 +794,13 @@ namespace rubinius {
 
     if(op == state->symbol("tty?")) {
       return isatty(fd) ? Qtrue : Qfalse;
+#ifndef RBX_WINDOWS
     } else if(op == state->symbol("ttyname")) {
       return String::create(state, ttyname(fd));
-    } else {
-      return Qnil;
+#endif
     }
+
+    return Qnil;
   }
 
   // Stole/ported from 1.8.7. The system fnmatch doesn't support
