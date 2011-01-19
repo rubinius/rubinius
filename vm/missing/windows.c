@@ -39,4 +39,32 @@ int nanosleep(const struct timespec *rqtp, struct timespec *rmtp) {
   return 0;
 }
 
+// In MRI, this only sets properties on sockets, which requires
+// tracking all fd's that are sockets...
+int fcntl(int fildes, int cmd, ...) {
+
+  if(cmd != F_SETFL) {
+    errno = EINVAL;
+    return -1;
+  }
+
+  va_list va;
+  va_start(va, cmd);
+  int arg = va_arg(va, int);
+  va_end(va);
+
+  unsigned long ioctl_arg;
+  if(arg & O_NONBLOCK) {
+    ioctl_arg = 1;
+  }
+  else {
+    ioctl_arg = 0;
+  }
+
+	int ret = ioctlsocket(fd, FIONBIO, &ioctl_arg);
+	if(ret) errno = map_errno(WSAGetLastError());
+
+  return ret;
+}
+
 #endif

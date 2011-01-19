@@ -54,6 +54,12 @@ int nanosleep(const struct timespec *rqtp, struct timespec *rmtp);
     }                                                 \
   } while (0)
 
+// fcntl
+#define F_SETFL 1
+#define O_NONBLOCK 1
+
+int fcntl(int fildes, int cmd, ...);
+
 #endif  // RBX_WINDOWS
 
 // Keep these ifdef short so they are clear. Each one
