@@ -201,6 +201,8 @@ namespace rubinius {
     void stop() {
       {
         thread::Mutex::LockGuard guard(mutex_);
+        if(state == cStopped) return;
+
         stop_ = true;
 
         if(state == cIdle) {
