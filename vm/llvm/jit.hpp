@@ -469,6 +469,7 @@ namespace rubinius {
 
     static LLVMState* get(STATE);
     static void shutdown(STATE);
+    static void start(STATE);
     static void on_fork(STATE);
     static void pause(STATE);
     static void unpause(STATE);
@@ -563,6 +564,7 @@ namespace rubinius {
     const char* symbol_cstr(const Symbol* sym);
 
     void shutdown_i();
+    void start_i();
     void on_fork_i();
     void pause_i();
     void unpause_i();

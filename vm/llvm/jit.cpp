@@ -127,6 +127,11 @@ namespace rubinius {
     state->shared.llvm_state->shutdown_i();
   }
 
+  void LLVMState::start(STATE) {
+    if(!state->shared.llvm_state) return;
+    state->shared.llvm_state->start_i();
+  }
+
   void LLVMState::on_fork(STATE) {
     if(!state->shared.llvm_state) return;
     state->shared.llvm_state->on_fork_i();
@@ -158,7 +163,8 @@ namespace rubinius {
       cUnknown,
       cRunning,
       cPaused,
-      cIdle
+      cIdle,
+      cStopped
     };
 
     thread::Mutex mutex_;
@@ -176,8 +182,9 @@ namespace rubinius {
 
   public:
     BackgroundCompilerThread(LLVMState* ls)
-      : ls_(ls)
-      , state(cUnknown)
+      : Thread(0, false)
+      , ls_(ls)
+      , state(cStopped)
       , stop_(false)
       , pause_(false)
       , paused_(false)
@@ -206,6 +213,15 @@ namespace rubinius {
       }
 
       join();
+      state = cStopped;
+    }
+
+    void start() {
+      {
+        thread::Mutex::LockGuard guard(mutex_);
+        if(state != cStopped) return;
+        run();
+      }
     }
 
     void pause() {
@@ -237,7 +253,7 @@ namespace rubinius {
       condition_.init();
       pause_condition_.init();
 
-      state = cUnknown;
+      state = cStopped;
       stop_ = false;
       pause_ = false;
       paused_ = false;
@@ -542,6 +558,10 @@ namespace rubinius {
 
   void LLVMState::shutdown_i() {
     background_thread_->stop();
+  }
+
+  void LLVMState::start_i() {
+    background_thread_->start();
   }
 
   void LLVMState::on_fork_i() {

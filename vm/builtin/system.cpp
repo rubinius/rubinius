@@ -175,6 +175,10 @@ namespace rubinius {
 
     delete[] argv;
 
+#ifdef ENABLE_LLVM
+    LLVMState::start(state);
+#endif
+
     /* execvp() returning means it failed. */
     Exception::errno_error(state, "execvp(2) failed");
     return NULL;
