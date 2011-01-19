@@ -5,6 +5,7 @@
 #include <fcntl.h>
 #ifdef RBX_WINDOWS
 #include <winsock2.h>
+#include <ws2tcpip.h>
 #else
 #include <sys/ioctl.h>
 #include <sys/socket.h>
@@ -33,6 +34,8 @@
 #include "vm/on_stack.hpp"
 
 #include "capi/handle.hpp"
+
+#include "windows_compat.h"
 
 namespace rubinius {
   void IO::init(STATE) {
@@ -436,10 +439,14 @@ namespace rubinius {
   }
 
   void IO::set_mode(STATE) {
+#ifdef F_GETFL
     int acc_mode = fcntl(to_fd(), F_GETFL);
     if(acc_mode < 0) {
       Exception::errno_error(state);
     }
+#else
+    int acc_mode = 0;
+#endif
     mode(state, Fixnum::from(acc_mode));
   }
 
@@ -695,6 +702,7 @@ namespace rubinius {
     return ary;
   }
 
+#ifndef RBX_WINDOWS
   static const char* unixpath(struct sockaddr_un *sockaddr, socklen_t len) {
     if (sockaddr->sun_path < (char*)sockaddr + len) {
       return sockaddr->sun_path;
@@ -708,6 +716,7 @@ namespace rubinius {
     ary->set(state, 1, String::create(state, unixpath(addr, len)));
     return ary;
   }
+#endif
 
   Object* IO::socket_read(STATE, Fixnum* bytes, Fixnum* flags, Fixnum* type,
                           CallFrame* calling_environment) {
@@ -729,7 +738,7 @@ namespace rubinius {
     {
       GCIndependent guard(state, calling_environment);
       bytes_read = recvfrom(descriptor()->to_native(),
-                            buffer->byte_address(), size,
+                            (char*)buffer->byte_address(), size,
                             flags->to_native(),
                             (struct sockaddr*)buf, &alen);
     }
@@ -766,9 +775,11 @@ namespace rubinius {
         ary->set(state, 1, Qnil);
       }
       break;
+#ifndef RBX_WINDOWS
     case 2: // unix
       ary->set(state, 1, unixaddr(state, (struct sockaddr_un*)buf, alen));
       break;
+#endif
     default:
       ary->set(state, 1, String::create(state, buf, alen));
     }
@@ -1137,8 +1148,12 @@ failed: /* try next '*' position */
   }
 
   void IO::set_nonblock(STATE) {
+#ifdef F_GETFL
     int flags = fcntl(descriptor_->to_native(), F_GETFL);
     if(flags == -1) return;
+#else
+    int flags = 0;
+#endif
 
     if((flags & O_NONBLOCK) == 0) {
       flags |= O_NONBLOCK;
