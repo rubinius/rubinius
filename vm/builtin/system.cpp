@@ -70,7 +70,9 @@
 
 namespace rubinius {
 
-  void System::attach_primitive(STATE, Module* mod, bool meta, Symbol* name, Symbol* prim) {
+  void System::attach_primitive(STATE, Module* mod, bool meta,
+                                Symbol* name, Symbol* prim)
+  {
     MethodTable* tbl;
 
     if(meta) {
@@ -150,7 +152,8 @@ namespace rubinius {
     argv[argc] = NULL;
 
     for(size_t i = 0; i < argc; i++) {
-      /* strdup should be OK. Trying to exec with strings containing NUL == bad. --rue */
+      /* strdup should be OK. Trying to exec with strings
+       * containing NUL == bad. --rue */
       argv[i] = strdup(as<String>(args->get(state, i))->c_str());
     }
 
@@ -184,7 +187,9 @@ namespace rubinius {
     return NULL;
   }
 
-  Object* System::vm_replace(STATE, String* str, CallFrame* calling_environment) {
+  Object* System::vm_replace(STATE, String* str,
+                             CallFrame* calling_environment)
+  {
 #ifdef RBX_WINDOWS
     // TODO: Windows
     return Primitives::failure();
@@ -577,7 +582,9 @@ namespace rubinius {
 #endif
   }
 
-  Class* System::vm_open_class(STATE, Symbol* name, Object* sup, StaticScope* scope) {
+  Class* System::vm_open_class(STATE, Symbol* name, Object* sup,
+                               StaticScope* scope)
+  {
     Module* under;
 
     if(scope->nil_p()) {
@@ -589,7 +596,9 @@ namespace rubinius {
     return vm_open_class_under(state, name, sup, under);
   }
 
-  Class* System::vm_open_class_under(STATE, Symbol* name, Object* super, Module* under) {
+  Class* System::vm_open_class_under(STATE, Symbol* name, Object* super,
+                                     Module* under)
+  {
     bool found = false;
 
     Object* obj = under->get_const(state, name, &found);
@@ -605,8 +614,10 @@ namespace rubinius {
                 << cls->true_superclass(state)->name()->c_str(state);
 
         Exception* exc =
-          Exception::make_type_error(state, Class::type, super, message.str().c_str());
-        // exc->locations(state, System::vm_backtrace(state, Fixnum::from(0), call_frame));
+          Exception::make_type_error(state, Class::type, super,
+                                     message.str().c_str());
+        // exc->locations(state, System::vm_backtrace(state,
+        //                Fixnum::from(0), call_frame));
         state->thread_state()->raise_exception(exc);
         return NULL;
       }
@@ -668,7 +679,8 @@ namespace rubinius {
   }
 
   Object* System::vm_add_method(STATE, Symbol* name, CompiledMethod* method,
-                                StaticScope* scope, Object* vis) {
+                                StaticScope* scope, Object* vis)
+  {
     Module* mod = scope->for_method_definition();
 
     method->scope(state, scope);
@@ -691,7 +703,8 @@ namespace rubinius {
     bool add_ivars = false;
 
     if(Class* cls = try_as<Class>(mod)) {
-      add_ivars = !kind_of<MetaClass>(cls) && cls->type_info()->type == Object::type;
+      add_ivars = !kind_of<MetaClass>(cls) && 
+                   cls->type_info()->type == Object::type;
     } else {
       add_ivars = true;
     }
@@ -719,7 +732,8 @@ namespace rubinius {
   }
 
   Object* System::vm_attach_method(STATE, Symbol* name, CompiledMethod* method,
-                                   StaticScope* scope, Object* recv) {
+                                   StaticScope* scope, Object* recv)
+  {
     Module* mod = recv->metaclass(state);
 
     method->scope(state, scope);
@@ -800,7 +814,9 @@ namespace rubinius {
     return NULL;
   }
 
-  Object* System::vm_catch(STATE, Symbol* dest, Object* obj, CallFrame* call_frame) {
+  Object* System::vm_catch(STATE, Symbol* dest, Object* obj,
+                           CallFrame* call_frame)
+  {
     LookupData lookup(obj, obj->lookup_begin(state), false);
     Dispatch dis(state->symbol("call"));
 
@@ -909,7 +925,9 @@ namespace rubinius {
     return vm_get_kcode(state);
   }
 
-  Object* System::vm_const_defined(STATE, Symbol* sym, CallFrame* calling_environment) {
+  Object* System::vm_const_defined(STATE, Symbol* sym,
+                                   CallFrame* calling_environment)
+  {
     bool found;
 
     Object* res = Helpers::const_get(state, calling_environment, sym, &found);
@@ -927,7 +945,8 @@ namespace rubinius {
     Object* res = Helpers::const_get_under(state, under, sym, &found);
     if(!found) {
       if(send_const_missing->true_p()) {
-        res = Helpers::const_missing_under(state, under, sym, calling_environment);
+        res = Helpers::const_missing_under(state, under, sym,
+                                           calling_environment);
       } else {
         res = Primitives::failure();
       }
@@ -936,7 +955,9 @@ namespace rubinius {
     return res;
   }
 
-  Object* System::vm_check_callable(STATE, Object* obj, Symbol* sym, Object* self) {
+  Object* System::vm_check_callable(STATE, Object* obj, Symbol* sym,
+                                    Object* self)
+  {
     Module* mod = obj->lookup_begin(state);
 
     MethodTableBucket* entry;
@@ -1062,7 +1083,9 @@ namespace rubinius {
     return Qnil;
   }
 
-  Object* System::vm_object_lock_timed(STATE, Object* obj, Integer* time, CallFrame* call_frame) {
+  Object* System::vm_object_lock_timed(STATE, Object* obj, Integer* time,
+                                       CallFrame* call_frame)
+  {
     if(!obj->reference_p()) return Primitives::failure();
     state->set_call_frame(call_frame);
 
@@ -1089,7 +1112,9 @@ namespace rubinius {
     return Qnil;
   }
 
-  Object* System::vm_object_trylock(STATE, Object* obj, CallFrame* call_frame) {
+  Object* System::vm_object_trylock(STATE, Object* obj,
+                                    CallFrame* call_frame)
+  {
     if(!obj->reference_p()) return Primitives::failure();
     state->set_call_frame(call_frame);
     if(obj->try_lock(state) == eLocked) return Qtrue;
@@ -1102,7 +1127,9 @@ namespace rubinius {
     return Qfalse;
   }
 
-  Object* System::vm_object_unlock(STATE, Object* obj, CallFrame* call_frame) {
+  Object* System::vm_object_unlock(STATE, Object* obj,
+                                   CallFrame* call_frame)
+  {
     if(!obj->reference_p()) return Primitives::failure();
     state->set_call_frame(call_frame);
 
@@ -1110,7 +1137,7 @@ namespace rubinius {
     return Primitives::failure();
   }
 
-  Object *System::vm_memory_barrier(STATE) {
+  Object* System::vm_memory_barrier(STATE) {
     atomic::memory_barrier();
     return Qnil;
   }
