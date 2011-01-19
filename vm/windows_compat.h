@@ -23,6 +23,33 @@ struct  utsname {
 int uname(struct utsname *name);
 
 // socket
+
+#include <winsock2.h>
+
+#ifndef SHUT_RD
+#ifdef SD_RECEIVE
+#define SHUT_RD   SD_RECEIVE
+#else
+#define SHUT_RD   0
+#endif
+#endif
+
+#ifndef SHUT_WR
+#ifdef SD_SEND
+#define SHUT_WR   SD_SEND
+#else
+#define SHUT_WR   1
+#endif
+#endif
+
+#ifndef SHUT_RDWR
+#ifdef SD_BOTH
+#define SHUT_RDWR SD_BOTH
+#else
+#define SHUT_RDWR 2
+#endif
+#endif
+
 int socketpair(int domain, int type, int protocol, int socket_vector[2]);
 int pipe(int fildes[2]);
 
