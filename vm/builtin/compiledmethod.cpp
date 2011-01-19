@@ -99,31 +99,36 @@ namespace rubinius {
   }
 
   VMMethod* CompiledMethod::internalize(STATE, const char** reason, int* ip) {
-    if(lock(state) != eLocked) rubinius::abort();
+    atomic::memory_barrier();
     if(!backend_method_) {
-      {
-        timer::Running<double, timer::milliseconds> tr(
-            state->shared.stats.verification_time);
+      if(lock(state) != eLocked) rubinius::abort();
+      if(!backend_method_) {
+        {
+          timer::Running<double, timer::milliseconds> tr(
+              state->shared.stats.verification_time);
 
-        BytecodeVerification bv(this);
-        if(!bv.verify(state)) {
-          if(reason) *reason = bv.failure_reason();
-          if(ip) *ip = bv.failure_ip();
-          std::cerr << "Error validating bytecode: " << bv.failure_reason() << "\n";
-          return 0;
+          BytecodeVerification bv(this);
+          if(!bv.verify(state)) {
+            if(reason) *reason = bv.failure_reason();
+            if(ip) *ip = bv.failure_ip();
+            std::cerr << "Error validating bytecode: " << bv.failure_reason() << "\n";
+            return 0;
+          }
         }
+
+        VMMethod* vmm = NULL;
+        vmm = new VMMethod(state, this);
+
+        if(!resolve_primitive(state)) {
+          vmm->setup_argument_handler(this);
+        }
+
+        backend_method_ = vmm;
+        atomic::memory_barrier();
       }
 
-      VMMethod* vmm = NULL;
-      vmm = new VMMethod(state, this);
-      backend_method_ = vmm;
-
-      if(!resolve_primitive(state)) {
-        backend_method_->setup_argument_handler(this);
-      }
+      unlock(state);
     }
-
-    unlock(state);
     return backend_method_;
   }
 
@@ -143,8 +148,9 @@ namespace rubinius {
     backend_method_->specialize(state, this, ti);
   }
 
-  Object* CompiledMethod::default_executor(STATE, CallFrame* call_frame, Executable* exec, Module* mod,
-                                           Arguments& args) {
+  Object* CompiledMethod::default_executor(STATE, CallFrame* call_frame,
+                          Executable* exec, Module* mod, Arguments& args)
+  {
     LockableScopedLock lg(state, &state->shared, __FILE__, __LINE__);
 
     CompiledMethod* cm = as<CompiledMethod>(exec);

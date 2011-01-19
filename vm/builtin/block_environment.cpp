@@ -25,6 +25,7 @@
 
 #include "instruments/profiler.hpp"
 #include "configuration.hpp"
+#include "on_stack.hpp"
 
 #ifdef RBX_WINDOWS
 #include <malloc.h>
@@ -217,7 +218,9 @@ namespace rubinius {
   BlockEnvironment* BlockEnvironment::under_call_frame(STATE, CompiledMethod* cm,
       VMMethod* caller, CallFrame* call_frame, size_t index)
   {
-    BlockEnvironment* be = state->new_object<BlockEnvironment>(G(blokenv));
+    OnStack<2> os(state, cm);
+
+    state->set_call_frame(call_frame);
 
     VMMethod* vmm = cm->internalize(state);
     if(!vmm) {
@@ -227,6 +230,7 @@ namespace rubinius {
 
     vmm->set_parent(caller);
 
+    BlockEnvironment* be = state->new_object<BlockEnvironment>(G(blokenv));
     be->scope(state, call_frame->promote_scope(state));
     be->top_scope(state, call_frame->top_scope(state));
     be->method(state, cm);
