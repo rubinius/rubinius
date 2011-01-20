@@ -184,7 +184,7 @@ namespace rubinius {
     BackgroundCompilerThread(LLVMState* ls)
       : Thread(0, false)
       , ls_(ls)
-      , state(cStopped)
+      , state(cUnknown)
       , stop_(false)
       , pause_(false)
       , paused_(false)
@@ -215,15 +215,18 @@ namespace rubinius {
       }
 
       join();
-      state = cStopped;
+
+      {
+        thread::Mutex::LockGuard guard(mutex_);
+        state = cStopped;
+      }
     }
 
     void start() {
-      {
-        thread::Mutex::LockGuard guard(mutex_);
-        if(state != cStopped) return;
-        run();
-      }
+      thread::Mutex::LockGuard guard(mutex_);
+      if(state != cStopped) return;
+      state = cUnknown;
+      run();
     }
 
     void pause() {
@@ -255,7 +258,7 @@ namespace rubinius {
       condition_.init();
       pause_condition_.init();
 
-      state = cStopped;
+      state = cUnknown;
       stop_ = false;
       pause_ = false;
       paused_ = false;
