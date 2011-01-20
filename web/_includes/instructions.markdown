@@ -666,7 +666,7 @@
    Cause the toplevel enclosing scope to return
 
    Only used in a block, pop a value from the stack and raise a special
-   internal exceptiion and begin unwinding the stack. The toplevel method
+   internal exception and begin unwinding the stack. The toplevel method
    scope will rescue the exception and return the value.
 
 
