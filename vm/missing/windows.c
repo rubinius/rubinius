@@ -39,6 +39,24 @@ int nanosleep(const struct timespec *rqtp, struct timespec *rmtp) {
   return 0;
 }
 
+time_t timegm (struct tm *tm) {
+  char* tz = getenv("TZ");
+  setenv("TZ", "", 1);
+  tzset();
+
+  time_t ret = mktime(tm);
+
+  if(tz) {
+    setenv("TZ", tz, 1);
+  } else {
+    unsetenv("TZ");
+  }
+  tzset();
+
+  return ret;
+}
+
+
 int map_errno(DWORD winerr);
 
 // In MRI, this only sets properties on sockets, which requires

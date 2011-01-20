@@ -169,6 +169,7 @@ char* realpath(const char* file_name, char* resolved_name);
 // time
 #define timezone  _timezone
 
+time_t timegm(struct tm* tm);
 int nanosleep(const struct timespec *rqtp, struct timespec *rmtp);
 
 #define RBX_USEC_PER_SEC   1000000
