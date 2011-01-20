@@ -40,7 +40,8 @@
 namespace rubinius {
 
   void BlockEnvironment::init(STATE) {
-    GO(blokenv).set(state->new_class("BlockEnvironment", G(object), G(rubinius)));
+    GO(blokenv).set(state->new_class("BlockEnvironment", G(object),
+                                     G(rubinius)));
     G(blokenv)->set_object_type(state, BlockEnvironmentType);
     G(blokenv)->name(state, state->symbol("Rubinius::BlockEnvironment"));
   }
@@ -59,13 +60,13 @@ namespace rubinius {
                             BlockInvocation& invocation)
   {
 
-#ifdef ENABLE_LLVM
     VMMethod* vmm = env->vmmethod(state);
     if(!vmm) {
       Exception::internal_error(state, previous, "invalid bytecode method");
       return 0;
     }
 
+#ifdef ENABLE_LLVM
     if(void* ptr = vmm->native_function()) {
       return (*((BlockExecutor)ptr))(state, previous, env, args, invocation);
     }
@@ -104,7 +105,8 @@ namespace rubinius {
 #endif
 
     size_t scope_size = sizeof(StackVariables) +
-      (vmm->number_of_locals * sizeof(Object*));
+                         (vmm->number_of_locals * sizeof(Object*));
+
     StackVariables* scope =
       reinterpret_cast<StackVariables*>(alloca(scope_size));
 
@@ -126,8 +128,8 @@ namespace rubinius {
     frame->scope =    scope;
     frame->top_scope_ = env->top_scope_;
     frame->flags =    invocation.flags | CallFrame::cCustomStaticScope
-                     | CallFrame::cMultipleScopes
-                     | CallFrame::cBlock;
+                                       | CallFrame::cMultipleScopes
+                                       | CallFrame::cBlock;
 
     // Check the stack and interrupts here rather than in the interpreter
     // loop itself.
@@ -168,13 +170,16 @@ namespace rubinius {
 #endif
   }
 
-  Object* BlockEnvironment::call(STATE, CallFrame* call_frame, Arguments& args, int flags) {
+  Object* BlockEnvironment::call(STATE, CallFrame* call_frame,
+                                 Arguments& args, int flags)
+  {
     BlockInvocation invocation(scope_->self(), method_->scope(), flags);
     return invoke(state, call_frame, this, args, invocation);
   }
 
-  Object* BlockEnvironment::call_prim(STATE,
-      CallFrame* call_frame, Executable* exec, Module* mod, Arguments& args)
+  Object* BlockEnvironment::call_prim(STATE, CallFrame* call_frame,
+                                      Executable* exec, Module* mod,
+                                      Arguments& args)
   {
     return call(state, call_frame, args);
   }
@@ -184,7 +189,8 @@ namespace rubinius {
   {
     if(args.total() < 1) {
       Exception* exc =
-        Exception::make_argument_error(state, 1, args.total(), state->symbol("__block__"));
+        Exception::make_argument_error(state, 1, args.total(),
+                                       state->symbol("__block__"));
       exc->locations(state, Location::from_call_stack(state, call_frame));
       state->thread_state()->raise_exception(exc);
       return NULL;
@@ -196,12 +202,14 @@ namespace rubinius {
     return invoke(state, call_frame, this, args, invocation);
   }
 
-  Object* BlockEnvironment::call_under(STATE,
-      CallFrame* call_frame, Executable* exec, Module* mod, Arguments& args)
+  Object* BlockEnvironment::call_under(STATE,CallFrame* call_frame,
+                                       Executable* exec, Module* mod,
+                                       Arguments& args)
   {
     if(args.total() < 2) {
       Exception* exc =
-        Exception::make_argument_error(state, 2, args.total(), state->symbol("__block__"));
+        Exception::make_argument_error(state, 2, args.total(),
+                                       state->symbol("__block__"));
       exc->locations(state, Location::from_call_stack(state, call_frame));
       state->thread_state()->raise_exception(exc);
       return NULL;
@@ -215,8 +223,9 @@ namespace rubinius {
   }
 
 
-  BlockEnvironment* BlockEnvironment::under_call_frame(STATE, CompiledMethod* cm,
-      VMMethod* caller, CallFrame* call_frame, size_t index)
+  BlockEnvironment* BlockEnvironment::under_call_frame(STATE,
+      CompiledMethod* cm, VMMethod* caller,
+      CallFrame* call_frame, size_t index)
   {
     OnStack<1> os(state, cm);
 
@@ -270,10 +279,10 @@ namespace rubinius {
     BlockEnvironment* be = as<BlockEnvironment>(self);
 
     class_header(state, self);
-    //indent_attribute(++level, "scope"); be->scope()->show(state, level);
-    // indent_attribute(level, "top_scope"); be->top_scope()->show(state, level);
-    indent_attribute(level, "local_count"); be->local_count()->show(state, level);
-    indent_attribute(level, "method"); be->method()->show(state, level);
+    indent_attribute(level, "local_count");
+      be->local_count()->show(state, level);
+    indent_attribute(level, "method");
+      be->method()->show(state, level);
     close_body(level);
   }
 }
