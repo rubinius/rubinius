@@ -172,6 +172,28 @@ char* realpath(const char* file_name, char* resolved_name);
 time_t timegm(struct tm* tm);
 int nanosleep(const struct timespec *rqtp, struct timespec *rmtp);
 
+#ifndef localtime_r
+#define localtime_r(_Time, _Tm)  ({           \
+  struct tm *___tmp_tm = localtime((_Time));  \
+  if (___tmp_tm) {                            \
+    *(_Tm) = *___tmp_tm;                      \
+    ___tmp_tm = (_Tm);                        \
+  }                                           \
+  ___tmp_tm;                                  \
+})
+#endif
+
+#ifndef gmtime_r
+#define gmtime_r(_Time,_Tm)  ({               \
+  struct tm *___tmp_tm = gmtime((_Time));     \
+  if (___tmp_tm) {                            \
+    *(_Tm) = *___tmp_tm;                      \
+    ___tmp_tm = (_Tm);                        \
+  }                                           \
+  ___tmp_tm;                                  \
+})
+#endif
+
 #define RBX_USEC_PER_SEC   1000000
 #define timeradd(tvp, uvp, vvp)                       \
   do {                                                \

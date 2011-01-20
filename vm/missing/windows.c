@@ -1,10 +1,11 @@
 #ifdef RBX_WINDOWS
 
-#include "windows_compat.h"
 #include <stdlib.h>
 #include <string.h>
 #include <time.h>
 #include <io.h>
+
+#include "windows_compat.h"
 
 int uname(struct utsname *name) {
   rubinius::abort();
