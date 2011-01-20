@@ -99,7 +99,6 @@ namespace rubinius {
   }
 
   VMMethod* CompiledMethod::internalize(STATE, const char** reason, int* ip) {
-    atomic::memory_barrier();
     if(!backend_method_) {
       if(lock(state) != eLocked) rubinius::abort();
       if(!backend_method_) {
@@ -123,12 +122,13 @@ namespace rubinius {
           vmm->setup_argument_handler(this);
         }
 
-        backend_method_ = vmm;
         atomic::memory_barrier();
+        backend_method_ = vmm;
       }
 
       unlock(state);
     }
+    atomic::memory_barrier();
     return backend_method_;
   }
 
