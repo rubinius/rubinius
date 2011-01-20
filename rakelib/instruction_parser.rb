@@ -207,12 +207,10 @@ class InstructionParser
     end
 
     def process_goto_if_false
-      @method_name = :gif
       conditional_branch
     end
 
     def process_goto_if_true
-      @method_name = :git
       conditional_branch
     end
 
@@ -279,12 +277,10 @@ EOM
     end
 
     def process_dup_top
-      @method_name = :dup
       method_definition
     end
 
     def process_swap_stack
-      @method_name = :swap
       method_definition
     end
 
