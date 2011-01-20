@@ -58,8 +58,6 @@ time_t timegm (struct tm *tm) {
 }
 
 
-int map_errno(DWORD winerr);
-
 // In MRI, this only sets properties on sockets, which requires
 // tracking all fd's that are sockets...
 int fcntl(int fildes, int cmd, ...) {

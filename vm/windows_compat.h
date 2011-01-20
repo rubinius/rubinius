@@ -6,6 +6,27 @@
 // crypt
 char *crypt(const char *, const char *);
 
+// dlopen
+#include <winbase.h>
+
+int map_errno(DWORD winerr);
+
+inline void* dlopen(const char* name, int mode) {
+  return LoadLibrary(name);
+}
+
+inline const char* dlerror(void) {
+  return strerror(map_errno(GetLastError()));
+}
+
+inline void* dlsym(void* handle, const char* symbol) {
+  return (void*)GetProcAddress((HMODULE)handle, symbol);
+}
+
+#define RTLD_LAZY -1
+#define RTLD_NOW  -1
+#define RTLD_GLOBAL -1
+
 // environment
 int setenv(const char *name, const char *value, int overwrite);
 

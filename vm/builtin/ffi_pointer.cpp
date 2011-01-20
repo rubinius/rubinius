@@ -30,6 +30,8 @@
 #include "arguments.hpp"
 #include "dispatch.hpp"
 
+#include "windows_compat.h"
+
 namespace rubinius {
 
   void Pointer::init(STATE) {
@@ -41,7 +43,7 @@ namespace rubinius {
       Pointer::create(state, dlopen(NULL, RTLD_NOW | RTLD_GLOBAL)));
 
     G(ffi_pointer)->set_const(state, "DLSYM",
-      Pointer::create(state, (void*)dlsym));
+      Pointer::create(state, (void*)LoadLibrary));
 
     G(ffi_pointer)->set_const(state, "DLOPEN",
       Pointer::create(state, (void*)dlopen));
