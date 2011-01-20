@@ -32,6 +32,7 @@ namespace rubinius {
     , root_vm_(0)
     , env_(env)
     , thread_ids_(0)
+    , ruby_critical_set_(false)
 
     , om(0)
     , global_cache(new GlobalCache)
@@ -235,13 +236,14 @@ namespace rubinius {
   void SharedState::set_critical(STATE) {
     SYNC(state);
 
-    if(ruby_critical_thread_ == 0 ||
+    if(!ruby_critical_set_ ||
          !pthread_equal(ruby_critical_thread_, pthread_self())) {
 
       UNSYNC;
       GCIndependent gc_guard(state);
       ruby_critical_lock_.lock();
       ruby_critical_thread_ = pthread_self();
+      ruby_critical_set_ = true;
     }
 
     return;
@@ -251,7 +253,7 @@ namespace rubinius {
     SYNC(state);
 
     if(pthread_equal(ruby_critical_thread_, pthread_self())) {
-      ruby_critical_thread_ = 0;
+      ruby_critical_set_ = false;
       ruby_critical_lock_.unlock();
     }
   }

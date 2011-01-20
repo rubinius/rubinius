@@ -101,6 +101,7 @@ namespace rubinius {
     // the name would make it sound.
     thread::Mutex ruby_critical_lock_;
     pthread_t ruby_critical_thread_;
+    bool ruby_critical_set_;
 
     Mutex capi_lock_;
 
