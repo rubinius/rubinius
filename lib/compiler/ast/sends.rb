@@ -79,7 +79,7 @@ module Rubinius
 
         if @vcall_style
           g.push :true
-          g.send :__respond_to_eh__, 2
+          g.send :__respond_to_p__, 2
         else
           g.push_self
           g.invoke_primitive :vm_check_callable, 3

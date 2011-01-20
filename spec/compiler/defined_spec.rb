@@ -29,7 +29,7 @@ describe "A Defined node" do
       g.push :self
       g.push_literal :a
       g.push :true
-      g.send :__respond_to_eh__, 2
+      g.send :__respond_to_p__, 2
       g.gif f
       g.push_literal "method"
       g.goto done
@@ -304,7 +304,7 @@ describe "A Defined node" do
 
       g.push :self
       g.push_literal :@var
-      g.send :__instance_variable_defined_eh__, 1
+      g.send :__instance_variable_defined_p__, 1
       g.gif f
       g.push_literal "instance-variable"
       g.goto done
