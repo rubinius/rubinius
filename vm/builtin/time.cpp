@@ -153,7 +153,7 @@ namespace rubinius {
     if(!decomposed_->nil_p()) return decomposed_;
 
     time_t seconds = seconds_;
-    struct tm tm;
+    struct tm tm = {0};
 
     if(RTEST(use_gmt)) {
       gmtime_r(&seconds, &tm);
