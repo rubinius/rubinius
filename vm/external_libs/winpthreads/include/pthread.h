@@ -281,7 +281,6 @@ typedef void	*pthread_barrier_t;
 #define PTHREAD_RWLOCK_INITIALIZER			(pthread_rwlock_t *)GENERIC_INITIALIZER
 #define PTHREAD_SPINLOCK_INITIALIZER			(pthread_spinlock_t *)GENERIC_INITIALIZER
 
-void (**_pthread_key_dest)(void *);
 int pthread_key_create(pthread_key_t *key, void (* dest)(void *));
 int pthread_key_delete(pthread_key_t key);
 void *pthread_getspecific(pthread_key_t key);

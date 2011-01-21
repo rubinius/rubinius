@@ -6,6 +6,8 @@
 #include "misc.h"
 #include "spinlock.h"
 
+void (**_pthread_key_dest)(void *);
+
 static volatile long _pthread_cancelling;
 static int _pthread_concur;
 
