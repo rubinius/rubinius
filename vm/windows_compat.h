@@ -7,7 +7,7 @@
 char *crypt(const char *, const char *);
 
 // dlopen
-#include <winbase.h>
+#include <winsock2.h>
 
 int map_errno(DWORD winerr);
 
