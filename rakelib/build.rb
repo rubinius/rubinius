@@ -33,14 +33,20 @@ end
 def llvm_link_flags
   return "" unless LLVM_ENABLE
 
-  `#{build_perl} #{llvm_configure} --ldflags`.strip
+  flags = `#{build_perl} #{llvm_configure} --ldflags`.strip
+  flags.sub!(%r[-L/([a-zA-Z])/], '-L\1:/') if Rubinius::BUILD_CONFIG[:windows]
+
+  flags
 end
 
 def llvm_lib_files
   return [] unless LLVM_ENABLE
 
   files = `#{build_perl} #{llvm_configure} --libfiles`.split(/\s+/)
-  files.select { |f| File.file? f }
+  files.select do |f|
+    f.sub!(%r[^/([a-zA-Z])/], '\1:/') if Rubinius::BUILD_CONFIG[:windows]
+    File.file? f
+  end
 end
 
 def llvm_version
