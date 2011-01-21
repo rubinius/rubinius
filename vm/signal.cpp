@@ -72,9 +72,11 @@ namespace rubinius {
   }
 
   void SignalHandler::perform() {
+#ifndef RBX_WINDOWS
     sigset_t set;
     sigfillset(&set);
     pthread_sigmask(SIG_BLOCK, &set, NULL);
+#endif
 
     for(;;) {
       fd_set fds;
@@ -120,7 +122,11 @@ namespace rubinius {
       vm_->check_local_interrupts = true;
 
       if(!pthread_equal(pthread_self(), main_thread)) {
+#ifdef RBX_WINDOWS
+        // TODO: Windows
+#else
         pthread_kill(main_thread, SIGVTALRM);
+#endif
       }
       return;
     }
@@ -133,6 +139,7 @@ namespace rubinius {
   void SignalHandler::add_signal(STATE, int sig, bool def) {
     SYNC(state);
 
+#ifndef RBX_WINDOWS
     sigset_t sigs;
     sigemptyset(&sigs);
     sigaddset(&sigs, sig);
@@ -150,6 +157,7 @@ namespace rubinius {
     sigfillset(&action.sa_mask);
 
     sigaction(sig, &action, NULL);
+#endif
   }
 
   bool SignalHandler::deliver_signals(CallFrame* call_frame) {

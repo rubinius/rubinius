@@ -1,5 +1,7 @@
 #ifdef ENABLE_LLVM
 
+#include "vm/config.h"
+
 #include "vmmethod.hpp"
 #include "llvm/jit.hpp"
 #include "llvm/jit_context.hpp"
@@ -25,6 +27,8 @@
 #include <llvm/Target/TargetSelect.h>
 
 #include <llvm/Target/TargetOptions.h>
+
+#include "windows_compat.h"
 
 namespace autogen_types {
   void makeLLVMModuleContents(llvm::Module* module);
@@ -269,10 +273,11 @@ namespace rubinius {
     virtual void perform() {
       ManagedThread::set_current(ls_);
 
+#ifndef RBX_WINDOWS
       sigset_t set;
       sigfillset(&set);
-
       pthread_sigmask(SIG_SETMASK, &set, NULL);
+#endif
 
       for(;;) { // forever
 
@@ -795,6 +800,7 @@ namespace rubinius {
   }
 
   void LLVMState::show_machine_code(void* buffer, size_t size) {
+#ifndef RBX_WINDOWS
     ud_t ud;
 
     ud_init(&ud);
@@ -849,6 +855,7 @@ namespace rubinius {
 
       std::cout << "\n";
     }
+#endif  // !RBX_WINDOWS
   }
 
 }
