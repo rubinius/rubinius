@@ -43,7 +43,7 @@ namespace rubinius {
       Pointer::create(state, dlopen(NULL, RTLD_NOW | RTLD_GLOBAL)));
 
     G(ffi_pointer)->set_const(state, "DLSYM",
-      Pointer::create(state, (void*)LoadLibrary));
+      Pointer::create(state, (void*)dlsym));
 
     G(ffi_pointer)->set_const(state, "DLOPEN",
       Pointer::create(state, (void*)dlopen));
