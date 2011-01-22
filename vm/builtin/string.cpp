@@ -581,7 +581,7 @@ namespace rubinius {
     if(dst < 0) dst = 0;
     if(cnt > sz - dst) cnt = sz - dst;
 
-    memcpy(byte_address() + dst, other->byte_address() + src, cnt);
+    memmove(byte_address() + dst, other->byte_address() + src, cnt);
 
     return this;
   }

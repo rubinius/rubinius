@@ -2521,29 +2521,46 @@ class String
 
   def splice!(start, count, replacement)
     start += @num_bytes if start < 0
+
     if start > @num_bytes || start < 0 then
       raise IndexError, "index #{start} out of string"
     end
+
     raise IndexError, "negative length #{count}" if count < 0
-    replacement = StringValue replacement
+
     modify!
+
+    replacement = StringValue replacement
 
     count = @num_bytes - start if start + count > @num_bytes
     size = start < @num_bytes ? @num_bytes - count : @num_bytes
     rsize = replacement.size
 
-    str = self.class.new("\0") * (size + rsize)
-    str.taint if tainted? || replacement.tainted?
+    if rsize != 0 # Ie, if we're not just removing data
+      str = self.class.new("\0") * (size + rsize)
+      str.taint if tainted? || replacement.tainted?
 
-    last = start + count
-    str.copy_from self, 0, start, 0 if start > 0
-    str.copy_from replacement, 0, rsize, start
+      str.copy_from self, 0, start, 0 if start > 0
+      str.copy_from replacement, 0, rsize, start
 
-    if last < @num_bytes then
-      str.copy_from self, last, @num_bytes - last, start + rsize
+      last = start + count
+
+      if last < @num_bytes
+        str.copy_from self, last, @num_bytes - last, start + rsize
+      end
+
+      replace str
+    else
+      taint if replacement.tainted?
+
+      trailer_start = start + count
+      trailer_size =  @num_bytes - trailer_start
+
+      copy_from self, trailer_start, trailer_size, start
+      @num_bytes -= count
     end
 
-    replace str
+    self
   end
 
   def prefix?(other)
