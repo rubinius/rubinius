@@ -318,13 +318,13 @@ class String
   # out of range; the <code>Range</code> form will raise a
   # <code>RangeError</code>, and the <code>Regexp</code> and <code>String</code>
   # forms will silently ignore the assignment.
-  def []=(one, two, three=undefined)
+  def []=(index, replacement, three=undefined)
     unless three.equal? undefined
-      if one.is_a? Regexp
-        subpattern_set one, Type.coerce_to(two, Integer, :to_int), three
+      if index.is_a? Regexp
+        subpattern_set index, Type.coerce_to(replacement, Integer, :to_int), three
       else
-        start = Type.coerce_to(one, Integer, :to_int)
-        fin =   Type.coerce_to(two, Integer, :to_int)
+        start = Type.coerce_to(index, Integer, :to_int)
+        fin =   Type.coerce_to(replacement, Integer, :to_int)
 
         splice! start, fin, three
       end
@@ -332,10 +332,25 @@ class String
       return three
     end
 
-    index = one
-    replacement = two
-
     case index
+    when Fixnum
+      # Handle this first because it's the most common.
+      # This is duplicated from the else branch, but don't dry it up.
+      if index < 0
+        index += @num_bytes
+        if index < 0 or index >= @num_bytes
+          raise IndexError, "index #{index} out of string"
+        end
+      else
+        raise IndexError, "index #{index} out of string" if index >= @num_bytes
+      end
+
+      if replacement.is_a?(Fixnum)
+        modify!
+        @data[index] = replacement
+      else
+        splice! index, 1, replacement
+      end
     when Regexp
       subpattern_set index, 0, replacement
     when String
@@ -2520,9 +2535,13 @@ class String
   end
 
   def splice!(start, count, replacement)
-    start += @num_bytes if start < 0
+    if start < 0
+      start += @num_bytes
 
-    if start > @num_bytes || start < 0 then
+      if start < 0 or start > @num_bytes
+        raise IndexError, "index #{start} out of string"
+      end
+    elsif start > @num_bytes
       raise IndexError, "index #{start} out of string"
     end
 
@@ -2532,33 +2551,40 @@ class String
 
     replacement = StringValue replacement
 
+    # Clamp count to the end of the string
     count = @num_bytes - start if start + count > @num_bytes
-    size = start < @num_bytes ? @num_bytes - count : @num_bytes
+
     rsize = replacement.size
 
-    if rsize != 0 # Ie, if we're not just removing data
-      str = self.class.new("\0") * (size + rsize)
-      str.taint if tainted? || replacement.tainted?
-
-      str.copy_from self, 0, start, 0 if start > 0
-      str.copy_from replacement, 0, rsize, start
-
-      last = start + count
-
-      if last < @num_bytes
-        str.copy_from self, last, @num_bytes - last, start + rsize
-      end
-
-      replace str
-    else
-      taint if replacement.tainted?
-
+    if rsize == 0
       trailer_start = start + count
       trailer_size =  @num_bytes - trailer_start
 
       copy_from self, trailer_start, trailer_size, start
       @num_bytes -= count
+    else
+      # Resize if necessary
+      new_size = @num_bytes - count + rsize
+      resize_capacity new_size if new_size > @data.size
+
+      # easy, fits right in.
+      if count == rsize
+        copy_from replacement, 0, rsize, start
+      else
+        # shift the bytes on the end in or out
+        trailer_start = start + count
+        trailer_size =  @num_bytes - trailer_start
+
+        copy_from self, trailer_start, trailer_size, start + rsize
+
+        # Then put the replacement in
+        copy_from replacement, 0, rsize, start
+
+        @num_bytes += (rsize - count)
+      end
     end
+
+    taint if replacement.tainted?
 
     self
   end

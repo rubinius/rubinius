@@ -273,7 +273,7 @@ namespace rubinius {
       // just to throw it away.
       if(shared_ == Qtrue) shared(state, Qfalse);
 
-      ByteArray *ba = ByteArray::create(state, capacity);
+      ByteArray* ba = ByteArray::create(state, capacity);
       memcpy(ba->raw_bytes(), byte_address(), size());
       data(state, ba);
     } else {
@@ -288,6 +288,26 @@ namespace rubinius {
 
     num_bytes(state, Fixnum::from(new_size));
     hash_value(state, nil<Fixnum>());
+
+    return this;
+  }
+
+  String* String::resize_capacity(STATE, Fixnum* count) {
+    native_int sz = count->to_native();
+    ByteArray* ba = ByteArray::create(state, sz + 1);
+    memcpy(ba->raw_bytes(), byte_address(), sz);
+    ba->raw_bytes()[sz] = 0;
+
+    // We've unshared
+    shared(state, Qfalse);
+    data(state, ba);
+    hash_value(state, nil<Fixnum>());
+
+    // If we shrunk it and num_bytes said there was more than there
+    // is, clamp it.
+    if(num_bytes()->to_native() > sz) {
+      num_bytes(state, count);
+    }
 
     return this;
   }
@@ -576,7 +596,10 @@ namespace rubinius {
     if(src < 0) src = 0;
     if(cnt > osz - src) cnt = osz - src;
 
-    native_int sz = this->size();
+    // This bounds checks on the total capacity rather than the virtual
+    // size() of the String. This allows for string adjustment within
+    // the capacity without having to change the virtual size first.
+    native_int sz = data()->size();
     if(dst >= sz) return this;
     if(dst < 0) dst = 0;
     if(cnt > sz - dst) cnt = sz - dst;
