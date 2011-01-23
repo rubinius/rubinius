@@ -276,6 +276,8 @@ class MSpecOptions
         config[:formatter] = MethodFormatter
       when 'y', 'yaml'
         config[:formatter] = YamlFormatter
+      when 'p', 'profile'
+        config[:formatter] = ProfileFormatter
       else
         puts "Unknown format: #{o}"
         puts @parser
