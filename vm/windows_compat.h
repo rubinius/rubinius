@@ -1,6 +1,10 @@
 #ifndef RBX_WINDOWS_COMPAT_H
 #define RBX_WINDOWS_COMPAT_H
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 #ifdef RBX_WINDOWS
 
 // crypt
@@ -29,6 +33,7 @@ inline void* dlsym(void* handle, const char* symbol) {
 
 // environment
 int setenv(const char *name, const char *value, int overwrite);
+int unsetenv(const char *name);
 
 // Adapted from BSD source code.
 #define UNAME_NAMELEN    256
@@ -185,7 +190,7 @@ int socketpair(int domain, int type, int protocol, int socket_vector[2]);
 int pipe(int fildes[2]);
 
 // file system
-char* realpath(const char* file_name, char* resolved_name);
+char* realpath(char* file_name, char* resolved_name);
 
 // time
 #define timezone  _timezone
@@ -258,6 +263,10 @@ int fcntl(int fildes, int cmd, ...);
 typedef unsigned int int_fd_t;
 #else
 typedef int int_fd_t;
+#endif
+
+#ifdef __cplusplus
+}
 #endif
 
 #endif  // RBX_WINDOWS_COMPAT_H

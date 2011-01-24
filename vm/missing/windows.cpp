@@ -1,7 +1,13 @@
+#include "vm/config.h"
+
 #ifdef RBX_WINDOWS
 
+#include "exception.hpp"
+
+#include <fcntl.h>
 #include <stdlib.h>
 #include <string.h>
+#include <stdio.h>
 #include <time.h>
 #include <io.h>
 
@@ -9,7 +15,7 @@
 
 int uname(struct utsname *name) {
   rubinius::abort();
-  return -1
+  return -1;
 }
 
 int socketpair(int domain, int type, int protocol, int socket_vector[2]) {
@@ -21,7 +27,7 @@ int pipe(int fildes[2]) {
   return _pipe(fildes, 512, _O_BINARY);
 }
 
-char* realpath(const char* file_name, char* resolved_name) {
+char* realpath(char* file_name, char* resolved_name) {
   return _fullpath(file_name, resolved_name, MAX_PATH);
 }
 
@@ -29,11 +35,15 @@ int setenv(const char *name, const char *value, int overwrite) {
   if(getenv(name) && !overwrite) return 0;
 
   int size = 2 + strlen(name) + strlen(value);
-  char* str = malloc(size);
+  char* str = (char*)malloc(size);
   if(!str) return -1;
 
   snprintf(str, size, "%s=%s", name, value);
   return putenv(str);
+}
+
+int unsetenv(const char *name) {
+  return setenv(name, "", 1);
 }
 
 int nanosleep(const struct timespec *rqtp, struct timespec *rmtp) {
@@ -60,7 +70,7 @@ time_t timegm (struct tm *tm) {
 
 // In MRI, this only sets properties on sockets, which requires
 // tracking all fd's that are sockets...
-int fcntl(int fildes, int cmd, ...) {
+int fcntl(int fd, int cmd, ...) {
 
   if(cmd != F_SETFL) {
     errno = EINVAL;
@@ -90,9 +100,7 @@ int fcntl(int fildes, int cmd, ...) {
 static struct {
   DWORD winerr;
   int err;
-} error_map;
-
-struct error_map[] = {
+} error_map[] = {
   { ERROR_INVALID_FUNCTION,           EINVAL    },
   { ERROR_FILE_NOT_FOUND,             ENOENT    },
   { ERROR_PATH_NOT_FOUND,             ENOENT    },
@@ -225,7 +233,7 @@ struct error_map[] = {
   {  WSAEREMOTE,                       EREMOTE         },
 };
 
-#define ERROR_MAP_SIZE  sizeof(error_map) / sizeof(*error_map)
+#define ERROR_MAP_SIZE  (int)(sizeof(error_map) / sizeof(*error_map))
 
 // Adapted from MRI.
 int map_errno(DWORD winerr) {
@@ -234,7 +242,7 @@ int map_errno(DWORD winerr) {
   }
 
   for(int i = 0; i < ERROR_MAP_SIZE; i++) {
-    if (errmap[i].winerr == winerr) {
+    if (error_map[i].winerr == winerr) {
       return error_map[i].err;
     }
   }
