@@ -729,12 +729,13 @@ def ex_libs # needs to be method to delay running of llvm_config
       $ex_libs << "-L/opt/local/lib"
     end
 
-    $ex_libs << "-ldl" unless RUBY_PLATFORM =~ /bsd|haiku|mingw|mswin/
+    $ex_libs << "-ldl" unless RUBY_PLATFORM =~ /bsd|haiku/ or BUILD_CONFIG[:windows]
     $ex_libs << "-lcrypt" if RUBY_PLATFORM =~ /bsd/ && RUBY_PLATFORM !~ /openbsd/
     $ex_libs << "-lcrypto -pthread -lssl" if RUBY_PLATFORM =~ /openbsd/
-    $ex_libs << "-lexecinfo" if RUBY_PLATFORM =~ /bsd/ && Rubinius::BUILD_CONFIG[:defines].include?('HAS_EXECINFO')
+    $ex_libs << "-lexecinfo" if RUBY_PLATFORM =~ /bsd/ && BUILD_CONFIG[:defines].include?('HAS_EXECINFO')
     $ex_libs << "-lrt -lcrypt" if RUBY_PLATFORM =~ /linux/
     $ex_libs << "-lnetwork" if RUBY_PLATFORM =~ /haiku/
+    $ex_libs << "-lws2_32" if BUILD_CONFIG[:windows]
 
     $ex_libs += llvm_lib_files
   end
