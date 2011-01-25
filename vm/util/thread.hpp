@@ -9,7 +9,7 @@
 #include <pthread.h>
 #include <errno.h>
 #include <signal.h>
-#include <assert.h>
+#include <stdlib.h>
 
 #include <sstream>
 #include <iostream>
@@ -18,7 +18,10 @@
 
 intptr_t thread_debug_self();
 
-#define pthread_check(expr) if((expr) != 0) { assert(0 && "failed: " #expr); }
+#define fail(str) puts("ABORTING: " str); abort();
+
+#define pthread_check(expr) if((expr) != 0) { fail(#expr); }
+
 
 namespace thread {
   enum Code {
@@ -124,7 +127,7 @@ namespace thread {
       if(err != 0) {
         if(err == EDEADLK) {
           std::cout << "Thread deadlock!\n";
-          assert(0);
+          abort();   
         }
 
         // Ignore the other errors, since they mean there is no thread
@@ -275,6 +278,7 @@ namespace thread {
   private:
     pthread_mutex_t native_;
     pthread_t owner_;
+    bool locked_;
 
   public:
     void init(bool rec=false) {
@@ -296,9 +300,9 @@ namespace thread {
     ~Mutex() {
       int err = pthread_mutex_destroy(&native_);
       if(err != 0) {
-        if(err == EBUSY) assert(0 && "mutex is busy!");
-        if(err == EINVAL) assert(0 && "mutex is dead!");
-        assert(0 && "mutex is screwed!");
+        if(err == EBUSY) fail("mutex is busy!");
+        if(err == EINVAL) fail("mutex is dead!");
+        fail("mutex is screwed!");
       }
     }
 
@@ -322,13 +326,16 @@ namespace thread {
         break;
       case EDEADLK:
         std::cout << "Thread deadlock!\n";
-        assert(0);
+        abort();
+        break;
       case EINVAL:
         std::cout << "Mutex invalid (Thread corrupt?)\n";
-        assert(0);
+        abort();
+        break;
       }
 
       owner_ = pthread_self();
+      locked_ = true;
 
       if(cDebugLockGuard) {
         std::cout << "[[ " << thread_debug_self() << "    MLocked " << describe() << " ]]\n";
@@ -339,10 +346,11 @@ namespace thread {
       int err = pthread_mutex_trylock(&native_);
       if(err != 0) {
         if(err == EBUSY) return cLockBusy;
-        assert(0);
+        abort();
       }
 
       owner_ = pthread_self();
+      locked_ = true;
 
       return cLocked;
     }
@@ -352,10 +360,12 @@ namespace thread {
         std::cout << "[[ " << thread_debug_self() << "   MUnlocking " << describe() << " ]]\n";
       }
 
+      locked_ = false;
+
       int err = pthread_mutex_unlock(&native_);
       if(err != 0) {
         if(err == EPERM) return cNotYours;
-        assert(0);
+        abort();
       }
 
       return cUnlocked;
@@ -433,7 +443,7 @@ namespace thread {
           std::cout << "Unknown failure from pthread_cond_timedwait!\n";
         }
 
-        assert(0);
+        abort();
       }
       return cReady;
     }
