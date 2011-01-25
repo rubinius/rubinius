@@ -74,6 +74,7 @@ class Thread
         @result = @block.call *@args
       ensure
         @lock.receive
+        unlock_locks
         @joins.each {|join| join.send self }
       end
     rescue Die

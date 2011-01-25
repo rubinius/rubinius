@@ -189,6 +189,9 @@ namespace rubinius {
     // Ruby.primitive :thread_set_critical
     static Object* set_critical(STATE, Object* obj);
 
+    // Ruby.primitive :thread_unlock_locks
+    Object* unlock_locks(STATE);
+
 
   public:   /* Class methods */
 

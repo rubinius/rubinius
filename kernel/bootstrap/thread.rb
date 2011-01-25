@@ -55,4 +55,9 @@ class Thread
     Kernel.raise PrimitiveFailure, "Thread.set_critical failed"
   end
 
+  def unlock_locks
+    Ruby.primitive :thread_unlock_locks
+    Kernel.raise PrimitiveFailure, "Thread#unlock_locks failed"
+  end
+
 end

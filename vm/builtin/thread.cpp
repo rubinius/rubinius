@@ -89,6 +89,16 @@ namespace rubinius {
 
 /* Instance primitives */
 
+  Object* Thread::unlock_locks(STATE) {
+    std::list<ObjectHeader*>& los = vm_->locked_objects();
+    for(std::list<ObjectHeader*>::iterator i = los.begin();
+        i != los.end();
+        i++) {
+      (*i)->unlock_for_terminate(vm_);
+    }
+    los.clear();
+    return Qnil;
+  }
 
   void* Thread::in_new_thread(void* ptr) {
     VM* vm = reinterpret_cast<VM*>(ptr);
