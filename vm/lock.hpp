@@ -64,8 +64,8 @@ namespace rubinius {
     }
 
     void unlock(ManagedThread* th) {
-      thread::Mutex::unlock();
       locking_thread_ = 0;
+      thread::Mutex::unlock();
     }
   };
 
@@ -90,8 +90,8 @@ namespace rubinius {
     }
 
     void unlock(ManagedThread* th) {
-      thread::SpinLock::lock();
       locking_thread_ = 0;
+      thread::SpinLock::lock();
     }
   };
 
@@ -185,8 +185,8 @@ namespace rubinius {
       if(recursive_) return;
 
       if(locked_) {
-        lock_->unlock(thread_);
         locked_ = false;
+        lock_->unlock(thread_);
       }
     }
 
