@@ -53,6 +53,7 @@ namespace rubinius {
     config::Bool    ic_stats;
     config::Bool    profile;
     config::String  report_path;
+    config::Bool    thread_debug;
 
     // defaults
     static const int default_gc_bytes = 1048576 * 3;
@@ -106,6 +107,7 @@ namespace rubinius {
       , ic_stats(this,        "ic.stats")
       , profile(this,         "profile")
       , report_path(this,     "vm.crash_report_path")
+      , thread_debug(this,    "thread.debug")
     {
       gc_bytes.set_description(
           "The number of bytes the young generation of the GC should use");
@@ -205,6 +207,9 @@ namespace rubinius {
 
       report_path.set_description(
           "Set a custom path to write crash reports");
+
+      thread_debug.set_description(
+          "Print threading notices when they occur");
     }
 
     void finalize() {

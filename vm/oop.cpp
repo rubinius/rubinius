@@ -6,6 +6,7 @@
 #include "builtin/exception.hpp"
 
 #include "objectmemory.hpp"
+#include "configuration.hpp"
 
 #include <assert.h>
 #include <sys/time.h>
@@ -333,6 +334,9 @@ step2:
       case eAuxWordEmpty:
       case eAuxWordObjID:
         // Um. well geez. We don't have this object locked.
+        if(state->shared.config.thread_debug) {
+          std::cerr << "[THREAD] Attempted to unlock an unlocked object.\n";
+        }
         return eLockError;
 
       case eAuxWordInflated: {
@@ -342,6 +346,9 @@ step2:
 
       case eAuxWordLock: {
         if(orig.f.aux_word >> cAuxLockTIDShift != state->thread_id()) {
+          if(state->shared.config.thread_debug) {
+            std::cerr << "[THREAD] Attempted to unlock an object locked by other thread.\n";
+          }
           return eLockError;
         }
 
@@ -375,6 +382,9 @@ step2:
     }
 
     // We shouldn't even get here, all cases are handled.
+    if(state->shared.config.thread_debug) {
+      std::cerr << "[THREAD] Detected unknown header lock state.\n";
+    }
     return eLockError;
   }
 
