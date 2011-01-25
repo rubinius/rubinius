@@ -7,13 +7,19 @@ describe "Actor registration" do
       Actor[:foo] = Actor.current
       msg = Actor.receive
       master.send msg
+
+      master.send Actor.receive
     end
 
+    actor.send "phase1"
+    Actor.receive.should == "phase1"
+
+    # We know that the actor is now between phases, so the registeration
+    # must be visible by now.
     Actor[:foo].should == actor
 
-    actor.send "test"
-    msg = Actor.receive
-    msg.should == "test"
+    actor.send "phase2"
+    Actor.receive.should == "phase2"
 
     Actor[:foo] = nil
     Actor[:foo].should == nil
