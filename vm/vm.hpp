@@ -96,7 +96,6 @@ namespace rubinius {
 
     void (*custom_wakeup_)(void*);
     void* custom_wakeup_data_;
-    pthread_t os_thread_;
 
     ObjectMemory* om;
     TypedRoot<TaskProbe*> probe;

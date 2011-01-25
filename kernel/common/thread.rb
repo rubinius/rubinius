@@ -40,8 +40,14 @@ class Thread
 
   def self.new(*args, &block)
     thr = allocate
+
     thr.send(:initialize, *args, &block)
-    thr.fork
+    begin
+      thr.fork
+    rescue Exception => e
+      thr.group.remove self
+      raise e
+    end
 
     return thr
   end
@@ -165,13 +171,7 @@ class Thread
   end
 
   def join(timeout = undefined)
-    if timeout.equal? undefined
-      native_join
-      Kernel.raise @exception if @exception
-      @alive ? Qnil : self
-    else
-      join_inner(timeout) { @alive ? nil : self }
-    end
+    join_inner(timeout) { @alive ? nil : self }
   end
 
   def group

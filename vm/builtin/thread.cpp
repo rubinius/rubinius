@@ -151,6 +151,7 @@ namespace rubinius {
     pthread_attr_t attrs;
     pthread_attr_init(&attrs);
     pthread_attr_setstacksize(&attrs, 4194304);
+    pthread_attr_setdetachstate(&attrs, PTHREAD_CREATE_DETACHED);
 
     int error = pthread_create(&vm_->os_thread(), &attrs, in_new_thread, (void*)vm_);
 
