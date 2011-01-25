@@ -14,8 +14,8 @@
 #include "windows_compat.h"
 
 int uname(struct utsname *name) {
-  rubinius::abort();
-  return -1;
+  strncpy(name->sysname, "Windows", UNAME_NAMELEN);
+  return 0;
 }
 
 int socketpair(int domain, int type, int protocol, int socket_vector[2]) {
