@@ -20,6 +20,7 @@
 #ifdef ENABLE_LLVM
 #include "llvm/jit.hpp"
 #include <llvm/System/Threading.h>
+#include <llvm/Target/TargetOptions.h>
 #endif
 
 #ifdef USE_EXECINFO
@@ -62,6 +63,10 @@ namespace rubinius {
 #ifdef ENABLE_LLVM
     if(!llvm::llvm_start_multithreaded()) {
       assert(0 && "llvm doesn't support threading!");
+    }
+
+    if(getenv("RBX_GDBJIT")) {
+      llvm::JITEmitDebugInfo = true;
     }
 #endif
 
