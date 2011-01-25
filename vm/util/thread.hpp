@@ -10,6 +10,7 @@
 #include <errno.h>
 #include <signal.h>
 #include <stdlib.h>
+#include <stdio.h>
 
 #include <sstream>
 #include <iostream>
@@ -18,12 +19,16 @@
 
 intptr_t thread_debug_self();
 
-#define fail(str) puts("ABORTING: " str); abort();
-
 #define pthread_check(expr) if((expr) != 0) { fail(#expr); }
 
 
 namespace thread {
+
+  static inline void fail(const char* str) {
+    printf("ABORTING: %s\n", str);
+    abort();
+  }
+
   enum Code {
     cLocked,
     cUnlocked,

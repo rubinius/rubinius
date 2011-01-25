@@ -183,9 +183,11 @@ namespace rubinius {
     int _policy;
     struct sched_param params;
 
-    pthread_check(pthread_getschedparam(id, &_policy, &params));
+    if(pthread_getschedparam(id, &_policy, &params) == 0) {
+      return Fixnum::from(params.sched_priority);
+    }
 
-    return Fixnum::from(params.sched_priority);
+    return Qnil;
   }
 
   Object* Thread::raise(STATE, Exception* exc) {

@@ -4,6 +4,7 @@
 #include <stddef.h>
 #include <ctype.h>
 #include <stdint.h>
+#include <assert.h>
 
 #include "config.h"
 #include "object_types.hpp"
