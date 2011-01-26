@@ -48,6 +48,15 @@ describe "Array#[]=" do
       a[1, 3] = nil
       a.should == ["a", "e"]
     end
+
+    it "is not confused by shift when removing elements with nil" do
+      a = [1,2,3]
+
+      a.shift
+      a[1,1] = nil
+
+      a.should == [2]
+    end
   end
   ruby_version_is '1.9' do
     it "just sets the section defined by [start,length] to other even if other is nil" do
