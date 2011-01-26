@@ -1,4 +1,5 @@
 require File.expand_path('../../../spec_helper', __FILE__)
+require File.expand_path('../fixtures/common', __FILE__)
 require 'tempfile'
 
 describe "Tempfile#path" do
@@ -7,8 +8,7 @@ describe "Tempfile#path" do
   end
 
   after :each do
-    @tempfile.close
-    @tempfile.unlink if @tempfile.path
+    TempfileSpecs.cleanup @tempfile
   end
 
   it "returns the path to the tempfile" do

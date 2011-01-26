@@ -1,10 +1,10 @@
 describe :tempfile_unlink, :shared => true do
-  before(:each) do
+  before :each do
     @tempfile = Tempfile.new("specs")
   end
 
-  after(:each) do
-    @tempfile.close rescue nil
+  after :each do
+    TempfileSpecs.cleanup @tempfile
   end
 
   ruby_bug "", "1.8.6" do

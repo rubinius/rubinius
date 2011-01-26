@@ -1,14 +1,15 @@
 require File.expand_path('../../../spec_helper', __FILE__)
+require File.expand_path('../fixtures/common', __FILE__)
 require 'tempfile'
 
 describe "Tempfile#open" do
-  before(:each) do
+  before :each do
     @tempfile = Tempfile.new("specs")
     @tempfile.puts("Test!")
   end
-  
-  after(:each) do
-    @tempfile.close
+
+  after :each do
+    TempfileSpecs.cleanup @tempfile
   end
 
   it "reopens self" do
@@ -16,50 +17,60 @@ describe "Tempfile#open" do
     @tempfile.open
     @tempfile.closed?.should be_false
   end
-  
+
   it "reopens self in read and write mode and does not truncate" do
     @tempfile.open
     @tempfile.puts("Another Test!")
-    
+
     @tempfile.open
     @tempfile.readline.should == "Another Test!\n"
   end
 end
 
 describe "Tempfile.open" do
+  after :each do
+    TempfileSpecs.cleanup @tempfile
+  end
+
   it "returns a new, open Tempfile instance" do
-    # Tempfile.open("specs").should be_kind_of(Tempfile) # => fails!
-    t = Tempfile.open("specs")
-    t.instance_of?(Tempfile).should be_true
-    t.close
+    @tempfile = Tempfile.open("specs")
+    # Delegation messes up .should be_an_instance_of(Tempfile)
+    @tempfile.instance_of?(Tempfile).should be_true
+  end
+
+  ruby_version_is "1.8.7" do
+    it "is passed an array [base, suffix] as first argument" do
+      Tempfile.open(["specs", ".tt"]) { |tempfile| @tempfile = tempfile }
+      @tempfile.path.should =~ /specs.*\.tt$/
+    end
   end
 end
 
 describe "Tempfile.open when passed a block" do
-  it "yields a new, open Tempfile instance to the block" do
-    yielded = false
-    Tempfile.open("specs") do |tmpfile|
-      yielded = true
-      #tmpfile.should be_kind_of(Tempfile)
-      tmpfile.instance_of?(Tempfile).should be_true
-      tmpfile.closed?.should be_false
-    end
-    yielded.should be_true
+  before :each do
+    ScratchPad.clear
   end
-  
+
+  after :each do
+    TempfileSpecs.cleanup @tempfile
+  end
+
+  it "yields a new, open Tempfile instance to the block" do
+    Tempfile.open("specs") do |tempfile|
+      @tempfile = tempfile
+      ScratchPad.record :yielded
+
+      # Delegation messes up .should be_an_instance_of(Tempfile)
+      tempfile.instance_of?(Tempfile).should be_true
+      tempfile.closed?.should be_false
+    end
+
+    ScratchPad.recorded.should == :yielded
+  end
+
   it "closes the yielded Tempfile after the block" do
-    tempfile = nil
-    Tempfile.open("specs") { |x| tempfile = x }
-    tempfile.closed?.should be_true
+    Tempfile.open("specs") { |tempfile| @tempfile = tempfile }
+    @tempfile.closed?.should be_true
   end
 end
 
-ruby_version_is '1.8.7' .. '1.9' do
-  describe "Tempfile.open" do
-    it "is passed an array [base,suffix] as first argument" do
-      tempfile = nil
-      Tempfile.open(["specs", ".tt"]) { |x| tempfile = x }
-      tempfile.path.should =~ /specs.*\.tt$/
-    end
-  end
-end
