@@ -112,7 +112,6 @@ namespace rubinius {
       Object* obj;
 
 #ifdef RBX_GC_STATS
-      stats::GCStats::get()->young_bytes_allocated += bytes;
       stats::GCStats::get()->allocate_young.start();
 #endif
 
@@ -138,6 +137,7 @@ namespace rubinius {
 
 #ifdef RBX_GC_STATS
       stats::GCStats::get()->allocate_young.stop();
+      stats::GCStats::get()->young_bytes_allocated += bytes;
 #endif
 
       return obj;
@@ -157,7 +157,6 @@ namespace rubinius {
       Object* obj;
 
 #ifdef RBX_GC_STATS
-      stats::GCStats::get()->young_bytes_allocated += bytes;
       stats::GCStats::get()->allocate_young.start();
 #endif
 
@@ -185,6 +184,7 @@ namespace rubinius {
 
 #ifdef RBX_GC_STATS
       stats::GCStats::get()->allocate_young.stop();
+      stats::GCStats::get()->young_bytes_allocated += bytes;
 #endif
 
       return obj;

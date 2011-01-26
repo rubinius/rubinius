@@ -40,7 +40,6 @@ namespace rubinius {
     Object* obj;
 
 #ifdef RBX_GC_STATS
-    stats::GCStats::get()->mature_bytes_allocated += bytes;
     stats::GCStats::get()->allocate_mature.start();
 #endif
 
@@ -51,7 +50,12 @@ namespace rubinius {
 #endif
 
     // If the allocation failed, we return a NULL pointer
-    if(unlikely(!obj)) return NULL;
+    if(unlikely(!obj)) {
+#ifdef RBX_GC_STATS
+        stats::GCStats::get()->allocate_mature.stop();
+#endif
+        return NULL;
+    }
 
     entries.push_back(obj);
 
@@ -68,6 +72,7 @@ namespace rubinius {
 
 #ifdef RBX_GC_STATS
     stats::GCStats::get()->allocate_mature.stop();
+    stats::GCStats::get()->mature_bytes_allocated += bytes;
 #endif
 
     return obj;

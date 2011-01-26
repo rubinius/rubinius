@@ -74,7 +74,6 @@ namespace rubinius {
 
   Object* ImmixGC::allocate(int bytes) {
 #ifdef RBX_GC_STATS
-    stats::GCStats::get()->mature_bytes_allocated += bytes;
     stats::GCStats::get()->allocate_mature.start();
 #endif
 
@@ -84,6 +83,7 @@ namespace rubinius {
 
 #ifdef RBX_GC_STATS
     stats::GCStats::get()->allocate_mature.stop();
+    stats::GCStats::get()->mature_bytes_allocated += bytes;
 #endif
 
     return obj;
@@ -91,7 +91,6 @@ namespace rubinius {
 
   Object* ImmixGC::move_object(Object* orig, int bytes) {
 #ifdef RBX_GC_STATS
-    stats::GCStats::get()->mature_bytes_allocated += bytes;
     stats::GCStats::get()->allocate_mature.start();
 #endif
 
@@ -113,6 +112,7 @@ namespace rubinius {
 
 #ifdef RBX_GC_STATS
     stats::GCStats::get()->allocate_mature.stop();
+    stats::GCStats::get()->mature_bytes_allocated += bytes;
 #endif
 
     return obj;
