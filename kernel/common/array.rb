@@ -1431,16 +1431,7 @@ class Array
     Ruby.check_frozen
 
     if n.equal? undefined
-      return nil if @total == 0
-
-      obj = @tuple.at @start
-      @tuple.put @start, nil
-      @start += 1
-      @total -= 1
-
-      # reallocate_shrink()
-
-      obj
+      slice!(0)
     else
       n = Type.coerce_to(n, Fixnum, :to_int)
       raise ArgumentError, "negative array size" if n < 0
