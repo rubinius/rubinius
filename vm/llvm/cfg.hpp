@@ -210,7 +210,6 @@ namespace jit {
         case InstructionSequence::insn_goto_if_false:
           if(iter.operand1() > iter.position()) {
             current_->add_child(add_block(iter.operand1()));
-            start_new_block(iter);
           } else {
 #ifndef NDEBUG
             CFGBlock* loop_header = find_block(iter.operand1());
@@ -218,6 +217,7 @@ namespace jit {
             assert(loop_header->exception_handler() == current_->exception_handler());
 #endif
           }
+          start_new_block(iter);
           break;
 
         case InstructionSequence::insn_setup_unwind: {
