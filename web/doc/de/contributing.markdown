@@ -1,87 +1,86 @@
 ---
 layout: doc_de
-title: Contributing
-previous: Troubleshooting
+title: Mitmachen
+previous: Problemlösungen
 previous_url: getting-started/troubleshooting
-next: Communication
+next: Kommunikation
 next_url: contributing/communication
 ---
 
-The Rubinius project welcomes your contributions. There are many things to do
-to help out. Most importantly, you should do something that interests you.
-That is the best way to have enthusiasm and energy for your work.
+Das Rubinius Projekt freut sich über deine Beiträge. Es gibt viele Dinge, die 
+dieses Projekt unterstützen können. Am wichtigsten ist, dass es etwas ist, was 
+dich interessiert und was du gerne machst. 
 
-If you have questions about Rubinius, the best way to get answers is to chat
-with us in the #rubinius IRC channel on irc.freenode.net.
+Falls Du Fragen zu Rubinius hast, besuche uns am besten auf dem IRC Kanal 
+#rubinius auf irc.freenode.net. 
 
-Below are several ideas for things to do on Rubinius.
+Im folgenden findest du ein paar Ideen, was man für Rubinius tun könnte.
 
+## Teste Deinen Code
 
-## Run Your Code
+Anwendungen sind oft weniger sanft als specs und decken Fehler auf, die unsere
+Tests auslassen. Lass dein Projekt unter Rubinius laufen und melde Fehler. 
+Siehe hier, [wie man ein Ticket schreibt](/doc/de/how-to/write-a-ticket).
 
-Your code is often more vicious than the specs. Run your pet project under
-Rubinius and report issues. See [How To Write a Ticket](/doc/en/how-to/write-a-ticket).
+## Hilfe
 
+Soweit es uns möglich ist, werden wir helfen. Bitte sieh aber auch nach, ob Du
+im Netz eventuell schon Antworten auf deine Fragen findest. Rubinius möchte 
+ein Projekt sein, in das man sich leicht einarbeiten kann, an dem man lernt 
+und natürlich auch beteiligt kann.
 
-## Ask For Help
+Wir schätzen und nehmen einfache Fehlermeldungen gerne an, geben aber Tickets 
+mit ausführlichen Fehlerberichten und Anweisungen zur Reproduktion des Fehlers
+eine höhere Priorität. Noch besser sind Fehlermeldungen, die RubySpecs 
+beinhalten, die den Fehler genau eingrenzen und womöglich schon Patches 
+mitliefern, die den Fehler beheben.
 
-Anything that we can do to help, we will. Make sure to do your own research
-too, if possible. Rubinius attempts to be a project that you can easily study,
-learn from, and hopefully extend.
+## Schreibe Specs
 
-We will certainly accept and appreciate simple bug reports, but we can give
-priority to tickets that include simple steps to reproduce the issue. Even
-better are tickets that include RubySpecs that demonstrate the bug and a patch
-that fixes it.
-
-
-## Write Specs
-
-  1. Run `bin/mspec tag --list incomplete <dir>` to show specs that have been
-     tagged as incomplete. These specs may simply need review, or there could
-     be specs missing for a particular class.
-
-     NOTE: You can specify the pseudo-directory ':files' for \<dir\>, which will
-     show tags for all the specs that should run on Rubinius. Or you can
-     specify any subdirectory of the spec/ directory to list tags for specs in
-     that subdirectory.
-
-  2. Find unspecified behaviors. See [How To Write a Ruby
-     Spec](/doc/en/how-to/write-a-ruby-spec).
-
-
-## Fix Failing Specs
-
-  1. Run `bin/mspec tag --list fails <dir>` to show specs tagged as failing.
-
-     NOTE: You can specify the pseudo-directory ':files' for \<dir\>, which will
-     show tags for all the specs that should run on Rubinius. Or you can
-     specify any subdirectory of the spec/ directory to list tags for specs in
-     that subdirectory.
-
-  2. Pick a spec that looks interesting and see if you can write a patch that
-     will make it pass.
+  1. Starte `bin/mspec tag --list incomplete <dir>`, um zu zeigen, dass die 
+     Specs als unvollständig markiert sind. Diese Specs müssen dann häufig nur
+     nachgeprüft werden oder es fehlen einer bestimmten Klasse noch Specs.
+    
+     Hinweis: Du kannst auch ein pseudo-Verzeichnis ':files' für \<dir\> 
+     angeben, das für alle auf Rubinius laufenden Specs die Tags anzeigt. Oder
+     du gibst ein Unterverzeichnis des 'spec/' Verzeichnisses an, um nur die 
+     Tags für dieses Verzeichnis anzuzeigen.
+    
+  2. Finde nicht vorgegebenes Verhalten. Siehe auch, 
+     [wie man Ruby Specs schreibt](/doc/de/how-to/write-a-ruby-spec).  
 
 
-## Write Docs
 
-Study how Rubinius works and write highlevel documentation that will help
-others learn about the implementation details.
+## Fehlerhafte Specs korrigieren
+  1. Starte `bin/mspec tag --list fails <dir>` zum Anzeigen von erfolglosen 
+     Specs.
+     
+     Hinweis: Du kannst auch ein pseudo-Verzeichnis ':files' für \<dir\> 
+     angeben, das für alle auf Rubinius laufenden Specs die Tags anzeigt. Oder
+     du gibst ein Unterverzeichnis des 'spec/' Verzeichnisses an, um nur die 
+     Tags für dieses Verzeichnis anzuzeigen.
 
+  2. Wähle ein Spec, dass Du interessant findest und versuche einen Patch zu 
+     schreiben, dass ihn bestehen lässt.
 
-## Cleanup Code
+## Dokumentation
 
-Search for tags like TODO, HACK, FIXME in the code and submit patches to fix
-them. Here's a command to search the code:
+Lerne wie Rubinius funktioniert und schreibe deine Erfahrungen auf, damit 
+andere ebenso davon profitieren und verstehen, wie Rubinius implementiert ist.
+
+## Code säubern
+
+Suche nach Tags wie TODO, HACK, FIXME im Code und schicke Patches für sie.
+Mit diesem Befehl kann man den Code durchsuchen:
 
     `grep -re "@todo\|TODO\|HACK\|FIXME" .`
 
-Review the [Style Guide](/doc/en/contributing/style-guide/) for
-coding guidelines.
+Lies dazu die [Stilvorlage](/doc/de/contributing/style-guide/) für die Code 
+Richtlinien.
 
 
-## Triage Tickets
-
-  * Revive or close old tickets.
-  * Build minimal test cases that reproduce the bugs. Then see if there are
-    already RubySpecs for the issue. If not, consider writing some.
+## Tickets sichten
+  * Alte Tickets prüfen oder schließen
+  * Minitests schreiben, die die Fehler reproduzieren. Anschließend prüfen,
+    ob es schon Specs für diese Fälle gibt. Wenn nicht, evtl. welche schreiben.
+    
