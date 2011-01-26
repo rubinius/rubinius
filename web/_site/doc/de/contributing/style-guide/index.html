@@ -1,14 +1,14 @@
 <!DOCTYPE html>
 <html>
   <head>
-    <title>Coding Style Guide - Rubinius</title>
+    <title>Stilvorlage - Rubinius</title>
     <meta content='text/html;charset=utf-8' http-equiv='content-type'>
     <meta content='de' http-equiv='content-language'>
     <meta content='Rubinius is an implementation of the Ruby programming language. The Rubinius bytecode virtual machine is written in C++. The bytecode compiler is written in pure Ruby. The vast majority of the core library is also written in Ruby, with some supporting primitives that interact with the VM directly.' name='description'>
     <meta content='Less Than Three. &lt;3. http://less.thanthree.com' name='author'>
     <link href='/' rel='home'>
     <link href='/' rel='start'>
-    <link href='/doc/de/contributing/communication' rel='prev' title='Communication'>
+    <link href='/doc/de/contributing/communication' rel='prev' title='Kommunikation'>
     <link href='/doc/de/ruby' rel='next' title='Ruby'>
     
     <!--[if IE]><script src="http://html5shiv.googlecode.com/svn/trunk/html5.js" type="text/javascript"></script><![endif]-->
@@ -90,7 +90,7 @@
       
         
         <span class="label">Vorherige:</span>
-        <a href="/doc/de/contributing/communication">Communication</a>
+        <a href="/doc/de/contributing/communication">Kommunikation</a>
         
 
         <span class="label">Aufwärts:</span>
@@ -105,47 +105,47 @@
 
 
     <div class="container documentation">
-      <h2>Coding Style Guide</h2>
+      <h2>Stilvorlage</h2>
 
       
 
       
 
-        <p>The following guidelines aim to keep the Rubinius codebase maintainable. When
-in doubt about a guideline here, ask us in the #rubinius IRC channel on
-irc.freenode.net.</p>
+        <p>Die folgenden Richtlinien haben das Ziel den Rubinius Code möglichst 
+wartungsarm zu halten. Sollte es zu einer der Richtlinien Fragen geben, 
+frag am besten auf dem #rubinius IRC Kanal auf irc.freenode.net nach.</p>
 
-<h2 id="all-code">All Code</h2>
+<h2 id="grundstzliches">Grundsätzliches</h2>
 
 <ul>
-  <li>Configure your editor for soft tabs, not hard tabs</li>
-  <li>Expand tabs to two spaces</li>
-  <li>Leave a trailing newline at the end of each file</li>
+  <li>Stellen deinen Editor auf soft Tabs ein, nicht hard Tabs</li>
+  <li>Tabs sollen in zwei Leerzeichen umgewandelt werden</li>
+  <li>Füge an das Ende jeder Datei eine Leerzeile ein</li>
 </ul>
 
 <h2 id="c-code">C++ Code</h2>
-
 <ul>
   <li>
-    <p>No space between condition and paren.
-  Use <code>if(1)</code> NOT <code>if (1)</code></p>
+    <p>Kein Leerzeichen zwischen Bedingung und Klammern
+  Schreibe <code>if(1)</code> NICHT <code>if (1)</code></p>
   </li>
   <li>
-    <p>Put the opening brace on the same line as the function declaration or
-conditional</p>
+    <p>Schreibe die öffnende Klammer auf die gleiche Zeile wie die 
+Funktionsdeklaration oder die Bedingung</p>
   </li>
   <li>
-    <p>Always use curly braces, even if they can be left out.</p>
+    <p>Verwende immer geschweifte Klammern, auch wenn man sie weglassen kann.</p>
   </li>
   <li>
-    <p>Prefer parentheses to implicit precedence rules (within reason)</p>
+    <p>Schreibe Klammern zur Darstellung von Vorrang (soweit möglich)</p>
   </li>
   <li>
-    <p>Alternate versions of functions should be named why they are different
-from the primary.  If there is a function &lsquo;person()&rsquo; and you want a
-version that takes the name of the person, it should be
-&lsquo;person_with_name(char *name)&rsquo; or &lsquo;person_with_details(char *name, &hellip;)&rsquo;.
-NOT &lsquo;person1(char *name)&rsquo;.</p>
+    <p>Alternative Versionen von Funktionen sollten mit einer Erklärung zur
+Abweichung benannt werden. Gibt es z.B. eine Funktion &lsquo;person()&rsquo; und du
+möchtest eine Funktion erstellen, die den Namen der Person annimmt, dann
+solltest du sie &lsquo;person_with_name(char *name)&rsquo; oder 
+&lsquo;person_with_details(char *name, &hellip;)&rsquo; nennen. 
+Nicht jedoch &lsquo;person1(char *name)&rsquo;.</p>
   </li>
 </ul>
 
@@ -153,38 +153,41 @@ NOT &lsquo;person1(char *name)&rsquo;.</p>
 
 <ul>
   <li>
-    <p>Methods: Try to keep your methods short&ndash;one screenful and try to adhere
-to DRY within reason. Generally common functionality should be abstracted
-to helper methods (which you can make &lsquo;private&rsquo;) but in some cases,
-particularly working with Core, sometimes trying to DRY things up is just
-an obstacle if you have to maneuver around several different error
-conditions, for example.</p>
+    <p>Methoden: Versuche deine Methoden kurz zu halten&ndash;eine Bildschirmlänge
+als Anhaltspunkt und verwende DRY in sinnvollem Maße. Üblicherweise 
+sollten häufig verwendete Funktionen abstrahiert und in Helfer-Methoden 
+gepackt werden (die dann auch &lsquo;private&rsquo; sein können). In manchen Fällen 
+macht es keinen Sinn sich an DRY zu halten, z.B. wenn es um die Core 
+Klassen geht. In diesen Fällen macht DRY alles nur unnötig kompliziert und
+man muss auf zu viele Spezialfälle in der Fehlerbehandlung eingehen.</p>
   </li>
   <li>
-    <p>Method names: should be clear, expressive and meaningful. Avoid using
-underscores to &lsquo;protect&rsquo; the method (&lsquo;__send__&rsquo;) with some exceptions.</p>
+    <p>Methodennamen sollten eindeutig, ausdrucksvoll, verständlich (und damit 
+auf Englisch) sein. Verwende, bis auf wenige Ausnahmen, keine 
+Unterstriche, um Methoden zu schützen (&lsquo;__send__&rsquo;). 
+Selbstverständlich sollen alle Methoden </p>
   </li>
   <li>
-    <p>Smalltalk-style method names are OK, meaning that you could have a method
-<code>SomeClass.make_from</code> when it is intended to be invoked as
-<code>SomeClass.make_from file</code> or <code>SomeClass.make_from :file =&gt; name</code>. There
-the parameter name <em>completes</em> the method name and makes for more natural
-reading.</p>
+    <p>Smalltalkartige Methodennamen sind ok, d.h. du kannst Methoden mit 
+<code>SomeClass.make_from</code> benennen, wenn damit <code>SomeClass.make_from file</code> oder 
+<code>SomeClass.make_from :file =&gt; name</code> beabsichtig ist. Dabei 
+<em>vervollständigt</em> der Parameter <code>name</code> den Methodennamen
+und ermöglicht ein natürliches Lesen des Codes.</p>
   </li>
   <li>
-    <p>Variable names: make them clear and meaningful (with some well-known
-exceptions like using &lsquo;i&rsquo; for a counter.) Try to avoid shadowing method
-names, for example within Array use &lsquo;idx&rsquo; in favour of &lsquo;index&rsquo; because the
-latter is also a method name.</p>
+    <p>Variablennamen: Wähle eindeutige und ausdrucksstarke Namen (zu den üblichen
+Ausnahmen gehören z.B. Zählervariablen wie <code>i</code>). Vermeide es Methodennamen
+für Variablen zu verwenden. Üblich sind &lsquo;klass&rsquo; an Stelle von &lsquo;class&rsquo; oder
+&lsquo;idx&rsquo; innerhalb von Arrays, da &lsquo;index&rsquo; bereits als Methodenname existiert.</p>
   </li>
   <li>
-    <p>Postconditions: use postconditions only <em>if</em> your expression is a
-one-liner <em>and</em> you do not have many conditions.</p>
+    <p>Verwende nachgefügte &lsquo;if&rsquo; und &lsquo;unless&rsquo; <em>nur</em> wenn deine Ausdrücke in eine
+Zeile passen <em>und</em> es nicht zu viele Bedingungen gibt.</p>
   </li>
   <li>
-    <p>Blocks: Use either <code>do ... end</code> or <code>{...}</code>, spaces between the delimiters
-and code (<code>foo { |arg| code }</code>). Split long or complex expressions over
-multiple lines like this:</p>
+    <p>Blöcke: Verwende entweder <code>do ... end</code> oder <code>{...}</code> mit Leerzeichen 
+zwischen den Trennzeichen und dem Programmcode (<code>foo { |arg| code }</code>).
+Verteile lange oder komplexe Ausdrücke über mehrere Zeilen. Beispiel:</p>
 
     <pre><code>mapped = foo.map do |elem|
   do_something_with elem
@@ -192,7 +195,8 @@ end
 </code></pre>
   </li>
   <li>
-    <p>Module/Class definitions with scope qualifiers:</p>
+    <p>Modul- und Klassendefinitionen werden mit Gültigkeitsbereich (Scope) 
+versehen:</p>
 
     <pre><code>module Rubinius::Profiler
   class Sampler
@@ -204,27 +208,29 @@ end
 
 <h2 id="kernel-code">Kernel Code</h2>
 
-<p>The primary guideline for all kernel code is simple and efficient. Simple code
-is often more efficient and generally more comprehensible. There should be no
-metaprogramming code in bootstrap. Use the #attr_xxx methods throughout the
-kernel source. Also, alias methods using the #alias_method call next to the
-method definition. Specify private methods with the <code>private :sym</code> method next
-to the method definition.  Remember that the versions of the methods listed
-above in the alpha stage take a single, symbol argument.</p>
+<p>Die erste Richtlinie für den kompletten Kernel Code ist einfach und 
+leistungsstark zu sein. Einfach geschriebener Code ist häufig effizienter und 
+meist auch leichter nachzuvollziehen. Im Bootstrap Bereich sollte keine 
+Metaprogrammierung stattfinden und die #attr_xxx Methoden sollten 
+grundsätzlich im gesamten Kernel Code Anwendung finden. Ebenso sollten Alias 
+Methoden und solche die als <em>private</em> gekennzeichnet sind direkt im Anschluss 
+an die Methodendefinition geschrieben werden (letzteres mittels 
+<code>private :sym</code>). Denke daran, dass die Methoden, die die Alpha Stage (alpha.rb) 
+durchlaufen, lediglich ein :symbol Argument annehmen.</p>
 
-<h2 id="documentation">Documentation</h2>
+<h2 id="dokumentation">Dokumentation</h2>
 
 <ul>
   <li>
-    <p>Use RDoc for documentation in Ruby code.</p>
+    <p>Nutze für die Dokumentation des Ruby Codes RDoc</p>
   </li>
   <li>
-    <p>Use Doxygen for documentation in C++ code.</p>
+    <p>Für C++ Code verwende Doxygen.</p>
   </li>
   <li>
-    <p>Use Markdown for documentation in the /doc directory. See <a href="http://daringfireball.net/projects/markdown/syntax">Markdown
-syntax</a> Set the text
-width to 78 characters and use hard breaks.</p>
+    <p>Für die im /doc Verzeichnis vorliegende Dokumentation verwende Markdown.
+Siehe <a href="http://daringfireball.net/projects/markdown/syntax">Markdown syntax</a>
+Stelle die Textbreite auf 78 Zeichen und nutze harte Zeilenumbrüche.</p>
   </li>
 </ul>
 
@@ -235,7 +241,7 @@ width to 78 characters and use hard breaks.</p>
       
         
         <span class="label">Vorherige:</span>
-        <a href="/doc/de/contributing/communication">Communication</a>
+        <a href="/doc/de/contributing/communication">Kommunikation</a>
         
 
         <span class="label">Aufwärts:</span>
