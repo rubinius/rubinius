@@ -670,13 +670,12 @@ class Array
   end
 
   # Passes each index of the Array to the given block
-  # and returns self.  We re-evaluate @total each time
-  # through the loop in case the array has changed.
+  # and returns self.
   def each_index
     return to_enum(:each_index) unless block_given?
 
-    i = @start
-    total = i + @total
+    i = 0
+    total = @total
 
     while i < total
       yield i
@@ -1431,7 +1430,15 @@ class Array
     Ruby.check_frozen
 
     if n.equal? undefined
-      slice!(0)
+      return nil if @total == 0
+      obj = @tuple.at @start
+      @tuple.put @start, nil
+      @start += 1
+      @total -= 1
+
+      # reallocate_shrink()
+
+      obj
     else
       n = Type.coerce_to(n, Fixnum, :to_int)
       raise ArgumentError, "negative array size" if n < 0
