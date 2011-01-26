@@ -240,9 +240,20 @@ class Array
         reg_length = @total - reg_start
 
         if reg_start <= @total
-          @tuple.copy_from @tuple, reg_start + @start, reg_length, index
+          # If we're removing from the front, also reset @start to better
+          # use the Tuple
+          if index == 0
+            @tuple.copy_from @tuple, reg_start + @start, reg_length, 0
+            @start = 0
+          else
+            @tuple.copy_from @tuple, reg_start + @start, reg_length,
+                             @start + index
+          end
+
+          # TODO we leave the old references in the Tuple, we should
+          # probably clear them out though.
+
           @total -= ins_length
-          @start = 0
 
           return ent
         end
