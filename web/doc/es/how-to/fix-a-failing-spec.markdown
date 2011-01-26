@@ -2,7 +2,7 @@
 layout: doc_es
 title: How-To - Fix a Failing Spec
 previous: Write a Ruby Spec
-previous_url: how-to/write-ruby-spec
+previous_url: how-to/write-a-ruby-spec
 next: Write a Blog Post
 next_url: how-to/write-a-blog-post
 translated: true
