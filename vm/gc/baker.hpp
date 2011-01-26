@@ -90,8 +90,11 @@ namespace rubinius {
 
       addr = eden.allocate(bytes);
 
-      // @todo Return the bytes we just grabbed
-      if(eden.over_limit_p(addr)) return NULL;
+      // If this takes us over the limit, return the bytes we just grabbed
+      if(eden.over_limit_p(addr)) {
+          eden.put_back(bytes);
+          return NULL;
+      }
 
       return addr;
     }
