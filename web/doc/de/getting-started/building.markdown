@@ -1,18 +1,18 @@
 ---
 layout: doc_de
-title: Rubinius bauen
+title: Rubinius kompilieren
 previous: Abhängigkeiten
 previous_url: getting-started/requirements
 next: Rubinius ausführen
 next_url: getting-started/running-rubinius
 ---
 
-Rubinius kann vom Quellverzeichnis aus gebaut und ausgeführt
-werden. Es muss nicht systemweit installiert werden um laufen zu
-können. Die untenstehende Anleitung beschreibt die Installation von
+Rubinius kann vom Quellverzeichnis aus kompiliert und ausgeführt
+werden. Es muss nicht systemweit installiert werden, um laufen zu
+können. Die folgende Anleitung beschreibt die Installation von
 Rubinius sowie das Ausführen aus dem Quellverzeichnis.
 
-Rubinius nutzt LLVM für den eingebauten JIT (Just-in-time)
+Rubinius nutzt [LLVM](http://llvm.org/) für den eingebauten JIT (Just-in-time)
 Compiler. Dabei hängt Rubinius von einer speziellen Version von LLVM
 ab und setzt voraus, dass LLVM mit C++ RTTI (run-time type
 information) Unterstützung gebaut wurde. Das `configure` Skript wird
@@ -39,19 +39,18 @@ Um Git zu nutzen:
 
 ### Rubinius installieren
 
-Falls du vor hast Rubinius zu nutzen um deine Anwendung damit
-auszuführen, ist dies der präferierte Weg. Allerdings kannst du
+Wir empfehlen Rubinius in ein Verzeichnis zu installieren, bei dem man
+weder `sudo` noch superuser Rechte braucht. Um Rubinius zu
+installieren, befolge die folgenden Schritte:
+
+  1. `./configure --prefix=/pfad/zum/installations/verzeichnis`
+  2. `rake install`
+  3. Folge den Anweisungen, um das _bin_ Verzeichnis von Rubinius deinem PATH hinzuzufügen
+
+Falls du vorhast Rubinius zur Ausführung deiner Anwendung zu
+nutzen, ist dies die bevorzugte Methode. Allerdings kannst du
 Rubinius auch direkt aus dem Quellverzeichnis ausführen. Mehr dazu im
 nächsten Abschnitt.
-
-Wir empfehlen Rubinius in ein Verzeichnis zu installieren, bei der man
-weder `sudo` noch superuser Rechte braucht. Um Rubinius zu
-installieren befolge folgende Schritte:
-
-  1. `./configure --prefix=/path/to/install/dir`
-  2. `rake install`
-  3. Folge den Anweisungen um das _bin_ Verzeichnis von Rubinius in deinen PATH hinzuzufügen
-
 
 ### Aus dem Quellverzeichnis ausführen
 
@@ -61,10 +60,10 @@ werden.
   1. `./configure`
   2. `rake`
 
-Falls du nur Rubinius ausprobieren möchtest, folge den Anweisungen um
-das _bin_ Verzeichnis deinem PATH hinzuzufügen.
+Möchtest du Rubinius lediglich ausprobieren, folge den Anweisungen, damit
+das _bin_ Verzeichnis deinem PATH hinzuzugefügt wird.
 
 Falls du hingegen an Rubinius mitentwickeln willst, sollte das _bin_
-Verzeichnis nicht deinem PATH hinzugefügt werden, da Rubinius einen
-eigenständigen Ruby Interpreter benötigt um korrekt den bootstrap
-Prozess während des Bauvorgangs durchführen zu können.
+Verzeichnis _nicht_ deinem PATH hinzugefügt werden, da Rubinius einen
+eigenständigen Ruby Interpreter benötigt, um korrekt den bootstrap
+Prozess während des Kompiliervorgangs durchführen zu können.

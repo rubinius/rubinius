@@ -7,12 +7,12 @@ next: Mitmachen
 next_url: contributing
 ---
 
-Im Folgenden werden Fehler beschrieben, welche während des Bauvorgangs
-oder der Installation auftreten können sowie mögliche Fehlerbehebungsansätze.
+Im Folgenden werden Fehler beschrieben, die während des Kompilierens
+oder der Installation auftreten können sowie mögliche Ansätze zur Fehlerbehebung.
 
-Im Falle eines Fehler sollte zunächst sichergestellt sein, dass eine
+Sollte es vorkommen, dass ein Fehler auftritt, stelle zuerst sicher, dass eine
 aktuelle, sauber ausgecheckte (clean checkout) Version von Rubinius
-vorliegt. Dazu können folgende Befehle ausgeführt werden:
+vorliegt. Dazu können folgende Befehle im Rubinius Verzeichnis ausgeführt werden:
 
     $ git co master
     $ git reset --hard
@@ -21,7 +21,7 @@ vorliegt. Dazu können folgende Befehle ausgeführt werden:
     $ rake
 
 
-Fehler:
+möglicher Fehler:
 
     ERROR: unable to find runtime directory
 
@@ -42,10 +42,12 @@ Lösung:
   Falls Rubinius via `--prefix` konfiguriert wurde, führe `rake install` aus.
 
   Falls Rubinius via `--prefix` konfiguriert wurde und das
-  Installationsverzeichnis nach der Installation umbenannt wurde muss
+  Installationsverzeichnis nach der Installation umbenannt wurde, muss
   Rubinius neu konfiguriert und installiert werden.
 
-  Falls das Quellverzeichnis nach dem Bauvorgang umbenannt wurde muss
-  Rubinius neu konfiguriert und installiert werden.
+  Das gleiche gilt für das Quellverzeichnis, das nach dem Kompilieren umbenannt
+  wurde. Rubinius muss neu konfiguriert und installiert werden.
 
-  Generell sollte das Quell- oder Bauverzeichnis nicht nach dem Bauvorgang umbenannt werden.
+  Generell sollte das Quell- oder Kompilierverzeichnis nicht nach dem Kompilieren
+  umbenannt werden.
+  
