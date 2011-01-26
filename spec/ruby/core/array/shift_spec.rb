@@ -30,18 +30,6 @@ describe "Array#shift" do
     array[0..2].should == ['two', 3.0, array]
   end
 
-  it "properly adjusts indices" do
-    a = [1, 2, 3]
-
-    a.shift.should == 1
-    a.should == [2, 3]
-    a.each_index.to_a.should == [0, 1]
-
-    a.shift.should == 2
-    a.should == [3]
-    a.each_index.to_a.should == [0]
-  end
-
   ruby_version_is "" ... "1.9" do
     it "raises a TypeError on a frozen array" do
       lambda { ArraySpecs.frozen_array.shift }.should raise_error(TypeError)
