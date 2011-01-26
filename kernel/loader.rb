@@ -81,6 +81,8 @@ containing the Rubinius standard library files.
         EOM
       end
 
+      @main_lib_bin = File.join @main_lib, "bin"
+
       # This conforms more closely to MRI. It is necessary to support
       # paths that mkmf adds when compiling and installing native exts.
       additions = []
@@ -141,6 +143,22 @@ containing the Rubinius standard library files.
       end
     end
 
+    # Checks if a subcammand with basename +base+ exists. Returns the full
+    # path to the subcommand if it does; otherwise, returns nil.
+    def find_subcommand(base)
+      command = File.join @main_lib_bin, "#{base}.rb"
+      return command if File.exists? command
+      return nil
+    end
+
+    # Checks if a gem wrapper named +base+ exists. Returns the full path to
+    # the gem wrapper if it does; otherwise, returns nil.
+    def find_gem_wrapper(base)
+      wrapper = File.join @gem_bin, base
+      return wrapper if File.exists? wrapper
+      return nil
+    end
+
     # Detects if the Rubinius executable was aliased to a subcommand or a
     # rubygems executable. If so, changes ARGV as if Rubinius were invoked
     # to run the subcommand or rubygems executable.
@@ -151,16 +169,14 @@ containing the Rubinius standard library files.
       return if cmd == "rbx" or cmd == "ruby"
 
       # Check if we are aliased to a Rubinius subcommand.
-      subcommand = File.join @main_lib, "bin", "#{cmd}.rb"
-      if File.exists? subcommand
+      if subcommand = find_subcommand(cmd)
         ARGV.unshift subcommand
         return
       end
 
       # Check if we are aliased to a rubygems executable.
-      gem_exe = File.join @gem_bin, cmd
-      if File.exists? gem_exe
-        ARGV.unshift "-S", gem_exe
+      if gem_wrapper = find_gem_wrapper(cmd)
+        ARGV.unshift "-S", gem_wrapper
       end
     end
 
@@ -286,13 +302,21 @@ containing the Rubinius standard library files.
         options.stop_parsing
         @run_irb = false
 
-        search = [@gem_bin] + ENV['PATH'].split(File::PATH_SEPARATOR)
-        dir    = search.detect do |d|
-          path = File.join(d, script)
-          File.exist?(path)
+        # First, check if any existing gem wrappers match.
+        unless file = find_gem_wrapper(script)
+          # Then, check if any Rubinius subcommands match.
+          unless file = find_subcommand(script)
+            # Finally, check if any file on PATH matches.
+            search = ENV['PATH'].split(File::PATH_SEPARATOR)
+            search.each do |d|
+              path = File.join d, script
+              if File.exists? path
+                file = path
+                break
+              end
+            end
+          end
         end
-
-        file = File.join(dir, script) if dir
 
         $0 = script if file
 
@@ -533,7 +557,7 @@ containing the Rubinius standard library files.
         if @script.suffix?(".rb")
           raise LoadError, "unable to find '#{@script}'"
         else
-          command = File.join @main_lib, "bin", "#{@script}.rb"
+          command = File.join @main_lib_bin, "#{@script}.rb"
           unless File.exists? command
             raise LoadError, "unable to find Rubinius command '#{@script}'"
           else
