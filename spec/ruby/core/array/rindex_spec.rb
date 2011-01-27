@@ -45,26 +45,26 @@ describe "Array#rindex" do
 
   ruby_version_is "1.8.7" do
     it "accepts a block instead of an argument" do
-      [4, 2, 1, 5, 1, 3].rindex{|x| x < 2}.should == 4
+      [4, 2, 1, 5, 1, 3].rindex { |x| x < 2 }.should == 4
     end
 
     it "ignore the block if there is an argument" do
-      [4, 2, 1, 5, 1, 3].rindex(5){|x| x < 2}.should == 3
+      [4, 2, 1, 5, 1, 3].rindex(5) { |x| x < 2 }.should == 3
+    end
+
+    it "rechecks the array size during iteration" do
+      ary = [4, 2, 1, 5, 1, 3]
+      seen = []
+      ary.rindex { |x| seen << x; ary.clear; false }
+
+      seen.should == [3]
     end
     
     describe "given no argument and no block" do
       it "produces an Enumerator" do
         enum = [4, 2, 1, 5, 1, 3].rindex
-        enum.class.should == enumerator_class
-        enum.each {|x| x < 2}.should == 4
-      end
-      
-      it "raises StopIteration if the array is truncated before completion" do
-        ary = [4, 2, 1, 5, 1, 3]
-        enum = ary.rindex
-        enum.next.should == 3
-        ary.clear
-        lambda {enum.next}.should raise_error(StopIteration)
+        enum.should be_kind_of(enumerator_class)
+        enum.each { |x| x < 2 }.should == 4
       end
     end
   end
