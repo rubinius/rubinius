@@ -1405,18 +1405,20 @@ class Array
   # If a block is given instead of an argument,
   # returns last object for which block is true.
   def rindex(obj=undefined)
-    return to_enum(:rindex, obj) if !block_given? and obj.equal? undefined
-
-    stop = @start - 1
-    i = stop + @total
-    tuple = @tuple
-
     if obj.equal? undefined
-      while i > stop
-        return i if yield tuple.at(i)
+      return to_enum(:rindex, obj) unless block_given?
+
+      i = @total - 1
+      while i >= 0
+        return i if yield @tuple.at(@start + i)
+        i = @total if i > @total
         i -= 1
       end
     else
+      stop = @start - 1
+      i = stop + @total
+      tuple = @tuple
+
       while i > stop
         return i if tuple.at(i) == obj
         i -= 1
