@@ -1400,6 +1400,8 @@ class Array
   # If a block is given instead of an argument,
   # returns last object for which block is true.
   def rindex(obj=undefined)
+    return to_enum(:rindex, obj) if !block_given? and obj.equal? undefined
+
     stop = @start - 1
     i = stop + @total
     tuple = @tuple
