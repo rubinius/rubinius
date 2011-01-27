@@ -106,6 +106,7 @@ namespace rubinius {
     /// True if finalizers are currently being run.
     bool running_finalizers_;
 
+    thread::Mutex contention_lock_;
     thread::Condition contention_var_;
 
   public:

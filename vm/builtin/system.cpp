@@ -1179,6 +1179,9 @@ namespace rubinius {
     state->set_call_frame(call_frame);
 
     if(obj->unlock(state) == eUnlocked) return Qnil;
+    if(cDebugThreading) {
+      std::cerr << "[LOCK " << state->thread_id() << " unlock failed]\n";
+    }
     return Primitives::failure();
   }
 

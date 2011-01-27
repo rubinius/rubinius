@@ -109,7 +109,9 @@ namespace rubinius {
     obj->set_object_id(state, state->om, ++last_object_id);
   }
 
-  bool ObjectMemory::inflate_lock_count_overflow(STATE, ObjectHeader* obj, int count) {
+  bool ObjectMemory::inflate_lock_count_overflow(STATE, ObjectHeader* obj,
+                                                 int count)
+  {
     SYNC(state);
 
     // Inflation always happens with the ObjectMemory lock held, so we don't
@@ -125,111 +127,113 @@ namespace rubinius {
     return true;
   }
 
-  LockStatus ObjectMemory::contend_for_lock(STATE, ObjectHeader* obj, bool* error, size_t us) {
-    SYNC(state);
-
-    // We want to lock obj, but someone else has it locked.
-    //
-    // If the lock is already inflated, no problem, just lock it!
-
-    // Be sure obj is updated by the GC while we're waiting for it
-    OnStack<1> os(state, obj);
-
-step1:
-    HeaderWord hdr = obj->header;
-
-    // Only contend if the header is thin locked.
-    if(hdr.f.meaning != eAuxWordLock) {
-      if(cDebugThreading) {
-        std::cerr << "[LOCK " << state->thread_id()
-                  << " contend_for_lock error: not thin locked.]\n";
-      }
-      UNSYNC;
-      *error = true;
-      return eLockError;
-    }
-
-    // Ok, the header is not inflated, but we can't inflate it and take
-    // the lock because the locking thread needs to do that, so indicate
-    // that the object is being contended for and then wait on the
-    // contention condvar until the object is unlocked.
-
-    HeaderWord orig = obj->header;
-    HeaderWord new_val = orig;
-
-    new_val.f.LockContended = 1;
-
-    if(!obj->header.atomic_set(orig, new_val)) {
-      // Something changed since we started to down this path,
-      // start over.
-      goto step1;
-    }
-
-    // Ok, we've registered the lock contention, now spin and wait
-    // for the us to be told to retry.
-
-    if(cDebugThreading) {
-      std::cerr << "[LOCK " << state->thread_id() << " waiting on contention]\n";
-    }
-
+  LockStatus ObjectMemory::contend_for_lock(STATE, ObjectHeader* obj,
+                                            bool* error, size_t us)
+  {
     bool timed = false;
     bool timeout = false;
-
     struct timespec ts = {0,0};
 
-    if(us > 0) {
-      timed = true;
-      struct timeval tv;
-      gettimeofday(&tv, NULL);
+    {
+      thread::Mutex::LockGuard lg(contention_lock_);
 
-      ts.tv_sec = tv.tv_sec + (us / 1000000);
-      ts.tv_nsec = (us % 1000000) * 1000;
-    }
+      // We want to lock obj, but someone else has it locked.
+      //
+      // If the lock is already inflated, no problem, just lock it!
 
-    state->set_sleeping();
+      // Be sure obj is updated by the GC while we're waiting for it
+      OnStack<1> os(state, obj);
 
-    while(!obj->inflated_header_p()) {
-      GCIndependent gc_guard(state);
+step1:
+      // Only contend if the header is thin locked.
+      // Ok, the header is not inflated, but we can't inflate it and take
+      // the lock because the locking thread needs to do that, so indicate
+      // that the object is being contended for and then wait on the
+      // contention condvar until the object is unlocked.
 
-      if(timed) {
-        timeout = (contention_var_.wait_until(mutex(), &ts) == thread::cTimedOut);
-        if(timeout) break;
-      } else {
-        contention_var_.wait(mutex());
+      HeaderWord orig = obj->header;
+      HeaderWord new_val = orig;
+
+      orig.f.meaning = eAuxWordLock;
+
+      new_val.f.LockContended = 1;
+
+      if(!obj->header.atomic_set(orig, new_val)) {
+        if(new_val.f.meaning != eAuxWordLock) {
+          if(cDebugThreading) {
+            std::cerr << "[LOCK " << state->thread_id()
+              << " contend_for_lock error: not thin locked.]\n";
+          }
+          *error = true;
+          return eLockError;
+        }
+
+        // Something changed since we started to down this path,
+        // start over.
+        goto step1;
       }
+
+      // Ok, we've registered the lock contention, now spin and wait
+      // for the us to be told to retry.
 
       if(cDebugThreading) {
-        std::cerr << "[LOCK " << state->thread_id() << " notified of contention breakage]\n";
+        std::cerr << "[LOCK " << state->thread_id() << " waiting on contention]\n";
       }
 
-      // Someone is interrupting us trying to lock.
-      if(state->check_local_interrupts) {
-        state->check_local_interrupts = false;
+      if(us > 0) {
+        timed = true;
+        struct timeval tv;
+        gettimeofday(&tv, NULL);
 
-        if(!state->interrupted_exception()->nil_p()) {
-          if(cDebugThreading) {
-            std::cerr << "[LOCK " << state->thread_id() << " detected interrupt]\n";
+        ts.tv_sec = tv.tv_sec + (us / 1000000);
+        ts.tv_nsec = (us % 1000000) * 1000;
+      }
+
+      state->set_sleeping();
+
+      while(!obj->inflated_header_p()) {
+        GCIndependent gc_guard(state);
+
+        if(timed) {
+          timeout = (contention_var_.wait_until(contention_lock_, &ts) == thread::cTimedOut);
+          if(timeout) break;
+        } else {
+          contention_var_.wait(contention_lock_);
+        }
+
+        if(cDebugThreading) {
+          std::cerr << "[LOCK " << state->thread_id() << " notified of contention breakage]\n";
+        }
+
+        // Someone is interrupting us trying to lock.
+        if(state->check_local_interrupts) {
+          state->check_local_interrupts = false;
+
+          if(!state->interrupted_exception()->nil_p()) {
+            if(cDebugThreading) {
+              std::cerr << "[LOCK " << state->thread_id() << " detected interrupt]\n";
+            }
+
+            state->clear_sleeping();
+            return eLockInterrupted;
           }
-
-          state->clear_sleeping();
-          return eLockInterrupted;
         }
       }
-    }
 
-    state->clear_sleeping();
+      state->clear_sleeping();
 
-    if(cDebugThreading) {
-      std::cerr << "[LOCK " << state->thread_id() << " contention broken]\n";
-    }
-
-    if(timeout) {
       if(cDebugThreading) {
-        std::cerr << "[LOCK " << state->thread_id() << " contention timed out]\n";
+        std::cerr << "[LOCK " << state->thread_id() << " contention broken]\n";
       }
 
-      return eLockTimeout;
-    }
+      if(timeout) {
+        if(cDebugThreading) {
+          std::cerr << "[LOCK " << state->thread_id() << " contention timed out]\n";
+        }
+
+        return eLockTimeout;
+      }
+    } // contention_lock_ guard
 
     // We lock the InflatedHeader here rather than returning
     // and letting ObjectHeader::lock because the GC might have run
@@ -238,8 +242,6 @@ step1:
     // ObjectHeader::lock doesn't use OnStack<>, it just is sure to
     // not access this if there is chance that a call blocked and GC'd
     // (which is true in the case of this function).
-
-    UNSYNC;
 
     InflatedHeader* ih = obj->inflated_header();
 
@@ -251,7 +253,7 @@ step1:
   }
 
   void ObjectMemory::release_contention(STATE) {
-    SYNC(state);
+    thread::Mutex::LockGuard lg(contention_lock_);
     contention_var_.broadcast();
   }
 
@@ -337,21 +339,24 @@ step1:
         ih->set_object_id(orig.f.aux_word);
         break;
       case eAuxWordLock:
-        // We have to locking the object to inflate it, thats the law.
+        // We have to be locking the object to inflate it, thats the law.
         if(new_val.f.aux_word >> cAuxLockTIDShift != state->thread_id()) {
           if(cDebugThreading) {
-            std::cerr << "[LOCK object locked by another thread while inflating for contention]\n";
-          }
-          return false;
-        } else {
-          if(cDebugThreading) {
-            std::cerr << "[LOCK object locked while inflating for contention]\n";
+            std::cerr << "[LOCK " << state->thread_id() << " object locked by another thread while inflating for contention]\n";
           }
           return false;
         }
+        if(cDebugThreading) {
+          std::cerr << "[LOCK " << state->thread_id() << " being unlocked and inflated atomicly]\n";
+        }
+
+        ih = inflated_headers_->allocate(obj);
+        ih->flags().meaning = eAuxWordEmpty;
+        ih->flags().aux_word = 0;
+        break;
       case eAuxWordInflated:
         if(cDebugThreading) {
-          std::cerr << "[LOCK asked to inflated already inflated lock]\n";
+          std::cerr << "[LOCK " << state->thread_id() << " asked to inflated already inflated lock]\n";
         }
         return false;
       }

@@ -111,7 +111,8 @@ namespace rubinius {
     vm->shared.gc_dependent(vm);
 
     if(cDebugThreading) {
-      std::cerr << "[THREAD " << thread_debug_self() << " started thread]\n";
+      std::cerr << "[THREAD " << vm->thread_id()
+                << " (" << (unsigned int)thread_debug_self() << ") started thread]\n";
     }
 
     vm->set_stack_bounds(reinterpret_cast<uintptr_t>(&calculate_stack), 4194304);
@@ -151,7 +152,7 @@ namespace rubinius {
     VM::discard(vm, vm);
 
     if(cDebugThreading) {
-      std::cerr << "[LOCK thread " << thread_debug_self() << " exitted]\n";
+      std::cerr << "[LOCK thread " << vm->thread_id() << " exitted]\n";
     }
 
     return 0;

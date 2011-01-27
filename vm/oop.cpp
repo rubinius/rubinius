@@ -130,6 +130,10 @@ step1:
     new_val.f.aux_word = state->thread_id() << cAuxLockTIDShift;
 
     if(header.atomic_set(orig, new_val)) {
+      if(cDebugThreading) {
+        std::cerr << "[LOCK " << state->thread_id() << " locked with CAS]\n";
+      }
+
       // wonderful! Locked! weeeee!
       state->add_locked_object(this);
       return eLocked;
@@ -174,6 +178,10 @@ step2:
           // be inflated. So if we can't swap in the new header, we'll start
           // this step over.
           if(!header.atomic_set(orig, new_val)) goto step2;
+
+          if(cDebugThreading) {
+            std::cerr << "[LOCK " << state->thread_id() << " recursively locked with CAS]\n";
+          }
 
           // wonderful! Locked! weeeee!
           state->add_locked_object(this);
@@ -337,6 +345,10 @@ step2:
         if(state->shared.config.thread_debug) {
           std::cerr << "[THREAD] Attempted to unlock an unlocked object.\n";
         }
+
+        if(cDebugThreading) {
+          std::cerr << "[LOCK " << state->thread_id() << " attempted to unlock an unlocked header]\n";
+        }
         return eLockError;
 
       case eAuxWordInflated: {
@@ -345,9 +357,21 @@ step2:
       }
 
       case eAuxWordLock: {
-        if(orig.f.aux_word >> cAuxLockTIDShift != state->thread_id()) {
+        unsigned int locker_tid = orig.f.aux_word >> cAuxLockTIDShift;
+        if(locker_tid != state->thread_id()) {
+          if(cDebugThreading) {
+            std::cerr
+              << "[LOCK " << state->thread_id() << " attempted to unlock an object locked by other thread."
+              << "locker=" << locker_tid
+              << "]\n";
+          }
+
           if(state->shared.config.thread_debug) {
-            std::cerr << "[THREAD] Attempted to unlock an object locked by other thread.\n";
+            std::cerr
+              << "[THREAD] Attempted to unlock an object locked by other thread."
+              << "locker=" << locker_tid
+              << ", current=" << state->thread_id()
+              << "\n";
           }
           return eLockError;
         }
@@ -357,6 +381,17 @@ step2:
         HeaderWord new_val = orig;
 
         if(count == 0) {
+          if(orig.f.LockContended == 1) {
+            // unlock and inflate as one step to keep things
+            // consistent.
+            if(!state->om->inflate_for_contention(state, this)) continue;
+
+            state->del_locked_object(this);
+            state->om->release_contention(state);
+
+            return eUnlocked;
+          }
+
           new_val.f.meaning = eAuxWordEmpty;
           new_val.f.aux_word = 0;
         } else {
@@ -367,12 +402,20 @@ step2:
         if(!header.atomic_set(orig, new_val)) continue;
 
         if(new_val.f.meaning == eAuxWordEmpty) {
+          // Since we no longer have any association with this lock,
+          // remove it from the current threads lock list
           state->del_locked_object(this);
 
-          if(new_val.f.LockContended == 1) {
-            // If we couldn't inflate for contention, redo.
-            if(!state->om->inflate_for_contention(state, this)) continue;
-            state->om->release_contention(state);
+          if(cDebugThreading) {
+            if(new_val.f.LockContended == 1) {
+              std::cerr << "[LOCK " << state->thread_id() << " invalid state. CAS unlocking with contention, no inflation]\n";
+            } else {
+              std::cerr << "[LOCK " << state->thread_id() << " unlocked with CAS]\n";
+            }
+          }
+        } else {
+          if(cDebugThreading) {
+            std::cerr << "[LOCK " << state->thread_id() << " unlocked with CAS via count decrement]\n";
           }
         }
 
@@ -568,7 +611,7 @@ step2:
 
       if(cDebugThreading) {
         std::cerr << "[LOCK " << state->thread_id()
-                  << " recursively locked ih: " << rec_lock_count_ << "\n";
+                  << " recursively locked inflated: " << rec_lock_count_ << "\n";
       }
 
       return eLocked;
@@ -691,7 +734,7 @@ step2:
     // Sanity check.
     if(owner_id_ != state->thread_id()) {
       if(cDebugThreading) {
-        std::cerr << "[LOCK Inflated unlock consistence error, not the owner]\n";
+        std::cerr << "[LOCK " << state->thread_id() << " inflated unlock consistence error, not the owner:" << owner_id_ << "]\n";
       }
       return eLockError;
     }
@@ -728,7 +771,9 @@ step2:
     // Sanity check.
     if(owner_id_ != state->thread_id()) {
       if(cDebugThreading) {
-        std::cerr << "[LOCK Inflated unlock consistence error, not the owner]\n";
+        std::cerr << "[LOCK " << state->thread_id()
+                  << " (term) inflated unlock consistence error, not the owner: "
+                  << owner_id_ << "]\n";
       }
       return;
     }
@@ -742,7 +787,7 @@ step2:
     condition_.signal();
 
     if(cDebugThreading) {
-      std::cerr << "[LOCK " << state->thread_id() << " unlocked native]\n";
+      std::cerr << "[LOCK " << state->thread_id() << " (term) unlocked native]\n";
     }
   }
 
