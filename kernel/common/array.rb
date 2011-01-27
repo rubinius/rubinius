@@ -582,7 +582,7 @@ class Array
   # or nil is given. If a non-positive number is given or the array is empty,
   # does nothing. Returns nil if the loop has finished without getting interrupted.
   def cycle(n = nil, &block)
-    return to_enum :cycle, n unless block_given?
+    return to_enum(:cycle, n) unless block_given?
 
     # Don't use nil? because, historically, lame code has overridden that method
     if n.equal? nil
