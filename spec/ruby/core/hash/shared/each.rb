@@ -14,9 +14,9 @@ describe :hash_each, :shared => true do
   
   it "yields the key only to a block expecting |key,|" do
     ary = []
-    h = new_hash(:a => 1, :b => 2, :c => 3)
+    h = new_hash("a" => 1, "b" => 2, "c" => 3)
     h.send(@method) { |k,| ary << k }
-    ary.should == [:a, :b, :c]
+    ary.sort.should == ["a", "b", "c"]
   end
 
   it "uses the same order as keys() and values()" do
