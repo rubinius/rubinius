@@ -51,5 +51,21 @@ describe "Array#rindex" do
     it "ignore the block if there is an argument" do
       [4, 2, 1, 5, 1, 3].rindex(5){|x| x < 2}.should == 3
     end
+    
+    describe "given no argument and no block" do
+      it "produces an Enumerator" do
+        enum = [4, 2, 1, 5, 1, 3].rindex
+        enum.class.should == enumerator_class
+        enum.each {|x| x < 2}.should == 4
+      end
+      
+      it "raises StopIteration if the array is truncated before completion" do
+        ary = [4, 2, 1, 5, 1, 3]
+        enum = ary.rindex
+        enum.next.should == 3
+        ary.clear
+        lambda {enum.next}.should raise_error(StopIteration)
+      end
+    end
   end
 end

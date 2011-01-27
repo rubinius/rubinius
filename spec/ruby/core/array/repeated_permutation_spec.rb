@@ -47,5 +47,26 @@ ruby_version_is "1.9" do
       @numbers.unshift 10
       enum.to_a.sort.should == @permutations
     end
+    
+    it "allows permutations larger than the number of elements" do
+      [1,2].repeated_permutation(3).sort.should ==
+        [[1, 1, 1], [1, 1, 2], [1, 2, 1],
+         [1, 2, 2], [2, 1, 1], [2, 1, 2],
+         [2, 2, 1], [2, 2, 2]]
+    end
+    
+    it "generates from a defensive copy, ignoring mutations" do
+      accum = []
+      ary = [1,2]
+      ary.repeated_permutation(3) do |x|
+        accum << x
+        ary[0] = 5
+      end
+      
+      accum.should ==
+        [[1, 1, 1], [1, 1, 2], [1, 2, 1],
+         [1, 2, 2], [2, 1, 1], [2, 1, 2],
+         [2, 2, 1], [2, 2, 2]]
+    end
   end
 end

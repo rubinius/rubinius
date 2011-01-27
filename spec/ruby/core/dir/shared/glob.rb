@@ -8,14 +8,25 @@ describe :dir_glob, :shared => true do
     Dir.chdir @cwd
   end
 
-  it "converts patterns with to_str" do
-    obj = mock('file_one.ext')
-    obj.should_receive(:to_str).and_return('file_one.ext')
+  ruby_version_is ""..."1.9" do
+    it "calls #to_str to convert patterns" do
+      obj = mock('file_one.ext')
+      obj.should_receive(:to_str).and_return('file_one.ext')
 
-    Dir.send(@method, obj).should == %w[file_one.ext]
+      Dir.send(@method, obj).should == %w[file_one.ext]
+    end
   end
 
-  it "splits the string on \0 if there is only one string given" do
+  ruby_version_is "1.9" do
+    it "calls #to_path to convert patterns" do
+      obj = mock('file_one.ext')
+      obj.should_receive(:to_path).and_return('file_one.ext')
+
+      Dir.send(@method, obj).should == %w[file_one.ext]
+    end
+  end
+
+  it "splits the string on \\0 if there is only one string given" do
     Dir.send(@method, "file_o*\0file_t*").should ==
              %w!file_one.ext file_two.ext!
   end

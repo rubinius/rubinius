@@ -30,4 +30,29 @@ describe "Array#inspect" do
     lambda{ x.inspect }.should_not raise_error
     lambda{ y.inspect }.should_not raise_error
   end
+  
+  it "propagates taint from itself or elements" do
+    x = [1, 2]
+    x.taint
+    s = x.inspect
+    s.tainted?.should == true
+    
+    x = [1, s]
+    s = x.inspect
+    s.tainted?.should == true
+  end
+  
+  ruby_version_is "1.9" do
+    it "propagates untrust from itself or elements" do
+      x = [1, 2]
+      x.untrust
+      s = x.inspect
+      s.untrusted?.should == true
+      
+      x = [1, s]
+      x.untrust
+      s = x.inspect
+      s.untrusted?.should == true
+    end
+  end
 end

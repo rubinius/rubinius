@@ -237,6 +237,26 @@ module DefinedSpecs
       defined?(super)
     end
   end
+  
+  module IntermediateModule1
+    def method_no_args
+    end
+  end
+  
+  module IntermediateModule2
+    def method_no_args
+      defined?(super)
+    end
+  end
+  
+  class SuperWithIntermediateModules
+    include IntermediateModule1
+    include IntermediateModule2
+    
+    def method_no_args
+      super
+    end
+  end
 end
 
 class Object

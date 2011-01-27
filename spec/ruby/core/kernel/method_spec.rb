@@ -21,6 +21,11 @@ describe "Kernel#method" do
     @obj.method(:protected_method).should be_an_instance_of(Method)
   end
 
+  it "will see an alias of the original method as == when in a derived class" do
+    obj = KernelSpecs::B.new
+    obj.method(:aliased_pub_method).should == obj.method(:pub_method)
+  end
+
   it "can call methods created with define_method" do
     m = @obj.method(:defined_method)
     m.call.should == :defined

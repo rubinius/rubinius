@@ -7,4 +7,10 @@ describe "Time#usec" do
     (Time.at(1.1) + 0.9).usec.should == 0
     (Time.at(1.1) - 0.2).usec.should == 900000
   end
+  
+  ruby_version_is "1.9" do
+    it "returns the microseconds for time created by Time#local" do
+      Time.local(1,2,3,4,5,Rational(6.78)).usec.should be_close(780000, 1500) # precision up to milliseconds, rounded
+    end
+  end
 end

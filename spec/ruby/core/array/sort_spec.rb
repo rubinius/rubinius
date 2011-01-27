@@ -101,6 +101,23 @@ describe "Array#sort" do
     [1, 2, 3].sort{ break :a }.should == :a
   end
 
+  it "uses the sign of Bignum block results as the sort result" do
+    a = [1, 2, 5, 10, 7, -4, 12]
+    begin
+      class Bignum;
+        alias old_spaceship <=>
+        def <=>(other)
+          raise
+        end
+      end
+      a.sort {|n, m| (n - m) * (2 ** 200)}.should == [-4, 1, 2, 5, 7, 10, 12]
+    ensure
+      class Bignum
+        alias <=> old_spaceship
+      end
+    end
+  end
+
   it "compares values returned by block with 0" do
     a = [1, 2, 5, 10, 7, -4, 12]
     a.sort { |n, m| n - m }.should == [-4, 1, 2, 5, 7, 10, 12]
