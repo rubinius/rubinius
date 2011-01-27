@@ -37,7 +37,7 @@ describe "Array#inspect" do
   end
 
   it "taints the result String if an element is tainted" do
-    a = [1, "str".taint]
+    a = [1, "str".taint, 2]
     a.inspect.tainted?.should be_true
   end
 
