@@ -475,7 +475,7 @@ namespace rubinius {
   }
 
   ObjectPosition BakerGC::validate_object(Object* obj) {
-    if(current->in_current_p(obj) || eden.in_current_p(obj)) {
+    if(current->contains_p(obj) || eden.contains_p(obj)) {
       return cValid;
     } else if(next->contains_p(obj)) {
       return cInWrongYoungHalf;

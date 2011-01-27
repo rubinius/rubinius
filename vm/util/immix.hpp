@@ -183,8 +183,8 @@ namespace immix {
     }
 
     void mark_address(Address addr, int size) {
-      Address offset = addr - address_;
-      int line = offset.as_int() / cLineSize;
+      size_t offset = addr - address_;
+      int line = offset / cLineSize;
       mark_line(line);
 
       // the immix paper talks about doing conservative line marking

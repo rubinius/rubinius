@@ -15,10 +15,18 @@ namespace memory {
     /// The pointer this Address struct encapsulates
     uintptr_t address_;
 
+    Address()
+      : address_(0)
+    {}
+
     Address(void* addr)
       : address_(reinterpret_cast<intptr_t>(addr))
     {}
 
+    /**
+     * Type conversion operator; converts this Address to a void*, allowing
+     * the implicit type conversion rules to handle comparisons etc.
+     */
     operator void*() {
       return reinterpret_cast<void*>(address_);
     }
@@ -32,8 +40,8 @@ namespace memory {
       return *this;
     }
 
-    Address operator-(Address change) {
-      return Address(reinterpret_cast<void*>(address_ - change.address_));
+    size_t operator-(Address change) {
+      return address_ - change.address_;
     }
 
     Address operator-(int change) {

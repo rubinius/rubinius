@@ -122,7 +122,7 @@ namespace rubinius {
         return NULL;
       } else {
         total_objects++;
-        obj = (Object*)eden.allocate(bytes);
+        obj = eden.allocate(bytes).as<Object>();
 
         if(eden.over_limit_p(obj)) {
           *limit_hit = true;
@@ -167,7 +167,7 @@ namespace rubinius {
         return NULL;
       } else {
         total_objects++;
-        obj = (Object*)eden.allocate(bytes);
+        obj = eden.allocate(bytes).as<Object>();
 
         if(eden.over_limit_p(obj)) {
           *limit_hit = true;
