@@ -998,16 +998,12 @@ class Array
     return "[]" if @total == 0
     comma = ", "
     result = "["
-    tainted = false
 
     return "[...]" if Thread.detect_recursion self do
-      each do |o|
-        result << o.inspect << comma
-        tainted = o.tainted?
-      end
+      each { |o| result << o.inspect << comma }
     end
 
-    result.taint if tainted or tainted?
+    result.taint if tainted?
     result.shorten!(2)
     result << "]"
   end
