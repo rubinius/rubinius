@@ -1268,21 +1268,30 @@ class Array
     end
   end
 
-  # Returns an array of all combinations of elements from all arrays.
-  # The length of the returned array is the product of the length of
-  # ary and the argument arrays
-  def product(*arg)
-    # Implementation notes: We build a block that will generate all the combinations
-    # by building it up successively using "inject" and starting with one
-    # responsible to append the values.
-    #
+  # Returns an array of all combinations of elements from all arrays.  The
+  # length of the returned array is the product of the length of ary and the
+  # argument arrays
+  #
+  # --
+  # Implementation notes: We build a block that will generate all the
+  # combinations by building it up successively using "inject" and starting
+  # with one responsible to append the values.
+  # ++
+  def product(*args)
+    args.map!{|x| Type.coerce_to(x, Array, :to_ary)}
+
+    # Check the result size will fit in an Array.
+    unless args.inject(size) { |n, x| n * x.size }.kind_of?(Fixnum)
+      raise RangeError, "product result is too large"
+    end
+
+    # to get the results in the same order as in MRI, vary the last argument first
+    args.reverse!
+
     result = []
+    args.push self
 
-    arg.map!{|x| Type.coerce_to(x, Array, :to_ary)}
-    arg.reverse! # to get the results in the same order as in MRI, vary the last argument first
-    arg.push self
-
-    outer_lambda = arg.inject(result.method(:push)) do |proc, values|
+    outer_lambda = args.inject(result.method(:push)) do |proc, values|
       lambda do |partial|
         values.each do |val|
           proc.call(partial.dup << val)
