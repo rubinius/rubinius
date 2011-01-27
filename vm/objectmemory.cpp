@@ -394,7 +394,7 @@ step1:
   bool ObjectMemory::refill_slab(STATE, gc::Slab& slab) {
     SYNC(state);
 
-    void* addr = young_->allocate_for_slab(slab_size_);
+    Address addr = young_->allocate_for_slab(slab_size_);
 
     objects_allocated += slab.allocations();
 

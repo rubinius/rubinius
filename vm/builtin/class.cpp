@@ -108,14 +108,13 @@ use_packed:
       // Pull the size out into a local to deal with this moving later on.
       uint32_t size = packed_size_;
 
-      PackedObject* obj = reinterpret_cast<PackedObject*>(
-                            state->local_slab().allocate(size));
+      PackedObject* obj = state->local_slab().allocate(size).as<PackedObject>();
 
       if(likely(obj)) {
         obj->init_header(this, YoungObjectZone, PackedObject::type);
       } else {
         if(state->shared.om->refill_slab(state, state->local_slab())) {
-          obj = reinterpret_cast<PackedObject*>(state->local_slab().allocate(size));
+          obj = state->local_slab().allocate(size).as<PackedObject>();
 
           if(likely(obj)) {
             obj->init_header(this, YoungObjectZone, PackedObject::type);
@@ -134,7 +133,7 @@ use_packed:
 
           // Don't use 'this' after here! it's been moved! use 'self'!
 
-          obj = reinterpret_cast<PackedObject*>(state->local_slab().allocate(size));
+          obj = state->local_slab().allocate(size).as<PackedObject>();
 
           if(likely(obj)) {
             obj->init_header(self, YoungObjectZone, PackedObject::type);

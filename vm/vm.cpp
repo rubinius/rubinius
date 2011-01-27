@@ -176,11 +176,11 @@ namespace rubinius {
   }
 
   Object* VM::new_object_typed(Class* cls, size_t size, object_type type) {
-    Object* obj = reinterpret_cast<Object*>(local_slab().allocate(size));
+    Object* obj = local_slab().allocate(size).as<Object>();
 
     if(unlikely(!obj)) {
       if(shared.om->refill_slab(this, local_slab())) {
-        obj = reinterpret_cast<Object*>(local_slab().allocate(size));
+        obj = local_slab().allocate(size).as<Object>();
       }
 
       // If refill_slab fails, obj will still be NULL.
