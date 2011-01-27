@@ -13,9 +13,13 @@
 #include <sys/mman.h>
 #endif
 
+#include "util/address.hpp"
+
+using memory::Address;
 
 
 namespace immix {
+
 
 #ifndef RBX_WINDOWS
   static inline void* valloc(std::size_t size) {
@@ -54,60 +58,6 @@ namespace immix {
     }
   }
 #endif
-
-
-  /* A wonderful little class that is used always as a value, never
-   * a reference or pointer. It basically allows us the ability to
-   * implement our own pointer logic. */
-  struct Address {
-    uintptr_t address_;
-
-    Address(void* addr)
-      : address_(reinterpret_cast<intptr_t>(addr))
-    {}
-
-    operator void*() {
-      return reinterpret_cast<void*>(address_);
-    }
-
-    Address operator+(int change) {
-      return Address(reinterpret_cast<void*>(address_ + change));
-    }
-
-    Address operator+=(int change) {
-      address_ += change;
-      return *this;
-    }
-
-    Address operator-(Address change) {
-      return Address(reinterpret_cast<void*>(address_ - change.address_));
-    }
-
-    Address operator-(int change) {
-      return Address(reinterpret_cast<void*>(address_ - change));
-    }
-
-    Address operator&(uintptr_t mask) {
-      return Address(reinterpret_cast<void*>(address_ & mask));
-    }
-
-    bool is_null() {
-      return address_ == 0;
-    }
-
-    static Address null() {
-      return Address(0);
-    }
-
-    intptr_t as_int() {
-      return address_;
-    }
-
-    template <typename T>
-      T* as() {
-        return reinterpret_cast<T*>(reinterpret_cast<void*>(address_));
-      }
-  };
 
   const int cBlockSize = 32768;
   const int cBlockMask = cBlockSize - 1;

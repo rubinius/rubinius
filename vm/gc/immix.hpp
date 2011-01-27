@@ -1,6 +1,7 @@
 #ifndef RBX_GC_IMMIX
 #define RBX_GC_IMMIX
 
+#include "util/address.hpp"
 #include "util/immix.hpp"
 #include "gc/gc.hpp"
 #include "exception.hpp"
@@ -29,29 +30,29 @@ namespace rubinius {
       void added_chunk(int count);
       void last_block();
 
-      void set_forwarding_pointer(immix::Address from, immix::Address to);
+      void set_forwarding_pointer(memory::Address from, memory::Address to);
 
-      immix::Address forwarding_pointer(immix::Address cur) {
+      memory::Address forwarding_pointer(memory::Address cur) {
         Object* obj = cur.as<Object>();
 
         if(obj->forwarded_p()) return obj->forward();
 
-        return immix::Address::null();
+        return memory::Address::null();
       }
 
-      bool pinned(immix::Address addr) {
+      bool pinned(memory::Address addr) {
         return addr.as<Object>()->pinned_p();
       }
 
-      immix::Address copy(immix::Address original, immix::Allocator& alloc);
+      memory::Address copy(memory::Address original, immix::Allocator& alloc);
 
-      void walk_pointers(immix::Address addr, immix::Marker<ObjectDescriber>& mark) {
+      void walk_pointers(memory::Address addr, immix::Marker<ObjectDescriber>& mark) {
         gc_->scan_object(addr.as<Object>());
       }
 
-      int size(immix::Address addr);
+      int size(memory::Address addr);
 
-      bool mark_address(immix::Address addr, immix::MarkStack& ms) {
+      bool mark_address(memory::Address addr, immix::MarkStack& ms) {
         Object* obj = addr.as<Object>();
 
         if(obj->marked_p(object_memory_->mark())) return false;

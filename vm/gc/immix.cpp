@@ -34,7 +34,7 @@ namespace rubinius {
     }
   }
 
-  void ImmixGC::ObjectDescriber::set_forwarding_pointer(immix::Address from, immix::Address to) {
+  void ImmixGC::ObjectDescriber::set_forwarding_pointer(memory::Address from, memory::Address to) {
     from.as<Object>()->set_forward(to.as<Object>());
   }
 
@@ -47,11 +47,11 @@ namespace rubinius {
     reset_chunks_left();
   }
 
-  immix::Address ImmixGC::ObjectDescriber::copy(immix::Address original,
+  memory::Address ImmixGC::ObjectDescriber::copy(memory::Address original,
       immix::Allocator& alloc) {
     Object* orig = original.as<Object>();
 
-    immix::Address copy_addr = alloc.allocate(
+    memory::Address copy_addr = alloc.allocate(
         orig->size_in_bytes(object_memory_->state()));
 
     Object* copy = copy_addr.as<Object>();
@@ -64,7 +64,7 @@ namespace rubinius {
     return copy_addr;
   }
 
-  int ImmixGC::ObjectDescriber::size(immix::Address addr) {
+  int ImmixGC::ObjectDescriber::size(memory::Address addr) {
     return addr.as<Object>()->size_in_bytes(object_memory_->state());
   }
 
@@ -125,7 +125,7 @@ namespace rubinius {
 
     if(!obj->reference_p()) return obj;
 
-    immix::Address fwd = gc_.mark_address(immix::Address(obj), allocator_);
+    memory::Address fwd = gc_.mark_address(memory::Address(obj), allocator_);
     Object* copy = fwd.as<Object>();
 
     // Check and update an inflated header
@@ -139,7 +139,7 @@ namespace rubinius {
   }
 
   ObjectPosition ImmixGC::validate_object(Object* obj) {
-    if(gc_.allocated_address(immix::Address(obj))) {
+    if(gc_.allocated_address(memory::Address(obj))) {
       if(obj->in_immix_p()) {
         return cInImmix;
       } else {
