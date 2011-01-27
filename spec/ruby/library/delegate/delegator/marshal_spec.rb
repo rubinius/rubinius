@@ -2,7 +2,7 @@ require File.expand_path('../../../../spec_helper', __FILE__)
 require 'delegate'
 
 describe "SimpleDelegator" do
-  before :each do
+  before :all do
     @obj = "hello"
     @delegate = SimpleDelegator.new(@obj)
   end

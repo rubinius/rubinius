@@ -2,7 +2,7 @@ require File.expand_path('../../../../spec_helper', __FILE__)
 require File.expand_path('../../fixtures/classes', __FILE__)
 
 describe "Delegator#protected_methods" do
-  before :each do
+  before :all do
     @simple = DelegateSpecs::Simple.new
     @delegate = DelegateSpecs::Delegator.new(@simple)
     @methods = @delegate.protected_methods

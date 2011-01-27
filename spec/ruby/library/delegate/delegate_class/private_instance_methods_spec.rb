@@ -2,7 +2,7 @@ require File.expand_path('../../../../spec_helper', __FILE__)
 require File.expand_path('../../fixtures/classes', __FILE__)
 
 describe "DelegateClass.private_instance_methods" do
-  before :each do
+  before :all do
     @methods = DelegateSpecs::DelegateClass.private_instance_methods
   end
 
