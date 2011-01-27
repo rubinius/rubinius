@@ -372,6 +372,12 @@ module Rubinius
       Label.new(self)
     end
 
+    # Aliases
+
+    alias_method :dup,  :dup_top
+    alias_method :git,  :goto_if_true
+    alias_method :gif,  :goto_if_false
+    alias_method :swap, :swap_stack
 
     # Helpers
 

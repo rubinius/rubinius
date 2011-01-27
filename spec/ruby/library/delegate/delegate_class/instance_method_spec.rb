@@ -2,7 +2,7 @@ require File.expand_path('../../../../spec_helper', __FILE__)
 require File.expand_path('../../fixtures/classes', __FILE__)
 
 describe "DelegateClass.instance_method" do
-  before :each do
+  before :all do
     @klass = DelegateSpecs::DelegateClass
     @obj = @klass.new(DelegateSpecs::Simple.new)
   end

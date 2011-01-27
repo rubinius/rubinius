@@ -99,6 +99,10 @@ module KernelSpecs
     define_method(:defined_method) { :defined }
   end
 
+  class B < A
+    alias aliased_pub_method pub_method
+  end
+
   class Binding
     @@super_secret = "password"
 

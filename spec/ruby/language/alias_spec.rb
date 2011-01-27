@@ -143,4 +143,18 @@ describe "The alias keyword" do
     code
     Sub.new.test("testing").should == 4
   end
+  
+  it "is not allowed against Fixnum or String instances" do
+    lambda do
+      1.instance_eval do
+        alias :foo :to_s
+      end
+    end.should raise_error(TypeError)
+    
+    lambda do
+      :blah.instance_eval do
+        alias :foo :to_s
+      end
+    end.should raise_error(TypeError)
+  end
 end

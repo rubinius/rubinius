@@ -2,7 +2,7 @@ require File.expand_path('../../../../spec_helper', __FILE__)
 require File.expand_path('../../fixtures/classes', __FILE__)
 
 describe "Delegator when frozen" do
-  before :each do
+  before :all do
     @array = [42, :hello]
     @delegate = DelegateSpecs::Delegator.new(@array)
     @delegate.freeze

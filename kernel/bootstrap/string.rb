@@ -98,4 +98,9 @@ class String
     raise PrimitiveFailure, "String#transform failed"
   end
 
+  def resize_capacity(count)
+    Ruby.primitive :string_resize_capacity
+    raise PrimitiveFailure, "String#resize_capacity failed"
+  end
+
 end

@@ -335,54 +335,26 @@ describe "Breaking out of a loop with a value" do
     end
   end
 
-  ruby_version_is "" ... "1.9" do
-    it "stops any loop type at the correct spot" do
-      i = 0; loop do break i if i == 2; i+=1; end.should == 2
-      i = 0; loop do break if i == 3; i+=1; end; i.should == 3
-      i = 0; 0.upto(5) {|i| break i if i == 2 }.should == 2
-      i = 0; 0.upto(5) {|i| break if i == 3 }; i.should == 3
-      i = 0; while (i < 5) do break i if i == 2 ; i+=1; end.should == 2
-      i = 0; while (i < 5) do break if i == 3 ; i+=1; end; i.should == 3
-    end
+  it "stops any loop type at the correct spot" do
+    i = 0; loop do break i if i == 2; i+=1; end.should == 2
+    i = 0; loop do break if i == 3; i+=1; end; i.should == 3
+    i = 0; while (i < 5) do break i if i == 2 ; i+=1; end.should == 2
+    i = 0; while (i < 5) do break if i == 3 ; i+=1; end; i.should == 3
+
+    at = 0; 0.upto(5) {|i| at = i; break i if i == 2 }.should == 2
+    at = 0; 0.upto(5) {|i| at = i; break if i == 3 }; at.should == 3
   end
 
-  ruby_version_is "1.9" do
-    it "stops any loop type at the correct spot" do
-      i = 0; loop do break i if i == 2; i+=1; end.should == 2
-      i = 0; loop do break if i == 3; i+=1; end; i.should == 3
-      i = 0; 0.upto(5) {|i| break i if i == 2 }.should == 2
-      i = 0; 0.upto(5) {|i| break if i == 3 }; i.should == 0
-      i = 0; while (i < 5) do break i if i == 2 ; i+=1; end.should == 2
-      i = 0; while (i < 5) do break if i == 3 ; i+=1; end; i.should == 3
+  it "stops a yielded method at the correct spot" do
+    def break_test()
+      yield 1
+      yield 2
+      yield 3
     end
-  end
-
-  ruby_version_is "" ... "1.9" do
-    it "stops a yielded method at the correct spot" do
-      def break_test()
-        yield 1
-        yield 2
-        yield 3
-      end
-      break_test {|i| break i if i == 2 }.should == 2
-      i = 0
-      break_test {|i| break i if i == 1 }
-      i.should == 1
-    end
-  end
-  
-  ruby_version_is "1.9" do
-    it "stops a yielded method at the correct spot" do
-      def break_test()
-        yield 1
-        yield 2
-        yield 3
-      end
-      break_test {|i| break i if i == 2 }.should == 2
-      i = 0
-      break_test {|i| break i if i == 1 }
-      i.should == 0
-    end
+    break_test {|i| break i if i == 2 }.should == 2
+    at = 0
+    break_test {|i| at = i; break i if i == 1 }
+    at.should == 1
   end
 end
 

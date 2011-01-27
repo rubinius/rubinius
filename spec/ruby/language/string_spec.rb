@@ -174,6 +174,11 @@ HERE
     "#{obj}".should be_an_instance_of(String)
   end
 
+  it "allow a dynamic string to parse a nested do...end block as an argument to a call without parens, interpolated" do
+    s = eval 'eval "#{proc do; 1; end.call}"'
+    s.should == 1
+  end
+
   ruby_version_is '1.9' do
     it "are produced from character shortcuts" do
       ?z.should == 'z'

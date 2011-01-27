@@ -79,4 +79,42 @@ describe "A block with multiple arguments" do
   end
 end
 
+describe "Block parameters" do
+  ruby_version_is "" ... "1.9" do
+    it "assign to local variable" do
+      i = 0
+      a = [1,2,3]
+      a.each {|i| ;}
+      i.should == 3
+    end
+
+    it "captures variables from the outer scope" do
+      a = [1,2,3]
+      sum = 0
+      var = nil
+      a.each {|var| sum += var}
+      sum.should == 6
+      var.should == 3
+    end
+  end
+
+  ruby_version_is "1.9" do
+    it "does not override a shadowed variable from the outer scope" do
+      i = 0
+      a = [1,2,3]
+      a.each {|i| ;}
+      i.should == 0
+    end
+
+    it "captures variables from the outer scope" do
+      a = [1,2,3]
+      sum = 0
+      var = nil
+      a.each {|var| sum += var}
+      sum.should == 6
+      var.should == nil
+    end
+  end
+end
+
 language_version __FILE__, "block"

@@ -22,5 +22,19 @@ describe "Array#each_index" do
     a.each_index { |i| }.should equal(a)
   end
 
+  it "is not confused by removing elements from the front" do
+    a = [1, 2, 3]
+
+    a.shift
+    ScratchPad.record []
+    a.each_index { |i| ScratchPad << i }
+    ScratchPad.recorded.should == [0, 1]
+
+    a.shift
+    ScratchPad.record []
+    a.each_index { |i| ScratchPad << i }
+    ScratchPad.recorded.should == [0]
+  end
+
   it_behaves_like :enumeratorize, :each_index
 end

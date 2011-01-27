@@ -111,12 +111,12 @@
 
       
 
-        <p>Im Folgenden werden Fehler beschrieben, welche während des Bauvorgangs
-oder der Installation auftreten können sowie mögliche Fehlerbehebungsansätze.</p>
+        <p>Im Folgenden werden Fehler beschrieben, die während des Kompilierens
+oder der Installation auftreten können sowie mögliche Ansätze zur Fehlerbehebung.</p>
 
-<p>Im Falle eines Fehler sollte zunächst sichergestellt sein, dass eine
+<p>Sollte es vorkommen, dass ein Fehler auftritt, stelle zuerst sicher, dass eine
 aktuelle, sauber ausgecheckte (clean checkout) Version von Rubinius
-vorliegt. Dazu können folgende Befehle ausgeführt werden:</p>
+vorliegt. Dazu können folgende Befehle im Rubinius Verzeichnis ausgeführt werden:</p>
 
 <pre><code>$ git co master
 $ git reset --hard
@@ -125,7 +125,7 @@ $ rake distclean
 $ rake
 </code></pre>
 
-<p>Fehler:</p>
+<p>möglicher Fehler:</p>
 
 <pre><code>ERROR: unable to find runtime directory
 
@@ -147,13 +147,15 @@ directory but you have not run 'rake install' yet.
 <p>Falls Rubinius via <code>--prefix</code> konfiguriert wurde, führe <code>rake install</code> aus.</p>
 
 <p>Falls Rubinius via <code>--prefix</code> konfiguriert wurde und das
-  Installationsverzeichnis nach der Installation umbenannt wurde muss
+  Installationsverzeichnis nach der Installation umbenannt wurde, muss
   Rubinius neu konfiguriert und installiert werden.</p>
 
-<p>Falls das Quellverzeichnis nach dem Bauvorgang umbenannt wurde muss
-  Rubinius neu konfiguriert und installiert werden.</p>
+<p>Das gleiche gilt für das Quellverzeichnis, das nach dem Kompilieren umbenannt
+  wurde. Rubinius muss neu konfiguriert und installiert werden.</p>
 
-<p>Generell sollte das Quell- oder Bauverzeichnis nicht nach dem Bauvorgang umbenannt werden.</p>
+<p>Generell sollte das Quell- oder Kompilierverzeichnis nicht nach dem Kompilieren
+  umbenannt werden.</p>
+
 
 
     </div>

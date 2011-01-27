@@ -1,14 +1,14 @@
 require File.expand_path('../../../spec_helper', __FILE__)
+require File.expand_path('../fixtures/common', __FILE__)
 require 'tempfile'
 
 describe "Tempfile#initialize" do
-  before(:each) do
+  before :each do
     @tempfile = Tempfile.allocate
   end
 
-  after(:each) do
-    @tempfile.close
-    @tempfile.unlink if @tempfile.path
+  after :each do
+    TempfileSpecs.cleanup @tempfile
   end
 
   it "opens a new tempfile with the passed name in the passed directory" do

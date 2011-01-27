@@ -1,21 +1,3 @@
-describe "Block parameters" do
-  it "assign to local variable" do
-    i = 0
-    a = [1,2,3]
-    a.each {|i| ;}
-    i.should == 3
-  end
-
-  it "captures variables from the outer scope" do
-    a = [1,2,3]
-    sum = 0
-    var = nil
-    a.each {|var| sum += var}
-    sum.should == 6
-    var.should == 3
-  end
-end
-
 describe "Block parameters (to be removed from MRI)" do
   it "assigns to a global variable" do
     $global_for_block_assignment = 0

@@ -301,6 +301,9 @@ namespace rubinius {
     // Ruby.primitive :vm_windows_p
     static Object* vm_windows_p(STATE);
 
+    // Ruby.primitive :sha1_hash
+    static String* sha1_hash(STATE, String* str);
+
   public:   /* Type info */
 
     class Info : public TypeInfo {

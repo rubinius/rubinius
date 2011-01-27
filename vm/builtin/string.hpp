@@ -185,6 +185,9 @@ namespace rubinius {
     // Ruby.primitive :string_unpack
     Array* unpack(STATE, String *directives);
 
+    // Ruby.primitive :string_resize_capacity
+    String* resize_capacity(STATE, Fixnum* count);
+
     class Info : public TypeInfo {
     public:
       BASIC_TYPEINFO(TypeInfo)

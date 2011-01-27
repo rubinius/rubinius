@@ -303,8 +303,8 @@ module Benchmark
     t0, r0 = Benchmark.times, Time.now
     yield
     t1, r1 = Benchmark.times, Time.now
-    Benchmark::Tms.new(t1.utime  - t0.utime,
-                       t1.stime  - t0.stime,
+    Benchmark::Tms.new(t1.tutime  - t0.tutime,
+                       t1.tstime  - t0.tstime,
                        t1.cutime - t0.cutime,
                        t1.cstime - t0.cstime,
                        r1.to_f - r0.to_f,

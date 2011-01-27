@@ -42,5 +42,14 @@ describe "Array#combination" do
     it "yields a partition consisting of only singletons" do
       @array.combination(1).to_a.sort.should == [[1],[2],[3],[4]]
     end
+    
+    it "generates from a defensive copy, ignoring mutations" do
+      accum = []
+      @array.combination(2) do |x|
+        accum << x
+        @array[0] = 1
+      end
+      accum.should == [[1, 2], [1, 3], [1, 4], [2, 3], [2, 4], [3, 4]]
+    end
   end
 end

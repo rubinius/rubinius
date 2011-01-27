@@ -1,12 +1,15 @@
 class Struct
-  Struct.new 'Tms', :utime, :stime, :cutime, :cstime
+  Struct.new 'Tms', :utime, :stime, :cutime, :cstime, :tutime, :tstime
 
   class Tms
-    def initialize(utime=nil, stime=nil, cutime=nil, cstime=nil)
+    def initialize(utime=nil, stime=nil, cutime=nil, cstime=nil,
+                   tutime=nil, tstime=nil)
       @utime = utime
       @stime = stime
       @cutime = cutime
       @cstime = cstime
+      @tutime = tutime
+      @tstime = tstime
     end
   end
 

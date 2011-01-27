@@ -240,9 +240,20 @@ class Array
         reg_length = @total - reg_start
 
         if reg_start <= @total
-          @tuple.copy_from @tuple, reg_start + @start, reg_length, index
+          # If we're removing from the front, also reset @start to better
+          # use the Tuple
+          if index == 0
+            @tuple.copy_from @tuple, reg_start + @start, reg_length, 0
+            @start = 0
+          else
+            @tuple.copy_from @tuple, reg_start + @start, reg_length,
+                             @start + index
+          end
+
+          # TODO we leave the old references in the Tuple, we should
+          # probably clear them out though.
+
           @total -= ins_length
-          @start = 0
 
           return ent
         end
@@ -571,7 +582,7 @@ class Array
   # or nil is given. If a non-positive number is given or the array is empty,
   # does nothing. Returns nil if the loop has finished without getting interrupted.
   def cycle(n = nil, &block)
-    return to_enum :cycle, n unless block_given?
+    return to_enum(:cycle, n) unless block_given?
 
     # Don't use nil? because, historically, lame code has overridden that method
     if n.equal? nil
@@ -670,13 +681,12 @@ class Array
   end
 
   # Passes each index of the Array to the given block
-  # and returns self.  We re-evaluate @total each time
-  # through the loop in case the array has changed.
+  # and returns self.
   def each_index
     return to_enum(:each_index) unless block_given?
 
-    i = @start
-    total = i + @total
+    i = 0
+    total = @total
 
     while i < total
       yield i
@@ -993,6 +1003,7 @@ class Array
       each { |o| result << o.inspect << comma }
     end
 
+    result.taint if tainted?
     result.shorten!(2)
     result << "]"
   end
@@ -1258,21 +1269,30 @@ class Array
     end
   end
 
-  # Returns an array of all combinations of elements from all arrays.
-  # The length of the returned array is the product of the length of
-  # ary and the argument arrays
-  def product(*arg)
-    # Implementation notes: We build a block that will generate all the combinations
-    # by building it up successively using "inject" and starting with one
-    # responsible to append the values.
-    #
+  # Returns an array of all combinations of elements from all arrays.  The
+  # length of the returned array is the product of the length of ary and the
+  # argument arrays
+  #
+  # --
+  # Implementation notes: We build a block that will generate all the
+  # combinations by building it up successively using "inject" and starting
+  # with one responsible to append the values.
+  # ++
+  def product(*args)
+    args.map!{|x| Type.coerce_to(x, Array, :to_ary)}
+
+    # Check the result size will fit in an Array.
+    unless args.inject(size) { |n, x| n * x.size }.kind_of?(Fixnum)
+      raise RangeError, "product result is too large"
+    end
+
+    # to get the results in the same order as in MRI, vary the last argument first
+    args.reverse!
+
     result = []
+    args.push self
 
-    arg.map!{|x| Type.coerce_to(x, Array, :to_ary)}
-    arg.reverse! # to get the results in the same order as in MRI, vary the last argument first
-    arg.push self
-
-    outer_lambda = arg.inject(result.method(:push)) do |proc, values|
+    outer_lambda = args.inject(result.method(:push)) do |proc, values|
       lambda do |partial|
         values.each do |val|
           proc.call(partial.dup << val)
@@ -1381,16 +1401,20 @@ class Array
   # If a block is given instead of an argument,
   # returns last object for which block is true.
   def rindex(obj=undefined)
-    stop = @start - 1
-    i = stop + @total
-    tuple = @tuple
-
     if obj.equal? undefined
-      while i > stop
-        return i if yield tuple.at(i)
+      return to_enum(:rindex, obj) unless block_given?
+
+      i = @total - 1
+      while i >= 0
+        return i if yield @tuple.at(@start + i)
+        i = @total if i > @total
         i -= 1
       end
     else
+      stop = @start - 1
+      i = stop + @total
+      tuple = @tuple
+
       while i > stop
         return i if tuple.at(i) == obj
         i -= 1
@@ -1407,7 +1431,6 @@ class Array
 
     if n.equal? undefined
       return nil if @total == 0
-
       obj = @tuple.at @start
       @tuple.put @start, nil
       @start += 1
@@ -1734,8 +1757,7 @@ class Array
         while i < total
           o = tuple.at i
 
-          if o.respond_to? :to_ary
-            ary = Type.coerce_to o, Array, :to_ary
+          if ary = Type.convert_to(o, Array, :to_ary)
             recursively_flatten(ary, out, max_levels)
             ret = self
           else

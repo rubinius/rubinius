@@ -2,7 +2,7 @@
 layout: doc_ru
 title: How-To - Исправление неработающей спецификации
 previous: Написание Ruby спецификации
-previous_url: how-to/write-ruby-spec
+previous_url: how-to/write-a-ruby-spec
 next: Написание сообщения в блог
 next_url: how-to/write-a-blog-post
 ---

@@ -1,6 +1,10 @@
 describe :tempfile_length, :shared => true do
-  before(:each) do
+  before :each do
     @tempfile = Tempfile.new("specs")
+  end
+
+  after :each do
+    TempfileSpecs.cleanup @tempfile
   end
 
   it "returns the size of self" do

@@ -1,5 +1,5 @@
 require File.expand_path('../../../spec_helper', __FILE__)
-require File.expand_path('../fixtures/procs', __FILE__)
+require File.expand_path('../fixtures/source_location', __FILE__)
 
 ruby_version_is "1.9" do
   describe "Proc#source_location" do
@@ -18,29 +18,29 @@ ruby_version_is "1.9" do
     it "sets the first value to the path of the file in which the proc was defined" do
       file = @proc.source_location.first
       file.should be_an_instance_of(String)
-      file.should == File.dirname(__FILE__) + '/fixtures/procs.rb'
+      file.should == File.dirname(__FILE__) + '/fixtures/source_location.rb'
 
       file = @proc_new.source_location.first
       file.should be_an_instance_of(String)
-      file.should == File.dirname(__FILE__) + '/fixtures/procs.rb'
+      file.should == File.dirname(__FILE__) + '/fixtures/source_location.rb'
 
       file = @lambda.source_location.first
       file.should be_an_instance_of(String)
-      file.should == File.dirname(__FILE__) + '/fixtures/procs.rb'
+      file.should == File.dirname(__FILE__) + '/fixtures/source_location.rb'
     end
 
     it "sets the last value to a Fixnum representing the line on which the proc was defined" do
-      line = @proc.source_location.last 
+      line = @proc.source_location.last
       line.should be_an_instance_of(Fixnum)
-      line.should == 7 
+      line.should == 4
 
-      line = @proc_new.source_location.last 
+      line = @proc_new.source_location.last
       line.should be_an_instance_of(Fixnum)
-      line.should == 15 
+      line.should == 12
 
-      line = @lambda.source_location.last 
+      line = @lambda.source_location.last
       line.should be_an_instance_of(Fixnum)
-      line.should == 11 
+      line.should == 8
     end
 
     it "works even if the proc was created on the same line" do
@@ -50,15 +50,15 @@ ruby_version_is "1.9" do
     end
 
     it "returns the first line of a multi-line proc (i.e. the line containing 'proc do')" do
-      ProcSpecs::SourceLocation.my_multiline_proc.source_location.last.should == 19
-      ProcSpecs::SourceLocation.my_multiline_proc_new.source_location.last.should == 33
-      ProcSpecs::SourceLocation.my_multiline_lambda.source_location.last.should == 26 
+      ProcSpecs::SourceLocation.my_multiline_proc.source_location.last.should == 16
+      ProcSpecs::SourceLocation.my_multiline_proc_new.source_location.last.should == 30
+      ProcSpecs::SourceLocation.my_multiline_lambda.source_location.last.should == 23
     end
 
     it "returns the location of the proc's body; not necessarily the proc itself" do
-      ProcSpecs::SourceLocation.my_detached_proc.source_location.last.should == 40
-      ProcSpecs::SourceLocation.my_detached_proc_new.source_location.last.should == 50 
-      ProcSpecs::SourceLocation.my_detached_lambda.source_location.last.should ==45 
+      ProcSpecs::SourceLocation.my_detached_proc.source_location.last.should == 37
+      ProcSpecs::SourceLocation.my_detached_proc_new.source_location.last.should == 47
+      ProcSpecs::SourceLocation.my_detached_lambda.source_location.last.should == 42
     end
   end
 end

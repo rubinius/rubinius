@@ -1,5 +1,5 @@
-require File.expand_path('../fixtures/procs.rb', __FILE__)
 require File.expand_path('../../../spec_helper', __FILE__)
+require File.expand_path('../fixtures/common', __FILE__)
 
 describe "Proc.new with an associated block" do
   it "returns a proc that represents the block" do
@@ -106,6 +106,18 @@ describe "Proc.new with an associated block" do
     obj.first.should == :a
     obj.second.should == 2
   end
+
+  it "returns a new Proc instance from the block passed to the containing method" do
+    prc = ProcSpecs.new_proc_in_method { "hello" }
+    prc.should be_an_instance_of(Proc)
+    prc.call.should == "hello"
+  end
+
+  it "returns a new Proc instance from the block passed to the containing method" do
+    prc = ProcSpecs.new_proc_subclass_in_method { "hello" }
+    prc.should be_an_instance_of(ProcSpecs::ProcSubclass)
+    prc.call.should == "hello"
+  end
 end
 
 describe "Proc.new without a block" do
@@ -114,13 +126,10 @@ describe "Proc.new without a block" do
   end
 
   it "raises an ArgumentError if invoked from within a method with no block" do
-    lambda {
-      ProcSpecs.new_proc_in_method
-    }.should raise_error(ArgumentError)
+    lambda { ProcSpecs.new_proc_in_method }.should raise_error(ArgumentError)
   end
 
-  it "returns a new Proc instance from the block passed to the containing method" do
-    ProcSpecs.new_proc_in_method { "hello" }.call.should == "hello"
+  it "raises an ArgumentError if invoked on a subclass from within a method with no block" do
+    lambda { ProcSpecs.new_proc_subclass_in_method }.should raise_error(ArgumentError)
   end
-
 end

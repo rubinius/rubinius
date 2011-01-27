@@ -3,7 +3,7 @@ require File.expand_path('../../fixtures/classes', __FILE__)
 
 ruby_version_is "1.9" do
   describe "Delegator#!=" do
-    before :each do
+    before :all do
       @base = mock('base')
       @delegator = DelegateSpecs::Delegator.new(@base)
     end
