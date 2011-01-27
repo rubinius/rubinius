@@ -1777,8 +1777,7 @@ class Array
         while i < total
           o = tuple.at i
 
-          if o.respond_to? :to_ary
-            ary = Type.coerce_to o, Array, :to_ary
+          if ary = Type.convert_to(o, Array, :to_ary)
             recursively_flatten(ary, out, max_levels)
             ret = self
           else
