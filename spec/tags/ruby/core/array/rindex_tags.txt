@@ -1,1 +1,0 @@
-fails:Array#rindex given no argument and no block raises StopIteration if the array is truncated before completion
