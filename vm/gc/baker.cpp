@@ -9,8 +9,6 @@
 #include "builtin/class.hpp"
 #include "builtin/io.hpp"
 
-#include "instruments/stats.hpp"
-
 #include "call_frame.hpp"
 
 #include "gc/gc.hpp"
@@ -132,12 +130,6 @@ namespace rubinius {
    * Perform garbage collection on the young objects.
    */
   void BakerGC::collect(GCData& data, YoungCollectStats* stats) {
-#ifdef RBX_GC_STATS
-    stats::GCStats::get()->bytes_copied.start();
-    stats::GCStats::get()->objects_copied.start();
-    stats::GCStats::get()->objects_promoted.start();
-    stats::GCStats::get()->collect_young.start();
-#endif
 
     Object* tmp;
     ObjectArray *current_rs = object_memory_->swap_remember_set();
@@ -272,12 +264,6 @@ namespace rubinius {
 
     assert(fully_scanned_p());
 
-#ifdef RBX_GC_STATS
-    // Lost souls just tracks the ages of objects, so we know how old they
-    // were when they died.
-    // find_lost_souls();
-#endif
-
     // Check any weakrefs and replace dead objects with nil
     clean_weakrefs(true);
 
@@ -325,12 +311,6 @@ namespace rubinius {
       }
     }
 
-#ifdef RBX_GC_STATS
-    stats::GCStats::get()->collect_young.stop();
-    stats::GCStats::get()->objects_copied.stop();
-    stats::GCStats::get()->objects_promoted.stop();
-    stats::GCStats::get()->bytes_copied.stop();
-#endif
   }
 
   void BakerGC::handle_promotions() {
@@ -367,28 +347,6 @@ namespace rubinius {
     obj = eden.first_object();
     while(obj < eden.current()) {
       obj->clear_mark();
-      obj = next_object(obj);
-    }
-  }
-
-  void BakerGC::find_lost_souls() {
-    Object* obj = current->first_object();
-    while(obj < current->current()) {
-      if(!obj->forwarded_p()) {
-#ifdef RBX_GC_STATS
-        stats::GCStats::get()->lifetimes[obj->age()]++;
-#endif
-      }
-      obj = next_object(obj);
-    }
-
-    obj = eden.first_object();
-    while(obj < eden.current()) {
-      if(!obj->forwarded_p()) {
-#ifdef RBX_GC_STATS
-        stats::GCStats::get()->lifetimes[obj->age()]++;
-#endif
-      }
       obj = next_object(obj);
     }
   }

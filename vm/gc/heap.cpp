@@ -79,11 +79,6 @@ namespace rubinius {
 
     orig->set_forward(tmp);
 
-#ifdef RBX_GC_STATS
-    stats::GCStats::get()->objects_copied++;
-    stats::GCStats::get()->bytes_copied += bytes;
-#endif
-
     return tmp;
   }
 

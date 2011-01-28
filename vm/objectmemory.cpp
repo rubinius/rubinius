@@ -53,13 +53,6 @@ namespace rubinius {
     , collect_young_now(false)
     , collect_mature_now(false)
     , root_state_(state)
-
-    , objects_allocated(0)
-    , bytes_allocated(0)
-    , young_collections(0)
-    , full_collections(0)
-    , young_collection_time(0)
-    , full_collection_time(0)
   {
     // TODO Not sure where this code should be...
     if(char* num = getenv("RBX_WATCH")) {
@@ -384,8 +377,7 @@ step1:
     SYNC(state);
 
     if(Object* obj = young_->raw_allocate(bytes, &collect_young_now)) {
-      objects_allocated++;
-      bytes_allocated += bytes;
+      gc_stats.young_object_allocated(bytes);
 
       if(collect_young_now) root_state_->interrupts.set_perform_gc();
       obj->init_header(cls, YoungObjectZone, type);
@@ -401,7 +393,7 @@ step1:
 
     Address addr = young_->allocate_for_slab(slab_size_);
 
-    objects_allocated += slab.allocations();
+    gc_stats.slab_allocated(slab.allocations(), slab.byte_used());
 
     if(addr) {
       slab.refill(addr, slab_size_);
@@ -441,15 +433,12 @@ step1:
   /* Garbage collection */
 
   Object* ObjectMemory::promote_object(Object* obj) {
-#ifdef RBX_GC_STATS
-    stats::GCStats::get()->objects_promoted++;
-#endif
 
-    objects_allocated++;
     size_t sz = obj->size_in_bytes(root_state_);
-    bytes_allocated += sz;
 
     Object* copy = immix_->move_object(obj, sz);
+
+    gc_stats.promoted_object_allocated(sz);
 
     if(watched_p(obj)) {
       std::cout << "detected object " << obj << " during promotion.\n";
@@ -618,7 +607,8 @@ step1:
   void ObjectMemory::collect_young(GCData& data, YoungCollectStats* stats) {
     collect_young_now = false;
 
-    timer::Running<size_t, 1000000> timer(young_collection_time);
+    timer::Running<uint64_t, 1000000> timer(gc_stats.total_young_collection_time,
+                                            gc_stats.last_young_collection_time);
 
     // validate_handles(data.handles());
     // validate_handles(data.cached_handles());
@@ -629,7 +619,7 @@ step1:
 
     prune_handles(data.handles(), true);
     prune_handles(data.cached_handles(), true);
-    young_collections++;
+    gc_stats.young_collection_count++;
 
     data.global_cache()->prune_young();
 
@@ -639,7 +629,7 @@ step1:
           i++) {
         gc::Slab& slab = (*i)->local_slab();
 
-        objects_allocated += slab.allocations();
+        gc_stats.slab_allocated(slab.allocations(), slab.byte_used());
 
         void* addr = young_->allocate_for_slab(slab_size_);
         if(addr) {
@@ -655,15 +645,12 @@ step1:
   }
 
   void ObjectMemory::collect_mature(GCData& data) {
-#ifdef RBX_GC_STATS
-    stats::GCStats::get()->objects_seen.start();
-    stats::GCStats::get()->collect_mature.start();
-#endif
 
     // validate_handles(data.handles());
     // validate_handles(data.cached_handles());
 
-    timer::Running<size_t, 1000000> timer(full_collection_time);
+    timer::Running<uint64_t, 1000000> timer(gc_stats.total_full_collection_time,
+                                            gc_stats.last_full_collection_time);
 
     collect_mature_now = false;
 
@@ -696,12 +683,8 @@ step1:
     // immix_->unmark_all(data);
 
     rotate_mark();
-    full_collections++;
+    gc_stats.full_collection_count++;
 
-#ifdef RBX_GC_STATS
-    stats::GCStats::get()->collect_mature.stop();
-    stats::GCStats::get()->objects_seen.stop();
-#endif
   }
 
   InflatedHeader* ObjectMemory::inflate_header(STATE, ObjectHeader* obj) {
@@ -824,8 +807,6 @@ step1:
   }
 
   Object* ObjectMemory::allocate_object(size_t bytes) {
-    objects_allocated++;
-    bytes_allocated += bytes;
 
     Object* obj;
 
@@ -833,13 +814,11 @@ step1:
       obj = mark_sweep_->allocate(bytes, &collect_mature_now);
       if(unlikely(!obj)) return NULL;
 
+      gc_stats.mature_object_allocated(bytes);
+
       if(collect_mature_now) {
         root_state_->interrupts.set_perform_gc();
       }
-
-#ifdef RBX_GC_STATS
-    stats::GCStats::get()->large_objects++;
-#endif
 
     } else {
       obj = young_->allocate(bytes, &collect_young_now);
@@ -848,9 +827,12 @@ step1:
         root_state_->interrupts.set_perform_gc();
 
         obj = immix_->allocate(bytes);
+        gc_stats.mature_object_allocated(bytes);
         if(collect_mature_now) {
           root_state_->interrupts.set_perform_gc();
         }
+      } else {
+        gc_stats.young_object_allocated(bytes);
       }
     }
 
@@ -865,28 +847,20 @@ step1:
   }
 
   Object* ObjectMemory::allocate_object_mature(size_t bytes) {
-    objects_allocated++;
-    bytes_allocated += bytes;
 
     Object* obj;
 
     if(bytes > large_object_threshold) {
       obj = mark_sweep_->allocate(bytes, &collect_mature_now);
       if(unlikely(!obj)) return NULL;
-
-      if(collect_mature_now) {
-        root_state_->interrupts.set_perform_gc();
-      }
-
-#ifdef RBX_GC_STATS
-    stats::GCStats::get()->large_objects++;
-#endif
-
     } else {
       obj = immix_->allocate(bytes);
-      if(collect_mature_now) {
-        root_state_->interrupts.set_perform_gc();
-      }
+    }
+
+    gc_stats.mature_object_allocated(bytes);
+
+    if(collect_mature_now) {
+      root_state_->interrupts.set_perform_gc();
     }
 
 #ifdef ENABLE_OBJECT_WATCH
@@ -904,10 +878,6 @@ step1:
 
     Object* obj;
 
-#ifdef RBX_GC_STATS
-    stats::GCStats::get()->young_object_types[type]++;
-#endif
-
     obj = allocate_object(bytes);
     if(unlikely(!obj)) return NULL;
 
@@ -923,10 +893,6 @@ step1:
 
     Object* obj;
 
-#ifdef RBX_GC_STATS
-    stats::GCStats::get()->mature_object_types[type]++;
-#endif
-
     obj = allocate_object_mature(bytes);
     if(unlikely(!obj)) return NULL;
 
@@ -939,10 +905,9 @@ step1:
 
   /* ONLY use to create Class, the first object. */
   Object* ObjectMemory::allocate_object_raw(size_t bytes) {
-    objects_allocated++;
-    bytes_allocated += bytes;
 
     Object* obj = mark_sweep_->allocate(bytes, &collect_mature_now);
+    gc_stats.mature_object_allocated(bytes);
     obj->clear_fields(bytes);
     return obj;
   }
@@ -950,14 +915,9 @@ step1:
   Object* ObjectMemory::new_object_typed_enduring(STATE, Class* cls, size_t bytes, object_type type) {
     SYNC(state);
 
-#ifdef RBX_GC_STATS
-    stats::GCStats::get()->mature_object_types[type]++;
-#endif
-
-    objects_allocated++;
-    bytes_allocated += bytes;
-
     Object* obj = mark_sweep_->allocate(bytes, &collect_mature_now);
+    gc_stats.mature_object_allocated(bytes);
+
     if(collect_mature_now) {
       root_state_->interrupts.set_perform_gc();
     }
@@ -969,10 +929,6 @@ step1:
 #endif
 
     obj->clear_fields(bytes);
-
-#ifdef RBX_GC_STATS
-    stats::GCStats::get()->large_objects++;
-#endif
 
     obj->klass(this, cls);
 

@@ -53,6 +53,59 @@ namespace rubinius {
   };
 
 
+  struct GCStats {
+
+    uint64_t young_objects_allocated;
+    uint64_t young_bytes_allocated;
+    uint64_t promoted_objects_allocated;
+    uint64_t promoted_bytes_allocated;
+    uint64_t mature_objects_allocated;
+    uint64_t mature_bytes_allocated;
+
+    uint64_t young_collection_count;
+    uint64_t full_collection_count;
+
+    uint64_t total_young_collection_time;
+    uint64_t total_full_collection_time;
+    uint64_t last_young_collection_time;
+    uint64_t last_full_collection_time;
+
+    void young_object_allocated(uint64_t size) {
+      young_objects_allocated++;
+      young_bytes_allocated += size;
+    }
+
+    void promoted_object_allocated(uint64_t size) {
+      promoted_objects_allocated++;
+      promoted_bytes_allocated += size;
+    }
+
+    void mature_object_allocated(uint64_t size) {
+      mature_objects_allocated++;
+      mature_bytes_allocated += size;
+    }
+
+    void slab_allocated(uint64_t count, uint64_t size) {
+      young_objects_allocated += count;
+      young_bytes_allocated   += size;
+    }
+
+    GCStats()
+      : young_objects_allocated(0)
+      , young_bytes_allocated(0)
+      , promoted_objects_allocated(0)
+      , promoted_bytes_allocated(0)
+      , mature_objects_allocated(0)
+      , mature_bytes_allocated(0)
+      , young_collection_count(0)
+      , full_collection_count(0)
+      , total_young_collection_time(0)
+      , total_full_collection_time(0)
+      , last_young_collection_time(0)
+      , last_full_collection_time(0)
+    {}
+  };
+
   /**
    * ObjectMemory is the primary API that the rest of the VM uses to interact
    * with actions such as allocating objects, storing data in objects, and
@@ -123,24 +176,7 @@ namespace rubinius {
     /// therefore allocated in the large object space.
     size_t large_object_threshold;
 
-    /* Stats */
-    /// Total number of objects allocated to date.
-    size_t objects_allocated;
-
-    /// Total number of bytes allocated to date.
-    size_t bytes_allocated;
-
-    /// Total number of young generation collections to date.
-    size_t young_collections;
-
-    /// Total number of full collections to date.
-    size_t full_collections;
-
-    /// Total amount of time spent collecting the young generation to date.
-    size_t young_collection_time;
-
-    /// Total amount of time spent performing full collections to date.
-    size_t full_collection_time;
+    GCStats gc_stats;
 
   public:
     VM* state() {

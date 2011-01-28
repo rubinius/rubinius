@@ -53,8 +53,6 @@
 #include "signal.hpp"
 #include "lookup_data.hpp"
 
-#include "instruments/stats.hpp"
-
 #include "configuration.hpp"
 
 #include "inline_cache.hpp"
@@ -522,21 +520,6 @@ namespace rubinius {
     ary->set(state, 4, Integer::from(state, ls->uncommons_taken()));
 
     return ary;
-#else
-    return Qnil;
-#endif
-  }
-
-  Object* System::vm_stats_gc_clear(STATE) {
-#ifdef RBX_GC_STATS
-    stats::GCStats::clear();
-#endif
-    return Qnil;
-  }
-
-  Object* System::vm_stats_gc_info(STATE) {
-#ifdef RBX_GC_STATS
-    return stats::GCStats::get()->to_ruby(state);
 #else
     return Qnil;
 #endif

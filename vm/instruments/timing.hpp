@@ -63,17 +63,29 @@ namespace timer {
   template <typename RT, int factor=1>
   class Running {
     RT& result_;
+    RT* last_;
     uint64_t start_;
 
   public:
     Running(RT& result)
       : result_(result)
+      , last_(0)
+    {
+      start_ = get_current_time();
+    }
+
+    Running(RT& result, RT& last)
+      : result_(result)
+      , last_(&last)
     {
       start_ = get_current_time();
     }
 
     ~Running() {
-      result_ += ((get_current_time() - start_) / ((RT)factor));
+      uint64_t now = get_current_time();
+      uint64_t run = ((now - start_) / ((RT)factor));
+      if(last_) *last_ = run;
+      result_ += run;
     }
   };
 }

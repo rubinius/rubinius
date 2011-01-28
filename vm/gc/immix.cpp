@@ -15,10 +15,6 @@ namespace rubinius {
     std::cout << "[GC IMMIX: Added a chunk: " << count << "]\n";
 #endif
 
-#ifdef RBX_GC_STATS
-    stats::GCStats::get()->chunks_added++;
-#endif
-
     if(object_memory_) {
       if(gc_->dec_chunks_left() <= 0) {
         // object_memory_->collect_mature_now = true;
@@ -73,26 +69,15 @@ namespace rubinius {
   }
 
   Object* ImmixGC::allocate(int bytes) {
-#ifdef RBX_GC_STATS
-    stats::GCStats::get()->allocate_mature.start();
-#endif
 
     Object* obj = allocator_.allocate(bytes).as<Object>();
     obj->init_header(MatureObjectZone, InvalidType);
     obj->set_in_immix();
 
-#ifdef RBX_GC_STATS
-    stats::GCStats::get()->allocate_mature.stop();
-    stats::GCStats::get()->mature_bytes_allocated += bytes;
-#endif
-
     return obj;
   }
 
   Object* ImmixGC::move_object(Object* orig, int bytes) {
-#ifdef RBX_GC_STATS
-    stats::GCStats::get()->allocate_mature.start();
-#endif
 
     Object* obj = allocator_.allocate(bytes).as<Object>();
     memcpy(obj, orig, bytes);
@@ -109,11 +94,6 @@ namespace rubinius {
     obj->set_in_immix();
 
     orig->set_forward(obj);
-
-#ifdef RBX_GC_STATS
-    stats::GCStats::get()->allocate_mature.stop();
-    stats::GCStats::get()->mature_bytes_allocated += bytes;
-#endif
 
     return obj;
   }

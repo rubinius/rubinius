@@ -48,6 +48,7 @@ namespace gc {
      * garbage collection has been performed.
      */
     void refill(Address start, size_t size) {
+      allocations_ = 0;
       size_ = size;
       start_ = start;
       end_ = start_ + size_;

@@ -382,11 +382,6 @@ containing the Rubinius standard library files.
         puts "[Code loading debugging enabled]"
       end
 
-      options.on "--gc-stats", "Show GC stats" do
-        stats = Stats::GC.new
-        at_exit { stats.show }
-      end
-
       @profile = Rubinius::Config['profile'] || Rubinius::Config['jit.profile']
 
       options.on "-P", "Run the profiler" do
@@ -630,9 +625,6 @@ containing the Rubinius standard library files.
         p VM.jit_info
       end
 
-      if Config['rbx.gc_stats']
-        Stats::GC.new.show
-      end
     rescue Object => e
       e.render "An exception occurred #{@stage}"
       @exit_code = 1

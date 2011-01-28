@@ -152,15 +152,6 @@ namespace rubinius {
     // Ruby.primitive :vm_jit_info
     static Object*  vm_jit_info(STATE);
 
-    /**
-     *  Returns information about the GC.
-     */
-    // Ruby.primitive :vm_stats_gc_clear
-    static Object* vm_stats_gc_clear(STATE);
-
-    // Ruby.primitive :vm_stats_gc_info
-    static Object* vm_stats_gc_info(STATE);
-
     // Ruby.primitive :vm_memory_size
     static Fixnum* vm_memory_size(STATE, Object* obj);
 

@@ -39,10 +39,6 @@ namespace rubinius {
   Object* MarkSweepGC::allocate(size_t bytes, bool *collect_now) {
     Object* obj;
 
-#ifdef RBX_GC_STATS
-    stats::GCStats::get()->allocate_mature.start();
-#endif
-
 #ifdef USE_DLMALLOC
     obj = reinterpret_cast<Object*>(malloc_.allocate(bytes));
 #else
@@ -69,11 +65,6 @@ namespace rubinius {
     }
 
     obj->init_header(MatureObjectZone, InvalidType);
-
-#ifdef RBX_GC_STATS
-    stats::GCStats::get()->allocate_mature.stop();
-    stats::GCStats::get()->mature_bytes_allocated += bytes;
-#endif
 
     return obj;
   }
@@ -107,9 +98,6 @@ namespace rubinius {
   }
 
   Object* MarkSweepGC::saw_object(Object* obj) {
-#ifdef RBX_GC_STATS
-    stats::GCStats::get()->objects_seen++;
-#endif
     if(obj->marked_p(object_memory_->mark())) return NULL;
     obj->mark(object_memory_->mark());
 

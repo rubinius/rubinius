@@ -291,9 +291,6 @@ namespace :build do
   task :debug       => %w[ build:debug_flags build:stats_flags
                            build:profiler_flags build:build ]
 
-  task :stats       => %w[ build:normal_flags build:stats_flags
-                           build:profiler_flags build:build ]
-
   desc "Build to check for possible problems in the code. See build:help."
   task :strict      => %w[ build:strict_flags build:build ]
 
@@ -359,10 +356,6 @@ namespace :build do
     FLAGS << "-DNDEBUG"
   end
 
-  task :stats_flags do
-    FLAGS.concat %w[ -DRBX_GC_STATS ]
-  end
-
   task :profiler_flags do
     FLAGS.concat %w[ -DRBX_PROFILER ] unless ENV['RBX_NO_PROFILER']
   end
@@ -400,10 +393,6 @@ namespace :build do
                     image with debugging symbols, optimizations
                     are disabled and more warnings emitted by the
                     compiler. Also adds defines to turn on stats.
-
-  build:stats       Use when you want to enable various VM stats,
-                    like garbage collector or JIT stats. The build
-                    is optimized but adds defines to turn on stats.
 
   build:strict      Use to check for and fix potential problems
                     in the codebase. Shows many more warnings.

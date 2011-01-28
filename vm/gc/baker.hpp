@@ -21,10 +21,8 @@
 
 namespace rubinius {
 
-  class ObjectMemory;
   class GCData;
   struct YoungCollectStats;
-
 
   /**
    * The BakerGC garbage collector is used for managing memory in the young
@@ -111,14 +109,7 @@ namespace rubinius {
     Object* raw_allocate(size_t bytes, bool* limit_hit) {
       Object* obj;
 
-#ifdef RBX_GC_STATS
-      stats::GCStats::get()->allocate_young.start();
-#endif
-
       if(!eden.enough_space_p(bytes)) {
-#ifdef RBX_GC_STATS
-       stats::GCStats::get()->allocate_young.stop();
-#endif
         return NULL;
       } else {
         total_objects++;
@@ -133,11 +124,6 @@ namespace rubinius {
       if(watched_p(obj)) {
         std::cout << "detected " << obj << " during baker allocation.\n";
       }
-#endif
-
-#ifdef RBX_GC_STATS
-      stats::GCStats::get()->allocate_young.stop();
-      stats::GCStats::get()->young_bytes_allocated += bytes;
 #endif
 
       return obj;
@@ -156,14 +142,7 @@ namespace rubinius {
     Object* allocate(size_t bytes, bool* limit_hit) {
       Object* obj;
 
-#ifdef RBX_GC_STATS
-      stats::GCStats::get()->allocate_young.start();
-#endif
-
       if(!eden.enough_space_p(bytes)) {
-#ifdef RBX_GC_STATS
-       stats::GCStats::get()->allocate_young.stop();
-#endif
         return NULL;
       } else {
         total_objects++;
@@ -181,11 +160,6 @@ namespace rubinius {
 #endif
 
       obj->init_header(YoungObjectZone, InvalidType);
-
-#ifdef RBX_GC_STATS
-      stats::GCStats::get()->allocate_young.stop();
-      stats::GCStats::get()->young_bytes_allocated += bytes;
-#endif
 
       return obj;
     }
