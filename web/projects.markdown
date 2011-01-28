@@ -20,6 +20,10 @@ An Akin programming language optimized for fun.
 
 A JavaScript implementation.
 
+### Convinius
+[github.com/rkh/convinius](https://github.com/rkh/convinius)
+
+Convenience library for Rubinius-only projects.
 
 ### Ez-Scheme
 [github.com/ezmobius/ez-scheme](https://github.com/ezmobius/ez-scheme)
