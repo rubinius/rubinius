@@ -12,7 +12,31 @@ namespace rubinius {
   class ObjectMemory;
   class ImmixGC;
 
+  /**
+   * ImmixGC uses the immix memory management strategy to perform garbage
+   * collection on the mature objects in the immix space.
+   */
   class ImmixGC : public GarbageCollector {
+
+    /**
+     * Class used as an interface to the Rubinius specific object memory layout
+     * by the (general purpose) Immix memory manager. By imposing this interface
+     * between ObjectMemory and the utility Immix memory manager, the latter can
+     * be made reusable.
+     *
+     * The Immix memory manager delegates to this class to:
+     * - determine the size of an object at a particular memory address
+     * - copy an object
+     * - return the forwarding pointer for an object
+     * - set the forwarding pointer for an object that it moves
+     * - mark an address as visited
+     * - determine if an object is pinned and cannot be moved
+     * - walk all root pointers
+     *
+     * It will also notify this class when:
+     * - it adds chunks
+     * - allocates from the last free block, indicating a collection is needed
+     */
     class ObjectDescriber {
       ObjectMemory* object_memory_;
       ImmixGC* gc_;
