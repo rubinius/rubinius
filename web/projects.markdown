@@ -56,6 +56,10 @@ An interpretation of \_why's Potion programming language.
 
 A VBScript implementation.
 
+### Reak
+[github.com/matthewd/Reak](https://github.com/rkh/Reak)
+
+An implementation of ANSI Smalltalk.
 
 ### Syme
 [github.com/brixen/syme](https://github.com/brixen/syme)
