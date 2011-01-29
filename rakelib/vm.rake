@@ -288,8 +288,7 @@ namespace :build do
   task :inline      => %w[ build:inline_flags build:profiler_flags build:build ]
 
   desc "Build debug image for GDB. No optimizations, more warnings."
-  task :debug       => %w[ build:debug_flags build:stats_flags
-                           build:profiler_flags build:build ]
+  task :debug       => %w[ build:debug_flags build:profiler_flags build:build ]
 
   desc "Build to check for possible problems in the code. See build:help."
   task :strict      => %w[ build:strict_flags build:build ]
