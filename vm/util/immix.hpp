@@ -413,7 +413,6 @@ namespace immix {
     }
   };
 
-  typedef std::vector<Block*> Blocks;
 
   /**
    * A Chunk manages a slab of memory allocated from the O/S, which is then
@@ -587,10 +586,6 @@ namespace immix {
     /// Index of the current Block within the current Chunk
     size_t block_cursor_;
 
-    // Used when allocating free-only blocks.
-    size_t free_chunk_cursor_;
-    size_t free_block_cursor_;
-
     // Stats
     size_t bytes_allocated_;
   public:
@@ -600,8 +595,6 @@ namespace immix {
       , current_chunk_(0)
       , chunk_cursor_(0)
       , block_cursor_(0)
-      , free_chunk_cursor_(0)
-      , free_block_cursor_(0)
       , bytes_allocated_(0)
     {}
 
