@@ -34,6 +34,7 @@ integer19.rbc
 bignum.rbc
 block_environment.rbc
 bytearray.rbc
+chararray.rbc
 channel.rbc
 executable.rbc
 static_scope.rbc

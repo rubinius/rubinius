@@ -93,6 +93,7 @@ field_extract_headers = %w[
   vm/builtin/block_environment.hpp
   vm/builtin/block_as_method.hpp
   vm/builtin/bytearray.hpp
+  vm/builtin/chararray.hpp
   vm/builtin/io.hpp
   vm/builtin/channel.hpp
   vm/builtin/module.hpp

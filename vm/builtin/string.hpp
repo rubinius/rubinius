@@ -3,7 +3,7 @@
 
 #include "builtin/object.hpp"
 #include "builtin/fixnum.hpp"
-#include "builtin/bytearray.hpp"
+#include "builtin/chararray.hpp"
 
 #include "type_info.hpp"
 #include <ctype.h> // For isdigit and friends
@@ -26,7 +26,7 @@
 
 
 namespace rubinius {
-  class ByteArray;
+  class CharArray;
   class Float;
 
   class String : public Object {
@@ -37,7 +37,7 @@ namespace rubinius {
     Fixnum* num_bytes_;  // slot
     Fixnum* characters_; // slot
     Object* encoding_;   // slot
-    ByteArray* data_;    // slot
+    CharArray* data_;    // slot
     Fixnum* hash_value_; // slot
     Object* shared_;     // slot
 
@@ -47,7 +47,7 @@ namespace rubinius {
     attr_accessor(num_bytes, Fixnum);
     attr_accessor(characters, Fixnum);
     attr_accessor(encoding, Object);
-    attr_accessor(data, ByteArray);
+    attr_accessor(data, CharArray);
     attr_accessor(hash_value, Fixnum);
     attr_accessor(shared, Object);
 
@@ -57,8 +57,8 @@ namespace rubinius {
 
     static String* create(STATE, Fixnum* size);
 
-    // Ruby.primitive :string_from_bytearray
-    static String* from_bytearray(STATE, ByteArray* ba, Fixnum* start, Fixnum* count);
+    // Ruby.primitive :string_from_chararray
+    static String* from_chararray(STATE, CharArray* ca, Fixnum* start, Fixnum* count);
     static String* create(STATE, const char* str);
     static String* create(STATE, const char* str, native_int bytes);
     static String* create_pinned(STATE, Fixnum* size);

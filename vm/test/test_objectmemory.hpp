@@ -302,6 +302,22 @@ public:
     TS_ASSERT_EQUALS(obj->raw_bytes()[0], static_cast<char>(47));
   }
 
+  void test_collect_young_copies_chararray_bodies() {
+    ObjectMemory& om = *state->om;
+
+    CharArray* obj;
+
+    obj = CharArray::create(state, 3);
+    obj->raw_bytes()[0] = 48;
+
+    Root r(roots, obj);
+
+    om.collect_young(*gc_data);
+
+    obj = (CharArray*)roots->front()->get();
+    TS_ASSERT_EQUALS(obj->raw_bytes()[0], static_cast<char>(48));
+  }
+
   void test_collect_mature() {
     ObjectMemory& om = *state->om;
     Object* mature;

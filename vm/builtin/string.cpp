@@ -30,7 +30,7 @@ namespace rubinius {
   }
 
   /* Creates a String instance with +num_bytes+ == +size+ and
-   * having a ByteArray with at least (size + 1) bytes.
+   * having a CharArray with at least (size + 1) bytes.
    */
   String* String::create(STATE, Fixnum* size) {
     String *so;
@@ -44,7 +44,7 @@ namespace rubinius {
     so->shared(state, Qfalse);
 
     native_int bytes = size->to_native() + 1;
-    ByteArray* ba = ByteArray::create(state, bytes);
+    CharArray* ba = CharArray::create(state, bytes);
     ba->raw_bytes()[bytes-1] = 0;
 
     so->data(state, ba);
@@ -63,7 +63,7 @@ namespace rubinius {
     so->hash_value(state, nil<Fixnum>());
     so->shared(state, Qfalse);
 
-    ByteArray* ba = ByteArray::create(state, bytes+1);
+    CharArray* ba = CharArray::create(state, bytes+1);
     ba->raw_bytes()[bytes] = 0;
 
     so->data(state, ba);
@@ -73,7 +73,7 @@ namespace rubinius {
 
   /*
    * Creates a String instance with +num_bytes+ bytes of storage.
-   * It also pins the ByteArray used for storage, so it can be passed
+   * It also pins the CharArray used for storage, so it can be passed
    * to an external function (like ::read)
    */
   String* String::create_pinned(STATE, Fixnum* size) {
@@ -88,7 +88,7 @@ namespace rubinius {
     so->shared(state, Qfalse);
 
     native_int bytes = size->to_native() + 1;
-    ByteArray* ba = ByteArray::create_pinned(state, bytes);
+    CharArray* ba = CharArray::create_pinned(state, bytes);
     ba->raw_bytes()[bytes-1] = 0;
 
     so->data(state, ba);
@@ -118,7 +118,7 @@ namespace rubinius {
     return so;
   }
 
-  String* String::from_bytearray(STATE, ByteArray* ba, Fixnum* start,
+  String* String::from_chararray(STATE, CharArray* ca, Fixnum* start,
                                  Fixnum* count)
   {
     String* s = state->new_object<String>(G(string));
@@ -130,7 +130,7 @@ namespace rubinius {
     s->shared(state, Qfalse);
 
     // fetch_bytes NULL terminates
-    s->data(state, ba->fetch_bytes(state, start, count));
+    s->data(state, ca->fetch_bytes(state, start, count));
 
     return s;
   }
@@ -244,7 +244,7 @@ namespace rubinius {
   void String::unshare(STATE) {
     if(shared_ == Qtrue) {
       if(data_->reference_p()) {
-        data(state, as<ByteArray>(data_->duplicate(state)));
+        data(state, as<CharArray>(data_->duplicate(state)));
       }
       shared(state, Qfalse);
     }
@@ -271,11 +271,11 @@ namespace rubinius {
         capacity *= 2;
       } while(capacity < new_size + 1);
 
-      // No need to call unshare and duplicate a ByteArray
+      // No need to call unshare and duplicate a CharArray
       // just to throw it away.
       if(shared_ == Qtrue) shared(state, Qfalse);
 
-      ByteArray* ba = ByteArray::create(state, capacity);
+      CharArray* ba = CharArray::create(state, capacity);
       memcpy(ba->raw_bytes(), byte_address(), size());
       data(state, ba);
     } else {
@@ -296,7 +296,7 @@ namespace rubinius {
 
   String* String::resize_capacity(STATE, Fixnum* count) {
     native_int sz = count->to_native();
-    ByteArray* ba = ByteArray::create(state, sz + 1);
+    CharArray* ba = CharArray::create(state, sz + 1);
     memcpy(ba->raw_bytes(), byte_address(), sz);
     ba->raw_bytes()[sz] = 0;
 
@@ -458,7 +458,7 @@ namespace rubinius {
 
   Fixnum* String::tr_replace(STATE, struct tr_data* tr_data) {
     if(tr_data->last + 1 > (native_int)size() || shared_->true_p()) {
-      ByteArray* ba = ByteArray::create(state, tr_data->last + 1);
+      CharArray* ba = CharArray::create(state, tr_data->last + 1);
 
       data(state, ba);
       shared(state, Qfalse);

@@ -62,32 +62,5 @@ module Rubinius
 
       return obj
     end
-
-    ##
-    # Searches for +pattern+ in the ByteArray. Returns the number
-    # of characters from the front of the ByteArray to the end
-    # of the pattern if a match is found. Returns Qnil if a match
-    # is not found. Starts searching at index +start+.
-    def locate(pattern, start, max)
-      Ruby.primitive :bytearray_locate
-      raise PrimitiveFailure, "ByteArray#locate primitive failed"
-    end
-
-    # Return a new ByteArray by taking the bytes from +string+ and +self+
-    # together.
-    def prepend(string)
-      Ruby.primitive :bytearray_prepend
-
-      if string.kind_of? String
-        raise PrimitiveFailure, "ByteArray#prepend failed"
-      else
-        prepend(StringValue(string))
-      end
-    end
-
-    def utf8_char(offset)
-      Ruby.primitive :bytearray_get_utf8_char
-      raise ArgumentError, "unable to extract utf8 character"
-    end
   end
 end

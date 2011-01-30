@@ -5,10 +5,9 @@
 #include "type_info.hpp"
 
 namespace rubinius {
-  class ByteArray;
+  class CharArray;
   class Channel;
   class String;
-  class ByteArray;
 
   class IO : public Object {
   public:
@@ -146,18 +145,18 @@ namespace rubinius {
     const static object_type type = IOBufferType;
 
   private:
-    ByteArray* storage_; // slot
-    Channel* channel_;   // slot
-    Integer* total_;      // slot
-    Integer* used_;       // slot
-    Integer* start_;      // slot
-    Object* eof_;         // slot
-    Object* write_synced_;// slot
+    CharArray* storage_;   // slot
+    Channel* channel_;     // slot
+    Integer* total_;       // slot
+    Integer* used_;        // slot
+    Integer* start_;       // slot
+    Object* eof_;          // slot
+    Object* write_synced_; // slot
 
   public:
     /* accessors */
 
-    attr_accessor(storage, ByteArray);
+    attr_accessor(storage, CharArray);
     attr_accessor(channel, Channel);
     attr_accessor(total, Integer);
     attr_accessor(used, Integer);

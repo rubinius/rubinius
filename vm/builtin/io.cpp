@@ -1166,7 +1166,7 @@ failed: /* try next '*' position */
 /* IOBuffer methods */
   IOBuffer* IOBuffer::create(STATE, size_t bytes) {
     IOBuffer* buf = state->new_object<IOBuffer>(G(iobuffer));
-    buf->storage(state, ByteArray::create(state, bytes));
+    buf->storage(state, CharArray::create(state, bytes));
     buf->channel(state, Channel::create(state));
     buf->total(state, Fixnum::from(bytes));
     buf->used(state, Fixnum::from(0));

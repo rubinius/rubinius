@@ -12,6 +12,8 @@
 
 #include "builtin/object.hpp"
 #include "builtin/array.hpp"
+#include "builtin/bytearray.hpp"
+#include "builtin/chararray.hpp"
 #include "builtin/symbol.hpp"
 #include "builtin/module.hpp"
 #include "builtin/string.hpp"
@@ -47,6 +49,7 @@ namespace rubinius {
   const static int cImmCode =    'i';
   const static int cTupleCode =  't';
   const static int cBytesCode =  'b';
+  const static int cCharsCode =  'c';
   const static int cFooterCode = '-';
 
   class Encoder {
@@ -350,6 +353,13 @@ namespace rubinius {
         enc.write1(cBytesCode);
         enc.write4(ba->size());
         enc.write_raw((const char*)ba->raw_bytes(), ba->size());
+      } else if(CharArray* ca = try_as<CharArray>(obj)) {
+        enc.write2(syms.size() + 1);
+        dump_ivars(state, obj, syms);
+
+        enc.write1(cCharsCode);
+        enc.write4(ca->size());
+        enc.write_raw((const char*)ca->raw_bytes(), ca->size());
       } else {
         enc.write2(syms.size());
         dump_ivars(state, obj, syms);

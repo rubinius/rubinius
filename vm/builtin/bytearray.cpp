@@ -61,16 +61,6 @@ namespace rubinius {
     // @todo implement
   }
 
-  char* ByteArray::to_chars(STATE) {
-    native_int sz = this->size(state)->to_native();
-    char* str = (char*)(this->bytes);
-    char* out = ALLOC_N(char, sz);
-
-    memcpy(out, str, sz);
-
-    return out;
-  }
-
   ByteArray* ByteArray::allocate(STATE, Fixnum* bytes) {
     return ByteArray::create(state, bytes->to_native());
   }
@@ -120,15 +110,6 @@ namespace rubinius {
     memmove(this->bytes + dst, this->bytes + src, cnt);
 
     return count;
-  }
-
-  ByteArray* ByteArray::prepend(STATE, String* str) {
-    ByteArray* ba = ByteArray::create(state, size() + str->size());
-
-    memcpy(ba->bytes, str->data()->bytes, str->size());
-    memcpy(ba->bytes + str->size(), bytes, size());
-
-    return ba;
   }
 
   ByteArray* ByteArray::fetch_bytes(STATE, Fixnum* start, Fixnum* count) {
@@ -184,103 +165,5 @@ namespace rubinius {
     } else {
       return cmp < 0 ? Fixnum::from(-1) : Fixnum::from(1);
     }
-  }
-
-  Object* ByteArray::locate(STATE, String* pattern, Fixnum* start, Fixnum* max_o) {
-    const uint8_t* pat = pattern->byte_address();
-    native_int len = pattern->size();
-    native_int max = max_o->to_native();
-
-    if(len == 0) return start;
-
-    if(max == 0 || max > size()) max = size();
-
-    max -= (len - 1);
-
-    for(native_int i = start->to_native(); i < max; i++) {
-      if(this->bytes[i] == pat[0]) {
-        native_int j;
-        // match the rest of the pattern string
-        for(j = 1; j < len; j++) {
-          if(this->bytes[i+j] != pat[j]) break;
-        }
-
-        // if the full pattern matched, return the index
-        // of the end of the pattern in 'this'.
-        if(j == len) return Fixnum::from(i + len);
-      }
-    }
-
-    return Qnil;
-  }
-
-  // Ripped from 1.8.7 and cleaned up
-
-  static const long utf8_limits[] = {
-    0x0,			/* 1 */
-    0x80,			/* 2 */
-    0x800,			/* 3 */
-    0x10000,			/* 4 */
-    0x200000,			/* 5 */
-    0x4000000,			/* 6 */
-    0x80000000,			/* 7 */
-  };
-
-  static long utf8_to_uv(char* p, long* lenp) {
-    int c = *p++ & 0xff;
-    long uv = c;
-    long n;
-
-    if (!(uv & 0x80)) {
-      *lenp = 1;
-      return uv;
-    }
-    if (!(uv & 0x40)) {
-      *lenp = 1;
-      return -1;
-    }
-
-    if      (!(uv & 0x20)) { n = 2; uv &= 0x1f; }
-    else if (!(uv & 0x10)) { n = 3; uv &= 0x0f; }
-    else if (!(uv & 0x08)) { n = 4; uv &= 0x07; }
-    else if (!(uv & 0x04)) { n = 5; uv &= 0x03; }
-    else if (!(uv & 0x02)) { n = 6; uv &= 0x01; }
-    else {
-      *lenp = 1;
-      return -1;
-    }
-    if (n > *lenp) return -1;
-
-    *lenp = n--;
-    if (n != 0) {
-      while (n--) {
-        c = *p++ & 0xff;
-        if ((c & 0xc0) != 0x80) {
-          *lenp -= n + 1;
-          return -1;
-        }
-        else {
-          c &= 0x3f;
-          uv = uv << 6 | c;
-        }
-      }
-    }
-    n = *lenp - 1;
-    if (uv < utf8_limits[n]) return -1;
-    return uv;
-  }
-
-  Object* ByteArray::get_utf8_char(STATE, Fixnum* offset) {
-    native_int o = offset->to_native();
-
-    if(o >= (native_int)size()) return Primitives::failure();
-
-    char* start = (char*)bytes + o;
-    long len = size() - o;
-
-    long res = utf8_to_uv(start, &len);
-    if(res == -1) return Primitives::failure();
-
-    return Tuple::from(state, 2, Integer::from(state, res), Fixnum::from(len));
   }
 }

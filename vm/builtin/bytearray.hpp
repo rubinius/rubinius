@@ -58,23 +58,6 @@ namespace rubinius {
     // Ruby.primitive :bytearray_compare_bytes
     Fixnum* compare_bytes(STATE, ByteArray* other, Fixnum* a, Fixnum* b);
 
-    /* ::locate searches for +pattern+ in the ByteArray. Returns the
-     * number of characters from the front of the ByteArray to the end
-     * of the pattern if a match is found. Returns Qnil if a match is
-     * not found. Starts searching at index +start+.
-     */
-
-    // Ruby.primitive :bytearray_locate
-    Object* locate(STATE, String* pattern, Fixnum* start, Fixnum* max);
-
-    // Ruby.primitive :bytearray_prepend
-    ByteArray* prepend(STATE, String* other);
-
-    // Ruby.primitive :bytearray_get_utf8_char
-    Object* get_utf8_char(STATE, Fixnum* offset);
-
-    char* to_chars(STATE);
-
     class Info : public TypeInfo {
     public:
       Info(object_type type)

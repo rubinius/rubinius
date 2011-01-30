@@ -5,6 +5,7 @@ basicobject.rbc
 bignum.rbc
 block_environment.rbc
 bytearray.rbc
+chararray.rbc
 channel.rbc
 class.rbc
 compactlookuptable.rbc

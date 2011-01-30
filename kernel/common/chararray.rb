@@ -1,9 +1,8 @@
 ##
-# An array of bytes, used as a low-level data store for implementing various
-# other classes.
+# An encoding-aware, fixed-size vector of bytes used to implement String.
 
 module Rubinius
-  class ByteArray
+  class CharArray
     alias_method :[], :get_byte
     alias_method :[]=, :set_byte
 
@@ -22,6 +21,12 @@ module Rubinius
 
     def <=>(other)
       compare_bytes(other, size, other.size)
+    end
+
+    # Sets the first character to be an ASCII capitalize letter
+    # if it's an ASCII lower case letter
+    def first_capitalize!
+      self[0] = self[0].toupper
     end
   end
 end

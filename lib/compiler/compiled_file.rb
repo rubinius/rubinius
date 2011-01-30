@@ -206,7 +206,7 @@ module Rubinius
       def next_string
         count = @data.locate "\n", @start
         count = @size unless count
-        str = String.from_bytearray @data, @start, count - @start
+        str = String.from_chararray @data, @start, count - @start
         @start = count
         str
       end
@@ -216,7 +216,7 @@ module Rubinius
       ##
       # Returns the next _count_ bytes in _@data_.
       def next_bytes(count)
-        str = String.from_bytearray @data, @start, count
+        str = String.from_chararray @data, @start, count
         @start += count
         str
       end
