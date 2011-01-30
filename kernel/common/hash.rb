@@ -478,7 +478,7 @@ class Hash
   # and +value+. If +key+ is a kind of +String+, +key+ is
   # duped and frozen.
   def new_entry(key, key_hash, value)
-    if key.kind_of? String
+    if key.kind_of?(String) and !key.frozen?
       key = key.dup
       key.freeze
     end
