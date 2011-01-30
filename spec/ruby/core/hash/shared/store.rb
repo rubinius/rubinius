@@ -37,6 +37,13 @@ describe :hash_store, :shared => true do
     h.keys[0].frozen?.should == true
   end
 
+  it "doesn't duplicate and freeze already frozen string keys" do
+    key = "foo".freeze
+    h = new_hash
+    h.send(@method, key, 0)
+    h.keys[0].should equal(key)
+  end
+
   ruby_version_is ""..."1.9" do
     it "raises a TypeError if called on a frozen instance" do
       lambda { HashSpecs.frozen_hash.send(@method, 1, 2) }.should raise_error(TypeError)
