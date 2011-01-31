@@ -725,6 +725,7 @@ def ex_libs # needs to be method to delay running of llvm_config
     $ex_libs << "-lrt -lcrypt" if RUBY_PLATFORM =~ /linux/
     $ex_libs << "-lnetwork" if RUBY_PLATFORM =~ /haiku/
     $ex_libs << "-lws2_32" if BUILD_CONFIG[:windows]
+    $ex_libs << "-lpthread" if RUBY_PLATFORM =~ /darwin/
 
     $ex_libs += llvm_lib_files
   end

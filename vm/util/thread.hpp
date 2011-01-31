@@ -21,6 +21,11 @@ intptr_t thread_debug_self();
 
 #define pthread_check(expr) if((expr) != 0) { fail(#expr); }
 
+#ifdef __APPLE__ && __ENVIRONMENT_MAC_OS_X_VERSION_MIN_REQUIRED__ >= 1060
+// This is behind a silly define, so we just pull it out here.
+extern "C" int pthread_setname_np(const char*);
+#define HAVE_PTHREAD_SETNAME
+#endif
 
 namespace thread {
 
@@ -64,6 +69,7 @@ namespace thread {
     pthread_t native_;
     bool delete_on_exit_;
     size_t stack_size_;
+    const char* name_;
 
     static void* trampoline(void* arg) {
       Thread* self = reinterpret_cast<Thread*>(arg);
@@ -76,10 +82,19 @@ namespace thread {
     Thread(size_t stack_size = 0, bool delete_on_exit = true)
       : delete_on_exit_(delete_on_exit)
       , stack_size_(stack_size)
-    {
-    }
+    {}
 
     virtual ~Thread() { }
+
+    // Set the name of the thread. Be sure to call this inside perform
+    // so that the system can see the proper thread to set if that is
+    // available (OS X only atm)
+    void set_name(const char* name) {
+      name_ = name;
+#ifdef HAVE_PTHREAD_SETNAME
+      pthread_setname_np(name);
+#endif
+    }
 
     static pthread_t self() {
       return pthread_self();
