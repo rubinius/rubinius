@@ -10,6 +10,7 @@
 #include "builtin/string.hpp"
 #include "builtin/lookuptable.hpp"
 #include "builtin/call_unit.hpp"
+#include "builtin/cache.hpp"
 
 #include "ffi.hpp"
 #include "marshal.hpp"
@@ -304,26 +305,11 @@ namespace rubinius {
     for(size_t i = 0; i < vmm->inline_cache_count(); i++) {
       InlineCache* cache = &vmm->caches[i];
 
-      if(cache->module) {
-        tmp = mark.call(cache->module);
+      MethodCacheEntry* mce = cache->cache_;
+      if(mce) {
+        tmp = mark.call(mce);
         if(tmp) {
-          cache->module = (Module*)tmp;
-          mark.just_set(obj, tmp);
-        }
-      }
-
-      if(cache->method) {
-        tmp = mark.call(cache->method);
-        if(tmp) {
-          cache->method = (Executable*)tmp;
-          mark.just_set(obj, tmp);
-        }
-      }
-
-      if(cache->klass_) {
-        tmp = mark.call(cache->klass_);
-        if(tmp) {
-          cache->klass_ = (Class*)tmp;
+          cache->cache_ = (MethodCacheEntry*)tmp;
           mark.just_set(obj, tmp);
         }
       }
@@ -378,17 +364,8 @@ namespace rubinius {
     for(size_t i = 0; i < vmm->inline_cache_count(); i++) {
       InlineCache* cache = &vmm->caches[i];
 
-      if(cache->module) {
-        visit.call(cache->module);
-      }
-
-      if(cache->method) {
-        visit.call(cache->method);
-      }
-
-      if(cache->klass_) {
-        visit.call(cache->klass_);
-      }
+      MethodCacheEntry* mce = cache->cache_;
+      if(mce) visit.call(mce);
 
       for(int i = 0; i < cTrackedICHits; i++) {
         Module* mod = cache->seen_classes_[i].klass();

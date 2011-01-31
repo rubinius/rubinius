@@ -19,6 +19,7 @@
 #include "builtin/system.hpp"
 #include "builtin/global_cache_entry.hpp"
 #include "builtin/location.hpp"
+#include "builtin/cache.hpp"
 
 #include "call_frame.hpp"
 

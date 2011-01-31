@@ -4,6 +4,7 @@
 #include "builtin/tuple.hpp"
 #include "builtin/global_cache_entry.hpp"
 #include "inline_cache.hpp"
+#include "builtin/cache.hpp"
 
 #include "llvm/access_memory.hpp"
 #include "llvm/jit_operations.hpp"
@@ -1442,7 +1443,10 @@ namespace rubinius {
     void visit_send_stack(opcode which, opcode args) {
       InlineCache* cache = reinterpret_cast<InlineCache*>(which);
 
-      if(cache->method) {
+      MethodCacheEntry* mce = cache->cache();
+      atomic::memory_barrier();
+
+      if(mce) {
         BasicBlock* failure = new_block("fallback");
         BasicBlock* cont = new_block("continue");
 
@@ -1673,7 +1677,10 @@ namespace rubinius {
       InlineCache* cache = reinterpret_cast<InlineCache*>(which);
       CompiledMethod* block_code = 0;
 
-      if(cache->method &&
+      MethodCacheEntry* mce = cache->cache();
+      atomic::memory_barrier();
+
+      if(mce &&
           ls_->config().jit_inline_blocks &&
           !context().inlined_block()) {
         if(has_literal_block) {

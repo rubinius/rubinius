@@ -29,6 +29,8 @@ namespace :jit do
                  rubinius::Float
                  rubinius::jit::RuntimeData
                  rubinius::CallUnit
+                 rubinius::MethodCacheEntry
+                 memory::Address
                  jit_state!
     require 'tempfile'
 

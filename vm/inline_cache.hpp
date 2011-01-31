@@ -18,6 +18,7 @@ namespace rubinius {
   struct CallFrame;
   class Arguments;
   class CallUnit;
+  class MethodCacheEntry;
 
   // How many receiver class have been seen to keep track of inside an IC
   const static int cTrackedICHits = 3;
@@ -58,8 +59,12 @@ namespace rubinius {
     friend class CompiledMethod::Info;
   };
 
-  class InlineCache : public Dispatch {
-    Class* klass_;
+  class InlineCache {
+  public:
+    Symbol* name;
+
+  private:
+    MethodCacheEntry* cache_;
     CallUnit* call_unit_;
 
     typedef Object* (*CacheExecutor)(STATE, InlineCache*, CallFrame*, Arguments& args);
@@ -121,18 +126,18 @@ namespace rubinius {
     static Object* disabled_cache_super(STATE, InlineCache* cache, CallFrame* call_frame,
                                   Arguments& args);
 
-    MethodMissingReason fill_public(STATE, Object* self, Symbol* name);
-    bool fill_private(STATE, Symbol* name, Module* start);
-    bool fill_method_missing(STATE, Module* start);
+    MethodMissingReason fill_public(STATE, Object* self, Symbol* name, Class* klass,
+                                    MethodCacheEntry*& mce);
+    bool fill_private(STATE, Symbol* name, Module* start, Class* klass,
+                      MethodCacheEntry*& mce);
+    bool fill_method_missing(STATE, Class* klass, MethodCacheEntry*& mce);
 
-    void run_wb(STATE, CompiledMethod* exec);
-
-    bool update_and_validate(STATE, CallFrame* call_frame, Object* recv);
-    bool update_and_validate_private(STATE, CallFrame* call_frame, Object* recv);
+    MethodCacheEntry* update_and_validate(STATE, CallFrame* call_frame, Object* recv);
+    MethodCacheEntry* update_and_validate_private(STATE, CallFrame* call_frame, Object* recv);
 
     InlineCache()
-      : Dispatch()
-      , klass_(0)
+      : name(0)
+      , cache_(0)
       , call_unit_(0)
       , initial_backend_(empty_cache)
       , execute_backend_(empty_cache)
@@ -165,12 +170,8 @@ namespace rubinius {
       name = sym;
     }
 
-    Class* klass() {
-      return klass_;
-    }
-
-    void set_klass(Class* klass) {
-      klass_ = klass;
+    MethodCacheEntry* cache() {
+      return cache_;
     }
 
     void set_is_private() {
@@ -201,15 +202,11 @@ namespace rubinius {
       return (*initial_backend_)(state, this, call_frame, args);
     }
 
-    bool valid_p(STATE, Object* obj) {
-      return klass_ == obj->lookup_begin(state);
-    }
-
     void clear() {
-      klass_ = 0;
+      cache_ = 0;
     }
 
-    void update_seen_classes();
+    void update_seen_classes(MethodCacheEntry* mce);
 
     int seen_classes_overflow() {
       return seen_classes_overflow_;
@@ -220,7 +217,7 @@ namespace rubinius {
     }
 
     void inc_hits() {
-      *hits_ = *hits_ + 1;
+      atomic::fetch_and_add(hits_, 1);
     }
 
     int classes_seen() {

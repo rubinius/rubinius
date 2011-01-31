@@ -1564,9 +1564,10 @@ instruction check_serial(literal serial) [ receiver -- boolean ]
   Object* recv = stack_pop();
   InlineCache* cache = reinterpret_cast<InlineCache*>(literal);
 
-  if(cache->update_and_validate(state, call_frame, recv) &&
-       cache->method &&
-       cache->method->serial()->to_native() == serial) {
+  MethodCacheEntry* mce =
+      cache->update_and_validate(state, call_frame, recv);
+
+  if(mce && mce->method()->serial()->to_native() == serial) {
      stack_push(Qtrue);
   } else {
     stack_push(Qfalse);
@@ -1583,9 +1584,10 @@ instruction check_serial_private(literal serial) [ receiver -- boolean ]
   Object* recv = stack_pop();
   InlineCache* cache = reinterpret_cast<InlineCache*>(literal);
 
-  if(cache->update_and_validate_private(state, call_frame, recv) &&
-       cache->method &&
-       cache->method->serial()->to_native() == serial) {
+  MethodCacheEntry* mce =
+      cache->update_and_validate_private(state, call_frame, recv);
+
+  if(mce && mce->method()->serial()->to_native() == serial) {
      stack_push(Qtrue);
   } else {
     stack_push(Qfalse);

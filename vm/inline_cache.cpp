@@ -3,29 +3,35 @@
 #include "call_frame.hpp"
 #include "global_cache.hpp"
 
+#include "builtin/class.hpp"
+#include "builtin/module.hpp"
 #include "builtin/symbol.hpp"
 #include "builtin/lookuptable.hpp"
 #include "builtin/executable.hpp"
 #include "builtin/methodtable.hpp"
 #include "builtin/alias.hpp"
 #include "builtin/call_unit.hpp"
+#include "builtin/cache.hpp"
 
 namespace rubinius {
 
-  MethodMissingReason InlineCache::fill_public(STATE, Object* self, Symbol* name) {
+  MethodMissingReason InlineCache::fill_public(STATE, Object* self, Symbol* name,
+                                               Class* klass, MethodCacheEntry*& mce)
+  {
     MethodTableBucket* entry;
 
-    Module* module = klass_;
+    Module* module = klass;
 
     // Check the global cache first!
     GlobalCache::cache_entry* global_entry =
       state->global_cache()->lookup(module, name);
 
     if(global_entry &&
-        global_entry->is_public &&
+         global_entry->is_public &&
         !global_entry->method_missing) {
-      this->method = global_entry->method;
-      this->module = global_entry->module;
+
+      mce = MethodCacheEntry::create(state, klass, global_entry->module,
+                                     global_entry->method);
 
       return eNone;
     }
@@ -75,17 +81,17 @@ namespace rubinius {
           skip_vis_check = true;
         } else {
           if(Alias* alias = try_as<Alias>(entry->method())) {
-            this->method = alias->original_exec();
-            this->module = alias->original_module();
+            mce = MethodCacheEntry::create(state, klass,
+                                           alias->original_module(),
+                                           alias->original_exec());
           } else {
-            this->method = entry->method();
-            this->module = module;
+            mce = MethodCacheEntry::create(state, klass, module, entry->method());
           }
 
           if(!vis_entry) vis_entry = entry;
 
-          state->global_cache()->retain(state, klass_, name, this->module,
-                this->method, false,
+          state->global_cache()->retain(state, klass, name, mce->stored_module(),
+                mce->method(), false,
                 !vis_entry->public_p(state));
 
           return eNone;
@@ -102,7 +108,10 @@ namespace rubinius {
     rubinius::abort();
   }
 
-  bool InlineCache::fill_private(STATE, Symbol* name, Module* start) {
+  bool InlineCache::fill_private(STATE, Symbol* name, Module* start,
+                                 Class* klass,
+                                 MethodCacheEntry*& mce)
+  {
     MethodTableBucket* entry;
 
     Module* module = start;
@@ -112,9 +121,8 @@ namespace rubinius {
       state->global_cache()->lookup(module, name);
 
     if(global_entry && !global_entry->method_missing) {
-      this->method = global_entry->method;
-      this->module = global_entry->module;
-
+      mce = MethodCacheEntry::create(state, klass, global_entry->module,
+                                     global_entry->method);
       return true;
     }
 
@@ -139,18 +147,18 @@ namespace rubinius {
          * marker into the method table. */
         if(!entry->method()->nil_p()) {
           if(Alias* alias = try_as<Alias>(entry->method())) {
-            this->method = alias->original_exec();
-            this->module = alias->original_module();
+            mce = MethodCacheEntry::create(state, klass,
+                                           alias->original_module(),
+                                           alias->original_exec());
           } else {
-            this->method = entry->method();
-            this->module = module;
+            mce = MethodCacheEntry::create(state, klass, module, entry->method());
           }
 
           if(!vis_entry) vis_entry = entry;
 
-          state->global_cache()->retain(state, start, name, this->module,
-              this->method, false,
-              !vis_entry->public_p(state));
+          state->global_cache()->retain(state, start, name, mce->stored_module(),
+                mce->method(), false,
+                !vis_entry->public_p(state));
 
           return true;
         } else {
@@ -169,8 +177,12 @@ namespace rubinius {
     rubinius::abort();
   }
 
-  bool InlineCache::fill_method_missing(STATE, Module* module) {
+  bool InlineCache::fill_method_missing(STATE, Class* klass,
+                                        MethodCacheEntry*& mce)
+  {
     MethodTableBucket* entry;
+
+    Module* module = klass;
 
     Symbol* name = G(sym_method_missing);
 
@@ -193,11 +205,13 @@ namespace rubinius {
          * marker into the method table. */
         if(!entry->method()->nil_p()) {
           if(Alias* alias = try_as<Alias>(entry->method())) {
-            this->method = alias->original_exec();
-            this->module = alias->original_module();
+            mce = MethodCacheEntry::create(state, klass,
+                                           alias->original_module(),
+                                           alias->original_exec());
           } else {
-            this->method = entry->method();
-            this->module = module;
+            mce = MethodCacheEntry::create(state, klass,
+                                           module,
+                                           entry->method());
           }
 
           return true;
@@ -214,45 +228,46 @@ namespace rubinius {
     rubinius::abort();
   }
 
-  void InlineCache::run_wb(STATE, CompiledMethod* exec) {
-    if(exec->remembered_p()) return;
-    exec->write_barrier(state, module);
-    exec->write_barrier(state, method);
-    exec->write_barrier(state, klass_);
+  MethodCacheEntry* InlineCache::update_and_validate(STATE, CallFrame* call_frame, Object* recv) {
+    MethodCacheEntry* mce = cache_;
+    atomic::memory_barrier();
+
+    Class* const recv_class = recv->lookup_begin(state);
+
+    if(likely(mce && mce->receiver_class() == recv_class)) return mce;
+
+    MethodMissingReason reason =
+      fill_public(state, call_frame->self(), name, recv_class, mce);
+    if(reason != eNone) return 0;
+
+    update_seen_classes(mce);
+    call_frame->cm->write_barrier(state, mce);
+
+    return mce;
   }
 
-  bool InlineCache::update_and_validate(STATE, CallFrame* call_frame, Object* recv) {
-    if(valid_p(state, recv)) return true;
+  MethodCacheEntry* InlineCache::update_and_validate_private(STATE, CallFrame* call_frame, Object* recv) {
+    MethodCacheEntry* mce = cache_;
+    atomic::memory_barrier();
 
-    set_klass(recv->lookup_begin(state));
+    Class* const recv_class = recv->lookup_begin(state);
 
-    MethodMissingReason reason = fill_public(state, call_frame->self(), name);
-    if(reason != eNone) return false;
+    if(likely(mce && mce->receiver_class() == recv_class)) return mce;
 
-    update_seen_classes();
-    run_wb(state, call_frame->cm);
+    if(!fill_private(state, name, recv_class, recv_class, mce)) return 0;
 
-    return true;
-  }
+    update_seen_classes(mce);
+    call_frame->cm->write_barrier(state, mce);
 
-  bool InlineCache::update_and_validate_private(STATE, CallFrame* call_frame, Object* recv) {
-    if(valid_p(state, recv)) return true;
-
-    set_klass(recv->lookup_begin(state));
-
-    if(!fill_private(state, name, klass())) {
-      return false;
-    }
-
-    update_seen_classes();
-    run_wb(state, call_frame->cm);
-
-    return true;
+    return mce;
   }
 
   Object* InlineCache::empty_cache_custom(STATE, InlineCache* cache, CallFrame* call_frame,
                                           Arguments& args)
   {
+    MethodCacheEntry* mce = cache->cache_;
+    atomic::memory_barrier();
+
     args.set_name(cache->name);
     Object* const recv = args.recv();
     Array*  ary = Array::create(state, args.total() + 2);
@@ -275,7 +290,7 @@ namespace rubinius {
 
       cache->execute_backend_ = check_cache_custom;
 
-      return cu->execute(state, call_frame, cu, cache->method, cache->module, args);
+      return cu->execute(state, call_frame, cu, mce->method(), mce->stored_module(), args);
     } else {
       Exception::internal_error(state, call_frame, "bind_call must return CallUnit");
       return 0;
@@ -285,8 +300,12 @@ namespace rubinius {
   Object* InlineCache::check_cache_custom(STATE, InlineCache* cache,
       CallFrame* call_frame, Arguments& args)
   {
+    MethodCacheEntry* mce = cache->cache_;
+    atomic::memory_barrier();
+
     args.set_name(cache->name);
-    return cache->call_unit_->execute(state, call_frame, cache->call_unit_, cache->method, cache->module, args);
+    return cache->call_unit_->execute(state, call_frame, cache->call_unit_,
+                                      mce->method(), mce->stored_module(), args);
   }
 
 
@@ -294,22 +313,21 @@ namespace rubinius {
   Object* InlineCache::empty_cache(STATE, InlineCache* cache, CallFrame* call_frame,
                                    Arguments& args)
   {
-    // spin.
-    while(!atomic::compare_and_swap(&cache->private_lock_, 0, 1));
-
     args.set_name(cache->name);
     Object* const recv = args.recv();
-    cache->set_klass(recv->lookup_begin(state));
+    Class* const recv_class = recv->lookup_begin(state);
+
+    MethodCacheEntry* mce = 0;
 
     MethodMissingReason reason =
-      cache->fill_public(state, call_frame->self(), cache->name);
+      cache->fill_public(state, call_frame->self(), cache->name,
+                         recv_class, mce);
 
     if(reason != eNone) {
       state->set_method_missing_reason(reason);
 
-      if(!cache->fill_method_missing(state, cache->klass())) {
+      if(!cache->fill_method_missing(state, recv_class, mce)) {
         Exception::internal_error(state, call_frame, "no method_missing");
-        cache->private_lock_ = 0;
         return 0;
       }
 
@@ -327,7 +345,9 @@ namespace rubinius {
       }
     }
 
-    cache->update_seen_classes();
+    cache->cache_ = mce;
+    while(!atomic::compare_and_swap(&cache->private_lock_, 0, 1));
+    cache->update_seen_classes(mce);
 
     // This is important! We need to inc the hits here, otherwise if
     // we flush a lot (like in the poly_method benchmark), then legitly
@@ -336,19 +356,12 @@ namespace rubinius {
     // case only.
     cache->inc_hits();
 
-    cache->run_wb(state, call_frame->cm);
-
-    /*
-    // If we overflow, disable the cache.
-    if(cache->seen_classes_overflow() > 0) {
-      cache->execute_backend_ = disabled_cache;
-    }
-    */
-
-    Executable* meth = cache->method;
-    Module* mod = cache->module;
-
     cache->private_lock_ = 0;
+
+    call_frame->cm->write_barrier(state, mce);
+
+    Executable* meth = mce->method();
+    Module* mod = mce->stored_module();
 
     return meth->execute(state, call_frame, meth, mod, args);
   }
@@ -356,19 +369,17 @@ namespace rubinius {
   Object* InlineCache::empty_cache_private(STATE, InlineCache* cache, CallFrame* call_frame,
                                    Arguments& args)
   {
-    // spin.
-    while(!atomic::compare_and_swap(&cache->private_lock_, 0, 1));
-
     args.set_name(cache->name);
     Object* const recv = args.recv();
-    cache->set_klass(recv->lookup_begin(state));
+    Class* const recv_class = recv->lookup_begin(state);
 
-    if(!cache->fill_private(state, cache->name, cache->klass())) {
+    MethodCacheEntry* mce = 0;
+
+    if(!cache->fill_private(state, cache->name, recv_class, recv_class, mce)) {
       state->set_method_missing_reason(eNormal);
 
-      if(!cache->fill_method_missing(state, cache->klass())) {
+      if(!cache->fill_method_missing(state, recv_class, mce)) {
         Exception::internal_error(state, call_frame, "no method_missing");
-        cache->private_lock_ = 0;
         return 0;
       }
 
@@ -378,20 +389,23 @@ namespace rubinius {
       cache->execute_backend_ = check_cache;
     }
 
-    cache->update_seen_classes();
-    cache->run_wb(state, call_frame->cm);
+    cache->cache_ = mce;
+    while(!atomic::compare_and_swap(&cache->private_lock_, 0, 1));
+    cache->update_seen_classes(mce);
 
-    /*
-    // If we overflow, disable the cache.
-    if(cache->seen_classes_overflow() > 0) {
-      cache->execute_backend_ = disabled_cache_private;
-    }
-    */
-
-    Executable* meth = cache->method;
-    Module* mod = cache->module;
+    // This is important! We need to inc the hits here, otherwise if
+    // we flush a lot (like in the poly_method benchmark), then legitly
+    // used classes will never be recorded, because they'll get kicked out
+    // with hits == 0, since before we'd inc_hits() in the cache hit
+    // case only.
+    cache->inc_hits();
 
     cache->private_lock_ = 0;
+
+    call_frame->cm->write_barrier(state, mce);
+
+    Executable* meth = mce->method();
+    Module* mod = mce->stored_module();
 
     return meth->execute(state, call_frame, meth, mod, args);
   }
@@ -399,19 +413,17 @@ namespace rubinius {
   Object* InlineCache::empty_cache_vcall(STATE, InlineCache* cache, CallFrame* call_frame,
                                          Arguments& args)
   {
-    // spin.
-    while(!atomic::compare_and_swap(&cache->private_lock_, 0, 1));
-
     args.set_name(cache->name);
     Object* const recv = args.recv();
-    cache->set_klass(recv->lookup_begin(state));
+    Class* const recv_class = recv->lookup_begin(state);
 
-    if(!cache->fill_private(state, cache->name, cache->klass())) {
+    MethodCacheEntry* mce = 0;
+
+    if(!cache->fill_private(state, cache->name, recv_class, recv_class, mce)) {
       state->set_method_missing_reason(eVCall);
 
-      if(!cache->fill_method_missing(state, cache->klass())) {
+      if(!cache->fill_method_missing(state, recv_class, mce)) {
         Exception::internal_error(state, call_frame, "no method_missing");
-        cache->private_lock_ = 0;
         return 0;
       }
 
@@ -421,20 +433,23 @@ namespace rubinius {
       cache->execute_backend_ = check_cache;
     }
 
-    cache->update_seen_classes();
-    cache->run_wb(state, call_frame->cm);
+    cache->cache_ = mce;
+    while(!atomic::compare_and_swap(&cache->private_lock_, 0, 1));
+    cache->update_seen_classes(mce);
 
-    /*
-    // If we overflow, disable the cache.
-    if(cache->seen_classes_overflow() > 0) {
-      cache->execute_backend_ = disabled_cache_private;
-    }
-    */
-
-    Executable* meth = cache->method;
-    Module* mod = cache->module;
+    // This is important! We need to inc the hits here, otherwise if
+    // we flush a lot (like in the poly_method benchmark), then legitly
+    // used classes will never be recorded, because they'll get kicked out
+    // with hits == 0, since before we'd inc_hits() in the cache hit
+    // case only.
+    cache->inc_hits();
 
     cache->private_lock_ = 0;
+
+    call_frame->cm->write_barrier(state, mce);
+
+    Executable* meth = mce->method();
+    Module* mod = mce->stored_module();
 
     return meth->execute(state, call_frame, meth, mod, args);
   }
@@ -442,23 +457,21 @@ namespace rubinius {
   Object* InlineCache::empty_cache_super(STATE, InlineCache* cache, CallFrame* call_frame,
                                    Arguments& args)
   {
-    // spin.
-    while(!atomic::compare_and_swap(&cache->private_lock_, 0, 1));
-
     args.set_name(cache->name);
     Object* const recv = args.recv();
-    Class* const klass = recv->lookup_begin(state);
-    cache->set_klass(klass);
+    Class* const recv_class = recv->lookup_begin(state);
+
+    MethodCacheEntry* mce = 0;
 
     Module* const start = call_frame->module()->superclass();
 
-    if(start->nil_p() || !cache->fill_private(state, cache->name, start)) {
+    if(start->nil_p() || !cache->fill_private(state, cache->name, start, recv_class, mce)) {
       state->set_method_missing_reason(eSuper);
 
       // Don't use start when looking up method_missing!
       // Always completely redispatch for method_missing.
       // github#157
-      if(!cache->fill_method_missing(state,  klass)) {
+      if(!cache->fill_method_missing(state, recv_class, mce)) {
         Exception::internal_error(state, call_frame, "no method_missing");
         cache->private_lock_ = 0;
         return 0;
@@ -470,20 +483,23 @@ namespace rubinius {
       cache->execute_backend_ = check_cache;
     }
 
-    cache->update_seen_classes();
-    cache->run_wb(state, call_frame->cm);
+    cache->cache_ = mce;
+    while(!atomic::compare_and_swap(&cache->private_lock_, 0, 1));
+    cache->update_seen_classes(mce);
 
-    /*
-    // If we overflow, disable the cache.
-    if(cache->seen_classes_overflow() > 0) {
-      cache->execute_backend_ = disabled_cache_super;
-    }
-    */
-
-    Executable* meth = cache->method;
-    Module* mod = cache->module;
+    // This is important! We need to inc the hits here, otherwise if
+    // we flush a lot (like in the poly_method benchmark), then legitly
+    // used classes will never be recorded, because they'll get kicked out
+    // with hits == 0, since before we'd inc_hits() in the cache hit
+    // case only.
+    cache->inc_hits();
 
     cache->private_lock_ = 0;
+
+    call_frame->cm->write_barrier(state, mce);
+
+    Executable* meth = mce->method();
+    Module* mod = mce->stored_module();
 
     return meth->execute(state, call_frame, meth, mod, args);
   }
@@ -491,22 +507,18 @@ namespace rubinius {
   Object* InlineCache::check_cache_fixnum(STATE, InlineCache* cache,
       CallFrame* call_frame, Arguments& args)
   {
-    // spin.
-    while(!atomic::compare_and_swap(&cache->private_lock_, 0, 1));
+    MethodCacheEntry* mce = cache->cache_;
+    atomic::memory_barrier();
 
     args.set_name(cache->name);
-    if(likely(args.recv()->fixnum_p())) {
+    if(likely(mce && args.recv()->fixnum_p())) {
       cache->inc_hits();
 
-      Executable* meth = cache->method;
-      Module* mod = cache->module;
-
-      cache->private_lock_ = 0;
+      Executable* meth = mce->method();
+      Module* mod = mce->stored_module();
 
       return meth->execute(state, call_frame, meth, mod, args);
     }
-
-    cache->private_lock_ = 0;
 
     return cache->initialize(state, call_frame, args);
   }
@@ -514,22 +526,18 @@ namespace rubinius {
   Object* InlineCache::check_cache_symbol(STATE, InlineCache* cache,
       CallFrame* call_frame, Arguments& args)
   {
-    // spin.
-    while(!atomic::compare_and_swap(&cache->private_lock_, 0, 1));
+    MethodCacheEntry* mce = cache->cache_;
+    atomic::memory_barrier();
 
     args.set_name(cache->name);
-    if(likely(args.recv()->symbol_p())) {
+    if(likely(mce && args.recv()->symbol_p())) {
       cache->inc_hits();
 
-      Executable* meth = cache->method;
-      Module* mod = cache->module;
-
-      cache->private_lock_ = 0;
+      Executable* meth = mce->method();
+      Module* mod = mce->stored_module();
 
       return meth->execute(state, call_frame, meth, mod, args);
     }
-
-    cache->private_lock_ = 0;
 
     return cache->initialize(state, call_frame, args);
   }
@@ -537,24 +545,21 @@ namespace rubinius {
   Object* InlineCache::check_cache_reference(STATE, InlineCache* cache,
       CallFrame* call_frame, Arguments& args)
   {
-    // spin.
-    while(!atomic::compare_and_swap(&cache->private_lock_, 0, 1));
+    MethodCacheEntry* mce = cache->cache_;
+    atomic::memory_barrier();
 
     args.set_name(cache->name);
     Object* const recv = args.recv();
-    if(likely(recv->reference_p() &&
-              recv->reference_class() == cache->klass())) {
+
+    if(likely(mce && recv->reference_p() &&
+              recv->reference_class() == mce->receiver_class())) {
       cache->inc_hits();
 
-      Executable* meth = cache->method;
-      Module* mod = cache->module;
-
-      cache->private_lock_ = 0;
+      Executable* meth = mce->method();
+      Module* mod = mce->stored_module();
 
       return meth->execute(state, call_frame, meth, mod, args);
     }
-
-    cache->private_lock_ = 0;
 
     return cache->initialize(state, call_frame, args);
   }
@@ -562,22 +567,18 @@ namespace rubinius {
   Object* InlineCache::check_cache(STATE, InlineCache* cache, CallFrame* call_frame,
                                    Arguments& args)
   {
-    // spin.
-    while(!atomic::compare_and_swap(&cache->private_lock_, 0, 1));
+    MethodCacheEntry* mce = cache->cache_;
+    atomic::memory_barrier();
 
     args.set_name(cache->name);
-    if(likely(cache->valid_p(state, args.recv()))) {
+    if(likely(mce && mce->receiver_class() == args.recv()->lookup_begin(state))) {
       cache->inc_hits();
 
-      Executable* meth = cache->method;
-      Module* mod = cache->module;
-
-      cache->private_lock_ = 0;
+      Executable* meth = mce->method();
+      Module* mod = mce->stored_module();
 
       return meth->execute(state, call_frame, meth, mod, args);
     }
-
-    cache->private_lock_ = 0;
 
     return cache->initialize(state, call_frame, args);
   }
@@ -585,95 +586,28 @@ namespace rubinius {
   Object* InlineCache::check_cache_mm(STATE, InlineCache* cache, CallFrame* call_frame,
                                    Arguments& args)
   {
-    // spin.
-    while(!atomic::compare_and_swap(&cache->private_lock_, 0, 1));
+    MethodCacheEntry* mce = cache->cache_;
+    atomic::memory_barrier();
 
     args.set_name(cache->name);
-    if(likely(cache->valid_p(state, args.recv()))) {
+    if(likely(mce && mce->receiver_class() == args.recv()->lookup_begin(state))) {
       cache->inc_hits();
+
       args.unshift(state, cache->name);
 
-      Executable* meth = cache->method;
-      Module* mod = cache->module;
-
-      cache->private_lock_ = 0;
+      Executable* meth = mce->method();
+      Module* mod = mce->stored_module();
 
       return meth->execute(state, call_frame, meth, mod, args);
     }
 
-    cache->private_lock_ = 0;
-
     return cache->initialize(state, call_frame, args);
   }
 
-  Object* InlineCache::disabled_cache(STATE, InlineCache* cache, CallFrame* call_frame,
-                                      Arguments& args)
-  {
-    args.set_name(cache->name);
-    MethodMissingReason reason = 
-      cache->fill_public(state, call_frame->self(), cache->name);
-
-    if(reason != eNone) {
-      state->set_method_missing_reason(reason);
-
-      if(!cache->fill_method_missing(state, cache->klass())) {
-        Exception::internal_error(state, call_frame, "no method_missing");
-        return 0;
-      }
-
-      args.unshift(state, cache->name);
-    }
-
-    cache->run_wb(state, call_frame->cm);
-
-    return cache->method->execute(state, call_frame, cache->method, cache->module, args);
-  }
-
-  Object* InlineCache::disabled_cache_private(STATE, InlineCache* cache, CallFrame* call_frame,
-                                      Arguments& args)
-  {
-    args.set_name(cache->name);
-    if(!cache->fill_private(state, cache->name, cache->klass())) {
-      if(!cache->fill_method_missing(state, cache->klass())) {
-        Exception::internal_error(state, call_frame, "no method_missing");
-        return 0;
-      }
-
-      args.unshift(state, cache->name);
-    }
-
-    cache->run_wb(state, call_frame->cm);
-
-    return cache->method->execute(state, call_frame, cache->method, cache->module, args);
-  }
-
-  Object* InlineCache::disabled_cache_super(STATE, InlineCache* cache, CallFrame* call_frame,
-                                   Arguments& args)
-  {
-    args.set_name(cache->name);
-    Module* const start = call_frame->module()->superclass();
-
-    if(!cache->fill_private(state, cache->name, start)) {
-      state->set_method_missing_reason(eSuper);
-
-      // Don't use start when looking up method_missing!
-      // Always completely redispatch for method_missing.
-      // github#157
-      if(!cache->fill_method_missing(state,  args.recv()->lookup_begin(state))) {
-        Exception::internal_error(state, call_frame, "no method_missing");
-        return 0;
-      }
-
-      args.unshift(state, cache->name);
-    }
-
-    return cache->method->execute(state, call_frame, cache->method, cache->module, args);
-  }
-
-  void InlineCache::update_seen_classes() {
+  void InlineCache::update_seen_classes(MethodCacheEntry* mce) {
     for(int i = 0; i < cTrackedICHits; i++) {
       Module* mod = seen_classes_[i].klass();
-      if(mod == klass_) {
+      if(mod == mce->receiver_class()) {
         hits_ = seen_classes_[i].hits_address();
         return;
 
@@ -681,7 +615,7 @@ namespace rubinius {
       // entries that are stored here, but never used.
       } else if(seen_classes_[i].hits() == 0) {
         // An empty space, record it.
-        hits_ = seen_classes_[i].assign(klass_);
+        hits_ = seen_classes_[i].assign(mce->receiver_class());
         return;
       }
     }

@@ -19,6 +19,7 @@
 #include "builtin/integer.hpp"
 #include "builtin/float.hpp"
 #include "builtin/location.hpp"
+#include "builtin/cache.hpp"
 
 #include "instruments/profiler.hpp"
 
@@ -420,9 +421,11 @@ extern "C" {
   Object* rbx_check_serial(STATE, CallFrame* call_frame, InlineCache* cache,
                            int serial, Object* recv)
   {
-    if(cache->update_and_validate(state, call_frame, recv) &&
-         cache->method->serial()->to_native() == serial) {
-      return Qtrue;
+    if(cache->update_and_validate(state, call_frame, recv)) {
+      MethodCacheEntry* mce = cache->cache();
+      atomic::memory_barrier();
+
+      if(mce && mce->method()->serial()->to_native() == serial) return Qtrue;
     }
 
     return Qfalse;
@@ -431,9 +434,11 @@ extern "C" {
   Object* rbx_check_serial_private(STATE, CallFrame* call_frame, InlineCache* cache,
                            int serial, Object* recv)
   {
-    if(cache->update_and_validate(state, call_frame, recv) &&
-         cache->method->serial()->to_native() == serial) {
-      return Qtrue;
+    if(cache->update_and_validate_private(state, call_frame, recv)) {
+      MethodCacheEntry* mce = cache->cache();
+      atomic::memory_barrier();
+
+      if(mce && mce->method()->serial()->to_native() == serial) return Qtrue;
     }
 
     return Qfalse;

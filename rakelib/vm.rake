@@ -134,6 +134,7 @@ field_extract_headers = %w[
   vm/builtin/thunk.hpp
   vm/builtin/call_unit.hpp
   vm/builtin/call_unit_adapter.hpp
+  vm/builtin/cache.hpp
 ]
 
 # TODO: all external libraries should have proper dependencies.
