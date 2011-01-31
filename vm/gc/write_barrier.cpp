@@ -65,6 +65,32 @@ namespace gc {
   }
 
   /**
+   * Removes objects in the remember set that do not have the specified mark.
+   */
+  int WriteBarrier::unremember_objects(unsigned int mark) {
+    int cleared = 0;
+    Object* tmp;
+
+    for(ObjectArray::iterator oi = remember_set_->begin();
+        oi != remember_set_->end();
+        oi++) {
+      tmp = *oi;
+      // unremember_object throws a NULL in to remove an object
+      // so we don't have to compact the set in unremember
+      if(tmp) {
+        assert(tmp->zone() == MatureObjectZone);
+        assert(!tmp->forwarded_p());
+
+        if(!tmp->marked_p(mark)) {
+          cleared++;
+          *oi = NULL;
+        }
+      }
+    }
+    return cleared;
+  }
+
+  /**
    * Returns the current contents of the remember set, and then sets up a new,
    * empty remember set.
    * Note: It is the responsibility of the caller to dispose of the returned

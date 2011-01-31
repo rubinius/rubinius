@@ -208,49 +208,16 @@ namespace rubinius {
     // properly.
     allocator_.get_new_block();
 
-    ObjectArray *current_rs = object_memory_->remember_set();
-
+    // Clear unreachable objects from the various remember sets
     int cleared = 0;
-
-    for(ObjectArray::iterator oi = current_rs->begin();
-        oi != current_rs->end();
-        oi++) {
-      tmp = *oi;
-      // unremember_object throws a NULL in to remove an object
-      // so we don't have to compact the set in unremember
-      if(tmp) {
-        assert(tmp->zone() == MatureObjectZone);
-        assert(!tmp->forwarded_p());
-
-        if(!tmp->marked_p(object_memory_->mark())) {
-          cleared++;
-          *oi = NULL;
-        }
-      }
-    }
-
+    unsigned int mark = object_memory_->mark();
+    cleared = object_memory_->unremember_objects(mark);
     for(std::list<gc::WriteBarrier*>::iterator wbi = object_memory_->aux_barriers().begin();
         wbi != object_memory_->aux_barriers().end();
         wbi++) {
       gc::WriteBarrier* wb = *wbi;
-      ObjectArray* rs = wb->remember_set();
-      for(ObjectArray::iterator oi = rs->begin();
-          oi != rs->end();
-          oi++) {
-        tmp = *oi;
-
-        if(tmp) {
-          assert(tmp->zone() == MatureObjectZone);
-          assert(!tmp->forwarded_p());
-
-          if(!tmp->marked_p(object_memory_->mark())) {
-            cleared++;
-            *oi = NULL;
-          }
-        }
-      }
+      cleared += wb->unremember_objects(mark);
     }
-
 
     // Now, calculate how much space we're still using.
     immix::Chunks& chunks = gc_.block_allocator().chunks();

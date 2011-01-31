@@ -76,6 +76,8 @@ namespace gc {
 
     // Removes the mature Object +target+ from the remembered set.
     void unremember_object(Object* target);
+    // Removes objects from the remember set that do not have the specified mark.
+    int unremember_objects(unsigned int mark);
 
     // Returns the current remember set, and replaces it with a new, empty one.
     ObjectArray* swap_remember_set();
