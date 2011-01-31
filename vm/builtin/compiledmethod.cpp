@@ -103,9 +103,6 @@ namespace rubinius {
       if(lock(state) != eLocked) rubinius::abort();
       if(!backend_method_) {
         {
-          timer::Running<double, timer::milliseconds> tr(
-              state->shared.stats.verification_time);
-
           BytecodeVerification bv(this);
           if(!bv.verify(state)) {
             if(reason) *reason = bv.failure_reason();

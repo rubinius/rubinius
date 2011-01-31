@@ -7,7 +7,6 @@
 #define GCC_SYNC 1
 
 #elif defined(__APPLE__)
-#include <libkern/OSAtomic.h>
 #define APPLE_SYNC 1
 
 #elif defined(_LP64) || defined(__LP64__) || defined(__x86_64__) || defined(__amd64__)
@@ -20,15 +19,37 @@
 
 #endif
 
+// __sync_synchronize() was very broken until 4.4, so ignore it until then
+#if (__GNUC__ > 4) || ((__GNUC__ == 4) && (__GNUC_MINOR__ >= 4))
+#define GCC_BARRIER 1
+
+#elif defined(_LP64) || defined(__LP64__) || defined(__x86_64__) || defined(__amd64__)
+#define X86_BARRIER 1
+
+#elif defined(i386) || defined(__i386) || defined(__i386__)
+#define X86_BARRIER 1
+
+// Last so we prefer the raw instructions on x86
+#elif defined(__APPLE__)
+#define APPLE_BARRIER 1
+
+#endif
+
+#if defined(APPLE_SYNC) || defined(APPLE_BARRIER)
+#include <libkern/OSAtomic.h>
+#endif
+
 namespace atomic {
 
   inline void memory_barrier() {
-#if defined(GCC_SYNC)
+#if defined(GCC_BARRIER)
     __sync_synchronize();
-#elif defined(APPLE_SYNC)
+#elif defined(APPLE_BARRIER)
     OSMemoryBarrier();
-#elif defined(X86_SYNC)
+#elif defined(X86_BARRIER)
     __asm__ __volatile__ ("mfence" ::: "memory");
+#else
+#error "no memory barrier implementation"
 #endif
   }
 
@@ -115,6 +136,32 @@ namespace atomic {
 #error "no sync prims defined"
 #endif
   }
+
+  template <typename intish>
+  inline intish fetch_and_add(intish* ptr, intish inc) {
+#if defined(GCC_SYNC)
+    return __sync_fetch_and_add(ptr, inc);
+#else
+    intish val = *ptr;
+    while(!compare_and_swap(ptr, val, val + inc)) {
+      val = *ptr;
+    }
+#endif
+  }
+
+  template <typename intish>
+  inline intish fetch_and_sub(intish* ptr, intish inc) {
+#if defined(GCC_SYNC)
+    return __sync_fetch_and_sub(ptr, inc);
+#else
+    intish val = *ptr;
+    while(!compare_and_swap(ptr, val, val - inc)) {
+      val = *ptr;
+    }
+#endif
+  }
 }
+
+#include "util/atomic_types.hpp"
 
 #endif

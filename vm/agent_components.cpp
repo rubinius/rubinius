@@ -406,6 +406,21 @@ namespace agent {
     }
   };
 
+  class ReadAtomicInteger : public DynamicVariable {
+    atomic::integer& ai_;
+
+  public:
+    ReadAtomicInteger(const char* name, atomic::integer& ai)
+      : DynamicVariable(name)
+      , ai_(ai)
+    {}
+
+    virtual void read(Output& output) {
+      output.ok("value");
+      output.e().write_integer(ai_.read());
+    }
+  };
+
   class ReadDouble : public DynamicVariable {
     double* ptr_;
 
@@ -440,6 +455,7 @@ namespace agent {
   VariableAccess::VariableAccess(STATE, SharedState& ss)
     : root_(new Tree(""))
   {
+    root_->add(new StaticInteger<int>("version", 2));
     root_->add(new VMConfig(ss, "config"));
 
     system_ = root_->get_tree("system");
@@ -467,36 +483,43 @@ namespace agent {
     symbols->add(new ReadInteger<size_t>("bytes", &ss.symbols.bytes_used()));
 
     Tree* counter = mem->get_tree("counter");
-    counter->add(new ReadInteger<uint64_t>("young_objects", &state->om->gc_stats.young_objects_allocated));
-    counter->add(new ReadInteger<uint64_t>("young_bytes", &state->om->gc_stats.young_bytes_allocated));
-    counter->add(new ReadInteger<uint64_t>("promoted_objects", &state->om->gc_stats.promoted_objects_allocated));
-    counter->add(new ReadInteger<uint64_t>("promoted_bytes", &state->om->gc_stats.promoted_bytes_allocated));
-    counter->add(new ReadInteger<uint64_t>("mature_objects", &state->om->gc_stats.mature_objects_allocated));
-    counter->add(new ReadInteger<uint64_t>("mature_bytes", &state->om->gc_stats.mature_bytes_allocated));
+    counter->add(new ReadAtomicInteger("young_objects",
+                       state->om->gc_stats.young_objects_allocated));
+    counter->add(new ReadAtomicInteger("young_bytes",
+                       state->om->gc_stats.young_bytes_allocated));
+    counter->add(new ReadAtomicInteger("promoted_objects",
+                       state->om->gc_stats.promoted_objects_allocated));
+    counter->add(new ReadAtomicInteger("promoted_bytes",
+                       state->om->gc_stats.promoted_bytes_allocated));
+    counter->add(new ReadAtomicInteger("mature_objects",
+                       state->om->gc_stats.mature_objects_allocated));
+    counter->add(new ReadAtomicInteger("mature_bytes",
+                       state->om->gc_stats.mature_bytes_allocated));
 
     Tree* gc_young = system_->get_tree("gc")->get_tree("young");
 
-    gc_young->add(new ReadInteger<uint64_t>("count", &state->om->gc_stats.young_collection_count));
-    gc_young->add(new ReadInteger<uint64_t>("total_wallclock", &state->om->gc_stats.total_young_collection_time));
-    gc_young->add(new ReadInteger<uint64_t>("last_wallclock", &state->om->gc_stats.last_young_collection_time));
+    gc_young->add(new ReadAtomicInteger("count",
+                       state->om->gc_stats.young_collection_count));
+    gc_young->add(new ReadAtomicInteger("total_wallclock",
+                       state->om->gc_stats.total_young_collection_time));
+    gc_young->add(new ReadAtomicInteger("last_wallclock",
+                       state->om->gc_stats.last_young_collection_time));
 
     Tree* gc_full = system_->get_tree("gc")->get_tree("full");
-    gc_full->add(new ReadInteger<uint64_t>("count", &state->om->gc_stats.full_collection_count));
-    gc_full->add(new ReadInteger<uint64_t>("total_wallclock", &state->om->gc_stats.total_full_collection_time));
-    gc_full->add(new ReadInteger<uint64_t>("last_wallclock", &state->om->gc_stats.last_full_collection_time));
+    gc_full->add(new ReadAtomicInteger("count",
+                       state->om->gc_stats.full_collection_count));
+    gc_full->add(new ReadAtomicInteger("total_wallclock",
+                       state->om->gc_stats.total_full_collection_time));
+    gc_full->add(new ReadAtomicInteger("last_wallclock",
+                       state->om->gc_stats.last_full_collection_time));
 
     Tree* jit = system_->get_tree("jit");
-    jit->add(new ReadInteger<size_t>("methods", &ss.stats.jitted_methods));
-    jit->add(new ReadInteger<size_t>("time", &ss.stats.jit_time_spent));
+    jit->add(new ReadAtomicInteger("methods", ss.stats.jitted_methods));
+    jit->add(new ReadAtomicInteger("time", ss.stats.jit_time_spent));
 
     Tree* threads = system_->get_tree("threads");
     threads->add(new ThreadBacktrace(state, ss, "backtrace"));
     threads->add(new ThreadCount(state, ss, "count"));
-
-    Tree* timing = system_->get_tree("timing");
-    timing->add(new ReadDouble("verification",
-                                      &ss.stats.verification_time));
-
   }
 
   void VariableAccess::read_path(Output& output, const char* ipath) {

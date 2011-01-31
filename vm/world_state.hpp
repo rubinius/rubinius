@@ -10,7 +10,7 @@ namespace rubinius {
     int pending_threads_;
     bool should_stop_;
 
-    uint64_t time_waiting_;
+    atomic::integer time_waiting_;
 
   public:
     WorldState()
@@ -20,7 +20,7 @@ namespace rubinius {
     {}
 
     uint64_t time_waiting() {
-      return time_waiting_;
+      return time_waiting_.read();
     }
 
     /**
@@ -111,7 +111,7 @@ namespace rubinius {
       // For ourself..
       pending_threads_--;
 
-      timer::Running<uint64_t> timer(time_waiting_);
+      timer::Running<> timer(time_waiting_);
 
       while(pending_threads_ > 0) {
         if(cDebugThreading) {

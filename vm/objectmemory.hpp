@@ -55,39 +55,39 @@ namespace rubinius {
 
   struct GCStats {
 
-    uint64_t young_objects_allocated;
-    uint64_t young_bytes_allocated;
-    uint64_t promoted_objects_allocated;
-    uint64_t promoted_bytes_allocated;
-    uint64_t mature_objects_allocated;
-    uint64_t mature_bytes_allocated;
+    atomic::integer young_objects_allocated;
+    atomic::integer young_bytes_allocated;
+    atomic::integer promoted_objects_allocated;
+    atomic::integer promoted_bytes_allocated;
+    atomic::integer mature_objects_allocated;
+    atomic::integer mature_bytes_allocated;
 
-    uint64_t young_collection_count;
-    uint64_t full_collection_count;
+    atomic::integer young_collection_count;
+    atomic::integer full_collection_count;
 
-    uint64_t total_young_collection_time;
-    uint64_t total_full_collection_time;
-    uint64_t last_young_collection_time;
-    uint64_t last_full_collection_time;
+    atomic::integer total_young_collection_time;
+    atomic::integer total_full_collection_time;
+    atomic::integer last_young_collection_time;
+    atomic::integer last_full_collection_time;
 
     void young_object_allocated(uint64_t size) {
-      young_objects_allocated++;
-      young_bytes_allocated += size;
+      young_objects_allocated.inc();
+      young_bytes_allocated.add(size);
     }
 
     void promoted_object_allocated(uint64_t size) {
-      promoted_objects_allocated++;
-      promoted_bytes_allocated += size;
+      promoted_objects_allocated.inc();
+      promoted_bytes_allocated.add(size);
     }
 
     void mature_object_allocated(uint64_t size) {
-      mature_objects_allocated++;
-      mature_bytes_allocated += size;
+      mature_objects_allocated.inc();
+      mature_bytes_allocated.add(size);
     }
 
     void slab_allocated(uint64_t count, uint64_t size) {
-      young_objects_allocated += count;
-      young_bytes_allocated   += size;
+      young_objects_allocated.add(count);
+      young_bytes_allocated.add(size);
     }
 
     GCStats()

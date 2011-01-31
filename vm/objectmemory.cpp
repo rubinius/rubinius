@@ -607,8 +607,8 @@ step1:
   void ObjectMemory::collect_young(GCData& data, YoungCollectStats* stats) {
     collect_young_now = false;
 
-    timer::Running<uint64_t, 1000000> timer(gc_stats.total_young_collection_time,
-                                            gc_stats.last_young_collection_time);
+    timer::Running<1000000> timer(gc_stats.total_young_collection_time,
+                                  gc_stats.last_young_collection_time);
 
     // validate_handles(data.handles());
     // validate_handles(data.cached_handles());
@@ -649,8 +649,8 @@ step1:
     // validate_handles(data.handles());
     // validate_handles(data.cached_handles());
 
-    timer::Running<uint64_t, 1000000> timer(gc_stats.total_full_collection_time,
-                                            gc_stats.last_full_collection_time);
+    timer::Running<1000000> timer(gc_stats.total_full_collection_time,
+                                  gc_stats.last_full_collection_time);
 
     collect_mature_now = false;
 

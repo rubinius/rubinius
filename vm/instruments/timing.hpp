@@ -4,6 +4,7 @@
 #include <stdint.h>
 #include <stdlib.h>
 #include "detection.hpp"
+#include "util/atomic.hpp"
 
 // HACK figure out a better way to detect if we should use
 // mach_absolute_time
@@ -60,21 +61,21 @@ namespace timer {
   const int microseconds = 1000;
   const int seconds = 1000000000;
 
-  template <typename RT, int factor=1>
+  template <int factor=1>
   class Running {
-    RT& result_;
-    RT* last_;
+    atomic::integer& result_;
+    atomic::integer* last_;
     uint64_t start_;
 
   public:
-    Running(RT& result)
+    Running(atomic::integer& result)
       : result_(result)
       , last_(0)
     {
       start_ = get_current_time();
     }
 
-    Running(RT& result, RT& last)
+    Running(atomic::integer& result, atomic::integer& last)
       : result_(result)
       , last_(&last)
     {
@@ -83,9 +84,10 @@ namespace timer {
 
     ~Running() {
       uint64_t now = get_current_time();
-      uint64_t run = ((now - start_) / ((RT)factor));
-      if(last_) *last_ = run;
-      result_ += run;
+      uint64_t run = (now - start_) / ((uint64_t)factor);
+      if(last_) last_->set(run);
+
+      result_.add(run);
     }
   };
 }

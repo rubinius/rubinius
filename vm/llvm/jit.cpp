@@ -331,7 +331,7 @@ namespace rubinius {
 
         void* func = 0;
         {
-          timer::Running<size_t, 1000000> timer(ls_->shared().stats.jit_time_spent);
+          timer::Running<1000000> timer(ls_->shared().stats.jit_time_spent);
 
           if(req->is_block()) {
             jit.compile_block(ls_, req->method(), req->vmmethod());
@@ -667,7 +667,7 @@ namespace rubinius {
   }
 
   void LLVMState::remove(llvm::Function* func) {
-    shared_.stats.jitted_methods--;
+    shared_.stats.jitted_methods.dec();
 
     // Deallocate the JITed code
     engine_->freeMachineCodeForFunction(func);
