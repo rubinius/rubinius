@@ -41,9 +41,15 @@ namespace rubinius {
   }
 
   /**
-   * Understands how to read the inside of an object and find all references
-   * located within. It copies the objects pointed to, but does not follow into
-   * those further (i.e. not recursive)
+   * Scans the specified Object +obj+ for references to other Objects, and
+   * marks those Objects as reachable. Understands how to read the inside of
+   * an Object and find all references located within. For each reference
+   * found, it marks the object pointed to as live (which may trigger
+   * movement of the object in a copying garbage collector), but does not
+   * recursively scan into the referenced object (since such recursion could
+   * be arbitrarily deep, depending on the object graph, and this could cause
+   * the stack to blow up).
+   * /param obj The Object to be scanned for references to other Objects.
    */
   void GarbageCollector::scan_object(Object* obj) {
     Object* slot;
@@ -89,8 +95,8 @@ namespace rubinius {
 
 
   /**
-   * Removes an object from the remembered set, ensuring it will be collected
-   * if no other live references to the object exist.
+   * Removes a mature object from the remembered set, ensuring it will not keep
+   * alive any young objects if no other live references to those objects exist.
    */
   void GarbageCollector::delete_object(Object* obj) {
     if(obj->remembered_p()) {

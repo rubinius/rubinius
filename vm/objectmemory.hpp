@@ -106,6 +106,7 @@ namespace rubinius {
     {}
   };
 
+
   /**
    * ObjectMemory is the primary API that the rest of the VM uses to interact
    * with actions such as allocating objects, storing data in objects, and
@@ -140,16 +141,19 @@ namespace rubinius {
     /// Storage for all InflatedHeader instances.
     InflatedHeaders* inflated_headers_;
 
+    /// The current mark value used when marking objects.
     unsigned int mark_;
 
     /// Garbage collector for CodeResource objects.
     CodeManager code_manager_;
     std::list<FinalizeObject> finalize_;
     std::list<FinalizeObject*> to_finalize_;
+
+    /// Flag controlling whether garbage collections are allowed
     bool allow_gc_;
 
-    /// List of additional write-barriers that may hold references to young
-    /// objects.
+    /// List of additional write-barriers that may hold objects with references
+    /// to young objects.
     std::list<gc::WriteBarrier*> aux_barriers_;
 
     /// Size of slabs to be allocated to threads for lockless thread-local
@@ -159,14 +163,20 @@ namespace rubinius {
     /// True if finalizers are currently being run.
     bool running_finalizers_;
 
+    /// Mutex used to manage lock contention
     thread::Mutex contention_lock_;
+    /// Condition variable used to manage lock contention
     thread::Condition contention_var_;
 
   public:
+    /// Flag indicating whether a young collection should be performed soon
     bool collect_young_now;
+    /// Falg indicating whether a full collection should be performed soon
     bool collect_mature_now;
 
     VM* root_state_;
+    /// Counter used for issuing object ids when #object_id is called on a
+    /// Ruby object.
     size_t last_object_id;
     size_t last_snapshot_id;
     TypeInfo* type_info[(int)LastObjectType];
@@ -337,6 +347,15 @@ namespace rubinius {
   public:
     friend class ::TestObjectMemory;
 
+
+    /**
+     * Object used to prevent garbage collections from running for a short
+     * period while the memory is scanned, e.g. to find referrers to an
+     * object or take a snapshot of the heap. Typically, an instance of
+     * this class is created at the start of a method that requires the
+     * heap to be stable. When the method ends, the object goes out of
+     * scope and is destroyed, re-enabling garbage collections.
+     */
 
     class GCInhibit {
       ObjectMemory* om_;

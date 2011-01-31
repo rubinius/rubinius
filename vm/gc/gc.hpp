@@ -27,6 +27,14 @@ namespace rubinius {
     virtual Object* call(Object*) = 0;
   };
 
+
+  /**
+   * Holds all the root pointers from which garbage collections will commence.
+   * This includes the globally accessible Ruby objects such as class and
+   * module instances, global variables, etc, but also various handles that
+   * are used for FFI and CAPI.
+   */
+
   class GCData {
     Roots& roots_;
     capi::Handles* handles_;
@@ -76,7 +84,10 @@ namespace rubinius {
 
 
   /**
-   * Base class for the various garbage collectors.
+   * Abstract base class for the various garbage collector implementations.
+   * Defines the interface the VM will use to perform garbage collections,
+   * as well as providing implementations of common methods such as
+   * mark_object and scan_object.
    */
   class GarbageCollector {
   protected:
@@ -88,20 +99,29 @@ namespace rubinius {
     ObjectArray* weak_refs_;
 
   public:
+    /**
+     * Constructor; takes a pointer to ObjectMemory.
+     */
     GarbageCollector(ObjectMemory *om);
 
     virtual ~GarbageCollector() {
       if(weak_refs_) delete weak_refs_;
     }
 
-    /// Subclasses implement appropriate behaviour for handling a live object
-    /// encountered during garbage collection.
+    /**
+     * Subclasses implement appropriate behaviour for handling a live object
+     * encountered during garbage collection.
+     */
     virtual Object* saw_object(Object*) = 0;
+    // Scans the specified Object for references to other Objects.
     void scan_object(Object* obj);
     void delete_object(Object* obj);
     void walk_call_frame(CallFrame* top_call_frame);
     void saw_variable_scope(CallFrame* call_frame, StackVariables* scope);
 
+    /**
+     * Marks the specified Object +obj+ as live.
+     */
     Object* mark_object(Object* obj) {
       if(!obj || !obj->reference_p()) return obj;
       Object* tmp = saw_object(obj);
@@ -110,7 +130,7 @@ namespace rubinius {
     }
 
     void clean_weakrefs(bool check_forwards=false);
-
+    // Scans the thread for object references
     void scan(ManagedThread* thr, bool young_only);
     void scan(VariableRootBuffers& buffers, bool young_only);
     void scan(RootBuffers& rb, bool young_only);

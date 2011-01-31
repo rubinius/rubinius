@@ -76,6 +76,12 @@ namespace rubinius {
 
       int size(memory::Address addr);
 
+      /**
+       * Called when the immix::GC object wishes to mark an object.
+       *
+       * /returns true if the object is not already marked, and in the Immix
+       * space; otherwise false.
+       */
       bool mark_address(memory::Address addr, immix::MarkStack& ms) {
         Object* obj = addr.as<Object>();
 

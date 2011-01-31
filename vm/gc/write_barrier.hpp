@@ -7,8 +7,8 @@ namespace rubinius {
 namespace gc {
 
   /**
-   * A write barrier keeps track of references from older generations to the
-   * young generation.
+   * A write barrier keeps track of objects in the mature generation that hold
+   * references to objects in the young generation.
    *
    * A write barrier allows the young generation to be garbage collected without
    * inspecting every object in the older generations (mature and large object)
@@ -23,9 +23,14 @@ namespace gc {
    * the updated location is added to the remembered set if the store creates
    * a reference from an older generation object to a young generation object.
    *
-   * The remembered set is cleared on each collection of the young generation,
-   * as scanning objects during the collection will re-remember objects that
-   * continue to hold a reference to young generation objects.
+   * The remembered set is cleared on each collection of the young generation
+   * (via swap_remember_set), as scanning objects that were in the remember set
+   * as part of the young collection will re-remember mature objects that
+   * continue to hold a reference to (still) young objects.
+   *
+   * Additionally, when a full collection is performed, any mature objects
+   * that die are removed from the remember set (via unremember_object),
+   * ensuring they do not keep alive young objects they reference.
    */
 
   class WriteBarrier {
@@ -52,7 +57,7 @@ namespace gc {
     /**
      * Checks if the store is creating a reference from a mature generation
      * object (target) to a young generation object (val). If it is, the mature
-     * object is added to the remember set.
+     * object (+target+) is added to the remember set.
      *
      * \param target The object holding the reference (i.e. the referer).
      * \param val    The object being referenced (i.e. the referee).
@@ -66,13 +71,13 @@ namespace gc {
       remember_object(target);
     }
 
-    /// Adds the target object directly to the remembered set.
+    // Adds the target object directly to the remembered set.
     void remember_object(Object* target);
 
-    /// Removes the target object from the remembered set.
+    // Removes the mature Object +target+ from the remembered set.
     void unremember_object(Object* target);
 
-    /// Returns the current remember set, and replaces it with a new, empty one.
+    // Returns the current remember set, and replaces it with a new, empty one.
     ObjectArray* swap_remember_set();
   };
 

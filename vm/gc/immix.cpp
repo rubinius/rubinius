@@ -130,6 +130,9 @@ namespace rubinius {
     return cUnknown;
   }
 
+  /**
+   * Performs a garbage collection of the immix space.
+   */
   void ImmixGC::collect(GCData& data) {
     Object* tmp;
 
