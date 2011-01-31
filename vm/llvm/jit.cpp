@@ -271,6 +271,8 @@ namespace rubinius {
     }
 
     virtual void perform() {
+      set_name("rbx.jit");
+
       ManagedThread::set_current(ls_);
 
 #ifndef RBX_WINDOWS

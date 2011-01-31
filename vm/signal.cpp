@@ -78,6 +78,8 @@ namespace rubinius {
     pthread_sigmask(SIG_BLOCK, &set, NULL);
 #endif
 
+    set_name("rbx.signal-dispatch");
+
     for(;;) {
       fd_set fds;
       FD_ZERO(&fds);
