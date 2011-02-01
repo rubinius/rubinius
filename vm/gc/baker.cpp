@@ -58,9 +58,11 @@ namespace rubinius {
   Object* BakerGC::saw_object(Object* obj) {
     Object* copy;
 
+#ifdef ENABLE_OBJECT_WATCH
     if(watched_p(obj)) {
       std::cout << "detected " << obj << " during baker collection\n";
     }
+#endif
 
     if(!obj->reference_p()) return obj;
 
@@ -86,9 +88,11 @@ namespace rubinius {
       promoted_push(copy);
     }
 
+#ifdef ENABLE_OBJECT_WATCH
     if(watched_p(copy)) {
       std::cout << "detected " << copy << " during baker collection (2)\n";
     }
+#endif
 
     return copy;
   }

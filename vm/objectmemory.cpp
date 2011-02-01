@@ -78,7 +78,7 @@ namespace rubinius {
   ObjectMemory::~ObjectMemory() {
     mark_sweep_->free_objects();
 
-    // TODO free immix data
+    // @todo free immix data
 
     for(size_t i = 0; i < LastObjectType; i++) {
       if(type_info[i]) delete type_info[i];
@@ -440,9 +440,11 @@ step1:
 
     gc_stats.promoted_object_allocated(sz);
 
+#ifdef ENABLE_OBJECT_WATCH
     if(watched_p(obj)) {
       std::cout << "detected object " << obj << " during promotion.\n";
     }
+#endif
 
     return copy;
   }

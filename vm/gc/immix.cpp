@@ -102,9 +102,11 @@ namespace rubinius {
   }
 
   Object* ImmixGC::saw_object(Object* obj) {
+#ifdef ENABLE_OBJECT_WATCH
     if(watched_p(obj)) {
       std::cout << "detected " << obj << " during immix scanning.\n";
     }
+#endif
 
     if(!obj->reference_p()) return obj;
 

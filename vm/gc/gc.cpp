@@ -54,9 +54,11 @@ namespace rubinius {
   void GarbageCollector::scan_object(Object* obj) {
     Object* slot;
 
+#ifdef ENABLE_OBJECT_WATCH
     if(watched_p(obj)) {
       std::cout << "detected " << obj << " during scan_object.\n";
     }
+#endif
 
     // Check and update an inflated header
     if(obj->inflated_header_p()) {
