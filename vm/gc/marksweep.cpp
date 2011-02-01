@@ -47,9 +47,6 @@ namespace rubinius {
 
     // If the allocation failed, we return a NULL pointer
     if(unlikely(!obj)) {
-#ifdef RBX_GC_STATS
-        stats::GCStats::get()->allocate_mature.stop();
-#endif
         return NULL;
     }
 
