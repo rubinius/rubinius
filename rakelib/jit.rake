@@ -1,6 +1,6 @@
 namespace :jit do
-  task :generate_header do
-    puts "GEN vm/llvm/types.cpp.gen"
+  task :regenerate_header do
+    puts "GEN vm/llvm/types.ll, vm/llvm/types.cpp.gen"
 
     classes = %w!
                  rubinius::ObjectFlags
@@ -85,5 +85,51 @@ namespace :jit do
 
     `llvm-as < vm/gen/types.ll > vm/gen/types.bc`
     `vm/external_libs/llvm/Release/bin/llc -march=cpp -cppgen=contents -o vm/llvm/types.cpp.gen vm/gen/types.bc`
+  end
+
+  task :generate_header do
+    puts "GEN vm/llvm/types.cpp.gen"
+    `llvm-as < vm/llvm/types.ll > vm/gen/types.bc`
+    `vm/external_libs/llvm/Release/bin/llc -march=cpp -cppgen=contents -o vm/llvm/types.cpp.gen vm/gen/types.bc`
+  end
+
+  task :generate_offsets do
+    classes = {}
+    File.open "vm/llvm/types.ll" do |f|
+      while line = f.gets
+        if m1 = /%"?(struct|union)\.rubinius::([^"]*)"?\s*=\s*type\s*\{\n/.match(line)
+          line = f.gets
+
+          fields = []
+          while line.strip != "}"
+            if m2 = /;\s*(.*)/.match(line)
+              fields << m2[1].strip
+            else
+              fields << nil
+            end
+
+            line = f.gets
+          end
+
+          classes[m1[2]] = fields
+        end
+      end
+    end
+
+    File.open "vm/llvm/offset_specific.hpp", "w" do |f|
+      f.puts "namespace offset {"
+
+      classes.each do |name, fields|
+        f.puts "namespace #{name.gsub('::', '_')} {"
+        fields.each_with_index do |name, idx|
+          if name
+            f.puts "  const static int #{name} = #{idx};"
+          end
+        end
+        f.puts "}"
+      end
+
+      f.puts "}"
+    end
   end
 end

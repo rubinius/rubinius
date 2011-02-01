@@ -201,7 +201,7 @@ namespace rubinius {
 
       set_block(start);
 
-      ip_pos_ = b().CreateConstGEP2_32(call_frame_, 0, offset::cf_ip, "ip_pos");
+      ip_pos_ = b().CreateConstGEP2_32(call_frame_, 0, offset::CallFrame::ip, "ip_pos");
 
       global_serial_pos = b().CreateIntToPtr(
           ConstantInt::get(ls_->IntPtrTy, (intptr_t)ls_->shared().global_serial_address()),
@@ -234,13 +234,13 @@ namespace rubinius {
 
     Value* scope() {
       return b().CreateLoad(
-          b().CreateConstGEP2_32(call_frame_, 0, offset::cf_scope, "scope_pos"),
+          b().CreateConstGEP2_32(call_frame_, 0, offset::CallFrame::scope, "scope_pos"),
           "scope");
     }
 
     Value* top_scope() {
       return b().CreateLoad(
-          b().CreateConstGEP2_32(call_frame_, 0, offset::cf_top_scope, "top_scope_pos"),
+          b().CreateConstGEP2_32(call_frame_, 0, offset::CallFrame::top_scope, "top_scope_pos"),
           "top_scope");
     }
 
@@ -1099,7 +1099,7 @@ namespace rubinius {
     }
 
     Value* get_literal(opcode which) {
-      Value* gep = b().CreateConstGEP2_32(call_frame_, 0, offset::cf_cm, "cm_pos");
+      Value* gep = b().CreateConstGEP2_32(call_frame_, 0, offset::CallFrame::cm, "cm_pos");
       Value* cm =  b().CreateLoad(gep, "cm");
 
       gep = b().CreateConstGEP2_32(cm, 0, offset::cm_literals, "literals_pos");
@@ -2208,7 +2208,7 @@ use_send:
 
     void visit_push_scope() {
       Value* cm = b().CreateLoad(
-          b().CreateConstGEP2_32(call_frame_, 0, offset::cf_cm, "cm_pos"),
+          b().CreateConstGEP2_32(call_frame_, 0, offset::CallFrame::cm, "cm_pos"),
           "cm");
 
       Value* gep = b().CreateConstGEP2_32(cm, 0, offset::cm_static_scope, "scope_pos");

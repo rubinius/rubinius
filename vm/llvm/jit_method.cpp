@@ -373,20 +373,20 @@ namespace jit {
 
   void MethodBuilder::initialize_frame(int stack_size) {
     Value* exec = this->exec;
-    Value* cm_gep = get_field(call_frame, offset::cf_cm);
+    Value* cm_gep = get_field(call_frame, offset::CallFrame::cm);
     method = b().CreateBitCast(
         exec, cast<llvm::PointerType>(cm_gep->getType())->getElementType(), "cm");
 
     // previous
-    b().CreateStore(prev, get_field(call_frame, offset::cf_previous));
+    b().CreateStore(prev, get_field(call_frame, offset::CallFrame::previous));
 
     // arguments
-    b().CreateStore(args, get_field(call_frame, offset::cf_arguments));
+    b().CreateStore(args, get_field(call_frame, offset::CallFrame::arguments));
 
     // msg
     b().CreateStore(
         ConstantInt::getNullValue(ls_->Int8PtrTy),
-        get_field(call_frame, offset::cf_msg));
+        get_field(call_frame, offset::CallFrame::dispatch_data));
 
     // cm
     b().CreateStore(method, cm_gep);
@@ -397,20 +397,20 @@ namespace jit {
 
     b().CreateStore(
         ConstantInt::get(ls_->Int32Ty, flags),
-        get_field(call_frame, offset::cf_flags));
+        get_field(call_frame, offset::CallFrame::flags));
 
     // ip
     b().CreateStore(
         ConstantInt::get(ls_->Int32Ty, 0),
-        get_field(call_frame, offset::cf_ip));
+        get_field(call_frame, offset::CallFrame::ip));
 
     // scope
-    b().CreateStore(vars, get_field(call_frame, offset::cf_scope));
+    b().CreateStore(vars, get_field(call_frame, offset::CallFrame::scope));
 
     // jit_data
     b().CreateStore(
         constant(info_.context().runtime_data_holder(), ls_->Int8PtrTy),
-        get_field(call_frame, offset::cf_jit_data));
+        get_field(call_frame, offset::CallFrame::jit_data));
 
     if(ls_->include_profiling()) {
       Value* test = b().CreateLoad(ls_->profiling(), "profiling");

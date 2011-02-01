@@ -187,26 +187,26 @@ namespace jit {
   }
 
   void BlockBuilder::initialize_frame(int stack_size) {
-    Value* cm_gep = get_field(call_frame, offset::cf_cm);
+    Value* cm_gep = get_field(call_frame, offset::CallFrame::cm);
 
     method = b().CreateLoad(get_field(block_env, offset::blockenv_method),
                             "env.method");
 
     // previous
-    b().CreateStore(prev, get_field(call_frame, offset::cf_previous));
+    b().CreateStore(prev, get_field(call_frame, offset::CallFrame::previous));
 
     // static_scope
     Value* ss = b().CreateLoad(get_field(block_inv, offset::blockinv_static_scope),
                                "invocation.static_scope");
 
-    b().CreateStore(ss, get_field(call_frame, offset::cf_static_scope));
+    b().CreateStore(ss, get_field(call_frame, offset::CallFrame::static_scope));
 
     // arguments
-    b().CreateStore(args, get_field(call_frame, offset::cf_arguments));
+    b().CreateStore(args, get_field(call_frame, offset::CallFrame::arguments));
 
     // msg
     b().CreateStore(Constant::getNullValue(ls_->Int8PtrTy),
-        get_field(call_frame, offset::cf_msg));
+        get_field(call_frame, offset::CallFrame::dispatch_data));
 
     // cm
     b().CreateStore(method, cm_gep);
@@ -225,26 +225,26 @@ namespace jit {
     Value* flags = b().CreateOr(inv_flags,
         ConstantInt::get(ls_->Int32Ty, block_flags), "flags");
 
-    b().CreateStore(flags, get_field(call_frame, offset::cf_flags));
+    b().CreateStore(flags, get_field(call_frame, offset::CallFrame::flags));
 
     // ip
     b().CreateStore(ConstantInt::get(ls_->Int32Ty, 0),
-        get_field(call_frame, offset::cf_ip));
+        get_field(call_frame, offset::CallFrame::ip));
 
     // scope
-    b().CreateStore(vars, get_field(call_frame, offset::cf_scope));
+    b().CreateStore(vars, get_field(call_frame, offset::CallFrame::scope));
 
     // top_scope
     top_scope = b().CreateLoad(
         get_field(block_env, offset::blockenv_top_scope),
         "env.top_scope");
 
-    b().CreateStore(top_scope, get_field(call_frame, offset::cf_top_scope));
+    b().CreateStore(top_scope, get_field(call_frame, offset::CallFrame::top_scope));
 
     // jit_data
     b().CreateStore(
         constant(info_.context().runtime_data_holder(), ls_->Int8PtrTy),
-        get_field(call_frame, offset::cf_jit_data));
+        get_field(call_frame, offset::CallFrame::jit_data));
 
   }
 }

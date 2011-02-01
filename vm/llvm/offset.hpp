@@ -1,19 +1,9 @@
 #ifndef RBX_LLVM_OFFSET_HPP
 #define RBX_LLVM_OFFSET_HPP
 
-namespace offset {
-  const static int cf_previous = 0;
-  const static int cf_static_scope = 1;
-  const static int cf_msg = 2;
-  const static int cf_cm = 3;
-  const static int cf_flags = 4;
-  const static int cf_ip = 5;
-  const static int cf_jit_data = 6;
-  const static int cf_top_scope = 7;
-  const static int cf_scope = 8;
-  const static int cf_arguments = 9;
-  const static int cf_stk = 10;
+#include "llvm/offset_specific.hpp"
 
+namespace offset {
   const static int args_name = 0;
   const static int args_recv = 1;
   const static int args_block = 2;

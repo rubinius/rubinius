@@ -8,7 +8,6 @@
 #include "vm/object_utils.hpp"
 #include "objectmemory.hpp"
 #include "vm.hpp"
-#include "jit_state.h"
 #include "arguments.hpp"
 #include "dispatch.hpp"
 
