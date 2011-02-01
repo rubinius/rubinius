@@ -21,7 +21,7 @@ intptr_t thread_debug_self();
 
 #define pthread_check(expr) if((expr) != 0) { fail(#expr); }
 
-#ifdef __APPLE__ && __ENVIRONMENT_MAC_OS_X_VERSION_MIN_REQUIRED__ >= 1060
+#if defined(__APPLE__) && (__ENVIRONMENT_MAC_OS_X_VERSION_MIN_REQUIRED__ >= 1060)
 // This is behind a silly define, so we just pull it out here.
 extern "C" int pthread_setname_np(const char*);
 #define HAVE_PTHREAD_SETNAME

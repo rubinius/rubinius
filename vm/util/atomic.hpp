@@ -146,6 +146,7 @@ namespace atomic {
     while(!compare_and_swap(ptr, val, val + inc)) {
       val = *ptr;
     }
+    return val;
 #endif
   }
 
@@ -158,6 +159,7 @@ namespace atomic {
     while(!compare_and_swap(ptr, val, val - inc)) {
       val = *ptr;
     }
+    return val;
 #endif
   }
 }
