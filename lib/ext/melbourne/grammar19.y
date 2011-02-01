@@ -308,79 +308,87 @@ static NODE *extract_block_vars(rb_parse_state *parse_state, NODE* node, var_tab
     var_table vars;
 }
 
-%token  kCLASS
-        kMODULE
-        kDEF
-        kUNDEF
-        kBEGIN
-        kRESCUE
-        kENSURE
-        kEND
-        kIF
-        kUNLESS
-        kTHEN
-        kELSIF
-        kELSE
-        kCASE
-        kWHEN
-        kWHILE
-        kUNTIL
-        kFOR
-        kBREAK
-        kNEXT
-        kREDO
-        kRETRY
-        kIN
-        kDO
-        kDO_COND
-        kDO_BLOCK
-        kRETURN
-        kYIELD
-        kSUPER
-        kSELF
-        kNIL
-        kTRUE
-        kFALSE
-        kAND
-        kOR
-        kNOT
-        kIF_MOD
-        kUNLESS_MOD
-        kWHILE_MOD
-        kUNTIL_MOD
-        kRESCUE_MOD
-        kALIAS
-        kDEFINED
-        klBEGIN
-        klEND
-        k__LINE__
-        k__FILE__
+%token
+  keyword_class
+  keyword_module
+  keyword_def
+  keyword_undef
+  keyword_begin
+  keyword_rescue
+  keyword_ensure
+  keyword_end
+  keyword_if
+  keyword_unless
+  keyword_then
+  keyword_elsif
+  keyword_else
+  keyword_case
+  keyword_when
+  keyword_while
+  keyword_until
+  keyword_for
+  keyword_break
+  keyword_next
+  keyword_redo
+  keyword_retry
+  keyword_in
+  keyword_do
+  keyword_do_cond
+  keyword_do_block
+  keyword_do_LAMBDA
+  keyword_return
+  keyword_yield
+  keyword_super
+  keyword_self
+  keyword_nil
+  keyword_true
+  keyword_false
+  keyword_and
+  keyword_or
+  keyword_not
+  modifier_if
+  modifier_unless
+  modifier_while
+  modifier_until
+  modifier_rescue
+  keyword_alias
+  keyword_defined
+  keyword_BEGIN
+  keyword_END
+  keyword__LINE__
+  keyword__FILE__
+  keyword__ENCODING__
 
-%token <id>   tIDENTIFIER tFID tGVAR tIVAR tCONSTANT tCVAR tXSTRING_BEG
-%token <node> tINTEGER tFLOAT tSTRING_CONTENT
+%token <id>   tIDENTIFIER tFID tGVAR tIVAR tCONSTANT tCVAR tLABEL
+%token <node> tINTEGER tFLOAT tSTRING_CONTENT tCHAR
 %token <node> tNTH_REF tBACK_REF
 %token <num>  tREGEXP_END
+
 %type <node> singleton strings string string1 xstring regexp
-%type <node> string_contents xstring_contents string_content
+%type <node> string_contents xstring_contents regexp_contents string_content
 %type <node> words qwords word_list qword_list word
 %type <node> literal numeric dsym cpath
+%type <node> top_compstmt top_stmts top_stmt
 %type <node> bodystmt compstmt stmts stmt expr arg primary command command_call method_call
 %type <node> expr_value arg_value primary_value
 %type <node> if_tail opt_else case_body cases opt_rescue exc_list exc_var opt_ensure
-%type <node> args when_args call_args call_args2 open_args paren_args opt_paren_args
+%type <node> args call_args opt_call_args
+%type <node> paren_args opt_paren_args
 %type <node> command_args aref_args opt_block_arg block_arg var_ref var_lhs
 %type <node> mrhs superclass block_call block_command
-%type <node> f_arglist f_args f_optarg f_opt f_block_arg opt_f_block_arg
-%type <node> assoc_list assocs assoc undef_list backref string_dvar
-%type <node> for_var block_var opt_block_var block_par
+%type <node> f_block_optarg f_block_opt
+%type <node> f_arglist f_args f_arg f_arg_item f_optarg f_marg f_marg_list f_margs
+%type <node> assoc_list assocs assoc undef_list backref string_dvar for_var
+%type <node> block_param opt_block_param block_param_def f_opt
+%type <node> bv_decls opt_bv_decl bvar
+%type <node> lambda f_larglist lambda_body
 %type <node> brace_block cmd_brace_block do_block lhs none fitem
-%type <node> mlhs mlhs_head mlhs_basic mlhs_entry mlhs_item mlhs_node
+%type <node> mlhs mlhs_head mlhs_basic mlhs_item mlhs_node mlhs_post mlhs_inner
 %type <id>   fsym variable sym symbol operation operation2 operation3
-%type <id>   cname fname op f_rest_arg
-%type <num>  f_norm_arg f_arg
+%type <id>   cname fname op f_rest_arg f_block_arg opt_f_block_arg f_norm_arg f_bad_arg
+
 %token tUPLUS           /* unary+ */
 %token tUMINUS          /* unary- */
-%token tUBS             /* unary\ */
 %token tPOW             /* ** */
 %token tCMP             /* <=> */
 %token tEQ              /* == */
@@ -405,8 +413,9 @@ static NODE *extract_block_vars(rb_parse_state *parse_state, NODE* node, var_tab
 %token tLBRACE_ARG      /* { */
 %token tSTAR            /* * */
 %token tAMPER           /* & */
-%token tSYMBEG tSTRING_BEG tREGEXP_BEG tWORDS_BEG tQWORDS_BEG
-%token tSTRING_DBEG tSTRING_DVAR tSTRING_END
+%token tLAMBDA          /* -> */
+%token tSYMBEG tSTRING_BEG tXSTRING_BEG tREGEXP_BEG tWORDS_BEG tQWORDS_BEG
+%token tSTRING_DBEG tSTRING_DVAR tSTRING_END tLAMBEG
 
 /*
  *      precedence table
@@ -415,12 +424,12 @@ static NODE *extract_block_vars(rb_parse_state *parse_state, NODE* node, var_tab
 %nonassoc tLOWEST
 %nonassoc tLBRACE_ARG
 
-%nonassoc  kIF_MOD kUNLESS_MOD kWHILE_MOD kUNTIL_MOD
-%left  kOR kAND
-%right kNOT
-%nonassoc kDEFINED
+%nonassoc  modifier_if modifier_unless modifier_while modifier_until
+%left  keyword_or keyword_and
+%right keyword_not
+%nonassoc keyword_defined
 %right '=' tOP_ASGN
-%left kRESCUE_MOD
+%left modifier_rescue
 %right '?' ':'
 %nonassoc tDOT2 tDOT3
 %left  tOROP
@@ -462,6 +471,48 @@ program         :  {
                     }
                 ;
 
+top_compstmt    : top_stmts opt_terms
+                    {
+                        $$ = $1;
+                    }
+                ;
+
+top_stmts       : none
+                    {
+                        $$ = NEW_BEGIN(0);
+                    }
+                | top_stmt
+                    {
+                        $$ = newline_node(vps, $1);
+                    }
+                | top_stmts terms top_stmt
+                    {
+                        $$ = block_append(vps, $1, newline_node($3));
+                    }
+                | error top_stmt
+                    {
+                        $$ = remove_begin($2, vps);
+                    }
+                ;
+
+top_stmt        : stmt
+                | keyword_BEGIN
+                    {
+                        /* TODO
+                        if(in_def || in_single) {
+                          yyerror("BEGIN in method");
+                        }
+                        */
+                    }
+                '{' top_compstmt '}'
+                    {
+                        /* TODO
+                        block_append( , $4);
+                        */
+                        $$ = NEW_BEGIN(0);
+                    }
+                ;
+
 bodystmt        : compstmt
                   opt_rescue
                   opt_else
@@ -490,6 +541,9 @@ compstmt        : stmts opt_terms
                 ;
 
 stmts           : none
+                    {
+                        $$ = NEW_BEGIN(0);
+                    }
                 | stmt
                     {
                         $$ = newline_node(vps, $1);
@@ -504,31 +558,31 @@ stmts           : none
                     }
                 ;
 
-stmt            : kALIAS fitem {vps->lex_state = EXPR_FNAME;} fitem
+stmt            : keyword_alias fitem {vps->lex_state = EXPR_FNAME;} fitem
                     {
                         $$ = NEW_ALIAS($2, $4);
                     }
-                | kALIAS tGVAR tGVAR
+                | keyword_alias tGVAR tGVAR
                     {
                         $$ = NEW_VALIAS($2, $3);
                     }
-                | kALIAS tGVAR tBACK_REF
+                | keyword_alias tGVAR tBACK_REF
                     {
                         char buf[3];
 
                         snprintf(buf, sizeof(buf), "$%c", (char)$3->nd_nth);
                         $$ = NEW_VALIAS($2, rb_parser_sym(buf));
                     }
-                | kALIAS tGVAR tNTH_REF
+                | keyword_alias tGVAR tNTH_REF
                     {
                         yyerror("can't make alias for the number variables");
                         $$ = 0;
                     }
-                | kUNDEF undef_list
+                | keyword_undef undef_list
                     {
                         $$ = $2;
                     }
-                | stmt kIF_MOD expr_value
+                | stmt modifier_if expr_value
                     {
                         $$ = NEW_IF(cond($3, vps), remove_begin($1, vps), 0);
                         fixpos($$, $3);
@@ -537,7 +591,7 @@ stmt            : kALIAS fitem {vps->lex_state = EXPR_FNAME;} fitem
                             $$->nd_body = 0;
                         }
                     }
-                | stmt kUNLESS_MOD expr_value
+                | stmt modifier_unless expr_value
                     {
                         $$ = NEW_UNLESS(cond($3, vps), remove_begin($1, vps), 0);
                         fixpos($$, $3);
@@ -546,7 +600,7 @@ stmt            : kALIAS fitem {vps->lex_state = EXPR_FNAME;} fitem
                             $$->nd_else = 0;
                         }
                     }
-                | stmt kWHILE_MOD expr_value
+                | stmt modifier_while expr_value
                     {
                         if ($1 && nd_type($1) == NODE_BEGIN) {
                             $$ = NEW_WHILE(cond($3, vps), $1->nd_body, 0);
@@ -558,7 +612,7 @@ stmt            : kALIAS fitem {vps->lex_state = EXPR_FNAME;} fitem
                             nd_set_type($$, NODE_UNTIL);
                         }
                     }
-                | stmt kUNTIL_MOD expr_value
+                | stmt modifier_until expr_value
                     {
                         if ($1 && nd_type($1) == NODE_BEGIN) {
                             $$ = NEW_UNTIL(cond($3, vps), $1->nd_body, 0);
@@ -570,28 +624,12 @@ stmt            : kALIAS fitem {vps->lex_state = EXPR_FNAME;} fitem
                             nd_set_type($$, NODE_WHILE);
                         }
                     }
-                | stmt kRESCUE_MOD stmt
+                | stmt modifier_rescue stmt
                     {
                         NODE *resq = NEW_RESBODY(0, remove_begin($3, vps), 0);
                         $$ = NEW_RESCUE(remove_begin($1, vps), resq, 0);
                     }
-                | klBEGIN
-                    {
-                        if (in_def || in_single) {
-                            yyerror("BEGIN in method");
-                        }
-                        local_push(0);
-                    }
-                  '{' compstmt '}'
-                    {
-                        /*
-                        ruby_eval_tree_begin = block_append(ruby_eval_tree_begin,
-                                                            NEW_PREEXE($4));
-                        */
-                        local_pop();
-                        $$ = 0;
-                    }
-                | klEND '{' compstmt '}'
+                | keyword_END '{' compstmt '}'
                     {
                         if (in_def || in_single) {
                             rb_warn("END in method; use at_exit");
@@ -601,12 +639,13 @@ stmt            : kALIAS fitem {vps->lex_state = EXPR_FNAME;} fitem
                     }
                 | lhs '=' command_call
                     {
+                        value_expr($3);
                         $$ = node_assign($1, $3, vps);
                     }
                 | mlhs '=' command_call
                     {
                         value_expr($3);
-                        $1->nd_value = ($1->nd_head) ? NEW_TO_ARY($3) : NEW_ARRAY($3);
+                        $1->nd_value = $3;
                         $$ = $1;
                     }
                 | var_lhs tOP_ASGN command_call
@@ -634,13 +673,13 @@ stmt            : kALIAS fitem {vps->lex_state = EXPR_FNAME;} fitem
                             $$ = 0;
                         }
                     }
-                | primary_value '[' aref_args ']' tOP_ASGN command_call
+                | primary_value '[' opt_call_args rbracket tOP_ASGN command_call
                     {
                         NODE *args;
 
                         value_expr($6);
                         if (!$3) $3 = NEW_ZARRAY();
-                        args = arg_concat(vps, $6, $3);
+                        args = arg_concat(vps, $3, $6);
                         if ($5 == tOROP) {
                             $5 = 0;
                         }
@@ -674,6 +713,11 @@ stmt            : kALIAS fitem {vps->lex_state = EXPR_FNAME;} fitem
                         $$ = NEW_OP_ASGN2($1, $3, $4, $5);
                         fixpos($$, $1);
                     }
+                | primary_value tCOLON2 tCONSTANT tOP_ASGN command_call
+                    {
+                        yyerror("constant re-assignment");
+                        $$ = 0;
+                    }
                 | primary_value tCOLON2 tIDENTIFIER tOP_ASGN command_call
                     {
                         value_expr($5);
@@ -693,11 +737,12 @@ stmt            : kALIAS fitem {vps->lex_state = EXPR_FNAME;} fitem
                     }
                 | lhs '=' mrhs
                     {
-                        $$ = node_assign($1, NEW_SVALUE($3), vps);
+                        value_expr($3);
+                        $$ = node_assign($1, $3, vps);
                     }
                 | mlhs '=' arg_value
                     {
-                        $1->nd_value = ($1->nd_head) ? NEW_TO_ARY($3) : NEW_ARRAY($3);
+                        $1->nd_value = $3;
                         $$ = $1;
                     }
                 | mlhs '=' mrhs
@@ -709,46 +754,35 @@ stmt            : kALIAS fitem {vps->lex_state = EXPR_FNAME;} fitem
                 ;
 
 expr            : command_call
-                | expr kAND expr
+                | expr keyword_and expr
                     {
                         $$ = logop(NODE_AND, $1, $3, vps);
                     }
-                | expr kOR expr
+                | expr keyword_or expr
                     {
                         $$ = logop(NODE_OR, $1, $3, vps);
                     }
-                | kNOT expr
+                | keyword_not opt_nl expr
                     {
-                        $$ = NEW_NOT(cond($2, vps));
+                        $$ = call_uni_op(cond($3), '!'); // NEW_NOT(cond($2, vps));
                     }
                 | '!' command_call
                     {
-                        $$ = NEW_NOT(cond($2, vps));
+                        $$ = call_uni_op(cond($2), '!'); // NEW_NOT(cond($2, vps));
                     }
                 | arg
                 ;
 
 expr_value      : expr
                     {
-                        value_expr($$);
+                        value_expr($1);
                         $$ = $1;
+                        if(!$$) $$ = NEW_NIL();
                     }
                 ;
 
 command_call    : command
                 | block_command
-                | kRETURN call_args
-                    {
-                        $$ = NEW_RETURN(ret_args(vps, $2));
-                    }
-                | kBREAK call_args
-                    {
-                        $$ = NEW_BREAK(ret_args(vps, $2));
-                    }
-                | kNEXT call_args
-                    {
-                        $$ = NEW_NEXT(ret_args(vps, $2));
-                    }
                 ;
 
 block_command   : block_call
@@ -767,7 +801,7 @@ cmd_brace_block : tLBRACE_ARG
                         $<num>1 = ruby_sourceline;
                         reset_block(vps);
                     }
-                  opt_block_var { $<vars>$ = vps->variables->block_vars; }
+                  opt_block_param { $<vars>$ = vps->variables->block_vars; }
                   compstmt
                   '}'
                     {
@@ -827,27 +861,39 @@ command         : operation command_args       %prec tLOWEST
                         }
                         fixpos($$, $1);
                    }
-                | kSUPER command_args
+                | keyword_super command_args
                     {
                         $$ = new_super(vps, $2);
                         fixpos($$, $2);
                     }
-                | kYIELD command_args
+                | keyword_yield command_args
                     {
                         $$ = new_yield(vps, $2);
                         fixpos($$, $2);
                     }
+                | keyword_return call_args
+                    {
+                        $$ = NEW_RETURN(ret_args(vps, $2));
+                    }
+                | keyword_break call_args
+                    {
+                        $$ = NEW_BREAK(ret_args(vps, $2));
+                    }
+                | keyword_next call_args
+                    {
+                        $$ = NEW_NEXT(ret_args(vps, $2));
+                    }
                 ;
 
 mlhs            : mlhs_basic
-                | tLPAREN mlhs_entry ')'
+                | tLPAREN mlhs_inner rparen
                     {
                         $$ = $2;
                     }
                 ;
 
-mlhs_entry      : mlhs_basic
-                | tLPAREN mlhs_entry ')'
+mlhs_inner      : mlhs_basic
+                | tLPAREN mlhs_inner rparen
                     {
                         $$ = NEW_MASGN(NEW_LIST($2), 0);
                     }
@@ -859,28 +905,44 @@ mlhs_basic      : mlhs_head
                     }
                 | mlhs_head mlhs_item
                     {
-                        $$ = NEW_MASGN(list_append(vps, $1,$2), 0);
+                        $$ = NEW_MASGN(list_append(vps, $1, $2), 0);
                     }
                 | mlhs_head tSTAR mlhs_node
                     {
                         $$ = NEW_MASGN($1, $3);
                     }
+                | mlhs_head tSTAR mlhs_node ',' mlhs_post
+                    {
+                        $$ = NEW_MASGN($1, NEW_POSTARGS($3, $5));
+                    }
                 | mlhs_head tSTAR
                     {
                         $$ = NEW_MASGN($1, -1);
+                    }
+                | mlhs_head tSTAR ',' mlhs_post
+                    {
+                        $$ = NEW_MASGN($1, NEW_POSTARG(-1, $4));
                     }
                 | tSTAR mlhs_node
                     {
                         $$ = NEW_MASGN(0, $2);
                     }
+                | tSTAR mlhs_node ',' mlhs_post
+                    {
+                        $$ = NEW_MASGN(0, NEW_POSTARG($2, $4));
+                    }
                 | tSTAR
                     {
                         $$ = NEW_MASGN(0, -1);
                     }
+                | tSTAR ',' mlhs_post
+                    {
+                        $$ = NEW_MASGN(0, NEW_POSTARG(-1, $3));
+                    }
                 ;
 
 mlhs_item       : mlhs_node
-                | tLPAREN mlhs_entry ')'
+                | tLPAREN mlhs_inner rparen
                     {
                         $$ = $2;
                     }
@@ -896,11 +958,21 @@ mlhs_head       : mlhs_item ','
                     }
                 ;
 
+mlhs_post       : mlhs_item
+                    {
+                        $$ = NEW_LIST($1);
+                    }
+                | mlhs_post ',' mlhs_item
+                    {
+                        $$ = list_append(vps, $1, $3);
+                    }
+                ;
+
 mlhs_node       : variable
                     {
                         $$ = assignable($1, 0, vps);
                     }
-                | primary_value '[' aref_args ']'
+                | primary_value '[' opt_call_args rbracket
                     {
                         $$ = aryset($1, $3, vps);
                     }
@@ -938,8 +1010,9 @@ mlhs_node       : variable
 lhs             : variable
                     {
                         $$ = assignable($1, 0, vps);
+                        if(!$$) $$ = NEW_BEGIN(0);
                     }
-                | primary_value '[' aref_args ']'
+                | primary_value '[' aref_args rbracket
                     {
                         $$ = aryset($1, $3, vps);
                     }
@@ -1000,12 +1073,12 @@ fname           : tIDENTIFIER
                 | tFID
                 | op
                     {
-                        vps->lex_state = EXPR_END;
+                        vps->lex_state = EXPR_ENDFN;
                         $$ = convert_op($1);
                     }
                 | reswords
                     {
-                        vps->lex_state = EXPR_END;
+                        vps->lex_state = EXPR_ENDFN;
                         $$ = $<id>1;
                     }
                 ;
@@ -1038,10 +1111,12 @@ op              : '|'           { $$ = '|'; }
                 | tEQ           { $$ = tEQ; }
                 | tEQQ          { $$ = tEQQ; }
                 | tMATCH        { $$ = tMATCH; }
+                | tNMATCH       { $$ = tNMATCH; }
                 | '>'           { $$ = '>'; }
                 | tGEQ          { $$ = tGEQ; }
                 | '<'           { $$ = '<'; }
                 | tLEQ          { $$ = tLEQ; }
+                | tNEQ          { $$ = tNEQ; }
                 | tLSHFT        { $$ = tLSHFT; }
                 | tRSHFT        { $$ = tRSHFT; }
                 | '+'           { $$ = '+'; }
@@ -1051,6 +1126,7 @@ op              : '|'           { $$ = '|'; }
                 | '/'           { $$ = '/'; }
                 | '%'           { $$ = '%'; }
                 | tPOW          { $$ = tPOW; }
+                | '!'           { $$ = '!'; }
                 | '~'           { $$ = '~'; }
                 | tUPLUS        { $$ = tUPLUS; }
                 | tUMINUS       { $$ = tUMINUS; }
@@ -1059,22 +1135,30 @@ op              : '|'           { $$ = '|'; }
                 | '`'           { $$ = '`'; }
                 ;
 
-reswords        : k__LINE__ | k__FILE__  | klBEGIN | klEND
-                | kALIAS | kAND | kBEGIN | kBREAK | kCASE | kCLASS | kDEF
-                | kDEFINED | kDO | kELSE | kELSIF | kEND | kENSURE | kFALSE
-                | kFOR | kIN | kMODULE | kNEXT | kNIL | kNOT
-                | kOR | kREDO | kRESCUE | kRETRY | kRETURN | kSELF | kSUPER
-                | kTHEN | kTRUE | kUNDEF | kWHEN | kYIELD
-                | kIF_MOD | kUNLESS_MOD | kWHILE_MOD | kUNTIL_MOD | kRESCUE_MOD
+reswords        : keyword__LINE__ | keyword__FILE__ | keyword__ENCODING__
+                | keyword_BEGIN | keyword_END
+                | keyword_alias | keyword_and | keyword_begin
+                | keyword_break | keyword_case | keyword_class | keyword_def
+                | keyword_defined | keyword_do | keyword_else | keyword_elsif
+                | keyword_end | keyword_ensure | keyword_false
+                | keyword_for | keyword_in | keyword_module | keyword_next
+                | keyword_nil | keyword_not | keyword_or | keyword_redo
+                | keyword_rescue | keyword_retry | keyword_return | keyword_self
+                | keyword_super | keyword_then | keyword_true | keyword_undef
+                | keyword_when | keyword_yield | keyword_if | keyword_unless
+                | keyword_while | keyword_until
                 ;
 
 arg             : lhs '=' arg
                     {
+                        value_expr($3);
                         $$ = node_assign($1, $3, vps);
                     }
-                | lhs '=' arg kRESCUE_MOD arg
+                | lhs '=' arg modifier_rescue arg
                     {
-                        $$ = node_assign($1, NEW_RESCUE($3, NEW_RESBODY(0,$5,0), 0), vps);
+                        value_expr($3);
+                        $3 = NEW_RESCUE($3, NEW_RESBODY(0, $5, 0), 0);
+                        $$ = node_assign($1, $3, vps);
                     }
                 | var_lhs tOP_ASGN arg
                     {
@@ -1094,20 +1178,45 @@ arg             : lhs '=' arg
                             }
                             else {
                                 $$ = $1;
-                                $$->nd_value = call_op(gettable(vid),$2,1,$3, vps);
+                                $$->nd_value = NEW_CALL(gettable(vid), $2, NEW_LIST($3));
                             }
                         }
                         else {
-                            $$ = 0;
+                            $$ = NEW_BEGIN(0);
                         }
                     }
-                | primary_value '[' aref_args ']' tOP_ASGN arg
+                | var_lhs tOP_ASGN arg modifier_rescue arg
+                    {
+                        value_expr($3);
+                        $3 = NEW_RESCUE($3, NEW_RESBODY(0, $5, 0), 0);
+                        if($1) {
+                            QUID vid = $1->nd_vid;
+                            if($2 == tOROP) {
+                                $1->nd_value = $3;
+                                $$ = NEW_OP_ASGN_OR(gettable(vid), $1);
+                                if(is_asgn_or_id(vid)) {
+                                    $$->nd_aid = vid;
+                                }
+                            } else if($2 == tANDOP) {
+                                $1->nd_value = $3;
+                                $$ = NEW_OP_ASGN_AND(gettable(vid), $1);
+                            } else {
+                            }
+                        } else {
+                            $$ = NEW_BEGIN(0);
+                        }
+                    }
+                | primary_value '[' opt_call_args rbracket tOP_ASGN arg
                     {
                         NODE *args;
 
                         value_expr($6);
                         if (!$3) $3 = NEW_ZARRAY();
-                        args = arg_concat(vps, $6, $3);
+                        if (nd_type($3) == NODE_BLOCK_PASS) {
+                            args = NEW_ARGSCAT($3, $6);
+                        } else {
+                            args = arg_concat(vps, $3, $6);
+                        }
                         if ($5 == tOROP) {
                             $5 = 0;
                         }
@@ -1156,17 +1265,17 @@ arg             : lhs '=' arg
                 | primary_value tCOLON2 tCONSTANT tOP_ASGN arg
                     {
                         yyerror("constant re-assignment");
-                        $$ = 0;
+                        $$ = NEW_BEGIN(0);
                     }
                 | tCOLON3 tCONSTANT tOP_ASGN arg
                     {
                         yyerror("constant re-assignment");
-                        $$ = 0;
+                        $$ = NEW_BEGIN(0);
                     }
                 | backref tOP_ASGN arg
                     {
                         rb_backref_error($1, vps);
-                        $$ = 0;
+                        $$ = NEW_BEGIN(0);
                     }
                 | arg tDOT2 arg
                     {
@@ -1182,35 +1291,35 @@ arg             : lhs '=' arg
                     }
                 | arg '+' arg
                     {
-                        $$ = call_op($1, '+', 1, $3, vps);
+                        $$ = call_bin_op($1, '+', $3, vps);
                     }
                 | arg '-' arg
                     {
-                        $$ = call_op($1, '-', 1, $3, vps);
+                        $$ = call_bin_op($1, '-', $3, vps);
                     }
                 | arg '*' arg
                     {
-                        $$ = call_op($1, '*', 1, $3, vps);
+                        $$ = call_bin_op($1, '*', $3, vps);
                     }
                 | arg '/' arg
                     {
-                        $$ = call_op($1, '/', 1, $3, vps);
+                        $$ = call_bin_op($1, '/', $3, vps);
                     }
                 | arg '%' arg
                     {
-                        $$ = call_op($1, '%', 1, $3, vps);
+                        $$ = call_bin_op($1, '%', $3, vps);
                     }
                 | arg tPOW arg
                     {
-                        $$ = call_op($1, tPOW, 1, $3, vps);
+                        $$ = call_bin_op($1, tPOW, $3, vps);
                     }
                 | tUMINUS_NUM tINTEGER tPOW arg
                     {
-                        $$ = call_op(call_op($2, tPOW, 1, $4, vps), tUMINUS, 0, 0, vps);
+                        $$ = NEW_CALL(call_bin_op($2, tPOW, $4, vps), tUMINUS, 0);
                     }
                 | tUMINUS_NUM tFLOAT tPOW arg
                     {
-                        $$ = call_op(call_op($2, tPOW, 1, $4, vps), tUMINUS, 0, 0, vps);
+                        $$ = NEW_CALL(call_bin_op($2, tPOW, $4, vps), tUMINUS, 0);
                     }
                 | tUPLUS arg
                     {
@@ -1218,80 +1327,81 @@ arg             : lhs '=' arg
                             $$ = $2;
                         }
                         else {
-                            $$ = call_op($2, tUPLUS, 0, 0, vps);
+                            $$ = call_uni_op($2, tUPLUS, vps);
                         }
                     }
                 | tUMINUS arg
                     {
-                        $$ = call_op($2, tUMINUS, 0, 0, vps);
+                        $$ = call_uni_op($2, tUMINUS, vps);
                     }
                 | arg '|' arg
                     {
-                        $$ = call_op($1, '|', 1, $3, vps);
+                        $$ = call_bin_op($1, '|', $3, vps);
                     }
                 | arg '^' arg
                     {
-                        $$ = call_op($1, '^', 1, $3, vps);
+                        $$ = call_bin_op($1, '^', $3, vps);
                     }
                 | arg '&' arg
                     {
-                        $$ = call_op($1, '&', 1, $3, vps);
+                        $$ = call_bin_op($1, '&', $3, vps);
                     }
                 | arg tCMP arg
                     {
-                        $$ = call_op($1, tCMP, 1, $3, vps);
+                        $$ = call_bin_op($1, tCMP, $3, vps);
                     }
                 | arg '>' arg
                     {
-                        $$ = call_op($1, '>', 1, $3, vps);
+                        $$ = call_bin_op($1, '>', $3, vps);
                     }
                 | arg tGEQ arg
                     {
-                        $$ = call_op($1, tGEQ, 1, $3, vps);
+                        $$ = call_bin_op($1, tGEQ, $3, vps);
                     }
                 | arg '<' arg
                     {
-                        $$ = call_op($1, '<', 1, $3, vps);
+                        $$ = call_bin_op($1, '<', $3, vps);
                     }
                 | arg tLEQ arg
                     {
-                        $$ = call_op($1, tLEQ, 1, $3, vps);
+                        $$ = call_bin_op($1, tLEQ, $3, vps);
                     }
                 | arg tEQ arg
                     {
-                        $$ = call_op($1, tEQ, 1, $3, vps);
+                        $$ = call_bin_op($1, tEQ, $3, vps);
                     }
                 | arg tEQQ arg
                     {
-                        $$ = call_op($1, tEQQ, 1, $3, vps);
+                        $$ = call_bin_op($1, tEQQ, $3, vps);
                     }
                 | arg tNEQ arg
                     {
-                        $$ = NEW_NOT(call_op($1, tEQ, 1, $3, vps));
+                        $$ = call_bin_op($1, tNEQ, $3, vps);
                     }
                 | arg tMATCH arg
                     {
+                        /* TODO */
                         $$ = match_gen($1, $3, vps);
                     }
                 | arg tNMATCH arg
                     {
-                        $$ = NEW_NOT(match_gen($1, $3, vps));
+                        $$ = call_bin_op($1, tNMATCH, $3, vps);
                     }
                 | '!' arg
                     {
-                        $$ = NEW_NOT(cond($2, vps));
+                        $$ = call_uni_op(cond($2), '!', vps);
                     }
                 | '~' arg
                     {
-                        $$ = call_op($2, '~', 0, 0, vps);
+                        $$ = call_uni_op($2, '~', vps);
                     }
                 | arg tLSHFT arg
                     {
-                        $$ = call_op($1, tLSHFT, 1, $3, vps);
+                        $$ = call_bin_op($1, tLSHFT, $3, vps);
                     }
                 | arg tRSHFT arg
                     {
-                        $$ = call_op($1, tRSHFT, 1, $3, vps);
+                        $$ = call_bin_op($1, tRSHFT, $3, vps);
                     }
                 | arg tANDOP arg
                     {
@@ -1301,16 +1411,16 @@ arg             : lhs '=' arg
                     {
                         $$ = logop(NODE_OR, $1, $3, vps);
                     }
-                | kDEFINED opt_nl {vps->in_defined = 1;} arg
+                | keyword_defined opt_nl {vps->in_defined = 1;} arg
                     {
                         vps->in_defined = 0;
                         $$ = NEW_DEFINED($4);
                     }
-                | arg '?' {vps->ternary_colon++;} arg ':' arg
+                | arg '?' arg opt_nl ':' arg
                     {
-                        $$ = NEW_IF(cond($1, vps), $4, $6);
+                        value_expr($1);
+                        $$ = NEW_IF(cond($1, vps), $3, $6);
                         fixpos($$, $1);
-                        vps->ternary_colon--;
                     }
                 | primary
                     {
@@ -1322,52 +1432,28 @@ arg_value       : arg
                     {
                         value_expr($1);
                         $$ = $1;
+                        if(!$$) $$ = NEW_NIL();
                     }
                 ;
 
 aref_args       : none
-                | command opt_nl
-                    {
-                        rb_warn("parenthesize argument(s) for future version");
-                        $$ = NEW_LIST($1);
-                    }
                 | args trailer
                     {
                         $$ = $1;
                     }
-                | args ',' tSTAR arg opt_nl
+                | args ',' assocs trailer
                     {
-                        value_expr($4);
-                        $$ = arg_concat(vps, $1, $4);
+                        PP = arg_append(vps, $1, NEW_HASH($3));
                     }
                 | assocs trailer
                     {
                         $$ = NEW_LIST(NEW_HASH($1));
                     }
-                | tSTAR arg opt_nl
-                    {
-                        value_expr($2);
-                        $$ = NEW_NEWLINE(NEW_SPLAT($2));
-                    }
                 ;
 
-paren_args      : '(' none ')'
+paren_args      : '(' opt_call_args rparen
                     {
                         $$ = $2;
-                    }
-                | '(' call_args opt_nl ')'
-                    {
-                        $$ = $2;
-                    }
-                | '(' block_call opt_nl ')'
-                    {
-                        rb_warn("parenthesize argument for future version");
-                        $$ = NEW_LIST($2);
-                    }
-                | '(' args ',' block_call opt_nl ')'
-                    {
-                        rb_warn("parenthesize argument for future version");
-                        $$ = list_append(vps, $2, $4);
                     }
                 ;
 
@@ -1375,125 +1461,40 @@ opt_paren_args  : none
                 | paren_args
                 ;
 
+opt_call_args   : none
+                | call_args
+                ;
+
 call_args       : command
                     {
-                        rb_warn("parenthesize argument(s) for future version");
+                        value_expr($1);
                         $$ = NEW_LIST($1);
                     }
                 | args opt_block_arg
                     {
                         $$ = arg_blk_pass($1, $2);
                     }
-                | args ',' tSTAR arg_value opt_block_arg
-                    {
-                        $$ = arg_concat(vps, $1, $4);
-                        $$ = arg_blk_pass($$, $5);
-                    }
                 | assocs opt_block_arg
                     {
                         $$ = NEW_LIST(NEW_HASH($1));
                         $$ = arg_blk_pass($$, $2);
-                    }
-                | assocs ',' tSTAR arg_value opt_block_arg
-                    {
-                        $$ = arg_concat(vps, NEW_LIST(NEW_HASH($1)), $4);
-                        $$ = arg_blk_pass($$, $5);
                     }
                 | args ',' assocs opt_block_arg
                     {
                         $$ = list_append(vps, $1, NEW_HASH($3));
                         $$ = arg_blk_pass($$, $4);
                     }
-                | args ',' assocs ',' tSTAR arg opt_block_arg
-                    {
-                        value_expr($6);
-                        $$ = arg_concat(vps, list_append(vps, $1, NEW_HASH($3)), $6);
-                        $$ = arg_blk_pass($$, $7);
-                    }
-                | tSTAR arg_value opt_block_arg
-                    {
-                        $$ = arg_blk_pass(NEW_SPLAT($2), $3);
-                    }
-                | block_arg
-                ;
-
-call_args2      : arg_value ',' args opt_block_arg
-                    {
-                        $$ = arg_blk_pass(list_concat(NEW_LIST($1),$3), $4);
-                    }
-                | arg_value ',' block_arg
-                    {
-                        $$ = arg_blk_pass($1, $3);
-                    }
-                | arg_value ',' tSTAR arg_value opt_block_arg
-                    {
-                        $$ = arg_concat(vps, NEW_LIST($1), $4);
-                        $$ = arg_blk_pass($$, $5);
-                    }
-                | arg_value ',' args ',' tSTAR arg_value opt_block_arg
-                    {
-                        $$ = arg_concat(vps, list_concat(NEW_LIST($1),$3), $6);
-                        $$ = arg_blk_pass($$, $7);
-                    }
-                | assocs opt_block_arg
-                    {
-                        $$ = NEW_LIST(NEW_HASH($1));
-                        $$ = arg_blk_pass($$, $2);
-                    }
-                | assocs ',' tSTAR arg_value opt_block_arg
-                    {
-                        $$ = arg_concat(vps, NEW_LIST(NEW_HASH($1)), $4);
-                        $$ = arg_blk_pass($$, $5);
-                    }
-                | arg_value ',' assocs opt_block_arg
-                    {
-                        $$ = list_append(vps, NEW_LIST($1), NEW_HASH($3));
-                        $$ = arg_blk_pass($$, $4);
-                    }
-                | arg_value ',' args ',' assocs opt_block_arg
-                    {
-                        $$ = list_append(vps, list_concat(NEW_LIST($1),$3), NEW_HASH($5));
-                        $$ = arg_blk_pass($$, $6);
-                    }
-                | arg_value ',' assocs ',' tSTAR arg_value opt_block_arg
-                    {
-                        $$ = arg_concat(vps, list_append(vps, NEW_LIST($1), NEW_HASH($3)), $6);
-                        $$ = arg_blk_pass($$, $7);
-                    }
-                | arg_value ',' args ',' assocs ',' tSTAR arg_value opt_block_arg
-                    {
-                        $$ = arg_concat(vps, list_append(vps,
-                                        list_concat(NEW_LIST($1), $3), NEW_HASH($5)), $8);
-                        $$ = arg_blk_pass($$, $9);
-                    }
-                | tSTAR arg_value opt_block_arg
-                    {
-                        $$ = arg_blk_pass(NEW_SPLAT($2), $3);
-                    }
                 | block_arg
                 ;
 
 command_args    :  {
-                        $<num>$ = vps->cmdarg_stack;
+                        $<val>$ = vps->cmdarg_stack;
                         CMDARG_PUSH(1);
                     }
-                  open_args
+                  call_args
                     {
                         /* CMDARG_POP() */
-                        vps->cmdarg_stack = $<num>1;
-                        $$ = $2;
-                    }
-                ;
-
-open_args       : call_args
-                | tLPAREN_ARG  {vps->lex_state = EXPR_ENDARG;} ')'
-                    {
-                        rb_warn("don't put space before argument parentheses");
-                        $$ = 0;
-                    }
-                | tLPAREN_ARG call_args2 {vps->lex_state = EXPR_ENDARG;} ')'
-                    {
-                        rb_warn("don't put space before argument parentheses");
+                        vps->cmdarg_stack = $<val>1;
                         $$ = $2;
                     }
                 ;
@@ -1508,26 +1509,61 @@ opt_block_arg   : ',' block_arg
                     {
                         $$ = $2;
                     }
+                | ','
+                    {
+                        $$ = 0
+                    }
                 | none
+                    {
+                        $$ = 0;
+                    }
                 ;
 
 args            : arg_value
                     {
                         $$ = NEW_LIST($1);
                     }
+                | tSTAR arg_value
+                    {
+                        $$ = NEW_SPLAT($2);
+                    }
                 | args ',' arg_value
                     {
-                        $$ = list_append(vps, $1, $3);
+                        NODE *n1;
+                        if ((n1 = splat_array($1)) != 0) {
+                            $$ = list_append(vps, $1, $3);
+                        } else {
+                            $$ = arg_append($1, $3);
+                        }
+                    }
+                | args ',' tSTAR arg_value
+                    {
+                        NODE *n1;
+                        if ((nd_type($4) == NODE_ARRAY) && (n1 = splat_array($1)) != 0) {
+                            $$ = list_concat(n1, $4);
+                        } else {
+                            $$ = arg_concat(vps, $1, $4);
+                        }
                     }
                 ;
 
 mrhs            : args ',' arg_value
                     {
-                        $$ = list_append(vps, $1, $3);
+                        NODE *n1;
+                        if ((n1 = splat_array($1)) != 0) {
+                            $$ = list_append(vps, $1, $3);
+                        } else {
+                            $$ arg_append($1, $3);
+                        }
                     }
                 | args ',' tSTAR arg_value
                     {
-                        $$ = arg_concat(vps, $1, $4);
+                        NODE *n1
+                        if (nd_type($4) == NODE_ARRAY && (n1 = splat_array($1)) != 0) {
+                            $$ = list_concat(n1, $4);
+                        } else {
+                            $$ = arg_concat(vps, $1, $4);
+                        }
                     }
                 | tSTAR arg_value
                     {
@@ -1547,30 +1583,31 @@ primary         : literal
                     {
                         $$ = NEW_FCALL($1, 0);
                     }
-                | kBEGIN
+                | k_begin
                     {
-                        $<num>1 = ruby_sourceline;
-                        PUSH_LINE("begin");
+                        $<num>$ = ruby_sourceline;
                     }
                   bodystmt
-                  kEND
+                  k_end
                     {
-                        POP_LINE();
-                        if ($3 == NULL)
+                        if ($3 == NULL) {
                             $$ = NEW_NIL();
-                        else
+                        } else {
+                            if (nd_type($3) == NODE_RESCUE || nd_type($3) == NODE_ENSURE) {
+                                nd_set_line($3, $<num>2);
+                            }
                             $$ = NEW_BEGIN($3);
-                        nd_set_line($$, $<num>1);
+                        }
+                        nd_set_line($$, $<num>2);
                     }
-                | tLPAREN_ARG expr {vps->lex_state = EXPR_ENDARG;} opt_nl ')'
+                | tLPAREN_ARG expr {vps->lex_state = EXPR_ENDARG;} rparen
                     {
                         rb_warning("(...) interpreted as grouped expression");
                         $$ = $2;
                     }
                 | tLPAREN compstmt ')'
                     {
-                        if (!$2) $$ = NEW_NIL();
-                        else $$ = $2;
+                        $$ = $2;
                     }
                 | primary_value tCOLON2 tCONSTANT
                     {
@@ -1579,15 +1616,6 @@ primary         : literal
                 | tCOLON3 tCONSTANT
                     {
                         $$ = NEW_COLON3($2);
-                    }
-                | primary_value '[' aref_args ']'
-                    {
-                        if ($1 && nd_type($1) == NODE_SELF) {
-                            $$ = NEW_FCALL(convert_op(tAREF), $3);
-                        } else {
-                            $$ = NEW_CALL($1, convert_op(tAREF), $3);
-                        }
-                        fixpos($$, $1);
                     }
                 | tLBRACK aref_args ']'
                     {
@@ -1602,26 +1630,34 @@ primary         : literal
                     {
                         $$ = NEW_HASH($2);
                     }
-                | kRETURN
+                | keyword_return
                     {
                         $$ = NEW_RETURN(0);
                     }
-                | kYIELD '(' call_args ')'
+                | keyword_yield '(' call_args rparen
                     {
                         $$ = new_yield(vps, $3);
                     }
-                | kYIELD '(' ')'
+                | keyword_yield '(' rparen
                     {
                         $$ = NEW_YIELD(0, Qfalse);
                     }
-                | kYIELD
+                | keyword_yield
                     {
                         $$ = NEW_YIELD(0, Qfalse);
                     }
-                | kDEFINED opt_nl '(' {vps->in_defined = 1;} expr ')'
+                | keyword_defined opt_nl '(' {vps->in_defined = 1;} expr rparen
                     {
                         vps->in_defined = 0;
                         $$ = NEW_DEFINED($5);
+                    }
+                | keyword_not '(' expr rparen
+                    {
+                        $$ = call_uni_op(cond($3, vps), '!');
+                    }
+                | keyword_not '(' rparen
+                    {
+                        $$ = call_uni_op(cond(NEW_NIL(), vps), '!');
                     }
                 | operation brace_block
                     {
@@ -1632,110 +1668,77 @@ primary         : literal
                 | method_call
                 | method_call brace_block
                     {
-                        if ($1 && nd_type($1) == NODE_BLOCK_PASS) {
-                            rb_compile_error(vps, "both block arg and actual block given");
-                        }
+                        block_dup_check($1->nd_args, $2);
                         $2->nd_iter = $1;
                         $$ = $2;
                         fixpos($$, $1);
                     }
-                | kIF {
-                    PUSH_LINE("if");
-                  } expr_value then
+                | tLAMBDA lambda
+                    {
+                        $$ = $2;
+                    }
+                | k_if expr_value then
                   compstmt
                   if_tail
-                  kEND
+                  k_end
                     {
-                        POP_LINE();
-                        $$ = NEW_IF(cond($3, vps), $5, $6);
-                        fixpos($$, $3);
-                        if (cond_negative(&$$->nd_cond)) {
-                            NODE *tmp = $$->nd_body;
-                            $$->nd_body = $$->nd_else;
-                            $$->nd_else = tmp;
-                        }
+                        $$ = NEW_IF(cond($2, vps), $4, $5);
+                        fixpos($$, $2);
                     }
-                | kUNLESS {
-                    PUSH_LINE("unless");
-                  } expr_value then
+                | k_unless expr_value then
                   compstmt
                   opt_else
-                  kEND
+                  k_end
                     {
-                        POP_LINE();
-                        $$ = NEW_UNLESS(cond($3, vps), $5, $6);
-                        fixpos($$, $3);
-                        if (cond_negative(&$$->nd_cond)) {
-                            NODE *tmp = $$->nd_body;
-                            $$->nd_body = $$->nd_else;
-                            $$->nd_else = tmp;
-                        }
+                        $$ = NEW_UNLESS(cond($2, vps), $4, $5);
+                        fixpos($$, $2);
                     }
-                | kWHILE {
-                    PUSH_LINE("while");
-                    COND_PUSH(1);
-                  } expr_value do {COND_POP();}
+                | k_while {COND_PUSH(1);} expr_value do {COND_POP();}
                   compstmt
-                  kEND
+                  k_end
                     {
-                        POP_LINE();
                         $$ = NEW_WHILE(cond($3, vps), $6, 1);
                         fixpos($$, $3);
-                        if (cond_negative(&$$->nd_cond)) {
-                            nd_set_type($$, NODE_UNTIL);
-                        }
                     }
-                | kUNTIL {
-                    PUSH_LINE("until");
-                    COND_PUSH(1);
-                  } expr_value do {COND_POP();}
+                | k_until {COND_PUSH(1);} expr_value do {COND_POP();}
                   compstmt
-                  kEND
+                  k_end
                     {
-                        POP_LINE();
                         $$ = NEW_UNTIL(cond($3, vps), $6, 1);
                         fixpos($$, $3);
-                        if (cond_negative(&$$->nd_cond)) {
-                            nd_set_type($$, NODE_WHILE);
-                        }
                     }
-                | kCASE {
-                    PUSH_LINE("case");
-                  } expr_value opt_terms
+                | k_case expr_value opt_terms
                   case_body
-                  kEND
+                  k_end
                     {
-                        POP_LINE();
-                        $$ = NEW_CASE($3, $5);
-                        fixpos($$, $3);
+                        $$ = NEW_CASE($2, $4);
+                        fixpos($$, $2);
                     }
-                | kCASE opt_terms { 
-                    push_start_line((rb_parse_state*)parse_state, ruby_sourceline - 1, "case");
-                  } case_body kEND
+                | k_case opt_terms case_body k_end
                     {
-                        POP_LINE();
-                        $$ = $4;
+                        $$ = NEW_CASE(0, $3);
                     }
-                | kCASE opt_terms {
-                    push_start_line((rb_parse_state*)parse_state, ruby_sourceline - 1, "case");
-                  } kELSE compstmt kEND
-                    {
-                        POP_LINE();
-                        $$ = $5;
-                    }
-                | kFOR {
-                    PUSH_LINE("for");
-                  } for_var kIN {COND_PUSH(1);} expr_value do {COND_POP();}
+                | k_for for_var keyword_in
+                  {COND_PUSH(1);}
+                  expr_value do
+                  {COND_POP();}
                   compstmt
-                  kEND
+                  k_end
                     {
-                        POP_LINE();
-                        $$ = NEW_FOR($3, $6, $9);
-                        fixpos($$, $3);
+                        /*
+                         *  for a, b, c in e
+                         *  #=>
+                         *  e.each{|*x| a, b, c = x
+                         *
+                         *  for a in e
+                         *  #=>
+                         *  e.each{|x| a, = x}
+                         */
+                        $$ = 0; /* TODO NEW_FOR(0, $5, scope); */
+                        fixpos($$, $2);
                     }
-                | kCLASS cpath superclass
+                | k_class cpath superclass
                     {
-                        PUSH_LINE("class");
                         if (in_def || in_single)
                             yyerror("class definition in method body");
                         class_nest++;
@@ -1743,17 +1746,15 @@ primary         : literal
                         $<num>$ = ruby_sourceline;
                     }
                   bodystmt
-                  kEND
+                  k_end
                     {
-                        POP_LINE();
                         $$ = NEW_CLASS($2, $5, $3);
                         nd_set_line($$, $<num>4);
                         local_pop();
                         class_nest--;
                     }
-                | kCLASS tLSHFT expr
+                | k_class tLSHFT expr
                     {
-                        PUSH_LINE("class");
                         $<num>$ = in_def;
                         in_def = 0;
                     }
@@ -1765,9 +1766,8 @@ primary         : literal
                         local_push(0);
                     }
                   bodystmt
-                  kEND
+                  k_end
                     {
-                        POP_LINE();
                         $$ = NEW_SCLASS($3, $7);
                         fixpos($$, $3);
                         local_pop();
@@ -1775,9 +1775,8 @@ primary         : literal
                         in_def = $<num>4;
                         in_single = $<num>6;
                     }
-                | kMODULE cpath
+                | k_module cpath
                     {
-                        PUSH_LINE("module");
                         if (in_def || in_single)
                             yyerror("module definition in method body");
                         class_nest++;
@@ -1785,17 +1784,15 @@ primary         : literal
                         $<num>$ = ruby_sourceline;
                     }
                   bodystmt
-                  kEND
+                  k_end
                     {
-                        POP_LINE();
                         $$ = NEW_MODULE($2, $4);
                         nd_set_line($$, $<num>3);
                         local_pop();
                         class_nest--;
                     }
-                | kDEF fname
+                | k_def fname
                     {
-                        PUSH_LINE("def");
                         $<id>$ = cur_mid;
                         cur_mid = $2;
                         in_def++;
@@ -1803,46 +1800,43 @@ primary         : literal
                     }
                   f_arglist
                   bodystmt
-                  kEND
+                  k_end
                     {
-                        POP_LINE();
                         if (!$5) $5 = NEW_NIL();
                         $$ = NEW_DEFN($2, $4, $5, NOEX_PRIVATE);
-                        fixpos($$, $4);
+                        nd_set_line($$, $<num>1)
                         local_pop();
                         in_def--;
                         cur_mid = $<id>3;
                     }
-                | kDEF singleton dot_or_colon {vps->lex_state = EXPR_FNAME;} fname
+                | k_def singleton dot_or_colon {vps->lex_state = EXPR_FNAME;} fname
                     {
-                        PUSH_LINE("def");
                         in_single++;
                         local_push(0);
                         vps->lex_state = EXPR_END; /* force for args */
                     }
                   f_arglist
                   bodystmt
-                  kEND
+                  k_end
                     {
-                        POP_LINE();
                         $$ = NEW_DEFS($2, $5, $7, $8);
-                        fixpos($$, $2);
+                        nd_set_lines($$, $<num>1);
                         local_pop();
                         in_single--;
                     }
-                | kBREAK
+                | keyword_break
                     {
                         $$ = NEW_BREAK(0);
                     }
-                | kNEXT
+                | keyword_next
                     {
                         $$ = NEW_NEXT(0);
                     }
-                | kREDO
+                | keyword_redo
                     {
                         $$ = NEW_REDO();
                     }
-                | kRETRY
+                | keyword_retry
                     {
                         $$ = NEW_RETRY();
                     }
@@ -1852,22 +1846,88 @@ primary_value   : primary
                     {
                         value_expr($1);
                         $$ = $1;
+                        if(!$$) $$ = NEW_NIL();
+                    }
+                ;
+
+k_begin         : keyword_begin
+                    {
+                        token_info_push("begin");
+                    }
+                ;
+
+k_if            : keyword_if
+                    {
+                        token_info_push("if");
+                    }
+                ;
+
+k_unless        : keyword_unless
+                    {
+                        token_info_push("unless");
+                    }
+                ;
+
+k_while         : keyword_while
+                    {
+                        token_info_push("while");
+                    }
+                ;
+
+k_until         : keyword_until
+                    {
+                        token_info_push("until");
+                    }
+                ;
+
+k_case          : keyword_case
+                    {
+                        token_info_push("case");
+                    }
+                ;
+
+k_for           : keyword_for
+                    {
+                        token_info_push("for");
+                    }
+                ;
+
+k_class         : keyword_class
+                    {
+                        token_info_push("class");
+                    }
+                ;
+
+k_module        : keyword_module
+                    {
+                        token_info_push("module");
+                    }
+                ;
+
+k_def           : keyword_def
+                    {
+                        token_info_push("def");
+                        $<num>$ = ruby_sourceline;
+                    }
+                ;
+
+k_end           : keyword_end
+                    {
+                        token_info_pop("end");
                     }
                 ;
 
 then            : term
-                | ':'
-                | kTHEN
-                | term kTHEN
+                | keyword_then
+                | term keyword_then
                 ;
 
 do              : term
-                | ':'
-                | kDO_COND
+                | keyword_do_cond
                 ;
 
 if_tail         : opt_else
-                | kELSIF expr_value then
+                | keyword_elsif expr_value then
                   compstmt
                   if_tail
                     {
@@ -1877,7 +1937,7 @@ if_tail         : opt_else
                 ;
 
 opt_else        : none
-                | kELSE compstmt
+                | keyword_else compstmt
                     {
                         $$ = $2;
                     }
@@ -1887,109 +1947,233 @@ for_var         : lhs
                 | mlhs
                 ;
 
-block_par       : mlhs_item
+f_marg          : f_norm_arg
                     {
-                        $$ = NEW_LIST($1);
+                        $$ = assignable($1, 0);
                     }
-                | block_par ',' mlhs_item
-                    {
-                        $$ = list_append(vps, $1, $3);
-                    }
-                ;
-
-block_var       : block_par
-                    {
-                        if ($1->nd_alen == 1) {
-                            $$ = $1->nd_head;
-                        }
-                        else {
-                            $$ = NEW_MASGN($1, 0);
-                        }
-                    }
-                | block_par ','
-                    {
-                        $$ = NEW_MASGN($1, 0);
-                    }
-                | block_par ',' tAMPER lhs
-                    {
-                        $$ = NEW_BLOCK_VAR($4, NEW_MASGN($1, 0));
-                    }
-                | block_par ',' tSTAR lhs ',' tAMPER lhs
-                    {
-                        $$ = NEW_BLOCK_VAR($7, NEW_MASGN($1, $4));
-                    }
-                | block_par ',' tSTAR ',' tAMPER lhs
-                    {
-                        $$ = NEW_BLOCK_VAR($6, NEW_MASGN($1, -1));
-                    }
-                | block_par ',' tSTAR lhs
-                    {
-                        $$ = NEW_MASGN($1, $4);
-                    }
-                | block_par ',' tSTAR
-                    {
-                        $$ = NEW_MASGN($1, -1);
-                    }
-                | tSTAR lhs ',' tAMPER lhs
-                    {
-                        $$ = NEW_BLOCK_VAR($5, NEW_MASGN(0, $2));
-                    }
-                | tSTAR ',' tAMPER lhs
-                    {
-                        $$ = NEW_BLOCK_VAR($4, NEW_MASGN(0, -1));
-                    }
-                | tSTAR lhs
-                    {
-                        $$ = NEW_MASGN(0, $2);
-                    }
-                | tSTAR
-                    {
-                        $$ = NEW_MASGN(0, -1);
-                    }
-                | tAMPER lhs
-                    {
-                        $$ = NEW_BLOCK_VAR($2, (NODE*)1);
-                    }
-                ;
-
-opt_block_var   : none
-                | '|' /* none */ '|'
-                    {
-                        $$ = (NODE*)1;
-                    }
-                | tOROP
-                    {
-                        $$ = (NODE*)1;
-                    }
-                | '|' block_var '|'
+                | tLPAREN f_margs rparen
                     {
                         $$ = $2;
                     }
                 ;
 
-do_block        : kDO_BLOCK
+f_marg_list     : f_marg
+                    {
+                        $$ = NEW_LIST($1);
+                    }
+                | f_marg_list ',' f_marg
+                    {
+                        $$ = list_append($1, $3);
+                    }
+                ;
+
+f_margs         : f_marg_list
+                    {
+                        $$ = NEW_MASGN($1, 0);
+                    }
+                | f_marg_list ',' tSTAR f_norm_arg
+                    {
+                        $$ = assignable($4, 0);
+                        $$ = NEW_MASGN($1, $$);
+                    }
+                | f_marg_list ',' tSTAR f_norm_arg ',' f_marg_list
+                    {
+                        $$ = assignable($4, 0);
+                        $$ = NEW_MASGN($1, NEW_POSTARGS($$, $6));
+                    }
+                | f_marg_list ',' tSTAR
+                    {
+                        $$ = NEW_MASGN($1, -1);
+                    }
+                | f_marg_list ',' tSTAR ',' f_marg_list
+                    {
+                        $$ = NEW_MASGN($1, NEW_POSTARG(-1, $5));
+                    }
+                | tSTAR f_norm_arg
+                    {
+                        $$ = assignable($2, 0);
+                        $$ = NEW_MASGN(0, $$);
+                    }
+                | tSTAR f_norm_arg ',' f_marg_list
+                    {
+                        $$ = assignable($2, 0);
+                        $$ = NEW_MASGN(0, NEW_POSTARG($$, $4));
+                    }
+                | tSTAR
+                    {
+                        $$ = NEW_MASGN(0, -1);
+                    }
+                | tSTAR ',' f_marg_list
+                    {
+                        $$ = NEW_MASGN(0, NEW_POSTARG(-1, $3));
+                    }
+                ;
+
+block_param     : f_arg ',' f_block_optarg ',' f_rest_arg opt_f_block_arg
+                    {
+                        $$ = new_args($1, $3, $5, 0, $6);
+                    }
+                | f_arg ',' f_block_optarg ',' f_rest_arg ',' f_arg opt_f_block_arg
+                    {
+                        $$ = new_args($1, $3, $5, $7, $8);
+                    }
+                | f_arg ',' f_block_optarg opt_f_block_arg
+                    {
+                        $$ = new_args($1, $3, 0, 0, $4);
+                    }
+                | f_arg ',' f_block_optarg ',' f_arg opt_f_block_arg
+                    {
+                        $$ = new_args($1, $3, 0, $5, $6);
+                    }
+                | f_arg ',' f_rest_arg opt_f_block_arg
+                    {
+                        $$ = new_args($1, 0, $3, 0, $4);
+                    }
+                | f_arg ','
+                    {
+                        $$ new_args($1, 0, 1, 0, 0);
+                    }
+                | f_arg ',' f_rest_arg ',' f_arg opt_f_block_arg
+                    {
+                        $$ = new_args($1, 0, $3, $5, $6);
+                    }
+                | f_arg opt_f_block_arg
+                    {
+                        $$ new_args($1, 0, 0, 0, $2);
+                    }
+                | f_block_optarg ',' f_rest_arg opt_f_block_arg
+                    {
+                        $$ = new_args(0, $1, $3, 0, $4);
+                    }
+                | f_block_optarg ',' f_rest_arg ',' f_arg opt_f_block_arg
+                    {
+                        $$ = new_args(0, $1, $3, $5, $6);
+                    }
+                | f_block_optarg opt_f_block_arg
+                    {
+                        $$ new_args(0, $1, 0, 0, $2);
+                    }
+                | f_block_optarg ',' f_arg opt_f_block_arg
+                    {
+                        $$ = new_args(0, $1, 0, $3, $4);
+                    }
+                | f_rest_arg opt_f_block_arg
+                    {
+                        $$ = new_args(0, 0, $1, 0, $2);
+                    }
+                | f_rest_arg ',' f_arg opt_f_block_arg
+                    {
+                        $$ = new_args(0, 0, $1, $3, $4);
+                    }
+                | f_block_arg
+                    {
+                        $$ = new_args(0, 0, 0, 0, $1);
+                    }
+                ;
+
+opt_block_param : none
+                | block_param_def
+                    {
+                        command_start = TRUE;
+                    }
+                ;
+
+block_param_def : '|' opt_bv_decl '|'
+                    {
+                        $$ = 0;
+                    }
+                | tOROP
+                    {
+                        $$ = 0;
+                    }
+                | '|' block_param opt_bv_decl '|'
+                    {
+                        $$ = $2;
+                    }
+                ;
+
+opt_bv_decl     : none
+                | ';' bv_decls
+                    {
+                        $$ = 0;
+                    }
+                ;
+
+bv_decls        : bvar
+                | bv_decls ',' bvar
+                ;
+
+bvar            : tIDENTIFIER
+                    {
+                        new_bv(get_id($1));
+                    }
+                | f_bad_arg
+                    {
+                        $$ = 0;
+                    }
+                ;
+
+lambda          :   {
+                        $<num>$ = lpar_beg;
+                        lpar_beg = ++paren_nest;
+                    }
+                f_larglist
+                lambda_body
+                    {
+                        lpar_beg = $<num>2;
+                        $$ = $3;
+                        $$->nd_body = NEW_SCOPE($3->nd_head, $4);
+                    }
+                ;
+
+f_larglist      : '(' f_args opt_bv_decl rparen
+                    {
+                        $$ = NEW_LAMBDA($2);
+                    }
+                | f_args
+                    {
+                        $$ = NEW_LAMBDA($1);
+                    }
+                ;
+
+lambda_body     : tLAMBEG compstmt '}'
+                    {
+                        $$ = $2;
+                    }
+                | keyword_do_LAMBDA compstmt keyword_end
+                    {
+                        $$ = $2;
+                    }
+                ;
+
+do_block        : keyword_do_block
                     {
                         PUSH_LINE("do");
-                        $<num>1 = ruby_sourceline;
+                        $<num>$ = ruby_sourceline;
                         reset_block(vps);
                     }
-                  opt_block_var
+                  opt_block_param
                     {
                       $<vars>$ = vps->variables->block_vars;
                     }
                   compstmt
-                  kEND
+                  keyword_end
                     {
                         POP_LINE();
                         $$ = NEW_ITER($3, 0, extract_block_vars(vps, $5, $<vars>4));
-                        nd_set_line($$, $<num>1);
+                        nd_set_line($$, $<num>2);
                     }
                 ;
 
 block_call      : command do_block
                     {
-                        if ($1 && nd_type($1) == NODE_BLOCK_PASS) {
-                            rb_compile_error(vps, "both block arg and actual block given");
+                        if (nd_type($1) == NODE_YIELD) {
+                            rb_compile_error(vps, "block given to yield");
+                        else {
+                            /* TODO */
+                            if ($1 && nd_type($1) == NODE_BLOCK_PASS) {
+                                rb_compile_error(vps, "both block arg and actual block given");
+                            }
                         }
                         $2->nd_iter = $1;
                         $$ = $2;
@@ -2024,67 +2208,65 @@ method_call     : operation paren_args
                     {
                         $$ = new_call(vps, $1, $3, 0);
                     }
-                | primary_value '\\' operation2
+                | primary_value '.' paren_args
                     {
-                        $$ = NEW_CALL($1, rb_parser_sym("get_reference"),
-                        NEW_LIST(NEW_LIT(QUID2SYM($3))));
+                        $$ = new_call(vps, $1, rb_parser_sym("call"), $3);
+                        fixpos($$, $1);
                     }
-                | tUBS operation2
+                | primary_value tCOLON2 paren_args
                     {
-                        $$ = NEW_FCALL(rb_parser_sym("get_reference"),
-                        NEW_LIST(NEW_LIT(QUID2SYM($2))));
+                        $$ = new_call(vps, $1, rb_parser_sym("call"), $3);
+                        fixpos($$, $1);
                     }
-                | kSUPER paren_args
+                | keyword_super paren_args
                     {
                         $$ = new_super(vps, $2);
                     }
-                | kSUPER
+                | keyword_super
                     {
                         $$ = NEW_ZSUPER();
+                    }
+                | primary_value '[' opt_call_args rbracket
+                    {
+                        if ($1 && nd_type($1) == NODE_SELF) {
+                            $$ = NEW_FCALL(tAREF, $3);
+                        } else {
+                            $$ = NEW_CALL($1, tAREF, $3);
+                        }
+                        fixpos($$, $1);
                     }
                 ;
 
 brace_block     : '{'
                     {
-                        $<num>1 = ruby_sourceline;
+                        $<num>$ = ruby_sourceline;
                         reset_block(vps);
                     }
-                  opt_block_var { $<vars>$ = vps->variables->block_vars; }
+                  opt_block_param { $<vars>$ = vps->variables->block_vars; }
                   compstmt '}'
                     {
                         $$ = NEW_ITER($3, 0, extract_block_vars(vps, $5, $<vars>4));
-                        nd_set_line($$, $<num>1);
+                        nd_set_line($$, $<num>2);
                     }
-                | kDO
+                | keyword_do
                     {
-                        PUSH_LINE("do");
-                        $<num>1 = ruby_sourceline;
+                        $<num>$ = ruby_sourceline;
                         reset_block(vps);
                     }
-                  opt_block_var { $<vars>$ = vps->variables->block_vars; }
-                  compstmt kEND
+                  opt_block_param { $<vars>$ = vps->variables->block_vars; }
+                  compstmt keyword_end
                     {
                         POP_LINE();
                         $$ = NEW_ITER($3, 0, extract_block_vars(vps, $5, $<vars>4));
-                        nd_set_line($$, $<num>1);
+                        nd_set_line($$, $<num>2);
                     }
                 ;
 
-case_body       : kWHEN when_args then
+case_body       : keyword_when args then
                   compstmt
                   cases
                     {
                         $$ = NEW_WHEN($2, $4, $5);
-                    }
-                ;
-when_args       : args
-                | args ',' tSTAR arg_value
-                    {
-                        $$ = list_append(vps, $1, NEW_WHEN($4, 0, 0));
-                    }
-                | tSTAR arg_value
-                    {
-                        $$ = NEW_LIST(NEW_WHEN($2, 0, 0));
                     }
                 ;
 
@@ -2092,11 +2274,12 @@ cases           : opt_else
                 | case_body
                 ;
 
-opt_rescue      : kRESCUE exc_list exc_var then
+opt_rescue      : keyword_rescue exc_list exc_var then
                   compstmt
                   opt_rescue
                     {
                         if ($3) {
+                            /* TODO NEW_ERRINFO() */
                             $3 = node_assign($3, NEW_GVAR(rb_parser_sym("$!")), vps);
                             $5 = block_append(vps, $3, $5);
                         }
@@ -2111,6 +2294,9 @@ exc_list        : arg_value
                         $$ = NEW_LIST($1);
                     }
                 | mrhs
+                    {
+                        if (!($$ = splat_array($1))) $$ = $1;
+                    }
                 | none
                 ;
 
@@ -2121,13 +2307,9 @@ exc_var         : tASSOC lhs
                 | none
                 ;
 
-opt_ensure      : kENSURE compstmt
+opt_ensure      : keyword_ensure compstmt
                     {
-                        if ($2)
-                            $$ = $2;
-                        else
-                            /* place holder */
-                            $$ = NEW_NIL();
+                        $$ = $2;
                     }
                 | none
                 ;
@@ -2144,7 +2326,7 @@ strings         : string
                     {
                         NODE *node = $1;
                         if (!node) {
-                            node = NEW_STR(string_new(0, 0));
+                            node = NEW_STR(STR_NEW0());
                         }
                         else {
                             node = evstr2dstr(vps, node);
@@ -2153,7 +2335,8 @@ strings         : string
                     }
                 ;
 
-string          : string1
+string          : tCHAR
+                | string1
                 | string string1
                     {
                         $$ = literal_concat(vps, $1, $2);
@@ -2181,7 +2364,7 @@ xstring         : tXSTRING_BEG xstring_contents tSTRING_END
                                 nd_set_type(node, NODE_DXSTR);
                                 break;
                               default:
-                                node = NEW_NODE(NODE_DXSTR, string_new(0, 0), 1, NEW_LIST(node));
+                                node = NEW_NODE(NODE_DXSTR, STR_NEW0(), 1, NEW_LIST(node));
                                 break;
                             }
                         }
@@ -2189,7 +2372,7 @@ xstring         : tXSTRING_BEG xstring_contents tSTRING_END
                     }
                 ;
 
-regexp          : tREGEXP_BEG xstring_contents tREGEXP_END
+regexp          : tREGEXP_BEG regexp_contents tREGEXP_END
                     {
                         intptr_t options = $3;
                         NODE *node = $2;
@@ -2204,7 +2387,7 @@ regexp          : tREGEXP_BEG xstring_contents tREGEXP_END
                             }
                             break;
                           default:
-                            node = NEW_NODE(NODE_DSTR, string_new(0, 0), 1, NEW_LIST(node));
+                            node = NEW_NODE(NODE_DSTR, STR_NEW0(), 1, NEW_LIST(node));
                           case NODE_DSTR:
                             if (options & RE_OPTION_ONCE) {
                                 nd_set_type(node, NODE_DREGX_ONCE);
@@ -2286,6 +2469,33 @@ xstring_contents: /* none */
                     }
                 ;
 
+regexp_contents : /* none */
+                    {
+                        $$ = 0;
+                    }
+                | regexp_contents string_content
+                    {
+                        NODE *head = $1, *tail = $2;
+                        if (!head) {
+                            $$ = tail;
+                        } else if (!tail) {
+                            $$ = head;
+                        } else {
+                            switch (nd_type(head)) {
+                            case NODE_STR:
+                                nd_set_type(head, NODE_DSTR);
+                                break;
+                            case NODE_DSTR:
+                                break;
+                            default:
+                                head = list_append(NEW_DSTR(Qnil), head);
+                                break;
+                            }
+                            $$ = list_append(head, tail);
+                        }
+                    }
+                ;
+
 string_content  : tSTRING_CONTENT
                 | tSTRING_DVAR
                     {
@@ -2311,6 +2521,7 @@ string_content  : tSTRING_CONTENT
                         lex_strterm = $<node>2;
                         COND_LEXPOP();
                         CMDARG_LEXPOP();
+                        /* TODO */
                         if (($$ = $3) && nd_type($$) == NODE_NEWLINE) {
                             $$ = $$->nd_next;
                         }
@@ -2341,7 +2552,7 @@ dsym            : tSYMBEG xstring_contents tSTRING_END
                     {
                         vps->lex_state = EXPR_END;
                         if (!($$ = $2)) {
-                            yyerror("empty symbol literal");
+                            $$ = NEW_LIT(QUID2SYM(rb_parser_sym("")));
                         }
                         else {
                             switch (nd_type($$)) {
@@ -2361,7 +2572,7 @@ dsym            : tSYMBEG xstring_contents tSTRING_END
                                 }
                                 /* fall through */
                               default:
-                                $$ = NEW_NODE(NODE_DSYM, string_new(0, 0), 1, NEW_LIST($$));
+                                $$ = NEW_NODE(NODE_DSYM, STR_NEW0(), 1, NEW_LIST($$));
                                 break;
                             }
                         }
@@ -2385,17 +2596,20 @@ variable        : tIDENTIFIER
                 | tGVAR
                 | tCONSTANT
                 | tCVAR
-                | kNIL {$$ = kNIL;}
-                | kSELF {$$ = kSELF;}
-                | kTRUE {$$ = kTRUE;}
-                | kFALSE {$$ = kFALSE;}
-                | k__FILE__ {$$ = k__FILE__;}
-                | k__LINE__ {$$ = k__LINE__;}
+                | keyword_nil {$$ = keyword_nil;}
+                | keyword_self {$$ = keyword_self;}
+                | keyward_true {$$ = keyward_true;}
+                | keyword_false {$$ = keyword_false;}
+                | keyword__FILE__ {$$ = keyword__FILE__;}
+                | keyword__LINE__ {$$ = keyword__LINE__;}
+                | keyword__ENCODING__ {$$ = keyword__ENCODING__;}
                 ;
 
 var_ref         : variable
                     {
-                        $$ = gettable($1);
+                        if (!($$ = gettable($1))) {
+                            $$ = NEW_BEGIN();
+                        }
                     }
                 ;
 
@@ -2421,10 +2635,14 @@ superclass      : term
                     {
                         $$ = $3;
                     }
-                | error term {yyerrok; $$ = 0;}
+                | error term
+                    {
+                        yyerrok;
+                        $$ = 0;
+                    }
                 ;
 
-f_arglist       : '(' f_args opt_nl ')'
+f_arglist       : '(' f_args rparen
                     {
                         $$ = $2;
                         vps->lex_state = EXPR_BEG;
@@ -2438,94 +2656,162 @@ f_arglist       : '(' f_args opt_nl ')'
 
 f_args          : f_arg ',' f_optarg ',' f_rest_arg opt_f_block_arg
                     {
-                        $$ = block_append(vps, NEW_ARGS((intptr_t)$1, $3, $5), $6);
+                        $$ = new_args($1, $3, $5, 0, $6);
+                    }
+                | f_arg ',' f_optarg ',' f_rest_arg ',' f_arg opt_f_block_arg
+                    {
+                        $$ = new_args($1, $3, $5, $7, $8);
                     }
                 | f_arg ',' f_optarg opt_f_block_arg
                     {
-                        $$ = block_append(vps, NEW_ARGS((intptr_t)$1, $3, 0), $4);
+                        $$ = new_args($1, $3, 0, 0, $4);
+                    }
+                | f_arg ',' f_optarg ',' f_arg opt_f_block_arg
+                    {
+                        $$ = new_args($1, $3, 0, $5, $6);
                     }
                 | f_arg ',' f_rest_arg opt_f_block_arg
                     {
-                        $$ = block_append(vps, NEW_ARGS((intptr_t)$1, 0, $3), $4);
+                        $$ = new_args($1, 0, $3, 0, $4);
+                    }
+                | f_arg ',' f_rest_arg ',' f_arg opt_f_block_arg
+                    {
+                        $$ = new_args($1, 0, $3, $5, $6);
                     }
                 | f_arg opt_f_block_arg
                     {
-                        $$ = block_append(vps, NEW_ARGS((intptr_t)$1, 0, 0), $2);
+                        $$ = new_args($1, 0, 0, 0, $2);
                     }
                 | f_optarg ',' f_rest_arg opt_f_block_arg
                     {
-                        $$ = block_append(vps, NEW_ARGS(0, $1, $3), $4);
+                        $$ = new_args(0, $1, $3, 0, $4);
+                    }
+                | f_optarg ',' f_rest_arg ',' f_arg opt_f_block_arg
+                    {
+                        $$ = new_args(0, $1, $3, $5, $6);
                     }
                 | f_optarg opt_f_block_arg
                     {
-                        $$ = block_append(vps, NEW_ARGS(0, $1, 0), $2);
+                        $$ = new_args(0, $1, 0, 0, $2);
+                    }
+                | f_optarg ',' f_arg opt_f_block_arg
+                    {
+                        $$ = new_args(0, $1, 0, $3, $4);
                     }
                 | f_rest_arg opt_f_block_arg
                     {
-                        $$ = block_append(vps, NEW_ARGS(0, 0, $1), $2);
+                        $$ = new_args(0, 0, $1, 0, $2);
+                    }
+                | f_rest_arg ',' f_arg opt_f_block_arg
+                    {
+                        $$ = new_args(0, 0, $1, $3, $4);
                     }
                 | f_block_arg
                     {
-                        $$ = block_append(vps, NEW_ARGS(0, 0, 0), $1);
+                        $$ = new_args(0, 0, 0, 0, $1);
                     }
                 | /* none */
                     {
-                        $$ = NEW_ARGS(0, 0, 0);
+                        $$ = new_args(0, 0, 0, 0, 0);
                     }
                 ;
 
 f_norm_arg      : tCONSTANT
                     {
                         yyerror("formal argument cannot be a constant");
+                        $$ = 0;
                     }
                 | tIVAR
                     {
                         yyerror("formal argument cannot be an instance variable");
+                        $$ = 0;
                     }
                 | tGVAR
                     {
                         yyerror("formal argument cannot be a global variable");
+                        $$ = 0;
                     }
                 | tCVAR
                     {
                         yyerror("formal argument cannot be a class variable");
-                    }
-                | tIDENTIFIER
-                    {
-                        if (!is_local_id($1))
-                            yyerror("formal argument must be local variable");
-                        else if (local_id($1))
-                            yyerror("duplicate argument name");
-                        local_cnt($1);
-                        $$ = 1;
+                        $$ = 0;
                     }
                 ;
 
-f_arg           : f_norm_arg
-                | f_arg ',' f_norm_arg
+f_norm_arg      : f_bad_arg
+                | tIDENTIFIER
                     {
-                        $$ += 1;
+                        formal_argument(get_id($1));
+                        $$ = $1;
+                    }
+                ;
+
+f_arg_item      : f_norm_arg
+                    {
+                        arg_var(get_id($1));
+                        $$ = NEW_ARGS_AUX($1, 1);
+                    }
+                | tLPAREN f_margs rparen
+                    {
+                        /* TODO */
+                        $$ = NEW_ARGS_AUX(tid, 1);
+                        $$->nd_next = $2;
+                    }
+                ;
+
+f_arg           : f_arg_item
+                | f_arg ',' f_arg_item
+                    {
+                        $$ = $1;
+                        $$->nd_plen++;
+                        $$->nd_next = block_append($$->nd_next, $3->nd_next);
                     }
                 ;
 
 f_opt           : tIDENTIFIER '=' arg_value
                     {
-                        if (!is_local_id($1))
-                            yyerror("formal argument must be local variable");
-                        else if (local_id($1))
-                            yyerror("duplicate optional argument name");
-                        $$ = assignable($1, $3, vps);
+                        arg_var(formal_argument(get_id($1)));
+                        $$ = assignable($1, $3);
+                        $$ = NEW_OPT_ARG(0, $$);
+                    }
+                ;
+
+f_block_opt     : tIDENTIFIER '=' primary_value
+                    {
+                        arg_var(formal_argument(get_id($1)));
+                        $$ = assignable($1, $3);
+                        $$ = NEW_OPT_ARG(0, $$);
+                    }
+                ;
+
+f_block_optarg  : f_block_opt
+                    {
+                        $$ = $1;
+                    }
+                | f_block_optarg ',' f_block_opt
+                    {
+                        NODE *opts = $1;
+
+                        while (opts->nd_next) {
+                            opts = opts->nd_next;
+                        }
+                        opts->nd_next = $3;
+                        $$ = $1;
                     }
                 ;
 
 f_optarg        : f_opt
                     {
-                        $$ = NEW_BLOCK($1);
-                        $$->nd_end = $$;
+                        $$ = $1;
                     }
                 | f_optarg ',' f_opt
                     {
-                        $$ = block_append(vps, $1, $3);
+                        NODE *opts = $1;
+                        while (opts->nd_next) {
+                            opts = opts->nd_next;
+                        }
+                        opts->nd_next = $3;
+                        $$ = $1;
                     }
                 ;
 
@@ -2535,15 +2821,16 @@ restarg_mark    : '*'
 
 f_rest_arg      : restarg_mark tIDENTIFIER
                     {
-                        if (!is_local_id($2))
+                        if (!is_local_id($2)) {
                             yyerror("rest argument must be local variable");
-                        else if (local_id($2))
-                            yyerror("duplicate rest argument name");
-                        $$ = local_cnt($2) + 1;
+                        }
+                        arg_var(shadowing_lvar(get_id($2)));
+                        $$ = $2;
                     }
                 | restarg_mark
                     {
-                        $$ = -2;
+                        $$ = internal_id();
+                        arg_var($$);
                     }
                 ;
 
@@ -2557,7 +2844,8 @@ f_block_arg     : blkarg_mark tIDENTIFIER
                             yyerror("block argument must be local variable");
                         else if (local_id($2))
                             yyerror("duplicate block argument name");
-                        $$ = NEW_BLOCK_ARG($2);
+                        arg_var(shadowing_lvar(get_id($2)));
+                        $$ = $2;
                     }
                 ;
 
@@ -2566,14 +2854,18 @@ opt_f_block_arg : ',' f_block_arg
                         $$ = $2;
                     }
                 | none
+                    {
+                        $$ = 0;
+                    }
                 ;
 
 singleton       : var_ref
                     {
+                        value_expr($1);
                         $$ = $1;
-                        value_expr($$);
+                        if (!$$) $$ = NEW_NIL();
                     }
-                | '(' {vps->lex_state = EXPR_BEG;} expr opt_nl ')'
+                | '(' {vps->lex_state = EXPR_BEG;} expr rparen
                     {
                         if ($3 == 0) {
                             yyerror("can't define singleton method for ().");
@@ -2603,13 +2895,6 @@ assoc_list      : none
                     {
                         $$ = $1;
                     }
-                | args trailer
-                    {
-                        if ($1->nd_alen%2 != 0) {
-                            yyerror("odd number list for Hash");
-                        }
-                        $$ = $1;
-                    }
                 ;
 
 assocs          : assoc
@@ -2622,6 +2907,10 @@ assocs          : assoc
 assoc           : arg_value tASSOC arg_value
                     {
                         $$ = list_append(vps, NEW_LIST($1), $3);
+                    }
+                | tLABEL arg_value
+                    {
+                        $$ = list_append(NEW_LIST(NEW_LIT(QUID2SYM($1))), $2);
                     }
                 ;
 
@@ -2651,6 +2940,12 @@ opt_terms       : /* none */
 
 opt_nl          : /* none */
                 | '\n'
+                ;
+
+rparen          : opt_nl ')'
+                ;
+
+rbracket        : opt_nl ']'
                 ;
 
 trailer         : /* none */
@@ -4586,11 +4881,11 @@ yylex(void *yylval_v, void *vstate)
           case '`':             /* $`: string before last match */
           case '\'':            /* $': string after last match */
           case '+':             /* $+: string matches last paren. */
-	    if (last_state == EXPR_FNAME) {
-		tokadd((char)'$', parse_state);
-		tokadd(c, parse_state);
-		goto gvar;
-	    }
+      if (last_state == EXPR_FNAME) {
+    tokadd((char)'$', parse_state);
+    tokadd(c, parse_state);
+    goto gvar;
+      }
             pslval->node = NEW_BACK_REF((intptr_t)c);
             return tBACK_REF;
 
@@ -4603,7 +4898,7 @@ yylex(void *yylval_v, void *vstate)
                 c = nextc();
             } while (ISDIGIT(c));
             pushback(c, parse_state);
-	    if (last_state == EXPR_FNAME) goto gvar;
+      if (last_state == EXPR_FNAME) goto gvar;
             tokfix();
             pslval->node = NEW_NTH_REF((intptr_t)atoi(tok()+1));
             return tNTH_REF;
