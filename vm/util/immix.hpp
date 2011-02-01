@@ -414,15 +414,14 @@ namespace immix {
 
     /**
      * Returns the percentage of the block that is used for object storage.
-     * This will never be 100%, even on fully occupied blocks, due to the
-     * reservation of the first line for Block metadata, and the likelihood
-     * of wasted space on lines that are marked in use but not fully occupied.
+     * This will rarely be 100%, even on fully occupied blocks, due to the
+     * likelihood of wasted space on lines that are marked in use but not
+     * fully occupied.
      */
     double fragmentation_ratio() {
-      // We subtract the size of a pointer because thats not data available to
-      // use for objects, so we shouldn't count it. 4 bytes in the grand scheme
-      // doesn't probably matter for this, but we should be fair.
-      return ((double)object_bytes_) / ((double)(cBlockSize - sizeof(BlockHeader*)));
+      // We subtract the size of the first line because thats not data available to
+      // use for objects, so we shouldn't count it.
+      return ((double)object_bytes_) / ((double)(cBlockSize - cLineSize));
     }
   };
 
