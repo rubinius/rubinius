@@ -21,6 +21,7 @@ namespace rubinius {
    */
 
   class Heap {
+
     /// Address at which the heap starts
     Address start_;
 

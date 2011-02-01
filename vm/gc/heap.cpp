@@ -64,6 +64,8 @@ namespace rubinius {
   /**
    * Moves +orig+ Object into this Heap, and sets a forwarding pointer to the
    * new location.
+   *
+   * @returns the new location of +orig+.
    */
   Object* Heap::move_object(STATE, Object* orig) {
     size_t bytes = orig->size_in_bytes(state);

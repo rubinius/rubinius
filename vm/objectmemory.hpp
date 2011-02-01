@@ -129,6 +129,7 @@ namespace rubinius {
    */
 
   class ObjectMemory : public gc::WriteBarrier, public Lockable {
+
     /// BakerGC used for the young generation
     BakerGC* young_;
 
@@ -165,12 +166,14 @@ namespace rubinius {
 
     /// Mutex used to manage lock contention
     thread::Mutex contention_lock_;
+
     /// Condition variable used to manage lock contention
     thread::Condition contention_var_;
 
   public:
     /// Flag indicating whether a young collection should be performed soon
     bool collect_young_now;
+
     /// Falg indicating whether a full collection should be performed soon
     bool collect_mature_now;
 
@@ -337,7 +340,7 @@ namespace rubinius {
     InflatedHeader* inflate_header(STATE, ObjectHeader* obj);
     void inflate_for_id(STATE, ObjectHeader* obj, uint32_t id);
 
-    // This only has one use! Don't use it!
+    /// This only has one use! Don't use it!
     Object* allocate_object_raw(size_t bytes);
 
   private:

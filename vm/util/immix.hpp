@@ -61,48 +61,53 @@ namespace immix {
 
   /// Size of a Block; 32K, to match the size of a page of virtual memory
   const int cBlockSize = 32768;
+
   /// Mask bits, used to align blocks at cBlockSize boundaries
   const int cBlockMask = cBlockSize - 1;
+
   /// Number of bits needed to hold the line size; used to derive cLineSize,
   /// and to calculate the number of lines an object of a given size would
   /// occupy.
   const int cLineBits  = 7;
+
   /// The size of a Line; should be a multiple of the processor cache line size,
   /// and sufficient to hold several typical objects; we use 128 bytes.
   /// @todo Check imapct of different line sizes
   const int cLineSize  = 1 << cLineBits;
+
   /// Line mask used to convert an objects Address to the Address of the start
   /// of the line.
   const int cLineMask  = cLineSize - 1;
+
   /// Each block consists of an array of lines, known as the line table.
   /// The line table array is sized to fill the Block.
   const int cLineTableSize = cBlockSize / cLineSize;
+
   /// Memory for blocks is allocated in chunks; these are set to be 10 MB, thus
   /// each chunk has space for 320 blocks.
   const int cChunkSize = 10 * 1024 * 1024;
+
   /// Number of Blocks that fit within a Chunk
   const int cBlocksPerChunk = cChunkSize / cBlockSize;
+
   /// Objects above a certain number of lines in size are considered to be
   /// medium sized objects, which should be allocated only in free blocks.
   /// As the likelihood of finding this many contiguous free lines in a
   /// recycled block rapidly diminishes as the number of lines increases,
   /// we don't bother searching partially free blocks if the size of the
   /// object is at or above this number of lines.
-  const int cMediumObjectLimit = cLineSize * 4; // TODO calculate this
+  const int cMediumObjectLimit = cLineSize * 4; //< @todo calculate this
 
   /**
    * Enumeration of possible block states.
    */
   enum BlockStatus {
-    /// Block is completely free
-    cFree,
-    /// Block is in use, but has at least one free line
-    cRecyclable,
-    /// Block is fully in use, with no free lines
-    cUnavailable,
-    /// Block is fragmented, and a candidate for evacuation and compaction
-    cEvacuate
+    cFree,          //< Block is completely free
+    cRecyclable,    //< Block is in use, but has at least one free line
+    cUnavailable,   //< Block is fully in use, with no free lines
+    cEvacuate       //> Block is fragmented, and a candidate for evacuation
   };
+
 
   /// Each line requires a byte for marking
   typedef uint8_t LineEntry;
@@ -115,6 +120,7 @@ namespace immix {
    * the memory managed by the Block, which is why the first line of the Block
    * memory is reserved.
    */
+
   struct BlockHeader {
     Block* block;
   };
@@ -123,25 +129,36 @@ namespace immix {
   /**
    * Immix manages memory at several granularities; a Block is sized to 32K to
    * fit a page of virtual memory, with the block then sub-divided into lines.
-   * The first line of the Block is always marked as in use, as it contains a
-   * BlockHeader object containing a pointer back to this Block object that is
-   * managing that memory.
+   *
+   * Block instances are used to manage these 32K slabs of memory obtained from
+   * Chunks. Note that a Block instance does not reside in the memory it manages.
+   *
+   * The first line of a Block is always marked as in use, as it contains a
+   * BlockHeader object that contains a pointer back to the Block object that
+   * is managing that memory.
    */
 
   class Block {
+
     /// Address of the start of the memory managed by this Block
     Address address_;
+
     /// Status of the Block
     BlockStatus status_;
+
     /// Number of holes in the block from which allocations can be made.
     /// A Block starts with one hole the size of the free memory in the block.
     int holes_;
+
     /// Number of lines used in this Block
     int lines_used_;
+
     /// Number of objects stored in this Blocks memory
     int objects_;
+
     /// Number of bytes used by objects stored in this Blocks memory
     int object_bytes_;
+
     /// Map of in-use lines in the Block
     LineEntry lines_[cLineTableSize];
 
@@ -202,19 +219,14 @@ namespace immix {
     /**
      * Returns the Address of the first allocation point in the Block.
      * This is not the same as the start of the Block, as the Block maintains
-     * some metadata in the first line.
+     * some metadata (i.e. a BlockHeader) in the first line.
      */
     Address first_address() {
       return address_ + cLineSize; // skip line 0
     }
 
     /**
-     * Returns the status of the Block, which may be one of the following:
-     * - cFree: The block is totally empty
-     * - cRecyclable: The block has at least one line of free space
-     * - cUnavailable: The block has no free lines remaining
-     * - cEvacuate: The block is currently in use, but is a candidate for
-     *   compaction, and should not be used for new allocations.
+     * Returns the status of the Block.
      */
     BlockStatus status() const {
       return status_;
@@ -235,8 +247,8 @@ namespace immix {
     }
 
     /**
-     * Returns a count of the number of objects contained in the memory managed
-     * by this Block.
+     * Returns a count of the number of objects currently allocated in the
+     * memory managed by this Block.
      */
     int objects() const {
       return objects_;
@@ -288,6 +300,7 @@ namespace immix {
     /**
      * Given an Address +addr+ in memory managed by a Block, returns a pointer
      * to that Block.
+     *
      * This method relies on the fact that the memory managed by a Block is
      * aligned at a cBlockSize boundary, and that a pointer to the managing
      * Block is stored at the start of the memory range managed by the Block.
@@ -338,8 +351,8 @@ namespace immix {
     }
 
     /**
-     * Recalculates line usage and holes, using the results to update the
-     * status of the Block.
+     * Recalculates line usage and the number of holes in this Block, using
+     * the results to update the Block status.
      */
     void update_stats() {
       holes_ = 0;
@@ -355,7 +368,7 @@ namespace immix {
         }
       }
 
-      // 1 is always used for metadata
+      // The first line is always used for metadata
       if(lines_used_ <= 1) {
         status_ = cFree;
       } else if(holes_ >= 1) {
@@ -415,24 +428,34 @@ namespace immix {
 
 
   /**
-   * A Chunk manages a slab of memory allocated from the O/S, which is then
-   * subdivided into memory ranges managed by Blocks.
+   * A Chunk manages a slab of memory allocated from the virtual memory of the
+   * O/S. This memory is then sub-divided into Blocks (which are in turn sub-
+   * divided into lines).
    */
 
   class Chunk {
+
     /// Address of the start of the memory range managed by this Chunk.
     /// May be different than the base_ address is the O/S gives us
     /// memory that is not aligned to an exact multiple of cBlockSize.
     Address system_base_;
+
     /// Size of memory allocated to this Chunk. May be larger than cChunkSize
     /// if the memory is not cBlockSize aligned.
     std::size_t system_size_;
+
     /// Address of the first byte of memory assigned to a Block.
     Address base_;
+
     /// Contains the metadata for all Blocks in this Chunk.
     Block blocks_[cBlocksPerChunk];
 
   public:
+
+    /**
+     * Constructor; obtains a range of memory from the O/S, and ensures that
+     * Blocks are always aligned on a cBlockSize boundary.
+     */
     Chunk()
       : system_base_(0)
       , base_(0)
@@ -549,6 +572,7 @@ namespace immix {
    * Virtual class representing events the BlockAllocator will raise on the
    * GC.
    */
+
   class Triggers {
   public:
     virtual ~Triggers() { }
@@ -576,18 +600,26 @@ namespace immix {
    */
 
   class BlockAllocator {
+
+    /// Holds a reference to a Triggers object, on which the BlockAllocator
+    /// will fire callbacks for chunks added, low memory, etc.
     Triggers& triggers_;
+
     /// Vector of Chunks managed by this BlockAllocator.
     Chunks chunks_;
+
     /// Pointer to the current Chunk
     Chunk* current_chunk_;
+
     /// Index into the chunks_ vector for the current Chunk being iterated
     size_t chunk_cursor_;
+
     /// Index of the current Block within the current Chunk
     size_t block_cursor_;
 
     // Stats
     size_t bytes_allocated_;
+
   public:
 
     BlockAllocator(Triggers& trig)
@@ -763,7 +795,8 @@ namespace immix {
     /**
      * Resets this HoleFinder to the start of the current or specified +block+,
      * and then attempts to locate the first hole (using find_hole).
-     * /returns true if a hole is found.
+     *
+     * @returns true if a hole is found.
      */
     bool reset(Block* block = 0) {
       if(block) block_ = block;
@@ -774,7 +807,8 @@ namespace immix {
     /**
      * Searches from the last search line until it finds a hole or reaches the
      * end of the Block line map.
-     * /returns true if a hole is found, in which case the +cursor+ will be
+     *
+     * @returns true if a hole is found, in which case the +cursor+ will be
      * positioned ready for the next allocation. Additionally, +limit+ will
      * identify the address one byte beyond the end of the hole.
      */
@@ -798,6 +832,7 @@ namespace immix {
 
     /**
      * Bump allocates from the current hole.
+     *
      * Note: Relies on caller to determine that +size+ is valid, and will fit
      * the current hole.
      */
@@ -840,7 +875,8 @@ namespace immix {
      * Attempts to allocate a chunk of memory of the specified size.
      * As this allocator only works with a single block, it will fail
      * if the block is unable to accommodate the request.
-     * /returns the Address allocated, or a null address if no space is
+     *
+     * @returns the Address allocated, or a null address if no space is
      * available.
      */
     Address allocate(int size) {
@@ -993,7 +1029,8 @@ namespace immix {
 
     /**
      * Converts evacuated Blocks back to free Blocks.
-     * @todo Does this need to check if an evacuated block is emoty - what
+     *
+     * @todo Does this need to check if an evacuated block is empty - what
      * about pinned objects?
      */
     void sweep_blocks() {

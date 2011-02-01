@@ -23,7 +23,10 @@ namespace rubinius {
     }
   }
 
-  // This means we're getting low on memory!
+  /**
+   * This means we're getting low on memory! Time to schedule a garbage
+   * collection.
+   */
   void ImmixGC::ObjectDescriber::last_block() {
     if(object_memory_) {
       object_memory_->collect_mature_now = true;
@@ -65,7 +68,7 @@ namespace rubinius {
   }
 
   ImmixGC::~ImmixGC() {
-    // TODO free data
+    // @todo free data
   }
 
   Object* ImmixGC::allocate(int bytes) {

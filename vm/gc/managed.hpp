@@ -24,10 +24,10 @@ namespace rubinius {
     };
 
     enum RunState {
-      eRunning,     // Normal state. Running accessing GC memory.
-      eSuspended,   // Waiting to be told to restart
-      eIndependent, // Off running code that doesn't access GC memory.
-      eAlone        // Suspended all other threads, alone to run.
+      eRunning,     //< Normal state. Running accessing GC memory.
+      eSuspended,   //< Waiting to be told to restart
+      eIndependent, //< Off running code that doesn't access GC memory.
+      eAlone        //< Suspended all other threads, alone to run.
     };
 
   private:

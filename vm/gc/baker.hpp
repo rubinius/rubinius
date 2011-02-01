@@ -56,16 +56,22 @@ namespace rubinius {
    */
 
   class BakerGC : public GarbageCollector {
+
     /// The total memory heap allocated to the BakerGC
     Heap full;
+
     /// The Eden space heap, which is a subset of the full heap
     Heap eden;
+
     /// The A heap, which is a subset of the full heap
     Heap heap_a;
+
     /// The B heap, which is a subset of the full heap
     Heap heap_b;
+
     /// Pointer to the Current space heap (i.e. Heap A or B)
     Heap *current;
+
     /// Pointer to the Next space heap (i.e. Heap B or A)
     Heap *next;
 

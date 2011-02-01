@@ -52,7 +52,7 @@ namespace rubinius {
    * reachable objects. Therefore, only reachable objects will be seen, and
    * reachable objects may be seen more than once.
    *
-   * Returns the new address for the object, so that the source reference can
+   * @returns the new address for the object, so that the source reference can
    * be updated when the object has been moved.
    */
   Object* BakerGC::saw_object(Object* obj) {

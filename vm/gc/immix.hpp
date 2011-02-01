@@ -16,6 +16,7 @@ namespace rubinius {
    * ImmixGC uses the immix memory management strategy to perform garbage
    * collection on the mature objects in the immix space.
    */
+
   class ImmixGC : public GarbageCollector {
 
     /**
@@ -79,7 +80,7 @@ namespace rubinius {
       /**
        * Called when the immix::GC object wishes to mark an object.
        *
-       * /returns true if the object is not already marked, and in the Immix
+       * @returns true if the object is not already marked, and in the Immix
        * space; otherwise false.
        */
       bool mark_address(memory::Address addr, immix::MarkStack& ms) {

@@ -32,6 +32,7 @@ namespace rubinius {
      * of Chunks can be created for handling an arbitrarily large list of
      * CodeResource references.
      */
+
     struct Chunk {
       CodeResource** resources;
       Chunk* next;

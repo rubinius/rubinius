@@ -89,6 +89,7 @@ namespace rubinius {
    * as well as providing implementations of common methods such as
    * mark_object and scan_object.
    */
+
   class GarbageCollector {
   protected:
     /// Reference to the ObjectMemory we are collecting
