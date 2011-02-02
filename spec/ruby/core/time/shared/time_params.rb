@@ -17,6 +17,9 @@ describe :time_params, :shared => true do
 
   it "handles string arguments" do
     Time.send(@method, "2000", "1", "1" , "20", "15", "1").should == Time.send(@method, 2000, 1, 1, 20, 15, 1)
+    # "08" "09" are special; make sure they are *not* treated as octal when strings
+    Time.send(@method, "2000", "08", "08" , "08", "08", "08").should == Time.send(@method, 2000, 8, 8, 8, 8, 8)
+    Time.send(@method, "2000", "09", "09" , "09", "09", "09").should == Time.send(@method, 2000, 9, 9, 9, 9, 9)
     Time.send(@method, "1", "15", "20", "1", "1", "2000", :ignored, :ignored, :ignored, :ignored).should == Time.send(@method, 1, 15, 20, 1, 1, 2000, :ignored, :ignored, :ignored, :ignored)
   end
 
