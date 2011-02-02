@@ -96,12 +96,12 @@ class Time
 
   def self.local(first, *args)
     if args.size == 9
-      second = Integer(first)
-      minute = Integer(args[0])
-      hour =   Integer(args[1])
-      day =    Integer(args[2])
-      month =  Integer(args[3])
-      year =   Integer(args[4])
+      second = second.kind_of?(String) ? first.to_i : Integer(first)
+      minute = args[0].kind_of?(String) ? args[0].to_i : Integer(args[0])
+      hour =   args[1].kind_of?(String) ? args[1].to_i : Integer(args[1])
+      day =    args[2].kind_of?(String) ? args[2].to_i : Integer(args[2])
+      month =  args[3].kind_of?(String) ? args[3].to_i : Integer(args[3])
+      year =   args[4].kind_of?(String) ? args[4].to_i : Integer(args[4])
       usec =   0
       isdst =  args[7] ? 1 : 0
     else
@@ -122,11 +122,11 @@ class Time
       end
 
       year =   Integer(first)
-      day =    Integer(args[1] || 1)
-      hour =   Integer(args[2] || 0)
-      minute = Integer(args[3] || 0)
-      second = Integer(args[4] || 0)
-      usec =   Integer(args[5] || 0)
+      day =    args[1].kind_of?(String) ? args[1].to_i : Integer(args[1] || 1)
+      hour =   args[2].kind_of?(String) ? args[2].to_i : Integer(args[2] || 0)
+      minute = args[3].kind_of?(String) ? args[3].to_i : Integer(args[3] || 0)
+      second = args[4].kind_of?(String) ? args[4].to_i : Integer(args[4] || 0)
+      usec =   args[5].kind_of?(String) ? args[5].to_i : Integer(args[5] || 0)
       isdst =  -1
     end
 
@@ -146,12 +146,12 @@ class Time
 
   def self.gm(first, *args)
     if args.size == 9
-      second = Integer(first)
-      minute = Integer(args[0])
-      hour =   Integer(args[1])
-      day =    Integer(args[2])
-      month =  Integer(args[3])
-      year =   Integer(args[4])
+      second = first.kind_of?(String) ? first.to_i : Integer(first)
+      minute = args[0].kind_of?(String) ? args[0].to_i : Integer(args[0])
+      hour =   args[1].kind_of?(String) ? args[1].to_i : Integer(args[1])
+      day =    args[2].kind_of?(String) ? args[2].to_i : Integer(args[2])
+      month =  args[3].kind_of?(String) ? args[3].to_i : Integer(args[3])
+      year =   args[4].kind_of?(String) ? args[4].to_i : Integer(args[4])
       usec =   0
     else
       # resolve month names to numbers
@@ -164,18 +164,18 @@ class Time
 
           raise ArgumentError, "month argument out of range" unless month
         else
-          month = Integer(month)
+          month = Integer(month) rescue month.to_i
         end
       else
         month = 1
       end
 
       year =   Integer(first)
-      day =    Integer(args[1] || 1)
-      hour =   Integer(args[2] || 0)
-      minute = Integer(args[3] || 0)
-      second = Integer(args[4] || 0)
-      usec =   Integer(args[5] || 0)
+      day =    args[1].kind_of?(String) ? args[1].to_i : Integer(args[1] || 1)
+      hour =   args[2].kind_of?(String) ? args[2].to_i : Integer(args[2] || 0)
+      minute = args[3].kind_of?(String) ? args[3].to_i : Integer(args[3] || 0)
+      second = args[4].kind_of?(String) ? args[4].to_i : Integer(args[4] || 0)
+      usec =   args[5].kind_of?(String) ? args[5].to_i : Integer(args[5] || 0)
     end
 
     # This logic is taken from MRI, on how to deal with 2 digit dates.
