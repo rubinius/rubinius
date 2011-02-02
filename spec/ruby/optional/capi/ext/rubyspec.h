@@ -283,7 +283,7 @@
 #define HAVE_RB_STR_APPEND                 1
 #define HAVE_RB_STR_BUF_CAT                1
 #define HAVE_RB_STR_BUF_NEW                1
-#define HAVE_RB_STR_BUF_NEW                1
+#define HAVE_RB_STR_BUF_NEW2               1
 #define HAVE_RB_STR_CAT                    1
 #define HAVE_RB_STR_CAT2                   1
 #define HAVE_RB_STR_CMP                    1
