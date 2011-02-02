@@ -1509,6 +1509,9 @@ VALUE rb_uint2big(unsigned long number);
    */
   VALUE   rb_str_buf_new(long capacity);
 
+  /** Return a new string based on the given C string */
+  VALUE   rb_str_buf_new2(const char* string);
+
   /** Return new String concatenated of the two. */
   VALUE   rb_str_cat(VALUE string, const char* other, size_t length);
 
