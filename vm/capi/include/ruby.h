@@ -326,7 +326,7 @@ struct RString {
   /* Define this macro if the C extension never modifies, but
    * only reads from, RSTRING(str)->ptr and RSTRING(str)->len.
    */
-#define RSTRING(str)    capi_rstring_struct(str, RSTRING_CACHE_SAFE);
+#define RSTRING(str)    capi_rstring_struct(str, RSTRING_CACHE_SAFE)
 #else
   /* The default is to update the string when RSTRING(str)->len is
    * modified. We raise an exception if RSTRING(str)->ptr is changed.
