@@ -25,18 +25,15 @@ namespace rubinius {
 
   class InlineCacheHit {
     Class* seen_class_;
-    int hits_;
 
   public:
 
     InlineCacheHit()
       : seen_class_(0)
-      , hits_(0)
     {}
 
-    int* assign(Class* mod) {
+    void assign(Class* mod) {
       seen_class_ = mod;
-      return &hits_;
     }
 
     Class* klass() {
@@ -45,14 +42,6 @@ namespace rubinius {
 
     void set_klass(Class* mod) {
       seen_class_ = mod;
-    }
-
-    int hits() {
-      return hits_;
-    }
-
-    int* hits_address() {
-      return &hits_;
     }
 
     friend class InlineCache;
@@ -77,7 +66,6 @@ namespace rubinius {
     VMMethod* vmm_;
 #endif
 
-    int* hits_;
     int seen_classes_overflow_;
     InlineCacheHit seen_classes_[cTrackedICHits];
     int private_lock_;
@@ -141,7 +129,6 @@ namespace rubinius {
       , call_unit_(0)
       , initial_backend_(empty_cache)
       , execute_backend_(empty_cache)
-      , hits_(0)
       , seen_classes_overflow_(0)
       , private_lock_(0)
     {}
@@ -212,14 +199,6 @@ namespace rubinius {
       return seen_classes_overflow_;
     }
 
-    int hits() {
-      return *hits_;
-    }
-
-    void inc_hits() {
-      atomic::fetch_and_add(hits_, 1);
-    }
-
     int classes_seen() {
       int seen = 0;
       for(int i = 0; i < cTrackedICHits; i++) {
@@ -231,10 +210,6 @@ namespace rubinius {
 
     Class* tracked_class(int which) {
       return seen_classes_[which].klass();
-    }
-
-    int tracked_class_hits(int which) {
-      return seen_classes_[which].hits();
     }
 
     Class* dominating_class() {
@@ -271,16 +246,6 @@ namespace rubinius {
       }
     }
 
-    int total_hits() {
-      int hits = 0;
-      for(int i = 0; i < cTrackedICHits; i++) {
-        if(seen_classes_[i].klass()) {
-          hits += seen_classes_[i].hits();
-        }
-      }
-
-      return hits;
-    }
   };
 
   // Registry, used to clear ICs by method name

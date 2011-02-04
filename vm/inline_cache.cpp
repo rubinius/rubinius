@@ -349,13 +349,6 @@ namespace rubinius {
     while(!atomic::compare_and_swap(&cache->private_lock_, 0, 1));
     cache->update_seen_classes(mce);
 
-    // This is important! We need to inc the hits here, otherwise if
-    // we flush a lot (like in the poly_method benchmark), then legitly
-    // used classes will never be recorded, because they'll get kicked out
-    // with hits == 0, since before we'd inc_hits() in the cache hit
-    // case only.
-    cache->inc_hits();
-
     cache->private_lock_ = 0;
 
     call_frame->cm->write_barrier(state, mce);
@@ -393,13 +386,6 @@ namespace rubinius {
     while(!atomic::compare_and_swap(&cache->private_lock_, 0, 1));
     cache->update_seen_classes(mce);
 
-    // This is important! We need to inc the hits here, otherwise if
-    // we flush a lot (like in the poly_method benchmark), then legitly
-    // used classes will never be recorded, because they'll get kicked out
-    // with hits == 0, since before we'd inc_hits() in the cache hit
-    // case only.
-    cache->inc_hits();
-
     cache->private_lock_ = 0;
 
     call_frame->cm->write_barrier(state, mce);
@@ -436,13 +422,6 @@ namespace rubinius {
     cache->cache_ = mce;
     while(!atomic::compare_and_swap(&cache->private_lock_, 0, 1));
     cache->update_seen_classes(mce);
-
-    // This is important! We need to inc the hits here, otherwise if
-    // we flush a lot (like in the poly_method benchmark), then legitly
-    // used classes will never be recorded, because they'll get kicked out
-    // with hits == 0, since before we'd inc_hits() in the cache hit
-    // case only.
-    cache->inc_hits();
 
     cache->private_lock_ = 0;
 
@@ -487,13 +466,6 @@ namespace rubinius {
     while(!atomic::compare_and_swap(&cache->private_lock_, 0, 1));
     cache->update_seen_classes(mce);
 
-    // This is important! We need to inc the hits here, otherwise if
-    // we flush a lot (like in the poly_method benchmark), then legitly
-    // used classes will never be recorded, because they'll get kicked out
-    // with hits == 0, since before we'd inc_hits() in the cache hit
-    // case only.
-    cache->inc_hits();
-
     cache->private_lock_ = 0;
 
     call_frame->cm->write_barrier(state, mce);
@@ -512,7 +484,6 @@ namespace rubinius {
 
     args.set_name(cache->name);
     if(likely(mce && args.recv()->fixnum_p())) {
-      cache->inc_hits();
 
       Executable* meth = mce->method();
       Module* mod = mce->stored_module();
@@ -531,7 +502,6 @@ namespace rubinius {
 
     args.set_name(cache->name);
     if(likely(mce && args.recv()->symbol_p())) {
-      cache->inc_hits();
 
       Executable* meth = mce->method();
       Module* mod = mce->stored_module();
@@ -553,7 +523,6 @@ namespace rubinius {
 
     if(likely(mce && recv->reference_p() &&
               recv->reference_class() == mce->receiver_class())) {
-      cache->inc_hits();
 
       Executable* meth = mce->method();
       Module* mod = mce->stored_module();
@@ -572,7 +541,6 @@ namespace rubinius {
 
     args.set_name(cache->name);
     if(likely(mce && mce->receiver_class() == args.recv()->lookup_begin(state))) {
-      cache->inc_hits();
 
       Executable* meth = mce->method();
       Module* mod = mce->stored_module();
@@ -591,7 +559,6 @@ namespace rubinius {
 
     args.set_name(cache->name);
     if(likely(mce && mce->receiver_class() == args.recv()->lookup_begin(state))) {
-      cache->inc_hits();
 
       args.unshift(state, cache->name);
 
@@ -608,14 +575,11 @@ namespace rubinius {
     for(int i = 0; i < cTrackedICHits; i++) {
       Module* mod = seen_classes_[i].klass();
       if(mod == mce->receiver_class()) {
-        hits_ = seen_classes_[i].hits_address();
         return;
-
-      // Use any slot that has 0 hits. This means we kick out
-      // entries that are stored here, but never used.
-      } else if(seen_classes_[i].hits() == 0) {
+      // Use any slot that has no seen class.
+      } else if(!seen_classes_[i].klass()) {
         // An empty space, record it.
-        hits_ = seen_classes_[i].assign(mce->receiver_class());
+        seen_classes_[i].assign(mce->receiver_class());
         return;
       }
     }
@@ -637,7 +601,6 @@ namespace rubinius {
   void InlineCache::print(STATE, std::ostream& stream) {
     stream << "name: " << name->c_str(state) << "\n"
            << "seen classes: " << classes_seen() << "\n"
-           << "total hits: " << total_hits() << "\n"
            << "overflows: " << seen_classes_overflow_ << "\n"
            << "classes:\n";
 
@@ -654,7 +617,7 @@ namespace rubinius {
           stream << "  " << mod->name()->c_str(state);
         }
 
-        stream << " " << seen_classes_[i].hits() << "\n";
+        stream << "\n";
       }
     }
   }
@@ -726,39 +689,6 @@ namespace rubinius {
 
     std::cerr << cTrackedICHits << "+: " << overflow << " "
               << ratio(overflow, total) << "%\n";
-
-    // Stats that take the number of hits into account
-    std::vector<int> hits(cTrackedICHits + 1);
-    int overflow_hits = 0;
-    int total_hits = 0;
-
-    for(CacheHash::iterator hi = caches_.begin();
-        hi != caches_.end();
-        hi++) {
-      for(CacheVector::iterator vi = hi->second.begin();
-          vi != hi->second.end();
-          vi++) {
-        InlineCache* ic = *vi;
-        int seen = ic->classes_seen();
-        if(ic->seen_classes_overflow() > 0) {
-          int these_hits = (ic->total_hits() + ic->seen_classes_overflow());
-          overflow_hits += these_hits;
-          total_hits += these_hits;
-        } else if(seen > 0) {
-          hits[seen] += ic->total_hits();
-          total_hits += ic->total_hits();
-        }
-      }
-    }
-
-    std::cerr << "Hits per classes tracked: (" << total_hits << ")\n";
-    for(int i = 1; i < cTrackedICHits + 1; i++) {
-      std::cerr << " " << i << ": " << hits[i] << " "
-                << ratio(hits[i], total_hits) << "%\n";
-    }
-
-    std::cerr << cTrackedICHits << "+: " << overflow_hits << " "
-              << ratio(overflow_hits, total_hits) << "%\n";
 
     // print out the mega-morphic ones
     std::cerr << "\nMegamorphic call sites:\n";

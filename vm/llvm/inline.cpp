@@ -24,8 +24,7 @@ namespace rubinius {
 
         for(int i = 0; i < cache_->classes_seen(); i++) {
           context_.inline_log("class")
-            << ops_.state()->symbol_cstr(cache_->tracked_class(i)->name())
-            << " " << cache_->tracked_class_hits(i) << "\n";
+            << ops_.state()->symbol_cstr(cache_->tracked_class(i)->name()) << "\n";
         }
       }
 
