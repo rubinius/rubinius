@@ -346,10 +346,7 @@ namespace rubinius {
     }
 
     cache->cache_ = mce;
-    while(!atomic::compare_and_swap(&cache->private_lock_, 0, 1));
     cache->update_seen_classes(mce);
-
-    cache->private_lock_ = 0;
 
     call_frame->cm->write_barrier(state, mce);
 
@@ -383,10 +380,7 @@ namespace rubinius {
     }
 
     cache->cache_ = mce;
-    while(!atomic::compare_and_swap(&cache->private_lock_, 0, 1));
     cache->update_seen_classes(mce);
-
-    cache->private_lock_ = 0;
 
     call_frame->cm->write_barrier(state, mce);
 
@@ -420,10 +414,7 @@ namespace rubinius {
     }
 
     cache->cache_ = mce;
-    while(!atomic::compare_and_swap(&cache->private_lock_, 0, 1));
     cache->update_seen_classes(mce);
-
-    cache->private_lock_ = 0;
 
     call_frame->cm->write_barrier(state, mce);
 
@@ -463,10 +454,7 @@ namespace rubinius {
     }
 
     cache->cache_ = mce;
-    while(!atomic::compare_and_swap(&cache->private_lock_, 0, 1));
     cache->update_seen_classes(mce);
-
-    cache->private_lock_ = 0;
 
     call_frame->cm->write_barrier(state, mce);
 
@@ -576,10 +564,19 @@ namespace rubinius {
       Module* mod = seen_classes_[i].klass();
       if(mod == mce->receiver_class()) {
         return;
-      // Use any slot that has no seen class.
-      } else if(!mod) {
+      }
+    }
+
+    // Ok, we've arrived here and found no hit. We should lock
+    // it here before we're allowed to write it.
+
+    while(!atomic::compare_and_swap(&private_lock_, 0, 1));
+
+    for(int i = 0; i < cTrackedICHits; i++) {
+      if(!seen_classes_[i].klass()) {
         // An empty space, record it.
         seen_classes_[i].assign(mce->receiver_class());
+        private_lock_ = 0;
         return;
       }
     }
@@ -587,6 +584,7 @@ namespace rubinius {
     // Hmmm, what do we do when this is full? Just ignore them?
     // For now, just keep track of how many times we overflow.
     seen_classes_overflow_++;
+    private_lock_ = 0;
   }
 
   void InlineCache::print_location(STATE, std::ostream& stream) {
