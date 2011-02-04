@@ -577,7 +577,7 @@ namespace rubinius {
       if(mod == mce->receiver_class()) {
         return;
       // Use any slot that has no seen class.
-      } else if(!seen_classes_[i].klass()) {
+      } else if(!mod) {
         // An empty space, record it.
         seen_classes_[i].assign(mce->receiver_class());
         return;
