@@ -7,6 +7,7 @@ describe "String#lstrip" do
    "  hello world  ".lstrip.should == "hello world  "
    "\n\r\t\n\v\r hello world  ".lstrip.should == "hello world  "
    "hello".lstrip.should == "hello"
+   "\000 \000hello\000 \000".lstrip.should == "\000 \000hello\000 \000"
   end
 
   # spec/core/string/lstrip_spec.rb
@@ -28,6 +29,10 @@ describe "String#lstrip!" do
     a = "  hello  "
     a.lstrip!.should equal(a)
     a.should == "hello  "
+
+    a = "\000 \000hello\000 \000"
+    a.lstrip!
+    a.should == "\000 \000hello\000 \000"
   end
 
   it "returns nil if no modifications were made" do

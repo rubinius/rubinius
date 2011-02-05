@@ -6,7 +6,8 @@ describe "String#strip" do
     "   hello   ".strip.should == "hello"
     "   hello world   ".strip.should == "hello world"
     "\tgoodbye\r\v\n".strip.should == "goodbye"
-    "  goodbye \000".strip.should == "goodbye"
+    "\000 goodbye \000".strip.should == "\000 goodbye"
+    " \000 goodbye \000 ".strip.should == "\000 goodbye \000"
   end
 
   it "taints the result when self is tainted" do
@@ -21,6 +22,18 @@ describe "String#strip!" do
     a = "   hello   "
     a.strip!.should equal(a)
     a.should == "hello"
+
+    a = "\tgoodbye\r\v\n"
+    a.strip!
+    a.should == "goodbye"
+
+    a = "\000 goodbye \000"
+    a.strip!
+    a.should == "\000 goodbye"
+
+    a = " \000 goodbye \000 "
+    a.strip!
+    a.should == "\000 goodbye \000"
   end
 
   it "returns nil if no modifications where made" do
