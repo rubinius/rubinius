@@ -133,8 +133,12 @@ namespace melbourne {
 #define nd_tag   u1.id
 #define nd_tval  u2.value
 
-#define NEW_NODE(t,a0,a1,a2) node_newnode((rb_parse_state*)parse_state, \
+#ifdef RBX_GRAMMAR_19
+#define NEW_NODE(t,a0,a1,a2) node_newnode((t),(VALUE)(a0),(VALUE)(a1),(VALUE)(a2))
+#else
+#define NEW_NODE(t,a0,a1,a2) node_newnode((rb_parser_state*)parser_state, \
     (t),(VALUE)(a0),(VALUE)(a1),(VALUE)(a2))
+#endif
 
 #define NEW_METHOD(n,x) NEW_NODE(NODE_METHOD,x,n,0)
 #define NEW_FBODY(n,i,o) NEW_NODE(NODE_FBODY,n,i,o)
@@ -142,8 +146,13 @@ namespace melbourne {
 #define NEW_DEFS(r,i,a,d) NEW_NODE(NODE_DEFS,r,i,NEW_RFUNC(a,d))
 #define NEW_CFUNC(f,c) NEW_NODE(NODE_CFUNC,f,c,0)
 #define NEW_IFUNC(f,c) NEW_NODE(NODE_IFUNC,f,c,0)
+#ifdef RBX_GRAMMAR_19
+#define NEW_RFUNC(b1,b2) NEW_SCOPE(block_append(b1,b2))
+#define NEW_SCOPE(a, b) NEW_NODE(NODE_SCOPE,local_tbl(),0,(b))
+#else
 #define NEW_RFUNC(b1,b2) NEW_SCOPE(block_append(vps, b1,b2))
 #define NEW_SCOPE(b) NEW_NODE(NODE_SCOPE,mel_local_tbl(vps),0,(b))
+#endif
 #define NEW_BLOCK(a) NEW_NODE(NODE_BLOCK,a,0,0)
 #define NEW_IF(c,t,e) NEW_NODE(NODE_IF,c,t,e)
 #define NEW_UNLESS(c,t,e) NEW_IF(c,e,t)

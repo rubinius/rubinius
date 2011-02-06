@@ -22,8 +22,8 @@ namespace melbourne {
     return rb_str_new((const char*)str->data, str->slen);
   }
 
-  rb_parse_state *alloc_parse_state() {
-      rb_parse_state *parse_state = (rb_parse_state*)calloc(1, sizeof(rb_parse_state));
+  rb_parser_state *alloc_parser_state() {
+      rb_parser_state *parser_state = (rb_parser_state*)calloc(1, sizeof(rb_parser_state));
 
       #undef command_start
       #undef class_nest
@@ -33,32 +33,32 @@ namespace melbourne {
       #undef cur_mid
       #undef tokidx
       #undef toksiz
-      parse_state->command_start = true;
-      parse_state->class_nest = 0;
-      parse_state->in_single = 0;
-      parse_state->in_def = 0;
-      parse_state->compile_for_eval = 0;
-      parse_state->cur_mid = 0;
-      parse_state->token_buffer = NULL;
-      parse_state->tokidx = 0;
-      parse_state->toksiz = 0;
-      parse_state->memory_cur = NULL;
-      parse_state->memory_last_addr = NULL;
-      parse_state->current_pool = 0;
-      parse_state->pool_size = 0;
-      parse_state->memory_size = 204800;
-      parse_state->memory_pools = NULL;
-      parse_state->emit_warnings = 0;
-      parse_state->verbose = RTEST(ruby_verbose);
-      parse_state->magic_comments = new std::vector<bstring>;
-      parse_state->start_lines = new std::list<StartPosition>;
+      parser_state->command_start = true;
+      parser_state->class_nest = 0;
+      parser_state->in_single = 0;
+      parser_state->in_def = 0;
+      parser_state->compile_for_eval = 0;
+      parser_state->cur_mid = 0;
+      parser_state->token_buffer = NULL;
+      parser_state->tokidx = 0;
+      parser_state->toksiz = 0;
+      parser_state->memory_cur = NULL;
+      parser_state->memory_last_addr = NULL;
+      parser_state->current_pool = 0;
+      parser_state->pool_size = 0;
+      parser_state->memory_size = 204800;
+      parser_state->memory_pools = NULL;
+      parser_state->emit_warnings = 0;
+      parser_state->verbose = RTEST(ruby_verbose);
+      parser_state->magic_comments = new std::vector<bstring>;
+      parser_state->start_lines = new std::list<StartPosition>;
 
-      return parse_state;
+      return parser_state;
   }
 
   void compile_error(const char *);
 
-  void *pt_allocate(rb_parse_state *st, int size) {
+  void *pt_allocate(rb_parser_state *st, int size) {
     void *cur;
 
     if(!st->memory_cur || ((st->memory_cur + size) >= st->memory_last_addr)) {
@@ -83,7 +83,7 @@ namespace melbourne {
     return cur;
   }
 
-  void pt_free(rb_parse_state *st) {
+  void pt_free(rb_parser_state *st) {
     int i;
 
     if(st->line_buffer) {
@@ -118,14 +118,14 @@ namespace melbourne {
   namespace grammar18 {
   extern long mel_sourceline;
 
-  void create_error(rb_parse_state *parse_state, char *msg) {
+  void create_error(rb_parser_state *parser_state, char *msg) {
     VALUE err_msg;
 
     // Cleanup one of the common and ugly syntax errors.
     if(std::string("syntax error, unexpected $end, expecting kEND") ==
         std::string(msg)) {
-      if(parse_state->start_lines->size() > 0) {
-        StartPosition& pos = parse_state->start_lines->back();
+      if(parser_state->start_lines->size() > 0) {
+        StartPosition& pos = parser_state->start_lines->back();
 
         std::stringstream ss;
         ss << "missing 'end' for '"
@@ -156,16 +156,16 @@ namespace melbourne {
       if(!err_msg) err_msg = rb_str_new2(msg);
     }
 
-    int col = parse_state->lex_p - parse_state->lex_pbeg;
+    int col = parser_state->lex_p - parser_state->lex_pbeg;
 
-    rb_funcall(parse_state->processor,
+    rb_funcall(parser_state->processor,
                rb_intern("process_parse_error"),4,
                err_msg,
                INT2FIX(col),
                INT2FIX(mel_sourceline),
-               string_newfrombstr(parse_state->lex_lastline));
+               string_newfrombstr(parser_state->lex_lastline));
 
-    parse_state->error = Qtrue;
+    parser_state->error = Qtrue;
   }
 
   const char *op_to_name(QUID id);
@@ -187,16 +187,16 @@ namespace melbourne {
 #define nd_3rd    u3.node
 #define Q2SYM(v)  quark_to_symbol(v)
 
-  VALUE process_parse_tree(rb_parse_state*, VALUE, NODE*, QUID*);
+  VALUE process_parse_tree(rb_parser_state*, VALUE, NODE*, QUID*);
 
-  static VALUE process_dynamic(rb_parse_state *parse_state,
+  static VALUE process_dynamic(rb_parser_state *parser_state,
       VALUE ptp, NODE *node, QUID *locals)
   {
     VALUE array = rb_ary_new();
 
     while(node) {
       if (node->nd_head) {
-        rb_ary_push(array, process_parse_tree(parse_state, ptp, node->nd_head, locals));
+        rb_ary_push(array, process_parse_tree(parser_state, ptp, node->nd_head, locals));
       }
       node = node->nd_next;
     }
@@ -204,17 +204,17 @@ namespace melbourne {
     return array;
   }
 
-  static VALUE process_iter(rb_parse_state *parse_state,
+  static VALUE process_iter(rb_parser_state *parser_state,
       VALUE ptp, NODE *node, QUID *locals, int *level, ID method, VALUE line)
   {
     VALUE iter, body, args;
 
-    iter = process_parse_tree(parse_state, ptp, node->nd_iter, locals);
+    iter = process_parse_tree(parser_state, ptp, node->nd_iter, locals);
     (*level)++;
     if (node->nd_var != (NODE *)1
         && node->nd_var != (NODE *)2
         && node->nd_var != NULL) {
-      args = process_parse_tree(parse_state, ptp, node->nd_var, locals);
+      args = process_parse_tree(parser_state, ptp, node->nd_var, locals);
     } else {
       if (node->nd_var == NULL) {
         // e.g. proc {}
@@ -225,14 +225,14 @@ namespace melbourne {
       }
     }
     (*level)--;
-    body = process_parse_tree(parse_state, ptp, node->nd_body, locals);
+    body = process_parse_tree(parser_state, ptp, node->nd_body, locals);
     return rb_funcall(ptp, method, 4, line, iter, args, body);
   }
 
   /* Visits all the nodes in the parse tree.
    * Adapted from ParseTree by Ryan Davis and Eric Hodel.
    */
-  VALUE process_parse_tree(rb_parse_state *parse_state,
+  VALUE process_parse_tree(rb_parser_state *parser_state,
       VALUE ptp, NODE *n, QUID *locals)
   {
     NODE * volatile node = n;
@@ -260,54 +260,54 @@ namespace melbourne {
       VALUE array = rb_ary_new();
 
       while (node) {
-        rb_ary_push(array, process_parse_tree(parse_state, ptp, node->nd_head, locals));
+        rb_ary_push(array, process_parse_tree(parser_state, ptp, node->nd_head, locals));
         node = node->nd_next;
       }
       tree = rb_funcall(ptp, rb_sBlock, 2, line, array);
       break;
     }
     case NODE_DEFINED: {
-      VALUE expr = process_parse_tree(parse_state, ptp, node->nd_head, locals);
+      VALUE expr = process_parse_tree(parser_state, ptp, node->nd_head, locals);
       tree = rb_funcall(ptp, rb_sDefined, 2, line, expr);
       break;
     }
     case NODE_COLON2: {
-      VALUE container = process_parse_tree(parse_state, ptp, node->nd_head, locals);
+      VALUE container = process_parse_tree(parser_state, ptp, node->nd_head, locals);
       tree = rb_funcall(ptp, rb_sColon2, 3, line,
           container, Q2SYM(node->nd_mid));
       break;
     }
     case NODE_MATCH2: {
-      VALUE pattern = process_parse_tree(parse_state, ptp, node->nd_recv, locals);
-      VALUE value = process_parse_tree(parse_state, ptp, node->nd_value, locals);
+      VALUE pattern = process_parse_tree(parser_state, ptp, node->nd_recv, locals);
+      VALUE value = process_parse_tree(parser_state, ptp, node->nd_value, locals);
       tree = rb_funcall(ptp, rb_sMatch2, 3, line, pattern, value);
       break;
     }
     case NODE_MATCH3: {
-      VALUE pattern = process_parse_tree(parse_state, ptp, node->nd_recv, locals);
-      VALUE value = process_parse_tree(parse_state, ptp, node->nd_value, locals);
+      VALUE pattern = process_parse_tree(parser_state, ptp, node->nd_recv, locals);
+      VALUE value = process_parse_tree(parser_state, ptp, node->nd_value, locals);
       tree = rb_funcall(ptp, rb_sMatch3, 3, line, pattern, value);
       break;
     }
     case NODE_BEGIN: {
-      VALUE body = process_parse_tree(parse_state, ptp, node->nd_body, locals);
+      VALUE body = process_parse_tree(parser_state, ptp, node->nd_body, locals);
       tree = rb_funcall(ptp, rb_sBegin, 2, line, body);
       break;
     }
     case NODE_NOT: {
-      VALUE expr = process_parse_tree(parse_state, ptp, node->nd_body, locals);
+      VALUE expr = process_parse_tree(parser_state, ptp, node->nd_body, locals);
       tree = rb_funcall(ptp, rb_sNot, 2, line, expr);
       break;
     }
     case NODE_IF: {
       VALUE cond, body = Qnil, else_body = Qnil;
 
-      cond = process_parse_tree(parse_state, ptp, node->nd_cond, locals);
+      cond = process_parse_tree(parser_state, ptp, node->nd_cond, locals);
       if (node->nd_body) {
-        body = process_parse_tree(parse_state, ptp, node->nd_body, locals);
+        body = process_parse_tree(parser_state, ptp, node->nd_body, locals);
       }
       if (node->nd_else) {
-        else_body = process_parse_tree(parse_state, ptp, node->nd_else, locals);
+        else_body = process_parse_tree(parser_state, ptp, node->nd_else, locals);
       }
       tree = rb_funcall(ptp, rb_sIf, 4, line, cond, body, else_body);
       break;
@@ -318,14 +318,14 @@ namespace melbourne {
 
       case_level++;
       if(node->nd_head) {
-        expr = process_parse_tree(parse_state, ptp, node->nd_head, locals); /* expr */
+        expr = process_parse_tree(parser_state, ptp, node->nd_head, locals); /* expr */
       }
 
       VALUE whens = rb_ary_new();
       node = node->nd_body;
       while(node) {
         if (nd_type(node) == NODE_WHEN) {                 /* when */
-          rb_ary_push(whens, process_parse_tree(parse_state, ptp, node, locals));
+          rb_ary_push(whens, process_parse_tree(parser_state, ptp, node, locals));
           node = node->nd_next;
         } else {
           else_node = node;
@@ -339,7 +339,7 @@ namespace melbourne {
       // See http://github.com/evanphx/rubinius/issues#issue/240 for an example of
       // why.
       if(else_node) {
-        els = process_parse_tree(parse_state, ptp, else_node, locals);
+        els = process_parse_tree(parser_state, ptp, else_node, locals);
       }
 
       tree = rb_funcall(ptp, rb_sCase, 4, line, expr, whens, els);
@@ -356,11 +356,11 @@ namespace melbourne {
         goto again;
       }
       inside_case_args++;
-      VALUE args = process_parse_tree(parse_state, ptp, node->nd_head, locals); /* args */
+      VALUE args = process_parse_tree(parser_state, ptp, node->nd_head, locals); /* args */
       inside_case_args--;
 
       if(node->nd_body) {
-        body = process_parse_tree(parse_state, ptp, node->nd_body, locals); /* body */
+        body = process_parse_tree(parser_state, ptp, node->nd_body, locals); /* body */
       }
       if(when_level > 0) when_level--;
 
@@ -370,9 +370,9 @@ namespace melbourne {
     case NODE_WHILE: {
       VALUE cond, body = Qnil, post_cond;
 
-      cond = process_parse_tree(parse_state, ptp,  node->nd_cond, locals);
+      cond = process_parse_tree(parser_state, ptp,  node->nd_cond, locals);
       if(node->nd_body) {
-        body = process_parse_tree(parse_state, ptp,  node->nd_body, locals);
+        body = process_parse_tree(parser_state, ptp,  node->nd_body, locals);
       }
       post_cond = node->nd_3rd == 0 ? Qfalse : Qtrue;
       tree = rb_funcall(ptp, rb_sWhile, 4, line, cond, body, post_cond);
@@ -381,37 +381,37 @@ namespace melbourne {
     case NODE_UNTIL: {
       VALUE cond, body = Qnil, post_cond;
 
-      cond = process_parse_tree(parse_state, ptp,  node->nd_cond, locals);
+      cond = process_parse_tree(parser_state, ptp,  node->nd_cond, locals);
       if(node->nd_body) {
-        body = process_parse_tree(parse_state, ptp,  node->nd_body, locals);
+        body = process_parse_tree(parser_state, ptp,  node->nd_body, locals);
       }
       post_cond = node->nd_3rd == 0 ? Qfalse : Qtrue;
       tree = rb_funcall(ptp, rb_sUntil, 4, line, cond, body, post_cond);
       break;
     }
     case NODE_BLOCK_PASS: {
-      VALUE body = process_parse_tree(parse_state, ptp, node->nd_body, locals);
+      VALUE body = process_parse_tree(parser_state, ptp, node->nd_body, locals);
       VALUE iter = Qnil;
       if(node->nd_iter != (NODE*)1) {
-        iter = process_parse_tree(parse_state, ptp, node->nd_iter, locals);
+        iter = process_parse_tree(parser_state, ptp, node->nd_iter, locals);
       }
 
       tree = rb_funcall(ptp, rb_sBlockPass, 3, line, iter, body);
       break;
     }
     case NODE_FOR:
-      tree = process_iter(parse_state, ptp, node, locals, &masgn_level, rb_sFor, line);
+      tree = process_iter(parser_state, ptp, node, locals, &masgn_level, rb_sFor, line);
       break;
 
     case NODE_ITER:
-      tree = process_iter(parse_state, ptp, node, locals, &masgn_level, rb_sIter, line);
+      tree = process_iter(parser_state, ptp, node, locals, &masgn_level, rb_sIter, line);
       break;
 
     case NODE_BREAK: {
       VALUE expr = Qnil;
 
       if (node->nd_stts) {
-        expr = process_parse_tree(parse_state, ptp, node->nd_stts, locals);
+        expr = process_parse_tree(parser_state, ptp, node->nd_stts, locals);
       }
       tree = rb_funcall(ptp, rb_sBreak, 2, line, expr);
       break;
@@ -420,7 +420,7 @@ namespace melbourne {
       VALUE expr = Qnil;
 
       if (node->nd_stts) {
-        expr = process_parse_tree(parse_state, ptp, node->nd_stts, locals);
+        expr = process_parse_tree(parser_state, ptp, node->nd_stts, locals);
       }
       tree = rb_funcall(ptp, rb_sNext, 2, line, expr);
       break;
@@ -429,15 +429,15 @@ namespace melbourne {
       VALUE expr = Qnil;
 
       if (node->nd_stts) {
-        expr = process_parse_tree(parse_state, ptp, node->nd_stts, locals);
+        expr = process_parse_tree(parser_state, ptp, node->nd_stts, locals);
       }
       tree = rb_funcall(ptp, rb_sYield, 3, line, expr, node->u3.value);
       break;
     }
     case NODE_RESCUE: {
-      VALUE body = process_parse_tree(parse_state, ptp, node->nd_1st, locals);
-      VALUE resc = process_parse_tree(parse_state, ptp, node->nd_2nd, locals);
-      VALUE els = process_parse_tree(parse_state, ptp, node->nd_3rd, locals);
+      VALUE body = process_parse_tree(parser_state, ptp, node->nd_1st, locals);
+      VALUE resc = process_parse_tree(parser_state, ptp, node->nd_2nd, locals);
+      VALUE els = process_parse_tree(parser_state, ptp, node->nd_3rd, locals);
       tree = rb_funcall(ptp, rb_sRescue, 4, line, body, resc, els);
       break;
     }
@@ -451,56 +451,56 @@ namespace melbourne {
       VALUE conditions = Qnil;
 
       if(node->nd_3rd) {
-        conditions = process_parse_tree(parse_state, ptp, node->nd_3rd, locals);
+        conditions = process_parse_tree(parser_state, ptp, node->nd_3rd, locals);
       }
-      VALUE body = process_parse_tree(parse_state, ptp, node->nd_2nd, locals);
-      VALUE next = process_parse_tree(parse_state, ptp, node->nd_1st, locals);
+      VALUE body = process_parse_tree(parser_state, ptp, node->nd_2nd, locals);
+      VALUE next = process_parse_tree(parser_state, ptp, node->nd_1st, locals);
       tree = rb_funcall(ptp, rb_sResbody, 4, line, conditions, body, next);
       break;
     }
     case NODE_ENSURE: {
       VALUE head, ensr = Qnil;
 
-      head = process_parse_tree(parse_state, ptp, node->nd_head, locals);
+      head = process_parse_tree(parser_state, ptp, node->nd_head, locals);
       if (node->nd_ensr) {
-        ensr = process_parse_tree(parse_state, ptp, node->nd_ensr, locals);
+        ensr = process_parse_tree(parser_state, ptp, node->nd_ensr, locals);
       }
       tree = rb_funcall(ptp, rb_sEnsure, 3, line, head, ensr);
       break;
     }
     case NODE_AND: {
-      VALUE left = process_parse_tree(parse_state, ptp, node->nd_1st, locals);
-      VALUE right = process_parse_tree(parse_state, ptp, node->nd_2nd, locals);
+      VALUE left = process_parse_tree(parser_state, ptp, node->nd_1st, locals);
+      VALUE right = process_parse_tree(parser_state, ptp, node->nd_2nd, locals);
       tree = rb_funcall(ptp, rb_sAnd, 3, line, left, right);
       break;
     }
     case NODE_OR: {
-      VALUE left = process_parse_tree(parse_state, ptp, node->nd_1st, locals);
-      VALUE right = process_parse_tree(parse_state, ptp, node->nd_2nd, locals);
+      VALUE left = process_parse_tree(parser_state, ptp, node->nd_1st, locals);
+      VALUE right = process_parse_tree(parser_state, ptp, node->nd_2nd, locals);
       tree = rb_funcall(ptp, rb_sOr, 3, line, left, right);
       break;
     }
     case NODE_DOT2: {
-      VALUE start = process_parse_tree(parse_state, ptp, node->nd_beg, locals);
-      VALUE finish = process_parse_tree(parse_state, ptp, node->nd_end, locals);
+      VALUE start = process_parse_tree(parser_state, ptp, node->nd_beg, locals);
+      VALUE finish = process_parse_tree(parser_state, ptp, node->nd_end, locals);
       tree = rb_funcall(ptp, rb_sDot2, 3, line, start, finish);
       break;
     }
     case NODE_DOT3: {
-      VALUE start = process_parse_tree(parse_state, ptp, node->nd_beg, locals);
-      VALUE finish = process_parse_tree(parse_state, ptp, node->nd_end, locals);
+      VALUE start = process_parse_tree(parser_state, ptp, node->nd_beg, locals);
+      VALUE finish = process_parse_tree(parser_state, ptp, node->nd_end, locals);
       tree = rb_funcall(ptp, rb_sDot3, 3, line, start, finish);
       break;
     }
     case NODE_FLIP2: {
-      VALUE start = process_parse_tree(parse_state, ptp, node->nd_beg, locals);
-      VALUE finish = process_parse_tree(parse_state, ptp, node->nd_end, locals);
+      VALUE start = process_parse_tree(parser_state, ptp, node->nd_beg, locals);
+      VALUE finish = process_parse_tree(parser_state, ptp, node->nd_end, locals);
       tree = rb_funcall(ptp, rb_sFlip2, 3, line, start, finish);
       break;
     }
     case NODE_FLIP3: {
-      VALUE start = process_parse_tree(parse_state, ptp, node->nd_beg, locals);
-      VALUE finish = process_parse_tree(parse_state, ptp, node->nd_end, locals);
+      VALUE start = process_parse_tree(parser_state, ptp, node->nd_beg, locals);
+      VALUE finish = process_parse_tree(parser_state, ptp, node->nd_end, locals);
       tree = rb_funcall(ptp, rb_sFlip3, 3, line, start, finish);
       break;
     }
@@ -508,29 +508,29 @@ namespace melbourne {
       VALUE expr = Qnil;
 
       if (node->nd_stts) {
-        expr = process_parse_tree(parse_state, ptp, node->nd_stts, locals);
+        expr = process_parse_tree(parser_state, ptp, node->nd_stts, locals);
       }
       tree = rb_funcall(ptp, rb_sReturn, 2, line, expr);
       break;
     }
     case NODE_ARGSCAT: {
-      VALUE array = process_parse_tree(parse_state, ptp, node->nd_head, locals);
-      VALUE rest = process_parse_tree(parse_state, ptp, node->nd_body, locals);
+      VALUE array = process_parse_tree(parser_state, ptp, node->nd_head, locals);
+      VALUE rest = process_parse_tree(parser_state, ptp, node->nd_body, locals);
       tree = rb_funcall(ptp, rb_sArgsCat, 3, line, array, rest);
       break;
     }
     case NODE_ARGSPUSH: {
-      VALUE head = process_parse_tree(parse_state, ptp, node->nd_head, locals);
-      VALUE body = process_parse_tree(parse_state, ptp, node->nd_body, locals);
+      VALUE head = process_parse_tree(parser_state, ptp, node->nd_head, locals);
+      VALUE body = process_parse_tree(parser_state, ptp, node->nd_body, locals);
       tree = rb_funcall(ptp, rb_sArgsPush, 3, line, head, body);
       break;
     }
     case NODE_CALL: {
       VALUE args = Qnil;
 
-      VALUE recv = process_parse_tree(parse_state, ptp, node->nd_recv, locals);
+      VALUE recv = process_parse_tree(parser_state, ptp, node->nd_recv, locals);
       if (node->nd_args) {
-        args = process_parse_tree(parse_state, ptp, node->nd_args, locals);
+        args = process_parse_tree(parser_state, ptp, node->nd_args, locals);
       }
       tree = rb_funcall(ptp, rb_sCall, 4, line,
           recv, Q2SYM(node->nd_mid), args);
@@ -540,7 +540,7 @@ namespace melbourne {
       VALUE args = Qnil;
 
       if (node->nd_args) {
-        args = process_parse_tree(parse_state, ptp, node->nd_args, locals);
+        args = process_parse_tree(parser_state, ptp, node->nd_args, locals);
       }
       tree = rb_funcall(ptp, rb_sFCall, 3, line, Q2SYM(node->nd_mid), args);
       break;
@@ -550,20 +550,20 @@ namespace melbourne {
       break;
 
     case NODE_SUPER: {
-      VALUE args = process_parse_tree(parse_state, ptp, node->nd_args, locals);
+      VALUE args = process_parse_tree(parser_state, ptp, node->nd_args, locals);
       tree = rb_funcall(ptp, rb_sSuper, 2, line, args);
       break;
     }
     case NODE_SCOPE: {
-      VALUE body = process_parse_tree(parse_state, ptp, node->nd_next, node->nd_tbl);
+      VALUE body = process_parse_tree(parser_state, ptp, node->nd_next, node->nd_tbl);
       tree = rb_funcall(ptp, rb_sScope, 2, line, body);
       break;
     }
     case NODE_OP_ASGN1: {
       VALUE op;
 
-      VALUE recv = process_parse_tree(parse_state, ptp, node->nd_recv, locals);
-      VALUE args = process_parse_tree(parse_state, ptp, node->nd_args->nd_2nd, locals);
+      VALUE recv = process_parse_tree(parser_state, ptp, node->nd_recv, locals);
+      VALUE args = process_parse_tree(parser_state, ptp, node->nd_args->nd_2nd, locals);
       switch(node->nd_mid) {
         case 0:
           op = ID2SYM(rb_sOpOr);
@@ -574,14 +574,14 @@ namespace melbourne {
         default:
           op = Q2SYM(node->nd_mid);
       }
-      VALUE value = process_parse_tree(parse_state, ptp, node->nd_args->nd_head, locals);
+      VALUE value = process_parse_tree(parser_state, ptp, node->nd_args->nd_head, locals);
       tree = rb_funcall(ptp, rb_sOpAsgn1, 5, line, recv, args, op, value);
       break;
     }
     case NODE_OP_ASGN2: {
       VALUE op;
 
-      VALUE recv = process_parse_tree(parse_state, ptp, node->nd_recv, locals);
+      VALUE recv = process_parse_tree(parser_state, ptp, node->nd_recv, locals);
       switch(node->nd_next->nd_mid) {
         case 0:
           op = ID2SYM(rb_sOpOr);
@@ -592,20 +592,20 @@ namespace melbourne {
         default:
           op = Q2SYM(node->nd_next->nd_mid);
       }
-      VALUE value = process_parse_tree(parse_state, ptp, node->nd_value, locals);
+      VALUE value = process_parse_tree(parser_state, ptp, node->nd_value, locals);
       tree = rb_funcall(ptp, rb_sOpAsgn2, 5, line,
           recv, Q2SYM(node->nd_next->nd_aid), op, value);
       break;
     }
     case NODE_OP_ASGN_AND: {
-      VALUE var = process_parse_tree(parse_state, ptp, node->nd_head, locals);
-      VALUE value = process_parse_tree(parse_state, ptp, node->nd_value, locals);
+      VALUE var = process_parse_tree(parser_state, ptp, node->nd_head, locals);
+      VALUE value = process_parse_tree(parser_state, ptp, node->nd_value, locals);
       tree = rb_funcall(ptp, rb_sOpAsgnAnd, 3, line, var, value);
       break;
     }
     case NODE_OP_ASGN_OR: {
-      VALUE var = process_parse_tree(parse_state, ptp, node->nd_head, locals);
-      VALUE value = process_parse_tree(parse_state, ptp, node->nd_value, locals);
+      VALUE var = process_parse_tree(parser_state, ptp, node->nd_head, locals);
+      VALUE value = process_parse_tree(parser_state, ptp, node->nd_value, locals);
       tree = rb_funcall(ptp, rb_sOpAsgnOr, 3, line, var, value);
       break;
     }
@@ -613,41 +613,41 @@ namespace melbourne {
       VALUE args = Qnil;
 
       masgn_level++;
-      VALUE head = process_parse_tree(parse_state, ptp, node->nd_head, locals);
+      VALUE head = process_parse_tree(parser_state, ptp, node->nd_head, locals);
       if (node->nd_args) {
         if(node->nd_args != (NODE *)-1) {
-          args = process_parse_tree(parse_state, ptp, node->nd_args, locals);
+          args = process_parse_tree(parser_state, ptp, node->nd_args, locals);
         } else {
           args = Qtrue;
         }
       }
-      VALUE value = process_parse_tree(parse_state, ptp, node->nd_value, locals);
+      VALUE value = process_parse_tree(parser_state, ptp, node->nd_value, locals);
       tree = rb_funcall(ptp, rb_sMAsgn, 4, line, head, value, args);
       masgn_level--;
       break;
     }
     case NODE_LASGN: {
-      VALUE expr = process_parse_tree(parse_state, ptp, node->nd_value, locals);
+      VALUE expr = process_parse_tree(parser_state, ptp, node->nd_value, locals);
       tree = rb_funcall(ptp, rb_sLAsgn, 3, line, Q2SYM(node->nd_vid), expr);
       break;
     }
     case NODE_IASGN: {
-      VALUE expr = process_parse_tree(parse_state, ptp, node->nd_value, locals);
+      VALUE expr = process_parse_tree(parser_state, ptp, node->nd_value, locals);
       tree = rb_funcall(ptp, rb_sIAsgn, 3, line, Q2SYM(node->nd_vid), expr);
       break;
     }
     case NODE_CVASGN: {
-      VALUE expr = process_parse_tree(parse_state, ptp, node->nd_value, locals);
+      VALUE expr = process_parse_tree(parser_state, ptp, node->nd_value, locals);
       tree = rb_funcall(ptp, rb_sCVAsgn, 3, line, Q2SYM(node->nd_vid), expr);
       break;
     }
     case NODE_CVDECL: {
-      VALUE expr = process_parse_tree(parse_state, ptp, node->nd_value, locals);
+      VALUE expr = process_parse_tree(parser_state, ptp, node->nd_value, locals);
       tree = rb_funcall(ptp, rb_sCVDecl, 3, line, Q2SYM(node->nd_vid), expr);
       break;
     }
     case NODE_GASGN: {
-      VALUE expr = process_parse_tree(parse_state, ptp, node->nd_value, locals);
+      VALUE expr = process_parse_tree(parser_state, ptp, node->nd_value, locals);
       tree = rb_funcall(ptp, rb_sGAsgn, 3, line, Q2SYM(node->nd_vid), expr);
       break;
     }
@@ -657,9 +657,9 @@ namespace melbourne {
       if(node->nd_vid) {
         expr = Q2SYM(node->nd_vid);
       } else {
-        expr = process_parse_tree(parse_state, ptp, node->nd_else, locals);
+        expr = process_parse_tree(parser_state, ptp, node->nd_else, locals);
       }
-      VALUE value = process_parse_tree(parse_state, ptp, node->nd_value, locals);
+      VALUE value = process_parse_tree(parser_state, ptp, node->nd_value, locals);
       tree = rb_funcall(ptp, rb_sCDecl, 3, line, expr, value);
       break;
     }
@@ -669,13 +669,13 @@ namespace melbourne {
       break;
 
     case NODE_ALIAS: {          /* u1 u2 (alias :blah :blah2) */
-      VALUE to = process_parse_tree(parse_state, ptp, node->u2.node, locals);
-      VALUE from = process_parse_tree(parse_state, ptp, node->u1.node, locals);
+      VALUE to = process_parse_tree(parser_state, ptp, node->u2.node, locals);
+      VALUE from = process_parse_tree(parser_state, ptp, node->u1.node, locals);
       tree = rb_funcall(ptp, rb_sAlias, 3, line, to, from);
       break;
     }
     case NODE_UNDEF: {          /* u2    (undef instvar) */
-      VALUE name = process_parse_tree(parse_state, ptp, node->u2.node, locals);
+      VALUE name = process_parse_tree(parser_state, ptp, node->u2.node, locals);
       tree = rb_funcall(ptp, rb_sUndef, 2, line, name);
       break;
     }
@@ -688,13 +688,13 @@ namespace melbourne {
 
       node = node->nd_head;
       while (node) {
-        rb_ary_push(array, process_parse_tree(parse_state, ptp, node->nd_head, locals));
+        rb_ary_push(array, process_parse_tree(parser_state, ptp, node->nd_head, locals));
         if (!(node = node->nd_next)) {
           // @todo: properly process the parse error
           printf("odd number list for Hash");
           abort();
         }
-        rb_ary_push(array, process_parse_tree(parse_state, ptp, node->nd_head, locals));
+        rb_ary_push(array, process_parse_tree(parser_state, ptp, node->nd_head, locals));
         node = node->nd_next;
       }
       tree = rb_funcall(ptp, rb_sHash, 2, line, array);
@@ -704,28 +704,28 @@ namespace melbourne {
       VALUE array = rb_ary_new();
 
       while (node) {
-        rb_ary_push(array, process_parse_tree(parse_state, ptp, node->nd_head, locals));
+        rb_ary_push(array, process_parse_tree(parser_state, ptp, node->nd_head, locals));
         node = node->nd_next;
       }
       tree = rb_funcall(ptp, rb_sArray, 2, line, array);
       break;
     }
     case NODE_DSTR: {
-      VALUE array = process_dynamic(parse_state, ptp, node->nd_next, locals);
+      VALUE array = process_dynamic(parser_state, ptp, node->nd_next, locals);
       VALUE str = string_newfrombstr(node->nd_str);
       tree = rb_funcall(ptp, rb_sDStr, 3, line, str, array);
       bdestroy(node->nd_str);
       break;
     }
     case NODE_DSYM: {
-      VALUE array = process_dynamic(parse_state, ptp, node->nd_next, locals);
+      VALUE array = process_dynamic(parser_state, ptp, node->nd_next, locals);
       VALUE str = string_newfrombstr(node->nd_str);
       tree = rb_funcall(ptp, rb_sDSym, 3, line, str, array);
       bdestroy(node->nd_str);
       break;
     }
     case NODE_DXSTR: {
-      VALUE array = process_dynamic(parse_state, ptp, node->nd_next, locals);
+      VALUE array = process_dynamic(parser_state, ptp, node->nd_next, locals);
       VALUE str = string_newfrombstr(node->nd_str);
       tree = rb_funcall(ptp, rb_sDXStr, 3, line, str, array);
       bdestroy(node->nd_str);
@@ -734,7 +734,7 @@ namespace melbourne {
     case NODE_DREGX: {
       VALUE flags = Qnil;
 
-      VALUE array = process_dynamic(parse_state, ptp, node->nd_next, locals);
+      VALUE array = process_dynamic(parser_state, ptp, node->nd_next, locals);
       VALUE str = string_newfrombstr(node->nd_str);
       if (node->nd_cflag) flags = INT2FIX(node->nd_cflag);
       tree = rb_funcall(ptp, rb_sDRegx, 4, line, str, array, flags);
@@ -744,7 +744,7 @@ namespace melbourne {
     case NODE_DREGX_ONCE: {
       VALUE flags = Qnil;
 
-      VALUE array = process_dynamic(parse_state, ptp, node->nd_next, locals);
+      VALUE array = process_dynamic(parser_state, ptp, node->nd_next, locals);
       VALUE str = string_newfrombstr(node->nd_str);
       if (node->nd_cflag) flags = INT2FIX(node->nd_cflag);
       tree = rb_funcall(ptp, rb_sDRegxOnce, 4, line, str, array, flags);
@@ -755,7 +755,7 @@ namespace melbourne {
       VALUE body = Qnil;
 
       if (node->nd_defn) {
-        body = process_parse_tree(parse_state, ptp, node->nd_defn, locals);
+        body = process_parse_tree(parser_state, ptp, node->nd_defn, locals);
       }
       tree = rb_funcall(ptp, rb_sDefn, 3, line, Q2SYM(node->nd_mid), body);
       break;
@@ -764,8 +764,8 @@ namespace melbourne {
       VALUE recv = Qnil, body = Qnil;
 
       if (node->nd_defn) {
-        recv = process_parse_tree(parse_state, ptp, node->nd_recv, locals);
-        body = process_parse_tree(parse_state, ptp, node->nd_defn, locals);
+        recv = process_parse_tree(parser_state, ptp, node->nd_recv, locals);
+        body = process_parse_tree(parser_state, ptp, node->nd_defn, locals);
       }
       tree = rb_funcall(ptp, rb_sDefs, 4, line, recv, Q2SYM(node->nd_mid), body);
       break;
@@ -776,12 +776,12 @@ namespace melbourne {
       if (nd_type(node->nd_cpath) == NODE_COLON2 && !node->nd_cpath->nd_vid) {
         name = Q2SYM((QUID)node->nd_cpath->nd_mid);
       } else {
-        name = process_parse_tree(parse_state, ptp, node->nd_cpath, locals);
+        name = process_parse_tree(parser_state, ptp, node->nd_cpath, locals);
       }
       if(node->nd_super) {
-        super = process_parse_tree(parse_state, ptp, node->nd_super, locals);
+        super = process_parse_tree(parser_state, ptp, node->nd_super, locals);
       }
-      VALUE body = process_parse_tree(parse_state, ptp, node->nd_body, locals);
+      VALUE body = process_parse_tree(parser_state, ptp, node->nd_body, locals);
       tree = rb_funcall(ptp, rb_sClass, 4, line, name, super, body);
       break;
     }
@@ -791,15 +791,15 @@ namespace melbourne {
       if (nd_type(node->nd_cpath) == NODE_COLON2 && !node->nd_cpath->nd_vid) {
         name = Q2SYM((QUID)node->nd_cpath->nd_mid);
       } else {
-        name = process_parse_tree(parse_state, ptp, node->nd_cpath, locals);
+        name = process_parse_tree(parser_state, ptp, node->nd_cpath, locals);
       }
-      VALUE body = process_parse_tree(parse_state, ptp, node->nd_body, locals);
+      VALUE body = process_parse_tree(parser_state, ptp, node->nd_body, locals);
       tree = rb_funcall(ptp, rb_sModule, 3, line, name, body);
       break;
     }
     case NODE_SCLASS: {
-      VALUE recv = process_parse_tree(parse_state, ptp, node->nd_recv, locals);
-      VALUE body = process_parse_tree(parse_state, ptp, node->nd_body, locals);
+      VALUE recv = process_parse_tree(parser_state, ptp, node->nd_recv, locals);
+      VALUE body = process_parse_tree(parser_state, ptp, node->nd_body, locals);
       tree = rb_funcall(ptp, rb_sSClass, 3, line, recv, body);
       break;
     }
@@ -856,7 +856,7 @@ namespace melbourne {
       VALUE opt = Qnil;
       optnode = node->nd_opt;
       if (optnode) {
-        opt = process_parse_tree(parse_state, ptp, node->nd_opt, locals);
+        opt = process_parse_tree(parser_state, ptp, node->nd_opt, locals);
       }
       masgn_level--;
 
@@ -1003,17 +1003,17 @@ namespace melbourne {
       break;
 
     case NODE_SPLAT: {
-      VALUE expr = process_parse_tree(parse_state, ptp, node->nd_head, locals);
+      VALUE expr = process_parse_tree(parser_state, ptp, node->nd_head, locals);
       tree = rb_funcall(ptp, rb_sSplat, 2, line, expr);
       break;
     }
     case NODE_TO_ARY: {
-      VALUE expr = process_parse_tree(parse_state, ptp, node->nd_head, locals);
+      VALUE expr = process_parse_tree(parser_state, ptp, node->nd_head, locals);
       tree = rb_funcall(ptp, rb_sToAry, 2, line, expr);
       break;
     }
     case NODE_SVALUE: {           /* a = b, c */
-      VALUE expr = process_parse_tree(parse_state, ptp, node->nd_head, locals);
+      VALUE expr = process_parse_tree(parser_state, ptp, node->nd_head, locals);
       tree = rb_funcall(ptp, rb_sSValue, 2, line, expr);
       break;
     }
@@ -1022,22 +1022,22 @@ namespace melbourne {
 
       /* node id node */
       if (node->nd_1st == RNODE(1)) {
-        recv = process_parse_tree(parse_state, ptp, NEW_SELF(), locals);
+        recv = process_parse_tree(parser_state, ptp, NEW_SELF(), locals);
       } else {
-        recv = process_parse_tree(parse_state, ptp, node->nd_1st, locals);
+        recv = process_parse_tree(parser_state, ptp, node->nd_1st, locals);
       }
-      VALUE value = process_parse_tree(parse_state, ptp, node->nd_3rd, locals);
+      VALUE value = process_parse_tree(parser_state, ptp, node->nd_3rd, locals);
       tree = rb_funcall(ptp, rb_sAttrAsgn, 4, line,
           recv, Q2SYM(node->u2.id), value);
       break;
     }
     case NODE_EVSTR: {
-      VALUE value = process_parse_tree(parse_state, ptp, node->nd_2nd, locals);
+      VALUE value = process_parse_tree(parser_state, ptp, node->nd_2nd, locals);
       tree = rb_funcall(ptp, rb_sEvStr, 2, line, value);
       break;
     }
     case NODE_NEGATE: {
-      VALUE expr = process_parse_tree(parse_state, ptp, node->nd_head, locals);
+      VALUE expr = process_parse_tree(parser_state, ptp, node->nd_head, locals);
       tree = rb_funcall(ptp, rb_sNegate, 2, line, expr);
       break;
     }
@@ -1061,14 +1061,14 @@ namespace melbourne {
   namespace grammar19 {
   extern long mel_sourceline;
 
-  void create_error(rb_parse_state *parse_state, char *msg) {
+  void create_error(rb_parser_state *parser_state, char *msg) {
     VALUE err_msg;
 
     // Cleanup one of the common and ugly syntax errors.
     if(std::string("syntax error, unexpected $end, expecting kEND") ==
         std::string(msg)) {
-      if(parse_state->start_lines->size() > 0) {
-        StartPosition& pos = parse_state->start_lines->back();
+      if(parser_state->start_lines->size() > 0) {
+        StartPosition& pos = parser_state->start_lines->back();
 
         std::stringstream ss;
         ss << "missing 'end' for '"
@@ -1099,16 +1099,16 @@ namespace melbourne {
       if(!err_msg) err_msg = rb_str_new2(msg);
     }
 
-    int col = parse_state->lex_p - parse_state->lex_pbeg;
+    int col = parser_state->lex_p - parser_state->lex_pbeg;
 
-    rb_funcall(parse_state->processor,
+    rb_funcall(parser_state->processor,
                rb_intern("process_parse_error"),4,
                err_msg,
                INT2FIX(col),
                INT2FIX(mel_sourceline),
-               string_newfrombstr(parse_state->lex_lastline));
+               string_newfrombstr(parser_state->lex_lastline));
 
-    parse_state->error = Qtrue;
+    parser_state->error = Qtrue;
   }
 
   const char *op_to_name(QUID id);
@@ -1130,16 +1130,16 @@ namespace melbourne {
 #define nd_3rd    u3.node
 #define Q2SYM(v)  quark_to_symbol(v)
 
-  VALUE process_parse_tree(rb_parse_state*, VALUE, NODE*, QUID*);
+  VALUE process_parse_tree(rb_parser_state*, VALUE, NODE*, QUID*);
 
-  static VALUE process_dynamic(rb_parse_state *parse_state,
+  static VALUE process_dynamic(rb_parser_state *parser_state,
       VALUE ptp, NODE *node, QUID *locals)
   {
     VALUE array = rb_ary_new();
 
     while(node) {
       if (node->nd_head) {
-        rb_ary_push(array, process_parse_tree(parse_state, ptp, node->nd_head, locals));
+        rb_ary_push(array, process_parse_tree(parser_state, ptp, node->nd_head, locals));
       }
       node = node->nd_next;
     }
@@ -1147,17 +1147,17 @@ namespace melbourne {
     return array;
   }
 
-  static VALUE process_iter(rb_parse_state *parse_state,
+  static VALUE process_iter(rb_parser_state *parser_state,
       VALUE ptp, NODE *node, QUID *locals, int *level, ID method, VALUE line)
   {
     VALUE iter, body, args;
 
-    iter = process_parse_tree(parse_state, ptp, node->nd_iter, locals);
+    iter = process_parse_tree(parser_state, ptp, node->nd_iter, locals);
     (*level)++;
     if (node->nd_var != (NODE *)1
         && node->nd_var != (NODE *)2
         && node->nd_var != NULL) {
-      args = process_parse_tree(parse_state, ptp, node->nd_var, locals);
+      args = process_parse_tree(parser_state, ptp, node->nd_var, locals);
     } else {
       if (node->nd_var == NULL) {
         // e.g. proc {}
@@ -1168,14 +1168,14 @@ namespace melbourne {
       }
     }
     (*level)--;
-    body = process_parse_tree(parse_state, ptp, node->nd_body, locals);
+    body = process_parse_tree(parser_state, ptp, node->nd_body, locals);
     return rb_funcall(ptp, method, 4, line, iter, args, body);
   }
 
   /* Visits all the nodes in the parse tree.
    * Adapted from ParseTree by Ryan Davis and Eric Hodel.
    */
-  VALUE process_parse_tree(rb_parse_state *parse_state,
+  VALUE process_parse_tree(rb_parser_state *parser_state,
       VALUE ptp, NODE *n, QUID *locals)
   {
     NODE * volatile node = n;
@@ -1203,54 +1203,54 @@ namespace melbourne {
       VALUE array = rb_ary_new();
 
       while (node) {
-        rb_ary_push(array, process_parse_tree(parse_state, ptp, node->nd_head, locals));
+        rb_ary_push(array, process_parse_tree(parser_state, ptp, node->nd_head, locals));
         node = node->nd_next;
       }
       tree = rb_funcall(ptp, rb_sBlock, 2, line, array);
       break;
     }
     case NODE_DEFINED: {
-      VALUE expr = process_parse_tree(parse_state, ptp, node->nd_head, locals);
+      VALUE expr = process_parse_tree(parser_state, ptp, node->nd_head, locals);
       tree = rb_funcall(ptp, rb_sDefined, 2, line, expr);
       break;
     }
     case NODE_COLON2: {
-      VALUE container = process_parse_tree(parse_state, ptp, node->nd_head, locals);
+      VALUE container = process_parse_tree(parser_state, ptp, node->nd_head, locals);
       tree = rb_funcall(ptp, rb_sColon2, 3, line,
           container, Q2SYM(node->nd_mid));
       break;
     }
     case NODE_MATCH2: {
-      VALUE pattern = process_parse_tree(parse_state, ptp, node->nd_recv, locals);
-      VALUE value = process_parse_tree(parse_state, ptp, node->nd_value, locals);
+      VALUE pattern = process_parse_tree(parser_state, ptp, node->nd_recv, locals);
+      VALUE value = process_parse_tree(parser_state, ptp, node->nd_value, locals);
       tree = rb_funcall(ptp, rb_sMatch2, 3, line, pattern, value);
       break;
     }
     case NODE_MATCH3: {
-      VALUE pattern = process_parse_tree(parse_state, ptp, node->nd_recv, locals);
-      VALUE value = process_parse_tree(parse_state, ptp, node->nd_value, locals);
+      VALUE pattern = process_parse_tree(parser_state, ptp, node->nd_recv, locals);
+      VALUE value = process_parse_tree(parser_state, ptp, node->nd_value, locals);
       tree = rb_funcall(ptp, rb_sMatch3, 3, line, pattern, value);
       break;
     }
     case NODE_BEGIN: {
-      VALUE body = process_parse_tree(parse_state, ptp, node->nd_body, locals);
+      VALUE body = process_parse_tree(parser_state, ptp, node->nd_body, locals);
       tree = rb_funcall(ptp, rb_sBegin, 2, line, body);
       break;
     }
     case NODE_NOT: {
-      VALUE expr = process_parse_tree(parse_state, ptp, node->nd_body, locals);
+      VALUE expr = process_parse_tree(parser_state, ptp, node->nd_body, locals);
       tree = rb_funcall(ptp, rb_sNot, 2, line, expr);
       break;
     }
     case NODE_IF: {
       VALUE cond, body = Qnil, else_body = Qnil;
 
-      cond = process_parse_tree(parse_state, ptp, node->nd_cond, locals);
+      cond = process_parse_tree(parser_state, ptp, node->nd_cond, locals);
       if (node->nd_body) {
-        body = process_parse_tree(parse_state, ptp, node->nd_body, locals);
+        body = process_parse_tree(parser_state, ptp, node->nd_body, locals);
       }
       if (node->nd_else) {
-        else_body = process_parse_tree(parse_state, ptp, node->nd_else, locals);
+        else_body = process_parse_tree(parser_state, ptp, node->nd_else, locals);
       }
       tree = rb_funcall(ptp, rb_sIf, 4, line, cond, body, else_body);
       break;
@@ -1261,14 +1261,14 @@ namespace melbourne {
 
       case_level++;
       if(node->nd_head) {
-        expr = process_parse_tree(parse_state, ptp, node->nd_head, locals); /* expr */
+        expr = process_parse_tree(parser_state, ptp, node->nd_head, locals); /* expr */
       }
 
       VALUE whens = rb_ary_new();
       node = node->nd_body;
       while(node) {
         if (nd_type(node) == NODE_WHEN) {                 /* when */
-          rb_ary_push(whens, process_parse_tree(parse_state, ptp, node, locals));
+          rb_ary_push(whens, process_parse_tree(parser_state, ptp, node, locals));
           node = node->nd_next;
         } else {
           else_node = node;
@@ -1282,7 +1282,7 @@ namespace melbourne {
       // See http://github.com/evanphx/rubinius/issues#issue/240 for an example of
       // why.
       if(else_node) {
-        els = process_parse_tree(parse_state, ptp, else_node, locals);
+        els = process_parse_tree(parser_state, ptp, else_node, locals);
       }
 
       tree = rb_funcall(ptp, rb_sCase, 4, line, expr, whens, els);
@@ -1299,11 +1299,11 @@ namespace melbourne {
         goto again;
       }
       inside_case_args++;
-      VALUE args = process_parse_tree(parse_state, ptp, node->nd_head, locals); /* args */
+      VALUE args = process_parse_tree(parser_state, ptp, node->nd_head, locals); /* args */
       inside_case_args--;
 
       if(node->nd_body) {
-        body = process_parse_tree(parse_state, ptp, node->nd_body, locals); /* body */
+        body = process_parse_tree(parser_state, ptp, node->nd_body, locals); /* body */
       }
       if(when_level > 0) when_level--;
 
@@ -1313,9 +1313,9 @@ namespace melbourne {
     case NODE_WHILE: {
       VALUE cond, body = Qnil, post_cond;
 
-      cond = process_parse_tree(parse_state, ptp,  node->nd_cond, locals);
+      cond = process_parse_tree(parser_state, ptp,  node->nd_cond, locals);
       if(node->nd_body) {
-        body = process_parse_tree(parse_state, ptp,  node->nd_body, locals);
+        body = process_parse_tree(parser_state, ptp,  node->nd_body, locals);
       }
       post_cond = node->nd_3rd == 0 ? Qfalse : Qtrue;
       tree = rb_funcall(ptp, rb_sWhile, 4, line, cond, body, post_cond);
@@ -1324,37 +1324,37 @@ namespace melbourne {
     case NODE_UNTIL: {
       VALUE cond, body = Qnil, post_cond;
 
-      cond = process_parse_tree(parse_state, ptp,  node->nd_cond, locals);
+      cond = process_parse_tree(parser_state, ptp,  node->nd_cond, locals);
       if(node->nd_body) {
-        body = process_parse_tree(parse_state, ptp,  node->nd_body, locals);
+        body = process_parse_tree(parser_state, ptp,  node->nd_body, locals);
       }
       post_cond = node->nd_3rd == 0 ? Qfalse : Qtrue;
       tree = rb_funcall(ptp, rb_sUntil, 4, line, cond, body, post_cond);
       break;
     }
     case NODE_BLOCK_PASS: {
-      VALUE body = process_parse_tree(parse_state, ptp, node->nd_body, locals);
+      VALUE body = process_parse_tree(parser_state, ptp, node->nd_body, locals);
       VALUE iter = Qnil;
       if(node->nd_iter != (NODE*)1) {
-        iter = process_parse_tree(parse_state, ptp, node->nd_iter, locals);
+        iter = process_parse_tree(parser_state, ptp, node->nd_iter, locals);
       }
 
       tree = rb_funcall(ptp, rb_sBlockPass, 3, line, iter, body);
       break;
     }
     case NODE_FOR:
-      tree = process_iter(parse_state, ptp, node, locals, &masgn_level, rb_sFor, line);
+      tree = process_iter(parser_state, ptp, node, locals, &masgn_level, rb_sFor, line);
       break;
 
     case NODE_ITER:
-      tree = process_iter(parse_state, ptp, node, locals, &masgn_level, rb_sIter, line);
+      tree = process_iter(parser_state, ptp, node, locals, &masgn_level, rb_sIter, line);
       break;
 
     case NODE_BREAK: {
       VALUE expr = Qnil;
 
       if (node->nd_stts) {
-        expr = process_parse_tree(parse_state, ptp, node->nd_stts, locals);
+        expr = process_parse_tree(parser_state, ptp, node->nd_stts, locals);
       }
       tree = rb_funcall(ptp, rb_sBreak, 2, line, expr);
       break;
@@ -1363,7 +1363,7 @@ namespace melbourne {
       VALUE expr = Qnil;
 
       if (node->nd_stts) {
-        expr = process_parse_tree(parse_state, ptp, node->nd_stts, locals);
+        expr = process_parse_tree(parser_state, ptp, node->nd_stts, locals);
       }
       tree = rb_funcall(ptp, rb_sNext, 2, line, expr);
       break;
@@ -1372,15 +1372,15 @@ namespace melbourne {
       VALUE expr = Qnil;
 
       if (node->nd_stts) {
-        expr = process_parse_tree(parse_state, ptp, node->nd_stts, locals);
+        expr = process_parse_tree(parser_state, ptp, node->nd_stts, locals);
       }
       tree = rb_funcall(ptp, rb_sYield, 3, line, expr, node->u3.value);
       break;
     }
     case NODE_RESCUE: {
-      VALUE body = process_parse_tree(parse_state, ptp, node->nd_1st, locals);
-      VALUE resc = process_parse_tree(parse_state, ptp, node->nd_2nd, locals);
-      VALUE els = process_parse_tree(parse_state, ptp, node->nd_3rd, locals);
+      VALUE body = process_parse_tree(parser_state, ptp, node->nd_1st, locals);
+      VALUE resc = process_parse_tree(parser_state, ptp, node->nd_2nd, locals);
+      VALUE els = process_parse_tree(parser_state, ptp, node->nd_3rd, locals);
       tree = rb_funcall(ptp, rb_sRescue, 4, line, body, resc, els);
       break;
     }
@@ -1394,56 +1394,56 @@ namespace melbourne {
       VALUE conditions = Qnil;
 
       if(node->nd_3rd) {
-        conditions = process_parse_tree(parse_state, ptp, node->nd_3rd, locals);
+        conditions = process_parse_tree(parser_state, ptp, node->nd_3rd, locals);
       }
-      VALUE body = process_parse_tree(parse_state, ptp, node->nd_2nd, locals);
-      VALUE next = process_parse_tree(parse_state, ptp, node->nd_1st, locals);
+      VALUE body = process_parse_tree(parser_state, ptp, node->nd_2nd, locals);
+      VALUE next = process_parse_tree(parser_state, ptp, node->nd_1st, locals);
       tree = rb_funcall(ptp, rb_sResbody, 4, line, conditions, body, next);
       break;
     }
     case NODE_ENSURE: {
       VALUE head, ensr = Qnil;
 
-      head = process_parse_tree(parse_state, ptp, node->nd_head, locals);
+      head = process_parse_tree(parser_state, ptp, node->nd_head, locals);
       if (node->nd_ensr) {
-        ensr = process_parse_tree(parse_state, ptp, node->nd_ensr, locals);
+        ensr = process_parse_tree(parser_state, ptp, node->nd_ensr, locals);
       }
       tree = rb_funcall(ptp, rb_sEnsure, 3, line, head, ensr);
       break;
     }
     case NODE_AND: {
-      VALUE left = process_parse_tree(parse_state, ptp, node->nd_1st, locals);
-      VALUE right = process_parse_tree(parse_state, ptp, node->nd_2nd, locals);
+      VALUE left = process_parse_tree(parser_state, ptp, node->nd_1st, locals);
+      VALUE right = process_parse_tree(parser_state, ptp, node->nd_2nd, locals);
       tree = rb_funcall(ptp, rb_sAnd, 3, line, left, right);
       break;
     }
     case NODE_OR: {
-      VALUE left = process_parse_tree(parse_state, ptp, node->nd_1st, locals);
-      VALUE right = process_parse_tree(parse_state, ptp, node->nd_2nd, locals);
+      VALUE left = process_parse_tree(parser_state, ptp, node->nd_1st, locals);
+      VALUE right = process_parse_tree(parser_state, ptp, node->nd_2nd, locals);
       tree = rb_funcall(ptp, rb_sOr, 3, line, left, right);
       break;
     }
     case NODE_DOT2: {
-      VALUE start = process_parse_tree(parse_state, ptp, node->nd_beg, locals);
-      VALUE finish = process_parse_tree(parse_state, ptp, node->nd_end, locals);
+      VALUE start = process_parse_tree(parser_state, ptp, node->nd_beg, locals);
+      VALUE finish = process_parse_tree(parser_state, ptp, node->nd_end, locals);
       tree = rb_funcall(ptp, rb_sDot2, 3, line, start, finish);
       break;
     }
     case NODE_DOT3: {
-      VALUE start = process_parse_tree(parse_state, ptp, node->nd_beg, locals);
-      VALUE finish = process_parse_tree(parse_state, ptp, node->nd_end, locals);
+      VALUE start = process_parse_tree(parser_state, ptp, node->nd_beg, locals);
+      VALUE finish = process_parse_tree(parser_state, ptp, node->nd_end, locals);
       tree = rb_funcall(ptp, rb_sDot3, 3, line, start, finish);
       break;
     }
     case NODE_FLIP2: {
-      VALUE start = process_parse_tree(parse_state, ptp, node->nd_beg, locals);
-      VALUE finish = process_parse_tree(parse_state, ptp, node->nd_end, locals);
+      VALUE start = process_parse_tree(parser_state, ptp, node->nd_beg, locals);
+      VALUE finish = process_parse_tree(parser_state, ptp, node->nd_end, locals);
       tree = rb_funcall(ptp, rb_sFlip2, 3, line, start, finish);
       break;
     }
     case NODE_FLIP3: {
-      VALUE start = process_parse_tree(parse_state, ptp, node->nd_beg, locals);
-      VALUE finish = process_parse_tree(parse_state, ptp, node->nd_end, locals);
+      VALUE start = process_parse_tree(parser_state, ptp, node->nd_beg, locals);
+      VALUE finish = process_parse_tree(parser_state, ptp, node->nd_end, locals);
       tree = rb_funcall(ptp, rb_sFlip3, 3, line, start, finish);
       break;
     }
@@ -1451,29 +1451,29 @@ namespace melbourne {
       VALUE expr = Qnil;
 
       if (node->nd_stts) {
-        expr = process_parse_tree(parse_state, ptp, node->nd_stts, locals);
+        expr = process_parse_tree(parser_state, ptp, node->nd_stts, locals);
       }
       tree = rb_funcall(ptp, rb_sReturn, 2, line, expr);
       break;
     }
     case NODE_ARGSCAT: {
-      VALUE array = process_parse_tree(parse_state, ptp, node->nd_head, locals);
-      VALUE rest = process_parse_tree(parse_state, ptp, node->nd_body, locals);
+      VALUE array = process_parse_tree(parser_state, ptp, node->nd_head, locals);
+      VALUE rest = process_parse_tree(parser_state, ptp, node->nd_body, locals);
       tree = rb_funcall(ptp, rb_sArgsCat, 3, line, array, rest);
       break;
     }
     case NODE_ARGSPUSH: {
-      VALUE head = process_parse_tree(parse_state, ptp, node->nd_head, locals);
-      VALUE body = process_parse_tree(parse_state, ptp, node->nd_body, locals);
+      VALUE head = process_parse_tree(parser_state, ptp, node->nd_head, locals);
+      VALUE body = process_parse_tree(parser_state, ptp, node->nd_body, locals);
       tree = rb_funcall(ptp, rb_sArgsPush, 3, line, head, body);
       break;
     }
     case NODE_CALL: {
       VALUE args = Qnil;
 
-      VALUE recv = process_parse_tree(parse_state, ptp, node->nd_recv, locals);
+      VALUE recv = process_parse_tree(parser_state, ptp, node->nd_recv, locals);
       if (node->nd_args) {
-        args = process_parse_tree(parse_state, ptp, node->nd_args, locals);
+        args = process_parse_tree(parser_state, ptp, node->nd_args, locals);
       }
       tree = rb_funcall(ptp, rb_sCall, 4, line,
           recv, Q2SYM(node->nd_mid), args);
@@ -1483,7 +1483,7 @@ namespace melbourne {
       VALUE args = Qnil;
 
       if (node->nd_args) {
-        args = process_parse_tree(parse_state, ptp, node->nd_args, locals);
+        args = process_parse_tree(parser_state, ptp, node->nd_args, locals);
       }
       tree = rb_funcall(ptp, rb_sFCall, 3, line, Q2SYM(node->nd_mid), args);
       break;
@@ -1493,20 +1493,20 @@ namespace melbourne {
       break;
 
     case NODE_SUPER: {
-      VALUE args = process_parse_tree(parse_state, ptp, node->nd_args, locals);
+      VALUE args = process_parse_tree(parser_state, ptp, node->nd_args, locals);
       tree = rb_funcall(ptp, rb_sSuper, 2, line, args);
       break;
     }
     case NODE_SCOPE: {
-      VALUE body = process_parse_tree(parse_state, ptp, node->nd_next, node->nd_tbl);
+      VALUE body = process_parse_tree(parser_state, ptp, node->nd_next, node->nd_tbl);
       tree = rb_funcall(ptp, rb_sScope, 2, line, body);
       break;
     }
     case NODE_OP_ASGN1: {
       VALUE op;
 
-      VALUE recv = process_parse_tree(parse_state, ptp, node->nd_recv, locals);
-      VALUE args = process_parse_tree(parse_state, ptp, node->nd_args->nd_2nd, locals);
+      VALUE recv = process_parse_tree(parser_state, ptp, node->nd_recv, locals);
+      VALUE args = process_parse_tree(parser_state, ptp, node->nd_args->nd_2nd, locals);
       switch(node->nd_mid) {
         case 0:
           op = ID2SYM(rb_sOpOr);
@@ -1517,14 +1517,14 @@ namespace melbourne {
         default:
           op = Q2SYM(node->nd_mid);
       }
-      VALUE value = process_parse_tree(parse_state, ptp, node->nd_args->nd_head, locals);
+      VALUE value = process_parse_tree(parser_state, ptp, node->nd_args->nd_head, locals);
       tree = rb_funcall(ptp, rb_sOpAsgn1, 5, line, recv, args, op, value);
       break;
     }
     case NODE_OP_ASGN2: {
       VALUE op;
 
-      VALUE recv = process_parse_tree(parse_state, ptp, node->nd_recv, locals);
+      VALUE recv = process_parse_tree(parser_state, ptp, node->nd_recv, locals);
       switch(node->nd_next->nd_mid) {
         case 0:
           op = ID2SYM(rb_sOpOr);
@@ -1535,20 +1535,20 @@ namespace melbourne {
         default:
           op = Q2SYM(node->nd_next->nd_mid);
       }
-      VALUE value = process_parse_tree(parse_state, ptp, node->nd_value, locals);
+      VALUE value = process_parse_tree(parser_state, ptp, node->nd_value, locals);
       tree = rb_funcall(ptp, rb_sOpAsgn2, 5, line,
           recv, Q2SYM(node->nd_next->nd_aid), op, value);
       break;
     }
     case NODE_OP_ASGN_AND: {
-      VALUE var = process_parse_tree(parse_state, ptp, node->nd_head, locals);
-      VALUE value = process_parse_tree(parse_state, ptp, node->nd_value, locals);
+      VALUE var = process_parse_tree(parser_state, ptp, node->nd_head, locals);
+      VALUE value = process_parse_tree(parser_state, ptp, node->nd_value, locals);
       tree = rb_funcall(ptp, rb_sOpAsgnAnd, 3, line, var, value);
       break;
     }
     case NODE_OP_ASGN_OR: {
-      VALUE var = process_parse_tree(parse_state, ptp, node->nd_head, locals);
-      VALUE value = process_parse_tree(parse_state, ptp, node->nd_value, locals);
+      VALUE var = process_parse_tree(parser_state, ptp, node->nd_head, locals);
+      VALUE value = process_parse_tree(parser_state, ptp, node->nd_value, locals);
       tree = rb_funcall(ptp, rb_sOpAsgnOr, 3, line, var, value);
       break;
     }
@@ -1556,41 +1556,41 @@ namespace melbourne {
       VALUE args = Qnil;
 
       masgn_level++;
-      VALUE head = process_parse_tree(parse_state, ptp, node->nd_head, locals);
+      VALUE head = process_parse_tree(parser_state, ptp, node->nd_head, locals);
       if (node->nd_args) {
         if(node->nd_args != (NODE *)-1) {
-          args = process_parse_tree(parse_state, ptp, node->nd_args, locals);
+          args = process_parse_tree(parser_state, ptp, node->nd_args, locals);
         } else {
           args = Qtrue;
         }
       }
-      VALUE value = process_parse_tree(parse_state, ptp, node->nd_value, locals);
+      VALUE value = process_parse_tree(parser_state, ptp, node->nd_value, locals);
       tree = rb_funcall(ptp, rb_sMAsgn, 4, line, head, value, args);
       masgn_level--;
       break;
     }
     case NODE_LASGN: {
-      VALUE expr = process_parse_tree(parse_state, ptp, node->nd_value, locals);
+      VALUE expr = process_parse_tree(parser_state, ptp, node->nd_value, locals);
       tree = rb_funcall(ptp, rb_sLAsgn, 3, line, Q2SYM(node->nd_vid), expr);
       break;
     }
     case NODE_IASGN: {
-      VALUE expr = process_parse_tree(parse_state, ptp, node->nd_value, locals);
+      VALUE expr = process_parse_tree(parser_state, ptp, node->nd_value, locals);
       tree = rb_funcall(ptp, rb_sIAsgn, 3, line, Q2SYM(node->nd_vid), expr);
       break;
     }
     case NODE_CVASGN: {
-      VALUE expr = process_parse_tree(parse_state, ptp, node->nd_value, locals);
+      VALUE expr = process_parse_tree(parser_state, ptp, node->nd_value, locals);
       tree = rb_funcall(ptp, rb_sCVAsgn, 3, line, Q2SYM(node->nd_vid), expr);
       break;
     }
     case NODE_CVDECL: {
-      VALUE expr = process_parse_tree(parse_state, ptp, node->nd_value, locals);
+      VALUE expr = process_parse_tree(parser_state, ptp, node->nd_value, locals);
       tree = rb_funcall(ptp, rb_sCVDecl, 3, line, Q2SYM(node->nd_vid), expr);
       break;
     }
     case NODE_GASGN: {
-      VALUE expr = process_parse_tree(parse_state, ptp, node->nd_value, locals);
+      VALUE expr = process_parse_tree(parser_state, ptp, node->nd_value, locals);
       tree = rb_funcall(ptp, rb_sGAsgn, 3, line, Q2SYM(node->nd_vid), expr);
       break;
     }
@@ -1600,9 +1600,9 @@ namespace melbourne {
       if(node->nd_vid) {
         expr = Q2SYM(node->nd_vid);
       } else {
-        expr = process_parse_tree(parse_state, ptp, node->nd_else, locals);
+        expr = process_parse_tree(parser_state, ptp, node->nd_else, locals);
       }
-      VALUE value = process_parse_tree(parse_state, ptp, node->nd_value, locals);
+      VALUE value = process_parse_tree(parser_state, ptp, node->nd_value, locals);
       tree = rb_funcall(ptp, rb_sCDecl, 3, line, expr, value);
       break;
     }
@@ -1612,13 +1612,13 @@ namespace melbourne {
       break;
 
     case NODE_ALIAS: {          /* u1 u2 (alias :blah :blah2) */
-      VALUE to = process_parse_tree(parse_state, ptp, node->u2.node, locals);
-      VALUE from = process_parse_tree(parse_state, ptp, node->u1.node, locals);
+      VALUE to = process_parse_tree(parser_state, ptp, node->u2.node, locals);
+      VALUE from = process_parse_tree(parser_state, ptp, node->u1.node, locals);
       tree = rb_funcall(ptp, rb_sAlias, 3, line, to, from);
       break;
     }
     case NODE_UNDEF: {          /* u2    (undef instvar) */
-      VALUE name = process_parse_tree(parse_state, ptp, node->u2.node, locals);
+      VALUE name = process_parse_tree(parser_state, ptp, node->u2.node, locals);
       tree = rb_funcall(ptp, rb_sUndef, 2, line, name);
       break;
     }
@@ -1631,13 +1631,13 @@ namespace melbourne {
 
       node = node->nd_head;
       while (node) {
-        rb_ary_push(array, process_parse_tree(parse_state, ptp, node->nd_head, locals));
+        rb_ary_push(array, process_parse_tree(parser_state, ptp, node->nd_head, locals));
         if (!(node = node->nd_next)) {
           // @todo: properly process the parse error
           printf("odd number list for Hash");
           abort();
         }
-        rb_ary_push(array, process_parse_tree(parse_state, ptp, node->nd_head, locals));
+        rb_ary_push(array, process_parse_tree(parser_state, ptp, node->nd_head, locals));
         node = node->nd_next;
       }
       tree = rb_funcall(ptp, rb_sHash, 2, line, array);
@@ -1647,28 +1647,28 @@ namespace melbourne {
       VALUE array = rb_ary_new();
 
       while (node) {
-        rb_ary_push(array, process_parse_tree(parse_state, ptp, node->nd_head, locals));
+        rb_ary_push(array, process_parse_tree(parser_state, ptp, node->nd_head, locals));
         node = node->nd_next;
       }
       tree = rb_funcall(ptp, rb_sArray, 2, line, array);
       break;
     }
     case NODE_DSTR: {
-      VALUE array = process_dynamic(parse_state, ptp, node->nd_next, locals);
+      VALUE array = process_dynamic(parser_state, ptp, node->nd_next, locals);
       VALUE str = string_newfrombstr(node->nd_str);
       tree = rb_funcall(ptp, rb_sDStr, 3, line, str, array);
       bdestroy(node->nd_str);
       break;
     }
     case NODE_DSYM: {
-      VALUE array = process_dynamic(parse_state, ptp, node->nd_next, locals);
+      VALUE array = process_dynamic(parser_state, ptp, node->nd_next, locals);
       VALUE str = string_newfrombstr(node->nd_str);
       tree = rb_funcall(ptp, rb_sDSym, 3, line, str, array);
       bdestroy(node->nd_str);
       break;
     }
     case NODE_DXSTR: {
-      VALUE array = process_dynamic(parse_state, ptp, node->nd_next, locals);
+      VALUE array = process_dynamic(parser_state, ptp, node->nd_next, locals);
       VALUE str = string_newfrombstr(node->nd_str);
       tree = rb_funcall(ptp, rb_sDXStr, 3, line, str, array);
       bdestroy(node->nd_str);
@@ -1677,7 +1677,7 @@ namespace melbourne {
     case NODE_DREGX: {
       VALUE flags = Qnil;
 
-      VALUE array = process_dynamic(parse_state, ptp, node->nd_next, locals);
+      VALUE array = process_dynamic(parser_state, ptp, node->nd_next, locals);
       VALUE str = string_newfrombstr(node->nd_str);
       if (node->nd_cflag) flags = INT2FIX(node->nd_cflag);
       tree = rb_funcall(ptp, rb_sDRegx, 4, line, str, array, flags);
@@ -1687,7 +1687,7 @@ namespace melbourne {
     case NODE_DREGX_ONCE: {
       VALUE flags = Qnil;
 
-      VALUE array = process_dynamic(parse_state, ptp, node->nd_next, locals);
+      VALUE array = process_dynamic(parser_state, ptp, node->nd_next, locals);
       VALUE str = string_newfrombstr(node->nd_str);
       if (node->nd_cflag) flags = INT2FIX(node->nd_cflag);
       tree = rb_funcall(ptp, rb_sDRegxOnce, 4, line, str, array, flags);
@@ -1698,7 +1698,7 @@ namespace melbourne {
       VALUE body = Qnil;
 
       if (node->nd_defn) {
-        body = process_parse_tree(parse_state, ptp, node->nd_defn, locals);
+        body = process_parse_tree(parser_state, ptp, node->nd_defn, locals);
       }
       tree = rb_funcall(ptp, rb_sDefn, 3, line, Q2SYM(node->nd_mid), body);
       break;
@@ -1707,8 +1707,8 @@ namespace melbourne {
       VALUE recv = Qnil, body = Qnil;
 
       if (node->nd_defn) {
-        recv = process_parse_tree(parse_state, ptp, node->nd_recv, locals);
-        body = process_parse_tree(parse_state, ptp, node->nd_defn, locals);
+        recv = process_parse_tree(parser_state, ptp, node->nd_recv, locals);
+        body = process_parse_tree(parser_state, ptp, node->nd_defn, locals);
       }
       tree = rb_funcall(ptp, rb_sDefs, 4, line, recv, Q2SYM(node->nd_mid), body);
       break;
@@ -1719,12 +1719,12 @@ namespace melbourne {
       if (nd_type(node->nd_cpath) == NODE_COLON2 && !node->nd_cpath->nd_vid) {
         name = Q2SYM((QUID)node->nd_cpath->nd_mid);
       } else {
-        name = process_parse_tree(parse_state, ptp, node->nd_cpath, locals);
+        name = process_parse_tree(parser_state, ptp, node->nd_cpath, locals);
       }
       if(node->nd_super) {
-        super = process_parse_tree(parse_state, ptp, node->nd_super, locals);
+        super = process_parse_tree(parser_state, ptp, node->nd_super, locals);
       }
-      VALUE body = process_parse_tree(parse_state, ptp, node->nd_body, locals);
+      VALUE body = process_parse_tree(parser_state, ptp, node->nd_body, locals);
       tree = rb_funcall(ptp, rb_sClass, 4, line, name, super, body);
       break;
     }
@@ -1734,15 +1734,15 @@ namespace melbourne {
       if (nd_type(node->nd_cpath) == NODE_COLON2 && !node->nd_cpath->nd_vid) {
         name = Q2SYM((QUID)node->nd_cpath->nd_mid);
       } else {
-        name = process_parse_tree(parse_state, ptp, node->nd_cpath, locals);
+        name = process_parse_tree(parser_state, ptp, node->nd_cpath, locals);
       }
-      VALUE body = process_parse_tree(parse_state, ptp, node->nd_body, locals);
+      VALUE body = process_parse_tree(parser_state, ptp, node->nd_body, locals);
       tree = rb_funcall(ptp, rb_sModule, 3, line, name, body);
       break;
     }
     case NODE_SCLASS: {
-      VALUE recv = process_parse_tree(parse_state, ptp, node->nd_recv, locals);
-      VALUE body = process_parse_tree(parse_state, ptp, node->nd_body, locals);
+      VALUE recv = process_parse_tree(parser_state, ptp, node->nd_recv, locals);
+      VALUE body = process_parse_tree(parser_state, ptp, node->nd_body, locals);
       tree = rb_funcall(ptp, rb_sSClass, 3, line, recv, body);
       break;
     }
@@ -1799,7 +1799,7 @@ namespace melbourne {
       VALUE opt = Qnil;
       optnode = node->nd_opt;
       if (optnode) {
-        opt = process_parse_tree(parse_state, ptp, node->nd_opt, locals);
+        opt = process_parse_tree(parser_state, ptp, node->nd_opt, locals);
       }
       masgn_level--;
 
@@ -1946,17 +1946,17 @@ namespace melbourne {
       break;
 
     case NODE_SPLAT: {
-      VALUE expr = process_parse_tree(parse_state, ptp, node->nd_head, locals);
+      VALUE expr = process_parse_tree(parser_state, ptp, node->nd_head, locals);
       tree = rb_funcall(ptp, rb_sSplat, 2, line, expr);
       break;
     }
     case NODE_TO_ARY: {
-      VALUE expr = process_parse_tree(parse_state, ptp, node->nd_head, locals);
+      VALUE expr = process_parse_tree(parser_state, ptp, node->nd_head, locals);
       tree = rb_funcall(ptp, rb_sToAry, 2, line, expr);
       break;
     }
     case NODE_SVALUE: {           /* a = b, c */
-      VALUE expr = process_parse_tree(parse_state, ptp, node->nd_head, locals);
+      VALUE expr = process_parse_tree(parser_state, ptp, node->nd_head, locals);
       tree = rb_funcall(ptp, rb_sSValue, 2, line, expr);
       break;
     }
@@ -1965,22 +1965,22 @@ namespace melbourne {
 
       /* node id node */
       if (node->nd_1st == RNODE(1)) {
-        recv = process_parse_tree(parse_state, ptp, NEW_SELF(), locals);
+        recv = process_parse_tree(parser_state, ptp, NEW_SELF(), locals);
       } else {
-        recv = process_parse_tree(parse_state, ptp, node->nd_1st, locals);
+        recv = process_parse_tree(parser_state, ptp, node->nd_1st, locals);
       }
-      VALUE value = process_parse_tree(parse_state, ptp, node->nd_3rd, locals);
+      VALUE value = process_parse_tree(parser_state, ptp, node->nd_3rd, locals);
       tree = rb_funcall(ptp, rb_sAttrAsgn, 4, line,
           recv, Q2SYM(node->u2.id), value);
       break;
     }
     case NODE_EVSTR: {
-      VALUE value = process_parse_tree(parse_state, ptp, node->nd_2nd, locals);
+      VALUE value = process_parse_tree(parser_state, ptp, node->nd_2nd, locals);
       tree = rb_funcall(ptp, rb_sEvStr, 2, line, value);
       break;
     }
     case NODE_NEGATE: {
-      VALUE expr = process_parse_tree(parse_state, ptp, node->nd_head, locals);
+      VALUE expr = process_parse_tree(parser_state, ptp, node->nd_head, locals);
       tree = rb_funcall(ptp, rb_sNegate, 2, line, expr);
       break;
     }

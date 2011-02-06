@@ -48,7 +48,7 @@ namespace melbourne {
     {}
   };
 
-  typedef struct rb_parse_state {
+  typedef struct rb_parser_state {
     int end_seen;
     int debug_lines;
     int heredoc_end;
@@ -69,7 +69,7 @@ namespace melbourne {
     /* this function reads a line from lex_io and stores it in
      * line_buffer.
      */
-    bool (*lex_gets)(rb_parse_state*);
+    bool (*lex_gets)(rb_parser_state*);
     bstring line_buffer;
 
     /* If this is set, we use the io method. */
@@ -114,9 +114,9 @@ namespace melbourne {
     // better error reporting.
     std::list<StartPosition>* start_lines;
 
-  } rb_parse_state;
+  } rb_parser_state;
 
-#define PARSE_STATE ((rb_parse_state*)parse_state)
+#define PARSE_STATE ((rb_parser_state*)parser_state)
 #define PARSE_VAR(var) (PARSE_STATE->var)
 #define ruby_debug_lines PARSE_VAR(debug_lines)
 #define heredoc_end PARSE_VAR(heredoc_end)

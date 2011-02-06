@@ -24,6 +24,8 @@
 
 #include "ruby.h"
 
+#define RBX_GRAMMAR_19  1
+
 #include "internal.hpp"
 #include "visitor.hpp"
 #include "symbols.hpp"
@@ -148,16 +150,10 @@ static int cond_negative(NODE**);
 static NODE *parser_newline_node(rb_parser_state*,NODE*);
 static void fixpos(NODE*,NODE*);
 
-static int value_expr0(NODE*,rb_parser_state*);
-static void void_expr0(NODE*,rb_parser_state*);
+static int parser_value_expr(rb_parser_state*, NODE*);
+static int parser_void_expr0(rb_parser_state*, NODE*);
+static NODE* remove_begin(NODE*);
 static void parser_void_stmts(rb_parser_state*, NODE*);
-static NODE *parser_remove_begin(rb_parser_state*, NODE*);
-#define  value_expr(node)  value_expr0((node) = \
-                              remove_begin(node, (rb_parser_state*)parser_state), \
-                              (rb_parser_state*)parser_state)
-#define void_expr(node) void_expr0((node) = \
-                              remove_begin(node, (rb_parser_state*)parser_state), \
-                              (rb_parser_state*)parser_state)
 
 static NODE *parser_block_append(rb_parser_state*, NODE*, NODE*);
 static NODE *parser_list_append(rb_parser_state*, NODE*, NODE*);
@@ -195,7 +191,7 @@ static intptr_t  mel_local_cnt(rb_parser_state*,QUID);
 #define local_cnt(i) mel_local_cnt(vps, i)
 static int  mel_local_id(rb_parser_state*,QUID);
 #define local_id(i) mel_local_id(vps, i)
-static QUID  *mel_local_tbl(rb_parser_state *st);
+static QUID  *parser_local_tbl(rb_parser_state *);
 static QUID   convert_op(QUID id);
 
 #define QUID2SYM(x)   (x)
@@ -258,8 +254,8 @@ static void parser_reset_block(rb_parser_state *parser_state);
 static NODE *parser_extract_block_vars(rb_parser_state *parser_state, NODE* node, var_table vars);
 
 #define cond(n)                   parser_cond(parser_state, n)
+#define node_newnode(t, a, b, c)  parser_node_newnode(parser_state, t, a, b, c)
 #define newline_node(n)           parser_newline_node(parser_state, n)
-#define remove_begin(n)           parser_remove_begin(parser_state, n)
 #define void_stmts(n)             parser_void_stmts(parser_state, n)
 #define block_append(a, b)        parser_block_append(parser_state, a, b)
 #define arg_concat(a, b)          parser_arg_concat(parser_state, a, b)
@@ -280,7 +276,14 @@ static NODE *parser_extract_block_vars(rb_parser_state *parser_state, NODE* node
 #define literal_concat(a, b)      parser_literal_concat(parser_state, a, b)
 #define new_evstr(n)              parser_new_evstr(parser_state, n)
 
-#define rb_compile_error(s)       rb_parser_compile_error(parser_state, s)
+#define value_expr(n)             parser_value_expr(parser_state, n)
+#define void_expr0(n)             parser_void_expr0(parser_state, n)
+#define void_expr(n)              void_expr0(((n) = remove_begin(n)))
+
+#define local_tbl()               parser_local_tbl(parser_state)
+
+
+#define compile_error(s)          rb__compile_error(parser_state, s)
 #define rb_backref_error(s)       rb_parser_backref_error(s)
 
 
@@ -328,6 +331,7 @@ static NODE *parser_extract_block_vars(rb_parser_state *parser_state, NODE* node
 %}
 
 %pure-parser
+%parse-param {rb_parser_state *parser_state}
 
 %union {
     VALUE val;
@@ -482,7 +486,7 @@ program         : {
                     variables = new LocalState(0);
                     class_nest = 0;
                   }
-                compstmt
+                  top_compstmt
                   {
                     if($2 && !compile_for_eval) {
                       /* last expression should not be void */
@@ -503,6 +507,7 @@ program         : {
 
 top_compstmt    : top_stmts opt_terms
                   {
+                    void_stmts($1);
                     $$ = $1;
                   }
                 ;
@@ -528,13 +533,11 @@ top_stmts       : none
 top_stmt        : stmt
                 | keyword_BEGIN
                   {
-                    /* TODO
                     if(in_def || in_single) {
                       yyerror("BEGIN in method");
                     }
-                    */
                   }
-                '{' top_compstmt '}'
+                  '{' top_compstmt '}'
                   {
                     /* TODO
                     block_append( , $4);
@@ -556,7 +559,11 @@ bodystmt        : compstmt
                       $$ = block_append($$, $3);
                     }
                     if($4) {
-                      $$ = NEW_ENSURE($$, $4);
+                      if($$) {
+                        $$ = NEW_ENSURE($$, $4);
+                      } else {
+                        $$ = block_append($4, NEW_NIL());
+                      }
                     }
                     fixpos($$, $1);
                   }
@@ -605,7 +612,7 @@ stmt            : keyword_alias fitem {lex_state = EXPR_FNAME;} fitem
                 | keyword_alias tGVAR tNTH_REF
                   {
                     yyerror("can't make alias for the number variables");
-                    $$ = 0;
+                    $$ = NEW_BEGIN(0);
                   }
                 | keyword_undef undef_list
                   {
@@ -615,19 +622,11 @@ stmt            : keyword_alias fitem {lex_state = EXPR_FNAME;} fitem
                   {
                     $$ = NEW_IF(cond($3), remove_begin($1), 0);
                     fixpos($$, $3);
-                    if(cond_negative(&$$->nd_cond)) {
-                      $$->nd_else = $$->nd_body;
-                      $$->nd_body = 0;
-                    }
                   }
                 | stmt modifier_unless expr_value
                   {
                     $$ = NEW_UNLESS(cond($3), remove_begin($1), 0);
                     fixpos($$, $3);
-                    if(cond_negative(&$$->nd_cond)) {
-                      $$->nd_body = $$->nd_else;
-                      $$->nd_else = 0;
-                    }
                   }
                 | stmt modifier_while expr_value
                   {
@@ -636,9 +635,6 @@ stmt            : keyword_alias fitem {lex_state = EXPR_FNAME;} fitem
                     } else {
                       $$ = NEW_WHILE(cond($3), $1, 1);
                     }
-                    if(cond_negative(&$$->nd_cond)) {
-                      nd_set_type($$, NODE_UNTIL);
-                    }
                   }
                 | stmt modifier_until expr_value
                   {
@@ -646,9 +642,6 @@ stmt            : keyword_alias fitem {lex_state = EXPR_FNAME;} fitem
                       $$ = NEW_UNTIL(cond($3), $1->nd_body, 0);
                     } else {
                       $$ = NEW_UNTIL(cond($3), $1, 1);
-                    }
-                    if(cond_negative(&$$->nd_cond)) {
-                      nd_set_type($$, NODE_WHILE);
                     }
                   }
                 | stmt modifier_rescue stmt
@@ -694,7 +687,7 @@ stmt            : keyword_alias fitem {lex_state = EXPR_FNAME;} fitem
                         $$->nd_value = call_bin_op(gettable(vid), $2, $3);
                       }
                     } else {
-                      $$ = 0;
+                      $$ = NEW_BEGIN(0);
                     }
                   }
                 | primary_value '[' opt_call_args rbracket tOP_ASGN command_call
@@ -818,6 +811,7 @@ block_command   : block_call
 
 cmd_brace_block : tLBRACE_ARG
                   {
+                    /* TODO */
                     $<num>1 = ruby_sourceline;
                     reset_block();
                   }
@@ -825,6 +819,7 @@ cmd_brace_block : tLBRACE_ARG
                   compstmt
                   '}'
                   {
+                    /* TODO */
                     $$ = NEW_ITER($3, 0, extract_block_vars($5, $<vars>4));
                     nd_set_line($$, $<num>1);
                   }
@@ -837,14 +832,9 @@ command         : operation command_args       %prec tLOWEST
                  }
                 | operation command_args cmd_brace_block
                   {
-                    $$ = NEW_FCALL($1, $2);
-                    if($3) {
-                      if(nd_type($$) == NODE_BLOCK_PASS) {
-                        rb_compile_error("both block arg and actual block given");
-                      }
-                      $3->nd_iter = $$;
-                      $$ = $3;
-                    }
+                    block_dup_check($2, $3);
+                    $3->nd_iter = NEW_FCALL($1, $2);
+                    $$ = $3;
                     fixpos($$, $2);
                  }
                 | primary_value '.' operation2 command_args     %prec tLOWEST
@@ -854,14 +844,9 @@ command         : operation command_args       %prec tLOWEST
                   }
                 | primary_value '.' operation2 command_args cmd_brace_block
                   {
-                    $$ = NEW_CALL($1, $3, $4);
-                    if($5) {
-                      if(nd_type($$) == NODE_BLOCK_PASS) {
-                        rb_compile_error("both block arg and actual block given");
-                      }
-                      $5->nd_iter = $$;
-                      $$ = $5;
-                    }
+                    block_dup_check($4, $5);
+                    $5->nd_iter = NEW_CALL($1, $3, $4);
+                    $$ = $5;
                     fixpos($$, $1);
                  }
                 | primary_value tCOLON2 operation2 command_args %prec tLOWEST
@@ -871,14 +856,9 @@ command         : operation command_args       %prec tLOWEST
                   }
                 | primary_value tCOLON2 operation2 command_args cmd_brace_block
                   {
-                    $$ = NEW_CALL($1, $3, $4);
-                    if($5) {
-                      if(nd_type($$) == NODE_BLOCK_PASS) {
-                        rb_compile_error("both block arg and actual block given");
-                      }
-                      $5->nd_iter = $$;
-                      $$ = $5;
-                    }
+                    block_dup_check($4, $5);
+                    $5->nd_iter = NEW_CALL($1, $3, $4);
+                    $$ = $5;
                     fixpos($$, $1);
                   }
                 | keyword_super command_args
@@ -1023,7 +1003,7 @@ mlhs_node       : variable
                 | backref
                   {
                     rb_backref_error($1);
-                    $$ = 0;
+                    $$ = NEW_BEGIN(0);
                   }
                 ;
 
@@ -1032,7 +1012,7 @@ lhs             : variable
                     $$ = assignable($1, 0);
                     if(!$$) $$ = NEW_BEGIN(0);
                   }
-                | primary_value '[' aref_args rbracket
+                | primary_value '[' opt_call_args rbracket
                   {
                     $$ = aryset($1, $3);
                   }
@@ -1063,7 +1043,7 @@ lhs             : variable
                 | backref
                   {
                     rb_backref_error($1);
-                    $$ = 0;
+                    $$ = NEW_BEGIN(0);
                   }
                 ;
 
@@ -1218,7 +1198,8 @@ arg             : lhs '=' arg
                         $1->nd_value = $3;
                         $$ = NEW_OP_ASGN_AND(gettable(vid), $1);
                       } else {
-                        /* TODO */
+                        $$ = $1;
+                        $$->nd_value = NEW_CALL(gettable(vid), $2, NEW_LIST($3));
                       }
                     } else {
                       $$ = NEW_BEGIN(0);
@@ -1337,11 +1318,7 @@ arg             : lhs '=' arg
                   }
                 | tUPLUS arg
                   {
-                    if($2 && nd_type($2) == NODE_LIT) {
-                      $$ = $2;
-                    } else {
-                      $$ = call_uni_op($2, tUPLUS);
-                    }
+                    $$ = call_uni_op($2, tUPLUS);
                   }
                 | tUMINUS arg
                   {
@@ -1566,12 +1543,12 @@ mrhs            : args ',' arg_value
                     if((n1 = splat_array($1)) != 0) {
                       $$ = list_append($1, $3);
                     } else {
-                      $$ arg_append($1, $3);
+                      $$ = arg_append($1, $3);
                     }
                   }
                 | args ',' tSTAR arg_value
                   {
-                    NODE *n1
+                    NODE *n1;
                     if(nd_type($4) == NODE_ARRAY && (n1 = splat_array($1)) != 0) {
                       $$ = list_concat(n1, $4);
                     } else {
@@ -1814,6 +1791,7 @@ primary         : literal
                   bodystmt
                   k_end
                   {
+                    /* TODO */
                     if(!$5) $5 = NEW_NIL();
                     $$ = NEW_DEFN($2, $4, $5, NOEX_PRIVATE);
                     nd_set_line($$, $<num>1)
@@ -1824,8 +1802,8 @@ primary         : literal
                 | k_def singleton dot_or_colon {lex_state = EXPR_FNAME;} fname
                   {
                     in_single++;
+                    lex_state = EXPR_ENDFN; /* force for args */
                     local_push(0);
-                    lex_state = EXPR_END; /* force for args */
                   }
                   f_arglist
                   bodystmt
@@ -2126,6 +2104,9 @@ bvar            : tIDENTIFIER
                 ;
 
 lambda          : {
+                    /* TODO */
+                  }
+                  {
                     $<num>$ = lpar_beg;
                     lpar_beg = ++paren_nest;
                   }
@@ -2160,7 +2141,6 @@ lambda_body     : tLAMBEG compstmt '}'
 
 do_block        : keyword_do_block
                   {
-                    PUSH_LINE("do");
                     $<num>$ = ruby_sourceline;
                     reset_block();
                   }
@@ -2171,7 +2151,7 @@ do_block        : keyword_do_block
                   compstmt
                   keyword_end
                   {
-                    POP_LINE();
+                    /* TODO */
                     $$ = NEW_ITER($3, 0, extract_block_vars($5, $<vars>4));
                     nd_set_line($$, $<num>2);
                   }
@@ -2180,12 +2160,9 @@ do_block        : keyword_do_block
 block_call      : command do_block
                   {
                     if(nd_type($1) == NODE_YIELD) {
-                      rb_compile_error("block given to yield");
+                      compile_error("block given to yield");
                     } else {
-                      /* TODO */
-                      if($1 && nd_type($1) == NODE_BLOCK_PASS) {
-                        rb_compile_error("both block arg and actual block given");
-                      }
+                      block_dup_check($1->nd_args, $2);
                     }
                     $2->nd_iter = $1;
                     $$ = $2;
@@ -2232,7 +2209,7 @@ method_call     : operation paren_args
                   }
                 | keyword_super paren_args
                   {
-                    $$ = new_super($2);
+                    $$ = NEW_SUPER($2);
                   }
                 | keyword_super
                   {
@@ -2257,6 +2234,7 @@ brace_block     : '{'
                   opt_block_param { $<vars>$ = variables->block_vars; }
                   compstmt '}'
                   {
+                    /* TODO */
                     $$ = NEW_ITER($3, 0, extract_block_vars($5, $<vars>4));
                     nd_set_line($$, $<num>2);
                   }
@@ -2268,7 +2246,7 @@ brace_block     : '{'
                   opt_block_param { $<vars>$ = variables->block_vars; }
                   compstmt keyword_end
                   {
-                    POP_LINE();
+                    /* TODO */
                     $$ = NEW_ITER($3, 0, extract_block_vars($5, $<vars>4));
                     nd_set_line($$, $<num>2);
                   }
@@ -2296,7 +2274,7 @@ opt_rescue      : keyword_rescue exc_list exc_var then
                       $5 = block_append($3, $5);
                     }
                     $$ = NEW_RESBODY($2, $5, $6);
-                    fixpos($$, $2?$2:$5);
+                    fixpos($$, $2 ? $2 : $5);
                   }
                 | none
                 ;
@@ -2364,7 +2342,7 @@ xstring         : tXSTRING_BEG xstring_contents tSTRING_END
                   {
                     NODE *node = $2;
                     if(!node) {
-                      node = NEW_XSTR(string_new(0, 0));
+                      node = NEW_XSTR(STR_NEW0());
                     } else {
                       switch(nd_type(node)) {
                       case NODE_STR:
@@ -2406,6 +2384,7 @@ regexp          : tREGEXP_BEG regexp_contents tREGEXP_END
                         }
                         node->nd_cflag = options & ~RE_OPTION_ONCE;
                         break;
+                      }
                     }
                     $$ = node;
                   }
@@ -2519,17 +2498,19 @@ string_content  : tSTRING_CONTENT
                   }
                 | tSTRING_DBEG
                   {
+                    $<val>1 = cond_stack;
+                    $<val>$ = cmdarg_stack;
+                    cond_stack = 0;
+                    cmdarg_stack = 0;
                     $<node>$ = lex_strterm;
                     lex_strterm = 0;
                     lex_state = EXPR_BEG;
-                    COND_PUSH(0);
-                    CMDARG_PUSH(0);
                   }
                   compstmt '}'
                   {
-                    lex_strterm = $<node>2;
-                    COND_LEXPOP();
-                    CMDARG_LEXPOP();
+                    cond_stack = $<val>1;
+                    cmdarg_stack = $<val>2;
+                    lex_strterm = $<node>3;
                     /* TODO */
                     if(($$ = $3) && nd_type($$) == NODE_NEWLINE) {
                       $$ = $$->nd_next;
@@ -2606,7 +2587,7 @@ variable        : tIDENTIFIER
                 | tCVAR
                 | keyword_nil {$$ = keyword_nil;}
                 | keyword_self {$$ = keyword_self;}
-                | keyward_true {$$ = keyward_true;}
+                | keyword_true {$$ = keyward_true;}
                 | keyword_false {$$ = keyword_false;}
                 | keyword__FILE__ {$$ = keyword__FILE__;}
                 | keyword__LINE__ {$$ = keyword__LINE__;}
@@ -2616,7 +2597,7 @@ variable        : tIDENTIFIER
 var_ref         : variable
                   {
                     if(!($$ = gettable($1))) {
-                      $$ = NEW_BEGIN();
+                      $$ = NEW_BEGIN(0);
                     }
                   }
                 ;
@@ -2724,7 +2705,7 @@ f_args          : f_arg ',' f_optarg ',' f_rest_arg opt_f_block_arg
                   }
                 ;
 
-f_norm_arg      : tCONSTANT
+f_bad_arg       : tCONSTANT
                   {
                     yyerror("formal argument cannot be a constant");
                     $$ = 0;
@@ -3570,7 +3551,7 @@ static int tokadd_string(int func, int term, int paren, quark *nest, rb_parser_s
 }
 
 #define NEW_STRTERM(func, term, paren) \
-  node_newnode(parser_state, NODE_STRTERM, (VALUE)(func), \
+  node_newnode(NODE_STRTERM, (VALUE)(func), \
                (VALUE)((term) | ((paren) << (CHAR_BIT * 2))), NULL)
 #define pslval ((YYSTYPE *)parser_state->lval)
 static int
@@ -3710,7 +3691,7 @@ heredoc_identifier(rb_parser_state *parser_state)
      the heredoc identifier that we watch the stream for to
      detect the end of the heredoc. */
   bstring str = bstrcpy(parser_state->lex_lastline);
-  lex_strterm = node_newnode(parser_state, NODE_HEREDOC,
+  lex_strterm = node_newnode( NODE_HEREDOC,
                              (VALUE)string_new(tok(), toklen()),  /* nd_lit */
                              (VALUE)len,                          /* nd_nth */
                              (VALUE)str);                         /* nd_orig */
@@ -3853,7 +3834,7 @@ here_document(NODE *here, rb_parser_state *parser_state)
   return tSTRING_CONTENT;
 }
 
-#include "lex.c.tab"
+#include "lex.c.blt"
 
 static void
 arg_ambiguous()
@@ -4683,11 +4664,6 @@ retry:
       goto retry; /* skip \\n */
     }
     pushback(c, parser_state);
-    if(parser_state->lex_state == EXPR_BEG
-       || parser_state->lex_state == EXPR_MID || space_seen) {
-      parser_state->lex_state = EXPR_DOT;
-      return tUBS;
-    }
     parser_state->lex_state = EXPR_DOT;
     return '\\';
 
@@ -4891,11 +4867,11 @@ retry:
     if(ISDIGIT(c)) {
       if(tokidx == 1) {
         rb_compile_error(parser_state,
-            "`@%c' is not allowed as an instance variable name", c);
+                         "`@%c' is not allowed as an instance variable name", c);
       }
       else {
         rb_compile_error(parser_state,
-            "`@@%c' is not allowed as a class variable name", c);
+                         "`@@%c' is not allowed as a class variable name", c);
       }
     }
     if(!is_identchar(c)) {
@@ -4995,16 +4971,16 @@ retry:
                   pslval->id = rb_parser_sym(kw->name);
                   // Hack. Ignore the different variants of do
                   // if we're just trying to match a FNAME
-                  if(kw->id[0] == kDO) return kDO;
+                  if(kw->id[0] == keyword_do) return keyword_do;
               }
-              if(kw->id[0] == kDO) {
+              if(kw->id[0] == keyword_do) {
                   command_start = TRUE;
-                  if(COND_P()) return kDO_COND;
+                  if(COND_P()) return keyword_do_cond;
                   if(CMDARG_P() && state != EXPR_CMDARG)
-                      return kDO_BLOCK;
+                      return keyword_do_block;
                   if(state == EXPR_ENDARG)
-                      return kDO_BLOCK;
-                  return kDO;
+                      return keyword_do_block;
+                  return keyword_do;
               }
               if(state == EXPR_BEG)
                   return kw->id[0];
@@ -5049,7 +5025,7 @@ retry:
 
 
 NODE*
-node_newnode(rb_parser_state *st, enum node_type type,
+parser_node_newnode(rb_parser_state *st, enum node_type type,
                  VALUE a0, VALUE a1, VALUE a2)
 {
   NODE *n = (NODE*)pt_allocate(st, sizeof(NODE));
@@ -5067,7 +5043,7 @@ node_newnode(rb_parser_state *st, enum node_type type,
 }
 
 static NODE*
-newline_node(rb_parser_state *parser_state, NODE *node)
+parser_newline_node(rb_parser_state *parser_state, NODE *node)
 {
   NODE *nl = 0;
   if(node) {
@@ -5101,7 +5077,7 @@ parser_warning(rb_parser_state *parser_state, NODE *node, const char *mesg)
 }
 
 static NODE*
-block_append(rb_parser_state *parser_state, NODE *head, NODE *tail)
+parser_block_append(rb_parser_state *parser_state, NODE *head, NODE *tail)
 {
   NODE *end, *h = head;
 
@@ -5160,7 +5136,7 @@ again:
 
 /* append item to the list */
 static NODE*
-list_append(rb_parser_state *parser_state, NODE *list, NODE *item)
+parser_list_append(rb_parser_state *parser_state, NODE *list, NODE *item)
 {
   NODE *last;
 
@@ -5212,7 +5188,7 @@ literal_concat(rb_parser_state *parser_state, NODE *head, NODE *tail)
   htype = (enum node_type)nd_type(head);
   if(htype == NODE_EVSTR) {
     NODE *node = NEW_DSTR(string_new(0, 0));
-    head = list_append(parser_state, node, head);
+    head = list_append(node, head);
   }
   switch(nd_type(tail)) {
   case NODE_STR:
@@ -5225,7 +5201,7 @@ literal_concat(rb_parser_state *parser_state, NODE *head, NODE *tail)
       }
     }
     else {
-      list_append(parser_state, head, tail);
+      list_append(head, tail);
     }
     break;
 
@@ -5248,23 +5224,23 @@ literal_concat(rb_parser_state *parser_state, NODE *head, NODE *tail)
       nd_set_type(head, NODE_DSTR);
       head->nd_alen = 1;
     }
-    list_append(parser_state, head, tail);
+    list_append(head, tail);
     break;
   }
   return head;
 }
 
 static NODE *
-evstr2dstr(rb_parser_state *parser_state, NODE *node)
+parser_evstr2dstr(rb_parser_state *parser_state, NODE *node)
 {
   if(nd_type(node) == NODE_EVSTR) {
-    node = list_append(parser_state, NEW_DSTR(string_new(0, 0)), node);
+    node = list_append(NEW_DSTR(string_new(0, 0)), node);
   }
   return node;
 }
 
 static NODE *
-new_evstr(rb_parser_state *parser_state, NODE *node)
+parser_new_evstr(rb_parser_state *parser_state, NODE *node)
 {
   NODE *head = node;
 
@@ -5358,7 +5334,7 @@ call_op(NODE *recv, QUID id, int narg, NODE *arg1, rb_parser_state *parser_state
 }
 
 static NODE*
-match_gen(NODE *node1, NODE *node2, rb_parser_state *parser_state)
+parser_match_gen(NODE *node1, NODE *node2, rb_parser_state *parser_state)
 {
   local_cnt('~');
 
@@ -5392,17 +5368,17 @@ match_gen(NODE *node1, NODE *node2, rb_parser_state *parser_state)
 static NODE*
 mel_gettable(rb_parser_state *parser_state, QUID id)
 {
-  if(id == kSELF) {
+  if(id == keyword_self) {
     return NEW_SELF();
-  } else if(id == kNIL) {
+  } else if(id == keyword_nil) {
     return NEW_NIL();
-  } else if(id == kTRUE) {
+  } else if(id == keyword_true) {
     return NEW_TRUE();
-  } else if(id == kFALSE) {
+  } else if(id == keyword_false) {
     return NEW_FALSE();
-  } else if(id == k__FILE__) {
+  } else if(id == keyword__FILE__) {
     return NEW_FILE();
-  } else if(id == k__LINE__) {
+  } else if(id == keyword__LINE__) {
     return NEW_FIXNUM(ruby_sourceline);
   } else if(is_local_id(id)) {
     if(local_id(id)) return NEW_LVAR(id);
@@ -5423,7 +5399,7 @@ mel_gettable(rb_parser_state *parser_state, QUID id)
 }
 
 static void
-reset_block(rb_parser_state *parser_state) {
+parser_reset_block(rb_parser_state *parser_state) {
   if(!parser_state->variables->block_vars) {
     parser_state->variables->block_vars = var_table_create();
   } else {
@@ -5432,7 +5408,7 @@ reset_block(rb_parser_state *parser_state) {
 }
 
 static NODE *
-extract_block_vars(rb_parser_state *parser_state, NODE* node, var_table vars)
+parser_extract_block_vars(rb_parser_state *parser_state, NODE* node, var_table vars)
 {
   int i;
   NODE *var, *out = node;
@@ -5447,7 +5423,7 @@ extract_block_vars(rb_parser_state *parser_state, NODE* node, var_table vars)
   for(i = 0; i < var_table_size(vars); i++) {
     var = NEW_DASGN_CURR(var_table_get(vars, i), var);
   }
-  out = block_append(parser_state, var, node);
+  out = block_append(var, node);
 
 out:
   parser_state->variables->block_vars = var_table_pop(parser_state->variables->block_vars);
@@ -5456,20 +5432,20 @@ out:
 }
 
 static NODE*
-assignable(QUID id, NODE *val, rb_parser_state *parser_state)
+parser_assignable(QUID id, NODE *val, rb_parser_state *parser_state)
 {
   value_expr(val);
-  if(id == kSELF) {
+  if(id == keyword_self) {
     yyerror("Can't change the value of self");
-  } else if(id == kNIL) {
+  } else if(id == keyword_nil) {
     yyerror("Can't assign to nil");
-  } else if(id == kTRUE) {
+  } else if(id == keyword_true) {
     yyerror("Can't assign to true");
-  } else if(id == kFALSE) {
+  } else if(id == keyword_false) {
     yyerror("Can't assign to false");
-  } else if(id == k__FILE__) {
+  } else if(id == keyword__FILE__) {
     yyerror("Can't assign to __FILE__");
-  } else if(id == k__LINE__) {
+  } else if(id == keyword__LINE__) {
     yyerror("Can't assign to __LINE__");
   } else if(is_local_id(id)) {
     if(parser_state->variables->block_vars) {
@@ -5495,7 +5471,7 @@ assignable(QUID id, NODE *val, rb_parser_state *parser_state)
 }
 
 static NODE *
-aryset(NODE *recv, NODE *idx, rb_parser_state *parser_state)
+parser_aryset(NODE *recv, NODE *idx, rb_parser_state *parser_state)
 {
   if(recv && nd_type(recv) == NODE_SELF) {
     recv = (NODE *)1;
@@ -5515,7 +5491,7 @@ rb_id_attrset(QUID id)
 }
 
 static NODE *
-attrset(NODE *recv, QUID id, rb_parser_state *parser_state)
+parser_attrset(NODE *recv, QUID id, rb_parser_state *parser_state)
 {
   if(recv && nd_type(recv) == NODE_SELF)
     recv = (NODE *)1;
@@ -5525,7 +5501,7 @@ attrset(NODE *recv, QUID id, rb_parser_state *parser_state)
 }
 
 static void
-rb_backref_error(NODE *node, rb_parser_state *parser_state)
+rb_parser_backref_error(NODE *node, rb_parser_state *parser_state)
 {
   switch(nd_type(node)) {
   case NODE_NTH_REF:
@@ -5538,7 +5514,7 @@ rb_backref_error(NODE *node, rb_parser_state *parser_state)
 }
 
 static NODE *
-arg_concat(rb_parser_state *parser_state, NODE *node1, NODE *node2)
+parser_arg_concat(rb_parser_state *parser_state, NODE *node1, NODE *node2)
 {
   if(!node2) return node1;
   return NEW_ARGSCAT(node1, node2);
@@ -5549,7 +5525,7 @@ arg_add(rb_parser_state *parser_state, NODE *node1, NODE *node2)
 {
   if(!node1) return NEW_LIST(node2);
   if(nd_type(node1) == NODE_ARRAY) {
-    return list_append(parser_state, node1, node2);
+    return list_append(node1, node2);
   }
   else {
     return NEW_ARGSPUSH(node1, node2);
@@ -5557,7 +5533,7 @@ arg_add(rb_parser_state *parser_state, NODE *node1, NODE *node2)
 }
 
 static NODE*
-node_assign(NODE *lhs, NODE *rhs, rb_parser_state *parser_state)
+parser_node_assign(NODE *lhs, NODE *rhs, rb_parser_state *parser_state)
 {
   if(!lhs) return 0;
 
@@ -5644,7 +5620,7 @@ value_expr0(NODE *node, rb_parser_state *parser_state)
 }
 
 static void
-void_expr0(NODE *node, rb_parser_state *parser_state)
+parser_void_expr0(rb_parser_state *parser_state, NODE *node)
 {
   const char *useless = NULL;
 
@@ -5739,7 +5715,7 @@ again:
 }
 
 static void
-void_stmts(NODE *node, rb_parser_state *parser_state)
+parser_void_stmts(NODE *node, rb_parser_state *parser_state)
 {
   if(!parser_state->verbose) return;
   if(!node) return;
@@ -5753,7 +5729,7 @@ void_stmts(NODE *node, rb_parser_state *parser_state)
 }
 
 static NODE *
-remove_begin(NODE *node, rb_parser_state *parser_state)
+remove_begin(NODE *node)
 {
   NODE **n = &node;
   while(*n) {
@@ -5919,7 +5895,7 @@ cond0(NODE *node, rb_parser_state *parser_state)
 }
 
 static NODE*
-cond(NODE *node, rb_parser_state *parser_state)
+parser_cond(NODE *node, rb_parser_state *parser_state)
 {
   if(node == 0) return 0;
   value_expr(node);
@@ -5973,7 +5949,7 @@ no_blockarg(rb_parser_state *parser_state, NODE *node)
 }
 
 static NODE *
-ret_args(rb_parser_state *parser_state, NODE *node)
+parser_ret_args(rb_parser_state *parser_state, NODE *node)
 {
   if(node) {
     no_blockarg(parser_state, node);
@@ -6083,7 +6059,7 @@ mel_local_pop(rb_parser_state *st)
 
 
 static QUID*
-mel_local_tbl(rb_parser_state *st)
+parser_local_tbl(rb_parser_state *st)
 {
   QUID *lcl_tbl;
   var_table tbl;
