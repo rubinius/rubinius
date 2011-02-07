@@ -230,7 +230,6 @@ namespace rubinius {
 
   MethodCacheEntry* InlineCache::update_and_validate(STATE, CallFrame* call_frame, Object* recv) {
     MethodCacheEntry* mce = cache_;
-    atomic::memory_barrier();
 
     Class* const recv_class = recv->lookup_begin(state);
 
@@ -248,7 +247,6 @@ namespace rubinius {
 
   MethodCacheEntry* InlineCache::update_and_validate_private(STATE, CallFrame* call_frame, Object* recv) {
     MethodCacheEntry* mce = cache_;
-    atomic::memory_barrier();
 
     Class* const recv_class = recv->lookup_begin(state);
 
@@ -266,7 +264,6 @@ namespace rubinius {
                                           Arguments& args)
   {
     MethodCacheEntry* mce = cache->cache_;
-    atomic::memory_barrier();
 
     args.set_name(cache->name);
     Object* const recv = args.recv();
@@ -301,7 +298,6 @@ namespace rubinius {
       CallFrame* call_frame, Arguments& args)
   {
     MethodCacheEntry* mce = cache->cache_;
-    atomic::memory_barrier();
 
     args.set_name(cache->name);
     return cache->call_unit_->execute(state, call_frame, cache->call_unit_,
@@ -468,7 +464,6 @@ namespace rubinius {
       CallFrame* call_frame, Arguments& args)
   {
     MethodCacheEntry* mce = cache->cache_;
-    atomic::memory_barrier();
 
     args.set_name(cache->name);
     if(likely(mce && args.recv()->fixnum_p())) {
@@ -486,7 +481,6 @@ namespace rubinius {
       CallFrame* call_frame, Arguments& args)
   {
     MethodCacheEntry* mce = cache->cache_;
-    atomic::memory_barrier();
 
     args.set_name(cache->name);
     if(likely(mce && args.recv()->symbol_p())) {
@@ -504,7 +498,6 @@ namespace rubinius {
       CallFrame* call_frame, Arguments& args)
   {
     MethodCacheEntry* mce = cache->cache_;
-    atomic::memory_barrier();
 
     args.set_name(cache->name);
     Object* const recv = args.recv();
@@ -525,7 +518,6 @@ namespace rubinius {
                                    Arguments& args)
   {
     MethodCacheEntry* mce = cache->cache_;
-    atomic::memory_barrier();
 
     args.set_name(cache->name);
     if(likely(mce && mce->receiver_class() == args.recv()->lookup_begin(state))) {
@@ -543,7 +535,6 @@ namespace rubinius {
                                    Arguments& args)
   {
     MethodCacheEntry* mce = cache->cache_;
-    atomic::memory_barrier();
 
     args.set_name(cache->name);
     if(likely(mce && mce->receiver_class() == args.recv()->lookup_begin(state))) {
@@ -560,6 +551,7 @@ namespace rubinius {
   }
 
   void InlineCache::update_seen_classes(MethodCacheEntry* mce) {
+
     for(int i = 0; i < cTrackedICHits; i++) {
       Module* mod = seen_classes_[i].klass();
       if(mod == mce->receiver_class()) {
@@ -567,17 +559,23 @@ namespace rubinius {
       }
     }
 
-    // Ok, we've arrived here and found no hit. We should lock
-    // it here before we're allowed to write it.
+    // This comparison is potentially thread unsafe,
+    // but since we never decrease seen_classes_overflow_,
+    // it's not possible to cause any issues here
+    if( seen_classes_overflow_ < cTrackedICHits - 1) {
+      // Ok, we've arrived here and found no hit. There's
+      // potentially room for registering another class,
+      // so we should lock it here before we're allowed to write it.
 
-    while(!atomic::compare_and_swap(&private_lock_, 0, 1));
+      while(!atomic::compare_and_swap(&private_lock_, 0, 1));
 
-    for(int i = 0; i < cTrackedICHits; i++) {
-      if(!seen_classes_[i].klass()) {
-        // An empty space, record it.
-        seen_classes_[i].assign(mce->receiver_class());
-        private_lock_ = 0;
-        return;
+      for(int i = 0; i < cTrackedICHits; i++) {
+        if(!seen_classes_[i].klass()) {
+          // An empty space, record it.
+          seen_classes_[i].assign(mce->receiver_class());
+          private_lock_ = 0;
+          return;
+        }
       }
     }
 
