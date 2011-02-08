@@ -83,35 +83,35 @@ namespace melbourne {
     return cur;
   }
 
-  void pt_free(rb_parser_state *st) {
+  void pt_free(rb_parser_state *parser_state) {
     int i;
 
-    if(st->line_buffer) {
-      bdestroy(st->line_buffer);
+    if(parser_state->line_buffer) {
+      bdestroy(parser_state->line_buffer);
     }
 
-    if(st->lex_lastline) {
-      bdestroy(st->lex_lastline);
+    if(parser_state->lex_lastline) {
+      bdestroy(parser_state->lex_lastline);
     }
 
-    free(st->token_buffer);
-    delete st->variables;
+    free(parser_state->token_buffer);
+    delete variables;
 
-    for(std::vector<bstring>::iterator i = st->magic_comments->begin();
-        i != st->magic_comments->end();
+    for(std::vector<bstring>::iterator i = parser_state->magic_comments->begin();
+        i != parser_state->magic_comments->end();
         i++) {
       bdestroy(*i);
     }
 
-    delete st->magic_comments;
-    delete st->start_lines;
+    delete parser_state->magic_comments;
+    delete parser_state->start_lines;
 
-    if(!st->memory_pools) return;
+    if(!parser_state->memory_pools) return;
 
-    for(i = 0; i <= st->current_pool; i++) {
-      free(st->memory_pools[i]);
+    for(i = 0; i <= parser_state->current_pool; i++) {
+      free(parser_state->memory_pools[i]);
     }
-    free(st->memory_pools);
+    free(parser_state->memory_pools);
 
   }
 
@@ -1235,11 +1235,6 @@ namespace melbourne {
     case NODE_BEGIN: {
       VALUE body = process_parse_tree(parser_state, ptp, node->nd_body, locals);
       tree = rb_funcall(ptp, rb_sBegin, 2, line, body);
-      break;
-    }
-    case NODE_NOT: {
-      VALUE expr = process_parse_tree(parser_state, ptp, node->nd_body, locals);
-      tree = rb_funcall(ptp, rb_sNot, 2, line, expr);
       break;
     }
     case NODE_IF: {

@@ -14,16 +14,31 @@ namespace melbourne {
 
 #define QUID    quark
 
-  enum lex_state {
-      EXPR_BEG,                   /* ignore newline, +/- is a sign. */
-      EXPR_END,                   /* newline significant, +/- is a operator. */
-      EXPR_ARG,                   /* newline significant, +/- is a operator. */
-      EXPR_CMDARG,                /* newline significant, +/- is a operator. */
-      EXPR_ENDARG,                /* newline significant, +/- is a operator. */
-      EXPR_MID,                   /* newline significant, +/- is a operator. */
-      EXPR_FNAME,                 /* ignore newline, no reserved words. */
-      EXPR_DOT,                   /* right after `.' or `::', no reserved words. */
-      EXPR_CLASS,                 /* immediate after `class', no here document. */
+  enum lex_state_e {
+#ifdef RBX_GRAMMAR_19
+      EXPR_BEG,       /* ignore newline, +/- is a sign. */
+      EXPR_END,       /* newline significant, +/- is an operator. */
+      EXPR_ENDARG,    /* ditto, and unbound braces. */
+      EXPR_ENDFN,     /* ditto, and unbound braces. */
+      EXPR_ARG,       /* newline significant, +/- is an operator. */
+      EXPR_CMDARG,    /* newline significant, +/- is an operator. */
+      EXPR_MID,       /* newline significant, +/- is an operator. */
+      EXPR_FNAME,     /* ignore newline, no reserved words. */
+      EXPR_DOT,       /* right after `.' or `::', no reserved words. */
+      EXPR_CLASS,     /* immediate after `class', no here document. */
+      EXPR_VALUE,     /* like EXPR_BEG but label is disallowed. */
+      EXPR_MAX_STATE
+#else
+      EXPR_BEG,      /* ignore newline, +/- is a sign. */
+      EXPR_END,      /* newline significant, +/- is a operator. */
+      EXPR_ARG,      /* newline significant, +/- is a operator. */
+      EXPR_CMDARG,   /* newline significant, +/- is a operator. */
+      EXPR_ENDARG,   /* newline significant, +/- is a operator. */
+      EXPR_MID,      /* newline significant, +/- is a operator. */
+      EXPR_FNAME,    /* ignore newline, no reserved words. */
+      EXPR_DOT,      /* right after `.' or `::', no reserved words. */
+      EXPR_CLASS,    /* immediate after `class', no here document. */
+#endif
   };
 
 #ifdef HAVE_LONG_LONG
@@ -54,6 +69,8 @@ namespace melbourne {
     int heredoc_end;
     int command_start;
     NODE *lex_strterm;
+    int paren_nest;
+    int lpar_beg;
     int class_nest;
     int in_single;
     int in_def;
@@ -83,7 +100,7 @@ namespace melbourne {
     char *lex_pend;
     int lex_str_used;
 
-    enum lex_state lex_state;
+    enum lex_state_e lex_state;
     int in_defined;
     stack_type cond_stack;
     stack_type cmdarg_stack;
@@ -92,7 +109,7 @@ namespace melbourne {
 
     std::vector<bstring>* magic_comments;
     int column;
-    NODE *top;
+    NODE *top_node;
     ID *locals;
 
     LocalState* variables;
@@ -116,21 +133,31 @@ namespace melbourne {
 
   } rb_parser_state;
 
-#define PARSE_STATE ((rb_parser_state*)parser_state)
-#define PARSE_VAR(var) (PARSE_STATE->var)
-#define ruby_debug_lines PARSE_VAR(debug_lines)
-#define heredoc_end PARSE_VAR(heredoc_end)
-#define command_start PARSE_VAR(command_start)
-#define lex_strterm PARSE_VAR(lex_strterm)
-#define class_nest PARSE_VAR(class_nest)
-#define in_single PARSE_VAR(in_single)
-#define in_def PARSE_VAR(in_def)
-#define compile_for_eval PARSE_VAR(compile_for_eval)
-#define cur_mid PARSE_VAR(cur_mid)
 
-#define tokenbuf PARSE_VAR(token_buffer)
-#define tokidx PARSE_VAR(tokidx)
-#define toksiz PARSE_VAR(toksiz)
+#define PARSER_STATE        ((rb_parser_state*)parser_state)
+#define PARSER_VAR(var)     (PARSER_STATE->var)
+
+#define lex_state           PARSER_VAR(lex_state)
+#define ruby_debug_lines    PARSER_VAR(debug_lines)
+#define heredoc_end         PARSER_VAR(heredoc_end)
+#define command_start       PARSER_VAR(command_start)
+#define lex_strterm         PARSER_VAR(lex_strterm)
+#define class_nest          PARSER_VAR(class_nest)
+#define in_single           PARSER_VAR(in_single)
+#define in_def              PARSER_VAR(in_def)
+#define compile_for_eval    PARSER_VAR(compile_for_eval)
+#define cur_mid             PARSER_VAR(cur_mid)
+#define variables           PARSER_VAR(variables)
+#define top_node            PARSER_VAR(top_node)
+#define cmdarg_stack        PARSER_VAR(cmdarg_stack)
+#define cond_stack          PARSER_VAR(cond_stack)
+#define in_defined          PARSER_VAR(in_defined)
+#define paren_nest          PARSER_VAR(paren_nest)
+#define lpar_beg            PARSER_VAR(lpar_beg)
+
+#define tokenbuf            PARSER_VAR(token_buffer)
+#define tokidx              PARSER_VAR(tokidx)
+#define toksiz              PARSER_VAR(toksiz)
 
 }; // namespace melbourne
 

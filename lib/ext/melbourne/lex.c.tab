@@ -2,7 +2,7 @@
 /* Command-line: gperf -p -j1 -i 1 -g -o -t -N rb_reserved_word -k'1,3,$' ./keywords  */
 struct kwtable {
   int id[2];
-  enum lex_state state;
+  enum lex_state_e state;
   char name[16];
 };
 
