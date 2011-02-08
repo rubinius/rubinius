@@ -184,7 +184,7 @@ containing the Rubinius standard library files.
     def options(argv=ARGV)
       @stage = "processing command line arguments"
 
-      options = Options.new "Usage: rbx [options] [--] [script] [arguments]", 25
+      options = Options.new "Usage: rbx [subcommand] [options] [--] [script] [arguments]", 25
 
       options.left_align
       options.on_extra do |x|
@@ -366,27 +366,12 @@ containing the Rubinius standard library files.
       # TODO: convert all these to -X options
       options.doc "\nRubinius options"
 
-      options.on "--dc", "Display debugging information for the compiler" do
-        puts "[Compiler debugging enabled]"
-        $DEBUG_COMPILER = true
-      end
-
-      options.on "--dl", "Display debugging information for the loader" do
-        $DEBUG_LOADING = true
-        puts "[Code loading debugging enabled]"
-      end
-
       options.on "--gc-stats", "Show GC stats" do
         stats = Stats::GC.new
         at_exit { stats.show }
       end
 
       @profile = Rubinius::Config['profile'] || Rubinius::Config['jit.profile']
-
-      options.on "-P", "Run the profiler" do
-        puts "[WARN] -P is deprecated, please use -Xprofile"
-        @profile = true
-      end
 
       options.on "--vv", "Display version and extra info" do
         @run_irb = false
@@ -411,7 +396,24 @@ containing the Rubinius standard library files.
       end
 
       options.doc <<-DOC
-\nVM Options
+\nRubinius subcommands
+
+    Rubinius provides subcommands that implement various facilities. Each
+    subcommand provides its own help. For example:
+
+      rbx compile -h
+
+    Available subcommands:
+
+      compile       Run the bytecode compiler
+      console       Run the Agent CLI
+      docs          Run a local HTTP documentation server
+      gem           Run RubyGems 'gem' command
+      report        Create a gist of the last Rubinius toplevel exception
+    DOC
+
+      options.doc <<-DOC
+VM Options
    -X<variable>[=<value>]
      This option is recognized by the VM before any ruby code loaded.
      It is used to set VM configuration options.
