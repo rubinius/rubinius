@@ -97,7 +97,17 @@ module Rubinius
 
   def self.add_defn_method(name, executable, static_scope, vis)
     executable.serial = 1
-    executable.scope = static_scope if executable.respond_to? :scope=
+    if executable.respond_to? :scope=
+      # If we're adding a method inside ane eval, dup it so that
+      # we don't share the CompiledMethod with the eval, since
+      # we're going to mutate it.
+      if static_scope and script = static_scope.current_script
+        if script.eval?
+          executable = executable.dup
+        end
+      end
+      executable.scope = static_scope
+    end
 
     mod = static_scope.for_method_definition
 
@@ -176,7 +186,17 @@ module Rubinius
   # add_method itself and fail.
   def self.attach_method(name, executable, static_scope, recv)
     executable.serial = 1
-    executable.scope = static_scope if executable.respond_to? :scope=
+    if executable.respond_to? :scope=
+      # If we're adding a method inside ane eval, dup it so that
+      # we don't share the CompiledMethod with the eval, since
+      # we're going to mutate it.
+      if static_scope and script = static_scope.current_script
+        if script.eval?
+          executable = executable.dup
+        end
+      end
+      executable.scope = static_scope
+    end
 
     mod = Rubinius.object_metaclass recv
 
