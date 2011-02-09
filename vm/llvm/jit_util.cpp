@@ -423,7 +423,6 @@ extern "C" {
   {
     if(cache->update_and_validate(state, call_frame, recv)) {
       MethodCacheEntry* mce = cache->cache();
-      atomic::memory_barrier();
 
       if(mce && mce->method()->serial()->to_native() == serial) return Qtrue;
     }
@@ -436,7 +435,6 @@ extern "C" {
   {
     if(cache->update_and_validate_private(state, call_frame, recv)) {
       MethodCacheEntry* mce = cache->cache();
-      atomic::memory_barrier();
 
       if(mce && mce->method()->serial()->to_native() == serial) return Qtrue;
     }
