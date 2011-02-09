@@ -25,9 +25,12 @@ stages, as well as their inputs and outputs, are illustrated below.
   <img src="/images/compilation_process.png" alt="Compilation process" />
 </div>
 
-1. [Parser](/doc/en/bytecode-compiler/parser/)
+1. [Parser Stage](/doc/en/bytecode-compiler/parser/)
 1. [AST](/doc/en/bytecode-compiler/ast/)
-1. [Compiler](/doc/en/bytecode-compiler/compiler/)
+1. [Generator Stage](/doc/en/bytecode-compiler/generator/)
+1. Encoder Stage
+1. Packager Stage
+1. Writer Stage
+1. Printers
 1. [Transformations](/doc/en/bytecode-compiler/transformations/)
-1. [Generator](/doc/en/bytecode-compiler/generator/)
 1. [Customizing the Pipeline](/doc/en/bytecode-compiler/customization/)
