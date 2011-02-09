@@ -3,7 +3,7 @@ layout: doc_en
 title: Generator
 previous: Transformations
 previous_url: bytecode-compiler/transformations
-next: JIT Compiler
-next_url: jit
+next: Customizing the Compiler Pipeline
+next_url: bytecode-compiler/customization
 review: true
 ---
