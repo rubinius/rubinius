@@ -548,12 +548,10 @@ namespace thread {
 
     void lock() {
       while(!atomic::compare_and_swap(&lock_, 1, 0));
-      atomic::memory_barrier();
     }
 
     void unlock() {
       lock_ = 1;
-      atomic::memory_barrier();
     }
 
     Code try_lock() {
