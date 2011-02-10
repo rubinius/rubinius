@@ -1057,7 +1057,7 @@ failed: /* try next '*' position */
     msg.msg_iovlen = 1;
 
     msg.msg_control = (caddr_t)&cmsg;
-    msg.msg_controllen = CMSG_LEN(sizeof(int));
+    msg.msg_controllen = CMSG_SPACE(sizeof(int));
     msg.msg_flags = 0;
     memset(&cmsg, 0, sizeof(cmsg));
     cmsg.hdr.cmsg_len = CMSG_LEN(sizeof(int));
@@ -1100,7 +1100,7 @@ failed: /* try next '*' position */
     msg.msg_iovlen = 1;
 
     msg.msg_control = (caddr_t)&cmsg;
-    msg.msg_controllen = CMSG_LEN(sizeof(int));
+    msg.msg_controllen = CMSG_SPACE(sizeof(int));
     msg.msg_flags = 0;
     memset(&cmsg, 0, sizeof(cmsg));
     cmsg.hdr.cmsg_len = CMSG_LEN(sizeof(int));

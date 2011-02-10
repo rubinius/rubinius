@@ -91,6 +91,13 @@ describe "C-API String function" do
     end
   end
 
+  describe "rb_str_buf_new2" do
+    it "returns a new string object calling strlen on the passed C string" do
+      # Hardcoded to pass const char * = "hello\0invisible"
+      @s.rb_str_buf_new2.should == "hello"
+    end
+  end
+
   describe "rb_str_new" do
     it "returns a new string object from a char buffer of len characters" do
       @s.rb_str_new("hello", 3).should == "hel"

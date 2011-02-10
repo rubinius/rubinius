@@ -1,3 +1,9 @@
+/* We are well-behaved citizens of the C-extension State
+ * so we let the C-API know this so it will not penalize
+ * us with unnecessary caching.
+ */
+#define RSTRING_NOT_MODIFIED 1
+
 #include "ruby.h"
 #include "grammar.hpp"
 #include "symbols.hpp"

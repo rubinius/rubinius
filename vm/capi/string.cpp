@@ -173,6 +173,10 @@ extern "C" {
     return env->get_handle(str);
   }
 
+  VALUE rb_str_buf_new2(const char* string) {
+    return rb_str_new2(string);
+  }
+
   VALUE rb_str_buf_append(VALUE self, VALUE other) {
     return rb_str_append(self, other);
   }

@@ -332,7 +332,7 @@ struct RString {
   /* Define this macro if the C extension never modifies, but
    * only reads from, RSTRING(str)->ptr and RSTRING(str)->len.
    */
-#define RSTRING(str)    capi_rstring_struct(str, RSTRING_CACHE_SAFE);
+#define RSTRING(str)    capi_rstring_struct(str, RSTRING_CACHE_SAFE)
 #else
   /* The default is to update the string when RSTRING(str)->len is
    * modified. We raise an exception if RSTRING(str)->ptr is changed.
@@ -1514,6 +1514,9 @@ VALUE rb_uint2big(unsigned long number);
    *  Return new empty String with preallocated storage.
    */
   VALUE   rb_str_buf_new(long capacity);
+
+  /** Return a new string based on the given C string */
+  VALUE   rb_str_buf_new2(const char* string);
 
   /** Return new String concatenated of the two. */
   VALUE   rb_str_cat(VALUE string, const char* other, size_t length);

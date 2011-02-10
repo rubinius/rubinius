@@ -20,6 +20,10 @@ An Akin programming language optimized for fun.
 
 A JavaScript implementation.
 
+### Convinius
+[github.com/rkh/convinius](https://github.com/rkh/convinius)
+
+Convenience library for Rubinius-only projects.
 
 ### Ez-Scheme
 [github.com/ezmobius/ez-scheme](https://github.com/ezmobius/ez-scheme)
@@ -56,6 +60,10 @@ An interpretation of \_why's Potion programming language.
 
 A VBScript implementation.
 
+### Reak
+[github.com/rkh/Reak](https://github.com/rkh/Reak)
+
+An implementation of ANSI Smalltalk.
 
 ### Syme
 [github.com/brixen/syme](https://github.com/brixen/syme)

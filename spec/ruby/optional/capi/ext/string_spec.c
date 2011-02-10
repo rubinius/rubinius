@@ -76,6 +76,12 @@ VALUE string_spec_rb_str_buf_new(VALUE self, VALUE len, VALUE str) {
 }
 #endif
 
+#ifdef HAVE_RB_STR_BUF_NEW2
+VALUE string_spec_rb_str_buf_new2(VALUE self) {
+  return rb_str_buf_new2("hello\0invisible");
+}
+#endif
+
 #ifdef HAVE_RB_STR_BUF_CAT
 VALUE string_spec_rb_str_buf_cat(VALUE self, VALUE str) {
   const char *question_mark = "?";
@@ -411,6 +417,10 @@ void Init_string_spec() {
 
 #ifdef HAVE_RB_STR_BUF_NEW
   rb_define_method(cls, "rb_str_buf_new", string_spec_rb_str_buf_new, 2);
+#endif
+
+#ifdef HAVE_RB_STR_BUF_NEW2
+  rb_define_method(cls, "rb_str_buf_new2", string_spec_rb_str_buf_new2, 0);
 #endif
 
 #ifdef HAVE_RB_STR_BUF_CAT

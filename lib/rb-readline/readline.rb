@@ -66,6 +66,12 @@ module Readline
       RbReadline.rl_outstream = output
    end
 
+   # Returns current line buffer
+   #
+   def self.line_buffer
+      RbReadline.rl_line_buffer
+   end
+
    # Sets the auto-completion procedure (i.e. tab auto-complete).
    #
    # The +proc+ argument is typically a Proc object. It must respond to
