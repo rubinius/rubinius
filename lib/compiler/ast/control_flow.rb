@@ -100,6 +100,7 @@ module Rubinius
       end
 
       def condition_bytecode(g, condition)
+        condition.pos(g)
         g.dup
         condition.bytecode(g)
         g.swap

@@ -8,6 +8,7 @@ describe "String#rstrip" do
    "  hello world \n\r\t\n\v\r".rstrip.should == "  hello world"
    "hello".rstrip.should == "hello"
    "hello\x00".rstrip.should == "hello"
+   "\000 \000hello\000 \000".rstrip.should == "\000 \000hello\000"
   end
 
   it "taints the result when self is tainted" do
@@ -22,6 +23,10 @@ describe "String#rstrip!" do
     a = "  hello  "
     a.rstrip!.should equal(a)
     a.should == "  hello"
+
+    a = "\000 \000hello\000 \000"
+    a.rstrip!
+    a.should == "\000 \000hello\000"
   end
 
   it "returns nil if no modifications were made" do

@@ -1204,13 +1204,8 @@ class String
 
     start = 0
 
-    while start < @num_bytes
-      c = @data[start]
-      if c.isspace or c == 0
-        start += 1
-      else
-        break
-      end
+    while start < @num_bytes && @data[start].isspace
+      start += 1
     end
 
     return if start == 0
@@ -1458,13 +1453,13 @@ class String
     return if @num_bytes == 0
 
     stop = @num_bytes - 1
-    while stop >= 0
-      c = @data[stop]
-      if c.isspace || c == 0
-        stop -= 1
-      else
-        break
-      end
+
+    while stop >= 0 && @data[stop] == 0
+      stop -= 1
+    end
+
+    while stop >= 0 && @data[stop].isspace
+      stop -= 1
     end
 
     return if (stop += 1) == @num_bytes

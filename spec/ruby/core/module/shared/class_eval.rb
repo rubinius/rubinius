@@ -69,4 +69,26 @@ describe :module_class_eval, :shared => true do
       ModuleSpecs.send(@method, "1 + 1") { 1 + 1 }
     }.should raise_error(ArgumentError)
   end
+
+  # This case was found because Rubinius was caching the compiled
+  # version of the string and not duping the methods within the
+  # eval, causing the method addition to change the static scope
+  # of the shared CompiledMethod.
+  it "adds methods respecting the lexical constant scope" do
+    code = "def self.attribute; C; end"
+
+    a = Class.new do
+      self::C = "A"
+    end
+
+    b = Class.new do
+      self::C = "B"
+    end
+
+    a.class_eval code
+    b.class_eval code
+
+    a.attribute.should == "A"
+    b.attribute.should == "B"
+  end
 end
