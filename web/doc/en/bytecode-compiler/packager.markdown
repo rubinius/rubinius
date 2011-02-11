@@ -46,3 +46,24 @@ of the parent compiled method.
 
 Once the Generator has finished packaging itself as a CompiledMethod, it
 invokes the Writer stage, passing in the CompiledMethod as its input.
+
+## Files Referenced
+
+* *kernel/bootstrap/compiled_method.rb*: the basic implementation of
+  CompiledMethod, mostly composed of wiring up primitives
+* *kernel/common/compiled_method.rb*: a more robust implementation of
+  CompiledMethod, a combination of primitive methods and methods written
+  in Ruby
+* *vm/builtin/compiledmethod.cpp*: the C++ implementation of the
+  CompiledMethod primitives
+* *lib/compiler/generator.rb*: The implementation of the `package`
+  method, which populates the CompiledMethod with information from the
+  Generator object.
+
+## Customization
+
+In general, the `package` method is designed to populate the
+CompiledMethod with a group of variables. However, you could also use
+the packager to populate another object with the same interface.
+However, it would not necessarily be useful on its own, without
+additional customizations later on
