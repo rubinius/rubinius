@@ -14,7 +14,7 @@ namespace rubinius {
   struct LookupData;
   class Dispatch;
 
-  class GlobalCache {
+  class GlobalCache : public Lockable {
   public:
     struct cache_entry {
       Module* klass;
@@ -36,9 +36,10 @@ namespace rubinius {
     }
 
     /** @todo This does NOT handle null? --rue */
-    struct cache_entry* lookup(Module* cls, Symbol* name) {
+    struct cache_entry* lookup(STATE, Module* cls, Symbol* name) {
       struct cache_entry* entry;
 
+      SYNC(state);
       entry = entries + CPU_CACHE_HASH(cls, name);
       if(entry->name == name && entry->klass == cls) {
         return entry;
@@ -47,18 +48,8 @@ namespace rubinius {
       return NULL;
     }
 
-    void clear() {
-      for(size_t i = 0; i < CPU_CACHE_SIZE; i++) {
-        entries[i].klass = 0;
-        entries[i].name  = 0;
-        entries[i].module = 0;
-        entries[i].method = 0;
-        entries[i].is_public = true;
-        entries[i].method_missing = false;
-      }
-    }
-
-    void clear(Symbol* name) {
+    void clear(STATE, Symbol* name) {
+      SYNC(state);
       for(size_t i = 0; i < CPU_CACHE_SIZE; i++) {
         if(entries[i].name == name) {
           entries[i].klass = NULL;
@@ -70,9 +61,9 @@ namespace rubinius {
       }
     }
 
-    void clear(Module* cls, Symbol* name) {
+    void clear(STATE, Module* cls, Symbol* name) {
       struct cache_entry* entry;
-
+      SYNC(state);
       entry = entries + CPU_CACHE_HASH(cls, name);
       if(entry->name == name && entry->klass == cls) {
         entry->klass = NULL;
@@ -89,6 +80,7 @@ namespace rubinius {
 
     void retain(STATE, Module* cls, Symbol* name, Module* mod, Executable* meth,
                 bool missing, bool was_private = false) {
+      SYNC(state);
       struct cache_entry* entry;
 
       entry = entries + CPU_CACHE_HASH(cls, name);
@@ -100,6 +92,20 @@ namespace rubinius {
       entry->method = meth;
       entry->is_public = !was_private;
     }
+
+    private:
+
+    void clear() {
+      for(size_t i = 0; i < CPU_CACHE_SIZE; i++) {
+        entries[i].klass = 0;
+        entries[i].name  = 0;
+        entries[i].module = 0;
+        entries[i].method = 0;
+        entries[i].is_public = true;
+        entries[i].method_missing = false;
+      }
+    }
+
   };
 };
 

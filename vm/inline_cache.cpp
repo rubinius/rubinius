@@ -24,7 +24,7 @@ namespace rubinius {
 
     // Check the global cache first!
     GlobalCache::cache_entry* global_entry =
-      state->global_cache()->lookup(module, name);
+      state->global_cache()->lookup(state, module, name);
 
     if(global_entry &&
          global_entry->is_public &&
@@ -118,7 +118,7 @@ namespace rubinius {
 
     // Check the global cache first!
     GlobalCache::cache_entry* global_entry =
-      state->global_cache()->lookup(module, name);
+      state->global_cache()->lookup(state, module, name);
 
     if(global_entry && !global_entry->method_missing) {
       mce = MethodCacheEntry::create(state, klass, global_entry->module,
