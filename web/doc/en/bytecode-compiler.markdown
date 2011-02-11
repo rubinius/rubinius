@@ -28,7 +28,7 @@ stages, as well as their inputs and outputs, are illustrated below.
 1. [Parser Stage](/doc/en/bytecode-compiler/parser/)
 1. [AST](/doc/en/bytecode-compiler/ast/)
 1. [Generator Stage](/doc/en/bytecode-compiler/generator/)
-1. Encoder Stage
+1. [Encoder Stage](/doc/en/bytecode-compiler/encoder/)
 1. Packager Stage
 1. Writer Stage
 1. Printers
