@@ -67,7 +67,7 @@ ifeq ($(CPU), powerpc)
   OPTIMIZATIONS+=-falign-loops=16
 endif
 
-CFLAGS += -fPIC $(CPPFLAGS)
+CFLAGS += -fPIC -DMULTIPLE_THREADS $(CPPFLAGS)
 
 DEPS = dmisc.c dtoa.c g_Qfmt.c g__fmt.c g_ddfmt.c g_dfmt.c g_ffmt.c\
        g_xLfmt.c g_xfmt.c gdtoa.c gethex.c gmisc.c hd_init.c hexnan.c\

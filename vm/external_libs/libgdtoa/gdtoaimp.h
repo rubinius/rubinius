@@ -456,13 +456,12 @@ extern double rnd_prod(double, double), rnd_quot(double, double);
 #define ALL_ON 0xffff
 #endif
 
-/* Copied from ruby1.9 util.c r15761
- * http://svn.ruby-lang.org/repos/ruby/trunk
- */
-#ifndef MULTIPLE_THREADS
-#define ACQUIRE_DTOA_LOCK(n)	/*nothing*/
-#define FREE_DTOA_LOCK(n)	/*nothing*/
-#endif
+void rbx_spinlock_lock(int*);
+void rbx_spinlock_unlock(int*);
+
+#define RBX_SPINLOCK_INIT     1
+#define ACQUIRE_DTOA_LOCK(n)	rbx_spinlock_lock(&locks[n])
+#define FREE_DTOA_LOCK(n)     rbx_spinlock_unlock(&locks[n])
 
 #define Kmax 15
 

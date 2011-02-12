@@ -31,7 +31,8 @@ THIS SOFTWARE.
 
 #include "gdtoaimp.h"
 
- static Bigint *freelist[Kmax+1];
+static int locks[2] = { RBX_SPINLOCK_INIT, RBX_SPINLOCK_INIT };
+static Bigint *freelist[Kmax+1];
 #ifndef Omit_Private_Memory
 #ifndef PRIVATE_MEM
 #define PRIVATE_MEM 2304
