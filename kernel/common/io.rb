@@ -577,6 +577,7 @@ class IO
         Type.coerce_to(readables, Array, :to_ary).map do |obj|
           if obj.kind_of? IO
             raise IOError, "closed stream" if obj.closed?
+            return [[obj],[],[]] unless obj.buffer_empty?
             obj
           else
             io = Type.coerce_to(obj, IO, :to_io)
@@ -681,6 +682,11 @@ class IO
   end
 
   private :initialize_copy
+
+  # Used to find out if there is buffered data available.
+  def buffer_empty?
+    @ibuffer.empty?
+  end
 
   def <<(obj)
     write(obj.to_s)
