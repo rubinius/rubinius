@@ -466,8 +466,23 @@ namespace rubinius {
         native_int bytes = used - start;
 
         if(bytes > 0 && start < buf->storage()->size()) {
+          fd_set fds;
+          FD_ZERO(&fds);
+          struct timeval tv = {0,0};
+
+          FD_SET(fd, &fds);
+
+          // We use select(2) to prevent from blocking while
+          // trying to flush out the data.
+
           uint8_t* data = buf->storage()->raw_bytes() + start;
-          ::write(fd, data, bytes);
+          while(bytes > 0 && ::select(fd+1, 0, &fds, 0, &tv) > 0) {
+            ssize_t wrote = ::write(fd, data, bytes);
+            // If we couldn't write, then just bail.
+            if(wrote == -1) break;
+            data += wrote;
+            bytes -= wrote;
+          }
         }
       }
     }
