@@ -458,6 +458,20 @@ namespace rubinius {
 
     native_int fd = io->descriptor()->to_native();
 
+    // Flush the buffer to disk if it's not write sync'd
+    if(IOBuffer* buf = try_as<IOBuffer>(io->ibuffer())) {
+      if(!RTEST(buf->write_synced())) {
+        native_int start = buf->start()->to_native();
+        native_int used = buf->used()->to_native();
+        native_int bytes = used - start;
+
+        if(bytes > 0 && start < buf->storage()->size()) {
+          uint8_t* data = buf->storage()->raw_bytes() + start;
+          ::write(fd, data, bytes);
+        }
+      }
+    }
+
     // don't close stdin, stdout, stderr (0, 1, 2)
     if(fd >= 3) {
       io->descriptor(state, Fixnum::from(-1));

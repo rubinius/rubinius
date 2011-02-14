@@ -676,6 +676,48 @@ namespace rubinius {
     running_finalizers_ = false;
   }
 
+  void ObjectMemory::run_all_io_finalizers(STATE) {
+    if(running_finalizers_) return;
+    running_finalizers_ = true;
+
+    for(std::list<FinalizeObject>::iterator i = finalize_.begin();
+        i != finalize_.end(); )
+    {
+      FinalizeObject& fi = *i;
+
+      if(!kind_of<IO>(fi.object)) { i++; continue; }
+
+      // Only finalize things that haven't been finalized.
+      if(fi.status != FinalizeObject::eFinalized) {
+        if(fi.finalizer) {
+          (*fi.finalizer)(state, fi.object);
+        } else if(fi.ruby_finalizer) {
+          // Rubinius specific code. If the finalizer is Qtrue, then
+          // send the object the finalize message
+          if(fi.ruby_finalizer == Qtrue) {
+            fi.object->send(state, 0, state->symbol("__finalize__"), true);
+          } else {
+            Array* ary = Array::create(state, 1);
+            ary->set(state, 0, fi.object->id(state));
+
+            OnStack<1> os(state, ary);
+
+            fi.ruby_finalizer->send(state, 0, state->symbol("call"), ary, Qnil, true);
+          }
+        } else {
+          std::cerr << "During shutdown, unsupported object to be finalized: "
+                    << fi.object->to_s(state)->c_str() << "\n";
+        }
+      }
+
+      fi.status = FinalizeObject::eFinalized;
+
+      i = finalize_.erase(i);
+    }
+
+    running_finalizers_ = false;
+  }
+
   size_t& ObjectMemory::loe_usage() {
     return mark_sweep_->allocated_bytes;
   }

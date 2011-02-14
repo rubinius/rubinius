@@ -216,6 +216,7 @@ namespace rubinius {
     void set_ruby_finalizer(Object* obj, Object* fin);
     void run_finalizers(STATE, CallFrame* call_frame);
     void run_all_finalizers(STATE);
+    void run_all_io_finalizers(STATE);
 
     void find_referers(Object* obj, ObjectArray& result);
     void print_references(Object* obj);
