@@ -302,7 +302,7 @@
 
 namespace melbourne {
 
-rb_parse_state *alloc_parse_state();
+rb_parser_state *alloc_parser_state();
 
 namespace grammar18 {
 
@@ -344,16 +344,16 @@ static char *mel_sourcefile;
 #define ruby_sourcefile mel_sourcefile
 
 static int
-mel_yyerror(const char *, rb_parse_state*);
+mel_yyerror(const char *, rb_parser_state*);
 #define yyparse mel_yyparse
 #define yylex mel_yylex
-#define yyerror(str) mel_yyerror(str, (rb_parse_state*)parse_state)
+#define yyerror(str) mel_yyerror(str, (rb_parser_state*)parser_state)
 #define yylval mel_yylval
 #define yychar mel_yychar
 #define yydebug mel_yydebug
 
-#define YYPARSE_PARAM parse_state
-#define YYLEX_PARAM parse_state
+#define YYPARSE_PARAM parser_state
+#define YYLEX_PARAM parser_state
 
 #define ID_SCOPE_SHIFT 3
 #define ID_SCOPE_MASK 0x07
@@ -381,7 +381,7 @@ mel_yyerror(const char *, rb_parse_state*);
          ((id)&ID_SCOPE_MASK) == ID_CLASS))
 
 
-/* FIXME these went into the ruby_state instead of parse_state
+/* FIXME these went into the ruby_state instead of parser_state
    because a ton of other crap depends on it
 char *ruby_sourcefile;          current source file
 int   ruby_sourceline;          current line no.
@@ -394,15 +394,15 @@ static int yylex(void*, void *);
 #define BITSTACK_LEXPOP(stack)  (stack = (stack >> 1) | (stack & 1))
 #define BITSTACK_SET_P(stack)   (stack&1)
 
-#define COND_PUSH(n)    BITSTACK_PUSH(vps->cond_stack, n)
-#define COND_POP()      BITSTACK_POP(vps->cond_stack)
-#define COND_LEXPOP()   BITSTACK_LEXPOP(vps->cond_stack)
-#define COND_P()        BITSTACK_SET_P(vps->cond_stack)
+#define COND_PUSH(n)    BITSTACK_PUSH(cond_stack, n)
+#define COND_POP()      BITSTACK_POP(cond_stack)
+#define COND_LEXPOP()   BITSTACK_LEXPOP(cond_stack)
+#define COND_P()        BITSTACK_SET_P(cond_stack)
 
-#define CMDARG_PUSH(n)  BITSTACK_PUSH(vps->cmdarg_stack, n)
-#define CMDARG_POP()    BITSTACK_POP(vps->cmdarg_stack)
-#define CMDARG_LEXPOP() BITSTACK_LEXPOP(vps->cmdarg_stack)
-#define CMDARG_P()      BITSTACK_SET_P(vps->cmdarg_stack)
+#define CMDARG_PUSH(n)  BITSTACK_PUSH(cmdarg_stack, n)
+#define CMDARG_POP()    BITSTACK_POP(cmdarg_stack)
+#define CMDARG_LEXPOP() BITSTACK_LEXPOP(cmdarg_stack)
+#define CMDARG_P()      BITSTACK_SET_P(cmdarg_stack)
 
 /*
 static int class_nest = 0;
@@ -412,70 +412,70 @@ static int compile_for_eval = 0;
 static ID cur_mid = 0;
 */
 
-static NODE *cond(NODE*,rb_parse_state*);
-static NODE *logop(enum node_type,NODE*,NODE*,rb_parse_state*);
+static NODE *cond(NODE*,rb_parser_state*);
+static NODE *logop(enum node_type,NODE*,NODE*,rb_parser_state*);
 static int cond_negative(NODE**);
 
-static NODE *newline_node(rb_parse_state*,NODE*);
+static NODE *newline_node(rb_parser_state*,NODE*);
 static void fixpos(NODE*,NODE*);
 
-static int value_expr0(NODE*,rb_parse_state*);
-static void void_expr0(NODE*,rb_parse_state*);
-static void void_stmts(NODE*,rb_parse_state*);
-static NODE *remove_begin(NODE*,rb_parse_state*);
+static int value_expr0(NODE*,rb_parser_state*);
+static void void_expr0(NODE*,rb_parser_state*);
+static void void_stmts(NODE*,rb_parser_state*);
+static NODE *remove_begin(NODE*,rb_parser_state*);
 #define  value_expr(node)  value_expr0((node) = \
-                              remove_begin(node, (rb_parse_state*)parse_state), \
-                              (rb_parse_state*)parse_state)
+                              remove_begin(node, (rb_parser_state*)parser_state), \
+                              (rb_parser_state*)parser_state)
 #define void_expr(node) void_expr0((node) = \
-                              remove_begin(node, (rb_parse_state*)parse_state), \
-                              (rb_parse_state*)parse_state)
+                              remove_begin(node, (rb_parser_state*)parser_state), \
+                              (rb_parser_state*)parser_state)
 
-static NODE *block_append(rb_parse_state*,NODE*,NODE*);
-static NODE *list_append(rb_parse_state*,NODE*,NODE*);
+static NODE *block_append(rb_parser_state*,NODE*,NODE*);
+static NODE *list_append(rb_parser_state*,NODE*,NODE*);
 static NODE *list_concat(NODE*,NODE*);
-static NODE *arg_concat(rb_parse_state*,NODE*,NODE*);
-static NODE *arg_prepend(rb_parse_state*,NODE*,NODE*);
-static NODE *literal_concat(rb_parse_state*,NODE*,NODE*);
-static NODE *new_evstr(rb_parse_state*,NODE*);
-static NODE *evstr2dstr(rb_parse_state*,NODE*);
-static NODE *call_op(NODE*,QUID,int,NODE*,rb_parse_state*);
+static NODE *arg_concat(rb_parser_state*,NODE*,NODE*);
+static NODE *arg_prepend(rb_parser_state*,NODE*,NODE*);
+static NODE *literal_concat(rb_parser_state*,NODE*,NODE*);
+static NODE *new_evstr(rb_parser_state*,NODE*);
+static NODE *evstr2dstr(rb_parser_state*,NODE*);
+static NODE *call_op(NODE*,QUID,int,NODE*,rb_parser_state*);
 
 /* static NODE *negate_lit(NODE*); */
-static NODE *ret_args(rb_parse_state*,NODE*);
+static NODE *ret_args(rb_parser_state*,NODE*);
 static NODE *arg_blk_pass(NODE*,NODE*);
-static NODE *new_call(rb_parse_state*,NODE*,QUID,NODE*);
-static NODE *new_fcall(rb_parse_state*,QUID,NODE*);
-static NODE *new_super(rb_parse_state*,NODE*);
-static NODE *new_yield(rb_parse_state*,NODE*);
+static NODE *new_call(rb_parser_state*,NODE*,QUID,NODE*);
+static NODE *new_fcall(rb_parser_state*,QUID,NODE*);
+static NODE *new_super(rb_parser_state*,NODE*);
+static NODE *new_yield(rb_parser_state*,NODE*);
 
-static NODE *mel_gettable(rb_parse_state*,QUID);
-#define gettable(i) mel_gettable((rb_parse_state*)parse_state, i)
-static NODE *assignable(QUID,NODE*,rb_parse_state*);
-static NODE *aryset(NODE*,NODE*,rb_parse_state*);
-static NODE *attrset(NODE*,QUID,rb_parse_state*);
-static void rb_backref_error(NODE*,rb_parse_state*);
-static NODE *node_assign(NODE*,NODE*,rb_parse_state*);
+static NODE *mel_gettable(rb_parser_state*,QUID);
+#define gettable(i) mel_gettable((rb_parser_state*)parser_state, i)
+static NODE *assignable(QUID,NODE*,rb_parser_state*);
+static NODE *aryset(NODE*,NODE*,rb_parser_state*);
+static NODE *attrset(NODE*,QUID,rb_parser_state*);
+static void rb_backref_error(NODE*,rb_parser_state*);
+static NODE *node_assign(NODE*,NODE*,rb_parser_state*);
 
-static NODE *match_gen(NODE*,NODE*,rb_parse_state*);
-static void mel_local_push(rb_parse_state*, int cnt);
+static NODE *match_gen(NODE*,NODE*,rb_parser_state*);
+static void mel_local_push(rb_parser_state*, int cnt);
 #define local_push(cnt) mel_local_push(vps, cnt)
-static void mel_local_pop(rb_parse_state*);
+static void mel_local_pop(rb_parser_state*);
 #define local_pop() mel_local_pop(vps)
-static intptr_t  mel_local_cnt(rb_parse_state*,QUID);
+static intptr_t  mel_local_cnt(rb_parser_state*,QUID);
 #define local_cnt(i) mel_local_cnt(vps, i)
-static int  mel_local_id(rb_parse_state*,QUID);
+static int  mel_local_id(rb_parser_state*,QUID);
 #define local_id(i) mel_local_id(vps, i)
-static QUID  *mel_local_tbl(rb_parse_state *st);
+static QUID  *mel_local_tbl(rb_parser_state *st);
 static QUID   convert_op(QUID id);
 
 #define QUID2SYM(x)   (x)
 
-static void tokadd(char c, rb_parse_state *parse_state);
-static int tokadd_string(int, int, int, QUID*, rb_parse_state*);
+static void tokadd(char c, rb_parser_state *parser_state);
+static int tokadd_string(int, int, int, QUID*, rb_parser_state*);
 
 #define SHOW_PARSER_WARNS 0
 
-static int rb_compile_error(rb_parse_state *st, const char *fmt, ...) {
+static int rb_compile_error(rb_parser_state *st, const char *fmt, ...) {
   va_list ar;
   char msg[256];
   int count;
@@ -506,17 +506,17 @@ static int _debug_print(const char *fmt, ...) {
 #define rb_warn _debug_print
 #define rb_warning _debug_print
 
-void push_start_line(rb_parse_state* st, int line, const char* which) {
+void push_start_line(rb_parser_state* st, int line, const char* which) {
   st->start_lines->push_back(StartPosition(line, which));
 }
 
-#define PUSH_LINE(which) push_start_line((rb_parse_state*)parse_state, ruby_sourceline, which)
+#define PUSH_LINE(which) push_start_line((rb_parser_state*)parser_state, ruby_sourceline, which)
 
-void pop_start_line(rb_parse_state* st) {
+void pop_start_line(rb_parser_state* st) {
   st->start_lines->pop_back();
 }
 
-#define POP_LINE() pop_start_line((rb_parse_state*)parse_state)
+#define POP_LINE() pop_start_line((rb_parser_state*)parser_state)
 
 static QUID rb_parser_sym(const char *name);
 static QUID rb_id_attrset(QUID);
@@ -524,8 +524,8 @@ static QUID rb_id_attrset(QUID);
 static unsigned long scan_oct(const char *start, int len, int *retlen);
 static unsigned long scan_hex(const char *start, int len, int *retlen);
 
-static void reset_block(rb_parse_state *parse_state);
-static NODE *extract_block_vars(rb_parse_state *parse_state, NODE* node, var_table vars);
+static void reset_block(rb_parser_state *parser_state);
+static NODE *extract_block_vars(rb_parser_state *parser_state, NODE* node, var_table vars);
 
 #ifndef RE_OPTION_IGNORECASE
 #define RE_OPTION_IGNORECASE         (1L)
@@ -566,7 +566,7 @@ static NODE *extract_block_vars(rb_parse_state *parse_state, NODE* node, var_tab
 #endif
 #endif
 
-#define vps ((rb_parse_state*)parse_state)
+#define vps ((rb_parser_state*)parser_state)
 
 
 
@@ -4539,8 +4539,8 @@ yyreduce:
         case 2:
 #line 442 "grammar18.y"
     {
-                        vps->lex_state = EXPR_BEG;
-                        vps->variables = new LocalState(0);
+                        lex_state = EXPR_BEG;
+                        variables = new LocalState(0);
                         class_nest = 0;
                     ;}
     break;
@@ -4559,7 +4559,7 @@ yyreduce:
                                 void_expr(node->nd_head);
                             }
                         }
-                        vps->top = block_append(vps, vps->top, (yyvsp[(2) - (2)].node));
+                        top_node = block_append(vps, top_node, (yyvsp[(2) - (2)].node));
                         class_nest = 0;
                     ;}
     break;
@@ -4613,7 +4613,7 @@ yyreduce:
 
   case 10:
 #line 507 "grammar18.y"
-    {vps->lex_state = EXPR_FNAME;;}
+    {lex_state = EXPR_FNAME;;}
     break;
 
   case 11:
@@ -4970,7 +4970,7 @@ yyreduce:
 
   case 52:
 #line 770 "grammar18.y"
-    { (yyval.vars) = vps->variables->block_vars; ;}
+    { (yyval.vars) = variables->block_vars; ;}
     break;
 
   case 53:
@@ -5296,7 +5296,7 @@ yyreduce:
   case 100:
 #line 1002 "grammar18.y"
     {
-                        vps->lex_state = EXPR_END;
+                        lex_state = EXPR_END;
                         (yyval.id) = convert_op((yyvsp[(1) - (1)].id));
                     ;}
     break;
@@ -5304,7 +5304,7 @@ yyreduce:
   case 101:
 #line 1007 "grammar18.y"
     {
-                        vps->lex_state = EXPR_END;
+                        lex_state = EXPR_END;
                         (yyval.id) = (yyvsp[(1) - (1)].id);
                     ;}
     break;
@@ -5325,7 +5325,7 @@ yyreduce:
 
   case 107:
 #line 1028 "grammar18.y"
-    {vps->lex_state = EXPR_FNAME;;}
+    {lex_state = EXPR_FNAME;;}
     break;
 
   case 108:
@@ -5823,13 +5823,13 @@ yyreduce:
 
   case 217:
 #line 1304 "grammar18.y"
-    {vps->in_defined = 1;;}
+    {in_defined = 1;;}
     break;
 
   case 218:
 #line 1305 "grammar18.y"
     {
-                        vps->in_defined = 0;
+                        in_defined = 0;
                         (yyval.node) = NEW_DEFINED((yyvsp[(4) - (4)].node));
                     ;}
     break;
@@ -6083,7 +6083,7 @@ yyreduce:
   case 256:
 #line 1476 "grammar18.y"
     {
-                        (yyval.num) = vps->cmdarg_stack;
+                        (yyval.num) = cmdarg_stack;
                         CMDARG_PUSH(1);
                     ;}
     break;
@@ -6092,14 +6092,14 @@ yyreduce:
 #line 1481 "grammar18.y"
     {
                         /* CMDARG_POP() */
-                        vps->cmdarg_stack = (yyvsp[(1) - (2)].num);
+                        cmdarg_stack = (yyvsp[(1) - (2)].num);
                         (yyval.node) = (yyvsp[(2) - (2)].node);
                     ;}
     break;
 
   case 259:
 #line 1489 "grammar18.y"
-    {vps->lex_state = EXPR_ENDARG;;}
+    {lex_state = EXPR_ENDARG;;}
     break;
 
   case 260:
@@ -6112,7 +6112,7 @@ yyreduce:
 
   case 261:
 #line 1494 "grammar18.y"
-    {vps->lex_state = EXPR_ENDARG;;}
+    {lex_state = EXPR_ENDARG;;}
     break;
 
   case 262:
@@ -6201,7 +6201,7 @@ yyreduce:
 
   case 282:
 #line 1565 "grammar18.y"
-    {vps->lex_state = EXPR_ENDARG;;}
+    {lex_state = EXPR_ENDARG;;}
     break;
 
   case 283:
@@ -6295,13 +6295,13 @@ yyreduce:
 
   case 294:
 #line 1621 "grammar18.y"
-    {vps->in_defined = 1;;}
+    {in_defined = 1;;}
     break;
 
   case 295:
 #line 1622 "grammar18.y"
     {
-                        vps->in_defined = 0;
+                        in_defined = 0;
                         (yyval.node) = NEW_DEFINED((yyvsp[(5) - (6)].node));
                     ;}
     break;
@@ -6438,7 +6438,7 @@ yyreduce:
   case 311:
 #line 1712 "grammar18.y"
     { 
-                    push_start_line((rb_parse_state*)parse_state, ruby_sourceline - 1, "case");
+                    push_start_line((rb_parser_state*)parser_state, ruby_sourceline - 1, "case");
                   ;}
     break;
 
@@ -6453,7 +6453,7 @@ yyreduce:
   case 313:
 #line 1719 "grammar18.y"
     {
-                    push_start_line((rb_parse_state*)parse_state, ruby_sourceline - 1, "case");
+                    push_start_line((rb_parser_state*)parser_state, ruby_sourceline - 1, "case");
                   ;}
     break;
 
@@ -6595,7 +6595,7 @@ yyreduce:
 
   case 328:
 #line 1816 "grammar18.y"
-    {vps->lex_state = EXPR_FNAME;;}
+    {lex_state = EXPR_FNAME;;}
     break;
 
   case 329:
@@ -6604,7 +6604,7 @@ yyreduce:
                         PUSH_LINE("def");
                         in_single++;
                         local_push(0);
-                        vps->lex_state = EXPR_END; /* force for args */
+                        lex_state = EXPR_END; /* force for args */
                     ;}
     break;
 
@@ -6806,7 +6806,7 @@ yyreduce:
   case 368:
 #line 1977 "grammar18.y"
     {
-                      (yyval.vars) = vps->variables->block_vars;
+                      (yyval.vars) = variables->block_vars;
                     ;}
     break;
 
@@ -6916,7 +6916,7 @@ yyreduce:
 
   case 382:
 #line 2052 "grammar18.y"
-    { (yyval.vars) = vps->variables->block_vars; ;}
+    { (yyval.vars) = variables->block_vars; ;}
     break;
 
   case 383:
@@ -6938,7 +6938,7 @@ yyreduce:
 
   case 385:
 #line 2064 "grammar18.y"
-    { (yyval.vars) = vps->variables->block_vars; ;}
+    { (yyval.vars) = variables->block_vars; ;}
     break;
 
   case 386:
@@ -7194,7 +7194,7 @@ yyreduce:
     {
                         (yyval.node) = lex_strterm;
                         lex_strterm = 0;
-                        vps->lex_state = EXPR_BEG;
+                        lex_state = EXPR_BEG;
                     ;}
     break;
 
@@ -7211,7 +7211,7 @@ yyreduce:
     {
                         (yyval.node) = lex_strterm;
                         lex_strterm = 0;
-                        vps->lex_state = EXPR_BEG;
+                        lex_state = EXPR_BEG;
                         COND_PUSH(0);
                         CMDARG_PUSH(0);
                     ;}
@@ -7248,7 +7248,7 @@ yyreduce:
   case 434:
 #line 2328 "grammar18.y"
     {
-                        vps->lex_state = EXPR_END;
+                        lex_state = EXPR_END;
                         (yyval.id) = (yyvsp[(2) - (2)].id);
                     ;}
     break;
@@ -7256,7 +7256,7 @@ yyreduce:
   case 439:
 #line 2341 "grammar18.y"
     {
-                        vps->lex_state = EXPR_END;
+                        lex_state = EXPR_END;
                         if (!((yyval.node) = (yyvsp[(2) - (3)].node))) {
                             yyerror("empty symbol literal");
                         }
@@ -7353,7 +7353,7 @@ yyreduce:
   case 460:
 #line 2417 "grammar18.y"
     {
-                        vps->lex_state = EXPR_BEG;
+                        lex_state = EXPR_BEG;
                     ;}
     break;
 
@@ -7373,7 +7373,7 @@ yyreduce:
 #line 2428 "grammar18.y"
     {
                         (yyval.node) = (yyvsp[(2) - (4)].node);
-                        vps->lex_state = EXPR_BEG;
+                        lex_state = EXPR_BEG;
                         command_start = TRUE;
                     ;}
     break;
@@ -7567,7 +7567,7 @@ yyreduce:
 
   case 494:
 #line 2576 "grammar18.y"
-    {vps->lex_state = EXPR_BEG;;}
+    {lex_state = EXPR_BEG;;}
     break;
 
   case 495:
@@ -7877,28 +7877,28 @@ yyreturn:
 #define LEAVE_BS 1
 
 static int
-mel_yyerror(const char *msg, rb_parse_state *parse_state)
+mel_yyerror(const char *msg, rb_parser_state *parser_state)
 {
-    create_error(parse_state, (char *)msg);
+    create_error(parser_state, (char *)msg);
 
     return 1;
 }
 
 static int
-yycompile(rb_parse_state *parse_state, char *f, int line)
+yycompile(rb_parser_state *parser_state, char *f, int line)
 {
     int n;
     /* Setup an initial empty scope. */
     heredoc_end = 0;
     lex_strterm = 0;
-    parse_state->end_seen = 0;
+    parser_state->end_seen = 0;
     ruby_sourcefile = f;
     command_start = TRUE;
-    n = yyparse(parse_state);
+    n = yyparse(parser_state);
     ruby_debug_lines = 0;
     compile_for_eval = 0;
-    parse_state->cond_stack = 0;
-    parse_state->cmdarg_stack = 0;
+    cond_stack = 0;
+    cmdarg_stack = 0;
     command_start = TRUE;
     class_nest = 0;
     in_single = 0;
@@ -7911,24 +7911,24 @@ yycompile(rb_parse_state *parse_state, char *f, int line)
 }
 
 static bool
-lex_get_str(rb_parse_state *parse_state)
+lex_get_str(rb_parser_state *parser_state)
 {
     const char *str;
     const char *beg, *end, *pend;
     int sz;
 
-    str = bdata(parse_state->lex_string);
+    str = bdata(parser_state->lex_string);
     beg = str;
 
-    if (parse_state->lex_str_used) {
-      if (blength(parse_state->lex_string) == parse_state->lex_str_used) {
+    if (parser_state->lex_str_used) {
+      if (blength(parser_state->lex_string) == parser_state->lex_str_used) {
         return false;
       }
 
-      beg += parse_state->lex_str_used;
+      beg += parser_state->lex_str_used;
     }
 
-    pend = str + blength(parse_state->lex_string);
+    pend = str + blength(parser_state->lex_string);
     end = beg;
 
     while(end < pend) {
@@ -7936,63 +7936,63 @@ lex_get_str(rb_parse_state *parse_state)
     }
 
     sz = end - beg;
-    bcatblk(parse_state->line_buffer, beg, sz);
-    parse_state->lex_str_used += sz;
+    bcatblk(parser_state->line_buffer, beg, sz);
+    parser_state->lex_str_used += sz;
 
     return TRUE;
 }
 
 static bool
-lex_getline(rb_parse_state *parse_state)
+lex_getline(rb_parser_state *parser_state)
 {
-  if(!parse_state->line_buffer) {
-    parse_state->line_buffer = cstr2bstr("");
+  if(!parser_state->line_buffer) {
+    parser_state->line_buffer = cstr2bstr("");
   } else {
-    btrunc(parse_state->line_buffer, 0);
+    btrunc(parser_state->line_buffer, 0);
   }
 
-  return parse_state->lex_gets(parse_state);
+  return parser_state->lex_gets(parser_state);
 }
 
-VALUE process_parse_tree(rb_parse_state*, VALUE, NODE*, QUID*);
+VALUE process_parse_tree(rb_parser_state*, VALUE, NODE*, QUID*);
 
 VALUE
 string_to_ast(VALUE ptp, const char *f, bstring s, int line)
 {
     int n;
-    rb_parse_state *parse_state;
+    rb_parser_state *parser_state;
     VALUE ret;
-    parse_state = alloc_parse_state();
-    parse_state->lex_string = s;
-    parse_state->lex_gets = lex_get_str;
-    parse_state->lex_pbeg = 0;
-    parse_state->lex_p = 0;
-    parse_state->lex_pend = 0;
-    parse_state->error = Qfalse;
-    parse_state->processor = ptp;
+    parser_state = alloc_parser_state();
+    parser_state->lex_string = s;
+    parser_state->lex_gets = lex_get_str;
+    parser_state->lex_pbeg = 0;
+    parser_state->lex_p = 0;
+    parser_state->lex_pend = 0;
+    parser_state->error = Qfalse;
+    parser_state->processor = ptp;
     ruby_sourceline = line - 1;
     compile_for_eval = 1;
 
-    n = yycompile(parse_state, (char*)f, line);
+    n = yycompile(parser_state, (char*)f, line);
 
-    if(parse_state->error == Qfalse) {
-      for(std::vector<bstring>::iterator i = parse_state->magic_comments->begin();
-          i != parse_state->magic_comments->end();
+    if(parser_state->error == Qfalse) {
+      for(std::vector<bstring>::iterator i = parser_state->magic_comments->begin();
+          i != parser_state->magic_comments->end();
           i++) {
         rb_funcall(ptp, rb_intern("add_magic_comment"), 1,
           rb_str_new((const char*)(*i)->data, (*i)->slen));
       }
-      ret = process_parse_tree(parse_state, ptp, parse_state->top, NULL);
+      ret = process_parse_tree(parser_state, ptp, top_node, NULL);
     } else {
         ret = Qnil;
     }
-    pt_free(parse_state);
-    free(parse_state);
+    pt_free(parser_state);
+    free(parser_state);
     return ret;
 }
 
-static bool parse_io_gets(rb_parse_state *parse_state) {
-  if(feof(parse_state->lex_io)) {
+static bool parse_io_gets(rb_parser_state *parser_state) {
+  if(feof(parser_state->lex_io)) {
     return false;
   }
 
@@ -8000,13 +8000,13 @@ static bool parse_io_gets(rb_parse_state *parse_state) {
     char *ptr, buf[1024];
     int read;
 
-    ptr = fgets(buf, sizeof(buf), parse_state->lex_io);
+    ptr = fgets(buf, sizeof(buf), parser_state->lex_io);
     if(!ptr) {
       return false;
     }
 
     read = strlen(ptr);
-    bcatblk(parse_state->line_buffer, ptr, read);
+    bcatblk(parser_state->line_buffer, ptr, read);
 
     /* check whether we read a full line */
     if(!(read == (sizeof(buf) - 1) && ptr[read] != '\n')) {
@@ -8022,52 +8022,52 @@ file_to_ast(VALUE ptp, const char *f, FILE *file, int start)
 {
     int n;
     VALUE ret;
-    rb_parse_state *parse_state;
-    parse_state = alloc_parse_state();
-    parse_state->lex_io = file;
-    parse_state->lex_gets = parse_io_gets;
-    parse_state->lex_pbeg = 0;
-    parse_state->lex_p = 0;
-    parse_state->lex_pend = 0;
-    parse_state->error = Qfalse;
-    parse_state->processor = ptp;
+    rb_parser_state *parser_state;
+    parser_state = alloc_parser_state();
+    parser_state->lex_io = file;
+    parser_state->lex_gets = parse_io_gets;
+    parser_state->lex_pbeg = 0;
+    parser_state->lex_p = 0;
+    parser_state->lex_pend = 0;
+    parser_state->error = Qfalse;
+    parser_state->processor = ptp;
     ruby_sourceline = start - 1;
 
-    n = yycompile(parse_state, (char*)f, start);
+    n = yycompile(parser_state, (char*)f, start);
 
-    if(parse_state->error == Qfalse) {
-      for(std::vector<bstring>::iterator i = parse_state->magic_comments->begin();
-          i != parse_state->magic_comments->end();
+    if(parser_state->error == Qfalse) {
+      for(std::vector<bstring>::iterator i = parser_state->magic_comments->begin();
+          i != parser_state->magic_comments->end();
           i++) {
         rb_funcall(ptp, rb_intern("add_magic_comment"), 1,
           rb_str_new((const char*)(*i)->data, (*i)->slen));
       }
-        ret = process_parse_tree(parse_state, ptp, parse_state->top, NULL);
+        ret = process_parse_tree(parser_state, ptp, top_node, NULL);
 
-        if (parse_state->end_seen && parse_state->lex_io) {
-          rb_funcall(ptp, rb_sData, 1, ULONG2NUM(ftell(parse_state->lex_io)));
+        if (parser_state->end_seen && parser_state->lex_io) {
+          rb_funcall(ptp, rb_sData, 1, ULONG2NUM(ftell(parser_state->lex_io)));
         }
     } else {
         ret = Qnil;
     }
 
-    pt_free(parse_state);
-    free(parse_state);
+    pt_free(parser_state);
+    free(parser_state);
     return ret;
 }
 
-#define nextc() ps_nextc(parse_state)
+#define nextc() ps_nextc(parser_state)
 
 static inline int
-ps_nextc(rb_parse_state *parse_state)
+ps_nextc(rb_parser_state *parser_state)
 {
     int c;
 
-    if (parse_state->lex_p == parse_state->lex_pend) {
+    if (parser_state->lex_p == parser_state->lex_pend) {
         bstring v;
 
-        if (!lex_getline(parse_state)) return -1;
-        v = parse_state->line_buffer;
+        if (!lex_getline(parser_state)) return -1;
+        v = parser_state->line_buffer;
 
         if (heredoc_end > 0) {
             ruby_sourceline = heredoc_end;
@@ -8078,41 +8078,41 @@ ps_nextc(rb_parse_state *parse_state)
         /* This code is setup so that lex_pend can be compared to
            the data in lex_lastline. Thats important, otherwise
            the heredoc code breaks. */
-        if(parse_state->lex_lastline) {
-          bassign(parse_state->lex_lastline, v);
+        if(parser_state->lex_lastline) {
+          bassign(parser_state->lex_lastline, v);
         } else {
-          parse_state->lex_lastline = bstrcpy(v);
+          parser_state->lex_lastline = bstrcpy(v);
         }
 
-        v = parse_state->lex_lastline;
+        v = parser_state->lex_lastline;
 
-        parse_state->lex_pbeg = parse_state->lex_p = bdata(v);
-        parse_state->lex_pend = parse_state->lex_p + blength(v);
+        parser_state->lex_pbeg = parser_state->lex_p = bdata(v);
+        parser_state->lex_pend = parser_state->lex_p + blength(v);
     }
-    c = (unsigned char)*(parse_state->lex_p++);
-    if (c == '\r' && parse_state->lex_p < parse_state->lex_pend && *(parse_state->lex_p) == '\n') {
-        parse_state->lex_p++;
+    c = (unsigned char)*(parser_state->lex_p++);
+    if (c == '\r' && parser_state->lex_p < parser_state->lex_pend && *(parser_state->lex_p) == '\n') {
+        parser_state->lex_p++;
         c = '\n';
-        parse_state->column = 0;
+        parser_state->column = 0;
     } else if(c == '\n') {
-        parse_state->column = 0;
+        parser_state->column = 0;
     } else {
-        parse_state->column++;
+        parser_state->column++;
     }
 
     return c;
 }
 
 static void
-pushback(int c, rb_parse_state *parse_state)
+pushback(int c, rb_parser_state *parser_state)
 {
     if (c == -1) return;
-    parse_state->lex_p--;
+    parser_state->lex_p--;
 }
 
 /* Indicates if we're currently at the beginning of a line. */
-#define was_bol() (parse_state->lex_p == parse_state->lex_pbeg + 1)
-#define peek(c) (parse_state->lex_p != parse_state->lex_pend && (c) == *(parse_state->lex_p))
+#define was_bol() (parser_state->lex_p == parser_state->lex_pbeg + 1)
+#define peek(c) (parser_state->lex_p != parser_state->lex_pend && (c) == *(parser_state->lex_p))
 
 /* The token buffer. It's just a global string that has
    functions to build up the string easily. */
@@ -8123,7 +8123,7 @@ pushback(int c, rb_parse_state *parse_state)
 #define toklast() (tokidx>0?tokenbuf[tokidx-1]:0)
 
 static char*
-newtok(rb_parse_state *parse_state)
+newtok(rb_parser_state *parser_state)
 {
     tokidx = 0;
     if (!tokenbuf) {
@@ -8137,7 +8137,7 @@ newtok(rb_parse_state *parse_state)
     return tokenbuf;
 }
 
-static void tokadd(char c, rb_parse_state *parse_state)
+static void tokadd(char c, rb_parser_state *parser_state)
 {
     assert(tokidx < toksiz && tokidx >= 0);
     tokenbuf[tokidx++] = c;
@@ -8148,7 +8148,7 @@ static void tokadd(char c, rb_parse_state *parse_state)
 }
 
 static int
-read_escape(rb_parse_state *parse_state)
+read_escape(rb_parser_state *parser_state)
 {
     int c;
 
@@ -8182,9 +8182,9 @@ read_escape(rb_parse_state *parse_state)
         {
             int numlen;
 
-            pushback(c, parse_state);
-            c = scan_oct(parse_state->lex_p, 3, &numlen);
-            parse_state->lex_p += numlen;
+            pushback(c, parser_state);
+            c = scan_oct(parser_state->lex_p, 3, &numlen);
+            parser_state->lex_p += numlen;
         }
         return c;
 
@@ -8192,12 +8192,12 @@ read_escape(rb_parse_state *parse_state)
         {
             int numlen;
 
-            c = scan_hex(parse_state->lex_p, 2, &numlen);
+            c = scan_hex(parser_state->lex_p, 2, &numlen);
             if (numlen == 0) {
                 yyerror("Invalid escape character syntax");
                 return 0;
             }
-            parse_state->lex_p += numlen;
+            parser_state->lex_p += numlen;
         }
         return c;
 
@@ -8210,11 +8210,11 @@ read_escape(rb_parse_state *parse_state)
       case 'M':
         if ((c = nextc()) != '-') {
             yyerror("Invalid escape character syntax");
-            pushback(c, parse_state);
+            pushback(c, parser_state);
             return '\0';
         }
         if ((c = nextc()) == '\\') {
-            return read_escape(parse_state) | 0x80;
+            return read_escape(parser_state) | 0x80;
         }
         else if (c == -1) goto eof;
         else {
@@ -8224,12 +8224,12 @@ read_escape(rb_parse_state *parse_state)
       case 'C':
         if ((c = nextc()) != '-') {
             yyerror("Invalid escape character syntax");
-            pushback(c, parse_state);
+            pushback(c, parser_state);
             return '\0';
         }
       case 'c':
         if ((c = nextc())== '\\') {
-            c = read_escape(parse_state);
+            c = read_escape(parser_state);
         }
         else if (c == '?')
             return 0177;
@@ -8247,7 +8247,7 @@ read_escape(rb_parse_state *parse_state)
 }
 
 static int
-tokadd_escape(int term, rb_parse_state *parse_state)
+tokadd_escape(int term, rb_parser_state *parser_state)
 {
     int c;
 
@@ -8260,16 +8260,16 @@ tokadd_escape(int term, rb_parse_state *parse_state)
         {
             int i;
 
-            tokadd((char)'\\', parse_state);
-            tokadd((char)c, parse_state);
+            tokadd((char)'\\', parser_state);
+            tokadd((char)c, parser_state);
             for (i=0; i<2; i++) {
                 c = nextc();
                 if (c == -1) goto eof;
                 if (c < '0' || '7' < c) {
-                    pushback(c, parse_state);
+                    pushback(c, parser_state);
                     break;
                 }
-                tokadd((char)c, parse_state);
+                tokadd((char)c, parser_state);
             }
         }
         return 0;
@@ -8278,49 +8278,49 @@ tokadd_escape(int term, rb_parse_state *parse_state)
         {
             int numlen;
 
-            tokadd('\\', parse_state);
-            tokadd((char)c, parse_state);
-            scan_hex(parse_state->lex_p, 2, &numlen);
+            tokadd('\\', parser_state);
+            tokadd((char)c, parser_state);
+            scan_hex(parser_state->lex_p, 2, &numlen);
             if (numlen == 0) {
                 yyerror("Invalid escape character syntax");
                 return -1;
             }
             while (numlen--)
-                tokadd((char)nextc(), parse_state);
+                tokadd((char)nextc(), parser_state);
         }
         return 0;
 
       case 'M':
         if ((c = nextc()) != '-') {
             yyerror("Invalid escape character syntax");
-            pushback(c, parse_state);
+            pushback(c, parser_state);
             return 0;
         }
-        tokadd('\\',parse_state);
-        tokadd('M', parse_state);
-        tokadd('-', parse_state);
+        tokadd('\\',parser_state);
+        tokadd('M', parser_state);
+        tokadd('-', parser_state);
         goto escaped;
 
       case 'C':
         if ((c = nextc()) != '-') {
             yyerror("Invalid escape character syntax");
-            pushback(c, parse_state);
+            pushback(c, parser_state);
             return 0;
         }
-        tokadd('\\', parse_state);
-        tokadd('C', parse_state);
-        tokadd('-', parse_state);
+        tokadd('\\', parser_state);
+        tokadd('C', parser_state);
+        tokadd('-', parser_state);
         goto escaped;
 
       case 'c':
-        tokadd('\\', parse_state);
-        tokadd('c', parse_state);
+        tokadd('\\', parser_state);
+        tokadd('c', parser_state);
       escaped:
         if ((c = nextc()) == '\\') {
-            return tokadd_escape(term, parse_state);
+            return tokadd_escape(term, parser_state);
         }
         else if (c == -1) goto eof;
-        tokadd((char)c, parse_state);
+        tokadd((char)c, parser_state);
         return 0;
 
       eof:
@@ -8330,20 +8330,20 @@ tokadd_escape(int term, rb_parse_state *parse_state)
 
       default:
         if (c != '\\' || c != term)
-            tokadd('\\', parse_state);
-        tokadd((char)c, parse_state);
+            tokadd('\\', parser_state);
+        tokadd((char)c, parser_state);
     }
     return 0;
 }
 
 static int
-regx_options(rb_parse_state *parse_state)
+regx_options(rb_parser_state *parser_state)
 {
     char kcode = 0;
     int options = 0;
     int c;
 
-    newtok(parse_state);
+    newtok(parser_state);
     while (c = nextc(), ISALPHA(c)) {
         switch (c) {
           case 'i':
@@ -8377,14 +8377,14 @@ regx_options(rb_parse_state *parse_state)
             kcode = 64;
             break;
           default:
-            tokadd((char)c, parse_state);
+            tokadd((char)c, parser_state);
             break;
         }
     }
-    pushback(c, parse_state);
+    pushback(c, parser_state);
     if (toklen()) {
         tokfix();
-        rb_compile_error(parse_state, "unknown regexp option%s - %s",
+        rb_compile_error(parser_state, "unknown regexp option%s - %s",
                          toklen() > 1 ? "s" : "", tok());
     }
     return options | kcode;
@@ -8408,7 +8408,7 @@ enum string_type {
     str_dsym   = (STR_FUNC_SYMBOL|STR_FUNC_EXPAND),
 };
 
-static int tokadd_string(int func, int term, int paren, quark *nest, rb_parse_state *parse_state)
+static int tokadd_string(int func, int term, int paren, quark *nest, rb_parser_state *parser_state)
 {
     int c;
 
@@ -8418,15 +8418,15 @@ static int tokadd_string(int func, int term, int paren, quark *nest, rb_parse_st
         }
         else if (c == term) {
             if (!nest || !*nest) {
-                pushback(c, parse_state);
+                pushback(c, parser_state);
                 break;
             }
             --*nest;
         }
-        else if ((func & STR_FUNC_EXPAND) && c == '#' && parse_state->lex_p < parse_state->lex_pend) {
-            int c2 = *(parse_state->lex_p);
+        else if ((func & STR_FUNC_EXPAND) && c == '#' && parser_state->lex_p < parser_state->lex_pend) {
+            int c2 = *(parser_state->lex_p);
             if (c2 == '$' || c2 == '@' || c2 == '{') {
-                pushback(c, parse_state);
+                pushback(c, parser_state);
                 break;
             }
         }
@@ -8436,30 +8436,30 @@ static int tokadd_string(int func, int term, int paren, quark *nest, rb_parse_st
               case '\n':
                 if (func & STR_FUNC_QWORDS) break;
                 if (func & STR_FUNC_EXPAND) continue;
-                tokadd('\\', parse_state);
+                tokadd('\\', parser_state);
                 break;
 
               case '\\':
-                if (func & STR_FUNC_ESCAPE) tokadd((char)c, parse_state);
+                if (func & STR_FUNC_ESCAPE) tokadd((char)c, parser_state);
                 break;
 
               default:
                 if (func & STR_FUNC_REGEXP) {
-                    pushback(c, parse_state);
-                    if (tokadd_escape(term, parse_state) < 0)
+                    pushback(c, parser_state);
+                    if (tokadd_escape(term, parser_state) < 0)
                         return -1;
                     continue;
                 }
                 else if (func & STR_FUNC_EXPAND) {
-                    pushback(c, parse_state);
-                    if (func & STR_FUNC_ESCAPE) tokadd('\\', parse_state);
-                    c = read_escape(parse_state);
+                    pushback(c, parser_state);
+                    if (func & STR_FUNC_ESCAPE) tokadd('\\', parser_state);
+                    c = read_escape(parser_state);
                 }
                 else if ((func & STR_FUNC_QWORDS) && ISSPACE(c)) {
                     /* ignore backslashed spaces in %w */
                 }
                 else if (c != term && !(paren && c == paren)) {
-                    tokadd('\\', parse_state);
+                    tokadd('\\', parser_state);
                 }
             }
         }
@@ -8467,30 +8467,30 @@ static int tokadd_string(int func, int term, int paren, quark *nest, rb_parse_st
             int i, len = mbclen(c)-1;
 
             for (i = 0; i < len; i++) {
-                tokadd((char)c, parse_state);
+                tokadd((char)c, parser_state);
                 c = nextc();
             }
         }
         else if ((func & STR_FUNC_QWORDS) && ISSPACE(c)) {
-            pushback(c, parse_state);
+            pushback(c, parser_state);
             break;
         }
         if (!c && (func & STR_FUNC_SYMBOL)) {
             func &= ~STR_FUNC_SYMBOL;
-            rb_compile_error(parse_state, "symbol cannot contain '\\0'");
+            rb_compile_error(parser_state, "symbol cannot contain '\\0'");
             continue;
         }
-        tokadd((char)c, parse_state);
+        tokadd((char)c, parser_state);
     }
     return c;
 }
 
 #define NEW_STRTERM(func, term, paren) \
-  node_newnode(parse_state, NODE_STRTERM, (VALUE)(func), \
+  node_newnode(NODE_STRTERM, (VALUE)(func), \
                (VALUE)((term) | ((paren) << (CHAR_BIT * 2))), NULL)
-#define pslval ((YYSTYPE *)parse_state->lval)
+#define pslval ((YYSTYPE *)parser_state->lval)
 static int
-parse_string(NODE *quote, rb_parse_state *parse_state)
+parse_string(NODE *quote, rb_parser_state *parser_state)
 {
     int func = quote->nd_func;
     int term = nd_term(quote);
@@ -8511,29 +8511,29 @@ parse_string(NODE *quote, rb_parse_state *parse_state)
             return ' ';
         }
         if (!(func & STR_FUNC_REGEXP)) return tSTRING_END;
-        pslval->num = regx_options(parse_state);
+        pslval->num = regx_options(parser_state);
         return tREGEXP_END;
     }
     if (space) {
-        pushback(c, parse_state);
+        pushback(c, parser_state);
         return ' ';
     }
-    newtok(parse_state);
+    newtok(parser_state);
     if ((func & STR_FUNC_EXPAND) && c == '#') {
         switch (c = nextc()) {
           case '$':
           case '@':
-            pushback(c, parse_state);
+            pushback(c, parser_state);
             return tSTRING_DVAR;
           case '{':
             return tSTRING_DBEG;
         }
-        tokadd('#', parse_state);
+        tokadd('#', parser_state);
     }
-    pushback(c, parse_state);
-    if (tokadd_string(func, term, paren, &quote->nd_nest, parse_state) == -1) {
+    pushback(c, parser_state);
+    if (tokadd_string(func, term, paren, &quote->nd_nest, parser_state) == -1) {
         ruby_sourceline = nd_line(quote);
-        rb_compile_error(parse_state, "unterminated string meets end of file");
+        rb_compile_error(parser_state, "unterminated string meets end of file");
         return tSTRING_END;
     }
 
@@ -8546,7 +8546,7 @@ parse_string(NODE *quote, rb_parse_state *parse_state)
 /* Called when the lexer detects a heredoc is beginning. This pulls
    in more characters and detects what kind of heredoc it is. */
 static int
-heredoc_identifier(rb_parse_state *parse_state)
+heredoc_identifier(rb_parser_state *parser_state)
 {
     int c = nextc(), term, func = 0;
     size_t len;
@@ -8567,20 +8567,20 @@ heredoc_identifier(rb_parse_state *parse_state)
            continue to consume characters into the token buffer until
            we hit the terminating character. */
 
-        newtok(parse_state);
-        tokadd((char)func, parse_state);
+        newtok(parser_state);
+        tokadd((char)func, parser_state);
         term = c;
 
         /* Where of where has the term gone.. */
         while ((c = nextc()) != -1 && c != term) {
             len = mbclen(c);
             do {
-              tokadd((char)c, parse_state);
+              tokadd((char)c, parser_state);
             } while (--len > 0 && (c = nextc()) != -1);
         }
         /* Ack! end of file or end of string. */
         if (c == -1) {
-            rb_compile_error(parse_state, "unterminated here document identifier");
+            rb_compile_error(parser_state, "unterminated here document identifier");
             return 0;
         }
 
@@ -8596,37 +8596,37 @@ heredoc_identifier(rb_parse_state *parse_state)
            finally bails with this not being a heredoc.*/
 
         if (!is_identchar(c)) {
-            pushback(c, parse_state);
+            pushback(c, parser_state);
             if (func & STR_FUNC_INDENT) {
-                pushback('-', parse_state);
+                pushback('-', parser_state);
             }
             return 0;
         }
 
         /* Finally, setup the token buffer and begin to fill it. */
-        newtok(parse_state);
+        newtok(parser_state);
         term = '"';
-        tokadd((char)(func |= str_dquote), parse_state);
+        tokadd((char)(func |= str_dquote), parser_state);
         do {
             len = mbclen(c);
-            do { tokadd((char)c, parse_state); } while (--len > 0 && (c = nextc()) != -1);
+            do { tokadd((char)c, parser_state); } while (--len > 0 && (c = nextc()) != -1);
         } while ((c = nextc()) != -1 && is_identchar(c));
-        pushback(c, parse_state);
+        pushback(c, parser_state);
         break;
     }
 
 
     /* Fixup the token buffer, ie set the last character to null. */
     tokfix();
-    len = parse_state->lex_p - parse_state->lex_pbeg;
-    parse_state->lex_p = parse_state->lex_pend;
+    len = parser_state->lex_p - parser_state->lex_pbeg;
+    parser_state->lex_p = parser_state->lex_pend;
     pslval->id = 0;
 
     /* Tell the lexer that we're inside a string now. nd_lit is
        the heredoc identifier that we watch the stream for to
        detect the end of the heredoc. */
-    bstring str = bstrcpy(parse_state->lex_lastline);
-    lex_strterm = node_newnode(parse_state, NODE_HEREDOC,
+    bstring str = bstrcpy(parser_state->lex_lastline);
+    lex_strterm = node_newnode(NODE_HEREDOC,
                                (VALUE)string_new(tok(), toklen()),  /* nd_lit */
                                (VALUE)len,                          /* nd_nth */
                                (VALUE)str);                         /* nd_orig */
@@ -8634,31 +8634,31 @@ heredoc_identifier(rb_parse_state *parse_state)
 }
 
 static void
-heredoc_restore(NODE *here, rb_parse_state *parse_state)
+heredoc_restore(NODE *here, rb_parser_state *parser_state)
 {
     bstring line = here->nd_orig;
 
-    bdestroy(parse_state->lex_lastline);
+    bdestroy(parser_state->lex_lastline);
 
-    parse_state->lex_lastline = line;
-    parse_state->lex_pbeg = bdata(line);
-    parse_state->lex_pend = parse_state->lex_pbeg + blength(line);
-    parse_state->lex_p = parse_state->lex_pbeg + here->nd_nth;
+    parser_state->lex_lastline = line;
+    parser_state->lex_pbeg = bdata(line);
+    parser_state->lex_pend = parser_state->lex_pbeg + blength(line);
+    parser_state->lex_p = parser_state->lex_pbeg + here->nd_nth;
     heredoc_end = ruby_sourceline;
     ruby_sourceline = nd_line(here);
     bdestroy((bstring)here->nd_lit);
 }
 
 static int
-whole_match_p(const char *eos, int len, int indent, rb_parse_state *parse_state)
+whole_match_p(const char *eos, int len, int indent, rb_parser_state *parser_state)
 {
-    char *p = parse_state->lex_pbeg;
+    char *p = parser_state->lex_pbeg;
     int n;
 
     if (indent) {
         while (*p && ISSPACE(*p)) p++;
     }
-    n = parse_state->lex_pend - (p + len);
+    n = parser_state->lex_pend - (p + len);
     if (n < 0 || (n > 0 && p[len] != '\n' && p[len] != '\r')) return FALSE;
     if (strncmp(eos, p, len) == 0) return TRUE;
     return FALSE;
@@ -8669,7 +8669,7 @@ whole_match_p(const char *eos, int len, int indent, rb_parse_state *parse_state)
    and emitting a lex token and also detecting the end of the heredoc. */
 
 static int
-here_document(NODE *here, rb_parse_state *parse_state)
+here_document(NODE *here, rb_parser_state *parser_state)
 {
     int c, func, indent = 0;
     char *eos, *p, *pend;
@@ -8686,16 +8686,16 @@ here_document(NODE *here, rb_parse_state *parse_state)
     /* Ack! EOF or end of input string! */
     if ((c = nextc()) == -1) {
       error:
-        rb_compile_error(parse_state, "can't find string \"%s\" anywhere before EOF", eos);
-        heredoc_restore(lex_strterm, parse_state);
+        rb_compile_error(parser_state, "can't find string \"%s\" anywhere before EOF", eos);
+        heredoc_restore(lex_strterm, parser_state);
         lex_strterm = 0;
         return 0;
     }
     /* Gr. not yet sure what was_bol() means other than it seems like
        it means only 1 character has been consumed. */
 
-    if (was_bol() && whole_match_p(eos, len, indent, parse_state)) {
-        heredoc_restore(lex_strterm, parse_state);
+    if (was_bol() && whole_match_p(eos, len, indent, parser_state)) {
+        heredoc_restore(lex_strterm, parser_state);
         return tSTRING_END;
     }
 
@@ -8704,8 +8704,8 @@ here_document(NODE *here, rb_parse_state *parse_state)
 
     if ((func & STR_FUNC_EXPAND) == 0) {
         do {
-            p = bdata(parse_state->lex_lastline);
-            pend = parse_state->lex_pend;
+            p = bdata(parser_state->lex_lastline);
+            pend = parser_state->lex_pend;
             if (pend > p) {
                 switch (pend[-1]) {
                   case '\n':
@@ -8722,33 +8722,33 @@ here_document(NODE *here, rb_parse_state *parse_state)
             } else {
                 str = blk2bstr(p, pend - p);
             }
-            if (pend < parse_state->lex_pend) bcatblk(str, "\n", 1);
-            parse_state->lex_p = parse_state->lex_pend;
+            if (pend < parser_state->lex_pend) bcatblk(str, "\n", 1);
+            parser_state->lex_p = parser_state->lex_pend;
             if (nextc() == -1) {
                 if (str) bdestroy(str);
                 goto error;
             }
-        } while (!whole_match_p(eos, len, indent, parse_state));
+        } while (!whole_match_p(eos, len, indent, parser_state));
     }
     else {
-        newtok(parse_state);
+        newtok(parser_state);
         if (c == '#') {
             switch (c = nextc()) {
               case '$':
               case '@':
-                pushback(c, parse_state);
+                pushback(c, parser_state);
                 return tSTRING_DVAR;
               case '{':
                 return tSTRING_DBEG;
             }
-            tokadd('#', parse_state);
+            tokadd('#', parser_state);
         }
 
         /* Loop while we haven't found a the heredoc ident. */
         do {
-            pushback(c, parse_state);
+            pushback(c, parser_state);
             /* Scan up until a \n and fill in the token buffer. */
-            if ((c = tokadd_string(func, '\n', 0, NULL, parse_state)) == -1) goto error;
+            if ((c = tokadd_string(func, '\n', 0, NULL, parser_state)) == -1) goto error;
 
             /* We finished scanning, but didn't find a \n, so we setup the node
                and have the lexer file in more. */
@@ -8758,12 +8758,12 @@ here_document(NODE *here, rb_parse_state *parse_state)
             }
 
             /* I think this consumes the \n */
-            tokadd((char)nextc(), parse_state);
+            tokadd((char)nextc(), parser_state);
             if ((c = nextc()) == -1) goto error;
-        } while (!whole_match_p(eos, len, indent, parse_state));
+        } while (!whole_match_p(eos, len, indent, parser_state));
         str = string_new(tok(), toklen());
     }
-    heredoc_restore(lex_strterm, parse_state);
+    heredoc_restore(lex_strterm, parser_state);
     lex_strterm = NEW_STRTERM(-1, 0, 0);
     pslval->node = NEW_STR(str);
     return tSTRING_CONTENT;
@@ -8777,13 +8777,13 @@ arg_ambiguous()
     rb_warning("ambiguous first argument; put parentheses or even spaces");
 }
 
-#define IS_ARG() (parse_state->lex_state == EXPR_ARG || parse_state->lex_state == EXPR_CMDARG)
+#define IS_ARG() (lex_state == EXPR_ARG || lex_state == EXPR_CMDARG)
 
 
-static char* parse_comment(struct rb_parse_state* parse_state) {
-  int len = parse_state->lex_pend - parse_state->lex_p;
+static char* parse_comment(struct rb_parser_state* parser_state) {
+  int len = parser_state->lex_pend - parser_state->lex_p;
 
-  char* str = parse_state->lex_p;
+  char* str = parser_state->lex_p;
   while(len-- > 0 && ISSPACE(str[0])) str++;
   if(len <= 2) return NULL;
 
@@ -8798,35 +8798,35 @@ yylex(void *yylval_v, void *vstate)
     register int c;
     int space_seen = 0;
     int cmd_state;
-    struct rb_parse_state *parse_state;
+    struct rb_parser_state *parser_state;
     bstring cur_line;
-    enum lex_state last_state;
+    enum lex_state_e last_state;
 
     YYSTYPE *yylval = (YYSTYPE*)yylval_v;
-    parse_state = (struct rb_parse_state*)vstate;
+    parser_state = (struct rb_parser_state*)vstate;
 
-    parse_state->lval = (void *)yylval;
+    parser_state->lval = (void *)yylval;
 
     /*
     c = nextc();
     printf("lex char: %c\n", c);
-    pushback(c, parse_state);
+    pushback(c, parser_state);
     */
 
     if (lex_strterm) {
         int token;
         if (nd_type(lex_strterm) == NODE_HEREDOC) {
-            token = here_document(lex_strterm, parse_state);
+            token = here_document(lex_strterm, parser_state);
             if (token == tSTRING_END) {
                 lex_strterm = 0;
-                parse_state->lex_state = EXPR_END;
+                lex_state = EXPR_END;
             }
         }
         else {
-            token = parse_string(lex_strterm, parse_state);
+            token = parse_string(lex_strterm, parser_state);
             if (token == tSTRING_END || token == tREGEXP_END) {
                 lex_strterm = 0;
-                parse_state->lex_state = EXPR_END;
+                lex_state = EXPR_END;
             }
         }
         return token;
@@ -8849,15 +8849,15 @@ yylex(void *yylval_v, void *vstate)
         goto retry;
 
       case '#':         /* it's a comment */
-        if(char* str = parse_comment(parse_state)) {
-            int len = parse_state->lex_pend - str - 1; // - 1 for the \n
+        if(char* str = parse_comment(parser_state)) {
+            int len = parser_state->lex_pend - str - 1; // - 1 for the \n
             cur_line = blk2bstr(str, len);
-            parse_state->magic_comments->push_back(cur_line);
+            parser_state->magic_comments->push_back(cur_line);
         }
-        parse_state->lex_p = parse_state->lex_pend;
+        parser_state->lex_p = parser_state->lex_pend;
         /* fall through */
       case '\n':
-        switch (parse_state->lex_state) {
+        switch (lex_state) {
           case EXPR_BEG:
           case EXPR_FNAME:
           case EXPR_DOT:
@@ -8867,89 +8867,89 @@ yylex(void *yylval_v, void *vstate)
             break;
         }
         command_start = TRUE;
-        parse_state->lex_state = EXPR_BEG;
+        lex_state = EXPR_BEG;
         return '\n';
 
       case '*':
         if ((c = nextc()) == '*') {
             if ((c = nextc()) == '=') {
                 pslval->id = tPOW;
-                parse_state->lex_state = EXPR_BEG;
+                lex_state = EXPR_BEG;
                 return tOP_ASGN;
             }
-            pushback(c, parse_state);
+            pushback(c, parser_state);
             c = tPOW;
         }
         else {
             if (c == '=') {
                 pslval->id = '*';
-                parse_state->lex_state = EXPR_BEG;
+                lex_state = EXPR_BEG;
                 return tOP_ASGN;
             }
-            pushback(c, parse_state);
+            pushback(c, parser_state);
             if (IS_ARG() && space_seen && !ISSPACE(c)){
                 rb_warning("`*' interpreted as argument prefix");
                 c = tSTAR;
             }
-            else if (parse_state->lex_state == EXPR_BEG || parse_state->lex_state == EXPR_MID) {
+            else if (lex_state == EXPR_BEG || lex_state == EXPR_MID) {
                 c = tSTAR;
             }
             else {
                 c = '*';
             }
         }
-        switch (parse_state->lex_state) {
+        switch (lex_state) {
           case EXPR_FNAME: case EXPR_DOT:
-            parse_state->lex_state = EXPR_ARG; break;
+            lex_state = EXPR_ARG; break;
           default:
-            parse_state->lex_state = EXPR_BEG; break;
+            lex_state = EXPR_BEG; break;
         }
         return c;
 
       case '!':
-        parse_state->lex_state = EXPR_BEG;
+        lex_state = EXPR_BEG;
         if ((c = nextc()) == '=') {
             return tNEQ;
         }
         if (c == '~') {
             return tNMATCH;
         }
-        pushback(c, parse_state);
+        pushback(c, parser_state);
         return '!';
 
       case '=':
         if (was_bol()) {
             /* skip embedded rd document */
-            if (strncmp(parse_state->lex_p, "begin", 5) == 0 && ISSPACE(parse_state->lex_p[5])) {
+            if (strncmp(parser_state->lex_p, "begin", 5) == 0 && ISSPACE(parser_state->lex_p[5])) {
                 for (;;) {
-                    parse_state->lex_p = parse_state->lex_pend;
+                    parser_state->lex_p = parser_state->lex_pend;
                     c = nextc();
                     if (c == -1) {
-                        rb_compile_error(parse_state, "embedded document meets end of file");
+                        rb_compile_error(parser_state, "embedded document meets end of file");
                         return 0;
                     }
                     if (c != '=') continue;
-                    if (strncmp(parse_state->lex_p, "end", 3) == 0 &&
-                        (parse_state->lex_p + 3 == parse_state->lex_pend || ISSPACE(parse_state->lex_p[3]))) {
+                    if (strncmp(parser_state->lex_p, "end", 3) == 0 &&
+                        (parser_state->lex_p + 3 == parser_state->lex_pend || ISSPACE(parser_state->lex_p[3]))) {
                         break;
                     }
                 }
-                parse_state->lex_p = parse_state->lex_pend;
+                parser_state->lex_p = parser_state->lex_pend;
                 goto retry;
             }
         }
 
-        switch (parse_state->lex_state) {
+        switch (lex_state) {
           case EXPR_FNAME: case EXPR_DOT:
-            parse_state->lex_state = EXPR_ARG; break;
+            lex_state = EXPR_ARG; break;
           default:
-            parse_state->lex_state = EXPR_BEG; break;
+            lex_state = EXPR_BEG; break;
         }
         if ((c = nextc()) == '=') {
             if ((c = nextc()) == '=') {
                 return tEQQ;
             }
-            pushback(c, parse_state);
+            pushback(c, parser_state);
             return tEQ;
         }
         if (c == '~') {
@@ -8958,51 +8958,51 @@ yylex(void *yylval_v, void *vstate)
         else if (c == '>') {
             return tASSOC;
         }
-        pushback(c, parse_state);
+        pushback(c, parser_state);
         return '=';
 
       case '<':
         c = nextc();
         if (c == '<' &&
-            parse_state->lex_state != EXPR_END &&
-            parse_state->lex_state != EXPR_DOT &&
-            parse_state->lex_state != EXPR_ENDARG &&
-            parse_state->lex_state != EXPR_CLASS &&
+            lex_state != EXPR_END &&
+            lex_state != EXPR_DOT &&
+            lex_state != EXPR_ENDARG &&
+            lex_state != EXPR_CLASS &&
             (!IS_ARG() || space_seen)) {
-            int token = heredoc_identifier(parse_state);
+            int token = heredoc_identifier(parser_state);
             if (token) return token;
         }
-        switch (parse_state->lex_state) {
+        switch (lex_state) {
           case EXPR_FNAME: case EXPR_DOT:
-            parse_state->lex_state = EXPR_ARG; break;
+            lex_state = EXPR_ARG; break;
           default:
-            parse_state->lex_state = EXPR_BEG; break;
+            lex_state = EXPR_BEG; break;
         }
         if (c == '=') {
             if ((c = nextc()) == '>') {
                 return tCMP;
             }
-            pushback(c, parse_state);
+            pushback(c, parser_state);
             return tLEQ;
         }
         if (c == '<') {
             if ((c = nextc()) == '=') {
                 pslval->id = tLSHFT;
-                parse_state->lex_state = EXPR_BEG;
+                lex_state = EXPR_BEG;
                 return tOP_ASGN;
             }
-            pushback(c, parse_state);
+            pushback(c, parser_state);
             return tLSHFT;
         }
-        pushback(c, parse_state);
+        pushback(c, parser_state);
         return '<';
 
       case '>':
-        switch (parse_state->lex_state) {
+        switch (lex_state) {
           case EXPR_FNAME: case EXPR_DOT:
-            parse_state->lex_state = EXPR_ARG; break;
+            lex_state = EXPR_ARG; break;
           default:
-            parse_state->lex_state = EXPR_BEG; break;
+            lex_state = EXPR_BEG; break;
         }
         if ((c = nextc()) == '=') {
             return tGEQ;
@@ -9010,13 +9010,13 @@ yylex(void *yylval_v, void *vstate)
         if (c == '>') {
             if ((c = nextc()) == '=') {
                 pslval->id = tRSHFT;
-                parse_state->lex_state = EXPR_BEG;
+                lex_state = EXPR_BEG;
                 return tOP_ASGN;
             }
-            pushback(c, parse_state);
+            pushback(c, parser_state);
             return tRSHFT;
         }
-        pushback(c, parse_state);
+        pushback(c, parser_state);
         return '>';
 
       case '"':
@@ -9024,15 +9024,15 @@ yylex(void *yylval_v, void *vstate)
         return tSTRING_BEG;
 
       case '`':
-        if (parse_state->lex_state == EXPR_FNAME) {
-            parse_state->lex_state = EXPR_END;
+        if (lex_state == EXPR_FNAME) {
+            lex_state = EXPR_END;
             return c;
         }
-        if (parse_state->lex_state == EXPR_DOT) {
+        if (lex_state == EXPR_DOT) {
             if (cmd_state)
-                parse_state->lex_state = EXPR_CMDARG;
+                lex_state = EXPR_CMDARG;
             else
-                parse_state->lex_state = EXPR_ARG;
+                lex_state = EXPR_ARG;
             return c;
         }
         lex_strterm = NEW_STRTERM(str_xquote, '`', 0);
@@ -9045,13 +9045,13 @@ yylex(void *yylval_v, void *vstate)
         return tSTRING_BEG;
 
       case '?':
-        if (parse_state->lex_state == EXPR_END || parse_state->lex_state == EXPR_ENDARG) {
-            parse_state->lex_state = EXPR_BEG;
+        if (lex_state == EXPR_END || lex_state == EXPR_ENDARG) {
+            lex_state = EXPR_BEG;
             return '?';
         }
         c = nextc();
         if (c == -1) {
-            rb_compile_error(parse_state, "incomplete character syntax");
+            rb_compile_error(parser_state, "incomplete character syntax");
             return 0;
         }
         if (ISSPACE(c)){
@@ -9082,159 +9082,159 @@ yylex(void *yylval_v, void *vstate)
                 }
             }
           ternary:
-            pushback(c, parse_state);
-            parse_state->lex_state = EXPR_BEG;
-            parse_state->ternary_colon = 1;
+            pushback(c, parser_state);
+            lex_state = EXPR_BEG;
+            parser_state->ternary_colon = 1;
             return '?';
         }
         else if (ismbchar(c)) {
             rb_warn("multibyte character literal not supported yet; use ?\\%.3o", c);
             goto ternary;
         }
-        else if ((ISALNUM(c) || c == '_') && parse_state->lex_p < parse_state->lex_pend && is_identchar(*(parse_state->lex_p))) {
+        else if ((ISALNUM(c) || c == '_') && parser_state->lex_p < parser_state->lex_pend && is_identchar(*(parser_state->lex_p))) {
             goto ternary;
         }
         else if (c == '\\') {
-            c = read_escape(parse_state);
+            c = read_escape(parser_state);
         }
         c &= 0xff;
-        parse_state->lex_state = EXPR_END;
+        lex_state = EXPR_END;
         pslval->node = NEW_FIXNUM((intptr_t)c);
         return tINTEGER;
 
       case '&':
         if ((c = nextc()) == '&') {
-            parse_state->lex_state = EXPR_BEG;
+            lex_state = EXPR_BEG;
             if ((c = nextc()) == '=') {
                 pslval->id = tANDOP;
-                parse_state->lex_state = EXPR_BEG;
+                lex_state = EXPR_BEG;
                 return tOP_ASGN;
             }
-            pushback(c, parse_state);
+            pushback(c, parser_state);
             return tANDOP;
         }
         else if (c == '=') {
             pslval->id = '&';
-            parse_state->lex_state = EXPR_BEG;
+            lex_state = EXPR_BEG;
             return tOP_ASGN;
         }
-        pushback(c, parse_state);
+        pushback(c, parser_state);
         if (IS_ARG() && space_seen && !ISSPACE(c)){
             rb_warning("`&' interpreted as argument prefix");
             c = tAMPER;
         }
-        else if (parse_state->lex_state == EXPR_BEG || parse_state->lex_state == EXPR_MID) {
+        else if (lex_state == EXPR_BEG || lex_state == EXPR_MID) {
             c = tAMPER;
         }
         else {
             c = '&';
         }
-        switch (parse_state->lex_state) {
+        switch (lex_state) {
           case EXPR_FNAME: case EXPR_DOT:
-            parse_state->lex_state = EXPR_ARG; break;
+            lex_state = EXPR_ARG; break;
           default:
-            parse_state->lex_state = EXPR_BEG;
+            lex_state = EXPR_BEG;
         }
         return c;
 
       case '|':
         if ((c = nextc()) == '|') {
-            parse_state->lex_state = EXPR_BEG;
+            lex_state = EXPR_BEG;
             if ((c = nextc()) == '=') {
                 pslval->id = tOROP;
-                parse_state->lex_state = EXPR_BEG;
+                lex_state = EXPR_BEG;
                 return tOP_ASGN;
             }
-            pushback(c, parse_state);
+            pushback(c, parser_state);
             return tOROP;
         }
         if (c == '=') {
             pslval->id = '|';
-            parse_state->lex_state = EXPR_BEG;
+            lex_state = EXPR_BEG;
             return tOP_ASGN;
         }
-        if (parse_state->lex_state == EXPR_FNAME || parse_state->lex_state == EXPR_DOT) {
-            parse_state->lex_state = EXPR_ARG;
+        if (lex_state == EXPR_FNAME || lex_state == EXPR_DOT) {
+            lex_state = EXPR_ARG;
         }
         else {
-            parse_state->lex_state = EXPR_BEG;
+            lex_state = EXPR_BEG;
         }
-        pushback(c, parse_state);
+        pushback(c, parser_state);
         return '|';
 
       case '+':
         c = nextc();
-        if (parse_state->lex_state == EXPR_FNAME || parse_state->lex_state == EXPR_DOT) {
-            parse_state->lex_state = EXPR_ARG;
+        if (lex_state == EXPR_FNAME || lex_state == EXPR_DOT) {
+            lex_state = EXPR_ARG;
             if (c == '@') {
                 return tUPLUS;
             }
-            pushback(c, parse_state);
+            pushback(c, parser_state);
             return '+';
         }
         if (c == '=') {
             pslval->id = '+';
-            parse_state->lex_state = EXPR_BEG;
+            lex_state = EXPR_BEG;
             return tOP_ASGN;
         }
-        if (parse_state->lex_state == EXPR_BEG || parse_state->lex_state == EXPR_MID ||
+        if (lex_state == EXPR_BEG || lex_state == EXPR_MID ||
             (IS_ARG() && space_seen && !ISSPACE(c))) {
             if (IS_ARG()) arg_ambiguous();
-            parse_state->lex_state = EXPR_BEG;
-            pushback(c, parse_state);
+            lex_state = EXPR_BEG;
+            pushback(c, parser_state);
             if (ISDIGIT(c)) {
                 c = '+';
                 goto start_num;
             }
             return tUPLUS;
         }
-        parse_state->lex_state = EXPR_BEG;
-        pushback(c, parse_state);
+        lex_state = EXPR_BEG;
+        pushback(c, parser_state);
         return '+';
 
       case '-':
         c = nextc();
-        if (parse_state->lex_state == EXPR_FNAME || parse_state->lex_state == EXPR_DOT) {
-            parse_state->lex_state = EXPR_ARG;
+        if (lex_state == EXPR_FNAME || lex_state == EXPR_DOT) {
+            lex_state = EXPR_ARG;
             if (c == '@') {
                 return tUMINUS;
             }
-            pushback(c, parse_state);
+            pushback(c, parser_state);
             return '-';
         }
         if (c == '=') {
             pslval->id = '-';
-            parse_state->lex_state = EXPR_BEG;
+            lex_state = EXPR_BEG;
             return tOP_ASGN;
         }
-        if (parse_state->lex_state == EXPR_BEG || parse_state->lex_state == EXPR_MID ||
+        if (lex_state == EXPR_BEG || lex_state == EXPR_MID ||
             (IS_ARG() && space_seen && !ISSPACE(c))) {
             if (IS_ARG()) arg_ambiguous();
-            parse_state->lex_state = EXPR_BEG;
-            pushback(c, parse_state);
+            lex_state = EXPR_BEG;
+            pushback(c, parser_state);
             if (ISDIGIT(c)) {
                 return tUMINUS_NUM;
             }
             return tUMINUS;
         }
-        parse_state->lex_state = EXPR_BEG;
-        pushback(c, parse_state);
+        lex_state = EXPR_BEG;
+        pushback(c, parser_state);
         return '-';
 
       case '.':
-        parse_state->lex_state = EXPR_BEG;
+        lex_state = EXPR_BEG;
         if ((c = nextc()) == '.') {
             if ((c = nextc()) == '.') {
                 return tDOT3;
             }
-            pushback(c, parse_state);
+            pushback(c, parser_state);
             return tDOT2;
         }
-        pushback(c, parse_state);
+        pushback(c, parser_state);
         if (ISDIGIT(c)) {
             yyerror("no .<digit> floating literal anymore; put 0 before dot");
         }
-        parse_state->lex_state = EXPR_DOT;
+        lex_state = EXPR_DOT;
         return '.';
 
       start_num:
@@ -9244,10 +9244,10 @@ yylex(void *yylval_v, void *vstate)
             int is_float, seen_point, seen_e, nondigit;
 
             is_float = seen_point = seen_e = nondigit = 0;
-            parse_state->lex_state = EXPR_END;
-            newtok(parse_state);
+            lex_state = EXPR_END;
+            newtok(parser_state);
             if (c == '-' || c == '+') {
-                tokadd((char)c,parse_state);
+                tokadd((char)c,parser_state);
                 c = nextc();
             }
             if (c == '0') {
@@ -9265,10 +9265,10 @@ yylex(void *yylval_v, void *vstate)
                             }
                             if (!ISXDIGIT(c)) break;
                             nondigit = 0;
-                            tokadd((char)c,parse_state);
+                            tokadd((char)c,parser_state);
                         } while ((c = nextc()) != -1);
                     }
-                    pushback(c, parse_state);
+                    pushback(c, parser_state);
                     tokfix();
                     if (toklen() == start) {
                         yyerror("numeric literal without digits");
@@ -9289,10 +9289,10 @@ yylex(void *yylval_v, void *vstate)
                             }
                             if (c != '0' && c != '1') break;
                             nondigit = 0;
-                            tokadd((char)c, parse_state);
+                            tokadd((char)c, parser_state);
                         } while ((c = nextc()) != -1);
                     }
-                    pushback(c, parse_state);
+                    pushback(c, parser_state);
                     tokfix();
                     if (toklen() == start) {
                         yyerror("numeric literal without digits");
@@ -9313,10 +9313,10 @@ yylex(void *yylval_v, void *vstate)
                             }
                             if (!ISDIGIT(c)) break;
                             nondigit = 0;
-                            tokadd((char)c, parse_state);
+                            tokadd((char)c, parser_state);
                         } while ((c = nextc()) != -1);
                     }
-                    pushback(c, parse_state);
+                    pushback(c, parser_state);
                     tokfix();
                     if (toklen() == start) {
                         yyerror("numeric literal without digits");
@@ -9347,17 +9347,17 @@ yylex(void *yylval_v, void *vstate)
                         }
                         if (c < '0' || c > '7') break;
                         nondigit = 0;
-                        tokadd((char)c, parse_state);
+                        tokadd((char)c, parser_state);
                     } while ((c = nextc()) != -1);
                     if (toklen() > start) {
-                        pushback(c, parse_state);
+                        pushback(c, parser_state);
                         tokfix();
                         if (nondigit) goto trailing_uc;
                         pslval->node = NEW_OCTNUM(string_new2(tok()));
                         return tINTEGER;
                     }
                     if (nondigit) {
-                        pushback(c, parse_state);
+                        pushback(c, parser_state);
                         goto trailing_uc;
                     }
                 }
@@ -9365,10 +9365,10 @@ yylex(void *yylval_v, void *vstate)
                     yyerror("Illegal octal digit");
                 }
                 else if (c == '.' || c == 'e' || c == 'E') {
-                    tokadd('0', parse_state);
+                    tokadd('0', parser_state);
                 }
                 else {
-                    pushback(c, parse_state);
+                    pushback(c, parser_state);
                     pslval->node = NEW_FIXNUM(0);
                     return tINTEGER;
                 }
@@ -9379,7 +9379,7 @@ yylex(void *yylval_v, void *vstate)
                   case '0': case '1': case '2': case '3': case '4':
                   case '5': case '6': case '7': case '8': case '9':
                     nondigit = 0;
-                    tokadd((char)c, parse_state);
+                    tokadd((char)c, parser_state);
                     break;
 
                   case '.':
@@ -9390,13 +9390,13 @@ yylex(void *yylval_v, void *vstate)
                     else {
                         int c0 = nextc();
                         if (!ISDIGIT(c0)) {
-                            pushback(c0, parse_state);
+                            pushback(c0, parser_state);
                             goto decode_num;
                         }
                         c = c0;
                     }
-                    tokadd('.', parse_state);
-                    tokadd((char)c, parse_state);
+                    tokadd('.', parser_state);
+                    tokadd((char)c, parser_state);
                     is_float++;
                     seen_point++;
                     nondigit = 0;
@@ -9405,20 +9405,20 @@ yylex(void *yylval_v, void *vstate)
                   case 'e':
                   case 'E':
                     if (nondigit) {
-                        pushback(c, parse_state);
+                        pushback(c, parser_state);
                         c = nondigit;
                         goto decode_num;
                     }
                     if (seen_e) {
                         goto decode_num;
                     }
-                    tokadd((char)c, parse_state);
+                    tokadd((char)c, parser_state);
                     seen_e++;
                     is_float++;
                     nondigit = c;
                     c = nextc();
                     if (c != '-' && c != '+') continue;
-                    tokadd((char)c, parse_state);
+                    tokadd((char)c, parser_state);
                     nondigit = c;
                     break;
 
@@ -9434,7 +9434,7 @@ yylex(void *yylval_v, void *vstate)
             }
 
           decode_num:
-            pushback(c, parse_state);
+            pushback(c, parser_state);
             tokfix();
             if (nondigit) {
                 char tmp[30];
@@ -9455,23 +9455,23 @@ yylex(void *yylval_v, void *vstate)
       case ')':
         COND_LEXPOP();
         CMDARG_LEXPOP();
-        parse_state->lex_state = EXPR_END;
+        lex_state = EXPR_END;
         return c;
 
       case ':':
         c = nextc();
         if (c == ':') {
-            if (parse_state->lex_state == EXPR_BEG ||  parse_state->lex_state == EXPR_MID ||
-                parse_state->lex_state == EXPR_CLASS || (IS_ARG() && space_seen)) {
-                parse_state->lex_state = EXPR_BEG;
+            if (lex_state == EXPR_BEG ||  lex_state == EXPR_MID ||
+                lex_state == EXPR_CLASS || (IS_ARG() && space_seen)) {
+                lex_state = EXPR_BEG;
                 return tCOLON3;
             }
-            parse_state->lex_state = EXPR_DOT;
+            lex_state = EXPR_DOT;
             return tCOLON2;
         }
-        if (parse_state->lex_state == EXPR_END || parse_state->lex_state == EXPR_ENDARG || ISSPACE(c)) {
-            pushback(c, parse_state);
-            parse_state->lex_state = EXPR_BEG;
+        if (lex_state == EXPR_END || lex_state == EXPR_ENDARG || ISSPACE(c)) {
+            pushback(c, parser_state);
+            lex_state = EXPR_BEG;
             return ':';
         }
         switch (c) {
@@ -9482,23 +9482,23 @@ yylex(void *yylval_v, void *vstate)
             lex_strterm = NEW_STRTERM(str_dsym, (intptr_t)c, 0);
             break;
           default:
-            pushback(c, parse_state);
+            pushback(c, parser_state);
             break;
         }
-        parse_state->lex_state = EXPR_FNAME;
+        lex_state = EXPR_FNAME;
         return tSYMBEG;
 
       case '/':
-        if (parse_state->lex_state == EXPR_BEG || parse_state->lex_state == EXPR_MID) {
+        if (lex_state == EXPR_BEG || lex_state == EXPR_MID) {
             lex_strterm = NEW_STRTERM(str_regexp, '/', 0);
             return tREGEXP_BEG;
         }
         if ((c = nextc()) == '=') {
             pslval->id = '/';
-            parse_state->lex_state = EXPR_BEG;
+            lex_state = EXPR_BEG;
             return tOP_ASGN;
         }
-        pushback(c, parse_state);
+        pushback(c, parser_state);
         if (IS_ARG() && space_seen) {
             if (!ISSPACE(c)) {
                 arg_ambiguous();
@@ -9506,102 +9506,102 @@ yylex(void *yylval_v, void *vstate)
                 return tREGEXP_BEG;
             }
         }
-        switch (parse_state->lex_state) {
+        switch (lex_state) {
           case EXPR_FNAME: case EXPR_DOT:
-            parse_state->lex_state = EXPR_ARG; break;
+            lex_state = EXPR_ARG; break;
           default:
-            parse_state->lex_state = EXPR_BEG; break;
+            lex_state = EXPR_BEG; break;
         }
         return '/';
 
       case '^':
         if ((c = nextc()) == '=') {
             pslval->id = '^';
-            parse_state->lex_state = EXPR_BEG;
+            lex_state = EXPR_BEG;
             return tOP_ASGN;
         }
-        switch (parse_state->lex_state) {
+        switch (lex_state) {
           case EXPR_FNAME: case EXPR_DOT:
-            parse_state->lex_state = EXPR_ARG; break;
+            lex_state = EXPR_ARG; break;
           default:
-            parse_state->lex_state = EXPR_BEG; break;
+            lex_state = EXPR_BEG; break;
         }
-        pushback(c, parse_state);
+        pushback(c, parser_state);
         return '^';
 
       case ';':
         command_start = TRUE;
       case ',':
-        parse_state->lex_state = EXPR_BEG;
+        lex_state = EXPR_BEG;
         return c;
 
       case '~':
-        if (parse_state->lex_state == EXPR_FNAME || parse_state->lex_state == EXPR_DOT) {
+        if (lex_state == EXPR_FNAME || lex_state == EXPR_DOT) {
             if ((c = nextc()) != '@') {
-                pushback(c, parse_state);
+                pushback(c, parser_state);
             }
         }
-        switch (parse_state->lex_state) {
+        switch (lex_state) {
           case EXPR_FNAME: case EXPR_DOT:
-            parse_state->lex_state = EXPR_ARG; break;
+            lex_state = EXPR_ARG; break;
           default:
-            parse_state->lex_state = EXPR_BEG; break;
+            lex_state = EXPR_BEG; break;
         }
         return '~';
 
       case '(':
         command_start = TRUE;
-        if (parse_state->lex_state == EXPR_BEG || parse_state->lex_state == EXPR_MID) {
+        if (lex_state == EXPR_BEG || lex_state == EXPR_MID) {
             c = tLPAREN;
         }
         else if (space_seen) {
-            if (parse_state->lex_state == EXPR_CMDARG) {
+            if (lex_state == EXPR_CMDARG) {
                 c = tLPAREN_ARG;
             }
-            else if (parse_state->lex_state == EXPR_ARG) {
+            else if (lex_state == EXPR_ARG) {
                 rb_warn("don't put space before argument parentheses");
                 c = '(';
             }
         }
         COND_PUSH(0);
         CMDARG_PUSH(0);
-        parse_state->lex_state = EXPR_BEG;
+        lex_state = EXPR_BEG;
         return c;
 
       case '[':
-        if (parse_state->lex_state == EXPR_FNAME || parse_state->lex_state == EXPR_DOT) {
-            parse_state->lex_state = EXPR_ARG;
+        if (lex_state == EXPR_FNAME || lex_state == EXPR_DOT) {
+            lex_state = EXPR_ARG;
             if ((c = nextc()) == ']') {
                 if ((c = nextc()) == '=') {
                     return tASET;
                 }
-                pushback(c, parse_state);
+                pushback(c, parser_state);
                 return tAREF;
             }
-            pushback(c, parse_state);
+            pushback(c, parser_state);
             return '[';
         }
-        else if (parse_state->lex_state == EXPR_BEG || parse_state->lex_state == EXPR_MID) {
+        else if (lex_state == EXPR_BEG || lex_state == EXPR_MID) {
             c = tLBRACK;
         }
         else if (IS_ARG() && space_seen) {
             c = tLBRACK;
         }
-        parse_state->lex_state = EXPR_BEG;
+        lex_state = EXPR_BEG;
         COND_PUSH(0);
         CMDARG_PUSH(0);
         return c;
 
       case '{':
-        if (IS_ARG() || parse_state->lex_state == EXPR_END)
+        if (IS_ARG() || lex_state == EXPR_END)
             c = '{';          /* block (primary) */
-        else if (parse_state->lex_state == EXPR_ENDARG)
+        else if (lex_state == EXPR_ENDARG)
             c = tLBRACE_ARG;  /* block (expr) */
         else
             c = tLBRACE;      /* hash */
         COND_PUSH(0);
         CMDARG_PUSH(0);
-        parse_state->lex_state = EXPR_BEG;
+        lex_state = EXPR_BEG;
         return c;
 
       case '\\':
@@ -9610,17 +9610,17 @@ yylex(void *yylval_v, void *vstate)
             space_seen = 1;
             goto retry; /* skip \\n */
         }
-        pushback(c, parse_state);
-        if(parse_state->lex_state == EXPR_BEG
-           || parse_state->lex_state == EXPR_MID || space_seen) {
-            parse_state->lex_state = EXPR_DOT;
+        pushback(c, parser_state);
+        if(lex_state == EXPR_BEG
+           || lex_state == EXPR_MID || space_seen) {
+            lex_state = EXPR_DOT;
             return tUBS;
         }
-        parse_state->lex_state = EXPR_DOT;
+        lex_state = EXPR_DOT;
         return '\\';
 
       case '%':
-        if (parse_state->lex_state == EXPR_BEG || parse_state->lex_state == EXPR_MID) {
+        if (lex_state == EXPR_BEG || lex_state == EXPR_MID) {
             intptr_t term;
             intptr_t paren;
             char tmpstr[256];
@@ -9647,7 +9647,7 @@ yylex(void *yylval_v, void *vstate)
                 }
             }
             if (c == -1 || term == -1) {
-                rb_compile_error(parse_state, "unterminated quoted string meets end of file");
+                rb_compile_error(parser_state, "unterminated quoted string meets end of file");
                 return 0;
             }
             paren = term;
@@ -9669,13 +9669,13 @@ yylex(void *yylval_v, void *vstate)
               case 'W':
                 lex_strterm = NEW_STRTERM(str_dquote | STR_FUNC_QWORDS, term, paren);
                 do {c = nextc();} while (ISSPACE(c));
-                pushback(c, parse_state);
+                pushback(c, parser_state);
                 return tWORDS_BEG;
 
               case 'w':
                 lex_strterm = NEW_STRTERM(str_squote | STR_FUNC_QWORDS, term, paren);
                 do {c = nextc();} while (ISSPACE(c));
-                pushback(c, parse_state);
+                pushback(c, parser_state);
                 return tQWORDS_BEG;
 
               case 'x':
@@ -9689,7 +9689,7 @@ yylex(void *yylval_v, void *vstate)
 
               case 's':
                 lex_strterm = NEW_STRTERM(str_ssym, term, paren);
-                parse_state->lex_state = EXPR_FNAME;
+                lex_state = EXPR_FNAME;
                 return tSYMBEG;
 
               case 1:
@@ -9707,35 +9707,35 @@ yylex(void *yylval_v, void *vstate)
         }
         if ((c = nextc()) == '=') {
             pslval->id = '%';
-            parse_state->lex_state = EXPR_BEG;
+            lex_state = EXPR_BEG;
             return tOP_ASGN;
         }
         if (IS_ARG() && space_seen && !ISSPACE(c)) {
             goto quotation;
         }
-        switch (parse_state->lex_state) {
+        switch (lex_state) {
           case EXPR_FNAME: case EXPR_DOT:
-            parse_state->lex_state = EXPR_ARG; break;
+            lex_state = EXPR_ARG; break;
           default:
-            parse_state->lex_state = EXPR_BEG; break;
+            lex_state = EXPR_BEG; break;
         }
-        pushback(c, parse_state);
+        pushback(c, parser_state);
         return '%';
 
       case '$':
-        last_state = parse_state->lex_state;
-        parse_state->lex_state = EXPR_END;
-        newtok(parse_state);
+        last_state = lex_state;
+        lex_state = EXPR_END;
+        newtok(parser_state);
         c = nextc();
         switch (c) {
           case '_':             /* $_: last read line string */
             c = nextc();
             if (is_identchar(c)) {
-                tokadd('$', parse_state);
-                tokadd('_', parse_state);
+                tokadd('$', parser_state);
+                tokadd('_', parser_state);
                 break;
             }
-            pushback(c, parse_state);
+            pushback(c, parser_state);
             c = '_';
             /* fall through */
           case '~':             /* $~: match-data */
@@ -9756,17 +9756,17 @@ yylex(void *yylval_v, void *vstate)
           case '<':             /* $<: reading filename */
           case '>':             /* $>: default output handle */
           case '\"':            /* $": already loaded files */
-            tokadd('$', parse_state);
-            tokadd((char)c, parse_state);
+            tokadd('$', parser_state);
+            tokadd((char)c, parser_state);
             tokfix();
             pslval->id = rb_parser_sym(tok());
             return tGVAR;
 
           case '-':
-            tokadd('$', parse_state);
-            tokadd((char)c, parse_state);
+            tokadd('$', parser_state);
+            tokadd((char)c, parser_state);
             c = nextc();
-            tokadd((char)c, parse_state);
+            tokadd((char)c, parser_state);
           gvar:
             tokfix();
             pslval->id = rb_parser_sym(tok());
@@ -9778,8 +9778,8 @@ yylex(void *yylval_v, void *vstate)
           case '\'':            /* $': string after last match */
           case '+':             /* $+: string matches last paren. */
 	    if (last_state == EXPR_FNAME) {
-		tokadd((char)'$', parse_state);
-		tokadd(c, parse_state);
+		tokadd((char)'$', parser_state);
+		tokadd(c, parser_state);
 		goto gvar;
 	    }
             pslval->node = NEW_BACK_REF((intptr_t)c);
@@ -9788,12 +9788,12 @@ yylex(void *yylval_v, void *vstate)
           case '1': case '2': case '3':
           case '4': case '5': case '6':
           case '7': case '8': case '9':
-            tokadd('$', parse_state);
+            tokadd('$', parser_state);
             do {
-                tokadd((char)c, parse_state);
+                tokadd((char)c, parser_state);
                 c = nextc();
             } while (ISDIGIT(c));
-            pushback(c, parse_state);
+            pushback(c, parser_state);
 	    if (last_state == EXPR_FNAME) goto gvar;
             tokfix();
             pslval->node = NEW_NTH_REF((intptr_t)atoi(tok()+1));
@@ -9801,87 +9801,87 @@ yylex(void *yylval_v, void *vstate)
 
           default:
             if (!is_identchar(c)) {
-                pushback(c, parse_state);
+                pushback(c, parser_state);
                 return '$';
             }
           case '0':
-            tokadd('$', parse_state);
+            tokadd('$', parser_state);
         }
         break;
 
       case '@':
         c = nextc();
-        newtok(parse_state);
-        tokadd('@', parse_state);
+        newtok(parser_state);
+        tokadd('@', parser_state);
         if (c == '@') {
-            tokadd('@', parse_state);
+            tokadd('@', parser_state);
             c = nextc();
         }
         if (ISDIGIT(c)) {
             if (tokidx == 1) {
-                rb_compile_error(parse_state,
+                rb_compile_error(parser_state,
                     "`@%c' is not allowed as an instance variable name", c);
             }
             else {
-                rb_compile_error(parse_state,
+                rb_compile_error(parser_state,
                     "`@@%c' is not allowed as a class variable name", c);
             }
         }
         if (!is_identchar(c)) {
-            pushback(c, parse_state);
+            pushback(c, parser_state);
             return '@';
         }
         break;
 
       case '_':
-        if (was_bol() && whole_match_p("__END__", 7, 0, parse_state)) {
-            parse_state->end_seen = 1;
+        if (was_bol() && whole_match_p("__END__", 7, 0, parser_state)) {
+            parser_state->end_seen = 1;
             return -1;
         }
-        newtok(parse_state);
+        newtok(parser_state);
         break;
 
       default:
         if (!is_identchar(c)) {
-            rb_compile_error(parse_state, "Invalid char `\\%03o' in expression", c);
+            rb_compile_error(parser_state, "Invalid char `\\%03o' in expression", c);
             goto retry;
         }
 
-        newtok(parse_state);
+        newtok(parser_state);
         break;
     }
 
     do {
-        tokadd((char)c, parse_state);
+        tokadd((char)c, parser_state);
         if (ismbchar(c)) {
             int i, len = mbclen(c)-1;
 
             for (i = 0; i < len; i++) {
                 c = nextc();
-                tokadd((char)c, parse_state);
+                tokadd((char)c, parser_state);
             }
         }
         c = nextc();
     } while (is_identchar(c));
     if ((c == '!' || c == '?') && is_identchar(tok()[0]) && !peek('=')) {
-        tokadd((char)c, parse_state);
+        tokadd((char)c, parser_state);
     }
     else {
-        pushback(c, parse_state);
+        pushback(c, parser_state);
     }
     tokfix();
 
     {
         int result = 0;
 
-        last_state = parse_state->lex_state;
+        last_state = lex_state;
         switch (tok()[0]) {
           case '$':
-            parse_state->lex_state = EXPR_END;
+            lex_state = EXPR_END;
             result = tGVAR;
             break;
           case '@':
-            parse_state->lex_state = EXPR_END;
+            lex_state = EXPR_END;
             if (tok()[1] == '@')
                 result = tCVAR;
             else
@@ -9893,15 +9893,15 @@ yylex(void *yylval_v, void *vstate)
                 result = tFID;
             }
             else {
-                if (parse_state->lex_state == EXPR_FNAME) {
+                if (lex_state == EXPR_FNAME) {
                     if ((c = nextc()) == '=' && !peek('~') && !peek('>') &&
-                        (!peek('=') || (parse_state->lex_p + 1 < parse_state->lex_pend && (parse_state->lex_p)[1] == '>'))) {
+                        (!peek('=') || (parser_state->lex_p + 1 < parser_state->lex_pend && (parser_state->lex_p)[1] == '>'))) {
                         result = tIDENTIFIER;
-                        tokadd((char)c, parse_state);
+                        tokadd((char)c, parser_state);
                         tokfix();
                     }
                     else {
-                        pushback(c, parse_state);
+                        pushback(c, parser_state);
                     }
                 }
                 if (result == 0 && ISUPPER(tok()[0])) {
@@ -9912,14 +9912,14 @@ yylex(void *yylval_v, void *vstate)
                 }
             }
 
-            if (parse_state->lex_state != EXPR_DOT) {
+            if (lex_state != EXPR_DOT) {
                 const struct kwtable *kw;
 
                 /* See if it is a reserved word.  */
                 kw = mel_reserved_word(tok(), toklen());
                 if (kw) {
-                    enum lex_state state = parse_state->lex_state;
-                    parse_state->lex_state = kw->state;
+                    enum lex_state_e state = lex_state;
+                    lex_state = kw->state;
                     if (state == EXPR_FNAME) {
                         pslval->id = rb_parser_sym(kw->name);
                         // Hack. Ignore the different variants of do
@@ -9939,37 +9939,37 @@ yylex(void *yylval_v, void *vstate)
                         return kw->id[0];
                     else {
                         if (kw->id[0] != kw->id[1])
-                            parse_state->lex_state = EXPR_BEG;
+                            lex_state = EXPR_BEG;
                         return kw->id[1];
                     }
                 }
             }
 
-            if (parse_state->lex_state == EXPR_BEG ||
-                parse_state->lex_state == EXPR_MID ||
-                parse_state->lex_state == EXPR_DOT ||
-                parse_state->lex_state == EXPR_ARG ||
-                parse_state->lex_state == EXPR_CMDARG) {
+            if (lex_state == EXPR_BEG ||
+                lex_state == EXPR_MID ||
+                lex_state == EXPR_DOT ||
+                lex_state == EXPR_ARG ||
+                lex_state == EXPR_CMDARG) {
                 if (cmd_state) {
-                    parse_state->lex_state = EXPR_CMDARG;
+                    lex_state = EXPR_CMDARG;
                 }
                 else {
-                    parse_state->lex_state = EXPR_ARG;
+                    lex_state = EXPR_ARG;
                 }
             }
             else {
-                parse_state->lex_state = EXPR_END;
+                lex_state = EXPR_END;
             }
         }
         pslval->id = rb_parser_sym(tok());
         if(is_local_id(pslval->id) &&
            last_state != EXPR_DOT &&
            local_id(pslval->id)) {
-           parse_state->lex_state = EXPR_END;
+           lex_state = EXPR_END;
         }
 
 /*         if (is_local_id(pslval->id) && local_id(pslval->id)) { */
-/*             parse_state->lex_state = EXPR_END; */
+/*             lex_state = EXPR_END; */
 /*         } */
 
         return result;
@@ -9978,8 +9978,8 @@ yylex(void *yylval_v, void *vstate)
 
 
 NODE*
-node_newnode(rb_parse_state *st, enum node_type type,
-                 VALUE a0, VALUE a1, VALUE a2)
+parser_node_newnode(rb_parser_state *st, enum node_type type,
+                    VALUE a0, VALUE a1, VALUE a2)
 {
     NODE *n = (NODE*)pt_allocate(st, sizeof(NODE));
 
@@ -9996,7 +9996,7 @@ node_newnode(rb_parse_state *st, enum node_type type,
 }
 
 static NODE*
-newline_node(rb_parse_state *parse_state, NODE *node)
+newline_node(rb_parser_state *parser_state, NODE *node)
 {
     NODE *nl = 0;
     if (node) {
@@ -10019,10 +10019,10 @@ fixpos(NODE *node, NODE *orig)
 }
 
 static void
-parser_warning(rb_parse_state *parse_state, NODE *node, const char *mesg)
+parser_warning(rb_parser_state *parser_state, NODE *node, const char *mesg)
 {
     int line = ruby_sourceline;
-    if(parse_state->emit_warnings) {
+    if(parser_state->emit_warnings) {
       ruby_sourceline = nd_line(node);
       printf("%s:%li: warning: %s\n", ruby_sourcefile, ruby_sourceline, mesg);
       ruby_sourceline = line;
@@ -10030,7 +10030,7 @@ parser_warning(rb_parse_state *parse_state, NODE *node, const char *mesg)
 }
 
 static NODE*
-block_append(rb_parse_state *parse_state, NODE *head, NODE *tail)
+block_append(rb_parser_state *parser_state, NODE *head, NODE *tail)
 {
     NODE *end, *h = head;
 
@@ -10044,7 +10044,7 @@ block_append(rb_parse_state *parse_state, NODE *head, NODE *tail)
         goto again;
       case NODE_STR:
       case NODE_LIT:
-        parser_warning(parse_state, h, "unused literal ignored");
+        parser_warning(parser_state, h, "unused literal ignored");
         return tail;
       default:
         h = end = NEW_BLOCK(head);
@@ -10057,7 +10057,7 @@ block_append(rb_parse_state *parse_state, NODE *head, NODE *tail)
         break;
     }
 
-    if (parse_state->verbose) {
+    if (parser_state->verbose) {
         NODE *nd = end->nd_head;
       newline:
         switch (nd_type(nd)) {
@@ -10066,7 +10066,7 @@ block_append(rb_parse_state *parse_state, NODE *head, NODE *tail)
           case NODE_NEXT:
           case NODE_REDO:
           case NODE_RETRY:
-            parser_warning(parse_state, nd, "statement not reached");
+            parser_warning(parser_state, nd, "statement not reached");
             break;
 
         case NODE_NEWLINE:
@@ -10089,7 +10089,7 @@ block_append(rb_parse_state *parse_state, NODE *head, NODE *tail)
 
 /* append item to the list */
 static NODE*
-list_append(rb_parse_state *parse_state, NODE *list, NODE *item)
+list_append(rb_parser_state *parser_state, NODE *list, NODE *item)
 {
     NODE *last;
 
@@ -10134,7 +10134,7 @@ list_concat(NODE *head, NODE *tail)
 
 /* concat two string literals */
 static NODE *
-literal_concat(rb_parse_state *parse_state, NODE *head, NODE *tail)
+literal_concat(rb_parser_state *parser_state, NODE *head, NODE *tail)
 {
     enum node_type htype;
 
@@ -10144,7 +10144,7 @@ literal_concat(rb_parse_state *parse_state, NODE *head, NODE *tail)
     htype = (enum node_type)nd_type(head);
     if (htype == NODE_EVSTR) {
         NODE *node = NEW_DSTR(string_new(0, 0));
-        head = list_append(parse_state, node, head);
+        head = list_append(parser_state, node, head);
     }
     switch (nd_type(tail)) {
       case NODE_STR:
@@ -10157,7 +10157,7 @@ literal_concat(rb_parse_state *parse_state, NODE *head, NODE *tail)
             }
         }
         else {
-            list_append(parse_state, head, tail);
+            list_append(parser_state, head, tail);
         }
         break;
 
@@ -10181,23 +10181,23 @@ literal_concat(rb_parse_state *parse_state, NODE *head, NODE *tail)
             nd_set_type(head, NODE_DSTR);
             head->nd_alen = 1;
         }
-        list_append(parse_state, head, tail);
+        list_append(parser_state, head, tail);
         break;
     }
     return head;
 }
 
 static NODE *
-evstr2dstr(rb_parse_state *parse_state, NODE *node)
+evstr2dstr(rb_parser_state *parser_state, NODE *node)
 {
     if (nd_type(node) == NODE_EVSTR) {
-        node = list_append(parse_state, NEW_DSTR(string_new(0, 0)), node);
+        node = list_append(parser_state, NEW_DSTR(string_new(0, 0)), node);
     }
     return node;
 }
 
 static NODE *
-new_evstr(rb_parse_state *parse_state, NODE *node)
+new_evstr(rb_parser_state *parser_state, NODE *node)
 {
     NODE *head = node;
 
@@ -10271,7 +10271,7 @@ static QUID convert_op(QUID id) {
 }
 
 static NODE *
-call_op(NODE *recv, QUID id, int narg, NODE *arg1, rb_parse_state *parse_state)
+call_op(NODE *recv, QUID id, int narg, NODE *arg1, rb_parser_state *parser_state)
 {
     value_expr(recv);
     if (narg == 1) {
@@ -10293,7 +10293,7 @@ call_op(NODE *recv, QUID id, int narg, NODE *arg1, rb_parse_state *parse_state)
 }
 
 static NODE*
-match_gen(NODE *node1, NODE *node2, rb_parse_state *parse_state)
+match_gen(NODE *node1, NODE *node2, rb_parser_state *parser_state)
 {
     local_cnt('~');
 
@@ -10325,7 +10325,7 @@ match_gen(NODE *node1, NODE *node2, rb_parse_state *parse_state)
 }
 
 static NODE*
-mel_gettable(rb_parse_state *parse_state, QUID id)
+mel_gettable(rb_parser_state *parser_state, QUID id)
 {
     if (id == kSELF) {
         return NEW_SELF();
@@ -10363,21 +10363,21 @@ mel_gettable(rb_parse_state *parse_state, QUID id)
         return NEW_CVAR(id);
     }
     /* FIXME: indicate which identifier. */
-    rb_compile_error(parse_state, "identifier is not valid 1\n");
+    rb_compile_error(parser_state, "identifier is not valid 1\n");
     return 0;
 }
 
 static void
-reset_block(rb_parse_state *parse_state) {
-  if(!parse_state->variables->block_vars) {
-    parse_state->variables->block_vars = var_table_create();
+reset_block(rb_parser_state *parser_state) {
+  if(!variables->block_vars) {
+    variables->block_vars = var_table_create();
   } else {
-    parse_state->variables->block_vars = var_table_push(parse_state->variables->block_vars);
+    variables->block_vars = var_table_push(variables->block_vars);
   }
 }
 
 static NODE *
-extract_block_vars(rb_parse_state *parse_state, NODE* node, var_table vars)
+extract_block_vars(rb_parser_state *parser_state, NODE* node, var_table vars)
 {
     int i;
     NODE *var, *out = node;
@@ -10392,16 +10392,16 @@ extract_block_vars(rb_parse_state *parse_state, NODE* node, var_table vars)
     for(i = 0; i < var_table_size(vars); i++) {
         var = NEW_DASGN_CURR(var_table_get(vars, i), var);
     }
-    out = block_append(parse_state, var, node);
+    out = block_append(parser_state, var, node);
 
 out:
-  parse_state->variables->block_vars = var_table_pop(parse_state->variables->block_vars);
+  variables->block_vars = var_table_pop(variables->block_vars);
 
   return out;
 }
 
 static NODE*
-assignable(QUID id, NODE *val, rb_parse_state *parse_state)
+assignable(QUID id, NODE *val, rb_parser_state *parser_state)
 {
     value_expr(val);
     if (id == kSELF) {
@@ -10423,8 +10423,8 @@ assignable(QUID id, NODE *val, rb_parse_state *parse_state)
         yyerror("Can't assign to __LINE__");
     }
     else if (is_local_id(id)) {
-        if(parse_state->variables->block_vars) {
-          var_table_add(parse_state->variables->block_vars, id);
+        if(variables->block_vars) {
+          var_table_add(variables->block_vars, id);
         }
         return NEW_LASGN(id, val);
     }
@@ -10445,13 +10445,13 @@ assignable(QUID id, NODE *val, rb_parse_state *parse_state)
     }
     else {
         /* FIXME: indicate which identifier. */
-        rb_compile_error(parse_state, "identifier is not valid 2 (%d)\n", id);
+        rb_compile_error(parser_state, "identifier is not valid 2 (%d)\n", id);
     }
     return 0;
 }
 
 static NODE *
-aryset(NODE *recv, NODE *idx, rb_parse_state *parse_state)
+aryset(NODE *recv, NODE *idx, rb_parser_state *parser_state)
 {
     if (recv && nd_type(recv) == NODE_SELF)
         recv = (NODE *)1;
@@ -10470,7 +10470,7 @@ rb_id_attrset(QUID id)
 }
 
 static NODE *
-attrset(NODE *recv, QUID id, rb_parse_state *parse_state)
+attrset(NODE *recv, QUID id, rb_parser_state *parser_state)
 {
     if (recv && nd_type(recv) == NODE_SELF)
         recv = (NODE *)1;
@@ -10480,31 +10480,31 @@ attrset(NODE *recv, QUID id, rb_parse_state *parse_state)
 }
 
 static void
-rb_backref_error(NODE *node, rb_parse_state *parse_state)
+rb_backref_error(NODE *node, rb_parser_state *parser_state)
 {
     switch (nd_type(node)) {
       case NODE_NTH_REF:
-        rb_compile_error(parse_state, "Can't set variable $%u", node->nd_nth);
+        rb_compile_error(parser_state, "Can't set variable $%u", node->nd_nth);
         break;
       case NODE_BACK_REF:
-        rb_compile_error(parse_state, "Can't set variable $%c", (int)node->nd_nth);
+        rb_compile_error(parser_state, "Can't set variable $%c", (int)node->nd_nth);
         break;
     }
 }
 
 static NODE *
-arg_concat(rb_parse_state *parse_state, NODE *node1, NODE *node2)
+arg_concat(rb_parser_state *parser_state, NODE *node1, NODE *node2)
 {
     if (!node2) return node1;
     return NEW_ARGSCAT(node1, node2);
 }
 
 static NODE *
-arg_add(rb_parse_state *parse_state, NODE *node1, NODE *node2)
+arg_add(rb_parser_state *parser_state, NODE *node1, NODE *node2)
 {
     if (!node1) return NEW_LIST(node2);
     if (nd_type(node1) == NODE_ARRAY) {
-        return list_append(parse_state, node1, node2);
+        return list_append(parser_state, node1, node2);
     }
     else {
         return NEW_ARGSPUSH(node1, node2);
@@ -10512,7 +10512,7 @@ arg_add(rb_parse_state *parse_state, NODE *node1, NODE *node2)
 }
 
 static NODE*
-node_assign(NODE *lhs, NODE *rhs, rb_parse_state *parse_state)
+node_assign(NODE *lhs, NODE *rhs, rb_parser_state *parser_state)
 {
     if (!lhs) return 0;
 
@@ -10532,7 +10532,7 @@ node_assign(NODE *lhs, NODE *rhs, rb_parse_state *parse_state)
 
       case NODE_ATTRASGN:
       case NODE_CALL:
-        lhs->nd_args = arg_add(parse_state, lhs->nd_args, rhs);
+        lhs->nd_args = arg_add(parser_state, lhs->nd_args, rhs);
         break;
 
       default:
@@ -10544,7 +10544,7 @@ node_assign(NODE *lhs, NODE *rhs, rb_parse_state *parse_state)
 }
 
 static int
-value_expr0(NODE *node, rb_parse_state *parse_state)
+value_expr0(NODE *node, rb_parser_state *parser_state)
 {
     int cond = 0;
 
@@ -10552,7 +10552,7 @@ value_expr0(NODE *node, rb_parse_state *parse_state)
         switch (nd_type(node)) {
           case NODE_DEFN:
           case NODE_DEFS:
-            parser_warning(parse_state, node, "void value expression");
+            parser_warning(parser_state, node, "void value expression");
             return FALSE;
 
           case NODE_RETURN:
@@ -10599,11 +10599,11 @@ value_expr0(NODE *node, rb_parse_state *parse_state)
 }
 
 static void
-void_expr0(NODE *node, rb_parse_state *parse_state)
+void_expr0(NODE *node, rb_parser_state *parser_state)
 {
   const char *useless = NULL;
 
-    if (!parse_state->verbose) return;
+    if (!parser_state->verbose) return;
 
   again:
     if (!node) return;
@@ -10694,9 +10694,9 @@ void_expr0(NODE *node, rb_parse_state *parse_state)
 }
 
 static void
-void_stmts(NODE *node, rb_parse_state *parse_state)
+void_stmts(NODE *node, rb_parser_state *parser_state)
 {
-    if (!parse_state->verbose) return;
+    if (!parser_state->verbose) return;
     if (!node) return;
     if (nd_type(node) != NODE_BLOCK) return;
 
@@ -10708,7 +10708,7 @@ void_stmts(NODE *node, rb_parse_state *parse_state)
 }
 
 static NODE *
-remove_begin(NODE *node, rb_parse_state *parse_state)
+remove_begin(NODE *node, rb_parser_state *parser_state)
 {
     NODE **n = &node;
     while (*n) {
@@ -10726,7 +10726,7 @@ remove_begin(NODE *node, rb_parse_state *parse_state)
 }
 
 static int
-assign_in_cond(NODE *node, rb_parse_state *parse_state)
+assign_in_cond(NODE *node, rb_parser_state *parser_state)
 {
     switch (nd_type(node)) {
       case NODE_MASGN:
@@ -10772,15 +10772,15 @@ e_option_supplied()
 }
 
 static void
-warn_unless_e_option(rb_parse_state *ps, NODE *node, const char *str)
+warn_unless_e_option(rb_parser_state *ps, NODE *node, const char *str)
 {
     if (!e_option_supplied()) parser_warning(ps, node, str);
 }
 
-static NODE *cond0(NODE *node, rb_parse_state *parse_state);
+static NODE *cond0(NODE *node, rb_parser_state *parser_state);
 
 static NODE*
-range_op(NODE *node, rb_parse_state *parse_state)
+range_op(NODE *node, rb_parser_state *parser_state)
 {
     enum node_type type;
 
@@ -10788,15 +10788,15 @@ range_op(NODE *node, rb_parse_state *parse_state)
     if (node == 0) return 0;
 
     value_expr(node);
-    node = cond0(node, parse_state);
+    node = cond0(node, parser_state);
     type = (enum node_type)nd_type(node);
     if (type == NODE_NEWLINE) {
         node = node->nd_next;
         type = (enum node_type)nd_type(node);
     }
     if (type == NODE_LIT && FIXNUM_P(node->nd_lit)) {
-        warn_unless_e_option(parse_state, node, "integer literal in conditional range");
-        return call_op(node,tEQ,1,NEW_GVAR(rb_parser_sym("$.")), parse_state);
+        warn_unless_e_option(parser_state, node, "integer literal in conditional range");
+        return call_op(node,tEQ,1,NEW_GVAR(rb_parser_sym("$.")), parser_state);
     }
     return node;
 }
@@ -10823,10 +10823,10 @@ literal_node(NODE *node)
 }
 
 static NODE*
-cond0(NODE *node, rb_parse_state *parse_state)
+cond0(NODE *node, rb_parser_state *parser_state)
 {
     if (node == 0) return 0;
-    assign_in_cond(node, parse_state);
+    assign_in_cond(node, parser_state);
 
     switch (nd_type(node)) {
       case NODE_DSTR:
@@ -10842,20 +10842,20 @@ cond0(NODE *node, rb_parse_state *parse_state)
 
       case NODE_AND:
       case NODE_OR:
-        node->nd_1st = cond0(node->nd_1st, parse_state);
-        node->nd_2nd = cond0(node->nd_2nd, parse_state);
+        node->nd_1st = cond0(node->nd_1st, parser_state);
+        node->nd_2nd = cond0(node->nd_2nd, parser_state);
         break;
 
       case NODE_DOT2:
       case NODE_DOT3:
-        node->nd_beg = range_op(node->nd_beg, parse_state);
-        node->nd_end = range_op(node->nd_end, parse_state);
+        node->nd_beg = range_op(node->nd_beg, parser_state);
+        node->nd_end = range_op(node->nd_end, parser_state);
         if (nd_type(node) == NODE_DOT2) nd_set_type(node,NODE_FLIP2);
         else if (nd_type(node) == NODE_DOT3) nd_set_type(node, NODE_FLIP3);
         if (!e_option_supplied()) {
             int b = literal_node(node->nd_beg);
             int e = literal_node(node->nd_end);
-            if ((b == 1 && e == 1) || (b + e >= 2 && parse_state->verbose)) {
+            if ((b == 1 && e == 1) || (b + e >= 2 && parser_state->verbose)) {
             }
         }
         break;
@@ -10874,19 +10874,19 @@ cond0(NODE *node, rb_parse_state *parse_state)
 }
 
 static NODE*
-cond(NODE *node, rb_parse_state *parse_state)
+cond(NODE *node, rb_parser_state *parser_state)
 {
     if (node == 0) return 0;
     value_expr(node);
     if (nd_type(node) == NODE_NEWLINE){
-        node->nd_next = cond0(node->nd_next, parse_state);
+        node->nd_next = cond0(node->nd_next, parser_state);
         return node;
     }
-    return cond0(node, parse_state);
+    return cond0(node, parser_state);
 }
 
 static NODE*
-logop(enum node_type type, NODE *left, NODE *right, rb_parse_state *parse_state)
+logop(enum node_type type, NODE *left, NODE *right, rb_parser_state *parser_state)
 {
     value_expr(left);
     if (left && nd_type(left) == type) {
@@ -10920,18 +10920,18 @@ cond_negative(NODE **nodep)
 }
 
 static void
-no_blockarg(rb_parse_state *parse_state, NODE *node)
+no_blockarg(rb_parser_state *parser_state, NODE *node)
 {
     if (node && nd_type(node) == NODE_BLOCK_PASS) {
-        rb_compile_error(parse_state, "block argument should not be given");
+        rb_compile_error(parser_state, "block argument should not be given");
     }
 }
 
 static NODE *
-ret_args(rb_parse_state *parse_state, NODE *node)
+ret_args(rb_parser_state *parser_state, NODE *node)
 {
     if (node) {
-        no_blockarg(parse_state, node);
+        no_blockarg(parser_state, node);
         if (nd_type(node) == NODE_ARRAY && node->nd_next == 0) {
             node = node->nd_head;
         }
@@ -10943,12 +10943,12 @@ ret_args(rb_parse_state *parse_state, NODE *node)
 }
 
 static NODE *
-new_yield(rb_parse_state *parse_state, NODE *node)
+new_yield(rb_parser_state *parser_state, NODE *node)
 {
     VALUE state = Qtrue;
 
     if (node) {
-        no_blockarg(parse_state, node);
+        no_blockarg(parser_state, node);
         if (nd_type(node) == NODE_ARRAY && node->nd_next == 0) {
             node = node->nd_head;
             state = Qfalse;
@@ -10974,17 +10974,17 @@ arg_blk_pass(NODE *node1, NODE *node2)
 }
 
 static NODE*
-arg_prepend(rb_parse_state *parse_state, NODE *node1, NODE *node2)
+arg_prepend(rb_parser_state *parser_state, NODE *node1, NODE *node2)
 {
     switch (nd_type(node2)) {
       case NODE_ARRAY:
         return list_concat(NEW_LIST(node1), node2);
 
       case NODE_SPLAT:
-        return arg_concat(parse_state, node1, node2->nd_head);
+        return arg_concat(parser_state, node1, node2->nd_head);
 
       case NODE_BLOCK_PASS:
-        node2->nd_body = arg_prepend(parse_state, node1, node2->nd_body);
+        node2->nd_body = arg_prepend(parser_state, node1, node2->nd_body);
         return node2;
 
       default:
@@ -10995,7 +10995,7 @@ arg_prepend(rb_parse_state *parse_state, NODE *node1, NODE *node2)
 }
 
 static NODE*
-new_call(rb_parse_state *parse_state,NODE *r,QUID m,NODE *a)
+new_call(rb_parser_state *parser_state,NODE *r,QUID m,NODE *a)
 {
     if (a && nd_type(a) == NODE_BLOCK_PASS) {
         a->nd_iter = NEW_CALL(r,convert_op(m),a->nd_head);
@@ -11005,7 +11005,7 @@ new_call(rb_parse_state *parse_state,NODE *r,QUID m,NODE *a)
 }
 
 static NODE*
-new_fcall(rb_parse_state *parse_state,QUID m,NODE *a)
+new_fcall(rb_parser_state *parser_state,QUID m,NODE *a)
 {
     if (a && nd_type(a) == NODE_BLOCK_PASS) {
         a->nd_iter = NEW_FCALL(m,a->nd_head);
@@ -11015,7 +11015,7 @@ new_fcall(rb_parse_state *parse_state,QUID m,NODE *a)
 }
 
 static NODE*
-new_super(rb_parse_state *parse_state,NODE *a)
+new_super(rb_parser_state *parser_state,NODE *a)
 {
     if (a && nd_type(a) == NODE_BLOCK_PASS) {
         a->nd_iter = NEW_SUPER(a->nd_head);
@@ -11026,27 +11026,27 @@ new_super(rb_parse_state *parse_state,NODE *a)
 
 
 static void
-mel_local_push(rb_parse_state *st, int top)
+mel_local_push(rb_parser_state *parser_state, int cnt)
 {
-    st->variables = LocalState::push(st->variables);
+    variables = LocalState::push(variables);
 }
 
 static void
-mel_local_pop(rb_parse_state *st)
+mel_local_pop(rb_parser_state *parser_state)
 {
-    st->variables = LocalState::pop(st->variables);
+    variables = LocalState::pop(variables);
 }
 
 
 static QUID*
-mel_local_tbl(rb_parse_state *st)
+mel_local_tbl(rb_parser_state *parser_state)
 {
     QUID *lcl_tbl;
     var_table tbl;
     int i, len;
-    tbl = st->variables->variables;
+    tbl = variables->local_vars;
     len = var_table_size(tbl);
-    lcl_tbl = (QUID*)pt_allocate(st, sizeof(QUID) * (len + 3));
+    lcl_tbl = (QUID*)pt_allocate(parser_state, sizeof(QUID) * (len + 3));
     lcl_tbl[0] = (QUID)len;
     lcl_tbl[1] = '_';
     lcl_tbl[2] = '~';
@@ -11057,7 +11057,7 @@ mel_local_tbl(rb_parse_state *st)
 }
 
 static intptr_t
-mel_local_cnt(rb_parse_state *st, QUID id)
+mel_local_cnt(rb_parser_state *parser_state, QUID id)
 {
     int idx;
     /* Leave these hardcoded here because they arne't REALLY ids at all. */
@@ -11070,31 +11070,31 @@ mel_local_cnt(rb_parse_state *st, QUID id)
     // if there are block variables, check to see if there is already
     // a local by this name. If not, create one in the top block_vars
     // table.
-    if(st->variables->block_vars) {
-      idx = var_table_find_chained(st->variables->block_vars, id);
+    if(variables->block_vars) {
+      idx = var_table_find_chained(variables->block_vars, id);
       if(idx >= 0) {
         return idx;
       } else {
-        return var_table_add(st->variables->block_vars, id);
+        return var_table_add(variables->block_vars, id);
       }
     }
 
-    idx = var_table_find(st->variables->variables, id);
+    idx = var_table_find(variables->local_vars, id);
     if(idx >= 0) {
       return idx + 2;
     }
 
-    return var_table_add(st->variables->variables, id);
+    return var_table_add(variables->local_vars, id);
 }
 
 static int
-mel_local_id(rb_parse_state *st, QUID id)
+mel_local_id(rb_parser_state *parser_state, QUID id)
 {
-    if(st->variables->block_vars) {
-      if(var_table_find_chained(st->variables->block_vars, id) >= 0) return 1;
+    if(variables->block_vars) {
+      if(var_table_find_chained(variables->block_vars, id) >= 0) return 1;
     }
 
-    if(var_table_find(st->variables->variables, id) >= 0) return 1;
+    if(var_table_find(variables->local_vars, id) >= 0) return 1;
     return 0;
 }
 
