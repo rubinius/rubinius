@@ -36,7 +36,8 @@ rule ".rbc" do |t|
   # Consequently, all of kernel needs to be written in the strict subset
   # of 1.8 that is understood by the 1.9 parser, plus 1.9 features.
   unless @build_parser_selected
-    Rubinius::Melbourne.select_19
+    # TODO: Until the 1.9 parser is fully functional, we have to use 1.8
+    Rubinius::Melbourne.select_18
     @build_parser_selected = true
   end
 
