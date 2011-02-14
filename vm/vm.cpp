@@ -414,7 +414,12 @@ namespace rubinius {
     Exception* exc = interrupted_exception_.get();
     if(!exc->nil_p()) {
       interrupted_exception_.set((Exception*)Qnil);
-      exc->locations(this, Location::from_call_stack(this, call_frame));
+
+      // Only write the locations if there are none.
+      if(exc->locations()->nil_p() || exc->locations()->size() == 0) {
+        exc->locations(this, Location::from_call_stack(this, call_frame));
+      }
+
       thread_state_.raise_exception(exc);
       return false;
     }
