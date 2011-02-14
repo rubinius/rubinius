@@ -323,9 +323,19 @@ class Module
       cm = Rubinius::BlockEnvironment::AsMethod.new(be)
       meth = lambda(&meth)
     when Method
-      cm = Rubinius::DelegatedMethod.new(name, :call_on_instance, meth.unbind, true)
+      exec = meth.executable
+      if exec.kind_of? Rubinius::DelegatedMethod
+        cm = exec
+      else
+        cm = Rubinius::DelegatedMethod.new(name, :call_on_instance, meth.unbind, true)
+      end
     when UnboundMethod
-      cm = Rubinius::DelegatedMethod.new(name, :call_on_instance, meth, true)
+      exec = meth.executable
+      if exec.kind_of? Rubinius::DelegatedMethod
+        cm = exec
+      else
+        cm = Rubinius::DelegatedMethod.new(name, :call_on_instance, meth, true)
+      end
     else
       raise TypeError, "wrong argument type #{meth.class} (expected Proc/Method)"
     end
