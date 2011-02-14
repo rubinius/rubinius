@@ -20,6 +20,7 @@ end
 class MSpecRun
   def custom_options(options)
     options.compiler
+    options.parser_19
     options.gc_stats
     options.profiler
   end
@@ -30,6 +31,7 @@ end
 class MSpecCI
   def custom_options(options)
     options.compiler
+    options.parser_19
     options.gc_stats
     options.profiler
   end

@@ -56,6 +56,7 @@ module Rubinius
     end
 
     def self.select_19
+      STDERR.puts "NOTE: the 1.9 parser is enable but has significant issues. You should not use it."
       remove_selected_parser
 
       alias_method :file_to_ast,   :file_to_ast_19
