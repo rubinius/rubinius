@@ -13,6 +13,8 @@ class Class
     raise TypeError, "superclass must be a Class (#{Rubinius.object_class(sup)} given)"
   end
 
+  private :set_superclass
+
   def packed!(ary)
     Ruby.primitive :class_set_packed
     raise PrimitiveFailure, "Class#pack! failed"
