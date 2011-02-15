@@ -276,6 +276,7 @@ module Rubinius
     # Optionally only consider ip's greater than +start+
     #
     # @return [Fixnum] the address of the first instruction
+    #                  OR nil if there is no ip for the given line
     def first_ip_on_line(line, start=-1)
       i = 1
       total = @lines.size
@@ -289,7 +290,7 @@ module Rubinius
         i += 2
       end
 
-      -1
+      nil
     end
 
     ##

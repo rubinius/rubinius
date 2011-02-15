@@ -234,7 +234,7 @@ class Rubinius::Debugger
     if line
       ip = exec.first_ip_on_line(line)
 
-      if ip == -1
+      if !ip
         error "Unknown line '#{line}' in method '#{method.name}'"
         return
       end
@@ -308,11 +308,10 @@ class Rubinius::Debugger
 
     if str = @file_lines[path][line - 1]
       if @variables[:highlight]
-        fin = @current_frame.method.first_ip_on_line(line + 1)
-        name = send_between(@current_frame.method, @current_frame.ip, fin)
-
-        if name
-          str = str.gsub name.to_s, "\033[0;4m#{name}\033[0m"
+        if fin = @current_frame.method.first_ip_on_line(line + 1)
+          if name = send_between(@current_frame.method, @current_frame.ip, fin)
+            str = str.gsub name.to_s, "\033[0;4m#{name}\033[0m"
+          end
         end
       end
       info "#{line}: #{str}"
@@ -351,7 +350,7 @@ class Rubinius::Debugger
     start = meth.first_ip_on_line(line)
     fin = meth.first_ip_on_line(line+1)
 
-    if fin == -1
+    if !fin
       fin = meth.iseq.size
     end
 
