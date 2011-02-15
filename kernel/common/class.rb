@@ -95,12 +95,20 @@ class Class
 
   def to_s
     if obj = __metaclass_object__
-      "#<Class: #<#{obj.class.__name__}:#{obj.object_id}>>"
+      case obj
+      when Class
+        "#<Class:#{obj.__describe__}>"
+      when Module
+        "#<Class:#{obj}>"
+      else
+        "#<Class: #<#{obj.class.__name__}:#{obj.object_id}>>"
+      end
     else
       @module_name ? @module_name.to_s : super
     end
   end
 
   alias_method :inspect, :to_s
+  alias_method :__describe__, :to_s
 
 end
