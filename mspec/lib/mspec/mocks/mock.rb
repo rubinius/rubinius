@@ -1,5 +1,5 @@
 require 'mspec/expectations/expectations'
-require 'mspec/helpers/metaclass'
+require 'mspec/helpers/singleton_class'
 
 class Object
   alias_method :__mspec_object_id__, :object_id
@@ -53,7 +53,7 @@ module Mock
   end
 
   def self.install_method(obj, sym, type=nil)
-    meta = obj.metaclass
+    meta = obj.singleton_class
 
     key = replaced_key obj, sym
     sym = sym.to_sym
@@ -179,7 +179,7 @@ module Mock
     objects.each do |key, obj|
       replaced = key.first
       sym = key.last
-      meta = obj.metaclass
+      meta = obj.singleton_class
 
       if mock_respond_to? obj, replaced
         meta.__send__ :alias_method, sym, replaced

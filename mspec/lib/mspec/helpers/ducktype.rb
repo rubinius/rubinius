@@ -1,6 +1,6 @@
 class Object
   def responds_to(sym)
-    metaclass.class_eval <<-END
+    singleton_class.class_eval <<-END
       def respond_to?(sym, include_private=false)
         sym.to_sym == #{sym.to_sym.inspect} ? true : super
       end
@@ -8,7 +8,7 @@ class Object
   end
 
   def does_not_respond_to(sym)
-    metaclass.class_eval <<-END
+    singleton_class.class_eval <<-END
       def respond_to?(sym, include_private=false)
         sym.to_sym == #{sym.to_sym.inspect} ? false : super
       end
@@ -16,7 +16,7 @@ class Object
   end
 
   def undefine(sym)
-    metaclass.class_eval <<-END
+    singleton_class.class_eval <<-END
       undef_method #{sym.to_sym.inspect}
     END
   end
@@ -24,7 +24,7 @@ class Object
   def fake!(sym, value=nil)
     responds_to sym
 
-    metaclass.class_eval <<-END
+    singleton_class.class_eval <<-END
       def method_missing(sym, *args)
         return #{value.inspect} if sym.to_sym == #{sym.to_sym.inspect}
       end
