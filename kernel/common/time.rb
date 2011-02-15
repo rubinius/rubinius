@@ -121,7 +121,7 @@ class Time
         month = 1
       end
 
-      year =   Type.num2long(first)
+      year =   first.kind_of?(String) ? first.to_i : Type.num2long(first)
       day =    args[1].kind_of?(String) ? args[1].to_i : Type.num2long(args[1] || 1)
       hour =   args[2].kind_of?(String) ? args[2].to_i : Type.num2long(args[2] || 0)
       minute = args[3].kind_of?(String) ? args[3].to_i : Type.num2long(args[3] || 0)
@@ -170,7 +170,7 @@ class Time
         month = 1
       end
 
-      year =   Type.num2long(first)
+      year =   first.kind_of?(String) ? first.to_i : Type.num2long(first)
       day =    args[1].kind_of?(String) ? args[1].to_i : Type.num2long(args[1] || 1)
       hour =   args[2].kind_of?(String) ? args[2].to_i : Type.num2long(args[2] || 0)
       minute = args[3].kind_of?(String) ? args[3].to_i : Type.num2long(args[3] || 0)
