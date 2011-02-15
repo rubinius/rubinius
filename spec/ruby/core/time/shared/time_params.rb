@@ -188,4 +188,19 @@ describe :time_params, :shared => true do
     Time.send(@method, 2008, 12, 31, 23, 59, 59, 0).wday.should == 3
     Time.send(@method, 59, 1, 2, 3, 4, 2008, :x, :x, :x, :x).wday.should == 4
   end
+
+  it "accepts a String or Integer only for arguments" do
+    Time.send(@method, "0").should == Time.send(@method, 0)
+
+    m = mock(:int)
+    m.should_receive(:to_int).and_return(0)
+
+    Time.send(@method, m).should == Time.send(@method, 0)
+  end
+
+  it "does not accept nil for params" do
+    lambda {
+      Time.send(@method, nil)
+    }.should raise_error(TypeError)
+  end
 end
