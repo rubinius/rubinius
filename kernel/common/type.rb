@@ -62,4 +62,13 @@ module Type
     end
     cmp
   end
+
+  # Maps to rb_num2long in MRI
+  def self.num2long(obj)
+    if obj == nil
+      raise TypeError, "no implicit conversion from nil to integer"
+    else
+      Integer(obj)
+    end
+  end
 end
