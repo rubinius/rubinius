@@ -49,6 +49,8 @@ namespace rubinius {
     Integer* bins_;    // slot
     Integer* entries_; // slot
 
+    void   redistribute(STATE, size_t size);
+
   public:
     /* accessors */
 
@@ -72,8 +74,6 @@ namespace rubinius {
 
     // Ruby.primitive :methodtable_duplicate
     MethodTable* duplicate(STATE);
-
-    void   redistribute(STATE, size_t size);
 
     MethodTableBucket* find_entry(STATE, Symbol* name);
     MethodTableBucket* find_entry(Symbol* name);

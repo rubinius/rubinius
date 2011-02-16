@@ -100,6 +100,8 @@ namespace rubinius {
     MethodTableBucket* entry;
     MethodTableBucket* last = NULL;
 
+    if(lock(state) != eLocked) rubinius::abort();
+
     Executable* method;
     if(exec->nil_p()) {
       method = nil<Executable>();
@@ -138,6 +140,8 @@ namespace rubinius {
     }
 
     entries(state, Fixnum::from(num_entries + 1));
+
+    unlock(state);
     return name;
   }
 
@@ -148,6 +152,8 @@ namespace rubinius {
     unsigned int num_entries, num_bins, bin;
     MethodTableBucket* entry;
     MethodTableBucket* last = NULL;
+
+    if(lock(state) != eLocked) rubinius::abort();
 
     if(Alias* alias = try_as<Alias>(orig_method)) {
       orig_method = alias->original_exec();
@@ -184,6 +190,7 @@ namespace rubinius {
     }
 
     entries(state, Fixnum::from(num_entries + 1));
+    unlock(state);
     return name;
   }
   MethodTableBucket* MethodTable::find_entry(STATE, Symbol* name) {
@@ -231,6 +238,8 @@ namespace rubinius {
     MethodTableBucket* entry;
     MethodTableBucket* last = NULL;
 
+    if(lock(state) != eLocked) rubinius::abort();
+
     size_t num_entries = entries_->to_native();
     size_t num_bins = bins_->to_native();
 
@@ -256,6 +265,8 @@ namespace rubinius {
       last = entry;
       entry = try_as<MethodTableBucket>(entry->next());
     }
+
+    unlock(state);
 
     return nil<Executable>();
   }
