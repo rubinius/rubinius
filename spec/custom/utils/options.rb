@@ -10,6 +10,7 @@ class MSpecOptions
   def parser_19
     on("--parser-1.9", "Run the compiler specs with the 1.9 parser") do
       require 'spec/custom/matchers/compile_as_19'
+      config[:parser_19] = true
     end
   end
 

@@ -4,6 +4,7 @@ class MSpecScript
   def custom_register
     GCStatsAction.new.register if config[:gc_stats]
     ProfilerAction.new.register if config[:profiler]
+    Parser19Action.new.register if config[:parser_19]
   end
 end
 
