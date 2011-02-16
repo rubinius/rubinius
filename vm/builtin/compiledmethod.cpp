@@ -100,9 +100,12 @@ namespace rubinius {
   }
 
   VMMethod* CompiledMethod::internalize(STATE, const char** reason, int* ip) {
-    if(!backend_method_) {
+    VMMethod* vmm = backend_method_;
+    atomic::memory_barrier();
+    if(!vmm) {
       if(lock(state) != eLocked) rubinius::abort();
-      if(!backend_method_) {
+      vmm = backend_method_;
+      if(!vmm) {
         {
           BytecodeVerification bv(this);
           if(!bv.verify(state)) {
@@ -113,21 +116,23 @@ namespace rubinius {
           }
         }
 
-        VMMethod* vmm = NULL;
         vmm = new VMMethod(state, this);
 
         if(!resolve_primitive(state)) {
           vmm->setup_argument_handler(this);
         }
 
+        // We need to have an explicit memory barrier here, because we need to
+        // be sure that vmm is completely initialized before it's set.
+        // Otherwise another thread might see a partially initialized
+        // VMMethod.
         atomic::memory_barrier();
         backend_method_ = vmm;
       }
 
       unlock(state);
     }
-    atomic::memory_barrier();
-    return backend_method_;
+    return vmm;
   }
 
   Object* CompiledMethod::primitive_failed(STATE, CallFrame* call_frame,
