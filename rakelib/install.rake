@@ -95,6 +95,7 @@ namespace :install do
 
       FileList[
         'runtime/index',
+        'runtime/signature',
         'runtime/platform.conf',
         'runtime/**/*.rb{a,c}',
         'runtime/**/load_order.txt'

@@ -508,8 +508,8 @@ namespace rubinius {
     std::string dirs = root + "/index";
     std::ifstream stream(dirs.c_str());
     if(!stream) {
-      std::cerr << "It appears that " << root << "/index is missing.\n";
-      exit(1);
+      std::string error = "Unable to load kernel index: " + root;
+      throw std::runtime_error(error);
     }
 
     // Load the ruby file to prepare for bootstrapping Ruby!
@@ -526,7 +526,8 @@ namespace rubinius {
                        Integer::from(state, signature_));
       sig_stream.close();
     } else {
-      G(rubinius)->set_const(state, "Signature", Integer::from(state, 0));
+      std::string error = "Unable to load compiler signature file: " + sig_path;
+      throw std::runtime_error(error);
     }
 
     // Load alpha
