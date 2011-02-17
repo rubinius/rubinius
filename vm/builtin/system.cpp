@@ -352,7 +352,7 @@ namespace rubinius {
     return NULL;
   }
 
-  Fixnum* System::vm_fork(VM* state)
+  Fixnum* System::vm_fork(VM* state, CallFrame* calling_environment)
   {
 #ifdef RBX_WINDOWS
     // TODO: Windows
@@ -361,7 +361,10 @@ namespace rubinius {
     int result = 0;
 
 #ifdef ENABLE_LLVM
-    LLVMState::pause(state);
+    {
+      GCIndependent guard(state, calling_environment);
+      LLVMState::pause(state);
+    }
 #endif
 
     // ok, now fork!
@@ -381,7 +384,10 @@ namespace rubinius {
 #endif
     } else {
 #ifdef ENABLE_LLVM
+    {
+      GCIndependent guard(state, calling_environment);
       LLVMState::unpause(state);
+    }
 #endif
     }
 
