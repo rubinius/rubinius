@@ -311,6 +311,32 @@ namespace rubinius {
 
     state->set_const("ARGV", ary);
 
+    // Parse -X options from RBXOPT environment variable
+
+    char* rbxopt = getenv("RBXOPT");
+    if(rbxopt) {
+      char *e, *b = rbxopt = strdup(rbxopt);
+      char *s = b + strlen(rbxopt);
+
+      while(b < s) {
+        while(*b && isspace(*b)) s++;
+
+        e = b;
+        while(*e && !isspace(*e)) e++;
+
+        int len;
+        if((len = e - b) > 0) {
+          if(strncmp(b, "-X", 2) == 0) {
+            *e = 0;
+            config_parser.import_line(b + 2);
+          }
+          b = e + 1;
+        }
+      }
+
+      free(rbxopt);
+    }
+
     // Now finish up with the config
 
     config_parser.update_configuration(config);
