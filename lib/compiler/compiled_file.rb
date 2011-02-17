@@ -39,7 +39,7 @@ module Rubinius
       File.open(file, "w") do |f|
         new("!RBIX", Rubinius::Signature, "x").encode_to(f, cm)
       end
-    rescue Errno::EACCES
+    rescue SystemCallError
       # just skip writing the compiled file if we don't have permissions
     end
 

@@ -125,7 +125,7 @@ class Dir
       def call(env, path)
         begin
           dir = Dir.new(path ? path : ".")
-        rescue Errno::EACCES
+        rescue SystemCallError
           return
         end
 
