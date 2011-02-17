@@ -293,7 +293,7 @@ namespace rubinius {
             state = cPaused;
 
             paused_ = true;
-            pause_condition_.signal();
+            pause_condition_.broadcast();
 
             while(pause_) {
               condition_.wait(mutex_);
