@@ -8,6 +8,9 @@
 #include <sys/types.h>
 #include <netdb.h>
 #include <sys/un.h>
+#ifdef __OpenBSD__
+#include <sys/uio.h>
+#endif
 
 #include "builtin/io.hpp"
 #include "builtin/bytearray.hpp"
