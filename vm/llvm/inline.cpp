@@ -748,6 +748,12 @@ remember:
       }
     }
 
+    Signature check(ops_.state(), ops_.NativeIntTy);
+    check << "VM";
+
+    Value* check_args[] = { ops_.vm() };
+    check.call("rbx_enter_unmanaged", check_args, 1, "unused", ops_.b());
+
     const Type* return_type = find_type(ops_, nf->ffi_data->ret_type);
 
     FunctionType* ft = FunctionType::get(return_type, ffi_type, false);
@@ -862,6 +868,8 @@ remember:
       abort();
 
     }
+
+    check.call("rbx_exit_unmanaged", check_args, 1, "unused", ops_.b());
 
     exception_safe();
     set_result(result);

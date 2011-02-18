@@ -746,6 +746,16 @@ extern "C" {
     return Qtrue;
   }
 
+  int rbx_enter_unmanaged(STATE) {
+    state->global_lock().drop();
+    return 0;
+  }
+
+  int rbx_exit_unmanaged(STATE) {
+    state->global_lock().take();
+    return 0;
+  }
+
   bool rbx_return_to_here(STATE, CallFrame* call_frame) {
     ThreadState* th = state->thread_state();
     if(th->raise_reason() != cReturn) return false;
