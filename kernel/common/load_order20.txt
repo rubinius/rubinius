@@ -55,6 +55,7 @@ errno.rbc
 eval.rbc
 false.rbc
 fiber.rbc
+fiber19.rbc
 io.rbc
 io19.rbc
 file.rbc
