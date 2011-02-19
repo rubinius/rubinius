@@ -62,7 +62,7 @@ module Rubinius
       @main_lib = nil
 
       if env_lib = ENV['RBX_LIB']
-        @main_lib = env_lib if File.exists?(env_lib)
+        @main_lib = File.expand_path(env_lib) if File.exists?(env_lib)
       end
 
       # Use the env version if it's set.
@@ -91,7 +91,7 @@ containing the Rubinius standard library files.
       else
         version_lib = "/18"
       end
-      additions << Rubinius::LIB_PATH + version_lib
+      additions << @main_lib + version_lib
       additions << Rubinius::SITE_PATH
       additions << "#{Rubinius::SITE_PATH}/#{Rubinius::CPU}-#{Rubinius::OS}"
       additions << Rubinius::VENDOR_PATH
