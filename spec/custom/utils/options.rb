@@ -14,6 +14,12 @@ class MSpecOptions
     end
   end
 
+  def memory
+    on("--memory", "Display total memory in use before exiting") do
+      config[:memory] = true
+    end
+  end
+
   def gc_stats
     on("--gc-stats", "Show GC stats at the end") do
       config[:gc_stats] = true
