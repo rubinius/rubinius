@@ -24,6 +24,15 @@ describe "Module#attr_writer" do
     o.instance_variable_get(:@test2).should == "test_2 updated"
   end
 
+  it "allows for adding an attr_writer to an immediate" do
+    class Integer
+      attr_writer :spec_attr_writer
+    end
+
+    1.spec_attr_writer = "a"
+    1.instance_variable_get("@spec_attr_writer").should == "a"
+  end
+
   ruby_version_is ""..."1.9" do
     not_compliant_on :rubinius do
       it "creates a setter for an attribute name given as a Fixnum" do
