@@ -216,7 +216,7 @@ module FileUtils
         begin
           fu_mkdir path, options[:mode]
         rescue SystemCallError => err
-          raise(err) unless File.directory?(path)
+          raise unless File.directory?(path)
         end
       end
     end
@@ -418,6 +418,7 @@ module FileUtils
     fu_check_options options, OPT_TABLE['cp_r']
     fu_output_message "cp -r#{options[:preserve] ? 'p' : ''}#{options[:remove_destination] ? ' --remove-destination' : ''} #{[src,dest].flatten.join ' '}" if options[:verbose]
     return if options[:noop]
+    options = options.dup
     options[:dereference_root] = true unless options.key?(:dereference_root)
     fu_each_src_dest(src, dest) do |s, d|
       copy_entry s, d, options[:preserve], options[:dereference_root], options[:remove_destination]
@@ -657,10 +658,10 @@ module FileUtils
   # removing directories.  This requires the current process is the
   # owner of the removing whole directory tree, or is the super user (root).
   #
-  # WARNING: You must ensure that *ALL* parent directories are not
-  # world writable.  Otherwise this method does not work.
-  # Only exception is temporary directory like /tmp and /var/tmp,
-  # whose permission is 1777.
+  # WARNING: You must ensure that *ALL* parent directories cannot be
+  # moved by other untrusted users.  For example, parent directories
+  # should not be owned by untrusted users, and should not be world
+  # writable except when the sticky bit set.
   #
   # WARNING: Only the owner of the removing directory tree, or Unix super
   # user (root) should invoke this method.  Otherwise this method does not
@@ -703,6 +704,11 @@ module FileUtils
       end
       f.chown euid, -1
       f.chmod 0700
+      unless fu_stat_identical_entry?(st, File.lstat(fullpath))
+        # TOC-to-TOU attack?
+        File.unlink fullpath
+        return
+      end
     }
     # ---- tree root is frozen ----
     root = Entry_.new(path)
@@ -984,6 +990,7 @@ module FileUtils
 
     def fu_get_gid(group)   #:nodoc:
       return nil unless group
+      group = group.to_s
       if /\A\d+\z/ =~ group
       then group.to_i
       else Etc.getgrnam(group).gid
@@ -1345,7 +1352,7 @@ module FileUtils
 
     def have_lchmod?
       # This is not MT-safe, but it does not matter.
-      if $fileutils_rb_have_lchmod.nil?
+      if $fileutils_rb_have_lchmod == nil
         $fileutils_rb_have_lchmod = check_have_lchmod?
       end
       $fileutils_rb_have_lchmod
@@ -1363,7 +1370,7 @@ module FileUtils
 
     def have_lchown?
       # This is not MT-safe, but it does not matter.
-      if $fileutils_rb_have_lchown.nil?
+      if $fileutils_rb_have_lchown == nil
         $fileutils_rb_have_lchown = check_have_lchown?
       end
       $fileutils_rb_have_lchown
