@@ -65,6 +65,7 @@ tmtags
 
 /vm/log
 /vm/.deps
+/vm/vm.exe
 
 /kernel/signature.rb
 
