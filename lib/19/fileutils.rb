@@ -1,7 +1,7 @@
 #
 # = fileutils.rb
 #
-# Copyright (c) 2000-2006 Minero Aoki
+# Copyright (c) 2000-2007 Minero Aoki
 #
 # This program is free software.
 # You can distribute/modify this program under the same terms of ruby.
@@ -212,11 +212,11 @@ module FileUtils
         stack.push path
         path = File.dirname(path)
       end
-      stack.reverse_each do |path|
+      stack.reverse_each do |dir|
         begin
-          fu_mkdir path, options[:mode]
-        rescue SystemCallError => err
-          raise(err) unless File.directory?(path)
+          fu_mkdir dir, options[:mode]
+        rescue SystemCallError
+          raise unless File.directory?(dir)
         end
       end
     end
@@ -258,15 +258,24 @@ module FileUtils
   def rmdir(list, options = {})
     fu_check_options options, OPT_TABLE['rmdir']
     list = fu_list(list)
-    fu_output_message "rmdir #{list.join ' '}" if options[:verbose]
+    parents = options[:parents]
+    fu_output_message "rmdir #{parents ? '-p ' : ''}#{list.join ' '}" if options[:verbose]
     return if options[:noop]
     list.each do |dir|
-      Dir.rmdir dir.sub(%r</\z>, '')
+      begin
+        Dir.rmdir(dir = dir.sub(%r</\z>, ''))
+        if parents
+          until (parent = File.dirname(dir)) == '.' or parent == dir
+            Dir.rmdir(dir)
+          end
+        end
+      rescue Errno::ENOTEMPTY, Errno::ENOENT
+      end
     end
   end
   module_function :rmdir
 
-  OPT_TABLE['rmdir'] = [:noop, :verbose]
+  OPT_TABLE['rmdir'] = [:parents, :noop, :verbose]
 
   #
   # Options: force noop verbose
@@ -418,6 +427,7 @@ module FileUtils
     fu_check_options options, OPT_TABLE['cp_r']
     fu_output_message "cp -r#{options[:preserve] ? 'p' : ''}#{options[:remove_destination] ? ' --remove-destination' : ''} #{[src,dest].flatten.join ' '}" if options[:verbose]
     return if options[:noop]
+    options = options.dup
     options[:dereference_root] = true unless options.key?(:dereference_root)
     fu_each_src_dest(src, dest) do |s, d|
       copy_entry s, d, options[:preserve], options[:dereference_root], options[:remove_destination]
@@ -471,7 +481,7 @@ module FileUtils
   # +dest+ must respond to #write(str).
   #
   def copy_stream(src, dest)
-    fu_copy_stream0 src, dest, fu_stream_blksize(src, dest)
+    IO.copy_stream(src, dest)
   end
   module_function :copy_stream
 
@@ -479,7 +489,7 @@ module FileUtils
   # Options: force noop verbose
   #
   # Moves file(s) +src+ to +dest+.  If +file+ and +dest+ exist on the different
-  # disk partition, the file is copied instead.
+  # disk partition, the file is copied then the original file is removed.
   #
   #   FileUtils.mv 'badname.rb', 'goodname.rb'
   #   FileUtils.mv 'stuff.rb', '/notexist/lib/ruby', :force => true  # no error
@@ -525,7 +535,7 @@ module FileUtils
   OPT_TABLE['move'] = [:force, :noop, :verbose, :secure]
 
   def rename_cannot_overwrite_file?   #:nodoc:
-    /djgpp|cygwin|mswin|mingw|bccwin|wince|emx/ =~ RUBY_PLATFORM
+    /cygwin|mswin|mingw|bccwin|emx/ =~ RUBY_PLATFORM
   end
   private_module_function :rename_cannot_overwrite_file?
 
@@ -657,10 +667,10 @@ module FileUtils
   # removing directories.  This requires the current process is the
   # owner of the removing whole directory tree, or is the super user (root).
   #
-  # WARNING: You must ensure that *ALL* parent directories are not
-  # world writable.  Otherwise this method does not work.
-  # Only exception is temporary directory like /tmp and /var/tmp,
-  # whose permission is 1777.
+  # WARNING: You must ensure that *ALL* parent directories cannot be
+  # moved by other untrusted users.  For example, parent directories
+  # should not be owned by untrusted users, and should not be world
+  # writable except when the sticky bit set.
   #
   # WARNING: Only the owner of the removing directory tree, or Unix super
   # user (root) should invoke this method.  Otherwise this method does not
@@ -686,7 +696,7 @@ module FileUtils
     end
     # is a directory.
     parent_st = File.stat(File.dirname(fullpath))
-    unless fu_world_writable?(parent_st)
+    unless parent_st.world_writable?
       remove_entry path, force
       return
     end
@@ -703,6 +713,11 @@ module FileUtils
       end
       f.chown euid, -1
       f.chmod 0700
+      unless fu_stat_identical_entry?(st, File.lstat(fullpath))
+        # TOC-to-TOU attack?
+        File.unlink fullpath
+        return
+      end
     }
     # ---- tree root is frozen ----
     root = Entry_.new(path)
@@ -723,11 +738,6 @@ module FileUtils
     raise unless force
   end
   module_function :remove_entry_secure
-
-  def fu_world_writable?(st)
-    (st.mode & 0002) != 0
-  end
-  private_module_function :fu_world_writable?
 
   def fu_have_symlink?   #:nodoc
     File.symlink nil, nil
@@ -837,10 +847,9 @@ module FileUtils
     fu_check_options options, OPT_TABLE['install']
     fu_output_message "install -c#{options[:preserve] && ' -p'}#{options[:mode] ? (' -m 0%o' % options[:mode]) : ''} #{[src,dest].flatten.join ' '}" if options[:verbose]
     return if options[:noop]
-    fu_each_src_dest(src, dest) do |s, d|
+    fu_each_src_dest(src, dest) do |s, d, st|
       unless File.exist?(d) and compare_file(s, d)
         remove_file d, true
-        st = File.stat(s) if options[:preserve]
         copy_file s, d
         File.utime st.atime, st.mtime, d if options[:preserve]
         File.chmod options[:mode], d if options[:mode]
@@ -974,19 +983,26 @@ module FileUtils
 
     def fu_get_uid(user)   #:nodoc:
       return nil unless user
-      user = user.to_s
-      if /\A\d+\z/ =~ user
-      then user.to_i
-      else Etc.getpwnam(user).uid
+      case user
+      when Integer
+        user
+      when /\A\d+\z/
+        user.to_i
+      else
+        Etc.getpwnam(user).uid
       end
     end
     private_module_function :fu_get_uid
 
     def fu_get_gid(group)   #:nodoc:
       return nil unless group
-      if /\A\d+\z/ =~ group
-      then group.to_i
-      else Etc.getgrnam(group).gid
+      case group
+      when Integer
+        group
+      when /\A\d+\z/
+        group.to_i
+      else
+        Etc.getgrnam(group).gid
       end
     end
     private_module_function :fu_get_gid
@@ -1047,14 +1063,11 @@ module FileUtils
     private
 
     def fu_windows?
-      /mswin|mingw|bccwin|wince|emx/ =~ RUBY_PLATFORM
+      /mswin|mingw|bccwin|emx/ =~ RUBY_PLATFORM
     end
 
-    def fu_copy_stream0(src, dest, blksize)   #:nodoc:
-      # FIXME: readpartial?
-      while s = src.read(blksize)
-        dest.write s
-      end
+    def fu_copy_stream0(src, dest, blksize = nil)   #:nodoc:
+      IO.copy_stream(src, dest)
     end
 
     def fu_stream_blksize(*streams)
@@ -1103,7 +1116,7 @@ module FileUtils
 
     def path
       if @path
-        @path.to_str
+        File.path(@path)
       else
         join(@prefix, @rel)
       end
@@ -1168,7 +1181,9 @@ module FileUtils
     end
 
     def entries
-      Dir.entries(path())\
+      opts = {}
+      opts[:encoding] = "UTF-8" if /mswin|mignw/ =~ RUBY_PLATFORM
+      Dir.entries(path(), opts)\
           .reject {|n| n == '.' or n == '..' }\
           .map {|n| Entry_.new(prefix(), join(rel(), n.untaint)) }
     end
@@ -1230,6 +1245,9 @@ module FileUtils
       when file?
         copy_file dest
       when directory?
+        if !File.exist?(dest) and descendant_diretory?(dest, path)
+          raise ArgumentError, "cannot copy directory %s to itself %s" % [path, dest]
+        end
         begin
           Dir.mkdir dest
         rescue
@@ -1257,12 +1275,11 @@ module FileUtils
     end
 
     def copy_file(dest)
-      st = stat()
-      File.open(path(),  'rb') {|r|
-        File.open(dest, 'wb', st.mode) {|w|
-          fu_copy_stream0 r, w, (fu_blksize(st) || fu_default_blksize())
-        }
-      }
+      File.open(path()) do |s|
+        File.open(dest, 'wb') do |f|
+          IO.copy_stream(s, f)
+        end
+      end
     end
 
     def copy_metadata(path)
@@ -1345,7 +1362,7 @@ module FileUtils
 
     def have_lchmod?
       # This is not MT-safe, but it does not matter.
-      if $fileutils_rb_have_lchmod.nil?
+      if $fileutils_rb_have_lchmod == nil
         $fileutils_rb_have_lchmod = check_have_lchmod?
       end
       $fileutils_rb_have_lchmod
@@ -1363,7 +1380,7 @@ module FileUtils
 
     def have_lchown?
       # This is not MT-safe, but it does not matter.
-      if $fileutils_rb_have_lchown.nil?
+      if $fileutils_rb_have_lchown == nil
         $fileutils_rb_have_lchown = check_have_lchown?
       end
       $fileutils_rb_have_lchown
@@ -1378,59 +1395,57 @@ module FileUtils
     end
 
     def join(dir, base)
-      return dir.to_str if not base or base == '.'
-      return base.to_str if not dir or dir == '.'
+      return File.path(dir) if not base or base == '.'
+      return File.path(base) if not dir or dir == '.'
       File.join(dir, base)
+    end
+
+    if File::ALT_SEPARATOR
+      DIRECTORY_TERM = "(?=[/#{Regexp.quote(File::ALT_SEPARATOR)}]|\\z)".freeze
+    else
+      DIRECTORY_TERM = "(?=/|\\z)".freeze
+    end
+    SYSCASE = File::FNM_SYSCASE.nonzero? ? "-i" : ""
+
+    def descendant_diretory?(descendant, ascendant)
+      /\A(?#{SYSCASE}:#{Regexp.quote(ascendant)})#{DIRECTORY_TERM}/ =~ File.dirname(descendant)
     end
   end   # class Entry_
 
   def fu_list(arg)   #:nodoc:
-    [arg].flatten.map {|path| path.to_str }
+    [arg].flatten.map {|path| File.path(path) }
   end
   private_module_function :fu_list
 
   def fu_each_src_dest(src, dest)   #:nodoc:
     fu_each_src_dest0(src, dest) do |s, d|
       raise ArgumentError, "same file: #{s} and #{d}" if fu_same?(s, d)
-      yield s, d
+      yield s, d, File.stat(s)
     end
   end
   private_module_function :fu_each_src_dest
 
   def fu_each_src_dest0(src, dest)   #:nodoc:
-    if src.is_a?(Array)
-      src.each do |s|
-        s = s.to_str
+    if tmp = Array.try_convert(src)
+      tmp.each do |s|
+        s = File.path(s)
         yield s, File.join(dest, File.basename(s))
       end
     else
-      src = src.to_str
+      src = File.path(src)
       if File.directory?(dest)
         yield src, File.join(dest, File.basename(src))
       else
-        yield src, dest.to_str
+        yield src, File.path(dest)
       end
     end
   end
   private_module_function :fu_each_src_dest0
 
   def fu_same?(a, b)   #:nodoc:
-    if fu_have_st_ino?
-      st1 = File.stat(a)
-      st2 = File.stat(b)
-      st1.dev == st2.dev and st1.ino == st2.ino
-    else
-      File.expand_path(a) == File.expand_path(b)
-    end
-  rescue Errno::ENOENT
-    return false
+    File.identical?(a, b)
   end
   private_module_function :fu_same?
-
-  def fu_have_st_ino?   #:nodoc:
-    not fu_windows?
-  end
-  private_module_function :fu_have_st_ino?
 
   def fu_check_options(options, optdecl)   #:nodoc:
     h = options.dup
@@ -1442,8 +1457,8 @@ module FileUtils
   private_module_function :fu_check_options
 
   def fu_update_option(args, new)   #:nodoc:
-    if args.last.is_a?(Hash)
-      args[-1] = args.last.dup.update(new)
+    if tmp = Hash.try_convert(args.last)
+      args[-1] = tmp.dup.update(new)
     else
       args.push new
     end
@@ -1509,9 +1524,7 @@ module FileUtils
     OPT_TABLE.keys.select {|m| OPT_TABLE[m].include?(opt) }
   end
 
-  # NOTE: Modified from the original to be compatible with both Ruby 1.8 and 1.9
-  # in which #singleton_methods return strings or symbols
-  METHODS = singleton_methods.map{|m| m.to_sym} - [:private_module_function,
+  METHODS = singleton_methods() - [:private_module_function,
       :commands, :options, :have_option?, :options_of, :collect_method]
 
   #
