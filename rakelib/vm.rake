@@ -270,10 +270,10 @@ def ld(t)
   l  = ex_libs.join(' ')
 
   if $verbose
-    sh "#{ld} #{link_opts} -o #{t.name} #{o} #{l}"
+    sh "#{ld} -o #{t.name} #{o} #{l} #{link_opts}"
   else
     puts "LD #{t.name}"
-    sh "#{ld} #{link_opts} -o #{t.name} #{o} #{l}", :verbose => false
+    sh "#{ld} -o #{t.name} #{o} #{l} #{link_opts}", :verbose => false
   end
 end
 
