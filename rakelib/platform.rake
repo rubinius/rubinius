@@ -1,13 +1,11 @@
-require 'lib/ffi/struct_generator'
-require 'lib/ffi/const_generator'
-require 'lib/ffi/types_generator'
+require File.expand_path('../../lib/ffi/generators', __FILE__)
 
 deps = %w[Rakefile rakelib/platform.rake] + Dir['lib/ffi/*rb']
 
 file 'runtime/platform.conf' => deps do |task|
   puts "GEN runtime/platform.conf"
 
-  addrinfo = FFI::StructGenerator.new 'addrinfo' do |s|
+  addrinfo = FFI::Generators::Structures.new 'addrinfo' do |s|
     s.include 'sys/socket.h'
     s.include 'netdb.h'
     s.name 'struct addrinfo'
@@ -21,7 +19,7 @@ file 'runtime/platform.conf' => deps do |task|
     s.field :ai_next, :pointer
   end
 
-  dirent = FFI::StructGenerator.new 'dirent' do |s|
+  dirent = FFI::Generators::Structures.new 'dirent' do |s|
     s.include "sys/types.h"
     s.include "dirent.h"
     s.name 'struct dirent'
@@ -30,14 +28,14 @@ file 'runtime/platform.conf' => deps do |task|
     s.field :d_name, :char_array
   end
 
-  timeval = FFI::StructGenerator.new 'timeval' do |s|
+  timeval = FFI::Generators::Structures.new 'timeval' do |s|
     s.include "sys/time.h"
     s.name 'struct timeval'
     s.field :tv_sec, :time_t
     s.field :tv_usec, :suseconds_t
   end
 
-  sockaddr_in = FFI::StructGenerator.new 'sockaddr_in' do |s|
+  sockaddr_in = FFI::Generators::Structures.new 'sockaddr_in' do |s|
     s.include "netinet/in.h"
     s.include "fcntl.h"
     s.include "sys/socket.h"
@@ -49,14 +47,14 @@ file 'runtime/platform.conf' => deps do |task|
     s.field :sin_zero, :char_array
   end
 
-  sockaddr_un = FFI::StructGenerator.new 'sockaddr_un' do |s|
+  sockaddr_un = FFI::Generators::Structures.new 'sockaddr_un' do |s|
     s.include "sys/un.h"
     s.name 'struct sockaddr_un'
     s.field :sun_family, :sa_family_t
     s.field :sun_path, :char_array
   end
 
-  servent = FFI::StructGenerator.new 'servent' do |s|
+  servent = FFI::Generators::Structures.new 'servent' do |s|
     s.include "netdb.h"
     s.name 'struct servent'
     s.field :s_name, :pointer
@@ -65,7 +63,7 @@ file 'runtime/platform.conf' => deps do |task|
     s.field :s_proto, :pointer
   end
 
-  stat = FFI::StructGenerator.new 'stat' do |s|
+  stat = FFI::Generators::Structures.new 'stat' do |s|
     s.include "sys/types.h"
     s.include "sys/stat.h"
     s.include "unistd.h"
@@ -86,7 +84,7 @@ file 'runtime/platform.conf' => deps do |task|
     s.field :st_ctime, :time_t
   end
 
-  rlimit = FFI::StructGenerator.new 'rlimit' do |s|
+  rlimit = FFI::Generators::Structures.new 'rlimit' do |s|
     s.include "sys/types.h"
     s.include "sys/time.h"
     s.include "sys/resource.h"
@@ -107,7 +105,7 @@ file 'runtime/platform.conf' => deps do |task|
     BINARY
   }
 
-  file_cg = FFI::ConstGenerator.new 'rbx.platform.file' do |cg|
+  file_cg = FFI::Generators::Constants.new 'rbx.platform.file' do |cg|
     cg.include 'stdio.h'
     cg.include 'fcntl.h'
     cg.include 'sys/stat.h'
@@ -149,7 +147,7 @@ file 'runtime/platform.conf' => deps do |task|
     file_constants.each { |c| cg.const c }
   end
 
-  io_cg = FFI::ConstGenerator.new 'rbx.platform.io' do |cg|
+  io_cg = FFI::Generators::Constants.new 'rbx.platform.io' do |cg|
     cg.include 'stdio.h'
 
     io_constants = %w[
@@ -162,7 +160,7 @@ file 'runtime/platform.conf' => deps do |task|
   end
 
   # Only constants needed by core are added here
-  fcntl_cg = FFI::ConstGenerator.new 'rbx.platform.fcntl' do |cg|
+  fcntl_cg = FFI::Generators::Constants.new 'rbx.platform.fcntl' do |cg|
     cg.include 'fcntl.h'
 
     fcntl_constants = %w[
@@ -174,7 +172,7 @@ file 'runtime/platform.conf' => deps do |task|
     fcntl_constants.each { |c| cg.const c }
   end
 
-  socket_cg = FFI::ConstGenerator.new 'rbx.platform.socket' do |cg|
+  socket_cg = FFI::Generators::Constants.new 'rbx.platform.socket' do |cg|
     cg.include 'sys/types.h'
     cg.include 'sys/socket.h'
     cg.include 'netdb.h'
@@ -424,7 +422,7 @@ file 'runtime/platform.conf' => deps do |task|
     socket_constants.each { |c| cg.const c }
   end
 
-  process_cg = FFI::ConstGenerator.new 'rbx.platform.process' do |cg|
+  process_cg = FFI::Generators::Constants.new 'rbx.platform.process' do |cg|
     cg.include 'sys/wait.h'
     cg.include 'sys/resource.h'
     cg.include 'stdlib.h'
@@ -467,7 +465,7 @@ file 'runtime/platform.conf' => deps do |task|
   # The constants come from MRI's signal.c. This means that some of them might
   # be missing.
 
-  signal_cg = FFI::ConstGenerator.new 'rbx.platform.signal' do |cg|
+  signal_cg = FFI::Generators::Constants.new 'rbx.platform.signal' do |cg|
     cg.include 'signal.h'
     cg.include 'sys/signal.h'
 
@@ -521,7 +519,7 @@ file 'runtime/platform.conf' => deps do |task|
     signal_constants.each { |c| cg.const c }
   end
 
-  zlib_cg = FFI::ConstGenerator.new 'rbx.platform.zlib' do |cg|
+  zlib_cg = FFI::Generators::Constants.new 'rbx.platform.zlib' do |cg|
     cg.include 'zlib.h'
 
     zlib_constants = %w[ZLIB_VERSION]
@@ -529,7 +527,7 @@ file 'runtime/platform.conf' => deps do |task|
     zlib_constants.each { |c| cg.const c, "%s", "(char *)" }
   end
 
-  dlopen_cg = FFI::ConstGenerator.new 'rbx.platform.dlopen' do |cg|
+  dlopen_cg = FFI::Generators::Constants.new 'rbx.platform.dlopen' do |cg|
     cg.include 'dlfcn.h'
 
     dlopen_constants = %w[
@@ -544,26 +542,26 @@ file 'runtime/platform.conf' => deps do |task|
 
   puts "Generating #{task.name}..." if $verbose
 
-  File.open task.name, "w" do |f|
-    addrinfo.dump_config f
-    dirent.dump_config f
-    timeval.dump_config f
-    sockaddr_in.dump_config f
-    sockaddr_un.dump_config f if sockaddr_un.found?
-    servent.dump_config f
-    stat.dump_config f
-    rlimit.dump_config f
+  File.open task.name, "wb" do |f|
+    addrinfo.write_config f
+    dirent.write_config f
+    timeval.write_config f
+    sockaddr_in.write_config f
+    sockaddr_un.write_config f if sockaddr_un.found?
+    servent.write_config f
+    stat.write_config f
+    rlimit.write_config f
 
-    file_cg.dump_constants f
-    io_cg.dump_constants f
-    fcntl_cg.dump_constants f
-    socket_cg.dump_constants f
-    process_cg.dump_constants f
-    signal_cg.dump_constants f
-    zlib_cg.dump_constants f
-    dlopen_cg.dump_constants f
+    file_cg.write_constants f
+    io_cg.write_constants f
+    fcntl_cg.write_constants f
+    socket_cg.write_constants f
+    process_cg.write_constants f
+    signal_cg.write_constants f
+    zlib_cg.write_constants f
+    dlopen_cg.write_constants f
 
-    f.puts FFI::TypesGenerator.generate
+    f.puts FFI::Generators::Types.new.generate
   end
 
 end

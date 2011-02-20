@@ -136,7 +136,7 @@ namespace :build do
     # Generate the .rb files from lib/*.rb.ffi
     task :preprocessor => FFI_PREPROCESSABLES
 
-    FFI::Generator::Task.new FFI_PREPROCESSABLES
+    FFI::FileProcessor::Task.new FFI_PREPROCESSABLES
 
   end
 
