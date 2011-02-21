@@ -378,7 +378,7 @@ a.instruction:hover {
   -moz-border-radius: 0.1em;
   -webkit-border-radius: 0.1em;
   font-family: 'Courier New', Courier;
-};
+}
 
 .blog_posts h2.post_title {
   margin-bottom: 0.25em;
@@ -395,8 +395,29 @@ a.instruction:hover {
   color: white;
 }
 
-.blog_posts h2.post_title {
-  margin-bottom: 0.25em;
+.blog_posts blockquote {
+  font-style: normal;
+}
+
+a.anchor_title {
+  font-weight: bold;
+  letter-spacing: -0.04em;
+  color: black;
+  margin-left: -0.25em;
+}
+
+a.anchor_title:hover {
+  background: none;
+  color: black;
+}
+
+div.post {
+  border-bottom: 1px solid #cccccc;
+}
+
+.blog_posts ul li,
+.blog_posts ol li {
+  font-size: 1.2em;
 }
 
 .blog_posts div.by_line span.author {
