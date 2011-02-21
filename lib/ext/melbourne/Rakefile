@@ -48,6 +48,9 @@ when ["build:mri"]
   set_ext_dir "ruby"
   add_link_dir RbConfig::CONFIG["libdir"]
 
+  # workaround existing timezone structure in mingw-w64 but missing from mingw.
+  add_define "HAVE_STRUCT_TIMEZONE" if RbConfig::CONFIG['host_os'] =~ /mingw/
+
   if RbConfig::CONFIG["ENABLE_SHARED"] == "yes"
     add_ldflag RbConfig::CONFIG["LIBRUBYARG"]
   end
