@@ -130,7 +130,12 @@ namespace rubinius {
     if(ver != 131) return false;
 
     bert::Value* val = decoder.next_value();
-    if(!val || reader.eof_p()) return false;
+    if(!val) return false;
+
+    if(reader.eof_p()) {
+      delete val;
+      return false;
+    }
 
     encoder.write_version();
 
@@ -144,11 +149,13 @@ namespace rubinius {
           if(key->type() == bert::Binary) {
             agent::Output output(writer);
             vars_->set_path(output, key->string(), value);
+            delete val;
             return true;
           }
         }
 
         encoder.write_atom("error");
+        delete val;
         return true;
       } else if(cmd->equal_atom("get_config")) {
         if(val->elements()->size() == 2) {
@@ -158,11 +165,13 @@ namespace rubinius {
 
             vars_->read_path(output, key->string());
 
+            delete val;
             return true;
           }
         }
 
         encoder.write_atom("error");
+        delete val;
         return true;
 
       // If the client ask is the loopback client, give it some extra
@@ -175,20 +184,24 @@ namespace rubinius {
             if(port->integer_p()) {
               if(bind(port->integer())) {
                 encoder.write_atom("ok");
+                delete val;
                 return true;
               }
             }
           }
           encoder.write_atom("error");
+          delete val;
           return true;
         }
       }
     } else if(val->equal_atom("close")) {
       encoder.write_atom("bye");
+      delete val;
       return false;
     }
 
     encoder.write_atom("unknown");
+    delete val;
 
     return true;
   }
