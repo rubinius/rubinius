@@ -517,7 +517,7 @@ module Zlib
 
   extend FFI::Library
 
-  ffi_lib 'libz'
+  ffi_lib ['libz.so.1', 'libz.1.dylib', 'libz']
 
   # deflateInit2 is a macro pointing to deflateInit2_
   attach_function :deflateInit2_, [
