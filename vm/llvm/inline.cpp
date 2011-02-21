@@ -750,9 +750,10 @@ remember:
 
     Signature check(ops_.state(), ops_.NativeIntTy);
     check << "VM";
+    check << "CallFrame";
 
-    Value* check_args[] = { ops_.vm() };
-    check.call("rbx_enter_unmanaged", check_args, 1, "unused", ops_.b());
+    Value* check_args[] = { ops_.vm(), ops_.call_frame() };
+    check.call("rbx_enter_unmanaged", check_args, 2, "unused", ops_.b());
 
     const Type* return_type = find_type(ops_, nf->ffi_data->ret_type);
 
@@ -869,7 +870,7 @@ remember:
 
     }
 
-    check.call("rbx_exit_unmanaged", check_args, 1, "unused", ops_.b());
+    check.call("rbx_exit_unmanaged", check_args, 2, "unused", ops_.b());
 
     exception_safe();
     set_result(result);

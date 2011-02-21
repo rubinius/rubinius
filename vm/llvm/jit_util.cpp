@@ -746,12 +746,14 @@ extern "C" {
     return Qtrue;
   }
 
-  int rbx_enter_unmanaged(STATE) {
+  int rbx_enter_unmanaged(STATE, CallFrame* call_frame) {
+    state->set_call_frame(call_frame);
     state->global_lock().drop();
     return 0;
   }
 
-  int rbx_exit_unmanaged(STATE) {
+  int rbx_exit_unmanaged(STATE, CallFrame* call_frame) {
+    state->set_call_frame(call_frame);
     state->global_lock().take();
     return 0;
   }
