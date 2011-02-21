@@ -12,8 +12,9 @@ config.compile_with_llvm = false
 
 CONFIG = config
 DEV_NULL = RUBY_PLATFORM =~ /mingw|mswin/ ? 'NUL' : '/dev/null'
+VM_EXE = RUBY_PLATFORM =~ /mingw|mswin/ ? 'vm/vm.exe' : 'vm/vm'
 
-task :vm => 'vm/vm'
+task :vm => VM_EXE
 
 ############################################################
 # Files, Flags, & Constants
@@ -498,7 +499,7 @@ end
 files TYPE_GEN, field_extract_headers + %w[vm/codegen/field_extract.rb] + [:run_field_extract] do
 end
 
-file 'vm/vm' => EXTERNALS + objs + vm_objs do |t|
+file VM_EXE => EXTERNALS + objs + vm_objs do |t|
   ld t
 end
 
@@ -645,7 +646,7 @@ namespace :vm do
       'vm/test/runner',
       'vm/test/runner.cpp',
       'vm/test/runner.o',
-      'vm/vm',
+      VM_EXE,
       'vm/.deps'
     ].exclude("vm/gen/config.h")
 
