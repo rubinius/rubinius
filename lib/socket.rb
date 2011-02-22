@@ -1045,20 +1045,22 @@ class TCPSocket < IPSocket
       next if sock < 0
 
       if server
-        status = 1
-
-        begin
-          IO.setup self, sock, nil, true
-          setsockopt(Socket::Constants::SOL_SOCKET,
-                     Socket::Constants::SO_REUSEADDR, true)
-        rescue SystemCallError
+        FFI::MemoryPointer.new :socklen_t do |val|
+          val.write_int 1
+          level = Socket::Constants::SOL_SOCKET
+          optname = Socket::Constants::SO_REUSEADDR
+          error = Socket::Foreign.setsockopt(sock, level,
+                                             optname, val,
+                                             val.total)
+          # Don't check error because if this fails, we just continue
+          # anyway.
         end
 
         status = Socket::Foreign.bind sock, sockaddr
         syscall = 'bind(2)'
       else
         if @local_addrinfo
-          status = bind sock, @local_addrinfo.first[4]
+          status = Socket::Foreign.bind sock, @local_addrinfo.first[4]
           syscall = 'bind(2)'
         else
           status = 1
@@ -1089,6 +1091,11 @@ class TCPSocket < IPSocket
       end
     end
 
+    # Only setup once we have found a socket we can use. Otherwise
+    # because we manually close a socket fd, we can create an IO fd
+    # alias condition which causes EBADF because when an IO is finalized
+    # and it's fd has been closed underneith it, we close someone elses
+    # fd!
     IO.setup self, sock, nil, true
   end
   private :tcp_setup
