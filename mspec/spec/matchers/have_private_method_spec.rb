@@ -34,10 +34,10 @@ describe HavePrivateMethodMatcher do
   end
 
   it "provides a failure message for #should_not" do
-    matcher = HavePrivateMethodMatcher.new :some_method
+    matcher = HavePrivateMethodMatcher.new :private_method
     matcher.matches?(HPMMSpecs)
     matcher.negative_failure_message.should == [
-      "Expected HPMMSpecs NOT to have private method 'some_method'",
+      "Expected HPMMSpecs NOT to have private method 'private_method'",
       "but it does"
     ]
   end
