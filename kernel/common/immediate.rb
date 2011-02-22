@@ -6,17 +6,15 @@ module ImmediateValue
     []
   end
 
-  def public_singleton_methods
-    []
-  end
-
   def private_singleton_methods
     []
   end
+  private :private_singleton_methods
 
   def protected_singleton_methods
     []
   end
+  private :protected_singleton_methods
 
   def taint
     self

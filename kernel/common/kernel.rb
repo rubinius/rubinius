@@ -600,16 +600,32 @@ module Kernel
   end
 
   def private_singleton_methods
-    Rubinius.convert_to_names Rubinius.object_metaclass(self).method_table.private_names
+    mc = Rubinius.object_metaclass self
+    methods = mc.method_table.private_names
+
+    reflect_on_methods mc do |mt|
+      methods.concat mt.private_names
+    end
+
+    Rubinius.convert_to_names methods
   end
+  private :private_singleton_methods
 
   def protected_methods(all=true)
     protected_singleton_methods() | self.class.protected_instance_methods(all)
   end
 
   def protected_singleton_methods
-    Rubinius.convert_to_names Rubinius.object_metaclass(self).method_table.protected_names
+    mc = Rubinius.object_metaclass self
+    methods = mc.method_table.protected_names
+
+    reflect_on_methods mc do |mt|
+      methods.concat mt.protected_names
+    end
+
+    Rubinius.convert_to_names methods
   end
+  private :protected_singleton_methods
 
   def public_methods(all=true)
     singleton_methods(all) | self.class.public_instance_methods(all)
@@ -621,21 +637,23 @@ module Kernel
     methods = mt.public_names + mt.protected_names
 
     if all
-      m = mc.direct_superclass
-      while m
-        break unless m.kind_of?(Rubinius::IncludedModule) || m.__metaclass_object__
-
-        mt = m.method_table
-
+      reflect_on_methods mc do |mt|
         methods.concat mt.public_names
         methods.concat mt.protected_names
-
-        m = m.direct_superclass
       end
     end
 
     Rubinius.convert_to_names methods
   end
+
+  def reflect_on_methods(m)
+    while m = m.direct_superclass
+      break unless m.kind_of?(Rubinius::IncludedModule) || m.__metaclass_object__
+
+      yield m.method_table
+    end
+  end
+  private :reflect_on_methods
 
   alias_method :send, :__send__
 
