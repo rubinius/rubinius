@@ -795,9 +795,9 @@ class UNIXSocket < BasicSocket
     phase = 'socket(2)'
     sock = Socket::Foreign.socket Socket::Constants::AF_UNIX, Socket::Constants::SOCK_STREAM, 0
 
-    IO.setup self, sock, 'r+', true
+    Errno.handle phase if sock < 0
 
-    Errno.handle phase if descriptor < 0
+    IO.setup self, sock, 'r+', true
 
     sockaddr = Socket.pack_sockaddr_un(@path)
 
@@ -810,14 +810,17 @@ class UNIXSocket < BasicSocket
     end
 
     if status < 0 then
-      Socket::Foreign.close descriptor
+      close
       Errno.handle phase
     end
 
     if server then
       phase = 'listen(2)'
       status = Socket::Foreign.listen descriptor, 5
-      Errno.handle phase if status < 0
+      if status < 0
+        close
+        Errno.handle phase
+      end
     end
 
     return sock
@@ -939,7 +942,6 @@ class UDPSocket < IPSocket
 
     if status < 0
       Errno.handle 'bind(2)'
-      Socket::Foreign.close descriptor
     end
 
     status
@@ -952,7 +954,6 @@ class UDPSocket < IPSocket
     status = Socket::Foreign.connect descriptor, sockaddr
 
     if status < 0
-      Socket::Foreign.close descriptor
       Errno.handle syscall
     end
 
