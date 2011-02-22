@@ -153,9 +153,9 @@ namespace rubinius {
     state->thread->sleep(state, Qfalse);
     if(!state->check_async(call_frame)) return NULL;
 
-    // We were awoken, but there is no value to use. Return nil.
+    // We were awoken, but there is no value to use. Return false.
     if(self->value()->empty_p()) {
-      return Qnil;
+      return Qfalse;
     }
 
     return self->value()->shift(state);
