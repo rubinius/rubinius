@@ -2,8 +2,8 @@ describe :kernel_object_id, :shared => true do
   # #object_id and #__id__ are aliases, so we only need one function
   # that tests both methods
   it "returns an integer" do
-    mock('fixnum').send(@method).should be_kind_of(Fixnum)
-    nil.send(@method).should be_kind_of(Fixnum)
+    mock('fixnum').send(@method).should be_kind_of(Integer)
+    nil.send(@method).should be_kind_of(Integer)
   end
 
   it "returns the same value on all calls to id for a given object" do
@@ -70,6 +70,20 @@ describe :kernel_object_id, :shared => true do
   it "returns a different value for an object and its dup" do
     o1 = mock("object")
     o2 = o1.dup
+    o1.send(@method).should_not == o2.send(@method)
+  end
+
+  it "returns a different value for two numbers near the 32 bit Fixnum limit" do
+    o1 = -1
+    o2 = 2 ** 30 - 1
+
+    o1.send(@method).should_not == o2.send(@method)
+  end
+
+  it "returns a different value for two numbers near the 64 bit Fixnum limit" do
+    o1 = -1
+    o2 = 2 ** 62 - 1
+
     o1.send(@method).should_not == o2.send(@method)
   end
 end
