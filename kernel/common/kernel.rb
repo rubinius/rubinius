@@ -616,8 +616,23 @@ module Kernel
   end
 
   def singleton_methods(all=true)
-    mt = Rubinius.object_metaclass(self).method_table
-    methods = (all ? mt.names : mt.public_names + mt.protected_names)
+    mc = Rubinius.object_metaclass self
+    mt = mc.method_table
+    methods = mt.public_names + mt.protected_names
+
+    if all
+      m = mc.direct_superclass
+      while m
+        break unless m.kind_of?(Rubinius::IncludedModule) || m.__metaclass_object__
+
+        mt = m.method_table
+
+        methods.concat mt.public_names
+        methods.concat mt.protected_names
+
+        m = m.direct_superclass
+      end
+    end
 
     Rubinius.convert_to_names methods
   end
