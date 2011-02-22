@@ -164,29 +164,7 @@ module Rubinius
     end
 
     def to_hash
-      env = environ()
-      ptr_size = FFI.type_size FFI.find_type(:pointer)
-
-      i = 0
-
-      hash = {}
-
-      offset = 0
-      cur = env + offset
-
-      until cur.read_pointer.null?
-        entry = cur.read_pointer.read_string
-        key, value = entry.split '=', 2
-        value.taint if value
-        key.taint if key
-
-        hash[key] = value
-
-        offset += ptr_size
-        cur = env + offset
-      end
-
-      hash
+      return environ_as_hash()
     end
 
     def update(other, &block)
