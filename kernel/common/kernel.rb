@@ -468,6 +468,8 @@ module Kernel
   # always false.
 
   def instance_of?(cls)
+    Ruby.primitive :object_instance_of
+
     if cls.class != Class and cls.class != Module
       # We can obviously compare against Modules but result is always false
       raise TypeError, "instance_of? requires a Class argument"

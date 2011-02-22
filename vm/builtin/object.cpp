@@ -455,6 +455,10 @@ namespace rubinius {
     return kind_of_p(state, klass) ? Qtrue : Qfalse;
   }
 
+  Object* Object::instance_of_prim(STATE, Module* klass) {
+    return class_object(state) == klass ? Qtrue : Qfalse;
+  }
+
   Class* Object::metaclass(STATE) {
     if(reference_p()) {
       if(MetaClass* mc = try_as<MetaClass>(klass())) {
