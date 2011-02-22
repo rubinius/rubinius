@@ -88,7 +88,7 @@ namespace rubinius {
           if(ops_.state()->config().jit_inline_debug) {
 
             context_.inline_log("NOT inlining")
-              << ops_.state()->symbol_cstr(cm->scope()->module()->name())
+              << ops_.state()->enclosure_name(cm)
               << "#"
               << ops_.state()->symbol_cstr(cm->name())
               << " into "
@@ -114,13 +114,14 @@ namespace rubinius {
 
         if(ops_.state()->config().jit_inline_debug) {
           context_.inline_log("inlining")
-            << ops_.state()->symbol_cstr(cm->scope()->module()->name())
+            << ops_.state()->enclosure_name(cm)
             << "#"
             << ops_.state()->symbol_cstr(cm->name())
             << " into "
             << ops_.state()->symbol_cstr(ops_.method_name());
 
-          if(klass != cm->scope()->module() && !klass->name()->nil_p()) {
+          StaticScope* ss = cm->scope();
+          if(kind_of<StaticScope>(ss) && klass != ss->module() && !klass->name()->nil_p()) {
             ops_.state()->log() << " ("
               << ops_.state()->symbol_cstr(klass->name()) << ")";
           }
@@ -140,7 +141,7 @@ namespace rubinius {
       } else {
         if(ops_.state()->config().jit_inline_debug) {
           context_.inline_log("NOT inlining")
-            << ops_.state()->symbol_cstr(cm->scope()->module()->name())
+            << ops_.state()->enclosure_name(cm)
             << "#"
             << ops_.state()->symbol_cstr(cm->name())
             << " into "
@@ -226,7 +227,7 @@ remember:
   void Inliner::inline_trivial_method(Class* klass, CompiledMethod* cm) {
     if(ops_.state()->config().jit_inline_debug) {
       context_.inline_log("inlining")
-        << ops_.state()->symbol_cstr(cm->scope()->module()->name())
+        << ops_.state()->enclosure_name(cm)
         << "#"
         << ops_.state()->symbol_cstr(cm->name())
         << " into "

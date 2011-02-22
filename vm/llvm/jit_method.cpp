@@ -26,7 +26,7 @@ namespace jit {
 
     std::stringstream ss;
     ss << std::string("_X_")
-       << ls_->symbol_cstr(info_.method()->scope()->module()->name())
+       << ls_->enclosure_name(info_.method())
        << "#"
        << ls_->symbol_cstr(info_.method()->name())
        << "@" << ls_->add_jitted_method();

@@ -124,12 +124,13 @@ namespace jit {
 
   void Builder::check_self_type() {
     int klass_id = 0;
-    {
-      if(Class* cls = try_as<Class>(info_.method()->scope()->module())) {
-        klass_id = cls->class_id();
-      } else {
-        return;
-      }
+
+    StaticScope* ss = info_.method()->scope();
+    if(!kind_of<StaticScope>(ss)) return;
+    if(Class* cls = try_as<Class>(ss->module())) {
+      klass_id = cls->class_id();
+    } else {
+      return;
     }
 
     // Now, validate class_id

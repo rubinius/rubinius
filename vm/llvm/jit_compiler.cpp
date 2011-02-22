@@ -102,7 +102,7 @@ namespace jit {
       gettimeofday(&tv, NULL);
 
       ls->log() << "JIT: compiling "
-        << ls->symbol_cstr(cm->scope()->module()->name())
+        << ls->enclosure_name(cm)
         << "#"
         << ls->symbol_cstr(cm->name())
         << " (" << tv.tv_sec << "." << tv.tv_usec << ")\n";

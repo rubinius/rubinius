@@ -561,6 +561,15 @@ namespace rubinius {
     return symbols_.lookup_cstring(sym);
   }
 
+  const char* LLVMState::enclosure_name(CompiledMethod* cm) {
+    StaticScope* ss = cm->scope();
+    if(!kind_of<StaticScope>(ss) || !kind_of<Module>(ss->module())) {
+      return "ANONYMOUS";
+    }
+
+    return symbol_cstr(ss->module()->name());
+  }
+
   void LLVMState::compile_soon(STATE, CompiledMethod* cm, BlockEnvironment* block) {
     Object* placement;
     bool is_block = false;
@@ -644,44 +653,6 @@ namespace rubinius {
   }
 
   const static int cInlineMaxDepth = 4;
-
-  /*
-  static CallFrame* find_call_frame(CallFrame* frame, VMMethod* meth, int* dist) {
-    *dist = 0;
-    while(frame) {
-      if(frame->cm->backend_method() == meth) return frame;
-      frame = frame->previous;
-      dist++;
-    }
-
-    return 0;
-  }
-  */
-
-  /*
-  static void show_method(LLVMState* ls, VMMethod* vmm, const char* extra = "") {
-    CompiledMethod* cm = vmm->original.get();
-
-    std::cerr << "  "
-              << ls->symbol_cstr(cm->scope()->module()->name())
-              << "#"
-              << ls->symbol_cstr(cm->name())
-              << " (" << vmm->call_count << ") "
-              << extra
-              << "\n";
-  }
-  */
-
-  /*
-  static CallFrame* validate_block_parent(CallFrame* cf, VMMethod* parent) {
-    if(cf->previous && cf->previous->previous) {
-      cf = cf->previous->previous;
-      if(cf->cm->backend_method() == parent) return cf;
-    }
-
-    return 0;
-  }
-  */
 
   void LLVMState::compile_callframe(STATE, CompiledMethod* start, CallFrame* call_frame,
                                     int primitive) {
