@@ -120,7 +120,7 @@ namespace rubinius {
     for(;;) {
       state->set_call_frame(call_frame);
 
-      WaitingOnCondition waiter(condition_, mutex_);
+      WaitingOnCondition waiter(self->condition_, self->mutex_);
       state->install_waiter(waiter);
 
       state->global_lock().drop();
@@ -128,13 +128,13 @@ namespace rubinius {
       bool timedout = false;
 
       if(use_timed_wait) {
-        timedout = (condition_.wait_until(mutex_, &ts) == thread::cTimedOut);
+        timedout = (self->condition_.wait_until(self->mutex_, &ts) == thread::cTimedOut);
       } else {
-        condition_.wait(mutex_);
+        self->condition_.wait(self->mutex_);
       }
 
       {
-        thread::Mutex::UnlockGuard ug(mutex_);
+        thread::Mutex::UnlockGuard ug(self->mutex_);
         state->global_lock().take();
       }
 
@@ -143,7 +143,7 @@ namespace rubinius {
       if(timedout || waiter.used()) break;
 
       // or there are values available.
-      if(!value_->empty_p()) break;
+      if(!self->value_->empty_p()) break;
     }
 
     self->unpin();
