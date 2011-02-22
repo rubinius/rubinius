@@ -603,8 +603,12 @@ module Kernel
     mc = Rubinius.object_metaclass self
     methods = mc.method_table.private_names
 
-    reflect_on_methods mc do |mt|
-      methods.concat mt.private_names
+    m = mc
+
+    while m = m.direct_superclass
+      break unless m.kind_of?(Rubinius::IncludedModule) || m.__metaclass_object__
+
+      methods.concat m.method_table.private_names
     end
 
     Rubinius.convert_to_names methods
@@ -619,8 +623,12 @@ module Kernel
     mc = Rubinius.object_metaclass self
     methods = mc.method_table.protected_names
 
-    reflect_on_methods mc do |mt|
-      methods.concat mt.protected_names
+    m = mc
+
+    while m = m.direct_superclass
+      break unless m.kind_of?(Rubinius::IncludedModule) || m.__metaclass_object__
+
+      methods.concat m.method_table.protected_names
     end
 
     Rubinius.convert_to_names methods
@@ -637,7 +645,12 @@ module Kernel
     methods = mt.public_names + mt.protected_names
 
     if all
-      reflect_on_methods mc do |mt|
+      m = mc
+
+      while m = m.direct_superclass
+        break unless m.kind_of?(Rubinius::IncludedModule) || m.__metaclass_object__
+
+        mt = m.method_table
         methods.concat mt.public_names
         methods.concat mt.protected_names
       end
@@ -645,15 +658,6 @@ module Kernel
 
     Rubinius.convert_to_names methods
   end
-
-  def reflect_on_methods(m)
-    while m = m.direct_superclass
-      break unless m.kind_of?(Rubinius::IncludedModule) || m.__metaclass_object__
-
-      yield m.method_table
-    end
-  end
-  private :reflect_on_methods
 
   alias_method :send, :__send__
 
