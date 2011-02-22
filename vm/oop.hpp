@@ -24,6 +24,7 @@ namespace rubinius {
 
 #define TAG_REF          0x0
 #define TAG_REF_MASK     3
+#define TAG_REF_WIDTH    2
 
 #define TAG_FIXNUM       0x1
 #define TAG_FIXNUM_SHIFT 1
