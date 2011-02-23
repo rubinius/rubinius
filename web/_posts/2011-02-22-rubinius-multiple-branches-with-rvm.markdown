@@ -1,6 +1,6 @@
 ---
 layout: post
-title: Running Multiple Rubinius Branches simultaneously with RVM.
+title: Running Multiple Rubinius Branches Simultaneously with RVM.
 author: Wayne E. Seguin
 ---
 
