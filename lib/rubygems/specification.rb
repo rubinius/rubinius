@@ -8,6 +8,9 @@ require 'rubygems/version'
 require 'rubygems/requirement'
 require 'rubygems/platform'
 
+require 'digest'
+require 'fileutils'
+
 # :stopdoc:
 class Date; end # for ruby_code if date.rb wasn't required
 # :startdoc:
@@ -330,7 +333,7 @@ class Gem::Specification
   end
 
   ##
-  # List of depedencies that will automatically be activated at runtime.
+  # List of dependencies that will automatically be activated at runtime.
 
   def runtime_dependencies
     dependencies.select { |d| d.type == :runtime || d.type == nil }
@@ -498,17 +501,68 @@ class Gem::Specification
   end
 
   ##
-  # Loads ruby format gemspec from +filename+
+  # Loads Ruby format gemspec from +file+.
 
-  def self.load(filename)
-    gemspec = nil
-    raise "NESTED Specification.load calls not allowed!" if @@gather
-    @@gather = proc { |gs| gemspec = gs }
-    data = File.read filename
-    eval data, nil, filename
-    gemspec
-  ensure
-    @@gather = nil
+  def self.load file
+    return unless file && File.file?(file)
+
+    file = file.dup.untaint
+
+    code = if defined? Encoding
+             File.read file, :encoding => "UTF-8"
+           else
+             File.read file
+           end
+
+    code.untaint
+
+    # Try to retrieve the CM from the user's cache
+    dig = Digest::SHA2.new
+    dig << code
+    hash = dig.hexdigest
+
+    parent_dir = File.join(Gem.user_dir, "cache")
+    cm_path = File.join(parent_dir, "gemspec_#{hash}.rbc")
+
+    cm = nil
+    if File.exists?(cm_path)
+      begin
+        cl = Rubinius::CodeLoader.new(cm_path)
+        cm = cl.load_compiled_file cm_path, Rubinius::Signature
+      rescue TypeError, Rubinius::InvalidRBC
+        # ignore, no prob.
+      end
+    end
+
+    if cm
+      script = cm.create_script
+      gemspec = MAIN.__send__ :__script__
+
+      if gemspec.kind_of? Gem::Specification
+        gemspec.loaded_from = file
+        return gemspec
+      end
+    end
+
+    begin
+      spec = eval(code, binding, file) do |cm, be|
+        FileUtils.mkdir_p parent_dir unless File.directory?(parent_dir)
+        Rubinius::CompiledFile.dump cm, cm_path
+      end
+
+      if Gem::Specification === spec
+        spec.loaded_from = file
+        return spec
+      end
+
+      warn "[#{file}] isn't a Gem::Specification (#{spec.class} instead)."
+    rescue SignalException, SystemExit
+      raise
+    rescue SyntaxError, Exception => e
+      warn "Invalid gemspec in [#{file}]: #{e}"
+    end
+
+    nil
   end
 
   ##
@@ -516,8 +570,8 @@ class Gem::Specification
 
   def self.normalize_yaml_input(input)
     result = input.respond_to?(:read) ? input.read : input
-    result = "--- " + result unless result =~ /^--- /
-    result
+    result = "--- " + result unless result =~ /\A--- /
+    result.gsub(/ !!null \n/, " \n")
   end
 
   ##
@@ -671,9 +725,8 @@ class Gem::Specification
   private :same_attributes?
 
   def hash # :nodoc:
-    @@attributes.inject(0) { |hash_code, (name, default_value)|
-      n = self.send(name).hash
-      hash_code + n
+    @@attributes.inject(0) { |hash_code, (name, _)|
+      hash_code ^ self.send(name).hash
     }
   end
 
@@ -701,11 +754,13 @@ class Gem::Specification
   end
 
   def to_yaml(opts = {}) # :nodoc:
-    return super if YAML.const_defined?(:ENGINE) && !YAML::ENGINE.syck?
-
-    yaml = YAML.quick_emit object_id, opts do |out|
-      out.map taguri, to_yaml_style do |map|
-        encode_with map
+    if YAML.const_defined?(:ENGINE) && !YAML::ENGINE.syck? then
+      super.gsub(/ !!null \n/, " \n")
+    else
+      YAML.quick_emit object_id, opts do |out|
+        out.map taguri, to_yaml_style do |map|
+          encode_with map
+        end
       end
     end
   end
@@ -765,7 +820,6 @@ class Gem::Specification
 
     result << nil
     result << "  if s.respond_to? :specification_version then"
-    result << "    current_version = Gem::Specification::CURRENT_SPECIFICATION_VERSION"
     result << "    s.specification_version = #{specification_version}"
     result << nil
 
@@ -811,6 +865,7 @@ class Gem::Specification
   # checks..
 
   def validate
+    require 'rubygems/user_interaction'
     extend Gem::UserInteraction
     normalize
 
@@ -909,7 +964,7 @@ class Gem::Specification
 
     # Warnings
 
-    %w[author description email homepage rubyforge_project summary].each do |attribute|
+    %w[author description email homepage summary].each do |attribute|
       value = self.send attribute
       alert_warning "no #{attribute} specified" if value.nil? or value.empty?
     end

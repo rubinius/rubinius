@@ -11,7 +11,7 @@ require 'rubygems/doc_manager'
 ##
 # Load additional plugins from $LOAD_PATH
 
-Gem.load_env_plugins
+Gem.load_env_plugins rescue nil
 
 ##
 # Run an instance of the gem program.
@@ -81,3 +81,4 @@ class Gem::GemRunner
 
 end
 
+Gem.load_plugins
