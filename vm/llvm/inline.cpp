@@ -87,7 +87,7 @@ namespace rubinius {
           if(ops_.state()->config().jit_inline_debug) {
 
             context_.inline_log("NOT inlining")
-              << ops_.state()->symbol_cstr(cm->scope()->module()->name())
+              << ops_.state()->enclosure_name(cm)
               << "#"
               << ops_.state()->symbol_cstr(cm->name())
               << " into "
@@ -113,13 +113,14 @@ namespace rubinius {
 
         if(ops_.state()->config().jit_inline_debug) {
           context_.inline_log("inlining")
-            << ops_.state()->symbol_cstr(cm->scope()->module()->name())
+            << ops_.state()->enclosure_name(cm)
             << "#"
             << ops_.state()->symbol_cstr(cm->name())
             << " into "
             << ops_.state()->symbol_cstr(ops_.method_name());
 
-          if(klass != cm->scope()->module() && !klass->name()->nil_p()) {
+          StaticScope* ss = cm->scope();
+          if(kind_of<StaticScope>(ss) && klass != ss->module() && !klass->name()->nil_p()) {
             ops_.state()->log() << " ("
               << ops_.state()->symbol_cstr(klass->name()) << ")";
           }
@@ -139,7 +140,7 @@ namespace rubinius {
       } else {
         if(ops_.state()->config().jit_inline_debug) {
           context_.inline_log("NOT inlining")
-            << ops_.state()->symbol_cstr(cm->scope()->module()->name())
+            << ops_.state()->enclosure_name(cm)
             << "#"
             << ops_.state()->symbol_cstr(cm->name())
             << " into "
@@ -225,7 +226,7 @@ remember:
   void Inliner::inline_trivial_method(Class* klass, CompiledMethod* cm) {
     if(ops_.state()->config().jit_inline_debug) {
       context_.inline_log("inlining")
-        << ops_.state()->symbol_cstr(cm->scope()->module()->name())
+        << ops_.state()->enclosure_name(cm)
         << "#"
         << ops_.state()->symbol_cstr(cm->name())
         << " into "
@@ -747,6 +748,13 @@ remember:
       }
     }
 
+    Signature check(ops_.state(), ops_.NativeIntTy);
+    check << "VM";
+    check << "CallFrame";
+
+    Value* check_args[] = { ops_.vm(), ops_.call_frame() };
+    check.call("rbx_enter_unmanaged", check_args, 2, "unused", ops_.b());
+
     const Type* return_type = find_type(ops_, nf->ffi_data->ret_type);
 
     FunctionType* ft = FunctionType::get(return_type, ffi_type, false);
@@ -861,6 +869,8 @@ remember:
       abort();
 
     }
+
+    check.call("rbx_exit_unmanaged", check_args, 2, "unused", ops_.b());
 
     exception_safe();
     set_result(result);

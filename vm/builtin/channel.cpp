@@ -169,8 +169,8 @@ namespace rubinius {
       return Qnil;
     }
 
-    // We were awoken, but there is no value to use. Return nil.
-    if(self->value()->empty_p()) return Qnil;
+    // We were awoken, but there is no value to use. Return false.
+    if(self->value()->empty_p()) return Qfalse;
 
     return self->value()->shift(state);
   }

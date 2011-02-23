@@ -197,9 +197,22 @@ class Thread
         @lock.send nil
         begin
           if timeout.equal? undefined
-            jc.receive
+            while true
+              res = jc.receive
+              # receive returns false if it was a spurious wakeup
+              break if res != false
+            end
           else
-            jc.receive_timeout timeout.to_f
+            duration = timeout.to_f
+            while true
+              start = Time.now.to_f
+              res = jc.receive_timeout duration
+              # receive returns false if it was a spurious wakeup
+              break if res != false
+              elapsed = Time.now.to_f - start
+              duration -= elapsed
+              break if duration < 0
+            end
           end
         ensure
           @lock.receive

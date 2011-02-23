@@ -652,7 +652,7 @@ VM Options
         f.puts "[[Version]]"
         f.puts Rubinius.version
       end
-    rescue Errno::EACCES
+    rescue SystemCallError
       # Ignore writing the last error report
     end
 

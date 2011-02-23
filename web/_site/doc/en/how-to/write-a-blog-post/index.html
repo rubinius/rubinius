@@ -23,6 +23,7 @@
     <link href="/stylesheets/blueprint/print.css" media="print" rel="stylesheet" type="text/css" />
     <!--[if IE]><link href="/stylesheets/blueprint/ie.css" media="screen" rel="stylesheet" type="text/css" /><![endif]-->
     <!--[if IE]><link href="/stylesheets/ie.css" media="screen" rel="stylesheet" type="text/css" /><![endif]-->
+    <link href="/stylesheets/pygments.css" media="screen" rel="stylesheet" type="text/css" />
   </head>
     <body>
         <div class='container'>
@@ -43,7 +44,7 @@
       </div>
             <div class='span-3 last'>
         <div id='version'>
-          <a href="/releases/1.2.0">1.2.0</a>
+          <a href="/releases/1.2.2">1.2.2</a>
         </div>
       </div>
 
@@ -115,24 +116,52 @@
 documentation. We encourage and appreciate guest blog posts about your
 experiences using or developing Rubinius.</p>
 
+<p>The preferred format for blog posts is Markdown. However, if you have special
+formatting needs, the post can be written in HTML directly.</p>
+
+<p>Clone Rubinius repository as that is where the website and posts are
+   stored.</p>
+
+<p>git clone https://github.com/evanphx/rubinius.git</p>
+
 <p>To get started, ensure you have the <code>kramdown</code> and <code>jekyll</code> gems installed.</p>
 
 <pre><code>rbx gem install jekyll kramdown
 </code></pre>
 
-<p>The preferred format for blog posts is Markdown. However, if you have special
-formatting needs, the post can be written in HTML directly.</p>
+<p>Now go to the posts directory</p>
 
-<ol>
-  <li>Create a file in <code>web/_posts/</code> using the format
-<code>YYYY-MM-DD-perma-link.markdown</code> for the file name.</li>
-  <li>Write the post.</li>
-  <li>In the <code>web/</code> directory, run <code>rbx -S jekyll</code>.</li>
-  <li>Create a commit of all the changes in the <code>web/</code> directory.</li>
-  <li>Submit a patch, or if you have commit rights, push the commit to master.</li>
-  <li>Tell us that there is a new blog post. We may have some feedback for you
-before publishing.</li>
-</ol>
+<pre><code>cd rubinius/web/_posts
+</code></pre>
+
+<p>Create a file in the console using the filename format <code>YYYY-MM-DD-perma-link.markdown</code>.</p>
+
+<pre><code>touch "%(date +"%Y-%m-%d")-perma-link-title.markdown"
+</code></pre>
+
+<p>Write your brilliant post.</p>
+
+<pre><code>cat /dev/random &gt; &lt;&lt;the file post&gt;&gt; # :-p
+</code></pre>
+
+<p>Run jekyll to compile the website, including your post.</p>
+
+<pre><code>cd ../web/
+rbx -S jekyll
+</code></pre>
+
+<p>Create a commit of all the changes in the <code>web/</code> directory.</p>
+
+<p>cd ../
+   git add web/
+   git commit -m &ldquo;Wrote a blog post on &hellip;..&rdquo;</p>
+
+<p>Submit a patch, pull request, or if you have commit rights, push the commit to
+the master branch.</p>
+
+<p>Tell us that there is a new blog post. We may have some feedback for you before
+publishing.</p>
+
 
 
     </div>

@@ -4,7 +4,7 @@ class StringScanner
   Id = "None$Id".freeze
   Version = "1.0.0".freeze
 
-  attr_reader :pos, :match, :string, :prev_pos
+  attr_reader :pos, :match, :prev_pos
 
   def pos=(n)
     n = Integer(n)
@@ -78,15 +78,15 @@ class StringScanner
   end
 
   def initialize(string, dup=false)
-    @string = String.new(string)
-    reset_state
-  end
+    if string.instance_of? String
+      @original = string
+      @string = string
+    else
+      @original = StringValue(string)
+      @string = String.new @original
+    end
 
-  def initialize_copy(orig)
-    @match    = orig.match
-    @pos      = orig.pos
-    @prev_pos = orig.prev_pos
-    @string   = orig.string
+    reset_state
   end
 
   def inspect
@@ -205,9 +205,20 @@ class StringScanner
     _scan pattern, true, false, false
   end
 
-  def string=(s)
+  def string
+    @original
+  end
+
+  def string=(string)
     reset_state
-    @string = s
+
+    if string.instance_of? String
+      @original = string
+      @string = string
+    else
+      @original = StringValue(string)
+      @string = String.new @original
+    end
   end
 
   def terminate

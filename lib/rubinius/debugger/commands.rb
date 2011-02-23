@@ -237,7 +237,7 @@ at the current position of the caller.
         possible_line = f.line + step
         fin_ip = exec.first_ip_on_line possible_line, f.ip
 
-        if fin_ip == -1
+        if !fin_ip
           return step_to_parent
         end
 

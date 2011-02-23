@@ -7,6 +7,7 @@ class MockObject
   def method_missing(sym, *args, &block)
     @null ? self : super
   end
+  private :method_missing
 end
 
 class NumericMockObject < Numeric

@@ -372,17 +372,32 @@ namespace rubinius {
 
   Integer* Object::id(STATE) {
     if(reference_p()) {
+#ifdef RBX_OBJECT_ID_IN_HEADER
       if(object_id() == 0) {
         state->om->assign_object_id(state, this);
       }
 
       // Shift it up so we don't waste the numeric range in the actual
-      // storage, but still present the id as always even, so it doesn't
-      // collide with the immediates.
-      return Integer::from(state, object_id() << 1);
+      // storage, but still present the id as always modulo 4, so it doesn't
+      // collide with the immediates, since immediates never have a tag
+      // ending in 00.
+      return Integer::from(state, object_id() << TAG_REF_WIDTH);
+#else
+      Object* id = get_ivar(state, G(sym_object_id));
+
+      /* Lazy allocate object's ids, since most don't need them. */
+      if(id->nil_p()) {
+        /* All references have an even object_id. last_object_id starts out at 0
+         * but we don't want to use 0 as an object_id, so we just add before using */
+        id = Integer::from(state, ++state->om->last_object_id << TAG_REF_WIDTH);
+        set_ivar(state, G(sym_object_id), id);
+      }
+
+      return as<Integer>(id);
+#endif
     } else {
-      /* All non-references have an odd object_id */
-      return Fixnum::from(((uintptr_t)this << 1) | 1);
+      /* All non-references have the pointer directly as the object id */
+      return Integer::from(state, (uintptr_t)this);
     }
   }
 
@@ -422,6 +437,10 @@ namespace rubinius {
 
   Object* Object::kind_of_prim(STATE, Module* klass) {
     return kind_of_p(state, klass) ? Qtrue : Qfalse;
+  }
+
+  Object* Object::instance_of_prim(STATE, Module* klass) {
+    return class_object(state) == klass ? Qtrue : Qfalse;
   }
 
   Class* Object::metaclass(STATE) {

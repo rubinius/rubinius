@@ -272,6 +272,15 @@ namespace rubinius {
     // Ruby.primitive :object_kind_of
     Object*   kind_of_prim(STATE, Module* klass);
 
+    /**
+     *  Ruby #instance_of?
+     *
+     *  Returns true if given Module is this Object's class,
+     *  false otherwise.
+     */
+    // Ruby.primitive :object_instance_of
+    Object*   instance_of_prim(STATE, Module* klass);
+
     /** Return object's MetaClass object. Created as needed. */
     // Ruby.primitive :object_metaclass
     Class*    metaclass(STATE);

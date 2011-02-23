@@ -563,6 +563,8 @@ namespace rubinius {
     Symbol* symbol(const char* sym);
     const char* symbol_cstr(const Symbol* sym);
 
+    const char* enclosure_name(CompiledMethod* cm);
+
     void shutdown_i();
     void start_i();
     void on_fork_i();

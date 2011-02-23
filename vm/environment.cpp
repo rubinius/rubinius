@@ -344,6 +344,32 @@ namespace rubinius {
 
     state->set_const("ARGV", ary);
 
+    // Parse -X options from RBXOPT environment variable
+
+    char* rbxopt = getenv("RBXOPT");
+    if(rbxopt) {
+      char *e, *b = rbxopt = strdup(rbxopt);
+      char *s = b + strlen(rbxopt);
+
+      while(b < s) {
+        while(*b && isspace(*b)) s++;
+
+        e = b;
+        while(*e && !isspace(*e)) e++;
+
+        int len;
+        if((len = e - b) > 0) {
+          if(strncmp(b, "-X", 2) == 0) {
+            *e = 0;
+            config_parser.import_line(b + 2);
+          }
+          b = e + 1;
+        }
+      }
+
+      free(rbxopt);
+    }
+
     // Now finish up with the config
     if(config.print_config > 1) {
       std::cout << "========= Configuration =========\n";
@@ -546,8 +572,8 @@ namespace rubinius {
     std::string index = root + "/index";
     std::ifstream stream(index.c_str());
     if(!stream) {
-      std::cerr << "It appears that " << index << " is missing.\n";
-      exit(1);
+      std::string error = "Unable to load kernel index: " + root;
+      throw std::runtime_error(error);
     }
 
     // Pull in the signature file; this helps control when .rbc files need to
@@ -561,7 +587,8 @@ namespace rubinius {
                        Integer::from(state, signature_));
       sig_stream.close();
     } else {
-      G(rubinius)->set_const(state, "Signature", Integer::from(state, 0));
+      std::string error = "Unable to load compiler signature file: " + sig_path;
+      throw std::runtime_error(error);
     }
 
     // Load alpha
@@ -611,6 +638,8 @@ namespace rubinius {
 
     start_signals();
     run_file(root + "/loader.rbc");
+
+    shared->om->run_all_io_finalizers(state);
 
     // TODO: temporarily disable to sort out finalizing Pointer objects
     // shared->om->run_all_finalizers(state);

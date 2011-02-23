@@ -27,7 +27,16 @@ describe "Module#attr_accessor" do
     o.send(:b=, "b")
     o.send(:b).should == "b"
   end
-  
+
+  it "allows creating an attr_accessor on an immediate class" do
+    class Integer
+      attr_accessor :spec_attr_accessor
+    end
+
+    1.spec_attr_accessor = "a"
+    1.spec_attr_accessor.should == "a"
+  end
+
   it "converts non string/symbol/fixnum names to strings using to_str" do
     (o = mock('test')).should_receive(:to_str).any_number_of_times.and_return("test")
     c = Class.new do

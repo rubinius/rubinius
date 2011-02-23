@@ -282,10 +282,13 @@ rb_syck_mktime(str, len)
     ptr += 2;
     if ( len > ptr - str && *ptr == '.' )
     {
-        char padded[] = "000000";
+        char padded[128] = "000000";
         char *end = ptr + 1;
         while ( isdigit( *end ) ) end++;
-        MEMCPY(padded, ptr + 1, char, end - (ptr + 1));
+        int count = end - (ptr + 1);
+        if(count >= 128) count = 128;
+        MEMCPY(padded, ptr + 1, char, count);
+        padded[count] = 0;
         usec = strtol(padded, NULL, 10);
     }
     else

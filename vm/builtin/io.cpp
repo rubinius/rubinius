@@ -15,6 +15,11 @@
 #include <sys/types.h>
 #include <sys/time.h>
 #include <sys/types.h>
+#include <netdb.h>
+#include <sys/un.h>
+#ifdef __OpenBSD__
+#include <sys/uio.h>
+#endif
 
 #include "builtin/io.hpp"
 #include "builtin/array.hpp"
@@ -468,6 +473,35 @@ namespace rubinius {
     if(io->descriptor()->nil_p()) return;
 
     native_int fd = io->descriptor()->to_native();
+
+    // Flush the buffer to disk if it's not write sync'd
+    if(IOBuffer* buf = try_as<IOBuffer>(io->ibuffer())) {
+      if(!RTEST(buf->write_synced())) {
+        native_int start = buf->start()->to_native();
+        native_int used = buf->used()->to_native();
+        native_int bytes = used - start;
+
+        if(bytes > 0 && start < buf->storage()->size()) {
+          fd_set fds;
+          FD_ZERO(&fds);
+          struct timeval tv = {0,0};
+
+          FD_SET(fd, &fds);
+
+          // We use select(2) to prevent from blocking while
+          // trying to flush out the data.
+
+          uint8_t* data = buf->storage()->raw_bytes() + start;
+          while(bytes > 0 && ::select(fd+1, 0, &fds, 0, &tv) > 0) {
+            ssize_t wrote = ::write(fd, data, bytes);
+            // If we couldn't write, then just bail.
+            if(wrote == -1) break;
+            data += wrote;
+            bytes -= wrote;
+          }
+        }
+      }
+    }
 
     // don't close stdin, stdout, stderr (0, 1, 2)
     if(fd >= 3) {

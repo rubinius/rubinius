@@ -15,7 +15,9 @@ module Rubinius
       end
     end
 
-    @object_db = Rubinius::Config['rbc.db']
+    if @object_db = Rubinius::Config['rbc.db']
+      @object_db = ".rbx" unless @object_db.kind_of? String
+    end
 
     def self.compiled_name(file)
       if file.suffix? ".rb"

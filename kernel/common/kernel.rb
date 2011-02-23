@@ -466,6 +466,8 @@ module Kernel
   # always false.
 
   def instance_of?(cls)
+    Ruby.primitive :object_instance_of
+
     if cls.class != Class and cls.class != Module
       # We can obviously compare against Modules but result is always false
       raise TypeError, "instance_of? requires a Class argument"
@@ -596,24 +598,61 @@ module Kernel
   end
 
   def private_singleton_methods
-    Rubinius.convert_to_names Rubinius.object_metaclass(self).method_table.private_names
+    mc = Rubinius.object_metaclass self
+    methods = mc.method_table.private_names
+
+    m = mc
+
+    while m = m.direct_superclass
+      break unless m.kind_of?(Rubinius::IncludedModule) || m.__metaclass_object__
+
+      methods.concat m.method_table.private_names
+    end
+
+    Rubinius.convert_to_names methods
   end
+  private :private_singleton_methods
 
   def protected_methods(all=true)
     protected_singleton_methods() | self.class.protected_instance_methods(all)
   end
 
   def protected_singleton_methods
-    Rubinius.convert_to_names Rubinius.object_metaclass(self).method_table.protected_names
+    mc = Rubinius.object_metaclass self
+    methods = mc.method_table.protected_names
+
+    m = mc
+
+    while m = m.direct_superclass
+      break unless m.kind_of?(Rubinius::IncludedModule) || m.__metaclass_object__
+
+      methods.concat m.method_table.protected_names
+    end
+
+    Rubinius.convert_to_names methods
   end
+  private :protected_singleton_methods
 
   def public_methods(all=true)
     singleton_methods(all) | self.class.public_instance_methods(all)
   end
 
   def singleton_methods(all=true)
-    mt = Rubinius.object_metaclass(self).method_table
-    methods = (all ? mt.names : mt.public_names + mt.protected_names)
+    mc = Rubinius.object_metaclass self
+    mt = mc.method_table
+    methods = mt.public_names + mt.protected_names
+
+    if all
+      m = mc
+
+      while m = m.direct_superclass
+        break unless m.kind_of?(Rubinius::IncludedModule) || m.__metaclass_object__
+
+        mt = m.method_table
+        methods.concat mt.public_names
+        methods.concat mt.protected_names
+      end
+    end
 
     Rubinius.convert_to_names methods
   end

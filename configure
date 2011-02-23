@@ -545,7 +545,7 @@ class Configure
   def remove_default
     if File.exists?(File.join(@llvm_default, "Makefile.common"))
       @log.error "ABORT: Unwilling to override custom LLVM tree, please update it manually"
-      exit 1
+      failure
     else
       @log.write "    Removing outdated tree..."
       FileUtils.rm_rf(@llvm_default)
@@ -583,7 +583,7 @@ class Configure
     if @llvm_path
       unless setup_path
         @log.error "ABORT: Path '#{@llvm_path}' not a proper LLVM path"
-        exit 1
+        failure
       end
 
       return
@@ -652,6 +652,11 @@ class Configure
     libs
   end
 
+  def failure
+    puts "\n'configure' has failed. Please check configure.log for more details."
+    exit 1
+  end
+
   def check_program(run=true, link_libs=[])
     begin
       basename = "rbx-configure-test"
@@ -669,7 +674,7 @@ class Configure
 
       unless $?.exitstatus == 0
         @log.error "compiling configure test program failed"
-        exit 1
+        failure
       end
 
       system expand("./#{basename}")
@@ -1016,7 +1021,7 @@ end
   def run
     unless which_ruby == :ruby or which_ruby == :rbx
       @log.error "Sorry, building Rubinius requires MRI or Rubinius"
-      exit 1
+      failure
     end
 
     options
@@ -1031,7 +1036,7 @@ end
       end
       @log.error "  * Use a Ruby executable other than '#{build_ruby}' to build."
 
-      exit 1
+      failure
     end
 
     process

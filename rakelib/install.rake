@@ -95,6 +95,7 @@ namespace :install do
 
       FileList[
         'runtime/index',
+        'runtime/signature',
         'runtime/platform.conf',
         'runtime/**/*.rb{a,c}',
         'runtime/**/load_order*.txt'
@@ -140,8 +141,9 @@ namespace :install do
       # Create symlinks for common commands
       begin
         ["ruby", "rake", "gem", "irb", "rdoc", "ri"].each do |command|
-          name = "#{BUILD_CONFIG[:bindir]}/#{command}"
-          File.symlink BUILD_CONFIG[:program_name], install_dir(name)
+          name = install_dir("#{BUILD_CONFIG[:bindir]}/#{command}")
+          File.delete name if File.exists? name
+          File.symlink BUILD_CONFIG[:program_name], name
         end
       rescue NotImplementedError
         # ignore

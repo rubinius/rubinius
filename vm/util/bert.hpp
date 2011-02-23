@@ -582,6 +582,22 @@ namespace bert {
       , sub_value_(sub)
     {}
 
+    ~Value() {
+      if(type_ == Tuple || type_ == List) {
+        if(elements_) {
+          for(ValueList::iterator i = elements_->begin();
+              i != elements_->end();
+              i++) {
+            delete *i;
+          }
+          delete elements_;
+        }
+      } else {
+        if(term_) delete term_;
+      }
+      if(sub_value_) delete sub_value_;
+    }
+
     Type type() {
       return type_;
     }

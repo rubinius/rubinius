@@ -23,6 +23,7 @@
     <link href="/stylesheets/blueprint/print.css" media="print" rel="stylesheet" type="text/css" />
     <!--[if IE]><link href="/stylesheets/blueprint/ie.css" media="screen" rel="stylesheet" type="text/css" /><![endif]-->
     <!--[if IE]><link href="/stylesheets/ie.css" media="screen" rel="stylesheet" type="text/css" /><![endif]-->
+    <link href="/stylesheets/pygments.css" media="screen" rel="stylesheet" type="text/css" />
   </head>
     <body>
         <div class='container'>
@@ -43,7 +44,7 @@
       </div>
             <div class='span-3 last'>
         <div id='version'>
-          <a href="/releases/1.2.0">1.2.0</a>
+          <a href="/releases/1.2.2">1.2.2</a>
         </div>
       </div>
 
@@ -121,14 +122,32 @@
       
 
         <p>The Rubinius bytecode compiler converts Ruby source code to bytecode that the
-virtual machine can execute.</p>
+virtual machine can execute. It uses a series of sequential stages to
+transform the input into a form that the virtual machine can understand.</p>
+
+<p>Each of these stages is decoupled from the rest of the process,
+expecting only a particular input form and sending its output to the
+next stage. As a result, the compilation process is quite configurable,
+and you can instrument any of the stages simply.</p>
+
+<p>Each stage of the process receives an input, runs the stage, and passes
+the output from the stage to the next stage of the process. The default
+stages, as well as their inputs and outputs, are illustrated below.</p>
+
+<div style="text-align: center; width: 100%">
+  <img src="/images/compilation_process.png" alt="Compilation process" />
+</div>
 
 <ol>
-  <li><a href="/doc/en/bytecode-compiler/parser/">Parser</a></li>
+  <li><a href="/doc/en/bytecode-compiler/parser/">Parser Stage</a></li>
   <li><a href="/doc/en/bytecode-compiler/ast/">AST</a></li>
-  <li><a href="/doc/en/bytecode-compiler/compiler/">Compiler</a></li>
+  <li><a href="/doc/en/bytecode-compiler/generator/">Generator Stage</a></li>
+  <li><a href="/doc/en/bytecode-compiler/encoder/">Encoder Stage</a></li>
+  <li><a href="/doc/en/bytecode-compiler/packager/">Packager Stage</a></li>
+  <li><a href="/doc/en/bytecode-compiler/writer/">Writer Stage</a></li>
+  <li>Printers</li>
   <li><a href="/doc/en/bytecode-compiler/transformations/">Transformations</a></li>
-  <li><a href="/doc/en/bytecode-compiler/generator/">Generator</a></li>
+  <li><a href="/doc/en/bytecode-compiler/customization/">Customizing the Pipeline</a></li>
 </ol>
 
 

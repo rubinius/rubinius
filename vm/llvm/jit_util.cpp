@@ -755,6 +755,18 @@ extern "C" {
     return Qtrue;
   }
 
+  int rbx_enter_unmanaged(STATE, CallFrame* call_frame) {
+    state->set_call_frame(call_frame);
+    state->shared.gc_independent(state);
+    return 0;
+  }
+
+  int rbx_exit_unmanaged(STATE, CallFrame* call_frame) {
+    state->set_call_frame(call_frame);
+    state->shared.gc_dependent(state);
+    return 0;
+  }
+
   bool rbx_return_to_here(STATE, CallFrame* call_frame) {
     ThreadState* th = state->thread_state();
     if(th->raise_reason() != cReturn) return false;

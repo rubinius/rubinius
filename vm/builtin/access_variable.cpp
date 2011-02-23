@@ -89,19 +89,19 @@ namespace rubinius {
         return NULL;
       }
 
-      // Promote this to use a direct accessor
-      if(TypeInfo* ti = state->om->find_type_info(self)) {
-        TypeInfo::Slots::iterator it = ti->slots.find(access->name()->index());
-        if(it != ti->slots.end()) {
-          // Found one!
-          access->set_executor(ti->slot_accessors[it->second]);
-          ti->set_field(state, self, it->second, args.get_argument(0));
-          return args.get_argument(0);
-        }
-      }
-
-      /* Fall through, handle it as a normal ivar. */
       if(self->reference_p()) {
+        // Promote this to use a direct accessor
+        if(TypeInfo* ti = state->om->find_type_info(self)) {
+          TypeInfo::Slots::iterator it = ti->slots.find(access->name()->index());
+          if(it != ti->slots.end()) {
+            // Found one!
+            access->set_executor(ti->slot_accessors[it->second]);
+            ti->set_field(state, self, it->second, args.get_argument(0));
+            return args.get_argument(0);
+          }
+        }
+
+        /* Fall through, handle it as a normal ivar. */
         access->set_executor(access_write_regular_ivar);
       }
 
@@ -115,18 +115,17 @@ namespace rubinius {
       return NULL;
     }
 
-    // Promote this to use a direct accessor
-    if(TypeInfo* ti = state->om->find_type_info(self)) {
-      TypeInfo::Slots::iterator it = ti->slots.find(access->name()->index());
-      if(it != ti->slots.end()) {
-        // Found one!
-        access->set_executor(ti->slot_accessors[it->second]);
-        return ti->get_field(state, self, it->second);
-      }
-    }
-
-    // Ok, its a table ivar, setup fast access for next time.
     if(self->reference_p()) {
+      // Promote this to use a direct accessor
+      if(TypeInfo* ti = state->om->find_type_info(self)) {
+        TypeInfo::Slots::iterator it = ti->slots.find(access->name()->index());
+        if(it != ti->slots.end()) {
+          // Found one!
+          access->set_executor(ti->slot_accessors[it->second]);
+          return ti->get_field(state, self, it->second);
+        }
+      }
+      // Ok, its a table ivar, setup fast access for next time.
       access->set_executor(access_read_regular_ivar);
     }
 

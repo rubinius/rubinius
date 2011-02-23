@@ -795,9 +795,9 @@ class UNIXSocket < BasicSocket
     phase = 'socket(2)'
     sock = Socket::Foreign.socket Socket::Constants::AF_UNIX, Socket::Constants::SOCK_STREAM, 0
 
-    IO.setup self, sock, 'r+', true
+    Errno.handle phase if sock < 0
 
-    Errno.handle phase if descriptor < 0
+    IO.setup self, sock, 'r+', true
 
     sockaddr = Socket.pack_sockaddr_un(@path)
 
@@ -810,14 +810,17 @@ class UNIXSocket < BasicSocket
     end
 
     if status < 0 then
-      Socket::Foreign.close descriptor
+      close
       Errno.handle phase
     end
 
     if server then
       phase = 'listen(2)'
       status = Socket::Foreign.listen descriptor, 5
-      Errno.handle phase if status < 0
+      if status < 0
+        close
+        Errno.handle phase
+      end
     end
 
     return sock
@@ -939,7 +942,6 @@ class UDPSocket < IPSocket
 
     if status < 0
       Errno.handle 'bind(2)'
-      Socket::Foreign.close descriptor
     end
 
     status
@@ -952,7 +954,6 @@ class UDPSocket < IPSocket
     status = Socket::Foreign.connect descriptor, sockaddr
 
     if status < 0
-      Socket::Foreign.close descriptor
       Errno.handle syscall
     end
 
@@ -1034,52 +1035,69 @@ class TCPSocket < IPSocket
                                                     Socket::SOCK_STREAM, 0, 0)
     end
 
+    sock = nil
+
     @remote_addrinfo.each do |addrinfo|
       flags, family, socket_type, protocol, sockaddr, canonname = addrinfo
 
-      status = Socket::Foreign.socket family, socket_type, protocol
+      sock = Socket::Foreign.socket family, socket_type, protocol
       syscall = 'socket(2)'
-      IO.setup self, status, nil, true
 
-      next if descriptor < 0
+      next if sock < 0
 
-      if server then
-        status = 1
-
-        begin
-          setsockopt(Socket::Constants::SOL_SOCKET,
-                     Socket::Constants::SO_REUSEADDR, true)
-        rescue SystemCallError
+      if server
+        FFI::MemoryPointer.new :socklen_t do |val|
+          val.write_int 1
+          level = Socket::Constants::SOL_SOCKET
+          optname = Socket::Constants::SO_REUSEADDR
+          error = Socket::Foreign.setsockopt(sock, level,
+                                             optname, val,
+                                             val.total)
+          # Don't check error because if this fails, we just continue
+          # anyway.
         end
 
-        status = Socket::Foreign.bind descriptor, sockaddr
+        status = Socket::Foreign.bind sock, sockaddr
         syscall = 'bind(2)'
       else
-        if @local_addrinfo then
-          status = bind descriptor, @local_addrinfo.first[4]
+        if @local_addrinfo
+          status = Socket::Foreign.bind sock, @local_addrinfo.first[4]
           syscall = 'bind(2)'
+        else
+          status = 1
         end
 
-        if status >= 0 then
-          status = Socket::Foreign.connect descriptor, sockaddr
+        if status >= 0
+          status = Socket::Foreign.connect sock, sockaddr
           syscall = 'connect(2)'
         end
       end
 
-      break if status >= 0
+      if status < 0
+        Socket::Foreign.close sock
+      else
+        break
+      end
     end
 
     if status < 0
       Errno.handle syscall
-      Socket::Foreign.close descriptor
     end
 
-    if server then
-      err = Socket::Foreign.listen descriptor, 5
-      Errno.handle syscall unless err == 0
+    if server
+      err = Socket::Foreign.listen sock, 5
+      unless err == 0
+        Socket::Foreign.close sock
+        Errno.handle syscall
+      end
     end
 
-    IO.setup self, descriptor, nil, true
+    # Only setup once we have found a socket we can use. Otherwise
+    # because we manually close a socket fd, we can create an IO fd
+    # alias condition which causes EBADF because when an IO is finalized
+    # and it's fd has been closed underneith it, we close someone elses
+    # fd!
+    IO.setup self, sock, nil, true
   end
   private :tcp_setup
 
