@@ -9,6 +9,101 @@
 
   
   <entry>
+    <title>Running Multiple Rubinius Branches Simultaneously with RVM.</title>
+    <id>http://rubini.us/2011/02/22/rubinius-multiple-branches-with-rvm/</id>
+    <link rel="alternate" type="text/html" href="http://rubini.us/2011/02/22/rubinius-multiple-branches-with-rvm/" />
+    <updated>2011-02-22T00:00:00+00:00</updated>
+    <author>
+      <name>Wayne E. Seguin</name>
+    </author>
+    
+    <content type="html">&lt;p&gt;This article is written with the assumption that you have RVM installed
+already. If you do not, follow the
+&lt;a href=&quot;http://rvm.beginrescueend.com/rvm/install/&quot;&gt;Installation Instructions&lt;/a&gt;
+followed by the
+&lt;a href=&quot;http://rvm.beginrescueend.com/rvm/basics/&quot;&gt;Basics&lt;/a&gt;
+closely first.&lt;/p&gt;
+
+&lt;h3 id=&quot;named-ruby-installs&quot;&gt;Named Ruby Installs&lt;/h3&gt;
+
+&lt;p&gt;Everyone familiar with RVM knows that it allows you to quickly and
+easily install a particular Ruby interpreter by simply running, for
+example,&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;rvm install rbx
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;What is not widely known (yet) is that there is a &amp;ldquo;Named Rubies&amp;rdquo; feature
+that allows you to install altered versions of the same Ruby
+installation along side the original.&lt;/p&gt;
+
+&lt;p&gt;In the case of Rubinius there is this facinating branch called &amp;lsquo;hydra&amp;rsquo;.
+So let us see how we can have the Rubinius master branch installed as
+the main rbx with the hydra branch installed along side as well.&lt;/p&gt;
+
+&lt;p&gt;As above you first install rbx which is currently defaulted to -head
+version so&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;rvm install rbx
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;is currently equivalent to&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;rvm install rbx-head
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;After we have the mainline head Rubinus branch installed, we now want to
+use the named rubies feature. This is done using the -n specifier in the
+Ruby identifier string. So for example to install our hydra branch as an
+RVM ruby with the name &amp;lsquo;hydra&amp;rsquo; in it we do the following:&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;rvm install --branch hydra rbx-nhydra
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;Now we can see that they can be used together! Using the Rubinius master
+environment,&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;$ rvm rbx ; ruby -v
+rubinius 1.2.1 (1.8.7 6feb585f 2011-02-15 JI) [x86_64-apple-darwin10.6.0]
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;Whereas using the Rubinius hydra environment,&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;$ rvm rbx-nhydra ; ruby -v
+rubinius 1.3.0dev (1.8.7 6feb585f xxxx-xx-xx JI) [x86_64-apple-darwin10.6.0]
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;We see that the next release of Rubinius (hydra branch) is indeed
+version 1.3.0 whereas the master branch is version 1.2.1.&lt;/p&gt;
+
+&lt;p&gt;Also please note that RVM creates wrapper scripts, so you do not need to
+switch out the entire environment just to run the differen versions
+either:&lt;/p&gt;
+
+&lt;p&gt;For Rubinius master,&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;$ rbx-head -v
+rubinius 1.2.1 (1.8.7 6feb585f 2011-02-15 JI) [x86_64-apple-darwin10.6.0]
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;For Rubinius hydra,&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;$ rbx-head-nhydra -v
+rubinius 1.3.0dev (1.8.7 6feb585f xxxx-xx-xx JI) [x86_64-apple-darwin10.6.0]
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;There is a lot more available to you than this, for more information on
+RVM capabilities please visit the &lt;a href=&quot;http://rvm.beginrescueend.com/&quot;&gt;RVM
+Website&lt;/a&gt; and also come talk to us in #rvm on
+irc.freenode.net during the daytime EDT.&lt;/p&gt;
+
+&lt;p&gt;I hope that this is helpful and informative to you!&lt;/p&gt;
+
+&lt;p&gt;~Wayne&lt;/p&gt;
+</content>
+  </entry>
+  
+  <entry>
     <title>Rubinius, What's Next?</title>
     <id>http://rubini.us/2011/02/17/rubinius-what-s-next/</id>
     <link rel="alternate" type="text/html" href="http://rubini.us/2011/02/17/rubinius-what-s-next/" />
