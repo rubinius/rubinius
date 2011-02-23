@@ -64,28 +64,30 @@ Daedalus.blueprint do |i|
 
   files = i.source_files "vm/*.{cpp,c}", *subdirs
 
+  perl = Rubinius::BUILD_CONFIG[:build_perl] || "perl"
+
   # Libraries
   case Rubinius::BUILD_CONFIG[:llvm]
   when :prebuilt, :svn
     llvm = i.external_lib "vm/external_libs/llvm" do |l|
       conf = "vm/external_libs/llvm/Release/bin/llvm-config"
-      flags = `#{conf} --cflags`.strip.split(/\s+/)
+      flags = `#{perl} #{conf} --cflags`.strip.split(/\s+/)
       flags.delete_if { |x| x.index("-O") == 0 || x.index("-I") == 0 }
       flags << "-Ivm/external_libs/llvm/include" << "-DENABLE_LLVM"
       l.cflags = flags
-      l.ldflags = [`#{conf} --ldflags`.strip]
-      l.objects = `#{conf} --libfiles`.strip.split(/\s+/)
+      l.ldflags = [`#{perl} #{conf} --ldflags`.strip]
+      l.objects = `#{perl} #{conf} --libfiles`.strip.split(/\s+/)
     end
 
     gcc.add_library llvm
     files << llvm
   when :config
     conf = Rubinius::BUILD_CONFIG[:llvm_configure]
-    flags = `#{conf} --cflags`.strip.split(/\s+/)
+    flags = `#{perl} #{conf} --cflags`.strip.split(/\s+/)
     flags.delete_if { |x| x.index("-O") == 0 }
     flags << "-DENABLE_LLVM"
     gcc.cflags.concat flags
-    gcc.ldflags.concat `#{conf} --ldflags --libfiles`.strip.split(/\s+/)
+    gcc.ldflags.concat `#{perl} #{conf} --ldflags --libfiles`.strip.split(/\s+/)
   when :no
     # nothing, not using LLVM
   else
@@ -176,7 +178,7 @@ Daedalus.blueprint do |i|
     f.depends_on tests
 
     f.autogenerate do |x|
-      x.command("vm/test/cxxtest/cxxtestgen.pl --error-printer --have-eh " +
+      x.command("#{perl} vm/test/cxxtest/cxxtestgen.pl --error-printer --have-eh " +
         "--abort-on-fail -include=string.h -include=stdlib.h " +
         "-include=vm/test/test_setup.h -o vm/test/runner.cpp " +
         tests.join(' '))
