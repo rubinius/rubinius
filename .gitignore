@@ -1,4 +1,5 @@
 !spec/tags
+artifacts/
 *.a
 *.bundle
 *.dSYM

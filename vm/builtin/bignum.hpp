@@ -1,7 +1,7 @@
 #ifndef RBX_BUILTIN_BIGNUM_HPP
 #define RBX_BUILTIN_BIGNUM_HPP
 
-#include <tommath.h>
+#include "tommath.h"
 #include "builtin/integer.hpp"
 
 namespace rubinius {
