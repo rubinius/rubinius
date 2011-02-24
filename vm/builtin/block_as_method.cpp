@@ -24,17 +24,30 @@ namespace rubinius {
   {
     BlockAsMethod* bm = as<BlockAsMethod>(msg.method);
 
+    Object* splat = bm->block_env()->method()->splat();
     int required = bm->block_env()->method()->required_args()->to_native();
 
-    // Stupidly, if 0 or 1 args are required by the proc, we still
-    // go ahead and call it.
-    //
-    // Calling with 0, args are ignored.
-    // Calling with 1, args are put into an array and the local gets the array
-    //   (this is handled by the bytecode prologue of the block)
-    // Otherwise, it's strict arg checking.
-    //
-    if(required > 1 && (size_t)required > args.total()) {
+    /*
+     * These are the block shapes, required args, and splat that we may see,
+     * along with the arity check that we must perform:
+     *
+     *   block shape   required args   splat   check
+     *  -------------|---------------|-------|-------
+     *  { || }       |  0            |  nil  |  ==
+     *  {  }         |  0            |  -2   |  none
+     *  { |a| }      |  1            |  nil  |  none
+     *  { |*a| }     |  0            |  0    |  none
+     *  { |a, b| }   |  2            |  nil  |  ==
+     *  { |a, *b| }  |  1            |  1    |  >=
+     *
+     * NOTE that when taking one argument, any arguments passed are put
+     * into an array and the local gets the array (or an empty array if
+     * no arguments are passed). This is handled by the bytecode prologue
+     * of the block.
+     */
+    if((splat->nil_p() && (required == 0 || required > 1)
+            && (size_t)required != args.total())
+        || (!splat->nil_p() && required > 0 && (size_t)required > args.total())) {
       Exception* exc =
         Exception::make_argument_error(state, required, args.total(), msg.name);
       exc->locations(state, Location::from_call_stack(state, call_frame));
