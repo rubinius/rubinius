@@ -311,8 +311,12 @@ class Module
 
   private :filter_methods
 
-  def define_method(name, meth = nil, &prc)
-    meth ||= prc
+  def define_method(name, meth = undefined, &prc)
+    if meth == undefined and !block_given?
+      raise ArgumentError, "tried to create Proc object without a block"
+    end
+
+    meth = prc if meth == undefined
 
     case meth
     when Proc::Method
