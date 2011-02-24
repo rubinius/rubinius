@@ -365,7 +365,15 @@ class File < IO
       when ?/
         path = ENV["HOME"] + path.substring(1, path.size - 1)
       when nil
-        return ENV["HOME"]
+        unless home = ENV["HOME"]
+          raise ArgumentError, "couldn't find HOME environment variable when expanding '~'"
+        end
+
+        if home.empty?
+          raise ArgumentError, "HOME environment variable is empty expanding '~'"
+        end
+
+        return home
       else
         unless length = path.index("/", 1)
           length = path.size
