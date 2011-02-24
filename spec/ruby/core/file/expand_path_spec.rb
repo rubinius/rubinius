@@ -115,11 +115,6 @@ describe "File.expand_path" do
     end
   end
 
-  it "raises an ArgumentError if not passed one or two arguments" do
-    lambda { File.expand_path }.should raise_error(ArgumentError)
-    lambda { File.expand_path '../', 'tmp', 'foo' }.should raise_error(ArgumentError)
-  end
-
   ruby_version_is "1.9" do
     it "accepts objects that have a #to_path method" do
       File.expand_path(mock_to_path("a"), mock_to_path("#{@tmpdir}"))
@@ -170,5 +165,36 @@ describe "File.expand_path" do
     path = File.expand_path(str, @base)
     path.should == "#{@base}/a/c"
     path.should be_an_instance_of(String)
+  end
+end
+
+platform_is_not :windows do
+  describe "File.expand_path when HOME is not set" do
+    before :each do
+      @home = ENV["HOME"]
+    end
+
+    after :each do
+      ENV["HOME"] = @home
+    end
+
+    it "raises an ArgumentError when passed '~' if HOME is nil" do
+      ENV.delete "HOME"
+      lambda { File.expand_path("~") }.should raise_error(ArgumentError)
+    end
+
+    ruby_version_is ""..."1.8.7" do
+      it "returns '/' when passed '~' if HOME == ''" do
+        ENV["HOME"] = ""
+        File.expand_path("~").should == "/"
+      end
+    end
+
+    ruby_version_is "1.8.7" do
+      it "raises an ArgumentError when passed '~' if HOME == ''" do
+        ENV["HOME"] = ""
+        lambda { File.expand_path("~") }.should raise_error(ArgumentError)
+      end
+    end
   end
 end
