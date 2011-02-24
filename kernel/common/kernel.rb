@@ -656,7 +656,7 @@ module Kernel
       end
     end
 
-    Rubinius.convert_to_names methods
+    Rubinius.convert_to_names methods.uniq
   end
 
   alias_method :send, :__send__
@@ -945,7 +945,7 @@ end
 module Rubinius
   # Ruby 1.8 returns strings for method and constant names
   def self.convert_to_names(list)
-    list.map{|x| x.to_s}
+    list.map! { |x| x.to_s }
   end
 end
 
