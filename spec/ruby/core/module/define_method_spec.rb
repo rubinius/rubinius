@@ -96,6 +96,16 @@ describe "Module#define_method" do
     lambda {
       Class.new { define_method(:test, 1234) }
     }.should raise_error(TypeError)
+
+    lambda {
+      Class.new { define_method(:test, nil) }
+    }.should raise_error(TypeError)
+  end
+
+  it "raises an ArgumentError when no block is given" do
+    lambda {
+      Class.new { define_method(:test) }
+    }.should raise_error(ArgumentError)
   end
 
   it "accepts a Method (still bound)" do
