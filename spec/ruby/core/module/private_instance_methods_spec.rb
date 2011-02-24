@@ -1,6 +1,8 @@
 require File.expand_path('../../../spec_helper', __FILE__)
 require File.expand_path('../fixtures/classes', __FILE__)
+require File.expand_path('../../../fixtures/reflection', __FILE__)
 
+# TODO: rewrite
 describe "Module#private_instance_methods" do
   it "returns a list of private methods in module and its ancestors" do
     ModuleSpecs::CountsMixin.should have_private_instance_method(:private_3)
@@ -26,5 +28,27 @@ describe "Module#private_instance_methods" do
       ModuleSpecs::CountsParent.private_instance_methods
     ModuleSpecs::CountsChild.private_instance_methods(true).should ==
       ModuleSpecs::CountsChild.private_instance_methods
+  end
+end
+
+describe :module_private_instance_methods_supers, :shared => true do
+  it "returns a unique list for a class including a module" do
+    m = ReflectSpecs::D.private_instance_methods(*@object)
+    m.select { |x| x == stasy(:pri) }.sort.should == [stasy(:pri)]
+  end
+
+  it "returns a unique list for a subclass" do
+    m = ReflectSpecs::E.private_instance_methods(*@object)
+    m.select { |x| x == stasy(:pri) }.sort.should == [stasy(:pri)]
+  end
+end
+
+describe "Module#private_instance_methods" do
+  describe "when not passed an argument" do
+    it_behaves_like :module_private_instance_methods_supers, nil, []
+  end
+
+  describe "when passed true" do
+    it_behaves_like :module_private_instance_methods_supers, nil, true
   end
 end

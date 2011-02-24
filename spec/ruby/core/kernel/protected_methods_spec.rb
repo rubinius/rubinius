@@ -1,5 +1,8 @@
 require File.expand_path('../../../spec_helper', __FILE__)
 require File.expand_path('../fixtures/classes', __FILE__)
+require File.expand_path('../../../fixtures/reflection', __FILE__)
+
+# TODO: rewrite
 
 # The reason why having include() and ruby_version_is is to show the specification explicitly.
 # You should use have_protected_method() with the exception of this spec.
@@ -42,5 +45,32 @@ describe "Kernel#protected_methods" do
       m.extend(KernelSpecs::Methods::MetaclassMethods)
       m.protected_methods.should include(:nopeeking)
     end
+  end
+end
+
+describe :kernel_protected_methods_supers, :shared => true do
+  it "returns a unique list for an object extended by a module" do
+    m = ReflectSpecs.oed.protected_methods(*@object)
+    m.select { |x| x == stasy(:pro) }.sort.should == [stasy(:pro)]
+  end
+
+  it "returns a unique list for a class including a module" do
+    m = ReflectSpecs::D.new.protected_methods(*@object)
+    m.select { |x| x == stasy(:pro) }.sort.should == [stasy(:pro)]
+  end
+
+  it "returns a unique list for a subclass of a class that includes a module" do
+    m = ReflectSpecs::E.new.protected_methods(*@object)
+    m.select { |x| x == stasy(:pro) }.sort.should == [stasy(:pro)]
+  end
+end
+
+describe "Kernel#protected_methods" do
+  describe "when not passed an argument" do
+    it_behaves_like :kernel_protected_methods_supers, nil, []
+  end
+
+  describe "when passed true" do
+    it_behaves_like :kernel_protected_methods_supers, nil, true
   end
 end

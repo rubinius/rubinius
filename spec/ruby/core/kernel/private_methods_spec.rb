@@ -1,6 +1,8 @@
 require File.expand_path('../../../spec_helper', __FILE__)
 require File.expand_path('../fixtures/classes', __FILE__)
+require File.expand_path('../../../fixtures/reflection', __FILE__)
 
+# TODO: rewrite
 describe "Kernel#private_methods" do
   ruby_version_is ""..."1.9" do
     it "returns a list of the names of privately accessible methods in the object" do
@@ -54,5 +56,32 @@ describe "Kernel#private_methods" do
       m.extend(KernelSpecs::Methods::MetaclassMethods)
       m.private_methods.should include(:shoo)
     end
+  end
+end
+
+describe :kernel_private_methods_supers, :shared => true do
+  it "returns a unique list for an object extended by a module" do
+    m = ReflectSpecs.oed.private_methods(*@object)
+    m.select { |x| x == stasy(:pri) }.sort.should == [stasy(:pri)]
+  end
+
+  it "returns a unique list for a class including a module" do
+    m = ReflectSpecs::D.new.private_methods(*@object)
+    m.select { |x| x == stasy(:pri) }.sort.should == [stasy(:pri)]
+  end
+
+  it "returns a unique list for a subclass of a class that includes a module" do
+    m = ReflectSpecs::E.new.private_methods(*@object)
+    m.select { |x| x == stasy(:pri) }.sort.should == [stasy(:pri)]
+  end
+end
+
+describe "Kernel#private_methods" do
+  describe "when not passed an argument" do
+    it_behaves_like :kernel_private_methods_supers, nil, []
+  end
+
+  describe "when passed true" do
+    it_behaves_like :kernel_private_methods_supers, nil, true
   end
 end

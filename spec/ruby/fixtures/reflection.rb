@@ -59,6 +59,24 @@ module ReflectSpecs
     obj
   end
 
+  # An object with duplicate methods extended with a module.
+  def self.oed
+    obj = mock("Object extended")
+    obj.extend M
+
+    class << obj
+      def pub; :pub; end
+
+      def pro; :pro; end
+      protected :pro
+
+      def pri; :pri; end
+      private :pri
+    end
+
+    obj
+  end
+
   # An object extended with two modules.
   def self.oee
     obj = mock("Object extended twice")
@@ -118,6 +136,14 @@ module ReflectSpecs
 
     def m_pri; :m_pri; end
     private :m_pri
+
+    def pub; :pub; end
+
+    def pro; :pro; end
+    protected :pro
+
+    def pri; :pri; end
+    private :pri
   end
 
   # A module including a module
@@ -153,6 +179,14 @@ module ReflectSpecs
 
       def as_pri; :as_pri; end
       private :as_pri
+
+      def pub; :pub; end
+
+      def pro; :pro; end
+      protected :pro
+
+      def pri; :pri; end
+      private :pri
     end
 
     def a_pub; :a_pub; end
@@ -174,6 +208,14 @@ module ReflectSpecs
 
       def bs_pri; :bs_pri; end
       private :bs_pri
+
+      def pub; :pub; end
+
+      def pro; :pro; end
+      protected :pro
+
+      def pri; :pri; end
+      private :pri
     end
 
     def b_pub; :b_pub; end
@@ -197,6 +239,14 @@ module ReflectSpecs
 
       def cs_pri; :cs_pri; end
       private :cs_pri
+
+      def pub; :pub; end
+
+      def pro; :pro; end
+      protected :pro
+
+      def pri; :pri; end
+      private :pri
     end
 
     def c_pub; :c_pub; end
@@ -229,6 +279,14 @@ module ReflectSpecs
 
     def d_pri; :d_pri; end
     private :d_pri
+
+    def pub; :pub; end
+
+    def pro; :pro; end
+    protected :pro
+
+    def pri; :pri; end
+    private :pri
   end
 
   # A subclass of a class including a module.
@@ -250,6 +308,14 @@ module ReflectSpecs
 
     def e_pri; :e_pri; end
     private :e_pri
+
+    def pub; :pub; end
+
+    def pro; :pro; end
+    protected :pro
+
+    def pri; :pri; end
+    private :pri
   end
 
   # A subclass that includes a module of a class including a module.

@@ -43,6 +43,12 @@ describe :kernel_singleton_methods_supers, :shared => true do
     ReflectSpecs.oe.singleton_methods(*@object).should include(*stasy(:m_pro, :m_pub))
   end
 
+  it "returns a unique list for an object extended with a module" do
+    m = ReflectSpecs.oed.singleton_methods(*@object)
+    r = m.select { |x| x == stasy(:pub) or x == stasy(:pro) }.sort
+    r.should == [stasy(:pro), stasy(:pub)]
+  end
+
   it "returns the names of singleton methods for an object extented with two modules" do
     ReflectSpecs.oee.singleton_methods(*@object).should include(
       *stasy(:m_pro, :m_pub, :n_pro, :n_pub))
@@ -58,9 +64,21 @@ describe :kernel_singleton_methods_supers, :shared => true do
       *stasy(:as_pro, :as_pub, :bs_pro, :bs_pub))
   end
 
+  it "returns a unique list for a subclass" do
+    m = ReflectSpecs::B.singleton_methods(*@object)
+    r = m.select { |x| x == stasy(:pub) or x == stasy(:pro) }.sort
+    r.should == [stasy(:pro), stasy(:pub)]
+  end
+
   it "returns the names of inherited singleton methods for a subclass including a module" do
     ReflectSpecs::C.singleton_methods(*@object).should include(
       *stasy(:as_pro, :as_pub, :cs_pro, :cs_pub))
+  end
+
+  it "returns a unique list for a subclass including a module" do
+    m = ReflectSpecs::C.singleton_methods(*@object)
+    r = m.select { |x| x == stasy(:pub) or x == stasy(:pro) }.sort
+    r.should == [stasy(:pro), stasy(:pub)]
   end
 
   it "returns the names of inherited singleton methods for a subclass of a class including a module" do

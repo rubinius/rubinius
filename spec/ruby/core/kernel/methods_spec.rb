@@ -1,6 +1,8 @@
 require File.expand_path('../../../spec_helper', __FILE__)
 require File.expand_path('../fixtures/classes', __FILE__)
+require File.expand_path('../../../fixtures/reflection', __FILE__)
 
+# TODO: rewrite
 # On Ruby < 1.9 #methods returns an Array of Strings
 ruby_version_is ""..."1.9" do
   describe "Kernel#methods" do
@@ -136,5 +138,36 @@ ruby_version_is "1.9" do
     it "does not return included module methods undefined in the object's class" do
       KernelSpecs::Grandchild.new.methods.should_not include(:parent_mixin_method)
     end
+  end
+end
+
+describe :kernel_methods_supers, :shared => true do
+  before :all do
+    @ms = [stasy(:pro), stasy(:pub)]
+  end
+
+  it "returns a unique list for an object extended by a module" do
+    m = ReflectSpecs.oed.methods(*@object)
+    m.select { |x| @ms.include? x }.sort.should == @ms
+  end
+
+  it "returns a unique list for a class including a module" do
+    m = ReflectSpecs::D.new.methods(*@object)
+    m.select { |x| @ms.include? x }.sort.should == @ms
+  end
+
+  it "returns a unique list for a subclass of a class that includes a module" do
+    m = ReflectSpecs::E.new.methods(*@object)
+    m.select { |x| @ms.include? x }.sort.should == @ms
+  end
+end
+
+describe "Kernel#methods" do
+  describe "when not passed an argument" do
+    it_behaves_like :kernel_methods_supers, nil, []
+  end
+
+  describe "when passed true" do
+    it_behaves_like :kernel_methods_supers, nil, true
   end
 end

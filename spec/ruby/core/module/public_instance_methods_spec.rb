@@ -1,6 +1,8 @@
 require File.expand_path('../../../spec_helper', __FILE__)
 require File.expand_path('../fixtures/classes', __FILE__)
+require File.expand_path('../../../fixtures/reflection', __FILE__)
 
+# TODO: rewrite
 # Before MRI 1.9 #public_instance_methods returned an Array of Strings
 ruby_version_is ""..."1.9" do
   describe "Module#public_instance_methods" do
@@ -73,5 +75,27 @@ ruby_version_is "1.9" do
       ModuleSpecs::CountsChild.public_instance_methods(true).should ==
         ModuleSpecs::CountsChild.public_instance_methods
     end
+  end
+end
+
+describe :module_public_instance_methods_supers, :shared => true do
+  it "returns a unique list for a class including a module" do
+    m = ReflectSpecs::D.public_instance_methods(*@object)
+    m.select { |x| x == stasy(:pub) }.sort.should == [stasy(:pub)]
+  end
+
+  it "returns a unique list for a subclass" do
+    m = ReflectSpecs::E.public_instance_methods(*@object)
+    m.select { |x| x == stasy(:pub) }.sort.should == [stasy(:pub)]
+  end
+end
+
+describe "Module#public_instance_methods" do
+  describe "when not passed an argument" do
+    it_behaves_like :module_public_instance_methods_supers, nil, []
+  end
+
+  describe "when passed true" do
+    it_behaves_like :module_public_instance_methods_supers, nil, true
   end
 end
