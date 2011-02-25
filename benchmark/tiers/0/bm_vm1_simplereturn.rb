@@ -1,12 +1,17 @@
-def m
+require 'benchmark'
+require 'benchmark/ips'
+
+def return_one
   return 1
 end
 
-def Bench.run
-  i=0
-  while i < 100_000_000 # while loop 1
-    i+=1
-    m
+Benchmark.ips do |x|
+  x.report "call/return" do |times|
+    i = 0
+    while i < times
+      return_one
+      i += 1
+    end
   end
 end
 

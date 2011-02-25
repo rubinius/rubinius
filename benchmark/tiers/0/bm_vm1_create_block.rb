@@ -1,11 +1,16 @@
-def m
+require 'benchmark'
+require 'benchmark/ips'
+
+def return_nil
   nil
 end
 
-def Bench.run
-  i=0
-  while i<50000000 # while loop 1
-    i+=1
-    m {}
+Benchmark.ips do |x|
+  x.report "create block" do |times|
+    i=0
+    while i < times
+      return_nil {}
+      i += 1
+    end
   end
 end

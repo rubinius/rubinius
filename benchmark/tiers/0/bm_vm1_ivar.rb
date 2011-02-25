@@ -1,10 +1,28 @@
-def Bench.run
-  @a = 1
+require 'benchmark'
+require 'benchmark/ips'
 
-  i = 0
-  while i<50_000_000 # while loop 1
-    i+= 1
-    j = @a
-    k = @a
+class IVarBench
+  def bench
+    @a = 1
+
+    Benchmark.ips do |x|
+      x.report "ivar read" do |times|
+        i = 0
+        while i < times
+          i += 1
+          @a
+        end
+      end
+
+      x.report "ivar set" do |times|
+        i = 0
+        while i < times
+          i += 1
+          @a = 1
+        end
+      end
+    end
   end
 end
+
+IVarBench.new.bench

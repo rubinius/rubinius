@@ -1,32 +1,37 @@
-class C1
+require 'benchmark'
+require 'benchmark/ips'
+
+c1 = Class.new do
   def m
     1
   end
 end
 
-class C2
+c2 = Class.new do
   def m
     2
   end
 end
 
-def Bench.run
-  o1 = C1.new
-  o2 = C2.new
+o1 = c1.new
+o2 = c2.new
 
-  which = false
-  o = o1
+Benchmark.ips do |x|
+  x.report "poly method" do |times|
+    which = false
+    o = o1
 
-  i = 0
-  while i < 10_000_000 # benchmark loop 2
-    if which
-      o = o1
-    else
-      o = o2
+    i = 0
+    while i < times
+      if which
+        o = o1
+      else
+        o = o2
+      end
+
+      which = !which
+      o.m; o.m; o.m; o.m; o.m; o.m; o.m; o.m
+      i += 1
     end
-
-    which = !which
-    o.m; o.m; o.m; o.m; o.m; o.m; o.m; o.m
-    i+=1
   end
 end

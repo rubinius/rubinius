@@ -1,10 +1,15 @@
-def Bench.run
-  i = 0
+require 'benchmark'
+require 'benchmark/ips'
+
+Benchmark.ips do |x|
   obj1 = Object.new
   obj2 = Object.new
 
-  while i<60_000_000 # while loop 1
-    i+= 1
-    obj1 != obj2
+  x.report "not equal" do |times|
+    i = 0
+    while i < times
+      obj1 != obj2
+      i += 1
+    end
   end
 end
