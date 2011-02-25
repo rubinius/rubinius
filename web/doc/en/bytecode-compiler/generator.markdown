@@ -128,4 +128,4 @@ provided by the default `Generator` implementation.
 You can also customize which generator class is passed in. To learn
 more about customizing individual compiler stages or the compiler
 pipeline, please read [Customizing the Compiler
-Pipeline](/bytecode-compiler/cutomization/).
+Pipeline](/bytecode-compiler/customization/).
