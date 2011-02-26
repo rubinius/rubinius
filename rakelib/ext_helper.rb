@@ -21,13 +21,13 @@ $CXX      = env "CXX", "g++"
 $LDSHARED = env "LDSHARED", $CXX
 $YACC     = env "YACC", "bison"
 
-$CFLAGS   = env "CFLAGS"
+$CFLAGS   = env "CFLAGS", Rubinius::BUILD_CONFIG[:user_cflags]
 $CXXFLAGS = env "CXXFLAGS"
 
 $ELIBSDIR = env "ELIBSDIR", File.expand_path("../../vm/external_libs", __FILE__)
 $LIBS     = env "LIBS"
 $LDDIRS   = env "LDDIRS"
-$LDFLAGS  = env "LDFLAGS"
+$LDFLAGS  = env "LDFLAGS", Rubinius::BUILD_CONFIG[:user_ldflags]
 
 $DLEXT    = env "DLEXT", DEFAULT["DLEXT"]
 $LIBEXT   = env "LIBEXT", DEFAULT["LIBEXT"]
