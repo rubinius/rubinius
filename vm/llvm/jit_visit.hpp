@@ -2198,12 +2198,20 @@ use_send:
     }
 
     void visit_push_scope() {
-      Value* cm = b().CreateLoad(
-          b().CreateConstGEP2_32(call_frame_, 0, offset::cf_cm, "cm_pos"),
-          "cm");
+      if(info().is_block) {
+        Value* scope = b().CreateLoad(
+            b().CreateConstGEP2_32(call_frame_, 0, offset::cf_static_scope, "scope_pos"),
+            "cm");
 
-      Value* gep = b().CreateConstGEP2_32(cm, 0, offset::cm_static_scope, "scope_pos");
-      stack_push(b().CreateLoad(gep, "scope"));
+        stack_push(scope);
+      } else {
+        Value* cm = b().CreateLoad(
+            b().CreateConstGEP2_32(call_frame_, 0, offset::cf_cm, "cm_pos"),
+            "cm");
+
+        Value* gep = b().CreateConstGEP2_32(cm, 0, offset::cm_static_scope, "scope_pos");
+        stack_push(b().CreateLoad(gep, "scope"));
+      }
     }
 
     void visit_cast_for_single_block_arg() {
