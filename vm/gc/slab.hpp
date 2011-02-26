@@ -25,6 +25,7 @@ namespace gc {
     }
 
     void refill(void* start, size_t size) {
+      allocations_ = 0;
       size_ = size;
       start_ = reinterpret_cast<uintptr_t>(start);
       end_ = start_ + size_;
