@@ -142,20 +142,26 @@ namespace rubinius {
   }
 
   Object* MethodTable::alias(STATE, Symbol* name, Symbol* vis,
-                             Symbol* orig_name, Executable* orig_method,
+                             Symbol* orig_name, Object* orig_method,
                              Module* orig_mod)
   {
     unsigned int num_entries, num_bins, bin;
     MethodTableBucket* entry;
     MethodTableBucket* last = NULL;
 
+    Executable* orig_exec;
+
     if(Alias* alias = try_as<Alias>(orig_method)) {
-      orig_method = alias->original_exec();
+      orig_exec = alias->original_exec();
       orig_mod = alias->original_module();
       orig_name = alias->original_name();
+    } else if(orig_method->nil_p()) {
+      orig_exec = nil<Executable>();
+    } else {
+      orig_exec = as<Executable>(orig_method);
     }
 
-    Alias* method = Alias::create(state, orig_name, orig_mod, orig_method);
+    Alias* method = Alias::create(state, orig_name, orig_mod, orig_exec);
 
     num_entries = entries_->to_native();
     num_bins = bins_->to_native();
