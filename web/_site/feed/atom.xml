@@ -9,6 +9,326 @@
 
   
   <entry>
+    <title>Introduction to Fancy</title>
+    <id>http://rubini.us/2011/02/23/introduction-to-fancy/</id>
+    <link rel="alternate" type="text/html" href="http://rubini.us/2011/02/23/introduction-to-fancy/" />
+    <updated>2011-02-23T00:00:00+00:00</updated>
+    <author>
+      <name>Christopher Bertels</name>
+    </author>
+    
+    <content type="html">&lt;p&gt;Fancy is a new general-purpose programming language targetting the
+Rubinius VM.&lt;/p&gt;
+
+&lt;p&gt;This blog post will give a short introduction to the language, what
+kind of problems it&amp;rsquo;s trying to solve and why I chose Rubinius as the
+VM to run Fancy on.&lt;/p&gt;
+
+&lt;h3 id=&quot;what-is-fancy&quot;&gt;What is Fancy?&lt;/h3&gt;
+
+&lt;p&gt;Fancy is a new general-purpose, dynamic, pure object-oriented
+programming language heavily inspired by Ruby, Smalltalk and Erlang
+that runs on the Rubinius VM. It&amp;rsquo;s the first fully bootstrapped
+language, aside from Ruby, running on Rubinius. This means that the
+compiler that generates bytecode for Rubinius is written in Fancy
+itself.&lt;/p&gt;
+
+&lt;p&gt;You can think of Fancy as a mix of features from the mentioned
+languages above, taking each of their strengths and improving upon
+their weaknesses.
+Fancy has a very small core and is largely based on the concept of
+message passing, just like Smalltalk. It tries to have as many
+language concepts being first-class values in the language.&lt;/p&gt;
+
+&lt;p&gt;Just like Ruby, Fancy is a dynamic object-oriented language that
+allows changing code at runtime, everything being an expression and
+generally embracing more then one way to do things. Fancy also has all
+the literal support that Ruby has, plus literal syntax for Tuples and
+Patterns (more on that below).&lt;/p&gt;
+
+&lt;p&gt;In contrast to Ruby and just like Smalltalk, Fancy has a very small
+amount of built-in keywords and all of the control structures are
+implemented in terms of message sends to objects using closures.&lt;/p&gt;
+
+&lt;p&gt;The third language that served as an inspiration is Erlang, from which
+Fancy takes the idea that concurrent programming should be easy by
+having the Actor Model built into the language. This part is still a
+work in progress, but should come together soon. The fact that
+Rubinius has a built-in Channel type, inter-VM communication
+capabilities and even an actor library makes implementing this easier
+than in traditional systems.&lt;/p&gt;
+
+&lt;h3 id=&quot;why-fancy&quot;&gt;Why Fancy?&lt;/h3&gt;
+
+&lt;p&gt;I believe there is real value in having a language that supports
+certain things out of the box. Especially when it comes to things like
+asynchronous and concurrent programming, having proper semantics built
+into the language can often help developers more than a library can.
+Very often it&amp;rsquo;s not just about the functionality itself but also about
+the semantics you want that functionality to have. This can cause
+problems particularly if the language&amp;rsquo;s semantics differ from what
+your library is trying to solve. A good example is the callback-based
+approach to asynchronous progamming which leads to code that differs
+both in semantics as well as how code is structured, compared to
+synchronous code. Ideally you&amp;rsquo;d still want to write code in a
+synchronous fashion, where exceptions pop up naturally while still
+being highly asynchronous.&lt;/p&gt;
+
+&lt;p&gt;In that sense Fancy is more flexible than Ruby as there&amp;rsquo;s not many
+special case semantics built in to the core language. Everything&amp;rsquo;s
+done via message passing, which fits nicely the actor model approach
+to concurrency. Fancy&amp;rsquo;s syntax is a lot simpler, too.&lt;/p&gt;
+
+&lt;p&gt;Since all the core control structures are just implemented in Fancy
+itself and adhere to the message passing protocol, you can easily
+override them for your personal needs. This is especially interesting
+when implementing domain specific languages.
+Say, you&amp;rsquo;d want to add some logging to conditional or looping
+constructs - it&amp;rsquo;s as easy as overriding a method in your DSL&amp;rsquo;s
+classes. Fancy also has class-based mixins, so it makes it easy to
+share functionality across class hierarchy boundaries.&lt;/p&gt;
+
+&lt;p&gt;Finally, I created Fancy because I wanted a language implementation
+that was well documented, easy to understand and very flexible to
+extend. Ruby is a nice language, but it has some inconsistencies and
+there&amp;rsquo;s only so much you can do when you&amp;rsquo;re bound by backwards
+compatibility. By starting fresh, Fancy has a clean, simple and easy
+to extend core which allows further exploration of features and
+abstractions.&lt;/p&gt;
+
+&lt;h3 id=&quot;why-target-rubinius&quot;&gt;Why target Rubinius?&lt;/h3&gt;
+
+&lt;p&gt;The initial implementation of Fancy was a simple interpreter written
+in C++, similar to how Ruby 1.8 (MRI) works. It was a simple AST
+walker. After moving to Rubinius and writing an initial bootstrap
+compiler in Ruby, the codebase shrank to about 20% of the original
+implementation while actually being more performant. This of course is
+mostly due to Rubinius&amp;rsquo; architecture and JIT compiler but it was a
+great experience nontheless.&lt;/p&gt;
+
+&lt;p&gt;The nice part about having a common virtual machine and runtime is
+that you&amp;rsquo;re not forced to a completely different platform to get the
+job done. Fancy and Ruby can coexist in the same application nicely
+and calling code from one another is dead simple. In fact, as of now,
+Rubinius doesn&amp;rsquo;t know anything about Fancy. And it shouldn&amp;rsquo;t. As long
+as all languages running on top of it adhere to the same interface
+(in this case the bytecode), it should just work fine.&lt;/p&gt;
+
+&lt;p&gt;Choosing Rubinius as a successor platform for Fancy was easy. It&amp;rsquo;s
+built for Ruby, a language that&amp;rsquo;s closely related to Fancy. Rubinius,
+while having been developed as a VM for running Ruby code, is very
+flexible and there are many features that abstract over Ruby&amp;rsquo;s
+external semantics. It was just a natural choice given the fact that
+Rubinius&amp;rsquo; architecture and design was heavily influenced by Smalltalk
+VMs. Also, it&amp;rsquo;s a very nice dynamic bytecode virtual machine. The
+community is very responsive and helpful. Bugs get fixed instantly,
+there&amp;rsquo;s always someone to help out and overall it&amp;rsquo;s been a great
+experience.&lt;/p&gt;
+
+&lt;h3 id=&quot;lets-look-at-some-code&quot;&gt;Let&amp;rsquo;s look at some code!&lt;/h3&gt;
+
+&lt;p&gt;OK, enough talking. Let&amp;rsquo;s have a look on how to get some Fancy code up
+and running. Our little sample application will be a simple IRC bot
+that connects to Fancy&amp;rsquo;s irc channel on Freenode and says hello to
+everyone that greets it. To make life easier, there&amp;rsquo;s already a Fancy
+package out there that helps with exactly this task:
+&lt;a href=&quot;https://github.com/bakkdoor/fancy_irc&quot;&gt;FancyIRC&lt;/a&gt;.&lt;/p&gt;
+
+&lt;p&gt;FancyIRC is a simple IRC client library inspired by Ruby&amp;rsquo;s IRC bot
+framework &lt;a href=&quot;https://github.com/cinchrb/cinch&quot;&gt;Cinch&lt;/a&gt;. It&amp;rsquo;s much simpler
+and the code is fairly easy to read, but it gives you a similar
+interface for writing IRC clients or bots.&lt;/p&gt;
+
+&lt;p&gt;So let&amp;rsquo;s get going by installing Fancy. You can either use the Fancy
+Rubygem and install it with Rubinius or get the code from GitHub and
+run &lt;code&gt;rake&lt;/code&gt; in the directory. You&amp;rsquo;ll also then have to add the &lt;code&gt;bin&lt;/code&gt;
+directory to your &lt;code&gt;$PATH&lt;/code&gt;. If you want the latest and greatest version
+of Fancy I recommend building directly from source, as the Gem might
+not be up to date all the time. For demonstration purposes, let&amp;rsquo;s
+install the Rubygem.&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;$ rbx -S gem install fancy
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;To get the FancyIRC package we use Fancy&amp;rsquo;s built-in package manager,
+which knows how to find the code on GitHub and install it locally:&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;$ fancy install bakkdoor/fancy_irc
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;h4 id=&quot;writing-the-code&quot;&gt;Writing the code&lt;/h4&gt;
+
+&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;fancy&quot;&gt;&lt;span class=&quot;lineno&quot;&gt; 1&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;require:&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;&amp;quot;fancy_irc&amp;quot;&lt;/span&gt;
+&lt;span class=&quot;lineno&quot;&gt; 2&lt;/span&gt; 
+&lt;span class=&quot;lineno&quot;&gt; 3&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;greeter_bot&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;no&quot;&gt;FancyIRC&lt;/span&gt; &lt;span class=&quot;no&quot;&gt;Client&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;new:&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+&lt;span class=&quot;lineno&quot;&gt; 4&lt;/span&gt;   &lt;span class=&quot;nf&quot;&gt;configuration:&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+&lt;span class=&quot;lineno&quot;&gt; 5&lt;/span&gt;     &lt;span class=&quot;nf&quot;&gt;nickname:&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;&amp;quot;greeter_bot&amp;quot;&lt;/span&gt;
+&lt;span class=&quot;lineno&quot;&gt; 6&lt;/span&gt;     &lt;span class=&quot;nf&quot;&gt;server:&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;&amp;quot;irc.freenode.net&amp;quot;&lt;/span&gt;
+&lt;span class=&quot;lineno&quot;&gt; 7&lt;/span&gt;     &lt;span class=&quot;nf&quot;&gt;port:&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;6667&lt;/span&gt;
+&lt;span class=&quot;lineno&quot;&gt; 8&lt;/span&gt;     &lt;span class=&quot;nf&quot;&gt;channels:&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&amp;quot;#fancy&amp;quot;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;]&lt;/span&gt;
+&lt;span class=&quot;lineno&quot;&gt; 9&lt;/span&gt;   &lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+&lt;span class=&quot;lineno&quot;&gt;10&lt;/span&gt; 
+&lt;span class=&quot;lineno&quot;&gt;11&lt;/span&gt;   &lt;span class=&quot;c1&quot;&gt;# greet person back&lt;/span&gt;
+&lt;span class=&quot;lineno&quot;&gt;12&lt;/span&gt;   &lt;span class=&quot;nf&quot;&gt;on:&lt;/span&gt; &lt;span class=&quot;ss&quot;&gt;&amp;#39;channel&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;pattern:&lt;/span&gt; &lt;span class=&quot;sr&quot;&gt;/^[hH]ello greeter_bot/&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;do:&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;|&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;msg&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;|&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+&lt;span class=&quot;lineno&quot;&gt;13&lt;/span&gt;     &lt;span class=&quot;n&quot;&gt;msg&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;reply:&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;&amp;quot;Hello to you too, #{msg author}!&amp;quot;&lt;/span&gt;
+&lt;span class=&quot;lineno&quot;&gt;14&lt;/span&gt;   &lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+&lt;span class=&quot;lineno&quot;&gt;15&lt;/span&gt; 
+&lt;span class=&quot;lineno&quot;&gt;16&lt;/span&gt;   &lt;span class=&quot;c1&quot;&gt;# &amp;quot;echo&amp;quot; command&lt;/span&gt;
+&lt;span class=&quot;lineno&quot;&gt;17&lt;/span&gt;   &lt;span class=&quot;c1&quot;&gt;# invoke with: !echo &amp;lt;text&amp;gt;&lt;/span&gt;
+&lt;span class=&quot;lineno&quot;&gt;18&lt;/span&gt;   &lt;span class=&quot;nf&quot;&gt;on:&lt;/span&gt; &lt;span class=&quot;ss&quot;&gt;&amp;#39;channel&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;pattern:&lt;/span&gt; &lt;span class=&quot;sr&quot;&gt;/^!echo (.*)$/&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;do:&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;|&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;msg&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;text&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;|&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+&lt;span class=&quot;lineno&quot;&gt;19&lt;/span&gt;     &lt;span class=&quot;n&quot;&gt;msg&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;reply:&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;&amp;quot;#{msg author} said: #{text}&amp;quot;&lt;/span&gt;
+&lt;span class=&quot;lineno&quot;&gt;20&lt;/span&gt;   &lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+&lt;span class=&quot;lineno&quot;&gt;21&lt;/span&gt; 
+&lt;span class=&quot;lineno&quot;&gt;22&lt;/span&gt;   &lt;span class=&quot;c1&quot;&gt;# tell bot to shutdown via !shutdown command&lt;/span&gt;
+&lt;span class=&quot;lineno&quot;&gt;23&lt;/span&gt;   &lt;span class=&quot;nf&quot;&gt;on:&lt;/span&gt; &lt;span class=&quot;ss&quot;&gt;&amp;#39;channel&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;pattern:&lt;/span&gt; &lt;span class=&quot;sr&quot;&gt;/^!shutdown/&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;do:&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;|&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;msg&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;|&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+&lt;span class=&quot;lineno&quot;&gt;24&lt;/span&gt;     &lt;span class=&quot;n&quot;&gt;msg&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;reply:&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;&amp;quot;OK, shutting down&amp;quot;&lt;/span&gt;
+&lt;span class=&quot;lineno&quot;&gt;25&lt;/span&gt;     &lt;span class=&quot;no&quot;&gt;System&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;exit&lt;/span&gt;
+&lt;span class=&quot;lineno&quot;&gt;26&lt;/span&gt;   &lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+&lt;span class=&quot;lineno&quot;&gt;27&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+&lt;span class=&quot;lineno&quot;&gt;28&lt;/span&gt; 
+&lt;span class=&quot;lineno&quot;&gt;29&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;greeter_bot&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;connect&lt;/span&gt;
+&lt;span class=&quot;lineno&quot;&gt;30&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;greeter_bot&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;run&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;p&gt;I think the code is pretty straight forward. This should give you a
+feeling for what Fancy looks and feels like. There is of course lots
+more to Fancy than what was shown here. It would not fit into a single
+blog post.&lt;/p&gt;
+
+&lt;p&gt;A quick list of what&amp;rsquo;s currently being worked on:&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;New pattern matching system: Message passing based pattern matching
+that preserves encapsulation and is very extensible including
+pattern literals that allow custom pattern types to be defined by
+anyone. There&amp;rsquo;s an experimental branch for that. I&amp;rsquo;m happy
+to answer questions.&lt;/li&gt;
+  &lt;li&gt;Async support using coroutines (Fibers) - Write async code in a more
+natural way where exceptions propagate naturally and you don&amp;rsquo;t have
+to think about callbacks all the time.&lt;/li&gt;
+  &lt;li&gt;First-class support for actors - Asynchronous message sends, Futures
+and multi-vm messaging built-in.&lt;/li&gt;
+  &lt;li&gt;And much more&amp;hellip;&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;h3 id=&quot;interested&quot;&gt;Interested?&lt;/h3&gt;
+
+&lt;p&gt;If you got interested in Fancy and want to know where to go next,
+here&amp;rsquo;s a short list of things to check out:&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;&lt;a href=&quot;https://github.com/bakkdoor/fancy&quot;&gt;Fancy&amp;rsquo;s GitHub repository&lt;/a&gt;.
+The standard library is completely written in Fancy and most classes
+and methods have docstrings. It should be fairly easy to understand.&lt;/li&gt;
+  &lt;li&gt;&lt;a href=&quot;https://github.com/fancy-lang/infancy&quot;&gt;Programming InFancy&lt;/a&gt;
+An open source tutorial on learning Fancy. Work in progress.&lt;/li&gt;
+  &lt;li&gt;&lt;a href=&quot;http://api.fancy-lang.org&quot;&gt;http://api.fancy-lang.org&lt;/a&gt;
+A work in progress page containing Fancy&amp;rsquo;s standard library class
+and method documentation.&lt;/li&gt;
+  &lt;li&gt;&lt;a href=&quot;https://groups.google.com/forum/#!forum/fancy-lang&quot;&gt;Fancy&amp;rsquo;s Google Group mailinglist&lt;/a&gt;&lt;/li&gt;
+  &lt;li&gt;IRC Channel: #fancy @ irc.freenode.net&lt;/li&gt;
+  &lt;li&gt;Website: &lt;a href=&quot;http://www.fancy-lang.org&quot;&gt;http://www.fancy-lang.org&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;
+</content>
+  </entry>
+  
+  <entry>
+    <title>Running Multiple Rubinius Branches Simultaneously with RVM.</title>
+    <id>http://rubini.us/2011/02/22/rubinius-multiple-branches-with-rvm/</id>
+    <link rel="alternate" type="text/html" href="http://rubini.us/2011/02/22/rubinius-multiple-branches-with-rvm/" />
+    <updated>2011-02-22T00:00:00+00:00</updated>
+    <author>
+      <name>Wayne E. Seguin</name>
+    </author>
+    
+    <content type="html">&lt;p&gt;This article is written with the assumption that you have RVM installed
+already. If you do not, follow the
+&lt;a href=&quot;http://rvm.beginrescueend.com/rvm/install/&quot;&gt;Installation Instructions&lt;/a&gt;
+followed by the
+&lt;a href=&quot;http://rvm.beginrescueend.com/rvm/basics/&quot;&gt;Basics&lt;/a&gt;
+closely first.&lt;/p&gt;
+
+&lt;h3 id=&quot;named-ruby-installs&quot;&gt;Named Ruby Installs&lt;/h3&gt;
+
+&lt;p&gt;Everyone familiar with RVM knows that it allows you to quickly and
+easily install a particular Ruby interpreter by simply running, for
+example,&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;rvm install rbx
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;What is not widely known (yet) is that there is a &amp;ldquo;Named Rubies&amp;rdquo; feature
+that allows you to install altered versions of the same Ruby
+installation along side the original.&lt;/p&gt;
+
+&lt;p&gt;In the case of Rubinius there is this facinating branch called &amp;lsquo;hydra&amp;rsquo;.
+So let us see how we can have the Rubinius master branch installed as
+the main rbx with the hydra branch installed along side as well.&lt;/p&gt;
+
+&lt;p&gt;As above you first install rbx which is currently defaulted to -head
+version so&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;rvm install rbx
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;is currently equivalent to&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;rvm install rbx-head
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;After we have the mainline head Rubinus branch installed, we now want to
+use the named rubies feature. This is done using the -n specifier in the
+Ruby identifier string. So for example to install our hydra branch as an
+RVM ruby with the name &amp;lsquo;hydra&amp;rsquo; in it we do the following:&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;rvm install --branch hydra rbx-nhydra
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;Now we can see that they can be used together! Using the Rubinius master
+environment,&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;$ rvm rbx ; ruby -v
+rubinius 1.2.1 (1.8.7 6feb585f 2011-02-15 JI) [x86_64-apple-darwin10.6.0]
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;Whereas using the Rubinius hydra environment,&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;$ rvm rbx-nhydra ; ruby -v
+rubinius 1.3.0dev (1.8.7 6feb585f xxxx-xx-xx JI) [x86_64-apple-darwin10.6.0]
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;We see that the next release of Rubinius (hydra branch) is indeed
+version 1.3.0 whereas the master branch is version 1.2.1.&lt;/p&gt;
+
+&lt;p&gt;Also please note that RVM creates wrapper scripts, so you do not need to
+switch out the entire environment just to run the differen versions
+either:&lt;/p&gt;
+
+&lt;p&gt;For Rubinius master,&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;$ rbx-head -v
+rubinius 1.2.1 (1.8.7 6feb585f 2011-02-15 JI) [x86_64-apple-darwin10.6.0]
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;For Rubinius hydra,&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;$ rbx-head-nhydra -v
+rubinius 1.3.0dev (1.8.7 6feb585f xxxx-xx-xx JI) [x86_64-apple-darwin10.6.0]
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;There is a lot more available to you than this, for more information on
+RVM capabilities please visit the &lt;a href=&quot;http://rvm.beginrescueend.com/&quot;&gt;RVM
+Website&lt;/a&gt; and also come talk to us in #rvm on
+irc.freenode.net during the daytime EDT.&lt;/p&gt;
+
+&lt;p&gt;I hope that this is helpful and informative to you!&lt;/p&gt;
+
+&lt;p&gt;~Wayne&lt;/p&gt;
+</content>
+  </entry>
+  
+  <entry>
     <title>Rubinius, What's Next?</title>
     <id>http://rubini.us/2011/02/17/rubinius-what-s-next/</id>
     <link rel="alternate" type="text/html" href="http://rubini.us/2011/02/17/rubinius-what-s-next/" />

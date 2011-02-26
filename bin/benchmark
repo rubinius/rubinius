@@ -1,0 +1,6 @@
+#!/usr/bin/env ruby
+
+paths = ENV["RUBYLIB"]
+ENV["RUBYLIB"] = paths ? paths + ":." : "."
+
+exec 'benchmark/bin/benchmark', *ARGV

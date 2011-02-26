@@ -1,22 +1,26 @@
+require 'benchmark'
+require 'benchmark/ips'
 
-class C
-  def m a
+c = Class.new do
+  def m(a)
     1
   end
 end
 
-class CC < C
-  def m a
+cc = Class.new(c) do
+  def m(a)
     super
   end
 end
 
-def Bench.run
-  i = 0
-  obj = CC.new
+Benchmark.ips do |x|
+  obj = cc.new
 
-  while i < 15_000_000 # benchmark loop 2
-    obj.m 10
-    i+=1
+  x.report "zsuper" do |times|
+    i = 0
+    while i < times
+      obj.m 10
+      i+=1
+    end
   end
 end

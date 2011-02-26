@@ -39,4 +39,4 @@ those stages returns the inputted CompiledMethod (or a different
 CompiledMethod), everything will work as expected.
 
 For more information, please read [Customizing the Compiler
-Pipeline](/bytecode-compiler/cutomization/).
+Pipeline](/bytecode-compiler/customization/).

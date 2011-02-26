@@ -654,7 +654,7 @@ module Kernel
       end
     end
 
-    Rubinius.convert_to_names methods
+    Rubinius.convert_to_names methods.uniq
   end
 
   alias_method :send, :__send__
@@ -939,3 +939,4 @@ class SystemExit < Exception
   end
 
 end
+

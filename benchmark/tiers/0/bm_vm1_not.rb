@@ -1,9 +1,14 @@
-def Bench.run
-  i = 0
+require 'benchmark'
+require 'benchmark/ips'
+
+Benchmark.ips do |x|
   obj = Object.new
 
-  while i<100_000_000 # while loop 1
-    i+= 1
-    !obj
+  x.report "not" do |times|
+    i = 0
+    while i < times
+      !obj
+      i += 1
+    end
   end
 end

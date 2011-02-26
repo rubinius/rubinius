@@ -1,7 +1,12 @@
-def Bench.run
-  i=0
-  while i < 10_000_000 # benchmark loop 2
-    i+=1
-    a = [1,2,3,4,5,6,7,8,9,10]
+require 'benchmark'
+require 'benchmark/ips'
+
+Benchmark.ips do |x|
+  x.report "create array" do |times|
+    i = 0
+    while i < times
+      a = [1,2,3,4,5,6,7,8,9,10]
+      i += 1
+    end
   end
 end

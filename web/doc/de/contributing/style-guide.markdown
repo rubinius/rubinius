@@ -48,8 +48,7 @@ frag am besten auf dem #rubinius IRC Kanal auf irc.freenode.net nach.
 
   * Methodennamen sollten eindeutig, ausdrucksvoll, verständlich (und damit 
     auf Englisch) sein. Verwende, bis auf wenige Ausnahmen, keine 
-    Unterstriche, um Methoden zu schützen ('\_\_send\_\_'). 
-    Selbstverständlich sollen alle Methoden 
+    Unterstriche, um Methoden zu schützen ('\_\_send\_\_').
 
   * Smalltalkartige Methodennamen sind ok, d.h. du kannst Methoden mit 
     `SomeClass.make_from` benennen, wenn damit `SomeClass.make_from file` oder 
