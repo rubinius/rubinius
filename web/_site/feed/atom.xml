@@ -9,6 +9,580 @@
 
   
   <entry>
+    <title>Why Use Rubinius</title>
+    <id>http://rubini.us/2011/02/25/why-use-rubinius/</id>
+    <link rel="alternate" type="text/html" href="http://rubini.us/2011/02/25/why-use-rubinius/" />
+    <updated>2011-02-25T00:00:00+00:00</updated>
+    <author>
+      <name>Brian Ford</name>
+    </author>
+    
+    <content type="html">&lt;p&gt;&lt;em&gt;Why should I use Rubinius?&lt;/em&gt; We have been asked that question many, many times
+over the past four years. It is a great question. It is an important question.
+It&amp;rsquo;s a &lt;em&gt;hard&lt;/em&gt; question. I&amp;rsquo;m not holding out on you. I want to give you an
+answer that sates your curiosity, helps you make informed decisions, and
+empowers you to speak eloquently when &lt;em&gt;you&lt;/em&gt; are inevitably asked, &amp;ldquo;Why do you
+use Rubinius?&amp;rdquo;&lt;/p&gt;
+
+&lt;p&gt;The trouble is, there are many different situations in which people use Ruby
+and there is simply no answer, however comprehensive, that really speaks to
+everyone&amp;rsquo;s concerns. So rather that boring you at length, I thought a &lt;em&gt;Choose
+your own adventure&lt;/em&gt; style would be a better approach.&lt;/p&gt;
+
+&lt;p&gt;From the list below, select the persona that best describes you. Don&amp;rsquo;t worry,
+if the one you select doesn&amp;rsquo;t sound right, you can easily backtrack here. Read
+as many as interest you. After all, none of us fit easily into any one box.
+When you are done exploring all the fascinating reasons to use Rubinius, let&amp;rsquo;s
+meet up at the &lt;a href=&quot;#wur-conclusion&quot;&gt;Conclusion&lt;/a&gt; for some parting
+words.&lt;/p&gt;
+
+&lt;p&gt;&lt;em&gt;Enjoy!&lt;/em&gt;&lt;/p&gt;
+
+&lt;h3&gt;&lt;a class=&quot;anchor_title&quot; name=&quot;wur-personas&quot;&gt;Choose Your Persona&lt;/a&gt;&lt;/h3&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;&lt;a href=&quot;#wur-newby&quot;&gt;Rails or Ruby Newby&lt;/a&gt;&lt;/li&gt;
+  &lt;li&gt;&lt;a href=&quot;#wur-creative&quot;&gt;The Creative&lt;/a&gt;&lt;/li&gt;
+  &lt;li&gt;&lt;a href=&quot;#wur-experienced&quot;&gt;Experienced Programmer&lt;/a&gt;&lt;/li&gt;
+  &lt;li&gt;&lt;a href=&quot;#wur-seasoned&quot;&gt;Seasoned Programmer&lt;/a&gt;&lt;/li&gt;
+  &lt;li&gt;&lt;a href=&quot;#wur-academic&quot;&gt;Academic Researcher&lt;/a&gt;&lt;/li&gt;
+  &lt;li&gt;&lt;a href=&quot;#wur-uber&quot;&gt;Über Programmer&lt;/a&gt;&lt;/li&gt;
+  &lt;li&gt;&lt;a href=&quot;#wur-philosophical&quot;&gt;Philosophy Student Seeking the Meaning of Ruby&lt;/a&gt;&lt;/li&gt;
+  &lt;li&gt;&lt;a href=&quot;#wur-manager&quot;&gt;Manager&lt;/a&gt;&lt;/li&gt;
+  &lt;li&gt;&lt;a href=&quot;#wur-knowledge&quot;&gt;Knowledge Seeker&lt;/a&gt;&lt;/li&gt;
+  &lt;li&gt;&lt;a href=&quot;#wur-enthusiast&quot;&gt;Language Enthusiast&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;h4&gt;&lt;a class=&quot;anchor_title&quot; name=&quot;wur-newby&quot;&gt;Rails or Ruby Newby&lt;/a&gt;&lt;/h4&gt;
+
+&lt;p&gt;You are pretty new to programming and after hearing about Ruby on Rails you
+watched a screencast and made a website. You are curious and enthusiastic.&lt;/p&gt;
+
+&lt;p&gt;You are the empty teacup of the Zen proverb. You are a fresh-faced flower
+glistening with the morning dew. The sun smiles on you and you smile back.
+You seem to like this Ruby language that makes programmers happy and you&amp;rsquo;ve
+come to lend your cheery spirit&amp;hellip;&lt;/p&gt;
+
+&lt;p&gt;Welcome!&lt;/p&gt;
+
+&lt;p&gt;So, you have heard of this thing called Rubinius or rbx or whatever and some
+folks you respect or admire seem to like it and naturally you want to know
+what the big deal is and you&amp;rsquo;re like, &amp;ldquo;Yo, why would I use Rubinius?&amp;rdquo;.&lt;/p&gt;
+
+&lt;p&gt;Cool.&lt;/p&gt;
+
+&lt;p&gt;Well, you should use Rubinius because I said so. Try your code on it. Tell us
+what worked for you. Tell us if something didn&amp;rsquo;t work by opening an
+&lt;a href=&quot;https://github.com/evanphx/rubinius/issues/&quot;&gt;issue&lt;/a&gt;.
+Set your imagination loose and tell us what tool you would use if you could.&lt;/p&gt;
+
+&lt;p&gt;Spend some time reading the Rubinius source code. Start at the &lt;code&gt;kernel/&lt;/code&gt;
+directory. It&amp;rsquo;s full of Ruby code! As you read through how Ruby is
+implemented, how it actually works, it will give you a level of understanding
+of your code that many programmers don&amp;rsquo;t have in &lt;em&gt;any&lt;/em&gt; language.&lt;/p&gt;
+
+&lt;p&gt;Most of all, hang on to your curiosity and enthusiasm. Those were vital to the
+creation of the Rubinius project in the beginning and have sustained us
+through many challenges. We &lt;em&gt;can&lt;/em&gt; make our Ruby experience better, freeing us
+from the shackles of other languages and foreign libraries. We &lt;em&gt;can&lt;/em&gt; have fast
+and reliable web servers, games, editors, websites and applications written in
+Ruby. We &lt;em&gt;can&lt;/em&gt; have first class tools written for and with Ruby. The world
+&lt;em&gt;can&lt;/em&gt; be rosy red without our glasses.&lt;/p&gt;
+
+&lt;p&gt;&lt;a href=&quot;#wur-personas&quot;&gt;&lt;strong&gt;Back to personas&lt;/strong&gt;&lt;/a&gt;&lt;/p&gt;
+
+&lt;h4&gt;&lt;a class=&quot;anchor_title&quot; name=&quot;wur-creative&quot;&gt;The Creative&lt;/a&gt;&lt;/h4&gt;
+
+&lt;p&gt;Ruby is groovy. No, not that Groovy, eww, no. I mean:&lt;/p&gt;
+
+&lt;blockquote&gt;
+&lt;p&gt;groovy |ˈgroōvē| adj.&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;fashionable and exciting : &lt;em&gt;sporting a groovy new haircut&lt;/em&gt;&lt;/li&gt;
+  &lt;li&gt;enjoyable and excellent : &lt;em&gt;he played all the remarkably groovy guitar parts
+himself&lt;/em&gt;&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;(Apple's dashboard dictionary widget.)&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;p&gt;Ruby respects creativity. It has an &lt;em&gt;aesthetic&lt;/em&gt;. You don&amp;rsquo;t just write Ruby
+code, you write &lt;em&gt;beautiful&lt;/em&gt; Ruby code.  It would be unthinkable to do
+otherwise. Sure, there is more than one way to do many things. This is not
+some sterile laboratory. We are not automatons; we are people. Of course,
+being utilitarian is not bad. But other languages have that angle pretty
+well covered. There is probably only one right way to implement Python.&lt;/p&gt;
+
+&lt;p&gt;Rubinius has an aesthetic, too: excellence, utility, simplicity, beauty, joy.
+Mostly in that order. Useful code that isn&amp;rsquo;t of very good quality is a drag.
+It slows you down. It gives you a headache. It drives you away. We strive to
+keep it out of Rubinius. On the other hand, we are not just writing sonnets
+here. This is Serious Business™. We have some hard-core problems to solve. So
+we strive for excellent, useful, beautiful code that is a joy to work with.&lt;/p&gt;
+
+&lt;p&gt;Of course, this is an ongoing process. It is a journey, not a destination.
+There are areas of Rubinius that could use a thorough cleaning or a new
+perspective on making the implementation of this beautiful object-oriented
+language more beautiful and object-oriented.&lt;/p&gt;
+
+&lt;p&gt;We welcome your artistic perspective. Help us improve the dialog between
+Rubinius and the person using it. The command line doesn&amp;rsquo;t have to be a
+desolate place of obscure, condescending error messages. Web interfaces to the
+diagnostic tools deserve a good dose of user-experience and interaction
+design. You know that feeling you get when looking at an Enterprise web
+application? That weird plastic-masquerading-as-quality-material feeling?
+The too much 1996-Enterprise-faux-rounded-corner-wanabe-2006-hip gloss?
+Gives me the willies whenever I have to use an app like that. Yeah, we don&amp;rsquo;t
+want that.&lt;/p&gt;
+
+&lt;p&gt;We want to create tools that are powerful, graceful, easy to use, and
+beautiful to look at. Beautiful tools are easier to use. (Yehuda Katz provided
+a couple links related to this: &lt;a href=&quot;https://www.westga.edu/~distance/ojdla/winter134/david_glore134.html&quot;&gt;The Impact of Design and Aesthetics on
+Usability, Credibility, and Learning in an Online Environment
+&lt;/a&gt; and
+&lt;a href=&quot;http://www.alistapart.com/articles/indefenseofeyecandy&quot;&gt;In Defense of Eye
+Candy&lt;/a&gt;. If you know of
+other research, leave us a comment.) So if you have a creative bent but enjoy
+writing code also, try out Rubinius and let us know where it could use some
+polish.&lt;/p&gt;
+
+&lt;p&gt;&lt;a href=&quot;#wur-personas&quot;&gt;&lt;strong&gt;Back to personas&lt;/strong&gt;&lt;/a&gt;&lt;/p&gt;
+
+&lt;h4&gt;&lt;a class=&quot;anchor_title&quot; name=&quot;wur-experienced&quot;&gt;Experienced programmer&lt;/a&gt;&lt;/h4&gt;
+
+&lt;p&gt;That saying, &lt;em&gt;Time is Money&lt;/em&gt;, you live by it. You have applications to deliver
+and you choose the best tool for the job. You are professional, conscientious,
+duly cautious, and not inclined to episodes of emotional exuberance about the
+latest fad. You accept compromises. There are always trade-offs. The correct
+approach is cost-benefit analysis. The numbers tell the story and level-headed
+decision making follows the numbers.&lt;/p&gt;
+
+&lt;p&gt;You have heard about Rubinius and you are curious whether it may be
+appropriate for your current project. As usual, rather than speculating or
+paying too much heed to the buzz, you look into it yourself. After some
+investigation, you discover that:&lt;/p&gt;
+
+&lt;ol&gt;
+  &lt;li&gt;Much of Rubinius is implemented in Ruby itself. This may be a big help when
+tracking down troublesome bugs.&lt;/li&gt;
+  &lt;li&gt;Rubinius has a very fast bytecode virtual machine, as well as a modern
+generational garbage collector so memory profiles should be more
+predictable and consistent in deployed applications.&lt;/li&gt;
+  &lt;li&gt;It has a profile-driven JIT compiler that uses type-feedback to
+aggressively inline methods resulting in significant performance
+improvements.&lt;/li&gt;
+  &lt;li&gt;It has a built-in debugger and precise method profiler, both of which are
+fast due to being well integrated.&lt;/li&gt;
+  &lt;li&gt;It has a built-in API for monitoring a VM out-of-process, even on a remote
+machine. We are building a variety of diagnostic tools atop this API.&lt;/li&gt;
+&lt;/ol&gt;
+
+&lt;p&gt;Of course, even if the technology in Rubinius sounds terrific in theory, how
+suitable is Rubinius for your application? How does it perform under your
+specific constraints? Again, you do some investigating. You have a solid test
+suite for your application, so you start by running that. If you hit any
+problems, please open an &lt;a href=&quot;https://github.com/evanphx/rubinius/issues/&quot;&gt;issue&lt;/a&gt;
+to let us know.&lt;/p&gt;
+
+&lt;p&gt;If everything goes well with the tests, you start running some of the
+benchmarks that you have accumulated while doing performance tuning. Of
+course, no sensible person asks for benchmark results from &lt;em&gt;other&lt;/em&gt; people&amp;rsquo;s
+code. That defies logic. It&amp;rsquo;s like asking if your program will run because
+your Aunt Mabeline likes decaf coffee. It&amp;rsquo;s contrary to the very point of
+benchmarking, where you are trying to correlate two values that are connected.&lt;/p&gt;
+
+&lt;p&gt;Again, if you note an significant issues, please let us know. Sometimes
+Rubinius exposes issues in existing code. Performance characteristics of real
+applications are vital to making Rubinius faster. Also, if you have
+suggestions for tools you would like to use, tell us. If you just want to
+chat about the technology, that&amp;rsquo;s fine, too. We&amp;rsquo;re hanging out in the
+#rubinius channel on freenode.net.&lt;/p&gt;
+
+&lt;p&gt;&lt;a href=&quot;#wur-personas&quot;&gt;&lt;strong&gt;Back to personas&lt;/strong&gt;&lt;/a&gt;&lt;/p&gt;
+
+&lt;h4&gt;&lt;a class=&quot;anchor_title&quot; name=&quot;wur-seasoned&quot;&gt;Seasoned programmer&lt;/a&gt;&lt;/h4&gt;
+
+&lt;p&gt;Well, I am being kind by saying &lt;em&gt;seasoned&lt;/em&gt;. You know when you look in the
+mirror that &lt;em&gt;jaded&lt;/em&gt; and &lt;em&gt;cynical&lt;/em&gt; are much more apt. You&amp;rsquo;ve seen it all and it
+has worn you down. You&amp;rsquo;ve been fighting the good fight, carefully guarding
+that last flicker of optimism that burns in the secret place deep in your
+heart. You&amp;rsquo;ve programmed Java/.NET/C++ professionally. You&amp;rsquo;ve even sucked it
+up and written some PHP and Python when asked; you are a professional, they
+ask and you deliver. You&amp;rsquo;ve seen attacked servers on fire off the shoulder of
+Rackspace&amp;hellip;&lt;/p&gt;
+
+&lt;p&gt;Rubinius has a lot to offer you. Remember that little flicker of optimism?  It
+is only the idealists that get ground down by the complete indifference to
+pursuit of an ideal in so much of the world. Deep down, you are an idealist
+and you will find plenty to refresh you here.&lt;/p&gt;
+
+&lt;p&gt;Rubinius aims to be the best possible implementation of Ruby by putting Ruby
+itself front and center. We are using modern technology and always improving.
+We change when there is a better way to do things. We judiciously rewrite and
+are not too attached to any code or algorithm. The legacy Enterprise isn&amp;rsquo;t on
+the steering committee. Our work will be done when you can use Ruby, just
+Ruby, to solve your thorny problems.&lt;/p&gt;
+
+&lt;p&gt;Sure, that sounds idealistic. But never mind the pessimists that tell you that
+you have to compromise. If you are not idealistic, you will not be unsatisfied
+with things that are not as good as they could be; you will not try to change
+the world. So give Rubinius a try, you may be surprised. And if you are, put
+all that hard-earned wisdom you have gained to use for the betterment of Ruby.&lt;/p&gt;
+
+&lt;p&gt;&lt;a href=&quot;#wur-personas&quot;&gt;&lt;strong&gt;Back to personas&lt;/strong&gt;&lt;/a&gt;&lt;/p&gt;
+
+&lt;h4&gt;&lt;a class=&quot;anchor_title&quot; name=&quot;wur-academic&quot;&gt;Academic Researcher&lt;/a&gt;&lt;/h4&gt;
+
+&lt;p&gt;Forgive me for staring, I know it is impolite. I&amp;rsquo;m just&amp;hellip; intrigued. Of
+course, you know Ruby is a late bound language, every message sent could
+conceivably fail to find a target, potentially resulting in an uncaught
+exception and program termination. There&amp;rsquo;s shared state, wild orgies of
+mutation that disallow any reasonable attempt at automated parallelization.
+Program proof is as oxymoronic a concept as military intelligence. It&amp;rsquo;s a very
+messy affair of programming and meta-programming and meta-meta-programming,
+which, for the love of Lisp, could be done so simply with macros. There&amp;rsquo;s all
+this eager evaluation and complete disregard for purity. Despite vast odds,
+somehow programs are written that actually run. You have noted all this with
+great objectivity but you are nonetheless interested.&lt;/p&gt;
+
+&lt;p&gt;Excellent, we are pleased. We have much to learn and welcome the opportunity
+for lively discussions about bringing formal methods to bear on the problems
+of making Ruby as fast as possible.&lt;/p&gt;
+
+&lt;p&gt;Java benefited tremendously from the amount of attention it received by
+academic researchers. Ruby can benefit from some of this research as well, not
+to mention the research into Smalltalk and Self that preceded it. But Ruby has
+its own set of problems to solve and deserves specific attention. The problems
+are hard but not insurmountable. Rubinius is already demonstrating that.  The
+suggestion that we need to add more keywords, restrict Ruby dynamism, or write
+&lt;code&gt;public static final int&lt;/code&gt; all over are simply nonsense.&lt;/p&gt;
+
+&lt;p&gt;Rubinius already leverages research for fast virtual machines, garbage
+collection (e.g. the generational approach and the Immix &lt;em&gt;mark-region&lt;/em&gt;
+algorithm), and JIT compilers (based on pioneering research done in Self and
+used in the JVM Hotspot VM). Rubinius uses the exceptional
+&lt;a href=&quot;http://llvm.org&quot;&gt;LLVM&lt;/a&gt; project for optimization and code generation in the
+JIT compiler. We are also working on better infrastructure for the JIT to
+address Ruby complexities head-on.&lt;/p&gt;
+
+&lt;p&gt;Rubinius would be excellent to use in teaching. A compiler construction class
+could study the architecture of the bytecode compiler written in Ruby and
+experiment with exploratory changes to the compiler using IRB without having
+to recompile anything! A 30-minute introduction to Rubinius could proceed
+immediately to simple AST generation and have students experimenting with
+their own syntax immediately. While it is easy to get started, there is plenty
+of depth for exploring complex topics in virtual-machine construction and
+garbage collection.&lt;/p&gt;
+
+&lt;p&gt;Whether you are interested in language research or language pedagogy, Rubinius
+is an great project to consider. We look forward to hearing from you.&lt;/p&gt;
+
+&lt;p&gt;&lt;a href=&quot;#wur-personas&quot;&gt;&lt;strong&gt;Back to personas&lt;/strong&gt;&lt;/a&gt;&lt;/p&gt;
+
+&lt;h4&gt;&lt;a class=&quot;anchor_title&quot; name=&quot;wur-uber&quot;&gt;Über programmer&lt;/a&gt;&lt;/h4&gt;
+
+&lt;p&gt;You learned the untyped lambda calculus sitting on your mother&amp;rsquo;s knee while
+she worked on her doctorate in computer science. You were substituting terms
+before you even uttered the word, &amp;ldquo;dada&amp;rdquo;. You wrote three different Lisp
+implementations in Commodore Basic before you were seven. You can write
+multi-threaded web servers in one pass with no tests and never hit a deadlock
+or critical data race. You write parsers and compilers for odd languages on a
+Friday night for the heck of it while waiting for the pizza to arrive before a
+night out at the karaoke bar where you give an inspiring performance of Laga
+Gaga&amp;rsquo;s &lt;em&gt;Poker Face&lt;/em&gt;.&lt;/p&gt;
+
+&lt;p&gt;(&lt;em&gt;Loooong pause&lt;/em&gt;. You&amp;rsquo;re not reading this. You&amp;rsquo;ve already written one or a few
+languages on Rubinius and posted them to our
+&lt;a href=&quot;http://rubini.us/projects/&quot;&gt;Projects&lt;/a&gt; page. But anyway, I&amp;rsquo;ll continue&amp;hellip;)&lt;/p&gt;
+
+&lt;p&gt;You are the Luke Skywalker of Ruby; Yoda has nothing more to teach you. Only
+your fate confronts you now. Use the Source Luke and save the Federation of
+Ruby loyalists from the Evil Oracle and its Java the Hurt.&lt;/p&gt;
+
+&lt;p&gt;There are a number of domains in which Ruby could benefit tremendously from
+excellent libraries:&lt;/p&gt;
+
+&lt;ol&gt;
+  &lt;li&gt;&lt;strong&gt;Servers and web servers&lt;/strong&gt;: the web is here to stay but the argument that all
+applications are going to be in Javascript on the client is not valid. A variety
+of hybrid client-server architectures will continue to be the norm. We need
+software that enables application authors to build a suitable solution to
+their particular problems rather than trying to stuff their apps into
+someone else&amp;rsquo;s solution with layers of wrapping.&lt;/li&gt;
+  &lt;li&gt;&lt;strong&gt;Concurrency&lt;/strong&gt;: multi-core is here to stay but it is not only functional
+programming that is suitable for high-concurrency applications.&lt;/li&gt;
+  &lt;li&gt;&lt;strong&gt;Graphical user interface&lt;/strong&gt;: the web browser is also here to stay but it is
+not the last word in applications. There are many cases where GUI apps are
+the best option and Ruby needs a mature library or set of libraries to
+build these apps on any major platform. I know some of these libraries
+exist, but they seem to be collecting dust lately.&lt;/li&gt;
+  &lt;li&gt;&lt;strong&gt;Big data and data analysis libraries&lt;/strong&gt;: our industry repeatedly witnesses
+the same pattern: domain X starts with huge applications running on huge
+horsepower servers for huge businesses and then it starts appearing in small
+applications on small computers for small businesses. Accounting and
+geographic information systems (GIS) are two examples. Data analysis is
+coming to a laptop near you.&lt;/li&gt;
+&lt;/ol&gt;
+
+&lt;p&gt;These are general areas in which Ruby can be an excellent solution. So how
+does Rubinius fit in? Rubinius is dedicatedly pushing more and more into Ruby
+itself. Each of these domain is typically handled in Ruby right now by going
+to find a library in a foreign language to wrap in a fuzzy Ruby embrace.
+Rubinius is calling on the über-programmers of the world to implement
+solutions in Ruby to help us identify performance challenges and address them.&lt;/p&gt;
+
+&lt;p&gt;Rubinius is also being used in some fascinating language experiments. Two of
+these are Atomo (&lt;a href=&quot;&quot;&gt;http://atomo-lang.org&lt;/a&gt; which is implemented in Haskell,
+with a Rubinius implementation code-named
+&lt;a href=&quot;https://github.com/vito/quanto/&quot;&gt;quanto&lt;/a&gt;) and Fancy
+(&lt;a href=&quot;http://fancy-lang.org&quot;&gt;http://fancy-lang.org&lt;/a&gt;). So, if language design is
+your cup of tea, Rubinius offers an excellent platform for experimentation.&lt;/p&gt;
+
+&lt;p&gt;&lt;a href=&quot;#wur-personas&quot;&gt;&lt;strong&gt;Back to personas&lt;/strong&gt;&lt;/a&gt;&lt;/p&gt;
+
+&lt;h4&gt;&lt;a class=&quot;anchor_title&quot; name=&quot;wur-philosophical&quot;&gt;Philosophy Student Seeking the Meaning of Ruby&lt;/a&gt;&lt;/h4&gt;
+
+&lt;p&gt;Like your persona description, you tend to be long winded. You find most
+descriptions too brief, almost dismissive. There are words and words should be
+used to delve into the minutiae of minutiae. You, more than anyone, want to
+know &amp;ldquo;Why?&amp;rdquo; with every fiber of your being. You will continue asking long
+after the supply of hallucinogens has been exhausted and everyone else is
+drooling in their sleep.&lt;/p&gt;
+
+&lt;p&gt;For you, Rubinius is an existential dilemma crying out for justification. If
+we already have MRI, why build Rubinius?&lt;/p&gt;
+
+&lt;p&gt;It would be accurate to say that Rubinius has a philosophy. That philosophy is
+simply this: &lt;em&gt;Ruby should be a first class language&lt;/em&gt;. What does that mean?
+Simply that it should be possible to solve problems writing Ruby code.&lt;/p&gt;
+
+&lt;p&gt;Let&amp;rsquo;s consider libraries: Being first class means not having to wrap a Java
+library or build a C extension. If wrapping the library were the end of the
+story, it wouldn&amp;rsquo;t be so bad. But that is &lt;em&gt;never&lt;/em&gt; the case. Libraries have
+bugs, weird APIs, incompatibility with other libraries, threading issues, and
+disappearing maintainers. They may even be incompatible with newer versions of
+the language in which they are written.&lt;/p&gt;
+
+&lt;p&gt;This list goes on. To address any one of these issues requires delving into a
+different language with weird and incompatible semantics. If the library is
+your core competency, that&amp;rsquo;s not such a big deal. But I will wager that it is
+not, which is why you are using the library in the first place. Also, the
+language in which you are wrapping the library (Ruby here) is not likely the
+core competency of the library author, or you probably wouldn&amp;rsquo;t need to be
+wrapping it. So Ruby wrapping one of these libraries will always be a
+second-class citizen. Decisions will be made about the library&amp;rsquo;s API that do
+not give one thought to the Ruby programs using it. Furthermore, the code
+written in that foreign language does nothing to support the ecosystem of
+Ruby. The knowledge gained in writing the library and the improved skills of
+the library author do not benefit Ruby. Ruby deserves better.&lt;/p&gt;
+
+&lt;p&gt;Ruby has gotten a big boost recently with the production release of MRI 1.9.2.
+There are significant speed improvements and welcomed additions to the core
+libraries, like powerful handling of String encodings. At the same time, the
+Complex and Rational libraries were added to the core library and rewritten
+from Ruby to C code. This is disappointing. We should be able to solve these
+problems more effectively in Ruby itself.&lt;/p&gt;
+
+&lt;p&gt;The philosophy of Rubinius is to make Ruby a first-class citizen. Ruby plays
+second fiddle to no one. There is no other language whose history, semantics,
+or vested interests compete with Ruby&amp;rsquo;s. It is true that there are difficult
+problems to solve in making Ruby fast. But much of the technology already
+exists and we will build what does not. Evan often quips that if we can get
+Rubinius caught up to the dynamic language technology of ten years ago, Ruby
+will be light-years ahead.  That may be overstating how far behind Ruby is,
+but it illustrates the focus of Rubinius.&lt;/p&gt;
+
+&lt;p&gt;There&amp;rsquo;s the saying, &lt;em&gt;In theory, there is no difference between theory and
+practice. In practice, there is&lt;/em&gt;. In Rubinius, theory and practice are
+merging. We are motivated by the desire for Ruby to be a first-class language.
+But we are also showing real progress in making that a reality. The Rubinius
+VM executes Ruby code blazingly fast. The JIT compiler, while still being
+quite young, is showing great promise. Compatibility with MRI is quite good
+and speed is constantly improving.&lt;/p&gt;
+
+&lt;p&gt;Is the Rubinius philosophy valid? We think the proof is in the pudding.&lt;/p&gt;
+
+&lt;p&gt;&lt;a href=&quot;#wur-personas&quot;&gt;&lt;strong&gt;Back to personas&lt;/strong&gt;&lt;/a&gt;&lt;/p&gt;
+
+&lt;h4&gt;&lt;a class=&quot;anchor_title&quot; name=&quot;wur-manager&quot;&gt;Manager&lt;/a&gt;&lt;/h4&gt;
+
+&lt;p&gt;No, it did not cross my mind to describe this persona as Pointy-haired Boss.
+Not only would that be unfair to Dilbert, but that persona would be reading an
+article on Web Scale. No, you are someone who has fought hard battles in the
+trenches and learned valuable lessons: it&amp;rsquo;s about execution and execution
+depends on good technology.&lt;/p&gt;
+
+&lt;p&gt;Rubinius is building solid technology. We started the RubySpec project and
+have contributed tens of thousands of lines of code to it. With the support of
+Rubyspec, in just over four years as a public project, we have basically
+caught up with MRI 1.8.7 in compatibility and performance. For some code, our
+performance is much better, for other code, it is not as good. However,
+Rubinius is built on solid, modern technology and the project&amp;rsquo;s trajectory and
+velocity are outstanding.&lt;/p&gt;
+
+&lt;p&gt;Rubinius is a completely new implementation of core Ruby. Rubinius did not
+start as a port of existing code. Furthermore, Rubinius implements its own
+virtual machine and garbage collector in C++. The bytecode compiler that
+targets the virtual machine is pure Ruby. The core Ruby library is mostly Ruby
+with some primitive operations in C++. The JIT compiler uses the
+&lt;a href=&quot;http://llvm.org&quot;&gt;LLVM&lt;/a&gt; project. Given the amount of work being done in the
+project, Rubinius is pacing extremely well relative to other implementations.&lt;/p&gt;
+
+&lt;p&gt;Currently, we are working on support for Ruby 1.9 features, Windows support,
+and full concurrency with no global interpreter lock (GIL).&lt;/p&gt;
+
+&lt;p&gt;If you are looking at Ruby to implement your next project, rest assured that
+Ruby will have the support of excellent technology. If you are already using
+Ruby, consider investigating how your application runs on Rubinius. We welcome
+the feedback and look forward to solving challenging engineering problems.&lt;/p&gt;
+
+&lt;p&gt;&lt;a href=&quot;#wur-personas&quot;&gt;&lt;strong&gt;Back to personas&lt;/strong&gt;&lt;/a&gt;&lt;/p&gt;
+
+&lt;h4&gt;&lt;a class=&quot;anchor_title&quot; name=&quot;wur-knowledge&quot;&gt;Knowledge Seeker&lt;/a&gt;&lt;/h4&gt;
+
+&lt;p&gt;You thirst for Knowledge. You follow it wherever it leads you. You&amp;rsquo;ll happily
+walk Haskell&amp;rsquo;s hallowed halls of pure laziness or sit at the feet of the
+meta-program gazing raptly at class transmorgrification. You don&amp;rsquo;t judge. You
+have more than enough knowledge to be dangerous, enough to know that the
+universe is amoral and knowledge is the only Truth there is. Nor does any mere
+mortal language bind you. All languages are finite. You&amp;rsquo;ll be here today and
+gone tomorrow; there is no permanence for the knowledge seeker.&lt;/p&gt;
+
+&lt;p&gt;Rubinius is merely a step along the path you journey. Take what you want, it
+is all free. As a Ruby implementation, it has much to offer your quest for
+knowledge. The Ruby code in the core library is accessible and easy to follow.
+The interface between Ruby and the C++ primitives is consistent. The C++ code
+itself is restrained. You won&amp;rsquo;t need a PhD in Turing-complete template
+languages to understand it.&lt;/p&gt;
+
+&lt;p&gt;Rubinius offers extensive opportunities to learn about programming languages
+in general and Ruby in particular. When I first started working with Rubinius,
+I knew a little bit about garbage collection and virtual machines. I would
+call what I knew, toy knowledge. As I struggled to learn more, it seemed
+helpful to consider layers of understanding:&lt;/p&gt;
+
+&lt;ol&gt;
+  &lt;li&gt;&lt;strong&gt;General programming language semantics&lt;/strong&gt;: the procedure abstraction,
+looping and iteration, recursion, references and values, etc.&lt;/li&gt;
+  &lt;li&gt;&lt;strong&gt;Ruby semantics&lt;/strong&gt;: modules and classes, access restrictions, blocks and
+lambdas, etc. Even with fundamental programming knowledge, a particular
+language can be confusing. When I was learning C, a friend was also
+studying it. One day he walked over and threw &lt;em&gt;The C Programming Language&lt;/em&gt;
+book down on my desk and said, &amp;ldquo;This &lt;code&gt;for&lt;/code&gt; loop makes no sense!&amp;rdquo; He was
+quite upset. &amp;ldquo;Look,&amp;rdquo; he said, &amp;ldquo;in this example &lt;code&gt;for (i=0; i &amp;lt; n; i++)&lt;/code&gt; how
+can &lt;code&gt;i &amp;lt; n&lt;/code&gt; get executed &lt;em&gt;after&lt;/em&gt; the code in the body?!&amp;rdquo; It&amp;rsquo;s easy to laugh
+at that confusion, but coming from BASIC, that really threw him. Deepening
+our understanding to this second level requires confronting some
+&amp;ldquo;counter-intuitive&amp;rdquo; notions.&lt;/li&gt;
+  &lt;li&gt;&lt;strong&gt;Hypothetical implementation&lt;/strong&gt;: knowing how Ruby works, how might one
+implement it. I think this is an important layer of understanding and it is
+easy to miss or gloss over it. By pausing at this layer and thinking how
+you might implement something, you test whether or not you are really
+understanding it.&lt;/li&gt;
+  &lt;li&gt;&lt;strong&gt;The MRI implementation&lt;/strong&gt;: Reading the MRI source code is an excellent way
+to investigate Ruby. For one thing, it will inform you how Ruby &lt;em&gt;actually&lt;/em&gt;
+works, and you may be surprised.&lt;/li&gt;
+  &lt;li&gt;&lt;strong&gt;The Rubinius implementation&lt;/strong&gt;: here you are exposed to the philosophy of
+Rubinius and the challenges to implementing Ruby. We are attempting to
+bring the beauty of Ruby as an object-oriented language deep into the core
+of Ruby itself.&lt;/li&gt;
+&lt;/ol&gt;
+
+&lt;p&gt;While the Rubinius code itself offers many opportunities for learning, don&amp;rsquo;t
+hesitate to drop by the #rubinius channel on freenode.net and ask us
+questions. Perhaps you already know a lot about another language and are
+interested in how Rubinius implements some feature. Or you may be relatively
+new to programming languages and have some basic questions. We enjoy talking
+about these concepts. If you are quite new to Rubinius, you may find these
+posts informative:&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;&lt;a href=&quot;http://www.engineyard.com/blog/2010/making-ruby-fast-the-rubinius-jit/&quot;&gt;Making Ruby Fast: The Rubinius JIT&lt;/a&gt;&lt;/li&gt;
+  &lt;li&gt;&lt;a href=&quot;http://www.engineyard.com/blog/2009/improving-the-rubinius-bytecode-compiler/&quot;&gt;Improving the Rubinius Bytecode Compiler&lt;/a&gt;&lt;/li&gt;
+  &lt;li&gt;&lt;a href=&quot;http://www.engineyard.com/blog/2009/the-anatomy-of-a-ruby-jit-compile/&quot;&gt;Compiling Ruby: From Text to Bytecode&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;Finally, consider helping other knowledge seekers by writing blog posts on
+what you learn about Rubinius. Or, help us &lt;a href=&quot;http://rubini.us/doc/en/how-to/write-documentation/&quot;&gt;write documentation&lt;/a&gt;!&lt;/p&gt;
+
+&lt;p&gt;&lt;a href=&quot;#wur-personas&quot;&gt;&lt;strong&gt;Back to personas&lt;/strong&gt;&lt;/a&gt;&lt;/p&gt;
+
+&lt;h4&gt;&lt;a class=&quot;anchor_title&quot; name=&quot;wur-enthusiast&quot;&gt;Language Enthusiast&lt;/a&gt;&lt;/h4&gt;
+
+&lt;p&gt;You like languages for their intrinsic value. Of course the world comes in
+many shapes and sizes. You wouldn&amp;rsquo;t have it any other way. That&amp;rsquo;s the fun and
+spice, joie de vivre, raison d&amp;rsquo;etre, supermarché&amp;hellip; Sometimes you get carried
+away writing a program in another language just because you like how the
+letters arrange down the screen. Ruby is definitely one of the impressive
+languages and sometimes you almost notice a tiny bit of favoritism in your
+normally egalitarian attitude.&lt;/p&gt;
+
+&lt;p&gt;As with any enthusiast, you like to experiment. Your interest is not mere
+curiosity or sterile investigation. You want to get your feet wet and your
+hands dirty. Rubinius is an excellent opportunity to delve into a number of
+fascinating subjects. We can merely suggest a path; your experiences along the
+way will tell you whether or not Rubinius has value to you.&lt;/p&gt;
+
+&lt;p&gt;If you are most interested in languages themselves, the syntax and arrangement
+of features, Rubinius offers you immediate gratification. Look for Evan&amp;rsquo;s
+upcoming post on his Language Toolkit or check out the code to
+&lt;a href=&quot;https://github.com/evanphx/prattle&quot;&gt;prattle&lt;/a&gt;, a Smalltalk dialect used to
+illustrate the ease of building a language on Rubinius. Also look at some of
+the existing languages &lt;a href=&quot;http://rubini.us/projects/&quot;&gt;projects&lt;/a&gt; targeting
+Rubinius.&lt;/p&gt;
+
+&lt;p&gt;If it is the machinery under the covers that is more interesting, start
+reading some code. The bytecode compiler lives in &lt;code&gt;lib/compiler/&lt;/code&gt;. The virtual
+machine is in &lt;code&gt;vm/&lt;/code&gt;, and the garbage collector is in &lt;code&gt;vm/gc&lt;/code&gt;. As you are
+reading through, consider helping us write better documentation. There are
+already sections for the &lt;a href=&quot;http://rubini.us/doc/en/virtual-machine/&quot;&gt;virtual
+machine&lt;/a&gt;,
+&lt;a href=&quot;http://rubini.us/doc/en/garbage-collector/&quot;&gt;garbage-collector&lt;/a&gt;, &lt;a href=&quot;http://rubini.us/doc/en/jit/&quot;&gt;JIT
+compiler&lt;/a&gt; and &lt;a href=&quot;http://rubini.us/doc/en/bytecode-compiler/&quot;&gt;bytecode
+compiler&lt;/a&gt; in the documentation, so
+adding content is easy.&lt;/p&gt;
+
+&lt;p&gt;You may also be interested in these previous posts about Rubinius:&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;&lt;a href=&quot;http://www.engineyard.com/blog/2010/rubinius-wants-to-help-you-make-ruby-better/&quot;&gt;Rubinius wants to help YOU make Ruby better&lt;/a&gt;&lt;/li&gt;
+  &lt;li&gt;&lt;a href=&quot;http://www.engineyard.com/blog/2009/5-things-youll-love-about-rubinius/&quot;&gt;5 Things You&amp;rsquo;ll Love About Rubinius&lt;/a&gt;&lt;/li&gt;
+  &lt;li&gt;&lt;a href=&quot;http://www.engineyard.com/blog/2009/rubinius-the-book-tour/&quot;&gt;Rubinius: The Book Tour&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;Most of all, experiment. Rubinius is easy to hack on. Are you curious about a
+particular feature needed in your language? Try adding it to Rubinius. Think
+Lua is all the rage because it uses a register VM? You could probably write a
+register-based bytecode interpreter for Rubinius in an afternoon. That&amp;rsquo;s just
+an example, of course. The point is to play around with your ideas and have
+fun doing it. I think you&amp;rsquo;ll find Rubinius to be an adventuresome companion.&lt;/p&gt;
+
+&lt;p&gt;Be sure to let us know what you&amp;rsquo;re working on. We like to be inspired, too!
+Consider writing a blog post about things that you find interesing, like this
+&lt;a href=&quot;http://yehudakatz.com/2011/02/18/getting-comfortable-with-rubinius-pure-ruby-internals/&quot;&gt;recent post&lt;/a&gt; by Yehuda Katz.&lt;/p&gt;
+
+&lt;p&gt;&lt;a href=&quot;#wur-personas&quot;&gt;&lt;strong&gt;Back to personas&lt;/strong&gt;&lt;/a&gt;&lt;/p&gt;
+
+&lt;h3&gt;&lt;a class=&quot;anchor_title&quot; name=&quot;wur-conclusion&quot;&gt;Conclusion&lt;/a&gt;&lt;/h3&gt;
+
+&lt;p&gt;So there you have it. Just like there are many different viewpoints, there are
+many different reasons to use Rubinius. Not all those reasons make sense to
+everyone. We believe, however, that Rubinius has something to offer to just
+about everyone interested in Ruby. Most importantly, try it!&lt;/p&gt;
+
+&lt;p&gt;If we didn&amp;rsquo;t answer your question here, leave us a comment. If you have a
+reason for using Rubinius that we didn&amp;rsquo;t mention, let us know. As always, we
+appreciate your feedback. Chat with us in the #rubinius channel on
+freenode.net, &lt;a href=&quot;https://github.com/evanphx/rubinius&quot;&gt;watch our Github project&lt;/a&gt;,
+and &lt;a href=&quot;http://twitter.com/rubinius&quot;&gt;follow us on Twitter&lt;/a&gt;.&lt;/p&gt;
+
+&lt;p&gt;P.S. Thanks to David Waite for suggesting the Academic Researcher and Language
+Enthusiast personas, I always forget those!&lt;/p&gt;
+</content>
+  </entry>
+  
+  <entry>
     <title>Introduction to Fancy</title>
     <id>http://rubini.us/2011/02/23/introduction-to-fancy/</id>
     <link rel="alternate" type="text/html" href="http://rubini.us/2011/02/23/introduction-to-fancy/" />
