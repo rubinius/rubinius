@@ -1,6 +1,8 @@
 module Rubinius
   class CompiledMethod < Executable
 
+    attr_accessor :name
+
     def self.allocate
       Ruby.primitive :compiledmethod_allocate
       raise PrimitiveFailure, "CompiledMethod.allocate primitive failed"

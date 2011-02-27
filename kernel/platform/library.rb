@@ -109,21 +109,42 @@ module FFI
         end
       end
 
-      raise FFI::NotFoundError, "Unable to find '#{cname}'"
+      ffi_function_missing cname, mname, args, ret
     end
+
+    # Generic error method attached in place of missing foreign functions
+    # during kernel loading. See kernel/delta/ffi.rb for a version that raises
+    # immediately if the foreign function is unavaiblable.
+    def ffi_function_not_implemented(*args)
+      raise NotImplementedError, "function not implemented on this platform"
+    end
+
+    # Protocol for attaching foregin functions. If #attach_function fails to
+    # find a foreign function, this method will be called. Client code can
+    # provide an override to customize features.
+    def ffi_function_missing(cname, mname, args, ret)
+      if func = Rubinius.find_method(self, :ffi_function_not_implemented)
+        func = func[0].dup
+        func.name = cname.to_sym
+        add_function mname, func
+      end
+    end
+
+    def add_function(name, func)
+      # Make it available as a method callable directly..
+      Rubinius.object_metaclass(self).method_table.store name, func, :public
+
+      # and expose it as a private method for people who
+      # want to include this module.
+      method_table.store name, func, :private
+    end
+    private :add_function
 
     def pointer_as_function(name, ptr, args, ret)
       args.map! { |a| find_type a }
 
       if func = FFI.generate_function(ptr, name.to_sym, args, find_type(ret))
-
-        # Make it available as a method callable directly..
-        Rubinius.object_metaclass(self).method_table.store name, func, :public
-
-        # and expose it as a private method for people who
-        # want to include this module.
-        method_table.store name, func, :private
-
+        add_function name, func
         return func
       end
 
