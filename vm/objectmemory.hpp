@@ -295,6 +295,7 @@ namespace rubinius {
     bool refill_slab(STATE, gc::Slab& slab);
 
     void assign_object_id(STATE, Object* obj);
+    Integer* assign_object_id_ivar(STATE, Object* obj);
     bool inflate_lock_count_overflow(STATE, ObjectHeader* obj, int count);
     LockStatus contend_for_lock(STATE, ObjectHeader* obj, bool* error, size_t us=0);
     void release_contention(STATE);

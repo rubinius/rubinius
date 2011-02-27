@@ -387,10 +387,7 @@ namespace rubinius {
 
       /* Lazy allocate object's ids, since most don't need them. */
       if(id->nil_p()) {
-        /* All references have an even object_id. last_object_id starts out at 0
-         * but we don't want to use 0 as an object_id, so we just add before using */
-        id = Integer::from(state, ++state->om->last_object_id << TAG_REF_WIDTH);
-        set_ivar(state, G(sym_object_id), id);
+        id = state->om->assign_object_id_ivar(state, this);
       }
 
       return as<Integer>(id);
@@ -404,7 +401,11 @@ namespace rubinius {
   bool Object::has_id(STATE) {
     if(!reference_p()) return true;
 
+#ifdef RBX_OBJECT_ID_IN_HEADER
     return object_id() > 0;
+#else
+    return get_ivar(state, G(sym_object_id)) != Qnil;
+#endif
   }
 
   void Object::infect(STATE, Object* other) {
