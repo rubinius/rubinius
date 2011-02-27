@@ -75,7 +75,7 @@ module FFI
 
       def const(name, format=nil, cast=nil, ruby_name=nil, converter=nil, &block)
         format ||= '%ld'
-        cast ||= ''
+        cast ||= '(long)'
 
         if block and converter
           raise ArgumentError, "Supply only converter or converter block"
@@ -101,7 +101,7 @@ module FFI
         @constants.each_value do |const|
           io.puts <<-EOF
   #ifdef #{const.name}
-  printf("#{const.name} #{const.format}\\n", (long)#{const.cast}#{const.name});
+  printf("#{const.name} #{const.format}\\n", #{const.cast}#{const.name});
   #endif
           EOF
         end

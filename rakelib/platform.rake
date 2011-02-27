@@ -22,7 +22,7 @@ file 'runtime/platform.conf' => deps do |task|
       s.field :ai_addr, :pointer
       s.field :ai_canonname, :string
       s.field :ai_next, :pointer
-    end
+    end.write_config(f)
 
     FFI::Generators::Structures.new 'dirent' do |s|
       s.include "sys/types.h"
