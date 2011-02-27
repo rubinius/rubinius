@@ -98,7 +98,7 @@ class Numeric
     self.to_i
   end
 
-  # Delegate #modulp to #% in subclasses
+  # Delegate #modulo to #% in subclasses
   def modulo(other)
     self % other
   end
