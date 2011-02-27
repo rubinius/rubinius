@@ -112,41 +112,40 @@
 
       
 
-        <p>Den Rubinius Issuetracker findest du hier: <a href="http://github.com/evanphx/rubinius/issues">http://github.com/evanphx/rubinius/issues</a>.</p>
+        <p>Den Rubinius Issuetracker findest du hier: 
+<a href="http://github.com/evanphx/rubinius/issues">http://github.com/evanphx/rubinius/issues</a>.</p>
 
-<p>Damit ein Ticket nützlich ist, sollte er prägnant, fokussiert und
-umsetzbar sein. Falls er diese Kriterien nicht erfüllt, wird er
-vermutlich nur für Unordnung sorgen. Deshalb sollten Tickets in
-mindestens eine der folgenden Kategorien fallen:</p>
+<p>Damit ein Ticket nützlich ist, sollte es prägnant, fokussiert und umsetzbar 
+sein. Falls es diese Kriterien nicht erfüllt, wird es vermutlich nur den 
+Issuetracker zumüllen. Deshalb sollten Tickets mindestens einer der folgenden 
+Kategorien zugeordnet werden können:</p>
 
 <ol>
-  <li>Eine präzise Kommandozeilenhistorie, welche aufzeigt, wie man das
-Programm installiert und aufruft sowie den Backtrace des
-aufgetretenen Fehlers widergibt.</li>
-  <li>Ein kurzes Stück Beispielcode, welcher das Problem illustriert
-sowie ein Kommandozeilenbefehl um den Code auszuführen.</li>
+  <li>Eine vollständige Kommandozeilenhistorie liegt vor, die aufzeigt, wie das 
+Programm installiert und aufgerufen wurde sowie den Backtrace des
+aufgetretenen Fehlers wiedergibt.</li>
+  <li>Ein kurzes Stück Beispielcode, der das Problem illustriert sowie einein 
+Kommandozeilenbefehl, um den Code auszuführen.</li>
   <li>Ein Patch <strong>inklusive Specs, falls es noch keine äquivalenten
-gibt</strong> sowie ein Auszug der darstellt, wie die Specs sich vor und
-nach Anwendung des Patches verhalten.</li>
+gibt</strong> sowie ein Auszug der darstellt, wie die Specs sich vor und nach 
+Anwendung des Patches verhalten.</li>
 </ol>
 
-<p>Falls dein Ticket nicht in eine der oben genannten Kategorien passt,
-heißt das nicht, dass es ungültig ist. Das Problem sollte lediglich
-nicht als Ticket aufgenommen werden.</p>
+<p>Falls die Angelegenheit nicht in eine der oben genannten Kategorien passt, 
+heißt das nicht, dass sie unwichtig ist. Für Ticket ist es lediglich 
+unzureichend.</p>
 
 <ol>
   <li>
-    <p>Falls es sich um ein Feature handelt, solltest du in Betrachtung
-ziehen, es auf der Mailingliste zur Diskussion zu stellen. Du
-kannst natürlich außerdem auch versuchen es selbst zu
-implementieren und zu zeigen, warum und wie dein Feature nützlich
-ist.</p>
+    <p>Falls es sich um ein Feature handelt, solltest du in Betracht ziehen, es 
+auf der Mailingliste zur Diskussion zu stellen. Natürlich kannst du 
+außerdem auch versuchen es selbst zu implementieren und zu zeigen, warum 
+und wie dein Feature nützlich sein kann.</p>
   </li>
   <li>
-    <p>Falls es sich um eine Bibliothek oder Gem handelt, welche nicht
-korrekt funktioniert nimm dir etwas Zeit und versuche den Fehler
-zu reproduzieren und beschreibe daraufhin die Reproduktion in
-einem neuen Ticket.</p>
+    <p>Falls es sich um eine Bibliothek oder Gem handelt, das nicht korrekt 
+funktioniert nimm dir etwas Zeit und versuche den Fehler zu reproduzieren
+und beschreibe daraufhin die Reproduktion in einem neuen Ticket.</p>
   </li>
 </ol>
 
@@ -157,27 +156,26 @@ einem neuen Ticket.</p>
     <p>Doppelte Überprüfung.</p>
 
     <ol>
-      <li>Baue Rubinius komplett neu (&lsquo;rake clean; rake&rsquo;) nachdem du
-&lsquo;git pull&rsquo; ausgeführt hast oder einen frischen clone des
-Repositories gemacht hast.</li>
-      <li>Lies <a href="/doc/en/getting-started/troubleshooting">Problemlösungen</a>
-um zu sehen ob eine der dortigen Anleitungen das Problem
-beheben kann.</li>
-      <li>Lies <a href="/doc/en/specs/">Specs</a>.</li>
+      <li>Kompiliere Rubinius komplett neu (&lsquo;rake clean; rake&rsquo;) nachdem du 
+&lsquo;git pull&rsquo; ausgeführt hast oder einen frischen Klon des Repositories 
+erstellt hast.</li>
+      <li>Lies <a href="/doc/de/getting-started/troubleshooting">Problemlösungen</a>,
+um zu sehen, ob eine der dortigen Anleitungen das Problem beheben kann.</li>
+      <li>Lies <a href="/doc/de/specs/">Specs</a>.</li>
     </ol>
   </li>
   <li>
     <p>Gib deinem Ticket einen spezifischen, vorzugsweise kurzen Titel</p>
   </li>
   <li>
-    <p>Versehe dein Ticket mit angemessenen Tags.</p>
+    <p>Beschreibe dein Ticket mit angemessenen Tags.</p>
   </li>
   <li>
-    <p>Versehe dein Ticket mit hinreichend Details bzgl. dem Problem.</p>
+    <p>Belege dein Ticket mit hinreichend Details bzgl. des Problems.</p>
 
     <ul>
-      <li>Der Kommandozeilenbefehl um das Programm auszuführen.</li>
-      <li>Der Backtrace oder das Ergebnis versus dem erwarteten Ergebnis.</li>
+      <li>Der Kommandozeilenbefehl, um das Programm auszuführen.</li>
+      <li>Der Backtrace oder das Ergebnis entgegen dem erwarteten Ergebnis.</li>
       <li>Informationen über deinen Rechner und System. <code>uname -a</code> ist
 normalerweise gut (falls es irgengwelche &ldquo;unknown&rdquo; Felder
 gibt, erkläre/beschreibe diese bitte.)</li>
@@ -188,28 +186,23 @@ gibt, erkläre/beschreibe diese bitte.)</li>
 <h2 id="zustzliche-instruktionen-fr-tickets-mit-angehngten-patches">Zusätzliche Instruktionen für Tickets mit angehängten Patches</h2>
 
 <ul>
-  <li>Können lediglich eine Menge an Specs sein.</li>
-  <li>Patches müssen zusätzlich mit Specs versehen sein, es sei denn die
-Speccs existieren bereits.</li>
-  <li>Relevante Teile der Spec Ausgabe und der exakte &lsquo;bin/mspec&rsquo; Aufruf
-von dem existierenden oder hinzugefügten Spec <em>vor der
-Veränderung</em></li>
-  <li>
-    <p>Die Spec Ausgabe und der exakte &lsquo;bin/mspec&rsquo; Aufruf, bei dem ein
-erfolgreicher Durchlauf <em>nach der Veränderung</em> zu sehen ist</p>
-  </li>
-  <li>Zusätzliche Beschreibungen / Kommentare deines Patches und wie er
-das Problem löst. Insbesondere in Fällen, bei denen neue
-Funktionalität hinzugefügt wurde sollte darauf verwiesen werden,
-ob der Inhalt des Tickets bereits in #rubinius (IRC) oder
-ruby-dev (Mailingliste) diskutiert wurde.</li>
+  <li>Einfach nur ein paar Specs.</li>
+  <li>Patches müssen zusätzlich mit Specs versehen sein, es sei denn die Specs 
+existieren bereits.</li>
+  <li>Relevante Teile der Spec Ausgabe und der exakte &lsquo;bin/mspec&rsquo; Aufruf von dem
+existierenden oder hinzugefügten Spec <em>vor</em> der Veränderung.</li>
+  <li>Die Spec Ausgabe und der exakte &lsquo;bin/mspec&rsquo; Aufruf, bei dem ein 
+erfolgreicher Durchlauf <em>nach</em> der Veränderung zu sehen ist.</li>
+  <li>Zusätzliche Beschreibungen/Kommentare deines Patches und wie er das 
+Problem löst. Insbesondere dann, wenn neue Features hinzugefügt wurden, 
+sollte darauf verwiesen werden, ob der Inhalt des Tickets bereits in 
+#rubinius (IRC) oder ruby-dev (Mailingliste) diskutiert wurde.</li>
 </ul>
 
-<p>Abgesehen von Fällen, bei denen es aus irgendwelchen Gründen unmöglich
-ist, sollte &lsquo;git-format-patch&rsquo; benutzt werden um den Patch zu
-erstellen. Das macht das Einbringen des Patches wesentlich einfacher
-und es erhält die korrekte Zuordnung. Ansonsten sollte ein &lsquo;unified
-diff&rsquo; verwendet werden.</p>
+<p>Abgesehen von Fällen, bei denen es aus irgendwelchen Gründen unmöglich ist, 
+sollte &lsquo;git-format-patch&rsquo; benutzt werden, um den Patch zu erstellen. Das macht
+das Einbringen des Patches wesentlich einfacher und er erhält die korrekte 
+Zuordnung. Ansonsten sollte ein &lsquo;unified diff&rsquo; verwendet werden.</p>
 
 <h2 id="beispiel-fr-das-einreichen-eines-patches">Beispiel für das Einreichen eines Patches</h2>
 
@@ -217,7 +210,7 @@ diff&rsquo; verwendet werden.</p>
 
 <pre><code>describe "Kernel.format" do
   it "is accessible as a module function" do
-    Kernel.format("%s", "hello").should == "hello"
+    Kernel.format("%s", "Hallo").should == "Hallo"
   end
 end
 </code></pre>
@@ -234,7 +227,7 @@ end
     <p>&ldquo;patch core spec&rdquo;</p>
   </li>
   <li>
-    <p>Ticket Nachricht:</p>
+    <p>Ticket Nachricht (<i>natürlich auf Englisch</i>)</p>
 
     <p>The method &lsquo;format&rsquo; is not available as a module function of Kernel.</p>
 
@@ -266,9 +259,9 @@ Finished in 0.016031 seconds
   </li>
 </ol>
 
-<p>Schließlich, packe deinen Patch in ein gist und füge den Link dazu in
-dein Ticket ein. Unten siehst du den Patch aus dem obigen Beispiel aus
-Vollständigkeitsgründen:</p>
+<p>Schließlich, packst du deinen Patch in ein Gist und fügst den Link dazu in
+dein Ticket ein. Der Vollständigkeit halber siehst du unten den Patch aus dem 
+obigen Beispiel:</p>
 
 <pre><code>From c61cecce6442347ebbdf1ded7a5c0832c97582c1 Mon Sep 17 00:00:00 2001
 From: Brian Ford &lt;bford@engineyard.com&gt;
@@ -289,7 +282,6 @@ index 2d2e508..f2a382e 100644
 
    def puts(*a)
 </code></pre>
-
 
 
     </div>
