@@ -82,7 +82,7 @@ class Hash
       elsif obj.respond_to? :to_hash
         return new.replace(Type.coerce_to(obj, Hash, :to_hash))
       elsif obj.is_a?(Array) # See redmine # 1385
-        h = {}
+        h = new
         args.first.each do |arr|
           next unless arr.respond_to? :to_ary
           arr = arr.to_ary
