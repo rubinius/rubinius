@@ -208,10 +208,17 @@ module FFI
     pointer_as_function :open_library, FFI::Pointer::DLOPEN, [:string, :int], :pointer
     pointer_as_function :last_error, FFI::Pointer::DLERROR, [], :string
 
-    RTLD_LAZY   = Rubinius::Config['rbx.platform.dlopen.RTLD_LAZY']
-    RTLD_NOW    = Rubinius::Config['rbx.platform.dlopen.RTLD_NOW']
-    RTLD_GLOBAL = Rubinius::Config['rbx.platform.dlopen.RTLD_GLOBAL']
-    RTLD_LOCAL  = Rubinius::Config['rbx.platform.dlopen.RTLD_LOCAL']
+    if Rubinius.windows?
+      RTLD_LAZY   = 0
+      RTLD_NOW    = 0
+      RTLD_GLOBAL = 0
+      RTLD_LOCAL  = 0
+    else
+      RTLD_LAZY   = Rubinius::Config['rbx.platform.dlopen.RTLD_LAZY']
+      RTLD_NOW    = Rubinius::Config['rbx.platform.dlopen.RTLD_NOW']
+      RTLD_GLOBAL = Rubinius::Config['rbx.platform.dlopen.RTLD_GLOBAL']
+      RTLD_LOCAL  = Rubinius::Config['rbx.platform.dlopen.RTLD_LOCAL']
+    end
 
     class << self
       alias_method :open, :new
