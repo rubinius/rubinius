@@ -1195,6 +1195,30 @@ namespace rubinius {
 #endif
   }
 
+  Object* System::vm_darwin_p(STATE) {
+#ifdef RBX_DARWIN
+    return Qtrue;
+#else
+    return Qfalse;
+#endif
+  }
+
+  Object* System::vm_bsd_p(STATE) {
+#ifdef RBX_BSD
+    return Qtrue;
+#else
+    return Qfalse;
+#endif
+  }
+
+  Object* System::vm_linux_p(STATE) {
+#ifdef RBX_LINUX
+    return Qtrue;
+#else
+    return Qfalse;
+#endif
+  }
+
   String* System::sha1_hash(STATE, String* str) {
     XSHA1_CTX ctx;
     XSHA1_Init(&ctx);

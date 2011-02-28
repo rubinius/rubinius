@@ -16,10 +16,10 @@ module FFI
 
   module Library
 
-    case Rubinius::OS_TYPE
-    when :windows
+    case
+    when Rubinius.windows?
       LIBC = "msvcrt.dll"
-    when :darwin
+    when Rubinius.darwin?
       LIBC = "libc.dylib"
     else
       LIBC = "libc#{Rubinius::LIBSUFFIX}.6"

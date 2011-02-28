@@ -30,6 +30,9 @@ class Configure
     # TODO: For better cross-compiling support, it may be necessary to
     # use the feature facility to check for a define in the compiler.
     @windows = (@host =~ /mingw|mswin/) != nil
+    @darwin  = (@host =~ /darwin/) != nil
+    @bsd     = (@host =~ /bsd/) != nil
+    @linux   = (@host =~ /linux/) != nil
 
     # Set up system commands to run in cmd.exe on Windows.
     if @windows
@@ -887,6 +890,7 @@ int main() { return tgetnum(""); }
 
     # Write the config file used by the build system and rbconfig.rb.
     File.open @config, "wb" do |f|
+      # TODO: Make this the actual data structure that is written out.
       f.puts <<-EOC
 module Rubinius
   BUILD_CONFIG = {
@@ -925,7 +929,10 @@ module Rubinius
     :libversion     => "#{@libversion}",
     :release_date   => "#{@release_date}",
     :config_version => #{@config_version},
-    :windows        => #{@windows}
+    :windows        => #{@windows},
+    :darwin         => #{@darwin},
+    :bsd            => #{@bsd},
+    :linux          => #{@linux},
   }
 end
       EOC
@@ -969,8 +976,10 @@ end
         f.puts "#define RBX_HAVE_TR1_HASH 1"
       end
 
-      if @windows
-        f.puts "#define RBX_WINDOWS 1"
+      [:windows, :darwin, :bsd, :linux].each do |platform|
+        if instance_variable_get(:"@#{platform}")
+          f.puts "#define RBX_#{platform.to_s.upcase} 1"
+        end
       end
     end
 

@@ -292,6 +292,15 @@ namespace rubinius {
     // Ruby.primitive :vm_windows_p
     static Object* vm_windows_p(STATE);
 
+    // Ruby.primitive :vm_darwin_p
+    static Object* vm_darwin_p(STATE);
+
+    // Ruby.primitive :vm_bsd_p
+    static Object* vm_bsd_p(STATE);
+
+    // Ruby.primitive :vm_linux_p
+    static Object* vm_linux_p(STATE);
+
     // Ruby.primitive :sha1_hash
     static String* sha1_hash(STATE, String* str);
 

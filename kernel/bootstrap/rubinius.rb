@@ -150,4 +150,19 @@ module Rubinius
     Ruby.primitive :vm_windows_p
     raise PrimitiveFailure, "Rubinius.windows? failed"
   end
+
+  def self.darwin?
+    Ruby.primitive :vm_darwin_p
+    raise PrimitiveFailure, "Rubinius.darwin? failed"
+  end
+
+  def self.bsd?
+    Ruby.primitive :vm_bsd_p
+    raise PrimitiveFailure, "Rubinius.bsd? failed"
+  end
+
+  def self.linux?
+    Ruby.primitive :vm_linux_p
+    raise PrimitiveFailure, "Rubinius.linux? failed"
+  end
 end
