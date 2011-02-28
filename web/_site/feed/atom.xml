@@ -333,8 +333,8 @@ Rubinius is calling on the über-programmers of the world to implement
 solutions in Ruby to help us identify performance challenges and address them.&lt;/p&gt;
 
 &lt;p&gt;Rubinius is also being used in some fascinating language experiments. Two of
-these are Atomo (&lt;a href=&quot;&quot;&gt;http://atomo-lang.org&lt;/a&gt; which is implemented in Haskell,
-with a Rubinius implementation code-named
+these are Atomo (&lt;a href=&quot;http://atomo-lang.org&quot;&gt;http://atomo-lang.org&lt;/a&gt; which is
+implemented in Haskell, with a Rubinius implementation code-named
 &lt;a href=&quot;https://github.com/vito/quanto/&quot;&gt;quanto&lt;/a&gt;) and Fancy
 (&lt;a href=&quot;http://fancy-lang.org&quot;&gt;http://fancy-lang.org&lt;/a&gt;). So, if language design is
 your cup of tea, Rubinius offers an excellent platform for experimentation.&lt;/p&gt;
