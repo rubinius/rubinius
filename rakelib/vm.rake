@@ -127,11 +127,15 @@ namespace :build do
 
   namespace :ffi do
 
-    FFI_PREPROCESSABLES = %w[ lib/etc.rb
-                              lib/fcntl.rb
-                              lib/syslog.rb
+    FFI_PREPROCESSABLES = %w[ lib/fcntl.rb
                               lib/zlib.rb
                             ]
+
+    unless BUILD_CONFIG[:windows]
+      FFI_PREPROCESSABLES.concat %w[ lib/etc.rb
+                                     lib/syslog.rb
+                                   ]
+    end
 
     # Generate the .rb files from lib/*.rb.ffi
     task :preprocessor => FFI_PREPROCESSABLES
