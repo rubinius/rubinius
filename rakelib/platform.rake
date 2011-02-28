@@ -91,9 +91,15 @@ file 'runtime/platform.conf' => deps do |task|
       s.field :st_dev, :dev_t
       s.field :st_ino, :ino_t
       s.field :st_mode, :mode_t
-      s.field :st_nlink, :nlink_t
-      s.field :st_uid, :uid_t
-      s.field :st_gid, :gid_t
+      if BUILD_CONFIG[:windows]
+        s.field :st_nlink, :short
+        s.field :st_uid, :short
+        s.field :st_gid, :short
+      else
+        s.field :st_nlink, :nlink_t
+        s.field :st_uid, :uid_t
+        s.field :st_gid, :gid_t
+      end
       s.field :st_rdev, :dev_t
       s.field :st_size, :off_t
       unless BUILD_CONFIG[:windows]
