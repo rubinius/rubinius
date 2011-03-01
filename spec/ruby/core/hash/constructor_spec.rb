@@ -39,11 +39,14 @@ describe "Hash.[]" do
       def obj.to_hash() new_hash(1 => 2, 3 => 4) end
       hash_class[obj].should == new_hash(1 => 2, 3 => 4)
     end
+
+    it "returns an instance of a subclass when passed an Array" do
+      MyHash[[1,2,3,4]].should be_kind_of(MyHash)
+    end
   end
 
   it "returns an instance of the class it's called on" do
     hash_class[MyHash[1, 2]].class.should == hash_class
     MyHash[hash_class[1, 2]].should be_kind_of(MyHash)
-    MyHash[[1,2,3,4]].should be_kind_of(MyHash)    
   end
 end
