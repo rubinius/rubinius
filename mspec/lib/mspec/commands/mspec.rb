@@ -6,6 +6,7 @@ require 'mspec/version'
 require 'mspec/utils/options'
 require 'mspec/utils/script'
 require 'mspec/helpers/tmp'
+require 'mspec/runner/actions/filter'
 require 'mspec/runner/actions/timer'
 
 
