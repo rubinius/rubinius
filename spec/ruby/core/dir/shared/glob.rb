@@ -122,6 +122,10 @@ describe :dir_glob, :shared => true do
     Dir.send(@method, 'sub*_one').sort.should == %w|subdir_one|.sort
   end
 
+  it "handles directories with globs" do
+    Dir.send(@method, 'sub*/*').sort.should == %w!subdir_one/nondotfile subdir_two/nondotfile subdir_two/nondotfile.ext!
+  end
+
   it "matches files with multiple '*' special characters" do
     Dir.send(@method, '*fi*e*').sort.should == %w|dir_filename_ordering nondotfile file_one.ext file_two.ext|.sort
   end
