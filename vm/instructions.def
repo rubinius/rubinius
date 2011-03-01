@@ -326,7 +326,7 @@ instruction push_local_depth(depth index) [ -- value ]
   } else {
     VariableScope* scope = call_frame->scope->parent();
 
-    if(!scope || scope->nil_p()) {
+    if(!scope) {
       Exception::internal_error(state, call_frame,
                                 "illegal push_local_depth usage, no parent");
       RUN_EXCEPTION();
@@ -334,7 +334,7 @@ instruction push_local_depth(depth index) [ -- value ]
 
     for(int j = 1; j < depth; j++) {
       scope = scope->parent();
-      if(!scope || scope->nil_p()) {
+      if(!scope) {
         Exception::internal_error(state, call_frame,
                                   "illegal push_local_depth usage, no parent");
         RUN_EXCEPTION();
@@ -374,7 +374,7 @@ instruction set_local_depth(depth index) [ value -- value ]
   } else {
     VariableScope* scope = call_frame->scope->parent();
 
-    if(!scope || scope->nil_p()) {
+    if(!scope) {
       Exception::internal_error(state, call_frame,
                                 "illegal set_local_depth usage, no parent");
       RUN_EXCEPTION();
@@ -382,7 +382,7 @@ instruction set_local_depth(depth index) [ value -- value ]
 
     for(int j = 1; j < depth; j++) {
       scope = scope->parent();
-      if(!scope || scope->nil_p()) {
+      if(!scope) {
         Exception::internal_error(state, call_frame,
                                   "illegal set_local_depth usage, no parent");
         RUN_EXCEPTION();
