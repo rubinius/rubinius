@@ -65,6 +65,11 @@ describe "Kernel#eval" do
   end
 
   ruby_version_is ""..."1.9" do
+    it "updates a local at script scope" do
+      code = fixture __FILE__, "eval_locals.rb"
+      ruby_exe(code).chomp.should == "2"
+    end
+
     it "accepts a Proc object as a binding" do
       x = 1
       bind = proc {}
@@ -79,6 +84,11 @@ describe "Kernel#eval" do
   end
 
   ruby_version_is "1.9" do
+    it "does not share locals across eval scopes" do
+      code = fixture __FILE__, "eval_locals.rb"
+      ruby_exe(code).chomp.should == "NameError"
+    end
+
     it "doesn't accept a Proc object as a binding" do
       x = 1
       bind = proc {}
