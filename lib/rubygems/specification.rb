@@ -503,8 +503,6 @@ class Gem::Specification
   ##
   # Loads Ruby format gemspec from +file+.
 
-  def self.empty_binding; binding; end
-
   def self.load file
     return unless file && File.file?(file)
 
@@ -547,7 +545,7 @@ class Gem::Specification
     end
 
     begin
-      spec = eval(code, empty_binding, file) do |cm, be|
+      spec = eval(code, binding, file) do |cm, be|
         FileUtils.mkdir_p parent_dir unless File.directory?(parent_dir)
         Rubinius::CompiledFile.dump cm, cm_path
       end
