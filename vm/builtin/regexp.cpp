@@ -584,7 +584,7 @@ namespace rubinius {
   Object* Regexp::last_match_result(STATE, Fixnum* mode, Fixnum* which,
                                     CallFrame* call_frame)
   {
-    Object* current_match = call_frame->scope->last_match(state);
+    Object* current_match = call_frame->last_match(state);
 
     if(MatchData* match = try_as<MatchData>(current_match)) {
       switch(mode->to_native()) {
@@ -606,7 +606,7 @@ namespace rubinius {
   }
 
   Object* Regexp::last_match(STATE, Arguments& args, CallFrame* call_frame) {
-    MatchData* match = try_as<MatchData>(call_frame->scope->last_match(state));
+    MatchData* match = try_as<MatchData>(call_frame->last_match(state));
     if(!match) return Qnil;
 
     if(args.total() == 0) return match;
@@ -627,14 +627,14 @@ namespace rubinius {
     }
 
     if(CallFrame* parent = call_frame->previous) {
-      parent->scope->set_last_match(state, obj);
+      parent->set_last_match(state, obj);
     }
 
     return obj;
   }
 
   Object* Regexp::propagate_last_match(STATE, CallFrame* call_frame) {
-    Object* obj = call_frame->scope->last_match(state);
+    Object* obj = call_frame->last_match(state);
     if(RTEST(obj)) {
       Regexp::set_last_match(state, obj, call_frame);
     }
@@ -643,7 +643,7 @@ namespace rubinius {
 
   Object* Regexp::set_block_last_match(STATE, CallFrame* call_frame) {
     Object* blk = call_frame->scope->block();
-    MatchData* match = try_as<MatchData>(call_frame->scope->last_match(state));
+    MatchData* match = try_as<MatchData>(call_frame->last_match(state));
     if(!match) return Qnil;
 
     if(BlockEnvironment* env = try_as<BlockEnvironment>(blk)) {

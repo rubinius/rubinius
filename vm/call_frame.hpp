@@ -35,7 +35,8 @@ namespace rubinius {
       cClosedScope =        1 << 4,
       cBlockAsMethod =      1 << 5,
       cJITed =              1 << 6,
-      cBlock =              1 << 7
+      cBlock =              1 << 7,
+      cInlineBlock =        1 << 8
     };
 
     CallFrame* previous;
@@ -188,9 +189,16 @@ namespace rubinius {
       return flags & cInlineFrame;
     }
 
+    bool is_inline_block() {
+      return flags & cInlineBlock;
+    }
+
     bool has_closed_scope_p() {
       return flags & cClosedScope;
     }
+
+    Object* last_match(STATE);
+    void set_last_match(STATE, Object* obj);
 
     Module* module() {
       return scope->module();

@@ -13,6 +13,36 @@
 #include "object_utils.hpp"
 
 namespace rubinius {
+  Object* CallFrame::last_match(STATE) {
+    CallFrame* use = this;
+
+    while(use && use->is_inline_block()) {
+      CallFrame* yielder = use->previous;
+      if(!yielder) return Qnil;
+      // This works because the creater is always one above
+      // the yielder with inline blocks.
+      use = yielder->previous;
+    }
+
+    if(!use) return Qnil;
+    return use->scope->last_match(state);
+  }
+
+  void CallFrame::set_last_match(STATE, Object* obj) {
+    CallFrame* use = this;
+
+    while(use && use->is_inline_block()) {
+      CallFrame* yielder = use->previous;
+      if(!yielder) return;
+      // This works because the creater is always one above
+      // the yielder with inline blocks.
+      use = yielder->previous;
+    }
+
+    if(!use) return;
+    use->scope->set_last_match(state, obj);
+  }
+
   VariableScope* CallFrame::promote_scope_full(STATE) {
     return scope->create_heap_alias(state, this, !has_closed_scope_p());
   }
