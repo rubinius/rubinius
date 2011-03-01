@@ -23,12 +23,18 @@ describe "Module#alias_method" do
     @class.make_alias :protected_ichi, :protected_one
     lambda { @object.protected_ichi }.should raise_error(NameError)
   end
+
+  it "handles aliasing a stub that changes visibility" do
+    @class.__send__ :public, :private_one
+    @class.make_alias :was_private_one, :private_one
+    @object.was_private_one.should == 1
+  end
   
   it "fails if origin method not found" do
     lambda { @class.make_alias :ni, :san }.should raise_error(NameError)
   end
 
-  it "converts a non string/symbol/fixnum name to string using to_str" do
+  it "converts the names using #to_str" do
     @class.make_alias "un", "public_one"
     @class.make_alias :deux, "public_one"
     @class.make_alias "trois", :public_one
