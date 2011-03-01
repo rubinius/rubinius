@@ -27,7 +27,7 @@ module Rubinius
       end
 
       # Otherwise, put it here.
-      @parent.dynamic_locals[name] = val
+      dynamic_locals[name] = val
     end
 
     def get_eval_local(name)
@@ -38,6 +38,10 @@ module Rubinius
         end
 
         scope = scope.parent
+      end
+
+      if dynamic_locals.key? name
+        return dynamic_locals[name]
       end
 
       nil
