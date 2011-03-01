@@ -805,7 +805,6 @@ module Rubinius
 
       def new_local(name)
         variable = Compiler::EvalLocalVariable.new name
-        @variable_scope.dynamic_locals[name] = nil
         variables[name] = variable
       end
 
