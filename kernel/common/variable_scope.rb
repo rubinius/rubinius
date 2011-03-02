@@ -26,12 +26,24 @@ module Rubinius
         scope = scope.parent
       end
 
-      # Otherwise, put it here.
-      @parent.dynamic_locals[name] = val
+      # Otherwise, put it in the highest non-eval scope
+      if @parent
+        scope = @parent
+        while scope.parent and scope.method.get_metadata(:for_eval)
+          scope = scope.parent
+        end
+
+        scope.dynamic_locals[name] = val
+      else
+        # This happens when we run some confused compiled code.
+        # Typically when we use eval to create the code and then
+        # reuse it in a non-eval context.
+        dynamic_locals[name] = val
+      end
     end
 
     def get_eval_local(name)
-      scope = @parent
+      scope = self
       while scope
         if scope.dynamic_locals.key? name
           return scope.dynamic_locals[name]

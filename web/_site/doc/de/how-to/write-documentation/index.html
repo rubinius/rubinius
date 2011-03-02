@@ -112,29 +112,26 @@
 
       
 
-        <p>Die Dokumentation für Rubinius ist integriert mit der Website und dem
-Blog. Es nutzt Jekyll genauso wie die übrigen Komponenten.</p>
+        <p>Die Dokumentation für Rubinius ist integriert mit der Website und dem Blog. Sie
+nutzt genau wie die übrigen Komponenten Jekyll.</p>
 
-<p>Um zu starten, stelle sicher, dass du die <code>kramdown</code> und <code>jekyll</code> Gems
+<p>Um zu starten, stelle sicher, dass du die <code>kramdown</code> und <code>jekyll</code> Gems 
 installiert hast.</p>
 
 <pre><code>rbx gem install jekyll kramdown
 </code></pre>
 
-<p>Die Dokumentationsquellen befinden sich im <code>web/doc</code> Verzeichnis. Es
-existieren dort Unterverzeichnisse für jede Sprache, für die es
-bereits eine Übersetzung gibt (wie z.B. der deutschen Übersetzung
-hier).</p>
+<p>Die Dokumentationsquellen befinden sich im <code>web/doc</code> Verzeichnis. Es existieren
+dort Unterverzeichnisse für alle Sprachen, die bereits in einer Übersetzung 
+vorliegen (wie z.B. diese deutschen Übersetzung).</p>
 
 <p>Jede Übersetzung besitzt ein Inhaltsverzeichnis
-(z.B. <code>/web/doc/en/index.markdown</code>). Der Rest der Dokumentation
-besteht aus einzelnen Dateien, welche YAML Attribute benutzen um
-anzugeben, wie die Dokumente zueinander in Beziehung stehen. Im
-Prinzip kann man die Dokumentation als eine doppelt verkettete Liste
-von Dokumenten verstehen, bei der jedes Dokument auf ein Vorgänger-
-sowie einen Nachfolgedokument verweist. Das Inhaltsverzeichnis
-Dokument zeigt dabei die komplette Struktur aller übrigen Dokumente
-an.</p>
+(z.B. <code>/web/doc/en/index.markdown</code>). Der Rest der Dokumentation besteht aus 
+einzelnen Dateien, die YAML Attribute benutzen, um anzugeben, wie die Dokumente
+zueinander in Beziehung stehen. Im Prinzip kann man die Dokumentation als eine
+doppelt verkettete Liste von Dokumenten verstehen, bei der jedes Dokument auf 
+ein Vorgänger- sowie einen Nachfolgedokument verweist. Das Inhaltsverzeichnis 
+zeigt dabei die komplette Struktur aller übrigen Dokumente an.</p>
 
 <p>Die YAML Attribute in einem Dokument sehen in etwa wie folgt aus:</p>
 
@@ -148,48 +145,45 @@ next_url: how-to/translate-documentation
 ---
 </code></pre>
 
-<p>Das <em>layout</em> gibt an, welches Jekyll Layout bei der Formatierung des
-Dokuments genutzt werden soll. Das <em>layout</em> sollte <code>doc_LANG</code>
-entsprechen, wobei <em>LANG</em> ein ISO-639-1 Code für die Sprache ist.</p>
+<p>Das <em>layout</em> gibt an, welches Jekyll Layout bei der Formatierung des Dokuments
+genutzt werden soll. Das <em>layout</em> sollte <code>doc_LANG</code> entsprechen, wobei <em>LANG</em> 
+ein ISO-639-1 Code für die Sprache ist (z.B. de, en, pl, es etc.).</p>
 
-<p>Das <em>title</em> gibt den Dokumententitel an, welcher am oberen Rand der Seite dargestellt wird.</p>
+<p>Das <em>title</em> gibt den Dokumententitel an, der am oberen Rand der Seite 
+dargestellt wird.</p>
 
-<p>Die <em>previous</em> und <em>previous_url</em> Attribute stellen den Titel sowie
-Link zum vorherigen Dokument dar. Gleichermaßen entsprechen die <em>next</em>
-und <em>next_url</em> Attribute den Titel und Link zum folgenden
-Dokument. Dies wird benutzt um das Lesen und Durchstöbern der
-Dokumentationsseiten zu vereinfachen und den Arbeitsaufwand beim
-Neuordnen von Dokumentationsabschnitten zu minimieren.</p>
+<p>Die <em>previous</em> und <em>previous_url</em> Attribute stellen den Titel sowie Link zum 
+vorherigen Dokument dar. Gleichermaßen entsprechen die <em>next</em> und <em>next_url</em> 
+Attribute dem Titel und Link zum folgenden Dokument. Diese werden benutzt, um 
+das Lesen und Durchstöbern der Dokumentation zu vereinfachen und den 
+Arbeitsaufwand beim Neuordnen von Dokumentationsabschnitten zu minimieren.</p>
 
 <h3 id="vorhandene-dokumentation-bearbeiten">Vorhandene Dokumentation bearbeiten</h3>
 
-<p>Ein anfänglicher Entwurf für die Dokumentation wurde bereits
-erstellt. Es gibt aber noch viele Themen, welche noch Dokumentation
-bedürfen.</p>
+<p>Ein anfänglicher Entwurf für die Dokumentation wurde bereits erstellt. Es gibt
+aber noch viele Themen, die einer vertiefenden Dokumentation bedürfen.</p>
 
-<p>Um Dokumentation für ein bestehendes Thema hinzuzufügen oder
-vorhandene Dokumentation zu verbessern, öffne die Datei für das
-jeweilige Thema unter <code>web/doc/LANG</code> und füge dort neue Dokumentation
-hinzu oder überarbeite diese.</p>
+<p>Um Dokumentation für ein bestehendes Thema hinzuzufügen oder vorhandene 
+Dokumentation zu verbessern, öffne die Datei für das jeweilige Thema unter 
+<code>web/doc/LANG</code> und füge dort neue Dokumentation hinzu oder überarbeite diese.</p>
 
 <h3 id="neue-dokumentation-hinzufgen">Neue Dokumentation hinzufügen</h3>
 
 <p>Um neue Dokumentation für bisher nicht dokumentierte Themen hinzuzufügen:</p>
 
 <ol>
-  <li>
-    <p>Erstelle eine neue Datei mit der .markdown Dateiendung unter <code>web/doc/LANG</code>.</p>
-  </li>
-  <li>Richte die YAML Attribute ein, sodass auf die neue Datei innerhalb
-der existierenden Dokumente verlinkt wird. Dies erfordert das
-Editieren der <em>previous</em> and <em>next</em> Attribute der existierenden
-Dateien um die neue Datei einzufügen sowie das Hinzufügen eines
-Eintrags in <code>index.markdown</code>.</li>
-  <li>Um deine Veränderungen zu sehen, während du daran arbeitest kannst
-du <code>rbx -S jekyll --server --auto</code> ausführen.</li>
-  <li>Editieren die neue Datei mit der Markdown Syntax.</li>
+  <li>Erstelle eine neue Datei mit der .markdown Dateiendung unter <code>web/doc/LANG</code>.</li>
+  <li>Richte die YAML Attribute ein, sodass auf die neue Datei innerhalb der 
+existierenden Dokumente verlinkt wird. Dies erfordert das Bearbeiten der 
+<em>previous</em> and <em>next</em> Attribute der bereits vorhandenen Dateien, um die neue
+Datei einzufügen. Ebenso muss ein Eintrag in der <code>index.markdown</code> gemacht 
+werden.</li>
+  <li>Damit du Veränderungen noch beim Bearbeiten überprüfen kannst, führe 
+folgenden Befehl aus und besuche die vom Server angegebene URL:
+<code>rbx -S jekyll --server --auto</code></li>
+  <li>Bearbeite die neue Datei mit dem Markdown Syntax.</li>
   <li>Im <code>web/</code> Verzeichnis, führe <code>rbx -S jekyll</code> aus.</li>
-  <li>Committe alle Veränderungen im <code>web/</code> Verzeichnis.</li>
+  <li>Mach ein Commit für alle Veränderungen im <code>web/</code> Verzeichnis.</li>
 </ol>
 
 

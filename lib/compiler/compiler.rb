@@ -273,6 +273,8 @@ module Rubinius
 
       cm = compiler.run
 
+      cm.add_metadata :for_eval, true
+
       if ec
         ec.set([string.dup, layout], cm)
       end

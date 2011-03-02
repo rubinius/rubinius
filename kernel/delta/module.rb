@@ -7,7 +7,11 @@ class Module
     if entry
       # If we're aliasing a method we contain, just reference it directly, no
       # need for the alias wrapper
-      if mod == self
+      #
+      # The 'and entry.method' is there to force us to use the alias code
+      # when the original method exists only to change the visibility of
+      # a parent method.
+      if mod == self and entry.method
         @method_table.store new_name, entry.method, entry.visibility
       else
         @method_table.alias new_name, entry.visibility, current_name,

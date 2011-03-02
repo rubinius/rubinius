@@ -225,7 +225,7 @@ static VALUE array_spec_rb_iterate(VALUE self, VALUE ary) {
 }
 
 static VALUE sub_pair(VALUE el, VALUE holder) {
-  rb_ary_push(holder, rb_ary_entry(el, 1));
+  return rb_ary_push(holder, rb_ary_entry(el, 1));
 }
 
 static VALUE each_pair(VALUE obj) {

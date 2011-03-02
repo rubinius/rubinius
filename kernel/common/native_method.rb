@@ -70,5 +70,9 @@ module Rubinius
     def first_line
       0
     end
+
+    def defined_line
+      0
+    end
   end
 end

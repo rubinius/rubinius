@@ -70,7 +70,7 @@ namespace rubinius {
     Object* store(STATE, Symbol* name, Object* meth, Symbol* vis);
 
     // Ruby.primitive :methodtable_alias
-    Object* alias(STATE, Symbol* name, Symbol* vis, Symbol* orig_name, Executable* orig_method, Module* orig_mod);
+    Object* alias(STATE, Symbol* name, Symbol* vis, Symbol* orig_name, Object* orig_method, Module* orig_mod);
 
     // Ruby.primitive :methodtable_duplicate
     MethodTable* duplicate(STATE);

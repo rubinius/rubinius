@@ -190,7 +190,7 @@ class Dir
 
         if dir == "**"
           last = RecursiveDirectories.new last, flags
-        elsif /[a-zA-Z0-9.]+/.match(dir)
+        elsif /^[a-zA-Z0-9.]+$/.match(dir)
           last = ConstantDirectory.new last, flags, dir
         elsif !dir.empty?
           last = DirectoryMatch.new last, flags, dir

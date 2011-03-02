@@ -667,12 +667,31 @@ extern "C" {
   Object* rbx_set_local_depth(STATE, CallFrame* call_frame, Object* top,
                               int depth, int index) {
     if(depth == 0) {
-      call_frame->scope->set_local(index, top);
+      Exception::internal_error(state, call_frame,
+                                "illegal set_local_depth usage");
+      return 0;
     } else {
       VariableScope* scope = call_frame->scope->parent();
 
+      if(!scope || scope->nil_p()) {
+        Exception::internal_error(state, call_frame,
+                                  "illegal set_local_depth usage, no parent");
+        return 0;
+      }
+
       for(int j = 1; j < depth; j++) {
         scope = scope->parent();
+        if(!scope || scope->nil_p()) {
+          Exception::internal_error(state, call_frame,
+                                    "illegal set_local_depth usage, no parent");
+          return 0;
+        }
+      }
+
+      if(index >= scope->number_of_locals()) {
+        Exception::internal_error(state, call_frame,
+                                  "illegal set_local_depth usage, bad index");
+        return 0;
       }
 
       scope->set_local(state, index, top);
@@ -685,8 +704,20 @@ extern "C" {
                              int depth, int index) {
     VariableScope* scope = call_frame->scope->parent();
 
+    if(!scope || scope->nil_p()) {
+      Exception::internal_error(state, call_frame,
+                                "illegal set_local_depth usage, no parent");
+      return 0;
+    }
+
     for(int j = 1; j < depth; j++) {
       scope = scope->parent();
+      if(!scope || scope->nil_p()) {
+        Exception::internal_error(state, call_frame,
+                                  "illegal set_local_depth usage, no parent");
+        return 0;
+      }
+
     }
 
     scope->set_local(state, index, top);
@@ -697,12 +728,31 @@ extern "C" {
   Object* rbx_push_local_depth(STATE, CallFrame* call_frame,
                               int depth, int index) {
     if(depth == 0) {
-      return call_frame->scope->get_local(index);
+      Exception::internal_error(state, call_frame,
+                                "illegal push_local_depth usage");
+      return 0;
     } else {
       VariableScope* scope = call_frame->scope->parent();
 
+      if(!scope || scope->nil_p()) {
+        Exception::internal_error(state, call_frame,
+                                  "illegal push_local_depth usage, no parent");
+        return 0;
+      }
+
       for(int j = 1; j < depth; j++) {
         scope = scope->parent();
+        if(!scope || scope->nil_p()) {
+          Exception::internal_error(state, call_frame,
+                                    "illegal push_local_depth usage, no parent");
+          return 0;
+        }
+      }
+
+      if(index >= scope->number_of_locals()) {
+        Exception::internal_error(state, call_frame,
+                                  "illegal push_local_depth usage, bad index");
+        return 0;
       }
 
       return scope->get_local(index);
@@ -713,8 +763,20 @@ extern "C" {
                               int depth, int index) {
     VariableScope* scope = call_frame->scope->parent();
 
+    if(!scope || scope->nil_p()) {
+      Exception::internal_error(state, call_frame,
+                                "illegal push_local_depth usage, no parent");
+      return 0;
+    }
+
     for(int j = 1; j < depth; j++) {
       scope = scope->parent();
+
+      if(!scope || scope->nil_p()) {
+        Exception::internal_error(state, call_frame,
+                                  "illegal push_local_depth usage, no parent");
+        return 0;
+      }
     }
 
     return scope->get_local(index);
@@ -930,7 +992,11 @@ extern "C" {
       exc->locations(state, Location::from_call_stack(state, call_frame));
       state->thread_state()->raise_exception(exc);
     } else {
-      state->thread_state()->raise_return(top, call_frame->top_scope(state));
+      if(call_frame->flags & CallFrame::cIsLambda) {
+        state->thread_state()->raise_return(top, call_frame->promote_scope(state));
+      } else {
+        state->thread_state()->raise_return(top, call_frame->top_scope(state));
+      }
     }
 
     return Qnil;

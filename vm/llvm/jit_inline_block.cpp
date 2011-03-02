@@ -72,7 +72,7 @@ namespace jit {
     b().CreateStore(method, cm_gep);
 
     // flags
-    int flags = CallFrame::cInlineFrame;
+    int flags = CallFrame::cInlineFrame | CallFrame::cInlineBlock;
     if(!use_full_scope_) flags |= CallFrame::cClosedScope;
 
     b().CreateStore(ConstantInt::get(ls_->Int32Ty, flags),

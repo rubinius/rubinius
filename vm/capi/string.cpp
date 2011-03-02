@@ -103,8 +103,9 @@ namespace rubinius {
 
     RString* Handle::as_rstring(NativeMethodEnvironment* env, int cache_level) {
       String* string = c_as<String>(object());
+      bool unset = type_ != cRString;
 
-      if(type_ != cRString) {
+      if(unset) {
         type_ = cRString;
 
         string->unshare(env->state());
@@ -124,6 +125,16 @@ namespace rubinius {
       // The underlying String may have changed since we last got the
       // associated RString structure.
       ensure_pinned(env, string, as_.rstring);
+
+      /* In Ruby, regardless of the contents in the ByteArray for a String,
+       * the String's size is the authority on the length of the String.
+       * However, for the C-API, we cannot assume this because C code may be
+       * writing to the cache behind our backs, so we faithfully keep the full
+       * contents of the ByteArray and the C cache in sync. If there has never
+       * been a cache created for a string, however, we must set put a null
+       * byte in the cache based on the String size.
+       */
+      if(unset) as_.rstring->ptr[string->size()] = 0;
 
       return as_.rstring;
     }

@@ -7,59 +7,56 @@ next: Einen Ruby Spec schreiben
 next_url: how-to/write-a-ruby-spec
 ---
 
-Den Rubinius Issuetracker findest du hier: <http://github.com/evanphx/rubinius/issues>.
+Den Rubinius Issuetracker findest du hier: 
+<http://github.com/evanphx/rubinius/issues>.
 
-Damit ein Ticket nützlich ist, sollte er prägnant, fokussiert und
-umsetzbar sein. Falls er diese Kriterien nicht erfüllt, wird er
-vermutlich nur für Unordnung sorgen. Deshalb sollten Tickets in
-mindestens eine der folgenden Kategorien fallen:
+Damit ein Ticket nützlich ist, sollte es prägnant, fokussiert und umsetzbar 
+sein. Falls es diese Kriterien nicht erfüllt, wird es vermutlich nur den 
+Issuetracker zumüllen. Deshalb sollten Tickets mindestens einer der folgenden 
+Kategorien zugeordnet werden können:
 
-
-  1. Eine präzise Kommandozeilenhistorie, welche aufzeigt, wie man das
-     Programm installiert und aufruft sowie den Backtrace des
-     aufgetretenen Fehlers widergibt.
-  2. Ein kurzes Stück Beispielcode, welcher das Problem illustriert
-     sowie ein Kommandozeilenbefehl um den Code auszuführen.
+  1. Eine vollständige Kommandozeilenhistorie liegt vor, die aufzeigt, wie das 
+     Programm installiert und aufgerufen wurde sowie den Backtrace des
+     aufgetretenen Fehlers wiedergibt.
+  2. Ein kurzes Stück Beispielcode, der das Problem illustriert sowie einein 
+     Kommandozeilenbefehl, um den Code auszuführen.
   3. Ein Patch **inklusive Specs, falls es noch keine äquivalenten
-     gibt** sowie ein Auszug der darstellt, wie die Specs sich vor und
-     nach Anwendung des Patches verhalten.
+     gibt** sowie ein Auszug der darstellt, wie die Specs sich vor und nach 
+     Anwendung des Patches verhalten.
 
-Falls dein Ticket nicht in eine der oben genannten Kategorien passt,
-heißt das nicht, dass es ungültig ist. Das Problem sollte lediglich
-nicht als Ticket aufgenommen werden.
+Falls die Angelegenheit nicht in eine der oben genannten Kategorien passt, 
+heißt das nicht, dass sie unwichtig ist. Für Ticket ist es lediglich 
+unzureichend.
 
-  1. Falls es sich um ein Feature handelt, solltest du in Betrachtung
-     ziehen, es auf der Mailingliste zur Diskussion zu stellen. Du
-     kannst natürlich außerdem auch versuchen es selbst zu
-     implementieren und zu zeigen, warum und wie dein Feature nützlich
-     ist.
+  1. Falls es sich um ein Feature handelt, solltest du in Betracht ziehen, es 
+     auf der Mailingliste zur Diskussion zu stellen. Natürlich kannst du 
+     außerdem auch versuchen es selbst zu implementieren und zu zeigen, warum 
+     und wie dein Feature nützlich sein kann.
 
-  2. Falls es sich um eine Bibliothek oder Gem handelt, welche nicht
-     korrekt funktioniert nimm dir etwas Zeit und versuche den Fehler
-     zu reproduzieren und beschreibe daraufhin die Reproduktion in
-     einem neuen Ticket.
+  2. Falls es sich um eine Bibliothek oder Gem handelt, das nicht korrekt 
+     funktioniert nimm dir etwas Zeit und versuche den Fehler zu reproduzieren
+     und beschreibe daraufhin die Reproduktion in einem neuen Ticket.
 
 
 ## Genereller Ablauf zur Erstellung eines Tickets
 
   1. Doppelte Überprüfung.
 
-     1. Baue Rubinius komplett neu ('rake clean; rake') nachdem du
-        'git pull' ausgeführt hast oder einen frischen clone des
-        Repositories gemacht hast.
-     2. Lies [Problemlösungen](/doc/en/getting-started/troubleshooting)
-        um zu sehen ob eine der dortigen Anleitungen das Problem
-        beheben kann.
-     3. Lies [Specs](/doc/en/specs/).
+     1. Kompiliere Rubinius komplett neu ('rake clean; rake') nachdem du 
+        'git pull' ausgeführt hast oder einen frischen Klon des Repositories 
+        erstellt hast.
+     2. Lies [Problemlösungen](/doc/de/getting-started/troubleshooting),
+        um zu sehen, ob eine der dortigen Anleitungen das Problem beheben kann.
+     3. Lies [Specs](/doc/de/specs/).
 
   2. Gib deinem Ticket einen spezifischen, vorzugsweise kurzen Titel
 
-  3. Versehe dein Ticket mit angemessenen Tags.
+  3. Beschreibe dein Ticket mit angemessenen Tags.
 
-  4. Versehe dein Ticket mit hinreichend Details bzgl. dem Problem.
+  4. Belege dein Ticket mit hinreichend Details bzgl. des Problems.
 
-     *  Der Kommandozeilenbefehl um das Programm auszuführen.
-     *  Der Backtrace oder das Ergebnis versus dem erwarteten Ergebnis.
+     *  Der Kommandozeilenbefehl, um das Programm auszuführen.
+     *  Der Backtrace oder das Ergebnis entgegen dem erwarteten Ergebnis.
      *  Informationen über deinen Rechner und System. `uname -a` ist
         normalerweise gut (falls es irgengwelche "unknown" Felder
         gibt, erkläre/beschreibe diese bitte.)
@@ -67,27 +64,22 @@ nicht als Ticket aufgenommen werden.
 
 ## Zusätzliche Instruktionen für Tickets mit angehängten Patches
 
-  *  Können lediglich eine Menge an Specs sein.
-  *  Patches müssen zusätzlich mit Specs versehen sein, es sei denn die
-     Speccs existieren bereits.
-  *  Relevante Teile der Spec Ausgabe und der exakte 'bin/mspec' Aufruf
-     von dem existierenden oder hinzugefügten Spec *vor der
-     Veränderung*
-  *  Die Spec Ausgabe und der exakte 'bin/mspec' Aufruf, bei dem ein
-     erfolgreicher Durchlauf *nach der Veränderung* zu sehen ist
+  *  Einfach nur ein paar Specs.
+  *  Patches müssen zusätzlich mit Specs versehen sein, es sei denn die Specs 
+     existieren bereits.
+  *  Relevante Teile der Spec Ausgabe und der exakte 'bin/mspec' Aufruf von dem
+     existierenden oder hinzugefügten Spec *vor* der Veränderung.
+  *  Die Spec Ausgabe und der exakte 'bin/mspec' Aufruf, bei dem ein 
+     erfolgreicher Durchlauf *nach* der Veränderung zu sehen ist.
+  *  Zusätzliche Beschreibungen/Kommentare deines Patches und wie er das 
+     Problem löst. Insbesondere dann, wenn neue Features hinzugefügt wurden, 
+     sollte darauf verwiesen werden, ob der Inhalt des Tickets bereits in 
+     #rubinius (IRC) oder ruby-dev (Mailingliste) diskutiert wurde.
 
-  *  Zusätzliche Beschreibungen / Kommentare deines Patches und wie er
-     das Problem löst. Insbesondere in Fällen, bei denen neue
-     Funktionalität hinzugefügt wurde sollte darauf verwiesen werden,
-     ob der Inhalt des Tickets bereits in #rubinius (IRC) oder
-     ruby-dev (Mailingliste) diskutiert wurde.
-
-Abgesehen von Fällen, bei denen es aus irgendwelchen Gründen unmöglich
-ist, sollte 'git-format-patch' benutzt werden um den Patch zu
-erstellen. Das macht das Einbringen des Patches wesentlich einfacher
-und es erhält die korrekte Zuordnung. Ansonsten sollte ein 'unified
-diff' verwendet werden.
-
+Abgesehen von Fällen, bei denen es aus irgendwelchen Gründen unmöglich ist, 
+sollte 'git-format-patch' benutzt werden, um den Patch zu erstellen. Das macht
+das Einbringen des Patches wesentlich einfacher und er erhält die korrekte 
+Zuordnung. Ansonsten sollte ein 'unified diff' verwendet werden.
 
 ## Beispiel für das Einreichen eines Patches
 
@@ -95,7 +87,7 @@ Angenommen, der folgende Spec existiert und schlägt fehl:
 
     describe "Kernel.format" do
       it "is accessible as a module function" do
-        Kernel.format("%s", "hello").should == "hello"
+        Kernel.format("%s", "Hallo").should == "Hallo"
       end
     end
 
@@ -107,7 +99,7 @@ Angenommen, der folgende Spec existiert und schlägt fehl:
 
    "patch core spec"
 
-3. Ticket Nachricht:
+3. Ticket Nachricht (<i>natürlich auf Englisch</i>)
 
    The method 'format' is not available as a module function of Kernel.
 
@@ -134,9 +126,9 @@ Angenommen, der folgende Spec existiert und schlägt fehl:
 
 4. Anhang:
 
-Schließlich, packe deinen Patch in ein gist und füge den Link dazu in
-dein Ticket ein. Unten siehst du den Patch aus dem obigen Beispiel aus
-Vollständigkeitsgründen:
+Schließlich, packst du deinen Patch in ein Gist und fügst den Link dazu in
+dein Ticket ein. Der Vollständigkeit halber siehst du unten den Patch aus dem 
+obigen Beispiel:
 
     From c61cecce6442347ebbdf1ded7a5c0832c97582c1 Mon Sep 17 00:00:00 2001
     From: Brian Ford <bford@engineyard.com>
@@ -156,4 +148,3 @@ Vollständigkeitsgründen:
        module_function :abort
 
        def puts(*a)
-

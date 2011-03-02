@@ -40,8 +40,10 @@ namespace rubinius {
 
     MethodTableBucket* vis_entry = 0;
 
+    Symbol* target_name = name;
+
     do {
-      entry = module->method_table()->find_entry(state, name);
+      entry = module->method_table()->find_entry(state, target_name);
 
       /* Nothing, there? Ok, keep looking. */
       if(entry) {
@@ -80,21 +82,37 @@ namespace rubinius {
           vis_entry = entry;
           skip_vis_check = true;
         } else {
+          Module* use_module;
+          Executable* use_exec;
+
           if(Alias* alias = try_as<Alias>(entry->method())) {
-            mce = MethodCacheEntry::create(state, klass,
-                                           alias->original_module(),
-                                           alias->original_exec());
+            // Same check as above, allow an alias to be for a superclass
+            // method.
+            if(alias->original_exec()->nil_p()) {
+              vis_entry = entry;
+              skip_vis_check = true;
+              use_exec = 0;
+              target_name = alias->original_name();
+            } else {
+              use_exec = alias->original_exec();
+              use_module = alias->original_module();
+            }
           } else {
-            mce = MethodCacheEntry::create(state, klass, module, entry->method());
+            use_module = module;
+            use_exec = entry->method();
           }
 
-          if(!vis_entry) vis_entry = entry;
+          if(use_exec) {
+            mce = MethodCacheEntry::create(state, klass, use_module, use_exec);
 
-          state->global_cache()->retain(state, klass, name, mce->stored_module(),
-                mce->method(), false,
-                !vis_entry->public_p(state));
+            if(!vis_entry) vis_entry = entry;
 
-          return eNone;
+            state->global_cache()->retain(state, klass, name, mce->stored_module(),
+                  mce->method(), false,
+                  !vis_entry->public_p(state));
+
+            return eNone;
+          }
         }
       }
 

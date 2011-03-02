@@ -115,35 +115,44 @@
         <p>Die folgenden Abschnitte solltest du gelesen haben:</p>
 
 <ul>
-  <li><a href="getting-started/">Getting Started</a></li>
-  <li><a href="specs/">Specs</a></li>
+  <li><a href="/doc/de/getting-started/">Erste Schritte</a></li>
+  <li><a href="/doc/de/specs/">Specs</a></li>
 </ul>
 
-<p>Danach folge diesen Schritten um einen fehlgeschlagenen Spec (Test) zu beheben:</p>
+<p>Danach folge diesen Schritten, um einen fehlgeschlagenen Spec (Test) zu 
+beheben:</p>
 
 <ol>
-  <li>Rufe <code>rake</code> auf um sicher zu stellen, dass alle CI Specs passieren.</li>
-  <li>Rufe <code>bin/mspec spec/some/spec_file.rb</code> auf um zu bestätigen, dass der entsprechende Spec fehlschlägt.</li>
-  <li>Bearbeite eine Quelldatei in Rubinius (vermutlich irgendwo innerhalb des kernel Verzeichnisses).</li>
-  <li>Rufe <code>rake build</code> auf um deine Veränderungen zu bauen.</li>
-  <li>Rufe <code>bin/mspec spec/some/spec_file.rb</code> auf um zu sehen ob deine Veränderungen den Spec zum laufen bringen.</li>
+  <li>Rufe <code>rake</code> auf, um sicher zu stellen, dass alle CI Specs bestehen.</li>
+  <li>Rufe <code>bin/mspec spec/some/spec_file.rb</code> auf, um zu bestätigen, dass der 
+entsprechende Spec fehlschlägt.</li>
+  <li>Bearbeite eine Quelldatei in Rubinius (vermutlich irgendwo innerhalb des 
+kernel Verzeichnisses).</li>
+  <li>Rufe <code>rake build</code> auf, um deine Veränderungen zu mitzukompilieren.</li>
+  <li>Rufe <code>bin/mspec spec/some/spec_file.rb</code> auf, um zu sehen ob deine 
+Veränderungen den Spec zum Laufen bringen.</li>
   <li>Wiederhole die obigen Schritte, bis der Spec nicht mehr fehlschlägt.</li>
-  <li>Rufe <code>rake</code> auf um sicher zu stellen, dass es keine Regressionen gibt.</li>
-  <li>Wechsle in das root Verzeichnis von Rubinius, falls nocht nicht geschehen.</li>
-  <li>Rufe <code>git status, git add, git commit</code> etc. auf. Jegliche
-Veränderungen die in den Spec Dateien gemacht wurden (innerhalb des
-spec/ruby Verzeichnisses) müssen in einem unterschiedlichen Commit
-eingetragen werden als die Veränderungen, die am restlichen Rubinius
-Quellcode gemacht wurden.</li>
-  <li>Rufe <code>git format-patch origin</code> auf, wodurch alle Commiteinträge die im aktuellen Zweig seit dem letzten Pull von origin gemacht wurden extrahiert werden.
-Alternativ, rufe `git format-patch -N&rsquo; auf, wobei N die Zahl der Commiteinträge ist (1, 2 etc.) für die du Patches erstellen willst.</li>
-  <li>Erstelle ein gist (auf http://gist.github.com) mit deinem Patch und verlinke es in einem neuen Ticket im Issuetracker auf Github: http://github.com/evanphx/rubinius/issues
-Es können mehrere Patches einem Ticket hinzugefügt werden.</li>
+  <li>Rufe <code>rake</code> auf, um sicher zu stellen, dass es keine Regressionen gibt.</li>
+  <li>Wechsle in das root Verzeichnis von Rubinius, falls noch nicht geschehen.</li>
+  <li>Rufe <code>git status, git add, git commit</code> etc. auf. Jegliche Veränderungen 
+die in den Spec Dateien gemacht wurden (innerhalb des spec/ruby 
+Verzeichnisses) müssen als eigener Commit eingetragen werden und sollen 
+nicht in den gleichen Commits landen wie Änderungen, die am restlichen 
+Rubinius Quellcode gemacht wurden.</li>
+  <li>Rufe <code>git format-patch origin</code> auf, wodurch alle Commiteinträge, die im 
+aktuellen Zweig seit dem letzten Pull von origin gemacht wurden, 
+extrahiert werden. Alternativ, rufe `git format-patch -N&rsquo; auf, wobei N 
+die Zahl der Commiteinträge ist (1, 2 etc.), für die du Patches erstellen
+willst.</li>
+  <li>Erstelle ein Gist (auf http://gist.github.com) mit deinem Patch und 
+verlinke es in einem neuen Ticket im Issuetracker auf Github: 
+http://github.com/evanphx/rubinius/issues Es können mehrere Patches pro
+Ticket hinzugefügt werden.</li>
 </ol>
 
-<p>Wenn dein Patch vom Rubinius Projekt akzeptiert wurde erhälst du ein
-sog. Commit Bit, d.h. Schreibzugriff, auf das Rubinius Git
-Repository. Gib Evan bescheid, wie dein Github Benutzername ist.</p>
+<p>Wenn dein Patch vom Rubinius Projekt akzeptiert wird, erhältst du ein sog. 
+Commit Bit, d.h. Schreibzugriff, auf das Rubinius Git Repository. Gib Evan 
+bescheid, wie dein Github Benutzername ist.</p>
 
 
     </div>

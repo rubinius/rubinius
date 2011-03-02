@@ -2434,7 +2434,8 @@ use_send:
             ConstantInt::get(ls_->Int32Ty, index)
           };
 
-          sig.call("rbx_set_local_from", call_args, 5, "vs_uplocal", b());
+          Value* val = sig.call("rbx_set_local_from", call_args, 5, "vs_uplocal", b());
+          check_for_exception(val);
         }
         return;
       }
@@ -2480,7 +2481,9 @@ use_send:
         ConstantInt::get(ls_->Int32Ty, index)
       };
 
-      stack_push(b().CreateCall(func, call_args, call_args+5, "sld"));
+      Value* val = b().CreateCall(func, call_args, call_args+5, "sld");
+      check_for_exception(val);
+      stack_push(val);
     }
 
     JITMethodInfo* upscope_info(int which) {
@@ -2541,8 +2544,11 @@ use_send:
             ConstantInt::get(ls_->Int32Ty, index)
           };
 
-          stack_push(
-              sig.call("rbx_push_local_from", call_args, 4, "vs_uplocal", b()));
+          Value* val =
+              sig.call("rbx_push_local_from", call_args, 4, "vs_uplocal", b());
+
+          check_for_exception(val);
+          stack_push(val);
         }
 
         return;
@@ -2586,7 +2592,9 @@ use_send:
         ConstantInt::get(ls_->Int32Ty, index)
       };
 
-      stack_push(b().CreateCall(func, call_args, call_args+4, "pld"));
+      Value* val = b().CreateCall(func, call_args, call_args+4, "pld");
+      check_for_exception(val);
+      stack_push(val);
     }
 
     void visit_goto(opcode ip) {
