@@ -921,7 +921,11 @@ extern "C" {
       exc->locations(state, Location::from_call_stack(state, call_frame));
       state->thread_state()->raise_exception(exc);
     } else {
-      state->thread_state()->raise_return(top, call_frame->top_scope(state));
+      if(call_frame->flags & CallFrame::cIsLambda) {
+        state->thread_state()->raise_return(top, call_frame->promote_scope(state));
+      } else {
+        state->thread_state()->raise_return(top, call_frame->top_scope(state));
+      }
     }
 
     return Qnil;
