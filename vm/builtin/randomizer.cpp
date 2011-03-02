@@ -9,6 +9,8 @@
 #include "builtin/float.hpp"
 #include "builtin/integer.hpp"
 
+#include "util/spinlock.hpp"
+
 #include "object_utils.hpp"
 
 /*
@@ -103,6 +105,8 @@ namespace rubinius {
 
   /* initializes rng_state[N] with a seed */
   void Randomizer::init_genrand(uint32_t s) {
+    rbx_spinlock_lock(&lock_);
+
     uint32_t* rng_state = rng_data();
 
     rng_state[0] = s;
@@ -113,7 +117,9 @@ namespace rubinius {
       /* only MSBs of the array rng_state[].                        */
       /* 2002/01/09 modified by Makoto Matsumoto             */
     }
-    left = 1;
+    left_ = 1;
+
+    rbx_spinlock_unlock(&lock_);
   }
 
   /* initialize by an array with array-length */
@@ -123,6 +129,7 @@ namespace rubinius {
   void Randomizer::init_by_array(uint32_t init_key[], int key_length) {
     init_genrand(19650218UL);
 
+    rbx_spinlock_lock(&lock_);
     uint32_t* rng_state = rng_data();
 
     int i = 1;
@@ -154,14 +161,15 @@ namespace rubinius {
     }
 
     rng_state[0] = 0x80000000UL; /* MSB is 1; assuring non-zero initial array */
-    left = 1;
+    left_ = 1;
+    rbx_spinlock_unlock(&lock_);
   }
 
   void Randomizer::next_state() {
     uint32_t* rng_state = rng_data();
 
-    left = N;
-    next = 0;
+    left_ = N;
+    next_ = 0;
 
     uint32_t* p = rng_state;
 
@@ -178,11 +186,15 @@ namespace rubinius {
 
   /* generates a random number on [0,0xffffffff]-interval */
   uint32_t Randomizer::rb_genrand_int32() {
-    if(--left == 0) next_state();
+    rbx_spinlock_lock(&lock_);
+
+    if(--left_ == 0) next_state();
     uint32_t* rng_state = rng_data();
 
     uint32_t y;
-    y = rng_state[next++];
+    y = rng_state[next_++];
+
+    rbx_spinlock_unlock(&lock_);
 
     /* Tempering */
     y ^= (y >> 11);
@@ -227,6 +239,7 @@ namespace rubinius {
 
   Randomizer* Randomizer::create(STATE) {
     Randomizer* r = state->new_object<Randomizer>(G(randomizer));
+    r->lock_ = RBX_SPINLOCK_INIT;
     r->rng_state(state, ByteArray::create(state, N * sizeof(uint32_t)));
 
     return r;

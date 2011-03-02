@@ -14,8 +14,9 @@ namespace rubinius {
     const static object_type type = RandomizerType;
 
   private:
-    int next;
-    int left;
+    int lock_;
+    int next_;
+    int left_;
     ByteArray *rng_state_; // slot
 
     uint32_t* rng_data();
