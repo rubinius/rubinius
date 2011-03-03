@@ -14,6 +14,7 @@ In other words, he built things for a living.
 require 'digest/sha1'
 require 'projects/daedalus/dependency_grapher'
 require 'rakelib/instruction_parser'
+require 'thread'
 
 module Daedalus
 
