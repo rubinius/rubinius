@@ -3,7 +3,9 @@ require 'benchmark/ips'
 
 
 Benchmark.ips do |x|
-  
+
+  x.compare!
+
   base_array = (0...5_000).to_a
   
   x.report "array delete_at" do
@@ -14,6 +16,11 @@ Benchmark.ips do |x|
   x.report "array slice!" do
     scratch_array = base_array.dup
     scratch_array.slice!(0) until scratch_array.empty?
+  end
+
+  x.report "array []=" do
+    scratch_array = base_array.dup
+    scratch_array[0, 1] = nil until scratch_array.empty?
   end
 
   x.report "array drop" do
