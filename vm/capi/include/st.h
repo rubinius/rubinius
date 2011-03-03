@@ -32,7 +32,7 @@ struct st_table {
 
 #define st_is_member(table,key) st_lookup(table,key,(st_data_t *)0)
 
-enum st_retval {ST_CONTINUE = 0, ST_STOP = 1, ST_DELETE, ST_CHECK};
+enum st_retval {ST_CONTINUE = 0, ST_STOP = 1, ST_DELETE = 2, ST_CHECK};
 
 // This is st.c, stuck in here, and with all the functions set to static.
 

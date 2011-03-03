@@ -49,6 +49,7 @@ extern "C" {
   {
     VALUE iter = rb_funcall(self, rb_intern("to_iter"), 0);
     VALUE entry = Qnil;
+    VALUE to_delete = rb_ary_new();
 
     while(RTEST(entry = rb_funcall(iter, rb_intern("next"), 1, entry))) {
       VALUE key = rb_funcall(entry, rb_intern("key"), 0);
@@ -60,8 +61,17 @@ extern "C" {
         continue;
       case 1: // ST_STOP:
         return;
+      case 2: // ST_DELETE:
+        rb_ary_push(to_delete, key);
+        continue;
       default:
         rubinius::bug("unsupported hash_foreach value");
+      }
+    }
+
+    if (rb_ary_size(to_delete) > 0) {
+      for (size_t i = 0; i < rb_ary_size(to_delete); i++) {
+        rb_funcall(self, rb_intern("delete"), 1, rb_ary_entry(to_delete, i));
       }
     }
   }
