@@ -486,6 +486,10 @@ namespace rubinius {
 #endif
 
     state->shared.stop_the_world();
+    shared->om->run_all_io_finalizers(state);
+
+    // TODO: temporarily disable to sort out finalizing Pointer objects
+    // shared->om->run_all_finalizers(state);
   }
 
   int Environment::exit_code() {
@@ -588,9 +592,5 @@ namespace rubinius {
     start_signals();
     run_file(root + "/loader.rbc");
 
-    shared->om->run_all_io_finalizers(state);
-
-    // TODO: temporarily disable to sort out finalizing Pointer objects
-    // shared->om->run_all_finalizers(state);
   }
 }
