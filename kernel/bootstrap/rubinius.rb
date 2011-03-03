@@ -105,4 +105,9 @@ module Rubinius
     Ruby.primitive :vm_agent_io
     raise PrimitiveFailure, "Rubinius.agent_io failed"
   end
+
+  def self.thread_state
+    Ruby.primitive :vm_thread_state
+    raise PrimitiveFailure, "Rubinius.thread_state failed"
+  end
 end

@@ -1081,4 +1081,41 @@ namespace rubinius {
 
     return String::create(state, buf, 40);
   }
+
+  Tuple* System::vm_thread_state(STATE) {
+    ThreadState* ts = state->thread_state();
+    Tuple* tuple = Tuple::create(state, 5);
+
+    Symbol* reason = 0;
+    switch(ts->raise_reason()) {
+    case cNone:
+      reason = state->symbol("none");
+      break;
+    case cException:
+      reason = state->symbol("exception");
+      break;
+    case cReturn:
+      reason = state->symbol("return");
+      break;
+    case cBreak:
+      reason = state->symbol("break");
+      break;
+    case cExit:
+      reason = state->symbol("exit");
+      break;
+    case cCatchThrow:
+      reason = state->symbol("catch_throw");
+      break;
+    default:
+      reason = state->symbol("unknown");
+    }
+
+    tuple->put(state, 0, reason);
+    tuple->put(state, 1, ts->raise_value());
+    tuple->put(state, 2, ts->destination_scope());
+    tuple->put(state, 3, ts->current_exception());
+    tuple->put(state, 4, ts->throw_dest());
+
+    return tuple;
+  }
 }

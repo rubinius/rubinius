@@ -2,6 +2,7 @@ module Rubinius
   class VariableScope
     attr_reader :parent
     attr_reader :block
+    attr_reader :module
 
     # CompiledMethod this scope is for.
     #
