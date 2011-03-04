@@ -46,9 +46,31 @@ static int foreach_i(VALUE key, VALUE val, VALUE other) {
   return 0; /* ST_CONTINUE; */
 }
 
+static int foreach_stop_i(VALUE key, VALUE val, VALUE other) {
+  rb_hash_aset(other, key, val);
+  return 1; /* ST_STOP; */
+}
+
+static int foreach_delete_i(VALUE key, VALUE val, VALUE other) {
+  rb_hash_aset(other, key, val);
+  return 2; /* ST_DELETE; */
+}
+
 VALUE hash_spec_rb_hash_foreach(VALUE self, VALUE hsh) {
   VALUE other = rb_hash_new();
   rb_hash_foreach(hsh, foreach_i, other);
+  return other;
+}
+
+VALUE hash_spec_rb_hash_foreach_stop(VALUE self, VALUE hsh) {
+  VALUE other = rb_hash_new();
+  rb_hash_foreach(hsh, foreach_stop_i, other);
+  return other;
+}
+
+VALUE hash_spec_rb_hash_foreach_delete(VALUE self, VALUE hsh) {
+  VALUE other = rb_hash_new();
+  rb_hash_foreach(hsh, foreach_delete_i, other);
   return other;
 }
 #endif
@@ -104,6 +126,8 @@ void Init_hash_spec() {
 
 #ifdef HAVE_RB_HASH_FOREACH
   rb_define_method(cls, "rb_hash_foreach", hash_spec_rb_hash_foreach, 1);
+  rb_define_method(cls, "rb_hash_foreach_stop", hash_spec_rb_hash_foreach_stop, 1);
+  rb_define_method(cls, "rb_hash_foreach_delete", hash_spec_rb_hash_foreach_delete, 1);
 #endif
 
 #ifdef HAVE_RB_HASH_LOOKUP
