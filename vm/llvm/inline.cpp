@@ -390,7 +390,7 @@ remember:
                                        "select ivar");
 
           if(ops_.state()->config().jit_inline_debug) {
-            ops_.state()->log() << " (packed index: " << index << ")";
+            ops_.state()->log() << " (packed index: " << index << ", " << offset << ")";
           }
         }
       }
