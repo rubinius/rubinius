@@ -1,29 +1,129 @@
 require File.expand_path('../../spec_helper', __FILE__)
+require File.expand_path('../fixtures/break', __FILE__)
 
-describe "The break statement" do
-  it "ends block execution if used whithin block" do
-    a = []
-    lambda {
-      a << 1
-      break
-      a << 2
-    }.call
-    a.should == [1]
+describe "The break statement in a block" do
+  before :each do
+    ScratchPad.record []
+    @program = BreakSpecs::Block.new
   end
 
-  it "causes block to return value passed to break" do
-    lambda { break 123; 456 }.call.should == 123
+  it "returns nil to method invoking the method yielding to the block when not passed an argument" do
+    @program.break_nil
+    ScratchPad.recorded.should == [:a, :aa, :b, nil, :d]
   end
 
-  it "causes block to return nil if an empty expression passed to break" do
-    lambda { break (); 456 }.call.should be_nil
-  end
-
-  it "causes block to return nil if no value passed to break" do
-    lambda { break; 456 }.call.should == nil
+  it "returns a value to the method invoking the method yielding to the block" do
+    @program.break_value
+    ScratchPad.recorded.should == [:a, :aa, :b, :break, :d]
   end
 end
 
+describe "The break statement in a captured block" do
+  before :each do
+    ScratchPad.record []
+    @program = BreakSpecs::Block.new
+  end
+
+  describe "when the invocation of the scope creating the block is still active" do
+    it "raises a LocalJumpError when invoking the block from the scope creating the block" do
+      lambda { @program.break_in_method }.should raise_error(LocalJumpError)
+      ScratchPad.recorded.should == [:a, :xa, :d, :b]
+    end
+
+    it "raises a LocalJumpError when invoking the block from a method" do
+      lambda { @program.break_in_nested_method }.should raise_error(LocalJumpError)
+      ScratchPad.recorded.should == [:a, :xa, :c, :aa, :b]
+    end
+
+    it "raises a LocalJumpError when yielding to the block" do
+      lambda { @program.break_in_yielding_method }.should raise_error(LocalJumpError)
+      ScratchPad.recorded.should == [:a, :xa, :c, :aa, :b]
+    end
+  end
+
+  describe "from a scope that has returned" do
+    it "raises a LocalJumpError when calling the block from a method" do
+      lambda { @program.break_in_method_captured }.should raise_error(LocalJumpError)
+      ScratchPad.recorded.should == [:a, :za, :xa, :zd, :zb]
+    end
+
+    it "raises a LocalJumpError when yielding to the block" do
+      lambda { @program.break_in_yield_captured }.should raise_error(LocalJumpError)
+      ScratchPad.recorded.should == [:a, :za, :xa, :zd, :aa, :zb]
+    end
+  end
+end
+
+describe "The break statement in a lambda" do
+  before :each do
+    ScratchPad.record []
+    @program = BreakSpecs::Lambda.new
+  end
+
+  describe "when the invocation of the scope creating the lambda is still active" do
+    it "returns nil when not passed an argument" do
+      @program.break_in_defining_scope false
+      ScratchPad.recorded.should == [:a, :b, nil, :d]
+    end
+
+    it "returns a value to the scope creating and calling the lambda" do
+      @program.break_in_defining_scope
+      ScratchPad.recorded.should == [:a, :b, :break, :d]
+    end
+
+    it "returns a value to the method scope below invoking the lambda" do
+      @program.break_in_nested_scope
+      ScratchPad.recorded.should == [:a, :d, :aa, :b, :break, :bb, :e]
+    end
+
+    it "returns a value to a block scope invoking the lambda in a method below" do
+      @program.break_in_nested_scope_block
+      ScratchPad.recorded.should == [:a, :d, :aa, :aaa, :bb, :b, :break, :cc, :bbb, :dd, :e]
+    end
+
+    it "raises a LocalJumpError when yielding to a lambda passed as a block argument" do
+      lambda { @program.break_in_nested_scope_yield }.should raise_error(LocalJumpError)
+      ScratchPad.recorded.should == [:a, :d, :aa, :b]
+    end
+  end
+
+  describe "created at the toplevel" do
+    it "returns a value when invoking from the toplevel" do
+      code = fixture __FILE__, "break_lambda_toplevel.rb"
+      ruby_exe(code).chomp.should == "a,b,break,d"
+    end
+
+    it "returns a value when invoking from a method" do
+      code = fixture __FILE__, "break_lambda_toplevel_method.rb"
+      ruby_exe(code).chomp.should == "a,d,b,break,e,f"
+    end
+
+    it "returns a value when invoking from a block" do
+      code = fixture __FILE__, "break_lambda_toplevel_block.rb"
+      ruby_exe(code).chomp.should == "a,d,f,b,break,g,e,h"
+    end
+  end
+
+  describe "from a scope that has returned" do
+    it "returns a value to the method scope invoking the lambda" do
+      @program.break_in_method
+      ScratchPad.recorded.should == [:a, :la, :ld, :lb, :break, :b]
+    end
+
+    it "returns a value to the block scope invoking the lambda in a method" do
+      @program.break_in_block_in_method
+      ScratchPad.recorded.should == [:a, :aaa, :b, :la, :ld, :lb, :break, :c, :bbb, :d]
+    end
+
+    it "raises a LocalJumpError when yielding to a lambda passed as a block argument" do
+      lambda { @program.break_in_method_yield }.should raise_error(LocalJumpError)
+      ScratchPad.recorded.should == [:a, :la, :ld, :aaa, :lb]
+    end
+  end
+end
+
+# TODO: Rewrite all the specs from here to the end of the file in the style
+# above.
 describe "Executing break from within a block" do
 
   before :each do
