@@ -507,14 +507,14 @@ namespace rubinius {
 
     state->set_call_frame(0);
 
-#ifdef ENABLE_LLVM
-    LLVMState::shutdown(state);
-#endif
-
     // Handle an edge case where another thread is waiting to stop the world.
     if(state->shared.should_stop()) {
       state->shared.checkpoint(state);
     }
+
+#ifdef ENABLE_LLVM
+    LLVMState::shutdown(state);
+#endif
 
     // Hold everyone.
     state->shared.stop_the_world(state);
