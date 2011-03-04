@@ -50,9 +50,9 @@ class Filter
   end
 
   def after(seconds, &action)
-    raise ArgumentError, "no timeout given" unless seconds
+    raise ArgumentError, "no timeout given" unless action
     seconds = seconds.to_f
-    if seconds < @timeout
+    if @timeout and seconds < @timeout
       @timeout = seconds
       @timeout_action = action
     end
