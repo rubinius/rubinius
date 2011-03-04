@@ -21,7 +21,6 @@ namespace rubinius {
 
     int class_id_;
     uint32_t packed_size_;
-    bool building_;
 
   public:
     /* accessors */
@@ -81,7 +80,7 @@ namespace rubinius {
     // Ruby.primitive :class_set_packed
     Object* set_packed(STATE, Array* info);
 
-    bool auto_pack(STATE);
+    void auto_pack(STATE);
 
     // Ruby.primitive :class_get_metaclass_attached
     Object* get_metaclass_attached(STATE);

@@ -97,7 +97,6 @@ namespace rubinius {
   void Class::init(int id) {
     class_id_ = id;
     set_packed_size(0);
-    building_ = true;
   }
 
   Object* Class::allocate(STATE, CallFrame* calling_environment) {
@@ -157,19 +156,16 @@ use_packed:
     } else if(!type_info_->allow_user_allocate || kind_of<MetaClass>(this)) {
       Exception::type_error(state, "direct allocation disabled");
       return Qnil;
-    } else if(!building_) {
-      return state->om->new_object_typed(state, this,
-          type_info_->instance_size, type_info_->type);
-    } else {
-      if(type_info_->type == Object::type) {
-        if(auto_pack(state)) goto use_packed;
-      }
-
-      building_ = false;
-
-      return state->om->new_object_typed(state, this,
-          type_info_->instance_size, type_info_->type);
+    } else if(type_info_->type == Object::type) {
+      // transition all normal object classes to PackedObject
+      auto_pack(state);
+      goto use_packed;
     }
+
+    // type_info_->type is neither PackedObject nor Object, so use the
+    // generic path.
+    return state->om->new_object_typed(state, this,
+        type_info_->instance_size, type_info_->type);
   }
 
   Class* Class::true_superclass(STATE) {
@@ -216,21 +212,24 @@ use_packed:
     type_info_ = state->om->type_info[type];
   }
 
-  bool Class::auto_pack(STATE) {
-    if(building_) {
-      building_ = false;
+  /* Look at this class and it's superclass contents (which includes
+   * included modules) and calculate out how to allocate the slots.
+   *
+   * This locks the class so that construction is serialized.
+   */
+  void Class::auto_pack(STATE) {
+    if(lock(state) != eLocked) rubinius::abort();
 
-      // If autopack is off, ignore this.
-      if(!state->shared.config.gc_autopack) return false;
+    // If another thread did this work while we were waiting on the lock,
+    // don't redo it.
+    if(type_info_->type == PackedObject::type) return;
 
-      // Only transition Object typed objects to Packed
-      if(type_info_->type != Object::type) return false;
+    size_t slots = 0;
 
-      // Reject methods that already have packing.
-      if(packed_size_) return true;
+    LookupTable* lt = LookupTable::create(state);
 
-      LookupTable* lt = LookupTable::create(state);
-
+    // If autopacking is enabled, figure out how many slots to use.
+    if(state->shared.config.gc_autopack) {
       Module* mod = this;
 
       int slot = 0;
@@ -262,16 +261,15 @@ use_packed:
 
         mod = mod->superclass();
       }
-
-      size_t slots = lt->entries()->to_native();
-
-      packed_size_ = sizeof(Object) + (slots * sizeof(Object*));
-      packed_ivar_info(state, lt);
-
-      set_object_type(state, PackedObject::type);
+      slots = lt->entries()->to_native();
     }
 
-    return type_info_->type == PackedObject::type;
+    packed_size_ = sizeof(Object) + (slots * sizeof(Object*));
+    packed_ivar_info(state, lt);
+
+    set_object_type(state, PackedObject::type);
+
+    if(unlock(state) != eUnlocked) rubinius::abort();
   }
 
   Object* Class::set_packed(STATE, Array* info) {
