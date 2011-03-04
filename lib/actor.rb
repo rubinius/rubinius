@@ -252,6 +252,7 @@ class Actor
     action = nil
     message = nil
     timed_out = false
+
     @lock.receive
     begin
       raise @interrupts.shift unless @interrupts.empty?
@@ -266,30 +267,25 @@ class Actor
       end
 
       unless action
-        if filter.timeout?
-          timeout_id = Rubinius::Scheduler.send_in_seconds(@ready, filter.timeout, true)
-        else
-          timeout_id = nil
-        end
         @filter = filter
         @lock << nil
         begin
-          timed_out = @ready.receive
+          if filter.timeout?
+            timed_out = @ready.receive_timeout(filter.timeout) == false
+          else
+            @ready.receive
+          end
         ensure
           @lock.receive
-          if timeout_id
-            Rubinius::Scheduler.cancel(timeout_id)
-            @ready << nil
-            @ready = Rubinius::Channel.new if @ready.receive
-          end
         end
 
-        if not timed_out and @interrupts.empty?
+        if !timed_out and @interrupts.empty?
           action = @action
           message = @message
         else
           @mailbox << @message if @action
         end
+
         @action = nil
         @message = nil
 
