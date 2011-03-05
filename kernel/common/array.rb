@@ -854,7 +854,12 @@ class Array
   # Recursively flatten any contained Arrays into an one-dimensional result.
   # The optional level argument determines the level of recursion to flatten
   def flatten(level=-1)
-    dup.flatten!(level) || self
+    level = Type.coerce_to(level, Integer, :to_int)
+    return self if level == 0
+
+    out = new_reserved size
+    recursively_flatten(self, out, level)
+    out
   end
 
   # Flattens self in place as #flatten. If no changes are
@@ -862,10 +867,15 @@ class Array
   # The optional level argument determines the level of recursion to flatten
   def flatten!(level=-1)
     level = Type.coerce_to(level, Integer, :to_int)
-    ret, out = nil, []
-    ret = recursively_flatten(self, out, level)
-    replace(out) if ret
-    ret
+    return nil if level == 0
+
+    out = new_reserved size
+    if recursively_flatten(self, out, level)
+      replace(out)
+      return self
+    end
+
+    nil
   end
 
   # Computes a Fixnum hash code for this Array. Any two
@@ -1824,32 +1834,36 @@ class Array
   # Helper to recurse through flattening since the method
   # is not allowed to recurse itself. Detects recursive structures.
   def recursively_flatten(array, out, max_levels = -1)
-    ret = nil
-    if max_levels == 0  # Strict equality since < 0 means 'infinite'
+    modified = false
+
+    # Strict equality since < 0 means 'infinite'
+    if max_levels == 0
       out.concat(array)
-    else
-      max_levels -= 1
-      recursion = Thread.detect_recursion(array) do
-        i = array.start
-        total = i + array.total
-        tuple = array.tuple
-
-        while i < total
-          o = tuple.at i
-
-          if ary = Type.convert_to(o, Array, :to_ary)
-            recursively_flatten(ary, out, max_levels)
-            ret = self
-          else
-            out << o
-          end
-
-          i += 1
-        end
-      end
-      raise ArgumentError, "tried to flatten recursive array" if recursion
+      return false
     end
-    ret
+
+    max_levels -= 1
+    recursion = Thread.detect_recursion(array) do
+      i = array.start
+      total = i + array.total
+      tuple = array.tuple
+
+      while i < total
+        o = tuple.at i
+
+        if ary = Type.convert_to(o, Array, :to_ary)
+          modified = true
+          recursively_flatten(ary, out, max_levels)
+        else
+          out << o
+        end
+
+        i += 1
+      end
+    end
+
+    raise ArgumentError, "tried to flatten recursive array" if recursion
+    modified
   end
 
   private :recursively_flatten

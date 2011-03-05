@@ -16,6 +16,11 @@ class Array
     raise PrimitiveFailure, "Array.new_range primitive failed"
   end
 
+  def new_reserved(count)
+    Ruby.primitive :array_new_reserved
+    raise PrimitiveFailure, "Array.new_reserved primitive failed"
+  end
+
   def self.coerce_into_array(obj)
     return [obj] unless obj
 

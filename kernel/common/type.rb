@@ -35,6 +35,7 @@ module Type
   #
   def self.convert_to(obj, cls, meth)
     return obj if self.obj_kind_of?(obj, cls)
+    return nil unless obj.respond_to? meth
 
     begin
       ret = obj.__send__(meth)
