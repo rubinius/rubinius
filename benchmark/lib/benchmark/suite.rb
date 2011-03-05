@@ -51,17 +51,17 @@ module Benchmark
 
     def warming(label, sec)
       return unless @verbose
-      print "#{label.rjust(20)} warmup: #{sec}s"
+      STDOUT.print "#{label.rjust(20)} warmup: #{sec}s"
     end
 
     def warmup_stats(time, cycles)
       return unless @verbose
-      print " time=#{time}us, cycles=#{cycles}."
+      STDOUT.print " time=#{time}us, cycles=#{cycles}."
     end
 
     def running(label, sec)
       return unless @verbose
-      puts " running: #{sec}s..."
+      STDOUT.puts " running: #{sec}s..."
     end
 
     def add_report(rep, location)
@@ -80,11 +80,11 @@ module Benchmark
       begin
         load file
       rescue Exception => e
-        puts "\nError in #{file}:"
+        STDOUT.puts "\nError in #{file}:"
         if e.respond_to? :render
           e.render(STDERR)
         else
-          puts e.backtrace
+          STDOUT.puts e.backtrace
         end
         return
       end
@@ -109,14 +109,14 @@ module Benchmark
       end
 
       @order.each do |file|
-        puts "#{file}:"
+        STDOUT.puts "#{file}:"
         reports = @reports[file]
 
         if reports.empty?
-          puts "  NO REPORTS FOUND"
+          STDOUT.puts "  NO REPORTS FOUND"
         else
           reports.each do |rep|
-            puts "  #{rep}"
+            STDOUT.puts "  #{rep}"
           end
         end
       end

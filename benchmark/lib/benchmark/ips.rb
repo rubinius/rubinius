@@ -40,7 +40,7 @@ module Benchmark
     end
 
     def display
-      puts to_s
+      STDOUT.puts to_s
     end
   end
 
@@ -217,7 +217,7 @@ module Benchmark
 
       rep = IPSReport.new(item.label, measured_us, iter, avg_ips, sd_ips, cycles_per_100ms)
 
-      puts " #{rep.body}" if !suite or !suite.quiet?
+      STDOUT.puts " #{rep.body}" if !suite or !suite.quiet?
 
       suite.add_report rep, caller(1).first if suite
 
