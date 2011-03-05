@@ -649,11 +649,17 @@ namespace rubinius {
 
       Value* pos = create_gep(tup, idx, 2, "table_size_pos");
 
-      return b().CreateIntCast(
-          create_load(pos, "table_size"),
-          NativeIntTy,
-          true,
-          "to_native_int");
+      Value* bytes = b().CreateIntCast(
+                        create_load(pos, "table_size"),
+                        NativeIntTy,
+                        true,
+                        "to_native_int");
+
+      Value* header = ConstantInt::get(NativeIntTy, sizeof(Tuple));
+      Value* body_bytes = b().CreateSub(bytes, header);
+
+      Value* ptr_size = ConstantInt::get(NativeIntTy, sizeof(Object*));
+      return b().CreateSDiv(body_bytes, ptr_size);
     }
 
     // Object access
