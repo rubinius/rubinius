@@ -11,7 +11,11 @@ require 'benchmark/suite'
 require 'benchmark/ips'
 
 targets = []
+extra = []
 at_end = false
+save = false
+
+compare_targets = []
 
 opt = OptionParser.new do |o|
   o.on("-t", "--target TARGET", String,
@@ -26,12 +30,28 @@ opt = OptionParser.new do |o|
     when 'j', 'jruby'
       targets << 'jruby'
     else
-      targets << t
+      if File.exists?(t)
+        compare_targets << t
+      else
+        targets << t
+      end
     end
+  end
+
+  o.on("-p", "--profile", "Profile code while benchmarking (rbx only)") do
+    extra << "-Xprofile"
   end
 
   o.on("-e", "--end", "Report all stats after all suitse have run") do
     at_end = true
+  end
+
+  o.on("-T OPTION", String, "Add more arguments to each target") do |t|
+    extra << t
+  end
+
+  o.on("-s", "--save PATH", String, "Save the results to a file") do |t|
+    save = t
   end
 end
 
@@ -39,6 +59,11 @@ opt.parse!
 
 if targets.empty?
   targets << "bin/rbx"
+end
+
+if save and targets.size > 1
+  puts "Save mode only available with one target."
+  exit 1
 end
 
 opts = []
@@ -51,7 +76,9 @@ results = targets.map do |t|
   tf = Tempfile.new "benchmark"
   tf.close
   puts "=== #{t} ===" unless at_end
-  args = ["-I#{lib_path}", "benchmark/lib/benchmark/suite-run.rb"]
+
+  args = extra + ["-I#{lib_path}", "benchmark/lib/benchmark/suite-run.rb"]
+
   args += opts
   args << tf.path
   args += ARGV
@@ -66,6 +93,16 @@ results = targets.map do |t|
   [t, Marshal.load(tf.read)]
 end
 
+if save
+  name, data = results.last
+
+  File.open save, "w" do |f|
+    f << Marshal.dump(data)
+  end
+
+  puts "[Saved results to '#{save}']"
+end
+
 if at_end
   results.each do |name, suite|
     puts "=== #{name} ==="
@@ -73,7 +110,11 @@ if at_end
   end
 end
 
-if targets.size > 1
+compare_targets.each do |path|
+  results << [path, Marshal.load(File.read(path)) ]
+end
+
+if results.size > 1
   compared = Hash.new { |h,k| h[k] = [] }
 
   results.each do |target, suite|
