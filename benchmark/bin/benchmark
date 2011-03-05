@@ -11,7 +11,11 @@ require 'benchmark/suite'
 require 'benchmark/ips'
 
 targets = []
+extra = []
 at_end = false
+save = false
+
+compare_targets = []
 
 opt = OptionParser.new do |o|
   o.on("-t", "--target TARGET", String,
@@ -26,12 +30,28 @@ opt = OptionParser.new do |o|
     when 'j', 'jruby'
       targets << 'jruby'
     else
-      targets << t
+      if File.exists?(t)
+        compare_targets << t
+      else
+        targets << t
+      end
     end
+  end
+
+  o.on("-p", "--profile", "Profile code while benchmarking (rbx only)") do
+    extra << "-Xprofile"
   end
 
   o.on("-e", "--end", "Report all stats after all suitse have run") do
     at_end = true
+  end
+
+  o.on("-T OPTION", String, "Add more arguments to each target") do |t|
+    extra << t
+  end
+
+  o.on("-s", "--save PATH", String, "Save the results to a file") do |t|
+    save = t
   end
 end
 
@@ -39,6 +59,11 @@ opt.parse!
 
 if targets.empty?
   targets << "bin/rbx"
+end
+
+if save and targets.size > 1
+  STDOUT.puts "Save mode only available with one target."
+  exit 1
 end
 
 opts = []
@@ -50,8 +75,10 @@ end
 results = targets.map do |t|
   tf = Tempfile.new "benchmark"
   tf.close
-  puts "=== #{t} ===" unless at_end
-  args = ["-I#{lib_path}", "benchmark/lib/benchmark/suite-run.rb"]
+  STDOUT.puts "=== #{t} ===" unless at_end
+
+  args = extra + ["-I#{lib_path}", "benchmark/lib/benchmark/suite-run.rb"]
+
   args += opts
   args << tf.path
   args += ARGV
@@ -66,14 +93,28 @@ results = targets.map do |t|
   [t, Marshal.load(tf.read)]
 end
 
+if save
+  name, data = results.last
+
+  File.open save, "w" do |f|
+    f << Marshal.dump(data)
+  end
+
+  STDOUT.puts "[Saved results to '#{save}']"
+end
+
 if at_end
   results.each do |name, suite|
-    puts "=== #{name} ==="
+    STDOUT.puts "=== #{name} ==="
     suite.display
   end
 end
 
-if targets.size > 1
+compare_targets.each do |path|
+  results << [path, Marshal.load(File.read(path)) ]
+end
+
+if results.size > 1
   compared = Hash.new { |h,k| h[k] = [] }
 
   results.each do |target, suite|
@@ -84,11 +125,11 @@ if targets.size > 1
     end
   end
 
-  puts
+  STDOUT.puts
 
   compared.each do |name, reports|
     if reports.size > 1
-      puts "Comparing #{name}:"
+      STDOUT.puts "Comparing #{name}:"
 
       iter = false
       sorted = reports.sort do |a,b|
@@ -104,19 +145,19 @@ if targets.size > 1
 
 
       if iter
-        printf "%20s: %10d i/s\n", best_name, best_report.ips
+        STDOUT.printf "%20s: %10d i/s\n", best_name, best_report.ips
       else
-        puts "#{best_name.rjust(20)}: #{best_report.runtime}s"
+        STDOUT.puts "#{best_name.rjust(20)}: #{best_report.runtime}s"
       end
 
       sorted.each do |entry|
         name, report = entry
         if iter
           x = (best_report.ips.to_f / report.ips.to_f)
-          printf "%20s: %10d i/s - %.2fx slower\n", name, report.ips, x
+          STDOUT.printf "%20s: %10d i/s - %.2fx slower\n", name, report.ips, x
         else
           x = "%.2f" % (report.ips.to_f / best_report.ips.to_f)
-          puts "#{name.rjust(20)}: #{report.runtime}s - #{x}x slower"
+          STDOUT.puts "#{name.rjust(20)}: #{report.runtime}s - #{x}x slower"
         end
       end
     end

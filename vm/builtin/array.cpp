@@ -67,6 +67,18 @@ namespace rubinius {
     return ary;
   }
 
+  Array* Array::new_reserved(STATE, Fixnum* count) {
+    Array* ary = state->new_object<Array>(class_object(state));
+    ary->start(state, Fixnum::from(0));
+    ary->total(state, Fixnum::from(0));
+
+    native_int total = count->to_native();
+    if(total <= 0) total = 1;
+    ary->tuple(state, Tuple::create(state, total));
+
+    return ary;
+  }
+
   Array* Array::from_tuple(STATE, Tuple* tup) {
     size_t length = tup->num_fields();
     Array* ary = Array::create(state, length);

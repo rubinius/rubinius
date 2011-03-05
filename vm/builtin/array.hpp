@@ -42,6 +42,9 @@ namespace rubinius {
     // Ruby.primitive :array_new_range
     Array* new_range(STATE, Fixnum* start, Fixnum* count);
 
+    // Ruby.primitive :array_new_reserved
+    Array* new_reserved(STATE, Fixnum* count);
+
     // Ruby.primitive :array_aref
     Object* aref(STATE, Fixnum* idx);
 

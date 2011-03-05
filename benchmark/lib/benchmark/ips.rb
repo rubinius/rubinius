@@ -1,4 +1,5 @@
 require 'benchmark/timing'
+require 'benchmark/compare'
 
 module Benchmark
 
@@ -25,7 +26,7 @@ module Benchmark
     alias_method :runtime, :seconds
 
     def body
-      left = "%10d (±%.1f%%) i/s" % [ips, stddev_percentage]
+      left = "%10.1f (±%.1f%%) i/s" % [ips, stddev_percentage]
       left.ljust(20) + (" - %10d in %10.6fs (cycle=%d)" % 
                           [@iterations, runtime, @measurement_cycle])
     end
@@ -39,7 +40,7 @@ module Benchmark
     end
 
     def display
-      puts to_s
+      STDOUT.puts to_s
     end
   end
 
@@ -104,6 +105,13 @@ module Benchmark
 
     def initialize
       @list = []
+      @compare = false
+    end
+
+    attr_reader :compare
+
+    def compare!
+      @compare = true
     end
 
     #
@@ -144,6 +152,8 @@ module Benchmark
 
     before = Timing::TimeVal.new
     after = Timing::TimeVal.new
+
+    reports = []
 
     job.list.each do |item|
       suite.warming item.label, warmup if suite
@@ -207,11 +217,17 @@ module Benchmark
 
       rep = IPSReport.new(item.label, measured_us, iter, avg_ips, sd_ips, cycles_per_100ms)
 
-      puts " #{rep.body}" if !suite or !suite.quiet?
+      STDOUT.puts " #{rep.body}" if !suite or !suite.quiet?
 
       suite.add_report rep, caller(1).first if suite
 
       STDOUT.sync = sync
+
+      reports << rep
+    end
+
+    if job.compare
+      Benchmark.compare *reports
     end
   end
 

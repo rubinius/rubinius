@@ -634,6 +634,31 @@ VM Options
 
     # Exit.
     def done
+      # check that this is a valid exit rather than failing to process
+      # unwinding properly.
+      #
+      # TODO: this code is pretty gross, nice object inspectors, please.
+      thread_state = Rubinius.thread_state
+      reason = thread_state[0]
+      unless reason == :none
+        STDERR.puts "\nERROR: the VM is exiting improperly"
+        STDERR.puts "intended operation: #{reason.inspect}"
+        STDERR.puts "associated value: #{thread_state[1].inspect}"
+        destination = thread_state[2]
+        method = destination.method
+        STDERR.puts "destination scope:"
+        STDERR.puts "  method: #{method.name} at #{method.file}:#{method.first_line}"
+        STDERR.puts "  module: #{destination.module.name}"
+        STDERR.puts "  block:  #{destination.block}" if destination.block
+        if reason == :catch_throw
+          STDERR.puts "throw destination: #{thread_state[4].inspect}"
+        end
+        if exception = thread_state[3]
+          exception.render
+        end
+        @exit_code = 1
+      end
+
       Process.exit! @exit_code
     end
 
@@ -712,10 +737,10 @@ VM Options
       begin
         new.main
       rescue Object => exc
-        puts "\n====================================="
-        puts "Exception occurred during top-level exception output! (THIS IS BAD)"
-        puts
-        puts "Exception: #{exc.inspect} (#{exc.class})"
+        STDERR.puts "\n====================================="
+        STDERR.puts "Exception occurred during top-level exception output! (THIS IS BAD)"
+        STDERR.puts
+        STDERR.puts "Exception: #{exc.inspect} (#{exc.class})"
       end
     end
   end

@@ -243,8 +243,14 @@ class Array
           # If we're removing from the front, also reset @start to better
           # use the Tuple
           if index == 0
-            @tuple.copy_from @tuple, reg_start + @start, reg_length, 0
-            @start = 0
+            # Use a shift start optimization if we're only removing one
+            # element and the shift started isn't already huge.
+            if ins_length == 1
+              @start += 1
+            else
+              @tuple.copy_from @tuple, reg_start + @start, reg_length, 0
+              @start = 0
+            end
           else
             @tuple.copy_from @tuple, reg_start + @start, reg_length,
                              @start + index
@@ -644,8 +650,14 @@ class Array
     # Grab the object and adjust the indices for the rest
     obj = @tuple.at(@start + idx)
 
-    @tuple.copy_from(@tuple, @start+idx+1, @total-idx-1, @start+idx)
-    @tuple.put(@start + @total - 1, nil)
+    # Shift style.
+    if idx == 0
+      @tuple.put @start, nil
+      @start += 1
+    else
+      @tuple.copy_from(@tuple, @start+idx+1, @total-idx-1, @start+idx)
+      @tuple.put(@start + @total - 1, nil)
+    end
 
     @total -= 1
     obj
@@ -842,7 +854,12 @@ class Array
   # Recursively flatten any contained Arrays into an one-dimensional result.
   # The optional level argument determines the level of recursion to flatten
   def flatten(level=-1)
-    dup.flatten!(level) || self
+    level = Type.coerce_to(level, Integer, :to_int)
+    return self if level == 0
+
+    out = new_reserved size
+    recursively_flatten(self, out, level)
+    out
   end
 
   # Flattens self in place as #flatten. If no changes are
@@ -850,10 +867,15 @@ class Array
   # The optional level argument determines the level of recursion to flatten
   def flatten!(level=-1)
     level = Type.coerce_to(level, Integer, :to_int)
-    ret, out = nil, []
-    ret = recursively_flatten(self, out, level)
-    replace(out) if ret
-    ret
+    return nil if level == 0
+
+    out = new_reserved size
+    if recursively_flatten(self, out, level)
+      replace(out)
+      return self
+    end
+
+    nil
   end
 
   # Computes a Fixnum hash code for this Array. Any two
@@ -1447,6 +1469,31 @@ class Array
     end
   end
 
+  ##
+  #  call-seq:
+  #     ary.drop(n)               => array
+  #
+  #  Drops first n elements from <i>ary</i>, and returns rest elements
+  #  in an array.
+  #
+  #     a = [1, 2, 3, 4, 5, 0]
+  #     a.drop(3)             # => [4, 5, 0]
+  #
+  #   enum.drop(n)   => an_array
+  #
+  # This a specialized version of the method found in Enumerable
+  def drop(n)
+    n = Type.coerce_to(n, Fixnum, :to_int)
+    raise ArgumentError, "attempt to drop negative size" if n < 0
+
+    return [] if @total == 0
+
+    new_size = @total - n
+    return [] if new_size <= 0
+
+    new_range n, new_size
+  end
+
   # Deletes the element(s) given by an index (optionally with a length)
   # or by a range. Returns the deleted object, subarray, or nil if the
   # index is out of range. Equivalent to:
@@ -1454,9 +1501,9 @@ class Array
     Ruby.check_frozen
 
     if length.equal? undefined
-      out = self[start]
-
       if start.kind_of? Range
+        out = self[start]
+
         s = Type.coerce_to start.begin, Fixnum, :to_int
         unless s >= @total or -s > @total
           self[start] = nil
@@ -1465,13 +1512,23 @@ class Array
         # make sure that negative values are not passed through to the
         # []= assignment
         start = Type.coerce_to start, Integer, :to_int
-        start = start + self.length if start < 0
+        start = start + @total if start < 0
 
         # This is to match the MRI behaviour of not extending the array
         # with nil when specifying an index greater than the length
         # of the array.
-        return out unless start >= 0 and start < self.length
-        self[start, 1] = nil
+        return out unless start >= 0 and start < @total
+
+        out = @tuple.at start
+
+        # Check for shift style.
+        if start == 0
+          @tuple.put @start, nil
+          @total -= 1
+          @start += 1
+        else
+          self[start, 1] = nil
+        end
       end
     else
       start = Type.coerce_to start, Fixnum, :to_int
@@ -1752,32 +1809,36 @@ class Array
   # Helper to recurse through flattening since the method
   # is not allowed to recurse itself. Detects recursive structures.
   def recursively_flatten(array, out, max_levels = -1)
-    ret = nil
-    if max_levels == 0  # Strict equality since < 0 means 'infinite'
+    modified = false
+
+    # Strict equality since < 0 means 'infinite'
+    if max_levels == 0
       out.concat(array)
-    else
-      max_levels -= 1
-      recursion = Thread.detect_recursion(array) do
-        i = array.start
-        total = i + array.total
-        tuple = array.tuple
-
-        while i < total
-          o = tuple.at i
-
-          if ary = Type.convert_to(o, Array, :to_ary)
-            recursively_flatten(ary, out, max_levels)
-            ret = self
-          else
-            out << o
-          end
-
-          i += 1
-        end
-      end
-      raise ArgumentError, "tried to flatten recursive array" if recursion
+      return false
     end
-    ret
+
+    max_levels -= 1
+    recursion = Thread.detect_recursion(array) do
+      i = array.start
+      total = i + array.total
+      tuple = array.tuple
+
+      while i < total
+        o = tuple.at i
+
+        if ary = Type.convert_to(o, Array, :to_ary)
+          modified = true
+          recursively_flatten(ary, out, max_levels)
+        else
+          out << o
+        end
+
+        i += 1
+      end
+    end
+
+    raise ArgumentError, "tried to flatten recursive array" if recursion
+    modified
   end
 
   private :recursively_flatten

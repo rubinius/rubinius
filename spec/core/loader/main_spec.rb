@@ -3,11 +3,12 @@ require File.expand_path('../fixtures/common', __FILE__)
 
 describe "Rubinius::Loader.main" do
   before :each do
-    @stdout, $stdout = $stdout, IOStub.new
+    @stderr = STDERR
+    Object.const_set :STDERR, IOStub.new
   end
 
   after :each do
-    $stdout = @stdout
+    Object.const_set :STDERR, @stderr
   end
 
   it "catches any uncaught exceptions raised while running" do
@@ -17,7 +18,7 @@ describe "Rubinius::Loader.main" do
 
     Rubinius::Loader.main
 
-    $stdout.should == <<-EOM
+    STDERR.should == <<-EOM
 
 =====================================
 Exception occurred during top-level exception output! (THIS IS BAD)

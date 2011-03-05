@@ -304,6 +304,9 @@ namespace rubinius {
     // Ruby.primitive :sha1_hash
     static String* sha1_hash(STATE, String* str);
 
+    // Ruby.primitive :vm_thread_state
+    static Tuple* vm_thread_state(STATE);
+
   public:   /* Type info */
 
     class Info : public TypeInfo {
