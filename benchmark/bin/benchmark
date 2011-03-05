@@ -62,7 +62,7 @@ if targets.empty?
 end
 
 if save and targets.size > 1
-  puts "Save mode only available with one target."
+  STDOUT.puts "Save mode only available with one target."
   exit 1
 end
 
@@ -75,7 +75,7 @@ end
 results = targets.map do |t|
   tf = Tempfile.new "benchmark"
   tf.close
-  puts "=== #{t} ===" unless at_end
+  STDOUT.puts "=== #{t} ===" unless at_end
 
   args = extra + ["-I#{lib_path}", "benchmark/lib/benchmark/suite-run.rb"]
 
@@ -100,12 +100,12 @@ if save
     f << Marshal.dump(data)
   end
 
-  puts "[Saved results to '#{save}']"
+  STDOUT.puts "[Saved results to '#{save}']"
 end
 
 if at_end
   results.each do |name, suite|
-    puts "=== #{name} ==="
+    STDOUT.puts "=== #{name} ==="
     suite.display
   end
 end
@@ -125,11 +125,11 @@ if results.size > 1
     end
   end
 
-  puts
+  STDOUT.puts
 
   compared.each do |name, reports|
     if reports.size > 1
-      puts "Comparing #{name}:"
+      STDOUT.puts "Comparing #{name}:"
 
       iter = false
       sorted = reports.sort do |a,b|
@@ -145,19 +145,19 @@ if results.size > 1
 
 
       if iter
-        printf "%20s: %10d i/s\n", best_name, best_report.ips
+        STDOUT.printf "%20s: %10d i/s\n", best_name, best_report.ips
       else
-        puts "#{best_name.rjust(20)}: #{best_report.runtime}s"
+        STDOUT.puts "#{best_name.rjust(20)}: #{best_report.runtime}s"
       end
 
       sorted.each do |entry|
         name, report = entry
         if iter
           x = (best_report.ips.to_f / report.ips.to_f)
-          printf "%20s: %10d i/s - %.2fx slower\n", name, report.ips, x
+          STDOUT.printf "%20s: %10d i/s - %.2fx slower\n", name, report.ips, x
         else
           x = "%.2f" % (report.ips.to_f / best_report.ips.to_f)
-          puts "#{name.rjust(20)}: #{report.runtime}s - #{x}x slower"
+          STDOUT.puts "#{name.rjust(20)}: #{report.runtime}s - #{x}x slower"
         end
       end
     end
