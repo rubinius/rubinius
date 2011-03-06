@@ -982,7 +982,11 @@ module URI
       end
       if host && host != host.downcase
         set_host(self.host.downcase)
-      end        
+      end
+
+      if scheme && scheme != scheme.downcase
+        set_scheme(self.scheme.downcase)
+      end
     end
 
     def path_query
