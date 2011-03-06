@@ -178,7 +178,7 @@ module Rubinius
       end
 
       def map_sends
-        visit do |result, node|
+        walk do |result, node|
           case node
           when Send, SendWithArguments
             node.privately = true
@@ -401,7 +401,7 @@ module Rubinius
 
         return unless recurse
 
-        node.visit do |result, n|
+        node.walk do |result, n|
           case n
           when Send
             fixup_send(acc, n, false)

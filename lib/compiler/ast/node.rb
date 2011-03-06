@@ -94,12 +94,17 @@ module Rubinius
         bytecode(g)
       end
 
-      def visit(arg=true, &block)
+      # This method implements a sort of tree iterator, yielding each Node
+      # instance to the provided block with the first argument to #walk. If
+      # the block returns a non-true value, the walk is terminated.
+      #
+      # This method is really an iterator, not a Visitor pattern.
+      def walk(arg=true, &block)
         instance_variables.each do |name|
           child = instance_variable_get name
           next unless child.kind_of? Node
           next unless ch_arg = block.call(arg, child)
-          child.visit(ch_arg, &block)
+          child.walk(ch_arg, &block)
         end
       end
 
