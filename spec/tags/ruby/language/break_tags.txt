@@ -1,0 +1,13 @@
+critical:The break statement in a captured block from a scope that has returned raises a LocalJumpError when calling the block from a method
+critical:The break statement in a captured block from a scope that has returned raises a LocalJumpError when yielding to the block
+critical:The break statement in a lambda from a scope that has returned returns a value to the method scope invoking the lambda
+critical:The break statement in a lambda from a scope that has returned returns a value to the block scope invoking the lambda in a method
+critical:The break statement in a lambda from a scope that has returned raises a LocalJumpError when yielding to a lambda passed as a block argument
+fails:The break statement in a captured block when the invocation of the scope creating the block is still active raises a LocalJumpError when invoking the block from the scope creating the block
+fails:The break statement in a captured block when the invocation of the scope creating the block is still active raises a LocalJumpError when invoking the block from a method
+fails:The break statement in a captured block when the invocation of the scope creating the block is still active raises a LocalJumpError when yielding to the block
+fails:The break statement in a lambda when the invocation of the scope creating the lambda is still active returns a value to the method scope below invoking the lambda
+fails:The break statement in a lambda when the invocation of the scope creating the lambda is still active returns a value to a block scope invoking the lambda in a method below
+fails:The break statement in a lambda when the invocation of the scope creating the lambda is still active raises a LocalJumpError when yielding to a lambda passed as a block argument
+fails:The break statement in a lambda created at the toplevel returns a value when invoking from a method
+fails:The break statement in a lambda created at the toplevel returns a value when invoking from a block
