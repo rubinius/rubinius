@@ -1058,7 +1058,11 @@ module URI
     end
 
     def eql?(oth)
-      self.component_ary.eql?(oth.component_ary)
+      if self.class == oth.class
+        self.component_ary.eql?(oth.component_ary)
+      else
+        false
+      end
     end
 
 =begin
