@@ -31,7 +31,7 @@ class Exception
   def backtrace
     return @custom_backtrace if @custom_backtrace
 
-    if @locations
+    if backtrace?
       awesome_backtrace.to_mri
     else
       nil
