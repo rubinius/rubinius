@@ -605,6 +605,8 @@ module Kernel
   #
   # This method is introduced at 1.8.2.
   def URI(uri_str) # :doc:
+    return uri_str if uri_str.is_a? URI
+
     URI.parse(uri_str)
   end
   module_function :URI
