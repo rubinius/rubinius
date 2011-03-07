@@ -723,6 +723,7 @@ class Module
   def initialize_copy(other)
     @method_table = other.method_table.dup
     Rubinius.object_metaclass(self).method_table = Rubinius.object_metaclass(other).method_table.dup
+    Rubinius.object_metaclass(self).superclass = Rubinius.object_metaclass(other).superclass
 
     @constants = Rubinius::LookupTable.new
 
