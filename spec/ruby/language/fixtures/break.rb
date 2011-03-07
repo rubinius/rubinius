@@ -90,7 +90,7 @@ module BreakSpecs
         note :c
       }
       note :c
-      call_method(b)
+      note call_method(b)
       note :d
     end
 
@@ -102,7 +102,7 @@ module BreakSpecs
         note :c
       }
       note :c
-      yielding(&b)
+      note yielding(&b)
       note :d
     end
   end
@@ -153,7 +153,7 @@ module BreakSpecs
       end
       note :d
 
-      note_invoke_yield(&l)
+      note invoke_yield(&l)
 
       note :e
     end
