@@ -570,7 +570,7 @@ instruction raise_break() [ value -- value ] => raise
   flush_ip();
   if(call_frame->flags & CallFrame::cIsLambda) {
     return stack_top();
-  } else if(call_frame->scope_still_valid(call_frame->top_scope(state))) {
+  } else if(call_frame->scope_still_valid(call_frame->scope->parent())) {
     state->thread_state()->raise_break(stack_top(), call_frame->scope->parent());
   } else {
     Exception* exc = Exception::make_exception(state, G(jump_error), "attempted to break to exitted method");
