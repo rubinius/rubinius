@@ -58,8 +58,6 @@ class String
     raise PrimitiveFailure, "String#find_string failed"
   end
 
-  private :find_string
-
   def find_string_reverse(pattern, start)
     Ruby.primitive :string_rindex
     raise PrimitiveFailure, "String#find_string_reverse failed"

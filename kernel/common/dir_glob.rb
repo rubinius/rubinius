@@ -32,8 +32,42 @@ class Dir
       def call(env, path)
         full = path_join(path, @dir)
 
-        if File.directory? full
-          @next.call env, full
+        # Don't check if full exists. It just costs us time
+        # and the downstream node will be able to check properly.
+        @next.call env, full
+      end
+    end
+
+    class ConstantEntry < Node
+      def initialize(nxt, flags, name)
+        super nxt, flags
+        @name = name
+      end
+
+      def call(env, parent)
+        path = path_join(parent, @name)
+
+        if File.exists? path
+          env.matches << path
+        end
+      end
+    end
+
+    class ConstantSuffixEntry < Node
+      def initialize(nxt, flags, name, suffixes)
+        super nxt, flags
+        @name = name
+        @suffixes = suffixes
+      end
+
+      def call(env, parent)
+        stem = path_join(parent, @name)
+
+        @suffixes.each do |s|
+          path = "#{stem}#{s}"
+          if File.exists?(path)
+            env.matches << path
+          end
         end
       end
     end
@@ -46,24 +80,65 @@ class Dir
 
     class RecursiveDirectories < Node
       def call(env, start)
-        if start.nil? or File.exists? start
-          # Even though the recursive entry is zero width
-          # in this case, it's left seperator is still the
-          # dominant one, so we fix things up to use it.
-          if @separator
-            switched = @next.dup
-            switched.separator = @separator
-            switched.call env, start
-          else
-            @next.call env, start
-          end
-        end
+        return unless File.exists? start
+
+        # Even though the recursive entry is zero width
+        # in this case, it's left seperator is still the
+        # dominant one, so we fix things up to use it.
+        switched = @next.dup
+        switched.separator = @separator
+        switched.call env, start
 
         stack = [start]
 
         until stack.empty?
           path = stack.pop
-          dir = Dir.new(path ? path : ".")
+          dir = Dir.new(path)
+          while ent = dir.read
+            next if ent == "." || ent == ".."
+            full = path_join(path, ent)
+
+            if File.directory? full and ent[0] != ?.
+              stack << full
+              @next.call env, full
+            end
+          end
+          dir.close
+        end
+      end
+    end
+
+    class StartRecursiveDirectories < Node
+      def call(env, start)
+        raise "invalid usage" if start
+
+        # Even though the recursive entry is zero width
+        # in this case, it's left seperator is still the
+        # dominant one, so we fix things up to use it.
+        if @separator
+          switched = @next.dup
+          switched.separator = @separator
+          switched.call env, start
+        else
+          @next.call env, start
+        end
+
+        stack = []
+
+        dir = Dir.new(".")
+        while ent = dir.read
+          next if ent == "." || ent == ".."
+
+          if File.directory? ent and ent[0] != ?.
+            stack << ent
+            @next.call env, ent
+          end
+        end
+        dir.close
+
+        until stack.empty?
+          path = stack.pop
+          dir = Dir.new(path)
           while ent = dir.read
             next if ent == "." || ent == ".."
             full = path_join(path, ent)
@@ -138,6 +213,31 @@ class Dir
       end
     end
 
+    class SuffixEntryMatch < Match
+      def initialize(nxt, flags, glob, suffixes)
+        super nxt, flags, glob
+        @suffixes = suffixes
+      end
+
+      def call(env, path)
+        begin
+          dir = Dir.new(path ? path : ".")
+        rescue SystemCallError
+          return
+        end
+
+        while f = dir.read
+          @suffixes.each do |s|
+            ent = "#{f}#{s}"
+            if match? ent
+              env.matches << path_join(path, ent)
+            end
+          end
+        end
+        dir.close
+      end
+    end
+
     class DirectoriesOnly < Match
       def call(env, path)
         allow_dots = ((@flags & File::FNM_DOTMATCH) != 0)
@@ -170,7 +270,7 @@ class Dir
       end
     end
 
-    def self.compile(glob, flags=0)
+    def self.single_compile(glob, flags=0, suffixes=nil)
       parts = glob.split(%r!(/+)!)
 
       if glob[-1] == ?/
@@ -178,10 +278,23 @@ class Dir
 
         last = DirectoriesOnly.new nil, flags, parts.pop
         if parts.empty?
-          last = RecursiveDirectories.new last, flags
+          last = StartRecursiveDirectories.new last, flags
         end
       else
-        last = EntryMatch.new nil, flags, parts.pop
+        file = parts.pop
+        if /^[a-zA-Z0-9._]+$/.match(file)
+          if suffixes
+            last = ConstantSuffixEntry.new nil, flags, file, suffixes
+          else
+            last = ConstantEntry.new nil, flags, file
+          end
+        else
+          if suffixes
+            last = SuffixEntryMatch.new nil, flags, file, suffixes
+          else
+            last = EntryMatch.new nil, flags, file
+          end
+        end
       end
 
       until parts.empty?
@@ -189,7 +302,11 @@ class Dir
         dir = parts.pop
 
         if dir == "**"
-          last = RecursiveDirectories.new last, flags
+          if parts.empty?
+            last = StartRecursiveDirectories.new last, flags
+          else
+            last = RecursiveDirectories.new last, flags
+          end
         elsif /^[a-zA-Z0-9.]+$/.match(dir)
           last = ConstantDirectory.new last, flags, dir
         elsif !dir.empty?
@@ -211,22 +328,56 @@ class Dir
     end
 
     def self.glob(pattern, flags, matches=[])
-      if pattern.include? "{"
-        return brace_glob(pattern, flags, matches)
+      # Rubygems typicall uses Dir[] as basicly a glorified File.exists?
+      # to check for multiple extensions. So we went ahead and sped up
+      # that specific case.
+
+      if flags == 0 and
+             m = /^([a-zA-Z0-9_.\/\s]*)(?:\{([^{}\/\*\?]*)\})?$/.match(pattern)
+        # no meta characters, so this is a glorified
+        # File.exists? check. We allow for a brace expansion
+        # only as a suffix.
+
+        if braces = m[2]
+          stem = m[1]
+
+          braces.split(",").each do |s|
+            path = "#{stem}#{s}"
+            if File.exists? path
+              matches << path
+            end
+          end
+
+          # Split strips an empty closing part, so we need to add it back in
+          if braces[-1] == ?,
+            matches << stem if File.exists? stem
+          end
+        else
+          matches << pattern if File.exists?(pattern)
+        end
+
+        return matches
       end
 
-      if node = compile(pattern, flags)
+      if pattern.include? "{"
+        patterns = compile(pattern, flags)
+
+        patterns.each do |node|
+          run node, matches
+        end
+      elsif node = single_compile(pattern, flags)
         run node, matches
       else
-        []
+        matches
       end
     end
 
-    def self.brace_glob(pattern, flags, matches=[])
+    def self.compile(pattern, flags=0, patterns=[])
       escape = (flags & File::FNM_NOESCAPE) == 0
 
       rbrace = nil
       lbrace = nil
+      escapes = false
 
       # Do a quick search for a { to start the search better
       i = pattern.index("{")
@@ -252,12 +403,24 @@ class Dir
           end
 
           if char == ?\\ and escape
+            escapes = true
             i += 1
           end
 
           i += 1
         end
       end
+
+      # Detect if it's a simple suffix brace
+      # if !escapes and lbrace and rbrace == pattern.size - 1
+        # parts = pattern.substring(lbrace+1, rbrace - lbrace - 1).split(",")
+        # front = pattern.substring(0, lbrace)
+
+        # if node = single_compile(front, flags, parts)
+          # patterns << node
+          # return patterns
+        # end
+      # end
 
       # There was a full {} expression detected, expand each part of it
       # recursively.
@@ -285,7 +448,7 @@ class Dir
 
           brace_pattern = "#{front}#{pattern[last...pos]}#{back}"
 
-          brace_glob brace_pattern, flags, matches
+          compile brace_pattern, flags, patterns
         end
 
         # No braces found, match the pattern normally
@@ -294,12 +457,12 @@ class Dir
         # if a { is a brace or a just a normal character, but .glob can't.
         # if .glob is used and there is a { as a normal character, it will
         # recurse forever.
-        if node = compile(pattern, flags)
-          run(node, matches)
+        if node = single_compile(pattern, flags)
+          patterns << node
         end
       end
 
-      return matches
+      return patterns
     end
   end
 end
