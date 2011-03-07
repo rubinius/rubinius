@@ -201,6 +201,10 @@ describe :dir_glob, :shared => true do
     Dir.send(@method, 'subdir_{one,two,three}').sort.should == %w|subdir_one subdir_two|.sort
   end
 
+  it "matches a set '{<string>,<other>,...}' which also uses a glob" do
+    Dir.send(@method, 'sub*_{one,two,three}').sort.should == %w|subdir_one subdir_two|.sort
+  end
+
   it "accepts string sets with empty strings with {<string>,,<other>}" do
     a = Dir.send(@method, 'deeply/nested/directory/structure/file_one{.ext,}').sort
     a.should == %w|deeply/nested/directory/structure/file_one.ext
