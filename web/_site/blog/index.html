@@ -800,39 +800,6 @@ which knows how to find the code on GitHub and install it locally:</p>
 
 <h4 id="writing-the-code">Writing the code</h4>
 
-<div class="highlight"><pre><code class="fancy"><span class="lineno"> 1</span> <span class="nf">require:</span> <span class="s">&quot;fancy_irc&quot;</span>
-<span class="lineno"> 2</span> 
-<span class="lineno"> 3</span> <span class="n">greeter_bot</span> <span class="o">=</span> <span class="no">FancyIRC</span> <span class="no">Client</span> <span class="nf">new:</span> <span class="p">{</span>
-<span class="lineno"> 4</span>   <span class="nf">configuration:</span> <span class="p">{</span>
-<span class="lineno"> 5</span>     <span class="nf">nickname:</span> <span class="s">&quot;greeter_bot&quot;</span>
-<span class="lineno"> 6</span>     <span class="nf">server:</span> <span class="s">&quot;irc.freenode.net&quot;</span>
-<span class="lineno"> 7</span>     <span class="nf">port:</span> <span class="mi">6667</span>
-<span class="lineno"> 8</span>     <span class="nf">channels:</span> <span class="o">[</span><span class="s">&quot;#fancy&quot;</span><span class="o">]</span>
-<span class="lineno"> 9</span>   <span class="p">}</span>
-<span class="lineno">10</span> 
-<span class="lineno">11</span>   <span class="c1"># greet person back</span>
-<span class="lineno">12</span>   <span class="nf">on:</span> <span class="ss">&#39;channel</span> <span class="nf">pattern:</span> <span class="sr">/^[hH]ello greeter_bot/</span> <span class="nf">do:</span> <span class="p">|</span><span class="n">msg</span><span class="p">|</span> <span class="p">{</span>
-<span class="lineno">13</span>     <span class="n">msg</span> <span class="nf">reply:</span> <span class="s">&quot;Hello to you too, #{msg author}!&quot;</span>
-<span class="lineno">14</span>   <span class="p">}</span>
-<span class="lineno">15</span> 
-<span class="lineno">16</span>   <span class="c1"># &quot;echo&quot; command</span>
-<span class="lineno">17</span>   <span class="c1"># invoke with: !echo &lt;text&gt;</span>
-<span class="lineno">18</span>   <span class="nf">on:</span> <span class="ss">&#39;channel</span> <span class="nf">pattern:</span> <span class="sr">/^!echo (.*)$/</span> <span class="nf">do:</span> <span class="p">|</span><span class="n">msg</span><span class="o">,</span> <span class="n">text</span><span class="p">|</span> <span class="p">{</span>
-<span class="lineno">19</span>     <span class="n">msg</span> <span class="nf">reply:</span> <span class="s">&quot;#{msg author} said: #{text}&quot;</span>
-<span class="lineno">20</span>   <span class="p">}</span>
-<span class="lineno">21</span> 
-<span class="lineno">22</span>   <span class="c1"># tell bot to shutdown via !shutdown command</span>
-<span class="lineno">23</span>   <span class="nf">on:</span> <span class="ss">&#39;channel</span> <span class="nf">pattern:</span> <span class="sr">/^!shutdown/</span> <span class="nf">do:</span> <span class="p">|</span><span class="n">msg</span><span class="p">|</span> <span class="p">{</span>
-<span class="lineno">24</span>     <span class="n">msg</span> <span class="nf">reply:</span> <span class="s">&quot;OK, shutting down&quot;</span>
-<span class="lineno">25</span>     <span class="no">System</span> <span class="n">exit</span>
-<span class="lineno">26</span>   <span class="p">}</span>
-<span class="lineno">27</span> <span class="p">}</span>
-<span class="lineno">28</span> 
-<span class="lineno">29</span> <span class="n">greeter_bot</span> <span class="n">connect</span>
-<span class="lineno">30</span> <span class="n">greeter_bot</span> <span class="n">run</span>
-</code></pre>
-</div>
-
 <p>I think the code is pretty straight forward. This should give you a
 feeling for what Fancy looks and feels like. There is of course lots
 more to Fancy than what was shown here. It would not fit into a single
@@ -1125,26 +1092,6 @@ biggest challenges with a dynamic language like Ruby is knowing what method is
 actually being invoked when a message is sent to an object. Consider the
 following code:</p>
 
-<div class="highlight"><pre><code class="ruby"><span class="lineno"> 1</span> <span class="k">class</span> <span class="nc">A</span>
-<span class="lineno"> 2</span>   <span class="k">def</span> <span class="nf">m</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
-<span class="lineno"> 3</span>     <span class="o">.</span><span class="n">.</span><span class="o">.</span>
-<span class="lineno"> 4</span>   <span class="k">end</span>
-<span class="lineno"> 5</span> <span class="k">end</span>
-<span class="lineno"> 6</span> 
-<span class="lineno"> 7</span> <span class="k">class</span> <span class="nc">B</span>
-<span class="lineno"> 8</span>   <span class="k">def</span> <span class="nf">m</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
-<span class="lineno"> 9</span>     <span class="o">.</span><span class="n">.</span><span class="o">.</span>
-<span class="lineno">10</span>   <span class="k">end</span>
-<span class="lineno">11</span> <span class="k">end</span>
-<span class="lineno">12</span> 
-<span class="lineno">13</span> <span class="k">class</span> <span class="nc">C</span>
-<span class="lineno">14</span>   <span class="k">def</span> <span class="nf">work</span><span class="p">(</span><span class="n">obj</span><span class="p">)</span>
-<span class="lineno">15</span>     <span class="n">obj</span><span class="o">.</span><span class="n">m</span><span class="p">(</span><span class="n">y</span><span class="p">)</span>
-<span class="lineno">16</span>   <span class="k">end</span>
-<span class="lineno">17</span> <span class="k">end</span>
-</code></pre>
-</div>
-
 <p>What method is being invoked by <code>obj.m(y)</code>? There is no way to definitively
 know this by looking at the source code. However, when the program is actually
 running, we can know precisely what <code>obj</code> is and precisely which method <code>m</code>
@@ -1243,19 +1190,6 @@ bytecode, and decoupling method dispatch from Ruby semantics.</p>
 
 <p>Hopefully, Evan will introduce us to all this in a future blog post, but
 here is a taste of what you can do:</p>
-
-<div class="highlight"><pre><code class="ruby"><span class="lineno"> 1</span> <span class="k">class</span> <span class="nc">Hello</span>
-<span class="lineno"> 2</span>   <span class="n">dynamic_method</span> <span class="ss">:world</span> <span class="k">do</span> <span class="o">|</span><span class="n">g</span><span class="o">|</span>
-<span class="lineno"> 3</span>     <span class="n">g</span><span class="o">.</span><span class="n">push</span> <span class="ss">:self</span>
-<span class="lineno"> 4</span>     <span class="n">g</span><span class="o">.</span><span class="n">push_literal</span> <span class="s2">&quot;Hello, world&quot;</span>
-<span class="lineno"> 5</span>     <span class="n">g</span><span class="o">.</span><span class="n">send</span> <span class="ss">:puts</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="kp">true</span>
-<span class="lineno"> 6</span>     <span class="n">g</span><span class="o">.</span><span class="n">ret</span>
-<span class="lineno"> 7</span>   <span class="k">end</span>
-<span class="lineno"> 8</span> <span class="k">end</span>
-<span class="lineno"> 9</span> 
-<span class="lineno">10</span> <span class="no">Hello</span><span class="o">.</span><span class="n">new</span><span class="o">.</span><span class="n">world</span>
-</code></pre>
-</div>
 
 <p>Of course, that is much more concisely written in Ruby, but combine this
 ability with a built-in PEG parser and you can be experimenting with your own
