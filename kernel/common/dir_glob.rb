@@ -91,6 +91,8 @@ class Dir
 
         stack = [start]
 
+        allow_dots = ((@flags & File::FNM_DOTMATCH) != 0)
+
         until stack.empty?
           path = stack.pop
           dir = Dir.new(path)
@@ -98,7 +100,7 @@ class Dir
             next if ent == "." || ent == ".."
             full = path_join(path, ent)
 
-            if File.directory? full and ent[0] != ?.
+            if File.directory? full and (allow_dots or ent[0] != ?.)
               stack << full
               @next.call env, full
             end
@@ -125,11 +127,13 @@ class Dir
 
         stack = []
 
+        allow_dots = ((@flags & File::FNM_DOTMATCH) != 0)
+
         dir = Dir.new(".")
         while ent = dir.read
           next if ent == "." || ent == ".."
 
-          if File.directory? ent and ent[0] != ?.
+          if File.directory? ent and (allow_dots or ent[0] != ?.)
             stack << ent
             @next.call env, ent
           end
@@ -150,18 +154,6 @@ class Dir
           end
           dir.close
         end
-      end
-    end
-
-    class EachDirectory < Node
-      def call(env, path)
-        return unless File.exists?("#{path}/.")
-
-        dir = Dir.new(path)
-        while ent = dir.read
-          @next.call env, ent
-        end
-        dir.close
       end
     end
 
@@ -246,29 +238,11 @@ class Dir
       end
     end
 
-    class DirectoriesOnly < Match
+    class DirectoriesOnly < Node
       def call(env, path)
-        return if path and !File.exists?("#{path}/.")
-
-        allow_dots = ((@flags & File::FNM_DOTMATCH) != 0)
-        all_dots = (@glob[0] == ?.)
-
-        dir = Dir.new(path ? path : ".")
-        while ent = dir.read
-          unless all_dots
-            if ent[0] == ?.
-              next if ent.size == 1 or ent[1] == ?.
-              next unless allow_dots
-            end
-          end
-
-          full = path_join(path, ent)
-
-          if File.directory? full and match? ent
-            env.matches << "#{full}/"
-          end
+        if path and File.exists?("#{path}/.")
+          env.matches << "#{path}/"
         end
-        dir.close
       end
     end
 
@@ -284,12 +258,7 @@ class Dir
       parts = glob.split(%r!(/+)!)
 
       if glob[-1] == ?/
-        parts.pop # remove /+
-
-        last = DirectoriesOnly.new nil, flags, parts.pop
-        if parts.empty?
-          last = StartRecursiveDirectories.new last, flags
-        end
+        last = DirectoriesOnly.new nil, flags
       else
         file = parts.pop
         if /^[a-zA-Z0-9._]+$/.match(file)
@@ -343,7 +312,7 @@ class Dir
       # that specific case.
 
       if flags == 0 and
-             m = /^([a-zA-Z0-9_.\/\s]*)(?:\{([^{}\/\*\?]*)\})?$/.match(pattern)
+             m = /^([a-zA-Z0-9_.\/\s]*[a-zA-Z0-9_.])(?:\{([^{}\/\*\?]*)\})?$/.match(pattern)
         # no meta characters, so this is a glorified
         # File.exists? check. We allow for a brace expansion
         # only as a suffix.
