@@ -258,6 +258,14 @@ describe :dir_glob, :shared => true do
     Dir.send(@method, "deeply/nested/directory/structure//**/*.ext").should ==
       %w!deeply/nested/directory/structure//file_one.ext!
   end
+
+  it "ignores matching through directories that doen't exist" do
+    Dir.send(@method, "deeply/notthere/blah*/whatever").should == []
+  end
+
+  it "ignores matching only directories under an nonexistant path" do
+    Dir.send(@method, "deeply/notthere/blah/").should == []
+  end
 end
 
 describe :dir_glob_recursive, :shared => true do

@@ -57,7 +57,7 @@ describe "Dir.glob" do
     Dir.glob('**', File::FNM_DOTMATCH).sort.should == DirSpecs.expected_paths
   end
 
-  it "recursively matches any subdirectories except './' or '../' with '**/' and option File::FNM_DOTMATCH" do
+  it "recursively matches any subdirectories except './' or '../' with '**/' from the current directory and option File::FNM_DOTMATCH" do
     expected = %w[
       .dotsubdir/
       brace/
@@ -72,6 +72,26 @@ describe "Dir.glob" do
     ]
 
     Dir.glob('**/', File::FNM_DOTMATCH).sort.should == expected
+  end
+
+  # This is a seperate case to check **/ coming after a constant
+  # directory as well.
+  it "recursively matches any subdirectories except './' or '../' with '**/' and option File::FNM_DOTMATCH" do
+    expected = %w[
+      ./
+      ./.dotsubdir/
+      ./brace/
+      ./deeply/
+      ./deeply/nested/
+      ./deeply/nested/directory/
+      ./deeply/nested/directory/structure/
+      ./dir/
+      ./special/
+      ./subdir_one/
+      ./subdir_two/
+    ]
+
+    Dir.glob('./**/', File::FNM_DOTMATCH).sort.should == expected
   end
 
   it "accepts a block and yields it with each elements" do
