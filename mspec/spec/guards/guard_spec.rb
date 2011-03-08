@@ -3,6 +3,21 @@ require 'mspec/utils/ruby_name'
 require 'mspec/guards/guard'
 require 'rbconfig'
 
+describe SpecGuard, "#ruby_version_override=" do
+  after :each do
+    SpecGuard.ruby_version_override = nil
+  end
+
+  it "returns nil by default" do
+    SpecGuard.ruby_version_override.should be_nil
+  end
+
+  it "returns the value set by #ruby_version_override=" do
+    SpecGuard.ruby_version_override = "8.3.2"
+    SpecGuard.ruby_version_override.should == "8.3.2"
+  end
+end
+
 describe SpecGuard, ".ruby_version" do
   before :all do
     @ruby_version = Object.const_get :RUBY_VERSION
@@ -44,6 +59,45 @@ describe SpecGuard, ".ruby_version" do
 
   it "returns major for :major" do
     SpecGuard.ruby_version(:major).should == "8"
+  end
+
+  describe "with ruby_version_override set" do
+    before :each do
+      SpecGuard.ruby_version_override = "8.3.2"
+    end
+
+    after :each do
+      SpecGuard.ruby_version_override = nil
+    end
+
+    it "returns the version and patchlevel for :full" do
+      SpecGuard.ruby_version(:full).should == "8.3.2.71"
+    end
+
+    it "returns 0 for negative RUBY_PATCHLEVEL values" do
+      Object.const_set :RUBY_PATCHLEVEL, -1
+      SpecGuard.ruby_version(:full).should == "8.3.2.0"
+    end
+
+    it "returns major.minor.tiny for :tiny" do
+      SpecGuard.ruby_version(:tiny).should == "8.3.2"
+    end
+
+    it "returns major.minor.tiny for :teeny" do
+      SpecGuard.ruby_version(:tiny).should == "8.3.2"
+    end
+
+    it "returns major.minor for :minor" do
+      SpecGuard.ruby_version(:minor).should == "8.3"
+    end
+
+    it "defaults to :minor" do
+      SpecGuard.ruby_version.should == "8.3"
+    end
+
+    it "returns major for :major" do
+      SpecGuard.ruby_version(:major).should == "8"
+    end
   end
 end
 

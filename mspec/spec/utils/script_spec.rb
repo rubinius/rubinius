@@ -64,6 +64,7 @@ describe MSpecScript, "#load_default" do
   end
 
   it "attempts to load 'default.mspec'" do
+    @script.stub!(:load)
     @script.should_receive(:load).with('default.mspec').and_return(true)
     @script.load_default
   end

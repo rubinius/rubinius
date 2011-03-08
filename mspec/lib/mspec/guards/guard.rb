@@ -32,6 +32,16 @@ class SpecGuard
     @guards = []
   end
 
+  @@ruby_version_override = nil
+
+  def self.ruby_version_override=(version)
+    @@ruby_version_override = version
+  end
+
+  def self.ruby_version_override
+    @@ruby_version_override
+  end
+
   # Returns a partial Ruby version string based on +which+. For example,
   # if RUBY_VERSION = 8.2.3 and RUBY_PATCHLEVEL = 71:
   #
@@ -54,7 +64,7 @@ class SpecGuard
 
     patch = RUBY_PATCHLEVEL.to_i
     patch = 0 if patch < 0
-    version = "#{RUBY_VERSION}.#{patch}"
+    version = "#{ruby_version_override || RUBY_VERSION}.#{patch}"
     version.split('.')[0,n].join('.')
   end
 
