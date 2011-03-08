@@ -2380,7 +2380,7 @@ use_send:
       set_has_side_effects();
 
       // We're inlinig a block...
-      if(for_inlined_method()) {
+      if(in_inlined_block()) {
         JITMethodInfo* nfo = upscope_info(depth);
 
         if(nfo) {
@@ -2491,7 +2491,7 @@ use_send:
       set_has_side_effects();
 
       // We're in an inlined block..
-      if(for_inlined_method()) {
+      if(in_inlined_block()) {
         JITMethodInfo* nfo = upscope_info(depth);
 
         // And we can see this scope depth directly because of inlining...
@@ -2903,7 +2903,7 @@ use_send:
 
     void visit_raise_return() {
       // Inlining a block!
-      if(for_inlined_method()) {
+      if(in_inlined_block()) {
         // We have to flush scopes before we return.
         JITMethodInfo* nfo = &info();
         while(nfo) {
@@ -2919,6 +2919,9 @@ use_send:
 
         creator->add_return_value(stack_pop(), b().GetInsertBlock());
         b().CreateBr(creator->return_pad());
+        return;
+      } else if(!info().is_block) {
+        visit_ret();
         return;
       }
 
