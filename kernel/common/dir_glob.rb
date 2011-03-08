@@ -155,6 +155,8 @@ class Dir
 
     class EachDirectory < Node
       def call(env, path)
+        return unless File.exists?("#{path}/.")
+
         dir = Dir.new(path)
         while ent = dir.read
           @next.call env, ent
@@ -182,6 +184,8 @@ class Dir
       end
 
       def call(env, path)
+        return if path and !File.exists?("#{path}/.")
+
         dir = Dir.new(path ? path : ".")
         while ent = dir.read
           if match? ent
@@ -198,6 +202,8 @@ class Dir
 
     class EntryMatch < Match
       def call(env, path)
+        return if path and !File.exists?("#{path}/.")
+
         begin
           dir = Dir.new(path ? path : ".")
         rescue SystemCallError
@@ -220,6 +226,8 @@ class Dir
       end
 
       def call(env, path)
+        return if path and !File.exists?("#{path}/.")
+
         begin
           dir = Dir.new(path ? path : ".")
         rescue SystemCallError
@@ -240,6 +248,8 @@ class Dir
 
     class DirectoriesOnly < Match
       def call(env, path)
+        return if path and !File.exists?("#{path}/.")
+
         allow_dots = ((@flags & File::FNM_DOTMATCH) != 0)
         all_dots = (@glob[0] == ?.)
 
