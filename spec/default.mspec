@@ -88,6 +88,7 @@ class MSpecScript
     '^spec/ruby/library/syslog',
 
     # 1.9 features
+    '^spec/ruby/core/basicobject',
     '^spec/ruby/library/cmath',
     '^spec/ruby/library/continuation',
     '^spec/ruby/library/coverage',
