@@ -1,10 +1,12 @@
-require File::join( File::dirname(__FILE__), %w{ .. .. spec_helper } )
+require File.expand_path('../../../spec_helper', __FILE__)
 
-ruby_version_is "1.9".."1.9.9" do
+ruby_version_is "1.9" do
   describe "BasicObject.new" do
-    it "creates a new BasicObject" do
-      ( BasicObject === BasicObject.new ).should == true
+    it "returns an instance of BasicObject" do
+      # BasicObject cannot participate in .should matchers. Further,
+      # there is no #class method on BasicObject. Hence, we can only
+      # infer that we have an instance of BasicObject.
+      (Object === BasicObject.new).should be_false
     end
   end
 end
-

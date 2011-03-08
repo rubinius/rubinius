@@ -15,7 +15,7 @@ describe "Module#class_variables" do
 
     it "returns an Array of Strings of class variable names defined in a metaclass" do
       obj = mock("metaclass class variable")
-      meta = obj.metaclass
+      meta = obj.singleton_class
       meta.send :class_variable_set, :@@var, :cvar_value
       meta.class_variables.should == ["@@var"]
     end
@@ -40,7 +40,7 @@ describe "Module#class_variables" do
 
     it "returns an Array of Symbols of class variable names defined in a metaclass" do
       obj = mock("metaclass class variable")
-      meta = obj.metaclass
+      meta = obj.singleton_class
       meta.send :class_variable_set, :@@var, :cvar_value
       meta.class_variables.should == [:@@var]
     end

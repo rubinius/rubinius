@@ -434,4 +434,11 @@ describe "Marshal.dump" do
       end
     end
   end
+  
+  ruby_version_is "1.9" do
+    it "dumps a BasicObject subclass if it defines respond_to?" do
+      obj = MarshalSpec::BasicObjectSubWithRespondToFalse.new
+      Marshal.dump(obj).should == "\x04\bo:2MarshalSpec::BasicObjectSubWithRespondToFalse\x00"
+    end
+  end
 end

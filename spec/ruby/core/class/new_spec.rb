@@ -51,7 +51,7 @@ describe "Class.new" do
 
   it "raises a TypeError if passed a metaclass" do
     obj = mock("Class.new metaclass")
-    meta = obj.metaclass
+    meta = obj.singleton_class
     lambda { Class.new meta }.should raise_error(TypeError)
   end
 

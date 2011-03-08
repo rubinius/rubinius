@@ -1,5 +1,6 @@
 require File.expand_path('../../../spec_helper', __FILE__)
 require File.expand_path('../fixtures/classes.rb', __FILE__)
+require File.expand_path('../fixtures/utf-8-encoding.rb', __FILE__)
 
 describe "String#rindex with object" do
   it "raises a TypeError if obj isn't a String, Fixnum or Regexp" do
@@ -432,5 +433,11 @@ describe "String#rindex with Regexp" do
 
   it "raises a TypeError when given offset is nil" do
     lambda { "str".rindex(/../, nil) }.should raise_error(TypeError)
+  end
+  
+  ruby_version_is "1.9.2" do
+    it "reverse matches multibyte UTF-8 chars" do
+      StringSpecs::UTF8Encoding.egrave.rindex(/[\w\W]/).should == 0
+    end
   end
 end

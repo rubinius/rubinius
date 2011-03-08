@@ -183,6 +183,27 @@ describe "Predefined global $stdout" do
   end
 end
 
+describe "Predefined global $!" do
+  it "needs to be reviewed for spec completeness"
+  
+  ruby_version_is "1.9" do
+    # See http://jira.codehaus.org/browse/JRUBY-5550
+    it "remains nil after a failed core class \"checked\" coercion against a class that defines method_missing" do
+      $!.should == nil
+      
+      obj = Class.new do
+        def method_missing(*args)
+          super
+        end
+      end.new
+      
+      [obj, 'foo'].join
+      
+      $!.should == nil
+    end
+  end
+end
+
 =begin
 Input/Output Variables 
 ---------------------------------------------------------------------------------------------------
@@ -593,10 +614,12 @@ end
 describe "Processing RUBYOPT" do
   before (:each) do
     @rubyopt, ENV["RUBYOPT"] = ENV["RUBYOPT"], nil
+    @ruby_flags, ENV["RUBY_FLAGS"] = ENV["RUBY_FLAGS"], nil
   end
 
   after (:each) do
     ENV["RUBYOPT"] = @rubyopt
+    ENV["RUBY_FLAGS"] = @ruby_flags
   end
 
   it "adds the -I path to $LOAD_PATH" do

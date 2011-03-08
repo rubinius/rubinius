@@ -29,14 +29,28 @@ ruby_version_is "1.9" do
       one.should == two
     end
 
-    it "returns true if the two exceptions inherit from Exception but have different classes" do
-      one = RuntimeError.new(:message)
-      one.set_backtrace [File.dirname(__FILE__)]
-      one.should be_kind_of(Exception)
-      two = TypeError.new(:message)
-      two.set_backtrace [File.dirname(__FILE__)]
-      two.should be_kind_of(Exception)
-      one.should == two
+    ruby_version_is '1.9' ... '1.9.3' do
+      it "returns true if the two exceptions inherit from Exception but have different classes" do
+        one = RuntimeError.new(:message)
+        one.set_backtrace [File.dirname(__FILE__)]
+        one.should be_kind_of(Exception)
+        two = TypeError.new(:message)
+        two.set_backtrace [File.dirname(__FILE__)]
+        two.should be_kind_of(Exception)
+        one.should == two
+      end
+    end
+
+    ruby_version_is '1.9.3' do
+      it "returns false if the two exceptions inherit from Exception but have different classes" do
+        one = RuntimeError.new(:message)
+        one.set_backtrace [File.dirname(__FILE__)]
+        one.should be_kind_of(Exception)
+        two = TypeError.new(:message)
+        two.set_backtrace [File.dirname(__FILE__)]
+        two.should be_kind_of(Exception)
+        one.should_not == two
+      end
     end
 
     it "returns true if the two objects subclass Exception and have the same message and backtrace" do

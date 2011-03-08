@@ -1,3 +1,4 @@
+# -*- encoding: ascii-8bit -*-
 require File.expand_path('../../../spec_helper', __FILE__)
 require File.expand_path('../fixtures/classes', __FILE__)
 
@@ -35,6 +36,14 @@ describe "IO#readpartial" do
     @rd.ungetc(c)
     @rd.readpartial(3).should == "foo"
     @rd.readpartial(3).should == "bar"
+  end
+
+  it "reads after ungetc with multibyte characters in the buffer" do
+    @wr.write("∂φ/∂x = gaîté")
+    c = @rd.getc
+    @rd.ungetc(c)
+    @rd.readpartial(3).should == "\xE2\x88\x82"
+    @rd.readpartial(3).should == "\xCF\x86/"
   end
 
   it "reads after ungetc without data in the buffer" do

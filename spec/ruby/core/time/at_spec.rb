@@ -3,11 +3,23 @@ require File.expand_path('../fixtures/methods', __FILE__)
 
 describe "Time.at" do
   platform_is_not :windows do
-    it "converts to time object" do
-      with_timezone "GMT" do
-        # the #chomp calls are necessary because of RSpec
-        t = Time.at(1184027924)
-        t.inspect.chomp.should == "Tue Jul 10 00:38:44 +0000 2007"
+    ruby_version_is '' ... '1.9' do
+      it "converts to time object" do
+        with_timezone "GMT" do
+          # the #chomp calls are necessary because of RSpec
+          t = Time.at(1184027924)
+          t.inspect.chomp.should == "Tue Jul 10 00:38:44 +0000 2007"
+        end
+      end
+    end
+
+    ruby_version_is '1.9' do
+      it "converts to time object" do
+        with_timezone "GMT" do
+          # the #chomp calls are necessary because of RSpec
+          t = Time.at(1184027924)
+          t.inspect.chomp.should == "2007-07-10 00:38:44 +0000"
+        end
       end
     end
   end

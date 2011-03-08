@@ -68,6 +68,12 @@ class CApiClassSpecs
       :subclass_method
     end
   end
+
+  class SubSub < Sub
+    def call_super_method
+      :subclass_method
+    end
+  end
 end
 
 describe "C-API Class function" do
@@ -127,6 +133,13 @@ describe "C-API Class function" do
     it "calls the method in the superclass" do
       @s.define_call_super_method CApiClassSpecs::Sub, "call_super_method"
       obj = CApiClassSpecs::Sub.new
+      obj.call_super_method.should == :super_method
+    end
+    
+    it "calls the method in the superclass through two native levels" do
+      @s.define_call_super_method CApiClassSpecs::Sub, "call_super_method"
+      @s.define_call_super_method CApiClassSpecs::SubSub, "call_super_method"
+      obj = CApiClassSpecs::SubSub.new
       obj.call_super_method.should == :super_method
     end
   end
@@ -243,7 +256,7 @@ describe "C-API Class function" do
     end
 
     it "raises a TypeError if passed a singleton class as the superclass" do
-      metaclass = Object.new.metaclass
+      metaclass = Object.new.singleton_class
       lambda { @s.rb_class_new(metaclass) }.should raise_error(TypeError)
     end
   end
