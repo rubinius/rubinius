@@ -18,7 +18,7 @@ describe :tcpsocket_new, :shared => true do
   it "connects to a listening server" do
     ready = false
     thread = Thread.new do
-      server = TCPServer.new(SocketSpecs.port)
+      server = TCPServer.new(@hostname, SocketSpecs.port)
       ready = true
       conn = server.accept
       conn.recv(50)

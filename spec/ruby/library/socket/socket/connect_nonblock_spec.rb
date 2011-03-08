@@ -5,7 +5,8 @@ require 'socket'
 
 describe "Socket#connect_nonblock" do
   before :each do
-    @addr = Socket.sockaddr_in(SocketSpecs.port, "127.0.0.1")
+    @hostname = "127.0.0.1"
+    @addr = Socket.sockaddr_in(SocketSpecs.port, @hostname)
     @socket = Socket.new(Socket::AF_INET, Socket::SOCK_STREAM, 0)
   end
 
@@ -22,7 +23,7 @@ describe "Socket#connect_nonblock" do
   it "connects the socket to the remote side" do
     ready = false
     thread = Thread.new do
-      server = TCPServer.new(SocketSpecs.port)
+      server = TCPServer.new(@hostname, SocketSpecs.port)
       ready = true
       conn = server.accept
       conn << "hello!"

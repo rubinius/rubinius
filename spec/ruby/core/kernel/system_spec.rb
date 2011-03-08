@@ -75,6 +75,16 @@ describe "Kernel#system" do
     result = system("#{RUBY_EXE}", @helper_script, @shell_var, "foo")
     result.should be_false
   end
+  
+  platform_is :windows do
+    ruby_bug 'redmine:4393', '1.9.3' do
+      it "runs commands starting with @ using shell (as comments)" do
+        # unsure of a better way to confirm this, since success means it does nothing
+        result = system('@does_not_exist')
+        result.should == true
+      end
+    end
+  end
 end
 
 describe "Kernel.system" do

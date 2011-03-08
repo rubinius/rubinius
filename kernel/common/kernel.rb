@@ -162,7 +162,8 @@ module Kernel
   module_function :exit!
 
   def abort(msg=nil)
-    Process.abort(msg)
+    msg = StringValue(msg) if msg
+    Process.abort msg
   end
   module_function :abort
 

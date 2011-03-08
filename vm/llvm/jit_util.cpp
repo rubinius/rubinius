@@ -1008,7 +1008,18 @@ extern "C" {
   }
 
   Object* rbx_raise_break(STATE, CallFrame* call_frame, Object* top) {
-    state->thread_state()->raise_break(top, call_frame->scope->parent());
+    if(call_frame->flags & CallFrame::cIsLambda) {
+      // We have to use raise_return here because the jit code
+      // jumps to raising the exception right away.
+      state->thread_state()->raise_return(top,
+                                          call_frame->promote_scope(state));
+    } else if(call_frame->scope_still_valid(call_frame->scope->parent())) {
+      state->thread_state()->raise_break(top, call_frame->scope->parent());
+    } else {
+      Exception* exc = Exception::make_exception(state, G(jump_error), "attempted to break to exitted method");
+      exc->locations(state, Location::from_call_stack(state, call_frame));
+      state->thread_state()->raise_exception(exc);
+    }
     return Qnil;
   }
 

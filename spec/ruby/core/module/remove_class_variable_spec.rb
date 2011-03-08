@@ -15,7 +15,7 @@ describe "Module#remove_class_variable" do
 
   it "removes a class variable defined in a metaclass" do
     obj = mock("metaclass class variable")
-    meta = obj.metaclass
+    meta = obj.singleton_class
     meta.send :class_variable_set, :@@var, 1
     meta.send(:remove_class_variable, :@@var).should == 1
     meta.class_variable_defined?(:@@var).should be_false

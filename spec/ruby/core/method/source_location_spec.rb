@@ -34,5 +34,17 @@ ruby_version_is "1.9" do
     it "returns the location of the original method even if it was aliased" do
       MethodSpecs::SourceLocation.new.method(:aka).source_location.last.should == 17
     end
+    
+    it "works for define_method methods" do
+      line = nil
+      cls = Class.new do
+        line = __LINE__ + 1
+        define_method(:foo) { }
+      end
+      
+      method = cls.new.method(:foo)
+      method.source_location[0].should =~ /#{__FILE__}/
+      method.source_location[1].should == line
+    end
   end
 end

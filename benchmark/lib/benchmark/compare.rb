@@ -1,5 +1,7 @@
 module Benchmark
   def compare(*reports)
+    return if reports.size < 2
+
     iter = false
     sorted = reports.sort do |a,b|
       if a.respond_to? :ips

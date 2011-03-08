@@ -17,7 +17,7 @@ describe "Module#extend_object" do
     ModuleSpecs::ExtendObject.send :extend_object, obj
 
     obj.test_method.should == "hello test"
-    obj.metaclass.const_get(:C).should == :test
+    obj.singleton_class.const_get(:C).should == :test
   end
 
   it "is called even when private" do

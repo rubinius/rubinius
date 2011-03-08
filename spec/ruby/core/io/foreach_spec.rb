@@ -53,6 +53,13 @@ describe "IO.foreach" do
     end
   end
 
+  ruby_version_is "1.9.2" do
+    it "accepts an optional options argument" do
+      IO.foreach(@name, mode => 'r') {|l| ScratchPad << l}
+      ScratchPad.recorded.should == IOSpecs.lines
+    end
+  end
+
   describe "with nil as the separator argument" do
     it "yields a single string with entire content" do
       IO.foreach(@name, nil) { |l| ScratchPad << l }

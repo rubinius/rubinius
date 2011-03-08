@@ -39,9 +39,11 @@ describe "Time#+" do
     it "does NOT round" do
       t = Time.at(0) + Rational(8_999_999_999_999_999, 1_000_000_000_000_000)
       t.should_not == Time.at(9)
-      t.usec.should == 999_999
-      t.nsec.should == 999_999_999
-      t.subsec.should == Rational(999_999_999_999_999, 1_000_000_000_000_000)
+      not_compliant_on :jruby do # only microseconds are supported
+        t.usec.should == 999_999
+        t.nsec.should == 999_999_999
+        t.subsec.should == Rational(999_999_999_999_999, 1_000_000_000_000_000)
+      end
     end
 
     it "adds a negative Float" do
