@@ -523,6 +523,9 @@ VM Options
     def agent
       @stage = "starting agent ruby thread"
 
+      # Fixing a bug on OSX 10.5
+      return
+
       if Rubinius::Config['agent.start']
         Rubinius::AgentRegistry.spawn_thread
       end
