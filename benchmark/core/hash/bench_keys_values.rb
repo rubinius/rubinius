@@ -1,14 +1,13 @@
 require 'benchmark'
 require 'benchmark/ips'
+require File.expand_path('../shared_hash.rb', __FILE__)
 
 Benchmark.ips do |x|
-  hash = {:a => 'a', :b => 'b', :c => 'c', :d => 'd', :e => 'e', :f => 'f', :g => 'g', :h => 'h', :i => 'i', :j => 'j', 
-    :k => -4, :l => -81, :m => 0, :n => 5, :o => 12, :p => -1_000_000, :q => 1, :r => 10, :s => 100, :t => 1000}
 
   x.report "#keys" do |times|
     i = 0
     while i < times
-      hash.keys
+      $small_hash.keys
       i += 1
     end
   end
@@ -16,7 +15,7 @@ Benchmark.ips do |x|
   x.report "#values" do |times|
     i = 0
     while i < times
-      hash.values
+      $small_hash.values
       i += 1
     end
   end

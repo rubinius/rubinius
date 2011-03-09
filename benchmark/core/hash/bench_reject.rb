@@ -1,38 +1,37 @@
 require 'benchmark'
 require 'benchmark/ips'
+require File.expand_path('../shared_hash.rb', __FILE__)
 
 Benchmark.ips do |x|
-  hash_strings = {:a => 'a', :b => 'b', :c => 'c', :d => 'd', :e => 'e', :f => 'f', :g => 'g', :h => 'h', :i => 'i', :j => 'j'}
-  hash_numbers = {:a => -4, :b => -81, :c => 0, :d => 5, :e => 12, :f => -1_000_000, :g => 1, :h => 10, :i => 100, :j => 1000}
 
-  x.report "reject string" do |times|
+  x.report "reject all" do |times|
     i = 0
     while i < times
-      hash_strings.reject { |k,v| v < 'd' }
+      $small_hash.reject { |k,v| true }
       i += 1
     end
   end
 
-  x.report "reject numbers" do |times|
+  x.report "reject none" do |times|
     i = 0
     while i < times
-      hash_numbers.reject { |k,v| v < 10 }
+      $small_hash.reject { |k,v| false }
       i += 1
     end
   end
 
-  x.report "reject! string" do |times|
+  x.report "reject! all" do |times|
     i = 0
     while i < times
-      hash_strings.reject! { |k,v| v < 'd' }
+      $small_hash.reject! { |k,v| true }
       i += 1
     end
   end
 
-  x.report "reject! numbers" do |times|
+  x.report "reject! none" do |times|
     i = 0
     while i < times
-      hash_numbers.reject! { |k,v| v < 10 }
+      $small_hash.reject! { |k,v| false }
       i += 1
     end
   end
