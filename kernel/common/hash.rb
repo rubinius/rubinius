@@ -557,11 +557,33 @@ class Hash
 
     return to_enum :reject! unless block_given?
 
-    rejected = select { |k, v| yield k, v }
-    return if rejected.empty?
+    capacity = @capacity
+    entries = @entries
+    change = 0
 
-    rejected.each { |k, v| delete k }
-    self
+    i = -1
+    while (i +=1) < capacity
+      prev_entry = nil
+      entry = entries[i]
+      while entry
+        if yield(entry.key,entry.value)
+          change += 1
+          if !prev_entry
+            entries[i] = entry.next
+          else
+            prev_entry.next = entry.next
+            prev_entry = entry.next
+          end
+        end
+        entry = entry.next
+      end
+    end
+
+    if change > 0
+      @size -= change
+      return self
+    end
+    nil
   end
 
   def replace(other)
