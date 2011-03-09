@@ -1,42 +1,37 @@
 require 'benchmark'
 require 'benchmark/ips'
+require File.expand_path('../shared_array.rb', __FILE__)
 
 Benchmark.ips do |x|
-  strings = ('a'..'j').to_a
-  numbers = [-4, -81, 0, 5, 12, -1_000_000, 1, 10, 100, 1000]
 
-  x.report "reject string" do |times|
+  x.report "reject all" do |times|
     i = 0
     while i < times
-      a = strings.dup
-      a.reject { |v| v < 'd' }
+      $large_array.reject { |v| true }
       i += 1
     end
   end
 
-  x.report "reject numbers" do |times|
+  x.report "reject none" do |times|
     i = 0
     while i < times
-      a = numbers.dup
-      a.reject { |v| v < 10 }
+      $large_array.reject { |v| false }
       i += 1
     end
   end
 
-  x.report "reject! string" do |times|
+  x.report "reject! all" do |times|
     i = 0
     while i < times
-      a = strings.dup
-      a.reject! { |v| v < 'd' }
+      $large_array.reject! { |v| true }
       i += 1
     end
   end
 
-  x.report "reject! numbers" do |times|
+  x.report "reject! none" do |times|
     i = 0
     while i < times
-      a = numbers.dup
-      a.reject! { |v| v < 10 }
+      $large_array.reject! { |v| false }
       i += 1
     end
   end

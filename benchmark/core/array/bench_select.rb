@@ -1,24 +1,21 @@
 require 'benchmark'
 require 'benchmark/ips'
+require File.expand_path('../shared_array.rb', __FILE__)
 
 Benchmark.ips do |x|
-  strings = ('a'..'j').to_a
-  numbers = [-4, -81, 0, 5, 12, -1_000_000, 1, 10, 100, 1000]
 
-  x.report "select string" do |times|
+  x.report "select all" do |times|
     i = 0
     while i < times
-      a = strings.dup
-      a.select { |v| v > 'd' }
+      $large_array.select { |v| true }
       i += 1
     end
   end
 
-  x.report "select numbers" do |times|
+  x.report "select none" do |times|
     i = 0
     while i < times
-      a = numbers.dup
-      a.select { |v| v > 10 }
+      $large_array.select { |v| false }
       i += 1
     end
   end
