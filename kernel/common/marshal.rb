@@ -413,11 +413,21 @@ module Marshal
     end
 
     def construct_array
-      obj = @user_class ? get_user_class.new : []
+      obj = []
       store_unique_object obj
 
       construct_integer.times do
         obj << construct
+      end
+
+      if @user_class
+        cls = get_user_class()
+        if cls < Array
+          Rubinius::Unsafe.set_class obj, cls
+        else
+          # This is what MRI does, it's weird.
+          return cls.allocate
+        end
       end
 
       obj
