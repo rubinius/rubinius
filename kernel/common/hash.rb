@@ -543,11 +543,12 @@ class Hash
     self
   end
 
-  def reject(&block)
+  def reject
     return to_enum :reject unless block_given?
 
-    hsh = dup
-    hsh.reject! &block
+    hsh = self.class.new
+    hsh.taint! if self.tainted?
+    self.each {|k,v| hsh[k]=v if !yield(k,v) }
     hsh
   end
 
