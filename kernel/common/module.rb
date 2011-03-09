@@ -289,7 +289,7 @@ class Module
     table = {}
 
     mod = self
-
+    c = 0
     while mod
       mod.method_table.each do |name, obj, vis|
         unless table.key?(name)
@@ -301,9 +301,10 @@ class Module
       mod = mod.direct_superclass
     end
 
-    ary = []
+    ary = []; count = 0
     table.each do |name, vis|
       ary << name if vis == filter
+      count += 1
     end
 
     return ary

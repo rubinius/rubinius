@@ -11,12 +11,16 @@ class Hash
     attr_accessor :key_hash
     attr_accessor :value
     attr_accessor :next
+    attr_accessor :ordered_next
+    attr_accessor :ordered_prev
 
     def initialize(key, key_hash, value)
-      @key      = key
-      @key_hash = key_hash
-      @value    = value
-      @next     = nil
+      @key          = key
+      @key_hash     = key_hash
+      @value        = value
+      @next         = nil
+      @ordered_next = nil
+      @ordered_prev = nil # needed for O(1) removal
     end
 
     def match?(key, key_hash)
@@ -61,6 +65,7 @@ class Hash
   # Hash methods
 
   attr_reader :size
+  attr_reader :first
 
   alias_method :length, :size
 
@@ -193,7 +198,7 @@ class Hash
   def []=(key, value)
     Ruby.check_frozen
 
-    redistribute @entries if @size > @max_entries
+    redistribute @entries, @first, @last if @size > @max_entries
 
     key_hash = key.hash
     index = key_hash & @mask # key_index key_hash
@@ -261,6 +266,7 @@ class Hash
     if entry = @entries[index]
       if entry.match? key, key_hash
         @entries[index] = entry.next
+        ordered_unlink(entry)
         @size -= 1
         return entry.value
       end
@@ -269,6 +275,7 @@ class Hash
       while entry = entry.next
         if entry.match? key, key_hash
           last.next = entry.next
+          ordered_unlink(entry)
           @size -= 1
           return entry.value
         end
@@ -291,16 +298,11 @@ class Hash
   def each_entry
     idx = 0
     cap = @capacity
-    entries = @entries
+    entry = @first
 
-    while idx < cap
-      entry = entries[idx]
-      while entry
-        yield entry
-        entry = entry.next
-      end
-
-      idx += 1
+    while entry
+      yield entry
+      entry = entry.ordered_next
     end
   end
 
@@ -309,16 +311,10 @@ class Hash
 
     idx = 0
     cap = @capacity
-    entries = @entries
-
-    while idx < cap
-      entry = entries[idx]
-      while entry
-        yield [entry.key, entry.value]
-        entry = entry.next
-      end
-
-      idx += 1
+    entry = @first
+    while entry
+      yield [entry.key, entry.value]
+      entry = entry.ordered_next
     end
 
     self
@@ -484,15 +480,43 @@ class Hash
     end
 
     @size += 1
-    Entry.new key, key_hash, value
+    ordered_link(Entry.new key, key_hash, value)
   end
   private :new_entry
+
+  # Adds +entry+ to the end of the ordered list for this hash
+  def ordered_link(entry)
+    if (@last)
+      entry.ordered_prev = @last
+      @last.ordered_next = entry
+      @last = entry
+    else
+      @first = @last = entry
+    end
+    entry
+  end
+  private :ordered_link
+
+  # Removes +entry+ from the ordered list for this hash
+  def ordered_unlink(entry)
+    if (entry.ordered_prev)
+      entry.ordered_prev.ordered_next = entry.ordered_next
+    else
+      @first = entry.ordered_next
+    end
+    if (entry.ordered_next)
+      entry.ordered_next.ordered_prev = entry.ordered_prev
+    else
+      @last = entry.ordered_prev
+    end
+  end
+  private :ordered_unlink
 
   # Adjusts the hash storage and redistributes the entries among
   # the new bins. Any Iterator instance will be invalid after a
   # call to #redistribute. Does not recalculate the cached key_hash
   # values. See +#rehash+.
-  def redistribute(entries)
+  def redistribute(entries, order_first, order_last)
     capacity = @capacity
 
     # TODO: grow smaller too
@@ -513,6 +537,9 @@ class Hash
         old = nxt
       end
     end
+
+    @first = order_first
+    @last = order_last
   end
 
   # Recalculates the cached key_hash values and reorders the entries
@@ -605,10 +632,8 @@ class Hash
 
     return default(nil) if empty?
 
-    i = to_iter
-    if entry = i.next(entry)
-      @entries[i.index] = entry.next
-      @size -= 1
+    if (entry = @first)
+      delete entry.key
       return entry.key, entry.value
     end
   end
@@ -627,6 +652,8 @@ class Hash
     @max_entries = max
     @size     = size
     @entries  = Entries.new capacity
+    @first = nil
+    @last = nil
   end
   private :__setup__
 
