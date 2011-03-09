@@ -14,4 +14,13 @@ Benchmark.ips do |x|
     end
   end
 
+  x.report "replace" do |times|
+    i = 0
+    h = {}
+    while i < times
+      h.replace numbers
+      i += 1
+    end
+  end
+
 end
