@@ -8,8 +8,7 @@ Benchmark.ips do |x|
   x.report "reject string" do |times|
     i = 0
     while i < times
-      h = hash_strings.dup
-      h.reject { |k,v| v < 'd' }
+      hash_strings.reject { |k,v| v < 'd' }
       i += 1
     end
   end
@@ -17,8 +16,7 @@ Benchmark.ips do |x|
   x.report "reject numbers" do |times|
     i = 0
     while i < times
-      h = hash_numbers.dup
-      h.reject { |k,v| v < 10 }
+      hash_numbers.reject { |k,v| v < 10 }
       i += 1
     end
   end
@@ -26,8 +24,7 @@ Benchmark.ips do |x|
   x.report "reject! string" do |times|
     i = 0
     while i < times
-      h = hash_strings.dup
-      h.reject! { |k,v| v < 'd' }
+      hash_strings.reject! { |k,v| v < 'd' }
       i += 1
     end
   end
@@ -35,8 +32,7 @@ Benchmark.ips do |x|
   x.report "reject! numbers" do |times|
     i = 0
     while i < times
-      h = hash_numbers.dup
-      h.reject! { |k,v| v < 10 }
+      hash_numbers.reject! { |k,v| v < 10 }
       i += 1
     end
   end
