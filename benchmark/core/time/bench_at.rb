@@ -10,7 +10,7 @@ Benchmark.ips do |x|
   x.report "#at with integer" do |times|
     i = 0
     while i < times
-      Time.at(nearest_second)
+      Time.at(int_second)
       i += 1
     end
   end
@@ -18,7 +18,7 @@ Benchmark.ips do |x|
   x.report "#at with float" do |times|
     i = 0
     while i < times
-      Time.at(fractional_second)
+      Time.at(float_second)
       i += 1
     end
   end
