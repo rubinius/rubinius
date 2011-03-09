@@ -49,16 +49,16 @@ namespace agent {
       output.error("unimplemented");
     }
 
-    virtual void read_path(Output& output, const char* ipath) {
-      output.error("unimplemented");
+    virtual bool read_path(Output& output, const char* ipath) {
+      return false;
     }
 
     virtual void set(Output& output, bert::Value* val) {
       output.error("unimplemneted");
     }
 
-    virtual void set_path(Output& output, const char* path, bert::Value* val) {
-      output.error("unimplemneted");
+    virtual bool set_path(Output& output, const char* path, bert::Value* val) {
+      return false;
     }
   };
 
@@ -127,7 +127,7 @@ namespace agent {
       }
     }
 
-    virtual void read_path(Output& output, const char* ipath) {
+    virtual bool read_path(Output& output, const char* ipath) {
       char* path = strdup(ipath);
       char* pos = strchr(path, '.');
 
@@ -135,22 +135,25 @@ namespace agent {
 
       Item* item = get(path);
 
+      bool ok;
+
       if(item) {
         if(pos) {
-          item->read_path(output, pos+1);
+          ok = item->read_path(output, pos+1);
         } else {
           item->read(output);
+          ok = true;
         }
       } else {
-        output.e().write_tuple(2);
-        output.e().write_atom("unknown_variable");
-        output.e().write_binary(ipath);
+        ok = false;
       }
 
       free(path);
+
+      return ok;
     }
 
-    virtual void set_path(Output& output, const char* ipath, bert::Value* val) {
+    virtual bool set_path(Output& output, const char* ipath, bert::Value* val) {
       char* path = strdup(ipath);
       char* pos = strchr(path, '.');
 
@@ -158,19 +161,22 @@ namespace agent {
 
       Item* item = get(path);
 
+      bool ok;
+
       if(item) {
         if(pos) {
-          item->set_path(output, pos+1, val);
+          ok = item->set_path(output, pos+1, val);
         } else {
           item->set(output, val);
+          ok = true;
         }
       } else {
-        output.e().write_tuple(2);
-        output.e().write_atom("unknown_variable");
-        output.e().write_binary(ipath);
+        ok = false;
       }
 
       free(path);
+
+      return ok;
     }
   };
 
@@ -231,7 +237,7 @@ namespace agent {
       }
     }
 
-    virtual void read_path(Output& output, const char* path) {
+    virtual bool read_path(Output& output, const char* path) {
       if(config::ConfigItem* item = shared_.config.find(path)) {
         output.ok("value");
 
@@ -246,9 +252,10 @@ namespace agent {
       } else {
         output.error("unknown key");
       }
+      return true;
     }
 
-    virtual void set_path(Output& output, const char* path, bert::Value* val) {
+    virtual bool set_path(Output& output, const char* path, bert::Value* val) {
       if(val->string_p()) {
         output.ok("value");
         if(shared_.config.import(path, val->string())) {
@@ -259,6 +266,8 @@ namespace agent {
       } else {
         output.error("format");
       }
+
+      return true;
     }
   };
 
@@ -483,19 +492,21 @@ namespace agent {
 
   }
 
-  void VariableAccess::read_path(Output& output, const char* ipath) {
+  bool VariableAccess::read_path(Output& output, const char* ipath) {
     if(strlen(ipath) == 1 && ipath[0] == '.') {
       root_->read(output);
     } else {
-      root_->read_path(output, ipath);
+      return root_->read_path(output, ipath);
     }
+    return true;
   }
 
-  void VariableAccess::set_path(Output& output, const char* ipath, bert::Value* val) {
+  bool VariableAccess::set_path(Output& output, const char* ipath, bert::Value* val) {
     if(strlen(ipath) == 1 && ipath[0] == '.') {
       root_->set(output, val);
     } else {
-      root_->set_path(output, ipath, val);
+      return root_->set_path(output, ipath, val);
     }
+    return true;
   }
 }}

@@ -520,6 +520,14 @@ VM Options
       end
     end
 
+    def agent
+      @stage = "starting agent ruby thread"
+
+      if Rubinius::Config['agent.start']
+        Rubinius::AgentRegistry.spawn_thread
+      end
+    end
+
     # Require any -r arguments
     def requires
       @stage = "requiring command line files"
@@ -696,6 +704,7 @@ VM Options
           options
           load_paths
           debugger
+          agent
           requires
           evals
           script

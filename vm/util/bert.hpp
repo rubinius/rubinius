@@ -656,7 +656,13 @@ namespace bert {
       return true;
     }
 
+    int total_elements() {
+      if(!(type_ == Tuple || type_ == List)) return -1;
+      return elements_->size();
+    }
+
     Value* get_element(size_t which) {
+      if(!(type_ == Tuple || type_ == List)) return NULL;
       if(!elements_) return NULL;
       return elements_->at(which);
     }
@@ -1037,6 +1043,8 @@ namespace bert {
             } else {
               val = new_tuple(term, convert_term(first));
             }
+          } else {
+            val = new_tuple(term, convert_term(first));
           }
         } else {
           val = new_tuple(term);
