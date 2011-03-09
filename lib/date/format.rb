@@ -114,22 +114,33 @@ class Date
     class Bag # :nodoc:
 
       def initialize
-        @elem = {}
+        @extra = {}
       end
 
-      def method_missing(t, *args, &block)
-        t = t.to_s
-        set = t.chomp!('=')
-        t = t.intern
-        if set
-          @elem[t] = args[0]
-        else
-          @elem[t]
-        end
+      attr_accessor :year, :mon, :mday, :hour, :min, :sec, :sec_fraction, :zone
+      attr_accessor :offset
+
+      attr_accessor :_cent, :_merid, :_comp
+
+      def [](key)
+        @extra[key]
       end
+
+      def []=(key, val)
+        @extra[key] = val
+      end
+
+      Fast = [:year, :mon, :mday, :hour, :min, :sec, :sec_fraction, :zone,
+              :offset]
 
       def to_hash
-        @elem.reject{|k, v| /\A_/ =~ k.to_s || v.nil?}
+        Fast.each do |x|
+          if val = __send__(x)
+            @extra[x] = val
+          end
+        end
+
+        @extra
       end
 
     end
@@ -407,7 +418,7 @@ class Date
         		str.sub!(/\A(#{Format::ABBR_DAYS.keys.join('|')})/io, '')
           val = Format::DAYS[$1.downcase] || Format::ABBR_DAYS[$1.downcase]
           return unless val
-          e.wday = val
+          e[:wday] = val
         when 'B', 'b', 'h'
           return unless str.sub!(/\A(#{Format::MONTHS.keys.join('|')})/io, '') ||
         		str.sub!(/\A(#{Format::ABBR_MONTHS.keys.join('|')})/io, '')
@@ -438,12 +449,12 @@ class Date
         			 else /\A([-+]?\d{1,})/
         			 end, '')
           val = $1.to_i
-          e.cwyear = val
+          e[:cwyear] = val
         when 'g'
           return unless str.sub!(/\A(\d{1,2})/, '')
           val = $1.to_i
           return unless (0..99) === val
-          e.cwyear = val
+          e[:cwyear] = val
           e._cent ||= if val >= 69 then 19 else 20 end
         when 'H', 'k', 'OH'
           return unless str.sub!(/\A( \d|\d{1,2})/, '')
@@ -459,7 +470,7 @@ class Date
           return unless str.sub!(/\A(\d{1,3})/, '')
           val = $1.to_i
           return unless (1..366) === val
-          e.yday = val
+          e[:yday] = val
         when 'L'
           return unless str.sub!(if num_pattern?($')
         			 then /\A([-+]?\d{1,3})/
@@ -494,7 +505,7 @@ class Date
         when 'Q'
           return unless str.sub!(/\A(-?\d{1,})/, '')
           val = Rational($1.to_i, 10**3)
-          e.seconds = val
+          e[:seconds] = val
         when 'R'
           return unless _strptime_i(str, '%H:%M', e)
         when 'r'
@@ -507,31 +518,35 @@ class Date
         when 's'
           return unless str.sub!(/\A(-?\d{1,})/, '')
           val = $1.to_i
-          e.seconds = val
+          e[:seconds] = val
         when 'T'
           return unless _strptime_i(str, '%H:%M:%S', e)
         when 'U', 'W', 'OU', 'OW'
           return unless str.sub!(/\A(\d{1,2})/, '')
           val = $1.to_i
           return unless (0..53) === val
-          e.__send__(if s[-1,1] == 'U' then :wnum0= else :wnum1= end, val)
+          if s[-1,1] == 'U'
+            e[:wnum0] = val
+          else
+            e[:wnum1] = val
+          end
         when 'u', 'Ou'
           return unless str.sub!(/\A(\d{1})/, '')
           val = $1.to_i
           return unless (1..7) === val
-          e.cwday = val
+          e[:cwday] = val
         when 'V', 'OV'
           return unless str.sub!(/\A(\d{1,2})/, '')
           val = $1.to_i
           return unless (1..53) === val
-          e.cweek = val
+          e[:cweek] = val
         when 'v'
           return unless _strptime_i(str, '%e-%b-%Y', e)
         when 'w'
           return unless str.sub!(/\A(\d{1})/, '')
           val = $1.to_i
           return unless (0..6) === val
-          e.wday = val
+          e[:wday] = val
         when 'X', 'EX'
           return unless _strptime_i(str, '%H:%M:%S', e)
         when 'x', 'Ex'
@@ -568,7 +583,7 @@ class Date
           end
           return unless str.sub!(/\A(\d+)/, '')
           val = $1.to_i
-          e.jd = val
+          e[:jd] = val
         when '2'
           if $VERBOSE
             warn("warning: strptime: %2 is deprecated; use '%Y-%j'")
@@ -598,14 +613,15 @@ class Date
   def self._strptime(str, fmt='%F')
     str = str.dup
     e = Format::Bag.new
+
     return unless _strptime_i(str, fmt, e)
 
     if e._cent
-      if e.cwyear
-        e.cwyear += e._cent * 100
+      if e[:cwyear]
+        e[:cwyear] += e._cent * 100
       end
       if e.year
-        e.  year += e._cent * 100
+        e.year += e._cent * 100
       end
     end
 
@@ -617,7 +633,7 @@ class Date
     end
 
     unless str.empty?
-      e.leftover = str
+      e[:leftover] = str
     end
 
     e.to_hash
@@ -694,11 +710,11 @@ class Date
 
   def self._parse_day(str, e) # :nodoc:
     if str.sub!(/\b(#{Format::ABBR_DAYS.keys.join('|')})[^-\d\s]*/ino, ' ')
-      e.wday = Format::ABBR_DAYS[$1.downcase]
+      e[:wday] = Format::ABBR_DAYS[$1.downcase]
       true
 =begin
     elsif str.sub!(/\b(?!\dth)(su|mo|tu|we|th|fr|sa)\b/in, ' ')
-      e.wday = %w(su mo tu we th fr sa).index($1.downcase)
+      e[:wday] = %w(su mo tu we th fr sa).index($1.downcase)
       true
 =end
     end
@@ -825,12 +841,12 @@ class Date
 
   def self._parse_iso2(str, e) # :nodoc:
     if str.sub!(/\b(\d{2}|\d{4})?-?w(\d{2})(?:-?(\d))?\b/in, ' ')
-      e.cwyear = $1.to_i if $1
-      e.cweek = $2.to_i
-      e.cwday = $3.to_i if $3
+      e[:cwyear] = $1.to_i if $1
+      e[:cweek] = $2.to_i
+      e[:cwday] = $3.to_i if $3
       true
     elsif str.sub!(/-w-(\d)\b/in, ' ')
-      e.cwday = $1.to_i
+      e[:cwday] = $1.to_i
       true
     elsif str.sub!(/--(\d{2})?-(\d{2})\b/n, ' ')
       e.mon = $1.to_i if $1
@@ -843,11 +859,11 @@ class Date
     elsif /[,.](\d{2}|\d{4})-\d{3}\b/n !~ str &&
         str.sub!(/\b(\d{2}|\d{4})-(\d{3})\b/n, ' ')
       e.year = $1.to_i
-      e.yday = $2.to_i
+      e[:yday] = $2.to_i
       true
     elsif /\d-\d{3}\b/n !~ str &&
         str.sub!(/\b-(\d{3})\b/n, ' ')
-      e.yday = $1.to_i
+      e[:yday] = $1.to_i
       true
     end
   end
@@ -937,36 +953,36 @@ class Date
       case $2.size
       when 2
         if $3.nil? && $4
-          e.sec  = $2[-2, 2].to_i
+          e.sec = $2[-2, 2].to_i
         else
           e.mday = $2[ 0, 2].to_i
         end
       when 4
         if $3.nil? && $4
-          e.sec  = $2[-2, 2].to_i
-          e.min  = $2[-4, 2].to_i
+          e.sec = $2[-2, 2].to_i
+          e.min = $2[-4, 2].to_i
         else
-          e.mon  = $2[ 0, 2].to_i
+          e.mon = $2[ 0, 2].to_i
           e.mday = $2[ 2, 2].to_i
         end
       when 6
         if $3.nil? && $4
-          e.sec  = $2[-2, 2].to_i
-          e.min  = $2[-4, 2].to_i
+          e.sec = $2[-2, 2].to_i
+          e.min = $2[-4, 2].to_i
           e.hour = $2[-6, 2].to_i
         else
           e.year = ($1 + $2[ 0, 2]).to_i
-          e.mon  = $2[ 2, 2].to_i
+          e.mon = $2[ 2, 2].to_i
           e.mday = $2[ 4, 2].to_i
         end
       when 8, 10, 12, 14
         if $3.nil? && $4
-          e.sec  = $2[-2, 2].to_i
-          e.min  = $2[-4, 2].to_i
+          e.sec = $2[-2, 2].to_i
+          e.min = $2[-4, 2].to_i
           e.hour = $2[-6, 2].to_i
           e.mday = $2[-8, 2].to_i
           if $2.size >= 10
-            e.mon  = $2[-10, 2].to_i
+            e.mon = $2[-10, 2].to_i
           end
           if $2.size == 12
             e.year = ($1 + $2[-12, 2]).to_i
@@ -977,54 +993,54 @@ class Date
           end
         else
           e.year = ($1 + $2[ 0, 4]).to_i
-          e.mon  = $2[ 4, 2].to_i
+          e.mon = $2[ 4, 2].to_i
           e.mday = $2[ 6, 2].to_i
           e.hour = $2[ 8, 2].to_i if $2.size >= 10
-          e.min  = $2[10, 2].to_i if $2.size >= 12
-          e.sec  = $2[12, 2].to_i if $2.size >= 14
+          e.min = $2[10, 2].to_i if $2.size >= 12
+          e.sec = $2[12, 2].to_i if $2.size >= 14
           e._comp = false
         end
       when 3
         if $3.nil? && $4
-          e.sec  = $2[-2, 2].to_i
-          e.min  = $2[-3, 1].to_i
+          e.sec = $2[-2, 2].to_i
+          e.min = $2[-3, 1].to_i
         else
-          e.yday = $2[ 0, 3].to_i
+          e[:yday] = $2[ 0, 3].to_i
         end
       when 5
         if $3.nil? && $4
-          e.sec  = $2[-2, 2].to_i
-          e.min  = $2[-4, 2].to_i
+          e.sec = $2[-2, 2].to_i
+          e.min = $2[-4, 2].to_i
           e.hour = $2[-5, 1].to_i
         else
           e.year = ($1 + $2[ 0, 2]).to_i
-          e.yday = $2[ 2, 3].to_i
+          e[:yday] = $2[ 2, 3].to_i
         end
       when 7
         if $3.nil? && $4
-          e.sec  = $2[-2, 2].to_i
-          e.min  = $2[-4, 2].to_i
+          e.sec = $2[-2, 2].to_i
+          e.min = $2[-4, 2].to_i
           e.hour = $2[-6, 2].to_i
           e.mday = $2[-7, 1].to_i
         else
           e.year = ($1 + $2[ 0, 4]).to_i
-          e.yday = $2[ 4, 3].to_i
+          e[:yday] = $2[ 4, 3].to_i
         end
       end
       if $3
         if $4
           case $3.size
           when 2, 4, 6
-            e.sec  = $3[-2, 2].to_i
-            e.min  = $3[-4, 2].to_i if $3.size >= 4
+            e.sec = $3[-2, 2].to_i
+            e.min = $3[-4, 2].to_i if $3.size >= 4
             e.hour = $3[-6, 2].to_i if $3.size >= 6
           end
         else
           case $3.size
           when 2, 4, 6
             e.hour = $3[ 0, 2].to_i
-            e.min  = $3[ 2, 2].to_i if $3.size >= 4
-            e.sec  = $3[ 4, 2].to_i if $3.size >= 6
+            e.min = $3[ 2, 2].to_i if $3.size >= 4
+            e.sec = $3[ 4, 2].to_i if $3.size >= 6
           end
         end
       end
@@ -1051,7 +1067,7 @@ class Date
         :_parse_jis, :_parse_vms, :_parse_sla, :_parse_dot,
         :_parse_year, :_parse_mon, :_parse_mday, :_parse_ddd
 
-  def self._parse(str, comp=false)
+  def self._parse(str, comp=false, return_bag=false)
     str = str.dup
 
     e = Format::Bag.new
@@ -1098,9 +1114,9 @@ class Date
     end
 
     if e._comp
-      if e.cwyear
-        if e.cwyear >= 0 && e.cwyear <= 99
-          e.cwyear += if e.cwyear >= 69
+      if e[:cwyear]
+        if e[:cwyear] >= 0 && e[:cwyear] <= 99
+          e[:cwyear] += if e[:cwyear] >= 69
         	      then 1900 else 2000 end
         end
       end
@@ -1114,6 +1130,7 @@ class Date
 
     e.offset ||= zone_to_diff(e.zone) if e.zone
 
+    return e if return_bag
     e.to_hash
   end
 
