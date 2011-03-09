@@ -136,10 +136,30 @@ describe "String#chomp! with separator" do
 
   ruby_version_is ""..."1.9" do
     it "raises a TypeError when self is frozen" do
-      a = "string\n\r"
+      a = "string\n"
       a.freeze
 
       lambda { a.chomp! }.should raise_error(TypeError)
+      lambda { a.chomp!("\n") }.should raise_error(TypeError)
+      lambda { a.chomp!("") }.should raise_error(TypeError)
+
+      c = "fooa"
+      c.freeze
+      lambda { c.chomp!("a") }.should raise_error(TypeError)
+    end
+
+    it "does raise an exception when no change would be done and no argument is passed in" do
+      b = "string"
+      b.freeze
+
+      lambda { b.chomp! }.should raise_error(TypeError)
+    end
+
+    it "does not raise an exception when no change would be done and no argument is passed in on an empty string" do
+      b = ""
+      b.freeze
+
+       b.chomp!.should be_nil
     end
 
     it "does not raise an exception when the string would not be modified" do
