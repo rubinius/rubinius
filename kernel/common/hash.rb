@@ -170,6 +170,7 @@ class Hash
     end
     true
   end
+
   def hash
     val = size
     Thread.detect_outermost_recursion self do
@@ -459,15 +460,15 @@ class Hash
       other.each_entry do |entry|
         key = entry.key
         if key? key
-          self.__store__ key, yield(key, self[key], entry.value)
+          __store__ key, yield(key, self[key], entry.value)
         else
-          self.__store__ key, entry.value
+          __store__ key, entry.value
         end
       end
     else
       other.each_entry do |entry|
         key = entry.key
-        self.__store__ key, entry.value
+        __store__ key, entry.value
       end
     end
     self
