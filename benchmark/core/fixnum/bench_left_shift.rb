@@ -3,7 +3,7 @@ require 'benchmark/ips'
 
 Benchmark.ips do |x|
   
-  x.report "bit shift by 1" do |times|
+  x.report "left shift by 1" do |times|
     i = 0
     while i < times
       number = 0xffffffff
@@ -12,7 +12,7 @@ Benchmark.ips do |x|
     end
   end
   
-  x.report "bit shift by 8" do |times|
+  x.report "left shift by 8" do |times|
     i = 0
     while i < times
       number = 0xffffffff
@@ -21,7 +21,7 @@ Benchmark.ips do |x|
     end
   end
 
-  x.report "bit shift by 16" do |times|
+  x.report "left shift by 16" do |times|
     i = 0
     while i < times
       number = 0xffffffff
@@ -30,7 +30,7 @@ Benchmark.ips do |x|
     end
   end
   
-  x.report "bit shift by 32" do |times|
+  x.report "left shift by 32" do |times|
     i = 0
     while i < times
       number = 0xffffffff
