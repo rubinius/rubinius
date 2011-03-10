@@ -165,7 +165,7 @@ class Hash
     raise TypeError, "can't dump hash with default proc" if default_proc
 
     #excluded_ivars = %w[@bins @count @records]
-    excluded_ivars = %w[@capacity @mask @max_entries @size @entries]
+    excluded_ivars = %w[@capacity @mask @max_entries @size @entries @default_proc @default]
 
     out =  ms.serialize_instance_variables_prefix(self, excluded_ivars)
     out << ms.serialize_extended_object(self)
@@ -178,7 +178,7 @@ class Hash
         out << ms.serialize(val)
       end
     end
-    out << (default ? ms.serialize(default) : '')
+    out << (self.default ? ms.serialize(self.default) : '')
     out << ms.serialize_instance_variables_suffix(self, false, false,
                                                   excluded_ivars)
 
