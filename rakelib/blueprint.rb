@@ -12,6 +12,11 @@ Daedalus.blueprint do |i|
     gcc.cflags << "-O2"
   end
 
+  # This is necessary for the gcc sync prims to fully work
+  if Rubinius::BUILD_CONFIG[:x86_32]
+    gcc.cflags << "-march=i686"
+  end
+
   Rubinius::BUILD_CONFIG[:defines].each do |flag|
     gcc.cflags << "-D#{flag}"
   end
@@ -30,8 +35,9 @@ Daedalus.blueprint do |i|
   end
 
   gcc.ldflags << "-lstdc++"
-  gcc.ldflags << "-L/usr/local/lib -L/opt/local/lib -ldl"
+  gcc.ldflags << "-L/usr/local/lib -L/opt/local/lib"
 
+  # TODO: Fix with Platform object
   case RUBY_PLATFORM
   when /linux/i
     gcc.ldflags << '-Wl,--export-dynamic' << "-lrt" << "-lcrypt"
@@ -41,6 +47,10 @@ Daedalus.blueprint do |i|
     gcc.ldflags << "-ldl" << "-lnetwork"
   when /bsd/i
     gcc.ldflags << "-ldl" << "-lcrypt" << "-rdynamic"
+  when /mingw|win32/i
+    gcc.ldflags << "-lws2_32"
+  else
+    gcc.ldflags << "-ldl"
   end
 
   if RUBY_PLATFORM =~ /bsd/ and
@@ -49,7 +59,7 @@ Daedalus.blueprint do |i|
   end
 
   # Files
-  subdirs = %w!builtin capi util instruments gc llvm!.map do |x|
+  subdirs = %w[ builtin capi util instruments gc llvm missing ].map do |x|
     "vm/#{x}/*.{cpp,c}"
   end
 
@@ -66,8 +76,21 @@ Daedalus.blueprint do |i|
       flags.delete_if { |x| x.index("-O") == 0 || x.index("-I") == 0 }
       flags << "-Ivm/external_libs/llvm/include" << "-DENABLE_LLVM"
       l.cflags = flags
-      l.ldflags = [`#{perl} #{conf} --ldflags`.strip]
-      l.objects = `#{perl} #{conf} --libfiles`.strip.split(/\s+/)
+
+      ldflags = `#{perl} #{conf} --ldflags`.strip
+      objects = `#{perl} #{conf} --libfiles`.strip.split(/\s+/)
+
+      if Rubinius::BUILD_CONFIG[:windows]
+        ldflags = ldflags.sub(%r[-L/([a-zA-Z])/], '-L\1:/')
+
+        objects.select do |f|
+          f.sub!(%r[^/([a-zA-Z])/], '\1:/')
+          File.file? f
+        end
+      end
+
+      l.ldflags = [ldflags]
+      l.objects = objects
     end
 
     gcc.add_library llvm
@@ -129,11 +152,28 @@ Daedalus.blueprint do |i|
     end
   end
 
+
   gcc.add_library udis
   gcc.add_library ffi
   gcc.add_library gdtoa
   gcc.add_library onig
   gcc.add_library ltm
+
+  if Rubinius::BUILD_CONFIG[:windows]
+    winp = i.external_lib "vm/external_libs/winpthreads" do |l|
+      l.cflags = ["-Ivm/external_libs/winpthreads/include"]
+      l.objects = [l.file("libpthread.a")]
+      l.to_build do |x|
+        x.command "./configure" unless File.exists?("Makefile")
+        x.command "make"
+      end
+    end
+
+    gcc.add_library winp
+
+    files << winp
+  end
+
 
   files << udis
   files << ffi
@@ -144,7 +184,8 @@ Daedalus.blueprint do |i|
   cli = files.dup
   cli << i.source_file("vm/drivers/cli.cpp")
 
-  i.program "vm/vm", *cli
+  exe = RUBY_PLATFORM =~ /mingw|mswin/ ? 'vm/vm.exe' : 'vm/vm'
+  i.program exe, *cli
 
   test_files = files.dup
   test_files << i.source_file("vm/test/runner.cpp") { |f|
