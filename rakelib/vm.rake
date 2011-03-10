@@ -119,9 +119,9 @@ namespace :build do
   end
 
   # Issue the actual build commands. NEVER USE DIRECTLY.
-  task :build => %w[
+  task :build => %W[
                      build:llvm
-                     vm/vm
+                     #{VM_EXE}
                      kernel:build
                      build:ffi:preprocessor
                      extensions
@@ -188,8 +188,8 @@ end
 require 'projects/daedalus/daedalus'
 blueprint = Daedalus.load "rakelib/blueprint.rb"
 
-task 'vm/vm' => GENERATED do
-  blueprint.build "vm/vm"
+task VM_EXE => GENERATED do
+  blueprint.build VM_EXE
 end
 
 task 'vm/test/runner' => GENERATED do
