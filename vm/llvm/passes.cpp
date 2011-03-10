@@ -410,8 +410,8 @@ namespace {
   };
 
   char RubiniusAliasAnalysis::ID = 0;
-  INITIALIZE_AG_PASS(RubiniusAliasAnalysis, AliasAnalysis, "rbx-aa",
-      "Rubinius-specific Alias Analysis", false, true, false);
+  static RegisterPass<RubiniusAliasAnalysis> RubiniusAliasAnalysis_info("rbx-aa", "Rubinius-specific Alias Analysis", false, true);
+  static RegisterAnalysisGroup<AliasAnalysis, false> RubiniusAliasAnalysis_ag(RubiniusAliasAnalysis_info);
 
   /*
   class TypeGuardRemoval : public FunctionPass {
