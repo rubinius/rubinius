@@ -15,8 +15,6 @@
 #include <sys/types.h>
 #include <sys/time.h>
 #include <sys/types.h>
-#include <netdb.h>
-#include <sys/un.h>
 #ifdef __OpenBSD__
 #include <sys/uio.h>
 #endif
