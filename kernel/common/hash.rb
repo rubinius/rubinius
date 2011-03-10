@@ -549,7 +549,7 @@ class Hash
 
     hsh = self.class.new
     hsh.taint! if self.tainted?
-    self.each {|k,v| hsh[k]=v if !yield(k,v) }
+    self.each { |k,v| hsh[k] = v if !yield(k,v) }
     hsh
   end
 
@@ -563,7 +563,7 @@ class Hash
     change = 0
 
     i = -1
-    while (i +=1) < capacity
+    while (i += 1) < capacity
       prev_entry = nil
       entry = entries[i]
       while entry
