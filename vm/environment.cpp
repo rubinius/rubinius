@@ -18,7 +18,11 @@
 
 #ifdef ENABLE_LLVM
 #include "llvm/jit.hpp"
+#if RBX_LLVM_API_VER == 208
 #include <llvm/System/Threading.h>
+#elif RBX_LLVM_API_VER == 209
+#include <llvm/Support/Threading.h>
+#endif
 #endif
 
 #ifdef USE_EXECINFO

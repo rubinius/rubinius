@@ -47,6 +47,7 @@ class Configure
     @llvm_system_name       = get_system_name
 
     @llvm_version           = "2.8"
+    @llvm_api_version       = 208
     @llvm_source            = "llvm-2.8.tgz"
     @llvm_source_dir        = "llvm-2.8"
     @llvm_source_url        = "http://llvm.org/releases/2.8/llvm-2.8.tgz"
@@ -547,18 +548,17 @@ class Configure
       config = File.join(which, "llvm-config")
       version = `#{@perl} #{config} --version`.strip
       parts = version.sub(/svn$/, "").split(".").map { |i| i.to_i }
-
-      if parts[0] != 2 or parts[1] != 8
-        @log.write "only 2.8 is supported"
+      api_version = ("%d%02d" % parts[0..1]).to_i
+      if `#{@perl} #{config} --cxxflags`.index("-fno-rtti")
+        @log.write "incorrectly configured llvm (rtti is off)"
+      elsif api_version != 208 and api_version != 209
+        @log.write "only LLVM 2.8 and 2.9 are supported"
       else
-        if `#{@perl} #{config} --cxxflags`.index("-fno-rtti")
-          @log.write "incorrectly configure (rtti is off)"
-        else
-          @log.write "found! (version #{version})"
-          @llvm_configure = config
-          @llvm = :config
-          return true
-        end
+        @log.write "found! (version #{version})"
+        @llvm_configure = config
+        @llvm = :config
+        @llvm_api_version = api_version
+        return true
       end
     else
       @log.write "not found"
@@ -865,6 +865,7 @@ end
 #define RBX_LDSHARED      "#{@ldshared}"
 #define RBX_RELEASE_DATE  "#{@release_date}"
 #define RBX_SIZEOF_LONG   #{@sizeof_long}
+#define RBX_LLVM_API_VER  #{@llvm_api_version}
       EOC
 
       if @little_endian
