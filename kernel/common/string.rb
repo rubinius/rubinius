@@ -496,7 +496,26 @@ class String
   # NOTE: TypeError is raised in String#replace and not in String#chomp! when
   # self is frozen. This is intended behaviour.
   #+++
-  def chomp!(sep = $/)
+  def chomp!(sep=undefined)
+    # special case for performance. No seperator is by far the most common usage.
+    if sep.equal? undefined
+      return if @num_bytes == 0
+
+      Ruby.check_frozen
+
+      c = @data[@num_bytes-1]
+      if c == ?\n
+        @num_bytes -= 1 if @num_bytes > 1 && @data[@num_bytes-2] == ?\r
+      elsif c != ?\r
+        return
+      end
+
+      # don't use modify! because it will dup the data when we don't need to.
+      @hash_value = nil
+      @num_bytes = @characters = @num_bytes - 1
+      return self
+    end
+
     return if sep.nil? || @num_bytes == 0
     sep = StringValue sep
 
@@ -508,7 +527,10 @@ class String
         return
       end
 
-      modify!
+      Ruby.check_frozen
+
+      # don't use modify! because it will dup the data when we don't need to.
+      @hash_value = nil
       @num_bytes = @characters = @num_bytes - 1
     elsif sep.size == 0
       size = @num_bytes
@@ -521,13 +543,20 @@ class String
       end
 
       return if size == @num_bytes
-      modify!
+
+      Ruby.check_frozen
+
+      # don't use modify! because it will dup the data when we don't need to.
+      @hash_value = nil
       @num_bytes = @characters = size
     else
       size = sep.size
       return if size > @num_bytes || sep.compare_substring(self, -size, size) != 0
 
-      modify!
+      Ruby.check_frozen
+
+      # don't use modify! because it will dup the data when we don't need to.
+      @hash_value = nil
       @num_bytes = @characters = @num_bytes - size
     end
 

@@ -9,6 +9,7 @@ module Rubinius
     end
 
     def self.loopback
+      Rubinius::AgentRegistry.spawn_thread
       new Rubinius.agent_io
     end
 

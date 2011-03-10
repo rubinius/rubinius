@@ -165,7 +165,7 @@ class Hash
     raise TypeError, "can't dump hash with default proc" if default_proc
 
     #excluded_ivars = %w[@bins @count @records]
-    excluded_ivars = %w[@capacity @mask @max_entries @size @entries]
+    excluded_ivars = %w[@capacity @mask @max_entries @size @entries @default_proc @default]
 
     out =  ms.serialize_instance_variables_prefix(self, excluded_ivars)
     out << ms.serialize_extended_object(self)
@@ -178,7 +178,7 @@ class Hash
         out << ms.serialize(val)
       end
     end
-    out << (default ? ms.serialize(default) : '')
+    out << (self.default ? ms.serialize(self.default) : '')
     out << ms.serialize_instance_variables_suffix(self, false, false,
                                                   excluded_ivars)
 
@@ -413,11 +413,21 @@ module Marshal
     end
 
     def construct_array
-      obj = @user_class ? get_user_class.new : []
+      obj = []
       store_unique_object obj
 
       construct_integer.times do
         obj << construct
+      end
+
+      if @user_class
+        cls = get_user_class()
+        if cls < Array
+          Rubinius::Unsafe.set_class obj, cls
+        else
+          # This is what MRI does, it's weird.
+          return cls.allocate
+        end
       end
 
       obj

@@ -46,6 +46,7 @@
 
 #include "configuration.hpp"
 #include "config.h"
+#include "revision.h"
 
 #define SPECIAL_CLASS_MASK 0x1f
 #define SPECIAL_CLASS_SIZE 32

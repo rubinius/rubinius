@@ -104,14 +104,8 @@ class Configure
     # Essential settings (modify these for creating releases)
     @libversion = "1.3"
     @version = "#{@libversion}.0dev"
-    @release_date = "xxxx-xx-xx"
-    @config_version = 124
-
-    if !ENV['RELEASE'] and File.directory?(root + "/.git")
-      @buildrev = `git rev-list --max-count=1 --all`.chomp
-    else
-      @buildrev = "release"
-    end
+    @release_date = "yyyy-mm-dd"
+    @config_version = 125
 
     # TODO: add conditionals for platforms
     if RbConfig::CONFIG["build_os"] =~ /darwin/
@@ -960,7 +954,6 @@ end
 #define RBX_VENDOR_PATH   "#{@vendordir}"
 #define RBX_VERSION       "#{@version}"
 #define RBX_LIB_VERSION   "#{@libversion}"
-#define RBX_BUILD_REV     "#{@buildrev}"
 #define RBX_LDSHARED      "#{@ldshared}"
 #define RBX_DEFAULT_19    #{@version_19}
 #define RBX_DEFAULT_20    #{@version_20}

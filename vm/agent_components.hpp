@@ -50,7 +50,7 @@ namespace agent {
       return root_;
     }
 
-    void read_path(Output& output, const char* ipath);
-    void set_path(Output& output, const char* ipath, bert::Value* val);
+    bool read_path(Output& output, const char* ipath);
+    bool set_path(Output& output, const char* ipath, bert::Value* val);
   };
 }}

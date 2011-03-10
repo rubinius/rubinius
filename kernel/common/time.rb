@@ -18,16 +18,11 @@ class Time
       usec = usec % 1000000
     else
       float = FloatValue(sec)
-      if float < 0
-        pos_sec, usec_frac = float.divmod(-1)
-        sec = -pos_sec
+      sec       = float.to_i
+      usec_frac = float % 1.0
 
-        if usec_frac < 0
-          usec_frac += 1
-          sec -= 1
-        end
-      else
-        sec, usec_frac = float.divmod(1)
+      if float < 0 && usec_frac > 0
+        sec -= 1
       end
 
       usec = (usec_frac * 1_000_000 + 0.5).to_i

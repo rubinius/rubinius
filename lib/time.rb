@@ -237,10 +237,10 @@ class Time
     # A failure for Time.parse should be checked, though.
     #
     def parse(date, now=self.now)
-      d = Date._parse(date, false)
-      year = d[:year]
+      d = Date._parse(date, false, true)
+      year = d.year
       year = yield(year) if year && block_given?
-      make_time(year, d[:mon], d[:mday], d[:hour], d[:min], d[:sec], d[:sec_fraction], d[:zone], now)
+      make_time(year, d.mon, d.mday, d.hour, d.min, d.sec, d.sec_fraction, d.zone, now)
     end
 
     MonthValue = {

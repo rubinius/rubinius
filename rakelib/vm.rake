@@ -37,6 +37,8 @@ TYPE_GEN    = %w[ vm/gen/includes.hpp
                   vm/gen/primitives_declare.hpp
                   vm/gen/primitives_glue.gen.cpp ]
 
+GENERATED = %w[ vm/gen/revision.h ] + TYPE_GEN + INSN_GEN
+
 # Files are in order based on dependencies. For example,
 # CompactLookupTable inherits from Tuple, so the header
 # for compactlookuptable.hpp has to come after tuple.hpp
@@ -169,14 +171,28 @@ end
 files TYPE_GEN, field_extract_headers + %w[vm/codegen/field_extract.rb] + [:run_field_extract] do
 end
 
+task 'vm/gen/revision.h' do |t|
+  git_dir = File.expand_path "../../.git", __FILE__
+
+  if !ENV['RELEASE'] and File.directory? git_dir
+    buildrev = `git rev-list --max-count=1 --all`.chomp
+  else
+    buildrev = "release"
+  end
+
+  File.open t.name, "wb" do |f|
+    f.puts %[#define RBX_BUILD_REV     "#{buildrev}"]
+  end
+end
+
 require 'projects/daedalus/daedalus'
 blueprint = Daedalus.load "rakelib/blueprint.rb"
 
-task 'vm/vm' => TYPE_GEN + INSN_GEN do
+task 'vm/vm' => GENERATED do
   blueprint.build "vm/vm"
 end
 
-task 'vm/test/runner' => TYPE_GEN + INSN_GEN do
+task 'vm/test/runner' => GENERATED do
   blueprint.build "vm/test/runner"
 end
 
@@ -258,8 +274,7 @@ namespace :vm do
   desc "Clean up vm build files"
   task :clean do
     files = FileList[
-      TYPE_GEN,
-      INSN_GEN,
+      GENERATED,
       'vm/gen/*',
       'vm/test/runner',
       'vm/test/runner.cpp',

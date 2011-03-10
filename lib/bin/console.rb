@@ -81,6 +81,11 @@ help              - You're lookin' at it
   end
 
   def set_config(args)
+    unless args
+      puts "Error: Specify a variable to access"
+      return
+    end
+
     var, val = args.split(/\s+/, 2)
 
     response = @agent.request :set_config, var, val
@@ -92,10 +97,17 @@ help              - You're lookin' at it
       puts "Unknown var '#{var}'."
     when :error
       puts "Error setting variable."
+    else
+      p response
     end
   end
 
   def get_config(args)
+    unless args
+      puts "Error: Specify a variable to access"
+      return
+    end
+
     var = args.strip
 
     begin
@@ -226,6 +238,26 @@ help              - You're lookin' at it
         Agent.new(pid.to_i, port.to_i, cmd.strip, exec.strip)
       end
     end
+
+    def self.cleanup
+      unless dir = ENV['TMPDIR']
+        dir = "/tmp"
+        return [] unless File.directory?(dir) and File.readable?(dir)
+      end
+
+      agents = Dir["#{dir}/rubinius-agent.*"]
+
+      return [] unless agents
+
+      agents.map do |path|
+        pid, port, cmd, exec = File.readlines(path)
+        `kill -0 #{pid}`
+        if $?.exitstatus != 0
+          puts "Removing #{path}"
+          File.unlink path
+        end
+      end
+    end
   end
 end
 
@@ -238,6 +270,11 @@ opt = OptionParser.new do |o|
     agents.each do |agent|
       puts "#{agent.pid} - #{agent.command} (port:#{agent.port})"
     end
+    exit 0
+  end
+
+  o.on "-c", "--cleanup", "Test and cleanup agent id files" do
+    Console::Agent.cleanup
     exit 0
   end
 

@@ -91,7 +91,9 @@ extern "C" {
 
   int rb_thread_alone() {
     VALUE list = rb_funcall(rb_cThread, rb_intern("list"), 0);
-    return NUM2INT(rb_funcall(list, rb_intern("size"), 0));
+    // This is int as bool, so only return 1 if the number of threads
+    // is actually 1.
+    return NUM2INT(rb_funcall(list, rb_intern("size"), 0)) == 1 ? 1 : 0;
   }
 
   VALUE rb_thread_local_aref(VALUE thread, ID id) {
