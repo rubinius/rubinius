@@ -34,8 +34,7 @@ Benchmark.ips do |x|
   x.report "reject! none" do |times|
     i = 0
     while i < times
-      hash = small_hash.dup
-      hash.reject! { |k,v| false }
+      small_hash.reject! { |k,v| false }
       i += 1
     end
   end
