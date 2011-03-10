@@ -18,7 +18,7 @@ Benchmark.ips do |x|
     i = 0
     h = {}
     while i < times
-      h.replace numbers
+      h.replace small_hash
       i += 1
     end
   end
