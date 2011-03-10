@@ -208,7 +208,7 @@ module Daedalus
 
     def link(path, files)
       @log.show "LD", path
-      @log.command "#{@path} #{@ldflags.join(' ')} -o #{path} #{files.join(' ')} #{@libraries.join(' ')}"
+      @log.command "#{@path} -o #{path} #{files.join(' ')} #{@libraries.join(' ')} #{@ldflags.join(' ')}"
     end
 
     def calculate_deps(path)
@@ -225,7 +225,7 @@ module Daedalus
       @path = path
 
       if File.exists?(data_path)
-        @data = Marshal.load(File.read(data_path))
+        @data = Marshal.load(File.read(data_path)) rescue {}
       else
         @data = {}
       end

@@ -35,8 +35,9 @@ Daedalus.blueprint do |i|
   end
 
   gcc.ldflags << "-lstdc++"
-  gcc.ldflags << "-L/usr/local/lib -L/opt/local/lib -ldl"
+  gcc.ldflags << "-L/usr/local/lib -L/opt/local/lib"
 
+  # TODO: Fix with Platform object
   case RUBY_PLATFORM
   when /linux/i
     gcc.ldflags << '-Wl,--export-dynamic' << "-lrt" << "-lcrypt"
@@ -46,10 +47,10 @@ Daedalus.blueprint do |i|
     gcc.ldflags << "-ldl" << "-lnetwork"
   when /bsd/i
     gcc.ldflags << "-ldl" << "-lcrypt" << "-rdynamic"
-  end
-
-  if Rubinius::BUILD_CONFIG[:windows]
-    gcc.ldflags << "-ldl" << "-lws2_32"
+  when /mingw|win32/i
+    gcc.ldflags << "-lws2_32"
+  else
+    gcc.ldflags << "-ldl"
   end
 
   if RUBY_PLATFORM =~ /bsd/ and
@@ -58,7 +59,7 @@ Daedalus.blueprint do |i|
   end
 
   # Files
-  subdirs = %w!builtin capi util instruments gc llvm!.map do |x|
+  subdirs = %w[ builtin capi util instruments gc llvm missing ].map do |x|
     "vm/#{x}/*.{cpp,c}"
   end
 
@@ -75,8 +76,21 @@ Daedalus.blueprint do |i|
       flags.delete_if { |x| x.index("-O") == 0 || x.index("-I") == 0 }
       flags << "-Ivm/external_libs/llvm/include" << "-DENABLE_LLVM"
       l.cflags = flags
-      l.ldflags = [`#{perl} #{conf} --ldflags`.strip]
-      l.objects = `#{perl} #{conf} --libfiles`.strip.split(/\s+/)
+
+      ldflags = `#{perl} #{conf} --ldflags`.strip
+      objects = `#{perl} #{conf} --libfiles`.strip.split(/\s+/)
+
+      if Rubinius::BUILD_CONFIG[:windows]
+        ldflags = ldflags.sub(%r[-L/([a-zA-Z])/], '-L\1:/')
+
+        objects.select do |f|
+          f.sub!(%r[^/([a-zA-Z])/], '\1:/')
+          File.file? f
+        end
+      end
+
+      l.ldflags = [ldflags]
+      l.objects = objects
     end
 
     gcc.add_library llvm
@@ -145,8 +159,8 @@ Daedalus.blueprint do |i|
   gcc.add_library onig
   gcc.add_library ltm
 
-  if BUILD_CONFIG[:windows]
-    winp = i.external_lib "vm/external_libs/winpthread" do |l|
+  if Rubinius::BUILD_CONFIG[:windows]
+    winp = i.external_lib "vm/external_libs/winpthreads" do |l|
       l.cflags = ["-Ivm/external_libs/winpthreads/include"]
       l.objects = [l.file("libpthread.a")]
       l.to_build do |x|
@@ -156,6 +170,8 @@ Daedalus.blueprint do |i|
     end
 
     gcc.add_library winp
+
+    files << winp
   end
 
 
