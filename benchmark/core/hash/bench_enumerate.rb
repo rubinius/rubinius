@@ -6,35 +6,36 @@ Benchmark.ips do |x|
   
   small_hash = $small_hash
   
-  x.report "reject all" do |times|
+  x.report "each" do |times|
     i = 0
     while i < times
-      small_hash.reject { |k,v| true }
+      small_hash.each {|k,v| nil }
+      i += 1
+    end
+  end
+  x.report "each_pair" do |times|
+    i = 0
+    h = {}
+    while i < times
+      small_hash.each_pair {|k,v| nil }
       i += 1
     end
   end
 
-  x.report "reject none" do |times|
+  x.report "each_key" do |times|
     i = 0
+    h = {}
     while i < times
-      small_hash.reject { |k,v| false }
+      small_hash.each_key {|k| nil }
       i += 1
     end
   end
 
-  x.report "reject! all" do |times|
+  x.report "each_value" do |times|
     i = 0
+    h = {}
     while i < times
-      hash = small_hash.dup # must dup since #reject! modifies receiver
-      hash.reject! { |k,v| true }
-      i += 1
-    end
-  end
-
-  x.report "reject! none" do |times|
-    i = 0
-    while i < times
-      small_hash.reject! { |k,v| false }
+      small_hash.each_value {|v| nil }
       i += 1
     end
   end
