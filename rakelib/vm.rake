@@ -168,12 +168,24 @@ end
 require 'projects/daedalus/daedalus'
 blueprint = Daedalus.load "rakelib/blueprint.rb"
 
+if jobs = ENV['JOBS']
+  @parallel_jobs = jobs.to_i
+  if @parallel_jobs < 1
+    STDERR.puts "Illegal number of parallel jobs: #{jobs}. Setting to 1."
+    @parallel_jobs = 1
+  end
+elsif File.exists? ".be_gentle"
+  @parallel_jobs = 1
+else
+  @parallel_jobs = nil
+end
+
 task 'vm/vm' => GENERATED do
-  blueprint.build "vm/vm"
+  blueprint.build "vm/vm", @parallel_jobs
 end
 
 task 'vm/test/runner' => GENERATED do
-  blueprint.build "vm/test/runner"
+  blueprint.build "vm/test/runner", @parallel_jobs
 end
 
 # Generate files for instructions and interpreters
