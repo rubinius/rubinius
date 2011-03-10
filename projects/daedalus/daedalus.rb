@@ -694,7 +694,7 @@ module Daedalus
       @programs << Program.new(name, files)
     end
 
-    def build(targets=[])
+    def build(targets=[], jobs=nil)
       if !targets.empty?
         @programs.each do |x|
           if targets.include? x.path
@@ -704,7 +704,7 @@ module Daedalus
             if tasks.empty?
               @compiler.log.info "Nothing to do for #{x.path}"
             else
-              tr = TaskRunner.new @compiler, tasks
+              tr = TaskRunner.new @compiler, tasks, jobs
               tr.start
             end
           end
