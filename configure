@@ -88,13 +88,7 @@ class Configure
     @libversion = "1.2"
     @version = "#{@libversion}.3dev"
     @release_date = "yyyy-mm-dd"
-    @config_version = 32
-
-    if !ENV['RELEASE'] and File.directory?(root + "/.git")
-      @buildrev = `git rev-list --all | head -n1`.chomp
-    else
-      @buildrev = "release"
-    end
+    @config_version = 33
 
     # TODO: add conditionals for platforms
     if RbConfig::CONFIG["build_os"] =~ /darwin/
@@ -868,7 +862,6 @@ end
 #define RBX_VENDOR_PATH   "#{@vendordir}"
 #define RBX_VERSION       "#{@version}"
 #define RBX_LIB_VERSION   "#{@libversion}"
-#define RBX_BUILD_REV     "#{@buildrev}"
 #define RBX_LDSHARED      "#{@ldshared}"
 #define RBX_RELEASE_DATE  "#{@release_date}"
 #define RBX_SIZEOF_LONG   #{@sizeof_long}
