@@ -4,10 +4,16 @@ ruby_version_is ""..."1.9" do
   require 'ping'
 
   describe "Ping.pingecho" do
-    it "pings a host using the correct number of arguments" do
-      Ping.pingecho('127.0.0.1', 10, 7).should be_true
-      Ping.pingecho('127.0.0.1', 10).should be_true
+    it "pings a host" do
       Ping.pingecho('127.0.0.1').should be_true
+    end
+
+    it "pings a host with a timeout value" do
+      Ping.pingecho('127.0.0.1', 3).should be_true
+    end
+
+    it "pings a host with a timeout value and service identifier" do
+      Ping.pingecho('127.0.0.1', 3, 7).should be_true
     end
 
     it "returns false if the port is invalid" do
