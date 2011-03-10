@@ -4,10 +4,6 @@ require File.expand_path('../fixtures/marshal_data', __FILE__)
 mv = [Marshal::MAJOR_VERSION].pack 'C'
 nv = [Marshal::MINOR_VERSION].pack 'C'
 
-class UserDefinedBad
-  def _dump(depth); 10; end
-end
-
 # TODO: these need to be reviewed and cleaned up
 describe "Marshal.dump" do
   it "raises an ArgumentError when the recursion limit is exceeded" do
@@ -57,73 +53,9 @@ describe "Marshal.dump" do
     lambda { Marshal.dump(klass) }.should raise_error(TypeError)
     lambda { Marshal.dump(mod)   }.should raise_error(TypeError)
   end
-  
-  ruby_version_is ""..."1.9" do
-    it "invokes respond_to? for marshal_dump and _dump on user classes" do
-      obj = UserDefinedWithRespondTo.new
-      
-      result = Marshal.dump(obj)
-      
-      obj.collected.should == [:marshal_dump, :_dump]
-      obj.marshal_dump_called.should be_nil
-      obj._dump_called.should be_nil
-    end
-    
-    it "attempts to invoke marshal_dump if respond_to? :marshal_dump is true" do
-      obj = UserDefinedWithRespondTo.new(:marshal_dump)
-      
-      result = Marshal.dump(obj)
-      
-      obj.collected.should == [:marshal_dump]
-      obj.marshal_dump_called.should be_true
-      obj._dump_called.should be_nil
-    end
-    
-    it "attempts to invoke _dump if respond_to? :_dump is true" do
-      obj = UserDefinedWithRespondTo.new(:_dump)
-      
-      result = Marshal.dump(obj)
-      
-      obj.collected.should == [:marshal_dump, :_dump]
-      obj.marshal_dump_called.should be_nil
-      obj._dump_called.should be_true
-    end
-  end
-  
-  ruby_version_is "1.9" do
-    it "invokes respond_to? for marshal_dump and _dump on user classes" do
-      obj = UserDefinedWithRespondTo.new
-      
-      result = Marshal.dump(obj)
-      
-      obj.collected.should == [:marshal_dump, :_dump]
-      obj.marshal_dump_called.should be_nil
-      obj._dump_called.should be_nil
-    end
-    
-    it "attempts to invoke marshal_dump if respond_to? :marshal_dump is true" do
-      obj = UserDefinedWithRespondTo.new(:marshal_dump)
-      
-      result = Marshal.dump(obj)
-      
-      obj.collected.should == [:marshal_dump]
-      obj.marshal_dump_called.should be_true
-      obj._dump_called.should be_nil
-    end
-    
-    it "attempts to invoke _dump if respond_to? :_dump is true" do
-      obj = UserDefinedWithRespondTo.new(:_dump)
-      
-      result = Marshal.dump(obj)
-      
-      obj.collected.should == [:marshal_dump, :_dump]
-      obj.marshal_dump_called.should be_nil
-      obj._dump_called.should be_true
-    end
-  end
 
   it "raises a TypeError if _dump returns a non-string" do
-    lambda { Marshal.dump(UserDefinedBad.new) }.should raise_error(TypeError)
+    lambda { Marshal.dump(MarshalSpec::Bad_Dump.new) }.should raise_error(TypeError)
   end
 
   it "dumps an Object" do
@@ -188,14 +120,14 @@ describe "Marshal.dump" do
   end
 
   it "raises a TypeError if dumping a MatchData instance" do
-    lambda { "foo" =~ /(.)/; Marshal.dump($~) }.should raise_error(TypeError)
+    lambda { Marshal.dump /(.)/.match("foo") }.should raise_error(TypeError)
   end
 
   ruby_version_is ""..."1.9" do
     it "dumps an extended_user_hash_default" do
-      h = UserHash.new(:Meths).extend(Meths)
+      h = UserHash.new("The default value").extend(Meths)
       h['three'] = 3
-      Marshal.dump(h).should == "#{mv+nv}e:\x0AMethsC:\x0DUserHash}\x06\"\x0Athreei\x08;\x00"
+      Marshal.dump(h).should == "#{mv+nv}e:\x0AMethsC:\x0DUserHash}\x06\"\x0Athreei\x08\"\026The default value"
     end
   end
 
@@ -282,9 +214,15 @@ describe "Marshal.dump" do
 
   ruby_version_is ""..."1.9" do
     it "dumps an array containing the same objects" do
-      s = 'oh'; b = 'hi'; r = //; d = [b, :no, s, :go]; c = String
+      s = 'oh'
+      b = 'hi'
+      r = //
+      d = [b, :no, s, :go]
+      c = String
+
       a = [:so, 'hello', 100, :so, :so, d, :so, :so, :no, :go, c, nil,
-            :go, :no, s, b, r, :so, 'huh', true, b, b, 99, r, b, s, :so, c, :no, d]
+           :go, :no, s, b, r, :so, 'huh', true, b, b, 99, r, b, s, :so, c, :no, d]
+
       Marshal.dump(a).should ==
         "#{mv+nv}[\x23:\x07so\"\x0Ahelloi\x69;\x00;\x00[\x09\"\x07hi:\x07no\"\x07oh:\x07go;\x00;\x00;\x06;\x07c\x0BString0;\x07;\x06@\x09@\x08/\x00\x00;\x00\"\x08huhT@\x08@\x08i\x68@\x0B@\x08@\x09;\x00@\x0A;\x06@\x07"
     end
@@ -292,9 +230,15 @@ describe "Marshal.dump" do
 
   ruby_version_is "1.9" do
     it "dumps an array containing the same objects" do
-      s = 'oh'; b = 'hi'; r = //; d = [b, :no, s, :go]; c = String
+      s = 'oh'
+      b = 'hi'
+      r = //
+      d = [b, :no, s, :go]
+      c = String
+
       a = [:so, 'hello', 100, :so, :so, d, :so, :so, :no, :go, c, nil,
-            :go, :no, s, b, r, :so, 'huh', true, b, b, 99, r, b, s, :so, c, :no, d]
+           :go, :no, s, b, r, :so, 'huh', true, b, b, 99, r, b, s, :so, c, :no, d]
+
       Marshal.dump(a).should ==
         "#{mv+nv}[#:\asoI\"\nhello\x06:\x06EFii;\x00;\x00[\tI\"\ahi\x06;\x06F:\anoI\"\aoh\x06;\x06F:\ago;\x00;\x00;\a;\bc\vString0;\b;\a@\t@\bI/\x00\x00\x06;\x06F;\x00I\"\bhuh\x06;\x06FT@\b@\bih@\v@\b@\t;\x00@\n;\a@\a"
     end
@@ -304,8 +248,10 @@ describe "Marshal.dump" do
     it "dumps an extended_array having ivar" do
       s = 'well'
       s.instance_variable_set(:@foo, 10)
+
       a = ['5', s, 'hi'].extend(Meths, MethsMore)
       a.instance_variable_set(:@mix, s)
+
       Marshal.dump(a).should ==
         "#{mv+nv}Ie:\x0AMethse:\x0EMethsMore[\x08\"\x065I\"\x09well\x06:\x09@fooi\x0F\"\x07hi\x06:\x09@mix@\x07"
     end
@@ -315,8 +261,10 @@ describe "Marshal.dump" do
     it "dumps an extended_array having ivar" do
       s = 'well'
       s.instance_variable_set(:@foo, 10)
+
       a = ['5', s, 'hi'].extend(Meths, MethsMore)
       a.instance_variable_set(:@mix, s)
+
       Marshal.dump(a).should ==
         "#{mv+nv}Ie:\nMethse:\x0EMethsMore[\bI\"\x065\x06:\x06EFI\"\twell\a;\aF:\t@fooi\x0FI\"\ahi\x06;\aF\x06:\t@mix@\a"
     end
@@ -336,7 +284,9 @@ describe "Marshal.dump" do
     it "dumps an extended_struct having fields with same objects" do
       s = 'hi'
       st = Struct.new("Ure2", :a, :b).new.extend(Meths)
-      st.a = [:a, s]; st.b = [:Meths, s]
+      st.a = [:a, s]
+      st.b = [:Meths, s]
+
       Marshal.dump(st).should ==
         "#{mv+nv}e:\x0AMethsS:\x11Struct::Ure2\x07:\x06a[\x07;\x07\"\x07hi:\x06b[\x07;\x00@\x07"
     end
@@ -346,15 +296,16 @@ describe "Marshal.dump" do
     it "dumps an extended_struct having fields with same objects" do
       s = 'hi'
       st = Struct.new("Ure2", :a, :b).new.extend(Meths)
-      st.a = [:a, s]; st.b = [:Meths, s]
+      st.a = [:a, s]
+      st.b = [:Meths, s]
+
       Marshal.dump(st).should ==
         "#{mv+nv}e:\nMethsS:\x11Struct::Ure2\a:\x06a[\a;\aI\"\ahi\x06:\x06EF:\x06b[\a;\x00@\a"
     end
   end
   
   it "returns an untainted string if object is untainted" do
-    obj = Object.new
-    m = Marshal.dump(obj)
+    m = Marshal.dump(Object.new)
     m.tainted?.should be_false
   end
   
@@ -402,9 +353,7 @@ describe "Marshal.dump" do
   ruby_version_is ""..."1.9" do
     MarshalSpec::DATA.each do |description, (object, marshal, attributes)|
       it "dumps a #{description}" do
-        unless attributes then
-          Marshal.dump(object).should == marshal
-        else
+        if attributes
           # these objects have non-deterministic field order in the
           # marshal stream, so they need a round trip and independent
           # verification.
@@ -412,6 +361,8 @@ describe "Marshal.dump" do
           attributes.each do |attr, val|
             object.send(attr).should == val
           end
+        else
+          Marshal.dump(object).should == marshal
         end
       end
     end
@@ -420,9 +371,7 @@ describe "Marshal.dump" do
   ruby_version_is "1.9" do
     MarshalSpec::DATA_19.each do |description, (object, marshal, attributes)|
       it "dumps a #{description}" do
-        unless attributes then
-          Marshal.dump(object).should == marshal
-        else
+        if attributes
           # these objects have non-deterministic field order in the
           # marshal stream, so they need a round trip and independent
           # verification.
@@ -430,6 +379,8 @@ describe "Marshal.dump" do
           attributes.each do |attr, val|
             object.send(attr).should == val
           end
+        else
+          Marshal.dump(object).should == marshal
         end
       end
     end
