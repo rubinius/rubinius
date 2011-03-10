@@ -47,7 +47,7 @@ Benchmark.ips do |x|
   	end
   end
 
-  default_proc_hash = Hash.new {|h,k| h[k] = 'boom' }
+  default_proc_hash = Hash.new {|h,k| 1 }
   x.report "hsh[i] (default proc)" do |times|
   	i = 0
   	while i < times
