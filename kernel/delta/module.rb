@@ -73,6 +73,7 @@ class Module
       mod.send :append_features, self
       mod.send :included, self
     end
+    self
   end
 
   # Add all constants, instance methods and module variables
