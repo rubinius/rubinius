@@ -90,8 +90,8 @@ namespace melbourne {
       bdestroy(parser_state->line_buffer);
     }
 
-    if(parser_state->lex_lastline) {
-      bdestroy(parser_state->lex_lastline);
+    if(lex_lastline) {
+      bdestroy(lex_lastline);
     }
 
     free(parser_state->token_buffer);
@@ -156,14 +156,14 @@ namespace melbourne {
       if(!err_msg) err_msg = rb_str_new2(msg);
     }
 
-    int col = parser_state->lex_p - parser_state->lex_pbeg;
+    int col = lex_p - lex_pbeg;
 
     rb_funcall(parser_state->processor,
                rb_intern("process_parse_error"),4,
                err_msg,
                INT2FIX(col),
                INT2FIX(mel_sourceline),
-               string_newfrombstr(parser_state->lex_lastline));
+               string_newfrombstr(lex_lastline));
 
     parser_state->error = Qtrue;
   }
@@ -1099,14 +1099,14 @@ namespace melbourne {
       if(!err_msg) err_msg = rb_str_new2(msg);
     }
 
-    int col = parser_state->lex_p - parser_state->lex_pbeg;
+    int col = lex_p - lex_pbeg;
 
     rb_funcall(parser_state->processor,
                rb_intern("process_parse_error"),4,
                err_msg,
                INT2FIX(col),
                INT2FIX(mel_sourceline),
-               string_newfrombstr(parser_state->lex_lastline));
+               string_newfrombstr(lex_lastline));
 
     parser_state->error = Qtrue;
   }

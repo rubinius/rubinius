@@ -58,6 +58,9 @@ end
 
 add_objects project_files, ext_dir
 
+oniguruma_h_dir = File.expand_path('../../../../vm/external_libs/onig', __FILE__)
+add_include_dir oniguruma_h_dir
+
 # Build the Melbourne extension against Rubinius
 directory "rbx"
 melbourne_rbx = "rbx/melbourne.#{$DLEXT}"
@@ -70,7 +73,7 @@ melbourne_mri = "ruby/melbourne.#{$DLEXT}"
 
 file melbourne_mri => project_files
 
-graph_dependencies source_files
+graph_dependencies source_files, oniguruma_h_dir
 
 import dependency_file
 

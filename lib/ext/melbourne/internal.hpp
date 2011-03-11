@@ -6,6 +6,10 @@
 #include "quark.hpp"
 #include "bstrlib.h"
 
+#ifdef RBX_GRAMMAR_19
+#include "encoding_compat.hpp"
+#endif
+
 #include "local_state.hpp"
 
 #include <vector>
@@ -29,15 +33,15 @@ namespace melbourne {
       EXPR_VALUE,     /* like EXPR_BEG but label is disallowed. */
       EXPR_MAX_STATE
 #else
-      EXPR_BEG,      /* ignore newline, +/- is a sign. */
-      EXPR_END,      /* newline significant, +/- is a operator. */
-      EXPR_ARG,      /* newline significant, +/- is a operator. */
-      EXPR_CMDARG,   /* newline significant, +/- is a operator. */
-      EXPR_ENDARG,   /* newline significant, +/- is a operator. */
-      EXPR_MID,      /* newline significant, +/- is a operator. */
-      EXPR_FNAME,    /* ignore newline, no reserved words. */
-      EXPR_DOT,      /* right after `.' or `::', no reserved words. */
-      EXPR_CLASS,    /* immediate after `class', no here document. */
+      EXPR_BEG,       /* ignore newline, +/- is a sign. */
+      EXPR_END,       /* newline significant, +/- is a operator. */
+      EXPR_ARG,       /* newline significant, +/- is a operator. */
+      EXPR_CMDARG,    /* newline significant, +/- is a operator. */
+      EXPR_ENDARG,    /* newline significant, +/- is a operator. */
+      EXPR_MID,       /* newline significant, +/- is a operator. */
+      EXPR_FNAME,     /* ignore newline, no reserved words. */
+      EXPR_DOT,       /* right after `.' or `::', no reserved words. */
+      EXPR_CLASS,     /* immediate after `class', no here document. */
 #endif
   };
 
@@ -94,6 +98,7 @@ namespace melbourne {
     /* Otherwise, we use this. */
     bstring lex_string;
     bstring lex_lastline;
+    bstring lex_nextline;
 
     char *lex_pbeg;
     char *lex_p;
@@ -106,6 +111,7 @@ namespace melbourne {
     stack_type cmdarg_stack;
 
     void *lval; /* the parser's yylval */
+    VALUE eofp;
 
     std::vector<bstring>* magic_comments;
     int column;
@@ -131,6 +137,11 @@ namespace melbourne {
     // better error reporting.
     std::list<StartPosition>* start_lines;
 
+#ifdef RBX_GRAMMAR_19
+    rb_encoding *enc;
+    rb_encoding *utf8;
+#endif
+
   } rb_parser_state;
 
 
@@ -138,6 +149,11 @@ namespace melbourne {
 #define PARSER_VAR(var)     (PARSER_STATE->var)
 
 #define lex_state           PARSER_VAR(lex_state)
+#define lex_pbeg            PARSER_VAR(lex_pbeg)
+#define lex_p               PARSER_VAR(lex_p)
+#define lex_pend            PARSER_VAR(lex_pend)
+#define lex_lastline        PARSER_VAR(lex_lastline)
+#define lex_nextline        PARSER_VAR(lex_nextline)
 #define ruby_debug_lines    PARSER_VAR(debug_lines)
 #define heredoc_end         PARSER_VAR(heredoc_end)
 #define command_start       PARSER_VAR(command_start)

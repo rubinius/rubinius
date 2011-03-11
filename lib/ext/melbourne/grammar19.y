@@ -71,8 +71,6 @@ static int parser_yyerror(rb_parser_state*, const char *);
 
 #define YYLEX_PARAM parser_state
 
-#define yyparse parser_yyparse
-
 #define ID_SCOPE_SHIFT 3
 #define ID_SCOPE_MASK 0x07
 #define ID_LOCAL    0x01
@@ -98,14 +96,7 @@ static int parser_yyerror(rb_parser_state*, const char *);
          ((id)&ID_SCOPE_MASK) == ID_INSTANCE || \
          ((id)&ID_SCOPE_MASK) == ID_CLASS))
 
-
-/* FIXME these went into the ruby_state instead of parser_state
-   because a ton of other crap depends on it
-char *ruby_sourcefile;          current source file
-int   ruby_sourceline;          current line no.
-*/
 static int yylex(void*, void *);
-
 
 #define BITSTACK_PUSH(stack, n) (stack = (stack<<1)|((n)&1))
 #define BITSTACK_POP(stack)     (stack >>= 1)
@@ -169,6 +160,7 @@ static NODE *mel_gettable(rb_parser_state*,QUID);
 static NODE *parser_assignable(rb_parser_state*, QUID, NODE*);
 static QUID parser_formal_argument(rb_parser_state*, QUID);
 static QUID parser_shadowing_lvar(rb_parser_state*, QUID);
+static int parser_lvar_defined(rb_parser_state*, QUID);
 static void parser_new_bv(rb_parser_state*, QUID);
 static NODE *parser_aryset(rb_parser_state*, NODE*, NODE*);
 static NODE *parser_attrset(rb_parser_state*, NODE*, QUID);
@@ -189,9 +181,6 @@ static QUID   convert_op(QUID id);
 
 #define QUID2SYM(x)   (x)
 
-static void tokadd(char c, rb_parser_state* parser_state);
-static int tokadd_string(int, int, int, QUID*, rb_parser_state*);
-
 #define SHOW_PARSER_WARNS 0
 
 static int rb_compile_error(rb_parser_state* parser_state, const char *fmt, ...) {
@@ -206,6 +195,10 @@ static int rb_compile_error(rb_parser_state* parser_state, const char *fmt, ...)
   yy_error(msg);
 
   return count;
+}
+
+static void rb_compile_warning(rb_parser_state* parser_state, const char *fmt, ...) {
+  // TODO: only in verbose mode.
 }
 
 static int _debug_print(const char *fmt, ...) {
@@ -240,8 +233,8 @@ void pop_start_line(rb_parser_state* st) {
 static QUID rb_parser_sym(const char *name);
 static QUID rb_id_attrset(QUID);
 
-static unsigned long scan_oct(const char *start, int len, int *retlen);
-static unsigned long scan_hex(const char *start, int len, int *retlen);
+static int scan_oct(const char *start, size_t len, size_t *retlen);
+static int scan_hex(const char *start, size_t len, size_t *retlen);
 
 static void parser_reset_block(rb_parser_state* parser_state);
 static NODE *parser_extract_block_vars(rb_parser_state* parser_state, NODE* node, var_table vars);
@@ -264,6 +257,7 @@ static NODE *parser_extract_block_vars(rb_parser_state* parser_state, NODE* node
 #define ret_args(n)               parser_ret_args(parser_state, n)
 #define assignable(a, b)          parser_assignable(parser_state, a, b)
 #define formal_argument(n)        parser_formal_argument(parser_state, n)
+#define lvar_defined(n)           parser_lvar_defined(parser_state, n)
 #define shadowing_lvar(n)         parser_shadowing_lvar(parser_state, n)
 #define new_bv(n)                 parser_new_bv(parser_state, n)
 #define aryset(a, b)              parser_aryset(parser_state, a, b)
@@ -295,6 +289,9 @@ static NODE *parser_extract_block_vars(rb_parser_state* parser_state, NODE* node
 #define local_id(i)               parser_local_id(parser_state, i)
 #define local_cnt(i)              parser_local_cnt(parser_state, i)
 
+#define rb_warning0(fmt)          rb_compile_warning(parser_state, fmt)
+#define rb_warningS(fmt,a)        rb_compile_warning(parser_state, fmt, a)
+
 /* TODO */
 #define CONST_ID(x, y)            ((void)0)
 
@@ -324,9 +321,14 @@ static NODE *parser_extract_block_vars(rb_parser_state* parser_state, NODE* node
 #define nd_term(node) ((signed short)(node)->u2.id)
 #endif
 #define nd_paren(node) (char)((node)->u2.id >> (CHAR_BIT*2))
-#define nd_nest u3.id
+#define nd_nest u3.cnt
 
-#define STR_NEW0()  rb_str_new(0,0)
+#define UTF8_ENC()            (parser_state->utf8 ? parser_state->utf8 : \
+                                (parser_state->utf8 = rb_utf8_encoding()))
+#define STR_NEW0()            rb_str_new(0, 0)
+#define STR_NEW3(p,n,e,func)  parser_str_new((p), (n), (e), (func), parser_state->enc)
+#define ENC_SINGLE(cr)        ((cr)==ENC_CODERANGE_7BIT)
+#define TOK_INTERN(mb)        rb_parser_sym(tok())
 
 #define NEW_BLOCK_VAR(b, v) NEW_NODE(NODE_BLOCK_PASS, 0, b, v)
 
@@ -2970,6 +2972,43 @@ none            : /* none */ {$$ = 0;}
                 ;
 %%
 
+#undef parser
+#undef yylex
+#undef yylval
+#define yylval  (*((YYSTYPE*)(parser_state->lval)))
+
+static int parser_regx_options(rb_parser_state*);
+static int parser_tokadd_string(rb_parser_state*, int, int, int, long*, rb_encoding**);
+static void parser_tokaddmbc(rb_parser_state*, int c, rb_encoding *);
+static int parser_parse_string(rb_parser_state*, NODE*);
+static int parser_here_document(rb_parser_state*, NODE*);
+
+
+#define nextc()                   parser_nextc(parser_state)
+#define pushback(c)               parser_pushback(parser_state, c)
+#define newtok()                  parser_newtok(parser_state)
+#define tokspace(n)               parser_tokspace(parser_state, n)
+#define tokadd(c)                 parser_tokadd(parser_state, c)
+#define tok_hex(numlen)           parser_tok_hex(parser_state, numlen)
+#define read_escape(flags,e)      parser_read_escape(parser_state, flags, e)
+#define tokadd_escape(e)          parser_tokadd_escape(parser_state, e)
+#define regx_options()            parser_regx_options(parser_state)
+#define tokadd_string(f,t,p,n,e)  parser_tokadd_string(parser_state,f,t,p,n,e)
+#define parse_string(n)           parser_parse_string(parser_state,n)
+#define tokaddmbc(c, enc)         parser_tokaddmbc(parser_state, c, enc)
+#define here_document(n)          parser_here_document(parser_state,n)
+#define heredoc_identifier()      parser_heredoc_identifier(parser_state)
+#define heredoc_restore(n)        parser_heredoc_restore(parser_state,n)
+#define whole_match_p(e,l,i)      parser_whole_match_p(parser_state,e,l,i)
+
+#define set_yylval_str(x)         yylval.node = NEW_STR(x)
+#define set_yylval_num(x)         yylval.num = x
+#define set_yylval_id(x)          yylval.id = x
+#define set_yylval_name(x)        yylval.id = x
+#define set_yylval_literal(x)     yylval.node = NEW_LIT(x)
+#define set_yylval_node(x)        yylval.node = x
+#define yylval_id()               yylval.id
+
 /* We remove any previous definition of `SIGN_EXTEND_CHAR',
    since ours (we hope) works properly with all combinations of
    machines, compilers, `char' and `unsigned char' argument types.
@@ -2981,9 +3020,15 @@ none            : /* none */ {$$ = 0;}
 /* As in Harbison and Steele.  */
 # define SIGN_EXTEND_CHAR(c) ((((unsigned char)(c)) ^ 128) - 128)
 #endif
-#define is_identchar(c) (SIGN_EXTEND_CHAR(c)!=-1&&(ISALNUM(c) || (c) == '_' || ismbchar(c)))
 
-#define LEAVE_BS 1
+#define parser_encoding_name()    (parser_state->enc->name)
+#define parser_mbclen()           mbclen((lex_p-1),lex_pend,parser->enc)
+#define parser_precise_mbclen()   rb_enc_precise_mbclen((lex_p-1),lex_pend,parser_state->enc)
+#define is_identchar(p,e,enc)     (rb_enc_isalnum(*p,enc) || (*p) == '_' || !ISASCII(*p))
+#define parser_is_identchar()     (!parser_state->eofp && \
+                                   is_identchar((lex_p-1),lex_pend,parser_state->enc))
+
+#define parser_isascii() ISASCII(*(lex_p-1))
 
 static void parser_token_info_push(rb_parser_state* parser_state, const char *token) {
   /* TODO */
@@ -3082,9 +3127,9 @@ string_to_ast(VALUE ptp, const char *f, bstring s, int line)
   parser_state = alloc_parser_state();
   parser_state->lex_string = s;
   parser_state->lex_gets = lex_get_str;
-  parser_state->lex_pbeg = 0;
-  parser_state->lex_p = 0;
-  parser_state->lex_pend = 0;
+  lex_pbeg = 0;
+  lex_p = 0;
+  lex_pend = 0;
   parser_state->error = Qfalse;
   parser_state->processor = ptp;
   ruby_sourceline = line - 1;
@@ -3143,9 +3188,9 @@ file_to_ast(VALUE ptp, const char *f, FILE *file, int start)
   parser_state = alloc_parser_state();
   parser_state->lex_io = file;
   parser_state->lex_gets = parse_io_gets;
-  parser_state->lex_pbeg = 0;
-  parser_state->lex_p = 0;
-  parser_state->lex_pend = 0;
+  lex_pbeg = 0;
+  lex_p = 0;
+  lex_pend = 0;
   parser_state->error = Qfalse;
   parser_state->processor = ptp;
   ruby_sourceline = start - 1;
@@ -3173,14 +3218,31 @@ file_to_ast(VALUE ptp, const char *f, FILE *file, int start)
   return ret;
 }
 
-#define nextc() ps_nextc(parser_state)
+static VALUE
+parser_str_new(const char *p, long n, rb_encoding *enc, int func, rb_encoding *enc0)
+{
+  VALUE str;
+
+/*
+  str = rb_enc_str_new(p, n, enc);
+  if(!(func & STR_FUNC_REGEXP) && rb_enc_asciicompat(enc)) {
+    if(rb_enc_str_coderange(str) == ENC_CODERANGE_7BIT) {
+      // ?
+    } else if(enc0 == rb_usascii_encoding() && enc != rb_utf8_encoding()) {
+      rb_enc_associate(str, rb_ascii8bit_encoding());
+    }
+  }
+*/
+
+  return str;
+}
 
 static inline int
-ps_nextc(rb_parser_state* parser_state)
+parser_nextc(rb_parser_state* parser_state)
 {
   int c;
 
-  if(parser_state->lex_p == parser_state->lex_pend) {
+  if(lex_p == lex_pend) {
       bstring v;
 
       if(!lex_getline(parser_state)) return -1;
@@ -3195,20 +3257,20 @@ ps_nextc(rb_parser_state* parser_state)
       /* This code is setup so that lex_pend can be compared to
          the data in lex_lastline. Thats important, otherwise
          the heredoc code breaks. */
-      if(parser_state->lex_lastline) {
-        bassign(parser_state->lex_lastline, v);
+      if(lex_lastline) {
+        bassign(lex_lastline, v);
       } else {
-        parser_state->lex_lastline = bstrcpy(v);
+        lex_lastline = bstrcpy(v);
       }
 
-      v = parser_state->lex_lastline;
+      v = lex_lastline;
 
-      parser_state->lex_pbeg = parser_state->lex_p = bdata(v);
-      parser_state->lex_pend = parser_state->lex_p + blength(v);
+      lex_pbeg = lex_p = bdata(v);
+      lex_pend = lex_p + blength(v);
   }
-  c = (unsigned char)*(parser_state->lex_p++);
-  if(c == '\r' && parser_state->lex_p < parser_state->lex_pend && *(parser_state->lex_p) == '\n') {
-    parser_state->lex_p++;
+  c = (unsigned char)*(lex_p++);
+  if(c == '\r' && lex_p < lex_pend && *(lex_p) == '\n') {
+    lex_p++;
     c = '\n';
     parser_state->column = 0;
   } else if(c == '\n') {
@@ -3221,15 +3283,19 @@ ps_nextc(rb_parser_state* parser_state)
 }
 
 static void
-pushback(int c, rb_parser_state* parser_state)
+parser_pushback(rb_parser_state* parser_state, int c)
 {
   if(c == -1) return;
-  parser_state->lex_p--;
+  lex_p--;
 }
 
+#define pushback(c)   parser_pushback(parser_state, c)
+
+#define lex_goto_eol()  (lex_p = lex_pend)
+#define peek(c) (lex_p < lex_pend && (c) == *lex_p)
+
 /* Indicates if we're currently at the beginning of a line. */
-#define was_bol() (parser_state->lex_p == parser_state->lex_pbeg + 1)
-#define peek(c) (parser_state->lex_p != parser_state->lex_pend && (c) == *(parser_state->lex_p))
+#define was_bol() (lex_p == lex_pbeg + 1)
 
 /* The token buffer. It's just a global string that has
    functions to build up the string easily. */
@@ -3240,7 +3306,7 @@ pushback(int c, rb_parser_state* parser_state)
 #define toklast() (tokidx>0?tokenbuf[tokidx-1]:0)
 
 static char*
-newtok(rb_parser_state* parser_state)
+parser_newtok(rb_parser_state* parser_state)
 {
   tokidx = 0;
   if(!tokenbuf) {
@@ -3254,7 +3320,22 @@ newtok(rb_parser_state* parser_state)
   return tokenbuf;
 }
 
-static void tokadd(char c, rb_parser_state* parser_state)
+static char *
+parser_tokspace(rb_parser_state *parser_state, int n)
+{
+  tokidx += n;
+
+  if(tokidx >= toksiz) {
+    do {
+      toksiz *= 2;
+    } while(toksiz < tokidx);
+    REALLOC_N(tokenbuf, char, toksiz);
+  }
+  return &tokenbuf[tokidx-n];
+}
+
+
+static void parser_tokadd(rb_parser_state* parser_state, char c)
 {
   assert(tokidx < toksiz && tokidx >= 0);
   tokenbuf[tokidx++] = c;
@@ -3265,181 +3346,278 @@ static void tokadd(char c, rb_parser_state* parser_state)
 }
 
 static int
-read_escape(rb_parser_state* parser_state)
+parser_tok_hex(rb_parser_state *parser_state, size_t *numlen)
 {
   int c;
 
-  switch(c = nextc()) {
-  case '\\':        /* Backslash */
-    return c;
-  case 'n': /* newline */
-    return '\n';
-  case 't': /* horizontal tab */
-    return '\t';
-  case 'r': /* carriage-return */
-    return '\r';
-  case 'f': /* form-feed */
-    return '\f';
-  case 'v': /* vertical tab */
-    return '\13';
-  case 'a': /* alarm(bell) */
-    return '\007';
-  case 'e': /* escape */
-    return 033;
-  case '0': case '1': case '2': case '3': /* octal constant */
-  case '4': case '5': case '6': case '7':
-    {
-      int numlen;
+  c = scan_hex(lex_p, 2, numlen);
+  if(!*numlen) {
+    yy_error("invalid hex escape");
+    return 0;
+  }
+  lex_p += *numlen;
+  return c;
+}
 
-      pushback(c, parser_state);
-      c = scan_oct(parser_state->lex_p, 3, &numlen);
-      parser_state->lex_p += numlen;
-    }
-    return c;
-  case 'x': /* hex constant */
-    {
-      int numlen;
+#define tokcopy(n) memcpy(tokspace(n), lex_p - (n), (n))
 
-      c = scan_hex(parser_state->lex_p, 2, &numlen);
-      if(numlen == 0) {
-        yy_error("Invalid escape character syntax");
+static int
+parser_tokadd_utf8(rb_parser_state *parser_state, rb_encoding **encp,
+                   int string_literal, int symbol_literal, int regexp_literal)
+{
+  /*
+   * If string_literal is true, then we allow multiple codepoints
+   * in \u{}, and add the codepoints to the current token.
+   * Otherwise we're parsing a character literal and return a single
+   * codepoint without adding it
+   */
+
+  int codepoint;
+  size_t numlen;
+
+  if(regexp_literal) {
+    tokadd('\\'); tokadd('u');
+  }
+
+  if(peek('{')) {  /* handle \u{...} form */
+    do {
+      if(regexp_literal) tokadd(*lex_p);
+      nextc();
+      codepoint = scan_hex(lex_p, 6, &numlen);
+
+      if(numlen == 0)  {
+        yy_error("invalid Unicode escape");
         return 0;
       }
-      parser_state->lex_p += numlen;
+      if(codepoint > 0x10ffff) {
+      yy_error("invalid Unicode codepoint (too large)");
+      return 0;
+      }
+
+      lex_p += numlen;
+      if(regexp_literal) {
+        tokcopy((int)numlen);
+      } else if(codepoint >= 0x80) {
+        *encp = UTF8_ENC();
+        if(string_literal) tokaddmbc(codepoint, *encp);
+      } else if(string_literal) {
+        tokadd(codepoint);
+      }
+    } while(string_literal && (peek(' ') || peek('\t')));
+
+    if(!peek('}')) {
+      yy_error("unterminated Unicode escape");
+      return 0;
     }
+
+    if(regexp_literal) tokadd('}');
+    nextc();
+  } else {			/* handle \uxxxx form */
+    codepoint = scan_hex(lex_p, 4, &numlen);
+    if(numlen < 4) {
+      yy_error("invalid Unicode escape");
+      return 0;
+    }
+    lex_p += 4;
+    if(regexp_literal) {
+      tokcopy(4);
+    } else if(codepoint >= 0x80) {
+      *encp = UTF8_ENC();
+      if(string_literal) tokaddmbc(codepoint, *encp);
+    } else if(string_literal) {
+      tokadd(codepoint);
+    }
+  }
+
+  return codepoint;
+}
+
+#define ESCAPE_CONTROL 1
+#define ESCAPE_META    2
+
+static int
+parser_read_escape(rb_parser_state *parser_state, int flags, rb_encoding **encp)
+{
+  int c;
+  size_t numlen;
+
+  switch(c = nextc()) {
+  case '\\':	    /* Backslash */
     return c;
-  case 'b': /* backspace */
+
+  case 'n':	      /* newline */
+    return '\n';
+
+  case 't':	      /* horizontal tab */
+    return '\t';
+
+  case 'r':	      /* carriage-return */
+    return '\r';
+
+  case 'f':	      /* form-feed */
+    return '\f';
+
+  case 'v':	      /* vertical tab */
+    return '\13';
+
+  case 'a':	      /* alarm(bell) */
+    return '\007';
+
+  case 'e':	      /* escape */
+    return 033;
+
+  case '0': case '1': case '2': case '3': /* octal constant */
+  case '4': case '5': case '6': case '7':
+    if(flags & (ESCAPE_CONTROL|ESCAPE_META)) goto eof;
+    pushback(c);
+    c = scan_oct(lex_p, 3, &numlen);
+    lex_p += numlen;
+    return c;
+
+  case 'x':	    /* hex constant */
+    if(flags & (ESCAPE_CONTROL|ESCAPE_META)) goto eof;
+    c = tok_hex(&numlen);
+    if(numlen == 0) return 0;
+    return c;
+
+  case 'b':	    /* backspace */
     return '\010';
-  case 's': /* space */
+
+  case 's':	    /* space */
     return ' ';
+
   case 'M':
+    if(flags & ESCAPE_META) goto eof;
     if((c = nextc()) != '-') {
-      yy_error("Invalid escape character syntax");
-      pushback(c, parser_state);
-      return '\0';
+      pushback(c);
+      goto eof;
     }
     if((c = nextc()) == '\\') {
-      return read_escape(parser_state) | 0x80;
-    }
-    else if(c == -1) goto eof;
-    else {
+      if(peek('u')) goto eof;
+      return read_escape(flags|ESCAPE_META, encp) | 0x80;
+    } else if(c == -1 || !ISASCII(c)) {
+      goto eof;
+    } else {
       return ((c & 0xff) | 0x80);
     }
+
   case 'C':
     if((c = nextc()) != '-') {
-      yy_error("Invalid escape character syntax");
-      pushback(c, parser_state);
-      return '\0';
+      pushback(c);
+      goto eof;
     }
   case 'c':
+    if(flags & ESCAPE_CONTROL) goto eof;
     if((c = nextc())== '\\') {
-      c = read_escape(parser_state);
-    }
-    else if(c == '?')
+      if(peek('u')) goto eof;
+      c = read_escape(flags|ESCAPE_CONTROL, encp);
+    } else if(c == '?') {
       return 0177;
-    else if(c == -1) goto eof;
+    } else if(c == -1 || !ISASCII(c)) {
+      goto eof;
+    }
     return c & 0x9f;
+
   eof:
   case -1:
     yy_error("Invalid escape character syntax");
     return '\0';
+
   default:
     return c;
   }
 }
 
+static void
+parser_tokaddmbc(rb_parser_state* parser_state, int c, rb_encoding *enc)
+{
+  int len = rb_enc_codelen(c, enc);
+  rb_enc_mbcput(c, tokspace(len), enc);
+}
+
 static int
-tokadd_escape(int term, rb_parser_state* parser_state)
+parser_tokadd_escape(rb_parser_state* parser_state, rb_encoding **encp)
 {
   int c;
+  int flags = 0;
+  size_t numlen;
 
-  switch(c = nextc()) {
+first:
+  switch (c = nextc()) {
   case '\n':
-    return 0;               /* just ignore */
+    return 0;		/* just ignore */
+
   case '0': case '1': case '2': case '3': /* octal constant */
   case '4': case '5': case '6': case '7':
+    if(flags & (ESCAPE_CONTROL|ESCAPE_META)) goto eof;
     {
-      int i;
-
-      tokadd((char)'\\', parser_state);
-      tokadd((char)c, parser_state);
-      for (i=0; i<2; i++) {
-        c = nextc();
-        if(c == -1) goto eof;
-        if(c < '0' || '7' < c) {
-          pushback(c, parser_state);
-          break;
-        }
-        tokadd((char)c, parser_state);
-      }
+      scan_oct(--lex_p, 3, &numlen);
+      if(numlen == 0) goto eof;
+      lex_p += numlen;
+      tokcopy((int)numlen + 1);
     }
     return 0;
-  case 'x': /* hex constant */
-    {
-      int numlen;
 
-      tokadd('\\', parser_state);
-      tokadd((char)c, parser_state);
-      scan_hex(parser_state->lex_p, 2, &numlen);
-      if(numlen == 0) {
-        yy_error("Invalid escape character syntax");
-        return -1;
-      }
-      while(numlen--)
-        tokadd((char)nextc(), parser_state);
+  case 'x':	/* hex constant */
+    if(flags & (ESCAPE_CONTROL|ESCAPE_META)) goto eof;
+    {
+      tok_hex(&numlen);
+      if(numlen == 0) goto eof;
+      tokcopy((int)numlen + 2);
     }
     return 0;
+
   case 'M':
+    if(flags & ESCAPE_META) goto eof;
     if((c = nextc()) != '-') {
-      yy_error("Invalid escape character syntax");
-      pushback(c, parser_state);
-      return 0;
+      pushback(c);
+      goto eof;
     }
-    tokadd('\\',parser_state);
-    tokadd('M', parser_state);
-    tokadd('-', parser_state);
+    tokcopy(3);
+    flags |= ESCAPE_META;
     goto escaped;
+
   case 'C':
+    if(flags & ESCAPE_CONTROL) goto eof;
     if((c = nextc()) != '-') {
-      yy_error("Invalid escape character syntax");
-      pushback(c, parser_state);
-      return 0;
+      pushback(c);
+      goto eof;
     }
-    tokadd('\\', parser_state);
-    tokadd('C', parser_state);
-    tokadd('-', parser_state);
+    tokcopy(3);
     goto escaped;
+
   case 'c':
-    tokadd('\\', parser_state);
-    tokadd('c', parser_state);
-  escaped:
+    if (flags & ESCAPE_CONTROL) goto eof;
+    tokcopy(2);
+    flags |= ESCAPE_CONTROL;
+escaped:
     if((c = nextc()) == '\\') {
-      return tokadd_escape(term, parser_state);
-    }
-    else if(c == -1) goto eof;
-    tokadd((char)c, parser_state);
+      goto first;
+    } else if(c == -1) goto eof;
+    tokadd(c);
     return 0;
 
-  eof:
+eof:
   case -1:
     yy_error("Invalid escape character syntax");
     return -1;
+
   default:
-    if(c != '\\' || c != term)
-      tokadd('\\', parser_state);
-    tokadd((char)c, parser_state);
+    tokadd('\\');
+    tokadd(c);
   }
+
   return 0;
 }
 
 static int
-regx_options(rb_parser_state* parser_state)
+parser_regx_options(rb_parser_state* parser_state)
 {
     char kcode = 0;
     int options = 0;
     int c;
 
-    newtok(parser_state);
+    newtok();
     while(c = nextc(), ISALPHA(c)) {
       switch(c) {
       case 'i':
@@ -3473,11 +3651,11 @@ regx_options(rb_parser_state* parser_state)
         kcode = 64;
         break;
       default:
-        tokadd((char)c, parser_state);
+        tokadd((char)c);
         break;
       }
     }
-    pushback(c, parser_state);
+    pushback(c);
     if(toklen()) {
       tokfix();
       rb_compile_error(parser_state, "unknown regexp option%s - %s",
@@ -3504,75 +3682,132 @@ enum string_type {
   str_dsym   = (STR_FUNC_SYMBOL|STR_FUNC_EXPAND),
 };
 
-static int tokadd_string(int func, int term, int paren, quark *nest, rb_parser_state* parser_state)
+static int
+parser_tokadd_mbchar(rb_parser_state *parser_state, int c)
+{
+  int len = parser_precise_mbclen();
+  if(!MBCLEN_CHARFOUND_P(len)) {
+    rb_compile_error(parser_state, "invalid multibyte char (%s)", parser_encoding_name());
+    return -1;
+  }
+  tokadd(c);
+  lex_p += --len;
+  if(len > 0) tokcopy(len);
+  return c;
+}
+
+#define tokadd_mbchar(c) parser_tokadd_mbchar(parser_state, c)
+
+static int
+parser_tokadd_string(rb_parser_state *parser_state,
+                     int func, int term, int paren, long *nest, rb_encoding **encp)
 {
   int c;
+  int has_nonascii = 0;
+  rb_encoding *enc = *encp;
+  char *errbuf = 0;
+  static const char mixed_msg[] = "%s mixed within %s source";
+
+#define mixed_error(enc1, enc2) if (!errbuf) {	\
+    size_t len = sizeof(mixed_msg) - 4;	\
+    len += strlen(rb_enc_name(enc1));	\
+    len += strlen(rb_enc_name(enc2));	\
+    errbuf = ALLOCA_N(char, len);		\
+    snprintf(errbuf, len, mixed_msg, rb_enc_name(enc1), rb_enc_name(enc2));		\
+    yy_error(errbuf);			\
+  }
+
+#define mixed_escape(beg, enc1, enc2) do {	\
+    char *pos = lex_p;		\
+    lex_p = beg;				\
+    mixed_error(enc1, enc2);		\
+    lex_p = pos;				\
+  } while (0)
 
   while((c = nextc()) != -1) {
     if(paren && c == paren) {
       ++*nest;
     } else if(c == term) {
       if(!nest || !*nest) {
-        pushback(c, parser_state);
+        pushback(c);
         break;
       }
       --*nest;
-    } else if((func & STR_FUNC_EXPAND) && c == '#' && parser_state->lex_p < parser_state->lex_pend) {
-      int c2 = *(parser_state->lex_p);
+    } else if((func & STR_FUNC_EXPAND) && c == '#' && lex_p < lex_pend) {
+      int c2 = *lex_p;
       if(c2 == '$' || c2 == '@' || c2 == '{') {
-        pushback(c, parser_state);
+        pushback(c);
         break;
       }
     } else if(c == '\\') {
+      char *beg = lex_p - 1;
       c = nextc();
-      switch(c) {
+      switch (c) {
       case '\n':
         if(func & STR_FUNC_QWORDS) break;
         if(func & STR_FUNC_EXPAND) continue;
-        tokadd('\\', parser_state);
+        tokadd('\\');
         break;
 
       case '\\':
-        if(func & STR_FUNC_ESCAPE) tokadd((char)c, parser_state);
+        if(func & STR_FUNC_ESCAPE) tokadd(c);
         break;
+
+      case 'u':
+        if ((func & STR_FUNC_EXPAND) == 0) {
+          tokadd('\\');
+          break;
+        }
+        parser_tokadd_utf8(parser_state, &enc, 1, func & STR_FUNC_SYMBOL,
+                           func & STR_FUNC_REGEXP);
+        if(has_nonascii && enc != *encp) {
+          mixed_escape(beg, enc, *encp);
+        }
+        continue;
 
       default:
         if(func & STR_FUNC_REGEXP) {
-          pushback(c, parser_state);
-          if(tokadd_escape(term, parser_state) < 0)
-            return -1;
+          pushback(c);
+          if((c = tokadd_escape(&enc)) < 0)
+          return -1;
+          if(has_nonascii && enc != *encp) {
+            mixed_escape(beg, enc, *encp);
+          }
+          continue;
+        } else if(func & STR_FUNC_EXPAND) {
+          pushback(c);
+          if(func & STR_FUNC_ESCAPE) tokadd('\\');
+          c = read_escape(0, &enc);
+        } else if((func & STR_FUNC_QWORDS) && ISSPACE(c)) {
+          /* ignore backslashed spaces in %w */
+        } else if(c != term && !(paren && c == paren)) {
+          tokadd('\\');
+          pushback(c);
           continue;
         }
-        else if(func & STR_FUNC_EXPAND) {
-          pushback(c, parser_state);
-          if(func & STR_FUNC_ESCAPE) tokadd('\\', parser_state);
-          c = read_escape(parser_state);
-        }
-        else if((func & STR_FUNC_QWORDS) && ISSPACE(c)) {
-          /* ignore backslashed spaces in %w */
-        }
-        else if(c != term && !(paren && c == paren)) {
-          tokadd('\\', parser_state);
-        }
       }
-    } else if(ismbchar(c)) {
-      int i, len = mbclen(c)-1;
-
-      for (i = 0; i < len; i++) {
-        tokadd((char)c, parser_state);
-        c = nextc();
+    } else if(!parser_isascii()) {
+      has_nonascii = 1;
+      if(enc != *encp) {
+        mixed_error(enc, *encp);
+        continue;
       }
+      if (tokadd_mbchar(c) == -1) return -1;
+      continue;
     } else if((func & STR_FUNC_QWORDS) && ISSPACE(c)) {
-      pushback(c, parser_state);
+      pushback(c);
       break;
     }
-    if(!c && (func & STR_FUNC_SYMBOL)) {
-      func &= ~STR_FUNC_SYMBOL;
-      rb_compile_error(parser_state, "symbol cannot contain '\\0'");
-      continue;
+    if (c & 0x80) {
+      has_nonascii = 1;
+      if (enc != *encp) {
+        mixed_error(enc, *encp);
+        continue;
+      }
     }
-    tokadd((char)c, parser_state);
+    tokadd(c);
   }
+  *encp = enc;
   return c;
 }
 
@@ -3581,12 +3816,13 @@ static int tokadd_string(int func, int term, int paren, quark *nest, rb_parser_s
                (VALUE)((term) | ((paren) << (CHAR_BIT * 2))), NULL)
 #define pslval ((YYSTYPE *)parser_state->lval)
 static int
-parse_string(NODE *quote, rb_parser_state* parser_state)
+parser_parse_string(rb_parser_state* parser_state, NODE *quote)
 {
   int func = quote->nd_func;
   int term = nd_term(quote);
   int paren = nd_paren(quote);
   int c, space = 0;
+  rb_encoding* enc = rb_usascii_encoding();
 
   long start_line = ruby_sourceline;
 
@@ -3602,27 +3838,27 @@ parse_string(NODE *quote, rb_parser_state* parser_state)
       return ' ';
     }
     if(!(func & STR_FUNC_REGEXP)) return tSTRING_END;
-    pslval->num = regx_options(parser_state);
+    pslval->num = regx_options();
     return tREGEXP_END;
   }
   if(space) {
-    pushback(c, parser_state);
+    pushback(c);
     return ' ';
   }
-  newtok(parser_state);
+  newtok();
   if((func & STR_FUNC_EXPAND) && c == '#') {
     switch(c = nextc()) {
     case '$':
     case '@':
-      pushback(c, parser_state);
+      pushback(c);
       return tSTRING_DVAR;
     case '{':
       return tSTRING_DBEG;
     }
-    tokadd('#', parser_state);
+    tokadd('#');
   }
-  pushback(c, parser_state);
-  if(tokadd_string(func, term, paren, &quote->nd_nest, parser_state) == -1) {
+  pushback(c);
+  if(tokadd_string(func, term, paren, &quote->nd_nest, &enc) == -1) {
     ruby_sourceline = nd_line(quote);
     rb_compile_error(parser_state, "unterminated string meets end of file");
     return tSTRING_END;
@@ -3637,7 +3873,7 @@ parse_string(NODE *quote, rb_parser_state* parser_state)
 /* Called when the lexer detects a heredoc is beginning. This pulls
    in more characters and detects what kind of heredoc it is. */
 static int
-heredoc_identifier(rb_parser_state* parser_state)
+parser_heredoc_identifier(rb_parser_state* parser_state)
 {
   int c = nextc(), term, func = 0;
   size_t len;
@@ -3658,15 +3894,15 @@ heredoc_identifier(rb_parser_state* parser_state)
        continue to consume characters into the token buffer until
        we hit the terminating character. */
 
-    newtok(parser_state);
-    tokadd((char)func, parser_state);
+    newtok();
+    tokadd((char)func);
     term = c;
 
     /* Where of where has the term gone.. */
     while((c = nextc()) != -1 && c != term) {
       len = mbclen(c);
       do {
-        tokadd((char)c, parser_state);
+        tokadd((char)c);
       } while(--len > 0 && (c = nextc()) != -1);
     }
     /* Ack! end of file or end of string. */
@@ -3686,37 +3922,37 @@ heredoc_identifier(rb_parser_state* parser_state)
        It sucks that it's way down here in this function that in
        finally bails with this not being a heredoc.*/
 
-    if(!is_identchar(c)) {
-      pushback(c, parser_state);
+    if(!parser_is_identchar()) {
+      pushback(c);
       if(func & STR_FUNC_INDENT) {
-        pushback('-', parser_state);
+        pushback('-');
       }
       return 0;
     }
 
     /* Finally, setup the token buffer and begin to fill it. */
-    newtok(parser_state);
+    newtok();
     term = '"';
-    tokadd((char)(func |= str_dquote), parser_state);
+    tokadd((char)(func |= str_dquote));
     do {
       len = mbclen(c);
-      do { tokadd((char)c, parser_state); } while(--len > 0 && (c = nextc()) != -1);
-    } while((c = nextc()) != -1 && is_identchar(c));
-    pushback(c, parser_state);
+      do { tokadd((char)c); } while(--len > 0 && (c = nextc()) != -1);
+    } while((c = nextc()) != -1 && parser_is_identchar());
+    pushback(c);
     break;
   }
 
 
   /* Fixup the token buffer, ie set the last character to null. */
   tokfix();
-  len = parser_state->lex_p - parser_state->lex_pbeg;
-  parser_state->lex_p = parser_state->lex_pend;
+  len = lex_p - lex_pbeg;
+  lex_p = lex_pend;
   pslval->id = 0;
 
   /* Tell the lexer that we're inside a string now. nd_lit is
      the heredoc identifier that we watch the stream for to
      detect the end of the heredoc. */
-  bstring str = bstrcpy(parser_state->lex_lastline);
+  bstring str = bstrcpy(lex_lastline);
   lex_strterm = node_newnode( NODE_HEREDOC,
                              (VALUE)string_new(tok(), toklen()),  /* nd_lit */
                              (VALUE)len,                          /* nd_nth */
@@ -3725,31 +3961,31 @@ heredoc_identifier(rb_parser_state* parser_state)
 }
 
 static void
-heredoc_restore(NODE *here, rb_parser_state* parser_state)
+parser_heredoc_restore(rb_parser_state* parser_state, NODE *here)
 {
   bstring line = here->nd_orig;
 
-  bdestroy(parser_state->lex_lastline);
+  bdestroy(lex_lastline);
 
-  parser_state->lex_lastline = line;
-  parser_state->lex_pbeg = bdata(line);
-  parser_state->lex_pend = parser_state->lex_pbeg + blength(line);
-  parser_state->lex_p = parser_state->lex_pbeg + here->nd_nth;
+  lex_lastline = line;
+  lex_pbeg = bdata(line);
+  lex_pend = lex_pbeg + blength(line);
+  lex_p = lex_pbeg + here->nd_nth;
   heredoc_end = ruby_sourceline;
   ruby_sourceline = nd_line(here);
   bdestroy((bstring)here->nd_lit);
 }
 
 static int
-whole_match_p(const char *eos, int len, int indent, rb_parser_state* parser_state)
+parser_whole_match_p(rb_parser_state* parser_state, const char *eos, int len, int indent)
 {
-  char *p = parser_state->lex_pbeg;
+  char *p = lex_pbeg;
   int n;
 
   if(indent) {
     while(*p && ISSPACE(*p)) p++;
   }
-  n = parser_state->lex_pend - (p + len);
+  n = lex_pend - (p + len);
   if(n < 0 || (n > 0 && p[len] != '\n' && p[len] != '\r')) return FALSE;
   if(strncmp(eos, p, len) == 0) return TRUE;
   return FALSE;
@@ -3760,12 +3996,13 @@ whole_match_p(const char *eos, int len, int indent, rb_parser_state* parser_stat
    and emitting a lex token and also detecting the end of the heredoc. */
 
 static int
-here_document(NODE *here, rb_parser_state* parser_state)
+parser_here_document(rb_parser_state* parser_state, NODE *here)
 {
   int c, func, indent = 0;
   char *eos, *p, *pend;
   long len;
   bstring str = NULL;
+  rb_encoding* enc = rb_usascii_encoding();
 
   /* eos == the heredoc ident that we found when the heredoc started */
   eos = bdata(here->nd_str);
@@ -3778,15 +4015,15 @@ here_document(NODE *here, rb_parser_state* parser_state)
   if((c = nextc()) == -1) {
   error:
     rb_compile_error(parser_state, "can't find string \"%s\" anywhere before EOF", eos);
-    heredoc_restore(lex_strterm, parser_state);
+    heredoc_restore(lex_strterm);
     lex_strterm = 0;
     return 0;
   }
   /* Gr. not yet sure what was_bol() means other than it seems like
      it means only 1 character has been consumed. */
 
-  if(was_bol() && whole_match_p(eos, len, indent, parser_state)) {
-    heredoc_restore(lex_strterm, parser_state);
+  if(was_bol() && whole_match_p(eos, len, indent)) {
+    heredoc_restore(lex_strterm);
     return tSTRING_END;
   }
 
@@ -3795,8 +4032,8 @@ here_document(NODE *here, rb_parser_state* parser_state)
 
   if((func & STR_FUNC_EXPAND) == 0) {
     do {
-      p = bdata(parser_state->lex_lastline);
-      pend = parser_state->lex_pend;
+      p = bdata(lex_lastline);
+      pend = lex_pend;
       if(pend > p) {
         switch(pend[-1]) {
         case '\n':
@@ -3813,33 +4050,33 @@ here_document(NODE *here, rb_parser_state* parser_state)
       } else {
         str = blk2bstr(p, pend - p);
       }
-      if(pend < parser_state->lex_pend) bcatblk(str, "\n", 1);
-      parser_state->lex_p = parser_state->lex_pend;
+      if(pend < lex_pend) bcatblk(str, "\n", 1);
+      lex_p = lex_pend;
       if(nextc() == -1) {
         if(str) bdestroy(str);
         goto error;
       }
-    } while(!whole_match_p(eos, len, indent, parser_state));
+    } while(!whole_match_p(eos, len, indent));
   }
   else {
-    newtok(parser_state);
+    newtok();
     if(c == '#') {
       switch(c = nextc()) {
       case '$':
       case '@':
-        pushback(c, parser_state);
+        pushback(c);
         return tSTRING_DVAR;
       case '{':
         return tSTRING_DBEG;
       }
-      tokadd('#', parser_state);
+      tokadd('#');
     }
 
     /* Loop while we haven't found a the heredoc ident. */
     do {
-      pushback(c, parser_state);
+      pushback(c);
       /* Scan up until a \n and fill in the token buffer. */
-      if((c = tokadd_string(func, '\n', 0, NULL, parser_state)) == -1) goto error;
+      if((c = tokadd_string(func, '\n', 0, NULL, &enc)) == -1) goto error;
 
       /* We finished scanning, but didn't find a \n, so we setup the node
          and have the lexer file in more. */
@@ -3849,12 +4086,12 @@ here_document(NODE *here, rb_parser_state* parser_state)
       }
 
       /* I think this consumes the \n */
-      tokadd((char)nextc(), parser_state);
+      tokadd((char)nextc());
       if((c = nextc()) == -1) goto error;
-    } while(!whole_match_p(eos, len, indent, parser_state));
+    } while(!whole_match_p(eos, len, indent));
     str = string_new(tok(), toklen());
   }
-  heredoc_restore(lex_strterm, parser_state);
+  heredoc_restore(lex_strterm);
   lex_strterm = NEW_STRTERM(-1, 0, 0);
   pslval->node = NEW_STR(str);
   return tSTRING_CONTENT;
@@ -3862,10 +4099,12 @@ here_document(NODE *here, rb_parser_state* parser_state)
 
 #include "lex.c.blt"
 
-static void
+static int
 arg_ambiguous()
 {
   rb_warning("ambiguous first argument; put parentheses or even spaces");
+
+  return 1;
 }
 
 #define IS_ARG() (lex_state == EXPR_ARG || lex_state == EXPR_CMDARG)
@@ -3873,16 +4112,22 @@ arg_ambiguous()
 static QUID
 parser_formal_argument(rb_parser_state* parser_state, QUID lhs)
 {
-  if (!is_local_id(lhs))
+  if(!is_local_id(lhs))
     yy_error("formal argument must be local variable");
   shadowing_lvar(lhs);
   return lhs;
 }
 
-static char* parse_comment(struct rb_parser_state* parser_state) {
-  int len = parser_state->lex_pend - parser_state->lex_p;
+static int
+parser_lvar_defined(rb_parser_state* parser_state, QUID id) {
+  return local_id(id);
+}
 
-  char* str = parser_state->lex_p;
+static char*
+parse_comment(rb_parser_state* parser_state) {
+  int len = lex_pend - lex_p;
+
+  char* str = lex_p;
   while(len-- > 0 && ISSPACE(str[0])) str++;
   if(len <= 2) return NULL;
 
@@ -3891,20 +4136,37 @@ static char* parse_comment(struct rb_parser_state* parser_state) {
   return NULL;
 }
 
+#define IS_ARG()        (lex_state == EXPR_ARG \
+                         || lex_state == EXPR_CMDARG)
+#define IS_END()        (lex_state == EXPR_END \
+                         || lex_state == EXPR_ENDARG \
+                         || lex_state == EXPR_ENDFN)
+#define IS_BEG()        (lex_state == EXPR_BEG \
+                         || lex_state == EXPR_MID \
+                         || lex_state == EXPR_VALUE \
+                         || lex_state == EXPR_CLASS)
+#define IS_SPCARG(c)    (IS_ARG() && space_seen && !ISSPACE(c))
+
+#define ambiguous_operator(op, syn) ( \
+    rb_warning0("`"op"' after local variable is interpreted as binary operator"), \
+    rb_warning0("even though it seems like "syn""))
+#define warn_balanced(op, syn) \
+    (last_state != EXPR_CLASS && last_state != EXPR_DOT && \
+     last_state != EXPR_FNAME && last_state != EXPR_ENDFN && \
+     last_state != EXPR_ENDARG && \
+     space_seen && !ISSPACE(c) && \
+     (ambiguous_operator(op, syn), 0))
+
 static int
-yylex(void *yylval_v, void *vstate)
+parser_yylex(rb_parser_state *parser_state)
 {
   register int c;
   int space_seen = 0;
   int cmd_state;
-  struct rb_parser_state* parser_state;
   bstring cur_line;
   enum lex_state_e last_state;
-
-  YYSTYPE *yylval = (YYSTYPE*)yylval_v;
-  parser_state = (struct rb_parser_state*)vstate;
-
-  parser_state->lval = (void *)yylval;
+  rb_encoding *enc;
+  int mb;
 
   /*
   c = nextc();
@@ -3915,14 +4177,14 @@ yylex(void *yylval_v, void *vstate)
   if(lex_strterm) {
     int token;
     if(nd_type(lex_strterm) == NODE_HEREDOC) {
-      token = here_document(lex_strterm, parser_state);
+      token = here_document(lex_strterm);
       if(token == tSTRING_END) {
         lex_strterm = 0;
         lex_state = EXPR_END;
       }
     }
     else {
-      token = parse_string(lex_strterm, parser_state);
+      token = parse_string(lex_strterm);
       if(token == tSTRING_END || token == tREGEXP_END) {
         lex_strterm = 0;
         lex_state = EXPR_END;
@@ -3934,6 +4196,7 @@ yylex(void *yylval_v, void *vstate)
   cmd_state = command_start;
   command_start = FALSE;
 retry:
+  last_state = lex_state;
   switch(c = nextc()) {
   case '\0':                /* NUL */
   case '\004':              /* ^D */
@@ -3944,16 +4207,16 @@ retry:
     /* white spaces */
   case ' ': case '\t': case '\f': case '\r':
   case '\13': /* '\v' */
-    space_seen++;
+    space_seen = 1;
     goto retry;
 
   case '#':         /* it's a comment */
     if(char* str = parse_comment(parser_state)) {
-        int len = parser_state->lex_pend - str - 1; // - 1 for the \n
+        int len = lex_pend - str - 1; // - 1 for the \n
         cur_line = blk2bstr(str, len);
         parser_state->magic_comments->push_back(cur_line);
     }
-    parser_state->lex_p = parser_state->lex_pend;
+    lex_p = lex_pend;
     /* fall through */
   case '\n':
     switch(lex_state) {
@@ -3961,10 +4224,35 @@ retry:
     case EXPR_FNAME:
     case EXPR_DOT:
     case EXPR_CLASS:
+    case EXPR_VALUE:
       goto retry;
     default:
       break;
     }
+
+    while((c = nextc())) {
+      switch(c) {
+      case ' ': case '\t': case '\f': case '\r':
+      case '\13': /* '\v' */
+        space_seen = 1;
+        break;
+      case '.': {
+        if((c = nextc()) != '.') {
+          pushback(c);
+          pushback('.');
+          goto retry;
+        }
+      }
+      default:
+        --ruby_sourceline;
+        lex_nextline = lex_lastline;
+      case -1:		/* EOF no decrement*/
+        lex_goto_eol();
+        goto normal_newline;
+      }
+    }
+
+  normal_newline:
     command_start = TRUE;
     lex_state = EXPR_BEG;
     return '\n';
@@ -3976,7 +4264,7 @@ retry:
         lex_state = EXPR_BEG;
         return tOP_ASGN;
       }
-      pushback(c, parser_state);
+      pushback(c);
       c = tPOW;
     } else {
       if(c == '=') {
@@ -3984,13 +4272,14 @@ retry:
         lex_state = EXPR_BEG;
         return tOP_ASGN;
       }
-      pushback(c, parser_state);
-      if(IS_ARG() && space_seen && !ISSPACE(c)){
+      pushback(c);
+      if(IS_SPCARG(c)){
         rb_warning("`*' interpreted as argument prefix");
         c = tSTAR;
-      } else if(lex_state == EXPR_BEG || lex_state == EXPR_MID) {
+      } else if(IS_BEG()) {
         c = tSTAR;
       } else {
+        warn_balanced("*", "argument prefix");
         c = '*';
       }
     }
@@ -4004,33 +4293,41 @@ retry:
 
   case '!':
     lex_state = EXPR_BEG;
-    if((c = nextc()) == '=') {
+    if(lex_state == EXPR_FNAME || lex_state == EXPR_DOT) {
+      lex_state = EXPR_ARG;
+      if(c == '@') {
+        return '!';
+      }
+    } else {
+      lex_state = EXPR_BEG;
+    }
+    if(c == '=') {
       return tNEQ;
     }
     if(c == '~') {
       return tNMATCH;
     }
-    pushback(c, parser_state);
+    pushback(c);
     return '!';
 
   case '=':
     if(was_bol()) {
       /* skip embedded rd document */
-      if(strncmp(parser_state->lex_p, "begin", 5) == 0 && ISSPACE(parser_state->lex_p[5])) {
+      if(strncmp(lex_p, "begin", 5) == 0 && ISSPACE(lex_p[5])) {
         for (;;) {
-          parser_state->lex_p = parser_state->lex_pend;
+          lex_goto_eol();
           c = nextc();
           if(c == -1) {
             rb_compile_error(parser_state, "embedded document meets end of file");
             return 0;
           }
           if(c != '=') continue;
-          if(strncmp(parser_state->lex_p, "end", 3) == 0 &&
-              (parser_state->lex_p + 3 == parser_state->lex_pend || ISSPACE(parser_state->lex_p[3]))) {
+          if(strncmp(lex_p, "end", 3) == 0 &&
+              (lex_p + 3 == lex_pend || ISSPACE(lex_p[3]))) {
             break;
           }
         }
-        parser_state->lex_p = parser_state->lex_pend;
+        lex_goto_eol();
         goto retry;
       }
     }
@@ -4045,7 +4342,7 @@ retry:
       if((c = nextc()) == '=') {
         return tEQQ;
       }
-      pushback(c, parser_state);
+      pushback(c);
       return tEQ;
     }
     if(c == '~') {
@@ -4054,18 +4351,17 @@ retry:
     else if(c == '>') {
       return tASSOC;
     }
-    pushback(c, parser_state);
+    pushback(c);
     return '=';
 
   case '<':
     c = nextc();
     if(c == '<' &&
-      lex_state != EXPR_END &&
       lex_state != EXPR_DOT &&
-      lex_state != EXPR_ENDARG &&
       lex_state != EXPR_CLASS &&
+      !IS_END() &&
       (!IS_ARG() || space_seen)) {
-      int token = heredoc_identifier(parser_state);
+      int token = heredoc_identifier();
       if(token) return token;
     }
     switch(lex_state) {
@@ -4078,7 +4374,7 @@ retry:
       if((c = nextc()) == '>') {
         return tCMP;
       }
-      pushback(c, parser_state);
+      pushback(c);
       return tLEQ;
     }
     if(c == '<') {
@@ -4087,10 +4383,11 @@ retry:
         lex_state = EXPR_BEG;
         return tOP_ASGN;
       }
-      pushback(c, parser_state);
+      pushback(c);
+	    warn_balanced("<<", "here document");
       return tLSHFT;
     }
-    pushback(c, parser_state);
+    pushback(c);
     return '<';
 
   case '>':
@@ -4109,10 +4406,10 @@ retry:
         lex_state = EXPR_BEG;
         return tOP_ASGN;
       }
-      pushback(c, parser_state);
+      pushback(c);
       return tRSHFT;
     }
-    pushback(c, parser_state);
+    pushback(c);
     return '>';
 
   case '"':
@@ -4121,7 +4418,7 @@ retry:
 
   case '`':
     if(lex_state == EXPR_FNAME) {
-      lex_state = EXPR_END;
+      lex_state = EXPR_ENDFN;
       return c;
     }
     if(lex_state == EXPR_DOT) {
@@ -4141,8 +4438,8 @@ retry:
     return tSTRING_BEG;
 
   case '?':
-    if(lex_state == EXPR_END || lex_state == EXPR_ENDARG) {
-      lex_state = EXPR_BEG;
+    if(IS_END()) {
+      lex_state = EXPR_VALUE;
       return '?';
     }
     c = nextc();
@@ -4150,7 +4447,7 @@ retry:
       rb_compile_error(parser_state, "incomplete character syntax");
       return 0;
     }
-    if(ISSPACE(c)){
+    if(rb_enc_isspace(c, parser_state->enc)) {
       if(!IS_ARG()){
         int c2 = 0;
         switch(c) {
@@ -4178,22 +4475,38 @@ retry:
         }
       }
     ternary:
-      pushback(c, parser_state);
-      lex_state = EXPR_BEG;
-      parser_state->ternary_colon = 1;
+      pushback(c);
+      lex_state = EXPR_VALUE;
       return '?';
-    } else if(ismbchar(c)) {
-      rb_warn("multibyte character literal not supported yet; use ?\\%.3o", c);
-      goto ternary;
-    } else if((ISALNUM(c) || c == '_') && parser_state->lex_p < parser_state->lex_pend && is_identchar(*(parser_state->lex_p))) {
+    }
+
+    newtok();
+    enc = parser_state->enc;
+    if(!parser_isascii()) {
+      if(tokadd_mbchar(c) == -1) return 0;
+    } else if((rb_enc_isalnum(c, parser_state->enc) || c == '_') &&
+              lex_p < lex_pend && is_identchar(lex_p, lex_pend, parser_state->enc)) {
       goto ternary;
     } else if(c == '\\') {
-      c = read_escape(parser_state);
+      if(peek('u')) {
+        nextc();
+        c = parser_tokadd_utf8(parser_state, &enc, 0, 0, 0);
+        if(0x80 <= c) {
+          tokaddmbc(c, enc);
+        } else {
+          tokadd(c);
+        }
+      } else {
+        c = read_escape(0, &enc);
+        tokadd(c);
+      }
+    } else {
+      tokadd(c);
     }
-    c &= 0xff;
+    tokfix();
+    set_yylval_str(STR_NEW3(tok(), toklen(), enc, 0));
     lex_state = EXPR_END;
-    pslval->node = NEW_FIXNUM((intptr_t)c);
-    return tINTEGER;
+    return tCHAR;
 
   case '&':
     if((c = nextc()) == '&') {
@@ -4203,20 +4516,21 @@ retry:
         lex_state = EXPR_BEG;
         return tOP_ASGN;
       }
-      pushback(c, parser_state);
+      pushback(c);
       return tANDOP;
     } else if(c == '=') {
       pslval->id = '&';
       lex_state = EXPR_BEG;
       return tOP_ASGN;
     }
-    pushback(c, parser_state);
-    if(IS_ARG() && space_seen && !ISSPACE(c)){
+    pushback(c);
+    if(IS_SPCARG(c)){
       rb_warning("`&' interpreted as argument prefix");
       c = tAMPER;
-    } else if(lex_state == EXPR_BEG || lex_state == EXPR_MID) {
+    } else if(IS_BEG()) {
       c = tAMPER;
     } else {
+	    warn_balanced("&", "argument prefix");
       c = '&';
     }
     switch(lex_state) {
@@ -4235,7 +4549,7 @@ retry:
         lex_state = EXPR_BEG;
         return tOP_ASGN;
       }
-      pushback(c, parser_state);
+      pushback(c);
       return tOROP;
     }
     if(c == '=') {
@@ -4245,11 +4559,10 @@ retry:
     }
     if(lex_state == EXPR_FNAME || lex_state == EXPR_DOT) {
       lex_state = EXPR_ARG;
-    }
-    else {
+    } else {
       lex_state = EXPR_BEG;
     }
-    pushback(c, parser_state);
+    pushback(c);
     return '|';
 
   case '+':
@@ -4259,7 +4572,7 @@ retry:
       if(c == '@') {
         return tUPLUS;
       }
-      pushback(c, parser_state);
+      pushback(c);
       return '+';
     }
     if(c == '=') {
@@ -4267,19 +4580,18 @@ retry:
       lex_state = EXPR_BEG;
       return tOP_ASGN;
     }
-    if(lex_state == EXPR_BEG || lex_state == EXPR_MID ||
-      (IS_ARG() && space_seen && !ISSPACE(c))) {
-      if(IS_ARG()) arg_ambiguous();
+    if(IS_BEG() || (IS_SPCARG(c) && arg_ambiguous())) {
       lex_state = EXPR_BEG;
-      pushback(c, parser_state);
-      if(ISDIGIT(c)) {
+      pushback(c);
+      if(c != -1 && ISDIGIT(c)) {
         c = '+';
         goto start_num;
       }
       return tUPLUS;
     }
     lex_state = EXPR_BEG;
-    pushback(c, parser_state);
+    pushback(c);
+    warn_balanced("+", "unary operator");
     return '+';
 
   case '-':
@@ -4289,7 +4601,7 @@ retry:
       if(c == '@') {
         return tUMINUS;
       }
-      pushback(c, parser_state);
+      pushback(c);
       return '-';
     }
     if(c == '=') {
@@ -4297,18 +4609,21 @@ retry:
       lex_state = EXPR_BEG;
       return tOP_ASGN;
     }
-    if(lex_state == EXPR_BEG || lex_state == EXPR_MID ||
-      (IS_ARG() && space_seen && !ISSPACE(c))) {
-      if(IS_ARG()) arg_ambiguous();
+    if(c == '>') {
+      lex_state = EXPR_ARG;
+      return tLAMBDA;
+    }
+    if(IS_BEG() || (IS_SPCARG(c) && arg_ambiguous())) {
       lex_state = EXPR_BEG;
-      pushback(c, parser_state);
-      if(ISDIGIT(c)) {
+      pushback(c);
+      if(c != -1 && ISDIGIT(c)) {
         return tUMINUS_NUM;
       }
       return tUMINUS;
     }
     lex_state = EXPR_BEG;
-    pushback(c, parser_state);
+    pushback(c);
+    warn_balanced("-", "unary operator");
     return '-';
 
   case '.':
@@ -4317,11 +4632,11 @@ retry:
       if((c = nextc()) == '.') {
         return tDOT3;
       }
-      pushback(c, parser_state);
+      pushback(c);
       return tDOT2;
     }
-    pushback(c, parser_state);
-    if(ISDIGIT(c)) {
+    pushback(c);
+    if(c != -1 && ISDIGIT(c)) {
       yy_error("no .<digit> floating literal anymore; put 0 before dot");
     }
     lex_state = EXPR_DOT;
@@ -4335,18 +4650,19 @@ retry:
 
       is_float = seen_point = seen_e = nondigit = 0;
       lex_state = EXPR_END;
-      newtok(parser_state);
+      newtok();
       if(c == '-' || c == '+') {
-        tokadd((char)c,parser_state);
+        tokadd((char)c);
         c = nextc();
       }
-      if(c == '0') {
+	    if(c == '0') {
+#define no_digits() do {yy_error("numeric literal without digits"); return 0;} while (0)
         int start = toklen();
         c = nextc();
         if(c == 'x' || c == 'X') {
           /* hexadecimal */
           c = nextc();
-          if(ISXDIGIT(c)) {
+          if(c != -1 && ISXDIGIT(c)) {
             do {
               if(c == '_') {
                 if(nondigit) break;
@@ -4355,18 +4671,20 @@ retry:
               }
               if(!ISXDIGIT(c)) break;
               nondigit = 0;
-              tokadd((char)c,parser_state);
+              tokadd(c);
             } while((c = nextc()) != -1);
           }
-          pushback(c, parser_state);
+          pushback(c);
           tokfix();
           if(toklen() == start) {
-            yy_error("numeric literal without digits");
+            no_digits();
+          } else if(nondigit) {
+            goto trailing_uc;
           }
-          else if(nondigit) goto trailing_uc;
-          pslval->node = NEW_HEXNUM(string_new2(tok()));
+          set_yylval_literal(rb_cstr_to_inum(tok(), 16, FALSE));
           return tINTEGER;
         }
+
         if(c == 'b' || c == 'B') {
           /* binary */
           c = nextc();
@@ -4379,185 +4697,205 @@ retry:
               }
               if(c != '0' && c != '1') break;
               nondigit = 0;
-              tokadd((char)c, parser_state);
+              tokadd(c);
             } while((c = nextc()) != -1);
           }
-          pushback(c, parser_state);
+          pushback(c);
           tokfix();
           if(toklen() == start) {
-              yy_error("numeric literal without digits");
+            no_digits();
+          } else if(nondigit) {
+            goto trailing_uc;
           }
-          else if(nondigit) goto trailing_uc;
-          pslval->node = NEW_BINNUM(string_new2(tok()));
+          set_yylval_literal(rb_cstr_to_inum(tok(), 2, FALSE));
           return tINTEGER;
-      }
-      if(c == 'd' || c == 'D') {
-        /* decimal */
-        c = nextc();
-        if(ISDIGIT(c)) {
+        }
+
+        if(c == 'd' || c == 'D') {
+          /* decimal */
+          c = nextc();
+          if(c != -1 && ISDIGIT(c)) {
+            do {
+              if(c == '_') {
+                if(nondigit) break;
+                nondigit = c;
+                continue;
+              }
+              if(!ISDIGIT(c)) break;
+              nondigit = 0;
+              tokadd(c);
+            } while((c = nextc()) != -1);
+          }
+          pushback(c);
+          tokfix();
+          if(toklen() == start) {
+            no_digits();
+          } else if(nondigit) {
+            goto trailing_uc;
+          }
+          set_yylval_literal(rb_cstr_to_inum(tok(), 10, FALSE));
+          return tINTEGER;
+        }
+
+        if(c == '_') {
+          /* 0_0 */
+          goto octal_number;
+        }
+
+        if(c == 'o' || c == 'O') {
+          /* prefixed octal */
+          c = nextc();
+          if(c == -1 || c == '_' || !ISDIGIT(c)) {
+            no_digits();
+          }
+        }
+
+        if(c >= '0' && c <= '7') {
+          /* octal */
+          octal_number:
           do {
             if(c == '_') {
               if(nondigit) break;
               nondigit = c;
               continue;
             }
-            if(!ISDIGIT(c)) break;
+            if(c < '0' || c > '9') break;
+            if(c > '7') goto invalid_octal;
             nondigit = 0;
-            tokadd((char)c, parser_state);
+            tokadd(c);
           } while((c = nextc()) != -1);
-        }
-        pushback(c, parser_state);
-        tokfix();
-        if(toklen() == start) {
-          yy_error("numeric literal without digits");
-        }
-        else if(nondigit) goto trailing_uc;
-        pslval->node = NEW_NUMBER(string_new2(tok()));
-        return tINTEGER;
-      }
-      if(c == '_') {
-        /* 0_0 */
-        goto octal_number;
-      }
-      if(c == 'o' || c == 'O') {
-        /* prefixed octal */
-        c = nextc();
-        if(c == '_') {
-          yy_error("numeric literal without digits");
-        }
-      }
-      if(c >= '0' && c <= '7') {
-        /* octal */
-      octal_number:
-        do {
-          if(c == '_') {
-            if(nondigit) break;
-            nondigit = c;
-            continue;
+
+          if(toklen() > start) {
+            pushback(c);
+            tokfix();
+            if(nondigit) goto trailing_uc;
+            set_yylval_literal(rb_cstr_to_inum(tok(), 8, FALSE));
+            return tINTEGER;
           }
-          if(c < '0' || c > '7') break;
-          nondigit = 0;
-          tokadd((char)c, parser_state);
-        } while((c = nextc()) != -1);
-        if(toklen() > start) {
-          pushback(c, parser_state);
-          tokfix();
-          if(nondigit) goto trailing_uc;
-          pslval->node = NEW_OCTNUM(string_new2(tok()));
+          if(nondigit) {
+            pushback(c);
+            goto trailing_uc;
+          }
+        }
+
+        if(c > '7' && c <= '9') {
+          invalid_octal:
+          yy_error("Invalid octal digit");
+        } else if(c == '.' || c == 'e' || c == 'E') {
+          tokadd('0');
+        } else {
+          pushback(c);
+          set_yylval_literal(INT2FIX(0));
           return tINTEGER;
         }
-        if(nondigit) {
-          pushback(c, parser_state);
-          goto trailing_uc;
-        }
       }
-      if(c > '7' && c <= '9') {
-        yy_error("Illegal octal digit");
-      } else if(c == '.' || c == 'e' || c == 'E') {
-        tokadd('0', parser_state);
-      } else {
-        pushback(c, parser_state);
-        pslval->node = NEW_FIXNUM(0);
-        return tINTEGER;
-      }
-    }
 
-    for (;;) {
-      switch(c) {
-      case '0': case '1': case '2': case '3': case '4':
-      case '5': case '6': case '7': case '8': case '9':
-        nondigit = 0;
-        tokadd((char)c, parser_state);
-        break;
+      for(;;) {
+        switch(c) {
+        case '0': case '1': case '2': case '3': case '4':
+        case '5': case '6': case '7': case '8': case '9':
+          nondigit = 0;
+          tokadd(c);
+          break;
 
-      case '.':
-        if(nondigit) goto trailing_uc;
-        if(seen_point || seen_e) {
-          goto decode_num;
-        } else {
-          int c0 = nextc();
-          if(!ISDIGIT(c0)) {
-            pushback(c0, parser_state);
+        case '.':
+          if(nondigit) goto trailing_uc;
+          if(seen_point || seen_e) {
+            goto decode_num;
+          } else {
+            int c0 = nextc();
+            if(c0 == -1 || !ISDIGIT(c0)) {
+              pushback(c0);
+              goto decode_num;
+            }
+            c = c0;
+          }
+          tokadd('.');
+          tokadd(c);
+          is_float++;
+          seen_point++;
+          nondigit = 0;
+          break;
+
+        case 'e':
+        case 'E':
+          if(nondigit) {
+            pushback(c);
+            c = nondigit;
             goto decode_num;
           }
-          c = c0;
-        }
-        tokadd('.', parser_state);
-        tokadd((char)c, parser_state);
-        is_float++;
-        seen_point++;
-        nondigit = 0;
-        break;
+          if(seen_e) {
+            goto decode_num;
+          }
+          tokadd(c);
+          seen_e++;
+          is_float++;
+          nondigit = c;
+          c = nextc();
+          if(c != '-' && c != '+') continue;
+          tokadd(c);
+          nondigit = c;
+          break;
 
-      case 'e':
-      case 'E':
-        if(nondigit) {
-          pushback(c, parser_state);
-          c = nondigit;
+        case '_':	/* `_' in number just ignored */
+          if(nondigit) goto decode_num;
+          nondigit = c;
+          break;
+
+        default:
           goto decode_num;
-        }
-        if(seen_e) {
-          goto decode_num;
-        }
-        tokadd((char)c, parser_state);
-        seen_e++;
-        is_float++;
-        nondigit = c;
-        c = nextc();
-        if(c != '-' && c != '+') continue;
-        tokadd((char)c, parser_state);
-        nondigit = c;
-        break;
-
-      case '_':     /* `_' in number just ignored */
-        if(nondigit) goto decode_num;
-        nondigit = c;
-        break;
-
-      default:
-        goto decode_num;
       }
       c = nextc();
     }
 
-    decode_num:
-      pushback(c, parser_state);
-      tokfix();
-      if(nondigit) {
-          char tmp[30];
-        trailing_uc:
-          snprintf(tmp, sizeof(tmp), "trailing `%c' in number", nondigit);
-          yy_error(tmp);
-      }
-      if(is_float) {
-          pslval->node = NEW_FLOAT(string_new2(tok()));
-          return tFLOAT;
-      }
-      pslval->node = NEW_NUMBER(string_new2(tok()));
-      return tINTEGER;
+  decode_num:
+    pushback(c);
+    if(nondigit) {
+      char tmp[30];
+      trailing_uc:
+      snprintf(tmp, sizeof(tmp), "trailing `%c' in number", nondigit);
+      yy_error(tmp);
     }
+    tokfix();
+    if(is_float) {
+      double d = strtod(tok(), 0);
+      if(errno == ERANGE) {
+        rb_warningS("Float %s out of range", tok());
+        errno = 0;
+      }
+      set_yylval_literal(rb_float_new(d));
+      return tFLOAT;
+    }
+    set_yylval_literal(rb_cstr_to_inum(tok(), 10, FALSE));
+    return tINTEGER;
+	}
 
   case ']':
   case '}':
+    paren_nest--;
   case ')':
     COND_LEXPOP();
     CMDARG_LEXPOP();
-    lex_state = EXPR_END;
+    if(c == ')') {
+      lex_state = EXPR_ENDFN;
+    } else {
+      lex_state = EXPR_ENDARG;
+    }
     return c;
 
   case ':':
     c = nextc();
     if(c == ':') {
-      if(lex_state == EXPR_BEG ||  lex_state == EXPR_MID ||
-        lex_state == EXPR_CLASS || (IS_ARG() && space_seen)) {
+      if(IS_BEG() || lex_state == EXPR_CLASS || IS_SPCARG(-1)) {
         lex_state = EXPR_BEG;
         return tCOLON3;
       }
       lex_state = EXPR_DOT;
       return tCOLON2;
     }
-    if(lex_state == EXPR_END || lex_state == EXPR_ENDARG || ISSPACE(c)) {
-      pushback(c, parser_state);
+    if(IS_END() || ISSPACE(c)) {
+      pushback(c);
+	    warn_balanced(":", "symbol literal");
       lex_state = EXPR_BEG;
       return ':';
     }
@@ -4569,29 +4907,27 @@ retry:
       lex_strterm = NEW_STRTERM(str_dsym, (intptr_t)c, 0);
       break;
     default:
-      pushback(c, parser_state);
+      pushback(c);
       break;
     }
     lex_state = EXPR_FNAME;
     return tSYMBEG;
 
   case '/':
-    if(lex_state == EXPR_BEG || lex_state == EXPR_MID) {
+    if(IS_BEG()) {
       lex_strterm = NEW_STRTERM(str_regexp, '/', 0);
       return tREGEXP_BEG;
     }
     if((c = nextc()) == '=') {
-      pslval->id = '/';
+      set_yylval_id('/');
       lex_state = EXPR_BEG;
       return tOP_ASGN;
     }
-    pushback(c, parser_state);
-    if(IS_ARG() && space_seen) {
-      if(!ISSPACE(c)) {
-        arg_ambiguous();
-        lex_strterm = NEW_STRTERM(str_regexp, '/', 0);
-        return tREGEXP_BEG;
-      }
+    pushback(c);
+    if(IS_SPCARG(c)) {
+      arg_ambiguous();
+      lex_strterm = NEW_STRTERM(str_regexp, '/', 0);
+      return tREGEXP_BEG;
     }
     switch(lex_state) {
     case EXPR_FNAME: case EXPR_DOT:
@@ -4603,7 +4939,7 @@ retry:
 
   case '^':
     if((c = nextc()) == '=') {
-      pslval->id = '^';
+      set_yylval_id('^');
       lex_state = EXPR_BEG;
       return tOP_ASGN;
     }
@@ -4613,43 +4949,35 @@ retry:
     default:
       lex_state = EXPR_BEG; break;
     }
-    pushback(c, parser_state);
+    pushback(c);
     return '^';
 
   case ';':
+    lex_state = EXPR_BEG;
     command_start = TRUE;
+    return ';';
   case ',':
     lex_state = EXPR_BEG;
-    return c;
+    return ',';
 
   case '~':
     if(lex_state == EXPR_FNAME || lex_state == EXPR_DOT) {
       if((c = nextc()) != '@') {
-        pushback(c, parser_state);
+        pushback(c);
       }
-    }
-    switch(lex_state) {
-    case EXPR_FNAME: case EXPR_DOT:
-      lex_state = EXPR_ARG; break;
-    default:
-      lex_state = EXPR_BEG; break;
+      lex_state = EXPR_ARG;
+    } else {
+      lex_state = EXPR_BEG;
     }
     return '~';
 
   case '(':
-    command_start = TRUE;
-    if(lex_state == EXPR_BEG || lex_state == EXPR_MID) {
+    if(IS_BEG()) {
       c = tLPAREN;
+    } else if(IS_SPCARG(-1)) {
+      c = tLPAREN_ARG;
     }
-    else if(space_seen) {
-      if(lex_state == EXPR_CMDARG) {
-        c = tLPAREN_ARG;
-      }
-      else if(lex_state == EXPR_ARG) {
-        rb_warn("don't put space before argument parentheses");
-        c = '(';
-      }
-    }
+    paren_nest++;
     COND_PUSH(0);
     CMDARG_PUSH(0);
     lex_state = EXPR_BEG;
@@ -4662,16 +4990,14 @@ retry:
         if((c = nextc()) == '=') {
           return tASET;
         }
-        pushback(c, parser_state);
+        pushback(c);
         return tAREF;
       }
-      pushback(c, parser_state);
+      pushback(c);
       return '[';
-    }
-    else if(lex_state == EXPR_BEG || lex_state == EXPR_MID) {
+    } else if(IS_BEG()) {
       c = tLBRACK;
-    }
-    else if(IS_ARG() && space_seen) {
+    } else if(IS_ARG() && space_seen) {
       c = tLBRACK;
     }
     lex_state = EXPR_BEG;
@@ -4680,7 +5006,15 @@ retry:
     return c;
 
   case '{':
-    if(IS_ARG() || lex_state == EXPR_END)
+    if(lpar_beg && lpar_beg == paren_nest) {
+      lex_state = EXPR_BEG;
+      lpar_beg = 0;
+      --paren_nest;
+      COND_PUSH(0);
+      CMDARG_PUSH(0);
+      return tLAMBEG;
+    }
+    if(IS_ARG() || lex_state == EXPR_END || lex_state == EXPR_ENDFN)
       c = '{';          /* block (primary) */
     else if(lex_state == EXPR_ENDARG)
       c = tLBRACE_ARG;  /* block (expr) */
@@ -4689,6 +5023,7 @@ retry:
     COND_PUSH(0);
     CMDARG_PUSH(0);
     lex_state = EXPR_BEG;
+    if(c != tLBRACE) command_start = TRUE;
     return c;
 
   case '\\':
@@ -4697,34 +5032,25 @@ retry:
       space_seen = 1;
       goto retry; /* skip \\n */
     }
-    pushback(c, parser_state);
+    pushback(c);
     lex_state = EXPR_DOT;
     return '\\';
 
   case '%':
-    if(lex_state == EXPR_BEG || lex_state == EXPR_MID) {
+    if(IS_BEG()) {
       intptr_t term;
       intptr_t paren;
-      char tmpstr[256];
-      char *cur;
 
       c = nextc();
     quotation:
-      if(!ISALNUM(c)) {
+      if(c == -1 || !ISALNUM(c)) {
         term = c;
         c = 'Q';
       } else {
         term = nextc();
-        if(ISALNUM(term) || ismbchar(term)) {
-          cur = tmpstr;
-          *cur++ = c;
-          while(ISALNUM(term) || ismbchar(term)) {
-            *cur++ = term;
-            term = nextc();
-          }
-          *cur = 0;
-          c = 1;
-
+        if(rb_enc_isalnum(term, parser_state->enc) || !parser_isascii()) {
+          yy_error("unknown type of % string");
+          return 0;
         }
       }
       if(c == -1 || term == -1) {
@@ -4748,20 +5074,19 @@ retry:
         return tSTRING_BEG;
 
       case 'W':
-        lex_strterm = NEW_STRTERM(str_dquote | STR_FUNC_QWORDS, term, paren);
+        lex_strterm = NEW_STRTERM(str_dword, term, paren);
         do {c = nextc();} while(ISSPACE(c));
-        pushback(c, parser_state);
+        pushback(c);
         return tWORDS_BEG;
 
       case 'w':
-        lex_strterm = NEW_STRTERM(str_squote | STR_FUNC_QWORDS, term, paren);
+        lex_strterm = NEW_STRTERM(str_sword, term, paren);
         do {c = nextc();} while(ISSPACE(c));
-        pushback(c, parser_state);
+        pushback(c);
         return tQWORDS_BEG;
 
       case 'x':
         lex_strterm = NEW_STRTERM(str_xquote, term, paren);
-        pslval->id = 0;
         return tXSTRING_BEG;
 
       case 'r':
@@ -4773,25 +5098,17 @@ retry:
         lex_state = EXPR_FNAME;
         return tSYMBEG;
 
-      case 1:
-        lex_strterm = NEW_STRTERM(str_xquote, term, paren);
-        pslval->id = rb_parser_sym(tmpstr);
-        return tXSTRING_BEG;
-
       default:
-        lex_strterm = NEW_STRTERM(str_xquote, term, paren);
-        tmpstr[0] = c;
-        tmpstr[1] = 0;
-        pslval->id = rb_parser_sym(tmpstr);
-        return tXSTRING_BEG;
+        yy_error("unknown type of % string");
+        return 0;
       }
     }
     if((c = nextc()) == '=') {
-      pslval->id = '%';
+      set_yylval_id('%');
       lex_state = EXPR_BEG;
       return tOP_ASGN;
     }
-    if(IS_ARG() && space_seen && !ISSPACE(c)) {
+    if(IS_SPCARG(c)) {
       goto quotation;
     }
     switch(lex_state) {
@@ -4800,28 +5117,26 @@ retry:
     default:
       lex_state = EXPR_BEG; break;
     }
-    pushback(c, parser_state);
+    pushback(c);
+    warn_balanced("%%", "string literal");
     return '%';
 
   case '$':
-    last_state = lex_state;
     lex_state = EXPR_END;
-    newtok(parser_state);
+    newtok();
     c = nextc();
     switch(c) {
     case '_':             /* $_: last read line string */
       c = nextc();
-      if(is_identchar(c)) {
-          tokadd('$', parser_state);
-          tokadd('_', parser_state);
+      if(parser_is_identchar()) {
+          tokadd('$');
+          tokadd('_');
           break;
       }
-      pushback(c, parser_state);
+      pushback(c);
       c = '_';
       /* fall through */
     case '~':             /* $~: match-data */
-      local_cnt(c);
-      /* fall through */
     case '*':             /* $*: argv */
     case '$':             /* $$: pid */
     case '?':             /* $?: last status */
@@ -4837,21 +5152,24 @@ retry:
     case '<':             /* $<: reading filename */
     case '>':             /* $>: default output handle */
     case '\"':            /* $": already loaded files */
-      tokadd('$', parser_state);
-      tokadd((char)c, parser_state);
+      tokadd('$');
+      tokadd(c);
       tokfix();
-      pslval->id = rb_parser_sym(tok());
+      set_yylval_name(rb_intern(tok()));
       return tGVAR;
 
     case '-':
-      tokadd('$', parser_state);
-      tokadd((char)c, parser_state);
+      tokadd('$');
+      tokadd(c);
       c = nextc();
-      tokadd((char)c, parser_state);
+      if(parser_is_identchar()) {
+        if(tokadd_mbchar(c) == -1) return 0;
+      } else {
+        pushback(c);
+      }
     gvar:
       tokfix();
-      pslval->id = rb_parser_sym(tok());
-      /* xxx shouldn't check if valid option variable */
+      set_yylval_name(rb_intern(tok()));
       return tGVAR;
 
     case '&':             /* $&: last match */
@@ -4859,99 +5177,96 @@ retry:
     case '\'':            /* $': string after last match */
     case '+':             /* $+: string matches last paren. */
       if(last_state == EXPR_FNAME) {
-        tokadd((char)'$', parser_state);
-        tokadd(c, parser_state);
+        tokadd('$');
+        tokadd(c);
         goto gvar;
       }
-      pslval->node = NEW_BACK_REF((intptr_t)c);
+      set_yylval_node(NEW_BACK_REF(c));
       return tBACK_REF;
 
     case '1': case '2': case '3':
     case '4': case '5': case '6':
     case '7': case '8': case '9':
-      tokadd('$', parser_state);
+      tokadd('$');
       do {
-          tokadd((char)c, parser_state);
+          tokadd(c);
           c = nextc();
-      } while(ISDIGIT(c));
-      pushback(c, parser_state);
+      } while(c != -1 && ISDIGIT(c));
+      pushback(c);
       if(last_state == EXPR_FNAME) goto gvar;
-            tokfix();
-            pslval->node = NEW_NTH_REF((intptr_t)atoi(tok()+1));
-            return tNTH_REF;
+      tokfix();
+      set_yylval_node(NEW_NTH_REF(atoi(tok()+1)));
+      return tNTH_REF;
 
-          default:
-            if(!is_identchar(c)) {
-                pushback(c, parser_state);
-                return '$';
-            }
-          case '0':
-            tokadd('$', parser_state);
-        }
-        break;
+    default:
+      if(!parser_is_identchar()) {
+        pushback(c);
+        return '$';
+      }
+    case '0':
+      tokadd('$');
+    }
+    break;
 
   case '@':
     c = nextc();
-    newtok(parser_state);
-    tokadd('@', parser_state);
+    newtok();
+    tokadd('@');
     if(c == '@') {
-      tokadd('@', parser_state);
+      tokadd('@');
       c = nextc();
     }
-    if(ISDIGIT(c)) {
+    if(c != -1 && ISDIGIT(c)) {
       if(tokidx == 1) {
         rb_compile_error(parser_state,
                          "`@%c' is not allowed as an instance variable name", c);
-      }
-      else {
+      } else {
         rb_compile_error(parser_state,
                          "`@@%c' is not allowed as a class variable name", c);
       }
     }
-    if(!is_identchar(c)) {
-      pushback(c, parser_state);
+    if(!parser_is_identchar()) {
+      pushback(c);
       return '@';
     }
     break;
 
   case '_':
-    if(was_bol() && whole_match_p("__END__", 7, 0, parser_state)) {
+    if(was_bol() && whole_match_p("__END__", 7, 0)) {
       parser_state->end_seen = 1;
       return -1;
     }
-    newtok(parser_state);
+    newtok();
     break;
 
   default:
-    if(!is_identchar(c)) {
+    if(!parser_is_identchar()) {
       rb_compile_error(parser_state, "Invalid char `\\%03o' in expression", c);
       goto retry;
     }
 
-    newtok(parser_state);
+    newtok();
     break;
   }
 
+  mb = ENC_CODERANGE_7BIT;
   do {
-    tokadd((char)c, parser_state);
-    if(ismbchar(c)) {
-      int i, len = mbclen(c)-1;
-
-      for (i = 0; i < len; i++) {
-        c = nextc();
-        tokadd((char)c, parser_state);
-      }
-    }
+    if(!ISASCII(c)) mb = ENC_CODERANGE_UNKNOWN;
+    if(tokadd_mbchar(c) == -1) return 0;
     c = nextc();
-  } while(is_identchar(c));
-  if((c == '!' || c == '?') && is_identchar(tok()[0]) && !peek('=')) {
-    tokadd((char)c, parser_state);
-  }
-  else {
-    pushback(c, parser_state);
+  } while(parser_is_identchar());
+  switch(tok()[0]) {
+  case '@': case '$':
+    pushback(c);
+    break;
+  default:
+    if((c == '!' || c == '?') && !peek('=')) {
+      tokadd(c);
+    } else {
+      pushback(c);
+    }
   }
   tokfix();
-
   {
     int result = 0;
 
@@ -4963,99 +5278,123 @@ retry:
       break;
     case '@':
       lex_state = EXPR_END;
-      if(tok()[1] == '@')
-          result = tCVAR;
-      else
-          result = tIVAR;
+      if(tok()[1] == '@') {
+        result = tCVAR;
+      } else {
+        result = tIVAR;
+      }
       break;
-
     default:
       if(toklast() == '!' || toklast() == '?') {
-          result = tFID;
+        result = tFID;
+      } else {
+        if(lex_state == EXPR_FNAME) {
+          if((c = nextc()) == '=' && !peek('~') && !peek('>') &&
+              (!peek('=') || (lex_p + 1 < lex_pend && lex_p[1] == '>'))) {
+            result = tIDENTIFIER;
+            tokadd(c);
+            tokfix();
+          } else {
+            pushback(c);
+          }
+        }
+        if(result == 0 && ISUPPER(tok()[0])) {
+          result = tCONSTANT;
+        } else {
+          result = tIDENTIFIER;
+        }
       }
-      else {
-          if(lex_state == EXPR_FNAME) {
-              if((c = nextc()) == '=' && !peek('~') && !peek('>') &&
-                  (!peek('=') || (parser_state->lex_p + 1 < parser_state->lex_pend && (parser_state->lex_p)[1] == '>'))) {
-                  result = tIDENTIFIER;
-                  tokadd((char)c, parser_state);
-                  tokfix();
-              }
-              else {
-                  pushback(c, parser_state);
-              }
+      if((lex_state == EXPR_BEG && !cmd_state) || IS_ARG()) {
+        if(peek(':') && !(lex_p + 1 < lex_pend && lex_p[1] == ':')) {
+          lex_state = EXPR_BEG;
+          nextc();
+          set_yylval_name(TOK_INTERN(!ENC_SINGLE(mb)));
+          return tLABEL;
+        }
+      }
+      if(mb == ENC_CODERANGE_7BIT && lex_state != EXPR_DOT) {
+        const struct kwtable *kw;
+
+        /* See if it is a reserved word.  */
+        kw = reserved_word(tok(), toklen());
+        if(kw) {
+          enum lex_state_e state = lex_state;
+          lex_state = kw->state;
+          if(state == EXPR_FNAME) {
+            set_yylval_name(rb_intern(kw->name));
+            return kw->id[0];
           }
-          if(result == 0 && ISUPPER(tok()[0])) {
-              result = tCONSTANT;
+          if(kw->id[0] == keyword_do) {
+            command_start = TRUE;
+            if(lpar_beg && lpar_beg == paren_nest) {
+              lpar_beg = 0;
+              --paren_nest;
+              return keyword_do_LAMBDA;
+            }
+            if(COND_P()) return keyword_do_cond;
+            if(CMDARG_P() && state != EXPR_CMDARG)
+              return keyword_do_block;
+            if(state == EXPR_ENDARG || state == EXPR_BEG)
+              return keyword_do_block;
+            return keyword_do;
           }
+          if(state == EXPR_BEG || state == EXPR_VALUE)
+            return kw->id[0];
           else {
-              result = tIDENTIFIER;
+            if(kw->id[0] != kw->id[1])
+              lex_state = EXPR_BEG;
+            return kw->id[1];
           }
+        }
       }
 
-      if(lex_state != EXPR_DOT) {
-          const struct kwtable *kw;
-
-          /* See if it is a reserved word.  */
-          kw = reserved_word(tok(), toklen());
-          if(kw) {
-              enum lex_state_e state = lex_state;
-              lex_state = kw->state;
-              if(state == EXPR_FNAME) {
-                  pslval->id = rb_parser_sym(kw->name);
-                  // Hack. Ignore the different variants of do
-                  // if we're just trying to match a FNAME
-                  if(kw->id[0] == keyword_do) return keyword_do;
-              }
-              if(kw->id[0] == keyword_do) {
-                  command_start = TRUE;
-                  if(COND_P()) return keyword_do_cond;
-                  if(CMDARG_P() && state != EXPR_CMDARG)
-                      return keyword_do_block;
-                  if(state == EXPR_ENDARG)
-                      return keyword_do_block;
-                  return keyword_do;
-              }
-              if(state == EXPR_BEG)
-                  return kw->id[0];
-              else {
-                  if(kw->id[0] != kw->id[1])
-                      lex_state = EXPR_BEG;
-                  return kw->id[1];
-              }
-          }
-      }
-
-      if(lex_state == EXPR_BEG ||
-          lex_state == EXPR_MID ||
+      if(IS_BEG() ||
           lex_state == EXPR_DOT ||
-          lex_state == EXPR_ARG ||
-          lex_state == EXPR_CMDARG) {
-          if(cmd_state) {
-              lex_state = EXPR_CMDARG;
-          }
-          else {
-              lex_state = EXPR_ARG;
-          }
-      }
-      else {
-          lex_state = EXPR_END;
+          IS_ARG()) {
+        if(cmd_state) {
+          lex_state = EXPR_CMDARG;
+        } else {
+          lex_state = EXPR_ARG;
+        }
+      } else if (lex_state == EXPR_FNAME) {
+        lex_state = EXPR_ENDFN;
+      } else {
+        lex_state = EXPR_END;
       }
     }
-    pslval->id = rb_parser_sym(tok());
-    if(is_local_id(pslval->id) &&
-       last_state != EXPR_DOT &&
-       local_id(pslval->id)) {
-       lex_state = EXPR_END;
+    {
+      QUID ident = TOK_INTERN(!ENC_SINGLE(mb));
+
+      set_yylval_name(ident);
+      if(last_state != EXPR_DOT && is_local_id(ident) && lvar_defined(ident)) {
+        lex_state = EXPR_END;
+      }
     }
 
-/*         if (is_local_id(pslval->id) && local_id(pslval->id)) { */
-/*             lex_state = EXPR_END; */
-/*         } */
+/*  if(is_local_id(pslval->id) && local_id(pslval->id)) { */
+/*      lex_state = EXPR_END; */
+/*  } */
 
     return result;
   }
 }
+
+#if YYPURE
+static int
+yylex(void *lval, void *p)
+#else
+yylex(void *p)
+#endif
+{
+  rb_parser_state* parser_state = (rb_parser_state*)p;
+
+  parser_state->lval = lval;
+  ((YYSTYPE*)parser_state->lval)->val = Qundef;
+
+  return parser_yylex(parser_state);
+}
+
+
 
 NODE*
 parser_node_newnode(rb_parser_state* parser_state, enum node_type type,
@@ -5465,7 +5804,7 @@ parser_assignable(rb_parser_state* parser_state, QUID id, NODE *val)
   } else if(id == keyword__ENCODING__) {
     yy_error("Can't assign to __ENCODING__");
   } else if(is_local_id(id)) {
-    if (!local_id(id)) {
+    if(!local_id(id)) {
       local_var(id);
     }
     return NEW_LASGN(id, val);
@@ -5502,7 +5841,7 @@ parser_shadowing_lvar(rb_parser_state* parser_state, QUID name)
       vtable_add(lvtbl->vars, name);
     }
   } else {
-    if (local_id(name)) {
+    if(local_id(name)) {
       yyerror("duplicated argument name");
     }
   }
@@ -5623,7 +5962,7 @@ rb_id_attrset(QUID id)
 static NODE *
 parser_attrset(rb_parser_state* parser_state, NODE *recv, QUID id)
 {
-  if (recv && nd_type(recv) == NODE_SELF) {
+  if(recv && nd_type(recv) == NODE_SELF) {
     recv = (NODE *)1;
   }
   return NEW_ATTRASGN(recv, rb_id_attrset(id), 0);
@@ -6370,10 +6709,13 @@ mel_local_id(rb_parser_state* parser_state, QUID id)
   return 0;
 }
 
+// TODO: encoding support, rb_usascii_encoding(), see rb_intern3
 static QUID
 rb_parser_sym(const char *name)
 {
   const char *m = name;
+  const char *e = m + strlen(name);
+  rb_encoding *enc = rb_usascii_encoding();
   QUID id, pre, qrk, bef;
   int last;
 
@@ -6383,7 +6725,7 @@ rb_parser_sym(const char *name)
   case '$':
     id |= ID_GLOBAL;
     m++;
-    if(!is_identchar(*m)) m++;
+    if(!is_identchar(m, e, enc)) m++;
     break;
   case '@':
     if(name[1] == '@') {
@@ -6416,7 +6758,7 @@ rb_parser_sym(const char *name)
     }
     break;
   }
-  while(m <= name + last && is_identchar(*m)) {
+  while(m <= name + last && is_identchar(m, e, enc)) {
     m += mbclen(*m);
   }
   if(*m) id = ID_JUNK;
@@ -6427,8 +6769,8 @@ rb_parser_sym(const char *name)
   return id;
 }
 
-static unsigned long
-scan_oct(const char *start, int len, int *retlen)
+static int
+scan_oct(const char *start, size_t len, size_t *retlen)
 {
   register const char *s = start;
   register unsigned long retval = 0;
@@ -6441,8 +6783,8 @@ scan_oct(const char *start, int len, int *retlen)
   return retval;
 }
 
-static unsigned long
-scan_hex(const char *start, int len, int *retlen)
+static int
+scan_hex(const char *start, size_t len, size_t *retlen)
 {
   static const char hexdigit[] = "0123456789abcdef0123456789ABCDEF";
   register const char *s = start;
