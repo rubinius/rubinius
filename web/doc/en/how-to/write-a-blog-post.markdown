@@ -1,8 +1,8 @@
 ---
 layout: doc_en
 title: How-To - Write a Blog Post
-previous: Fix a Failing Spec
-previous_url: how-to/fix-a-failing-spec
+previous: Write Benchmarks
+previous_url: how-to/write-benchmarks
 next: Write Documentation
 next_url: how-to/write-documentation
 ---

@@ -3,8 +3,8 @@ layout: doc_en
 title: How-To - Fix a Failing Spec
 previous: Write a Ruby Spec
 previous_url: how-to/write-a-ruby-spec
-next: Write a Blog Post
-next_url: how-to/write-a-blog-post
+next: Write Benchmarks
+next_url: how-to/write-benchmarks
 ---
 
 Make sure you have read:
