@@ -9,6 +9,213 @@
 
   
   <entry>
+    <title>Making Rubinius .rbc Files Disappear</title>
+    <id>http://rubini.us/2011/03/11/making-rubinius-rbc-files-disappear/</id>
+    <link rel="alternate" type="text/html" href="http://rubini.us/2011/03/11/making-rubinius-rbc-files-disappear/" />
+    <updated>2011-03-11T00:00:00+00:00</updated>
+    <author>
+      <name>Brian Ford</name>
+    </author>
+    
+    <content type="html">&lt;p&gt;Rubinius is rather unusual as a Ruby implementation. It both compiles Ruby
+source code to bytecode &lt;em&gt;and&lt;/em&gt; saves the compiled code to a cache so it does
+not need to recompile unless the source code changes. This can be great for
+utilities that are run often from the command line (including IRB). Rubinius
+merely reloads the cached file and runs the bytecode directly rather than
+needing to parse and compile the file. Sounds like a real win!&lt;/p&gt;
+
+&lt;p&gt;Unfortunately, it is not that simple. We need some place to store that cache
+and this is where the thorns on that pretty rose start poking us in the
+thumbs. The solution we have been using since forever is to store the cached
+file alongside the source file in the same directory, like so:&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;$ echo 'puts &quot;hello!&quot;' &amp;gt; hello.rb
+$ ls hello.*
+hello.rb
+$ rbx hello.rb
+hello!
+$ ls hello.*
+hello.rb	hello.rbc
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;That doesn&amp;rsquo;t look too crazy, but it can get more complicated:&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;$ mv hello.rb hello
+$ rbx hello
+$ ls hello.*
+hello.compiled.rbc	hello.rbc
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;Whoa, what is &lt;code&gt;hello.compiled.rbc&lt;/code&gt;? Since &lt;code&gt;hello&lt;/code&gt; did not have an extension,
+we add that longer &lt;code&gt;compiled.rbc&lt;/code&gt; to make it clear which file the cache is
+for. Also, note that we have that &lt;code&gt;hello.rbc&lt;/code&gt; hanging about even though the
+original &lt;code&gt;hello.rb&lt;/code&gt; is gone.&lt;/p&gt;
+
+&lt;p&gt;To summarize the issues with our caching scheme:&lt;/p&gt;
+
+&lt;ol&gt;
+  &lt;li&gt;It requires an additional file for every Ruby source file.&lt;/li&gt;
+  &lt;li&gt;It requires some potentially complicated naming scheme to associate the
+cache file with the source and not clash with other names.&lt;/li&gt;
+  &lt;li&gt;Removing or renaming the Ruby source file leaves the cache file behind.&lt;/li&gt;
+&lt;/ol&gt;
+
+&lt;p&gt;Again, the advantage of the cache file is that you do not have to wait for
+Rubinius to recompile the file if you have not changed the source. Let&amp;rsquo;s see
+if we can get all the advantages with none of the disadvantages. That old
+saying comes to mind, &lt;em&gt;Having your cake and eating it, too&lt;/em&gt;, so we may not
+be successful, but it is worth a shot.&lt;/p&gt;
+
+&lt;p&gt;First, let&amp;rsquo;s take a step back. This issue is not unique to Rubinius. Python
+has &lt;code&gt;.pyc&lt;/code&gt; and &lt;code&gt;.pyo&lt;/code&gt; files. Java has &lt;code&gt;.class&lt;/code&gt; files. C/C++ has &lt;code&gt;.o&lt;/code&gt; files.
+Lots of things need a place to store a compiled or cached representation of
+some data. Every SCM worth mention has some mechanism to ignore the files you
+don&amp;rsquo;t want to track. The same is generally true of editors. So in some sense,
+this is a solved problem. However, we have always received complaints about
+the &lt;code&gt;.rbc&lt;/code&gt; files, so we thought we would try to make other, hopefully better,
+solutions available.&lt;/p&gt;
+
+&lt;h3 id=&quot;solution-1-no-cache&quot;&gt;Solution 1: No Cache&lt;/h3&gt;
+
+&lt;p&gt;One simple solution is just to never ever ever create the compiled cache files
+in any form anywhere. We have an option for that:&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;$ ls hello.*
+hello.rb
+$ rbx -Xcompiler.no_rbc hello.rb
+hello!
+$ ls hello.*
+hello.rb
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;Win! Not one lousy &lt;code&gt;.rbc&lt;/code&gt; file in sight. Although, that&amp;rsquo;s quite the option to
+type. Never fear, we have a solution to that below.&lt;/p&gt;
+
+&lt;p&gt;Here is our scorecard for solution 1:&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;Use Case:&lt;/strong&gt; Use when you never want any compiler cache files created. For
+example, on a server where startup time is not really a concern.&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;Pros:&lt;/strong&gt; No &lt;code&gt;.rbc&lt;/code&gt; files at all.&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;Cons:&lt;/strong&gt; Startup will be slightly slower depending on what Ruby code you are
+running. It will be more noticeable in a Rails application, for example.
+However, the Rubinius bytecode compiler is several times faster than it was a
+couple years ago so it may not be an issue for you.&lt;/p&gt;
+
+&lt;h3 id=&quot;solution-2-cache-database&quot;&gt;Solution 2: Cache Database&lt;/h3&gt;
+
+&lt;p&gt;What if we could put all the compilation data in a single cache location,
+something like a database? We have an option for that.&lt;/p&gt;
+
+&lt;p&gt;This option is a little more complex, so let&amp;rsquo;s take it in two steps.&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;$ ls hello.*
+hello.rb
+$ rbx -Xrbc.db hello.rb
+hello!
+$ ls hello.*
+hello.rb
+$ ls -R .rbx
+60
+
+.rbx/60:
+60c091c3ed34c1b93ffbb33d82d810772902d3f9
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;Success! No &lt;code&gt;.rbc&lt;/code&gt; files here. But what&amp;rsquo;s with all the numbers in the &lt;code&gt;.rbx&lt;/code&gt;
+directory and how did that directory get there?&lt;/p&gt;
+
+&lt;p&gt;The &lt;code&gt;-Xrbc.db&lt;/code&gt; option without any argument will store the compilation cache in
+the &lt;code&gt;.rbx&lt;/code&gt; directory in the current working directory. The cache files
+themselves are split into subdirectories to avoid creating too many entries
+for the file system to handle in one directory.&lt;/p&gt;
+
+&lt;p&gt;What if you have a special location where you would prefer all compilation
+cache files be saved? No problem, just give &lt;code&gt;-Xrbc.db&lt;/code&gt; a path as follows:&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;$ ls hello.*
+hello.rb
+$ rbx -Xrbc.db=$HOME/.my_special_place hello.rb 
+hello!
+$ ls hello.*
+hello.rb
+$ ls -R $HOME/.my_special_place
+60
+
+/Users/brian/.my_special_place/60:
+60c091c3ed34c1b93ffbb33d82d810772902d3f9
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;If you primarily work with projects, putting the &lt;code&gt;.rbx&lt;/code&gt; directory in the
+current working directory may be the best solution because it keeps the
+compilation cache with the project. It is easy to add an SCM ignore for the
+directory and easy to remove the directory to clear the cache (e.g. in a clean
+task).&lt;/p&gt;
+
+&lt;p&gt;However, if you are frequently running scripts in many directories, you may
+not want to litter &lt;code&gt;.rbx&lt;/code&gt; directories everywhere. In this case, putting the
+directory in your &lt;code&gt;$HOME&lt;/code&gt; dir or &lt;code&gt;/tmp&lt;/code&gt; may be preferable. Additionally,
+&lt;code&gt;/tmp&lt;/code&gt; may be cleared on every reboot so you will not accumulate many stale
+cache files.&lt;/p&gt;
+
+&lt;p&gt;Note that, right now, Rubinius does not clear the cache directory. It will
+happily continue adding to it indefinitely. However, this may not be an issue
+unless you are cycling through a bunch of Ruby files, for example, working on
+a number of Ruby projects in series. In that case, using a per-project (per
+current working directory) cache is probably the best option.&lt;/p&gt;
+
+&lt;p&gt;Here is how solution 2 shakes out:&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;Use Case:&lt;/strong&gt; You want to combine all compilation cache files in one location.&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;Pros:&lt;/strong&gt; No &lt;code&gt;.rbc&lt;/code&gt; files mixed in with the rest of your files.&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;Cons:&lt;/strong&gt; You may still need a per-project or per-working-directory cache
+directory. However, you can easily specify where to put that directory.&lt;/p&gt;
+
+&lt;h3 id=&quot;using-rbxopt-for-options&quot;&gt;Using RBXOPT for Options&lt;/h3&gt;
+
+&lt;p&gt;As mentioned above, the &lt;code&gt;-X&lt;/code&gt; options can get a little long and you certainly
+don&amp;rsquo;t want to retype them constantly. We have added support for the &lt;code&gt;RBXOPT&lt;/code&gt;
+environment variable, which is an analog of the &lt;code&gt;RUBYOPT&lt;/code&gt; environment variable
+that we already support.&lt;/p&gt;
+
+&lt;p&gt;Use &lt;code&gt;RBXOPT&lt;/code&gt; to specify &lt;code&gt;-X&lt;/code&gt; options that Rubinius should use. For example:&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;export RBXOPT=-Xrbc.db=/path/to/dir
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;You can check out all the &lt;code&gt;-X&lt;/code&gt; options with &lt;code&gt;rbx -Xconfig.print&lt;/code&gt; or &lt;code&gt;rbx
+-Xconfig.print=2&lt;/code&gt; for more verbose output. If you want to use multiple &lt;code&gt;-X&lt;/code&gt;
+options in &lt;code&gt;RBXOPT&lt;/code&gt;, use quotes and separate the options with a space:&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;export RBXOPT='-Xrbc.db -Xagent.start'
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;h3 id=&quot;conclusion&quot;&gt;Conclusion&lt;/h3&gt;
+
+&lt;p&gt;Rubinius saves a compilation cache for compiled Ruby code to avoid wasting
+time and resources recompiling source that has not changed. However, we need
+some place to store the cache. Rubinius provides options for omitting the
+cache altogether or for storing it in a directory of your choosing. Note that
+the format of the compilation cache is an implementation detail and we reserve
+the right to change it at any time, so please don&amp;rsquo;t rely on it being in any
+particular format.&lt;/p&gt;
+
+&lt;p&gt;We have not turned on &lt;code&gt;-Xrbc.db&lt;/code&gt; by default yet because we don&amp;rsquo;t know what a
+good default is. So give us feedback on your use cases and what you would find
+most useful.&lt;/p&gt;
+
+&lt;p&gt;Finally, whenever we discuss the compilation cache we are inevitably asked if
+you can run directly from the cache and not use the Ruby source at all after
+it has been compiled. The short answer is &amp;ldquo;Yes&amp;rdquo;, the long answer is &amp;ldquo;It
+depends&amp;rdquo;. I will be writing a post exploring this question in detail shortly.
+For now, get out there and write more Ruby code!&lt;/p&gt;
+</content>
+  </entry>
+  
+  <entry>
     <title>Why Use Rubinius</title>
     <id>http://rubini.us/2011/02/25/why-use-rubinius/</id>
     <link rel="alternate" type="text/html" href="http://rubini.us/2011/02/25/why-use-rubinius/" />
