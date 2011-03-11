@@ -95,13 +95,17 @@ VALUE io_spec_rb_io_wait_readable(VALUE self, VALUE io, VALUE read_p) {
 
   if(RTEST(read_p)) {
     rb_ivar_set(self, rb_intern("@write_data"), Qtrue);
-    read(fd, buf, RB_IO_WAIT_READABLE_BUF);
+    if(read(fd, buf, RB_IO_WAIT_READABLE_BUF) != -1) {
+      return Qnil;
+    }
   }
 
   ret = rb_io_wait_readable(fd);
 
   if(RTEST(read_p)) {
-    read(fd, buf, RB_IO_WAIT_READABLE_BUF);
+    if(read(fd, buf, RB_IO_WAIT_READABLE_BUF) != 13) {
+      return Qnil;
+    }
     rb_ivar_set(self, rb_intern("@read_data"),
         rb_str_new(buf, RB_IO_WAIT_READABLE_BUF));
   }
