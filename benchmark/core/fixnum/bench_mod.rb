@@ -6,7 +6,7 @@ Benchmark.ips do |x|
 
   small_fixnum = 10000
   big_fixnum   = Benchmark::Helpers.fixnum_max
-  bignum       = Benchmark::Helpers.fixnum_max - 1
+  bignum       = Benchmark::Helpers.fixnum_max + 1
   float        = 1234.0
 
   x.report "Fixnum %% Fixnum => Fixnum" do |times|
