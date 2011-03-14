@@ -48,7 +48,7 @@ Daedalus.blueprint do |i|
   when /haiku/i
     gcc.ldflags << "-ldl" << "-lnetwork"
   when /bsd/i
-    gcc.ldflags << "-ldl" << "-lcrypt" << "-rdynamic"
+    gcc.ldflags << "-lcrypt" << "-rdynamic"
     make = "gmake"
   when /mingw|win32/i
     gcc.ldflags << "-lws2_32"
