@@ -785,6 +785,9 @@ remember:
       sig << "VM";
       sig << ops_.state()->Int32Ty;
 
+      res_args[1] = ops_.b().CreateSExtOrBitCast(res_args[1],
+                               ops_.state()->Int32Ty);
+
       result = sig.call("rbx_ffi_from_int32", res_args, 2, "to_obj",
                         ops_.b());
       break;
