@@ -312,11 +312,11 @@ module Rubinius
           g.raise_exc
         elsif @name == :$~
           pos(g)
-          g.push_cpath_top
-          g.find_const :Regexp
-          @value ?  @value.bytecode(g) : g.swap
-          pos(g)
-          g.send :last_match=, 1
+          # this is a noop for now, but we need to run the
+          # value anyway because it might have side-effects
+          @value.bytecode(g) if @value
+          g.pop
+          g.push :nil
         else
           pos(g)
           g.push_rubinius
