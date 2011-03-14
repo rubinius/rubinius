@@ -37,6 +37,8 @@ Daedalus.blueprint do |i|
   gcc.ldflags << "-lstdc++"
   gcc.ldflags << "-L/usr/local/lib -L/opt/local/lib"
 
+  make = "make"
+
   # TODO: Fix with Platform object
   case RUBY_PLATFORM
   when /linux/i
@@ -47,6 +49,7 @@ Daedalus.blueprint do |i|
     gcc.ldflags << "-ldl" << "-lnetwork"
   when /bsd/i
     gcc.ldflags << "-ldl" << "-lcrypt" << "-rdynamic"
+    make = "gmake"
   when /mingw|win32/i
     gcc.ldflags << "-lws2_32"
   else
@@ -113,7 +116,7 @@ Daedalus.blueprint do |i|
     l.cflags = ["-Ivm/external_libs/libtommath"]
     l.objects = [l.file("libtommath.a")]
     l.to_build do |x|
-      x.command "make"
+      x.command make
     end
   end
 
@@ -122,7 +125,7 @@ Daedalus.blueprint do |i|
     l.objects = [l.file(".libs/libonig.a")]
     l.to_build do |x|
       x.command "./configure" unless File.exists?("Makefile")
-      x.command "make"
+      x.command make
     end
   end
 
@@ -130,7 +133,7 @@ Daedalus.blueprint do |i|
     l.cflags = ["-Ivm/external_libs/libgdtoa"]
     l.objects = [l.file("libgdtoa.a")]
     l.to_build do |x|
-      x.command "make"
+      x.command make
     end
   end
 
@@ -139,7 +142,7 @@ Daedalus.blueprint do |i|
     l.objects = [l.file(".libs/libffi.a")]
     l.to_build do |x|
       x.command "./configure" unless File.exists?("Makefile")
-      x.command "make"
+      x.command make
     end
   end
 
@@ -148,7 +151,7 @@ Daedalus.blueprint do |i|
     l.objects = [l.file("libudis86/.libs/libudis86.a")]
     l.to_build do |x|
       x.command "./configure" unless File.exists?("Makefile")
-      x.command "make"
+      x.command make
     end
   end
 
@@ -165,7 +168,7 @@ Daedalus.blueprint do |i|
       l.objects = [l.file("libpthread.a")]
       l.to_build do |x|
         x.command "./configure" unless File.exists?("Makefile")
-        x.command "make"
+        x.command make
       end
     end
 
