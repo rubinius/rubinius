@@ -214,8 +214,25 @@ module Daedalus
     def calculate_deps(path)
       dirs = header_directories() + ["/usr/include"]
       flags = @cflags.join(' ')
-      dep = DependencyGrapher.new [path], dirs, flags
-      dep.process
+      begin
+        dep = DependencyGrapher.new [path], dirs, flags
+        dep.process
+
+        # This is a quick work-around for a craptastic bug that I can't figure
+        # out. Sometimes this raises an exception saying it can't find a file
+        # which is pretty obviously there. I've been unable to figure out
+        # what causes this and thus how to fix.
+        #
+        # So as a temporary measure, if an exception is raised, I'm going to
+        # just do it again. Previous results have shown that this should
+        # work the 2nd time even though the first time failed.
+        #
+        # I know this sounds silly, but we need some fix for this.
+      rescue Exception
+        dep = DependencyGrapher.new [path], dirs, flags
+        dep.process
+      end
+
       dep.sources.first.dependencies.sort
     end
   end
