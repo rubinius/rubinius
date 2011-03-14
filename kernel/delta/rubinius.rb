@@ -112,7 +112,7 @@ module Rubinius
     mod = static_scope.for_method_definition
 
     if mod.kind_of? Class and ai = mod.__metaclass_object__
-      if ai.kind_of? Numeric
+      if Type.obj_kind_of? ai, Numeric
 
         # Such a weird protocol. If :singleton_method_added exists, allow this.
         # le sigh.
@@ -154,7 +154,7 @@ module Rubinius
     # added yet. (ActionMailer does this)
 
     if Class === mod and obj = mod.__metaclass_object__
-      if obj.kind_of? Numeric
+      if Type.obj_kind_of? obj, Numeric
 
         # Such a weird protocol. If :singleton_method_added exists, allow this.
         # le sigh.
