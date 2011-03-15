@@ -18,7 +18,10 @@ namespace :release do
     now = Time.now
     date = now.strftime("%b %d, %Y")
 
-    prev = Time.parse BUILD_CONFIG[:release_date]
+    prev_date = `git log -n 1 --pretty=format:"%aD" release-#{ver}`
+
+    prev = Time.parse prev_date.strip
+
     now_day = now.strftime("%j").to_i
     prev_day = prev.strftime("%j").to_i
 
