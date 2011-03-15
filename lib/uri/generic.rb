@@ -1058,8 +1058,7 @@ module URI
     end
 
     def eql?(oth)
-      oth.is_a?(URI)&&
-      self.component_ary.eql?(oth.component_ary)
+      oth.is_a?(URI) && self.component_ary.eql?(oth.component_ary)
     end
 
 =begin
