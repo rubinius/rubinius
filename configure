@@ -87,9 +87,9 @@ class Configure
 
     # Essential settings (modify these for creating releases)
     @libversion = "1.2"
-    @version = "#{@libversion}.3dev"
-    @release_date = "yyyy-mm-dd"
-    @config_version = 33
+    @version = "#{@libversion}.3"
+    @release_date = "2011-03-15"
+    @config_version = 34
 
     # TODO: add conditionals for platforms
     if RbConfig::CONFIG["build_os"] =~ /darwin/
