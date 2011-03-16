@@ -552,7 +552,7 @@ class Hash
     return to_enum :reject unless block_given?
 
     hsh = self.class.new
-    hsh.taint! if self.tainted?
+    hsh.taint if self.tainted?
     self.each { |k,v| hsh[k] = v if !yield(k,v) }
     hsh
   end
