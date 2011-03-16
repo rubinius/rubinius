@@ -164,7 +164,7 @@ namespace rubinius {
     }
 
     bool no_inline_p() {
-      return flags & eNoInline == eNoInline;
+      return (flags & eNoInline) == eNoInline;
     }
 
     void set_no_inline() {
