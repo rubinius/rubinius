@@ -723,6 +723,7 @@ namespace rubinius {
       if(vmm->required_args != vmm->total_args // has a splat
           || vmm->call_count < 200 // not called much
           || vmm->jitted() // already jitted
+          || !vmm->no_inline_p() // method marked as not inlinable
         ) return caller;
 
       CallFrame* next = call_frame->previous;

@@ -106,7 +106,8 @@ namespace rubinius {
     cNoPolicy,
     cInline,
     cTooComplex,
-    cTooBig
+    cTooBig,
+    cInlineDisabled
   };
 
   class InlinePolicy {

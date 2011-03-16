@@ -40,6 +40,10 @@ namespace rubinius {
   public:
     static void** instructions;
 
+    enum Flags {
+      eNoInline = 1 << 0
+    };
+
   private:
     IndirectLiterals indirect_literals_;
     VMMethod* parent_;
@@ -77,6 +81,9 @@ namespace rubinius {
     uint64_t method_id_;
   public:
     uint32_t debugging;
+
+  private:
+    uint32_t flags; // Used to store bit flags
   public: // Methods
     static void init(STATE);
 
@@ -154,6 +161,14 @@ namespace rubinius {
 
     uint64_t method_id() {
       return method_id_;
+    }
+
+    bool no_inline_p() {
+      return flags & eNoInline == eNoInline;
+    }
+
+    void set_no_inline() {
+      flags |= eNoInline;
     }
 
     void specialize(STATE, CompiledMethod* original, TypeInfo* ti);

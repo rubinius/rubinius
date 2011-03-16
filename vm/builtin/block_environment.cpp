@@ -243,6 +243,12 @@ namespace rubinius {
     NativeMethodEnvironment* nme = NativeMethodEnvironment::get();
     CallFrame* target = call_frame->previous;
 
+    // We assume that code using this is going to use it over and
+    // over again (ie Proc.new) so we mark the method as not
+    // inlinable so that this works even with the JIT on.
+
+    target->cm->backend_method()->set_no_inline();
+
     if(nme->current_call_frame() == target) {
       NativeMethodFrame* nmf = nme->current_native_frame();
       if(nmf) return nme->get_object(nmf->block());
