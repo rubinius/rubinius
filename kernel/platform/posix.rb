@@ -11,11 +11,11 @@ module FFI::Platform::POSIX
   attach_function :perror,   [:string], :void
 
   # memory
-  attach_function :malloc,   [:int], :pointer
-  attach_function :realloc,  [:pointer, :int], :pointer
+  attach_function :malloc,   [:size_t], :pointer
+  attach_function :realloc,  [:pointer, :size_t], :pointer
   attach_function :free,     [:pointer], :void
-  attach_function :memset,   [:pointer, :int, :int], :pointer
-  attach_function :memcpy,   [:pointer, :pointer, :int], :pointer
+  attach_function :memset,   [:pointer, :int, :size_t], :pointer
+  attach_function :memcpy,   [:pointer, :pointer, :size_t], :pointer
 
   # rand
   attach_function :srand,    [:uint], :void
@@ -35,7 +35,7 @@ module FFI::Platform::POSIX
   attach_function :umask,    [:mode_t], :int
   attach_function :link,     [:string, :string], :int
   attach_function :symlink,  [:string, :string], :int
-  attach_function :readlink, [:string, :pointer, :int], :int
+  attach_function :readlink, [:string, :pointer, :size_t], :ssize_t
   attach_function :rename,   [:string, :string], :int
   attach_function :utimes,   [:string, :pointer], :int
 
@@ -45,7 +45,7 @@ module FFI::Platform::POSIX
   attach_function :readdir,   [:pointer], :pointer
   attach_function :rewinddir, [:pointer], :void
   attach_function :closedir,  [:pointer], :int
-  attach_function :mkdir,     [:string, :short], :int
+  attach_function :mkdir,     [:string, :mode_t], :int
   attach_function :rmdir,     [:string], :int
   attach_function :chroot,    [:string], :int
 
@@ -71,9 +71,9 @@ module FFI::Platform::POSIX
   attach_function :feof,     [:pointer], :int
   attach_function :ferror,   [:pointer], :int
   attach_function :clearerr, [:pointer], :void
-  attach_function :fseek,    [:pointer, :int, :int], :int
-  attach_function :ftell,    [:pointer], :int
-  attach_function :lseek,    [:int, :int, :int], :int
+  attach_function :fseek,    [:pointer, :long, :int], :int
+  attach_function :ftell,    [:pointer], :long
+  attach_function :lseek,    [:int, :off_t, :int], :off_t
   attach_function :isatty,   [:int], :int
 
   #   reading
@@ -128,7 +128,7 @@ module FFI::Platform::POSIX
 
   # password and group file access
   attach_function :getpwnam, [:string], :pointer
-  attach_function :getpwuid, [:uint], :pointer
+  attach_function :getpwuid, [:uid_t], :pointer
   attach_function :setpwent, [], :void
   attach_function :getpwent, [], :pointer
   attach_function :endpwent, [], :void

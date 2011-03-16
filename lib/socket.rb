@@ -200,8 +200,8 @@ class Socket < BasicSocket
     attach_function :shutdown, [:int, :int], :int
     attach_function :listen,   [:int, :int], :int
     attach_function :socket,   [:int, :int, :int], :int
-    attach_function :send,     [:int, :pointer, :int, :int], :int
-    attach_function :recv,     [:int, :pointer, :int, :int], :int
+    attach_function :send,     [:int, :pointer, :size_t, :int], :int
+    attach_function :recv,     [:int, :pointer, :size_t, :int], :int
     attach_function :recvfrom, [:int, :pointer, :size_t, :int,
                                 :pointer, :pointer], :int
 
