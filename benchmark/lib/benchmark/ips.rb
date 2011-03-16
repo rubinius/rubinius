@@ -161,7 +161,13 @@ module Benchmark
 
       Timing.clean_env
 
-      STDOUT.printf item.label.rjust(20) if !suite or !suite.quiet?
+      if !suite or !suite.quiet?
+        if item.label.size > 20
+          STDOUT.print "#{item.label}\n#{' ' * 20}"
+        else
+          STDOUT.print item.label.rjust(20)
+        end
+      end
 
       before.update!
       start.update!
