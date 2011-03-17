@@ -84,13 +84,7 @@ class Proc
   alias_method :yield, :call
 
   class Method < Proc
-    def bound_method
-      @bound_method
-    end
-
-    def bound_method=(other)
-      @bound_method = other
-    end
+    attr_accessor :bound_method
 
     def self.__from_method__(meth)
       obj = allocate()
