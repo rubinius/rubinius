@@ -107,3 +107,8 @@ describe "RbConfig::MAKEFILE_CONFIG" do
 
   it_has_entries 'RbConfig::MAKEFILE_CONFIG', entries
 end
+
+# the ruby executable path will vary, just verify it exists and is a String
+describe "RbConfig#ruby" do 
+  RbConfig.ruby.should be_kind_of(String)  
+end
