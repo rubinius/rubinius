@@ -176,6 +176,14 @@ module RbConfig
   CONFIG["LDSHARED"]           = Rubinius::LDSHARED
   CONFIG["LIBRUBY_LDSHARED"]   = Rubinius::LDSHARED
 
+  # absolute path to ruby executable (pulled directly from MRI's mkconfig.rb)
+  def RbConfig.ruby
+    File.join(
+      RbConfig::CONFIG["bindir"],
+      RbConfig::CONFIG["ruby_install_name"] + RbConfig::CONFIG["EXEEXT"]
+    )
+  end  
+
   # Adapted from MRI's' rbconfig.rb
   MAKEFILE_CONFIG = {}
   CONFIG.each { |k,v| MAKEFILE_CONFIG[k] = v.kind_of?(String) ? v.dup : v }
