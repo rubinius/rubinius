@@ -22,7 +22,7 @@ end
 
 def rbx_build
   # rbx-build can run even if prefix is used
-  rbx = File.expand_path "../bin/rbx-build", File.dirname(__FILE__)
+  File.expand_path "../bin/rbx-build", File.dirname(__FILE__)
 end
 
 def build_extconf(name, opts)

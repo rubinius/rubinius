@@ -33,7 +33,7 @@ namespace :release do
 
     issues = []
     ol.each do |line|
-      if m = /([Ff]ixes|[Cc]loses)\s#(\d+)/.match(line)
+      if /([Ff]ixes|[Cc]loses)\s#(\d+)/.match(line)
         issues << line
       end
     end
@@ -96,7 +96,7 @@ collection, Just-In-Time compilation, and compatibility with existing C APIs.
     fd.puts "##### Bug Fixes\n\n"
     ol.each do |line|
       unless issues.include?(line)
-        hash, message = line.split(" ", 2)
+        message = line.split(" ", 2)[1]
         message.gsub!("_", "\\_")
         fd.puts "* #{message}"
       end
