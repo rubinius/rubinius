@@ -86,7 +86,7 @@ your larger project.
 # widget.rb
 require 'widget/red'
 require 'widget/blue'
-require 'widget/gree'
+require 'widget/green'
 {% endhighlight %}
 
 {% highlight ruby linenos %}
