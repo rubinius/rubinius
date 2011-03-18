@@ -405,6 +405,89 @@ namespace rubinius {
   void LLVMState::add_internal_functions() {
   }
 
+  namespace {
+    /// GetX86CpuIDAndInfo - Execute the specified cpuid and return the 4 values in the
+    /// specified arguments.  If we can't run cpuid on the host, return false.
+    static bool GetX86CpuIDAndInfo(unsigned value, unsigned *rEAX,
+        unsigned *rEBX, unsigned *rECX, unsigned *rEDX) {
+#if defined(__x86_64__) || defined(_M_AMD64) || defined (_M_X64)
+#if defined(__GNUC__)
+      // gcc doesn't know cpuid would clobber ebx/rbx. Preseve it manually.
+      asm ("movq\t%%rbx, %%rsi\n\t"
+          "cpuid\n\t"
+          "xchgq\t%%rbx, %%rsi\n\t"
+          : "=a" (*rEAX),
+          "=S" (*rEBX),
+          "=c" (*rECX),
+          "=d" (*rEDX)
+          :  "a" (value));
+      return true;
+#elif defined(_MSC_VER)
+      int registers[4];
+      __cpuid(registers, value);
+      *rEAX = registers[0];
+      *rEBX = registers[1];
+      *rECX = registers[2];
+      *rEDX = registers[3];
+      return true;
+#endif
+#elif defined(i386) || defined(__i386__) || defined(__x86__) || defined(_M_IX86)
+#if defined(__GNUC__)
+      asm ("movl\t%%ebx, %%esi\n\t"
+          "cpuid\n\t"
+          "xchgl\t%%ebx, %%esi\n\t"
+          : "=a" (*rEAX),
+          "=S" (*rEBX),
+          "=c" (*rECX),
+          "=d" (*rEDX)
+          :  "a" (value));
+      return true;
+#elif defined(_MSC_VER)
+      __asm {
+        mov   eax,value
+          cpuid
+          mov   esi,rEAX
+          mov   dword ptr [esi],eax
+          mov   esi,rEBX
+          mov   dword ptr [esi],ebx
+          mov   esi,rECX
+          mov   dword ptr [esi],ecx
+          mov   esi,rEDX
+          mov   dword ptr [esi],edx
+      }
+      return true;
+#endif
+#endif
+      return false;
+    }
+
+    static void DetectX86FamilyModel(unsigned EAX, unsigned *o_Family, unsigned *o_Model) {
+      unsigned Family = (EAX >> 8) & 0xf; // Bits 8 - 11
+      unsigned Model  = (EAX >> 4) & 0xf; // Bits 4 - 7
+      if (Family == 6 || Family == 0xf) {
+        if (Family == 0xf)
+          // Examine extended family ID if family ID is F.
+          Family += (EAX >> 20) & 0xff;    // Bits 20 - 27
+        // Examine extended model ID if family ID is 6 or F.
+        Model += ((EAX >> 16) & 0xf) << 4; // Bits 16 - 19
+      }
+
+      *o_Family = Family;
+      *o_Model = Model;
+    }
+
+    bool is_sandy_bridge() {
+      unsigned EAX = 0, EBX = 0, ECX = 0, EDX = 0;
+      if(!GetX86CpuIDAndInfo(0x1, &EAX, &EBX, &ECX, &EDX)) return false;
+
+      unsigned Family = 0;
+      unsigned Model  = 0;
+      DetectX86FamilyModel(EAX, &Family, &Model);
+
+      return Family == 6 && Model == 42;
+    }
+  }
+
   LLVMState::LLVMState(STATE)
     : ManagedThread(state->shared, ManagedThread::eSystem)
     , ctx_(llvm::getGlobalContext())
@@ -468,7 +551,19 @@ namespace rubinius {
 
     autogen_types::makeLLVMModuleContents(module_);
 
-    engine_ = ExecutionEngine::create(module_, false, 0, CodeGenOpt::Default, false);
+    // If this is a sandy bridge machine, force LLVM to treat it like a core2
+    // machine to work around a LLVM bug in 2.8.
+    if(is_sandy_bridge()) {
+      engine_ = EngineBuilder(module_)
+                  .setEngineKind(EngineKind::JIT)
+                  .setErrorStr(0)
+                  .setOptLevel(CodeGenOpt::Default)
+                  .setMCPU("core2")
+                  .create();
+    } else {
+      engine_ = ExecutionEngine::create(module_, false, 0, CodeGenOpt::Default, false);
+    }
+
     passes_ = new llvm::FunctionPassManager(module_);
 
     passes_->add(new llvm::TargetData(*engine_->getTargetData()));
