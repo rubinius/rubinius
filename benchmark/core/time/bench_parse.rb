@@ -18,6 +18,8 @@ Benchmark.ips do |x|
   rfc2822_date_time_cst = "08 Mar 11 10:09:08 CST"
 
   format_c = "Fri Jan 02 08:10:00 -0600 2004"
+  format_d = "Fri, 02 Jan 2004 08:10:00 -0600"
+  format_e = "2011/03/08 10:09:08 -0600"
   
 
   x.report "parse '#{iso_8601_date_only_locale_neutral}'" do |times|
@@ -104,6 +106,22 @@ Benchmark.ips do |x|
     i = 0
     while i < times
       Time.parse(format_c)
+      i += 1
+    end
+  end
+
+  x.report "parse '#{format_d}'" do |times|
+    i = 0
+    while i < times
+      Time.parse(format_d)
+      i += 1
+    end
+  end
+
+  x.report "parse '#{format_e}'" do |times|
+    i = 0
+    while i < times
+      Time.parse(format_e)
       i += 1
     end
   end
