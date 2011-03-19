@@ -135,7 +135,7 @@ ossl_x509name_initialize(int argc, VALUE *argv, VALUE self)
 	    rb_block_call(tmp, rb_intern("each"), 0, 0, ossl_x509name_init_i, args);
 	}
 	else{
-	    unsigned char *p;
+	    unsigned const char *p;
 	    VALUE str = ossl_to_der_if_possible(arg);
 	    X509_NAME *x;
 	    StringValue(str);

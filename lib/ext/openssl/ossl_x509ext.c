@@ -274,14 +274,14 @@ static VALUE
 ossl_x509ext_initialize(int argc, VALUE *argv, VALUE self)
 {
     VALUE oid, value, critical;
-    unsigned char *p;
+    const unsigned char *p;
     X509_EXTENSION *ext;
 
     GetX509Ext(self, ext);
     if(rb_scan_args(argc, argv, "12", &oid, &value, &critical) == 1){
 	oid = ossl_to_der_if_possible(oid);
 	StringValue(oid);
-	p  = RSTRING_PTR(oid);
+	p  = (const unsigned char*) RSTRING_PTR(oid);
 	if(!d2i_X509_EXTENSION((X509_EXTENSION**)&DATA_PTR(self),
 			       &p, RSTRING_LEN(oid)))
 	    ossl_raise(eX509ExtError, NULL);

@@ -690,7 +690,7 @@ static VALUE
 ossl_x509_inspect(VALUE self)
 {
     VALUE str;
-    char *cname = rb_class2name(rb_obj_class(self));
+    const char *cname = rb_class2name(rb_obj_class(self));
 
     str = rb_str_new2("#<");
     rb_str_cat2(str, cname);

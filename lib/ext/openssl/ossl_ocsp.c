@@ -103,13 +103,13 @@ static VALUE
 ossl_ocspreq_initialize(int argc, VALUE *argv, VALUE self)
 {
     VALUE arg;
-    unsigned char *p;
+    const unsigned char *p;
 
     rb_scan_args(argc, argv, "01", &arg);
     if(!NIL_P(arg)){
 	arg = ossl_to_der_if_possible(arg);
 	StringValue(arg);
-	p = (unsigned char*)RSTRING_PTR(arg);
+	p = (const unsigned char*)RSTRING_PTR(arg);
 	if(!d2i_OCSP_REQUEST((OCSP_REQUEST**)&DATA_PTR(self), &p,
 			     RSTRING_LEN(arg))){
 	    ossl_raise(eOCSPError, "cannot load DER encoded request");
@@ -310,13 +310,13 @@ static VALUE
 ossl_ocspres_initialize(int argc, VALUE *argv, VALUE self)
 {
     VALUE arg;
-    unsigned char *p;
+    const unsigned char *p;
 
     rb_scan_args(argc, argv, "01", &arg);
     if(!NIL_P(arg)){
 	arg = ossl_to_der_if_possible(arg);
 	StringValue(arg);
-	p = RSTRING_PTR(arg);
+	p = (const unsigned char*) RSTRING_PTR(arg);
 	if(!d2i_OCSP_RESPONSE((OCSP_RESPONSE**)&DATA_PTR(self), &p,
 			      RSTRING_LEN(arg))){
 	    ossl_raise(eOCSPError, "cannot load DER encoded response");

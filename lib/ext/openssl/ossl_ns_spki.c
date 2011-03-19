@@ -56,14 +56,14 @@ ossl_spki_initialize(int argc, VALUE *argv, VALUE self)
 {
     NETSCAPE_SPKI *spki;
     VALUE buffer;
-    unsigned char *p;
+    const unsigned char *p;
 	
     if (rb_scan_args(argc, argv, "01", &buffer) == 0) {
 	return self;
     }
     StringValue(buffer);
     if (!(spki = NETSCAPE_SPKI_b64_decode(RSTRING_PTR(buffer), -1))) {
-	p = RSTRING_PTR(buffer);
+	p = (const unsigned char *)RSTRING_PTR(buffer);
 	if (!(spki = d2i_NETSCAPE_SPKI(NULL, &p, RSTRING_LEN(buffer)))) {
 	    ossl_raise(eSPKIError, NULL);
 	}

@@ -311,7 +311,7 @@ static VALUE
 decode_bool(unsigned char* der, int length)
 {
     int val;
-    unsigned char *p;
+    unsigned const char *p;
 
     p = der;
     if((val = d2i_ASN1_BOOLEAN(NULL, &p, length)) < 0)
@@ -324,7 +324,7 @@ static VALUE
 decode_int(unsigned char* der, int length)
 {
     ASN1_INTEGER *ai;
-    unsigned char *p;
+    unsigned const char *p;
     VALUE ret; 
     int status = 0;
 
@@ -364,7 +364,7 @@ static VALUE
 decode_enum(unsigned char* der, int length)
 {
     ASN1_ENUMERATED *ai;
-    unsigned char *p;
+    unsigned const char *p;
     VALUE ret; 
     int status = 0;
 
@@ -383,7 +383,7 @@ static VALUE
 decode_null(unsigned char* der, int length)
 {
     ASN1_NULL *null;
-    unsigned char *p;
+    unsigned char const *p;
 
     p = der;
     if(!(null = d2i_ASN1_NULL(NULL, &p, length)))
@@ -397,7 +397,7 @@ static VALUE
 decode_obj(unsigned char* der, int length)
 {
     ASN1_OBJECT *obj;
-    unsigned char *p;
+    unsigned const char *p;
     VALUE ret;
     int nid;
     BIO *bio;
@@ -426,7 +426,7 @@ static VALUE
 decode_time(unsigned char* der, int length)
 {
     ASN1_TIME *time;
-    unsigned char *p;
+    unsigned const char *p;
     VALUE ret;
     int status = 0;
 
@@ -723,7 +723,7 @@ ossl_asn1_decode0(unsigned char **pp, long length, long *offset, long depth,
     p = *pp;
     while(length > 0){
 	start = p;
-	j = ASN1_get_object(&p, &len, &tag, &tc, length);
+	j = ASN1_get_object((const unsigned char**)&p, &len, &tag, &tc, length);
 	if(j & 0x80) ossl_raise(eASN1Error, NULL);
 	hlen = p - start;
 	if(yield){

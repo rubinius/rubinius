@@ -188,7 +188,7 @@ ossl_cipher_init(int argc, VALUE *argv, VALUE self, int mode)
 	 * We deprecated the arguments for this method, but we decided
 	 * keeping this behaviour for backward compatibility.
 	 */
-	char *cname  = rb_class2name(rb_obj_class(self));
+	const char *cname  = rb_class2name(rb_obj_class(self));
 	rb_warn("argumtents for %s#encrypt and %s#decrypt were deprecated; "
                 "use %s#pkcs5_keyivgen to derive key and IV",
                 cname, cname, cname);
@@ -309,7 +309,7 @@ ossl_cipher_pkcs5_keyivgen(int argc, VALUE *argv, VALUE self)
 static VALUE
 ossl_cipher_update_deprecated(VALUE self, VALUE data)
 {
-    char *cname;
+    const char *cname;
 
     cname = rb_class2name(rb_obj_class(self));
     rb_warning("%s#<< is deprecated; use %s#update instead", cname, cname);
