@@ -1,5 +1,5 @@
 /*
- * $Id: ossl_ns_spki.c 12496 2007-06-08 15:02:04Z technorama $
+ * $Id$
  * 'OpenSSL for Ruby' project
  * Copyright (C) 2001-2002  Michal Rokos <m.rokos@sh.cvut.cz>
  * All rights reserved.
@@ -56,14 +56,14 @@ ossl_spki_initialize(int argc, VALUE *argv, VALUE self)
 {
     NETSCAPE_SPKI *spki;
     VALUE buffer;
-    const unsigned char *p;
+    unsigned char *p;
 	
     if (rb_scan_args(argc, argv, "01", &buffer) == 0) {
 	return self;
     }
     StringValue(buffer);
     if (!(spki = NETSCAPE_SPKI_b64_decode(RSTRING_PTR(buffer), -1))) {
-	p = (const unsigned char *)RSTRING_PTR(buffer);
+	p = RSTRING_PTR(buffer);
 	if (!(spki = d2i_NETSCAPE_SPKI(NULL, &p, RSTRING_LEN(buffer)))) {
 	    ossl_raise(eSPKIError, NULL);
 	}

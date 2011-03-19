@@ -1,7 +1,7 @@
 /*
  * This program is licenced under the same licence as Ruby.
  * (See the file 'LICENCE'.)
- * $Id: ossl_pkcs12.h 12496 2007-06-08 15:02:04Z technorama $
+ * $Id$
  */
 #if !defined(_OSSL_PKCS12_H_)
 #define _OSSL_PKCS12_H_

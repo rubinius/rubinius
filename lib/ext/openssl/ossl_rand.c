@@ -1,5 +1,5 @@
 /*
- * $Id: ossl_rand.c 16692 2008-05-29 18:15:50Z knu $
+ * $Id$
  * 'OpenSSL for Ruby' project
  * Copyright (C) 2001-2002  Michal Rokos <m.rokos@sh.cvut.cz>
  * All rights reserved.

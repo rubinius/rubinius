@@ -1,5 +1,5 @@
 /*
- * $Id: ossl_pkey_rsa.c 15611 2008-02-26 07:11:23Z technorama $
+ * $Id$
  * 'OpenSSL for Ruby' project
  * Copyright (C) 2001-2002  Michal Rokos <m.rokos@sh.cvut.cz>
  * All rights reserved.
@@ -519,14 +519,14 @@ ossl_rsa_blinding_off(VALUE self)
 }
  */
 
-OSSL_PKEY_BN(rsa, n);
-OSSL_PKEY_BN(rsa, e);
-OSSL_PKEY_BN(rsa, d);
-OSSL_PKEY_BN(rsa, p);
-OSSL_PKEY_BN(rsa, q);
-OSSL_PKEY_BN(rsa, dmp1);
-OSSL_PKEY_BN(rsa, dmq1);
-OSSL_PKEY_BN(rsa, iqmp);
+OSSL_PKEY_BN(rsa, n)
+OSSL_PKEY_BN(rsa, e)
+OSSL_PKEY_BN(rsa, d)
+OSSL_PKEY_BN(rsa, p)
+OSSL_PKEY_BN(rsa, q)
+OSSL_PKEY_BN(rsa, dmp1)
+OSSL_PKEY_BN(rsa, dmq1)
+OSSL_PKEY_BN(rsa, iqmp)
 
 /*
  * INIT

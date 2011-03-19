@@ -1,5 +1,5 @@
 /*
- * $Id: ossl_pkcs7.c 12496 2007-06-08 15:02:04Z technorama $
+ * $Id$
  * 'OpenSSL for Ruby' project
  * Copyright (C) 2001-2002  Michal Rokos <m.rokos@sh.cvut.cz>
  * All rights reserved.
@@ -630,11 +630,7 @@ ossl_pkcs7_set_certificates(VALUE self, VALUE ary)
 
     certs = pkcs7_get_certs(self);
     while((cert = sk_X509_pop(certs))) X509_free(cert);
-
-    size_t i;
-    for(i = 0; i < rb_ary_size(ary); i++) {
-      ossl_pkcs7_set_certs_i(rb_ary_entry(ary, i), self);
-    }
+    rb_block_call(ary, rb_intern("each"), 0, 0, ossl_pkcs7_set_certs_i, self);
 
     return ary;
 }
@@ -674,11 +670,7 @@ ossl_pkcs7_set_crls(VALUE self, VALUE ary)
 
     crls = pkcs7_get_crls(self);
     while((crl = sk_X509_CRL_pop(crls))) X509_CRL_free(crl);
-
-    size_t i;
-    for(i = 0; i < rb_ary_size(ary); i++) {
-      ossl_pkcs7_set_crls_i(rb_ary_entry(ary, i), self);
-    }
+    rb_block_call(ary, rb_intern("each"), 0, 0, ossl_pkcs7_set_crls_i, self);
 
     return ary;
 }

@@ -1,5 +1,5 @@
 /*
- * $Id: ossl_ocsp.c 22857 2009-03-09 11:59:27Z shyouhei $
+ * $Id$
  * 'OpenSSL for Ruby' project
  * Copyright (C) 2003  Michal Rokos <m.rokos@sh.cvut.cz>
  * Copyright (C) 2003  GOTOU Yuuzou <gotoyuzo@notwork.org>
@@ -103,13 +103,13 @@ static VALUE
 ossl_ocspreq_initialize(int argc, VALUE *argv, VALUE self)
 {
     VALUE arg;
-    const unsigned char *p;
+    unsigned char *p;
 
     rb_scan_args(argc, argv, "01", &arg);
     if(!NIL_P(arg)){
 	arg = ossl_to_der_if_possible(arg);
 	StringValue(arg);
-	p = (const unsigned char*)RSTRING_PTR(arg);
+	p = (unsigned char*)RSTRING_PTR(arg);
 	if(!d2i_OCSP_REQUEST((OCSP_REQUEST**)&DATA_PTR(self), &p,
 			     RSTRING_LEN(arg))){
 	    ossl_raise(eOCSPError, "cannot load DER encoded request");
@@ -310,13 +310,13 @@ static VALUE
 ossl_ocspres_initialize(int argc, VALUE *argv, VALUE self)
 {
     VALUE arg;
-    const unsigned char *p;
+    unsigned char *p;
 
     rb_scan_args(argc, argv, "01", &arg);
     if(!NIL_P(arg)){
 	arg = ossl_to_der_if_possible(arg);
 	StringValue(arg);
-	p = (const unsigned char*) RSTRING_PTR(arg);
+	p = RSTRING_PTR(arg);
 	if(!d2i_OCSP_RESPONSE((OCSP_RESPONSE**)&DATA_PTR(self), &p,
 			      RSTRING_LEN(arg))){
 	    ossl_raise(eOCSPError, "cannot load DER encoded response");
@@ -378,7 +378,7 @@ ossl_ocspres_to_der(VALUE self)
 	ossl_raise(eOCSPError, NULL);
     str = rb_str_new(0, len);
     p = RSTRING_PTR(str);
-    if(i2d_OCSP_RESPONSE(res, NULL) <= 0)
+    if(i2d_OCSP_RESPONSE(res, &p) <= 0)
 	ossl_raise(eOCSPError, NULL);
     ossl_str_adjust(str, p);
 

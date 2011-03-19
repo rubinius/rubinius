@@ -1,5 +1,5 @@
 /*
- * $Id: ossl.h 17656 2008-06-29 08:16:02Z shyouhei $
+ * $Id$
  * 'OpenSSL for Ruby' project
  * Copyright (C) 2001-2002  Michal Rokos <m.rokos@sh.cvut.cz>
  * All rights reserved.
@@ -11,7 +11,6 @@
 #if !defined(_OSSL_H_)
 #define _OSSL_H_
 
-#include "ruby.h"
 #include RUBY_EXTCONF_H
 
 #if defined(__cplusplus)
@@ -116,13 +115,6 @@ extern VALUE eOSSLError;
 #endif
 
 /*
- * Compatibility
- */
-#if OPENSSL_VERSION_NUMBER >= 0x10000000L
-#define STACK _STACK
-#endif
-
-/*
  * String to HEXString conversion
  */
 int string2hex(char *, int, char **, int *);
@@ -154,6 +146,7 @@ int ossl_pem_passwd_cb(char *, int, int, void *);
  */
 #define OSSL_ErrMsg() ERR_reason_error_string(ERR_get_error())
 NORETURN(void ossl_raise(VALUE, const char *, ...));
+VALUE ossl_exc_new(VALUE, const char *, ...);
 
 /*
  * Verify callback
@@ -182,10 +175,10 @@ VALUE ossl_to_der_if_possible(VALUE);
 extern VALUE dOSSL;
 
 #if defined(HAVE_VA_ARGS_MACRO)
-#define OSSL_Debug(fmt, ...) do { \
+#define OSSL_Debug(...) do { \
   if (dOSSL == Qtrue) { \
     fprintf(stderr, "OSSL_DEBUG: "); \
-    fprintf(stderr, fmt, ##__VA_ARGS__); \
+    fprintf(stderr, __VA_ARGS__); \
     fprintf(stderr, " [%s:%d]\n", __FILE__, __LINE__); \
   } \
 } while (0)

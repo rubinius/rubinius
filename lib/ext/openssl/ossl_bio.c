@@ -1,5 +1,5 @@
 /*
- * $Id: ossl_bio.c 12496 2007-06-08 15:02:04Z technorama $
+ * $Id$
  * 'OpenSSL for Ruby' team members
  * Copyright (C) 2003
  * All rights reserved.
@@ -9,74 +9,78 @@
  * (See the file 'LICENCE'.)
  */
 #include "ossl.h"
+#ifdef HAVE_UNISTD_H
 #include <unistd.h>
+#endif
 
 BIO *
 ossl_obj2bio(VALUE obj)
 {
-  BIO *bio;
+    BIO *bio;
 
-  if (rb_obj_is_instance_of(obj, rb_cIO)) {
-    FILE *fp;
-    int fd;
+    if (TYPE(obj) == T_FILE) {
+	rb_io_t *fptr;
+	FILE *fp;
+	int fd;
 
-    if ((fd = dup(rb_io_fd(obj))) < 0) {
-      rb_sys_fail(0);
+	GetOpenFile(obj, fptr);
+	rb_io_check_readable(fptr);
+	if ((fd = dup(FPTR_TO_FD(fptr))) < 0){
+	    rb_sys_fail(0);
+	}
+	if (!(fp = fdopen(fd, "r"))){
+	    close(fd);
+	    rb_sys_fail(0);
+	}
+	if (!(bio = BIO_new_fp(fp, BIO_CLOSE))){
+	    fclose(fp);
+	    ossl_raise(eOSSLError, NULL);
+	}
+    }
+    else {
+	StringValue(obj);
+	bio = BIO_new_mem_buf(RSTRING_PTR(obj), RSTRING_LEN(obj));
+	if (!bio) ossl_raise(eOSSLError, NULL);
     }
 
-    if (!(fp = fdopen(fd, "r"))) {
-      close(fd);
-      rb_sys_fail(0);
-    }
-
-    if (!(bio = BIO_new_fp(fp, BIO_CLOSE))) {
-      fclose(fp);
-      ossl_raise(eOSSLError, NULL);
-    }
-  } else {
-    StringValue(obj);
-    bio = BIO_new_mem_buf(RSTRING_PTR(obj), RSTRING_LEN(obj));
-    if (!bio) ossl_raise(eOSSLError, NULL);
-  }
-
-  return bio;
+    return bio;
 }
 
 BIO *
 ossl_protect_obj2bio(VALUE obj, int *status)
 {
-  BIO *ret = NULL;
-  ret = (BIO*)rb_protect((VALUE(*)_((VALUE)))ossl_obj2bio, obj, status);
-  return ret;
+     BIO *ret = NULL;
+     ret = (BIO*)rb_protect((VALUE(*)_((VALUE)))ossl_obj2bio, obj, status);
+     return ret;
 }
 
 VALUE
 ossl_membio2str0(BIO *bio)
 {
-  VALUE ret;
-  BUF_MEM *buf;
+    VALUE ret;
+    BUF_MEM *buf;
 
-  BIO_get_mem_ptr(bio, &buf);
-  ret = rb_str_new(buf->data, buf->length);
+    BIO_get_mem_ptr(bio, &buf);
+    ret = rb_str_new(buf->data, buf->length);
 
-  return ret;
+    return ret;
 }
 
 VALUE
 ossl_protect_membio2str(BIO *bio, int *status)
 {
-  return rb_protect((VALUE(*)_((VALUE)))ossl_membio2str0, (VALUE)bio, status);
+    return rb_protect((VALUE(*)_((VALUE)))ossl_membio2str0, (VALUE)bio, status);
 }
 
-VALUE
+VALUE 
 ossl_membio2str(BIO *bio)
 {
-  VALUE ret;
-  int status = 0;
+    VALUE ret;
+    int status = 0;
 
-  ret = ossl_protect_membio2str(bio, &status);
-  BIO_free(bio);
-  if(status) rb_jump_tag(status);
+    ret = ossl_protect_membio2str(bio, &status);
+    BIO_free(bio);
+    if(status) rb_jump_tag(status);
 
-  return ret;
+    return ret;
 }

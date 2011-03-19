@@ -1,5 +1,5 @@
 /*
- * $Id: ossl_x509cert.c 12496 2007-06-08 15:02:04Z technorama $
+ * $Id$
  * 'OpenSSL for Ruby' project
  * Copyright (C) 2001-2002  Michal Rokos <m.rokos@sh.cvut.cz>
  * All rights reserved.
@@ -690,7 +690,7 @@ static VALUE
 ossl_x509_inspect(VALUE self)
 {
     VALUE str;
-    const char *cname = rb_class2name(rb_obj_class(self));
+    char *cname = rb_class2name(rb_obj_class(self));
 
     str = rb_str_new2("#<");
     rb_str_cat2(str, cname);

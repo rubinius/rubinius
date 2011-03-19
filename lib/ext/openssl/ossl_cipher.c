@@ -1,5 +1,5 @@
 /*
- * $Id: ossl_cipher.c 12496 2007-06-08 15:02:04Z technorama $
+ * $Id$
  * 'OpenSSL for Ruby' project
  * Copyright (C) 2001-2002  Michal Rokos <m.rokos@sh.cvut.cz>
  * All rights reserved.
@@ -67,7 +67,7 @@ ossl_cipher_free(EVP_CIPHER_CTX *ctx)
 {
     if (ctx) {
 	EVP_CIPHER_CTX_cleanup(ctx);
-	free(ctx);
+        ruby_xfree(ctx);
     }
 }
 
@@ -124,12 +124,14 @@ ossl_cipher_copy(VALUE self, VALUE other)
     return self;
 }
 
+#ifdef HAVE_OBJ_NAME_DO_ALL_SORTED
 static void*
 add_cipher_name_to_ary(const OBJ_NAME *name, VALUE ary)
 {
     rb_ary_push(ary, rb_str_new2(name->name));
     return NULL;
 }
+#endif
 
 /*
  *  call-seq:
@@ -186,7 +188,7 @@ ossl_cipher_init(int argc, VALUE *argv, VALUE self, int mode)
 	 * We deprecated the arguments for this method, but we decided
 	 * keeping this behaviour for backward compatibility.
 	 */
-	const char *cname  = rb_class2name(rb_obj_class(self));
+	char *cname  = rb_class2name(rb_obj_class(self));
 	rb_warn("argumtents for %s#encrypt and %s#decrypt were deprecated; "
                 "use %s#pkcs5_keyivgen to derive key and IV",
                 cname, cname, cname);
@@ -307,7 +309,7 @@ ossl_cipher_pkcs5_keyivgen(int argc, VALUE *argv, VALUE self)
 static VALUE
 ossl_cipher_update_deprecated(VALUE self, VALUE data)
 {
-    const char *cname;
+    char *cname;
 
     cname = rb_class2name(rb_obj_class(self));
     rb_warning("%s#<< is deprecated; use %s#update instead", cname, cname);

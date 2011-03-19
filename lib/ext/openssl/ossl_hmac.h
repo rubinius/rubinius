@@ -1,5 +1,5 @@
 /*
- * $Id: ossl_hmac.h 11708 2007-02-12 23:01:19Z shyouhei $
+ * $Id$
  * 'OpenSSL for Ruby' project
  * Copyright (C) 2001-2002  Michal Rokos <m.rokos@sh.cvut.cz>
  * All rights reserved.

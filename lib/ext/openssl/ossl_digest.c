@@ -1,5 +1,5 @@
 /*
- * $Id: ossl_digest.c 15600 2008-02-25 08:48:57Z technorama $
+ * $Id$
  * 'OpenSSL for Ruby' project
  * Copyright (C) 2001-2002  Michal Rokos <m.rokos@sh.cvut.cz>
  * All rights reserved.
