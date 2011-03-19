@@ -33,6 +33,8 @@ if with_config("debug") or enable_config("debug")
   end
 end
 
+$CPPFLAGS += " -DOPENSSL_NO_STATIC_ENGINE" if RUBY_PLATFORM =~ /openbsd/i
+
 message "=== Checking for system dependent stuff... ===\n"
 have_library("nsl", "t_open")
 have_library("socket", "socket")
