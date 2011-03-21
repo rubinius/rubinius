@@ -1544,7 +1544,7 @@ class Array
         # of the array.
         return out unless start >= 0 and start < @total
 
-        out = @tuple.at start
+        out = @tuple.at start + @start
 
         # Check for shift style.
         if start == 0
