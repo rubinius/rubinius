@@ -62,7 +62,12 @@ class Hash
 
   attr_reader :size
 
-  attr_reader :entries
+  # #entries is a method provided by Enumerable which calls #to_a,
+  # so we have to not collide with that.
+  def __entries__
+    @entries
+  end
+
   attr_reader :capacity
   attr_reader :max_entries
 
@@ -600,7 +605,7 @@ class Hash
     # Normally this would be a call to __setup__,
     # but that will create a new unused Tuple
     # that we would wind up replacing anyways.
-    @entries = other.entries.dup
+    @entries = other.__entries__.dup
     @capacity = other.capacity
     @mask     = @capacity - 1
     @max_entries = other.max_entries
