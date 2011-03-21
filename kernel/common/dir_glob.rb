@@ -370,14 +370,17 @@ class Dir
         while i < total
           char = data.get_byte(i)
 
-          if char == ?{ and nest == 0
-            lbrace = i
+          if char == ?{
+            lbrace = i if nest == 0
             nest += 1
           end
 
-          if char == ?} and nest - 1 <= 0
-            rbrace = i
+          if char == ?}
             nest -= 1
+          end
+
+          if nest == 0
+            rbrace = i
             break
           end
 
