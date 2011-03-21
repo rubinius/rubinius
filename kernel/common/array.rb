@@ -1214,9 +1214,8 @@ class Array
   #     a.permutation(4).to_a  #=> []   # no permutations of length 4
   #
   def permutation(num=undefined, &block)
-    # When a block is given, use a shallow copy of the array to ignore any
-    # mutations.
-    array = block_given? ? dup : self
+    # Use a shallow copy of the array to ignore any mutations.
+    array = dup
 
     return to_enum(:permutation, num) unless block_given?
     if num.equal? undefined
@@ -1237,7 +1236,7 @@ class Array
       # this is the general case
       p = Array.new(num)
       used = Array.new(@total, false)
-      array.send :__permute__, num, p, 0, used, &block
+      array.send(:__permute__, num, p, 0, used, &block)
     end
 
     array
