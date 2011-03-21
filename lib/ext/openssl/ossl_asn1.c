@@ -10,14 +10,7 @@
  */
 #include "ossl.h"
 
-#if defined(HAVE_SYS_TIME_H)
-#  include <sys/time.h>
-#elif !defined(NT) && !defined(_WIN32)
-struct timeval {
-    long tv_sec;	/* seconds */
-    long tv_usec;	/* and microseconds */
-};
-#endif
+#include <sys/time.h>
 
 /*
  * DATE conversion
