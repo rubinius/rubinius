@@ -95,6 +95,14 @@ describe "Array#slice!" do
     lambda { a.slice!(from .. "b") }.should raise_error(TypeError)
   end
 
+  it "returns last element for consecutive calls at zero index" do
+    a = [ 1, 2, 3 ]
+    a.slice!(0).should == 1
+    a.slice!(0).should == 2
+    a.slice!(0).should == 3
+    a.should == []
+  end
+
   ruby_version_is "" ... "1.8.7" do
     # See http://groups.google.com/group/ruby-core-google/t/af70e3d0e9b82f39
     it "expands self when indices are out of bounds" do
