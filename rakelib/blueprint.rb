@@ -44,7 +44,8 @@ Daedalus.blueprint do |i|
   when /linux/i
     gcc.ldflags << '-Wl,--export-dynamic' << "-lrt" << "-lcrypt"
   when /openbsd/i
-    gcc.ldflags << '-lcrypto' << '-pthread' << '-lssl' << "-ldl" << "-rdynamic"
+    gcc.ldflags << '-lcrypto' << '-pthread' << '-lssl' << "-rdynamic" << "-Wl,--export-dynamic"
+    make = "gmake"
   when /haiku/i
     gcc.ldflags << "-ldl" << "-lnetwork"
   when /bsd/i
