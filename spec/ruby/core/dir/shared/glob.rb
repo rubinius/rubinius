@@ -220,6 +220,11 @@ describe :dir_glob, :shared => true do
     files.should == %w!brace/a.js.rjs brace/a.html.erb!
   end
 
+  it "respects the optional nested {} expressions" do
+    files = Dir.send(@method, "brace/a{.{js,html},}{.{erb,rjs},}")
+    files.should == %w!brace/a.js.rjs brace/a.js brace/a.html.erb brace/a.erb brace/a!
+  end
+
   it "matches special characters by escaping with a backslash with '\\<character>'" do
     Dir.mkdir 'foo^bar'
 
