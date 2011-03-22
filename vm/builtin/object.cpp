@@ -344,7 +344,7 @@ namespace rubinius {
     if(!reference_p()) {
       return reinterpret_cast<uintptr_t>(this) & FIXNUM_MAX;
 
-#ifdef _LP64
+#ifdef IS_X8664
       uintptr_t key = reinterpret_cast<uintptr_t>(this);
       key = (~key) + (key << 21); // key = (key << 21) - key - 1;
       key = key ^ (key >> 24);

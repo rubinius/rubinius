@@ -147,21 +147,21 @@ namespace rubinius {
   }
 
   // see http://isthe.com/chongo/tech/comp/fnv/#FNV-param
-#ifdef _LP64
-  const static unsigned long FNVOffsetBasis = 14695981039346656037UL;
-  const static unsigned long FNVHashPrime = 1099511628211UL;
+#ifdef IS_X8664
+  const static native_uint FNVOffsetBasis = 14695981039346656037UL;
+  const static native_uint FNVHashPrime = 1099511628211UL;
 #else
-  const static unsigned long FNVOffsetBasis = 2166136261UL;
-  const static unsigned long FNVHashPrime = 16777619UL;
+  const static native_uint FNVOffsetBasis = 2166136261UL;
+  const static native_uint FNVHashPrime = 16777619UL;
 #endif
 
-  static inline unsigned long update_hash(unsigned long hv,
-                                          unsigned char byte)
+  static inline native_uint update_hash(native_uint hv,
+                                    unsigned char byte)
   {
     return (hv ^ byte) * FNVHashPrime;
   }
 
-  static inline unsigned long finish_hash(unsigned long hv) {
+  static inline native_uint finish_hash(native_uint hv) {
     return (hv>>FIXNUM_WIDTH) ^ (hv & FIXNUM_MAX);
   }
 
