@@ -278,17 +278,16 @@ rb_syck_mktime(str, len)
         sec = INT2FIX(strtol(ptr, NULL, 10));
     }
 
-    /* Millisecond */
+    /* Microseconds */
     ptr += 2;
     if ( len > ptr - str && *ptr == '.' )
     {
-        char padded[128] = "000000";
+        char padded[] = "000000";
         char *end = ptr + 1;
         while ( isdigit( *end ) ) end++;
         int count = end - (ptr + 1);
-        if(count >= 128) count = 128;
+        if(count >= 6 ) count = 6; /* only microsecond values are interested, so trunc string to 6 significant digits */
         MEMCPY(padded, ptr + 1, char, count);
-        padded[count] = 0;
         usec = strtol(padded, NULL, 10);
     }
     else
