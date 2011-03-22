@@ -9,6 +9,7 @@
 #
 #   
 #
+<<HELP
 Usage:  irb.rb [options] [programfile] [arguments]
   -f		    Suppress read of ~/.irbrc 
   -m		    Bc mode (load mathn, fraction or matrix are available)
@@ -33,3 +34,4 @@ Usage:  irb.rb [options] [programfile] [arguments]
 		    value is 16. 
   --irb_debug n	    Set internal debug level to n (not for popular use)
   -v, --version	    Print the version of irb
+HELP
