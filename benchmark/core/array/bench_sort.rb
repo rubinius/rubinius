@@ -1,55 +1,109 @@
 require 'benchmark'
 require 'benchmark/ips'
+require File.expand_path('../shared_array.rb', __FILE__)
 
 Benchmark.ips do |x|
-  array = %w(Lorem ipsum singulis assentior ei pro ius eu choro verterem his dicta possim epicurei at Atomorum sadipscing ne cum sit ex hinc eros tation Eu mea oblique indoctum sed nostro mandamus recteque ut Ei usu labitur consequuntur Cu postulant consulatu reprimique vim his debet mucius platonem ne mucius facilis scriptorem vim ei)
+  string_array = $small_string_array.dup
+  fixnum_array = $small_fixnum_array.dup
+  time_array = $small_time_array.dup
 
-  x.report "sort up" do |times|
+  x.report "sort strings ascending" do |times|
     i = 0
     while i < times
-      array.sort
+      string_array.sort
       i += 1
     end
   end
 
-  x.report "array sort! up" do |times|
+  x.report "array sort! strings ascending" do |times|
     i = 0
     while i < times
-      array2 = array.dup
+      array2 = string_array.dup
       array2.sort!
       i += 1
     end
   end
 
-  x.report "sort up and reverse!" do |times|
+  x.report "sort strings descending with block" do |times|
     i = 0
     while i < times
-      array.sort.reverse!
+      string_array.sort { |a,b| b <=> a }
       i += 1
     end
   end
 
-  x.report "sort! up and reverse!" do |times|
+  x.report "sort! strings descending with block" do |times|
     i = 0
     while i < times
-      array2 = array.dup
-      array2.sort!.reverse!
+      array2 = string_array.dup
+      array2.sort! { |a,b| b <=> a }
       i += 1
     end
   end
 
-  x.report "sort down with block" do |times|
+  x.report "sort numbers ascending" do |times|
     i = 0
     while i < times
-      array.sort { |a,b| b <=> a }
+      fixnum_array.sort
       i += 1
     end
   end
 
-  x.report "sort! down with block" do |times|
+  x.report "array sort! numbers ascending" do |times|
     i = 0
     while i < times
-      array2 = array.dup
+      array2 = fixnum_array.dup
+      array2.sort!
+      i += 1
+    end
+  end
+
+  x.report "sort numbers descending with block" do |times|
+    i = 0
+    while i < times
+      fixnum_array.sort { |a,b| b <=> a }
+      i += 1
+    end
+  end
+
+  x.report "sort! numbers descending with block" do |times|
+    i = 0
+    while i < times
+      array2 = fixnum_array.dup
+      array2.sort! { |a,b| b <=> a }
+      i += 1
+    end
+  end
+
+  x.report "sort time ascending" do |times|
+    i = 0
+    while i < times
+      time_array.sort
+      i += 1
+    end
+  end
+
+  x.report "array sort! time ascending" do |times|
+    i = 0
+    while i < times
+      array2 = time_array.dup
+      array2.sort!
+      i += 1
+    end
+  end
+
+  x.report "sort time descending with block" do |times|
+    i = 0
+    while i < times
+      time_array.sort { |a,b| b <=> a }
+      i += 1
+    end
+  end
+
+  x.report "sort! time descending with block" do |times|
+    i = 0
+    while i < times
+      array2 = time_array.dup
       array2.sort! { |a,b| b <=> a }
       i += 1
     end
