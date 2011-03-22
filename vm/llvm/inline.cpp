@@ -554,7 +554,7 @@ remember:
 
       case RBX_FFI_TYPE_LONG:
       case RBX_FFI_TYPE_ULONG:
-#if RBX_SIZEOF_LONG == 8
+#ifdef IS_X8664
         return ops_.state()->Int64Ty;
 #else
         return ops_.state()->Int32Ty;
@@ -788,7 +788,7 @@ remember:
     case RBX_FFI_TYPE_USHORT:
     case RBX_FFI_TYPE_INT:
     case RBX_FFI_TYPE_UINT:
-#if RBX_SIZEOF_LONG == 4
+#ifndef IS_X8664
     case RBX_FFI_TYPE_LONG:
     case RBX_FFI_TYPE_ULONG:
 #endif
@@ -807,7 +807,7 @@ remember:
 
     case RBX_FFI_TYPE_LONG_LONG:
     case RBX_FFI_TYPE_ULONG_LONG:
-#ifdef RBX_SIZEOF_LONG == 8
+#ifdef IS_X8664
     case RBX_FFI_TYPE_LONG:
     case RBX_FFI_TYPE_ULONG:
 #endif
