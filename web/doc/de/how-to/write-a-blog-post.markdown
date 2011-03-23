@@ -1,8 +1,8 @@
 ---
 layout: doc_de
 title: Anleitung - Einen Blogeintrag schreiben
-previous: Einen fehlgeschlagenen Spec reparieren
-previous_url: how-to/fix-a-failing-spec
+previous: Benchmarks schreiben
+previous_url: how-to/write-benchmarks
 next: Dokumentation schreiben
 next_url: how-to/write-documentation
 ---

@@ -3,8 +3,8 @@ layout: doc_de
 title: Anleitung - Einen fehlgeschlagenen Spec reparieren
 previous: Einen Ruby Spec schreiben
 previous_url: how-to/write-a-ruby-spec
-next: Einen Blogeintrag schreiben
-next_url: how-to/write-a-blog-post
+next: Benchmarks schreiben
+next_url: how-to/write-benchmarks
 ---
 
 Die folgenden Abschnitte solltest du gelesen haben:
