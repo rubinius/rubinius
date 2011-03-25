@@ -138,6 +138,10 @@ namespace :install do
       exe = "#{BUILD_CONFIG[:bindir]}/#{BUILD_CONFIG[:program_name]}"
       install "vm/vm", install_dir(exe), :mode => 0755, :verbose => true
 
+      # Install the testrb command
+      testrb = "#{BUILD_CONFIG[:bindir]}/testrb"
+      install "bin/testrb", install_dir(testrb), :mode => 0755, :verbose => true
+
       # Create symlinks for common commands
       begin
         ["ruby", "rake", "gem", "irb", "rdoc", "ri"].each do |command|
