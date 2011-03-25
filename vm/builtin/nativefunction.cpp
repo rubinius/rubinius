@@ -795,7 +795,7 @@ namespace rubinius {
               size = so->size();
 
               char* data = ALLOCA_N(char, size + 1);
-              memcpy(data, so->c_str(), size);
+              memcpy(data, so->c_str(state), size);
               data[size] = 0;
               *tmp = data;
             } else if(RTEST(obj->respond_to(state, state->symbol("to_ptr"), Qtrue))) {
@@ -845,7 +845,7 @@ namespace rubinius {
           size = so->size();
 
           char* data = ALLOCA_N(char, size + 1);
-          memcpy(data, so->c_str(), size);
+          memcpy(data, so->c_str(state), size);
           data[size] = 0;
           *tmp = data;
         }

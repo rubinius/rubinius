@@ -105,7 +105,7 @@ public:
     TS_ASSERT(kind_of<String>(obj));
 
     String* str = try_as<String>(obj);
-    TS_ASSERT_EQUALS(std::string("hello"), str->c_str());
+    TS_ASSERT_EQUALS(std::string("hello"), str->c_str(state));
 
     lhs->close(state);
     rhs->close(state);

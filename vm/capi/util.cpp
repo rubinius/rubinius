@@ -120,7 +120,7 @@ extern "C" {
     VALUE s = rb_funcall(env->get_handle(string), rb_intern("inspect"), 0);
     string = c_as<String>(env->get_object(s));
 
-    rb_raise(rb_eArgError, "invalid value for %s: %s", type, string->c_str());
+    rb_raise(rb_eArgError, "invalid value for %s: %s", type, string->c_str(env->state()));
   }
 
   void ruby_setenv(const char *name, const char *value) {

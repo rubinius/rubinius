@@ -79,7 +79,7 @@ public:
     Symbol* sym = symbols->lookup(state, "circle");
     String* str = symbols->lookup_string(state, sym);
 
-    TS_ASSERT(!strncmp("circle", str->c_str(), 6));
+    TS_ASSERT(!strncmp("circle", str->c_str(state), 6));
   }
 
   void test_lookup_nil() {

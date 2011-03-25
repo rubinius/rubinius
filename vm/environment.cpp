@@ -457,7 +457,7 @@ namespace rubinius {
       msg << "exception detected at toplevel: ";
       if(!exc->message()->nil_p()) {
         if(String* str = try_as<String>(exc->message())) {
-          msg << str->c_str();
+          msg << str->c_str(state);
         } else {
           msg << "<non-string Exception message>";
         }

@@ -1206,7 +1206,7 @@ extern "C" {
   char* rbx_ffi_to_string(STATE, Object* obj, bool* valid) {
     if(String* str = try_as<String>(obj)) {
       *valid = true;
-      return const_cast<char*>(str->c_str());
+      return const_cast<char*>(str->c_str(state));
     }
 
     Exception* exc =

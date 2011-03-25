@@ -206,7 +206,7 @@ namespace rubinius {
     enc = current_encoding(state);
     if(enc == onig_data->enc) return;
 
-    pat = (UChar*)source()->c_str();
+    pat = (UChar*)source()->c_str(state);
     end = pat + source()->size();
 
     int options = onig_data->options;
@@ -247,7 +247,7 @@ namespace rubinius {
     OnigEncoding enc;
     int err, num_names, kcode;
 
-    pat = (UChar*)pattern->c_str();
+    pat = (UChar*)pattern->c_str(state);
     end = pat + pattern->size();
 
     opts  = options->to_native();
@@ -379,7 +379,7 @@ namespace rubinius {
     region = onig_region_new();
 
     max = string->size();
-    str = (UChar*)string->c_str();
+    str = (UChar*)string->c_str(state);
 
     int* back_match = onig_data->int_map_backward;
 
@@ -434,7 +434,7 @@ namespace rubinius {
     max = string->size();
     native_int pos = start->to_native();
 
-    str = (UChar*)string->c_str();
+    str = (UChar*)string->c_str(state);
     fin = str + max;
 
     str += pos;
@@ -480,7 +480,7 @@ namespace rubinius {
     max = string->size();
     native_int pos = start->to_native();
 
-    str = (UChar*)string->c_str();
+    str = (UChar*)string->c_str(state);
     fin = str + max;
 
     str += pos;
@@ -523,7 +523,7 @@ namespace rubinius {
       return String::create(state, 0, 0);
     }
 
-    const char* str = source_->c_str();
+    const char* str = source_->c_str(state);
     native_int sz = fin->to_native() - beg->to_native();
 
     return String::create(state, str + beg->to_native(), sz);
@@ -536,7 +536,7 @@ namespace rubinius {
       return String::create(state, 0, 0);
     }
 
-    const char* str = source_->c_str();
+    const char* str = source_->c_str(state);
     native_int sz = beg->to_native();
 
     return String::create(state, str, sz);
@@ -549,7 +549,7 @@ namespace rubinius {
       return String::create(state, 0, 0);
     }
 
-    const char* str = source_->c_str();
+    const char* str = source_->c_str(state);
     native_int sz = (native_int)source_->size() - fin->to_native();
 
     return String::create(state, str + fin->to_native(), sz);
@@ -570,7 +570,7 @@ namespace rubinius {
       return Qnil;
     }
 
-    const char* str = source_->c_str();
+    const char* str = source_->c_str(state);
     native_int sz = fin->to_native() - beg->to_native();
 
     return String::create(state, str + beg->to_native(), sz);

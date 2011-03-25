@@ -199,7 +199,7 @@ namespace rubinius {
     struct timespec ts = { seconds, 0 };
 
     size_t chars = ::strftime_extended(str, MAX_STRFTIME_OUTPUT,
-                       format->c_str(), &tm, &ts, is_gmt);
+                       format->c_str(state), &tm, &ts, is_gmt);
     str[MAX_STRFTIME_OUTPUT-1] = 0;
 
     return String::create(state, str, chars);

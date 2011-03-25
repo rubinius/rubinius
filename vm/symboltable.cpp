@@ -99,7 +99,7 @@ namespace rubinius {
       return NULL;
     }
 
-    const char* bytes = str->c_str();
+    const char* bytes = str->c_str(state);
 
     for(native_int i = 0; i < str->size(); i++) {
       if(bytes[i] == 0) {

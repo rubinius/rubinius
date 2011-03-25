@@ -625,7 +625,7 @@ namespace rubinius {
         }
       } else {
         std::cerr << "Unsupported object to be finalized: "
-                  << fi->object->to_s(state)->c_str() << "\n";
+                  << fi->object->to_s(state)->c_str(state) << "\n";
       }
 
       fi->status = FinalizeObject::eFinalized;
@@ -664,7 +664,7 @@ namespace rubinius {
           }
         } else {
           std::cerr << "During shutdown, unsupported object to be finalized: "
-                    << fi.object->to_s(state)->c_str() << "\n";
+                    << fi.object->to_s(state)->c_str(state) << "\n";
         }
       }
 
@@ -706,7 +706,7 @@ namespace rubinius {
           }
         } else {
           std::cerr << "During shutdown, unsupported object to be finalized: "
-                    << fi.object->to_s(state)->c_str() << "\n";
+                    << fi.object->to_s(state)->c_str(state) << "\n";
         }
       }
 
@@ -879,7 +879,7 @@ namespace rubinius {
         if(kind_of<String>(obj)) {
           std::cout << "#<String:" << obj << ">\n";
         } else {
-          std::cout << obj->to_s(state, true)->c_str() << "\n";
+          std::cout << obj->to_s(state, true)->c_str(state) << "\n";
         }
       }
 
@@ -901,7 +901,7 @@ namespace rubinius {
     for(ObjectArray::iterator i = ary.begin();
         i != ary.end();
         i++) {
-      std::cout << "  " << (*i)->to_s(state, true)->c_str() << "\n";
+      std::cout << "  " << (*i)->to_s(state, true)->c_str(state) << "\n";
 
       if(++count == 100) break;
     }

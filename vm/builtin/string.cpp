@@ -192,9 +192,15 @@ namespace rubinius {
     return state->symbol(this);
   }
 
-  const char* String::c_str() {
+  const char* String::c_str(STATE) {
     char* c_string = (char*)byte_address();
-    c_string[size()] = 0;
+
+    if(c_string[size()] != 0) {
+      unshare(state);
+      // Read it again because unshare might change it.
+      c_string = (char*)byte_address();
+      c_string[size()] = 0;
+    }
 
     return c_string;
   }
@@ -681,11 +687,11 @@ namespace rubinius {
   }
 
   String* String::crypt(STATE, String* salt) {
-    return String::create(state, ::crypt(this->c_str(), salt->c_str()));
+    return String::create(state, ::crypt(this->c_str(state), salt->c_str(state)));
   }
 
   Integer* String::to_i(STATE, Fixnum* fix_base, Object* strict) {
-    const char* str = c_str();
+    const char* str = c_str(state);
     int base = fix_base->to_native();
     bool negative = false;
     Integer* value = Fixnum::from(0);
@@ -1040,7 +1046,7 @@ return_value:
 
   void String::Info::show(STATE, Object* self, int level) {
     String* str = as<String>(self);
-    std::cout << "\"" << str->c_str() << "\"" << std::endl;
+    std::cout << "\"" << str->c_str(state) << "\"" << std::endl;
   }
 
   void String::Info::show_simple(STATE, Object* self, int level) {

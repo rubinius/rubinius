@@ -57,7 +57,7 @@ public:
     String* path = String::create(state, dir);
     d->open(state, path);
     String* name = as<String>(d->read(state));
-    TS_ASSERT_EQUALS(name->c_str()[0], '.');
+    TS_ASSERT_EQUALS(name->c_str(state)[0], '.');
     remove_directory(dir);
   }
 
@@ -80,7 +80,7 @@ public:
     TS_ASSERT(d->read(state)->nil_p());
     d->control(state, Fixnum::from(1), Fixnum::from(0));
     String* name = as<String>(d->read(state));
-    TS_ASSERT_EQUALS(name->c_str()[0], '.');
+    TS_ASSERT_EQUALS(name->c_str(state)[0], '.');
     remove_directory(dir);
   }
 

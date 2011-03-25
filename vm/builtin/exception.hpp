@@ -42,7 +42,7 @@ namespace rubinius {
 
     void print_locations(STATE);
 
-    const char* message_c_str();
+    const char* message_c_str(STATE);
 
     static Exception* make_exception(STATE, Class* exc_class, const char* message);
     static Exception* make_type_error(STATE, object_type type, Object* object,

@@ -74,7 +74,7 @@ namespace rubinius {
   }
 
   Fixnum* IO::open(STATE, String* path, Fixnum* mode, Fixnum* perm) {
-    int fd = ::open(path->c_str(), mode->to_native(), perm->to_native());
+    int fd = ::open(path->c_str(state), mode->to_native(), perm->to_native());
     return Fixnum::from(fd);
   }
 
@@ -270,7 +270,7 @@ namespace rubinius {
   Object* IO::reopen_path(STATE, String* path, Fixnum* mode) {
     native_int cur_fd   = to_fd();
 
-    int other_fd = ::open(path->c_str(), mode->to_native(), 0666);
+    int other_fd = ::open(path->c_str(state), mode->to_native(), 0666);
 
     if(other_fd == -1) {
       Exception::errno_error(state, "reopen");
@@ -649,7 +649,7 @@ namespace rubinius {
   Object* IO::write_nonblock(STATE, String* buf) {
     set_nonblock(state);
 
-    int n = ::write(descriptor_->to_native(), buf->c_str(), buf->size());
+    int n = ::write(descriptor_->to_native(), buf->c_str(state), buf->size());
     if(n == -1) Exception::errno_error(state, "write_nonblock");
     return Fixnum::from(n);
   }
@@ -1002,7 +1002,7 @@ failed: /* try next '*' position */
   }
 
   Object* IO::fnmatch(STATE, String* pattern, String* path, Fixnum* flags) {
-    if(mri_fnmatch(pattern->c_str(), path->c_str(), flags->to_native())) {
+    if(mri_fnmatch(pattern->c_str(state), path->c_str(state), flags->to_native())) {
       return Qtrue;
     }
 

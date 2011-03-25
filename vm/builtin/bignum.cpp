@@ -1307,7 +1307,7 @@ namespace rubinius {
 
   void Bignum::Info::show(STATE, Object* self, int level) {
     Bignum* b = as<Bignum>(self);
-    std::cout << b->to_s(state, Fixnum::from(10))->c_str() << std::endl;
+    std::cout << b->to_s(state, Fixnum::from(10))->c_str(state) << std::endl;
   }
 
   void Bignum::Info::show_simple(STATE, Object* self, int level) {

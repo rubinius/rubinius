@@ -29,7 +29,7 @@ public:
   void test_create_with_substring() {
     str = String::create(state, "blah", 2);
     TS_ASSERT_EQUALS(str->size(), 2);
-    TS_ASSERT_SAME_DATA("bl\0", str->c_str(), 3);
+    TS_ASSERT_SAME_DATA("bl\0", str->c_str(state), 3);
   }
 
   void test_create_with_null_and_zero_count() {
@@ -77,7 +77,7 @@ public:
     str->unshare(state);
 
     TS_ASSERT(str->data() != str2->data());
-    TS_ASSERT_EQUALS(std::string("blah"), str->c_str());
+    TS_ASSERT_EQUALS(std::string("blah"), str->c_str(state));
   }
 
   void test_append() {
@@ -127,8 +127,8 @@ public:
     str = String::create(state, "blah");
     String* str2 = str->add(state, String::create(state, " foo"));
 
-    TS_ASSERT_EQUALS(std::string("blah foo"), str2->c_str());
-    TS_ASSERT_EQUALS(std::string("blah"), str->c_str());
+    TS_ASSERT_EQUALS(std::string("blah foo"), str2->c_str(state));
+    TS_ASSERT_EQUALS(std::string("blah"), str->c_str(state));
   }
 
   void test_equal() {
@@ -535,17 +535,17 @@ public:
   void test_crypt() {
     String* str = String::create(state, "nutmeg");
     String* salt = String::create(state, "Mi");
-    TS_ASSERT_SAME_DATA(str->crypt(state, salt)->c_str(), "MiqkFWCm1fNJI", 14);
+    TS_ASSERT_SAME_DATA(str->crypt(state, salt)->c_str(state), "MiqkFWCm1fNJI", 14);
   }
 
   void test_c_str() {
     String* str = String::create(state, "blah");
     TS_ASSERT(str->data()->size() > 4);
     TS_ASSERT_EQUALS(str->byte_address()[4], 0);
-    TS_ASSERT_EQUALS(str->c_str()[4], 0);
+    TS_ASSERT_EQUALS(str->c_str(state)[4], 0);
     str->byte_address()[4] = '!';
 
-    TS_ASSERT_EQUALS(str->c_str()[4], 0);
+    TS_ASSERT_EQUALS(str->c_str(state)[4], 0);
 
   }
 
@@ -554,6 +554,6 @@ public:
     Fixnum* six = Fixnum::from(6);
     String* s = String::from_bytearray(state, ba, six, six);
     TS_ASSERT_EQUALS(six, s->num_bytes());
-    TS_ASSERT_SAME_DATA("l to r", s->c_str(), 6);
+    TS_ASSERT_SAME_DATA("l to r", s->c_str(state), 6);
   }
 };

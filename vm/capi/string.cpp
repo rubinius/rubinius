@@ -352,7 +352,7 @@ extern "C" {
     VALUE str = rb_string_value(object_variable);
     String* string = capi_get_string(env, str);
 
-    if(string->size() != (native_int)strlen(string->c_str())) {
+    if(string->size() != (native_int)strlen(string->c_str(env->state()))) {
       rb_raise(rb_eArgError, "string contains NULL byte");
     }
 
@@ -405,7 +405,7 @@ extern "C" {
     String* str = c_as<String>(env->get_object(self));
 
     char* data = (char*)malloc(sizeof(char) * str->size() + 1);
-    memcpy(data, str->c_str(), str->size());
+    memcpy(data, str->c_str(env->state()), str->size());
     data[str->size()] = 0;
 
     return data;

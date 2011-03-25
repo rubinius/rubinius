@@ -91,10 +91,10 @@ namespace rubinius {
   // unmarshal_data method works.
   Object* System::compiledfile_load(STATE, String* path, Integer* version) {
     if(!state->probe->nil_p()) {
-      state->probe->load_runtime(state, std::string(path->c_str()));
+      state->probe->load_runtime(state, std::string(path->c_str(state)));
     }
 
-    std::ifstream stream(path->c_str());
+    std::ifstream stream(path->c_str(state));
     if(!stream) {
       return Primitives::failure();
     }
@@ -150,7 +150,7 @@ namespace rubinius {
 
     for(size_t i = 0; i < argc; i++) {
       /* strdup should be OK. Trying to exec with strings containing NUL == bad. --rue */
-      argv[i] = strdup(as<String>(args->get(state, i))->c_str());
+      argv[i] = strdup(as<String>(args->get(state, i))->c_str(state));
     }
 
     void* old_handlers[NSIG];
@@ -161,7 +161,7 @@ namespace rubinius {
       old_handlers[i] = (void*)signal(i, SIG_DFL);
     }
 
-    (void)::execvp(path->c_str(), argv);
+    (void)::execvp(path->c_str(state), argv);
 
     // UG. Disaster.
     //
@@ -184,7 +184,7 @@ namespace rubinius {
 
     if(pipe(fds) != 0) return Primitives::failure();
 
-    const char* c_str = str->c_str();
+    const char* c_str = str->c_str(state);
 
     pid_t pid = fork();
 
@@ -392,7 +392,7 @@ namespace rubinius {
   }
 
   Object* System::vm_get_config_item(STATE, String* var) {
-    ConfigParser::Entry* ent = state->shared.user_variables.find(var->c_str());
+    ConfigParser::Entry* ent = state->shared.user_variables.find(var->c_str(state));
     if(!ent) return Qnil;
 
     if(ent->is_number()) {
@@ -486,7 +486,7 @@ namespace rubinius {
   }
 
   Object* System::vm_write_error(STATE, String* str) {
-    std::cerr << str->c_str() << std::endl;
+    std::cerr << str->c_str(state) << std::endl;
     return Qnil;
   }
 
@@ -912,7 +912,7 @@ namespace rubinius {
     if(what->size() < 1) {
       kcode::set(state, kcode::eAscii);
     } else {
-      const char* str = what->c_str();
+      const char* str = what->c_str(state);
 
       switch(str[0]) {
       case 'E':
@@ -1025,7 +1025,7 @@ namespace rubinius {
     struct passwd *pwd;
     String* home = 0;
 
-    if((pwd = getpwnam(name->c_str()))) {
+    if((pwd = getpwnam(name->c_str(state)))) {
       home = String::create(state, pwd->pw_dir);
     } else {
       home = nil<String>();
