@@ -741,7 +741,7 @@ class Socket < BasicSocket
     if status < 0
       begin
         Errno.handle "connect(2)"
-      rescue Errno::ISCONN
+      rescue Errno::EISCONN
         return 0
       end
     end
