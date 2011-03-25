@@ -101,7 +101,7 @@ describe "C-API IO function" do
     end
 
     it "does not raise an exception if the IO is opened for read and write" do
-      lambda { @o.rb_io_check_readable(@rw_io) }.should_not raise_error
+      lambda { @o.rb_io_check_writable(@rw_io) }.should_not raise_error
     end
 
     it "raises an IOError if the IO is not opened for reading" do
