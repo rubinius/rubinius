@@ -166,7 +166,6 @@ task 'vm/gen/revision.h' do |t|
 end
 
 require 'projects/daedalus/daedalus'
-blueprint = Daedalus.load "rakelib/blueprint.rb"
 
 if jobs = ENV['JOBS']
   @parallel_jobs = jobs.to_i
@@ -181,10 +180,12 @@ else
 end
 
 task 'vm/vm' => GENERATED do
+  blueprint = Daedalus.load "rakelib/blueprint.rb"
   blueprint.build "vm/vm", @parallel_jobs
 end
 
 task 'vm/test/runner' => GENERATED do
+  blueprint = Daedalus.load "rakelib/blueprint.rb"
   blueprint.build "vm/test/runner", @parallel_jobs
 end
 
@@ -265,6 +266,7 @@ namespace :vm do
 
   desc "Clean up vm build files"
   task :clean do
+    blueprint = Daedalus.load "rakelib/blueprint.rb"
     files = FileList[
       GENERATED,
       'vm/gen/*',
