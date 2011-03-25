@@ -624,6 +624,59 @@ namespace rubinius {
     return execute_specialized<GenericArguments>(state, previous, msg, args);
   }
 
+  Object* VMMethod::execute_as_script(STATE, CompiledMethod* cm, CallFrame* previous) {
+    VMMethod* vmm = cm->backend_method();
+
+    size_t scope_size = sizeof(StackVariables) +
+      (vmm->number_of_locals * sizeof(Object*));
+    StackVariables* scope =
+      reinterpret_cast<StackVariables*>(alloca(scope_size));
+    // Originally, I tried using msg.module directly, but what happens is if
+    // super is used, that field is read. If you combine that with the method
+    // being called recursively, msg.module can change, causing super() to
+    // look in the wrong place.
+    //
+    // Thus, we have to cache the value in the StackVariables.
+    scope->initialize(G(main), Qnil, G(object), vmm->number_of_locals);
+
+    InterpreterCallFrame* frame = ALLOCA_CALLFRAME(vmm->stack_size);
+
+    frame->prepare(vmm->stack_size);
+
+    Arguments args(G(main), Qnil, 0, 0);
+
+    frame->previous = previous;
+    frame->flags =    0;
+    frame->arguments = &args;
+    frame->dispatch_data = 0;
+    frame->cm =       cm;
+    frame->scope =    scope;
+
+    // Do NOT check if we should JIT this. We NEVER want to jit a script.
+
+    // Check the stack and interrupts here rather than in the interpreter
+    // loop itself.
+
+    if(state->detect_stack_condition(frame)) {
+      if(!state->check_interrupts(frame, frame)) return NULL;
+    }
+
+    state->global_lock().checkpoint(state, frame);
+
+    if(unlikely(state->interrupts.check)) {
+      state->interrupts.checked();
+      if(state->interrupts.perform_gc) {
+        state->interrupts.perform_gc = false;
+        state->collect_maybe(frame);
+      }
+    }
+
+    // Don't generate profiling info here, it's expected
+    // to be done by the caller.
+
+    return (*vmm->run)(state, vmm, frame);
+  }
+
   /* This is a noop for this class. */
   void VMMethod::compile(STATE) { }
 

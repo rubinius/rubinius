@@ -58,6 +58,8 @@
 
 #include "util/sha1.h"
 
+#include "instruments/profiler.hpp"
+
 #ifdef ENABLE_LLVM
 #include "llvm/jit.hpp"
 #include "llvm/jit_compiler.hpp"
@@ -1117,5 +1119,25 @@ namespace rubinius {
     tuple->put(state, 4, ts->throw_dest());
 
     return tuple;
+  }
+
+  Object* System::vm_run_script(STATE, CompiledMethod* cm,
+                                CallFrame* calling_environment)
+  {
+    Dispatch msg(state->symbol("__script__"), G(object), cm);
+    Arguments args(G(main), Qnil, 0, 0);
+
+    cm->internalize(state, 0, 0);
+
+#ifdef RBX_PROFILER
+    if(unlikely(state->shared.profiling())) {
+      profiler::MethodEntry me(state, profiler::kScript, cm);
+      return cm->backend_method()->execute_as_script(state, cm, calling_environment);
+    } else {
+      return cm->backend_method()->execute_as_script(state, cm, calling_environment);
+    }
+#else
+    return cm->backend_method()->execute_as_script(state, cm, calling_environment);
+#endif
   }
 }

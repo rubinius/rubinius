@@ -140,9 +140,8 @@ module Rubinius
         case loader.require
         when :ruby
           begin
-            # HACK we use __send__ here so that the method inliner
-            # doesn't accidentally inline a script body into here!
-            MAIN.__send__ :__script__
+
+            Rubinius.run_script loader.cm
           ensure
             loader.finished
           end

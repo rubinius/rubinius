@@ -58,7 +58,8 @@ namespace rubinius {
       kNormalJIT,
       kSingletonJIT,
       kBlockJIT,
-      kFinalizers
+      kFinalizers,
+      kScript
     };
 
     class Method;
@@ -188,7 +189,7 @@ namespace rubinius {
       MethodEntry(STATE, Dispatch& msg, Arguments& args);
       MethodEntry(STATE, Dispatch& msg, Arguments& args, CompiledMethod* cm, bool jit=false);
       MethodEntry(STATE, Symbol* name, Module* module, CompiledMethod* cm, bool jit=false);
-      MethodEntry(STATE, Kind kind);
+      MethodEntry(STATE, Kind kind, CompiledMethod* cm=0);
       ~MethodEntry();
 
       void start();

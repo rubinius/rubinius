@@ -42,6 +42,18 @@ namespace rubinius {
     String* Method::to_s(STATE) {
       std::stringstream ss;
 
+      if(kind() == kScript) {
+        ss << "script:";
+        if(file_) {
+          ss << file_->c_str(state);
+        } else {
+          ss << "--unknown-file--";
+          ss << ":" << line_;
+        }
+
+        return String::create(state, ss.str().c_str());
+      }
+
       const char *module = "<anonymous>";
       const char *method_name = name()->c_str(state);
 
@@ -73,6 +85,9 @@ namespace rubinius {
       case kBlockJIT:
         ss << "::" << method_name << " {" << line_ << "} <jit>";
         break;
+      case kScript:
+        // handled above, just here to make gcc happy.
+        abort();
       }
 
       return String::create(state, ss.str().c_str());
@@ -195,28 +210,37 @@ namespace rubinius {
       start();
     }
 
-    MethodEntry::MethodEntry(STATE, Kind kind)
+    MethodEntry::MethodEntry(STATE, Kind kind, CompiledMethod* cm)
       : state_(state)
       , edge_(0)
     {
+      Symbol* container;
       Symbol* name;
 
       switch(kind) {
       case kYoungGC:
+        container = state_->symbol("GC");
         name = state_->symbol("collect_young");
         break;
       case kMatureGC:
+        container = state_->symbol("GC");
         name = state_->symbol("collect_mature");
         break;
       case kFinalizers:
+        container = state_->symbol("GC");
         name = state_->symbol("run_finalizers");
         break;
+      case kScript:
+        container = state_->symbol("__script__");
+        name = state_->symbol("__script__");
+        break;
       default:
+        container = state_->symbol("unknown");
         name = state_->symbol("unknown");
       }
 
-      CompiledMethod* cm = reinterpret_cast<CompiledMethod*>(Qnil);
-      method_ = state->profiler()->find_method(cm, state_->symbol("GC"), name, kind);
+      if(!cm) cm = reinterpret_cast<CompiledMethod*>(Qnil);
+      method_ = state->profiler()->get_method(cm, name, container, kind);
       start();
     }
 
