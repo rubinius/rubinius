@@ -921,6 +921,8 @@ module Marshal
 
     ms = State.new data, nil, proc
     ms.construct
+  rescue NameError => e
+    raise ArgumentError, e.message
   end
 
   class << self
