@@ -313,7 +313,7 @@ extern "C" {
   }
 
   VALUE rb_ary_reverse(VALUE self) {
-    return rb_funcall2(self, rb_intern("reverse"), 0, NULL);
+    return rb_funcall2(self, rb_intern("reverse!"), 0, NULL);
   }
 
   VALUE rb_ary_shift(VALUE self) {
