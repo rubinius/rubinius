@@ -80,8 +80,13 @@ describe "C-API Array function" do
   describe "rb_ary_reverse" do
     it "reverses the order of elements in the array" do
       a = [1,2,3]
-      @s.rb_ary_reverse(a).should equal(a)
+      @s.rb_ary_reverse(a)
       a.should == [3,2,1]
+    end
+
+    it "returns the original array" do
+      a = [1,2,3]
+      @s.rb_ary_reverse(a).should equal(a)
     end
   end
 
