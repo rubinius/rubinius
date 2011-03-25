@@ -604,7 +604,12 @@ module Daedalus
       if RUBY_PLATFORM =~ /windows/
         return 1
       else
-        count = `getconf _NPROCESSORS_CONF 2>&1`.to_i
+        if RUBY_PLATFORM =~ /bsd/
+          key = 'NPROCESSORS_CONF'
+        else
+          key = '_NPROCESSORS_CONF'
+        end
+        count = `getconf #{key} 2>&1`.to_i
         return 1 if $?.exitstatus != 0
         return count
       end
