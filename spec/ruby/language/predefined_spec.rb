@@ -551,14 +551,6 @@ TRUE                 TrueClass   Synonym for true.
 =end
 
 describe "The predefined global constants" do
-  it "includes DATA when main script contains __END__" do
-    ruby_exe(fixture(__FILE__, "predefined.rb")).chomp.should == "true"
-  end
-
-  it "does not include DATA when main script contains no __END__" do
-    ruby_exe("puts Object.const_defined?(:DATA)").chomp.should == 'false'
-  end
-
   it "includes TRUE" do
     Object.const_defined?(:TRUE).should == true
     TRUE.should equal(true)
