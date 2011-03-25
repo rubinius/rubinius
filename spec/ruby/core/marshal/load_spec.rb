@@ -7,6 +7,14 @@ describe "Marshal::load" do
     lambda { Marshal.load(Marshal.dump(obj)[0, 5]) }.should raise_error(ArgumentError)
   end
 
+  it "raises an ArgumentError when the dumped class is missing" do
+    Object.send(:const_set, :KaBoom, Class.new)
+    kaboom = Marshal.dump(KaBoom.new)
+    Object.send(:remove_const, :KaBoom)
+
+    lambda { Marshal.load(kaboom) }.should raise_error(ArgumentError)
+  end
+
   ruby_version_is "1.9" do
     it "returns the value of the proc when called with a proc" do
       Marshal.load(Marshal.dump([1,2]), proc { [3,4] }).should ==  [3,4]
