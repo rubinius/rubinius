@@ -60,7 +60,9 @@ module Rubinius
       @load_path = File.expand_path @path
 
       load_error unless loadable? @load_path
-      load_file
+      script = load_file
+
+      script.make_main!
 
       # HACK we use __send__ here so that the method inliner
       # doesn't accidentally inline a script body into here!
@@ -132,6 +134,8 @@ module Rubinius
       script = cm.create_script(wrap)
       script.file_path = @file_path
       script.data_path = @load_path
+
+      return script
     end
 
     # Compile a Ruby source file and save the compiled file. Return the

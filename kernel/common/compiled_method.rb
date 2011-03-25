@@ -187,10 +187,19 @@ module Rubinius
         @for_eval = for_eval
         @eval_binding = nil
         @eval_source = nil
+        @main = false
       end
 
       def eval?
         @for_eval
+      end
+
+      def make_main!
+        @main = true
+      end
+
+      def main?
+        @main
       end
     end
 

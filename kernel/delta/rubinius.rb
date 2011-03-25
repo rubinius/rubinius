@@ -270,6 +270,10 @@ module Rubinius
 
   # Support for __END__ and DATA
   def self.set_data(name, offset)
+    # If the name is nil, then it's not for the main script, so we should
+    # ignore it.
+    return unless name
+
     if File.exists? name
       file = File.open name, "r"
       file.seek Integer(offset), IO::SEEK_SET
