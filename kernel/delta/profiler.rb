@@ -96,11 +96,11 @@ module Rubinius
         nil
       end
 
-      def epilogue(size, calls)
+      def epilogue(out, size, calls)
         unless options[:full_report] or size < SHORT_LINES
-          puts "\n#{comma(size-SHORT_LINES)} methods omitted"
+          out.puts "\n#{comma(size-SHORT_LINES)} methods omitted"
         end
-        puts "\n#{comma(size)} methods called a total of #{comma(calls)} times"
+        out.puts "\n#{comma(size)} methods called a total of #{comma(calls)} times"
       end
 
       def flat(out)
@@ -160,7 +160,7 @@ module Rubinius
           out.printf "%8.2f  %8.2f %10d %8.2f %8.2f  %s\n", *d.last(6)
         end
 
-        epilogue data.size, total_calls
+        epilogue out, data.size, total_calls
 
         if options[:classes]
           classes = Hash.new { |h,k| h[k] = 0.0 }
@@ -311,7 +311,7 @@ module Rubinius
           out.puts "-------------------------------------------------------"
         end
 
-        epilogue data.size, total_calls
+        epilogue out, data.size, total_calls
       end
 
       def graph_method_index(index)
