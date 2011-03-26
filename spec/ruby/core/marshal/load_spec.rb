@@ -426,4 +426,45 @@ describe "Marshal::load" do
     end
   end
 
+  describe "for a Integer" do
+    it "loads an Integer 8" do
+      Marshal.load("\004\bi\r" ).should == 8
+    end
+
+    it "loads and Integer -8" do
+      Marshal.load("\004\bi\363" ).should == -8
+    end
+
+    it "loads an Integer 1234" do
+      Marshal.load("\004\bi\002\322\004").should == 1234
+    end
+
+    it "loads an Integer -1234" do
+      Marshal.load("\004\bi\376.\373").should == -1234
+    end
+
+    it "loads an Integer 4611686018427387903" do
+      Marshal.load("\004\bl+\t\377\377\377\377\377\377\377?").should == 4611686018427387903
+    end
+
+    it "loads an Integer -4611686018427387903" do
+      Marshal.load("\004\bl-\t\377\377\377\377\377\377\377?").should == -4611686018427387903
+    end
+    
+    it "loads an Integer 2361183241434822606847" do
+      Marshal.load("\004\bl+\n\377\377\377\377\377\377\377\377\177\000").should == 2361183241434822606847
+    end
+
+    it "loads an Integer -2361183241434822606847" do
+      Marshal.load("\004\bl-\n\377\377\377\377\377\377\377\377\177\000").should == -2361183241434822606847
+    end
+
+ 
+    if 0.size == 8 # for platforms like x86_64
+      it "roundtrips 4611686018427387903 from dump/load correctly" do
+        Marshal.load(Marshal.dump(4611686018427387903)).should == 4611686018427387903
+      end
+    end
+  end
+
 end

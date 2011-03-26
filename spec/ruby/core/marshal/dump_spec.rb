@@ -392,4 +392,40 @@ describe "Marshal.dump" do
       Marshal.dump(obj).should == "\x04\bo:2MarshalSpec::BasicObjectSubWithRespondToFalse\x00"
     end
   end
+
+  describe "for an Integer" do
+    it "dumps an Integer 8" do
+      Marshal.dump(8).should == "\004\bi\r" 
+    end
+
+    it "dumps and Integer -8" do
+      Marshal.dump(-8).should == "\004\bi\363" 
+    end
+
+    it "dumps an Integer 1234" do
+      Marshal.dump(1234).should == "\004\bi\002\322\004"
+    end
+
+    it "dumps an Integer -1234" do
+      Marshal.dump(-1234).should == "\004\bi\376.\373"
+    end
+
+    it "dumps an Integer 4611686018427387903" do
+      Marshal.dump(4611686018427387903).should == "\004\bl+\t\377\377\377\377\377\377\377?"
+    end
+
+    it "dumps an Integer -4611686018427387903" do
+      Marshal.dump(-4611686018427387903).should == "\004\bl-\t\377\377\377\377\377\377\377?"
+    end
+    
+    it "dumps an Integer 2361183241434822606847" do
+      Marshal.dump(2361183241434822606847).should == "\004\bl+\n\377\377\377\377\377\377\377\377\177\000"
+    end
+
+    it "dumps an Integer -2361183241434822606847" do
+      Marshal.dump(-2361183241434822606847).should == "\004\bl-\n\377\377\377\377\377\377\377\377\177\000"
+    end
+
+  end
+
 end
