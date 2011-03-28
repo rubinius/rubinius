@@ -109,10 +109,30 @@ module Rubinius
 
         all_selves = 0.0
 
-        data = @info[:methods].values.map do |m|
+        # Because the info is actually in a tree form and we to just see it
+        # flat for each method, we need to go through and collect all the stats
+        # for each unique method.
+
+        flat = LookupTable.new
+
+        @info[:methods].values.each do |m|
+          name = m[:name]
+          if data = flat[name]
+            data[:cumulative] += m[:cumulative]
+            data[:total] += m[:total]
+            data[:edge_total] += m[:edges].inject(0) { |s,e| s + e.last }
+            data[:called] += m[:called]
+          else
+            data = m.dup
+            flat[name] = data
+            data[:edge_total] = m[:edges].inject(0) { |s,e| s + e.last }
+          end
+        end
+
+        data = flat.values.map do |m|
           cumulative   = m[:cumulative]
           method_total = m[:total]
-          edges_total  = m[:edges].inject(0) { |sum, edge| sum + edge.last }
+          edges_total  = m[:edge_total]
           self_total   = method_total - edges_total
           called       = m[:called]
           total       += method_total
@@ -223,11 +243,11 @@ module Rubinius
           method[:index] = index + 1
           method[:callers] ||= []
 
-          method[:callers].sort! { |a, b| b[1] <=> a[1] }
-          method[:callers] = method[:callers].first(10) unless options[:full_report]
+          # method[:callers].sort! { |a, b| b[1] <=> a[1] }
+          # method[:callers] = method[:callers].first(10) unless options[:full_report]
 
-          method[:edges].sort! { |a, b| b[1] <=> a[1] }
-          method[:edges] = method[:edges].first(10) unless options[:full_report]
+          # method[:edges].sort! { |a, b| b[1] <=> a[1] }
+          # method[:edges] = method[:edges].first(10) unless options[:full_report]
         end
 
         out.puts "Total running time: #{sec(@info[:runtime])}s"
@@ -251,6 +271,8 @@ module Rubinius
 
             caller[:cumulative] * ratio
           end
+
+          callers = callers.first(10) unless options[:full_report]
 
           callers.each do |c_id, calls, time|
             caller = data[c_id]
@@ -290,6 +312,9 @@ module Rubinius
               0.0
             end
           end
+
+          edges = edges.last(10) unless options[:full_report]
+          # method[:edges] = method[:edges].first(10) unless options[:full_report]
 
           edges.reverse_each do |e_id, calls, time|
             if edge = data[e_id]

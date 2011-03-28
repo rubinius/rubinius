@@ -63,7 +63,8 @@ namespace rubinius {
     };
 
     class Method;
-    typedef std::tr1::unordered_map<method_id, Fixnum*> KeyMap;
+    typedef std::tr1::unordered_map<Method*, Fixnum*> KeyMap;
+    typedef std::tr1::unordered_map<method_id, Method*> MethodMap;
 
     class Edge {
       Method*  method_;
@@ -93,11 +94,9 @@ namespace rubinius {
         total_ += time;
         called_++;
       }
-
-      Fixnum* find_key(KeyMap& keys);
     };
 
-    typedef std::tr1::unordered_map<method_id, Edge*> Edges;
+    typedef std::map<method_id, Edge*> Edges;
 
     class Method {
     private:
@@ -123,6 +122,7 @@ namespace rubinius {
         , line_(0)
         , total_(0)
       { }
+
       ~Method();
 
       method_id id() {
@@ -164,9 +164,14 @@ namespace rubinius {
         total_ += time;
       }
 
-      Edge* find_edge(Method* method);
+      Edges& edges() {
+        return edges_;
+      }
 
-      Fixnum* find_key(KeyMap& keys);
+      Edge* find_edge(Method* method);
+      Method* find_callee(method_id id, Symbol* container,
+                          Symbol* name, Kind kind);
+
       Array* edges(STATE, KeyMap& keys);
       void merge_edges(STATE, KeyMap& keys, Array* edges);
     };
@@ -198,18 +203,14 @@ namespace rubinius {
     };
 
     class Profiler {
-      typedef std::tr1::unordered_map<method_id, Method*> MethodMap;
-
-    private:
-      MethodMap methods_;
+      MethodMap root_methods_;
+      Method*   root_;
       Method*   current_;
       VM*       state_;
 
     public:
-      Profiler(STATE)
-        : current_(0)
-        , state_(state)
-      { }
+      Profiler(STATE);
+
       ~Profiler();
 
       Method* current() {

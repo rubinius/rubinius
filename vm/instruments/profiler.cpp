@@ -27,10 +27,6 @@ namespace rubinius {
 
   namespace profiler {
 
-    Fixnum* Edge::find_key(KeyMap& keys) {
-      return method_->find_key(keys);
-    }
-
     Method::~Method() {
       for(Edges::iterator i = edges_.begin();
           i != edges_.end();
@@ -93,96 +89,24 @@ namespace rubinius {
       return String::create(state, ss.str().c_str());
     }
 
-    Edge* Method::find_edge(Method* method) {
-      Edges::iterator iter = edges_.find(method->id());
+    Method* Method::find_callee(method_id id, Symbol* container,
+                                Symbol* name, Kind kind)
+    {
+      Edges::iterator iter = edges_.find(id);
 
-      Edge* edge;
-      if(likely(iter != edges_.end())) {
-        edge = iter->second;
-      } else {
-        edge = new Edge(method);
-        edges_[method->id()] = edge;
-      }
+      if(iter != edges_.end()) return iter->second->method();
 
-      return edge;
+      Method* method = new Method(id, name, container, kind);
+      edges_[id] = new Edge(method);
+
+      return method;
     }
 
-    Fixnum* Method::find_key(KeyMap& keys) {
-      KeyMap::iterator iter = keys.find(id_);
+    Edge* Method::find_edge(Method* meth) {
+      Edges::iterator iter = edges_.find(meth->id());
 
-      if(iter == keys.end()) {
-        Fixnum* key = Fixnum::from(keys.size());
-        keys[id_] = key;
-        return key;
-      }
-
-      return iter->second;
-    }
-
-    Array* Method::edges(STATE, KeyMap& keys) {
-      Array* edges = Array::create(state, edges_.size());
-
-      size_t idx = 0;
-      for(Edges::iterator i = edges_.begin();
-          i != edges_.end();
-          i++) {
-        Edge* edge = i->second;
-
-        Array* ary = Array::create(state, 3);
-        edges->set(state, idx++, ary);
-
-        ary->set(state, 0, edge->find_key(keys));
-        ary->set(state, 1, Integer::from(state, edge->called()));
-        ary->set(state, 2, Integer::from(state, edge->total()));
-      }
-
-      return edges;
-    }
-
-    void Method::merge_edges(STATE, KeyMap& keys, Array* edges) {
-      for(Edges::iterator i = edges_.begin();
-          i != edges_.end();
-          i++) {
-        Edge* edge = i->second;
-        Fixnum* key = edge->find_key(keys);
-
-        size_t j;
-        for(j = 0; j < edges->size(); j++) {
-          Array* ary = try_as<Array>(edges->get(state, j));
-          if(!ary) continue;
-
-          Fixnum* fix = try_as<Fixnum>(ary->get(state, 0));
-          if(!fix) continue;
-
-          if(key != fix) continue;
-
-          Integer* igr = try_as<Integer>(ary->get(state, 1));
-          if(!igr) continue;
-
-          uint64_t called = igr->to_native();
-          called += edge->called();
-          ary->set(state, 1, Integer::from(state, called));
-
-          igr = try_as<Integer>(ary->get(state, 2));
-          if(!igr) continue;
-
-          uint64_t total = igr->to_ulong_long();
-          total += edge->total();
-          ary->set(state, 2, Integer::from(state, total));
-
-          break;
-        }
-
-        // We did not find an existing entry to update, create a new one
-        if(j == edges->size()) {
-          Array* ary = Array::create(state, 3);
-          edges->append(state, ary);
-
-          ary->set(state, 0, edge->find_key(keys));
-          ary->set(state, 1, Integer::from(state, edge->called()));
-          ary->set(state, 2, Integer::from(state, edge->total()));
-        }
-      }
+      if(iter != edges_.end()) return iter->second;
+      return 0;
     }
 
     MethodEntry::MethodEntry(STATE, Dispatch& msg, Arguments& args)
@@ -264,12 +188,22 @@ namespace rubinius {
       state_->profiler()->set_current(previous_);
     }
 
+    Profiler::Profiler(STATE)
+      : state_(state)
+    {
+      // Symbol* root = state->symbol("__root__");
+      current_ = 0; root_ = 0;
+      // root_ = current_ = new Method(0, root, root);
+    }
+
     Profiler::~Profiler() {
-      for(MethodMap::iterator i = methods_.begin();
-          i != methods_.end();
+      for(MethodMap::iterator i = root_methods_.begin();
+          i != root_methods_.end();
           i++) {
         delete i->second;
       }
+
+      // delete root_;
     }
 
     Symbol* Profiler::module_name(Module* module) {
@@ -337,19 +271,40 @@ namespace rubinius {
       method_id id = create_id(cm, container, name, kind);
 
       Method* method;
-      MethodMap::iterator iter = methods_.find(id);
-      if(unlikely(iter == methods_.end())) {
-        method = new Method(id, name, container, kind);
-        methods_[method->id()] = method;
+
+      if(current_) {
+        method = current_->find_callee(id, container, name, kind);
       } else {
-        method = iter->second;
+        MethodMap::iterator iter = root_methods_.find(id);
+
+        if(unlikely(iter == root_methods_.end())) {
+          method = new Method(id, name, container, kind);
+          root_methods_[method->id()] = method;
+        } else {
+          method = iter->second;
+        }
       }
 
       return method;
     }
 
-    // internal helper method
-    static void update_method(STATE, LookupTable* profile, KeyMap& keys, Method* meth) {
+    typedef std::vector<Method*> WorkList;
+
+    static Fixnum* make_key(Method* meth, KeyMap& keys) {
+      KeyMap::iterator iter = keys.find(meth);
+
+      if(iter == keys.end()) {
+        Fixnum* key = Fixnum::from(keys.size());
+        keys[meth] = key;
+        return key;
+      }
+
+      return iter->second;
+    }
+
+    static void add_method(STATE, LookupTable* profile, Method* meth,
+                           WorkList& work, KeyMap& keys)
+    {
       LookupTable* methods = try_as<LookupTable>(profile->fetch(
             state, state->symbol("methods")));
 
@@ -360,68 +315,72 @@ namespace rubinius {
       Symbol* called_sym = state->symbol("called");
       Symbol* edges_sym = state->symbol("edges");
 
-      LookupTable* method;
-      Fixnum* key = meth->find_key(keys);
-      if((method = try_as<LookupTable>(methods->fetch(state, key)))) {
-        Integer* igr = try_as<Integer>(method->fetch(state, cumulative_sym));
-        if(!igr) igr = Integer::from(state, 0);
+      LookupTable* method = LookupTable::create(state);
+      Fixnum* key = make_key(meth, keys);
+      methods->store(state, key, method);
 
-        uint64_t cumulative = igr->to_ulong_long();
-        method->store(state, cumulative_sym,
-            Integer::from(state, cumulative + meth->timer.total()));
+      method->store(state, state->symbol("name"), meth->to_s(state));
+      method->store(state, cumulative_sym, Integer::from(state, meth->timer.total()));
+      method->store(state, total_sym, Integer::from(state, meth->total()));
+      method->store(state, called_sym, Fixnum::from(meth->timer.count()));
 
-        igr = try_as<Integer>(method->fetch(state, total_sym));
-        if(!igr) igr = Integer::from(state, 0);
-
-        uint64_t total = igr->to_ulong_long();
-        method->store(state, total_sym,
-            Integer::from(state, total + meth->total()));
-
-        Fixnum* fix = try_as<Fixnum>(method->fetch(state, called_sym));
-        if(!fix) fix = Fixnum::from(0);
-
-        size_t called = fix->to_native();
-        method->store(state, called_sym, Fixnum::from(called + meth->timer.count()));
-
-        Array* ary = try_as<Array>(method->fetch(state, edges_sym));
-        if(!ary) return;
-
-        meth->merge_edges(state, keys, ary);
-      } else {
-        method = LookupTable::create(state);
-        methods->store(state, key, method);
-
-        method->store(state, state->symbol("name"), meth->to_s(state));
-        method->store(state, cumulative_sym, Integer::from(state, meth->timer.total()));
-        method->store(state, total_sym, Integer::from(state, meth->total()));
-        method->store(state, called_sym, Fixnum::from(meth->timer.count()));
-
-        if(meth->file()) {
-          const char *file;
-          if(meth->file()->nil_p()) {
-            file = "unknown file";
-          } else {
-            file = meth->file()->c_str(state);
-          }
-
-          method->store(state, state->symbol("file"), String::create(state, file));
-          method->store(state, state->symbol("line"), Fixnum::from(meth->line()));
+      if(meth->file()) {
+        const char *file;
+        if(meth->file()->nil_p()) {
+          file = "unknown file";
+        } else {
+          file = meth->file()->c_str(state);
         }
 
-        method->store(state, edges_sym, meth->edges(state, keys));
+        method->store(state, state->symbol("file"), String::create(state, file));
+        method->store(state, state->symbol("line"), Fixnum::from(meth->line()));
       }
+
+      Edges& edges_map = meth->edges();
+
+      Array* edges = Array::create(state, edges_map.size());
+
+      size_t idx = 0;
+      for(Edges::iterator i = edges_map.begin();
+          i != edges_map.end();
+          i++) {
+        Edge* edge = i->second;
+
+        // We haven't exited this method yet, so its stats won't be accurate
+        if(edge->method()->timer.started()) continue;
+
+        Array* ary = Array::create(state, 3);
+        edges->set(state, idx++, ary);
+
+        ary->set(state, 0, make_key(edge->method(), keys));
+        work.push_back(edge->method());
+
+        ary->set(state, 1, Integer::from(state, edge->called()));
+        ary->set(state, 2, Integer::from(state, edge->total()));
+      }
+
+      method->store(state, edges_sym, edges);
     }
 
     void Profiler::results(LookupTable* profile, KeyMap& keys) {
-      for(MethodMap::iterator i = methods_.begin();
-          i != methods_.end();
+      WorkList work;
+
+      for(MethodMap::iterator i = root_methods_.begin();
+          i != root_methods_.end();
           i++) {
+
         Method* method = i->second;
 
         // We haven't exited this method yet, so its stats won't be accurate
         if(method->timer.started()) continue;
+        work.push_back(method);
+      }
 
-        update_method(state_, profile, keys, method);
+      while(work.size() > 0) {
+        Method* method = work.back();
+        work.pop_back();
+
+        add_method(state_, profile, method, work, keys);
       }
     }
 
@@ -466,6 +425,7 @@ namespace rubinius {
     }
 
     LookupTable* ProfilerCollection::results(STATE) {
+      printf("writing results...\n");
       LookupTable* profile = profile_.get();
 
       profile->store(state, state->symbol("runtime"),
