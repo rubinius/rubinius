@@ -27,5 +27,9 @@ module Rubinius
         0 # meh
       end
     end
+
+    def source_location
+      @receiver.source_location
+    end
   end
 end

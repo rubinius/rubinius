@@ -45,6 +45,14 @@ module Rubinius
       def splat
         @block_env.method.splat
       end
+
+      def file
+        @block_env.file
+      end
+
+      def defined_line
+        @block_env.line
+      end
     end
   end
 end
