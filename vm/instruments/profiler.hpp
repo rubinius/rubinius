@@ -63,20 +63,32 @@ namespace rubinius {
     };
 
     class Method;
+    class Node;
     typedef std::tr1::unordered_map<Method*, Fixnum*> KeyMap;
     typedef std::tr1::unordered_map<method_id, Method*> MethodMap;
 
-    class Edge {
-      Method*  method_;
+    class Node {
+      int id_;
+      int called_;
       uint64_t total_;
-      uint64_t called_;
+      Method*  method_;
+
+      Node* sibling_;
+      Node* first_sub_node_;
 
     public:
-      Edge(Method* method)
-        : method_(method)
-        , total_(0)
+      Node(Method* method, int id)
+        : id_(id)
         , called_(0)
+        , total_(0)
+        , method_(method)
+        , sibling_(0)
+        , first_sub_node_(0)
       { }
+
+      int id() {
+        return id_;
+      }
 
       Method* method() {
         return method_;
@@ -86,17 +98,40 @@ namespace rubinius {
         return total_;
       }
 
-      uint64_t called() {
+      int called() {
         return called_;
+      }
+
+      Node* sub_nodes() {
+        return first_sub_node_;
+      }
+
+      int count_sub_nodes() {
+        int count = 0;
+        Node* node = first_sub_node_;
+        while(node) {
+          ++count;
+          node = node->sibling();
+        }
+
+        return count;
+      }
+
+      Node* sibling() {
+        return sibling_;
+      }
+
+      void set_sibling(Node* node) {
+        sibling_ = node;
       }
 
       void accumulate(uint64_t time) {
         total_ += time;
         called_++;
       }
-    };
 
-    typedef std::map<method_id, Edge*> Edges;
+      Node* find_sub_node(Profiler* profiler, Method* method);
+    };
 
     class Method {
     private:
@@ -106,7 +141,6 @@ namespace rubinius {
       Kind      kind_;
       Symbol*   file_;
       int       line_;
-      Edges     edges_;
       uint64_t  total_;
 
     public:
@@ -164,16 +198,12 @@ namespace rubinius {
         total_ += time;
       }
 
-      Edges& edges() {
-        return edges_;
-      }
-
-      Edge* find_edge(Method* method);
+      Node* find_node(Method* method);
       Method* find_callee(method_id id, Symbol* container,
                           Symbol* name, Kind kind);
 
-      Array* edges(STATE, KeyMap& keys);
-      void merge_edges(STATE, KeyMap& keys, Array* edges);
+      Array* nodes(STATE, KeyMap& keys);
+      void merge_nodes(STATE, KeyMap& keys, Array* nodes);
     };
 
     class Profiler;
@@ -181,13 +211,13 @@ namespace rubinius {
     /** Created when a method is being called. Contains a timer that tracks
      * how much time is spent in the method. When the MethodEntry instance
      * goes out of scope, the destructor records the elapsed time and updates
-     * the Method and Edge objects.
+     * the Method and Node objects.
      */
     class MethodEntry {
       VM*           state_;
-      Edge*         edge_;
       Method*       method_;
-      Method*       previous_;
+      Node*         node_;
+      Node*         previous_;
       stats::Timer  timer_;
 
     public:
@@ -203,22 +233,28 @@ namespace rubinius {
     };
 
     class Profiler {
-      MethodMap root_methods_;
-      Method*   root_;
-      Method*   current_;
+      MethodMap methods_;
+      Node*     root_;
+      Node*     current_;
       VM*       state_;
+      int       nodes_;
+      uint32_t  threshold_;
 
     public:
       Profiler(STATE);
 
       ~Profiler();
 
-      Method* current() {
+      Node* current() {
         return current_;
       }
 
-      void set_current(Method* method) {
-        current_ = method;
+      void set_current(Node* node) {
+        current_ = node;
+      }
+
+      int next_node_id() {
+        return nodes_++;
       }
 
       method_id create_id(CompiledMethod* cm, Symbol* container, Symbol* name, Kind kind);

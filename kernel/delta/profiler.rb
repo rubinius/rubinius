@@ -25,6 +25,10 @@ module Rubinius
         set_options :full_report => true if Config["profiler.full_report"]
         set_options :graph => true if Config["profiler.graph"]
 
+        if path = Config["profiler.json"]
+          set_options :json => path
+        end
+
         if Config['profiler.cumulative_percentage']
           set_options :cumulative_percentage => true
         end
@@ -87,7 +91,9 @@ module Rubinius
           return
         end
 
-        if options[:graph]
+        if options[:json]
+          json options[:json]
+        elsif options[:graph]
           graph out
         else
           flat out
@@ -113,23 +119,18 @@ module Rubinius
         # flat for each method, we need to go through and collect all the stats
         # for each unique method.
 
-        flat = LookupTable.new
+        @info[:nodes].each do |n_id, data|
+          sub = data[4].inject(0) { |a,n| a + @info[:nodes][n][1] }
 
-        @info[:methods].values.each do |m|
-          name = m[:name]
-          if data = flat[name]
-            data[:cumulative] += m[:cumulative]
-            data[:total] += m[:total]
-            data[:edge_total] += m[:edges].inject(0) { |s,e| s + e.last }
-            data[:called] += m[:called]
+          meth = @info[:methods][data[0]]
+          if cur = meth[:edge_total]
+            meth[:edge_total] = cur + sub
           else
-            data = m.dup
-            flat[name] = data
-            data[:edge_total] = m[:edges].inject(0) { |s,e| s + e.last }
+            meth[:edge_total] = sub
           end
         end
 
-        data = flat.values.map do |m|
+        data = @info[:methods].values.map do |m|
           cumulative   = m[:cumulative]
           method_total = m[:total]
           edges_total  = m[:edge_total]
@@ -199,6 +200,53 @@ module Rubinius
         end
       end
 
+      def json(path)
+        File.open path, "w" do |f|
+          f.puts "{"
+          f.puts "  \"runtime\": #{@info[:runtime]},"
+          f.puts "  \"total_nodes\": #{@info[:total_nodes]},"
+          roots = @info[:roots].map { |x| x.to_s.dump }.join(',')
+          f.puts "  \"roots\": [ #{roots} ],"
+          f.puts "  \"nodes\": {"
+          idx = 0
+          final = @info[:nodes].size - 1
+
+          @info[:nodes].each do |n_id, data|
+            f.puts "    \"#{n_id}\": {"
+            f.puts "      \"method\": #{data[0]}, \"total\": #{data[1]}, \"called\": #{data[2]},"
+            f.puts "      \"total_nodes\": #{data[3]}, \"sub_nodes\": [ #{data[4].join(', ')} ]"
+            if idx == final
+              f.puts "    }"
+            else
+              f.puts "    },"
+            end
+            idx += 1
+          end
+
+          f.puts "  },"
+          f.puts "  \"methods\": {"
+
+          idx = 0
+          final = @info[:methods].size - 1
+          @info[:methods].each do |m_id, m|
+            f.puts "    \"#{m_id}\": {"
+            f.puts "      \"name\": \"#{m[:name]}\", \"file\": \"#{m[:file]}\", \"line\": #{m[:line] || 0},"
+            f.puts "      \"cumulative\": #{m[:cumulative]}, \"total\": #{m[:total]}, \"called\": #{m[:called]}"
+            if idx == final
+              f.puts "    }"
+            else
+              f.puts "    },"
+            end
+            idx += 1
+          end
+
+          f.puts "  }"
+          f.puts "}"
+        end
+
+        puts "Wrote JSON to: #{path}"
+      end
+
       # Prints an entry for each method, along with the method's callers and
       # the methods called. The entry is delimited by the dashed lines. The
       # line for the method itself is called the "primary" line. The callers
@@ -206,48 +254,32 @@ module Rubinius
       # below.
       def graph(out)
         total_calls = 0
-        total = 0.0
-        data = @info[:methods]
+        run_total = 0.0
 
-        data.each do |id, m|
-          edges_total = 0
-          edges_calls = 0
-          m[:edges].each do |e_id, calls, time|
-            if edge = data[e_id]
-              edge[:callers] ||= []
-              edge[:callers] << [id, calls, time]
-              edges_total += time
-              edges_calls += calls
-            end
+        data = @info[:nodes]
+
+        methods = @info[:methods]
+
+        run_total = @info[:runtime].to_f
+
+        all_callers = Hash.new { |h,k| h[k] = [] }
+
+        data.each do |n_id, n_data|
+          n_data[4].each do |sub|
+            all_callers[sub] << n_id
           end
-
-          self_total      = m[:total] - edges_total
-          self_total      = -1.0 if self_total < 0
-          m[:self_total]  = self_total
-          m[:edges_total] = edges_total
-          m[:edges_calls] = edges_calls
-          m[:name]        = "#toplevel" if m[:name] == "<metaclass>#__script__ {}"
-          total          += self_total
-          total_calls    += m[:called]
         end
 
         indexes = data.keys.sort do |a, b|
-          data[b][:cumulative] <=> data[a][:cumulative]
+          data[b][1] <=> data[a][1]
         end
 
         indexes = indexes.first(SHORT_LINES) unless options[:full_report]
 
+        shown_indexes = {}
+
         indexes.each_with_index do |id, index|
-          method = data[id]
-
-          method[:index] = index + 1
-          method[:callers] ||= []
-
-          # method[:callers].sort! { |a, b| b[1] <=> a[1] }
-          # method[:callers] = method[:callers].first(10) unless options[:full_report]
-
-          # method[:edges].sort! { |a, b| b[1] <=> a[1] }
-          # method[:edges] = method[:edges].first(10) unless options[:full_report]
+          shown_indexes[id] = index + 1
         end
 
         out.puts "Total running time: #{sec(@info[:runtime])}s"
@@ -255,59 +287,57 @@ module Rubinius
         out.puts "----------------------------------------------------------"
 
         primary   = "%-7s%6s %8.2f %9.2f   %8d           %s [%d]\n"
-        secondary = "              %8.2f %9.2f   %8d/%-8d       %s%s\n"
+        secondary = "              %8.2f %9.2f   %8d               %s%s\n"
 
         indexes.each do |id|
-          method = data[id]
+          m_id, total, called, tn, sub_nodes = data[id]
 
           # The idea is to report information about caller as a ratio of the
           # time it called method.
           #
 
-          callers = method[:callers].sort_by do |c_id, calls, time|
-            caller = data[c_id]
-            ratio = time.to_f / caller[:total]
-            ratio = 0.0 if ratio < 0
+          callers = all_callers[id].sort_by do |c_id|
+            clr = data[c_id]
 
-            caller[:cumulative] * ratio
+            clr[total]
           end
 
           callers = callers.first(10) unless options[:full_report]
 
-          callers.each do |c_id, calls, time|
-            caller = data[c_id]
-            ratio = time.to_f / caller[:total]
-            ratio = 0.0 if ratio < 0
-            out.printf secondary, sec(caller[:self_total] * ratio),
-                                  sec((caller[:cumulative] - caller[:self_total]) * ratio),
-                                  calls,
-                                  caller[:edges_calls],
-                                  caller[:name],
-                                  graph_method_index(caller[:index])
+          callers.each do |c_id|
+            clr_m_id, clr_total, clr_called, clr_tn, clr_sub = data[c_id]
+
+            sub_total = clr_sub.inject(0) { |a,s| a + data[s][1] }
+
+            self_total = clr_total - sub_total
+            out.printf(secondary, sec(self_total),
+                                  sec(sub_total),
+                                  clr_called,
+                                  methods[clr_m_id][:name],
+                                  graph_method_index(shown_indexes[c_id]))
           end
 
           # Now the primary line.
 
-          children = method[:cumulative] * (method[:edges_total].to_f / method[:total])
+          children = sub_nodes.inject(0) { |a,s| a + data[s][1] }
+          # children = method[:cumulative] * (method[:edges_total].to_f / method[:total])
 
-          out.printf primary, ("[%d]" % method[:index]),
-                              percentage(method[:cumulative], total, 1, nil),
-                              sec(method[:self_total]),
+          self_total = total - children
+          out.printf primary, ("[%d]" % shown_indexes[id]),
+                              percentage(total, run_total, 1, nil),
+                              sec(self_total),
                               sec(children),
-                              method[:called],
-                              method[:name],
-                              method[:index]
+                              called,
+                              methods[m_id][:name],
+                              shown_indexes[id]
 
           # Same as caller, the idea is to report information about callee methods
           # as a ratio of the time it was called from method.
           #
 
-          edges = method[:edges].sort_by do |e_id, calls, time|
+          edges = sub_nodes.sort_by do |e_id|
             if edge = data[e_id]
-              ratio = time.to_f / edge[:total]
-              ratio = 0.0 if ratio < 0
-
-              edge[:cumulative] * ratio
+              edge[1]
             else
               0.0
             end
@@ -316,21 +346,18 @@ module Rubinius
           edges = edges.last(10) unless options[:full_report]
           # method[:edges] = method[:edges].first(10) unless options[:full_report]
 
-          edges.reverse_each do |e_id, calls, time|
-            if edge = data[e_id]
-              ratio = time.to_f / edge[:total]
-              ratio = 0.0 if ratio < 0
+          edges.reverse_each do |e_id|
+            c_m_id, c_total, c_called, c_tn, c_sub_nodes = data[e_id]
 
-              grandchildren = (edge[:cumulative] - edge[:self_total]) * ratio
-              grandchildren = 0 if grandchildren < 0
+            grandchildren = c_sub_nodes.inject(0) { |a,s| a + data[s][1] }
+            grandchildren = 0 if grandchildren < 0
 
-              out.printf secondary, sec(edge[:self_total] * ratio),
-                                    sec(grandchildren),
-                                    calls,
-                                    edge[:called],
-                                    edge[:name],
-                                    graph_method_index(edge[:index])
-            end
+            self_total = c_total - grandchildren
+            out.printf secondary, sec(self_total),
+                                  sec(grandchildren),
+                                  c_called,
+                                  methods[c_m_id][:name],
+                                  graph_method_index(shown_indexes[e_id])
           end
 
           out.puts "-------------------------------------------------------"

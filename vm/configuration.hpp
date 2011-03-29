@@ -47,6 +47,7 @@ namespace rubinius {
     config::Integer print_config;
     config::Bool    ic_stats;
     config::Bool    profile;
+    config::Integer profiler_threshold;
     config::String  report_path;
 
     // defaults
@@ -97,6 +98,7 @@ namespace rubinius {
       , print_config(this,    "config.print")
       , ic_stats(this,        "ic.stats")
       , profile(this,         "profile")
+      , profiler_threshold(this,  "profiler.threshold", 1000000)
       , report_path(this,     "vm.crash_report_path")
     {
       gc_bytes.set_description(
@@ -188,6 +190,9 @@ namespace rubinius {
 
       profile.set_description(
           "Configure the system to profile ruby code");
+
+      profiler_threshold.set_description(
+          "The mininum number of nanoseconds a profiler node must have to be reported");
 
       report_path.set_description(
           "Set a custom path to write crash reports");
