@@ -266,7 +266,7 @@ namespace rubinius {
       Method* get_method(CompiledMethod* cm, Symbol* name,
           Symbol* container, Kind kind);
 
-      void results(LookupTable* profile, KeyMap& keys);
+      void results(LookupTable* profile, KeyMap& keys, uint64_t runtime);
 
       TEST_CLASS(TestProfiler);
     };

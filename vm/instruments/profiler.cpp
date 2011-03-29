@@ -363,8 +363,12 @@ namespace rubinius {
       tbl->set(state, 4, ary);
     }
 
-    void Profiler::results(LookupTable* profile, KeyMap& keys) {
+    void Profiler::results(LookupTable* profile, KeyMap& keys, uint64_t runtime) {
       WorkList work;
+
+      // If we haven't even gone for a total of longer than 10x the threshold,
+      // just disable the threshold.
+      if(runtime < 10 * threshold_) threshold_ = 0;
 
       profile->store(state_, state_->symbol("total_nodes"), Fixnum::from(nodes_));
 
@@ -447,10 +451,12 @@ namespace rubinius {
     }
 
     void ProfilerCollection::remove_profiler(VM* vm, Profiler* profiler) {
+      uint64_t runtime = get_current_time() - start_time_;
+
       ProfilerMap::iterator iter = profilers_.find(vm);
       if(iter != profilers_.end()) {
         Profiler* profiler = iter->second;
-        profiler->results(profile_.get(), keys_);
+        profiler->results(profile_.get(), keys_, runtime);
 
         iter->first->remove_profiler();
 
@@ -462,13 +468,14 @@ namespace rubinius {
     LookupTable* ProfilerCollection::results(STATE) {
       LookupTable* profile = profile_.get();
 
+      uint64_t runtime = get_current_time() - start_time_;
       profile->store(state, state->symbol("runtime"),
-          Integer::from(state, get_current_time() - start_time_));
+                     Integer::from(state, runtime));
 
       for(ProfilerMap::iterator iter = profilers_.begin();
           iter != profilers_.end();
           iter++) {
-        iter->second->results(profile, keys_);
+        iter->second->results(profile, keys_, runtime);
       }
 
       return profile;
