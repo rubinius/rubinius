@@ -6,4 +6,8 @@ describe "ByteArray.new" do
     ba.should be_kind_of(Rubinius::ByteArray)
     ba.size.should >= 16
   end
+
+  it "raises ArgumentError for negative size" do
+    lambda { Rubinius::ByteArray.new(-20) }.should raise_error(ArgumentError)
+  end
 end
