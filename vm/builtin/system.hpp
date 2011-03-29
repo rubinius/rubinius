@@ -280,6 +280,9 @@ namespace rubinius {
     // Ruby.primitive :vm_thread_state
     static Tuple* vm_thread_state(STATE);
 
+    // Ruby.primitive :vm_run_script
+    static Object* vm_run_script(STATE, CompiledMethod* cm, CallFrame* calling_environment);
+
   public:   /* Type info */
 
     class Info : public TypeInfo {

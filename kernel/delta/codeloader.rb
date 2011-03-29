@@ -34,9 +34,7 @@ module Rubinius
 
       self.require
 
-      # HACK we use __send__ here so that the method inliner
-      # doesn't accidentally inline a script body into here!
-      MAIN.__send__ :__script__
+      Rubinius.run_script self.cm
 
       CodeLoader.loaded_hook.trigger!(@path)
 
@@ -64,9 +62,8 @@ module Rubinius
 
       script.make_main!
 
-      # HACK we use __send__ here so that the method inliner
-      # doesn't accidentally inline a script body into here!
-      MAIN.__send__ :__script__
+      Rubinius.run_script self.cm
+
       CodeLoader.loaded_hook.trigger!(@path)
     end
 
@@ -135,8 +132,11 @@ module Rubinius
       script.file_path = @file_path
       script.data_path = @load_path
 
+      @cm = cm
       return script
     end
+
+    attr_reader :cm
 
     # Compile a Ruby source file and save the compiled file. Return the
     # internal representation (CompiledMethod) of the Ruby source file.

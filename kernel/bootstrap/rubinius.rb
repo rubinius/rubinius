@@ -110,4 +110,12 @@ module Rubinius
     Ruby.primitive :vm_thread_state
     raise PrimitiveFailure, "Rubinius.thread_state failed"
   end
+
+  # Used to invoke a CompiledMethod +cm+ as a script body.
+  # Sets up the MAIN object as self and bypasses JIT'ing
+  # (because why JIT a script you only run once).
+  def self.run_script(cm)
+    Ruby.primitive :vm_run_script
+    raise PrimitiveFailure, "Rubinius.run_script failed"
+  end
 end

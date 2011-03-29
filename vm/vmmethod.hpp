@@ -178,6 +178,8 @@ namespace rubinius {
     template <typename ArgumentHandler>
       static Object* execute_specialized(STATE, CallFrame* call_frame, Dispatch& msg, Arguments& args);
 
+    Object* execute_as_script(STATE, CompiledMethod*cm, CallFrame* previous);
+
     struct InterpreterState {
       bool allow_private;
       int call_flags;

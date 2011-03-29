@@ -721,11 +721,10 @@ module Kernel
   # TODO: The anonymous module wrapping is not implemented at all.
   #
   def load(name, wrap=false)
-    Rubinius::CodeLoader.new(name).load(wrap)
+    cl = Rubinius::CodeLoader.new(name)
+    cl.load(wrap)
 
-    # HACK we use __send__ here so that the method inliner
-    # doesn't accidentally inline a script body into here!
-    MAIN.__send__ :__script__
+    Rubinius.run_script cl.cm
 
     Rubinius::CodeLoader.loaded_hook.trigger!(name)
 
