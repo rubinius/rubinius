@@ -597,7 +597,10 @@ namespace rubinius {
   }
 
   Object* IO::write(STATE, String* buf, CallFrame* call_frame) {
-    size_t left = buf->size();
+    native_int left = buf->size();
+    if(unlikely(left > buf->data()->size())) {
+      left = buf->data()->size();
+    }
     uint8_t* bytes = new uint8_t[left];
     memcpy(bytes, buf->byte_address(), left);
     int fd = this->to_fd();
@@ -649,7 +652,12 @@ namespace rubinius {
   Object* IO::write_nonblock(STATE, String* buf) {
     set_nonblock(state);
 
-    int n = ::write(descriptor_->to_native(), buf->c_str(state), buf->size());
+    native_int buf_size = buf->size();
+    if(unlikely(buf_size > buf->data()->size())) {
+      buf_size = buf->data()->size();
+    }
+
+    int n = ::write(descriptor_->to_native(), buf->c_str(state), buf_size);
     if(n == -1) Exception::errno_error(state, "write_nonblock");
     return Fixnum::from(n);
   }
@@ -1198,7 +1206,11 @@ failed: /* try next '*' position */
   Object* IOBuffer::unshift(STATE, String* str, Fixnum* start_pos) {
     write_synced(state, Qfalse);
     native_int start_pos_native = start_pos->to_native();
-    native_int total_sz = str->size() - start_pos_native;
+    native_int str_size = str->size();
+    if(unlikely(str_size > str->data()->size())) {
+      str_size = str->data()->size();
+    }
+    native_int total_sz = str_size - start_pos_native;
     native_int used_native = used_->to_native();
     native_int available_space = total_->to_native() - used_native;
 

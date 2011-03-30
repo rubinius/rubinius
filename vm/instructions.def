@@ -1418,7 +1418,11 @@ instruction string_build(count) [ +count -- string ]
     String* str = try_as<String>(obj);
 
     if(str) {
-      size += str->size();
+      native_int cur_size = str->size();
+      if(unlikely(cur_size > str->data()->size())) {
+        cur_size = str->data()->size();
+      }
+      size += cur_size;
     } else {
       // This isn't how MRI does this. If sub isn't a String, it converts the
       // the original object via any_to_s, not the bad value returned from #to_s.
@@ -1427,7 +1431,11 @@ instruction string_build(count) [ +count -- string ]
 
       str = obj->to_s(state, false);
       tainted |= str->is_tainted_p();
-      size += str->size();
+      native_int cur_size = str->size();
+      if(unlikely(cur_size > str->data()->size())) {
+        cur_size = str->data()->size();
+      }
+      size += cur_size;
 
       // TRICKY! Reuse the stack to store our new String value.
       stack_back(i) = str;
@@ -1440,9 +1448,14 @@ instruction string_build(count) [ +count -- string ]
   for(int i = count - 1; i >= 0; i--) {
     Object* obj = stack_back(i);
     String* sub = as<String>(obj);
+    native_int sub_size = sub->size();
+    if(unlikely(sub_size > sub->data()->size())) {
+      sub_size = sub->data()->size();
+    }
 
-    memcpy(pos, sub->byte_address(), sub->size());
-    pos += sub->size();
+
+    memcpy(pos, sub->byte_address(), sub_size);
+    pos += sub_size;
   }
 
   if(tainted) str->set_tainted();

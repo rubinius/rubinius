@@ -209,6 +209,14 @@ namespace rubinius {
     native_int s1 = num_bytes()->to_native();
     native_int s2 = other->num_bytes()->to_native();
 
+    if(unlikely(s1 > data_->size())) {
+      s1 = data_->size();
+    }
+
+    if(unlikely(s2 > other->data_->size())) {
+      s2 = other->data_->size();
+    }
+
     native_int max = (s2 > s1) ? s2 : s1;
 
     uint8_t* p1 = byte_address();
@@ -255,9 +263,14 @@ namespace rubinius {
   }
 
   String* String::append(STATE, String* other) {
+    // Clamp the length of the other string to the maximum byte array size
+    native_int length = other->size();
+    if(unlikely(length > other->data_->size())) {
+      length = other->data_->size();
+    }
     return append(state,
                   reinterpret_cast<const char*>(other->byte_address()),
-                  other->size());
+                  length);
   }
 
   String* String::append(STATE, const char* other) {
@@ -265,7 +278,14 @@ namespace rubinius {
   }
 
   String* String::append(STATE, const char* other, native_int length) {
-    native_int new_size = size() + length;
+    native_int current_size = size();
+
+    // Clamp the string size the maximum underlying byte array size
+    if(unlikely(current_size > data_->size())) {
+      current_size = data_->size();
+    }
+
+    native_int new_size = current_size + length;
     native_int capacity = data_->size();
 
     if(capacity < new_size + 1) {
@@ -280,14 +300,14 @@ namespace rubinius {
       if(shared_ == Qtrue) shared(state, Qfalse);
 
       ByteArray* ba = ByteArray::create(state, capacity);
-      memcpy(ba->raw_bytes(), byte_address(), size());
+      memcpy(ba->raw_bytes(), byte_address(), current_size);
       data(state, ba);
     } else {
       if(shared_ == Qtrue) unshare(state);
     }
 
     // Append on top of the null byte at the end of s1, not after it
-    memcpy(byte_address() + size(), other, length);
+    memcpy(byte_address() + current_size, other, length);
 
     // The 0-based index of the last character is new_size - 1
     byte_address()[new_size] = 0;
@@ -310,8 +330,13 @@ namespace rubinius {
     }
 
     ByteArray* ba = ByteArray::create(state, sz + 1);
-    memcpy(ba->raw_bytes(), byte_address(), sz);
-    ba->raw_bytes()[sz] = 0;
+    native_int copy_size = sz;
+
+    // Check that we don't copy any data outside the existing byte array
+    if(unlikely(copy_size > data_->size())) {
+      copy_size = data_->size();
+    }
+    memcpy(ba->raw_bytes(), byte_address(), copy_size);
 
     // We've unshared
     shared(state, Qfalse);
@@ -504,10 +529,16 @@ namespace rubinius {
 
     // Pointers to iterate input bytes.
     uint8_t* in_p = byte_address();
-    uint8_t* in_end = in_p + size();
+
+    native_int str_size = size();
+    if(unlikely(str_size > data_->size())) {
+      str_size = data_->size();
+    }
+
+    uint8_t* in_end = in_p + str_size;
 
     // Optimistic estimate that output size will be 1.25 x input.
-    native_int out_chunk = size() * 5 / 4;
+    native_int out_chunk = str_size * 5 / 4;
     native_int out_size = out_chunk;
     uint8_t* output = (uint8_t*)malloc(out_size);
 
@@ -630,8 +661,16 @@ namespace rubinius {
   {
     native_int src = start->to_native();
     native_int cnt = size->to_native();
-    native_int sz = (native_int)this->size();
-    native_int osz = (native_int)other->size();
+    native_int sz = this->size();
+    native_int osz = other->size();
+
+    if(unlikely(sz > data_->size())) {
+      sz = data_->size();
+    }
+
+    if(unlikely(osz > other->data_->size())) {
+      osz = other->data_->size();
+    }
 
     if(src < 0) src = osz + src;
 
@@ -916,6 +955,11 @@ return_value:
     native_int start = start_f->to_native();
     native_int count = count_f->to_native();
     native_int total = num_bytes_->to_native();
+
+    // Clamp the string size the maximum underlying byte array size
+    if(unlikely(total > data_->size())) {
+      total = data_->size();
+    }
 
     if(count < 0) return nil<String>();
 
