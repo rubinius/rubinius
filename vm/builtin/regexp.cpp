@@ -298,20 +298,20 @@ namespace rubinius {
   // 'self' is passed in automatically by the primitive glue
   Regexp* Regexp::allocate(STATE, Object* self) {
     Regexp* re = Regexp::create(state);
-    re->onig_data = 0;
+    re->onig_data = NULL;
     re->klass(state, (Class*)self);
     return re;
   }
 
   Fixnum* Regexp::options(STATE) {
-    regex_t*       reg;
+    if(unlikely(!onig_data)) {
+      Exception::argument_error(state, "Not properly initialized Regexp");
+    }
 
-    reg    = onig_data;
-
-    int result = ((int)onig_get_options(reg) & OPTION_MASK);
+    int result = ((int)onig_get_options(onig_data) & OPTION_MASK);
 
     if(forced_encoding_) {
-      result |= get_kcode_from_enc(onig_get_encoding(reg));
+      result |= get_kcode_from_enc(onig_get_encoding(onig_data));
     }
 
     return Fixnum::from(result);
@@ -374,6 +374,10 @@ namespace rubinius {
     OnigRegion *region;
     Object* md;
 
+    if(unlikely(!onig_data)) {
+      Exception::argument_error(state, "Not properly initialized Regexp");
+    }
+
     maybe_recompile(state);
 
     region = onig_region_new();
@@ -428,6 +432,10 @@ namespace rubinius {
     OnigRegion *region;
     Object* md = Qnil;
 
+    if(unlikely(!onig_data)) {
+      Exception::argument_error(state, "Not properly initialized Regexp");
+    }
+
     maybe_recompile(state);
     region = onig_region_new();
 
@@ -473,6 +481,10 @@ namespace rubinius {
     const UChar *fin;
     OnigRegion *region;
     Object* md = Qnil;
+
+    if(unlikely(!onig_data)) {
+      Exception::argument_error(state, "Not properly initialized Regexp");
+    }
 
     maybe_recompile(state);
     region = onig_region_new();

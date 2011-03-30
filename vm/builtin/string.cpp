@@ -300,6 +300,15 @@ namespace rubinius {
 
   String* String::resize_capacity(STATE, Fixnum* count) {
     native_int sz = count->to_native();
+
+    if(sz < 0) {
+      Exception::argument_error(state, "negative byte array size");
+    } else if(sz >= INT32_MAX) {
+      // >= is used deliberately because we use a size of + 1
+      // for the byte array
+      Exception::argument_error(state, "too large byte array size");
+    }
+
     ByteArray* ba = ByteArray::create(state, sz + 1);
     memcpy(ba->raw_bytes(), byte_address(), sz);
     ba->raw_bytes()[sz] = 0;
@@ -599,6 +608,7 @@ namespace rubinius {
 
     native_int osz = other->size();
     if(src >= osz) return this;
+    if(cnt < 0) return this;
     if(src < 0) src = 0;
     if(cnt > osz - src) cnt = osz - src;
 
@@ -938,6 +948,10 @@ return_value:
     native_int total = size();
     native_int match_size = pattern->size();
 
+    if(start->to_native() < 0) {
+      Exception::argument_error(state, "negative start given");
+    }
+
     switch(match_size) {
     case 0:
       return start;
@@ -978,6 +992,10 @@ return_value:
     native_int total = size();
     native_int match_size = pattern->size();
     native_int pos = start->to_native();
+
+    if(pos < 0) {
+      Exception::argument_error(state, "negative start given");
+    }
 
     if(pos >= total) pos = total - 1;
 
@@ -1021,6 +1039,7 @@ return_value:
   String* String::find_character(STATE, Fixnum* offset) {
     native_int o = offset->to_native();
     if(o >= size()) return nil<String>();
+    if(o < 0) return nil<String>();
 
     uint8_t* cur = byte_address() + o;
 

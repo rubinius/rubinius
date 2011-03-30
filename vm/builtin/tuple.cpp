@@ -71,6 +71,12 @@ namespace rubinius {
   }
 
   Tuple* Tuple::allocate(STATE, Fixnum* fields) {
+    native_int size = fields->to_native();
+    if(size < 0) {
+      Exception::argument_error(state, "negative tuple size");
+    } else if(size > INT32_MAX) {
+      Exception::argument_error(state, "too large tuple size");
+    }
     return Tuple::create(state, fields->to_native());
   }
 
@@ -253,7 +259,12 @@ namespace rubinius {
   // @todo performance primitive; could be replaced with Ruby
   Tuple* Tuple::pattern(STATE, Fixnum* size, Object* val) {
     native_int cnt = size->to_native();
-    assert(cnt >= 0);
+
+    if(cnt < 0) {
+      Exception::argument_error(state, "negative tuple size");
+    } else if (cnt > INT32_MAX) {
+      Exception::argument_error(state, "too large tuple size");
+    }
 
     Tuple* tuple = Tuple::create(state, cnt);
 

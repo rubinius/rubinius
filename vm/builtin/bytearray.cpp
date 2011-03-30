@@ -24,9 +24,6 @@ namespace rubinius {
 
   ByteArray* ByteArray::create(STATE, native_int bytes) {
     assert(bytes >= 0 && bytes < INT32_MAX);
-    
-    if( bytes < 0 || bytes > INT32_MAX)
-      Exception::argument_error(state, "negative array size");
 
     size_t body = bytes;
     ByteArray* ba = state->om->new_object_bytes<ByteArray>(G(bytearray), body);
@@ -75,7 +72,13 @@ namespace rubinius {
   }
 
   ByteArray* ByteArray::allocate(STATE, Fixnum* bytes) {
-    return ByteArray::create(state, bytes->to_native());
+    native_int size = bytes->to_native();
+    if(size < 0) {
+      Exception::argument_error(state, "negative byte array size");
+    } else if (size > INT32_MAX) {
+      Exception::argument_error(state, "too large byte array size");
+    }
+    return ByteArray::create(state, size);
   }
 
   Fixnum* ByteArray::size(STATE) {
