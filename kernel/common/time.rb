@@ -293,7 +293,7 @@ class Time
   alias_method :to_i, :seconds
 
   def to_f
-    seconds + (usec / 1000000.0)
+    seconds + (usec * 0.000001)
   end
 
   ##
