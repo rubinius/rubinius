@@ -54,6 +54,10 @@ extern "C" {
     return rb_funcall(struct_handle, rb_intern("[]"), 1, key);
   }
 
+  VALUE rb_struct_getmember(VALUE struct_handle, ID key) {
+    return rb_funcall(struct_handle, key, 0);
+  }
+
   VALUE rb_struct_aset(VALUE struct_handle, VALUE key, VALUE value) {
     return rb_funcall(struct_handle, rb_intern("[]="), 2, key, value);
   }

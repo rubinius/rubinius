@@ -1455,6 +1455,7 @@ VALUE rb_uint2big(unsigned long number);
 
   /** Returns the value of the key. */
   VALUE rb_struct_aref(VALUE s, VALUE key);
+  VALUE rb_struct_getmember(VALUE s, ID key);
 
   /** Sets the value of the key. */
   VALUE rb_struct_aset(VALUE s, VALUE key, VALUE value);
