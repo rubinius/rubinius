@@ -24,6 +24,7 @@
 #define HAVE_RB_ARY_REVERSE                1
 #define HAVE_RB_ARY_SHIFT                  1
 #define HAVE_RB_ARY_STORE                  1
+#define HAVE_RB_ARY_TO_ARY                 1
 #define HAVE_RB_ARY_TO_S                   1
 #define HAVE_RB_ARY_UNSHIFT                1
 #define HAVE_RB_ASSOC_NEW                  1

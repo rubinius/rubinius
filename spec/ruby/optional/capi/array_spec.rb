@@ -419,4 +419,47 @@ describe "C-API Array function" do
       @array.should == [1, 2, 3, 4]
     end
   end
+
+  describe "rb_ary_to_ary" do
+
+    describe "with an array" do
+
+      it "returns the given array" do
+        array = [1, 2, 3]
+        @s.rb_ary_to_ary(array).should equal(array)
+      end
+
+    end
+
+    describe "with an object that responds to to_ary" do
+
+      it "calls to_ary on the object" do
+        obj = mock('to_ary')
+        obj.stub!(:to_ary).and_return([1, 2, 3])
+        @s.rb_ary_to_ary(obj).should == [1, 2, 3]
+      end
+
+    end
+
+    describe "with an object that responds to to_a" do
+
+      it "returns the original object in an array" do
+        obj = mock('to_a')
+        obj.stub!(:to_a).and_return([1, 2, 3])
+        @s.rb_ary_to_ary(obj).should == [obj]
+      end
+
+    end
+
+    describe "with an object that doesn't respond to to_ary" do
+
+      it "returns the original object in an array" do
+        obj = mock('no_to_ary')
+        @s.rb_ary_to_ary(obj).should == [obj]
+      end
+
+    end
+
+  end
+
 end
