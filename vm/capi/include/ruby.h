@@ -835,6 +835,9 @@ VALUE rb_uint2big(unsigned long number);
   /** Same as rb_obj_freeze */
   VALUE   rb_ary_freeze(VALUE ary);
 
+  /** Array coercion method */
+  VALUE   rb_ary_to_ary(VALUE ary);
+
   void    rb_mem_clear(VALUE* ary, int len);
 
   /** Return new Array with elements first and second. */
