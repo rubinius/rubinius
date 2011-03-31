@@ -384,8 +384,6 @@ extern "C" {
     char *ptr = RSTRING_PTR(string);
     if(len) {
       *len = str->size();
-    } else if(RTEST(ruby_verbose) && str->size() != (native_int)strlen(ptr)) {
-      rb_warn("string contains NULL character");
     }
     return ptr;
   }
