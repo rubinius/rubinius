@@ -9,6 +9,14 @@ module KernelSpecs
     Kernel.Array(arg)
   end
 
+  def self.putc_function(arg)
+    putc arg
+  end
+
+  def self.putc_method(arg)
+    Kernel.putc arg
+  end
+
   class Method
     def abort(*msg)
       super
