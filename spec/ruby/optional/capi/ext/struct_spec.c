@@ -12,6 +12,12 @@ static VALUE struct_spec_rb_struct_aref(VALUE self, VALUE st, VALUE key) {
 }
 #endif
 
+#ifdef HAVE_RB_STRUCT_GETMEMBER
+static VALUE struct_spec_rb_struct_getmember(VALUE self, VALUE st, VALUE key) {
+  return rb_struct_getmember(st, SYM2ID(key));
+}
+#endif
+
 #ifdef HAVE_RB_STRUCT_ASET
 static VALUE struct_spec_rb_struct_aset(VALUE self, VALUE st, VALUE key, VALUE value) {
   return rb_struct_aset(st, key, value);
@@ -49,6 +55,10 @@ void Init_struct_spec() {
 
 #ifdef HAVE_RB_STRUCT_AREF
   rb_define_method(cls, "rb_struct_aref", struct_spec_rb_struct_aref, 2);
+#endif
+
+#ifdef HAVE_RB_STRUCT_GETMEMBER
+  rb_define_method(cls, "rb_struct_getmember", struct_spec_rb_struct_getmember, 2);
 #endif
 
 #ifdef HAVE_RB_STRUCT_ASET
