@@ -235,7 +235,7 @@ class Time
 
   def <=>(other)
     if other.kind_of? Time
-      [self.seconds, self.usec] <=> [other.seconds, other.usec]
+      to_f <=> other.to_f
     else
       nil
     end
