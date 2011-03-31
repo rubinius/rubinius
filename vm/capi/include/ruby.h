@@ -1019,6 +1019,7 @@ VALUE rb_uint2big(unsigned long number);
 
   /** Alias method by old name as new name. Methods are independent of eachother. */
   void    rb_define_alias(VALUE module, const char *new_name, const char *old_name);
+  void    rb_alias(VALUE module, ID id_new, ID id_old);
 
   /** Define an .allocate for the given class. Should take no args and return a VALUE. */
   void    rb_define_alloc_func(VALUE klass, CApiAllocFunction allocator);
