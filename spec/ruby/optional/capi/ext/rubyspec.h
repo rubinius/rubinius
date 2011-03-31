@@ -190,6 +190,7 @@
 #define HAVE_RB_MARSHAL_LOAD               1
 
 /* Module */
+#define HAVE_RB_ALIAS                      1
 #define HAVE_RB_CONST_DEFINED              1
 #define HAVE_RB_CONST_DEFINED_AT           1
 #define HAVE_RB_CONST_GET                  1

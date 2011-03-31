@@ -182,6 +182,19 @@ describe "CApiModule" do
     end
   end
 
+  describe "rb_alias" do
+    it "defines an alias for an existing method" do
+      cls = Class.new do
+        def method_to_be_aliased
+          :method_to_be_aliased
+        end
+      end
+
+      @m.rb_alias cls, :method_alias, :method_to_be_aliased
+      cls.new.method_alias.should == :method_to_be_aliased
+    end
+  end
+
   describe "rb_define_global_function" do
     it "defines a method on Object" do
       @m.rb_define_global_function("module_specs_global_function")
