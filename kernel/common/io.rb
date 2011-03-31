@@ -1117,13 +1117,14 @@ class IO
   #
   #  AA
   def putc(obj)
-    byte = if obj.__kind_of__ String then
-             obj[0]
-           else
-             Type.coerce_to(obj, Integer, :to_int) & 0xff
-           end
+    if Type.obj_kind_of? obj, String
+      write obj.substring(0, 1)
+    else
+      byte = Type.coerce_to(obj, Integer, :to_int) & 0xff
+      write byte.chr
+    end
 
-    write byte.chr
+    return obj
   end
 
   ##
