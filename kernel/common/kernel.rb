@@ -841,7 +841,7 @@ module Kernel
   module_function :getc
 
   def putc(int)
-    $stdin.putc(int)
+    $stdout.putc(int)
   end
   module_function :putc
 
