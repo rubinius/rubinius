@@ -25,6 +25,7 @@ proc.rbc
 process.rbc
 regexp.rbc
 rubinius.rbc
+type.rbc
 static_scope.rbc
 string.rbc
 symbol.rbc
@@ -34,7 +35,6 @@ thunk.rbc
 time.rbc
 true.rbc
 tuple.rbc
-type.rbc
 variable_scope.rbc
 vm.rbc
 weakref.rbc

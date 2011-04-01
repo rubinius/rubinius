@@ -730,6 +730,7 @@ module Rubinius
         pos(g)
 
         g.push_rubinius
+        g.find_const :Type
         g.swap
         g.send :object_metaclass, 1
 

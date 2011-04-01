@@ -55,9 +55,9 @@ module Rubinius
       unless other.kind_of? Rubinius::Tuple
         raise TypeError, "Tuple#copy_from was expecting a Tuple, not a #{other.class}"
       end
-      start = Type.coerce_to start, Fixnum, :to_i
-      length = Type.coerce_to length, Fixnum, :to_i
-      dest = Type.coerce_to dest, Fixnum, :to_i
+      start = Rubinius::Type.coerce_to start, Fixnum, :to_i
+      length = Rubinius::Type.coerce_to length, Fixnum, :to_i
+      dest = Rubinius::Type.coerce_to dest, Fixnum, :to_i
 
       if start < 0 || start > other.fields
         raise IndexError, "Start %d is out of bounds %d" % [start, other.fields]
@@ -105,8 +105,8 @@ module Rubinius
     def delete(start,length,object)
       Ruby.primitive :tuple_delete_inplace
 
-      start = Type.coerce_to start, Fixnum, :to_i
-      length = Type.coerce_to length, Fixnum, :to_i
+      start = Rubinius::Type.coerce_to start, Fixnum, :to_i
+      length = Rubinius::Type.coerce_to length, Fixnum, :to_i
 
       lend = start
       rend = lend + length
@@ -153,8 +153,8 @@ module Rubinius
       Ruby.primitive :tuple_reverse
 
       reverse(
-        Type.coerce_to(start, Fixnum, :to_i),
-        Type.coerce_to(total, Fixnum, :to_i))
+        Rubinius::Type.coerce_to(start, Fixnum, :to_i),
+        Rubinius::Type.coerce_to(total, Fixnum, :to_i))
     end
 
     def self.create_weakref(object)

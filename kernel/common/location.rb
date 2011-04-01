@@ -27,7 +27,7 @@ module Rubinius
     def describe_receiver
       # We can't call @receiver.class because it might be overriden (or in
       # the case of Mocha, mocked out) and easily causes stack overflows
-      klass = Rubinius.object_class @receiver
+      klass = Rubinius::Type.object_class @receiver
 
       if @method_module.equal?(Kernel)
         "Kernel."

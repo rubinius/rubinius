@@ -217,7 +217,7 @@ module Rubinius
         @scope = ss
       end
 
-      mc = Rubinius.object_metaclass(MAIN)
+      mc = Rubinius::Type.object_metaclass(MAIN)
       mc.method_table.store :__script__, self, :public
       VM.reset_method_cache :__script__
 

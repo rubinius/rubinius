@@ -18,7 +18,7 @@ class Fixnum < Integer
         return value
       end
     else
-      value = Type.coerce_to(obj, Integer, :to_int)
+      value = Rubinius::Type.coerce_to(obj, Integer, :to_int)
       return self.induced_from(value)
     end
   end

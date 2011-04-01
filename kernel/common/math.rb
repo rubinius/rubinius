@@ -138,7 +138,7 @@ module Math
   end
 
   def ldexp(x, n)
-    n = Type.coerce_to(n, Integer, :to_int)
+    n = Rubinius::Type.coerce_to(n, Integer, :to_int)
 
     FFI::Platform::Math.ldexp Float(x), n
   end

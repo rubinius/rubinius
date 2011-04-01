@@ -1,7 +1,7 @@
 class Module
   def alias_method(new_name, current_name)
-    new_name = Type.coerce_to_symbol(new_name)
-    current_name = Type.coerce_to_symbol(current_name)
+    new_name = Rubinius::Type.coerce_to_symbol(new_name)
+    current_name = Rubinius::Type.coerce_to_symbol(current_name)
     mod, entry = lookup_method(current_name, true, false)
 
     if entry
@@ -40,9 +40,9 @@ class Module
 
       Rubinius::VariableScope.of_sender.method_visibility = :module
     else
-      mc = Rubinius.object_metaclass(self)
+      mc = Rubinius::Type.object_metaclass(self)
       args.each do |meth|
-        method_name = Type.coerce_to_symbol meth
+        method_name = Rubinius::Type.coerce_to_symbol meth
         mod, method = lookup_method(method_name)
         mc.method_table.store method_name, method.method, :public
         set_visibility method_name, :private

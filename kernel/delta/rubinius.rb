@@ -112,7 +112,7 @@ module Rubinius
     mod = static_scope.for_method_definition
 
     if mod.kind_of? Class and ai = mod.__metaclass_object__
-      if Type.obj_kind_of? ai, Numeric
+      if Rubinius::Type.object_kind_of? ai, Numeric
 
         # Such a weird protocol. If :singleton_method_added exists, allow this.
         # le sigh.
@@ -147,14 +147,14 @@ module Rubinius
 
     mod.module_function name if vis == :module
 
-    # Have to use Rubinius.object_respond_to? rather than #respond_to?
+    # Have to use Rubinius::Type.object_respond_to? rather than #respond_to?
     # because code will redefine #respond_to? itself, which is added
     # via #add_method, and then we'll call this new #respond_to?, which
     # commonly can't run yet because it requires methods that haven't been
     # added yet. (ActionMailer does this)
 
     if Class === mod and obj = mod.__metaclass_object__
-      if Type.obj_kind_of? obj, Numeric
+      if Rubinius::Type.object_kind_of? obj, Numeric
 
         # Such a weird protocol. If :singleton_method_added exists, allow this.
         # le sigh.
@@ -198,19 +198,19 @@ module Rubinius
       executable.scope = static_scope
     end
 
-    mod = Rubinius.object_metaclass recv
+    mod = Rubinius::Type.object_metaclass recv
 
     add_method name, executable, mod, :public
   end
 
 
   def self.add_reader(name, mod, vis)
-    normalized = Type.coerce_to_symbol(name)
+    normalized = Rubinius::Type.coerce_to_symbol(name)
     add_method normalized, AccessVariable.get_ivar(normalized), mod, vis
   end
 
   def self.add_writer(name, mod, vis)
-    normalized = Type.coerce_to_symbol(name)
+    normalized = Rubinius::Type.coerce_to_symbol(name)
     writer_name = "#{normalized}=".to_sym
     add_method writer_name, AccessVariable.set_ivar(normalized), mod, vis
   end
@@ -293,16 +293,16 @@ module Rubinius
   end
 
   def self.pack_to_int(obj)
-    Type.coerce_to obj, Integer, :to_int
+    Rubinius::Type.coerce_to obj, Integer, :to_int
   end
 
   def self.pack_to_str(obj)
-    Type.coerce_to obj, String, :to_str
+    Rubinius::Type.coerce_to obj, String, :to_str
   end
 
   def self.pack_to_str_or_nil(obj)
     return "" if obj.nil?
-    Type.coerce_to obj, String, :to_str
+    Rubinius::Type.coerce_to obj, String, :to_str
   end
 
   def self.pack_to_s(obj)

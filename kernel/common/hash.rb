@@ -89,7 +89,7 @@ class Hash
       if obj.kind_of? Hash
         return new.replace(obj)
       elsif obj.respond_to? :to_hash
-        return new.replace(Type.coerce_to(obj, Hash, :to_hash))
+        return new.replace(Rubinius::Type.coerce_to(obj, Hash, :to_hash))
       elsif obj.is_a?(Array) # See redmine # 1385
         h = new
         args.first.each do |arr|
@@ -463,7 +463,7 @@ class Hash
   end
 
   def merge!(other)
-    other = Type.coerce_to other, Hash, :to_hash
+    other = Rubinius::Type.coerce_to other, Hash, :to_hash
 
     if block_given?
       other.each_entry do |entry|
@@ -599,7 +599,7 @@ class Hash
   def replace(other)
     Ruby.check_frozen
 
-    other = Type.coerce_to other, Hash, :to_hash
+    other = Rubinius::Type.coerce_to other, Hash, :to_hash
     return self if self.equal? other
 
     # Normally this would be a call to __setup__,

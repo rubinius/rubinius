@@ -19,7 +19,7 @@ end
 
 module Enumerable
   def each_cons(num)
-    n = Type.coerce_to(num, Fixnum, :to_int)
+    n = Rubinius::Type.coerce_to(num, Fixnum, :to_int)
     raise ArgumentError, "invalid size: #{n}" if n <= 0
     array = []
     each do |element|
@@ -31,7 +31,7 @@ module Enumerable
   end
 
   def each_slice(slice_size)
-    n = Type.coerce_to(slice_size, Fixnum, :to_int)
+    n = Rubinius::Type.coerce_to(slice_size, Fixnum, :to_int)
     raise ArgumentError, "invalid slice size: #{n}" if n <= 0
     a = []
     each do |element|

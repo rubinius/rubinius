@@ -10,7 +10,7 @@ class Class
 
   def set_superclass(sup)
     Ruby.primitive :class_set_superclass
-    raise TypeError, "superclass must be a Class (#{Rubinius.object_class(sup)} given)"
+    raise TypeError, "superclass must be a Class (#{Rubinius::Type.object_class(sup)} given)"
   end
 
   private :set_superclass

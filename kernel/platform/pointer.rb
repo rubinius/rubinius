@@ -444,7 +444,7 @@ module FFI
 
       # Hook the created function into the method_table so that #call goes
       # straight to it.
-      Rubinius.object_metaclass(self).method_table.store :call, @function, :public
+      Rubinius::Type.object_metaclass(self).method_table.store :call, @function, :public
     end
 
     attr_reader :function
@@ -458,7 +458,7 @@ module FFI
       name = name.to_sym
 
       # Make it available as a method callable directly..
-      Rubinius.object_metaclass(mod).method_table.store name, @function, :public
+      Rubinius::Type.object_metaclass(mod).method_table.store name, @function, :public
 
       # and expose it as a private method for people who
       # want to include this module.

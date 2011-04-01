@@ -123,7 +123,7 @@ module Kernel
     #
     case message
     when String
-      message = Type.coerce_to message, Symbol, :to_sym
+      message = Rubinius::Type.coerce_to message, Symbol, :to_sym
     when Symbol
       # nothing!
     else
@@ -420,7 +420,7 @@ module Process
     when false
       code = 1
     else
-      code = Type.coerce_to code, Integer, :to_int
+      code = Rubinius::Type.coerce_to code, Integer, :to_int
     end
 
     raise SystemExit.new(code)
@@ -435,7 +435,7 @@ module Process
     when false
       exit! 1
     else
-      exit! Type.coerce_to(code, Integer, :to_int)
+      exit! Rubinius::Type.coerce_to(code, Integer, :to_int)
     end
   end
 end

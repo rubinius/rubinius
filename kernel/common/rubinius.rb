@@ -9,7 +9,7 @@ module Rubinius
     when Fixnum
       raise ArgumentError, "#{name.inspect} is not a symbol"
     else
-      name = Type.coerce_to(name, String, :to_str)
+      name = Rubinius::Type.coerce_to(name, String, :to_str)
       return name.to_sym if name[0] == ?@
     end
 

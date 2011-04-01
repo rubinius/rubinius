@@ -56,7 +56,7 @@ module Etc
   end
 
   def self.getpwuid(uid = Process.uid)
-    uid = Type.coerce_to(uid, Integer, :to_int)
+    uid = Rubinius::Type.coerce_to(uid, Integer, :to_int)
 
     passwd_ptr = FFI::Platform::POSIX.getpwuid(uid)
     if passwd_ptr.nil?
@@ -106,7 +106,7 @@ module Etc
   end
 
   def self.getgrgid(gid = Process.gid)
-    gid = Type.coerce_to(gid, Integer, :to_int)
+    gid = Rubinius::Type.coerce_to(gid, Integer, :to_int)
 
     group_ptr = FFI::Platform::POSIX.getgrgid(gid)
     if group_ptr.nil?

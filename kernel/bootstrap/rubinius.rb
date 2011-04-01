@@ -9,21 +9,6 @@ module Rubinius
     raise PrimitiveFailure, "Rubinius.find_method failed"
   end
 
-  def self.object_class(obj)
-    Ruby.primitive :vm_object_class
-    raise PrimitiveFailure, "Rubinius.object_class failed"
-  end
-
-  def self.object_metaclass(obj)
-    Ruby.primitive :vm_object_metaclass
-    raise TypeError, "no metaclass available for a #{obj.class}"
-  end
-
-  def self.object_respond_to?(obj, name)
-    Ruby.primitive :vm_object_respond_to
-    raise PrimitiveFailure, "Rubinius.object_respond_to? failed"
-  end
-
   def self.extended_modules(obj)
     Ruby.primitive :vm_extended_modules
     raise PrimitiveFailure, "Rubinius.extended_modules failed"

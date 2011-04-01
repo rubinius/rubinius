@@ -477,14 +477,14 @@ class IO
     length ||= undefined
     offset ||= 0
 
-    offset = Type.coerce_to(offset, Fixnum, :to_int)
+    offset = Rubinius::Type.coerce_to(offset, Fixnum, :to_int)
 
     if offset < 0
       raise Errno::EINVAL, "offset must not be negative"
     end
 
     unless length.equal?(undefined)
-      length = Type.coerce_to(length, Fixnum, :to_int)
+      length = Rubinius::Type.coerce_to(length, Fixnum, :to_int)
 
       if length < 0
         raise ArgumentError, "length must not be negative"
@@ -566,7 +566,9 @@ class IO
   #
   def self.select(readables = nil, writables = nil, errorables = nil, timeout = nil)
     if timeout
-      raise TypeError, "Timeout must be numeric" unless Type.obj_kind_of?(timeout, Numeric)
+      unless Rubinius::Type.object_kind_of? timeout, Numeric
+        raise TypeError, "Timeout must be numeric"
+      end
       raise ArgumentError, 'timeout must be positive' if timeout < 0
 
       timeout = Integer(timeout * 1_000_000)      # Microseconds, rounded down
@@ -574,13 +576,13 @@ class IO
 
     if readables
       readables =
-        Type.coerce_to(readables, Array, :to_ary).map do |obj|
+        Rubinius::Type.coerce_to(readables, Array, :to_ary).map do |obj|
           if obj.kind_of? IO
             raise IOError, "closed stream" if obj.closed?
             return [[obj],[],[]] unless obj.buffer_empty?
             obj
           else
-            io = Type.coerce_to(obj, IO, :to_io)
+            io = Rubinius::Type.coerce_to(obj, IO, :to_io)
             raise IOError, "closed stream" if io.closed?
             [obj, io]
           end
@@ -589,12 +591,12 @@ class IO
 
     if writables
       writables =
-        Type.coerce_to(writables, Array, :to_ary).map do |obj|
+        Rubinius::Type.coerce_to(writables, Array, :to_ary).map do |obj|
           if obj.kind_of? IO
             raise IOError, "closed stream" if obj.closed?
             obj
           else
-            io = Type.coerce_to(obj, IO, :to_io)
+            io = Rubinius::Type.coerce_to(obj, IO, :to_io)
             raise IOError, "closed stream" if io.closed?
             [obj, io]
           end
@@ -603,12 +605,12 @@ class IO
 
     if errorables
       errorables =
-        Type.coerce_to(errorables, Array, :to_ary).map do |obj|
+        Rubinius::Type.coerce_to(errorables, Array, :to_ary).map do |obj|
           if obj.kind_of? IO
             raise IOError, "closed stream" if obj.closed?
             obj
           else
-            io = Type.coerce_to(obj, IO, :to_io)
+            io = Rubinius::Type.coerce_to(obj, IO, :to_io)
             raise IOError, "closed stream" if io.closed?
             [obj, io]
           end
@@ -644,7 +646,7 @@ class IO
     cur_mode &= ACCMODE
 
     if mode
-      if !Type.obj_kind_of?(mode, Integer)
+      unless Rubinius::Type.object_kind_of? mode, Integer
         str_mode = StringValue mode
         mode = IO.parse_mode(str_mode)
       end
@@ -670,7 +672,7 @@ class IO
     if block_given?
       warn 'IO::new() does not take block; use IO::open() instead'
     end
-    IO.setup self, Type.coerce_to(fd, Integer, :to_int), mode
+    IO.setup self, Rubinius::Type.coerce_to(fd, Integer, :to_int), mode
   end
 
   private :initialize
@@ -1117,10 +1119,10 @@ class IO
   #
   #  AA
   def putc(obj)
-    if Type.obj_kind_of? obj, String
+    if Rubinius::Type.object_kind_of? obj, String
       write obj.substring(0, 1)
     else
-      byte = Type.coerce_to(obj, Integer, :to_int) & 0xff
+      byte = Rubinius::Type.coerce_to(obj, Integer, :to_int) & 0xff
       write byte.chr
     end
 

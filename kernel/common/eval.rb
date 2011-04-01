@@ -145,7 +145,7 @@ module Kernel
     if ImmediateValue === self
       mc = nil
     else
-      mc = Rubinius.object_metaclass(self)
+      mc = Rubinius::Type.object_metaclass(self)
     end
 
     if prc
@@ -224,7 +224,7 @@ module Kernel
     if ImmediateValue === self
       static_scope = static_scope.using_disabled_scope
     else
-      mc = Rubinius.object_metaclass(self)
+      mc = Rubinius::Type.object_metaclass(self)
       static_scope = static_scope.using_current_as(mc)
     end
 

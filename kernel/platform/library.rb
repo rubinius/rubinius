@@ -118,7 +118,7 @@ module FFI
       if func = FFI.generate_function(ptr, name.to_sym, args, find_type(ret))
 
         # Make it available as a method callable directly..
-        Rubinius.object_metaclass(self).method_table.store name, func, :public
+        Rubinius::Type.object_metaclass(self).method_table.store name, func, :public
 
         # and expose it as a private method for people who
         # want to include this module.

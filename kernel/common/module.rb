@@ -164,7 +164,7 @@ class Module
 
   def undef_method(*names)
     names.each do |name|
-      name = Type.coerce_to_symbol(name)
+      name = Rubinius::Type.coerce_to_symbol(name)
       # Will raise a NameError if the method doesn't exist.
       instance_method(name)
       @method_table.store name, nil, :undef
@@ -179,7 +179,7 @@ class Module
   # Like undef_method, but doesn't even check that the method exists. Used
   # mainly to implement rb_undef_method.
   def undef_method!(name)
-    name = Type.coerce_to_symbol(name)
+    name = Rubinius::Type.coerce_to_symbol(name)
     @method_table.store name, nil, :undef
     Rubinius::VM.reset_method_cache(name)
 
@@ -190,7 +190,7 @@ class Module
 
   def remove_method(*names)
     names.each do |name|
-      name = Type.coerce_to_symbol(name)
+      name = Rubinius::Type.coerce_to_symbol(name)
       # Will raise a NameError if the method doesn't exist.
       instance_method(name)
       unless @method_table.lookup(name)
@@ -208,25 +208,25 @@ class Module
   end
 
   def public_method_defined?(sym)
-    sym = Type.coerce_to_symbol(sym)
+    sym = Rubinius::Type.coerce_to_symbol(sym)
     mod, meth = lookup_method(sym, false)
     meth ? meth.public? : false
   end
 
   def private_method_defined?(sym)
-    sym = Type.coerce_to_symbol(sym)
+    sym = Rubinius::Type.coerce_to_symbol(sym)
     mod, meth = lookup_method(sym, false)
     meth ? meth.private? : false
   end
 
   def protected_method_defined?(sym)
-    sym = Type.coerce_to_symbol(sym)
+    sym = Rubinius::Type.coerce_to_symbol(sym)
     mod, meth = lookup_method(sym, false)
     meth ? meth.protected? : false
   end
 
   def method_defined?(sym)
-    sym = Type.coerce_to_symbol(sym)
+    sym = Rubinius::Type.coerce_to_symbol(sym)
     mod, meth = lookup_method(sym, false)
     meth ? meth.public? || meth.protected? : false
   end
@@ -241,7 +241,7 @@ class Module
   # name cannot be located.
 
   def instance_method(name)
-    name = Type.coerce_to_symbol name
+    name = Rubinius::Type.coerce_to_symbol name
 
     mod = self
     while mod
@@ -366,7 +366,7 @@ class Module
   end
 
   def extend_object(obj)
-    include_into Rubinius.object_metaclass(obj)
+    include_into Rubinius::Type.object_metaclass(obj)
   end
 
   def include?(mod)
@@ -397,7 +397,7 @@ class Module
   end
 
   def set_visibility(meth, vis, where = nil)
-    name = Type.coerce_to_symbol(meth)
+    name = Rubinius::Type.coerce_to_symbol(meth)
     vis = vis.to_sym
 
     if entry = @method_table.lookup(name)
@@ -414,7 +414,7 @@ class Module
   end
 
   def set_class_visibility(meth, vis)
-    Rubinius.object_metaclass(self).set_visibility meth, vis, "class "
+    Rubinius::Type.object_metaclass(self).set_visibility meth, vis, "class "
   end
 
   def protected(*args)
@@ -516,7 +516,7 @@ class Module
   end
 
   def const_set(name, value)
-    if Type.obj_kind_of?(value, Module)
+    if Rubinius::Type.object_kind_of?(value, Module)
       value.set_name_if_necessary(name, self)
     end
 
@@ -709,7 +709,7 @@ class Module
   private :recursive_const_get
 
   def normalize_const_name(name)
-    name = Type.coerce_to_symbol(name)
+    name = Rubinius::Type.coerce_to_symbol(name)
 
     unless name.is_constant?
       raise NameError, "wrong constant name #{name}"
@@ -722,8 +722,12 @@ class Module
 
   def initialize_copy(other)
     @method_table = other.method_table.dup
-    Rubinius.object_metaclass(self).method_table = Rubinius.object_metaclass(other).method_table.dup
-    Rubinius.object_metaclass(self).superclass = Rubinius.object_metaclass(other).superclass
+
+    mc_s = Rubinius::Type.object_metaclass self
+    mc_o = Rubinius::Type.object_metaclass other
+
+    mc_s.method_table = mc_o.method_table.dup
+    mc_s.superclass = mc_o.superclass
 
     @constants = Rubinius::LookupTable.new
 

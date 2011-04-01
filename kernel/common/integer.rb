@@ -14,15 +14,15 @@ class Integer < Numeric
   end
 
   def &(other)
-    self & Type.coerce_to(other, Integer, :to_int)
+    self & Rubinius::Type.coerce_to(other, Integer, :to_int)
   end
    
   def |(other)
-    self | Type.coerce_to(other, Integer, :to_int)
+    self | Rubinius::Type.coerce_to(other, Integer, :to_int)
   end
   
   def ^(other)
-    self ^ Type.coerce_to(other, Integer, :to_int)
+    self ^ Rubinius::Type.coerce_to(other, Integer, :to_int)
   end
 
   def to_i
@@ -41,7 +41,7 @@ class Integer < Numeric
   end
   
   def [](index)
-    index = Type.coerce_to(index, Integer, :to_int)
+    index = Rubinius::Type.coerce_to(index, Integer, :to_int)
     return 0 if index.is_a?(Bignum)
     index < 0 ? 0 : (self >> index) & 1
   end

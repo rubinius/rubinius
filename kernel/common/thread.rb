@@ -250,11 +250,11 @@ class Thread
   private :raise_prim
 
   def [](key)
-    @locals[Type.coerce_to_symbol(key)]
+    @locals[Rubinius::Type.coerce_to_symbol(key)]
   end
 
   def []=(key, value)
-    @locals[Type.coerce_to_symbol(key)] = value
+    @locals[Rubinius::Type.coerce_to_symbol(key)] = value
   end
 
   def keys
@@ -262,7 +262,7 @@ class Thread
   end
 
   def key?(key)
-    @locals.key?(Type.coerce_to_symbol(key))
+    @locals.key?(Rubinius::Type.coerce_to_symbol(key))
   end
 
   def set_debugging(dc, cc)

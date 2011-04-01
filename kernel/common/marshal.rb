@@ -896,7 +896,7 @@ module Marshal
       end
     end
 
-    depth = Type.coerce_to limit, Fixnum, :to_int
+    depth = Rubinius::Type.coerce_to limit, Fixnum, :to_int
     ms = State.new nil, depth, nil
 
     if an_io and !an_io.respond_to? :write

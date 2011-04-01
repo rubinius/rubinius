@@ -30,7 +30,7 @@ module YAML
         def self.merge_i(ary, hsh)
           ary.each do |entry|
             begin
-              entry = Type.coerce_to entry, Hash, :to_hash
+              entry = Rubinius::Type.coerce_to entry, Hash, :to_hash
               hsh.update entry
             rescue
               # ignore coercion errors
