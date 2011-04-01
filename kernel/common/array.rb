@@ -444,7 +444,7 @@ class Array
   # lengths are the same. The element comparison is the primary
   # and length is only checked if the former results in 0's.
   def <=>(other)
-    other = Rubinius::Type.convert_to other, Array, :to_ary
+    other = Rubinius::Type.try_convert other, Array, :to_ary
     return 0 if equal? other
     return nil if other.nil?
 
@@ -1851,7 +1851,7 @@ class Array
       while i < total
         o = tuple.at i
 
-        if ary = Rubinius::Type.convert_to(o, Array, :to_ary)
+        if ary = Rubinius::Type.try_convert(o, Array, :to_ary)
           modified = true
           recursively_flatten(ary, out, max_levels)
         else

@@ -74,7 +74,7 @@ module Kernel
 
   def Array(obj)
     if obj.respond_to? :to_ary
-      ary = Rubinius::Type.convert_to obj, Array, :to_ary
+      ary = Rubinius::Type.try_convert obj, Array, :to_ary
     end
 
     return ary unless ary.equal? nil

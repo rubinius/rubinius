@@ -731,7 +731,7 @@ class File < IO
   ##
   # Returns the size of file_name.
   def self.size(io_or_path)
-    io = Rubinius::Type.convert_to io_or_path, IO, :to_io
+    io = Rubinius::Type.try_convert io_or_path, IO, :to_io
 
     if io.is_a? IO
       Stat.from_fd(io.fileno).size
@@ -746,7 +746,7 @@ class File < IO
   def self.size?(io_or_path)
     s = 0
 
-    io = Rubinius::Type.convert_to io_or_path, IO, :to_io
+    io = Rubinius::Type.try_convert io_or_path, IO, :to_io
 
     if io.is_a? IO
       s = Stat.from_fd(io.fileno).size
