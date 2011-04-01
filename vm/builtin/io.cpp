@@ -598,8 +598,9 @@ namespace rubinius {
 
   Object* IO::write(STATE, String* buf, CallFrame* call_frame) {
     native_int left = buf->size();
-    if(unlikely(left > buf->data()->size())) {
-      left = buf->data()->size();
+    native_int data_size = as<ByteArray>(buf->data())->size();
+    if(unlikely(left > data_size)) {
+      left = data_size;
     }
     uint8_t* bytes = new uint8_t[left];
     memcpy(bytes, buf->byte_address(), left);
@@ -653,8 +654,9 @@ namespace rubinius {
     set_nonblock(state);
 
     native_int buf_size = buf->size();
-    if(unlikely(buf_size > buf->data()->size())) {
-      buf_size = buf->data()->size();
+    native_int data_size = as<ByteArray>(buf->data())->size();
+    if(unlikely(buf_size > data_size)) {
+      buf_size = data_size;
     }
 
     int n = ::write(descriptor_->to_native(), buf->c_str(state), buf_size);
@@ -1207,8 +1209,9 @@ failed: /* try next '*' position */
     write_synced(state, Qfalse);
     native_int start_pos_native = start_pos->to_native();
     native_int str_size = str->size();
-    if(unlikely(str_size > str->data()->size())) {
-      str_size = str->data()->size();
+    native_int data_size = as<ByteArray>(str->data())->size();
+    if(unlikely(str_size > data_size)) {
+      str_size = data_size;
     }
     native_int total_sz = str_size - start_pos_native;
     native_int used_native = used_->to_native();

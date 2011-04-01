@@ -208,13 +208,15 @@ namespace rubinius {
   Object* String::secure_compare(STATE, String* other) {
     native_int s1 = num_bytes()->to_native();
     native_int s2 = other->num_bytes()->to_native();
+    native_int d1 = as<ByteArray>(data_)->size();
+    native_int d2 = as<ByteArray>(other->data_)->size();
 
-    if(unlikely(s1 > data_->size())) {
-      s1 = data_->size();
+    if(unlikely(s1 > d1)) {
+      s1 = d1;
     }
 
-    if(unlikely(s2 > other->data_->size())) {
-      s2 = other->data_->size();
+    if(unlikely(s2 > d2)) {
+      s2 = d2;
     }
 
     native_int max = (s2 > s1) ? s2 : s1;
@@ -265,8 +267,9 @@ namespace rubinius {
   String* String::append(STATE, String* other) {
     // Clamp the length of the other string to the maximum byte array size
     native_int length = other->size();
-    if(unlikely(length > other->data_->size())) {
-      length = other->data_->size();
+    native_int data_length = as<ByteArray>(other->data_)->size();
+    if(unlikely(length > data_length)) {
+      length = data_length;
     }
     return append(state,
                   reinterpret_cast<const char*>(other->byte_address()),
@@ -279,14 +282,15 @@ namespace rubinius {
 
   String* String::append(STATE, const char* other, native_int length) {
     native_int current_size = size();
+    native_int data_size = as<ByteArray>(data_)->size();
 
     // Clamp the string size the maximum underlying byte array size
-    if(unlikely(current_size > data_->size())) {
-      current_size = data_->size();
+    if(unlikely(current_size > data_size)) {
+      current_size = data_size;
     }
 
     native_int new_size = current_size + length;
-    native_int capacity = data_->size();
+    native_int capacity = data_size;
 
     if(capacity < new_size + 1) {
       // capacity needs one extra byte of room for the trailing null
@@ -331,10 +335,11 @@ namespace rubinius {
 
     ByteArray* ba = ByteArray::create(state, sz + 1);
     native_int copy_size = sz;
+    native_int data_size = as<ByteArray>(data_)->size();
 
     // Check that we don't copy any data outside the existing byte array
-    if(unlikely(copy_size > data_->size())) {
-      copy_size = data_->size();
+    if(unlikely(copy_size > data_size)) {
+      copy_size = data_size;
     }
     memcpy(ba->raw_bytes(), byte_address(), copy_size);
 
@@ -531,8 +536,9 @@ namespace rubinius {
     uint8_t* in_p = byte_address();
 
     native_int str_size = size();
-    if(unlikely(str_size > data_->size())) {
-      str_size = data_->size();
+    native_int data_size = as<ByteArray>(data_)->size();
+    if(unlikely(str_size > data_size)) {
+      str_size = data_size;
     }
 
     uint8_t* in_end = in_p + str_size;
@@ -646,7 +652,7 @@ namespace rubinius {
     // This bounds checks on the total capacity rather than the virtual
     // size() of the String. This allows for string adjustment within
     // the capacity without having to change the virtual size first.
-    native_int sz = data()->size();
+    native_int sz = as<ByteArray>(data_)->size();
     if(dst >= sz) return this;
     if(dst < 0) dst = 0;
     if(cnt > sz - dst) cnt = sz - dst;
@@ -663,13 +669,15 @@ namespace rubinius {
     native_int cnt = size->to_native();
     native_int sz = this->size();
     native_int osz = other->size();
+    native_int dsz = as<ByteArray>(data_)->size();
+    native_int odsz = as<ByteArray>(other->data_)->size();
 
-    if(unlikely(sz > data_->size())) {
-      sz = data_->size();
+    if(unlikely(sz > dsz)) {
+      sz = dsz;
     }
 
-    if(unlikely(osz > other->data_->size())) {
-      osz = other->data_->size();
+    if(unlikely(osz > odsz)) {
+      osz = odsz;
     }
 
     if(src < 0) src = osz + src;
@@ -955,10 +963,11 @@ return_value:
     native_int start = start_f->to_native();
     native_int count = count_f->to_native();
     native_int total = num_bytes_->to_native();
+    native_int data_size = as<ByteArray>(data_)->size();
 
     // Clamp the string size the maximum underlying byte array size
-    if(unlikely(total > data_->size())) {
-      total = data_->size();
+    if(unlikely(total > data_size)) {
+      total = data_size;
     }
 
     if(count < 0) return nil<String>();

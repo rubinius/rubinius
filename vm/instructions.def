@@ -1419,8 +1419,9 @@ instruction string_build(count) [ +count -- string ]
 
     if(str) {
       native_int cur_size = str->size();
-      if(unlikely(cur_size > str->data()->size())) {
-        cur_size = str->data()->size();
+      native_int data_size = as<ByteArray>(str->data())->size();
+      if(unlikely(cur_size > data_size)) {
+        cur_size = data_size;
       }
       size += cur_size;
     } else {
@@ -1432,8 +1433,9 @@ instruction string_build(count) [ +count -- string ]
       str = obj->to_s(state, false);
       tainted |= str->is_tainted_p();
       native_int cur_size = str->size();
-      if(unlikely(cur_size > str->data()->size())) {
-        cur_size = str->data()->size();
+      native_int data_size = as<ByteArray>(str->data())->size();
+      if(unlikely(cur_size > data_size)) {
+        cur_size = data_size;
       }
       size += cur_size;
 
@@ -1449,8 +1451,9 @@ instruction string_build(count) [ +count -- string ]
     Object* obj = stack_back(i);
     String* sub = as<String>(obj);
     native_int sub_size = sub->size();
-    if(unlikely(sub_size > sub->data()->size())) {
-      sub_size = sub->data()->size();
+    native_int data_size = as<ByteArray>(sub->data())->size();
+    if(unlikely(sub_size > data_size)) {
+      sub_size = data_size;
     }
 
 
