@@ -5,6 +5,7 @@ block_environment.rbc
 bytearray.rbc
 channel.rbc
 class.rbc
+type.rbc
 compactlookuptable.rbc
 compiled_method.rbc
 configuration.rbc
@@ -12,7 +13,6 @@ dir.rbc
 exception.rbc
 executable.rbc
 false.rbc
-type.rbc
 fixnum.rbc
 gc.rbc
 io.rbc

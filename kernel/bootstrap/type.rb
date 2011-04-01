@@ -20,8 +20,13 @@ module Rubinius
     end
 
     def self.object_singleton_class(obj)
-      Ruby.primitive :vm_object_metaclass
-      raise TypeError, "no metaclass available for a #{Rubinius::Type.object_class(obj)}"
+      Ruby.primitive :vm_object_singleton_class
+      raise TypeError, "no metaclass available for a #{Type.object_class(obj)}"
+    end
+
+    def self.singleton_class_object(mod)
+      Ruby.primitive :vm_singleton_class_object
+      raise PrimitiveFailure, "Rubinius::Type.singleton_class_object failed"
     end
 
     def self.object_respond_to?(obj, name)

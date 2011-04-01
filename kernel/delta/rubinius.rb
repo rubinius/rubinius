@@ -9,7 +9,7 @@ module Rubinius
   end
 
   def self.open_class_under(name, sup, mod)
-    unless mod.kind_of? Module
+    unless Type.object_kind_of? mod, Module
       raise TypeError, "'#{mod.inspect}' is not a class/module"
     end
 
@@ -20,7 +20,7 @@ module Rubinius
       obj = Class.new sup, name, mod
     else
       obj = tbl[name]
-      if obj.kind_of? Autoload
+      if Type.object_kind_of? obj, Autoload
         obj = obj.call(true)
 
         # nil is returned if the autoload was abort, usually because
@@ -32,7 +32,7 @@ module Rubinius
         end
       end
 
-      if obj.kind_of? Class
+      if Type.object_kind_of? obj, Class
         if sup and obj.superclass != sup
           raise TypeError, "Superclass mismatch: #{obj.superclass} != #{sup}"
         end
@@ -55,7 +55,7 @@ module Rubinius
   end
 
   def self.open_module_under(name, mod)
-    unless mod.kind_of? Module
+    unless Type.object_kind_of? mod, Module
       raise TypeError, "'#{mod.inspect}' is not a class/module"
     end
 
@@ -67,7 +67,7 @@ module Rubinius
       mod.const_set name, obj
     else
       obj = tbl[name]
-      if obj.kind_of? Autoload
+      if Type.object_kind_of? obj, Autoload
         obj = obj.call(true)
 
         # See comment above about autoload returning nil
@@ -78,7 +78,7 @@ module Rubinius
         end
       end
 
-      if obj.kind_of?(Class) || !obj.kind_of?(Module)
+      if Type.object_kind_of?(obj, Class) || !Type.object_kind_of?(obj, Module)
         raise TypeError, "#{name} is not a module"
       end
     end
@@ -111,12 +111,12 @@ module Rubinius
 
     mod = static_scope.for_method_definition
 
-    if mod.kind_of? Class and ai = mod.__metaclass_object__
-      if Rubinius::Type.object_kind_of? ai, Numeric
+    if Type.object_kind_of?(mod, Class) and ai = Type.singleton_class_object(mod)
+      if Type.object_kind_of? ai, Numeric
 
         # Such a weird protocol. If :singleton_method_added exists, allow this.
         # le sigh.
-        unless ai.respond_to? :singleton_method_added
+        unless Type.object_respond_to? ai, :singleton_method_added
           raise TypeError, "Unable to define singleton methods on Numerics"
         end
       end
@@ -130,7 +130,7 @@ module Rubinius
 
     # Don't change the visibility for methods added to singleton
     # classes
-    if Class === mod and mod.__metaclass_object__
+    if Class === mod and Type.singleton_class_object mod
       visibility = vis
     elsif vis == :module or name == :initialize or name == :initialize_copy
       visibility = :private
@@ -153,8 +153,8 @@ module Rubinius
     # commonly can't run yet because it requires methods that haven't been
     # added yet. (ActionMailer does this)
 
-    if Class === mod and obj = mod.__metaclass_object__
-      if Rubinius::Type.object_kind_of? obj, Numeric
+    if Class === mod and obj = Type.singleton_class_object(mod)
+      if Type.object_kind_of? obj, Numeric
 
         # Such a weird protocol. If :singleton_method_added exists, allow this.
         # le sigh.
@@ -307,7 +307,7 @@ module Rubinius
 
   def self.pack_to_s(obj)
     str = obj.to_s
-    str = obj.inspect unless str.kind_of? String
+    str = obj.inspect unless Type.object_kind_of? str, String
     str
   end
 

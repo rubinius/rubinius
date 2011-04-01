@@ -764,12 +764,20 @@ namespace rubinius {
     return obj->class_object(state);
   }
 
-  Object* System::vm_object_metaclass(STATE, Object* obj) {
+  Object* System::vm_object_singleton_class(STATE, Object* obj) {
     if(obj->reference_p()) return obj->metaclass(state);
     if(obj->true_p()) return G(true_class);
     if(obj->false_p()) return G(false_class);
     if(obj->nil_p()) return G(nil_class);
     return Primitives::failure();
+  }
+
+  Object* System::vm_singleton_class_object(STATE, Module* mod) {
+    if(MetaClass* mc = try_as<MetaClass>(mod)) {
+      return mc->attached_instance();
+    }
+
+    return Qnil;
   }
 
   Object* System::vm_object_respond_to(STATE, Object* obj, Symbol* name) {

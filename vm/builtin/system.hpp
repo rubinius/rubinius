@@ -198,9 +198,13 @@ namespace rubinius {
     // Ruby.primitive :vm_object_class
     static Class* vm_object_class(STATE, Object* obj);
 
-    // A robust way to get the metaclass of an object.
-    // Ruby.primitive :vm_object_metaclass
-    static Object* vm_object_metaclass(STATE, Object* obj);
+    // A robust way to get the singleton class of an object.
+    // Ruby.primitive :vm_object_singleton_class
+    static Object* vm_object_singleton_class(STATE, Object* obj);
+
+    // A robust way to get the object for the given singleton class.
+    // Ruby.primitive :vm_singleton_class_object
+    static Object* vm_singleton_class_object(STATE, Module* mod);
 
     // A robust way to find out if an object responds to a method, since #respond_to?
     // can be redefined.

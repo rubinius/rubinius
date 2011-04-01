@@ -31,7 +31,8 @@ module Rubinius
 
       if @method_module.equal?(Kernel)
         "Kernel."
-      elsif @method_module.kind_of? Class and ao = @method_module.__metaclass_object__
+      elsif Rubinius::Type.object_kind_of?(@method_module, Class) and
+            ao = Rubinius::Type.singleton_class_object(@method_module)
         "#{ao}."
       elsif @method_module and @method_module != klass
         "#{@method_module}(#{klass})#"

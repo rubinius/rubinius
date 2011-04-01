@@ -27,7 +27,8 @@ module Rubinius
 
       return ret if object_kind_of?(ret, cls)
 
-      raise TypeError, "Coercion error: obj.#{meth} did NOT return a #{cls} (was #{ret.class})"
+      msg = "Coercion error: obj.#{meth} did NOT return a #{cls} (was #{object_class(ret)})"
+      raise TypeError, msg
     end
 
     ##
@@ -36,7 +37,7 @@ module Rubinius
     #
     def self.try_convert(obj, cls, meth)
       return obj if object_kind_of?(obj, cls)
-      return nil unless obj.respond_to? meth
+      return nil unless object_respond_to?(obj, meth)
 
       begin
         ret = obj.__send__(meth)
@@ -46,14 +47,15 @@ module Rubinius
 
       return ret if ret.nil? || object_kind_of?(ret, cls)
 
-      raise TypeError, "Coercion error: obj.#{meth} did NOT return a #{cls} (was #{ret.class})"
+      msg = "Coercion error: obj.#{meth} did NOT return a #{cls} (was #{object_class(ret)})"
+      raise TypeError, msg
     end
 
     def self.coerce_to_symbol(obj)
-      if obj.kind_of? Fixnum
+      if object_kind_of?(obj, Fixnum)
         raise ArgumentError, "Fixnums (#{obj}) cannot be used as symbols"
       end
-      obj = obj.to_str if obj.respond_to?(:to_str)
+      obj = obj.to_str if object_respond_to?(obj, :to_str)
 
       coerce_to(obj, Symbol, :to_sym)
     end
@@ -71,6 +73,24 @@ module Rubinius
         raise TypeError, "no implicit conversion from nil to integer"
       else
         Integer(obj)
+      end
+    end
+
+    def self.each_ancestor(mod)
+      unless object_kind_of?(mod, Class) and singleton_class_object(mod)
+        yield mod
+      end
+
+      sup = mod.direct_superclass()
+      while sup
+        if object_kind_of?(sup, IncludedModule)
+          yield sup.module
+        elsif object_kind_of?(sup, Class)
+          yield sup unless singleton_class_object(sup)
+        else
+          yield sup
+        end
+        sup = sup.direct_superclass()
       end
     end
   end

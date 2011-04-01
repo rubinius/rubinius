@@ -607,7 +607,10 @@ module Kernel
     m = sc
 
     while m = m.direct_superclass
-      break unless m.kind_of?(Rubinius::IncludedModule) || m.__metaclass_object__
+      unless Rubinius::Type.object_kind_of?(m, Rubinius::IncludedModule) or
+             Rubinius::Type.singleton_class_object(m)
+        break
+      end
 
       methods.concat m.method_table.private_names
     end
@@ -625,7 +628,10 @@ module Kernel
     methods = m.method_table.protected_names
 
     while m = m.direct_superclass
-      break unless m.kind_of?(Rubinius::IncludedModule) || m.__metaclass_object__
+      unless Rubinius::Type.object_kind_of?(m, Rubinius::IncludedModule) or
+             Rubinius::Type.singleton_class_object(m)
+        break
+      end
 
       methods.concat m.method_table.protected_names
     end
@@ -645,7 +651,10 @@ module Kernel
 
     if all
       while m = m.direct_superclass
-        break unless m.kind_of?(Rubinius::IncludedModule) || m.__metaclass_object__
+        unless Rubinius::Type.object_kind_of?(m, Rubinius::IncludedModule) or
+               Rubinius::Type.singleton_class_object(m)
+          break
+        end
 
         mt = m.method_table
         methods.concat mt.public_names

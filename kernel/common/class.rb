@@ -94,7 +94,7 @@ class Class
   private :inherited
 
   def to_s
-    if obj = __metaclass_object__
+    if obj = Rubinius::Type.singleton_class_object(self)
       case obj
       when Class
         "#<Class:#{obj.__describe__}>"

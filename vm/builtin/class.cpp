@@ -352,14 +352,6 @@ use_packed:
     return meta;
   }
 
-  Object* Class::get_metaclass_attached(STATE) {
-    if(MetaClass* mc = try_as<MetaClass>(this)) {
-      return mc->attached_instance();
-    }
-
-    return Qnil;
-  }
-
   void MetaClass::Info::show(STATE, Object* self, int level) {
     MetaClass* cls = as<MetaClass>(self);
     Module* mod = try_as<Module>(cls->attached_instance());

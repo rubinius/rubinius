@@ -34,7 +34,7 @@ end
 
 class Class
   def __marshal__(ms)
-    if __metaclass_object__
+    if Rubinius::Type.singleton_class_object(self)
       raise TypeError, "singleton class can't be dumped"
     elsif name.empty?
       raise TypeError, "can't dump anonymous module #{self}"

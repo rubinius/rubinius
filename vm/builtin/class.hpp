@@ -83,9 +83,6 @@ namespace rubinius {
 
     bool auto_pack(STATE);
 
-    // Ruby.primitive :class_get_metaclass_attached
-    Object* get_metaclass_attached(STATE);
-
     class Info : public Module::Info {
     public:
       BASIC_TYPEINFO(Module::Info)

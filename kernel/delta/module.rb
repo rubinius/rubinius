@@ -20,10 +20,11 @@ class Module
 
       Rubinius::VM.reset_method_cache(new_name)
     else
-      if kind_of?(Class) && ai = __metaclass_object__
+      if Rubinius::Type.object_kind_of?(self, Class) and
+         ai = Rubinius::Type.singleton_class_object(self)
         raise NameError, "Unable to find '#{current_name}' for object #{ai.inspect}"
       else
-        thing = kind_of?(Class) ? "class" : "module"
+        thing = Rubinius::Type.object_kind_of?(self, Class) ? "class" : "module"
         raise NameError, "undefined method `#{current_name}' for #{thing} `#{self.name}'"
       end
     end

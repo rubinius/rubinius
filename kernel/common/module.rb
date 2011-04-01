@@ -122,43 +122,9 @@ class Module
     end
   end
 
-  def _each_ancestor
-    if kind_of? Class and __metaclass_object__
-      # nothing
-    else
-      yield self
-    end
-
-    sup = direct_superclass()
-    while sup
-      if sup.kind_of? Rubinius::IncludedModule
-        yield sup.module
-      elsif sup.kind_of? Class
-        yield sup unless sup.__metaclass_object__
-      else
-        yield sup
-      end
-      sup = sup.direct_superclass()
-    end
-  end
-
-  private :_each_ancestor
-
   def ancestors
     out = []
-    _each_ancestor { |mod| out << mod }
-    return out
-  end
-
-
-  def superclass_chain
-    out = []
-    mod = direct_superclass()
-    while mod
-      out << mod
-      mod = mod.direct_superclass()
-    end
-
+    Rubinius::Type.each_ancestor(self) { |mod| out << mod }
     return out
   end
 
@@ -376,7 +342,7 @@ class Module
 
     return false if self.equal?(mod)
 
-    _each_ancestor { |m| return true if mod.equal?(m) }
+    Rubinius::Type.each_ancestor(self) { |m| return true if mod.equal?(m) }
 
     false
   end
@@ -555,7 +521,7 @@ class Module
     # We're not an ancestor of ourself
     return false if self.equal? other
 
-    _each_ancestor { |mod| return true if mod.equal?(other) }
+    Rubinius::Type.each_ancestor(self) { |mod| return true if mod.equal?(other) }
 
     nil
   end
