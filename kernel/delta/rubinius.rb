@@ -198,7 +198,7 @@ module Rubinius
       executable.scope = static_scope
     end
 
-    mod = Rubinius::Type.object_metaclass recv
+    mod = Rubinius::Type.object_singleton_class recv
 
     add_method name, executable, mod, :public
   end

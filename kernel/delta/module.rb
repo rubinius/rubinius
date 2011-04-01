@@ -40,11 +40,11 @@ class Module
 
       Rubinius::VariableScope.of_sender.method_visibility = :module
     else
-      mc = Rubinius::Type.object_metaclass(self)
+      sc = Rubinius::Type.object_singleton_class(self)
       args.each do |meth|
         method_name = Rubinius::Type.coerce_to_symbol meth
         mod, method = lookup_method(method_name)
-        mc.method_table.store method_name, method.method, :public
+        sc.method_table.store method_name, method.method, :public
         set_visibility method_name, :private
       end
     end

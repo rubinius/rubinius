@@ -577,19 +577,19 @@ module Kernel
 
     if all
       # We have to special case these because unlike true, false, nil,
-      # .object_metaclass raises a TypeError.
+      # Type.object_singleton_class raises a TypeError.
       case self
       when Fixnum, Symbol
         methods |= self.class.instance_methods(true)
       else
-        methods |= Rubinius::Type.object_metaclass(self).instance_methods(true)
+        methods |= Rubinius::Type.object_singleton_class(self).instance_methods(true)
       end
     end
 
     return methods if kind_of?(ImmediateValue)
 
     undefs = []
-    Rubinius::Type.object_metaclass(self).method_table.filter_entries do |entry|
+    Rubinius::Type.object_singleton_class(self).method_table.filter_entries do |entry|
       undefs << entry.name.to_s if entry.visibility == :undef
     end
 
@@ -601,10 +601,10 @@ module Kernel
   end
 
   def private_singleton_methods
-    mc = Rubinius::Type.object_metaclass self
-    methods = mc.method_table.private_names
+    sc = Rubinius::Type.object_singleton_class self
+    methods = sc.method_table.private_names
 
-    m = mc
+    m = sc
 
     while m = m.direct_superclass
       break unless m.kind_of?(Rubinius::IncludedModule) || m.__metaclass_object__
@@ -621,10 +621,8 @@ module Kernel
   end
 
   def protected_singleton_methods
-    mc = Rubinius::Type.object_metaclass self
-    methods = mc.method_table.protected_names
-
-    m = mc
+    m = Rubinius::Type.object_singleton_class self
+    methods = m.method_table.protected_names
 
     while m = m.direct_superclass
       break unless m.kind_of?(Rubinius::IncludedModule) || m.__metaclass_object__
@@ -641,13 +639,11 @@ module Kernel
   end
 
   def singleton_methods(all=true)
-    mc = Rubinius::Type.object_metaclass self
-    mt = mc.method_table
+    m = Rubinius::Type.object_singleton_class self
+    mt = m.method_table
     methods = mt.public_names + mt.protected_names
 
     if all
-      m = mc
-
       while m = m.direct_superclass
         break unless m.kind_of?(Rubinius::IncludedModule) || m.__metaclass_object__
 

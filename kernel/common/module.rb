@@ -366,7 +366,7 @@ class Module
   end
 
   def extend_object(obj)
-    include_into Rubinius::Type.object_metaclass(obj)
+    include_into Rubinius::Type.object_singleton_class(obj)
   end
 
   def include?(mod)
@@ -414,7 +414,7 @@ class Module
   end
 
   def set_class_visibility(meth, vis)
-    Rubinius::Type.object_metaclass(self).set_visibility meth, vis, "class "
+    Rubinius::Type.object_singleton_class(self).set_visibility meth, vis, "class "
   end
 
   def protected(*args)
@@ -723,11 +723,11 @@ class Module
   def initialize_copy(other)
     @method_table = other.method_table.dup
 
-    mc_s = Rubinius::Type.object_metaclass self
-    mc_o = Rubinius::Type.object_metaclass other
+    sc_s = Rubinius::Type.object_singleton_class self
+    sc_o = Rubinius::Type.object_singleton_class other
 
-    mc_s.method_table = mc_o.method_table.dup
-    mc_s.superclass = mc_o.superclass
+    sc_s.method_table = sc_o.method_table.dup
+    sc_s.superclass = sc_o.superclass
 
     @constants = Rubinius::LookupTable.new
 

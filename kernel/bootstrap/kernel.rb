@@ -14,7 +14,7 @@ module Kernel
   alias_method :===, :equal?
 
   def extend(*mods)
-    Rubinius::Type.object_metaclass(self).include(*mods)
+    Rubinius::Type.object_singleton_class(self).include(*mods)
     self
   end
 

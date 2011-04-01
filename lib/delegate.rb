@@ -257,7 +257,7 @@ def DelegateClass(superclass)
   methods -= %w[
     __verify_metaclass__
     copy_from
-    metaclass
+    singleton_class
     to_marshal
   ]
   methods |= ["to_s","to_a","inspect","==","=~","==="]
