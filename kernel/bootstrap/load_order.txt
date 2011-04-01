@@ -12,6 +12,7 @@ dir.rbc
 exception.rbc
 executable.rbc
 false.rbc
+type.rbc
 fixnum.rbc
 gc.rbc
 io.rbc
@@ -25,7 +26,6 @@ proc.rbc
 process.rbc
 regexp.rbc
 rubinius.rbc
-type.rbc
 static_scope.rbc
 string.rbc
 symbol.rbc

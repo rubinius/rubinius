@@ -745,7 +745,6 @@ end
 
 module Kernel
   alias_method :__class__, :class
-  alias_method :__kind_of__, :kind_of?
 end
 
 class Object

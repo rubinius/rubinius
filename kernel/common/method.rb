@@ -226,7 +226,7 @@ class UnboundMethod
   # Module anyway.
 
   def bind(receiver)
-    unless receiver.__kind_of__ @defined_in
+    unless Rubinius::Type.object_kind_of? receiver, @defined_in
       if @defined_in.kind_of?(Class) and @defined_in.__metaclass_object__
         raise TypeError, "illegal attempt to rebind a singleton method to another object"
       end

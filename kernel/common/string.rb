@@ -1157,7 +1157,7 @@ class String
   #   "abcd".insert(-1, 'X')   #=> "abcdX"
   def insert(index, other)
     other = StringValue(other)
-    index = Rubinius::Type.coerce_to(index, Integer, :to_int) unless index.__kind_of__ Fixnum
+    index = Rubinius::Type.coerce_to index, Fixnum, :to_int
 
     osize = other.size
     size = @num_bytes + osize
@@ -2073,7 +2073,7 @@ class String
   # <i>self</i> modulo <code>2n - 1</code>. This is not a particularly good
   # checksum.
   def sum(bits = 16)
-    bits = Rubinius::Type.coerce_to bits, Integer, :to_int unless bits.__kind_of__ Fixnum
+    bits = Rubinius::Type.coerce_to bits, Fixnum, :to_int
     i, sum = -1, 0
     sum += @data[i] while (i += 1) < @num_bytes
     if bits > 0
@@ -2477,7 +2477,7 @@ class String
     padstr = StringValue(padstr)
     raise ArgumentError, "zero width padding" if padstr.size == 0
 
-    width = Rubinius::Type.coerce_to(width, Integer, :to_int) unless width.__kind_of__ Fixnum
+    width = Rubinius::Type.coerce_to width, Fixnum, :to_int
     if width > @num_bytes
       padsize = width - @num_bytes
     else

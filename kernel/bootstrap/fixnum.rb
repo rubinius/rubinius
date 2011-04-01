@@ -63,7 +63,7 @@ class Fixnum < Integer
 
   def &(o)
     Ruby.primitive :fixnum_and
-    if o.__kind_of__ Float
+    if Rubinius::Type.object_kind_of? o, Float
       raise RangeError, ("float %-.10g is out of range of a Fixnum" % o)
     end
     super(o)
@@ -71,7 +71,7 @@ class Fixnum < Integer
 
   def |(o)
     Ruby.primitive :fixnum_or
-    if o.__kind_of__ Float
+    if Rubinius::Type.object_kind_of? o, Float
       raise RangeError, ("float %-.10g is out of range of a Fixnum" % o)
     end
     super(o)
@@ -79,7 +79,7 @@ class Fixnum < Integer
 
   def ^(o)
     Ruby.primitive :fixnum_xor
-    if o.__kind_of__ Float
+    if Rubinius::Type.object_kind_of? o, Float
       raise RangeError, ("float %-.10g is out of range of a Fixnum" % o)
     end
     super(o)

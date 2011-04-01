@@ -288,7 +288,7 @@ module Marshal
 
 
     def add_object(obj)
-      return if obj.__kind_of__(ImmediateValue)
+      return if Rubinius::Type.object_kind_of? obj, ImmediateValue
       sz = @links.size
       @objects[sz] = obj
       @links[obj.__id__] = sz
