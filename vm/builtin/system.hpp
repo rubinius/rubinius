@@ -124,21 +124,21 @@ namespace rubinius {
     // Ruby.primitive :vm_mri_backtrace
     static Array* vm_mri_backtrace(STATE, Fixnum* skip, CallFrame* calling_environment);
 
-    /** Return true if the profiler is available. */
-    // Ruby.primitive :vm_profiler_instrumenter_available_p
-    static Object* vm_profiler_instrumenter_available_p(STATE);
+    /** Return true if tooling is enabled */
+    // Ruby.primitive :vm_tooling_available_p
+    static Object* vm_tooling_available_p(STATE);
 
-    /** Return true if the profiler is running. */
-    // Ruby.primitive :vm_profiler_instrumenter_active_p
-    static Object* vm_profiler_instrumenter_active_p(STATE);
+    /** Return true if tooling is running. */
+    // Ruby.primitive :vm_tooling_active_p
+    static Object* vm_tooling_active_p(STATE);
 
-    /** Starts the instrumenting profiler. */
-    // Ruby.primitive :vm_profiler_instrumenter_start
-    static Object* vm_profiler_instrumenter_start(STATE);
+    /** Starts tooling. */
+    // Ruby.primitive :vm_tooling_enable
+    static Object* vm_tooling_enable(STATE);
 
-    /** Stops the instrumenting profiler. */
-    // Ruby.primitive :vm_profiler_instrumenter_stop
-    static LookupTable* vm_profiler_instrumenter_stop(STATE);
+    /** Stops tooling. */
+    // Ruby.primitive :vm_tooling_disable
+    static Object* vm_tooling_disable(STATE);
 
     /**
      *  Writes String to standard error stream.

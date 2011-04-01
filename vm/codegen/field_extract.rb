@@ -59,13 +59,12 @@ class BasicPrimitive
     str << "#{' ' * indent}return ret;\n"
   end
 
-  # @todo Add profiler stuff back in. --rue
   def output_call(str, call, args)
     str << "\n"
     str << "  try {\n"
     str << "#ifdef RBX_PROFILER\n"
-    str << "    if(unlikely(state->shared.profiling())) {\n"
-    str << "      profiler::MethodEntry method(state, msg, args);\n"
+    str << "    if(unlikely(state->tooling())) {\n"
+    str << "      tooling::MethodEntry method(state, msg, args);\n"
     str << "      ret = #{call}(#{args.join(', ')});\n"
     str << "    } else {\n"
     str << "      ret = #{call}(#{args.join(', ')});\n"
@@ -476,7 +475,6 @@ class CPPOverloadedPrimitive < BasicPrimitive
     @kinds << prim
   end
 
-  # @todo Add profiler stuff back in. --rue
   def generate_glue
     str = ""
     output_header str
@@ -495,8 +493,8 @@ class CPPOverloadedPrimitive < BasicPrimitive
         call = "        ret = recv->#{@cpp_name}(arg);\n"
       end
       str << "#ifdef RBX_PROFILER\n"
-      str << "        if(unlikely(state->shared.profiling())) {\n"
-      str << "          profiler::MethodEntry method(state, msg, args);\n"
+      str << "        if(unlikely(state->tooling())) {\n"
+      str << "          tooling::MethodEntry method(state, msg, args);\n"
       str << "  " << call
       str << "        } else {\n"
       str << "  " << call

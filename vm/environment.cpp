@@ -45,6 +45,7 @@
 #include <fcntl.h>
 #include <unistd.h>
 #include <sys/param.h>
+#include <dlfcn.h>
 
 namespace rubinius {
 
@@ -581,6 +582,44 @@ namespace rubinius {
     }
   }
 
+  void Environment::load_tool() {
+    if(!state->shared.config.tool_to_load.set_p()) return;
+    std::string path = std::string(state->shared.config.tool_to_load.value) + ".";
+
+#ifdef _WIN32
+    path += "dll";
+#else
+  #ifdef __APPLE_CC__
+    path += "bundle";
+  #else
+    path += "so";
+  #endif
+#endif
+
+    void* handle = dlopen(path.c_str(), RTLD_NOW);
+    if(!handle) {
+      path = std::string(RBX_LIB_PATH) + "/" + path;
+
+      handle = dlopen(path.c_str(), RTLD_NOW);
+      if(!handle) {
+        std::cerr << "Unable to load tool '" << path << "': " << dlerror() << "\n";
+        return;
+      }
+    }
+
+    void* sym = dlsym(handle, "Tool_Init");
+    if(!sym) {
+      std::cerr << "Failed to initialize tool '" << path << "': " << dlerror() << "\n";
+    } else {
+      typedef int (*init_func)(rbxti::Env* env);
+      init_func init = (init_func)sym;
+
+      if(!init(state->tooling_env())) {
+        std::cerr << "Tool '" << path << "' reported failure to init.\n";
+      }
+    }
+  }
+
   void Environment::run_from_filesystem(std::string root) {
     int i = 0;
     state->set_stack_start(&i);
@@ -590,6 +629,8 @@ namespace rubinius {
     load_argv(argc_, argv_);
 
     state->initialize_config();
+
+    load_tool();
 
     load_kernel(root);
 

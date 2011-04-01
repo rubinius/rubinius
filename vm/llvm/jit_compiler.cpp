@@ -12,7 +12,6 @@
 #include "call_frame.hpp"
 #include "configuration.hpp"
 
-#include "instruments/profiler.hpp"
 #include "objectmemory.hpp"
 
 #include <llvm/Target/TargetData.h>

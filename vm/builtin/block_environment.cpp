@@ -21,7 +21,7 @@
 #include "builtin/location.hpp"
 #include "builtin/nativemethod.hpp"
 
-#include "instruments/profiler.hpp"
+#include "instruments/tooling.hpp"
 #include "configuration.hpp"
 
 #ifdef ENABLE_LLVM
@@ -140,7 +140,7 @@ namespace rubinius {
     }
 
 #ifdef RBX_PROFILER
-    if(unlikely(state->shared.profiling())) {
+    if(unlikely(state->tooling())) {
       Module* mod = scope->module();
       if(MetaClass* mc = try_as<MetaClass>(mod)) {
         if(Module* ma = try_as<Module>(mc->attached_instance())) {
@@ -148,9 +148,7 @@ namespace rubinius {
         }
       }
 
-      profiler::MethodEntry method(state,
-                              env->top_scope_->method()->name(),
-                              mod, env->method_);
+      tooling::BlockEntry method(state, env, mod);
       return (*vmm->run)(state, vmm, frame);
     } else {
       return (*vmm->run)(state, vmm, frame);

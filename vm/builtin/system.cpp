@@ -58,7 +58,7 @@
 
 #include "util/sha1.h"
 
-#include "instruments/profiler.hpp"
+#include "instruments/tooling.hpp"
 
 #ifdef ENABLE_LLVM
 #include "llvm/jit.hpp"
@@ -466,25 +466,27 @@ namespace rubinius {
     return Qnil;
   }
 
-  Object* System::vm_profiler_instrumenter_available_p(STATE) {
+  Object* System::vm_tooling_available_p(STATE) {
 #ifdef RBX_PROFILER
-    return Qtrue;
+    return state->shared.tool_broker()->available(state) ? Qtrue : Qfalse;
 #else
     return Qfalse;
 #endif
   }
 
-  Object* System::vm_profiler_instrumenter_active_p(STATE) {
-    return state->shared.profiling() ? Qtrue : Qfalse;
+  Object* System::vm_tooling_active_p(STATE) {
+    return state->tooling() ? Qtrue : Qfalse;
   }
 
-  Object* System::vm_profiler_instrumenter_start(STATE) {
-    state->shared.enable_profiling(state);
+  Object* System::vm_tooling_enable(STATE) {
+    state->shared.tool_broker()->enable(state);
+    state->enable_tooling();
     return Qtrue;
   }
 
-  LookupTable* System::vm_profiler_instrumenter_stop(STATE) {
-    return state->shared.disable_profiling(state);
+  Object* System::vm_tooling_disable(STATE) {
+    state->disable_tooling();
+    return state->shared.tool_broker()->results(state);
   }
 
   Object* System::vm_write_error(STATE, String* str) {
@@ -1131,7 +1133,7 @@ namespace rubinius {
 
 #ifdef RBX_PROFILER
     if(unlikely(state->shared.profiling())) {
-      profiler::MethodEntry me(state, profiler::kScript, cm);
+      tooling::ScriptEntry me(state, cm);
       return cm->backend_method()->execute_as_script(state, cm, calling_environment);
     } else {
       return cm->backend_method()->execute_as_script(state, cm, calling_environment);

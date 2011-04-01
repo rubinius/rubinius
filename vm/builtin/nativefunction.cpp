@@ -30,7 +30,7 @@
 
 #include "builtin/nativefunction.hpp"
 
-#include "instruments/profiler.hpp"
+#include "instruments/tooling.hpp"
 
 namespace rubinius {
 
@@ -79,8 +79,8 @@ namespace rubinius {
     try {
 
 #ifdef RBX_PROFILER
-      if(unlikely(state->shared.profiling())) {
-        profiler::MethodEntry method(state, msg, args);
+      if(unlikely(state->tooling())) {
+        tooling::MethodEntry method(state, msg, args);
         return nfunc->call(state, args, msg, call_frame);
       } else {
         return nfunc->call(state, args, msg, call_frame);

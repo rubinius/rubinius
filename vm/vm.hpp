@@ -30,6 +30,10 @@ namespace llvm {
   class Module;
 }
 
+namespace rbxti {
+  class Env;
+}
+
 namespace rubinius {
 
   class Exception;
@@ -37,10 +41,6 @@ namespace rubinius {
 
   namespace event {
     class Loop;
-  }
-
-  namespace profiler {
-    class Profiler;
   }
 
   namespace gc {
@@ -79,13 +79,15 @@ namespace rubinius {
     uintptr_t stack_start_;
     uintptr_t stack_limit_;
     int stack_size_;
-    profiler::Profiler* profiler_;
     bool run_signals_;
 
     MethodMissingReason method_missing_reason_;
     void* young_start_;
     void* young_end_;
     bool thread_step_;
+
+    rbxti::Env* tooling_env_;
+    bool tooling_;
 
   public:
     /* Data members */
@@ -238,6 +240,22 @@ namespace rubinius {
       thread_step_ = true;
     }
 
+    rbxti::Env* tooling_env() {
+      return tooling_env_;
+    }
+
+    bool tooling() {
+      return tooling_;
+    }
+
+    void enable_tooling() {
+      tooling_ = true;
+    }
+
+    void disable_tooling() {
+      tooling_ = false;
+    }
+
   public:
     static void init_stack_size();
 
@@ -375,10 +393,6 @@ namespace rubinius {
       }
       return true;
     }
-
-    profiler::Profiler* profiler();
-
-    void remove_profiler();
 
     // For thread-local roots
     static std::list<Roots*>* roots;

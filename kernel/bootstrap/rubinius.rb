@@ -118,4 +118,26 @@ module Rubinius
     Ruby.primitive :vm_run_script
     raise PrimitiveFailure, "Rubinius.run_script failed"
   end
+
+  module Tooling
+    def self.available?
+      Ruby.primitive :vm_tooling_available_p
+      raise PrimitiveFailure, "Tooling.available? failed"
+    end
+
+    def self.active?
+      Ruby.primitive :vm_tooling_active_p
+      raise PrimitiveFailure, "Tooling.active? failed"
+    end
+
+    def self.enable
+      Ruby.primitive :vm_tooling_enable
+      raise PrimitiveFailure, "Tooling.enable failed"
+    end
+
+    def self.disable
+      Ruby.primitive :vm_tooling_disable
+      raise PrimitiveFailure, "Tooling.disable failed"
+    end
+  end
 end

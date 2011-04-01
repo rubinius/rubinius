@@ -17,7 +17,7 @@
 #include "builtin/location.hpp"
 #include "instructions.hpp"
 
-#include "instruments/profiler.hpp"
+#include "instruments/tooling.hpp"
 #include "instruments/timing.hpp"
 #include "config.h"
 
@@ -608,8 +608,8 @@ namespace rubinius {
       }
 
 #ifdef RBX_PROFILER
-      if(unlikely(state->shared.profiling())) {
-        profiler::MethodEntry method(state, msg, args, cm);
+      if(unlikely(state->tooling())) {
+        tooling::MethodEntry method(state, msg, args, cm);
         return (*vmm->run)(state, vmm, frame);
       } else {
         return (*vmm->run)(state, vmm, frame);

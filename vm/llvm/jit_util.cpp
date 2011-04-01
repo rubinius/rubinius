@@ -20,7 +20,7 @@
 #include "builtin/float.hpp"
 #include "builtin/location.hpp"
 
-#include "instruments/profiler.hpp"
+#include "instruments/tooling.hpp"
 
 #include "helpers.hpp"
 
@@ -62,7 +62,7 @@ extern "C" {
   {
     // Use placement new to stick the class into data, which is on the callers
     // stack.
-    new(data) profiler::MethodEntry(state, msg, args, cm, true);
+    new(data) tooling::MethodEntry(state, msg, args, cm);
   }
 
   void rbx_begin_profiling_block(STATE, void* data, BlockEnvironment* env,
@@ -70,10 +70,10 @@ extern "C" {
   {
     // Use placement new to stick the class into data, which is on the callers
     // stack.
-    new(data) profiler::MethodEntry(state, env->top_scope()->method()->name(), mod, cm, true);
+    new(data) tooling::BlockEntry(state, env, mod);
   }
 
-  void rbx_end_profiling(profiler::MethodEntry* entry) {
+  void rbx_end_profiling(tooling::MethodEntry* entry) {
     entry->~MethodEntry();
   }
 

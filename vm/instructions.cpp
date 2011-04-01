@@ -26,7 +26,6 @@
 #include "arguments.hpp"
 #include "dispatch.hpp"
 #include "instructions.hpp"
-#include "instruments/profiler.hpp"
 #include "configuration.hpp"
 
 #include "helpers.hpp"

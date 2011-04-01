@@ -21,9 +21,8 @@ namespace rubinius {
     class Handles;
   }
 
-  namespace profiler {
-    class Profiler;
-    class ProfilerCollection;
+  namespace tooling {
+    class ToolBroker;
   }
 
   class SignalHandler;
@@ -74,7 +73,6 @@ namespace rubinius {
     std::list<capi::Handle**> global_handle_locations_;
 
     bool profiling_;
-    profiler::ProfilerCollection* profiler_collection_;
     int global_serial_;
     WorldState* world_;
     InlineCacheRegistry* ic_registry_;
@@ -89,6 +87,7 @@ namespace rubinius {
     QueryAgent* agent_;
     VM* root_vm_;
     Environment* env_;
+    tooling::ToolBroker* tool_broker_;
 
   public:
     Globals globals;
@@ -235,13 +234,12 @@ namespace rubinius {
       return env_;
     }
 
+    tooling::ToolBroker* tool_broker() {
+      return tool_broker_;
+    }
+
     void scheduler_loop();
     void enable_preemption();
-
-    void enable_profiling(VM* vm);
-    LookupTable* disable_profiling(VM* vm);
-    void add_profiler(VM* vm, profiler::Profiler* profiler);
-    void remove_profiler(VM* vm, profiler::Profiler* profiler);
 
     void pre_exec();
     void reinit();

@@ -89,7 +89,7 @@ class Configure
     @libversion = "1.2"
     @version = "#{@libversion}.4dev"
     @release_date = "yyyy-mm-dd"
-    @config_version = 35
+    @config_version = 36
 
     # TODO: add conditionals for platforms
     if RbConfig::CONFIG["build_os"] =~ /darwin/
@@ -847,6 +847,37 @@ end
     Dir.mkdir "vm/gen" unless File.directory? "vm/gen"
 
     File.open "vm/gen/config.h", "w" do |f|
+      f.puts <<-EOC
+#define RBX_HOST          "#{@host}"
+#define RBX_CPU           "#{@cpu}"
+#define RBX_VENDOR        "#{@vendor}"
+#define RBX_OS            "#{@os}"
+#define RBX_BIN_PATH      "#{@bindir}"
+#define RBX_GEMS_PATH     "#{@gemsdir}"
+#define RBX_RUNTIME       "#{@runtime}"
+#define RBX_LIB_PATH      "#{@lib_path}"
+#define RBX_EXT_PATH      "#{@ext_path}"
+#define RBX_HDR_PATH      "#{@includedir}"
+#define RBX_SITE_PATH     "#{@sitedir}"
+#define RBX_VENDOR_PATH   "#{@vendordir}"
+#define RBX_VERSION       "#{@version}"
+#define RBX_LIB_VERSION   "#{@libversion}"
+#define RBX_LDSHARED      "#{@ldshared}"
+#define RBX_RELEASE_DATE  "#{@release_date}"
+#define RBX_SIZEOF_LONG   #{@sizeof_long}
+#define RBX_LLVM_API_VER  #{@llvm_api_version}
+      EOC
+
+      if @little_endian
+        f.puts "#define RBX_LITTLE_ENDIAN 1"
+      end
+
+      if @tr1_hash
+        f.puts "#define RBX_HAVE_TR1_HASH 1"
+      end
+    end
+
+    File.open "vm/capi/include/rbx_config.h", "w" do |f|
       f.puts <<-EOC
 #define RBX_HOST          "#{@host}"
 #define RBX_CPU           "#{@cpu}"

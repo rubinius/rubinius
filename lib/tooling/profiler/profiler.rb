@@ -10,13 +10,11 @@ module Rubinius
       attr_reader :info, :options
 
       def self.available?
-        Ruby.primitive :vm_profiler_instrumenter_available_p
-        raise PrimitiveFailure, "Profiler::Instrumenter.available? failed"
+        Rubinius::Tooling.available?
       end
 
       def self.active?
-        Ruby.primitive :vm_profiler_instrumenter_active_p
-        raise PrimitiveFailure, "Profiler::Instrumenter.active? failed"
+        Rubinius::Tooling.active?
       end
 
       def initialize(options = {})
@@ -57,13 +55,11 @@ module Rubinius
       end
 
       def start
-        Ruby.primitive :vm_profiler_instrumenter_start
-        raise PrimitiveFailure, "Profiler::Instrumenter#start failed"
+        Rubinius::Tooling.enable
       end
 
       def __stop__
-        Ruby.primitive :vm_profiler_instrumenter_stop
-        raise PrimitiveFailure, "Profiler::Instrumenter#stop failed"
+        Rubinius::Tooling.disable
       end
 
       def stop

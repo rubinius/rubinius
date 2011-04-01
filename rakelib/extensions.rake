@@ -53,7 +53,7 @@ end
 def compile_ext(name, opts={})
   names = name.split ":"
   name = names.last
-  ext_dir = File.join "lib/ext", names
+  ext_dir = opts[:dir] || File.join("lib/ext", names)
 
   if t = opts[:task]
     ext_task_name = "build:#{t}"
@@ -105,3 +105,6 @@ compile_ext "dl", :deps => ["Makefile", "dlconfig.h"]
 compile_ext "dbm", :ignore_fail => true, :deps => ["Makefile"]
 compile_ext "gdbm", :ignore_fail => true, :deps => ["Makefile"]
 compile_ext "sdbm", :deps => ["Makefile"]
+
+compile_ext "profiler", :dir => "lib/tooling/profiler", 
+                        :deps => ["Makefile"]

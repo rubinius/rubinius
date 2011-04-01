@@ -13,8 +13,6 @@
 #include "call_frame.hpp"
 #include "configuration.hpp"
 
-#include "instruments/profiler.hpp"
-
 #include <llvm/Target/TargetData.h>
 // #include <llvm/LinkAllPasses.h>
 #include <llvm/Analysis/Verifier.h>

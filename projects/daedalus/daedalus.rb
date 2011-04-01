@@ -295,21 +295,42 @@ module Daedalus
       deps = @data[:deps]
 
       if ctx.sha1(@path) != @data[:dep_sha1] or !deps
-        deps = ctx.calculate_deps(@path)
-
-        @data[:dep_sha1] = ctx.sha1(@path)
-        @data[:deps] = deps
+        deps = recalc_depedencies(ctx)
       end
 
       return deps + @static_deps
+    end
+
+    def recalc_depedencies(ctx)
+      deps = ctx.calculate_deps(@path)
+
+      @data[:dep_sha1] = ctx.sha1(@path)
+      @data[:deps] = deps
+
+      return deps
     end
 
     def sha1(ctx)
       sha1 = Digest::SHA1.new
       sha1 << ctx.sha1(@path)
 
-      dependencies(ctx).each do |d|
-        sha1 << ctx.sha1(d)
+      begin
+        dependencies(ctx).each do |d|
+          sha1 << ctx.sha1(d)
+        end
+      rescue StandardError
+        recalc_depedencies(ctx)
+      
+        sha1 = Digest::SHA1.new
+        sha1 << ctx.sha1(@path)
+
+        dependencies(ctx).each do |d|
+          begin
+            sha1 << ctx.sha1(d)
+          rescue StandardError => e
+            raise "Unable to find dependency '#{d}' from #{@path}"
+          end
+        end
       end
 
       sha1.hexdigest

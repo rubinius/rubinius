@@ -72,6 +72,8 @@ tmtags
 /lib/compiler/opcodes.rb
 /lib/compiler/generator_methods.rb
 
+vm/capi/include/rbx_config.h
+
 /lib/etc.rb
 /lib/kernel.rb
 /lib/zlib.rb
