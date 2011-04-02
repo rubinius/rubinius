@@ -8,7 +8,12 @@ namespace rubinius {
   class VM;
 namespace tooling {
 
+  const static int cTotalToolDatas = 16;
+
   class ToolBroker {
+    int tool_ids_;
+    void* global_tool_data_;
+
     rbxti::results_func results_func_;
     rbxti::enable_func  enable_func_;
 
@@ -24,6 +29,26 @@ namespace tooling {
     rbxti::enter_script enter_script_func_;
     rbxti::leave_func   leave_script_func_;
 
+    rbxti::thread_start_func thread_start_func_;
+    rbxti::thread_stop_func thread_stop_func_;
+
+    rbxti::shutdown_func shutdown_func_;
+
+  public:
+    ToolBroker();
+
+    int allocate_tool_id() {
+      return tool_ids_++;
+    }
+
+    void* global_tool_data() {
+      return global_tool_data_;
+    }
+
+    void set_global_tool_data(void* d) {
+      global_tool_data_ = d;
+    }
+
   public:
     void* enter_method(VM* state, Dispatch& msg, Arguments& args, CompiledMethod* cm);
     void  leave_method(VM* state, void* tag);
@@ -36,6 +61,11 @@ namespace tooling {
 
     void* enter_script(VM* state, CompiledMethod* cm);
     void  leave_script(VM* state, void* tag);
+
+    void shutdown(VM* state);
+
+    void thread_start(STATE);
+    void thread_stop(STATE);
 
     void set_tool_enter_method(rbxti::enter_method func);
     void set_tool_leave_method(rbxti::leave_func func);
@@ -51,6 +81,11 @@ namespace tooling {
 
     void set_tool_results(rbxti::results_func func);
     void set_tool_enable(rbxti::enable_func func);
+
+    void set_tool_shutdown(rbxti::shutdown_func func);
+
+    void set_tool_thread_start(rbxti::thread_start_func func);
+    void set_tool_thread_stop(rbxti::thread_stop_func func);
 
     Object* results(STATE);
     void enable(STATE);

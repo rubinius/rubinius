@@ -41,6 +41,10 @@ namespace rbxti {
   typedef void  (*leave_func)(Env* env, void* tag);
   typedef void* (*enter_gc)(Env* env, int level);
   typedef void* (*enter_script)(Env* env, rmethod cm);
+  typedef void  (*shutdown_func)(Env* env);
+
+  typedef void  (*thread_start_func)(Env* env);
+  typedef void  (*thread_stop_func)(Env* env);
 
   class Env {
   public:
@@ -59,9 +63,16 @@ namespace rbxti {
     rinteger cast_to_rinteger (robject obj);
     rarray   cast_to_rarray   (robject obj);
 
+    void* global_tool_data();
+    void set_global_tool_data(void* d);
+
     int thread_tool_new_id();
     void* thread_tool_data(int id);
     void thread_tool_set_data(int id, void* data);
+
+    int current_thread_id();
+
+    void enable_thread_tooling();
 
     rinteger integer_new(r_mint val);
     r_mint integer_value(rinteger i);
@@ -111,6 +122,11 @@ namespace rbxti {
 
     void set_tool_results(results_func func);
     void set_tool_enable(enable_func func);
+
+    void set_tool_shutdown(shutdown_func func);
+
+    void set_tool_thread_start(thread_start_func func);
+    void set_tool_thread_stop(thread_stop_func func);
   };
 }
 

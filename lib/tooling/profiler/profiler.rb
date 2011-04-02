@@ -106,6 +106,15 @@ module Rubinius
       end
 
       def flat(out)
+        keys = @info.keys.sort
+
+        keys.each do |t_id|
+          thread_flat out, t_id, @info[t_id]
+          puts
+        end
+      end
+
+      def thread_flat(out, t_id, info)
         total_calls = 0
         total = 0.0
 
@@ -115,10 +124,10 @@ module Rubinius
         # flat for each method, we need to go through and collect all the stats
         # for each unique method.
 
-        @info[:nodes].each do |n_id, data|
-          sub = data[4].inject(0) { |a,n| a + @info[:nodes][n][1] }
+        info[:nodes].each do |n_id, data|
+          sub = data[4].inject(0) { |a,n| a + info[:nodes][n][1] }
 
-          meth = @info[:methods][data[0]]
+          meth = info[:methods][data[0]]
           if cur = meth[:edge_total]
             meth[:edge_total] = cur + sub
           else
@@ -126,7 +135,7 @@ module Rubinius
           end
         end
 
-        data = @info[:methods].values.map do |m|
+        data = info[:methods].values.map do |m|
           cumulative   = m[:cumulative]
           method_total = m[:total]
           edges_total  = m[:edge_total]
@@ -152,7 +161,7 @@ module Rubinius
 
         if options[:cumulative_percentage]
           data.each do |d|
-            d[0] = (d[1] / sec(@info[:runtime])) * 100
+            d[0] = (d[1] / sec(info[:runtime])) * 100
           end
         else
           data.each do |d|
@@ -165,7 +174,7 @@ module Rubinius
           columns.map {|col| row[col] }
         end.reverse
 
-        out.puts "Total running time: #{sec(@info[:runtime])}s"
+        out.puts "Thread #{t_id}: total running time: #{sec(info[:runtime])}s"
         out.puts ""
         out.puts "  %   cumulative   self                self     total"
         out.puts " time   seconds   seconds      calls  ms/call  ms/call  name"
@@ -198,49 +207,63 @@ module Rubinius
 
       def json(path)
         File.open path, "w" do |f|
-          f.puts "{"
-          f.puts "  \"runtime\": #{@info[:runtime]},"
-          f.puts "  \"total_nodes\": #{@info[:total_nodes]},"
-          roots = @info[:roots].map { |x| x.to_s.dump }.join(',')
-          f.puts "  \"roots\": [ #{roots} ],"
-          f.puts "  \"nodes\": {"
-          idx = 0
-          final = @info[:nodes].size - 1
+          f.puts "["
+          @info.each do |t_id, info|
+            f.puts "{"
+            f.puts "  \"thread_id\": #{t_id},"
+            f.puts "  \"runtime\": #{info[:runtime]},"
+            f.puts "  \"total_nodes\": #{info[:total_nodes]},"
+            roots = info[:roots].map { |x| x.to_s.dump }.join(',')
+            f.puts "  \"roots\": [ #{roots} ],"
+            f.puts "  \"nodes\": {"
+            idx = 0
+            final = info[:nodes].size - 1
 
-          @info[:nodes].each do |n_id, data|
-            f.puts "    \"#{n_id}\": {"
-            f.puts "      \"method\": #{data[0]}, \"total\": #{data[1]}, \"called\": #{data[2]},"
-            f.puts "      \"total_nodes\": #{data[3]}, \"sub_nodes\": [ #{data[4].join(', ')} ]"
-            if idx == final
-              f.puts "    }"
-            else
-              f.puts "    },"
+            info[:nodes].each do |n_id, data|
+              f.puts "    \"#{n_id}\": {"
+              f.puts "      \"method\": #{data[0]}, \"total\": #{data[1]}, \"called\": #{data[2]},"
+              f.puts "      \"total_nodes\": #{data[3]}, \"sub_nodes\": [ #{data[4].join(', ')} ]"
+              if idx == final
+                f.puts "    }"
+              else
+                f.puts "    },"
+              end
+              idx += 1
             end
-            idx += 1
-          end
 
-          f.puts "  },"
-          f.puts "  \"methods\": {"
+            f.puts "  },"
+            f.puts "  \"methods\": {"
 
-          idx = 0
-          final = @info[:methods].size - 1
-          @info[:methods].each do |m_id, m|
-            f.puts "    \"#{m_id}\": {"
-            f.puts "      \"name\": \"#{m[:name]}\", \"file\": \"#{m[:file]}\", \"line\": #{m[:line] || 0},"
-            f.puts "      \"cumulative\": #{m[:cumulative]}, \"total\": #{m[:total]}, \"called\": #{m[:called]}"
-            if idx == final
-              f.puts "    }"
-            else
-              f.puts "    },"
+            idx = 0
+            final = info[:methods].size - 1
+            info[:methods].each do |m_id, m|
+              f.puts "    \"#{m_id}\": {"
+              f.puts "      \"name\": \"#{m[:name]}\", \"file\": \"#{m[:file]}\", \"line\": #{m[:line] || 0},"
+              f.puts "      \"cumulative\": #{m[:cumulative]}, \"total\": #{m[:total]}, \"called\": #{m[:called]}"
+              if idx == final
+                f.puts "    }"
+              else
+                f.puts "    },"
+              end
+              idx += 1
             end
-            idx += 1
-          end
 
-          f.puts "  }"
-          f.puts "}"
+            f.puts "  }"
+            f.puts "}"
+          end
+          f.puts "]"
         end
 
         puts "Wrote JSON to: #{path}"
+      end
+
+      def graph(out)
+        keys = @info.keys.sort
+
+        keys.each do |t_id|
+          thread_graph out, t_id, @info[t_id]
+          out.puts
+        end
       end
 
       # Prints an entry for each method, along with the method's callers and
@@ -248,15 +271,15 @@ module Rubinius
       # line for the method itself is called the "primary" line. The callers
       # are printed above the primary line and the methods called are printed
       # below.
-      def graph(out)
+      def thread_graph(out, t_id, info)
         total_calls = 0
         run_total = 0.0
 
-        data = @info[:nodes]
+        data = info[:nodes]
 
-        methods = @info[:methods]
+        methods = info[:methods]
 
-        run_total = @info[:runtime].to_f
+        run_total = info[:runtime].to_f
 
         all_callers = Hash.new { |h,k| h[k] = [] }
 
@@ -278,7 +301,8 @@ module Rubinius
           shown_indexes[id] = index + 1
         end
 
-        out.puts "Total running time: #{sec(@info[:runtime])}s"
+        out.puts "===== Thread #{t_id} ====="
+        out.puts "Total running time: #{sec(info[:runtime])}s"
         out.puts "index  % time     self  children         called       name"
         out.puts "----------------------------------------------------------"
 

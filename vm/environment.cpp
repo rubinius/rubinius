@@ -37,6 +37,8 @@
 
 #include "agent.hpp"
 
+#include "instruments/tooling.hpp"
+
 #include <iostream>
 #include <fstream>
 #include <sstream>
@@ -478,6 +480,8 @@ namespace rubinius {
   }
 
   void Environment::halt() {
+    state->shared.tool_broker()->shutdown(state);
+
     if(state->shared.config.ic_stats) {
       state->shared.ic_registry()->print_stats(state);
     }

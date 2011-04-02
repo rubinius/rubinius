@@ -79,6 +79,7 @@ namespace rubinius {
     unsigned int class_count_;
     uint64_t method_count_;
     std::list<ManagedThread*> threads_;
+    int thread_ids_;
 
     kcode::CodePage kcode_page_;
     kcode::table* kcode_table_;
@@ -138,6 +139,10 @@ namespace rubinius {
 
     void add_managed_thread(ManagedThread* thr);
     void remove_managed_thread(ManagedThread* thr);
+
+    int new_thread_id() {
+      return thread_ids_++;
+    }
 
     VariableRootBuffers* variable_buffers() {
       return &variable_root_buffers_;

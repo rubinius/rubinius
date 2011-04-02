@@ -4,6 +4,7 @@
 #include <stdint.h>
 #include <stdio.h>
 
+#include <list>
 #include <stack>
 #include <tr1/unordered_map>
 #include <map>
@@ -332,6 +333,8 @@ namespace profiler {
     int       nodes_;
     uint32_t  threshold_;
     uint64_t  start_time_;
+    int       id_;
+    bool      attached_;
 
   public:
     Profiler(Env* env);
@@ -352,6 +355,14 @@ namespace profiler {
 
     uint64_t start_time() {
       return start_time_;
+    }
+
+    void detach() {
+      attached_ = false;
+    }
+
+    int id() {
+      return id_;
     }
 
     method_id create_id(Env* env, rmethod cm, rsymbol container, rsymbol name, Kind kind);
@@ -459,6 +470,8 @@ namespace profiler {
   Profiler::Profiler(Env* env)
     : nodes_(0)
     , start_time_(env->time_current_ns())
+    , attached_(true)
+    , id_(env->current_thread_id())
   {
     root_ = current_ = new Node(0, next_node_id());
     threshold_ = (uint32_t)env->config_get_int("profiler.threshold");
@@ -686,32 +699,24 @@ namespace profiler {
     }
   }
 
+  struct GlobalState {
+    std::list<Profiler*> profilers;
+
+    void add(Profiler* prof) {
+      profilers.push_back(prof);
+    }
+  };
+
   static int cProfileToolID = -1;
 
   namespace {
-    robject tool_results(Env* env) {
-      Profiler* profiler = (Profiler*)env->thread_tool_data(cProfileToolID);
-      if(!profiler) return env->nil();
-
-      rtable profile = env->table_new();
-      rtable methods = env->table_new();
-      rtable nodes = env->table_new();
-
-      env->table_store(profile, env->symbol("methods"), methods);
-      env->table_store(profile, env->symbol("nodes"),   nodes);
-
-      uint64_t runtime = env->time_current_ns() - profiler->start_time();
-      env->table_store(profile, env->symbol("runtime"), env->integer_new(runtime));
-
-      KeyMap keys;
-      profiler->results(env, profile, nodes, methods, keys, runtime);
-
-      return profile;
-    }
-
     void tool_enable(Env* env) {
+      GlobalState* st = new GlobalState;
+      env->set_global_tool_data(st);
+
       Profiler* profiler = new Profiler(env);
       env->thread_tool_set_data(cProfileToolID, profiler);
+      st->add(profiler);
     }
 
     void* tool_enter_method(Env* env, robject recv, rsymbol name, rmodule mod,
@@ -797,6 +802,70 @@ namespace profiler {
 
       return me;
     }
+
+    void tool_shutdown(Env* env) {
+      GlobalState* st = (GlobalState*)env->global_tool_data();
+      for(std::list<Profiler*>::iterator i = st->profilers.begin();
+          i != st->profilers.end();
+          ++i) {
+
+        Profiler* prof = *i;
+        delete prof;
+      }
+
+      delete st;
+    }
+
+    void tool_start_thread(Env* env) {
+      GlobalState* st = (GlobalState*)env->global_tool_data();
+
+      Profiler* profiler = new Profiler(env);
+      st->add(profiler);
+
+      env->thread_tool_set_data(cProfileToolID, profiler);
+
+      env->enable_thread_tooling();
+    }
+
+    void tool_stop_thread(Env* env) {
+      Profiler* profiler = (Profiler*)env->thread_tool_data(cProfileToolID);
+      if(!profiler) return;
+
+      env->thread_tool_set_data(cProfileToolID, 0);
+      profiler->detach();
+    }
+
+    robject tool_results(Env* env) {
+      GlobalState* st = (GlobalState*)env->global_tool_data();
+
+      rtable profile = env->table_new();
+
+      for(std::list<Profiler*>::iterator i = st->profilers.begin();
+          i != st->profilers.end();
+          ++i) {
+
+        Profiler* prof = *i;
+
+        rtable thread = env->table_new();
+
+        env->table_store(profile, env->integer_new(prof->id()), thread);
+
+        rtable methods = env->table_new();
+        rtable nodes = env->table_new();
+
+        env->table_store(thread, env->symbol("methods"), methods);
+        env->table_store(thread, env->symbol("nodes"),   nodes);
+
+        uint64_t runtime = env->time_current_ns() - prof->start_time();
+        env->table_store(thread, env->symbol("runtime"), env->integer_new(runtime));
+
+        KeyMap keys;
+        prof->results(env, thread, nodes, methods, keys, runtime);
+      }
+
+      return profile;
+    }
+
   }
 
   extern "C" int Tool_Init(Env* env) {
@@ -819,6 +888,11 @@ namespace profiler {
 
     env->set_tool_enter_script(tool_enter_script);
     env->set_tool_leave_script(tool_leave_entry);
+
+    env->set_tool_shutdown(tool_shutdown);
+
+    env->set_tool_thread_start(tool_start_thread);
+    env->set_tool_thread_stop(tool_stop_thread);
 
     return 1;
   }

@@ -12,6 +12,11 @@
 namespace rubinius {
 namespace tooling {
 
+  ToolBroker::ToolBroker()
+    : tool_ids_(0)
+    , global_tool_data_(0)
+  {}
+
   void ToolBroker::enable(STATE) {
     if(!enable_func_) return;
     enable_func_(state->tooling_env());
@@ -89,6 +94,21 @@ namespace tooling {
     leave_script_func_(state->tooling_env(), tag);
   }
 
+  void ToolBroker::shutdown(STATE) {
+    if(!shutdown_func_) return;
+    shutdown_func_(state->tooling_env());
+  }
+
+  void ToolBroker::thread_start(STATE) {
+    if(!thread_start_func_) return;
+    thread_start_func_(state->tooling_env());
+  }
+
+  void ToolBroker::thread_stop(STATE) {
+    if(!thread_stop_func_) return;
+    thread_stop_func_(state->tooling_env());
+  }
+
   void ToolBroker::set_tool_results(rbxti::results_func func) {
     results_func_ = func;
   }
@@ -133,6 +153,18 @@ namespace tooling {
   void ToolBroker::set_tool_leave_script(rbxti::leave_func func)
   {
     leave_script_func_ = func;
+  }
+
+  void ToolBroker::set_tool_shutdown(rbxti::shutdown_func func) {
+    shutdown_func_ = func;
+  }
+
+  void ToolBroker::set_tool_thread_start(rbxti::thread_start_func func) {
+    thread_start_func_ = func;
+  }
+
+  void ToolBroker::set_tool_thread_stop(rbxti::thread_stop_func func) {
+    thread_stop_func_ = func;
   }
 
 }

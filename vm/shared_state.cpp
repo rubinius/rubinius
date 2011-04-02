@@ -124,6 +124,7 @@ namespace rubinius {
     , world_(new WorldState)
     , ic_registry_(new InlineCacheRegistry)
     , class_count_(0)
+    , thread_ids_(0)
     , agent_(0)
     , root_vm_(0)
     , env_(env)

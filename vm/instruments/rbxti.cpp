@@ -29,26 +29,20 @@ namespace rubinius {
 namespace rbxti {
   class EnvPrivate {
     VM* state_;
-    int tool_ids_;
-    void* tool_data[16];
+    void* tool_data[rubinius::tooling::cTotalToolDatas];
     rubinius::tooling::ToolBroker* broker_;
 
   public:
     EnvPrivate(STATE)
       : state_(state)
-      , tool_ids_(0)
       , broker_(state->shared.tool_broker())
     {
-      for(int i = 0; i < 16; i++) {
+      for(int i = 0; i < rubinius::tooling::cTotalToolDatas; i++) {
         tool_data[i] = 0;
       }
     }
 
     VM* state() { return state_; }
-
-    int allocate_tool_id() {
-      return tool_ids_++;
-    }
 
     void* get_tool_data(int i) {
       return tool_data[i];
@@ -133,8 +127,16 @@ namespace rbxti {
     return NULL;
   }
 
+  void* Env::global_tool_data() {
+    return private_->global()->global_tool_data();
+  }
+
+  void Env::set_global_tool_data(void* d) {
+    private_->global()->set_global_tool_data(d);
+  }
+
   int Env::thread_tool_new_id() {
-    return private_->allocate_tool_id();
+    return private_->global()->allocate_tool_id();
   }
 
   void* Env::thread_tool_data(int id) {
@@ -143,6 +145,14 @@ namespace rbxti {
 
   void Env::thread_tool_set_data(int id, void* data) {
     private_->set_tool_data(id, data);
+  }
+
+  void Env::enable_thread_tooling() {
+    private_->state()->enable_tooling();
+  }
+
+  int Env::current_thread_id() {
+    return private_->state()->thread_id();
   }
 
   rinteger Env::integer_new(r_mint val) {
@@ -306,6 +316,18 @@ namespace rbxti {
 
   void Env::set_tool_enable(enable_func func) {
     private_->global()->set_tool_enable(func);
+  }
+
+  void Env::set_tool_shutdown(shutdown_func func) {
+    private_->global()->set_tool_shutdown(func);
+  }
+
+  void Env::set_tool_thread_start(thread_start_func func) {
+    private_->global()->set_tool_thread_start(func);
+  }
+
+  void Env::set_tool_thread_stop(thread_stop_func func) {
+    private_->global()->set_tool_thread_stop(func);
   }
 
   Env* create_env(STATE) {

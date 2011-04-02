@@ -1,6 +1,9 @@
 #ifndef RBX_GC_SLAB_HPP
 #define RBX_GC_SLAB_HPP
 
+#include <stdint.h>
+#include <unistd.h>
+
 namespace rubinius {
 namespace gc {
   class Slab {
