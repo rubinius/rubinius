@@ -8,7 +8,6 @@
 #include "builtin/fixnum.hpp"
 #include "builtin/string.hpp"
 #include "builtin/symbol.hpp"
-#include "builtin/taskprobe.hpp"
 #include "builtin/tuple.hpp"
 #include "builtin/iseq.hpp"
 #include "builtin/staticscope.hpp"

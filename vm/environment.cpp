@@ -14,7 +14,6 @@
 #include "builtin/string.hpp"
 #include "builtin/symbol.hpp"
 #include "builtin/module.hpp"
-#include "builtin/taskprobe.hpp"
 
 #ifdef ENABLE_LLVM
 #include "llvm/jit.hpp"
@@ -427,14 +426,9 @@ namespace rubinius {
   void Environment::boot_vm() {
     state->initialize();
     state->boot();
-
-    TaskProbe* probe = TaskProbe::create(state);
-    state->probe.set(probe->parse_env(NULL) ? probe : nil<TaskProbe>());
   }
 
   void Environment::run_file(std::string file) {
-    if(!state->probe->nil_p()) state->probe->load_runtime(state, file);
-
     std::ifstream stream(file.c_str());
     if(!stream) {
       std::string msg = std::string("Unable to open file to run: ");

@@ -48,7 +48,6 @@ namespace rubinius {
   }
 
   class GlobalCache;
-  class TaskProbe;
   class Primitives;
   class ObjectMemory;
   class TypeInfo;
@@ -96,7 +95,6 @@ namespace rubinius {
     pthread_t os_thread_;
 
     ObjectMemory* om;
-    TypedRoot<TaskProbe*> probe;
     Interrupts& interrupts;
 
     bool check_local_interrupts;

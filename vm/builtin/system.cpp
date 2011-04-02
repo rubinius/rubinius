@@ -36,7 +36,6 @@
 #include "builtin/lookuptable.hpp"
 #include "builtin/symbol.hpp"
 #include "builtin/tuple.hpp"
-#include "builtin/taskprobe.hpp"
 #include "builtin/float.hpp"
 #include "builtin/methodtable.hpp"
 #include "builtin/io.hpp"
@@ -130,10 +129,6 @@ namespace rubinius {
   // HACK: remove this when performance is better and compiled_file.rb
   // unmarshal_data method works.
   Object* System::compiledfile_load(STATE, String* path, Integer* version) {
-    if(!state->probe->nil_p()) {
-      state->probe->load_runtime(state, std::string(path->c_str(state)));
-    }
-
     std::ifstream stream(path->c_str(state));
     if(!stream) {
       return Primitives::failure();

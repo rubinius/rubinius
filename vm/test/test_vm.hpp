@@ -22,10 +22,6 @@ class TestVM : public CxxTest::TestSuite, public VMTest {
     destroy();
   }
 
-  void test_probe_is_nil() {
-    TS_ASSERT_EQUALS(Qnil, state->probe.get());
-  }
-
   void test_symbol_given_cstr() {
     Symbol* sym1 = state->symbol("blah");
     Symbol* sym2 = state->symbol("blah");

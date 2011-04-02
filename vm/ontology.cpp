@@ -32,7 +32,6 @@
 #include "builtin/thread.hpp"
 #include "builtin/time.hpp"
 #include "builtin/tuple.hpp"
-#include "builtin/taskprobe.hpp"
 #include "builtin/autoload.hpp"
 #include "builtin/proc.hpp"
 #include "builtin/variable_scope.hpp"
@@ -248,7 +247,6 @@ namespace rubinius {
     AccessVariable::init(this);
     Pointer::init(this);
     NativeFunction::init(this);
-    TaskProbe::init(this);
     Exception::init(this);
     Data::init(this);
     Autoload::init(this);

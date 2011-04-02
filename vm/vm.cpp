@@ -13,7 +13,6 @@
 #include "builtin/thread.hpp"
 #include "builtin/tuple.hpp"
 #include "builtin/string.hpp"
-#include "builtin/taskprobe.hpp"
 #include "builtin/system.hpp"
 #include "builtin/fiber.hpp"
 #include "builtin/location.hpp"
@@ -71,7 +70,6 @@ namespace rubinius {
     , current_fiber(this, nil<Fiber>())
     , root_fiber(this, nil<Fiber>())
   {
-    probe.set(Qnil, &globals().roots);
     set_stack_size(cStackDepthMax);
     os_thread_ = pthread_self(); // initial value
 
