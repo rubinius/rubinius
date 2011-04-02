@@ -114,7 +114,7 @@ public:
 
     Tuple* tup2 = as<Tuple>(tup->duplicate(state));
 
-    TS_ASSERT(!try_as<MetaClass>(tup2->klass_));
+    TS_ASSERT(!try_as<SingletonClass>(tup2->klass_));
 
     TS_ASSERT_DIFFERS(tup->singleton_class(state), tup2->singleton_class(state));
   }
@@ -172,16 +172,16 @@ public:
   }
 
   void test_singleton_class() {
-    TS_ASSERT(kind_of<MetaClass>(G(object)->singleton_class(state)));
+    TS_ASSERT(kind_of<SingletonClass>(G(object)->singleton_class(state)));
     TS_ASSERT_EQUALS(Qnil->singleton_class(state), G(nil_class));
     TS_ASSERT_EQUALS(Qtrue->singleton_class(state), G(true_class));
     TS_ASSERT_EQUALS(Qfalse->singleton_class(state), G(false_class));
 
     Tuple *tup = Tuple::create(state, 1);
-    TS_ASSERT(!kind_of<MetaClass>(tup->klass()));
+    TS_ASSERT(!kind_of<SingletonClass>(tup->klass()));
 
-    TS_ASSERT(kind_of<MetaClass>(tup->singleton_class(state)));
-    TS_ASSERT(kind_of<MetaClass>(tup->klass()));
+    TS_ASSERT(kind_of<SingletonClass>(tup->singleton_class(state)));
+    TS_ASSERT(kind_of<SingletonClass>(tup->klass()));
   }
 
   void test_equal() {

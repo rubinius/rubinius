@@ -83,16 +83,16 @@ namespace rubinius {
       if(cf->is_block_p(state)) {
         stream << "__block__";
       } else {
-        if(MetaClass* meta = try_as<MetaClass>(cf->module())) {
-          if(Module* mod = try_as<Module>(meta->attached_instance())) {
+        if(SingletonClass* sc = try_as<SingletonClass>(cf->module())) {
+          if(Module* mod = try_as<Module>(sc->attached_instance())) {
             stream << mod->name()->c_str(state) << ".";
           } else {
-            if(meta->attached_instance() == G(main)) {
+            if(sc->attached_instance() == G(main)) {
               stream << "MAIN.";
             } else {
               stream << "#<" <<
-                meta->attached_instance()->class_object(state)->name()->c_str(state) <<
-                ":" << (void*)meta->attached_instance()->id(state)->to_native() << ">.";
+                sc->attached_instance()->class_object(state)->name()->c_str(state) <<
+                ":" << (void*)sc->attached_instance()->id(state)->to_native() << ">.";
             }
           }
         } else if(IncludedModule* im = try_as<IncludedModule>(cf->module())) {

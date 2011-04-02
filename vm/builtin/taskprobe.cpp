@@ -127,13 +127,13 @@ namespace rubinius {
 //    if(enabled_p(PROBE_EXECUTE_METHOD)) {
 //      std::cout << "[Executing: '";
 //
-//      if(MetaClass* meta = try_as<MetaClass>(msg.module)) {
-//        if(Module* mod = try_as<Module>(meta->attached_instance())) {
+//      if(SingletonaClass* sc = try_as<SingletonaClass>(msg.module)) {
+//        if(Module* mod = try_as<Module>(sc->attached_instance())) {
 //          std::cout << mod->name()->c_str(state) << ".";
 //        } else {
 //          std::cout << "#<" <<
-//            meta->attached_instance()->class_object(state)->name()->c_str(state) <<
-//            ":" << (void*)meta->attached_instance() << ">.";
+//            sc->attached_instance()->class_object(state)->name()->c_str(state) <<
+//            ":" << (void*)sc->attached_instance() << ">.";
 //        }
 //      } else {
 //        if(msg.module->name()->nil_p()) {

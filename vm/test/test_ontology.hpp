@@ -31,13 +31,13 @@ public:
 
   void test_singleton_class_is_completely_setup() {
     Class *cls;
-    MetaClass *meta;
+    SingletonClass *sc;
 
     cls = (Class*)G(klass);
-    meta = (MetaClass*)cls->klass();
-    TS_ASSERT(kind_of<MetaClass>(G(object)->klass()));
-    TS_ASSERT(kind_of<MethodTable>(meta->method_table()));
-    TS_ASSERT(kind_of<LookupTable>(meta->constants()));
+    sc = (SingletonClass*)cls->klass();
+    TS_ASSERT(kind_of<SingletonClass>(G(object)->klass()));
+    TS_ASSERT(kind_of<MethodTable>(sc->method_table()));
+    TS_ASSERT(kind_of<LookupTable>(sc->constants()));
   }
 
   void test_module() {

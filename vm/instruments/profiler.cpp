@@ -200,8 +200,8 @@ namespace rubinius {
     }
 
     Method* Profiler::enter_method(Dispatch &msg, Arguments& args, CompiledMethod* cm, bool jit) {
-      if(MetaClass* mc = try_as<MetaClass>(msg.module)) {
-        Object* attached = mc->attached_instance();
+      if(SingletonClass* sc = try_as<SingletonClass>(msg.module)) {
+        Object* attached = sc->attached_instance();
 
         if(Module* mod = try_as<Module>(attached)) {
           return get_method(cm, msg.name, mod->name(), jit ? kSingletonJIT : kSingleton);

@@ -624,11 +624,11 @@ namespace rubinius {
     for(int i = 0; i < cTrackedICHits; i++) {
       Module* mod = seen_classes_[i].klass();
       if(mod) {
-        if(MetaClass* mc = try_as<MetaClass>(mod)) {
-          if(Module* inner = try_as<Module>(mc->attached_instance())) {
-            stream << "  MetaClass:" << inner->name()->c_str(state);
+        if(SingletonClass* sc = try_as<SingletonClass>(mod)) {
+          if(Module* inner = try_as<Module>(sc->attached_instance())) {
+            stream << "  SingletonClass:" << inner->name()->c_str(state);
           } else {
-            stream << "  MetaClass:" << mc->attached_instance()->class_object(state)->name()->c_str(state);
+            stream << "  SingletonClass:" << sc->attached_instance()->class_object(state)->name()->c_str(state);
           }
         } else {
           stream << "  " << mod->name()->c_str(state);

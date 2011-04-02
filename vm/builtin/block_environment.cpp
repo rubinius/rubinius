@@ -142,8 +142,8 @@ namespace rubinius {
 #ifdef RBX_PROFILER
     if(unlikely(state->shared.profiling())) {
       Module* mod = scope->module();
-      if(MetaClass* mc = try_as<MetaClass>(mod)) {
-        if(Module* ma = try_as<Module>(mc->attached_instance())) {
+      if(SingletonClass* sc = try_as<SingletonClass>(mod)) {
+        if(Module* ma = try_as<Module>(sc->attached_instance())) {
           mod = ma;
         }
       }

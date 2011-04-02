@@ -630,8 +630,8 @@ class Module
   #
   def module_function(name)
     if entry = @method_table.lookup(name)
-      meta = class << self; self; end
-      meta.method_table.store name, entry.method, :public
+      sc = class << self; self; end
+      sc.method_table.store name, entry.method, :public
       private name
     end
   end

@@ -89,9 +89,9 @@ namespace rubinius {
   class CompiledMethod;
   class StaticScope;
 
-  class MetaClass : public Class {
+  class SingletonClass : public Class {
   public:
-    const static object_type type = MetaClassType;
+    const static object_type type = SingletonClassType;
 
   private:
     Object* attached_instance_; // slot
@@ -103,7 +103,7 @@ namespace rubinius {
 
     /* interface */
 
-    static MetaClass* attach(STATE, Object* obj, Class* sup = NULL);
+    static SingletonClass* attach(STATE, Object* obj, Class* sup = NULL);
 
     class Info : public Class::Info {
     public:

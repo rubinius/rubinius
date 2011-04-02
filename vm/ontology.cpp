@@ -129,16 +129,17 @@ namespace rubinius {
      *  With these 8 in place, we can now create fully initialized classes
      *  and modules.
      *
-     *  Next we need to finish up the MetaClass protocol (a.k.a. MOP).
-     *  The MetaClass of a subclass points to the MetaClass of the superclass.
+     *  Next we need to finish up the SingletonClass protocol (a.k.a. MOP).
+     *  The SingletonClass of a subclass points to the SingletonClass of the
+     *  superclass.
      */
 
-    // Object's MetaClass instance has Class for a superclass
-    Class* mc = MetaClass::attach(this, object, cls);
+    // Object's SingletonClass instance has Class for a superclass
+    Class* sc = SingletonClass::attach(this, object, cls);
     // Module's singleton class's superclass is Object's singleton class
-    mc = MetaClass::attach(this, G(module), mc);
+    sc = SingletonClass::attach(this, G(module), sc);
     // Class's singleton class likewise has Module's singleton class above it
-    MetaClass::attach(this, cls, mc);
+    SingletonClass::attach(this, cls, sc);
 
     // See?
     assert(object->superclass() == Qnil);
@@ -150,13 +151,13 @@ namespace rubinius {
     assert(cls->superclass() == G(module));
     assert(cls->klass()->superclass() == G(module)->klass());
 
-    // The other builtin classes get MetaClasses wired to Object's singleton class
-    mc = G(object)->singleton_class(this);
-    MetaClass::attach(this, G(tuple), mc);
-    MetaClass::attach(this, G(lookuptable), mc);
-    MetaClass::attach(this, G(lookuptablebucket), mc);
-    MetaClass::attach(this, G(methtbl), mc);
-    MetaClass::attach(this, G(methtblbucket), mc);
+    // The other builtin classes get SingletonClasses wired to Object's singleton class
+    sc = G(object)->singleton_class(this);
+    SingletonClass::attach(this, G(tuple), sc);
+    SingletonClass::attach(this, G(lookuptable), sc);
+    SingletonClass::attach(this, G(lookuptablebucket), sc);
+    SingletonClass::attach(this, G(methtbl), sc);
+    SingletonClass::attach(this, G(methtblbucket), sc);
 
     // Now, finish initializing the basic Class/Module
     G(object)->setup(this, "Object");

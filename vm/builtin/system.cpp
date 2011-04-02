@@ -758,7 +758,7 @@ namespace rubinius {
     bool add_ivars = false;
 
     if(Class* cls = try_as<Class>(mod)) {
-      add_ivars = !kind_of<MetaClass>(cls) && cls->type_info()->type == Object::type;
+      add_ivars = !kind_of<SingletonClass>(cls) && cls->type_info()->type == Object::type;
     } else {
       add_ivars = true;
     }
@@ -811,8 +811,8 @@ namespace rubinius {
   }
 
   Object* System::vm_singleton_class_object(STATE, Module* mod) {
-    if(MetaClass* mc = try_as<MetaClass>(mod)) {
-      return mc->attached_instance();
+    if(SingletonClass* sc = try_as<SingletonClass>(mod)) {
+      return sc->attached_instance();
     }
 
     return Qnil;
@@ -927,10 +927,10 @@ namespace rubinius {
   }
 
   Object* System::vm_extended_modules(STATE, Object* obj) {
-    if(MetaClass* mc = try_as<MetaClass>(obj->klass())) {
+    if(SingletonClass* sc = try_as<SingletonClass>(obj->klass())) {
       Array* ary = Array::create(state, 3);
 
-      Module* mod = mc->superclass();
+      Module* mod = sc->superclass();
       while(IncludedModule* im = try_as<IncludedModule>(mod)) {
         ary->append(state, im->module());
 

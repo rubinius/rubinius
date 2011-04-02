@@ -47,7 +47,7 @@ extern "C" {
       rb_raise(rb_eTypeError, "can't make subclass of Class");
     }
 
-    if(try_as<MetaClass>(env->get_object(super_handle))) {
+    if(try_as<SingletonClass>(env->get_object(super_handle))) {
       rb_raise(rb_eTypeError, "can't make subclass of virtual class");
     }
 
