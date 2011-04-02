@@ -16,81 +16,52 @@ Guide" 2nd or 3rd Edition by Thomas et al [The Pragmatic Programmers
 2005-2008]
 
 
-* _metaclass_
-
-  Also called the +singleton+ class or +eigenclass+. Every object in Ruby can
-  have one, although they are only created as necessary. The metaclass holds the
-  method and constant tables that belong only to a particular object instance.
-  For example, the method +hello+ defined below exists only in the metaclass for
-  +obj+.
-
-      obj = Object.new
-      def obj.hello
-        puts 'hi'
-      end
-
-  Since all classes in Ruby are also objects, they can have metaclasses. The
-  methods called "class methods" are just methods in the method_table of the
-  class's metaclass. The method +honk+ exists in the metaclass for the class
-  +Car+.
-
-      class Car
-        def self.honk
-        end
-      end
-
-  In Rubinius, metaclasses are all instances of the class MetaClass. The
-  metaclass for an object can be obtained by calling the +metaclass+ method.
-  The overall arrangement of concepts involved here is sometimes referred to
-  as the 'Meta-Object Protocol' or +MOP+.
-
-
 * _method lookup or method resolution_
 
   The rule is simple: Take the object located in the class slot of the object
   (which is not always the return value of Object#class; if the object has one,
-  it'll be the metaclass) and begin searching.
+  it'll be the singleton class) and begin searching.
 
   Searching goes up the superclass chain until the superclass is nil.
 
   In which case, redo lookup for method_missing. If we fail to find
   method_missing, fail tragically.
 
-                                            +-------------+
-                                            |     nil     |
-                                            +-------------+
-                                                   ^
-                                                   | superclass
-                                                   |
-                                            +-------------+
-                                            |    Object   |
-                                            +-------------+
-                                                   ^
-                                                   | superclass
-                                                   |
-                                            +-------------+
-                                            |    Module   |
-                                            +-------------+
-                                                   ^
-                                                   | superclass
-                                                   |
-                                            +-------------+
-                                            |    Class    |
-                                            +-------------+
-                                                   ^
-                                                   | superclass
-                                                   |
-                                            +-------------+
-                                            |  MetaClass  |
-                                            |   (Object)  |
-                                            +-------------+
-                                                   ^
-                                                   | superclass
-                                                   |
-       +-------------+                      +-------------+
-       |      F      |  ----------------->  |  MetaClass  |
-       +-------------+      metaclass       |     (F)     |
-                                            +-------------+
+                                            +----------------+
+                                            |      nil       |
+                                            +----------------+
+                                                    ^
+                                                    | superclass
+                                                    |
+                                            +----------------+
+                                            |     Object     |
+                                            +----------------+
+                                                    ^
+                                                    | superclass
+                                                    |
+                                            +----------------+
+                                            |     Module     |
+                                            +----------------+
+                                                    ^
+                                                    | superclass
+                                                    |
+                                            +----------------+
+                                            |     Class      |
+                                            +----------------+
+                                                    ^
+                                                    | superclass
+                                                    |
+                                            +----------------+
+                                            | SingletonClass |
+                                            |    (Object)    |
+                                            +----------------+
+                                                    ^
+                                                    | superclass
+                                                    |
+       +-------------+                      +----------------+
+       |      F      |  ----------------->  | SingletonClass |
+       +-------------+   singleton class    |      (F)       |
+                                            +----------------+
 
 
       class Class
@@ -107,8 +78,8 @@ Guide" 2nd or 3rd Edition by Thomas et al [The Pragmatic Programmers
 
   1. Resolve method 'wanker' -- search method_tables in:
 
-      1. MetaClass(F)
-      1. MetaClass(Object)
+      1. SingletonClass(F)
+      1. SingletonClass(Object)
       1. Class
 
   Found
@@ -161,6 +132,34 @@ Guide" 2nd or 3rd Edition by Thomas et al [The Pragmatic Programmers
   call to +today.you_are_mine+ will not succeed because private methods cannot
   have an explicit receiver. In this case, the object +today+ is the explicit
   receiver.
+
+
+* _singleton class_
+
+  Every object in Ruby can have one, although they are only created as
+  necessary. The singleton class holds the method and constant tables that
+  belong only to a particular object instance.  For example, the method
+  +hello+ defined below exists only in the singleton class for +obj+.
+
+      obj = Object.new
+      def obj.hello
+        puts 'hi'
+      end
+
+  Since all classes in Ruby are also objects, they can have singleton classes.
+  The methods called "class methods" are just methods in the method_table of
+  the class's singleton class. The method +honk+ exists in the singleton class
+  for the class +Car+.
+
+      class Car
+        def self.honk
+        end
+      end
+
+  In Rubinius, singleton classes are all instances of the class
+  SingletonClass. The singleton class for an object can be obtained by calling
+  the +singleton_class+ method.  The overall arrangement of concepts involved
+  here is sometimes referred to as the 'Meta-Object Protocol' or +MOP+.
 
 
 * _superclass_
