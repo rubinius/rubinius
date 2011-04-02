@@ -943,7 +943,7 @@ VALUE rb_uint2big(unsigned long number);
   VALUE   rb_class_of(VALUE object);
 
   /** Returns the Class object contained in the klass field of object
-   * (ie, a metaclass if it's there) */
+   * (ie, a singleton class if it's there) */
   VALUE   CLASS_OF(VALUE object);
 
   /** C string representation of the class' name. */

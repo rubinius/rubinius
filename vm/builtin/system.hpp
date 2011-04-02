@@ -30,6 +30,7 @@ namespace rubinius {
 
   public:   /* Primitives */
 
+    static void bootstrap_methods(STATE);
     static void attach_primitive(STATE, Module* mod, bool meta, Symbol* name, Symbol* prim);
 
     /** Load a compiled file. */

@@ -29,7 +29,7 @@ public:
     check_const(klass, "Class");
   }
 
-  void test_metaclass_is_completely_setup() {
+  void test_singleton_class_is_completely_setup() {
     Class *cls;
     MetaClass *meta;
 

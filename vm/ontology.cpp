@@ -28,6 +28,7 @@
 #include "builtin/staticscope.hpp"
 #include "builtin/string.hpp"
 #include "builtin/symbol.hpp"
+#include "builtin/system.hpp"
 #include "builtin/thread.hpp"
 #include "builtin/time.hpp"
 #include "builtin/tuple.hpp"
@@ -134,9 +135,9 @@ namespace rubinius {
 
     // Object's MetaClass instance has Class for a superclass
     Class* mc = MetaClass::attach(this, object, cls);
-    // Module's metaclass's superclass is Object's metaclass
+    // Module's singleton class's superclass is Object's singleton class
     mc = MetaClass::attach(this, G(module), mc);
-    // Class's metaclass likewise has Module's metaclass above it
+    // Class's singleton class likewise has Module's singleton class above it
     MetaClass::attach(this, cls, mc);
 
     // See?
@@ -149,8 +150,8 @@ namespace rubinius {
     assert(cls->superclass() == G(module));
     assert(cls->klass()->superclass() == G(module)->klass());
 
-    // The other builtin classes get MetaClasses wired to Object's metaclass
-    mc = G(object)->metaclass(this);
+    // The other builtin classes get MetaClasses wired to Object's singleton class
+    mc = G(object)->singleton_class(this);
     MetaClass::attach(this, G(tuple), mc);
     MetaClass::attach(this, G(lookuptable), mc);
     MetaClass::attach(this, G(lookuptablebucket), mc);
@@ -304,8 +305,10 @@ namespace rubinius {
     GO(vm).set(new_class_under("VM", G(rubinius)));
     G(vm)->name(state, state->symbol("Rubinius::VM"));
 
-    Object::bootstrap_methods(this);
-    Class::bootstrap_methods(this);
+    Module* type = new_module("Type", G(rubinius));
+    type->name(state, state->symbol("Rubinius::Type"));
+
+    System::bootstrap_methods(this);
     Module::bootstrap_methods(this);
     StaticScope::bootstrap_methods(this);
     VariableScope::bootstrap_methods(this);

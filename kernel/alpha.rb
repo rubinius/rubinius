@@ -251,7 +251,7 @@ module Kernel
     copy = cls.allocate
 
     Rubinius.invoke_primitive :object_copy_object, copy, self
-    Rubinius.invoke_primitive :object_copy_metaclass, copy, self
+    Rubinius.invoke_primitive :object_copy_singleton_class, copy, self
 
     Rubinius.privately do
       copy.initialize_copy self

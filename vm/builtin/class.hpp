@@ -53,9 +53,6 @@ namespace rubinius {
       packed_size_ = s;
     }
 
-    /* static */
-    static void bootstrap_methods(STATE);
-
     /* interface */
 
     void init(int id);

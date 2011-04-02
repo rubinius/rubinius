@@ -105,18 +105,18 @@ public:
         state->symbol("foo"));
   }
 
-  void test_dup_ignores_metaclass() {
+  void test_dup_ignores_singleton_class() {
     Tuple* tup = Tuple::create(state, 1);
     tup->put(state, 0, Qtrue);
 
     // Force it to exist.
-    tup->metaclass(state);
+    tup->singleton_class(state);
 
     Tuple* tup2 = as<Tuple>(tup->duplicate(state));
 
     TS_ASSERT(!try_as<MetaClass>(tup2->klass_));
 
-    TS_ASSERT_DIFFERS(tup->metaclass(state), tup2->metaclass(state));
+    TS_ASSERT_DIFFERS(tup->singleton_class(state), tup2->singleton_class(state));
   }
 
   void test_dup_bytes() {
@@ -171,16 +171,16 @@ public:
     TS_ASSERT(String::create(state, "blah")->hash(state) > 0);
   }
 
-  void test_metaclass() {
-    TS_ASSERT(kind_of<MetaClass>(G(object)->metaclass(state)));
-    TS_ASSERT_EQUALS(Qnil->metaclass(state), G(nil_class));
-    TS_ASSERT_EQUALS(Qtrue->metaclass(state), G(true_class));
-    TS_ASSERT_EQUALS(Qfalse->metaclass(state), G(false_class));
+  void test_singleton_class() {
+    TS_ASSERT(kind_of<MetaClass>(G(object)->singleton_class(state)));
+    TS_ASSERT_EQUALS(Qnil->singleton_class(state), G(nil_class));
+    TS_ASSERT_EQUALS(Qtrue->singleton_class(state), G(true_class));
+    TS_ASSERT_EQUALS(Qfalse->singleton_class(state), G(false_class));
 
     Tuple *tup = Tuple::create(state, 1);
     TS_ASSERT(!kind_of<MetaClass>(tup->klass()));
 
-    TS_ASSERT(kind_of<MetaClass>(tup->metaclass(state)));
+    TS_ASSERT(kind_of<MetaClass>(tup->singleton_class(state)));
     TS_ASSERT(kind_of<MetaClass>(tup->klass()));
   }
 

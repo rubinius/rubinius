@@ -169,7 +169,7 @@ extern "C" {
   VALUE rb_singleton_class(VALUE object_handle) {
     NativeMethodEnvironment* env = NativeMethodEnvironment::get();
 
-    Class* metaclass = env->get_object(object_handle)->metaclass(env->state());
-    return env->get_handle(metaclass);
+    Class* sc = env->get_object(object_handle)->singleton_class(env->state());
+    return env->get_handle(sc);
   }
 }

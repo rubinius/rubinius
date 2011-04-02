@@ -77,7 +77,7 @@ public:
 
     TS_ASSERT_EQUALS(me1->method_, prof->methods_.find(me1->method_->id())->second);
 
-    mod = G(object)->metaclass(state);
+    mod = G(object)->singleton_class(state);
     profiler::MethodEntry* me2 = new profiler::MethodEntry(state, meth, mod, cm);
     TS_ASSERT_EQUALS(prof->methods_.size(), 2U);
 
@@ -104,7 +104,7 @@ public:
 
     TS_ASSERT_EQUALS(me1->method_, prof->methods_.find(me1->method_->id())->second);
 
-    dis.module = G(object)->metaclass(state);
+    dis.module = G(object)->singleton_class(state);
     profiler::MethodEntry* me2 = new profiler::MethodEntry(state, dis, args);
     TS_ASSERT_EQUALS(prof->methods_.size(), 2U);
 

@@ -124,7 +124,7 @@ extern "C" {
   void rb_undef_alloc_func(VALUE class_handle) {
     NativeMethodEnvironment* env = NativeMethodEnvironment::get();
     rb_undef_method(
-        env->get_handle(env->get_object(class_handle)->metaclass(env->state())),
+        env->get_handle(env->get_object(class_handle)->singleton_class(env->state())),
         "allocate");
   }
 

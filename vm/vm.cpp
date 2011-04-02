@@ -245,7 +245,7 @@ namespace rubinius {
     cls->setup(this, name, under);
 
     // HACK test that we've got the MOP setup properly
-    MetaClass::attach(this, cls, sup->metaclass(this));
+    MetaClass::attach(this, cls, sup->singleton_class(this));
     return cls;
   }
 

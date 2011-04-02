@@ -71,11 +71,49 @@
 
 namespace rubinius {
 
+  void System::bootstrap_methods(STATE) {
+    System::attach_primitive(state,
+                             G(rubinius), true,
+                             state->symbol("open_class"),
+                             state->symbol("vm_open_class"));
+
+    System::attach_primitive(state,
+                             G(rubinius), true,
+                             state->symbol("open_class_under"),
+                             state->symbol("vm_open_class_under"));
+
+    System::attach_primitive(state,
+                             G(rubinius), true,
+                             state->symbol("open_module"),
+                             state->symbol("vm_open_module"));
+
+    System::attach_primitive(state,
+                             G(rubinius), true,
+                             state->symbol("open_module_under"),
+                             state->symbol("vm_open_module_under"));
+
+    System::attach_primitive(state,
+                             G(rubinius), true,
+                             state->symbol("add_defn_method"),
+                             state->symbol("vm_add_method"));
+
+    System::attach_primitive(state,
+                             G(rubinius), true,
+                             state->symbol("attach_method"),
+                             state->symbol("vm_attach_method"));
+
+    System::attach_primitive(state,
+                             as<Module>(G(rubinius)->get_const(state, "Type")), true,
+                             state->symbol("object_singleton_class"),
+                             state->symbol("vm_object_singleton_class"));
+
+  }
+
   void System::attach_primitive(STATE, Module* mod, bool meta, Symbol* name, Symbol* prim) {
     MethodTable* tbl;
 
     if(meta) {
-      tbl = mod->metaclass(state)->method_table();
+      tbl = mod->singleton_class(state)->method_table();
     } else {
       tbl = mod->method_table();
     }
@@ -749,7 +787,7 @@ namespace rubinius {
 
   Object* System::vm_attach_method(STATE, Symbol* name, CompiledMethod* method,
                                    StaticScope* scope, Object* recv) {
-    Module* mod = recv->metaclass(state);
+    Module* mod = recv->singleton_class(state);
 
     method->scope(state, scope);
     method->serial(state, Fixnum::from(0));
@@ -765,7 +803,7 @@ namespace rubinius {
   }
 
   Object* System::vm_object_singleton_class(STATE, Object* obj) {
-    if(obj->reference_p()) return obj->metaclass(state);
+    if(obj->reference_p()) return obj->singleton_class(state);
     if(obj->true_p()) return G(true_class);
     if(obj->false_p()) return G(false_class);
     if(obj->nil_p()) return G(nil_class);

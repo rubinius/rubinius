@@ -137,8 +137,8 @@ namespace rubinius {
      * Copies this Object's MetaClass to the other Object. Called
      * by Kernel#clone.
      */
-    // Ruby.primitive :object_copy_metaclass
-    Object* copy_metaclass(STATE, Object* other);
+    // Ruby.primitive :object_copy_singleton_class
+    Object* copy_singleton_class(STATE, Object* other);
 
     /** True if this Object* is actually a Fixnum, false otherwise. */
     bool fixnum_p() const;
@@ -282,8 +282,7 @@ namespace rubinius {
     Object*   instance_of_prim(STATE, Module* klass);
 
     /** Return object's MetaClass object. Created as needed. */
-    // Ruby.primitive :object_metaclass
-    Class*    metaclass(STATE);
+    Class* singleton_class(STATE);
 
     /**
      *  Ruby #instance_variable_set

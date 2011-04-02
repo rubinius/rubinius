@@ -24,43 +24,6 @@
 
 namespace rubinius {
 
-  void Class::bootstrap_methods(STATE) {
-    System::attach_primitive(state,
-                             G(rubinius), true,
-                             state->symbol("open_class"),
-                             state->symbol("vm_open_class"));
-
-    System::attach_primitive(state,
-                             G(rubinius), true,
-                             state->symbol("open_class_under"),
-                             state->symbol("vm_open_class_under"));
-
-    System::attach_primitive(state,
-                             G(rubinius), true,
-                             state->symbol("open_module"),
-                             state->symbol("vm_open_module"));
-
-    System::attach_primitive(state,
-                             G(rubinius), true,
-                             state->symbol("open_module_under"),
-                             state->symbol("vm_open_module_under"));
-
-    System::attach_primitive(state,
-                             G(rubinius), true,
-                             state->symbol("object_metaclass"),
-                             state->symbol("vm_object_metaclass"));
-
-    System::attach_primitive(state,
-                             G(rubinius), true,
-                             state->symbol("add_defn_method"),
-                             state->symbol("vm_add_method"));
-
-    System::attach_primitive(state,
-                             G(rubinius), true,
-                             state->symbol("attach_method"),
-                             state->symbol("vm_attach_method"));
-  }
-
   Class* Class::create(STATE, Class* super) {
     Class* cls = state->om->new_object_enduring<Class>(G(klass));
 
@@ -79,7 +42,7 @@ namespace rubinius {
 
     cls->setup(state);
 
-    MetaClass::attach(state, cls, super->metaclass(state)); // HACK test
+    MetaClass::attach(state, cls, super->singleton_class(state)); // HACK test
 
     return cls;
   }
@@ -195,7 +158,7 @@ use_packed:
     }
 
     if(try_as<MetaClass>(sup)) {
-      Exception::type_error(state, "cannot inherit from a metaclass");
+      Exception::type_error(state, "cannot inherit from a singleton class");
     }
 
     superclass(state, sup);
@@ -207,7 +170,7 @@ use_packed:
       set_type_info(sup->type_info());
     }
 
-    MetaClass::attach(state, this, sup->metaclass(state));
+    MetaClass::attach(state, this, sup->singleton_class(state));
 
     return Qnil;
   }
@@ -323,21 +286,23 @@ use_packed:
     meta->set_packed_size(obj->klass()->packed_size());
     meta->packed_ivar_info(state, obj->klass()->packed_ivar_info());
 
-    /* The superclass hierarchy for metaclasses lives in parallel to that of classes.
-     * This code ensures that the superclasses of metaclasses are also metaclasses.
+    /* The superclass hierarchy for singleton classes lives in parallel to
+     * that of classes.  This code ensures that the superclasses of singleton
+     * classes are also singleton classes.
      */
     if(MetaClass* already_meta = try_as<MetaClass>(obj)) {
-      /* If we are attaching a metaclass to something that is already a MetaClass,
-       * make the metaclass's superclass be the attachee's superclass.
-       * klass and superclass are both metaclasses in this case.
+      /* If we are attaching a singleton class to something that is already a
+       * MetaClass, make the singleton class's superclass be the attachee's
+       * superclass.  klass and superclass are both singleton classes in this
+       * case.
        */
       meta->klass(state, meta);
-      meta->superclass(state, already_meta->true_superclass(state)->metaclass(state));
+      meta->superclass(state, already_meta->true_superclass(state)->singleton_class(state));
     } else {
-      /* If we are attaching to anything but a MetaClass, the new
-       * metaclass's class is the same as its superclass.
-       * This is where the superclass chains for meta/non-meta classes diverge.
-       * If no superclass argument was provided, we use the klass we are replacing.
+      /* If we are attaching to anything but a MetaClass, the new singleton
+       * class's class is the same as its superclass.  This is where the
+       * superclass chains for meta/non-meta classes diverge.  If no
+       * superclass argument was provided, we use the klass we are replacing.
        */
       if(!sup) { sup = obj->klass(); }
       /* Tell the new MetaClass about the attachee's existing hierarchy */
