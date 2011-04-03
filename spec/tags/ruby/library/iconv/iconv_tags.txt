@@ -1,2 +1,0 @@
-fails:Iconv#iconv when given a positive length
-fails:Iconv#iconv when given a negative length
