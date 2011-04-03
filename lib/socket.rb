@@ -108,7 +108,7 @@ class BasicSocket < IO
   end
 
   def close_read
-    ensure_open_and_readable
+    ensure_open
 
     # If we were only in readonly mode, close it all together
     if @mode & ACCMODE == RDONLY
@@ -118,13 +118,13 @@ class BasicSocket < IO
     # MRI doesn't check if shutdown worked, so we don't.
     Socket::Foreign.shutdown @descriptor, 0
 
-    @mode = @mode & ~RDONLY
+    @mode = WRONLY
 
     nil
   end
 
   def close_write
-    ensure_open_and_writable
+    ensure_open
 
     # If we were only in writeonly mode, close it all together
     if @mode & ACCMODE == WRONLY
@@ -133,8 +133,8 @@ class BasicSocket < IO
 
     Socket::Foreign.shutdown @descriptor, 1
 
-    # Remove write from the mode bits
-    @mode = @mode & ~WRONLY
+    # Mark it as read only
+    @mode = RDONLY
 
     nil
   end
