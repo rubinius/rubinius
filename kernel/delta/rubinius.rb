@@ -130,7 +130,7 @@ module Rubinius
 
     # Don't change the visibility for methods added to singleton
     # classes
-    if Class === mod and Type.singleton_class_object mod
+    if Type.object_kind_of?(mod, Class) and Type.singleton_class_object(mod)
       visibility = vis
     elsif vis == :module or name == :initialize or name == :initialize_copy
       visibility = :private
@@ -153,7 +153,7 @@ module Rubinius
     # commonly can't run yet because it requires methods that haven't been
     # added yet. (ActionMailer does this)
 
-    if Class === mod and obj = Type.singleton_class_object(mod)
+    if Type.object_kind_of?(mod, Class) and obj = Type.singleton_class_object(mod)
       if Type.object_kind_of? obj, Numeric
 
         # Such a weird protocol. If :singleton_method_added exists, allow this.
