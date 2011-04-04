@@ -37,7 +37,7 @@ module Rubinius
     #
     def self.try_convert(obj, cls, meth)
       return obj if object_kind_of?(obj, cls)
-      return nil unless object_respond_to?(obj, meth)
+      return nil unless obj.respond_to?(meth)
 
       begin
         ret = obj.__send__(meth)
@@ -55,7 +55,7 @@ module Rubinius
       if object_kind_of?(obj, Fixnum)
         raise ArgumentError, "Fixnums (#{obj}) cannot be used as symbols"
       end
-      obj = obj.to_str if object_respond_to?(obj, :to_str)
+      obj = obj.to_str if obj.respond_to?(:to_str)
 
       coerce_to(obj, Symbol, :to_sym)
     end
