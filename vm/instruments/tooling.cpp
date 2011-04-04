@@ -1,6 +1,7 @@
 #include "vm/vm.hpp"
 #include "arguments.hpp"
 #include "dispatch.hpp"
+#include "configuration.hpp"
 
 #include "instruments/rbxti-internal.hpp"
 #include "instruments/tooling.hpp"
@@ -8,6 +9,7 @@
 #include "builtin/compiledmethod.hpp"
 #include "builtin/block_environment.hpp"
 #include "builtin/variable_scope.hpp"
+#include "builtin/system.hpp"
 
 namespace rubinius {
 namespace tooling {
@@ -19,6 +21,10 @@ namespace tooling {
 
   void ToolBroker::enable(STATE) {
     if(!enable_func_) return;
+
+    state->shared.config.jit_disabled.set("true");
+    System::vm_deoptimize_all(state, Qtrue);
+
     enable_func_(state->tooling_env());
   }
 
@@ -29,6 +35,13 @@ namespace tooling {
 
   Object* ToolBroker::results(STATE) {
     if(!results_func_) return Qnil;
+
+    state->shared.config.jit_disabled.set("false");
+
+    // This finds all the methods again and this time makes them available
+    // for JIT.
+    System::vm_deoptimize_all(state, Qfalse);
+
     return rbxti::s(results_func_(state->tooling_env()));
   }
 

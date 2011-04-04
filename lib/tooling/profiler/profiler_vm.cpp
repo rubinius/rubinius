@@ -361,6 +361,10 @@ namespace profiler {
       attached_ = false;
     }
 
+    bool attached_p() {
+      return attached_;
+    }
+
     int id() {
       return id_;
     }
@@ -700,7 +704,12 @@ namespace profiler {
   }
 
   struct GlobalState {
+    Profiler* main_profiler;
     std::list<Profiler*> profilers;
+
+    GlobalState()
+      : main_profiler(0)
+    {}
 
     void add(Profiler* prof) {
       profilers.push_back(prof);
@@ -715,8 +724,12 @@ namespace profiler {
       env->set_global_tool_data(st);
 
       Profiler* profiler = new Profiler(env);
+      st->main_profiler = profiler;
+
       env->thread_tool_set_data(cProfileToolID, profiler);
       st->add(profiler);
+
+      env->enable_thread_tooling();
     }
 
     void* tool_enter_method(Env* env, robject recv, rsymbol name, rmodule mod,
@@ -805,12 +818,16 @@ namespace profiler {
 
     void tool_shutdown(Env* env) {
       GlobalState* st = (GlobalState*)env->global_tool_data();
+      if(!st) return;
+
+      env->set_global_tool_data(0);
+
       for(std::list<Profiler*>::iterator i = st->profilers.begin();
           i != st->profilers.end();
           ++i) {
 
         Profiler* prof = *i;
-        delete prof;
+        if(!prof->attached_p()) delete prof;
       }
 
       delete st;
@@ -818,6 +835,9 @@ namespace profiler {
 
     void tool_start_thread(Env* env) {
       GlobalState* st = (GlobalState*)env->global_tool_data();
+
+      // No GlobalState means that the tool isn't currently enabled.
+      if(!st) return;
 
       Profiler* profiler = new Profiler(env);
       st->add(profiler);
@@ -833,10 +853,20 @@ namespace profiler {
 
       env->thread_tool_set_data(cProfileToolID, 0);
       profiler->detach();
+
+      env->disable_thread_tooling();
     }
 
     robject tool_results(Env* env) {
       GlobalState* st = (GlobalState*)env->global_tool_data();
+
+      Profiler* profiler = (Profiler*)env->thread_tool_data(cProfileToolID);
+
+      // Ignore results requests that don't come from the thread that
+      // started profiling.
+      if(st->main_profiler != profiler) return env->nil();
+
+      env->thread_tool_set_data(cProfileToolID, 0);
 
       rtable profile = env->table_new();
 
@@ -863,6 +893,10 @@ namespace profiler {
         prof->results(env, thread, nodes, methods, keys, runtime);
       }
 
+      tool_shutdown(env);
+      delete profiler;
+
+      env->disable_thread_tooling();
       return profile;
     }
 
@@ -870,7 +904,6 @@ namespace profiler {
 
   extern "C" int Tool_Init(Env* env) {
     env->config_set("tool.require", "tooling/profiler/profiler.rb");
-    env->config_set("int", "true");
 
     cProfileToolID = env->thread_tool_new_id();
 

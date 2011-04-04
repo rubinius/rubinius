@@ -124,6 +124,10 @@ namespace rubinius {
     // Ruby.primitive :vm_mri_backtrace
     static Array* vm_mri_backtrace(STATE, Fixnum* skip, CallFrame* calling_environment);
 
+    // Load a tool into the VM.
+    // Ruby.primitive :vm_load_tool
+    static Object* vm_load_tool(STATE, String* str);
+
     /** Return true if tooling is enabled */
     // Ruby.primitive :vm_tooling_available_p
     static Object* vm_tooling_available_p(STATE);
@@ -222,6 +226,11 @@ namespace rubinius {
     // Deoptimze any method that inlined exec
     // Ruby.primitive :vm_deoptimize_inliners
     static Object* vm_deoptimize_inliners(STATE, Executable* exec);
+
+    // Deoptimize all methods.
+    // +disable+ indicates if the methods should also be pulled from being
+    // available for JIT.
+    static Object* vm_deoptimize_all(STATE, Object* disable);
 
     // Ruby.primitive :vm_raise_exception
     static Object* vm_raise_exception(STATE, Exception* exc);

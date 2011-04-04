@@ -203,11 +203,7 @@ namespace rubinius {
           "Set a custom path to write crash reports");
     }
 
-    void finalize() {
-      if(profile) {
-        tool_to_load.set("tooling/profiler/profiler_vm");
-      }
-    }
+    void finalize() { }
   };
 }
 

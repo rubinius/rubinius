@@ -17,7 +17,16 @@ module Rubinius
         Rubinius::Tooling.active?
       end
 
+      @loaded = false
+      def self.load
+        return if @loaded
+        Rubinius::Tooling.load File.expand_path("../profiler_vm", __FILE__)
+        @loaded = true
+      end
+
       def initialize(options = {})
+        Instrumenter.load
+
         @options = { :sort => :percent }
         set_options options
         set_options :full_report => true if Config["profiler.full_report"]

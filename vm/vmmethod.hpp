@@ -73,7 +73,7 @@ namespace rubinius {
 #ifdef ENABLE_LLVM
   private:
     llvm::Function* llvm_function_;
-    size_t jitted_bytes_;
+    int    jitted_bytes_;
     void*  jitted_impl_;
 #endif
 
@@ -94,7 +94,11 @@ namespace rubinius {
 
 #ifdef ENABLE_LLVM
     bool jitted() {
-      return jitted_impl_ != 0;
+      return jit_disabled() && jitted_impl_ != 0;
+    }
+
+    bool jit_disabled() {
+      return jitted_bytes_ == -1;
     }
 
     void set_jitted(llvm::Function* func, size_t bytes, void* impl) {
@@ -227,7 +231,7 @@ namespace rubinius {
     void initialize_caches(STATE, CompiledMethod* original, int sends);
     void find_super_instructions();
 
-    void deoptimize(STATE, CompiledMethod* original);
+    void deoptimize(STATE, CompiledMethod* original, bool disable=false);
 
     /*
      * Helper class for iterating over an Opcode array.  Used to convert a

@@ -151,6 +151,10 @@ namespace rbxti {
     private_->state()->enable_tooling();
   }
 
+  void Env::disable_thread_tooling() {
+    private_->state()->disable_tooling();
+  }
+
   int Env::current_thread_id() {
     return private_->state()->thread_id();
   }

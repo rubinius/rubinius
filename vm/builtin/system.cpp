@@ -12,6 +12,8 @@
 #include <unistd.h>
 #include <pwd.h>
 
+#include <dlfcn.h>
+
 #include "vm/call_frame.hpp"
 #include "vm/helpers.hpp"
 
@@ -59,6 +61,8 @@
 #include "util/sha1.h"
 
 #include "instruments/tooling.hpp"
+
+#include "gc/walker.hpp"
 
 #ifdef ENABLE_LLVM
 #include "llvm/jit.hpp"
@@ -480,13 +484,51 @@ namespace rubinius {
 
   Object* System::vm_tooling_enable(STATE) {
     state->shared.tool_broker()->enable(state);
-    state->enable_tooling();
     return Qtrue;
   }
 
   Object* System::vm_tooling_disable(STATE) {
-    state->disable_tooling();
     return state->shared.tool_broker()->results(state);
+  }
+
+  Object* System::vm_load_tool(STATE, String* str) {
+    std::string path = std::string(str->c_str(state)) + ".";
+
+#ifdef _WIN32
+    path += "dll";
+#else
+  #ifdef __APPLE_CC__
+    path += "bundle";
+  #else
+    path += "so";
+  #endif
+#endif
+
+    void* handle = dlopen(path.c_str(), RTLD_NOW);
+    if(!handle) {
+      path = std::string(RBX_LIB_PATH) + "/" + path;
+
+      handle = dlopen(path.c_str(), RTLD_NOW);
+      if(!handle) {
+        return Tuple::from(state, 2, Qfalse, String::create(state, dlerror()));
+      }
+    }
+
+    void* sym = dlsym(handle, "Tool_Init");
+    if(!sym) {
+      dlclose(handle);
+      return Tuple::from(state, 2, Qfalse, String::create(state, dlerror()));
+    } else {
+      typedef int (*init_func)(rbxti::Env* env);
+      init_func init = (init_func)sym;
+
+      if(!init(state->tooling_env())) {
+        dlclose(handle);
+        return Tuple::from(state, 2, Qfalse, String::create(state, path.c_str()));
+      }
+    }
+    
+    return Tuple::from(state, 1, Qtrue);
   }
 
   Object* System::vm_write_error(STATE, String* str) {
@@ -802,6 +844,33 @@ namespace rubinius {
   Object* System::vm_deoptimize_inliners(STATE, Executable* exec) {
     exec->clear_inliners(state);
     return Qtrue;
+  }
+
+  Object* System::vm_deoptimize_all(STATE, Object* o_disable) {
+    ObjectWalker walker(state->om);
+    GCData gc_data(state);
+
+    // Seed it with the root objects.
+    walker.seed(gc_data);
+
+    Object* obj = walker.next();
+
+    int total = 0;
+
+    bool disable = RTEST(o_disable);
+
+    while(obj) {
+      if(CompiledMethod* cm = try_as<CompiledMethod>(obj)) {
+        if(VMMethod* vmm = cm->backend_method()) {
+          vmm->deoptimize(state, cm, disable);
+        }
+        total++;
+      }
+
+      obj = walker.next();
+    }
+
+    return Integer::from(state, total);
   }
 
   Object* System::vm_raise_exception(STATE, Exception* exc) {

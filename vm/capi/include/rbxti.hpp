@@ -73,6 +73,7 @@ namespace rbxti {
     int current_thread_id();
 
     void enable_thread_tooling();
+    void disable_thread_tooling();
 
     rinteger integer_new(r_mint val);
     r_mint integer_value(rinteger i);
