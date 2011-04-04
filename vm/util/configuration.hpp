@@ -45,6 +45,7 @@ namespace config {
     ConfigItem(Configuration* config, const char* name)
       : name_(name)
       , description_(0)
+      , set_(false)
     {
       config->add_item(this);
     }
