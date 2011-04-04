@@ -10,6 +10,7 @@
 #include "builtin/symbol.hpp"
 #include "object_utils.hpp"
 #include "builtin/nativemethod.hpp"
+#include "instruments/tooling.hpp"
 
 namespace rubinius {
   NativeThread::NativeThread(VM* vm, size_t stack_size, pthread_t tid)
@@ -32,7 +33,11 @@ namespace rubinius {
     int stack_boundary = 0;
     vm_->set_stack_bounds(reinterpret_cast<uintptr_t>(&stack_boundary), stack_size());
 
+    vm_->shared.tool_broker()->thread_start(vm_);
+
     Object* ret = vm_->thread.get()->send(vm_, NULL, vm_->symbol("__run__"));
+
+    vm_->shared.tool_broker()->thread_stop(vm_);
 
     if(!ret) {
       if(vm_->thread_state()->raise_reason() == cExit) {

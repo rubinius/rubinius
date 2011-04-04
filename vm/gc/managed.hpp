@@ -18,16 +18,13 @@ namespace rubinius {
     Roots roots_;
     Kind kind_;
     const char* name_;
+    int thread_id_;
 
   protected:
     gc::Slab local_slab_;
 
   public:
-    ManagedThread(SharedState& ss, Kind kind)
-      : shared_(ss)
-      , kind_(kind)
-      , name_(kind == eRuby ? "<ruby>" : "<system>")
-    {}
+    ManagedThread(SharedState& ss, Kind kind);
 
     Roots& roots() {
       return roots_;
@@ -53,6 +50,11 @@ namespace rubinius {
     void set_name(const char* name) {
       name_ = name;
     }
+
+    int thread_id() {
+      return thread_id_;
+    }
+
   };
 }
 

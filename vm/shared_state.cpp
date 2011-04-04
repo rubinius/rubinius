@@ -3,7 +3,7 @@
 #include "config_parser.hpp"
 #include "config.h"
 #include "objectmemory.hpp"
-#include "instruments/profiler.hpp"
+#include "instruments/tooling.hpp"
 #include "instruments/timing.hpp"
 #include "global_cache.hpp"
 #include "capi/handle.hpp"
@@ -120,14 +120,15 @@ namespace rubinius {
     , global_handles_(new capi::Handles)
     , cached_handles_(new capi::Handles)
     , profiling_(false)
-    , profiler_collection_(0)
     , global_serial_(0)
     , world_(new WorldState)
     , ic_registry_(new InlineCacheRegistry)
     , class_count_(0)
+    , thread_ids_(0)
     , agent_(0)
     , root_vm_(0)
     , env_(env)
+    , tool_broker_(new tooling::ToolBroker)
     , om(0)
     , global_cache(new GlobalCache)
     , config(config)
@@ -195,35 +196,6 @@ namespace rubinius {
     if(agent_) return agent_;
     agent_ = new QueryAgent(*this, root_vm_);
     return agent_;
-  }
-
-  void SharedState::enable_profiling(VM* vm) {
-    profiler_collection_ = new profiler::ProfilerCollection(vm);
-    profiling_ = true;
-  }
-
-  LookupTable* SharedState::disable_profiling(VM* vm) {
-    if(profiler_collection_) {
-      LookupTable* profile = profiler_collection_->results(vm);
-      delete profiler_collection_;
-      profiler_collection_ = 0;
-      profiling_ = false;
-      return profile;
-    } else {
-      return reinterpret_cast<LookupTable*>(Qnil);
-    }
-  }
-
-  void SharedState::add_profiler(VM* vm, profiler::Profiler* profiler) {
-    if(profiler_collection_) {
-      profiler_collection_->add_profiler(vm, profiler);
-    }
-  }
-
-  void SharedState::remove_profiler(VM* vm, profiler::Profiler* profiler) {
-    if(profiler_collection_) {
-      profiler_collection_->remove_profiler(vm, profiler);
-    }
   }
 
   // Create the preemption thread and call scheduler_loop() in the new thread

@@ -17,7 +17,7 @@
 #include "builtin/location.hpp"
 #include "instructions.hpp"
 
-#include "instruments/profiler.hpp"
+#include "instruments/tooling.hpp"
 #include "instruments/timing.hpp"
 #include "config.h"
 
@@ -608,8 +608,8 @@ namespace rubinius {
       }
 
 #ifdef RBX_PROFILER
-      if(unlikely(state->shared.profiling())) {
-        profiler::MethodEntry method(state, msg, args, cm);
+      if(unlikely(state->tooling())) {
+        tooling::MethodEntry method(state, msg, args, cm);
         return (*vmm->run)(state, vmm, frame);
       } else {
         return (*vmm->run)(state, vmm, frame);
@@ -680,23 +680,37 @@ namespace rubinius {
   /* This is a noop for this class. */
   void VMMethod::compile(STATE) { }
 
-  void VMMethod::deoptimize(STATE, CompiledMethod* original) {
+  // If +disable+ is set, then the method is tagged as not being
+  // available for JIT.
+  void VMMethod::deoptimize(STATE, CompiledMethod* original, bool disable) {
 #ifdef ENABLE_LLVM
-    // This resets execute to use the interpreter
-    setup_argument_handler(original);
+    if(jitted_impl_) {
+      // This resets execute to use the interpreter
+      setup_argument_handler(original);
 
-    // Don't call LLVMState::get(state)->remove(llvm_function_)
-    // here. We let the CodeManager do that later, when we're sure
-    // the llvm function is no longer used.
-    llvm_function_ = 0;
-    jitted_impl_ = 0;
-    jitted_bytes_ = 0;
+      // Don't call LLVMState::get(state)->remove(llvm_function_)
+      // here. We let the CodeManager do that later, when we're sure
+      // the llvm function is no longer used.
+      llvm_function_ = 0;
 
-    // Remove any JIT data, which will be cleanup by the CodeManager
-    // later.
-    original->set_jit_data(0);
+      jitted_impl_ = 0;
 
-    call_count = 0;
+      if(disable) {
+        jitted_bytes_ = -1;
+      } else {
+        jitted_bytes_ = 0;
+      }
+
+      // Remove any JIT data, which will be cleanup by the CodeManager
+      // later.
+      original->set_jit_data(0);
+    }
+
+    if(disable) {
+      call_count = -1;
+    } else {
+      call_count = 0;
+    }
 #endif
   }
 

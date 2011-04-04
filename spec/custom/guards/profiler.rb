@@ -1,3 +1,5 @@
+require 'tooling/profiler/profiler'
+
 class ProfilerGuard < SpecGuard
   def match?
     Rubinius::Profiler::Instrumenter.available? and

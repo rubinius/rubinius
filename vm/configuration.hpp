@@ -34,6 +34,9 @@ namespace rubinius {
     config::Bool    jit_show_remove;
     config::Bool    jit_check_debugging;
 
+    // Tools
+    config::String  tool_to_load;
+
     // CAPI
     config::Bool    capi_global_flush;
 
@@ -88,6 +91,8 @@ namespace rubinius {
       , jit_show_uncommon(this, "jit.uncommon.print", false)
       , jit_show_remove(this, "jit.removal.print", false)
       , jit_check_debugging(this, "jit.check_debugging", false)
+
+      , tool_to_load(this, "tool")
 
       , capi_global_flush(this, "capi.global_flush", false)
 
@@ -198,11 +203,7 @@ namespace rubinius {
           "Set a custom path to write crash reports");
     }
 
-    void finalize() {
-      if(profile) {
-        jit_disabled.value = true;
-      }
-    }
+    void finalize() { }
   };
 }
 

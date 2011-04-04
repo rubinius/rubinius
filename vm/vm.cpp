@@ -17,7 +17,9 @@
 #include "builtin/fiber.hpp"
 #include "builtin/location.hpp"
 
-#include "instruments/profiler.hpp"
+#include "instruments/tooling.hpp"
+#include "instruments/rbxti-internal.hpp"
+#include "instruments/timing.hpp"
 
 #include "config_parser.hpp"
 #include "config.h"
@@ -55,7 +57,6 @@ namespace rubinius {
     : ManagedThread(shared, ManagedThread::eRuby)
     , saved_call_frame_(0)
     , stack_start_(0)
-    , profiler_(0)
     , run_signals_(false)
     , thread_step_(false)
 
@@ -78,14 +79,13 @@ namespace rubinius {
       young_end_ = shared.om->yound_end();
       shared.om->refill_slab(local_slab_);
     }
+
+    tooling_env_ = rbxti::create_env(this);
+    tooling_ = false;
   }
 
   void VM::discard(VM* vm) {
     vm->saved_call_frame_ = 0;
-    if(vm->profiler_) {
-      vm->shared.remove_profiler(vm, vm->profiler_);
-    }
-
     vm->shared.remove_vm(vm);
     delete vm;
   }
@@ -346,8 +346,8 @@ namespace rubinius {
       YoungCollectStats stats;
 
 #ifdef RBX_PROFILER
-      if(unlikely(shared.profiling())) {
-        profiler::MethodEntry method(this, profiler::kYoungGC);
+      if(unlikely(tooling())) {
+        tooling::GCEntry method(this, tooling::GCYoung);
         om->collect_young(gc_data, &stats);
       } else {
         om->collect_young(gc_data, &stats);
@@ -378,8 +378,8 @@ namespace rubinius {
       }
 
 #ifdef RBX_PROFILER
-      if(unlikely(shared.profiling())) {
-        profiler::MethodEntry method(this, profiler::kMatureGC);
+      if(unlikely(tooling())) {
+        tooling::GCEntry method(this, tooling::GCMature);
         om->collect_mature(gc_data);
       } else {
         om->collect_mature(gc_data);
@@ -403,8 +403,8 @@ namespace rubinius {
     // Count the finalizers toward running the mature gc. Not great,
     // but better than not seeing the time at all.
 #ifdef RBX_PROFILER
-      if(unlikely(shared.profiling())) {
-        profiler::MethodEntry method(this, profiler::kFinalizers);
+      if(unlikely(tooling())) {
+        tooling::GCEntry method(this, tooling::GCFinalizer);
         om->run_finalizers(this, call_frame);
       } else {
         om->run_finalizers(this, call_frame);
@@ -521,19 +521,6 @@ namespace rubinius {
     }
 
     return true;
-  }
-
-  profiler::Profiler* VM::profiler() {
-    if(unlikely(!profiler_)) {
-      profiler_ = new profiler::Profiler(this);
-      shared.add_profiler(this, profiler_);
-    }
-
-    return profiler_;
-  }
-
-  void VM::remove_profiler() {
-    profiler_ = 0;
   }
 
   void VM::set_current_fiber(Fiber* fib) {

@@ -29,6 +29,12 @@ module Rubinius
     raise PrimitiveFailure, "Rubinius.vm_deoptimize_inliners failed"
   end
 
+  # Deoptimize all methods in the system.
+  def self.deoptimize_all(disable)
+    Ruby.primitive :vm_deoptimize_all
+    raise PrimitiveFailure, "Rubinius.vm_deoptimize_all failed"
+  end
+
   def self.raise_exception(exc)
     Ruby.primitive :vm_raise_exception
     raise PrimitiveFailure, "Rubinius.vm_raise_exception failed"
@@ -102,5 +108,41 @@ module Rubinius
   def self.run_script(cm)
     Ruby.primitive :vm_run_script
     raise PrimitiveFailure, "Rubinius.run_script failed"
+  end
+
+  module Tooling
+    def self.raw_load(str)
+      Ruby.primitive :vm_load_tool
+      raise PrimitiveFailure, "Tooling.raw_load failed"
+    end
+
+    def self.load(str)
+      error, reason = raw_load(str)
+      unless error == true
+        raise ArgumentError, reason
+      end
+
+      return true
+    end
+
+    def self.available?
+      Ruby.primitive :vm_tooling_available_p
+      raise PrimitiveFailure, "Tooling.available? failed"
+    end
+
+    def self.active?
+      Ruby.primitive :vm_tooling_active_p
+      raise PrimitiveFailure, "Tooling.active? failed"
+    end
+
+    def self.enable
+      Ruby.primitive :vm_tooling_enable
+      raise PrimitiveFailure, "Tooling.enable failed"
+    end
+
+    def self.disable
+      Ruby.primitive :vm_tooling_disable
+      raise PrimitiveFailure, "Tooling.disable failed"
+    end
   end
 end

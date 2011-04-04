@@ -5,7 +5,7 @@
 #include "arguments.hpp"
 #include "call_frame.hpp"
 
-#include "instruments/profiler.hpp"
+#include "instruments/tooling.hpp"
 
 #include <iostream>
 

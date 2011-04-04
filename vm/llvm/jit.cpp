@@ -13,8 +13,6 @@
 #include "call_frame.hpp"
 #include "configuration.hpp"
 
-#include "instruments/profiler.hpp"
-
 #include <llvm/Target/TargetData.h>
 // #include <llvm/LinkAllPasses.h>
 #include <llvm/Analysis/Verifier.h>
@@ -336,23 +334,27 @@ namespace rubinius {
           jit.show_machine_code();
         }
 
-        req->vmmethod()->set_jitted(jit.llvm_function(),
-                                    jit.code_bytes(),
-                                    func);
+        // If the method has had jit'ing request disabled since we started
+        // JIT'ing it, discard our work.
+        if(!req->vmmethod()->jit_disabled()) {
+          req->vmmethod()->set_jitted(jit.llvm_function(),
+                                      jit.code_bytes(),
+                                      func);
 
-        if(!req->is_block()) {
-          req->method()->execute = reinterpret_cast<executor>(func);
-        }
-        assert(req->method()->jit_data());
+          if(!req->is_block()) {
+            req->method()->execute = reinterpret_cast<executor>(func);
+          }
+          assert(req->method()->jit_data());
 
-        req->method()->jit_data()->run_write_barrier(ls_->write_barrier(), req->method());
+          req->method()->jit_data()->run_write_barrier(ls_->write_barrier(), req->method());
 
-        ls_->shared().stats.jitted_methods++;
+          ls_->shared().stats.jitted_methods++;
 
-        if(ls_->config().jit_show_compiling) {
-          llvm::outs() << "[[[ JIT finished background compiling "
-                    << (req->is_block() ? " (block)" : " (method)")
-                    << " ]]]\n";
+          if(ls_->config().jit_show_compiling) {
+            llvm::outs() << "[[[ JIT finished background compiling "
+                      << (req->is_block() ? " (block)" : " (method)")
+                      << " ]]]\n";
+          }
         }
 
         // If someone was waiting on this, wake them up.

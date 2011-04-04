@@ -12,6 +12,8 @@
 #include <unistd.h>
 #include <pwd.h>
 
+#include <dlfcn.h>
+
 #include "vm/call_frame.hpp"
 #include "vm/helpers.hpp"
 
@@ -57,7 +59,9 @@
 
 #include "util/sha1.h"
 
-#include "instruments/profiler.hpp"
+#include "instruments/tooling.hpp"
+
+#include "gc/walker.hpp"
 
 #ifdef ENABLE_LLVM
 #include "llvm/jit.hpp"
@@ -499,25 +503,65 @@ namespace rubinius {
     return Qnil;
   }
 
-  Object* System::vm_profiler_instrumenter_available_p(STATE) {
+  Object* System::vm_tooling_available_p(STATE) {
 #ifdef RBX_PROFILER
-    return Qtrue;
+    return state->shared.tool_broker()->available(state) ? Qtrue : Qfalse;
 #else
     return Qfalse;
 #endif
   }
 
-  Object* System::vm_profiler_instrumenter_active_p(STATE) {
-    return state->shared.profiling() ? Qtrue : Qfalse;
+  Object* System::vm_tooling_active_p(STATE) {
+    return state->tooling() ? Qtrue : Qfalse;
   }
 
-  Object* System::vm_profiler_instrumenter_start(STATE) {
-    state->shared.enable_profiling(state);
+  Object* System::vm_tooling_enable(STATE) {
+    state->shared.tool_broker()->enable(state);
     return Qtrue;
   }
 
-  LookupTable* System::vm_profiler_instrumenter_stop(STATE) {
-    return state->shared.disable_profiling(state);
+  Object* System::vm_tooling_disable(STATE) {
+    return state->shared.tool_broker()->results(state);
+  }
+
+  Object* System::vm_load_tool(STATE, String* str) {
+    std::string path = std::string(str->c_str(state)) + ".";
+
+#ifdef _WIN32
+    path += "dll";
+#else
+  #ifdef __APPLE_CC__
+    path += "bundle";
+  #else
+    path += "so";
+  #endif
+#endif
+
+    void* handle = dlopen(path.c_str(), RTLD_NOW);
+    if(!handle) {
+      path = std::string(RBX_LIB_PATH) + "/" + path;
+
+      handle = dlopen(path.c_str(), RTLD_NOW);
+      if(!handle) {
+        return Tuple::from(state, 2, Qfalse, String::create(state, dlerror()));
+      }
+    }
+
+    void* sym = dlsym(handle, "Tool_Init");
+    if(!sym) {
+      dlclose(handle);
+      return Tuple::from(state, 2, Qfalse, String::create(state, dlerror()));
+    } else {
+      typedef int (*init_func)(rbxti::Env* env);
+      init_func init = (init_func)sym;
+
+      if(!init(state->tooling_env())) {
+        dlclose(handle);
+        return Tuple::from(state, 2, Qfalse, String::create(state, path.c_str()));
+      }
+    }
+    
+    return Tuple::from(state, 1, Qtrue);
   }
 
   Object* System::vm_write_error(STATE, String* str) {
@@ -841,6 +885,33 @@ namespace rubinius {
   Object* System::vm_deoptimize_inliners(STATE, Executable* exec) {
     exec->clear_inliners(state);
     return Qtrue;
+  }
+
+  Object* System::vm_deoptimize_all(STATE, Object* o_disable) {
+    ObjectWalker walker(state->om);
+    GCData gc_data(state);
+
+    // Seed it with the root objects.
+    walker.seed(gc_data);
+
+    Object* obj = walker.next();
+
+    int total = 0;
+
+    bool disable = RTEST(o_disable);
+
+    while(obj) {
+      if(CompiledMethod* cm = try_as<CompiledMethod>(obj)) {
+        if(VMMethod* vmm = cm->backend_method()) {
+          vmm->deoptimize(state, cm, disable);
+        }
+        total++;
+      }
+
+      obj = walker.next();
+    }
+
+    return Integer::from(state, total);
   }
 
   Object* System::vm_raise_exception(STATE, Exception* exc) {
@@ -1172,7 +1243,7 @@ namespace rubinius {
 
 #ifdef RBX_PROFILER
     if(unlikely(state->shared.profiling())) {
-      profiler::MethodEntry me(state, profiler::kScript, cm);
+      tooling::ScriptEntry me(state, cm);
       return cm->backend_method()->execute_as_script(state, cm, calling_environment);
     } else {
       return cm->backend_method()->execute_as_script(state, cm, calling_environment);

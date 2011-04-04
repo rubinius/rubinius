@@ -10,16 +10,23 @@ module Rubinius
       attr_reader :info, :options
 
       def self.available?
-        Ruby.primitive :vm_profiler_instrumenter_available_p
-        raise PrimitiveFailure, "Profiler::Instrumenter.available? failed"
+        Rubinius::Tooling.available?
       end
 
       def self.active?
-        Ruby.primitive :vm_profiler_instrumenter_active_p
-        raise PrimitiveFailure, "Profiler::Instrumenter.active? failed"
+        Rubinius::Tooling.active?
+      end
+
+      @loaded = false
+      def self.load
+        return if @loaded
+        Rubinius::Tooling.load File.expand_path("../profiler_vm", __FILE__)
+        @loaded = true
       end
 
       def initialize(options = {})
+        Instrumenter.load
+
         @options = { :sort => :percent }
         set_options options
         set_options :full_report => true if Config["profiler.full_report"]
@@ -57,13 +64,11 @@ module Rubinius
       end
 
       def start
-        Ruby.primitive :vm_profiler_instrumenter_start
-        raise PrimitiveFailure, "Profiler::Instrumenter#start failed"
+        Rubinius::Tooling.enable
       end
 
       def __stop__
-        Ruby.primitive :vm_profiler_instrumenter_stop
-        raise PrimitiveFailure, "Profiler::Instrumenter#stop failed"
+        Rubinius::Tooling.disable
       end
 
       def stop
@@ -110,6 +115,15 @@ module Rubinius
       end
 
       def flat(out)
+        keys = @info.keys.sort
+
+        keys.each do |t_id|
+          thread_flat out, t_id, @info[t_id]
+          puts
+        end
+      end
+
+      def thread_flat(out, t_id, info)
         total_calls = 0
         total = 0.0
 
@@ -119,10 +133,10 @@ module Rubinius
         # flat for each method, we need to go through and collect all the stats
         # for each unique method.
 
-        @info[:nodes].each do |n_id, data|
-          sub = data[4].inject(0) { |a,n| a + @info[:nodes][n][1] }
+        info[:nodes].each do |n_id, data|
+          sub = data[4].inject(0) { |a,n| a + info[:nodes][n][1] }
 
-          meth = @info[:methods][data[0]]
+          meth = info[:methods][data[0]]
           if cur = meth[:edge_total]
             meth[:edge_total] = cur + sub
           else
@@ -130,7 +144,7 @@ module Rubinius
           end
         end
 
-        data = @info[:methods].values.map do |m|
+        data = info[:methods].values.map do |m|
           cumulative   = m[:cumulative]
           method_total = m[:total]
           edges_total  = m[:edge_total]
@@ -156,7 +170,7 @@ module Rubinius
 
         if options[:cumulative_percentage]
           data.each do |d|
-            d[0] = (d[1] / sec(@info[:runtime])) * 100
+            d[0] = (d[1] / sec(info[:runtime])) * 100
           end
         else
           data.each do |d|
@@ -169,7 +183,7 @@ module Rubinius
           columns.map {|col| row[col] }
         end.reverse
 
-        out.puts "Total running time: #{sec(@info[:runtime])}s"
+        out.puts "Thread #{t_id}: total running time: #{sec(info[:runtime])}s"
         out.puts ""
         out.puts "  %   cumulative   self                self     total"
         out.puts " time   seconds   seconds      calls  ms/call  ms/call  name"
@@ -202,49 +216,74 @@ module Rubinius
 
       def json(path)
         File.open path, "w" do |f|
-          f.puts "{"
-          f.puts "  \"runtime\": #{@info[:runtime]},"
-          f.puts "  \"total_nodes\": #{@info[:total_nodes]},"
-          roots = @info[:roots].map { |x| x.to_s.dump }.join(',')
-          f.puts "  \"roots\": [ #{roots} ],"
-          f.puts "  \"nodes\": {"
-          idx = 0
-          final = @info[:nodes].size - 1
+          t_final = @info.size - 1
+          t_idx = 0
 
-          @info[:nodes].each do |n_id, data|
-            f.puts "    \"#{n_id}\": {"
-            f.puts "      \"method\": #{data[0]}, \"total\": #{data[1]}, \"called\": #{data[2]},"
-            f.puts "      \"total_nodes\": #{data[3]}, \"sub_nodes\": [ #{data[4].join(', ')} ]"
-            if idx == final
-              f.puts "    }"
-            else
-              f.puts "    },"
+          f.puts "["
+
+          @info.each do |t_id, info|
+            f.puts "{"
+            f.puts "  \"thread_id\": #{t_id},"
+            f.puts "  \"runtime\": #{info[:runtime]},"
+            f.puts "  \"total_nodes\": #{info[:total_nodes]},"
+            roots = info[:roots].map { |x| x.to_s.dump }.join(',')
+            f.puts "  \"roots\": [ #{roots} ],"
+            f.puts "  \"nodes\": {"
+            idx = 0
+            final = info[:nodes].size - 1
+
+            info[:nodes].each do |n_id, data|
+              f.puts "    \"#{n_id}\": {"
+              f.puts "      \"method\": #{data[0]}, \"total\": #{data[1]}, \"called\": #{data[2]},"
+              f.puts "      \"total_nodes\": #{data[3]}, \"sub_nodes\": [ #{data[4].join(', ')} ]"
+              if idx == final
+                f.puts "    }"
+              else
+                f.puts "    },"
+              end
+              idx += 1
             end
-            idx += 1
-          end
 
-          f.puts "  },"
-          f.puts "  \"methods\": {"
+            f.puts "  },"
+            f.puts "  \"methods\": {"
 
-          idx = 0
-          final = @info[:methods].size - 1
-          @info[:methods].each do |m_id, m|
-            f.puts "    \"#{m_id}\": {"
-            f.puts "      \"name\": \"#{m[:name]}\", \"file\": \"#{m[:file]}\", \"line\": #{m[:line] || 0},"
-            f.puts "      \"cumulative\": #{m[:cumulative]}, \"total\": #{m[:total]}, \"called\": #{m[:called]}"
-            if idx == final
-              f.puts "    }"
-            else
-              f.puts "    },"
+            idx = 0
+            final = info[:methods].size - 1
+            info[:methods].each do |m_id, m|
+              f.puts "    \"#{m_id}\": {"
+              f.puts "      \"name\": \"#{m[:name]}\", \"file\": \"#{m[:file]}\", \"line\": #{m[:line] || 0},"
+              f.puts "      \"cumulative\": #{m[:cumulative]}, \"total\": #{m[:total]}, \"called\": #{m[:called]}"
+              if idx == final
+                f.puts "    }"
+              else
+                f.puts "    },"
+              end
+              idx += 1
             end
-            idx += 1
-          end
 
-          f.puts "  }"
-          f.puts "}"
+            f.puts "  }"
+
+            if t_idx == t_final
+              f.puts "}"
+            else
+              f.puts "},"
+            end
+
+            t_idx += 1
+          end
+          f.puts "]"
         end
 
         puts "Wrote JSON to: #{path}"
+      end
+
+      def graph(out)
+        keys = @info.keys.sort
+
+        keys.each do |t_id|
+          thread_graph out, t_id, @info[t_id]
+          out.puts
+        end
       end
 
       # Prints an entry for each method, along with the method's callers and
@@ -252,15 +291,15 @@ module Rubinius
       # line for the method itself is called the "primary" line. The callers
       # are printed above the primary line and the methods called are printed
       # below.
-      def graph(out)
+      def thread_graph(out, t_id, info)
         total_calls = 0
         run_total = 0.0
 
-        data = @info[:nodes]
+        data = info[:nodes]
 
-        methods = @info[:methods]
+        methods = info[:methods]
 
-        run_total = @info[:runtime].to_f
+        run_total = info[:runtime].to_f
 
         all_callers = Hash.new { |h,k| h[k] = [] }
 
@@ -282,7 +321,8 @@ module Rubinius
           shown_indexes[id] = index + 1
         end
 
-        out.puts "Total running time: #{sec(@info[:runtime])}s"
+        out.puts "===== Thread #{t_id} ====="
+        out.puts "Total running time: #{sec(info[:runtime])}s"
         out.puts "index  % time     self  children         called       name"
         out.puts "----------------------------------------------------------"
 
@@ -383,162 +423,6 @@ module Rubinius
       def sort_order
         # call to_i so if unrecognized symbol is passed, column will be percent
         Array(@options[:sort]).map { |header| HEADER_INDEX[header].to_i }
-      end
-    end
-
-    ##
-    # Interface to VM's sampling profiler.
-    #
-    # @todo needs to be implemented in the VM.
-
-    class Sampler
-      def initialize(freq=nil)
-        @frequency = freq
-        @frequency ||= ENV['PROFILE_FREQ'].to_i
-        @frequency = 100 if @frequency == 0
-
-        @call_graph = ENV['PROFILE_FULL']
-      end
-
-      def activate(hz)
-        Ruby.primitive :sampler_activate
-        raise PrimitiveFailure, "primitive failed"
-      end
-
-      def terminate
-        Ruby.primitive :sampler_stop
-        raise PrimitiveFailure, "primitive failed"
-      end
-
-      def start
-        @start_clock = activate(@frequency)
-        nil
-      end
-
-      def stop
-        @results, @last_clock, @gc_cycles = terminate()
-        nil
-      end
-
-      ##
-      # Records call information.
-
-      class Call
-        attr_accessor :slices
-        attr_accessor :descendants_slices
-        attr_accessor :name
-        attr_accessor :parents
-        attr_accessor :children
-
-        def initialize(name)
-          @name = name
-          @slices = 0
-          @descendants_slices = 0
-
-          @parents = Hash.new { |h,k| h[k] = 0 }
-          @children = Hash.new { |h,k| h[k] = 0 }
-        end
-
-        def total_slices
-          @slices + @descendants_slices
-        end
-
-        def count_parent(call)
-          if call
-            @parents[call] += 1
-            call.children[self] += 1
-          end
-        end
-      end
-
-      def display(out=$stdout)
-        @total_slices = 0
-        @calls = Hash.new { |h,k| h[k] = Call.new(k) }
-
-        @results.each do |ent|
-          next unless ent
-
-          @total_slices += 1
-
-          call = find_call(ent)
-          call.slices += 1
-
-          # skip context unwinding for a primitive
-          next if ent.kind_of? Fixnum
-
-          if @call_graph
-            # count parents and children
-            call.count_parent(find_call(ent.sender))
-
-            # calc descendants
-            seen_calls = { call => 1 }
-
-            while true
-              ent = ent.sender
-              break unless ent
-
-              c = find_call(ent)
-
-              # unwind to the root, but count each call only once
-              unless seen_calls[c]
-                seen_calls[c] = 1
-
-                c.descendants_slices += 1
-              end
-            end
-          end
-        end
-
-        @calls["VM.garbage_collection"].slices = @gc_cycles
-
-        out << "Total slices: #{@total_slices}, #{@last_clock - @start_clock} clocks\n\n"
-        out << "=== FLAT PROFILE ===\n\n"
-        out << " % time   slices   name\n"
-
-        @calls.sort { |a, b| b[1].slices <=> a[1].slices }.each do |name, call|
-          out.printf " %6.2f %8d    %s\n", percent(call.slices), call.slices, name
-        end
-
-        if @call_graph
-          out << "\n=== CALL GRAPH ===\n\n"
-          out << " % time   slices % self   slices  name\n"
-          @calls.sort { |a, b| b[1].total_slices <=> a[1].total_slices }.each do |name, call|
-            print_relatives(out, call.parents.sort { |a,b| a[1] <=> b[1] })
-
-            out.printf " %6.2f %8d %6.2f %8d   %s\n",
-              percent(call.total_slices), call.total_slices,
-              percent(call.slices), call.slices,
-              name
-
-            print_relatives(out, call.children.sort { |a,b| b[1] <=> a[1] })
-
-            out << "----------------------------------------------------------------------\n"
-          end
-        end
-        nil
-      end
-
-      def context_name(entry)
-        # a Fixnum means that a primitive was running
-        if entry.kind_of? Fixnum
-          "VM.primitive => #{Primitives[entry]}"
-        else
-          entry.normalized_name
-        end
-      end
-
-      def find_call(entry)
-        @calls[context_name(entry)]
-      end
-
-      def percent(slices)
-        100.0 * slices / @total_slices
-      end
-
-      def print_relatives(out, rels)
-        rels[0,5].each do |rel|
-          out << "                                       #{rel[0].name} (#{rel[1]})\n"
-        end
       end
     end
   end
