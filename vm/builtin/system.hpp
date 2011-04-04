@@ -235,6 +235,7 @@ namespace rubinius {
     // Deoptimize all methods.
     // +disable+ indicates if the methods should also be pulled from being
     // available for JIT.
+    // Ruby.primitive :vm_deoptimize_all
     static Object* vm_deoptimize_all(STATE, Object* disable);
 
     // Ruby.primitive :vm_raise_exception
