@@ -254,7 +254,7 @@ class IO
   # Errno::EBADF will be raised if that is not the case. If the mode is
   # incompatible, it will raise Errno::EINVAL instead.
   def self.open(*args)
-    io = new *args
+    io = new(*args)
 
     return io unless block_given?
 

@@ -63,7 +63,7 @@ class Thread
     begin
       begin
         @lock.send nil
-        @result = @block.call *@args
+        @result = @block.call(*@args)
       ensure
         @lock.receive
         @joins.each {|join| join.send self }
@@ -448,7 +448,7 @@ class Thread
   end
 
   def context
-    Context.new *__context__
+    Context.new(*__context__)
   end
 
   alias_method :current_context, :context

@@ -609,7 +609,7 @@ module Rubinius
 
         def zero_pad(pad="0", &readjust)
           if @has_precision
-            push_precision &readjust
+            push_precision(&readjust)
             @g.push_literal pad
             @g.send :rjust, 2
           elsif @has_width && @f_zero
