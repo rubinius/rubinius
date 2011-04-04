@@ -72,7 +72,6 @@ namespace rubinius {
     capi::Handles* cached_handles_;
     std::list<capi::Handle**> global_handle_locations_;
 
-    bool profiling_;
     int global_serial_;
     WorldState* world_;
     InlineCacheRegistry* ic_registry_;
@@ -170,14 +169,6 @@ namespace rubinius {
 
     void del_global_handle_location(capi::Handle** loc) {
       global_handle_locations_.remove(loc);
-    }
-
-    bool profiling() {
-      return profiling_;
-    }
-
-    bool* profiling_address() {
-      return &profiling_;
     }
 
     int global_serial() {

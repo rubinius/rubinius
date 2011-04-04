@@ -593,17 +593,17 @@ puts "Rendering profiling from '#{file}' to '#{output}'"
 
 data = JSON.load File.read(file)
 
-runtime = data["runtime"]
-
 File.open output, "w" do |f|
   f << header("Profiling from '#{file}'")
 
-  f.puts "<div class=\"thread\">Main Thread</div>"
-  f.puts "<ul name=\"thread\">"
-  data["roots"].each do |n_id|
-    print_node(f, n_id, data)
+  data.each do |th_data|
+    f.puts "<div class=\"thread\">Thread #{th_data['thread_id']}</div>"
+    f.puts "<ul name=\"thread\">"
+    th_data["roots"].each do |n_id|
+      print_node(f, n_id, th_data)
+    end
+    f.puts "</ul>"
   end
-  f.puts "</ul>"
 
   f.puts "<div id=\"sentinel\"></div></body></html>"
 end

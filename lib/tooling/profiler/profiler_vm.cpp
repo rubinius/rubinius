@@ -333,6 +333,7 @@ namespace profiler {
     int       nodes_;
     uint32_t  threshold_;
     uint64_t  start_time_;
+    uint64_t  end_time_;
     int       id_;
     bool      attached_;
 
@@ -357,7 +358,16 @@ namespace profiler {
       return start_time_;
     }
 
-    void detach() {
+    uint64_t end_time() {
+      return end_time_;
+    }
+
+    uint64_t runtime() {
+      return end_time_ - start_time_;
+    }
+
+    void detach(Env* env) {
+      end_time_ = env->time_current_ns();
       attached_ = false;
     }
 
@@ -474,6 +484,7 @@ namespace profiler {
   Profiler::Profiler(Env* env)
     : nodes_(0)
     , start_time_(env->time_current_ns())
+    , end_time_(0)
     , attached_(true)
     , id_(env->current_thread_id())
   {
@@ -852,7 +863,7 @@ namespace profiler {
       if(!profiler) return;
 
       env->thread_tool_set_data(cProfileToolID, 0);
-      profiler->detach();
+      profiler->detach(env);
 
       env->disable_thread_tooling();
     }
@@ -865,6 +876,8 @@ namespace profiler {
       // Ignore results requests that don't come from the thread that
       // started profiling.
       if(st->main_profiler != profiler) return env->nil();
+
+      profiler->detach(env);
 
       env->thread_tool_set_data(cProfileToolID, 0);
 
@@ -886,7 +899,7 @@ namespace profiler {
         env->table_store(thread, env->symbol("methods"), methods);
         env->table_store(thread, env->symbol("nodes"),   nodes);
 
-        uint64_t runtime = env->time_current_ns() - prof->start_time();
+        uint64_t runtime = profiler->runtime();
         env->table_store(thread, env->symbol("runtime"), env->integer_new(runtime));
 
         KeyMap keys;
@@ -894,7 +907,6 @@ namespace profiler {
       }
 
       tool_shutdown(env);
-      delete profiler;
 
       env->disable_thread_tooling();
       return profile;

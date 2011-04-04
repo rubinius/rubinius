@@ -119,7 +119,6 @@ namespace rubinius {
     , signal_handler_(0)
     , global_handles_(new capi::Handles)
     , cached_handles_(new capi::Handles)
-    , profiling_(false)
     , global_serial_(0)
     , world_(new WorldState)
     , ic_registry_(new InlineCacheRegistry)

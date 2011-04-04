@@ -615,9 +615,6 @@ namespace rubinius {
         GlobalVariable::ExternalLinkage,
         0, "profiling_flag");
 
-    engine_->addGlobalMapping(profiling_,
-        reinterpret_cast<void*>(state->shared.profiling_address()));
-
     add_internal_functions();
 
     background_thread_ = new BackgroundCompilerThread(this);

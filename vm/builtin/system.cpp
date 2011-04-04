@@ -1242,7 +1242,7 @@ namespace rubinius {
     cm->internalize(state, 0, 0);
 
 #ifdef RBX_PROFILER
-    if(unlikely(state->shared.profiling())) {
+    if(unlikely(state->tooling())) {
       tooling::ScriptEntry me(state, cm);
       return cm->backend_method()->execute_as_script(state, cm, calling_environment);
     } else {
