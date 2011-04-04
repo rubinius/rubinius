@@ -1494,7 +1494,6 @@ class IO
   # physical position in the stream.
   def reset_buffering
     @ibuffer.unseek! self
-    @ibuffer.reset!
   end
 
   ##
