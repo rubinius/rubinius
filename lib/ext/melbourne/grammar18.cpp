@@ -7965,9 +7965,9 @@ string_to_ast(VALUE ptp, const char *f, bstring s, int line)
     parser_state = alloc_parser_state();
     parser_state->lex_string = s;
     parser_state->lex_gets = lex_get_str;
-    parser_state->lex_pbeg = 0;
-    parser_state->lex_p = 0;
-    parser_state->lex_pend = 0;
+    lex_pbeg = 0;
+    lex_p = 0;
+    lex_pend = 0;
     parser_state->error = Qfalse;
     parser_state->processor = ptp;
     ruby_sourceline = line - 1;
@@ -8026,9 +8026,9 @@ file_to_ast(VALUE ptp, const char *f, FILE *file, int start)
     parser_state = alloc_parser_state();
     parser_state->lex_io = file;
     parser_state->lex_gets = parse_io_gets;
-    parser_state->lex_pbeg = 0;
-    parser_state->lex_p = 0;
-    parser_state->lex_pend = 0;
+    lex_pbeg = 0;
+    lex_p = 0;
+    lex_pend = 0;
     parser_state->error = Qfalse;
     parser_state->processor = ptp;
     ruby_sourceline = start - 1;
@@ -8063,7 +8063,7 @@ ps_nextc(rb_parser_state *parser_state)
 {
     int c;
 
-    if (parser_state->lex_p == parser_state->lex_pend) {
+    if (lex_p == lex_pend) {
         bstring v;
 
         if (!lex_getline(parser_state)) return -1;
@@ -8078,20 +8078,20 @@ ps_nextc(rb_parser_state *parser_state)
         /* This code is setup so that lex_pend can be compared to
            the data in lex_lastline. Thats important, otherwise
            the heredoc code breaks. */
-        if(parser_state->lex_lastline) {
-          bassign(parser_state->lex_lastline, v);
+        if(lex_lastline) {
+          bassign(lex_lastline, v);
         } else {
-          parser_state->lex_lastline = bstrcpy(v);
+          lex_lastline = bstrcpy(v);
         }
 
-        v = parser_state->lex_lastline;
+        v = lex_lastline;
 
-        parser_state->lex_pbeg = parser_state->lex_p = bdata(v);
-        parser_state->lex_pend = parser_state->lex_p + blength(v);
+        lex_pbeg = lex_p = bdata(v);
+        lex_pend = lex_p + blength(v);
     }
-    c = (unsigned char)*(parser_state->lex_p++);
-    if (c == '\r' && parser_state->lex_p < parser_state->lex_pend && *(parser_state->lex_p) == '\n') {
-        parser_state->lex_p++;
+    c = (unsigned char)*(lex_p++);
+    if (c == '\r' && lex_p < lex_pend && *(lex_p) == '\n') {
+        lex_p++;
         c = '\n';
         parser_state->column = 0;
     } else if(c == '\n') {
@@ -8107,12 +8107,12 @@ static void
 pushback(int c, rb_parser_state *parser_state)
 {
     if (c == -1) return;
-    parser_state->lex_p--;
+    lex_p--;
 }
 
 /* Indicates if we're currently at the beginning of a line. */
-#define was_bol() (parser_state->lex_p == parser_state->lex_pbeg + 1)
-#define peek(c) (parser_state->lex_p != parser_state->lex_pend && (c) == *(parser_state->lex_p))
+#define was_bol() (lex_p == lex_pbeg + 1)
+#define peek(c) (lex_p != lex_pend && (c) == *(lex_p))
 
 /* The token buffer. It's just a global string that has
    functions to build up the string easily. */
@@ -8183,8 +8183,8 @@ read_escape(rb_parser_state *parser_state)
             int numlen;
 
             pushback(c, parser_state);
-            c = scan_oct(parser_state->lex_p, 3, &numlen);
-            parser_state->lex_p += numlen;
+            c = scan_oct(lex_p, 3, &numlen);
+            lex_p += numlen;
         }
         return c;
 
@@ -8192,12 +8192,12 @@ read_escape(rb_parser_state *parser_state)
         {
             int numlen;
 
-            c = scan_hex(parser_state->lex_p, 2, &numlen);
+            c = scan_hex(lex_p, 2, &numlen);
             if (numlen == 0) {
                 yyerror("Invalid escape character syntax");
                 return 0;
             }
-            parser_state->lex_p += numlen;
+            lex_p += numlen;
         }
         return c;
 
@@ -8280,7 +8280,7 @@ tokadd_escape(int term, rb_parser_state *parser_state)
 
             tokadd('\\', parser_state);
             tokadd((char)c, parser_state);
-            scan_hex(parser_state->lex_p, 2, &numlen);
+            scan_hex(lex_p, 2, &numlen);
             if (numlen == 0) {
                 yyerror("Invalid escape character syntax");
                 return -1;
@@ -8423,8 +8423,8 @@ static int tokadd_string(int func, int term, int paren, quark *nest, rb_parser_s
             }
             --*nest;
         }
-        else if ((func & STR_FUNC_EXPAND) && c == '#' && parser_state->lex_p < parser_state->lex_pend) {
-            int c2 = *(parser_state->lex_p);
+        else if ((func & STR_FUNC_EXPAND) && c == '#' && lex_p < lex_pend) {
+            int c2 = *(lex_p);
             if (c2 == '$' || c2 == '@' || c2 == '{') {
                 pushback(c, parser_state);
                 break;
@@ -8618,14 +8618,14 @@ heredoc_identifier(rb_parser_state *parser_state)
 
     /* Fixup the token buffer, ie set the last character to null. */
     tokfix();
-    len = parser_state->lex_p - parser_state->lex_pbeg;
-    parser_state->lex_p = parser_state->lex_pend;
+    len = lex_p - lex_pbeg;
+    lex_p = lex_pend;
     pslval->id = 0;
 
     /* Tell the lexer that we're inside a string now. nd_lit is
        the heredoc identifier that we watch the stream for to
        detect the end of the heredoc. */
-    bstring str = bstrcpy(parser_state->lex_lastline);
+    bstring str = bstrcpy(lex_lastline);
     lex_strterm = node_newnode(NODE_HEREDOC,
                                (VALUE)string_new(tok(), toklen()),  /* nd_lit */
                                (VALUE)len,                          /* nd_nth */
@@ -8638,12 +8638,12 @@ heredoc_restore(NODE *here, rb_parser_state *parser_state)
 {
     bstring line = here->nd_orig;
 
-    bdestroy(parser_state->lex_lastline);
+    bdestroy(lex_lastline);
 
-    parser_state->lex_lastline = line;
-    parser_state->lex_pbeg = bdata(line);
-    parser_state->lex_pend = parser_state->lex_pbeg + blength(line);
-    parser_state->lex_p = parser_state->lex_pbeg + here->nd_nth;
+    lex_lastline = line;
+    lex_pbeg = bdata(line);
+    lex_pend = lex_pbeg + blength(line);
+    lex_p = lex_pbeg + here->nd_nth;
     heredoc_end = ruby_sourceline;
     ruby_sourceline = nd_line(here);
     bdestroy((bstring)here->nd_lit);
@@ -8652,13 +8652,13 @@ heredoc_restore(NODE *here, rb_parser_state *parser_state)
 static int
 whole_match_p(const char *eos, int len, int indent, rb_parser_state *parser_state)
 {
-    char *p = parser_state->lex_pbeg;
+    char *p = lex_pbeg;
     int n;
 
     if (indent) {
         while (*p && ISSPACE(*p)) p++;
     }
-    n = parser_state->lex_pend - (p + len);
+    n = lex_pend - (p + len);
     if (n < 0 || (n > 0 && p[len] != '\n' && p[len] != '\r')) return FALSE;
     if (strncmp(eos, p, len) == 0) return TRUE;
     return FALSE;
@@ -8704,8 +8704,8 @@ here_document(NODE *here, rb_parser_state *parser_state)
 
     if ((func & STR_FUNC_EXPAND) == 0) {
         do {
-            p = bdata(parser_state->lex_lastline);
-            pend = parser_state->lex_pend;
+            p = bdata(lex_lastline);
+            pend = lex_pend;
             if (pend > p) {
                 switch (pend[-1]) {
                   case '\n':
@@ -8722,8 +8722,8 @@ here_document(NODE *here, rb_parser_state *parser_state)
             } else {
                 str = blk2bstr(p, pend - p);
             }
-            if (pend < parser_state->lex_pend) bcatblk(str, "\n", 1);
-            parser_state->lex_p = parser_state->lex_pend;
+            if (pend < lex_pend) bcatblk(str, "\n", 1);
+            lex_p = lex_pend;
             if (nextc() == -1) {
                 if (str) bdestroy(str);
                 goto error;
@@ -8781,9 +8781,9 @@ arg_ambiguous()
 
 
 static char* parse_comment(struct rb_parser_state* parser_state) {
-  int len = parser_state->lex_pend - parser_state->lex_p;
+  int len = lex_pend - lex_p;
 
-  char* str = parser_state->lex_p;
+  char* str = lex_p;
   while(len-- > 0 && ISSPACE(str[0])) str++;
   if(len <= 2) return NULL;
 
@@ -8850,11 +8850,11 @@ yylex(void *yylval_v, void *vstate)
 
       case '#':         /* it's a comment */
         if(char* str = parse_comment(parser_state)) {
-            int len = parser_state->lex_pend - str - 1; // - 1 for the \n
+            int len = lex_pend - str - 1; // - 1 for the \n
             cur_line = blk2bstr(str, len);
             parser_state->magic_comments->push_back(cur_line);
         }
-        parser_state->lex_p = parser_state->lex_pend;
+        lex_p = lex_pend;
         /* fall through */
       case '\n':
         switch (lex_state) {
@@ -8920,21 +8920,21 @@ yylex(void *yylval_v, void *vstate)
       case '=':
         if (was_bol()) {
             /* skip embedded rd document */
-            if (strncmp(parser_state->lex_p, "begin", 5) == 0 && ISSPACE(parser_state->lex_p[5])) {
+            if (strncmp(lex_p, "begin", 5) == 0 && ISSPACE(lex_p[5])) {
                 for (;;) {
-                    parser_state->lex_p = parser_state->lex_pend;
+                    lex_p = lex_pend;
                     c = nextc();
                     if (c == -1) {
                         rb_compile_error(parser_state, "embedded document meets end of file");
                         return 0;
                     }
                     if (c != '=') continue;
-                    if (strncmp(parser_state->lex_p, "end", 3) == 0 &&
-                        (parser_state->lex_p + 3 == parser_state->lex_pend || ISSPACE(parser_state->lex_p[3]))) {
+                    if (strncmp(lex_p, "end", 3) == 0 &&
+                        (lex_p + 3 == lex_pend || ISSPACE(lex_p[3]))) {
                         break;
                     }
                 }
-                parser_state->lex_p = parser_state->lex_pend;
+                lex_p = lex_pend;
                 goto retry;
             }
         }
@@ -9091,7 +9091,7 @@ yylex(void *yylval_v, void *vstate)
             rb_warn("multibyte character literal not supported yet; use ?\\%.3o", c);
             goto ternary;
         }
-        else if ((ISALNUM(c) || c == '_') && parser_state->lex_p < parser_state->lex_pend && is_identchar(*(parser_state->lex_p))) {
+        else if ((ISALNUM(c) || c == '_') && lex_p < lex_pend && is_identchar(*(lex_p))) {
             goto ternary;
         }
         else if (c == '\\') {
@@ -9895,7 +9895,7 @@ yylex(void *yylval_v, void *vstate)
             else {
                 if (lex_state == EXPR_FNAME) {
                     if ((c = nextc()) == '=' && !peek('~') && !peek('>') &&
-                        (!peek('=') || (parser_state->lex_p + 1 < parser_state->lex_pend && (parser_state->lex_p)[1] == '>'))) {
+                        (!peek('=') || (lex_p + 1 < lex_pend && (lex_p)[1] == '>'))) {
                         result = tIDENTIFIER;
                         tokadd((char)c, parser_state);
                         tokfix();
