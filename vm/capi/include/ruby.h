@@ -410,8 +410,8 @@ typedef struct RIO rb_io_t;
 /** The undef object. NEVER EXPOSE THIS TO USER CODE. EVER. */
 #define Qundef ((VALUE)cCApiQundef)
 
-#define ruby_verbose (rb_gv_get("$VERBOSE"))
-#define ruby_debug   (rb_gv_get("$DEBUG"))
+#define ruby_verbose (*(mri_global_verbose()))
+#define ruby_debug   (*(mri_global_debug()))
 
 /* Global Class objects */
 
@@ -1663,6 +1663,11 @@ VALUE rb_uint2big(unsigned long number);
   // Exists only to make extensions happy. It can be read and written to, but
   // it controls nothing.
   extern int rb_thread_critical;
+
+  // These are used to allow for writing to ruby_verbose and ruby_debug. These
+  // variables can be read, but writes ignored.
+  extern int* mri_global_debug();
+  extern int* mri_global_verbose();
 
 #define HAVE_RB_THREAD_BLOCKING_REGION 1
 

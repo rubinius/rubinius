@@ -9,6 +9,28 @@ using namespace rubinius;
 using namespace rubinius::capi;
 
 extern "C" {
+
+  static int mri_ruby_debug;
+  static int mri_ruby_verbose;
+
+  int* mri_global_debug() {
+    if(rb_gv_get("$DEBUG") == Qtrue) {
+      mri_ruby_debug = 1;
+    } else {
+      mri_ruby_debug = 0;
+    }
+    return &mri_ruby_debug;
+  }
+
+  int* mri_global_verbose() {
+    if(rb_gv_get("$VERBOSE") == Qtrue) {
+      mri_ruby_verbose = 1;
+    } else {
+      mri_ruby_verbose = 0;
+    }
+    return &mri_ruby_verbose;
+  }
+
   void rb_free_global(VALUE global_handle) {
     capi::Handle* handle = capi::Handle::from(global_handle);
     if(CAPI_REFERENCE_P(handle) && handle->object()->reference_p()) {
