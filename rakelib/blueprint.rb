@@ -185,11 +185,17 @@ Daedalus.blueprint do |i|
   files << onig
   files << ltm
 
-  cli = files.dup
-  cli << i.source_file("vm/drivers/cli.cpp")
+  libname = RUBY_PLATFORM =~ /mingw|mswin/ ? 'vm/rbx.dll' : 'vm/librbx.so'
+  lib = i.shared_lib libname, *files.dup
+
+  cli = i.source_file("vm/drivers/cli.cpp")
+
+  exe_files = []
+  exe_files << lib
+  exe_files << cli
 
   exe = RUBY_PLATFORM =~ /mingw|mswin/ ? 'vm/vm.exe' : 'vm/vm'
-  i.program exe, *cli
+  i.program exe, *exe_files
 
   test_files = files.dup
   test_files << i.source_file("vm/test/runner.cpp") { |f|

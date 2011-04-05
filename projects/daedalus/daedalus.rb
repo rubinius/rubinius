@@ -211,6 +211,11 @@ module Daedalus
       @log.command "#{@path} -o #{path} #{files.join(' ')} #{@libraries.join(' ')} #{@ldflags.join(' ')}"
     end
 
+    def shared(path, files)
+      @log.show "LIB", path
+      @log.command "#{@path} -shared -W1,soname,#{path} -o #{path} #{@libraries.join(' ')} #{@ldflags.join(' ')}"
+    end
+
     def calculate_deps(path)
       dirs = header_directories() + ["/usr/include"]
       flags = @cflags.join(' ')
@@ -574,6 +579,21 @@ module Daedalus
     end
   end
 
+  class SharedLibrary < Program
+    def describe(ctx)
+      puts "Shared Library: #{@path}"
+
+      @files.each do |f|
+        f.describe(ctx)
+      end
+    end
+
+    def build(ctx)
+      ctx.log.inc!
+      ctx.shared @path, objects
+    end
+  end
+
   class Tasks
     def initialize
       @pre = []
@@ -731,6 +751,12 @@ module Daedalus
       sf = SourceFile.new(file)
       yield sf if block_given?
       sf
+    end
+
+    def shared_lib(name, *files)
+      lib = SharedLibrary.new(name, files)
+      @programs << lib
+      lib
     end
 
     def program(name, *files)
