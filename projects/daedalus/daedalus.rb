@@ -213,7 +213,7 @@ module Daedalus
 
     def shared(path, files)
       @log.show "LIB", path
-      @log.command "#{@path} -shared -W1,soname,#{path} -o #{path} #{@libraries.join(' ')} #{@ldflags.join(' ')}"
+      @log.command "#{@path} -shared -W1,soname,#{path} #{files.join(' ')} -o #{path} #{@libraries.join(' ')} #{@ldflags.join(' ')}"
     end
 
     def calculate_deps(path)
