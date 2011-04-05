@@ -254,8 +254,40 @@ class Dir
       end
     end
 
+    def self.path_split(str)
+      start = 0
+      ret = []
+
+      last_match = nil
+
+      while match = %r!/+!.match_from(str, start)
+        cur_start, cur_end = match.full
+        ret << str.substring(start, cur_start - start)
+        ret << str.substring(cur_start, cur_end - cur_start)
+
+        start = cur_end
+
+        last_match = match
+      end
+
+      if last_match
+        ret << last_match.post_match
+      else
+        ret << str
+      end
+
+      # Trim from end
+      if !ret.empty?
+        while s = ret.last and s.empty?
+          ret.pop
+        end
+      end
+
+      ret
+    end
+
     def self.single_compile(glob, flags=0, suffixes=nil)
-      parts = glob.split(%r!(/+)!)
+      parts = path_split(glob)
 
       if glob[-1] == ?/
         last = DirectoriesOnly.new nil, flags
@@ -286,7 +318,7 @@ class Dir
           else
             last = RecursiveDirectories.new last, flags
           end
-        elsif /^[a-zA-Z0-9.]+$/.match(dir)
+        elsif /^[^\*\?\]]+$/.match(dir)
           last = ConstantDirectory.new last, flags, dir
         elsif !dir.empty?
           last = DirectoryMatch.new last, flags, dir
