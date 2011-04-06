@@ -357,6 +357,8 @@ namespace rubinius {
       reinterpret_cast<FFIData*>(user_data);
 
     STATE = env->state();
+    GlobalLock& lock = state->global_lock();
+    lock.take();
 
     Array* args = Array::create(state, stub->arg_count);
 
@@ -531,6 +533,8 @@ namespace rubinius {
       *((ffi_arg*)retval) = 0;
       break;
     }
+
+    lock.drop();
   }
 
 
