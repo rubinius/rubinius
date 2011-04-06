@@ -17,6 +17,19 @@ namespace tooling {
   ToolBroker::ToolBroker()
     : tool_ids_(0)
     , global_tool_data_(0)
+    , results_func_(0)
+    , enable_func_(0)
+    , enter_method_func_(0)
+    , leave_method_func_(0)
+    , enter_block_func_(0)
+    , leave_block_func_(0)
+    , enter_gc_func_(0)
+    , leave_gc_func_(0)
+    , enter_script_func_(0)
+    , leave_script_func_(0)
+    , thread_start_func_(0)
+    , thread_stop_func_(0)
+    , shutdown_func_(0)
   {}
 
   void ToolBroker::enable(STATE) {
