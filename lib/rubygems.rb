@@ -673,9 +673,6 @@ module Gem
   # Loads YAML, preferring Psych
 
   def self.load_yaml
-    require 'psych'
-  rescue ::LoadError
-  ensure
     require 'yaml'
   end
 

@@ -5,6 +5,7 @@ Daedalus.blueprint do |i|
   gcc.cflags << "-pipe -Wall -fno-omit-frame-pointer"
   gcc.cflags << "-ggdb3 -Werror"
   gcc.cflags << "-DRBX_PROFILER"
+  gcc.cflags << "-D__STDC_LIMIT_MACROS -D__STDC_CONSTANT_MACROS"
 
   if ENV['DEV']
     gcc.cflags << "-O0"
@@ -34,7 +35,7 @@ Daedalus.blueprint do |i|
     end
   end
 
-  gcc.ldflags << "-lstdc++"
+  gcc.ldflags << "-lstdc++" << "-lm"
   gcc.ldflags << "-L/usr/local/lib -L/opt/local/lib"
 
   make = "make"
@@ -42,7 +43,7 @@ Daedalus.blueprint do |i|
   # TODO: Fix with Platform object
   case RUBY_PLATFORM
   when /linux/i
-    gcc.ldflags << '-Wl,--export-dynamic' << "-lrt" << "-lcrypt"
+    gcc.ldflags << '-Wl,--export-dynamic' << "-lrt" << "-lcrypt" << "-ldl" << "-lpthread"
   when /openbsd/i
     gcc.ldflags << '-lcrypto' << '-pthread' << '-lssl' << "-rdynamic" << "-Wl,--export-dynamic"
     make = "gmake"
@@ -54,7 +55,7 @@ Daedalus.blueprint do |i|
   when /mingw|win32/i
     gcc.ldflags << "-lws2_32"
   else
-    gcc.ldflags << "-ldl"
+    gcc.ldflags << "-ldl" << "-lpthread"
   end
 
   if RUBY_PLATFORM =~ /bsd/ and
@@ -78,6 +79,7 @@ Daedalus.blueprint do |i|
       conf = "vm/external_libs/llvm/Release/bin/llvm-config"
       flags = `#{perl} #{conf} --cflags`.strip.split(/\s+/)
       flags.delete_if { |x| x.index("-O") == 0 || x.index("-I") == 0 }
+      flags.delete_if { |x| x =~ /-D__STDC/ }
       flags << "-Ivm/external_libs/llvm/include" << "-DENABLE_LLVM"
       l.cflags = flags
 
@@ -103,6 +105,7 @@ Daedalus.blueprint do |i|
     conf = Rubinius::BUILD_CONFIG[:llvm_configure]
     flags = `#{perl} #{conf} --cflags`.strip.split(/\s+/)
     flags.delete_if { |x| x.index("-O") == 0 }
+    flags.delete_if { |x| x =~ /-D__STDC/ }
     flags << "-DENABLE_LLVM"
     gcc.cflags.concat flags
     gcc.ldflags.concat `#{perl} #{conf} --ldflags --libfiles`.strip.split(/\s+/)

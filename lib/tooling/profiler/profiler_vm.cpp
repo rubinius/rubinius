@@ -320,6 +320,8 @@ namespace profiler {
 
     MethodEntry(Method* method)
       : method_(method)
+      , node_(0)
+      , previous_(0)
     {}
 
     void start(Profiler* profiler, Env* env);
@@ -482,14 +484,16 @@ namespace profiler {
   }
 
   Profiler::Profiler(Env* env)
-    : nodes_(0)
+    : root_(0)
+    , current_(0)
+    , nodes_(0)
+    , threshold_((uint32_t)env->config_get_int("profiler.threshold"))
     , start_time_(env->time_current_ns())
     , end_time_(0)
-    , attached_(true)
     , id_(env->current_thread_id())
+    , attached_(true)
   {
     root_ = current_ = new Node(0, next_node_id());
-    threshold_ = (uint32_t)env->config_get_int("profiler.threshold");
   }
 
   Method* Profiler::enter_block(Env* env, rsymbol name, rmodule module, rmethod cm) {

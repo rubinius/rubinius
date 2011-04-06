@@ -150,7 +150,7 @@ function hideLI(li) {
     return;
 
   var img = li.firstChild;
-  img.src = 'plus.png';
+  img.src = 'http://asset.rubini.us/plus.png';
 
   var ul = findUlChild(li);
   if (ul) {
@@ -164,7 +164,7 @@ function showLI(li) {
     return;
 
   var img = li.firstChild;
-  img.src = 'minus.png';
+  img.src = 'http://asset.rubini.us/minus.png';
 
   var ul = findUlChild(li);
   if (ul) {
@@ -200,10 +200,10 @@ function setThresholdLI(li, threshold) {
     count = setThresholdUL(ul, threshold);
   }
   if (count>0) {
-    img.src = 'minus.png';
+    img.src = 'http://asset.rubini.us/minus.png';
   }
   else {
-    img.src = 'empty.png';
+    img.src = 'http://asset.rubini.us/empty.png';
   }
   if (visible) {
     li.style.display = 'block'
@@ -242,10 +242,10 @@ function toggleChildren(img, event) {
   var minus = (img.src.indexOf('minus.png') > -1);
 
   if (minus) {
-    img.src = 'plus.png';
+    img.src = "http://asset.rubini.us/plus.png";
   }
   else
-    img.src = 'minus.png';
+    img.src = "http://asset.rubini.us/minus.png";
 
   var li = img.parentNode;
   var ul = findUlChild(li);
@@ -263,7 +263,7 @@ function showChildren(li) {
   var img = li.firstChild;
   if (img.src.indexOf('empty.png') > -1)
     return;
-  img.src = 'minus.png';
+  img.src = "http://asset.rubini.us/minus.png";
 
   var ul = findUlChild(li);
   if (ul) {
@@ -531,17 +531,17 @@ Generated on Mon Mar 28 20:42:29 -0700 2011 with options {:min_percent=&gt;0}<br
 <input value="Show Help" onclick="toggleHelp(this);" type="submit">
 </div>
 <div style="display: none;" id="help">
-<img src="empty.png"> Enter a decimal value <i>d</i> into the threshold field and click "Apply"
+<img src="http://asset.rubini.us/empty.png"> Enter a decimal value <i>d</i> into the threshold field and click "Apply"
 to hide all nodes marked with time values lower than <i>d</i>.<br>
-<img src="empty.png"> Click on "Expand All" for full tree expansion.<br>
-<img src="empty.png"> Click on "Collapse All" to show only top level nodes.<br>
-<img src="empty.png"> Use a, s, d, w as in Quake or Urban Terror to navigate the tree.<br>
-<img src="empty.png"> Use f and b to navigate the tree in preorder forward and backwards.<br>
-<img src="empty.png"> Use x to toggle visibility of a subtree.<br>
-<img src="empty.png"> Use * to expand/collapse a whole subtree.<br>
-<img src="empty.png"> Use h to navigate to thread root.<br>
-<img src="empty.png"> Use n and p to navigate between threads.<br>
-<img src="empty.png"> Click on background to move focus to a subtree.<br>
+<img src="http://asset.rubini.us/empty.png"> Click on "Expand All" for full tree expansion.<br>
+<img src="http://asset.rubini.us/empty.png"> Click on "Collapse All" to show only top level nodes.<br>
+<img src="http://asset.rubini.us/empty.png"> Use a, s, d, w as in Quake or Urban Terror to navigate the tree.<br>
+<img src="http://asset.rubini.us/empty.png"> Use f and b to navigate the tree in preorder forward and backwards.<br>
+<img src="http://asset.rubini.us/empty.png"> Use x to toggle visibility of a subtree.<br>
+<img src="http://asset.rubini.us/empty.png"> Use * to expand/collapse a whole subtree.<br>
+<img src="http://asset.rubini.us/empty.png"> Use h to navigate to thread root.<br>
+<img src="http://asset.rubini.us/empty.png"> Use n and p to navigate between threads.<br>
+<img src="http://asset.rubini.us/empty.png"> Click on background to move focus to a subtree.<br>
 </div>
   HTML
 
@@ -557,13 +557,13 @@ def print_node(f, id, data, depth=0)
   color = prec.to_i / 10
 
   if node["sub_nodes"].empty?
-    f.puts %Q!<li class="color#{color}" style="display:block"><img src="empty.png"> #{prec}% #{name}!
+    f.puts %Q!<li class="color#{color}" style="display:block"><img src="http://asset.rubini.us/empty.png"> #{prec}% #{name}!
   else
     if depth > 20
-      f.puts %Q!<li class="color#{color}" style="display:block"><img class="toggle" src="plus.png"> #{prec}% #{name}!
+      f.puts %Q!<li class="color#{color}" style="display:block"><img class="toggle" src="http://asset.rubini.us/plus.png"> #{prec}% #{name}!
       f.puts "<ul style=\"display:none\">"
     else
-      f.puts %Q!<li class="color#{color}" style="display:block"><img class="toggle" src="minus.png"> #{prec}% #{name}!
+      f.puts %Q!<li class="color#{color}" style="display:block"><img class="toggle" src="http://asset.rubini.us/minus.png"> #{prec}% #{name}!
       f.puts "<ul>"
     end
 
