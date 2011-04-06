@@ -1,8 +1,7 @@
 class Object
-  def metaclass
-    Rubinius.object_metaclass self
+  def singleton_class
+    Rubinius::Type.object_singleton_class self
   end
-  alias_method :__metaclass__, :metaclass
 
   def __fixnum__
     Ruby.primitive :object_is_fixnum

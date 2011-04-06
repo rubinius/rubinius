@@ -65,11 +65,17 @@ describe "C-API IO function" do
   before :each do
     @o = CApiIOSpecs.new
     @r_io, @w_io = IO.pipe
+
+    @name = tmp("c_api_io_specs")
+    touch @name
+    @rw_io = new_io @name, fmode("w+")
   end
 
   after :each do
     @r_io.close unless @r_io.closed?
     @w_io.close unless @w_io.closed?
+    @rw_io.close unless @rw_io.closed?
+    rm_r @name
   end
 
   describe "rb_io_check_readable" do
@@ -78,15 +84,24 @@ describe "C-API IO function" do
       lambda { @o.rb_io_check_readable(@r_io) }.should_not raise_error
     end
 
+    it "does not raise an exception if the IO is opened for read and write" do
+      lambda { @o.rb_io_check_readable(@rw_io) }.should_not raise_error
+    end
+
     it "raises an IOError if the IO is not opened for reading" do
       lambda { @o.rb_io_check_readable(@w_io) }.should raise_error(IOError)
     end
+
   end
 
   describe "rb_io_check_writable" do
     it "does not raise an exeption if the IO is opened for writing" do
       # The MRI function is void, so we use should_not raise_error
       lambda { @o.rb_io_check_writable(@w_io) }.should_not raise_error
+    end
+
+    it "does not raise an exception if the IO is opened for read and write" do
+      lambda { @o.rb_io_check_writable(@rw_io) }.should_not raise_error
     end
 
     it "raises an IOError if the IO is not opened for reading" do

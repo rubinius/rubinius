@@ -62,7 +62,13 @@ namespace rubinius {
   }
 
   ByteArray* ByteArray::allocate(STATE, Fixnum* bytes) {
-    return ByteArray::create(state, bytes->to_native());
+    native_int size = bytes->to_native();
+    if(size < 0) {
+      Exception::argument_error(state, "negative byte array size");
+    } else if (size > INT32_MAX) {
+      Exception::argument_error(state, "too large byte array size");
+    }
+    return ByteArray::create(state, size);
   }
 
   Fixnum* ByteArray::size(STATE) {

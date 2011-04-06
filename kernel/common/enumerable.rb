@@ -274,7 +274,7 @@ module Enumerable
     return to_enum :cycle, many unless block_given?
     return loop{each(&block)} unless many
 
-    many = Type.coerce_to(many, Fixnum, :to_int)
+    many = Rubinius::Type.coerce_to(many, Fixnum, :to_int)
     if many >= 1
       cache = []
       each do |elem|
@@ -292,7 +292,7 @@ module Enumerable
   # Drops first n elements from enum, and returns rest elements in an array.
 
   def drop(n)
-    n = Type.coerce_to(n, Fixnum, :to_int)
+    n = Rubinius::Type.coerce_to(n, Fixnum, :to_int)
     raise ArgumentError, "attempt to drop negative size" if n < 0
     ary = to_a
     return [] if n > ary.size
@@ -317,7 +317,7 @@ module Enumerable
   end
 
   def each_cons(num)
-    n = Type.coerce_to(num, Fixnum, :to_int)
+    n = Rubinius::Type.coerce_to(num, Fixnum, :to_int)
     raise ArgumentError, "invalid size: #{n}" if n <= 0
 
     return to_enum :each_cons, num unless block_given?
@@ -332,7 +332,7 @@ module Enumerable
   end
 
   def each_slice(slice_size)
-    n = Type.coerce_to(slice_size, Fixnum, :to_int)
+    n = Rubinius::Type.coerce_to(slice_size, Fixnum, :to_int)
     raise ArgumentError, "invalid slice size: #{n}" if n <= 0
 
     return to_enum :each_slice, slice_size unless block_given?
@@ -560,7 +560,7 @@ module Enumerable
     each do |object|
       result = yield object
 
-      if Type.coerce_to_comparison(max_result, result) < 0
+      if Rubinius::Type.coerce_to_comparison(max_result, result) < 0
         max_object, max_result = object, result
       end
     end
@@ -586,7 +586,7 @@ module Enumerable
     each do |object|
       result = yield object
 
-      if Type.coerce_to_comparison(min_result, result) > 0
+      if Rubinius::Type.coerce_to_comparison(min_result, result) > 0
         min_object, min_result = object, result
       end
     end
@@ -639,11 +639,11 @@ module Enumerable
     max_object, max_result = nil, Rubinius::FakeComparator.new(-1)
     each do |object|
       result = yield object
-      if Type.coerce_to_comparison(min_result, result) > 0
+      if Rubinius::Type.coerce_to_comparison(min_result, result) > 0
         min_object, min_result = object, result
       end
 
-      if Type.coerce_to_comparison(max_result, result) < 0
+      if Rubinius::Type.coerce_to_comparison(max_result, result) < 0
         max_object, max_result = object, result
       end
     end
@@ -759,7 +759,7 @@ module Enumerable
   # Returns first n elements from enum.
 
   def take(n)
-    n = Type.coerce_to(n, Fixnum, :to_int)
+    n = Rubinius::Type.coerce_to(n, Fixnum, :to_int)
     raise ArgumentError, "attempt to take negative size: #{n}" if n < 0
     array = []
     each do |elem|
@@ -801,7 +801,7 @@ module Enumerable
   #   IO.constants.include? "SEEK_NO_FURTHER"   #=> false
 
   def include?(obj)
-    each { |o| return true if obj == o }
+    each { |o| return true if o == obj }
     false
   end
 

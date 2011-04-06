@@ -24,43 +24,6 @@
 
 namespace rubinius {
 
-  void Class::bootstrap_methods(STATE) {
-    System::attach_primitive(state,
-                             G(rubinius), true,
-                             state->symbol("open_class"),
-                             state->symbol("vm_open_class"));
-
-    System::attach_primitive(state,
-                             G(rubinius), true,
-                             state->symbol("open_class_under"),
-                             state->symbol("vm_open_class_under"));
-
-    System::attach_primitive(state,
-                             G(rubinius), true,
-                             state->symbol("open_module"),
-                             state->symbol("vm_open_module"));
-
-    System::attach_primitive(state,
-                             G(rubinius), true,
-                             state->symbol("open_module_under"),
-                             state->symbol("vm_open_module_under"));
-
-    System::attach_primitive(state,
-                             G(rubinius), true,
-                             state->symbol("object_metaclass"),
-                             state->symbol("vm_object_metaclass"));
-
-    System::attach_primitive(state,
-                             G(rubinius), true,
-                             state->symbol("add_defn_method"),
-                             state->symbol("vm_add_method"));
-
-    System::attach_primitive(state,
-                             G(rubinius), true,
-                             state->symbol("attach_method"),
-                             state->symbol("vm_attach_method"));
-  }
-
   Class* Class::create(STATE, Class* super) {
     Class* cls = state->om->new_object_enduring<Class>(state, G(klass));
 
@@ -79,7 +42,7 @@ namespace rubinius {
 
     cls->setup(state);
 
-    MetaClass::attach(state, cls, super->metaclass(state)); // HACK test
+    SingletonClass::attach(state, cls, super->singleton_class(state)); // HACK test
 
     return cls;
   }
@@ -153,7 +116,7 @@ use_packed:
       }
 
       return obj;
-    } else if(!type_info_->allow_user_allocate || kind_of<MetaClass>(this)) {
+    } else if(!type_info_->allow_user_allocate || kind_of<SingletonClass>(this)) {
       Exception::type_error(state, "direct allocation disabled");
       return Qnil;
     } else if(type_info_->type == Object::type) {
@@ -189,8 +152,8 @@ use_packed:
       return Primitives::failure();
     }
 
-    if(try_as<MetaClass>(sup)) {
-      Exception::type_error(state, "cannot inherit from a metaclass");
+    if(try_as<SingletonClass>(sup)) {
+      Exception::type_error(state, "cannot inherit from a singleton class");
     }
 
     superclass(state, sup);
@@ -202,7 +165,7 @@ use_packed:
       set_type_info(sup->type_info());
     }
 
-    MetaClass::attach(state, this, sup->metaclass(state));
+    SingletonClass::attach(state, this, sup->singleton_class(state));
 
     return Qnil;
   }
@@ -296,69 +259,64 @@ use_packed:
   }
 
   Class* Class::real_class(STATE, Class* klass) {
-    if(MetaClass* mc = try_as<MetaClass>(klass)) {
-      return mc->true_superclass(state);
+    if(SingletonClass* sc = try_as<SingletonClass>(klass)) {
+      return sc->true_superclass(state);
     } else {
       return klass;
     }
   }
 
-  MetaClass* MetaClass::attach(STATE, Object* obj, Class* sup) {
-    MetaClass *meta;
-    meta = state->om->new_object_enduring<MetaClass>(state, G(klass));
-    meta->init(state->shared.inc_class_count(state));
+  SingletonClass* SingletonClass::attach(STATE, Object* obj, Class* sup) {
+    SingletonClass *sc;
+    sc = state->om->new_object_enduring<SingletonClass>(state, G(klass));
+    sc->init(state->shared.inc_class_count(state));
 
-    meta->attached_instance(state, obj);
-    meta->setup(state);
+    sc->attached_instance(state, obj);
+    sc->setup(state);
 
     if(kind_of<PackedObject>(obj)) {
-      meta->set_type_info(state->om->type_info[Object::type]);
+      sc->set_type_info(state->om->type_info[Object::type]);
     } else {
-      meta->set_type_info(obj->klass()->type_info());
+      sc->set_type_info(obj->klass()->type_info());
     }
 
-    meta->set_packed_size(obj->klass()->packed_size());
-    meta->packed_ivar_info(state, obj->klass()->packed_ivar_info());
+    sc->set_packed_size(obj->klass()->packed_size());
+    sc->packed_ivar_info(state, obj->klass()->packed_ivar_info());
 
-    /* The superclass hierarchy for metaclasses lives in parallel to that of classes.
-     * This code ensures that the superclasses of metaclasses are also metaclasses.
+    /* The superclass hierarchy for singleton classes lives in parallel to
+     * that of classes.  This code ensures that the superclasses of singleton
+     * classes are also singleton classes.
      */
-    if(MetaClass* already_meta = try_as<MetaClass>(obj)) {
-      /* If we are attaching a metaclass to something that is already a MetaClass,
-       * make the metaclass's superclass be the attachee's superclass.
-       * klass and superclass are both metaclasses in this case.
+    if(SingletonClass* already_sc = try_as<SingletonClass>(obj)) {
+      /* If we are attaching a singleton class to something that is already a
+       * SingletonClass, make the singleton class's superclass be the attachee's
+       * superclass.  klass and superclass are both singleton classes in this
+       * case.
        */
-      meta->klass(state, meta);
-      meta->superclass(state, already_meta->true_superclass(state)->metaclass(state));
+      sc->klass(state, sc);
+      sc->superclass(state, already_sc->true_superclass(state)->singleton_class(state));
     } else {
-      /* If we are attaching to anything but a MetaClass, the new
-       * metaclass's class is the same as its superclass.
-       * This is where the superclass chains for meta/non-meta classes diverge.
-       * If no superclass argument was provided, we use the klass we are replacing.
+      /* If we are attaching to anything but a SingletonClass, the new
+       * singleton class's class is the same as its superclass.  This is where
+       * the superclass chains for singleton and non-singleton classes
+       * diverge.  If no superclass argument was provided, we use the klass we
+       * are replacing.
        */
       if(!sup) { sup = obj->klass(); }
-      /* Tell the new MetaClass about the attachee's existing hierarchy */
-      Class* meta_klass = Class::real_class(state, sup)->klass();
-      meta->klass(state, meta_klass);
-      meta->superclass(state, sup);
+      /* Tell the new SingletonClass about the attachee's existing hierarchy */
+      Class* super_klass = Class::real_class(state, sup)->klass();
+      sc->klass(state, super_klass);
+      sc->superclass(state, sup);
     }
 
-    /* Finally, attach the new MetaClass */
-    obj->klass(state, meta);
+    /* Finally, attach the new SingletonClass */
+    obj->klass(state, sc);
 
-    return meta;
+    return sc;
   }
 
-  Object* Class::get_metaclass_attached(STATE) {
-    if(MetaClass* mc = try_as<MetaClass>(this)) {
-      return mc->attached_instance();
-    }
-
-    return Qnil;
-  }
-
-  void MetaClass::Info::show(STATE, Object* self, int level) {
-    MetaClass* cls = as<MetaClass>(self);
+  void SingletonClass::Info::show(STATE, Object* self, int level) {
+    SingletonClass* cls = as<SingletonClass>(self);
     Module* mod = try_as<Module>(cls->attached_instance());
 
     const char* name;
@@ -369,7 +327,7 @@ use_packed:
       name = "<some object>";
     }
 
-    std::cout << "#<MetaClass:" << self->class_object(state)->name()->c_str(state) <<
+    std::cout << "#<SingletonClass:" << self->class_object(state)->name()->c_str(state) <<
       " " << name << ":" << (void*)self << ">" << std::endl;
   }
 }

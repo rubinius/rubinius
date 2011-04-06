@@ -13,13 +13,14 @@
 #include "builtin/string.hpp"
 #include "builtin/symbol.hpp"
 #include "builtin/module.hpp"
-#include "builtin/taskprobe.hpp"
-#include "builtin/cache.hpp"
 
 #ifdef ENABLE_LLVM
 #include "llvm/jit.hpp"
+#if RBX_LLVM_API_VER == 208
 #include <llvm/System/Threading.h>
-#include <llvm/Target/TargetOptions.h>
+#elif RBX_LLVM_API_VER == 209
+#include <llvm/Support/Threading.h>
+#endif
 #endif
 
 #ifdef USE_EXECINFO
@@ -33,6 +34,8 @@
 
 #include "agent.hpp"
 
+#include "instruments/tooling.hpp"
+
 #include <iostream>
 #include <fstream>
 #include <sstream>
@@ -44,6 +47,7 @@
 #include <fcntl.h>
 #include <unistd.h>
 #include <sys/param.h>
+#include <dlfcn.h>
 
 namespace rubinius {
 
@@ -64,9 +68,11 @@ namespace rubinius {
       assert(0 && "llvm doesn't support threading!");
     }
 
+#ifdef LLVM_JIT_DEBUG
     if(getenv("RBX_GDBJIT")) {
       llvm::JITEmitDebugInfo = true;
     }
+#endif
 #endif
 
     VM::init_stack_size();
@@ -457,8 +463,6 @@ namespace rubinius {
   }
 
   void Environment::run_file(std::string file) {
-    if(!state->probe->nil_p()) state->probe->load_runtime(state, file);
-
     std::ifstream stream(file.c_str());
     if(!stream) {
       std::string msg = std::string("Unable to open file to run: ");
@@ -481,7 +485,7 @@ namespace rubinius {
       msg << "exception detected at toplevel: ";
       if(!exc->message()->nil_p()) {
         if(String* str = try_as<String>(exc->message())) {
-          msg << str->c_str();
+          msg << str->c_str(state);
         } else {
           msg << "<non-string Exception message>";
         }
@@ -501,6 +505,8 @@ namespace rubinius {
   }
 
   void Environment::halt() {
+    state->shared.tool_broker()->shutdown(state);
+
     if(state->shared.config.ic_stats) {
       state->shared.ic_registry()->print_stats(state);
     }
@@ -620,6 +626,44 @@ namespace rubinius {
     }
   }
 
+  void Environment::load_tool() {
+    if(!state->shared.config.tool_to_load.set_p()) return;
+    std::string path = std::string(state->shared.config.tool_to_load.value) + ".";
+
+#ifdef _WIN32
+    path += "dll";
+#else
+  #ifdef __APPLE_CC__
+    path += "bundle";
+  #else
+    path += "so";
+  #endif
+#endif
+
+    void* handle = dlopen(path.c_str(), RTLD_NOW);
+    if(!handle) {
+      path = std::string(RBX_LIB_PATH) + "/" + path;
+
+      handle = dlopen(path.c_str(), RTLD_NOW);
+      if(!handle) {
+        std::cerr << "Unable to load tool '" << path << "': " << dlerror() << "\n";
+        return;
+      }
+    }
+
+    void* sym = dlsym(handle, "Tool_Init");
+    if(!sym) {
+      std::cerr << "Failed to initialize tool '" << path << "': " << dlerror() << "\n";
+    } else {
+      typedef int (*init_func)(rbxti::Env* env);
+      init_func init = (init_func)sym;
+
+      if(!init(state->tooling_env())) {
+        std::cerr << "Tool '" << path << "' reported failure to init.\n";
+      }
+    }
+  }
+
   /**
    * Runs rbx from the filesystem, loading the Ruby kernel files relative to
    * the supplied root directory.
@@ -637,6 +681,8 @@ namespace rubinius {
     load_argv(argc_, argv_);
 
     state->initialize_config();
+
+    load_tool();
 
     load_kernel(root);
 

@@ -30,7 +30,7 @@ module Signal
       old = @handlers.delete(number)
 
       if number != Names["EXIT"]
-        Rubinius.watch_signal -number
+        Rubinius.watch_signal(-number)
       end
 
       return "DEFAULT" unless had_old

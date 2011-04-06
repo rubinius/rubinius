@@ -38,11 +38,11 @@ Benchmark.ips do |x|
       i += 1
     end
   end
-
+  
   x.report "chomp!, std separator, multiple EOL" do |times|
     i = 0
     while i < times
-      multiple_eol.chomp!
+      multiple_eol.dup.chomp!
       i += 1
     end
   end
@@ -50,7 +50,7 @@ Benchmark.ips do |x|
   x.report "chomp!, std separator, no EOL" do |times|
     i = 0
     while i < times
-      no_eol.chomp!
+      no_eol.dup.chomp!
       i += 1
     end
   end
@@ -58,7 +58,7 @@ Benchmark.ips do |x|
   x.report "chomp!, std separator, multiple LF" do |times|
     i = 0
     while i < times
-      multiple_lf.chomp!
+      multiple_lf.dup.chomp!
       i += 1
     end
   end
@@ -66,7 +66,7 @@ Benchmark.ips do |x|
   x.report "chomp!, std separator, empty string" do |times|
     i = 0
     while i < times
-      empty_string.chomp!
+      empty_string.dup.chomp!
       i += 1
     end
   end

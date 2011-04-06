@@ -44,7 +44,7 @@
       </div>
             <div class='span-3 last'>
         <div id='version'>
-          <a href="/releases/1.2.2">1.2.2</a>
+          <a href="/releases/1.2.3">1.2.3</a>
         </div>
       </div>
 
@@ -59,6 +59,463 @@
 
 
   <div class="container blog_posts">
+  
+    <div class="post">
+      <h2 class="post_title">
+        <a href="/2011/03/17/running-ruby-with-no-ruby/" title="Running Ruby With No Ruby" class="post_title">
+        Running Ruby With No Ruby
+        </a>
+      </h2>
+            <div class="by_line">
+        <p><span class="author">Brian Ford</span>
+          <span class="date">17 March 2011</span>
+          
+                      <a href="http://rubini.us/2011/03/17/running-ruby-with-no-ruby/#disqus_thread"
+            data-disqus-identifier="/2011/03/17/running-ruby-with-no-ruby/"></a>
+
+          
+        </p>
+      </div>
+
+      <p>Humans have come a long way since our cave-dwelling days. No, that&rsquo;s not a
+metaphor for primitive software. I mean literally since we lived in caves. One
+of the big inventions is the lock. There are birds that bury food and will
+move it later if they notice they were watched burying it. But they have no
+access control. Any bird may come along and dig up the food.</p>
+
+<p>Humans, though, are smarter than the average bird.</p>
+
+<p>We have numerous systems that implement the analog of a lock, namely, some
+sort of access control. For every one of these systems, we have other systems
+that attempt to circumvent or defeat the access control. Two sides of the
+ubiquitous coin of life.</p>
+
+<p>In software, attempts to implement access control typically involve
+distinguishing between source code and some form of executable code. Direct
+access to the source code is not permitted. Further, the format of the
+executable code resists attempts to derive the source code. There are several
+reasons for this:</p>
+
+<ol>
+  <li><strong>Licenses:</strong> If a vendor licenses individual copies of the software, they
+want to prevent unrestricted copying of the software without paying for a
+license.</li>
+  <li><strong>Intellectual Property:</strong> A vendor may have trade secrets or other
+proprietary information that is disclosed by the source code.</li>
+  <li><strong>Security:</strong> Full access to the source code may reveal vulnerabilities in
+the software or related systems. This is sometimes called <em>Security Through
+Obscurity</em> and is generally disparaged, but things are not so black and
+white and there may be valid security concerns in the source code.</li>
+</ol>
+
+<p>The process that separates the source code from the executable program is
+typically a compilation step. However, Ruby code is not typically associated
+with any sort of compilation. That&rsquo;s one of the great things about Ruby,
+right? There is no <em>edit-compile-link-load</em> cycle to wait on. Just edit and run. But
+if there is no compilation step, how do we separate the source code from the
+executable code?</p>
+
+<p>You may recall from my <a href="http://rubini.us/2011/03/11/making-rubinius-rbc-files-disappear/">last
+post</a> that
+Rubinius does compile Ruby code to a bytecode format that the virtual machine
+executes. I also promised to explain how you could run the bytecode directly.</p>
+
+<p>But first, let me very clearly state that there are a number of caveats. In
+fact, I&rsquo;ve included a whole section on them below. Please read them. We will
+assume that you have and that you understand them. If you have any questions,
+please ask.</p>
+
+<h3 id="application-distribution-scenario">Application Distribution Scenario</h3>
+
+<p>Let&rsquo;s review what we would like to accomplish. We&rsquo;ll assume affable Abe is a
+developer writing an application for customer Cain.</p>
+
+<ol>
+  <li>Abe writes some Ruby code.</li>
+  <li>Abe compiles the code to a set of files.</li>
+  <li>Abe packages the files up into an application with no Ruby source.</li>
+  <li>Abe sends the application to Cain.</li>
+  <li>Cain installs the application.</li>
+  <li>Cain runs the application.</li>
+</ol>
+
+<p>In this scenario, I&rsquo;m assuming a very vague definition of application. In
+other words, the process below will fit in with a broad spectrum of bundling
+and distribution schemes.</p>
+
+<h3 id="application-layout">Application Layout</h3>
+
+<p>Let&rsquo;s assume that you have the following application layout. This mirrors what
+you would expect to see in a gem. You could also consider this as a subtree in
+your larger project.</p>
+
+<pre><code>widget
+|- lib
+|- widget.rb
+\- widget
+   |- red.rb
+   |- blue.rb
+   \- green.rb
+</code></pre>
+
+<div class="highlight"><pre><code class="ruby"><span class="lineno">1</span> <span class="c1"># widget.rb</span>
+<span class="lineno">2</span> <span class="nb">require</span> <span class="s1">&#39;widget/red&#39;</span>
+<span class="lineno">3</span> <span class="nb">require</span> <span class="s1">&#39;widget/blue&#39;</span>
+<span class="lineno">4</span> <span class="nb">require</span> <span class="s1">&#39;widget/green&#39;</span>
+</code></pre>
+</div>
+
+<div class="highlight"><pre><code class="ruby"><span class="lineno">1</span> <span class="c1"># widget/red.rb</span>
+<span class="lineno">2</span> <span class="nb">puts</span> <span class="s2">&quot;I am red&quot;</span>
+</code></pre>
+</div>
+
+<div class="highlight"><pre><code class="ruby"><span class="lineno">1</span> <span class="c1"># widget/blue.rb</span>
+<span class="lineno">2</span> <span class="nb">puts</span> <span class="s2">&quot;I am blue&quot;</span>
+</code></pre>
+</div>
+
+<div class="highlight"><pre><code class="ruby"><span class="lineno">1</span> <span class="c1"># widget/green.rb</span>
+<span class="lineno">2</span> <span class="nb">puts</span> <span class="s2">&quot;I am green&quot;</span>
+</code></pre>
+</div>
+
+<h3 id="compiling-ruby-files">Compiling Ruby Files</h3>
+
+<p>The Rubinius bytecode compiler is accessible through a command-line script.
+See <code>rbx compile -h</code> for all options. We will only need one simple option in
+our case to easily create a separate tree containing one compiled file for
+every Ruby source file in our source tree.</p>
+
+<pre><code>rbx compile -s '^widget:widget-compiled' widget/
+</code></pre>
+
+<p>Let&rsquo;s dissect this command. The <code>-s</code> option defines a transformation to apply
+to every filename. The transformation has the form <code>&lt;source&gt;:&lt;destination&gt;</code>
+where <code>&lt;source&gt;</code> can be a Regexp. In our case, we would like to change any
+path starting with <code>widget</code> to start with <code>widget-compiled</code>. This way, we
+create a separate tree of our compiled files. The final option is the
+<code>widget/</code> directory. The <code>rbx compile</code> command will happily compile a single
+file or a directory of files. Note that if we did not pass the <code>-s</code> option,
+<code>rbx compile</code> would have created the compiled files alongside the source
+files.</p>
+
+<p>If we now look at <code>widget-compiled</code>, we should see the following:</p>
+
+<pre><code>widget-compiled
+|- lib
+|- widget.rbc
+\- widget
+   |- red.rbc
+   |- blue.rbc
+   \- green.rbc
+</code></pre>
+
+<h3 id="loading-pre-compiled-files">Loading Pre-compiled Files</h3>
+
+<p>Now that we have a separate tree of only compiled files, how do we load them?
+Well, first, let&rsquo;s load our source files so we know what to expect. Note that
+the technique used in this post should not substitute for a robust test suite.</p>
+
+<pre><code>$ rbx -Iwidget/lib -e "require 'widget/lib/widget'"
+I am red
+I am blue
+I am green
+</code></pre>
+
+<p>Ok, that is what I would expect. Now, to load the compiled files:</p>
+
+<pre><code>$ rbx -Iwidget-compiled/lib -e "Rubinius::CodeLoader.require_compiled 'widget/lib/widget'"
+I am red
+I am blue
+I am green
+</code></pre>
+
+<p><em>The crowed erupts with applause and hooting</em>.</p>
+
+<p>Golly gee, you guys&hellip; <em>Blush</em></p>
+
+<p>Let&rsquo;s review. Our goal is to take a tree of Ruby source files and create a
+tree of compiled files that can be sent to a customer and loaded to perform
+exactly as the Ruby source would if loaded directly. The most direct and
+simple way to accomplish this is to use the Rubinius compiler command-line
+script to compile the tree of Ruby source files to a separate tree. Then, load
+the root of that tree with <code>Rubinius::CodeLoader.require_compiled "root"</code>.</p>
+
+<h3 id="caveats">Caveats</h3>
+
+<p>I will admit, I have resisted fiercely against encouraging or even permitting
+Rubinius users from using what I showed above in their code. Not because I am
+an ogre who is trying to steal your fun, but because there are serious issues
+with allowing this. So, please read the following carefully.</p>
+
+<ol>
+  <li>We, Rubinius, absolutely reserve the right to change any part of the
+underlying compiled file mechanism. Since we are publishing the
+<code>Rubinius::CodeLoader.require_compiled(name)</code> method, we will respect that
+contract. What it says is, given a name, we will load a representation of
+that name. <em>DO NOT assume that <code>"some_file"</code> is actually referencing
+<code>"some_file.rbc"</code></em>. We may change the way compiled files are stored and may
+change the format of the compiled output.</li>
+  <li>We have created this facility to meet a need we had in Rubinius. Since our
+compiler is written in Ruby, we have to run Ruby to run the compiler. But
+since we need to compile Ruby to run it, we need to compile the compiler.
+But since&hellip; To handle this, we build the compiler using a bootstrapping
+version of Ruby.  Then we load the pre-compiled compiler files as shown
+above. The approach is quite general, as demonstrated. However, a better
+approach may be appropriate for a particular application. In that case,
+talk to us about how you think it should work and we can point you in a
+direction to try implementing what you need.</li>
+  <li><strong>We assume no responsibility for any security breaches resulting from your
+incorrect assumption that .rbc files provides any meaningful security
+mechanism.</strong> I cannot stress this enough. The compiled file mechanism is a
+cache. It is a way to avoid recompiling Ruby source code that has not
+changed. The compiled format is simple. We reserve the right to provide
+disassemblers for our compiled code. We are happy to assist you with
+direction for implementing a more secure system for your needs.</li>
+  <li>There is no mechanism that is completely safe from cracking when it comes
+to software access control. Witness how often Microsoft&rsquo;s products have
+their security features defeated. Also witness how often attempts at DRM
+are circumvented. The most secure system I have seen uses a special
+compiler and a hardware dongle. The compiler takes critical parts of the
+application logic and breaks them up so that part of the computation is
+performed on the dongle. This is significantly harder to defeat than binary
+editing an executable to turn a license key check into a no-op. The folks
+you most want to keep from accessing your information are the ones most
+capable of doing so. Security and access control are very hard problems.</li>
+</ol>
+
+<h3 id="conclusion">Conclusion</h3>
+
+<p>Rubinius compiles Ruby code to bytecode before running it. It is possible to
+save the bytecode representation and reload it later. Using this mechanism, it
+is possible to avoid providing the Ruby source code and run an application
+directly from the compiled bytecode. The mechanism we use to do this was
+created to solve our problem of bootstrapping the Rubinius bytecode compiler,
+which is written in Ruby. The mechanism is not intended to be used for
+security.</p>
+
+<p>It is possible to extend the Rubinius code loading mechanism to support custom
+formats for on-disk compiled bytecode and to load those formats. This can be
+done entirely in Ruby code. If this interests you, please talk with us about
+it.</p>
+
+    </div>
+  
+    <div class="post">
+      <h2 class="post_title">
+        <a href="/2011/03/11/making-rubinius-rbc-files-disappear/" title="Making Rubinius .rbc Files Disappear" class="post_title">
+        Making Rubinius .rbc Files Disappear
+        </a>
+      </h2>
+            <div class="by_line">
+        <p><span class="author">Brian Ford</span>
+          <span class="date">11 March 2011</span>
+          
+                      <a href="http://rubini.us/2011/03/11/making-rubinius-rbc-files-disappear/#disqus_thread"
+            data-disqus-identifier="/2011/03/11/making-rubinius-rbc-files-disappear/"></a>
+
+          
+        </p>
+      </div>
+
+      <p>Rubinius is rather unusual as a Ruby implementation. It both compiles Ruby
+source code to bytecode <em>and</em> saves the compiled code to a cache so it does
+not need to recompile unless the source code changes. This can be great for
+utilities that are run often from the command line (including IRB). Rubinius
+merely reloads the cached file and runs the bytecode directly rather than
+needing to parse and compile the file. Sounds like a real win!</p>
+
+<p>Unfortunately, it is not that simple. We need some place to store that cache
+and this is where the thorns on that pretty rose start poking us in the
+thumbs. The solution we have been using since forever is to store the cached
+file alongside the source file in the same directory, like so:</p>
+
+<pre><code>$ echo 'puts "hello!"' &gt; hello.rb
+$ ls hello.*
+hello.rb
+$ rbx hello.rb
+hello!
+$ ls hello.*
+hello.rb	hello.rbc
+</code></pre>
+
+<p>That doesn&rsquo;t look too crazy, but it can get more complicated:</p>
+
+<pre><code>$ mv hello.rb hello
+$ rbx hello
+$ ls hello.*
+hello.compiled.rbc	hello.rbc
+</code></pre>
+
+<p>Whoa, what is <code>hello.compiled.rbc</code>? Since <code>hello</code> did not have an extension,
+we add that longer <code>compiled.rbc</code> to make it clear which file the cache is
+for. Also, note that we have that <code>hello.rbc</code> hanging about even though the
+original <code>hello.rb</code> is gone.</p>
+
+<p>To summarize the issues with our caching scheme:</p>
+
+<ol>
+  <li>It requires an additional file for every Ruby source file.</li>
+  <li>It requires some potentially complicated naming scheme to associate the
+cache file with the source and not clash with other names.</li>
+  <li>Removing or renaming the Ruby source file leaves the cache file behind.</li>
+</ol>
+
+<p>Again, the advantage of the cache file is that you do not have to wait for
+Rubinius to recompile the file if you have not changed the source. Let&rsquo;s see
+if we can get all the advantages with none of the disadvantages. That old
+saying comes to mind, <em>Having your cake and eating it, too</em>, so we may not
+be successful, but it is worth a shot.</p>
+
+<p>First, let&rsquo;s take a step back. This issue is not unique to Rubinius. Python
+has <code>.pyc</code> and <code>.pyo</code> files. Java has <code>.class</code> files. C/C++ has <code>.o</code> files.
+Lots of things need a place to store a compiled or cached representation of
+some data. Every SCM worth mention has some mechanism to ignore the files you
+don&rsquo;t want to track. The same is generally true of editors. So in some sense,
+this is a solved problem. However, we have always received complaints about
+the <code>.rbc</code> files, so we thought we would try to make other, hopefully better,
+solutions available.</p>
+
+<h3 id="solution-1-no-cache">Solution 1: No Cache</h3>
+
+<p>One simple solution is just to never ever ever create the compiled cache files
+in any form anywhere. We have an option for that:</p>
+
+<pre><code>$ ls hello.*
+hello.rb
+$ rbx -Xcompiler.no_rbc hello.rb
+hello!
+$ ls hello.*
+hello.rb
+</code></pre>
+
+<p>Win! Not one lousy <code>.rbc</code> file in sight. Although, that&rsquo;s quite the option to
+type. Never fear, we have a solution to that below.</p>
+
+<p>Here is our scorecard for solution 1:</p>
+
+<p><strong>Use Case:</strong> Use when you never want any compiler cache files created. For
+example, on a server where startup time is not really a concern.</p>
+
+<p><strong>Pros:</strong> No <code>.rbc</code> files at all.</p>
+
+<p><strong>Cons:</strong> Startup will be slightly slower depending on what Ruby code you are
+running. It will be more noticeable in a Rails application, for example.
+However, the Rubinius bytecode compiler is several times faster than it was a
+couple years ago so it may not be an issue for you.</p>
+
+<h3 id="solution-2-cache-database">Solution 2: Cache Database</h3>
+
+<p>What if we could put all the compilation data in a single cache location,
+something like a database? We have an option for that.</p>
+
+<p>This option is a little more complex, so let&rsquo;s take it in two steps.</p>
+
+<pre><code>$ ls hello.*
+hello.rb
+$ rbx -Xrbc.db hello.rb
+hello!
+$ ls hello.*
+hello.rb
+$ ls -R .rbx
+60
+
+.rbx/60:
+60c091c3ed34c1b93ffbb33d82d810772902d3f9
+</code></pre>
+
+<p>Success! No <code>.rbc</code> files here. But what&rsquo;s with all the numbers in the <code>.rbx</code>
+directory and how did that directory get there?</p>
+
+<p>The <code>-Xrbc.db</code> option without any argument will store the compilation cache in
+the <code>.rbx</code> directory in the current working directory. The cache files
+themselves are split into subdirectories to avoid creating too many entries
+for the file system to handle in one directory.</p>
+
+<p>What if you have a special location where you would prefer all compilation
+cache files be saved? No problem, just give <code>-Xrbc.db</code> a path as follows:</p>
+
+<pre><code>$ ls hello.*
+hello.rb
+$ rbx -Xrbc.db=$HOME/.my_special_place hello.rb 
+hello!
+$ ls hello.*
+hello.rb
+$ ls -R $HOME/.my_special_place
+60
+
+/Users/brian/.my_special_place/60:
+60c091c3ed34c1b93ffbb33d82d810772902d3f9
+</code></pre>
+
+<p>If you primarily work with projects, putting the <code>.rbx</code> directory in the
+current working directory may be the best solution because it keeps the
+compilation cache with the project. It is easy to add an SCM ignore for the
+directory and easy to remove the directory to clear the cache (e.g. in a clean
+task).</p>
+
+<p>However, if you are frequently running scripts in many directories, you may
+not want to litter <code>.rbx</code> directories everywhere. In this case, putting the
+directory in your <code>$HOME</code> dir or <code>/tmp</code> may be preferable. Additionally,
+<code>/tmp</code> may be cleared on every reboot so you will not accumulate many stale
+cache files.</p>
+
+<p>Note that, right now, Rubinius does not clear the cache directory. It will
+happily continue adding to it indefinitely. However, this may not be an issue
+unless you are cycling through a bunch of Ruby files, for example, working on
+a number of Ruby projects in series. In that case, using a per-project (per
+current working directory) cache is probably the best option.</p>
+
+<p>Here is how solution 2 shakes out:</p>
+
+<p><strong>Use Case:</strong> You want to combine all compilation cache files in one location.</p>
+
+<p><strong>Pros:</strong> No <code>.rbc</code> files mixed in with the rest of your files.</p>
+
+<p><strong>Cons:</strong> You may still need a per-project or per-working-directory cache
+directory. However, you can easily specify where to put that directory.</p>
+
+<h3 id="using-rbxopt-for-options">Using RBXOPT for Options</h3>
+
+<p>As mentioned above, the <code>-X</code> options can get a little long and you certainly
+don&rsquo;t want to retype them constantly. We have added support for the <code>RBXOPT</code>
+environment variable, which is an analog of the <code>RUBYOPT</code> environment variable
+that we already support.</p>
+
+<p>Use <code>RBXOPT</code> to specify <code>-X</code> options that Rubinius should use. For example:</p>
+
+<pre><code>export RBXOPT=-Xrbc.db=/path/to/dir
+</code></pre>
+
+<p>You can check out all the <code>-X</code> options with <code>rbx -Xconfig.print</code> or <code>rbx
+-Xconfig.print=2</code> for more verbose output. If you want to use multiple <code>-X</code>
+options in <code>RBXOPT</code>, use quotes and separate the options with a space:</p>
+
+<pre><code>export RBXOPT='-Xrbc.db -Xagent.start'
+</code></pre>
+
+<h3 id="conclusion">Conclusion</h3>
+
+<p>Rubinius saves a compilation cache for compiled Ruby code to avoid wasting
+time and resources recompiling source that has not changed. However, we need
+some place to store the cache. Rubinius provides options for omitting the
+cache altogether or for storing it in a directory of your choosing. Note that
+the format of the compilation cache is an implementation detail and we reserve
+the right to change it at any time, so please don&rsquo;t rely on it being in any
+particular format.</p>
+
+<p>We have not turned on <code>-Xrbc.db</code> by default yet because we don&rsquo;t know what a
+good default is. So give us feedback on your use cases and what you would find
+most useful.</p>
+
+<p>Finally, whenever we discuss the compilation cache we are inevitably asked if
+you can run directly from the cache and not use the Ruby source at all after
+it has been compiled. The short answer is &ldquo;Yes&rdquo;, the long answer is &ldquo;It
+depends&rdquo;. I will be writing a post exploring this question in detail shortly.
+For now, get out there and write more Ruby code!</p>
+
+    </div>
   
     <div class="post">
       <h2 class="post_title">
@@ -817,7 +1274,7 @@ which knows how to find the code on GitHub and install it locally:</p>
 <span class="lineno">15</span> 
 <span class="lineno">16</span>   <span class="c1"># &quot;echo&quot; command</span>
 <span class="lineno">17</span>   <span class="c1"># invoke with: !echo &lt;text&gt;</span>
-<span class="lineno">18</span>   <span class="nf">on:</span> <span class="ss">&#39;channel</span> <span class="nf">pattern:</span> <span class="sr">/^!echo (.*)$/</span> <span class="nf">do:</span> <span class="p">|</span><span class="n">msg</span><span class="o">,</span> <span class="n">text</span><span class="p">|</span> <span class="p">{</span>
+<span class="lineno">18</span>   <span class="nf">on:</span> <span class="ss">&#39;channel</span> <span class="nf">pattern:</span> <span class="sr">/^!echo (.*)$/</span> <span class="nf">do:</span> <span class="p">|</span><span class="n">msg</span><span class="p">,</span> <span class="n">text</span><span class="p">|</span> <span class="p">{</span>
 <span class="lineno">19</span>     <span class="n">msg</span> <span class="nf">reply:</span> <span class="s">&quot;#{msg author} said: #{text}&quot;</span>
 <span class="lineno">20</span>   <span class="p">}</span>
 <span class="lineno">21</span> 

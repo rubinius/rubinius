@@ -198,6 +198,13 @@ describe "Module#include" do
     }.should_not raise_error
   end
 
+  it "returns the class it's included into" do
+    m = Module.new
+    r = nil
+    c = Class.new { r = include m }
+    r.should == c
+  end
+
   it "ignores modules it has already included via module mutual inclusion" do
     module ModuleSpecs::AlreadyInc
       module M0

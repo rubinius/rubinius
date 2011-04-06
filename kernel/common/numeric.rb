@@ -175,7 +175,7 @@ class Numeric
       send error, other
     end
 
-    unless values.__kind_of__(Array) && values.length == 2
+    unless Rubinius::Type.object_kind_of?(values, Array) && values.length == 2
       raise TypeError, "coerce must return [x, y]"
     end
 

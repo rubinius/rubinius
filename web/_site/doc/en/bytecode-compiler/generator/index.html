@@ -44,7 +44,7 @@
       </div>
             <div class='span-3 last'>
         <div id='version'>
-          <a href="/releases/1.2.2">1.2.2</a>
+          <a href="/releases/1.2.3">1.2.3</a>
         </div>
       </div>
 
@@ -130,7 +130,7 @@ object.</p>
 
 <p>A <code>Generator</code> provides a pure-Ruby DSL for generating Rubinius bytecode.
 At its core, the <code>Generator</code> provides methods that map directly to
-<a href="/virtual-machine/instructions/">Rubinius Instructions</a>. For instance,
+<a href="/doc/en/virtual-machine/instructions/">Rubinius Instructions</a>. For instance,
 to create an instruction to push a nil onto the stack, you could call
 the method <code>push_nil</code> on a <code>Generator</code> instance.</p>
 
@@ -229,7 +229,7 @@ AST, it invokes the next stage of the compiler, the Encoder stage.</p>
 <ul>
   <li><em>lib/compiler/generator_methods.rb</em>: A generated file containing Ruby
 wrappers around the Rubinius instructions. These methods map directly
-onto the <a href="/virtual-machine/instructions/">Rubinius Instructions</a></li>
+onto the <a href="/doc/en/virtual-machine/instructions/">Rubinius Instructions</a></li>
   <li><em>lib/compiler/generator.rb</em>: The definition of the <code>Generator</code> object.
 This class mixes in the raw generator methods, and defines a number of
 higher level APIs for generating common bytecode patterns.</li>
@@ -245,7 +245,7 @@ provided by the default <code>Generator</code> implementation.</p>
 
 <p>You can also customize which generator class is passed in. To learn
 more about customizing individual compiler stages or the compiler
-pipeline, please read <a href="/bytecode-compiler/customization/">Customizing the Compiler
+pipeline, please read <a href="/doc/en/bytecode-compiler/customization/">Customizing the Compiler
 Pipeline</a>.</p>
 
 

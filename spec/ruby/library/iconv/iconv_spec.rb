@@ -33,6 +33,13 @@ describe "Iconv#iconv" do
     end
   end
 
+  it "when given a start and end position returns the substring" do
+    Iconv.open "us-ascii", "us-ascii" do |conv|
+      conv.iconv("testing", 1, 4).should == "esti"
+      conv.iconv("testing", 2, 1).should == "s"
+    end
+  end
+
   it "when given a negative start position counts from the end of string" do
     Iconv.open "us-ascii", "us-ascii" do |conv|
       conv.iconv("testing", -7, 4).should == "test"

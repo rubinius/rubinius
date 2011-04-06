@@ -460,7 +460,7 @@ namespace rubinius {
          * internal pointer to the string means that when the string
          * moves, the data will point at the wrong place. Probably need to
          * copy the string data instead */
-        result = str->c_str();
+        result = str->c_str(state);
       }
       WRITE(const char*, result);
       break;

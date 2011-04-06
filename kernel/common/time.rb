@@ -11,7 +11,7 @@ class Time
     return sec.dup if sec.kind_of? Time
 
     if sec.kind_of?(Integer) || usec
-      sec  = Type.coerce_to sec, Integer, :to_i
+      sec  = Rubinius::Type.coerce_to sec, Integer, :to_i
       usec = usec ? usec.to_i : 0
 
       sec  = sec + (usec / 1000000)
@@ -91,12 +91,12 @@ class Time
 
   def self.local(first, *args)
     if args.size == 9
-      second = second.kind_of?(String) ? first.to_i    : Type.num2long(first)
-      minute = args[0].kind_of?(String) ? args[0].to_i : Type.num2long(args[0])
-      hour =   args[1].kind_of?(String) ? args[1].to_i : Type.num2long(args[1])
-      day =    args[2].kind_of?(String) ? args[2].to_i : Type.num2long(args[2])
-      month =  args[3].kind_of?(String) ? args[3].to_i : Type.num2long(args[3])
-      year =   args[4].kind_of?(String) ? args[4].to_i : Type.num2long(args[4])
+      second = second.kind_of?(String) ? first.to_i    : Rubinius::Type.num2long(first)
+      minute = args[0].kind_of?(String) ? args[0].to_i : Rubinius::Type.num2long(args[0])
+      hour =   args[1].kind_of?(String) ? args[1].to_i : Rubinius::Type.num2long(args[1])
+      day =    args[2].kind_of?(String) ? args[2].to_i : Rubinius::Type.num2long(args[2])
+      month =  args[3].kind_of?(String) ? args[3].to_i : Rubinius::Type.num2long(args[3])
+      year =   args[4].kind_of?(String) ? args[4].to_i : Rubinius::Type.num2long(args[4])
       usec =   0
       isdst =  args[7] ? 1 : 0
     else
@@ -110,18 +110,18 @@ class Time
 
           raise ArgumentError, "month argument out of range" unless month
         else
-          month = Type.num2long(month)
+          month = Rubinius::Type.num2long(month)
         end
       else
         month = 1
       end
 
-      year =   first.kind_of?(String) ? first.to_i : Type.num2long(first)
-      day =    args[1].kind_of?(String) ? args[1].to_i : Type.num2long(args[1] || 1)
-      hour =   args[2].kind_of?(String) ? args[2].to_i : Type.num2long(args[2] || 0)
-      minute = args[3].kind_of?(String) ? args[3].to_i : Type.num2long(args[3] || 0)
-      second = args[4].kind_of?(String) ? args[4].to_i : Type.num2long(args[4] || 0)
-      usec =   args[5].kind_of?(String) ? args[5].to_i : Type.num2long(args[5] || 0)
+      year =   first.kind_of?(String) ? first.to_i : Rubinius::Type.num2long(first)
+      day =    args[1].kind_of?(String) ? args[1].to_i : Rubinius::Type.num2long(args[1] || 1)
+      hour =   args[2].kind_of?(String) ? args[2].to_i : Rubinius::Type.num2long(args[2] || 0)
+      minute = args[3].kind_of?(String) ? args[3].to_i : Rubinius::Type.num2long(args[3] || 0)
+      second = args[4].kind_of?(String) ? args[4].to_i : Rubinius::Type.num2long(args[4] || 0)
+      usec =   args[5].kind_of?(String) ? args[5].to_i : Rubinius::Type.num2long(args[5] || 0)
       isdst =  -1
     end
 
@@ -141,12 +141,12 @@ class Time
 
   def self.gm(first, *args)
     if args.size == 9
-      second = first.kind_of?(String) ? first.to_i : Type.num2long(first)
-      minute = args[0].kind_of?(String) ? args[0].to_i : Type.num2long(args[0])
-      hour =   args[1].kind_of?(String) ? args[1].to_i : Type.num2long(args[1])
-      day =    args[2].kind_of?(String) ? args[2].to_i : Type.num2long(args[2])
-      month =  args[3].kind_of?(String) ? args[3].to_i : Type.num2long(args[3])
-      year =   args[4].kind_of?(String) ? args[4].to_i : Type.num2long(args[4])
+      second = first.kind_of?(String) ? first.to_i : Rubinius::Type.num2long(first)
+      minute = args[0].kind_of?(String) ? args[0].to_i : Rubinius::Type.num2long(args[0])
+      hour =   args[1].kind_of?(String) ? args[1].to_i : Rubinius::Type.num2long(args[1])
+      day =    args[2].kind_of?(String) ? args[2].to_i : Rubinius::Type.num2long(args[2])
+      month =  args[3].kind_of?(String) ? args[3].to_i : Rubinius::Type.num2long(args[3])
+      year =   args[4].kind_of?(String) ? args[4].to_i : Rubinius::Type.num2long(args[4])
       usec =   0
     else
       # resolve month names to numbers
@@ -159,18 +159,18 @@ class Time
 
           raise ArgumentError, "month argument out of range" unless month
         else
-          month = Type.num2long(month) rescue month.to_i
+          month = Rubinius::Type.num2long(month) rescue month.to_i
         end
       else
         month = 1
       end
 
-      year =   first.kind_of?(String) ? first.to_i : Type.num2long(first)
-      day =    args[1].kind_of?(String) ? args[1].to_i : Type.num2long(args[1] || 1)
-      hour =   args[2].kind_of?(String) ? args[2].to_i : Type.num2long(args[2] || 0)
-      minute = args[3].kind_of?(String) ? args[3].to_i : Type.num2long(args[3] || 0)
-      second = args[4].kind_of?(String) ? args[4].to_i : Type.num2long(args[4] || 0)
-      usec =   args[5].kind_of?(String) ? args[5].to_i : Type.num2long(args[5] || 0)
+      year =   first.kind_of?(String) ? first.to_i : Rubinius::Type.num2long(first)
+      day =    args[1].kind_of?(String) ? args[1].to_i : Rubinius::Type.num2long(args[1] || 1)
+      hour =   args[2].kind_of?(String) ? args[2].to_i : Rubinius::Type.num2long(args[2] || 0)
+      minute = args[3].kind_of?(String) ? args[3].to_i : Rubinius::Type.num2long(args[3] || 0)
+      second = args[4].kind_of?(String) ? args[4].to_i : Rubinius::Type.num2long(args[4] || 0)
+      usec =   args[5].kind_of?(String) ? args[5].to_i : Rubinius::Type.num2long(args[5] || 0)
     end
 
     # This logic is taken from MRI, on how to deal with 2 digit dates.
@@ -235,7 +235,7 @@ class Time
 
   def <=>(other)
     if other.kind_of? Time
-      [self.seconds, self.usec] <=> [other.seconds, other.usec]
+      (c = self.seconds <=> other.seconds) == 0 ? (self.usec <=> other.usec) : c
     else
       nil
     end
@@ -293,7 +293,7 @@ class Time
   alias_method :to_i, :seconds
 
   def to_f
-    seconds + (usec / 1000000.0)
+    seconds + (usec * 0.000001)
   end
 
   ##

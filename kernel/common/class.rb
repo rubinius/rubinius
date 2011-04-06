@@ -28,7 +28,7 @@
 #
 # Classes, modules, and objects are interrelated. In the diagram that follows,
 # the vertical arrows represent inheritance, and the parentheses meta-classes.
-# All metaclasses are instances of the class Class.
+# All singleton classes are instances of the class Class.
 #
 #                            +------------------+
 #                            |                  |
@@ -94,7 +94,7 @@ class Class
   private :inherited
 
   def to_s
-    if obj = __metaclass_object__
+    if obj = Rubinius::Type.singleton_class_object(self)
       case obj
       when Class
         "#<Class:#{obj.__describe__}>"

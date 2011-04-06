@@ -30,6 +30,7 @@ namespace rubinius {
 
   public:   /* Primitives */
 
+    static void bootstrap_methods(STATE);
     static void attach_primitive(STATE, Module* mod, bool meta, Symbol* name, Symbol* prim);
 
     /** Load a compiled file. */
@@ -124,21 +125,25 @@ namespace rubinius {
     // Ruby.primitive :vm_mri_backtrace
     static Array* vm_mri_backtrace(STATE, Fixnum* skip, CallFrame* calling_environment);
 
-    /** Return true if the profiler is available. */
-    // Ruby.primitive :vm_profiler_instrumenter_available_p
-    static Object* vm_profiler_instrumenter_available_p(STATE);
+    // Load a tool into the VM.
+    // Ruby.primitive :vm_load_tool
+    static Object* vm_load_tool(STATE, String* str);
 
-    /** Return true if the profiler is running. */
-    // Ruby.primitive :vm_profiler_instrumenter_active_p
-    static Object* vm_profiler_instrumenter_active_p(STATE);
+    /** Return true if tooling is enabled */
+    // Ruby.primitive :vm_tooling_available_p
+    static Object* vm_tooling_available_p(STATE);
 
-    /** Starts the instrumenting profiler. */
-    // Ruby.primitive :vm_profiler_instrumenter_start
-    static Object* vm_profiler_instrumenter_start(STATE);
+    /** Return true if tooling is running. */
+    // Ruby.primitive :vm_tooling_active_p
+    static Object* vm_tooling_active_p(STATE);
 
-    /** Stops the instrumenting profiler. */
-    // Ruby.primitive :vm_profiler_instrumenter_stop
-    static LookupTable* vm_profiler_instrumenter_stop(STATE);
+    /** Starts tooling. */
+    // Ruby.primitive :vm_tooling_enable
+    static Object* vm_tooling_enable(STATE);
+
+    /** Stops tooling. */
+    // Ruby.primitive :vm_tooling_disable
+    static Object* vm_tooling_disable(STATE);
 
     /**
      *  Writes String to standard error stream.
@@ -189,9 +194,13 @@ namespace rubinius {
     // Ruby.primitive :vm_object_class
     static Class* vm_object_class(STATE, Object* obj);
 
-    // A robust way to get the metaclass of an object.
-    // Ruby.primitive :vm_object_metaclass
-    static Object* vm_object_metaclass(STATE, Object* obj);
+    // A robust way to get the singleton class of an object.
+    // Ruby.primitive :vm_object_singleton_class
+    static Object* vm_object_singleton_class(STATE, Object* obj);
+
+    // A robust way to get the object for the given singleton class.
+    // Ruby.primitive :vm_singleton_class_object
+    static Object* vm_singleton_class_object(STATE, Module* mod);
 
     // A robust way to find out if an object responds to a method, since #respond_to?
     // can be redefined.
@@ -213,6 +222,12 @@ namespace rubinius {
     // Deoptimze any method that inlined exec
     // Ruby.primitive :vm_deoptimize_inliners
     static Object* vm_deoptimize_inliners(STATE, Executable* exec);
+
+    // Deoptimize all methods.
+    // +disable+ indicates if the methods should also be pulled from being
+    // available for JIT.
+    // Ruby.primitive :vm_deoptimize_all
+    static Object* vm_deoptimize_all(STATE, Object* disable);
 
     // Ruby.primitive :vm_raise_exception
     static Object* vm_raise_exception(STATE, Exception* exc);
@@ -306,6 +321,9 @@ namespace rubinius {
 
     // Ruby.primitive :vm_thread_state
     static Tuple* vm_thread_state(STATE);
+
+    // Ruby.primitive :vm_run_script
+    static Object* vm_run_script(STATE, CompiledMethod* cm, CallFrame* calling_environment);
 
   public:   /* Type info */
 

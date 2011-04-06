@@ -312,7 +312,7 @@ extern "C" {
   }
 
   VALUE rb_ary_reverse(VALUE self) {
-    return rb_funcall2(self, rb_intern("reverse"), 0, NULL);
+    return rb_funcall2(self, rb_intern("reverse!"), 0, NULL);
   }
 
   VALUE rb_ary_shift(VALUE self) {
@@ -469,4 +469,26 @@ extern "C" {
   VALUE rb_ary_freeze(VALUE ary) {
     return rb_obj_freeze(ary);
   }
+
+  VALUE rb_ary_to_ary(VALUE object) {
+    NativeMethodEnvironment* env = NativeMethodEnvironment::get();
+
+    Object* obj = env->get_object(object);
+
+    if (kind_of<Array>(obj)) {
+      return object;
+    }
+
+    ID to_ary_id = rb_intern("to_ary");
+
+    if(rb_respond_to(object, to_ary_id)) {
+      return rb_funcall(object, to_ary_id, 0);
+    } else {
+      Array* array = Array::create(env->state(), 1);
+      array->set(env->state(), 0, obj);
+
+      return env->get_handle(array);
+    }
+  }
+
 }

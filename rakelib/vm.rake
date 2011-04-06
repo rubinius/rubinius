@@ -82,7 +82,6 @@ field_extract_headers = %w[
   vm/builtin/tuple.hpp
   vm/builtin/compactlookuptable.hpp
   vm/builtin/time.hpp
-  vm/builtin/taskprobe.hpp
   vm/builtin/nativemethod.hpp
   vm/builtin/system.hpp
   vm/builtin/autoload.hpp
@@ -186,14 +185,27 @@ task 'vm/gen/revision.h' do |t|
 end
 
 require 'projects/daedalus/daedalus'
-blueprint = Daedalus.load "rakelib/blueprint.rb"
+
+if jobs = ENV['JOBS']
+  @parallel_jobs = jobs.to_i
+  if @parallel_jobs < 1
+    STDERR.puts "Illegal number of parallel jobs: #{jobs}. Setting to 1."
+    @parallel_jobs = 1
+  end
+elsif File.exists? ".be_gentle"
+  @parallel_jobs = 1
+else
+  @parallel_jobs = nil
+end
 
 task VM_EXE => GENERATED do
-  blueprint.build VM_EXE
+  blueprint = Daedalus.load "rakelib/blueprint.rb"
+  blueprint.build VM_EXE, @parallel_jobs
 end
 
 task 'vm/test/runner' => GENERATED do
-  blueprint.build "vm/test/runner"
+  blueprint = Daedalus.load "rakelib/blueprint.rb"
+  blueprint.build "vm/test/runner", @parallel_jobs
 end
 
 # Generate files for instructions and interpreters
@@ -273,6 +285,7 @@ namespace :vm do
 
   desc "Clean up vm build files"
   task :clean do
+    blueprint = Daedalus.load "rakelib/blueprint.rb"
     files = FileList[
       GENERATED,
       'vm/gen/*',

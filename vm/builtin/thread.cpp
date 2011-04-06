@@ -14,6 +14,8 @@
 #include "dispatch.hpp"
 #include "call_frame.hpp"
 
+#include "instruments/tooling.hpp"
+
 #include "vm/object_utils.hpp"
 #include "vm.hpp"
 
@@ -119,7 +121,9 @@ namespace rubinius {
 
     vm->thread->init_lock_.unlock();
 
+    vm->shared.tool_broker()->thread_start(vm);
     Object* ret = vm->thread.get()->send(vm, NULL, vm->symbol("__run__"));
+    vm->shared.tool_broker()->thread_stop(vm);
 
     if(!ret) {
       if(vm->thread_state()->raise_reason() == cExit) {

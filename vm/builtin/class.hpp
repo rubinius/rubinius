@@ -52,9 +52,6 @@ namespace rubinius {
       packed_size_ = s;
     }
 
-    /* static */
-    static void bootstrap_methods(STATE);
-
     /* interface */
 
     void init(int id);
@@ -82,9 +79,6 @@ namespace rubinius {
 
     void auto_pack(STATE);
 
-    // Ruby.primitive :class_get_metaclass_attached
-    Object* get_metaclass_attached(STATE);
-
     class Info : public Module::Info {
     public:
       BASIC_TYPEINFO(Module::Info)
@@ -94,9 +88,9 @@ namespace rubinius {
   class CompiledMethod;
   class StaticScope;
 
-  class MetaClass : public Class {
+  class SingletonClass : public Class {
   public:
-    const static object_type type = MetaClassType;
+    const static object_type type = SingletonClassType;
 
   private:
     Object* attached_instance_; // slot
@@ -108,7 +102,7 @@ namespace rubinius {
 
     /* interface */
 
-    static MetaClass* attach(STATE, Object* obj, Class* sup = NULL);
+    static SingletonClass* attach(STATE, Object* obj, Class* sup = NULL);
 
     class Info : public Class::Info {
     public:

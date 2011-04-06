@@ -1,5 +1,5 @@
 /*
- * $Id: ruby_missing.h 12496 2007-06-08 15:02:04Z technorama $
+ * $Id$
  * 'OpenSSL for Ruby' project
  * Copyright (C) 2001-2003  Michal Rokos <m.rokos@sh.cvut.cz>
  * All rights reserved.
@@ -15,16 +15,22 @@
 	rb_define_method(klass, "initialize_copy", func, 1)
 
 
-#ifndef HAVE_RB_STR_SET_LEN
-#ifndef rb_str_set_len
+#ifndef GetReadFile
+#define FPTR_TO_FD(fptr) (fptr->fd)
+#else
+#define FPTR_TO_FD(fptr) (fileno(GetReadFile(fptr)))
+#endif
 
+#ifndef HAVE_RB_IO_T
+#define rb_io_t OpenFile
+#endif
+
+#ifndef HAVE_RB_STR_SET_LEN
 /* these methods should probably be backported to 1.8 */
 #define rb_str_set_len(str, length) do {	\
 	RSTRING(str)->ptr[length] = 0;		\
 	RSTRING(str)->len = length;		\
 } while(0)
-
-#endif
 #endif /* ! HAVE_RB_STR_SET_LEN */
 
 #ifndef HAVE_RB_BLOCK_CALL

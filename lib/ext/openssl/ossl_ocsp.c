@@ -1,5 +1,5 @@
 /*
- * $Id: ossl_ocsp.c 22857 2009-03-09 11:59:27Z shyouhei $
+ * $Id$
  * 'OpenSSL for Ruby' project
  * Copyright (C) 2003  Michal Rokos <m.rokos@sh.cvut.cz>
  * Copyright (C) 2003  GOTOU Yuuzou <gotoyuzo@notwork.org>
@@ -378,7 +378,7 @@ ossl_ocspres_to_der(VALUE self)
 	ossl_raise(eOCSPError, NULL);
     str = rb_str_new(0, len);
     p = RSTRING_PTR(str);
-    if(i2d_OCSP_RESPONSE(res, NULL) <= 0)
+    if(i2d_OCSP_RESPONSE(res, &p) <= 0)
 	ossl_raise(eOCSPError, NULL);
     ossl_str_adjust(str, p);
 

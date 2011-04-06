@@ -1,5 +1,5 @@
 /*
- * $Id: ossl_x509ext.c 12496 2007-06-08 15:02:04Z technorama $
+ * $Id$
  * 'OpenSSL for Ruby' project
  * Copyright (C) 2001-2002  Michal Rokos <m.rokos@sh.cvut.cz>
  * All rights reserved.
@@ -198,6 +198,7 @@ ossl_x509extfactory_initialize(int argc, VALUE *argv, VALUE self)
 	ossl_x509extfactory_set_subject_req(self, subject_req);
     if (!NIL_P(crl))
 	ossl_x509extfactory_set_crl(self, crl);
+    rb_iv_set(self, "@config", Qnil);
 
     return self;
 }
@@ -323,14 +324,15 @@ ossl_x509ext_set_value(VALUE self, VALUE data)
 	ossl_raise(eX509ExtError, "malloc error");
     memcpy(s, RSTRING_PTR(data), RSTRING_LEN(data));
     if(!(asn1s = ASN1_OCTET_STRING_new())){
-	free(s);
+        OPENSSL_free(s);
 	ossl_raise(eX509ExtError, NULL);
     }
     if(!M_ASN1_OCTET_STRING_set(asn1s, s, RSTRING_LEN(data))){
-	free(s);
+        OPENSSL_free(s);
 	ASN1_OCTET_STRING_free(asn1s);
 	ossl_raise(eX509ExtError, NULL);
     }
+    OPENSSL_free(s);
     GetX509Ext(self, ext);
     X509_EXTENSION_set_data(ext, asn1s);
 

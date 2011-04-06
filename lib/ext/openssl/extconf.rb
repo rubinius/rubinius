@@ -11,7 +11,7 @@
   (See the file 'LICENCE'.)
 
 = Version
-  $Id: extconf.rb 12572 2007-06-18 09:03:15Z technorama $
+  $Id$
 =end
 
 require "mkmf"
@@ -38,6 +38,9 @@ $CPPFLAGS += " -DOPENSSL_NO_STATIC_ENGINE" if RUBY_PLATFORM =~ /openbsd/i
 message "=== Checking for system dependent stuff... ===\n"
 have_library("nsl", "t_open")
 have_library("socket", "socket")
+have_header("assert.h")
+have_header("sys/time.h")
+have_header("unistd.h")
 have_header("assert.h")
 
 message "=== Checking for required stuff... ===\n"
@@ -99,7 +102,7 @@ have_func("X509_STORE_set_ex_data")
 have_func("OBJ_NAME_do_all_sorted")
 have_func("SSL_SESSION_get_id")
 have_func("OPENSSL_cleanse")
-if try_compile("#define FOO(a, ...) foo(a, ##__VA_ARGS__)\n int x(){FOO(1);FOO(1,2);FOO(1,2,3);}\n")
+if try_compile("#define FOO(...) foo(__VA_ARGS__)\n int x(){FOO(1);FOO(1,2);FOO(1,2,3);}\n")
   $defs.push("-DHAVE_VA_ARGS_MACRO")
 end
 if have_header("openssl/engine.h")
@@ -109,6 +112,14 @@ if have_header("openssl/engine.h")
   have_func("ENGINE_get_digest")
   have_func("ENGINE_get_cipher")
   have_func("ENGINE_cleanup")
+  have_func("ENGINE_load_4758cca")
+  have_func("ENGINE_load_aep")
+  have_func("ENGINE_load_atalla")
+  have_func("ENGINE_load_chil")
+  have_func("ENGINE_load_cswift")
+  have_func("ENGINE_load_nuron")
+  have_func("ENGINE_load_sureware")
+  have_func("ENGINE_load_ubsec")
 end
 if try_compile(<<SRC)
 #include <openssl/opensslv.h>

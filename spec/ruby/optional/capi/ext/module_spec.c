@@ -55,6 +55,15 @@ static VALUE module_specs_rb_define_alias(VALUE self, VALUE obj,
 }
 #endif
 
+#ifdef HAVE_RB_ALIAS
+static VALUE module_specs_rb_alias(VALUE self, VALUE obj,
+  VALUE new_name, VALUE old_name) {
+
+  rb_alias(obj, SYM2ID(new_name), SYM2ID(old_name));
+  return Qnil;
+}
+#endif
+
 #ifdef HAVE_RB_DEFINE_CLASS_UNDER
 static VALUE module_specs_rb_define_class_under(VALUE self, VALUE outer,
                                                  VALUE name, VALUE super) {
@@ -176,6 +185,10 @@ void Init_module_spec() {
 
 #ifdef HAVE_RB_DEFINE_ALIAS
   rb_define_method(cls, "rb_define_alias", module_specs_rb_define_alias, 3);
+#endif
+
+#ifdef HAVE_RB_ALIAS
+  rb_define_method(cls, "rb_alias", module_specs_rb_alias, 3);
 #endif
 
 #ifdef HAVE_RB_DEFINE_CLASS_UNDER

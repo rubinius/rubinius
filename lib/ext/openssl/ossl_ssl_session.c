@@ -131,7 +131,7 @@ static VALUE ossl_ssl_session_get_time(VALUE self)
 static VALUE ossl_ssl_session_get_timeout(VALUE self)
 {
 	SSL_SESSION *ctx;
-  long t;
+	long t;
 
 	GetSSLSession(self, ctx);
 
@@ -144,7 +144,7 @@ static VALUE ossl_ssl_session_get_timeout(VALUE self)
 	static VALUE ossl_ssl_session_set_##func(VALUE self, VALUE time_v)	\
 	{									\
 		SSL_SESSION *ctx;						\
-		long t;							\
+		long t;								\
 										\
 		GetSSLSession(self, ctx);					\
 										\
@@ -275,7 +275,7 @@ static VALUE ossl_ssl_session_to_text(VALUE self)
 
 	return str;
 }
-
+                                                     
 
 void Init_ossl_ssl_session(void)
 {

@@ -1,5 +1,5 @@
 /*
- * $Id: ossl_pkey.c 12496 2007-06-08 15:02:04Z technorama $
+ * $Id$
  * 'OpenSSL for Ruby' project
  * Copyright (C) 2001-2002  Michal Rokos <m.rokos@sh.cvut.cz>
  * All rights reserved.
@@ -177,7 +177,7 @@ ossl_pkey_sign(VALUE self, VALUE digest, VALUE data)
     str = rb_str_new(0, EVP_PKEY_size(pkey)+16);
     if (!EVP_SignFinal(&ctx, RSTRING_PTR(str), &buf_len, pkey))
 	ossl_raise(ePKeyError, NULL);
-    assert(buf_len <= RSTRING_LEN(str));
+    assert((long)buf_len <= RSTRING_LEN(str));
     rb_str_set_len(str, buf_len);
 
     return str;

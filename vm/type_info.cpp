@@ -63,7 +63,7 @@ namespace rubinius {
   }
 
   void TypeInfo::class_info(STATE, const Object* self, bool newline) {
-    std::cout << const_cast<Object*>(self)->to_s(state, true)->c_str();
+    std::cout << const_cast<Object*>(self)->to_s(state, true)->c_str(state);
     if(newline) std::cout << std::endl;
   }
 

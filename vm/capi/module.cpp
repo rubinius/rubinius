@@ -113,6 +113,10 @@ extern "C" {
     rb_funcall(module_handle, rb_intern("alias_method"), 2, id_new, id_old);
   }
 
+  void rb_alias(VALUE module_handle, ID id_new, ID id_old) {
+    rb_funcall(module_handle, rb_intern("alias_method"), 2, id_new, id_old);
+  }
+
   void rb_define_alloc_func(VALUE class_handle, CApiAllocFunction allocator) {
     rb_define_singleton_method(class_handle, "allocate", allocator, 0);
   }
@@ -120,7 +124,7 @@ extern "C" {
   void rb_undef_alloc_func(VALUE class_handle) {
     NativeMethodEnvironment* env = NativeMethodEnvironment::get();
     rb_undef_method(
-        env->get_handle(env->get_object(class_handle)->metaclass(env->state())),
+        env->get_handle(env->get_object(class_handle)->singleton_class(env->state())),
         "allocate");
   }
 

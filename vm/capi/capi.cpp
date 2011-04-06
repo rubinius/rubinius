@@ -622,7 +622,7 @@ extern "C" {
     Module* module = NULL;
 
     if(kind == cCApiSingletonMethod) {
-      module = c_as<Module>(env->get_object(target)->metaclass(env->state()));
+      module = c_as<Module>(env->get_object(target)->singleton_class(env->state()));
     } else {
       module = c_as<Module>(env->get_object(target));
     }

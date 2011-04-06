@@ -32,7 +32,7 @@
 
 #include "global_cache.hpp"
 
-#include "instruments/profiler.hpp"
+#include "instruments/tooling.hpp"
 
 namespace rubinius {
 
@@ -547,8 +547,8 @@ step1:
       YoungCollectStats stats;
 
 #ifdef RBX_PROFILER
-      if(unlikely(state->shared.profiling())) {
-        profiler::MethodEntry method(state, profiler::kYoungGC);
+      if(unlikely(state->tooling())) {
+        tooling::GCEntry method(state, tooling::GCYoung);
         collect_young(gc_data, &stats);
       } else {
         collect_young(gc_data, &stats);
@@ -579,8 +579,8 @@ step1:
       }
 
 #ifdef RBX_PROFILER
-      if(unlikely(state->shared.profiling())) {
-        profiler::MethodEntry method(state, profiler::kMatureGC);
+      if(unlikely(state->tooling())) {
+        tooling::GCEntry method(state, tooling::GCMature);
         collect_mature(gc_data);
       } else {
         collect_mature(gc_data);
@@ -604,8 +604,8 @@ step1:
     // Count the finalizers toward running the mature gc. Not great,
     // but better than not seeing the time at all.
 #ifdef RBX_PROFILER
-    if(unlikely(state->shared.profiling())) {
-      profiler::MethodEntry method(state, profiler::kFinalizers);
+    if(unlikely(state->tooling())) {
+      tooling::GCEntry method(state, tooling::GCFinalizer);
       run_finalizers(state, call_frame);
     } else {
       run_finalizers(state, call_frame);
@@ -1082,7 +1082,7 @@ step1:
         }
       } else {
         std::cerr << "Unsupported object to be finalized: "
-                  << fi->object->to_s(state)->c_str() << "\n";
+                  << fi->object->to_s(state)->c_str(state) << "\n";
       }
 
       fi->status = FinalizeObject::eFinalized;
@@ -1121,7 +1121,7 @@ step1:
           }
         } else {
           std::cerr << "During shutdown, unsupported object to be finalized: "
-                    << fi.object->to_s(state)->c_str() << "\n";
+                    << fi.object->to_s(state)->c_str(state) << "\n";
         }
       }
 
@@ -1163,7 +1163,7 @@ step1:
           }
         } else {
           std::cerr << "During shutdown, unsupported object to be finalized: "
-                    << fi.object->to_s(state)->c_str() << "\n";
+                    << fi.object->to_s(state)->c_str(state) << "\n";
         }
       }
 
@@ -1336,7 +1336,7 @@ step1:
         if(kind_of<String>(obj)) {
           std::cout << "#<String:" << obj << ">\n";
         } else {
-          std::cout << obj->to_s(root_state_, true)->c_str() << "\n";
+          std::cout << obj->to_s(root_state_, true)->c_str(root_state_) << "\n";
         }
       }
 
@@ -1358,7 +1358,7 @@ step1:
     for(ObjectArray::iterator i = ary.begin();
         i != ary.end();
         i++) {
-      std::cout << "  " << (*i)->to_s(root_state_, true)->c_str() << "\n";
+      std::cout << "  " << (*i)->to_s(root_state_, true)->c_str(root_state_) << "\n";
 
       if(++count == 100) break;
     }

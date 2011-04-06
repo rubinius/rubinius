@@ -1,7 +1,7 @@
 module Kernel
 
   def extend(*mods)
-    Rubinius.object_metaclass(self).include(*mods)
+    Rubinius::Type.object_singleton_class(self).include(*mods)
     self
   end
 

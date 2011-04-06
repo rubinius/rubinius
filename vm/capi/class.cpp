@@ -47,7 +47,7 @@ extern "C" {
       rb_raise(rb_eTypeError, "can't make subclass of Class");
     }
 
-    if(try_as<MetaClass>(env->get_object(super_handle))) {
+    if(try_as<SingletonClass>(env->get_object(super_handle))) {
       rb_raise(rb_eTypeError, "can't make subclass of virtual class");
     }
 
@@ -169,7 +169,7 @@ extern "C" {
   VALUE rb_singleton_class(VALUE object_handle) {
     NativeMethodEnvironment* env = NativeMethodEnvironment::get();
 
-    Class* metaclass = env->get_object(object_handle)->metaclass(env->state());
-    return env->get_handle(metaclass);
+    Class* sc = env->get_object(object_handle)->singleton_class(env->state());
+    return env->get_handle(sc);
   }
 }

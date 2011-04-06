@@ -100,6 +100,8 @@ class Method
   def source_location
     if @executable.respond_to? :file
       [@executable.file.to_s, @executable.defined_line]
+    elsif @executable.respond_to? :source_location
+      @executable.source_location
     else
       nil
     end
@@ -224,8 +226,9 @@ class UnboundMethod
   # Module anyway.
 
   def bind(receiver)
-    unless receiver.__kind_of__ @defined_in
-      if @defined_in.kind_of?(Class) and @defined_in.__metaclass_object__
+    unless Rubinius::Type.object_kind_of? receiver, @defined_in
+      if Rubinius::Type.object_kind_of?(@defined_in, Class) and
+         Rubinius::Type.singleton_class_object(@defined_in)
         raise TypeError, "illegal attempt to rebind a singleton method to another object"
       end
 
@@ -257,6 +260,8 @@ class UnboundMethod
   def source_location
     if @executable.respond_to? :file
       [@executable.file.to_s, @executable.defined_line]
+    elsif @executable.respond_to? :source_location
+      @executable.source_location
     else
       nil
     end

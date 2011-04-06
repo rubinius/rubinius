@@ -9,21 +9,6 @@ module Rubinius
     raise PrimitiveFailure, "Rubinius.find_method failed"
   end
 
-  def self.object_class(obj)
-    Ruby.primitive :vm_object_class
-    raise PrimitiveFailure, "Rubinius.object_class failed"
-  end
-
-  def self.object_metaclass(obj)
-    Ruby.primitive :vm_object_metaclass
-    raise TypeError, "no metaclass available for a #{obj.class}"
-  end
-
-  def self.object_respond_to?(obj, name)
-    Ruby.primitive :vm_object_respond_to
-    raise PrimitiveFailure, "Rubinius.object_respond_to? failed"
-  end
-
   def self.extended_modules(obj)
     Ruby.primitive :vm_extended_modules
     raise PrimitiveFailure, "Rubinius.extended_modules failed"
@@ -42,6 +27,12 @@ module Rubinius
   def self.deoptimize_inliners(exec)
     Ruby.primitive :vm_deoptimize_inliners
     raise PrimitiveFailure, "Rubinius.vm_deoptimize_inliners failed"
+  end
+
+  # Deoptimize all methods in the system.
+  def self.deoptimize_all(disable)
+    Ruby.primitive :vm_deoptimize_all
+    raise PrimitiveFailure, "Rubinius.vm_deoptimize_all failed"
   end
 
   def self.raise_exception(exc)
@@ -169,5 +160,49 @@ module Rubinius
   def self.thread_state
     Ruby.primitive :vm_thread_state
     raise PrimitiveFailure, "Rubinius.thread_state failed"
+  end
+
+  # Used to invoke a CompiledMethod +cm+ as a script body.
+  # Sets up the MAIN object as self and bypasses JIT'ing
+  # (because why JIT a script you only run once).
+  def self.run_script(cm)
+    Ruby.primitive :vm_run_script
+    raise PrimitiveFailure, "Rubinius.run_script failed"
+  end
+
+  module Tooling
+    def self.raw_load(str)
+      Ruby.primitive :vm_load_tool
+      raise PrimitiveFailure, "Tooling.raw_load failed"
+    end
+
+    def self.load(str)
+      error, reason = raw_load(str)
+      unless error == true
+        raise ArgumentError, reason
+      end
+
+      return true
+    end
+
+    def self.available?
+      Ruby.primitive :vm_tooling_available_p
+      raise PrimitiveFailure, "Tooling.available? failed"
+    end
+
+    def self.active?
+      Ruby.primitive :vm_tooling_active_p
+      raise PrimitiveFailure, "Tooling.active? failed"
+    end
+
+    def self.enable
+      Ruby.primitive :vm_tooling_enable
+      raise PrimitiveFailure, "Tooling.enable failed"
+    end
+
+    def self.disable
+      Ruby.primitive :vm_tooling_disable
+      raise PrimitiveFailure, "Tooling.disable failed"
+    end
   end
 end

@@ -21,7 +21,7 @@ extern "C" {
     char chr;
 
     if((str = try_as<String>(object)) && str->size() >= 1) {
-      chr = str->c_str()[0];
+      chr = str->c_str(env->state())[0];
     } else {
       chr = (char)(NUM2INT(obj) & 0xff);
     }

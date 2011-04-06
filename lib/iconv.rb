@@ -120,10 +120,6 @@ class Iconv
   private :get_failed
 
   def iconv(str, start=nil, length=nil)
-    # To deal with people passing in nil's
-    start = 0 unless start
-    length = -1 unless length
-
     raise ArgumentError, "closed iconv" if @closed
 
     l1 = FFI::MemoryPointer.new(:pointer)
@@ -133,28 +129,35 @@ class Iconv
 
     if str
       str = StringValue(str)
+      str_size = str.size
 
-      is = FFI::MemoryPointer.new(str.size + 10)
-      is.write_string str, str.size
+      # To deal with people passing in nil's
+      start  = 0        unless start
+      length = str_size unless length
 
-      l1.write_long is.address
+      is = FFI::MemoryPointer.new(str_size + 10)
+      is.write_string str, str_size
 
-      start += str.size if start < 0
-      if start < 0 || start >= str.size
+      address_ptr = is.address
+
+      # Negative start is an offset from the end
+      start += str_size if start < 0
+
+      address_ptr += start
+
+      l1.write_long address_ptr
+
+      # Make sure we don't use a too long length
+      # A negative length means we should go on until
+      # the end of the string
+      if length < 0 || str_size - start < length
+        length = str_size - start
+      end
+
+      # Make sure we don't use an invalid start
+      if start < 0 || start >= str_size
+        start  = 0
         length = 0
-      else
-        length += str.size + 1 if length < 0
-        if length < 0
-          length = 0
-        else
-          length -= start
-          if length < 0
-            length = 0
-          else
-            l1.write_long(is.address + start)
-            length = str.size if length > str.size
-          end
-        end
       end
 
       ic.write_long length
@@ -163,7 +166,6 @@ class Iconv
       ic.write_long 0
       l1.write_long 0
     end
-
 
     # Totally made up metric
     output = 1024

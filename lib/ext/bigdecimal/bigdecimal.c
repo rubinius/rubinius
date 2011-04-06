@@ -379,9 +379,9 @@ BigDecimal_load(VALUE self, VALUE str)
   *
   * ROUND_UP:: round away from zero
   * ROUND_DOWN:: round towards zero (truncate)
-  * ROUND_HALF_UP:: round up if the appropriate digit >= 5, otherwise truncate (default)
-  * ROUND_HALF_DOWN:: round up if the appropriate digit >= 6, otherwise truncate
-  * ROUND_HALF_EVEN:: round towards the even neighbor (Banker's rounding)
+  * ROUND_HALF_UP:: round towards the nearest neighbor, unless both neighbors are equidistant, in which case round away from zero. (default)
+  * ROUND_HALF_DOWN:: round towards the nearest neighbor, unless both neighbors are equidistant, in which case round towards zero.
+  * ROUND_HALF_EVEN:: round towards the nearest neighbor, unless both neighbors are equidistant, in which case round towards the even neighbor (Banker's rounding)
   * ROUND_CEILING:: round towards positive infinity (ceil)
   * ROUND_FLOOR:: round towards negative infinity (floor)
   *
@@ -4378,19 +4378,20 @@ VpMidRound(Real *y, int f, int nf)
  */
 {
     /* fracf: any positive digit under rounding position? */
+    /* fracf_1further: any positive digits under one further than the rounding position? */
     /* exptoadd: number of digits needed to compensate negative nf */
-    int n,i,ix,ioffset,fracf,exptoadd;
+    int n,i,ix,ioffset,fracf,exptoadd, fracf_1further;
     U_LONG v,shifter;
     U_LONG div;
 
     nf += y->exponent*((int)BASE_FIG);
     exptoadd=0;
     if (nf < 0) {
-	/* rounding position too left(large). */
-	if((f!=VP_ROUND_CEIL) && (f!=VP_ROUND_FLOOR)) {
-	    VpSetZero(y,VpGetSign(y)); /* truncate everything */
-	    return 0;
-	}
+        /* rounding position too left(large). */
+        if((f!=VP_ROUND_CEIL) && (f!=VP_ROUND_FLOOR)) {
+          VpSetZero(y,VpGetSign(y)); /* truncate everything */
+          return 0;
+        }
         exptoadd = -nf;
         nf = 0;
     }
@@ -4404,17 +4405,18 @@ VpMidRound(Real *y, int f, int nf)
     n = BASE_FIG - ioffset - 1;
     for(shifter=1,i=0;i<n;++i) shifter *= 10;
     fracf = (v%(shifter*10) > 0);
+    fracf_1further = ((v % shifter) > 0);
+
     v /= shifter;
     div = v/10;
     v = v - div*10;
-    if (fracf == 0) {
-        for(i=ix+1;i<y->Prec;i++) {
-            if (y->frac[i]%BASE) {
-                fracf = 1;
-                break;
-            }
+    for (i=ix+1; (size_t)i < y->Prec; i++) {
+        if (y->frac[i] % BASE) {
+            fracf = fracf_1further = 1;
+            break;
         }
     }
+
     memset(y->frac+ix+1, 0, (y->Prec - (ix+1)) * sizeof(U_LONG));
     switch(f) {
     case VP_ROUND_DOWN: /* Truncate */
@@ -4426,7 +4428,7 @@ VpMidRound(Real *y, int f, int nf)
         if(v>=5) ++div;
         break;
     case VP_ROUND_HALF_DOWN: /* Round half down  */
-        if(v>=6) ++div;
+        if (v > 5 || (v == 5 && fracf_1further)) ++div;
         break;
     case VP_ROUND_CEIL: /* ceil */
         if(fracf && (VpGetSign(y)>0)) ++div;
@@ -4437,10 +4439,17 @@ VpMidRound(Real *y, int f, int nf)
     case VP_ROUND_HALF_EVEN: /* Banker's rounding */
         if(v>5) ++div;
         else if(v==5) {
-            if((U_LONG)i==(BASE_FIG-1)) {
-                if(ix && (y->frac[ix-1]%2)) ++div;
-            } else {
-                if(div%2) ++div;
+            if (v > 5) ++div;
+            else if (v == 5) {
+                if (fracf_1further) {
+                    ++div;
+                } else {
+                    if (ioffset == 0) {
+                        if (ix && (y->frac[ix-1] % 2)) ++div;
+                    } else {
+                        if (div % 2) ++div;
+                    }
+                }
             }
         }
         break;
@@ -4537,8 +4546,8 @@ VpInternalRound(Real *c,int ixDigit,U_LONG vPrev,U_LONG v)
         if(v && (VpGetSign(c)<0)) f = 1;
         break;
     case VP_ROUND_HALF_EVEN:  /* Banker's rounding */
-        if(v>5) f = 1;
-        else if(v==5 && vPrev%2)  f = 1;
+        if (v > 5) f = 1;
+        else if (v == 5 && vPrev % 2) f = 1;
         break;
     }
     if(f) {

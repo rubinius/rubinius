@@ -5,7 +5,7 @@
 #include "arguments.hpp"
 #include "call_frame.hpp"
 
-#include "instruments/profiler.hpp"
+#include "instruments/tooling.hpp"
 
 #include <iostream>
 
@@ -23,7 +23,8 @@ namespace rubinius {
 #endif
 
   Object* Primitives::unknown_primitive(STATE, CallFrame* call_frame, Executable* exec, Module* mod, Arguments& args) {
-    std::string message = std::string("Called unbound or invalid primitive");
+    std::string message = std::string("Called unbound or invalid primitive from method name: ");
+    message += args.name()->to_str(state)->c_str(state);
 
     Exception::assertion_error(state, message.c_str());
 

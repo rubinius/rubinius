@@ -143,9 +143,9 @@ module Kernel
 
   def instance_eval(string=nil, filename="(eval)", line=1, &prc)
     if ImmediateValue === self
-      mc = nil
+      sc = nil
     else
-      mc = Rubinius.object_metaclass(self)
+      sc = Rubinius::Type.object_singleton_class(self)
     end
 
     if prc
@@ -155,8 +155,8 @@ module Kernel
       # Return a copy of the BlockEnvironment with the receiver set to self
       env = prc.block
 
-      if mc
-        static_scope = env.method.scope.using_current_as(mc)
+      if sc
+        static_scope = env.method.scope.using_current_as(sc)
       else
         static_scope = env.method.scope.using_disabled_scope
       end
@@ -174,8 +174,8 @@ module Kernel
 
       static_scope = binding.static_scope
 
-      if mc
-        static_scope = Rubinius::StaticScope.new(mc, static_scope)
+      if sc
+        static_scope = Rubinius::StaticScope.new(sc, static_scope)
       else
         static_scope = static_scope.using_disabled_scope
       end
@@ -224,8 +224,8 @@ module Kernel
     if ImmediateValue === self
       static_scope = static_scope.using_disabled_scope
     else
-      mc = Rubinius.object_metaclass(self)
-      static_scope = static_scope.using_current_as(mc)
+      sc = Rubinius::Type.object_singleton_class(self)
+      static_scope = static_scope.using_current_as(sc)
     end
 
     return env.call_under(self, static_scope, *args)

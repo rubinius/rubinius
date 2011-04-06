@@ -1,5 +1,5 @@
 /*
- * $Id: openssl_missing.h 18335 2008-08-04 04:44:17Z shyouhei $
+ * $Id$
  * 'OpenSSL for Ruby' project
  * Copyright (C) 2001-2002  Michal Rokos <m.rokos@sh.cvut.cz>
  * All rights reserved.
@@ -8,7 +8,6 @@
  * This program is licenced under the same licence as Ruby.
  * (See the file 'LICENCE'.)
  */
-
 #if !defined(_OSSL_OPENSSL_MISSING_H_)
 #define _OSSL_OPENSSL_MISSING_H_
 
@@ -18,6 +17,9 @@ extern "C" {
 
 #ifndef TYPEDEF_D2I_OF
 typedef char *d2i_of_void();
+#endif
+#ifndef TYPEDEF_I2D_OF
+typedef int i2d_of_void();
 #endif
 
 /*
@@ -31,34 +33,34 @@ typedef char *d2i_of_void();
 
 #if !defined(PEM_write_bio_DSAPublicKey)
 # define PEM_write_bio_DSAPublicKey(bp,x) \
-	PEM_ASN1_write_bio((int (*)())i2d_DSAPublicKey,\
+	PEM_ASN1_write_bio((i2d_of_void *)i2d_DSAPublicKey,\
 		PEM_STRING_DSA_PUBLIC,\
 		bp,(char *)x, NULL, NULL, 0, NULL, NULL)
 #endif
 
 #if !defined(DSAPrivateKey_dup)
-# define DSAPrivateKey_dup(dsa) (DSA *)ASN1_dup((int (*)())i2d_DSAPrivateKey, \
+# define DSAPrivateKey_dup(dsa) (DSA *)ASN1_dup((i2d_of_void *)i2d_DSAPrivateKey, \
 	(void *(*)())d2i_DSAPrivateKey,(void *)dsa)
 #endif
 
 #if !defined(DSAPublicKey_dup)
-# define DSAPublicKey_dup(dsa) (DSA *)ASN1_dup((int (*)())i2d_DSAPublicKey, \
+# define DSAPublicKey_dup(dsa) (DSA *)ASN1_dup((i2d_of_void *)i2d_DSAPublicKey, \
 	(void *(*)())d2i_DSAPublicKey,(void *)dsa)
 #endif
 
 #if !defined(X509_REVOKED_dup)
-# define X509_REVOKED_dup(rev) (X509_REVOKED *)ASN1_dup((int (*)())i2d_X509_REVOKED, \
-	(void *(*)())d2i_X509_REVOKED, (char *)rev)
+# define X509_REVOKED_dup(rev) (X509_REVOKED *)ASN1_dup((i2d_of_void *)i2d_X509_REVOKED, \
+	(void *(*)())d2i_X509_REVOKED, (void *)rev)
 #endif
 
 #if !defined(PKCS7_SIGNER_INFO_dup)
-#  define PKCS7_SIGNER_INFO_dup(si) (PKCS7_SIGNER_INFO *)ASN1_dup((int (*)())i2d_PKCS7_SIGNER_INFO, \
-	(void *(*)())d2i_PKCS7_SIGNER_INFO, (char *)si)
+#  define PKCS7_SIGNER_INFO_dup(si) (PKCS7_SIGNER_INFO *)ASN1_dup((i2d_of_void *)i2d_PKCS7_SIGNER_INFO, \
+	(void *(*)())d2i_PKCS7_SIGNER_INFO, (void *)si)
 #endif
 
 #if !defined(PKCS7_RECIP_INFO_dup)
-#  define PKCS7_RECIP_INFO_dup(ri) (PKCS7_RECIP_INFO *)ASN1_dup((int (*)())i2d_PKCS7_RECIP_INFO, \
-	(void *(*)())d2i_PKCS7_RECIP_INFO, (char *)ri)
+#  define PKCS7_RECIP_INFO_dup(ri) (PKCS7_RECIP_INFO *)ASN1_dup((i2d_of_void *)i2d_PKCS7_RECIP_INFO, \
+	(void *(*)())d2i_PKCS7_RECIP_INFO, (void *)ri)
 #endif
 
 #if !defined(HAVE_EVP_MD_CTX_INIT)
@@ -164,7 +166,6 @@ int BN_mod_add(BIGNUM *r, const BIGNUM *a, const BIGNUM *b, const BIGNUM *m, BN_
 int BN_mod_sub(BIGNUM *r, const BIGNUM *a, const BIGNUM *b, const BIGNUM *m, BN_CTX *ctx);
 #endif
 
-/*
 #if !defined(HAVE_BN_RAND_RANGE)
 int BN_rand_range(BIGNUM *r, BIGNUM *range);
 #endif
@@ -172,7 +173,6 @@ int BN_rand_range(BIGNUM *r, BIGNUM *range);
 #if !defined(HAVE_BN_PSEUDO_RAND_RANGE)
 int BN_pseudo_rand_range(BIGNUM *r, BIGNUM *range);
 #endif
-*/
 
 #if !defined(HAVE_CONF_GET1_DEFAULT_CONFIG_FILE)
 char *CONF_get1_default_config_file(void);
@@ -185,6 +185,7 @@ int PEM_def_callback(char *buf, int num, int w, void *key);
 #if defined(__cplusplus)
 }
 #endif
+
 
 #endif /* _OSSL_OPENSSL_MISSING_H_ */
 

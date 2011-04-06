@@ -47,13 +47,7 @@ namespace rubinius {
     CallFrame* saved_call_frame_;
 
   public:
-    ManagedThread(uint32_t id, SharedState& ss, Kind kind)
-      : shared_(ss)
-      , kind_(kind)
-      , name_(kind == eRuby ? "<ruby>" : "<system>")
-      , run_state_(eIndependent)
-      , id_(id)
-    {}
+    ManagedThread(uint32_t id, SharedState& ss, Kind kind);
 
     Roots& roots() {
       return roots_;

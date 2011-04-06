@@ -74,7 +74,7 @@ class String
   #
   #   "Ho! " * 3   #=> "Ho! Ho! Ho! "
   def *(num)
-    num = Type.coerce_to(num, Integer, :to_int) unless num.is_a? Integer
+    num = Rubinius::Type.coerce_to(num, Integer, :to_int) unless num.is_a? Integer
 
     raise RangeError, "bignum too big to convert into `long' (#{num})" if num.is_a? Bignum
     raise ArgumentError, "unable to multiple negative times (#{num})" if num < 0
@@ -240,14 +240,14 @@ class String
   #    a["bye"]               #=> nil
   def [](index, other = undefined)
     unless other.equal?(undefined)
-      length = Type.coerce_to(other, Fixnum, :to_int)
+      length = Rubinius::Type.coerce_to(other, Fixnum, :to_int)
 
       if index.kind_of? Regexp
         match, str = subpattern(index, length)
         Regexp.last_match = match
         return str
       else
-        start  = Type.coerce_to(index, Fixnum, :to_int)
+        start  = Rubinius::Type.coerce_to(index, Fixnum, :to_int)
         return substring(start, length)
       end
     end
@@ -264,8 +264,8 @@ class String
     when String
       return include?(index) ? index.dup : nil
     when Range
-      start   = Type.coerce_to index.first, Fixnum, :to_int
-      length  = Type.coerce_to index.last,  Fixnum, :to_int
+      start   = Rubinius::Type.coerce_to index.first, Fixnum, :to_int
+      length  = Rubinius::Type.coerce_to index.last,  Fixnum, :to_int
 
       start += @num_bytes if start < 0
 
@@ -286,7 +286,7 @@ class String
     when Symbol
       return nil
     else
-      index = Type.coerce_to index, Fixnum, :to_int
+      index = Rubinius::Type.coerce_to index, Fixnum, :to_int
       index = @num_bytes + index if index < 0
 
       return if index < 0 || @num_bytes <= index
@@ -320,10 +320,10 @@ class String
   def []=(index, replacement, three=undefined)
     unless three.equal? undefined
       if index.is_a? Regexp
-        subpattern_set index, Type.coerce_to(replacement, Integer, :to_int), three
+        subpattern_set index, Rubinius::Type.coerce_to(replacement, Integer, :to_int), three
       else
-        start = Type.coerce_to(index, Integer, :to_int)
-        fin =   Type.coerce_to(replacement, Integer, :to_int)
+        start = Rubinius::Type.coerce_to(index, Integer, :to_int)
+        fin =   Rubinius::Type.coerce_to(replacement, Integer, :to_int)
 
         splice! start, fin, three
       end
@@ -359,8 +359,8 @@ class String
 
       splice! start, index.length, replacement
     when Range
-      start   = Type.coerce_to(index.first, Integer, :to_int)
-      length  = Type.coerce_to(index.last, Integer, :to_int)
+      start   = Rubinius::Type.coerce_to(index.first, Integer, :to_int)
+      length  = Rubinius::Type.coerce_to(index.last, Integer, :to_int)
 
       start += @num_bytes if start < 0
 
@@ -376,7 +376,7 @@ class String
 
       splice! start, length, replacement
     else
-      index = Type.coerce_to(index, Integer, :to_int)
+      index = Rubinius::Type.coerce_to(index, Integer, :to_int)
       raise IndexError, "index #{index} out of string" if @num_bytes <= index
 
       if index < 0
@@ -1108,7 +1108,7 @@ class String
   #   "hello".index(101)             #=> 1
   #   "hello".index(/[aeiou]/, -3)   #=> 4
   def index(needle, offset = 0)
-    offset = Type.coerce_to(offset, Integer, :to_int)
+    offset = Rubinius::Type.coerce_to(offset, Integer, :to_int)
     offset = @num_bytes + offset if offset < 0
     return nil if offset < 0 || offset > @num_bytes
 
@@ -1155,7 +1155,7 @@ class String
   #   "abcd".insert(-1, 'X')   #=> "abcdX"
   def insert(index, other)
     other = StringValue(other)
-    index = Type.coerce_to(index, Integer, :to_int) unless index.__kind_of__ Fixnum
+    index = Rubinius::Type.coerce_to index, Fixnum, :to_int
 
     osize = other.size
     size = @num_bytes + osize
@@ -1341,7 +1341,7 @@ class String
     if finish.equal?(undefined)
       finish = size
     else
-      finish = Type.coerce_to(finish, Integer, :to_int)
+      finish = Rubinius::Type.coerce_to(finish, Integer, :to_int)
       finish += @num_bytes if finish < 0
       return nil if finish < 0
       finish = @num_bytes if finish >= @num_bytes
@@ -1652,7 +1652,7 @@ class String
     if limit == undefined
       limited = false
     else
-      limit = Type.coerce_to limit, Fixnum, :to_int
+      limit = Rubinius::Type.coerce_to limit, Fixnum, :to_int
 
       if limit > 0
         return [self.dup] if limit == 1
@@ -2071,7 +2071,7 @@ class String
   # <i>self</i> modulo <code>2n - 1</code>. This is not a particularly good
   # checksum.
   def sum(bits = 16)
-    bits = Type.coerce_to bits, Integer, :to_int unless bits.__kind_of__ Fixnum
+    bits = Rubinius::Type.coerce_to bits, Fixnum, :to_int
     i, sum = -1, 0
     sum += @data[i] while (i += 1) < @num_bytes
     if bits > 0
@@ -2133,7 +2133,7 @@ class String
   #   "1100101".to_i(10)       #=> 1100101
   #   "1100101".to_i(16)       #=> 17826049
   def to_i(base = 10)
-    base = Type.coerce_to(base, Integer, :to_int)
+    base = Rubinius::Type.coerce_to(base, Integer, :to_int)
     raise ArgumentError, "illegal radix #{base}" if base < 0 || base == 1 || base > 36
     self.to_inum(base, false)
   end
@@ -2459,7 +2459,7 @@ class String
     padstr = StringValue(padstr)
     raise ArgumentError, "zero width padding" if padstr.size == 0
 
-    width = Type.coerce_to(width, Integer, :to_int) unless width.__kind_of__ Fixnum
+    width = Rubinius::Type.coerce_to width, Fixnum, :to_int
     if width > @num_bytes
       padsize = width - @num_bytes
     else

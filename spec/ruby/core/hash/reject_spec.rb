@@ -25,6 +25,11 @@ describe "Hash#reject" do
     MyHash[1 => 2, 3 => 4].reject { true }.should be_kind_of(MyHash)
   end
 
+  it "taints the resulting hash" do
+    h = new_hash(:a => 1).taint
+    h.reject {false}.tainted?.should == true
+  end
+
   it "processes entries with the same order as reject!" do
     h = new_hash(:a => 1, :b => 2, :c => 3, :d => 4)
 

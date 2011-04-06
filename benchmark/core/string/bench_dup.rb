@@ -12,4 +12,20 @@ Benchmark.ips do |x|
     end
   end
 
+  x.report "clone strings" do |times|
+    i = 0
+    while i < times
+      string.clone
+      i += 1
+    end
+  end
+
+  x.report "create new strings" do |times|
+    i = 0
+    while i < times
+      String.new(string)
+      i += 1
+    end
+  end
+
 end

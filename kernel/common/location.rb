@@ -27,11 +27,12 @@ module Rubinius
     def describe_receiver
       # We can't call @receiver.class because it might be overriden (or in
       # the case of Mocha, mocked out) and easily causes stack overflows
-      klass = Rubinius.object_class @receiver
+      klass = Rubinius::Type.object_class @receiver
 
       if @method_module.equal?(Kernel)
         "Kernel."
-      elsif @method_module.kind_of? Class and ao = @method_module.__metaclass_object__
+      elsif Rubinius::Type.object_kind_of?(@method_module, Class) and
+            ao = Rubinius::Type.singleton_class_object(@method_module)
         "#{ao}."
       elsif @method_module and @method_module != klass
         "#{@method_module}(#{klass})#"

@@ -19,7 +19,7 @@ class StringIO
   attr_accessor :lineno
 
   def initialize(string = "", mode = nil)
-    @string = Type.coerce_to string, String, :to_str
+    @string = Rubinius::Type.coerce_to string, String, :to_str
     @pos = 0
     @lineno = 0
 
@@ -38,7 +38,7 @@ class StringIO
   end
 
   def initialize_copy(from)
-    from = Type.coerce_to(from, StringIO, :to_strio)
+    from = Rubinius::Type.coerce_to(from, StringIO, :to_strio)
 
     taint if from.tainted?
 
@@ -247,7 +247,7 @@ class StringIO
     if obj.is_a?(String)
       char = obj[0]
     else
-      char = Type.coerce_to obj, Integer, :to_int
+      char = Rubinius::Type.coerce_to obj, Integer, :to_int
     end
 
     if @append || @pos == @string.length
@@ -276,7 +276,7 @@ class StringIO
           line = "[...]"
         else
           begin
-            arg = Type.coerce_to(arg, Array, :to_ary)
+            arg = Rubinius::Type.coerce_to(arg, Array, :to_ary)
             Thread.recursion_guard arg do
               arg.each { |a| puts a }
             end
@@ -301,7 +301,7 @@ class StringIO
 
     if length
       return nil if eof?
-      length = Type.coerce_to length, Integer, :to_int
+      length = Rubinius::Type.coerce_to length, Integer, :to_int
       raise ArgumentError if length < 0
       buffer.replace(@string[@pos, length])
       @pos += buffer.length
@@ -338,7 +338,7 @@ class StringIO
   def reopen(string = nil, mode = nil)
     if string
       if !string.is_a?(String) and !mode
-        string = Type.coerce_to(string, StringIO, :to_strio)
+        string = Rubinius::Type.coerce_to(string, StringIO, :to_strio)
         taint if string.tainted?
         @string = string.string
       else
@@ -372,7 +372,7 @@ class StringIO
 
   def seek(to, whence = IO::SEEK_SET)
     raise IOError, "closed stream" if self.closed?
-    to = Type.coerce_to to, Integer, :to_int
+    to = Rubinius::Type.coerce_to to, Integer, :to_int
 
     case whence
     when IO::SEEK_CUR
@@ -417,7 +417,7 @@ class StringIO
 
   def truncate(length)
     raise IOError, "not opened for writing" unless @writable
-    len = Type.coerce_to length, Integer, :to_int
+    len = Rubinius::Type.coerce_to length, Integer, :to_int
     raise Errno::EINVAL, "negative length" if len < 0
     if len < @string.size
       @string[len .. @string.size] = ""
@@ -429,7 +429,7 @@ class StringIO
 
   def ungetc(char)
     raise IOError, "not opened for reading" unless @readable
-    char = Type.coerce_to char, Integer, :to_int
+    char = Rubinius::Type.coerce_to char, Integer, :to_int
 
     if @pos > @string.size
       @string[@string.size .. @pos] = "\000" * (@pos - @string.size)

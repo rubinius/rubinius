@@ -42,7 +42,7 @@ module Kernel
       return obj.convert_float
     end
 
-    coerced_value = Type.coerce_to(obj, Float, :to_f)
+    coerced_value = Rubinius::Type.coerce_to(obj, Float, :to_f)
     if coerced_value.nan?
       raise ArgumentError, "invalid value for Float(): #{coerced_value.inspect}"
     end
@@ -68,19 +68,19 @@ module Kernel
       return int_value unless int_value.nil?
     end
 
-    Type.coerce_to(obj, Integer, :to_i)
+    Rubinius::Type.coerce_to(obj, Integer, :to_i)
   end
   module_function :Integer
 
   def Array(obj)
     if obj.respond_to? :to_ary
-      ary = Type.convert_to obj, Array, :to_ary
+      ary = Rubinius::Type.try_convert obj, Array, :to_ary
     end
 
     return ary unless ary.equal? nil
 
     if obj.respond_to? :to_a
-      Type.coerce_to(obj, Array, :to_a)
+      Rubinius::Type.coerce_to(obj, Array, :to_a)
     else
       [obj]
     end
@@ -113,7 +113,7 @@ module Kernel
   # and use String(obj, :to_str) instead of StringValue(obj)
 
   def StringValue(obj)
-    Type.coerce_to(obj, String, :to_str)
+    Rubinius::Type.coerce_to(obj, String, :to_str)
   end
   private :StringValue
 
@@ -554,7 +554,7 @@ module Kernel
   alias_method :is_a?, :kind_of?
 
   def method(name)
-    name = Type.coerce_to_symbol name
+    name = Rubinius::Type.coerce_to_symbol name
     cm = Rubinius.find_method(self, name)
 
     if cm
@@ -575,19 +575,19 @@ module Kernel
 
     if all
       # We have to special case these because unlike true, false, nil,
-      # .object_metaclass raises a TypeError.
+      # Type.object_singleton_class raises a TypeError.
       case self
       when Fixnum, Symbol
         methods |= self.class.instance_methods(true)
       else
-        methods |= Rubinius.object_metaclass(self).instance_methods(true)
+        methods |= Rubinius::Type.object_singleton_class(self).instance_methods(true)
       end
     end
 
     return methods if kind_of?(ImmediateValue)
 
     undefs = []
-    Rubinius.object_metaclass(self).method_table.filter_entries do |entry|
+    Rubinius::Type.object_singleton_class(self).method_table.filter_entries do |entry|
       undefs << entry.name.to_s if entry.visibility == :undef
     end
 
@@ -599,13 +599,16 @@ module Kernel
   end
 
   def private_singleton_methods
-    mc = Rubinius.object_metaclass self
-    methods = mc.method_table.private_names
+    sc = Rubinius::Type.object_singleton_class self
+    methods = sc.method_table.private_names
 
-    m = mc
+    m = sc
 
     while m = m.direct_superclass
-      break unless m.kind_of?(Rubinius::IncludedModule) || m.__metaclass_object__
+      unless Rubinius::Type.object_kind_of?(m, Rubinius::IncludedModule) or
+             Rubinius::Type.singleton_class_object(m)
+        break
+      end
 
       methods.concat m.method_table.private_names
     end
@@ -619,13 +622,14 @@ module Kernel
   end
 
   def protected_singleton_methods
-    mc = Rubinius.object_metaclass self
-    methods = mc.method_table.protected_names
-
-    m = mc
+    m = Rubinius::Type.object_singleton_class self
+    methods = m.method_table.protected_names
 
     while m = m.direct_superclass
-      break unless m.kind_of?(Rubinius::IncludedModule) || m.__metaclass_object__
+      unless Rubinius::Type.object_kind_of?(m, Rubinius::IncludedModule) or
+             Rubinius::Type.singleton_class_object(m)
+        break
+      end
 
       methods.concat m.method_table.protected_names
     end
@@ -639,15 +643,16 @@ module Kernel
   end
 
   def singleton_methods(all=true)
-    mc = Rubinius.object_metaclass self
-    mt = mc.method_table
+    m = Rubinius::Type.object_singleton_class self
+    mt = m.method_table
     methods = mt.public_names + mt.protected_names
 
     if all
-      m = mc
-
       while m = m.direct_superclass
-        break unless m.kind_of?(Rubinius::IncludedModule) || m.__metaclass_object__
+        unless Rubinius::Type.object_kind_of?(m, Rubinius::IncludedModule) or
+               Rubinius::Type.singleton_class_object(m)
+          break
+        end
 
         mt = m.method_table
         methods.concat mt.public_names
@@ -719,11 +724,10 @@ module Kernel
   # TODO: The anonymous module wrapping is not implemented at all.
   #
   def load(name, wrap=false)
-    Rubinius::CodeLoader.new(name).load(wrap)
+    cl = Rubinius::CodeLoader.new(name)
+    cl.load(wrap)
 
-    # HACK we use __send__ here so that the method inliner
-    # doesn't accidentally inline a script body into here!
-    MAIN.__send__ :__script__
+    Rubinius.run_script cl.cm
 
     Rubinius::CodeLoader.loaded_hook.trigger!(name)
 
@@ -840,7 +844,7 @@ module Kernel
   module_function :getc
 
   def putc(int)
-    $stdin.putc(int)
+    $stdout.putc(int)
   end
   module_function :putc
 

@@ -270,6 +270,12 @@ static VALUE array_spec_rb_ary_freeze(VALUE self, VALUE ary) {
 }
 #endif
 
+#ifdef HAVE_RB_ARY_TO_ARY
+static VALUE array_spec_rb_ary_to_ary(VALUE self, VALUE ary) {
+  return rb_ary_to_ary(ary);
+}
+#endif
+
 void Init_array_spec() {
   VALUE cls;
   cls = rb_define_class("CApiArraySpecs", rb_cObject);
@@ -385,6 +391,10 @@ void Init_array_spec() {
 
 #ifdef HAVE_RB_ARY_FREEZE
   rb_define_method(cls, "rb_ary_freeze", array_spec_rb_ary_freeze, 1);
+#endif
+
+#ifdef HAVE_RB_ARY_TO_ARY
+  rb_define_method(cls, "rb_ary_to_ary", array_spec_rb_ary_to_ary, 1);
 #endif
 }
 

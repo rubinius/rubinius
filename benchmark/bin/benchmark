@@ -30,8 +30,16 @@ opt = OptionParser.new do |o|
     when 'j', 'jruby'
       targets << 'jruby'
     else
-      if File.exists?(t)
-        compare_targets << t
+      # + disambiguates execution vs using a file
+      if t[0,1] == "+"
+        targets << t[1..-1]
+      elsif File.exists?(t)
+        begin
+          data = Marshal.load(File.read(t))
+          compare_targets << [t, data]
+        rescue TypeError
+          targets << t
+        end
       else
         targets << t
       end
@@ -88,10 +96,16 @@ results = targets.map do |t|
 
   system cmd, *args
 
-  tf.open
-
-  [t, Marshal.load(tf.read)]
+  if $?.exitstatus != 0
+    puts "Error executing: #{cmd}"
+    nil
+  else
+    tf.open
+    [t, Marshal.load(tf.read)]
+  end
 end
+
+results.compact!
 
 if save
   name, data = results.last
@@ -110,9 +124,7 @@ if at_end
   end
 end
 
-compare_targets.each do |path|
-  results << [path, Marshal.load(File.read(path)) ]
-end
+results += compare_targets
 
 if results.size > 1
   compared = Hash.new { |h,k| h[k] = [] }

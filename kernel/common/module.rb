@@ -122,49 +122,15 @@ class Module
     end
   end
 
-  def _each_ancestor
-    if kind_of? Class and __metaclass_object__
-      # nothing
-    else
-      yield self
-    end
-
-    sup = direct_superclass()
-    while sup
-      if sup.kind_of? Rubinius::IncludedModule
-        yield sup.module
-      elsif sup.kind_of? Class
-        yield sup unless sup.__metaclass_object__
-      else
-        yield sup
-      end
-      sup = sup.direct_superclass()
-    end
-  end
-
-  private :_each_ancestor
-
   def ancestors
     out = []
-    _each_ancestor { |mod| out << mod }
-    return out
-  end
-
-
-  def superclass_chain
-    out = []
-    mod = direct_superclass()
-    while mod
-      out << mod
-      mod = mod.direct_superclass()
-    end
-
+    Rubinius::Type.each_ancestor(self) { |mod| out << mod }
     return out
   end
 
   def undef_method(*names)
     names.each do |name|
-      name = Type.coerce_to_symbol(name)
+      name = Rubinius::Type.coerce_to_symbol(name)
       # Will raise a NameError if the method doesn't exist.
       instance_method(name)
       @method_table.store name, nil, :undef
@@ -179,7 +145,7 @@ class Module
   # Like undef_method, but doesn't even check that the method exists. Used
   # mainly to implement rb_undef_method.
   def undef_method!(name)
-    name = Type.coerce_to_symbol(name)
+    name = Rubinius::Type.coerce_to_symbol(name)
     @method_table.store name, nil, :undef
     Rubinius::VM.reset_method_cache(name)
 
@@ -190,7 +156,7 @@ class Module
 
   def remove_method(*names)
     names.each do |name|
-      name = Type.coerce_to_symbol(name)
+      name = Rubinius::Type.coerce_to_symbol(name)
       # Will raise a NameError if the method doesn't exist.
       instance_method(name)
       unless @method_table.lookup(name)
@@ -208,25 +174,25 @@ class Module
   end
 
   def public_method_defined?(sym)
-    sym = Type.coerce_to_symbol(sym)
+    sym = Rubinius::Type.coerce_to_symbol(sym)
     mod, meth = lookup_method(sym, false)
     meth ? meth.public? : false
   end
 
   def private_method_defined?(sym)
-    sym = Type.coerce_to_symbol(sym)
+    sym = Rubinius::Type.coerce_to_symbol(sym)
     mod, meth = lookup_method(sym, false)
     meth ? meth.private? : false
   end
 
   def protected_method_defined?(sym)
-    sym = Type.coerce_to_symbol(sym)
+    sym = Rubinius::Type.coerce_to_symbol(sym)
     mod, meth = lookup_method(sym, false)
     meth ? meth.protected? : false
   end
 
   def method_defined?(sym)
-    sym = Type.coerce_to_symbol(sym)
+    sym = Rubinius::Type.coerce_to_symbol(sym)
     mod, meth = lookup_method(sym, false)
     meth ? meth.public? || meth.protected? : false
   end
@@ -241,7 +207,7 @@ class Module
   # name cannot be located.
 
   def instance_method(name)
-    name = Type.coerce_to_symbol name
+    name = Rubinius::Type.coerce_to_symbol name
 
     mod = self
     while mod
@@ -366,7 +332,7 @@ class Module
   end
 
   def extend_object(obj)
-    include_into Rubinius.object_metaclass(obj)
+    include_into Rubinius::Type.object_singleton_class(obj)
   end
 
   def include?(mod)
@@ -376,7 +342,7 @@ class Module
 
     return false if self.equal?(mod)
 
-    _each_ancestor { |m| return true if mod.equal?(m) }
+    Rubinius::Type.each_ancestor(self) { |m| return true if mod.equal?(m) }
 
     false
   end
@@ -397,7 +363,7 @@ class Module
   end
 
   def set_visibility(meth, vis, where = nil)
-    name = Type.coerce_to_symbol(meth)
+    name = Rubinius::Type.coerce_to_symbol(meth)
     vis = vis.to_sym
 
     if entry = @method_table.lookup(name)
@@ -414,7 +380,7 @@ class Module
   end
 
   def set_class_visibility(meth, vis)
-    Rubinius.object_metaclass(self).set_visibility meth, vis, "class "
+    Rubinius::Type.object_singleton_class(self).set_visibility meth, vis, "class "
   end
 
   def protected(*args)
@@ -512,7 +478,7 @@ class Module
   end
 
   def const_set(name, value)
-    if Type.obj_kind_of?(value, Module)
+    if Rubinius::Type.object_kind_of?(value, Module)
       value.set_name_if_necessary(name, self)
     end
 
@@ -551,7 +517,7 @@ class Module
     # We're not an ancestor of ourself
     return false if self.equal? other
 
-    _each_ancestor { |mod| return true if mod.equal?(other) }
+    Rubinius::Type.each_ancestor(self) { |mod| return true if mod.equal?(other) }
 
     nil
   end
@@ -705,7 +671,7 @@ class Module
   private :recursive_const_get
 
   def normalize_const_name(name)
-    name = Type.coerce_to_symbol(name)
+    name = Rubinius::Type.coerce_to_symbol(name)
 
     unless name.is_constant?
       raise NameError, "wrong constant name #{name}"
@@ -718,8 +684,12 @@ class Module
 
   def initialize_copy(other)
     @method_table = other.method_table.dup
-    Rubinius.object_metaclass(self).method_table = Rubinius.object_metaclass(other).method_table.dup
-    Rubinius.object_metaclass(self).superclass = Rubinius.object_metaclass(other).superclass
+
+    sc_s = Rubinius::Type.object_singleton_class self
+    sc_o = Rubinius::Type.object_singleton_class other
+
+    sc_s.method_table = sc_o.method_table.dup
+    sc_s.superclass = sc_o.superclass
 
     @constants = Rubinius::LookupTable.new
 

@@ -416,8 +416,8 @@ typedef struct RIO rb_io_t;
 /** The undef object. NEVER EXPOSE THIS TO USER CODE. EVER. */
 #define Qundef ((VALUE)cCApiQundef)
 
-#define ruby_verbose (rb_gv_get("$VERBOSE"))
-#define ruby_debug   (rb_gv_get("$DEBUG"))
+#define ruby_verbose (*(mri_global_verbose()))
+#define ruby_debug   (*(mri_global_debug()))
 
 /* Global Class objects */
 
@@ -841,6 +841,9 @@ VALUE rb_uint2big(unsigned long number);
   /** Same as rb_obj_freeze */
   VALUE   rb_ary_freeze(VALUE ary);
 
+  /** Array coercion method */
+  VALUE   rb_ary_to_ary(VALUE ary);
+
   void    rb_mem_clear(VALUE* ary, int len);
 
   /** Return new Array with elements first and second. */
@@ -946,7 +949,7 @@ VALUE rb_uint2big(unsigned long number);
   VALUE   rb_class_of(VALUE object);
 
   /** Returns the Class object contained in the klass field of object
-   * (ie, a metaclass if it's there) */
+   * (ie, a singleton class if it's there) */
   VALUE   CLASS_OF(VALUE object);
 
   /** C string representation of the class' name. */
@@ -1022,6 +1025,7 @@ VALUE rb_uint2big(unsigned long number);
 
   /** Alias method by old name as new name. Methods are independent of eachother. */
   void    rb_define_alias(VALUE module, const char *new_name, const char *old_name);
+  void    rb_alias(VALUE module, ID id_new, ID id_old);
 
   /** Define an .allocate for the given class. Should take no args and return a VALUE. */
   void    rb_define_alloc_func(VALUE klass, CApiAllocFunction allocator);
@@ -1457,6 +1461,7 @@ VALUE rb_uint2big(unsigned long number);
 
   /** Returns the value of the key. */
   VALUE rb_struct_aref(VALUE s, VALUE key);
+  VALUE rb_struct_getmember(VALUE s, ID key);
 
   /** Sets the value of the key. */
   VALUE rb_struct_aset(VALUE s, VALUE key, VALUE value);
@@ -1664,6 +1669,11 @@ VALUE rb_uint2big(unsigned long number);
   // Exists only to make extensions happy. It can be read and written to, but
   // it controls nothing.
   extern int rb_thread_critical;
+
+  // These are used to allow for writing to ruby_verbose and ruby_debug. These
+  // variables can be read, but writes ignored.
+  extern int* mri_global_debug();
+  extern int* mri_global_verbose();
 
 #define HAVE_RB_THREAD_BLOCKING_REGION 1
 

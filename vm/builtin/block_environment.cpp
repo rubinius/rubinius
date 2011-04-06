@@ -23,7 +23,7 @@
 #include "builtin/location.hpp"
 #include "builtin/nativemethod.hpp"
 
-#include "instruments/profiler.hpp"
+#include "instruments/tooling.hpp"
 #include "configuration.hpp"
 #include "on_stack.hpp"
 
@@ -150,17 +150,15 @@ namespace rubinius {
     state->shared.checkpoint(state);
 
 #ifdef RBX_PROFILER
-    if(unlikely(state->shared.profiling())) {
+    if(unlikely(state->tooling())) {
       Module* mod = scope->module();
-      if(MetaClass* mc = try_as<MetaClass>(mod)) {
-        if(Module* ma = try_as<Module>(mc->attached_instance())) {
+      if(SingletonClass* sc = try_as<SingletonClass>(mod)) {
+        if(Module* ma = try_as<Module>(sc->attached_instance())) {
           mod = ma;
         }
       }
 
-      profiler::MethodEntry method(state,
-                              env->top_scope_->method()->name(),
-                              mod, env->method_);
+      tooling::BlockEntry method(state, env, mod);
       return (*vmm->run)(state, vmm, frame);
     } else {
       return (*vmm->run)(state, vmm, frame);
@@ -262,6 +260,12 @@ namespace rubinius {
   Object* BlockEnvironment::of_sender(STATE, CallFrame* call_frame) {
     NativeMethodEnvironment* nme = NativeMethodEnvironment::get();
     CallFrame* target = call_frame->previous;
+
+    // We assume that code using this is going to use it over and
+    // over again (ie Proc.new) so we mark the method as not
+    // inlinable so that this works even with the JIT on.
+
+    target->cm->backend_method()->set_no_inline();
 
     if(nme->current_call_frame() == target) {
       NativeMethodFrame* nmf = nme->current_native_frame();

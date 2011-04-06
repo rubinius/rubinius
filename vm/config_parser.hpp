@@ -32,6 +32,7 @@ namespace rubinius {
     bool   load_file(std::string path);
     Entry* parse_line(const char* line);
     void   import_line(const char* line);
+    void   set(const char* name, const char* val);
     void   import_many(std::string string);
     void   import_stream(std::istream&);
     Entry* find(std::string variable);

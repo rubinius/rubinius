@@ -71,7 +71,7 @@ class Thread
     begin
       begin
         @lock.send nil
-        @result = @block.call *@args
+        @result = @block.call(*@args)
       ensure
         @lock.receive
         unlock_locks
@@ -260,11 +260,11 @@ class Thread
   private :raise_prim
 
   def [](key)
-    @locals[Type.coerce_to_symbol(key)]
+    @locals[Rubinius::Type.coerce_to_symbol(key)]
   end
 
   def []=(key, value)
-    @locals[Type.coerce_to_symbol(key)] = value
+    @locals[Rubinius::Type.coerce_to_symbol(key)] = value
   end
 
   def keys
@@ -272,7 +272,7 @@ class Thread
   end
 
   def key?(key)
-    @locals.key?(Type.coerce_to_symbol(key))
+    @locals.key?(Rubinius::Type.coerce_to_symbol(key))
   end
 
   def set_debugging(dc, cc)
@@ -458,7 +458,7 @@ class Thread
   end
 
   def context
-    Context.new *__context__
+    Context.new(*__context__)
   end
 
   alias_method :current_context, :context

@@ -21,7 +21,7 @@
 #include "builtin/location.hpp"
 #include "builtin/cache.hpp"
 
-#include "instruments/profiler.hpp"
+#include "instruments/tooling.hpp"
 
 #include "helpers.hpp"
 
@@ -63,7 +63,7 @@ extern "C" {
   {
     // Use placement new to stick the class into data, which is on the callers
     // stack.
-    new(data) profiler::MethodEntry(state, exec, mod, args, cm, true);
+    new(data) tooling::MethodEntry(state, exec, mod, args, cm);
   }
 
   void rbx_begin_profiling_block(STATE, void* data, BlockEnvironment* env,
@@ -71,10 +71,10 @@ extern "C" {
   {
     // Use placement new to stick the class into data, which is on the callers
     // stack.
-    new(data) profiler::MethodEntry(state, env->top_scope()->method()->name(), mod, cm, true);
+    new(data) tooling::BlockEntry(state, env, mod);
   }
 
-  void rbx_end_profiling(profiler::MethodEntry* entry) {
+  void rbx_end_profiling(tooling::MethodEntry* entry) {
     entry->~MethodEntry();
   }
 
@@ -1215,7 +1215,7 @@ extern "C" {
   char* rbx_ffi_to_string(STATE, Object* obj, bool* valid) {
     if(String* str = try_as<String>(obj)) {
       *valid = true;
-      return const_cast<char*>(str->c_str());
+      return const_cast<char*>(str->c_str(state));
     }
 
     Exception* exc =

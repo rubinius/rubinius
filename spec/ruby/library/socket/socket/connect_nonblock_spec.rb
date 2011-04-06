@@ -14,10 +14,20 @@ describe "Socket#connect_nonblock" do
     @socket.close
   end
 
-  it "takes an encoded socket address and starts the connection to it" do
-    lambda {
-      @socket.connect_nonblock(@addr)
-    }.should raise_error(Errno::EINPROGRESS)
+  platform_is_not :freebsd do
+    it "takes an encoded socket address and starts the connection to it" do
+      lambda {
+        @socket.connect_nonblock(@addr)
+      }.should raise_error(Errno::EINPROGRESS)
+    end
+  end
+
+  platform_is :freebsd do
+    it "takes an encoded socket address and starts the connection to it" do
+      lambda {
+        @socket.connect_nonblock(@addr)
+      }.should raise_error(Errno::ECONNREFUSED)
+    end
   end
 
   it "connects the socket to the remote side" do

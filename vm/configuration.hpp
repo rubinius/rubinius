@@ -39,6 +39,9 @@ namespace rubinius {
     config::Bool    jit_show_remove;
     config::Bool    jit_check_debugging;
 
+    // Tools
+    config::String  tool_to_load;
+
     // CAPI
     config::Bool    capi_global_flush;
 
@@ -52,6 +55,7 @@ namespace rubinius {
     config::Integer print_config;
     config::Bool    ic_stats;
     config::Bool    profile;
+    config::Integer profiler_threshold;
     config::String  report_path;
     config::Bool    thread_debug;
 
@@ -97,6 +101,8 @@ namespace rubinius {
       , jit_show_remove(this, "jit.removal.print", false)
       , jit_check_debugging(this, "jit.check_debugging", false)
 
+      , tool_to_load(this, "tool")
+
       , capi_global_flush(this, "capi.global_flush", false)
 
       , qa_port(this,         "agent.start")
@@ -106,6 +112,7 @@ namespace rubinius {
       , print_config(this,    "config.print")
       , ic_stats(this,        "ic.stats")
       , profile(this,         "profile")
+      , profiler_threshold(this,  "profiler.threshold", 1000000)
       , report_path(this,     "vm.crash_report_path")
       , thread_debug(this,    "thread.debug")
     {
@@ -205,6 +212,9 @@ namespace rubinius {
       profile.set_description(
           "Configure the system to profile ruby code");
 
+      profiler_threshold.set_description(
+          "The mininum number of nanoseconds a profiler node must have to be reported");
+
       report_path.set_description(
           "Set a custom path to write crash reports");
 
@@ -212,11 +222,7 @@ namespace rubinius {
           "Print threading notices when they occur");
     }
 
-    void finalize() {
-      if(profile) {
-        jit_disabled.value = true;
-      }
-    }
+    void finalize() { }
   };
 }
 

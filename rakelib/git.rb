@@ -18,7 +18,6 @@ end
 
 def compare_git_ver
   v = `git version`.scan(/version (\d+).(\d+).(\d+)/).flatten.map { |s| s.to_i }
-  m = [1, 5, 3]
 
   (v <=> MINIMUM_GIT_VERSION) >= 0
 end

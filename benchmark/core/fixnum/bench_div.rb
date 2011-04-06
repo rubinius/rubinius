@@ -20,7 +20,7 @@ Benchmark.ips do |x|
   x.report "Fixnum / Bignum => Fixnum" do |times|
     i = 0
     while i < times
-      big_fixnum * bignum
+      big_fixnum / bignum
       i += 1
     end
   end
@@ -28,7 +28,7 @@ Benchmark.ips do |x|
   x.report "Fixnum / Float => Float" do |times|
     i = 0
     while i < times
-      big_fixnum * float
+      big_fixnum / float
       i += 1
     end
   end

@@ -30,10 +30,10 @@
 #include "builtin/staticscope.hpp"
 #include "builtin/string.hpp"
 #include "builtin/symbol.hpp"
+#include "builtin/system.hpp"
 #include "builtin/thread.hpp"
 #include "builtin/time.hpp"
 #include "builtin/tuple.hpp"
-#include "builtin/taskprobe.hpp"
 #include "builtin/autoload.hpp"
 #include "builtin/proc.hpp"
 #include "builtin/variable_scope.hpp"
@@ -140,22 +140,23 @@ namespace rubinius {
      *  With these 8 in place, we can now create fully initialized classes
      *  and modules.
      *
-     *  Next we need to finish up the MetaClass protocol (a.k.a. MOP).
-     *  The MetaClass of a subclass points to the MetaClass of the superclass.
+     *  Next we need to finish up the SingletonClass protocol (a.k.a. MOP).
+     *  The SingletonClass of a subclass points to the SingletonClass of the
+     *  superclass.
      */
 
-    // BasicObject's MetaClass instance has Class for a superclass
+    // BasicObject's SingletonClass instance has Class for a superclass
     if(state->shared.config.version_19 || state->shared.config.version_20) {
-      MetaClass::attach(this, basicobject, cls);
+      SingletonClass::attach(this, basicobject, cls);
     }
 
-    // Object's MetaClass instance has Class for a superclass
-    Class* mc = MetaClass::attach(this, object, cls);
+    // Object's SingletonClass instance has Class for a superclass
+    Class* sc = SingletonClass::attach(this, object, cls);
 
     // Module's metaclass's superclass is Object's metaclass
-    mc = MetaClass::attach(this, G(module), mc);
+    sc = SingletonClass::attach(this, G(module), sc);
     // Class's metaclass likewise has Module's metaclass above it
-    MetaClass::attach(this, cls, mc);
+    SingletonClass::attach(this, cls, sc);
 
     // See?
     if(state->shared.config.version_19 || state->shared.config.version_20) {
@@ -172,13 +173,13 @@ namespace rubinius {
     assert(cls->superclass() == G(module));
     assert(cls->klass()->superclass() == G(module)->klass());
 
-    // The other builtin classes get MetaClasses wired to Object's metaclass
-    mc = G(object)->metaclass(this);
-    MetaClass::attach(this, G(tuple), mc);
-    MetaClass::attach(this, G(lookuptable), mc);
-    MetaClass::attach(this, G(lookuptablebucket), mc);
-    MetaClass::attach(this, G(methtbl), mc);
-    MetaClass::attach(this, G(methtblbucket), mc);
+    // The other builtin classes get SingletonClasses wired to Object's singleton class
+    sc = G(object)->singleton_class(this);
+    SingletonClass::attach(this, G(tuple), sc);
+    SingletonClass::attach(this, G(lookuptable), sc);
+    SingletonClass::attach(this, G(lookuptablebucket), sc);
+    SingletonClass::attach(this, G(methtbl), sc);
+    SingletonClass::attach(this, G(methtblbucket), sc);
 
     // Now, finish initializing the basic Class/Module
     G(object)->setup(this, "Object");
@@ -273,7 +274,6 @@ namespace rubinius {
     AccessVariable::init(this);
     Pointer::init(this);
     NativeFunction::init(this);
-    TaskProbe::init(this);
     Exception::init(this);
     Data::init(this);
     Autoload::init(this);
@@ -331,8 +331,10 @@ namespace rubinius {
     GO(vm).set(new_class_under("VM", G(rubinius)));
     G(vm)->name(state, state->symbol("Rubinius::VM"));
 
-    Object::bootstrap_methods(this);
-    Class::bootstrap_methods(this);
+    Module* type = new_module("Type", G(rubinius));
+    type->name(state, state->symbol("Rubinius::Type"));
+
+    System::bootstrap_methods(this);
     Module::bootstrap_methods(this);
     StaticScope::bootstrap_methods(this);
     VariableScope::bootstrap_methods(this);

@@ -44,7 +44,7 @@ ossl_pkcs5_pbkdf2_hmac(VALUE self, VALUE pass, VALUE salt, VALUE iter, VALUE key
 
     return str;
 #else
-    return Qnil;
+    rb_notimplement();
 #endif
 }
 

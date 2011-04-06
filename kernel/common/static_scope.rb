@@ -95,13 +95,13 @@ module Rubinius
 
     def data_path
       script = current_script
-      if script
+      if script and script.main?
         if path = script.data_path
           return path.dup
         end
       end
 
-      return "__unknown__.rb"
+      return nil
     end
 
     def current_script

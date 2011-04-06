@@ -593,7 +593,6 @@ EOM
           last = last[1..-1]
         end
 
-        arguments = last[1..-1]
         unless @produced_extra = @arguments.index(argument)
           raise ParseError, "no argument named '#{arg}' at #{@file.lineno}"
         end

@@ -538,7 +538,7 @@ class Gem::Specification
 
     if cm
       script = cm.create_script
-      gemspec = MAIN.__send__ :__script__
+      gemspec = Rubinius.run_script cm
 
       if gemspec.kind_of? Gem::Specification
         gemspec.loaded_from = file

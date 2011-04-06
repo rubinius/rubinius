@@ -75,7 +75,6 @@ regexp.rbc
 signal.rbc
 sprinter.rbc
 symbol.rbc
-taskprobe.rbc
 thread.rbc
 thread_group.rbc
 throw_catch.rbc

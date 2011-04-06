@@ -1,7 +1,7 @@
 class Module
   def alias_method(new_name, current_name)
-    new_name = Type.coerce_to_symbol(new_name)
-    current_name = Type.coerce_to_symbol(current_name)
+    new_name = Rubinius::Type.coerce_to_symbol(new_name)
+    current_name = Rubinius::Type.coerce_to_symbol(current_name)
     mod, entry = lookup_method(current_name, true, false)
 
     if entry
@@ -20,10 +20,11 @@ class Module
 
       Rubinius::VM.reset_method_cache(new_name)
     else
-      if kind_of?(Class) && ai = __metaclass_object__
+      if Rubinius::Type.object_kind_of?(self, Class) and
+         ai = Rubinius::Type.singleton_class_object(self)
         raise NameError, "Unable to find '#{current_name}' for object #{ai.inspect}"
       else
-        thing = kind_of?(Class) ? "class" : "module"
+        thing = Rubinius::Type.object_kind_of?(self, Class) ? "class" : "module"
         raise NameError, "undefined method `#{current_name}' for #{thing} `#{self.name}'"
       end
     end
@@ -40,11 +41,11 @@ class Module
 
       Rubinius::VariableScope.of_sender.method_visibility = :module
     else
-      mc = Rubinius.object_metaclass(self)
+      sc = Rubinius::Type.object_singleton_class(self)
       args.each do |meth|
-        method_name = Type.coerce_to_symbol meth
+        method_name = Rubinius::Type.coerce_to_symbol meth
         mod, method = lookup_method(method_name)
-        mc.method_table.store method_name, method.method, :public
+        sc.method_table.store method_name, method.method, :public
         set_visibility method_name, :private
       end
     end
@@ -73,6 +74,7 @@ class Module
       mod.send :append_features, self
       mod.send :included, self
     end
+    self
   end
 
   # Add all constants, instance methods and module variables

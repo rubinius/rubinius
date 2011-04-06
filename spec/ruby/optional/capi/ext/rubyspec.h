@@ -24,6 +24,7 @@
 #define HAVE_RB_ARY_REVERSE                1
 #define HAVE_RB_ARY_SHIFT                  1
 #define HAVE_RB_ARY_STORE                  1
+#define HAVE_RB_ARY_TO_ARY                 1
 #define HAVE_RB_ARY_TO_S                   1
 #define HAVE_RB_ARY_UNSHIFT                1
 #define HAVE_RB_ASSOC_NEW                  1
@@ -189,6 +190,7 @@
 #define HAVE_RB_MARSHAL_LOAD               1
 
 /* Module */
+#define HAVE_RB_ALIAS                      1
 #define HAVE_RB_CONST_DEFINED              1
 #define HAVE_RB_CONST_DEFINED_AT           1
 #define HAVE_RB_CONST_GET                  1
@@ -316,6 +318,7 @@
 #define HAVE_RB_STRUCT_ASET                1
 #define HAVE_RB_STRUCT_DEFINE              1
 #define HAVE_RB_STRUCT_NEW                 1
+#define HAVE_RB_STRUCT_GETMEMBER           1
 
 /* Symbol */
 #define HAVE_RB_ID2NAME                    1

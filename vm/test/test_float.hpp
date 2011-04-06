@@ -307,7 +307,7 @@ public:
 
     String* s = f->to_s_formatted(state, format);
 
-    TS_ASSERT_SAME_DATA("3.14159000000000", s->c_str(), 16);
+    TS_ASSERT_SAME_DATA("3.14159000000000", s->c_str(state), 16);
     TS_ASSERT_EQUALS(16, s->size());
 
     format = String::create(state, "%#.1280g");

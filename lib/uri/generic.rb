@@ -982,7 +982,11 @@ module URI
       end
       if host && host != host.downcase
         set_host(self.host.downcase)
-      end        
+      end
+
+      if scheme && scheme != scheme.downcase
+        set_scheme(self.scheme.downcase)
+      end
     end
 
     def path_query
@@ -1054,7 +1058,7 @@ module URI
     end
 
     def eql?(oth)
-      self.component_ary.eql?(oth.component_ary)
+      oth.is_a?(URI) && self.component_ary.eql?(oth.component_ary)
     end
 
 =begin

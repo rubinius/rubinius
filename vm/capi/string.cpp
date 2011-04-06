@@ -74,7 +74,7 @@ namespace rubinius {
               "changing the value of RSTRING(obj)->ptr is not supported");
         }
 
-        if(rstring->len > string->data()->size()) {
+        if(rstring->len > as<CharArray>(string->data())->size()) {
           rb_raise(rb_eRuntimeError,
               "RSTRING(obj)->len must be <= capacity of the String");
         } else if(rstring->len != string->num_bytes()->to_native()) {
@@ -126,11 +126,11 @@ namespace rubinius {
       // associated RString structure.
       ensure_pinned(env, string, as_.rstring);
 
-      /* In Ruby, regardless of the contents in the ByteArray for a String,
+      /* In Ruby, regardless of the contents in the CharArray for a String,
        * the String's size is the authority on the length of the String.
        * However, for the C-API, we cannot assume this because C code may be
        * writing to the cache behind our backs, so we faithfully keep the full
-       * contents of the ByteArray and the C cache in sync. If there has never
+       * contents of the CharArray and the C cache in sync. If there has never
        * been a cache created for a string, however, we must set put a null
        * byte in the cache based on the String size.
        */
@@ -287,7 +287,7 @@ extern "C" {
 
     String* string = capi_get_string(env, self);
 
-    size_t size = string->data()->size();
+    size_t size = as<CharArray>(string->data())->size();
     if(size != len) {
       if(size < len) {
         CharArray* ca = CharArray::create_pinned(env->state(), len+1);
@@ -352,7 +352,7 @@ extern "C" {
     VALUE str = rb_string_value(object_variable);
     String* string = capi_get_string(env, str);
 
-    if(string->size() != (native_int)strlen(string->c_str())) {
+    if(string->size() != (native_int)strlen(string->c_str(env->state()))) {
       rb_raise(rb_eArgError, "string contains NULL byte");
     }
 
@@ -384,8 +384,6 @@ extern "C" {
     char *ptr = RSTRING_PTR(string);
     if(len) {
       *len = str->size();
-    } else if(RTEST(ruby_verbose) && str->size() != (native_int)strlen(ptr)) {
-      rb_warn("string contains NULL character");
     }
     return ptr;
   }
@@ -405,7 +403,7 @@ extern "C" {
     String* str = c_as<String>(env->get_object(self));
 
     char* data = (char*)malloc(sizeof(char) * str->size() + 1);
-    memcpy(data, str->c_str(), str->size());
+    memcpy(data, str->c_str(env->state()), str->size());
     data[str->size()] = 0;
 
     return data;
@@ -440,7 +438,7 @@ extern "C" {
 
     String* string = capi_get_string(env, self);
 
-    size_t byte_size = string->data()->size();
+    size_t byte_size = as<CharArray>(string->data())->size();
     if(len > byte_size) len = byte_size - 1;
 
     string->byte_address()[len] = 0;

@@ -77,12 +77,18 @@ namespace rubinius {
       } else if(int which = detect_jit_intrinsic(klass, cm)) {
         inline_intrinsic(klass, cm, which);
       } else if(ops_.state()->config().jit_inline_generic) {
+        InlineDecision decision;
+        InlineOptions opts;
+
         InlinePolicy* policy = ops_.inline_policy();
         assert(policy);
 
-        InlineOptions opts;
+        if(vmm->no_inline_p()) {
+          decision = cInlineDisabled;
+        } else {
+          decision = policy->inline_p(vmm, opts);
+        }
 
-        InlineDecision decision = policy->inline_p(vmm, opts);
         if(decision != cInline) {
           if(ops_.state()->config().jit_inline_debug) {
 
@@ -94,16 +100,22 @@ namespace rubinius {
               << ops_.state()->symbol_cstr(ops_.method_name())
               << ". ";
 
-            if(decision == cTooBig) {
+            switch(decision) {
+            case cInlineDisabled:
+              ops_.state()->log() << "inlining disabled by request";
+              break;
+            case cTooBig:
               ops_.state()->log() << policy->current_size() << " + "
                 << vmm->total << " > "
                 << policy->max_size();
-            } else if(decision == cTooComplex) {
+              break;
+            case cTooComplex:
               ops_.state()->log() << "too complex";
               if(!opts.allow_blocks) {
                 ops_.state()->log() << " (block not allowed)";
               }
-            } else {
+              break;
+            default:
               ops_.state()->log() << "no policy";
             }
             ops_.state()->log() << "\n";
@@ -783,6 +795,9 @@ remember:
       Signature sig(ops_.state(), ops_.ObjType);
       sig << "VM";
       sig << ops_.state()->Int32Ty;
+
+      res_args[1] = ops_.b().CreateSExtOrBitCast(res_args[1],
+                               ops_.state()->Int32Ty);
 
       result = sig.call("rbx_ffi_from_int32", res_args, 2, "to_obj",
                         ops_.b());

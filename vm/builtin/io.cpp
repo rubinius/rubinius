@@ -82,7 +82,7 @@ namespace rubinius {
   }
 
   Fixnum* IO::open(STATE, String* path, Fixnum* mode, Fixnum* perm) {
-    int fd = ::open(path->c_str(), mode->to_native(), perm->to_native());
+    int fd = ::open(path->c_str(state), mode->to_native(), perm->to_native());
     return Fixnum::from(fd);
   }
 
@@ -277,7 +277,7 @@ namespace rubinius {
   Object* IO::reopen_path(STATE, String* path, Fixnum* mode) {
     native_int cur_fd   = to_fd();
 
-    int other_fd = ::open(path->c_str(), mode->to_native(), 0666);
+    int other_fd = ::open(path->c_str(state), mode->to_native(), 0666);
 
     if(other_fd == -1) {
       Exception::errno_error(state, "reopen");
@@ -608,7 +608,11 @@ namespace rubinius {
   }
 
   Object* IO::write(STATE, String* buf, CallFrame* call_frame) {
-    size_t left = buf->size();
+    native_int left = buf->size();
+    native_int data_size = as<CharArray>(buf->data())->size();
+    if(unlikely(left > data_size)) {
+      left = data_size;
+    }
     uint8_t* bytes = new uint8_t[left];
     memcpy(bytes, buf->byte_address(), left);
     int fd = this->to_fd();
@@ -659,7 +663,13 @@ namespace rubinius {
   Object* IO::write_nonblock(STATE, String* buf) {
     set_nonblock(state);
 
-    int n = ::write(descriptor_->to_native(), buf->c_str(), buf->size());
+    native_int buf_size = buf->size();
+    native_int data_size = as<CharArray>(buf->data())->size();
+    if(unlikely(buf_size > data_size)) {
+      buf_size = data_size;
+    }
+
+    int n = ::write(descriptor_->to_native(), buf->c_str(state), buf_size);
     if(n == -1) Exception::errno_error(state, "write_nonblock");
     return Fixnum::from(n);
   }
@@ -1018,7 +1028,7 @@ failed: /* try next '*' position */
   }
 
   Object* IO::fnmatch(STATE, String* pattern, String* path, Fixnum* flags) {
-    if(mri_fnmatch(pattern->c_str(), path->c_str(), flags->to_native())) {
+    if(mri_fnmatch(pattern->c_str(state), path->c_str(state), flags->to_native())) {
       return Qtrue;
     }
 
@@ -1218,7 +1228,12 @@ failed: /* try next '*' position */
   Object* IOBuffer::unshift(STATE, String* str, Fixnum* start_pos) {
     write_synced(state, Qfalse);
     native_int start_pos_native = start_pos->to_native();
-    native_int total_sz = str->size() - start_pos_native;
+    native_int str_size = str->size();
+    native_int data_size = as<CharArray>(str->data())->size();
+    if(unlikely(str_size > data_size)) {
+      str_size = data_size;
+    }
+    native_int total_sz = str_size - start_pos_native;
     native_int used_native = used_->to_native();
     native_int available_space = total_->to_native() - used_native;
 

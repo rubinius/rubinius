@@ -87,4 +87,18 @@ describe "YAML.load" do
     expected = { :"user name" => "This is the user name."}
     YAML.load(string).should == expected
   end
+
+  it "loads iso8601 timestamp with correct microsecond" do
+    t1 = YAML.load("2011-03-22t23:32:11.2233+01:00")
+    t1.usec.should == 223300
+
+    t2 = YAML.load("2011-03-22t23:32:11.0099+01:00")
+    t2.usec.should == 9900
+
+    t3 = YAML.load("2011-03-22t23:32:11.000076+01:00")
+    t3.usec.should == 76
+
+    t4 = YAML.load("2011-03-22t23:32:11.000000342222+01:00")
+    t4.usec.should == 0
+  end
 end

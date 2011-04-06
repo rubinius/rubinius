@@ -123,7 +123,7 @@ module Kernel
     #
     case message
     when String
-      message = Type.coerce_to message, Symbol, :to_sym
+      message = Rubinius::Type.coerce_to message, Symbol, :to_sym
     when Symbol
       # nothing!
     else
@@ -251,7 +251,7 @@ module Kernel
     copy = cls.allocate
 
     Rubinius.invoke_primitive :object_copy_object, copy, self
-    Rubinius.invoke_primitive :object_copy_metaclass, copy, self
+    Rubinius.invoke_primitive :object_copy_singleton_class, copy, self
 
     Rubinius.privately do
       copy.initialize_copy self
@@ -420,7 +420,7 @@ module Process
     when false
       code = 1
     else
-      code = Type.coerce_to code, Integer, :to_int
+      code = Rubinius::Type.coerce_to code, Integer, :to_int
     end
 
     raise SystemExit.new(code)
@@ -435,7 +435,7 @@ module Process
     when false
       exit! 1
     else
-      exit! Type.coerce_to(code, Integer, :to_int)
+      exit! Rubinius::Type.coerce_to(code, Integer, :to_int)
     end
   end
 end
@@ -630,8 +630,8 @@ class Module
   #
   def module_function(name)
     if entry = @method_table.lookup(name)
-      meta = class << self; self; end
-      meta.method_table.store name, entry.method, :public
+      sc = class << self; self; end
+      sc.method_table.store name, entry.method, :public
       private name
     end
   end
@@ -745,7 +745,6 @@ end
 
 module Kernel
   alias_method :__class__, :class
-  alias_method :__kind_of__, :kind_of?
 end
 
 class Object

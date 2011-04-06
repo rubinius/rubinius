@@ -51,7 +51,7 @@ class Array
       obj = nil
 
       if size_or_array.respond_to? :to_ary
-        ary = Type.coerce_to size_or_array, Array, :to_ary
+        ary = Rubinius::Type.coerce_to size_or_array, Array, :to_ary
 
         @tuple = ary.tuple.dup
         @start = ary.start
@@ -61,7 +61,7 @@ class Array
       end
     end
 
-    size = Type.coerce_to size_or_array, Integer, :to_int
+    size = Rubinius::Type.coerce_to size_or_array, Integer, :to_int
     raise ArgumentError, "size must be positive" if size < 0
     raise ArgumentError, "size must be <= #{Fixnum::MAX}" if size > Fixnum::MAX
 
@@ -103,7 +103,7 @@ class Array
       start_idx += @total if start_idx < 0
 
       if arg2
-        count = Type.coerce_to arg2, Fixnum, :to_int
+        count = Rubinius::Type.coerce_to arg2, Fixnum, :to_int
       else
         return nil if start_idx >= @total
 
@@ -118,7 +118,7 @@ class Array
         end
       end
     when Range
-      start_idx = Type.coerce_to arg1.begin, Fixnum, :to_int
+      start_idx = Rubinius::Type.coerce_to arg1.begin, Fixnum, :to_int
       # Convert negative indices
       start_idx += @total if start_idx < 0
 
@@ -126,7 +126,7 @@ class Array
       # before we check the right index boundary cases
       return nil if start_idx < 0 or start_idx > @total
 
-      right_idx = Type.coerce_to arg1.end, Fixnum, :to_int
+      right_idx = Rubinius::Type.coerce_to arg1.end, Fixnum, :to_int
       right_idx += @total if right_idx < 0
       right_idx -= 1 if arg1.exclude_end?
 
@@ -136,13 +136,13 @@ class Array
 
     # Slower, less common generic coercion case.
     else
-      start_idx = Type.coerce_to arg1, Fixnum, :to_int
+      start_idx = Rubinius::Type.coerce_to arg1, Fixnum, :to_int
 
       # Convert negative indices
       start_idx += @total if start_idx < 0
 
       if arg2
-        count = Type.coerce_to arg2, Fixnum, :to_int
+        count = Rubinius::Type.coerce_to arg2, Fixnum, :to_int
       else
         return nil if start_idx >= @total
 
@@ -188,7 +188,7 @@ class Array
 
     ins_length = nil
     unless fin.equal? undefined
-      ins_length = Type.coerce_to ent, Fixnum, :to_int
+      ins_length = Rubinius::Type.coerce_to ent, Fixnum, :to_int
       ent = fin             # 2nd arg (ins_length) is the optional one!
     end
 
@@ -198,11 +198,11 @@ class Array
         raise ArgumentError, "Second argument invalid with a range"
       end
 
-      last = Type.coerce_to index.last, Fixnum, :to_int
+      last = Rubinius::Type.coerce_to index.last, Fixnum, :to_int
       last += @total if last < 0
       last += 1 unless index.exclude_end?
 
-      index = Type.coerce_to index.first, Fixnum, :to_int
+      index = Rubinius::Type.coerce_to index.first, Fixnum, :to_int
 
       if index < 0
         index += @total
@@ -214,7 +214,7 @@ class Array
 
       ins_length = last - index
     else
-      index = Type.coerce_to index, Fixnum, :to_int
+      index = Rubinius::Type.coerce_to index, Fixnum, :to_int
 
       if index < 0
         index += @total
@@ -367,7 +367,7 @@ class Array
   # both Arrays, without duplicates. Also known as a 'set
   # intersection'
   def &(other)
-    other = Type.coerce_to other, Array, :to_ary
+    other = Rubinius::Type.coerce_to other, Array, :to_ary
 
     array = []
     im = Rubinius::IdentityMap.from other
@@ -380,7 +380,7 @@ class Array
   # Creates a new Array by combining the two Arrays' items,
   # without duplicates. Also known as a 'set union.'
   def |(other)
-    other = Type.coerce_to other, Array, :to_ary
+    other = Rubinius::Type.coerce_to other, Array, :to_ary
 
     im = Rubinius::IdentityMap.from self, other
     im.to_array
@@ -396,7 +396,7 @@ class Array
 
     else
       # Aaargh stupid MRI's stupid specific stupid error stupid types stupid
-      multiplier = Type.coerce_to multiplier, Fixnum, :to_int
+      multiplier = Rubinius::Type.coerce_to multiplier, Fixnum, :to_int
 
       raise ArgumentError, "Count cannot be negative" if multiplier < 0
 
@@ -419,7 +419,7 @@ class Array
 
   # Create a concatenation of the two Arrays.
   def +(other)
-    other = Type.coerce_to other, Array, :to_ary
+    other = Rubinius::Type.coerce_to other, Array, :to_ary
     Array.new(self).concat(other)
   end
 
@@ -427,7 +427,7 @@ class Array
   # Array that do not appear in the other Array, effectively
   # 'deducting' those items. The matching method is Hash-based.
   def -(other)
-    other = Type.coerce_to other, Array, :to_ary
+    other = Rubinius::Type.coerce_to other, Array, :to_ary
 
     array = []
     im = Rubinius::IdentityMap.from other
@@ -444,7 +444,7 @@ class Array
   # lengths are the same. The element comparison is the primary
   # and length is only checked if the former results in 0's.
   def <=>(other)
-    other = Type.convert_to other, Array, :to_ary
+    other = Rubinius::Type.try_convert other, Array, :to_ary
     return 0 if equal? other
     return nil if other.nil?
 
@@ -504,7 +504,7 @@ class Array
   # returned. Slightly faster than +Array#[]+
   def at(idx)
     Ruby.primitive :array_aref
-    idx = Type.coerce_to idx, Fixnum, :to_int
+    idx = Rubinius::Type.coerce_to idx, Fixnum, :to_int
 
     total = @start + @total
 
@@ -533,7 +533,7 @@ class Array
   # no guarantees about the order in which the combinations are yielded, we copy MRI.
   # When invoked without a block, returns an enumerator object instead.
   def combination(num)
-    num = Type.coerce_to num, Fixnum, :to_int
+    num = Rubinius::Type.coerce_to num, Fixnum, :to_int
     return to_enum(:combination, num) unless block_given?
     return self unless (0..size).include? num
     # Implementation note: slightly tricky.
@@ -576,7 +576,7 @@ class Array
   def concat(other)
     Ruby.primitive :array_concat
 
-    other = Type.coerce_to(other, Array, :to_ary)
+    other = Rubinius::Type.coerce_to(other, Array, :to_ary)
     return self if other.empty?
 
     Ruby.check_frozen
@@ -596,7 +596,7 @@ class Array
         each { |x| yield x }
       end
     else
-      n = Type.coerce_to n, Fixnum, :to_int
+      n = Rubinius::Type.coerce_to n, Fixnum, :to_int
       n.times do
         each { |x| yield x }
       end
@@ -641,7 +641,7 @@ class Array
   def delete_at(idx)
     Ruby.check_frozen
 
-    idx = Type.coerce_to idx, Fixnum, :to_int
+    idx = Rubinius::Type.coerce_to idx, Fixnum, :to_int
 
     # Flip to positive and weed out out of bounds
     idx += @total if idx < 0
@@ -736,7 +736,7 @@ class Array
     raise ArgumentError, "Expected 1-2, got #{1 + rest.length}" if rest.length > 1
     warn 'Block supercedes default object' if !rest.empty? && block_given?
 
-    idx, orig = Type.coerce_to(idx, Fixnum, :to_int), idx
+    idx, orig = Rubinius::Type.coerce_to(idx, Fixnum, :to_int), idx
     idx += @total if idx < 0
 
     if idx < 0 || idx >= @total
@@ -783,22 +783,22 @@ class Array
     if one.kind_of? Range
       raise TypeError, "length invalid with range" unless two == undefined
 
-      left = Type.coerce_to one.begin, Fixnum, :to_int
+      left = Rubinius::Type.coerce_to one.begin, Fixnum, :to_int
       left += size if left < 0
       raise RangeError, "#{one.inspect} out of range" if left < 0
 
-      right = Type.coerce_to one.end, Fixnum, :to_int
+      right = Rubinius::Type.coerce_to one.end, Fixnum, :to_int
       right += size if right < 0
       right += 1 unless one.exclude_end?
       return self if right <= left           # Nothing to modify
     elsif one and one != undefined
-      left = Type.coerce_to one, Fixnum, :to_int
+      left = Rubinius::Type.coerce_to one, Fixnum, :to_int
       left += size if left < 0
       left = 0 if left < 0
 
       if two and two != undefined
         begin
-          right = Type.coerce_to two, Fixnum, :to_int
+          right = Rubinius::Type.coerce_to two, Fixnum, :to_int
         rescue TypeError
           raise ArgumentError, "argument #{two.inspect} must be a Fixnum"
         end
@@ -845,7 +845,7 @@ class Array
   def first(n = undefined)
     return at(0) if n.equal? undefined
 
-    n = Type.coerce_to n, Fixnum, :to_int
+    n = Rubinius::Type.coerce_to n, Fixnum, :to_int
     raise ArgumentError, "Size must be positive" if n < 0
 
     self[0...n].to_a
@@ -854,7 +854,7 @@ class Array
   # Recursively flatten any contained Arrays into an one-dimensional result.
   # The optional level argument determines the level of recursion to flatten
   def flatten(level=-1)
-    level = Type.coerce_to(level, Integer, :to_int)
+    level = Rubinius::Type.coerce_to(level, Integer, :to_int)
     return self if level == 0
 
     out = new_reserved size
@@ -866,7 +866,7 @@ class Array
   # made, returns nil, otherwise self.
   # The optional level argument determines the level of recursion to flatten
   def flatten!(level=-1)
-    level = Type.coerce_to(level, Integer, :to_int)
+    level = Rubinius::Type.coerce_to(level, Integer, :to_int)
     return nil if level == 0
 
     out = new_reserved size
@@ -985,7 +985,7 @@ class Array
       if a.kind_of? Range
         out << self[a]
       else
-        out << at(Type.coerce_to(a, Fixnum, :to_int))
+        out << at(Rubinius::Type.coerce_to(a, Fixnum, :to_int))
       end
     end
 
@@ -1004,7 +1004,7 @@ class Array
     Ruby.check_frozen
 
     # Adjust the index for correct insertion
-    idx = Type.coerce_to idx, Fixnum, :to_int
+    idx = Rubinius::Type.coerce_to idx, Fixnum, :to_int
     idx += (@total + 1) if idx < 0    # Negatives add AFTER the element
     raise IndexError, "#{idx} out of bounds" if idx < 0
 
@@ -1095,7 +1095,7 @@ class Array
       raise TypeError, "Can't convert #{n.class} into Integer"
     end
 
-    n = Type.coerce_to n, Fixnum, :to_int
+    n = Rubinius::Type.coerce_to n, Fixnum, :to_int
     return [] if n.zero?
     raise ArgumentError, "Number must be positive" if n < 0
 
@@ -1218,7 +1218,7 @@ class Array
     if num.equal? undefined
       num = @total
     else
-      num = Type.coerce_to num, Fixnum, :to_int
+      num = Rubinius::Type.coerce_to num, Fixnum, :to_int
     end
 
     if num < 0 || @total < num
@@ -1282,7 +1282,7 @@ class Array
 
       elem
     else
-      many = Type.coerce_to(many, Fixnum, :to_int)
+      many = Rubinius::Type.coerce_to(many, Fixnum, :to_int)
       raise ArgumentError, "negative array size" if many < 0
 
       first = size - many
@@ -1301,7 +1301,7 @@ class Array
   # with one responsible to append the values.
   # ++
   def product(*args)
-    args.map!{|x| Type.coerce_to(x, Array, :to_ary)}
+    args.map!{|x| Rubinius::Type.coerce_to(x, Array, :to_ary)}
 
     # Check the result size will fit in an Array.
     unless args.inject(size) { |n, x| n * x.size }.kind_of?(Fixnum)
@@ -1375,7 +1375,7 @@ class Array
   def replace(other)
     Ruby.check_frozen
 
-    other = Type.coerce_to other, Array, :to_ary
+    other = Rubinius::Type.coerce_to other, Array, :to_ary
 
     @tuple = other.tuple.dup
     @total = other.total
@@ -1445,6 +1445,31 @@ class Array
     nil
   end
 
+  # Choose a random element, or the random n elements, from the array.
+  # If the array is empty, the first form returns nil, and the second
+  # form returns an empty array.
+  def choice(n=undefined)
+    return at(Kernel.rand(size)) if n.equal? undefined
+
+    n = Rubinius::Type.coerce_to(n, Fixnum, :to_int)
+    raise ArgumentError, "negative array size" if n < 0
+
+    n = size if n > size
+    result = Array.new(self)
+
+    n.times do |i|
+      r = i + Kernel.rand(size - i)
+      result.tuple.swap(i,r)
+    end
+
+    result[n..size] = []
+    result
+  end
+
+  # Some code depends on Array having it's own #select method,
+  # not just using the Enumerable one. This alias achieves that.
+  alias_method :select, :find_all
+
   # Removes and returns the first element in the
   # Array or nil if empty. All other elements are
   # moved down one index.
@@ -1462,7 +1487,7 @@ class Array
 
       obj
     else
-      n = Type.coerce_to(n, Fixnum, :to_int)
+      n = Rubinius::Type.coerce_to(n, Fixnum, :to_int)
       raise ArgumentError, "negative array size" if n < 0
 
       slice!(0, n).to_a
@@ -1483,7 +1508,7 @@ class Array
   #
   # This a specialized version of the method found in Enumerable
   def drop(n)
-    n = Type.coerce_to(n, Fixnum, :to_int)
+    n = Rubinius::Type.coerce_to(n, Fixnum, :to_int)
     raise ArgumentError, "attempt to drop negative size" if n < 0
 
     return [] if @total == 0
@@ -1504,14 +1529,14 @@ class Array
       if start.kind_of? Range
         out = self[start]
 
-        s = Type.coerce_to start.begin, Fixnum, :to_int
+        s = Rubinius::Type.coerce_to start.begin, Fixnum, :to_int
         unless s >= @total or -s > @total
           self[start] = nil
         end
       else
         # make sure that negative values are not passed through to the
         # []= assignment
-        start = Type.coerce_to start, Integer, :to_int
+        start = Rubinius::Type.coerce_to start, Integer, :to_int
         start = start + @total if start < 0
 
         # This is to match the MRI behaviour of not extending the array
@@ -1519,7 +1544,7 @@ class Array
         # of the array.
         return out unless start >= 0 and start < @total
 
-        out = @tuple.at start
+        out = @tuple.at start + @start
 
         # Check for shift style.
         if start == 0
@@ -1531,8 +1556,8 @@ class Array
         end
       end
     else
-      start = Type.coerce_to start, Fixnum, :to_int
-      length = Type.coerce_to length, Fixnum, :to_int
+      start = Rubinius::Type.coerce_to start, Fixnum, :to_int
+      length = Rubinius::Type.coerce_to length, Fixnum, :to_int
 
       out = self[start, length]
 
@@ -1640,7 +1665,7 @@ class Array
     out, max = [], nil
 
     each do |ary|
-      ary = Type.coerce_to ary, Array, :to_ary
+      ary = Rubinius::Type.coerce_to ary, Array, :to_ary
       max ||= ary.size
 
       # Catches too-large as well as too-small (for which #fetch would suffice)
@@ -1683,8 +1708,8 @@ class Array
     args.each do |elem|
       # Cannot use #[] because of subtly different errors
       if elem.kind_of? Range
-        finish = Type.coerce_to elem.last, Fixnum, :to_int
-        start = Type.coerce_to elem.first, Fixnum, :to_int
+        finish = Rubinius::Type.coerce_to elem.last, Fixnum, :to_int
+        start = Rubinius::Type.coerce_to elem.first, Fixnum, :to_int
 
         start += @total if start < 0
         next if start < 0
@@ -1698,7 +1723,7 @@ class Array
         start.upto(finish) { |i| out << at(i) }
 
       else
-        i = Type.coerce_to elem, Fixnum, :to_int
+        i = Rubinius::Type.coerce_to elem, Fixnum, :to_int
         out << at(i)
       end
     end
@@ -1826,7 +1851,7 @@ class Array
       while i < total
         o = tuple.at i
 
-        if ary = Type.convert_to(o, Array, :to_ary)
+        if ary = Rubinius::Type.try_convert(o, Array, :to_ary)
           modified = true
           recursively_flatten(ary, out, max_levels)
         else

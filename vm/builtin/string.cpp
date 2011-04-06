@@ -194,9 +194,15 @@ namespace rubinius {
     return state->symbol(this);
   }
 
-  const char* String::c_str() {
+  const char* String::c_str(STATE) {
     char* c_string = (char*)byte_address();
-    c_string[size()] = 0;
+
+    if(c_string[size()] != 0) {
+      unshare(state);
+      // Read it again because unshare might change it.
+      c_string = (char*)byte_address();
+      c_string[size()] = 0;
+    }
 
     return c_string;
   }
@@ -204,6 +210,16 @@ namespace rubinius {
   Object* String::secure_compare(STATE, String* other) {
     native_int s1 = num_bytes()->to_native();
     native_int s2 = other->num_bytes()->to_native();
+    native_int d1 = as<CharArray>(data_)->size();
+    native_int d2 = as<CharArray>(other->data_)->size();
+
+    if(unlikely(s1 > d1)) {
+      s1 = d1;
+    }
+
+    if(unlikely(s2 > d2)) {
+      s2 = d2;
+    }
 
     native_int max = (s2 > s1) ? s2 : s1;
 
@@ -251,9 +267,15 @@ namespace rubinius {
   }
 
   String* String::append(STATE, String* other) {
+    // Clamp the length of the other string to the maximum byte array size
+    native_int length = other->size();
+    native_int data_length = as<CharArray>(other->data_)->size();
+    if(unlikely(length > data_length)) {
+      length = data_length;
+    }
     return append(state,
                   reinterpret_cast<const char*>(other->byte_address()),
-                  other->size());
+                  length);
   }
 
   String* String::append(STATE, const char* other) {
@@ -261,8 +283,16 @@ namespace rubinius {
   }
 
   String* String::append(STATE, const char* other, native_int length) {
-    native_int new_size = size() + length;
-    native_int capacity = data_->size();
+    native_int current_size = size();
+    native_int data_size = as<CharArray>(data_)->size();
+
+    // Clamp the string size the maximum underlying byte array size
+    if(unlikely(current_size > data_size)) {
+      current_size = data_size;
+    }
+
+    native_int new_size = current_size + length;
+    native_int capacity = data_size;
 
     if(capacity < new_size + 1) {
       // capacity needs one extra byte of room for the trailing null
@@ -276,14 +306,14 @@ namespace rubinius {
       if(shared_ == Qtrue) shared(state, Qfalse);
 
       CharArray* ba = CharArray::create(state, capacity);
-      memcpy(ba->raw_bytes(), byte_address(), size());
+      memcpy(ba->raw_bytes(), byte_address(), current_size);
       data(state, ba);
     } else {
       if(shared_ == Qtrue) unshare(state);
     }
 
     // Append on top of the null byte at the end of s1, not after it
-    memcpy(byte_address() + size(), other, length);
+    memcpy(byte_address() + current_size, other, length);
 
     // The 0-based index of the last character is new_size - 1
     byte_address()[new_size] = 0;
@@ -296,9 +326,24 @@ namespace rubinius {
 
   String* String::resize_capacity(STATE, Fixnum* count) {
     native_int sz = count->to_native();
+
+    if(sz < 0) {
+      Exception::argument_error(state, "negative byte array size");
+    } else if(sz >= INT32_MAX) {
+      // >= is used deliberately because we use a size of + 1
+      // for the byte array
+      Exception::argument_error(state, "too large byte array size");
+    }
+
     CharArray* ba = CharArray::create(state, sz + 1);
-    memcpy(ba->raw_bytes(), byte_address(), sz);
-    ba->raw_bytes()[sz] = 0;
+    native_int copy_size = sz;
+    native_int data_size = as<CharArray>(data_)->size();
+
+    // Check that we don't copy any data outside the existing byte array
+    if(unlikely(copy_size > data_size)) {
+      copy_size = data_size;
+    }
+    memcpy(ba->raw_bytes(), byte_address(), copy_size);
 
     // We've unshared
     shared(state, Qfalse);
@@ -491,10 +536,17 @@ namespace rubinius {
 
     // Pointers to iterate input bytes.
     uint8_t* in_p = byte_address();
-    uint8_t* in_end = in_p + size();
+
+    native_int str_size = size();
+    native_int data_size = as<CharArray>(data_)->size();
+    if(unlikely(str_size > data_size)) {
+      str_size = data_size;
+    }
+
+    uint8_t* in_end = in_p + str_size;
 
     // Optimistic estimate that output size will be 1.25 x input.
-    native_int out_chunk = size() * 5 / 4;
+    native_int out_chunk = str_size * 5 / 4;
     native_int out_size = out_chunk;
     uint8_t* output = (uint8_t*)malloc(out_size);
 
@@ -595,13 +647,14 @@ namespace rubinius {
 
     native_int osz = other->size();
     if(src >= osz) return this;
+    if(cnt < 0) return this;
     if(src < 0) src = 0;
     if(cnt > osz - src) cnt = osz - src;
 
     // This bounds checks on the total capacity rather than the virtual
     // size() of the String. This allows for string adjustment within
     // the capacity without having to change the virtual size first.
-    native_int sz = data()->size();
+    native_int sz = as<CharArray>(data_)->size();
     if(dst >= sz) return this;
     if(dst < 0) dst = 0;
     if(cnt > sz - dst) cnt = sz - dst;
@@ -616,8 +669,18 @@ namespace rubinius {
   {
     native_int src = start->to_native();
     native_int cnt = size->to_native();
-    native_int sz = (native_int)this->size();
-    native_int osz = (native_int)other->size();
+    native_int sz = this->size();
+    native_int osz = other->size();
+    native_int dsz = as<CharArray>(data_)->size();
+    native_int odsz = as<CharArray>(other->data_)->size();
+
+    if(unlikely(sz > dsz)) {
+      sz = dsz;
+    }
+
+    if(unlikely(osz > odsz)) {
+      osz = odsz;
+    }
 
     if(src < 0) src = osz + src;
 
@@ -683,11 +746,11 @@ namespace rubinius {
   }
 
   String* String::crypt(STATE, String* salt) {
-    return String::create(state, ::crypt(this->c_str(), salt->c_str()));
+    return String::create(state, ::crypt(this->c_str(state), salt->c_str(state)));
   }
 
   Integer* String::to_i(STATE, Fixnum* fix_base, Object* strict) {
-    const char* str = c_str();
+    const char* str = c_str(state);
     int base = fix_base->to_native();
     bool negative = false;
     Integer* value = Fixnum::from(0);
@@ -902,6 +965,12 @@ return_value:
     native_int start = start_f->to_native();
     native_int count = count_f->to_native();
     native_int total = num_bytes_->to_native();
+    native_int data_size = as<CharArray>(data_)->size();
+
+    // Clamp the string size the maximum underlying byte array size
+    if(unlikely(total > data_size)) {
+      total = data_size;
+    }
 
     if(count < 0) return nil<String>();
 
@@ -933,6 +1002,10 @@ return_value:
   Fixnum* String::index(STATE, String* pattern, Fixnum* start) {
     native_int total = size();
     native_int match_size = pattern->size();
+
+    if(start->to_native() < 0) {
+      Exception::argument_error(state, "negative start given");
+    }
 
     switch(match_size) {
     case 0:
@@ -974,6 +1047,10 @@ return_value:
     native_int total = size();
     native_int match_size = pattern->size();
     native_int pos = start->to_native();
+
+    if(pos < 0) {
+      Exception::argument_error(state, "negative start given");
+    }
 
     if(pos >= total) pos = total - 1;
 
@@ -1017,6 +1094,7 @@ return_value:
   String* String::find_character(STATE, Fixnum* offset) {
     native_int o = offset->to_native();
     if(o >= size()) return nil<String>();
+    if(o < 0) return nil<String>();
 
     uint8_t* cur = byte_address() + o;
 
@@ -1042,7 +1120,7 @@ return_value:
 
   void String::Info::show(STATE, Object* self, int level) {
     String* str = as<String>(self);
-    std::cout << "\"" << str->c_str() << "\"" << std::endl;
+    std::cout << "\"" << str->c_str(state) << "\"" << std::endl;
   }
 
   void String::Info::show_simple(STATE, Object* self, int level) {

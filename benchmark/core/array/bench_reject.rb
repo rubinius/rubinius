@@ -3,7 +3,6 @@ require 'benchmark/ips'
 require File.expand_path('../shared_array.rb', __FILE__)
 
 Benchmark.ips do |x|
-  
   large_array = $large_array.dup
 
   x.report "reject all" do |times|
@@ -25,6 +24,7 @@ Benchmark.ips do |x|
   x.report "reject! all" do |times|
     i = 0
     while i < times
+      large_array = $large_array.dup
       large_array.reject! { |v| true }
       i += 1
     end
@@ -37,4 +37,5 @@ Benchmark.ips do |x|
       i += 1
     end
   end
+
 end

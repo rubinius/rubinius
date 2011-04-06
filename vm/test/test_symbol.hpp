@@ -23,7 +23,7 @@ public:
     Symbol* sym = state->symbol("blah");
     String* str = sym->to_str(state);
 
-    TS_ASSERT(!strncmp("blah", str->c_str(), 4));
+    TS_ASSERT(!strncmp("blah", str->c_str(state), 4));
   }
 
   void test_all_symbols() {

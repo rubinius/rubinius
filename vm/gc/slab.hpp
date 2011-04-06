@@ -5,6 +5,8 @@
 
 using memory::Address;
 
+#include <stdint.h>
+#include <unistd.h>
 
 namespace rubinius {
 namespace gc {

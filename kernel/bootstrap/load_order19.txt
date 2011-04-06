@@ -33,7 +33,6 @@ rubinius19.rbc
 static_scope.rbc
 string.rbc
 symbol.rbc
-taskprobe.rbc
 thread.rbc
 thunk.rbc
 time.rbc

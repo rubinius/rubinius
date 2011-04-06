@@ -31,13 +31,6 @@
 
 namespace rubinius {
 
-  void Object::bootstrap_methods(STATE) {
-    System::attach_primitive(state,
-                             G(object), false,
-                             state->symbol("metaclass"),
-                             state->symbol("object_metaclass"));
-  }
-
   Class* Object::class_object(STATE) const {
     if(reference_p()) {
       Module* mod = klass_;
@@ -62,17 +55,17 @@ namespace rubinius {
     return other->copy_object(state, this);
   }
 
-  Object* Object::copy_metaclass(STATE, Object* other) {
-    if(MetaClass* mc = try_as<MetaClass>(other->klass())) {
-      MethodTable* source_methods = mc->method_table()->duplicate(state);
-      LookupTable* source_constants = mc->constants()->duplicate(state);
+  Object* Object::copy_singleton_class(STATE, Object* other) {
+    if(SingletonClass* sc = try_as<SingletonClass>(other->klass())) {
+      MethodTable* source_methods = sc->method_table()->duplicate(state);
+      LookupTable* source_constants = sc->constants()->duplicate(state);
 
-      metaclass(state)->method_table(state, source_methods);
-      metaclass(state)->constants(state, source_constants);
+      singleton_class(state)->method_table(state, source_methods);
+      singleton_class(state)->constants(state, source_constants);
       // TODO inc the global serial here?
 
       // This allows us to preserve included modules
-      metaclass(state)->superclass(state, mc->superclass());
+      singleton_class(state)->superclass(state, sc->superclass());
     }
 
     return this;
@@ -109,7 +102,7 @@ namespace rubinius {
       copy_body(state, other);
     }
 
-    // Ensure that the metaclass is not shared
+    // Ensure that the singleton class is not shared
     klass(state, other->class_object(state));
 
     // HACK: If other is mature, remember it.
@@ -444,17 +437,17 @@ namespace rubinius {
     return class_object(state) == klass ? Qtrue : Qfalse;
   }
 
-  Class* Object::metaclass(STATE) {
+  Class* Object::singleton_class(STATE) {
     if(reference_p()) {
-      if(MetaClass* mc = try_as<MetaClass>(klass())) {
-        // This test is very important! MetaClasses can get their
-        // klass() hooked up to the MetaClass of a parent class, so
-        // that the MOP works properly. BUT we should not return
-        // that parent metaclass, we need to only return a MetaClass
-        // that is for this!
-        if(mc->attached_instance() == this) return mc;
+      if(SingletonClass* sc = try_as<SingletonClass>(klass())) {
+        /* This test is very important! SingletonClasses can get their klass()
+         * hooked up to the SingletonClass of a parent class, so that the MOP
+         * works properly. BUT we should not return that parent singleton
+         * class, we need to only return a SingletonClass that is for this!
+         */
+        if(sc->attached_instance() == this) return sc;
       }
-      return MetaClass::attach(state, this);
+      return SingletonClass::attach(state, this);
     }
 
     return class_object(state);

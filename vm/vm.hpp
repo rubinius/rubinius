@@ -28,6 +28,10 @@ namespace llvm {
   class Module;
 }
 
+namespace rbxti {
+  class Env;
+}
+
 namespace rubinius {
 
   class Exception;
@@ -37,17 +41,12 @@ namespace rubinius {
     class Loop;
   }
 
-  namespace profiler {
-    class Profiler;
-  }
-
   namespace gc {
     class WriteBarrier;
   }
 
   class Channel;
   class GlobalCache;
-  class TaskProbe;
   class Primitives;
   class ObjectMemory;
   class TypeInfo;
@@ -87,13 +86,15 @@ namespace rubinius {
     uintptr_t stack_start_;
     uintptr_t stack_limit_;
     int stack_size_;
-    profiler::Profiler* profiler_;
     bool run_signals_;
 
     MethodMissingReason method_missing_reason_;
     void* young_start_;
     void* young_end_;
     bool thread_step_;
+
+    rbxti::Env* tooling_env_;
+    bool tooling_;
 
   public:
     /* Data members */
@@ -108,7 +109,6 @@ namespace rubinius {
     void* custom_wakeup_data_;
 
     ObjectMemory* om;
-    TypedRoot<TaskProbe*> probe;
     Interrupts& interrupts;
 
     bool check_local_interrupts;
@@ -244,6 +244,22 @@ namespace rubinius {
       interrupted_exception_.set(Qnil);
     }
 
+    rbxti::Env* tooling_env() {
+      return tooling_env_;
+    }
+
+    bool tooling() {
+      return tooling_;
+    }
+
+    void enable_tooling() {
+      tooling_ = true;
+    }
+
+    void disable_tooling() {
+      tooling_ = false;
+    }
+
   public:
     static void init_stack_size();
 
@@ -372,10 +388,6 @@ namespace rubinius {
       }
       return true;
     }
-
-    profiler::Profiler* profiler(STATE);
-
-    void remove_profiler();
 
     // For thread-local roots
     static std::list<Roots*>* roots;

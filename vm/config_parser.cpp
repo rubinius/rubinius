@@ -139,6 +139,19 @@ namespace rubinius {
     return i->second;
   }
 
+  void ConfigParser::set(const char* name, const char* val) {
+    ConfigParser::ConfigMap::iterator i = variables.find(name);
+    if(i == variables.end()) {
+      i->second->value = val;
+    }
+
+    Entry* entry = new ConfigParser::Entry();
+    entry->variable = name;
+    entry->value = val;
+
+    variables[entry->variable] = entry;
+  }
+
   bool ConfigParser::Entry::is_number() {
     return rubinius::is_number(value.c_str());
   }

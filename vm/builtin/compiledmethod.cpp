@@ -191,7 +191,7 @@ namespace rubinius {
     }
 
     if(state->shared.config.jit_show_compiling) {
-      std::cout << "[[[ JIT compiling " << full_name(state)->c_str() << " ]]]\n";
+      std::cout << "[[[ JIT compiling " << full_name(state)->c_str(state) << " ]]]\n";
     }
 
     LLVMState* ls = LLVMState::get(state);
@@ -217,7 +217,7 @@ namespace rubinius {
     }
 
     if(state->shared.config.jit_show_compiling) {
-      std::cout << "[[[ JIT queueing " << full_name(state)->c_str() << " ]]]\n";
+      std::cout << "[[[ JIT queueing " << full_name(state)->c_str(state) << " ]]]\n";
     }
 
     LLVMState::get(state)->compile_soon(state, this);

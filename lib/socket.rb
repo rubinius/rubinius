@@ -108,7 +108,7 @@ class BasicSocket < IO
   end
 
   def close_read
-    ensure_open_and_readable
+    ensure_open
 
     # If we were only in readonly mode, close it all together
     if @mode & ACCMODE == RDONLY
@@ -118,13 +118,13 @@ class BasicSocket < IO
     # MRI doesn't check if shutdown worked, so we don't.
     Socket::Foreign.shutdown @descriptor, 0
 
-    @mode = @mode & ~RDONLY
+    @mode = WRONLY
 
     nil
   end
 
   def close_write
-    ensure_open_and_writable
+    ensure_open
 
     # If we were only in writeonly mode, close it all together
     if @mode & ACCMODE == WRONLY
@@ -133,8 +133,8 @@ class BasicSocket < IO
 
     Socket::Foreign.shutdown @descriptor, 1
 
-    # Remove write from the mode bits
-    @mode = @mode & ~WRONLY
+    # Mark it as read only
+    @mode = RDONLY
 
     nil
   end
@@ -200,8 +200,8 @@ class Socket < BasicSocket
     attach_function :shutdown, [:int, :int], :int
     attach_function :listen,   [:int, :int], :int
     attach_function :socket,   [:int, :int, :int], :int
-    attach_function :send,     [:int, :pointer, :int, :int], :int
-    attach_function :recv,     [:int, :pointer, :int, :int], :int
+    attach_function :send,     [:int, :pointer, :size_t, :int], :int
+    attach_function :recv,     [:int, :pointer, :size_t, :int], :int
     attach_function :recvfrom, [:int, :pointer, :size_t, :int,
                                 :pointer, :pointer], :int
 
@@ -741,7 +741,7 @@ class Socket < BasicSocket
     if status < 0
       begin
         Errno.handle "connect(2)"
-      rescue Errno::ISCONN
+      rescue Errno::EISCONN
         return 0
       end
     end

@@ -265,7 +265,7 @@ namespace rubinius {
   String* Float::to_s_formatted(STATE, String* format) {
     char str[FLOAT_TO_S_STRLEN];
 
-    size_t size = snprintf(str, FLOAT_TO_S_STRLEN, format->c_str(), val);
+    size_t size = snprintf(str, FLOAT_TO_S_STRLEN, format->c_str(state), val);
 
     if(size >= FLOAT_TO_S_STRLEN) {
       std::ostringstream msg;

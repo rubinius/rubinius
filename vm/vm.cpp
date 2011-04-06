@@ -15,13 +15,15 @@
 #include "builtin/thread.hpp"
 #include "builtin/tuple.hpp"
 #include "builtin/string.hpp"
-#include "builtin/taskprobe.hpp"
 #include "builtin/system.hpp"
 #include "builtin/fiber.hpp"
 #include "builtin/location.hpp"
 #include "builtin/nativemethod.hpp"
 #include "builtin/channel.hpp"
-#include "instruments/profiler.hpp"
+
+#include "instruments/tooling.hpp"
+#include "instruments/rbxti-internal.hpp"
+#include "instruments/timing.hpp"
 
 #include "config_parser.hpp"
 #include "config.h"
@@ -63,7 +65,6 @@ namespace rubinius {
     : ManagedThread(id, shared, ManagedThread::eRuby)
     , saved_call_frame_(0)
     , stack_start_(0)
-    , profiler_(0)
     , run_signals_(false)
     , thread_step_(false)
 
@@ -82,7 +83,6 @@ namespace rubinius {
     , current_fiber(this, nil<Fiber>())
     , root_fiber(this, nil<Fiber>())
   {
-    probe.set(Qnil, &globals().roots);
     set_stack_size(cStackDepthMax);
 
     if(shared.om) {
@@ -90,14 +90,13 @@ namespace rubinius {
       young_end_ = shared.om->yound_end();
       shared.om->refill_slab(this, local_slab_);
     }
+
+    tooling_env_ = rbxti::create_env(this);
+    tooling_ = false;
   }
 
   void VM::discard(STATE, VM* vm) {
     vm->saved_call_frame_ = 0;
-    if(vm->profiler_) {
-      vm->shared.remove_profiler(state, vm, vm->profiler_);
-    }
-
     vm->shared.remove_vm(vm);
 
     delete vm;
@@ -233,7 +232,7 @@ namespace rubinius {
     cls->setup(this, name, under);
 
     // HACK test that we've got the MOP setup properly
-    MetaClass::attach(this, cls, sup->metaclass(this));
+    SingletonClass::attach(this, cls, sup->singleton_class(this));
     return cls;
   }
 
@@ -467,19 +466,6 @@ namespace rubinius {
     }
 
     return true;
-  }
-
-  profiler::Profiler* VM::profiler(STATE) {
-    if(unlikely(!profiler_)) {
-      profiler_ = new profiler::Profiler(this);
-      shared.add_profiler(state, this, profiler_);
-    }
-
-    return profiler_;
-  }
-
-  void VM::remove_profiler() {
-    profiler_ = 0;
   }
 
   void VM::set_current_fiber(Fiber* fib) {

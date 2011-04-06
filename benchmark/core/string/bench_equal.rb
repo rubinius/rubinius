@@ -2,7 +2,7 @@ require 'benchmark'
 require 'benchmark/ips'
 
 Benchmark.ips do |x|
-  string_a = "#{'a' * 1_000}"
+  string_a = "#{'a' * 1_001}"
   first_char_different = "b#{'a' * 1_000}"
   last_char_different = "#{'a' * 1_000}b"
   same = string_a.dup

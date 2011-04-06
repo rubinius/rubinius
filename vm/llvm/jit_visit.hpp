@@ -2207,7 +2207,7 @@ use_send:
     }
 
     void visit_push_scope() {
-      if(info().is_block) {
+      if(info().is_block && !in_inlined_block()) {
         Value* scope = b().CreateLoad(
             b().CreateConstGEP2_32(call_frame_, 0,
                                    offset::CallFrame::static_scope, "scope_pos"),
@@ -2215,9 +2215,19 @@ use_send:
 
         stack_push(scope);
       } else {
-        Value* cm = b().CreateLoad(
-            b().CreateConstGEP2_32(call_frame_, 0, offset::CallFrame::cm, "cm_pos"),
-            "cm");
+        Value* cm;
+
+        if(in_inlined_block()) {
+          JITMethodInfo* creator = info().creator_info();
+          assert(creator);
+          cm = b().CreateLoad(
+              b().CreateConstGEP2_32(creator->call_frame(), 0, offset::CallFrame::cm, "cm_pos"),
+              "cm");
+        } else {
+          cm = b().CreateLoad(
+              b().CreateConstGEP2_32(call_frame_, 0, offset::CallFrame::cm, "cm_pos"),
+              "cm");
+        }
 
         Value* gep = b().CreateConstGEP2_32(cm, 0, offset::cm_static_scope, "scope_pos");
         stack_push(b().CreateLoad(gep, "scope"));

@@ -87,7 +87,7 @@ describe "C-API Struct function" do
       @s.rb_struct_aref(@struct, :a).should == 2
     end
 
-    it "returns the value of a struct member with a symbol key" do
+    it "returns the value of a struct member with a string key" do
       @struct[:b] = 2
       @s.rb_struct_aref(@struct, "b").should == 2
     end
@@ -95,6 +95,17 @@ describe "C-API Struct function" do
     it "returns the value of a struct member by index" do
       @struct[:c] = 3
       @s.rb_struct_aref(@struct, 2).should == 3
+    end
+
+    it "raises a NameError if the struct member does not exist" do
+      lambda { @s.rb_struct_aref(@struct, :d) }.should raise_error(NameError)
+    end
+  end
+
+  describe "rb_struct_getmember" do
+    it "returns the value of a struct member" do
+      @struct[:a] = 2
+      @s.rb_struct_aref(@struct, :a).should == 2
     end
 
     it "raises a NameError if the struct member does not exist" do

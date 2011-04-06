@@ -1,5 +1,5 @@
 /*
- * $Id: ossl_pkey_dh.c 16691 2008-05-29 17:45:47Z knu $
+ * $Id$
  * 'OpenSSL for Ruby' project
  * Copyright (C) 2001-2002  Michal Rokos <m.rokos@sh.cvut.cz>
  * All rights reserved.
@@ -415,10 +415,10 @@ ossl_dh_compute_key(VALUE self, VALUE pub)
     return str;
 }
 
-OSSL_PKEY_BN(dh, p);
-OSSL_PKEY_BN(dh, g);
-OSSL_PKEY_BN(dh, pub_key);
-OSSL_PKEY_BN(dh, priv_key);
+OSSL_PKEY_BN(dh, p)
+OSSL_PKEY_BN(dh, g)
+OSSL_PKEY_BN(dh, pub_key)
+OSSL_PKEY_BN(dh, priv_key)
 
 /*
  * -----BEGIN DH PARAMETERS-----

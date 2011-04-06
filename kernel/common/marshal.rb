@@ -34,7 +34,7 @@ end
 
 class Class
   def __marshal__(ms)
-    if __metaclass_object__
+    if Rubinius::Type.singleton_class_object(self)
       raise TypeError, "singleton class can't be dumped"
     elsif name.empty?
       raise TypeError, "can't dump anonymous module #{self}"
@@ -79,28 +79,13 @@ end
 
 class Fixnum
   def __marshal__(ms)
-    "i#{ms.serialize_integer(self)}"
+    ms.serialize_integer(self, "i")
   end
 end
 
 class Bignum
   def __marshal__(ms)
-    str = (self < 0 ? 'l-' : 'l+')
-    cnt = 0
-    num = self.abs
-
-    while num != 0
-      str << (num & 0xff).chr
-      num >>= 8
-      cnt += 1
-    end
-
-    if cnt % 2 == 1
-      str << "\0"
-      cnt += 1
-    end
-
-    str[0..1] + ms.serialize_integer(cnt / 2) + str[2..-1]
+    ms.serialize_bignum(self)
   end
 end
 
@@ -303,7 +288,7 @@ module Marshal
 
 
     def add_object(obj)
-      return if obj.__kind_of__(ImmediateValue)
+      return if Rubinius::Type.object_kind_of? obj, ImmediateValue
       sz = @links.size
       @objects[sz] = obj
       @links[obj.__id__] = sz
@@ -799,7 +784,19 @@ module Marshal
       end
     end
 
-    def serialize_integer(n)
+    def serialize_integer(n, prefix = nil)
+      if !Rubinius::L64 && n.is_a?(Fixnum)
+        prefix.to_s + serialize_fixnum(n)
+      else
+        if (n >> 31) == 0 or (n >> 31) == -1
+          prefix.to_s + serialize_fixnum(n)
+        else
+          serialize_bignum(n)
+        end
+      end
+    end
+
+    def serialize_fixnum(n)
       if n == 0
         s = n.chr
       elsif n > 0 and n < 123
@@ -818,6 +815,25 @@ module Marshal
         s[0] = (n < 0 ? 256 - cnt : cnt).chr
       end
       s
+    end
+
+    def serialize_bignum(n)
+      str = (n < 0 ? 'l-' : 'l+')
+      cnt = 0
+      num = n.abs
+ 
+      while num != 0
+        str << (num & 0xff).chr
+        num >>= 8
+        cnt += 1
+      end
+ 
+      if cnt % 2 == 1
+        str << "\0"
+        cnt += 1
+      end
+ 
+      str[0..1] + serialize_fixnum(cnt / 2) + str[2..-1]
     end
 
     def serialize_user_class(obj, cls)
@@ -880,7 +896,7 @@ module Marshal
       end
     end
 
-    depth = Type.coerce_to limit, Fixnum, :to_int
+    depth = Rubinius::Type.coerce_to limit, Fixnum, :to_int
     ms = State.new nil, depth, nil
 
     if an_io and !an_io.respond_to? :write
@@ -921,6 +937,8 @@ module Marshal
 
     ms = State.new data, nil, proc
     ms.construct
+  rescue NameError => e
+    raise ArgumentError, e.message
   end
 
   class << self

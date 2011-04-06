@@ -7,6 +7,14 @@ describe "Marshal::load" do
     lambda { Marshal.load(Marshal.dump(obj)[0, 5]) }.should raise_error(ArgumentError)
   end
 
+  it "raises an ArgumentError when the dumped class is missing" do
+    Object.send(:const_set, :KaBoom, Class.new)
+    kaboom = Marshal.dump(KaBoom.new)
+    Object.send(:remove_const, :KaBoom)
+
+    lambda { Marshal.load(kaboom) }.should raise_error(ArgumentError)
+  end
+
   ruby_version_is "1.9" do
     it "returns the value of the proc when called with a proc" do
       Marshal.load(Marshal.dump([1,2]), proc { [3,4] }).should ==  [3,4]
@@ -415,6 +423,47 @@ describe "Marshal::load" do
     it "loads a Float 1.1867345e+22" do
       obj = 1.1867345e+22
       Marshal.load("\004\bf\0361.1867344999999999e+22\000\344@").should == obj
+    end
+  end
+
+  describe "for a Integer" do
+    it "loads an Integer 8" do
+      Marshal.load("\004\bi\r" ).should == 8
+    end
+
+    it "loads and Integer -8" do
+      Marshal.load("\004\bi\363" ).should == -8
+    end
+
+    it "loads an Integer 1234" do
+      Marshal.load("\004\bi\002\322\004").should == 1234
+    end
+
+    it "loads an Integer -1234" do
+      Marshal.load("\004\bi\376.\373").should == -1234
+    end
+
+    it "loads an Integer 4611686018427387903" do
+      Marshal.load("\004\bl+\t\377\377\377\377\377\377\377?").should == 4611686018427387903
+    end
+
+    it "loads an Integer -4611686018427387903" do
+      Marshal.load("\004\bl-\t\377\377\377\377\377\377\377?").should == -4611686018427387903
+    end
+    
+    it "loads an Integer 2361183241434822606847" do
+      Marshal.load("\004\bl+\n\377\377\377\377\377\377\377\377\177\000").should == 2361183241434822606847
+    end
+
+    it "loads an Integer -2361183241434822606847" do
+      Marshal.load("\004\bl-\n\377\377\377\377\377\377\377\377\177\000").should == -2361183241434822606847
+    end
+
+ 
+    if 0.size == 8 # for platforms like x86_64
+      it "roundtrips 4611686018427387903 from dump/load correctly" do
+        Marshal.load(Marshal.dump(4611686018427387903)).should == 4611686018427387903
+      end
     end
   end
 

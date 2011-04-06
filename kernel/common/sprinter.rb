@@ -15,7 +15,7 @@ module Rubinius
     end
 
     def initialize(format)
-      cm = Rubinius.object_metaclass(self).dynamic_method :call do |g|
+      cm = Rubinius::Type.object_singleton_class(self).dynamic_method :call do |g|
         Builder.new(self, format, g).build
       end
 
@@ -609,7 +609,7 @@ module Rubinius
 
         def zero_pad(pad="0", &readjust)
           if @has_precision
-            push_precision &readjust
+            push_precision(&readjust)
             @g.push_literal pad
             @g.send :rjust, 2
           elsif @has_width && @f_zero

@@ -287,8 +287,8 @@ extern "C" {
     VALUE io_handle = iot->handle;
     NativeMethodEnvironment* env = NativeMethodEnvironment::get();
     IO* io = c_as<IO>(env->get_object(io_handle));
-
-    if ((io->mode()->to_native() & O_ACCMODE) != O_RDONLY) {
+    int io_mode = io->mode()->to_native() & O_ACCMODE;
+    if (!(O_RDONLY == io_mode || O_RDWR == io_mode)) {
       rb_raise(rb_eIOError, "not opened for reading");
     }
   }
@@ -297,8 +297,8 @@ extern "C" {
     VALUE io_handle = iot->handle;
     NativeMethodEnvironment* env = NativeMethodEnvironment::get();
     IO* io = c_as<IO>(env->get_object(io_handle));
-
-    if ((io->mode()->to_native() & O_ACCMODE) != O_WRONLY) {
+    int io_mode = io->mode()->to_native() & O_ACCMODE;
+    if (!(O_WRONLY == io_mode || O_RDWR == io_mode)) {
       rb_raise(rb_eIOError, "not opened for writing");
     }
   }

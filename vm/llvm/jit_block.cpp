@@ -8,7 +8,7 @@
 #include "builtin/staticscope.hpp"
 #include "builtin/module.hpp"
 
-#include "instruments/profiler.hpp"
+#include "instruments/tooling.hpp"
 
 using namespace llvm;
 
@@ -77,7 +77,7 @@ namespace jit {
 
     if(ls_->include_profiling()) {
       method_entry_ = b().CreateAlloca(ls_->Int8Ty,
-          ConstantInt::get(ls_->Int32Ty, sizeof(profiler::MethodEntry)),
+          ConstantInt::get(ls_->Int32Ty, sizeof(tooling::MethodEntry)),
           "method_entry");
 
       info_.set_profiling_entry(method_entry_);

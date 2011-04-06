@@ -730,8 +730,9 @@ module Rubinius
         pos(g)
 
         g.push_rubinius
+        g.find_const :Type
         g.swap
-        g.send :object_metaclass, 1
+        g.send :object_singleton_class, 1
 
         if @body
           # if @body just returns self, don't bother with it.

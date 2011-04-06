@@ -18,7 +18,7 @@
 #include "builtin/location.hpp"
 #include "instructions.hpp"
 
-#include "instruments/profiler.hpp"
+#include "instruments/tooling.hpp"
 #include "instruments/timing.hpp"
 
 #include "raise_reason.hpp"
@@ -603,8 +603,8 @@ namespace rubinius {
       state->shared.checkpoint(state);
 
 #ifdef RBX_PROFILER
-      if(unlikely(state->shared.profiling())) {
-        profiler::MethodEntry method(state, exec, mod, args, cm);
+      if(unlikely(state->tooling())) {
+        tooling::MethodEntry method(state, exec, mod, args, cm);
         return (*vmm->run)(state, vmm, frame);
       } else {
         return (*vmm->run)(state, vmm, frame);
@@ -619,26 +619,94 @@ namespace rubinius {
     return execute_specialized<GenericArguments>(state, previous, exec, mod, args);
   }
 
+  Object* VMMethod::execute_as_script(STATE, CompiledMethod* cm, CallFrame* previous) {
+    VMMethod* vmm = cm->backend_method();
+
+    size_t scope_size = sizeof(StackVariables) +
+      (vmm->number_of_locals * sizeof(Object*));
+    StackVariables* scope =
+      reinterpret_cast<StackVariables*>(alloca(scope_size));
+    // Originally, I tried using msg.module directly, but what happens is if
+    // super is used, that field is read. If you combine that with the method
+    // being called recursively, msg.module can change, causing super() to
+    // look in the wrong place.
+    //
+    // Thus, we have to cache the value in the StackVariables.
+    scope->initialize(G(main), Qnil, G(object), vmm->number_of_locals);
+
+    InterpreterCallFrame* frame = ALLOCA_CALLFRAME(vmm->stack_size);
+
+    frame->prepare(vmm->stack_size);
+
+    Arguments args(state->symbol("__script__"), G(main), Qnil, 0, 0);
+
+    frame->previous = previous;
+    frame->flags =    0;
+    frame->arguments = &args;
+    frame->dispatch_data = 0;
+    frame->cm =       cm;
+    frame->scope =    scope;
+
+    // Do NOT check if we should JIT this. We NEVER want to jit a script.
+
+    // Check the stack and interrupts here rather than in the interpreter
+    // loop itself.
+
+    if(state->detect_stack_condition(frame)) {
+      if(!state->check_interrupts(frame, frame)) return NULL;
+    }
+
+    if(unlikely(state->interrupts.check)) {
+      state->interrupts.checked();
+      if(state->interrupts.perform_gc) {
+        state->interrupts.perform_gc = false;
+        state->collect_maybe(frame);
+      }
+    }
+
+    state->set_call_frame(frame);
+    state->shared.checkpoint(state);
+
+    // Don't generate profiling info here, it's expected
+    // to be done by the caller.
+
+    return (*vmm->run)(state, vmm, frame);
+  }
+
   /* This is a noop for this class. */
   void VMMethod::compile(STATE) { }
 
-  void VMMethod::deoptimize(STATE, CompiledMethod* original) {
+  // If +disable+ is set, then the method is tagged as not being
+  // available for JIT.
+  void VMMethod::deoptimize(STATE, CompiledMethod* original, bool disable) {
 #ifdef ENABLE_LLVM
-    // This resets execute to use the interpreter
-    setup_argument_handler(original);
+    if(jitted_impl_) {
+      // This resets execute to use the interpreter
+      setup_argument_handler(original);
 
-    // Don't call LLVMState::get(state)->remove(llvm_function_)
-    // here. We let the CodeManager do that later, when we're sure
-    // the llvm function is no longer used.
-    llvm_function_ = 0;
-    jitted_impl_ = 0;
-    jitted_bytes_ = 0;
+      // Don't call LLVMState::get(state)->remove(llvm_function_)
+      // here. We let the CodeManager do that later, when we're sure
+      // the llvm function is no longer used.
+      llvm_function_ = 0;
 
-    // Remove any JIT data, which will be cleanup by the CodeManager
-    // later.
-    original->set_jit_data(0);
+      jitted_impl_ = 0;
 
-    call_count = 0;
+      if(disable) {
+        jitted_bytes_ = -1;
+      } else {
+        jitted_bytes_ = 0;
+      }
+
+      // Remove any JIT data, which will be cleanup by the CodeManager
+      // later.
+      original->set_jit_data(0);
+    }
+
+    if(disable) {
+      call_count = -1;
+    } else {
+      call_count = 0;
+    }
 #endif
   }
 

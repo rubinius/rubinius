@@ -118,3 +118,20 @@ describe "RbConfig::MAKEFILE_CONFIG" do
 
   it_has_entries 'RbConfig::MAKEFILE_CONFIG', entries
 end
+
+describe "RbConfig#ruby" do 
+  
+  RbConfig.respond_to?(:ruby).should eql(true)
+
+  rb_path = RbConfig.ruby
+  rb_path.should be_kind_of(String)  
+
+  # needs to be an executable
+  File.executable?(rb_path).should eql(true)
+
+  # make sure the executable it points to has the same RbConfig we have
+  cmd = "#{rb_path} -rrbconfig -e 'puts Marshal.dump(RbConfig::CONFIG)'"
+  rb_config = Marshal.load(`#{cmd}`)
+
+  rb_config.should eql(RbConfig::CONFIG)
+end

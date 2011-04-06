@@ -214,8 +214,25 @@ module Daedalus
     def calculate_deps(path)
       dirs = header_directories() + ["/usr/include"]
       flags = @cflags.join(' ')
-      dep = DependencyGrapher.new [path], dirs, flags
-      dep.process
+      begin
+        dep = DependencyGrapher.new [path], dirs, flags
+        dep.process
+
+        # This is a quick work-around for a craptastic bug that I can't figure
+        # out. Sometimes this raises an exception saying it can't find a file
+        # which is pretty obviously there. I've been unable to figure out
+        # what causes this and thus how to fix.
+        #
+        # So as a temporary measure, if an exception is raised, I'm going to
+        # just do it again. Previous results have shown that this should
+        # work the 2nd time even though the first time failed.
+        #
+        # I know this sounds silly, but we need some fix for this.
+      rescue Exception
+        dep = DependencyGrapher.new [path], dirs, flags
+        dep.process
+      end
+
       dep.sources.first.dependencies.sort
     end
   end
@@ -278,21 +295,42 @@ module Daedalus
       deps = @data[:deps]
 
       if ctx.sha1(@path) != @data[:dep_sha1] or !deps
-        deps = ctx.calculate_deps(@path)
-
-        @data[:dep_sha1] = ctx.sha1(@path)
-        @data[:deps] = deps
+        deps = recalc_depedencies(ctx)
       end
 
       return deps + @static_deps
+    end
+
+    def recalc_depedencies(ctx)
+      deps = ctx.calculate_deps(@path)
+
+      @data[:dep_sha1] = ctx.sha1(@path)
+      @data[:deps] = deps
+
+      return deps
     end
 
     def sha1(ctx)
       sha1 = Digest::SHA1.new
       sha1 << ctx.sha1(@path)
 
-      dependencies(ctx).each do |d|
-        sha1 << ctx.sha1(d)
+      begin
+        dependencies(ctx).each do |d|
+          sha1 << ctx.sha1(d)
+        end
+      rescue StandardError
+        recalc_depedencies(ctx)
+      
+        sha1 = Digest::SHA1.new
+        sha1 << ctx.sha1(@path)
+
+        dependencies(ctx).each do |d|
+          begin
+            sha1 << ctx.sha1(d)
+          rescue StandardError => e
+            raise "Unable to find dependency '#{d}' from #{@path}"
+          end
+        end
       end
 
       sha1.hexdigest
@@ -587,7 +625,12 @@ module Daedalus
       if RUBY_PLATFORM =~ /windows/
         return 1
       else
-        count = `getconf _NPROCESSORS_CONF 2>&1`.to_i
+        if RUBY_PLATFORM =~ /bsd/
+          key = 'NPROCESSORS_CONF'
+        else
+          key = '_NPROCESSORS_CONF'
+        end
+        count = `getconf #{key} 2>&1`.to_i
         return 1 if $?.exitstatus != 0
         return count
       end
@@ -694,7 +737,7 @@ module Daedalus
       @programs << Program.new(name, files)
     end
 
-    def build(targets=[])
+    def build(targets=[], jobs=nil)
       if !targets.empty?
         @programs.each do |x|
           if targets.include? x.path
@@ -704,7 +747,7 @@ module Daedalus
             if tasks.empty?
               @compiler.log.info "Nothing to do for #{x.path}"
             else
-              tr = TaskRunner.new @compiler, tasks
+              tr = TaskRunner.new @compiler, tasks, jobs
               tr.start
             end
           end

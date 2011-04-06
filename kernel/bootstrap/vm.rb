@@ -57,7 +57,7 @@ class Rubinius::VM
   end
 
   def self.jit_info
-    JITInfo.new *__jit_info__
+    JITInfo.new(*__jit_info__)
   end
 
   def self.load_library(path, name)

@@ -64,6 +64,7 @@ class Configure
     @llvm_system_name       = get_system_name
 
     @llvm_version           = "2.8"
+    @llvm_api_version       = 208
     @llvm_source            = "llvm-2.8.tgz"
     @llvm_source_dir        = "llvm-2.8"
     @llvm_source_url        = "http://llvm.org/releases/2.8/llvm-2.8.tgz"
@@ -105,7 +106,7 @@ class Configure
     @libversion = "1.3"
     @version = "#{@libversion}.0dev"
     @release_date = "yyyy-mm-dd"
-    @config_version = 125
+    @config_version = 126
 
     # TODO: add conditionals for platforms
     if RbConfig::CONFIG["build_os"] =~ /darwin/
@@ -604,18 +605,17 @@ class Configure
       config = File.join(which, "llvm-config")
       version = `#{@perl} #{config} --version`.strip
       parts = version.sub(/svn$/, "").split(".").map { |i| i.to_i }
-
-      if parts[0] != 2 or parts[1] != 8
-        @log.write "only 2.8 is supported"
+      api_version = ("%d%02d" % parts[0..1]).to_i
+      if `#{@perl} #{config} --cxxflags`.index("-fno-rtti")
+        @log.write "incorrectly configured llvm (rtti is off)"
+      elsif api_version != 208 and api_version != 209
+        @log.write "only LLVM 2.8 and 2.9 are supported"
       else
-        if `#{@perl} #{config} --cxxflags`.index("-fno-rtti")
-          @log.write "incorrectly configure (rtti is off)"
-        else
-          @log.write "found! (version #{version})"
-          @llvm_configure = config
-          @llvm = :config
-          return true
-        end
+        @log.write "found! (version #{version})"
+        @llvm_configure = config
+        @llvm = :config
+        @llvm_api_version = api_version
+        return true
       end
     else
       @log.write "not found"
@@ -959,6 +959,38 @@ end
 #define RBX_DEFAULT_20    #{@version_20}
 #define RBX_RELEASE_DATE  "#{@release_date}"
 #define RBX_SIZEOF_LONG   #{@sizeof_long}
+#define RBX_LLVM_API_VER  #{@llvm_api_version}
+      EOC
+
+      if @little_endian
+        f.puts "#define RBX_LITTLE_ENDIAN 1"
+      end
+
+      if @tr1_hash
+        f.puts "#define RBX_HAVE_TR1_HASH 1"
+      end
+    end
+
+    File.open "vm/capi/include/rbx_config.h", "w" do |f|
+      f.puts <<-EOC
+#define RBX_HOST          "#{@host}"
+#define RBX_CPU           "#{@cpu}"
+#define RBX_VENDOR        "#{@vendor}"
+#define RBX_OS            "#{@os}"
+#define RBX_BIN_PATH      "#{@bindir}"
+#define RBX_GEMS_PATH     "#{@gemsdir}"
+#define RBX_RUNTIME       "#{@runtime}"
+#define RBX_LIB_PATH      "#{@lib_path}"
+#define RBX_EXT_PATH      "#{@ext_path}"
+#define RBX_HDR_PATH      "#{@includedir}"
+#define RBX_SITE_PATH     "#{@sitedir}"
+#define RBX_VENDOR_PATH   "#{@vendordir}"
+#define RBX_VERSION       "#{@version}"
+#define RBX_LIB_VERSION   "#{@libversion}"
+#define RBX_LDSHARED      "#{@ldshared}"
+#define RBX_RELEASE_DATE  "#{@release_date}"
+#define RBX_SIZEOF_LONG   #{@sizeof_long}
+#define RBX_LLVM_API_VER  #{@llvm_api_version}
       EOC
 
       if @little_endian

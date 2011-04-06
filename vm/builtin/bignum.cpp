@@ -49,28 +49,20 @@ namespace rubinius {
    */
   static int mp_set_long MPA(mp_int* a, unsigned long b) {
     int     err;
-    // @todo Move these two values to bignum.h
-    size_t  count = sizeof(unsigned long) * 2;
-    size_t  shift_width = (sizeof(unsigned long) * 8) - 4;
 
     mp_zero(a);
 
-    /* set four bits at a time */
-    for(size_t x = 0; x < count; x++) {
-      /* shift the number up four bits */
-      if((err = mp_mul_2d(MPST, a, 4, a)) != MP_OKAY) {
+    while(b > MP_DIGIT_MAX) {
+      a->dp[0] |= b >> DIGIT_BIT;
+      a->used += 1;
+      if((err = mp_mul_2d(MPST, a, DIGIT_BIT, a)) != MP_OKAY) {
         return err;
       }
-
-      /* OR in the top four bits of the source */
-      a->dp[0] |= (b >> shift_width) & 15;
-
-      /* shift the source up to the next four bits */
-      b <<= 4;
-
-      /* ensure that digits are not clamped off */
-      a->used += 1;
+      b &= MP_MASK;
     }
+
+    a->dp[0] |= b;
+    a->used += 1;
 
     mp_clamp(a);
     return MP_OKAY;
@@ -1307,7 +1299,7 @@ namespace rubinius {
 
   void Bignum::Info::show(STATE, Object* self, int level) {
     Bignum* b = as<Bignum>(self);
-    std::cout << b->to_s(state, Fixnum::from(10))->c_str() << std::endl;
+    std::cout << b->to_s(state, Fixnum::from(10))->c_str(state) << std::endl;
   }
 
   void Bignum::Info::show_simple(STATE, Object* self, int level) {

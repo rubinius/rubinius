@@ -67,7 +67,7 @@ module Kernel
       msg = "undefined method `#{meth}'"
     end
 
-    object_class = Rubinius.object_class(self)
+    object_class = Rubinius::Type.object_class(self)
 
     if __kind_of__(Module)
       msg << " on #{self} (#{object_class})"

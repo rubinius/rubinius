@@ -114,6 +114,15 @@ namespace :install do
         install_file name, /^lib/, BUILD_CONFIG[:lib_path]
       end
 
+      # Install C++ extensions. Since we permit configuring where
+      # to install the C extensions separately from the lib files,
+      # we have to be more restrictive with the globbing.
+      #
+      # TODO: handle this better in daedalus.
+      FileList["lib/tooling/**/*.#{$dlext}"].each do |name|
+        install_file name, /^lib/, BUILD_CONFIG[:lib_path]
+      end
+
       # Install the documentation site
       FileList['lib/rubinius/documentation/**/*'].each do |name|
         install_file name, /^lib/, BUILD_CONFIG[:lib_path]
@@ -137,6 +146,10 @@ namespace :install do
       # Install the Rubinius executable
       exe = "#{BUILD_CONFIG[:bindir]}/#{BUILD_CONFIG[:program_name]}"
       install "vm/vm", install_dir(exe), :mode => 0755, :verbose => true
+
+      # Install the testrb command
+      testrb = "#{BUILD_CONFIG[:bindir]}/testrb"
+      install "bin/testrb", install_dir(testrb), :mode => 0755, :verbose => true
 
       # Create symlinks for common commands
       begin

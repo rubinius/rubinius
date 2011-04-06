@@ -152,8 +152,8 @@ namespace rubinius {
   static Module* get_module_to_query(Module* mod) {
     Module* mod_to_query = 0;
 
-    if(MetaClass* mc = try_as<MetaClass>(mod)) {
-      mod_to_query = try_as<Module>(mc->attached_instance());
+    if(SingletonClass* sc = try_as<SingletonClass>(mod)) {
+      mod_to_query = try_as<Module>(sc->attached_instance());
       if(!mod_to_query) mod_to_query = mod;
     } else if(IncludedModule* im = try_as<IncludedModule>(mod)) {
       mod_to_query = im->module();
@@ -231,8 +231,8 @@ namespace rubinius {
     }
 
     mod = this;
-    if(MetaClass* mc = try_as<MetaClass>(mod)) {
-      mod = as<Module>(mc->attached_instance());
+    if(SingletonClass* sc = try_as<SingletonClass>(mod)) {
+      mod = as<Module>(sc->attached_instance());
     }
 
     std::stringstream ss;
@@ -322,8 +322,8 @@ namespace rubinius {
 
     std::stringstream ss;
     mod = this;
-    if(MetaClass* mc = try_as<MetaClass>(mod)) {
-      mod = as<Module>(mc->attached_instance());
+    if(SingletonClass* sc = try_as<SingletonClass>(mod)) {
+      mod = as<Module>(sc->attached_instance());
     }
 
     if (this->cvar_defined(state, name) == Qtrue) {

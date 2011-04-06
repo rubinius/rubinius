@@ -93,7 +93,7 @@ class File < IO
   # the value to 0 if it is greater than 0xffff. Also, negative values
   # don't make any sense here.
   def clamp_short(value)
-    mode = Type.coerce_to value, Integer, :to_int
+    mode = Rubinius::Type.coerce_to value, Integer, :to_int
     mode < 0 || mode > 0xffff ? 0 : mode
   end
   module_function :clamp_short
@@ -197,7 +197,7 @@ class File < IO
     mode = clamp_short mode
 
     paths.each do |path|
-      path = Type.coerce_to(path, String, :to_str) unless path.is_a? String
+      path = Rubinius::Type.coerce_to(path, String, :to_str) unless path.is_a? String
       POSIX.chmod(path, mode)
     end
     paths.size
@@ -209,9 +209,9 @@ class File < IO
   # the link, not the file referenced by the link).
   # Often not available.
   def self.lchmod(mode, *paths)
-    mode = Type.coerce_to(mode, Integer, :to_int) unless mode.is_a? Integer
+    mode = Rubinius::Type.coerce_to(mode, Integer, :to_int) unless mode.is_a? Integer
     paths.each do |path|
-      path = Type.coerce_to(path, String, :to_str) unless path.is_a? String
+      path = Rubinius::Type.coerce_to(path, String, :to_str) unless path.is_a? String
       POSIX.lchmod(path, mode)
     end
     paths.size
@@ -527,7 +527,7 @@ class File < IO
   def self.fnmatch(pattern, path, flags=0)
     pattern = StringValue(pattern)
     path    = StringValue(path)
-    flags   = Type.coerce_to(flags, Fixnum, :to_int)
+    flags   = Rubinius::Type.coerce_to(flags, Fixnum, :to_int)
 
     super pattern, path, flags
   end
@@ -731,7 +731,7 @@ class File < IO
   ##
   # Returns the size of file_name.
   def self.size(io_or_path)
-    io = Type.convert_to io_or_path, IO, :to_io
+    io = Rubinius::Type.try_convert io_or_path, IO, :to_io
 
     if io.is_a? IO
       Stat.from_fd(io.fileno).size
@@ -746,7 +746,7 @@ class File < IO
   def self.size?(io_or_path)
     s = 0
 
-    io = Type.convert_to io_or_path, IO, :to_io
+    io = Rubinius::Type.try_convert io_or_path, IO, :to_io
 
     if io.is_a? IO
       s = Stat.from_fd(io.fileno).size
@@ -1005,7 +1005,7 @@ class File < IO
   end
 
   def truncate(length)
-    length = Type.coerce_to(length, Integer, :to_int)
+    length = Rubinius::Type.coerce_to(length, Integer, :to_int)
 
     ensure_open_and_writable
     raise Errno::EINVAL, "Can't truncate a file to a negative length" if length < 0

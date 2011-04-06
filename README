@@ -39,17 +39,36 @@ Rubinius comes with RubyGems built-in. To install a gem, run the following:
 After installing Rubinius, you can access the built-in documentation at any
 time by running 'rbx docs'.
 
-3.1 Installing with RVM
+3.1 Rubinius with RVM
 
-You may wish to use the Ruby Version Manager (RVM) project to install
+You may wish to use the Ruby enVironment Manager (RVM) project to install
 Rubinius. For the most current documentation for RVM, please visit
-http://rvm.beginrescueend.com. Generally, the following commands should work:
+http://rvm.beginrescueend.com.
 
-  rvm install rbx         # Installs the current release
-  rvm install rbx-head    # Installs the Rubinius master branch
+Be sure that RVM has been installed properly and is loaded as a function as is
+explained in detail on the basics page, http://rvm.beginrescueend.com/rvm/basics/
 
-Once installed, 'rvm use rbx' should make Rubinius the available Ruby.
+Assuming all Rubinius dependencies have been preinstalled on the system, you may
+now install Rubinius either latest or head as follows,
 
+  rvm install rbx         # Installs latest release (defaulted to install head)
+  rvm install rbx-head    # Installs Rubinius master branch from github
+
+Once installed,
+
+  rvm use rbx  # Seects Rubinius into the current shell session.
+
+If you wish to make Rubinius the default interpreter when you open new shells,
+
+  rvm use rbx --default
+
+In order to view the dependency list to preinstall for rbx type
+
+  rvm notes
+
+For more information on working with rvm please visit the RVM website,
+
+  http://rvm.beginrescueend.com/
 
 4. Version 1.1
 

@@ -36,7 +36,7 @@
 
 #include "builtin/nativefunction.hpp"
 
-#include "instruments/profiler.hpp"
+#include "instruments/tooling.hpp"
 
 namespace rubinius {
 
@@ -85,8 +85,8 @@ namespace rubinius {
     try {
 
 #ifdef RBX_PROFILER
-      if(unlikely(state->shared.profiling())) {
-        profiler::MethodEntry method(state, exec, mod, args);
+      if(unlikely(state->tooling())) {
+        tooling::MethodEntry method(state, exec, mod, args);
         return nfunc->call(state, args, call_frame);
       } else {
         return nfunc->call(state, args, call_frame);
@@ -363,6 +363,7 @@ namespace rubinius {
       reinterpret_cast<FFIData*>(user_data);
 
     STATE = env->state();
+    state->shared.gc_dependent(state);
 
     Array* args = Array::create(state, stub->arg_count);
 
@@ -537,6 +538,8 @@ namespace rubinius {
       *((ffi_arg*)retval) = 0;
       break;
     }
+
+    state->shared.gc_independent(state);
   }
 
 
@@ -801,7 +804,7 @@ namespace rubinius {
               size = so->size();
 
               char* data = ALLOCA_N(char, size + 1);
-              memcpy(data, so->c_str(), size);
+              memcpy(data, so->c_str(state), size);
               data[size] = 0;
               *tmp = data;
             } else if(RTEST(obj->respond_to(state, state->symbol("to_ptr"), Qtrue))) {
@@ -851,7 +854,7 @@ namespace rubinius {
           size = so->size();
 
           char* data = ALLOCA_N(char, size + 1);
-          memcpy(data, so->c_str(), size);
+          memcpy(data, so->c_str(state), size);
           data[size] = 0;
           *tmp = data;
         }

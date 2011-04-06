@@ -187,10 +187,19 @@ module Rubinius
         @for_eval = for_eval
         @eval_binding = nil
         @eval_source = nil
+        @main = false
       end
 
       def eval?
         @for_eval
+      end
+
+      def make_main!
+        @main = true
+      end
+
+      def main?
+        @main
       end
     end
 
@@ -208,8 +217,8 @@ module Rubinius
         @scope = ss
       end
 
-      mc = Rubinius.object_metaclass(MAIN)
-      mc.method_table.store :__script__, self, :public
+      sc = Rubinius::Type.object_singleton_class(MAIN)
+      sc.method_table.store :__script__, self, :public
       VM.reset_method_cache :__script__
 
       script

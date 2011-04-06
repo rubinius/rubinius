@@ -40,6 +40,10 @@ namespace rubinius {
   public:
     static void** instructions;
 
+    enum Flags {
+      eNoInline = 1 << 0
+    };
+
   private:
     IndirectLiterals indirect_literals_;
     VMMethod* parent_;
@@ -69,7 +73,7 @@ namespace rubinius {
 #ifdef ENABLE_LLVM
   private:
     llvm::Function* llvm_function_;
-    size_t jitted_bytes_;
+    int    jitted_bytes_;
     void*  jitted_impl_;
 #endif
 
@@ -77,6 +81,9 @@ namespace rubinius {
     uint64_t method_id_;
   public:
     uint32_t debugging;
+
+  private:
+    uint32_t flags; // Used to store bit flags
   public: // Methods
     static void init(STATE);
 
@@ -87,7 +94,11 @@ namespace rubinius {
 
 #ifdef ENABLE_LLVM
     bool jitted() {
-      return jitted_impl_ != 0;
+      return jit_disabled() && jitted_impl_ != 0;
+    }
+
+    bool jit_disabled() {
+      return jitted_bytes_ == -1;
     }
 
     void set_jitted(llvm::Function* func, size_t bytes, void* impl) {
@@ -156,12 +167,22 @@ namespace rubinius {
       return method_id_;
     }
 
+    bool no_inline_p() {
+      return (flags & eNoInline) == eNoInline;
+    }
+
+    void set_no_inline() {
+      flags |= eNoInline;
+    }
+
     void specialize(STATE, CompiledMethod* original, TypeInfo* ti);
     void compile(STATE);
     static Object* execute(STATE, CallFrame* call_frame, Executable* exec, Module* mod, Arguments& args);
 
     template <typename ArgumentHandler>
       static Object* execute_specialized(STATE, CallFrame* call_frame, Executable* exec, Module* mod, Arguments& args);
+
+    Object* execute_as_script(STATE, CompiledMethod*cm, CallFrame* previous);
 
     struct InterpreterState {
       bool allow_private;
@@ -210,7 +231,7 @@ namespace rubinius {
     void initialize_caches(STATE, CompiledMethod* original, int sends);
     void find_super_instructions();
 
-    void deoptimize(STATE, CompiledMethod* original);
+    void deoptimize(STATE, CompiledMethod* original, bool disable=false);
 
     /*
      * Helper class for iterating over an Opcode array.  Used to convert a

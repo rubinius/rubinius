@@ -62,6 +62,15 @@ class Hash
 
   attr_reader :size
 
+  # #entries is a method provided by Enumerable which calls #to_a,
+  # so we have to not collide with that.
+  def __entries__
+    @entries
+  end
+
+  attr_reader :capacity
+  attr_reader :max_entries
+
   alias_method :length, :size
 
   Entries = Rubinius::Tuple
@@ -80,7 +89,7 @@ class Hash
       if obj.kind_of? Hash
         return new.replace(obj)
       elsif obj.respond_to? :to_hash
-        return new.replace(Type.coerce_to(obj, Hash, :to_hash))
+        return new.replace(Rubinius::Type.coerce_to(obj, Hash, :to_hash))
       elsif obj.is_a?(Array) # See redmine # 1385
         h = new
         args.first.each do |arr|
@@ -454,7 +463,7 @@ class Hash
   end
 
   def merge!(other)
-    other = Type.coerce_to other, Hash, :to_hash
+    other = Rubinius::Type.coerce_to other, Hash, :to_hash
 
     if block_given?
       other.each_entry do |entry|
@@ -548,7 +557,7 @@ class Hash
     return to_enum :reject unless block_given?
 
     hsh = self.class.new
-    hsh.taint! if self.tainted?
+    hsh.taint if self.tainted?
     self.each { |k,v| hsh[k] = v if !yield(k,v) }
     hsh
   end
@@ -590,13 +599,31 @@ class Hash
   def replace(other)
     Ruby.check_frozen
 
-    other = Type.coerce_to other, Hash, :to_hash
+    other = Rubinius::Type.coerce_to other, Hash, :to_hash
     return self if self.equal? other
 
-    __setup__
+    # Normally this would be a call to __setup__,
+    # but that will create a new unused Tuple
+    # that we would wind up replacing anyways.
+    @entries = other.__entries__.dup
+    @capacity = other.capacity
+    @mask     = @capacity - 1
+    @max_entries = other.max_entries
+    @size     = other.size
 
-    other.each_entry do |entry|
-      __store__ entry.key, entry.value
+    # We now contain a list of the other hash's
+    # Entry objects. We need to re-map them to our
+    # own.
+    i = 0
+    while i < @capacity
+      if orig = @entries[i]
+        @entries[i] = self_entry = orig.dup
+        while orig = orig.next
+          self_entry.next = orig.dup
+          self_entry = self_entry.next
+        end
+      end
+      i += 1
     end
 
     if other.default_proc

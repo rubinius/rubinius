@@ -22,7 +22,7 @@
 #include "builtin/location.hpp"
 #include "builtin/ffi_pointer.hpp"
 
-#include "instruments/profiler.hpp"
+#include "instruments/tooling.hpp"
 
 #include "capi/capi.hpp"
 #include "capi/handle.hpp"
@@ -661,8 +661,8 @@ namespace rubinius {
       ret = NULL;
     } else {
 #ifdef RBX_PROFILER
-      if(unlikely(state->shared.profiling())) {
-        profiler::MethodEntry method(state, exec, mod, args);
+      if(unlikely(state->tooling())) {
+        tooling::MethodEntry method(state, exec, mod, args);
         ret = ArgumentHandler::invoke(state, nm, env, args);
       } else {
         ret = ArgumentHandler::invoke(state, nm, env, args);

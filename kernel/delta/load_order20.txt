@@ -12,7 +12,6 @@ kernel.rbc
 math.rbc
 options.rbc
 stats.rbc
-profiler.rbc
 signal.rbc
 struct.rbc
 thread.rbc

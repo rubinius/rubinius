@@ -430,6 +430,14 @@ VM Options
 
       handle_rubyopt(options)
 
+      if str = Rubinius::Config['tool.require']
+        begin
+          require str
+        rescue LoadError
+          STDERR.puts "Unable to require file for tool: '#{str}'"
+        end
+      end
+
       if @profile
         require 'profile'
       end

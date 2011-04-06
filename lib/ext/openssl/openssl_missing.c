@@ -1,5 +1,5 @@
 /*
- * $Id: openssl_missing.c 16467 2008-05-19 03:00:52Z knu $
+ * $Id$
  * 'OpenSSL for Ruby' project
  * Copyright (C) 2001-2002  Michal Rokos <m.rokos@sh.cvut.cz>
  * All rights reserved.
@@ -8,8 +8,6 @@
  * This program is licenced under the same licence as Ruby.
  * (See the file 'LICENCE'.)
  */
-
-#include "ruby.h"
 #include RUBY_EXTCONF_H
 
 #if defined(HAVE_OPENSSL_ENGINE_H) && defined(HAVE_ST_ENGINE)
@@ -265,7 +263,6 @@ bn_rand_range(int pseudo, BIGNUM *r, BIGNUM *range)
 }
 #endif
 
-/*
 #if !defined(HAVE_BN_RAND_RANGE)
 int
 BN_rand_range(BIGNUM *r, BIGNUM *range)
@@ -281,7 +278,6 @@ BN_pseudo_rand_range(BIGNUM *r, BIGNUM *range)
     return bn_rand_range(1, r, range);
 }
 #endif
-*/
 
 #if !defined(HAVE_CONF_GET1_DEFAULT_CONFIG_FILE)
 #define OPENSSL_CONF "openssl.cnf"
@@ -344,3 +340,4 @@ PEM_def_callback(char *buf, int num, int w, void *key)
     return j;
 }
 #endif
+

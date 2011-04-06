@@ -13,7 +13,7 @@
 module IRB
   def IRB.print_usage
     lc = IRB.conf[:LC_MESSAGES]
-    path = lc.find("irb/help-message")
+    path = lc.find("irb/help-message.rb")
     space_line = false
     File.foreach(path) do
       |l|
@@ -25,6 +25,8 @@ module IRB
       space_line = false
       
       l.sub!(/#.*$/, "")
+      l.sub!(/<<HELP/, "")
+      l.sub!(/HELP/, "")
       next if /^\s*$/ =~ l
       lc.puts l
     end

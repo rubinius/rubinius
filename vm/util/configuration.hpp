@@ -45,6 +45,7 @@ namespace config {
     ConfigItem(Configuration* config, const char* name)
       : name_(name)
       , description_(0)
+      , set_(false)
     {
       config->add_item(this);
     }
@@ -57,7 +58,6 @@ namespace config {
     bool set_maybe(const char* key, const char* val) {
       if(strcmp(name_, key) != 0) return false;
 
-      set_ = true;
       set(val);
       return true;
     }
@@ -93,6 +93,7 @@ namespace config {
     {}
 
     virtual void set(const char* str) {
+      set_ = true;
       // true means either likely they set it with no value
       if(strcmp("true", str) == 0) {
         value = 1;
@@ -120,6 +121,7 @@ namespace config {
     {}
 
     virtual void set(const char* str) {
+      set_ = true;
       value = std::string(str);
     }
 
@@ -156,6 +158,7 @@ namespace config {
     }
 
     virtual void set(const char* str) {
+      set_ = true;
       value = convert(str);
     }
 
@@ -179,6 +182,7 @@ namespace config {
     {}
 
     virtual void set(const char* str) {
+      set_ = true;
       Bool::set(str);
 
       for(std::vector<Bool*>::iterator i = sub_bools_.begin();

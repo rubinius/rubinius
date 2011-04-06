@@ -17,6 +17,8 @@
 #include <unistd.h>
 
 
+#include <dlfcn.h>
+
 #include "vm/call_frame.hpp"
 #include "vm/helpers.hpp"
 
@@ -41,7 +43,6 @@
 #include "builtin/lookuptable.hpp"
 #include "builtin/symbol.hpp"
 #include "builtin/tuple.hpp"
-#include "builtin/taskprobe.hpp"
 #include "builtin/float.hpp"
 #include "builtin/methodtable.hpp"
 #include "builtin/io.hpp"
@@ -62,6 +63,10 @@
 #include "windows_compat.h"
 #include "util/sha1.h"
 
+#include "instruments/tooling.hpp"
+
+#include "gc/walker.hpp"
+
 #ifdef ENABLE_LLVM
 #include "llvm/jit.hpp"
 #include "llvm/jit_compiler.hpp"
@@ -73,13 +78,51 @@
 
 namespace rubinius {
 
+  void System::bootstrap_methods(STATE) {
+    System::attach_primitive(state,
+                             G(rubinius), true,
+                             state->symbol("open_class"),
+                             state->symbol("vm_open_class"));
+
+    System::attach_primitive(state,
+                             G(rubinius), true,
+                             state->symbol("open_class_under"),
+                             state->symbol("vm_open_class_under"));
+
+    System::attach_primitive(state,
+                             G(rubinius), true,
+                             state->symbol("open_module"),
+                             state->symbol("vm_open_module"));
+
+    System::attach_primitive(state,
+                             G(rubinius), true,
+                             state->symbol("open_module_under"),
+                             state->symbol("vm_open_module_under"));
+
+    System::attach_primitive(state,
+                             G(rubinius), true,
+                             state->symbol("add_defn_method"),
+                             state->symbol("vm_add_method"));
+
+    System::attach_primitive(state,
+                             G(rubinius), true,
+                             state->symbol("attach_method"),
+                             state->symbol("vm_attach_method"));
+
+    System::attach_primitive(state,
+                             as<Module>(G(rubinius)->get_const(state, "Type")), true,
+                             state->symbol("object_singleton_class"),
+                             state->symbol("vm_object_singleton_class"));
+
+  }
+
   void System::attach_primitive(STATE, Module* mod, bool meta,
                                 Symbol* name, Symbol* prim)
   {
     MethodTable* tbl;
 
     if(meta) {
-      tbl = mod->metaclass(state)->method_table();
+      tbl = mod->singleton_class(state)->method_table();
     } else {
       tbl = mod->method_table();
     }
@@ -96,11 +139,7 @@ namespace rubinius {
   // HACK: remove this when performance is better and compiled_file.rb
   // unmarshal_data method works.
   Object* System::compiledfile_load(STATE, String* path, Integer* version) {
-    if(!state->probe->nil_p()) {
-      state->probe->load_runtime(state, std::string(path->c_str()));
-    }
-
-    std::ifstream stream(path->c_str());
+    std::ifstream stream(path->c_str(state));
     if(!stream) {
       return Primitives::failure();
     }
@@ -155,9 +194,8 @@ namespace rubinius {
     argv[argc] = NULL;
 
     for(size_t i = 0; i < argc; i++) {
-      /* strdup should be OK. Trying to exec with strings
-       * containing NUL == bad. --rue */
-      argv[i] = strdup(as<String>(args->get(state, i))->c_str());
+      /* strdup should be OK. Trying to exec with strings containing NUL == bad. --rue */
+      argv[i] = strdup(as<String>(args->get(state, i))->c_str(state));
     }
 
     void* old_handlers[NSIG];
@@ -168,7 +206,7 @@ namespace rubinius {
       old_handlers[i] = (void*)signal(i, SIG_DFL);
     }
 
-    (void)::execvp(path->c_str(), argv);
+    (void)::execvp(path->c_str(state), argv);
 
     // UG. Disaster.
     //
@@ -201,7 +239,7 @@ namespace rubinius {
 
     if(pipe(fds) != 0) return Primitives::failure();
 
-    const char* c_str = str->c_str();
+    const char* c_str = str->c_str(state);
 
     pid_t pid = fork();
 
@@ -414,7 +452,7 @@ namespace rubinius {
   }
 
   Object* System::vm_get_config_item(STATE, String* var) {
-    ConfigParser::Entry* ent = state->shared.user_variables.find(var->c_str());
+    ConfigParser::Entry* ent = state->shared.user_variables.find(var->c_str(state));
     if(!ent) return Qnil;
 
     if(ent->is_number()) {
@@ -486,29 +524,69 @@ namespace rubinius {
     return Qnil;
   }
 
-  Object* System::vm_profiler_instrumenter_available_p(STATE) {
+  Object* System::vm_tooling_available_p(STATE) {
 #ifdef RBX_PROFILER
-    return Qtrue;
+    return state->shared.tool_broker()->available(state) ? Qtrue : Qfalse;
 #else
     return Qfalse;
 #endif
   }
 
-  Object* System::vm_profiler_instrumenter_active_p(STATE) {
-    return state->shared.profiling() ? Qtrue : Qfalse;
+  Object* System::vm_tooling_active_p(STATE) {
+    return state->tooling() ? Qtrue : Qfalse;
   }
 
-  Object* System::vm_profiler_instrumenter_start(STATE) {
-    state->shared.enable_profiling(state, state);
+  Object* System::vm_tooling_enable(STATE) {
+    state->shared.tool_broker()->enable(state);
     return Qtrue;
   }
 
-  LookupTable* System::vm_profiler_instrumenter_stop(STATE) {
-    return state->shared.disable_profiling(state, state);
+  Object* System::vm_tooling_disable(STATE) {
+    return state->shared.tool_broker()->results(state);
+  }
+
+  Object* System::vm_load_tool(STATE, String* str) {
+    std::string path = std::string(str->c_str(state)) + ".";
+
+#ifdef _WIN32
+    path += "dll";
+#else
+  #ifdef __APPLE_CC__
+    path += "bundle";
+  #else
+    path += "so";
+  #endif
+#endif
+
+    void* handle = dlopen(path.c_str(), RTLD_NOW);
+    if(!handle) {
+      path = std::string(RBX_LIB_PATH) + "/" + path;
+
+      handle = dlopen(path.c_str(), RTLD_NOW);
+      if(!handle) {
+        return Tuple::from(state, 2, Qfalse, String::create(state, dlerror()));
+      }
+    }
+
+    void* sym = dlsym(handle, "Tool_Init");
+    if(!sym) {
+      dlclose(handle);
+      return Tuple::from(state, 2, Qfalse, String::create(state, dlerror()));
+    } else {
+      typedef int (*init_func)(rbxti::Env* env);
+      init_func init = (init_func)sym;
+
+      if(!init(state->tooling_env())) {
+        dlclose(handle);
+        return Tuple::from(state, 2, Qfalse, String::create(state, path.c_str()));
+      }
+    }
+    
+    return Tuple::from(state, 1, Qtrue);
   }
 
   Object* System::vm_write_error(STATE, String* str) {
-    std::cerr << str->c_str() << std::endl;
+    std::cerr << str->c_str(state) << std::endl;
     return Qnil;
   }
 
@@ -737,8 +815,7 @@ namespace rubinius {
     bool add_ivars = false;
 
     if(Class* cls = try_as<Class>(mod)) {
-      add_ivars = !kind_of<MetaClass>(cls) && 
-                   cls->type_info()->type == Object::type;
+      add_ivars = !kind_of<SingletonClass>(cls) && cls->type_info()->type == Object::type;
     } else {
       add_ivars = true;
     }
@@ -766,9 +843,8 @@ namespace rubinius {
   }
 
   Object* System::vm_attach_method(STATE, Symbol* name, CompiledMethod* method,
-                                   StaticScope* scope, Object* recv)
-  {
-    Module* mod = recv->metaclass(state);
+                                   StaticScope* scope, Object* recv) {
+    Module* mod = recv->singleton_class(state);
 
     method->scope(state, scope);
     method->serial(state, Fixnum::from(0));
@@ -783,12 +859,20 @@ namespace rubinius {
     return obj->class_object(state);
   }
 
-  Object* System::vm_object_metaclass(STATE, Object* obj) {
-    if(obj->reference_p()) return obj->metaclass(state);
+  Object* System::vm_object_singleton_class(STATE, Object* obj) {
+    if(obj->reference_p()) return obj->singleton_class(state);
     if(obj->true_p()) return G(true_class);
     if(obj->false_p()) return G(false_class);
     if(obj->nil_p()) return G(nil_class);
     return Primitives::failure();
+  }
+
+  Object* System::vm_singleton_class_object(STATE, Module* mod) {
+    if(SingletonClass* sc = try_as<SingletonClass>(mod)) {
+      return sc->attached_instance();
+    }
+
+    return Qnil;
   }
 
   Object* System::vm_object_respond_to(STATE, Object* obj, Symbol* name) {
@@ -819,6 +903,33 @@ namespace rubinius {
   Object* System::vm_deoptimize_inliners(STATE, Executable* exec) {
     exec->clear_inliners(state);
     return Qtrue;
+  }
+
+  Object* System::vm_deoptimize_all(STATE, Object* o_disable) {
+    ObjectWalker walker(state->om);
+    GCData gc_data(state);
+
+    // Seed it with the root objects.
+    walker.seed(gc_data);
+
+    Object* obj = walker.next();
+
+    int total = 0;
+
+    bool disable = RTEST(o_disable);
+
+    while(obj) {
+      if(CompiledMethod* cm = try_as<CompiledMethod>(obj)) {
+        if(VMMethod* vmm = cm->backend_method()) {
+          vmm->deoptimize(state, cm, disable);
+        }
+        total++;
+      }
+
+      obj = walker.next();
+    }
+
+    return Integer::from(state, total);
   }
 
   Object* System::vm_raise_exception(STATE, Exception* exc) {
@@ -902,10 +1013,10 @@ namespace rubinius {
   }
 
   Object* System::vm_extended_modules(STATE, Object* obj) {
-    if(MetaClass* mc = try_as<MetaClass>(obj->klass())) {
+    if(SingletonClass* sc = try_as<SingletonClass>(obj->klass())) {
       Array* ary = Array::create(state, 3);
 
-      Module* mod = mc->superclass();
+      Module* mod = sc->superclass();
       while(IncludedModule* im = try_as<IncludedModule>(mod)) {
         ary->append(state, im->module());
 
@@ -935,7 +1046,7 @@ namespace rubinius {
     if(what->size() < 1) {
       kcode::set(state, kcode::eAscii);
     } else {
-      const char* str = what->c_str();
+      const char* str = what->c_str(state);
 
       switch(str[0]) {
       case 'E':
@@ -1057,7 +1168,7 @@ namespace rubinius {
     struct passwd *pwd;
     String* home = 0;
 
-    if((pwd = getpwnam(name->c_str()))) {
+    if((pwd = getpwnam(name->c_str(state)))) {
       home = String::create(state, pwd->pw_dir);
     } else {
       home = nil<String>();
@@ -1277,5 +1388,25 @@ namespace rubinius {
     tuple->put(state, 4, ts->throw_dest());
 
     return tuple;
+  }
+
+  Object* System::vm_run_script(STATE, CompiledMethod* cm,
+                                CallFrame* calling_environment)
+  {
+    Dispatch msg(state->symbol("__script__"), G(object), cm);
+    Arguments args(state->symbol("__script__"), G(main), Qnil, 0, 0);
+
+    cm->internalize(state, 0, 0);
+
+#ifdef RBX_PROFILER
+    if(unlikely(state->tooling())) {
+      tooling::ScriptEntry me(state, cm);
+      return cm->backend_method()->execute_as_script(state, cm, calling_environment);
+    } else {
+      return cm->backend_method()->execute_as_script(state, cm, calling_environment);
+    }
+#else
+    return cm->backend_method()->execute_as_script(state, cm, calling_environment);
+#endif
   }
 }

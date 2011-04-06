@@ -18,7 +18,10 @@ namespace :release do
     now = Time.now
     date = now.strftime("%b %d, %Y")
 
-    prev = Time.parse BUILD_CONFIG[:release_date]
+    prev_date = `git log -n 1 --pretty=format:"%aD" release-#{ver}`
+
+    prev = Time.parse prev_date.strip
+
     now_day = now.strftime("%j").to_i
     prev_day = prev.strftime("%j").to_i
 
@@ -30,7 +33,7 @@ namespace :release do
 
     issues = []
     ol.each do |line|
-      if m = /([Ff]ixes|[Cc]loses)\s#(\d+)/.match(line)
+      if /([Ff]ixes|[Cc]loses)\s#(\d+)/.match(line)
         issues << line
       end
     end
@@ -93,7 +96,7 @@ collection, Just-In-Time compilation, and compatibility with existing C APIs.
     fd.puts "##### Bug Fixes\n\n"
     ol.each do |line|
       unless issues.include?(line)
-        hash, message = line.split(" ", 2)
+        message = line.split(" ", 2)[1]
         message.gsub!("_", "\\_")
         fd.puts "* #{message}"
       end

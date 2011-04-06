@@ -8,7 +8,6 @@
 #include "builtin/fixnum.hpp"
 #include "builtin/string.hpp"
 #include "builtin/symbol.hpp"
-#include "builtin/taskprobe.hpp"
 #include "builtin/tuple.hpp"
 #include "builtin/iseq.hpp"
 #include "builtin/staticscope.hpp"
@@ -27,7 +26,6 @@
 #include "arguments.hpp"
 #include "dispatch.hpp"
 #include "instructions.hpp"
-#include "instruments/profiler.hpp"
 #include "configuration.hpp"
 
 #include "helpers.hpp"

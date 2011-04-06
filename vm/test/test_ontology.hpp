@@ -33,15 +33,15 @@ public:
     check_const(klass, "Class");
   }
 
-  void test_metaclass_is_completely_setup() {
+  void test_singleton_class_is_completely_setup() {
     Class *cls;
-    MetaClass *meta;
+    SingletonClass *sc;
 
     cls = (Class*)G(klass);
-    meta = (MetaClass*)cls->klass();
-    TS_ASSERT(kind_of<MetaClass>(G(object)->klass()));
-    TS_ASSERT(kind_of<MethodTable>(meta->method_table()));
-    TS_ASSERT(kind_of<LookupTable>(meta->constants()));
+    sc = (SingletonClass*)cls->klass();
+    TS_ASSERT(kind_of<SingletonClass>(G(object)->klass()));
+    TS_ASSERT(kind_of<MethodTable>(sc->method_table()));
+    TS_ASSERT(kind_of<LookupTable>(sc->constants()));
   }
 
   void test_module() {
@@ -198,16 +198,6 @@ public:
 
     Module* ffi = as<Module>(G(object)->get_const(state, "FFI"));
     TS_ASSERT_EQUALS(cls, ffi->get_const(state, "Pointer"));
-  }
-
-  void test_taskprobe() {
-    Class *cls;
-
-    cls = G(taskprobe);
-
-    TS_ASSERT_EQUALS(cls->class_object(state), G(klass));
-    TS_ASSERT_EQUALS(cls->superclass(), G(object));
-    TS_ASSERT_EQUALS(G(rubinius)->get_const(state, "TaskProbe"), G(taskprobe));
   }
 
   void test_exception() {

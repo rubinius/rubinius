@@ -1,3 +1,5 @@
+require 'tooling/profiler/profiler'
+
 module Profiler__
   def start_profile
     @p = Rubinius::Profiler::Instrumenter.new

@@ -53,6 +53,7 @@ namespace rubinius {
 
     native_int total = count->to_native();
     if(total <= 0) {
+      ary->total(state, Fixnum::from(0));
       ary->tuple(state, Tuple::create(state, 0));
     } else {
       Tuple* tup = Tuple::create(state, total);

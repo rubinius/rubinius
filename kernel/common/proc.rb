@@ -3,7 +3,7 @@ class Proc
   def self.__from_block__(env)
     Ruby.primitive :proc_from_env
 
-    if env.__kind_of__(Rubinius::BlockEnvironment)
+    if Rubinius::Type.object_kind_of? env, Rubinius::BlockEnvironment
       raise PrimitiveFailure, "Unable to create Proc from BlockEnvironment"
     else
       begin
@@ -84,13 +84,7 @@ class Proc
   alias_method :yield, :call
 
   class Method < Proc
-    def bound_method
-      @bound_method
-    end
-
-    def bound_method=(other)
-      @bound_method = other
-    end
+    attr_accessor :bound_method
 
     def self.__from_method__(meth)
       obj = allocate()

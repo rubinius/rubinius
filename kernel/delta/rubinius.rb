@@ -9,7 +9,7 @@ module Rubinius
   end
 
   def self.open_class_under(name, sup, mod)
-    unless mod.kind_of? Module
+    unless Type.object_kind_of? mod, Module
       raise TypeError, "'#{mod.inspect}' is not a class/module"
     end
 
@@ -20,7 +20,7 @@ module Rubinius
       obj = Class.new sup, name, mod
     else
       obj = tbl[name]
-      if obj.kind_of? Autoload
+      if Type.object_kind_of? obj, Autoload
         obj = obj.call(true)
 
         # nil is returned if the autoload was abort, usually because
@@ -32,7 +32,7 @@ module Rubinius
         end
       end
 
-      if obj.kind_of? Class
+      if Type.object_kind_of? obj, Class
         if sup and obj.superclass != sup
           raise TypeError, "Superclass mismatch: #{obj.superclass} != #{sup}"
         end
@@ -55,7 +55,7 @@ module Rubinius
   end
 
   def self.open_module_under(name, mod)
-    unless mod.kind_of? Module
+    unless Type.object_kind_of? mod, Module
       raise TypeError, "'#{mod.inspect}' is not a class/module"
     end
 
@@ -67,7 +67,7 @@ module Rubinius
       mod.const_set name, obj
     else
       obj = tbl[name]
-      if obj.kind_of? Autoload
+      if Type.object_kind_of? obj, Autoload
         obj = obj.call(true)
 
         # See comment above about autoload returning nil
@@ -78,7 +78,7 @@ module Rubinius
         end
       end
 
-      if obj.kind_of?(Class) || !obj.kind_of?(Module)
+      if Type.object_kind_of?(obj, Class) || !Type.object_kind_of?(obj, Module)
         raise TypeError, "#{name} is not a module"
       end
     end
@@ -111,12 +111,12 @@ module Rubinius
 
     mod = static_scope.for_method_definition
 
-    if mod.kind_of? Class and ai = mod.__metaclass_object__
-      if ai.kind_of? Numeric
+    if Type.object_kind_of?(mod, Class) and ai = Type.singleton_class_object(mod)
+      if Type.object_kind_of? ai, Numeric
 
         # Such a weird protocol. If :singleton_method_added exists, allow this.
         # le sigh.
-        unless ai.respond_to? :singleton_method_added
+        unless Type.object_respond_to? ai, :singleton_method_added
           raise TypeError, "Unable to define singleton methods on Numerics"
         end
       end
@@ -130,7 +130,7 @@ module Rubinius
 
     # Don't change the visibility for methods added to singleton
     # classes
-    if Class === mod and mod.__metaclass_object__
+    if Type.object_kind_of?(mod, Class) and Type.singleton_class_object(mod)
       visibility = vis
     elsif vis == :module or name == :initialize or name == :initialize_copy
       visibility = :private
@@ -147,14 +147,14 @@ module Rubinius
 
     mod.module_function name if vis == :module
 
-    # Have to use Rubinius.object_respond_to? rather than #respond_to?
+    # Have to use Rubinius::Type.object_respond_to? rather than #respond_to?
     # because code will redefine #respond_to? itself, which is added
     # via #add_method, and then we'll call this new #respond_to?, which
     # commonly can't run yet because it requires methods that haven't been
     # added yet. (ActionMailer does this)
 
-    if Class === mod and obj = mod.__metaclass_object__
-      if obj.kind_of? Numeric
+    if Type.object_kind_of?(mod, Class) and obj = Type.singleton_class_object(mod)
+      if Type.object_kind_of? obj, Numeric
 
         # Such a weird protocol. If :singleton_method_added exists, allow this.
         # le sigh.
@@ -198,19 +198,19 @@ module Rubinius
       executable.scope = static_scope
     end
 
-    mod = Rubinius.object_metaclass recv
+    mod = Rubinius::Type.object_singleton_class recv
 
     add_method name, executable, mod, :public
   end
 
 
   def self.add_reader(name, mod, vis)
-    normalized = Type.coerce_to_symbol(name)
+    normalized = Rubinius::Type.coerce_to_symbol(name)
     add_method normalized, AccessVariable.get_ivar(normalized), mod, vis
   end
 
   def self.add_writer(name, mod, vis)
-    normalized = Type.coerce_to_symbol(name)
+    normalized = Rubinius::Type.coerce_to_symbol(name)
     writer_name = "#{normalized}=".to_sym
     add_method writer_name, AccessVariable.set_ivar(normalized), mod, vis
   end
@@ -270,6 +270,10 @@ module Rubinius
 
   # Support for __END__ and DATA
   def self.set_data(name, offset)
+    # If the name is nil, then it's not for the main script, so we should
+    # ignore it.
+    return unless name
+
     if File.exists? name
       file = File.open name, "r"
       file.seek Integer(offset), IO::SEEK_SET
@@ -289,21 +293,21 @@ module Rubinius
   end
 
   def self.pack_to_int(obj)
-    Type.coerce_to obj, Integer, :to_int
+    Rubinius::Type.coerce_to obj, Integer, :to_int
   end
 
   def self.pack_to_str(obj)
-    Type.coerce_to obj, String, :to_str
+    Rubinius::Type.coerce_to obj, String, :to_str
   end
 
   def self.pack_to_str_or_nil(obj)
     return "" if obj.nil?
-    Type.coerce_to obj, String, :to_str
+    Rubinius::Type.coerce_to obj, String, :to_str
   end
 
   def self.pack_to_s(obj)
     str = obj.to_s
-    str = obj.inspect unless str.kind_of? String
+    str = obj.inspect unless Type.object_kind_of? str, String
     str
   end
 

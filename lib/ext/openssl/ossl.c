@@ -1,5 +1,5 @@
 /*
- * $Id: ossl.c 12496 2007-06-08 15:02:04Z technorama $
+ * $Id$
  * 'OpenSSL for Ruby' project
  * Copyright (C) 2001-2002  Michal Rokos <m.rokos@sh.cvut.cz>
  * All rights reserved.
@@ -75,14 +75,19 @@ STACK_OF(X509) *
 ossl_protect_x509_ary2sk(VALUE ary, int *status)
 {
     return (STACK_OF(X509)*)rb_protect((VALUE(*)_((VALUE)))ossl_x509_ary2sk0,
-               ary, status);
+				       ary, status);
 }
-
 
 STACK_OF(X509) *
 ossl_x509_ary2sk(VALUE ary)
 {
-    return ossl_x509_ary2sk0(ary);
+    STACK_OF(X509) *sk;
+    int status = 0;
+
+    sk = ossl_protect_x509_ary2sk(ary, &status);
+    if(status) rb_jump_tag(status);
+
+    return sk;
 }
 
 #define OSSL_IMPL_SK2ARY(name, type)	        \
@@ -123,10 +128,12 @@ VALUE
 ossl_buf2str(char *buf, int len)
 {
     VALUE str;
+    int status = 0;
 
-    str = ossl_str_new(len);
+    str = rb_protect((VALUE(*)_((VALUE)))ossl_str_new, len, &status);
     if(!NIL_P(str)) memcpy(RSTRING_PTR(str), buf, len);
     OPENSSL_free(buf);
+    if(status) rb_jump_tag(status);
 
     return str;
 }
@@ -148,34 +155,34 @@ ossl_pem_passwd_cb0(VALUE flag)
 int
 ossl_pem_passwd_cb(char *buf, int max_len, int flag, void *pwd)
 {
-  int len, status = 0;
-  VALUE rflag, pass;
+    int len, status = 0;
+    VALUE rflag, pass;
+    
+    if (pwd || !rb_block_given_p())
+	return PEM_def_callback(buf, max_len, flag, pwd);
 
-  if (pwd || !rb_block_given_p())
-    return PEM_def_callback(buf, max_len, flag, pwd);
-
-  while (1) {
-    /*
-     * when the flag is nonzero, this passphrase
-     * will be used to perform encryption; otherwise it will
-     * be used to perform decryption.
-     */
-    rflag = flag ? Qtrue : Qfalse;
-    pass  = rb_protect(ossl_pem_passwd_cb0, rflag, &status);
-    if (status) return -1; /* exception was raised. */
-    len = RSTRING_LEN(pass);
-    if (len < 4) { /* 4 is OpenSSL hardcoded limit */
-      rb_warning("password must be longer than 4 bytes");
-      continue;
+    while (1) {
+	/*
+	 * when the flag is nonzero, this passphrase
+	 * will be used to perform encryption; otherwise it will
+	 * be used to perform decryption.
+	 */
+	rflag = flag ? Qtrue : Qfalse;
+	pass  = rb_protect(ossl_pem_passwd_cb0, rflag, &status);
+	if (status) return -1; /* exception was raised. */
+	len = RSTRING_LEN(pass);
+	if (len < 4) { /* 4 is OpenSSL hardcoded limit */
+	    rb_warning("password must be longer than 4 bytes");
+	    continue;
+	}
+	if (len > max_len) {
+	    rb_warning("password must be shorter then %d bytes", max_len-1);
+	    continue;
+	}
+	memcpy(buf, RSTRING_PTR(pass), len);
+	break;
     }
-    if (len > max_len) {
-      rb_warning("password must be shorter then %d bytes", max_len-1);
-      continue;
-    }
-    memcpy(buf, RSTRING_PTR(pass), len);
-    break;
-  }
-  return len;
+    return len;
 }
 
 /*
@@ -265,10 +272,9 @@ ossl_to_der_if_possible(VALUE obj)
 /*
  * Errors
  */
-void
-ossl_raise(VALUE exc, const char *fmt, ...)
+static VALUE
+ossl_make_error(VALUE exc, const char *fmt, va_list args)
 {
-    va_list args;
     char buf[BUFSIZ];
     const char *msg;
     long e;
@@ -280,17 +286,14 @@ ossl_raise(VALUE exc, const char *fmt, ...)
     e = ERR_peek_error();
 #endif
     if (fmt) {
-	va_start(args, fmt);
 	len = vsnprintf(buf, BUFSIZ, fmt, args);
-	va_end(args);
     }
     if (len < BUFSIZ && e) {
 	if (dOSSL == Qtrue) /* FULL INFO */
 	    msg = ERR_error_string(e, NULL);
 	else
 	    msg = ERR_reason_error_string(e);
-	fmt = len ? ": %s" : "%s";
-	len += snprintf(buf+len, BUFSIZ-len, fmt, msg);
+	len += snprintf(buf+len, BUFSIZ-len, "%s%s", (len ? ": " : ""), msg);
     }
     if (dOSSL == Qtrue){ /* show all errors on the stack */
 	while ((e = ERR_get_error()) != 0){
@@ -300,7 +303,29 @@ ossl_raise(VALUE exc, const char *fmt, ...)
     ERR_clear_error();
 
     if(len > BUFSIZ) len = strlen(buf);
-    rb_exc_raise(rb_exc_new(exc, buf, len));
+    return rb_exc_new(exc, buf, len);
+}
+
+void
+ossl_raise(VALUE exc, const char *fmt, ...)
+{
+    va_list args;
+    VALUE err;
+    va_start(args, fmt);
+    err = ossl_make_error(exc, fmt, args);
+    va_end(args);
+    rb_exc_raise(err);
+}
+
+VALUE
+ossl_exc_new(VALUE exc, const char *fmt, ...)
+{
+    va_list args;
+    VALUE err;
+    va_start(args, fmt);
+    err = ossl_make_error(exc, fmt, args);
+    va_end(args);
+    return err;
 }
 
 /*
