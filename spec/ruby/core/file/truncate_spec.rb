@@ -101,11 +101,10 @@ describe "File#truncate" do
   end
 
   it "does not move the file write pointer to the specified byte offset" do
-    @file.write "a"
-    @file.truncate(0)
-    @file.write "b"
+    @file.truncate(3)
+    @file.write "abc"
     @file.close
-    @name.should have_data("\0\0\0\0\0\0\0\0\0\0\0b")
+    @name.should have_data("123\x00\x00\x00\x00\x00\x00\x00abc")
   end
 
   it "does not move the file read pointer to the specified byte offset" do
