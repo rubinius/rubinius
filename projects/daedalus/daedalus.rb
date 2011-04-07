@@ -147,6 +147,8 @@ module Daedalus
       @log = logger
       @blueprint = blueprint
 
+      @archiver = "ar"
+
       @mod_times = Hash.new do |h,k|
         h[k] = (File.exists?(k) ? File.mtime(k) : Time.at(0))
       end
@@ -214,6 +216,11 @@ module Daedalus
     def shared(path, files)
       @log.show "LIB", path
       @log.command "#{@path} -shared -W1,soname,#{path} #{files.join(' ')} -o #{path} #{@libraries.join(' ')} #{@ldflags.join(' ')}"
+    end
+
+    def static(path, files)
+      @log.show "AR", path
+      @log.command "#{@archiver} rcs #{path} #{files.join(' ')}"
     end
 
     def calculate_deps(path)
@@ -594,6 +601,21 @@ module Daedalus
     end
   end
 
+  class StaticLibrary < Program
+    def describe(ctx)
+      puts "Static Library: #{@path}"
+
+      @files.each do |f|
+        f.describe(ctx)
+      end
+    end
+
+    def build(ctx)
+      ctx.log.inc!
+      ctx.static @path, objects
+    end
+  end
+
   class Tasks
     def initialize
       @pre = []
@@ -755,6 +777,12 @@ module Daedalus
 
     def shared_lib(name, *files)
       lib = SharedLibrary.new(name, files)
+      @programs << lib
+      lib
+    end
+
+    def static_lib(name, *files)
+      lib = StaticLibrary.new(name, files)
       @programs << lib
       lib
     end

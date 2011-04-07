@@ -189,12 +189,14 @@ Daedalus.blueprint do |i|
   files << ltm
 
   libname = RUBY_PLATFORM =~ /mingw|mswin/ ? 'vm/rbx.dll' : 'vm/librbx.so'
-  lib = i.shared_lib libname, *files.dup
+  i.shared_lib libname, *files.dup
+
+  libname = RUBY_PLATFORM =~ /mingw|mswin/ ? 'vm/rbx.lib' : 'vm/librbx.a'
+  i.static_lib libname, *files.dup
 
   cli = i.source_file("vm/drivers/cli.cpp")
 
-  exe_files = []
-  exe_files << lib
+  exe_files = files.dup
   exe_files << cli
 
   exe = RUBY_PLATFORM =~ /mingw|mswin/ ? 'vm/vm.exe' : 'vm/vm'
