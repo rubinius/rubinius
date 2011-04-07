@@ -181,11 +181,13 @@ end
 task 'vm/vm' => GENERATED do
   blueprint = Daedalus.load "rakelib/blueprint.rb"
   blueprint.build "vm/vm", @parallel_jobs
+  blueprint.build "vm/librbx.so", @parallel_jobs
+  blueprint.build "vm/librbx.a", @parallel_jobs
 end
 
 task 'vm/test/runner' => GENERATED do
   blueprint = Daedalus.load "rakelib/blueprint.rb"
-  blueprint.build "vm/test/runner", @parallel_jobs
+  blueprint.build "vm/test/runner", @parallel_job
 end
 
 # Generate files for instructions and interpreters
