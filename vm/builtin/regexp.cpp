@@ -383,19 +383,27 @@ namespace rubinius {
     region = onig_region_new();
 
     max = string->size();
-    str = (UChar*)string->c_str(state);
+    str = (UChar*)string->byte_address();
+
+    native_int i_start = start->to_native();
+    native_int i_end = end->to_native();
+
+    // Bounds check.
+    if(i_start < 0 || i_end < 0 || i_start > max || i_end > max) {
+      return Qnil;
+    }
 
     int* back_match = onig_data->int_map_backward;
 
     if(!RTEST(forward)) {
       beg = onig_search(onig_data, str, str + max,
-                        str + end->to_native(),
-                        str + start->to_native(),
+                        str + i_end,
+                        str + i_start,
                         region, ONIG_OPTION_NONE);
     } else {
       beg = onig_search(onig_data, str, str + max,
-                        str + start->to_native(),
-                        str + end->to_native(),
+                        str + i_start,
+                        str + i_end,
                         region, ONIG_OPTION_NONE);
     }
 
@@ -442,9 +450,11 @@ namespace rubinius {
     max = string->size();
     native_int pos = start->to_native();
 
-    str = (UChar*)string->c_str(state);
+    str = (UChar*)string->byte_address();
     fin = str + max;
 
+    // Bounds check.
+    if(pos > max) return Qnil;
     str += pos;
 
     int* back_match = onig_data->int_map_backward;
