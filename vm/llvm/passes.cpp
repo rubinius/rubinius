@@ -366,16 +366,27 @@ namespace {
       return AliasAnalysis::alias(V1, V1Size, V2, V2Size);
     }
 
+
     virtual
-    AliasAnalysis::ModRefResult getModRefInfo(CallSite cs,
-        Value* val, unsigned size) {
-      if(Function* func = cs.getCalledFunction()) {
+    AliasAnalysis::ModRefResult getModRefInfo(ImmutableCallSite cs,
+        const Value* val, unsigned size) {
+      if(const Function* func = cs.getCalledFunction()) {
         if(func->getName() == "rbx_float_allocate") {
           return NoModRef;
         }
       }
 
       return AliasAnalysis::getModRefInfo(cs, val, size);
+    }
+
+    // This method only exists to appease -Woverloaded-virtual. It's dumb
+    // that it won't allow us to overload only one of the signatures for
+    // getModRefInfo.
+    virtual
+    AliasAnalysis::ModRefResult getModRefInfo(ImmutableCallSite CS1,
+                                              ImmutableCallSite CS2) {
+
+      return AliasAnalysis::getModRefInfo(CS1, CS2);
     }
 
     virtual bool pointsToConstantMemory(const Value* val) {
