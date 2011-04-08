@@ -11,6 +11,7 @@ namespace rubinius {
     : shared_(ss)
     , kind_(kind)
     , name_(kind == eRuby ? "<ruby>" : "<system>")
+    , run_state_(eIndependent)
     , id_(id)
   {}
 
