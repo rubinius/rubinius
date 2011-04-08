@@ -457,7 +457,7 @@ module URI
   # == Args
   #
   # +uri_str+::
-  #   String with URI.
+  #   String like object with URI.
   #
   # == Description
   #
@@ -481,6 +481,17 @@ module URI
   #   # => "www.ruby-lang.org" 
   # 
   def self.parse(uri)
+    case uri
+    when Generic
+      uri
+    when String
+      parse_string(uri)
+    else
+      parse_other(uri)
+    end
+  end
+
+  def self.parse_string(uri) # :nodoc:
     scheme, userinfo, host, port, 
       registry, path, opaque, query, fragment = self.split(uri)
 
@@ -492,6 +503,17 @@ module URI
       Generic.new(scheme, userinfo, host, port, 
                   registry, path, opaque, query, 
                   fragment)
+    end
+  end
+
+  def self.parse_other(uri) # :nodoc:
+    uri = uri.respond_to?(:to_str) ? uri.to_str : uri.to_s
+
+    if uri.is_a?(String)
+      parse_string(uri)
+    else
+      raise ArgumentError,
+        "Bad argument(expected URI object, URI string, or string-like object)"
     end
   end
 
