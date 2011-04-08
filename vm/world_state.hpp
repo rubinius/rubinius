@@ -35,6 +35,7 @@ namespace rubinius {
       should_stop_ = false;
     }
 
+
     /**
      * If called when the GC is waiting to run, wait until the GC tells us its
      * OK to continue. Always decrements pending_threads_ at the end.
@@ -52,7 +53,8 @@ namespace rubinius {
       case ManagedThread::eSuspended:
         // This is sort of bad. We're already suspendend
         // and want to go independent. Abort on this.
-        assert(0 && "Trying to make a suspended thread independent");
+        std::cerr << "Trying to make a suspended thread independent\n";
+        rubinius::abort();
         break;
       case ManagedThread::eRunning:
         // If someone is waiting on us to stop, stop now.
@@ -77,7 +79,8 @@ namespace rubinius {
         return;
       case ManagedThread::eSuspended:
         // Again, bad, don't allow this.
-        assert(0 && "Trying to make a suspended thread go dependent");
+        std::cerr << "Trying to make a suspended thread dependent\n";
+        rubinius::abort();
         break;
       case ManagedThread::eIndependent:
         // If the GC is running, wait here...
@@ -108,6 +111,11 @@ namespace rubinius {
         std::cerr << "[" << VM::current() << " WORLD waiting until alone]\n";
       }
 
+      if(state->run_state_ != ManagedThread::eRunning) {
+        std::cerr << "A non-running thread is trying to wait til alone.\n";
+        rubinius::abort();
+      }
+
       // For ourself..
       pending_threads_--;
 
@@ -134,6 +142,11 @@ namespace rubinius {
 
       if(cDebugThreading) {
         std::cerr << "[" << VM::current() << " WORLD waking all threads]\n";
+      }
+
+      if(state->run_state_ != ManagedThread::eAlone) {
+        std::cerr << "A non-alone thread is trying to wake all.\n";
+        rubinius::abort();
       }
 
       // For ourself..
@@ -166,6 +179,11 @@ namespace rubinius {
     void wait_to_run(THREAD) {
       if(cDebugThreading) {
         std::cerr << "[" << VM::current() << " WORLD stopping, waiting to be resarted]\n";
+      }
+
+      if(state->run_state_ != ManagedThread::eRunning) {
+        std::cerr << "Suspending a non running thread!\n";
+        rubinius::abort();
       }
 
       state->run_state_ = ManagedThread::eSuspended;

@@ -204,6 +204,7 @@ namespace rubinius {
     }
   };
 
+
 #define SYNC(vm) LockableScopedLock __lsl_guard__(vm, this, __FILE__, __LINE__)
 #define SYNC_TL LockableScopedLock __lsl_guard__(ManagedThread::current(), this, __FILE__, __LINE__)
 

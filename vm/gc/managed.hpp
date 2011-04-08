@@ -44,7 +44,6 @@ namespace rubinius {
     gc::Slab local_slab_;
     pthread_t os_thread_;
     uint32_t id_;
-    CallFrame* saved_call_frame_;
 
   public:
     ManagedThread(uint32_t id, SharedState& ss, Kind kind);

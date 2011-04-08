@@ -109,10 +109,13 @@ namespace rubinius {
     }
   }
 
+
+  static bool hard_abort = true;
+
   void abort() {
     std::cout << "Abort!" << std::endl;
     print_backtrace();
-    assert(0);
+    if(hard_abort) ::abort();
   }
 
   void bug(const char* message) {
