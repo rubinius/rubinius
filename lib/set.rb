@@ -511,16 +511,16 @@ module Enumerable
 end
 
 # =begin
-# == Restrictedset class
-# Restrictedset implements a set with restrictions defined by a given
+# == RestricedSet class
+# RestricedSet implements a set with restrictions defined by a given
 # block.
 # 
 # === Super class
 #     Set
 # 
 # === Class Methods
-# --- Restrictedset::new(enum = nil) { |o| ... }
-# --- Restrictedset::new(enum = nil) { |rset, o| ... }
+# --- RestricedSet::new(enum = nil) { |o| ... }
+# --- RestricedSet::new(enum = nil) { |rset, o| ... }
 #     Creates a new restricted set containing the elements of the given
 #     enumerable object.  Restrictions are defined by the given block.
 # 
@@ -537,7 +537,7 @@ end
 # 
 # =end
 # 
-# class Restrictedset < Set
+# class RestricedSet < Set
 #   def initialize(*args, &block)
 #     @proc = block or raise ArgumentError, "missing a block"
 # 
@@ -1200,16 +1200,16 @@ class TC_Enumerable < Test::Unit::TestCase
   end
 end
 
-# class TC_Restrictedset < Test::Unit::TestCase
+# class TC_RestricedSet < Test::Unit::TestCase
 #   def test_s_new
-#     assert_raises(ArgumentError) { Restrictedset.new }
+#     assert_raises(ArgumentError) { RestricedSet.new }
 # 
-#     s = Restrictedset.new([-1,2,3]) { |o| o > 0 }
+#     s = RestricedSet.new([-1,2,3]) { |o| o > 0 }
 #     assert_equal([2,3], s.sort)
 #   end
 # 
 #   def test_restriction_proc
-#     s = Restrictedset.new([-1,2,3]) { |o| o > 0 }
+#     s = RestricedSet.new([-1,2,3]) { |o| o > 0 }
 # 
 #     f = s.restriction_proc
 #     assert_instance_of(Proc, f)
@@ -1218,7 +1218,7 @@ end
 #   end
 # 
 #   def test_replace
-#     s = Restrictedset.new(-3..3) { |o| o > 0 }
+#     s = RestricedSet.new(-3..3) { |o| o > 0 }
 #     assert_equal([1,2,3], s.sort)
 # 
 #     s.replace([-2,0,3,4,5])
@@ -1226,7 +1226,7 @@ end
 #   end
 # 
 #   def test_merge
-#     s = Restrictedset.new { |o| o > 0 }
+#     s = RestricedSet.new { |o| o > 0 }
 #     s.merge(-5..5)
 #     assert_equal([1,2,3,4,5], s.sort)
 # 
