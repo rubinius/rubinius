@@ -315,7 +315,7 @@ class IO
   # and returns them as a two-element array of IO objects:
   # [ read_file, write_file ]. Not available on all platforms.
   #
-  # In the example below, the two processes close the ends of 
+  # In the example below, the two processes close the ends of
   # the pipe that they are not using. This is not just a cosmetic
   # nicety. The read end of a pipe will not generate an end of
   # file condition if there are any writers with the pipe still
@@ -348,7 +348,7 @@ class IO
     return [lhs, rhs]
   end
 
-  ## 
+  ##
   # Runs the specified command string as a subprocess;
   # the subprocess‘s standard input and output will be
   # connected to the returned IO object. If cmd_string
@@ -359,10 +359,10 @@ class IO
   #
   # If a block is given, Ruby will run the command as a
   # child connected to Ruby with a pipe. Ruby‘s end of
-  # the pipe will be passed as a parameter to the block. 
+  # the pipe will be passed as a parameter to the block.
   # At the end of block, Ruby close the pipe and sets $?.
   # In this case IO::popen returns the value of the block.
-  # 
+  #
   # If a block is given with a cmd_string of ``-’’, the
   # block will be run in two separate processes: once in
   # the parent, and once in a child. The parent process
@@ -379,7 +379,7 @@ class IO
   #  IO.popen("-") {|f| $stderr.puts "#{Process.pid} is here, f is #{f}"}
   #  p $?
   # produces:
-  # 
+  #
   #  ["Linux\n"]
   #  Parent is 26166
   #  Wed Apr  9 08:53:52 CDT 2003
@@ -515,7 +515,7 @@ class IO
     return str
   end
 
-  ## 
+  ##
   # Reads the entire file specified by name as individual
   # lines, and returns those lines in an array. Lines are
   # separated by sep_string.
@@ -849,7 +849,7 @@ class IO
   #  f = File.new("testfile")
   #  dummy = f.readlines
   #  f.eof   #=> true
-  # If ios is a stream such as pipe or socket, IO#eof? 
+  # If ios is a stream such as pipe or socket, IO#eof?
   # blocks until the other end sends some data or closes it.
   #
   #  r, w = IO.pipe
@@ -914,7 +914,7 @@ class IO
 
   ##
   # Flushes any buffered data within ios to the underlying
-  # operating system (note that this is Ruby internal 
+  # operating system (note that this is Ruby internal
   # buffering only; the OS may buffer the data as well).
   #
   #  $stdout.print "no newline"
@@ -966,7 +966,7 @@ class IO
   ##
   # Reads the next ``line’’ from the I/O stream;
   # lines are separated by sep_string. A separator
-  # of nil reads the entire contents, and a zero-length 
+  # of nil reads the entire contents, and a zero-length
   # separator reads the input a paragraph at a time (two
   # successive newlines in the input separate paragraphs).
   # The stream must be opened for reading or an IOError
@@ -1133,7 +1133,7 @@ class IO
   # Writes the given objects to ios as with IO#print.
   # Writes a record separator (typically a newline)
   # after any that do not already end with a newline
-  # sequence. If called with an array argument, writes 
+  # sequence. If called with an array argument, writes
   # each element on a new line. If called without arguments,
   # outputs a single record separator.
   #
@@ -1575,7 +1575,7 @@ class IO
   ##
   # Reads integer bytes from ios using a low-level read and returns
   # them as a string. Do not mix with other methods that read from
-  # ios or you may get unpredictable results. Raises SystemCallError 
+  # ios or you may get unpredictable results. Raises SystemCallError
   # on error and EOFError at end of file.
   #
   #  f = File.new("testfile")

@@ -206,7 +206,7 @@ namespace rubinius {
     enc = current_encoding(state);
     if(enc == onig_data->enc) return;
 
-    pat = (UChar*)source()->c_str(state);
+    pat = (UChar*)source()->byte_address();
     end = pat + source()->size();
 
     int options = onig_data->options;
@@ -247,7 +247,7 @@ namespace rubinius {
     OnigEncoding enc;
     int err, num_names, kcode;
 
-    pat = (UChar*)pattern->c_str(state);
+    pat = (UChar*)pattern->byte_address();
     end = pat + pattern->size();
 
     opts  = options->to_native();
@@ -383,19 +383,27 @@ namespace rubinius {
     region = onig_region_new();
 
     max = string->size();
-    str = (UChar*)string->c_str(state);
+    str = (UChar*)string->byte_address();
+
+    native_int i_start = start->to_native();
+    native_int i_end = end->to_native();
+
+    // Bounds check.
+    if(i_start < 0 || i_end < 0 || i_start > max || i_end > max) {
+      return Qnil;
+    }
 
     int* back_match = onig_data->int_map_backward;
 
     if(!RTEST(forward)) {
       beg = onig_search(onig_data, str, str + max,
-                        str + end->to_native(),
-                        str + start->to_native(),
+                        str + i_end,
+                        str + i_start,
                         region, ONIG_OPTION_NONE);
     } else {
       beg = onig_search(onig_data, str, str + max,
-                        str + start->to_native(),
-                        str + end->to_native(),
+                        str + i_start,
+                        str + i_end,
                         region, ONIG_OPTION_NONE);
     }
 
@@ -442,9 +450,11 @@ namespace rubinius {
     max = string->size();
     native_int pos = start->to_native();
 
-    str = (UChar*)string->c_str(state);
+    str = (UChar*)string->byte_address();
     fin = str + max;
 
+    // Bounds check.
+    if(pos > max) return Qnil;
     str += pos;
 
     int* back_match = onig_data->int_map_backward;
@@ -492,7 +502,7 @@ namespace rubinius {
     max = string->size();
     native_int pos = start->to_native();
 
-    str = (UChar*)string->c_str(state);
+    str = (UChar*)string->byte_address();
     fin = str + max;
 
     str += pos;
@@ -529,13 +539,16 @@ namespace rubinius {
     Fixnum* beg = try_as<Fixnum>(full_->at(state, 0));
     Fixnum* fin = try_as<Fixnum>(full_->at(state, 1));
 
+    native_int max = source_->size();
+    native_int f = fin->to_native();
+    native_int b = beg->to_native();
+
     if(!beg || !fin ||
-        fin->to_native() > source_->size() ||
-        beg->to_native() < 0) {
+        f > max || b > max || b < 0) {
       return String::create(state, 0, 0);
     }
 
-    const char* str = source_->c_str(state);
+    const char* str = (char*)source_->byte_address();
     native_int sz = fin->to_native() - beg->to_native();
 
     return String::create(state, str + beg->to_native(), sz);
@@ -544,12 +557,16 @@ namespace rubinius {
   String* MatchData::pre_matched(STATE) {
     Fixnum* beg = try_as<Fixnum>(full_->at(state, 0));
 
-    if(!beg || beg->to_native() <= 0) {
+    native_int max = source_->size();
+    native_int sz = beg->to_native();
+
+    if(!beg || sz <= 0) {
       return String::create(state, 0, 0);
     }
 
-    const char* str = source_->c_str(state);
-    native_int sz = beg->to_native();
+    if(sz > max) sz = max;
+
+    const char* str = (char*)source_->byte_address();
 
     return String::create(state, str, sz);
   }
@@ -557,14 +574,19 @@ namespace rubinius {
   String* MatchData::post_matched(STATE) {
     Fixnum* fin = try_as<Fixnum>(full_->at(state, 1));
 
-    if(!fin || fin->to_native() >= source_->size()) {
+    native_int f = fin->to_native();
+    native_int max = source_->size();
+
+    if(!fin || f >= max) {
       return String::create(state, 0, 0);
     }
 
-    const char* str = source_->c_str(state);
-    native_int sz = (native_int)source_->size() - fin->to_native();
+    const char* str = (char*)source_->byte_address();
+    native_int sz = max - f;
 
-    return String::create(state, str + fin->to_native(), sz);
+    if(sz > max) sz = max;
+
+    return String::create(state, str + f, sz);
   }
 
   Object* MatchData::nth_capture(STATE, native_int which) {
@@ -576,16 +598,22 @@ namespace rubinius {
     Fixnum* beg = try_as<Fixnum>(sub->at(state, 0));
     Fixnum* fin = try_as<Fixnum>(sub->at(state, 1));
 
+    native_int b = beg->to_native();
+    native_int f = fin->to_native();
+    native_int max = source_->size();
+
     if(!beg || !fin ||
-        fin->to_native() > source_->size() ||
-        beg->to_native() < 0) {
+        f > max ||
+        b < 0) {
       return Qnil;
     }
 
-    const char* str = source_->c_str(state);
-    native_int sz = fin->to_native() - beg->to_native();
+    const char* str = (char*)source_->byte_address();
+    native_int sz = f - b;
 
-    return String::create(state, str + beg->to_native(), sz);
+    if(sz > max) sz = max;
+
+    return String::create(state, str + b, sz);
   }
 
   Object* MatchData::last_capture(STATE) {

@@ -100,6 +100,21 @@ describe "File#truncate" do
     rm_r @name
   end
 
+  it "does not move the file write pointer to the specified byte offset" do
+    @file.truncate(3)
+    @file.write "abc"
+    @file.close
+    @name.should have_data("123\x00\x00\x00\x00\x00\x00\x00abc")
+  end
+
+  it "does not move the file read pointer to the specified byte offset" do
+    File.open(@name, "r+") do |f|
+      f.read(1).should == "1"
+      f.truncate(0)
+      f.read(1).should == nil
+    end
+  end
+
   it "truncates a file" do
     File.size(@name).should == 10
 
