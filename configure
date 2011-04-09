@@ -98,6 +98,14 @@ class Configure
       @ldshared = "#{@cc} -shared"
     end
 
+    if RbConfig::CONFIG["build_os"] =~ /win32/
+      @shared_lib_name = "rubinius.dll"
+      @static_lib_name = "rubinius-static.lib"
+    else
+      @shared_lib_name = "librubinius.so"
+      @static_lib_name = "librubinius-static.a"
+    end
+
     import_env
   end
 
@@ -832,6 +840,8 @@ module Rubinius
     :sitedir        => "#{@sitedir}",
     :vendordir      => "#{@vendordir}",
     :program_name   => "#{@program_name}",
+    :shared_lib_name => "#{@shared_lib_name}",
+    :static_lib_name => "#{@static_lib_name}",
     :version        => "#{@version}",
     :libversion     => "#{@libversion}",
     :release_date   => "#{@release_date}",
