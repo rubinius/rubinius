@@ -2,7 +2,7 @@ require File.expand_path('../../../spec_helper', __FILE__)
 require 'actor'
 
 describe "Actor#trap_exit" do
-  it "should access the trap_exit flag for the current actor" do
+  it "accesses the trap_exit flag for the current actor" do
     sync = Rubinius::Channel.new
     Actor.spawn do
       begin

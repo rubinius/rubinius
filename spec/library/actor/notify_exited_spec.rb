@@ -2,7 +2,7 @@ require File.expand_path('../../../spec_helper', __FILE__)
 require 'actor'
 
 describe "Actor#notify_exited" do
-  it "should kill actors not trapping exits" do
+  it "kills actors not trapping exits" do
     sync = Rubinius::Channel.new
     actor = Actor.spawn do
       begin
@@ -21,7 +21,7 @@ describe "Actor#notify_exited" do
     ex.reason.should == :reason
   end
 
-  it "should deliver messages to actors trapping exits" do
+  it "delivers a message to an actor trapping exits" do
     sync = Rubinius::Channel.new
     actor = Actor.spawn do
       Actor.trap_exit = true
