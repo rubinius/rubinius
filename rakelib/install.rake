@@ -143,6 +143,12 @@ namespace :install do
         install_file name, /^preinstalled-gems/, BUILD_CONFIG[:gemsdir]
       end
 
+      # Install Rubinius headers
+      headers_dir = "#{BUILD_CONFIG[:includedir]}/rubinius"
+      FileList["vm/**/*.h{,pp}"].each do |name|
+        install_file name, /^vm/, headers_dir
+      end
+
       # Install the Rubinius executable
       exe = "#{BUILD_CONFIG[:bindir]}/#{BUILD_CONFIG[:program_name]}"
       install "vm/vm", install_dir(exe), :mode => 0755, :verbose => true
