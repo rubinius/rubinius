@@ -188,10 +188,10 @@ Daedalus.blueprint do |i|
   files << onig
   files << ltm
 
-  libname = RUBY_PLATFORM =~ /mingw|mswin/ ? 'vm/rbx.dll' : 'vm/librbx.so'
+  libname = "vm/#{Rubinius::BUILD_CONFIG[:shared_lib_name]}"
   i.shared_lib libname, *files.dup
 
-  libname = RUBY_PLATFORM =~ /mingw|mswin/ ? 'vm/rbx.lib' : 'vm/librbx.a'
+  libname = "vm/#{Rubinius::BUILD_CONFIG[:static_lib_name]}"
   i.static_lib libname, *files.dup
 
   cli = i.source_file("vm/drivers/cli.cpp")
