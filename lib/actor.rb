@@ -341,14 +341,16 @@ class Actor
   # Most users will want to use Actor.send_exit instead.
   #
   def notify_exited(actor, reason)
+    to_send = nil
     @lock.receive
     begin
       return self unless @alive
       @links.delete(actor)
+      ex = DeadActorError.new(actor, reason)
       if @trap_exit
-        send [:exit, actor, reason]
+        to_send = ex
       elsif reason
-        @interrupts << DeadActorError.new(actor, reason)
+        @interrupts << ex
         if @filter
           @filter = nil
           @ready << nil
@@ -357,6 +359,7 @@ class Actor
     ensure
       @lock << nil
     end
+    send to_send if to_send
     self
   end
 
