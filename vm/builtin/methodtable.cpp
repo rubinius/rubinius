@@ -127,6 +127,7 @@ namespace rubinius {
       if(entry->name() == name) {
         entry->method(state, method);
         entry->visibility(state, vis);
+        if(unlock(state) != eUnlocked) rubinius::abort();
         return name;
       }
       last = entry;
@@ -141,7 +142,7 @@ namespace rubinius {
 
     entries(state, Fixnum::from(num_entries + 1));
 
-    unlock(state);
+    if(unlock(state) != eUnlocked) rubinius::abort();
     return name;
   }
 
@@ -182,6 +183,7 @@ namespace rubinius {
       if(entry->name() == name) {
         entry->method(state, method);
         entry->visibility(state, vis);
+        if(unlock(state) != eUnlocked) rubinius::abort();
         return name;
       }
       last = entry;
@@ -195,7 +197,7 @@ namespace rubinius {
     }
 
     entries(state, Fixnum::from(num_entries + 1));
-    unlock(state);
+    if(unlock(state) != eUnlocked) rubinius::abort();
     return name;
   }
   MethodTableBucket* MethodTable::find_entry(STATE, Symbol* name) {
@@ -264,6 +266,7 @@ namespace rubinius {
           values_->put(state, bin, entry->next());
         }
         entries(state, Fixnum::from(entries_->to_native() - 1));
+        if(unlock(state) != eUnlocked) rubinius::abort();
         return val;
       }
 
@@ -271,7 +274,7 @@ namespace rubinius {
       entry = try_as<MethodTableBucket>(entry->next());
     }
 
-    unlock(state);
+    if(unlock(state) != eUnlocked) rubinius::abort();
 
     return nil<Executable>();
   }
