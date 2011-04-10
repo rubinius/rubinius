@@ -1,2 +1,0 @@
-fails:Instantiating an eigenclass raises a TypeError when new is called
-fails:Instantiating an eigenclass raises a TypeError when allocate is called

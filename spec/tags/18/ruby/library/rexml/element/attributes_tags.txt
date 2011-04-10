@@ -1,1 +1,0 @@
-fails:REXML::Element#attributes returns element's Attributes

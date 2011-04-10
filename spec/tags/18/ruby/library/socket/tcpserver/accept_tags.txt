@@ -1,2 +1,0 @@
-unstable:TCPServer#accept can be interrupted by Thread#kill
-unstable:TCPServer#accept can be interrupted by Thread#raise

@@ -1,1 +1,0 @@
-fails:C-API Thread function rb_thread_blocking_region w/ ubf_io runs a C function with the global lock unlocked
