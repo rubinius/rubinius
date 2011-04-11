@@ -79,18 +79,12 @@ module SocketSpecs
         log "SpecTCPServer starting on #{@host}:#{@port}"
         @server = TCPServer.new @host, @port
 
-        loop do
-          begin
-            break if shutdown?
+        wait_for @server do
+          socket = @server.accept
+          log "SpecTCPServer accepted connection: #{socket}"
+          service socket
 
-            socket = @server.accept_nonblock
-            log "SpecTCPServer accepted connection: #{socket}"
-            service socket
-
-            @accepted = true
-          rescue Errno::EAGAIN, Errno::ECONNABORTED, Errno::EPROTO, Errno::EINTR
-            break unless wait_for @server
-          end
+          @accepted = true
         end
       end
 
@@ -99,29 +93,18 @@ module SocketSpecs
 
     def service(socket)
       thr = Thread.new do
-        loop do
-          begin
-            if shutdown?
-              socket.close
-              break
-            end
-
-            data = socket.recv_nonblock(1024)
+        begin
+          wait_for socket do
+            data = socket.recv(1024)
             break if data.empty?
             log "SpecTCPServer received: #{data.inspect}"
 
-            if data == "QUIT"
-              socket.close
-              break
-            end
+            break if data == "QUIT"
 
             socket.send data, 0
-          rescue Errno::EAGAIN, Errno::EINTR
-            unless wait_for socket
-              socket.close
-              break
-            end
           end
+        ensure
+          socket.close
         end
       end
 
@@ -132,7 +115,7 @@ module SocketSpecs
       loop do
         read, _, _ = IO.select([io], [], [], 0.25)
         return false if shutdown?
-        return read if read
+        yield if read
       end
     end
 
