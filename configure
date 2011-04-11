@@ -103,10 +103,10 @@ class Configure
     @rb_readline = false
 
     # Essential settings (modify these for creating releases)
-    @libversion = "1.3"
+    @libversion = "2.0"
     @version = "#{@libversion}.0dev"
     @release_date = "yyyy-mm-dd"
-    @config_version = 126
+    @config_version = 127
 
     # TODO: add conditionals for platforms
     if RbConfig::CONFIG["build_os"] =~ /darwin/
