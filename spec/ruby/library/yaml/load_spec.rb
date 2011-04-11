@@ -88,17 +88,18 @@ describe "YAML.load" do
     YAML.load(string).should == expected
   end
 
-  it "loads iso8601 timestamp with correct microsecond" do
-    t1 = YAML.load("2011-03-22t23:32:11.2233+01:00")
-    t1.usec.should == 223300
+  describe "with iso8601 timestamp" do
+    it "computes the microseconds" do
+      [ [YAML.load("2011-03-22t23:32:11.2233+01:00"),   223300],
+        [YAML.load("2011-03-22t23:32:11.0099+01:00"),   9900],
+        [YAML.load("2011-03-22t23:32:11.000076+01:00"), 76]
+      ].should be_computed_by(:usec)
+    end
 
-    t2 = YAML.load("2011-03-22t23:32:11.0099+01:00")
-    t2.usec.should == 9900
-
-    t3 = YAML.load("2011-03-22t23:32:11.000076+01:00")
-    t3.usec.should == 76
-
-    t4 = YAML.load("2011-03-22t23:32:11.000000342222+01:00")
-    t4.usec.should == 0
+    ruby_bug "#4571", "1.9.2" do
+      it "rounds values smaller than 1 usec to 0 " do
+        YAML.load("2011-03-22t23:32:11.000000342222+01:00").usec.should == 0
+      end
+    end
   end
 end
