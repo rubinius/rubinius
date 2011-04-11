@@ -13,10 +13,13 @@ module Rubinius
         names = []
         eval_names = []
         variables.each_pair do |name, var|
-          if var.kind_of? EvalLocalVariable
+          case var
+          when EvalLocalVariable
             eval_names << name
-          else
+          when LocalVariable
             names[var.slot] = name
+          # We ignore NestedLocalVariables because they're
+          # tagged as existing only in their source scope.
           end
         end
         names += eval_names

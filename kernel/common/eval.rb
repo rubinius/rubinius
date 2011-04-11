@@ -16,10 +16,8 @@ module Kernel
         end
       end
 
-      # Should not have any special cases here
-      if dyn = scope.dynamic_locals
-        dyn.keys.each {|name| locals << name.to_s }
-      end
+      # the names of dynamic locals is now handled by the compiler
+      # and thusly local_names has them.
 
       scope = scope.parent
     end
