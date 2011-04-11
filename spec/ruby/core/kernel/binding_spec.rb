@@ -34,4 +34,16 @@ end
 
 describe "Kernel.binding" do
   it "needs to be reviewed for spec completeness"
+  
+  ruby_version_is ""..."1.9" do
+    it "uses Kernel for 'self' in the binding" do
+      eval('self', Kernel.binding).should == Kernel
+    end
+  end
+  
+  ruby_version_is "1.9" do
+    it "uses the caller's self for 'self' in the binding" do
+      eval('self', Kernel.binding).should == self
+    end
+  end
 end

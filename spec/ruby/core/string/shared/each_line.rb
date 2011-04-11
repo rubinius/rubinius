@@ -1,4 +1,18 @@
 describe :string_each_line, :shared => true do
+  it "splits using default newline separator when none is specified" do
+    a = []
+    "one\ntwo\r\nthree".send(@method) { |s| a << s }
+    a.should == ["one\n", "two\r\n", "three"]
+
+    b = []
+    "hello\n\n\nworld".send(@method) { |s| b << s }
+    b.should == ["hello\n", "\n", "\n", "world"]
+    
+    c = []
+    "\n\n\n\n\n".send(@method) {|s| c << s}
+    c.should == ["\n", "\n", "\n", "\n", "\n"]
+  end
+    
   it "splits self using the supplied record separator and passes each substring to the block" do
     a = []
     "one\ntwo\r\nthree".send(@method, "\n") { |s| a << s }

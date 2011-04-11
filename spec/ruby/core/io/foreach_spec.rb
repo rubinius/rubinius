@@ -55,7 +55,7 @@ describe "IO.foreach" do
 
   ruby_version_is "1.9.2" do
     it "accepts an optional options argument" do
-      IO.foreach(@name, mode => 'r') {|l| ScratchPad << l}
+      IO.foreach(@name, :mode => 'r') {|l| ScratchPad << l}
       ScratchPad.recorded.should == IOSpecs.lines
     end
   end

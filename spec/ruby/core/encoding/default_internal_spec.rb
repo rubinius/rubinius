@@ -60,7 +60,7 @@ with_feature :encoding do
     end
 
     it "can accept a name of an encoding as a String" do
-      Encoding.default_internal = 'sjis'
+      Encoding.default_internal = 'Shift_JIS'
       Encoding.default_internal.should == Encoding::SHIFT_JIS
     end
 

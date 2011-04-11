@@ -15,10 +15,18 @@ describe "ENV.[]" do
   it "returns nil if the variable isn't found" do
     ENV["this_var_is_never_set"].should == nil
   end
+  
+  it "returns only frozen values" do
+    ENV[@variable_name].frozen?.should == true
+    ENV["returns_only_frozen_values"] = "a non-frozen string"
+    ENV["returns_only_frozen_values"].frozen?.should == true
+  end
 
   ruby_version_is "1.9" do
     it "uses the locale encoding" do
       ENV[@variable_name].encoding.should == Encoding.find('locale')
+      ENV["uses_the_locale_encoding"] = "a binary string".force_encoding('binary')
+      ENV["uses_the_locale_encoding"].encoding.should == Encoding.find('locale')
     end
   end
 end

@@ -1,3 +1,5 @@
+require File.join(File.dirname(__FILE__), '../fixtures/literal_lambda')
+
 describe "->(){}" do
   it "can be specified as a literal" do
     lambda { ->(){} }.should_not raise_error
@@ -132,5 +134,10 @@ describe "->(){}" do
     @called = false
     ->() { @called = true }
     @called.should be_false
+  end
+  
+  it "evaluates constants as normal blocks do" do
+    l = LiteralLambdaMethods.literal_lambda_with_constant
+    l.().should == "some value"
   end
 end
