@@ -446,7 +446,7 @@ typedef struct RIO rb_io_t;
 #define rb_cTime              (capi_get_constant(cCApiTime))
 #define rb_cTrueClass         (capi_get_constant(cCApiTrue))
 #define rb_cProc              (capi_get_constant(cCApiProc))
-#define rb_cMethod            (capi_get_constant(cCApiMethod)
+#define rb_cMethod            (capi_get_constant(cCApiMethod))
 
 /* Global Module objects. */
 
