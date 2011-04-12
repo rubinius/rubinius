@@ -3,6 +3,7 @@ module Rubinius
     attr_reader :parent
     attr_reader :block
     attr_reader :module
+    attr_reader :self
 
     # CompiledMethod this scope is for.
     #

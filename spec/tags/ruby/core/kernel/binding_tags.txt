@@ -1,2 +1,0 @@
-incomplete:Kernel.binding needs to be reviewed for spec completeness
-fails:Kernel.binding uses Kernel for 'self' in the binding
