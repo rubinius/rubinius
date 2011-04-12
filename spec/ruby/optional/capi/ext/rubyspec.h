@@ -78,6 +78,7 @@
 #define HAVE_RB_CNUMERIC                   1
 #define HAVE_RB_COBJECT                    1
 #define HAVE_RB_CPROC                      1
+#define HAVE_RB_CMETHOD                    1
 #define HAVE_RB_CRANGE                     1
 #define HAVE_RB_CREGEXP                    1
 #define HAVE_RB_CSTRING                    1

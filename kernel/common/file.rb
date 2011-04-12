@@ -1010,6 +1010,8 @@ class File < IO
     ensure_open_and_writable
     raise Errno::EINVAL, "Can't truncate a file to a negative length" if length < 0
 
+    flush
+    reset_buffering
     n = POSIX.ftruncate(@descriptor, length)
     Errno.handle if n == -1
     n

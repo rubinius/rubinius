@@ -1,35 +1,6 @@
 require File.expand_path('../../../spec_helper', __FILE__)
 
 describe "A Call node using FastNew transform" do
-  relates "new" do
-    compile do |g|
-      g.push :self
-      g.send :new, 0, true
-    end
-
-    compile :fast_new do |g|
-      slow = g.new_label
-      done = g.new_label
-
-      g.push :self
-      g.dup
-      g.check_serial_private :new, Rubinius::CompiledMethod::KernelMethodSerial
-      gif slow
-
-      g.send :allocate, 0, true
-      g.dup
-      g.send :initialize, 0, true
-      g.pop
-      g.goto done
-
-      slow.set!
-
-      g.send :new, 0, true
-
-      done.set!
-    end
-  end
-
   relates "new(a)" do
     compile do |g|
       g.push :self

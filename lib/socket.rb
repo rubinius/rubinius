@@ -146,8 +146,7 @@ class BasicSocket < IO
   #
   def recv_nonblock(bytes_to_read, flags = 0)
     fcntl Fcntl::F_SETFL, Fcntl::O_NONBLOCK
-    recvfrom bytes_to_read, flags
-
+    socket_recv bytes_to_read, flags, 0
   rescue Errno::EWOULDBLOCK
     raise Errno::EAGAIN
   end
@@ -1007,11 +1006,11 @@ class TCPSocket < IPSocket
   end
 
 
-  def initialize(host, port)
+  def initialize(host, port, local_host=nil, local_service=nil)
     @host = host
     @port = port
 
-    tcp_setup @host, @port
+    tcp_setup @host, @port, local_host, local_service
   end
 
   def tcp_setup(remote_host, remote_service, local_host = nil,
@@ -1028,7 +1027,9 @@ class TCPSocket < IPSocket
                                                    Socket::SOCK_STREAM, 0,
                                                    flags)
 
-    if server == false and (local_host or local_service) then
+    if server == false and (local_host or local_service)
+      local_host    = local_host.to_s    if local_host
+      local_service = local_service.to_s if local_service
       @local_addrinfo = Socket::Foreign.getaddrinfo(local_host,
                                                     local_service,
                                                     Socket::AF_UNSPEC,

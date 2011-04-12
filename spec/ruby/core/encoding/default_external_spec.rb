@@ -35,13 +35,13 @@ with_feature :encoding do
     end
 
     it "can accept a name of an encoding as a String" do
-      Encoding.default_external = 'sjis'
+      Encoding.default_external = 'Shift_JIS'
       Encoding.default_external.should == Encoding::SHIFT_JIS
     end
 
     it "calls #to_s on arguments that are neither Strings nor Encodings" do
       string = mock('string')
-      string.should_receive(:to_str).twice.and_return('ascii')
+      string.should_receive(:to_str).twice.and_return('US-ASCII')
       Encoding.default_external = string
       Encoding.default_external.should == Encoding::ASCII
     end

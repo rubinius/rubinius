@@ -34,6 +34,7 @@ class Binding
   attr_accessor :code
   attr_accessor :static_scope
   attr_accessor :proc_environment
+  attr_accessor :self
 
   def from_proc?
     @proc_environment
@@ -50,9 +51,10 @@ class Binding
   # See Kernel#binding in kernel/common/eval.rb for a simple example of
   # creating a Binding object.
   #
-  def self.setup(variables, code, static_scope)
+  def self.setup(variables, code, static_scope, recv=nil)
     bind = allocate()
 
+    bind.self = recv || variables.self
     bind.variables = variables
     bind.code = code
     bind.static_scope = static_scope

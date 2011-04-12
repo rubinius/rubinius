@@ -242,6 +242,8 @@ module Rubinius
       KernelMethodSerial = 47
 
       def self.match?(line, receiver, name, arguments, privately)
+        # ignore vcall style
+        return false if !arguments and privately
         name == :new
       end
 

@@ -11,7 +11,7 @@ class Regexp
   def compile(pattern, opts)
     Ruby.primitive :regexp_initialize
     raise PrimitiveFailure,
-          "regexp_new(#{str.inspect}, #{opts}, #{lang.inspect}) primitive failed"
+          "Regexp.compile(#{pattern.inspect}, #{opts}) primitive failed"
   end
 
   private :compile

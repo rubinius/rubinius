@@ -82,6 +82,7 @@ namespace rubinius {
         map[cCApiProc]       = "Proc";
         map[cCApiGC]         = "GC";
         map[cCApiCAPI]       = "Rubinius::CAPI";
+        map[cCApiMethod]     = "Method";
 
         map[cCApiArgumentError]       = "ArgumentError";
         map[cCApiEOFError]            = "EOFError";
