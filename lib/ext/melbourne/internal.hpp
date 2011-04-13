@@ -111,12 +111,11 @@ namespace melbourne {
     stack_type cmdarg_stack;
 
     void *lval; /* the parser's yylval */
-    VALUE eofp;
+    bool eofp;
 
     std::vector<bstring>* magic_comments;
     int column;
     NODE *top_node;
-    ID *locals;
 
     LocalState* variables;
 
@@ -130,7 +129,7 @@ namespace melbourne {
 
     bool verbose;
 
-    VALUE error;
+    bool parse_error;
     VALUE processor;
 
     // Keeps track of lines that 'end' starters are on, to enable
@@ -148,32 +147,53 @@ namespace melbourne {
 #define PARSER_STATE        ((rb_parser_state*)parser_state)
 #define PARSER_VAR(var)     (PARSER_STATE->var)
 
-#define lex_state           PARSER_VAR(lex_state)
-#define lex_pbeg            PARSER_VAR(lex_pbeg)
-#define lex_p               PARSER_VAR(lex_p)
-#define lex_pend            PARSER_VAR(lex_pend)
-#define lex_lastline        PARSER_VAR(lex_lastline)
-#define lex_nextline        PARSER_VAR(lex_nextline)
+#define end_seen            PARSER_VAR(end_seen)
 #define ruby_debug_lines    PARSER_VAR(debug_lines)
 #define heredoc_end         PARSER_VAR(heredoc_end)
 #define command_start       PARSER_VAR(command_start)
 #define lex_strterm         PARSER_VAR(lex_strterm)
+#define paren_nest          PARSER_VAR(paren_nest)
+#define lpar_beg            PARSER_VAR(lpar_beg)
 #define class_nest          PARSER_VAR(class_nest)
 #define in_single           PARSER_VAR(in_single)
 #define in_def              PARSER_VAR(in_def)
 #define compile_for_eval    PARSER_VAR(compile_for_eval)
 #define cur_mid             PARSER_VAR(cur_mid)
-#define variables           PARSER_VAR(variables)
-#define top_node            PARSER_VAR(top_node)
-#define cmdarg_stack        PARSER_VAR(cmdarg_stack)
-#define cond_stack          PARSER_VAR(cond_stack)
-#define in_defined          PARSER_VAR(in_defined)
-#define paren_nest          PARSER_VAR(paren_nest)
-#define lpar_beg            PARSER_VAR(lpar_beg)
-
 #define tokenbuf            PARSER_VAR(token_buffer)
 #define tokidx              PARSER_VAR(tokidx)
 #define toksiz              PARSER_VAR(toksiz)
+#define emit_warnings       PARSER_VAR(emit_warnings)
+#define lex_gets            PARSER_VAR(lex_gets)
+#define line_buffer         PARSER_VAR(line_buffer)
+#define lex_io              PARSER_VAR(lex_io)
+#define lex_string          PARSER_VAR(lex_string)
+#define lex_lastline        PARSER_VAR(lex_lastline)
+#define lex_nextline        PARSER_VAR(lex_nextline)
+#define lex_pbeg            PARSER_VAR(lex_pbeg)
+#define lex_p               PARSER_VAR(lex_p)
+#define lex_pend            PARSER_VAR(lex_pend)
+#define lex_str_used        PARSER_VAR(lex_str_used)
+#define lex_state           PARSER_VAR(lex_state)
+#define in_defined          PARSER_VAR(in_defined)
+#define cond_stack          PARSER_VAR(cond_stack)
+#define cmdarg_stack        PARSER_VAR(cmdarg_stack)
+#define lval                PARSER_VAR(lval)
+#define eofp                PARSER_VAR(eofp)
+#define magic_comments      PARSER_VAR(magic_comments)
+#define column              PARSER_VAR(column)
+#define top_node            PARSER_VAR(top_node)
+#define variables           PARSER_VAR(variables)
+#define ternary_colon       PARSER_VAR(ternary_colon)
+#define memory_pools        PARSER_VAR(memory_pools)
+#define pool_size           PARSER_VAR(pool_size)
+#define current_pool        PARSER_VAR(current_pool)
+#define memory_cur          PARSER_VAR(memory_cur)
+#define memory_last_addr    PARSER_VAR(memory_last_addr)
+#define memory_size         PARSER_VAR(memory_size)
+#define verbose             PARSER_VAR(verbose)
+#define parse_error         PARSER_VAR(parse_error)
+#define processor           PARSER_VAR(processor)
+#define start_lines         PARSER_VAR(start_lines)
 
 }; // namespace melbourne
 

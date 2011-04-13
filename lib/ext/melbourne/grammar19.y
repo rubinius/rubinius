@@ -33,8 +33,6 @@
 
 namespace melbourne {
 
-rb_parser_state* alloc_parser_state();
-
 namespace grammar19 {
 
 #ifndef isnumber
@@ -218,14 +216,14 @@ static int _debug_print(const char *fmt, ...) {
 #define rb_warn _debug_print
 #define rb_warning _debug_print
 
-void push_start_line(rb_parser_state* st, int line, const char* which) {
-  st->start_lines->push_back(StartPosition(line, which));
+void push_start_line(rb_parser_state* parser_state, int line, const char* which) {
+  start_lines->push_back(StartPosition(line, which));
 }
 
 #define PUSH_LINE(which) push_start_line((rb_parser_state*)parser_state, ruby_sourceline, which)
 
-void pop_start_line(rb_parser_state* st) {
-  st->start_lines->pop_back();
+void pop_start_line(rb_parser_state* parser_state) {
+  start_lines->pop_back();
 }
 
 #define POP_LINE() pop_start_line((rb_parser_state*)parser_state)
@@ -2975,7 +2973,7 @@ none            : /* none */ {$$ = 0;}
 #undef parser
 #undef yylex
 #undef yylval
-#define yylval  (*((YYSTYPE*)(parser_state->lval)))
+#define yylval  (*((YYSTYPE*)(lval)))
 
 static int parser_regx_options(rb_parser_state*);
 static int parser_tokadd_string(rb_parser_state*, int, int, int, long*, rb_encoding**);
@@ -3025,7 +3023,7 @@ static int parser_here_document(rb_parser_state*, NODE*);
 #define parser_mbclen()           mbclen((lex_p-1),lex_pend,parser->enc)
 #define parser_precise_mbclen()   rb_enc_precise_mbclen((lex_p-1),lex_pend,parser_state->enc)
 #define is_identchar(p,e,enc)     (rb_enc_isalnum(*p,enc) || (*p) == '_' || !ISASCII(*p))
-#define parser_is_identchar()     (!parser_state->eofp && \
+#define parser_is_identchar()     (!eofp && \
                                    is_identchar((lex_p-1),lex_pend,parser_state->enc))
 
 #define parser_isascii() ISASCII(*(lex_p-1))
@@ -3053,7 +3051,7 @@ yycompile(rb_parser_state* parser_state, char *f, int line)
   /* Setup an initial empty scope. */
   heredoc_end = 0;
   lex_strterm = 0;
-  parser_state->end_seen = 0;
+  end_seen = 0;
   ruby_sourcefile = f;
   command_start = TRUE;
   n = yyparse(parser_state);
@@ -3079,18 +3077,18 @@ lex_get_str(rb_parser_state* parser_state)
   const char *beg, *end, *pend;
   int sz;
 
-  str = bdata(parser_state->lex_string);
+  str = bdata(lex_string);
   beg = str;
 
-  if(parser_state->lex_str_used) {
-    if(blength(parser_state->lex_string) == parser_state->lex_str_used) {
+  if(lex_str_used) {
+    if(blength(lex_string) == lex_str_used) {
       return false;
     }
 
-    beg += parser_state->lex_str_used;
+    beg += lex_str_used;
   }
 
-  pend = str + blength(parser_state->lex_string);
+  pend = str + blength(lex_string);
   end = beg;
 
   while(end < pend) {
@@ -3098,8 +3096,8 @@ lex_get_str(rb_parser_state* parser_state)
   }
 
   sz = end - beg;
-  bcatblk(parser_state->line_buffer, beg, sz);
-  parser_state->lex_str_used += sz;
+  bcatblk(line_buffer, beg, sz);
+  lex_str_used += sz;
 
   return TRUE;
 }
@@ -3107,13 +3105,13 @@ lex_get_str(rb_parser_state* parser_state)
 static bool
 lex_getline(rb_parser_state* parser_state)
 {
-  if(!parser_state->line_buffer) {
-    parser_state->line_buffer = cstr2bstr("");
+  if(!line_buffer) {
+    line_buffer = cstr2bstr("");
   } else {
-    btrunc(parser_state->line_buffer, 0);
+    btrunc(line_buffer, 0);
   }
 
-  return parser_state->lex_gets(parser_state);
+  return lex_gets(parser_state);
 }
 
 VALUE process_parse_tree(rb_parser_state*, VALUE, NODE*, QUID*);
@@ -3122,24 +3120,20 @@ VALUE
 string_to_ast(VALUE ptp, const char *f, bstring s, int line)
 {
   int n;
-  rb_parser_state* parser_state;
   VALUE ret;
-  parser_state = alloc_parser_state();
-  parser_state->lex_string = s;
-  parser_state->lex_gets = lex_get_str;
-  lex_pbeg = 0;
-  lex_p = 0;
-  lex_pend = 0;
-  parser_state->error = Qfalse;
-  parser_state->processor = ptp;
+  rb_parser_state* parser_state = parser_alloc_state();
+
+  lex_string = s;
+  lex_gets = lex_get_str;
+  processor = ptp;
   ruby_sourceline = line - 1;
   compile_for_eval = 1;
 
   n = yycompile(parser_state, (char*)f, line);
 
-  if(parser_state->error == Qfalse) {
-    for(std::vector<bstring>::iterator i = parser_state->magic_comments->begin();
-        i != parser_state->magic_comments->end();
+  if(!parse_error) {
+    for(std::vector<bstring>::iterator i = magic_comments->begin();
+        i != magic_comments->end();
         i++) {
       rb_funcall(ptp, rb_intern("add_magic_comment"), 1,
         rb_str_new((const char*)(*i)->data, (*i)->slen));
@@ -3154,7 +3148,7 @@ string_to_ast(VALUE ptp, const char *f, bstring s, int line)
 }
 
 static bool parse_io_gets(rb_parser_state* parser_state) {
-  if(feof(parser_state->lex_io)) {
+  if(feof(lex_io)) {
     return false;
   }
 
@@ -3162,13 +3156,13 @@ static bool parse_io_gets(rb_parser_state* parser_state) {
     char *ptr, buf[1024];
     int read;
 
-    ptr = fgets(buf, sizeof(buf), parser_state->lex_io);
+    ptr = fgets(buf, sizeof(buf), lex_io);
     if(!ptr) {
       return false;
     }
 
     read = strlen(ptr);
-    bcatblk(parser_state->line_buffer, ptr, read);
+    bcatblk(line_buffer, ptr, read);
 
     /* check whether we read a full line */
     if(!(read == (sizeof(buf) - 1) && ptr[read] != '\n')) {
@@ -3184,30 +3178,26 @@ file_to_ast(VALUE ptp, const char *f, FILE *file, int start)
 {
   int n;
   VALUE ret;
-  rb_parser_state* parser_state;
-  parser_state = alloc_parser_state();
-  parser_state->lex_io = file;
-  parser_state->lex_gets = parse_io_gets;
-  lex_pbeg = 0;
-  lex_p = 0;
-  lex_pend = 0;
-  parser_state->error = Qfalse;
-  parser_state->processor = ptp;
+  rb_parser_state* parser_state = parser_alloc_state();
+
+  lex_io = file;
+  lex_gets = parse_io_gets;
+  processor = ptp;
   ruby_sourceline = start - 1;
 
   n = yycompile(parser_state, (char*)f, start);
 
-  if(parser_state->error == Qfalse) {
-    for(std::vector<bstring>::iterator i = parser_state->magic_comments->begin();
-        i != parser_state->magic_comments->end();
+  if(!parse_error) {
+    for(std::vector<bstring>::iterator i = magic_comments->begin();
+        i != magic_comments->end();
         i++) {
       rb_funcall(ptp, rb_intern("add_magic_comment"), 1,
         rb_str_new((const char*)(*i)->data, (*i)->slen));
     }
       ret = process_parse_tree(parser_state, ptp, top_node, NULL);
 
-      if(parser_state->end_seen && parser_state->lex_io) {
-        rb_funcall(ptp, rb_sData, 1, ULONG2NUM(ftell(parser_state->lex_io)));
+      if(end_seen && lex_io) {
+        rb_funcall(ptp, rb_sData, 1, ULONG2NUM(ftell(lex_io)));
       }
   } else {
     ret = Qnil;
@@ -3246,7 +3236,7 @@ parser_nextc(rb_parser_state* parser_state)
       bstring v;
 
       if(!lex_getline(parser_state)) return -1;
-      v = parser_state->line_buffer;
+      v = line_buffer;
 
       if(heredoc_end > 0) {
         ruby_sourceline = heredoc_end;
@@ -3272,11 +3262,11 @@ parser_nextc(rb_parser_state* parser_state)
   if(c == '\r' && lex_p < lex_pend && *(lex_p) == '\n') {
     lex_p++;
     c = '\n';
-    parser_state->column = 0;
+    column = 0;
   } else if(c == '\n') {
-    parser_state->column = 0;
+    column = 0;
   } else {
-    parser_state->column++;
+    column++;
   }
 
   return c;
@@ -3814,7 +3804,7 @@ parser_tokadd_string(rb_parser_state *parser_state,
 #define NEW_STRTERM(func, term, paren) \
   node_newnode(NODE_STRTERM, (VALUE)(func), \
                (VALUE)((term) | ((paren) << (CHAR_BIT * 2))), NULL)
-#define pslval ((YYSTYPE *)parser_state->lval)
+#define pslval ((YYSTYPE *)lval)
 static int
 parser_parse_string(rb_parser_state* parser_state, NODE *quote)
 {
@@ -4214,7 +4204,7 @@ retry:
     if(char* str = parse_comment(parser_state)) {
         int len = lex_pend - str - 1; // - 1 for the \n
         cur_line = blk2bstr(str, len);
-        parser_state->magic_comments->push_back(cur_line);
+        magic_comments->push_back(cur_line);
     }
     lex_p = lex_pend;
     /* fall through */
@@ -5233,7 +5223,7 @@ retry:
 
   case '_':
     if(was_bol() && whole_match_p("__END__", 7, 0)) {
-      parser_state->end_seen = 1;
+      end_seen = 1;
       return -1;
     }
     newtok();
@@ -5381,15 +5371,15 @@ retry:
 
 #if YYPURE
 static int
-yylex(void *lval, void *p)
+yylex(void *l, void *p)
 #else
 yylex(void *p)
 #endif
 {
   rb_parser_state* parser_state = (rb_parser_state*)p;
 
-  parser_state->lval = lval;
-  ((YYSTYPE*)parser_state->lval)->val = Qundef;
+  lval = l;
+  ((YYSTYPE*)lval)->val = Qundef;
 
   return parser_yylex(parser_state);
 }
@@ -5441,7 +5431,7 @@ static void
 parser_warning(rb_parser_state* parser_state, NODE *node, const char *mesg)
 {
   int line = ruby_sourceline;
-  if(parser_state->emit_warnings) {
+  if(emit_warnings) {
     ruby_sourceline = nd_line(node);
     printf("%s:%li: warning: %s\n", ruby_sourcefile, ruby_sourceline, mesg);
     ruby_sourceline = line;
@@ -5476,7 +5466,7 @@ again:
     break;
   }
 
-  if(parser_state->verbose) {
+  if(verbose) {
     NODE *nd = end->nd_head;
   newline:
     switch(nd_type(nd)) {
@@ -6194,7 +6184,7 @@ parser_void_expr0(rb_parser_state* parser_state, NODE *node)
 {
   const char *useless = NULL;
 
-  if(!parser_state->verbose) return;
+  if(!verbose) return;
 
 again:
   if(!node) return;
@@ -6287,7 +6277,7 @@ again:
 static void
 parser_void_stmts(NODE *node, rb_parser_state* parser_state)
 {
-  if(!parser_state->verbose) return;
+  if(!verbose) return;
   if(!node) return;
   if(nd_type(node) != NODE_BLOCK) return;
 
@@ -6446,7 +6436,7 @@ cond0(NODE *node, rb_parser_state* parser_state)
     if(!e_option_supplied()) {
       int b = literal_node(node->nd_beg);
       int e = literal_node(node->nd_end);
-      if((b == 1 && e == 1) || (b + e >= 2 && parser_state->verbose)) {
+      if((b == 1 && e == 1) || (b + e >= 2 && verbose)) {
       }
     }
     break;

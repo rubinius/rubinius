@@ -22,63 +22,61 @@ namespace melbourne {
     return rb_str_new((const char*)str->data, str->slen);
   }
 
-  rb_parser_state *alloc_parser_state() {
+  rb_parser_state *parser_alloc_state() {
       rb_parser_state *parser_state = (rb_parser_state*)calloc(1, sizeof(rb_parser_state));
 
-      #undef command_start
-      #undef class_nest
-      #undef in_single
-      #undef in_def
-      #undef compile_for_eval
-      #undef cur_mid
-      #undef tokidx
-      #undef toksiz
-      parser_state->command_start = true;
-      parser_state->class_nest = 0;
-      parser_state->in_single = 0;
-      parser_state->in_def = 0;
-      parser_state->compile_for_eval = 0;
-      parser_state->cur_mid = 0;
-      parser_state->token_buffer = NULL;
-      parser_state->tokidx = 0;
-      parser_state->toksiz = 0;
-      parser_state->memory_cur = NULL;
-      parser_state->memory_last_addr = NULL;
-      parser_state->current_pool = 0;
-      parser_state->pool_size = 0;
-      parser_state->memory_size = 204800;
-      parser_state->memory_pools = NULL;
-      parser_state->emit_warnings = 0;
-      parser_state->verbose = RTEST(ruby_verbose);
-      parser_state->magic_comments = new std::vector<bstring>;
-      parser_state->start_lines = new std::list<StartPosition>;
+      lex_pbeg = 0;
+      lex_p = 0;
+      lex_pend = 0;
+      parse_error = false;
+
+      eofp = false;
+      command_start = true;
+      class_nest = 0;
+      in_single = 0;
+      in_def = 0;
+      compile_for_eval = 0;
+      cur_mid = 0;
+      tokenbuf = NULL;
+      tokidx = 0;
+      toksiz = 0;
+      memory_cur = NULL;
+      memory_last_addr = NULL;
+      current_pool = 0;
+      pool_size = 0;
+      memory_size = 204800;
+      memory_pools = NULL;
+      emit_warnings = 0;
+      verbose = RTEST(ruby_verbose);
+      magic_comments = new std::vector<bstring>;
+      start_lines = new std::list<StartPosition>;
 
       return parser_state;
   }
 
   void compile_error(const char *);
 
-  void *pt_allocate(rb_parser_state *st, int size) {
+  void *pt_allocate(rb_parser_state *parser_state, int size) {
     void *cur;
 
-    if(!st->memory_cur || ((st->memory_cur + size) >= st->memory_last_addr)) {
-      if(st->memory_cur) st->current_pool++;
+    if(!memory_cur || ((memory_cur + size) >= memory_last_addr)) {
+      if(memory_cur) current_pool++;
 
-      if(st->current_pool == st->pool_size) {
-        st->pool_size += 10;
-        if(st->memory_pools) {
-          st->memory_pools = (void**)realloc(st->memory_pools, sizeof(void*) * st->pool_size);
+      if(current_pool == pool_size) {
+        pool_size += 10;
+        if(memory_pools) {
+          memory_pools = (void**)realloc(memory_pools, sizeof(void*) * pool_size);
         } else {
-          st->memory_pools = (void**)malloc(sizeof(void*) * st->pool_size);
+          memory_pools = (void**)malloc(sizeof(void*) * pool_size);
         }
       }
-      st->memory_pools[st->current_pool] = malloc(st->memory_size);
-      st->memory_cur = (char*)st->memory_pools[st->current_pool];
-      st->memory_last_addr = st->memory_cur + st->memory_size - 1;
+      memory_pools[current_pool] = malloc(memory_size);
+      memory_cur = (char*)memory_pools[current_pool];
+      memory_last_addr = memory_cur + memory_size - 1;
     }
 
-    cur = (void*)st->memory_cur;
-    st->memory_cur = st->memory_cur + size;
+    cur = (void*)memory_cur;
+    memory_cur = memory_cur + size;
 
     return cur;
   }
@@ -86,32 +84,32 @@ namespace melbourne {
   void pt_free(rb_parser_state *parser_state) {
     int i;
 
-    if(parser_state->line_buffer) {
-      bdestroy(parser_state->line_buffer);
+    if(line_buffer) {
+      bdestroy(line_buffer);
     }
 
     if(lex_lastline) {
       bdestroy(lex_lastline);
     }
 
-    free(parser_state->token_buffer);
+    free(tokenbuf);
     delete variables;
 
-    for(std::vector<bstring>::iterator i = parser_state->magic_comments->begin();
-        i != parser_state->magic_comments->end();
+    for(std::vector<bstring>::iterator i = magic_comments->begin();
+        i != magic_comments->end();
         i++) {
       bdestroy(*i);
     }
 
-    delete parser_state->magic_comments;
-    delete parser_state->start_lines;
+    delete magic_comments;
+    delete start_lines;
 
-    if(!parser_state->memory_pools) return;
+    if(!memory_pools) return;
 
-    for(i = 0; i <= parser_state->current_pool; i++) {
-      free(parser_state->memory_pools[i]);
+    for(i = 0; i <= current_pool; i++) {
+      free(memory_pools[i]);
     }
-    free(parser_state->memory_pools);
+    free(memory_pools);
 
   }
 
@@ -124,8 +122,8 @@ namespace melbourne {
     // Cleanup one of the common and ugly syntax errors.
     if(std::string("syntax error, unexpected $end, expecting kEND") ==
         std::string(msg)) {
-      if(parser_state->start_lines->size() > 0) {
-        StartPosition& pos = parser_state->start_lines->back();
+      if(start_lines->size() > 0) {
+        StartPosition& pos = start_lines->back();
 
         std::stringstream ss;
         ss << "missing 'end' for '"
@@ -158,14 +156,14 @@ namespace melbourne {
 
     int col = lex_p - lex_pbeg;
 
-    rb_funcall(parser_state->processor,
+    rb_funcall(processor,
                rb_intern("process_parse_error"),4,
                err_msg,
                INT2FIX(col),
                INT2FIX(mel_sourceline),
                string_newfrombstr(lex_lastline));
 
-    parser_state->error = Qtrue;
+    parse_error = true;
   }
 
   const char *op_to_name(QUID id);
@@ -190,7 +188,7 @@ namespace melbourne {
   VALUE process_parse_tree(rb_parser_state*, VALUE, NODE*, QUID*);
 
   static VALUE process_dynamic(rb_parser_state *parser_state,
-      VALUE ptp, NODE *node, QUID *locals)
+                               VALUE ptp, NODE *node, QUID *locals)
   {
     VALUE array = rb_ary_new();
 
@@ -204,8 +202,8 @@ namespace melbourne {
     return array;
   }
 
-  static VALUE process_iter(rb_parser_state *parser_state,
-      VALUE ptp, NODE *node, QUID *locals, int *level, ID method, VALUE line)
+  static VALUE process_iter(rb_parser_state *parser_state, VALUE ptp, NODE *node,
+                            QUID *locals, int *level, ID method, VALUE line)
   {
     VALUE iter, body, args;
 
@@ -1067,8 +1065,8 @@ namespace melbourne {
     // Cleanup one of the common and ugly syntax errors.
     if(std::string("syntax error, unexpected $end, expecting kEND") ==
         std::string(msg)) {
-      if(parser_state->start_lines->size() > 0) {
-        StartPosition& pos = parser_state->start_lines->back();
+      if(start_lines->size() > 0) {
+        StartPosition& pos = start_lines->back();
 
         std::stringstream ss;
         ss << "missing 'end' for '"
@@ -1101,14 +1099,14 @@ namespace melbourne {
 
     int col = lex_p - lex_pbeg;
 
-    rb_funcall(parser_state->processor,
+    rb_funcall(processor,
                rb_intern("process_parse_error"),4,
                err_msg,
                INT2FIX(col),
                INT2FIX(mel_sourceline),
                string_newfrombstr(lex_lastline));
 
-    parser_state->error = Qtrue;
+    parse_error = true;
   }
 
   const char *op_to_name(QUID id);
