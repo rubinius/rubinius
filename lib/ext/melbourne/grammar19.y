@@ -3812,7 +3812,7 @@ parser_parse_string(rb_parser_state* parser_state, NODE *quote)
   int term = nd_term(quote);
   int paren = nd_paren(quote);
   int c, space = 0;
-  rb_encoding* enc = rb_usascii_encoding();
+  rb_encoding* enc = parser_state->enc;
 
   long start_line = ruby_sourceline;
 
@@ -3850,12 +3850,19 @@ parser_parse_string(rb_parser_state* parser_state, NODE *quote)
   pushback(c);
   if(tokadd_string(func, term, paren, &quote->nd_nest, &enc) == -1) {
     ruby_sourceline = nd_line(quote);
-    rb_compile_error(parser_state, "unterminated string meets end of file");
-    return tSTRING_END;
+    if (func & STR_FUNC_REGEXP) {
+      if(eofp)
+        rb_compile_error(parser_state, "unterminated regexp meets end of file");
+      return tREGEXP_END;
+    } else {
+      if(eofp)
+        rb_compile_error(parser_state, "unterminated string meets end of file");
+      return tSTRING_END;
+    }
   }
 
   tokfix();
-  pslval->node = NEW_STR(string_new(tok(), toklen()));
+  set_yylval_str(STR_NEW3(tok(), toklen(), enc, func));
   nd_set_line(pslval->node, start_line);
   return tSTRING_CONTENT;
 }
@@ -4005,6 +4012,7 @@ parser_here_document(rb_parser_state* parser_state, NODE *here)
   if((c = nextc()) == -1) {
   error:
     rb_compile_error(parser_state, "can't find string \"%s\" anywhere before EOF", eos);
+  restore:
     heredoc_restore(lex_strterm);
     lex_strterm = 0;
     return 0;
@@ -4066,7 +4074,10 @@ parser_here_document(rb_parser_state* parser_state, NODE *here)
     do {
       pushback(c);
       /* Scan up until a \n and fill in the token buffer. */
-      if((c = tokadd_string(func, '\n', 0, NULL, &enc)) == -1) goto error;
+      if((c = tokadd_string(func, '\n', 0, NULL, &enc)) == -1) {
+        if(eofp) goto error;
+        goto restore;
+      }
 
       /* We finished scanning, but didn't find a \n, so we setup the node
          and have the lexer file in more. */
@@ -5224,6 +5235,7 @@ retry:
   case '_':
     if(was_bol() && whole_match_p("__END__", 7, 0)) {
       end_seen = 1;
+      eofp = true;
       return -1;
     }
     newtok();
