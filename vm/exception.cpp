@@ -112,7 +112,7 @@ namespace rubinius {
   void abort() {
     std::cout << "Abort!" << std::endl;
     print_backtrace();
-    assert(0);
+    ::abort();
   }
 
   void bug(const char* message) {

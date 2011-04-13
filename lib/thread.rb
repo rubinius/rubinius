@@ -45,6 +45,19 @@ class Mutex
     @lock << nil
   end
 
+  # Check and only allow it to be marshal'd if there are no waiters.
+  def marshal_dump
+    raise "Unable to dump locked mutex" unless @waiters.empty?
+    1
+  end
+
+  # Implemented because we must since we use marshal_load PLUS we need
+  # to create AND prime @lock. If we didn't do this, then Marshal
+  # wouldn't prime the lock anyway.
+  def marshal_load(bunk)
+    initialize
+  end
+
   def locked?
     @lock.receive
     begin

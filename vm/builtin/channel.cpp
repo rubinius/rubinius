@@ -104,7 +104,7 @@ namespace rubinius {
 
     // We pin this so we can pass condition_ out without worrying about
     // us moving it.
-    this->pin();
+    if(!this->pin()) rubinius::abort();
 
     struct timeval tv = {0,0};
     if(use_timed_wait) {
@@ -160,6 +160,7 @@ namespace rubinius {
 
     return self->value()->shift(state);
   }
+
 
   bool Channel::has_readers_p() {
     return waiters_ > 0;
