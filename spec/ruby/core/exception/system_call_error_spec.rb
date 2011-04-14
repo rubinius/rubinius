@@ -41,7 +41,7 @@ describe "SystemCallError#errno" do
 end
 
 describe "SystemCallError#message" do
-  it "should return default message when no message given" do
+  it "returns the default message when no message is given" do
     SystemCallError.new(2**28).message.should =~ /Unknown error/i
   end
 

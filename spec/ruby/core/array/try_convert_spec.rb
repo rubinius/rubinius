@@ -18,10 +18,10 @@ describe "Array.try_convert" do
       Array.try_convert(-1).should be_nil
     end
     
-    it "should not rescue errors" do
+    it "does not rescue exceptions" do
       lambda{
         Array.try_convert(ArraySpecs::ArrayNotReallyConvertable.new)
-      }.should raise_error
+      }.should raise_error(RuntimeError)
     end
     
     it "checks the result of the conversion" do

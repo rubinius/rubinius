@@ -8,7 +8,7 @@ describe "Fixnum#&" do
     (0xffff & bignum_value + 0xffff_ffff).should == 65535
   end
   
-  it "should be able to AND a bignum with a fixnum" do
+  it "returns self bitwise AND a Bignum" do
     (-1 & 2**64).should == 18446744073709551616
   end
   

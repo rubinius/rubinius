@@ -11,7 +11,7 @@ describe "File::Stat#gid" do
     rm_r @file
   end
   
-  it "should be able to determine the group owner through a File::Stat object" do
+  it "returns the group owner attribute of a File::Stat object" do
     st = File.stat(@file)
     st.gid.is_a?(Integer).should == true
     st.gid.should == Process.gid

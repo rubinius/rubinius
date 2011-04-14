@@ -13,7 +13,7 @@ describe "CApiGlobalSpecs" do
     @f.sb_gv_get("SAFE").should == 0 # rb_gv_get should change SAFE to $SAFE
   end
 
-  it "should correctly retrieve $~" do
+  it "returns $~" do
     'a' =~ /a/
     @f.sb_gv_get("$~").to_a.should == ['a']
     @f.sb_gv_get("~").to_a.should == ['a']

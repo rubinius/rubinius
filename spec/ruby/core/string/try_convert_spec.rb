@@ -19,10 +19,10 @@ describe "String.try_convert" do
       String.try_convert(-1).should be_nil
     end
     
-    it "should not rescue errors" do
+    it "does not rescue exceptions" do
       lambda{
         String.try_convert(StringSpecs::StringNotReallyConvertable.new)
-      }.should raise_error
+      }.should raise_error(RuntimeError)
     end
     
     it "checks the result of the conversion" do

@@ -15,17 +15,17 @@ describe "File.setgid?" do
     rm_r @name
   end
   
-  it "should return false if the file was just made" do
+  it "returns false if the file was just made" do
     File.setgid?(@name).should == false
   end
   
-  it "should be false if the file doesn't exist" do
+  it "returns false if the file does not exist" do
     rm_r @name # delete it prematurely, just for this part
     File.setgid?(@name).should == false
   end
   
   platform_is_not :windows do
-    it "should return true when the gid bit is set" do
+    it "returns true when the gid bit is set" do
       system "chmod g+s #{@name}"
       
       File.setgid?(@name).should == true

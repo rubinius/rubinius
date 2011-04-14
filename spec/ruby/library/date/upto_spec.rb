@@ -1,9 +1,8 @@
-require 'date' 
 require File.expand_path('../../../spec_helper', __FILE__)
+require 'date'
 
 describe "Date#upto" do
-  
-  it "should be able to step forward in time" do
+  it "returns future dates for the default step value" do
     ds    = Date.civil(2008, 10, 11)
     de    = Date.civil(2008,  9, 29)
     count = 0
@@ -14,5 +13,4 @@ describe "Date#upto" do
     end
     count.should == 13
   end
-
 end

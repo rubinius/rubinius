@@ -56,7 +56,7 @@ describe "CGI::HtmlExtension#textarea" do
   end
   
   describe "when passed Hash" do
-    it "should use the passed Hash as attributes" do
+    it "uses the passed Hash as attributes" do
       @html.textarea("ID" => "test").should == '<TEXTAREA ID="test"></TEXTAREA>' 
       
       attributes = {"ID" => "test-id", "NAME" => "test-name"}

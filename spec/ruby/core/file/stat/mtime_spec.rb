@@ -10,7 +10,7 @@ describe "File::Stat#mtime" do
     rm_r @file
   end
   
-  it "should be able to determine the mtime on a File::Stat object" do
+  it "returns the mtime of a File::Stat object" do
     st = File.stat(@file)
     st.mtime.should be_kind_of(Time)
     st.mtime.should <= Time.now

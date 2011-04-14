@@ -12,7 +12,7 @@ describe "Redefining a method" do
 end
 
 describe "Defining an 'initialize' method" do
-  it "should make it private" do
+  it "sets the method's visibility to private" do
     class DefInitializeSpec
       def initialize
       end
@@ -22,7 +22,7 @@ describe "Defining an 'initialize' method" do
 end
 
 describe "Defining an 'initialize_copy' method" do
-  it "should make it private" do
+  it "sets the method's visibility to private" do
     class DefInitializeCopySpec
       def initialize_copy
       end

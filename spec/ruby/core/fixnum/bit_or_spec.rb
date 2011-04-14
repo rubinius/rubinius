@@ -9,7 +9,7 @@ describe "Fixnum#|" do
     (0xffff | bignum_value + 0xf0f0).should == 0x8000_0000_0000_ffff
   end
 
-  it "should be able to AND a bignum with a fixnum" do
+  it "returns self bitwise OR a Bignum" do
     (-1 | 2**64).should == -1
   end
 

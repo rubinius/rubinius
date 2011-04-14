@@ -7,7 +7,7 @@ ruby_version_is "" ... "1.9" do
       ScratchPad.clear
     end
 
-    it "should be sticky" do
+    it "is a persistent attribute" do
       Thread.critical = true
       Thread.critical.should == true
       Thread.critical = false

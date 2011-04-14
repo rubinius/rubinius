@@ -10,7 +10,7 @@ describe "File::Stat#uid" do
     rm_r @file
   end
   
-  it "should be able to determine the owner through a File::Stat object" do
+  it "returns the owner attribute of a File::Stat object" do
     st = File.stat(@file)
     st.uid.is_a?(Integer).should == true
     st.uid.should == Process.uid

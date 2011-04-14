@@ -10,7 +10,7 @@ describe "File::Stat#blocks" do
     rm_r @file
   end
   
-  it "should be able to determine the blocks on a File::Stat object" do
+  it "returns the blocks of a File::Stat object" do
     st = File.stat(@file)
     st.blocks.is_a?(Integer).should == true
     st.blocks.should > 0

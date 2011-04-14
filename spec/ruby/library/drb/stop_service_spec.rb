@@ -14,12 +14,12 @@ describe "DRb.stop_service" do
     @port += 1
   end
 
-  it "should correctly clear the port so a new server can start" do
+  it "clears the port so a new server can start" do
     10.times do
       server = nil
       lambda { server = DRb.start_service(@url, TestServer.new) }.should_not raise_error
       DRb.current_server.should == server
       lambda { DRb.stop_service }.should_not raise_error
     end
-  end  
+  end
 end

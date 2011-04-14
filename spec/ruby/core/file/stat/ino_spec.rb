@@ -10,7 +10,7 @@ describe "File::Stat#ino" do
     rm_r @file
   end
   
-  it "should be able to determine the ino on a File::Stat object" do
+  it "returns the ino of a File::Stat object" do
     st = File.stat(@file)
     st.ino.is_a?(Integer).should == true
     st.ino.should > 0

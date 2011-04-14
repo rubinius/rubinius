@@ -11,7 +11,7 @@ describe "File::Stat#mode" do
     rm_r @file
   end
   
-  it "should be able to determine the mode through a File::Stat object" do
+  it "returns the mode of a File::Stat object" do
     st = File.stat(@file)
     st.mode.is_a?(Integer).should == true
     st.mode.should == 33261
