@@ -11,3 +11,6 @@ describe "URI::HTTP.request_uri" do
     URI("http://ruby.reddit.com").request_uri.should == "/"
   end
 end
+describe "URI::HTTP#request_uri" do
+  it "needs to be reviewed for spec completeness"
+end

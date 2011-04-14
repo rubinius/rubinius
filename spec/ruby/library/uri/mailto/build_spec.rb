@@ -93,3 +93,7 @@ describe 'URI::Mailto.build' do
 end
 
 
+
+describe "URI::MailTo.build" do
+  it "needs to be reviewed for spec completeness"
+end
