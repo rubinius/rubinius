@@ -27,7 +27,7 @@ ruby_version_is ""..."1.9" do
       data.should == "hello rubinius\n"
       fd.close
       mode = File.stat("move_test_dest").mode
-      
+
       omode.should == mode
     end
   end

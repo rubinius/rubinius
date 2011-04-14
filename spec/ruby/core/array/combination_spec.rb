@@ -38,11 +38,11 @@ describe "Array#combination" do
       @array.combination(0).to_a.should == [[]] # one combination of length 0
       [].combination(0).to_a.should == [[]] # one combination of length 0
     end
-    
+
     it "yields a partition consisting of only singletons" do
       @array.combination(1).to_a.sort.should == [[1],[2],[3],[4]]
     end
-    
+
     it "generates from a defensive copy, ignoring mutations" do
       accum = []
       @array.combination(2) do |x|

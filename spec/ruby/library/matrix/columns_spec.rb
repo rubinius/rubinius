@@ -7,7 +7,7 @@ describe "Matrix.columns" do
     @b = [3, 4]
     @m = Matrix.columns([@a, @b])
   end
-  
+
   it "creates a Matrix from argument columns" do
     @m.should be_an_instance_of(Matrix)
     @m.column(0).to_a.should == @a
@@ -27,7 +27,7 @@ describe "Matrix.columns" do
       e.row_size.should == 0
       e.column_size.should == 0
       e.should == Matrix[]
-    
+
       v = Matrix.columns([[],[],[]])
       v.row_size.should == 0
       v.column_size.should == 3

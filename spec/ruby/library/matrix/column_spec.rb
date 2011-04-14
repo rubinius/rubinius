@@ -15,7 +15,7 @@ describe "Matrix#column" do
     @m.column(1) {|n| a << n }
     a.should == [2,3]
   end
-  
+
   it "counts backwards for negative argument" do
     @m.column(-1).should == Vector[3, 4]
   end

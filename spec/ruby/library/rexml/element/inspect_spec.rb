@@ -16,7 +16,7 @@ describe "REXML::Element#inspect" do
     @name << e
     @name.inspect.should == "<name> ... </>"
     # This might make more sense but differs from MRI's default behavior
-    # @name.inspect.should == "<name> ... </name>" 
+    # @name.inspect.should == "<name> ... </name>"
   end
 
   it "inserts the attributes in the string" do

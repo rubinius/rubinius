@@ -53,4 +53,4 @@ module KernelSpecs
     def protected_method() :protected_instance_method end
     protected :protected_method
   end
-end  
+end

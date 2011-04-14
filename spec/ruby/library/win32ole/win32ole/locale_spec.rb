@@ -2,7 +2,7 @@ platform_is :windows do
   require 'win32ole'
 
   ruby_version_is "1.9" do
-    describe 'WIN32OLE.locale' do    
+    describe 'WIN32OLE.locale' do
       it 'gets locale' do
         WIN32OLE.locale.should == WIN32OLE::LOCALE_SYSTEM_DEFAULT
       end
@@ -24,7 +24,7 @@ platform_is :windows do
           WIN32OLE.locale.should == WIN32OLE::LOCALE_SYSTEM_DEFAULT
         ensure
           WIN32OLE.locale.should == WIN32OLE::LOCALE_SYSTEM_DEFAULT
-        end        
+        end
       end
     end
 

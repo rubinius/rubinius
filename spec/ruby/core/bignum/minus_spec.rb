@@ -4,7 +4,7 @@ describe "Bignum#-" do
   before(:each) do
     @bignum = bignum_value(314)
   end
-  
+
   it "returns self minus the given Integer" do
     (@bignum - 9).should == 9223372036854776113
     (@bignum - 12.57).should be_close(9223372036854776109.43, TOLERANCE)

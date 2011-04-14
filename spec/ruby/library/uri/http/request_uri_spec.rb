@@ -6,7 +6,7 @@ describe "URI::HTTP.request_uri" do
     URI("http://reddit.com/r/ruby/").request_uri.should == "/r/ruby/"
     URI("http://reddit.com/r/ruby/search?q=rubinius").request_uri.should == "/r/ruby/search?q=rubinius"
   end
-  
+
   it "returns '/' if the path of the URI is blank" do
     URI("http://ruby.reddit.com").request_uri.should == "/"
   end

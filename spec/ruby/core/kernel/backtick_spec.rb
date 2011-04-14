@@ -5,12 +5,12 @@ describe "Kernel#`" do
   it "is a private method" do
     Kernel.should have_private_instance_method(:`)
   end
-  
+
   it "returns the standard output of the executed sub-process" do
     ip = 'world'
     `echo disc #{ip}`.should == "disc world\n"
   end
-  
+
   it "tries to convert the given argument to String using #to_str" do
     (obj = mock('echo test')).should_receive(:to_str).and_return("echo test")
     Kernel.`(obj).should == "test\n"

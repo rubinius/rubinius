@@ -12,7 +12,7 @@ describe "CGI.parse when passed String" do
     CGI.parse("test=1&test=2&test=3").should == { "test" => ["1", "2", "3"] }
     CGI.parse("test[]=1&test[]=2&test[]=3").should == { "test[]" => [ "1", "2", "3" ] }
   end
-  
+
   it "unescapes keys and values" do
     CGI.parse("hello%3F=hello%21").should == { "hello?" => ["hello!"] }
   end

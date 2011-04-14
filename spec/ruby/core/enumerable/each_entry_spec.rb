@@ -29,6 +29,6 @@ ruby_version_is '1.9' do
       enum = EnumerableSpecs::EachCounter.new(1, 2)
       enum.each_entry(:foo, "bar").to_a.should == [1,2]
       enum.arguments_passed.should == [:foo, "bar"]
-    end    
+    end
   end
 end

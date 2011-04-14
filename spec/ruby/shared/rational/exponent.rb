@@ -46,7 +46,7 @@ describe :rational_exponent_rat, :shared => true do
           -0.7337616108654732, 1.2709123906625817)
       end
     end
-    
+
     ruby_version_is ""..."1.9" do
       it "returns NaN when self is negative and the passed argument is not 0" do
         (Rational(-3, 4) ** Rational(-4, 3)).nan?.should be_true
@@ -67,7 +67,7 @@ describe :rational_exponent_int, :shared => true do
     (Rational(-bignum_value, 4) ** -4).should == Rational(1, 28269553036454149273332760011886696253239742350009903329945699220681916416)
     (Rational(3, -bignum_value) ** -4).should == Rational(7237005577332262213973186563042994240829374041602535252466099000494570602496, 81)
   end
-  
+
   conflicts_with :Prime do
     it "returns Rational(1, 1) when the passed argument is 0" do
       (Rational(3, 4) ** 0).should eql(Rational(1, 1))
@@ -86,7 +86,7 @@ describe :rational_exponent_float, :shared => true do
     (Rational(3, 1) ** 1.5).should be_close(5.19615242270663, TOLERANCE)
     (Rational(3, 1) ** -1.5).should be_close(0.192450089729875, TOLERANCE)
   end
-  
+
   ruby_version_is ""..."1.9" do
     it "returns NaN if self is negative and the passed argument is not 0" do
       (Rational(-3, 2) ** 1.5).nan?.should be_true
@@ -124,7 +124,7 @@ describe :rational_exponent, :shared => true do
     rational = Rational(3, 4)
     obj = mock("Object")
     obj.should_receive(:coerce).with(rational).and_return([1, 2])
-    
+
     rational ** obj
   end
 
@@ -133,9 +133,9 @@ describe :rational_exponent, :shared => true do
 
     coerced_rational = mock("Coerced Rational")
     coerced_rational.should_receive(:**).and_return(:result)
-    
+
     coerced_obj = mock("Coerced Object")
-    
+
     obj = mock("Object")
     obj.should_receive(:coerce).and_return([coerced_rational, coerced_obj])
 

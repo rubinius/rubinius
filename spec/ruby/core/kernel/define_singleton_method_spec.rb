@@ -46,22 +46,22 @@ ruby_version_is '1.9' do
         define_singleton_method(:block_test1) { self }
         define_singleton_method(:block_test2, &lambda { self })
       end
-    
+
       o = DefineSingletonMethodSpecClass
       o.block_test1.should == o
       o.block_test2.should == o
     end
-  
+
     it "raises a TypeError when the given method is no Method/Proc" do
       lambda {
         Class.new { define_singleton_method(:test, "self") }
       }.should raise_error(TypeError)
-    
+
       lambda {
         Class.new { define_singleton_method(:test, 1234) }
       }.should raise_error(TypeError)
     end
-  
+
     it "defines a new singleton method for objects" do
       s = "hello"
       s.define_singleton_method(:test) { "world!" }
@@ -75,10 +75,10 @@ ruby_version_is '1.9' do
       class DefineMethodByProcClass
         in_scope = true
         method_proc = proc { in_scope }
-      
+
         define_singleton_method(:proc_test, &method_proc)
       end
-    
+
       DefineMethodByProcClass.proc_test.should == true
     end
   end

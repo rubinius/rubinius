@@ -9,7 +9,7 @@ describe "Module#ancestors" do
     ModuleSpecs::Parent.ancestors.should include(ModuleSpecs::Parent, Object, Kernel)
     ModuleSpecs::Child.ancestors.should  include(ModuleSpecs::Child, ModuleSpecs::Super, ModuleSpecs::Basic, ModuleSpecs::Parent, Object, Kernel)
   end
-  
+
   it "returns only modules and classes" do
     class << ModuleSpecs::Child; self; end.ancestors.should include(ModuleSpecs::Internal, Class, Module, Object, Kernel)
   end

@@ -32,7 +32,7 @@ describe "StringScanner#rest?" do
   end
 
   it "returns true if there is more data in the string" do
-    @s.rest?.should be_true  
+    @s.rest?.should be_true
     @s.scan(/This/)
     @s.rest?.should be_true
   end

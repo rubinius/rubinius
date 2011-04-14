@@ -32,7 +32,7 @@ describe "StringIO#readlines when passed [separator]" do
       io.readlines("").should == ["this is\n\n", "an example"]
     end
   end
-  
+
   it "returns the remaining content as one line starting at the current position when passed nil" do
     io = StringIO.new("this is\n\nan example")
     io.pos = 5
@@ -50,7 +50,7 @@ describe "StringIO#readlines when passed no argument" do
   before(:each) do
     @io = StringIO.new("this is\nan example\nfor StringIO#readlines")
   end
-  
+
   it "returns an Array containing lines based on $/" do
     begin
       old_sep, $/ = $/, " "
@@ -59,12 +59,12 @@ describe "StringIO#readlines when passed no argument" do
       $/ = old_sep
     end
   end
-  
+
   it "updates self's position based on the number of read bytes" do
     @io.readlines
     @io.pos.should eql(41)
   end
-  
+
   it "updates self's lineno based on the number of read lines" do
     @io.readlines
     @io.lineno.should eql(3)
@@ -75,7 +75,7 @@ describe "StringIO#readlines when passed no argument" do
     @io.readlines(">")
     $_.should == "test"
   end
-  
+
   it "returns an empty Array when self is at the end" do
     @io.pos = 41
     @io.readlines.should == []

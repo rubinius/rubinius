@@ -118,7 +118,7 @@ describe :regexp_new_string, :shared => true do
       Regexp.send(@method, 'Hi', nil, 'n').kcode.should == 'none'
       Regexp.send(@method, 'Hi', nil, 'nONE').kcode.should == 'none'
     end
-  end    
+  end
 end
 
 describe :regexp_new_regexp, :shared => true do

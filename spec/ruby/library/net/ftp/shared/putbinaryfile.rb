@@ -5,7 +5,7 @@ describe :net_ftp_putbinaryfile, :shared => :true do
 
     @local_fixture_file  = File.dirname(__FILE__) + "/../fixtures/putbinaryfile"
     @remote_tmp_file = tmp("binaryfile", false)
-    
+
     @ftp = Net::FTP.new
     @ftp.connect("localhost", 9921)
     @ftp.binary = @binary_mode
@@ -23,20 +23,20 @@ describe :net_ftp_putbinaryfile, :shared => :true do
     @ftp.send(@method, @local_fixture_file, "binary")
     @ftp.last_response.should == "200 OK, Data received. (STOR binary)\n"
   end
-  
+
   it "sends the contents of the passed local_file, without modifications" do
     @ftp.send(@method, @local_fixture_file, "binary")
-    
+
     remote_lines = File.readlines(@remote_tmp_file)
     local_lines  = File.readlines(@local_fixture_file)
-    
+
     remote_lines.should == local_lines
   end
 
   it "returns nil" do
     @ftp.send(@method, @local_fixture_file, "binary").should be_nil
   end
-  
+
   describe "when passed a block" do
     it "yields the transmitted content as binary blocks of the passed size" do
       res = []
@@ -55,7 +55,7 @@ describe :net_ftp_putbinaryfile, :shared => :true do
       File.open(@remote_tmp_file, "w") do |f|
         f << "This is an example file\n"
       end
-      
+
       @ftp.resume = true
     end
 
@@ -63,7 +63,7 @@ describe :net_ftp_putbinaryfile, :shared => :true do
       @ftp.send(@method, @local_fixture_file, "binary")
       File.read(@remote_tmp_file).should == File.read(@local_fixture_file)
     end
-    
+
     ruby_version_is "" ... "1.9" do
       describe "and the REST command fails" do
 	it "raises a Net::FTPProtoError when the response code is 550" do
@@ -85,7 +85,7 @@ describe :net_ftp_putbinaryfile, :shared => :true do
 	  @server.should_receive(:rest).and_respond("502 Command not implemented.")
 	  lambda { @ftp.send(@method, @local_fixture_file, "binary") }.should raise_error(Net::FTPPermError)
 	end
-      
+
 	it "raises a Net::FTPTempError when the response code is 421" do
 	  @server.should_receive(:rest).and_respond("421 Service not available, closing control connection.")
 	  lambda { @ftp.send(@method, @local_fixture_file, "binary") }.should raise_error(Net::FTPTempError)
@@ -119,7 +119,7 @@ describe :net_ftp_putbinaryfile, :shared => :true do
 	  @server.should_receive(:appe).and_respond("502 Command not implemented.")
 	  lambda { @ftp.send(@method, @local_fixture_file, "binary") }.should raise_error(Net::FTPPermError)
 	end
-      
+
 	it "raises a Net::FTPTempError when the response code is 421" do
 	  @server.should_receive(:appe).and_respond("421 Service not available, closing control connection.")
 	  lambda { @ftp.send(@method, @local_fixture_file, "binary") }.should raise_error(Net::FTPTempError)
@@ -143,32 +143,32 @@ describe :net_ftp_putbinaryfile, :shared => :true do
       @server.should_receive(:stor).and_respond("450 Requested file action not taken.")
       lambda { @ftp.send(@method, @local_fixture_file, "binary") }.should raise_error(Net::FTPTempError)
     end
-    
+
     it "raises a Net::FTPTempError when the response code is 452" do
       @server.should_receive(:stor).and_respond("452 Requested action not taken.")
       lambda { @ftp.send(@method, @local_fixture_file, "binary") }.should raise_error(Net::FTPTempError)
     end
-    
+
     it "raises a Net::FTPPermError when the response code is 553" do
       @server.should_receive(:stor).and_respond("553 Requested action not taken.")
       lambda { @ftp.send(@method, @local_fixture_file, "binary") }.should raise_error(Net::FTPPermError)
     end
-    
+
     it "raises a Net::FTPPermError when the response code is 500" do
       @server.should_receive(:stor).and_respond("500 Syntax error, command unrecognized.")
       lambda { @ftp.send(@method, @local_fixture_file, "binary") }.should raise_error(Net::FTPPermError)
     end
-    
+
     it "raises a Net::FTPPermError when the response code is 501" do
       @server.should_receive(:stor).and_respond("501 Syntax error in parameters or arguments.")
       lambda { @ftp.send(@method, @local_fixture_file, "binary") }.should raise_error(Net::FTPPermError)
     end
-    
+
     it "raises a Net::FTPTempError when the response code is 421" do
       @server.should_receive(:stor).and_respond("421 Service not available, closing control connection.")
       lambda { @ftp.send(@method, @local_fixture_file, "binary") }.should raise_error(Net::FTPTempError)
     end
-    
+
     it "raises a Net::FTPPermError when the response code is 530" do
       @server.should_receive(:stor).and_respond("530 Not logged in.")
       lambda { @ftp.send(@method, @local_fixture_file, "binary") }.should raise_error(Net::FTPPermError)
@@ -181,29 +181,29 @@ describe :net_ftp_putbinaryfile, :shared => :true do
 	@server.should_receive(:type).and_respond("500 Syntax error, command unrecognized.")
 	lambda { @ftp.send(@method, @local_fixture_file, "binary") }.should raise_error(Net::FTPPermError)
       end
-    
+
       it "raises a Net::FTPPermError when the response code is 501" do
 	@server.should_receive(:type).and_respond("501 Syntax error in parameters or arguments.")
 	lambda { @ftp.send(@method, @local_fixture_file, "binary") }.should raise_error(Net::FTPPermError)
       end
-    
+
       it "raises a Net::FTPPermError when the response code is 504" do
 	@server.should_receive(:type).and_respond("504 Command not implemented for that parameter.")
 	lambda { @ftp.send(@method, @local_fixture_file, "binary") }.should raise_error(Net::FTPPermError)
       end
-    
+
       it "raises a Net::FTPTempError when the response code is 421" do
 	@server.should_receive(:type).and_respond("421 Service not available, closing control connection.")
 	lambda { @ftp.send(@method, @local_fixture_file, "binary") }.should raise_error(Net::FTPTempError)
       end
-    
+
       it "raises a Net::FTPPermError when the response code is 530" do
 	@server.should_receive(:type).and_respond("530 Not logged in.")
 	lambda { @ftp.send(@method, @local_fixture_file, "binary") }.should raise_error(Net::FTPPermError)
       end
     end
   end
-  
+
   describe "when opening the data port fails" do
     it "raises a Net::FTPPermError when the response code is 500" do
       @server.should_receive(:eprt).and_respond("500 Syntax error, command unrecognized.")
@@ -222,7 +222,7 @@ describe :net_ftp_putbinaryfile, :shared => :true do
       @server.should_receive(:port).and_respond("421 Service not available, closing control connection.")
       lambda { @ftp.send(@method, @local_fixture_file, "binary") }.should raise_error(Net::FTPTempError)
     end
-    
+
     it "raises a Net::FTPPermError when the response code is 530" do
       @server.should_receive(:eprt).and_respond("530 Not logged in.")
       @server.should_receive(:port).and_respond("530 Not logged in.")

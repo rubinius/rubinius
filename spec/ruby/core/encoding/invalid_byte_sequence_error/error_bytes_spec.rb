@@ -21,7 +21,7 @@ with_feature :encoding do
       @exception2.error_bytes.should == "\xA1"
       @exception2.error_bytes.should == @errinfo2[-2]
     end
-    
+
     it "uses ASCII-8BIT as the encoding" do
       @exception.error_bytes.encoding.should == Encoding::ASCII_8BIT
 

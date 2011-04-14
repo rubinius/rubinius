@@ -28,13 +28,13 @@ describe "Time.at" do
     t = Time.now
     Time.at(t).inspect.should == t.inspect
   end
-  
+
   it "creates a dup time object with the value given by time" do
     t1 = Time.new
     t2 = Time.at(t1)
     t1.object_id.should_not == t2.object_id
   end
-  
+
   it "is able to create a time object with a float" do
     t = Time.at(10.5)
     t.usec.should == 500000.0

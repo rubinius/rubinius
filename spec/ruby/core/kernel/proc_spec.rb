@@ -8,9 +8,9 @@ describe "Kernel.proc" do
   it "is a private method" do
     Kernel.should have_private_instance_method(:proc)
   end
-  
+
   it_behaves_like(:kernel_lambda, :proc)
-  
+
   ruby_version_is ""..."1.9" do
     it_behaves_like(:kernel_lambda_return_like_method, :proc)
   end

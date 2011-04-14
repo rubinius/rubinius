@@ -35,7 +35,7 @@ describe "Module#public_class_method" do
     lambda { ModuleSpecs::Parent.public_method_3 }.should raise_error(NameError)
 
     ModuleSpecs::Child.public_class_method :public_method_1, :public_method_2, :public_method_3
-    
+
     ModuleSpecs::Child.public_method_1.should == nil
     ModuleSpecs::Child.public_method_2.should == nil
     ModuleSpecs::Child.public_method_3.should == nil

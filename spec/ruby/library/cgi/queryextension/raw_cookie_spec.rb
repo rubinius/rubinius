@@ -6,11 +6,11 @@ describe "CGI::QueryExtension#raw_cookie" do
     ENV['REQUEST_METHOD'], @old_request_method = "GET", ENV['REQUEST_METHOD']
     @cgi = CGI.new
   end
-  
+
   after(:each) do
     ENV['REQUEST_METHOD'] = @old_request_method
   end
-  
+
   it "returns ENV['HTTP_COOKIE']" do
     old_value, ENV['HTTP_COOKIE'] = ENV['HTTP_COOKIE'], "some_cookie=data"
     begin

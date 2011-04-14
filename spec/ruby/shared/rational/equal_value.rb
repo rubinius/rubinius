@@ -6,11 +6,11 @@ describe :rational_equal_value_rat, :shared => true do
     (Rational(3, 4) == Rational(3, 4)).should be_true
     (Rational(-3, -4) == Rational(3, 4)).should be_true
     (Rational(-4, 5) == Rational(4, -5)).should be_true
-    
+
     (Rational(bignum_value, 3) == Rational(bignum_value, 3)).should be_true
     (Rational(-bignum_value, 3) == Rational(bignum_value, -3)).should be_true
   end
-  
+
   ruby_version_is ""..."1.9" do
     it "returns false if self has different numerator/denominator but the same numerical value as the passed argument" do
       (Rational(3, 4) == Rational.new!(6, 8)).should be_false
@@ -56,7 +56,7 @@ describe :rational_equal_value, :shared => true do
   it "returns the result of calling #== with self on the passed argument" do
     obj = mock("Object")
     obj.should_receive(:==).and_return(:result)
-    
+
     (Rational(3, 4) == obj).should == :result
   end
 end

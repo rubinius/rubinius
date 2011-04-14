@@ -7,7 +7,7 @@ ruby_version_is "1.9" do
       sort_order = ascii_order.sort
       sort_order.should == ascii_order
     end
-    
+
     it "returns -1 when self is less than other" do
       (:this <=> :those).should == -1
     end
@@ -19,7 +19,7 @@ ruby_version_is "1.9" do
     it "returns 1 when self is greater than other" do
       (:yoddle <=> :griddle).should == 1
     end
-    
+
     it "considers symbol that comes lexicographically first to be less if the symbols have same size" do
       (:aba <=> :abc).should == -1
       (:abc <=> :aba).should == 1

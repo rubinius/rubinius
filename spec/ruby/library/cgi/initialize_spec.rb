@@ -12,7 +12,7 @@ describe "CGI#initialize when passed no arguments" do
     ENV['REQUEST_METHOD'], @old_request_method = "GET", ENV['REQUEST_METHOD']
     @cgi = CGI.allocate
   end
-  
+
   after(:each) do
     ENV['REQUEST_METHOD'] = @old_request_method
   end
@@ -26,7 +26,7 @@ describe "CGI#initialize when passed no arguments" do
     @cgi.send(:initialize)
     @cgi.should_not be_kind_of(CGI::HtmlExtension)
   end
-  
+
   it "does not extend self with any of the other HTML modules" do
     @cgi.send(:initialize)
     @cgi.should_not be_kind_of(CGI::Html3)
@@ -35,7 +35,7 @@ describe "CGI#initialize when passed no arguments" do
     @cgi.should_not be_kind_of(CGI::Html4Tr)
     @cgi.should_not be_kind_of(CGI::Html4Fr)
   end
-  
+
   it "sets #cookies based on ENV['HTTP_COOKIE']" do
     begin
       old_env, ENV["HTTP_COOKIE"] = ENV["HTTP_COOKIE"], "test=test yay"
@@ -76,7 +76,7 @@ describe "CGI#initialize when passed type" do
     ENV['REQUEST_METHOD'], @old_request_method = "GET", ENV['REQUEST_METHOD']
     @cgi = CGI.allocate
   end
-  
+
   after(:each) do
     ENV['REQUEST_METHOD'] = @old_request_method
   end
@@ -92,18 +92,18 @@ describe "CGI#initialize when passed type" do
     @cgi.should be_kind_of(CGI::Html3)
     @cgi.should be_kind_of(CGI::HtmlExtension)
     @cgi.should be_kind_of(CGI::QueryExtension)
-    
+
     @cgi.should_not be_kind_of(CGI::Html4)
     @cgi.should_not be_kind_of(CGI::Html4Tr)
     @cgi.should_not be_kind_of(CGI::Html4Fr)
   end
-  
+
   it "extends self with CGI::QueryExtension, CGI::Html4 and CGI::HtmlExtension when the passed type is 'html4'" do
     @cgi.send(:initialize, "html4")
     @cgi.should be_kind_of(CGI::Html4)
     @cgi.should be_kind_of(CGI::HtmlExtension)
     @cgi.should be_kind_of(CGI::QueryExtension)
-    
+
     @cgi.should_not be_kind_of(CGI::Html3)
     @cgi.should_not be_kind_of(CGI::Html4Tr)
     @cgi.should_not be_kind_of(CGI::Html4Fr)
@@ -114,19 +114,19 @@ describe "CGI#initialize when passed type" do
     @cgi.should be_kind_of(CGI::Html4Tr)
     @cgi.should be_kind_of(CGI::HtmlExtension)
     @cgi.should be_kind_of(CGI::QueryExtension)
-    
+
     @cgi.should_not be_kind_of(CGI::Html3)
     @cgi.should_not be_kind_of(CGI::Html4)
     @cgi.should_not be_kind_of(CGI::Html4Fr)
   end
-  
+
   it "extends self with CGI::QueryExtension, CGI::Html4Tr, CGI::Html4Fr and CGI::HtmlExtension when the passed type is 'html4Fr'" do
     @cgi.send(:initialize, "html4Fr")
     @cgi.should be_kind_of(CGI::Html4Tr)
     @cgi.should be_kind_of(CGI::Html4Fr)
     @cgi.should be_kind_of(CGI::HtmlExtension)
     @cgi.should be_kind_of(CGI::QueryExtension)
-    
+
     @cgi.should_not be_kind_of(CGI::Html3)
     @cgi.should_not be_kind_of(CGI::Html4)
   end
@@ -137,7 +137,7 @@ describe "CGI#initialize when CGI_PARAMS is set" do
     ENV['REQUEST_METHOD'], @old_request_method = "GET", ENV['REQUEST_METHOD']
     @cgi = CGI.allocate
   end
-  
+
   after(:each) do
     ENV['REQUEST_METHOD'] = @old_request_method
   end
@@ -159,7 +159,7 @@ describe "CGI#initialize when CGI_PARAMS is set" do
       begin
 	CGI_PARAMS = { "test" => "test" }
 	CGI_COOKIES = [ "cookie!" ]
-      
+
 	@cgi.send(:initialize)
 	@cgi.params.should == CGI_PARAMS
 	@cgi.cookies.should == CGI_COOKIES

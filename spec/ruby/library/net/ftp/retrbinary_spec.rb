@@ -16,12 +16,12 @@ describe "Net::FTP#retrbinary" do
     @ftp.close
     @server.stop
   end
-  
+
   it "sends the passed command to the server" do
     @ftp.retrbinary("RETR test", 4096) {}
     @ftp.last_response.should == "226 Closing data connection. (RETR test)\n"
   end
-  
+
   it "yields the received content as binary blocks of the passed size" do
     res = []
     @ftp.retrbinary("RETR test", 10) { |bin| res << bin }

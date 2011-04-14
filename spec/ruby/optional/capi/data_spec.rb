@@ -13,7 +13,7 @@ describe "CApiWrappedStruct" do
   before :each do
     @s = CApiWrappedStructSpecs.new
   end
-  
+
   it "Data_Wrap_Struct should wrap and Data_Get_Struct should return data" do
     a = @s.wrap_struct(1024)
     @s.get_struct(a).should == 1024

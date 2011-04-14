@@ -11,7 +11,7 @@ describe "Numeric#remainder" do
   it "returns the result of calling self#% with other if self is 0" do
     @obj.should_receive(:%).with(@other).and_return(@result)
     @result.should_receive(:==).with(0).and_return(true)
-    
+
     @obj.remainder(@other).should equal(@result)
   end
 
@@ -23,7 +23,7 @@ describe "Numeric#remainder" do
 
     @obj.should_receive(:>).with(0).and_return(true)
     @other.should_receive(:<).with(0).and_return(false)
-    
+
     @obj.remainder(@other).should equal(@result)
   end
 
@@ -35,7 +35,7 @@ describe "Numeric#remainder" do
     @other.should_receive(:>).with(0).and_return(false)
 
     @obj.should_receive(:>).with(0).and_return(false)
-    
+
     @obj.remainder(@other).should equal(@result)
   end
 
@@ -44,12 +44,12 @@ describe "Numeric#remainder" do
     @result.should_receive(:==).with(0).and_return(false)
 
     @obj.should_receive(:<).with(0).and_return(false)
-    
+
     @obj.should_receive(:>).with(0).and_return(true)
     @other.should_receive(:<).with(0).and_return(true)
-    
+
     @result.should_receive(:-).with(@other).and_return(:result)
-    
+
     @obj.remainder(@other).should == :result
   end
 
@@ -59,9 +59,9 @@ describe "Numeric#remainder" do
 
     @obj.should_receive(:<).with(0).and_return(true)
     @other.should_receive(:>).with(0).and_return(true)
-    
+
     @result.should_receive(:-).with(@other).and_return(:result)
-    
+
     @obj.remainder(@other).should == :result
   end
 end

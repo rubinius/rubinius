@@ -15,16 +15,16 @@ describe "Set#proper_subset?" do
     Set[1, 3].proper_subset?(@set).should be_true
     Set[1, 2].proper_subset?(@set).should be_true
     Set[1].proper_subset?(@set).should be_true
-    
+
     Set[5].proper_subset?(@set).should be_false
     Set[1, 5].proper_subset?(@set).should be_false
     Set[nil].proper_subset?(@set).should be_false
     Set["test"].proper_subset?(@set).should be_false
-    
+
     @set.proper_subset?(@set).should be_false
     Set[].proper_subset?(Set[]).should be_false
   end
-  
+
   it "raises an ArgumentError when passed a non-Set" do
     lambda { Set[].proper_subset?([]) }.should raise_error(ArgumentError)
     lambda { Set[].proper_subset?(1) }.should raise_error(ArgumentError)

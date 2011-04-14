@@ -5,7 +5,7 @@ describe "Math.cosh" do
   it "returns a float" do
     Math.cosh(1.0).should be_kind_of(Float)
   end
-  
+
   it "returns the hyperbolic cosine of the argument" do
     Math.cosh(0.0).should == 1.0
     Math.cosh(-0.0).should == 1.0
@@ -14,13 +14,13 @@ describe "Math.cosh" do
   end
 
   ruby_version_is ""..."1.9" do
-    it "raises an ArgumentError if the argument cannot be coerced with Float()" do    
+    it "raises an ArgumentError if the argument cannot be coerced with Float()" do
       lambda { Math.cosh("test") }.should raise_error(ArgumentError)
     end
   end
-  
+
   ruby_version_is "1.9" do
-    it "raises a TypeError if the argument cannot be coerced with Float()" do    
+    it "raises a TypeError if the argument cannot be coerced with Float()" do
       lambda { Math.cosh("test") }.should raise_error(TypeError)
     end
   end
@@ -28,7 +28,7 @@ describe "Math.cosh" do
   it "raises a TypeError if the argument is nil" do
     lambda { Math.cosh(nil) }.should raise_error(TypeError)
   end
-  
+
   it "accepts any argument that can be coerced with Float()" do
     Math.cosh(MathSpecs::Float.new).should be_close(1.54308063481524, TOLERANCE)
   end

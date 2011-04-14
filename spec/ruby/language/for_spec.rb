@@ -15,23 +15,23 @@ describe "The for expression" do
   it "iterates over an Hash passing each key-value pair to the block" do
     k = 0
     l = 0
-    
+
     for i, j in { 1 => 10, 2 => 20 }
       k += i
       l += j
     end
-    
+
     k.should == 3
     l.should == 30
   end
-  
+
   it "iterates over any object responding to 'each'" do
     class XYZ
       def each
         (0..10).each { |i| yield i }
       end
     end
-    
+
     j = 0
     for i in XYZ.new
       j += i
@@ -48,7 +48,7 @@ describe "The for expression" do
     @var.should == 3
     n.should == 3
   end
-  
+
   it "allows a class variable as an iterator name" do
     m = [1,2,3]
     n = 0
@@ -77,8 +77,8 @@ describe "The for expression" do
       q.should == [4,5,6]
     end
   end
-  
-  # 1.9 behaviour verified by nobu in 
+
+  # 1.9 behaviour verified by nobu in
   # http://redmine.ruby-lang.org/issues/show/2053
   ruby_version_is "1.9" do
     it "yields only as many values as there are arguments" do
@@ -106,27 +106,27 @@ describe "The for expression" do
     end
     j.should == 6
   end
-  
+
   it "allows body begin on the same line if do is used" do
     j = 0
     for i in 1..3 do j += i
     end
     j.should == 6
   end
-  
+
   it "executes code in containing variable scope" do
     for i in 1..2
       a = 123
     end
-    
+
     a.should == 123
   end
-  
+
   it "executes code in containing variable scope with 'do'" do
     for i in 1..2 do
       a = 123
     end
-    
+
     a.should == 123
   end
 
@@ -142,10 +142,10 @@ describe "The for expression" do
 
       break if i == 2
     end.should == nil
-    
+
     j.should == 3
   end
-  
+
   it "allows 'break' to have an argument which becomes the value of the for expression" do
     for i in 1..3
       break 10 if i == 2
@@ -159,7 +159,7 @@ describe "The for expression" do
 
       j += i
     end
-    
+
     j.should == 13
   end
 
@@ -167,10 +167,10 @@ describe "The for expression" do
     j = 0
     for i in 1..3
       j += i
-      
+
       redo if i == 2 && j < 4
     end
-    
+
     j.should == 8
   end
 end

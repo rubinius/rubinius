@@ -6,21 +6,21 @@ ruby_version_is ""..."1.9" do
     before :all do
       @do_not_reverse_lookup = BasicSocket.do_not_reverse_lookup
     end
-    
+
     before(:each) do
       @server = TCPServer.new('127.0.0.1', SocketSpecs.port)
       @socket = TCPSocket.new('127.0.0.1', SocketSpecs.port)
     end
-    
+
     after(:each) do
       @socket.close unless @socket.closed?
       @server.close unless @server.closed?
     end
-    
+
     after :all do
       BasicSocket.do_not_reverse_lookup = @do_not_reverse_lookup
     end
-    
+
     it "defaults to false" do
       BasicSocket.do_not_reverse_lookup.should be_false
     end
@@ -48,12 +48,12 @@ ruby_version_is "1.9" do
       @server = TCPServer.new('127.0.0.1', SocketSpecs.port)
       @socket = TCPSocket.new('127.0.0.1', SocketSpecs.port)
     end
-    
+
     after(:each) do
       @server.close unless @server.closed?
       @socket.close unless @socket.closed?
     end
-    
+
     it "defaults to true" do
       BasicSocket.do_not_reverse_lookup.should be_true
     end

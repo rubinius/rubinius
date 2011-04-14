@@ -23,7 +23,7 @@ endif
 
 TEST_SRCS = $(wildcard $(SRC_DIR)/*.c)
 TEST_OBJS := $(patsubst $(SRC_DIR)/%.c, $(TEST_BUILD_DIR)/%.o, $(TEST_SRCS))
-	
+
 #
 # Compiler/linker flags from:
 #   http://weblogs.java.net/blog/kellyohair/archive/2006/01/compilation_of_1.html
@@ -64,7 +64,7 @@ endif
 ifeq ($(OS), solaris)
   CC = /usr/sfw/bin/gcc -std=c99
   LD = /usr/ccs/bin/ld
-  SOFLAGS = -shared -static-libgcc 
+  SOFLAGS = -shared -static-libgcc
 endif
 
 ifeq ($(OS), aix)

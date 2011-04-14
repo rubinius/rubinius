@@ -16,7 +16,7 @@ describe "Net::FTP#welcome" do
     @ftp.close
     @server.stop
   end
-  
+
   it "returns the server's welcome message" do
     @ftp.welcome.should be_nil
     @ftp.login

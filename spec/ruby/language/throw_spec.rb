@@ -12,7 +12,7 @@ describe "The throw keyword" do
     end
     i.should == 5
   end
-  
+
   it "supports a second parameter" do
     msg = catch(:exit) do
       throw :exit,:msg
@@ -70,7 +70,7 @@ describe "The throw keyword" do
     catch(:foo) { c.call }.should == :msg
   end
 
-  ruby_version_is "" ... "1.9" do 
+  ruby_version_is "" ... "1.9" do
     it "raises a NameError if outside of scope of a matching catch" do
       lambda { throw :test,5 }.should raise_error(NameError)
       lambda { catch(:different) { throw :test,5 } }.should raise_error(NameError)

@@ -10,7 +10,7 @@ ruby_version_is "1.8.7" do
         hex.should be_kind_of(String)
         hex.length.should == 2 * idx
       end
-      
+
       base64 = SecureRandom.hex(5.5)
       base64.should be_kind_of(String)
       base64.length.should eql(10)

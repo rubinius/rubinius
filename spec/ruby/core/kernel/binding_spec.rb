@@ -5,7 +5,7 @@ describe "Kernel#binding" do
   it "is a private method" do
     Kernel.should have_private_instance_method(:binding)
   end
-  
+
   before(:each) do
     @b1 = KernelSpecs::Binding.new(99).get_binding
   end
@@ -37,7 +37,7 @@ describe "Kernel#binding" do
       eval('self', m.send(:binding)).should == m
     end
   end
-  
+
   ruby_version_is "1.9" do
     it "uses the closures self as self in the binding" do
       m = mock(:whatever)

@@ -5,7 +5,7 @@ describe "CGI::Cookie#name" do
   it "returns self's name" do
     cookie = CGI::Cookie.new("test-cookie")
     cookie.name.should == "test-cookie"
-    
+
     cookie = CGI::Cookie.new("name" => "another cookie")
     cookie.name.should == "another cookie"
   end
@@ -16,7 +16,7 @@ describe "CGI::Cookie#name=" do
     cookie = CGI::Cookie.new("test-cookie")
     cookie.name = "another name"
     cookie.name.should == "another name"
-    
+
     cookie.name = "and one more"
     cookie.name.should == "and one more"
   end

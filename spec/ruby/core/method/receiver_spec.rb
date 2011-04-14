@@ -7,7 +7,7 @@ describe "Method#receiver" do
       s = "abc"
       s.method(:upcase).receiver.should equal(s)
     end
-    
+
     it "returns the right receiver even when aliased" do
       obj = MethodSpecs::Methods.new
       obj.method(:foo).receiver.should equal(obj)

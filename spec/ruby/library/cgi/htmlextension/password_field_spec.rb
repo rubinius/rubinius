@@ -12,7 +12,7 @@ describe "CGI::HtmlExtension#password_field" do
       output = @html.password_field
       output.should equal_element("INPUT", {"NAME" => "", "TYPE" => "password", "SIZE" => "40"}, "", :not_closed => true)
     end
-  
+
     it "ignores a passed block" do
       output = @html.password_field { "test" }
       output.should equal_element("INPUT", {"NAME" => "", "TYPE" => "password", "SIZE" => "40"}, "", :not_closed => true)

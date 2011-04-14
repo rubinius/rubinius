@@ -11,7 +11,7 @@ describe "Fixnum#divmod" do
     1.divmod(2.0).should == [0, 1.0]
     200.divmod(bignum_value).should == [0, 200]
   end
-  
+
   it "raises a ZeroDivisionError when the given argument is 0" do
     lambda { 13.divmod(0)  }.should raise_error(ZeroDivisionError)
     lambda { 0.divmod(0)   }.should raise_error(ZeroDivisionError)

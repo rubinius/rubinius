@@ -33,7 +33,7 @@ describe :dir_pos_set, :shared => true do
   after(:each) do
     @dir.close
   end
-  
+
   # NOTE: #seek/#pos= to a position not returned by #tell/#pos is undefined
   # and should not be spec'd.
 

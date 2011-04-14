@@ -3,7 +3,7 @@ describe :enumerable_entries, :shared => true do
     numerous = EnumerableSpecs::Numerous.new(1, nil, 'a', 2, false, true)
     numerous.send(@method).should == [1, nil, "a", 2, false, true]
   end
-  
+
   ruby_version_is '1.8.7' do
     it "passes arguments to each" do
       count = EnumerableSpecs::EachCounter.new(1, 2, 3)

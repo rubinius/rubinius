@@ -4,12 +4,12 @@ describe :proc_call, :shared => true do
     lambda { "test!" }.send(@method).should == "test!"
     proc { "test!" }.send(@method).should == "test!"
   end
-  
+
   it "sets self's parameters to the given values" do
     Proc.new { |a, b| a + b }.send(@method, 1, 2).should == 3
     Proc.new { |*args| args }.send(@method, 1, 2, 3, 4).should == [1, 2, 3, 4]
     Proc.new { |_, *args| args }.send(@method, 1, 2, 3).should == [2, 3]
-    
+
     lambda { |a, b| a + b }.send(@method, 1, 2).should == 3
     lambda { |*args| args }.send(@method, 1, 2, 3, 4).should == [1, 2, 3, 4]
     lambda { |_, *args| args }.send(@method, 1, 2, 3).should == [2, 3]
@@ -25,15 +25,15 @@ describe :proc_call, :shared => true do
         a = p.send(@method)
         a.should be_kind_of(Array)
         a.should == [nil]
-        
+
         a = p.send(@method, 1)
         a.should be_kind_of(Array)
         a.should == [1]
-        
+
         a = p.send(@method, 1, 2)
         a.should be_kind_of(Array)
         a.should == [[1, 2]]
-        
+
         a = p.send(@method, 1, 2, 3)
         a.should be_kind_of(Array)
         a.should == [[1, 2, 3]]
@@ -88,7 +88,7 @@ describe :proc_call_on_proc_or_lambda, :shared => true do
     it "ignores excess arguments when self is a proc" do
       a = proc {|x| x}.send(@method, 1, 2)
       a.should == 1
-      
+
       a = proc {|x| x}.send(@method, 1, 2, 3)
       a.should == 1
     end
@@ -104,7 +104,7 @@ describe :proc_call_on_proc_or_lambda, :shared => true do
       lambda {
         lambda {|x| x}.send(@method, 1, 2)
       }.should raise_error(ArgumentError)
-      
+
       lambda {
         lambda {|x| x}.send(@method, 1, 2, 3)
       }.should raise_error(ArgumentError)
@@ -114,7 +114,7 @@ describe :proc_call_on_proc_or_lambda, :shared => true do
       lambda {
         lambda {|x| x}.send(@method)
       }.should raise_error(ArgumentError)
-      
+
       lambda {
         lambda {|x,y| [x,y]}.send(@method, 1)
       }.should raise_error(ArgumentError)

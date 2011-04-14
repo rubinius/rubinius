@@ -20,11 +20,11 @@ describe "StandardError" do
   it "is a superclass of NameError" do
     StandardError.should be_ancestor_of(NameError)
   end
-  
+
   it "is a superclass of RangeError" do
     StandardError.should be_ancestor_of(RangeError)
   end
-  
+
   it "is a superclass of RegexpError" do
     StandardError.should be_ancestor_of(RegexpError)
   end

@@ -11,11 +11,11 @@ describe "Net::HTTPHeader#content_type" do
   it "returns the content type string, as per 'Content-Type' header entry" do
     @headers["Content-Type"] = "text/html"
     @headers.content_type.should == "text/html"
-    
+
     @headers["Content-Type"] = "text/html;charset=utf-8"
-    @headers.content_type.should == "text/html"    
+    @headers.content_type.should == "text/html"
   end
-  
+
   it "returns nil if the 'Content-Type' header entry does not exist" do
     @headers.content_type.should be_nil
   end

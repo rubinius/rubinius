@@ -16,7 +16,7 @@ describe "String#rjust with length, padding" do
     "OK".rjust(6, "abcd").should == "abcdOK"
     "OK".rjust(8, "abcd").should == "abcdabOK"
   end
-  
+
   it "pads with whitespace if no padstr is given" do
     "hello".rjust(20).should == "               hello"
   end
@@ -46,7 +46,7 @@ describe "String#rjust with length, padding" do
 
     "o".rjust(obj, "o_").should == "o_o"
   end
-  
+
   it "raises a TypeError when length can't be converted to an integer" do
     lambda { "hello".rjust("x")       }.should raise_error(TypeError)
     lambda { "hello".rjust("x", "y")  }.should raise_error(TypeError)
@@ -66,16 +66,16 @@ describe "String#rjust with length, padding" do
     lambda { "hello".rjust(20, Object.new)}.should raise_error(TypeError)
     lambda { "hello".rjust(20, mock('x')) }.should raise_error(TypeError)
   end
-  
+
   it "raises an ArgumentError when padstr is empty" do
     lambda { "hello".rjust(10, '') }.should raise_error(ArgumentError)
   end
-  
+
   it "returns subclass instances when called on subclasses" do
     StringSpecs::MyString.new("").rjust(10).should be_kind_of(StringSpecs::MyString)
     StringSpecs::MyString.new("foo").rjust(10).should be_kind_of(StringSpecs::MyString)
     StringSpecs::MyString.new("foo").rjust(10, StringSpecs::MyString.new("x")).should be_kind_of(StringSpecs::MyString)
-    
+
     "".rjust(10, StringSpecs::MyString.new("x")).should be_kind_of(String)
     "foo".rjust(10, StringSpecs::MyString.new("x")).should be_kind_of(String)
   end

@@ -2,7 +2,7 @@ require 'rexml/document'
 require File.expand_path('../../../../spec_helper', __FILE__)
 
 describe "REXML::Element#previous_element" do
-  before :each do 
+  before :each do
     @a = REXML::Element.new "a"
     @b = REXML::Element.new "b"
     @c = REXML::Element.new "c"

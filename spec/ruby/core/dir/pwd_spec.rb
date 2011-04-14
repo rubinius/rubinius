@@ -12,7 +12,7 @@ describe "Dir.pwd" do
   end
 
   it_behaves_like :dir_pwd, :pwd
-  
+
   ruby_version_is ""..."1.9" do
     it "correctly displays dirs with unicode characters in them" do
       DirSpecs.clear_dirs

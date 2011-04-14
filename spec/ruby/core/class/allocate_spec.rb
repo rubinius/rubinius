@@ -5,7 +5,7 @@ describe "Class#allocate" do
     klass = Class.new
     klass.allocate.should be_kind_of(klass)
   end
-  
+
   it "returns a fully-formed instance of Module" do
     klass = Class.allocate
     klass.constants.should_not == nil
@@ -17,12 +17,12 @@ describe "Class#allocate" do
       def initialize(*args)
         @initialized = true
       end
-      
+
       def initialized?
         @initialized || false
       end
     end
-    
+
     klass.allocate.initialized?.should == false
   end
 end

@@ -21,7 +21,7 @@ with_feature :encoding do
       @exception2.readagain_bytes.should == "\xFF".force_encoding('binary')
       @exception2.readagain_bytes.should == @errinfo2[-1]
     end
-    
+
     it "uses ASCII-8BIT as the encoding" do
       @exception.readagain_bytes.encoding.should == Encoding::ASCII_8BIT
 

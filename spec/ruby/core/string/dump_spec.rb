@@ -48,7 +48,7 @@ describe "String#dump" do
     "".taint.dump.tainted?.should == true
     "x".taint.dump.tainted?.should == true
   end
-  
+
   it "returns a subclass instance for subclasses" do
     StringSpecs::MyString.new("hi!").dump.should be_kind_of(StringSpecs::MyString)
   end

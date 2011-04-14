@@ -9,7 +9,7 @@ describe "File::Stat#mtime" do
   after :each do
     rm_r @file
   end
-  
+
   it "returns the mtime of a File::Stat object" do
     st = File.stat(@file)
     st.mtime.should be_kind_of(Time)

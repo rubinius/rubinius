@@ -5,7 +5,7 @@ describe "CGI.unescapeElement when passed String, elements, ..." do
   it "unescapes only the tags of the passed elements in the passed String" do
     res = CGI.unescapeElement("&lt;BR&gt;&lt;A HREF=&quot;url&quot;&gt;&lt;/A&gt;", "A", "IMG")
     res.should == '&lt;BR&gt;<A HREF="url"></A>'
-    
+
     res = CGI.unescapeElement('&lt;BR&gt;&lt;A HREF=&quot;url&quot;&gt;&lt;/A&gt;', ["A", "IMG"])
     res.should == '&lt;BR&gt;<A HREF="url"></A>'
   end

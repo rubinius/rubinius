@@ -12,7 +12,7 @@ ruby_version_is "1.9" do
 
     it "returns an Enumerator if not given a block" do
       (1..10).to_a.sort_by!.should be_an_instance_of(enumerator_class)
-    end 
+    end
 
     it "completes when supplied a block that always returns the same result" do
       a = [2, 3, 5, 1, 4]
@@ -45,4 +45,4 @@ ruby_version_is "1.9" do
       partially_sorted.any?{|ary| ary != [1, 2, 3, 4, 5]}.should be_true
     end
   end
-end  
+end

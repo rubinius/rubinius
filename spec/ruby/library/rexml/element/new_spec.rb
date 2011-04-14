@@ -21,7 +21,7 @@ describe "REXML::Element#new" do
     e.context.should == f.context
     e.parent.should == f.parent
   end
-  
+
   it "takes parent as second argument" do
     parent = REXML::Element.new "foo"
     child = REXML::Element.new "bar", parent

@@ -7,7 +7,7 @@ describe "Numeric#singleton_method_added" do
       a = NumericSpecs::Subclass.new
       a.dup
     end.should raise_error(TypeError)
-    
+
     lambda do
       a = 1
       a.dup

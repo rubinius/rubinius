@@ -83,28 +83,28 @@ describe "Calling a method" do
 
 #     foo(:abc, 'rbx' => 'cool', 'specs' => 'fail sometimes') { 500 }.should ==
 #       [:abc, { 'rbx' => 'cool', 'specs' => 'fail sometimes'}, 500]
-    
+
 #     foo(:abc, 'rbx' => 'cool', 'specs' => 'fail sometimes') do 500 end.should ==
 #       [:abc, { 'rbx' => 'cool', 'specs' => 'fail sometimes'}, 500]
 
 #     l = lambda { 500 }
-    
+
 #     foo(:abc, 'rbx' => 'cool', 'specs' => 'fail sometimes', &l).should ==
 #       [:abc, { 'rbx' => 'cool', 'specs' => 'fail sometimes'}, 500]
 #   end
 
 #  it "with ambiguous missing parens, arguments go with innermost call" do
 #    def f(*a); a.length; end
-    
+
 #    (f f 5, 6).should == 1
 
 #    lambda { eval "f 4, f 5, 6" }.should raise_error(SyntaxError)
 
 #    [f 5, 6].should == [2]
-    
+
 #    (f (5+6)*7).should == 1
 #    (f(5+6)*7).should == 7
-    
+
 #    a, b = f 5, 6
 #    a.should == 2
 #    b.should == nil

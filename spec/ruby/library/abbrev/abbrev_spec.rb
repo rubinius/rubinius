@@ -8,7 +8,7 @@ require 'abbrev'
 [["Abbrev::abbrev", lambda {|a| Abbrev::abbrev(a)}],
  ["Array#abbrev", lambda {|a| a.abbrev}]
 ].each do |(name, func)|
-  
+
   describe name do
     it "returns a hash of all unambiguous abbreviations of the array of strings passed in" do
       func.call(['ruby', 'rules']).should == {"rub" => "ruby",
@@ -16,14 +16,14 @@ require 'abbrev'
                                        "rul" => "rules",
                                        "rule" => "rules",
                                        "rules" => "rules"}
-      
-      func.call(["car", "cone"]).should == {"ca" => "car", 
-                                       "car" => "car", 
-                                       "co" => "cone", 
-                                       "con" => "cone", 
-                                       "cone" => "cone"}                         
+
+      func.call(["car", "cone"]).should == {"ca" => "car",
+                                       "car" => "car",
+                                       "co" => "cone",
+                                       "con" => "cone",
+                                       "cone" => "cone"}
     end
-    
+
     it "returns an empty hash when called on an empty array" do
       func.call([]).should == {}
     end

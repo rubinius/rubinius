@@ -6,7 +6,7 @@ describe "CApiGlobalSpecs" do
   before :each do
     @f = CApiGlobalSpecs.new
   end
-  
+
   it "correctly gets global values" do
     @f.sb_gv_get("$BLAH").should == nil
     @f.sb_gv_get("$SAFE").should == 0

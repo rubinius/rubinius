@@ -57,7 +57,7 @@ ruby_version_is "1.9" do
       m = MethodSpecs::Methods.instance_method(:two_req_one_opt)
       m.parameters.should == [[:req,:a],[:req,:b],[:opt,:c]]
     end
-    
+
     it "returns [[:opt,:a],[:block,:b]] for a method expecting one required argument ('a') and one block argument ('b')" do
       m = MethodSpecs::Methods.instance_method(:one_opt_with_block)
       m.parameters.should == [[:opt,:a],[:block,:block]]
@@ -117,7 +117,7 @@ ruby_version_is "1.9" do
       m = MethodSpecs::Methods.instance_method(:two_req_with_splat_and_block)
       m.parameters.should == [[:req,:a],[:req,:b],[:rest,:c],[:block,:block]]
     end
-    
+
     it "returns [[:req,:a],[:opt,:b],[:rest,:c],[:block,:d]] for a method expecting a required argument ('a'), a splat argument ('c'), and a block ('d')" do
       m = MethodSpecs::Methods.instance_method(:one_req_one_opt_with_splat_and_block)
       m.parameters.should == [[:req,:a],[:opt,:b],[:rest,:c],[:block,:block]]
@@ -134,7 +134,7 @@ ruby_version_is "1.9" do
       m = MethodSpecs::Methods.instance_method(:one_splat_one_req)
       m.parameters.should == [[:rest,:a],[:req,:b]]
     end
-    
+
     it "returns [[:rest,:a],[:req,:b],[:req,:c]] for a method expecting a splat argument ('a') and two required arguments ('b','c')" do
       m = MethodSpecs::Methods.instance_method(:one_splat_two_req)
       m.parameters.should == [[:rest,:a],[:req,:b],[:req,:c]]

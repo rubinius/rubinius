@@ -5,7 +5,7 @@ describe "String.allocate" do
     str = String.allocate
     str.should be_kind_of(String)
   end
-  
+
   it "returns a fully-formed String" do
     str = String.allocate
     str.size.should == 0

@@ -9,11 +9,11 @@ describe "ThreadGroup#list" do
     tg = ThreadGroup.new
     tg.add(th1)
     tg.list.should include(th1)
-    
+
     th2 = Thread.new { chan << :go; sleep }
     chan.receive.should == :go
-    
-    tg.add(th2)    
+
+    tg.add(th2)
     (tg.list & [th1, th2]).should include(th1, th2)
 
     Thread.pass while th1.status and th1.status != 'sleep'

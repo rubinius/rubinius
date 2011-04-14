@@ -14,10 +14,10 @@ describe "Net::HTTPHeader#get_fields when passed key" do
     @headers.add_field("My-Header", "b")
     @headers.get_fields("My-Header").should == ["a", "b"]
   end
-  
+
   it "returns a copy of the header entry values" do
     @headers["My-Header"] = "a"
-    
+
     @headers.get_fields("My-Header").clear
     @headers.get_fields("My-Header").should == ["a"]
 

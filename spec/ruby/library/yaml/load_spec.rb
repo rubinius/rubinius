@@ -6,17 +6,17 @@ describe "YAML.load" do
   after :each do
     rm_r $test_file
   end
-  
+
   it "returns a document from current io stream when io provided" do
     File.open($test_file, 'w') do |io|
       YAML.dump( ['badger', 'elephant', 'tiger'], io )
     end
     File.open($test_file) { |yf| YAML.load( yf ) }.should == ['badger', 'elephant', 'tiger']
   end
-  
+
   it "loads strings" do
     strings = ["str",
-               " str", 
+               " str",
                "'str'",
                "str",
                " str",
@@ -32,7 +32,7 @@ describe "YAML.load" do
     strings.each do |str|
       YAML.load(str).should == "str"
     end
-  end  
+  end
 
   it "fails on invalid keys" do
     lambda { YAML.load("key1: value\ninvalid_key") }.should raise_error(ArgumentError)
@@ -73,15 +73,15 @@ describe "YAML.load" do
   end
 
   it "works on complex keys" do
-    expected = { 
+    expected = {
       [ 'Detroit Tigers', 'Chicago Cubs' ] => [ Date.new( 2001, 7, 23 ) ],
-      [ 'New York Yankees', 'Atlanta Braves' ] => [ Date.new( 2001, 7, 2 ), 
-                                                    Date.new( 2001, 8, 12 ), 
-                                                    Date.new( 2001, 8, 14 ) ] 
+      [ 'New York Yankees', 'Atlanta Braves' ] => [ Date.new( 2001, 7, 2 ),
+                                                    Date.new( 2001, 8, 12 ),
+                                                    Date.new( 2001, 8, 14 ) ]
     }
     YAML.load($complex_key_1).should == expected
   end
-  
+
   it "loads a symbol key that contains spaces" do
     string = ":user name: This is the user name."
     expected = { :"user name" => "This is the user name."}

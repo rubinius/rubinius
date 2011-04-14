@@ -11,7 +11,7 @@ describe "String#count" do
     s.count("l").should == 3
     s.count("\n").should == 1
     s.count("\x00").should == 2
-    
+
     s.count("").should == 0
     "".count("").should == 0
 
@@ -27,7 +27,7 @@ describe "String#count" do
 
   it "negates sets starting with ^" do
     s = "^hello\nworld\x00\x00"
-    
+
     s.count("^").should == 1 # no negation, counts ^
 
     s.count("^leh").should == 9
@@ -35,14 +35,14 @@ describe "String#count" do
 
     s.count("helo", "^el").should == s.count("ho")
     s.count("aeiou", "^e").should == s.count("aiou")
-    
+
     "^_^".count("^^").should == 1
     "oa^_^o".count("a^").should == 3
   end
 
   it "counts all chars in a sequence" do
     s = "hel-[()]-lo012^"
-    
+
     s.count("\x00-\xFF").should == s.size
     s.count("ej-m").should == 3
     s.count("e-h").should == 2
@@ -53,12 +53,12 @@ describe "String#count" do
     s.count("-h").should == s.count("h") + s.count("-")
 
     s.count("---").should == s.count("-")
-    
+
     # see an ASCII table for reference
     s.count("--2").should == s.count("-./012")
     s.count("(--").should == s.count("()*+,-")
     s.count("A-a").should == s.count("A-Z[\\]^_`a")
-    
+
     # negated sequences
     s.count("^e-h").should == s.size - s.count("e-h")
     s.count("^^-^").should == s.size - s.count("^")

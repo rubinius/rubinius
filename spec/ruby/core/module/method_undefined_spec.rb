@@ -8,13 +8,13 @@ describe "Module#method_undefined" do
         def self.method_undefined(name)
           $method_undefined = name
         end
-        
+
         def test
           "test"
         end
         undef_method :test
       end
-      
+
       $method_undefined.should == :test
     ensure
       $method_undefined = nil

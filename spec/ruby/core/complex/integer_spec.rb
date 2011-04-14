@@ -3,11 +3,11 @@ ruby_version_is "1.9" do
 
     it "returns false for a Complex with no imaginary part" do
       Complex(20).integer?.should be_false
-    end 
+    end
 
     it "returns false for a Complex with an imaginary part" do
       Complex(20,3).integer?.should be_false
-    end 
+    end
 
   end
 end

@@ -6,7 +6,7 @@ describe :kernel_integer, :shared => true do
   it "returns a Bignum for a Bignum" do
     Integer(2e100).should == 2e100
   end
-  
+
   it "returns a Fixnum for a Fixnum" do
     Integer(100).should == 100
   end
@@ -17,13 +17,13 @@ describe :kernel_integer, :shared => true do
     obj.should_not_receive(:to_i)
     Integer(obj).should == "1"
   end
-  
+
   ruby_version_is "1.9" do
     it "raises a TypeError when passed nil" do
       lambda { Integer(nil) }.should raise_error(TypeError)
     end
   end
-  
+
   ruby_version_is ""..."1.9" do
     it "returns 0 when passed nil" do
       Integer(nil).should == 0
@@ -34,12 +34,12 @@ describe :kernel_integer, :shared => true do
     Integer(2).should be_an_instance_of(Fixnum)
     Integer(9**99).should be_an_instance_of(Bignum)
   end
-  
+
   it "truncates Floats" do
     Integer(3.14).should == 3
     Integer(90.8).should == 90
   end
-    
+
   it "calls to_i on Rationals" do
     Integer(Rational(8,3)).should == 2
     Integer(3.quo(2)).should == 1

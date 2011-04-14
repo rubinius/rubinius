@@ -6,7 +6,7 @@ describe "REXML::Element#add_attribute" do
     @person = REXML::Element.new "person"
     @person.attributes["name"] = "Bill"
   end
-  
+
   it "adds a new attribute" do
     @person.add_attribute("age", "17")
     @person.attributes["age"].should == "17"
@@ -16,7 +16,7 @@ describe "REXML::Element#add_attribute" do
     @person.add_attribute("name", "Bill")
     @person.attributes["name"].should == "Bill"
   end
-  
+
   it "accepts a pair of strings" do
     @person.add_attribute("male", "true")
     @person.attributes["male"].should == "true"

@@ -6,7 +6,7 @@ describe "Time#eql?" do
     Time.at(100, 100).should eql(Time.at(100, 100))
     Time.at(100, 100).should_not eql(Time.at(100, 99))
     Time.at(100, 100).should_not eql(Time.at(99, 100))
-  end  
+  end
 
   it "returns false when given a non-time value" do
     Time.at(100, 100).should_not eql("100")

@@ -14,7 +14,7 @@ describe "ARGF.closed?" do
     argv [@file1_name, @file2_name] do
       stream = ARGF.to_io
       stream.close
-      
+
       ARGF.closed?.should be_true
       stream.reopen(ARGF.filename, 'r')
     end

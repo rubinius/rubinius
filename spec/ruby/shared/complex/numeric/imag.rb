@@ -9,18 +9,18 @@ describe :numeric_imag, :shared => true do
       bignum_value, # Bignum
       Float::MAX * 2, # Infinity
       0/0.0           # NaN
-    ].map{|n| [n,-n]}.flatten 
+    ].map{|n| [n,-n]}.flatten
   end
 
   it "returns 0" do
-    @numbers.each do |number| 
+    @numbers.each do |number|
       number.send(@method).should == 0
     end
-  end  
+  end
 
   it "raises an ArgumentError if given any arguments" do
-   @numbers.each do |number| 
+   @numbers.each do |number|
      lambda { number.send(@method, number) }.should raise_error(ArgumentError)
    end
   end
-end  
+end

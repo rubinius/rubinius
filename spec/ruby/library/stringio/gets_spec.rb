@@ -40,14 +40,14 @@ describe "StringIO#gets when passed [separator]" do
   it "updates self's lineno by one" do
     @io.gets(">")
     @io.lineno.should eql(1)
-    
+
     @io.gets(">")
     @io.lineno.should eql(2)
-    
+
     @io.gets(">")
     @io.lineno.should eql(3)
   end
-  
+
   ruby_bug "", "1.8.8" do
     it "returns the next paragraph when the passed separator is an empty String" do
       io = StringIO.new("this is\n\nan example")
@@ -55,7 +55,7 @@ describe "StringIO#gets when passed [separator]" do
       io.gets("").should == "an example"
     end
   end
-  
+
   it "returns the remaining content starting at the current position when passed nil" do
     io = StringIO.new("this is\n\nan example")
     io.pos = 5
@@ -73,10 +73,10 @@ describe "StringIO#gets when passed no argument" do
   before(:each) do
     @io = StringIO.new("this is\nan example\nfor StringIO#gets")
   end
-  
+
   it "returns the data read till the next occurence of $/ or till eof" do
     @io.gets.should == "this is\n"
-    
+
     begin
       old_sep, $/ = $/, " "
       @io.gets.should == "an "
@@ -101,21 +101,21 @@ describe "StringIO#gets when passed no argument" do
   it "updates self's position" do
     @io.gets
     @io.pos.should eql(8)
-    
+
     @io.gets
     @io.pos.should eql(19)
 
     @io.gets
     @io.pos.should eql(36)
   end
-  
+
   it "updates self's lineno" do
     @io.gets
     @io.lineno.should eql(1)
-    
+
     @io.gets
     @io.lineno.should eql(2)
-    
+
     @io.gets
     @io.lineno.should eql(3)
   end

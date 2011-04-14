@@ -13,7 +13,7 @@ describe "Matrix#column_vectors" do
 
   it "returns an Array of Vectors" do
     @vectors.all? {|v| v.should be_an_instance_of(Vector)}
-  end  
+  end
 
   it "returns each column as a Vector" do
     @vectors.should == [Vector[1,3], Vector[2,4]]

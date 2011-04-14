@@ -35,7 +35,7 @@ describe "String#gsub with pattern and replacement" do
     str = "hello homely world. hah!"
     str.gsub(/\Ah\S+\s*/, "huh? ").should == "huh? homely world. hah!"
   end
-  
+
   it "ignores a block if supplied" do
     "food".gsub(/f/, "g") { "w" }.should == "good"
   end
@@ -44,21 +44,21 @@ describe "String#gsub with pattern and replacement" do
     str = "hello homely world. hah!"
     str.gsub(/\Gh\S+\s*/, "huh? ").should == "huh? huh? world. hah!"
   end
-  
+
   it "supports /i for ignoring case" do
     str = "Hello. How happy are you?"
     str.gsub(/h/i, "j").should == "jello. jow jappy are you?"
     str.gsub(/H/i, "j").should == "jello. jow jappy are you?"
   end
-  
+
   it "doesn't interpret regexp metacharacters if pattern is a string" do
     "12345".gsub('\d', 'a').should == "12345"
     '\d'.gsub('\d', 'a').should == "a"
   end
-  
+
   it "replaces \\1 sequences with the regexp's corresponding capture" do
     str = "hello"
-    
+
     str.gsub(/([aeiou])/, '<\1>').should == "h<e>ll<o>"
     str.gsub(/(.)/, '\1\1').should == "hheelllloo"
 
@@ -76,7 +76,7 @@ describe "String#gsub with pattern and replacement" do
 
   it "treats \\1 sequences without corresponding captures as empty strings" do
     str = "hello!"
-    
+
     str.gsub("", '<\1>').should == "<>h<>e<>l<>l<>o<>!<>"
     str.gsub("h", '<\1>').should == "<>ello!"
 
@@ -87,14 +87,14 @@ describe "String#gsub with pattern and replacement" do
 
   it "replaces \\& and \\0 with the complete match" do
     str = "hello!"
-    
+
     str.gsub("", '<\0>').should == "<>h<>e<>l<>l<>o<>!<>"
     str.gsub("", '<\&>').should == "<>h<>e<>l<>l<>o<>!<>"
     str.gsub("he", '<\0>').should == "<he>llo!"
     str.gsub("he", '<\&>').should == "<he>llo!"
     str.gsub("l", '<\0>').should == "he<l><l>o!"
     str.gsub("l", '<\&>').should == "he<l><l>o!"
-    
+
     str.gsub(//, '<\0>').should == "<>h<>e<>l<>l<>o<>!<>"
     str.gsub(//, '<\&>').should == "<>h<>e<>l<>l<>o<>!<>"
     str.gsub(/../, '<\0>').should == "<he><ll><o!>"
@@ -104,31 +104,31 @@ describe "String#gsub with pattern and replacement" do
 
   it "replaces \\` with everything before the current match" do
     str = "hello!"
-    
+
     str.gsub("", '<\`>').should == "<>h<h>e<he>l<hel>l<hell>o<hello>!<hello!>"
     str.gsub("h", '<\`>').should == "<>ello!"
     str.gsub("l", '<\`>').should == "he<he><hel>o!"
     str.gsub("!", '<\`>').should == "hello<hello>"
-    
+
     str.gsub(//, '<\`>').should == "<>h<h>e<he>l<hel>l<hell>o<hello>!<hello!>"
     str.gsub(/../, '<\`>').should == "<><he><hell>"
   end
 
   it "replaces \\' with everything after the current match" do
     str = "hello!"
-    
+
     str.gsub("", '<\\\'>').should == "<hello!>h<ello!>e<llo!>l<lo!>l<o!>o<!>!<>"
     str.gsub("h", '<\\\'>').should == "<ello!>ello!"
     str.gsub("ll", '<\\\'>').should == "he<o!>o!"
     str.gsub("!", '<\\\'>').should == "hello<>"
-    
+
     str.gsub(//, '<\\\'>').should == "<hello!>h<ello!>e<llo!>l<lo!>l<o!>o<!>!<>"
     str.gsub(/../, '<\\\'>').should == "<llo!><o!><>"
   end
-  
+
   it "replaces \\+ with the last paren that actually matched" do
     str = "hello!"
-    
+
     str.gsub(/(.)(.)/, '\+').should == "el!"
     str.gsub(/(.)(.)+/, '\+').should == "!"
     str.gsub(/(.)()/, '\+').should == ""
@@ -142,7 +142,7 @@ describe "String#gsub with pattern and replacement" do
   it "treats \\+ as an empty string if there was no captures" do
     "hello!".gsub(/./, '\+').should == ""
   end
-  
+
   it "maps \\\\ in replacement to \\" do
     "hello".gsub(/./, '\\\\').should == '\\' * 5
   end
@@ -155,7 +155,7 @@ describe "String#gsub with pattern and replacement" do
   it "leaves \\ at the end of replacement untouched" do
     "hello".gsub(/./, 'hah\\').should == 'hah\\' * 5
   end
-  
+
   it "taints the result if the original string or replacement is tainted" do
     hello = "hello"
     hello_t = "hello"
@@ -163,16 +163,16 @@ describe "String#gsub with pattern and replacement" do
     a_t = "a"
     empty = ""
     empty_t = ""
-    
+
     hello_t.taint; a_t.taint; empty_t.taint
-    
+
     hello_t.gsub(/./, a).tainted?.should == true
     hello_t.gsub(/./, empty).tainted?.should == true
 
     hello.gsub(/./, a_t).tainted?.should == true
     hello.gsub(/./, empty_t).tainted?.should == true
     hello.gsub(//, empty_t).tainted?.should == true
-    
+
     hello.gsub(//.taint, "foo").tainted?.should == false
   end
 
@@ -201,7 +201,7 @@ describe "String#gsub with pattern and replacement" do
   it "tries to convert pattern to a string using to_str" do
     pattern = mock('.')
     def pattern.to_str() "." end
-    
+
     "hello.".gsub(pattern, "!").should == "hello!"
   end
 
@@ -210,20 +210,20 @@ describe "String#gsub with pattern and replacement" do
     lambda { "hello".gsub(Object.new, "x")    }.should raise_error(TypeError)
     lambda { "hello".gsub(nil, "x")           }.should raise_error(TypeError)
   end
-  
+
   it "tries to convert replacement to a string using to_str" do
     replacement = mock('hello_replacement')
     def replacement.to_str() "hello_replacement" end
-    
+
     "hello".gsub(/hello/, replacement).should == "hello_replacement"
   end
-  
+
   it "raises a TypeError when replacement can't be converted to a string" do
     lambda { "hello".gsub(/[aeiou]/, [])            }.should raise_error(TypeError)
     lambda { "hello".gsub(/[aeiou]/, Object.new)    }.should raise_error(TypeError)
     lambda { "hello".gsub(/[aeiou]/, nil)           }.should raise_error(TypeError)
   end
-  
+
   it "returns subclass instances when called on a subclass" do
     StringSpecs::MyString.new("").gsub(//, "").should be_kind_of(StringSpecs::MyString)
     StringSpecs::MyString.new("").gsub(/foo/, "").should be_kind_of(StringSpecs::MyString)
@@ -232,17 +232,17 @@ describe "String#gsub with pattern and replacement" do
   end
 
   # Note: $~ cannot be tested because mspec messes with it
-  
+
   it "sets $~ to MatchData of last match and nil when there's none" do
     'hello.'.gsub('hello', 'x')
     $~[0].should == 'hello'
-  
+
     'hello.'.gsub('not', 'x')
     $~.should == nil
-  
+
     'hello.'.gsub(/.(.)/, 'x')
     $~[0].should == 'o.'
-  
+
     'hello.'.gsub(/not/, 'x')
     $~.should == nil
   end
@@ -251,13 +251,13 @@ end
 ruby_version_is "1.9" do
 
   describe "String#gsub with pattern and Hash" do
-  
+
     it "returns a copy of self with all occurrences of pattern replaced with the value of the corresponding hash key" do
       "hello".gsub(/./, 'l' => 'L').should == "LL"
       "hello!".gsub(/(.)(.)/, 'he' => 'she ', 'll' => 'said').should == 'she said'
       "hello".gsub('l', 'l' => 'el').should == 'heelelo'
     end
-    
+
     it "ignores keys that don't correspond to matches" do
       "hello".gsub(/./, 'z' => 'L', 'h' => 'b', 'o' => 'ow').should == "bow"
     end
@@ -298,7 +298,7 @@ ruby_version_is "1.9" do
         "food!".gsub(/./, hsh)
       end.should_not raise_error(TypeError)
     end
-    
+
     it "sets $~ to MatchData of last match and nil when there's none for access from outside" do
       'hello.'.gsub('l', 'l' => 'L')
       $~.begin(0).should == 3
@@ -318,7 +318,7 @@ ruby_version_is "1.9" do
       repl = '\& \0 \1 \` \\\' \+ \\\\ foo'
       "hello".gsub(/(.+)/, 'hello' => repl ).should == repl
     end
-    
+
     it "untrusts the result if the original string is untrusted" do
       str = "Ghana".untrust
       str.gsub(/[Aa]na/, 'ana' => '').untrusted?.should be_true
@@ -348,25 +348,25 @@ describe "String#gsub with pattern and block" do
     "hello!".gsub(/(.)(.)/) { |*a| a.inspect }.should == '["he"]["ll"]["o!"]'
     "hello".gsub('l') { 'x'}.should == 'hexxo'
   end
-  
+
   it "sets $~ for access from the block" do
     str = "hello"
     str.gsub(/([aeiou])/) { "<#{$~[1]}>" }.should == "h<e>ll<o>"
     str.gsub(/([aeiou])/) { "<#{$1}>" }.should == "h<e>ll<o>"
     str.gsub("l") { "<#{$~[0]}>" }.should == "he<l><l>o"
-    
+
     offsets = []
-    
+
     str.gsub(/([aeiou])/) do
       md = $~
       md.string.should == str
       offsets << md.offset(0)
       str
     end.should == "hhellollhello"
-    
+
     offsets.should == [[1, 2], [4, 5]]
   end
-  
+
   it "restores $~ after leaving the block" do
     [/./, "l"].each do |pattern|
       old_md = nil
@@ -402,21 +402,21 @@ describe "String#gsub with pattern and block" do
       lambda { str.gsub(//) { str[0] = 'x' } }.should raise_error(RuntimeError)
     end
   end
-  
+
   it "doesn't interpolate special sequences like \\1 for the block's return value" do
     repl = '\& \0 \1 \` \\\' \+ \\\\ foo'
     "hello".gsub(/(.+)/) { repl }.should == repl
   end
-  
+
   it "converts the block's return value to a string using to_s" do
     replacement = mock('hello_replacement')
     def replacement.to_s() "hello_replacement" end
-    
+
     "hello".gsub(/hello/) { replacement }.should == "hello_replacement"
-    
+
     obj = mock('ok')
     def obj.to_s() "ok" end
-    
+
     "hello".gsub(/.+/) { obj }.should == "ok"
   end
 

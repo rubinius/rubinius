@@ -97,7 +97,7 @@ describe "File.new" do
     File.exists?(@file).should == true
   end
 
-  ruby_bug "[ruby-dev:40397]", "1.8.8" do 
+  ruby_bug "[ruby-dev:40397]", "1.8.8" do
     it "returns a new File when use File::APPEND mode" do
       @fh = File.new(@file, File::APPEND)
       @fh.should be_kind_of(File)
@@ -139,16 +139,16 @@ describe "File.new" do
       File.exists?(@file).should == true
     end
   end
-  
+
   it "raises a TypeError if the first parameter can't be coerced to a string" do
     lambda { File.new(true) }.should raise_error(TypeError)
     lambda { File.new(false) }.should raise_error(TypeError)
   end
-  
+
   it "raises a TypeError if the first parameter is nil" do
     lambda { File.new(nil) }.should raise_error(TypeError)
   end
-  
+
   it "raises an Errno::EBADF if the first parameter is an invalid file descriptor" do
     lambda { File.new(-1) }.should raise_error(Errno::EBADF)
   end
@@ -157,6 +157,6 @@ describe "File.new" do
     @fh = File.new(@file)
     lambda { File.new(@fh.fileno, @flags) }.should raise_error(Errno::EINVAL)
   end
-  
+
   it_behaves_like :open_directory, :new
 end

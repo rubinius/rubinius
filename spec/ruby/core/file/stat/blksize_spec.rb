@@ -9,7 +9,7 @@ describe "File::Stat#blksize" do
   after :each do
     rm_r @file
   end
-  
+
   it "returns the blksize of a File::Stat object" do
     st = File.stat(@file)
     st.blksize.is_a?(Integer).should == true

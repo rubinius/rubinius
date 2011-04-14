@@ -17,7 +17,7 @@ describe "Digest::SHA512.file" do
     it 'returns a Digest::SHA512 object' do
       Digest::SHA512.file(@file).should be_kind_of(Digest::SHA512)
     end
-  
+
     it 'returns a Digest::SHA512 object with the correct digest' do
       Digest::SHA512.file(@file).digest.should == SHA512Constants::Digest
     end

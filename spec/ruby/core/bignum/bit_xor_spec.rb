@@ -2,9 +2,9 @@ require File.expand_path('../../../spec_helper', __FILE__)
 
 describe "Bignum#^" do
   before(:each) do
-    @bignum = bignum_value(18) 
+    @bignum = bignum_value(18)
   end
-  
+
   it "returns self bitwise EXCLUSIVE OR other" do
     (@bignum ^ 2).should == 9223372036854775824
     (@bignum ^ @bignum).should == 0
@@ -43,11 +43,11 @@ describe "Bignum#^" do
     (obj = mock('2')).should_receive(:to_int).and_return(2)
     (@bignum ^ obj).should == 9223372036854775824
   end
-  
+
   it "raises a TypeError when the given argument can't be converted to Integer" do
     obj = mock('asdf')
     lambda { @bignum ^ obj }.should raise_error(TypeError)
-    
+
     obj.should_receive(:to_int).and_return("asdf")
     lambda { @bignum ^ obj }.should raise_error(TypeError)
   end

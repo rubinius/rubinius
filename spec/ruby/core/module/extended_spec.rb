@@ -9,29 +9,29 @@ describe "Module#extended" do
           $extended_object = o
         end
       end
-      
+
       (o = mock('x')).extend(m)
-      
+
       $extended_object.should == o
     ensure
       $extended_object = nil
     end
   end
-  
+
   it "is called after Module#extend_object" do
     begin
       m = Module.new do
         def self.extend_object(o)
           $extended_object = nil
         end
-        
+
         def self.extended(o)
           $extended_object = o
         end
       end
-      
+
       (o = mock('x')).extend(m)
-      
+
       $extended_object.should == o
     ensure
       $extended_object = nil

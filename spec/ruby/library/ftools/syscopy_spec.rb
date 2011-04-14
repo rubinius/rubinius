@@ -25,10 +25,10 @@ ruby_version_is ""..."1.9" do
       data = fd.read
       data.should == "hello rubinius\n"
       fd.close
-      
+
       omode = File.stat("syscopy_test").mode
       mode = File.stat("syscopy_test_dest").mode
-      
+
       omode.should == mode
     end
   end

@@ -7,7 +7,7 @@ describe "StringScanner#skip" do
   end
 
   it "returns length of the match" do
-    @s.skip(/\w+/).should == 4    
+    @s.skip(/\w+/).should == 4
     @s.skip(/\s+\w+/).should == 3
   end
 

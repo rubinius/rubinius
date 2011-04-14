@@ -4,7 +4,7 @@ require File.expand_path('../fixtures/classes', __FILE__)
 
 ruby_version_is "1.9" do
   describe "File::Stat.world_writable?" do
-    
+
     it_behaves_like(:file_world_writable, :world_writable?, FileStat)
 
   end

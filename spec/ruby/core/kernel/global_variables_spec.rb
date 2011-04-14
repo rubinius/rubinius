@@ -5,7 +5,7 @@ describe "Kernel.global_variables" do
   it "is a private method" do
     Kernel.should have_private_instance_method(:global_variables)
   end
-  
+
   ruby_version_is ""..."1.9" do
     it "finds subset starting with std" do
       global_variables.grep(/std/).should include("$stderr", "$stdin", "$stdout")

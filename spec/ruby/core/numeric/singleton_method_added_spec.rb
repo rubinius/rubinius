@@ -8,7 +8,7 @@ describe "Numeric#singleton_method_added" do
       remove_method :singleton_method_added
     end
   end
-  
+
   after(:all) do
     class ::NumericSpecs::Subclass
       # Allow mocking methods again
@@ -16,13 +16,13 @@ describe "Numeric#singleton_method_added" do
       end
     end
   end
-  
+
   it "raises a TypeError when trying to define a singleton method on a Numeric" do
     lambda do
       a = NumericSpecs::Subclass.new
       def a.test; end
     end.should raise_error(TypeError)
-    
+
     lambda do
       a = 1
       def a.test; end

@@ -9,13 +9,13 @@ describe "Math.frexp" do
   end
 
   ruby_version_is ""..."1.9" do
-    it "raises an ArgumentError if the argument cannot be coerced with Float()" do    
+    it "raises an ArgumentError if the argument cannot be coerced with Float()" do
       lambda { Math.frexp("test") }.should raise_error(ArgumentError)
     end
   end
-  
+
   ruby_version_is "1.9" do
-    it "raises a TypeError if the argument cannot be coerced with Float()" do    
+    it "raises a TypeError if the argument cannot be coerced with Float()" do
       lambda { Math.frexp("test") }.should raise_error(TypeError)
     end
   end
@@ -23,7 +23,7 @@ describe "Math.frexp" do
   it "raises a TypeError if the argument is nil" do
     lambda { Math.frexp(nil) }.should raise_error(TypeError)
   end
-  
+
   it "accepts any argument that can be coerced with Float()" do
     frac, exp = Math.frexp(MathSpecs::Float.new)
     frac.should be_close(0.5, TOLERANCE)

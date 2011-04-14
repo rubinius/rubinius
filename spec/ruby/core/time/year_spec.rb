@@ -6,5 +6,5 @@ describe "Time#year" do
     with_timezone("CET", 1) do
       Time.at(0).year.should == 1970
     end
-  end  
+  end
 end

@@ -25,14 +25,14 @@ describe :rational_multiply_float, :shared => true do
     (Rational(3, 4) * 0.75).should eql(0.5625)
     (Rational(3, 4) * 0.25).should eql(0.1875)
     (Rational(3, 4) * 0.3).should be_close(0.225, TOLERANCE)
-    
+
     (Rational(-3, 4) * 0.3).should be_close(-0.225, TOLERANCE)
     (Rational(3, -4) * 0.3).should be_close(-0.225, TOLERANCE)
     (Rational(3, 4) * -0.3).should be_close(-0.225, TOLERANCE)
 
     (Rational(3, 4) * 0.0).should eql(0.0)
     (Rational(-3, -4) * 0.0).should eql(0.0)
-    
+
     (Rational(-3, 4) * 0.0).should eql(0.0)
     (Rational(3, -4) * 0.0).should eql(0.0)
   end
@@ -43,7 +43,7 @@ describe :rational_multiply, :shared => true do
     rational = Rational(3, 4)
     obj = mock("Object")
     obj.should_receive(:coerce).with(rational).and_return([1, 2])
-    
+
     rational * obj
   end
 
@@ -52,9 +52,9 @@ describe :rational_multiply, :shared => true do
 
     coerced_rational = mock("Coerced Rational")
     coerced_rational.should_receive(:*).and_return(:result)
-    
+
     coerced_obj = mock("Coerced Object")
-    
+
     obj = mock("Object")
     obj.should_receive(:coerce).and_return([coerced_rational, coerced_obj])
 

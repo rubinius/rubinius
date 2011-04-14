@@ -4,11 +4,11 @@ platform_is :windows do
   def default_handler(event, *args)
     @event += event
   end
-  
+
   def alternate_handler(event, *args)
     @event2 = "alternate"
   end
-  
+
   def handler3(event, *args)
     @event3 += event
   end
@@ -40,7 +40,7 @@ platform_is :windows do
       WIN32OLE_EVENT.message_loop
       @event.should =~ /foo/
     end
-    
+
     it 'registers multiple event handlers for the same event' do
       @ev.on_event("StatusTextChange") { |*args| default_handler(*args) }
       @ev.on_event("StatusTextChange") { |*args| alternate_handler(*args) }

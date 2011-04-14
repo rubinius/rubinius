@@ -12,7 +12,7 @@ describe "String#hex" do
     "0d500".hex.should == "d500".hex
     "abcdefG".hex.should == 0xabcdef
   end
-  
+
   ruby_version_is "" ... "1.8.7" do
     it "accepts a sequence of underscores as part of a number" do
       "a__b".hex.should == 0xab
@@ -26,7 +26,7 @@ describe "String#hex" do
       "___0xc".hex.should == 0xc
     end
   end
-  
+
   ruby_version_is "1.8.7" do
     it "does not accept a sequence of underscores as part of a number" do
       "a__b".hex.should == 0xa
@@ -34,22 +34,22 @@ describe "String#hex" do
       "a___f".hex.should == 0xa
     end
   end
-  
+
   it "takes an optional sign" do
     "-1234".hex.should == -4660
     "+1234".hex.should == 4660
   end
-  
+
   it "takes an optional 0x" do
     "0x0a".hex.should == 10
     "0a".hex.should == 10
   end
 
-  it "requires that the sign is in front of the 0x if present" do 
+  it "requires that the sign is in front of the 0x if present" do
     "-0x1".hex.should == -1
     "0x-1".hex.should == 0
-  end  
-  
+  end
+
   it "returns 0 on error" do
     "".hex.should == 0
     "+-5".hex.should == 0

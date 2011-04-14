@@ -45,13 +45,13 @@ end
 # assert_equal(URI.parse('http://foo/bar'), URI.join('http://foo/bar'))
 # assert_equal(URI.parse('http://foo/bar'), URI.join('http://foo', 'bar'))
 # assert_equal(URI.parse('http://foo/bar/'), URI.join('http://foo', 'bar/'))
-# 
+#
 # assert_equal(URI.parse('http://foo/baz'), URI.join('http://foo', 'bar', 'baz'))
 # assert_equal(URI.parse('http://foo/baz'), URI.join('http://foo', 'bar', '/baz'))
 # assert_equal(URI.parse('http://foo/baz/'), URI.join('http://foo', 'bar', '/baz/'))
 # assert_equal(URI.parse('http://foo/bar/baz'), URI.join('http://foo', 'bar/', 'baz'))
 # assert_equal(URI.parse('http://foo/hoge'), URI.join('http://foo', 'bar', 'baz', 'hoge'))
-# 
+#
 # assert_equal(URI.parse('http://foo/bar/baz'), URI.join('http://foo', 'bar/baz'))
 # assert_equal(URI.parse('http://foo/bar/hoge'), URI.join('http://foo', 'bar/baz', 'hoge'))
 # assert_equal(URI.parse('http://foo/bar/baz/hoge'), URI.join('http://foo', 'bar/baz/', 'hoge'))

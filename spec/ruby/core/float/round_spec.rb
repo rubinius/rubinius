@@ -8,7 +8,7 @@ describe "Float#round" do
     0.0.round.should == 0
     0.49999999999999994.round.should == 0 # see http://jira.codehaus.org/browse/JRUBY-5048
   end
-  
+
   ruby_version_is "1.9" do
     it "rounds self to an optionally given precision" do
       5.5.round(0).should == 6
@@ -18,5 +18,5 @@ describe "Float#round" do
       0.8346268.round(-2.0**30).should == 0
     end
   end
-  
+
 end

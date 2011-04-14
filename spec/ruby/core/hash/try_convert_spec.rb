@@ -1,9 +1,9 @@
 require File.expand_path('../../../spec_helper', __FILE__)
 
 ruby_version_is "1.8.8" do
-  
+
   describe "Hash.try_convert" do
-    
+
     it "returns the argument if passed a Hash" do
       h = {:foo => :glark}
       Hash.try_convert(h).should == h

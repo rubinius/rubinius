@@ -21,11 +21,11 @@ describe "Net::FTP#storbinary" do
 
     rm_r @tmp_file
   end
-  
+
   it "sends the passed command and the passed File object's content to the server" do
     File.open(@local_fixture_file) do |f|
       f.binmode
-      
+
       @ftp.storbinary("STOR binary", f, 4096) {}
       @ftp.last_response.should == "200 OK, Data received. (STOR binary)\n"
     end

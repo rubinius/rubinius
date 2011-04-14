@@ -9,10 +9,10 @@ describe :thread_wakeup, :shared => true do
           break
         end
       end
-      
+
       sleep
       after_sleep1 = true
-      
+
       sleep
       after_sleep2 = true
     end
@@ -20,7 +20,7 @@ describe :thread_wakeup, :shared => true do
     10.times { t.send(@method); Thread.pass } # These will all get ignored because the thread is not sleeping yet
 
     exit_loop = true
-    
+
     Thread.pass while t.status and t.status != "sleep"
     after_sleep1.should == false # t should be blocked on the first sleep
     t.send(@method)
@@ -30,7 +30,7 @@ describe :thread_wakeup, :shared => true do
     after_sleep2.should == false # t should be blocked on the second sleep
     t.send(@method)
     Thread.pass while after_sleep2 != true
-    
+
     t.join
   end
 
@@ -48,7 +48,7 @@ describe :thread_wakeup, :shared => true do
       end
       Thread.pass
     end
-    
+
     1.should == 1 # test succeeds if we reach here
   end
 

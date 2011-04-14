@@ -2,7 +2,7 @@ require File.expand_path('../../../spec_helper', __FILE__)
 require 'csv'
 
 describe "CSV.parse" do
-  
+
   it "parses '' into []" do
     result = CSV::parse ''
     result.should be_kind_of(Array)
@@ -22,7 +22,7 @@ describe "CSV.parse" do
       result.should == [[]]
     end
   end
- 
+
   it "parses 'foo' into [['foo']]" do
     result = CSV::parse 'foo'
     result.should == [['foo']]
@@ -57,7 +57,7 @@ describe "CSV.parse" do
     result.should == [['foo']]
   end
 
-  it "parses 'foo\nbar' into [['foo'],['bar']]" do 
+  it "parses 'foo\nbar' into [['foo'],['bar']]" do
     result = CSV::parse "foo\nbar"
     result.should == [['foo'],['bar']]
   end

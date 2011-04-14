@@ -15,7 +15,7 @@ describe "ENV.[]" do
   it "returns nil if the variable isn't found" do
     ENV["this_var_is_never_set"].should == nil
   end
-  
+
   it "returns only frozen values" do
     ENV[@variable_name].frozen?.should == true
     ENV["returns_only_frozen_values"] = "a non-frozen string"

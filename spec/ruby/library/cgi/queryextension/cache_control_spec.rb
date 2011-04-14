@@ -6,11 +6,11 @@ describe "CGI::QueryExtension#cache_control" do
     ENV['REQUEST_METHOD'], @old_request_method = "GET", ENV['REQUEST_METHOD']
     @cgi = CGI.new
   end
-  
+
   after(:each) do
     ENV['REQUEST_METHOD'] = @old_request_method
   end
-  
+
   it "returns ENV['HTTP_CACHE_CONTROL']" do
     old_value, ENV['HTTP_CACHE_CONTROL'] = ENV['HTTP_CACHE_CONTROL'], "no-cache"
     begin

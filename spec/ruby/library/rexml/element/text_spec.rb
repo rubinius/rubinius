@@ -17,7 +17,7 @@ describe "REXML::Element#text" do
     @e.text.should == "Joe"
     @e.text.should_not == t
   end
-  
+
   it "returns nil if no text is attached" do
     elem = REXML::Element.new "name"
     elem.text.should == nil
@@ -34,7 +34,7 @@ describe "REXML::Element#text=" do
     @e.to_s.should == "<name>John</name>"
   end
 
-  it "replaces existing text" do 
+  it "replaces existing text" do
     @e.text = "Joe"
     @e.to_s.should == "<name>Joe</name>"
   end

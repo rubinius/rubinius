@@ -6,7 +6,7 @@ describe "Symbol#==" do
     (:ruby == :"ruby").should == true
     (:ruby == :'ruby').should == true
     (:@ruby == :@ruby).should == true
-    
+
     (:ruby == :@ruby).should == false
     (:foo == :bar).should == false
     (:ruby == 'ruby').should == false

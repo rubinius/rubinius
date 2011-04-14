@@ -18,7 +18,7 @@ ruby_version_is ""..."1.9" do
 
       Complex.generic?(Rational(3, 4)).should == true
       Complex.generic?(-Rational(3, 4)).should == true
-      
+
       Complex.generic?(:symbol).should == false
       Complex.generic?("string").should == false
       Complex.generic?(mock("Object")).should == false

@@ -7,7 +7,7 @@ describe "StringIO#rewind" do
     @io.pos = 3
     @io.lineno = 1
   end
-  
+
   it "returns 0" do
     @io.rewind.should eql(0)
   end

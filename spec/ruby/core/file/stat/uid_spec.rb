@@ -9,7 +9,7 @@ describe "File::Stat#uid" do
   after :each do
     rm_r @file
   end
-  
+
   it "returns the owner attribute of a File::Stat object" do
     st = File.stat(@file)
     st.uid.is_a?(Integer).should == true

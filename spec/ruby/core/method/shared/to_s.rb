@@ -10,7 +10,7 @@ describe :method_to_s, :shared => true do
   it "returns a String" do
     @m.send(@method).should be_kind_of(String)
   end
-  
+
   it "returns a String for methods defined with attr_accessor" do
     m = MethodSpecs::Methods.new.method :attr
     m.send(@method).should be_kind_of(String)

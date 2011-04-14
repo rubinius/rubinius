@@ -7,14 +7,14 @@ describe "MatchData#names" do
   end
 
   it "sets each element to a String" do
-    'haystack'.match(/(?<yellow>hay)/).names.all? do |e| 
+    'haystack'.match(/(?<yellow>hay)/).names.all? do |e|
       e.should be_an_instance_of(String)
     end
   end
 
   it "returns the names of the named capture groups" do
     md = 'haystack'.match(/(?<yellow>hay).(?<pin>tack)/)
-    md.names.should == ['yellow', 'pin'] 
+    md.names.should == ['yellow', 'pin']
   end
 
   it "returns [] if there were no named captures" do

@@ -380,7 +380,7 @@ describe FFI::Struct, ' with a nested struct field'  do
   end
 
   it 'should return a Struct object when the field is accessed' do
-    @cs[:ns].is_a?(FFI::Struct).should be_true 
+    @cs[:ns].is_a?(FFI::Struct).should be_true
   end
 
   it 'should read a value from memory' do
@@ -420,7 +420,7 @@ describe FFI::Struct, ' with an array field'  do
 
   it 'should allow iteration through the array elements' do
     @s = FFISpecs::LibTest::StructWithArray.new(FFISpecs::LibTest.struct_make_struct_with_array(0, 1, 2, 3, 4))
-    @s[:a].each_with_index { |elem, i| elem.should == i }  
+    @s[:a].each_with_index { |elem, i| elem.should == i }
   end
 
   it 'should return the pointer to the array' do
@@ -446,7 +446,7 @@ describe 'BuggedStruct' do
 
   it 'should return correct field/offset pairs' do
     FFISpecs::LibTest::BuggedStruct.offsets.sort do |a, b|
-      a[1] <=> b[1] 
+      a[1] <=> b[1]
     end.should == [[:visible, 0], [:x, 4], [:y, 8], [:rx, 12], [:ry, 14], [:order, 16], [:size, 17]]
   end
 end

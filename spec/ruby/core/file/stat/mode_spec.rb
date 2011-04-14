@@ -10,7 +10,7 @@ describe "File::Stat#mode" do
   after :each do
     rm_r @file
   end
-  
+
   it "returns the mode of a File::Stat object" do
     st = File.stat(@file)
     st.mode.is_a?(Integer).should == true

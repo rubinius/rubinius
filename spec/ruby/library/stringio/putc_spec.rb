@@ -5,21 +5,21 @@ describe "StringIO#putc when passed [String]" do
   before(:each) do
     @io = StringIO.new('example')
   end
-  
+
   it "overwrites the character at the current position" do
     @io.putc("t")
     @io.string.should == "txample"
-    
+
     @io.pos = 3
     @io.putc("t")
     @io.string.should == "txatple"
   end
-  
+
   it "only writes the first character from the passed String" do
     @io.putc("test")
     @io.string.should == "txample"
   end
-  
+
   it "returns the passed String" do
     str = "test"
     @io.putc(str).should equal(str)
@@ -28,10 +28,10 @@ describe "StringIO#putc when passed [String]" do
   it "correctly updates the current position" do
     @io.putc("t")
     @io.pos.should == 1
-    
+
     @io.putc("test")
     @io.pos.should == 2
-    
+
     @io.putc("t")
     @io.pos.should == 3
   end
@@ -45,7 +45,7 @@ describe "StringIO#putc when passed [Object]" do
   it "it writes the passed Integer % 256 to self" do
     @io.putc(333) # 333 % 256 == ?M
     @io.string.should == "Mxample"
-    
+
     @io.putc(-450) # -450 % 256 == ?>
     @io.string.should == "M>ample"
   end

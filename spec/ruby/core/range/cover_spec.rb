@@ -11,7 +11,7 @@ ruby_version_is "1.8.8" do
     it "returns true if argument is equal to the first value of the range" do
       (0..5).cover?(0).should be_true
       ('f'..'s').cover?('f').should be_true
-    end  
+    end
 
     it "returns true if argument is equal to the last value of the range" do
       (0..5).cover?(5).should be_true
@@ -43,7 +43,7 @@ ruby_version_is "1.8.8" do
       a = mock('a')
       a.should_receive(:<=>).twice.and_return(-1,-1)
       (a..'z').cover?('b').should be_true
-    end 
+    end
 
     it "uses a continuous inclusion test" do
       ('a'..'f').cover?('aa').should be_true
@@ -51,7 +51,7 @@ ruby_version_is "1.8.8" do
       ('a'..'f').cover?('baby').should be_true
       ('a'..'f').cover?('ga').should be_false
       (-10..-2).cover?(-2.5).should be_true
-    end 
+    end
 
   end
 end

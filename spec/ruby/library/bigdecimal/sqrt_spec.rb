@@ -24,18 +24,18 @@ describe "BigDecimal#sqrt" do
       @two.sqrt(idx).should be_close(BigDecimal(string), BigDecimal("1E-#{idx-1}"))
     }
   end
-  
+
   it "returns square root of 3 with desired precision" do
     sqrt_3 = "1.732050807568877293527446341505872366942805253810380628055806979451933016908800037081146186757248575"
     (1..99).each { |idx|
       @three.sqrt(idx).should be_close(BigDecimal(sqrt_3), BigDecimal("1E-#{idx-1}"))
     }
   end
-  
+
   it "returns square root of 121 with desired precision" do
     BigDecimal('121').sqrt(5).should be_close(11, 0.00001)
   end
-  
+
   it "returns square root of 0.9E-99999 with desired precision" do
     @frac_2.sqrt(1).to_s.should == "0.3E-49999"
   end
@@ -45,37 +45,37 @@ describe "BigDecimal#sqrt" do
       @one.sqrt
     }.should raise_error(ArgumentError)
   end
-  
+
   it "raises ArgumentError if a negative number is given" do
     lambda {
       @one.sqrt(-1)
     }.should raise_error(ArgumentError)
   end
-  
+
   it "raises ArgumentError if 2 arguments are given" do
     lambda {
       @one.sqrt(1, 1)
     }.should raise_error(ArgumentError)
   end
-  
+
   it "raises TypeError if nil is given" do
     lambda {
       @one.sqrt(nil)
     }.should raise_error(TypeError)
   end
-  
+
   it "raises TypeError if a string is given" do
     lambda {
       @one.sqrt("stuff")
     }.should raise_error(TypeError)
   end
-  
+
   it "raises TypeError if a plain Object is given" do
     lambda {
       @one.sqrt(Object.new)
     }.should raise_error(TypeError)
   end
-  
+
   it "returns 1 if precision is 0 or 1" do
     @one.sqrt(1).should == 1
     @one.sqrt(0).should == 1
@@ -90,19 +90,19 @@ describe "BigDecimal#sqrt" do
   it "returns positive infitinity for infinity" do
     @infinity.sqrt(1).should == @infinity
   end
-  
+
   it "raises FloatDomainError for negative infinity" do
     lambda {
       @infinity_minus.sqrt(1)
     }.should raise_error(FloatDomainError)
   end
-  
+
   it "raises FloatDomainError for NaN" do
     lambda {
       @nan.sqrt(1)
     }.should raise_error(FloatDomainError)
   end
-  
+
   it "returns 0 for 0, +0.0 and -0.0" do
     @zero.sqrt(1).should == 0
     @zero_pos.sqrt(1).should == 0

@@ -14,7 +14,7 @@ describe "REXML::Element#prefixes" do
   it "does not include the default namespace" do
     @elem.prefixes.include?("xmlns").should == false
   end
-  
+
   it "returns an empty array if no namespace was defined" do
     doc = REXML::Document.new "<root><something/></root>"
     root = doc.elements["//root"]

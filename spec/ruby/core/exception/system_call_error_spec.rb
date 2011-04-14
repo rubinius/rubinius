@@ -1,6 +1,6 @@
 require File.expand_path('../../../spec_helper', __FILE__)
 
-describe "SystemCallError.new" do  
+describe "SystemCallError.new" do
   it "requires at least one argumentt" do
     lambda { SystemCallError.new }.should raise_error(ArgumentError)
   end
@@ -28,8 +28,8 @@ end
 describe "SystemCallError#errno" do
   it "returns nil when no errno given" do
     SystemCallError.new("message").errno.should == nil
-  end  
-  
+  end
+
   it "returns the errno given as optional argument to new" do
     SystemCallError.new("message", -2**30).errno.should == -2**30
     SystemCallError.new("message", -1).errno.should == -1

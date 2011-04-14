@@ -1,30 +1,30 @@
 def foo1
-end 
+end
 
 def foo2
 end
 
 def foo3
-end 
-  
+end
+
 def foo4
 end
-  
+
 def foo5
 end
 
 def foo6
 end
-  
+
 def foo7
 end
 
 def foo8
-end 
-  
+end
+
 def foo9
 end
-  
+
 def foo10
 end
 
@@ -35,26 +35,26 @@ def foo12
 end
 
 def foo13
-end 
-  
+end
+
 def foo14
 end
-  
+
 def foo15
 end
 
 def foo16
 end
-  
+
 def foo17
 end
 
 def foo18
-end 
-  
+end
+
 def foo19
 end
-  
+
 def foo20
 end
 
@@ -65,11 +65,11 @@ def foo22
 end
 
 def foo23
-end 
-  
+end
+
 def foo24
 end
-  
+
 def foo25
 end
 
@@ -80,11 +80,11 @@ def foo27
 end
 
 def foo28
-end 
-  
+end
+
 def foo29
 end
-  
+
 def foo30
 end
 
@@ -95,11 +95,11 @@ def foo32
 end
 
 def foo33
-end 
-  
+end
+
 def foo34
 end
-  
+
 def foo35
 end
 
@@ -110,11 +110,11 @@ def foo37
 end
 
 def foo38
-end 
-  
+end
+
 def foo39
 end
-  
+
 def foo40
 end
 
@@ -125,11 +125,11 @@ def foo42
 end
 
 def foo43
-end 
-  
+end
+
 def foo44
 end
-  
+
 def foo45
 end
 
@@ -140,11 +140,11 @@ def foo47
 end
 
 def foo48
-end 
-  
+end
+
 def foo49
 end
-  
+
 def foo50
 end
 
@@ -155,11 +155,11 @@ def foo52
 end
 
 def foo53
-end 
-  
+end
+
 def foo54
 end
-  
+
 def foo55
 end
 
@@ -170,41 +170,41 @@ def foo57
 end
 
 def foo58
-end 
-  
+end
+
 def foo59
 end
-  
+
 def foo60
 end
 
 def foo61
 end
-  
+
 def foo62
 end
 
 def foo63
-end 
-  
+end
+
 def foo64
 end
-  
+
 def foo65
 end
 
 def foo66
 end
-  
+
 def foo67
 end
 
 def foo68
-end 
-  
+end
+
 def foo69
 end
-  
+
 def foo70
 end
 
@@ -215,11 +215,11 @@ def foo72
 end
 
 def foo73
-end 
-  
+end
+
 def foo74
 end
-  
+
 def foo75
 end
 
@@ -230,11 +230,11 @@ def foo77
 end
 
 def foo78
-end 
-  
+end
+
 def foo79
 end
-  
+
 def foo80
 end
 
@@ -245,11 +245,11 @@ def foo82
 end
 
 def foo83
-end 
-  
+end
+
 def foo84
 end
-  
+
 def foo85
 end
 
@@ -260,11 +260,11 @@ def foo87
 end
 
 def foo88
-end 
-  
+end
+
 def foo89
 end
-  
+
 def foo90
 end
 
@@ -275,11 +275,11 @@ def foo92
 end
 
 def foo93
-end 
-  
+end
+
 def foo94
 end
-  
+
 def foo95
 end
 
@@ -290,11 +290,11 @@ def foo97
 end
 
 def foo98
-end 
-  
+end
+
 def foo99
 end
-  
+
 def foo100
 end
 
@@ -305,41 +305,41 @@ def foo102
 end
 
 def foo103
-end 
-  
+end
+
 def foo104
 end
-  
+
 def foo105
 end
 
 def foo106
 end
-    
+
 def foo107
 end
 
 def foo108
-end 
-  
+end
+
 def foo109
 end
-  
+
 def foo110
 end
 
 def foo111
-end 
-    
+end
+
 def foo112
 end
 
 def foo113
-end 
-  
+end
+
 def foo114
 end
-  
+
 def foo115
 end
 
@@ -350,11 +350,11 @@ def foo117
 end
 
 def foo118
-end 
-  
+end
+
 def foo119
 end
-  
+
 def foo120
 end
 

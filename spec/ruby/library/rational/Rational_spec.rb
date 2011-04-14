@@ -11,5 +11,5 @@ ruby_version_is ""..."1.9" do
 
   describe "Rational() passed Integer when Unify is defined" do
     it_behaves_like(:rational_rational_int_rat_unify, :Rational)
-  end  
+  end
 end

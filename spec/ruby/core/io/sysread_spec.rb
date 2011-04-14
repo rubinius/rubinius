@@ -10,12 +10,12 @@ describe "IO#sysread on a file" do
     end
     @file = File.open(@file_name, "r+")
   end
-  
+
   after :each do
     @file.close
     rm_r @file_name
   end
-  
+
   it "reads the specified number of bytes from the file" do
     @file.sysread(15).should == "012345678901234"
   end
@@ -44,12 +44,12 @@ describe "IO#sysread on a file" do
     @file.sysread(15, obj).should == buf
     buf.should == "012345678901234"
   end
-  
+
   it "advances the position of the file by the specified number of bytes" do
     @file.sysread(15)
     @file.sysread(5).should == "56789"
   end
-  
+
   ruby_version_is "" ... "1.9" do
     it "throws IOError when called immediately after a buffered IO#read" do
       @file.read(15)
@@ -63,13 +63,13 @@ describe "IO#sysread on a file" do
       @file.sysread(5).should == "56789"
     end
   end
-  
+
   it "does not raise error if called after IO#read followed by IO#write" do
     @file.read(5)
     @file.write("abcde")
     lambda { @file.sysread(5) }.should_not raise_error(IOError)
   end
-  
+
   it "does not raise error if called after IO#read followed by IO#syswrite" do
     @file.read(5)
     @file.syswrite("abcde")

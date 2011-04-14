@@ -51,7 +51,7 @@ describe :rational_rational_int_int, :shared => true do
     rat.numerator.should == 1
     rat.denominator.should == 2
     rat.should be_an_instance_of(Rational)
-    
+
     rat = Rational(-3, -5)
     rat.numerator.should == 3
     rat.denominator.should == 5
@@ -85,7 +85,7 @@ describe :rational_rational_int, :shared => true do
         Rational(bignum_value).should eql(Rational.new!(bignum_value, 1))
       end
     end
-    
+
     ruby_version_is "1.9" do
       it "returns a new Rational number with 1 as the denominator" do
         Rational(1).should eql(Rational(1, 1))
@@ -96,7 +96,7 @@ describe :rational_rational_int, :shared => true do
   end
 end
 
-ruby_version_is ""..."1.9" do  
+ruby_version_is ""..."1.9" do
   describe :rational_rational_int_rat_unify, :shared => true do
     after :each do
       Rational.send :remove_const, :Unify

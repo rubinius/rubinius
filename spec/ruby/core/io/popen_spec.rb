@@ -107,13 +107,13 @@ describe "IO.popen" do
             i.read(5).should == 'hello'
           end
         end
-        
+
         it "uses a leading Hash in the Array as additional environment variables" do
           io = IO.popen([{'foo' => 'bar'}, 'env']) do |i|
             i.read.should =~ /foo=bar/
           end
         end
-        
+
         it "uses a trailing Hash in the Array for spawn-like settings" do
           io = IO.popen(['sh', '-c', 'does_not_exist', {:err => [:child, :out]}]) do |i|
             i.read.should =~ /not found/
@@ -122,5 +122,5 @@ describe "IO.popen" do
       end
     end
   end
-  
+
 end

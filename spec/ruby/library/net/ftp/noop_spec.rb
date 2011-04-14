@@ -21,11 +21,11 @@ describe "Net::FTP#noop" do
     @ftp.noop
     @ftp.last_response.should == "200 Command okay. (NOOP)\n"
   end
-  
+
   it "returns nil" do
     @ftp.noop.should be_nil
   end
-  
+
   it "raises a Net::FTPPermError when the response code is 500" do
     @server.should_receive(:noop).and_respond("500 Syntax error, command unrecognized.")
     lambda { @ftp.noop }.should raise_error(Net::FTPPermError)

@@ -21,7 +21,7 @@ ruby_version_is "1.8.7" do
     it "returns an Enumerator of permutations of given length when called with an argument but no block" do
       enum = @numbers.permutation(1)
       enum.should be_kind_of(Enumerable)
-      enum.to_a.sort.should == [[1],[2],[3]] 
+      enum.to_a.sort.should == [[1],[2],[3]]
     end
 
     it "yields all permutations to the block then returns self when called with block but no arguments" do
@@ -46,18 +46,18 @@ ruby_version_is "1.8.7" do
       @yielded.should == [[]]
     end
 
-    it "returns the empty permutation([]) when called on an empty Array" do 
+    it "returns the empty permutation([]) when called on an empty Array" do
       [].permutation.to_a.should == [[]]
       [].permutation { |n| @yielded << n }
       @yielded.should == [[]]
-    end  
+    end
 
-    it "returns no permutations when the given length has no permutations" do 
+    it "returns no permutations when the given length has no permutations" do
       @numbers.permutation(9).entries.size == 0
       @numbers.permutation(9) { |n| @yielded << n }
       @yielded.should == []
-    end  
-    
+    end
+
     it "handles duplicate elements correctly" do
       @numbers << 1
       @numbers.permutation(2).sort.should == [
@@ -74,19 +74,19 @@ ruby_version_is "1.8.7" do
       @numbers << [4,5]
       got = @numbers.permutation(2).to_a
       expected = [
-         [1, 2],      [1, 3],      [1, [4, 5]], 
-         [2, 1],      [2, 3],      [2, [4, 5]], 
-         [3, 1],      [3, 2],      [3, [4, 5]], 
+         [1, 2],      [1, 3],      [1, [4, 5]],
+         [2, 1],      [2, 3],      [2, [4, 5]],
+         [3, 1],      [3, 2],      [3, [4, 5]],
         [[4, 5], 1], [[4, 5], 2], [[4, 5], 3]
       ]
       expected.each {|e| got.include?(e).should be_true}
       got.size.should == expected.size
     end
 
-    it "truncates Float arguments" do 
-      @numbers.permutation(3.7).to_a.sort.should == 
+    it "truncates Float arguments" do
+      @numbers.permutation(3.7).to_a.sort.should ==
         @numbers.permutation(3).to_a.sort
-    end  
+    end
 
     it "returns an Enumerator which works as expected even when the array was modified" do
       @numbers = [1, 2]
@@ -96,7 +96,7 @@ ruby_version_is "1.8.7" do
         [1,2,3],[1,3,2],[2,1,3],[2,3,1],[3,1,2],[3,2,1]
       ].sort
     end
-    
+
     it "generates from a defensive copy, ignoring mutations" do
       accum = []
       ary = [1,2,3]
@@ -104,7 +104,7 @@ ruby_version_is "1.8.7" do
         accum << x
         ary[0] = 5
       end
-      
+
       accum.should == [[1, 2, 3], [1, 3, 2], [2, 1, 3], [2, 3, 1], [3, 1, 2], [3, 2, 1]]
     end
   end

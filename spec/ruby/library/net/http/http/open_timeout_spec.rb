@@ -16,7 +16,7 @@ describe "Net::HTTP#open_timeout=" do
     net.open_timeout = 10
     net.open_timeout.should eql(10)
   end
-  
+
   it "returns the newly set value" do
     net = Net::HTTP.new("localhost")
     (net.open_timeout = 10).should eql(10)

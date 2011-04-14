@@ -69,7 +69,7 @@ describe "BigDecimal#<=>" do
       (@nan <=> val).should == nil
     }
   end
-  
+
   it "returns nil if the argument is nil" do
     (@zero <=> nil).should == nil
     (@infinity <=> nil).should == nil

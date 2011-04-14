@@ -18,12 +18,12 @@ describe "SortedSet#superset?" do
     @set.superset?(SortedSet[1, 3]).should be_true
     @set.superset?(SortedSet[1, 2]).should be_true
     @set.superset?(SortedSet[1]).should be_true
-    
+
     @set.superset?(SortedSet[5]).should be_false
     @set.superset?(SortedSet[1, 5]).should be_false
     @set.superset?(SortedSet["test"]).should be_false
   end
-  
+
   it "raises an ArgumentError when passed a non-SortedSet" do
     lambda { SortedSet[].superset?([]) }.should raise_error(ArgumentError)
     lambda { SortedSet[].superset?(1) }.should raise_error(ArgumentError)

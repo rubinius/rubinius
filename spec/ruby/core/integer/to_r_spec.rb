@@ -11,7 +11,7 @@ describe "Integer#to_r" do
     end
 
     it "constructs a rational number with 1 as the denominator" do
-      298.to_r.denominator.should == 1    
+      298.to_r.denominator.should == 1
     end
 
     it "works even if self is a Bignum" do
@@ -24,5 +24,5 @@ describe "Integer#to_r" do
       lambda { 287.to_r(2) }.should raise_error(ArgumentError)
       lambda { 9102826.to_r(309, [], 71) }.should raise_error(ArgumentError)
     end
-  end  
+  end
 end

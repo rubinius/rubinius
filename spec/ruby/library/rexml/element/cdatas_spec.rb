@@ -2,7 +2,7 @@ require 'rexml/document'
 require File.expand_path('../../../../spec_helper', __FILE__)
 
 describe "REXML::Element#cdatas" do
-  before :each do 
+  before :each do
     @e = REXML::Element.new("Root")
   end
 

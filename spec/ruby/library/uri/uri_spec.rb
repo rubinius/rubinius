@@ -23,7 +23,7 @@ describe "the URI method" do
       URI(result).should equal(result)
     end
   end
-  
+
   #apparently this was a concern?  imported from MRI tests
   it "does not add a URI method to Object instances" do
     lambda {Object.new.URI("http://ruby-lang.org/")}.should raise_error(NoMethodError)

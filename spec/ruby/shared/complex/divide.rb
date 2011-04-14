@@ -18,7 +18,7 @@ describe :complex_divide_fixnum, :shared => true do
     (Complex(20, 40) / 2).should == Complex(10, 20)
     (Complex(30, 30) / 10).should == Complex(3, 3)
   end
-  
+
   it "raises a ZeroDivisionError when given zero" do
     lambda { Complex(20, 40) / 0 }.should raise_error(ZeroDivisionError)
   end
@@ -49,7 +49,7 @@ end
 describe :complex_divide_object, :shared => true do
   it "tries to coerce self into other" do
     value = Complex(3, 9)
-    
+
     obj = mock("Object")
     obj.should_receive(:coerce).with(value).and_return([4, 2])
     (value / obj).should == 2

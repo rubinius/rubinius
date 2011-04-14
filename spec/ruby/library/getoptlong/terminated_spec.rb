@@ -8,10 +8,10 @@ describe "GetoptLong#terminated?" do
       ARGV = [ "--size", "10k" ]
       opts = GetoptLong.new(["--size", GetoptLong::REQUIRED_ARGUMENT])
       opts.terminated?.should == false
-      
+
       opts.get.should == ["--size", "10k"]
       opts.terminated?.should == false
-      
+
       opts.get.should == nil
       opts.terminated?.should == true
     ensure

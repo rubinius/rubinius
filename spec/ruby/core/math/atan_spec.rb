@@ -2,36 +2,36 @@ require File.expand_path('../../../spec_helper', __FILE__)
 require File.expand_path('../fixtures/classes', __FILE__)
 
 # arctangent : (-Inf, Inf) --> (-PI/2, PI/2)
-describe "Math.atan" do     
-  it "returns a float" do 
+describe "Math.atan" do
+  it "returns a float" do
     Math.atan(1).should be_kind_of(Float)
-  end 
-  
-  it "return the arctangent of the argument" do    
+  end
+
+  it "return the arctangent of the argument" do
     Math.atan(1).should be_close(Math::PI/4, TOLERANCE)
     Math.atan(0).should be_close(0.0, TOLERANCE)
     Math.atan(-1).should be_close(-Math::PI/4, TOLERANCE)
     Math.atan(0.25).should be_close(0.244978663126864, TOLERANCE)
     Math.atan(0.50).should be_close(0.463647609000806, TOLERANCE)
     Math.atan(0.75).should be_close(0.643501108793284, TOLERANCE)
-  end   
-  
+  end
+
   ruby_version_is ""..."1.9" do
-    it "raises an ArgumentError if the argument cannot be coerced with Float()" do    
+    it "raises an ArgumentError if the argument cannot be coerced with Float()" do
       lambda { Math.atan("test") }.should raise_error(ArgumentError)
     end
   end
 
   ruby_version_is "1.9" do
-    it "raises a TypeError if the argument cannot be coerced with Float()" do    
+    it "raises a TypeError if the argument cannot be coerced with Float()" do
       lambda { Math.atan("test") }.should raise_error(TypeError)
     end
   end
 
   it "raises a TypeError if the argument is nil" do
     lambda { Math.atan(nil) }.should raise_error(TypeError)
-  end  
-  
+  end
+
   it "accepts any argument that can be coerced with Float()" do
     Math.atan(MathSpecs::Float.new).should be_close(0.785398163397448, TOLERANCE)
   end

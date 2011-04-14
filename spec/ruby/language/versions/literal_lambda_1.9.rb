@@ -59,7 +59,7 @@ describe "->(){}" do
   it "allows the parenthesis to be omitted entirely" do
     lambda { -> {} }.should_not raise_error(SyntaxError)
     lambda { ->{} }.should_not raise_error(SyntaxError)
-    lambda do 
+    lambda do
       -> do
       end
     end.should_not raise_error(SyntaxError)
@@ -135,7 +135,7 @@ describe "->(){}" do
     ->() { @called = true }
     @called.should be_false
   end
-  
+
   it "evaluates constants as normal blocks do" do
     l = LiteralLambdaMethods.literal_lambda_with_constant
     l.().should == "some value"

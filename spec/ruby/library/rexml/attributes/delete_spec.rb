@@ -10,13 +10,13 @@ describe "REXML::Attributes#delete" do
   it "takes an attribute name and deletes the attribute" do
     @e.attributes.delete("name")
     @e.attributes["name"].should be_nil
-    @e.attributes.should be_empty    
+    @e.attributes.should be_empty
   end
 
   it "takes an Attribute and deletes it" do
     @e.attributes.delete(@name)
     @e.attributes["name"].should be_nil
-    @e.attributes.should be_empty    
+    @e.attributes.should be_empty
   end
 
   it "returns the element with the attribute removed" do

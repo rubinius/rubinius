@@ -13,7 +13,7 @@ describe "Regexps with escape characters" do
 
     # \nnn         octal char            (encoded byte value)
   end
-  
+
   it "support quoting meta-characters via escape sequence" do
     /\\/.match("\\").to_a.should == ["\\"]
     /\//.match("/").to_a.should == ["/"]
@@ -33,13 +33,13 @@ describe "Regexps with escape characters" do
     /\+/.match("+").to_a.should == ["+"]
     # line anchors
     /\^/.match("^").to_a.should == ["^"]
-    /\$/.match("$").to_a.should == ["$"]    
+    /\$/.match("$").to_a.should == ["$"]
   end
-  
+
   it "allow any character to be escaped" do
-    /\y/.match("y").to_a.should == ["y"]  
+    /\y/.match("y").to_a.should == ["y"]
   end
-  
+
   it "support \\x (hex characters)" do
     /\xA/.match("\nxyz").to_a.should == ["\n"]
     /\x0A/.match("\n").to_a.should == ["\n"]
@@ -48,10 +48,10 @@ describe "Regexps with escape characters" do
     /\xAG/.match("\nG").to_a.should == ["\nG"]
     # Non-matches
     lambda { eval('/\xG/') }.should raise_error(SyntaxError)
-    
+
     # \x{7HHHHHHH} wide hexadecimal char (character code point value)
   end
-  
+
   it "support \\c (control characters)" do
     #/\c \c@\c`/.match("\00\00\00").to_a.should == ["\00\00\00"]
     /\c#\cc\cC/.match("\03\03\03").to_a.should == ["\03\03\03"]
@@ -62,7 +62,7 @@ describe "Regexps with escape characters" do
     /\c+\cK\ck/.match("\v\v\v").to_a.should == ["\v\v\v"]
     /\c,\cL\cl/.match("\f\f\f").to_a.should == ["\f\f\f"]
     /\c-\cM\cm/.match("\r\r\r").to_a.should == ["\r\r\r"]
-    
+
     /\cJ/.match("\r").should be_nil
 
     # Parsing precedence

@@ -13,7 +13,7 @@ describe :rational_new_bang, :shared => true do
     Rational.new!(6, 8).should_not eql(Rational(3, 4))
     Rational.new!(-5, 10).should_not eql(Rational(-1, 2))
   end
-  
+
   it "does not check for divisions by 0" do
     lambda { Rational.new!(4, 0) }.should_not raise_error(ZeroDivisionError)
     lambda { Rational.new!(0, 0) }.should_not raise_error(ZeroDivisionError)

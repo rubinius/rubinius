@@ -1,8 +1,8 @@
-require 'date' 
+require 'date'
 require File.expand_path('../../../spec_helper', __FILE__)
 
 describe "Date#step" do
-  
+
   it "should be able to step forward in time" do
     ds    = Date.civil(2008, 10, 11)
     de    = Date.civil(2008,  9, 29)
@@ -27,7 +27,7 @@ describe "Date#step" do
     count.should == 0
 
   end
-  
+
   it "should be able to step backward in time" do
     ds    = Date.civil(2000, 4, 14)
     de    = Date.civil(2000, 3, 29)
@@ -50,7 +50,7 @@ describe "Date#step" do
     count = 0
     de.step(ds, -1) do |d|; count += 1; end
     count.should == 0
-    
+
   end
-  
+
 end

@@ -9,7 +9,7 @@ ruby_version_is ""..."1.9" do
     it "returns a list of public methods in module and its ancestors" do
       methods = ModuleSpecs::CountsMixin.public_instance_methods
       methods.should include('public_3')
-    
+
       methods = ModuleSpecs::CountsParent.public_instance_methods
       methods.should include('public_3')
       methods.should include('public_2')
@@ -47,7 +47,7 @@ ruby_version_is "1.9" do
     it "returns a list of public methods in module and its ancestors" do
       methods = ModuleSpecs::CountsMixin.public_instance_methods
       methods.should include(:public_3)
-    
+
       methods = ModuleSpecs::CountsParent.public_instance_methods
       methods.should include(:public_3)
       methods.should include(:public_2)

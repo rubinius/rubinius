@@ -239,7 +239,7 @@ describe "A method defined with extreme default arguments" do
     def foo(output = 'a', prc = lambda {|n| output * n})
       prc.call(5)
     end
-    foo.should == 'aaaaa' 
+    foo.should == 'aaaaa'
   end
 end
 
@@ -275,13 +275,13 @@ describe "A singleton method defined with extreme default arguments" do
     end
     a.foo('abcde').should == 5
   end
-  
+
   it "may use a lambda as a default" do
     a = 'hi'
     def a.foo(output = 'a', prc = lambda {|n| output * n})
       prc.call(5)
     end
-    a.foo.should == 'aaaaa' 
+    a.foo.should == 'aaaaa'
   end
 end
 

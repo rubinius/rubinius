@@ -1,7 +1,7 @@
 require File.expand_path('../../../spec_helper', __FILE__)
 require File.expand_path('../fixtures/classes', __FILE__)
 
-describe "Enumerable#find_index" do  
+describe "Enumerable#find_index" do
   ruby_version_is "1.8.7" do
     before :each do
       @elements = [2, 4, 6, 8, 10]
@@ -42,7 +42,7 @@ describe "Enumerable#find_index" do
     it "ignores the block if an argument is given" do
       @numerous.find_index(-1) {|e| true }.should == nil
     end
-    
+
     ruby_version_is '1.8.7' do
       it 'returns an Enumerator if no block given' do
         @numerous.find_index.should be_an_instance_of(enumerator_class)

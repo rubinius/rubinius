@@ -18,7 +18,7 @@ describe "Logger#fatal?" do
     @logger.level = Logger::FATAL
     @logger.fatal?.should == true
   end
-  
+
   it "returns false if severity level does not allow fatal messages" do
     @logger.level = Logger::UNKNOWN
     @logger.fatal?.should == false

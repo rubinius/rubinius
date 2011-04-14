@@ -5,24 +5,24 @@ describe "StringIO#truncate when passed [length]" do
   before(:each) do
     @io = StringIO.new('123456789')
   end
-  
+
   # TODO: Report to Ruby-Core: The RDoc says it always returns 0
   it "returns the passed length" do
     @io.truncate(4).should eql(4)
     @io.truncate(10).should eql(10)
   end
-  
+
   it "truncated the underlying string down to the passed length" do
     @io.truncate(4)
     @io.string.should == "1234"
   end
-  
+
   it "does not create a copy of the underlying string" do
     io = StringIO.new(str = "123456789")
     io.truncate(4)
     io.string.should equal(str)
   end
-  
+
   it "does not change the position" do
     @io.pos = 7
     @io.truncate(4)
@@ -42,7 +42,7 @@ describe "StringIO#truncate when passed [length]" do
   it "tries to convert the passed length to an Integer using #to_int" do
     obj = mock("to_int")
     obj.should_receive(:to_int).and_return(4)
-    
+
     @io.truncate(obj)
     @io.string.should == "1234"
   end

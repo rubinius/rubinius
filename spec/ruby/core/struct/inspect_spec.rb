@@ -13,6 +13,6 @@ describe "Struct#inspect" do
     ::Whiskey = Struct.new(:name, :ounces)
     ::Whiskey.new('Jack', 100).inspect.should == '#<struct Whiskey name="Jack", ounces=100>'
   end
- 
+
   it_behaves_like(:struct_inspect, :inspect)
 end

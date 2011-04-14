@@ -22,7 +22,7 @@ end
 
 describe "REXML::Text#value=" do
   before :each do
-    @t = REXML::Text.new("new")    
+    @t = REXML::Text.new("new")
   end
 
   it "sets the text of the node" do

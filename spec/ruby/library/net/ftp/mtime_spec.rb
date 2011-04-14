@@ -27,7 +27,7 @@ describe "Net::FTP#mtime" do
       @ftp.mtime("test.file").should == Time.gm("1998", "07", "05", "13", "23", "16")
     end
   end
-  
+
   describe "when passed filename, local_time" do
     it "returns the last modification time as a Time object in UTC when local_time is true" do
       @ftp.mtime("test.file", true).should == Time.local("1998", "07", "05", "13", "23", "16")
@@ -37,12 +37,12 @@ describe "Net::FTP#mtime" do
       @ftp.mtime("test.file", false).should == Time.gm("1998", "07", "05", "13", "23", "16")
     end
   end
-  
+
   it "raises a Net::FTPPermError when the response code is 550" do
     @server.should_receive(:mdtm).and_respond("550 Requested action not taken.")
     lambda { @ftp.mtime("test.file") }.should raise_error(Net::FTPPermError)
   end
-  
+
   it "raises a Net::FTPTempError when the response code is 421" do
     @server.should_receive(:mdtm).and_respond("421 Service not available, closing control connection.")
     lambda { @ftp.mtime("test.file") }.should raise_error(Net::FTPTempError)

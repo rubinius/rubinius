@@ -15,7 +15,7 @@ describe "Comparable#between?" do
     c.between?(c, d).should == true
     d.between?(d, d).should == true
     c.between?(a, d).should == true
-    
+
     a.between?(b, b).should == false
     a.between?(b, c).should == false
     a.between?(b, d).should == false

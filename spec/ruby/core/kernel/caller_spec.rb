@@ -115,7 +115,7 @@ describe "Kernel#caller in a Proc or eval" do
     end
 
     # On 1.8 this expectation is marred by bug #146. I don't understand 1.9's
-    # output to ascertain whether the same bug occurs here, and if so what is 
+    # output to ascertain whether the same bug occurs here, and if so what is
     # the correct behaviour
     it "returns the correct definition line for a complex Proc trace" do
       stack = CallerFixture.caller_of(CallerFixture.entry_point)

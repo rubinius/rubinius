@@ -20,11 +20,11 @@ describe "StringIO#printf" do
     @io.printf("%d %04x", 123, 123)
     @io.string.should == "123 007b"
   end
-  
+
   it "updates the current position" do
     @io.printf("%d %04x", 123, 123)
     @io.pos.should eql(8)
-    
+
     @io.printf("%d %04x", 123, 123)
     @io.pos.should eql(16)
    end
@@ -38,7 +38,7 @@ describe "StringIO#printf when in append mode" do
   it "appends the passed argument to the end of self" do
     @io.printf("%d %04x", 123, 123)
     @io.string.should == "example123 007b"
-    
+
     @io.printf("%d %04x", 123, 123)
     @io.string.should == "example123 007b123 007b"
   end

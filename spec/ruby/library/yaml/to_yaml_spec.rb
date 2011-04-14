@@ -32,23 +32,23 @@ describe "Object#to_yaml" do
     float.should be_kind_of(Float)
     float.to_yaml.should == "--- 1.2\n"
   end
-  
+
   it "returns the YAML representation of an Integer object" do
     int = 20
     int.should be_kind_of(Integer)
     int.to_yaml.should == "--- 20\n"
   end
-  
+
   it "returns the YAML representation of a NilClass object" do
     nil_klass = nil
     nil_klass.should be_kind_of(NilClass)
     nil_klass.to_yaml.should == "--- \n"
   end
-  
+
   it "returns the YAML represenation of a RegExp object" do
     Regexp.new('^a-z+:\\s+\w+').to_yaml.should == "--- !ruby/regexp /^a-z+:\\s+\\w+/\n"
   end
-  
+
   it "returns the YAML representation of a String object" do
     "I love Ruby".to_yaml.should == "--- I love Ruby\n"
   end
@@ -61,16 +61,16 @@ describe "Object#to_yaml" do
   it "returns the YAML representation of a Symbol object" do
     :symbol.to_yaml.should ==  "--- :symbol\n"
   end
-  
+
   it "returns the YAML representation of a Time object" do
     Time.utc(2000,"jan",1,20,15,1).to_yaml.should == "--- 2000-01-01 20:15:01 Z\n"
   end
-  
+
   it "returns the YAML representation of a TrueClass" do
     true_klass = true
     true_klass.should be_kind_of(TrueClass)
     true_klass.to_yaml.should == "--- true\n"
-  end  
+  end
 
   it "returns the YAML representation of a Error object" do
     StandardError.new("foobar").to_yaml.should match_yaml("--- !ruby/exception:StandardError\nmessage: foobar\n")

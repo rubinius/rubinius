@@ -37,7 +37,7 @@ with_feature :encoding do
     it "returns the state, source encoding, target encoding, and the erroneous bytes when #primitive_convert last returned :undefined_conversion" do
       ec = Encoding::Converter.new("utf-8", "iso-8859-1")
       ec.primitive_convert("\u{9876}","").should == :undefined_conversion
-      ec.primitive_errinfo.should == 
+      ec.primitive_errinfo.should ==
         [:undefined_conversion, "UTF-8", "ISO-8859-1", "\xE9\xA1\xB6", ""]
     end
 
@@ -50,14 +50,14 @@ with_feature :encoding do
     it "returns the state, source encoding, target encoding, erroneous bytes, and the read-again bytes when #primitive_convert last returned :invalid_byte_sequence" do
       ec = Encoding::Converter.new("utf-8", "iso-8859-1")
       ec.primitive_convert("\xf1abcd","").should == :invalid_byte_sequence
-      ec.primitive_errinfo.should == 
+      ec.primitive_errinfo.should ==
         [:invalid_byte_sequence, "UTF-8", "ISO-8859-1", "\xF1", "a"]
     end
 
     it "returns the state, source encoding, target encoding, erroneous bytes, and the read-again bytes when #convert last raised InvalidByteSequenceError" do
       ec = Encoding::Converter.new("utf-8", "iso-8859-1")
       lambda { ec.convert("\xf1abcd") }.should raise_error(Encoding::InvalidByteSequenceError)
-      ec.primitive_errinfo.should == 
+      ec.primitive_errinfo.should ==
         [:invalid_byte_sequence, "UTF-8", "ISO-8859-1", "\xF1", "a"]
     end
 

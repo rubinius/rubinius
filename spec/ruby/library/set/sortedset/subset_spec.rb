@@ -18,12 +18,12 @@ describe "SortedSet#subset?" do
     SortedSet[1, 3].subset?(@set).should be_true
     SortedSet[1, 2].subset?(@set).should be_true
     SortedSet[1].subset?(@set).should be_true
-    
+
     SortedSet[5].subset?(@set).should be_false
     SortedSet[1, 5].subset?(@set).should be_false
     SortedSet["test"].subset?(@set).should be_false
   end
-  
+
   it "raises an ArgumentError when passed a non-SortedSet" do
     lambda { SortedSet[].subset?([]) }.should raise_error(ArgumentError)
     lambda { SortedSet[].subset?(1) }.should raise_error(ArgumentError)

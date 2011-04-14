@@ -51,7 +51,7 @@ ruby_version_is "1.9" do
     it "performs floating-point division between self and a Rational" do
       74620.09.fdiv(Rational(2,3)).should == 111930.135
     end
-  
+
     it "performs floating-point division between self and a Complex" do
       74620.09.fdiv(Complex(8,2)).should == Complex(
         8778.834117647059, -2194.7085294117646)
@@ -59,10 +59,10 @@ ruby_version_is "1.9" do
 
     it "raises a TypeError when argument isn't numeric" do
       lambda { 27292.2.fdiv(mock('non-numeric')) }.should raise_error(TypeError)
-    end  
+    end
 
     it "raises an ArgumentError when passed multiple arguments" do
       lambda { 272.221.fdiv(6,0.2) }.should raise_error(ArgumentError)
-    end  
+    end
   end
 end

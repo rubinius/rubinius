@@ -8,7 +8,7 @@ describe :array_indexes, :shared => true do
     params = [1, 0, 5, -1, -8, 10, x]
     array.send(@method, *params).should == array.values_at(*params)
   end
-  
+
   it "tries to convert the passed arguments to Integers using #to_int" do
     obj = mock('to_int')
     obj.should_receive(:to_int).and_return(1, 3)

@@ -4,7 +4,7 @@ describe :enum_rewind, :shared => true do
 
   before(:each) do
     @enum = enumerator_class.new(1, :upto, 3)
-  end  
+  end
 
   it "resets the enumerator to its initial state" do
     @enum.next.should == 1
@@ -28,5 +28,5 @@ describe :enum_rewind, :shared => true do
     @enum.rewind
     @enum.next.should == 1
   end
-  
+
 end

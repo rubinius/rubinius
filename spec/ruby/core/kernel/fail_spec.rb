@@ -5,7 +5,7 @@ describe "Kernel.fail" do
   it "is a private method" do
     Kernel.should have_private_instance_method(:fail)
   end
-  
+
   it "raises a RuntimeError" do
     lambda { fail }.should raise_error(RuntimeError)
   end
@@ -25,7 +25,7 @@ describe "Kernel.fail" do
   end
 
   it "uses the specified message" do
-    lambda { 
+    lambda {
       begin
         fail "the duck is not irish."
       rescue => e

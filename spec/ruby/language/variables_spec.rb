@@ -1005,7 +1005,7 @@ describe "Operator assignment 'obj[idx] op= expr'" do
     (h['key2'] += 'ue').should == 'value'
     h.should == {'key1' => 3, 'key2' => 'value'}
   end
-  
+
   # This example fails on 1.9 because of bug #2050
   it "returns result of rhs not result of []=" do
     a = VariablesSpecs::Hashalike.new

@@ -11,7 +11,7 @@ describe "StringIO#ungetc when passed [char]" do
     @io.ungetc(?A)
     @io.string.should == 'A234'
   end
-  
+
   it "returns nil" do
     @io.pos = 1
     @io.ungetc(?A).should be_nil
@@ -89,7 +89,7 @@ end
 #       io = StringIO.new("test", "r")
 #       io.pos = 1
 #       lambda { io.ungetc(?A) }.should raise_error(IOError)
-# 
+#
 #       io = StringIO.new("test")
 #       io.pos = 1
 #       io.close_write

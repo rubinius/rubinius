@@ -5,7 +5,7 @@ describe "Math.tanh" do
   it "returns a float" do
     Math.tanh(0.5).should be_kind_of(Float)
   end
-  
+
   it "returns the hyperbolic tangent of the argument" do
     Math.tanh(0.0).should == 0.0
     Math.tanh(-0.0).should == -0.0
@@ -14,7 +14,7 @@ describe "Math.tanh" do
     Math.tanh(2.5).should be_close(0.98661429815143, TOLERANCE)
     Math.tanh(-4.892).should be_close(-0.999887314427707, TOLERANCE)
   end
-  
+
   ruby_version_is ""..."1.9" do
     it "raises an ArgumentError if the argument cannot be coerced with Float()" do
       lambda { Math.tanh("test") }.should raise_error(ArgumentError)
@@ -29,8 +29,8 @@ describe "Math.tanh" do
 
   it "raises a TypeError if the argument is nil" do
     lambda { Math.tanh(nil) }.should raise_error(TypeError)
-  end    
-  
+  end
+
   it "accepts any argument that can be coerced with Float()" do
     Math.tanh(MathSpecs::Float.new).should be_close(0.761594155955765, TOLERANCE)
   end

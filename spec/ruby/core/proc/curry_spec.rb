@@ -30,11 +30,11 @@ ruby_version_is "1.9" do
       lambda2 = @lambda_add.curry[1][2]
       lambda2.should be_an_instance_of(Proc)
       lambda2.call(3).should == 6
-      
+
       @proc_add.curry.call(1,2,3).should == 6
       @lambda_add.curry.call(1,2,3).should == 6
     end
-    
+
     it "can be called multiple times on the same Proc" do
       @proc_add.curry
       lambda { @proc_add.curry }.should_not raise_error
@@ -111,7 +111,7 @@ ruby_version_is "1.9" do
       lambda2.should be_an_instance_of(Proc)
       lambda2.call(3).should == 6
     end
-    
+
     it "can be specified multiple times on the same Proc" do
       @proc_add.curry(2)
       lambda { @proc_add.curry(1) }.should_not raise_error
@@ -121,9 +121,9 @@ ruby_version_is "1.9" do
     end
 
     it "can be passed more than _arity_ arguments if created from a proc" do
-      lambda { @proc_add.curry(3)[1,2,3,4].should == 6 }.should_not 
+      lambda { @proc_add.curry(3)[1,2,3,4].should == 6 }.should_not
         raise_error(ArgumentError)
-      lambda { @proc_add.curry(1)[1,2].curry(3)[3,4,5,6].should == 6 }.should_not 
+      lambda { @proc_add.curry(1)[1,2].curry(3)[3,4,5,6].should == 6 }.should_not
         raise_error(ArgumentError)
     end
 

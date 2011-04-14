@@ -72,7 +72,7 @@ describe "BigDecimal#div" do
     @zero.div(@infinity, 100000).should == 0
     @frac_2.div(@infinity, 100000).should == 0
   end
-  
+
   ruby_version_is "" ... "1.9" do
     it "returns NaN if divided by zero and no precision given" do
       @one.div(@zero).nan?.should == true
@@ -100,7 +100,7 @@ describe "BigDecimal#div" do
       @infinity_minus.div(@one_minus).nan?.should == true
     end
   end
-  
+
   ruby_version_is "1.9" do
     it "raises ZeroDivisionError if divided by zero and no precision given" do
       lambda { @one.div(@zero) }.should raise_error(ZeroDivisionError)

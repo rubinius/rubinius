@@ -29,7 +29,7 @@ describe "Range#step" do
     b = mock('x')
     (a = mock('1')).should_receive(:<=>).with(b).and_return(1)
     a.should_not respond_to(:succ)
-        
+
     lambda { (a..b).step(1) { |i| i } }.should raise_error(TypeError)
   end
 

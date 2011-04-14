@@ -5,7 +5,7 @@ describe "Math.exp" do
   it "returns a float" do
     Math.exp(1.0).should be_kind_of(Float)
   end
-  
+
   it "returns the base-e exponential of the argument" do
     Math.exp(0.0).should == 1.0
     Math.exp(-0.0).should == 1.0
@@ -14,13 +14,13 @@ describe "Math.exp" do
   end
 
   ruby_version_is ""..."1.9" do
-    it "raises an ArgumentError if the argument cannot be coerced with Float()" do    
+    it "raises an ArgumentError if the argument cannot be coerced with Float()" do
       lambda { Math.exp("test") }.should raise_error(ArgumentError)
     end
   end
-  
+
   ruby_version_is "1.9" do
-    it "raises a TypeError if the argument cannot be coerced with Float()" do    
+    it "raises a TypeError if the argument cannot be coerced with Float()" do
       lambda { Math.exp("test") }.should raise_error(TypeError)
     end
   end
@@ -28,7 +28,7 @@ describe "Math.exp" do
   it "raises a TypeError if the argument is nil" do
     lambda { Math.exp(nil) }.should raise_error(TypeError)
   end
-  
+
   it "accepts any argument that can be coerced with Float()" do
     Math.exp(MathSpecs::Float.new).should be_close(Math::E, TOLERANCE)
   end

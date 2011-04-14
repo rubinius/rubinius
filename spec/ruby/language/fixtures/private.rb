@@ -24,7 +24,7 @@ module Private
 
     class << self
       def public_class_method1; 1; end
-      private 
+      private
       def private_class_method1; 1; end
     end
     def self.public_class_method2; 2; end
@@ -33,14 +33,14 @@ module Private
       "bar"
     end
   end
-  
+
   module D
     private
     def foo
       "foo"
     end
   end
-   
+
    class E
      include D
    end

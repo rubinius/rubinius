@@ -29,7 +29,7 @@ describe "A Symbol literal" do
       [:'++',           ':"++"'],
       [:'9',            ':"9"'],
       [:"foo #{1 + 1}", ':"foo 2"'],
-    ].each { |sym, str| 
+    ].each { |sym, str|
       sym.should be_kind_of(Symbol)
       sym.inspect.should == str
     }

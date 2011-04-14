@@ -1,7 +1,7 @@
 require File.expand_path('../../../shared/complex/denominator', __FILE__)
 
 ruby_version_is ""..."1.9" do
-  
+
   require 'complex'
 
   # FIXME:

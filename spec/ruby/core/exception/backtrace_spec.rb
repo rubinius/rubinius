@@ -13,7 +13,7 @@ describe "Exception#backtrace" do
   it "returns an Array" do
     @backtrace.should be_an_instance_of(Array)
   end
-  
+
   it "sets each element to a String" do
     @backtrace.each {|l| l.should be_an_instance_of(String)}
   end
@@ -43,7 +43,7 @@ describe "Exception#backtrace" do
       # This regexp is deliberately imprecise to account for 1.9 using
       # absolute paths where 1.8 used relative paths, the need to abstract out
       # the paths of the included mspec files, the differences in output
-      # between 1.8 and 1.9, and the desire to avoid specifying in any 
+      # between 1.8 and 1.9, and the desire to avoid specifying in any
       # detail what the in `...' portion looks like.
       line.should =~ /^[^ ]+\:\d+(:in `[^`]+')?$/
     end

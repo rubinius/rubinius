@@ -10,7 +10,7 @@ describe "File::Stat#gid" do
   after :each do
     rm_r @file
   end
-  
+
   it "returns the group owner attribute of a File::Stat object" do
     st = File.stat(@file)
     st.gid.is_a?(Integer).should == true

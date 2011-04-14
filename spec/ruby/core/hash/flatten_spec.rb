@@ -5,7 +5,7 @@ ruby_version_is "1.9" do
 
     before(:each) do
       @h = {:plato => :greek,
-            :witgenstein => [:austrian, :british], 
+            :witgenstein => [:austrian, :british],
             :russell => :welsh}
     end
 

@@ -12,7 +12,7 @@ describe "CGI::HtmlExtension#hidden" do
       output = @html.hidden
       output.should equal_element("INPUT", {"NAME" => "", "TYPE" => "hidden"}, "", :not_closed => true)
     end
-  
+
     it "ignores a passed block" do
       output = @html.hidden { "test" }
       output.should equal_element("INPUT", {"NAME" => "", "TYPE" => "hidden"}, "", :not_closed => true)

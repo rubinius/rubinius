@@ -6,7 +6,7 @@ describe "Net::HTTP.get_print" do
   before(:all) do
     NetHTTPSpecs.start_server
   end
-  
+
   after(:all) do
     NetHTTPSpecs.stop_server
   end

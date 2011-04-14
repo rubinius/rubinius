@@ -42,7 +42,7 @@ describe "self.send(:block_given?)" do
       KernelSpecs::SelfBlockGiven.defined_block {}.should == false
     end
   end
-  
+
   ruby_version_is "1.9" do
     it_behaves_like :kernel_block_given, :block_given?, KernelSpecs::SelfBlockGiven
   end

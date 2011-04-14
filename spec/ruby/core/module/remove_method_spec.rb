@@ -7,21 +7,21 @@ module ModuleSpecs
 
     remove_method :method_to_remove
   end
-  
+
   class Parent
     def method_to_remove; 1; end
   end
-  
+
   class Child < Parent
-    def method_to_remove; 2; end     
+    def method_to_remove; 2; end
 
     remove_method :method_to_remove
   end
-  
+
   class First
     def method_to_remove; 1; end
   end
-  
+
   class Second < First
     def method_to_remove; 2; end
   end
@@ -32,13 +32,13 @@ describe "Module#remove_method" do
     x = ModuleSpecs::NoInheritance.new
     x.respond_to?(:method_to_remove).should == false
   end
-  
+
   it "removes method from subclass, but not parent" do
     x = ModuleSpecs::Child.new
-    x.respond_to?(:method_to_remove).should == true    
+    x.respond_to?(:method_to_remove).should == true
     x.method_to_remove.should == 1
   end
-  
+
   it "raises a NameError when attempting to remove method further up the inheritance tree" do
     lambda {
       class Third < ModuleSpecs::Second

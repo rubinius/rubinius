@@ -5,7 +5,7 @@ describe :net_httpheader_each_capitalized, :shared => true do
     @headers.add_field("my-Other-Header", "a")
     @headers.add_field("My-Other-header", "b")
   end
-  
+
   describe "when passed a block" do
     it "yields each header entry to the passed block (capitalized keys, values joined)" do
       res = []
@@ -29,7 +29,7 @@ describe :net_httpheader_each_capitalized, :shared => true do
         it "returns an Enumerator" do
           enumerator = @headers.send(@method)
           enumerator.should be_an_instance_of(enumerator_class)
-    
+
           res = []
           enumerator.each do |*key|
             res << key

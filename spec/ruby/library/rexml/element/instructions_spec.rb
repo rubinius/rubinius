@@ -10,7 +10,7 @@ describe "REXML::Element#instructions" do
     @elem << inst
     @elem.instructions.first.should == inst
   end
-  
+
   it "returns an empty array if it has no Instruction children" do
     @elem.instructions.should be_empty
   end

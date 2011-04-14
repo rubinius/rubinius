@@ -5,13 +5,13 @@ describe "Module#attr_reader" do
   it "creates a getter for each given attribute name" do
     c = Class.new do
       attr_reader :a, "b"
-      
+
       def initialize
         @a = "test"
         @b = "test2"
       end
     end
-    
+
     o = c.new
     %w{a b}.each do |x|
       o.respond_to?(x).should == true
@@ -38,7 +38,7 @@ describe "Module#attr_reader" do
     c = Class.new do
       attr_reader o
     end
-    
+
     c.new.respond_to?("test").should == true
     c.new.respond_to?("test=").should == false
   end

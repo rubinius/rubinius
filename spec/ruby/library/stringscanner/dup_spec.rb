@@ -36,4 +36,4 @@ describe "StringScanner#dup" do
     s = @orig_s.dup
     s.eos?.should be_true
   end
-end 
+end

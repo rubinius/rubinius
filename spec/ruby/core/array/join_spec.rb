@@ -45,12 +45,12 @@ describe "Array#join" do
     obj = mock("not a string")
     lambda { [1, 2].send(@method, obj) }.should raise_error(TypeError)
   end
-  
+
   ruby_version_is "1.9" do
     it "sets the result String's encoding to the first String's encoding" do
       ary1 = ['foo'.force_encoding('utf-8'), 'bar', 'baz']
       ary2 = ['foo', 'bar'.force_encoding('utf-8'), 'baz'.force_encoding('utf-8')]
-    
+
       ary1.join.encoding.should == Encoding::UTF_8
       ary2.join.encoding.should == 'foo'.encoding
     end
