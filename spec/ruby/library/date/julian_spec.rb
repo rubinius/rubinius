@@ -66,3 +66,7 @@ ruby_version_is "1.9" do
 
   end
 end
+
+describe "Date.julian?" do
+  it "needs to be reviewed for spec completeness"
+end

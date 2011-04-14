@@ -7,3 +7,11 @@ describe "Date#new" do
   it_behaves_like(:date_civil, :new)
 
 end
+
+describe "Date.new" do
+  it "needs to be reviewed for spec completeness"
+end
+
+describe "Date.new!" do
+  it "needs to be reviewed for spec completeness"
+end

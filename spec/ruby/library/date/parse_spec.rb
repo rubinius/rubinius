@@ -172,3 +172,7 @@ ruby_version_is "1.8.7" do
     end
   end
 end
+
+describe "Date.parse" do
+  it "needs to be reviewed for spec completeness"
+end

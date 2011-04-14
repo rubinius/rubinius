@@ -69,3 +69,7 @@ describe "Date#valid_civil?" do
   end
 
 end
+
+describe "Date.civil" do
+  it "needs to be reviewed for spec completeness"
+end

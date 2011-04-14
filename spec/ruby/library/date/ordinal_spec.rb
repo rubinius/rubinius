@@ -107,3 +107,7 @@ describe "Date#valid_ordinal?" do
   end
 
 end
+
+describe "Date.ordinal" do
+  it "needs to be reviewed for spec completeness"
+end

@@ -27,3 +27,7 @@ describe "Date#gregorian_leap?" do
     Date.gregorian_leap?(2002).should == false
   end
 end
+
+describe "Date.gregorian?" do
+  it "needs to be reviewed for spec completeness"
+end

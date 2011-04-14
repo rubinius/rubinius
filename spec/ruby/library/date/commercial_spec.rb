@@ -76,3 +76,7 @@ describe "Date#valid_commercial?" do
   end
 
 end
+
+describe "Date.commercial" do
+  it "needs to be reviewed for spec completeness"
+end

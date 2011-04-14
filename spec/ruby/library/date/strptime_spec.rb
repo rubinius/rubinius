@@ -146,3 +146,7 @@ describe "Date#strptime" do
   end
 
 end
+
+describe "Date.strptime" do
+  it "needs to be reviewed for spec completeness"
+end
