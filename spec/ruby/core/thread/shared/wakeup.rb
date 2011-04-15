@@ -1,13 +1,12 @@
 describe :thread_wakeup, :shared => true do
-  it "is not queued" do
+  it "can interrupt Kernel#sleep" do
     exit_loop = false
     after_sleep1 = false
     after_sleep2 = false
+
     t = Thread.new do
-      loop do
-        if exit_loop == true
-          break
-        end
+      while true
+        break if exit_loop == true
       end
 
       sleep
@@ -17,7 +16,8 @@ describe :thread_wakeup, :shared => true do
       after_sleep2 = true
     end
 
-    10.times { t.send(@method); Thread.pass } # These will all get ignored because the thread is not sleeping yet
+    10.times { t.send(@method); Thread.pass }
+    t.status.should_not == "sleep"
 
     exit_loop = true
 
@@ -29,7 +29,6 @@ describe :thread_wakeup, :shared => true do
     Thread.pass while t.status and t.status != "sleep"
     after_sleep2.should == false # t should be blocked on the second sleep
     t.send(@method)
-    Thread.pass while after_sleep2 != true
 
     t.join
   end
