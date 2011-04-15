@@ -1,1 +1,0 @@
-fails:Ruby character strings interpolates an implementation-dependent representation of an object that does not return a String from #to_s
