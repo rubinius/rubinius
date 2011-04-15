@@ -8,7 +8,7 @@ describe "Bignum#<=" do
   it "returns true if self is less than or equal to other" do
     (@bignum <= @bignum).should == true
     (-@bignum <= -(@bignum - 1)).should == true
-    
+
     (@bignum <= (@bignum + 0.5)).should == true
     (@bignum <= 4.999).should == false
   end

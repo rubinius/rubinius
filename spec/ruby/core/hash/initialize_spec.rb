@@ -14,7 +14,7 @@ describe "Hash#initialize" do
     h["a"].should == "aa"
   end
 
-  it "should get passed whatever args were passed to Hash#new" do
+  it "receives the arguments passed to Hash#new" do
     NewHash.new(:one, :two)[0].should == :one
     NewHash.new(:one, :two)[1].should == :two
   end

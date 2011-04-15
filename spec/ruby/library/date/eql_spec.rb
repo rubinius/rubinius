@@ -1,10 +1,12 @@
-require 'date' 
 require File.expand_path('../../../spec_helper', __FILE__)
+require 'date'
 
 describe "Date#eql?" do
-  it "should be able determine equality between date objects" do
-    Date.civil(2007, 10, 11).should eql(Date.civil(2007, 10, 11))
-    Date.civil(2007, 10, 11).should eql(Date.civil(2007, 10, 12) - 1)
-    Date.civil(2007, 10, 11).should_not eql(Date.civil(2007, 10, 12))
+  it "returns true if self is equal to another date" do
+    Date.civil(2007, 10, 11).eql?(Date.civil(2007, 10, 11)).should be_true
+  end
+
+  it "returns false if self is not equal to another date" do
+    Date.civil(2007, 10, 11).eql?(Date.civil(2007, 10, 12)).should be_false
   end
 end

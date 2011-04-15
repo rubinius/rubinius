@@ -28,7 +28,7 @@ describe "ENV.each_value" do
       ENV.each_value.should be_an_instance_of(enumerator_class)
     end
   end
-  
+
   ruby_version_is "1.9" do
     it "uses the locale encoding" do
       ENV.each_value do |value|

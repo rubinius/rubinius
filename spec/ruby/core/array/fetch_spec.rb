@@ -10,13 +10,13 @@ describe "Array#fetch" do
   it "counts negative indices backwards from end" do
     [1, 2, 3, 4].fetch(-1).should == 4
   end
-  
+
   it "raises an IndexError if there is no element at index" do
     lambda { [1, 2, 3].fetch(3) }.should raise_error(IndexError)
     lambda { [1, 2, 3].fetch(-4) }.should raise_error(IndexError)
     lambda { [].fetch(0) }.should raise_error(IndexError)
   end
-  
+
   it "returns default if there is no element at index if passed a default value" do
     [1, 2, 3].fetch(5, :not_found).should == :not_found
     [1, 2, 3].fetch(5, nil).should == nil

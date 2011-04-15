@@ -12,7 +12,7 @@ describe "CGI::HtmlExtension#reset" do
       output = @html.reset
       output.should equal_element("INPUT", {"TYPE" => "reset"}, "", :not_closed => true)
     end
-  
+
     it "ignores a passed block" do
       output = @html.reset { "test" }
       output.should equal_element("INPUT", {"TYPE" => "reset"}, "", :not_closed => true)
@@ -24,7 +24,7 @@ describe "CGI::HtmlExtension#reset" do
       output = @html.reset("Example")
       output.should equal_element("INPUT", {"TYPE" => "reset", "VALUE" => "Example"}, "", :not_closed => true)
     end
-  
+
     it "ignores a passed block" do
       output = @html.reset("Example") { "test" }
       output.should equal_element("INPUT", {"TYPE" => "reset", "VALUE" => "Example"}, "", :not_closed => true)
@@ -36,7 +36,7 @@ describe "CGI::HtmlExtension#reset" do
       output = @html.reset("Example", "test-name")
       output.should equal_element("INPUT", {"TYPE" => "reset", "VALUE" => "Example", "NAME" => "test-name"}, "", :not_closed => true)
     end
-  
+
     it "ignores a passed block" do
       output = @html.reset("Example", "test-name") { "test" }
       output.should equal_element("INPUT", {"TYPE" => "reset", "VALUE" => "Example", "NAME" => "test-name"}, "", :not_closed => true)
@@ -48,7 +48,7 @@ describe "CGI::HtmlExtension#reset" do
       output = @html.reset("Example")
       output.should equal_element("INPUT", {"TYPE" => "reset", "VALUE" => "Example"}, "", :not_closed => true)
     end
-  
+
     it "ignores a passed block" do
       output = @html.reset("Example") { "test" }
       output.should equal_element("INPUT", {"TYPE" => "reset", "VALUE" => "Example"}, "", :not_closed => true)

@@ -35,6 +35,13 @@ module Rubinius
       raise PrimitiveFailure, "Channel.new primitive failed"
     end
 
+    # We must be sure a Channel is always created properly, so handle
+    # this the same as new.
+    def self.allocate
+      Ruby.primitive :channel_new
+      raise PrimitiveFailure, "Channel.new primitive failed"
+    end
+
     ##
     # Puts +obj+ in the Channel.  If there are waiting threads the first thread
     # will be woken up and handed +obj+.

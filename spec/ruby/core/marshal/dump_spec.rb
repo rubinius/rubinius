@@ -80,7 +80,7 @@ describe "Marshal.dump" do
       s = 'hi'
       obj = Object.new
       obj.instance_variable_set(:@str, [:so, :so, s, s])
-      Marshal.dump(obj).should == 
+      Marshal.dump(obj).should ==
         "#{mv+nv}o:\vObject\x06:\t@str[\t:\aso;\aI\"\ahi\x06:\x06EF@\a"
     end
   end
@@ -97,7 +97,7 @@ describe "Marshal.dump" do
     it "dumps an extended_user_regexp having ivar" do
       r = UserRegexp.new('').extend(Meths)
       r.instance_variable_set(:@noise, 'much')
-      Marshal.dump(r).should == 
+      Marshal.dump(r).should ==
         "#{mv+nv}Ie:\nMethsC:\x0FUserRegexp/\x00\x00\a:\x06EF:\v@noiseI\"\tmuch\x06;\aF"
     end
   end
@@ -135,7 +135,7 @@ describe "Marshal.dump" do
     it "dumps an extended_user_hash_default" do
       h = UserHash.new(:Meths).extend(Meths)
       h['three'] = 3
-      Marshal.dump(h).should == 
+      Marshal.dump(h).should ==
         "\x04\be:\nMethsC:\rUserHash}\x06I\"\nthree\x06:\x06EFi\b;\x00"
     end
   end
@@ -152,7 +152,7 @@ describe "Marshal.dump" do
     it "dumps an extended_user_hash with a parameter to initialize" do
       h = UserHashInitParams.new(:abc).extend(Meths)
       h['three'] = 3
-      Marshal.dump(h).should == 
+      Marshal.dump(h).should ==
         "\x04\bIe:\nMethsC:\x17UserHashInitParams{\x06I\"\nthree\x06:\x06EFi\b\x06:\a@a:\babc"
     end
   end
@@ -303,19 +303,19 @@ describe "Marshal.dump" do
         "#{mv+nv}e:\nMethsS:\x11Struct::Ure2\a:\x06a[\a;\aI\"\ahi\x06:\x06EF:\x06b[\a;\x00@\a"
     end
   end
-  
+
   it "returns an untainted string if object is untainted" do
     m = Marshal.dump(Object.new)
     m.tainted?.should be_false
   end
-  
+
   it "returns a tainted string if object is tainted" do
     obj = Object.new
     obj.taint
     m = Marshal.dump(obj)
     m.tainted?.should be_true
   end
-  
+
   it "returns a tainted string if object is tainted deep in nested structure" do
     obj = Object.new
     a = [[obj]]
@@ -349,7 +349,7 @@ describe "Marshal.dump" do
       s.untrusted?.should be_true
     end
   end
-  
+
   ruby_version_is ""..."1.9" do
     MarshalSpec::DATA.each do |description, (object, marshal, attributes)|
       it "dumps a #{description}" do
@@ -385,7 +385,7 @@ describe "Marshal.dump" do
       end
     end
   end
-  
+
   ruby_version_is "1.9" do
     it "dumps a BasicObject subclass if it defines respond_to?" do
       obj = MarshalSpec::BasicObjectSubWithRespondToFalse.new
@@ -395,11 +395,11 @@ describe "Marshal.dump" do
 
   describe "for an Integer" do
     it "dumps an Integer 8" do
-      Marshal.dump(8).should == "\004\bi\r" 
+      Marshal.dump(8).should == "\004\bi\r"
     end
 
     it "dumps and Integer -8" do
-      Marshal.dump(-8).should == "\004\bi\363" 
+      Marshal.dump(-8).should == "\004\bi\363"
     end
 
     it "dumps an Integer 1234" do
@@ -417,7 +417,7 @@ describe "Marshal.dump" do
     it "dumps an Integer -4611686018427387903" do
       Marshal.dump(-4611686018427387903).should == "\004\bl-\t\377\377\377\377\377\377\377?"
     end
-    
+
     it "dumps an Integer 2361183241434822606847" do
       Marshal.dump(2361183241434822606847).should == "\004\bl+\n\377\377\377\377\377\377\377\377\177\000"
     end

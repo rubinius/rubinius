@@ -27,7 +27,7 @@ describe "Array#transpose" do
     [a, b].transpose.should == [[a, b]]
 
     a = [1]; a << a
-    b = [2]; b << b    
+    b = [2]; b << b
     [a, b].transpose == [ [1, 2], [a, b] ]
   end
 

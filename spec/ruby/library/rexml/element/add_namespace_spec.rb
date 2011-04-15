@@ -6,7 +6,7 @@ describe "REXML::Element#add_namespace" do
     @elem = REXML::Element.new("person")
   end
 
-  it "adds a namespace to element" do 
+  it "adds a namespace to element" do
     @elem.add_namespace("foo", "bar")
     @elem.namespace("foo").should == "bar"
   end

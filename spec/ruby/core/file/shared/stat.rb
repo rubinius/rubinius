@@ -8,6 +8,7 @@ describe :file_stat, :shared => true do
     rm_r @file
   end
 
+  # TODO: Fix
   it "returns a File::Stat object if the given file exists" do
     st = File.send(@method, @file)
 
@@ -21,7 +22,8 @@ describe :file_stat, :shared => true do
     st.mtime.should be_kind_of(Time)
   end
 
-  it "should be able to use the instance methods" do
+  # TODO: Fix
+  it "returns a File::Stat objecw when called on an instance of File" do
     File.open(@file) do |f|
       st = f.send(@method)
 

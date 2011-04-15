@@ -1,6 +1,6 @@
 /*
  * Copyright (c) 2007 Wayne Meissner. All rights reserved.
- * 
+ *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
  *
@@ -54,19 +54,19 @@ TEST(double);
 TEST(pointer);
 
 void*
-ptr_return_array_element(void **ptrArray, int arrayIndex) 
+ptr_return_array_element(void **ptrArray, int arrayIndex)
 {
     return ptrArray[arrayIndex];
 }
 
 void
 ptr_set_array_element(void **ptrArray, int arrayIndex, void *value)
-{    
+{
     ptrArray[arrayIndex] = value;
 }
 
 void*
-ptr_malloc(int size) 
+ptr_malloc(int size)
 {
     return calloc(1, size);
 }

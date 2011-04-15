@@ -6,15 +6,15 @@ describe "Net::HTTP#send_request" do
   before(:all) do
     NetHTTPSpecs.start_server
   end
-  
+
   after(:all) do
     NetHTTPSpecs.stop_server
   end
-  
+
   before(:each) do
     @http = Net::HTTP.start("localhost", 3333)
   end
-  
+
   # TODO: Does only work with GET and POST requests
   describe "when passed type, path" do
     it "sends a HTTP Request of the passed type to the passed path" do
@@ -23,7 +23,7 @@ describe "Net::HTTP#send_request" do
 
       # response = @http.send_request("HEAD", "/request")
       # response.body.should be_nil
-      
+
       response = @http.send_request("POST", "/request")
       response.body.should == "Request type: POST"
 
@@ -57,7 +57,7 @@ describe "Net::HTTP#send_request" do
 
       # response = @http.send_request("HEAD", "/request/body", "test=test")
       # response.body.should be_nil
-      
+
       response = @http.send_request("POST", "/request/body", "test=test")
       response.body.should == "test=test"
 
@@ -91,7 +91,7 @@ describe "Net::HTTP#send_request" do
 
       # response = @http.send_request("HEAD", "/request/header", "test=test", "referer" => "http://www.rubyspec.org")
       # response.body.should be_nil
-      
+
       response = @http.send_request("POST", "/request/header", "test=test", "referer" => "http://www.rubyspec.org")
       response.body.should include('"referer"=>["http://www.rubyspec.org"]')
 

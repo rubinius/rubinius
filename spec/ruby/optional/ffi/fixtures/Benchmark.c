@@ -28,11 +28,11 @@
 #include <stdint.h>
 
 void returnVoid() {
-    
+
 }
 
 void returnVoidI(int arg) {
-    
+
 }
 int returnInt() {
     return 0;

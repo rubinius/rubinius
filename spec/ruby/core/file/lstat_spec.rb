@@ -6,7 +6,7 @@ describe "File.lstat" do
 end
 
 describe "File.lstat" do
-  
+
   before :each do
     @file = tmp('i_exist')
     @link = tmp('i_am_a_symlink')

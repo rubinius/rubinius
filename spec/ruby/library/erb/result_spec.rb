@@ -41,7 +41,7 @@ END
 
   it "is not able to h() or u() unless including ERB::Util" do
     input = "<%=h '<>' %>"
-    lambda { 
+    lambda {
       ERB.new(input).result()
     }.should raise_error(NameError)
   end

@@ -13,7 +13,7 @@ describe "Ruby numbers in various ways" do
   it "with some decimals" do
     4.35.should == 4.35
   end
-  
+
   it "with decimals but no integer part should be a SyntaxError" do
     lambda { eval(".75")  }.should raise_error(SyntaxError)
     lambda { eval("-.75") }.should raise_error(SyntaxError)

@@ -62,14 +62,14 @@ describe "IO#eof?" do
   end
 
   ruby_version_is ""..."1.9" do
-    it "should not consume the data from the stream" do
+    it "does not consume the data from the stream" do
       @io.eof?.should == false
       @io.getc.should == 86
     end
   end
 
   ruby_version_is "1.9" do
-    it "should not consume the data from the stream" do
+    it "does not consume the data from the stream" do
       @io.eof?.should == false
       @io.getc.should == 'V'
     end

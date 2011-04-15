@@ -18,7 +18,7 @@ describe "REXML::Attributes#get_attribute" do
     @e.attributes.get_attribute("name").should == @name
     @e.attributes.get_attribute("im:name").should == ns_name
   end
-  
+
   it "returns an Attribute" do
     @e.attributes.get_attribute("name").should be_kind_of(REXML::Attribute)
   end

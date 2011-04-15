@@ -18,10 +18,10 @@ module MathSpecs
       2
     end
   end
-  
+
   class UserClass
   end
-  
+
   class StringSubClass < String
   end
 

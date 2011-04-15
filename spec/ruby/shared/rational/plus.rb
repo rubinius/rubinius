@@ -29,7 +29,7 @@ describe :rational_plus, :shared => true do
     rational = Rational(3, 4)
     obj = mock("Object")
     obj.should_receive(:coerce).with(rational).and_return([1, 2])
-    
+
     rational + obj
   end
 
@@ -38,9 +38,9 @@ describe :rational_plus, :shared => true do
 
     coerced_rational = mock("Coerced Rational")
     coerced_rational.should_receive(:+).and_return(:result)
-    
+
     coerced_obj = mock("Coerced Object")
-    
+
     obj = mock("Object")
     obj.should_receive(:coerce).and_return([coerced_rational, coerced_obj])
 

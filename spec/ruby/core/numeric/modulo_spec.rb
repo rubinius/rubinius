@@ -1,12 +1,12 @@
 require File.expand_path('../../../spec_helper', __FILE__)
 require File.expand_path('../fixtures/classes', __FILE__)
 
-describe "Numeric#modulo" do 
+describe "Numeric#modulo" do
   ruby_version_is "".."1.9" do
     it "returns the result of calling self#% with other" do
       obj = NumericSpecs::Subclass.new
       obj.should_receive(:%).with(20).and_return(:result)
-      
+
       obj.modulo(20).should == :result
     end
   end

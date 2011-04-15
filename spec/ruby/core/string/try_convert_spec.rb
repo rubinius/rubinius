@@ -7,24 +7,24 @@ describe "String.try_convert" do
       x = "abc"
       String.try_convert(x).should equal(x)
     end
-    
+
     it "converts using :to_str" do
       str = "hello"
       obj = mock('stringlike')
       obj.should_receive(:to_str).and_return(str)
       String.try_convert(obj).should equal(str)
     end
-    
+
     it "returns nil when there is no :to_str" do
       String.try_convert(-1).should be_nil
     end
-    
-    it "should not rescue errors" do
+
+    it "does not rescue exceptions" do
       lambda{
         String.try_convert(StringSpecs::StringNotReallyConvertable.new)
-      }.should raise_error
+      }.should raise_error(RuntimeError)
     end
-    
+
     it "checks the result of the conversion" do
       obj = mock('crazy to_str')
       obj.should_receive(:to_str).and_return(:confused)

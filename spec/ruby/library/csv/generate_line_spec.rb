@@ -5,10 +5,10 @@ describe "CSV.generate_line" do
 
   ruby_version_is "" ... "1.9" do
     it "generates an empty string" do
-      result = CSV::generate_line([]) 
+      result = CSV::generate_line([])
       result.should == ""
     end
- 
+
     it "generates the string 'foo,bar'" do
       result = CSV::generate_line(["foo", "bar"])
       result.should == "foo,bar"
@@ -32,10 +32,10 @@ describe "CSV.generate_line" do
 
   ruby_version_is "1.9" do
     it "generates an empty string" do
-      result = CSV::generate_line([]) 
+      result = CSV::generate_line([])
       result.should == "\n"
     end
- 
+
     it "generates the string 'foo,bar'" do
       result = CSV::generate_line(["foo", "bar"])
       result.should == "foo,bar\n"

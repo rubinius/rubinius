@@ -19,6 +19,6 @@ describe "REXML::Element#add_namespace" do
   it "joins the new text with the old one" do
     @name.add_text "Ringo"
     @name.add_text " Starr"
-    @name.to_s.should == "<Name>Ringo Starr</Name>" 
+    @name.to_s.should == "<Name>Ringo Starr</Name>"
   end
 end

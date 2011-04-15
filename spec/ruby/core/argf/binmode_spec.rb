@@ -25,7 +25,7 @@ describe "ARGF.binmode" do
         ARGF.gets.should == "test\r\n"
       end
     end
-    
+
     it "puts alls subsequent stream reading through ARGF into binmode" do
       argv [@bin_file, @bin_file, @bin_file, @bin_file] do
         ARGF.gets.should == "test\n"
@@ -36,7 +36,7 @@ describe "ARGF.binmode" do
       end
     end
   end
-  
+
   platform_is_not :windows do
     # This does nothing on Unix but it should not raise any errors.
     it "does not raise an error" do

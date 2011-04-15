@@ -116,7 +116,7 @@ describe "Array#[]=" do
     a[obj] = -1
     a.should == [1, 2, -1]
   end
-  
+
   ruby_version_is '1.9' do
     it "checks frozen before attempting to coerce arguments" do
       a = [1,2,3,4].freeze
@@ -124,7 +124,7 @@ describe "Array#[]=" do
       lambda {a[:foo, :bar] = 1}.should raise_error(RuntimeError)
     end
   end
-  
+
   it "sets elements in the range arguments when passed ranges" do
     ary = [1, 2, 3]
     rhs = [nil, [], ["x"], ["x", "y"]]

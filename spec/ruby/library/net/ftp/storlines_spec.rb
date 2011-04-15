@@ -21,7 +21,7 @@ describe "Net::FTP#storlines" do
 
     rm_r @tmp_file
   end
-  
+
   it "sends the passed command and the passed File object's content to the server" do
     File.open(@local_fixture_file) do |f|
       @ftp.storlines("STOR text", f) {}

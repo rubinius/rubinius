@@ -7,20 +7,20 @@ describe "StringIO#puts when passed an Array" do
   before(:each) do
     @io = StringIO.new
   end
-  
+
   it "writes each element of the passed Array to self, separated by a newline" do
     @io.puts([1, 2, 3, 4])
     @io.string.should == "1\n2\n3\n4\n"
-  
+
     @io.puts([1, 2], [3, 4])
     @io.string.should == "1\n2\n3\n4\n1\n2\n3\n4\n"
   end
-  
+
   it "flattens nested Arrays" do
     @io.puts([1, [2, [3, [4]]]])
     @io.string.should == "1\n2\n3\n4\n"
   end
-  
+
   it "handles self-recursive arrays correctly" do
     (ary = [5])
     ary << ary
@@ -37,14 +37,14 @@ describe "StringIO#puts when passed an Array" do
       $\ = old_rs
     end
   end
-  
+
   it "first tries to convert each Array element to an Array using #to_ary" do
     obj = mock("Object")
     obj.should_receive(:to_ary).and_return(["to_ary"])
     @io.puts([obj])
     @io.string.should == "to_ary\n"
   end
-  
+
   it "then tries to convert each Array element to a String using #to_s" do
     obj = mock("Object")
     obj.should_receive(:to_s).and_return("to_s")
@@ -72,14 +72,14 @@ describe "StringIO#puts when passed 1 or more objects" do
     @io.puts("1\n", "2\n", "3\n")
     @io.string.should == "1\n2\n3\n"
   end
-  
+
   it "first tries to convert each Object to an Array using #to_ary" do
     obj = mock("Object")
     obj.should_receive(:to_ary).and_return(["to_ary"])
     @io.puts(obj)
     @io.string.should == "to_ary\n"
   end
-  
+
   it "then tries to convert each Object to a String using #to_s" do
     obj = mock("Object")
     obj.should_receive(:to_s).and_return("to_s")
@@ -106,7 +106,7 @@ describe "StringIO#puts when passed no arguments" do
     @io.puts
     @io.string.should == "\n"
   end
-  
+
   it "does not honor the global output record separator $\\" do
     begin
       old_rs, $\ = $\, "test"
@@ -126,7 +126,7 @@ describe "StringIO#puts when in append mode" do
   it "appends the passed argument to the end of self" do
     @io.puts(", just testing")
     @io.string.should == "example, just testing\n"
-    
+
     @io.puts(" and more testing")
     @io.string.should == "example, just testing\n and more testing\n"
   end

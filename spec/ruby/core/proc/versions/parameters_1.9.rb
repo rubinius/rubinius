@@ -61,11 +61,11 @@ ruby_version_is "1.9" do
       proc {|*rest| }.parameters.first.last.should == :rest
       proc {|&block| }.parameters.first.last.should == :block
     end
-    
+
     it "ignores unnamed rest args" do
       lambda {|x,|}.parameters.should == [[:req, :x]]
     end
-    
+
     it "adds nameless rest arg for \"star\" argument" do
       lambda {|x,*|}.parameters.should == [[:req, :x], [:rest]]
     end

@@ -49,7 +49,7 @@ describe :hash_store, :shared => true do
       lambda { HashSpecs.frozen_hash.send(@method, 1, 2) }.should raise_error(TypeError)
     end
   end
-  
+
   ruby_version_is "1.9" do
     it "raises a RuntimeError if called on a frozen instance" do
       lambda { HashSpecs.frozen_hash.send(@method, 1, 2) }.should raise_error(RuntimeError)

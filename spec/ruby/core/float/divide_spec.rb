@@ -7,11 +7,11 @@ describe "Float#/" do
     (451.0 / 9.3).should be_close(48.494623655914,TOLERANCE)
     (91.1 / -0xffffffff).should be_close(-2.12108716418061e-08, TOLERANCE)
   end
-  
+
   it "properly coerces objects" do
     (5.0 / FloatSpecs::CanCoerce.new(5)).should be_close(0, TOLERANCE)
   end
-  
+
   it "properly handles BigDecimal argument" do
     require 'bigdecimal'
     (2.0 / BigDecimal.new('5.0')).should be_close(0.4, TOLERANCE)
@@ -21,7 +21,7 @@ describe "Float#/" do
     (2.0 / BigDecimal.new('-0.0')).infinite?.should == -1
     (2.0 / BigDecimal.new('NaN')).nan?.should == true
   end
-  
+
   it "does NOT raise ZeroDivisionError if other is zero" do
     (1.0 / 0.0).to_s.should == 'Infinity'
     (-1.0 / 0.0).to_s.should == '-Infinity'

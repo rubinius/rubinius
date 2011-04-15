@@ -13,8 +13,14 @@ module SocketSpecs
     Socket.getaddrinfo("::1", nil)[0][2]
   end
 
-  def self.addr
-    Socket.getaddrinfo(hostname, nil)[0][3]
+  def self.addr(which=:ipv4)
+    case which
+    when :ipv4
+      host = "127.0.0.1"
+    when :ipv6
+      host = "::1"
+    end
+    Socket.getaddrinfo(host, nil)[0][3]
   end
 
   def self.port

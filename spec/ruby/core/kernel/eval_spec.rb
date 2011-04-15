@@ -231,7 +231,7 @@ describe "Kernel#eval" do
     }
   end
 
-  it "should perform top level evaluations from inside a block" do
+  it "sets constants at the toplevel from inside a block" do
     # The class Object bit is needed to workaround some mspec oddness
     class Object
       [1].each { eval "Const = 1"}
@@ -250,7 +250,7 @@ describe "Kernel#eval" do
   end
 
   # Found via Rubinius bug github:#149
-  it "should not alter the value of __FILE__ in the binding" do
+  it "does not alter the value of __FILE__ in the binding" do
     first_time =  EvalSpecs.call_eval
     second_time = EvalSpecs.call_eval
 

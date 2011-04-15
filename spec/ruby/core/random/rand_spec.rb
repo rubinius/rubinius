@@ -121,7 +121,7 @@ ruby_version_is "1.9" do
       b = 20.times.map { prng.rand(bignum_value) }
       a.should == b
     end
-    
+
     it "raises an ArgumentError when the argument is negative" do
       lambda do
         Random.new.rand(-bignum_value)
@@ -153,7 +153,7 @@ ruby_version_is "1.9" do
       b = 20.times.map { prng.rand(89.2928) }
       a.should == b
     end
-    
+
     it "raises an ArgumentError when the argument is negative" do
       lambda do
         Random.new.rand(-1.234567)
@@ -191,7 +191,7 @@ ruby_version_is "1.9" do
       b = 20.times.map { prng.rand(76890.028..800000.00) }
       a.should == b
     end
-    
+
     it "eventually returns all possible values" do
       prng = Random.new 33
       100.times.map{ prng.rand(10..20) }.uniq.sort.should == (10..20).to_a

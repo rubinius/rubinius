@@ -32,7 +32,7 @@ describe "Logger#new" do
      lambda { Logger.new(@log_file, "weekly") }.should_not raise_error
      lambda { Logger.new(@log_file, "monthly") }.should_not raise_error
   end
-  
+
   it "also receives a number of log files to keep as second argument" do
     lambda { Logger.new(@log_file, 1).close }.should_not raise_error
   end
@@ -47,7 +47,7 @@ describe "Logger#new" do
     l.add Logger::WARN, "bar"
 
     File.exists?(path).should be_true
-    File.exists?(path + ".0").should be_true 
+    File.exists?(path + ".0").should be_true
 
     # first line will be a comment so we'll have to skip it.
     f = File.open(path)

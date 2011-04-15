@@ -40,7 +40,7 @@ describe "Prime#each", "when an instance created via Prime.new" do
   it "infinitely iterates the given block passing a prime" do
     lambda {
       Timeout.timeout(@enough_seconds) {
-        @ps.each {|prime| 
+        @ps.each {|prime|
           primality = (2..Math.sqrt(prime)).all?{|n| prime%n != 0 }
           primality.should be_true
         }
@@ -49,7 +49,7 @@ describe "Prime#each", "when an instance created via Prime.new" do
   end
 
   it "raises a ArgumentError when is called with some argumetns" do
-    lambda { 
+    lambda {
       @ps.each(100) do |prime|
         # do something
       end

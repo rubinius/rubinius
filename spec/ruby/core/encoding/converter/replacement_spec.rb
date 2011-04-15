@@ -40,7 +40,7 @@ with_feature :encoding do
       ec = Encoding::Converter.new("us-ascii", "utf-8")
       ec.replacement.should == "\u{fffd}".force_encoding('utf-8')
       ec.replacement = '?'.encode('utf-8')
-      ec.replacement.should == '?'.force_encoding('utf-8') 
+      ec.replacement.should == '?'.force_encoding('utf-8')
     end
 
     it "raises an UndefinedConversionError is the argument cannot be converted into the destination encoding" do

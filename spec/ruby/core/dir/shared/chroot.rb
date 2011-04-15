@@ -5,7 +5,7 @@ describe :dir_chroot_as_root, :shared => true do
     @real_root = "../" * (File.dirname(__FILE__).count('/') - 1)
     @ref_dir = File.join("/", Dir.new('/').entries.first)
   end
-  
+
   after(:all) do
     until File.exists?(@ref_dir)
       Dir.send(@method, "../") or break

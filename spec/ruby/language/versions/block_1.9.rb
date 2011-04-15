@@ -17,21 +17,21 @@ describe "Block-local variables" do
   it "can not be prefixed with an asterisk" do
     lambda { eval "[1].each {|foo; *bar| }" }.should raise_error(SyntaxError)
     lambda do
-      eval "[1].each {|foo, bar; glark, *fnord| }" 
+      eval "[1].each {|foo, bar; glark, *fnord| }"
     end.should raise_error(SyntaxError)
   end
 
   it "can not be prefixed with an ampersand" do
     lambda { eval "[1].each {|foo; &bar| }" }.should raise_error(SyntaxError)
     lambda do
-      eval "[1].each {|foo, bar; glark, &fnord| }" 
+      eval "[1].each {|foo, bar; glark, &fnord| }"
     end.should raise_error(SyntaxError)
   end
 
   it "can not be assigned default values" do
     lambda { eval "[1].each {|foo; bar=1| }" }.should raise_error(SyntaxError)
     lambda do
-      eval "[1].each {|foo, bar; glark, fnord=:fnord| }" 
+      eval "[1].each {|foo, bar; glark, fnord=:fnord| }"
     end.should raise_error(SyntaxError)
   end
 
@@ -48,13 +48,13 @@ describe "Block-local variables" do
   it "override shadowed variables from the outer scope" do
     out = :out
     [1].each {|; out| out = :in }
-    out.should == :out 
+    out.should == :out
 
     a = :a
     b = :b
     c = :c
     d = :d
-    {:ant => :bee}.each_pair do |a, b; c, d| 
+    {:ant => :bee}.each_pair do |a, b; c, d|
       a = :A
       b = :B
       c = :C
@@ -63,7 +63,7 @@ describe "Block-local variables" do
     a.should == :a
     b.should == :b
     c.should == :c
-    d.should == :d 
+    d.should == :d
   end
 
   it "are not automatically instantiated in the outer scope" do
@@ -73,7 +73,7 @@ describe "Block-local variables" do
   end
 
   it "are automatically instantiated in the block" do
-    [1].each do |;glark| 
+    [1].each do |;glark|
       glark.should be_nil
     end
   end

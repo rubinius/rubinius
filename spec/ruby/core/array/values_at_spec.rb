@@ -36,12 +36,12 @@ describe "Array#values_at" do
 
     def from.to_int() 1 end
     def to.to_int() -2 end
-      
+
     ary = [1, 2, 3, 4, 5]
     ary.values_at(from .. to, from ... to, to .. from).should == [2, 3, 4, 2, 3]
   end
 
   it "does not return subclass instance on Array subclasses" do
     ArraySpecs::MyArray[1, 2, 3].values_at(0, 1..2, 1).should be_kind_of(Array)
-  end  
+  end
 end

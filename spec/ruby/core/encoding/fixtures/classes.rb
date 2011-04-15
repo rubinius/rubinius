@@ -9,7 +9,7 @@ module EncodingSpecs
       end
     end
   end
-  
+
   class UndefinedConversionErrorIndirect
     def self.exception
       ec = Encoding::Converter.new("ISO-8859-1", "EUC-JP")
@@ -32,7 +32,7 @@ module EncodingSpecs
       end
     end
   end
-  
+
   class InvalidByteSequenceErrorIndirect
     def self.exception
       ec = Encoding::Converter.new("EUC-JP", "ISO-8859-1")

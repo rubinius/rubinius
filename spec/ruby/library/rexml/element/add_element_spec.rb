@@ -6,7 +6,7 @@ describe "REXML::Element#add_element" do
   before :each do
     @root = REXML::Element.new("root")
   end
-  
+
   it "adds a child without attributes" do
     name = REXML::Element.new("name")
     @root.add_element name

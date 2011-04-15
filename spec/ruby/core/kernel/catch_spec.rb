@@ -75,7 +75,7 @@ describe "Kernel.catch" do
 
     it "raises ArgumentError if called without argument" do
       lambda { catch {} }.should raise_error(ArgumentError)
-    end  
+    end
   end
 
   ruby_version_is "1.9" do
@@ -87,7 +87,7 @@ describe "Kernel.catch" do
 
     it "yields a new, unique object when called without arguments" do
       catch {|obj| obj.should be_an_instance_of(Object) }
-    end    
+    end
   end
 
   it "raises LocalJumpError if no block is given" do

@@ -19,7 +19,7 @@ describe "StringIO#pos=" do
   it "raises an EINVAL if given a negative argument" do
     lambda { @io.pos = -10 }.should  raise_error(Errno::EINVAL)
   end
-  
+
   it "updates the current byte offset after reaching EOF" do
     @io.read
     @io.pos = 26

@@ -202,7 +202,7 @@ describe "String#unpack with 'DdEeFfGg' directives" do
     @precision_small = 1E-12
     @precision_large = 1E+17
   end
-  
+
   it "returns an array by decoding self according to the format string" do
     res = "\xF3\x02\x00\x42\xF3\x02\x00\x42".unpack('eg')
     res.length.should == 2
@@ -221,7 +221,7 @@ describe "String#unpack with 'DdEeFfGg' directives" do
 #     "\x00\x00\x00\x42\x32\x87\xF3\x02".unpack('g0G*')[0].should be_close(
 #         1.40470576419087e-312, @precision_small)
   end
-  
+
   little_endian do
     it "returns an array by decoding self in little-endian order according to the format string" do
       # 'F2' pattern
@@ -252,7 +252,7 @@ describe "String#unpack with 'DdEeFfGg' directives" do
       res[2].should == nil
     end
   end
-  
+
   big_endian do
     it "returns an array by decoding self in big-endian order according to the format string" do
       # 'F2' pattern

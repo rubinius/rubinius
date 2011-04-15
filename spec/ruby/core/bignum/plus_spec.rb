@@ -4,7 +4,7 @@ describe "Bignum#+" do
   before(:each) do
     @bignum = bignum_value(76)
   end
-  
+
   it "returns self plus the given Integer" do
     (@bignum + 4).should == 9223372036854775888
     (@bignum + 4.2).should be_close(9223372036854775888.2, TOLERANCE)

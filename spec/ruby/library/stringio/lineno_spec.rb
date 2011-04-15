@@ -22,7 +22,7 @@ describe "StringIO#lineno=" do
   it "sets the current line number, but has no impact on the position" do
     @io.lineno = 3
     @io.pos.should eql(0)
-    
+
     @io.gets.should == "this\n"
     @io.lineno.should eql(4)
     @io.pos.should eql(5)

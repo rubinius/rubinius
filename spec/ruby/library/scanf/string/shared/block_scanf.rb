@@ -13,7 +13,7 @@ describe :scanf_string_block_scanf, :shared => true do
     a.should == [["hello"], ["world"]]
 
     s = []
-    str = "123 abc 456 def 789 ghi" 
+    str = "123 abc 456 def 789 ghi"
     s = str.send(@method, "%d%s"){|num,str| [num * 2, str.upcase]}
     s.should == [[246, "ABC"], [912, "DEF"], [1578, "GHI"]]
   end

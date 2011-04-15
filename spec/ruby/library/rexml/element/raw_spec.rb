@@ -5,7 +5,7 @@ describe "REXML::Element#raw" do
   it "returns true if raw mode is set to all" do
     REXML::Element.new("MyElem", nil, {:raw => :all}).raw.should == true
   end
-  
+
   it "returns true if raw mode is set to expanded_name" do
     REXML::Element.new("MyElem", nil, {:raw => "MyElem"}).raw.should == true
   end

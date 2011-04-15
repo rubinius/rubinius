@@ -104,7 +104,7 @@ describe "Module#module_function with specific method names" do
     m = Module.new do
       module_function :require
     end
-    m.respond_to?(:require).should be_true 
+    m.respond_to?(:require).should be_true
   end
 end
 

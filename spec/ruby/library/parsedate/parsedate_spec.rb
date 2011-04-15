@@ -90,7 +90,7 @@ ruby_version_is ""..."1.9" do
     it "returns Array with day and hour set, given a String like n-nn" do
       ParseDate.parsedate("8-09").should == [nil,nil] + [9,8] + [nil] * 4
     end
-    
+
     it "returns Array with day and timezone set, given a String like nn-n" do
       ParseDate.parsedate("08-9").should == [nil,nil,8,nil,nil,nil,"-9",nil]
     end

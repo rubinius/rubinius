@@ -4,8 +4,8 @@ module ObjectSpecs
   module MyModule; end
   module MyExtensionModule; end
 
-  class AncestorClass < String 
-    include AncestorModule 
+  class AncestorClass < String
+    include AncestorModule
   end
 
   class KindaClass < AncestorClass
@@ -42,7 +42,7 @@ describe :object_kind_of, :shared => true do
   it "returns true if given a Module that is included one of object's ancestors only" do
     @o.send(@method, ObjectSpecs::AncestorModule).should == true
   end
-  
+
   it "returns true if given a Module that object has been extended with" do
     @o.send(@method, ObjectSpecs::MyExtensionModule).should == true
   end

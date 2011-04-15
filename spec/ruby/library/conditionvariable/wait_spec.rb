@@ -2,7 +2,7 @@ require File.expand_path('../../../spec_helper', __FILE__)
 require 'thread'
 
 describe "ConditionVariable#wait" do
-  it "should return self" do
+  it "returns self" do
     m = Mutex.new
     cv = ConditionVariable.new
 

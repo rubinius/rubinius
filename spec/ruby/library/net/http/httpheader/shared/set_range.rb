@@ -2,19 +2,19 @@ describe :net_httpheader_set_range, :shared => true do
   before(:each) do
     @headers = NetHTTPHeaderSpecs::Example.new
   end
-  
+
   describe "when passed nil" do
     it "returns nil" do
       @headers.send(@method, nil).should be_nil
     end
-    
+
     it "deletes the 'Range' header entry" do
       @headers["Range"] = "bytes 0-499/1234"
       @headers.send(@method, nil)
       @headers["Range"].should be_nil
     end
   end
-  
+
   describe "when passed Numeric" do
     it "sets the 'Range' header entry based on the passed Numeric" do
       @headers.send(@method, 10)
@@ -27,7 +27,7 @@ describe :net_httpheader_set_range, :shared => true do
       @headers["Range"].should == "bytes=0-9"
     end
   end
-  
+
   describe "when passed Range" do
     it "sets the 'Range' header entry based on the passed Range" do
       @headers.send(@method, 10..200)
@@ -48,7 +48,7 @@ describe :net_httpheader_set_range, :shared => true do
       @headers.send(@method, 1..-1)
       @headers["Range"].should == "bytes=1-"
     end
-    
+
     it "raises a Net::HTTPHeaderSyntaxError when the first Range element is negative" do
       lambda { @headers.send(@method, -10..5) }.should raise_error(Net::HTTPHeaderSyntaxError)
     end
@@ -61,7 +61,7 @@ describe :net_httpheader_set_range, :shared => true do
       lambda { @headers.send(@method, 10..5) }.should raise_error(Net::HTTPHeaderSyntaxError)
     end
   end
-  
+
   describe "when passed start, end" do
     it "sets the 'Range' header entry based on the passed start and length values" do
       @headers.send(@method, 10, 200)

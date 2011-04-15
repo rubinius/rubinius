@@ -44,17 +44,17 @@ describe "String#downcase!" do
     a.should == "hello"
   end
 
-  ruby_version_is ""..."1.9" do 
+  ruby_version_is ""..."1.9" do
     it "raises a TypeError when self is frozen" do
       lambda { "HeLlo".freeze.downcase! }.should raise_error(TypeError)
       lambda { "hello".freeze.downcase! }.should raise_error(TypeError)
     end
   end
 
-  ruby_version_is "1.9" do 
+  ruby_version_is "1.9" do
     it "raises a RuntimeError when self is frozen" do
       lambda { "HeLlo".freeze.downcase! }.should raise_error(RuntimeError)
       lambda { "hello".freeze.downcase! }.should raise_error(RuntimeError)
     end
-  end  
+  end
 end

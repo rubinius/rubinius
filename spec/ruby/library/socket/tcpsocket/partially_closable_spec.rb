@@ -3,7 +3,7 @@ require File.expand_path('../../fixtures/classes', __FILE__)
 require File.expand_path('../../shared/partially_closable_sockets', __FILE__)
 
 describe "TCPSocket partial closability" do
-  
+
   before :each do
     @server = TCPServer.new("127.0.0.1", SocketSpecs.port+1)
     @s1 = TCPSocket.new("127.0.0.1", SocketSpecs.port+1)
@@ -15,7 +15,7 @@ describe "TCPSocket partial closability" do
     @s1.close
     @s2.close
   end
-  
+
   it_should_behave_like "partially closable sockets"
-  
+
 end

@@ -31,12 +31,12 @@ describe "String#center with length, padding" do
     "||".center(12, "12345").should == "12345||12345"
     "||".center(13, "12345").should == "12345||123451"
   end
-  
+
   it "pads with whitespace if no padstr is given" do
     "two".center(5).should    == " two "
     "hello".center(20).should == "       hello        "
   end
-  
+
   it "returns self if it's longer than or as long as the specified length" do
     "".center(0).should == ""
     "".center(-1).should == ""
@@ -53,46 +53,46 @@ describe "String#center with length, padding" do
     "x".taint.center(4, "*").tainted?.should == true
     "x".center(4, "*".taint).tainted?.should == true
   end
-  
+
   it "calls #to_int to convert length to an integer" do
     "_".center(3.8, "^").should == "^_^"
-    
+
     obj = mock('3')
     obj.should_receive(:to_int).and_return(3)
-      
+
     "_".center(obj, "o").should == "o_o"
   end
-  
+
   it "raises a TypeError when length can't be converted to an integer" do
     lambda { "hello".center("x")       }.should raise_error(TypeError)
     lambda { "hello".center("x", "y")  }.should raise_error(TypeError)
     lambda { "hello".center([])        }.should raise_error(TypeError)
     lambda { "hello".center(mock('x')) }.should raise_error(TypeError)
   end
-  
+
   it "calls #to_str to convert padstr to a String" do
     padstr = mock('123')
     padstr.should_receive(:to_str).and_return("123")
 
     "hello".center(20, padstr).should == "1231231hello12312312"
   end
-  
+
   it "raises a TypeError when padstr can't be converted to a string" do
     lambda { "hello".center(20, 100)       }.should raise_error(TypeError)
     lambda { "hello".center(20, [])      }.should raise_error(TypeError)
     lambda { "hello".center(20, mock('x')) }.should raise_error(TypeError)
   end
-  
+
   it "raises an ArgumentError if padstr is empty" do
     lambda { "hello".center(10, "") }.should raise_error(ArgumentError)
     lambda { "hello".center(0, "")  }.should raise_error(ArgumentError)
   end
-  
+
   it "returns subclass instances when called on subclasses" do
     StringSpecs::MyString.new("").center(10).should be_kind_of(StringSpecs::MyString)
     StringSpecs::MyString.new("foo").center(10).should be_kind_of(StringSpecs::MyString)
     StringSpecs::MyString.new("foo").center(10, StringSpecs::MyString.new("x")).should be_kind_of(StringSpecs::MyString)
-    
+
     "".center(10, StringSpecs::MyString.new("x")).should be_kind_of(String)
     "foo".center(10, StringSpecs::MyString.new("x")).should be_kind_of(String)
   end

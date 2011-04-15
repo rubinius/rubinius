@@ -12,7 +12,7 @@ describe "Numeric#eql?" do
     @obj.should_not eql(bignum_value)
     @obj.should_not eql(:sym)
   end
-  
+
   it "returns the result of calling self#== with other when self's and other's types match" do
     other = NumericSpecs::Subclass.new
     @obj.should_receive(:==).with(other).and_return("result", nil)

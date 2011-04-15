@@ -5,7 +5,7 @@ describe "Array#partition" do
   it "returns two arrays" do
     [].partition {}.should == [[], []]
   end
-  
+
   it "returns in the left array values for which the block evaluates to true" do
     ary = [0, 1, 2, 3, 4, 5]
 

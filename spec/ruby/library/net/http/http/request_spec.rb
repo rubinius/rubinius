@@ -6,15 +6,15 @@ describe "Net::HTTP#request" do
   before(:all) do
     NetHTTPSpecs.start_server
   end
-  
+
   after(:all) do
     NetHTTPSpecs.stop_server
   end
-  
+
   before(:each) do
     @http = Net::HTTP.start("localhost", 3333)
   end
-  
+
   describe "when passed request_object" do
     it "makes a HTTP Request based on the passed request_object" do
       response = @http.request(Net::HTTP::Get.new("/request"), "test=test")
@@ -61,7 +61,7 @@ describe "Net::HTTP#request" do
       response.body.should == "Request type: TRACE"
     end
   end
-  
+
   describe "when passed request_object and request_body" do
     it "sends the passed request_body when making the HTTP Request" do
       response = @http.request(Net::HTTP::Get.new("/request/body"), "test=test")

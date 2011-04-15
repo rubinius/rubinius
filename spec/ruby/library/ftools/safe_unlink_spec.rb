@@ -11,11 +11,11 @@ ruby_version_is ""..."1.9" do
         system "chmod 0777 safe_unlink_test_#{n}"
       end
     end
-    
+
     after(:each) do
       (1..2).each { |n| File.unlink "safe_unlink_test_#{n}" rescue nil }
     end
-    
+
     it "deletes the files in arg and returns an array of files deleted" do
       File.exist?("safe_unlink_test_1").should == true
       File.exist?("safe_unlink_test_2").should == true

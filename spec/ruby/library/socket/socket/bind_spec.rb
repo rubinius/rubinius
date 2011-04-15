@@ -12,7 +12,7 @@ describe "Socket#bind on SOCK_DGRAM socket" do
   after :each do
     @sock.closed?.should be_false
     @sock.close
-  end                           
+  end
 
   it "binds to a port" do
     lambda { @sock.bind(@sockaddr) }.should_not raise_error

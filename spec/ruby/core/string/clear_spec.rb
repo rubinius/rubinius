@@ -23,7 +23,7 @@ with_feature :encoding do
       @s.clear.encoding.should == Encoding::SHIFT_JIS
       @s.encoding.should == Encoding::SHIFT_JIS
     end
-    
+
     it "works with multibyte Strings" do
       s = "\u{9765}\u{876}"
       s.clear

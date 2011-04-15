@@ -12,7 +12,7 @@ describe "Regexp#names" do
   it "returns each named capture as a String" do
     /n(?<cap>ee)d(?<ture>le)/.names.each do |name|
       name.should be_an_instance_of(String)
-    end      
+    end
   end
 
   it "returns all of the named captures" do

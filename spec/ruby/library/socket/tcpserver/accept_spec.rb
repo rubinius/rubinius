@@ -21,7 +21,7 @@ describe "TCPServer#accept" do
       client.close
     end
     Thread.pass while t.status and t.status != "sleep"
-    
+
     socket = TCPSocket.new('127.0.0.1', SocketSpecs.port)
     socket.write('hello')
     socket.shutdown(1) # we are done with sending

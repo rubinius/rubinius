@@ -1,9 +1,9 @@
-require 'date' 
+require 'date'
 require File.expand_path('../../../spec_helper', __FILE__)
 
 describe "Date#downto" do
 
-  it "should be able to step backward in time" do
+  it "creates earlier dates when passed a negative step" do
     ds    = Date.civil(2000, 4, 14)
     de    = Date.civil(2000, 3, 29)
     count = 0

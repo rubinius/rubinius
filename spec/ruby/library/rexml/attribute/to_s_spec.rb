@@ -10,5 +10,5 @@ describe "REXML::Attribute#to_s" do
     orig = REXML::Attribute.new("name", "<&>")
     copy =  REXML::Attribute.new(orig)
     copy.to_s.should == "&lt;&amp;&gt;"
-  end 
+  end
 end

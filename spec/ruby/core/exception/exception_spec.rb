@@ -18,11 +18,11 @@ describe "Exception" do
   it "is a superclass of ScriptError" do
     Exception.should be_ancestor_of(ScriptError)
   end
-  
+
   it "is a superclass of SignalException" do
     Exception.should be_ancestor_of(SignalException)
   end
-  
+
   it "is a superclass of Interrupt" do
     SignalException.should be_ancestor_of(Interrupt)
   end
@@ -30,7 +30,7 @@ describe "Exception" do
   it "is a superclass of StandardError" do
     Exception.should be_ancestor_of(StandardError)
   end
-  
+
   it "is a superclass of SystemExit" do
     Exception.should be_ancestor_of(SystemExit)
   end

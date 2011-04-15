@@ -13,7 +13,7 @@ describe "Kernel#p" do
   it "is a private method" do
     Kernel.should have_private_instance_method(:p)
   end
-  
+
   # TODO: fix
   it "flushes output if receiver is a File" do
     filename = tmp("Kernel_p_flush") + $$.to_s
@@ -68,9 +68,9 @@ describe "Kernel#p" do
     lambda { p(*[]) }.should output("")
   end
 
-=begin Not sure how to spec this, but wanted to note the behavior here  
+=begin Not sure how to spec this, but wanted to note the behavior here
   it "does not flush if receiver is not a TTY or a File" do
-  end 
+  end
 =end
 end
 

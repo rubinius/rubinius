@@ -8,7 +8,7 @@ describe :net_httpheader_set_form_data, :shared => true do
       @headers.send(@method, "cmd" => "search", "q" => "ruby", "max" => "50")
       @headers["Content-Type"].should == "application/x-www-form-urlencoded"
     end
-    
+
     it "sets self's body based on the passed form parameters" do
       @headers.send(@method, "cmd" => "search", "q" => "ruby", "max" => "50")
       @headers.body.split("&").sort.should == ["cmd=search", "max=50", "q=ruby"]

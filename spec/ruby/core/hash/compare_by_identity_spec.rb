@@ -21,7 +21,7 @@ ruby_version_is "1.9" do
       h[:foo] = :bar
       h.compare_by_identity.should == h
     end
-    
+
     it "uses the semantics of BasicObject#equal? to determine key identity" do
       1.1.should_not equal(1.1)
       @idh[1.1] = :a
@@ -64,7 +64,7 @@ ruby_version_is "1.9" do
       @h[:a] = :a
       @h[o].should == :o
     end
-    
+
     it "raises a RuntimeError on frozen hashes" do
       @h = @h.freeze
       lambda { @h.compare_by_identity }.should raise_error(RuntimeError)

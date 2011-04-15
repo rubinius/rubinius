@@ -23,7 +23,7 @@ describe "Module.new" do
       def hello() "hello" end
       def bye()   "bye"   end
     end
-    
+
     (o = mock('x')).extend(fred)
     o.hello.should == "hello"
     o.bye.should   == "bye"

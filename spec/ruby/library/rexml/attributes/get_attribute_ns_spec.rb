@@ -9,6 +9,6 @@ describe "REXML::Attributes#get_attribute_ns" do
     attr.prefix.should == "xmlns"
     # This might be a bug in Attribute, commenting until those specs
     # are ready
-    # e.attributes.get_attribute_ns(attr.prefix, "name").should == "http://some_url" 
+    # e.attributes.get_attribute_ns(attr.prefix, "name").should == "http://some_url"
   end
 end

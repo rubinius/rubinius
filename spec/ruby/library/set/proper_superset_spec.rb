@@ -15,16 +15,16 @@ describe "Set#proper_superset?" do
     @set.proper_superset?(Set[1, 3]).should be_true
     @set.proper_superset?(Set[1, 2]).should be_true
     @set.proper_superset?(Set[1]).should be_true
-    
+
     @set.proper_superset?(Set[5]).should be_false
     @set.proper_superset?(Set[1, 5]).should be_false
     @set.proper_superset?(Set[nil]).should be_false
     @set.proper_superset?(Set["test"]).should be_false
-    
+
     @set.proper_superset?(@set).should be_false
     Set[].proper_superset?(Set[]).should be_false
   end
-  
+
   it "raises an ArgumentError when passed a non-Set" do
     lambda { Set[].proper_superset?([]) }.should raise_error(ArgumentError)
     lambda { Set[].proper_superset?(1) }.should raise_error(ArgumentError)

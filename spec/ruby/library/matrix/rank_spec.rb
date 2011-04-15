@@ -12,7 +12,7 @@ describe "Matrix#rank" do
     it "doesn't loop forever" do
       Matrix[ [1,2,3], [4,5,6], [7,8,9] ].rank.should == 2
       Matrix[ [1, 2, 0, 3], [1, -2, 3, 0], [0, 0, 4, 8], [2, 4, 0, 6] ].rank.
-      should == 3          
+      should == 3
     end
   end
 

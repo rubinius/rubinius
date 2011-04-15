@@ -4,4 +4,4 @@ require File.expand_path('../fixtures/classes', __FILE__)
 
 describe "File::Stat#chardev?" do
   it_behaves_like :file_chardev, :chardev?, FileStat
-end 
+end

@@ -3,7 +3,7 @@ require 'rexml/document'
 
 describe "REXML::Element#root" do
   before :each do
-    @doc  = REXML::Document.new 
+    @doc  = REXML::Document.new
     @root = REXML::Element.new "root"
     @node = REXML::Element.new "node"
     @doc << @root << @node

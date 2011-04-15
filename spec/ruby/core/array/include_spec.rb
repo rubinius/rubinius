@@ -9,7 +9,7 @@ describe "Array#include?" do
 
   it "determines presence by using element == obj" do
     o = mock('')
-  
+
     [1, 2, "a", "b"].include?(o).should == false
 
     def o.==(other); other == 'a'; end

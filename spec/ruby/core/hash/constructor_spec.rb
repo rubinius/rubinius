@@ -27,7 +27,7 @@ describe "Hash.[]" do
       end
     end
   end
-  
+
   it "raises an ArgumentError when passed an odd number of arguments" do
     lambda { hash_class[1, 2, 3] }.should raise_error(ArgumentError)
     lambda { hash_class[1, 2, new_hash(3 => 4)] }.should raise_error(ArgumentError)

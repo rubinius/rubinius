@@ -34,7 +34,7 @@ describe "Thread#join" do
     end
     t.join.should == t
   end
-  
+
   it "raises any exceptions encountered in the thread body" do
     t = Thread.new { raise NotImplementedError.new("Just kidding") }
     lambda { t.join }.should raise_error(NotImplementedError)

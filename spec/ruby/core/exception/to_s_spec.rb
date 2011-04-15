@@ -3,7 +3,7 @@ require File.expand_path('../shared/to_s', __FILE__)
 
 describe "Exception#to_s" do
   it_behaves_like :to_s, :to_s
-end  
+end
 
 describe "NameError#to_s" do
   it "needs to be reviewed for spec completeness"

@@ -5,7 +5,7 @@ describe "Integer#gcdlcm" do
     it "returns [self, self] if self is equal to the argument" do
       1.gcdlcm(1).should == [1, 1]
       398.gcdlcm(398).should == [398, 398]
-    end  
+    end
 
     it "returns an Array" do
       36.gcdlcm(6).should be_kind_of(Array)
@@ -43,13 +43,13 @@ describe "Integer#gcdlcm" do
       lambda { 12.gcdlcm }.should raise_error(ArgumentError)
     end
 
-    it "raises an ArgumentError if given more than one argument" do  
+    it "raises an ArgumentError if given more than one argument" do
       lambda { 12.gcdlcm(30, 20) }.should raise_error(ArgumentError)
     end
 
     it "raises an TypeError unless the argument is an Integer" do
       lambda { 39.gcdlcm(3.8)   }.should raise_error(TypeError)
       lambda { 45872.gcdlcm([]) }.should raise_error(TypeError)
-    end  
+    end
   end
 end

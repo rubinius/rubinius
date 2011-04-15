@@ -17,7 +17,7 @@ describe "Digest::SHA384.file" do
     it 'returns a Digest::SHA384 object' do
       Digest::SHA384.file(@file).should be_kind_of(Digest::SHA384)
     end
-  
+
     it 'returns a Digest::SHA384 object with the correct digest' do
       Digest::SHA384.file(@file).digest.should == SHA384Constants::Digest
     end

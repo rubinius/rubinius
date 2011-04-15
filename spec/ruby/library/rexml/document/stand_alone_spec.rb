@@ -1,7 +1,7 @@
 require 'rexml/document'
 require File.expand_path('../../../../spec_helper', __FILE__)
 
-describe "REXML::Document#stand_alone?" do 
+describe "REXML::Document#stand_alone?" do
   it "returns the XMLDecl standalone value" do
     d = REXML::Document.new
     decl = REXML::XMLDecl.new("1.0", "UTF-8", "yes")
@@ -15,5 +15,5 @@ describe "REXML::Document#stand_alone?" do
   it "returns the default value when no XML declaration present" do
     REXML::Document.new.stand_alone?.should == nil
   end
-  
+
 end

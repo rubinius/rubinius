@@ -27,7 +27,7 @@ describe :regexp_new_string, :shared => true do
     Regexp.send(@method, "^hi{2,3}fo.o$").should == /^hi{2,3}fo.o$/
   end
 
-  it "should throw regexp error with incorrect regexp" do
+  it "raises a RegexpError when passed an incorrect regexp" do
     lambda { Regexp.send(@method, "^[$", 0) }.should raise_error(RegexpError)
   end
 
@@ -118,7 +118,7 @@ describe :regexp_new_string, :shared => true do
       Regexp.send(@method, 'Hi', nil, 'n').kcode.should == 'none'
       Regexp.send(@method, 'Hi', nil, 'nONE').kcode.should == 'none'
     end
-  end    
+  end
 end
 
 describe :regexp_new_regexp, :shared => true do

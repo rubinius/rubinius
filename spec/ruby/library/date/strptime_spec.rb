@@ -1,4 +1,4 @@
-require 'date' 
+require 'date'
 require File.expand_path('../../../spec_helper', __FILE__)
 
 describe "Date#strptime" do
@@ -134,15 +134,19 @@ describe "Date#strptime" do
     Date.strptime(" 9-Apr-2000", "%v").should == Date.civil(2000, 4, 9)
     Date.strptime(" 9-Apr-2000", "%e-%b-%Y").should == Date.civil(2000, 4, 9)
   end
-  
+
   it "parses a date given MM/DD/YY" do
     Date.strptime("04/06/00", "%x").should == Date.civil(2000, 4, 6)
     Date.strptime("04/06/00", "%m/%d/%y").should == Date.civil(2000, 4, 6)
   end
-  
+
   it "parses a date given in full notation" do
     Date.strptime("Sun Apr  9 00:00:00 +00:00 2000", "%+").should == Date.civil(2000, 4, 9)
     Date.strptime("Sun Apr  9 00:00:00 +00:00 2000", "%a %b %e %H:%M:%S %Z %Y").should == Date.civil(2000, 4, 9)
   end
 
+end
+
+describe "Date.strptime" do
+  it "needs to be reviewed for spec completeness"
 end

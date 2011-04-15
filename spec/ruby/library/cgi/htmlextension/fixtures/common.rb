@@ -9,7 +9,7 @@ module CGISpecs
     end
     cgi
   end
-  
+
   def self.split(string)
     string.split("<").reject { |x| x.empty? }.map { |x| "<#{x}" }
   end

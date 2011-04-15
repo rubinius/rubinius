@@ -3,7 +3,7 @@ require 'rexml/document'
 
 describe "REXML::Text#wrap" do
   before :each do
-    @t = REXML::Text.new("abc def")    
+    @t = REXML::Text.new("abc def")
   end
 
   it "wraps the text at width" do
@@ -18,4 +18,4 @@ describe "REXML::Text#wrap" do
     @t.wrap("abc def", 3, true).should == "\nabc\ndef"
   end
 end
- 
+

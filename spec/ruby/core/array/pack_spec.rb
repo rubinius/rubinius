@@ -1,5 +1,5 @@
 # -*- coding: ISO-8859-1 -*-
-#             ~~~~~~~~~~  
+#             ~~~~~~~~~~
 # Script encoding of this file should be neither ASCII-8BIT, US-ASCII nor UTF-8.
 # This makes it easier to verify that Strings are converted into correct encodings.
 
@@ -78,11 +78,11 @@ describe "Array#pack" do
     end
 
     it "returns a string in encoding of common to the concatenated results" do
-      ["\u{3042 3044 3046 3048}", 0x2000B].pack("A*U").encoding.should == 
+      ["\u{3042 3044 3046 3048}", 0x2000B].pack("A*U").encoding.should ==
         Encoding::ASCII_8BIT
-      ["abcde\xd1", "\xFF\xFe\x81\x82"].pack("A*u").encoding.should == 
+      ["abcde\xd1", "\xFF\xFe\x81\x82"].pack("A*u").encoding.should ==
         Encoding::ASCII_8BIT
-      ["abcde".encode(Encoding::US_ASCII), "\xFF\xFe\x81\x82"].pack("A*u").encoding.should == 
+      ["abcde".encode(Encoding::US_ASCII), "\xFF\xFe\x81\x82"].pack("A*u").encoding.should ==
         Encoding::ASCII_8BIT
       # under discussion [ruby-dev:37294]
       ["\u{3042 3044 3046 3048}", 1].pack("A*N").encoding.should == Encoding::ASCII_8BIT
@@ -174,9 +174,9 @@ describe "Array#pack with ASCII-string format", :shared => true do
     it "returns result in ASCII-8BIT" do
       ["abcd"].pack(format).encoding.should == Encoding::ASCII_8BIT
       ["\u3042"].pack(format).encoding.should == Encoding::ASCII_8BIT
-      ["\u3042".encode(Encoding::UTF_32BE)].pack(format).encoding.should == 
+      ["\u3042".encode(Encoding::UTF_32BE)].pack(format).encoding.should ==
         Encoding::ASCII_8BIT
-      ["\u3042".encode(Encoding::ISO_2022_JP)].pack(format).encoding.should == 
+      ["\u3042".encode(Encoding::ISO_2022_JP)].pack(format).encoding.should ==
         Encoding::ASCII_8BIT
     end
 
@@ -291,7 +291,7 @@ describe "Array#pack with format 'B'" do
   ruby_version_is '1.9' do
     it "returns an ASCII-8BIT string" do
       ["01000001"].pack("B").encoding.should == Encoding::ASCII_8BIT # ASCII "A"
-      ["11111111"].pack("B").encoding.should == Encoding::ASCII_8BIT # invalid as ASCII 
+      ["11111111"].pack("B").encoding.should == Encoding::ASCII_8BIT # invalid as ASCII
       ["1111111010000000000000011000000000000010"].pack("B").encoding.should == Encoding::ASCII_8BIT # valid as UTF-8
     end
   end
@@ -376,7 +376,7 @@ describe "Array#pack with format 'b'" do
   ruby_version_is '1.9' do
     it "returns an ASCII-8BIT string" do
       ["10000010"].pack("b").encoding.should == Encoding::ASCII_8BIT # ASCII "A"
-      ["11111111"].pack("b").encoding.should == Encoding::ASCII_8BIT # invalid as ASCII 
+      ["11111111"].pack("b").encoding.should == Encoding::ASCII_8BIT # invalid as ASCII
       ["1111111010000000000000011000000000000010"].pack("b").encoding.should == Encoding::ASCII_8BIT # valid as UTF-8
     end
   end
@@ -410,7 +410,7 @@ describe "Array#pack with format 'H'" do
   end
 
   ruby_bug("[ruby-dev:37283]", "1.8.7.73") do
-    it "fills low-nibble of the last byte with 0 when count is odd even if pack argument has insufficient length" do 
+    it "fills low-nibble of the last byte with 0 when count is odd even if pack argument has insufficient length" do
       ["414"].pack("H3").should == encode("\x41\x40", "binary")
       ["414"].pack("H4").should == encode("\x41\x40", "binary")
       ["414"].pack("H5").should == encode("\x41\x40\x00", "binary")
@@ -477,7 +477,7 @@ describe "Array#pack with format 'h'" do
   end
 
   ruby_bug("[ruby-dev:37283]", "1.8.7.73") do
-    it "fills high-nibble of the last byte with 0 when count is odd even if pack argument has insufficient length" do 
+    it "fills high-nibble of the last byte with 0 when count is odd even if pack argument has insufficient length" do
       ["142"].pack("h3").should == encode("\x41\x02", "binary")
       ["142"].pack("h4").should == encode("\x41\x02", "binary")
       ["142"].pack("h5").should == encode("\x41\x02\x00", "binary")
@@ -724,7 +724,7 @@ describe "Array#pack with integer format (16bit, little endian)", :shared => tru
   end
 
   it "with star parameter processes all remaining array items" do
-    [1, 2, 3, 4, 5].pack(format('*')).should == 
+    [1, 2, 3, 4, 5].pack(format('*')).should ==
       encode("\x01\x00\x02\x00\x03\x00\x04\x00\x05\x00", "binary")
   end
 
@@ -849,7 +849,7 @@ describe "Array#pack with integer format (16bit, big endian)", :shared => true d
   end
 
   it "with star parameter processes all remaining array items" do
-    [1, 2, 3, 4, 5].pack(format('*')).should == 
+    [1, 2, 3, 4, 5].pack(format('*')).should ==
       encode("\x00\x01\x00\x02\x00\x03\x00\x04\x00\x05", "binary")
   end
 
@@ -949,7 +949,7 @@ describe "Array#pack with integer format (32bit, little endian)", :shared => tru
   end
 
   it "with star parameter processes all remaining array items" do
-    [1, 2, 3, 4, 5].pack(format('*')).should == 
+    [1, 2, 3, 4, 5].pack(format('*')).should ==
       encode("\x01\x00\x00\x00\x02\x00\x00\x00\x03\x00\x00\x00\x04\x00\x00\x00\x05\x00\x00\x00", "binary")
   end
 
@@ -1049,7 +1049,7 @@ describe "Array#pack with integer format (32bit, big endian)", :shared => true d
   end
 
   it "with star parameter processes all remaining array items" do
-    [1, 2, 3, 4, 5].pack(format('*')).should == 
+    [1, 2, 3, 4, 5].pack(format('*')).should ==
       encode("\x00\x00\x00\x01\x00\x00\x00\x02\x00\x00\x00\x03\x00\x00\x00\x04\x00\x00\x00\x05", "binary")
   end
 
@@ -1141,10 +1141,10 @@ describe "Array#pack with integer format (64bit, little endian)", :shared => tru
 
   it "with star parameter processes all remaining array items" do
     [1, 2, 3, 4, 5].pack(format('*')).should == encode(
-      "\x01\x00\x00\x00\x00\x00\x00\x00" + 
-      "\x02\x00\x00\x00\x00\x00\x00\x00" + 
-      "\x03\x00\x00\x00\x00\x00\x00\x00" + 
-      "\x04\x00\x00\x00\x00\x00\x00\x00" + 
+      "\x01\x00\x00\x00\x00\x00\x00\x00" +
+      "\x02\x00\x00\x00\x00\x00\x00\x00" +
+      "\x03\x00\x00\x00\x00\x00\x00\x00" +
+      "\x04\x00\x00\x00\x00\x00\x00\x00" +
       "\x05\x00\x00\x00\x00\x00\x00\x00" , "binary")
   end
 
@@ -1822,7 +1822,7 @@ describe "Array#pack with format 'M'" do
 
   it "appends soft line break after each 72 chars + 1 encoded char in encoded string by default" do
     s = ["A"*150].pack('M')
-    s.should == 
+    s.should ==
       "A"*73 + "=\n" +
       "A"*73 + "=\n" +
       "A"* 4 + "=\n"
@@ -1847,7 +1847,7 @@ describe "Array#pack with format 'M'" do
 
   it "appends soft line break after each 72 chars + 1 encoded char in encoded string for the specified count is 1" do
     s = ["A"*150].pack('M1')
-    s.should == 
+    s.should ==
       "A"*73 + "=\n" +
       "A"*73 + "=\n" +
       "A"* 4 + "=\n"
@@ -1857,7 +1857,7 @@ describe "Array#pack with format 'M'" do
   end
   it "appends soft line break after each 72 chars + 1 encoded char in encoded string for the specified count is 0" do
     s = ["A"*150].pack('M0')
-    s.should == 
+    s.should ==
       "A"*73 + "=\n" +
       "A"*73 + "=\n" +
       "A"* 4 + "=\n"
@@ -1925,7 +1925,7 @@ describe "Array#pack with format 'M'" do
     array = ArraySpecs.recursive_array
     array.pack('M').should == "1=\n"
   end
-  
+
   ruby_version_is '1.9' do
     it "returns an US-ASCII string" do
       ["abcd"].pack('M').encoding.should == Encoding::US_ASCII
@@ -1969,7 +1969,7 @@ describe "Array#pack with format 'm'" do
   end
 
   it "appends newline whenever after consumes 45 bytes by default" do
-    ["ABC"*31].pack('m').should == 
+    ["ABC"*31].pack('m').should ==
       "QUJD"*15 + "\n" +
       "QUJD"*15 + "\n" +
       "QUJD\n"
@@ -1986,7 +1986,7 @@ describe "Array#pack with format 'm'" do
   end
 
   it "ignores line length parameter if it is 1 or 2" do
-    wrapped_at_45 = 
+    wrapped_at_45 =
       "QUJD"*15 + "\n" +
       "QUJD"*15 + "\n" +
       "QUJD\n"
@@ -1997,7 +1997,7 @@ describe "Array#pack with format 'm'" do
 
   ruby_version_is '' ... '1.9' do
     it "ignores line length parameter if it is 0" do
-      ["ABC"*31].pack('m0').should == 
+      ["ABC"*31].pack('m0').should ==
         "QUJD"*15 + "\n" +
         "QUJD"*15 + "\n" +
         "QUJD\n"
@@ -2168,13 +2168,13 @@ describe "Array#pack with format 'u'" do
     s = ["ABC"*3].pack('u4').should == ( (3+0x20).chr + "04)#\n" ) * 3
     s = ["ABC"*3+"\x01"].pack('u4').should == ( (3+0x20).chr + "04)#\n" )*3 + (1+0x20).chr + "`0``\n"
     s = ["ABC"*3+"\x01"].pack('u5').should == ( (3+0x20).chr + "04)#\n" )*3 + (1+0x20).chr + "`0``\n"
-    s = ["ABC"*3+"\x01"].pack('u6').should == 
+    s = ["ABC"*3+"\x01"].pack('u6').should ==
       (6+0x20).chr + "04)#04)#\n" +
       (4+0x20).chr + "04)#`0``\n"
   end
 
   it "ignores line length parameter if it is < 3" do
-    wrapped_at_45 = 
+    wrapped_at_45 =
         (45+0x20).chr + "04)#"*(45/3) + "\n" +
         (45+0x20).chr + "04)#"*(45/3) + "\n" +
         ( 3+0x20).chr + "04)#" + "\n"

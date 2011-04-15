@@ -12,7 +12,7 @@ describe "Socket::IPSocket#recvfrom" do
     @server.close unless @server.closed?
     @client.close unless @client.closed?
   end
-  
+
   it "reads data from the connection" do
     data = nil
     t = Thread.new do
@@ -61,5 +61,5 @@ describe "Socket::IPSocket#recvfrom" do
     # This does not apply to every platform, dependant on recvfrom(2)
     # data.last.should == nil
   end
-  
+
 end

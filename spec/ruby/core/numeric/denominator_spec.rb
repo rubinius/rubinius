@@ -8,12 +8,12 @@ ruby_version_is "1.9" do
       @numbers = [
         20,             # Integer
         99999999**99,   # Bignum
-      ] 
+      ]
     end
 
     it "returns 1" do
       @numbers.each {|number| number.denominator.should == 1}
-    end  
+    end
 
     it "works with Numeric subclasses" do
       rational = mock_numeric('rational')

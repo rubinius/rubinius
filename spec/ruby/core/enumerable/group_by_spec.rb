@@ -11,7 +11,7 @@ describe "Enumerable#group_by" do
     it "returns an empty hash for empty enumerables" do
       EnumerableSpecs::Empty.new.group_by { |x| x}.should == {}
     end
-  
+
     it "returns an Enumerator if called without a block" do
       EnumerableSpecs::Numerous.new.group_by.should be_an_instance_of(enumerator_class)
     end

@@ -1,7 +1,7 @@
 require File.expand_path('../../../spec_helper', __FILE__)
 
 describe "Proc#to_s" do
-  
+
   ruby_version_is ""..."1.9" do
     it "returns a description of self" do
       Proc.new { "hello" }.to_s.should =~ /^#<Proc:(.*?)@(.*)\/to_s_spec\.rb:7>$/

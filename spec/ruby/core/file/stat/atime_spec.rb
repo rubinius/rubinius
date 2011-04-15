@@ -9,8 +9,8 @@ describe "File::Stat#atime" do
   after :each do
     rm_r @file
   end
-  
-  it "should be able to determine the atime on a File::Stat object" do
+
+  it "returns the atime of a File::Stat object" do
     st = File.stat(@file)
     st.atime.should be_kind_of(Time)
     st.atime.should <= Time.now

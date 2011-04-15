@@ -16,12 +16,12 @@ describe "Net::FTP#size" do
     @ftp.close
     @server.stop
   end
-  
+
   it "sends the SIZE command to the server" do
     @ftp.size("test.file")
     @ftp.last_response.should == "213 1024\n"
   end
-  
+
   it "returns the size of the passed file as Integer" do
     @ftp.size("test.file").should eql(1024)
   end

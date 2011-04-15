@@ -9,17 +9,17 @@ describe :numeric_conj, :shared => true do
       99999999**99, # Bignum
       Float::MAX * 2, # Infinity
       0/0.0           # NaN
-    ] 
+    ]
   end
 
   it "returns self" do
-    @numbers.each do |number| 
+    @numbers.each do |number|
       number.send(@method).to_s.should == number.to_s
     end
-  end  
+  end
 
   it "raises an ArgumentError if given any arguments" do
-   @numbers.each do |number| 
+   @numbers.each do |number|
      lambda { number.send(@method, number) }.should raise_error(ArgumentError)
    end
   end

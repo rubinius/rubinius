@@ -5,11 +5,11 @@ describe "StringIO#close" do
   before(:each) do
     @io = StringIOSpecs.build
   end
-  
+
   it "returns nil" do
     @io.close.should be_nil
   end
-  
+
   it "prevents further reading and/or writing" do
     @io.close
     lambda { @io.read(1) }.should raise_error(IOError)

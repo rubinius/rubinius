@@ -16,12 +16,12 @@ describe "Net::FTP#voidcmd" do
     @ftp.close
     @server.stop
   end
-  
+
   it "sends the passed command to the server" do
     @server.should_receive(:help).and_respond("2xx Does not raise.")
     lambda { @ftp.voidcmd("HELP") }.should_not raise_error
   end
-  
+
   it "returns nil" do
     @server.should_receive(:help).and_respond("2xx Does not raise.")
     @ftp.voidcmd("HELP").should be_nil

@@ -16,7 +16,7 @@ describe "Net::HTTP#read_timeout=" do
     net.read_timeout = 10
     net.read_timeout.should eql(10)
   end
-  
+
   it "returns the newly set value" do
     net = Net::HTTP.new("localhost")
     (net.read_timeout = 10).should eql(10)

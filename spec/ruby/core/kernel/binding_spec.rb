@@ -5,9 +5,10 @@ describe "Kernel#binding" do
   it "is a private method" do
     Kernel.should have_private_instance_method(:binding)
   end
-  
+
   before(:each) do
     @b1 = KernelSpecs::Binding.new(99).get_binding
+    ScratchPad.clear
   end
 
   it "returns a Binding object" do
@@ -36,12 +37,24 @@ describe "Kernel#binding" do
       m = mock(:whatever)
       eval('self', m.send(:binding)).should == m
     end
+
+    it "uses the receiver of #binding as self in a Class.new block" do
+      m = mock(:whatever)
+      cls = Class.new { ScratchPad.record eval('self', m.send(:binding)) }
+      ScratchPad.recorded.should == m
+    end
   end
-  
+
   ruby_version_is "1.9" do
-    it "uses the closures self as self in the binding" do
+    it "uses the closure's self as self in the binding" do
       m = mock(:whatever)
       eval('self', m.send(:binding)).should == self
+    end
+
+    it "uses the class as self in a Class.new block" do
+      m = mock(:whatever)
+      cls = Class.new { ScratchPad.record eval('self', m.send(:binding)) }
+      ScratchPad.recorded.should == cls
     end
   end
 end

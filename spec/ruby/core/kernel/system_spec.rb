@@ -37,7 +37,7 @@ describe "Kernel#system" do
 
   it "does not write to stderr when it can't find a command" do
     system("sad").should output_to_fd("") # nothing in stderr
-  end  
+  end
 
   it "uses /bin/sh if freaky shit is in the command" do
     begin
@@ -70,12 +70,12 @@ describe "Kernel#system" do
     result = system("#{RUBY_EXE} #{@helper_script} #{@shell_var} foo")
     result.should be_true
   end
-  
+
   it "does not expand shell variables when given multiples arguments" do
     result = system("#{RUBY_EXE}", @helper_script, @shell_var, "foo")
     result.should be_false
   end
-  
+
   platform_is :windows do
     ruby_bug 'redmine:4393', '1.9.3' do
       it "runs commands starting with @ using shell (as comments)" do

@@ -32,16 +32,16 @@ describe "Time#_load" do
 
     Time._load([high, low].pack("VV")).should == t
   end
-  
+
   ruby_version_is ''...'1.9' do
     it "loads MRI's marshaled time format" do
       t = Marshal.load("\004\bu:\tTime\r\320\246\e\200\320\001\r\347")
       t.utc
-    
+
       t.to_s.should == "Fri Oct 22 16:57:48 UTC 2010"
     end
   end
-  
+
   ruby_version_is '1.9' do
     it "loads MRI's marshaled time format" do
       t = Marshal.load("\004\bu:\tTime\r\320\246\e\200\320\001\r\347")

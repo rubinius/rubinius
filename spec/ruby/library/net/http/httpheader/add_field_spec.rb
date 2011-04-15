@@ -17,7 +17,7 @@ describe "Net::HTTPHeader#add_field when passed key, value" do
     @headers.add_field("My-Header", "c")
     @headers.get_fields("My-Header").should == ["a", "b", "c"]
   end
-  
+
   it "is case-insensitive" do
     @headers.add_field("My-Header", "a")
     @headers.get_fields("My-Header").should == ["a"]

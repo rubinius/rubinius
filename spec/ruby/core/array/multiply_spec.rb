@@ -52,7 +52,7 @@ describe "Array#* with an integer" do
     ary = [1, 2, 3]
     (ary * 1).should_not equal(ary)
   end
-  
+
   it "properly handles recursive arrays" do
     empty = ArraySpecs.empty_recursive_array
     (empty * 0).should == []

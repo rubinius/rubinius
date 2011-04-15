@@ -66,7 +66,7 @@ with_feature :encoding do
     it "raises an Encoding::ConverterNotFoundError if no conversion path exists" do
       lambda do
         Encoding::Converter.search_convpath(
-          Encoding::ASCII_8BIT, Encoding::Emacs_Mule) 
+          Encoding::ASCII_8BIT, Encoding::Emacs_Mule)
       end.should raise_error(Encoding::ConverterNotFoundError)
     end
   end

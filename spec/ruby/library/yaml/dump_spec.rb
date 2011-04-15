@@ -6,18 +6,18 @@ describe "YAML.dump" do
   after :each do
     rm_r $test_file
   end
-  
+
   it "converts an object to YAML and write result to io when io provided" do
     File.open($test_file, 'w' ) do |io|
       YAML.dump( ['badger', 'elephant', 'tiger'], io )
     end
     YAML.load_file($test_file).should == ['badger', 'elephant', 'tiger']
   end
-  
+
   it "returns a string containing dumped YAML when no io provided" do
     YAML.dump( :locked ).should == "--- :locked\n"
-  end  
-  
+  end
+
   it "returns the same string that #to_yaml on objects" do
     ["a", "b", "c"].to_yaml.should == YAML.dump(["a", "b", "c"])
   end

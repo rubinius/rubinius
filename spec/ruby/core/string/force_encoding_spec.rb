@@ -54,7 +54,7 @@ with_feature :encoding do
     end
 
     it "does not transcode self" do
-      "\u{8612}".force_encoding('utf-16le').should_not == 
+      "\u{8612}".force_encoding('utf-16le').should_not ==
         "\u{8612}".encode('utf-16le')
     end
   end

@@ -77,7 +77,7 @@ describe "A constant on a metaclass" do
     class << @object
       CONST = 100
     end
-    
+
     lambda do
       @object::CONST
     end.should raise_error(NameError)
@@ -85,7 +85,7 @@ describe "A constant on a metaclass" do
 
   ruby_version_is ""..."1.9" do
     it "appears in the metaclass constant list" do
-      constants = class << @object; constants; end 
+      constants = class << @object; constants; end
       constants.should include("CONST")
     end
 
@@ -96,7 +96,7 @@ describe "A constant on a metaclass" do
 
   ruby_version_is "1.9" do
     it "appears in the metaclass constant list" do
-      constants = class << @object; constants; end 
+      constants = class << @object; constants; end
       constants.should include(:CONST)
     end
 

@@ -33,7 +33,7 @@ describe "BigDecimal#add" do
     @frac_2.add(@frac_1, 10000).should == BigDecimal("1.9E-99999")
     @frac_1.add(@frac_1, 10000).should == BigDecimal("2E-99999")
     @frac_3.add(@frac_4, 0).should == BigDecimal("0.11111E16")
-    @frac_3.add(@frac_4, 1).should == BigDecimal("0.1E16")    
+    @frac_3.add(@frac_4, 1).should == BigDecimal("0.1E16")
     @frac_3.add(@frac_4, 2).should == BigDecimal("0.11E16")
     @frac_3.add(@frac_4, 3).should == BigDecimal("0.111E16")
     @frac_3.add(@frac_4, 4).should == BigDecimal("0.1111E16")

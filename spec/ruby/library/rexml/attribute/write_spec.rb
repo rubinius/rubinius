@@ -15,7 +15,7 @@ describe "REXML::Attribute#write" do
   it "currently ignores the second argument" do
     @attr.write(@s, 3)
     @s.should == "name='Charlotte'"
-    
+
     @s = ""
     @attr.write(@s, "foo")
     @s.should == "name='Charlotte'"

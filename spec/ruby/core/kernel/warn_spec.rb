@@ -5,7 +5,7 @@ describe "Kernel.warn" do
   it "is a private method" do
     Kernel.should have_private_instance_method(:warn)
   end
-  
+
   it "calls #write on $stderr if $VERBOSE is true" do
     lambda {
       v = $VERBOSE

@@ -6,7 +6,7 @@ describe :rational_divmod_rat, :shared => true do
     Rational(7, 4).divmod(Rational(1, 2)).should eql([3, Rational(1, 4)])
     Rational(7, 4).divmod(Rational(-1, 2)).should eql([-4, Rational(-1, 4)])
     Rational(0, 4).divmod(Rational(4, 3)).should eql([0, Rational(0, 1)])
-    
+
     Rational(bignum_value, 4).divmod(Rational(4, 3)).should eql([1729382256910270464, Rational(0, 1)])
   end
 
@@ -38,7 +38,7 @@ describe :rational_divmod_float, :shared => true do
       Rational(7, 4).divmod(-0.5).should eql([-4, -0.25])
     end
   end
-  
+
   ruby_version_is ""..."1.9" do
     it "raises a FloatDomainError when passed 0" do
       lambda { Rational(7, 4).divmod(0.0) }.should raise_error(FloatDomainError)

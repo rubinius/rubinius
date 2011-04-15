@@ -72,6 +72,6 @@ ruby_version_is ""..."1.9" do
       end
 
       result.should == ['A', 'B', 'C', 'Z']
-    end 
+    end
   end
 end

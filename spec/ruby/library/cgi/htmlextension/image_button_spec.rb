@@ -12,7 +12,7 @@ describe "CGI::HtmlExtension#image_button" do
       output = @html.image_button
       output.should equal_element("INPUT", {"SRC" => "", "TYPE" => "image"}, "", :not_closed => true)
     end
-    
+
     it "ignores a passed block" do
       output = @html.image_button { "test" }
       output.should equal_element("INPUT", {"SRC" => "", "TYPE" => "image"}, "", :not_closed => true)
@@ -36,7 +36,7 @@ describe "CGI::HtmlExtension#image_button" do
       output = @html.image_button("/path/to/image.png", "test")
       output.should equal_element("INPUT", {"SRC" => "/path/to/image.png", "TYPE" => "image", "NAME" => "test"}, "", :not_closed => true)
     end
-    
+
     it "ignores a passed block" do
       output = @html.image_button("/path/to/image.png", "test") { "test" }
       output.should equal_element("INPUT", {"SRC" => "/path/to/image.png", "TYPE" => "image", "NAME" => "test"}, "", :not_closed => true)
@@ -48,7 +48,7 @@ describe "CGI::HtmlExtension#image_button" do
       output = @html.image_button("/path/to/image.png", "test", "alternative")
       output.should equal_element("INPUT", {"SRC" => "/path/to/image.png", "TYPE" => "image", "NAME" => "test", "ALT" => "alternative"}, "", :not_closed => true)
     end
-    
+
     it "ignores a passed block" do
       output = @html.image_button("/path/to/image.png", "test", "alternative") { "test" }
       output.should equal_element("INPUT", {"SRC" => "/path/to/image.png", "TYPE" => "image", "NAME" => "test", "ALT" => "alternative"}, "", :not_closed => true)

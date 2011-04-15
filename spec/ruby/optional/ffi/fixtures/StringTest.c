@@ -1,6 +1,6 @@
 /*
  * Copyright (c) 2007 Wayne Meissner. All rights reserved.
- * 
+ *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
  *
@@ -27,13 +27,13 @@
 
 #include <string.h>
 
-int 
+int
 string_equals(const char* s1, const char* s2)
 {
     return strcmp(s1, s2) == 0;
 }
 
-void 
+void
 string_set(char* s1, const char* s2)
 {
     strcpy(s1, s2);

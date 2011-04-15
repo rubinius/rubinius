@@ -38,6 +38,6 @@ ruby_version_is "1.9" do
       b = 20.times.map { Kernel.rand }
       a.should == b
     end
-    
+
   end
 end

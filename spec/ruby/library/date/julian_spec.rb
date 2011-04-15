@@ -1,4 +1,4 @@
-require 'date' 
+require 'date'
 require File.expand_path('../../../spec_helper', __FILE__)
 
 describe "Date#jd" do
@@ -10,7 +10,7 @@ describe "Date#jd" do
   it "should be able to determine the Julian day for a Date object" do
     Date.civil(2008, 1, 16).jd.should == 2454482
   end
-  
+
 end
 
 describe "Date#julian?" do
@@ -19,12 +19,12 @@ describe "Date#julian?" do
     Date.civil(1007, 2, 27).julian?.should == true
     Date.civil(1907, 2, 27, Date.civil(2000, 1, 1).jd).julian?.should == true
   end
-  
+
   it "should mark a day after the calendar reform as Julian" do
     Date.civil(2007, 2, 27).julian?.should == false
     Date.civil(1007, 2, 27, Date.civil(1000, 1, 1).jd).julian?.should == false
   end
-  
+
 end
 
 describe "Date#julian_leap?" do
@@ -65,4 +65,8 @@ ruby_version_is "1.9" do
     end
 
   end
+end
+
+describe "Date.julian?" do
+  it "needs to be reviewed for spec completeness"
 end

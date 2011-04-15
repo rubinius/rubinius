@@ -7,19 +7,19 @@ describe "The || operator" do
     end
     x.should == true
   end
-  
+
   it "evaluated to false if all of its operands are false" do
     if false || nil
       x = true
     end
     x.should == nil
   end
-  
+
   it "is evaluated before assignment operators" do
     x = nil || true
     x.should == true
   end
-  
+
   it "has a lower precedence than the && operator" do
     x = 1 || false && x = 2
     x.should == 1
@@ -55,7 +55,7 @@ describe "The or operator" do
     end
     x.should == true
   end
-  
+
   it "is evaluated after variables are assigned" do
     x = nil or true
     x.should == nil

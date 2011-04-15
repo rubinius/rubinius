@@ -34,14 +34,14 @@ describe "StringIO#print" do
     @io.print(5, 6, 7, 8)
     @io.string.should == "5678ple"
   end
-  
+
   it "tries to convert the passed Object to a String using #to_s" do
     obj = mock("to_s")
     obj.should_receive(:to_s).and_return("to_s")
     @io.print(obj)
     @io.string.should == "to_sple"
   end
-  
+
   it "returns nil" do
     @io.print(1, 2, 3).should be_nil
   end
@@ -54,7 +54,7 @@ describe "StringIO#print" do
 
   it "honors the output record separator global" do
     old_rs, $\ = $\, 'x'
-    
+
     begin
       @io.print(5, 6, 7, 8)
       @io.string.should == '5678xle'
@@ -62,18 +62,18 @@ describe "StringIO#print" do
       $\ = old_rs
     end
   end
-  
+
   it "updates the current position" do
     @io.print(1, 2, 3)
     @io.pos.should eql(3)
-    
+
     @io.print(1, 2, 3)
     @io.pos.should eql(6)
   end
-  
+
   it "correctly updates the current position when honoring the output record separator global" do
     old_rs, $\ = $\, 'x'
-    
+
     begin
       @io.print(5, 6, 7, 8)
       @io.pos.should eql(5)
@@ -91,7 +91,7 @@ describe "StringIO#print when in append mode" do
   it "appends the passed argument to the end of self" do
     @io.print(", just testing")
     @io.string.should == "example, just testing"
-    
+
     @io.print(" and more testing")
     @io.string.should == "example, just testing and more testing"
   end

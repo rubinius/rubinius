@@ -6,14 +6,14 @@ describe "Integer#times" do
     9.times {}.should == 9
     9.times { |n| n - 2 }.should == 9
   end
-  
+
   it "yields each value from 0 to self - 1" do
     a = []
     9.times { |i| a << i }
     -2.times { |i| a << i }
     a.should == [0, 1, 2, 3, 4, 5, 6, 7, 8]
   end
-  
+
   it "skips the current iteration when encountering 'next'" do
     a = []
     3.times do |i|
@@ -22,7 +22,7 @@ describe "Integer#times" do
     end
     a.should == [0, 2]
   end
-  
+
   it "skips all iterations when encountering 'break'" do
     a = []
     5.times do |i|
@@ -31,7 +31,7 @@ describe "Integer#times" do
     end
     a.should == [0, 1, 2]
   end
-  
+
   it "skips all iterations when encountering break with an argument and returns that argument" do
     9.times { break 2 }.should == 2
   end
@@ -55,7 +55,7 @@ describe "Integer#times" do
     a.should == 6
     b.should == 3
   end
-  
+
   ruby_version_is "" ... "1.8.7" do
     it "raises a LocalJumpError when no block given" do
       lambda { 3.times }.should raise_error(LocalJumpError)
@@ -65,10 +65,10 @@ describe "Integer#times" do
   ruby_version_is "1.8.7" do
     it "returns an Enumerator" do
       result = []
-      
+
       enum = 3.times
       enum.each { |i| result << i }
-      
+
       result.should == [0, 1, 2]
     end
   end

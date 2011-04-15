@@ -5,5 +5,5 @@ describe "Fixnum#zero?" do
     0.zero?.should == true
     -1.zero?.should == false
     1.zero?.should == false
-  end  
+  end
 end

@@ -80,10 +80,10 @@ describe "The private keyword" do
       end
     }.should raise_error(NoMethodError)
   end
-  
+
   it "changes the visibility of the existing method in the subclass" do
     ::Private::A.new.foo.should == 'foo'
-    lambda {::Private::H.new.foo}.should raise_error(NoMethodError) 
+    lambda {::Private::H.new.foo}.should raise_error(NoMethodError)
     ::Private::H.new.send(:foo).should == 'foo'
   end
 end

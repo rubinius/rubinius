@@ -14,5 +14,5 @@ describe "Symbol#to_int" do
     it "has been removed as deprecated" do
       :ruby.should_not respond_to(:to_int)
     end
-  end  
+  end
 end

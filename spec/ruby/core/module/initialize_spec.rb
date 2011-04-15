@@ -8,7 +8,7 @@ describe "Module#initialize" do
     end
     m.const_get("A").should == "A"
   end
-  
+
   it "is called on subclasses" do
     m = ModuleSpecs::SubModule.new
     m.special.should == 10

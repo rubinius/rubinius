@@ -6,16 +6,16 @@ describe "Set#==" do
     Set[].should == Set[]
     Set[1, 2, 3].should == Set[1, 2, 3]
     Set["1", "2", "3"].should == Set["1", "2", "3"]
-    
+
     Set[1, 2, 3].should_not == Set[1.0, 2, 3]
     Set[1, 2, 3].should_not == [1, 2, 3]
   end
-  
+
   it "does not depend on the order of the elements" do
     Set[1, 2, 3].should == Set[3, 2, 1]
     Set[:a, "b", ?c].should == Set[?c, "b", :a]
   end
-  
+
   ruby_version_is "" ... "1.8.7" do
     it "does depend on the order of nested Sets" do
       Set[Set[1], Set[2], Set[3]].should_not == Set[Set[3], Set[2], Set[1]]
@@ -25,7 +25,7 @@ describe "Set#==" do
       set1.should_not == set2
     end
   end
-  
+
   ruby_version_is "1.8.7" do
     it "does not depend on the order of nested Sets" do
       Set[Set[1], Set[2], Set[3]].should == Set[Set[3], Set[2], Set[1]]

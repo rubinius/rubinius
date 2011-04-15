@@ -84,93 +84,93 @@ describe "Time#strftime" do
     time = Time.local(2004, 8, 26, 11, 38, 3)
     time.strftime('%p').should == 'AM'
   end
-  
+
   it "returns the abbreviated weekday with %a" do
     time = Time.local(2009, 9, 18, 12, 0, 0)
     time.strftime('%a').should == 'Fri'
   end
-  
+
   it "returns the full weekday with %A" do
     time = Time.local(2009, 9, 18, 12, 0, 0)
     time.strftime('%A').should == 'Friday'
   end
-  
+
   it "returns the abbreviated month with %b" do
     time = Time.local(2009, 9, 18, 12, 0, 0)
     time.strftime('%b').should == 'Sep'
   end
-  
+
   it "returns the full month with %B" do
     time = Time.local(2009, 9, 18, 12, 0, 0)
     time.strftime('%B').should == 'September'
   end
-  
+
   it "returns the day of the month with %d" do
     time = Time.local(2009, 9, 18, 12, 0, 0)
     time.strftime('%d').should == '18'
   end
-  
+
   it "returns the 24-based hour with %H" do
     time = Time.local(2009, 9, 18, 18, 0, 0)
     time.strftime('%H').should == '18'
   end
-  
+
   it "returns the 12-based hour with %I" do
     time = Time.local(2009, 9, 18, 18, 0, 0)
     time.strftime('%I').should == '06'
   end
-  
+
   it "returns the Julian date with %j" do
     time = Time.local(2009, 9, 18, 18, 0, 0)
     time.strftime('%j').should == '261'
   end
-  
+
   it "returns the month with %m" do
     time = Time.local(2009, 9, 18, 12, 0, 0)
     time.strftime('%m').should == '09'
   end
-  
+
   it "returns the minute with %M" do
     time = Time.local(2009, 9, 18, 12, 6, 0)
     time.strftime('%M').should == '06'
   end
-  
+
   it "returns the second with %S" do
     time = Time.local(2009, 9, 18, 12, 0, 6)
     time.strftime('%S').should == '06'
   end
-  
+
   it "returns the enumerated day of the week with %w" do
     time = Time.local(2009, 9, 18, 12, 0, 0)
     time.strftime('%w').should == '5'
   end
-  
+
   it "returns the date alone with %x" do
     time = Time.local(2009, 9, 18, 12, 0, 6)
     time.strftime('%x').should == '09/18/09'
   end
-  
+
   it "returns the time alone with %X" do
     time = Time.local(2009, 9, 18, 12, 0, 6)
     time.strftime('%X').should == '12:00:06'
   end
-  
+
   it "returns the year wihout a century with %y" do
     time = Time.local(2009, 9, 18, 12, 0, 0)
     time.strftime('%y').should == '09'
   end
-  
+
   it "returns the year with %Y" do
     time = Time.local(2009, 9, 18, 12, 0, 0)
     time.strftime('%Y').should == '2009'
   end
-  
+
   it "returns the timezone with %Z" do
     time = Time.local(2009, 9, 18, 12, 0, 0)
     zone = time.zone
     time.strftime("%Z").should == zone
   end
-  
+
   ruby_version_is "1.9" .. "" do
     it "supports am/pm formatting with %P" do
       time = Time.local(2004, 8, 26, 22, 38, 3)

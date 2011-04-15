@@ -4,7 +4,7 @@ describe :yaml_each_document, :shared => true do
     YAML.send(@method, $multidocument) do |doc|
       documents << doc
     end
-    documents.should == [["Mark McGwire", "Sammy Sosa", "Ken Griffey"], 
+    documents.should == [["Mark McGwire", "Sammy Sosa", "Ken Griffey"],
                          ["Chicago Cubs", "St Louis Cardinals"]]
   end
 

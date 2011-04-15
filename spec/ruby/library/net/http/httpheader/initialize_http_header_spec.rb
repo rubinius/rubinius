@@ -17,7 +17,7 @@ describe "Net::HTTPHeader#initialize_http_header when passed Hash" do
   #
   # it "complains about duplicate keys when in verbose mode" do
   #   old_verbose, $VERBOSE = $VERBOSE, true
-  #   
+  #
   #   begin
   #     lambda do
   #       @headers.initialize_http_header("My-Header" => "test", "my-header" => "another test")

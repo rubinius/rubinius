@@ -29,7 +29,7 @@ describe "Module#name" do
     ModuleSpecs::Parent.name.should == "ModuleSpecs::Parent"
     ModuleSpecs::Basic.name.should == "ModuleSpecs::Basic"
     ModuleSpecs::Super.name.should == "ModuleSpecs::Super"
-    
+
     begin
       (ModuleSpecs::X = Module.new).name.should == "ModuleSpecs::X"
     ensure

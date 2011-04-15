@@ -1,4 +1,4 @@
-require 'date' 
+require 'date'
 require File.expand_path('../../../spec_helper', __FILE__)
 
 describe "Date::Infinity" do
@@ -61,14 +61,14 @@ describe "Date::Infinity" do
       (i3.abs <=> i1).should == 0
     end
   end
-  
+
   ruby_bug "#222", "1.8.6" do
     it "should be able to use -@ and +@ for Date::Infinity" do
       (Date::Infinity.new <=> +Date::Infinity.new).should == 0
       (Date::Infinity.new(-1) <=> -Date::Infinity.new).should == 0
     end
   end
-  
+
   it "should be able to coerce a Date::Infinity object" do
     Date::Infinity.new.coerce(1).should == [-1, 1]
     Date::Infinity.new(0).coerce(2).should == [0, 0]

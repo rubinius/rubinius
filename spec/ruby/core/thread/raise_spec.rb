@@ -79,7 +79,7 @@ describe "Thread#raise on a running thread" do
     @thr = ThreadSpecs.running_thread
     Thread.pass while @thr.status and @thr.status != "run"
   end
-  
+
   after :each do
     @thr.kill
   end

@@ -16,7 +16,7 @@ describe :time_params, :shared => true do
   end
 
   it "handles string arguments" do
-    Time.send(@method, "2000", "1", "1" , "20", "15", "1").should == 
+    Time.send(@method, "2000", "1", "1" , "20", "15", "1").should ==
       Time.send(@method, 2000, 1, 1, 20, 15, 1)
     # "08" "09" are special; make sure they are *not* treated as octal when strings
     Time.send(@method, "2000", "08", "08" , "08", "08", "08").should ==
@@ -24,7 +24,7 @@ describe :time_params, :shared => true do
     Time.send(@method, "2000", "09", "09" , "09", "09", "09").should ==
       Time.send(@method, 2000, 9, 9, 9, 9, 9)
     Time.send(@method, "1", "15", "20", "1", "1", "2000", :ignored, :ignored,
-              :ignored, :ignored).should == 
+              :ignored, :ignored).should ==
       Time.send(@method, 1, 15, 20, 1, 1, 2000, :ignored, :ignored, :ignored, :ignored)
   end
 
@@ -37,7 +37,7 @@ describe :time_params, :shared => true do
   end
 
   ruby_version_is ""..."1.9.1" do
-    it "should accept various year ranges" do
+    it "accepts various year ranges" do
       Time.send(@method, 1901, 12, 31, 23, 59, 59, 0).wday.should == 2
       Time.send(@method, 2037, 12, 31, 23, 59, 59, 0).wday.should == 4
 
@@ -118,10 +118,10 @@ describe :time_params, :shared => true do
 
   # MRI 1.9 relaxes 1.8's restriction's on allowed years.
   ruby_version_is "1.9" do
-    it "should accept various year ranges" do
+    it "accepts various year ranges" do
       Time.send(@method, 1801, 12, 31, 23, 59, 59, 0).wday.should == 4
       Time.send(@method, 3000, 12, 31, 23, 59, 59, 0).wday.should == 3
-    end  
+    end
 
     it "raises an ArgumentError for out of range values" do
       # year-based Time.local(year (, month, day, hour, min, sec, usec))

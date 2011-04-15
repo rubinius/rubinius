@@ -4,7 +4,7 @@ require File.expand_path('../shared/sqrt', __FILE__)
 describe "Math#rsqrt" do
   it_behaves_like :mathn_math_sqrt, :_, IncludesMath.new
 
-  it "should be private" do
+  it "is a private instance method" do
     IncludesMath.should have_private_instance_method(:sqrt)
   end
 end

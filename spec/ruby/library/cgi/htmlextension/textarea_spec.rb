@@ -12,7 +12,7 @@ describe "CGI::HtmlExtension#textarea" do
       output = @html.textarea
       output.should equal_element("TEXTAREA", {"NAME" => "", "COLS" => "70", "ROWS" => "10"}, "")
     end
-  
+
     it "includes the return value of the passed block when passed a block" do
       output = @html.textarea { "Example" }
       output.should equal_element("TEXTAREA", {"NAME" => "", "COLS" => "70", "ROWS" => "10"}, "Example")
@@ -54,16 +54,16 @@ describe "CGI::HtmlExtension#textarea" do
       output.should equal_element("TEXTAREA", {"NAME" => "test", "COLS" => "40", "ROWS" => "5"}, "Example")
     end
   end
-  
+
   describe "when passed Hash" do
-    it "should use the passed Hash as attributes" do
-      @html.textarea("ID" => "test").should == '<TEXTAREA ID="test"></TEXTAREA>' 
-      
+    it "uses the passed Hash as attributes" do
+      @html.textarea("ID" => "test").should == '<TEXTAREA ID="test"></TEXTAREA>'
+
       attributes = {"ID" => "test-id", "NAME" => "test-name"}
       output = @html.textarea(attributes)
       output.should equal_element("TEXTAREA", attributes, "")
     end
-    
+
     it "includes the return value of the passed block when passed a block" do
       attributes = {"ID" => "test-id", "NAME" => "test-name"}
       output = @html.textarea(attributes) { "test" }

@@ -6,7 +6,7 @@ describe "UnboundMethod#owner" do
     it "returns the owner of the method" do
       "abc".method(:upcase).owner.should == String
     end
-    
+
     it "returns the name even when aliased" do
       obj = UnboundMethodSpecs::Methods.new
       obj.method(:foo).owner.should == UnboundMethodSpecs::Methods

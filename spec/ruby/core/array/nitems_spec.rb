@@ -6,7 +6,7 @@ ruby_version_is '' ... '1.9' do
   describe "Array#nitems" do
     it "returns the number of non-nil elements" do
       [nil].nitems.should == 0
-      [].nitems.should == 0    
+      [].nitems.should == 0
       [1, 2, 3, nil].nitems.should == 3
       [1, 2, 3].nitems.should == 3
       [1, nil, 2, 3, nil, nil, 4].nitems.should == 4

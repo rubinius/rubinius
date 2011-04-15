@@ -16,4 +16,4 @@ ruby_version_is ""..."1.9" do
   describe "Rational#== when passed an Integer" do
     it_behaves_like(:rational_equal_value_int, :==)
   end
-end  
+end

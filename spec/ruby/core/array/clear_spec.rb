@@ -28,7 +28,7 @@ describe "Array#clear" do
     a.clear
     a.tainted?.should be_true
   end
-  
+
   it "does not accept any arguments" do
     lambda { [1].clear(true) }.should raise_error(ArgumentError)
   end

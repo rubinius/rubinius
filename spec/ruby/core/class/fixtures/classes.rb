@@ -3,30 +3,30 @@ module CoreClassSpecs
     def self.called(sym)
       @called = sym
     end
-    
+
     def self.called?
       @called
     end
   end
-  
+
   module M
     def inherited(klass)
       ::CoreClassSpecs::Record.called(klass)
       super
     end
   end
-  
+
   class F; end
   class << F
     include M
   end
-  
+
   class A
     def self.inherited(klass)
       ::CoreClassSpecs::Record.called(klass)
     end
   end
-  
+
   class H < A
     def self.inherited(klass)
       super

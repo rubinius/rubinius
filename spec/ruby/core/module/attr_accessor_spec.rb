@@ -6,14 +6,14 @@ describe "Module#attr_accessor" do
     c = Class.new do
       attr_accessor :a, "b"
     end
-    
+
     o = c.new
-    
+
     ['a','b'].each do |x|
       o.respond_to?(x).should == true
       o.respond_to?("#{x}=").should == true
     end
-    
+
     o.a = "a"
     o.a.should == "a"
 
@@ -42,7 +42,7 @@ describe "Module#attr_accessor" do
     c = Class.new do
       attr_accessor o
     end
-    
+
     c.new.respond_to?("test").should == true
     c.new.respond_to?("test=").should == true
   end

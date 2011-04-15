@@ -9,7 +9,7 @@ describe "Net::HTTPHeader#each_value" do
     @headers.add_field("My-Other-Header", "a")
     @headers.add_field("My-Other-Header", "b")
   end
-  
+
   describe "when passed a block" do
     it "yields each header entry's joined values" do
       res = []
@@ -33,7 +33,7 @@ describe "Net::HTTPHeader#each_value" do
         it "returns an Enumerator" do
           enumerator = @headers.each_value
           enumerator.should be_an_instance_of(enumerator_class)
-      
+
           res = []
           enumerator.each do |key|
             res << key

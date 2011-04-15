@@ -11,7 +11,7 @@ describe "File#flock" do
   after :each do
     @file.flock File::LOCK_UN
     @file.close
-    
+
     rm_r @name
   end
 
@@ -41,26 +41,26 @@ describe "File#flock" do
       f2.flock(File::LOCK_UN).should == 0
     end
   end
-  
+
   platform_is :solaris, :java do
     before :each do
       @read_file = File.open @name, "r"
       @write_file = File.open @name, "w"
     end
-    
+
     after :each do
       @read_file.flock File::LOCK_UN
       @read_file.close
       @write_file.flock File::LOCK_UN
       @write_file.close
     end
-    
+
     it "fails with EBADF acquiring exclusive lock on read-only File" do
       lambda do
         @read_file.flock File::LOCK_EX
       end.should raise_error(Errno::EBADF)
     end
-    
+
     it "fails with EBADF acquiring shared lock on read-only File" do
       lambda do
         @write_file.flock File::LOCK_SH

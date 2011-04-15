@@ -1,7 +1,7 @@
 require File.expand_path('../../../spec_helper', __FILE__)
 require File.expand_path('../fixtures/classes', __FILE__)
 
-describe "Kernel#==" do 
+describe "Kernel#==" do
   it "returns true only if obj and other are the same object" do
     o1 = mock('o1')
     o2 = mock('o2')
@@ -11,5 +11,5 @@ describe "Kernel#==" do
     (nil == nil).should == true
     (o1 == nil).should== false
     (nil == o2).should== false
-  end   
+  end
 end

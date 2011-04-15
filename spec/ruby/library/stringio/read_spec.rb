@@ -36,7 +36,7 @@ describe "StringIO#read when passed [length]" do
   before(:each) do
     @io = StringIO.new("example")
   end
-  
+
   it "returns nil when self's position is at the end" do
     @io.pos = 7
     @io.read(10).should be_nil

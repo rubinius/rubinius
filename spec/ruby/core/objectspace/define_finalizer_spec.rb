@@ -7,7 +7,7 @@ require File.expand_path('../fixtures', __FILE__)
 # should be spec'd at all.
 describe "ObjectSpace.define_finalizer" do
   it "raises an ArgumentError if the action does not respond to call" do
-    lambda { 
+    lambda {
       ObjectSpace.define_finalizer("", 3)
     }.should raise_error(ArgumentError)
   end

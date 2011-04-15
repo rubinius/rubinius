@@ -8,11 +8,11 @@ ruby_version_is "1.9" do
         29871,
         99999999999999**99,
         -72628191273,
-        29282.2827, 
-        -2927.00091, 
-        0.0, 
+        29282.2827,
+        -2927.00091,
+        0.0,
         12.0,
-        Float::MAX, 
+        Float::MAX,
       ]
     end
 
@@ -21,8 +21,8 @@ ruby_version_is "1.9" do
     it "converts self to a Rational object then returns its numerator" do
       @numbers.each do |number|
         number.numerator.should == Rational(number).numerator
-      end  
-    end  
+      end
+    end
 
     it "works with Numeric subclasses" do
       rational = mock_numeric('rational')

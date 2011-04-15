@@ -14,7 +14,7 @@ ruby_version_is "" ... "1.9" do
       BigDecimal.induced_from(-5).should == BigDecimal("-5")
       BigDecimal.induced_from(0).should == BigDecimal("0")
     end
-  
+
     it "converts passed Bignums to BigDecimal" do
       BigDecimal.induced_from(bignum_value).should == BigDecimal(bignum_value.to_s)
       BigDecimal.induced_from(-bignum_value).should == BigDecimal((-bignum_value).to_s)

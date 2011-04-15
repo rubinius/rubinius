@@ -18,7 +18,7 @@ ruby_version_is "1.9" do
 
     it "doesn't expand '~'" do
       File.absolute_path('~').should_not == File.expand_path('~')
-    end 
+    end
 
     it "accepts a second argument of a directory from which to resolve the path" do
       File.absolute_path(__FILE__, File.dirname(__FILE__)).should == @abs

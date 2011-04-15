@@ -15,7 +15,7 @@ end
 
 module ExceptionSpecs
   class Exceptional < Exception; end
-  
+
   class Backtrace
     def self.backtrace
       begin

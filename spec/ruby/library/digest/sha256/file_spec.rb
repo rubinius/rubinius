@@ -17,7 +17,7 @@ describe "Digest::SHA256.file" do
     it 'returns a Digest::SHA256 object' do
       Digest::SHA256.file(@file).should be_kind_of(Digest::SHA256)
     end
-  
+
     it 'returns a Digest::SHA256 object with the correct digest' do
       Digest::SHA256.file(@file).digest.should == SHA256Constants::Digest
     end

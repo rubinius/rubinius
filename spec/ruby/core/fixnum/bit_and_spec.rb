@@ -7,11 +7,11 @@ describe "Fixnum#&" do
     (65535 & 1).should == 1
     (0xffff & bignum_value + 0xffff_ffff).should == 65535
   end
-  
-  it "should be able to AND a bignum with a fixnum" do
+
+  it "returns self bitwise AND a Bignum" do
     (-1 & 2**64).should == 18446744073709551616
   end
-  
+
   ruby_version_is "" ... "1.9" do
     ruby_bug "#", "1.8.6" do
       it "doesn't raise an error if passed a Float out of Fixnum range" do
@@ -29,11 +29,11 @@ describe "Fixnum#&" do
     (obj = mock('2')).should_receive(:to_int).and_return(2)
     (3 & obj).should == 2
   end
-  
+
   it "raises a TypeError when the given argument can't be converted to Integer" do
     obj = mock('asdf')
     lambda { 3 & obj }.should raise_error(TypeError)
-    
+
     obj.should_receive(:to_int).and_return("asdf")
     lambda { 3 & obj }.should raise_error(TypeError)
   end

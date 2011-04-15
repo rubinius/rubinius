@@ -20,7 +20,7 @@ describe :prime_each, :shared => true do
   it "infinitely iterates the given block passing a prime" do
     lambda {
       Timeout.timeout(@enough_seconds) {
-        @object.each {|prime| 
+        @object.each {|prime|
           primality = (2..Math.sqrt(prime)).all?{|n| prime%n != 0 }
           primality.should be_true
         }
@@ -67,7 +67,7 @@ describe :prime_each, :shared => true do
     generator.should_receive(:each).and_yield(2).and_yield(3).and_yield(4).and_yield(5).and_yield(6)
 
     enumerated = []
-    @object.each(100, generator) do |prime| 
+    @object.each(100, generator) do |prime|
       enumerated << prime
     end
     enumerated.should == [2, 3, 4, 5, 6]
@@ -88,7 +88,7 @@ describe :prime_each, :shared => true do
     enumerated = []
     lambda {
       Timeout.timeout(@enough_seconds) {
-        enum.each do |p| 
+        enum.each do |p|
           enumerated << p
         end
       }

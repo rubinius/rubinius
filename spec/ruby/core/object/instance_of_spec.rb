@@ -5,8 +5,8 @@ module ObjectSpecs
   module AncestorModule; end
   module MyModule; end
 
-  class AncestorClass < String 
-    include AncestorModule 
+  class AncestorClass < String
+    include AncestorModule
   end
 
   class InstanceClass < AncestorClass
@@ -20,9 +20,9 @@ describe Object, "#instance_of?" do
   end
 
   it "returns true if given class is object's class" do
-    @o.instance_of?(ObjectSpecs::InstanceClass).should == true 
-    [].instance_of?(Array).should == true 
-    ''.instance_of?(String).should == true 
+    @o.instance_of?(ObjectSpecs::InstanceClass).should == true
+    [].instance_of?(Array).should == true
+    ''.instance_of?(String).should == true
   end
 
   it "returns false if given class is object's ancestor class" do

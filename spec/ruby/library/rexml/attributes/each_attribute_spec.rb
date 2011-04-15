@@ -12,7 +12,7 @@ describe "REXML::Attributes#each_attribute" do
     attributes = []
 
     e.attributes.each_attribute do |attr|
-      attributes << attr 
+      attributes << attr
     end
 
     attributes.first.should == name

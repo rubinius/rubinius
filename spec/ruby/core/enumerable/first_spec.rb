@@ -8,11 +8,11 @@ describe "Enumerable#first" do
       EnumerableSpecs::Numerous.new.first.should == 2
       EnumerableSpecs::Empty.new.first.should == nil
     end
-  
+
     it "returns nil if self is empty" do
       EnumerableSpecs::Empty.new.first.should == nil
     end
-    
+
     describe "when passed an argument" do
       it_behaves_like :enumerable_take, :first
     end

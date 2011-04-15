@@ -26,7 +26,7 @@ describe "Regexp#named_captures" do
     rex.named_captures['is'].should == [1]
     rex.named_captures['pat'].should == [2]
   end
-    
+
   it "works with duplicate capture group names" do
     rex = /this (?<is>is) [aA] (?<pat>pate?(?<is>rn))/
     rex.named_captures['is'].should == [1,3]

@@ -8,13 +8,13 @@ describe "Module#method_removed" do
         def self.method_removed(name)
           $method_removed = name
         end
-        
+
         def test
           "test"
         end
         remove_method :test
       end
-      
+
       $method_removed.should == :test
     ensure
       $method_removed = nil

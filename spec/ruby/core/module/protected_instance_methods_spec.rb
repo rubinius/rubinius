@@ -8,7 +8,7 @@ describe "Module#protected_instance_methods" do
     it "returns a list of protected methods in module and its ancestors" do
       methods = ModuleSpecs::CountsMixin.protected_instance_methods
       methods.should include('protected_3')
-    
+
       methods = ModuleSpecs::CountsParent.protected_instance_methods
       methods.should include('protected_3')
       methods.should include('protected_2')
@@ -30,7 +30,7 @@ describe "Module#protected_instance_methods" do
     it "returns a list of protected methods in module and its ancestors" do
       methods = ModuleSpecs::CountsMixin.protected_instance_methods
       methods.should include(:protected_3)
-    
+
       methods = ModuleSpecs::CountsParent.protected_instance_methods
       methods.should include(:protected_3)
       methods.should include(:protected_2)

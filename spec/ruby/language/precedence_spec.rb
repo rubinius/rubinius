@@ -258,27 +258,27 @@ describe "Operators" do
       (1 <=> 5 <= 1).should == nil
       (1 <=> 5 >  1).should == nil
       (1 <=> 5 >= 1).should == nil
-  
+
       (1 == 5 <  1).should == false
       (1 == 5 <= 1).should == false
       (1 == 5 >  1).should == false
       (1 == 5 >= 1).should == false
-  
+
       (1 === 5 <  1).should == false
       (1 === 5 <= 1).should == false
       (1 === 5 >  1).should == false
       (1 === 5 >= 1).should == false
-  
+
       (1 != 5 <  1).should == true
       (1 != 5 <= 1).should == true
       (1 != 5 >  1).should == true
       (1 != 5 >= 1).should == true
-  
+
       (1 =~ 5 <  1).should == false
       (1 =~ 5 <= 1).should == false
       (1 =~ 5 >  1).should == false
       (1 =~ 5 >= 1).should == false
-  
+
       (1 !~ 5 <  1).should == true
       (1 !~ 5 <= 1).should == true
       (1 !~ 5 >  1).should == true

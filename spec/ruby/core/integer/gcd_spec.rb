@@ -5,7 +5,7 @@ describe "Integer#gcd" do
     it "returns self if equal to the argument" do
       1.gcd(1).should == 1
       398.gcd(398).should == 398
-    end  
+    end
 
     it "returns an Integer" do
       36.gcd(6).should be_kind_of(Integer)
@@ -20,12 +20,12 @@ describe "Integer#gcd" do
     it "returns a positive integer even if self is negative" do
       -12.gcd(6).should == 6
       -100.gcd(100).should == 100
-    end  
-        
+    end
+
     it "returns a positive integer even if the argument is negative" do
       12.gcd(-6).should == 6
       100.gcd(-100).should == 100
-    end  
+    end
 
     it "returns a positive integer even if both self and argument are negative" do
       -12.gcd(-6).should == 6
@@ -48,13 +48,13 @@ describe "Integer#gcd" do
       lambda { 12.gcd }.should raise_error(ArgumentError)
     end
 
-    it "raises an ArgumentError if given more than one argument" do  
+    it "raises an ArgumentError if given more than one argument" do
       lambda { 12.gcd(30, 20) }.should raise_error(ArgumentError)
     end
 
     it "raises a TypeError unless the argument is an Integer" do
       lambda { 39.gcd(3.8)   }.should raise_error(TypeError)
       lambda { 45872.gcd([]) }.should raise_error(TypeError)
-    end  
+    end
   end
 end

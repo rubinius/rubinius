@@ -7,10 +7,10 @@ ruby_version_is "1.9" do
         0,
         0.0,
         1,
-        20, 
-        bignum_value, 
-        278202.292871, 
-        72829, 
+        20,
+        bignum_value,
+        278202.292871,
+        72829,
         3.333333333333,
         0.1,
         1/0.0
@@ -22,7 +22,7 @@ ruby_version_is "1.9" do
         number.abs2.should eql(number.abs ** 2)
       end
     end
-    
+
     it "calls #* on self" do
       number = mock_numeric('numeric')
       number.should_receive(:*).and_return(:result)

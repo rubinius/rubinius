@@ -10,22 +10,22 @@ ruby_version_is "1.9" do
         1.4592,
       ].map {|n| [0-n, n]}.flatten
     end
-    
+
     it "returns an Integer" do
-      @numbers.each do |number| 
-        number.denominator.should be_kind_of(Integer) 
+      @numbers.each do |number|
+        number.denominator.should be_kind_of(Integer)
       end
     end
 
     it "converts self to a Rational and returns the denominator" do
-      @numbers.each do |number| 
+      @numbers.each do |number|
         number.denominator.should == Rational(number).denominator
-      end  
+      end
     end
 
     it "returns 1 for NaN and Infinity" do
       (0/0.0).denominator.should == 1
       (1/0.0).denominator.should == 1
-    end  
+    end
   end
 end

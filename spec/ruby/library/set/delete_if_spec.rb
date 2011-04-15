@@ -30,14 +30,14 @@ describe "Set#delete_if" do
       lambda { @set.delete_if }.should raise_error(LocalJumpError)
     end
   end
-  
+
   ruby_version_is "1.8.8" do
     it "returns an Enumerator when passed no block" do
       enum = @set.delete_if
       enum.should be_an_instance_of(enumerator_class)
-      
+
       enum.each { |x| x.size == 3 }
-      
+
       @set.should_not include("one")
       @set.should_not include("two")
       @set.should include("three")

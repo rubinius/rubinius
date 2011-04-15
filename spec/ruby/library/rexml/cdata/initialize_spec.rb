@@ -10,8 +10,8 @@ describe "REXML::CData#initialize" do
   end
 
   it "respects whitespace if whitespace is true" do
-    c = REXML::CData.new("whitespace     test", true)    
-    c1 = REXML::CData.new("whitespace     test", false)    
+    c = REXML::CData.new("whitespace     test", true)
+    c1 = REXML::CData.new("whitespace     test", false)
 
     c.to_s.should == "whitespace     test"
     c1.to_s.should == "whitespace test"

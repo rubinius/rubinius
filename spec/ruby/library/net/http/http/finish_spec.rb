@@ -6,7 +6,7 @@ describe "Net::HTTP#finish" do
   before(:all) do
     NetHTTPSpecs.start_server
   end
-  
+
   after(:all) do
     NetHTTPSpecs.stop_server
   end

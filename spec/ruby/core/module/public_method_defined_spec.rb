@@ -55,7 +55,7 @@ describe "Module#public_method_defined?" do
       end
     end
   end
-  
+
   ruby_version_is "1.9" do
     it "raises a TypeError if not passed a Symbol" do
       lambda {

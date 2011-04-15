@@ -1,6 +1,6 @@
-/* 
+/*
  * Copyright (C) 2007 Wayne Meissner
- * 
+ *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
  *
@@ -42,7 +42,7 @@ void copy##JTYPE##Buffer(CTYPE* dst, CTYPE* src, int size) { MEMCPY(dst, src, si
 #define FUNC(JTYPE, CTYPE) \
     FILL(JTYPE, CTYPE); \
     COPY(JTYPE, CTYPE)
-            
+
 FUNC(Byte, char);
 FUNC(Short, short);
 FUNC(Int, int);

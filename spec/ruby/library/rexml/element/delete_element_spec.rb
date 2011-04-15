@@ -5,14 +5,14 @@ describe "REXML::Element#delete_element" do
   before :each do
     @root = REXML::Element.new("root")
   end
-  
+
   it "deletes the child element" do
     node = REXML::Element.new("some_node")
     @root.add_element node
     @root.delete_element node
     @root.elements.size.should == 0
   end
-  
+
   it "deletes a child via XPath" do
     @root.add_element "some_node"
     @root.delete_element "some_node"

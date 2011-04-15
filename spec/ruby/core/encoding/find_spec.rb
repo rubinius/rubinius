@@ -51,30 +51,30 @@ with_feature :encoding do
     it "raises an ArgumentError if the given encoding does not exist" do
       lambda { Encoding.find('dh2dh278d') }.should raise_error(ArgumentError)
     end
-    
+
     # Not sure how to do a better test, since locale depends on weird platform-specific stuff
     it "supports the 'locale' encoding alias" do
       enc = Encoding.find('locale')
       enc.should_not == nil
     end
-    
+
     it "returns default external encoding for the 'external' encoding alias" do
       enc = Encoding.find('external')
       enc.should == Encoding.default_external
     end
-    
+
     it "returns default internal encoding for the 'internal' encoding alias" do
       enc = Encoding.find('internal')
       enc.should == Encoding.default_internal
     end
-    
+
     platform_is_not :windows do
       it "uses default external encoding for the 'filesystem' encoding alias" do
         enc = Encoding.find('filesystem')
         enc.should == Encoding.default_external
       end
     end
-    
+
     platform_is :windows do
       it "needs to be reviewed for spec completeness"
     end

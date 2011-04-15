@@ -12,7 +12,7 @@ describe "DRb.start_service" do
     @port += 1
   end
 
-  it "should run a basic remote call" do    
+  it "runs a basic remote call" do
     lambda { DRb.current_server }.should raise_error(DRb::DRbServerNotFound)
     server = DRb.start_service(@url, TestServer.new)
     DRb.current_server.should == server
@@ -22,7 +22,7 @@ describe "DRb.start_service" do
     lambda { DRb.current_server }.should raise_error(DRb::DRbServerNotFound)
   end
 
-  it "should run a basic remote call passing a block" do
+  it "runs a basic remote call passing a block" do
     lambda { DRb.current_server }.should raise_error(DRb::DRbServerNotFound)
     server = DRb.start_service(@url, TestServer.new)
     DRb.current_server.should == server

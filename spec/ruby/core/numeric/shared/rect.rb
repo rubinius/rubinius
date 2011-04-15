@@ -9,23 +9,23 @@ describe :numeric_rect, :shared => true do
       99999999**99, # Bignum
       Float::MAX * 2, # Infinity
       0/0.0           # NaN
-    ] 
+    ]
   end
 
   it "returns an Array" do
-    @numbers.each do |number| 
+    @numbers.each do |number|
       number.send(@method).should be_an_instance_of(Array)
     end
-  end  
+  end
 
   it "returns a two-element Array" do
-    @numbers.each do |number| 
+    @numbers.each do |number|
       number.send(@method).size.should == 2
     end
   end
 
   it "returns self as the first element" do
-   @numbers.each do |number| 
+   @numbers.each do |number|
      if number.to_f.nan?
        number.send(@method).first.nan?.should be_true
      else
@@ -35,14 +35,14 @@ describe :numeric_rect, :shared => true do
   end
 
   it "returns 0 as the last element" do
-   @numbers.each do |number| 
+   @numbers.each do |number|
      number.send(@method).last.should == 0
    end
   end
 
   it "raises an ArgumentError if given any arguments" do
-   @numbers.each do |number| 
+   @numbers.each do |number|
      lambda { number.send(@method, number) }.should raise_error(ArgumentError)
    end
   end
-end  
+end

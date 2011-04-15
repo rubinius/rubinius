@@ -12,7 +12,7 @@ describe "Redefining a method" do
 end
 
 describe "Defining an 'initialize' method" do
-  it "should make it private" do
+  it "sets the method's visibility to private" do
     class DefInitializeSpec
       def initialize
       end
@@ -22,7 +22,7 @@ describe "Defining an 'initialize' method" do
 end
 
 describe "Defining an 'initialize_copy' method" do
-  it "should make it private" do
+  it "sets the method's visibility to private" do
     class DefInitializeCopySpec
       def initialize_copy
       end
@@ -239,7 +239,7 @@ describe "A method defined with extreme default arguments" do
     def foo(output = 'a', prc = lambda {|n| output * n})
       prc.call(5)
     end
-    foo.should == 'aaaaa' 
+    foo.should == 'aaaaa'
   end
 end
 
@@ -275,13 +275,13 @@ describe "A singleton method defined with extreme default arguments" do
     end
     a.foo('abcde').should == 5
   end
-  
+
   it "may use a lambda as a default" do
     a = 'hi'
     def a.foo(output = 'a', prc = lambda {|n| output * n})
       prc.call(5)
     end
-    a.foo.should == 'aaaaa' 
+    a.foo.should == 'aaaaa'
   end
 end
 

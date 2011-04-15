@@ -2,7 +2,7 @@ describe :bignum_modulo, :shared => true do
   before(:each) do
     @bignum = bignum_value
   end
-  
+
   it "returns the modulus obtained from dividing self by the given argument" do
     @bignum.send(@method, 5).should == 3
     @bignum.send(@method, -5).should == -2
@@ -18,8 +18,8 @@ describe :bignum_modulo, :shared => true do
 
   ruby_version_is ""..."1.9" do
     it "does not raise a FloatDomainError when the given argument is 0 and a Float" do
-      @bignum.send(@method, 0.0).to_s.should == "NaN" 
-      (-@bignum).send(@method, 0.0).to_s.should == "NaN" 
+      @bignum.send(@method, 0.0).to_s.should == "NaN"
+      (-@bignum).send(@method, 0.0).to_s.should == "NaN"
     end
   end
 

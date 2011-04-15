@@ -55,7 +55,7 @@ describe "Marshal::load" do
     it "loads a array containing objects having _dump method, and with proc" do
       arr = []
       proc = Proc.new { |o| arr << o }
-      o1 = UserDefined.new; 
+      o1 = UserDefined.new;
       o2 = UserDefinedWithIvar.new
       obj = [o1, o2, o1, o2]
 
@@ -69,7 +69,7 @@ describe "Marshal::load" do
     it "loads a array containing objects having _dump method, and with proc" do
       arr = []
       myproc = Proc.new { |o| arr << o; o }
-      o1 = UserDefined.new; 
+      o1 = UserDefined.new;
       o2 = UserDefinedWithIvar.new
       obj = [o1, o2, o1, o2]
 
@@ -151,7 +151,7 @@ describe "Marshal::load" do
 
       Marshal.load("\x04\bI[\vI\"\ahi\a:\x06EF:\t@fooi\ni\x0F@\x06@\x06IS:\x14Struct::Brittle\x06:\x06af\x060\x06:\n@clueI\"\tnone\x06;\x00FI[\b;\b:\x06b:\x06c\x06:\t@twoi\a\x06:\t@zooI\"\bant\x06;\x00F", proc)
 
-      arr.should == ["hi", false, 5, 10, "hi", "hi", 0.0, st, "none", false, 
+      arr.should == ["hi", false, 5, 10, "hi", "hi", 0.0, st, "none", false,
         :b, :c, a, 2, ["hi", 10, "hi", "hi", st, [:a, :b, :c]], "ant", false]
     end
   end
@@ -169,7 +169,7 @@ describe "Marshal::load" do
 
     lambda { Marshal.load marshal_data }.should raise_error(TypeError)
   end
-  
+
   it "raises EOFError on loading an empty file" do
     temp_file = tmp("marshal.rubyspec.tmp.#{Process.pid}")
     file = File.new(temp_file, "w+")
@@ -186,23 +186,23 @@ describe "Marshal::load" do
     y = Marshal.load(Marshal.dump(x))
     y.tainted?.should be_false
   end
-  
+
   it "returns a tainted object if source is tainted" do
     x = Object.new
     x.taint
     s = Marshal.dump(x)
     y = Marshal.load(s)
     y.tainted?.should be_true
-    
+
     # note that round-trip via Marshal does not preserve
     # the taintedness at each level of the nested structure
     y = Marshal.load(Marshal.dump([[x]]))
     y.tainted?.should be_true
     y.first.tainted?.should be_true
     y.first.first.tainted?.should be_true
-    
+
   end
-  
+
   it "preserves taintedness of nested structure" do
     x = Object.new
     a = [[x]]
@@ -214,7 +214,7 @@ describe "Marshal::load" do
   end
 
   ruby_version_is "1.9" do
-    
+
     it "returns a trusted object if source is trusted" do
       x = Object.new
       y = Marshal.load(Marshal.dump(x))
@@ -450,7 +450,7 @@ describe "Marshal::load" do
     it "loads an Integer -4611686018427387903" do
       Marshal.load("\004\bl-\t\377\377\377\377\377\377\377?").should == -4611686018427387903
     end
-    
+
     it "loads an Integer 2361183241434822606847" do
       Marshal.load("\004\bl+\n\377\377\377\377\377\377\377\377\177\000").should == 2361183241434822606847
     end
@@ -459,7 +459,7 @@ describe "Marshal::load" do
       Marshal.load("\004\bl-\n\377\377\377\377\377\377\377\377\177\000").should == -2361183241434822606847
     end
 
- 
+
     if 0.size == 8 # for platforms like x86_64
       it "roundtrips 4611686018427387903 from dump/load correctly" do
         Marshal.load(Marshal.dump(4611686018427387903)).should == 4611686018427387903
