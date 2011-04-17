@@ -73,6 +73,7 @@ class Class
   # Specialized initialize_copy because Class needs additional protection
   def initialize_copy(other)
     raise TypeError, "already initialized class" unless @method_table == other.method_table
+    @module_name = nil
     super
   end
 
