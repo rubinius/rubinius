@@ -133,6 +133,14 @@ have_struct_member("EVP_CIPHER_CTX", "flags", "openssl/evp.h")
 have_struct_member("EVP_CIPHER_CTX", "engine", "openssl/evp.h")
 have_struct_member("X509_ATTRIBUTE", "single", "openssl/x509.h")
 
+# Check for SSLv2 stuff because openssl sometimes omits it.
+have_func("SSLv2_method")
+have_func("SSLv2_server_method")
+have_func("SSLv2_client_method")
+have_func("SSLv23_method")
+have_func("SSLv23_server_method")
+have_func("SSLv23_client_method")
+
 message "=== Checking done. ===\n"
 
 create_header
