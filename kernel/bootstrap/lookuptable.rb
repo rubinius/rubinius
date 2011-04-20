@@ -129,12 +129,17 @@ module Rubinius
     def each
       raise LocalJumpError, "no block given" unless block_given? or @entries == 0
 
-      ents = entries
-      i = ents.start
-      total = ents.start + ents.total
-      while i < total
-        entry = ents[i]
-        yield [entry.key, entry.value]
+      max = @bins
+      i = 0
+      vals = @values
+
+      while i < max
+        entry = vals.at(i)
+
+        while entry
+          yield [entry.key, entry.value]
+          entry = entry.next
+        end
         i += 1
       end
       self
@@ -143,12 +148,17 @@ module Rubinius
     def each_entry
       raise LocalJumpError, "no block given" unless block_given? or @entries == 0
 
-      ents = entries
-      i = ents.start
-      total = ents.start + ents.total
-      while i < total
-        entry = ents[i]
-        yield entry.key, entry.value
+      max = @bins
+      i = 0
+      vals = @values
+
+      while i < max
+        entry = vals.at(i)
+
+        while entry
+          yield entry.key, entry.value
+          entry = entry.next
+        end
         i += 1
       end
       self

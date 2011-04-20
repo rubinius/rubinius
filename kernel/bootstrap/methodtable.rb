@@ -95,8 +95,11 @@ module Rubinius
       raise LocalJumpError, "no block given" unless block_given?
 
       i = 0
-      while i < @bins
-        if entry = @values.at(i)
+      max = @bins
+      vals = @values
+
+      while i < max
+        if entry = vals.at(i)
           while entry
             yield entry.name, entry.method, entry.visibility
             entry = entry.next

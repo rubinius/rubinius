@@ -233,10 +233,34 @@ class Module
   end
 
   def instance_methods(all=true)
-    methods = filter_methods(:public, all) |
-              filter_methods(:protected, all)
+    if all and self.direct_superclass
+      table = Rubinius::LookupTable.new
 
-    Rubinius.convert_to_names methods
+      mod = self
+
+      ary = []
+      while mod
+        mod.method_table.each do |name, obj, vis|
+          if vis == :undef
+            table[name] = true
+          elsif vis != :private and !table.key?(name)
+            ary << name.to_s
+            table[name] = true
+          end
+        end
+
+        mod = mod.direct_superclass
+      end
+
+      return ary
+    else
+      out = []
+      method_table.each do |name, obj, vis|
+        out << name.to_s if vis == :public or vis == :protected
+      end
+
+      return out
+    end
   end
 
   def public_instance_methods(all=true)
