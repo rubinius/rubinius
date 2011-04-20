@@ -143,6 +143,14 @@ module Kernel
     raise PrimitiveFailure, "Kernel#class primitive failed."
   end
 
+  # Return the class object of self.
+  #
+  # This is the same as #class, but named to always be available.
+  def __class__
+    Ruby.primitive :object_class
+    raise PrimitiveFailure, "Kernel#class primitive failed."
+  end
+
   # String representation of an object.
   #
   # By default, the representation is the name of the object's
@@ -444,7 +452,6 @@ end
 class Module
   def method_table   ; @method_table ; end
   def constants_table; @constants    ; end
-  def encloser       ; @encloser     ; end
   def name           ; @module_name.to_s    ; end
 
   # Specialised allocator.
@@ -670,6 +677,8 @@ module Rubinius
   # ancestor hierarchy for method- and constant lookup in a
   # roughly transparent fashion.
   #
+  # This class is known to the VM.
+  #
   class IncludedModule < Module
     attr_reader :superclass
     attr_reader :module
@@ -689,9 +698,7 @@ module Rubinius
     #
     def initialize(mod)
       @method_table = mod.method_table
-      @name = nil
       @constants = mod.constants_table
-      @encloser = mod.encloser
       @module = mod
     end
 
@@ -740,10 +747,6 @@ module Rubinius
       end
     end
   end
-end
-
-module Kernel
-  alias_method :__class__, :class
 end
 
 class Object
