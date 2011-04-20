@@ -127,27 +127,6 @@ module Rubinius
     end
 
     def each
-      raise LocalJumpError, "no block given" unless block_given? or @entries == 0
-
-      max = @bins
-      i = 0
-      vals = @values
-
-      while i < max
-        entry = vals.at(i)
-
-        while entry
-          yield [entry.key, entry.value]
-          entry = entry.next
-        end
-        i += 1
-      end
-      self
-    end
-
-    def each_entry
-      raise LocalJumpError, "no block given" unless block_given? or @entries == 0
-
       max = @bins
       i = 0
       vals = @values
@@ -163,5 +142,7 @@ module Rubinius
       end
       self
     end
+
+    alias_method :each_entry, :each
   end
 end
