@@ -443,7 +443,7 @@ end
 
 class Module
   def method_table   ; @method_table ; end
-  def constant_table ; @constants    ; end
+  def constants_table; @constants    ; end
   def encloser       ; @encloser     ; end
   def name           ; @module_name.to_s    ; end
 
@@ -689,9 +689,8 @@ module Rubinius
     #
     def initialize(mod)
       @method_table = mod.method_table
-      @method_cache = nil
       @name = nil
-      @constants = mod.constant_table
+      @constants = mod.constants_table
       @encloser = mod.encloser
       @module = mod
     end

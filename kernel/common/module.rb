@@ -12,7 +12,7 @@
 
 class Module
 
-  def constants_table() ; @constants ; end
+  attr_reader_specific :constants, :constants_table
   attr_writer :method_table
 
   private :included
@@ -609,7 +609,7 @@ class Module
 
     name = normalize_const_name(name)
 
-    if existing = constant_table[name]
+    if existing = @constants[name]
       if existing.kind_of? Autoload
         # If there is already an Autoload here, just change the path to
         # autoload!
