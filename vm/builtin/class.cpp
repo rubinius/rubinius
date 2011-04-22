@@ -238,29 +238,6 @@ use_packed:
     return type_info_->type == PackedObject::type;
   }
 
-  Object* Class::set_packed(STATE, Array* info) {
-    // Only transition Object typed objects to Packed
-    if(type_info_->type != Object::type) return Fixnum::from(1);
-
-    // Reject methods that already have packing.
-    if(packed_size_) return Fixnum::from(2);
-
-    LookupTable* lt = LookupTable::create(state);
-
-    size_t s = info->size();
-    for(size_t i = 0; i < s; i++) {
-      Symbol* sym = as<Symbol>(info->get(state, i));
-      lt->store(state, sym, Fixnum::from(i));
-    }
-
-    packed_size_ = sizeof(Object) + (s * sizeof(Object*));
-    packed_ivar_info(state, lt);
-
-    set_object_type(state, PackedObject::type);
-
-    return Qtrue;
-  }
-
   Class* Class::real_class(STATE, Class* klass) {
     if(SingletonClass* sc = try_as<SingletonClass>(klass)) {
       return sc->true_superclass(state);
