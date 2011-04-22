@@ -59,21 +59,6 @@ module Rubinius
       raise PrimitiveFailure, "MethodTable#delete primitive failed"
     end
 
-    def names
-      Ruby.primitive :methodtable_names
-      raise PrimitiveFailure, "MethodTable#names primitive failed"
-    end
-
-    def values
-      Ruby.primitive :methodtable_values
-      raise PrimitiveFailure, "MethodTable#names primitive failed"
-    end
-
-    def entries
-      Ruby.primitive :methodtable_entries
-      raise PrimitiveFailure, "MethodTable#entries primitive failed"
-    end
-
     def each_entry
       raise LocalJumpError, "no block given" unless block_given?
 
