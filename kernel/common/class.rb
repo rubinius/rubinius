@@ -65,7 +65,9 @@ class Class
     under.const_set name, self if under
 
     if sclass
-      sclass.__send__ :inherited, self
+      Rubinius.privately do
+        sclass.inherited self
+      end
     end
   end
 

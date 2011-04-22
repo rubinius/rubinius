@@ -415,8 +415,13 @@ module Kernel
     Ruby.check_frozen
 
     modules.reverse_each do |mod|
-      mod.__send__(:extend_object, self)
-      mod.__send__(:extended, self)
+      Rubinius.privately do
+        mod.extend_object self
+      end
+
+      Rubinius.privately do
+        mod.extended self
+      end
     end
     self
   end

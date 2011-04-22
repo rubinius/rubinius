@@ -107,32 +107,6 @@ end
 
 module Kernel
 
-  # Send message to object with given arguments.
-  #
-  # Ignores visibility of method, and may therefore be used to
-  # invoke protected or private methods.
-  #
-  # As denoted by the double-underscore, this method must not
-  # be removed or redefined by user code.
-  #
-  def __send__(message, *args)
-    Ruby.primitive :object_send
-
-    # MRI checks for Fixnum explicitly and raises ArgumentError
-    # instead of TypeError. Seems silly, so we don't bother.
-    #
-    case message
-    when String
-      message = Rubinius::Type.coerce_to message, Symbol, :to_sym
-    when Symbol
-      # nothing!
-    else
-      raise TypeError, "#{message.inspect} is not a symbol"
-    end
-
-    __send__ message, *args
-  end
-
   # Return the Class object this object is an instance of.
   #
   # Note that this method must always be called with an
@@ -519,7 +493,9 @@ class Module
   #
   def include(mod)
     mod.append_features(self)
-    mod.__send__ :included, self
+    Rubinius.privately do
+      mod.included self
+    end
     self
   end
 

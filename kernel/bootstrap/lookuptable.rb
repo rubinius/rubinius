@@ -86,7 +86,9 @@ module Rubinius
 
     def dup
       copy = duplicate
-      copy.send :initialize_copy, self
+      Rubinius.privately do
+        copy.initialize_copy self
+      end
       copy
     end
 

@@ -74,7 +74,9 @@ module Rubinius
     end
 
     def alias_method(name, original)
-      for_method_definition.__send__ :alias_method, name, original
+      Rubinius.privately do
+        for_method_definition.alias_method name, original
+      end
     end
 
     def __undef_method__(name)
@@ -137,7 +139,15 @@ module Rubinius
       scope = self
 
       while scope
-        mod = top.to_s !~ /self/ ? scope.module.__send__(:recursive_const_get, top, false) : scope.module
+        if top.to_s !~ /self/
+          mod = scope.module
+          Rubinius.privately do
+            mod = mod.recursive_const_get top, false
+          end
+        else
+          scope.module
+        end
+
         return mod.const_path_defined?(parts.join("::")) if mod
 
         scope = scope.parent
