@@ -241,11 +241,9 @@ class Module
       ary = []
       while mod
         mod.method_table.each do |name, obj, vis|
-          if vis == :undef
+          unless table.key?(name)
             table[name] = true
-          elsif vis != :private and !table.key?(name)
-            ary << name.to_s
-            table[name] = true
+            ary << name.to_s if vis == :public or vis == :protected
           end
         end
 
