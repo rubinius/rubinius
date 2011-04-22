@@ -400,7 +400,7 @@ module Process
     end
     
     def exited?
-      @exitstatus.to_bool
+      @exitstatus != nil
     end
     
     def pid
@@ -408,11 +408,11 @@ module Process
     end
     
     def signaled?
-      @termsig.to_bool
+      @termsig != nil
     end
     
     def stopped?
-      @stopsig.to_bool
+      @stopsig != nil
     end
     
     def success?
