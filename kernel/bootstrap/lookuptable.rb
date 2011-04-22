@@ -20,13 +20,12 @@
 #   l.show  # => #<Tuple: nil, ..., nil, #<Bucket: @key=>:a, @value=>1,
 #                         @next=>nil>, nil, nil, nil>
 #
-# where ... is ten "nil, " entries. This only works for Objects that
-# are tagged data (see e.g. shotgun/lib/oop.h). This will NOT work with
-# a String, for instance.
+# where ... is ten "nil, " entries.
 #
-# LookupTable is intended to be used with Symbol or Fixnum keys. Internally,
-# String keys are converted to Symbols. LookupTable is NOT intended to be
-# used generally like Hash.
+# LookupTable is intended to be used with Symbol or Fixnum keys because
+# it is a strict identity map. Usage of Strings as keys will likely result
+# in strange behavior.
+# LookupTable is NOT intended to be used generally like Hash.
 
 module Rubinius
   class LookupTable
@@ -36,33 +35,10 @@ module Rubinius
       attr_reader :next
     end
 
-    class Association
-      attr_reader :key
-      attr_writer :active
-
-      attr_accessor :value
-
-      def active?
-        @active
-      end
-
-      def self.new(name, value)
-        Ruby.primitive :lookuptableassociation_allocate
-        raise PrimitiveFailure, "LookupTable::Association.allocate failed"
-      end
-
-      def inspect
-        "#<LookupTable::Association:0x#{object_id.to_s(16)} @key=#{@key.inspect} @value=#{@value.inspect} @valid=#{@active.inspect}>"
-      end
-    end
-
     attr_reader :values
     attr_reader :bins
 
-    def size
-      @entries
-    end
-
+    attr_reader_specific :entries, :size
     alias_method :length, :size
 
     def self.allocate
@@ -121,11 +97,6 @@ module Rubinius
     def values
       Ruby.primitive :lookuptable_values
       raise PrimitiveFailure, "LookupTable#keys primitive failed"
-    end
-
-    def entries
-      Ruby.primitive :lookuptable_entries
-      raise PrimitiveFailure, "LookupTable#entries primitive failed"
     end
 
     def each

@@ -4,7 +4,7 @@ class NilClass
   end
 
   def ^(other)
-    (other.nil? or other.equal?(false)) ? false : true
+    !!other
   end
 
   def to_s

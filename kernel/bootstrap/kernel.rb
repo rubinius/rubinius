@@ -38,6 +38,10 @@ module Kernel
   alias_method :==,  :equal?
   alias_method :===, :equal?
 
+  def singleton_class
+    Rubinius::Type.object_singleton_class self
+  end
+
   def extend(*mods)
     Rubinius::Type.object_singleton_class(self).include(*mods)
     self

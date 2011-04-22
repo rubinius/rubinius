@@ -79,10 +79,7 @@ class String
   end
 
   # Returns the length of <i>self</i>.
-  def length
-    @num_bytes
-  end
-
+  attr_reader_specific :num_bytes, :length
   alias_method :size, :length
 
   def find_character(offset)
