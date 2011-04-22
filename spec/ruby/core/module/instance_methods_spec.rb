@@ -40,6 +40,13 @@ ruby_version_is ""..."1.9" do
       methods.should include("protected_module", "protected_super_module",
                              "public_module", "public_super_module")
     end
+
+    it "makes a private Object instance method public in Kernel" do
+      methods = Kernel.instance_methods
+      methods.should include("module_specs_private_method_on_object_for_kernel_public")
+      methods = Object.instance_methods
+      methods.should_not include("module_specs_private_method_on_object_for_kernel_public")
+    end
   end
 end
 
@@ -82,6 +89,13 @@ ruby_version_is "1.9" do
       methods = ModuleSpecs::Super.instance_methods
       methods.should include(:protected_module, :protected_super_module,
                              :public_module, :public_super_module)
+    end
+
+    it "makes a private Object instance method public in Kernel" do
+      methods = Kernel.instance_methods
+      methods.should include(:module_specs_private_method_on_object_for_kernel_public)
+      methods = Object.instance_methods
+      methods.should_not include(:module_specs_private_method_on_object_for_kernel_public)
     end
   end
 end
