@@ -40,6 +40,8 @@ module Kernel
   # Evaluate and execute code given in the String.
   #
   def eval(string, binding=nil, filename=nil, lineno=1)
+    filename = StringValue(filename) if filename
+
     if binding
       if binding.kind_of? Proc
         binding = binding.binding
