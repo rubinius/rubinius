@@ -67,9 +67,6 @@ module Rubinius
     #
     # Close stream.
     #
-    # @todo Should this #advance!? That may cause an error
-    #       to be raised, for example. --rue
-    #
     def close
       advance!
       @stream.close
@@ -82,9 +79,6 @@ module Rubinius
 
     #
     # True if the stream is closed.
-    #
-    # @todo Should this #advance!? That may cause an error
-    #       to be raised, for example. --rue
     #
     def closed?
       advance!
@@ -214,7 +208,7 @@ module Rubinius
     # reading from a file, the stream is closed.
     #
     def getc
-      while true          # Performance
+      while true
         return nil unless advance!
         if val = @stream.getc
           return val
@@ -237,7 +231,7 @@ module Rubinius
     # and updates $. accordingly.
     #
     def gets
-      while true          # Performance
+      while true
         return nil unless advance!
         line = @stream.gets
 
@@ -340,7 +334,7 @@ module Rubinius
     # is provided, as by default, a String with the data is
     # returned instead.
     #
-    def read(bytes = nil, output = nil)
+    def read(bytes=nil, output=nil)
       # The user might try to pass in nil, so we have to check here
       output ||= ""
 
@@ -442,8 +436,6 @@ module Rubinius
     # STDIN is not closed if being used, otherwise the
     # stream gets closed. Returns self.
     #
-    # @todo Need more detail on the genesis/purpose
-    #       of this method. --rue
     def skip
       return self if @use_stdin_only
       @stream.close unless @stream.closed?
