@@ -3,9 +3,10 @@ module Rubinius
     class Begin < Node
       attr_accessor :rescue
 
-      def initialize(line, body)
+      def initialize(line, body, end_line)
         @line = line
         @rescue = body
+        @rescue.end_line = end_line if @rescue.kind_of?(Rescue)
       end
 
       def bytecode(g)
@@ -163,13 +164,14 @@ module Rubinius
     RescueType = 0
 
     class Rescue < Node
-      attr_accessor :body, :rescue, :else
+      attr_accessor :body, :rescue, :else, :end_line
 
-      def initialize(line, body, rescue_body, else_body)
+      def initialize(line, body, rescue_body, else_body, end_line)
         @line = line
         @body = body
         @rescue = rescue_body
         @else = else_body
+        @end_line = end_line
       end
 
       def bytecode(g)
@@ -227,6 +229,7 @@ module Rubinius
           end
 
           @body.bytecode(g)
+          g.set_line @end_line if @end_line
           g.pop_unwind
           g.goto els
 
@@ -330,6 +333,7 @@ module Rubinius
             @else.bytecode(g)
           end
 
+          g.set_line @end_line if @end_line
           done.set!
 
           g.push_stack_local outer_exc_state
@@ -339,7 +343,7 @@ module Rubinius
       end
 
       def to_sexp
-        sexp = [:rescue, @body.to_sexp, @rescue.to_sexp]
+        sexp = [:rescue, @body.to_sexp, @rescue.to_sexp, @rescue.end_line]
         sexp << @else.to_sexp if @else
         sexp
       end

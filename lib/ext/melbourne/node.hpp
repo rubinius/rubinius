@@ -44,6 +44,10 @@ namespace melbourne {
       VALUE value;
       bstring string;
     } u3;
+    union {
+      /* One can add other types here....*/
+      long end_line;
+    } u4;
   } NODE;
 
 #define RNODE(obj)  ((NODE*)(obj))
@@ -158,7 +162,7 @@ namespace melbourne {
 #define NEW_NEXT(s) NEW_NODE(NODE_NEXT,s,0,0)
 #define NEW_REDO() NEW_NODE(NODE_REDO,0,0,0)
 #define NEW_RETRY() NEW_NODE(NODE_RETRY,0,0,0)
-#define NEW_BEGIN(b) NEW_NODE(NODE_BEGIN,0,b,0)
+#define NEW_BEGIN(b) NEW_NODE(NODE_BEGIN,0,b,ruby_sourceline)
 #define NEW_RESCUE(b,res,e) NEW_NODE(NODE_RESCUE,b,res,e)
 #define NEW_RESBODY(a,ex,n) NEW_NODE(NODE_RESBODY,n,ex,a)
 #define NEW_ENSURE(b,en) NEW_NODE(NODE_ENSURE,b,0,en)

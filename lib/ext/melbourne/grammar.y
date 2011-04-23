@@ -468,6 +468,7 @@ bodystmt        : compstmt
                         $$ = $1;
                         if ($2) {
                             $$ = NEW_RESCUE($1, $2, $3);
+			    $$->u4.end_line = ruby_sourceline;
                         }
                         else if ($3) {
                             rb_warn("else without rescue is useless");
@@ -1072,7 +1073,9 @@ arg             : lhs '=' arg
                     }
                 | lhs '=' arg kRESCUE_MOD arg
                     {
-                        $$ = node_assign($1, NEW_RESCUE($3, NEW_RESBODY(0,$5,0), 0), vps);
+			NODE *resq = NEW_RESCUE($3, NEW_RESBODY(0,$5,0), 0);
+			resq->u4.end_line = ruby_sourceline;
+                        $$ = node_assign($1, resq, vps);
                     }
                 | var_lhs tOP_ASGN arg
                     {

@@ -289,7 +289,7 @@ namespace melbourne {
     }
     case NODE_BEGIN: {
       VALUE body = process_parse_tree(parse_state, ptp, node->nd_body, locals);
-      tree = rb_funcall(ptp, rb_sBegin, 2, line, body);
+      tree = rb_funcall(ptp, rb_sBegin, 3, line, body, INT2FIX(node->nd_cnt));
       break;
     }
     case NODE_NOT: {
@@ -436,7 +436,8 @@ namespace melbourne {
       VALUE body = process_parse_tree(parse_state, ptp, node->nd_1st, locals);
       VALUE resc = process_parse_tree(parse_state, ptp, node->nd_2nd, locals);
       VALUE els = process_parse_tree(parse_state, ptp, node->nd_3rd, locals);
-      tree = rb_funcall(ptp, rb_sRescue, 4, line, body, resc, els);
+      tree = rb_funcall(ptp, rb_sRescue, 5, line, body, resc, els, 
+			INT2FIX(node->u4.end_line));
       break;
     }
     case NODE_RESBODY: {
