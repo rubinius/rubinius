@@ -220,7 +220,7 @@ module Daedalus
 
     def static(path, files)
       @log.show "AR", path
-      @log.command "#{@archiver} rcs #{path} #{files.join(' ')}"
+      @log.command "#{@archiver} rcs #{path} #{files.reverse.join(' ')}"
     end
 
     def calculate_deps(path)
