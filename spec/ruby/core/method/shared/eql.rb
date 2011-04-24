@@ -21,7 +21,7 @@ describe :method_equal, :shared => true do
 
     m_bar.send(@method, @m_foo).should be_true
   end
-  
+
   ruby_version_is "1.9" do
     it "returns true if the two core methods are aliases" do
       s = "hello"
@@ -33,14 +33,14 @@ describe :method_equal, :shared => true do
 
   it "returns false on a method which is neither aliased nor the same method" do
     m2 = @m.method(:zero)
-    
+
     @m_foo.send(@method, m2).should be_false
   end
-  
+
   it "returns false for a method which is not bound to the same object" do
     m2_foo = @m2.method(:foo)
     a_baz = @a.method(:baz)
-    
+
     @m_foo.send(@method, m2_foo).should be_false
     @m_foo.send(@method, a_baz).should be_false
   end

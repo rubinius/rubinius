@@ -13,7 +13,7 @@ describe "Net::HTTPHeader#[] when passed key" do
     @headers["My-Other-Header"] = "another test"
     @headers["My-Other-Header"].should == "another test"
   end
-  
+
   it "is case-insensitive" do
     @headers["My-Header"] = "test"
 
@@ -23,15 +23,15 @@ describe "Net::HTTPHeader#[] when passed key" do
     @headers['my-header'].should == "test"
     @headers['MY-HEADER'].should == "test"
   end
-  
+
   it "returns multi-element values joined together" do
     @headers["My-Header"] = "test"
     @headers.add_field("My-Header", "another test")
     @headers.add_field("My-Header", "and one more")
-    
+
     @headers["My-Header"].should == "test, another test, and one more"
   end
-  
+
   it "returns nil for non-existing entries" do
     @headers["My-Header"].should be_nil
     @headers["My-Other-Header"].should be_nil

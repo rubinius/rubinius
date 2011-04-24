@@ -8,13 +8,13 @@ describe "Enumerable#each_cons" do
     @in_threes = [[4,3,2],[3,2,1]]
   end
 
-  it "passes element groups to the block" do 
+  it "passes element groups to the block" do
     acc = []
     @enum.each_cons(3){|g| acc << g}.should be_nil
     acc.should == @in_threes
   end
 
-  it "raises an Argument Error if there is not a single parameter > 0" do 
+  it "raises an Argument Error if there is not a single parameter > 0" do
     lambda{ @enum.each_cons(0){}    }.should raise_error(ArgumentError)
     lambda{ @enum.each_cons(-2){}   }.should raise_error(ArgumentError)
     lambda{ @enum.each_cons{}       }.should raise_error(ArgumentError)
@@ -25,7 +25,7 @@ describe "Enumerable#each_cons" do
     acc = []
     @enum.each_cons(3.3){|g| acc << g}.should == nil
     acc.should == @in_threes
-  
+
     obj = mock('to_int')
     obj.should_receive(:to_int).and_return(3)
     @enum.each_cons(obj){|g| break g.length}.should == 3
@@ -48,7 +48,7 @@ describe "Enumerable#each_cons" do
   end
 
   ruby_version_is '1.8.7' do
-    it "returns an enumerator if no block" do 
+    it "returns an enumerator if no block" do
       e = @enum.each_cons(3)
       e.should be_an_instance_of(enumerator_class)
       e.to_a.should == @in_threes

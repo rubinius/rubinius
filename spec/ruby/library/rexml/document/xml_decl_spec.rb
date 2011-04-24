@@ -1,7 +1,7 @@
 require 'rexml/document'
 require File.expand_path('../../../../spec_helper', __FILE__)
 
-describe "REXML::Document#xml_decl" do 
+describe "REXML::Document#xml_decl" do
   it "returns XML declaration of the document" do
     d = REXML::Document.new
     decl = REXML::XMLDecl.new("1.0", "UTF-16", "yes")

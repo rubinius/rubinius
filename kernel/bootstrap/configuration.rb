@@ -3,6 +3,8 @@ module Rubinius
     def initialize
     end
 
+    private :initialize
+
     def get_variable(name)
       Ruby.primitive :vm_get_config_item
       raise PrimitiveFailure, "Unable to get config variable"

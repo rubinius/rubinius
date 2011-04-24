@@ -8,7 +8,7 @@ describe "Thread.new" do
     c << false
     c.receive.should == true
   end
-  
+
   it "can pass arguments to the thread block" do
     arr = []
     a, b, c = 1, 2, 3

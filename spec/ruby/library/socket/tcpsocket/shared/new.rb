@@ -8,7 +8,6 @@ describe :tcpsocket_new, :shared => true do
 
   before :each do
     @hostname = SocketSpecs::SpecTCPServer.get.hostname
-    @addr = SocketSpecs.addr
   end
 
   it "requires a hostname and a port as arguments" do
@@ -59,9 +58,15 @@ describe :tcpsocket_new, :shared => true do
       # erroneous values.
       @socket.addr[0].should =~ /^AF_INET6?/
 
+      case @socket.addr[0]
+      when 'AF_INET'
+        @socket.addr[3].should == SocketSpecs.addr(:ipv4)
+      when 'AF_INET6'
+        @socket.addr[3].should == SocketSpecs.addr(:ipv6)
+      end
+
       @socket.addr[1].should be_kind_of(Fixnum)
       @socket.addr[2].should =~ /^#{@hostname}/
-      @socket.addr[3].should == @addr
     end
   end
 end

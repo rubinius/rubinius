@@ -19,7 +19,7 @@ with_feature :encoding do
       @exception2.error_char.size.should == 1
       @exception2.error_char.should == "\u{A0}"
     end
-    
+
     it "uses the source encoding" do
       @exception.error_char.encoding.should == @exception.source_encoding
 

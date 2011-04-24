@@ -7,8 +7,8 @@ describe :to_s, :shared => true do
     ExceptionSpecs::Exceptional.new.send(@method).should == 'ExceptionSpecs::Exceptional'
   end
 
-  it "returns self's message if set" do  
+  it "returns self's message if set" do
     ExceptionSpecs::Exceptional.new('!!').send(@method).should == '!!'
   end
 
-end  
+end

@@ -6,19 +6,19 @@ describe "Kernel#test" do
     @file = File.dirname(__FILE__) + '/fixtures/classes.rb'
     @dir = File.dirname(__FILE__) + '/fixtures'
   end
-  
+
   it "is a private method" do
     Kernel.should have_private_instance_method(:test)
   end
-  
+
   it "returns true when passed ?f if the argument is a regular file" do
     Kernel.test(?f, @file).should == true
   end
-  
+
   it "returns true when passed ?e if the argument is a file" do
     Kernel.test(?e, @file).should == true
   end
-  
+
   it "returns true when passed ?d if the argument is a directory" do
     Kernel.test(?d, @dir).should == true
   end
@@ -29,13 +29,13 @@ describe "Kernel#test" do
       p.should_receive(:to_path).and_return @file
       Kernel.test(?f, p)
     end
-    
+
     it "calls #to_path on second argument when passed ?e and a filename" do
       p = mock('path')
       p.should_receive(:to_path).and_return @file
       Kernel.test(?e, p)
     end
-    
+
     it "calls #to_path on second argument when passed ?d and a directory" do
       p = mock('path')
       p.should_receive(:to_path).and_return @dir

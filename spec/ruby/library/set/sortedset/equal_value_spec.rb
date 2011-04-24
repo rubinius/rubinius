@@ -6,7 +6,7 @@ describe "SortedSet#==" do
     SortedSet[].should == SortedSet[]
     SortedSet[1, 2, 3].should == SortedSet[1, 2, 3]
     SortedSet["1", "2", "3"].should == SortedSet["1", "2", "3"]
-    
+
     SortedSet[1, 2, 3].should_not == SortedSet[1.0, 2, 3]
     SortedSet[1, 2, 3].should_not == [1, 2, 3]
   end

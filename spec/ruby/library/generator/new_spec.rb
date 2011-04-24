@@ -21,4 +21,4 @@ ruby_version_is ""..."1.9"  do
       g.kind_of?(Generator).should == true
     end
   end
-end  
+end

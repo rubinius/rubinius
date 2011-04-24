@@ -15,5 +15,5 @@ describe "Symbol#to_i" do
     it "has been removed as deprecated" do
       :ruby.should_not respond_to(:to_i)
     end
-  end 
+  end
 end

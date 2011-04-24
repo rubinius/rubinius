@@ -3,7 +3,7 @@ require 'prime'
 
 describe "Integer#prime_division" do
   it "returns an array of a prime factor and a corresponding exponent" do
-    (2*3*5*7*11*13*17).prime_division.should == 
+    (2*3*5*7*11*13*17).prime_division.should ==
       [[2,1], [3,1], [5,1], [7,1], [11,1], [13,1], [17,1]]
   end
 

@@ -17,12 +17,12 @@ describe "SortedSet#classify" do
       lambda { @set.classify }.should raise_error(LocalJumpError)
     end
   end
-  
+
   ruby_version_is "1.8.8" do
     it "returns an Enumerator when passed no block" do
       enum = @set.classify
       enum.should be_an_instance_of(enumerator_class)
-      
+
       classified = enum.each { |x| x.length }
       classified.should == { 3 => SortedSet["one", "two"], 4 => SortedSet["four"], 5 => SortedSet["three"] }
     end

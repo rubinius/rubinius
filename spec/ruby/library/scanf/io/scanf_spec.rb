@@ -17,7 +17,7 @@ describe "IO#scanf" do
     @hw.scanf("%s%s").should == ["hello", "world"]
     @data.scanf("%s%d").should == ["Beethoven", 1770]
   end
-  
+
   it "returns an array containing the input converted in the specified type with given maximum field width" do
     @hw.scanf("%2s").should == ["he"]
     @data.scanf("%2c").should == ["Be"]

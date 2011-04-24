@@ -1,4 +1,4 @@
-require 'date' 
+require 'date'
 require File.expand_path('../../../spec_helper', __FILE__)
 
 describe "Date#ajd" do
@@ -22,33 +22,33 @@ end
 describe "Date#mjd" do
   it "should be able to determine the Modified Julian day for a date" do
     Date.civil(2007, 1, 17).mjd.should == 54117
-  end 
+  end
 end
 
 describe "Date#ld" do
   it "should be able to determine the Modified Julian day for a date" do
     Date.civil(2007, 1, 17).ld.should == 154958
-  end 
+  end
 end
 
 describe "Date#year" do
   it "should be able to determine the year for a date" do
     Date.civil(2007, 1, 17).year.should == 2007
-  end 
+  end
 end
 
 describe "Date#yday" do
   it "should be able to determine the year for a date" do
     Date.civil(2007,  1, 17).yday.should == 17
     Date.civil(2008, 10, 28).yday.should == 302
-  end 
+  end
 end
 
 describe "Date#mon" do
   it "should be able to determine the month for a date" do
     Date.civil(2007,  1, 17).mon.should == 1
     Date.civil(2008, 10, 28).mon.should == 10
-  end 
+  end
 end
 
 describe "Date#mday" do
@@ -87,5 +87,5 @@ describe "Date#cwday" do
   it "should be able to determine the commercial week day for a date" do
     Date.civil(2007,  1, 17).cwday.should == 3
     Date.civil(2008, 10, 26).cwday.should == 7
-  end  
+  end
 end

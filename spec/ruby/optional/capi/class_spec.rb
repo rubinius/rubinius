@@ -135,7 +135,7 @@ describe "C-API Class function" do
       obj = CApiClassSpecs::Sub.new
       obj.call_super_method.should == :super_method
     end
-    
+
     it "calls the method in the superclass through two native levels" do
       @s.define_call_super_method CApiClassSpecs::Sub, "call_super_method"
       @s.define_call_super_method CApiClassSpecs::SubSub, "call_super_method"
@@ -204,11 +204,11 @@ describe "C-API Class function" do
       @s.rb_cvar_set(CApiClassSpecs::CVars, "@@new_cvar", 1)
       o.new_cvar.should == 1
     end
-    
+
   end
-  
+
   describe "rb_define_class_variable" do
-    it "sets a class variable" do 
+    it "sets a class variable" do
       o = CApiClassSpecs::CVars.new
       o.rbdcv_cvar.should be_nil
       @s.rb_define_class_variable(CApiClassSpecs::CVars, "@@rbdcv_cvar", 1)

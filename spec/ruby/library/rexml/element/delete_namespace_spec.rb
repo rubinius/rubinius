@@ -12,7 +12,7 @@ describe "REXML::Element#delete_namespace" do
     @doc.root.namespace("foo").should be_nil
     @doc.root.to_s.should == "<a xmlns='twiddle'/>"
   end
-  
+
   it "deletes default namespace when called with no args" do
     @doc.root.delete_namespace
     @doc.root.namespace.should be_empty

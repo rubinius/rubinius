@@ -17,7 +17,7 @@ describe "ARGF.close" do
       io.closed?.should be_true
     end
   end
-  
+
   it "returns self" do
     argv [@file1_name, @file2_name] do
       ARGF.close.should equal(ARGF)

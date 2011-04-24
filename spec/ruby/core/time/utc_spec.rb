@@ -7,7 +7,7 @@ require File.expand_path('../shared/time_params', __FILE__)
 describe "Time#utc?" do
   it "returns true if time represents a time in UTC (GMT)" do
     Time.now.utc?.should == false
-  end  
+  end
 end
 
 describe "Time.utc" do
@@ -17,4 +17,4 @@ end
 
 describe "Time#utc" do
   it_behaves_like(:time_gmtime, :utc)
-end  
+end

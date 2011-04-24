@@ -1,4 +1,4 @@
-require 'date' 
+require 'date'
 require File.expand_path('../../../spec_helper', __FILE__)
 require File.expand_path('../shared/commercial', __FILE__)
 
@@ -106,4 +106,8 @@ describe "Date#valid_ordinal?" do
     end
   end
 
+end
+
+describe "Date.ordinal" do
+  it "needs to be reviewed for spec completeness"
 end

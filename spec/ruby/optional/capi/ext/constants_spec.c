@@ -149,6 +149,12 @@ static VALUE constants_spec_rb_cProc(VALUE self) {
 }
 #endif
 
+#ifdef HAVE_RB_CMETHOD
+static VALUE constants_spec_rb_cMethod(VALUE self) {
+  return rb_cMethod;
+}
+#endif
+
 #ifdef HAVE_RB_MCOMPARABLE
 static VALUE constants_spec_rb_mComparable(VALUE self) {
   return rb_mComparable;
@@ -435,6 +441,9 @@ void Init_constants_spec() {
   rb_define_method(cls, "rb_cProc", constants_spec_rb_cProc, 0);
 #endif
 
+#ifdef HAVE_RB_CMETHOD
+  rb_define_method(cls, "rb_cMethod", constants_spec_rb_cMethod, 0);
+#endif
 
 #ifdef HAVE_RB_MCOMPARABLE
   rb_define_method(cls, "rb_mComparable", constants_spec_rb_mComparable, 0);

@@ -191,6 +191,9 @@ extern "C" {
    *  Global object abstraction.
    *
    *  @internal.
+   *
+   *  ALWAYS add new entries at the end right before cCApiMaxConstant, otherwise
+   *  the ABI for C extensions is changed and it breaks all currently compiled ones.
    */
   typedef enum {
     cCApiArray = 0,
@@ -254,6 +257,8 @@ extern "C" {
     cCApiTypeError,
     cCApiThreadError,
     cCApiZeroDivisionError,
+
+    cCApiMethod,
 
     // MUST be last
     cCApiMaxConstant
@@ -441,6 +446,7 @@ typedef struct RIO rb_io_t;
 #define rb_cTime              (capi_get_constant(cCApiTime))
 #define rb_cTrueClass         (capi_get_constant(cCApiTrue))
 #define rb_cProc              (capi_get_constant(cCApiProc))
+#define rb_cMethod            (capi_get_constant(cCApiMethod))
 
 /* Global Module objects. */
 

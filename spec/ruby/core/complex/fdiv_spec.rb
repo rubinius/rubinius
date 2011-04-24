@@ -76,7 +76,7 @@ ruby_version_is "1.9" do
         end
       end
     end
-    
+
     it "sets the real part to self's real part fdiv'd with the argument" do
       @numbers.each do |real|
         @numbers.each do |other|
@@ -108,7 +108,7 @@ ruby_version_is "1.9" do
         end
       end
     end
-    
+
     it "sets the real part to self's real part fdiv'd with the argument" do
       @numbers.each do |real|
         @numbers.each_with_index do |other,idx|

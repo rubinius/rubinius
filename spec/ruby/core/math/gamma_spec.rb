@@ -5,11 +5,11 @@ ruby_version_is "1.9" do
     it "returns +infinity given 0" do
       Math.gamma(0).infinite?.should == 1
     end
-    
+
     it "returns Math.sqrt(Math::PI) given 0.5" do
       Math.gamma(0.5).should be_close(Math.sqrt(Math::PI), TOLERANCE)
     end
-    
+
     # stop at n=23 because 23! is too big to fit in a IEEE 754 double
     f = 1
     2.upto(23) do |n|
@@ -17,7 +17,7 @@ ruby_version_is "1.9" do
         Math.gamma(n).should be_close(f*=(n-1), TOLERANCE)
       end
     end
-    
+
     it "returns good numerical approximation for gamma(3.2)" do
       Math.gamma(3.2) .should be_close(2.423965, TOLERANCE)
     end

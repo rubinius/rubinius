@@ -20,14 +20,14 @@ ruby_version_is "1.9" do
     end
 
     it "returns an Enumerator of 2-element Arrays" do
-      EnumerableSpecs::Numerous.new.chunk {|e| true}.each do |a| 
+      EnumerableSpecs::Numerous.new.chunk {|e| true}.each do |a|
         a.should be_an_instance_of(Array)
         a.size.should == 2
       end
     end
 
     it "sets the first element of each sub-Array to the return value of the block" do
-      EnumerableSpecs::Numerous.new.chunk {|e| -e }.each do |a| 
+      EnumerableSpecs::Numerous.new.chunk {|e| -e }.each do |a|
         a.first.should == -a.last.first
       end
     end

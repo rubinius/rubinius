@@ -114,6 +114,10 @@ describe "C-API constant" do
   specify "rb_cProc references the Proc class" do
     @s.rb_cProc.should == Proc
   end
+
+  specify "rb_cMethod references the Method class" do
+    @s.rb_cMethod.should == Method
+  end
 end
 
 describe "C-API exception constant" do

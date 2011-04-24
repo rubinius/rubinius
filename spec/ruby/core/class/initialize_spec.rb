@@ -50,7 +50,7 @@ describe "Class#initialize" do
 
   ruby_version_is "1.9" do
     # See [redmine:2601]
-    it "should raise a TypeError (even for BasicObject)" do
+    it "raises a TypeError when called on BasicObject" do
       lambda{
         BasicObject.send :initialize
       }.should raise_error(TypeError)

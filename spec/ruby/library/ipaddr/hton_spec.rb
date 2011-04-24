@@ -19,7 +19,7 @@ describe 'IPAddr#hton' do
 end
 
 describe 'IPAddr#new_ntoh' do
-  
+
   it "creates a new IPAddr using hton notation" do
     a = IPAddr.new("3ffe:505:2::")
     IPAddr.new_ntoh(a.hton).to_s.should == "3ffe:505:2::"

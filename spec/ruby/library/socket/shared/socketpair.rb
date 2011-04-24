@@ -4,7 +4,7 @@ describe :socket_socketpair, :shared => true do
       s1, s2 = Socket.socketpair(Socket::AF_UNIX, 1, 0)
       s1.puts("test")
       s2.gets.should == "test\n"
-      s1.close 
+      s1.close
       s2.close
     end
   end

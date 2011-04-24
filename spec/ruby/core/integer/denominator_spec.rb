@@ -12,11 +12,11 @@ ruby_version_is "1.9" do
         -99999**621,    # Negative BigNum
         0,
         1
-      ] 
+      ]
     end
 
     it "returns 1" do
       @numbers.each {|number| number.denominator.should == 1}
-    end  
+    end
   end
 end

@@ -12,7 +12,7 @@
 
 class Module
 
-  def constants_table() ; @constants ; end
+  attr_reader_specific :constants, :constants_table
   attr_writer :method_table
 
   private :included
@@ -233,46 +233,74 @@ class Module
   end
 
   def instance_methods(all=true)
-    methods = filter_methods(:public, all) |
-              filter_methods(:protected, all)
+    if all and self.direct_superclass
+      table = Rubinius::LookupTable.new
 
-    Rubinius.convert_to_names methods
+      mod = self
+
+      ary = []
+      while mod
+        mod.method_table.each do |name, obj, vis|
+          unless table.key?(name)
+            table[name] = true
+            ary << name.to_s if vis == :public or vis == :protected
+          end
+        end
+
+        mod = mod.direct_superclass
+      end
+
+      return ary
+    else
+      out = []
+      method_table.each do |name, obj, vis|
+        out << name.to_s if vis == :public or vis == :protected
+      end
+
+      return out
+    end
   end
 
   def public_instance_methods(all=true)
-    Rubinius.convert_to_names(filter_methods(:public, all))
+    filter_methods(:public, all)
   end
 
   def private_instance_methods(all=true)
-    Rubinius.convert_to_names(filter_methods(:private, all))
+    filter_methods(:private, all)
   end
 
   def protected_instance_methods(all=true)
-    Rubinius.convert_to_names(filter_methods(:protected, all))
+    filter_methods(:protected, all)
   end
 
   def filter_methods(filter, all)
-    table = {}
 
-    mod = self
+    if all and self.direct_superclass
 
-    while mod
-      mod.method_table.each do |name, obj, vis|
-        unless table.key?(name)
-          table[name] = vis
+      table = Rubinius::LookupTable.new
+      ary = []
+      mod = self
+
+      while mod
+        mod.method_table.each do |name, obj, vis|
+          unless table.key?(name)
+            table[name] = true
+            ary << name.to_s if vis == filter
+          end
         end
+
+        mod = mod.direct_superclass
       end
 
-      break unless all
-      mod = mod.direct_superclass
-    end
+      return ary
+    else
+      out = []
+      method_table.each do |name, obj, vis|
+        out << name.to_s if vis == filter
+      end
 
-    ary = []
-    table.each do |name, vis|
-      ary << name if vis == filter
+      return out
     end
-
-    return ary
   end
 
   private :filter_methods
@@ -585,7 +613,7 @@ class Module
 
     name = normalize_const_name(name)
 
-    if existing = constant_table[name]
+    if existing = @constants[name]
       if existing.kind_of? Autoload
         # If there is already an Autoload here, just change the path to
         # autoload!

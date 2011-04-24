@@ -21,7 +21,7 @@ ruby_version_is "1.8.7" do
         (num < 1.0).should == true
       end
     end
-    
+
     it "generates a random float number between 0.0 and 1.0 if argument is negative" do
       num = SecureRandom.random_number(-10)
       num.should be_kind_of(Float)

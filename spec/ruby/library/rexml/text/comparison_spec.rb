@@ -13,7 +13,7 @@ describe "REXML::Text#<=>" do
   end
 
   it "returns -1 if lvalue is greater than rvalue" do
-    val = @last <=> @first 
+    val = @last <=> @first
     val.should == 1
   end
 

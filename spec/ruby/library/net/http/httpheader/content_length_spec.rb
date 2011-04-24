@@ -15,11 +15,11 @@ describe "Net::HTTPHeader#content_length" do
     @headers["Content-Length"] = "invalid"
     lambda { @headers.content_length }.should raise_error(Net::HTTPHeaderSyntaxError)
   end
-  
+
   it "returns the value of the 'Content-Length' header entry as an Integer" do
     @headers["Content-Length"] = "123"
     @headers.content_length.should eql(123)
-  
+
     @headers["Content-Length"] = "123valid"
     @headers.content_length.should eql(123)
 
@@ -38,11 +38,11 @@ describe "Net::HTTPHeader#content_length=" do
     @headers.content_length = nil
     @headers["Content-Lenght"].should be_nil
   end
-  
+
   it "sets the 'Content-Length' entry to the passed value" do
     @headers.content_length = "123"
     @headers["Content-Length"].should == "123"
-  
+
     @headers.content_length = "123valid"
     @headers["Content-Length"].should == "123"
   end

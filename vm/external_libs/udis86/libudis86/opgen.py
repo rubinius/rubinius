@@ -256,14 +256,14 @@ for node in tlNode.childNodes:
 
      # we need the mnemonic attribute
     if not ('mnemonic' in node.attributes.keys()):
-        print "error: no mnemonic given in <instruction>."
+        print("error: no mnemonic given in <instruction>.")
         sys.exit(-1) 
 
     # check if this instruction was already defined.
     # else add it to the global list of mnemonics
     mnemonic = node.attributes['mnemonic'].value
     if mnemonic in mnm_list:
-        print "error: multiple declarations of mnemonic='%s'" % mnemonic;
+        print("error: multiple declarations of mnemonic='%s'" % mnemonic)
         sys.exit(-1)
     else:
         mnm_list.append(mnemonic)
@@ -298,8 +298,8 @@ for node in tlNode.childNodes:
         if 'cast' in n.attributes.keys():
             pfx_c.append( "P_c" + n.attributes['cast'].value )
 
-	# get implicit addressing attribute, if given
-	if 'imp_addr' in n.attributes.keys():
+        # get implicit addressing attribute, if given
+        if 'imp_addr' in n.attributes.keys():
             if int( n.attributes['imp_addr'].value ):
                 pfx_c.append( "P_ImpAddr" )
 
@@ -309,7 +309,7 @@ for node in tlNode.childNodes:
             modef = v.split();
             for m in modef:
                 if not (m in pfx_dict):
-                    print "warning: unrecognized mode attribute '%s'" % m
+                    print("warning: unrecognized mode attribute '%s'" % m)
                 else:
                      pfx_c.append(pfx_dict[m])
 
@@ -334,7 +334,7 @@ for node in tlNode.childNodes:
             opc = parts[1].split()
             opr = parts[2].split()
         else:
-            print "error: invalid opcode definition of %s\n" % mnemonic
+            print("error: invalid opcode definition of %s\n" % mnemonic)
             sys.exit(-1)
         # Convert opcodes to upper case
         for i in range(len(opc)):
@@ -355,7 +355,7 @@ for node in tlNode.childNodes:
         #
         for p in pfx:
             if not ( p in pfx_dict.keys() ):
-                print "error: invalid prefix specification: %s \n" % pfx
+                print("error: invalid prefix specification: %s \n" % pfx)
             pfx_c.append( pfx_dict[p] )
         if len(pfx) == 0:
             pfx_c.append( "P_none" )
@@ -367,7 +367,7 @@ for node in tlNode.childNodes:
         opr_c = [ "O_NONE", "O_NONE", "O_NONE" ]
         for i in range(len(opr)): 
             if not (opr[i] in operand_dict.keys()):
-                print "error: invalid operand declaration: %s\n" % opr[i]
+                print("error: invalid operand declaration: %s\n" % opr[i])
             opr_c[i] = "O_" + opr[i]
         opr = "%-8s %-8s %s" % (opr_c[0] + ",", opr_c[1] + ",", opr_c[2])
 
@@ -516,7 +516,7 @@ f.write("};\n\n")
 # Generate enumeration of the tables
 #
 table_names = tables.keys()
-table_names.sort();
+table_names = sorted(table_names)
 
 f.write( "\nenum ud_itab_index {\n" )
 for name in table_names:

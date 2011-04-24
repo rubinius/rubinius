@@ -68,7 +68,7 @@ describe :hash_eql, :shared => true do
       a[:delta] = 42
       c.send(@method, a).should be_false
       b[:delta] = 42
-      c.send(@method, a).should be_true   
+      c.send(@method, a).should be_true
     end
 
     it "computes equality for recursive hashes & arrays" do

@@ -25,6 +25,8 @@ module Rubinius
       raise PrimitiveFailure, "Tuple#[] primitive failed"
     end
 
+    alias_method :at, :[]
+
     def []=(idx, val)
       Ruby.primitive :tuple_put
 
@@ -34,15 +36,7 @@ module Rubinius
       raise PrimitiveFailure, "Tuple#[]= primitive failed"
     end
 
-    def at(idx)
-      Ruby.primitive :tuple_at
-      raise PrimitiveFailure, "Tuple#[] primitive failed"
-    end
-
-    def put(idx, val)
-      Ruby.primitive :tuple_put
-      raise PrimitiveFailure, "Tuple#[]= primitive failed"
-    end
+    alias_method :put, :[]=
 
     def fields
       Ruby.primitive :tuple_fields
@@ -155,11 +149,6 @@ module Rubinius
       reverse(
         Rubinius::Type.coerce_to(start, Fixnum, :to_i),
         Rubinius::Type.coerce_to(total, Fixnum, :to_i))
-    end
-
-    def self.create_weakref(object)
-      Ruby.primitive :tuple_create_weakref
-      raise PrimitiveFailure, "Tuple.create_weakref failed, unable to create a weak reference"
     end
 
   end

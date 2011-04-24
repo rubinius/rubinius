@@ -35,7 +35,7 @@ ruby_version_is ""..."1.9" do
       a[0] = -214
       a[0].should == 42
     end
-      
+
     it "sets the code to char % 256" do
       str = "Hello"
 

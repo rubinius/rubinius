@@ -12,7 +12,7 @@ describe "CGI::HtmlExtension#submit" do
       output = @html.submit
       output.should equal_element("INPUT", {"TYPE" => "submit"}, "", :not_closed => true)
     end
-  
+
     it "ignores a passed block" do
       output = @html.submit { "test" }
       output.should equal_element("INPUT", {"TYPE" => "submit"}, "", :not_closed => true)
@@ -24,7 +24,7 @@ describe "CGI::HtmlExtension#submit" do
       output = @html.submit("Example")
       output.should equal_element("INPUT", {"TYPE" => "submit", "VALUE" => "Example"}, "", :not_closed => true)
     end
-  
+
     it "ignores a passed block" do
       output = @html.submit("Example") { "test" }
       output.should equal_element("INPUT", {"TYPE" => "submit", "VALUE" => "Example"}, "", :not_closed => true)
@@ -36,7 +36,7 @@ describe "CGI::HtmlExtension#submit" do
       output = @html.submit("Example", "test-name")
       output.should equal_element("INPUT", {"TYPE" => "submit", "VALUE" => "Example", "NAME" => "test-name"}, "", :not_closed => true)
     end
-  
+
     it "ignores a passed block" do
       output = @html.submit("Example", "test-name") { "test" }
       output.should equal_element("INPUT", {"TYPE" => "submit", "VALUE" => "Example", "NAME" => "test-name"}, "", :not_closed => true)
@@ -48,7 +48,7 @@ describe "CGI::HtmlExtension#submit" do
       output = @html.submit("Example")
       output.should equal_element("INPUT", {"TYPE" => "submit", "VALUE" => "Example"}, "", :not_closed => true)
     end
-  
+
     it "ignores a passed block" do
       output = @html.submit("Example") { "test" }
       output.should equal_element("INPUT", {"TYPE" => "submit", "VALUE" => "Example"}, "", :not_closed => true)

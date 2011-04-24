@@ -59,7 +59,7 @@ describe "Array#rindex" do
 
       seen.should == [3]
     end
-    
+
     describe "given no argument and no block" do
       it "produces an Enumerator" do
         enum = [4, 2, 1, 5, 1, 3].rindex

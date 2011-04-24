@@ -8,7 +8,7 @@ describe "URI#normalize" do
     no_path.to_s.should_not == "http://example.com/"
     no_path.normalize.to_s.should == "http://example.com/"
   end
-  
+
   it "downcases the host of the URI" do
     uri = URI("http://exAMPLE.cOm/")
     uri.to_s.should_not == "http://example.com/"

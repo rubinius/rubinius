@@ -18,13 +18,13 @@ describe "Set#subset?" do
     Set[1, 3].subset?(@set).should be_true
     Set[1, 2].subset?(@set).should be_true
     Set[1].subset?(@set).should be_true
-    
+
     Set[5].subset?(@set).should be_false
     Set[1, 5].subset?(@set).should be_false
     Set[nil].subset?(@set).should be_false
     Set["test"].subset?(@set).should be_false
   end
-  
+
   it "raises an ArgumentError when passed a non-Set" do
     lambda { Set[].subset?([]) }.should raise_error(ArgumentError)
     lambda { Set[].subset?(1) }.should raise_error(ArgumentError)

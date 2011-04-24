@@ -23,7 +23,7 @@ describe "Array#product" do
       [1, 2].product([]).should == []
     end
   end
-  
+
   it "does not attempt to produce an unreasonable number of products" do
     a = (0..100).to_a
     lambda do
@@ -43,7 +43,7 @@ describe "Array#product" do
         [1,2].product([3,4,5],[],[6,8]){|array| acc << array}
         acc.should be_empty
       end
-      
+
       it "will ignore unreasonable numbers of products and yield anyway" do
         a = (0..100).to_a
         lambda do

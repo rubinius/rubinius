@@ -17,7 +17,7 @@ describe "Timeout.timeout" do
       end
     end.should raise_error(StandardError)
   end
-  
+
   it "does not wait too long" do
     before_time = Time.now
     lambda do

@@ -68,7 +68,7 @@ describe :encode_string, :shared => true do
     str = "\u3042".force_encoding('UTF-8')
     str.send(@method, Encoding::EUC_JP).should == "\xA4\xA2".force_encoding('EUC-JP')
   end
- 
+
   it "can convert between encodings where a multi-stage conversion path is needed" do
     str = "big?".force_encoding(Encoding::US_ASCII)
     str.send(@method, Encoding::Big5, Encoding::US_ASCII).encoding.should == Encoding::Big5
@@ -86,7 +86,7 @@ describe :encode_string, :shared => true do
       str.send(@method, Encoding.find('macCyrillic'))
     end.should raise_error(Encoding::UndefinedConversionError)
   end
-  
+
   it "raises Encoding::ConverterNotFoundError for invalid target encodings" do
     lambda do
       "\u{9878}".send(@method, 'xyz')
@@ -97,7 +97,7 @@ describe :encode_string, :shared => true do
     str = "\xa4"
     str.send(@method, "ISO-8859-1", "UTF-8", :invalid => :replace).should == "?"
   end
-  
+
   it "replaces undefined characters" do
     "abc\u{fffd}def".send(@method, "EUC-JP", "UTF-8", {:undef => :replace, :replace => ""}).should == "abcdef"
   end
@@ -105,7 +105,7 @@ describe :encode_string, :shared => true do
   it "replaces xml characters" do
     '<xml>bed & breakfast</xml>'.send(@method, 'UTF-8', {:xml => :text}).should == "&lt;xml&gt;bed &amp; breakfast&lt;/xml&gt;"
   end
-  
+
   it "replaces xml characters and quotes the result" do
     '<xml>bed & breakfast</xml>'.send(@method, 'UTF-8', {:xml => :attr}).should == "\"&lt;xml&gt;bed &amp; breakfast&lt;/xml&gt;\""
   end

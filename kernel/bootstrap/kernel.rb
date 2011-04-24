@@ -1,4 +1,29 @@
 module Kernel
+  # Send message to object with given arguments.
+  #
+  # Ignores visibility of method, and may therefore be used to
+  # invoke protected or private methods.
+  #
+  # As denoted by the double-underscore, this method must not
+  # be removed or redefined by user code.
+  #
+  def __send__(message, *args)
+    Ruby.primitive :object_send
+
+    # MRI checks for Fixnum explicitly and raises ArgumentError
+    # instead of TypeError. Seems silly, so we don't bother.
+    #
+    case message
+    when String
+      message = Rubinius::Type.coerce_to message, Symbol, :to_sym
+    when Symbol
+      # nothing!
+    else
+      raise TypeError, "#{message.inspect} is not a symbol"
+    end
+
+    __send__ message, *args
+  end
 
   def equal?(other)
     Ruby.primitive :object_equal
@@ -12,6 +37,10 @@ module Kernel
 
   alias_method :==,  :equal?
   alias_method :===, :equal?
+
+  def singleton_class
+    Rubinius::Type.object_singleton_class self
+  end
 
   def extend(*mods)
     Rubinius::Type.object_singleton_class(self).include(*mods)
@@ -53,13 +82,6 @@ module Kernel
   end
 
   private :respond_to_all?
-
-  # Rather than attr = !!value or attr = value && true or attr = (value
-  # and true) littering code, we provide attr = value.to_bool for when
-  # an attribute must be true or false.
-  def to_bool
-    !!self
-  end
 
   def taint
     Ruby.primitive :object_taint

@@ -9,7 +9,7 @@ describe "Fixnum#|" do
     (0xffff | bignum_value + 0xf0f0).should == 0x8000_0000_0000_ffff
   end
 
-  it "should be able to AND a bignum with a fixnum" do
+  it "returns self bitwise OR a Bignum" do
     (-1 | 2**64).should == -1
   end
 
@@ -20,21 +20,21 @@ describe "Fixnum#|" do
         lambda { 1 | -bignum_value(10000).to_f }.should_not raise_error()
       end
     end
-  
+
     it "converts a Float to an Integer" do
       (5 | 4.3).should == 5
     end
   end
-    
+
   it "tries to convert the int like argument to an Integer using to_int" do
     (obj = mock('4')).should_receive(:to_int).and_return(4)
     (3 | obj).should == 7
   end
-  
+
   it "raises a TypeError when the given argument can't be converted to Integer" do
     obj = mock('asdf')
     lambda { 3 | obj }.should raise_error(TypeError)
-    
+
     obj.should_receive(:to_int).and_return("asdf")
     lambda { 3 | obj }.should raise_error(TypeError)
   end

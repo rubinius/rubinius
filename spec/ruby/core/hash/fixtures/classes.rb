@@ -26,7 +26,7 @@ module HashSpecs
     @empty.freeze
     @empty
   end
-  
+
   def self.frozen_hash
     @hash ||= new_hash(1 => 2, 3 => 4)
     @hash.freeze

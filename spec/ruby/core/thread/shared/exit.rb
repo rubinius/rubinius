@@ -13,7 +13,7 @@ describe :thread_exit, :shared => true do
     sleeping_thread.join
     ScratchPad.recorded.should == nil
   end
-  
+
   it "kills current thread" do
     thread = Thread.new do
       Thread.current.send(@method)
@@ -22,7 +22,7 @@ describe :thread_exit, :shared => true do
     thread.join
     ScratchPad.recorded.should == nil
   end
-  
+
   it "runs ensure clause" do
     thread = ThreadSpecs.dying_thread_ensures(@method) { ScratchPad.record :in_ensure_clause }
     thread.join
@@ -54,13 +54,13 @@ describe :thread_exit, :shared => true do
     ScratchPad.recorded.should include(:inner_ensure_clause)
     ScratchPad.recorded.should include(:outer_ensure_clause)
   end
-  
+
   it "does not set $!" do
     thread = ThreadSpecs.dying_thread_ensures(@method) { ScratchPad.record $! }
     thread.join
     ScratchPad.recorded.should == nil
   end
-   
+
   it "cannot be rescued" do
     thread = Thread.new do
       begin
@@ -70,12 +70,12 @@ describe :thread_exit, :shared => true do
       end
      ScratchPad.record :end_of_thread_block
     end
-    
+
     thread.join
     ScratchPad.recorded.should == nil
   end
- 
-  ruby_version_is "" ... "1.9" do 
+
+  ruby_version_is "" ... "1.9" do
     it "killing dying sleeping thread wakes up thread" do
       t = ThreadSpecs.dying_thread_ensures { Thread.stop; ScratchPad.record :after_stop }
       Thread.pass while t.status and t.status != "sleep"
@@ -139,7 +139,7 @@ describe :thread_exit, :shared => true do
     thread.value.should == :end_of_thread_block
     ScratchPad.recorded.to_s.should == "In dying thread"
   end
-  
+
   it "is deferred if ensure clause does Thread.stop" do
     ThreadSpecs.wakeup_dying_sleeping_thread(@method) { Thread.stop; ScratchPad.record :after_sleep }
     ScratchPad.recorded.should == :after_sleep
@@ -155,7 +155,7 @@ describe :thread_exit, :shared => true do
     end
   end
   end
-  
+
   # This case occurred in JRuby where native threads are used to provide
   # the same behavior as MRI green threads. Key to this issue was the fact
   # that the thread which called #exit in its block was also being explicitly

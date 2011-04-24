@@ -20,7 +20,7 @@ describe :complex_to_s, :shared => true do
   it "returns self as String" do
     Complex(1, 5).to_s.should == "1+5i"
     Complex(-2.5, 1.5).to_s.should == "-2.5+1.5i"
-    
+
     Complex(1, -5).to_s.should == "1-5i"
     Complex(-2.5, -1.5).to_s.should == "-2.5-1.5i"
 

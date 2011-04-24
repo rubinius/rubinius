@@ -209,6 +209,16 @@ end
 
 desc "Print list of items marked to-do in kernel/ (@todo|TODO)"
 task :todos do
-  sh "grep", "-Rn", "@todo", "kernel"
-  sh "grep", "-Rn", "TODO", "kernel"
+
+  # create array with files to be checked
+  filesA = Dir['kernel/**/*.*']
+  
+  # search for @todo or TODO
+  filesA.sort!.each do |filename|
+    File.open(filename) do |file|
+      file.each do |line|
+        puts "#{filename} #{file.lineno.to_s}:\t#{line.strip}" if line.include?("@todo") or line.include?("TODO")
+      end
+    end
+  end
 end

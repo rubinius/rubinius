@@ -16,16 +16,16 @@ describe "Net::FTP#site" do
     @ftp.close
     @server.stop
   end
-  
+
   it "sends the SITE command with the passed argument to the server" do
     @ftp.site("param")
     @ftp.last_response.should == "200 Command okay. (SITE param)\n"
   end
-  
+
   it "returns nil" do
     @ftp.site("param").should be_nil
   end
-  
+
   it "does not raise an error when the response code is 202" do
     @server.should_receive(:site).and_respond("202 Command not implemented, superfluous at this site.")
     lambda { @ftp.site("param") }.should_not raise_error

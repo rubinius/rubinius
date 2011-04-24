@@ -107,38 +107,20 @@ end
 
 module Kernel
 
-  # Send message to object with given arguments.
-  #
-  # Ignores visibility of method, and may therefore be used to
-  # invoke protected or private methods.
-  #
-  # As denoted by the double-underscore, this method must not
-  # be removed or redefined by user code.
-  #
-  def __send__(message, *args)
-    Ruby.primitive :object_send
-
-    # MRI checks for Fixnum explicitly and raises ArgumentError
-    # instead of TypeError. Seems silly, so we don't bother.
-    #
-    case message
-    when String
-      message = Rubinius::Type.coerce_to message, Symbol, :to_sym
-    when Symbol
-      # nothing!
-    else
-      raise TypeError, "#{message.inspect} is not a symbol"
-    end
-
-    __send__ message, *args
-  end
-
   # Return the Class object this object is an instance of.
   #
   # Note that this method must always be called with an
   # explicit receiver, since class by itself is a keyword.
   #
   def class
+    Ruby.primitive :object_class
+    raise PrimitiveFailure, "Kernel#class primitive failed."
+  end
+
+  # Return the class object of self.
+  #
+  # This is the same as #class, but named to always be available.
+  def __class__
     Ruby.primitive :object_class
     raise PrimitiveFailure, "Kernel#class primitive failed."
   end
@@ -443,8 +425,7 @@ end
 
 class Module
   def method_table   ; @method_table ; end
-  def constant_table ; @constants    ; end
-  def encloser       ; @encloser     ; end
+  def constants_table; @constants    ; end
   def name           ; @module_name.to_s    ; end
 
   # Specialised allocator.
@@ -512,7 +493,9 @@ class Module
   #
   def include(mod)
     mod.append_features(self)
-    mod.__send__ :included, self
+    Rubinius.privately do
+      mod.included self
+    end
     self
   end
 
@@ -670,6 +653,8 @@ module Rubinius
   # ancestor hierarchy for method- and constant lookup in a
   # roughly transparent fashion.
   #
+  # This class is known to the VM.
+  #
   class IncludedModule < Module
     attr_reader :superclass
     attr_reader :module
@@ -689,10 +674,7 @@ module Rubinius
     #
     def initialize(mod)
       @method_table = mod.method_table
-      @method_cache = nil
-      @name = nil
-      @constants = mod.constant_table
-      @encloser = mod.encloser
+      @constants = mod.constants_table
       @module = mod
     end
 
@@ -741,10 +723,6 @@ module Rubinius
       end
     end
   end
-end
-
-module Kernel
-  alias_method :__class__, :class
 end
 
 class Object

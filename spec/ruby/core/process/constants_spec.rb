@@ -19,13 +19,13 @@ describe "Process::Constants" do
       Process::RLIMIT_NOFILE.should == 8
     end
   end
-  
+
   platform_is :os => [:darwin] do
     it "has the correct constant values on Darwin" do
       Process::RLIM_SAVED_MAX.should == 9223372036854775807
       Process::RLIM_SAVED_CUR.should == 9223372036854775807
       Process::RLIMIT_AS.should == 5
-    end 
+    end
   end
 
   platform_is :os => [:linux] do
@@ -58,6 +58,6 @@ describe "Process::Constants" do
     it "Process::RLIMIT_SBSIZE" do
       Process::RLIMIT_SBSIZE.should == 9 # FIXME: what's it equal?
       Process::RLIMIT_AS.should == 10
-    end 
+    end
   end
 end

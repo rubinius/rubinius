@@ -17,7 +17,7 @@ end
 describe :complex_minus_object, :shared => true do
   it "tries to coerce self into other" do
     value = Complex(3, 9)
-    
+
     obj = mock("Object")
     obj.should_receive(:coerce).with(value).and_return([2, 5])
     (value - obj).should == 2 - 5

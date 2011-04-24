@@ -46,7 +46,7 @@ describe "IO#ungetc" do
     @io.ungetc(100)
     @io.getc.should == 100
   end
-  
+
   it "pushes back one character when invoked at the start of the stream" do
     @io.read(0)
     @io.ungetc(100)

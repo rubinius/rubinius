@@ -361,7 +361,11 @@ module FFI
       other.total = total
       other.type_size = type_size
       FFI::Platform::POSIX.memcpy other, self, total
-      other.send :initialize_copy, self
+
+      Rubinius.privately do
+        other.initialize_copy self
+      end
+
       other
     end
 

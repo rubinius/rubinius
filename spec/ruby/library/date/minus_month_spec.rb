@@ -1,4 +1,4 @@
-require 'date' 
+require 'date'
 require File.expand_path('../../../spec_helper', __FILE__)
 
 describe "Date#<<" do
@@ -19,5 +19,5 @@ describe "Date#<<" do
     lambda { Date.civil(2007,2,27) << Date.new }.should raise_error(NoMethodError)
     lambda { Date.civil(2007,2,27) << Object.new }.should raise_error(NoMethodError)
   end
-  
+
 end

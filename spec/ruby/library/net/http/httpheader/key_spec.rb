@@ -12,7 +12,7 @@ describe "Net::HTTPHeader#key? when passed key" do
     @headers["My-Header"] = "test"
     @headers.key?("My-Header").should be_true
   end
-  
+
   it "is case-insensitive" do
     @headers["My-Header"] = "test"
     @headers.key?("my-header").should be_true

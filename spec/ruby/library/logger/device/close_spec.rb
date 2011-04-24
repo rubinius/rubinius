@@ -20,7 +20,7 @@ describe "Logger::LogDevice#close" do
       @device.close
       lambda { @device.write("Test") }.should raise_error
     end
- 
+
     it "raises an error if it's already closed" do
       @device.close
       lambda { @device.close }.should raise_error

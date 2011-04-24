@@ -5,7 +5,7 @@ ruby_version_is "1.8.8" do
     it "returns an Integer" do
       "a".setbyte(0,1).should be_kind_of(Integer)
     end
-    
+
     it "modifies the receiver" do
       str = "glark"
       old_id = str.object_id
@@ -47,9 +47,9 @@ ruby_version_is "1.8.8" do
       str.frozen?.should be_true
       lambda { str.setbyte(3,96) }.should raise_error(RuntimeError)
     end
-    
+
     it "raises a TypeError unless the second argument is an Integer" do
       lambda { "a".setbyte(0,'a') }.should raise_error(TypeError)
-    end  
+    end
   end
 end

@@ -161,7 +161,7 @@ class StringScanner
   end
 
   def rest
-    @string[pos..-1]
+    @string.substring(@pos, rest_size)
   end
 
   def rest?
@@ -169,7 +169,7 @@ class StringScanner
   end
 
   def rest_size
-    rest.size
+    @string.size - @pos
   end
 
   def restsize

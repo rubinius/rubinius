@@ -13,7 +13,7 @@ ruby_version_is "1.8.7" do
       @tmpdir = Dir.mktmpdir
       @tmpdir.should =~ /^\/tmp\//
     end
-  
+
     it "creates a new writable directory in the path provided by Dir.tmpdir" do
       Dir.should_receive(:tmpdir).and_return(tmp(""))
       @tmpdir = Dir.mktmpdir
@@ -27,7 +27,7 @@ ruby_version_is "1.8.7" do
       Dir.stub!(:tmpdir).and_return("/tmp")
       FileUtils.stub!(:remove_entry_secure)
     end
-  
+
     after :each do
       Dir.rmdir @tmpdir if File.directory? @tmpdir
     end
@@ -42,7 +42,7 @@ ruby_version_is "1.8.7" do
       end
       called.should be_true
     end
-  
+
     it "creates the tmp-dir before yielding" do
       Dir.should_receive(:tmpdir).and_return(tmp(""))
       Dir.mktmpdir do |path|
@@ -51,7 +51,7 @@ ruby_version_is "1.8.7" do
         File.writable?(path).should be_true
       end
     end
-  
+
     it "removes the tmp-dir after executing the block" do
       Dir.stub!(:mkdir)
       Dir.mktmpdir do |path|
@@ -59,7 +59,7 @@ ruby_version_is "1.8.7" do
         FileUtils.should_receive(:remove_entry_secure).with(path)
       end
     end
-  
+
     it "returns the blocks return value" do
       Dir.stub!(:mkdir)
       result = Dir.mktmpdir do |path|
@@ -101,7 +101,7 @@ ruby_version_is "1.8.7" do
     it "uses the first element of the passed Array as a prefix and the scond element as a suffix to the tmp-directory" do
       prefix = "before"
       suffix = "after"
-    
+
       @tmpdir = Dir.mktmpdir([prefix, suffix])
       @tmpdir.should =~ /#{suffix}$/
     end

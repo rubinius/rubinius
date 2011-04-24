@@ -3,7 +3,7 @@ require File.expand_path('../fixtures/classes', __FILE__)
 
 describe "Array#assoc" do
   it "returns the first array whose 1st item is == obj or nil" do
-    s1 = ["colors", "red", "blue", "green"] 
+    s1 = ["colors", "red", "blue", "green"]
     s2 = [:letters, "a", "b", "c"]
     s3 = [4]
     s4 = ["colors", "cyan", "yellow", "magenda"]
@@ -28,12 +28,12 @@ describe "Array#assoc" do
     items.assoc(key1).should equal(items[1])
     items.assoc(key2).should be_nil
   end
-  
+
   it "ignores any non-Array elements" do
     [1, 2, 3].assoc(2).should be_nil
     s1 = [4]
     s2 = [5, 4, 3]
-    a = ["foo", [], s1, s2, nil, []] 
+    a = ["foo", [], s1, s2, nil, []]
     a.assoc(s1.first).should equal(s1)
     a.assoc(s2.first).should equal(s2)
   end

@@ -5,7 +5,7 @@ describe "Kernel.local_variables" do
   it "is a private method" do
     Kernel.should have_private_instance_method(:local_variables)
   end
-  
+
   ruby_version_is ""..."1.9" do
     it "contains locals as they are added" do
       a = 1
@@ -17,7 +17,7 @@ describe "Kernel.local_variables" do
       def local_var_foo
         a = 1
         b = 2
-        binding      
+        binding
       end
       foo_binding = local_var_foo()
       res = eval("local_variables",foo_binding)
@@ -36,7 +36,7 @@ describe "Kernel.local_variables" do
       def local_var_foo
         a = 1
         b = 2
-        binding      
+        binding
       end
       foo_binding = local_var_foo()
       res = eval("local_variables",foo_binding)

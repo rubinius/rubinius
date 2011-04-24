@@ -6,7 +6,7 @@ describe "Net::FTP#help" do
   def with_connection
     yield
   end
-  
+
   before(:each) do
     @server = NetFTPSpecs::DummyFTP.new
     @server.serve_once
@@ -25,7 +25,7 @@ describe "Net::FTP#help" do
     @ftp.help
     @ftp.last_response.should == "211 System status, or system help reply. (HELP)\n"
   end
-  
+
   it "returns the server's response" do
     @ftp.help.should == "211 System status, or system help reply. (HELP)\n"
   end

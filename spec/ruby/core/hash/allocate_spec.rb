@@ -5,7 +5,7 @@ describe "Hash.allocate" do
     hsh = hash_class.allocate
     hsh.should be_kind_of(Hash)
   end
-  
+
   it "returns a fully-formed instance of Hash" do
     hsh = hash_class.allocate
     hsh.size.should == 0

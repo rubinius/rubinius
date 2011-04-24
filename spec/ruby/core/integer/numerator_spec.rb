@@ -14,7 +14,7 @@ ruby_version_is "1.9" do
     it "returns self" do
       @numbers.each do |number|
         number.numerator.should == number
-      end  
-    end  
+      end
+    end
   end
 end

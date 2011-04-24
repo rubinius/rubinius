@@ -1,3 +1,4 @@
+#include <stddef.h>
 #include <list>
 
 namespace rubinius {

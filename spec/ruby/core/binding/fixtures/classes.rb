@@ -3,7 +3,7 @@ module BindingSpecs
     def initialize(n)
       @secret = n
     end
-  
+
     def square(n)
       n * n
     end

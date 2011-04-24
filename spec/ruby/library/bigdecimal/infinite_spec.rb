@@ -6,7 +6,7 @@ describe "BigDecimal#infinite?" do
   it "returns 1 if self is Infinity" do
     BigDecimal("Infinity").infinite?.should == 1
   end
-  
+
   it "returns -1 if self is -Infinity" do
     BigDecimal("-Infinity").infinite?.should == -1
   end

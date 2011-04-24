@@ -5,7 +5,7 @@ describe :module_equal, :shared => true do
     ModuleSpecs::Parent.send(@method, ModuleSpecs::Parent).should == true
     ModuleSpecs::Basic.send(@method, ModuleSpecs::Basic).should == true
     ModuleSpecs::Super.send(@method, ModuleSpecs::Super).should == true
-    
+
     ModuleSpecs::Child.send(@method, ModuleSpecs).should == false
     ModuleSpecs::Child.send(@method, ModuleSpecs::Parent).should == false
     ModuleSpecs::Child.send(@method, ModuleSpecs::Basic).should == false

@@ -2,12 +2,12 @@ describe :bignum_divide, :shared => true do
   before(:each) do
     @bignum = bignum_value(88)
   end
-  
+
   it "returns self divided by other" do
     @bignum.send(@method, 4).should == 2305843009213693974
 
     @bignum.send(@method, bignum_value(2)).should be_close(1, TOLERANCE)
-    
+
     (-(10**50)).send(@method, -(10**40 + 1)).should == 9999999999
     (10**50).send(@method, 10**40 + 1).should == 9999999999
 

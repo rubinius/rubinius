@@ -9,7 +9,7 @@ describe :enumerable_find_all, :shared => true do
     @numerous.send(@method) {|i| true }.should == @elements
     @numerous.send(@method) {|i| false }.should == []
   end
-  
+
   ruby_version_is "" ... "1.8.7" do
     it "raises a LocalJumpError if no block given" do
       lambda { @numerous.send(@method) }.should raise_error(LocalJumpError)
@@ -20,5 +20,5 @@ describe :enumerable_find_all, :shared => true do
       @numerous.send(@method).should be_an_instance_of(enumerator_class)
     end
   end
-  
+
 end

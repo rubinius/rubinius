@@ -4,7 +4,7 @@ describe "Bignum#&" do
   before(:each) do
     @bignum = bignum_value(5)
   end
-  
+
   it "returns self bitwise AND other" do
     @bignum = bignum_value(5)
     (@bignum & 3).should == 1
@@ -49,11 +49,11 @@ describe "Bignum#&" do
     (obj = mock('3')).should_receive(:to_int).and_return(3)
     (@bignum & obj).should == 1
   end
-  
+
   it "raises a TypeError when the given argument can't be converted to Integer" do
     obj = mock('asdf')
     lambda { @bignum & obj }.should raise_error(TypeError)
-    
+
     obj.should_receive(:to_int).and_return("asdf")
     lambda { @bignum & obj }.should raise_error(TypeError)
   end

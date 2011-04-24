@@ -47,7 +47,7 @@ describe "Array#shift" do
       lambda { ArraySpecs.empty_frozen_array.shift }.should raise_error(RuntimeError)
     end
   end
-  
+
   ruby_version_is '' ... '1.8.7' do
     it "raises an ArgumentError if passed an argument" do
       lambda{ [1, 2].shift(1) }.should raise_error(ArgumentError)

@@ -5,7 +5,7 @@ describe "Module.allocate" do
     mod = Module.allocate
     mod.should be_kind_of(Module)
   end
-  
+
   it "returns a fully-formed instance of Module" do
     mod = Module.allocate
     mod.constants.should_not == nil

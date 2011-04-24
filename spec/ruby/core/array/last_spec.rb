@@ -5,11 +5,11 @@ describe "Array#last" do
   it "returns the last element" do
     [1, 1, 1, 1, 2].last.should == 2
   end
-  
+
   it "returns nil if self is empty" do
     [].last.should == nil
   end
-  
+
   it "returns the last count elements if given a count" do
     [1, 2, 3, 4, 5, 9].last(3).should == [4, 5, 9]
   end
@@ -18,7 +18,7 @@ describe "Array#last" do
     [].last(0).should == []
     [].last(1).should == []
   end
-  
+
   it "returns an empty array when count == 0" do
     [1, 2, 3, 4, 5].last(0).should == []
   end
@@ -30,7 +30,7 @@ describe "Array#last" do
   it "raises an ArgumentError when count is negative" do
     lambda { [1, 2].last(-1) }.should raise_error(ArgumentError)
   end
-  
+
   it "returns the entire array when count > length" do
     [1, 2, 3, 4, 5, 9].last(10).should == [1, 2, 3, 4, 5, 9]
   end

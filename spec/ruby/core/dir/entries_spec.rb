@@ -18,7 +18,7 @@ describe "Dir.entries" do
     a = Dir.entries("#{DirSpecs.mock_dir}/deeply/nested").sort
     a.should == %w|. .. .dotfile.ext directory|
   end
-  
+
   ruby_version_is "1.9" do
     it "calls #to_path on non-String arguments" do
       p = mock('path')

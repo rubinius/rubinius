@@ -13,18 +13,18 @@ describe "Net::HTTPResponse#reading_body" do
       @res.reading_body(@socket, true) {}.should == "test body"
       @res.body.should == "test body"
     end
-    
+
     it "yields the passed block before reading the body" do
       yielded = false
-      
-      @res.reading_body(@socket, true) do 
+
+      @res.reading_body(@socket, true) do
         @res.inspect.should == "#<Net::HTTPUnknownResponse ??? test response readbody=false>"
         yielded = true
       end
-      
+
       yielded.should be_true
     end
-    
+
     describe "but the response type is not allowed to have a body" do
       before(:each) do
         @res = Net::HTTPInformation.new("1.0", "???", "test response")
@@ -42,7 +42,7 @@ describe "Net::HTTPResponse#reading_body" do
       end
     end
   end
-  
+
   describe "when body_allowed is false" do
     it "returns nil" do
       @res.reading_body(@socket, false) {}.should be_nil

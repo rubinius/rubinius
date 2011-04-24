@@ -41,7 +41,9 @@ module Rubinius
 
     def dup
       copy = duplicate
-      copy.send :initialize_copy, self
+      Rubinius.privately do
+        copy.initialize_copy self
+      end
       copy
     end
 
@@ -57,21 +59,6 @@ module Rubinius
     def delete(name)
       Ruby.primitive :methodtable_delete
       raise PrimitiveFailure, "MethodTable#delete primitive failed"
-    end
-
-    def names
-      Ruby.primitive :methodtable_names
-      raise PrimitiveFailure, "MethodTable#names primitive failed"
-    end
-
-    def values
-      Ruby.primitive :methodtable_values
-      raise PrimitiveFailure, "MethodTable#names primitive failed"
-    end
-
-    def entries
-      Ruby.primitive :methodtable_entries
-      raise PrimitiveFailure, "MethodTable#entries primitive failed"
     end
 
     def each_entry
@@ -95,8 +82,11 @@ module Rubinius
       raise LocalJumpError, "no block given" unless block_given?
 
       i = 0
-      while i < @bins
-        if entry = @values.at(i)
+      max = @bins
+      vals = @values
+
+      while i < max
+        if entry = vals.at(i)
           while entry
             yield entry.name, entry.method, entry.visibility
             entry = entry.next

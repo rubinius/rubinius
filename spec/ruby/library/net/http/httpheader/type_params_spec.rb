@@ -14,7 +14,7 @@ describe "Net::HTTPHeader#type_params" do
     @headers["Content-Type"] = "text/html; charset=utf-8; rubyspec=rocks"
     @headers.type_params.should == {"charset" => "utf-8", "rubyspec" => "rocks"}
   end
-  
+
   it "returns an empty Hash when no additional 'Content-Type' information is set" do
     @headers.type_params.should == {}
 

@@ -7,7 +7,7 @@ describe "String#<=> with String" do
     sort_order = ascii_order.sort
     sort_order.should == ascii_order
   end
-  
+
   it "returns -1 when self is less than other" do
     ("this" <=> "those").should == -1
   end
@@ -19,7 +19,7 @@ describe "String#<=> with String" do
   it "returns 1 when self is greater than other" do
     ("yoddle" <=> "griddle").should == 1
   end
-  
+
   it "considers string that comes lexicographically first to be less if strings have same size" do
     ("aba" <=> "abc").should == -1
     ("abc" <=> "aba").should == 1
@@ -34,11 +34,11 @@ describe "String#<=> with String" do
     ("abx" <=> "abcd").should == 1
     ("abcd" <=> "abx").should == -1
   end
-  
+
   it "ignores subclass differences" do
     a = "hello"
     b = StringSpecs::MyString.new("hello")
-    
+
     (a <=> b).should == 0
     (b <=> a).should == 0
   end

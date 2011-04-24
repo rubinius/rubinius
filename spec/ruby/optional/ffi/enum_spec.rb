@@ -104,7 +104,7 @@ describe "All enums" do
     FFISpecs::TestEnum1.enum_value(:c14).should == 4242
     FFISpecs::TestEnum1.enum_value(:c15).should == 424242
     FFISpecs::TestEnum1.enum_value(:c16).should == 42424242
-  
+
     FFISpecs::TestEnum3.enum_value(:c13).should == 42
     FFISpecs::TestEnum3.enum_value(:c14).should == 4242
     FFISpecs::TestEnum3.enum_value(:c15).should == 424242

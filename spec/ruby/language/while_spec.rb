@@ -17,44 +17,44 @@ describe "The while expression" do
     end
     i.should == 3
   end
-  
+
   it "optionally takes a 'do' after the expression" do
     i = 0
     while i < 3 do
       i += 1
     end
-    
+
     i.should == 3
   end
-  
+
   it "allows body begin on the same line if do is used" do
     i = 0
     while i < 3 do i += 1
     end
-    
+
     i.should == 3
   end
-  
+
   it "executes code in containing variable scope" do
     i = 0
     while i != 1
       a = 123
       i = 1
     end
-    
+
     a.should == 123
   end
-  
+
   it "executes code in containing variable scope with 'do'" do
     i = 0
     while i != 1 do
       a = 123
       i = 1
     end
-    
+
     a.should == 123
   end
-  
+
   it "returns nil if ended when condition became false" do
     i = 0
     while i < 3
@@ -78,13 +78,13 @@ describe "The while expression" do
     end
     i.should == 6
   end
-  
+
   it "returns value passed to break if interrupted by break" do
     while true
       break 123
     end.should == 123
   end
-  
+
   it "returns nil if interrupted by break with no arguments" do
     while true
       break
@@ -113,21 +113,21 @@ describe "The while expression" do
     a.should == [1, 1, 1, 2]
   end
 end
-  
+
 describe "The while modifier" do
   it "runs preceding statement while the condition is true" do
     i = 0
     i += 1 while i < 3
     i.should == 3
   end
-  
+
   it "evaluates condition before statement execution" do
     a = []
     i = 0
     a << i while (i+=1) < 3
     a.should == [1, 2]
   end
-  
+
   it "does not run preceding statement if the condition is false" do
     i = 0
     i += 1 while false
@@ -144,11 +144,11 @@ describe "The while modifier" do
     i = 0
     (i += 1 while i<10).should == nil
   end
-  
+
   it "returns value passed to break if interrupted by break" do
     (break 123 while true).should == 123
   end
-  
+
   it "returns nil if interrupted by break with no arguments" do
     (break while true).should == nil
   end
@@ -174,34 +174,34 @@ describe "The while modifier with begin .. end block" do
     begin
       i += 1
     end while i < 3
-    
+
     i.should == 3
   end
-  
+
   it "stops running block if interrupted by break" do
     i = 0
     begin
       i += 1
       break if i > 5
     end while i < 10
-    
+
     i.should == 6
   end
-  
+
   it "returns value passed to break if interrupted by break" do
     (begin; break 123; end while true).should == 123
   end
-  
+
   it "returns nil if interrupted by break with no arguments" do
     (begin; break; end while true).should == nil
   end
-  
+
   it "runs block at least once (even if the expression is false)" do
     i = 0
     begin
       i += 1
     end while false
-    
+
     i.should == 1
   end
 

@@ -14,7 +14,7 @@ describe "Dir#each" do
   before :each do
     @dir = Dir.open DirSpecs.mock_dir
   end
-  
+
   after :each do
     @dir.close
   end
@@ -34,7 +34,7 @@ describe "Dir#each" do
     @dir.rewind
     ls.should include(@dir.read)
   end
-  
+
   ruby_version_is '' ... '1.8.7' do
     it 'raises a LocalJumpError if no block given' do
       lambda{ @dir.each }.should raise_error(LocalJumpError)

@@ -5,7 +5,7 @@ describe "Socket::IPSocket#peeraddr" do
   before :all do
     @do_not_reverse_lookup = BasicSocket.do_not_reverse_lookup
   end
-    
+
   before :each do
     @server = TCPServer.new("127.0.0.1", SocketSpecs.port)
     @client = TCPSocket.new("127.0.0.1", SocketSpecs.port)
@@ -20,11 +20,11 @@ describe "Socket::IPSocket#peeraddr" do
   after :all do
     BasicSocket.do_not_reverse_lookup = @do_not_reverse_lookup
   end
-    
+
   it "raises error if socket is not connected" do
     lambda { @server.peeraddr }.should raise_error
   end
-  
+
 
   ruby_version_is ""..."1.9" do
 

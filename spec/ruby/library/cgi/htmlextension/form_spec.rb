@@ -7,7 +7,7 @@ describe "CGI::HtmlExtension#form" do
     @html = CGISpecs.cgi_new
     @html.stub!(:script_name).and_return("/path/to/some/script")
   end
-  
+
   describe "when passed no arguments" do
     it "returns a 'form'-element" do
       output = @html.form

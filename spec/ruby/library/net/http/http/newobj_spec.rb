@@ -5,7 +5,7 @@ describe "Net::HTTP.newobj" do
   before(:each) do
     @net = Net::HTTP.newobj("localhost")
   end
-  
+
   describe "when passed address" do
     it "returns a new Net::HTTP instance" do
       @net.should be_kind_of(Net::HTTP)

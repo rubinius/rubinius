@@ -3,10 +3,10 @@ require 'csv'
 require 'tempfile'
 
 describe "CSV.generate" do
- 
+
   ruby_version_is "" ... "1.9" do
     before :each do
-      @outfile_name = tmp("generate_test_#{$$}.csv")  
+      @outfile_name = tmp("generate_test_#{$$}.csv")
     end
 
     it "creates a BasicWriter" do
@@ -26,7 +26,7 @@ describe "CSV.generate" do
       writer.should be_kind_of(CSV::BasicWriter)
       writer.close
     end
-  
+
     it "creates a BasicWriter to use in a block" do
       CSV::generate(@outfile_name) do |writer|
 	writer.should be_kind_of(CSV::BasicWriter)

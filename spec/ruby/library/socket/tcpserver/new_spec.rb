@@ -45,7 +45,7 @@ describe "TCPServer.new" do
     lambda { TCPServer.new(SocketSpecs.hostname, t) }.should raise_error(TypeError)
 
     def t.to_str; SocketSpecs.port.to_s; end
-    
+
     @server = TCPServer.new(SocketSpecs.hostname, t)
     addr = @server.addr
     addr[1].should == SocketSpecs.port
@@ -53,7 +53,7 @@ describe "TCPServer.new" do
     # TODO: This should also accept strings like 'https', but I don't know how to
     # pick such a service port that will be able to reliably bind...
   end
-  
+
   it "raises Errno::EADDRNOTAVAIL when the adress is unknown" do
     lambda { TCPServer.new("1.2.3.4", 4000) }.should raise_error(Errno::EADDRNOTAVAIL)
   end

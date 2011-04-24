@@ -17,7 +17,7 @@ describe "Digest::SHA1.file" do
     it 'returns a Digest::SHA1 object' do
       Digest::SHA1.file(@file).should be_kind_of(Digest::SHA1)
     end
-  
+
     it 'returns a Digest::SHA1 object with the correct digest' do
       Digest::SHA1.file(@file).digest.should == SHA1Constants::Digest
     end

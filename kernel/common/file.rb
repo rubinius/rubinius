@@ -704,7 +704,7 @@ class File < IO
   #  File.symlink("testfile", "link2test")   #=> 0
   #  File.readlink("link2test")              #=> "testfile"
   def self.readlink(path)
-    StringValue(path)
+    path = StringValue(path)
 
     FFI::MemoryPointer.new(1024) do |ptr|
       n = POSIX.readlink(path, ptr, 1024)
@@ -890,6 +890,8 @@ class File < IO
       mtime[:tv_usec] = 0
 
       paths.each do |path|
+        path = StringValue(path)
+
         if POSIX.utimes(path, ptr) != 0
           Errno.handle
         end

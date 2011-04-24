@@ -17,7 +17,7 @@ describe "StringIO#string=" do
     str = "test"
     (@io.string = str).should equal(str)
   end
-  
+
   it "changes the underlying string" do
     str = "hello"
     @io.string = str
@@ -39,7 +39,7 @@ describe "StringIO#string=" do
   it "tries to convert the passed Object to a String using #to_str" do
     obj = mock("to_str")
     obj.should_receive(:to_str).and_return("to_str")
-    
+
     @io.string = obj
     @io.string.should == "to_str"
   end

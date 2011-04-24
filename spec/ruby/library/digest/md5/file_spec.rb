@@ -17,7 +17,7 @@ describe "Digest::MD5.file" do
     it 'returns a Digest::MD5 object' do
       Digest::MD5.file(@file).should be_kind_of(Digest::MD5)
     end
-  
+
     it 'returns a Digest::MD5 object with the correct digest' do
       Digest::MD5.file(@file).digest.should == MD5Constants::Digest
     end

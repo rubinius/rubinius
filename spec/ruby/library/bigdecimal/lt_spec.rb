@@ -30,7 +30,7 @@ describe "BigDecimal#<" do
     @infinity_neg = BigDecimal("-Infinity")
     @nan = BigDecimal("NaN")
   end
-  
+
   it "returns true if a < b" do
     one = BigDecimal("1")
     two = BigDecimal("2")

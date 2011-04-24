@@ -7,7 +7,7 @@ module Rubinius
     include Rubinius::EnvironmentAccess
 
     def [](key)
-      getenv StringValue(key)
+      getenv(StringValue(key)).freeze
     end
 
     def []=(key, value)

@@ -8,7 +8,7 @@ describe :rational_initialize, :shared => true do
     before(:each) do
       @rational = Rational.allocate
     end
-    
+
     it "turns around the numerators and denominators signs around when the denominator is negative" do
       @rational.send(:initialize, 1, -2)
       @rational.numerator.should == -1

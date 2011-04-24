@@ -18,13 +18,13 @@ describe "Set#superset?" do
     @set.superset?(Set[1, 3]).should be_true
     @set.superset?(Set[1, 2]).should be_true
     @set.superset?(Set[1]).should be_true
-    
+
     @set.superset?(Set[5]).should be_false
     @set.superset?(Set[1, 5]).should be_false
     @set.superset?(Set[nil]).should be_false
     @set.superset?(Set["test"]).should be_false
   end
-  
+
   it "raises an ArgumentError when passed a non-Set" do
     lambda { Set[].superset?([]) }.should raise_error(ArgumentError)
     lambda { Set[].superset?(1) }.should raise_error(ArgumentError)

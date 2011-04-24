@@ -4,4 +4,4 @@ require File.expand_path('../shared/isdst', __FILE__)
 
 describe "Time#isdst" do
   it_behaves_like(:time_isdst, :isdst)
-end  
+end

@@ -30,12 +30,12 @@ describe "self in an eigenclass body (class << obj)" do
     cls.should_not equal(Object)
     mock.is_a?(cls).should be_true
   end
-  
+
   it "is a Class for classes" do
     cls = class << ClassSpecs::A;self;end
     cls.is_a?(Class).should be_true
   end
-  
+
   it "inherits from Class for classes" do
     temp = []
     cls = class << Object;self;end
@@ -150,7 +150,7 @@ describe "A constant on an eigenclass" do
     class << @object
       CONST = 100
     end
-    
+
     lambda do
       @object::CONST
     end.should raise_error(NameError)
@@ -191,7 +191,7 @@ describe "Defining instance methods on an eigenclass" do
 
     @k_eigenclass = class << @k; self end
   end
-  
+
   it "define public methods" do
     @k_eigenclass.should have_public_instance_method(:singleton_method)
   end

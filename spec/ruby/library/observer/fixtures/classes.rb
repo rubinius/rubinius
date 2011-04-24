@@ -2,7 +2,7 @@ require 'observer'
 
 class ObserverCallbackSpecs
   attr_reader :value
- 
+
   def initialize
     @value = nil
   end

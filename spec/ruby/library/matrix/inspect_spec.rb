@@ -2,7 +2,7 @@ require File.expand_path('../../../spec_helper', __FILE__)
 require 'matrix'
 
 describe "Matrix#inspect" do
-  
+
   it "returns a stringified representation of the Matrix" do
     Matrix[ [1,2], [2,1] ].inspect.should == "Matrix[[1, 2], [2, 1]]"
   end

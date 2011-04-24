@@ -7,7 +7,7 @@ describe "Enumerable#count" do
       @elements = [1, 2, 4, 2]
       @numerous = EnumerableSpecs::Numerous.new(*@elements)
     end
-  
+
     it "returns size when no argument or a block" do
       @numerous.count.should == 4
     end

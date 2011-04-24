@@ -1,4 +1,4 @@
-require 'date' 
+require 'date'
 require File.expand_path('../../../spec_helper', __FILE__)
 
 describe "Date#strftime" do
@@ -67,7 +67,7 @@ describe "Date#strftime" do
   it "should be able to print the hour in 12 hour notation with leading spaces" do
     Date.civil(2000, 4, 6).strftime("%l").should == "12"
   end
-  
+
   it "should be able to print the minutes with leading zeroes" do
     Date.civil(2000, 4, 6).strftime("%M").should == "00"
   end
@@ -99,7 +99,7 @@ describe "Date#strftime" do
   it "should be able to show the number of seconds since the unix epoch" do
     Date.civil(2000, 4, 6).strftime("%s").should == "954979200"
   end
-  
+
   it "should be able to add a tab" do
     Date.civil(2000, 4, 6).strftime("%t").should == "\t"
   end
@@ -112,7 +112,7 @@ describe "Date#strftime" do
     Date.civil(2000, 4, 9).strftime("%W").should == "14"
     Date.civil(2000, 4, 9).strftime("%U").should_not == Date.civil(2000, 4, 9).strftime("%W")
   end
-  
+
   it "should be able to show the commercial week day" do
     Date.civil(2000, 4,  9).strftime("%u").should == "7"
     Date.civil(2000, 4, 10).strftime("%u").should == "1"
@@ -122,7 +122,7 @@ describe "Date#strftime" do
     Date.civil(2000, 4,  9).strftime("%V").should == "14"
     Date.civil(2000, 4, 10).strftime("%V").should == "15"
   end
-  
+
   it "should be able to show the week day" do
     Date.civil(2000, 4,  9).strftime("%w").should == "0"
     Date.civil(2000, 4, 10).strftime("%w").should == "1"
@@ -147,7 +147,7 @@ describe "Date#strftime" do
   it "should be able to escape the % character" do
     Date.civil(2000, 4,  9).strftime("%%").should == "%"
   end
-  
+
   ############################
   # Specs that combine stuff #
   ############################
@@ -159,7 +159,7 @@ describe "Date#strftime" do
 
   it "should be able to print the date with slashes" do
     Date.civil(2000, 4, 6).strftime("%D").should == "04/06/00"
-    Date.civil(2000, 4, 6).strftime("%D").should == Date.civil(2000, 4, 6).strftime('%m/%d/%y')  
+    Date.civil(2000, 4, 6).strftime("%D").should == Date.civil(2000, 4, 6).strftime('%m/%d/%y')
   end
 
   it "should be able to print the date as YYYY-MM-DD" do
@@ -181,12 +181,12 @@ describe "Date#strftime" do
     Date.civil(2000, 4, 6).strftime("%T").should == "00:00:00"
     Date.civil(2000, 4, 6).strftime("%T").should == Date.civil(2000, 4, 6).strftime('%H:%M:%S')
   end
-  
+
   it "should be able to show the commercial week" do
     Date.civil(2000, 4,  9).strftime("%v").should == " 9-Apr-2000"
     Date.civil(2000, 4,  9).strftime("%v").should == Date.civil(2000, 4,  9).strftime('%e-%b-%Y')
   end
-  
+
   it "should be able to show HH:MM:SS" do
     Date.civil(2000, 4, 6).strftime("%X").should == "00:00:00"
     Date.civil(2000, 4, 6).strftime("%X").should == Date.civil(2000, 4, 6).strftime('%H:%M:%S')
@@ -196,7 +196,7 @@ describe "Date#strftime" do
     Date.civil(2000, 4, 6).strftime("%x").should == "04/06/00"
     Date.civil(2000, 4, 6).strftime("%x").should == Date.civil(2000, 4, 6).strftime('%m/%d/%y')
   end
-  
+
   it "should be able to show a full notation" do
     Date.civil(2000, 4,  9).strftime("%+").should == "Sun Apr  9 00:00:00 +00:00 2000"
     Date.civil(2000, 4,  9).strftime("%+").should == Date.civil(2000, 4,  9).strftime('%a %b %e %H:%M:%S %Z %Y')

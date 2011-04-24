@@ -44,7 +44,7 @@ describe "BigDecimal#remainder" do
   it "returns zero if used on zero" do
     @zero.remainder(@mixed).should == @zero
   end
-  
+
   it "returns NaN if NaN is involved" do
     @nan.remainder(@nan).nan?.should == true
     @nan.remainder(@one).nan?.should == true
@@ -69,7 +69,7 @@ describe "BigDecimal#remainder" do
     @infinity.remainder(@infinity_minus).nan?.should == true
     @infinity_minus.remainder(@infinity).nan?.should == true
   end
-  
+
   it "coerces arguments to BigDecimal if possible" do
     @one.remainder(2).should == @one
   end

@@ -4,5 +4,5 @@ require File.expand_path('../fixtures/classes', __FILE__)
 describe "Numeric#integer?" do
   it "returns false" do
     NumericSpecs::Subclass.new.integer?.should == false
-  end   
-end 
+  end
+end

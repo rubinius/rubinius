@@ -9,16 +9,16 @@ describe "URI#+" do
     (URI('http://foo/baz/') + 'bar').should == URI("http://foo/baz/bar")
     (URI('mailto:foo@example.com') + "#bar").should == URI("mailto:foo@example.com#bar")
   end
-  
+
   it "replaces the entire path of the URI when added to a string that begins with a /" do
     (URI('http://foo/baz/') + '/bar').should == URI("http://foo/bar")
   end
-  
+
   it "replaces the entire url when added to a string that looks like a full url" do
     (URI.parse('http://a/b') + 'http://x/y').should == URI("http://x/y")
     (URI.parse('telnet:example.com') + 'http://x/y').should == URI("http://x/y")
   end
-  
+
   it "canonicalizes the URI's path, removing ../'s" do
     (URI.parse('http://a/b/c/../') + "./").should == URI("http://a/b/")
     (URI.parse('http://a/b/c/../') + ".").should == URI("http://a/b/")
@@ -28,17 +28,17 @@ describe "URI#+" do
     (URI.parse('http://a/b/c/')   + "../e/../").should == URI("http://a/b/")
     (URI.parse('http://a/b/../c/') + ".").should == URI("http://a/c/")
 
-    (URI.parse('http://a/b/c/../../../') + ".").should == URI("http://a/")    
+    (URI.parse('http://a/b/c/../../../') + ".").should == URI("http://a/")
   end
-  
+
   it "doesn't conconicalize the path when adding to the empty string" do
     (URI.parse('http://a/b/c/../') + "").should == URI("http://a/b/c/../")
   end
-  
+
   it "raises a URI::BadURIError when adding two relative URIs" do
     lambda {URI.parse('a/b/c') + "d"}.should raise_error(URI::BadURIError)
   end
-  
+
   #Todo: make more BDD?
   it "conforms to the merge specifications from rfc 2396" do
     @url = 'http://a/b/c/d;p?q'
@@ -104,15 +104,15 @@ describe "URI#+" do
 #        ?y            =  http://a/b/c/?y
     url = @base_url.merge('?y')
     url.should be_kind_of(URI::HTTP)
-    
+
     ruby_version_is "" ... "1.8.7" do
       url.to_s.should == 'http://a/b/c/?y'
     end
-    
+
     ruby_version_is "1.8.7" do
       url.to_s.should == 'http://a/b/c/d;p?y'
     end
-    
+
     url = @base_url.route_to('http://a/b/c/?y')
     url.should be_kind_of(URI::Generic)
     url.to_s.should == '?y'
@@ -268,15 +268,15 @@ describe "URI#+" do
 #        /./g          =  http://a/./g
     url = @base_url.merge('/./g')
     url.should be_kind_of(URI::HTTP)
-    
+
     ruby_version_is "" ... "1.8.7" do
       url.to_s.should == 'http://a/./g'
     end
-    
+
     ruby_version_is "1.8.7" do
       url.to_s.should == 'http://a/g'
     end
-    
+
     url = @base_url.route_to('http://a/./g')
     url.should be_kind_of(URI::Generic)
     url.to_s.should == '/./g'
@@ -285,15 +285,15 @@ describe "URI#+" do
 #        /../g         =  http://a/../g
     url = @base_url.merge('/../g')
     url.should be_kind_of(URI::HTTP)
-    
+
     ruby_version_is "" ... "1.8.7" do
       url.to_s.should == 'http://a/../g'
     end
-    
+
     ruby_version_is "1.8.7" do
       url.to_s.should == 'http://a/g'
     end
-    
+
     url = @base_url.route_to('http://a/../g')
     url.should be_kind_of(URI::Generic)
     url.to_s.should == '/../g'
@@ -342,7 +342,7 @@ describe "URI#+" do
     ruby_version_is "" ... "1.8.7" do
       url.to_s.should == 'http://a/../g'
     end
-    
+
     ruby_version_is "1.8.7" do
       url.to_s.should == 'http://a/g'
     end
@@ -360,7 +360,7 @@ describe "URI#+" do
     ruby_version_is "" ... "1.8.7" do
       url.to_s.should == 'http://a/../../g'
     end
-    
+
     ruby_version_is "1.8.7" do
       url.to_s.should == 'http://a/g'
     end

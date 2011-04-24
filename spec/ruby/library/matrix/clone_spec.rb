@@ -5,7 +5,7 @@ describe "Matrix#clone" do
   before(:each) do
     @a = Matrix[[1, 2], [3, 4], [5, 6]]
   end
-  
+
   it "returns a shallow copy of the matrix" do
     b = @a.clone
     @a.should_not equal(b)
@@ -15,9 +15,9 @@ describe "Matrix#clone" do
       @a.row(i).should_not equal(b.row(i))
     end
   end
-  
+
   before(:each) do
     @a = Matrix[[1, 2], [3, 4], [5, 6]]
   end
-  
+
 end

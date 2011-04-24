@@ -11,7 +11,7 @@ describe :complex_exponent_complex, :shared => true do
   it "returns self raised to the given power" do
     (Complex(2, 1) ** Complex(2, 1)).should be_close(Complex(-0.504824688978319, 3.10414407699553), TOLERANCE)
     (Complex(2, 1) ** Complex(3, 4)).should be_close(Complex(-0.179174656916581, -1.74071656397662), TOLERANCE)
-    
+
     (Complex(2, 1) ** Complex(-2, -1)).should be_close(Complex(-0.051041070450869, -0.313849223270419), TOLERANCE)
     (Complex(-2, -1) ** Complex(2, 1)).should be_close(Complex(-11.6819929610857, 71.8320439736158), TOLERANCE)
   end
@@ -23,7 +23,7 @@ describe :complex_exponent_integer, :shared => true do
     (Complex(3, 4) ** 2).should == Complex(-7, 24)
     (Complex(3, 4) ** -2).should be_close(Complex(-0.0112, -0.0384), TOLERANCE)
 
-    
+
     (Complex(2, 1) ** 2.5).should be_close(Complex(2.99179707178602, 6.85206901006896), TOLERANCE)
     (Complex(3, 4) ** 2.5).should be_close(Complex(-38.0, 41.0), TOLERANCE)
     (Complex(3, 4) ** -2.5).should be_close(Complex(-0.01216, -0.01312), TOLERANCE)
@@ -46,7 +46,7 @@ end
 describe :complex_exponent_object, :shared => true do
   it "tries to coerce self into other" do
     value = Complex(3, 9)
-    
+
     obj = mock("Object")
     obj.should_receive(:coerce).with(value).and_return([2, 5])
     (value ** obj).should == 2 ** 5

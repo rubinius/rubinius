@@ -8,7 +8,7 @@ describe "CApiFloatSpecs" do
   end
 
   describe "rb_float_new" do
-    it "should create a new float" do
+    it "creates a new float" do
       ((@f.new_zero - 0).abs < 0.000001).should == true
       ((@f.new_point_five - 0.555).abs < 0.000001).should == true
     end
@@ -33,7 +33,7 @@ describe "CApiFloatSpecs" do
   end
 
   describe "rb_Float" do
-    it "should create a new Float from a String" do
+    it "creates a new Float from a String" do
       f = @f.rb_Float("101.99")
       f.should be_kind_of(Float)
       f.should eql(101.99)

@@ -75,9 +75,6 @@ namespace rubinius {
     // Ruby.primitive :class_set_superclass
     Object* set_superclass(STATE, Object* sup);
 
-    // Ruby.primitive :class_set_packed
-    Object* set_packed(STATE, Array* info);
-
     bool auto_pack(STATE);
 
     class Info : public Module::Info {

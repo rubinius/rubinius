@@ -19,7 +19,7 @@ describe :kernel_abort, :shared => true do
     lambda { @object.abort "a message" }.should raise_error(SystemExit)
     $stderr.should =~ /a message/
   end
-  
+
   it "raises TypeError when given a non-String object" do
     lambda { @object.abort 123 }.should raise_error(TypeError)
   end

@@ -21,7 +21,7 @@ describe "Net::FTP#system" do
     @ftp.system
     @ftp.last_response.should == "215 FTP Dummy Server (SYST)\n"
   end
-  
+
   it "returns the received information" do
     @ftp.system.should == "FTP Dummy Server (SYST)\n"
   end

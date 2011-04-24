@@ -4,7 +4,7 @@ require File.expand_path('../../shared/partially_closable_sockets', __FILE__)
 
 platform_is_not :windows do
   describe "UNIXSocket partial closability" do
-    
+
     before :each do
       @path = SocketSpecs.socket_path
       File.unlink(@path) if File.exists?(@path)
@@ -19,8 +19,8 @@ platform_is_not :windows do
       @s2.close
       File.unlink(@path) if File.exists?(@path)
     end
-    
+
     it_should_behave_like "partially closable sockets"
-    
+
   end
 end

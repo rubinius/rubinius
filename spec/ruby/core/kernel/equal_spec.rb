@@ -14,7 +14,7 @@ describe "Kernel#equal?" do
     ('stuff'.equal? 'stuff').should == false
     (true.equal? true).should == true
     (false.equal? false).should == true
-  end  
+  end
 
   it "returns true if obj and anObject have the same value." do
     o1 = 1

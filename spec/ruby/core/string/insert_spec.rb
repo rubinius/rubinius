@@ -55,7 +55,7 @@ describe "String#insert with index, other" do
     lambda { "abcd".insert(-6, mock('x')) }.should raise_error(TypeError)
   end
 
-  ruby_version_is ""..."1.9" do 
+  ruby_version_is ""..."1.9" do
     it "raises a TypeError if self is frozen" do
       str = "abcd".freeze
       lambda { str.insert(4, '')  }.should raise_error(TypeError)
@@ -63,7 +63,7 @@ describe "String#insert with index, other" do
     end
   end
 
-  ruby_version_is "1.9" do 
+  ruby_version_is "1.9" do
     it "raises a RuntimeError if self is frozen" do
       str = "abcd".freeze
       lambda { str.insert(4, '')  }.should raise_error(RuntimeError)

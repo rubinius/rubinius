@@ -75,7 +75,7 @@ describe "Syslog.mask=" do
       Syslog.mask.should == 64
       Syslog.close
     end
-    
+
     it "raises an error if the log is closed" do
       lambda { Syslog.mask = 1337 }.should raise_error(RuntimeError)
     end

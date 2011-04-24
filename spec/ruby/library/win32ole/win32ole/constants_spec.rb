@@ -29,7 +29,7 @@ platform_is :windows do
     it 'defines constant CP_UTF8' do
       WIN32OLE::CP_UTF8.should == 65001
     end
-    
+
     # 1.8 only constants
     ruby_version_is ""..."1.9" do
       # there are none

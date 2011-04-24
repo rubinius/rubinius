@@ -9,10 +9,10 @@ module SingletonSpecs
   class NewSpec
     include Singleton
   end
-  
+
   class MyClassChild < MyClass
   end
-  
+
   class NotInstantiated < MyClass
   end
 end

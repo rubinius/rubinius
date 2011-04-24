@@ -5,7 +5,7 @@ describe "Math::PI" do
   it "approximates the value of pi" do
     Math::PI.should be_close(3.14159_26535_89793_23846, TOLERANCE)
   end
-  
+
   it "is accessible to a class that includes Math" do
     IncludesMath::PI.should == Math::PI
   end

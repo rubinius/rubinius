@@ -1,11 +1,11 @@
 module MethodSpecs
-  
-  
+
+
   class SourceLocation
-    def self.location # This needs to be on this line 
+    def self.location # This needs to be on this line
       :location       # for the spec to pass
     end
-    
+
     def self.redefined
       :first
     end
@@ -17,7 +17,7 @@ module MethodSpecs
     def original
     end
 
-    alias :aka :original 
+    alias :aka :original
   end
 
   class Methods
@@ -117,7 +117,7 @@ module MethodSpecs
       1 + 2
     end
 
-    def same_body_two 
+    def same_body_two
       1 + 1
     end
 

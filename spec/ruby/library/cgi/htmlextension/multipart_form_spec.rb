@@ -19,7 +19,7 @@ describe "CGI::HtmlExtension#multipart_form" do
       output.should equal_element("FORM", { "ENCTYPE" => "multipart/form-data", "METHOD" => "post" }, "test")
     end
   end
-  
+
   describe "when passed action" do
     it "returns a 'form'-element with the passed action" do
       output = @html.multipart_form("/some/other/script.rb")
@@ -31,7 +31,7 @@ describe "CGI::HtmlExtension#multipart_form" do
       output.should equal_element("FORM", { "ENCTYPE" => "multipart/form-data", "METHOD" => "post", "ACTION" => "/some/other/script.rb" }, "test")
     end
   end
-  
+
   describe "when passed action, enctype" do
     it "returns a 'form'-element with the passed action and enctype" do
       output = @html.multipart_form("/some/other/script.rb", "application/x-www-form-urlencoded")
@@ -43,7 +43,7 @@ describe "CGI::HtmlExtension#multipart_form" do
       output.should equal_element("FORM", { "ENCTYPE" => "application/x-www-form-urlencoded", "METHOD" => "post", "ACTION" => "/some/other/script.rb" }, "test")
     end
   end
-  
+
   describe "when passed Hash" do
     it "returns a 'form'-element with the passed Hash as attributes" do
       output = @html.multipart_form("ID" => "test")

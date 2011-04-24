@@ -4,7 +4,7 @@ require File.expand_path('../../../../spec_helper', __FILE__)
 describe "REXML::Element#has_attributes?" do
   before :each do
     @e = REXML::Element.new("test_elem")
-  end  
+  end
 
   it "returns true when element has any attributes" do
     @e.add_attribute("name", "Joe")

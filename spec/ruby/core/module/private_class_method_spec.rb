@@ -3,7 +3,7 @@ require File.expand_path('../fixtures/classes', __FILE__)
 
 describe "Module#private_class_method" do
   before(:each) do
-    # This is not in classes.rb because after marking a class method private it 
+    # This is not in classes.rb because after marking a class method private it
     # will stay private.
     class << ModuleSpecs::Parent
       def private_method_1; end
@@ -36,7 +36,7 @@ describe "Module#private_class_method" do
     ModuleSpecs::Parent.private_method_3.should == nil
 
     ModuleSpecs::Child.private_class_method :private_method_1, :private_method_2, :private_method_3
-    
+
     lambda { ModuleSpecs::Child.private_method_1 }.should raise_error(NoMethodError)
     lambda { ModuleSpecs::Child.private_method_2 }.should raise_error(NoMethodError)
     lambda { ModuleSpecs::Child.private_method_3 }.should raise_error(NoMethodError)

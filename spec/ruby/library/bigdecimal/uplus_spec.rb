@@ -1,7 +1,7 @@
 require File.expand_path('../../../spec_helper', __FILE__)
 require 'bigdecimal'
 
-describe "BigDecimal#+@" do 
+describe "BigDecimal#+@" do
   it "returns the same value with same sign (twos complement)" do
     first = BigDecimal("34.56")
     first.send(:+@).should == first

@@ -5,12 +5,12 @@ describe :to_s, :shared => true do
 
   it "returns a string representation with same order as each()" do
     h = new_hash(:a => [1, 2], :b => -2, :d => -6, nil => nil)
-    
+
     pairs = []
     h.each do |key, value|
       pairs << key.inspect + '=>' + value.inspect
     end
-    
+
     str = '{' + pairs.join(', ') + '}'
     h.send(@method).should == str
   end
@@ -20,7 +20,7 @@ describe :to_s, :shared => true do
     val = mock('val')
     key.should_receive(:inspect).and_return('key')
     val.should_receive(:inspect).and_return('val')
-    
+
     new_hash(key => val).send(@method).should == '{key=>val}'
   end
 
@@ -55,13 +55,13 @@ describe :to_s, :shared => true do
       y[x] = 1
       x.send(@method).should == "{{{...}=>1}=>0}"
       y.send(@method).should == "{{{...}=>0}=>1}"
-      
+
       x = new_hash
       y = new_hash
       x[y] = x
       y[x] = y
       x.send(@method).should == "{{{...}=>{...}}=>{...}}"
       y.send(@method).should == "{{{...}=>{...}}=>{...}}"
-    end    
+    end
   end
 end

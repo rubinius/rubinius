@@ -5,16 +5,16 @@ describe "The 'case'-construct" do
 
     case 'f'
       when *a1, *['x', 'y', 'z']
-        "foo" 
+        "foo"
       when *a2, *['x', 'y', 'z']
-        "bar" 
+        "bar"
     end.should == "foo"
 
     case 'b'
       when *a1, *['x', 'y', 'z']
-        "foo" 
+        "foo"
       when *a2, *['x', 'y', 'z']
-        "bar" 
+        "bar"
     end.should == "bar"
   end
 end

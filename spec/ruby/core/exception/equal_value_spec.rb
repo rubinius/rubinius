@@ -7,7 +7,7 @@ ruby_version_is "1.9" do
       e = ArgumentError.new
       e.should == e
     end
-    
+
     it "returns true if one exception is the dup'd copy of the other" do
       e = ArgumentError.new
       e.should == e.dup

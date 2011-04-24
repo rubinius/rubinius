@@ -4,7 +4,7 @@ describe :proc_equal, :shared => true do
   it "returns true if self and other are the same object" do
     p = proc { :foo }
     p.send(@method, p.dup).should be_true
-    
+
     p = Proc.new { :foo }
     p.send(@method, p.dup).should be_true
 
@@ -17,7 +17,7 @@ describe :proc_equal, :shared => true do
     p = proc &body
     p2 = proc &body
     p.send(@method, p2).should be_true
-    
+
     body = lambda { :foo }
     p = proc &body
     p2 = proc &body
@@ -29,7 +29,7 @@ describe :proc_equal, :shared => true do
     p = lambda &body
     p2 = lambda &body
     p.send(@method, p2).should be_true
-    
+
     body = lambda { :foo }
     p = lambda &body
     p2 = lambda &body
@@ -41,7 +41,7 @@ describe :proc_equal, :shared => true do
     p = lambda &body
     p2 = proc &body
     p.send(@method, p2).should be_true
-    
+
     body = lambda { :foo }
     p = proc &body
     p2 = lambda &body
@@ -60,7 +60,7 @@ describe :proc_equal, :shared => true do
     it "returns false if other is not a Proc" do
       p = proc { :foo }
       p.send(@method, []).should be_false
-      
+
       p = Proc.new { :foo }
       p.send(@method, Object.new).should be_false
 
@@ -85,7 +85,7 @@ describe :proc_equal, :shared => true do
     p = lambda { :foo }
     p2 = proc { :bar }
     p.send(@method, p2).should be_false
-    
+
     p = proc { :foo }
     p2 = lambda { :bar }
     p.send(@method, p2).should be_false

@@ -1,18 +1,18 @@
 module EnsureSpec
   class Container
     attr_reader :executed
-    
+
     def initialize
       @executed = []
     end
-    
+
     def raise_in_method_with_ensure
       @executed << :method
       raise "An Exception"
     ensure
       @executed << :ensure
     end
-    
+
     def raise_and_rescue_in_method_with_ensure
       @executed << :method
       raise "An Exception"
@@ -21,14 +21,14 @@ module EnsureSpec
     ensure
       @executed << :ensure
     end
-    
+
     def throw_in_method_with_ensure
       @executed << :method
       throw(:symbol)
     ensure
       @executed << :ensure
     end
-    
+
     def implicit_return_in_method_with_ensure
       :method
     ensure
@@ -52,7 +52,7 @@ module EnsureSpec
     end
 
     attr_reader :values
-  
+
     def call_block
       begin
         @values << :start

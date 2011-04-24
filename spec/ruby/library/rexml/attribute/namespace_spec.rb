@@ -10,7 +10,7 @@ describe "REXML::Attribute#namespace" do
 
   it "returns nil if namespace is not defined" do
     e = REXML::Element.new("root")
-    e.add_attribute REXML::Attribute.new("test", "value") 
+    e.add_attribute REXML::Attribute.new("test", "value")
     e.namespace("test").should == nil
     e.namespace("ns").should == nil
   end

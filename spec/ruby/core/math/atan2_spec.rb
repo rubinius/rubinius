@@ -5,16 +5,16 @@ describe "Math.atan2" do
   it "returns a float" do
     Math.atan2(1.2, 0.5).should be_kind_of(Float)
   end
-  
+
   it "returns the arc tangent of y, x" do
     Math.atan2(4.2, 0.3).should be_close(1.49948886200961, TOLERANCE)
     Math.atan2(0.0, 1.0).should be_close(0.0, TOLERANCE)
     Math.atan2(-9.1, 3.2).should be_close(-1.23265379809025, TOLERANCE)
     Math.atan2(7.22, -3.3).should be_close(1.99950888779256, TOLERANCE)
   end
-  
+
   ruby_version_is ""..."1.9" do
-    it "raises an ArgumentError if the argument cannot be coerced with Float()" do    
+    it "raises an ArgumentError if the argument cannot be coerced with Float()" do
       lambda { Math.atan2(1.0, "test")    }.should raise_error(ArgumentError)
       lambda { Math.atan2("test", 0.0)    }.should raise_error(ArgumentError)
       lambda { Math.atan2("test", "this") }.should raise_error(ArgumentError)
@@ -22,7 +22,7 @@ describe "Math.atan2" do
   end
 
   ruby_version_is "1.9" do
-    it "raises an TypeError if the argument cannot be coerced with Float()" do    
+    it "raises an TypeError if the argument cannot be coerced with Float()" do
       lambda { Math.atan2(1.0, "test")    }.should raise_error(TypeError)
       lambda { Math.atan2("test", 0.0)    }.should raise_error(TypeError)
       lambda { Math.atan2("test", "this") }.should raise_error(TypeError)

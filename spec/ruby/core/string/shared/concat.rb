@@ -38,11 +38,11 @@ describe :string_concat, :shared => true do
 
     it "raises RangeError for negative length argument" do
       lambda do
-        'glark'.force_encoding('UTF-8').send(@method, -200) 
+        'glark'.force_encoding('UTF-8').send(@method, -200)
       end.should raise_error(RangeError)
 
       lambda do
-        'glark'.force_encoding('UTF-8').send(@method, -2**64) 
+        'glark'.force_encoding('UTF-8').send(@method, -2**64)
       end.should raise_error(RangeError)
     end
   end
@@ -103,5 +103,5 @@ describe :string_concat_fixnum, :shared => true do
       lambda { a.send(@method, 0)  }.should raise_error(RuntimeError)
       lambda { a.send(@method, 33) }.should raise_error(RuntimeError)
     end
-  end    
+  end
 end

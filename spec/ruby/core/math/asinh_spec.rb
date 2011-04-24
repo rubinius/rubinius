@@ -5,7 +5,7 @@ describe "Math.asinh" do
   it "returns a float" do
     Math.asinh(1.5).should be_kind_of(Float)
   end
-  
+
   it "returns the inverse hyperbolic sin of the argument" do
     Math.asinh(1.5).should be_close(1.19476321728711, TOLERANCE)
     Math.asinh(-2.97).should be_close(-1.8089166921397, TOLERANCE)
@@ -17,15 +17,15 @@ describe "Math.asinh" do
     #Math.asinh(94906265.62).should be_close(19.0615, TOLERANCE)
     #Math.asinh(-94906265.62).should be_close(-19.0615, TOLERANCE)
   end
-  
+
   ruby_version_is ""..."1.9" do
-    it "raises an ArgumentError if the argument cannot be coerced with Float()" do    
+    it "raises an ArgumentError if the argument cannot be coerced with Float()" do
       lambda { Math.asinh("test") }.should raise_error(ArgumentError)
     end
   end
-  
+
   ruby_version_is "1.9" do
-    it "raises a TypeError if the argument cannot be coerced with Float()" do    
+    it "raises a TypeError if the argument cannot be coerced with Float()" do
       lambda { Math.asinh("test") }.should raise_error(TypeError)
     end
   end

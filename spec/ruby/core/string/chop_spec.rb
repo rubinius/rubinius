@@ -23,10 +23,10 @@ describe "String#chop" do
     "hello\n\r".chop.should == "hello\n"
     "hello\n\n".chop.should == "hello\n"
     "hello\r\r".chop.should == "hello\r"
-    
+
     "\r\n".chop.should == ""
   end
-  
+
   it "returns an empty string when applied to an empty string" do
     "".chop.should == ""
   end
@@ -35,7 +35,7 @@ describe "String#chop" do
     "hello".taint.chop.tainted?.should == true
     "".taint.chop.tainted?.should == true
   end
-  
+
   it "returns subclass instances when called on a subclass" do
     StringSpecs::MyString.new("hello\n").chop.should be_kind_of(StringSpecs::MyString)
     StringSpecs::MyString.new("hello").chop.should be_kind_of(StringSpecs::MyString)
@@ -48,7 +48,7 @@ describe "String#chop!" do
     ["hello\n", "hello\r\n", "hello", ""].each do |base|
       str = base.dup
       str.chop!
-      
+
       str.should == base.chop
     end
   end
@@ -62,7 +62,7 @@ describe "String#chop!" do
   it "returns nil when called on an empty string" do
     "".chop!.should == nil
   end
-  
+
   ruby_version_is ""..."1.9" do
     it "raises a TypeError when self is frozen" do
       lambda { "string\n\r".freeze.chop! }.should raise_error(TypeError)

@@ -6,7 +6,7 @@ describe "Proc.new with an associated block" do
     Proc.new { }.call.should == nil
     Proc.new { "hello" }.call.should == "hello"
   end
-  
+
   describe "called on a subclass of Proc" do
     before :each do
       @subclass = Class.new(Proc) do
@@ -17,15 +17,15 @@ describe "Proc.new with an associated block" do
         end
       end
     end
-    
+
     it "returns an instance of the subclass" do
       proc = @subclass.new {"hello"}
-      
+
       proc.class.should == @subclass
       proc.call.should == "hello"
       proc.ok.should == true
     end
-    
+
     # JRUBY-5026
     describe "using a reified block parameter" do
       it "returns an instance of the subclass" do
@@ -46,7 +46,7 @@ describe "Proc.new with an associated block" do
       end
     end
   end
-  
+
   # JRUBY-5261; Proc sets up the block during .new, not in #initialize
   describe "called on a subclass of Proc that does not 'super' in 'initialize'" do
     before :each do
@@ -57,7 +57,7 @@ describe "Proc.new with an associated block" do
         end
       end
     end
-    
+
     it "still constructs a functional proc" do
       proc = @subclass.new {'ok'}
       proc.call.should == 'ok'
@@ -71,12 +71,12 @@ describe "Proc.new with an associated block" do
       Proc.new { return }
     end
     res = some_method()
-    
+
     # Using raise_error here causes 1.9 to hang, so we roll our own
     # begin/rescue block to verify that the exception is raised.
 
-    exception = nil  
-    
+    exception = nil
+
     begin
       res.call
     rescue LocalJumpError => e

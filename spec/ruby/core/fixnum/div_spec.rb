@@ -23,7 +23,7 @@ describe "Fixnum#div" do
     -1.div(50.4).should == -1
     1.div(bignum_value).should == 0
   end
-  
+
   ruby_version_is ""..."1.9" do
     it "raises a FloatDomainError when the given argument is 0 and a Float" do
       lambda { 0.div(0.0)   }.should raise_error(FloatDomainError)
@@ -43,7 +43,7 @@ describe "Fixnum#div" do
   it "raises a ZeroDivisionError when the given argument is 0" do
     lambda { 13.div(0) }.should raise_error(ZeroDivisionError)
   end
-  
+
   it "raises a TypeError when given a non-Integer" do
     lambda {
       (obj = mock('10')).should_receive(:to_int).any_number_of_times.and_return(10)

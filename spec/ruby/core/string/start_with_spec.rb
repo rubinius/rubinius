@@ -34,7 +34,7 @@ ruby_version_is '1.8.7' do
       find.should_not_receive(:to_str)
       "hello".start_with?("h",find).should be_true
     end
-  
+
     it "works for multibyte strings" do
       old_kcode = $KCODE
       begin

@@ -13,7 +13,7 @@ describe "CGI::HtmlExtension#html" do
       expected = '<!DOCTYPE SUPA-FUNKAY-RUBYSPEC-DOCTYPE><HTML>'
       @html.html.should == expected
     end
-  
+
     it "includes the passed block when passed a block" do
       expected = '<!DOCTYPE SUPA-FUNKAY-RUBYSPEC-DOCTYPE><HTML>test</HTML>'
       @html.html { "test" }.should == expected

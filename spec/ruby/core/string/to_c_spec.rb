@@ -85,7 +85,7 @@ ruby_version_is "1.9" do
     it "understands negative scientific notation for the imaginary part" do
       '4-2e3i'.to_c.should == Complex(4, -2e3)
     end
-    
+
     it "understands scientific notation for the real and imaginary part in the same String" do
       '2e3+2e4i'.to_c.should == Complex(2e3,2e4)
     end
@@ -93,7 +93,7 @@ ruby_version_is "1.9" do
     it "understands negative scientific notation for the real and imaginary part in the same String" do
       '-2e3-2e4i'.to_c.should == Complex(-2e3,-2e4)
     end
-    
+
     it "returns a complex number with 0 as the real part, 0 as the imaginary part for unrecognised Strings" do
     'ruby'.to_c.should == Complex(0,0)
     end

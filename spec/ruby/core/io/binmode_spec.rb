@@ -11,7 +11,7 @@ describe "IO#binmode" do
     @file.close
     File.unlink @filename
   end
-  
+
   ruby_version_is ""..."1.9" do
     ruby_bug "#2046", "1.8.7.174" do
       it "raises an IOError on closed stream" do

@@ -20,7 +20,7 @@ describe "Literal Regexps" do
 
   it 'supports possessive quantifiers' do
     /fooA++bar/.match("fooAAAbar").to_a.should == ["fooAAAbar"]
-      
+
     /fooA++Abar/.match("fooAAAbar").should be_nil
     /fooA?+Abar/.match("fooAAAbar").should be_nil
     /fooA*+Abar/.match("fooAAAbar").should be_nil

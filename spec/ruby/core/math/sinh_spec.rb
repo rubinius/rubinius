@@ -5,7 +5,7 @@ describe "Math.sinh" do
   it "returns a float" do
     Math.sinh(1.2).should be_kind_of(Float)
   end
-  
+
   it "returns the hyperbolic sin of the argument" do
     Math.sinh(0.0).should == 0.0
     Math.sinh(-0.0).should == 0.0
@@ -14,21 +14,21 @@ describe "Math.sinh" do
   end
 
   ruby_version_is ""..."1.9" do
-    it "raises an ArgumentError if the argument cannot be coerced with Float()" do    
+    it "raises an ArgumentError if the argument cannot be coerced with Float()" do
       lambda { Math.sinh("test") }.should raise_error(ArgumentError)
     end
   end
-  
+
   ruby_version_is "1.9" do
-    it "raises a TypeError if the argument cannot be coerced with Float()" do    
+    it "raises a TypeError if the argument cannot be coerced with Float()" do
       lambda { Math.sinh("test") }.should raise_error(TypeError)
     end
   end
 
   it "raises a TypeError if the argument is nil" do
     lambda { Math.sinh(nil) }.should raise_error(TypeError)
-  end  
-  
+  end
+
   it "accepts any argument that can be coerced with Float()" do
     Math.sinh(MathSpecs::Float.new).should be_close(1.1752011936438, TOLERANCE)
   end

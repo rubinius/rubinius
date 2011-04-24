@@ -2,12 +2,12 @@ require File.expand_path('../../../spec_helper', __FILE__)
 require 'thread'
 
 describe "ConditionVariable#signal" do
-  it "should return self if nothing to signal" do
+  it "returns self if nothing to signal" do
     cv = ConditionVariable.new
     cv.signal.should == cv
   end
 
-  it "should return self if something is waiting for a signal" do
+  it "returns self if something is waiting for a signal" do
     m = Mutex.new
     cv = ConditionVariable.new
     th = Thread.new do

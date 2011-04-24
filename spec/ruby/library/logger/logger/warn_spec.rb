@@ -18,7 +18,7 @@ describe "Logger#warn?" do
     @logger.level = Logger::WARN
     @logger.warn?.should == true
   end
-  
+
   it "returns false if severity level does not allow printing warn messages" do
     @logger.level = Logger::FATAL
     @logger.warn?.should == false

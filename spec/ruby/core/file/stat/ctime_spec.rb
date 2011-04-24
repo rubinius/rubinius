@@ -9,8 +9,8 @@ describe "File::Stat#ctime" do
   after :each do
     rm_r @file
   end
-  
-  it "should be able to determine the ctime on a File::Stat object" do
+
+  it "returns the ctime of a File::Stat object" do
     st = File.stat(@file)
     st.ctime.should be_kind_of(Time)
     st.ctime.should <= Time.now

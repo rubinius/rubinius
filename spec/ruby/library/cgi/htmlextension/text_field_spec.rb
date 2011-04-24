@@ -12,7 +12,7 @@ describe "CGI::HtmlExtension#text_field" do
       output = @html.text_field
       output.should equal_element("INPUT", {"NAME" => "", "TYPE" => "text", "SIZE" => "40"}, "", :not_closed => true)
     end
-  
+
     it "ignores a passed block" do
       output = @html.text_field { "test" }
       output.should equal_element("INPUT", {"NAME" => "", "TYPE" => "text", "SIZE" => "40"}, "", :not_closed => true)

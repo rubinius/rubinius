@@ -15,7 +15,7 @@ describe "Prime.new" do
   it "complains that the method is obsolete" do
     lambda { Prime.new }.should complain(/obsolete.*use.*Prime::instance/)
   end
-   
+
   it "raises a ArgumentError when is called with some arguments" do
     lambda { Prime.new(1) }.should raise_error(ArgumentError)
   end

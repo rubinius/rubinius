@@ -57,13 +57,13 @@ with_feature :encoding do
       copy.object_id.should_not == str.object_id
       str.encoding.should == Encoding::UTF_8
     end
-    
+
     it "returns a copy of self even when no changes are made" do
       str = "strung".force_encoding('ASCII')
       str.encode(Encoding::UTF_8).object_id.should_not == str.object_id
       str.encoding.should == Encoding::US_ASCII
     end
-    
+
     it "returns a String with the given encoding" do
       str = "ürst"
       str.encoding.should == Encoding::UTF_8

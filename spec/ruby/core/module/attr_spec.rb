@@ -6,14 +6,14 @@ describe "Module#attr" do
     c = Class.new do
       attr :attr
       attr "attr3"
-      
+
       def initialize
         @attr, @attr2, @attr3 = "test", "test2", "test3"
       end
     end
-    
+
     o = c.new
-    
+
     %w{attr attr3}.each do |a|
       o.respond_to?(a).should == true
       o.respond_to?("#{a}=").should == false
@@ -24,28 +24,28 @@ describe "Module#attr" do
     o.send(:attr).should == "test"
     o.send(:attr3).should == "test3"
   end
-  
+
   it "creates a setter for the given attribute name if writable is true" do
     c = Class.new do
       attr :attr, true
       attr "attr3", true
-        
+
       def initialize
         @attr, @attr2, @attr3 = "test", "test2", "test3"
       end
     end
-      
+
     o = c.new
-      
+
     %w{attr attr3}.each do |a|
       o.respond_to?(a).should == true
       o.respond_to?("#{a}=").should == true
     end
-      
+
     o.attr = "test updated"
     o.attr3 = "test3 updated"
   end
-    
+
   it "creates a getter and setter for the given attribute name if called with and without writeable is true" do
     c = Class.new do
       attr :attr, true
@@ -53,19 +53,19 @@ describe "Module#attr" do
 
       attr "attr3", true
       attr "attr3"
-        
+
       def initialize
         @attr, @attr2, @attr3 = "test", "test2", "test3"
       end
     end
-      
+
     o = c.new
 
     %w{attr attr3}.each do |a|
       o.respond_to?(a).should == true
       o.respond_to?("#{a}=").should == true
     end
-      
+
     o.attr.should == "test"
     o.attr = "test updated"
     o.attr.should == "test updated"
@@ -74,7 +74,7 @@ describe "Module#attr" do
     o.attr3 = "test3 updated"
     o.attr3.should == "test3 updated"
   end
-    
+
   it "applies current visibility to methods created" do
     c = Class.new do
       protected
@@ -84,19 +84,19 @@ describe "Module#attr" do
     lambda { c.new.foo }.should raise_error(NoMethodError)
     lambda { c.new.foo=1 }.should raise_error(NoMethodError)
   end
-  
+
   ruby_version_is "1.9" do
     it "creates a getter but no setter for all given attribute names" do
       c = Class.new do
         attr :attr, "attr2", "attr3"
-        
+
         def initialize
           @attr, @attr2, @attr3 = "test", "test2", "test3"
         end
       end
-      
+
       o = c.new
-      
+
       %w{attr attr2 attr3}.each do |a|
         o.respond_to?(a).should == true
         o.respond_to?("#{a}=").should == false
@@ -106,7 +106,7 @@ describe "Module#attr" do
       o.attr2.should == "test2"
       o.attr3.should == "test3"
     end
-    
+
     it "applies current visibility to methods created" do
       c = Class.new do
         protected
@@ -122,7 +122,7 @@ describe "Module#attr" do
     (o = mock('test')).should_receive(:to_str).any_number_of_times.and_return("test")
     Class.new { attr o }.new.respond_to?("test").should == true
   end
-  
+
   it "raises a TypeError when the given names can't be converted to strings using to_str" do
     o = mock('o')
     lambda { Class.new { attr o } }.should raise_error(TypeError)

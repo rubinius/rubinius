@@ -102,7 +102,7 @@ module DefinedSpecs
 
   module Mixin
     MixinConstant = 42
-    
+
     def defined_super
       defined? super()
     end
@@ -110,7 +110,7 @@ module DefinedSpecs
 
   class Parent
     ParentConstant = 42
-    
+
     def defined_super; end
   end
 
@@ -130,7 +130,7 @@ module DefinedSpecs
     def self.module_constant_defined
       defined? MixinConstant
     end
-    
+
     def defined_super
       super
     end
@@ -237,22 +237,22 @@ module DefinedSpecs
       defined?(super)
     end
   end
-  
+
   module IntermediateModule1
     def method_no_args
     end
   end
-  
+
   module IntermediateModule2
     def method_no_args
       defined?(super)
     end
   end
-  
+
   class SuperWithIntermediateModules
     include IntermediateModule1
     include IntermediateModule2
-    
+
     def method_no_args
       super
     end

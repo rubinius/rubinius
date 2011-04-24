@@ -4,7 +4,7 @@ describe "partially closable sockets", :shared => true do
     @s1.close_write
     @s2.read("foo".size + 1).should == "foo"
   end
-  
+
   specify "closing the write end ensures that the other side can read until EOF" do
     @s1.write("hello world")
     @s1.close_write

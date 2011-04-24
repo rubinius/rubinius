@@ -16,7 +16,7 @@ describe "REXML::Document#add_element" do
     d.add_element(e,attr)
     d.root.attributes["foo"].should == attr["foo"]
   end
-  
+
   it "accepts a node name as arg1 and adds it as root" do
     d = REXML::Document.new
     d.add_element "foo"

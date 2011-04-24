@@ -4,7 +4,7 @@ describe :complex_coerce, :shared => true do
   before(:each) do
     @one = Complex(1)
   end
-  
+
   it "returns an array containing other and self as Complex when other is an Integer" do
     result = @one.coerce(2)
     result.should == [2, 1]
@@ -36,6 +36,6 @@ describe :complex_coerce, :shared => true do
   it "raises a TypeError when other is a String" do
     lambda { @one.coerce("20") }.should raise_error(TypeError)
     lambda { @one.coerce(nil)   }.should raise_error(TypeError)
-    lambda { @one.coerce(false) }.should raise_error(TypeError)    
+    lambda { @one.coerce(false) }.should raise_error(TypeError)
   end
 end

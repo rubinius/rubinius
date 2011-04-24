@@ -22,9 +22,9 @@ ruby_version_is "1.9" do
     end
 
     it "sets the last value to a Fixnum representing the line on which the method was defined" do
-      line = @method.source_location.last 
+      line = @method.source_location.last
       line.should be_an_instance_of(Fixnum)
-      line.should == 5 
+      line.should == 5
     end
 
     it "returns the last place the method was defined" do
@@ -34,14 +34,14 @@ ruby_version_is "1.9" do
     it "returns the location of the original method even if it was aliased" do
       MethodSpecs::SourceLocation.new.method(:aka).source_location.last.should == 17
     end
-    
+
     it "works for define_method methods" do
       line = nil
       cls = Class.new do
         line = __LINE__ + 1
         define_method(:foo) { }
       end
-      
+
       method = cls.new.method(:foo)
       method.source_location[0].should =~ /#{__FILE__}/
       method.source_location[1].should == line

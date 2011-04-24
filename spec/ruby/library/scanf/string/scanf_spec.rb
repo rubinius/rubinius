@@ -22,7 +22,7 @@ describe "String#scanf" do
     "0X123".scanf("%i").should == [291]
     "0x123".scanf("%i").should == [291]
   end
-  
+
   it "returns an array containing the input converted in the specified type with given maximum field width" do
     "hello world".scanf("%2s").should == ["he"]
     "hello world".scanf("%2c").should == ["he"]

@@ -1,4 +1,4 @@
-require 'date' 
+require 'date'
 require File.expand_path('../../../spec_helper', __FILE__)
 require File.expand_path('../shared/commercial', __FILE__)
 
@@ -40,7 +40,7 @@ describe "Date#valid_commercial?" do
       # -10: -7 -6 -5 -4 -3 -2 -1
       Date.valid_commercial?(1582, -12, -4).should == nil
       Date.valid_commercial?(1582, -12, -3).should == Date.civil(1582, 10, 15).jd
-      
+
       Date.valid_commercial?(2007, -44, -2).should == Date.civil(2007, 3, 3).jd
       Date.valid_commercial?(2008, -44, -2).should == Date.civil(2008, 3, 1).jd
     end
@@ -69,10 +69,14 @@ describe "Date#valid_commercial?" do
       # -10: -7 -6 -5 -4 -3 -2 -1
       Date.valid_commercial?(1582, -12, -4).should == true
       Date.valid_commercial?(1582, -12, -3).should == true
-      
+
       Date.valid_commercial?(2007, -44, -2).should == true
       Date.valid_commercial?(2008, -44, -2).should == true
     end
   end
 
+end
+
+describe "Date.commercial" do
+  it "needs to be reviewed for spec completeness"
 end

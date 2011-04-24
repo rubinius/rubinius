@@ -26,9 +26,9 @@ ruby_version_is "1.9" do
       [].repeated_permutation(0).to_a.should == [[]]
     end
 
-    it "does not yield when called on an empty Array with a nonzero argument" do 
+    it "does not yield when called on an empty Array with a nonzero argument" do
       [].repeated_permutation(10).to_a.should == []
-    end  
+    end
 
     it "handles duplicate elements correctly" do
       @numbers[-1] = 10
@@ -36,10 +36,10 @@ ruby_version_is "1.9" do
         [[10, 10], [10, 10], [10, 10], [10, 10], [10, 11], [10, 11], [11, 10], [11, 10], [11, 11]]
     end
 
-    it "truncates Float arguments" do 
-      @numbers.repeated_permutation(3.7).to_a.sort.should == 
+    it "truncates Float arguments" do
+      @numbers.repeated_permutation(3.7).to_a.sort.should ==
         @numbers.repeated_permutation(3).to_a.sort
-    end  
+    end
 
     it "returns an Enumerator which works as expected even when the array was modified" do
       @numbers.shift
@@ -47,14 +47,14 @@ ruby_version_is "1.9" do
       @numbers.unshift 10
       enum.to_a.sort.should == @permutations
     end
-    
+
     it "allows permutations larger than the number of elements" do
       [1,2].repeated_permutation(3).sort.should ==
         [[1, 1, 1], [1, 1, 2], [1, 2, 1],
          [1, 2, 2], [2, 1, 1], [2, 1, 2],
          [2, 2, 1], [2, 2, 2]]
     end
-    
+
     it "generates from a defensive copy, ignoring mutations" do
       accum = []
       ary = [1,2]
@@ -62,7 +62,7 @@ ruby_version_is "1.9" do
         accum << x
         ary[0] = 5
       end
-      
+
       accum.should ==
         [[1, 1, 1], [1, 1, 2], [1, 2, 1],
          [1, 2, 2], [2, 1, 1], [2, 1, 2],

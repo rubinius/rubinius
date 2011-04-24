@@ -65,7 +65,9 @@ class Class
     under.const_set name, self if under
 
     if sclass
-      sclass.__send__ :inherited, self
+      Rubinius.privately do
+        sclass.inherited self
+      end
     end
   end
 
@@ -73,6 +75,7 @@ class Class
   # Specialized initialize_copy because Class needs additional protection
   def initialize_copy(other)
     raise TypeError, "already initialized class" unless @method_table == other.method_table
+    @module_name = nil
     super
   end
 

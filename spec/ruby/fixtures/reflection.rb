@@ -6,7 +6,7 @@
 #   public_instance_methods
 #   protected_instance_methods
 #   private_instance_methods
-# 
+#
 # Kernel:
 #   methods
 #   public_methods
@@ -25,7 +25,7 @@
 #   s is the literal character 's' for singleton methods
 #   VIS is the first three letters of the corresponding visibility
 #   pub(lic), pro(tected), pri(vate)
-# 
+#
 # For example:
 #
 #   l_pub is a public method on module L

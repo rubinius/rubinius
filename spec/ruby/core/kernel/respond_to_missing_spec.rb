@@ -3,8 +3,8 @@ require File.expand_path('../fixtures/classes', __FILE__)
 
 ruby_version_is "1.9" do
   describe "Kernel#respond_to_missing?" do
-    before :each do 
-      @a = KernelSpecs::A.new  
+    before :each do
+      @a = KernelSpecs::A.new
     end
 
     it "is not called when #respond_to? would return true" do
@@ -50,12 +50,12 @@ ruby_version_is "1.9" do
       obj.respond_to?(:undefined_method).should be_false
     end
 
-    it "isn't called when obj responds to the given public method" do    
+    it "isn't called when obj responds to the given public method" do
       @a.should_not_receive(:respond_to_missing?)
       @a.respond_to?(:pub_method).should be_true
     end
-    
-    it "isn't called when obj responds to the given public method, include_private = true" do    
+
+    it "isn't called when obj responds to the given public method, include_private = true" do
       @a.should_not_receive(:respond_to_missing?)
       @a.respond_to?(:pub_method, true).should be_true
     end
@@ -65,15 +65,15 @@ ruby_version_is "1.9" do
       @a.respond_to?(:protected_method, false).should be_true
     end
 
-    it "isn't called when obj responds to the given protected method, include_private = true" do 
+    it "isn't called when obj responds to the given protected method, include_private = true" do
       @a.should_not_receive(:respond_to_missing?)
       @a.respond_to?(:protected_method, true).should be_true
     end
-    
-    it "is called when obj responds to the given private method, include_private = false" do    
+
+    it "is called when obj responds to the given private method, include_private = false" do
       @a.should_receive(:respond_to_missing?).with(:private_method, false)
       @a.respond_to?(:private_method)
-    end 
+    end
 
     it "isn't called when obj responds to the given private method, include_private = true" do
       @a.should_not_receive(:respond_to_missing?)

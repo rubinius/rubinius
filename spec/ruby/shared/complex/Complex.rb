@@ -19,7 +19,7 @@ describe :complex_Complex_integer_integer, :shared => true do
     Complex(1, 2).should be_an_instance_of(Complex)
     Complex(1, 2).real.should == 1
     Complex(1, 2).imag.should == 2
-    
+
     Complex(-3, -5).should be_an_instance_of(Complex)
     Complex(-3, -5).real.should == -3
     Complex(-3, -5).imag.should == -5
@@ -45,7 +45,7 @@ describe :complex_Complex_integer, :shared => true do
       Complex(-3).should be_an_instance_of(Complex)
       Complex(-3).imag.should == 0
       Complex(-3).real.should == -3
-      
+
       Complex(-4.5).should be_an_instance_of(Complex)
       Complex(-4.5).imag.should == 0
       Complex(-4.5).real.should == -4.5
@@ -55,14 +55,14 @@ describe :complex_Complex_integer, :shared => true do
       Complex(bignum_value).real.should == bignum_value
     end
   end
-  
+
   ruby_version_is ""..."1.9" do
     it "returns the passed Integer when Complex::Unify is defined" do
       # Guard against the Mathn library
       conflicts_with :Prime do
         begin
           Complex::Unify = true
-        
+
           Complex(1).should eql(1)
           Complex(-3).should eql(-3)
           Complex(-4.5).should eql(-4.5)

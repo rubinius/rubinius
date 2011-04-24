@@ -55,7 +55,7 @@ describe "Array#reject" do
     end
   end
 
-  it_behaves_like :enumeratorize, :reject 
+  it_behaves_like :enumeratorize, :reject
 end
 
 describe "Array#reject!" do
@@ -127,6 +127,6 @@ describe "Array#reject!" do
       lambda { ArraySpecs.empty_frozen_array.reject! {} }.should raise_error(RuntimeError)
     end
   end
-  
+
   it_behaves_like :enumeratorize, :reject!
 end
