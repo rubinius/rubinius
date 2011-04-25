@@ -101,6 +101,12 @@ module ArraySpecs
     end
   end
 
+  class IndexOverrideArray < Array
+    def [](index)
+      nil
+    end
+  end
+
   class ArrayConvertable
     attr_accessor :called
     def initialize(*values, &block)

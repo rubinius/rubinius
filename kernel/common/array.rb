@@ -482,7 +482,7 @@ class Array
 
     Thread.detect_recursion self, other do
       i = -1
-      each { |x| return false unless x == other[i+=1] }
+      each { |x| return false unless x == other.at(i+=1) }
     end
 
     true

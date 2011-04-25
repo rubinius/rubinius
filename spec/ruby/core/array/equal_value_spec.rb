@@ -56,4 +56,8 @@ describe "Array#==" do
   it "returns false for [NaN] == [NaN]" do
     [nan_value].should_not == [nan_value]
   end
+
+  it "returns true even when the Array#[] contract has been broken" do
+    IndexOverrideArray.new(1, 2, 3).should == IndexOverrideArray.new(1, 2, 3)
+  end
 end
