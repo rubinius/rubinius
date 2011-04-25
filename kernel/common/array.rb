@@ -481,8 +481,11 @@ class Array
     return false unless size == other.size
 
     Thread.detect_recursion self, other do
-      i = -1
-      each { |x| return false unless x == other[i+=1] }
+      i = 0
+      each do |x|
+        return false unless x == other[i]
+        i += 1
+      end
     end
 
     true
@@ -493,7 +496,11 @@ class Array
   # contained Array using elem == obj. Returns the first contained
   # Array that matches (the first 'associated' Array) or nil.
   def assoc(obj)
-    each { |x| return x if x.kind_of? Array and x.first == obj }
+    each do |x|
+      if x.kind_of? Array and x.first == obj
+        return x
+      end
+    end
 
     nil
   end
@@ -547,7 +554,7 @@ class Array
 
     while true
       yield values_at(*picks)
-      move = lookup.each{ |pick, max| picks[pick] < max }.first
+      move = lookup.each { |pick, max| picks[pick] < max }.first
       new_index = picks[move] + 1
       picks[move...num] = (new_index...(new_index+num-move)).to_a
     end
@@ -587,7 +594,7 @@ class Array
   # Calls block for each element repeatedly n times or forever if none
   # or nil is given. If a non-positive number is given or the array is empty,
   # does nothing. Returns nil if the loop has finished without getting interrupted.
-  def cycle(n = nil, &block)
+  def cycle(n=nil, &block)
     return to_enum(:cycle, n) unless block_given?
 
     # Don't use nil? because, historically, lame code has overridden that method
@@ -716,15 +723,18 @@ class Array
     return false if @total != other.size
 
     Thread.detect_recursion self, other do
-      i = -1
-      each { |x| return false unless x.eql? other[i+=1] }
+      i = 0
+      each do |x|
+        return false unless x.eql? other[i]
+        i += 1
+      end
     end
 
     true
   end
 
   # True if Array has no elements.
-  def empty?()
+  def empty?
     @total == 0
   end
 
@@ -732,18 +742,20 @@ class Array
   # an IndexError is raised if the element is out of bounds. The
   # user may supply either a default value or a block that takes
   # the index object instead.
-  def fetch(idx, *rest)
-    raise ArgumentError, "Expected 1-2, got #{1 + rest.length}" if rest.length > 1
-    warn 'Block supercedes default object' if !rest.empty? && block_given?
+  def fetch(idx, default=undefined)
+    orig = idx
+    idx = Rubinius::Type.coerce_to(idx, Fixnum, :to_int)
 
-    idx, orig = Rubinius::Type.coerce_to(idx, Fixnum, :to_int), idx
     idx += @total if idx < 0
 
-    if idx < 0 || idx >= @total
-      return yield(orig) if block_given?
-      return rest.at(0) unless rest.empty?
+    if idx < 0 or idx >= @total
+      if block_given?
+        return yield(orig)
+      end
 
-      raise IndexError, "Index #{idx} out of array" if rest.empty?
+      return default unless default.equal? undefined
+
+      raise IndexError, "index #{idx} out of bounds"
     end
 
     at(idx)
@@ -769,19 +781,20 @@ class Array
   def fill(a=undefined, b=undefined, c=undefined)
     Ruby.check_frozen
 
-    if (block_given? and c != undefined) ||
-       (!block_given? and a == undefined)
-      raise ArgumentError, "wrong number of arguments"
-    end
-
     if block_given?
+      if undefined != c
+        raise ArgumentError, "wrong number of arguments"
+      end
       one, two = a, b
     else
+      if a.equal? undefined
+        raise ArgumentError, "wrong number of arguments"
+      end
       obj, one, two = a, b, c
     end
 
     if one.kind_of? Range
-      raise TypeError, "length invalid with range" unless two == undefined
+      raise TypeError, "length invalid with range" unless two.equal? undefined
 
       left = Rubinius::Type.coerce_to one.begin, Fixnum, :to_int
       left += size if left < 0
@@ -791,6 +804,7 @@ class Array
       right += size if right < 0
       right += 1 unless one.exclude_end?
       return self if right <= left           # Nothing to modify
+
     elsif one and one != undefined
       left = Rubinius::Type.coerce_to one, Fixnum, :to_int
       left += size if left < 0
@@ -800,7 +814,7 @@ class Array
         begin
           right = Rubinius::Type.coerce_to two, Fixnum, :to_int
         rescue TypeError
-          raise ArgumentError, "argument #{two.inspect} must be a Fixnum"
+          raise ArgumentError, "second argument must be a Fixnum"
         end
 
         return self if right == 0
@@ -813,15 +827,18 @@ class Array
       right = size
     end
 
-    i = @start + left
     total = @start + right
 
-    if right > size
+    if right > @total
       reallocate total
       @total = right
     end
 
+    # Must be after the potential call to reallocate, since
+    # reallocate might change @tuple
     tuple = @tuple
+
+    i = @start + left
 
     if block_given?
       while i < total
@@ -848,7 +865,7 @@ class Array
     n = Rubinius::Type.coerce_to n, Fixnum, :to_int
     raise ArgumentError, "Size must be positive" if n < 0
 
-    self[0...n].to_a
+    self[0,n]
   end
 
   # Recursively flatten any contained Arrays into an one-dimensional result.
@@ -967,9 +984,15 @@ class Array
   def index(obj=undefined)
     i = 0
     if obj.equal? undefined
-      each { |x| return i if yield(x); i += 1 }
+      each do |x|
+        return i if yield(x)
+        i += 1
+      end
     else
-      each { |x| return i if x == obj; i += 1 }
+      each do |x|
+        return i if x == obj
+        i += 1
+      end
     end
     nil
   end
@@ -985,7 +1008,8 @@ class Array
       if a.kind_of? Range
         out << self[a]
       else
-        out << at(Rubinius::Type.coerce_to(a, Fixnum, :to_int))
+        idx = Rubinius::Type.coerce_to(a, Fixnum, :to_int)
+        out << at(idx)
       end
     end
 
@@ -1018,6 +1042,7 @@ class Array
   # are indicated as [...].
   def inspect
     return "[]" if @total == 0
+
     comma = ", "
     result = "["
 
@@ -1036,6 +1061,7 @@ class Array
   # Arrays.
   def join(sep=nil)
     return "" if @total == 0
+
     out = ""
     return "[...]" if Thread.detect_recursion self do
       sep = sep ? StringValue(sep) : $,
@@ -1086,21 +1112,19 @@ class Array
   # otherwise an empty Array. Always returns an Array.
   def last(n=undefined)
     if size < 1
-      return if n.equal? undefined
+      return nil if n.equal? undefined
       return []
     end
+
     return at(-1) if n.equal? undefined
 
-    unless n.respond_to?(:to_int)
-      raise TypeError, "Can't convert #{n.class} into Integer"
-    end
-
     n = Rubinius::Type.coerce_to n, Fixnum, :to_int
-    return [] if n.zero?
-    raise ArgumentError, "Number must be positive" if n < 0
+    return [] if n == 0
+
+    raise ArgumentError, "count must be positive" if n < 0
 
     n = size if n > size
-    self[-n..-1].to_a
+    self[-n..-1]
   end
 
   alias_method :collect, :map
@@ -1110,7 +1134,7 @@ class Array
   # Returns number of non-nil elements in self, may be zero
   def nitems
     sum = 0
-    each { |elem| sum += 1 unless elem.nil? }
+    each { |elem| sum += 1 unless elem.equal? nil }
     sum
   end
 
@@ -1215,6 +1239,7 @@ class Array
   #
   def permutation(num=undefined, &block)
     return to_enum(:permutation, num) unless block_given?
+
     if num.equal? undefined
       num = @total
     else
@@ -1231,15 +1256,16 @@ class Array
       each { |val| yield [val] }
     else
       # this is the general case
-      p = Array.new(num)
+      perm = Array.new(num)
       used = Array.new(@total, false)
-      __permute__(num, p, 0, used, &block)
+
+      __permute__(num, perm, 0, used, &block)
     end
 
     self
   end
 
-  def __permute__(num, p, index, used, &block)
+  def __permute__(num, perm, index, used, &block)
     # Recursively compute permutations of r elements of the set [0..n-1].
     # When we have a complete permutation of array indexes, copy the values
     # at those indexes into a new array and yield that array.
@@ -1252,13 +1278,13 @@ class Array
     # Note: not as efficient as could be for big num.
     @total.times do |i|
       unless used[i]
-        p[index] = i
+        perm[index] = i
         if index < num-1
           used[i] = true
-          __permute__(num, p, index+1, used, &block)
+          __permute__(num, perm, index+1, used, &block)
           used[i] = false
         else
-          yield values_at(*p)
+          yield values_at(*perm)
         end
       end
     end
@@ -1276,18 +1302,25 @@ class Array
       index = @start + @total
 
       elem = @tuple.at(index)
-      @tuple.put(index,nil)
-
-      # reallocate_shrink()
+      @tuple.put index, nil
 
       elem
     else
       many = Rubinius::Type.coerce_to(many, Fixnum, :to_int)
       raise ArgumentError, "negative array size" if many < 0
 
-      first = size - many
+      first = @total - many
       first = 0 if first < 0
-      slice!(first..size).to_a
+
+      out = self[first, many]
+
+      if many > @total
+        @total = 0
+      else
+        @total -= many
+      end
+
+      return out
     end
   end
 
@@ -1301,12 +1334,16 @@ class Array
   # with one responsible to append the values.
   # ++
   def product(*args)
-    args.map!{|x| Rubinius::Type.coerce_to(x, Array, :to_ary)}
+    args.map! { |x| Rubinius::Type.coerce_to(x, Array, :to_ary) }
 
     # Check the result size will fit in an Array.
-    unless args.inject(size) { |n, x| n * x.size }.kind_of?(Fixnum)
+    sum = args.inject(size) { |n, x| n * x.size }
+
+    if sum > Fixnum::MAX
       raise RangeError, "product result is too large"
     end
+
+    # TODO rewrite this to not use a tree of Proc objects.
 
     # to get the results in the same order as in MRI, vary the last argument first
     args.reverse!
@@ -1314,10 +1351,10 @@ class Array
     result = []
     args.push self
 
-    outer_lambda = args.inject(result.method(:push)) do |proc, values|
+    outer_lambda = args.inject(result.method(:push)) do |trigger, values|
       lambda do |partial|
         values.each do |val|
-          proc.call(partial.dup << val)
+          trigger.call(partial.dup << val)
         end
       end
     end
@@ -1364,10 +1401,11 @@ class Array
 
     return to_enum(:reject!) unless block_given?
 
-    was = length
+    was = size()
     delete_if(&block)
 
-    self if was != length     # Too clever?
+    return nil if was == size()
+    self
   end
 
   # Replaces contents of self with contents of other,
@@ -1382,6 +1420,9 @@ class Array
     @start = other.start
     self
   end
+
+  alias_method :initialize_copy, :replace
+  private :initialize_copy
 
   # Returns a new Array or subclass populated from self
   # but in reverse order.
@@ -1429,7 +1470,10 @@ class Array
       i = @total - 1
       while i >= 0
         return i if yield @tuple.at(@start + i)
+
+        # Compensate for the array being modified by the block
         i = @total if i > @total
+
         i -= 1
       end
     else
@@ -1445,25 +1489,9 @@ class Array
     nil
   end
 
-  # Choose a random element, or the random n elements, from the array.
-  # If the array is empty, the first form returns nil, and the second
-  # form returns an empty array.
-  def choice(n=undefined)
-    return at(Kernel.rand(size)) if n.equal? undefined
-
-    n = Rubinius::Type.coerce_to(n, Fixnum, :to_int)
-    raise ArgumentError, "negative array size" if n < 0
-
-    n = size if n > size
-    result = Array.new(self)
-
-    n.times do |i|
-      r = i + Kernel.rand(size - i)
-      result.tuple.swap(i,r)
-    end
-
-    result[n..size] = []
-    result
+  # Choose a random element from an array.
+  def choice
+    at Kernel.rand(size)
   end
 
   # Some code depends on Array having it's own #select method,
@@ -1483,14 +1511,12 @@ class Array
       @start += 1
       @total -= 1
 
-      # reallocate_shrink()
-
       obj
     else
       n = Rubinius::Type.coerce_to(n, Fixnum, :to_int)
       raise ArgumentError, "negative array size" if n < 0
 
-      slice!(0, n).to_a
+      slice!(0, n)
     end
   end
 
@@ -1637,7 +1663,7 @@ class Array
   # Returns self except on subclasses which are converted
   # or 'upcast' to Arrays.
   def to_a
-    if self.class == Array
+    if self.instance_of? Array
       self
     else
       Array.new(self)
@@ -1652,7 +1678,7 @@ class Array
   # Produces a string by joining all elements without a
   # separator. See #join
   def to_s
-    self.join
+    join
   end
 
   # Treats all elements as being Arrays of equal lengths and
@@ -1662,7 +1688,8 @@ class Array
   def transpose
     return [] if empty?
 
-    out, max = [], nil
+    out = []
+    max = nil
 
     each do |ary|
       ary = Rubinius::Type.coerce_to ary, Array, :to_ary
@@ -1671,7 +1698,10 @@ class Array
       # Catches too-large as well as too-small (for which #fetch would suffice)
       raise IndexError, "All arrays must be same length" if ary.size != max
 
-      ary.size.times { |i| (out[i] ||= []) << ary.at(i) }
+      ary.size.times do |i|
+        entry = (out[i] ||= [])
+        entry << ary.at(i)
+      end
     end
 
     out
@@ -1778,19 +1808,16 @@ class Array
       @start -= values.size
       @tuple.copy_from(values.tuple,0,values.size,@start)
     else
-      # FIXME: provision for more unshift prepends?
       new_tuple = Rubinius::Tuple.new @total + values.size
       new_tuple.copy_from values.tuple, 0, values.size, 0
       new_tuple.copy_from @tuple, @start, @total, values.size
       @start = 0
       @tuple = new_tuple
     end
+
     @total += values.size
     self
   end
-
-  alias_method :initialize_copy, :replace
-  private :initialize_copy
 
   # Reallocates the internal Tuple to accommodate at least given size
   def reallocate(at_least)
@@ -1877,7 +1904,6 @@ class Array
 
       if right > left
         pivotindex = left + ((right - left) / 2)
-        # pi_new = qsort_partition(left, right, pi)
         # inline pivot routine
 
         pivot = @tuple.at(pivotindex)
@@ -2000,6 +2026,7 @@ class Array
   end
   private :isort_block!
 
+  # Move to compiler runtime
   def __rescue_match__(exception)
     each { |x| return true if x === exception }
     false
