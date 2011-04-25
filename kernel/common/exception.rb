@@ -44,7 +44,7 @@ class Exception
   end
 
   def awesome_backtrace
-    @backtrace ||= Backtrace.backtrace(@locations)
+    @backtrace ||= Rubinius::Backtrace.backtrace(@locations)
   end
 
   def render(header="An exception occurred", io=STDERR, color=true)
@@ -81,11 +81,11 @@ class Exception
   end
 
   def set_backtrace(bt)
-    if bt.kind_of? Backtrace
+    if bt.kind_of? Rubinius::Backtrace
       @backtrace = bt
     else
       # See if we stashed a Backtrace object away, and use it.
-      if hidden_bt = Backtrace.detect_backtrace(bt)
+      if hidden_bt = Rubinius::Backtrace.detect_backtrace(bt)
         @backtrace = hidden_bt
       else
         @custom_backtrace = bt

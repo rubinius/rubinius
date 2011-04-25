@@ -103,7 +103,7 @@ module Rubinius
       end
     end
 
-    # See Backtrace.backtrace
+    # See Rubinius::Backtrace.backtrace
     class Missing
       def describe
         "*** Missing backtrace! Did the VM not create one? ***"
