@@ -24,8 +24,8 @@ namespace rubinius {
   {
     BlockAsMethod* bm = as<BlockAsMethod>(msg.method);
 
-    Object* splat = bm->block_env()->method()->splat();
-    int required = bm->block_env()->method()->required_args()->to_native();
+    Object* splat = bm->block_env()->code()->splat();
+    int required = bm->block_env()->code()->required_args()->to_native();
 
     /*
      * These are the block shapes, required args, and splat that we may see,
@@ -56,7 +56,7 @@ namespace rubinius {
     }
 
     BlockInvocation invocation(args.recv(),
-        bm->block_env()->method()->scope(),
+        bm->block_env()->code()->scope(),
         CallFrame::cIsLambda | CallFrame::cBlockAsMethod);
 
     invocation.module = msg.module;

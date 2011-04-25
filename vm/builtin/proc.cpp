@@ -48,10 +48,10 @@ namespace rubinius {
     // Check the arity in lambda mode
     if(bound_method_->nil_p() && lambda_style) {
       flags = CallFrame::cIsLambda;
-      int required = block_->method()->required_args()->to_native();
+      int required = block_->code()->required_args()->to_native();
 
       bool check_arity = true;
-      if(Fixnum* fix = try_as<Fixnum>(block_->method()->splat())) {
+      if(Fixnum* fix = try_as<Fixnum>(block_->code()->splat())) {
         if(fix->to_native() == -2) check_arity = false;
       }
 
@@ -109,10 +109,10 @@ namespace rubinius {
     // Check the arity in lambda mode
     if(lambda_style) {
       flags = CallFrame::cIsLambda;
-      int required = block_->method()->required_args()->to_native();
+      int required = block_->code()->required_args()->to_native();
 
       bool arity_ok = false;
-      if(Fixnum* fix = try_as<Fixnum>(block_->method()->splat())) {
+      if(Fixnum* fix = try_as<Fixnum>(block_->code()->splat())) {
         if(fix->to_native() == -2) {
           arity_ok = true;
         } else if(args.total() >= (size_t)required) {
@@ -161,7 +161,7 @@ namespace rubinius {
     // Check the arity in lambda mode
     if(lambda_style) {
       flags = CallFrame::cIsLambda;
-      int required = block_->method()->required_args()->to_native();
+      int required = block_->code()->required_args()->to_native();
 
       if(args.total() < 1 || (required >= 0 && (size_t)required != args.total() - 1)) {
         Exception* exc =

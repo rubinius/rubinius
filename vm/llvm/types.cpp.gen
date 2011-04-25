@@ -289,7 +289,6 @@ PointerTy_14 = cast<PointerType>(PointerTy_14_fwd.get());
 
 StructTy_struct_rubinius__BlockEnvironment_fields.push_back(PointerTy_14);
 StructTy_struct_rubinius__BlockEnvironment_fields.push_back(PointerTy_14);
-StructTy_struct_rubinius__BlockEnvironment_fields.push_back(PointerTy_1);
 StructTy_struct_rubinius__BlockEnvironment_fields.push_back(PointerTy_15);
 StructTy_struct_rubinius__BlockEnvironment_fields.push_back(PointerTy_7);
 StructType* StructTy_struct_rubinius__BlockEnvironment = StructType::get(mod->getContext(), StructTy_struct_rubinius__BlockEnvironment_fields, /*isPacked=*/false);
@@ -375,8 +374,7 @@ mod->addTypeName("struct.rubinius::Module", StructTy_struct_rubinius__Module);
 mod->addTypeName("struct.rubinius::Numeric", StructTy_struct_rubinius__Numeric);
 mod->addTypeName("struct.rubinius::Object", StructTy_struct_rubinius__Object);
 std::vector<const Type*>StructTy_struct_rubinius__ObjectFlags_fields;
-StructTy_struct_rubinius__ObjectFlags_fields.push_back(IntegerType::get(mod->getContext(), 16));
-StructTy_struct_rubinius__ObjectFlags_fields.push_back(IntegerType::get(mod->getContext(), 16));
+StructTy_struct_rubinius__ObjectFlags_fields.push_back(IntegerType::get(mod->getContext(), 32));
 StructTy_struct_rubinius__ObjectFlags_fields.push_back(IntegerType::get(mod->getContext(), 32));
 StructType* StructTy_struct_rubinius__ObjectFlags = StructType::get(mod->getContext(), StructTy_struct_rubinius__ObjectFlags_fields, /*isPacked=*/false);
 mod->addTypeName("struct.rubinius::ObjectFlags", StructTy_struct_rubinius__ObjectFlags);

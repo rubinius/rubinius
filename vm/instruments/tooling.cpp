@@ -82,7 +82,7 @@ namespace tooling {
 
     rbxti::rsymbol name = rbxti::o(env->top_scope()->method()->name());
     rbxti::rmodule mod =  rbxti::o(i_mod);
-    rbxti::rmethod meth = rbxti::o(env->method());
+    rbxti::rmethod meth = rbxti::o(env->code());
 
     return enter_block_func_(state->tooling_env(), name, mod, meth);
   }

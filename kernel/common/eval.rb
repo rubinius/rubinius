@@ -152,9 +152,9 @@ module Kernel
       env = prc.block
 
       if sc
-        static_scope = env.method.scope.using_current_as(sc)
+        static_scope = env.repoint_scope sc
       else
-        static_scope = env.method.scope.using_disabled_scope
+        static_scope = env.disable_scope!
       end
 
       return env.call_under(self, static_scope, self)
@@ -216,7 +216,7 @@ module Kernel
     raise LocalJumpError, "Missing block" unless block_given?
     env = prc.block
 
-    static_scope = env.method.scope
+    static_scope = env.static_scope
     if ImmediateValue === self
       static_scope = static_scope.using_disabled_scope
     else
@@ -246,7 +246,7 @@ class Module
 
       # Return a copy of the BlockEnvironment with the receiver set to self
       env = prc.block
-      static_scope = env.method.scope.using_current_as(self)
+      static_scope = env.repoint_scope self
       return env.call_under(self, static_scope, self)
     elsif string.equal?(undefined)
       raise ArgumentError, 'block not supplied'

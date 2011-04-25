@@ -317,7 +317,7 @@ class Module
       cm = Rubinius::DelegatedMethod.new(name, :call, meth, false)
     when Proc
       be = meth.block.dup
-      be.method = be.method.change_name name.to_sym
+      be.change_name name.to_sym
       cm = Rubinius::BlockEnvironment::AsMethod.new(be)
       meth = lambda(&meth)
     when Method
@@ -446,7 +446,7 @@ class Module
   def module_exec(*args, &prc)
     raise LocalJumpError, "Missing block" unless block_given?
     env = prc.block
-    static_scope = env.method.scope.using_current_as(self)
+    static_scope = env.repoint_scope self
     return env.call_under(self, static_scope, *args)
   end
 

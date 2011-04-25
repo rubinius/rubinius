@@ -189,8 +189,8 @@ namespace jit {
   void BlockBuilder::initialize_frame(int stack_size) {
     Value* cm_gep = get_field(call_frame, offset::cf_cm);
 
-    method = b().CreateLoad(get_field(block_env, offset::blockenv_method),
-                            "env.method");
+    method = b().CreateLoad(get_field(block_env, offset::blockenv_code),
+                            "env.code");
 
     // previous
     b().CreateStore(prev, get_field(call_frame, offset::cf_previous));
