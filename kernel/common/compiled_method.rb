@@ -103,17 +103,6 @@ module Rubinius
     end
 
     ##
-    # Invoke method directly.
-    #
-    # @note The explicit block argument is unnecessary, but
-    #       present for completeness.
-    #
-    def activate(recv, mod, args, locals = nil, &prc)
-      Ruby.primitive :compiledmethod_activate
-      raise PrimitiveFailure, "Unable to call #{@name} on #{recv.inspect}"
-    end
-
-    ##
     # Set a breakpoint on +ip+. +obj+ can be any object. When the breakpoint
     # is hit +obj+ is sent to the debugger so it can distinguish which breakpoint
     # this is.
@@ -137,41 +126,6 @@ module Rubinius
     def breakpoint?(ip)
       Ruby.primitive :compiledmethod_is_breakpoint
       raise ArgumentError, "Unable to retrieve breakpoint status on #{inspect} at bytecode address #{ip}"
-    end
-
-    ##
-    # Accessor for a hash of filenames (as per $" / $LOADED_FEATURES) to the
-    # script CompiledMethod.
-    def self.scripts
-      @scripts ||= {}
-    end
-
-    ##
-    # Helper function for searching for a CM given a file name; applies similar
-    # search and path expansion rules as load/require, so that the full path to
-    # the file need not be specified.
-    def self.script_for_file(filename)
-      if cm = self.scripts[filename]
-        return cm
-      end
-      # ./ ../ ~/ /
-      if filename =~ %r{\A(?:(\.\.?)|(~))?/}
-        if $2    # ~
-          filename.slice! '~/'
-          return scripts["#{ENV['HOME']}/#{filename}"]
-        else    # . or ..
-          return scripts["#{File.expand_path filename}"]
-        end
-      # Unqualified
-      else
-        scripts = self.scripts
-        $LOAD_PATH.each do |dir|
-          if cm = scripts["#{dir}/#{filename}"]
-            return cm
-          end
-        end
-      end
-      nil
     end
 
     class Script
@@ -426,27 +380,6 @@ module Rubinius
       end
     end
 
-    ##
-    # Graphs the control flow of this method
-    def graph_control(file, open_now=false)
-      raise "We're sorry, this is out of order. Check back soon."
-
-      require 'compiler/blocks'
-      require 'compiler/blocks_graph'
-
-      be = Compiler::BlockExtractor.new(@iseq)
-      entry = be.run
-      grapher = Compiler::BlockGrapher.new(entry)
-      grapher.run(file)
-
-      # :) for OS X
-      if open_now
-        `open #{file}`
-      end
-
-      file
-    end
-
     def arity
       if @required_args == @total_args and
          @splat.nil?
@@ -536,10 +469,6 @@ module Rubinius
             if cm.local_names and !cm.is_block?
               @comment = cm.local_names[args[i]].to_s
             end
-          when :block_local
-            # TODO: Blocks should be able to retrieve enclosing block local names as well,
-            # but need access to static scope
-            #@args[i] = cm.local_names[args[i]] if cm.local_names and args[0] == 0
           end
         end
 

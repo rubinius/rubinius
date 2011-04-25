@@ -411,7 +411,10 @@ class String
     str = self.class.new(str) unless instance_of?(String)
 
     str.modify!
-    str.__data__.first_capitalize!
+
+    # Now do the actual capitalization
+    ba = str.__data__
+    ba[0] = ba[0].toupper
 
     return str
   end
