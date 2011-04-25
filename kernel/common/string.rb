@@ -407,14 +407,14 @@ class String
   def capitalize
     return dup if @num_bytes == 0
 
-    str = transform(CType::Lowered, true)
+    str = transform(Rubinius::CType::Lowered, true)
     str = self.class.new(str) unless instance_of?(String)
 
     str.modify!
 
     # Now do the actual capitalization
     ba = str.__data__
-    ba[0] = ba[0].toupper
+    ba[0] = Rubinius::CType.toupper(ba[0])
 
     return str
   end
@@ -448,14 +448,16 @@ class String
     order = @num_bytes - to.num_bytes
     size = order < 0 ? @num_bytes : to.num_bytes
 
+    ctype = Rubinius::CType
+
     i = 0
     while i < size
       a = @data[i]
       b = to.__data__[i]
       i += 1
 
-      a = a.toupper! if a.islower
-      b = b.toupper! if b.islower
+      a = ctype.toupper!(a) if ctype.islower(a)
+      b = ctype.toupper!(b) if ctype.islower(b)
       r = a - b
 
       next if r == 0
@@ -681,7 +683,7 @@ class String
   # "hEllO".downcase   #=> "hello"
   def downcase
     return dup if @num_bytes == 0
-    str = transform(CType::Lowered, true)
+    str = transform(Rubinius::CType::Lowered, true)
     str = self.class.new(str) unless instance_of?(String)
 
     return str
@@ -694,7 +696,7 @@ class String
 
     return if @num_bytes == 0
 
-    str = transform(CType::Lowered, true)
+    str = transform(Rubinius::CType::Lowered, true)
 
     return nil if str == self
 
@@ -1202,7 +1204,7 @@ class String
   #   str.inspect       #=> "hel\010o"
   def inspect
     str = '"'
-    str << transform(CType::Printed, true)
+    str << transform(Rubinius::CType::Printed, true)
     str << '"'
     str
   end
@@ -1238,7 +1240,9 @@ class String
 
     start = 0
 
-    while start < @num_bytes && @data[start].isspace
+    ctype = Rubinius::CType
+
+    while start < @num_bytes && ctype.isspace(@data[start])
       start += 1
     end
 
@@ -1492,7 +1496,9 @@ class String
       stop -= 1
     end
 
-    while stop >= 0 && @data[stop].isspace
+    ctype = Rubinius::CType
+
+    while stop >= 0 && ctype.isspace(@data[stop])
       stop -= 1
     end
 
@@ -2021,8 +2027,11 @@ class String
     last_alnum = 0
     start = @num_bytes - 1
 
+    ctype = Rubinius::CType
+
     while start >= 0
-      if (s = @data[start]).isalnum
+      s = @data[start]
+      if ctype.isalnum(s)
         carry = 0
         if (?0 <= s && s < ?9) ||
            (?a <= s && s < ?z) ||
@@ -2103,14 +2112,16 @@ class String
 
     modified = false
 
+    ctype = Rubinius::CType
+
     i = 0
     while i < @num_bytes
       c = @data[i]
-      if c.islower
-        @data[i] = c.toupper!
+      if ctype.islower(c)
+        @data[i] = ctype.toupper!(c)
         modified = true
-      elsif c.isupper
-        @data[i] = c.tolower!
+      elsif ctype.isupper(c)
+        @data[i] = ctype.tolower!(c)
         modified = true
       end
       i += 1
@@ -2208,11 +2219,13 @@ class String
 
     modified = false
 
+    ctype = Rubinius::CType
+
     i = 0
     while i < @num_bytes
       c = @data[i]
-      if c.islower
-        @data[i] = c.toupper!
+      if ctype.islower(c)
+        @data[i] = ctype.toupper!(c)
         modified = true
       end
       i += 1
@@ -2636,7 +2649,7 @@ class String
 
   def dump
     str = self.class.new '"'
-    str << transform(CType::Printed, false)
+    str << transform(Rubinius::CType::Printed, false)
     str << '"'
     str
   end

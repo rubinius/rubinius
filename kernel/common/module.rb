@@ -643,7 +643,7 @@ class Module
   def remove_const(name)
     unless name.kind_of? Symbol
       name = StringValue name
-      illegal_const(name) unless name[0].isupper
+      illegal_const(name) unless Rubinius::CType.isupper(name[0])
     end
 
     sym = name.to_sym

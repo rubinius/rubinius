@@ -1,5 +1,4 @@
 class Integer < Numeric
-  include CType
   include Precision
 
   def self.induced_from(obj)
