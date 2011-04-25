@@ -44,6 +44,9 @@ Daedalus.blueprint do |i|
   case RUBY_PLATFORM
   when /linux/i
     gcc.ldflags << '-Wl,--export-dynamic' << "-lrt" << "-lcrypt" << "-ldl" << "-lpthread"
+  when /freebsd/i
+    gcc.ldflags << '-lcrypt' << '-pthread' << '-rdynamic'
+    make = "gmake"
   when /openbsd/i
     gcc.ldflags << '-lcrypto' << '-pthread' << '-lssl' << "-rdynamic" << "-Wl,--export-dynamic"
     make = "gmake"
