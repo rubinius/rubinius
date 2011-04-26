@@ -29,12 +29,23 @@ module Enumerable
 
   def grep(pattern)
     ary = []
-    each do |o|
-      if pattern === o
-        Regexp.set_block_last_match
-        ary << (block_given? ? yield(o) : o)
+
+    if block_given?
+      each do |o|
+        if pattern === o
+          Regexp.set_block_last_match
+          ary << yield(o)
+        end
+      end
+    else
+      each do |o|
+        if pattern === o
+          Regexp.set_block_last_match
+          ary << o
+        end
       end
     end
+
     ary
   end
 
@@ -169,16 +180,32 @@ module Enumerable
   # then uses the first element of collection is used as the initial value of memo.
 
   def inject(initial=undefined, sym=undefined, &block)
-    unless block_given? && sym.equal?(undefined)
-      initial, sym = undefined, initial if sym.equal?(undefined)
-      block = Proc.new{ |memo, obj| memo.send(sym, obj) }
-    end
+    if !block or !sym.equal?(undefined)
+      if sym.equal?(undefined)
+        sym = initial
+        initial = undefined
+      end
 
-    each do |o|
-      if initial.equal? undefined
-        initial = o
-      else
-        initial = block.call(initial, o)
+      # Do the sym version
+
+      sym = sym.to_sym
+
+      each do |o|
+        if initial.equal? undefined
+          initial = o
+        else
+          initial = initial.__send__(sym, o)
+        end
+      end
+
+      # Block version
+    else
+      each do |o|
+        if initial.equal? undefined
+          initial = o
+        else
+          initial = block.call(initial, o)
+        end
       end
     end
 
@@ -246,7 +273,7 @@ module Enumerable
 
   def count(item = undefined)
     seq = 0
-    if ! item.equal? undefined
+    if !item.equal? undefined
       each { |o| seq += 1 if item == o }
     elsif block_given?
       each { |o| seq += 1 if yield(o) }
@@ -294,19 +321,38 @@ module Enumerable
   #   a.cycle {|x| puts x }  # prints a, b, c, a, b, c,.. forever.
   #   a.cycle(2) {|x| puts x }  # prints a, b, c, a, b, c.
 
-  def cycle(many=nil, &block)
-    return to_enum :cycle, many unless block_given?
-    return loop{each(&block)} unless many
+  def cycle(many=nil)
+    return to_enum(:cycle, many) unless block_given?
 
-    many = Rubinius::Type.coerce_to(many, Fixnum, :to_int)
-    if many >= 1
-      cache = []
-      each do |elem|
-        cache << elem
-        block.call(elem)
-      end
-      cache.cycle(many-1, &block)
+    if many
+      many = Rubinius::Type.coerce_to(many, Fixnum, :to_int)
+      return nil if many <= 0
+    else
+      many = nil
     end
+
+    cache = []
+    each do |elem|
+      cache << elem
+      yield elem
+    end
+
+    return nil if cache.empty?
+
+    if many
+      i = 0
+      many -= 1
+      while i < many
+        cache.each { |o| yield o }
+        i += 1
+      end
+    else
+      while true
+        cache.each { |o| yield o }
+      end
+    end
+
+    nil
   end
 
   ##
@@ -318,6 +364,7 @@ module Enumerable
   def drop(n)
     n = Rubinius::Type.coerce_to(n, Fixnum, :to_int)
     raise ArgumentError, "attempt to drop negative size" if n < 0
+
     ary = to_a
     return [] if n > ary.size
     ary[n...ary.size]
@@ -331,20 +378,22 @@ module Enumerable
   # returns nil or false and returns an array containing the remaining elements.
 
   def drop_while
-    return to_enum :drop_while unless block_given?
+    return to_enum(:drop_while) unless block_given?
+
     ary = []
     dropping = true
     each do |obj|
       ary << obj unless dropping &&= yield(obj)
     end
+
     ary
   end
 
   def each_cons(num)
+    return to_enum(:each_cons, num) unless block_given?
+
     n = Rubinius::Type.coerce_to(num, Fixnum, :to_int)
     raise ArgumentError, "invalid size: #{n}" if n <= 0
-
-    return to_enum :each_cons, num unless block_given?
 
     array = []
     each do |element|
@@ -358,10 +407,10 @@ module Enumerable
   alias_method :enum_cons, :each_cons
 
   def each_slice(slice_size)
+    return to_enum(:each_slice, slice_size) unless block_given?
+
     n = Rubinius::Type.coerce_to(slice_size, Fixnum, :to_int)
     raise ArgumentError, "invalid slice size: #{n}" if n <= 0
-
-    return to_enum :each_slice, slice_size unless block_given?
 
     a = []
     each do |element|
@@ -371,6 +420,7 @@ module Enumerable
         a = []
       end
     end
+
     yield a unless a.empty?
     nil
   end
@@ -379,7 +429,7 @@ module Enumerable
 
   ##
   # :call-seq:
-  #   enum.each_with_index(*arg){ |obj, i| block }  -> enum or enumerator
+  #   enum.each_with_index { |obj, i| block }  -> enum or enumerator
   #
   # Calls +block+ with two arguments, the item and its index, for
   # each item in +enum+.
@@ -391,10 +441,15 @@ module Enumerable
   #
   #   p hash   #=> {"cat"=>0, "wombat"=>2, "dog"=>1}
 
-  def each_with_index(*arg)
-    return to_enum :each_with_index, *arg unless block_given?
+  def each_with_index
+    return to_enum(:each_with_index) unless block_given?
+
     idx = 0
-    each(*arg) { |o| yield(o, idx); idx += 1 }
+    each do |o|
+      yield o, idx
+      idx += 1
+    end
+
     self
   end
 
@@ -402,8 +457,8 @@ module Enumerable
 
   ##
   # :call-seq:
-  #   enum.detect(ifnone = nil) { | obj | block }  => obj or nil
-  #   enum.find(ifnone = nil)   { | obj | block }  => obj or nil
+  #   enum.detect(ifnone=nil) { | obj | block }  => obj or nil
+  #   enum.find(ifnone=nil)   { | obj | block }  => obj or nil
   #
   # Passes each entry in +enum+ to +block+>. Returns the first for which
   # +block+ is not false.  If no object matches, calls +ifnone+ and returns
@@ -412,9 +467,11 @@ module Enumerable
   #   (1..10).detect  { |i| i % 5 == 0 and i % 7 == 0 }   #=> nil
   #   (1..100).detect { |i| i % 5 == 0 and i % 7 == 0 }   #=> 35
 
-  def find(ifnone = nil)
-    return to_enum :find, ifnone unless block_given?
+  def find(ifnone=nil)
+    return to_enum(:find, ifnone) unless block_given?
+
     each { |o| return o if yield(o) }
+
     ifnone.call if ifnone
   end
 
@@ -431,12 +488,11 @@ module Enumerable
   #   (1..10).find_all { |i|  i % 3 == 0 }   #=> [3, 6, 9]
 
   def find_all
-    return to_enum :find_all unless block_given?
+    return to_enum(:find_all) unless block_given?
+
     ary = []
     each do |o|
-      if yield(o)
-        ary << o
-      end
+      ary << o if yield(o)
     end
     ary
   end
@@ -452,15 +508,20 @@ module Enumerable
   # Compares each entry in enum with value or passes to block.
   # Returns the index for the first for which the evaluated value is non-false. If no object matches, returns nil
 
-  def find_index(value = undefined)
+  def find_index(value=undefined)
     if value.equal? undefined
-      return to_enum :find_index unless block_given?
-      each_with_index do |element, i|
-        return i if yield element
+      return to_enum(:find_index) unless block_given?
+
+      i = 0
+      each do |e|
+        return i if yield(e)
+        i += 1
       end
     else
-      each_with_index do |element, i|
-        return i if element == value
+      i = 0
+      each do |e|
+        return i if e == value
+        i += 1
       end
     end
     nil
@@ -475,9 +536,9 @@ module Enumerable
   # If the enumerable is empty, the first form returns nil, and the second
   # form returns an empty array.
 
-  def first(n = undefined)
+  def first(n=undefined)
     return take(n) unless n.equal?(undefined)
-    each{|obj| return obj}
+    each { |obj| return obj }
     nil
   end
 
@@ -491,7 +552,8 @@ module Enumerable
   #    (1..6).group_by { |i| i%3}   #=> {0=>[3, 6], 1=>[1, 4], 2=>[2, 5]}
 
   def group_by
-    return to_enum :group_by unless block_given?
+    return to_enum(:group_by) unless block_given?
+
     h = {}
     i = 0
     each do |o|
@@ -584,16 +646,22 @@ module Enumerable
   #   a = %w[albatross dog horse]
   #   a.max_by { |x| x.length }   #=> "albatross"
 
-  def max_by(&block)
+  def max_by
     return to_enum(:max_by) unless block_given?
-    max_object, max_result = nil, Rubinius::FakeComparator.new(-1)
+
+    max_object = nil
+    max_result = undefined
+
     each do |object|
       result = yield object
 
-      if Rubinius::Type.coerce_to_comparison(max_result, result) < 0
-        max_object, max_result = object, result
+      if max_result.equal? undefined or \
+           Rubinius::Type.coerce_to_comparison(max_result, result) < 0
+        max_object = object
+        max_result = result
       end
     end
+
     max_object
   end
 
@@ -612,14 +680,20 @@ module Enumerable
 
   def min_by
     return to_enum(:min_by) unless block_given?
-    min_object, min_result = nil, Rubinius::FakeComparator.new(1)
+
+    min_object = nil
+    min_result = undefined
+
     each do |object|
       result = yield object
 
-      if Rubinius::Type.coerce_to_comparison(min_result, result) > 0
-        min_object, min_result = object, result
+      if min_result.equal? undefined or \
+           Rubinius::Type.coerce_to_comparison(min_result, result) > 0
+        min_object = object
+        min_result = result
       end
     end
+
     min_object
   end
 
@@ -665,18 +739,29 @@ module Enumerable
 
   def minmax_by(&block)
     return to_enum(:minmax_by) unless block_given?
-    min_object, min_result = nil, Rubinius::FakeComparator.new(1)
-    max_object, max_result = nil, Rubinius::FakeComparator.new(-1)
+
+    min_object = nil
+    min_result = undefined
+
+    max_object = nil
+    max_result = undefined
+
     each do |object|
       result = yield object
-      if Rubinius::Type.coerce_to_comparison(min_result, result) > 0
-        min_object, min_result = object, result
+
+      if min_result.equal? undefined or \
+           Rubinius::Type.coerce_to_comparison(min_result, result) > 0
+        min_object = object
+        min_result = result
       end
 
-      if Rubinius::Type.coerce_to_comparison(max_result, result) < 0
-        max_object, max_result = object, result
+      if max_result.equal? undefined or \
+           Rubinius::Type.coerce_to_comparison(max_result, result) < 0
+        max_object = object
+        max_result = result
       end
     end
+
     [min_object, max_object]
   end
 
@@ -700,6 +785,7 @@ module Enumerable
     else
       each { |o| return false if o }
     end
+
     return true
   end
 
@@ -719,6 +805,7 @@ module Enumerable
 
   def one?
     found_one = false
+
     if block_given?
       each do |o|
         if yield(o)
@@ -734,6 +821,7 @@ module Enumerable
         end
       end
     end
+
     found_one
   end
 
@@ -747,10 +835,12 @@ module Enumerable
   #   (1..6).partition { |i| (i&1).zero?}   #=> [[2, 4, 6], [1, 3, 5]]
 
   def partition
-    return to_enum :partition unless block_given?
+    return to_enum(:partition) unless block_given?
+
     left = []
     right = []
     each { |o| yield(o) ? left.push(o) : right.push(o) }
+
     return [left, right]
   end
 
@@ -764,19 +854,19 @@ module Enumerable
   #    (1..10).reject { |i|  i % 3 == 0 }   #=> [1, 2, 4, 5, 7, 8, 10]
 
   def reject
-    return to_enum :reject unless block_given?
+    return to_enum(:reject) unless block_given?
 
     ary = []
     each do |o|
-      unless yield(o)
-        ary << o
-      end
+      ary << o unless yield(o)
     end
+
     ary
   end
 
   def reverse_each(&block)
     return to_enum(:reverse_each) unless block_given?
+
     # There is no other way then to convert to an array first... see 1.9's source.
     to_a.reverse_each(&block)
     self
@@ -791,11 +881,16 @@ module Enumerable
   def take(n)
     n = Rubinius::Type.coerce_to(n, Fixnum, :to_int)
     raise ArgumentError, "attempt to take negative size: #{n}" if n < 0
+
     array = []
-    each do |elem|
-      array << elem
-      break if array.size >= n
-    end unless n <= 0
+
+    unless n <= 0
+      each do |elem|
+        array << elem
+        break if array.size >= n
+      end
+    end
+
     array
   end
 
@@ -803,12 +898,14 @@ module Enumerable
   # then stops iterating and returns an array of all prior elements.
 
   def take_while
-    return to_enum :take_while unless block_given?
+    return to_enum(:take_while) unless block_given?
+
     array = []
     each do |elem|
-      return array unless yield elem
+      return array unless yield(elem)
       array << elem
     end
+
     array
   end
 
@@ -857,25 +954,20 @@ module Enumerable
   #   (1..3).zip            #=> [[1], [2], [3]]
 
   def zip(*args)
-    result = []
-    args = args.map { |a| a.to_a }
+    args.map! { |a| a.to_a }
+
+    results = []
+
     each_with_index do |o, i|
-      result << args.inject([o]) { |ary, a| ary << a[i] }
-      yield(result.last) if block_given?
+      entry = args.inject([o]) { |ary, a| ary << a[i] }
+
+      yield entry if block_given?
+
+      results << entry
     end
-    result unless block_given?
+
+    return nil if block_given?
+    results
   end
 
-end
-
-module Rubinius
-  class FakeComparator
-    def initialize(comparison_result)
-      @comparison_result = comparison_result
-    end
-
-    def <=>(whatever)
-      @comparison_result
-    end
-  end
 end
