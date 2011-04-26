@@ -19,26 +19,47 @@ module Rubinius
       end
       value
     end
+
     alias_method :store, :[]=
 
     def each_key
-      return to_enum :each_key unless block_given?
+      return to_enum(:each_key) unless block_given?
 
       each { |k, v| yield k }
     end
 
     def each_value
-      return to_enum :each_value unless block_given?
+      return to_enum(:each_value) unless block_given?
 
       each { |k, v| yield v }
     end
 
     def each
-      return to_enum :each unless block_given?
+      return to_enum(:each) unless block_given?
 
-      to_hash.each { |k, v| yield k, v }
+      env = environ()
+      ptr_size = FFI.type_size FFI.find_type(:pointer)
+
+      i = 0
+
+      offset = 0
+      cur = env + offset
+
+      until cur.read_pointer.null?
+        entry = cur.read_pointer.read_string
+        key, value = entry.split '=', 2
+        value.taint if value
+        key.taint if key
+
+        yield key, value
+
+        offset += ptr_size
+        cur = env + offset
+      end
+
       self
     end
+
     alias_method :each_pair, :each
 
     def delete(key)
@@ -48,30 +69,33 @@ module Rubinius
     end
 
     def delete_if(&block)
-      return to_enum :delete_it unless block_given?
+      return to_enum(:delete_it) unless block_given?
       reject!(&block)
       self
     end
 
-    def fetch(*params)
-      if params.size < 1
-        raise ArgumentError, "wrong number of arguments (0 for 1)"
-      elsif params.size > 2
-        raise ArgumentError, "wrong number of arguments (#{params.size} for 2)"
-      end
-      if block_given? and params.size == 2
+    def fetch(key, absent=undefined)
+      if block_given? and !absent.equal?(undefined)
         warn "block supersedes default value argument"
       end
-      value = self[params[0]]
-      return value if value
-      return yield(params[0]) if block_given?
-      raise IndexError, "key not found" if params.size == 1
-      return params[1]
+
+      if value = self[key]
+        return value
+      end
+
+      if block_given?
+        return yield(key)
+      elsif absent.equal?(undefined)
+        raise IndexError, "key not found"
+      end
+
+      return absent
     end
 
     def include?(key)
       !self[key].nil?
     end
+
     alias_method :has_key?, :include?
     alias_method :key?, :include?
     # More efficient than using the one from Enumerable
@@ -90,28 +114,39 @@ module Rubinius
     end
 
     def reject!
-      return to_enum :reject! unless block_given?
+      return to_enum(:reject!) unless block_given?
+
       rejected = false
       each do |k, v|
-        if yield k, v
+        if yield(k, v)
           delete k
           rejected = true
         end
       end
+
       rejected ? self : nil
     end
 
     def clear
-      reject! { true }
+      # Avoid deleting from environ while iterating because the
+      # OS can handle that in a million different bad ways.
+
+      keys = []
+      each { |k,v| keys << k }
+      keys.each { |k| delete k }
+
+      self
     end
 
     def has_value?(value)
-      to_hash.has_value? value
+      each { |k,v| return true if v == value }
+      return false
     end
+
     alias_method :value?, :has_value?
 
     def values_at(*params)
-      to_hash.values_at(*params)
+      params.map{ |k| self[k] }
     end
 
     def index(value)
@@ -126,20 +161,28 @@ module Rubinius
     end
 
     def keys
-      to_hash.keys
+      keys = []
+      each { |k,v| keys << k }
+      keys
     end
 
     def values
-      to_hash.values
+      vals = []
+      each { |k,v| vals << v }
+      vals
     end
 
     def empty?
-      to_hash.empty?
+      each { return false }
+      return true
     end
 
     def length
-      to_hash.length
+      sz = 0
+      each { |k,v| sz += 1 }
+      sz
     end
+
     alias_method :size, :length
 
     def rehash
@@ -152,15 +195,31 @@ module Rubinius
     end
 
     def shift
-      hash = to_hash
-      return nil if hash.empty?
-      result = hash.shift
-      delete result.first
-      result
+      env = environ()
+      ptr_size = FFI.type_size FFI.find_type(:pointer)
+
+      offset = 0
+      cur = env + offset
+
+      ptr = cur.read_pointer
+      return nil unless ptr
+
+      key, value = ptr.read_string.split "=", 2
+
+      return nil unless key
+
+      key.taint if key
+      value.taint if value
+
+      delete key
+
+      return [key, value]
     end
 
     def to_a
-      to_hash.to_a
+      ary = []
+      each { |k,v| ary << [k,v] }
+      ary
     end
 
     def to_hash
@@ -191,7 +250,7 @@ module Rubinius
 
     def update(other, &block)
       if block_given?
-        other.each { |k, v| self[k] = yield k, self[k], v }
+        other.each { |k, v| self[k] = yield(k, self[k], v) }
       else
         other.each { |k, v| self[k] = v }
       end
