@@ -19,12 +19,27 @@ module Rubinius
       @agent = Rubinius::Agent.loopback
     end
 
+    MEMORY_BANKS = [:young, :mature, :large, :code, :symbols]
+
     def total_memory
-      total = [:young, :mature, :large, :code, :symbols].inject(0) do |s, m|
+      total = MEMORY_BANKS.inject(0) do |s, m|
         s + @agent.get("system.memory.#{m}.bytes").last
       end
 
       auto_bytes total
+    end
+
+    def itemized_memory
+      total = 0
+      output = ""
+      MEMORY_BANKS.each do |m|
+        size = @agent.get("system.memory.#{m}.bytes").last
+        output += "#{m.to_s.capitalize.rjust(7)}: #{auto_bytes size}\n"
+        total += size
+      end
+      output += "\n  Total: #{auto_bytes total}\n"
+
+      output
     end
   end
 end
