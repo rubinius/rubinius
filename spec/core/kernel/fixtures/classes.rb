@@ -24,9 +24,8 @@ module KernelSpecs
   def self.cache_file(name, cache)
     code = File.read name
 
-    var = eval(code, empty_binding, name) do |cm, be|
-      Rubinius::CompiledFile.dump cm, cache
-    end
+    be = Rubinius::Compiler.construct_block code, empty_binding, name
+    Rubinius::CompiledFile.dump be.code, cache
   end
 
   def self.run_cache(cache)

@@ -41,6 +41,7 @@ module Kernel
   #
   def eval(string, binding=nil, filename=nil, lineno=1)
     filename = StringValue(filename) if filename
+    lineno = Type.coerce_to lineno, Fixnum, :to_i
 
     if binding
       if binding.kind_of? Proc
@@ -53,26 +54,6 @@ module Kernel
         raise ArgumentError, "unknown type of binding"
       end
 
-      # shortcut for checking for a local in a binding!
-      # This speeds rails up quite a bit because it uses this in rendering
-      # a view A LOT.
-      #
-      # Rails always does this passing in a binding, so thats why the check
-      # is here.
-      #
-      # TODO eval the AST rather than compiling. Thats slightly slower than
-      # this, but handles infinitely more cases.
-=begin
-      if m = /^\s*defined\? ([a-z_][A-Za-z0-9_]*)\s*$/.match(string)
-        local = m[1].to_sym
-        if binding.variables.local_defined?(local)
-          return "local-variable"
-        else
-          return nil
-        end
-      end
-=end
-
       filename ||= binding.static_scope.active_path
     else
       binding = Binding.setup(Rubinius::VariableScope.of_sender,
@@ -83,33 +64,12 @@ module Kernel
       filename ||= "(eval)"
     end
 
-    cm = Rubinius::Compiler.compile_eval string, binding.variables, filename, lineno
+    binding.static_scope = binding.static_scope.dup
 
-    cm.scope = binding.static_scope.dup
-    cm.name = :__eval__
-
-    # This has to be setup so __FILE__ works in eval.
-    script = Rubinius::CompiledMethod::Script.new(cm, filename, true)
-    script.eval_binding = binding
-    script.eval_source = string
-
-    cm.scope.script = script
-
-    be = Rubinius::BlockEnvironment.new
-    be.under_context binding.variables, cm
-
-    # Pass the BlockEnvironment this binding was created from
-    # down into the new BlockEnvironment we just created.
-    # This indicates the "declaration trace" to the stack trace
-    # mechanisms, which can be different from the "call trace"
-    # in the case of, say: eval("caller", a_proc_instance)
-    if binding.from_proc?
-      be.proc_environment = binding.proc_environment
-    end
-
-    be.from_eval!
-    
-    yield cm, be if block_given?
+    be = Rubinius::Compiler.construct_block string, binding,
+                                            filename, lineno
+   
+    be.set_eval_binding binding
 
     be.call_on_instance(binding.self)
   end
@@ -161,14 +121,7 @@ module Kernel
     elsif string
       string = StringValue(string)
 
-      # TODO refactor this common code with #eval
-      binding = Binding.setup(Rubinius::VariableScope.of_sender,
-                              Rubinius::CompiledMethod.of_sender,
-                              Rubinius::StaticScope.of_sender)
-
-      cm = Rubinius::Compiler.compile_eval string, binding.variables, filename, line
-
-      static_scope = binding.static_scope
+      static_scope = Rubinius::StaticScope.of_sender
 
       if sc
         static_scope = Rubinius::StaticScope.new(sc, static_scope)
@@ -176,17 +129,13 @@ module Kernel
         static_scope = static_scope.using_disabled_scope
       end
 
-      cm.scope = static_scope
-      cm.name = :__instance_eval__
+      binding = Binding.setup(Rubinius::VariableScope.of_sender,
+                              Rubinius::CompiledMethod.of_sender,
+                              static_scope)
 
-      # This has to be setup so __FILE__ works in eval.
-      script = Rubinius::CompiledMethod::Script.new(cm, filename, true)
-      script.eval_source = string
-      cm.scope.script = script
+      be = Rubinius::Compiler.construct_block string, binding,
+                                              filename, line
 
-      be = Rubinius::BlockEnvironment.new
-      be.from_eval!
-      be.under_context binding.variables, cm
       be.call_on_instance(self)
     else
       raise ArgumentError, 'block not supplied'
@@ -252,31 +201,19 @@ class Module
       raise ArgumentError, 'block not supplied'
     end
 
-    # TODO refactor this common code with #eval
-
-    variables = Rubinius::VariableScope.of_sender
-    method = Rubinius::CompiledMethod.of_sender
-
     string = StringValue(string)
     filename = StringValue(filename)
-
-    cm = Rubinius::Compiler.compile_eval string, variables, filename, line
 
     # The staticscope of a module_eval CM is the receiver of module_eval
     ss = Rubinius::StaticScope.new self, Rubinius::StaticScope.of_sender
 
-    # This has to be setup so __FILE__ works in eval.
-    script = Rubinius::CompiledMethod::Script.new(cm, filename, true)
-    script.eval_source = string
-    ss.script = script
+    binding = Binding.setup(Rubinius::VariableScope.of_sender,
+                            Rubinius::CompiledMethod.of_sender,
+                            ss)
 
-    cm.scope = ss
+    be = Rubinius::Compiler.construct_block string, binding,
+                                            filename, line
 
-    # The gist of this code is that we need the receiver's static scope
-    # but the caller's binding to implement the proper constant behavior
-    be = Rubinius::BlockEnvironment.new
-    be.from_eval!
-    be.under_context variables, cm
     be.call_under self, ss, self
   end
 

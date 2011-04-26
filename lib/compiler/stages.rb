@@ -235,5 +235,14 @@ module Rubinius
         create.parse_string(@input)
       end
     end
+
+    class EvalParser < StringParser
+      stage :eval
+      next_stage Generator
+
+      def should_cache?
+        @output.should_cache?
+      end
+    end
   end
 end

@@ -46,6 +46,10 @@ module Rubinius
       Binding.setup @scope, @code, @code.scope
     end
 
+    def set_eval_binding(bind)
+      @code.scope.script.eval_binding = bind
+    end
+
     ##
     # First field of the tuple in @metadata_container holds a boolean
     # indicating if the context is from eval
