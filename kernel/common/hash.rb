@@ -206,7 +206,7 @@ class Hash
     redistribute @entries if @size > @max_entries
 
     key_hash = key.hash
-    index = key_hash & @mask # key_index key_hash
+    index = key_hash & @mask
 
     entry = @entries[index]
     unless entry
@@ -292,7 +292,7 @@ class Hash
   def delete_if(&block)
     Ruby.check_frozen
 
-    return to_enum :delete_if unless block_given?
+    return to_enum(:delete_if) unless block_given?
 
     select(&block).each { |k, v| delete k }
     self
@@ -315,7 +315,7 @@ class Hash
   end
 
   def each
-    return to_enum :each unless block_given?
+    return to_enum(:each) unless block_given?
 
     idx = 0
     cap = @capacity
@@ -335,14 +335,14 @@ class Hash
   end
 
   def each_key
-    return to_enum :each_key unless block_given?
+    return to_enum(:each_key) unless block_given?
 
     each_entry { |e| yield e.key }
     self
   end
 
   def each_pair
-    return to_enum :each_pair unless block_given?
+    return to_enum(:each_pair) unless block_given?
 
     each_entry do |entry|
       yield entry.key, entry.value
@@ -351,7 +351,7 @@ class Hash
   end
 
   def each_value
-    return to_enum :each_value unless block_given?
+    return to_enum(:each_value) unless block_given?
 
     each_entry do |entry|
       yield entry.value
@@ -364,7 +364,7 @@ class Hash
     @size == 0
   end
 
-  def fetch(key, default = undefined)
+  def fetch(key, default=undefined)
     if entry = find_entry(key)
       return entry.value
     end
@@ -395,7 +395,7 @@ class Hash
     nil
   end
 
-  def initialize(default = undefined, &block)
+  def initialize(default=undefined, &block)
     Ruby.check_frozen
 
     if !default.equal?(undefined) and block
@@ -455,7 +455,11 @@ class Hash
   private :key_index
 
   def keys
-    map { |key, value| key }
+    ary = []
+    each_entry do |entry|
+      ary << entry.key
+    end
+    ary
   end
 
   def merge(other, &block)
@@ -554,18 +558,18 @@ class Hash
   end
 
   def reject
-    return to_enum :reject unless block_given?
+    return to_enum(:reject) unless block_given?
 
     hsh = self.class.new
     hsh.taint if self.tainted?
-    self.each { |k,v| hsh[k] = v if !yield(k,v) }
+    self.each { |k,v| hsh[k] = v unless yield(k,v) }
     hsh
   end
 
   def reject!
     Ruby.check_frozen
 
-    return to_enum :reject! unless block_given?
+    return to_enum(:reject!) unless block_given?
 
     capacity = @capacity
     entries = @entries
@@ -638,7 +642,7 @@ class Hash
   end
 
   def select
-    return to_enum :select unless block_given?
+    return to_enum(:select) unless block_given?
 
     selected = []
 
@@ -656,15 +660,22 @@ class Hash
 
     return default(nil) if empty?
 
-    i = to_iter
-    if entry = i.next(entry)
-      @entries[i.index] = entry.next
-      @size -= 1
-      return entry.key, entry.value
-    end
-  end
+    idx = 0
+    cap = @capacity
+    entries = @entries
 
-  # packed! [:@capacity, :@mask, :@max_entries, :@size, :@entries]
+    while idx < cap
+      if entry = entries[idx]
+        entries[idx] = entry.next
+        @size -= 1
+        break
+      end
+
+      idx += 1
+    end
+
+    return entry.key, entry.value
+  end
 
   # Sets the underlying data structures.
   #
@@ -686,7 +697,13 @@ class Hash
   end
 
   def to_a
-    select { true }
+    ary = []
+
+    each_entry do |entry|
+      ary << [entry.key, entry.value]
+    end
+
+    ary
   end
 
   # Returns an external iterator for the bins. See +Iterator+
@@ -708,15 +725,23 @@ class Hash
     end
     false
   end
+
   alias_method :has_value?, :value?
 
   def values
-    map { |key, value| value }
+    ary = []
+
+    each_entry do |entry|
+      ary << entry.value
+    end
+
+    ary
   end
 
   def values_at(*args)
     args.collect { |key| self[key] }
   end
+
   alias_method :indexes, :values_at
   alias_method :indices, :values_at
 end
