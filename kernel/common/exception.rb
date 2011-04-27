@@ -140,16 +140,7 @@ class Exception
   def location
     [context.file.to_s, context.line]
   end
-
-  # HACK
-  def self.===(obj)
-    return false if obj.kind_of? Rubinius::ThrownValue
-    super
-  end
 end
-
-##
-# Primitive fails from opcode "send_primitive"
 
 class PrimitiveFailure < Exception
 end
@@ -197,6 +188,7 @@ end
 
 class NameError < StandardError
   attr_reader :name
+
   def initialize(*args)
     super(args.shift)
     @name = args.shift
@@ -206,6 +198,7 @@ end
 class NoMethodError < NameError
   attr_reader :name
   attr_reader :args
+
   def initialize(*arguments)
     super(arguments.shift)
     @name = arguments.shift
