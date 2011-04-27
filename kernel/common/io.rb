@@ -56,26 +56,25 @@ class IO
     #
     # Returns the number of bytes in the buffer.
     def fill_from(io, skip = nil)
-      @channel.receive # lock
+      @channel.as_lock do
+        empty_to io
+        discard skip if skip
 
-      empty_to io
-      discard skip if skip
-      return size unless empty?
+        return size unless empty?
 
-      reset!
+        reset!
 
-      if fill(io) < 0
-        raise IOError, "error occurred while filling buffer (#{obj})"
+        if fill(io) < 0
+          raise IOError, "error occurred while filling buffer (#{obj})"
+        end
+
+        if @used == 0
+          io.eof!
+          @eof = true
+        end
+
+        return size
       end
-
-      if @used == 0
-        io.eof!
-        @eof = true
-      end
-
-      return size
-    ensure
-      @channel << true
     end
 
     def empty_to(io)
@@ -134,44 +133,37 @@ class IO
     end
 
     def unseek!(io)
-      @channel.receive
-
-      # Unseek the still buffered amount
-      return unless write_synced?
-      io.prim_seek @start - @used, IO::SEEK_CUR unless empty?
-      reset!
-    ensure
-      @channel << true
+      @channel.as_lock do
+        # Unseek the still buffered amount
+        return unless write_synced?
+        io.prim_seek @start - @used, IO::SEEK_CUR unless empty?
+        reset!
+      end
     end
 
     ##
     # Returns +count+ bytes from the +start+ of the buffer as a new String.
     # If +count+ is +nil+, returns all available bytes in the buffer.
-    def shift(count = nil)
-      @channel.receive
+    def shift(count=nil)
+      @channel.as_lock do
+        total = size
+        total = count if count and count < total
 
-      total = size
-      total = count if count and count < total
+        str = String.from_bytearray @storage, @start, total
+        @start += total
 
-      str = String.from_bytearray @storage, @start, total
-      @start += total
-
-      str
-    ensure
-      @channel << true
+        str
+      end
     end
 
     ##
     # Returns one Fixnum as the start byte, used for #getc
     def get_first
-      @channel.receive
-
-      byte = @storage[@start]
-      @start += 1
-
-      byte
-    ensure
-      @channel << true
+      @channel.as_lock do
+        byte = @storage[@start]
+        @start += 1
+        byte
+      end
     end
 
     ##
@@ -386,7 +378,7 @@ class IO
   #  26169 is here, f is
   #  26166 is here, f is #<IO:0x401b3d44>
   #  #<Process::Status: pid=26166,exited(0)>
-  def self.popen(str, mode = "r")
+  def self.popen(str, mode="r")
     mode = parse_mode mode
 
     readable = false
@@ -472,7 +464,7 @@ class IO
   #  IO.read("testfile")           #=> "This is line one\nThis is line two\nThis is line three\nAnd so on...\n"
   #  IO.read("testfile", 20)       #=> "This is line one\nThi"
   #  IO.read("testfile", 20, 10)   #=> "ne one\nThis is line "
-  def self.read(name, length = undefined, offset = 0)
+  def self.read(name, length=undefined, offset=0)
     name = StringValue(name)
     length ||= undefined
     offset ||= 0
@@ -506,7 +498,7 @@ class IO
       if length.equal?(undefined)
         str = io.read
       else
-        str = io.read(length)
+        str = io.read length
       end
     ensure
       io.close
@@ -522,7 +514,7 @@ class IO
   #
   #  a = IO.readlines("testfile")
   #  a[0]   #=> "This is line one\n"
-  def self.readlines(name, sep_string = $/)
+  def self.readlines(name, sep_string=$/)
     name = StringValue name
 
     if name[0] == ?|
@@ -533,7 +525,7 @@ class IO
     end
 
     begin
-      io.readlines(sep_string)
+      io.readlines sep_string
     ensure
       io.close
     end
@@ -564,14 +556,16 @@ class IO
   # @compatibility  MRI 1.8 and 1.9 require the +readables+ Array,
   #                 Rubinius does not.
   #
-  def self.select(readables = nil, writables = nil, errorables = nil, timeout = nil)
+  def self.select(readables=nil, writables=nil, errorables=nil, timeout=nil)
     if timeout
       unless Rubinius::Type.object_kind_of? timeout, Numeric
         raise TypeError, "Timeout must be numeric"
       end
+
       raise ArgumentError, 'timeout must be positive' if timeout < 0
 
-      timeout = Integer(timeout * 1_000_000)      # Microseconds, rounded down
+      # Microseconds, rounded down
+      timeout = Integer(timeout * 1_000_000)
     end
 
     if readables
@@ -629,7 +623,6 @@ class IO
     end
 
     open_with_mode path, mode, perm
-    # FFI::Platform::POSIX.open path, mode, perm
   end
 
   #
@@ -640,9 +633,10 @@ class IO
   #
   # The +sync+ attribute will also be set.
   #
-  def self.setup(io, fd, mode = nil, sync = false)
+  def self.setup(io, fd, mode=nil, sync=false)
     cur_mode = FFI::Platform::POSIX.fcntl(fd, F_GETFL, 0)
     Errno.handle if cur_mode < 0
+
     cur_mode &= ACCMODE
 
     if mode
@@ -668,10 +662,11 @@ class IO
   #
   # Create a new IO associated with the given fd.
   #
-  def initialize(fd, mode = nil)
+  def initialize(fd, mode=nil)
     if block_given?
       warn 'IO::new() does not take block; use IO::open() instead'
     end
+
     IO.setup self, Rubinius::Type.coerce_to(fd, Integer, :to_int), mode
   end
 
@@ -787,7 +782,8 @@ class IO
   #  3: This is line three
   #  4: And so on...
   def each(sep=$/)
-    return to_enum :each, sep unless block_given?
+    return to_enum(:each, sep) unless block_given?
+
     ensure_open_and_readable
 
     sep = sep.to_str if sep
@@ -801,29 +797,34 @@ class IO
   alias_method :each_line, :each
 
   def each_byte
-    return to_enum :each_byte unless block_given?
+    return to_enum(:each_byte) unless block_given?
+
     yield getbyte until eof?
 
     self
   end
 
   def each_char
-    return to_enum :each_char unless block_given?
+    return to_enum(:each_char) unless block_given?
+
     ensure_open_and_readable
     if Rubinius.kcode == :UTF8
+      # TODO zoinks. This is the slowest way possible to do this.
+      # We'll have to rewrite it.
       lookup = 7.downto(4)
       while c = read(1) do
         n = c[0]
-        leftmost_zero_bit = lookup.find{|i| n[i].zero? }
+        leftmost_zero_bit = lookup.find { |i| n[i] == 0 }
+
         case leftmost_zero_bit
         when 7 # ASCII
           yield c
         when 6 # UTF 8 complementary characters
           next # Encoding error, ignore
         else
-          more = read(6-leftmost_zero_bit)
+          more = read(6 - leftmost_zero_bit)
           break unless more
-          yield c+more
+          yield c + more
         end
       end
     else
@@ -862,7 +863,9 @@ class IO
   #
   #  r, w = IO.pipe
   #  r.eof?  # blocks forever
-  # Note that IO#eof? reads data to a input buffer. So IO#sysread doesn't work with IO#eof?.
+  #
+  # Note that IO#eof? reads data to a input buffer.
+  # So IO#sysread doesn't work with IO#eof?.
   def eof?
     ensure_open_and_readable
     @ibuffer.fill_from self unless @ibuffer.exhausted?
@@ -893,11 +896,19 @@ class IO
   # platforms, see fcntl(2) for details. Not implemented on all platforms.
   def fcntl(command, arg=0)
     ensure_open
-    if arg.kind_of? Fixnum then
-      FFI::Platform::POSIX.fcntl(descriptor, command, arg)
+
+    if !arg
+      arg = 0
+    elsif arg == true
+      arg 1
+    elsif arg.kind_of? String
+      raise NotImplementedError, "cannot handle String"
     else
-      raise NotImplementedError, "cannot handle #{arg.class}"
+      arg = Rubinius::Type.coerce_to arg, Fixnum, :to_int
     end
+
+    command = Rubinius::Type.coerce_to command, Fixnum, :to_int
+    FFI::Platform::POSIX.fcntl descriptor, command, arg
   end
 
   ##
@@ -1094,7 +1105,7 @@ class IO
     if args.empty?
       write $_.to_s
     else
-      args.each {|o| write o.to_s }
+      args.each { |o| write o.to_s }
     end
 
     write $\.to_s
@@ -1319,6 +1330,7 @@ class IO
 
       break if count
     end
+
     @ibuffer.discard skip if skip
 
     line unless line.empty?
@@ -1330,7 +1342,7 @@ class IO
   # Reads a character as with IO#getc, but raises an EOFError on end of file.
   def readchar
     char = getc
-    raise EOFError, 'end of file reached' if char.nil?
+    raise EOFError, 'end of file reached' unless char
     char
   end
 
@@ -1417,23 +1429,35 @@ class IO
   # meets EAGAIN and EINTR by read system call, readpartial retry the system call.
   # The later means that readpartial is nonblocking-flag insensitive. It
   # blocks on the situation IO#sysread causes Errno::EAGAIN as if the fd is blocking mode.
-  def readpartial(size, buffer = nil)
+  def readpartial(size, buffer=nil)
     raise ArgumentError, 'negative string size' unless size >= 0
     ensure_open
 
-    buffer = '' if buffer.nil?
+    if buffer
+      buffer = StringValue(buffer)
 
-    if @ibuffer.size > 0
-      buffer.replace @ibuffer.shift(size)
+      buffer.shorten! buffer.size
+
+      return buffer if size == 0
+
+      if @ibuffer.size > 0
+        data = @ibuffer.shift(size)
+      else
+        data = sysread(size)
+      end
+
+      buffer.replace(data)
+
       return buffer
+    else
+      return "" if size == 0
+
+      if @ibuffer.size > 0
+        return @ibuffer.shift(size)
+      end
+
+      return sysread(size)
     end
-
-    buffer.replace(sysread(size)) if size > 0
-
-    buffer
-  rescue
-    buffer.replace('') if buffer
-    raise
   end
 
   ##
@@ -1482,7 +1506,7 @@ class IO
         mode = IO.parse_mode(mode)
       end
 
-      reopen_path(StringValue(other), mode)
+      reopen_path StringValue(other), mode
       seek 0, SEEK_SET
     end
 
@@ -1506,7 +1530,6 @@ class IO
   #  f.readline   #=> "This is line one\n"
   def rewind
     seek 0
-    #ARGF.lineno -= @lineno
     @lineno = 0
     return 0
   end
@@ -1547,7 +1570,7 @@ class IO
   def stat
     ensure_open
 
-    File::Stat.from_fd fileno
+    File::Stat.from_fd @descriptor
   end
 
   ##
@@ -1583,7 +1606,7 @@ class IO
   #
   #  @todo  Improve reading into provided buffer.
   #
-  def sysread(number_of_bytes, buffer = undefined)
+  def sysread(number_of_bytes, buffer=undefined)
     flush
     raise IOError unless @ibuffer.empty?
 
@@ -1591,7 +1614,7 @@ class IO
     raise EOFError if str.nil?
 
     unless buffer.equal? undefined
-      buffer.to_str.replace str
+      StringValue(buffer).replace str
     end
 
     str
@@ -1633,12 +1656,6 @@ class IO
 
   alias_method :isatty, :tty?
 
-  def wait_til_readable
-    chan = Rubinius::Channel.new
-    Rubinius::Scheduler.send_on_readable chan, self, nil, -1
-    chan.receive
-  end
-
   alias_method :prim_write, :write
   alias_method :prim_close, :close
 
@@ -1672,6 +1689,7 @@ class IO
     else
       @ibuffer.unseek! self
       bytes_to_write = data.size
+
       while bytes_to_write > 0
         bytes_to_write -= @ibuffer.unshift(data, data.size - bytes_to_write)
         @ibuffer.empty_to self if @ibuffer.full? or sync
@@ -1761,17 +1779,6 @@ class IO::BidirectionalPipe < IO
 
     @write.close
   end
-
-  WRITE_METHODS = [
-    :<<,
-    :print,
-    :printf,
-    :putc,
-    :puts,
-    :syswrite,
-    :write,
-    :write_nonblock,
-  ]
 
   # Expand these out rather than using some metaprogramming because it's a fixed
   # set and it's faster to have them as normal methods because then InlineCaches

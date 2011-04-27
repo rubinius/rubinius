@@ -49,15 +49,6 @@ class TrueClass
   include ImmediateValue
 end
 
-##
-# Class for Qundef.
-#--
-# FIXME Is UndefClass used anymore?  Maybe I should be deleted!
-
-class UndefClass
-  include ImmediateValue
-end
-
 class Symbol
   include ImmediateValue
 end
