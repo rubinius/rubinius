@@ -38,7 +38,7 @@ class String
   end
 
   def initialize(arg = undefined)
-    replace StringValue(arg) unless arg == undefined
+    replace StringValue(arg) unless arg.equal?(undefined)
 
     self
   end
@@ -319,7 +319,7 @@ class String
   # <code>RangeError</code>, and the <code>Regexp</code> and <code>String</code>
   # forms will silently ignore the assignment.
   def []=(index, replacement, three=undefined)
-    unless three.equal? undefined
+    unless three.equal?(undefined)
       if index.is_a? Regexp
         subpattern_set index, Rubinius::Type.coerce_to(replacement, Integer, :to_int), three
       else
@@ -504,7 +504,7 @@ class String
   #+++
   def chomp!(sep=undefined)
     # special case for performance. No seperator is by far the most common usage.
-    if sep.equal? undefined
+    if sep.equal?(undefined)
       return if @num_bytes == 0
 
       Ruby.check_frozen
@@ -904,7 +904,7 @@ class String
 
     tainted = false
 
-    if replacement == undefined
+    if replacement.equal?(undefined)
       use_yield = true
     else
       tainted = replacement.tainted?
@@ -1003,7 +1003,7 @@ class String
 
     tainted = false
 
-    unless replacement == undefined
+    unless replacement.equal?(undefined)
       tainted = replacement.tainted?
       replacement = StringValue(replacement)
       tainted ||= replacement.tainted?
@@ -1026,7 +1026,7 @@ class String
         ret.append str
       end
 
-      if replacement == undefined
+      if replacement.equal?(undefined)
         Regexp.last_match = match
 
         val = yield(match[0]).to_s
@@ -1593,7 +1593,7 @@ class String
     # This is un-DRY, but it's a simple manual argument splitting. Keeps
     # the code fast and clean since the sequence are pretty short.
     #
-    if two.equal? undefined
+    if two.equal?(undefined)
       result = slice(one)
 
       if one.kind_of? Regexp
@@ -1660,7 +1660,7 @@ class String
 
     tail_empty = false
 
-    if limit == undefined
+    if limit.equal?(undefined)
       limited = false
     else
       limit = Rubinius::Type.coerce_to limit, Fixnum, :to_int
@@ -1686,7 +1686,7 @@ class String
     else
       pattern = StringValue(pattern) unless pattern.kind_of?(String)
 
-      if !limited and limit.equal? undefined
+      if !limited and limit.equal?(undefined)
         if pattern.empty?
           return pull_apart
         else
@@ -1768,7 +1768,7 @@ class String
     end
 
     # Trim from end
-    if !ret.empty? and (limit == undefined || limit == 0)
+    if !ret.empty? and (limit.equal?(undefined) || limit == 0)
       while s = ret.last and s.empty?
         ret.pop
       end
@@ -1922,7 +1922,7 @@ class String
 
       Regexp.last_match = match
 
-      if replacement == undefined
+      if replacement.equal?(undefined)
         replacement = yield(match[0].dup).to_s
         out.taint if replacement.tainted?
       else
@@ -1970,7 +1970,7 @@ class String
 
       Regexp.last_match = match
 
-      if replacement == undefined
+      if replacement.equal?(undefined)
         replacement = yield(match[0].dup).to_s
         out.taint if replacement.tainted?
       else
