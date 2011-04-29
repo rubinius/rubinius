@@ -44,7 +44,8 @@ namespace rubinius {
 extern "C" Object* invoke_unknown_primitive(STATE, CallFrame* call_frame,
     Object** args, int arg_count)
 {
-  return Primitives::failure();
+  Exception::internal_error(state, call_frame, "unable to invoked primitive");
+  return 0;
 }
 
 #include "gen/primitives_glue.gen.cpp"

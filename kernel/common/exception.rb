@@ -286,6 +286,34 @@ class SyntaxError < ScriptError
   end
 end
 
+class SystemExit < Exception
+
+  ##
+  # Process exit status if this exception is raised
+
+  attr_reader :status
+
+  ##
+  # Creates a SystemExit exception with optional status and message.  If the
+  # status is omitted, Process::EXIT_SUCCESS is used.
+  #--
+  # *args is used to simulate optional prepended argument like MRI
+
+  def initialize(first=nil, *args)
+    if first.kind_of?(Fixnum)
+      status = first
+      super(*args)
+    else
+      status = Process::EXIT_SUCCESS
+      super
+    end
+
+    @status = status
+  end
+
+end
+
+
 class SystemCallError < StandardError
 
   attr_reader :errno

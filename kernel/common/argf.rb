@@ -230,10 +230,10 @@ module Rubinius
     # The mechanism does track the line numbers,
     # and updates $. accordingly.
     #
-    def gets
+    def gets(sep=$/)
       while true
         return nil unless advance!
-        line = @stream.gets
+        line = @stream.gets(sep)
 
         unless line
           return nil if @use_stdin_only
@@ -377,11 +377,11 @@ module Rubinius
     #
     # @see  #gets
     #
-    def readlines
+    def readlines(sep=$/)
       return nil unless advance!
 
       lines = []
-      while line = gets()
+      while line = gets(sep)
         lines << line
       end
 
@@ -397,10 +397,10 @@ module Rubinius
     #
     # @see  #gets
     #
-    def readline
+    def readline(sep=$/)
       raise EOFError, "ARGF at end" unless advance!
 
-      if line = gets()
+      if line = gets(sep)
         return line
       end
 

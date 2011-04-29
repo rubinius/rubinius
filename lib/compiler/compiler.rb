@@ -286,7 +286,7 @@ module Rubinius
       cm = compile_eval string, binding.variables, file, line
 
       cm.scope = binding.static_scope
-      cm.name = :__eval__
+      cm.name = binding.variables.method.name
 
       # This has to be setup so __FILE__ works in eval.
       script = Rubinius::CompiledMethod::Script.new(cm, file, true)
