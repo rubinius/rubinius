@@ -75,10 +75,15 @@ class String
   #
   #   "Ho! " * 3   #=> "Ho! Ho! Ho! "
   def *(num)
-    num = Rubinius::Type.coerce_to(num, Integer, :to_int) unless num.is_a? Integer
+    num = Rubinius::Type.coerce_to(num, Integer, :to_int) unless num.kind_of? Integer
 
-    raise RangeError, "bignum too big to convert into `long' (#{num})" if num.is_a? Bignum
-    raise ArgumentError, "unable to multiple negative times (#{num})" if num < 0
+    if num.kind_of? Bignum
+      raise RangeError, "bignum too big to convert into `long' (#{num})"
+    end
+
+    if num < 0
+      raise ArgumentError, "unable to multiple negative times (#{num})"
+    end
 
     str = self.class.pattern num * @num_bytes, self
     return str
@@ -90,7 +95,7 @@ class String
   #   "Hello from " + self.to_s   #=> "Hello from main"
   def +(other)
     r = "#{self}#{StringValue(other)}"
-    r.taint if self.tainted? or other.tainted?
+    r.taint if tainted? or other.tainted?
     r
   end
 
@@ -105,15 +110,15 @@ class String
     modify!
 
     unless other.kind_of? String
-      if other.is_a?(Integer) && other >= 0 && other <= 255
+      if other.kind_of?(Integer) && other >= 0 && other <= 255
         other = other.chr
       else
         other = StringValue(other)
       end
     end
 
-    self.taint if other.tainted?
-    self.append(other)
+    taint if other.tainted?
+    append(other)
   end
   alias_method :concat, :<<
 
@@ -155,9 +160,6 @@ class String
   # Equality---If <i>obj</i> is not a <code>String</code>, returns
   # <code>false</code>. Otherwise, returns <code>true</code> if <i>self</i>
   # <code><=></code> <i>obj</i> returns zero.
-  #---
-  # TODO: MRI does simply use <=> for Strings here, so what's this code about?
-  #+++
   def ==(other)
     Ruby.primitive :string_equal
 
@@ -320,8 +322,10 @@ class String
   # forms will silently ignore the assignment.
   def []=(index, replacement, three=undefined)
     unless three.equal?(undefined)
-      if index.is_a? Regexp
-        subpattern_set index, Rubinius::Type.coerce_to(replacement, Integer, :to_int), three
+      if index.kind_of? Regexp
+        subpattern_set index,
+                       Rubinius::Type.coerce_to(replacement, Integer, :to_int),
+                       three
       else
         start = Rubinius::Type.coerce_to(index, Integer, :to_int)
         fin =   Rubinius::Type.coerce_to(replacement, Integer, :to_int)
@@ -345,7 +349,7 @@ class String
         raise IndexError, "index #{index} out of string" if index >= @num_bytes
       end
 
-      if replacement.is_a?(Fixnum)
+      if replacement.kind_of?(Fixnum)
         modify!
         @data[index] = replacement
       else
@@ -365,7 +369,6 @@ class String
 
       start += @num_bytes if start < 0
 
-      # TODO: this is wrong
       return nil if start < 0 || start > @num_bytes
 
       length = @num_bytes if length > @num_bytes
@@ -385,7 +388,7 @@ class String
         index += @num_bytes
       end
 
-      if replacement.is_a?(Fixnum)
+      if replacement.kind_of?(Fixnum)
         modify!
         @data[index] = replacement
       else
@@ -476,7 +479,7 @@ class String
   #    "hello".center(20)        #=> "       hello        "
   #    "hello".center(20, '123') #=> "1231231hello12312312"
   def center(width, padstr = " ")
-    justify(width, :center, padstr)
+    justify width, :center, padstr
   end
 
   # Returns a new <code>String</code> with the given record separator removed
@@ -492,8 +495,9 @@ class String
   #   "hello\r".chomp          #=> "hello"
   #   "hello \n there".chomp   #=> "hello \n there"
   #   "hello".chomp("llo")     #=> "he"
-  def chomp(separator = $/)
-    (str = self.dup).chomp!(separator) || str
+  def chomp(separator=$/)
+    str = dup
+    str.chomp!(separator) || str
   end
 
   # Modifies <i>self</i> in place as described for <code>String#chomp</code>,
@@ -581,7 +585,8 @@ class String
   #   "string".chop       #=> "strin"
   #   "x".chop.chop       #=> ""
   def chop
-    (str = self.dup).chop! || str
+    str = dup
+    str.chop! || str
   end
 
   # Processes <i>self</i> as for <code>String#chop</code>, returning <i>self</i>,
@@ -591,8 +596,9 @@ class String
     return if @num_bytes == 0
 
     self.modify!
-    if @num_bytes > 1 and @data[@num_bytes-1] == ?\n and
-       @data[@num_bytes-2] == ?\r then
+
+    if @num_bytes > 1 and @data[@num_bytes-1] == ?\n \
+                      and @data[@num_bytes-2] == ?\r
       @num_bytes = @characters = @num_bytes - 2
     else
       @num_bytes = @characters = @num_bytes - 1
@@ -613,6 +619,7 @@ class String
   #   a.count "ej-m"          #=> 4
   def count(*strings)
     raise ArgumentError, "wrong number of Arguments" if strings.empty?
+
     return 0 if @num_bytes == 0
 
     table = count_table(*strings).__data__
@@ -632,10 +639,13 @@ class String
   # <code>[a-zA-Z0-9./]</code>.
   def crypt(other_str)
     other_str = StringValue(other_str)
-    raise ArgumentError.new("salt must be at least 2 characters") if other_str.size < 2
+
+    if other_str.size < 2
+      raise ArgumentError, "salt must be at least 2 characters"
+    end
 
     hash = __crypt__(other_str)
-    hash.taint if self.tainted? || other_str.tainted?
+    hash.taint if tainted? || other_str.tainted?
     hash
   end
 
@@ -648,7 +658,8 @@ class String
   #   "hello".delete "aeiou", "^e"   #=> "hell"
   #   "hello".delete "ej-m"          #=> "ho"
   def delete(*strings)
-    (str = self.dup).delete!(*strings) || str
+    str = dup
+    str.delete!(*strings) || str
   end
 
   # Performs a <code>delete</code> operation in place, returning <i>self</i>, or
@@ -858,8 +869,9 @@ class String
 
   def end_with?(*suffixes)
     suffixes.each do |suffix|
-      next unless suffix.respond_to? :to_str
-      suffix = suffix.to_str
+      suffix = Rubinius::Type.try_convert suffix, String, :to_str
+      next unless suffix
+
       return true if self[-suffix.length, suffix.length] == suffix
     end
     false
@@ -868,9 +880,9 @@ class String
   # Two strings are equal if the have the same length and content.
   def eql?(other)
     Ruby.primitive :string_equal
-    return false unless other.is_a?(String) && other.size == @num_bytes
-    (@data.fetch_bytes(0, @num_bytes) <=>
-     other.__data__.fetch_bytes(0, @num_bytes)) == 0
+
+    return false unless other.kind_of?(String) && other.size == @num_bytes
+    return @data.compare_bytes(other.__data__, @num_bytes, other.size) == 0
   end
 
   # Returns a copy of <i>self</i> with <em>all</em> occurrences of <i>pattern</i>
@@ -899,7 +911,7 @@ class String
   #   "hello".gsub(/./) {|s| s[0].to_s + ' '}   #=> "104 101 108 108 111 "
   def gsub(pattern, replacement=undefined)
     unless block_given? or replacement != undefined
-      return to_enum :gsub, pattern, replacement
+      return to_enum(:gsub, pattern, replacement)
     end
 
     tainted = false
@@ -943,7 +955,7 @@ class String
       if use_yield
         Regexp.last_match = match
 
-        val = yield(match.to_s)
+        val = yield match.to_s
 
         val = val.to_s unless val.kind_of?(String)
 
@@ -998,7 +1010,7 @@ class String
     # Because of the behavior of $~, this is duplicated from gsub! because
     # if we call gsub! from gsub, the last_match can't be updated properly.
     unless block_given? or replacement != undefined
-      return to_enum :gsub, pattern, replacement
+      return to_enum(:gsub, pattern, replacement)
     end
 
     tainted = false
@@ -1084,7 +1096,7 @@ class String
   #    "0".hex        #=> 0
   #    "wombat".hex   #=> 0
   def hex
-    self.to_inum(16, false)
+    to_inum(16, false)
   end
 
   # Returns <code>true</code> if <i>self</i> contains the given string or
@@ -1094,7 +1106,7 @@ class String
   #   "hello".include? "ol"   #=> false
   #   "hello".include? ?h     #=> true
   def include?(needle)
-    if needle.is_a? Fixnum
+    if needle.kind_of? Fixnum
       needle = needle % 256
       str_needle = needle.chr
     else
@@ -1114,9 +1126,10 @@ class String
   #   "hello".index('a')             #=> nil
   #   "hello".index(101)             #=> 1
   #   "hello".index(/[aeiou]/, -3)   #=> 4
-  def index(needle, offset = 0)
-    offset = Rubinius::Type.coerce_to(offset, Integer, :to_int)
+  def index(needle, offset=0)
+    offset = Rubinius::Type.coerce_to offset, Integer, :to_int
     offset = @num_bytes + offset if offset < 0
+
     return nil if offset < 0 || offset > @num_bytes
 
     needle = needle.to_str if !needle.instance_of?(String) && needle.respond_to?(:to_str)
@@ -1186,6 +1199,7 @@ class String
       str.copy_from self, 0, @num_bytes, 0
       str.copy_from other, 0, other.size, @num_bytes
     end
+
     @num_bytes = size
     @data = str.__data__
     taint if other.tainted?
@@ -1203,10 +1217,7 @@ class String
   #   str[3] = 8
   #   str.inspect       #=> "hel\010o"
   def inspect
-    str = '"'
-    str << transform(Rubinius::CType::Printed, true)
-    str << '"'
-    str
+    "\"#{transform(Rubinius::CType::Printed, true)}\""
   end
 
   # If <i>integer</i> is greater than the length of <i>self</i>, returns a new
@@ -1216,7 +1227,7 @@ class String
   #   "hello".ljust(4)            #=> "hello"
   #   "hello".ljust(20)           #=> "hello               "
   #   "hello".ljust(20, '1234')   #=> "hello123412341234123"
-  def ljust(width, padstr = " ")
+  def ljust(width, padstr=" ")
     justify(width, :left, padstr)
   end
 
@@ -1226,7 +1237,8 @@ class String
   #   "  hello  ".lstrip   #=> "hello  "
   #   "hello".lstrip       #=> "hello"
   def lstrip
-    (str = self.dup).lstrip! || str
+    str = dup
+    str.lstrip! || str
   end
 
   # Removes leading whitespace from <i>self</i>, returning <code>nil</code> if no
@@ -1283,7 +1295,7 @@ class String
   #
   # If a valid base identifier is not found, the string is assumed to be base 8.
   def oct
-    self.to_inum(-8, false)
+    to_inum(-8, false)
   end
 
   # Replaces the contents and taintedness of <i>string</i> with the corresponding
@@ -1293,7 +1305,7 @@ class String
   #   s.replace "world"   #=> "world"
   def replace(other)
     # If we're replacing with ourselves, then we have nothing to do
-    return self if self.equal?(other)
+    return self if equal?(other)
 
     Ruby.check_frozen
 
@@ -1306,7 +1318,7 @@ class String
     @characters = other.characters
     @hash_value = nil
 
-    self.taint if other.tainted?
+    taint if other.tainted?
 
     self
   end
@@ -1317,7 +1329,7 @@ class String
   #
   #   "stressed".reverse   #=> "desserts"
   def reverse
-    self.dup.reverse!
+    dup.reverse!
   end
 
   # Reverses <i>self</i> in place.
@@ -1415,9 +1427,9 @@ class String
         post_start = i + pattern.length
         post_len = size - post_start
 
-        return [self.substring(0, i),
+        return [substring(0, i),
                 pattern.dup,
-                self.substring(post_start, post_len)]
+                substring(post_start, post_len)]
       end
     end
 
@@ -1451,9 +1463,9 @@ class String
         post_start = i + pattern.length
         post_len = size - post_start
 
-        return [self.substring(0, i),
+        return [substring(0, i),
                 pattern.dup,
-                self.substring(post_start, post_len)]
+                substring(post_start, post_len)]
       end
 
       # Nothing worked out, this is the default.
@@ -1478,7 +1490,8 @@ class String
   #   "  hello  ".rstrip   #=> "  hello"
   #   "hello".rstrip       #=> "hello"
   def rstrip
-    (str = self.dup).rstrip! || str
+    str = dup
+    str.rstrip! || str
   end
 
   # Removes trailing whitespace from <i>self</i>, returning <code>nil</code> if
@@ -1536,7 +1549,7 @@ class String
   #   rceu lowlr
 
   def scan(pattern)
-    taint = self.tainted? || pattern.tainted?
+    taint = tainted? || pattern.tainted?
     pattern = get_pattern(pattern, true)
     index = 0
 
@@ -1653,7 +1666,7 @@ class String
   #   "1,2,,3,4,,".split(',')         #=> ["1", "2", "", "3", "4"]
   #   "1,2,,3,4,,".split(',', 4)      #=> ["1", "2", "", "3,4,,"]
   #   "1,2,,3,4,,".split(',', -4)     #=> ["1", "2", "", "3", "4", "", ""]
-  def split(pattern = nil, limit = undefined)
+  def split(pattern=nil, limit = undefined)
 
     # Odd edge case
     return [] if empty?
@@ -1688,7 +1701,15 @@ class String
 
       if !limited and limit.equal?(undefined)
         if pattern.empty?
-          return pull_apart
+          ret = []
+          pos = 0
+
+          while pos < @num_bytes
+            ret << substring(pos, 1)
+            pos += 1
+          end
+
+          return ret
         else
           return split_on_string(pattern)
         end
@@ -1703,8 +1724,8 @@ class String
     # Handle // as a special case.
     if pattern.source.empty?
       kcode = $KCODE
-      begin
 
+      begin
         if pattern.options and kc = pattern.kcode
           $KCODE = kc
         end
@@ -1764,7 +1785,7 @@ class String
     if last_match
       ret << last_match.post_match
     elsif ret.empty?
-      ret << self.dup
+      ret << dup
     end
 
     # Trim from end
@@ -1783,19 +1804,6 @@ class String
 
     ret
   end
-
-  def pull_apart
-    ret = []
-    pos = 0
-
-    while pos < @num_bytes
-      ret << substring(pos, 1)
-      pos += 1
-    end
-
-    ret
-  end
-  private :pull_apart
 
   def split_on_string(pattern)
     pos = 0
@@ -1832,7 +1840,8 @@ class String
   #   "  now   is  the".squeeze(" ")         #=> " now is the"
   #   "putters shoot balls".squeeze("m-z")   #=> "puters shot balls"
   def squeeze(*strings)
-    (str = self.dup).squeeze!(*strings) || str
+    str = dup
+    str.squeeze!(*strings) || str
   end
 
   # Squeezes <i>self</i> in place, returning either <i>self</i>, or
@@ -1862,8 +1871,8 @@ class String
 
   def start_with?(*prefixes)
     prefixes.each do |prefix|
-      next unless prefix.respond_to? :to_str
-      prefix = prefix.to_str
+      prefix = Rubinius::Type.try_convert prefix, String, :to_str
+      next unless prefix
       return true if self[0, prefix.length] == prefix
     end
     false
@@ -1874,7 +1883,8 @@ class String
   #   "    hello    ".strip   #=> "hello"
   #   "\tgoodbye\r\n".strip   #=> "goodbye"
   def strip
-    (str = self.dup).strip! || str
+    str = dup
+    str.strip! || str
   end
 
   # Removes leading and trailing whitespace from <i>self</i>. Returns
@@ -1942,7 +1952,7 @@ class String
 
     # MRI behavior emulation. Sub'ing String subclasses doen't return the
     # subclass, they return String instances.
-    unless self.instance_of?(String)
+    unless instance_of?(String)
       # Do this instead of using self.class.new because some code
       # (ActiveModel) redefines initialize and breaks it.
       Rubinius::Unsafe.set_class out, self.class
@@ -2013,7 +2023,7 @@ class String
   #   "ZZZ9999".succ     #=> "AAAA0000"
   #   "***".succ         #=> "**+"
   def succ
-    self.dup.succ!
+    dup.succ!
   end
 
   # Equivalent to <code>String#succ</code>, but modifies the receiver in
@@ -2084,9 +2094,11 @@ class String
   # to 16. The result is simply the sum of the binary value of each character in
   # <i>self</i> modulo <code>2n - 1</code>. This is not a particularly good
   # checksum.
-  def sum(bits = 16)
+  def sum(bits=16)
     bits = Rubinius::Type.coerce_to bits, Fixnum, :to_int
-    i, sum = -1, 0
+    i = -1
+    sum = 0
+
     sum += @data[i] while (i += 1) < @num_bytes
     if bits > 0
       sum & ((1 << bits) - 1)
@@ -2101,7 +2113,8 @@ class String
   #   "Hello".swapcase          #=> "hELLO"
   #   "cYbEr_PuNk11".swapcase   #=> "CyBeR_pUnK11"
   def swapcase
-    (str = self.dup).swapcase! || str
+    str = dup
+    str.swapcase! || str
   end
 
   # Equivalent to <code>String#swapcase</code>, but modifies the receiver in
@@ -2148,10 +2161,14 @@ class String
   #   "1100101".to_i(8)        #=> 294977
   #   "1100101".to_i(10)       #=> 1100101
   #   "1100101".to_i(16)       #=> 17826049
-  def to_i(base = 10)
-    base = Rubinius::Type.coerce_to(base, Integer, :to_int)
-    raise ArgumentError, "illegal radix #{base}" if base < 0 || base == 1 || base > 36
-    self.to_inum(base, false)
+  def to_i(base=10)
+    base = Rubinius::Type.coerce_to base, Integer, :to_int
+
+    if base < 0 || base == 1 || base > 36
+      raise ArgumentError, "illegal radix #{base}"
+    end
+
+    to_inum(base, false)
   end
 
   # Returns self if self is an instance of String,
@@ -2173,7 +2190,8 @@ class String
   #    "hello".tr('el', 'ip')      #=> "hippo"
   #    "hello".tr('a-y', 'b-z')    #=> "ifmmp"
   def tr(source, replacement)
-    (str = self.dup).tr!(source, replacement) || str
+    str = dup
+    str.tr!(source, replacement) || str
   end
 
   # Translates <i>self</i> in place, using the same rules as
@@ -2191,7 +2209,8 @@ class String
   #    "hello".tr_s('el', '*')    #=> "h*o"
   #    "hello".tr_s('el', 'hx')   #=> "hhxo"
   def tr_s(source, replacement)
-    (str = self.dup).tr_s!(source, replacement) || str
+    str = dup
+    str.tr_s!(source, replacement) || str
   end
 
   # Performs <code>String#tr_s</code> processing on <i>self</i> in place,
@@ -2206,7 +2225,8 @@ class String
   #
   #   "hEllO".upcase   #=> "HELLO"
   def upcase
-    (str = self.dup).upcase! || str
+    str = dup
+    str.upcase! || str
   end
 
   ##
@@ -2340,22 +2360,24 @@ class String
       end
       index = current + 1
 
-      result << case (cap = @data[index])
-        when ?&
-          match[0]
-        when ?`
-          match.pre_match
-        when ?'
-          match.post_match
-        when ?+
-          match.captures.compact[-1].to_s
-        when ?0..?9
-          match[cap - ?0].to_s
-        when ?\\ # escaped backslash
-          '\\'
-        else     # unknown escape
-          '\\' << cap
-      end
+      cap = @data[index]
+
+      result << case cap
+                when ?&
+                  match[0]
+                when ?`
+                  match.pre_match
+                when ?'
+                  match.post_match
+                when ?+
+                  match.captures.compact[-1].to_s
+                when ?0..?9
+                  match[cap - ?0].to_s
+                when ?\\ # escaped backslash
+                  '\\'
+                else     # unknown escape
+                  '\\' << cap
+                end
       index += 1
     end
     return result
@@ -2363,89 +2385,7 @@ class String
 
   def to_inum(base, check)
     Ruby.primitive :string_to_inum
-
-    detect_base = true if base == 0
-
-    raise(ArgumentError,
-          "invalid value for Integer: #{inspect}") if check and self =~ /__/
-
-    s = if check then
-          self
-        else
-          self.delete('_').strip
-        end
-
-    if detect_base then
-      base = if s =~ /^[+-]?0([bdox]?)/i then
-               {"b" => 2, "d" => 10, "o" => 8, '' => 8, "x" => 16}[$1.downcase]
-             else
-               base == 8 ? 8 : 10
-             end
-    end
-
-    raise ArgumentError, "illegal radix #{base}" unless (2..36).include? base
-
-    if check
-      match_re = case base
-                 when  2 then
-                   /^([+-])?(?:0b)?([a-z0-9_]*)$/ix
-                 when  8 then
-                   /^([+-])?(?:0o)?([a-z0-9_]*)$/ix
-                 when 10 then
-                   /^([+-])?(?:0d)?([a-z0-9_]*)$/ix
-                 when 16 then
-                   /^([+-])?(?:0x)?([a-z0-9_]*)$/ix
-                 else
-                   /^([+-])?       ([a-z0-9_]*)$/ix
-                 end
-    else
-      match_re = case base
-                 when  2 then
-                   /([+-])?(?:0b)?([a-z0-9_]*)/ix
-                 when  8 then
-                   /([+-])?(?:0o)?([a-z0-9_]*)/ix
-                 when 10 then
-                   /([+-])?(?:0d)?([a-z0-9_]*)/ix
-                 when 16 then
-                   /([+-])?(?:0x)?([a-z0-9_]*)/ix
-                 else
-                   /([+-])?       ([a-z0-9_]*)/ix
-                 end
-    end
-
-    sign = data = nil
-    sign, data = $1, $2 if s =~ match_re
-
-    raise ArgumentError, "error in impl parsing: #{self.inspect} with #{match_re.source}" if
-      data.nil? || (check && (s =~ /^_|_$/ || data.empty? ))
-
-    negative = sign == "-"
-    result = 0
-
-    data.each_byte do |char|
-      value = case char
-              when ?0..?9 then
-                (char - ?0)
-              when ?A..?Z then
-                (char - ?A + 10)
-              when ?a..?z then
-                (char - ?a + 10)
-              when ?_ then
-                next
-              else
-                nil
-              end
-
-      if value.nil? or value >= base then
-        raise ArgumentError, "invalid value for Integer: #{inspect}" if check
-        return negative ? -result : result
-      end
-
-      result *= base
-      result += value
-    end
-
-    return negative ? -result : result
+    raise ArgumentError, "invalid value for Integer"
   end
 
   def apply_and!(other)
@@ -2455,6 +2395,7 @@ class String
 
   def compare_substring(other, start, size)
     Ruby.primitive :string_compare_substring
+
     if start > @num_bytes || start + @num_bytes < 0
       raise IndexError, "index #{start} out of string"
     end
@@ -2670,29 +2611,6 @@ class String
 
     pattern = Regexp.quote(pattern) if quote
     Regexp.new(pattern)
-  end
-
-  def full_to_i
-    err = "invalid value for Integer: #{self.inspect}"
-    raise ArgumentError, err if self.match(/__/) || self.empty?
-    case self
-    when /^[-+]?0(\d|_\d)/
-      raise ArgumentError, err if self =~ /[^0-7_]/
-      to_i(8)
-    when /^[-+]?0x[a-f\d]/i
-      after = self.match(/^[-+]?0x/i)
-      raise ArgumentError, err if /([^0-9a-f_])/i.match_from(self, after.end(0))
-      to_i(16)
-    when /^[-+]?0b[01]/i
-      after = self.match(/^[-+]?0b/i)
-      raise ArgumentError, err if /[^01_]/.match_from(self, after.end(0))
-      to_i(2)
-    when /^[-+]?\d/
-      raise ArgumentError, err if self.match(/[^0-9_]/)
-      to_i(10)
-    else
-      raise ArgumentError, err
-    end
   end
 
   ##

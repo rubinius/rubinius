@@ -37,7 +37,7 @@ module Rubinius
     end
 
     def to_s
-      self.inspect
+      inspect
     end
 
     # Indicates if this is a toplevel/default scope
@@ -54,6 +54,7 @@ module Rubinius
       else
         ss = StaticScope.new @module, self
       end
+
       ss.current_module = mod
       return ss
     end

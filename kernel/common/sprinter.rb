@@ -8,7 +8,8 @@ module Rubinius
 
         sprinter = new(format)
 
-        format.data.instance_variable_set(:@cached_sprinter, Tuple[format.dup, sprinter])
+        format.data.instance_variable_set(:@cached_sprinter,
+                                          Tuple[format.dup, sprinter])
 
         sprinter
       end
