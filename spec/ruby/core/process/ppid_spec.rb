@@ -12,6 +12,7 @@ describe "Process.ppid" do
         write.close
         exit!
       }
+
       write.close
       pid = read.gets
       read.close

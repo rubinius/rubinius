@@ -22,10 +22,6 @@ describe "Process.fork" do
         rm_r @file
       end
 
-      it "is implemented" do
-        Process.respond_to?(:fork).should be_true
-      end
-
       it "return nil for the child process" do
         child_id = Process.fork
         if child_id == nil
