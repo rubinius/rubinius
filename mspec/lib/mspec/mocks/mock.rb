@@ -177,6 +177,11 @@ module Mock
 
   def self.cleanup
     objects.each do |key, obj|
+      if obj.kind_of? MockIntObject
+        clear_replaced key
+        next
+      end
+
       replaced = key.first
       sym = key.last
       meta = obj.singleton_class
