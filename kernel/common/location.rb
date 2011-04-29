@@ -1,8 +1,8 @@
 module Rubinius
   class Location
 
-    attr_accessor :method
-    attr_accessor :name
+    attr_reader :method
+    attr_reader :name
 
     attr_reader :ip
     attr_reader :variables
@@ -62,6 +62,7 @@ module Rubinius
     # Current line being executed by the VM.
     def line
       return 0 unless @method
+
       ip = @ip
       ip -= 1 unless ip_on_current?
 
@@ -83,7 +84,7 @@ module Rubinius
           else
             return path
           end
-        rescue Object => e
+        rescue StandardError
           return path
         end
       end

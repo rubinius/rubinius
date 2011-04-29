@@ -23,8 +23,7 @@ module Math
     :sinh,
     :sqrt,
     :tan,
-    :tanh,
-    :verify_domain
+    :tanh
 
   private \
     :acos,
@@ -50,6 +49,5 @@ module Math
     :sinh,
     :sqrt,
     :tan,
-    :tanh,
-    :verify_domain
+    :tanh
 end

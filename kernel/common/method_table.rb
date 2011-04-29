@@ -15,6 +15,25 @@ module Rubinius
   class MethodTable
     include Enumerable
 
+    def filter_entries
+      out = []
+      i = 0
+      while i < @bins
+        if entry = @values.at(i)
+          while entry
+            if val = yield(entry)
+              out << val
+            end
+
+            entry = entry.next
+          end
+        end
+        i += 1
+      end
+
+      out
+    end
+
     def public_names
       filter_entries do |entry|
         entry.visibility == :public ? entry.name : nil

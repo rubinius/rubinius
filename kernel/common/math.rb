@@ -3,6 +3,15 @@ module Math
   PI = 3.14159_26535_89793_23846
   E  = 2.71828_18284_59045_23536
 
+  if Errno.const_defined? :EDOM
+    DomainError = Errno::EDOM
+  elsif Errno.const_defined? :ERANGE
+    DomainError = Errno::ERANGE
+  else
+    class DomainError < SystemCallError
+    end
+  end
+
   def atan2(y, x)
     FFI::Platform::Math.atan2 Float(y), Float(x)
   end
@@ -21,7 +30,8 @@ module Math
 
   def acos(x)
     x = Float(x)
-    verify_domain('acos') { x.abs <= 1.0 }
+
+    raise DomainError, 'acos' unless x.abs <= 1.0
 
     FFI::Platform::POSIX.errno = 0
 
@@ -32,7 +42,7 @@ module Math
 
   def asin(x)
     x = Float(x)
-    verify_domain('asin') { x.abs <= 1.0 }
+    raise DomainError, 'asin' unless x.abs <= 1.0
     FFI::Platform::Math.asin x
   end
 
@@ -54,7 +64,7 @@ module Math
 
   def acosh(x)
     x = Float(x)
-    verify_domain('acosh') { x >= 1.0 }
+    raise DomainError, 'acosh' unless x >= 1.0
     FFI::Platform::Math.acosh x
   end
 
@@ -68,7 +78,7 @@ module Math
 
     def atanh(x)
       x = Float(x)
-      verify_domain('atanh') { x.abs <= 1.0 }
+      raise DomainError, 'atanh' unless x.abs <= 1.0
 
       FFI::Platform::POSIX.errno = 0
 
@@ -88,7 +98,7 @@ module Math
 
     def atanh(x)
       x = Float(x)
-      verify_domain('atanh') { x.abs <= 1.0 }
+      raise DomainError, 'atanh' unless x.abs <= 1.0
 
       FFI::Platform::POSIX.errno = 0
 
@@ -103,29 +113,27 @@ module Math
     FFI::Platform::Math.exp Float(x)
   end
 
-  def log(x, base=nil)
+  def log(x)
     x = Float(x)
-    verify_domain('log') { x >= 0.0 }
-    result = FFI::Platform::Math.log x
-    result /= FFI::Platorm::Math.log Float(base) if base
-    return result
+    raise DomainError, 'log' unless x >= 0.0
+    FFI::Platform::Math.log x
   end
 
   def log2(x)
     x = Float(x)
-    verify_domain('log2') { x >= 0.0 }
+    raise DomainError, 'log2' unless x >= 0.0
     FFI::Platform::Math.log2 x
   end
 
   def log10(x)
     x = Float(x)
-    verify_domain('log10') { x >= 0.0 }
+    raise DomainError, 'log10' unless x >= 0.0
     FFI::Platform::Math.log10 x
   end
 
   def sqrt(x)
     x = Float(x)
-    verify_domain('sqrt') { x >= 0.0 }
+    raise DomainError, 'sqrt' unless x >= 0.0
     FFI::Platform::Math.sqrt x
   end
 
@@ -161,13 +169,6 @@ module Math
 
   def erfc(x)
     FFI::Platform::Math.erfc Float(x)
-  end
-
-  def verify_domain(msg)
-    unless yield
-      raise Errno::EDOM, msg if Errno.const_defined?(:EDOM)
-      raise Errno::ERANGE, msg if Errno.const_defined?(:ERANGE)
-    end
   end
 end
 
