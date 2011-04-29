@@ -73,7 +73,7 @@ class Regexp
   # support. Any other values are ignored.
 
   def initialize(pattern, opts=nil, lang=nil)
-    if pattern.is_a?(Regexp)
+    if pattern.kind_of?(Regexp)
       opts = pattern.options
       pattern  = pattern.source
     elsif opts.kind_of?(Fixnum)
@@ -153,11 +153,13 @@ class Regexp
 
   def ~
     line = $_
-    if !line.is_a?(String)
+
+    unless line.kind_of?(String)
       Regexp.last_match = nil
       return nil
     end
-    res = self.match(line)
+
+    res = match(line)
     return res ? res.begin(0) : nil
   end
 
@@ -181,7 +183,7 @@ class Regexp
   def match_all(str)
     start = 0
     arr = []
-    while(match = self.match_from(str, start))
+    while match = self.match_from(str, start)
       arr << match
       if match.collapsing?
         start += 1
@@ -193,18 +195,21 @@ class Regexp
   end
 
   def ===(other)
-    if !other.is_a?(String)
-      if !other.respond_to?(:to_str)
+
+    unless other.kind_of?(String)
+      other = Rubinius::Type.try_convert other, String, :to_str
+      unless other
         Regexp.last_match = nil
         return false
       end
     end
-    if match = self.match_from(other.to_str, 0)
+
+    if match = match_from(other, 0)
       Regexp.last_match = match
-      return true
+      true
     else
       Regexp.last_match = nil
-      return false
+      false
     end
   end
 
@@ -214,10 +219,20 @@ class Regexp
 
   def eql?(other)
     return false unless other.kind_of?(Regexp)
+    return false unless source == other.source
+
     # Ruby 1.8 doesn't destinguish between KCODE_NONE (16) & not specified (0) for eql?
-    self_options  = options       & KCODE_MASK != 0 ? options       : options       + KCODE_NONE
-    other_options = other.options & KCODE_MASK != 0 ? other.options : other.options + KCODE_NONE
-    return (source == other.source) && ( self_options == other_options)
+    o1 = options
+    if o1 & KCODE_MASK == 0
+      o1 += KCODE_NONE
+    end
+
+    o2 = other.options
+    if o2 & KCODE_MASK == 0
+      o2 += KCODE_NONE
+    end
+
+    o1 == o2
   end
 
   alias_method :==, :eql?
@@ -270,12 +285,16 @@ class Regexp
 
   class SourceParser
     class Part
-      OPTIONS_MAP = {'m' => Regexp::MULTILINE, 'i' => Regexp::IGNORECASE, 'x' => Regexp::EXTENDED}
+      OPTIONS_MAP = {
+        'm' => Regexp::MULTILINE,
+        'i' => Regexp::IGNORECASE,
+        'x' => Regexp::EXTENDED
+      }
 
       attr_accessor :options
       attr_accessor :source
 
-      def initialize(source = "")
+      def initialize(source="")
         @source = source
         @options = []
         @negated_options = []
@@ -326,8 +345,6 @@ class Regexp
 
       def options_string
         string = @options.join + (@negated_options.empty? ? "" : @negated_options.join)
-#FIXME!!!!!!!!!
-        #string.empty? ? "" :
         "?#{string}:"
       end
       private :options_string
@@ -463,9 +480,10 @@ class Regexp
       @parts << Part.new
     end
 
+    PossibleOptions = [[MULTILINE, "m"], [IGNORECASE, "i"], [EXTENDED, "x"]]
     def options_string
       chosen_options = []
-      possible_options = [[MULTILINE, "m"], [IGNORECASE, "i"], [EXTENDED, "x"]]
+      possible_options = PossibleOptions
       possible_options.each do |flag, identifier|
         chosen_options << identifier if @options & flag > 0
       end
