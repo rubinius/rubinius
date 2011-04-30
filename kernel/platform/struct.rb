@@ -239,7 +239,7 @@ module FFI
         end
 
         raise TypeError, "Unable to set inline array"
-      when NativeFunction
+      when Rubinius::NativeFunction
         @pointer.set_at_offset(offset, FFI::TYPE_PTR, val)
       else
         @pointer.set_at_offset(offset, type, val)
@@ -257,7 +257,7 @@ module FFI
         (@pointer + offset).read_string
       when FFI::Type::Array
         type.implementation.new(type, @pointer + offset)
-      when NativeFunction
+      when Rubinius::NativeFunction
         ptr = @pointer.get_at_offset(offset, FFI::TYPE_PTR)
         if ptr
           FFI::Function.new(type.return_type, type.argument_types, ptr)

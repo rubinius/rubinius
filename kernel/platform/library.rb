@@ -1,4 +1,4 @@
-class NativeFunction
+class Rubinius::NativeFunction
   attr_accessor :return_type
   attr_accessor :argument_types
 end
@@ -22,7 +22,7 @@ module FFI
     when :darwin
       LIBC = "libc.dylib"
     else
-      LIBC = "libc#{Rubinius::LIBSUFFIX}.6"
+      LIBC = "libc#{Rubinius::LIBSUFFIX}"
     end
 
     # Set which library or libraries +attach_function+ should
@@ -118,7 +118,8 @@ module FFI
       if func = FFI.generate_function(ptr, name.to_sym, args, find_type(ret))
 
         # Make it available as a method callable directly..
-        Rubinius::Type.object_singleton_class(self).method_table.store name, func, :public
+        sc = Rubinius::Type.object_singleton_class(self)
+        sc.method_table.store name, func, :public
 
         # and expose it as a private method for people who
         # want to include this module.
@@ -139,7 +140,8 @@ module FFI
 
       args = params.map { |x| find_type(x) }
 
-      func, ptr = FFI.generate_trampoline(nil, :ffi_tramp, args, find_type(ret))
+      func, ptr = FFI.generate_trampoline nil, :ffi_tramp,
+                                          args, find_type(ret)
 
       func.argument_types = params
       func.return_type = ret
@@ -157,7 +159,7 @@ module FFI
     def typedef(old, add)
       @typedefs ||= Rubinius::LookupTable.new
 
-      unless old.kind_of?(NativeFunction)
+      unless old.kind_of? Rubinius::NativeFunction
         old = find_type(old)
       end
 
