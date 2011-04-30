@@ -623,6 +623,10 @@ end
 
 module Rubinius
 
+  class AccessVariable
+    attr_reader :name
+  end
+
   # Visibility handling for MethodTables.
   #
   # See kernel/bootstrap/methodtable.rb and

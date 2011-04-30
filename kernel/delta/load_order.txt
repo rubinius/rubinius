@@ -3,7 +3,6 @@ ctype.rbc
 class.rbc
 exception.rbc
 file.rbc
-ruby_constants.rbc
 rubinius.rbc
 module.rbc
 filetest.rbc
@@ -15,3 +14,4 @@ signal.rbc
 struct.rbc
 thread.rbc
 codeloader.rbc
+ruby_constants.rbc
