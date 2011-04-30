@@ -24,7 +24,7 @@ module Rubinius
       i = 0
       t = fields
       while i < t
-        yield self.at(i)
+        yield at(i)
         i += 1
       end
       self
@@ -70,6 +70,7 @@ module Rubinius
     def join_upto(sep, count, meth=:to_s)
       str = ""
       return str if count == 0 or empty?
+
       count = fields if count >= fields
       count -= 1
       i = 0
@@ -78,6 +79,7 @@ module Rubinius
         str.append sep.dup
         i += 1
       end
+
       str.append at(count).__send__(meth)
       return str
     end
@@ -110,8 +112,8 @@ module Rubinius
     # Swap elements of the two indexes.
     def swap(a, b)
       temp = at(a)
-      put(a, at(b))
-      put(b, temp)
+      put a, at(b)
+      put b, temp
     end
 
     alias_method :size, :fields
@@ -126,7 +128,7 @@ module Rubinius
     end
 
     def last
-      at(fields-1)
+      at(fields - 1)
     end
 
     # Marshal support - _dump / _load are deprecated so eventually we should figure

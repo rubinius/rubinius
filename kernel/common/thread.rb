@@ -44,8 +44,8 @@ class Thread
     return thr
   end
 
-  def self.start(*args, &block)
-    new(*args, &block) # HACK
+  class << self
+    alias_method :start, :new
   end
 
   def initialize(*args, &block)
@@ -66,7 +66,7 @@ class Thread
         @result = @block.call(*@args)
       ensure
         @lock.receive
-        @joins.each {|join| join.send self }
+        @joins.each { |join| join.send self }
       end
     rescue Die
       @exception = nil
@@ -137,17 +137,16 @@ class Thread
       else
         "run"
       end
+    elsif @exception
+      nil
     else
-      if @exception
-        nil
-      else
-        false
-      end
+      false
     end
   end
 
   def self.stop
-    # I don't understand at all what this does.
+    # Make sure that if we're stopping the current Thread,
+    # others can run, so reset critical.
     Thread.critical = false
     sleep
     nil
@@ -220,7 +219,7 @@ class Thread
   def raise(exc=$!, msg=nil, trace=nil)
     @lock.receive
 
-    if not @alive
+    unless @alive
       @lock.send nil
       return self
     end
@@ -263,14 +262,6 @@ class Thread
 
   def key?(key)
     @locals.key?(Rubinius::Type.coerce_to_symbol(key))
-  end
-
-  def set_debugging(dc, cc)
-    raise "very unlikely to run"
-  end
-
-  def debug_channel
-    raise "nope!"
   end
 
   # Register another Thread object +thr+ as the Thread where the debugger
