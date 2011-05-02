@@ -1,7 +1,7 @@
 #ifndef MEL_ENCODING_COMPAT_HPP
 #define MEL_ENCODING_COMPAT_HPP
 
-#ifdef RUBINIUS
+#ifdef HAVE_RUBY_ENCODING_H
 #include "encoding.h"
 #else
 

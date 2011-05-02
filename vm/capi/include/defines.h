@@ -18,3 +18,5 @@
 
 #define HAVE_RB_HASH_FOREACH               1
 #define HAVE_RB_HASH_ASET                  1
+
+#define HAVE_RUBY_ENCODING_H               1
