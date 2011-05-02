@@ -481,10 +481,18 @@ class Array
     return false unless size == other.size
 
     Thread.detect_recursion self, other do
-      i = 0
-      each do |x|
-        return false unless x == other[i]
+      md = @tuple
+      od = other.tuple
+
+      i = @start
+      j = other.start
+
+      total = i + @total
+
+      while i < total
+        return false unless md[i] == od[j]
         i += 1
+        j += 1
       end
     end
 
