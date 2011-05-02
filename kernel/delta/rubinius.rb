@@ -13,7 +13,7 @@ module Rubinius
       raise TypeError, "'#{mod.inspect}' is not a class/module"
     end
 
-    tbl = mod.constants_table
+    tbl = mod.constant_table
     if !tbl.key?(name)
       # Create the class
       sup = Object unless sup
@@ -59,7 +59,7 @@ module Rubinius
       raise TypeError, "'#{mod.inspect}' is not a class/module"
     end
 
-    tbl = mod.constants_table
+    tbl = mod.constant_table
     if !tbl.key?(name)
       # Create the module
       obj = Module.new

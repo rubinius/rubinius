@@ -44,7 +44,7 @@ namespace rubinius {
   }
 
   void Module::setup(STATE) {
-    constants(state, LookupTable::create(state));
+    constant_table(state, LookupTable::create(state));
     method_table(state, MethodTable::create(state));
   }
 
@@ -61,7 +61,7 @@ namespace rubinius {
   void Module::setup(STATE, Symbol* name, Module* under) {
     if(!under) under = G(object);
 
-    this->constants(state, LookupTable::create(state));
+    constant_table(state, LookupTable::create(state));
     this->method_table(state, MethodTable::create(state));
     this->name(state, name);
     under->set_const(state, name, this);
@@ -89,12 +89,12 @@ namespace rubinius {
   }
 
   void Module::set_const(STATE, Object* sym, Object* val) {
-    constants_->store(state, sym, val);
+    constants()->store(state, sym, val);
     state->shared.inc_global_serial();
   }
 
   void Module::del_const(STATE, Symbol* sym) {
-    constants_->remove(state, sym);
+    constants()->remove(state, sym);
     state->shared.inc_global_serial();
   }
 

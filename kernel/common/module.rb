@@ -12,7 +12,7 @@
 
 class Module
 
-  attr_reader_specific :constants, :constants_table
+  attr_reader :constant_table
   attr_writer :method_table
 
   private :included
@@ -456,14 +456,14 @@ class Module
   def constants
     tbl = Rubinius::LookupTable.new
 
-    @constants.each do |name, val|
+    @constant_table.each do |name, val|
       tbl[name] = true
     end
 
     current = self.direct_superclass
 
     while current and current != Object
-      current.constants_table.each do |name, val|
+      current.constant_table.each do |name, val|
         tbl[name] = true unless tbl.has_key? name
       end
 
@@ -472,7 +472,7 @@ class Module
 
     # special case: Module.constants returns Object's constants
     if self.equal? Module
-      Object.constants_table.each do |name, val|
+      Object.constant_table.each do |name, val|
         tbl[name] = true unless tbl.has_key? name
       end
     end
@@ -481,7 +481,7 @@ class Module
   end
 
   def const_defined?(name)
-    @constants.has_key? normalize_const_name(name)
+    @constant_table.has_key? normalize_const_name(name)
   end
 
   def const_get(name, missing=true)
@@ -490,7 +490,7 @@ class Module
     current, constant = self, undefined
 
     while current
-      constant = current.constants_table.fetch name, undefined
+      constant = current.constant_table.fetch name, undefined
       unless constant.equal?(undefined)
         constant = constant.call if constant.kind_of?(Autoload)
         return constant
@@ -500,7 +500,7 @@ class Module
     end
 
     if instance_of?(Module)
-      constant = Object.constants_table.fetch name, undefined
+      constant = Object.constant_table.fetch name, undefined
       unless constant.equal?(undefined)
         constant = constant.call if constant.kind_of?(Autoload)
         return constant
@@ -518,7 +518,7 @@ class Module
     end
 
     name = normalize_const_name(name)
-    @constants[name] = value
+    @constant_table[name] = value
     Rubinius.inc_global_serial
 
     return value
@@ -614,7 +614,7 @@ class Module
 
     name = normalize_const_name(name)
 
-    if existing = @constants[name]
+    if existing = @constant_table[name]
       if existing.kind_of? Autoload
         # If there is already an Autoload here, just change the path to
         # autoload!
@@ -627,7 +627,7 @@ class Module
       return
     end
 
-    constants_table[name] = Autoload.new(name, self, path)
+    constant_table[name] = Autoload.new(name, self, path)
     Rubinius.inc_global_serial
     return nil
   end
@@ -635,8 +635,8 @@ class Module
   # Is an autoload trigger defined for the given path?
   def autoload?(name)
     name = name.to_sym
-    return unless constants_table.key?(name)
-    trigger = constants_table[name]
+    return unless constant_table.key?(name)
+    trigger = constant_table[name]
     return unless trigger.kind_of?(Autoload)
     trigger.path
   end
@@ -651,11 +651,11 @@ class Module
     end
 
     sym = name.to_sym
-    unless constants_table.has_key?(sym)
+    unless constant_table.has_key?(sym)
       raise NameError, "Missing or uninitialized constant: #{self.__name__}::#{name}"
     end
 
-    val = constants_table.delete(sym)
+    val = constant_table.delete(sym)
     Rubinius.inc_global_serial
 
     # Silly API compact. Shield Autoload instances
@@ -696,14 +696,14 @@ class Module
     sc_s.method_table = sc_o.method_table.dup
     sc_s.superclass = sc_o.superclass
 
-    @constants = Rubinius::LookupTable.new
+    @constant_table = Rubinius::LookupTable.new
 
-    other.constants_table.each do |name, val|
+    other.constant_table.each do |name, val|
       if val.kind_of? Autoload
         val = Autoload.new(val.name, self, val.path)
       end
 
-      @constants[name] = val
+      @constant_table[name] = val
     end
 
     self
