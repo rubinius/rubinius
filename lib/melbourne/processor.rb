@@ -59,8 +59,8 @@ module Rubinius
       AST::BackRef.new line, ref
     end
 
-    def process_begin(line, body)
-      AST::Begin.new line, body
+    def process_begin(line, body, end_line)
+      AST::Begin.new line, body, end_line
     end
 
     def process_block(line, array)
@@ -364,8 +364,8 @@ module Rubinius
       AST::RescueCondition.new line, conditions, body, nxt
     end
 
-    def process_rescue(line, body, rescue_body, else_body)
-      AST::Rescue.new line, body, rescue_body, else_body
+    def process_rescue(line, body, rescue_body, else_body, end_line)
+      AST::Rescue.new line, body, rescue_body, else_body, end_line
     end
 
     def process_retry(line)
