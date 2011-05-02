@@ -40,16 +40,14 @@ namespace rubinius {
   private:
     VariableScope* scope_;      // slot
     VariableScope* top_scope_;  // slot
-    Object* local_count_;       // slot
-    CompiledMethod* method_;    // slot
+    CompiledMethod* code_;      // slot
     Module* module_;            // slot
 
   public:
     /* accessors */
     attr_accessor(scope, VariableScope);
     attr_accessor(top_scope, VariableScope);
-    attr_accessor(local_count, Object);
-    attr_accessor(method, CompiledMethod);
+    attr_accessor(code, CompiledMethod);
     attr_accessor(module, Module);
 
     /* interface */

@@ -44,7 +44,7 @@ class Exception
   end
 
   def awesome_backtrace
-    @backtrace ||= Backtrace.backtrace(@locations)
+    @backtrace ||= Rubinius::Backtrace.backtrace(@locations)
   end
 
   def render(header="An exception occurred", io=STDERR, color=true)
@@ -81,11 +81,11 @@ class Exception
   end
 
   def set_backtrace(bt)
-    if bt.kind_of? Backtrace
+    if bt.kind_of? Rubinius::Backtrace
       @backtrace = bt
     else
       # See if we stashed a Backtrace object away, and use it.
-      if hidden_bt = Backtrace.detect_backtrace(bt)
+      if hidden_bt = Rubinius::Backtrace.detect_backtrace(bt)
         @backtrace = hidden_bt
       else
         @custom_backtrace = bt
@@ -140,16 +140,7 @@ class Exception
   def location
     [context.file.to_s, context.line]
   end
-
-  # HACK
-  def self.===(obj)
-    return false if obj.kind_of? Rubinius::ThrownValue
-    super
-  end
 end
-
-##
-# Primitive fails from opcode "send_primitive"
 
 class PrimitiveFailure < Exception
 end
@@ -197,6 +188,7 @@ end
 
 class NameError < StandardError
   attr_reader :name
+
   def initialize(*args)
     super(args.shift)
     @name = args.shift
@@ -206,6 +198,7 @@ end
 class NoMethodError < NameError
   attr_reader :name
   attr_reader :args
+
   def initialize(*arguments)
     super(arguments.shift)
     @name = arguments.shift
@@ -292,6 +285,34 @@ class SyntaxError < ScriptError
     msg
   end
 end
+
+class SystemExit < Exception
+
+  ##
+  # Process exit status if this exception is raised
+
+  attr_reader :status
+
+  ##
+  # Creates a SystemExit exception with optional status and message.  If the
+  # status is omitted, Process::EXIT_SUCCESS is used.
+  #--
+  # *args is used to simulate optional prepended argument like MRI
+
+  def initialize(first=nil, *args)
+    if first.kind_of?(Fixnum)
+      status = first
+      super(*args)
+    else
+      status = Process::EXIT_SUCCESS
+      super
+    end
+
+    @status = status
+  end
+
+end
+
 
 class SystemCallError < StandardError
 

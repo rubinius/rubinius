@@ -183,50 +183,6 @@ namespace rubinius {
     return name_->to_str(state);
   }
 
-  Object* CompiledMethod::jit_now(STATE) {
-    return Qfalse;
-#ifdef ENABLE_LLVM
-    if(backend_method_ == NULL) {
-      internalize(state);
-    }
-
-    if(state->shared.config.jit_show_compiling) {
-      std::cout << "[[[ JIT compiling " << full_name(state)->c_str(state) << " ]]]\n";
-    }
-
-    LLVMState* ls = LLVMState::get(state);
-
-    jit::Compiler jit;
-    jit.compile_method(ls, this, backend_method_);
-
-    if(jit.generate_function(ls)) {
-      backend_method_->set_jitted(jit.llvm_function(),
-                                  jit.code_bytes(), jit.function_pointer());
-      return Qtrue;
-    }
-#endif
-
-    return Qfalse;
-  }
-
-  Object* CompiledMethod::jit_soon(STATE) {
-    return Qfalse;
-#ifdef ENABLE_LLVM
-    if(backend_method_ == NULL) {
-      internalize(state);
-    }
-
-    if(state->shared.config.jit_show_compiling) {
-      std::cout << "[[[ JIT queueing " << full_name(state)->c_str(state) << " ]]]\n";
-    }
-
-    LLVMState::get(state)->compile_soon(state, this);
-    return Qtrue;
-#else
-    return Qfalse;
-#endif
-  }
-
   Object* CompiledMethod::set_breakpoint(STATE, Fixnum* ip, Object* bp) {
     int i = ip->to_native();
     if(backend_method_ == NULL) {

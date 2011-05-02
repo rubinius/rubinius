@@ -1,10 +1,10 @@
 class TrueClass
   def &(other)
-    (other.nil? or other.equal?(false)) ? false : true
+    !!other
   end
 
   def ^(other)
-    (other.nil? or other.equal?(false)) ? true : false
+    !other
   end
 
   def |(other)

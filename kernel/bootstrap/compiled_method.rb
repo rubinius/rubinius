@@ -13,16 +13,6 @@ module Rubinius
       raise PrimitiveFailure, "CompiledMethod#dup primitive failed"
     end
 
-    def jit_now
-      Ruby.primitive :compiledmethod_jit_now
-      raise PrimitiveFailure, "CompiledMethod#jit_now primitive failed"
-    end
-
-    def jit_soon
-      Ruby.primitive :compiledmethod_jit_soon
-      raise PrimitiveFailure, "CompiledMethod#jit_soon primitive failed"
-    end
-
     # Return the CompiledMethod for caller of the method that called
     # .of_sender.
     #

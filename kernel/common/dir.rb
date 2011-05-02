@@ -41,7 +41,7 @@ class Dir
   end
 
   def self.foreach(path)
-    return to_enum :foreach, path unless block_given?
+    return to_enum(:foreach, path) unless block_given?
 
     open(path) do |dir|
       while s = dir.read
@@ -120,7 +120,7 @@ class Dir
   def self.entries(path)
     ret = []
 
-    self.open(path) do |dir|
+    open(path) do |dir|
       while s = dir.read
         ret << s
       end
@@ -131,7 +131,7 @@ class Dir
 
   def self.chroot(path)
     ret = FFI::Platform::POSIX.chroot StringValue(path)
-    Errno.handle
+    Errno.handle path
     return ret
   end
 

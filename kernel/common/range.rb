@@ -58,7 +58,7 @@ class Range
   def initialize(first, last, exclude_end = false)
     raise NameError, "`initialize' called twice" if @begin
     
-    unless first.is_a?(Fixnum) && last.is_a?(Fixnum)
+    unless first.kind_of?(Fixnum) && last.kind_of?(Fixnum)
       begin
         raise ArgumentError, "bad value for range" unless first <=> last
       rescue
@@ -81,9 +81,12 @@ class Range
   #   (0..2) == Range.new(0,2)    #=> true
   #   (0..2) == (0...2)           #=> false
   def ==(other)
-    self.equal?(other) ||
-      (other.is_a?(Range) && self.first == other.first &&
-       self.last == other.last && self.exclude_end? == other.exclude_end?)
+    return true if equal? other
+
+    other.kind_of?(Range) and
+      self.first == other.first and
+      self.last == other.last and
+      self.exclude_end? == other.exclude_end?
    
   end
   alias_method :eql?, :==
@@ -152,7 +155,8 @@ class Range
 
     raise TypeError, "can't iterate from #{first.class}" unless first.respond_to? :succ
 
-    if first.is_a?(Fixnum)
+    case first
+    when Fixnum
       last -= 1 if @excl
 
       i = first
@@ -161,7 +165,7 @@ class Range
         i += 1
       end
 
-    elsif first.is_a?(String)
+    when String
       first.upto(last) do |s|
         yield s unless @excl && s == last
       end
@@ -244,9 +248,15 @@ class Range
   #   10 xxxxxxxxxx
 
   def step(step_size=1) # :yields: object
-    return to_enum :step, step_size unless block_given?
-    first, last = @begin, @end
-    step_size = (Float === first) ? Float(step_size) : Integer(step_size)
+    return to_enum(:step, step_size) unless block_given?
+    first = @begin
+    last = @end
+
+    if first.kind_of? Float
+      step_size = Float(step_size)
+    else
+      step_size = Integer(step_size)
+    end
 
     if step_size <= 0
       raise ArgumentError, "step can't be negative" if step_size < 0

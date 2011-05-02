@@ -1,4 +1,4 @@
-module CType
+module Rubinius::CType
   def self.toprint(num)
     case num
     when ?\n: '\n'
@@ -40,7 +40,7 @@ module CType
 
   i = 0
   while i < 256
-    Lowered[i] = i.tolower.chr
+    Lowered[i] = tolower(i).chr
     i += 1
   end
 end

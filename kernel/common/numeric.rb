@@ -42,12 +42,12 @@ class Numeric
   end
 
   def step(limit, step=1, &block)
-    return to_enum :step, limit, step unless block_given?
+    return to_enum(:step, limit, step) unless block_given?
 
     raise ArgumentError, "step cannot be 0" if step == 0
 
     value = self
-    if value.is_a? Fixnum and limit.is_a? Fixnum and step.is_a? Fixnum
+    if value.kind_of? Fixnum and limit.kind_of? Fixnum and step.kind_of? Fixnum
       if step > 0
         while value <= limit
           yield value
@@ -59,10 +59,14 @@ class Numeric
           value += step
         end
       end
-    elsif value.is_a? Float or limit.is_a? Float or step.is_a? Float
+
+    elsif value.kind_of? Float or limit.kind_of? Float or step.kind_of? Float
       # Ported from MRI
 
-      value, limit, step = FloatValue(value), FloatValue(limit), FloatValue(step)
+      value = FloatValue(value)
+      limit = FloatValue(limit)
+      step =  FloatValue(step)
+
       range = limit - value
       n = range / step;
       err = (value.abs + limit.abs + range.abs) / step.abs * Float::EPSILON
@@ -78,11 +82,18 @@ class Numeric
           i += 1
         end
       end
+
     else
-      cmp = step > 0 ? :> : :<
-      until value.send(cmp, limit)
-        yield value
-        value += step
+      if step > 0
+        until value > limit
+          yield value
+          value += step
+        end
+      else
+        until value < limit
+          yield value
+          value += step
+        end
       end
     end
 
@@ -95,7 +106,7 @@ class Numeric
 
   # Delegate #to_int to #to_i in subclasses
   def to_int
-    self.to_i
+    to_i
   end
 
   # Delegate #modulo to #% in subclasses
@@ -116,7 +127,7 @@ class Numeric
   end
 
   def round
-    self.to_f.round
+    to_f.round
   end
 
   def abs
@@ -172,7 +183,11 @@ class Numeric
     begin
       values = other.coerce(self)
     rescue
-      send error, other
+      if error == :coerce_error
+        raise TypeError, "#{other.class} can't be coerced into #{self.class}"
+      else
+        raise ArgumentError, "comparison of #{self.class} with #{other.class} failed"
+      end
     end
 
     unless Rubinius::Type.object_kind_of?(values, Array) && values.length == 2
@@ -182,16 +197,6 @@ class Numeric
     return values[1], values[0]
   end
   private :math_coerce
-
-  def coerce_error(other)
-    raise TypeError, "#{other.class} can't be coerced into #{self.class}"
-  end
-  private :coerce_error
-
-  def compare_error(other)
-    raise ArgumentError, "comparison of #{self.class} with #{other.class} failed"
-  end
-  private :compare_error
 
   def redo_coerced(meth, right)
     b, a = math_coerce(right)

@@ -219,23 +219,6 @@ module Rubinius
     Signal.run_handler(sig)
   end
 
-  def self.jit(meth)
-    cm = meth.executable
-
-    return unless cm.respond_to? :jit_now
-
-    unless status = cm.jit_now
-      puts "AOT: unable to compile #{meth}"
-    end
-
-    return status
-  end
-
-  def self.jit_soon(meth)
-    cm = meth.executable
-    cm.jit_soon
-  end
-
   def self.version
     extra = ""
 
@@ -245,7 +228,6 @@ module Rubinius
       if jit.include? :inline_generic
         extra << "I"
       end
-
     end
 
     str = "rubinius #{VERSION} (#{RUBY_VERSION} #{BUILD_REV[0..7]} #{RUBY_RELEASE_DATE}"
@@ -288,10 +270,6 @@ module Rubinius
     Compiler.compile name
   end
 
-  class AccessVariable
-    attr_reader :name
-  end
-
   def self.pack_to_int(obj)
     Rubinius::Type.coerce_to obj, Integer, :to_int
   end
@@ -315,6 +293,3 @@ module Rubinius
     Float(obj)
   end
 end
-
-# A wierd place for it, but it works.
-RUBY_DESCRIPTION = Rubinius.version

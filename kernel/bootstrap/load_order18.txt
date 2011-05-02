@@ -21,7 +21,7 @@ iseq.rbc
 kernel18.rbc
 kernel.rbc
 lookuptable.rbc
-methodtable.rbc
+method_table.rbc
 nil.rbc
 object.rbc
 proc.rbc

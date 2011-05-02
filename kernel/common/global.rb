@@ -16,8 +16,8 @@ module Rubinius
       @internal[:$-I] = load_path
       @internal[:$"] = loaded_features
       @internal[:$,] = ''               # Output field separator
-      @internal[:$.] = 0                # TODO: Last line number of IO read.
-      @internal[:$_] = nil              # HACK: bunk for now.
+      @internal[:$.] = 0
+      @internal[:$_] = nil
       @internal[:$?] = nil              # Process status. nil until set
       @internal[:$=] = false            # ignore case, whatever that is
       @internal[:$CONSOLE]         = STDOUT

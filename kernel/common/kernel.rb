@@ -1,37 +1,21 @@
 module Kernel
   def __method__
-    # Look in the backtrace for locations where the scope is that of the sender.
-    # The first non-block one will be our call,
-    # unless where are called from a DelegatedMethod
-    # For the later, we check to see if the next location
-    # was a call from a delegated method
-    easy_name =  Rubinius::VariableScope.of_sender.method.name
+    scope = Rubinius::VariableScope.of_sender
 
-    # A toplevel block.
-    return nil if easy_name == :__block__
+    name = scope.method.name
 
-    # __eval__ is weird, use the complicated logic.
-    return easy_name unless easy_name == :__eval__
-
-    scope_of_sender = Rubinius::StaticScope.of_sender
-    trace = Rubinius::VM.backtrace(1)
-    trace.each_with_index do |loc, i|
-      next unless loc.method.scope == scope_of_sender
-      if loc.is_block
-        return loc.name
-      else
-        return loc.method.name == :__script__ ? nil : loc.method.name
-      end
-    end
-    nil
+    # If the name is still __block__, then it's in a script, so return nil
+    return nil if name == :__block__ or name == :__script__
+    return name
   end
 
   def Float(obj)
     raise TypeError, "can't convert nil into Float" if obj.nil?
 
-    if obj.is_a?(Float)
-      return obj
-    elsif obj.is_a?(String)
+    case obj
+    when Float
+      obj
+    when String
       valid_re = /^\s*[+-]?((\d+_?)*\d+(\.(\d+_?)*\d+)?|\.(\d+_?)*\d+)(\s*|([eE][+-]?(\d+_?)*\d+)\s*)$/
 
       m = valid_re.match(obj)
@@ -39,45 +23,52 @@ module Kernel
       if !m or !m.pre_match.empty? or !m.post_match.empty?
         raise ArgumentError, "invalid value for Float(): #{obj.inspect}"
       end
-      return obj.convert_float
+      obj.convert_float
+    else
+      coerced_value = Rubinius::Type.coerce_to(obj, Float, :to_f)
+      if coerced_value.nan?
+        raise ArgumentError, "invalid value for Float(): #{coerced_value.inspect}"
+      end
+      coerced_value
     end
-
-    coerced_value = Rubinius::Type.coerce_to(obj, Float, :to_f)
-    if coerced_value.nan?
-      raise ArgumentError, "invalid value for Float(): #{coerced_value.inspect}"
-    end
-    coerced_value
   end
   module_function :Float
 
   def Integer(obj)
-    if obj.is_a? String
-      if obj == ''
-        raise ArgumentError, "invalid value for Integer: (empty string)"
-      else
-        return obj.to_inum(0, true)
-      end
-    elsif obj.is_a? Float
+    case obj
+    when Integer
+      obj
+    when Float
       if obj.nan? or obj.infinite?
         raise FloatDomainError, "unable to coerce #{obj} to Integer"
       else
-        return obj.to_int
+        obj.to_int
       end
-    elsif obj.respond_to? :to_int
-      int_value = obj.to_int
-      return int_value unless int_value.nil?
-    end
+    when String
+      if obj.empty?
+        raise ArgumentError, "invalid value for Integer: (empty string)"
+      else
+        obj.to_inum(0, true)
+      end
+    else
+      # Can't use coerce_to or try_convert because I think there is an
+      # MRI bug here where it will return the value without checking
+      # the return type.
+      if obj.respond_to? :to_int
+        if val = obj.to_int
+          return val
+        end
+      end
 
-    Rubinius::Type.coerce_to(obj, Integer, :to_i)
+      Rubinius::Type.coerce_to obj, Integer, :to_i
+    end
   end
   module_function :Integer
 
   def Array(obj)
-    if obj.respond_to? :to_ary
-      ary = Rubinius::Type.try_convert obj, Array, :to_ary
-    end
+    ary = Rubinius::Type.try_convert obj, Array, :to_ary
 
-    return ary unless ary.equal? nil
+    return ary if ary
 
     if obj.respond_to? :to_a
       Rubinius::Type.coerce_to(obj, Array, :to_a)
@@ -88,15 +79,18 @@ module Kernel
   module_function :Array
 
   def String(obj)
-    if obj.is_a? String
-      return obj
-    elsif obj.respond_to?(:to_s)
-      coerced_str = obj.to_s
-      return coerced_str if coerced_str.is_a? String
-      raise TypeError, "Coercion error: obj.to_s did NOT return a String (was #{coerced_str.class})"
-    else
-      raise TypeError, "can't convert Object into String: #{obj.inspect}"
+    return obj if obj.kind_of? String
+
+    unless obj.respond_to? :to_s
+      raise TypeError, "Unable to convert to a String"
     end
+
+    str = obj.to_s
+    unless str.kind_of? String
+      raise TypeError, "#to_s did not return a String"
+    end
+
+    return str
   end
   module_function :String
 
@@ -113,7 +107,7 @@ module Kernel
   # and use String(obj, :to_str) instead of StringValue(obj)
 
   def StringValue(obj)
-    Rubinius::Type.coerce_to(obj, String, :to_str)
+    Rubinius::Type.coerce_to obj, String, :to_str
   end
   private :StringValue
 
@@ -134,7 +128,7 @@ module Kernel
   private :FloatValue
 
   def initialize_copy(source)
-    unless source.class == self.class then
+    unless instance_of?(source.class)
       raise TypeError, "initialize_copy should take same class object"
     end
   end
@@ -168,9 +162,10 @@ module Kernel
   module_function :abort
 
   def printf(target, *args)
-    if target.kind_of? IO
+    case target
+    when IO
       target.printf(*args)
-    elsif target.kind_of? String
+    when String
       $stdout << Rubinius::Sprinter.get(target).call(*args)
     else
       raise TypeError, "The first arg to printf should be an IO or a String"
@@ -180,8 +175,9 @@ module Kernel
   module_function :printf
 
   def sprintf(str, *args)
-    ::Rubinius::Sprinter.get(str).call(*args)
+    Rubinius::Sprinter.get(str).call(*args)
   end
+
   alias_method :format, :sprintf
   module_function :sprintf
   module_function :format
@@ -232,11 +228,8 @@ module Kernel
       seed = Rubinius::Randomizer.instance.generate_seed
     end
 
-    unless seed.respond_to?(:to_int)
-      raise TypeError, "can't convert #{seed.class} into Integer"
-    end
-
-    Rubinius::Randomizer.instance.swap_seed seed.to_int
+    seed = Rubinius::Type.coerce_to seed, Integer, :to_int
+    Rubinius::Randomizer.instance.swap_seed seed
   end
   module_function :srand
 
@@ -255,7 +248,7 @@ module Kernel
   module_function :rand
 
   def block_given?
-    return Rubinius::VariableScope.of_sender.block != nil
+    Rubinius::VariableScope.of_sender.block != nil
   end
   module_function :block_given?
 
@@ -311,11 +304,15 @@ module Kernel
       raise TypeError, 'time interval must be a numeric value'
     end
 
-    start = Process.time
-    chan = Rubinius::Channel.new
-    chan.receive_timeout duration
+    key = :__sleep_chanel__
+    unless chan = Thread.current[key]
+      chan = Rubinius::Channel.new
+      Thread.current[key] = chan
+    end
 
-    return Process.time - start
+    start = Process.time
+    chan.receive_timeout duration
+    Process.time - start
   end
   module_function :sleep
 
@@ -413,8 +410,13 @@ module Kernel
     Ruby.check_frozen
 
     modules.reverse_each do |mod|
-      mod.__send__(:extend_object, self)
-      mod.__send__(:extended, self)
+      Rubinius.privately do
+        mod.extend_object self
+      end
+
+      Rubinius.privately do
+        mod.extended self
+      end
     end
     self
   end
@@ -482,7 +484,7 @@ module Kernel
   def instance_variable_get(sym)
     Ruby.primitive :object_get_ivar
 
-    sym = Rubinius.instance_variable_validate sym
+    sym = Rubinius::Type.ivar_validate sym
     instance_variable_get sym
   end
 
@@ -491,7 +493,7 @@ module Kernel
   def instance_variable_set(sym, value)
     Ruby.primitive :object_set_ivar
 
-    sym = Rubinius.instance_variable_validate sym
+    sym = Rubinius::Type.ivar_validate sym
     instance_variable_set sym, value
   end
 
@@ -506,7 +508,7 @@ module Kernel
     end
 
     # Otherwise because sym isn't a symbol, coerce it and try again.
-    remove_instance_variable Rubinius.instance_variable_validate(sym)
+    remove_instance_variable Rubinius::Type.ivar_validate(sym)
   end
   private :remove_instance_variable
 
@@ -531,7 +533,7 @@ module Kernel
   def instance_variable_defined?(name)
     Ruby.primitive :object_ivar_defined
 
-    instance_variable_defined? Rubinius.instance_variable_validate(name)
+    instance_variable_defined? Rubinius::Type.ivar_validate(name)
   end
 
   # Both of these are for defined? when used inside a proxy obj that
@@ -721,8 +723,6 @@ module Kernel
   #
   # TODO: Support non-UNIX paths.
   #
-  # TODO: The anonymous module wrapping is not implemented at all.
-  #
   def load(name, wrap=false)
     cl = Rubinius::CodeLoader.new(name)
     cl.load(wrap)
@@ -815,25 +815,25 @@ module Kernel
   # Perlisms.
 
   def chomp(string=$/)
-    Kernel.ensure_last_read_string
+    raise TypeError, "$_ must be a String" unless $_.kind_of? String
     $_ = $_.chomp(string)
   end
   module_function :chomp
 
   def chomp!(string=$/)
-    Kernel.ensure_last_read_string
+    raise TypeError, "$_ must be a String" unless $_.kind_of? String
     $_.chomp!(string)
   end
   module_function :chomp!
 
   def chop(string=$/)
-    Kernel.ensure_last_read_string
+    raise TypeError, "$_ must be a String" unless $_.kind_of? String
     $_ = $_.chop(string)
   end
   module_function :chop
 
   def chop!(string=$/)
-    Kernel.ensure_last_read_string
+    raise TypeError, "$_ must be a String" unless $_.kind_of? String
     $_.chop!(string)
   end
   module_function :chop!
@@ -849,47 +849,46 @@ module Kernel
   module_function :putc
 
   def gets(sep=$/)
-    # HACK. Needs to use ARGF first.
-    $stdin.gets(sep)
+    ARGF.gets(sep)
   end
   module_function :gets
 
-  def readline(sep)
-    $stdin.readline(sep)
+  def readline(sep=$/)
+    ARGF.readline(sep)
   end
   module_function :readline
 
-  def readlines(sep)
-    $stdin.readlines(sep)
+  def readlines(sep=$/)
+    ARGF.readlines(sep)
   end
   module_function :readlines
 
   def gsub(pattern, rep=nil, &block)
-    Kernel.ensure_last_read_string
+    raise TypeError, "$_ must be a String" unless $_.kind_of? String
     $_ = $_.gsub(pattern, rep, &block)
   end
   module_function :gsub
 
   def gsub!(pattern, rep=nil, &block)
-    Kernel.ensure_last_read_string
+    raise TypeError, "$_ must be a String" unless $_.kind_of? String
     $_.gsub!(pattern, rep, &block)
   end
   module_function :gsub!
 
   def sub(pattern, rep=nil, &block)
-    Kernel.ensure_last_read_string
+    raise TypeError, "$_ must be a String" unless $_.kind_of? String
     $_ = $_.sub(pattern, rep, &block)
   end
   module_function :sub
 
   def sub!(pattern, rep=nil, &block)
-    Kernel.ensure_last_read_string
+    raise TypeError, "$_ must be a String" unless $_.kind_of? String
     $_.sub!(pattern, rep, &block)
   end
   module_function :sub!
 
   def scan(pattern, &block)
-    Kernel.ensure_last_read_string
+    raise TypeError, "$_ must be a String" unless $_.kind_of? String
     $_.scan(pattern, &block)
   end
   module_function :scan
@@ -900,48 +899,9 @@ module Kernel
   module_function :select
 
   def split(*args)
-    Kernel.ensure_last_read_string
+    raise TypeError, "$_ must be a String" unless $_.kind_of? String
     $_.split(*args)
   end
   module_function :split
-
-  # Checks whether the "last read line" $_ variable is a String,
-  # raising a TypeError when not.
-  def ensure_last_read_string
-    unless $_.kind_of? String
-      cls = $_.nil? ? "nil" : $_.class
-      raise TypeError, "$_ must be a String (#{cls} given)"
-    end
-  end
-  module_function :ensure_last_read_string
-  private :ensure_last_read_string
-
-end
-
-class SystemExit < Exception
-
-  ##
-  # Process exit status if this exception is raised
-
-  attr_reader :status
-
-  ##
-  # Creates a SystemExit exception with optional status and message.  If the
-  # status is omitted, Process::EXIT_SUCCESS is used.
-  #--
-  # *args is used to simulate optional prepended argument like MRI
-
-  def initialize(first=nil, *args)
-    if first.kind_of?(Fixnum)
-      status = first
-      super(*args)
-    else
-      status = Process::EXIT_SUCCESS
-      super
-    end
-
-    @status = status
-  end
-
 end
 

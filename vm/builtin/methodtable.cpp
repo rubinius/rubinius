@@ -57,12 +57,15 @@ namespace rubinius {
     // Allow for subclassing.
     dup->klass(state, class_object(state));
 
-    size_t num = entries_->to_native();
+    size_t num = bins_->to_native();
 
-    Array* entries = all_entries(state);
     for(i = 0; i < num; i++) {
-      MethodTableBucket* entry = as<MethodTableBucket>(entries->get(state, i));
-      dup->store(state, entry->name(), entry->method(), entry->visibility());
+      MethodTableBucket* entry = try_as<MethodTableBucket>(values_->at(state, i));
+
+      while(entry) {
+        dup->store(state, entry->name(), entry->method(), entry->visibility());
+        entry = try_as<MethodTableBucket>(entry->next());
+      }
     }
     return dup;
   }
@@ -286,56 +289,9 @@ namespace rubinius {
     return Qtrue;
   }
 
-  Array* MethodTable::collect(STATE, MethodTable* tbl,
-                              Object* (*action)(STATE, MethodTableBucket*))
-  {
-    size_t i, j;
-    Tuple* values;
-    MethodTableBucket* entry;
-
-    Array* ary = Array::create(state, tbl->entries()->to_native());
-    size_t num_bins = tbl->bins()->to_native();
-    values = tbl->values();
-
-    for(i = j = 0; i < num_bins; i++) {
-      entry = try_as<MethodTableBucket>(values->at(state, i));
-
-      while(entry) {
-        ary->set(state, j++, action(state, entry));
-        entry = try_as<MethodTableBucket>(entry->next());
-      }
-    }
-    return ary;
-  }
-
-  Object* MethodTable::get_name(STATE, MethodTableBucket* entry) {
-    return entry->name();
-  }
-
-  Array* MethodTable::all_names(STATE) {
-    return collect(state, this, get_name);
-  }
-
-  Object* MethodTable::get_value(STATE, MethodTableBucket* entry) {
-    return entry->method();
-  }
-
-  Array* MethodTable::all_values(STATE) {
-    return collect(state, this, get_value);
-  }
-
-  Object* MethodTable::get_entry(STATE, MethodTableBucket* entry) {
-    return entry;
-  }
-
-  Array* MethodTable::all_entries(STATE) {
-    return collect(state, this, get_entry);
-  }
-
   void MethodTable::Info::show(STATE, Object* self, int level) {
     MethodTable* tbl = as<MethodTable>(self);
-    size_t size = tbl->entries()->to_native();
-    Array* names = tbl->all_names(state);
+    size_t size = tbl->bins()->to_native();
 
     if(size == 0) {
       class_info(state, self, true);
@@ -346,10 +302,15 @@ namespace rubinius {
     std::cout << ": " << size << std::endl;
     indent(++level);
     for(size_t i = 0; i < size; i++) {
-      if(Symbol* sym = try_as<Symbol>(names->get(state, i))) {
-        std::cout << ":" << sym->c_str(state);
-      } else if(Fixnum* fix = try_as<Fixnum>(names->get(state, i))) {
-        std::cout << fix->to_native();
+      MethodTableBucket* entry = try_as<MethodTableBucket>(tbl->values()->at(state, i));
+
+      while(entry) {
+       if(Symbol* sym = try_as<Symbol>(entry->name())) {
+          std::cout << ":" << sym->c_str(state);
+        } else if(Fixnum* fix = try_as<Fixnum>(entry->name())) {
+          std::cout << fix->to_native();
+        }
+        entry = try_as<MethodTableBucket>(entry->next());
       }
       if(i < size - 1) std::cout << ", ";
     }

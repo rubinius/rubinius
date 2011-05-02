@@ -20,7 +20,9 @@ class << MAIN
   end
 
   def alias_method(new_name, current_name)
-    Object.__send__ :alias_method, new_name, current_name
+    Rubinius.privately do
+      Object.alias_method new_name, current_name
+    end
   end
 
   def const_set(name, value)

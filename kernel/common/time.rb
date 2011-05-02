@@ -91,7 +91,7 @@ class Time
 
   def self.local(first, *args)
     if args.size == 9
-      second = second.kind_of?(String) ? first.to_i    : Rubinius::Type.num2long(first)
+      second = second.kind_of?(String)  ? first.to_i   : Rubinius::Type.num2long(first)
       minute = args[0].kind_of?(String) ? args[0].to_i : Rubinius::Type.num2long(args[0])
       hour =   args[1].kind_of?(String) ? args[1].to_i : Rubinius::Type.num2long(args[1])
       day =    args[2].kind_of?(String) ? args[2].to_i : Rubinius::Type.num2long(args[2])
@@ -116,7 +116,7 @@ class Time
         month = 1
       end
 
-      year =   first.kind_of?(String) ? first.to_i : Rubinius::Type.num2long(first)
+      year =   first.kind_of?(String)   ? first.to_i   : Rubinius::Type.num2long(first)
       day =    args[1].kind_of?(String) ? args[1].to_i : Rubinius::Type.num2long(args[1] || 1)
       hour =   args[2].kind_of?(String) ? args[2].to_i : Rubinius::Type.num2long(args[2] || 0)
       minute = args[3].kind_of?(String) ? args[3].to_i : Rubinius::Type.num2long(args[3] || 0)
@@ -141,7 +141,7 @@ class Time
 
   def self.gm(first, *args)
     if args.size == 9
-      second = first.kind_of?(String) ? first.to_i : Rubinius::Type.num2long(first)
+      second = first.kind_of?(String)   ? first.to_i   : Rubinius::Type.num2long(first)
       minute = args[0].kind_of?(String) ? args[0].to_i : Rubinius::Type.num2long(args[0])
       hour =   args[1].kind_of?(String) ? args[1].to_i : Rubinius::Type.num2long(args[1])
       day =    args[2].kind_of?(String) ? args[2].to_i : Rubinius::Type.num2long(args[2])
@@ -165,7 +165,7 @@ class Time
         month = 1
       end
 
-      year =   first.kind_of?(String) ? first.to_i : Rubinius::Type.num2long(first)
+      year =   first.kind_of?(String)   ? first.to_i   : Rubinius::Type.num2long(first)
       day =    args[1].kind_of?(String) ? args[1].to_i : Rubinius::Type.num2long(args[1] || 1)
       hour =   args[2].kind_of?(String) ? args[2].to_i : Rubinius::Type.num2long(args[2] || 0)
       minute = args[3].kind_of?(String) ? args[3].to_i : Rubinius::Type.num2long(args[3] || 0)
@@ -235,7 +235,9 @@ class Time
 
   def <=>(other)
     if other.kind_of? Time
-      (c = self.seconds <=> other.seconds) == 0 ? (self.usec <=> other.usec) : c
+      c = (seconds <=> other.seconds)
+      return c unless c == 0
+      usec <=> other.usec
     else
       nil
     end

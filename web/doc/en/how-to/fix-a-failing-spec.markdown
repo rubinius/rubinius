@@ -9,8 +9,8 @@ next_url: how-to/write-benchmarks
 
 Make sure you have read:
 
-  *  [Getting Started]({{ page.lang_dir }}getting-started/)
-  *  [Specs]({{ page.lang_dir }}specs/)
+  *  [Getting Started](/doc/en/getting-started/)
+  *  [Specs](/doc/en/specs/)
 
 Then, follow these steps to fix a failing spec:
 

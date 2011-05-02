@@ -40,15 +40,7 @@
 #   2:  10 11 12 13 14
 #   3:  15 16
 
-# @todo Fix this, Task is no longer. --rue
 class Continuation
-  attr_writer :task
-  attr_reader :value
-
-  def self.new(*args)
-    raise NoMethodError.new
-  end
-
 #  def self.create(task=nil)
 #    cont = self.allocate
 #    cont.setup(task)
@@ -77,9 +69,8 @@ end
 
 module Kernel
 
-  # @todo Fix this, Task is no longer. --rue
   def callcc
-    raise "call/cc is not implemented!"
+    raise NotImplementedError, "call/cc is not implemented!"
 #    cont = Continuation.create
 #    # Task#dup appears as though it returns nil in the dup'd
 #    # task, kinda like fork().

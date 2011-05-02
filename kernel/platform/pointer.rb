@@ -357,11 +357,15 @@ module FFI
     end
 
     def copy
-      other = FFI::Platform::POSIX.malloc total
+      other = malloc total
       other.total = total
       other.type_size = type_size
       FFI::Platform::POSIX.memcpy other, self, total
-      other.send :initialize_copy, self
+
+      Rubinius.privately do
+        other.initialize_copy self
+      end
+
       other
     end
 
@@ -394,7 +398,6 @@ module FFI
     def free
       self.autorelease = false
       FFI::Platform::POSIX.free(self) unless null?
-      #self.class.set_address self, nil
     end
 
     ##

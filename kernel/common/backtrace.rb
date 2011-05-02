@@ -1,7 +1,7 @@
 ##
 # Contains all logic for gathering and displaying backtraces.
 
-class Backtrace
+class Rubinius::Backtrace
   include Enumerable
 
   MAX_WIDTH = 36
@@ -59,7 +59,8 @@ class Backtrace
     times = 0
 
     @locations.each do |loc|
-      if loc.name == last_name and loc.method == last_method and loc.line == last_line
+      if loc.name == last_name and loc.method == last_method \
+                               and loc.line == last_line
         times += 1
       else
         lines.last[-1] = times if lines.size > 0
@@ -81,13 +82,9 @@ class Backtrace
       pos  = location.position(Dir.getwd)
       color = show_color ? color_from_loc(pos, first) : ""
       first = false # special handling for first line
+
       spaces = max - recv.size
       spaces = 0 if spaces < 0
-
-      # trim the path unless we're debugging.
-      #unless $DEBUG
-      #  pos = "...#{pos[pos.size-max-3..-1]}" if pos.size > max
-      #end
 
       if show_color and location.inlined?
         start = " #{' ' * spaces}#{recv} #{@inline_effect}at#{clear}#{color} "
@@ -157,6 +154,7 @@ class Backtrace
 
   def color_from_loc(loc, first)
     return @first_color if first
+
     if loc =~ /^kernel/
       @kernel_color
     elsif loc =~ /\(eval\)/
@@ -179,8 +177,6 @@ class Backtrace
     return nil
   end
 
-  # HACK: This should be MRI compliant-ish. --rue
-  #
   def to_mri
     return @mri_backtrace if @mri_backtrace
 

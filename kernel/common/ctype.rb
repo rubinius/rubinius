@@ -1,49 +1,48 @@
 ##
 # Mixin containing byte classification methods.
 #--
-# isspace, islower, ... are not in MRI core library.  See specs in
-# spec/shotgun/ctype_spec.rb
+# isspace, islower, ... are not in MRI core library.
 
-module CType
-  def isctrl
-    self == ?\n or self == ?\r or self == ?\t or self == ?\f or
-    self == ?\v or self == ?\a or self == ?\e or self == ?\b
+module Rubinius::CType
+  def self.isctrl(num)
+    num == ?\n or num == ?\r or num == ?\t or num == ?\f or
+    num == ?\v or num == ?\a or num == ?\e or num == ?\b
   end
 
-  def isspace
-    self == ?\s or self == ?\n or self == ?\t or self == ?\r or self == ?\f or self == ?\v
+  def self.isspace(num)
+    num == ?\s or num == ?\n or num == ?\t or num == ?\r or num == ?\f or num == ?\v
   end
 
-  def isupper
-    self >= ?A and self <= ?Z
+  def self.isupper(num)
+    num >= ?A and num <= ?Z
   end
 
-  def islower
-    self >= ?a and self <= ?z
+  def self.islower(num)
+    num >= ?a and num <= ?z
   end
 
-  def isdigit
-    self >= ?0 and self <= ?9
+  def self.isdigit(num)
+    num >= ?0 and num <= ?9
   end
 
-  def isalnum
-    islower or isupper or isdigit
+  def self.isalnum(num)
+    islower(num) or isupper(num) or isdigit(num)
   end
 
-  def toupper!
-    self - ?\s
+  def self.toupper!(num)
+    num - ?\s
   end
 
-  def toupper
-    self.islower ? self.toupper! : self
+  def self.toupper(num)
+    islower(num) ? toupper!(num) : num
   end
 
-  def tolower!
-    self + ?\s
+  def self.tolower!(num)
+    num + ?\s
   end
 
-  def tolower
-    self.isupper ? self.tolower! : self
+  def self.tolower(num)
+    isupper(num) ? tolower!(num) : num
   end
 
 end

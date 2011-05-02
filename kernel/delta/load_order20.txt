@@ -3,8 +3,6 @@ ctype.rbc
 class.rbc
 exception.rbc
 file.rbc
-ruby_constants20.rbc
-ruby_constants.rbc
 rubinius.rbc
 module.rbc
 filetest.rbc
@@ -17,3 +15,5 @@ struct.rbc
 thread.rbc
 codeloader.rbc
 ffi.rbc
+ruby_constants20.rbc
+ruby_constants.rbc

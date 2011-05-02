@@ -5,7 +5,7 @@ class Rubinius::Randomizer
   end
 
   def self.instance
-    @instance || (@instance = new)
+    @instance ||= new
   end
 
   def initialize
@@ -24,7 +24,8 @@ class Rubinius::Randomizer
   end
 
   def swap_seed(new_seed)
-    old_seed, self.seed = self.seed, new_seed
+    old_seed  = self.seed
+    self.seed = new_seed
     old_seed
   end
 

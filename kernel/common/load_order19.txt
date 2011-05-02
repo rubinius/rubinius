@@ -1,5 +1,4 @@
 basicobject.rbc
-object.rbc
 class.rbc
 binding.rbc
 proc.rbc
@@ -48,7 +47,6 @@ fixnum.rbc
 dir.rbc
 dir19.rbc
 dir_glob.rbc
-dtrace.rbc
 encoding.rbc
 env.rbc
 errno.rbc
@@ -70,14 +68,12 @@ marshal.rbc
 math.rbc
 method.rbc
 method_table.rbc
-moment.rbc
 native_method.rbc
 nil.rbc
 objectspace.rbc
 string.rbc
 string19.rbc
 range.rbc
-rubinius.rbc
 struct.rbc
 process.rbc
 random.rbc
@@ -91,5 +87,4 @@ throw_catch.rbc
 time.rbc
 true.rbc
 variable_scope.rbc
-vm.rbc
 capi.rbc

@@ -774,6 +774,10 @@ module Rubinius
         @name = :__eval_script__
       end
 
+      def should_cache?
+        !@body.kind_of?(AST::ClosedScope)
+      end
+
       def search_scopes(name)
         depth = 1
         scope = @variable_scope

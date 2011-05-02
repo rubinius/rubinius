@@ -262,7 +262,7 @@ module Rubinius
         end
       end
 
-      compiler = new :string, :compiled_method
+      compiler = new :eval, :compiled_method
 
       parser = compiler.parser
       parser.root AST::EvalExpression
@@ -275,10 +275,40 @@ module Rubinius
 
       cm.add_metadata :for_eval, true
 
-      if ec
+      if ec and parser.should_cache?
         ec.set([string.dup, layout], cm)
       end
+
       return cm
+    end
+
+    def self.construct_block(string, binding, file="(eval)", line=1)
+      cm = compile_eval string, binding.variables, file, line
+
+      cm.scope = binding.static_scope
+      cm.name = binding.variables.method.name
+
+      # This has to be setup so __FILE__ works in eval.
+      script = Rubinius::CompiledMethod::Script.new(cm, file, true)
+      script.eval_source = string
+
+      cm.scope.script = script
+
+      be = Rubinius::BlockEnvironment.new
+      be.under_context binding.variables, cm
+
+      # Pass the BlockEnvironment this binding was created from
+      # down into the new BlockEnvironment we just created.
+      # This indicates the "declaration trace" to the stack trace
+      # mechanisms, which can be different from the "call trace"
+      # in the case of, say: eval("caller", a_proc_instance)
+      if binding.from_proc?
+        be.proc_environment = binding.proc_environment
+      end
+
+      be.from_eval!
+     
+      return be
     end
 
     def self.compile_test_bytecode(string, transforms)

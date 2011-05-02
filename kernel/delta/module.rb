@@ -71,8 +71,13 @@ class Module
         raise TypeError, "wrong argument type #{mod.class} (expected Module)"
       end
 
-      mod.send :append_features, self
-      mod.send :included, self
+      Rubinius.privately do
+        mod.append_features self
+      end
+
+      Rubinius.privately do
+        mod.included self
+      end
     end
     self
   end

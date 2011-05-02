@@ -86,6 +86,7 @@ ENV['CC'] = BUILD_CONFIG[:cc] unless ENV['CC']
 ENV['CXX'] = BUILD_CONFIG[:cxx] unless ENV['CXX']
 
 $dlext = RbConfig::CONFIG["DLEXT"]
+$CC = ENV['CC']
 
 def run_specs(flags=nil)
   unless File.directory? BUILD_CONFIG[:runtime]

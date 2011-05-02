@@ -4,13 +4,14 @@
 
 module Rubinius
   class BlockEnvironment
-    attr_accessor :scope
-    attr_accessor :top_scope
-    attr_accessor :local_count
-    attr_accessor :method # The CompiledMethod object that we were called from
+    attr_reader :scope
+    attr_reader :top_scope
+
+    # The CompiledMethod that implements the code for the block
+    attr_reader :code
 
     attr_accessor :proc_environment
-    attr_accessor :metadata_container
+    attr_reader :metadata_container
 
     def from_proc?
       @proc_environment
@@ -19,15 +20,34 @@ module Rubinius
     def under_context(scope, cmethod)
       @top_scope = scope
       @scope = scope
-      @method = cmethod
-      @local_count = cmethod.local_count
+      @code = cmethod
       @module = cmethod.scope.module
 
       return self
     end
 
-    def receiver=(obj)
-      @top_scope.self = obj
+    def change_name(name)
+      @code = @code.change_name name
+    end
+
+    def repoint_scope(where)
+      @code.scope.using_current_as where
+    end
+
+    def disable_scope!
+      @code.scope.using_disabled_scope
+    end
+
+    def static_scope
+      @code.scope
+    end
+
+    def to_binding
+      Binding.setup @scope, @code, @code.scope
+    end
+
+    def set_eval_binding(bind)
+      @code.scope.script.eval_binding = bind
     end
 
     ##
@@ -49,24 +69,23 @@ module Rubinius
     end
 
     def call_on_instance(obj, *args)
-      call_under obj, method.scope, *args
+      call_under obj, @code.scope, *args
     end
 
     def arity
-      if method.splat and (method.splat >= 0 or method.splat == -2)
-        -(method.required_args + 1)
+      if @code.splat and (@code.splat >= 0 or @code.splat == -2)
+        -(@code.required_args + 1)
       else
-        method.required_args
+        @code.required_args
       end
     end
 
-    # TODO: are file,line actually used?
     def file
-      method.file
+      @code.file
     end
 
     def line
-      method.line_from_ip(0)
+      @code.line_from_ip(0)
     end
   end
 end

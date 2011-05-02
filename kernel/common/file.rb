@@ -197,8 +197,7 @@ class File < IO
     mode = clamp_short mode
 
     paths.each do |path|
-      path = Rubinius::Type.coerce_to(path, String, :to_str) unless path.is_a? String
-      POSIX.chmod(path, mode)
+      POSIX.chmod StringValue(path), mode
     end
     paths.size
   end
@@ -209,11 +208,12 @@ class File < IO
   # the link, not the file referenced by the link).
   # Often not available.
   def self.lchmod(mode, *paths)
-    mode = Rubinius::Type.coerce_to(mode, Integer, :to_int) unless mode.is_a? Integer
+    mode = Rubinius::Type.coerce_to(mode, Integer, :to_int)
+
     paths.each do |path|
-      path = Rubinius::Type.coerce_to(path, String, :to_str) unless path.is_a? String
-      POSIX.lchmod(path, mode)
+      POSIX.lchmod StringValue(path), mode
     end
+
     paths.size
   end
 
@@ -228,11 +228,45 @@ class File < IO
   # Returns the number of files processed.
   #
   #  File.chown(nil, 100, "testfile")
-  def self.chown(owner_int, group_int, *paths)
-    owner_int = -1 if owner_int == nil
-    group_int = -1 if group_int == nil
-    paths.each { |path| POSIX.chown(path, owner_int, group_int) }
+  def self.chown(owner, group, *paths)
+    if owner
+      owner = Rubinius::Type.coerce_to(owner, Integer, :to_int)
+    else
+      owner = -1
+    end
+
+    if group
+      group = Rubinius::Type.coerce_to(group, Integer, :to_int)
+    else
+      group = -1
+    end
+
+    paths.each do |path|
+      POSIX.chown StringValue(path), owner, group
+    end
+
     paths.size
+  end
+
+  def chmod(mode)
+    mode = Rubinius::Type.coerce_to(mode, Integer, :to_int)
+    POSIX.fchmod @descriptor, clamp_short(mode)
+  end
+
+  def chown(owner, group)
+    if owner
+      owner = Rubinius::Type.coerce_to(owner, Integer, :to_int)
+    else
+      owner = -1
+    end
+
+    if group
+      group = Rubinius::Type.coerce_to(group, Integer, :to_int)
+    else
+      group = -1
+    end
+
+    POSIX.fchown @descriptor, owner, group
   end
 
   ##
@@ -241,10 +275,23 @@ class File < IO
   # associated with the link, not the file referenced
   # by the link). Often not available. Returns number
   # of files in the argument list.
-  def self.lchown(owner_int, group_int, *paths)
-    owner_int = -1 if owner_int == nil
-    group_int = -1 if group_int == nil
-    paths.each { |path| POSIX.lchown(path, owner_int, group_int) }
+  def self.lchown(owner, group, *paths)
+    if owner
+      owner = Rubinius::Type.coerce_to(owner, Integer, :to_int)
+    else
+      owner = -1
+    end
+
+    if group
+      group = Rubinius::Type.coerce_to(group, Integer, :to_int)
+    else
+      group = -1
+    end
+
+    paths.each do |path|
+      POSIX.lchown StringValue(path), owner_int, group_int
+    end
+
     paths.size
   end
 
@@ -341,8 +388,7 @@ class File < IO
   ##
   # Return true if the named file exists.
   def self.exist?(path)
-    path = StringValue path
-    POSIX.stat(path, Stat::EXISTS_STRUCT.pointer) == 0 ? true : false
+    POSIX.stat(StringValue(path), Stat::EXISTS_STRUCT.pointer) == 0
   end
 
   ##
@@ -646,10 +692,7 @@ class File < IO
   #  File.link("testfile", ".testfile")   #=> 0
   #  IO.readlines(".testfile")[0]         #=> "This is line one\n"
   def self.link(from, to)
-    to = StringValue(to)
-    from = StringValue(from)
-
-    n = POSIX.link(from, to)
+    n = POSIX.link StringValue(from), StringValue(to)
     Errno.handle if n == -1
     n
   end
@@ -704,10 +747,8 @@ class File < IO
   #  File.symlink("testfile", "link2test")   #=> 0
   #  File.readlink("link2test")              #=> "testfile"
   def self.readlink(path)
-    StringValue(path)
-
     FFI::MemoryPointer.new(1024) do |ptr|
-      n = POSIX.readlink(path, ptr, 1024)
+      n = POSIX.readlink StringValue(path), ptr, 1024
       Errno.handle if n == -1
 
       return ptr.read_string(n)
@@ -720,10 +761,7 @@ class File < IO
   #
   #  File.rename("afile", "afile.bak")   #=> 0
   def self.rename(from, to)
-    to = StringValue(to)
-    from = StringValue(from)
-
-    n = POSIX.rename(from, to)
+    n = POSIX.rename StringValue(from), StringValue(to)
     Errno.handle if n == -1
     n
   end
@@ -789,10 +827,7 @@ class File < IO
   #
   #  File.symlink("testfile", "link2test")   #=> 0
   def self.symlink(from, to)
-    to = StringValue(to)
-    from = StringValue(from)
-
-    n = POSIX.symlink(from, to)
+    n = POSIX.symlink StringValue(from), StringValue(to)
     Errno.handle if n == -1
     n
   end
@@ -825,13 +860,13 @@ class File < IO
   #  File.truncate("out", 5)   #=> 0
   #  File.size("out")          #=> 5
   def self.truncate(path, length)
-    unless self.exist?(path)
+    path = StringValue(path)
+
+    unless exist?(path)
       raise Errno::ENOENT, path
     end
 
-    unless length.respond_to?(:to_int)
-      raise TypeError, "can't convert #{length.class} into Integer"
-    end
+    length = Rubinius::Type.coerce_to length, Integer, :to_int
 
     n = POSIX.truncate(path, length)
     Errno.handle if n == -1
@@ -850,10 +885,10 @@ class File < IO
   #  File.umask         #=> 6
   def self.umask(mask = nil)
     if mask
-      POSIX.umask(clamp_short(mask))
+      POSIX.umask clamp_short(mask)
     else
       old_mask = POSIX.umask(0)
-      POSIX.umask(old_mask)
+      POSIX.umask old_mask
       old_mask
     end
   end
@@ -865,9 +900,7 @@ class File < IO
   # See also Dir::rmdir.
   def self.unlink(*paths)
     paths.each do |path|
-      path = StringValue(path)
-
-      n = POSIX.unlink(path)
+      n = POSIX.unlink StringValue(path)
       Errno.handle if n == -1
     end
 
@@ -890,9 +923,9 @@ class File < IO
       mtime[:tv_usec] = 0
 
       paths.each do |path|
-        if POSIX.utimes(path, ptr) != 0
-          Errno.handle
-        end
+
+        n = POSIX.utimes(StringValue(path), ptr)
+        Errno.handle unless n == 0
       end
     end
   end
@@ -974,20 +1007,15 @@ class File < IO
     super(other, mode)
   end
 
-  def chmod(mode)
-    POSIX.fchmod(@descriptor, clamp_short(mode))
-  end
-
-  def chown(owner_int, group_int)
-    POSIX.fchown(@descriptor, owner_int || -1, group_int || -1)
-  end
-
   def ctime
     Stat.new(@path).ctime
   end
 
-  def flock(locking_constant)
-    result = POSIX.flock(@descriptor, locking_constant)
+  def flock(const)
+    const = Rubinius::Type.coerce_to const, Integer, :to_int
+
+    result = POSIX.flock @descriptor, const
+
     return false if result == -1
     result
   end
@@ -1005,7 +1033,7 @@ class File < IO
   end
 
   def truncate(length)
-    length = Rubinius::Type.coerce_to(length, Integer, :to_int)
+    length = Rubinius::Type.coerce_to length, Integer, :to_int
 
     ensure_open_and_writable
     raise Errno::EINVAL, "Can't truncate a file to a negative length" if length < 0
@@ -1333,7 +1361,7 @@ class File::Stat
     @stat[:st_size] == 0
   end
 
-  def <=> (other)
+  def <=>(other)
     return nil unless other.is_a?(File::Stat)
     self.mtime <=> other.mtime
   end

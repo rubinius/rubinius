@@ -29,7 +29,8 @@ describe "IO.select" do
   end
 
   it "returns supplied objects when they are ready for I/O" do
-    Thread.new { sleep 0.5; @wr.write "be ready" }
+    t = Thread.new { sleep 0.5; @wr.write "be ready" }
+    t.abort_on_exception = true
     result = IO.select [@rd], nil, nil, nil
     result.should == [[@rd], [], []]
   end

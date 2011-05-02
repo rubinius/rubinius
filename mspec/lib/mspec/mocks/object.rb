@@ -18,6 +18,10 @@ class Object
     MockObject.new name, options
   end
 
+  def mock_int(val)
+    MockIntObject.new(val)
+  end
+
   def mock_numeric(name, options={})
     NumericMockObject.new name, options
   end

@@ -19,7 +19,6 @@ module FFI
   TypeDefs = Rubinius::LookupTable.new
 
   class << self
-
     def add_typedef(current, add)
       if current.kind_of? Fixnum
         code = current
@@ -47,7 +46,7 @@ module FFI
       case type
       when Symbol
         return type_size(find_type(type))
-      when NativeFunction
+      when Rubinius::NativeFunction
         return type_size(TYPE_PTR)
       end
 
@@ -68,7 +67,7 @@ module FFI
     end
 
     def config_hash(name)
-      vals = { }
+      vals = {}
       section = "rbx.platform.#{name}."
       Rubinius::Config.section section do |key,value|
         vals[key.substring(section.size, key.length)] = value

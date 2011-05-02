@@ -29,16 +29,5 @@ module Rubinius
       Ruby.primitive :compactlookuptable_values
       raise PrimitiveFailure, "CompactLookupTable#keys primitive failed"
     end
-
-    def delete(val)
-      i = 0
-      while i < size
-        if at(i) == val
-          put i, nil
-          put i+1, nil
-        end
-        i += 2
-      end
-    end
   end
 end

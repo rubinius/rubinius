@@ -37,7 +37,7 @@ module Rubinius
     end
 
     def to_s
-      self.inspect
+      inspect
     end
 
     # Indicates if this is a toplevel/default scope
@@ -54,6 +54,7 @@ module Rubinius
       else
         ss = StaticScope.new @module, self
       end
+
       ss.current_module = mod
       return ss
     end
@@ -74,7 +75,9 @@ module Rubinius
     end
 
     def alias_method(name, original)
-      for_method_definition.__send__ :alias_method, name, original
+      Rubinius.privately do
+        for_method_definition.alias_method name, original
+      end
     end
 
     def __undef_method__(name)
@@ -116,24 +119,14 @@ module Rubinius
       @module.const_set name, value
     end
 
-    def const_path_defined?(path)
-      if path.prefix? "::"
-        return Object.const_path_defined?(path[2..-1])
-      end
-
-      parts = path.split("::")
-      top = parts.shift
-
+    def const_defined?(name)
       scope = self
-
-      while scope
-        mod = top.to_s !~ /self/ ? scope.module.__send__(:recursive_const_get, top, false) : scope.module
-        return mod.const_path_defined?(parts.join("::")) if mod
-
+      while scope and scope.module != Object
+        return true if scope.module.const_defined?(name)
         scope = scope.parent
       end
 
-      return Object.const_path_defined?(parts.join("::"))
+      return Object.const_defined?(name)
     end
   end
 end

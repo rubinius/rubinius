@@ -36,6 +36,10 @@ module Rubinius
           set_options :json => path
         end
 
+        if name = Config["profiler.output"]
+          set_options :output => "#{File.expand_path(name)}-#{$$}"
+        end
+
         if Config['profiler.cumulative_percentage']
           set_options :cumulative_percentage => true
         end
@@ -96,12 +100,20 @@ module Rubinius
           return
         end
 
-        if options[:json]
-          json options[:json]
-        elsif options[:graph]
-          graph out
-        else
-          flat out
+        begin
+          if name = options[:output]
+            out = File.open name, "w"
+          end
+
+          if options[:json]
+            json options[:json]
+          elsif options[:graph]
+            graph out
+          else
+            flat out
+          end
+        ensure
+          out.close if options[:output]
         end
 
         nil

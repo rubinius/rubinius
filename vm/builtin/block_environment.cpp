@@ -52,7 +52,7 @@ namespace rubinius {
   }
 
   VMMethod* BlockEnvironment::vmmethod(STATE) {
-    return this->method_->internalize(state);
+    return code_->internalize(state);
   }
 
   Object* BlockEnvironment::invoke(STATE, CallFrame* previous,
@@ -96,7 +96,7 @@ namespace rubinius {
       if(vmm->call_count >= state->shared.config.jit_call_til_compile) {
         LLVMState* ls = LLVMState::get(state);
 
-        ls->compile_soon(state, env->method(), env);
+        ls->compile_soon(state, env->code(), env);
 
       } else {
         vmm->call_count++;
@@ -124,7 +124,7 @@ namespace rubinius {
 
     frame->arguments = &args;
     frame->dispatch_data = reinterpret_cast<BlockEnvironment*>(env);
-    frame->cm =       env->method_;
+    frame->cm =       env->code_;
     frame->scope =    scope;
     frame->top_scope_ = env->top_scope_;
     frame->flags =    invocation.flags | CallFrame::cCustomStaticScope
@@ -171,7 +171,7 @@ namespace rubinius {
   Object* BlockEnvironment::call(STATE, CallFrame* call_frame,
                                  Arguments& args, int flags)
   {
-    BlockInvocation invocation(scope_->self(), method_->scope(), flags);
+    BlockInvocation invocation(scope_->self(), code_->scope(), flags);
     return invoke(state, call_frame, this, args, invocation);
   }
 
@@ -196,7 +196,7 @@ namespace rubinius {
 
     Object* recv = args.shift(state);
 
-    BlockInvocation invocation(recv, method_->scope(), flags);
+    BlockInvocation invocation(recv, code_->scope(), flags);
     return invoke(state, call_frame, this, args, invocation);
   }
 
@@ -240,9 +240,8 @@ namespace rubinius {
     BlockEnvironment* be = state->new_object<BlockEnvironment>(G(blokenv));
     be->scope(state, call_frame->promote_scope(state));
     be->top_scope(state, call_frame->top_scope(state));
-    be->method(state, cm);
+    be->code(state, cm);
     be->module(state, call_frame->module());
-    be->local_count(state, cm->local_count());
     return be;
   }
 
@@ -251,8 +250,7 @@ namespace rubinius {
 
     be->scope(state, scope_);
     be->top_scope(state, top_scope_);
-    be->method(state, method_);
-    be->local_count(state, local_count_);
+    be->code(state, code_);
 
     return be;
   }
@@ -283,10 +281,9 @@ namespace rubinius {
     BlockEnvironment* be = as<BlockEnvironment>(self);
 
     class_header(state, self);
-    indent_attribute(level, "local_count");
-      be->local_count()->show(state, level);
-    indent_attribute(level, "method");
-      be->method()->show(state, level);
+    //indent_attribute(++level, "scope"); be->scope()->show(state, level);
+    // indent_attribute(level, "top_scope"); be->top_scope()->show(state, level);
+    indent_attribute(level, "code"); be->code()->show(state, level);
     close_body(level);
   }
 }

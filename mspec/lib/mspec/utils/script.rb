@@ -141,6 +141,7 @@ class MSpecScript
   def signals
     if config[:abort]
       Signal.trap "INT" do
+        MSpec.actions :abort
         puts "\nProcess aborted!"
         exit! 1
       end

@@ -1,7 +1,7 @@
 class Object
-  def singleton_class
-    Rubinius::Type.object_singleton_class self
+  def initialize
   end
+  private :initialize
 
   def __fixnum__
     Ruby.primitive :object_is_fixnum

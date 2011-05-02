@@ -275,7 +275,6 @@ PointerTy_14 = cast<PointerType>(PointerTy_14_fwd.get());
 
 StructTy_struct_rubinius__BlockEnvironment_fields.push_back(PointerTy_14);
 StructTy_struct_rubinius__BlockEnvironment_fields.push_back(PointerTy_14);
-StructTy_struct_rubinius__BlockEnvironment_fields.push_back(PointerTy_1);
 StructTy_struct_rubinius__BlockEnvironment_fields.push_back(PointerTy_15);
 StructTy_struct_rubinius__BlockEnvironment_fields.push_back(PointerTy_5);
 StructType* StructTy_struct_rubinius__BlockEnvironment = StructType::get(mod->getContext(), StructTy_struct_rubinius__BlockEnvironment_fields, /*isPacked=*/false);

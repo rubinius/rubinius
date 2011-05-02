@@ -31,9 +31,15 @@ module Enumerable
     #   p hash   #=> {"cat"=>0, "wombat"=>2, "dog"=>1}
 
     def each_with_index
-      return to_enum :each_with_index unless block_given?
-      idx = -1
-      each { |o| idx += 1; yield(o, idx) }
+      return to_enum(:each_with_index) unless block_given?
+
+      idx = 0
+
+      each do |o|
+        val = yield(o, idx)
+        idx += 1
+        val
+      end
     end
 
     alias_method :enum_with_index, :each_with_index

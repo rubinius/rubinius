@@ -1,5 +1,4 @@
 class Integer < Numeric
-  include CType
   include Precision
 
   def self.induced_from(obj)
@@ -57,6 +56,7 @@ class Integer < Numeric
   def next
     self + 1
   end
+
   alias_method :succ, :next
 
   def integer?
@@ -95,12 +95,12 @@ class Integer < Numeric
 
   # Returns true if int is an even number.
   def even?
-    self[0].zero?
+    self & 1 == 0
   end
 
   # Returns true if int is an odd number.
   def odd?
-    !even?
+    self & 1 == 1
   end
 
   # Returns the int itself.
@@ -114,7 +114,7 @@ class Integer < Numeric
   end
 
   def times
-    return to_enum :times unless block_given?
+    return to_enum(:times) unless block_given?
 
     i = 0
     while i < self
@@ -125,7 +125,7 @@ class Integer < Numeric
   end
 
   def upto(val)
-    return to_enum :upto, val unless block_given?
+    return to_enum(:upto, val) unless block_given?
 
     i = self
     while i <= val
@@ -136,7 +136,7 @@ class Integer < Numeric
   end
 
   def downto(val)
-    return to_enum :downto, val unless block_given?
+    return to_enum(:downto, val) unless block_given?
 
     i = self
     while i >= val

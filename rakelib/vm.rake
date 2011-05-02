@@ -320,39 +320,3 @@ namespace :vm do
     puts missing.join("\n")
   end
 end
-
-############################################################$
-# Importers & Methods:
-
-def compile_c(obj, src, output_kind="c")
-  flags = llvm_flags + INCLUDES + FLAGS
-
-  if CONFIG.compile_with_llvm
-    flags << "-emit-llvm"
-  end
-
-  # GROSS
-  if src == "vm/test/runner.cpp"
-    flags.delete_if { |f| /-O.*/.match(f) }
-  end
-
-  flags = flags.join(" ")
-
-  # Now include CFLAGS and CXXFLAGS
-  if str = ENV['CXXFLAGS']
-    flags << " #{str}"
-  elsif str = ENV['CFLAGS']
-    flags << " #{str}"
-  end
-
-  # Make sure we are C99 compatible.
-  flags << " -D__STDC_LIMIT_MACROS" unless flags =~ /__STDC_LIMIT_MACROS/
-
-  if $verbose
-    sh "#{CC} #{flags} -#{output_kind} -o #{obj} #{src} 2>&1"
-  else
-    puts "CC #{src}"
-    sh "#{CC} #{flags} -#{output_kind} -o #{obj} #{src} 2>&1", :verbose => false
-  end
-end
-

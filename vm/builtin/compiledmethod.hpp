@@ -93,12 +93,6 @@ namespace rubinius {
 
     static Object* default_executor(STATE, CallFrame*, Executable* exec, Module* mod, Arguments& args);
 
-    // Ruby.primitive :compiledmethod_jit_now
-    Object* jit_now(STATE);
-
-    // Ruby.primitive :compiledmethod_jit_soon
-    Object* jit_soon(STATE);
-
     // Ruby.primitive :compiledmethod_set_breakpoint
     Object* set_breakpoint(STATE, Fixnum* ip, Object* bp);
 

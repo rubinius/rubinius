@@ -1,11 +1,5 @@
 module Kernel
 
-  ##
-  #--
-  # HACK todo handle cascading raises (ie, TypeError raise
-  # raising forever blows)
-  #++
-
   def raise(exc=undefined, msg=undefined, ctx=nil)
     skip = false
     if exc.equal? undefined
@@ -91,9 +85,10 @@ module Kernel
   # that the compiler can't see.
   Rubinius::Globals.set_hook(:$!) { $! }
 
-  # Same as $!, for any accesses we might miss.
-  # HACK. I doubt this is correct, because of how it will be called.
-  Rubinius::Globals.set_hook(:$~) { Regexp.last_match }
+  Rubinius::Globals.set_hook(:$~) do
+    # We raise an exception here because Regexp.last_match won't work
+    raise TypeError, "Unable to handle $! in this context"
+  end
 
   Rubinius::Globals.set_hook(:$*) { ARGV }
 

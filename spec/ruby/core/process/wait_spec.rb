@@ -40,6 +40,12 @@ describe "Process.wait" do
       lambda { Process.kill(0, pid2) }.should raise_error(Errno::ESRCH)
     end
 
+    it "coerces the pid to an Integer" do
+      pid1 = Process.fork { Process.exit! }
+      Process.wait(mock_int(pid1)).should == pid1
+      lambda { Process.kill(0, pid1) }.should raise_error(Errno::ESRCH)
+    end
+
     # This spec is probably system-dependent.
     it "waits for a child whose process group ID is that of the calling process" do
       read, write = IO.pipe
@@ -75,7 +81,8 @@ describe "Process.wait" do
         10.times { sleep(1) }
         Process.exit!
       end
-      Process.wait(pid, Process::WNOHANG).should == nil
+
+      Process.wait(pid, Process::WNOHANG).should be_nil
 
       # sleep slightly to allow the child to at least start up and
       # setup it's TERM handler

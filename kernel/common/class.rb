@@ -50,8 +50,6 @@
 
 class Class
 
-  protected :instance_type
-
   def initialize(sclass=Object, name=nil, under=nil)
     raise TypeError, "already initialized class" if @instance_type
 
@@ -65,14 +63,21 @@ class Class
     under.const_set name, self if under
 
     if sclass
-      sclass.__send__ :inherited, self
+      Rubinius.privately do
+        sclass.inherited self
+      end
     end
   end
 
   ##
   # Specialized initialize_copy because Class needs additional protection
   def initialize_copy(other)
-    raise TypeError, "already initialized class" unless @method_table == other.method_table
+    # Such a weird check.
+    unless @method_table == other.method_table
+      raise TypeError, "already initialized class"
+    end
+
+    @module_name = nil
     super
   end
 
@@ -83,9 +88,11 @@ class Class
   def superclass
     cls = direct_superclass
     return nil unless cls
+
     while cls and cls.kind_of? Rubinius::IncludedModule
       cls = cls.direct_superclass
     end
+
     return cls
   end
 

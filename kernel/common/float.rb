@@ -47,6 +47,7 @@ class Float < Numeric
     Ruby.primitive :float_div
     redo_coerced :/, other
   end
+
   alias_method :/, :divide
   alias_method :quo, :/
   alias_method :fdiv, :/
@@ -70,6 +71,7 @@ class Float < Numeric
     b, a = math_coerce other
     a % b
   end
+
   alias_method :modulo, :%
 
   def <(other)
@@ -139,12 +141,14 @@ class Float < Numeric
     Ruby.primitive :float_to_i
     raise PrimitiveFailure, "Float#to_i primitive failed"
   end
+
   alias_method :to_int, :to_i
   alias_method :truncate, :to_i
 
   def to_s
     to_s_minimal
   end
+
   alias_method :inspect, :to_s
 
   def to_s_minimal

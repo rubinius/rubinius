@@ -24,6 +24,29 @@ class NumericMockObject < Numeric
   end
 end
 
+class MockIntObject
+  def initialize(val)
+    @value = val
+    @calls = 0
+
+    key = [self, :to_int]
+
+    Mock.objects[key] = self
+    Mock.mocks[key] << self
+  end
+
+  attr_reader :calls
+
+  def to_int
+    @calls += 1
+    @value
+  end
+
+  def count
+    [:at_least, 1]
+  end
+end
+
 class MockProxy
   attr_reader :raising, :yielding
 

@@ -87,23 +87,6 @@ namespace rubinius {
     // Ruby.primitive :methodtable_has_name
     Object* has_name(STATE, Symbol* name);
 
-    static Array* collect(STATE, MethodTable* tbl,
-                          Object* (*action)(STATE, MethodTableBucket*));
-    static Object* get_name(STATE, MethodTableBucket* entry);
-
-    // Ruby.primitive :methodtable_names
-    Array* all_names(STATE);
-
-    static Object* get_value(STATE, MethodTableBucket* entry);
-
-    // Ruby.primitive :methodtable_values
-    Array* all_values(STATE);
-
-    static Object* get_entry(STATE, MethodTableBucket* entry);
-
-    // Ruby.primitive :methodtable_entries
-    Array* all_entries(STATE);
-
     class Info : public TypeInfo {
     public:
       BASIC_TYPEINFO(TypeInfo)
