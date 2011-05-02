@@ -96,6 +96,17 @@ module Rubinius
       return "__unknown__.rb"
     end
 
+    def absolute_active_path
+      script = current_script
+      if script
+        if path = script.data_path
+          return path.dup
+        end
+      end
+
+      return nil
+    end
+
     def data_path
       script = current_script
       if script and script.main?

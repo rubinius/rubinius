@@ -292,4 +292,19 @@ module Rubinius
   def self.pack_to_float(obj)
     Float(obj)
   end
+
+  ##
+  # API Status: official
+  #
+  # Return the absolute path to the file that contains
+  # the current method. This works like __FILE__, but returns
+  # the file that require/load resolved directly to, providing
+  # an absolute path to the file.
+  #
+  # Returns nil if there is no file, such as inside eval.
+  #
+  def self.current_file
+    ss = Rubinius::StaticScope.of_sender
+    return ss.absolute_active_path
+  end
 end
