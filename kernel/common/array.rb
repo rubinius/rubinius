@@ -1259,7 +1259,15 @@ class Array
       perm = Array.new(num)
       used = Array.new(@total, false)
 
-      __permute__(num, perm, 0, used, &block)
+      if block
+        # offensive (both definitions) copy.
+        offensive = dup
+        Rubinius.privately do
+          offensive.__permute__(num, perm, 0, used, &block)
+        end
+      else
+        __permute__(num, perm, 0, used, &block)
+      end
     end
 
     self
