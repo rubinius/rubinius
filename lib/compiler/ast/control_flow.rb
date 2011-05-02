@@ -20,6 +20,9 @@ module Rubinius
 
         @else.bytecode(g)
 
+        # See command in if about why using line 0
+        g.set_line 0
+
         done.set!
       end
 
@@ -59,6 +62,9 @@ module Rubinius
 
         g.pop
         @else.bytecode(g)
+
+        # See command in if about why using line 0
+        g.set_line 0
 
         done.set!
       end
@@ -260,6 +266,10 @@ module Rubinius
         else_label.set!
         @else.bytecode(g)
 
+        # Use line 0 to indicate "compiler generated code"
+        # so that debuggers and such don't get confused by
+        # thinking the then branch jumps into the else branch.
+        g.set_line 0
         done.set!
       end
 
@@ -329,6 +339,9 @@ module Rubinius
         end
 
         g.goto top
+
+        # See other set_line(0) comments
+        g.set_line 0
 
         bottom.set!
         g.push :nil
