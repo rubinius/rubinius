@@ -821,6 +821,7 @@ namespace rubinius {
 
       Value* ret = sig.call("rbx_meta_to_s", args, 4, "", b());
       stack_remove(1);
+      check_for_exception(ret);
       stack_push(ret);
     }
 

@@ -219,6 +219,7 @@ extern "C" {
 
     Arguments args(obj, Qnil, 0, 0);
     Object* ret = cache->execute(state, call_frame, args);
+    if(!ret) return 0;
 
     if(!kind_of<String>(ret)) {
       ret = obj->to_s(state, false);
