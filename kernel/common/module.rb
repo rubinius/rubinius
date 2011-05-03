@@ -484,7 +484,7 @@ class Module
     @constant_table.has_key? normalize_const_name(name)
   end
 
-  def const_get(name, missing=true)
+  def const_get(name)
     name = normalize_const_name(name)
 
     current, constant = self, undefined
@@ -506,8 +506,6 @@ class Module
         return constant
       end
     end
-
-    return nil unless missing
 
     const_missing(name)
   end
