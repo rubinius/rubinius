@@ -1,5 +1,6 @@
 require 'mspec/helpers/argv'
 require 'mspec/helpers/const_lookup'
+require 'mspec/helpers/datetime'
 require 'mspec/helpers/ducktype'
 require 'mspec/helpers/encode'
 require 'mspec/helpers/enumerator_class'
