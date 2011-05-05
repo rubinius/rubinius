@@ -7,6 +7,8 @@ Daedalus.blueprint do |i|
   gcc.cflags << "-DRBX_PROFILER"
   gcc.cflags << "-D__STDC_LIMIT_MACROS -D__STDC_CONSTANT_MACROS"
 
+  gcc.cflags << Rubinius::BUILD_CONFIG[:user_cflags]
+
   if ENV['DEV']
     gcc.cflags << "-O0"
   else
