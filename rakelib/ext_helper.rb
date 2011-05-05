@@ -22,7 +22,7 @@ $LDSHARED = env "LDSHARED", $CXX
 $YACC     = env "YACC", "bison"
 
 $CFLAGS   = env "CFLAGS", Rubinius::BUILD_CONFIG[:user_cflags]
-$CXXFLAGS = env "CXXFLAGS"
+$CXXFLAGS = env "CXXFLAGS", Rubinius::BUILD_CONFIG[:user_cppflags]
 
 $ELIBSDIR = env "ELIBSDIR", File.expand_path("../../vm/external_libs", __FILE__)
 $LIBS     = env "LIBS"
@@ -120,6 +120,11 @@ end
 #
 add_include_dir "."
 add_link_dir "."
+
+if ENV["DEV"]
+  add_cflag "-O0"
+  add_cxxflag "-O0"
+end
 
 # Setup platform-specific values
 #
