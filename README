@@ -1,5 +1,5 @@
-Rubinius: Ruby Harder
-=====================
+Rubinius
+========
 
 Rubinius is an implementation of the Ruby programming language, in Ruby! 
 
@@ -16,7 +16,7 @@ This allows your average Ruby developer to understand exactly what goes on insid
 Rubinius currently is compatible with Ruby `1.8.7`, MRI*.
 
 
-\* *Support for Ruby `1.9.2` is coming soon.*
+ * *Support for Ruby `1.9.2` is coming soon.*
 
 Goals
 =====
@@ -36,9 +36,9 @@ Installing
 Rubinius runs on Mac OS X and many Unix or Linux operating systems*.
 If you have `rvm` setup you should skip ahead.
 
-For more information about building and running Rubinius, run `rake docs` and go [here](http://localhost:35421).
+For more information about building and running Rubinius, run `rake docs` and go here: http://localhost:35421/.
 
-\* *Support for Microsoft Windows is coming soon.*
+ * *Support for Microsoft Windows is coming soon.*
 
 Requirements
 -------------
@@ -71,55 +71,22 @@ Rubinius with RVM
 -----------------
 
 The Ruby Version Manager provides a much easier rbx setup and installation process.
-To learn more about `rvm` simply visit the project [website](https://rvm.beginrescueend.com/).
+To learn more about `rvm` simply visit the project website: https://rvm.beginrescueend.com/.
 
 
 In order to view the dependency list to preinstall for rbx type `rvm notes`.
 
-Assuming all Rubinius dependencies have been preinstalled on the system, you may
-now install Rubinius either latest or head as follows:
-
-    rvm install rbx         # Installs latest release (defaulted to install head)
-
-or
-
-    rvm install rbx-head    # Installs Rubinius master branch from github
-
-Once installed, type `rvm use rbx` into the current shell session.
+Assuming all Rubinius dependencies have been preinstalled on the system, you may now install Rubinius.
+Use either latest or head as follows `rvm install rbx` or `rvm install rbx-head`.
+The first installs the latest release while the second installs the master branch version.
+Once installed you can type `rvm use rbx` into the current shell session and you'll be using the installed rubinius.
 Making Rubinius the default in new shells is as easy as: `rvm use rbx --default`.
 
 
-Versions
-========
+Issues
+======
 
-Latest
-------
-
-
-v1.2
-----
-
-
-v1.1
-----
-Rubinius has been under development as a public *open-source project* since November 2006. 
-Rubinius development is sponsored by [Engine Yard, Inc.]() and assisted by the generous work of over 100 contributors.
-
-At version **1.1** Rubinius is significantly feature-complete. 
-You can expect to have your Ruby code will run correctly. 
-Additionally, many MRI C extensions are expected to work assuming it doesn't depend on MRI specific object and/or interpreter internals.
-
-The Rubinius JIT performance is quite good, sometimes faster than MRI and sometimes slower. 
-Rubinius generally executes Ruby code very fast compared to MRI. 
-Since the majority of the Ruby Core is implemented in Ruby, rather than C as in MRI, code that depends heavily on Array, Hash, String, etc. may run slower in Rubinius.
-As the JIT improves so does overall performance of your code under Rubinius.
-
-
-Tickets
-=======
-
-Please file issues for bugs or problems that you encounter at the issue tracker.
-The issue tracker is: [http://github.com/evanphx/rubinius/issues](http://github.com/evanphx/rubinius/issues).
+If you find a bug, problem, or performance issue with Rubinius feel free to send in an issue ticket here: http://github.com/evanphx/rubinius/issues
 
 
 Contributing
