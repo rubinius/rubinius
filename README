@@ -1,3 +1,4 @@
+
 Rubinius
 ========
 
@@ -11,12 +12,13 @@ Rubinius includes in it's core:
   * A garbage collector
   * A JIT native machine code compiler
 
-More importantly Rubinius is built in Ruby so it has the Ruby Core with standard libraries. 
-This allows your average Ruby developer to understand exactly what goes on inside as well as easier committing to the project.
-Rubinius currently is compatible with Ruby `1.8.7`, MRI*.
+More importantly Rubinius is built in Ruby so it has the Ruby Core with standard
+libraries.  This allows your average Ruby developer to understand exactly what
+goes on inside as well as easier committing to the project. Rubinius currently
+is compatible with Ruby `1.8.7`, MRI*.
 
 
- \* Support for Ruby `1.9.2` is coming soon.
+> Support for Ruby `1.9.2` is coming soon.
 
 Goals
 =====
@@ -25,9 +27,11 @@ Goals
 
   2. Reliable. Rock-solid code, with the help of Valgrind to verify correctness.
 
-  3. Modern. Bringing modern research in virtual machines, garbage collectors, and compilers to the Ruby programming language.
+  3. Modern. Bringing modern research in virtual machines, garbage collectors, 
+  and compilers to the Ruby programming language.
 
-  4. Thread safety. Rubinius intends to be thread-safe so you could embed more than one interpreter in a single application.
+  4. Thread safety. Rubinius intends to be thread-safe so you could embed more 
+  than one interpreter in a single application.
 
 
 Installing
@@ -36,9 +40,10 @@ Installing
 Rubinius runs on Mac OS X and many Unix or Linux operating systems*.
 If you have `rvm` setup you should skip ahead.
 
-For more information about building and running Rubinius, run `rake docs` and go here: http://localhost:35421/.
+For more information about building and running Rubinius, run `rake docs` and 
+go here: http://localhost:35421/.
 
- \* Support for Microsoft Windows is coming soon.
+> Support for Microsoft Windows is coming soon.
 
 Requirements
 -------------
@@ -56,38 +61,44 @@ To install Rubinius from source use the following steps:
 
   1. In your Terminal type: `git clone git://github.com/evanphx/rubinius.git`
   2. Then type: `cd rubinius`
-  3. And: `./configure --prefix=/install/dir`, where the path `/install/dir` should be where you want it to be installed at.
+  3. And: `./configure --prefix=/install/dir`, where the path `/install/dir` 
+  should be where you want it to be installed at.
   4. Finally finish with: `rake install`
 
-Once this finishes follow the given directions to add the bin directory to your PATH.
+Once this finishes follow the given directions to add the bin directory to your
+PATH.
 
-Rubinius comes with Ruby Gems built-in, but installing a gem is not too different:
-
-    rbx gem install gem_name
+Rubinius comes with Ruby Gems built-in, but installing a gem is not too
+different: `rbx gem install gem_name`.
 
 You can access the built-in documentation by running `rbx docs`.
 
 Rubinius with RVM
 -----------------
 
-The Ruby Version Manager provides a much easier rbx setup and installation process.
-To learn more about `rvm` simply visit the project website: https://rvm.beginrescueend.com/.
+The Ruby Version Manager provides a much easier rbx setup and installation
+process. To learn more about `rvm` simply visit the project website:
+https://rvm.beginrescueend.com/.
 
 
 In order to view the dependency list to preinstall for rbx type `rvm notes`.
-Assuming all Rubinius dependencies have been preinstalled on the system, you may now install Rubinius.
+Assuming all Rubinius dependencies have been preinstalled on the system, you may
+now install Rubinius.
 
-Use either latest or head as follows `rvm install rbx` or `rvm install rbx-head`.
-The first installs the latest release while the second installs the master branch version.
+Use either latest or head as follows `rvm install rbx` or `rvm install rbx-
+head`. The first installs the latest release while the second installs the
+master branch version.
 
-Once installed you can type `rvm use rbx` into the current shell session and you'll be using the installed rubinius.
-Making Rubinius the default in new shells is as easy as: `rvm use rbx --default`.
+Once installed you can type `rvm use rbx` into the current shell session and
+you'll be using the installed rubinius. Making Rubinius the default in new
+shells is as easy as: `rvm use rbx --default`.
 
 
 Issues
 ======
 
-If you find a bug, problem, or performance issue with Rubinius feel free to send in an issue ticket here: http://github.com/evanphx/rubinius/issues
+If you find a bug, problem, or performance issue with Rubinius feel free to
+create in an issue ticket here: http://github.com/evanphx/rubinius/issues
 
 
 Contributing
@@ -100,5 +111,5 @@ Run `rake docs` and see the contributing page.
 License
 =======
 
-Rubinius uses the BSD license.
-See [LICENSE](https://github.com/evanphx/rubinius/blob/master/LICENSE) for details.
+Rubinius uses the BSD license. See
+[LICENSE](https://github.com/evanphx/rubinius/blob/master/LICENSE) for details.
