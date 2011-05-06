@@ -156,20 +156,23 @@ public:
   void test_delete_inplace_bounds() {
     Tuple *tuple = new_tuple();
 
-    Integer *count;
-    TS_ASSERT_THROWS_ASSERT(count = tuple->delete_inplace(state, Fixnum::from(0), Fixnum::from(4), Qnil),
+    TS_ASSERT_THROWS_ASSERT(tuple->delete_inplace(state, Fixnum::from(0), Fixnum::from(4), Qnil),
 			    const RubyException &e,
 			    TS_ASSERT(Exception::object_bounds_exceeded_error_p(state, e.exception)));
-    TS_ASSERT_THROWS_ASSERT(count = tuple->delete_inplace(state, Fixnum::from(1), Fixnum::from(3), Qnil),
+
+    TS_ASSERT_THROWS_ASSERT(tuple->delete_inplace(state, Fixnum::from(1), Fixnum::from(3), Qnil),
 			    const RubyException &e,
 			    TS_ASSERT(Exception::object_bounds_exceeded_error_p(state, e.exception)));
-    TS_ASSERT_THROWS_ASSERT(count = tuple->delete_inplace(state, Fixnum::from(-1), Fixnum::from(3), Qnil),
+
+    TS_ASSERT_THROWS_ASSERT(tuple->delete_inplace(state, Fixnum::from(-1), Fixnum::from(3), Qnil),
 			    const RubyException &e,
 			    TS_ASSERT(Exception::object_bounds_exceeded_error_p(state, e.exception)));
-    TS_ASSERT_THROWS_ASSERT(count = tuple->delete_inplace(state, Fixnum::from(0), Fixnum::from(-1), Qnil),
+
+    TS_ASSERT_THROWS_ASSERT(tuple->delete_inplace(state, Fixnum::from(0), Fixnum::from(-1), Qnil),
 			    const RubyException &e,
 			    TS_ASSERT(Exception::object_bounds_exceeded_error_p(state, e.exception)));
-    TS_ASSERT_THROWS_ASSERT(count = tuple->delete_inplace(state, Fixnum::from(3), Fixnum::from(1), Qnil),
+
+    TS_ASSERT_THROWS_ASSERT(tuple->delete_inplace(state, Fixnum::from(3), Fixnum::from(1), Qnil),
 			    const RubyException &e,
 			    TS_ASSERT(Exception::object_bounds_exceeded_error_p(state, e.exception)));
   }
