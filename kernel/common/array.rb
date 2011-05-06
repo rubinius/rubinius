@@ -400,19 +400,36 @@ class Array
 
       raise ArgumentError, "Count cannot be negative" if multiplier < 0
 
+      case @total
+      when 0
+        # Edge case
+        out = self.class.allocate
+        out.taint if tainted?
+        return out
+      when 1
+        # Easy case
+        tuple = Rubinius::Tuple.pattern multiplier, at(0)
+        out = self.class.allocate
+        out.tuple = tuple
+        out.total = multiplier
+        out.taint if tainted?
+        return out
+      end
+
       new_total = multiplier * @total
       new_tuple = Rubinius::Tuple.new(new_total)
 
       out = self.class.allocate
       out.tuple = new_tuple
       out.total = new_total
-      out.taint if self.tainted? && multiplier > 0
+      out.taint if tainted?
 
       offset = 0
       while offset < new_total
         new_tuple.copy_from @tuple, @start, @total, offset
         offset += @total
       end
+
       out
     end
   end
