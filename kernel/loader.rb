@@ -483,7 +483,7 @@ VM Options
       rescue Rubinius::InvalidRBC => e
         STDERR.puts "There was an error loading the compiler."
         STDERR.puts "It appears that your compiler is out of date with the VM."
-        STDERR.puts "\nPlease use 'rbx --rebuild-compiler' or 'rake [instal]' to"
+        STDERR.puts "\nPlease use 'rbx --rebuild-compiler' or 'rake [install]' to"
         STDERR.puts "bring the compiler back to date."
         exit 1
       end
