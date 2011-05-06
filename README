@@ -1,115 +1,136 @@
-1. What is Rubinius
+Rubinius: Ruby Harder
+=====================
 
-Rubinius is an implementation of the Ruby programming language. Rubinius
-includes a bytecode virtual machine, parser, bytecode compiler, garbage
-collector, JIT native machine code compiler, and Ruby core and standard
-libraries.
+Rubinius is an implementation of the Ruby programming language, in Ruby! 
 
-Rubinius currently is compatible with Ruby version 1.8.7. Support for Ruby
-version 1.9.2 is coming soon.
+Rubinius includes in it's core:
+
+  * A bytecode virtual machine
+  * A parser
+  * A bytecode compiler
+  * A garbage collector
+  * A JIT native machine code compiler
+
+More importantly Rubinius is built in Ruby so it has the Ruby Core with standard libraries. 
+This allows your average Ruby developer to understand exactly what goes on inside as well as easier committing to the project.
+Rubinius currently is compatible with Ruby `1.8.7`, MRI*.
 
 
-2. License
+\* *Support for Ruby `1.9.2` is coming soon.*
 
-Rubinius uses the BSD license. See LICENSE for details.
+Goals
+=====
+
+  * **Thread safety.** Rubinius intends to be thread-safe so you could embed more than one interpreter in a single application.
+
+  * **Clean.** Readable Ruby code that is easy for users to understand and extend.
+
+  * **Reliable.** Rock-solid code, with the help of Valgrind to verify correctness.
+
+  * **Modern.** Bringing modern research in virtual machines, garbage collectors, and compilers to the Ruby programming language.
 
 
-3. Installing Rubinius
+Installing
+==========
 
-Rubinius runs on Mac OS X and many Unix/Linux operating systems. Support for
-Microsoft Windows is coming soon.
+Rubinius runs on Mac OS X and many Unix or Linux operating systems*.
+If you have `rvm` setup you should skip ahead.
 
-For more information about building and running Rubinius, run 'rake docs'.
+For more information about building and running Rubinius, run `rake docs` and go [here](http://localhost:35421).
 
-To install Rubinius, use the following steps:
+\* *Support for Microsoft Windows is coming soon.*
 
-  1. Ensure you have MRI 1.8.7+, rubygems, rake, and git installed
-  2. git clone git://github.com/evanphx/rubinius.git
-  3. cd rubinius
-  4. ./configure --prefix=/path/to/install/dir
-  5. rake install
+Requirements
+-------------
 
-When the install process finishes, follow the directions to add the Rubinius
-executable (bin) directory to your PATH.
+The requirements for installing Rubinius are a working installation of:
 
-Rubinius comes with RubyGems built-in. To install a gem, run the following:
+  1. [Ruby](http://www.ruby-lang.org/) 1.8.7, MRI. Verify with: `ruby -v`
+  2. [Rake](http://rake.rubyforge.org/). Verify with `rake -V`
+  3. [Git](http://git-scm.com/). Verify with `git --version`
 
-  rbx gem install <gem_name>
+Installing From Source
+----------------------
 
-After installing Rubinius, you can access the built-in documentation at any
-time by running 'rbx docs'.
+To install Rubinius from source use the following steps:
 
-3.1 Rubinius with RVM
+  1. In your Terminal type: `git clone git://github.com/evanphx/rubinius.git`
+  2. Then type: `cd rubinius`
+  3. And: `./configure --prefix=/install/dir`, where the path `/install/dir` should be where you want it to be installed at.
+  4. Finally finish with: `rake install`
 
-You may wish to use the Ruby enVironment Manager (RVM) project to install
-Rubinius. For the most current documentation for RVM, please visit
-http://rvm.beginrescueend.com.
+Once this finishes follow the given directions to add the bin directory to your PATH.
 
-Be sure that RVM has been installed properly and is loaded as a function as is
-explained in detail on the basics page, http://rvm.beginrescueend.com/rvm/basics/
+Rubinius comes with Ruby Gems built-in, but installing a gem is not too different:
+
+    rbx gem install gem_name
+
+You can access the built-in documentation by running `rbx docs`.
+
+Rubinius with RVM
+-----------------
+
+The Ruby Version Manager provides a much easier rbx setup and installation process.
+To learn more about `rvm` simply visit the project [website](https://rvm.beginrescueend.com/).
+
+
+In order to view the dependency list to preinstall for rbx type `rvm notes`.
 
 Assuming all Rubinius dependencies have been preinstalled on the system, you may
-now install Rubinius either latest or head as follows,
+now install Rubinius either latest or head as follows:
 
-  rvm install rbx         # Installs latest release (defaulted to install head)
-  rvm install rbx-head    # Installs Rubinius master branch from github
+    rvm install rbx         # Installs latest release (defaulted to install head)
 
-Once installed,
+or
 
-  rvm use rbx  # Seects Rubinius into the current shell session.
+    rvm install rbx-head    # Installs Rubinius master branch from github
 
-If you wish to make Rubinius the default interpreter when you open new shells,
-
-  rvm use rbx --default
-
-In order to view the dependency list to preinstall for rbx type
-
-  rvm notes
-
-For more information on working with rvm please visit the RVM website,
-
-  http://rvm.beginrescueend.com/
-
-4. Version 1.1
-
-Rubinius has been under development as a public open-source project since
-November 2006. Rubinius development is sponsored by Engine Yard, Inc. and
-assisted by the generous work of over 100 contributors.
-
-At version 1.1, Rubinius is significantly feature-complete. It is expected
-that your Ruby code will run correctly. Additionally, many MRI C extensions
-are expected to work, as long as they do not depend on MRI-specific object
-internals or the MRI interpreter internals.
-
-With the JIT, Rubinius performance is quite good, sometimes faster than MRI
-and sometimes slower. Rubinius generally executes Ruby code very fast as
-compared to MRI. However, since the majority of the Ruby core library is also
-implemented in Ruby rather than C as it is in MRI, code that depends heavily
-on Array, Hash, String, etc. may run slower in Rubinius right now. As the JIT
-improves, overall performance of your code under Rubinius will improve.
+Once installed, type `rvm use rbx` into the current shell session.
+Making Rubinius the default in new shells is as easy as: `rvm use rbx --default`.
 
 
-5. Goals
+Versions
+========
 
-* Thread safety. Rubinius intends to be thread-safe so you could embed more
-  than one interpreter in a single application.
-
-* Clean, readable code that is easy for users to understand and extend.
-
-* Reliable, rock-solid code. Valgrind is used to help verify correctness.
-
-* Bring modern research in virtual machines, garbage collectors, and compilers
-  to the Ruby programming language.
+Latest
+------
 
 
-6. Tickets
-
-Please file tickets for bugs or problems that you encounter. The issue tracker
-is: http://github.com/evanphx/rubinius/issues. Run 'rake docs' for more
-details.
+v1.2
+----
 
 
-7. Contributing
+v1.1
+----
+Rubinius has been under development as a public *open-source project* since November 2006. 
+Rubinius development is sponsored by [Engine Yard, Inc.]() and assisted by the generous work of over 100 contributors.
 
-The Rubinius team welcomes contributions. Run 'rake docs' and see the
-"Contributing" page.
+At version **1.1** Rubinius is significantly feature-complete. 
+You can expect to have your Ruby code will run correctly. 
+Additionally, many MRI C extensions are expected to work assuming it doesn't depend on MRI specific object and/or interpreter internals.
+
+The Rubinius JIT performance is quite good, sometimes faster than MRI and sometimes slower. 
+Rubinius generally executes Ruby code very fast compared to MRI. 
+Since the majority of the Ruby Core is implemented in Ruby, rather than C as in MRI, code that depends heavily on Array, Hash, String, etc. may run slower in Rubinius.
+As the JIT improves so does overall performance of your code under Rubinius.
+
+
+Tickets
+=======
+
+Please file issues for bugs or problems that you encounter at the issue tracker.
+The issue tracker is: [http://github.com/evanphx/rubinius/issues](http://github.com/evanphx/rubinius/issues).
+
+
+Contributing
+============
+
+The Rubinius team welcomes contributions.
+Run `rake docs` and see the contributing page.
+
+
+License
+=======
+
+Rubinius uses the BSD license.
+See [LICENSE](https://github.com/evanphx/rubinius/blob/master/LICENSE) for details.
