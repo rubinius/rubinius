@@ -159,7 +159,10 @@ Daedalus.blueprint do |i|
     l.cflags = ["-Ivm/external_libs/udis86"]
     l.objects = [l.file("libudis86/.libs/libudis86.a")]
     l.to_build do |x|
-      x.command "./configure" unless File.exists?("Makefile")
+      unless File.exists?("Makefile") and File.exists?("libudis86/Makefile")
+        x.command "./configure"
+      end
+
       x.command make
     end
   end
