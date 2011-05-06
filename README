@@ -16,18 +16,18 @@ This allows your average Ruby developer to understand exactly what goes on insid
 Rubinius currently is compatible with Ruby `1.8.7`, MRI*.
 
 
- * *Support for Ruby `1.9.2` is coming soon.*
+ \* Support for Ruby `1.9.2` is coming soon.
 
 Goals
 =====
 
-  * **Thread safety.** Rubinius intends to be thread-safe so you could embed more than one interpreter in a single application.
+  1. Clean. Readable Ruby code that is easy for users to understand and extend.
 
-  * **Clean.** Readable Ruby code that is easy for users to understand and extend.
+  2. Reliable. Rock-solid code, with the help of Valgrind to verify correctness.
 
-  * **Reliable.** Rock-solid code, with the help of Valgrind to verify correctness.
+  3. Modern. Bringing modern research in virtual machines, garbage collectors, and compilers to the Ruby programming language.
 
-  * **Modern.** Bringing modern research in virtual machines, garbage collectors, and compilers to the Ruby programming language.
+  4. Thread safety. Rubinius intends to be thread-safe so you could embed more than one interpreter in a single application.
 
 
 Installing
@@ -38,7 +38,7 @@ If you have `rvm` setup you should skip ahead.
 
 For more information about building and running Rubinius, run `rake docs` and go here: http://localhost:35421/.
 
- * *Support for Microsoft Windows is coming soon.*
+ \* Support for Microsoft Windows is coming soon.
 
 Requirements
 -------------
@@ -75,10 +75,11 @@ To learn more about `rvm` simply visit the project website: https://rvm.beginres
 
 
 In order to view the dependency list to preinstall for rbx type `rvm notes`.
-
 Assuming all Rubinius dependencies have been preinstalled on the system, you may now install Rubinius.
+
 Use either latest or head as follows `rvm install rbx` or `rvm install rbx-head`.
 The first installs the latest release while the second installs the master branch version.
+
 Once installed you can type `rvm use rbx` into the current shell session and you'll be using the installed rubinius.
 Making Rubinius the default in new shells is as easy as: `rvm use rbx --default`.
 
