@@ -25,6 +25,28 @@ describe :file_directory, :shared => true do
     end
   end
 
+  it "returns false if the argument is an IO that's not a directory" do
+    @object.send(@method, STDIN).should be_false
+  end
+
+  it "return true if the argument is an IO that is a directory" do
+    File.open(@dir, "r") do |f|
+      @object.send(@method, f).should be_true
+    end
+  end
+
+  it "calls #to_io to convert a non-IO object" do
+    io = mock('FileDirectoryIO')
+    io.should_receive(:to_io).and_return(STDIN)
+    @object.send(@method, io).should be_false
+  end
+
+  it "raises a TypeError when passed a Dir instance" do
+    Dir.open(@dir) do |d|
+      lambda { @object.send(@method, d) }.should raise_error(TypeError)
+    end
+  end
+
   it "raises a TypeError when passed an Integer" do
     lambda { @object.send(@method, 1) }.should raise_error(TypeError)
     lambda { @object.send(@method, bignum_value) }.should raise_error(TypeError)

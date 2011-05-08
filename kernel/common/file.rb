@@ -309,9 +309,15 @@ class File < IO
   # Returns true if the named file is a directory, false otherwise.
   #
   # File.directory?(".")
-  def self.directory?(path)
-    st = Stat.stat path
-    st ? st.directory? : false
+  def self.directory?(io_or_path)
+    io = Rubinius::Type.try_convert io_or_path, IO, :to_io
+
+    if io.is_a? IO
+      Stat.from_fd(io.fileno).directory?
+    else
+      st = Stat.stat io_or_path
+      st ? st.directory? : false
+    end
   end
 
   def self.last_nonslash(path,start=nil)
