@@ -92,7 +92,7 @@ class CompilerScript
     end
 
     @options.on "-P", "--print", "Enable all stage printers" do
-      @print_ast = true
+      @print_ast = Rubinius::Compiler::ASTPrinter
       @print_bytecode = true
     end
 
