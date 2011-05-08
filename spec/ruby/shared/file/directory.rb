@@ -25,6 +25,29 @@ describe :file_directory, :shared => true do
     end
   end
 
+  it "raises a TypeError when passed an Integer" do
+    lambda { @object.send(@method, 1) }.should raise_error(TypeError)
+    lambda { @object.send(@method, bignum_value) }.should raise_error(TypeError)
+  end
+
+  it "raises a TypeError when passed nil" do
+    lambda { @object.send(@method, nil) }.should raise_error(TypeError)
+  end
+end
+
+describe :file_directory_io, :shared => true do
+  before :each do
+    @dir = tmp("file_directory_io")
+    @file = tmp("file_directory_io.txt")
+
+    mkdir_p @dir
+    touch @file
+  end
+
+  after :each do
+    rm_r @dir, @file
+  end
+
   it "returns false if the argument is an IO that's not a directory" do
     @object.send(@method, STDIN).should be_false
   end
@@ -41,18 +64,11 @@ describe :file_directory, :shared => true do
     @object.send(@method, io).should be_false
   end
 
-  it "raises a TypeError when passed a Dir instance" do
-    Dir.open(@dir) do |d|
-      lambda { @object.send(@method, d) }.should raise_error(TypeError)
+  ruby_version_is ""..."1.9" do
+    it "raises a TypeError when passed a Dir instance" do
+      Dir.open(@dir) do |d|
+        lambda { @object.send(@method, d) }.should raise_error(TypeError)
+      end
     end
-  end
-
-  it "raises a TypeError when passed an Integer" do
-    lambda { @object.send(@method, 1) }.should raise_error(TypeError)
-    lambda { @object.send(@method, bignum_value) }.should raise_error(TypeError)
-  end
-
-  it "raises a TypeError when passed nil" do
-    lambda { @object.send(@method, nil) }.should raise_error(TypeError)
   end
 end
