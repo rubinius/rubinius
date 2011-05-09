@@ -17,16 +17,10 @@ module FFI::Platform::POSIX
   attach_function :memset,   [:pointer, :int, :size_t], :pointer
   attach_function :memcpy,   [:pointer, :pointer, :size_t], :pointer
 
-  # rand
-  attach_function :srand,    [:uint], :void
-  attach_function :rand,     [], :uint
-
   # file system
   attach_function :access,   [:string, :int], :int
   attach_function :chmod,    [:string, :mode_t], :int
   attach_function :fchmod,   [:int, :mode_t], :int
-  #  Removed, fails on OS X Tiger, OpenBSD and we are not using it.
-#  attach_function 'lchmod',  [:string, :mode_t], :int
   attach_function :chown,    [:string, :uid_t, :gid_t], :int
   attach_function :fchown,   [:int, :uid_t, :gid_t], :int
   attach_function :lchown,   [:string, :uid_t, :gid_t], :int
@@ -41,49 +35,17 @@ module FFI::Platform::POSIX
 
   # directories
   attach_function :chdir,     [:string], :int
-  attach_function :opendir,   [:string], :pointer
-  attach_function :readdir,   [:pointer], :pointer
-  attach_function :rewinddir, [:pointer], :void
-  attach_function :closedir,  [:pointer], :int
   attach_function :mkdir,     [:string, :mode_t], :int
   attach_function :rmdir,     [:string], :int
   attach_function :chroot,    [:string], :int
 
-  attach_function :fnmatch,   [:string, :string, :int], :int
-
   # File/IO
   attach_function :fcntl,    [:int, :int, :int], :int
-
-  #   opening/closing
-  attach_function :open,     [:string, :int, :int], :int
-  attach_function :fdopen,   [:int, :string], :pointer
-  attach_function :fopen,    [:string, :string], :pointer
-  attach_function :fclose,   [:pointer], :int
   attach_function :fsync,    [:int], :int
-
   attach_function :dup,      [:int], :int
 
-  #   buffering
-  attach_function :fflush,   [:pointer], :int
-
   #   inspecting
-  attach_function :fileno,   [:pointer], :int
-  attach_function :feof,     [:pointer], :int
-  attach_function :ferror,   [:pointer], :int
-  attach_function :clearerr, [:pointer], :void
-  attach_function :fseek,    [:pointer, :long, :int], :int
-  attach_function :ftell,    [:pointer], :long
-  attach_function :lseek,    [:int, :off_t, :int], :off_t
   attach_function :isatty,   [:int], :int
-
-  #   reading
-  attach_function :fread,    [:string, :size_t, :size_t, :pointer], :size_t
-  attach_function :fgets,    [:string, :int, :pointer], :void
-  attach_function :fgetc,    [:pointer], :int
-
-  #   writing
-  attach_function :fwrite,   [:string, :size_t, :size_t, :pointer], :size_t
-  attach_function :ungetc,   [:int, :pointer], :int
 
   #   truncating
   attach_function :truncate,  [:string, :off_t], :int
@@ -91,12 +53,6 @@ module FFI::Platform::POSIX
 
   #   locking
   attach_function :flock, [:int, :int], :int
-
-  # Time
-  attach_function :time,         [:pointer], :time_t
-  attach_function :timezone,     'ffi_timezone', [], :time_t
-  attach_function :tzname,       'ffi_tzname', [:int], :string
-  attach_function :gettimeofday, [:pointer, :pointer], :int
 
   # UID/GID
   attach_function :getuid,  [], :uid_t
@@ -111,10 +67,6 @@ module FFI::Platform::POSIX
 
   attach_function :setregid, [:gid_t, :gid_t], :int
   attach_function :setreuid, [:uid_t, :uid_t], :int
-
-  # These are linux specific
-  #attach_function 'setresgid', [gid_t, gid_t, gid_t], :int
-  #attach_function 'setresuid', [uid_t, uid_t, uid_t], :int
 
   attach_function :getpriority, [:int, :id_t], :int
   attach_function :setpriority, [:int, :id_t, :int], :int
@@ -153,10 +105,6 @@ module FFI::Platform::POSIX
   attach_function :minor, 'ffi_minor', [:dev_t], :dev_t
 
   # stat
-  # FIXME: these are TEMPORARY until we determine how to
-  # have FFI resolve symbols that may be macros. This is
-  # used rather than a primitive so that it is easier to
-  # replace (unlike primitives).
   attach_function :stat,  'ffi_stat',  [:string, :pointer], :int
   attach_function :fstat, 'ffi_fstat', [:int,    :pointer], :int
   attach_function :lstat, 'ffi_lstat', [:string, :pointer], :int

@@ -39,7 +39,7 @@ class Struct
   # name="Dave", address="123 Main">
 
   def self.new(klass_name, *attrs, &block)
-    unless klass_name.nil? then
+    if klass_name
       begin
         klass_name = StringValue klass_name
       rescue TypeError
@@ -48,18 +48,20 @@ class Struct
       end
     end
 
-    attrs = attrs.map do |attr|
-      case attr
+    attrs = attrs.map do |a|
+      case a
       when Symbol
-        attr
+        a
       when String
-        attr.to_sym
+        sym = a.to_sym
+        unless sym.kind_of? Symbol
+          raise TypeError, "#to_sym didn't return a symbol"
+        end
+        sym
       else
-        raise TypeError, "#{attr.inspect} is not a symbol"
+        raise TypeError, "#{a.inspect} is not a symbol"
       end
     end
-
-    raise ArgumentError if attrs.any? { |attr| attr.nil? }
 
     klass = Class.new self do
 
@@ -82,10 +84,6 @@ class Struct
     klass.module_eval(&block) if block
 
     return klass
-  end
-
-  def self.allocate # :nodoc:
-    super
   end
 
   # Don't specialize any thing created in the kernel. We hook up
@@ -205,8 +203,15 @@ class Struct
 
   def []=(var, obj)
     case var
-    when Symbol, String
-      # ok
+    when Symbol
+      unless _attrs.include? var
+        raise NameError, "no member '#{var}' in struct"
+      end
+    when String
+      var = var.to_sym
+      unless _attrs.include? var
+        raise NameError, "no member '#{var}' in struct"
+      end
     else
       var = Integer(var)
       a_len = _attrs.length
@@ -218,10 +223,6 @@ class Struct
       end
 
       var = _attrs[var]
-    end
-
-    unless _attrs.include? var.to_s.intern then
-      raise NameError, "no member '#{var}' in struct"
     end
 
     return instance_variable_set(:"@#{var}", obj)
@@ -240,9 +241,10 @@ class Struct
 
     Thread.detect_recursion self, other do
       _attrs.each do |var|
-        unless instance_variable_get(:"@#{var}").eql? other.instance_variable_get(:"@#{var}")
-          return false
-        end
+        mine =   instance_variable_get(:"@#{var}")
+        theirs = other.instance_variable_get(:"@#{var}")
+
+        return false unless mine.eql? theirs
       end
     end
 
@@ -363,7 +365,13 @@ class Struct
     return "[...]" if Thread.guarding? self
 
     Thread.recursion_guard self do
-      values = _attrs.zip(self.to_a).map { |o| o[1] = o[1].inspect; o.join('=') }
+      values = []
+
+      _attrs.each do |var|
+        val = instance_variable_get :"@#{var}"
+        values << "#{var}=#{val.inspect}"
+      end
+
       "#<struct #{self.class.inspect} #{values.join(', ')}>"
     end
   end

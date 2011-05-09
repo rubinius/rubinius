@@ -1,12 +1,7 @@
 module Rubinius
   module ThrownValue
     def self.register(sym)
-      cur = Thread.current[:__catches__]
-      if cur.nil?
-        cur = []
-        Thread.current[:__catches__] = cur
-      end
-
+      cur = (Thread.current[:__catches__] ||= [])
       cur << sym
 
       begin
@@ -18,7 +13,7 @@ module Rubinius
 
     def self.available?(sym)
       cur = Thread.current[:__catches__]
-      return false if cur.nil?
+      return false unless cur
       cur.include? sym
     end
   end

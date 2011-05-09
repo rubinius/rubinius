@@ -12,15 +12,12 @@
 
 class Module
 
-  attr_reader_specific :constants, :constants_table
+  attr_reader :constant_table
   attr_writer :method_table
 
   private :included
 
   def self.nesting
-    # TODO: this is not totally correct but better specs need to
-    # be written. Until then, this gets the specs running without
-    # choking on MethodContext
     scope = Rubinius::CompiledMethod.of_sender.scope
     nesting = []
     while scope and scope.module != Object
@@ -49,7 +46,6 @@ class Module
     name
   end
   private :verify_class_variable_name
-
 
   def class_variable_set(name, val)
     Ruby.primitive :module_cvar_set
@@ -130,13 +126,9 @@ class Module
 
   def undef_method(*names)
     names.each do |name|
-      name = Rubinius::Type.coerce_to_symbol(name)
       # Will raise a NameError if the method doesn't exist.
       instance_method(name)
-      @method_table.store name, nil, :undef
-      Rubinius::VM.reset_method_cache(name)
-
-      method_undefined(name) if respond_to? :method_undefined
+      undef_method! name
     end
 
     nil
@@ -149,7 +141,9 @@ class Module
     @method_table.store name, nil, :undef
     Rubinius::VM.reset_method_cache(name)
 
-    method_undefined(name) if respond_to? :method_undefined
+    if Rubinius::Type.object_respond_to? self, :method_undefined
+      method_undefined(name)
+    end
 
     name
   end
@@ -157,17 +151,17 @@ class Module
   def remove_method(*names)
     names.each do |name|
       name = Rubinius::Type.coerce_to_symbol(name)
-      # Will raise a NameError if the method doesn't exist.
-      instance_method(name)
+
       unless @method_table.lookup(name)
         raise NameError, "method `#{name}' not defined in #{self.name}"
       end
       @method_table.delete name
+
       Rubinius::VM.reset_method_cache(name)
 
-      # Use __respond_to_p__ to avoid hitting unexpected #respond_to?
-      # overrides.
-      method_removed(name) if __respond_to_p__ :method_removed
+      if Rubinius::Type.object_respond_to? self, :method_removed
+        method_removed(name)
+      end
     end
 
     nil
@@ -274,9 +268,7 @@ class Module
   end
 
   def filter_methods(filter, all)
-
     if all and self.direct_superclass
-
       table = Rubinius::LookupTable.new
       ary = []
       mod = self
@@ -312,16 +304,22 @@ class Module
 
     meth = prc if meth.equal?(undefined)
 
+    name = Rubinius::Type.coerce_to_symbol name
+
     case meth
     when Proc::Method
       cm = Rubinius::DelegatedMethod.new(name, :call, meth, false)
     when Proc
       be = meth.block.dup
-      be.change_name name.to_sym
+      be.change_name name
       cm = Rubinius::BlockEnvironment::AsMethod.new(be)
       meth = lambda(&meth)
     when Method
       exec = meth.executable
+      # We see through delegated methods because code creates these crazy calls
+      # to define_method over and over again and if we don't check, we create
+      # a huge delegated method chain. So instead, just see through them at one
+      # level always.
       if exec.kind_of? Rubinius::DelegatedMethod
         cm = exec
       else
@@ -329,6 +327,7 @@ class Module
       end
     when UnboundMethod
       exec = meth.executable
+      # Same reasoning as above.
       if exec.kind_of? Rubinius::DelegatedMethod
         cm = exec
       else
@@ -338,10 +337,10 @@ class Module
       raise TypeError, "wrong argument type #{meth.class} (expected Proc/Method)"
     end
 
-    @method_table.store name.to_sym, cm, :public
-    Rubinius::VM.reset_method_cache(name.to_sym)
+    @method_table.store name, cm, :public
+    Rubinius::VM.reset_method_cache name
 
-    method_added(name)
+    method_added name
 
     meth
   end
@@ -350,9 +349,10 @@ class Module
 
   def thunk_method(name, value)
     thunk = Rubinius::Thunk.new(value)
+    name = Rubinius::Type.coerce_to_symbol name
 
-    @method_table.store name.to_sym, thunk, :public
-    Rubinius::VM.reset_method_cache(name.to_sym)
+    @method_table.store name, thunk, :public
+    Rubinius::VM.reset_method_cache name
 
     method_added(name)
 
@@ -390,7 +390,7 @@ class Module
     out
   end
 
-  def set_visibility(meth, vis, where = nil)
+  def set_visibility(meth, vis, where=nil)
     name = Rubinius::Type.coerce_to_symbol(meth)
     vis = vis.to_sym
 
@@ -445,6 +445,7 @@ class Module
 
   def module_exec(*args, &prc)
     raise LocalJumpError, "Missing block" unless block_given?
+
     env = prc.block
     static_scope = env.repoint_scope self
     return env.call_under(self, static_scope, *args)
@@ -455,14 +456,14 @@ class Module
   def constants
     tbl = Rubinius::LookupTable.new
 
-    @constants.each do |name, val|
+    @constant_table.each do |name, val|
       tbl[name] = true
     end
 
     current = self.direct_superclass
 
     while current and current != Object
-      current.constants_table.each do |name, val|
+      current.constant_table.each do |name, val|
         tbl[name] = true unless tbl.has_key? name
       end
 
@@ -471,7 +472,7 @@ class Module
 
     # special case: Module.constants returns Object's constants
     if self.equal? Module
-      Object.constants_table.each do |name, val|
+      Object.constant_table.each do |name, val|
         tbl[name] = true unless tbl.has_key? name
       end
     end
@@ -480,33 +481,33 @@ class Module
   end
 
   def const_defined?(name)
-    @constants.has_key? normalize_const_name(name)
+    @constant_table.has_key? normalize_const_name(name)
   end
 
-  # Check if a full constant path is defined, e.g. SomeModule::Something
-  def const_path_defined?(name)
-    # Start at Object if this is a fully-qualified path
-    if name[0,2] == "::" then
-      start = Object
-      pieces = name[2,(name.length - 2)].split("::")
-    else
-      start = self
-      pieces = name.split("::")
-    end
+  def const_get(name)
+    name = normalize_const_name(name)
 
-    defined = false
-    current = start
-    while current and not defined
-      const = current
-      defined = pieces.all? do |piece|
-        if const.is_a?(Module) and const.constants_table.key?(piece)
-          const = const.constants_table[piece]
-          true
-        end
+    current, constant = self, undefined
+
+    while current
+      constant = current.constant_table.fetch name, undefined
+      unless constant.equal?(undefined)
+        constant = constant.call if constant.kind_of?(Autoload)
+        return constant
       end
+
       current = current.direct_superclass
     end
-    return defined
+
+    if instance_of?(Module)
+      constant = Object.constant_table.fetch name, undefined
+      unless constant.equal?(undefined)
+        constant = constant.call if constant.kind_of?(Autoload)
+        return constant
+      end
+    end
+
+    const_missing(name)
   end
 
   def const_set(name, value)
@@ -515,7 +516,7 @@ class Module
     end
 
     name = normalize_const_name(name)
-    @constants[name] = value
+    @constant_table[name] = value
     Rubinius.inc_global_serial
 
     return value
@@ -528,14 +529,6 @@ class Module
   # Modules will in addition look in Object. The name is attempted to convert
   # using #to_str. If the constant is not found, #const_missing is called
   # with the name.
-
-  def const_get(name)
-    recursive_const_get(name)
-  end
-
-  def illegal_const(name)
-    raise NameError, "constant names must begin with a capital letter: #{name}"
-  end
 
   def const_missing(name)
     raise NameError, "Missing or uninitialized constant: #{self.__name__}::#{name}"
@@ -572,6 +565,7 @@ class Module
     unless other.kind_of? Module
       raise TypeError, "compared with non class/module"
     end
+
     return true if self.equal? other
     gt = self > other
     return false if gt.nil? && other > self
@@ -581,6 +575,7 @@ class Module
   def <=>(other)
     return 0 if self.equal? other
     return nil unless other.kind_of? Module
+
     lt = self < other
     if lt.nil?
       other < self ? 1 : nil
@@ -595,7 +590,8 @@ class Module
   end
 
   def set_name_if_necessary(name, mod)
-    return unless @module_name.nil?
+    return if @module_name
+
     if mod == Object
       @module_name = name.to_sym
     else
@@ -606,14 +602,17 @@ class Module
   # Install a new Autoload object into the constants table
   # See kernel/common/autoload.rb
   def autoload(name, path)
-    raise TypeError, "autoload filename must be a String" unless path.kind_of? String
+    unless path.kind_of? String
+      raise TypeError, "autoload filename must be a String"
+    end
+
     raise ArgumentError, "empty file name" if path.empty?
 
     return if Rubinius::CodeLoader.feature_provided?(path)
 
     name = normalize_const_name(name)
 
-    if existing = @constants[name]
+    if existing = @constant_table[name]
       if existing.kind_of? Autoload
         # If there is already an Autoload here, just change the path to
         # autoload!
@@ -626,7 +625,7 @@ class Module
       return
     end
 
-    constants_table[name] = Autoload.new(name, self, path)
+    constant_table[name] = Autoload.new(name, self, path)
     Rubinius.inc_global_serial
     return nil
   end
@@ -634,8 +633,8 @@ class Module
   # Is an autoload trigger defined for the given path?
   def autoload?(name)
     name = name.to_sym
-    return unless constants_table.key?(name)
-    trigger = constants_table[name]
+    return unless constant_table.key?(name)
+    trigger = constant_table[name]
     return unless trigger.kind_of?(Autoload)
     trigger.path
   end
@@ -643,18 +642,21 @@ class Module
   def remove_const(name)
     unless name.kind_of? Symbol
       name = StringValue name
-      illegal_const(name) unless Rubinius::CType.isupper(name[0])
+
+      unless Rubinius::CType.isupper(name[0])
+        raise NameError, "constant names must begin with a capital letter: #{name}"
+      end
     end
 
     sym = name.to_sym
-    unless constants_table.has_key?(sym)
+    unless constant_table.has_key?(sym)
       raise NameError, "Missing or uninitialized constant: #{self.__name__}::#{name}"
     end
 
-    val = constants_table.delete(sym)
+    val = constant_table.delete(sym)
     Rubinius.inc_global_serial
 
-    # Silly API compac. Shield Autoload instances
+    # Silly API compact. Shield Autoload instances
     return nil if val.kind_of? Autoload
     val
   end
@@ -670,37 +672,6 @@ class Module
   end
 
   private :method_added
-
-  # See #const_get for documentation.
-  def recursive_const_get(name, missing=true)
-    name = normalize_const_name(name)
-
-    current, constant = self, undefined
-
-    while current
-      constant = current.constants_table.fetch name, undefined
-      unless constant.equal?(undefined)
-        constant = constant.call if constant.kind_of?(Autoload)
-        return constant
-      end
-
-      current = current.direct_superclass
-    end
-
-    if instance_of?(Module)
-      constant = Object.constants_table.fetch name, undefined
-      unless constant.equal?(undefined)
-        constant = constant.call if constant.kind_of?(Autoload)
-        return constant
-      end
-    end
-
-    return nil unless missing
-
-    const_missing(name)
-  end
-
-  private :recursive_const_get
 
   def normalize_const_name(name)
     name = Rubinius::Type.coerce_to_symbol(name)
@@ -723,14 +694,14 @@ class Module
     sc_s.method_table = sc_o.method_table.dup
     sc_s.superclass = sc_o.superclass
 
-    @constants = Rubinius::LookupTable.new
+    @constant_table = Rubinius::LookupTable.new
 
-    other.constants_table.each do |name, val|
+    other.constant_table.each do |name, val|
       if val.kind_of? Autoload
         val = Autoload.new(val.name, self, val.path)
       end
 
-      @constants[name] = val
+      @constant_table[name] = val
     end
 
     self

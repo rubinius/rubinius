@@ -38,6 +38,8 @@
 
 #include "instruments/tooling.hpp"
 
+#include "on_stack.hpp"
+
 #include <iostream>
 #include <fstream>
 #include <sstream>
@@ -635,5 +637,22 @@ namespace rubinius {
     start_signals();
     run_file(root + "/loader.rbc");
 
+    state->global_lock().take();
+
+    Object* loader = G(rubinius)->get_const(state, state->symbol("Loader"));
+    if(loader->nil_p()) {
+      std::cout << "Unable to find loader!\n";
+      exit(127);
+    }
+
+    OnStack<1> os(state, loader);
+
+    Object* inst = loader->send(state, 0, state->symbol("new"));
+
+    OnStack<1> os2(state, inst);
+
+    inst->send(state, 0, state->symbol("main"));
+
+    state->global_lock().drop();
   }
 }

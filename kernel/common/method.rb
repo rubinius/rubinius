@@ -201,11 +201,9 @@ class UnboundMethod
   # different subclasses will not be considered equal.
 
   def ==(other)
-    return true if other.kind_of? UnboundMethod and
-                   @defined_in == other.defined_in and
-                   @executable == other.executable
-
-    false
+    other.kind_of? UnboundMethod and
+      @defined_in == other.defined_in and
+      @executable == other.executable
   end
 
   ##
@@ -243,8 +241,16 @@ class UnboundMethod
   # it with the optionally supplied arguments.
 
   def call_on_instance(obj, *args, &block)
-    # Use bind so that we get the validation logic.
-    bind(obj).call(*args, &block)
+    unless Rubinius::Type.object_kind_of? obj, @defined_in
+      if Rubinius::Type.object_kind_of?(@defined_in, Class) and
+         Rubinius::Type.singleton_class_object(@defined_in)
+        raise TypeError, "illegal attempt to rebind a singleton method to another object"
+      end
+
+      raise TypeError, "Must be bound to an object of kind #{@defined_in}"
+    end
+
+    @executable.invoke(@name, @defined_in, obj, args, block)
   end
 
   ##

@@ -33,19 +33,31 @@ module Process
   end
 
   def self.setrlimit(resource, cur_limit, max_limit=undefined)
+    resource =  Rubinius::Type.coerce_to resource, Integer, :to_int
+    cur_limit = Rubinius::Type.coerce_to cur_limit, Integer, :to_int
+
+    unless max_limit.equal? undefined
+      max_limit = Rubinius::Type.coerce_to max_limit, Integer, :to_int
+    end
+
     rlimit = Rlimit.new
     rlimit[:rlim_cur] = cur_limit
     rlimit[:rlim_max] = max_limit.equal?(undefined) ? cur_limit : max_limit
-    Errno.handle if -1 == FFI::Platform::POSIX.setrlimit(resource, rlimit.pointer)
+
+    ret = FFI::Platform::POSIX.setrlimit(resource, rlimit.pointer)
+    Errno.handle if ret == -1
     nil
   end
 
   def self.getrlimit(resource)
+    resource =  Rubinius::Type.coerce_to resource, Integer, :to_int
+
     lim_max = []
     rlimit = Rlimit.new
-    Errno.handle if -1 == FFI::Platform::POSIX.getrlimit(resource, rlimit.pointer)
-    lim_max = [rlimit[:rlim_cur], rlimit[:rlim_max]]
-    lim_max
+    ret = FFI::Platform::POSIX.getrlimit(resource, rlimit.pointer)
+    Errno.handle if ret == -1
+
+    [rlimit[:rlim_cur], rlimit[:rlim_max]]
   end
 
   def self.setsid
@@ -68,7 +80,6 @@ module Process
         status = 1
       end
 
-      # TODO should we call back into the Loader to run finalizers and such?
       until Rubinius::AtExit.empty?
         begin
           Rubinius::AtExit.shift.call
@@ -116,6 +127,8 @@ module Process
 
     raise ArgumentError unless number
 
+    pid = Rubinius::Type.coerce_to pid, Integer, :to_int
+
     pid = -pid if use_process_group
     ret = FFI::Platform::POSIX.kill(pid, number)
 
@@ -133,12 +146,17 @@ module Process
   end
 
   def self.getpgid(pid)
+    pid = Rubinius::Type.coerce_to pid, Integer, :to_int
+
     ret = FFI::Platform::POSIX.getpgid(pid)
     Errno.handle if ret == -1
     ret
   end
 
   def self.setpgid(pid, int)
+    pid = Rubinius::Type.coerce_to pid, Integer, :to_int
+    int = Rubinius::Type.coerce_to int, Integer, :to_int
+
     ret = FFI::Platform::POSIX.setpgid(pid, int)
     Errno.handle if ret == -1
     ret
@@ -174,18 +192,22 @@ module Process
   end
 
   def self.uid=(uid)
+    uid = Rubinius::Type.coerce_to uid, Integer, :to_int
     Process::Sys.setuid uid
   end
 
   def self.gid=(gid)
+    gid = Rubinius::Type.coerce_to gid, Integer, :to_int
     Process::Sys.setgid gid
   end
 
   def self.euid=(uid)
+    uid = Rubinius::Type.coerce_to uid, Integer, :to_int
     Process::Sys.seteuid uid
   end
 
   def self.egid=(gid)
+    gid = Rubinius::Type.coerce_to gid, Integer, :to_int
     Process::Sys.setegid gid
   end
 
@@ -214,6 +236,9 @@ module Process
   end
 
   def self.getpriority(kind, id)
+    kind = Rubinius::Type.coerce_to kind, Integer, :to_int
+    id =   Rubinius::Type.coerce_to id, Integer, :to_int
+
     FFI::Platform::POSIX.errno = 0
     ret = FFI::Platform::POSIX.getpriority(kind, id)
     Errno.handle
@@ -221,6 +246,10 @@ module Process
   end
 
   def self.setpriority(kind, id, priority)
+    kind = Rubinius::Type.coerce_to kind, Integer, :to_int
+    id =   Rubinius::Type.coerce_to id, Integer, :to_int
+    priority = Rubinius::Type.coerce_to priority, Integer, :to_int
+
     ret = FFI::Platform::POSIX.setpriority(kind, id, priority)
     Errno.handle if ret == -1
     ret
@@ -246,7 +275,13 @@ module Process
   end
 
   def self.initgroups(username, gid)
-    Errno.handle if -1 == FFI::Platform::POSIX.initgroups(username, gid)
+    username = StringValue(username)
+    gid = Rubinius::Type.coerce_to gid, Integer, :to_int
+
+    if FFI::Platform::POSIX.initgroups(username, gid) == -1
+      Errno.handle
+    end
+
     Process.groups
   end
 
@@ -278,6 +313,8 @@ module Process
   # TODO: Support other options such as WUNTRACED? --rue
   #
   def self.wait2(input_pid=-1, flags=nil)
+    input_pid = Rubinius::Type.coerce_to input_pid, Integer, :to_int
+
     if flags and (flags & WNOHANG) == WNOHANG
       value = wait_pid_prim input_pid, true
       return if value.nil?
@@ -367,7 +404,7 @@ module Process
     attr_reader :termsig
     attr_reader :stopsig
 
-    def initialize(pid, exitstatus, termsig = nil, stopsig = nil)
+    def initialize(pid, exitstatus, termsig=nil, stopsig=nil)
       @pid = pid
       @exitstatus = exitstatus
       @termsig = termsig
@@ -431,66 +468,101 @@ module Process
         Errno.handle if ret == -1
         ret
       end
+
       def geteuid
         ret = FFI::Platform::POSIX.geteuid
         Errno.handle if ret == -1
         ret
       end
+
       def getgid
         ret = FFI::Platform::POSIX.getgid
         Errno.handle if ret == -1
         ret
       end
+
       def getuid
         ret = FFI::Platform::POSIX.getuid
         Errno.handle if ret == -1
         ret
       end
+
       def issetugid
         raise "not implemented"
       end
+
       def setgid(gid)
+        gid = Rubinius::Type.coerce_to gid, Integer, :to_int
+
         ret = FFI::Platform::POSIX.setgid gid
         Errno.handle if ret == -1
         nil
       end
+
       def setuid(uid)
+        uid = Rubinius::Type.coerce_to uid, Integer, :to_int
+
         ret = FFI::Platform::POSIX.setuid uid
         Errno.handle if ret == -1
         nil
       end
+
       def setegid(egid)
+        egid = Rubinius::Type.coerce_to egid, Integer, :to_int
+
         ret = FFI::Platform::POSIX.setegid egid
         Errno.handle if ret == -1
         nil
       end
+
       def seteuid(euid)
+        euid = Rubinius::Type.coerce_to euid, Integer, :to_int
+
         ret = FFI::Platform::POSIX.seteuid euid
         Errno.handle if ret == -1
         nil
       end
+
       def setrgid(rgid)
         setregid(rgid, -1)
       end
+
       def setruid(ruid)
         setreuid(ruid, -1)
       end
+
       def setregid(rid, eid)
+        rid = Rubinius::Type.coerce_to rid, Integer, :to_int
+        eid = Rubinius::Type.coerce_to eid, Integer, :to_int
+
         ret = FFI::Platform::POSIX.setregid rid, eid
         Errno.handle if ret == -1
         nil
       end
+
       def setreuid(rid)
+        rid = Rubinius::Type.coerce_to rid, Integer, :to_int
+
         ret = FFI::Platform::POSIX.setreuid rid
         Errno.handle if ret == -1
         nil
       end
+
       def setresgid(rid, eid, sid)
+        rid = Rubinius::Type.coerce_to rid, Integer, :to_int
+        eid = Rubinius::Type.coerce_to eid, Integer, :to_int
+        sid = Rubinius::Type.coerce_to sid, Integer, :to_int
+
         ret = FFI::Platform::POSIX.setresgid rid, eid, sid
         Errno.handle if ret == -1
         nil
       end
+
       def setresuid(rid, eig, sid)
+        rid = Rubinius::Type.coerce_to rid, Integer, :to_int
+        eid = Rubinius::Type.coerce_to eid, Integer, :to_int
+        sid = Rubinius::Type.coerce_to sid, Integer, :to_int
+
         ret = FFI::Platform::POSIX.setresuid rid, eid, sid
         Errno.handle if ret == -1
         nil
@@ -501,6 +573,8 @@ module Process
   module UID
     class << self
       def change_privilege(uid)
+        uid = Rubinius::Type.coerce_to uid, Integer, :to_int
+
         ret = FFI::Platform::POSIX.setreuid(uid, uid)
         Errno.handle if ret == -1
         uid
@@ -513,6 +587,8 @@ module Process
       end
 
       def eid=(uid)
+        uid = Rubinius::Type.coerce_to uid, Integer, :to_int
+
         ret = FFI::Platform::POSIX.seteuid(uid)
         Errno.handle if ret == -1
         uid
@@ -560,6 +636,8 @@ module Process
   module GID
     class << self
       def change_privilege(gid)
+        gid = Rubinius::Type.coerce_to gid, Integer, :to_int
+
         ret = FFI::Platform::POSIX.setregid(gid, gid)
         Errno.handle if ret == -1
         gid
@@ -572,6 +650,8 @@ module Process
       end
 
       def eid=(gid)
+        gid = Rubinius::Type.coerce_to gid, Integer, :to_int
+
         ret = FFI::Platform::POSIX.setegid(gid)
         Errno.handle if ret == -1
         gid

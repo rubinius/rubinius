@@ -117,5 +117,9 @@ module Rubinius
     end
 
     alias_method :each_entry, :each
+
+    def empty?
+      @entries == 0
+    end
   end
 end

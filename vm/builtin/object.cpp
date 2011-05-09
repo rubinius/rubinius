@@ -58,10 +58,10 @@ namespace rubinius {
   Object* Object::copy_singleton_class(STATE, Object* other) {
     if(SingletonClass* sc = try_as<SingletonClass>(other->klass())) {
       MethodTable* source_methods = sc->method_table()->duplicate(state);
-      LookupTable* source_constants = sc->constants()->duplicate(state);
+      LookupTable* source_constants = sc->constant_table()->duplicate(state);
 
       singleton_class(state)->method_table(state, source_methods);
-      singleton_class(state)->constants(state, source_constants);
+      singleton_class(state)->constant_table(state, source_constants);
       // TODO inc the global serial here?
 
       // This allows us to preserve included modules

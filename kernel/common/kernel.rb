@@ -486,7 +486,7 @@ module Kernel
   def instance_variable_get(sym)
     Ruby.primitive :object_get_ivar
 
-    sym = Rubinius.instance_variable_validate sym
+    sym = Rubinius::Type.ivar_validate sym
     instance_variable_get sym
   end
 
@@ -495,7 +495,7 @@ module Kernel
   def instance_variable_set(sym, value)
     Ruby.primitive :object_set_ivar
 
-    sym = Rubinius.instance_variable_validate sym
+    sym = Rubinius::Type.ivar_validate sym
     instance_variable_set sym, value
   end
 
@@ -510,7 +510,7 @@ module Kernel
     end
 
     # Otherwise because sym isn't a symbol, coerce it and try again.
-    remove_instance_variable Rubinius.instance_variable_validate(sym)
+    remove_instance_variable Rubinius::Type.ivar_validate(sym)
   end
   private :remove_instance_variable
 
@@ -535,7 +535,7 @@ module Kernel
   def instance_variable_defined?(name)
     Ruby.primitive :object_ivar_defined
 
-    instance_variable_defined? Rubinius.instance_variable_validate(name)
+    instance_variable_defined? Rubinius::Type.ivar_validate(name)
   end
 
   # Both of these are for defined? when used inside a proxy obj that

@@ -2,22 +2,12 @@ require File.expand_path('../../../spec_helper', __FILE__)
 
 # if run indirectly (eg via CI), kills the runner. TODO: needs guard
 describe "Process.kill" do
-  it "requires at least two arguments" do
-    lambda { Process.kill }.should raise_error(ArgumentError)
-    lambda { Process.kill(0) }.should raise_error(ArgumentError)
-  end
-
   it "raises an ArgumentError for unknown signals" do
     lambda { Process.kill("FOO", 0) }.should raise_error(ArgumentError)
   end
 
   it "doesn't accept lowercase signal names" do
     lambda { Process.kill("hup", 0) }.should raise_error(ArgumentError)
-  end
-
-  it "doesn't tolerate leading or trailing spaces in signal names" do
-    lambda { Process.kill(" HUP", 0) }.should raise_error(ArgumentError)
-    lambda { Process.kill("HUP ", 0) }.should raise_error(ArgumentError)
   end
 
   platform_is_not :windows do
@@ -102,6 +92,10 @@ describe "Process.kill" do
 
       it "accepts POSIX signal names with 'SIG' prefix" do
         Process.kill("SIGHUP", 0).should == 1
+      end
+
+      it "coerces the pid to an Integer" do
+        Process.kill(1, mock_int(0)).should == 1
       end
     end
   end

@@ -513,7 +513,7 @@ uninstall-am: uninstall-libLTLIBRARIES uninstall-libudis86_laHEADERS
 	uninstall-libLTLIBRARIES uninstall-libudis86_laHEADERS
 
 
-itab.c itab.h: ../docs/x86optable.xml opgen.py
+regen_ops:
 	python ./opgen.py
 # Tell versions [3.59,3.63) of GNU make to not export all variables.
 # Otherwise a system limit (for SysV at least) may be exceeded.

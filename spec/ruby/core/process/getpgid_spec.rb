@@ -2,8 +2,8 @@ require File.expand_path('../../../spec_helper', __FILE__)
 
 describe "Process.getpgid" do
   platform_is_not :windows do
-    it "requires one argument" do
-      lambda { Process.getpgid }.should raise_error(ArgumentError)
+    it "coerces the argument to an Integer" do
+      Process.getpgid(mock_int(Process.pid)).should == Process.getpgrp
     end
 
     it "returns the process group ID for the given process id" do

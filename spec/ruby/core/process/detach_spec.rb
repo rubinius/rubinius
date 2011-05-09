@@ -1,11 +1,7 @@
 require File.expand_path('../../../spec_helper', __FILE__)
 
-describe "Process#detach" do
+describe "Process.detach" do
   platform_is_not :windows do
-    it "requires one argument" do
-      lambda { Process.detach }.should raise_error(ArgumentError)
-    end
-
     it "returns a thread" do
       p1 = Process.fork { Process.exit! }
       Process.detach(p1).should be_kind_of(Thread)
@@ -25,8 +21,4 @@ describe "Process#detach" do
       end
     end
   end
-end
-
-describe "Process.detach" do
-  it "needs to be reviewed for spec completeness"
 end

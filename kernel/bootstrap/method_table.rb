@@ -97,25 +97,5 @@ module Rubinius
       self
     end
 
-    def filter_entries
-      raise LocalJumpError, "no block given" unless block_given?
-
-      out = []
-      i = 0
-      while i < @bins
-        if entry = @values.at(i)
-          while entry
-            if val = yield(entry)
-              out << val
-            end
-
-            entry = entry.next
-          end
-        end
-        i += 1
-      end
-
-      out
-    end
   end
 end

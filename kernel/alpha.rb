@@ -425,8 +425,8 @@ end
 
 class Module
   def method_table   ; @method_table ; end
-  def constants_table; @constants    ; end
-  def name           ; @module_name.to_s    ; end
+  def constant_table; @constant_table ; end
+  def name           ; @module_name.to_s ; end
 
   # Specialised allocator.
   #
@@ -623,6 +623,10 @@ end
 
 module Rubinius
 
+  class AccessVariable
+    attr_reader :name
+  end
+
   # Visibility handling for MethodTables.
   #
   # See kernel/bootstrap/methodtable.rb and
@@ -674,7 +678,7 @@ module Rubinius
     #
     def initialize(mod)
       @method_table = mod.method_table
-      @constants = mod.constants_table
+      @constant_table = mod.constant_table
       @module = mod
     end
 

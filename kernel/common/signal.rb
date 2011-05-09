@@ -1,5 +1,7 @@
 module Signal
-  Names = {"EXIT" => 0}
+  Names = {
+    "EXIT" => 0
+  }
 
   @threads = {}
   @handlers = {}

@@ -1,4 +1,3 @@
-object.rbc
 class.rbc
 binding.rbc
 proc.rbc
@@ -54,13 +53,11 @@ marshal.rbc
 math.rbc
 method.rbc
 method_table.rbc
-moment.rbc
 native_method.rbc
 nil.rbc
 objectspace.rbc
 string.rbc
 range.rbc
-rubinius.rbc
 struct.rbc
 process.rbc
 random.rbc
@@ -74,5 +71,4 @@ throw_catch.rbc
 time.rbc
 true.rbc
 variable_scope.rbc
-vm.rbc
 capi.rbc

@@ -40,6 +40,15 @@ describe "TCPServer.new" do
     addr[3].should == '0.0.0.0'
   end
 
+  it "binds to INADDR_ANY if the hostname is empty and the port is a string" do
+    @server = TCPServer.new('', SocketSpecs.port.to_s)
+    addr = @server.addr
+    addr[0].should == 'AF_INET'
+    addr[1].should == SocketSpecs.port
+    addr[2].should == '0.0.0.0'
+    addr[3].should == '0.0.0.0'
+  end
+
   it "coerces port to string, then determines port from that number or service name" do
     t = Object.new
     lambda { TCPServer.new(SocketSpecs.hostname, t) }.should raise_error(TypeError)

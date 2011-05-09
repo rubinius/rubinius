@@ -11,7 +11,6 @@ module Rubinius
       @requires     = []
       @evals        = []
       @script       = nil
-      @verbose_eval = false
       @debugging    = false
       @run_irb      = true
       @printed_version = false
@@ -35,9 +34,6 @@ module Rubinius
       @stage = "running Loader preamble"
 
       Object.const_set :ENV, EnvironmentVariables.new
-
-      # define a global "start time" to use for process calculation
-      $STARTUP_TIME = Time.now
 
       # set terminal width
       width = 80
@@ -217,6 +213,7 @@ containing the Rubinius standard library files.
       options.on "-c", "FILE", "Check the syntax of FILE" do |file|
         if File.exists?(file)
           mel = Rubinius::Melbourne.new file, 1, []
+
           begin
             mel.parse_file
           rescue SyntaxError => e
@@ -243,14 +240,6 @@ containing the Rubinius standard library files.
       options.on "-e", "CODE", "Compile and execute CODE" do |code|
         @run_irb = false
         $0 = "(eval)"
-        @evals << code
-      end
-
-      # Sexp not generated currently. --rue
-      options.on "-E", "CODE", "Compile, show bytecode and execute CODE" do |code|
-        @run_irb = false
-        $0 = "(eval)"
-        @verbose_eval = true
         @evals << code
       end
 
@@ -494,7 +483,7 @@ VM Options
       rescue Rubinius::InvalidRBC => e
         STDERR.puts "There was an error loading the compiler."
         STDERR.puts "It appears that your compiler is out of date with the VM."
-        STDERR.puts "\nPlease use 'rbx --rebuild-compiler' or 'rake [instal]' to"
+        STDERR.puts "\nPlease use 'rbx --rebuild-compiler' or 'rake [install]' to"
         STDERR.puts "bring the compiler back to date."
         exit 1
       end
@@ -555,11 +544,11 @@ VM Options
       if @input_loop
         while gets
           $F = $_.split if @input_loop_split
-          eval(@evals.join("\n"), TOPLEVEL_BINDING, "-e", 1)
+          eval @evals.join("\n"), TOPLEVEL_BINDING, "-e", 1
           puts $_ if @input_loop_print
         end
       else
-        eval(@evals.join("\n"), TOPLEVEL_BINDING, "-e", 1)
+        eval @evals.join("\n"), TOPLEVEL_BINDING, "-e", 1
       end
     end
 
@@ -623,7 +612,7 @@ VM Options
       @stage = "at_exit handler"
 
       begin
-        Signal.run_handler(Signal::Names["EXIT"])
+        Signal.run_handler Signal::Names["EXIT"]
       rescue SystemExit => e
         @exit_code = e.status
       end
@@ -665,18 +654,23 @@ VM Options
         STDERR.puts "\nERROR: the VM is exiting improperly"
         STDERR.puts "intended operation: #{reason.inspect}"
         STDERR.puts "associated value: #{thread_state[1].inspect}"
+
         destination = thread_state[2]
         method = destination.method
+
         STDERR.puts "destination scope:"
         STDERR.puts "  method: #{method.name} at #{method.file}:#{method.first_line}"
         STDERR.puts "  module: #{destination.module.name}"
         STDERR.puts "  block:  #{destination.block}" if destination.block
+
         if reason == :catch_throw
           STDERR.puts "throw destination: #{thread_state[4].inspect}"
         end
+
         if exception = thread_state[3]
           exception.render
         end
+
         @exit_code = 1
       end
 
@@ -767,5 +761,3 @@ VM Options
     end
   end
 end
-
-Rubinius::Loader.main

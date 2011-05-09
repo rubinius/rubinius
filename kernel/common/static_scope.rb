@@ -37,7 +37,7 @@ module Rubinius
     end
 
     def to_s
-      self.inspect
+      inspect
     end
 
     # Indicates if this is a toplevel/default scope
@@ -54,6 +54,7 @@ module Rubinius
       else
         ss = StaticScope.new @module, self
       end
+
       ss.current_module = mod
       return ss
     end
@@ -95,6 +96,17 @@ module Rubinius
       return "__unknown__.rb"
     end
 
+    def absolute_active_path
+      script = current_script
+      if script
+        if path = script.data_path
+          return path.dup
+        end
+      end
+
+      return nil
+    end
+
     def data_path
       script = current_script
       if script and script.main?
@@ -126,34 +138,6 @@ module Rubinius
       end
 
       return Object.const_defined?(name)
-    end
-
-    def const_path_defined?(path)
-      if path.prefix? "::"
-        return Object.const_path_defined?(path[2..-1])
-      end
-
-      parts = path.split("::")
-      top = parts.shift
-
-      scope = self
-
-      while scope
-        if top.to_s !~ /self/
-          mod = scope.module
-          Rubinius.privately do
-            mod = mod.recursive_const_get top, false
-          end
-        else
-          scope.module
-        end
-
-        return mod.const_path_defined?(parts.join("::")) if mod
-
-        scope = scope.parent
-      end
-
-      return Object.const_path_defined?(parts.join("::"))
     end
   end
 end

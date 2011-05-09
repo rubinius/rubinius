@@ -2,10 +2,6 @@ require File.expand_path('../../../spec_helper', __FILE__)
 
 describe "Process.groups" do
   platform_is_not :windows do
-    it "takes no arguments" do
-      lambda { Process.groups(1) }.should raise_error(ArgumentError)
-    end
-
     it "gets an Array of the gids of groups in the supplemental group access list" do
       groups = `id -G`.scan(/\d+/).map {|i| i.to_i}
 

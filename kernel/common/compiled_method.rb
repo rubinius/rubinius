@@ -240,14 +240,20 @@ module Rubinius
     #
     # @return [Fixnum] the address of the first instruction
     #                  OR nil if there is no ip for the given line
-    def first_ip_on_line(line, start=-1)
+    def first_ip_on_line(line, start=nil)
       i = 1
       total = @lines.size
+
       while i < total
         cur_line = @lines.at(i)
         if cur_line >= line
           ip = @lines.at(i-1)
-          return ip if ip > start
+
+          if !start or ip > start
+            # matched the definition line, return 0
+            return 0 if ip == -1
+            return ip
+          end
         end
 
         i += 2

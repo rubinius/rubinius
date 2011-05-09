@@ -4,7 +4,7 @@ require 'actor'
 describe "Actor.link" do
   it "sends an exit message to linked Actors" do
     master = Actor.current
-    chan = Channel.new
+    chan = Rubinius::Channel.new
 
     a = Actor.spawn do
       Actor.trap_exit = true

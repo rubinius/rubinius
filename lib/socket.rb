@@ -1119,6 +1119,11 @@ class TCPServer < TCPSocket
       host = nil
     end
 
+    if String === host and port.nil? then
+      port = Integer(host)
+      host = nil
+    end
+
     port = StringValue port unless port.kind_of? Fixnum
 
     @host = host
