@@ -73,7 +73,7 @@ Only those of you that've committed so far will get that one.
 ![Rubinius : I'm committed past committers sticker](http://asset.rubini.us/web/images/blog/rubinius_alumni_sticker.png)
 
 Come find us to get free Rubinius shirts and stickers. And stay tuned to
-[the Rubinius blog](http://rubinius.com/blog) and to the Twitter account :
+[the Rubinius blog](http://rubini.us/blog) and to the Twitter account :
 [@rubinius](http://twitter.com/rubinius). We have lots more in store.
 
 &mdash; Use Ruby&trade;
