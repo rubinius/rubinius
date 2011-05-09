@@ -12,6 +12,7 @@ compactlookuptable.rbc
 compiled_method.rbc
 configuration.rbc
 dir.rbc
+encoding.rbc
 exception.rbc
 executable.rbc
 false.rbc

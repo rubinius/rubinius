@@ -17,6 +17,8 @@ VM_EXE = RUBY_PLATFORM =~ /mingw|mswin/ ? 'vm/vm.exe' : 'vm/vm'
 ############################################################
 # Files, Flags, & Constants
 
+encoding_database = "vm/gen/encoding_database.cpp"
+
 ENV.delete 'CDPATH' # confuses llvm_config
 
 INSN_GEN    = %w[ vm/gen/instruction_names.cpp
@@ -37,7 +39,8 @@ TYPE_GEN    = %w[ vm/gen/includes.hpp
                   vm/gen/primitives_declare.hpp
                   vm/gen/primitives_glue.gen.cpp ]
 
-GENERATED = %w[ vm/gen/revision.h ] + TYPE_GEN + INSN_GEN
+GENERATED = %W[ vm/gen/revision.h
+                #{encoding_database} ] + TYPE_GEN + INSN_GEN
 
 # Files are in order based on dependencies. For example,
 # CompactLookupTable inherits from Tuple, so the header
@@ -96,6 +99,7 @@ field_extract_headers = %w[
   vm/builtin/call_unit.hpp
   vm/builtin/call_unit_adapter.hpp
   vm/builtin/cache.hpp
+  vm/builtin/encoding.hpp
 ]
 
 ############################################################
@@ -168,6 +172,11 @@ task :run_field_extract do
 end
 
 files TYPE_GEN, field_extract_headers + %w[vm/codegen/field_extract.rb] + [:run_field_extract] do
+end
+
+file encoding_database => 'vm/codegen/encoding_extract.rb' do |t|
+  dir = File.expand_path "../vm/external_libs/onig"
+  ruby 'vm/codegen/encoding_extract.rb', dir, t.name
 end
 
 task 'vm/gen/revision.h' do |t|

@@ -1,25 +1,28 @@
+// TODO: resolve after importing Oniguruma from MRI
+#include <stddef.h>
+#include "capi/include/oniguruma.h"
+
+#include "builtin/encoding.hpp"
+#include "builtin/nativemethod.hpp"
+
 #include "capi/include/ruby.h"
 #include "capi/include/encoding.h"
 
+using namespace rubinius;
+using namespace rubinius::capi;
+
 extern "C" {
+
   rb_encoding* rb_utf8_encoding(void) {
-    /* TODO
-    if(!enc_table.list) {
-      rb_enc_init();
-    }
-    return enc_table.list[ENCINDEX_UTF_8].enc;
-    */
-    return 0;
+    NativeMethodEnvironment* env = NativeMethodEnvironment::get();
+
+    return Encoding::utf8_encoding(env->state())->get_encoding();
   }
 
   rb_encoding* rb_usascii_encoding(void) {
-    /* TODO
-    if (!enc_table.list) {
-      rb_enc_init();
-    }
-    return enc_table.list[ENCINDEX_US_ASCII].enc;
-    */
-    return 0;
+    NativeMethodEnvironment* env = NativeMethodEnvironment::get();
+
+    return Encoding::ascii_encoding(env->state())->get_encoding();
   }
 
   int rb_enc_precise_mbclen(const char* p, const char* e, rb_encoding *enc) {

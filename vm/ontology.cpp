@@ -15,6 +15,7 @@
 #include "builtin/channel.hpp"
 #include "builtin/data.hpp"
 #include "builtin/dir.hpp"
+#include "builtin/encoding.hpp"
 #include "builtin/executable.hpp"
 #include "builtin/fixnum.hpp"
 #include "builtin/float.hpp"
@@ -255,6 +256,7 @@ namespace rubinius {
     ByteArray::init(this);
     CharArray::init(this);
     String::init(this);
+    Encoding::init(this);
     kcode::init(this);
     Executable::init(this);
     CompiledMethod::init(this);

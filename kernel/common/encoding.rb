@@ -14,7 +14,12 @@ class Encoding
   end
 
   def self.aliases
-    {}
+    aliases = {}
+    Rubinius::Encoding::SymbolMap.each do |n, e|
+      aliases[n] = e.name unless n.to_s == e.name
+    end
+
+    aliases
   end
 
   def self.compatible?(str1, str2)
@@ -34,24 +39,32 @@ class Encoding
   end
 
   def self.find(name)
+    key = StringValue(name).upcase
+
+    entry = Rubinius::Encoding::SymbolMap.find { |n, e| n.to_s.upcase == key }
+    return entry.last if entry
+
+    raise ArgumentError, "unknown encoding name - #{name}"
   end
 
   def self.list
-    []
+    list = []
+    Rubinius::Encoding::SymbolMap.each do |n, e|
+      list << e if n.to_s == e.name
+    end
+
+    list
   end
 
   def self.locale_charmap
   end
 
   def self.name_list
-    []
+    Rubinius::Encoding::SymbolMap.keys.map { |name| name.to_s }
   end
 
-  def dummy?
-    false
-  end
-
-  def name
+  def inspect
+    "#<Encoding:#{name}>"
   end
 
   def names
