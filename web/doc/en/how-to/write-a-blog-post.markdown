@@ -42,9 +42,9 @@ Run jekyll to compile the website, including your post.
 
 Create a commit of all the changes in the `web/` directory.
 
-   cd ../
-   git add web/
-   git commit -m "Wrote a blog post on ....."
+    cd ../
+    git add web/
+    git commit -m "Wrote a blog post on ....."
 
 Submit a patch, pull request, or if you have commit rights, push the commit to
 the master branch.
