@@ -31,11 +31,16 @@ module Rubinius
     # files. See CodeLoader.require for the rest of Kernel#require
     # functionality.
     def require
-      return false unless resolve_require_path
-      return false if CodeLoader.loading? @load_path
+      Rubinius.synchronize(self) do
+        return false unless resolve_require_path
+        return false if CodeLoader.loading? @load_path
+
+        if @type == :ruby
+          CodeLoader.loading @load_path
+        end
+      end
 
       if @type == :ruby
-        CodeLoader.loading @load_path
         load_file
       else
         load_library

@@ -127,6 +127,15 @@ module Rubinius
     raise PrimitiveFailure, "Rubinius.unlock failed"
   end
 
+  def self.synchronize(obj)
+    lock obj
+    begin
+      yield
+    ensure
+      unlock obj
+    end
+  end
+
   def self.memory_barrier
     Ruby.primitive :vm_memory_barrier
     raise PrimitiveFailure, "Rubinius.memory_barrier failed"
