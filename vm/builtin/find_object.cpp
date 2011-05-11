@@ -76,6 +76,9 @@ namespace rubinius {
     {}
 
     virtual bool perform(STATE, Object* obj) {
+      // A really crappy restriction, but MRI does this and people
+      // depend on it.
+      if(kind_of<SingletonClass>(obj)) return false;
       return obj->kind_of_p(state, mod_);
     }
   };
