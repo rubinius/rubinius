@@ -121,9 +121,9 @@ namespace :jit do
 
       classes.each do |name, fields|
         f.puts "namespace #{name.gsub('::', '_')} {"
-        fields.each_with_index do |name, idx|
-          if name
-            f.puts "  const static int #{name} = #{idx};"
+        fields.each_with_index do |n, idx|
+          if n
+            f.puts "  const static int #{n} = #{idx};"
           end
         end
         f.puts "}"
