@@ -16,11 +16,13 @@ extern OnigEncodingType OnigEncodingUTF8;
 namespace rubinius {
   void Encoding::init(STATE) {
     onig_init();  // in regexp.cpp too, but idempotent.
-    GO(encoding).set(state->new_class("Encoding", G(object), 0));
-    G(encoding)->set_object_type(state, EncodingType);
 
     Class* enc = state->new_class_under("Encoding", G(rubinius));
     enc->name(state, state->symbol("Rubinius::Encoding"));
+
+    GO(encoding).set(state->new_class_under("Encoding", enc));
+    G(encoding)->set_object_type(state, EncodingType);
+    G(encoding)->name(state, state->symbol("Encoding"));
 
     enc->set_const(state, "SymbolMap", LookupTable::create(state));
     enc->set_const(state, "IndexMap", LookupTable::create(state));
