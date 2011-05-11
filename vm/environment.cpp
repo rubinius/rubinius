@@ -42,14 +42,15 @@
 #include <fstream>
 #include <sstream>
 #include <string>
-#ifndef RBX_WINDOWS
-#include <sys/utsname.h>
-#endif
+#ifdef RBX_WINDOWS
 #include "windows_compat.h"
+#else
+#include <sys/utsname.h>
+#include <dlfcn.h>
+#endif
 #include <fcntl.h>
 #include <unistd.h>
 #include <sys/param.h>
-#include <dlfcn.h>
 
 namespace rubinius {
 

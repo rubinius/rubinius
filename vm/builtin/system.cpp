@@ -9,15 +9,16 @@
 
 #include "vm/config.h"
 
-#ifndef RBX_WINDOWS
+#ifdef RBX_WINDOWS
+#include "windows_compat.h"
+#else
 #include <sys/resource.h>
 #include <sys/wait.h>
 #include <pwd.h>
-#endif
-#include <unistd.h>
-
-
 #include <dlfcn.h>
+#endif
+
+#include <unistd.h>
 
 #include "vm/call_frame.hpp"
 #include "vm/helpers.hpp"
