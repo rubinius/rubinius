@@ -133,7 +133,7 @@ Daedalus.blueprint do |i|
     l.cflags = ["-Ivm/external_libs/onig"]
     l.objects = [l.file(".libs/libonig.a")]
     l.to_build do |x|
-      x.command "./configure" unless File.exists?("Makefile")
+      x.command "sh -c ./configure" unless File.exists?("Makefile")
       x.command make
     end
   end
@@ -150,7 +150,7 @@ Daedalus.blueprint do |i|
     l.cflags = ["-Ivm/external_libs/libffi/include"]
     l.objects = [l.file(".libs/libffi.a")]
     l.to_build do |x|
-      x.command "./configure" unless File.exists?("Makefile")
+      x.command "sh -c ./configure" unless File.exists?("Makefile")
       x.command make
     end
   end
@@ -160,9 +160,8 @@ Daedalus.blueprint do |i|
     l.objects = [l.file("libudis86/.libs/libudis86.a")]
     l.to_build do |x|
       unless File.exists?("Makefile") and File.exists?("libudis86/Makefile")
-        x.command "./configure"
+        x.command "sh -c ./configure"
       end
-
       x.command make
     end
   end
@@ -179,7 +178,7 @@ Daedalus.blueprint do |i|
       l.cflags = ["-Ivm/external_libs/winpthreads/include"]
       l.objects = [l.file("libpthread.a")]
       l.to_build do |x|
-        x.command "./configure" unless File.exists?("Makefile")
+        x.command "sh -c ./configure" unless File.exists?("Makefile")
         x.command make
       end
     end
