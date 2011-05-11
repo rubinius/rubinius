@@ -50,9 +50,12 @@ extern "C" {
         GCIndependent guard(env);
         ret = select(max, read, write, except, tvp);
       }
+
+      bool ok = env->state()->check_async(env->current_call_frame());
+
       env->state()->shared.enter_capi(env->state());
 
-      if(!env->state()->check_async(env->current_call_frame())) {
+      if(!ok) {
         // Ok, there was an exception raised by an async event. We need
         // to unwind through the caller back the entrance to the native
         // method.
