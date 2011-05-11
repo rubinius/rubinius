@@ -36,7 +36,7 @@ module Rubinius
     ##
     # Writes the CompiledFile +cm+ to +file+.
     def self.dump(cm, file)
-      File.open(file, "w") do |f|
+      File.open(file, "wb") do |f|
         new("!RBIX", Rubinius::Signature, "x").encode_to(f, cm)
       end
     rescue SystemCallError

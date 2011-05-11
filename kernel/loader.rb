@@ -680,7 +680,7 @@ VM Options
         path = "#{ENV['HOME']}/.rubinius_last_error"
       end
 
-      File.open(path, "w") do |f|
+      File.open(path, "wb") do |f|
         f.puts "Rubinius Crash Report #rbxcrashreport"
         f.puts ""
         f.puts "[[Exception]]"
