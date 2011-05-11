@@ -2,7 +2,7 @@
 #define MEL_ENCODING_COMPAT_HPP
 
 #ifdef HAVE_RUBY_ENCODING_H
-#include "encoding.h"
+#include "ruby/encoding.h"
 #else
 
 typedef struct {
