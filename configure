@@ -106,7 +106,7 @@ class Configure
     @libversion = "2.0"
     @version = "#{@libversion}.0dev"
     @release_date = "yyyy-mm-dd"
-    @config_version = 127
+    @config_version = 128
 
     # TODO: add conditionals for platforms
     if RbConfig::CONFIG["build_os"] =~ /darwin/
@@ -968,6 +968,10 @@ end
 
       if @tr1_hash
         f.puts "#define RBX_HAVE_TR1_HASH 1"
+      end
+
+      if @windows
+        f.puts "#define RBX_WINDOWS 1"
       end
     end
 
