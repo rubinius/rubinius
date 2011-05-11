@@ -36,6 +36,11 @@ describe "Module#const_defined?" do
     ConstantSpecs::ContainerA.const_defined?("ChildA").should == true
   end
 
+  it "returns true for included constants" do
+    ConstantSpecs::ContainerC.should have_constant("ClassHA")
+    ConstantSpecs::ContainerC.const_defined?(:ClassHA).should be_true
+  end
+
   ruby_version_is ""..."1.9" do
     it "returns false if the constant is not defined in the receiver" do
       ConstantSpecs::ContainerA::ChildA.const_defined?(:CS_CONST4).should == false

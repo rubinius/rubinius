@@ -184,6 +184,16 @@ module ConstantSpecs
   module ModuleG
   end
 
+  # Included in ContainerC
+  module ModuleH
+    class ClassHA
+    end
+  end
+
+  class ContainerC
+    include ModuleH
+  end
+
   # The following classes/modules have the same structure as the ones above
   # but the constants are set as the specs are run.
 
