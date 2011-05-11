@@ -63,6 +63,7 @@ static char *mel_sourcefile;
 #define ruby_sourceline mel_sourceline
 #define ruby_sourcefile mel_sourcefile
 
+static void parser_prepare(rb_parser_state*);
 static int parser_yyerror(rb_parser_state*, const char *);
 #define yy_error(msg)   parser_yyerror(parser_state, msg)
 #define yyerror         parser_yyerror
@@ -3054,6 +3055,7 @@ yycompile(rb_parser_state* parser_state, char *f, int line)
   end_seen = 0;
   ruby_sourcefile = f;
   command_start = TRUE;
+  parser_prepare(parser_state);
   n = yyparse(parser_state);
   ruby_debug_lines = 0;
   compile_for_eval = 0;
@@ -4135,6 +4137,33 @@ parse_comment(rb_parser_state* parser_state) {
   if(str[0] == '-' && str[1] == '*' && str[2] == '-') return str;
 
   return NULL;
+}
+
+static void
+parser_prepare(rb_parser_state* parser_state)
+{
+  int c = nextc();
+  switch (c) {
+  case '#':
+    if (peek('!')) parser_state->has_shebang = 1;
+    break;
+  case 0xef:		/* UTF-8 BOM marker */
+    if (lex_pend - lex_p >= 2 &&
+        (unsigned char)lex_p[0] == 0xbb &&
+        (unsigned char)lex_p[1] == 0xbf) {
+      parser_state->enc = rb_utf8_encoding();
+      lex_p += 2;
+      lex_pbeg = lex_p;
+      return;
+    }
+    break;
+  case EOF:
+    return;
+  }
+  pushback(c);
+  // TODO: lex_lastline into a String
+  // parser_state->enc = rb_enc_get(lex_lastline);
+  parser_state->enc = rb_usascii_encoding();
 }
 
 #define IS_ARG()        (lex_state == EXPR_ARG \

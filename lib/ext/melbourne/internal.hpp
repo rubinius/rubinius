@@ -137,6 +137,8 @@ namespace melbourne {
     std::list<StartPosition>* start_lines;
 
 #ifdef RBX_GRAMMAR_19
+    bool has_shebang;
+
     rb_encoding *enc;
     rb_encoding *utf8;
 #endif
