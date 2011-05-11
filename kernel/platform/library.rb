@@ -22,7 +22,7 @@ module FFI
     when :darwin
       LIBC = "libc.dylib"
     else
-      LIBC = "libc#{Rubinius::LIBSUFFIX}"
+      LIBC = "libc#{Rubinius::LIBSUFFIX}.6"
     end
 
     # Set which library or libraries +attach_function+ should
