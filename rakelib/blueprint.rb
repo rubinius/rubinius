@@ -7,6 +7,8 @@ Daedalus.blueprint do |i|
   gcc.cflags << "-DRBX_PROFILER"
   gcc.cflags << "-D__STDC_LIMIT_MACROS -D__STDC_CONSTANT_MACROS"
 
+  gcc.cflags << Rubinius::BUILD_CONFIG[:user_cflags]
+
   if ENV['DEV']
     gcc.cflags << "-O0"
   else
@@ -157,7 +159,10 @@ Daedalus.blueprint do |i|
     l.cflags = ["-Ivm/external_libs/udis86"]
     l.objects = [l.file("libudis86/.libs/libudis86.a")]
     l.to_build do |x|
-      x.command "./configure" unless File.exists?("Makefile")
+      unless File.exists?("Makefile") and File.exists?("libudis86/Makefile")
+        x.command "./configure"
+      end
+
       x.command make
     end
   end

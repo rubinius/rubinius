@@ -107,6 +107,11 @@ module Rubinius
         # Re-raise the exception
         g.reraise
 
+        # There is no mapping to the original source here, so
+        # reflect that in the lines table to try and make it
+        # more accurate.
+        g.set_line 0
+
         ok.set!
 
         if check_break
@@ -292,6 +297,8 @@ module Rubinius
             g.retry = outer_retry
           end
 
+          g.set_line 0
+
           # We jump here if an exception has occured in the body
           ex.set!
 
@@ -330,6 +337,7 @@ module Rubinius
             @else.bytecode(g)
           end
 
+          g.set_line 0
           done.set!
 
           g.push_stack_local outer_exc_state

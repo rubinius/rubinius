@@ -187,7 +187,6 @@ public:
 
   void test_SingleBlockAllocator_allocate_indicates_failure() {
     immix::Block& block = gc->get_block();
-    memory::Address top  = block.address();
 
     for(int i = 0; i < immix::cLineTableSize; i++) {
       block.mark_line(i);

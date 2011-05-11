@@ -400,19 +400,36 @@ class Array
 
       raise ArgumentError, "Count cannot be negative" if multiplier < 0
 
+      case @total
+      when 0
+        # Edge case
+        out = self.class.allocate
+        out.taint if tainted?
+        return out
+      when 1
+        # Easy case
+        tuple = Rubinius::Tuple.pattern multiplier, at(0)
+        out = self.class.allocate
+        out.tuple = tuple
+        out.total = multiplier
+        out.taint if tainted?
+        return out
+      end
+
       new_total = multiplier * @total
       new_tuple = Rubinius::Tuple.new(new_total)
 
       out = self.class.allocate
       out.tuple = new_tuple
       out.total = new_total
-      out.taint if self.tainted? && multiplier > 0
+      out.taint if tainted?
 
       offset = 0
       while offset < new_total
         new_tuple.copy_from @tuple, @start, @total, offset
         offset += @total
       end
+
       out
     end
   end
@@ -481,10 +498,18 @@ class Array
     return false unless size == other.size
 
     Thread.detect_recursion self, other do
-      i = 0
-      each do |x|
-        return false unless x == other[i]
+      md = @tuple
+      od = other.tuple
+
+      i = @start
+      j = other.start
+
+      total = i + @total
+
+      while i < total
+        return false unless md[i] == od[j]
         i += 1
+        j += 1
       end
     end
 
@@ -1259,7 +1284,15 @@ class Array
       perm = Array.new(num)
       used = Array.new(@total, false)
 
-      __permute__(num, perm, 0, used, &block)
+      if block
+        # offensive (both definitions) copy.
+        offensive = dup
+        Rubinius.privately do
+          offensive.__permute__(num, perm, 0, used, &block)
+        end
+      else
+        __permute__(num, perm, 0, used, &block)
+      end
     end
 
     self

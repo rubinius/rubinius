@@ -23,7 +23,7 @@ class Autoload
   def call(honor_require=false)
     # Remove the autoload object from the constant table it was in, so
     # we don't recurse back into ourself.
-    scope.constants_table.delete @name
+    scope.constant_table.delete @name
     Rubinius.inc_global_serial
 
     worked = Rubinius::CodeLoader.require @path

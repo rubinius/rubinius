@@ -26,5 +26,5 @@ if TARGET_WINDOWS
 libudis86_la_LDFLAGS=-no-undefined -version-info 0:0:0
 endif
 
-itab.c itab.h: ../docs/x86optable.xml opgen.py
+regen_ops:
 	python ./opgen.py
