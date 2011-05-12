@@ -1,14 +1,15 @@
 ---
-layout: doc_en
-title: Garbage Collector
-previous: JIT Compiler
+layout: doc_pt_br
+title: Coletor de Lixo
+previous: Compilador JIT
 previous_url: jit
-next: Nursery
+next: Berçário
 next_url: garbage-collector/nursery
 review: true
+translated: true
 ---
 
-1. [Nursery](/doc/en/garbage-collector/nursery/)
-1. [Young Generation](/doc/en/garbage-collector/young-generation/)
-1. [Mature Generation](/doc/en/garbage-collector/mature-generation/)
-1. [Large Objects](/doc/en/garbage-collector/large-objects/)
+1. [Berçário](/doc/en/garbage-collector/nursery/)
+1. [Geração Jovem](/doc/en/garbage-collector/young-generation/)
+1. [Geração Madura](/doc/en/garbage-collector/mature-generation/)
+1. [Objetos Grandes](/doc/en/garbage-collector/large-objects/)

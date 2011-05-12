@@ -1,9 +1,9 @@
 ---
 layout: doc_pt_br
-title: Tools
-previous: Rubinius Systems - C-API
+title: Ferramentas
+previous: Sistema do Rubinius - C-API
 previous_url: systems/c-api
-next: Debugger
+next: Depurador
 next_url: tools/debugger
 review: true
 translated: true

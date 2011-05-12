@@ -1,30 +1,28 @@
 ---
-layout: doc_en
+layout: doc_pt_br
 title: Specs
-previous: Ruby - Global Variables
+previous: Ruby - Variáveis Globais
 previous_url: ruby/global-variables
 next: RubySpec
 next_url: specs/rubyspec
+review: true
+translated: true
 ---
 
-The Rubinius project generally uses TDD/BDD-style executable specifications to
-drive development. The Rubinius 'spec' directory is conceptually divided into
-two parts:
+O projeto Rubinius usa especificações executáveis no estilo TDD/BDD para
+impulsionar o desenvolvimento. Diretório 'spec' é conceitualmente dividida
+em duas partes:
 
-  1. All the files under './spec/ruby' that describe the behavior of MatzRuby.
-  2. And all the other files under the './spec' directory that describe the
-     behavior of Rubinius.
+  1. Todos os arquivos em './spec/ruby' descrevem o comportamento de MatzRuby.
+  2. E todos os outros arquivos dentro do diretório './spec' descrevem o comportamento
+     de Rubinius.
 
-The specs at ./spec/ruby are a copy of RubySpec at a particular revision.
-These are regularly imported from the RubySpec project and failing specs are
-tagged so that the CI process always runs a known good set of specs. This
-enables easily confirming that changes to Rubinius code do not cause
-regressions.
+The specs at ./spec/ruby are a copy of RubySpec at a particular revision. These are regularly imported from the RubySpec project and failing specs are tagged so that the CI process always runs a known good set of specs. This enables easily confirming that changes to Rubinius code do not cause regressions.
 
-Documentation about the organization of specs and guidelines for writing specs
-can be found at the [RubySpec project](http://rubyspec.org/).
+Pode encontrar mais informações sobre a organização das specs 
+e os guias no [Projeto RubySpec](http://rubyspec.org/).
 
-Use the following workflow when adding specs and code to Rubinius:
+Use o seguinte workflow ao adicionar specs e código no Rubinius:
 
   1. Write failing specs for some aspect of Ruby behavior. Commit the specs in
      a separate commit to the appropriate files under ./spec/ruby.

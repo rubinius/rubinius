@@ -1,7 +1,8 @@
 ---
-layout: doc_en
-title: Index of Terms
-previous: Appendix B - Reading List
+layout: doc_pt_br
+title: Índice de Termos
+previous: Apêndice B - Lista de Leitura
 previous_url: appendix-b-reading-list
 review: true
+translated: true
 ---

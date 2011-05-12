@@ -1,9 +1,9 @@
 ---
 layout: doc_pt_br
-title: Rubinius Systems
-previous: Garbage Collector - Large Objects
+title: Sistema do Rubinius
+previous: Coletor de Lixo - Objetos Grandes
 previous_url: garbage-collector/large-objects
-next: Primitives
+next: Operações Primitivas
 next_url: systems/primitives
 review: true
 translated: true
