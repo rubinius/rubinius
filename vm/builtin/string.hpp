@@ -182,6 +182,9 @@ namespace rubinius {
     // Ruby.primitive :string_find_character
     String* find_character(STATE, Fixnum* offset);
 
+    // Ruby.primitive :string_awk_split
+    Array* awk_split(STATE, Fixnum* limit);
+
     // Ruby.primitive :string_unpack
     Array* unpack(STATE, String *directives);
 

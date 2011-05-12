@@ -7,6 +7,7 @@
 #include "builtin/float.hpp"
 #include "builtin/integer.hpp"
 #include "builtin/tuple.hpp"
+#include "builtin/array.hpp"
 
 #include "vm.hpp"
 #include "object_utils.hpp"
@@ -1114,6 +1115,64 @@ return_value:
     if(RTEST(tainted_p(state))) output->taint(state);
 
     return output;
+  }
+
+  Array* String::awk_split(STATE, Fixnum* f_limit) {
+    native_int limit = f_limit->to_native();
+
+    native_int sz = size();
+    uint8_t* start = byte_address();
+    int end = 0;
+    int begin = 0;
+
+    native_int i = 0;
+    if(limit > 0) i = 1;
+
+    bool skip = true;
+
+    Array* ary = Array::create(state, 3);
+
+    Class* out_class = class_object(state);
+    int taint = (is_tainted_p() ? 1 : 0);
+
+    // Algorithm ported from MRI
+
+    for(uint8_t* ptr = start; ptr < start+sz; ptr++) {
+      if(skip) {
+        if(ISSPACE(*ptr)) {
+          begin++;
+        } else {
+          end = begin + 1;
+          skip = false;
+          if(limit > 0 && limit <= i) break;
+        }
+      } else {
+        if(ISSPACE(*ptr)) {
+          String* str = String::create(state, (const char*)start+begin, end-begin);
+          str->klass(state, out_class);
+          str->set_tainted(taint);
+
+
+          ary->append(state, str);
+          skip = true;
+          begin = end + 1;
+          if(limit > 0) i++;
+        } else {
+          end++;
+        }
+      }
+    }
+
+    int fin_sz = sz-begin;
+
+    if(fin_sz > 0 || (limit > 0 && i <= limit) || limit < 0) {
+      String* str = String::create(state, (const char*)start+begin, fin_sz);
+      str->klass(state, out_class);
+      str->set_tainted(taint);
+
+      ary->append(state, str);
+    }
+    return ary;
   }
 
   void String::Info::show(STATE, Object* self, int level) {

@@ -1666,7 +1666,7 @@ class String
   #   "1,2,,3,4,,".split(',')         #=> ["1", "2", "", "3", "4"]
   #   "1,2,,3,4,,".split(',', 4)      #=> ["1", "2", "", "3,4,,"]
   #   "1,2,,3,4,,".split(',', -4)     #=> ["1", "2", "", "3", "4", "", ""]
-  def split(pattern=nil, limit = undefined)
+  def split(pattern=nil, limit=undefined)
 
     # Odd edge case
     return [] if empty?
@@ -1690,8 +1690,15 @@ class String
     pattern ||= ($; || " ")
 
     if pattern == ' '
-      spaces = true
-      pattern = /\s+/
+      if limited
+        lim = limit
+      elsif tail_empty
+        lim = -1
+      else
+        lim = 0
+      end
+
+      return Rubinius.invoke_primitive :string_awk_split, self, lim
     elsif pattern.nil?
       pattern = /\s+/
     elsif pattern.kind_of?(Regexp)
@@ -1766,7 +1773,7 @@ class String
 
       collapsed = match.collapsing?
 
-      unless (collapsed || spaces) && (match.begin(0) == 0)
+      unless collapsed && (match.begin(0) == 0)
         ret << match.pre_match_from(last_match ? last_match.end(0) : 0)
         ret.push(*match.captures.compact)
       end
@@ -1792,13 +1799,6 @@ class String
     if !ret.empty? and (limit.equal?(undefined) || limit == 0)
       while s = ret.last and s.empty?
         ret.pop
-      end
-    end
-
-    # Trim from front
-    if !ret.empty? and spaces
-      while s = ret.first and s.empty?
-        ret.shift
       end
     end
 
