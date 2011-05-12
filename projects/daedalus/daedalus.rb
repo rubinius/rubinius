@@ -243,7 +243,9 @@ module Daedalus
 
       if File.exists?(data_path)
         begin
-          @data = Marshal.load(File.read(data_path))
+          File.open data_path, "rb" do |f|
+            @data = Marshal.load(f.read)
+          end
         rescue
           STDERR.puts "WARNING: Path#initialize: load '#{data_path}' failed"
           @data = {}
@@ -436,7 +438,9 @@ module Daedalus
 
       if File.exists?(@data_file)
         begin
-          @data = Marshal.load(File.read(@data_file))
+          File.open @data_file, "rb" do |f|
+            @data = Marshal.load(f.read)
+          end
         rescue
           STDERR.puts "WARNING: ExternalLibrary#to_build: load '#{data_path}' failed"
           @data = {}
