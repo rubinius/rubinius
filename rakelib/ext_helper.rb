@@ -97,7 +97,10 @@ def add_mri_capi
   $LIBS << " #{DEFAULT["LIBS"]}"
   $LIBS << " #{DEFAULT["DLDLIBS"]}"
 
-  add_ldflag DEFAULT["LDSHARED"].split[1..-1].join(' ')
+  unless RUBY_PLATFORM =~ /mingw/
+    add_ldflag DEFAULT["LDSHARED"].split[1..-1].join(' ')
+  end
+
   add_ldflag DEFAULT["LDFLAGS"]
   rubyhdrdir = DEFAULT["rubyhdrdir"]
   if RUBY_VERSION =~ /\A1\.9\./
@@ -131,7 +134,7 @@ end
 # (Adapted from EventMachine. Thank you EventMachine and tmm1 !)
 #
 case RUBY_PLATFORM
-when /mswin32/, /mingw32/, /bccwin32/
+when /mswin/, /mingw/, /bccwin32/
   # TODO: discovery helpers
   #check_heads(%w[windows.h winsock.h], true)
   #check_libs(%w[kernel32 rpcrt4 gdi32], true)
