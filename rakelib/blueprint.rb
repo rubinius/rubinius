@@ -170,8 +170,15 @@ Daedalus.blueprint do |i|
     l.cflags = ["-Ivm/external_libs/zlib"]
     l.objects = [l.file("libz.a")]
     l.to_build do |x|
-      x.command "sh -c ./configure" unless File.exists?("Makefile")
-      x.command make
+      unless File.exists?("Makefile") and File.exists?("zconf.h")
+        x.command "sh -c ./configure"
+      end
+
+      if Rubinius::BUILD_CONFIG[:windows]
+        x.command "make -f win32/Makefile.gcc"
+      else
+        x.command make
+      end
     end
   end
 

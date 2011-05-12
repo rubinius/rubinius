@@ -124,8 +124,8 @@ if test "$gcc" -eq 1 && ($cc -c $cflags $test.c) 2>/dev/null; then
   MINGW*|mingw*)
 # temporary bypass
         rm -f $test.[co] $test $test$shared_ext
-        echo "Please use win32/Makefile.gcc instead."
-        exit 1
+        # echo "Please use win32/Makefile.gcc instead."
+        # exit 1
         LDSHARED=${LDSHARED-"$cc -shared"}
         LDSHAREDLIBC=""
         EXE='.exe' ;;
