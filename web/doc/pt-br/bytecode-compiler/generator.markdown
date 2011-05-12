@@ -1,5 +1,5 @@
 ---
-layout: doc_en
+layout: doc_pt_br
 title: Generator
 previous: Transformations
 previous_url: bytecode-compiler/transformations
@@ -17,7 +17,7 @@ object.
 
 A `Generator` provides a pure-Ruby DSL for generating Rubinius bytecode.
 At its core, the `Generator` provides methods that map directly to
-[Rubinius Instructions](/doc/en/virtual-machine/instructions/). For instance,
+[Rubinius Instructions](/doc/pt-br/virtual-machine/instructions/). For instance,
 to create an instruction to push a nil onto the stack, you could call
 the method `push_nil` on a `Generator` instance.
 
@@ -112,7 +112,7 @@ AST, it invokes the next stage of the compiler, the Encoder stage.
 
 * *lib/compiler/generator_methods.rb*: A generated file containing Ruby
   wrappers around the Rubinius instructions. These methods map directly
-  onto the [Rubinius Instructions](/doc/en/virtual-machine/instructions/)
+  onto the [Rubinius Instructions](/doc/pt-br/virtual-machine/instructions/)
 * *lib/compiler/generator.rb*: The definition of the `Generator` object.
   This class mixes in the raw generator methods, and defines a number of
   higher level APIs for generating common bytecode patterns.
@@ -128,4 +128,4 @@ provided by the default `Generator` implementation.
 You can also customize which generator class is passed in. To learn
 more about customizing individual compiler stages or the compiler
 pipeline, please read [Customizing the Compiler
-Pipeline](/doc/en/bytecode-compiler/customization/).
+Pipeline](/doc/pt-br/bytecode-compiler/customization/).

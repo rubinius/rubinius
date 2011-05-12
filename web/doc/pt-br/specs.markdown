@@ -6,7 +6,6 @@ previous_url: ruby/global-variables
 next: RubySpec
 next_url: specs/rubyspec
 review: true
-translated: true
 ---
 
 O projeto Rubinius usa especificações executáveis no estilo TDD/BDD para

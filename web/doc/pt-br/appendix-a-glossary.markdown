@@ -1,5 +1,5 @@
 ---
-layout: doc_en
+layout: doc_pt_br
 title: Appendix A - Glossary
 previous: How-To - Translate Documentation
 previous_url: how-to/translate-documentation

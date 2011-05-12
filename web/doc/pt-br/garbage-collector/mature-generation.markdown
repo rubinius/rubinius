@@ -1,5 +1,5 @@
 ---
-layout: doc_en
+layout: doc_pt_br
 title: Mature Generation
 previous: Young Generation
 previous_url: garbage-collector/young-generation

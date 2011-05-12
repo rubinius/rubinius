@@ -1,5 +1,5 @@
 ---
-layout: doc_en
+layout: doc_pt_br
 title: Bytecode Compiler
 previous: Virtual Machine - Custom Dispatch Logic
 previous_url: virtual-machine/custom-dispatch-logic
@@ -25,12 +25,12 @@ stages, as well as their inputs and outputs, are illustrated below.
   <img src="/images/compilation_process.png" alt="Compilation process" />
 </div>
 
-1. [Parser Stage](/doc/en/bytecode-compiler/parser/)
-1. [AST](/doc/en/bytecode-compiler/ast/)
-1. [Generator Stage](/doc/en/bytecode-compiler/generator/)
-1. [Encoder Stage](/doc/en/bytecode-compiler/encoder/)
-1. [Packager Stage](/doc/en/bytecode-compiler/packager/)
-1. [Writer Stage](/doc/en/bytecode-compiler/writer/)
+1. [Parser Stage](/doc/pt-br/bytecode-compiler/parser/)
+1. [AST](/doc/pt-br/bytecode-compiler/ast/)
+1. [Generator Stage](/doc/pt-br/bytecode-compiler/generator/)
+1. [Encoder Stage](/doc/pt-br/bytecode-compiler/encoder/)
+1. [Packager Stage](/doc/pt-br/bytecode-compiler/packager/)
+1. [Writer Stage](/doc/pt-br/bytecode-compiler/writer/)
 1. Printers
-1. [Transformations](/doc/en/bytecode-compiler/transformations/)
-1. [Customizing the Pipeline](/doc/en/bytecode-compiler/customization/)
+1. [Transformations](/doc/pt-br/bytecode-compiler/transformations/)
+1. [Customizing the Pipeline](/doc/pt-br/bytecode-compiler/customization/)

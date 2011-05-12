@@ -1,5 +1,5 @@
 ---
-layout: doc_en
+layout: doc_pt_br
 title: Contributing
 previous: Troubleshooting
 previous_url: getting-started/troubleshooting
@@ -20,7 +20,7 @@ Below are several ideas for things to do on Rubinius.
 ## Run Your Code
 
 Your code is often more vicious than the specs. Run your pet project under
-Rubinius and report issues. See [How To Write a Ticket](/doc/en/how-to/write-a-ticket).
+Rubinius and report issues. See [How To Write a Ticket](/doc/pt-br/how-to/write-a-ticket).
 
 
 ## Ask For Help
@@ -47,7 +47,7 @@ that fixes it.
      that subdirectory.
 
   2. Find unspecified behaviors. See [How To Write a Ruby
-     Spec](/doc/en/how-to/write-a-ruby-spec).
+     Spec](/doc/pt-br/how-to/write-a-ruby-spec).
 
 
 ## Fix Failing Specs
@@ -76,7 +76,7 @@ them. Here's a command to search the code:
 
     `git grep -e "@todo" -e "TODO" -e "HACK" -e "FIXME"`
 
-Review the [Style Guide](/doc/en/contributing/style-guide/) for
+Review the [Style Guide](/doc/pt-br/contributing/style-guide/) for
 coding guidelines.
 
 

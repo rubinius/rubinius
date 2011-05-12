@@ -1,5 +1,5 @@
 ---
-layout: doc_en
+layout: doc_pt_br
 title: Scripts
 previous: Ruby
 previous_url: ruby

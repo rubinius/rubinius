@@ -6,7 +6,6 @@ previous_url: garbage-collector/large-objects
 next: Operações Primitivas
 next_url: systems/primitives
 review: true
-translated: true
 ---
 
 1. [Operações Primitivas](/doc/pt-br/systems/primitives/)

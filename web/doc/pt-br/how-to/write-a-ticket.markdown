@@ -1,5 +1,5 @@
 ---
-layout: doc_en
+layout: doc_pt_br
 title: How-To - Write a Ticket
 previous: How-To
 previous_url: how-to
@@ -36,9 +36,9 @@ simply not appropriate for a ticket.
   1. Double-check.
 
      1. Do a full rebuild ('rake clean; rake') after a 'git pull' or fresh clone.
-     2. Read [Troubleshooting](/doc/en/getting-started/troubleshooting)
+     2. Read [Troubleshooting](/doc/pt-br/getting-started/troubleshooting)
         to see if something there resolves the issue.
-     3. Read [Specs](/doc/en/specs/).
+     3. Read [Specs](/doc/pt-br/specs/).
 
   2. Give your ticket a specific, preferably short title.
 

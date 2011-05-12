@@ -1,5 +1,5 @@
 ---
-layout: doc_en
+layout: doc_pt_br
 title: Requirements
 previous: Getting Started
 previous_url: getting-started

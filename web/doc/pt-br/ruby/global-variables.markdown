@@ -1,5 +1,5 @@
 ---
-layout: doc_en
+layout: doc_pt_br
 title: Global Variables
 previous: Class Variables
 previous_url: ruby/class-variables

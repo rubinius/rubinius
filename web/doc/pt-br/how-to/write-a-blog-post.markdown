@@ -1,5 +1,5 @@
 ---
-layout: doc_en
+layout: doc_pt_br
 title: How-To - Write a Blog Post
 previous: Write Benchmarks
 previous_url: how-to/write-benchmarks
