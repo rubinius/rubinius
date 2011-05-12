@@ -1,5 +1,5 @@
 ---
-layout: doc_en
+layout: doc_pt_br
 title: Instance Variables
 previous: Local Variables
 previous_url: ruby/locas-variables

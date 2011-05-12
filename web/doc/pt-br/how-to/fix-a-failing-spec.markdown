@@ -1,5 +1,5 @@
 ---
-layout: doc_en
+layout: doc_pt_br
 title: How-To - Fix a Failing Spec
 previous: Write a Ruby Spec
 previous_url: how-to/write-a-ruby-spec
@@ -9,8 +9,8 @@ next_url: how-to/write-benchmarks
 
 Make sure you have read:
 
-  *  [Getting Started](/doc/en/getting-started/)
-  *  [Specs](/doc/en/specs/)
+  *  [Getting Started](/doc/pt-br/getting-started/)
+  *  [Specs](/doc/pt-br/specs/)
 
 Then, follow these steps to fix a failing spec:
 

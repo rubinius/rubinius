@@ -1,5 +1,5 @@
 ---
-layout: doc_en
+layout: doc_pt_br
 title: How-To - Translate Documentation
 previous: Write Documentation
 previous_url: how-to/write-documentation
@@ -13,7 +13,7 @@ There are two translation tasks:
 1. creating a completely new translation
 
 Begin by reading [How-To - Write
-Documentation](/doc/en/how-to/write-documentation/)
+Documentation](/doc/pt-br/how-to/write-documentation/)
 
 
 ### Updating an Existing Translation

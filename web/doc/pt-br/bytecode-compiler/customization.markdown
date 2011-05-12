@@ -1,5 +1,5 @@
 ---
-layout: doc_en
+layout: doc_pt_br
 title: Customizing the Compiler Pipeline
 previous: Generator
 previous_url: bytecode-compiler/generator

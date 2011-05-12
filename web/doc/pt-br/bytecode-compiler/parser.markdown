@@ -1,5 +1,5 @@
 ---
-layout: doc_en
+layout: doc_pt_br
 title: Ruby Parser
 previous: Bytecode Compiler
 previous_url: bytecode-compiler
@@ -54,7 +54,7 @@ on to the next stage, the Generator stage.
 
 There are two ways to customize this stage of the compilation process.
 The easiest way to customize the creation of the AST is through
-[AST Transforms](/doc/en/bytecode-compiler/transformations/).
+[AST Transforms](/doc/pt-br/bytecode-compiler/transformations/).
 
 You can also subclass the Melbourne processor and define your own
 handlers for the `process_` methods. This is an advanced topic that is

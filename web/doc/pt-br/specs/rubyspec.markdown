@@ -1,5 +1,5 @@
 ---
-layout: doc_en
+layout: doc_pt_br
 title: RubySpec
 previous: Specs
 previous_url: specs

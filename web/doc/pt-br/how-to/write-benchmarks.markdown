@@ -1,5 +1,5 @@
 ---
-layout: doc_en
+layout: doc_pt_br
 title: How-To - Write Benchmarks
 previous: Fix a Failing Spec
 previous_url: how-to/fix-a-failing-spec

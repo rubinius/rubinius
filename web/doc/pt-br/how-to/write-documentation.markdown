@@ -1,5 +1,5 @@
 ---
-layout: doc_en
+layout: doc_pt_br
 title: How-To - Write Documentation
 previous: Write a Blog Post
 previous_url: how-to/write-a-blog-post
@@ -19,7 +19,7 @@ subdirectories for each language to which the documentation has been
 translated (eg `en`, `es`, etc.).
 
 There is a Table of Contents for each translation (e.g.
-`/web/doc/en/index.markdown`). The rest of the documentation consists of
+`/web/doc/pt-br/index.markdown`). The rest of the documentation consists of
 single files that have YAML attributes to specify how the documents are
 connected. Essentially, the documentation can be viewed as a doubly-linked
 list of documents with each document pointing to the previous and next

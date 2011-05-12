@@ -1,5 +1,5 @@
 ---
-layout: doc_en
+layout: doc_pt_br
 title: Encoder Stage
 previous: Generator Stage
 previous_url: bytecode-compiler/generator

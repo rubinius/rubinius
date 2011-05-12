@@ -6,7 +6,6 @@ previous_url: systems/c-api
 next: Depurador
 next_url: tools/debugger
 review: true
-translated: true
 ---
 
 1. [Depurador](/doc/pt-br/tools/debugger/)

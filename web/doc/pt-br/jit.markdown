@@ -6,5 +6,4 @@ previous_url: bytecode-compiler/generator
 next: Coletor de Lixo
 next_url: garbage-collector
 review: true
-translated: true
 ---
