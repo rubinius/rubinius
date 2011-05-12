@@ -19,6 +19,10 @@ inline void* dlopen(const char* name, int mode) {
   return LoadLibrary(name);
 }
 
+inline int dlclose(void* handle) {
+  return !FreeLibrary((HMODULE)handle);
+}
+
 inline const char* dlerror(void) {
   return strerror(map_errno(GetLastError()));
 }
