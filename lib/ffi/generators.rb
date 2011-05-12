@@ -78,6 +78,7 @@ module FFI
 
       def handle(command, failure)
         result = `#{command}`
+        Process.waitpid $?.pid rescue nil
 
         unless $?.success?
           result = result.split("\n").map { |l| "\t#{l}" }.join "\n"
