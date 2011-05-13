@@ -25,6 +25,26 @@ extern "C" {
     return Encoding::ascii_encoding(env->state())->get_encoding();
   }
 
+  rb_encoding* rb_enc_get(VALUE obj) {
+    // TODO
+    return rb_usascii_encoding();
+  }
+
+  rb_encoding* rb_enc_compatible(VALUE str1, VALUE str2) {
+    // TODO
+    return rb_enc_get(str1);
+  }
+
+  int rb_enc_dummy_p(rb_encoding *enc) {
+    // TODO
+    return 0;
+  }
+
+  VALUE rb_enc_associate(VALUE obj, rb_encoding *enc) {
+    // TODO
+    return obj;
+  }
+
   int rb_enc_precise_mbclen(const char* p, const char* e, rb_encoding *enc) {
     int n;
     if(e <= p) {

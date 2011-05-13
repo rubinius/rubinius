@@ -7,6 +7,7 @@
 
 #include "capi/capi.hpp"
 #include "capi/include/ruby.h"
+#include "capi/include/ruby/encoding.h"
 
 #include <string.h>
 
@@ -248,6 +249,13 @@ extern "C" {
 
   VALUE rb_str_intern(VALUE self) {
     return rb_funcall(self, rb_intern("to_sym"), 0);
+  }
+
+  VALUE rb_enc_str_new(const char *ptr, long len, rb_encoding *enc)
+  {
+    VALUE str = rb_str_new(ptr, len);
+    rb_enc_associate(str, enc);
+    return str;
   }
 
   VALUE rb_str_new(const char* string, long length) {

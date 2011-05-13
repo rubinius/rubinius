@@ -324,6 +324,7 @@ static NODE *parser_extract_block_vars(rb_parser_state* parser_state, NODE* node
 
 #define UTF8_ENC()            (parser_state->utf8 ? parser_state->utf8 : \
                                 (parser_state->utf8 = rb_utf8_encoding()))
+#define STR_NEW(p,n)          rb_enc_str_new((p),(n),parser_state->enc)
 #define STR_NEW0()            rb_str_new(0, 0)
 #define STR_NEW3(p,n,e,func)  parser_str_new((p), (n), (e), (func), parser_state->enc)
 #define ENC_SINGLE(cr)        ((cr)==ENC_CODERANGE_7BIT)
@@ -2562,24 +2563,19 @@ dsym            : tSYMBEG xstring_contents tSTRING_END
                     if(!($$ = $2)) {
                       $$ = NEW_LIT(QUID2SYM(rb_parser_sym("")));
                     } else {
+                      VALUE lit;
+
                       switch(nd_type($$)) {
                       case NODE_DSTR:
                         nd_set_type($$, NODE_DSYM);
                         break;
                       case NODE_STR:
-                        /* TODO: this line should never fail unless nd_str is binary */
-                        if(strlen(bdatae($$->nd_str,"")) == (size_t)blength($$->nd_str)) {
-                          QUID tmp = rb_parser_sym(bdata($$->nd_str));
-                          bdestroy($$->nd_str);
-                          $$->nd_lit = QUID2SYM(tmp);
-                          nd_set_type($$, NODE_LIT);
-                          break;
-                        } else {
-                          bdestroy($$->nd_str);
-                        }
-                        /* fall through */
+                        lit = $$->nd_lit;
+                        $$->nd_lit = QUID2SYM(rb_parser_sym(RSTRING_PTR(lit)));
+                        nd_set_type($$, NODE_LIT);
+                        break;
                       default:
-                        $$ = NEW_NODE(NODE_DSYM, STR_NEW0(), 1, NEW_LIST($$));
+                        $$ = NEW_NODE(NODE_DSYM, Qnil, 1, NEW_LIST($$));
                         break;
                       }
                     }
@@ -3072,66 +3068,65 @@ yycompile(rb_parser_state* parser_state, char *f, int line)
   return n;
 }
 
-static bool
-lex_get_str(rb_parser_state* parser_state)
+static rb_encoding*
+must_be_ascii_compatible(VALUE s)
 {
-  const char *str;
-  const char *beg, *end, *pend;
-  int sz;
-
-  str = bdata(lex_string);
-  beg = str;
-
-  if(lex_str_used) {
-    if(blength(lex_string) == lex_str_used) {
-      return false;
-    }
-
-    beg += lex_str_used;
+  rb_encoding *enc = rb_enc_get(s);
+  if(!rb_enc_asciicompat(enc)) {
+    // TODO: handle this in a way that doesn't leak parser state
+    // rb_raise(rb_eArgError, "invalid source encoding");
   }
-
-  pend = str + blength(lex_string);
-  end = beg;
-
-  while(end < pend) {
-    if(*end++ == '\n') break;
-  }
-
-  sz = end - beg;
-  bcatblk(line_buffer, beg, sz);
-  lex_str_used += sz;
-
-  return TRUE;
+  return enc;
 }
 
 static bool
+lex_get_str(rb_parser_state* parser_state, VALUE s)
+{
+  const char *beg, *end, *pend;
+  rb_encoding* enc = must_be_ascii_compatible(s);
+
+  beg = RSTRING_PTR(s);
+  if(lex_gets_ptr) {
+    if(RSTRING_LEN(s) == lex_gets_ptr) return Qnil;
+    beg += lex_gets_ptr;
+  }
+  pend = RSTRING_PTR(s) + RSTRING_LEN(s);
+  end = beg;
+  while(end < pend) {
+    if(*end++ == '\n') break;
+  }
+  lex_gets_ptr = end - RSTRING_PTR(s);
+  return rb_enc_str_new(beg, end - beg, enc);
+}
+
+static VALUE
 lex_getline(rb_parser_state* parser_state)
 {
-  if(!line_buffer) {
-    line_buffer = cstr2bstr("");
-  } else {
-    btrunc(line_buffer, 0);
-  }
+  VALUE line = (*lex_gets)(parser_state, lex_input);
+  if(NIL_P(line)) return line;
+  must_be_ascii_compatible(line);
 
-  return lex_gets(parser_state);
+  return line;
 }
 
 VALUE process_parse_tree(rb_parser_state*, VALUE, NODE*, QUID*);
 
 VALUE
-string_to_ast(VALUE ptp, const char *f, bstring s, int line)
+string_to_ast(VALUE ptp, VALUE name, VALUE source, VALUE line)
 {
   int n;
+  int l = FIX2INT(line);
   VALUE ret;
   rb_parser_state* parser_state = parser_alloc_state();
 
-  lex_string = s;
+  lex_input = source;
   lex_gets = lex_get_str;
+  lex_gets_ptr = 0;
   processor = ptp;
-  ruby_sourceline = line - 1;
+  ruby_sourceline = l - 1;
   compile_for_eval = 1;
 
-  n = yycompile(parser_state, (char*)f, line);
+  n = yycompile(parser_state, RSTRING_PTR(name), l);
 
   if(!parse_error) {
     for(std::vector<bstring>::iterator i = magic_comments->begin();
@@ -3149,7 +3144,8 @@ string_to_ast(VALUE ptp, const char *f, bstring s, int line)
   return ret;
 }
 
-static bool parse_io_gets(rb_parser_state* parser_state) {
+static bool parse_io_gets(rb_parser_state* parser_state, VALUE s) {
+  /* TODO
   if(feof(lex_io)) {
     return false;
   }
@@ -3166,11 +3162,12 @@ static bool parse_io_gets(rb_parser_state* parser_state) {
     read = strlen(ptr);
     bcatblk(line_buffer, ptr, read);
 
-    /* check whether we read a full line */
+    // check whether we read a full line
     if(!(read == (sizeof(buf) - 1) && ptr[read] != '\n')) {
       break;
     }
   }
+  */
 
   return TRUE;
 }
@@ -3229,46 +3226,44 @@ parser_str_new(const char *p, long n, rb_encoding *enc, int func, rb_encoding *e
   return str;
 }
 
+#define lex_goto_eol(parser_state)  (lex_p = lex_pend)
+#define peek(c) (lex_p < lex_pend && (c) == *lex_p)
+
 static inline int
 parser_nextc(rb_parser_state* parser_state)
 {
   int c;
 
   if(lex_p == lex_pend) {
-      bstring v;
+    VALUE v = lex_nextline;
+    lex_nextline = 0;
+    if(!v) {
+      if(eofp)
+        return -1;
 
-      if(!lex_getline(parser_state)) return -1;
-      v = line_buffer;
-
-      if(heredoc_end > 0) {
-        ruby_sourceline = heredoc_end;
-        heredoc_end = 0;
+      if(!lex_input || NIL_P(v = lex_getline(parser_state))) {
+        eofp = true;
+        lex_goto_eol(parser_state);
+        return -1;
       }
-      ruby_sourceline++;
+    }
 
-      /* This code is setup so that lex_pend can be compared to
-         the data in lex_lastline. Thats important, otherwise
-         the heredoc code breaks. */
-      if(lex_lastline) {
-        bassign(lex_lastline, v);
-      } else {
-        lex_lastline = bstrcpy(v);
-      }
+    if(heredoc_end > 0) {
+      ruby_sourceline = heredoc_end;
+      heredoc_end = 0;
+    }
 
-      v = lex_lastline;
-
-      lex_pbeg = lex_p = bdata(v);
-      lex_pend = lex_p + blength(v);
+    ruby_sourceline++;
+    line_count++;
+    lex_pbeg = lex_p = RSTRING_PTR(v);
+    lex_pend = lex_p + RSTRING_LEN(v);
+    lex_lastline = v;
   }
-  c = (unsigned char)*(lex_p++);
-  if(c == '\r' && lex_p < lex_pend && *(lex_p) == '\n') {
+
+  c = (unsigned char)*lex_p++;
+  if(c == '\r' && peek('\n')) {
     lex_p++;
     c = '\n';
-    column = 0;
-  } else if(c == '\n') {
-    column = 0;
-  } else {
-    column++;
   }
 
   return c;
@@ -3282,9 +3277,6 @@ parser_pushback(rb_parser_state* parser_state, int c)
 }
 
 #define pushback(c)   parser_pushback(parser_state, c)
-
-#define lex_goto_eol()  (lex_p = lex_pend)
-#define peek(c) (lex_p < lex_pend && (c) == *lex_p)
 
 /* Indicates if we're currently at the beginning of a line. */
 #define was_bol() (lex_p == lex_pbeg + 1)
@@ -3894,16 +3886,14 @@ parser_heredoc_identifier(rb_parser_state* parser_state)
        we hit the terminating character. */
 
     newtok();
-    tokadd((char)func);
+    tokadd(func);
     term = c;
 
     /* Where of where has the term gone.. */
     while((c = nextc()) != -1 && c != term) {
-      len = mbclen(c);
-      do {
-        tokadd((char)c);
-      } while(--len > 0 && (c = nextc()) != -1);
+      if(tokadd_mbchar(c) == -1) return 0;
     }
+
     /* Ack! end of file or end of string. */
     if(c == -1) {
       rb_compile_error(parser_state, "unterminated here document identifier");
@@ -3932,10 +3922,9 @@ parser_heredoc_identifier(rb_parser_state* parser_state)
     /* Finally, setup the token buffer and begin to fill it. */
     newtok();
     term = '"';
-    tokadd((char)(func |= str_dquote));
+    tokadd(func != str_dquote);
     do {
-      len = mbclen(c);
-      do { tokadd((char)c); } while(--len > 0 && (c = nextc()) != -1);
+      if(tokadd_mbchar(c) == -1) return 0;
     } while((c = nextc()) != -1 && parser_is_identchar());
     pushback(c);
     break;
@@ -3945,34 +3934,30 @@ parser_heredoc_identifier(rb_parser_state* parser_state)
   /* Fixup the token buffer, ie set the last character to null. */
   tokfix();
   len = lex_p - lex_pbeg;
-  lex_p = lex_pend;
-  pslval->id = 0;
+  lex_goto_eol(parser_state);
 
   /* Tell the lexer that we're inside a string now. nd_lit is
      the heredoc identifier that we watch the stream for to
      detect the end of the heredoc. */
-  bstring str = bstrcpy(lex_lastline);
-  lex_strterm = node_newnode( NODE_HEREDOC,
-                             (VALUE)string_new(tok(), toklen()),  /* nd_lit */
-                             (VALUE)len,                          /* nd_nth */
-                             (VALUE)str);                         /* nd_orig */
+  lex_strterm = node_newnode(NODE_HEREDOC,
+                             STR_NEW(tok(), toklen()),  /* nd_lit */
+                             (VALUE)len,                /* nd_nth */
+                             (VALUE)lex_lastline);      /* nd_orig */
   return term == '`' ? tXSTRING_BEG : tSTRING_BEG;
 }
 
 static void
 parser_heredoc_restore(rb_parser_state* parser_state, NODE *here)
 {
-  bstring line = here->nd_orig;
+  VALUE line;
 
-  bdestroy(lex_lastline);
-
+  line = here->nd_orig;
   lex_lastline = line;
-  lex_pbeg = bdata(line);
-  lex_pend = lex_pbeg + blength(line);
+  lex_pbeg = RSTRING_PTR(line);
+  lex_pend = lex_pbeg + RSTRING_LEN(line);
   lex_p = lex_pbeg + here->nd_nth;
   heredoc_end = ruby_sourceline;
   ruby_sourceline = nd_line(here);
-  bdestroy((bstring)here->nd_lit);
 }
 
 static int
@@ -4000,12 +3985,12 @@ parser_here_document(rb_parser_state* parser_state, NODE *here)
   int c, func, indent = 0;
   char *eos, *p, *pend;
   long len;
-  bstring str = NULL;
-  rb_encoding* enc = rb_usascii_encoding();
+  VALUE str = 0;
+  rb_encoding* enc = parser_state->enc;
 
   /* eos == the heredoc ident that we found when the heredoc started */
-  eos = bdata(here->nd_str);
-  len = blength(here->nd_str) - 1;
+  eos = RSTRING_PTR(here->nd_lit);
+  len = RSTRING_LEN(here->nd_lit) - 1;
 
   /* indicates if we should search for expansions. */
   indent = (func = *eos++) & STR_FUNC_INDENT;
@@ -4032,7 +4017,7 @@ parser_here_document(rb_parser_state* parser_state, NODE *here)
 
   if((func & STR_FUNC_EXPAND) == 0) {
     do {
-      p = bdata(lex_lastline);
+      p = RSTRING_PTR(lex_lastline);
       pend = lex_pend;
       if(pend > p) {
         switch(pend[-1]) {
@@ -4046,19 +4031,17 @@ parser_here_document(rb_parser_state* parser_state, NODE *here)
         }
       }
       if(str) {
-        bcatblk(str, p, pend - p);
+        rb_str_cat(str, p, pend - p);
       } else {
-        str = blk2bstr(p, pend - p);
+        str = STR_NEW(p, pend - p);
       }
-      if(pend < lex_pend) bcatblk(str, "\n", 1);
-      lex_p = lex_pend;
+      if(pend < lex_pend) rb_str_cat(str, "\n", 1);
+      lex_goto_eol(parser_state);
       if(nextc() == -1) {
-        if(str) bdestroy(str);
         goto error;
       }
     } while(!whole_match_p(eos, len, indent));
-  }
-  else {
+  } else {
     newtok();
     if(c == '#') {
       switch(c = nextc()) {
@@ -4084,19 +4067,19 @@ parser_here_document(rb_parser_state* parser_state, NODE *here)
       /* We finished scanning, but didn't find a \n, so we setup the node
          and have the lexer file in more. */
       if(c != '\n') {
-        pslval->node = NEW_STR(string_new(tok(), toklen()));
+        set_yylval_str(STR_NEW3(tok(), toklen(), enc, func));
         return tSTRING_CONTENT;
       }
 
       /* I think this consumes the \n */
-      tokadd((char)nextc());
+      tokadd(nextc());
       if((c = nextc()) == -1) goto error;
     } while(!whole_match_p(eos, len, indent));
-    str = string_new(tok(), toklen());
+    str = STR_NEW3(tok(), toklen(), enc, func);
   }
   heredoc_restore(lex_strterm);
   lex_strterm = NEW_STRTERM(-1, 0, 0);
-  pslval->node = NEW_STR(str);
+  set_yylval_str(str);
   return tSTRING_CONTENT;
 }
 
@@ -5579,6 +5562,22 @@ list_concat(NODE *head, NODE *tail)
   return head;
 }
 
+static int
+literal_concat0(rb_parser_state* parser_state, VALUE head, VALUE tail)
+{
+  if(NIL_P(tail)) return 1;
+  if(!rb_enc_compatible(head, tail)) {
+    rb_compile_error(parser_state, "string literal encodings differ (%s / %s)",
+    rb_enc_name(rb_enc_get(head)),
+    rb_enc_name(rb_enc_get(tail)));
+    rb_str_resize(head, 0);
+    rb_str_resize(tail, 0);
+    return 0;
+  }
+  rb_str_buf_append(head, tail);
+  return 1;
+}
+
 /* concat two string literals */
 static NODE *
 parser_literal_concat(rb_parser_state* parser_state, NODE *head, NODE *tail)
@@ -5596,23 +5595,19 @@ parser_literal_concat(rb_parser_state* parser_state, NODE *head, NODE *tail)
   switch(nd_type(tail)) {
   case NODE_STR:
     if(htype == NODE_STR) {
-      if(head->nd_str) {
-        bconcat(head->nd_str, tail->nd_str);
-        bdestroy(tail->nd_str);
-      } else {
-        head = tail;
+      if(!literal_concat0(parser_state, head->nd_lit, tail->nd_lit)) {
+      error:
+        return 0;
       }
-    }
-    else {
+    } else {
       list_append(head, tail);
     }
     break;
 
   case NODE_DSTR:
     if(htype == NODE_STR) {
-      bconcat(head->nd_str, tail->nd_str);
-      bdestroy(tail->nd_str);
-
+      if(!literal_concat0(parser_state, head->nd_lit, tail->nd_lit))
+      goto error;
       tail->nd_lit = head->nd_lit;
       head = tail;
     } else {

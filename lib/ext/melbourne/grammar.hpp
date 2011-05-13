@@ -11,7 +11,7 @@ namespace melbourne {
   };
 
   namespace grammar19 {
-    VALUE string_to_ast(VALUE ptp, const char *f, bstring s, int line);
+    VALUE string_to_ast(VALUE ptp, VALUE name, VALUE source, VALUE line);
     VALUE file_to_ast(VALUE ptp, const char *f, FILE *file, int start);
     quark id_to_quark(QUID id);
   };

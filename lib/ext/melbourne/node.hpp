@@ -28,7 +28,9 @@ namespace melbourne {
       QUID id;
       VALUE value;
       QUID *tbl;
+#ifndef RBX_GRAMMAR_19
       bstring string;
+#endif
     } u1;
     union {
       struct RNode *node;
@@ -42,7 +44,9 @@ namespace melbourne {
       long state;
       long cnt;
       VALUE value;
+#ifndef RBX_GRAMMAR_19
       bstring string;
+#endif
     } u3;
   } NODE;
 
@@ -72,7 +76,11 @@ namespace melbourne {
 #define nd_body  u2.node
 #define nd_else  u3.node
 
+#ifdef RBX_GRAMMAR_19
+#define nd_orig  u3.value
+#else
 #define nd_orig  u3.string
+#endif
 
 #define nd_resq  u2.node
 #define nd_ensr  u3.node
@@ -97,7 +105,9 @@ namespace melbourne {
 #define nd_value u2.node
 #define nd_aid   u3.id
 
+#ifndef RBX_GRAMMAR_19
 #define nd_str   u1.string
+#endif
 #define nd_lit   u1.value
 
 #define nd_frml  u1.node

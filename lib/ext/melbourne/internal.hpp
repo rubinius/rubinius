@@ -90,15 +90,26 @@ namespace melbourne {
     /* this function reads a line from lex_io and stores it in
      * line_buffer.
      */
+#ifdef RBX_GRAMMAR_19
+    bool (*lex_gets)(rb_parser_state*, VALUE);
+#else
     bool (*lex_gets)(rb_parser_state*);
     bstring line_buffer;
+#endif
 
     /* If this is set, we use the io method. */
     FILE *lex_io;
     /* Otherwise, we use this. */
+#ifdef RBX_GRAMMAR_19
+    long lex_gets_ptr;
+    VALUE lex_input;
+    VALUE lex_lastline;
+    VALUE lex_nextline;
+#else
     bstring lex_string;
     bstring lex_lastline;
     bstring lex_nextline;
+#endif
 
     char *lex_pbeg;
     char *lex_p;
@@ -137,6 +148,7 @@ namespace melbourne {
     std::list<StartPosition>* start_lines;
 
 #ifdef RBX_GRAMMAR_19
+    int line_count;
     bool has_shebang;
 
     rb_encoding *enc;
@@ -167,8 +179,11 @@ namespace melbourne {
 #define emit_warnings       PARSER_VAR(emit_warnings)
 #define lex_gets            PARSER_VAR(lex_gets)
 #define line_buffer         PARSER_VAR(line_buffer)
+#define line_count          PARSER_VAR(line_count)
 #define lex_io              PARSER_VAR(lex_io)
 #define lex_string          PARSER_VAR(lex_string)
+#define lex_gets_ptr        PARSER_VAR(lex_gets_ptr)
+#define lex_input           PARSER_VAR(lex_input)
 #define lex_lastline        PARSER_VAR(lex_lastline)
 #define lex_nextline        PARSER_VAR(lex_nextline)
 #define lex_pbeg            PARSER_VAR(lex_pbeg)

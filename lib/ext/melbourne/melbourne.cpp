@@ -41,10 +41,7 @@ VALUE melbourne18_file_to_ast(VALUE self, VALUE fname, VALUE start) {
 VALUE melbourne19_string_to_ast(VALUE self, VALUE source, VALUE name, VALUE line) {
   StringValue(source);
   StringValue(name);
-  bstring b_str = blk2bstr(RSTRING_PTR(source), RSTRING_LEN(source));
-  VALUE result = melbourne::grammar19::string_to_ast(self,
-      RSTRING_PTR(name), b_str, FIX2INT(line));
-  bdestroy(b_str);
+  VALUE result = melbourne::grammar19::string_to_ast(self, name, source, line);
 
   return result;
 }
