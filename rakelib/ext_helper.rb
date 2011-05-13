@@ -24,6 +24,8 @@ $YACC     = env "YACC", "bison"
 $CFLAGS   = env "CFLAGS", Rubinius::BUILD_CONFIG[:user_cflags]
 $CXXFLAGS = env "CXXFLAGS", Rubinius::BUILD_CONFIG[:user_cppflags]
 
+$DEBUGFLAGS = "-O0" if ENV["DEV"]
+
 $ELIBSDIR = env "ELIBSDIR", File.expand_path("../../vm/external_libs", __FILE__)
 $LIBS     = env "LIBS"
 $LDDIRS   = env "LDDIRS"
@@ -123,11 +125,6 @@ end
 #
 add_include_dir "."
 add_link_dir "."
-
-if ENV["DEV"]
-  add_cflag "-O0"
-  add_cxxflag "-O0"
-end
 
 # Setup platform-specific values
 #
@@ -497,12 +494,12 @@ end
 
 rule ".o" => ".c" do |t|
   report_command "CC #{t.source}"
-  qsh "#{$CC} -c -o #{t.name} #{$CFLAGS} #{t.source}"
+  qsh "#{$CC} -c -o #{t.name} #{$CFLAGS} #{$DEBUGFLAGS} #{t.source}"
 end
 
 rule ".o" => ".cpp" do |t|
   report_command "CXX #{t.source}"
-  qsh "#{$CXX} -c -o #{t.name} #{$CXXFLAGS} #{t.source}"
+  qsh "#{$CXX} -c -o #{t.name} #{$CXXFLAGS} #{$DEBUGFLAGS} #{t.source}"
 end
 
 rule ".#{$DLEXT}" do |t|
