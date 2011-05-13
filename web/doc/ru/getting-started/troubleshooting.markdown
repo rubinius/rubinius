@@ -53,7 +53,7 @@ next_url: contributing
 
 ### Rubinius, собранный под FreeBSD, падает по `segfault`
 
-  На FreeBSD версий по 8.1-STABLE включительно существует проблема с
+  До версии 8.1-STABLE включительно во FreeBSD существует проблема с
   библиотекой `execinfo`, приводящая к падению Rubinius при запуске.
 
 #### Решение
