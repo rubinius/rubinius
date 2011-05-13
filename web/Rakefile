@@ -16,7 +16,7 @@ end
 
 require 'rake'
 
-LANG = "ru_RU.UTF-8"
+LANG = "UTF-8"
 
 SET_CMD = case RUBY_PLATFORM 
 	  when /mingw32/ then "set"
