@@ -11,7 +11,7 @@ next_url: what-is-rubinius
     1. [Минимальные требования](/doc/ru/getting-started/requirements/)
     1. [Сборка](/doc/ru/getting-started/building/)
     1. [Запуск Rubinius](/doc/ru/getting-started/running-rubinius/)
-    1. [Разрешение проблем](/doc/ru/getting-started/troubleshooting/)
+    1. [Решение проблем](/doc/ru/getting-started/troubleshooting/)
 1. [Участие в проекте](/doc/ru/contributing/)
     1. [Общение](/doc/ru/contributing/communication/)
     1. [Стиль кодирования](/doc/ru/contributing/style-guide)
