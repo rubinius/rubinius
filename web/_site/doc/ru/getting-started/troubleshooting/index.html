@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
   <head>
-    <title>Разрешение проблем - Rubinius</title>
+    <title>Решение проблем - Rubinius</title>
     <meta content='text/html;charset=utf-8' http-equiv='content-type'>
     <meta content='ru' http-equiv='content-language'>
     <meta content='Rubinius is an implementation of the Ruby programming language. The Rubinius bytecode virtual machine is written in C++. The bytecode compiler is written in pure Ruby. The vast majority of the core library is also written in Ruby, with some supporting primitives that interact with the VM directly.' name='description'>
@@ -110,17 +110,17 @@
 
 
     <div class="container documentation">
-      <h2>Разрешение проблем</h2>
+      <h2>Решение проблем</h2>
 
       
 
       
 
-        <p>Ниже приведены ошибки, с которыми вы можете столкнуться в процессе сборки,
-установки или использования Rubinius, вместе с возможными их решениями.</p>
+        <p>Ниже приведены ошибки, с которыми Вы можете столкнуться в процессе сборки,
+установки или использования Rubinius, и их возможные решения.</p>
 
-<p>При любой ошибке, первым делом удостоверьтесь, что вы работаете с чистой
-копией Rubinius. Перед тем, как двигаться дальше, попробуйте выполнить
+<p>При любой ошибке первым делом удостоверьтесь, что Вы работаете с последней чистой
+версией Rubinius. Перед тем, как двигаться дальше, попробуйте выполнить
 следующее:</p>
 
 <pre><code>$ git co master
@@ -130,7 +130,7 @@ $ rake distclean
 $ rake
 </code></pre>
 
-<p>Ошибка:</p>
+<h3 id="rubinius-----runtime-">Rubinius не может найти директорию runtime-библиотек</h3>
 
 <pre><code>ERROR: unable to find runtime directory
 
@@ -147,19 +147,31 @@ You may have configured Rubinius for a different install
 directory but you have not run 'rake install' yet.
 </code></pre>
 
-<p>Решение:</p>
+<h4 id="section">Решение</h4>
 
-<p>Если вы конфигурировали rubinius с &ndash;prefix, выполните rake install.</p>
+<p>Если Вы конфигурировали rubinius с <code>--prefix</code>, выполните <code>rake install</code>.</p>
 
-<p>Если вы конфигурировали rubinius с &ndash;prefix и переименовали инсталяционную
+<p>Если Вы конфигурировали rubinius с <code>--prefix</code> и переименовали инсталяционную
   директорию после установки Rubinius, выполните конфигурацию и установку
   заново.</p>
 
-<p>Если вы переименовали директорию c исходниками после сборки Rubinius,
+<p>Если Вы переименовали директорию c исходниками после сборки Rubinius,
   выполните конфигурацию и установку вновь.</p>
 
 <p>Вообще, лучше не переименовывать директорию с исходниками или директорию 
-  где производилась сборка после сборки Rubinius.</p>
+  инсталляции после сборки Rubinius.</p>
+
+<h3 id="rubinius---freebsd---segfault">Rubinius, собранный под FreeBSD, падает по <code>segfault</code></h3>
+
+<p>До версии 8.1-STABLE включительно во FreeBSD существует проблема с
+  библиотекой <code>execinfo</code>, приводящая к падению Rubinius при запуске.</p>
+
+<h4 id="section-1">Решение</h4>
+
+<p>На стадии <code>configure</code> отключите <code>execinfo</code>:</p>
+
+<pre><code>./configure --without-execinfo
+</code></pre>
 
 
     </div>
