@@ -1,6 +1,6 @@
 # everything in _site besides en/ and ru/ dirs
 
-/**
-!/_site/doc/en/
-!/_site/doc/ru/
+/_site
+!/_site/doc/en
+!/_site/doc/ru
 !/_site/index.html
