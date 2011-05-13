@@ -43,3 +43,10 @@ next_url: getting-started/building
   * libreadline5-dev
   * zlib1g-dev
   * libssl-dev
+
+### FreeBSD
+
+Под FreeBSD есть порт Rubinius, который называется `lang/rubinius`. Подробную
+информацию о порте можно найти на сайте <http://freshports.org>. В процессе
+инсталляции порта установка и настройка всех требуемых вспомогательных
+программ и библиотек происходит автоматически.
