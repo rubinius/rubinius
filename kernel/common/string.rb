@@ -1337,13 +1337,7 @@ class String
     return self if @num_bytes <= 1
     self.modify!
 
-    i = 0
-    j = @num_bytes - 1
-    while i < j
-      @data[i], @data[j] = @data[j], @data[i]
-      i += 1
-      j -= 1
-    end
+    @data.reverse(0, @num_bytes)
     self
   end
 

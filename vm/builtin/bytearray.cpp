@@ -156,6 +156,25 @@ namespace rubinius {
     return ba;
   }
 
+  ByteArray* ByteArray::reverse(STATE, Fixnum* o_start, Fixnum* o_total) {
+    native_int start = o_start->to_native();
+    native_int total = o_total->to_native();
+
+    if(total <= 0 || start < 0 || start >= size()) return this;
+
+    uint8_t* pos1 = this->bytes + start;
+    uint8_t* pos2 = this->bytes + total - 1;
+    register uint8_t tmp;
+
+    while(pos1 < pos2) {
+      tmp = *pos1;
+      *pos1++ = *pos2;
+      *pos2-- = tmp;
+    }
+
+    return this;
+  }
+
   Fixnum* ByteArray::compare_bytes(STATE, ByteArray* other, Fixnum* a, Fixnum* b) {
     native_int slim = a->to_native();
     native_int olim = b->to_native();
