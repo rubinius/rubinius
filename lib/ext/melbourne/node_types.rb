@@ -1,4 +1,4 @@
-node_types = %w{
+node_types18 = %w[
   method
   fbody
   cfunc
@@ -112,7 +112,10 @@ node_types = %w{
   negate
   last
   file
-}
+]
+
+node_types19 = %w[
+]
 
 File.open("node_types.cpp", "w") do |f|
   f.puts <<EOF
