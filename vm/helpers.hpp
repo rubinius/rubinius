@@ -10,6 +10,7 @@ namespace rubinius {
   class VM;
   class Object;
   class GlobalCacheEntry;
+  class Tuple;
 
   namespace Helpers {
     Object* const_get_under(VM*, Module* under, Symbol* name, bool* found);
@@ -20,7 +21,7 @@ namespace rubinius {
     void const_set(VM*, Module* mod, Symbol* name, Object* val);
 
     /** Locate method just as if sending. */
-    Object*   locate_method_on(VM*, CallFrame* call_frame, Object* recv, Symbol* name, Object* priv);
+    Tuple*    locate_method_on(VM*, CallFrame* call_frame, Object* recv, Symbol* name, Object* priv);
 
     Class*    open_class(VM*, CallFrame* call_frame, Object* super, Symbol* name, bool* created);
     Class*    open_class(VM*, CallFrame* call_frame, Module* under, Object* super, Symbol* name, bool* created);

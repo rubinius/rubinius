@@ -76,7 +76,7 @@ namespace rubinius {
       klass_ = 0;
       ivars_ = 0;
 
-      parent_ = (VariableScope*)Qnil;
+      parent_ = nil<VariableScope>();
       self_ = self;
       method_ = method;
       module_ = mod;
