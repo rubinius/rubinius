@@ -16,7 +16,7 @@ end
 
 require 'rake'
 
-LANG = "UTF-8"
+LANG = "en_US.UTF-8"
 
 SET_CMD = case RUBY_PLATFORM 
 	  when /mingw32/ then "set"
@@ -38,4 +38,9 @@ end
 desc 'serve locally on jekyll'
 task :serve do
   sh "#{SET_CMD} LANG=#{LANG} && #{RBX} jekyll --server --auto"
+end
+
+desc 'Clean the generated _site dir'
+task :clean do
+  sh "cd _site && rm -rf *"
 end
