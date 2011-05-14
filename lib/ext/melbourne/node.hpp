@@ -290,7 +290,7 @@ namespace melbourne {
 #define NEW_PREEXE(b)           NEW_SCOPE(b)
 
 #ifdef RBX_GRAMMAR_19
-#define NEW_POSTEXE(b) NEW_NODE(NODE_POSTEXE,0,b,0)
+#define NEW_POSTEXE(b)          NEW_NODE(NODE_POSTEXE,0,b,0)
 #else
 #define NEW_POSTEXE()           NEW_NODE(NODE_POSTEXE,0,0,0)
 #endif

@@ -24,10 +24,10 @@
 
 #include "ruby.h"
 
-#define RBX_GRAMMAR_19  1
+#include "grammar19.hpp"
 
-#include "internal.hpp"
-#include "visitor.hpp"
+#include "grammar.hpp"
+#include "visitor19.hpp"
 #include "symbols.hpp"
 #include "local_state.hpp"
 
@@ -2381,6 +2381,7 @@ xstring         : tXSTRING_BEG xstring_contents tSTRING_END
 
 regexp          : tREGEXP_BEG regexp_contents tREGEXP_END
                   {
+                    // TODO
                     intptr_t options = $3;
                     NODE *node = $2;
                     if(!node) {
@@ -2571,7 +2572,9 @@ dsym            : tSYMBEG xstring_contents tSTRING_END
                         break;
                       case NODE_STR:
                         lit = $$->nd_lit;
-                        $$->nd_lit = QUID2SYM(rb_parser_sym(RSTRING_PTR(lit)));
+                        // TODO: intern function that takes a String
+                        // so the embedded \x00 or captured.
+                        $$->nd_lit = rb_parser_sym(RSTRING_PTR(lit));
                         nd_set_type($$, NODE_LIT);
                         break;
                       default:
@@ -3048,7 +3051,7 @@ yycompile(rb_parser_state* parser_state, char *f, int line)
   /* Setup an initial empty scope. */
   heredoc_end = 0;
   lex_strterm = 0;
-  end_seen = 0;
+  ruby__end__seen = 0;
   ruby_sourcefile = f;
   command_start = TRUE;
   parser_prepare(parser_state);
@@ -3079,7 +3082,7 @@ must_be_ascii_compatible(VALUE s)
   return enc;
 }
 
-static bool
+static VALUE
 lex_get_str(rb_parser_state* parser_state, VALUE s)
 {
   const char *beg, *end, *pend;
@@ -3144,7 +3147,7 @@ string_to_ast(VALUE ptp, VALUE name, VALUE source, VALUE line)
   return ret;
 }
 
-static bool parse_io_gets(rb_parser_state* parser_state, VALUE s) {
+static VALUE parse_io_gets(rb_parser_state* parser_state, VALUE s) {
   /* TODO
   if(feof(lex_io)) {
     return false;
@@ -3169,7 +3172,7 @@ static bool parse_io_gets(rb_parser_state* parser_state, VALUE s) {
   }
   */
 
-  return TRUE;
+  return Qnil;
 }
 
 VALUE
@@ -3195,7 +3198,7 @@ file_to_ast(VALUE ptp, const char *f, FILE *file, int start)
     }
       ret = process_parse_tree(parser_state, ptp, top_node, NULL);
 
-      if(end_seen && lex_io) {
+      if(ruby__end__seen && lex_io) {
         rb_funcall(ptp, rb_sData, 1, ULONG2NUM(ftell(lex_io)));
       }
   } else {
@@ -4176,16 +4179,9 @@ parser_yylex(rb_parser_state *parser_state)
   register int c;
   int space_seen = 0;
   int cmd_state;
-  bstring cur_line;
   enum lex_state_e last_state;
   rb_encoding *enc;
   int mb;
-
-  /*
-  c = nextc();
-  printf("lex char: %c\n", c);
-  pushback(c, parser_state);
-  */
 
   if(lex_strterm) {
     int token;
@@ -4195,8 +4191,7 @@ parser_yylex(rb_parser_state *parser_state)
         lex_strterm = 0;
         lex_state = EXPR_END;
       }
-    }
-    else {
+    } else {
       token = parse_string(lex_strterm);
       if(token == tSTRING_END || token == tREGEXP_END) {
         lex_strterm = 0;
@@ -4224,10 +4219,11 @@ retry:
     goto retry;
 
   case '#':         /* it's a comment */
+    // TODO: encoding magic comments
     if(char* str = parse_comment(parser_state)) {
         int len = lex_pend - str - 1; // - 1 for the \n
-        cur_line = blk2bstr(str, len);
-        magic_comments->push_back(cur_line);
+        //cur_line = blk2bstr(str, len);
+        //magic_comments->push_back(cur_line);
     }
     lex_p = lex_pend;
     /* fall through */
@@ -4273,7 +4269,7 @@ retry:
   case '*':
     if((c = nextc()) == '*') {
       if((c = nextc()) == '=') {
-        pslval->id = tPOW;
+        set_yylval_id(tPOW);
         lex_state = EXPR_BEG;
         return tOP_ASGN;
       }
@@ -4281,7 +4277,7 @@ retry:
       c = tPOW;
     } else {
       if(c == '=') {
-        pslval->id = '*';
+        set_yylval_id('*');
         lex_state = EXPR_BEG;
         return tOP_ASGN;
       }
@@ -4305,7 +4301,7 @@ retry:
     return c;
 
   case '!':
-    lex_state = EXPR_BEG;
+    c = nextc();
     if(lex_state == EXPR_FNAME || lex_state == EXPR_DOT) {
       lex_state = EXPR_ARG;
       if(c == '@') {
@@ -4328,7 +4324,7 @@ retry:
       /* skip embedded rd document */
       if(strncmp(lex_p, "begin", 5) == 0 && ISSPACE(lex_p[5])) {
         for (;;) {
-          lex_goto_eol();
+          lex_goto_eol(parser_state);
           c = nextc();
           if(c == -1) {
             rb_compile_error(parser_state, "embedded document meets end of file");
@@ -4340,7 +4336,7 @@ retry:
             break;
           }
         }
-        lex_goto_eol();
+        lex_goto_eol(parser_state);
         goto retry;
       }
     }
@@ -4368,6 +4364,7 @@ retry:
     return '=';
 
   case '<':
+    last_state = lex_state;
     c = nextc();
     if(c == '<' &&
       lex_state != EXPR_DOT &&
@@ -4392,7 +4389,7 @@ retry:
     }
     if(c == '<') {
       if((c = nextc()) == '=') {
-        pslval->id = tLSHFT;
+        set_yylval_id(tLSHFT);
         lex_state = EXPR_BEG;
         return tOP_ASGN;
       }
@@ -4415,7 +4412,7 @@ retry:
     }
     if(c == '>') {
       if((c = nextc()) == '=') {
-        pslval->id = tRSHFT;
+        set_yylval_id(tRSHFT);
         lex_state = EXPR_BEG;
         return tOP_ASGN;
       }
@@ -4442,12 +4439,10 @@ retry:
       return c;
     }
     lex_strterm = NEW_STRTERM(str_xquote, '`', 0);
-    pslval->id = 0; /* so that xstring gets used normally */
     return tXSTRING_BEG;
 
   case '\'':
     lex_strterm = NEW_STRTERM(str_squote, '\'', 0);
-    pslval->id = 0; /* so that xstring gets used normally */
     return tSTRING_BEG;
 
   case '?':
@@ -4525,14 +4520,14 @@ retry:
     if((c = nextc()) == '&') {
       lex_state = EXPR_BEG;
       if((c = nextc()) == '=') {
-        pslval->id = tANDOP;
+        set_yylval_id(tANDOP);
         lex_state = EXPR_BEG;
         return tOP_ASGN;
       }
       pushback(c);
       return tANDOP;
     } else if(c == '=') {
-      pslval->id = '&';
+      set_yylval_id('&');
       lex_state = EXPR_BEG;
       return tOP_ASGN;
     }
@@ -4548,7 +4543,8 @@ retry:
     }
     switch(lex_state) {
     case EXPR_FNAME: case EXPR_DOT:
-      lex_state = EXPR_ARG; break;
+      lex_state = EXPR_ARG;
+      break;
     default:
       lex_state = EXPR_BEG;
     }
@@ -4558,7 +4554,7 @@ retry:
     if((c = nextc()) == '|') {
       lex_state = EXPR_BEG;
       if((c = nextc()) == '=') {
-        pslval->id = tOROP;
+        set_yylval_id(tOROP);
         lex_state = EXPR_BEG;
         return tOP_ASGN;
       }
@@ -4566,7 +4562,7 @@ retry:
       return tOROP;
     }
     if(c == '=') {
-      pslval->id = '|';
+      set_yylval_id('|');
       lex_state = EXPR_BEG;
       return tOP_ASGN;
     }
@@ -4589,7 +4585,7 @@ retry:
       return '+';
     }
     if(c == '=') {
-      pslval->id = '+';
+      set_yylval_id('+');
       lex_state = EXPR_BEG;
       return tOP_ASGN;
     }
@@ -4618,7 +4614,7 @@ retry:
       return '-';
     }
     if(c == '=') {
-      pslval->id = '-';
+      set_yylval_id('-');
       lex_state = EXPR_BEG;
       return tOP_ASGN;
     }
@@ -4665,7 +4661,7 @@ retry:
       lex_state = EXPR_END;
       newtok();
       if(c == '-' || c == '+') {
-        tokadd((char)c);
+        tokadd(c);
         c = nextc();
       }
 	    if(c == '0') {
@@ -4883,10 +4879,10 @@ retry:
     return tINTEGER;
 	}
 
-  case ']':
-  case '}':
-    paren_nest--;
   case ')':
+  case ']':
+    paren_nest--;
+  case '}':
     COND_LEXPOP();
     CMDARG_LEXPOP();
     if(c == ')') {
@@ -4914,10 +4910,10 @@ retry:
     }
     switch(c) {
     case '\'':
-      lex_strterm = NEW_STRTERM(str_ssym, (intptr_t)c, 0);
+      lex_strterm = NEW_STRTERM(str_ssym, c, 0);
       break;
     case '"':
-      lex_strterm = NEW_STRTERM(str_dsym, (intptr_t)c, 0);
+      lex_strterm = NEW_STRTERM(str_dsym, c, 0);
       break;
     default:
       pushback(c);
@@ -4948,6 +4944,7 @@ retry:
     default:
       lex_state = EXPR_BEG; break;
     }
+    warn_balanced("/", "regexp literal");
     return '/';
 
   case '^':
@@ -4997,6 +4994,7 @@ retry:
     return c;
 
   case '[':
+    paren_nest++;
     if(lex_state == EXPR_FNAME || lex_state == EXPR_DOT) {
       lex_state = EXPR_ARG;
       if((c = nextc()) == ']') {
@@ -5046,7 +5044,6 @@ retry:
       goto retry; /* skip \\n */
     }
     pushback(c);
-    lex_state = EXPR_DOT;
     return '\\';
 
   case '%':
@@ -5149,22 +5146,22 @@ retry:
       pushback(c);
       c = '_';
       /* fall through */
-    case '~':             /* $~: match-data */
-    case '*':             /* $*: argv */
-    case '$':             /* $$: pid */
-    case '?':             /* $?: last status */
-    case '!':             /* $!: error string */
-    case '@':             /* $@: error position */
-    case '/':             /* $/: input record separator */
-    case '\\':            /* $\: output record separator */
-    case ';':             /* $;: field separator */
-    case ',':             /* $,: output field separator */
-    case '.':             /* $.: last read line number */
-    case '=':             /* $=: ignorecase */
-    case ':':             /* $:: load path */
-    case '<':             /* $<: reading filename */
-    case '>':             /* $>: default output handle */
-    case '\"':            /* $": already loaded files */
+    case '~':   /* $~: match-data */
+    case '*':   /* $*: argv */
+    case '$':   /* $$: pid */
+    case '?':   /* $?: last status */
+    case '!':   /* $!: error string */
+    case '@':   /* $@: error position */
+    case '/':   /* $/: input record separator */
+    case '\\':  /* $\: output record separator */
+    case ';':   /* $;: field separator */
+    case ',':   /* $,: output field separator */
+    case '.':   /* $.: last read line number */
+    case '=':   /* $=: ignorecase */
+    case ':':   /* $:: load path */
+    case '<':   /* $<: reading filename */
+    case '>':   /* $>: default output handle */
+    case '\"':  /* $": already loaded files */
       tokadd('$');
       tokadd(c);
       tokfix();
@@ -5237,6 +5234,7 @@ retry:
         rb_compile_error(parser_state,
                          "`@@%c' is not allowed as a class variable name", c);
       }
+      return 0;
     }
     if(!parser_is_identchar()) {
       pushback(c);
@@ -5246,7 +5244,7 @@ retry:
 
   case '_':
     if(was_bol() && whole_match_p("__END__", 7, 0)) {
-      end_seen = 1;
+      ruby__end__seen = 1;
       eofp = true;
       return -1;
     }
@@ -5384,10 +5382,6 @@ retry:
         lex_state = EXPR_END;
       }
     }
-
-/*  if(is_local_id(pslval->id) && local_id(pslval->id)) { */
-/*      lex_state = EXPR_END; */
-/*  } */
 
     return result;
   }
@@ -5607,7 +5601,7 @@ parser_literal_concat(rb_parser_state* parser_state, NODE *head, NODE *tail)
   case NODE_DSTR:
     if(htype == NODE_STR) {
       if(!literal_concat0(parser_state, head->nd_lit, tail->nd_lit))
-      goto error;
+        goto error;
       tail->nd_lit = head->nd_lit;
       head = tail;
     } else {

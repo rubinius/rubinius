@@ -68,7 +68,11 @@ namespace melbourne {
   };
 
   typedef struct rb_parser_state {
+#ifdef RBX_GRAMMAR_19
+    int ruby__end__seen;
+#else
     int end_seen;
+#endif
     int debug_lines;
     int heredoc_end;
     int command_start;
@@ -91,7 +95,7 @@ namespace melbourne {
      * line_buffer.
      */
 #ifdef RBX_GRAMMAR_19
-    bool (*lex_gets)(rb_parser_state*, VALUE);
+    VALUE (*lex_gets)(rb_parser_state*, VALUE);
 #else
     bool (*lex_gets)(rb_parser_state*);
     bstring line_buffer;
@@ -162,6 +166,7 @@ namespace melbourne {
 #define PARSER_VAR(var)     (PARSER_STATE->var)
 
 #define end_seen            PARSER_VAR(end_seen)
+#define ruby__end__seen     PARSER_VAR(ruby__end__seen)
 #define ruby_debug_lines    PARSER_VAR(debug_lines)
 #define heredoc_end         PARSER_VAR(heredoc_end)
 #define command_start       PARSER_VAR(command_start)
@@ -211,6 +216,8 @@ namespace melbourne {
 #define parse_error         PARSER_VAR(parse_error)
 #define processor           PARSER_VAR(processor)
 #define start_lines         PARSER_VAR(start_lines)
+
+#define node_newnode(t, a, b, c)  parser_node_newnode((rb_parser_state*)parser_state, t, a, b, c)
 
 }; // namespace melbourne
 

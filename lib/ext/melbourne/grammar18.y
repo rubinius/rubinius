@@ -24,8 +24,8 @@
 
 #include "ruby.h"
 
-#include "internal.hpp"
-#include "visitor.hpp"
+#include "grammar.hpp"
+#include "visitor18.hpp"
 #include "symbols.hpp"
 #include "local_state.hpp"
 
