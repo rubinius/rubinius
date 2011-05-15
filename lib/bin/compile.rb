@@ -10,6 +10,7 @@ class CompilerScript
     @files        = []
     @strings      = []
     @stdin        = false
+    @use_19       = false
   end
 
   def options(argv=ARGV)
@@ -101,6 +102,10 @@ class CompilerScript
 
     @options.on "-i", "--ignore", "Continue on errors" do
       @ignore = true
+    end
+
+    @options.on "--1.9", "Use the 1.9 parser" do
+      @use_19 = true
     end
 
 
@@ -211,7 +216,13 @@ class CompilerScript
 
     set_printers compiler
 
-    compiler.run
+    # TODO: work this into the compiler itself
+    begin
+      Rubinius::Melbourne.select_19 if @use_19
+      compiler.run
+    ensure
+      Rubinius::Melbourne.select_18
+    end
   end
 
   def compile_strings
