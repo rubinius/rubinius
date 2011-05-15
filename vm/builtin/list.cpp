@@ -1,5 +1,6 @@
 #include "vm.hpp"
 #include "objectmemory.hpp"
+#include "object_utils.hpp"
 
 #include "builtin/list.hpp"
 #include "builtin/class.hpp"
@@ -81,7 +82,7 @@ namespace rubinius {
     first(state, first_->next());
 
     if(last_ == n) {
-      last(state, (ListNode*)Qnil);
+      last(state, nil<ListNode>());
     }
 
     return n->object();
@@ -96,8 +97,8 @@ namespace rubinius {
     size_t deleted = 0, counted = 0;
 
     ListNode* node = first_;
-    ListNode* lst =  (ListNode*)Qnil;
-    ListNode* nxt =  (ListNode*)Qnil;
+    ListNode* lst =  nil<ListNode>();
+    ListNode* nxt =  nil<ListNode>();
 
     while(!node->nil_p()) {
       nxt = node->next();
@@ -114,7 +115,7 @@ namespace rubinius {
           last(state, lst);
         }
 
-        lst = (ListNode*)Qnil;
+        lst = nil<ListNode>();
       } else {
         counted++;
         lst = node;

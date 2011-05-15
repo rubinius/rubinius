@@ -503,7 +503,7 @@ remember:
     info.set_inline_block(inline_block_);
     info.set_block_info(block_info_);
 
-    jit::RuntimeData* rd = new jit::RuntimeData(ib->method(), (Symbol*)Qnil, (Module*)Qnil);
+    jit::RuntimeData* rd = new jit::RuntimeData(ib->method(), nil<Symbol>(), nil<Module>());
     context_.add_runtime_data(rd);
 
     jit::InlineBlockBuilder work(ops_.state(), info, rd);

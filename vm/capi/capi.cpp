@@ -312,7 +312,7 @@ namespace rubinius {
     Proc* wrap_c_function(void* cb, VALUE cb_data, int arity) {
       NativeMethodEnvironment* env = NativeMethodEnvironment::get();
       NativeMethod* nm = NativeMethod::create(env->state(),
-                          (String*)Qnil, env->state()->shared.globals.rubinius.get(),
+                          nil<String>(), env->state()->shared.globals.rubinius.get(),
                           env->state()->symbol("call"), cb,
                           Fixnum::from(arity));
 

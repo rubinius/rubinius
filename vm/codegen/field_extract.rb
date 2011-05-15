@@ -648,7 +648,7 @@ class CPPClass
       if flags[:readonly]
         str << "    Exception::assertion_error(state, \"#{name} is readonly\");\n"
       else
-        str << "    target->#{name}(state, val->nil_p() ? (#{type}*)Qnil : as<#{type}>(val));\n"
+        str << "    target->#{name}(state, val->nil_p() ? nil<#{type}>() : as<#{type}>(val));\n"
       end
       str << "    return;\n"
     end
@@ -671,7 +671,7 @@ class CPPClass
       ARGS
       str << "    Object* val = args.get_argument(0);\n"
       str << "    if(val->nil_p()) {\n"
-      str << "      as<#{@name}>(args.recv())->#{name}(state, (#{type}*)Qnil);\n"
+      str << "      as<#{@name}>(args.recv())->#{name}(state, nil<#{type}>());\n"
       str << "    } else {\n"
       str << "      as<#{@name}>(args.recv())->#{name}(state, as<#{type}>(val));\n"
       str << "    }\n"
