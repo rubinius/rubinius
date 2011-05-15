@@ -2,9 +2,11 @@
 
 #include "node_types18.hpp"
 
+#include <stdio.h>
+
 namespace melbourne {
   namespace grammar18 {
-    static const char node_types[113] = {
+    static const char node_types[] = {
       "method\0"
       "fbody\0"
       "cfunc\0"
@@ -120,7 +122,7 @@ namespace melbourne {
       "file\0"
     };
 
-    static const unsigned short node_types_offsets[113] = {
+    static const unsigned short node_types_offsets[] = {
       0,
       7,
       13,
@@ -242,8 +244,8 @@ namespace melbourne {
         return node_types + node_types_offsets[node];
       } else {
 #define NODE_STRING_MESSAGE_LEN 20
-        static msg[NODE_STRING_MESSAGE_LEN];
-        snprint(msg, NODE_STRING_MESSAGE_LEN, "unknown node type: %ld", node);
+        static char msg[NODE_STRING_MESSAGE_LEN];
+        snprintf(msg, NODE_STRING_MESSAGE_LEN, "unknown node type: %ld", node);
         return msg;
       }
     }

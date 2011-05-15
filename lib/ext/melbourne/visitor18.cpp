@@ -5,104 +5,13 @@
 
 #include "ruby.h"
 
-#include "grammar.hpp"
+#include "parser_state18.hpp"
 #include "visitor18.hpp"
 #include "symbols.hpp"
 
 namespace melbourne {
   namespace grammar18 {
   extern long mel_sourceline;
-
-  rb_parser_state *parser_alloc_state() {
-      rb_parser_state *parser_state = (rb_parser_state*)calloc(1, sizeof(rb_parser_state));
-
-      lex_pbeg = 0;
-      lex_p = 0;
-      lex_pend = 0;
-      parse_error = false;
-
-      eofp = false;
-      command_start = true;
-      class_nest = 0;
-      in_single = 0;
-      in_def = 0;
-      compile_for_eval = 0;
-      cur_mid = 0;
-      tokenbuf = NULL;
-      tokidx = 0;
-      toksiz = 0;
-      memory_cur = NULL;
-      memory_last_addr = NULL;
-      current_pool = 0;
-      pool_size = 0;
-      memory_size = 204800;
-      memory_pools = NULL;
-      emit_warnings = 0;
-      verbose = RTEST(ruby_verbose);
-      magic_comments = new std::vector<bstring>;
-      start_lines = new std::list<StartPosition>;
-
-      return parser_state;
-  }
-
-  void compile_error(const char *);
-
-  void *pt_allocate(rb_parser_state *parser_state, int size) {
-    void *cur;
-
-    if(!memory_cur || ((memory_cur + size) >= memory_last_addr)) {
-      if(memory_cur) current_pool++;
-
-      if(current_pool == pool_size) {
-        pool_size += 10;
-        if(memory_pools) {
-          memory_pools = (void**)realloc(memory_pools, sizeof(void*) * pool_size);
-        } else {
-          memory_pools = (void**)malloc(sizeof(void*) * pool_size);
-        }
-      }
-      memory_pools[current_pool] = malloc(memory_size);
-      memory_cur = (char*)memory_pools[current_pool];
-      memory_last_addr = memory_cur + memory_size - 1;
-    }
-
-    cur = (void*)memory_cur;
-    memory_cur = memory_cur + size;
-
-    return cur;
-  }
-
-  void pt_free(rb_parser_state *parser_state) {
-    int i;
-
-    if(line_buffer) {
-      bdestroy(line_buffer);
-    }
-
-    if(lex_lastline) {
-      bdestroy(lex_lastline);
-    }
-
-    free(tokenbuf);
-    delete variables;
-
-    for(std::vector<bstring>::iterator i = magic_comments->begin();
-        i != magic_comments->end();
-        i++) {
-      bdestroy(*i);
-    }
-
-    delete magic_comments;
-    delete start_lines;
-
-    if(!memory_pools) return;
-
-    for(i = 0; i <= current_pool; i++) {
-      free(memory_pools[i]);
-    }
-    free(memory_pools);
-
-  }
 
   static VALUE string_newfrombstr(bstring str)
   {

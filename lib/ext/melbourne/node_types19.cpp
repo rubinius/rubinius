@@ -2,9 +2,11 @@
 
 #include "node_types19.hpp"
 
+#include <stdio.h>
+
 namespace melbourne {
   namespace grammar19 {
-    static const char node_types[106] = {
+    static const char node_types[] = {
       "scope\0"
       "block\0"
       "if\0"
@@ -111,9 +113,10 @@ namespace melbourne {
       "optblock\0"
       "last\0"
       "file\0"
+      "regex\0"
     };
 
-    static const unsigned short node_types_offsets[106] = {
+    static const unsigned short node_types_offsets[] = {
       0,
       6,
       12,
@@ -220,16 +223,17 @@ namespace melbourne {
       666,
       675,
       680,
-      685
+      685,
+      691
     };
 
     const char *get_node_type_string(enum node_type node) {
-      if(node < 106) {
+      if(node < 107) {
         return node_types + node_types_offsets[node];
       } else {
 #define NODE_STRING_MESSAGE_LEN 20
-        static msg[NODE_STRING_MESSAGE_LEN];
-        snprint(msg, NODE_STRING_MESSAGE_LEN, "unknown node type: %ld", node);
+        static char msg[NODE_STRING_MESSAGE_LEN];
+        snprintf(msg, NODE_STRING_MESSAGE_LEN, "unknown node type: %ld", node);
         return msg;
       }
     }

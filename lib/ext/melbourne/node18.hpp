@@ -10,45 +10,44 @@
 
 **********************************************************************/
 
-#ifndef MEL_NODE_HPP
-#define MEL_NODE_HPP
+#ifndef MEL_NODE18_HPP
+#define MEL_NODE18_HPP
 
 #include "ruby.h"
-#include "node_types.hpp"
 
-#include <string>
+#include "bstrlib.h"
+#include "quark.hpp"
 
 namespace melbourne {
+  namespace grammar18 {
 
-  typedef struct RNode {
-    unsigned long flags;
-    char *nd_file;
-    union {
-      RNode *node;
-      QUID id;
-      VALUE value;
-      QUID *tbl;
-#ifndef RBX_GRAMMAR_19
-      bstring string;
-#endif
-    } u1;
-    union {
-      struct RNode *node;
-      QUID id;
-      long argc;
-      VALUE value;
-    } u2;
-    union {
-      struct RNode *node;
-      QUID id;
-      long state;
-      long cnt;
-      VALUE value;
-#ifndef RBX_GRAMMAR_19
-      bstring string;
-#endif
-    } u3;
-  } NODE;
+#define QUID    quark
+
+    typedef struct RNode {
+      unsigned long flags;
+      char *nd_file;
+      union {
+        RNode *node;
+        QUID id;
+        VALUE value;
+        QUID *tbl;
+        bstring string;
+      } u1;
+      union {
+        struct RNode *node;
+        QUID id;
+        long argc;
+        VALUE value;
+      } u2;
+      union {
+        struct RNode *node;
+        QUID id;
+        long state;
+        long cnt;
+        VALUE value;
+        bstring string;
+      } u3;
+    } NODE;
 
 #define RNODE(obj)  ((NODE*)(obj))
 
@@ -76,11 +75,7 @@ namespace melbourne {
 #define nd_body  u2.node
 #define nd_else  u3.node
 
-#ifdef RBX_GRAMMAR_19
-#define nd_orig  u3.value
-#else
 #define nd_orig  u3.string
-#endif
 
 #define nd_resq  u2.node
 #define nd_ensr  u3.node
@@ -105,9 +100,7 @@ namespace melbourne {
 #define nd_value u2.node
 #define nd_aid   u3.id
 
-#ifndef RBX_GRAMMAR_19
 #define nd_str   u1.string
-#endif
 #define nd_lit   u1.value
 
 #define nd_frml  u1.node
@@ -149,19 +142,10 @@ namespace melbourne {
 
 #define NEW_METHOD(n,x)         NEW_NODE(NODE_METHOD,x,n,0)
 #define NEW_FBODY(n,i,o)        NEW_NODE(NODE_FBODY,n,i,o)
-
-#ifdef RBX_GRAMMAR_19
-#define NEW_DEFN(i,a,d,p)       NEW_NODE(NODE_DEFN,p,i,NEW_SCOPE(a,d))
-#define NEW_DEFS(r,i,a,d)       NEW_NODE(NODE_DEFS,r,i,NEW_SCOPE(a,d))
-#define NEW_RFUNC(b1,b2)        NEW_SCOPE(block_append(b1,b2))
-#define NEW_SCOPE(a, b)         NEW_NODE(NODE_SCOPE,local_tbl(),0,(b))
-#else
 #define NEW_DEFN(i,a,d,p)       NEW_NODE(NODE_DEFN,p,i,NEW_RFUNC(a,d))
 #define NEW_DEFS(r,i,a,d)       NEW_NODE(NODE_DEFS,r,i,NEW_RFUNC(a,d))
 #define NEW_RFUNC(b1,b2)        NEW_SCOPE(block_append(vps, b1,b2))
 #define NEW_SCOPE(b)            NEW_NODE(NODE_SCOPE,mel_local_tbl(vps),0,(b))
-#endif
-
 #define NEW_BLOCK(a)            NEW_NODE(NODE_BLOCK,a,0,0)
 #define NEW_IF(c,t,e)           NEW_NODE(NODE_IF,c,t,e)
 #define NEW_UNLESS(c,t,e)       NEW_IF(c,e,t)
@@ -171,14 +155,7 @@ namespace melbourne {
 #define NEW_WHILE(c,b,n)        NEW_NODE(NODE_WHILE,c,b,n)
 #define NEW_UNTIL(c,b,n)        NEW_NODE(NODE_UNTIL,c,b,n)
 #define NEW_FOR(v,i,b)          NEW_NODE(NODE_FOR,v,b,i)
-
-#ifdef RBX_GRAMMAR_19
-#define NEW_ITER(a,b)           NEW_NODE(NODE_ITER,0,NEW_SCOPE(a,b),0)
-#define NEW_LAMBDA(a)           NEW_NODE(NODE_LAMBDA,a,0,0)
-#else
 #define NEW_ITER(v,i,b)         NEW_NODE(NODE_ITER,v,b,i)
-#endif
-
 #define NEW_BREAK(s)            NEW_NODE(NODE_BREAK,s,0,0)
 #define NEW_NEXT(s)             NEW_NODE(NODE_NEXT,s,0,0)
 #define NEW_REDO()              NEW_NODE(NODE_REDO,0,0,0)
@@ -194,11 +171,7 @@ namespace melbourne {
 #define NEW_ZARRAY()            NEW_NODE(NODE_ZARRAY,0,0,0)
 #define NEW_HASH(a)             NEW_NODE(NODE_HASH,a,0,0)
 #define NEW_POSITIONAL(a)       NEW_NODE(NODE_HASH,a,1,0)
-
-#ifndef RBX_GRAMMAR_19
 #define NEW_NOT(a)              NEW_NODE(NODE_NOT,0,a,0)
-#endif
-
 #define NEW_MASGN(l,r)          NEW_NODE(NODE_MASGN,l,0,r)
 #define NEW_GASGN(v,val)        NEW_NODE(NODE_GASGN,v,val,0)
 #define NEW_LASGN(v,val)        NEW_NODE(NODE_LASGN,v,val,local_cnt(v))
@@ -236,48 +209,23 @@ namespace melbourne {
 #define NEW_VCALL(m)            NEW_NODE(NODE_VCALL,0,m,0)
 #define NEW_SUPER(a)            NEW_NODE(NODE_SUPER,0,0,a)
 #define NEW_ZSUPER()            NEW_NODE(NODE_ZSUPER,0,0,0)
-
-#ifdef RBX_GRAMMAR_19
-#define NEW_ARGS(m,o)           NEW_NODE(NODE_ARGS,o,m,0)
-#define NEW_ARGS_AUX(r,b)       NEW_NODE(NODE_ARGS_AUX,r,b,0)
-#define NEW_OPT_ARG(i,v)        NEW_NODE(NODE_OPT_ARG,i,v,0)
-#define NEW_POSTARG(i,v)        NEW_NODE(NODE_POSTARG,i,v,0)
-#else
 #define NEW_ARGS(f,o,r)         NEW_NODE(NODE_ARGS,o,r,f)
-#endif
-
 #define NEW_ARGSCAT(a,b)        NEW_NODE(NODE_ARGSCAT,a,b,0)
 #define NEW_ARGSPUSH(a,b)       NEW_NODE(NODE_ARGSPUSH,a,b,0)
 #define NEW_SPLAT(a)            NEW_NODE(NODE_SPLAT,a,0,0)
 #define NEW_TO_ARY(a)           NEW_NODE(NODE_TO_ARY,a,0,0)
-
-#ifndef RBX_GRAMMAR_19
 #define NEW_SVALUE(a)           NEW_NODE(NODE_SVALUE,a,0,0)
-#endif
-
 #define NEW_BLOCK_ARG(v)        NEW_NODE(NODE_BLOCK_ARG,v,0,local_cnt(v))
 #define NEW_BLOCK_PASS(b)       NEW_NODE(NODE_BLOCK_PASS,0,b,0)
 #define NEW_ALIAS(n,o)          NEW_NODE(NODE_ALIAS,o,n,0)
 #define NEW_VALIAS(n,o)         NEW_NODE(NODE_VALIAS,o,n,0)
 #define NEW_UNDEF(i)            NEW_NODE(NODE_UNDEF,0,i,0)
-
-#ifdef RBX_GRAMMAR_19
-#define NEW_CLASS(n,b,s)        NEW_NODE(NODE_CLASS,n,NEW_SCOPE(0,b),(s))
-#define NEW_SCLASS(r,b)         NEW_NODE(NODE_SCLASS,r,NEW_SCOPE(0,b),0)
-#define NEW_MODULE(n,b)         NEW_NODE(NODE_MODULE,n,NEW_SCOPE(0,b),0)
-#else
 #define NEW_CLASS(n,b,s)        NEW_NODE(NODE_CLASS,n,NEW_SCOPE(b),(s))
 #define NEW_SCLASS(r,b)         NEW_NODE(NODE_SCLASS,r,NEW_SCOPE(b),0)
 #define NEW_MODULE(n,b)         NEW_NODE(NODE_MODULE,n,NEW_SCOPE(b),0)
-#endif
-
 #define NEW_COLON2(c,i)         NEW_NODE(NODE_COLON2,c,i,0)
 #define NEW_COLON3(i)           NEW_NODE(NODE_COLON3,0,i,0)
-
-#ifndef RBX_GRAMMAR_19
 #define NEW_CREF(c)             (NEW_NODE(NODE_CREF,0,0,c))
-#endif
-
 #define NEW_DOT2(b,e)           NEW_NODE(NODE_DOT2,b,e,0)
 #define NEW_DOT3(b,e)           NEW_NODE(NODE_DOT3,b,e,0)
 #define NEW_ATTRSET(a)          NEW_NODE(NODE_ATTRSET,a,0,0)
@@ -288,17 +236,10 @@ namespace melbourne {
 #define NEW_DEFINED(e)          NEW_NODE(NODE_DEFINED,e,0,0)
 #define NEW_NEWLINE(n)          NEW_NODE(NODE_NEWLINE,0,0,n)
 #define NEW_PREEXE(b)           NEW_SCOPE(b)
-
-#ifdef RBX_GRAMMAR_19
-#define NEW_POSTEXE(b)          NEW_NODE(NODE_POSTEXE,0,b,0)
-#else
 #define NEW_POSTEXE()           NEW_NODE(NODE_POSTEXE,0,0,0)
-#endif
-
 #define NEW_DMETHOD(b)          NEW_NODE(NODE_DMETHOD,0,0,b)
 #define NEW_BMETHOD(b)          NEW_NODE(NODE_BMETHOD,0,0,b)
 #define NEW_ATTRASGN(r,m,a)     NEW_NODE(NODE_ATTRASGN,r,m,a)
-
 #define NEW_FIXNUM(l)           NEW_NODE(NODE_FIXNUM,0,0,l)
 #define NEW_NUMBER(l)           NEW_NODE(NODE_NUMBER,l,0,0)
 #define NEW_HEXNUM(l)           NEW_NODE(NODE_HEXNUM,l,0,0)
@@ -316,6 +257,7 @@ namespace melbourne {
 
 #define NOEX_UNDEF              NOEX_NOSUPER
 
+  }; // namespace grammar18
 }; // namespace melbourne
 
 #endif

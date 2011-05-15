@@ -25,11 +25,9 @@
 #include "ruby.h"
 
 #include "grammar19.hpp"
-
-#include "grammar.hpp"
+#include "parser_state19.hpp"
 #include "visitor19.hpp"
 #include "symbols.hpp"
-#include "local_state.hpp"
 
 namespace melbourne {
 
@@ -146,7 +144,7 @@ static NODE *parser_call_uni_op(rb_parser_state*, NODE*, QUID);
 static NODE *parser_new_args(rb_parser_state*, NODE*, NODE*, QUID, NODE*, QUID);
 static NODE *splat_array(NODE*);
 
-/* static NODE *negate_lit(NODE*); */
+static NODE *negate_lit(NODE*);
 static NODE *parser_ret_args(rb_parser_state*, NODE*);
 static NODE *arg_blk_pass(NODE*,NODE*);
 static NODE *new_call(rb_parser_state*,NODE*,QUID,NODE*);
@@ -179,6 +177,87 @@ static QUID  *parser_local_tbl(rb_parser_state*);
 static QUID   convert_op(QUID id);
 
 #define QUID2SYM(x)   (x)
+
+rb_parser_state *parser_alloc_state() {
+  rb_parser_state *parser_state = (rb_parser_state*)calloc(1, sizeof(rb_parser_state));
+
+  lex_pbeg = 0;
+  lex_p = 0;
+  lex_pend = 0;
+  parse_error = false;
+
+  eofp = false;
+  command_start = true;
+  class_nest = 0;
+  in_single = 0;
+  in_def = 0;
+  compile_for_eval = 0;
+  cur_mid = 0;
+  tokenbuf = NULL;
+  tokidx = 0;
+  toksiz = 0;
+  memory_cur = NULL;
+  memory_last_addr = NULL;
+  current_pool = 0;
+  pool_size = 0;
+  memory_size = 204800;
+  memory_pools = NULL;
+  emit_warnings = 0;
+  verbose = RTEST(ruby_verbose);
+  magic_comments = new std::vector<bstring>;
+  start_lines = new std::list<StartPosition>;
+
+  return parser_state;
+}
+
+void *pt_allocate(rb_parser_state *parser_state, int size) {
+  void *cur;
+
+  if(!memory_cur || ((memory_cur + size) >= memory_last_addr)) {
+    if(memory_cur) current_pool++;
+
+    if(current_pool == pool_size) {
+      pool_size += 10;
+      if(memory_pools) {
+        memory_pools = (void**)realloc(memory_pools, sizeof(void*) * pool_size);
+      } else {
+        memory_pools = (void**)malloc(sizeof(void*) * pool_size);
+      }
+    }
+    memory_pools[current_pool] = malloc(memory_size);
+    memory_cur = (char*)memory_pools[current_pool];
+    memory_last_addr = memory_cur + memory_size - 1;
+  }
+
+  cur = (void*)memory_cur;
+  memory_cur = memory_cur + size;
+
+  return cur;
+}
+
+void pt_free(rb_parser_state *parser_state) {
+  int i;
+
+  free(tokenbuf);
+  delete variables;
+
+  for(std::vector<bstring>::iterator i = magic_comments->begin();
+      i != magic_comments->end();
+      i++) {
+    bdestroy(*i);
+  }
+
+  delete magic_comments;
+  delete start_lines;
+
+  if(!memory_pools) return;
+
+  for(i = 0; i <= current_pool; i++) {
+    free(memory_pools[i]);
+  }
+  free(memory_pools);
+
+}
 
 #define SHOW_PARSER_WARNS 0
 
@@ -2531,10 +2610,7 @@ string_content  : tSTRING_CONTENT
                     cond_stack = $<val>1;
                     cmdarg_stack = $<val>2;
                     lex_strterm = $<node>3;
-                    /* TODO */
-                    if(($$ = $3) && nd_type($$) == NODE_NEWLINE) {
-                      $$ = $$->nd_next;
-                    }
+                    // TODO
                     $$ = new_evstr($$);
                   }
                 ;
@@ -2589,11 +2665,11 @@ numeric         : tINTEGER
                 | tFLOAT
                 | tUMINUS_NUM tINTEGER         %prec tLOWEST
                   {
-                    $$ = NEW_NEGATE($2);
+                    $$ = negate_lit($2);
                   }
                 | tUMINUS_NUM tFLOAT           %prec tLOWEST
                   {
-                    $$ = NEW_NEGATE($2);
+                    $$ = negate_lit($2);
                   }
                 ;
 
@@ -3530,7 +3606,7 @@ parser_tokadd_escape(rb_parser_state* parser_state, rb_encoding **encp)
   size_t numlen;
 
 first:
-  switch (c = nextc()) {
+  switch(c = nextc()) {
   case '\n':
     return 0;		/* just ignore */
 
@@ -3574,7 +3650,7 @@ first:
     goto escaped;
 
   case 'c':
-    if (flags & ESCAPE_CONTROL) goto eof;
+    if(flags & ESCAPE_CONTROL) goto eof;
     tokcopy(2);
     flags |= ESCAPE_CONTROL;
 escaped:
@@ -3695,7 +3771,7 @@ parser_tokadd_string(rb_parser_state *parser_state,
   char *errbuf = 0;
   static const char mixed_msg[] = "%s mixed within %s source";
 
-#define mixed_error(enc1, enc2) if (!errbuf) {	\
+#define mixed_error(enc1, enc2) if(!errbuf) {	\
     size_t len = sizeof(mixed_msg) - 4;	\
     len += strlen(rb_enc_name(enc1));	\
     len += strlen(rb_enc_name(enc2));	\
@@ -3709,7 +3785,7 @@ parser_tokadd_string(rb_parser_state *parser_state,
     lex_p = beg;				\
     mixed_error(enc1, enc2);		\
     lex_p = pos;				\
-  } while (0)
+  } while(0)
 
   while((c = nextc()) != -1) {
     if(paren && c == paren) {
@@ -3729,7 +3805,7 @@ parser_tokadd_string(rb_parser_state *parser_state,
     } else if(c == '\\') {
       char *beg = lex_p - 1;
       c = nextc();
-      switch (c) {
+      switch(c) {
       case '\n':
         if(func & STR_FUNC_QWORDS) break;
         if(func & STR_FUNC_EXPAND) continue;
@@ -3741,7 +3817,7 @@ parser_tokadd_string(rb_parser_state *parser_state,
         break;
 
       case 'u':
-        if ((func & STR_FUNC_EXPAND) == 0) {
+        if((func & STR_FUNC_EXPAND) == 0) {
           tokadd('\\');
           break;
         }
@@ -3779,15 +3855,15 @@ parser_tokadd_string(rb_parser_state *parser_state,
         mixed_error(enc, *encp);
         continue;
       }
-      if (tokadd_mbchar(c) == -1) return -1;
+      if(tokadd_mbchar(c) == -1) return -1;
       continue;
     } else if((func & STR_FUNC_QWORDS) && ISSPACE(c)) {
       pushback(c);
       break;
     }
-    if (c & 0x80) {
+    if(c & 0x80) {
       has_nonascii = 1;
-      if (enc != *encp) {
+      if(enc != *encp) {
         mixed_error(enc, *encp);
         continue;
       }
@@ -3847,7 +3923,7 @@ parser_parse_string(rb_parser_state* parser_state, NODE *quote)
   pushback(c);
   if(tokadd_string(func, term, paren, &quote->nd_nest, &enc) == -1) {
     ruby_sourceline = nd_line(quote);
-    if (func & STR_FUNC_REGEXP) {
+    if(func & STR_FUNC_REGEXP) {
       if(eofp)
         rb_compile_error(parser_state, "unterminated regexp meets end of file");
       return tREGEXP_END;
@@ -4129,12 +4205,12 @@ static void
 parser_prepare(rb_parser_state* parser_state)
 {
   int c = nextc();
-  switch (c) {
+  switch(c) {
   case '#':
-    if (peek('!')) parser_state->has_shebang = 1;
+    if(peek('!')) parser_state->has_shebang = 1;
     break;
   case 0xef:		/* UTF-8 BOM marker */
-    if (lex_pend - lex_p >= 2 &&
+    if(lex_pend - lex_p >= 2 &&
         (unsigned char)lex_p[0] == 0xbb &&
         (unsigned char)lex_p[1] == 0xbf) {
       parser_state->enc = rb_utf8_encoding();
@@ -4665,7 +4741,7 @@ retry:
         c = nextc();
       }
 	    if(c == '0') {
-#define no_digits() do {yy_error("numeric literal without digits"); return 0;} while (0)
+#define no_digits() do {yy_error("numeric literal without digits"); return 0;} while(0)
         int start = toklen();
         c = nextc();
         if(c == 'x' || c == 'X') {
@@ -5368,7 +5444,7 @@ retry:
         } else {
           lex_state = EXPR_ARG;
         }
-      } else if (lex_state == EXPR_FNAME) {
+      } else if(lex_state == EXPR_FNAME) {
         lex_state = EXPR_ENDFN;
       } else {
         lex_state = EXPR_END;
@@ -5425,14 +5501,11 @@ parser_node_newnode(rb_parser_state* parser_state, enum node_type type,
 static NODE*
 parser_newline_node(rb_parser_state* parser_state, NODE *node)
 {
-  NODE *nl = 0;
   if(node) {
-    if(nd_type(node) == NODE_NEWLINE) return node;
-    nl = NEW_NEWLINE(node);
-    fixpos(nl, node);
-    nl->nd_nth = nd_line(node);
+    node = remove_begin(node);
+    node->flags |= NODE_FL_NEWLINE;
   }
-  return nl;
+  return node;
 }
 
 static void
@@ -5459,18 +5532,18 @@ parser_warning(rb_parser_state* parser_state, NODE *node, const char *mesg)
 static NODE*
 parser_block_append(rb_parser_state* parser_state, NODE *head, NODE *tail)
 {
-  NODE *end, *h = head;
+  NODE *end, *h = head, *nd;
 
   if(tail == 0) return head;
 
-again:
   if(h == 0) return tail;
   switch(nd_type(h)) {
-  case NODE_NEWLINE:
-    h = h->nd_next;
-    goto again;
   case NODE_STR:
   case NODE_LIT:
+  case NODE_SELF:
+  case NODE_TRUE:
+  case NODE_FALSE:
+  case NODE_NIL:
     parser_warning(parser_state, h, "unused literal ignored");
     return tail;
   default:
@@ -5484,25 +5557,20 @@ again:
     break;
   }
 
-  if(verbose) {
-    NODE *nd = end->nd_head;
-  newline:
-    switch(nd_type(nd)) {
-    case NODE_RETURN:
-    case NODE_BREAK:
-    case NODE_NEXT:
-    case NODE_REDO:
-    case NODE_RETRY:
+  nd = end->nd_head;
+  switch(nd_type(nd)) {
+  case NODE_RETURN:
+  case NODE_BREAK:
+  case NODE_NEXT:
+  case NODE_REDO:
+  case NODE_RETRY:
+    if(verbose) {
       parser_warning(parser_state, nd, "statement not reached");
-      break;
-
-    case NODE_NEWLINE:
-      nd = nd->nd_next;
-      goto newline;
-
-    default:
-      break;
     }
+    break;
+
+  default:
+    break;
   }
 
   if(nd_type(tail) != NODE_BLOCK) {
@@ -5636,14 +5704,10 @@ parser_new_evstr(rb_parser_state* parser_state, NODE *node)
 {
   NODE *head = node;
 
-again:
   if(node) {
     switch(nd_type(node)) {
     case NODE_STR: case NODE_DSTR: case NODE_EVSTR:
       return node;
-    case NODE_NEWLINE:
-      node = node->nd_next;
-      goto again;
     }
   }
   return NEW_EVSTR(head);
@@ -5786,7 +5850,7 @@ mel_gettable(rb_parser_state* parser_state, QUID id)
   } else if(id == keyword__FILE__) {
     return NEW_FILE();
   } else if(id == keyword__LINE__) {
-    return NEW_FIXNUM(ruby_sourceline);
+    return NEW_LIT(INT2FIX(ruby_sourceline));
   } else if(is_local_id(id)) {
     if(local_id(id)) return NEW_LVAR(id);
     /* method call without arguments */
@@ -6088,7 +6152,7 @@ parser_value_expr(rb_parser_state* parser_state, NODE *node)
   }
 
   while(node) {
-    switch (nd_type(node)) {
+    switch(nd_type(node)) {
     case NODE_DEFN:
     case NODE_DEFS:
       parser_warning(parser_state, node, "void value expression");
@@ -6197,10 +6261,6 @@ value_expr0(NODE *node, rb_parser_state* parser_state)
       node = node->nd_2nd;
       break;
 
-    case NODE_NEWLINE:
-      node = node->nd_next;
-      break;
-
     default:
       return TRUE;
     }
@@ -6216,13 +6276,8 @@ parser_void_expr0(rb_parser_state* parser_state, NODE *node)
 
   if(!verbose) return;
 
-again:
   if(!node) return;
   switch(nd_type(node)) {
-  case NODE_NEWLINE:
-    node = node->nd_next;
-    goto again;
-
   case NODE_CALL:
     switch(node->nd_mid) {
     case '+':
@@ -6258,7 +6313,6 @@ again:
     useless = "a variable";
     break;
   case NODE_CONST:
-  case NODE_CREF:
     useless = "a constant";
     break;
   case NODE_LIT:
@@ -6321,17 +6375,9 @@ parser_void_stmts(NODE *node, rb_parser_state* parser_state)
 static NODE *
 remove_begin(NODE *node)
 {
-  NODE **n = &node;
-  while(*n) {
-    switch(nd_type(*n)) {
-    case NODE_NEWLINE:
-      n = &(*n)->nd_next;
-      continue;
-    case NODE_BEGIN:
-      *n = (*n)->nd_body;
-    default:
-      return node;
-    }
+  NODE **n = &node, *n1 = node;
+  while(n1 && nd_type(n1) == NODE_BEGIN && n1->nd_body) {
+    *n = n1 = n1->nd_body;
   }
   return node;
 }
@@ -6346,21 +6392,25 @@ assign_in_cond(NODE *node, rb_parser_state* parser_state)
 
   case NODE_LASGN:
   case NODE_DASGN:
+  case NODE_DASGN_CURR:
   case NODE_GASGN:
   case NODE_IASGN:
     break;
 
-  case NODE_NEWLINE:
   default:
     return 0;
   }
 
+  if(!node->nd_value) return 1;
   switch(nd_type(node->nd_value)) {
   case NODE_LIT:
   case NODE_STR:
   case NODE_NIL:
   case NODE_TRUE:
   case NODE_FALSE:
+    // always warn
+    // TODO
+    // parser_warn(node->nd_value, "found = in conditional, should be ==");
     return 1;
 
   case NODE_DSTR:
@@ -6388,28 +6438,19 @@ warn_unless_e_option(rb_parser_state* parser_state, NODE *node, const char *str)
   if(!e_option_supplied()) parser_warning(parser_state, node, str);
 }
 
-static NODE *cond0(NODE *node, rb_parser_state* parser_state);
+static NODE *cond0(rb_parser_state* parser_state, NODE *node);
 
 static NODE*
-range_op(NODE *node, rb_parser_state* parser_state)
+range_op(rb_parser_state* parser_state, NODE *node)
 {
-  enum node_type type;
-
-  if(!e_option_supplied()) return node;
   if(node == 0) return 0;
 
   value_expr(node);
-  node = cond0(node, parser_state);
-  type = (enum node_type)nd_type(node);
-  if(type == NODE_NEWLINE) {
-    node = node->nd_next;
-    type = (enum node_type)nd_type(node);
-  }
-  if(type == NODE_LIT && FIXNUM_P(node->nd_lit)) {
+  if(nd_type(node) == NODE_LIT && FIXNUM_P(node->nd_lit)) {
     warn_unless_e_option(parser_state, node, "integer literal in conditional range");
-    return call_op(node,tEQ,1,NEW_GVAR(rb_parser_sym("$.")), parser_state);
+    return NEW_CALL(node, tEQ, NEW_LIST(NEW_GVAR(rb_parser_sym("$."))));
   }
-  return node;
+  return cond0(parser_state, node);
 }
 
 static int
@@ -6434,7 +6475,7 @@ literal_node(NODE *node)
 }
 
 static NODE*
-cond0(NODE *node, rb_parser_state* parser_state)
+cond0(rb_parser_state* parser_state, NODE *node)
 {
   if(node == 0) return 0;
   assign_in_cond(node, parser_state);
@@ -6453,14 +6494,14 @@ cond0(NODE *node, rb_parser_state* parser_state)
 
   case NODE_AND:
   case NODE_OR:
-    node->nd_1st = cond0(node->nd_1st, parser_state);
-    node->nd_2nd = cond0(node->nd_2nd, parser_state);
+    node->nd_1st = cond0(parser_state, node->nd_1st);
+    node->nd_2nd = cond0(parser_state, node->nd_2nd);
     break;
 
   case NODE_DOT2:
   case NODE_DOT3:
-    node->nd_beg = range_op(node->nd_beg, parser_state);
-    node->nd_end = range_op(node->nd_end, parser_state);
+    node->nd_beg = range_op(parser_state, node->nd_beg);
+    node->nd_end = range_op(parser_state, node->nd_end);
     if(nd_type(node) == NODE_DOT2) nd_set_type(node,NODE_FLIP2);
     else if(nd_type(node) == NODE_DOT3) nd_set_type(node, NODE_FLIP3);
     if(!e_option_supplied()) {
@@ -6488,12 +6529,7 @@ static NODE*
 parser_cond(rb_parser_state* parser_state, NODE *node)
 {
   if(node == 0) return 0;
-  value_expr(node);
-  if(nd_type(node) == NODE_NEWLINE){
-    node->nd_next = cond0(node->nd_next, parser_state);
-    return node;
-  }
-  return cond0(node, parser_state);
+  return cond0(parser_state, node);
 }
 
 static NODE*
@@ -6553,6 +6589,25 @@ parser_new_yield(rb_parser_state* parser_state, NODE *node)
     state = Qfalse;
   }
   return NEW_YIELD(node, state);
+}
+
+static NODE*
+negate_lit(NODE *node)
+{
+  switch(TYPE(node->nd_lit)) {
+  case T_FIXNUM:
+    node->nd_lit = LONG2FIX(-FIX2LONG(node->nd_lit));
+    break;
+  case T_BIGNUM:
+    node->nd_lit = rb_funcall(node->nd_lit, tUMINUS, 0, 0);
+    break;
+  case T_FLOAT:
+    node->nd_lit = rb_float_new(-NUM2DBL(node->nd_lit));
+    break;
+  default:
+    break;
+  }
+  return node;
 }
 
 static NODE *

@@ -24,10 +24,10 @@
 
 #include "ruby.h"
 
-#include "grammar.hpp"
+#include "grammar18.hpp"
+#include "parser_state18.hpp"
 #include "visitor18.hpp"
 #include "symbols.hpp"
-#include "local_state.hpp"
 
 namespace melbourne {
 
@@ -131,14 +131,6 @@ static int yylex(void*, void *);
 #define CMDARG_LEXPOP() BITSTACK_LEXPOP(cmdarg_stack)
 #define CMDARG_P()      BITSTACK_SET_P(cmdarg_stack)
 
-/*
-static int class_nest = 0;
-static int in_single = 0;
-static int in_def = 0;
-static int compile_for_eval = 0;
-static ID cur_mid = 0;
-*/
-
 static NODE *cond(NODE*,rb_parser_state*);
 static NODE *logop(enum node_type,NODE*,NODE*,rb_parser_state*);
 static int cond_negative(NODE**);
@@ -199,6 +191,97 @@ static QUID   convert_op(QUID id);
 
 static void tokadd(char c, rb_parser_state *parser_state);
 static int tokadd_string(int, int, int, QUID*, rb_parser_state*);
+
+rb_parser_state *parser_alloc_state() {
+  rb_parser_state *parser_state;
+
+  parser_state = (rb_parser_state*)calloc(1, sizeof(rb_parser_state));
+
+  lex_pbeg = 0;
+  lex_p = 0;
+  lex_pend = 0;
+  parse_error = false;
+
+  eofp = false;
+  command_start = true;
+  class_nest = 0;
+  in_single = 0;
+  in_def = 0;
+  compile_for_eval = 0;
+  cur_mid = 0;
+  tokenbuf = NULL;
+  tokidx = 0;
+  toksiz = 0;
+  memory_cur = NULL;
+  memory_last_addr = NULL;
+  current_pool = 0;
+  pool_size = 0;
+  memory_size = 204800;
+  memory_pools = NULL;
+  emit_warnings = 0;
+  verbose = RTEST(ruby_verbose);
+  magic_comments = new std::vector<bstring>;
+  start_lines = new std::list<StartPosition>;
+
+  return parser_state;
+}
+
+void *pt_allocate(rb_parser_state *parser_state, int size) {
+  void *cur;
+
+  if(!memory_cur || ((memory_cur + size) >= memory_last_addr)) {
+    if(memory_cur) current_pool++;
+
+    if(current_pool == pool_size) {
+      pool_size += 10;
+      if(memory_pools) {
+        memory_pools = (void**)realloc(memory_pools, sizeof(void*) * pool_size);
+      } else {
+        memory_pools = (void**)malloc(sizeof(void*) * pool_size);
+      }
+    }
+    memory_pools[current_pool] = malloc(memory_size);
+    memory_cur = (char*)memory_pools[current_pool];
+    memory_last_addr = memory_cur + memory_size - 1;
+  }
+
+  cur = (void*)memory_cur;
+  memory_cur = memory_cur + size;
+
+  return cur;
+}
+
+void pt_free(rb_parser_state *parser_state) {
+  int i;
+
+  if(line_buffer) {
+    bdestroy(line_buffer);
+  }
+
+  if(lex_lastline) {
+    bdestroy(lex_lastline);
+  }
+
+  free(tokenbuf);
+  delete variables;
+
+  for(std::vector<bstring>::iterator i = magic_comments->begin();
+      i != magic_comments->end();
+      i++) {
+    bdestroy(*i);
+  }
+
+  delete magic_comments;
+  delete start_lines;
+
+  if(!memory_pools) return;
+
+  for(i = 0; i <= current_pool; i++) {
+    free(memory_pools[i]);
+  }
+  free(memory_pools);
+
+}
 
 #define SHOW_PARSER_WARNS 0
 
@@ -2760,8 +2843,6 @@ lex_getline(rb_parser_state *parser_state)
 
   return lex_gets(parser_state);
 }
-
-VALUE process_parse_tree(rb_parser_state*, VALUE, NODE*, QUID*);
 
 VALUE
 string_to_ast(VALUE ptp, const char *f, bstring s, int line)

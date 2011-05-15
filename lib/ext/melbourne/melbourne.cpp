@@ -5,7 +5,8 @@
 #define RSTRING_NOT_MODIFIED 1
 
 #include "ruby.h"
-#include "grammar.hpp"
+#include "grammar18.hpp"
+#include "grammar19.hpp"
 #include "symbols.hpp"
 
 #ifdef __cplusplus
