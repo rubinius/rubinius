@@ -11,10 +11,10 @@ typedef struct {
   const char name[ENCODING_NAMELEN_MAX];
 } rb_encoding;
 
-#define ENC_CODERANGE_UNKNOWN	    0
-#define ENC_CODERANGE_7BIT	      1
+#define ENC_CODERANGE_UNKNOWN               0
+#define ENC_CODERANGE_7BIT                  1
 
-#define MBCLEN_CHARFOUND_P(ret)   0
+#define MBCLEN_CHARFOUND_P(ret)             0
 
 #define rb_enc_isalnum(c, enc)              ISALNUM(c)
 #define rb_enc_isspace(c, enc)              ISSPACE(c)
@@ -26,9 +26,12 @@ typedef struct {
 #define rb_enc_name(enc)                    (enc)->name
 #define rb_enc_compatible(s1, s2)           rb_enc_get(s1)
 #define rb_enc_asciicompat(enc)             true
+#define rb_enc_str_coderange(str)           ENC_CODERANGE_7BIT
+#define rb_enc_associate(str, enc)          (0)
 
 rb_encoding* rb_utf8_encoding();
 rb_encoding* rb_usascii_encoding();
+rb_encoding* rb_ascii8bit_encoding();
 
 #endif
 

@@ -258,6 +258,11 @@ extern "C" {
     return str;
   }
 
+  int rb_enc_str_coderange(VALUE string) {
+    // TODO
+    return ENC_CODERANGE_7BIT;
+  }
+
   VALUE rb_str_new(const char* string, long length) {
     if(length < 0) rb_raise(rb_eArgError, "invalid string size");
     NativeMethodEnvironment* env = NativeMethodEnvironment::get();

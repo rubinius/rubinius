@@ -14,5 +14,11 @@ namespace melbourne {
 
       return &enc;
     }
+
+    rb_encoding* rb_ascii8bit_encoding() {
+      static rb_encoding enc = { "ASCII-8BIT" };
+
+      return &enc;
+    }
   };
 };

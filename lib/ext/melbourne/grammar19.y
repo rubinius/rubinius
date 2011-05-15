@@ -34,10 +34,6 @@ namespace melbourne {
 
 namespace grammar19 {
 
-#ifndef isnumber
-#define isnumber isdigit
-#endif
-
 /* Defined at least in mach/boolean.h on OS X. */
 #ifdef  TRUE
   #undef  TRUE
@@ -2602,6 +2598,8 @@ string_content  : tSTRING_CONTENT
                     $<val>$ = cmdarg_stack;
                     cond_stack = 0;
                     cmdarg_stack = 0;
+                  }
+                  {
                     $<node>$ = lex_strterm;
                     lex_strterm = 0;
                     lex_state = EXPR_BEG;
@@ -2611,8 +2609,9 @@ string_content  : tSTRING_CONTENT
                     cond_stack = $<val>1;
                     cmdarg_stack = $<val>2;
                     lex_strterm = $<node>3;
-                    // TODO
-                    $$ = new_evstr($$);
+
+                    if($4) $4->flags &= ~NODE_FL_NEWLINE;
+                    $$ = new_evstr($4);
                   }
                 ;
 
@@ -3143,8 +3142,6 @@ yycompile(rb_parser_state* parser_state, char *f, int line)
   in_def = 0;
   cur_mid = 0;
 
-  lex_strterm = 0;
-
   return n;
 }
 
@@ -3287,21 +3284,37 @@ file_to_ast(VALUE ptp, const char *f, FILE *file, int start)
   return ret;
 }
 
+#define STR_FUNC_ESCAPE 0x01
+#define STR_FUNC_EXPAND 0x02
+#define STR_FUNC_REGEXP 0x04
+#define STR_FUNC_QWORDS 0x08
+#define STR_FUNC_SYMBOL 0x10
+#define STR_FUNC_INDENT 0x20
+
+enum string_type {
+  str_squote = (0),
+  str_dquote = (STR_FUNC_EXPAND),
+  str_xquote = (STR_FUNC_EXPAND),
+  str_regexp = (STR_FUNC_REGEXP|STR_FUNC_ESCAPE|STR_FUNC_EXPAND),
+  str_sword  = (STR_FUNC_QWORDS),
+  str_dword  = (STR_FUNC_QWORDS|STR_FUNC_EXPAND),
+  str_ssym   = (STR_FUNC_SYMBOL),
+  str_dsym   = (STR_FUNC_SYMBOL|STR_FUNC_EXPAND),
+};
+
 static VALUE
 parser_str_new(const char *p, long n, rb_encoding *enc, int func, rb_encoding *enc0)
 {
   VALUE str;
 
-/*
   str = rb_enc_str_new(p, n, enc);
   if(!(func & STR_FUNC_REGEXP) && rb_enc_asciicompat(enc)) {
     if(rb_enc_str_coderange(str) == ENC_CODERANGE_7BIT) {
-      // ?
+      // Do nothing.
     } else if(enc0 == rb_usascii_encoding() && enc != rb_utf8_encoding()) {
       rb_enc_associate(str, rb_ascii8bit_encoding());
     }
   }
-*/
 
   return str;
 }
@@ -3728,24 +3741,6 @@ parser_regx_options(rb_parser_state* parser_state)
     return options | kcode;
 }
 
-#define STR_FUNC_ESCAPE 0x01
-#define STR_FUNC_EXPAND 0x02
-#define STR_FUNC_REGEXP 0x04
-#define STR_FUNC_QWORDS 0x08
-#define STR_FUNC_SYMBOL 0x10
-#define STR_FUNC_INDENT 0x20
-
-enum string_type {
-  str_squote = (0),
-  str_dquote = (STR_FUNC_EXPAND),
-  str_xquote = (STR_FUNC_EXPAND),
-  str_regexp = (STR_FUNC_REGEXP|STR_FUNC_ESCAPE|STR_FUNC_EXPAND),
-  str_sword  = (STR_FUNC_QWORDS),
-  str_dword  = (STR_FUNC_QWORDS|STR_FUNC_EXPAND),
-  str_ssym   = (STR_FUNC_SYMBOL),
-  str_dsym   = (STR_FUNC_SYMBOL|STR_FUNC_EXPAND),
-};
-
 static int
 parser_tokadd_mbchar(rb_parser_state *parser_state, int c)
 {
@@ -3902,7 +3897,7 @@ parser_parse_string(rb_parser_state* parser_state, NODE *quote)
       return ' ';
     }
     if(!(func & STR_FUNC_REGEXP)) return tSTRING_END;
-    pslval->num = regx_options();
+    set_yylval_num(regx_options());
     return tREGEXP_END;
   }
   if(space) {
@@ -5017,9 +5012,11 @@ retry:
     }
     switch(lex_state) {
     case EXPR_FNAME: case EXPR_DOT:
-      lex_state = EXPR_ARG; break;
+      lex_state = EXPR_ARG;
+      break;
     default:
-      lex_state = EXPR_BEG; break;
+      lex_state = EXPR_BEG;
+      break;
     }
     warn_balanced("/", "regexp literal");
     return '/';
@@ -5032,9 +5029,11 @@ retry:
     }
     switch(lex_state) {
     case EXPR_FNAME: case EXPR_DOT:
-      lex_state = EXPR_ARG; break;
+      lex_state = EXPR_ARG;
+      break;
     default:
-      lex_state = EXPR_BEG; break;
+      lex_state = EXPR_BEG;
+      break;
     }
     pushback(c);
     return '^';
@@ -5200,9 +5199,11 @@ retry:
     }
     switch(lex_state) {
     case EXPR_FNAME: case EXPR_DOT:
-      lex_state = EXPR_ARG; break;
+      lex_state = EXPR_ARG;
+      break;
     default:
-      lex_state = EXPR_BEG; break;
+      lex_state = EXPR_BEG;
+      break;
     }
     pushback(c);
     warn_balanced("%%", "string literal");
@@ -5242,7 +5243,7 @@ retry:
       tokadd('$');
       tokadd(c);
       tokfix();
-      set_yylval_name(rb_intern(tok()));
+      set_yylval_name(rb_parser_sym(tok()));
       return tGVAR;
 
     case '-':
@@ -5256,7 +5257,7 @@ retry:
       }
     gvar:
       tokfix();
-      set_yylval_name(rb_intern(tok()));
+      set_yylval_name(rb_parser_sym(tok()));
       return tGVAR;
 
     case '&':             /* $&: last match */
@@ -5330,7 +5331,7 @@ retry:
 
   default:
     if(!parser_is_identchar()) {
-      rb_compile_error(parser_state, "Invalid char `\\%03o' in expression", c);
+      rb_compile_error(parser_state, "Invalid char `\\x%02X' in expression", c);
       goto retry;
     }
 
@@ -5410,7 +5411,7 @@ retry:
           enum lex_state_e state = lex_state;
           lex_state = kw->state;
           if(state == EXPR_FNAME) {
-            set_yylval_name(rb_intern(kw->name));
+            set_yylval_name(rb_parser_sym(kw->name));
             return kw->id[0];
           }
           if(kw->id[0] == keyword_do) {

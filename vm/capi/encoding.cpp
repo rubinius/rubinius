@@ -13,15 +13,22 @@ using namespace rubinius::capi;
 
 extern "C" {
 
-  rb_encoding* rb_utf8_encoding(void) {
+  rb_encoding* rb_utf8_encoding() {
     NativeMethodEnvironment* env = NativeMethodEnvironment::get();
 
     return Encoding::utf8_encoding(env->state())->get_encoding();
   }
 
-  rb_encoding* rb_usascii_encoding(void) {
+  rb_encoding* rb_usascii_encoding() {
     NativeMethodEnvironment* env = NativeMethodEnvironment::get();
 
+    return Encoding::ascii_encoding(env->state())->get_encoding();
+  }
+
+  rb_encoding* rb_ascii8bit_encoding() {
+    NativeMethodEnvironment* env = NativeMethodEnvironment::get();
+
+    // TODO
     return Encoding::ascii_encoding(env->state())->get_encoding();
   }
 
