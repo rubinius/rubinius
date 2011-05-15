@@ -16,7 +16,11 @@ end
 
 require 'rake'
 
-LANG = "en_US.UTF-8"
+LANG = case ENV['LANG']
+       when /utf-8/i then $&
+       when /^(.+)\..*$/ then $1 + '.UTF-8'
+       else 'en_US.UTF-8'
+       end
 
 SET_CMD = case RUBY_PLATFORM 
 	  when /mingw32/ then "set"
