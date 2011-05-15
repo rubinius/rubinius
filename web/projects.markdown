@@ -15,6 +15,13 @@ If your project uses Rubinius, please submit a patch to add it to our list!
 An Akin programming language optimized for fun.
 
 
+
+### Brainfuck
+[github.com/txus/brainfuck](https://github.com/txus/brainfuck)
+
+A Brainfuck implementation.
+
+
 ### Capuchin
 [github.com/matthewd/capuchin](https://github.com/matthewd/capuchin)
 
