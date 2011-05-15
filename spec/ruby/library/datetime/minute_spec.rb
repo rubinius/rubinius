@@ -13,7 +13,7 @@ describe "DateTime#min" do
     end
 
     it "adds 60 to negative minutes" do
-      new_datetime(:minute => -30).minute.should == 30
+      new_datetime(:minute => -20).minute.should == 40
     end
 
     it "returns the absolute value of a Rational" do

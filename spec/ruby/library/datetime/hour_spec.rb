@@ -12,7 +12,7 @@ describe "DateTime#hour" do
   end
 
   it "adds 24 to negative hours" do
-    new_datetime(:hour => -12).hour.should == 12
+    new_datetime(:hour => -10).hour.should == 14
   end
 
   it "returns the absolute value of a Rational" do

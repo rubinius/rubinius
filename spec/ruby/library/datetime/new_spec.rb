@@ -46,4 +46,8 @@ describe "DateTime.new" do
   it "takes the eigth argument as the date of calendar reform" do
     DateTime.new(1, 2, 3, 4, 5, 6, 7, Date::ITALY).start().should == Date::ITALY
   end
+
+  it "raises an error on invalid arguments" do
+    lambda { new_datetime(:minute => 999) }.should raise_error(ArgumentError)
+  end
 end

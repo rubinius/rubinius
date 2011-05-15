@@ -14,7 +14,7 @@ describe "DateTime#second" do
     end
 
     it "adds 60 to negative values" do
-      new_datetime(:second => -30).second.should == 30
+      new_datetime(:second => -20).second.should == 40
     end
     
     it "returns the absolute value of a Rational" do
