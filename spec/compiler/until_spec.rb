@@ -168,12 +168,27 @@ describe "An Until node" do
     compile(&nil_condition)
   end
 
-  relates "a while not ()" do
+  ruby_version_is ""..."1.9" do
+    relates "a while not ()" do
+      compile(&nil_condition)
+    end
+
+    relates <<-ruby do
+        while not ()
+          a
+        end
+      ruby
+
+      compile(&nil_condition)
+    end
+  end
+
+  relates "a while ! ()" do
     compile(&nil_condition)
   end
 
   relates <<-ruby do
-      while not ()
+      while ! ()
         a
       end
     ruby
