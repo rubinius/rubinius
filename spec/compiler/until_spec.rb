@@ -1,13 +1,6 @@
 require File.expand_path('../../spec_helper', __FILE__)
 
 describe "An Until node" do
-  pre_until_sexp = [
-    :until,
-     [:call, nil, :a, [:arglist]],
-     [:call, [:call, nil, :b, [:arglist]], :+, [:arglist, [:lit, 1]]],
-     true
-  ]
-
   pre_until = lambda do |g|
     top    = g.new_label
     rdo    = g.new_label
@@ -40,17 +33,19 @@ describe "An Until node" do
     g.pop_modifiers
   end
 
-  relates <<-ruby do
-      while not a
-        b + 1
-      end
-    ruby
+  ruby_version_is ""..."1.9" do
+    relates <<-ruby do
+        while not a
+          b + 1
+        end
+      ruby
 
-    compile(&pre_until)
-  end
+      compile(&pre_until)
+    end
 
-  relates "b + 1 while not a" do
-    compile(&pre_until)
+    relates "b + 1 while not a" do
+      compile(&pre_until)
+    end
   end
 
   relates <<-ruby do
@@ -65,13 +60,6 @@ describe "An Until node" do
   relates "b + 1 until a" do
     compile(&pre_until)
   end
-
-  post_until_sexp = [
-    :until,
-     [:call, nil, :a, [:arglist]],
-     [:call, [:call, nil, :b, [:arglist]], :+, [:arglist, [:lit, 1]]],
-     false
-  ]
 
   post_until = lambda do |g|
     top    = g.new_label
@@ -106,13 +94,104 @@ describe "An Until node" do
     g.pop_modifiers
   end
 
-  relates <<-ruby do
-      begin
-        b + 1
-      end while not a
-    ruby
+  ruby_version_is ""..."1.9" do
+    relates <<-ruby do
+        begin
+          b + 1
+        end while not a
+      ruby
 
-    compile(&post_until)
+      compile(&post_until)
+    end
+  end
+
+  ruby_version_is "1.9" do
+    until_not = lambda do |g|
+      top    = g.new_label
+      rdo    = g.new_label
+      brk    = g.new_label
+      post   = g.new_label
+      bottom = g.new_label
+
+      g.push_modifiers
+
+      top.set!
+      g.push :self
+      g.send :a, 0, true
+      g.send :"!", 0, false
+      g.git bottom
+
+      rdo.set!
+      g.push :self
+      g.send :b, 0, true
+      g.push 1
+      g.send :+, 1, false
+
+      post.set!
+      g.pop
+      g.check_interrupts
+      g.goto top
+
+      bottom.set!
+      g.push :nil
+
+      brk.set!
+      g.pop_modifiers
+    end
+
+    relates <<-ruby do
+        until not a
+          b + 1
+        end
+      ruby
+
+      compile(&until_not)
+    end
+
+    relates "b + 1 until not a" do
+      compile(&until_not)
+    end
+
+    relates <<-ruby do
+        begin
+          b + 1
+        end until not a
+      ruby
+
+      compile do |g|
+        top    = g.new_label
+        brk    = g.new_label
+        post   = g.new_label
+        bottom = g.new_label
+
+        g.push_modifiers
+
+        top.set!
+
+        g.push :self
+        g.send :b, 0, true
+        g.push 1
+        g.send :+, 1, false
+
+        post.set!
+        g.pop
+        g.check_interrupts
+
+        g.push :self
+        g.send :a, 0, true
+        g.send :"!", 0, false
+        g.git bottom
+
+        g.goto top
+
+        bottom.set!
+        g.push :nil
+
+        brk.set!
+
+        g.pop_modifiers
+      end
+    end
   end
 
   relates <<-ruby do
@@ -123,8 +202,6 @@ describe "An Until node" do
 
     compile(&post_until)
   end
-
-  nil_condition_sexp = [:until, [:nil], [:call, nil, :a, [:arglist]], true]
 
   nil_condition = lambda do |g|
     top    = g.new_label
