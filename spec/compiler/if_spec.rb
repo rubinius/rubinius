@@ -232,11 +232,21 @@ describe "An If node" do
     compile(&nil_condition)
   end
 
-  relates "a unless not ()" do
+  ruby_version_is ""..."1.9" do
+    relates "a unless not ()" do
+      compile(&nil_condition)
+    end
+
+    relates "unless not () then a end" do
+      compile(&nil_condition)
+    end
+  end
+
+  relates "a unless ! ()" do
     compile(&nil_condition)
   end
 
-  relates "unless not () then a end" do
+  relates "unless ! () then a end" do
     compile(&nil_condition)
   end
 
