@@ -557,8 +557,8 @@ namespace melbourne {
       break;
 
     case NODE_ALIAS: {          /* u1 u2 (alias :blah :blah2) */
-      VALUE to = process_parse_tree(parser_state, ptp, node->u2.node, locals);
-      VALUE from = process_parse_tree(parser_state, ptp, node->u1.node, locals);
+      VALUE to = process_parse_tree(parser_state, ptp, node->u1.node, locals);
+      VALUE from = process_parse_tree(parser_state, ptp, node->u2.node, locals);
       tree = rb_funcall(ptp, rb_sAlias, 3, line, to, from);
       break;
     }
