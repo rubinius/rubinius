@@ -65,16 +65,16 @@ static int parser_yyerror(rb_parser_state*, const char *);
 
 #define YYLEX_PARAM parser_state
 
-#define ID_SCOPE_SHIFT 3
-#define ID_SCOPE_MASK 0x07
-#define ID_LOCAL    0x01
-#define ID_INSTANCE 0x02
-#define ID_GLOBAL   0x03
-#define ID_ATTRSET  0x04
-#define ID_CONST    0x05
-#define ID_CLASS    0x06
-#define ID_JUNK     0x07
-#define ID_INTERNAL ID_JUNK
+#define ID_SCOPE_SHIFT  3
+#define ID_SCOPE_MASK   0x07
+#define ID_LOCAL        0x00
+#define ID_INSTANCE     0x01
+#define ID_GLOBAL       0x03
+#define ID_ATTRSET      0x04
+#define ID_CONST        0x05
+#define ID_CLASS        0x06
+#define ID_JUNK         0x07
+#define ID_INTERNAL     ID_JUNK
 
 #define is_notop_id(id) ((id)>tLAST_TOKEN)
 #define is_local_id(id) (is_notop_id(id)&&((id)&ID_SCOPE_MASK)==ID_LOCAL)
@@ -149,8 +149,8 @@ static NODE *new_fcall(rb_parser_state*,QUID,NODE*);
 static NODE *parser_new_super(rb_parser_state*, NODE*);
 static NODE *parser_new_yield(rb_parser_state*, NODE*);
 
-static NODE *mel_gettable(rb_parser_state*,QUID);
-#define gettable(i) mel_gettable((rb_parser_state*)parser_state, i)
+static NODE *parser_gettable(rb_parser_state*,QUID);
+#define gettable(i) parser_gettable((rb_parser_state*)parser_state, i)
 static NODE *parser_assignable(rb_parser_state*, QUID, NODE*);
 static QUID parser_formal_argument(rb_parser_state*, QUID);
 static QUID parser_shadowing_lvar(rb_parser_state*, QUID);
@@ -5841,7 +5841,7 @@ parser_match_op(rb_parser_state* parser_state, NODE *node1, NODE *node2)
 }
 
 static NODE*
-mel_gettable(rb_parser_state* parser_state, QUID id)
+parser_gettable(rb_parser_state* parser_state, QUID id)
 {
   if(id == keyword_self) {
     return NEW_SELF();
@@ -5968,45 +5968,6 @@ out:
   variables->block_vars = var_table_pop(variables->block_vars);
 
   return out;
-}
-
-static NODE*
-parser_assignable(QUID id, NODE *val, rb_parser_state* parser_state)
-{
-  value_expr(val);
-  if(id == keyword_self) {
-    yy_error("Can't change the value of self");
-  } else if(id == keyword_nil) {
-    yy_error("Can't assign to nil");
-  } else if(id == keyword_true) {
-    yy_error("Can't assign to true");
-  } else if(id == keyword_false) {
-    yy_error("Can't assign to false");
-  } else if(id == keyword__FILE__) {
-    yy_error("Can't assign to __FILE__");
-  } else if(id == keyword__LINE__) {
-    yy_error("Can't assign to __LINE__");
-  } else if(is_local_id(id)) {
-    if(variables->block_vars) {
-      var_table_add(variables->block_vars, id);
-    }
-    return NEW_LASGN(id, val);
-  } else if(is_global_id(id)) {
-    return NEW_GASGN(id, val);
-  } else if(is_instance_id(id)) {
-    return NEW_IASGN(id, val);
-  } else if(is_const_id(id)) {
-    if(in_def || in_single)
-      yy_error("dynamic constant assignment");
-    return NEW_CDECL(id, val, 0);
-  } else if(is_class_id(id)) {
-    if(in_def || in_single) return NEW_CVASGN(id, val);
-    return NEW_CVDECL(id, val);
-  } else {
-    /* FIXME: indicate which identifier. */
-    rb_compile_error(parser_state, "identifier is not valid 2 (%d)\n", id);
-  }
-  return 0;
 }
 
 static void
@@ -6680,32 +6641,44 @@ parser_new_super(rb_parser_state* parser_state,NODE *a)
 static int
 parser_local_var(rb_parser_state* parser_state, QUID id)
 {
-  /* TODO */
-  return 1;
+  int idx;
+
+  /* Leave these hardcoded here because they arne't REALLY ids at all. */
+  if(id == '_') {
+    return 0;
+  } else if(id == '~') {
+    return 1;
+  }
+
+  // if there are block variables, check to see if there is already
+  // a local by this name. If not, create one in the top block_vars
+  // table.
+  if(variables->block_vars) {
+    idx = var_table_find_chained(variables->block_vars, id);
+    if(idx >= 0) {
+      return idx;
+    } else {
+      return var_table_add(variables->block_vars, id);
+    }
+  }
+
+  idx = var_table_find(variables->local_vars, id);
+  if(idx >= 0) {
+    return idx + 2;
+  }
+
+  return var_table_add(variables->local_vars, id);
 }
 
 static int
 parser_local_id(rb_parser_state* parser_state, QUID id)
 {
-  /* TODO */
-#if 0
-  struct vtable *vars, *args;
-
-  vars = lvtbl->vars;
-  args = lvtbl->args;
-
-  while(vars && POINTER_P(vars->prev)) {
-    vars = vars->prev;
-    args = args->prev;
+  if(variables->block_vars) {
+    if(var_table_find_chained(variables->block_vars, id) >= 0) return 1;
   }
 
-  if(vars && vars->prev == DVARS_INHERIT) {
-    return rb_local_defined(id);
-  } else {
-    return (vtable_included(args, id) || vtable_included(vars, id));
-  }
-#endif
-  return 1;
+  if(var_table_find(variables->local_vars, id) >= 0) return 1;
+  return 0;
 }
 
 static int
@@ -6775,17 +6748,6 @@ parser_local_cnt(rb_parser_state* parser_state, QUID id)
   }
 
   return var_table_add(variables->local_vars, id);
-}
-
-static int
-mel_local_id(rb_parser_state* parser_state, QUID id)
-{
-  if(variables->block_vars) {
-    if(var_table_find_chained(variables->block_vars, id) >= 0) return 1;
-  }
-
-  if(var_table_find(variables->local_vars, id) >= 0) return 1;
-  return 0;
 }
 
 // TODO: encoding support, rb_usascii_encoding(), see rb_intern3
