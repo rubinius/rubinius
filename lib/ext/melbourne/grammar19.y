@@ -2650,11 +2650,11 @@ dsym            : tSYMBEG xstring_contents tSTRING_END
                         lit = $$->nd_lit;
                         // TODO: intern function that takes a String
                         // so the embedded \x00 or captured.
-                        $$->nd_lit = rb_parser_sym(RSTRING_PTR(lit));
+                        $$->nd_lit = QUID2SYM(rb_parser_sym(RSTRING_PTR(lit)));
                         nd_set_type($$, NODE_LIT);
                         break;
                       default:
-                        $$ = NEW_NODE(NODE_DSYM, Qnil, 1, NEW_LIST($$));
+                        $$ = NEW_NODE(NODE_DSYM, STR_NEW0(), 1, NEW_LIST($$));
                         break;
                       }
                     }
