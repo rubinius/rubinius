@@ -173,7 +173,7 @@ static int  parser_local_id(rb_parser_state*, QUID);
 static QUID  *parser_local_tbl(rb_parser_state*);
 static QUID   convert_op(QUID id);
 
-#define QUID2SYM(x)   (x)
+#define QUID2SYM(x)   quark_to_symbol(x)
 
 rb_parser_state *parser_alloc_state() {
   rb_parser_state *parser_state = (rb_parser_state*)calloc(1, sizeof(rb_parser_state));

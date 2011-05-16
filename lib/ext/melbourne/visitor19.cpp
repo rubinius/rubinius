@@ -64,7 +64,7 @@ namespace melbourne {
   const char *op_to_name(QUID id);
 
 
-  static VALUE quark_to_symbol(quark quark) {
+  VALUE quark_to_symbol(quark quark) {
     const char *op;
     if((op = op_to_name(quark)) ||
        (op = quark_to_string(id_to_quark(quark)))) {
@@ -146,8 +146,6 @@ namespace melbourne {
     } else {
       return rb_funcall(ptp, rb_intern("process_dangling_node"), 0);
     }
-
-    fprintf(stderr, "%s\n", get_node_type_string((enum node_type)nd_type(node)));
 
     switch(nd_type(node)) {
 
@@ -685,6 +683,11 @@ namespace melbourne {
     }
     case NODE_ARGS: {
       VALUE splat = Qnil, args = rb_ary_new();
+
+      // TODO: argument structure
+      tree = rb_funcall(ptp, rb_sArgs, 4, line, args, Qnil, splat);
+      break;
+
       NODE *optnode;
       int i = 0, max_args = node->nd_cnt;
 
@@ -772,7 +775,8 @@ namespace melbourne {
       break;
 
     case NODE_REGEX:
-      tree = rb_funcall(ptp, rb_sRegex, 3, line, node->nd_lit,
+      // TODO: regexp source
+      tree = rb_funcall(ptp, rb_sRegex, 3, line, rb_str_new(0, 0), // node->nd_lit,
                         INT2FIX(node->nd_cnt));
       break;
 
