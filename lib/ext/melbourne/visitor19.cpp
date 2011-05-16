@@ -553,7 +553,7 @@ namespace melbourne {
     }
     case NODE_VALIAS:           /* u1 u2 (alias $global $global2) */
       tree = rb_funcall(ptp, rb_sVAlias, 3, line,
-          Q2SYM(node->u2.id), Q2SYM(node->u1.id));
+          Q2SYM(node->u1.id), Q2SYM(node->u2.id));
       break;
 
     case NODE_ALIAS: {          /* u1 u2 (alias :blah :blah2) */
