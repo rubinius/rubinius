@@ -15,6 +15,11 @@ If your project uses Rubinius, please submit a patch to add it to our list!
 An Akin programming language optimized for fun.
 
 
+### Atomy
+[github.com/vito/atomy](https://github.com/vito/atomy)
+
+The [Atomy](http://atomy-lang.org/) programming language.
+
 
 ### Brainfuck
 [github.com/txus/brainfuck](https://github.com/txus/brainfuck)
