@@ -222,6 +222,8 @@ node_types19 = %w[
   last
   file
   regex
+  number
+  float
 ]
 
 def write_node_types(list, version)

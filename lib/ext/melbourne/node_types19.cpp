@@ -114,6 +114,8 @@ namespace melbourne {
       "last\0"
       "file\0"
       "regex\0"
+      "number\0"
+      "float\0"
     };
 
     static const unsigned short node_types_offsets[] = {
@@ -224,11 +226,13 @@ namespace melbourne {
       675,
       680,
       685,
-      691
+      691,
+      698,
+      704
     };
 
     const char *get_node_type_string(enum node_type node) {
-      if(node < 107) {
+      if(node < 109) {
         return node_types + node_types_offsets[node];
       } else {
 #define NODE_STRING_MESSAGE_LEN 20

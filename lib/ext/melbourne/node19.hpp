@@ -237,15 +237,8 @@ namespace melbourne {
 #define NEW_OPTBLOCK(a)         NEW_NODE(NODE_OPTBLOCK,a,0,0)
 #define NEW_REGEX(l,o)          NEW_NODE(NODE_REGEX,l,0,o)
 #define NEW_FILE()              NEW_NODE(NODE_FILE,0,0,0)
-    /*
-#define NOEX_PUBLIC             0
-#define NOEX_NOSUPER            1
-#define NOEX_PRIVATE            2
-#define NOEX_PROTECTED          4
-#define NOEX_MASK               6
-
-#define NOEX_UNDEF              NOEX_NOSUPER
-*/
+#define NEW_NUMBER(l)           NEW_NODE(NODE_NUMBER,l,0,0)
+#define NEW_FLOAT(l)            NEW_NODE(NODE_FLOAT,l,0,0)
 
   }; // namespace grammar19
 }; // namespace melbourne

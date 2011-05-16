@@ -328,6 +328,16 @@ module Rubinius
       end
     end
 
+    # TODO: Fix the way 1.8 parser handles this
+    def process_number19(line, value)
+      case value
+      when Fixnum
+        AST::FixnumLiteral.new line, value
+      when Bignum
+        AST::NumberLiteral.new line, value
+      end
+    end
+
     def process_op_asgn1(line, receiver, index, op, value)
       AST::OpAssign1.new line, receiver, index, op, value
     end

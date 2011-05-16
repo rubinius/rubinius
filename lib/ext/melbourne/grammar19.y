@@ -3080,6 +3080,8 @@ static int parser_here_document(rb_parser_state*, NODE*);
 #define set_yylval_id(x)          yylval.id = x
 #define set_yylval_name(x)        yylval.id = x
 #define set_yylval_literal(x)     yylval.node = NEW_LIT(x)
+#define set_yylval_number(x)      yylval.node = NEW_NUMBER(x)
+#define set_yylval_float(x)       yylval.node = NEW_FLOAT(x)
 #define set_yylval_node(x)        yylval.node = x
 #define yylval_id()               yylval.id
 
@@ -4762,7 +4764,7 @@ retry:
           } else if(nondigit) {
             goto trailing_uc;
           }
-          set_yylval_literal(rb_cstr_to_inum(tok(), 16, FALSE));
+          set_yylval_number(rb_cstr_to_inum(tok(), 16, FALSE));
           return tINTEGER;
         }
 
@@ -4788,7 +4790,7 @@ retry:
           } else if(nondigit) {
             goto trailing_uc;
           }
-          set_yylval_literal(rb_cstr_to_inum(tok(), 2, FALSE));
+          set_yylval_number(rb_cstr_to_inum(tok(), 2, FALSE));
           return tINTEGER;
         }
 
@@ -4814,7 +4816,7 @@ retry:
           } else if(nondigit) {
             goto trailing_uc;
           }
-          set_yylval_literal(rb_cstr_to_inum(tok(), 10, FALSE));
+          set_yylval_number(rb_cstr_to_inum(tok(), 10, FALSE));
           return tINTEGER;
         }
 
@@ -4850,7 +4852,7 @@ retry:
             pushback(c);
             tokfix();
             if(nondigit) goto trailing_uc;
-            set_yylval_literal(rb_cstr_to_inum(tok(), 8, FALSE));
+            set_yylval_number(rb_cstr_to_inum(tok(), 8, FALSE));
             return tINTEGER;
           }
           if(nondigit) {
@@ -4866,7 +4868,7 @@ retry:
           tokadd('0');
         } else {
           pushback(c);
-          set_yylval_literal(INT2FIX(0));
+          set_yylval_number(INT2FIX(0));
           return tINTEGER;
         }
       }
@@ -4944,10 +4946,10 @@ retry:
         rb_warningS("Float %s out of range", tok());
         errno = 0;
       }
-      set_yylval_literal(rb_float_new(d));
+      set_yylval_float(rb_float_new(d));
       return tFLOAT;
     }
-    set_yylval_literal(rb_cstr_to_inum(tok(), 10, FALSE));
+    set_yylval_number(rb_cstr_to_inum(tok(), 10, FALSE));
     return tINTEGER;
 	}
 

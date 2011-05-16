@@ -111,7 +111,9 @@ namespace melbourne {
       NODE_OPTBLOCK,
       NODE_LAST,
       NODE_FILE,
-      NODE_REGEX
+      NODE_REGEX,
+      NODE_NUMBER,
+      NODE_FLOAT
     };
 
     const char *get_node_type_string(enum node_type nt);

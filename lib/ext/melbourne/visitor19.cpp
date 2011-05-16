@@ -789,6 +789,14 @@ namespace melbourne {
       tree = rb_funcall(ptp, rb_sLit, 2, line, node->nd_lit);
       break;
 
+    case NODE_NUMBER:
+      tree = rb_funcall(ptp, rb_sNumber19, 2, line, node->nd_lit);
+      break;
+
+    case NODE_FLOAT:
+      tree = rb_funcall(ptp, rb_sFloat, 2, line, node->nd_lit);
+      break;
+
     case NODE_NTH_REF:          /* u2 u3 ($1) - u3 is local_cnt('~') ignorable? */
       tree = rb_funcall(ptp, rb_sNthRef, 2, line, INT2FIX(node->nd_nth));
       break;

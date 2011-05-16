@@ -75,6 +75,7 @@ namespace melbourne {
   ID rb_sNot;
   ID rb_sNthRef;
   ID rb_sNumber;
+  ID rb_sNumber19;
   ID rb_sOpAsgn1;
   ID rb_sOpAsgn2;
   ID rb_sOpAsgnAnd;
@@ -184,6 +185,7 @@ namespace melbourne {
     rb_sNot       = rb_intern("process_not");
     rb_sNthRef    = rb_intern("process_nth_ref");
     rb_sNumber    = rb_intern("process_number");
+    rb_sNumber19  = rb_intern("process_number19");
     rb_sOpAsgn1   = rb_intern("process_op_asgn1");
     rb_sOpAsgn2   = rb_intern("process_op_asgn2");
     rb_sOpAsgnAnd = rb_intern("process_op_asgn_and");

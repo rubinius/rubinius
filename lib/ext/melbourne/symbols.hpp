@@ -74,6 +74,7 @@ namespace melbourne {
   extern ID rb_sNot;
   extern ID rb_sNthRef;
   extern ID rb_sNumber;
+  extern ID rb_sNumber19;
   extern ID rb_sOpAsgn1;
   extern ID rb_sOpAsgn2;
   extern ID rb_sOpAsgnAnd;
