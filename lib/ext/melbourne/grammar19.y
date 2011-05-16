@@ -2199,7 +2199,7 @@ bvar            : tIDENTIFIER
                 ;
 
 lambda          : {
-                    /* TODO */
+                    // no dyn variables
                   }
                   {
                     $<num>$ = lpar_beg;
