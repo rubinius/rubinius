@@ -78,10 +78,9 @@ next_url: contributing/communication
 Ищите в коде пометки вида TODO, HACK, FIXME и присылайте патчи, исправляющие
 описанные в них ситуации. Для поиска меток вы можете воспользоваться такой командой:
 
-    `grep -re "@todo\|TODO\|HACK\|FIXME" .`
+    grep -re "@todo\|TODO\|HACK\|FIXME" .
 
-По вопросам стиля кода обратитесь к гл. [<<Стиль
-кодирования>>](/doc/ru/contributing/style-guide/).
+По вопросам стиля кода обратитесь к гл. [<<Стиль программирования>>](/doc/ru/contributing/style-guide/).
 
 
 ## Ухаживайте за тикетами
