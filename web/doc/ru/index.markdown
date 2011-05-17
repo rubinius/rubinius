@@ -7,7 +7,7 @@ next_url: what-is-rubinius
 ---
 
 1. [Что такое Rubinius?](/doc/ru/what-is-rubinius/)
-1. [Приступая к работе](/doc/ru/getting-started/)
+1. [Для начала...](/doc/ru/getting-started/)
     1. [Минимальные требования](/doc/ru/getting-started/requirements/)
     1. [Сборка](/doc/ru/getting-started/building/)
     1. [Запуск Rubinius](/doc/ru/getting-started/running-rubinius/)
@@ -36,7 +36,7 @@ next_url: what-is-rubinius
 1. [Компилятор в байткод](/doc/ru/bytecode-compiler/)
     1. [Парсер](/doc/ru/bytecode-compiler/parser/)
     1. [AST](/doc/ru/bytecode-compiler/ast/)
-    1. [Комилятор](/doc/ru/bytecode-compiler/compiler/)
+    1. [Компилятор](/doc/ru/bytecode-compiler/compiler/)
     1. [Transformations](/doc/ru/bytecode-compiler/transformations/)
     1. [Генератор](/doc/ru/bytecode-compiler/generator/)
 1. [JIT Компилятор](/doc/ru/jit/)

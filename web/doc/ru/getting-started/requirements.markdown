@@ -1,7 +1,7 @@
 ---
 layout: doc_ru
 title: Минимальные требования
-previous: Приступая к работе
+previous: Для начала...
 previous_url: getting-started
 next: Сборка
 next_url: getting-started/building
