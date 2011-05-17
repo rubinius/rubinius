@@ -1,7 +1,7 @@
 ---
 layout: doc_ru
 title: Ruby
-previous: Стиль кодирования
+previous: Стиль программирования
 previous_url: contributing/style-guide
 next: Скрипты
 next_url: ruby/scripts

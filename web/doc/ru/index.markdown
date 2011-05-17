@@ -14,7 +14,7 @@ next_url: what-is-rubinius
     1. [Решение проблем](/doc/ru/getting-started/troubleshooting/)
 1. [Участие в проекте](/doc/ru/contributing/)
     1. [Общение](/doc/ru/contributing/communication/)
-    1. [Стиль кодирования](/doc/ru/contributing/style-guide)
+    1. [Стиль программирования](/doc/ru/contributing/style-guide)
 1. [Ruby](/doc/ru/ruby/)
     1. [Скрипты](/doc/ru/ruby/scripts/)
     1. [Методы](/doc/ru/ruby/methods/)
