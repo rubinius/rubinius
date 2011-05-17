@@ -570,7 +570,7 @@ namespace rubinius {
 
   String* Array::pack(STATE, String* directives, CallFrame* call_frame) {
     // Ragel-specific variables
-    std::string d(directives->c_str(), directives->size());
+    std::string d(directives->c_str(state), directives->size());
     const char *p  = d.c_str();
     const char *pe = p + d.size();
     const char *eof = pe;

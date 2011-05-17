@@ -535,3 +535,15 @@ describe "String#unpack with 'w' directive" do
     "\204\314\330\205R".unpack('w').should == [1234567890]
   end
 end
+
+describe "String#unpack with 'P' directive" do
+  it "returns a random object after consume a words worth of byte" do
+    lambda {
+      if 1.size == 8
+        "\0\0\0\0\0\0\0\0".unpack("P")
+      else
+        "\0\0\0\0".unpack("P")
+      end
+    }.should_not raise_error(Exception)
+  end
+end
