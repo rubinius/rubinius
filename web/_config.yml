@@ -8,5 +8,5 @@ permalink: pretty
 
 host: http://rubini.us
 
-exclude: drafts Gemfile Gemfile.lock Rakefile Rakefile.compiled.rbc 
+exclude: drafts
 ---
