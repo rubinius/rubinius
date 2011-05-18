@@ -90,6 +90,7 @@ namespace melbourne {
   ID rb_sReturn;
   ID rb_sSClass;
   ID rb_sScope;
+  ID rb_sScope19;
   ID rb_sSelf;
   ID rb_sSplat;
   ID rb_sStr;
@@ -200,6 +201,7 @@ namespace melbourne {
     rb_sReturn    = rb_intern("process_return");
     rb_sSClass    = rb_intern("process_sclass");
     rb_sScope     = rb_intern("process_scope");
+    rb_sScope19   = rb_intern("process_scope19");
     rb_sSelf      = rb_intern("process_self");
     rb_sSplat     = rb_intern("process_splat");
     rb_sStr       = rb_intern("process_str");

@@ -240,6 +240,18 @@ namespace melbourne {
 #define NEW_NUMBER(l)           NEW_NODE(NODE_NUMBER,l,0,0)
 #define NEW_FLOAT(l)            NEW_NODE(NODE_FLOAT,l,0,0)
 
+#define NOEX_PUBLIC             0x00,
+#define NOEX_NOSUPER            0x01,
+#define NOEX_PRIVATE            0x02,
+#define NOEX_PROTECTED          0x04,
+#define NOEX_MASK               0x06,
+#define NOEX_BASIC              0x08,
+#define NOEX_UNDEF              NOEX_NOSUPER,
+#define NOEX_MODFUNC            0x12,
+#define NOEX_SUPER              0x20,
+#define NOEX_VCALL              0x40,
+#define NOEX_RESPONDS           0x80
+
   }; // namespace grammar19
 }; // namespace melbourne
 

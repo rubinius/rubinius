@@ -1887,8 +1887,8 @@ primary         : literal
                   k_end
                   {
                     /* TODO */
-                    if(!$5) $5 = NEW_NIL();
-                    $$ = NEW_DEFN($2, $4, $5, NOEX_PRIVATE);
+                    NODE* body = remove_begin($5);
+                    $$ = NEW_DEFN($2, $4, body, NOEX_PRIVATE);
                     nd_set_line($$, $<num>1);
                     local_pop();
                     in_def--;
@@ -1904,7 +1904,8 @@ primary         : literal
                   bodystmt
                   k_end
                   {
-                    $$ = NEW_DEFS($2, $5, $7, $8);
+                    NODE* body = remove_begin($8);
+                    $$ = NEW_DEFS($2, $5, $7, body);
                     nd_set_line($$, $<num>1);
                     local_pop();
                     in_single--;
@@ -5518,7 +5519,6 @@ fixpos(NODE *node, NODE *orig)
   if(!node) return;
   if(!orig) return;
   if(orig == (NODE*)1) return;
-  node->nd_file = orig->nd_file;
   nd_set_line(node, nd_line(orig));
 }
 

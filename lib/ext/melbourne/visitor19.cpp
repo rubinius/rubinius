@@ -444,7 +444,7 @@ namespace melbourne {
     }
     case NODE_SCOPE: {
       VALUE body = process_parse_tree(parser_state, ptp, node->nd_body, node->nd_tbl);
-      tree = rb_funcall(ptp, rb_sScope, 2, line, body);
+      tree = rb_funcall(ptp, rb_sScope19, 2, line, body);
       break;
     }
     case NODE_OP_ASGN1: {

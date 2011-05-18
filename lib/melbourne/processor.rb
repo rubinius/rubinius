@@ -398,6 +398,19 @@ module Rubinius
       end
     end
 
+    def process_scope19(line, body)
+      if body.kind_of? AST::Block
+        # TODO check remove_begin
+        if body.array.first.kind_of? AST::Begin
+          body.array.first = body.array.first.body
+        end
+        body
+      elsif body
+        args = AST::FormalArguments.new line, [], nil, nil
+        AST::Block.new line, [args, body]
+      end
+    end
+
     def process_self(line)
       AST::Self.new line
     end
