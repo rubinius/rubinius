@@ -76,7 +76,7 @@ namespace rubinius {
     // Ruby.primitive :bytearray_reverse
     ByteArray* reverse(STATE, Fixnum* start, Fixnum* total);
 
-    char* to_chars(STATE);
+    char* to_chars(STATE, Fixnum* size);
 
     class Info : public TypeInfo {
     public:
