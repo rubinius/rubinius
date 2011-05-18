@@ -71,13 +71,8 @@ others learn about the implementation details.
 
 ## Cleanup Code
 
-Search for tags like TODO, HACK, FIXME in the code and submit patches to fix
-them. Here's a command to search the code:
-
-    `git grep -e "@todo" -e "TODO" -e "HACK" -e "FIXME"`
-
-Review the [Style Guide](/doc/en/contributing/style-guide/) for
-coding guidelines.
+Review the [Style Guide](/doc/en/contributing/style-guide/) for coding
+guidelines.
 
 
 ## Triage Tickets

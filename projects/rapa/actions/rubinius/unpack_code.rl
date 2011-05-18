@@ -559,7 +559,7 @@ namespace rubinius {
 
   Array* String::unpack(STATE, String* directives) {
     // Ragel-specific variables
-    std::string d(directives->c_str(), directives->size());
+    std::string d(directives->c_str(state), directives->size());
     const char *p  = d.c_str();
     const char *pe = p + d.size();
 
