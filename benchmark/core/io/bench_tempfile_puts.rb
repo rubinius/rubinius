@@ -10,7 +10,7 @@ begin
 
   Benchmark.ips do |x|
 
-    x.report "puts on char" do |times|
+    x.report "puts one char" do |times|
       i = 0
       while i < times
         file.puts one_char

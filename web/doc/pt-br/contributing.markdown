@@ -69,17 +69,6 @@ Study how Rubinius works and write highlevel documentation that will help
 others learn about the implementation details.
 
 
-## Cleanup Code
-
-Search for tags like TODO, HACK, FIXME in the code and submit patches to fix
-them. Here's a command to search the code:
-
-    `git grep -e "@todo" -e "TODO" -e "HACK" -e "FIXME"`
-
-Review the [Style Guide](/doc/pt-br/contributing/style-guide/) for
-coding guidelines.
-
-
 ## Triage Tickets
 
   * Revive or close old tickets.

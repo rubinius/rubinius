@@ -61,8 +61,8 @@ namespace rubinius {
     // @todo implement
   }
 
-  char* ByteArray::to_chars(STATE) {
-    native_int sz = this->size(state)->to_native();
+  char* ByteArray::to_chars(STATE, Fixnum* size) {
+    native_int sz = size->to_native();
     char* str = (char*)(this->bytes);
     char* out = ALLOC_N(char, sz);
 
