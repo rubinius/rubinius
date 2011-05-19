@@ -56,7 +56,7 @@ now install Rubinius either latest or head as follows,
 
 Once installed,
 
-  rvm use rbx  # Seects Rubinius into the current shell session.
+  rvm use rbx  # Selects Rubinius into the current shell session.
 
 If you wish to make Rubinius the default interpreter when you open new shells,
 
