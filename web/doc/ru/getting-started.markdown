@@ -1,6 +1,6 @@
 ---
 layout: doc_ru
-title: Приступая к работе
+title: Для начала...
 previous: Что Такое Rubinius?
 previous_url: what-is-rubinius
 next: Минимальные требования
