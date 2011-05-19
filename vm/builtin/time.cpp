@@ -45,8 +45,10 @@ namespace rubinius {
 #define NDIV(x,y) (-(-((x)+1)/(y))-1)
 #define NMOD(x,y) ((y)-(-((x)+1)%(y))-1)
 
-  Time* Time::specific(STATE, Integer* sec, Integer* usec, Object* gmt) {
-    Time* tm = state->new_object<Time>(G(time_class));
+  Time* Time::specific(STATE, Object* self, Integer* sec, Integer* usec,
+                       Object* gmt)
+  {
+    Time* tm = state->new_object<Time>(as<Class>(self));
 
     if(sizeof(time_t) == sizeof(long long)) {
       tm->seconds_ = sec->to_long_long();

@@ -39,7 +39,7 @@ namespace rubinius {
     static void init(STATE);
 
     // Ruby.primitive :time_s_specific
-    static Time* specific(STATE, Integer* sec, Integer* usec, Object* gmt);
+    static Time* specific(STATE, Object* self, Integer* sec, Integer* usec, Object* gmt);
 
     // Ruby.primitive :time_s_now
     static Time* now(STATE, Object* self);
