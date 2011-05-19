@@ -1,7 +1,7 @@
 ---
 layout: doc_ru
 title: Минимальные требования
-previous: Приступая к работе
+previous: Для начала...
 previous_url: getting-started
 next: Сборка
 next_url: getting-started/building
@@ -29,7 +29,7 @@ next_url: getting-started/building
   * [rake](http://rake.rubyforge.org/): `[sudo] gem install rake`
 
 
-### Apple OS X
+### Mac OS X
 
 Простейший путь для создания сборочного окружения на Mac OS X ---
 установка XCode Tools and Utilities. После установки для формирования

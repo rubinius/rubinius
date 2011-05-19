@@ -1,55 +1,57 @@
 ---
 layout: doc_ru
 title: Система сборки
-previous: Спецификации - Компилятор
+previous: Спецификации компилятора
 previous_url: specs/compiler
 next: Начальная загрузка
 next_url: bootstrapping
 review: true
 ---
 
-TODO: Many details are missing.
+TODO: расписать детали.
 
-Rubinius uniformly uses Rake as the build system for its own files. However
-Rubinius also includes the source for several external libraries and these
-typically use makefiles.
+В качестве программы для сборки собственных файлов Rubinius стандартно
+использует Rake. Также в систему включено несколько внешних библиотек,
+компиляция которых управляется Makefile-ами.
 
+## Сборки девелоперские и инсталляционные
 
-## Development versus Install Builds
+Rubinius состоит из исполняемого бинарника и множества дополнительных файлов,
+таких как Основная и Стандартная библиотеки (core & standard libraries).
+Бинарник должен знать, где искать эти файлы даже тогда, когда он сам перемещен
+в произвольную локацию. Чтобы решить эту проблему, Rubinius различает два типа
+сборок: девелоперскую (development build) и инсталляционную (install build).
+Бинарник знает полный путь до своей базовой директории, относительно которой
+ожидает найти необходимые ему файлы.
 
-Rubinius is comprised of the executable and various support files like the core
-and standard libraries. The executable needs to know where to find these files
-even if moved to a different location. To handle this problem, Rubinius
-distinguishes two build types: development and install. The executable stores
-the full path to its base directory, relative to which it expects to find the
-files it needs.
+Девелоперский бинарник хранит путь до директории исходника, в которой был
+собран. После сборки бинарник можно унести в любую другую директорию, но
+следует помнить, что по мере Вашей работы над файлами Основной библиотеки в
+каталогах `kernel/**`, бинарник будет продолжать пользоваться именно ими.
 
-The development executable stores the path to the source directory in which it
-was built. You can then move the executable to a different location but as you
-make changes to the core library files in the kernel/\*\* directories, the
-executable will continue to use those files.
+Инсталляционный бинарник знает путь к директории инсталляции. Так же как и в
+предыдущем случае, если бинарник перенести в новое место, он все равно найдет
+проинсталлированные файлы.
 
-The install executable stores the path to the install directory. Again, even if
-the executable is moved to a new location, it will continue to find the
-installed files.
+Данный подход, конечно, имеет некоторые последствия. Если скомпилирован
+девелоперский бинарник, а затем директория с исходниками была переименована,
+для продолжения работы бинарника придется его пересобрать. Точно так же, когда
+установлен инсталлируемый бинарник и переименована директория инсталляции,
+бинарник не станет работать, даже если будет помещен в нее непосредственно.
+Бинарник проверяет наличие единственного, жестко прошитого в нем пути. Если
+когда-нибудь по какой-то причине такой подход станет особенно неприемлемым,
+мы его пересмотрим.
 
-This has consequences, of course. If you build a development executable and then
-rename your source directory, you will need to rebuild. Likewise, if you build an
-install executable and rename the install directory, the executable will *not*
-function, *even if the executable is in the directory*. The executable checks a
-single, hard-coded path. If this ends up being very painful for some reason,
-we'll revise it.
+## Инсталляция Rubinius
 
-
-## Installing Rubinius
-
-To install Rubinius, you must first configure it with an install prefix:
+Для инсталляции Rubinius нужно прежде всего сконфигурировать для него префикс
+инсталляции:
 
     ./configure --prefix=/path/to/install/dir
 
-The configure process creates a 'config.rb' file that specifies the key file
-paths that Rubinius uses. Once configured, run 'rake install' to build and
-install. The install procedure builds all the files, including compiling the
-Ruby standard library files in the lib/ directory, then copies them into the
-install location using the 'install' program. The install tasks are located in
-rakelib/install.rake.
+Программа `configure` создаст файл `config.rb`, в котором указаны ключевые
+пути, используемые в Rubinius. После конфигурирования запустите `rake install`
+для сборки и инсталляции. Эта процедура сформирует все нужные файлы, включая
+Стандартную библиотеку в `lib/`, а затем скопирует их в директорию инсталляции
+при помощи программы `install`. Задачи для `install` прописаны в файле
+`rakelib/install.rake`.
