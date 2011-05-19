@@ -115,17 +115,95 @@
       
 
       
-        <div class="review">
-  <p>This topic has missing or partial documentation. Please help us improve
-  it.</p>
 
-  <p>See <a href="/doc/en/how-to/write-documentation">
-    How-To - Write Documentation</a></p>
-</div>
+        <p>Rubinius supports the same basic concurrency constructs as Ruby, Threads and Fibers, along with a new API: Actors.  Actors provide concurrency without any mutexes or locking inherent when sharing state between Threads.</p>
 
-      
+<p>Actors execute concurrently but don&rsquo;t share state; instead they pass messages to other actors.  Here we create two actors using <code>Actor.spawn</code>, ping and pong, who will send messages back and forth until they have collaboratively incremented a variable to 1000:</p>
 
-        
+<pre><code>require 'actor'
+pong = nil
+ping = Actor.spawn do
+  loop do
+    count = Actor.receive
+    break puts(count) if count &gt; 1000
+    pong &lt;&lt; (count + 1)
+  end
+end
+pong = Actor.spawn do
+  loop do
+    count = Actor.receive
+    break puts(count) if count &gt; 1000
+    ping &lt;&lt; (count + 1)
+  end
+end
+ping &lt;&lt; 1
+sleep 1
+</code></pre>
+
+<p>Note that actors receive messages by using <code>Actor.receive</code>.  This will block the actor until a message arrives in its own mailbox.  You can process different types of messages by passing a block into <code>Actor.receive</code> and using message filtering:</p>
+
+<pre><code>Actor.receive do |filter|
+  filter.when(Ready) do |who|
+    # SNIP
+  end
+  filter.when(Work) do |work|
+    ready_workers.pop &lt;&lt; work
+  end
+  filter.when(Actor::DeadActorError) do |exit|
+    print "Actor exited with message: #{exit.reason}\n"
+    ready_workers &lt;&lt; Actor.spawn_link(&amp;work_loop)
+  end
+end
+</code></pre>
+
+<p>Message filtering uses === on the message so you can pass in a regexp, class or proc to <code>when()</code>, based on your needs.</p>
+
+<p>Actors can also have a parent/child relationship using <code>Actor.spawn_link</code>; if the child dies for some reason, the parent actor can be notified by setting <code>Actor.trap_exit</code> to true before spawning the child.  Here we create a supervisor actor who manages a work queue with 10 worker actors to do queue processing.  The supervisor will receive an <code>Actor::DeadActorError</code> message if a worker dies (e.g. raises an exception).</p>
+
+<pre><code>require 'actor'
+
+Ready = Struct.new(:this)
+Work = Struct.new(:msg)
+
+@supervisor = Actor.spawn do
+  supervisor = Actor.current
+  work_loop = Proc.new do
+    loop do
+      work = Actor.receive
+      puts("Processing: #{work.msg}")
+      supervisor &lt;&lt; Ready[Actor.current]
+    end
+  end
+
+  Actor.trap_exit = true
+  ready_workers = []
+  10.times do |x|
+    # start 10 worker actors
+    ready_workers &lt;&lt; Actor.spawn_link(&amp;work_loop)
+  end
+  loop do
+    Actor.receive do |f|
+      f.when(Ready) do |who|
+        # SNIP
+      end
+      f.when(Work) do |work|
+        ready_workers.pop &lt;&lt; work
+      end
+      f.when(Actor::DeadActorError) do |exit|
+        print "Actor exited with message: #{exit.reason}\n"
+        ready_workers &lt;&lt; Actor.spawn_link(&amp;work_loop)
+      end
+    end
+  end
+end
+
+10.times do |idx|
+  @supervisor &lt;&lt; Work[idx]
+end
+sleep 1
+</code></pre>
+
+<p>This example is a snippet from <a href="http://github.com/mperham/girl_friday">girl_friday</a>.  You can review that codebase for more detail.</p>
 
 
     </div>
