@@ -116,111 +116,115 @@
 
       
 
-        <p>Начальная загрузка is the process of building up functionality of the system until
-all Ruby code can be executed. There are seven stages to the bootstrap process:</p>
+        <p>Начальная загрузка &mdash; это процесс запуска функций системы, подготавливающий
+возможность исполнения кода на Ruby. Она проходит семь стадий:</p>
 
 <ol>
   <li>
-    <p>VM: The virtual machine is able to load and execute bytecode, send
-messages (i.e. look up and execute methods), and all primitive functions
-are available, but not yet hooked up as Ruby methods.</p>
+    <p><strong>VM:</strong> виртуальная машина способна загружать и выполнять байткод, посылать
+сообщения (то есть, находить и вызывать методы); все примитивные функции
+уже доступны, но еще не видны как методы Ruby.</p>
 
-    <p>The Class class has to be manually set up this early in the process by
-setting its class to be itself and its superclass to be Module. In
-addition to Class and Module, a couple of other base classes are created
-here including Object, Tuple, LookupTable, and MethodTable.</p>
+    <p>Класс <code>Class</code> на этой ранней стадии должен быть явно задан путем объявления
+самого себя своим классом, а своим суперклассом &mdash; <code>Module</code>. В дополнение
+к <code>Class</code> и <code>Module</code> здесь же создаются еще несколько базовых классов,
+включая <code>Object</code>, <code>Tuple</code>, <code>LookupTable</code> и <code>MethodTable</code>.</p>
 
-    <p>Now that classes can be defined, 35 or so built in classes are told to
-initialize themselves, symbols for top level methods (:object_id, :call,
-:protected, etc) are created, basic exceptions are defined, and
-primitives are registered. Finally IO gets hooked up. Also at this stage,
-several fundamental Ruby methods are bound to primitives.</p>
+    <p>Теперь, когда уже можно определять классы, получают приказ начать
+самоинициализацию еще около 35 встроенных классов; создаются символы для
+методов высшего уровня <code>:object_id</code>, <code>:call</code>, <code>protected</code> и т.п.;
+определяются базовые исключения (exceptions) и регистрируются примитивы.</p>
 
-    <p>At this point there is enough defined behavior to begin to load up the
-rest of the runtime kernel which is all defined in ruby. This has to be
-done in several passes as the language grows.</p>
+    <p>В этот момент уже определено поведение, достаточное для того, чтобы начать
+загружать остальное runtime-ядро, целиком написанное на Ruby. Это, в свою
+очередь, также делается в несколько проходов по мере &laquo;роста&raquo; языка.</p>
   </li>
   <li>
-    <p>alpha: This starts the loading of Ruby code. The ability to open classes
-and modules and define methods exists. The minimum functionality to
-support the following methods is implemented in kernel/alpha.rb:</p>
+    <p><strong>Альфа:</strong> начало загрузки кода на Ruby. Уже есть возможность открывать
+классы и модули и определять методы. В <code>kernel/alpha.rb</code> реализованы
+минимальные средства для поддержки следующих методов:</p>
 
-    <p>attr_reader :sym
-  attr_writer :sym
-  attr_accessor :sym
-  private :sym
-  protected :sym
-  module_function :sym
-  include mod</p>
+    <pre><code>attr_reader :sym 
+attr_writer :sym 
+attr_accessor :sym 
+private :sym
+protected :sym 
+module_function :sym 
+include mod
+</code></pre>
 
-    <p>Also, it is possible to raise exceptions and cause the running process to
-exit. This stage lays the foundation for the next two stages.</p>
+    <p>Помимо этого код имеет возможность инициировать исключения и прекращать
+выполнение процесса. Эта стадия закладывает основание для следующих двух.</p>
   </li>
   <li>
-    <p>bootstrap: This stage continues to add the minimum functionality to
-support loading platform and common. The primitive functions are added
-for most of the kernel classes.</p>
+    <p><strong>Бутстрап:</strong> продолжается добавление минимального функционала для
+поддержки загружающихся &laquo;платформы&raquo; и &laquo;основы&raquo; (&ldquo;platform&rdquo; и &ldquo;common&rdquo;,
+см. ниже). Функции-примитивы добавляются в большинство классов ядра.</p>
   </li>
   <li>
-    <p>platform: The FFI (foreign function interface) system is implemented and
-Ruby method interfaces to platform-specific functions are created.  Once
-this is set up, platform specific things such as pointers, file access,
-math, and POSIX commands are attached.</p>
+    <p><strong>Платформа:</strong> запускается FFI (интерфейс внешних функций) и создаются
+интерфейсные методы платформо-специфических функций. Как только все это
+настроено, к системе подключаются платформо-специфические детали вроде
+указателей, файловых операций, арифметики и вызовов POSIX.</p>
   </li>
   <li>
-    <p>common: The vast majority of the Ruby core library classes are
-implemented. The Ruby core classes are kept as implementation-neutral as
-possible. Also, most of the functionality for Rubinius specific classes
-is added.</p>
+    <p><strong>Основа:</strong> создается подавляющее большинство классов Основной (<code>core</code>)
+библиотеки. Основные классы Ruby построены настолько независимо от
+конкретной реализации, насколько это возможно. На этом же этапе добавляется
+б&oacute;льшая часть функциональных возможностей Rubinius-специфических
+классов.</p>
   </li>
   <li>
-    <p>delta: Final versions of methods like #attr_reader, etc. are added. Also,
-implementation-specific versions of methods that override the versions
-provided in common are added.</p>
+    <p><strong>Дельта:</strong> добавляются финальные версии методов из ряда <code>#attr_reader</code> и
+т.п. Кроме этого, подключаются зависимые от реализации версии методов
+Основы.</p>
   </li>
   <li>
-    <p>loader: The compiled version of kernel/loader.rb is run.</p>
+    <p><strong>Загрузчик:</strong> выполняется скомпилированная версия <code>kernel/loader.rb</code>.</p>
 
-    <p>The final stage setups the life cycle of a ruby process. It starts by
-connecting the VM to the system, sets up load paths, and reads
-customization scripts from the home directory. It traps signals, and
-processes command line arguments.</p>
+    <p>Конечная стадия загрузки настраивает жизненный цикл Ruby-процесса. Она
+начинается с присоединения виртуальной машины к системе, затем
+настраиваются пути загрузки, читаются скрипты индивидуальной настройки из
+домашней директории.  На этом этапе улавливаются сигналы и обрабатываются
+аргументы командной строки.</p>
 
-    <p>After that, it either runs the script passed to it from the command line
-or boots up the interactive ruby shell. When that finishes, it runs any
-at_exit blocks that had been registered, finalizes all objects, and
-exits.</p>
+    <p>После всего либо запускается переданный в командной строке скрипт, либо
+стартует интерактивная оболочка Ruby. Когда и они заканчивают работу,
+отрабатываются все зарегистрированные блоки <code>at_exit</code>, финализируются все
+объекты и процесс прекращается.</p>
   </li>
 </ol>
 
-<h2 id="load-order">Load Order</h2>
+<h2 id="section">Порядок загрузки</h2>
 
-<p>The files in the kernel directories bootstrap, platform, common, and delta,
-implement the respective bootstrapping stages above. The order in
-which these directories are loaded is specified in runtime/index.</p>
+<p>Ряд описанных стадий загрузки реализован в файлах, находящихся в
+соответствующих директориях ядра: <code>bootstrap</code>, <code>platform</code>, <code>common</code>, и
+<code>delta</code>. Порядок загрузки этих директорий определен в <code>runtime/index</code>.</p>
 
-<p>When an rbc file is loaded, code at the script level and in class or module
-bodies is executed. For instance, when loading</p>
+<p>Код уровня скрипта, тела класса или модуля выполняется после загрузки
+rbc-файла. К примеру, при загрузке фрагмента</p>
 
 <pre><code>class SomeClass
   attr_accessor :value
 end
 </code></pre>
 
-<p>the call to #attr_accessor will be run. This requires that any code called
-in script, class, or module bodies must be loaded before the file that calls
-the code is loaded. The kernel/alpha.rb defines most of the code that will be
-needed at the script or module level. However, other load order dependencies
-exist between some of the platform, common, delta, and compiler files.</p>
+<p>выполняется вызов <code>#attr_accessor</code>. Для этого требуется, чтобы <em>до</em> файла,
+содержащего некий код, было загружено все, что вызывается из содержащихся в
+нем описаний скриптов, классов и модулей. <code>kernel/alpha.rb</code> содержит
+б&oacute;льшую часть определений, необходимых на уровне скрипта или модуля.
+Вместе с тем, между некоторыми файлами платформы, основы, дельты и компилятора
+существуют и иные зависимости, влияющие на порядок загрузки.</p>
 
-<p>These load order dependencies are addressed by the load_order.txt file located
-in each of the kernel/** directories. If you modify code that adds a load
-order dependency, you must edit the load_order.txt files to place the depended
-on file above the file that depends on it. Also, if you add a new file to one
-of the kernel directories, you must add the file name to the load_order.txt
-file in that directory. These files are copied to the appropriate runtime/**
-directories during build. During each of the bootstrap stages above, the VM
-loads the files listed in load_order.txt in order.</p>
+<p>Эти зависимости прописаны в файлах <code>load_order.txt</code>, находящихся в каждой из
+директорий <code>kernel/**</code>. Если Вы модифицируете код, добавляющий порядковую
+зависимость, Вам следует отредактировать соответствующий <code>load_order.txt</code>,
+поместив файл, который зависит, после того, от которого он зависит. Если Вы
+добавляете новый файл в одну из директорий ядра, Вы должны добавить его имя в
+<code>load_order.txt</code> его директории. При сборке эти файлы копируются в
+соответствующие директории <code>runtime/**</code>. Во время каждой из вышеописанных
+стадий запуска виртуальная машина загружает файлы в порядке их перечисления в
+<code>load_order.txt</code>.</p>
 
 
     </div>
