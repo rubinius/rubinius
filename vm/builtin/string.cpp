@@ -372,7 +372,7 @@ namespace rubinius {
 
   double String::to_double(STATE) {
     double value;
-    char *ba = data_->to_chars(state);
+    char *ba = data_->to_chars(state, num_bytes_);
     char *p, *n, *rest;
     int e_seen = 0;
 

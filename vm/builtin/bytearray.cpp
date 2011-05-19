@@ -61,12 +61,21 @@ namespace rubinius {
     // @todo implement
   }
 
-  char* ByteArray::to_chars(STATE) {
-    native_int sz = this->size(state)->to_native();
+  char* ByteArray::to_chars(STATE, Fixnum* size) {
+    native_int sz = size->to_native();
+    native_int ba_sz = this->size(state)->to_native();
+
+    if(sz < 0) {
+      Exception::object_bounds_exceeded_error(state, "size less than zero");
+    } else if(sz > ba_sz) {
+      Exception::object_bounds_exceeded_error(state, "size beyond actual size");
+    }
+
     char* str = (char*)(this->bytes);
-    char* out = ALLOC_N(char, sz);
+    char* out = ALLOC_N(char, sz + 1);
 
     memcpy(out, str, sz);
+    out[sz] = 0;
 
     return out;
   }

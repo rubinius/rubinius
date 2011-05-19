@@ -116,85 +116,74 @@
 
       
 
-        <p>Das Rubinius Projekt freut sich über deine Beiträge. Es gibt viele Dinge, die 
-dieses Projekt unterstützen können. Am wichtigsten ist, dass es etwas ist, was 
-dich interessiert und was du gerne machst. </p>
+        <p>Das Rubinius Projekt freut sich über deine Beiträge. Es gibt viele Dinge, die
+dieses Projekt unterstützen können. Am wichtigsten ist, dass es etwas ist, was
+dich interessiert und was du gerne machst.</p>
 
-<p>Falls Du Fragen zu Rubinius hast, besuche uns am besten auf dem IRC Kanal 
-#rubinius auf irc.freenode.net. </p>
+<p>Falls Du Fragen zu Rubinius hast, besuche uns am besten auf dem IRC Kanal
+#rubinius auf irc.freenode.net.</p>
 
 <p>Im folgenden findest du ein paar Ideen, was man für Rubinius tun könnte.</p>
 
 <h2 id="teste-deinen-code">Teste Deinen Code</h2>
 
 <p>Anwendungen sind oft weniger sanft als specs und decken Fehler auf, die unsere
-Tests auslassen. Lass dein Projekt unter Rubinius laufen und melde Fehler. 
+Tests auslassen. Lass dein Projekt unter Rubinius laufen und melde Fehler.
 Siehe hier, <a href="/doc/de/how-to/write-a-ticket">wie man ein Ticket schreibt</a>.</p>
 
 <h2 id="hilfe">Hilfe</h2>
 
 <p>Soweit es uns möglich ist, werden wir helfen. Bitte sieh aber auch nach, ob Du
-im Netz eventuell schon Antworten auf deine Fragen findest. Rubinius möchte 
-ein Projekt sein, in das man sich leicht einarbeiten kann, an dem man lernt 
+im Netz eventuell schon Antworten auf deine Fragen findest. Rubinius möchte
+ein Projekt sein, in das man sich leicht einarbeiten kann, an dem man lernt
 und natürlich auch beteiligt kann.</p>
 
-<p>Wir schätzen und nehmen einfache Fehlermeldungen gerne an, geben aber Tickets 
+<p>Wir schätzen und nehmen einfache Fehlermeldungen gerne an, geben aber Tickets
 mit ausführlichen Fehlerberichten und Anweisungen zur Reproduktion des Fehlers
-eine höhere Priorität. Noch besser sind Fehlermeldungen, die RubySpecs 
-beinhalten, die den Fehler genau eingrenzen und womöglich schon Patches 
+eine höhere Priorität. Noch besser sind Fehlermeldungen, die RubySpecs
+beinhalten, die den Fehler genau eingrenzen und womöglich schon Patches
 mitliefern, die den Fehler beheben.</p>
 
 <h2 id="schreibe-specs">Schreibe Specs</h2>
 
 <ol>
   <li>
-    <p>Starte <code>bin/mspec tag --list incomplete &lt;dir&gt;</code>, um zu zeigen, dass die 
+    <p>Starte <code>bin/mspec tag --list incomplete &lt;dir&gt;</code>, um zu zeigen, dass die
 Specs als unvollständig markiert sind. Diese Specs müssen dann häufig nur
 nachgeprüft werden oder es fehlen einer bestimmten Klasse noch Specs.</p>
 
-    <p>Hinweis: Du kannst auch ein pseudo-Verzeichnis &lsquo;:files&rsquo; für &lt;dir&gt; 
+    <p>Hinweis: Du kannst auch ein pseudo-Verzeichnis &lsquo;:files&rsquo; für &lt;dir&gt;
 angeben, das für alle auf Rubinius laufenden Specs die Tags anzeigt. Oder
-du gibst ein Unterverzeichnis des &lsquo;spec/&rsquo; Verzeichnisses an, um nur die 
+du gibst ein Unterverzeichnis des &lsquo;spec/&rsquo; Verzeichnisses an, um nur die
 Tags für dieses Verzeichnis anzuzeigen.</p>
   </li>
   <li>
-    <p>Finde nicht vorgegebenes Verhalten. Siehe auch, 
-<a href="/doc/de/how-to/write-a-ruby-spec">wie man Ruby Specs schreibt</a>.  </p>
+    <p>Finde nicht vorgegebenes Verhalten. Siehe auch,
+<a href="/doc/de/how-to/write-a-ruby-spec">wie man Ruby Specs schreibt</a>.</p>
   </li>
 </ol>
 
 <h2 id="fehlerhafte-specs-korrigieren">Fehlerhafte Specs korrigieren</h2>
 <ol>
   <li>
-    <p>Starte <code>bin/mspec tag --list fails &lt;dir&gt;</code> zum Anzeigen von erfolglosen 
+    <p>Starte <code>bin/mspec tag --list fails &lt;dir&gt;</code> zum Anzeigen von erfolglosen
 Specs.</p>
 
-    <p>Hinweis: Du kannst auch ein pseudo-Verzeichnis &lsquo;:files&rsquo; für &lt;dir&gt; 
+    <p>Hinweis: Du kannst auch ein pseudo-Verzeichnis &lsquo;:files&rsquo; für &lt;dir&gt;
 angeben, das für alle auf Rubinius laufenden Specs die Tags anzeigt. Oder
-du gibst ein Unterverzeichnis des &lsquo;spec/&rsquo; Verzeichnisses an, um nur die 
+du gibst ein Unterverzeichnis des &lsquo;spec/&rsquo; Verzeichnisses an, um nur die
 Tags für dieses Verzeichnis anzuzeigen.</p>
   </li>
   <li>
-    <p>Wähle ein Spec, dass Du interessant findest und versuche einen Patch zu 
+    <p>Wähle ein Spec, dass Du interessant findest und versuche einen Patch zu
 schreiben, dass ihn bestehen lässt.</p>
   </li>
 </ol>
 
 <h2 id="dokumentation">Dokumentation</h2>
 
-<p>Lerne wie Rubinius funktioniert und schreibe deine Erfahrungen auf, damit 
+<p>Lerne wie Rubinius funktioniert und schreibe deine Erfahrungen auf, damit
 andere ebenso davon profitieren und verstehen, wie Rubinius implementiert ist.</p>
-
-<h2 id="code-subern">Code säubern</h2>
-
-<p>Suche nach Tags wie TODO, HACK, FIXME im Code und schicke Patches für sie.
-Mit diesem Befehl kann man den Code durchsuchen:</p>
-
-<pre><code>`grep -re "@todo\|TODO\|HACK\|FIXME" .`
-</code></pre>
-
-<p>Lies dazu die <a href="/doc/de/contributing/style-guide/">Stilvorlage</a> für die Code 
-Richtlinien.</p>
 
 <h2 id="tickets-sichten">Tickets sichten</h2>
 <ul>

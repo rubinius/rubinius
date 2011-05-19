@@ -72,16 +72,6 @@ Estudio cómo funciona Rubinius leyendo el código fuente, y escriba
 documentación de alto nivel que ayudará a otros a aprender sobre los
 detalles de implementación.
 
-## Limpiar el Código
-
-Búsque etiquetas como TODO, HACK, FIXME en el código y envie parches para
-arreglarlos. Aquí hay un comando para buscar el código:
-
-    `grep -re "@todo\|TODO\|HACK\|FIXME" .`
-
-Revise la [Guía de estilo](/doc/es/contributing/style-guide/) para
-conocer las directrices de codificación.
-
 ## Mantenimiento a los reportes de error
 
   * Reviva o cierre algunos reportes de error viejos.
