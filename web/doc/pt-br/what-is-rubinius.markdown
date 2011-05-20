@@ -1,42 +1,41 @@
 ---
 layout: doc_pt_br
-next: Getting Started
+next: Começando
 next_url: getting-started
 ---
 
-## What is Rubinius
+## O que é Rubinius
 
-Rubinius is an implementation of the [Ruby programming
-language](http://ruby-lang.org).
-
-Rubinius includes a bytecode virtual machine, Ruby syntax parser, bytecode
-compiler, generational garbage collector, just-in-time (JIT) native machine
-code compiler, and Ruby Core and Standard libraries.
-
-Rubinius currently implements Ruby version 1.8.7.
+Rubinius é uma implementação da [linguagem de programação Ruby]
+(http://ruby-lang.org).
 
 
-## License
+Rubinius inclue uma máquina virtual de bytecodes, parser de sintax Ruby, 
+compilador de bytecode, gerenciador de garbage collector, compilador de
+de código nativo just-in-time (JIT), e o Ruby Core e Bibliotecas padrão.
+Rubinius implementa atualmente a versão 1.8.7 do Ruby.
 
-Rubinius uses the BSD license. See the LICENSE file in the source.
 
+## Licença
 
-## Installing
+Rubinius usa a licença BDS. Veja o arquivo de LICENCA no código-fonte.
 
-Rubinius runs on Mac OS X and many Unix/Linux operating systems. Support for
-Microsoft Windows is coming soon.
+## Instalação
+Rubinius executa em Mac OS X e muitos sistemas Unix/Linux. Microsoft Windows
+terá suporte em breve.
 
-To install Rubinius, use the following steps. For more detailed information,
-see [Getting Started](/doc/pt-br/getting-started/).
+Para instalar Rubinius, siga os passos abaixo. Para informação mais detalhada
+veja [Começando](/doc/pt-br/getting-started/).
+
 
 1. `git clone git://github.com/evanphx/rubinius.git`
 1. `cd rubinius`
 1. `./configure --prefix=/path/to/install/dir`
 1. `rake install`
 
-When the install process finishes, follow the directions to add the Rubinius
-executable (bin) directory to your PATH.
+Quando o processo de instalação terminar,  adicione o diretório executável 
+do Ruby (bin) ao seu PATH.
 
-Rubinius comes with RubyGems built-in and has rake and rdoc gems
-pre-installed. To install the nokogiri gem, for example, run `rbx gem install
-nokogiri`.
+Rubinius vem com RubyGems e tem as gems rake e rdoc pré-instaladas.
+Para instalar a gem nokogiri, por exemplo, rode `rbx gem install nokogiri`
+

@@ -29,14 +29,12 @@ namespace rubinius {
      */
     ::gettimeofday(&tv, NULL);
 
-    Time* tm = state->new_object<Time>(G(time_class));
+    Time* tm = state->new_object<Time>(as<Class>(self));
 
     tm->seconds_ = tv.tv_sec;
     tm->microseconds_ = tv.tv_usec;
 
     tm->is_gmt(state, Qfalse);
-
-    tm->klass(state, as<Class>(self));
 
     return tm;
   }
@@ -45,8 +43,10 @@ namespace rubinius {
 #define NDIV(x,y) (-(-((x)+1)/(y))-1)
 #define NMOD(x,y) ((y)-(-((x)+1)%(y))-1)
 
-  Time* Time::specific(STATE, Integer* sec, Integer* usec, Object* gmt) {
-    Time* tm = state->new_object<Time>(G(time_class));
+  Time* Time::specific(STATE, Object* self, Integer* sec, Integer* usec,
+                       Object* gmt)
+  {
+    Time* tm = state->new_object<Time>(as<Class>(self));
 
     if(sizeof(time_t) == sizeof(long long)) {
       tm->seconds_ = sec->to_long_long();
@@ -72,7 +72,8 @@ namespace rubinius {
     return tm;
   }
 
-  Time* Time::from_array(STATE, Fixnum* sec, Fixnum* min, Fixnum* hour,
+  Time* Time::from_array(STATE, Object* self, 
+                      Fixnum* sec, Fixnum* min, Fixnum* hour,
                       Fixnum* mday, Fixnum* mon, Fixnum* year, Fixnum* usec,
                       Fixnum* isdst, Object* from_gmt) {
     struct tm tm;
@@ -127,7 +128,7 @@ namespace rubinius {
 
     if(err) return (Time*)Primitives::failure();
 
-    Time* obj = state->new_object<Time>(G(time_class));
+    Time* obj = state->new_object<Time>(as<Class>(self));
     obj->seconds_ = seconds;
     obj->microseconds_ = usec->to_native();
     obj->is_gmt(state, RTEST(from_gmt) ? Qtrue : Qfalse);
@@ -136,7 +137,7 @@ namespace rubinius {
   }
 
   Time* Time::dup(STATE) {
-    Time* tm = state->new_object<Time>(G(time_class));
+    Time* tm = state->new_object<Time>(class_object(state));
     tm->seconds_ = seconds_;
     tm->microseconds_ = microseconds_;
     tm->is_gmt(state, is_gmt_);

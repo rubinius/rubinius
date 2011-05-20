@@ -47,4 +47,10 @@ describe "Time.at" do
     t.should_not == Time.at(10)
   end
 
+  it "returns a subclass instance on a Time subclass" do
+    c = Class.new(Time)
+    t = c.at(0)
+    t.should be_kind_of(c)
+  end
+
 end

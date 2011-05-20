@@ -1,7 +1,7 @@
 ---
 layout: doc_ru
 title: Примитивы
-previous: Rubinius Systems
+previous: Подсистемы
 previous_url: systems
 next: FFI
 next_url: systems/ffi
