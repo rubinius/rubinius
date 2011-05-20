@@ -334,19 +334,20 @@ describe "A While node" do
 
       compile(&nil_condition)
     end
-  end
 
-  relates "a until ! ()" do
-    compile(&nil_condition)
-  end
+    relates "a until ! ()" do
+      compile(&nil_condition)
+    end
 
-  relates <<-ruby do
-      until ! ()
-        a
-      end
-    ruby
+    relates <<-ruby do
+        until ! ()
+          a
+        end
+      ruby
 
-    compile(&nil_condition)
+      compile(&nil_condition)
+    end
+
   end
 
   relates <<-ruby do
