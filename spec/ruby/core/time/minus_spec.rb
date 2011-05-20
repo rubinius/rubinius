@@ -41,6 +41,13 @@ ruby_version_is ""..."1.9" do
       time -= 0.123456
       time.usec.should == 0
     end
+
+    it "does not returns a subclass instance" do
+      c = Class.new(Time)
+      x = c.now + 1
+      x.should be_kind_of(Time)
+    end
+
   end
 end
 
@@ -75,5 +82,12 @@ ruby_version_is "1.9" do
       time -= Rational(123456, 1000000)
       time.usec.should == 0
     end
+
+    it "does not returns a subclass instance" do
+      c = Class.new(Time)
+      x = c.now + 1
+      x.should be_kind_of(Time)
+    end
+
   end
 end
