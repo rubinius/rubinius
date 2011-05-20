@@ -1818,7 +1818,7 @@ primary         : literal
                      *  #=>
                      *  e.each{|x| a, = x}
                      */
-                    $$ = 0; /* TODO NEW_FOR(0, $5, scope); */
+                    $$ = NEW_FOR($2, $5, $8);
                     fixpos($$, $2);
                   }
                 | k_class cpath superclass
