@@ -2573,7 +2573,7 @@ regexp_contents : /* none */
                       case NODE_DSTR:
                         break;
                       default:
-                        head = list_append(NEW_DSTR(Qnil), head);
+                        head = list_append(NEW_DSTR(STR_NEW0()), head);
                         break;
                       }
                       $$ = list_append(head, tail);
@@ -5655,7 +5655,7 @@ parser_literal_concat(rb_parser_state* parser_state, NODE *head, NODE *tail)
 
   htype = (enum node_type)nd_type(head);
   if(htype == NODE_EVSTR) {
-    NODE *node = NEW_DSTR(string_new(0, 0));
+    NODE *node = NEW_DSTR(STR_NEW0());
     head = list_append(node, head);
   }
   switch(nd_type(tail)) {
@@ -5698,7 +5698,7 @@ static NODE *
 parser_evstr2dstr(rb_parser_state* parser_state, NODE *node)
 {
   if(nd_type(node) == NODE_EVSTR) {
-    node = list_append(NEW_DSTR(string_new(0, 0)), node);
+    node = list_append(NEW_DSTR(STR_NEW0()), node);
   }
   return node;
 }
