@@ -62,6 +62,10 @@ class Proc
 
   alias_method :to_s, :inspect
 
+  def source_location
+    [@block.file.to_s, @block.line]
+  end
+
   def ==(other)
     return false unless other.kind_of? self.class
     @block == other.block
