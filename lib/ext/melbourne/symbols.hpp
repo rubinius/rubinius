@@ -100,6 +100,7 @@ namespace melbourne {
   extern ID rb_sUndef;
   extern ID rb_sUntil;
   extern ID rb_sVAlias;
+  extern ID rb_sValues;
   extern ID rb_sVCall;
   extern ID rb_sWhen;
   extern ID rb_sWhile;

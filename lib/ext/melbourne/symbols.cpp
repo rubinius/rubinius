@@ -101,6 +101,7 @@ namespace melbourne {
   ID rb_sUndef;
   ID rb_sUntil;
   ID rb_sVAlias;
+  ID rb_sValues;
   ID rb_sVCall;
   ID rb_sWhen;
   ID rb_sWhile;
@@ -212,6 +213,7 @@ namespace melbourne {
     rb_sUndef     = rb_intern("process_undef");
     rb_sUntil     = rb_intern("process_until");
     rb_sVAlias    = rb_intern("process_valias");
+    rb_sValues    = rb_intern("process_values");
     rb_sVCall     = rb_intern("process_vcall");
     rb_sWhen      = rb_intern("process_when");
     rb_sWhile     = rb_intern("process_while");

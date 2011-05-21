@@ -788,6 +788,13 @@ namespace melbourne {
       tree = rb_funcall(ptp, rb_sLit, 2, line, node->nd_lit);
       break;
 
+    case NODE_VALUES: {
+      VALUE first = process_parse_tree(parser_state, ptp, node->nd_head, locals);
+      VALUE rest = process_parse_tree(parser_state, ptp, node->nd_args, locals);
+      tree = rb_funcall(ptp, rb_sValues, 3, line, first, rest);
+      break;
+    }
+
     case NODE_NUMBER:
       tree = rb_funcall(ptp, rb_sNumber19, 2, line, node->nd_lit);
       break;

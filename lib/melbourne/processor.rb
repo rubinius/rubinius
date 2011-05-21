@@ -461,6 +461,11 @@ module Rubinius
       AST::VAlias.new line, to, from
     end
 
+    def process_values(line, first, rest)
+      rest.body.unshift first
+      rest
+    end
+
     def process_when(line, conditions, body)
       AST::When.new line, conditions, body
     end
