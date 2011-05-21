@@ -49,9 +49,6 @@ namespace grammar19 {
 #define ismbchar(c) (0)
 #define mbclen(c) (1)
 
-#define string_new(ptr, len) blk2bstr(ptr, len)
-#define string_new2(ptr) cstr2bstr(ptr)
-
 long mel_sourceline;
 static char *mel_sourcefile;
 
@@ -2462,7 +2459,7 @@ regexp          : tREGEXP_BEG regexp_contents tREGEXP_END
                     intptr_t options = $3;
                     NODE *node = $2;
                     if(!node) {
-                      node = NEW_REGEX(string_new2(""), options & ~RE_OPTION_ONCE);
+                      node = NEW_REGEX(STR_NEW0(), options & ~RE_OPTION_ONCE);
                     } else {
                       switch(nd_type(node)) {
                       case NODE_STR:

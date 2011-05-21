@@ -775,8 +775,7 @@ namespace melbourne {
       break;
 
     case NODE_REGEX:
-      // TODO: regexp source
-      tree = rb_funcall(ptp, rb_sRegex, 3, line, rb_str_new(0, 0), // node->nd_lit,
+      tree = rb_funcall(ptp, rb_sRegex, 3, line, node->nd_lit,
                         INT2FIX(node->nd_cnt));
       break;
 
