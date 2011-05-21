@@ -1,18 +1,70 @@
 require File.expand_path('../../spec_helper', __FILE__)
 
 describe "A Dregx node" do
-  relates <<-ruby do
-      /(\#{})/
-    ruby
+  ruby_version_is ""..."1.9" do
+    # TODO: Fix 1.8 parser
+    relates <<-ruby do
+        /(\#{})/
+      ruby
 
-    compile do |g|
-      g.push_cpath_top
-      g.find_const :Regexp
-      g.push_literal "("
-      g.push_literal ")"
-      g.string_build 2
-      g.push 0
-      g.send :new, 2
+      compile do |g|
+        g.push_cpath_top
+        g.find_const :Regexp
+        g.push_literal "("
+        g.push_literal ")"
+        g.string_build 2
+        g.push 0
+        g.send :new, 2
+      end
+    end
+
+    relates "/a\#{}b/" do
+      compile do |g|
+        g.push_cpath_top
+        g.find_const :Regexp
+
+        g.push_literal "a"
+        g.push_literal "b"
+        g.string_build 2
+
+        g.push 0
+        g.send :new, 2
+      end
+    end
+  end
+
+  ruby_version_is "1.9" do
+    relates <<-ruby do
+        /(\#{})/
+      ruby
+
+      compile do |g|
+        g.push_cpath_top
+        g.find_const :Regexp
+        g.push_literal "("
+        g.push :nil
+        g.meta_to_s
+        g.push_literal ")"
+        g.string_build 3
+        g.push 0
+        g.send :new, 2
+      end
+    end
+
+    relates "/a\#{}b/" do
+      compile do |g|
+        g.push_cpath_top
+        g.find_const :Regexp
+
+        g.push_literal "a"
+        g.push :nil
+        g.meta_to_s
+        g.push_literal "b"
+        g.string_build 3
+
+        g.push 0
+        g.send :new, 2
+      end
     end
   end
 
@@ -31,20 +83,6 @@ describe "A Dregx node" do
       g.push_literal "y"    # 3
 
       g.string_build 3
-
-      g.push 0
-      g.send :new, 2
-    end
-  end
-
-  relates "/a\#{}b/" do
-    compile do |g|
-      g.push_cpath_top
-      g.find_const :Regexp
-
-      g.push_literal "a"
-      g.push_literal "b"
-      g.string_build 2
 
       g.push 0
       g.send :new, 2
