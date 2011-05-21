@@ -15,55 +15,107 @@ describe "A Return node" do
     end
   end
 
-  relates "return *1" do
-    compile do |g|
-      bottom = g.new_label
+  ruby_version_is ""..."1.9" do
+    relates "return *1" do
+      compile do |g|
+        bottom = g.new_label
 
-      g.push 1
-      g.cast_array
-      g.dup
-      g.send :size, 0
-      g.push 1
-      g.send :>, 1
-      g.git bottom
+        g.push 1
+        g.cast_array
+        g.dup
+        g.send :size, 0
+        g.push 1
+        g.send :>, 1
+        g.git bottom
 
-      g.push 0
-      g.send :at, 1
+        g.push 0
+        g.send :at, 1
 
-      bottom.set!
+        bottom.set!
 
-      g.ret
+        g.ret
+      end
+    end
+
+    relates <<-ruby do
+        x = 1, 2
+        return *x
+      ruby
+
+      compile do |g|
+        g.push 1
+        g.push 2
+        g.make_array 2
+        g.set_local 0
+        g.pop
+
+        bottom = g.new_label
+
+        g.push_local 0
+        g.cast_array
+        g.dup
+        g.send :size, 0
+        g.push 1
+        g.send :>, 1
+        g.git bottom
+
+        g.push 0
+        g.send :at, 1
+
+        bottom.set!
+
+        g.ret
+      end
+    end
+
+    relates "return *[1]" do
+      compile do |g|
+        g.splatted_array
+        g.ret
+      end
     end
   end
 
-  relates <<-ruby do
-      x = 1, 2
-      return *x
-    ruby
+  ruby_version_is "1.9" do
+    relates "return *1" do
+      compile do |g|
+        bottom = g.new_label
 
-    compile do |g|
-      g.push 1
-      g.push 2
-      g.make_array 2
-      g.set_local 0
-      g.pop
+        g.push 1
+        g.cast_array
 
-      bottom = g.new_label
+        g.ret
+      end
+    end
 
-      g.push_local 0
-      g.cast_array
-      g.dup
-      g.send :size, 0
-      g.push 1
-      g.send :>, 1
-      g.git bottom
+    relates <<-ruby do
+        x = 1, 2
+        return *x
+      ruby
 
-      g.push 0
-      g.send :at, 1
+      compile do |g|
+        g.push 1
+        g.push 2
+        g.make_array 2
+        g.set_local 0
+        g.pop
 
-      bottom.set!
+        g.push_local 0
+        g.cast_array
 
-      g.ret
+        g.ret
+      end
+    end
+
+    relates "return *[1]" do
+      compile do |g|
+        bottom = g.new_label
+
+        g.push 1
+        g.make_array 1
+
+        g.ret
+      end
     end
   end
 
@@ -96,13 +148,6 @@ describe "A Return node" do
     compile do |g|
       g.push 1
       g.make_array 1
-      g.ret
-    end
-  end
-
-  relates "return *[1]" do
-    compile do |g|
-      g.splatted_array
       g.ret
     end
   end
