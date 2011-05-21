@@ -1,53 +1,119 @@
 require File.expand_path('../../spec_helper', __FILE__)
 
 describe "A Dstr node" do
-  relates <<-ruby do
-      "\#{}"
-    ruby
+  ruby_version_is ""..."1.9" do
+    relates <<-ruby do
+        "\#{}"
+      ruby
 
-    compile do |g|
-      g.push_literal ""
-      g.string_dup
+      compile do |g|
+        g.push_literal ""
+        g.string_dup
+      end
+    end
+
+    relates <<-ruby do
+        "\#{}\#{}"
+      ruby
+
+      compile do |g|
+        g.push_literal ""
+        g.string_dup
+      end
+    end
+
+    relates <<-ruby do
+        "\#{}hello\#{}"
+      ruby
+
+      compile do |g|
+        g.push_literal "hello"
+        g.string_build 1
+      end
+    end
+
+    relates <<-ruby do
+        "hello \#{}"
+      ruby
+
+      compile do |g|
+        g.push_literal "hello "
+        g.string_dup
+      end
+    end
+
+    relates <<-ruby do
+        "\#{} hello"
+      ruby
+
+      compile do |g|
+        g.push_literal " hello"
+        g.string_build 1
+      end
     end
   end
 
-  relates <<-ruby do
-      "\#{}\#{}"
-    ruby
+  ruby_version_is "1.9" do
+    relates <<-ruby do
+        "\#{}"
+      ruby
 
-    compile do |g|
-      g.push_literal ""
-      g.string_dup
+      compile do |g|
+        g.push :nil
+        g.meta_to_s
+        g.string_build 1
+      end
     end
-  end
 
-  relates <<-ruby do
-      "\#{}hello\#{}"
-    ruby
+    relates <<-ruby do
+        "\#{}\#{}"
+      ruby
 
-    compile do |g|
-      g.push_literal "hello"
-      g.string_build 1
+      compile do |g|
+        g.push :nil
+        g.meta_to_s
+        g.push :nil
+        g.meta_to_s
+        g.string_build 2
+      end
     end
-  end
 
-  relates <<-ruby do
-      "hello \#{}"
-    ruby
+    relates <<-ruby do
+        "\#{}hello\#{}"
+      ruby
 
-    compile do |g|
-      g.push_literal "hello "
-      g.string_dup
+      compile do |g|
+        g.push :nil
+        g.meta_to_s
+        g.push_literal "hello"
+        g.push :nil
+        g.meta_to_s
+        g.string_build 3
+      end
     end
-  end
 
-  relates <<-ruby do
-      "\#{} hello"
-    ruby
+    relates <<-ruby do
+        "hello \#{}"
+      ruby
 
-    compile do |g|
-      g.push_literal " hello"
-      g.string_build 1
+      compile do |g|
+        g.push_literal "hello "
+        g.push :nil
+        g.meta_to_s
+        g.string_build 2
+      end
+    end
+
+    relates <<-ruby do
+        "\#{} hello"
+      ruby
+
+      compile do |g|
+        g.push :nil
+        g.meta_to_s
+        g.push_literal " hello"
+        g.string_build 2
+      end
     end
   end
 
