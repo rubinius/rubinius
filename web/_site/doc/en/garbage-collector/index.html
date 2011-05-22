@@ -125,7 +125,25 @@
 
       
 
-        <ol>
+        <h2 id="introduction">Introduction</h2>
+
+<p>Rubinius implements a <a href="http://en.wikipedia.org/wiki/Garbage_collection_&#40;computer_science&#41;#Generational_GC_.28ephemeral_GC.29">Generational Garbage Collector (GC)</a>
+The Rubinus Generational GC manages the dynamic allocation and deallocation in
+the heap space of a running Rubinius process.</p>
+
+<h2 id="definitions">Definitions</h2>
+
+<ol>
+  <li>We say that an object is <em>alive</em> if there is at least one structure
+(variable) in the interpreter which references the object.</li>
+  <li>When the Garbage Collector (GC) is run, this is called a <em>collection</em>.</li>
+  <li>The number of times the GC has been run is called the number of <em>GC cycles</em>
+or <em>GC collections</em>.</li>
+</ol>
+
+<h2 id="object-life-cycle">Object Life Cycle</h2>
+
+<ol>
   <li><a href="/doc/en/garbage-collector/nursery/">Nursery</a></li>
   <li><a href="/doc/en/garbage-collector/young-generation/">Young Generation</a></li>
   <li><a href="/doc/en/garbage-collector/mature-generation/">Mature Generation</a></li>
