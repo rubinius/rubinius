@@ -147,6 +147,8 @@ namespace melbourne {
       return rb_funcall(ptp, rb_intern("process_dangling_node"), 0);
     }
 
+    // fprintf(stderr, "%s\n", get_node_type_string((enum node_type)nd_type(node)));
+
     switch(nd_type(node)) {
 
     case NODE_BLOCK: {
@@ -443,8 +445,13 @@ namespace melbourne {
       break;
     }
     case NODE_SCOPE: {
+      VALUE args = Qnil;
+
+      if(node->nd_args) {
+        args = process_parse_tree(parser_state, ptp, node->nd_args, node->nd_tbl);
+      }
       VALUE body = process_parse_tree(parser_state, ptp, node->nd_body, node->nd_tbl);
-      tree = rb_funcall(ptp, rb_sScope19, 2, line, body);
+      tree = rb_funcall(ptp, rb_sScope19, 3, line, args, body);
       break;
     }
     case NODE_OP_ASGN1: {

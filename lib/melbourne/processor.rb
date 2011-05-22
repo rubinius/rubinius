@@ -398,17 +398,24 @@ module Rubinius
       end
     end
 
-    def process_scope19(line, body)
-      if body.kind_of? AST::Block
-        # TODO check remove_begin
-        if body.array.first.kind_of? AST::Begin
-          body.array.first = body.array.first.body
+    def process_scope19(line, arguments, body)
+      case body
+      when AST::Begin
+        if body.rescue.kind_of? AST::NilLiteral
+          return nil unless arguments
         end
-        body
-      elsif body
-        args = AST::FormalArguments.new line, [], nil, nil
-        AST::Block.new line, [args, body]
+        body = AST::Block.new line, [body.rescue]
+      when nil
+        # Nothing
+      else
+        body = AST::Block.new line, [body]
       end
+
+      if arguments and body
+        body.array.unshift arguments
+      end
+
+      body
     end
 
     def process_self(line)
