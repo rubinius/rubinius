@@ -10,7 +10,7 @@ Rubinius é uma implementação da [linguagem de programação Ruby]
 (http://ruby-lang.org).
 
 
-Rubinius inclue uma máquina virtual de bytecodes, parser de sintax Ruby, 
+Rubinius inclue uma máquina virtual de bytecodes, parser de sintax Ruby,
 compilador de bytecode, gerenciador de garbage collector, compilador de
 de código nativo just-in-time (JIT), e o Ruby Core e Bibliotecas padrão.
 Rubinius implementa atualmente a versão 1.8.7 do Ruby.
@@ -33,7 +33,7 @@ veja [Começando](/doc/pt-br/getting-started/).
 1. `./configure --prefix=/path/to/install/dir`
 1. `rake install`
 
-Quando o processo de instalação terminar,  adicione o diretório executável 
+Quando o processo de instalação terminar,  adicione o diretório executável
 do Ruby (bin) ao seu PATH.
 
 Rubinius vem com RubyGems e tem as gems rake e rdoc pré-instaladas.
