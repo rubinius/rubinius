@@ -9,6 +9,32 @@
 
   
   <entry>
+    <title>Adam Prescott on Scopes in Rubinius</title>
+    <id>http://rubini.us/2011/05/22/adam-prescott-on-scopes/</id>
+    <link rel="alternate" type="text/html" href="http://rubini.us/2011/05/22/adam-prescott-on-scopes/" />
+    <updated>2011-05-22T00:00:00+00:00</updated>
+    <author>
+      <name>Shane Becker</name>
+    </author>
+    
+    <content type="html">&lt;p&gt;&lt;cite class=&quot;vcard&quot;&gt;&lt;a class=&quot;url fn&quot; href=&quot;http://aprescott.com&quot; title=&quot;Adam Prescott&quot;&gt;Adam Prescott&lt;/a&gt;&lt;/cite&gt; wrote a lengthy article about &lt;i&gt;variables, closures and scope&lt;/i&gt; in Ruby, &lt;a href=&quot;http://aprescott.com/posts/variables-closures-and-scope&quot; title=&quot;Posts / Variables, closures &amp;amp; scope &amp;mdash; Adam Prescott&quot;&gt;mentioning Rubinius at the end&lt;/a&gt;:&lt;/p&gt;
+
+&lt;blockquote cite=&quot;http://aprescott.com/posts/variables-closures-and-scope&quot;&gt;
+  &lt;p&gt; One of the really cool things about the &lt;a href=&quot;http://en.wikipedia.org/wiki/Rubinius&quot;&gt;Rubinius&lt;/a&gt; implementation of Ruby is that it exposes, by requirement, a level of internals which you can&amp;rsquo;t find in &lt;abbr title=&quot;Matz' Ruby Interpreter&quot;&gt;MRI&lt;/abbr&gt;, including some internals with scopes. Because these internals are exposed in Ruby itself, you can &lt;a href=&quot;http://yehudakatz.com/2011/02/18/getting-comfortable-with-rubinius-pure-ruby-internals/&quot;&gt;play around with scopes as objects&lt;/a&gt;, using &lt;code&gt;VariableScope&lt;/code&gt;, including getting access to the available local variables within that scope, with &lt;code&gt;VariableScope.current.locals&lt;/code&gt;. &lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;p&gt;How are &lt;strong&gt;you&lt;/strong&gt; using Rubinius? What are you doing with it that you couldn&amp;rsquo;t do before? What is it missing for you to really dive in? Let us know. We&amp;rsquo;re listening.&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;&lt;a href=&quot;community@rubini.us&quot;&gt;community@rubini.us&lt;/a&gt;&lt;/li&gt;
+  &lt;li&gt;&lt;a href=&quot;http://twitter.com/rubinius&quot; title=&quot;@rubinius on twitter&quot;&gt;@rubinius&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;&amp;mdash; Use Ruby&amp;trade;&lt;/p&gt;
+</content>
+  </entry>
+  
+  <entry>
     <title>Rubinius T-Shirts and Stickers</title>
     <id>http://rubini.us/2011/04/29/rubinius-t-shirts-and-stickers/</id>
     <link rel="alternate" type="text/html" href="http://rubini.us/2011/04/29/rubinius-t-shirts-and-stickers/" />
@@ -454,7 +480,7 @@ cache files be saved? No problem, just give &lt;code&gt;-Xrbc.db&lt;/code&gt; a 
 
 &lt;pre&gt;&lt;code&gt;$ ls hello.*
 hello.rb
-$ rbx -Xrbc.db=$HOME/.my_special_place hello.rb 
+$ rbx -Xrbc.db=$HOME/.my_special_place hello.rb
 hello!
 $ ls hello.*
 hello.rb
