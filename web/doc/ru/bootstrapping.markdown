@@ -32,12 +32,12 @@ next_url: virtual-machine
    классы и модули и определять методы. В `kernel/alpha.rb` реализованы
    минимальные средства для поддержки следующих методов:
 
-       attr_reader :sym 
-       attr_writer :sym 
-       attr_accessor :sym 
+       attr_reader :sym
+       attr_writer :sym
+       attr_accessor :sym
        private :sym
-       protected :sym 
-       module_function :sym 
+       protected :sym
+       module_function :sym
        include mod
 
    Помимо этого код имеет возможность инициировать исключения и прекращать

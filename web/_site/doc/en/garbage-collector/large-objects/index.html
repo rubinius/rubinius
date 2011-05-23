@@ -125,7 +125,21 @@
 
       
 
-        
+        <p>Large objects are born in a birthing tank rather than in the nursery.</p>
+
+<p>Any object that exceedes the defined byte size for a large object upon
+allocation is allocated directly into the large objects space.  This is done to
+avoid copying since copying large objects is an expensive operation.</p>
+
+<p>Note that you can tune the number of bytes that constitute a <em>large
+object</em> which by default is 2700 (such a good baud rate eh?) bytes.</p>
+
+<pre><code>rbx ... -Xgc.large_object=&lt;number of bytes&gt; ...
+</code></pre>
+
+<p>For more information on configuration variables available read the
+<a href="https://github.com/evanphx/rubinius/blob/master/vm/configuration.hpp">vm configuration source file </a></p>
+
 
 
     </div>
