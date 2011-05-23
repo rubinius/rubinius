@@ -340,13 +340,15 @@ describe "A Call node" do
     end
   end
 
-  relates "a (1,2,3)" do
-    compile do |g|
-      g.push :self
-      g.push 1
-      g.push 2
-      g.push 3
-      g.send :a, 3, true
+  ruby_version_is ""..."1.9" do
+    relates "a (1,2,3)" do
+      compile do |g|
+        g.push :self
+        g.push 1
+        g.push 2
+        g.push 3
+        g.send :a, 3, true
+      end
     end
   end
 
