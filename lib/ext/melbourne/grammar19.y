@@ -2835,6 +2835,8 @@ f_arg_item      : f_norm_arg
                   {
                     /* TODO */
                     QUID tid = internal_id();
+                    arg_var(tid);
+                    $2->nd_value = NEW_LVAR(tid);
                     $$ = NEW_ARGS_AUX(tid, 1);
                     $$->nd_next = $2;
                   }
@@ -6605,6 +6607,7 @@ parser_new_args(rb_parser_state* parser_state, NODE *m, NODE *o, QUID r, NODE *p
   ruby_sourceline = saved_line;
   return node;
 }
+
 static NODE*
 new_call(rb_parser_state* parser_state,NODE *r,QUID m,NODE *a)
 {

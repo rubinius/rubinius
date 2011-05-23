@@ -13,6 +13,7 @@ namespace melbourne {
   ID rb_sAlias;
   ID rb_sAnd;
   ID rb_sArgs;
+  ID rb_sArgs19;
   ID rb_sArgsCat;
   ID rb_sArgsPush;
   ID rb_sArray;
@@ -80,6 +81,7 @@ namespace melbourne {
   ID rb_sOpAsgn2;
   ID rb_sOpAsgnAnd;
   ID rb_sOpAsgnOr;
+  ID rb_sOptArg;
   ID rb_sOr;
   ID rb_sPostExe;
   ID rb_sRedo;
@@ -125,6 +127,7 @@ namespace melbourne {
     rb_sAlias     = rb_intern("process_alias");
     rb_sAnd       = rb_intern("process_and");
     rb_sArgs      = rb_intern("process_args");
+    rb_sArgs19    = rb_intern("process_args19");
     rb_sArgsCat   = rb_intern("process_argscat");
     rb_sArgsPush  = rb_intern("process_argspush");
     rb_sArray     = rb_intern("process_array");
@@ -192,6 +195,7 @@ namespace melbourne {
     rb_sOpAsgn2   = rb_intern("process_op_asgn2");
     rb_sOpAsgnAnd = rb_intern("process_op_asgn_and");
     rb_sOpAsgnOr  = rb_intern("process_op_asgn_or");
+    rb_sOptArg    = rb_intern("process_opt_arg");
     rb_sOr        = rb_intern("process_or");
     rb_sPostExe   = rb_intern("process_postexe");
     rb_sRedo      = rb_intern("process_redo");

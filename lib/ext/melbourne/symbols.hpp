@@ -12,6 +12,7 @@ namespace melbourne {
   extern ID rb_sAlias;
   extern ID rb_sAnd;
   extern ID rb_sArgs;
+  extern ID rb_sArgs19;
   extern ID rb_sArgsCat;
   extern ID rb_sArgsPush;
   extern ID rb_sArray;
@@ -79,6 +80,7 @@ namespace melbourne {
   extern ID rb_sOpAsgn2;
   extern ID rb_sOpAsgnAnd;
   extern ID rb_sOpAsgnOr;
+  extern ID rb_sOptArg;
   extern ID rb_sOr;
   extern ID rb_sPostExe;
   extern ID rb_sRedo;

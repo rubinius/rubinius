@@ -35,6 +35,10 @@ module Rubinius
       AST::FormalArguments.new line, args, defaults, splat
     end
 
+    def process_args19(line, required, optional, splat, post, block)
+      AST::FormalArguments19.new line, required, optional, splat, post, block
+    end
+
     def process_argscat(line, array, rest)
       AST::ConcatArgs.new line, array, rest
     end
@@ -352,6 +356,15 @@ module Rubinius
 
     def process_op_asgn_or(line, var, value)
       AST::OpAssignOr.new line, var, value
+    end
+
+    def process_opt_arg(line, arg, block)
+      if block
+        block.array.unshift arg
+        block
+      else
+        AST::Block.new line, [arg]
+      end
     end
 
     def process_or(line, left, right)

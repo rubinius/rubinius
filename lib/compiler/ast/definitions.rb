@@ -392,6 +392,39 @@ module Rubinius
       end
     end
 
+    class FormalArguments19 < FormalArguments
+      def initialize(line, required, optional, splat, post, block)
+        @line = line
+
+        required ||= []
+        args = required.dup
+
+        if optional
+          @defaults = DefaultArguments.new line, optional
+          @optional = @defaults.names
+          args.concat @optional
+        else
+          @optional = []
+        end
+
+        if splat.kind_of? Symbol
+          args << splat
+        elsif splat
+          splat = :@unnamed_splat
+          args << splat
+        end
+
+        if block
+          @block_arg = BlockArgument.new line, block
+          args << block
+        end
+
+        @required = required
+        @splat = splat
+        @names = args
+      end
+    end
+
     class DefaultArguments < Node
       attr_accessor :arguments, :names
 

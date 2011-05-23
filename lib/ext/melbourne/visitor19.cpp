@@ -688,69 +688,45 @@ namespace melbourne {
       tree = rb_funcall(ptp, rb_sSClass, 3, line, recv, body);
       break;
     }
-    case NODE_ARGS: {
-      VALUE splat = Qnil, args = rb_ary_new();
+    case NODE_OPT_ARG: {
+      VALUE args = Qnil;
 
-      // TODO: argument structure
-      tree = rb_funcall(ptp, rb_sArgs, 4, line, args, Qnil, splat);
+      if(node->nd_args) {
+        args = process_parse_tree(parser_state, ptp, node->nd_args, locals);
+      }
+      VALUE arg = process_parse_tree(parser_state, ptp, node->nd_value, locals);
+      tree = rb_funcall(ptp, rb_sOptArg, 3, line, arg, args);
       break;
+    }
+    case NODE_ARGS: {
+      VALUE args = Qnil;
+      VALUE opts = Qnil;
+      VALUE splat = Qnil;
+      VALUE post = Qnil;
+      VALUE block = Qnil;
 
-      NODE *optnode;
-      int i = 0, max_args = node->nd_cnt;
-
-      /* push regular argument names */
-      for (; i < max_args; i++) {
-        rb_ary_push(args, Q2SYM(locals[i + 3]));
+      if(node->nd_argc > 0) {
       }
 
-      /* look for optional arguments: we cannot assume these
-       * are left-to-right what the locals array contains
-       * (e.g. def(a=1, b=2, c=lambda {|n| n } will have 'n'
-       * at i (above) + 2 + 3); instead we walk the chain
-       * and look at the actual LASGN nodes
-       */
-      masgn_level++;
-      optnode = node->nd_opt;
-      while (optnode) {
-        if(nd_type(optnode) == NODE_LASGN) {
-          rb_ary_push(args, Q2SYM(optnode->nd_vid));
-        } else if(nd_type(optnode) == NODE_BLOCK
-                  && nd_type(optnode->nd_head) == NODE_LASGN) {
-          rb_ary_push(args, Q2SYM(optnode->nd_head->nd_vid));
-        }
-        i++;  // do not use here but keep track for '*args' name below
-        optnode = optnode->nd_next;
+      if(node->nd_opt) {
+        opts = process_parse_tree(parser_state, ptp, node->nd_opt, locals);
       }
 
-      /* look for vargs */
-      long arg_count = (long)node->nd_rest;
-      if (arg_count > 0) {
-        /* *arg name */
-        if (locals[i + 3]) {
-          splat = quark_to_symbol(locals[i + 3]);
-        } else {
+      if(NODE* aux = node->nd_args) {
+        if(aux->nd_rest == 1) {
           splat = Qtrue;
+        } else if(aux->nd_rest) {
+          splat = Q2SYM(aux->nd_rest);
         }
-      } else if (arg_count == 0) {
-        /* nothing to do in this case, empty list */
-      } else if (arg_count == -1) {
-        /* nothing to do in this case, handled above */
-      } else if (arg_count == -2) {
-        /* nothing to do in this case, no name == no use */
-        splat = Qtrue;
-      } else {
-        // HACK: replace with Exception::argument_error()
-        printf("Unknown arg_count %ld encountered while processing args.\n", arg_count);
+        if(aux->nd_mid) block = Q2SYM(aux->nd_mid);
+
+        if(NODE* post_args = aux->nd_next) {
+          post = rb_ary_new();
+          // TODO
+        }
       }
 
-      VALUE opt = Qnil;
-      optnode = node->nd_opt;
-      if (optnode) {
-        opt = process_parse_tree(parser_state, ptp, node->nd_opt, locals);
-      }
-      masgn_level--;
-
-      tree = rb_funcall(ptp, rb_sArgs, 4, line, args, opt, splat);
+      tree = rb_funcall(ptp, rb_sArgs19, 6, line, args, opts, splat, post, block);
       break;
     }
     case NODE_LVAR:
