@@ -1,17 +1,59 @@
 ---
 layout: doc_ru
 title: Парсер Ruby
-previous: Комилятор в Байткод
+previous: Компилятор в байткод
 previous_url: bytecode-compiler
 next: AST
 next_url: bytecode-compiler/ast
 review: true
 ---
 
-The parser is a C extension named melbourne. It is basically the parser from
-MRI wrapped up in a way that can be used in Rubinius. The parser converts Ruby
-source code to an internal parse tree of nodes. The parse tree is processed by
-calling a Ruby method for each node. The processor is in
-lib/melbourne/processor.rb. The methods in the processor create Ruby objects
-that are nodes in an abstract syntax tree (AST). The AST is processed to
-generate bytecode.
+Первая стадия конвейера байткод-компиляции --- Ruby-парсер. Парсер получает
+файл или `String` с исходником и передает следующей стадии, генератору,
+полученное AST (_Abstract Syntax Tree_, дерево абстрактного синтаксиса).
+
+Сам парсер (он называется <<Melbourne>>), состоит из C-части, которая
+представляет собой, в сущности, парсер MRI, и Ruby-части, которая отвечает за
+создание Ruby-AST. C-часть общается с Ruby, вызывая специфический метод для
+каждого узла дерева.
+
+Каждый из таких методов имеет сигнатуру, содержащую всю информацию о текущем
+обрабатываемом участке дерева. Например, если в Ruby-коде есть выражение `if`,
+C-парсер вызовет `process_if` с номером строки, параметром, представляющим
+условие, параметрами, представляющими тело `if`-выражения и секции `else`,
+если таковая присутствует.
+
+    def process_if(line, cond, body, else_body)
+      AST::If.new line, cond, body, else_body
+    end
+
+Все возможные методы `process_` можно посмотреть в исходниках Rubinius в файле
+`lib/melbourne/processor.rb`.
+
+Обратите внимание: во многих случаях парсер передает результат выполнения
+одного `process_` как аргумент следующему. Например, в случае выражения `true
+if 1` парсер сперва вызывает `process_lit(line 1)`, а затем
+`process_true(line)`. Также вызывается `process_nil(line)`, потому что
+парс-дерево изначально содержит `nil` для представления тела подвыражения
+`else`. После этого вызывается `process_if` с номером строки и результатами
+`process_lit`, `process_true` и `process_nil`.
+
+Описанный процесс рекурсивно строит древовидную структуру, которую Rubinius
+впоследствии передаст следующей стадии, Генератору.
+
+## Файлы для справки
+
+* `lib/melbourne/processor.rb`: Ruby-интерфейс к C-парсеру. В этом файле
+  содержатся методы, начинающиеся с `process_`, которые и вызываются
+  C-парсером для каждого узла парс-дерева.
+* `lib/compiler/ast/*`: определения каждого из типов узлов AST, используемых в
+  melbourne.
+
+## Настройка
+
+Существует два способа настройки для этой стадии компиляции. Самый простой ---
+это настройка создания AST через [преобразования AST](/doc/ru/bytecode-compiler/transformations/)
+
+Еще можно создать субкласс класса `Melbourne` и определить собственные
+обработчики методов `process_`. Этот способ относится к <<продвинутым>> и к
+настоящему времени не документирован.
