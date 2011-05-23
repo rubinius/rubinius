@@ -125,7 +125,16 @@
 
       
 
-        
+        <p>Mature objects are objects that have been promoted from the Young
+generation after living past the promotion threshold &lsquo;X&rsquo;.</p>
+
+<p>Autotune is the mechanism that is used to dynamic adjust the GC cycles before
+mature collection occurrs. This can be turned off or a static number may be used
+via gc.lifetime. gc.lifetime is used by autotune which sets the initial value.</p>
+
+<p>For more information on configuration variables available read the
+<a href="https://github.com/evanphx/rubinius/blob/master/vm/configuration.hpp">vm configuration source file </a></p>
+
 
 
     </div>

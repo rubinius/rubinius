@@ -542,7 +542,7 @@
 </ul>
 <h3><a class="instruction" name="clear_exception">clear_exception()</a></h3>
 
-   Clears any exceptions from the current thread. 
+   Clears any exceptions from the current thread.
 
 
 <table class="stack_effect">
@@ -769,7 +769,7 @@
 <h3><a class="instruction" name="cast_array">cast_array()</a></h3>
 
    Removes the object on the top of the stack, and:
-   
+
    1. If the input is a tuple, a new array object is created based on the
       tuple data.
    1. If the input is an array, it is unmodified.
@@ -1242,7 +1242,7 @@
 
    If the value contains a single field, the result is the value in the
    first field.
- 
+
    Otherwise, package up all the arguments in an `Array` as the result.
 
    The result is then pushed onto the stack.
