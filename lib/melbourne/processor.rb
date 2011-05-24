@@ -94,10 +94,15 @@ module Rubinius
         return node
       end
 
-      if arguments
-        AST::SendWithArguments.new line, receiver, name, arguments
-      else
+      case arguments
+      when AST::BlockPass
+        node = AST::Send.new line, receiver, name
+        node.block = arguments
+        node
+      when nil
         AST::Send.new line, receiver, name
+      else
+        AST::SendWithArguments.new line, receiver, name, arguments
       end
     end
 
@@ -208,10 +213,15 @@ module Rubinius
         return node
       end
 
-      if arguments
-        AST::SendWithArguments.new line, receiver, name, arguments, true
-      else
+      case arguments
+      when AST::BlockPass
+        node = AST::Send.new line, receiver, name, true
+        node.block = arguments
+        node
+      when nil
         AST::Send.new line, receiver, name, true
+      else
+        AST::SendWithArguments.new line, receiver, name, arguments, true
       end
     end
 
@@ -418,6 +428,13 @@ module Rubinius
           return nil unless arguments
         end
         body = AST::Block.new line, [body.rescue]
+      when AST::Block
+        ary = body.array
+        if ary.size > 1 and
+           ary.first.kind_of?(AST::Begin) and
+           ary.first.rescue.kind_of?(AST::NilLiteral)
+          ary.shift
+        end
       when nil
         # Nothing
       else
