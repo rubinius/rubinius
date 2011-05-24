@@ -21,16 +21,6 @@ class Array
     raise PrimitiveFailure, "Array.new_reserved primitive failed"
   end
 
-  def self.coerce_into_array(obj)
-    return [obj] unless obj
-
-    return obj.to_ary if obj.respond_to?(:to_ary)
-
-    # Just call #to_a, which wraps the reciever in an
-    # array if it's not one.
-    return obj.to_a
-  end
-
   # THIS MUST NOT BE REMOVED. the kernel requires a simple
   # Array#[] to work while parts of the kernel boot.
   def [](idx)
