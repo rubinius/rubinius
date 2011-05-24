@@ -61,6 +61,7 @@ namespace melbourne {
   ID rb_sIAsgn;
   ID rb_sIf;
   ID rb_sIter;
+  ID rb_sIter19;
   ID rb_sIVar;
   ID rb_sLAsgn;
   ID rb_sLit;
@@ -175,6 +176,7 @@ namespace melbourne {
     rb_sIAsgn     = rb_intern("process_iasgn");
     rb_sIf        = rb_intern("process_if");
     rb_sIter      = rb_intern("process_iter");
+    rb_sIter19    = rb_intern("process_iter19");
     rb_sIVar      = rb_intern("process_ivar");
     rb_sLAsgn     = rb_intern("process_lasgn");
     rb_sLit       = rb_intern("process_lit");

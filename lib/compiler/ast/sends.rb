@@ -473,6 +473,14 @@ module Rubinius
       end
     end
 
+    class Iter19 < Iter
+      def initialize(line, arguments, body)
+        @line = line
+        @arguments = arguments
+        @body = body || NilLiteral.new(line)
+      end
+    end
+
     class IterArguments < Node
       attr_accessor :prelude, :arity, :optional, :arguments, :splat_index
       attr_accessor :required_args

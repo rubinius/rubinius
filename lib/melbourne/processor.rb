@@ -276,6 +276,31 @@ module Rubinius
       method_send
     end
 
+    def process_iter19(line, method_send, scope)
+      ary = scope && scope.array || []
+      arguments = nil
+
+      if ary.first.kind_of? AST::FormalArguments
+        arguments = scope.array.shift
+      end
+
+      unless arguments
+        arguments = AST::FormalArguments19.new line, nil, nil, nil, nil, nil
+      end
+
+      case ary.size
+      when 0
+        body = nil
+      when 1
+        body = scope.array.shift
+      else
+        body = scope
+      end
+
+      method_send.block = AST::Iter19.new line, arguments, body
+      method_send
+    end
+
     def process_ivar(line, name)
       AST::InstanceVariableAccess.new line, name
     end

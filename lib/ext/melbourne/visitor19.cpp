@@ -293,10 +293,12 @@ namespace melbourne {
       tree = process_iter(parser_state, ptp, node, locals, &masgn_level, rb_sFor, line);
       break;
 
-    case NODE_ITER:
-      tree = process_iter(parser_state, ptp, node, locals, &masgn_level, rb_sIter, line);
+    case NODE_ITER: {
+      VALUE iter = process_parse_tree(parser_state, ptp, node->nd_iter, locals);
+      VALUE body = process_parse_tree(parser_state, ptp, node->nd_body, locals);
+      tree = rb_funcall(ptp, rb_sIter19, 3, line, iter, body);
       break;
-
+    }
     case NODE_BREAK: {
       VALUE expr = Qnil;
 
