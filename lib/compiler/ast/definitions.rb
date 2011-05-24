@@ -386,6 +386,8 @@ module Rubinius
 
         sexp << :"&#{@block_arg.name}" if @block_arg
 
+        sexp += @post if @post
+
         sexp << [:block] + @defaults.to_sexp if @defaults
 
         sexp
@@ -393,6 +395,8 @@ module Rubinius
     end
 
     class FormalArguments19 < FormalArguments
+      attr_accessor :post
+
       def initialize(line, required, optional, splat, post, block)
         @line = line
 
@@ -412,6 +416,13 @@ module Rubinius
         elsif splat
           splat = :@unnamed_splat
           args << splat
+        end
+
+        if post
+          args.concat post
+          @post = post
+        else
+          @post = []
         end
 
         if block

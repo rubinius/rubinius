@@ -725,8 +725,16 @@ namespace melbourne {
         if(aux->nd_mid) block = Q2SYM(aux->nd_mid);
 
         if(NODE* post_args = aux->nd_next) {
+          int start;
+          for(start = node->nd_argc + 3; /* none */; start++) {
+            if(locals[start] == post_args->nd_pid)
+              break;
+          }
+
           post = rb_ary_new();
-          // TODO
+          for(int i = 0; i < post_args->nd_argc; i++) {
+            rb_ary_push(post, Q2SYM(locals[start + i]));
+          }
         }
       }
 
