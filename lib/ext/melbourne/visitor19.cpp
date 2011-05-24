@@ -706,6 +706,10 @@ namespace melbourne {
       VALUE block = Qnil;
 
       if(node->nd_argc > 0) {
+        args = rb_ary_new();
+        for(int i = 0; i < node->nd_argc; i++) {
+          rb_ary_push(args, Q2SYM(locals[i + 3]));
+        }
       }
 
       if(node->nd_opt) {

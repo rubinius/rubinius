@@ -5502,6 +5502,16 @@ parser_node_newnode(rb_parser_state* parser_state, enum node_type type,
   return n;
 }
 
+enum node_type
+nodetype(NODE *node) {  /* for debug */
+  return (enum node_type)nd_type(node);
+}
+
+int
+nodeline(NODE *node) {
+  return nd_line(node);
+}
+
 static NODE*
 parser_newline_node(rb_parser_state* parser_state, NODE *node)
 {
@@ -6182,57 +6192,6 @@ parser_void_stmts(rb_parser_state* parser_state, NODE *node)
   }
 }
 
-static int
-value_expr0(NODE *node, rb_parser_state* parser_state)
-{
-  int cond = 0;
-
-  while(node) {
-    switch(nd_type(node)) {
-    case NODE_DEFN:
-    case NODE_DEFS:
-      parser_warning(parser_state, node, "void value expression");
-      return FALSE;
-
-    case NODE_RETURN:
-    case NODE_BREAK:
-    case NODE_NEXT:
-    case NODE_REDO:
-    case NODE_RETRY:
-      if(!cond) yy_error("void value expression");
-      /* or "control never reach"? */
-      return FALSE;
-
-    case NODE_BLOCK:
-      while(node->nd_next) {
-          node = node->nd_next;
-      }
-      node = node->nd_head;
-      break;
-
-    case NODE_BEGIN:
-      node = node->nd_body;
-      break;
-
-    case NODE_IF:
-      if(!value_expr(node->nd_body)) return FALSE;
-      node = node->nd_else;
-      break;
-
-    case NODE_AND:
-    case NODE_OR:
-      cond = 1;
-      node = node->nd_2nd;
-      break;
-
-    default:
-      return TRUE;
-    }
-  }
-
-  return TRUE;
-}
-
 static void
 parser_void_expr0(rb_parser_state* parser_state, NODE *node)
 {
@@ -6684,8 +6643,7 @@ parser_local_id(rb_parser_state* parser_state, QUID id)
 static int
 parser_arg_var(rb_parser_state* parser_state, QUID id)
 {
-  /* TODO */
-  return 1;
+  return var_table_add(variables->local_vars, id);
 }
 
 static void
