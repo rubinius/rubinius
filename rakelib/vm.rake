@@ -194,10 +194,14 @@ file 'vm/gen/primitives_glue.gen.cpp' => field_extract_headers
 
 iparser = InstructionParser.new "vm/instructions.def"
 
-def generate_instruction_file(parser, generator, name)
+def generate_instruction_file(parser, generator, name, lang = 'en')
   puts "GEN #{name}"
   parser.parse
-  parser.send generator, name
+  unless generator == :generate_documentation
+    parser.send generator, name
+  else
+    parser.send generator, name, lang
+  end
 end
 
 insn_deps = %w[  vm/gen
@@ -251,6 +255,10 @@ end
 
 file "web/_includes/instructions.markdown" => insn_deps do |t|
   generate_instruction_file iparser, :generate_documentation, t.name
+end
+
+file "web/_includes/instructions_ru.markdown" => insn_deps do |t|
+  generate_instruction_file iparser, :generate_documentation, t.name, 'ru'
 end
 
 namespace :vm do

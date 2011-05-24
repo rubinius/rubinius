@@ -6,6 +6,9 @@
 # [Description]
 #   The classic no-op operator. It performs no actions and does not modify the
 #   stack.
+# [Description:ru]
+#   Классический пустой оператор. Не производит никаких действий и не
+#   модифицирует стек.
 # [See Also]
 #   pop
 
@@ -37,6 +40,8 @@ end
 
 # [Description]
 #   Pushes the value of the integer literal onto the stack.
+# [Description:ru]
+#   Помещает значение целочисленного литерала в стек.
 # [See Also]
 #   meta_push_0
 #   meta_push_1
@@ -45,6 +50,9 @@ end
 # [Notes]
 #   Certain common cases (i.e. -1, 0, 1, and 2) are optimised to avoid the
 #   decoding of the argument.
+# [Notes:ru]
+#   Некоторые частые случаи применения (-1, 0, 1, 2) оптимизированы на предмет
+#   избегания декодирования аргумента.
 
 instruction push_int(number) [ -- number ]
   stack_push(Fixnum::from(number));

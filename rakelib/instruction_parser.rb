@@ -375,7 +375,7 @@ EOM
     def opcode_stack_effect(file)
     end
 
-    def opcode_documentation(file)
+    def opcode_documentation(file, lang = 'en')
     end
   end
 
@@ -413,11 +413,11 @@ EOM
   class InstructionDocumentation
     def initialize(instruction)
       @instruction = instruction
-      @description = []
+      @description = {}
       @consumed = nil
       @produced = nil
       @see_also = []
-      @notes = []
+      @notes = {}
       @example = []
     end
 
@@ -426,16 +426,16 @@ EOM
 
       text.each do |line|
         case line
-        when /\[Description\]/
-          section = @description
+        when /\[Description(:(.+))?\]/
+          section = @description[($2.nil? ? 'en' : $2)] = []
         when /\[Stack Before\]/
           section = @consumed = []
         when /\[Stack After\]/
           section = @produced = []
         when /\[See Also\]/
           section = @see_also
-        when /\[Notes\]/
-          section = @notes
+        when /\[Notes(:(.+))?\]/
+          section = @notes[($2.nil? ? 'en' : $2)] = []
         when /\[Example\]/
           section = @example
         else
@@ -477,9 +477,9 @@ EOM
       file.puts "</table>"
     end
 
-    def description(file)
+    def description(file, lang = 'en')
       file.puts ""
-      file.puts @description
+      file.puts @description[lang]
       file.puts ""
     end
 
@@ -504,12 +504,12 @@ EOM
       file.puts "</ul>"
     end
 
-    def notes(file)
+    def notes(file, lang = 'en')
       return if @notes.empty?
 
       file.puts ""
       file.puts '#### Notes'
-      file.puts @notes
+      file.puts @notes[lang]
       file.puts ""
     end
 
@@ -521,12 +521,12 @@ EOM
       @instruction.arguments.join ", "
     end
 
-    def render(file)
+    def render(file, lang = 'en')
       format file
-      description file
+      description file, lang
       stack_effect file
       example file
-      notes file
+      notes file, lang
       see_also file
     end
   end
@@ -722,8 +722,8 @@ EOM
       file.puts "return (#{write}) - (#{read});"
     end
 
-    def opcode_documentation(file)
-      @doc.render file
+    def opcode_documentation(file, lang = 'en')
+      @doc.render file, lang
     end
   end
 
@@ -963,10 +963,10 @@ EOM
     end
   end
 
-  def generate_documentation(filename)
+  def generate_documentation(filename, lang = 'en')
     File.open filename, "w" do |file|
       objects.each do |obj|
-        obj.opcode_documentation file
+        obj.opcode_documentation file, lang
       end
     end
   end

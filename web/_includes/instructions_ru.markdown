@@ -1,136 +1,8 @@
-<!DOCTYPE html>
-<html>
-  <head>
-    <title>Инструкции - Rubinius</title>
-    <meta content='text/html;charset=utf-8' http-equiv='content-type'>
-    <meta content='ru' http-equiv='content-language'>
-    <meta content='Rubinius is an implementation of the Ruby programming language. The Rubinius bytecode virtual machine is written in C++. The bytecode compiler is written in pure Ruby. The vast majority of the core library is also written in Ruby, with some supporting primitives that interact with the VM directly.' name='description'>
-    <meta content='Less Than Three. &lt;3. http://less.thanthree.com' name='author'>
-    <link href='/' rel='home'>
-    <link href='/' rel='start'>
-    <link href='/doc/ru/virtual-machine' rel='prev' title='Виртуальная Машина'>
-    <link href='/doc/ru/virtual-machine/custom-dispatch-logic' rel='next' title='Custom Dispatch Logic'>
-    
-    <!--[if IE]><script src="http://html5shiv.googlecode.com/svn/trunk/html5.js" type="text/javascript"></script><![endif]-->
-    <script src="/javascripts/jquery-1.3.2.js" type="text/javascript"></script>
-    <script src="/javascripts/paging_keys.js" type="text/javascript"></script>
-    
-    <script src="/javascripts/application.js" type="text/javascript"></script>
-    <style>article, aside, dialog, figure, footer, header, hgroup, menu, nav, section { display: block; }</style>
-
-    <link href="/stylesheets/blueprint/screen.css" media="screen" rel="stylesheet" type="text/css" />
-    <link href="/stylesheets/application.css" media="screen" rel="stylesheet" type="text/css" />
-    <link href="/stylesheets/blueprint/print.css" media="print" rel="stylesheet" type="text/css" />
-    <!--[if IE]><link href="/stylesheets/blueprint/ie.css" media="screen" rel="stylesheet" type="text/css" /><![endif]-->
-    <!--[if IE]><link href="/stylesheets/ie.css" media="screen" rel="stylesheet" type="text/css" /><![endif]-->
-    <link href="/stylesheets/pygments.css" media="screen" rel="stylesheet" type="text/css" />
-  </head>
-    <body>
-        <div class='container'>
-      <div class='span-21 doc_menu'>
-        <header>
-                    <nav>
-            <ul>
-              <li><a href="/">Home</a></li>
-              <li><a id="blog" href="/blog/">Blog</a></li>
-              <li><a id="documentation" href="/doc/en/">Documentation</a></li>
-              <li><a href="/projects/">Projects</a></li>
-              <li><a href="/roadmap/">Roadmap</a></li>
-              <li><a href="/releases/">Releases</a></li>
-            </ul>
-          </nav>
-
-        </header>
-      </div>
-            <div class='span-3 last'>
-        <div id='version'>
-          <a href="/releases/1.2.3">1.2.3</a>
-        </div>
-      </div>
-
-    </div>
-
-
-        <div class="container languages">
-      <nav>
-        <span class="label">Языки:</span>
-        <ul>
-        
-          <li><a href="/doc/de/"
-          
-          >de</a></li>
-        
-          <li><a href="/doc/en/"
-          
-          >en</a></li>
-        
-          <li><a href="/doc/es/"
-          
-          >es</a></li>
-        
-          <li><a href="/doc/ja/"
-          
-          >ja</a></li>
-        
-          <li><a href="/doc/pl/"
-          
-          >pl</a></li>
-        
-          <li><a href="/doc/pt-br/"
-          
-          >pt-br</a></li>
-        
-          <li><a href="/doc/ru/"
-          
-            class="current"
-          
-          >ru</a></li>
-        
-        </ul>
-      </nav>
-    </div>
-
-
-        <div class="container doc_page_nav">
-      
-        
-        <span class="label">Previous:</span>
-        <a href="/doc/ru/virtual-machine">Виртуальная Машина</a>
-        
-
-        <span class="label">Up:</span>
-        <a href="/doc/ru/">Содержание</a>
-
-        
-        <span class="label">Next:</span>
-        <a href="/doc/ru/virtual-machine/custom-dispatch-logic">Custom Dispatch Logic</a>
-        
-      
-    </div>
-
-
-    <div class="container documentation">
-      <h2>Инструкции</h2>
-
-      
-        <div class="review">
-  <p>This page was machine translated. Please help us improve it.</p>
-
-  <p>See <a href="/doc/ru/how-to/translate-documentation">
-    How-To - Translate Documentation</a></p>
-</div>
-
-      
-
-      
-
-        <p>инструкций виртуальной машины содержатся в <code>VM/instructions.def</code>.
-документации ниже, порожденные <code>rakelib/vm.rake</code>.</p>
-
 <h3><a class="instruction" name="noop">noop()</a></h3>
 
-<p>Классический пустой оператор. Не производит никаких действий и не
-   модифицирует стек.</p>
+   Классический пустой оператор. Не производит никаких действий и не
+   модифицирует стек.
+
 
 <table class="stack_effect">
 <thead>
@@ -147,16 +19,22 @@
 </ul>
 <h3><a class="instruction" name="push_nil">push_nil()</a></h3>
 
+
+
+
 <table class="stack_effect">
 <thead>
 <tr><th>Before</th><th>After</th></tr>
 </thead>
 <tbody>
 <tr><td>...</td><td>nil</td></tr>
-<tr><td /><td>...</td></tr>
+<tr><td></td><td>...</td></tr>
 </tbody>
 </table>
 <h3><a class="instruction" name="push_true">push_true()</a></h3>
+
+
+
 
 <table class="stack_effect">
 <thead>
@@ -164,10 +42,13 @@
 </thead>
 <tbody>
 <tr><td>...</td><td>true</td></tr>
-<tr><td /><td>...</td></tr>
+<tr><td></td><td>...</td></tr>
 </tbody>
 </table>
 <h3><a class="instruction" name="push_false">push_false()</a></h3>
+
+
+
 
 <table class="stack_effect">
 <thead>
@@ -175,12 +56,13 @@
 </thead>
 <tbody>
 <tr><td>...</td><td>false</td></tr>
-<tr><td /><td>...</td></tr>
+<tr><td></td><td>...</td></tr>
 </tbody>
 </table>
 <h3><a class="instruction" name="push_int">push_int(number)</a></h3>
 
-<p>Помещает значение целочисленного литерала в стек.</p>
+   Помещает значение целочисленного литерала в стек.
+
 
 <table class="stack_effect">
 <thead>
@@ -188,13 +70,14 @@
 </thead>
 <tbody>
 <tr><td>...</td><td>number</td></tr>
-<tr><td /><td>...</td></tr>
+<tr><td></td><td>...</td></tr>
 </tbody>
 </table>
 
-<h4 id="notes">Notes</h4>
-<p>Некоторые частые случаи применения (-1, 0, 1, 2) оптимизированы на предмет
-   избегания декодирования аргумента.</p>
+#### Notes
+   Некоторые частые случаи применения (-1, 0, 1, 2) оптимизированы на предмет
+   избегания декодирования аргумента.
+
 
 <h4>See Also</h4>
 <ul class="insn_cross_ref">
@@ -205,16 +88,22 @@
 </ul>
 <h3><a class="instruction" name="push_self">push_self()</a></h3>
 
+
+
+
 <table class="stack_effect">
 <thead>
 <tr><th>Before</th><th>After</th></tr>
 </thead>
 <tbody>
 <tr><td>...</td><td>self</td></tr>
-<tr><td /><td>...</td></tr>
+<tr><td></td><td>...</td></tr>
 </tbody>
 </table>
 <h3><a class="instruction" name="set_literal">set_literal(literal)</a></h3>
+
+
+
 
 <table class="stack_effect">
 <thead>
@@ -226,9 +115,13 @@
 </tbody>
 </table>
 
-<h4 id="notes-1">Notes</h4>
+#### Notes
+
 
 <h3><a class="instruction" name="push_literal">push_literal(literal)</a></h3>
+
+
+
 
 <table class="stack_effect">
 <thead>
@@ -236,13 +129,17 @@
 </thead>
 <tbody>
 <tr><td>...</td><td>literal</td></tr>
-<tr><td /><td>...</td></tr>
+<tr><td></td><td>...</td></tr>
 </tbody>
 </table>
 
-<h4 id="notes-2">Notes</h4>
+#### Notes
+
 
 <h3><a class="instruction" name="goto">goto(location)</a></h3>
+
+
+
 
 <table class="stack_effect">
 <thead>
@@ -253,7 +150,9 @@
 </tbody>
 </table>
 
-<h4 id="notes-3">Notes</h4>
+#### Notes
+
+
 
 <h4>See Also</h4>
 <ul class="insn_cross_ref">
@@ -262,13 +161,16 @@
 </ul>
 <h3><a class="instruction" name="goto_if_false">goto_if_false(location)</a></h3>
 
+
+
+
 <table class="stack_effect">
 <thead>
 <tr><th>Before</th><th>After</th></tr>
 </thead>
 <tbody>
 <tr><td>value</td><td>...</td></tr>
-<tr><td>...</td><td /></tr>
+<tr><td>...</td><td></td></tr>
 </tbody>
 </table>
 
@@ -279,13 +181,16 @@
 </ul>
 <h3><a class="instruction" name="goto_if_true">goto_if_true(location)</a></h3>
 
+
+
+
 <table class="stack_effect">
 <thead>
 <tr><th>Before</th><th>After</th></tr>
 </thead>
 <tbody>
 <tr><td>value</td><td>...</td></tr>
-<tr><td>...</td><td /></tr>
+<tr><td>...</td><td></td></tr>
 </tbody>
 </table>
 
@@ -295,6 +200,9 @@
 <li><a href="#goto_if_false">goto_if_false</a></li>
 </ul>
 <h3><a class="instruction" name="ret">ret()</a></h3>
+
+
+
 
 <table class="stack_effect">
 <thead>
@@ -306,7 +214,9 @@
 </tbody>
 </table>
 
-<h4 id="notes-4">Notes</h4>
+#### Notes
+
+
 
 <h4>See Also</h4>
 <ul class="insn_cross_ref">
@@ -314,6 +224,9 @@
 <li><a href="#raise_exc">raise_exc</a></li>
 </ul>
 <h3><a class="instruction" name="swap_stack">swap_stack()</a></h3>
+
+
+
 
 <table class="stack_effect">
 <thead>
@@ -327,6 +240,9 @@
 </table>
 <h3><a class="instruction" name="dup_top">dup_top()</a></h3>
 
+
+
+
 <table class="stack_effect">
 <thead>
 <tr><th>Before</th><th>After</th></tr>
@@ -334,10 +250,13 @@
 <tbody>
 <tr><td>s0</td><td>s0</td></tr>
 <tr><td>...</td><td>s0</td></tr>
-<tr><td /><td>...</td></tr>
+<tr><td></td><td>...</td></tr>
 </tbody>
 </table>
 <h3><a class="instruction" name="dup_many">dup_many(count)</a></h3>
+
+
+
 
 <table class="stack_effect">
 <thead>
@@ -353,13 +272,16 @@
 <tr><td>   ...
 </td><td>   value1
 </td></tr>
-<tr><td /><td>   value2
+<tr><td></td><td>   value2
 </td></tr>
-<tr><td /><td>   ...
+<tr><td></td><td>   ...
 </td></tr>
 </tbody>
 </table>
 <h3><a class="instruction" name="pop">pop()</a></h3>
+
+
+
 
 <table class="stack_effect">
 <thead>
@@ -367,13 +289,17 @@
 </thead>
 <tbody>
 <tr><td>value</td><td>...</td></tr>
-<tr><td>...</td><td /></tr>
+<tr><td>...</td><td></td></tr>
 </tbody>
 </table>
 
-<h4 id="notes-5">Notes</h4>
+#### Notes
+
 
 <h3><a class="instruction" name="pop_many">pop_many(count)</a></h3>
+
+
+
 
 <table class="stack_effect">
 <thead>
@@ -384,12 +310,15 @@
 </td><td>   ...
 </td></tr>
 <tr><td>   value2
-</td><td /></tr>
+</td><td></td></tr>
 <tr><td>   ...
-</td><td /></tr>
+</td><td></td></tr>
 </tbody>
 </table>
 <h3><a class="instruction" name="rotate">rotate(count)</a></h3>
+
+
+
 
 <table class="stack_effect">
 <thead>
@@ -412,6 +341,9 @@
 </table>
 <h3><a class="instruction" name="move_down">move_down(positions)</a></h3>
 
+
+
+
 <table class="stack_effect">
 <thead>
 <tr><th>Before</th><th>After</th></tr>
@@ -433,6 +365,9 @@
 </table>
 <h3><a class="instruction" name="set_local">set_local(local)</a></h3>
 
+
+
+
 <table class="stack_effect">
 <thead>
 <tr><th>Before</th><th>After</th></tr>
@@ -449,13 +384,16 @@
 </ul>
 <h3><a class="instruction" name="push_local">push_local(local)</a></h3>
 
+
+
+
 <table class="stack_effect">
 <thead>
 <tr><th>Before</th><th>After</th></tr>
 </thead>
 <tbody>
 <tr><td>...</td><td>value</td></tr>
-<tr><td /><td>...</td></tr>
+<tr><td></td><td>...</td></tr>
 </tbody>
 </table>
 
@@ -465,32 +403,38 @@
 </ul>
 <h3><a class="instruction" name="push_local_depth">push_local_depth(depth, index)</a></h3>
 
+
+
+
 <table class="stack_effect">
 <thead>
 <tr><th>Before</th><th>After</th></tr>
 </thead>
 <tbody>
 <tr><td>...</td><td>value</td></tr>
-<tr><td /><td>...</td></tr>
+<tr><td></td><td>...</td></tr>
 </tbody>
 </table>
 
-<h4 id="example">Example</h4>
-<pre><code> k = 0
- foo.each do |i|
-   bar.each do |j|
-     # i is a local variable from enclosing scope at depth 1
-     # k is a local variable from enclosing scope at depth 2
-     i = i + j + k
-   end
- end
-</code></pre>
+#### Example
+     k = 0
+     foo.each do |i|
+       bar.each do |j|
+         # i is a local variable from enclosing scope at depth 1
+         # k is a local variable from enclosing scope at depth 2
+         i = i + j + k
+       end
+     end
+
 
 <h4>See Also</h4>
 <ul class="insn_cross_ref">
 <li><a href="#set_local_depth">set_local_depth</a></li>
 </ul>
 <h3><a class="instruction" name="set_local_depth">set_local_depth(depth, index)</a></h3>
+
+
+
 
 <table class="stack_effect">
 <thead>
@@ -502,13 +446,13 @@
 </tbody>
 </table>
 
-<h4 id="example-1">Example</h4>
-<pre><code> foo.each do |i|
-   bar.each do |j|
-     i = i + j  # i is a local variable from enclosing scope at depth 1
-   end
- end
-</code></pre>
+#### Example
+     foo.each do |i|
+       bar.each do |j|
+         i = i + j  # i is a local variable from enclosing scope at depth 1
+       end
+     end
+
 
 <h4>See Also</h4>
 <ul class="insn_cross_ref">
@@ -516,19 +460,26 @@
 </ul>
 <h3><a class="instruction" name="passed_arg">passed_arg(index)</a></h3>
 
+
+
+
 <table class="stack_effect">
 <thead>
 <tr><th>Before</th><th>After</th></tr>
 </thead>
 <tbody>
 <tr><td>...</td><td>boolean</td></tr>
-<tr><td /><td>...</td></tr>
+<tr><td></td><td>...</td></tr>
 </tbody>
 </table>
 
-<h4 id="notes-6">Notes</h4>
+#### Notes
+
 
 <h3><a class="instruction" name="push_current_exception">push_current_exception()</a></h3>
+
+
+
 
 <table class="stack_effect">
 <thead>
@@ -536,23 +487,26 @@
 </thead>
 <tbody>
 <tr><td>...</td><td>exception</td></tr>
-<tr><td /><td>...</td></tr>
+<tr><td></td><td>...</td></tr>
 </tbody>
 </table>
 
-<h4 id="example-2">Example</h4>
-<pre><code> begin
-   foo = BAR        # BAR is not defined
- rescue NameError   # push_exception used to check type of exception (via ===)
-   puts "No BAR"
- end
-</code></pre>
+#### Example
+     begin
+       foo = BAR        # BAR is not defined
+     rescue NameError   # push_exception used to check type of exception (via ===)
+       puts "No BAR"
+     end
+
 
 <h4>See Also</h4>
 <ul class="insn_cross_ref">
 <li><a href="#raise_exc">raise_exc</a></li>
 </ul>
 <h3><a class="instruction" name="clear_exception">clear_exception()</a></h3>
+
+
+
 
 <table class="stack_effect">
 <thead>
@@ -564,16 +518,22 @@
 </table>
 <h3><a class="instruction" name="push_exception_state">push_exception_state()</a></h3>
 
+
+
+
 <table class="stack_effect">
 <thead>
 <tr><th>Before</th><th>After</th></tr>
 </thead>
 <tbody>
 <tr><td>...</td><td>exc_state</td></tr>
-<tr><td /><td>...</td></tr>
+<tr><td></td><td>...</td></tr>
 </tbody>
 </table>
 <h3><a class="instruction" name="restore_exception_state">restore_exception_state()</a></h3>
+
+
+
 
 <table class="stack_effect">
 <thead>
@@ -581,7 +541,7 @@
 </thead>
 <tbody>
 <tr><td>exception</td><td>...</td></tr>
-<tr><td>...</td><td /></tr>
+<tr><td>...</td><td></td></tr>
 </tbody>
 </table>
 
@@ -591,16 +551,22 @@
 </ul>
 <h3><a class="instruction" name="raise_exc">raise_exc()</a></h3>
 
+
+
+
 <table class="stack_effect">
 <thead>
 <tr><th>Before</th><th>After</th></tr>
 </thead>
 <tbody>
 <tr><td>value</td><td>...</td></tr>
-<tr><td>...</td><td /></tr>
+<tr><td>...</td><td></td></tr>
 </tbody>
 </table>
 <h3><a class="instruction" name="setup_unwind">setup_unwind(ip, type)</a></h3>
+
+
+
 
 <table class="stack_effect">
 <thead>
@@ -611,13 +577,18 @@
 </tbody>
 </table>
 
-<h4 id="notes-7">Notes</h4>
+#### Notes
+
+
 
 <h4>See Also</h4>
 <ul class="insn_cross_ref">
 <li><a href="#pop_unwind">pop_unwind</a></li>
 </ul>
 <h3><a class="instruction" name="pop_unwind">pop_unwind()</a></h3>
+
+
+
 
 <table class="stack_effect">
 <thead>
@@ -634,6 +605,9 @@
 </ul>
 <h3><a class="instruction" name="raise_return">raise_return()</a></h3>
 
+
+
+
 <table class="stack_effect">
 <thead>
 <tr><th>Before</th><th>After</th></tr>
@@ -649,6 +623,9 @@
 <li><a href="#ret">ret</a></li>
 </ul>
 <h3><a class="instruction" name="ensure_return">ensure_return()</a></h3>
+
+
+
 
 <table class="stack_effect">
 <thead>
@@ -667,6 +644,9 @@
 </ul>
 <h3><a class="instruction" name="raise_break">raise_break()</a></h3>
 
+
+
+
 <table class="stack_effect">
 <thead>
 <tr><th>Before</th><th>After</th></tr>
@@ -678,6 +658,9 @@
 </table>
 <h3><a class="instruction" name="reraise">reraise()</a></h3>
 
+
+
+
 <table class="stack_effect">
 <thead>
 <tr><th>Before</th><th>After</th></tr>
@@ -687,6 +670,9 @@
 </tbody>
 </table>
 <h3><a class="instruction" name="make_array">make_array(count)</a></h3>
+
+
+
 
 <table class="stack_effect">
 <thead>
@@ -700,14 +686,17 @@
 </td><td>   ...
 </td></tr>
 <tr><td>   value2
-</td><td /></tr>
+</td><td></td></tr>
 <tr><td>   value1
-</td><td /></tr>
+</td><td></td></tr>
 <tr><td>   ...
-</td><td /></tr>
+</td><td></td></tr>
 </tbody>
 </table>
 <h3><a class="instruction" name="cast_array">cast_array()</a></h3>
+
+
+
 
 <table class="stack_effect">
 <thead>
@@ -720,6 +709,9 @@
 </table>
 <h3><a class="instruction" name="shift_array">shift_array()</a></h3>
 
+
+
+
 <table class="stack_effect">
 <thead>
 <tr><th>Before</th><th>After</th></tr>
@@ -731,11 +723,14 @@
 <tr><td>   ...
 </td><td>   [value2, ..., valueN]
 </td></tr>
-<tr><td /><td>   ...
+<tr><td></td><td>   ...
 </td></tr>
 </tbody>
 </table>
 <h3><a class="instruction" name="set_ivar">set_ivar(index)</a></h3>
+
+
+
 
 <table class="stack_effect">
 <thead>
@@ -748,16 +743,22 @@
 </table>
 <h3><a class="instruction" name="push_ivar">push_ivar(index)</a></h3>
 
+
+
+
 <table class="stack_effect">
 <thead>
 <tr><th>Before</th><th>After</th></tr>
 </thead>
 <tbody>
 <tr><td>...</td><td>value</td></tr>
-<tr><td /><td>...</td></tr>
+<tr><td></td><td>...</td></tr>
 </tbody>
 </table>
 <h3><a class="instruction" name="push_const">push_const(literal)</a></h3>
+
+
+
 
 <table class="stack_effect">
 <thead>
@@ -765,15 +766,17 @@
 </thead>
 <tbody>
 <tr><td>...</td><td>constant</td></tr>
-<tr><td /><td>...</td></tr>
+<tr><td></td><td>...</td></tr>
 </tbody>
 </table>
 
-<h4 id="example-3">Example</h4>
-<pre><code> engine = RUBY_ENGINE # RUBY_ENGINE is a constant defined by Rubinius
-</code></pre>
+#### Example
+     engine = RUBY_ENGINE # RUBY_ENGINE is a constant defined by Rubinius
 
 <h3><a class="instruction" name="set_const">set_const(index)</a></h3>
+
+
+
 
 <table class="stack_effect">
 <thead>
@@ -785,6 +788,9 @@
 </tbody>
 </table>
 <h3><a class="instruction" name="set_const_at">set_const_at(index)</a></h3>
+
+
+
 
 <table class="stack_effect">
 <thead>
@@ -798,10 +804,13 @@
 </td><td>   ...
 </td></tr>
 <tr><td>   ...
-</td><td /></tr>
+</td><td></td></tr>
 </tbody>
 </table>
 <h3><a class="instruction" name="find_const">find_const(index)</a></h3>
+
+
+
 
 <table class="stack_effect">
 <thead>
@@ -813,12 +822,14 @@
 </tbody>
 </table>
 
-<h4 id="example-4">Example</h4>
-<pre><code> str = "abc"
- enum = Enumerable::Enumerator(str, :each_byte)
-</code></pre>
+#### Example
+     str = "abc"
+     enum = Enumerable::Enumerator(str, :each_byte)
 
 <h3><a class="instruction" name="push_cpath_top">push_cpath_top()</a></h3>
+
+
+
 
 <table class="stack_effect">
 <thead>
@@ -826,30 +837,36 @@
 </thead>
 <tbody>
 <tr><td>...</td><td>constant</td></tr>
-<tr><td /><td>...</td></tr>
+<tr><td></td><td>...</td></tr>
 </tbody>
 </table>
 <h3><a class="instruction" name="push_const_fast">push_const_fast(literal, association)</a></h3>
 
+
+
+
 <table class="stack_effect">
 <thead>
 <tr><th>Before</th><th>After</th></tr>
 </thead>
 <tbody>
 <tr><td>...</td><td>constant</td></tr>
-<tr><td /><td>...</td></tr>
+<tr><td></td><td>...</td></tr>
 </tbody>
 </table>
 
-<h4 id="example-5">Example</h4>
-<pre><code> engine = RUBY_ENGINE # RUBY_ENGINE is a constant defined by Rubinius
-</code></pre>
+#### Example
+     engine = RUBY_ENGINE # RUBY_ENGINE is a constant defined by Rubinius
+
 
 <h4>See Also</h4>
 <ul class="insn_cross_ref">
 <li><a href="#push_const">push_const</a></li>
 </ul>
 <h3><a class="instruction" name="set_call_flags">set_call_flags(flags)</a></h3>
+
+
+
 
 <table class="stack_effect">
 <thead>
@@ -860,9 +877,13 @@
 </tbody>
 </table>
 
-<h4 id="notes-8">Notes</h4>
+#### Notes
+
 
 <h3><a class="instruction" name="allow_private">allow_private()</a></h3>
+
+
+
 
 <table class="stack_effect">
 <thead>
@@ -874,6 +895,9 @@
 </table>
 <h3><a class="instruction" name="send_method">send_method(literal)</a></h3>
 
+
+
+
 <table class="stack_effect">
 <thead>
 <tr><th>Before</th><th>After</th></tr>
@@ -884,13 +908,18 @@
 </tbody>
 </table>
 
-<h4 id="notes-9">Notes</h4>
+#### Notes
+
+
 
 <h4>See Also</h4>
 <ul class="insn_cross_ref">
 <li><a href="#send_stack">send_stack</a></li>
 </ul>
 <h3><a class="instruction" name="send_stack">send_stack(literal, count)</a></h3>
+
+
+
 
 <table class="stack_effect">
 <thead>
@@ -904,21 +933,26 @@
 </td><td>   ...
 </td></tr>
 <tr><td>   arg2
-</td><td /></tr>
+</td><td></td></tr>
 <tr><td>   arg1
-</td><td /></tr>
+</td><td></td></tr>
 <tr><td>   receiver
-</td><td /></tr>
+</td><td></td></tr>
 </tbody>
 </table>
 
-<h4 id="notes-10">Notes</h4>
+#### Notes
+
+
 
 <h4>See Also</h4>
 <ul class="insn_cross_ref">
 <li><a href="#send_stack_with_block">send_stack_with_block</a></li>
 </ul>
 <h3><a class="instruction" name="send_stack_with_block">send_stack_with_block(literal, count)</a></h3>
+
+
+
 
 <table class="stack_effect">
 <thead>
@@ -932,23 +966,28 @@
 </td><td>   ...
 </td></tr>
 <tr><td>   ...
-</td><td /></tr>
+</td><td></td></tr>
 <tr><td>   arg2
-</td><td /></tr>
+</td><td></td></tr>
 <tr><td>   arg1
-</td><td /></tr>
+</td><td></td></tr>
 <tr><td>   receiver
-</td><td /></tr>
+</td><td></td></tr>
 </tbody>
 </table>
 
-<h4 id="notes-11">Notes</h4>
+#### Notes
+
+
 
 <h4>See Also</h4>
 <ul class="insn_cross_ref">
 <li><a href="#send_stack">send_stack</a></li>
 </ul>
 <h3><a class="instruction" name="send_stack_with_splat">send_stack_with_splat(literal, count)</a></h3>
+
+
+
 
 <table class="stack_effect">
 <thead>
@@ -957,32 +996,14 @@
 <tbody>
 <tr><td>block</td><td>value</td></tr>
 <tr><td>array</td><td>...</td></tr>
-<tr><td>receiver</td><td /></tr>
-<tr><td>...</td><td /></tr>
+<tr><td>receiver</td><td></td></tr>
+<tr><td>...</td><td></td></tr>
 </tbody>
 </table>
 <h3><a class="instruction" name="send_super_stack_with_block">send_super_stack_with_block(literal, count)</a></h3>
 
-<table class="stack_effect">
-<thead>
-<tr><th>Before</th><th>After</th></tr>
-</thead>
-<tbody>
-<tr><td>   block
-</td><td>   retval
-</td></tr>
-<tr><td>   argN
-</td><td>   ...
-</td></tr>
-<tr><td>   ...
-</td><td /></tr>
-<tr><td>   arg2
-</td><td /></tr>
-<tr><td>   arg1
-</td><td /></tr>
-</tbody>
-</table>
-<h3><a class="instruction" name="send_super_stack_with_splat">send_super_stack_with_splat(literal, count)</a></h3>
+
+
 
 <table class="stack_effect">
 <thead>
@@ -996,14 +1017,41 @@
 </td><td>   ...
 </td></tr>
 <tr><td>   ...
-</td><td /></tr>
+</td><td></td></tr>
 <tr><td>   arg2
-</td><td /></tr>
+</td><td></td></tr>
 <tr><td>   arg1
-</td><td /></tr>
+</td><td></td></tr>
+</tbody>
+</table>
+<h3><a class="instruction" name="send_super_stack_with_splat">send_super_stack_with_splat(literal, count)</a></h3>
+
+
+
+
+<table class="stack_effect">
+<thead>
+<tr><th>Before</th><th>After</th></tr>
+</thead>
+<tbody>
+<tr><td>   block
+</td><td>   retval
+</td></tr>
+<tr><td>   argN
+</td><td>   ...
+</td></tr>
+<tr><td>   ...
+</td><td></td></tr>
+<tr><td>   arg2
+</td><td></td></tr>
+<tr><td>   arg1
+</td><td></td></tr>
 </tbody>
 </table>
 <h3><a class="instruction" name="push_block">push_block()</a></h3>
+
+
+
 
 <table class="stack_effect">
 <thead>
@@ -1011,7 +1059,7 @@
 </thead>
 <tbody>
 <tr><td>...</td><td>block</td></tr>
-<tr><td /><td>...</td></tr>
+<tr><td></td><td>...</td></tr>
 </tbody>
 </table>
 
@@ -1021,19 +1069,26 @@
 </ul>
 <h3><a class="instruction" name="passed_blockarg">passed_blockarg(count)</a></h3>
 
+
+
+
 <table class="stack_effect">
 <thead>
 <tr><th>Before</th><th>After</th></tr>
 </thead>
 <tbody>
 <tr><td>...</td><td>boolean</td></tr>
-<tr><td /><td>...</td></tr>
+<tr><td></td><td>...</td></tr>
 </tbody>
 </table>
 
-<h4 id="notes-12">Notes</h4>
+#### Notes
+
 
 <h3><a class="instruction" name="create_block">create_block(literal)</a></h3>
+
+
+
 
 <table class="stack_effect">
 <thead>
@@ -1041,10 +1096,13 @@
 </thead>
 <tbody>
 <tr><td>...</td><td>block</td></tr>
-<tr><td /><td>...</td></tr>
+<tr><td></td><td>...</td></tr>
 </tbody>
 </table>
 <h3><a class="instruction" name="cast_for_single_block_arg">cast_for_single_block_arg()</a></h3>
+
+
+
 
 <table class="stack_effect">
 <thead>
@@ -1052,13 +1110,17 @@
 </thead>
 <tbody>
 <tr><td>...</td><td>argument</td></tr>
-<tr><td /><td>...</td></tr>
+<tr><td></td><td>...</td></tr>
 </tbody>
 </table>
 
-<h4 id="notes-13">Notes</h4>
+#### Notes
+
 
 <h3><a class="instruction" name="cast_for_multi_block_arg">cast_for_multi_block_arg()</a></h3>
+
+
+
 
 <table class="stack_effect">
 <thead>
@@ -1072,19 +1134,23 @@
 </td><td>   ...
 </td></tr>
 <tr><td>   ...
-</td><td /></tr>
+</td><td></td></tr>
 </tbody>
 </table>
 
-<h4 id="example-6">Example</h4>
-<pre><code> [[1,2,3]].each do |i,j,k|
-   # do something
- end
-</code></pre>
+#### Example
+     [[1,2,3]].each do |i,j,k|
+       # do something
+     end
 
-<h4 id="notes-14">Notes</h4>
+
+#### Notes
+
 
 <h3><a class="instruction" name="cast_for_splat_block_arg">cast_for_splat_block_arg()</a></h3>
+
+
+
 
 <table class="stack_effect">
 <thead>
@@ -1092,10 +1158,13 @@
 </thead>
 <tbody>
 <tr><td>...</td><td>arguments</td></tr>
-<tr><td /><td>...</td></tr>
+<tr><td></td><td>...</td></tr>
 </tbody>
 </table>
 <h3><a class="instruction" name="yield_stack">yield_stack(count)</a></h3>
+
+
+
 
 <table class="stack_effect">
 <thead>
@@ -1109,11 +1178,11 @@
 </td><td>   ...
 </td></tr>
 <tr><td>   arg2
-</td><td /></tr>
+</td><td></td></tr>
 <tr><td>   arg1
-</td><td /></tr>
+</td><td></td></tr>
 <tr><td>   ...
-</td><td /></tr>
+</td><td></td></tr>
 </tbody>
 </table>
 
@@ -1122,6 +1191,9 @@
 <li><a href="#send_stack">send_stack</a></li>
 </ul>
 <h3><a class="instruction" name="yield_splat">yield_splat(count)</a></h3>
+
+
+
 
 <table class="stack_effect">
 <thead>
@@ -1135,13 +1207,13 @@
 </td><td>   ...
 </td></tr>
 <tr><td>   ...
-</td><td /></tr>
+</td><td></td></tr>
 <tr><td>   arg2
-</td><td /></tr>
+</td><td></td></tr>
 <tr><td>   arg1
-</td><td /></tr>
+</td><td></td></tr>
 <tr><td>   ...
-</td><td /></tr>
+</td><td></td></tr>
 </tbody>
 </table>
 
@@ -1151,6 +1223,9 @@
 </ul>
 <h3><a class="instruction" name="string_append">string_append()</a></h3>
 
+
+
+
 <table class="stack_effect">
 <thead>
 <tr><th>Before</th><th>After</th></tr>
@@ -1158,13 +1233,17 @@
 <tbody>
 <tr><td>prefix</td><td>string</td></tr>
 <tr><td>suffix</td><td>...</td></tr>
-<tr><td>...</td><td /></tr>
+<tr><td>...</td><td></td></tr>
 </tbody>
 </table>
 
-<h4 id="notes-15">Notes</h4>
+#### Notes
+
 
 <h3><a class="instruction" name="string_build">string_build(count)</a></h3>
+
+
+
 
 <table class="stack_effect">
 <thead>
@@ -1178,12 +1257,15 @@
 </td><td>   ...
 </td></tr>
 <tr><td>   string2
-</td><td /></tr>
+</td><td></td></tr>
 <tr><td>   string1
-</td><td /></tr>
+</td><td></td></tr>
 </tbody>
 </table>
 <h3><a class="instruction" name="string_dup">string_dup()</a></h3>
+
+
+
 
 <table class="stack_effect">
 <thead>
@@ -1196,16 +1278,22 @@
 </table>
 <h3><a class="instruction" name="push_scope">push_scope()</a></h3>
 
+
+
+
 <table class="stack_effect">
 <thead>
 <tr><th>Before</th><th>After</th></tr>
 </thead>
 <tbody>
 <tr><td>...</td><td>scope</td></tr>
-<tr><td /><td>...</td></tr>
+<tr><td></td><td>...</td></tr>
 </tbody>
 </table>
 <h3><a class="instruction" name="add_scope">add_scope()</a></h3>
+
+
+
 
 <table class="stack_effect">
 <thead>
@@ -1213,10 +1301,13 @@
 </thead>
 <tbody>
 <tr><td>module</td><td>...</td></tr>
-<tr><td>...</td><td /></tr>
+<tr><td>...</td><td></td></tr>
 </tbody>
 </table>
 <h3><a class="instruction" name="push_variables">push_variables()</a></h3>
+
+
+
 
 <table class="stack_effect">
 <thead>
@@ -1224,10 +1315,13 @@
 </thead>
 <tbody>
 <tr><td>...</td><td>scope</td></tr>
-<tr><td /><td>...</td></tr>
+<tr><td></td><td>...</td></tr>
 </tbody>
 </table>
 <h3><a class="instruction" name="check_interrupts">check_interrupts()</a></h3>
+
+
+
 
 <table class="stack_effect">
 <thead>
@@ -1239,6 +1333,9 @@
 </table>
 <h3><a class="instruction" name="yield_debugger">yield_debugger()</a></h3>
 
+
+
+
 <table class="stack_effect">
 <thead>
 <tr><th>Before</th><th>After</th></tr>
@@ -1248,9 +1345,13 @@
 </tbody>
 </table>
 
-<h4 id="notes-16">Notes</h4>
+#### Notes
+
 
 <h3><a class="instruction" name="is_nil">is_nil()</a></h3>
+
+
+
 
 <table class="stack_effect">
 <thead>
@@ -1263,6 +1364,9 @@
 </table>
 <h3><a class="instruction" name="check_serial">check_serial(literal, serial)</a></h3>
 
+
+
+
 <table class="stack_effect">
 <thead>
 <tr><th>Before</th><th>After</th></tr>
@@ -1273,9 +1377,13 @@
 </tbody>
 </table>
 
-<h4 id="notes-17">Notes</h4>
+#### Notes
+
 
 <h3><a class="instruction" name="check_serial_private">check_serial_private(literal, serial)</a></h3>
+
+
+
 
 <table class="stack_effect">
 <thead>
@@ -1293,19 +1401,26 @@
 </ul>
 <h3><a class="instruction" name="push_my_field">push_my_field(index)</a></h3>
 
+
+
+
 <table class="stack_effect">
 <thead>
 <tr><th>Before</th><th>After</th></tr>
 </thead>
 <tbody>
 <tr><td>...</td><td>value</td></tr>
-<tr><td /><td>...</td></tr>
+<tr><td></td><td>...</td></tr>
 </tbody>
 </table>
 
-<h4 id="notes-18">Notes</h4>
+#### Notes
+
 
 <h3><a class="instruction" name="store_my_field">store_my_field(index)</a></h3>
+
+
+
 
 <table class="stack_effect">
 <thead>
@@ -1317,9 +1432,13 @@
 </tbody>
 </table>
 
-<h4 id="notes-19">Notes</h4>
+#### Notes
+
 
 <h3><a class="instruction" name="kind_of">kind_of()</a></h3>
+
+
+
 
 <table class="stack_effect">
 <thead>
@@ -1328,7 +1447,7 @@
 <tbody>
 <tr><td>object</td><td>boolean</td></tr>
 <tr><td>class</td><td>...</td></tr>
-<tr><td>...</td><td /></tr>
+<tr><td>...</td><td></td></tr>
 </tbody>
 </table>
 
@@ -1338,6 +1457,9 @@
 </ul>
 <h3><a class="instruction" name="instance_of">instance_of()</a></h3>
 
+
+
+
 <table class="stack_effect">
 <thead>
 <tr><th>Before</th><th>After</th></tr>
@@ -1345,7 +1467,7 @@
 <tbody>
 <tr><td>object</td><td>boolean</td></tr>
 <tr><td>class</td><td>...</td></tr>
-<tr><td>...</td><td /></tr>
+<tr><td>...</td><td></td></tr>
 </tbody>
 </table>
 
@@ -1355,61 +1477,80 @@
 </ul>
 <h3><a class="instruction" name="meta_push_neg_1">meta_push_neg_1()</a></h3>
 
+
+
+
 <table class="stack_effect">
 <thead>
 <tr><th>Before</th><th>After</th></tr>
 </thead>
 <tbody>
 <tr><td>...</td><td>value</td></tr>
-<tr><td /><td>...</td></tr>
+<tr><td></td><td>...</td></tr>
 </tbody>
 </table>
 
-<h4 id="notes-20">Notes</h4>
+#### Notes
+
 
 <h3><a class="instruction" name="meta_push_0">meta_push_0()</a></h3>
 
+
+
+
 <table class="stack_effect">
 <thead>
 <tr><th>Before</th><th>After</th></tr>
 </thead>
 <tbody>
 <tr><td>...</td><td>value</td></tr>
-<tr><td /><td>...</td></tr>
+<tr><td></td><td>...</td></tr>
 </tbody>
 </table>
 
-<h4 id="notes-21">Notes</h4>
+#### Notes
+
 
 <h3><a class="instruction" name="meta_push_1">meta_push_1()</a></h3>
 
+
+
+
 <table class="stack_effect">
 <thead>
 <tr><th>Before</th><th>After</th></tr>
 </thead>
 <tbody>
 <tr><td>...</td><td>value</td></tr>
-<tr><td /><td>...</td></tr>
+<tr><td></td><td>...</td></tr>
 </tbody>
 </table>
 
-<h4 id="notes-22">Notes</h4>
+#### Notes
+
 
 <h3><a class="instruction" name="meta_push_2">meta_push_2()</a></h3>
 
+
+
+
 <table class="stack_effect">
 <thead>
 <tr><th>Before</th><th>After</th></tr>
 </thead>
 <tbody>
 <tr><td>...</td><td>value</td></tr>
-<tr><td /><td>...</td></tr>
+<tr><td></td><td>...</td></tr>
 </tbody>
 </table>
 
-<h4 id="notes-23">Notes</h4>
+#### Notes
+
 
 <h3><a class="instruction" name="meta_send_op_plus">meta_send_op_plus(literal)</a></h3>
+
+
+
 
 <table class="stack_effect">
 <thead>
@@ -1418,10 +1559,13 @@
 <tbody>
 <tr><td>value1</td><td>sum</td></tr>
 <tr><td>value2</td><td>...</td></tr>
-<tr><td>...</td><td /></tr>
+<tr><td>...</td><td></td></tr>
 </tbody>
 </table>
 <h3><a class="instruction" name="meta_send_op_minus">meta_send_op_minus(literal)</a></h3>
+
+
+
 
 <table class="stack_effect">
 <thead>
@@ -1430,11 +1574,14 @@
 <tbody>
 <tr><td>value1</td><td>difference</td></tr>
 <tr><td>value2</td><td>...</td></tr>
-<tr><td>...</td><td /></tr>
+<tr><td>...</td><td></td></tr>
 </tbody>
 </table>
 <h3><a class="instruction" name="meta_send_op_equal">meta_send_op_equal(literal)</a></h3>
 
+
+
+
 <table class="stack_effect">
 <thead>
 <tr><th>Before</th><th>After</th></tr>
@@ -1442,11 +1589,14 @@
 <tbody>
 <tr><td>value1</td><td>boolean</td></tr>
 <tr><td>value2</td><td>...</td></tr>
-<tr><td>...</td><td /></tr>
+<tr><td>...</td><td></td></tr>
 </tbody>
 </table>
 <h3><a class="instruction" name="meta_send_op_lt">meta_send_op_lt(literal)</a></h3>
 
+
+
+
 <table class="stack_effect">
 <thead>
 <tr><th>Before</th><th>After</th></tr>
@@ -1454,11 +1604,14 @@
 <tbody>
 <tr><td>value1</td><td>boolean</td></tr>
 <tr><td>value2</td><td>...</td></tr>
-<tr><td>...</td><td /></tr>
+<tr><td>...</td><td></td></tr>
 </tbody>
 </table>
 <h3><a class="instruction" name="meta_send_op_gt">meta_send_op_gt(literal)</a></h3>
 
+
+
+
 <table class="stack_effect">
 <thead>
 <tr><th>Before</th><th>After</th></tr>
@@ -1466,11 +1619,14 @@
 <tbody>
 <tr><td>value1</td><td>boolean</td></tr>
 <tr><td>value2</td><td>...</td></tr>
-<tr><td>...</td><td /></tr>
+<tr><td>...</td><td></td></tr>
 </tbody>
 </table>
 <h3><a class="instruction" name="meta_send_op_tequal">meta_send_op_tequal(literal)</a></h3>
 
+
+
+
 <table class="stack_effect">
 <thead>
 <tr><th>Before</th><th>After</th></tr>
@@ -1478,13 +1634,17 @@
 <tbody>
 <tr><td>value1</td><td>boolean</td></tr>
 <tr><td>value2</td><td>...</td></tr>
-<tr><td>...</td><td /></tr>
+<tr><td>...</td><td></td></tr>
 </tbody>
 </table>
 
-<h4 id="notes-24">Notes</h4>
+#### Notes
+
 
 <h3><a class="instruction" name="meta_send_call">meta_send_call(literal, count)</a></h3>
+
+
+
 
 <table class="stack_effect">
 <thead>
@@ -1495,14 +1655,17 @@
 </td><td>   retval
 </td></tr>
 <tr><td>   ...
-</td><td /></tr>
+</td><td></td></tr>
 <tr><td>   arg1
-</td><td /></tr>
+</td><td></td></tr>
 <tr><td>   receiver
-</td><td /></tr>
+</td><td></td></tr>
 </tbody>
 </table>
 <h3><a class="instruction" name="push_my_offset">push_my_offset(index)</a></h3>
+
+
+
 
 <table class="stack_effect">
 <thead>
@@ -1510,17 +1673,22 @@
 </thead>
 <tbody>
 <tr><td>...</td><td>offset</td></tr>
-<tr><td /><td>...</td></tr>
+<tr><td></td><td>...</td></tr>
 </tbody>
 </table>
 
-<h4 id="notes-25">Notes</h4>
+#### Notes
+
+
 
 <h4>See Also</h4>
 <ul class="insn_cross_ref">
 <li><a href="#push_my_field">push_my_field</a></li>
 </ul>
 <h3><a class="instruction" name="zsuper">zsuper(literal)</a></h3>
+
+
+
 
 <table class="stack_effect">
 <thead>
@@ -1534,15 +1702,17 @@
 </td><td>   ...
 </td></tr>
 <tr><td>   arg2
-</td><td /></tr>
+</td><td></td></tr>
 <tr><td>   arg1
-</td><td /></tr>
+</td><td></td></tr>
 <tr><td>   ...
-</td><td /></tr>
+</td><td></td></tr>
 </tbody>
 </table>
 
-<h4 id="notes-26">Notes</h4>
+#### Notes
+
+
 
 <h4>See Also</h4>
 <ul class="insn_cross_ref">
@@ -1550,13 +1720,16 @@
 </ul>
 <h3><a class="instruction" name="push_block_arg">push_block_arg()</a></h3>
 
+
+
+
 <table class="stack_effect">
 <thead>
 <tr><th>Before</th><th>After</th></tr>
 </thead>
 <tbody>
 <tr><td>...</td><td>block</td></tr>
-<tr><td /><td>...</td></tr>
+<tr><td></td><td>...</td></tr>
 </tbody>
 </table>
 
@@ -1566,30 +1739,40 @@
 </ul>
 <h3><a class="instruction" name="push_undef">push_undef()</a></h3>
 
+
+
+
 <table class="stack_effect">
 <thead>
 <tr><th>Before</th><th>After</th></tr>
 </thead>
 <tbody>
 <tr><td>...</td><td>value</td></tr>
-<tr><td /><td>...</td></tr>
+<tr><td></td><td>...</td></tr>
 </tbody>
 </table>
 <h3><a class="instruction" name="push_stack_local">push_stack_local(which)</a></h3>
 
+
+
+
 <table class="stack_effect">
 <thead>
 <tr><th>Before</th><th>After</th></tr>
 </thead>
 <tbody>
 <tr><td>...</td><td>value</td></tr>
-<tr><td /><td>...</td></tr>
+<tr><td></td><td>...</td></tr>
 </tbody>
 </table>
 
-<h4 id="notes-27">Notes</h4>
+#### Notes
+
 
 <h3><a class="instruction" name="set_stack_local">set_stack_local(which)</a></h3>
+
+
+
 
 <table class="stack_effect">
 <thead>
@@ -1601,35 +1784,45 @@
 </tbody>
 </table>
 
-<h4 id="notes-28">Notes</h4>
+#### Notes
+
 
 <h3><a class="instruction" name="push_has_block">push_has_block()</a></h3>
 
+
+
+
 <table class="stack_effect">
 <thead>
 <tr><th>Before</th><th>After</th></tr>
 </thead>
 <tbody>
 <tr><td>...</td><td>value</td></tr>
-<tr><td /><td>...</td></tr>
+<tr><td></td><td>...</td></tr>
 </tbody>
 </table>
 
-<h4 id="notes-29">Notes</h4>
+#### Notes
+
 
 <h3><a class="instruction" name="push_proc">push_proc()</a></h3>
 
+
+
+
 <table class="stack_effect">
 <thead>
 <tr><th>Before</th><th>After</th></tr>
 </thead>
 <tbody>
 <tr><td>...</td><td>value</td></tr>
-<tr><td /><td>...</td></tr>
+<tr><td></td><td>...</td></tr>
 </tbody>
 </table>
 
-<h4 id="notes-30">Notes</h4>
+#### Notes
+
+
 
 <h4>See Also</h4>
 <ul class="insn_cross_ref">
@@ -1637,6 +1830,9 @@
 </ul>
 <h3><a class="instruction" name="check_frozen">check_frozen()</a></h3>
 
+
+
+
 <table class="stack_effect">
 <thead>
 <tr><th>Before</th><th>After</th></tr>
@@ -1647,9 +1843,13 @@
 </tbody>
 </table>
 
-<h4 id="notes-31">Notes</h4>
+#### Notes
+
 
 <h3><a class="instruction" name="cast_multi_value">cast_multi_value()</a></h3>
+
+
+
 
 <table class="stack_effect">
 <thead>
@@ -1662,6 +1862,9 @@
 </table>
 <h3><a class="instruction" name="invoke_primitive">invoke_primitive(literal, count)</a></h3>
 
+
+
+
 <table class="stack_effect">
 <thead>
 <tr><th>Before</th><th>After</th></tr>
@@ -1674,12 +1877,15 @@
 </td><td>   ...
 </td></tr>
 <tr><td>   arg2
-</td><td /></tr>
+</td><td></td></tr>
 <tr><td>   arg1
-</td><td /></tr>
+</td><td></td></tr>
 </tbody>
 </table>
 <h3><a class="instruction" name="push_rubinius">push_rubinius()</a></h3>
+
+
+
 
 <table class="stack_effect">
 <thead>
@@ -1687,10 +1893,13 @@
 </thead>
 <tbody>
 <tr><td>...</td><td>constant</td></tr>
-<tr><td /><td>...</td></tr>
+<tr><td></td><td>...</td></tr>
 </tbody>
 </table>
 <h3><a class="instruction" name="call_custom">call_custom(literal, count)</a></h3>
+
+
+
 
 <table class="stack_effect">
 <thead>
@@ -1704,14 +1913,17 @@
 </td><td>   ...
 </td></tr>
 <tr><td>   arg2
-</td><td /></tr>
+</td><td></td></tr>
 <tr><td>   arg1
-</td><td /></tr>
+</td><td></td></tr>
 <tr><td>   reciever
-</td><td /></tr>
+</td><td></td></tr>
 </tbody>
 </table>
 <h3><a class="instruction" name="meta_to_s">meta_to_s(literal)</a></h3>
+
+
+
 
 <table class="stack_effect">
 <thead>
@@ -1723,74 +1935,6 @@
 </tbody>
 </table>
 
-<h4 id="notes-32">Notes</h4>
+#### Notes
 
 
-
-    </div>
-
-        <div class="container doc_page_nav">
-      
-        
-        <span class="label">Previous:</span>
-        <a href="/doc/ru/virtual-machine">Виртуальная Машина</a>
-        
-
-        <span class="label">Up:</span>
-        <a href="/doc/ru/">Содержание</a>
-
-        
-        <span class="label">Next:</span>
-        <a href="/doc/ru/virtual-machine/custom-dispatch-logic">Custom Dispatch Logic</a>
-        
-      
-    </div>
-
-
-    <div class="container">
-      <div id="disqus_thread"></div>
-<script type="text/javascript">
-    var disqus_shortname = 'rubinius';
-    var disqus_identifier = '/doc/ru/virtual-machine/instructions/';
-    var disqus_url = 'http://rubini.us/doc/ru/virtual-machine/instructions/';
-
-    (function() {
-        var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
-        dsq.src = 'http://' + disqus_shortname + '.disqus.com/embed.js';
-        (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
-    })();
-</script>
-<noscript>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
-
-    </div>
-
-        <footer>
-      <div class='container'>
-        <nav>
-          <ul>
-            <li><a href="http://twitter.com/rubinius">Follow Rubinius on Twitter</a></li>
-            <li><a href="http://github.com/evanphx/rubinius">Fork Rubinius on github</a></li>
-            <li><a href="http://engineyard.com">An Engine Yard project</a></li>
-
-            <li id='credit'>
-              Site design by
-              <a href="http://less.thanthree.com">Less Than Three</a>
-            </li>
-          </ul>
-        </nav>
-      </div>
-    </footer>
-        <script type="text/javascript">
-        var gaJsHost = (("https:" == document.location.protocol) ? "https://ssl." : "http://www.");
-        document.write(unescape("%3Cscript src='" + gaJsHost + "google-analytics.com/ga.js' type='text/javascript'%3E%3C/script%3E"));
-        </script>
-
-        <script type="text/javascript">
-        try {
-        var pageTracker = _gat._getTracker("UA-12328521-1");
-        pageTracker._trackPageview();
-        } catch(err) {}</script>
-
-  </body>
-
-</html>
