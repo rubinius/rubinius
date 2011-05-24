@@ -80,31 +80,52 @@ describe "An Lasgn node" do
     end
   end
 
-  relates "a = *[1]" do
-    compile do |g|
-      g.splatted_array
-      g.set_local 0
+  ruby_version_is ""..."1.9" do
+    relates "a = *[1]" do
+      compile do |g|
+        g.splatted_array
+        g.set_local 0
+      end
+    end
+
+    relates "a = *b" do
+      compile do |g|
+        t = g.new_label
+
+        g.push :self
+        g.send :b, 0, true
+        g.cast_array
+        g.dup
+
+        g.send :size, 0
+        g.push 1
+        g.send :>, 1
+        g.git t
+
+        g.push 0
+        g.send :at, 1
+        t.set!
+        g.set_local 0
+      end
     end
   end
 
-  relates "a = *b" do
-    compile do |g|
-      t = g.new_label
+  ruby_version_is "1.9" do
+    relates "a = *[1]" do
+      compile do |g|
+        g.push 1
+        g.make_array 1
+        g.set_local 0
+      end
+    end
 
-      g.push :self
-      g.send :b, 0, true
-      g.cast_array
-      g.dup
-
-      g.send :size, 0
-      g.push 1
-      g.send :>, 1
-      g.git t
-
-      g.push 0
-      g.send :at, 1
-      t.set!
-      g.set_local 0
+    relates "a = *b" do
+      compile do |g|
+        g.push :self
+        g.send :b, 0, true
+        g.cast_array
+        g.set_local 0
+      end
     end
   end
 

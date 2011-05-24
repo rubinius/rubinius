@@ -480,17 +480,6 @@ describe "An Iter node" do
     end
   end
 
-  relates "m { next *[1] }" do
-    compile do |g|
-      g.push :self
-
-      g.in_block_send :m, :none do |d|
-        d.splatted_array
-        d.ret
-      end
-    end
-  end
-
   relates "m { next [*[1]] }" do
     compile do |g|
       g.push :self
@@ -498,20 +487,6 @@ describe "An Iter node" do
       g.in_block_send :m, :none do |d|
         d.push 1
         d.make_array 1
-        d.ret
-      end
-    end
-  end
-
-  relates "m { next *[1, 2] }" do
-    compile do |g|
-      g.push :self
-
-      g.in_block_send :m, :none do |d|
-        d.splatted_array 2 do
-          d.push 1
-          d.push 2
-        end
         d.ret
       end
     end
@@ -526,6 +501,60 @@ describe "An Iter node" do
         d.push 2
         d.make_array 2
         d.ret
+      end
+    end
+  end
+
+  ruby_version_is ""..."1.9" do
+    relates "m { next *[1] }" do
+      compile do |g|
+        g.push :self
+
+        g.in_block_send :m, :none do |d|
+          d.splatted_array
+          d.ret
+        end
+      end
+    end
+
+    relates "m { next *[1, 2] }" do
+      compile do |g|
+        g.push :self
+
+        g.in_block_send :m, :none do |d|
+          d.splatted_array 2 do
+            d.push 1
+            d.push 2
+          end
+          d.ret
+        end
+      end
+    end
+  end
+
+  ruby_version_is "1.9" do
+    relates "m { next *[1] }" do
+      compile do |g|
+        g.push :self
+
+        g.in_block_send :m, :none do |d|
+          d.push 1
+          d.make_array 1
+          d.ret
+        end
+      end
+    end
+
+    relates "m { next *[1, 2] }" do
+      compile do |g|
+        g.push :self
+
+        g.in_block_send :m, :none do |d|
+          d.push 1
+          d.push 2
+          d.make_array 2
+          d.ret
+        end
       end
     end
   end
@@ -603,13 +632,56 @@ describe "An Iter node" do
     end
   end
 
-  relates "m { break *[1] }" do
-    compile do |g|
-      g.push :self
+  ruby_version_is ""..."1.9" do
+    relates "m { break *[1] }" do
+      compile do |g|
+        g.push :self
 
-      g.in_block_send :m, :none do |d|
-        d.splatted_array
-        d.raise_break
+        g.in_block_send :m, :none do |d|
+          d.splatted_array
+          d.raise_break
+        end
+      end
+    end
+
+    relates "m { break *[1, 2] }" do
+      compile do |g|
+        g.push :self
+
+        g.in_block_send :m, :none do |d|
+          d.splatted_array 2 do
+            d.push 1
+            d.push 2
+          end
+          d.raise_break
+        end
+      end
+    end
+  end
+
+  ruby_version_is "1.9" do
+    relates "m { break *[1] }" do
+      compile do |g|
+        g.push :self
+
+        g.in_block_send :m, :none do |d|
+          d.push 1
+          d.make_array 1
+          d.raise_break
+        end
+      end
+    end
+
+    relates "m { break *[1, 2] }" do
+      compile do |g|
+        g.push :self
+
+        g.in_block_send :m, :none do |d|
+          d.push 1
+          d.push 2
+          d.make_array 2
+          d.raise_break
+        end
       end
     end
   end
@@ -621,20 +693,6 @@ describe "An Iter node" do
       g.in_block_send :m, :none do |d|
         d.push 1
         d.make_array 1
-        d.raise_break
-      end
-    end
-  end
-
-  relates "m { break *[1, 2] }" do
-    compile do |g|
-      g.push :self
-
-      g.in_block_send :m, :none do |d|
-        d.splatted_array 2 do
-          d.push 1
-          d.push 2
-        end
         d.raise_break
       end
     end
@@ -726,13 +784,56 @@ describe "An Iter node" do
     end
   end
 
-  relates "m { return *[1] }" do
-    compile do |g|
-      g.push :self
+  ruby_version_is ""..."1.9" do
+    relates "m { return *[1] }" do
+      compile do |g|
+        g.push :self
 
-      g.in_block_send :m, :none do |d|
-        d.splatted_array
-        d.raise_return
+        g.in_block_send :m, :none do |d|
+          d.splatted_array
+          d.raise_return
+        end
+      end
+    end
+
+    relates "m { return *[1, 2] }" do
+      compile do |g|
+        g.push :self
+
+        g.in_block_send :m, :none do |d|
+          d.splatted_array 2 do
+            d.push 1
+            d.push 2
+          end
+          d.raise_return
+        end
+      end
+    end
+  end
+
+  ruby_version_is "1.9" do
+    relates "m { return *[1] }" do
+      compile do |g|
+        g.push :self
+
+        g.in_block_send :m, :none do |d|
+          d.push 1
+          d.make_array 1
+          d.raise_return
+        end
+      end
+    end
+
+    relates "m { return *[1, 2] }" do
+      compile do |g|
+        g.push :self
+
+        g.in_block_send :m, :none do |d|
+          d.push 1
+          d.push 2
+          d.make_array 2
+          d.raise_return
+        end
       end
     end
   end
@@ -744,20 +845,6 @@ describe "An Iter node" do
       g.in_block_send :m, :none do |d|
         d.push 1
         d.make_array 1
-        d.raise_return
-      end
-    end
-  end
-
-  relates "m { return *[1, 2] }" do
-    compile do |g|
-      g.push :self
-
-      g.in_block_send :m, :none do |d|
-        d.splatted_array 2 do
-          d.push 1
-          d.push 2
-        end
         d.raise_return
       end
     end
