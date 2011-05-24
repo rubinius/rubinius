@@ -1992,7 +1992,7 @@ class Array
 
         i = left
         while i < right
-          cmp = Comparable.compare_int block.call(@tuple.at(i), pivot)
+          cmp = Comparable.compare_int call_block(@tuple.at(i), pivot, block)
           if cmp < 0
             @tuple.swap(i, store)
             store += 1
@@ -2053,7 +2053,8 @@ class Array
     while i <= right
       j = i
 
-      while j > @start and block.call(@tuple.at(j - 1), @tuple.at(j)) > 0
+#      while j > @start and block.call(@tuple.at(j - 1), @tuple.at(j)) > 0
+      while j > @start and call_block(@tuple.at(j - 1), @tuple.at(j), block) > 0
         @tuple.swap(j, (j - 1))
         j -= 1
       end
@@ -2062,6 +2063,16 @@ class Array
     end
   end
   private :isort_block!
+
+  def call_block(left, right, block)
+    result = block.call(left, right)
+    if result.nil?
+      raise ArgumentError
+    else
+      result
+    end
+  end
+  private :call_block
 
   # Move to compiler runtime
   def __rescue_match__(exception)
