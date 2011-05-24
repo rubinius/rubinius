@@ -71,6 +71,10 @@ describe "Array#sort" do
     a.sort {|x, y| y <=> x}.should == [5, 4, 3, 2, 1]
   end
 
+  it "raises an error when a given block returns nil" do
+    lambda { [1, 2].sort {} }.should raise_error(ArgumentError)
+  end
+
   it "does not call #<=> on contained objects when invoked with a block" do
     a = Array.new(25)
     (0...25).each {|i| a[i] = ArraySpecs::UFOSceptic.new }
