@@ -11,4 +11,4 @@ translated: true
 инструкций виртуальной машины содержатся в `VM/instructions.def`.
 документации ниже, порожденные `rakelib/vm.rake`.
 
-{% include instructions.markdown %}
+{% include instructions_ru.markdown %}
