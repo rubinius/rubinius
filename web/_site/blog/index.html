@@ -62,6 +62,40 @@
   
     <div class="post">
       <h2 class="post_title">
+        <a href="/2011/05/22/adam-prescott-on-scopes/" title="Adam Prescott on Scopes in Rubinius" class="post_title">
+        Adam Prescott on Scopes in Rubinius
+        </a>
+      </h2>
+            <div class="by_line">
+        <p><span class="author">Shane Becker</span>
+          <span class="date">22 May 2011</span>
+          
+                      <a href="http://rubini.us/2011/05/22/adam-prescott-on-scopes/#disqus_thread"
+            data-disqus-identifier="/2011/05/22/adam-prescott-on-scopes/"></a>
+
+          
+        </p>
+      </div>
+
+      <p><cite class="vcard"><a class="url fn" href="http://aprescott.com" title="Adam Prescott">Adam Prescott</a></cite> wrote a lengthy article about <i>variables, closures and scope</i> in Ruby, <a href="http://aprescott.com/posts/variables-closures-and-scope" title="Posts / Variables, closures &amp; scope &mdash; Adam Prescott">mentioning Rubinius at the end</a>:</p>
+
+<blockquote cite="http://aprescott.com/posts/variables-closures-and-scope">
+  <p> One of the really cool things about the <a href="http://en.wikipedia.org/wiki/Rubinius">Rubinius</a> implementation of Ruby is that it exposes, by requirement, a level of internals which you can&rsquo;t find in <abbr title="Matz' Ruby Interpreter">MRI</abbr>, including some internals with scopes. Because these internals are exposed in Ruby itself, you can <a href="http://yehudakatz.com/2011/02/18/getting-comfortable-with-rubinius-pure-ruby-internals/">play around with scopes as objects</a>, using <code>VariableScope</code>, including getting access to the available local variables within that scope, with <code>VariableScope.current.locals</code>. </p>
+</blockquote>
+
+<p>How are <strong>you</strong> using Rubinius? What are you doing with it that you couldn&rsquo;t do before? What is it missing for you to really dive in? Let us know. We&rsquo;re listening.</p>
+
+<ul>
+  <li><a href="community@rubini.us">community@rubini.us</a></li>
+  <li><a href="http://twitter.com/rubinius" title="@rubinius on twitter">@rubinius</a></li>
+</ul>
+
+<p>&mdash; Use Ruby&trade;</p>
+
+    </div>
+  
+    <div class="post">
+      <h2 class="post_title">
         <a href="/2011/04/29/rubinius-t-shirts-and-stickers/" title="Rubinius T-Shirts and Stickers" class="post_title">
         Rubinius T-Shirts and Stickers
         </a>
@@ -530,7 +564,7 @@ cache files be saved? No problem, just give <code>-Xrbc.db</code> a path as foll
 
 <pre><code>$ ls hello.*
 hello.rb
-$ rbx -Xrbc.db=$HOME/.my_special_place hello.rb 
+$ rbx -Xrbc.db=$HOME/.my_special_place hello.rb
 hello!
 $ ls hello.*
 hello.rb

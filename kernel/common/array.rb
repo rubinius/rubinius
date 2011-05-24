@@ -641,15 +641,19 @@ class Array
   # block is provided in which case the value of running it is
   # returned instead.
   def delete(obj)
-    Ruby.check_frozen
-
     key = undefined
     i = @start
     total = i + @total
     tuple = @tuple
 
     while i < total
-      tuple.put i, key if tuple.at(i) == obj
+      if tuple.at(i) == obj
+        # We MUST check frozen here, not at the top, because MRI
+        # requires that #delete not raise unless an element would
+        # be deleted.
+        Ruby.check_frozen
+        tuple.put i, key
+      end
       i += 1
     end
 
