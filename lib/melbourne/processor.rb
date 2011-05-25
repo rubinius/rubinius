@@ -108,11 +108,12 @@ module Rubinius
 
       if arguments
         node = AST::SendWithArguments.new line, receiver, name, arguments
-        node.block = block
-        node
       else
-        AST::Send.new line, receiver, name
+        node = AST::Send.new line, receiver, name
       end
+
+      node.block = block
+      node
     end
 
     def process_case(line, receiver, whens, else_body)
@@ -232,11 +233,12 @@ module Rubinius
 
       if arguments
         node = AST::SendWithArguments.new line, receiver, name, arguments, true
-        node.block = block
-        node
       else
-        AST::Send.new line, receiver, name, true
+        node = AST::Send.new line, receiver, name, true
       end
+
+      node.block = block
+      node
     end
 
     def process_file(line)
