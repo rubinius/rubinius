@@ -1,6 +1,6 @@
 ---
 layout: release
-class: 
+class:
 ---
 
 ### Releases

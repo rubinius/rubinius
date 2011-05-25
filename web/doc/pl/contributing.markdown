@@ -74,16 +74,6 @@ Spróbuj dowiedzieć się jak działa Rubinius i udokumentuj jego
 działanie. To pomoże innym poznać szczegóły implementacji Rubiniusa.
 
 
-## Popraw kode
-
-Poszukaj tagów takich jak TODO, HACK, FIXME w kodzie i zgłoś poprawki.
-Poniższą komendą możesz wyszukać te tagi:
-
-    `grep -re "@todo\|TODO\|HACK\|FIXME" .`
-
-Przejrzyj [Styl programowania](/doc/pl/contributing/style-guide/).
-
-
 ## Przejrzyć zgłoszone problemy
 
   * Zamknij lub otwórz stare problemy (w zależności od tego czego wymagają).

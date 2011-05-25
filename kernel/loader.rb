@@ -17,6 +17,8 @@ module Rubinius
       @input_loop   = false
       @input_loop_print = false
       @input_loop_split = false
+      @simple_options = false
+      @early_option_stop = false
 
       @gem_bin = File.join Rubinius::GEMS_PATH, "bin"
     end
@@ -182,6 +184,30 @@ containing the Rubinius standard library files.
       end
     end
 
+    def handle_simple_options(argv)
+      argv.delete_if do |x|
+        if x[0] == ?-
+          if equal = x.index("=")
+            name = x.substring(1, equal-1)
+
+            equal += 1
+            val = x.substring(equal, x.size - equal)
+          else
+            name = x.substring(1, x.size - 1)
+            val = true
+          end
+
+          name.gsub! "-", "_"
+
+          Rubinius::Globals[:"$#{name}"] = val
+
+          true
+        else
+          false
+        end
+      end
+    end
+
     # Process all command line arguments.
     def options(argv=ARGV)
       @stage = "processing command line arguments"
@@ -209,6 +235,7 @@ containing the Rubinius standard library files.
       end
 
       options.on "--", "Stop processing command line arguments" do
+        @early_option_stop = true
         options.stop_parsing
       end
 
@@ -290,6 +317,10 @@ containing the Rubinius standard library files.
 
       options.on "-r", "LIBRARY", "Require library before execution" do |file|
         @requires << file
+      end
+
+      options.on("-s", "Process options after the script into globals") do
+        @simple_options = true
       end
 
       options.on("-S", "SCRIPT",
@@ -418,6 +449,10 @@ VM Options
       options.parse ARGV
 
       handle_rubyopt(options)
+
+      if @early_option_stop and @simple_options
+        handle_simple_options(argv)
+      end
 
       if str = Rubinius::Config['tool.require']
         begin
@@ -556,6 +591,8 @@ VM Options
     # Run the script passed on the command line
     def script
       return unless @script and @evals.empty?
+
+      handle_simple_options(ARGV) if @simple_options
 
       @stage = "running #{@script}"
       Dir.chdir @directory if @directory

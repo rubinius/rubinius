@@ -94,6 +94,12 @@ describe "Time#+" do
     end
   end
 
+  it "does not returns a subclass instance" do
+    c = Class.new(Time)
+    x = c.now + 1
+    x.should be_kind_of(Time)
+  end
+
   it "raises TypeError on Time argument" do
     lambda { Time.now + Time.now }.should raise_error(TypeError)
   end

@@ -130,7 +130,7 @@ namespace rubinius {
     }
 
     /** @todo Remove redundancy between this and sends. --rue */
-    Object* locate_method_on(STATE, CallFrame* call_frame, Object* recv, Symbol* name, Object* priv) {
+    Tuple* locate_method_on(STATE, CallFrame* call_frame, Object* recv, Symbol* name, Object* priv) {
       LookupData lookup(recv, recv->lookup_begin(state));
       lookup.priv = (priv == Qtrue);
 

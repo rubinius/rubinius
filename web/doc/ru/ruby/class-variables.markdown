@@ -1,9 +1,9 @@
 ---
 layout: doc_ru
-title: Class Variables
-previous: Instance Variables
+title: Переменные класса
+previous: Переменные экземпляра
 previous_url: ruby/instance-variables
-next: Global Variables
+next: Глобальные переменные
 next_url: ruby/global-variables
 review: true
 ---

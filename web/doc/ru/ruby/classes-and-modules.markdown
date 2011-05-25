@@ -1,9 +1,9 @@
 ---
 layout: doc_ru
-title: Classes & Modules
-previous: Constants
+title: Классы и модули
+previous: Константы
 previous_url: ruby/constants
-next: Blocks & Procs
+next: Блоки и процедуры
 next_url: ruby/blocks-and-procs
 review: true
 ---

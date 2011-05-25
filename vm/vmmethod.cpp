@@ -96,6 +96,7 @@ namespace rubinius {
     , name_(meth->name())
     , method_id_(state->shared.inc_method_count(state))
     , debugging(false)
+    , flags(0)
   {
     total = meth->iseq()->opcodes()->num_fields();
 

@@ -53,7 +53,7 @@ class TestCharArray : public CxxTest::TestSuite, public VMTest {
   void test_to_chars() {
     String* s = String::create(state, "xy");
     CharArray* c = s->data();
-    char* chars = c->to_chars(state);
+    char* chars = c->to_chars(state, Fixnum::from(2));
 
     TS_ASSERT_SAME_DATA("xy", chars, 2);
   }

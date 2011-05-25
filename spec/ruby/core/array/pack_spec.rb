@@ -2378,6 +2378,12 @@ describe "Array#pack with format 'x'" do
   end
 end
 
+describe "Array#pack with format 'P'" do
+  it "returns a String who's size is equal to the number of bytes in a machine word" do
+    [nil].pack("P").size.should == 1.size
+  end
+end
+
 describe "String#unpack with 'w' directive" do
   ruby_version_is ""..."1.9" do
     it "produces a BER-compressed integer" do

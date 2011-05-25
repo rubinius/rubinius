@@ -148,12 +148,6 @@ module Benchmark
     job = IPSJob.new
     yield job
 
-    start = Timing::TimeVal.new
-    cur = Timing::TimeVal.new
-
-    before = Timing::TimeVal.new
-    after = Timing::TimeVal.new
-
     reports = []
 
     job.list.each do |item|
@@ -169,25 +163,23 @@ module Benchmark
         end
       end
 
-      before.update!
-      start.update!
-      cur.update!
+      before = Time.now
+      target = Time.now + warmup
 
       warmup_iter = 0
 
-      until start.elapsed?(cur, warmup)
+      while Time.now < target
         item.call_times(1)
         warmup_iter += 1
-        cur.update!
       end
 
-      after.update!
+      after = Time.now
 
-      warmup_time = before.diff(after)
+      warmup_time = (after.to_f - before.to_f) * 1_000_000.0
 
       # calculate the time to run approx 100ms
       
-      cycles_per_100ms = ((100_000 / warmup_time.to_f) * warmup_iter).to_i
+      cycles_per_100ms = ((100_000 / warmup_time) * warmup_iter).to_i
       cycles_per_100ms = 1 if cycles_per_100ms <= 0
 
       suite.warmup_stats warmup_time, cycles_per_100ms if suite
@@ -197,20 +189,19 @@ module Benchmark
       suite.running item.label, time if suite
 
       iter = 0
-      start.update!
-      cur.update!
+
+      target = Time.now + time
 
       measurements = []
 
-      until start.elapsed?(cur, time)
-        before.update!
+      while Time.now < target
+        before = Time.now
         item.call_times cycles_per_100ms
-        after.update!
+        after = Time.now
 
         iter += cycles_per_100ms
-        cur.update!
 
-        measurements << before.diff(after)
+        measurements << ((after.to_f - before.to_f) * 1_000_000.0)
       end
 
       measured_us = measurements.inject(0) { |a,i| a + i }

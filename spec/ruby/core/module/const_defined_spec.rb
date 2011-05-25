@@ -64,6 +64,10 @@ describe "Module#const_defined?" do
     ConstantSpecs.const_defined?(name).should == true
   end
 
+  it "special cases Object and checks it's included Modules" do
+    Object.const_defined?(:CS_CONST10).should be_true
+  end
+
   it "raises a NameError if the name does not start with a capital letter" do
     lambda { ConstantSpecs.const_defined? "name" }.should raise_error(NameError)
   end

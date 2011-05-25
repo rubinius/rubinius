@@ -1,38 +1,53 @@
 ---
 layout: doc_ru
-title: Specs
-previous: Ruby - Global Variables
+title: Спецификации
+previous: Глобальные переменные
 previous_url: ruby/global-variables
 next: RubySpec
 next_url: specs/rubyspec
 ---
 
-The Rubinius project generally uses TDD/BDD-style executable specifications to
-drive development. The Rubinius 'spec' directory is conceptually divided into
-two parts:
+Для управления процессом разработки в проекте Rubinius активно используются
+исполняемые спецификации в стиле [TDD][1]/[BDD][2]. Директория `spec` проекта не
+без умысла разделена на две части:
 
-  1. All the files under './spec/ruby' that describe the behavior of MatzRuby.
-  2. And all the other files under the './spec' directory that describe the
-     behavior of Rubinius.
+  1. файлы в `spec/ruby` --- описывают поведение традиционной реализации
+     от Мацумото;
+  2. все остальные файлы в директории `spec` --- описывают поведение Rubinius.
 
-The specs at ./spec/ruby are a copy of RubySpec at a particular revision.
-These are regularly imported from the RubySpec project and failing specs are
-tagged so that the CI process always runs a known good set of specs. This
-enables easily confirming that changes to Rubinius code do not cause
-regressions.
+Спеки[<sup>1</sup>](#spec) в `spec/ruby` --- это копия RubySpec
+соответствующей ревизии. Они регулярно импортируются из проекта RubySpec,
+причем сбойные помечаются таким образом, что CI-процесс[<sup>2</sup>](#ci)  всегда
+имеет доступ к набору проверенных валидных спецификаций. Такой подход
+позволяет легко удостовериться, что изменения в коде Rubinius не ведут к
+регрессиям.
 
-Documentation about the organization of specs and guidelines for writing specs
-can be found at the [RubySpec project](http://rubyspec.org/).
+Документацию по проектированию и написанию спеков можно найти на сайте
+[<<RubySpec project>>][3].
 
-Use the following workflow when adding specs and code to Rubinius:
+Когда Вы станете писать для Rubinius спеки и соответствующий им код, соблюдайте следующий
+порядок:
 
-  1. Write failing specs for some aspect of Ruby behavior. Commit the specs in
-     a separate commit to the appropriate files under ./spec/ruby.
-  2. Add Rubinius code to make the specs pass. Again, commit these changes in
-     a separate commit from the spec changes.
-  3. Run the `rake` command to ensure that all the CI specs pass.
+  1. Напишите <<сбойный>> спек для определенного поведения Ruby. Закоммитьте
+     его в отдельный коммит в подходящем месте в `spec/ruby`.
+  2. Создайте код для Rubinius, при выполнении которого спек <<пойдет>>. Затем
+     снова закоммитьте: этот коммит должен быть отличным от первого,
+     содержащего сам спек.
+  3. Запустите `rake`, чтобы убедиться, что все CI-спеки выполняются успешно.
 
-The changes to files in ./spec/ruby are regularly pushed to the RubySpec
-project. Also, current changes to RubySpec from committers to other Ruby
-implementations are regularly updated in the ./spec/ruby directories. When the
-specs are updated from RubySpec, the CI tags are also updated.
+Изменения в файлах дерева `spec/ruby` регулярно отправляются нами в RubySpec.
+В то же время свежие обновления, которые присылаются в RubySpec разработчиками
+других реализаций Ruby, регулярно вносятся в `spec/ruby`. Так же,
+соответственно обновлениям RubySpec, обновляются и теги в CI.
+
+
+#### Примечания
+1. _Спек_{: #spec} -- от сокр. англ. <<spec>>, спецификация.
+2. _CI_{: #ci} -- утилита системы верификации (проверки) спеков.
+ 
+
+
+
+[1]: http://ru.wikipedia.org/wiki/%D0%A0%D0%B0%D0%B7%D1%80%D0%B0%D0%B1%D0%BE%D1%82%D0%BA%D0%B0_%D1%87%D0%B5%D1%80%D0%B5%D0%B7_%D1%82%D0%B5%D1%81%D1%82%D0%B8%D1%80%D0%BE%D0%B2%D0%B0%D0%BD%D0%B8%D0%B5 "Разработка через тестирование"
+[2]: http://en.wikipedia.org/wiki/Behavior_Driven_Development "Разработка через определение поведения"
+[3]: http://rubyspec.org

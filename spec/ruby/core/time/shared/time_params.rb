@@ -203,4 +203,9 @@ describe :time_params, :shared => true do
       Time.send(@method, nil)
     }.should raise_error(TypeError)
   end
+
+  it "returns subclass instances" do
+    c = Class.new(Time)
+    c.send(@method, 2008, "12").should be_kind_of(c)
+  end
 end

@@ -698,12 +698,9 @@ class Date
     h   += 24 if h   < 0
     min += 60 if min < 0
     s   += 60 if s   < 0
-    return unless ((0..23) === h &&
-                   (0..59) === min &&
-                   (0..59) === s) ||
-                  (24 == h &&
-                    0 == min &&
-                    0 == s)
+    return if s < 0 || s >= 60
+    return if min < 0 || min >= 60
+    return if h < 0 || h > 24 || (24 == h && (0 != min || 0 != s))
     time_to_day_fraction(h, min, s)
   end
 

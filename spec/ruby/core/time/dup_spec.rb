@@ -18,4 +18,12 @@ describe "Time#dup" do
 
 	  t2.gmt?.should == false
   end
+
+  it "returns a subclass instance" do
+    c = Class.new(Time)
+    t = c.now
+
+    t.should be_kind_of(c)
+    t.dup.should be_kind_of(c)
+  end
 end

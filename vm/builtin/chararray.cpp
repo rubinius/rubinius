@@ -61,12 +61,21 @@ namespace rubinius {
     // @todo implement
   }
 
-  char* CharArray::to_chars(STATE) {
-    native_int sz = this->size(state)->to_native();
+  char* CharArray::to_chars(STATE, Fixnum* size) {
+    native_int sz = size->to_native();
+    native_int ba_sz = this->size(state)->to_native();
+
+    if(sz < 0) {
+      Exception::object_bounds_exceeded_error(state, "size less than zero");
+    } else if(sz > ba_sz) {
+      Exception::object_bounds_exceeded_error(state, "size beyond actual size");
+    }
+
     char* str = (char*)(this->bytes);
-    char* out = ALLOC_N(char, sz);
+    char* out = ALLOC_N(char, sz + 1);
 
     memcpy(out, str, sz);
+    out[sz] = 0;
 
     return out;
   }
@@ -148,6 +157,25 @@ namespace rubinius {
     ba->bytes[cnt] = 0;
 
     return ba;
+  }
+
+  CharArray* CharArray::reverse(STATE, Fixnum* o_start, Fixnum* o_total) {
+    native_int start = o_start->to_native();
+    native_int total = o_total->to_native();
+
+    if(total <= 0 || start < 0 || start >= size()) return this;
+
+    uint8_t* pos1 = this->bytes + start;
+    uint8_t* pos2 = this->bytes + total - 1;
+    register uint8_t tmp;
+
+    while(pos1 < pos2) {
+      tmp = *pos1;
+      *pos1++ = *pos2;
+      *pos2-- = tmp;
+    }
+
+    return this;
   }
 
   Fixnum* CharArray::compare_bytes(STATE, CharArray* other, Fixnum* a, Fixnum* b) {

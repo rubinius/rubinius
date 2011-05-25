@@ -117,7 +117,7 @@ cache files be saved? No problem, just give `-Xrbc.db` a path as follows:
 
     $ ls hello.*
     hello.rb
-    $ rbx -Xrbc.db=$HOME/.my_special_place hello.rb 
+    $ rbx -Xrbc.db=$HOME/.my_special_place hello.rb
     hello!
     $ ls hello.*
     hello.rb

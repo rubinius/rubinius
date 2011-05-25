@@ -67,27 +67,6 @@ namespace rubinius {
       block_as_method_ = (val ? 1 : 0);
     }
 
-    /**
-     *  Initialize scope for methods.
-     */
-    void prepare(Object* self, Module* mod, Object* block, CompiledMethod* method, int num) {
-      rubinius::abort();
-      init_header(UnspecifiedZone, InvalidType);
-      klass_ = 0;
-      ivars_ = 0;
-
-      parent_ = (VariableScope*)Qnil;
-      self_ = self;
-      method_ = method;
-      module_ = mod;
-      block_ = block;
-      number_of_locals_ = num;
-
-      for(int i = 0; i < num; i++) {
-        locals_[i] = Qnil;
-      }
-    }
-
     void update_parent(VariableScope* vs) {
       parent_ = vs;
     }

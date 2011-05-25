@@ -1,24 +1,26 @@
 ---
 layout: doc_ru
-title: Global Variables
-previous: Class Variables
+title: Глобальные переменные
+previous: Переменные класса
 previous_url: ruby/class-variables
-next: Specs
+next: Спецификации
 next_url: specs
 review: true
 ---
 
-Syntatically, a global variable is supposed to be a variable whose name begins
-with `$`. Global variables are supposed to be available from any context in a
-Ruby program. However, there are actually three different kinds of globals: true
-globals, thread-local globals, and pseudo globals.
+По правилам синтаксиса имя глобальной переменной должно начинаться с `$`.
+Ожидается, что глобальные переменные доступны из любого контекста
+Ruby-программы. Вместе с тем, существует три разновидности глобальных
+переменных:**истинные**, **тред-локальные** и **псевдоглобальные**.
 
-True globals associate a value with a global name, such as `$LOAD_PATH`.
+**Истинные** глобальные переменные связывают некоторое значение с
+глобально-видимым именем. Пример: `$LOAD_PATH`.
 
-Thread-local globals have the syntax of a global variable but there is a
-different version of the global for each thread in the running Ruby process.
-Examples of thread-local globals are `$SAFE` and `$!`. To see that these
-values depend on the thread, consider the following code:
+**Тред-локальные** глобальные переменные записываются в нотации
+глобальных, но в запущенном процессе программы каждый тред имеет свою
+отдельную версию переменной. Примерами тред-локальных глобалей являются
+`$SAFE` и `$!`. Чтобы убедиться, что их величины зависят от контекста
+треда, выполним следующий код:
 
     puts $SAFE
 
@@ -29,22 +31,25 @@ values depend on the thread, consider the following code:
 
     puts $SAFE
 
-Pseudo globals are a strict subset of names which refer not to global values
-but values in the current scope, like local variables. These are still
-referred to as global variables because they start with a dollar sign, but this
-is the source of confusion for users.
+**Псевдоглобальные** переменные --- это ограниченное подмножество имен,
+которые ссылаются не на глобальные значения, а на значения в текущей области
+видимости, подобно локальным переменным. Их по-прежнему называют глобальными
+из-за того, что их имена начинаются со значка доллара, что является источником
+недоразумений со стороны пользователей.
 
-All pseudo globals are organized around one primary pseudo global: `$~`.  They
-are all simple accessing parts of `$~` and thus when `$~` changes, they all
-change.
+Все псевдоглобали построены на основе одной, первичной псевдоглобальной
+переменной: `$~`. Все они обеспечивают доступ к разным частям `$~`, и потому
+при изменении `$~` все они также изменяются.
 
-The rest of the pseudo globals are: `$&`, <code>$`</code> (backtick), `$'` (single
-quote), `$+`, and `$1`, `$2`, `$3`, etc.
+Другими псевдоглобалями являются `$&`, <code>$`</code> (обратный апостроф), `$'`
+(простой апостроф), `$+` и группа `$1`, `$2`, `$3` и т.п.
 
-One tricky aspect of these values is that they are strictly bound to the
-current scope but Ruby allows them to be aliased, as is done in English.rb.
+Одна из хитростей этих величин состоит в том, что они строго привязаны к текущей
+области видимости, но Ruby позволяет создавать на них алиасы, как это сделано
+в `English.rb`.
 
-These new aliases are basically adding new local variables to all scopes, even
-ones already running. Thusly, Rubinius does not fully support them. Instead we
-simply provide the aliases present in English.rb by default. For example,
-`$MATCH` can be used instead `$~`, whether English.rb is included or not.
+Эти алиасы служат, в основном, способом добавить новые локальные переменные во
+все области видимости, в том числе и уже запущенные. По этой причине Rubinius
+не в полной мере их поддерживает. Вместо этого мы просто обеспечиваем алиасы,
+по умолчанию записанные в `English.rb`. Например, `$MATCH` можно использовать
+вместо `$~` как при включенном `English.rb`, так и без него.

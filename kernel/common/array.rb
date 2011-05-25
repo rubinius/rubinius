@@ -641,15 +641,19 @@ class Array
   # block is provided in which case the value of running it is
   # returned instead.
   def delete(obj)
-    Ruby.check_frozen
-
     key = undefined
     i = @start
     total = i + @total
     tuple = @tuple
 
     while i < total
-      tuple.put i, key if tuple.at(i) == obj
+      if tuple.at(i) == obj
+        # We MUST check frozen here, not at the top, because MRI
+        # requires that #delete not raise unless an element would
+        # be deleted.
+        Ruby.check_frozen
+        tuple.put i, key
+      end
       i += 1
     end
 
@@ -1988,7 +1992,9 @@ class Array
 
         i = left
         while i < right
-          cmp = Comparable.compare_int block.call(@tuple.at(i), pivot)
+          block_result = block.call(@tuple.at(i), pivot)
+          raise ArgumentError, 'block returned nil' if block_result.nil?
+          cmp = Comparable.compare_int block_result
           if cmp < 0
             @tuple.swap(i, store)
             store += 1
@@ -2049,9 +2055,17 @@ class Array
     while i <= right
       j = i
 
-      while j > @start and block.call(@tuple.at(j - 1), @tuple.at(j)) > 0
-        @tuple.swap(j, (j - 1))
-        j -= 1
+      while j > @start
+        block_result = block.call(@tuple.at(j - 1), @tuple.at(j))
+
+        if block_result.nil?
+          raise ArgumentError, 'block returnd nil'
+        elsif block_result > 0
+          @tuple.swap(j, (j - 1))
+          j -= 1
+        else
+          break
+        end
       end
 
       i += 1

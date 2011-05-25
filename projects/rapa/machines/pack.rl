@@ -46,6 +46,9 @@
   a = ('a' modifier) %string_check_size %to_str_nil %string_append %a;
   Z = ('Z' modifier) %string_check_size %to_str_nil %string_append %Z;
 
+  # Others
+  P = ('P' modifier) %check_size %P;
+
   # Encodings
   B = ('B' modifier) %string_check_size %to_str_nil %B;
   b = ('b' modifier) %string_check_size %to_str_nil %b;
@@ -62,8 +65,9 @@
   encodings = B | b | H | h | M | m | U | u | w;
   strings   = A | a | Z;
   moves     = X | x | at;
+  others    = P;
 
-  directives = integers | strings | encodings | moves | floats;
+  directives = integers | strings | encodings | moves | floats | others;
 
   main := ((directives >start) | comment | ignored)** %done;
 

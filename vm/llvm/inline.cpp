@@ -502,7 +502,7 @@ remember:
     info.set_inline_block(inline_block_);
     info.set_block_info(block_info_);
 
-    jit::RuntimeData* rd = new jit::RuntimeData(ib->method(), (Symbol*)Qnil, (Module*)Qnil);
+    jit::RuntimeData* rd = new jit::RuntimeData(ib->method(), nil<Symbol>(), nil<Module>());
     context_.add_runtime_data(rd);
 
     jit::InlineBlockBuilder work(ops_.state(), info, rd);
@@ -777,6 +777,8 @@ remember:
     Value* ffi_result = ops_.b().CreateCall(ep_ptr, ffi_args.begin(),
                            ffi_args.end(), "ffi_result");
 
+    check.call("rbx_exit_unmanaged", check_args, 2, "unused", ops_.b());
+
     Value* res_args[] = { ops_.vm(), ffi_result };
 
     Value* result;
@@ -884,8 +886,6 @@ remember:
       abort();
 
     }
-
-    check.call("rbx_exit_unmanaged", check_args, 2, "unused", ops_.b());
 
     exception_safe();
     set_result(result);

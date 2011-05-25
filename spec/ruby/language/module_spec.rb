@@ -4,6 +4,15 @@ module LangModuleSpec
   module Sub1; end
 end
 
+module LangModuleSpecInObject
+  module LangModuleTop
+  end
+end
+
+# Must be here, we have to include it into Object because thats
+# the case.
+include LangModuleSpecInObject
+
 module LangModuleSpec::Sub2; end
 
 describe "module" do
@@ -44,6 +53,13 @@ describe "module" do
     end
 
     LangModuleSpec::C3::C4.should == 4
+  end
+
+  it "reopens a module included into Object" do
+    module LangModuleTop
+    end
+
+    LangModuleTop.should == LangModuleSpecInObject::LangModuleTop
   end
 end
 

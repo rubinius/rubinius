@@ -1,9 +1,9 @@
 ---
 layout: doc_ru
-title: Instance Variables
-previous: Local Variables
-previous_url: ruby/locas-variables
-next: Class Variables
+title: Переменные экземпляра
+previous: Локальные переменные
+previous_url: ruby/local-variables
+next: Переменные класса
 next_url: ruby/class-variables
 review: true
 ---

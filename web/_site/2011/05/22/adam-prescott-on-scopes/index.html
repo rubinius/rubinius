@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Adam Prescott on Scopes in Rubinius - Rubinius</title>
+    <meta content='text/html;charset=utf-8' http-equiv='content-type'>
+    <meta content='en' http-equiv='content-language'>
+    <meta content='Rubinius is an implementation of the Ruby programming language. The Rubinius bytecode virtual machine is written in C++. The bytecode compiler is written in pure Ruby. The vast majority of the core library is also written in Ruby, with some supporting primitives that interact with the VM directly.' name='description'>
+    <meta content='Less Than Three. &lt;3. http://less.thanthree.com' name='author'>
+    <link href='/' rel='home'>
+    <link href='/' rel='start'>
+    
+    
+    <link href='/feed/atom.xml' rel='alternate' type='application/atom+xml' title='Rubinius Blog' />
+    <!--[if IE]><script src="http://html5shiv.googlecode.com/svn/trunk/html5.js" type="text/javascript"></script><![endif]-->
+    <script src="/javascripts/jquery-1.3.2.js" type="text/javascript"></script>
+    <script src="/javascripts/paging_keys.js" type="text/javascript"></script>
+    
+    <script src="/javascripts/application.js" type="text/javascript"></script>
+    <style>article, aside, dialog, figure, footer, header, hgroup, menu, nav, section { display: block; }</style>
+
+    <link href="/stylesheets/blueprint/screen.css" media="screen" rel="stylesheet" type="text/css" />
+    <link href="/stylesheets/application.css" media="screen" rel="stylesheet" type="text/css" />
+    <link href="/stylesheets/blueprint/print.css" media="print" rel="stylesheet" type="text/css" />
+    <!--[if IE]><link href="/stylesheets/blueprint/ie.css" media="screen" rel="stylesheet" type="text/css" /><![endif]-->
+    <!--[if IE]><link href="/stylesheets/ie.css" media="screen" rel="stylesheet" type="text/css" /><![endif]-->
+    <link href="/stylesheets/pygments.css" media="screen" rel="stylesheet" type="text/css" />
+  </head>
+    <body>
+        <div class='container'>
+      <div class='span-21 blog_menu'>
+        <header>
+                    <nav>
+            <ul>
+              <li><a href="/">Home</a></li>
+              <li><a id="blog" href="/blog/">Blog</a></li>
+              <li><a id="documentation" href="/doc/en/">Documentation</a></li>
+              <li><a href="/projects/">Projects</a></li>
+              <li><a href="/roadmap/">Roadmap</a></li>
+              <li><a href="/releases/">Releases</a></li>
+            </ul>
+          </nav>
+
+        </header>
+      </div>
+            <div class='span-3 last'>
+        <div id='version'>
+          <a href="/releases/1.2.3">1.2.3</a>
+        </div>
+      </div>
+
+    </div>
+
+        <div class="container posts_nav">
+      <nav>
+        <a href="/blog/posts_index/">Index of Posts</a>
+        <a id="feed_icon" href="/feed/atom.xml"><img alt="subscribe" src="/images/feed-icon16x16.png" /></a>
+      </nav>
+    </div>
+
+
+    <div class="container blog_posts">
+      <h2 class="post_title">Adam Prescott on Scopes in Rubinius</h2>
+      
+            <div class="by_line">
+        <p><span class="author">Shane Becker</span>
+          <span class="date">22 May 2011</span>
+          
+        </p>
+      </div>
+
+      <p><cite class="vcard"><a class="url fn" href="http://aprescott.com" title="Adam Prescott">Adam Prescott</a></cite> wrote a lengthy article about <i>variables, closures and scope</i> in Ruby, <a href="http://aprescott.com/posts/variables-closures-and-scope" title="Posts / Variables, closures &amp; scope &mdash; Adam Prescott">mentioning Rubinius at the end</a>:</p>
+
+<blockquote cite="http://aprescott.com/posts/variables-closures-and-scope">
+  <p> One of the really cool things about the <a href="http://en.wikipedia.org/wiki/Rubinius">Rubinius</a> implementation of Ruby is that it exposes, by requirement, a level of internals which you can&rsquo;t find in <abbr title="Matz' Ruby Interpreter">MRI</abbr>, including some internals with scopes. Because these internals are exposed in Ruby itself, you can <a href="http://yehudakatz.com/2011/02/18/getting-comfortable-with-rubinius-pure-ruby-internals/">play around with scopes as objects</a>, using <code>VariableScope</code>, including getting access to the available local variables within that scope, with <code>VariableScope.current.locals</code>. </p>
+</blockquote>
+
+<p>How are <strong>you</strong> using Rubinius? What are you doing with it that you couldn&rsquo;t do before? What is it missing for you to really dive in? Let us know. We&rsquo;re listening.</p>
+
+<ul>
+  <li><a href="community@rubini.us">community@rubini.us</a></li>
+  <li><a href="http://twitter.com/rubinius" title="@rubinius on twitter">@rubinius</a></li>
+</ul>
+
+<p>&mdash; Use Ruby&trade;</p>
+
+
+      <div id="disqus_thread"></div>
+<script type="text/javascript">
+    var disqus_shortname = 'rubinius';
+    var disqus_identifier = '/2011/05/22/adam-prescott-on-scopes/';
+    var disqus_url = 'http://rubini.us/2011/05/22/adam-prescott-on-scopes/';
+
+    (function() {
+        var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+        dsq.src = 'http://' + disqus_shortname + '.disqus.com/embed.js';
+        (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+    })();
+</script>
+<noscript>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+
+    </div>
+        <footer>
+      <div class='container'>
+        <nav>
+          <ul>
+            <li><a href="http://twitter.com/rubinius">Follow Rubinius on Twitter</a></li>
+            <li><a href="http://github.com/evanphx/rubinius">Fork Rubinius on github</a></li>
+            <li><a href="http://engineyard.com">An Engine Yard project</a></li>
+
+            <li id='credit'>
+              Site design by
+              <a href="http://less.thanthree.com">Less Than Three</a>
+            </li>
+          </ul>
+        </nav>
+      </div>
+    </footer>
+        <script type="text/javascript">
+        var gaJsHost = (("https:" == document.location.protocol) ? "https://ssl." : "http://www.");
+        document.write(unescape("%3Cscript src='" + gaJsHost + "google-analytics.com/ga.js' type='text/javascript'%3E%3C/script%3E"));
+        </script>
+
+        <script type="text/javascript">
+        try {
+        var pageTracker = _gat._getTracker("UA-12328521-1");
+        pageTracker._trackPageview();
+        } catch(err) {}</script>
+
+  </body>
+
+</html>

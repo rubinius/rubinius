@@ -39,13 +39,13 @@ namespace rubinius {
     static void init(STATE);
 
     // Ruby.primitive :time_s_specific
-    static Time* specific(STATE, Integer* sec, Integer* usec, Object* gmt);
+    static Time* specific(STATE, Object* self, Integer* sec, Integer* usec, Object* gmt);
 
     // Ruby.primitive :time_s_now
     static Time* now(STATE, Object* self);
 
     // Ruby.primitive :time_s_from_array
-    static Time* from_array(STATE, Fixnum* sec, Fixnum* min, Fixnum* hour, Fixnum* mday, Fixnum* mon, Fixnum* year, Fixnum* usec, Fixnum* isdst, Object* from_gmt);
+    static Time* from_array(STATE, Object* self, Fixnum* sec, Fixnum* min, Fixnum* hour, Fixnum* mday, Fixnum* mon, Fixnum* year, Fixnum* usec, Fixnum* isdst, Object* from_gmt);
 
     // Ruby.primitive :time_dup
     Time* dup(STATE);

@@ -1,5 +1,11 @@
 module Rubinius
-  Terminal = STDIN.tty?
+  begin
+    is_tty = STDIN.tty?
+  rescue IOError
+    is_tty = false
+  end
+
+  Terminal = is_tty
   AtExit = []
 
   @add_method_hook = Rubinius::Hook.new
@@ -60,7 +66,22 @@ module Rubinius
     end
 
     tbl = mod.constant_table
-    if !tbl.key?(name)
+    found = tbl.key?(name)
+
+    # Object has special behavior, we check it's included
+    # modules also
+    if !found and mod.equal? Object
+      check = mod.direct_superclass
+
+      while check
+        tbl = check.constant_table
+        found = tbl.key?(name)
+        break if found
+        check = check.direct_superclass
+      end
+    end
+
+    if !found
       # Create the module
       obj = Module.new
       obj.set_name_if_necessary name, mod

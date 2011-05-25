@@ -41,16 +41,8 @@ describe "Array#delete" do
       lambda { [1, 2, 3].freeze.delete(1) }.should raise_error(TypeError)
     end
 
-    not_compliant_on :rubinius do
-      it "returns false on a frozen array if a modification does not take place" do
-        [1, 2, 3].freeze.delete(0).should == nil
-      end
-    end
-
-    deviates_on :rubinius do
-      it "raises a TypeError if the array is frozen" do
-        lambda { [1, 2, 3].freeze.delete(0) }.should raise_error(TypeError)
-      end
+    it "returns false on a frozen array if a modification does not take place" do
+      [1, 2, 3].freeze.delete(0).should == nil
     end
   end
 

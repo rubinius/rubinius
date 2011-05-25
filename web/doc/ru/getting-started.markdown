@@ -1,6 +1,6 @@
 ---
 layout: doc_ru
-title: Приступая к работе
+title: Для начала...
 previous: Что Такое Rubinius?
 previous_url: what-is-rubinius
 next: Минимальные требования
@@ -11,8 +11,8 @@ next_url: getting-started/requirements
 обладаете некоторыми знаниями о Ruby и установке программного обеспечения
 на вашу систему.
 
-Если у вас возникут проблемы с инструкциями, описанными здесь, обратитесь
-за помощью на IRC канал #rubinius на сервере irc.freenode.net.
+Если у вас возникнут проблемы с приводимыми здесь инструкциями, обратитесь
+за помощью на IRC-канал #rubinius сервера irc.freenode.net.
 
 1. [Минимальные требования](/doc/ru/getting-started/requirements/)
 1. [Сборка](/doc/ru/getting-started/building/)

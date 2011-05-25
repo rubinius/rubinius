@@ -41,3 +41,9 @@ reporting at: /Developer/Applications/Utilities/CrashReporterPrefs.app
   * libreadline5-dev
   * zlib1g-dev
   * libssl-dev
+
+### FreeBSD
+
+Rubinius has a port in FreeBSD ports tree. It's called `lang/rubinius`. You
+can find information about this port on <http://freshports.org>. Once being
+installed the port installs all the dependencies automagically.

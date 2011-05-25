@@ -136,7 +136,7 @@ class Time
       end
     end
 
-    Time.from_array(second, minute, hour, day, month, year, usec, isdst, false)
+    from_array(second, minute, hour, day, month, year, usec, isdst, false)
   end
 
   def self.gm(first, *args)
@@ -184,7 +184,7 @@ class Time
       end
     end
 
-    Time.from_array(second, minute, hour, day, month, year, usec, -1, true)
+    from_array(second, minute, hour, day, month, year, usec, -1, true)
   end
 
   def self.times
@@ -210,6 +210,7 @@ class Time
       other_usec = (usec_frac * 1_000_000 + 0.5).to_i
     end
 
+    # Don't use self.class, MRI doesn't honor subclasses here
     Time.specific(seconds + other_sec, usec + other_usec, @is_gmt)
   end
 
@@ -218,6 +219,7 @@ class Time
     when Time
       (seconds - other.seconds) + ((usec - other.usec) * 0.000001)
     when Integer
+      # Don't use self.class, MRI doesn't honor subclasses here
       Time.specific(seconds - other, usec, @is_gmt)
     else
       other = FloatValue(other)
@@ -225,6 +227,7 @@ class Time
       other_sec, usec_frac = FloatValue(other).divmod(1)
       other_usec = (usec_frac * 1_000_000 + 0.5).to_i
 
+      # Don't use self.class, MRI doesn't honor subclasses here
       Time.specific(seconds - other_sec, usec - other_usec, @is_gmt)
     end
   end
