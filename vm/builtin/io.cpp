@@ -44,7 +44,18 @@ namespace rubinius {
   IO* IO::create(STATE, int fd) {
     IO* io = state->new_object<IO>(G(io));
     io->descriptor(state, Fixnum::from(fd));
-    io->set_mode(state);
+
+    int acc_mode = fcntl(fd, F_GETFL);
+    if(acc_mode < 0) {
+      // Assume it's closed.
+      if(errno == EBADF) {
+        io->descriptor(state, Fixnum::from(-1));
+      }
+      io->mode(state, nil<Fixnum>());
+    } else {
+      io->mode(state, Fixnum::from(acc_mode));
+    }
+
     io->ibuffer(state, IOBuffer::create(state));
     io->eof(state, Qfalse);
     io->lineno(state, Fixnum::from(0));

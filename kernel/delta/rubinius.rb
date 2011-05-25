@@ -1,5 +1,11 @@
 module Rubinius
-  Terminal = STDIN.tty?
+  begin
+    is_tty = STDIN.tty?
+  rescue IOError
+    is_tty = false
+  end
+
+  Terminal = is_tty
   AtExit = []
 
   @add_method_hook = Rubinius::Hook.new
