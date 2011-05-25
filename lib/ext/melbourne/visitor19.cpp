@@ -883,10 +883,11 @@ namespace melbourne {
       tree = rb_funcall(ptp, rb_sEvStr, 2, line, value);
       break;
     }
-    case NODE_POSTEXE:            /* END { ... } */
-      tree = rb_funcall(ptp, rb_sPostExe, 1, line);
+    case NODE_POSTEXE: {          /* END { ... } */
+      VALUE scope = process_parse_tree(parser_state, ptp, node->nd_2nd, locals);
+      tree = rb_funcall(ptp, rb_sPostExe19, 2, line, scope);
       break;
-
+    }
     default: {
       VALUE node_name = rb_str_new2(get_node_type_string((enum node_type)nd_type(node)));
       VALUE node_type = INT2FIX(nd_type(node));

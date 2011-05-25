@@ -426,6 +426,12 @@ module Rubinius
       AST::Send.new line, AST::Self.new(line), :at_exit, true
     end
 
+    def process_postexe19(line, body)
+      node = AST::Send.new line, AST::Self.new(line), :at_exit, true
+      node.block = AST::Iter.new line, nil, body
+      node
+    end
+
     def process_redo(line)
       AST::Redo.new line
     end
