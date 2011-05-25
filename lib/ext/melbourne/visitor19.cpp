@@ -474,7 +474,7 @@ namespace melbourne {
           op = Q2SYM(node->nd_mid);
       }
       VALUE value = process_parse_tree(parser_state, ptp, node->nd_args->nd_head, locals);
-      tree = rb_funcall(ptp, rb_sOpAsgn1, 5, line, recv, args, op, value);
+      tree = rb_funcall(ptp, rb_sOpAsgn1, 5, line, recv, value, op, args);
       break;
     }
     case NODE_OP_ASGN2: {
