@@ -1883,7 +1883,6 @@ primary         : literal
                   bodystmt
                   k_end
                   {
-                    /* TODO */
                     NODE* body = remove_begin($5);
                     $$ = NEW_DEFN($2, $4, body, NOEX_PRIVATE);
                     nd_set_line($$, $<num>1);
@@ -3999,7 +3998,7 @@ parser_heredoc_identifier(rb_parser_state* parser_state)
     /* Finally, setup the token buffer and begin to fill it. */
     newtok();
     term = '"';
-    tokadd(func != str_dquote);
+    tokadd(func |= str_dquote);
     do {
       if(tokadd_mbchar(c) == -1) return 0;
     } while((c = nextc()) != -1 && parser_is_identchar());
@@ -4020,6 +4019,7 @@ parser_heredoc_identifier(rb_parser_state* parser_state)
                              STR_NEW(tok(), toklen()),  /* nd_lit */
                              (VALUE)len,                /* nd_nth */
                              (VALUE)lex_lastline);      /* nd_orig */
+  nd_set_line(lex_strterm, ruby_sourceline);
   return term == '`' ? tXSTRING_BEG : tSTRING_BEG;
 }
 
@@ -5685,6 +5685,10 @@ parser_literal_concat(rb_parser_state* parser_state, NODE *head, NODE *tail)
         goto error;
       tail->nd_lit = head->nd_lit;
       head = tail;
+    } else if(NIL_P(tail->nd_lit)) {
+      head->nd_alen += tail->nd_alen - 1;
+      head->nd_next->nd_end->nd_next = tail->nd_next;
+      head->nd_next->nd_end = tail->nd_next->nd_end;
     } else {
       nd_set_type(tail, NODE_ARRAY);
       tail->nd_head = NEW_STR(tail->nd_lit);
@@ -5863,7 +5867,7 @@ parser_gettable(rb_parser_state* parser_state, QUID id)
   } else if(id == keyword__FILE__) {
     return NEW_FILE();
   } else if(id == keyword__LINE__) {
-    return NEW_LIT(INT2FIX(ruby_sourceline));
+    return NEW_NUMBER(INT2FIX(ruby_sourceline));
   } else if(is_local_id(id)) {
     if(local_id(id)) return NEW_LVAR(id);
     /* method call without arguments */
