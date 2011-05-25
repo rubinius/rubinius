@@ -99,6 +99,7 @@ namespace melbourne {
   ID rb_sSplat;
   ID rb_sStr;
   ID rb_sSuper;
+  ID rb_sSuper19;
   ID rb_sSValue;
   ID rb_sToAry;
   ID rb_sTrue;
@@ -215,6 +216,7 @@ namespace melbourne {
     rb_sSplat       = rb_intern("process_splat");
     rb_sStr         = rb_intern("process_str");
     rb_sSuper       = rb_intern("process_super");
+    rb_sSuper19     = rb_intern("process_super19");
     rb_sSValue      = rb_intern("process_svalue");
     rb_sToAry       = rb_intern("process_to_ary");
     rb_sTrue        = rb_intern("process_true");

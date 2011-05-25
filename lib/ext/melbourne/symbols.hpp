@@ -98,6 +98,7 @@ namespace melbourne {
   extern ID rb_sSplat;
   extern ID rb_sStr;
   extern ID rb_sSuper;
+  extern ID rb_sSuper19;
   extern ID rb_sSValue;
   extern ID rb_sToAry;
   extern ID rb_sTrue;

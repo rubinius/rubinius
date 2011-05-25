@@ -499,8 +499,22 @@ module Rubinius
       AST::StringLiteral.new line, str
     end
 
-    def process_super(line, args)
-      AST::Super.new line, args
+    def process_super(line, arguments)
+      AST::Super.new line, arguments
+    end
+
+    def process_super19(line, arguments)
+      if arguments.kind_of? AST::BlockPass
+        block = arguments
+        arguments = block.arguments
+        block.arguments = nil
+      else
+        block = nil
+      end
+
+      node = AST::Super.new line, arguments
+      node.block = block
+      node
     end
 
     def process_svalue(line, expr)

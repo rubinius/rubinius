@@ -445,7 +445,7 @@ namespace melbourne {
 
     case NODE_SUPER: {
       VALUE args = process_parse_tree(parser_state, ptp, node->nd_args, locals);
-      tree = rb_funcall(ptp, rb_sSuper, 2, line, args);
+      tree = rb_funcall(ptp, rb_sSuper19, 2, line, args);
       break;
     }
     case NODE_SCOPE: {
