@@ -22,6 +22,7 @@ namespace melbourne {
   extern ID rb_sBlock;
   extern ID rb_sBlockArg;
   extern ID rb_sBlockPass;
+  extern ID rb_sBlockPass19;
   extern ID rb_sBreak;
   extern ID rb_sCall;
   extern ID rb_sCase;

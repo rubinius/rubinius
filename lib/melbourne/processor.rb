@@ -85,24 +85,33 @@ module Rubinius
       end
     end
 
+    def process_block_pass19(line, arguments, body)
+      AST::BlockPass19.new line, arguments, body
+    end
+
     def process_break(line, value)
       AST::Break.new line, value
     end
 
     def process_call(line, receiver, name, arguments)
+      if arguments.kind_of? AST::BlockPass
+        block = arguments
+        arguments = block.arguments
+        block.arguments = nil
+      else
+        block = nil
+      end
+
       if node = process_transforms(line, receiver, name, arguments)
         return node
       end
 
-      case arguments
-      when AST::BlockPass
-        node = AST::Send.new line, receiver, name
-        node.block = arguments
+      if arguments
+        node = AST::SendWithArguments.new line, receiver, name, arguments
+        node.block = block
         node
-      when nil
-        AST::Send.new line, receiver, name
       else
-        AST::SendWithArguments.new line, receiver, name, arguments
+        AST::Send.new line, receiver, name
       end
     end
 
@@ -209,19 +218,24 @@ module Rubinius
     def process_fcall(line, name, arguments)
       receiver = AST::Self.new line
 
+      if arguments.kind_of? AST::BlockPass
+        block = arguments
+        arguments = block.arguments
+        block.arguments = nil
+      else
+        block = nil
+      end
+
       if node = process_transforms(line, receiver, name, arguments, true)
         return node
       end
 
-      case arguments
-      when AST::BlockPass
-        node = AST::Send.new line, receiver, name, true
-        node.block = arguments
+      if arguments
+        node = AST::SendWithArguments.new line, receiver, name, arguments, true
+        node.block = block
         node
-      when nil
-        AST::Send.new line, receiver, name, true
       else
-        AST::SendWithArguments.new line, receiver, name, arguments, true
+        AST::Send.new line, receiver, name, true
       end
     end
 

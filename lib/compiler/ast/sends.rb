@@ -312,6 +312,15 @@ module Rubinius
       end
     end
 
+    class BlockPass19 < BlockPass
+      attr_accessor :arguments
+
+      def initialize(line, arguments, body)
+        super(line, body)
+        @arguments = arguments
+      end
+    end
+
     class ActualArguments < Node
       attr_accessor :array, :splat
 
