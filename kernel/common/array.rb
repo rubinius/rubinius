@@ -2057,7 +2057,6 @@ class Array
 
       while j > @start
         block_result = block.call(@tuple.at(j - 1), @tuple.at(j))
-#        raise ArgumentError, 'block returned nil' if block_result.nil?
 
         if block_result.nil?
           raise ArgumentError, 'block returnd nil'
