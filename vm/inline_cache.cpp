@@ -359,6 +359,11 @@ namespace rubinius {
       }
     }
 
+    // Make sure we sync here, so the MethodCacheEntry mce is
+    // guaranteed completely initialized. Otherwise another thread
+    // might see an incompletely initialized MethodCacheEntry.
+    atomic::memory_barrier();
+
     cache->cache_ = mce;
     cache->update_seen_classes(mce);
 
@@ -393,6 +398,11 @@ namespace rubinius {
       cache->execute_backend_ = check_cache;
     }
 
+    // Make sure we sync here, so the MethodCacheEntry mce is
+    // guaranteed completely initialized. Otherwise another thread
+    // might see an incompletely initialized MethodCacheEntry.
+    atomic::memory_barrier();
+
     cache->cache_ = mce;
     cache->update_seen_classes(mce);
 
@@ -426,6 +436,11 @@ namespace rubinius {
     } else {
       cache->execute_backend_ = check_cache;
     }
+
+    // Make sure we sync here, so the MethodCacheEntry mce is
+    // guaranteed completely initialized. Otherwise another thread
+    // might see an incompletely initialized MethodCacheEntry.
+    atomic::memory_barrier();
 
     cache->cache_ = mce;
     cache->update_seen_classes(mce);
@@ -466,6 +481,11 @@ namespace rubinius {
     } else {
       cache->execute_backend_ = check_cache;
     }
+
+    // Make sure we sync here, so the MethodCacheEntry mce is
+    // guaranteed completely initialized. Otherwise another thread
+    // might see an incompletely initialized MethodCacheEntry.
+    atomic::memory_barrier();
 
     cache->cache_ = mce;
     cache->update_seen_classes(mce);
