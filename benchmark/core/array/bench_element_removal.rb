@@ -103,4 +103,18 @@ Benchmark.ips do |x|
     end
   end
 
+  x.report "array delete_at, random" do
+    scratch_array = base_array.dup
+    random_elements.each do |re|
+      scratch_array.delete_at(re)
+    end
+  end
+
+  x.report "array delete, random" do
+    scratch_array = base_array.dup
+    random_elements.each do |re|
+      scratch_array.delete(re)
+    end
+  end
+
 end
