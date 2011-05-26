@@ -103,7 +103,7 @@ namespace rubinius {
     MethodTableBucket* entry;
     MethodTableBucket* last = NULL;
 
-    if(lock(state) != eLocked) rubinius::abort();
+    hard_lock(state);
 
     Executable* method;
     if(exec->nil_p()) {
@@ -130,7 +130,7 @@ namespace rubinius {
       if(entry->name() == name) {
         entry->method(state, method);
         entry->visibility(state, vis);
-        if(unlock(state) != eUnlocked) rubinius::abort();
+        hard_unlock(state);
         return name;
       }
       last = entry;
@@ -145,7 +145,7 @@ namespace rubinius {
 
     entries(state, Fixnum::from(num_entries + 1));
 
-    if(unlock(state) != eUnlocked) rubinius::abort();
+    hard_unlock(state);
     return name;
   }
 
@@ -157,7 +157,7 @@ namespace rubinius {
     MethodTableBucket* entry;
     MethodTableBucket* last = NULL;
 
-    if(lock(state) != eLocked) rubinius::abort();
+    hard_lock(state);
     Executable* orig_exec;
 
     if(Alias* alias = try_as<Alias>(orig_method)) {
@@ -186,7 +186,7 @@ namespace rubinius {
       if(entry->name() == name) {
         entry->method(state, method);
         entry->visibility(state, vis);
-        if(unlock(state) != eUnlocked) rubinius::abort();
+        hard_unlock(state);
         return name;
       }
       last = entry;
@@ -200,7 +200,7 @@ namespace rubinius {
     }
 
     entries(state, Fixnum::from(num_entries + 1));
-    if(unlock(state) != eUnlocked) rubinius::abort();
+    hard_unlock(state);
     return name;
   }
   MethodTableBucket* MethodTable::find_entry(STATE, Symbol* name) {
@@ -248,7 +248,7 @@ namespace rubinius {
     MethodTableBucket* entry;
     MethodTableBucket* last = NULL;
 
-    if(lock(state) != eLocked) rubinius::abort();
+    hard_lock(state);
 
     size_t num_entries = entries_->to_native();
     size_t num_bins = bins_->to_native();
@@ -269,7 +269,7 @@ namespace rubinius {
           values_->put(state, bin, entry->next());
         }
         entries(state, Fixnum::from(entries_->to_native() - 1));
-        if(unlock(state) != eUnlocked) rubinius::abort();
+        hard_unlock(state);
         return val;
       }
 
@@ -277,7 +277,7 @@ namespace rubinius {
       entry = try_as<MethodTableBucket>(entry->next());
     }
 
-    if(unlock(state) != eUnlocked) rubinius::abort();
+    hard_unlock(state);
 
     return nil<Executable>();
   }

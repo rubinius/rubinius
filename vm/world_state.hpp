@@ -53,8 +53,7 @@ namespace rubinius {
       case ManagedThread::eSuspended:
         // This is sort of bad. We're already suspendend
         // and want to go independent. Abort on this.
-        std::cerr << "Trying to make a suspended thread independent\n";
-        rubinius::abort();
+        rubinius::bug("Trying to make a suspended thread independent");
         break;
       case ManagedThread::eRunning:
         // If someone is waiting on us to stop, stop now.
@@ -79,8 +78,7 @@ namespace rubinius {
         return;
       case ManagedThread::eSuspended:
         // Again, bad, don't allow this.
-        std::cerr << "Trying to make a suspended thread dependent\n";
-        rubinius::abort();
+        rubinius::bug("Trying to make a suspended thread dependent");
         break;
       case ManagedThread::eIndependent:
         // If the GC is running, wait here...
@@ -112,8 +110,7 @@ namespace rubinius {
       }
 
       if(state->run_state_ != ManagedThread::eRunning) {
-        std::cerr << "A non-running thread is trying to wait til alone.\n";
-        rubinius::abort();
+        rubinius::bug("A non-running thread is trying to wait til alone");
       }
 
       // For ourself..
@@ -145,8 +142,7 @@ namespace rubinius {
       }
 
       if(state->run_state_ != ManagedThread::eAlone) {
-        std::cerr << "A non-alone thread is trying to wake all.\n";
-        rubinius::abort();
+        rubinius::bug("A non-alone thread is trying to wake all");
       }
 
       // For ourself..
@@ -182,8 +178,7 @@ namespace rubinius {
       }
 
       if(state->run_state_ != ManagedThread::eRunning) {
-        std::cerr << "Suspending a non running thread!\n";
-        rubinius::abort();
+        rubinius::bug("Suspending a non running thread!");
       }
 
       state->run_state_ = ManagedThread::eSuspended;

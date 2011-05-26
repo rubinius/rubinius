@@ -144,7 +144,7 @@ namespace rubinius {
         return sizeof(void*);
 
       default:
-        abort();
+        rubinius::bug("Unsupported FFI type");
 		return 0;	// Keep GCC happy
     }
   }

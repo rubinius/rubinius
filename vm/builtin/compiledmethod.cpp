@@ -103,7 +103,8 @@ namespace rubinius {
     VMMethod* vmm = backend_method_;
     atomic::memory_barrier();
     if(!vmm) {
-      if(lock(state) != eLocked) rubinius::abort();
+      hard_lock(state);
+
       vmm = backend_method_;
       if(!vmm) {
         {
@@ -130,7 +131,7 @@ namespace rubinius {
         backend_method_ = vmm;
       }
 
-      unlock(state);
+      hard_unlock(state);
     }
     return vmm;
   }

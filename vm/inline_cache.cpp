@@ -123,7 +123,7 @@ namespace rubinius {
     } while(1);
 
     // Shouldn't be here!
-    rubinius::abort();
+    rubinius::bug("Control flow bug in method lookup");
   }
 
   bool InlineCache::fill_private(STATE, Symbol* name, Module* start,
@@ -192,7 +192,7 @@ namespace rubinius {
     } while(1);
 
     // Shouldn't be here!
-    rubinius::abort();
+    rubinius::bug("Control flow bug in method lookup");
   }
 
   bool InlineCache::fill_method_missing(STATE, Class* klass,
@@ -243,7 +243,7 @@ namespace rubinius {
     } while(1);
 
     // Shouldn't be here!
-    rubinius::abort();
+    rubinius::bug("Control flow bug in method lookup");
   }
 
   MethodCacheEntry* InlineCache::update_and_validate(STATE, CallFrame* call_frame, Object* recv) {

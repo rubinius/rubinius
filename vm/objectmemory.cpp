@@ -132,8 +132,7 @@ namespace rubinius {
       if(obj->inflated_header_p()) return false;
 
       // Now things are really in a weird state, just abort.
-      std::cerr << "Massive header state confusion detected. Call a doctor.\n";
-      rubinius::abort();
+      rubinius::bug("Massive header state confusion detected. Call a doctor.");
     }
 
     return true;
@@ -723,8 +722,7 @@ step1:
       if(obj->inflated_header_p()) return obj->inflated_header();
 
       // Now things are really in a weird state, just abort.
-      std::cerr << "Massive header state confusion detected. Call a doctor.\n";
-      rubinius::abort();
+      rubinius::bug("Massive header state confusion detected. Call a doctor.");
     }
 
     return header;
@@ -736,7 +734,7 @@ step1:
     HeaderWord orig = obj->header;
 
     if(orig.f.meaning == eAuxWordInflated) {
-      abort();
+      rubinius::bug("Massive header state confusion detected. Call a doctor.");
     }
 
     InflatedHeader* header = inflated_headers_->allocate(obj);
@@ -749,8 +747,7 @@ step1:
       }
 
       // Now things are really in a weird state, just abort.
-      std::cerr << "Massive header state confusion detected. Call a doctor.\n";
-      rubinius::abort();
+      rubinius::bug("Massive header state confusion detected. Call a doctor.");
     }
 
   }

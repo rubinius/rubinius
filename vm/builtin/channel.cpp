@@ -127,7 +127,9 @@ namespace rubinius {
 
     // We pin this so we can pass condition_ out without worrying about
     // us moving it.
-    if(!this->pin()) rubinius::abort();
+    if(!this->pin()) {
+      rubinius::bug("unable to pin Channel");
+    }
 
     struct timeval tv = {0,0};
     if(use_timed_wait) {

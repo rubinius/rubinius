@@ -19,7 +19,7 @@ namespace rubinius {
     long_jump(__jump_buffer, 1);
 
     // If control reaches here, longjmp failed, i.e. disaster.
-    abort();
+    rubinius::bug("ExceptionPoint return_to failed");
   }
 
   void ExceptionPoint::pop(NativeMethodEnvironment* env) {

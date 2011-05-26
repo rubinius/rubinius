@@ -605,6 +605,12 @@ const int cUndef = 0x22L;
     LockStatus unlock(STATE);
     void unlock_for_terminate(STATE);
 
+    // Abort if unable to lock
+    void hard_lock(STATE, size_t us=0);
+
+    // Abort if unable to unlock
+    void hard_unlock(STATE);
+
     void wait(STATE);
 
     bool nil_p() const {

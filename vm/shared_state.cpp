@@ -173,13 +173,11 @@ namespace rubinius {
       switch(th->run_state()) {
       case ManagedThread::eAlone:
         if(th != state) {
-          std::cerr << "Tried to stop but someone else is alone!\n";
-          rubinius::abort();
+          rubinius::bug("Tried to stop but someone else is alone!");
         }
         break;
       case ManagedThread::eRunning:
-        std::cerr << "Tried to stop but threads still running!\n";
-        rubinius::abort();
+        rubinius::bug("Tried to stop but threads still running!");
         break;
       case ManagedThread::eSuspended:
       case ManagedThread::eIndependent:

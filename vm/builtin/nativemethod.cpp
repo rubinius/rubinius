@@ -169,7 +169,7 @@ namespace rubinius {
   }
 
   void NativeMethodEnvironment::delete_global(VALUE val) {
-    abort();
+    rubinius::bug("NME::delete_global was used");
   }
 
   Object* NativeMethodEnvironment::block() {

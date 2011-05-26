@@ -1,6 +1,7 @@
 #include "util/atomic.hpp"
 
 #include "oop.hpp"
+#include "bug.hpp"
 #include "builtin/object.hpp"
 #include "builtin/class.hpp"
 #include "builtin/exception.hpp"
@@ -225,6 +226,10 @@ step2:
     return eUnlocked;
   }
 
+  void ObjectHeader::hard_lock(STATE, size_t us) {
+    if(lock(state, us) != eLocked) rubinius::bug("Unable to lock object");
+  }
+
   LockStatus ObjectHeader::try_lock(STATE) {
     // #1 Attempt to lock an unlocked object using CAS.
 
@@ -436,6 +441,10 @@ step2:
       std::cerr << "[THREAD] Detected unknown header lock state.\n";
     }
     return eLockError;
+  }
+
+  void ObjectHeader::hard_unlock(STATE) {
+    if(unlock(state) != eUnlocked) rubinius::bug("Unable to unlock object");
   }
 
   void ObjectHeader::unlock_for_terminate(STATE) {

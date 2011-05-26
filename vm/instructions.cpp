@@ -137,7 +137,7 @@ continue_to_run:
 
   // There is no reason to be here. Either the bytecode loop exits,
   // or it jumps to exception;
-  abort();
+  rubinius::bug("Control flow error in interpreter");
 
   // If control finds it's way down here, there is an exception.
 exception:
@@ -210,9 +210,7 @@ exception:
     break;
   } // switch
 
-  std::cout << "bug!\n";
-  call_frame->print_backtrace(state);
-  abort();
+  rubinius::bug("Control flow error in interpreter");
   return NULL;
 }
 
@@ -293,7 +291,7 @@ continue_to_run:
   }
 
   // No reason to be here!
-  abort();
+  rubinius::bug("Control flow error in interpreter");
 
 exception:
   ThreadState* th = state->thread_state();
@@ -365,9 +363,7 @@ exception:
     break;
   } // switch
 
-  std::cout << "bug!\n";
-  call_frame->print_backtrace(state);
-  abort();
+  rubinius::bug("Control flow error in interpreter");
   return NULL;
 }
 
@@ -439,7 +435,7 @@ continue_to_run:
   }
 
   // no reason to be here!
-  abort();
+  rubinius::bug("Control flow error in interpreter");
 
   // If control finds it's way down here, there is an exception.
 exception:
@@ -514,9 +510,7 @@ exception:
     break;
   } // switch
 
-  std::cout << "bug!\n";
-  call_frame->print_backtrace(state);
-  abort();
+  rubinius::bug("Control flow error in interpreter");
   return NULL;
 }
 
@@ -572,7 +566,7 @@ continue_to_run:
   }
 
   // No reason to be here!
-  abort();
+  rubinius::bug("Control flow error in interpreter");
 
 exception:
   ThreadState* th = state->thread_state();
@@ -644,8 +638,6 @@ exception:
     break;
   } // switch
 
-  std::cout << "bug!\n";
-  call_frame->print_backtrace(state);
-  abort();
+  rubinius::bug("Control flow error in interpreter");
   return NULL;
 }

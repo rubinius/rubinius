@@ -43,9 +43,13 @@ namespace rubinius {
     if(unlikely(!ba)) {
       Exception::memory_error(state);
     }
+
+    if(!ba->pin()) {
+      rubinius::bug("unable to allocate pinned ByteArray");
+    }
+
     ba->full_size_ = body;
     memset(ba->bytes, 0, bytes);
-    if(!ba->pin()) { abort(); }
 
     return ba;
   }

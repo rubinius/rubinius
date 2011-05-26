@@ -181,7 +181,7 @@ use_packed:
    * This locks the class so that construction is serialized.
    */
   void Class::auto_pack(STATE) {
-    if(lock(state) != eLocked) rubinius::abort();
+    hard_lock(state);
 
     // If another thread did this work while we were waiting on the lock,
     // don't redo it.
@@ -232,7 +232,7 @@ use_packed:
 
     set_object_type(state, PackedObject::type);
 
-    if(unlock(state) != eUnlocked) rubinius::abort();
+    hard_unlock(state);
   }
 
   Class* Class::real_class(STATE, Class* klass) {
