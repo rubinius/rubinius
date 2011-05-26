@@ -53,11 +53,6 @@ Benchmark.ips do |x|
     scratch_array.delete_if { true }
   end
 
-  x.report "array delete, front to back" do
-    scratch_array = base_array.dup
-    scratch_array.size.times { |index| scratch_array.delete(index) }
-  end
-
   x.report "array pop, back to front" do
     scratch_array = base_array.dup
     scratch_array.pop until scratch_array.empty?
@@ -105,20 +100,6 @@ Benchmark.ips do |x|
     while i > 0
       scratch_array = scratch_array.take(i - 1)
       i -= 1
-    end
-  end
-
-  x.report "array delete_at, random" do
-    scratch_array = base_array.dup
-    random_elements.each do |re|
-      scratch_array.delete_at(re)
-    end
-  end
-
-  x.report "array delete, random" do
-    scratch_array = base_array.dup
-    random_elements.each do |re|
-      scratch_array.delete(re)
     end
   end
 
