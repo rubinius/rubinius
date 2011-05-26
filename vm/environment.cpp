@@ -170,6 +170,11 @@ namespace rubinius {
 
     int fd = 2;
 
+    if(getenv("RBX_PAUSE_ON_CRASH")) {
+      std::cerr << "\n========== CRASH, pausing for 60 seconds to attach debugger\n";
+      sleep(60);
+    }
+
     // If there is a report_path setup..
     if(report_path[0]) {
       fd = open(report_path, O_WRONLY | O_CREAT | O_TRUNC, 0666);
