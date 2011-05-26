@@ -127,7 +127,14 @@ namespace rubinius {
 
     InflatedHeader* ih = inflated_headers_->allocate(obj);
     ih->initialize_mutex(state->thread_id(), count);
-    obj->set_inflated_header(ih);
+
+    if(!obj->set_inflated_header(ih)) {
+      if(obj->inflated_header_p()) return false;
+
+      // Now things are really in a weird state, just abort.
+      std::cerr << "Massive header state confusion detected. Call a doctor.\n";
+      rubinius::abort();
+    }
 
     return true;
   }
@@ -711,7 +718,15 @@ step1:
     if(obj->inflated_header_p()) return obj->inflated_header();
 
     InflatedHeader* header = inflated_headers_->allocate(obj);
-    obj->set_inflated_header(header);
+
+    if(!obj->set_inflated_header(header)) {
+      if(obj->inflated_header_p()) return obj->inflated_header();
+
+      // Now things are really in a weird state, just abort.
+      std::cerr << "Massive header state confusion detected. Call a doctor.\n";
+      rubinius::abort();
+    }
+
     return header;
   }
 
@@ -726,7 +741,18 @@ step1:
 
     InflatedHeader* header = inflated_headers_->allocate(obj);
     header->set_object_id(id);
-    obj->set_inflated_header(header);
+
+    if(!obj->set_inflated_header(header)) {
+      if(obj->inflated_header_p()) {
+        obj->inflated_header()->set_object_id(id);
+        return;
+      }
+
+      // Now things are really in a weird state, just abort.
+      std::cerr << "Massive header state confusion detected. Call a doctor.\n";
+      rubinius::abort();
+    }
+
   }
 
   void ObjectMemory::validate_handles(capi::Handles* handles) {

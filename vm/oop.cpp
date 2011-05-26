@@ -19,11 +19,11 @@ namespace rubinius {
                                      nw.flags64);
   }
 
-  void ObjectHeader::set_inflated_header(InflatedHeader* ih) {
+  bool ObjectHeader::set_inflated_header(InflatedHeader* ih) {
     HeaderWord orig = header;
 
     ih->reset_object(this);
-    ih->update(header);
+    if(!ih->update(header)) return false;
 
     HeaderWord new_val = header;
     new_val.all_flags = ih;
@@ -33,8 +33,10 @@ namespace rubinius {
     // we catch that and keep trying until we get our version in.
     while(!header.atomic_set(orig, new_val)) {
       orig = header;
-      ih->update(header);
+      if(!ih->update(header)) return false;
     }
+
+    return true;
   }
 
   InflatedHeader* ObjectHeader::deflate_header() {
@@ -48,18 +50,21 @@ namespace rubinius {
     return ih;
   }
 
-  void InflatedHeader::update(HeaderWord header) {
+  bool InflatedHeader::update(HeaderWord header) {
     // Gain exclusive access to the insides of the InflatedHeader.
     thread::Mutex::LockGuard lg(mutex_);
 
     flags_ = header.f;
 
     switch(flags_.meaning) {
+    case eAuxWordEmpty:
+      return true;
+
     case eAuxWordObjID:
       object_id_ = flags_.aux_word;
       flags_.meaning = eAuxWordEmpty;
       flags_.aux_word = 0;
-      break;
+      return true;
     case eAuxWordLock:
       {
         assert(owner_id_ == 0);
@@ -69,9 +74,11 @@ namespace rubinius {
         initialize_mutex(tid, count);
       }
 
-      break;
-    case eAuxWordInflated:
-      abort();
+      return true;
+
+    // Unsupported state, abort.
+    default:
+      return false;
     }
   }
 

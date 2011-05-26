@@ -304,7 +304,7 @@ const int cUndef = 0x22L;
       handle_ = handle;
     }
 
-    void update(HeaderWord header);
+    bool update(HeaderWord header);
     void initialize_mutex(int thread_id, int count);
     LockStatus lock_mutex(STATE, size_t us=0);
     LockStatus lock_mutex_timed(STATE, const struct timespec* ts);
@@ -360,7 +360,7 @@ const int cUndef = 0x22L;
       return header_to_inflated_header(header);
     }
 
-    void set_inflated_header(InflatedHeader* ih);
+    bool set_inflated_header(InflatedHeader* ih);
 
     InflatedHeader* deflate_header();
 
