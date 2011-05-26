@@ -706,6 +706,10 @@ step1:
 
     SYNC(state);
 
+    // Gotta check again because while waiting for the lock,
+    // the object could have been inflated!
+    if(obj->inflated_header_p()) return obj->inflated_header();
+
     InflatedHeader* header = inflated_headers_->allocate(obj);
     obj->set_inflated_header(header);
     return header;
