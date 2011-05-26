@@ -9,6 +9,9 @@
 #include "grammar19.hpp"
 #include "symbols.hpp"
 
+#include <unistd.h>
+#include <fcntl.h>
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -50,11 +53,11 @@ VALUE melbourne19_string_to_ast(VALUE self, VALUE source, VALUE name, VALUE line
 VALUE melbourne19_file_to_ast(VALUE self, VALUE fname, VALUE start) {
   StringValue(fname);
 
-  FILE *file = fopen(RSTRING_PTR(fname), "r");
-  if(file) {
+  int fd = open(RSTRING_PTR(fname), O_RDONLY);
+  if(fd) {
     VALUE result = melbourne::grammar19::file_to_ast(self,
-        RSTRING_PTR(fname), file, FIX2INT(start));
-    fclose(file);
+        RSTRING_PTR(fname), fd, FIX2INT(start));
+    close(fd);
 
     return result;
   } else {

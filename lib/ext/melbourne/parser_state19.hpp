@@ -73,7 +73,12 @@ namespace melbourne {
       VALUE (*lex_gets)(rb_parser_state*, VALUE);
 
       /* If this is set, we use the io method. */
-      FILE *lex_io;
+      int lex_io;
+      char* lex_io_buf;
+      int lex_io_index;
+      int lex_io_total;
+      long lex_io_count;
+
       /* Otherwise, we use this. */
       long lex_gets_ptr;
       VALUE lex_input;
@@ -148,7 +153,10 @@ namespace melbourne {
 #define line_buffer         PARSER_VAR(line_buffer)
 #define line_count          PARSER_VAR(line_count)
 #define lex_io              PARSER_VAR(lex_io)
-#define lex_string          PARSER_VAR(lex_string)
+#define lex_io_buf          PARSER_VAR(lex_io_buf)
+#define lex_io_index        PARSER_VAR(lex_io_index)
+#define lex_io_total        PARSER_VAR(lex_io_total)
+#define lex_io_count        PARSER_VAR(lex_io_count)
 #define lex_gets_ptr        PARSER_VAR(lex_gets_ptr)
 #define lex_input           PARSER_VAR(lex_input)
 #define lex_lastline        PARSER_VAR(lex_lastline)

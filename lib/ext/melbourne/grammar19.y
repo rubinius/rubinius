@@ -22,6 +22,9 @@
 #include <stdbool.h>
 #include <stdint.h>
 #include <assert.h>
+#include <stdlib.h>
+#include <unistd.h>
+#include <sys/types.h>
 
 #include "ruby.h"
 
@@ -180,6 +183,11 @@ rb_parser_state *parser_alloc_state() {
   lex_pend = 0;
   parse_error = false;
 
+  lex_io_buf = 0;
+  lex_io_index = 0;
+  lex_io_total = 0;
+  lex_io_count = 0;
+
   eofp = false;
   command_start = true;
   class_nest = 0;
@@ -243,6 +251,8 @@ void pt_free(rb_parser_state *parser_state) {
 
   delete magic_comments;
   delete start_lines;
+
+  if(lex_io_buf) free(lex_io_buf);
 
   if(!memory_pools) return;
 
@@ -3222,42 +3232,62 @@ string_to_ast(VALUE ptp, VALUE name, VALUE source, VALUE line)
   return ret;
 }
 
+#define LEX_IO_BUFLEN  1024
+
 static VALUE parse_io_gets(rb_parser_state* parser_state, VALUE s) {
-  /* TODO
-  if(feof(lex_io)) {
-    return false;
-  }
+  VALUE str = Qnil;
 
-  while(TRUE) {
-    char *ptr, buf[1024];
-    int read;
+  while(true) {
+    if(lex_io_total == 0) {
+      lex_io_total = read(lex_io, lex_io_buf, LEX_IO_BUFLEN);
 
-    ptr = fgets(buf, sizeof(buf), lex_io);
-    if(!ptr) {
-      return false;
+      if(lex_io_total < 1) {
+        lex_io_total = 0;
+        return str;
+      } else {
+        lex_io_index = 0;
+      }
     }
 
-    read = strlen(ptr);
-    bcatblk(line_buffer, ptr, read);
+    // TODO: encoding aware.
+    for(int i = lex_io_index; i < lex_io_total; i++) {
+      if(lex_io_buf[i] == '\n') {
+        int len = i - lex_io_index + 1;
 
-    // check whether we read a full line
-    if(!(read == (sizeof(buf) - 1) && ptr[read] != '\n')) {
-      break;
+        if(str == Qnil) {
+          str = rb_str_new(lex_io_buf + lex_io_index, len);
+        } else {
+          rb_str_cat(str, lex_io_buf + lex_io_index, len);
+        }
+
+        lex_io_count += len;
+        if(i == lex_io_total - 1) {
+          lex_io_total = 0;
+        } else {
+          lex_io_index = i + 1;
+        }
+
+        return str;
+      }
     }
+
+    str = rb_str_new(lex_io_buf + lex_io_index, lex_io_total - lex_io_index);
+    lex_io_total = 0;
   }
-  */
 
   return Qnil;
 }
 
 VALUE
-file_to_ast(VALUE ptp, const char *f, FILE *file, int start)
+file_to_ast(VALUE ptp, const char *f, int fd, int start)
 {
   int n;
   VALUE ret;
   rb_parser_state* parser_state = parser_alloc_state();
 
-  lex_io = file;
+  lex_input = Qnil;
+  lex_io = fd;
+  lex_io_buf = (char*)malloc(LEX_IO_BUFLEN);
   lex_gets = parse_io_gets;
   processor = ptp;
   ruby_sourceline = start - 1;
@@ -3274,7 +3304,7 @@ file_to_ast(VALUE ptp, const char *f, FILE *file, int start)
       ret = process_parse_tree(parser_state, ptp, top_node, NULL);
 
       if(ruby__end__seen && lex_io) {
-        rb_funcall(ptp, rb_sData, 1, ULONG2NUM(ftell(lex_io)));
+        rb_funcall(ptp, rb_sData, 1, ULONG2NUM(lex_io_count));
       }
   } else {
     ret = Qnil;
