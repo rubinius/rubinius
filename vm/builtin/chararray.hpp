@@ -67,7 +67,7 @@ namespace rubinius {
     // Ruby.primitive :chararray_get_utf8_char
     Object* get_utf8_char(STATE, Fixnum* offset);
 
-    // Ruby.primitive :bytearray_reverse
+    // Ruby.primitive :chararray_reverse
     CharArray* reverse(STATE, Fixnum* start, Fixnum* total);
 
     char* to_chars(STATE, Fixnum* size);

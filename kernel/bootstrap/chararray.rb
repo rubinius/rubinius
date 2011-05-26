@@ -91,8 +91,8 @@ module Rubinius
     end
 
     def reverse(start, total)
-      Ruby.primitive :bytearray_reverse
-      raise PrimitiveFailure, "ByteArray#reverse primitive failed"
+      Ruby.primitive :chararray_reverse
+      raise PrimitiveFailure, "CharArray#reverse primitive failed"
     end
   end
 end
