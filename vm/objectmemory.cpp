@@ -36,7 +36,7 @@ namespace rubinius {
   /* ObjectMemory methods */
   ObjectMemory::ObjectMemory(STATE, Configuration& config)
     : young_(new BakerGC(this, config.gc_bytes))
-    , mark_sweep_(new MarkSweepGC(this))
+    , mark_sweep_(new MarkSweepGC(this, config))
     , immix_(new ImmixGC(this))
     , inflated_headers_(new InflatedHeaders)
     , mark_(1)
