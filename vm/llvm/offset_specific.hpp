@@ -142,16 +142,17 @@ namespace CompiledMethod {
   const static int stack_size = 4;
   const static int local_count = 5;
   const static int required_args = 6;
-  const static int total_args = 7;
-  const static int splat = 8;
-  const static int lines = 9;
-  const static int local_names = 10;
-  const static int file = 11;
-  const static int scope = 12;
-  const static int breakpoints = 13;
-  const static int backend_method = 14;
-  const static int jit_data = 15;
-  const static int literals = 16;
+  const static int post_args = 7;
+  const static int total_args = 8;
+  const static int splat = 9;
+  const static int lines = 10;
+  const static int local_names = 11;
+  const static int file = 12;
+  const static int scope = 13;
+  const static int breakpoints = 14;
+  const static int backend_method = 15;
+  const static int jit_data = 16;
+  const static int literals = 17;
 }
 namespace BlockInvocation {
   const static int flags = 0;

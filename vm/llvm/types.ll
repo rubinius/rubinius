@@ -145,6 +145,7 @@
                   %"struct.rubinius::Fixnum"*, ; stack_size
                   %"struct.rubinius::Fixnum"*, ; local_count
                   %"struct.rubinius::Fixnum"*, ; required_args
+                  %"struct.rubinius::Fixnum"*, ; post_args
                   %"struct.rubinius::Fixnum"*, ; total_args
                   %"struct.rubinius::Object"*, ; splat
                    %"struct.rubinius::Tuple"*, ; lines

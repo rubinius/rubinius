@@ -83,13 +83,13 @@ namespace :jit do
       f.puts(*types)
     end
 
-    `llvm-as < vm/gen/types.ll > vm/gen/types.bc`
+    `vm/external_libs/llvm/Release/bin/llvm-as < vm/gen/types.ll > vm/gen/types.bc`
     `vm/external_libs/llvm/Release/bin/llc -march=cpp -cppgen=contents -o vm/llvm/types.cpp.gen vm/gen/types.bc`
   end
 
   task :generate_header do
     puts "GEN vm/llvm/types.cpp.gen"
-    `llvm-as < vm/llvm/types.ll > vm/gen/types.bc`
+    `vm/external_libs/llvm/Release/bin/llvm-as < vm/llvm/types.ll > vm/gen/types.bc`
     `vm/external_libs/llvm/Release/bin/llc -march=cpp -cppgen=contents -o vm/llvm/types.cpp.gen vm/gen/types.bc`
   end
 

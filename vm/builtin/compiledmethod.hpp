@@ -27,6 +27,7 @@ namespace rubinius {
     Fixnum* stack_size_;        // slot
     Fixnum* local_count_;       // slot
     Fixnum* required_args_;     // slot
+    Fixnum* post_args_;         // slot
     Fixnum* total_args_;        // slot
     Object* splat_;             // slot
     Tuple* lines_;              // slot
@@ -64,6 +65,7 @@ namespace rubinius {
     attr_accessor(stack_size, Fixnum);
     attr_accessor(local_count, Fixnum);
     attr_accessor(required_args, Fixnum);
+    attr_accessor(post_args, Fixnum);
     attr_accessor(total_args, Fixnum);
     attr_accessor(splat, Object);
     attr_accessor(literals, Tuple);
