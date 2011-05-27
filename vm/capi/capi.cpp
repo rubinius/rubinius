@@ -152,7 +152,7 @@ namespace rubinius {
       env->state()->shared.leave_capi(env->state());
 
       Object* ret = recv->send(env->state(), env->current_call_frame(),
-          reinterpret_cast<Symbol*>(method_name), args, RBX_Qnil);
+          reinterpret_cast<Symbol*>(method_name), args, blk);
 
       // We need to get the handle for the return value before getting
       // the GEL so that ret isn't accidentally GCd while we wait.
