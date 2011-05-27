@@ -1,5 +1,13 @@
 require File.expand_path("../../compiler", __FILE__)
 
+# TODO: Temporary until compiler stages are reworked.
+module Rubinius
+  class Melbourne19 < Melbourne
+    alias_method :file_to_ast, :file_to_ast_19
+    alias_method :string_to_ast, :string_to_ast_19
+  end
+end
+
 class CompilerScript
   def initialize
     @print_ast    = nil
@@ -172,6 +180,21 @@ class CompilerScript
     end
   end
 
+  def new_compiler(from, to)
+    compiler = Rubinius::Compiler.new from, to
+
+    parser = compiler.parser
+    parser.root Rubinius::AST::Script
+
+    parser.processor Rubinius::Melbourne19 if @use_19
+
+    enable_transforms parser
+
+    set_printers compiler
+
+    compiler
+  end
+
   def compile_files
     collect_files
 
@@ -186,14 +209,11 @@ class CompilerScript
       end
 
       protect file do
-        compiler = Rubinius::Compiler.new :file, :compiled_file
+        compiler = new_compiler :file, :compiled_file
 
         parser = compiler.parser
-        parser.root Rubinius::AST::Script
         parser.input file
-        enable_transforms parser
 
-        set_printers compiler
         set_output compiler, output
 
         compiler.run
@@ -203,26 +223,16 @@ class CompilerScript
 
   def compile_string(string, origin)
     if @output_name
-      compiler = Rubinius::Compiler.new :string, :compiled_file
+      compiler = new_compiler :string, :compiled_file
       set_output compiler, @output_name
     else
-      compiler = Rubinius::Compiler.new :string, :compiled_method
+      compiler = new_compiler :string, :compiled_method
     end
 
     parser = compiler.parser
-    parser.root Rubinius::AST::Script
-    enable_transforms parser
     parser.input string, origin, 1
 
-    set_printers compiler
-
-    # TODO: work this into the compiler itself
-    begin
-      Rubinius::Melbourne.select_19 if @use_19
-      compiler.run
-    ensure
-      Rubinius::Melbourne.select_18
-    end
+    compiler.run
   end
 
   def compile_strings
