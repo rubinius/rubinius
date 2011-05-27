@@ -4,7 +4,6 @@
 #include "node19.hpp"
 #include "node_types19.hpp"
 #include "local_state.hpp"
-#include "encoding_compat.hpp"
 
 #include "bstrlib.h"
 
@@ -13,6 +12,8 @@
 
 namespace melbourne {
   namespace grammar19 {
+
+#include "encoding_compat.hpp"
 
 #define QUID    quark
 
