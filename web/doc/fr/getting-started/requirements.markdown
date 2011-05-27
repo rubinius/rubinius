@@ -1,49 +1,52 @@
 ---
-layout: doc_en
-title: Requirements
-previous: Getting Started
+layout: doc_fr
+title: Pré-requis
+previous: Démarrage
 previous_url: getting-started
-next: Building
+next: Compilation
 next_url: getting-started/building
 ---
 
-Ensure you have the following programs and libraries installed. Also see the
-subsections below for special requirements for your particular operating
-system.
+Assurez vous d'avoir les programmes et bibliothèques suivants installés.
+Consultez aussi les sous-sections ci-dessous pour les pré-requis spécifiques
+à votre système d'exploitation.
 
-The following are suggestions for getting more information about the programs
-and libraries needed to build Rubinius. Your operating system or package
-manager may have other packages available.
+La liste suivante est un ensemble de suggestions pour avoir plus d'information
+à propos des programmes et bibliothèques nécessaires pour compiler Rubinius.
+Votre système d'exploitation ou gestionnaire de paquets peut avoir
+d'autres paquets disponibles.
 
-  * [GCC and G++ 4.x](http://gcc.gnu.org/)
+  * [GCC et G++ 4.x](http://gcc.gnu.org/)
   * [GNU Bison](http://www.gnu.org/software/bison/)
-  * [MRI Ruby 1.8.7+](http://www.ruby-lang.org/) If your system does not have
-    Ruby 1.8.7 installed, consider using [RVM](http://rvm.beginrescueend.com/)
-    to install it.
+  * [MRI Ruby 1.8.7+](http://www.ruby-lang.org/) Si votre système n'a pas
+    Ruby 1.8.7 installé, pensez à utiliser [RVM](http://rvm.beginrescueend.com/)
+    pour l'installer.
   * [Rubygems](http://www.rubygems.org/)
   * [Git](http://git.or.cz/)
   * [ZLib](http://www.zlib.net/)
-  * pthread - The pthread library should be installed by your operating system
+  * pthread - La bibliothèque pthread devrait être installée par votre système d'exploitation
   * [gmake](http://savannah.gnu.org/projects/make/)
   * [rake](http://rake.rubyforge.org/) `[sudo] gem install rake`
 
 
 ### Apple OS X
 
-The easiest way to get a build environment on Apple OS X is to install the
-XCode Tools and Utilities. Once installed, you can enable developer mode crash
-reporting at: /Developer/Applications/Utilities/CrashReporterPrefs.app
+Le moyen le plus facile d'obtenir un environnement de build sur Apple OS X est d'installer les
+Outils et utilitaires XCode. Une fois installés, vous pouvez activer le mode de rapport de plantages
+développeur ici :
 
+`/Developer/Applications/Utilities/CrashReporterPrefs.app`
 
 ### Debian/Ubuntu
 
-  * ruby-dev or ruby1.8-dev
-  * libreadline5-dev
-  * zlib1g-dev
-  * libssl-dev
+  * `ruby-dev` ou `ruby1.8-dev`
+  * `libreadline5-dev`
+  * `zlib1g-dev`
+  * `libssl-dev`
 
 ### FreeBSD
 
-Rubinius has a port in FreeBSD ports tree. It's called `lang/rubinius`. You
-can find information about this port on <http://freshports.org>. Once being
-installed the port installs all the dependencies automagically.
+Rubinius a un portage dans l'arbre des portages FreeBSD. Il s'appelle `lang/rubinius`.
+Vous pouvez trouver des informations à propos de ce portage sur <http://freshports.org/lang/rubinius/>.
+Lors de son installation, le portage installe toutes les dépendances automagiquement.
+
