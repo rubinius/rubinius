@@ -56,9 +56,6 @@ module Rubinius
     end
 
     def self.select_19
-      STDERR.puts "NOTE: The 1.9 syntax parser is disabled while under construction"
-      return
-
       remove_selected_parser
 
       alias_method :file_to_ast,   :file_to_ast_19
@@ -67,8 +64,8 @@ module Rubinius
 
     # Select the default parser language
     if Rubinius.ruby19? || Rubinius.ruby20?
-      STDERR.puts "NOTE: The 1.9 syntax parser is disabled while under construction"
-      select_18
+      STDERR.puts "NOTE: The 1.9 syntax parser is not ready for general use"
+      select_19
     else
       select_18
     end
