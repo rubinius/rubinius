@@ -56,7 +56,7 @@ namespace rubinius {
 
     // defaults
     static const int default_gc_bytes = 1048576 * 3;
-    static const int default_gc_large_object = 2700;
+    static const int default_gc_large_object = 50 * 1024;
     static const int default_gc_lifetime = 3;
     static const int default_gc_marksweep_threshold = (10 * 1024 * 1024);
 

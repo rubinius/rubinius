@@ -159,6 +159,10 @@ namespace rubinius {
 
     Object* copy = immix_->allocate(sz);
 
+    if(unlikely(!copy)) {
+      copy = mark_sweep_->allocate(sz, &collect_mature_now);
+    }
+
     copy->set_obj_type(obj->type_id());
     copy->initialize_full_state(state, obj, 0);
 
@@ -375,6 +379,11 @@ namespace rubinius {
         state->interrupts.set_perform_gc();
 
         obj = immix_->allocate(bytes);
+
+        if(unlikely(!obj)) {
+          obj = mark_sweep_->allocate(bytes, &collect_mature_now);
+        }
+
         if(collect_mature_now) {
           state->interrupts.set_perform_gc();
         }
@@ -411,6 +420,11 @@ namespace rubinius {
 
     } else {
       obj = immix_->allocate(bytes);
+
+      if(unlikely(!obj)) {
+        obj = mark_sweep_->allocate(bytes, &collect_mature_now);
+      }
+
       if(collect_mature_now) {
         state->interrupts.set_perform_gc();
       }

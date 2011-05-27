@@ -75,6 +75,7 @@ namespace immix {
   const int cChunkSize = 10 * 1024 * 1024;
   const int cBlocksPerChunk = cChunkSize / cBlockSize;
   const int cMediumObjectLimit = cLineSize * 4; // TODO calculate this
+  const int cMaxObjectSize = cBlockSize - cLineSize; // one reserved line
 
   enum BlockStatus {
     cFree,

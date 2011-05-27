@@ -78,6 +78,8 @@ namespace rubinius {
     stats::GCStats::get()->allocate_mature.start();
 #endif
 
+    if(bytes > immix::cMaxObjectSize) return 0;
+
     Object* obj = allocator_.allocate(bytes).as<Object>();
     obj->init_header(MatureObjectZone, InvalidType);
     obj->set_in_immix();
