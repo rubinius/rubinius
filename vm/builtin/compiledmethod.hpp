@@ -21,17 +21,17 @@ namespace rubinius {
     const static object_type type = CompiledMethodType;
 
   private:
-    Object* metadata_;           // slot
-    Symbol* name_;               // slot
+    Object* metadata_;          // slot
+    Symbol* name_;              // slot
     InstructionSequence* iseq_; // slot
-    Fixnum* stack_size_;         // slot
-    Fixnum* local_count_;        // slot
-    Fixnum* required_args_;      // slot
-    Fixnum* total_args_;         // slot
-    Object* splat_;              // slot
+    Fixnum* stack_size_;        // slot
+    Fixnum* local_count_;       // slot
+    Fixnum* required_args_;     // slot
+    Fixnum* total_args_;        // slot
+    Object* splat_;             // slot
     Tuple* lines_;              // slot
     Tuple* local_names_;        // slot
-    Symbol* file_;               // slot
+    Symbol* file_;              // slot
     StaticScope* scope_;        // slot
     LookupTable* breakpoints_;  // slot
 
