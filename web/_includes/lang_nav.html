@@ -1,14 +1,16 @@
-    <div class="container languages">
-      <nav>
-        <span class="label">{{ page.lang_label }}:</span>
-        <ul>
-        {% for lang in page.languages %}
-          <li><a href="/doc/{{ lang }}/"
-          {% if page.lang == lang %}
-            class="current"
-          {% endif %}
-          >{{ lang }}</a></li>
-        {% endfor %}
-        </ul>
-      </nav>
-    </div>
+<div class="container languages">
+  <nav>
+  <span class="label">{{ page.lang_label }}:</span>
+  <ul>
+    {% for lang in page.languages %}
+    {% capture oldurl_prefix %}/doc/{{ page.lang }}/{% endcapture %}
+    {% capture newurl_prefix %}/doc/{{ lang }}/{% endcapture %}
+    <li><a href="{{ page.url | replace_first: oldurl_prefix, newurl_prefix }}"
+      {% if page.lang == lang %}
+      class="current"
+      {% endif %}
+      >{{ lang }}</a></li>
+    {% endfor %}
+  </ul>
+  </nav>
+</div>

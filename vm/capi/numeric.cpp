@@ -38,8 +38,8 @@ extern "C" {
       rb_raise(rb_eTypeError, "no implicit conversion from nil to Integer");
     } else if(Fixnum* fix = try_as<Fixnum>(object)) {
       return fix->to_long();
-    } else if(Bignum* big = try_as<Bignum>(object)) {
-      return big->to_long();
+    } else if(try_as<Bignum>(object)) {
+      return rb_big2long(obj);
     } else if(try_as<Float>(object)) {
       return (long)capi_get_float(env, obj)->val;
     } else if(object->true_p()) {
@@ -65,8 +65,8 @@ extern "C" {
 
     Object* object = env->get_object(obj);
 
-    if(Bignum* big = try_as<Bignum>(object)) {
-      return big->to_ulong();
+    if(try_as<Bignum>(object)) {
+      return rb_big2ulong(obj);
     }
 
     return (unsigned long)rb_num2long(obj);

@@ -480,8 +480,8 @@ namespace rubinius {
 
     CompiledFile* cf = CompiledFile::load(stream);
     if(cf->magic != "!RBIX") throw std::runtime_error("Invalid file");
-    if(signature_ > 0) {
-      if(cf->version != signature_) throw BadKernelFile(file);
+    if((signature_ > 0 && cf->version != signature_) || cf->sum != "x") {
+      throw BadKernelFile(file);
     }
 
     cf->execute(state);
