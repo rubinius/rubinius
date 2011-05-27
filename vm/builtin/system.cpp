@@ -144,7 +144,7 @@ namespace rubinius {
     }
 
     uint64_t ver = version->to_ulong_long();
-    if(ver > 0 && cf->version != ver || cf->sum != "x") {
+    if((ver > 0 && cf->version != ver) || cf->sum != "x") {
       return Primitives::failure();
     }
 
