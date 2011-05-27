@@ -126,6 +126,19 @@ describe "CApiObject" do
     @o.rb_check_string_type(h).should == nil
   end
 
+  it "rb_check_to_integer should try to coerce to an integer, otherwise return nil" do
+    x = mock("to_int")
+    x.should_receive(:to_int).and_return(5)
+    y = mock("fake_to_int")
+    y.should_receive(:to_int).and_return("Hello")
+
+    @o.rb_check_to_integer(5, "non_existing").should == 5
+    @o.rb_check_to_integer(5, "to_int").should == 5
+    @o.rb_check_to_integer(x, "to_int").should == 5
+    @o.rb_check_to_integer(y, "to_int").should == nil
+    @o.rb_check_to_integer("Hello", "to_int").should == nil
+  end
+
   it "rb_convert_type should try to coerce to a type, otherwise raise a TypeError" do
     ac = AryChild.new
     ao = Array.new

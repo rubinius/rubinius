@@ -230,6 +230,7 @@
 #define HAVE_RB_ATTR_GET                   1
 #define HAVE_RB_CHECK_ARRAY_TYPE           1
 #define HAVE_RB_CHECK_CONVERT_TYPE         1
+#define HAVE_RB_CHECK_TO_INTEGER           1
 #define HAVE_RB_CHECK_FROZEN               1
 #define HAVE_RB_CHECK_STRING_TYPE          1
 #define HAVE_RB_CLASS_OF                   1
