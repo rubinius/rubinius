@@ -50,6 +50,7 @@ namespace rubinius {
     void setup_cpp_terminate();
 
     void load_config_argv(int argc, char** argv);
+    void load_vm_options(int argc, char** argv);
     void load_argv(int argc, char** argv);
     void load_kernel(std::string root);
     void load_directory(std::string dir);
