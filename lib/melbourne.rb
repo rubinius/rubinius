@@ -117,4 +117,12 @@ module Rubinius
       nil
     end
   end
+
+  class Melbourne19 < Melbourne
+    alias_method :file_to_ast, :file_to_ast_19
+    alias_method :string_to_ast, :string_to_ast_19
+  end
+
+  class Melbourne20 < Melbourne19
+  end
 end

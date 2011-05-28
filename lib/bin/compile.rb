@@ -1,13 +1,5 @@
 require File.expand_path("../../compiler", __FILE__)
 
-# TODO: Temporary until compiler stages are reworked.
-module Rubinius
-  class Melbourne19 < Melbourne
-    alias_method :file_to_ast, :file_to_ast_19
-    alias_method :string_to_ast, :string_to_ast_19
-  end
-end
-
 class CompilerScript
   def initialize
     @print_ast    = nil
