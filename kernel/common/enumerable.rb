@@ -147,7 +147,7 @@ module Enumerable
   end
 
   def sort_by
-    return to_enum :sort unless block_given?
+    return to_enum :sort_by unless block_given?
 
     # Transform each value to a tuple with the value and it's sort by value
     sort_values = map { |x| SortedElement.new(x, yield(x)) }
