@@ -778,6 +778,8 @@ remember:
     Value* ffi_result = ops_.b().CreateCall(ep_ptr, ffi_args.begin(),
                            ffi_args.end(), "ffi_result");
 
+    check.call("rbx_exit_unmanaged", check_args, 2, "unused", ops_.b());
+
     Value* res_args[] = { ops_.vm(), ffi_result };
 
     Value* result;
@@ -885,8 +887,6 @@ remember:
       abort();
 
     }
-
-    check.call("rbx_exit_unmanaged", check_args, 2, "unused", ops_.b());
 
     exception_safe();
     set_result(result);

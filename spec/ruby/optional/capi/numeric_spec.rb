@@ -24,6 +24,36 @@ describe "CApiNumericSpecs" do
       @s.rb_num2long(5).should == 5
     end
 
+    platform_is :wordsize => 32 do
+      it "converts -1 to an signed number" do
+        @s.rb_num2long(-1).should == -1
+      end
+
+      it "converts a negative Bignum into an signed number" do
+        @s.rb_num2long(-2147442171).should == -2147442171
+      end
+
+      it "raises a RangeError if the value is more than 32bits" do
+        lambda { @s.rb_num2long(0xffff_ffff+1) }.should raise_error(RangeError)
+      end
+    end
+
+    platform_is :wordsize => 64 do
+      it "converts -1 to an signed number" do
+        @s.rb_num2long(-1).should == -1
+      end
+
+      it "converts a negative Bignum into an signed number" do
+        @s.rb_num2long(-9223372036854734331).should == -9223372036854734331
+      end
+
+      it "raises a RangeError if the value is more than 64bits" do
+        lambda do
+          @s.rb_num2long(0xffff_ffff_ffff_ffff+1)
+        end.should raise_error(RangeError)
+      end
+    end
+
     it "calls #to_int to coerce the value" do
       obj = mock("number")
       obj.should_receive(:to_int).and_return(2)
@@ -46,6 +76,36 @@ describe "CApiNumericSpecs" do
 
     it "converts a Fixnum" do
       @s.rb_num2ulong(5).should == 5
+    end
+
+    platform_is :wordsize => 32 do
+      it "converts -1 to an unsigned number" do
+        @s.rb_num2ulong(-1).should == 4294967295
+      end
+
+      it "converts a negative Bignum into an unsigned number" do
+        @s.rb_num2ulong(-2147442171).should == 2147525125
+      end
+
+      it "raises a RangeError if the value is more than 32bits" do
+        lambda { @s.rb_num2ulong(0xffff_ffff+1) }.should raise_error(RangeError)
+      end
+    end
+
+    platform_is :wordsize => 64 do
+      it "converts -1 to an unsigned number" do
+        @s.rb_num2ulong(-1).should == 18446744073709551615
+      end
+
+      it "converts a negative Bignum into an unsigned number" do
+        @s.rb_num2ulong(-9223372036854734331).should == 9223372036854817285
+      end
+
+      it "raises a RangeError if the value is more than 64bits" do
+        lambda do
+          @s.rb_num2ulong(0xffff_ffff_ffff_ffff+1)
+        end.should raise_error(RangeError)
+      end
     end
 
     it "calls #to_int to coerce the value" do

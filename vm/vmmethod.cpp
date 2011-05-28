@@ -94,6 +94,7 @@ namespace rubinius {
     , name_(meth->name())
     , method_id_(state->shared.inc_method_count())
     , debugging(false)
+    , flags(0)
   {
     meth->set_executor(&VMMethod::execute);
 

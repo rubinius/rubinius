@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Announcing Rubinius Rewards - Rubinius</title>
+    <meta content='text/html;charset=utf-8' http-equiv='content-type'>
+    <meta content='en' http-equiv='content-language'>
+    <meta content='Rubinius is an implementation of the Ruby programming language. The Rubinius bytecode virtual machine is written in C++. The bytecode compiler is written in pure Ruby. The vast majority of the core library is also written in Ruby, with some supporting primitives that interact with the VM directly.' name='description'>
+    <meta content='Less Than Three. &lt;3. http://less.thanthree.com' name='author'>
+    <link href='/' rel='home'>
+    <link href='/' rel='start'>
+    
+    
+    <link href='/feed/atom.xml' rel='alternate' type='application/atom+xml' title='Rubinius Blog' />
+    <!--[if IE]><script src="http://html5shiv.googlecode.com/svn/trunk/html5.js" type="text/javascript"></script><![endif]-->
+    <script src="/javascripts/jquery-1.3.2.js" type="text/javascript"></script>
+    <script src="/javascripts/paging_keys.js" type="text/javascript"></script>
+    
+    <script src="/javascripts/application.js" type="text/javascript"></script>
+    <style>article, aside, dialog, figure, footer, header, hgroup, menu, nav, section { display: block; }</style>
+
+    <link href="/stylesheets/blueprint/screen.css" media="screen" rel="stylesheet" type="text/css" />
+    <link href="/stylesheets/application.css" media="screen" rel="stylesheet" type="text/css" />
+    <link href="/stylesheets/blueprint/print.css" media="print" rel="stylesheet" type="text/css" />
+    <!--[if IE]><link href="/stylesheets/blueprint/ie.css" media="screen" rel="stylesheet" type="text/css" /><![endif]-->
+    <!--[if IE]><link href="/stylesheets/ie.css" media="screen" rel="stylesheet" type="text/css" /><![endif]-->
+    <link href="/stylesheets/pygments.css" media="screen" rel="stylesheet" type="text/css" />
+  </head>
+    <body>
+        <div class='container'>
+      <div class='span-21 blog_menu'>
+        <header>
+                    <nav>
+            <ul>
+              <li><a href="/">Home</a></li>
+              <li><a id="blog" href="/blog/">Blog</a></li>
+              <li><a id="documentation" href="/doc/en/">Documentation</a></li>
+              <li><a href="/projects/">Projects</a></li>
+              <li><a href="/roadmap/">Roadmap</a></li>
+              <li><a href="/releases/">Releases</a></li>
+            </ul>
+          </nav>
+
+        </header>
+      </div>
+            <div class='span-3 last'>
+        <div id='version'>
+          <a href="/releases/1.2.3">1.2.3</a>
+        </div>
+      </div>
+
+    </div>
+
+        <div class="container posts_nav">
+      <nav>
+        <a href="/blog/posts_index/">Index of Posts</a>
+        <a id="feed_icon" href="/feed/atom.xml"><img alt="subscribe" src="/images/feed-icon16x16.png" /></a>
+      </nav>
+    </div>
+
+
+    <div class="container blog_posts">
+      <h2 class="post_title">Announcing Rubinius Rewards</h2>
+      
+            <div class="by_line">
+        <p><span class="author">Shane Becker</span>
+          <span class="date">26 May 2011</span>
+          
+        </p>
+      </div>
+
+      <h2 id="tldr">tl;dr</h2>
+
+<p>Email <a href="&#109;&#097;&#105;&#108;&#116;&#111;:&#099;&#111;&#109;&#109;&#117;&#110;&#105;&#116;&#121;&#064;&#114;&#117;&#098;&#105;&#110;&#105;&#046;&#117;&#115;">&#099;&#111;&#109;&#109;&#117;&#110;&#105;&#116;&#121;&#064;&#114;&#117;&#098;&#105;&#110;&#105;&#046;&#117;&#115;</a> to get stickers and
+t-shirts. Include your mailing address.</p>
+
+<h2 id="we-made-t-shirts-and-stickers">We Made T-Shirts and Stickers</h2>
+
+<p>We heard you like stickers and t-shirts, so we made some. They
+debuted at <a href="http://en.oreilly.com/rails2011" title="RailsConf 2011 - O'Reilly Conferences, May 16 - 19, 2011, Baltimore, MD!">RailsConf 2011 in Baltimore, MD</a>.
+Then we gave almost all of them away in just a few hours. They went like
+hotcakes. It turns out that there was a lot of pent up demand for Rubinius
+swag.</p>
+
+<p>Not everyone could be at RailsConf to get the goods, of course. Even some
+people who were there didn&rsquo;t get their shirts/stickers. If you didn&rsquo;t get one
+and want one, we&rsquo;re very sorry, but don&rsquo;t you worry. We&rsquo;ve got you covered.</p>
+
+<h2 id="general-availability-stickers">General Availability Stickers</h2>
+
+<p><a href="http://www.flickr.com/photos/veganstraightedge/5742057726"><img src="http://farm3.static.flickr.com/2458/5742057726_48c42d5462_z.jpg" alt="A box of Rubinius stickers" title="A box of Rubinius stickers by veganstraightedge, on Flickr" /></a></p>
+
+<p>We&rsquo;ve got a box of stickers in three designs:
+<a href="http://asset.rubini.us/web/images/blog/rubinius_square_sticker.png">square</a>,
+<a href="http://asset.rubini.us/web/images/blog/rubinius_bumper_sticker.png">bumper</a>
+and
+<a href="http://asset.rubini.us/web/images/blog/rubinius_diecut_sticker.png">die-cut</a>.</p>
+
+<p><a href="&#109;&#097;&#105;&#108;&#116;&#111;:&#099;&#111;&#109;&#109;&#117;&#110;&#105;&#116;&#121;&#064;&#114;&#117;&#098;&#105;&#110;&#105;&#046;&#117;&#115;">&#069;&#109;&#097;&#105;&#108;&#032;&#117;&#115;</a> and tell us which one you want.</p>
+
+<h2 id="general-availability-t-shirt">General Availability T-Shirt</h2>
+
+<p>We&rsquo;re printing 500 more grey Rubinius t-shirts in the two different designs
+and in a a handful of sizes (women&rsquo;s small and medium, unisex small &ndash;
+xx-large).</p>
+
+<p><a href="&#109;&#097;&#105;&#108;&#116;&#111;:&#099;&#111;&#109;&#109;&#117;&#110;&#105;&#116;&#121;&#064;&#114;&#117;&#098;&#105;&#110;&#105;&#046;&#117;&#115;">&#069;&#109;&#097;&#105;&#108;&#032;&#117;&#115;</a> and tell us which design / size you want:
+<a href="http://asset.rubini.us/web/images/blog/rubinius_use_ruby_square_shirt.jpg">square</a>
+or
+<a href="http://asset.rubini.us/web/images/blog/rubinius_use_ruby_horizontal_shirt.jpg">horizontal</a>
+in
+women&rsquo;s small, women&rsquo;s medium, unisex small, unisex medium, unisex large,
+unisex x-large or unisex xx-large.</p>
+
+<p><a href="http://www.flickr.com/photos/veganstraightedge/5709097384"><img src="http://farm4.static.flickr.com/3469/5709097384_0bde99e1d3_z.jpg" alt="Rubinius &quot;Use Ruby&trade;&quot; T-Shirts at the Farmhouse in Hollywood, CA" title="Rubinius &quot;Use Ruby&trade;&quot; T-Shirts at the Farmhouse in Hollywood, CA, on Flickr" /></a></p>
+
+<p>Photo by <a href="http://flickr.com/tjnelsonjunior" title="Flickr: tjnelsonjunior's Photostream">Tj Nelson Jr</a>
+<a href="http://twitter.com/tjnelsonjr" title="@tjnelsonjr">@tjnelsonjr</a></p>
+
+<h2 id="first-commit-sticker">First Commit Sticker</h2>
+
+<p>Going forward, we want to reward everyone who makes a contribution to
+Rubinius. As a very small token of our gratitude, we&rsquo;re mailing a Rubinius
+sticker (and a handwritten thank you note from one of us) to everyone after
+their first commit. So, if you&rsquo;ve ever thought about dipping your toe into
+Rubinius (or diving headlong into the deep end), now&rsquo;s the best time ever.
+Help us make Rubinius better (in big and small ways) and we&rsquo;ll send you stuff.</p>
+
+<h2 id="tenth-commit-shirt">Tenth Commit Shirt</h2>
+
+<p>We want you to stick around and keep helping Rubinius to get better and better.
+If you make 10 commits to Rubinius, we&rsquo;ll send you a special shirt only
+available to committers. That design is still a secret for now, but it&rsquo;s just
+for 10+ committers.</p>
+
+<p><em>Please, don&rsquo;t try to game the system by intentionally breaking stuff up into
+smaller commits just to bump up your count. Let&rsquo;s keep it honest.</em></p>
+
+<h2 id="quarterly-committer-merit-badge-stickers">Quarterly Committer Merit Badge Stickers</h2>
+
+<p>In addition to getting a generally available sticker after your first commit,
+at the end of each calendar quarter (every three months) we&rsquo;re sending a
+sticker to everyone who committed to Rubinius <strong>during</strong> that quarter.</p>
+
+<p>E.g. after July 1, 2011, we&rsquo;ll print and ship a sticker to everyone who
+committed between April 1 and June 30. Each quarter&rsquo;s sticker has the year /
+quarter in the corner. Keep committing every quarter and you&rsquo;ll keep
+collecting the merit badge stickers.</p>
+
+<h2 id="one-more-thing-mdash-im-committed-sticker">One More Thing &mdash; I&rsquo;m Committed* Sticker</h2>
+
+<p>Rubinius is obviously older than the new Rubinius Rewards program. To backfill
+for all the contributions people have made over the years up until, we have a
+<em>super duper limited edition never to be made again</em> sticker&hellip; the asterisk.</p>
+
+<p><a href="http://www.flickr.com/photos/veganstraightedge/5742135762"><img src="http://farm4.static.flickr.com/3187/5742135762_521146bdf9_z.jpg" alt="Rubinius stickers on my laptop" title="The new @Rubinius stickers on my @EngineYard laptop, on Flickr" /></a></p>
+
+<h2 id="get-in-touch">Get in Touch</h2>
+
+<p>If you&rsquo;re a past committer, <a href="&#109;&#097;&#105;&#108;&#116;&#111;:&#099;&#111;&#109;&#109;&#117;&#110;&#105;&#116;&#121;&#064;&#114;&#117;&#098;&#105;&#110;&#105;&#046;&#117;&#115;">&#101;&#109;&#097;&#105;&#108;&#032;&#117;&#115;</a> your
+mailing address get your special merit sticker. If you&rsquo;re a new committer,
+we&rsquo;ll try to take note and reach out to you. If you don&rsquo;t hear from us,
+don&rsquo;t be afraid to contact us with your mailing address.</p>
+
+<h3 id="up-next">Up Next&hellip;</h3>
+
+<p>Rubinius International Outposts.</p>
+
+
+      <div id="disqus_thread"></div>
+<script type="text/javascript">
+    var disqus_shortname = 'rubinius';
+    var disqus_identifier = '/2011/05/26/rubinius-rewards/';
+    var disqus_url = 'http://rubini.us/2011/05/26/rubinius-rewards/';
+
+    (function() {
+        var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+        dsq.src = 'http://' + disqus_shortname + '.disqus.com/embed.js';
+        (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+    })();
+</script>
+<noscript>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+
+    </div>
+        <footer>
+      <div class='container'>
+        <nav>
+          <ul>
+            <li><a href="http://twitter.com/rubinius">Follow Rubinius on Twitter</a></li>
+            <li><a href="http://github.com/evanphx/rubinius">Fork Rubinius on github</a></li>
+            <li><a href="http://engineyard.com">An Engine Yard project</a></li>
+
+            <li id='credit'>
+              Site design by
+              <a href="http://less.thanthree.com">Less Than Three</a>
+            </li>
+          </ul>
+        </nav>
+      </div>
+    </footer>
+        <script type="text/javascript">
+        var gaJsHost = (("https:" == document.location.protocol) ? "https://ssl." : "http://www.");
+        document.write(unescape("%3Cscript src='" + gaJsHost + "google-analytics.com/ga.js' type='text/javascript'%3E%3C/script%3E"));
+        </script>
+
+        <script type="text/javascript">
+        try {
+        var pageTracker = _gat._getTracker("UA-12328521-1");
+        pageTracker._trackPageview();
+        } catch(err) {}</script>
+
+  </body>
+
+</html>

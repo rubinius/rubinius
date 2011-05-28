@@ -62,10 +62,46 @@ namespace rubinius {
     return sym;
   }
 
+  struct SpecialOperator {
+    const char* name;
+    const char* symbol;
+  };
+
+  // These are a set of special operators that MRI
+  // changes the symbol value of.
+  static SpecialOperator SpecialOperators[] = {
+    {"+(binary)", "+"},
+    {"-(binary)", "-"},
+    {"+(unary)", "+@"},
+    {"-(unary)", "-@"},
+    {"!(unary)", "!"},
+    {"~(unary)", "~"},
+    {"!@", "!"},
+    {"~@", "~"}
+  };
+
+  const static int cNumSpecialOperators = 8;
+
+  static const char* find_special(const char* check) {
+    for(int i = 0; i < cNumSpecialOperators; i++) {
+      SpecialOperator* op = &SpecialOperators[i];
+      if(*op->name == *check && strcmp(op->name, check) == 0) {
+        return op->symbol;
+      }
+    }
+
+    return 0;
+  }
+
+
   Symbol* SymbolTable::lookup(const char* str) {
     size_t sym;
 
     if(*str == 0) return NULL;
+
+    if(const char* op = find_special(str)) {
+      str = op;
+    }
 
     hashval hash = String::hash_str(str);
 

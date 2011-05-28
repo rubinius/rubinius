@@ -13,9 +13,6 @@
 #include "util/dlmalloc_cpp.hpp"
 #endif
 
-
-#define MS_COLLECTION_BYTES 10485760
-
 namespace rubinius {
 
   /* Forwards */
@@ -39,6 +36,7 @@ namespace rubinius {
     std::list<Object*> entries;
     size_t allocated_bytes;
     size_t allocated_objects;
+    int    collection_threshold;
     int    next_collection_bytes;
     bool   free_entries;
     int    times_collected;
@@ -46,7 +44,7 @@ namespace rubinius {
 
     /* Prototypes */
 
-    MarkSweepGC(ObjectMemory *om);
+    MarkSweepGC(ObjectMemory *om, Configuration& config);
     virtual ~MarkSweepGC();
     void   free_objects();
     Object* allocate(size_t bytes, bool *collect_now);

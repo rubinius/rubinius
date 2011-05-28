@@ -7,6 +7,26 @@ describe :string_to_sym, :shared => true do
     "abc=".send(@method).should == :abc=
   end
 
+  it "special cases !@ and ~@" do
+    "!@".to_sym.should == :"!"
+    "~@".to_sym.should == :~
+  end
+
+  it "special cases !(unary) and ~(unary)" do
+    "!(unary)".to_sym.should == :"!"
+    "~(unary)".to_sym.should == :~
+  end
+
+  it "special cases +(binary) and -(binary)" do
+    "+(binary)".to_sym.should == :+
+    "-(binary)".to_sym.should == :-
+  end
+
+  it "special cases +(unary) and -(unary)" do
+    "+(unary)".to_sym.should == :"+@"
+    "-(unary)".to_sym.should == :"-@"
+  end
+
   ruby_version_is ""..."1.9" do
     it "raises an ArgumentError when self can't be converted to symbol" do
       lambda { "".send(@method)           }.should raise_error(ArgumentError)

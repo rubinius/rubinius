@@ -146,6 +146,10 @@ namespace rubinius {
 
   VALUE NativeMethodEnvironment::get_handle(Object* obj) {
     if(obj->reference_p()) {
+      if(!current_native_frame_) {
+        rubinius::bug("Unable to create handles with no NMF");
+      }
+
       return current_native_frame_->get_handle(state_, obj);
     } else if(obj->fixnum_p() || obj->symbol_p()) {
       return reinterpret_cast<VALUE>(obj);
@@ -168,24 +172,32 @@ namespace rubinius {
   }
 
   Object* NativeMethodEnvironment::block() {
+    if(!current_native_frame_) return Qnil;
     return get_object(current_native_frame_->block());
   }
 
   capi::HandleSet& NativeMethodEnvironment::handles() {
+    if(!current_native_frame_) {
+      rubinius::bug("Requested handles with no frame");
+    }
+
     return current_native_frame_->handles();
   }
 
   void NativeMethodEnvironment::flush_cached_data() {
+    if(!current_native_frame_) return;
     current_native_frame_->flush_cached_data();
   }
 
   void NativeMethodEnvironment::check_tracked_handle(capi::Handle* hdl,
                                                      bool need_update)
   {
+    if(!current_native_frame_) return;
     current_native_frame_->check_tracked_handle(hdl, need_update);
   }
 
   void NativeMethodEnvironment::update_cached_data() {
+    if(!current_native_frame_) return;
     current_native_frame_->update_cached_data();
   }
 

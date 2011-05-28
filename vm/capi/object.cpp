@@ -125,6 +125,17 @@ extern "C" {
     return Qnil;
   }
 
+  VALUE rb_check_to_integer(VALUE object_handle, const char *method_name) {
+    if(FIXNUM_P(object_handle)) {
+      return object_handle;
+    }
+    VALUE result = rb_check_convert_type(object_handle, 0, "Integer", method_name);
+    if(rb_obj_is_kind_of(result, rb_cInteger)) {
+      return result;
+    }
+    return Qnil;
+  }
+
   /** @todo   This is horrible. Refactor. --rue */
   VALUE rb_convert_type(VALUE object_handle, int type,
                         const char* type_name, const char* method_name)

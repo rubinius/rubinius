@@ -899,6 +899,10 @@ VALUE rb_uint2big(unsigned long number);
   /** If object responds to #to_str, returns the result of that call, otherwise nil. */
   VALUE   rb_check_string_type(VALUE object);
 
+  /** If object responds to the given method, returns the result of that call
+   * when an integer, otherwise nil. */
+  VALUE   rb_check_to_integer(VALUE object, const char* method_name);
+
   /** Raises an exception if object is frozen. */
   void    rb_check_frozen(VALUE object);
 

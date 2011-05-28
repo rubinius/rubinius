@@ -11,16 +11,19 @@
 
 #include "instruments/stats.hpp"
 
+#include "configuration.hpp"
+
 #include <iostream>
 #include <algorithm>
 
 namespace rubinius {
 
-  MarkSweepGC::MarkSweepGC(ObjectMemory *om)
+  MarkSweepGC::MarkSweepGC(ObjectMemory *om, Configuration& config)
     : GarbageCollector(om)
     , allocated_bytes(0)
     , allocated_objects(0)
-    , next_collection_bytes(MS_COLLECTION_BYTES)
+    , collection_threshold(config.gc_marksweep_threshold)
+    , next_collection_bytes(collection_threshold)
     , free_entries(true)
     , times_collected(0)
     , last_freed(0)
@@ -61,7 +64,7 @@ namespace rubinius {
     next_collection_bytes -= bytes;
     if(next_collection_bytes < 0) {
       *collect_now = true;
-      next_collection_bytes = MS_COLLECTION_BYTES;
+      next_collection_bytes = collection_threshold;
     }
 
     obj->init_header(MatureObjectZone, InvalidType);

@@ -360,17 +360,24 @@ namespace rubinius {
     indent_attribute(level, "stack_size"); cm->stack_size()->show(state, level);
     indent_attribute(level, "total_args"); cm->total_args()->show(state, level);
 
+    indent_attribute(level, "internalized");
+    if(!cm->backend_method_) {
+      std::cout << "no\n";
+    } else {
+      std::cout << "yes\n";
+
 #ifdef ENABLE_LLVM
-    if(cm->backend_method_ && cm->backend_method_->jitted()) {
-      llvm::outs() << "<LLVM>\n"
-                   << *cm->backend_method_->llvm_function()
-                   << "</LLVM>\n<MachineCode>\n";
-      LLVMState::show_machine_code(
-          cm->backend_method_->jitted_impl(),
-          cm->backend_method_->jitted_bytes());
-      llvm::outs() << "</MachineCode>\n";
-    }
+      if(cm->backend_method_->llvm_function()) {
+        llvm::outs() << "<LLVM>\n"
+                     << *cm->backend_method_->llvm_function()
+                     << "</LLVM>\n<MachineCode>\n";
+        LLVMState::show_machine_code(
+            cm->backend_method_->jitted_impl(),
+            cm->backend_method_->jitted_bytes());
+        llvm::outs() << "</MachineCode>\n";
+      }
 #endif
+    }
 
     close_body(level);
   }

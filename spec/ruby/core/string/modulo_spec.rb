@@ -624,6 +624,11 @@ describe "String#%" do
     ("%*s" % [10, 9]).should == "         9"
   end
 
+  it "respects a space padding request not as part of the width" do
+    x = "% -5s" % ["foo"]
+    x.should == "foo  "
+  end
+
   it "calls to_s on non-String arguments for %s format" do
     obj = mock('obj')
     def obj.to_s() "obj" end

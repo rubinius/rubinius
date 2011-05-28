@@ -3,6 +3,8 @@
 require 'open-uri'
 require 'net/https'
 
+GistSubmissionError = Class.new(StandardError)
+
 module Gist
   extend self
 
@@ -24,6 +26,10 @@ module Gist
     req.form_data = data(name, nil, content, private_gist)
 
     res = http.start {|h| h.request(req) }
+
+    unless res.kind_of?(Net::HTTPRedirection)
+      raise GistSubmissionError, %Q{Could not submit gist (#{res.code} #{res.message}). Make sure you've set github.user and github.token in your Git config, or submit the crash report located at '#{ENV['HOME']}/.rubinius_last_error' manually.}
+    end
 
     copy res['Location']
   end
