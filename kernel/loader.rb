@@ -84,12 +84,7 @@ containing the Rubinius standard library files.
       # This conforms more closely to MRI. It is necessary to support
       # paths that mkmf adds when compiling and installing native exts.
       additions = []
-      if Rubinius.ruby19? or Rubinius.ruby20?
-        version_lib = "/19"
-      else
-        version_lib = "/18"
-      end
-      additions << @main_lib + version_lib
+      additions << "#{@main_lib}/#{Rubinius::RUBY_LIB_VERSION}"
       additions << Rubinius::SITE_PATH
       additions << "#{Rubinius::SITE_PATH}/#{Rubinius::CPU}-#{Rubinius::OS}"
       additions << Rubinius::VENDOR_PATH
@@ -509,34 +504,17 @@ VM Options
     def load_compiler
       @stage = "loading the compiler"
 
-      # This happens before we parse ARGV, so we have to check ARGV ourselves
-      # here.
-
-      rebuild = (ARGV.last == "--rebuild-compiler")
-
       begin
-        CodeLoader.require_compiled "compiler", rebuild ? false : true
-      rescue Rubinius::InvalidRBC => e
-        STDERR.puts "There was an error loading the compiler."
-        STDERR.puts "It appears that your compiler is out of date with the VM."
-        STDERR.puts "\nPlease use 'rbx --rebuild-compiler' or 'rake [install]' to"
-        STDERR.puts "bring the compiler back to date."
+        CodeLoader.load_compiler
+      rescue LoadError => e
+        STDERR.puts <<-EOM
+Unable to load the bytecode compiler. Please run 'rake' or 'rake install'
+to rebuild the compiler.
+
+        EOM
+
+        e.render
         exit 1
-      end
-
-      if rebuild
-        STDOUT.puts "Rebuilding compiler..."
-        files =
-          ["#{@main_lib}/compiler.rb"] +
-          Dir["#{@main_lib}/compiler/*.rb"] +
-          Dir["#{@main_lib}/compiler/**/*.rb"]
-
-        files.each do |file|
-          puts "#{file}"
-          Rubinius.compile_file file, true
-        end
-
-        exit 0
       end
     end
 

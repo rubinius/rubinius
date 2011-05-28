@@ -420,9 +420,9 @@ namespace rubinius {
     }
   }
 
-  void Environment::load_directory(std::string dir, std::string version) {
+  void Environment::load_directory(std::string dir) {
     // Read the version-specific load order file.
-    std::string path = dir + "/load_order" + version + ".txt";
+    std::string path = dir + "/load_order.txt";
     std::ifstream stream(path.c_str());
     if(!stream) {
       std::string msg = "Unable to load directory, " + path + " is missing";
@@ -612,15 +612,6 @@ namespace rubinius {
     // Load alpha
     run_file(root + "/alpha.rbc");
 
-    std::string version;
-    if(shared->config.version_20) {
-      version = "20";
-    } else if(shared->config.version_19) {
-      version = "19";
-    } else {
-      version = "18";
-    }
-
     while(!stream.eof()) {
       std::string line;
 
@@ -630,7 +621,7 @@ namespace rubinius {
       // skip empty lines
       if(line.size() == 0) continue;
 
-      load_directory(root + "/" + line, version);
+      load_directory(root + "/" + line);
     }
   }
 
@@ -691,6 +682,15 @@ namespace rubinius {
     state->initialize_config();
 
     load_tool();
+
+    if(shared->config.version_20) {
+      root += "/20";
+    } else if(shared->config.version_19) {
+      root += "/19";
+    } else {
+      root += "/18";
+    }
+    G(rubinius)->set_const(state, "RUNTIME_PATH", String::create(state, root.c_str()));
 
     load_kernel(root);
 

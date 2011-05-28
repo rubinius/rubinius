@@ -94,15 +94,12 @@ int main(int argc, char** argv) {
     env.state->print_backtrace();
     return 1;
   } catch(BadKernelFile& e) {
-    std::cout << "ERROR: BadKernelFile: " << e.what() << "\n\n";
-    std::cout << "An invalid kernel file has been detected.\n";
-    std::cout << "This is because the VM is out of sync with the kernel.\n";
-    std::cout << "Please recompile your kernel using:\n";
-    std::cout << "  rake kernel:clean clean\n";
-    std::cout << "  rake\n";
-    std::cout << "\nIf the problem persists, please open an issue at:\n";
+    std::cout << "ERROR: Unable to load: " << e.what() << std::endl << std::endl;
+    std::cout << "Please run the following commands to rebuild:" << std::endl;
+    std::cout << "  rake clean" << std::endl;
+    std::cout << "  rake or rake install" << std::endl << std::endl;
+    std::cout << "If the problem persists, please open an issue at:" << std::endl;
     std::cout << "  http://github.com/evanphx/rubinius\n";
-    std::cout << "\nThanks,\n  Management.\n";
     return 1;
   } catch(VMException &e) {
     std::cout << "Unknown VM exception detected." << std::endl;

@@ -400,6 +400,14 @@ namespace rubinius {
     G(rubinius)->set_const(state, "VENDOR", String::create(state, RBX_VENDOR));
     G(rubinius)->set_const(state, "OS", String::create(state, RBX_OS));
 
+    if(state->shared.config.version_20) {
+      G(rubinius)->set_const(state, "RUBY_LIB_VERSION", String::create(state, "20"));
+    } else if(state->shared.config.version_19) {
+      G(rubinius)->set_const(state, "RUBY_LIB_VERSION", String::create(state, "19"));
+    } else {
+      G(rubinius)->set_const(state, "RUBY_LIB_VERSION", String::create(state, "18"));
+    }
+
 #ifdef RBX_LITTLE_ENDIAN
     G(rubinius)->set_const(state, "ENDIAN", symbol("little"));
 #else

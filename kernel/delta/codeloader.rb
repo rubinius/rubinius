@@ -82,6 +82,22 @@ module Rubinius
       attr_accessor :load_compiled
       attr_accessor :check_version
 
+      # Loads the pre-compiled bytecode compiler. Sets up paths needed by the
+      # compiler to find dependencies like the parser.
+      def load_compiler
+        Rubinius.const_set :COMPILER_PATH, Rubinius::RUNTIME_PATH
+        Rubinius.const_set :PARSER_PATH, "#{Rubinius::RUNTIME_PATH}/melbourne"
+
+        ext_path = "#{Rubinius::LIB_PATH}/ext/melbourne/rbx/melbourne"
+        Rubinius.const_set :PARSER_EXT_PATH, ext_path
+
+        begin
+          require_compiled "#{Rubinius::COMPILER_PATH}/compiler"
+        rescue Rubinius::InvalidRBC => e
+          raise LoadError, "Unable to load the bytecode compiler", e
+        end
+      end
+
       def require_compiled(name, check_version=true)
         new(name).require_compiled(check_version)
       end
