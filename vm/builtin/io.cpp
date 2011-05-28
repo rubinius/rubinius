@@ -53,7 +53,12 @@ namespace rubinius {
     IO* io = state->new_object<IO>(G(io));
     io->descriptor(state, Fixnum::from(fd));
 
+#ifdef RBX_WINDOWS
+    // TODO: Windows
+    int acc_mode = 0;
+#else
     int acc_mode = fcntl(fd, F_GETFL);
+#endif
     if(acc_mode < 0) {
       // Assume it's closed.
       if(errno == EBADF) {
