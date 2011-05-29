@@ -329,18 +329,13 @@ module Rubinius
 
       parser = compiler.parser
       parser.root AST::Snippet
+      parser.processor Rubinius::Melbourne19
       parser.input string
       transforms.each { |x| parser.enable_transform x }
 
       compiler.generator.processor TestGenerator
 
-      # TODO: make this selectable in the compiler itself
-      begin
-        Rubinius::Melbourne.select_19
-        compiler.run
-      ensure
-        Rubinius::Melbourne.select_18
-      end
+      compiler.run
     end
 
     def initialize(from, to)

@@ -34,33 +34,6 @@ module Rubinius
       new(name, line).parse_file
     end
 
-    def self.remove_selected_parser
-      remove_method :file_to_ast if method_defined? :file_to_ast
-      remove_method :string_to_ast if method_defined? :string_to_ast
-    end
-
-    def self.select_18
-      remove_selected_parser
-
-      alias_method :file_to_ast,   :file_to_ast_18
-      alias_method :string_to_ast, :string_to_ast_18
-    end
-
-    def self.select_19
-      remove_selected_parser
-
-      alias_method :file_to_ast,   :file_to_ast_19
-      alias_method :string_to_ast, :string_to_ast_19
-    end
-
-    # Select the default parser language
-    if Rubinius.ruby19? || Rubinius.ruby20?
-      STDERR.puts "NOTE: The 1.9 syntax parser is not ready for general use"
-      select_19
-    else
-      select_18
-    end
-
     def initialize(name, line, transforms=[])
       @name = name
       @line = line
@@ -87,6 +60,9 @@ module Rubinius
     def syntax_error
       raise @syntax_errors[0] unless @syntax_errors.empty?
     end
+
+    alias_method :file_to_ast, :file_to_ast_18
+    alias_method :string_to_ast, :string_to_ast_18
 
     def parse_string(string)
       syntax_error unless ast = string_to_ast(string, @name, @line)

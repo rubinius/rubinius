@@ -35,10 +35,6 @@ module Rubinius
       AST::FormalArguments.new line, args, defaults, splat
     end
 
-    def process_args19(line, required, optional, splat, post, block)
-      AST::FormalArguments19.new line, required, optional, splat, post, block
-    end
-
     def process_argscat(line, array, rest)
       AST::ConcatArgs.new line, array, rest
     end
@@ -83,10 +79,6 @@ module Rubinius
       else
         node
       end
-    end
-
-    def process_block_pass19(line, arguments, body)
-      AST::BlockPass19.new line, arguments, body
     end
 
     def process_break(line, value)
@@ -292,31 +284,6 @@ module Rubinius
       method_send
     end
 
-    def process_iter19(line, method_send, scope)
-      ary = scope && scope.array || []
-      arguments = nil
-
-      if ary.first.kind_of? AST::FormalArguments
-        arguments = scope.array.shift
-      end
-
-      unless arguments
-        arguments = AST::FormalArguments19.new line, nil, nil, nil, nil, nil
-      end
-
-      case ary.size
-      when 0
-        body = nil
-      when 1
-        body = scope.array.shift
-      else
-        body = scope
-      end
-
-      method_send.block = AST::Iter19.new line, arguments, body
-      method_send
-    end
-
     def process_ivar(line, name)
       AST::InstanceVariableAccess.new line, name
     end
@@ -373,18 +340,9 @@ module Rubinius
       AST::NthRef.new line, ref
     end
 
+    # TODO: Fix the way 1.8 parser handles this
     def process_number(line, base, str)
       value = str.to_i base
-      case value
-      when Fixnum
-        AST::FixnumLiteral.new line, value
-      when Bignum
-        AST::NumberLiteral.new line, value
-      end
-    end
-
-    # TODO: Fix the way 1.8 parser handles this
-    def process_number19(line, value)
       case value
       when Fixnum
         AST::FixnumLiteral.new line, value
@@ -426,12 +384,6 @@ module Rubinius
       AST::Send.new line, AST::Self.new(line), :at_exit, true
     end
 
-    def process_postexe19(line, body)
-      node = AST::Send.new line, AST::Self.new(line), :at_exit, true
-      node.block = AST::Iter.new line, nil, body
-      node
-    end
-
     def process_redo(line)
       AST::Redo.new line
     end
@@ -468,33 +420,6 @@ module Rubinius
       end
     end
 
-    def process_scope19(line, arguments, body)
-      case body
-      when AST::Begin
-        if body.rescue.kind_of? AST::NilLiteral
-          return nil unless arguments
-        end
-        body = AST::Block.new line, [body.rescue]
-      when AST::Block
-        ary = body.array
-        if ary.size > 1 and
-           ary.first.kind_of?(AST::Begin) and
-           ary.first.rescue.kind_of?(AST::NilLiteral)
-          ary.shift
-        end
-      when nil
-        # Nothing
-      else
-        body = AST::Block.new line, [body]
-      end
-
-      if arguments and body
-        body.array.unshift arguments
-      end
-
-      body
-    end
-
     def process_self(line)
       AST::Self.new line
     end
@@ -509,20 +434,6 @@ module Rubinius
 
     def process_super(line, arguments)
       AST::Super.new line, arguments
-    end
-
-    def process_super19(line, arguments)
-      if arguments.kind_of? AST::BlockPass
-        block = arguments
-        arguments = block.arguments
-        block.arguments = nil
-      else
-        block = nil
-      end
-
-      node = AST::Super.new line, arguments
-      node.block = block
-      node
     end
 
     def process_svalue(line, expr)
@@ -588,5 +499,95 @@ module Rubinius
       AST::ZSuper.new line
     end
   end
-end
 
+  class Melbourne19 < Melbourne
+    def process_args(line, required, optional, splat, post, block)
+      AST::FormalArguments19.new line, required, optional, splat, post, block
+    end
+
+    def process_block_pass(line, arguments, body)
+      AST::BlockPass19.new line, arguments, body
+    end
+
+    def process_iter(line, method_send, scope)
+      ary = scope && scope.array || []
+      arguments = nil
+
+      if ary.first.kind_of? AST::FormalArguments
+        arguments = scope.array.shift
+      end
+
+      unless arguments
+        arguments = AST::FormalArguments19.new line, nil, nil, nil, nil, nil
+      end
+
+      case ary.size
+      when 0
+        body = nil
+      when 1
+        body = scope.array.shift
+      else
+        body = scope
+      end
+
+      method_send.block = AST::Iter19.new line, arguments, body
+      method_send
+    end
+
+    def process_number(line, value)
+      case value
+      when Fixnum
+        AST::FixnumLiteral.new line, value
+      when Bignum
+        AST::NumberLiteral.new line, value
+      end
+    end
+
+    def process_postexe(line, body)
+      node = AST::Send.new line, AST::Self.new(line), :at_exit, true
+      node.block = AST::Iter.new line, nil, body
+      node
+    end
+
+    def process_scope(line, arguments, body)
+      case body
+      when AST::Begin
+        if body.rescue.kind_of? AST::NilLiteral
+          return nil unless arguments
+        end
+        body = AST::Block.new line, [body.rescue]
+      when AST::Block
+        ary = body.array
+        if ary.size > 1 and
+           ary.first.kind_of?(AST::Begin) and
+           ary.first.rescue.kind_of?(AST::NilLiteral)
+          ary.shift
+        end
+      when nil
+        # Nothing
+      else
+        body = AST::Block.new line, [body]
+      end
+
+      if arguments and body
+        body.array.unshift arguments
+      end
+
+      body
+    end
+
+    def process_super(line, arguments)
+      if arguments.kind_of? AST::BlockPass
+        block = arguments
+        arguments = block.arguments
+        block.arguments = nil
+      else
+        block = nil
+      end
+
+      node = AST::Super.new line, arguments
+      node.block = block
+      node
+    end
+  end
+end

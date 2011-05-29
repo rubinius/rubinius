@@ -13,7 +13,6 @@ namespace melbourne {
   ID rb_sAlias;
   ID rb_sAnd;
   ID rb_sArgs;
-  ID rb_sArgs19;
   ID rb_sArgsCat;
   ID rb_sArgsPush;
   ID rb_sArray;
@@ -23,7 +22,6 @@ namespace melbourne {
   ID rb_sBlock;
   ID rb_sBlockArg;
   ID rb_sBlockPass;
-  ID rb_sBlockPass19;
   ID rb_sBreak;
   ID rb_sCall;
   ID rb_sCase;
@@ -62,7 +60,6 @@ namespace melbourne {
   ID rb_sIAsgn;
   ID rb_sIf;
   ID rb_sIter;
-  ID rb_sIter19;
   ID rb_sIVar;
   ID rb_sLAsgn;
   ID rb_sLit;
@@ -78,7 +75,6 @@ namespace melbourne {
   ID rb_sNot;
   ID rb_sNthRef;
   ID rb_sNumber;
-  ID rb_sNumber19;
   ID rb_sOpAsgn1;
   ID rb_sOpAsgn2;
   ID rb_sOpAsgnAnd;
@@ -86,7 +82,6 @@ namespace melbourne {
   ID rb_sOptArg;
   ID rb_sOr;
   ID rb_sPostExe;
-  ID rb_sPostExe19;
   ID rb_sRedo;
   ID rb_sRegex;
   ID rb_sResbody;
@@ -95,12 +90,10 @@ namespace melbourne {
   ID rb_sReturn;
   ID rb_sSClass;
   ID rb_sScope;
-  ID rb_sScope19;
   ID rb_sSelf;
   ID rb_sSplat;
   ID rb_sStr;
   ID rb_sSuper;
-  ID rb_sSuper19;
   ID rb_sSValue;
   ID rb_sToAry;
   ID rb_sTrue;
@@ -131,7 +124,6 @@ namespace melbourne {
     rb_sAlias       = rb_intern("process_alias");
     rb_sAnd         = rb_intern("process_and");
     rb_sArgs        = rb_intern("process_args");
-    rb_sArgs19      = rb_intern("process_args19");
     rb_sArgsCat     = rb_intern("process_argscat");
     rb_sArgsPush    = rb_intern("process_argspush");
     rb_sArray       = rb_intern("process_array");
@@ -141,7 +133,6 @@ namespace melbourne {
     rb_sBlock       = rb_intern("process_block");
     rb_sBlockArg    = rb_intern("process_block_arg");
     rb_sBlockPass   = rb_intern("process_block_pass");
-    rb_sBlockPass19 = rb_intern("process_block_pass19");
     rb_sBreak       = rb_intern("process_break");
     rb_sCall        = rb_intern("process_call");
     rb_sCase        = rb_intern("process_case");
@@ -180,7 +171,6 @@ namespace melbourne {
     rb_sIAsgn       = rb_intern("process_iasgn");
     rb_sIf          = rb_intern("process_if");
     rb_sIter        = rb_intern("process_iter");
-    rb_sIter19      = rb_intern("process_iter19");
     rb_sIVar        = rb_intern("process_ivar");
     rb_sLAsgn       = rb_intern("process_lasgn");
     rb_sLit         = rb_intern("process_lit");
@@ -196,7 +186,6 @@ namespace melbourne {
     rb_sNot         = rb_intern("process_not");
     rb_sNthRef      = rb_intern("process_nth_ref");
     rb_sNumber      = rb_intern("process_number");
-    rb_sNumber19    = rb_intern("process_number19");
     rb_sOpAsgn1     = rb_intern("process_op_asgn1");
     rb_sOpAsgn2     = rb_intern("process_op_asgn2");
     rb_sOpAsgnAnd   = rb_intern("process_op_asgn_and");
@@ -204,7 +193,6 @@ namespace melbourne {
     rb_sOptArg      = rb_intern("process_opt_arg");
     rb_sOr          = rb_intern("process_or");
     rb_sPostExe     = rb_intern("process_postexe");
-    rb_sPostExe19   = rb_intern("process_postexe19");
     rb_sRedo        = rb_intern("process_redo");
     rb_sRegex       = rb_intern("process_regex");
     rb_sResbody     = rb_intern("process_resbody");
@@ -213,12 +201,10 @@ namespace melbourne {
     rb_sReturn      = rb_intern("process_return");
     rb_sSClass      = rb_intern("process_sclass");
     rb_sScope       = rb_intern("process_scope");
-    rb_sScope19     = rb_intern("process_scope19");
     rb_sSelf        = rb_intern("process_self");
     rb_sSplat       = rb_intern("process_splat");
     rb_sStr         = rb_intern("process_str");
     rb_sSuper       = rb_intern("process_super");
-    rb_sSuper19     = rb_intern("process_super19");
     rb_sSValue      = rb_intern("process_svalue");
     rb_sToAry       = rb_intern("process_to_ary");
     rb_sTrue        = rb_intern("process_true");

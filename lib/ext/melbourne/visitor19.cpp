@@ -288,7 +288,7 @@ namespace melbourne {
 
       VALUE body = process_parse_tree(parser_state, ptp, node->nd_body, locals);
 
-      tree = rb_funcall(ptp, rb_sBlockPass19, 3, line, args, body);
+      tree = rb_funcall(ptp, rb_sBlockPass, 3, line, args, body);
       break;
     }
     case NODE_FOR:
@@ -298,7 +298,7 @@ namespace melbourne {
     case NODE_ITER: {
       VALUE iter = process_parse_tree(parser_state, ptp, node->nd_iter, locals);
       VALUE body = process_parse_tree(parser_state, ptp, node->nd_body, locals);
-      tree = rb_funcall(ptp, rb_sIter19, 3, line, iter, body);
+      tree = rb_funcall(ptp, rb_sIter, 3, line, iter, body);
       break;
     }
     case NODE_BREAK: {
@@ -445,7 +445,7 @@ namespace melbourne {
 
     case NODE_SUPER: {
       VALUE args = process_parse_tree(parser_state, ptp, node->nd_args, locals);
-      tree = rb_funcall(ptp, rb_sSuper19, 2, line, args);
+      tree = rb_funcall(ptp, rb_sSuper, 2, line, args);
       break;
     }
     case NODE_SCOPE: {
@@ -455,7 +455,7 @@ namespace melbourne {
         args = process_parse_tree(parser_state, ptp, node->nd_args, node->nd_tbl);
       }
       VALUE body = process_parse_tree(parser_state, ptp, node->nd_body, node->nd_tbl);
-      tree = rb_funcall(ptp, rb_sScope19, 3, line, args, body);
+      tree = rb_funcall(ptp, rb_sScope, 3, line, args, body);
       break;
     }
     case NODE_OP_ASGN1: {
@@ -742,7 +742,7 @@ namespace melbourne {
         }
       }
 
-      tree = rb_funcall(ptp, rb_sArgs19, 6, line, args, opts, splat, post, block);
+      tree = rb_funcall(ptp, rb_sArgs, 6, line, args, opts, splat, post, block);
       break;
     }
     case NODE_LVAR:
@@ -795,7 +795,7 @@ namespace melbourne {
     }
 
     case NODE_NUMBER:
-      tree = rb_funcall(ptp, rb_sNumber19, 2, line, node->nd_lit);
+      tree = rb_funcall(ptp, rb_sNumber, 2, line, node->nd_lit);
       break;
 
     case NODE_FLOAT:
@@ -885,7 +885,7 @@ namespace melbourne {
     }
     case NODE_POSTEXE: {          /* END { ... } */
       VALUE scope = process_parse_tree(parser_state, ptp, node->nd_2nd, locals);
-      tree = rb_funcall(ptp, rb_sPostExe19, 2, line, scope);
+      tree = rb_funcall(ptp, rb_sPostExe, 2, line, scope);
       break;
     }
     default: {

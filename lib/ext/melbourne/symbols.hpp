@@ -12,7 +12,6 @@ namespace melbourne {
   extern ID rb_sAlias;
   extern ID rb_sAnd;
   extern ID rb_sArgs;
-  extern ID rb_sArgs19;
   extern ID rb_sArgsCat;
   extern ID rb_sArgsPush;
   extern ID rb_sArray;
@@ -22,7 +21,6 @@ namespace melbourne {
   extern ID rb_sBlock;
   extern ID rb_sBlockArg;
   extern ID rb_sBlockPass;
-  extern ID rb_sBlockPass19;
   extern ID rb_sBreak;
   extern ID rb_sCall;
   extern ID rb_sCase;
@@ -61,7 +59,6 @@ namespace melbourne {
   extern ID rb_sIAsgn;
   extern ID rb_sIf;
   extern ID rb_sIter;
-  extern ID rb_sIter19;
   extern ID rb_sIVar;
   extern ID rb_sLAsgn;
   extern ID rb_sLit;
@@ -77,7 +74,6 @@ namespace melbourne {
   extern ID rb_sNot;
   extern ID rb_sNthRef;
   extern ID rb_sNumber;
-  extern ID rb_sNumber19;
   extern ID rb_sOpAsgn1;
   extern ID rb_sOpAsgn2;
   extern ID rb_sOpAsgnAnd;
@@ -85,7 +81,6 @@ namespace melbourne {
   extern ID rb_sOptArg;
   extern ID rb_sOr;
   extern ID rb_sPostExe;
-  extern ID rb_sPostExe19;
   extern ID rb_sRedo;
   extern ID rb_sRegex;
   extern ID rb_sResbody;
@@ -94,12 +89,10 @@ namespace melbourne {
   extern ID rb_sReturn;
   extern ID rb_sSClass;
   extern ID rb_sScope;
-  extern ID rb_sScope19;
   extern ID rb_sSelf;
   extern ID rb_sSplat;
   extern ID rb_sStr;
   extern ID rb_sSuper;
-  extern ID rb_sSuper19;
   extern ID rb_sSValue;
   extern ID rb_sToAry;
   extern ID rb_sTrue;

@@ -63,17 +63,7 @@ class KernelCompiler
 end
 
 # The rule for compiling all kernel Ruby files
-@build_parser_selected = nil
 rule ".rbc" do |t|
-  # We must be able to build 1.9 language features such as 'def !() end'
-  # Consequently, all of kernel needs to be written in the strict subset
-  # of 1.8 that is understood by the 1.9 parser, plus 1.9 features.
-  unless @build_parser_selected
-    # TODO: Until the 1.9 parser is fully functional, we have to use 1.8
-    Rubinius::Melbourne.select_18
-    @build_parser_selected = true
-  end
-
   source = t.prerequisites.first
   version = t.name.match(%r[^runtime/(\d+)])[1]
   puts "RBC #{version.split(//).join('.')} #{source}"
