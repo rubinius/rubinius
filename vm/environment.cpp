@@ -64,6 +64,7 @@ namespace rubinius {
     : argc_(argc)
     , argv_(argv)
     , signature_(0)
+    , version_(0)
     , agent(0)
   {
 #ifdef ENABLE_LLVM
@@ -480,7 +481,8 @@ namespace rubinius {
 
     CompiledFile* cf = CompiledFile::load(stream);
     if(cf->magic != "!RBIX") throw std::runtime_error("Invalid file");
-    if((signature_ > 0 && cf->version != signature_) || cf->sum != "x") {
+    if((signature_ > 0 && cf->signature != signature_)
+        || cf->version != version_) {
       throw BadKernelFile(file);
     }
 
@@ -608,6 +610,9 @@ namespace rubinius {
       std::string error = "Unable to load compiler signature file: " + sig_path;
       throw std::runtime_error(error);
     }
+
+    version_ = as<Fixnum>(G(rubinius)->get_const(
+          state, state->symbol("RUBY_LIB_VERSION")))->to_native();
 
     // Load alpha
     run_file(root + "/alpha.rbc");

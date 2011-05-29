@@ -144,6 +144,7 @@ class CompilerScript
   def set_output(compiler, name)
     if writer = compiler.writer
       writer.name = name
+      writer.version = @use_19 ? 19 : 18
     end
   end
 

@@ -139,7 +139,9 @@ namespace rubinius {
   //
   // HACK: remove this when performance is better and compiled_file.rb
   // unmarshal_data method works.
-  Object* System::compiledfile_load(STATE, String* path, Integer* version) {
+  Object* System::compiledfile_load(STATE, String* path,
+                                    Integer* signature, Integer* version)
+  {
     std::ifstream stream(path->c_str(state));
     if(!stream) {
       return Primitives::failure();
@@ -150,8 +152,9 @@ namespace rubinius {
       return Primitives::failure();
     }
 
-    uint64_t ver = version->to_ulong_long();
-    if((ver > 0 && cf->version != ver) || cf->sum != "x") {
+    uint64_t sig = signature->to_ulong_long();
+    if((sig > 0 && cf->signature != sig)
+        || cf->version != version->to_native()) {
       return Primitives::failure();
     }
 

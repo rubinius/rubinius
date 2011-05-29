@@ -52,6 +52,7 @@ module Rubinius
       parser.input file, line
 
       writer = compiler.writer
+      writer.version = Rubinius::RUBY_LIB_VERSION
       writer.name = output ? output : compiled_name(file)
 
       begin

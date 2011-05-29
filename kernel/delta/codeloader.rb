@@ -122,10 +122,11 @@ module Rubinius
     # TODO: Make the compiled version checking logic available as a Compiler
     # convenience method.
     def load_file(wrap=false)
-      version = CodeLoader.check_version ? Signature : 0
+      signature = CodeLoader.check_version ? Signature : 0
+      version = Rubinius::RUBY_LIB_VERSION
 
       if CodeLoader.load_compiled
-        cm = load_compiled_file @load_path, version
+        cm = load_compiled_file @load_path, signature, version
       else
         compiled_name = Compiler.compiled_name @load_path
 
@@ -134,7 +135,7 @@ module Rubinius
             cm = compile_file @load_path, compiled_name
           else
             begin
-              cm = load_compiled_file compiled_name, version
+              cm = load_compiled_file compiled_name, signature, version
             rescue TypeError, InvalidRBC
               cm = compile_file @load_path, compiled_name
             end
@@ -165,7 +166,7 @@ module Rubinius
     end
 
     # Load a compiled version of a Ruby source file.
-    def load_compiled_file(path, version)
+    def load_compiled_file(path, signature, version)
       Ruby.primitive :compiledfile_load
 
       raise InvalidRBC, path

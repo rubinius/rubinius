@@ -19,15 +19,16 @@
 
 namespace rubinius {
   CompiledFile* CompiledFile::load(std::istream& stream) {
-    std::string magic, sum;
-    uint64_t ver;
+    std::string magic;
+    uint64_t signature;
+    int version;
 
     stream >> magic;
-    stream >> ver;
-    stream >> sum;
+    stream >> signature;
+    stream >> version;
     stream.get(); // eat the \n
 
-    return new CompiledFile(magic, ver, sum, &stream);
+    return new CompiledFile(magic, signature, version, &stream);
   }
 
   Object* CompiledFile::body(STATE) {

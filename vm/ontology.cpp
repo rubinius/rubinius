@@ -401,11 +401,11 @@ namespace rubinius {
     G(rubinius)->set_const(state, "OS", String::create(state, RBX_OS));
 
     if(LANGUAGE_20_ENABLED(state)) {
-      G(rubinius)->set_const(state, "RUBY_LIB_VERSION", String::create(state, "20"));
+      G(rubinius)->set_const(state, "RUBY_LIB_VERSION", Fixnum::from(20));
     } else if(LANGUAGE_19_ENABLED(state)) {
-      G(rubinius)->set_const(state, "RUBY_LIB_VERSION", String::create(state, "19"));
+      G(rubinius)->set_const(state, "RUBY_LIB_VERSION", Fixnum::from(19));
     } else {
-      G(rubinius)->set_const(state, "RUBY_LIB_VERSION", String::create(state, "18"));
+      G(rubinius)->set_const(state, "RUBY_LIB_VERSION", Fixnum::from(18));
     }
 
 #ifdef RBX_LITTLE_ENDIAN

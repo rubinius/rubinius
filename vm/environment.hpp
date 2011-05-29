@@ -41,6 +41,9 @@ namespace rubinius {
     /// needs to be recompiled.
     uint64_t signature_;
 
+    // The Ruby library version with which the .rbc file is compatible.
+    int version_;
+
   public:
     SharedState* shared;
     VM* state;

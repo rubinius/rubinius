@@ -28,18 +28,18 @@ public:
 
   void test_load() {
     std::istringstream stream;
-    stream.str("!RBIX\n1\naoeu\nt");
+    stream.str("!RBIX\n1\n42\nt");
 
     CompiledFile* cf = CompiledFile::load(stream);
     TS_ASSERT_EQUALS(cf->magic, std::string("!RBIX"));
-    TS_ASSERT_EQUALS(cf->version, 1ULL);
-    TS_ASSERT_EQUALS(cf->sum, std::string("aoeu"));
-    TS_ASSERT_EQUALS((long)stream.tellg(), 13);
+    TS_ASSERT_EQUALS(cf->signature, 1ULL);
+    TS_ASSERT_EQUALS(cf->version, 42);
+    TS_ASSERT_EQUALS((long)stream.tellg(), 11);
   }
 
   void test_body() {
     std::istringstream stream;
-    stream.str("!RBIX\n1\naoeu\nt");
+    stream.str("!RBIX\n1\n42\nt");
 
     CompiledFile* cf = CompiledFile::load(stream);
     TS_ASSERT_EQUALS(cf->body(state), Qtrue);

@@ -37,14 +37,19 @@ class KernelCompiler
     parser = compiler.parser
     parser.root Rubinius::AST::Script
 
+    writer = compiler.writer
+
     # Not ready to enable them yet
     case version
     when "18"
       parser.processor Rubinius::Melbourne
+      writer.version = 18
     when "19"
       parser.processor Rubinius::Melbourne
+      writer.version = 19
     when "20"
       parser.processor Rubinius::Melbourne
+      writer.version = 20
     end
 
     if transforms.kind_of? Array

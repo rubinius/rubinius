@@ -4,19 +4,20 @@ module Rubinius
 
   class CompiledFile
     ##
-    # Create a CompiledFile with +magic+ magic bytes, of version +ver+,
-    # data containing a SHA1 sum of +sum+. The optional +stream+ is used
-    # to lazy load the body.
+    # Create a CompiledFile with +magic+ bytes, +signature+, and +version+.
+    # The optional +stream+ is used to lazy load the body.
 
-    def initialize(magic, ver, sum, stream=nil)
-      @magic, @version, @sum = magic, ver, sum
+    def initialize(magic, signature, version, stream=nil)
+      @magic = magic
+      @signature = signature
+      @version = version
       @stream = stream
       @data = nil
     end
 
     attr_reader :magic
+    attr_reader :signature
     attr_reader :version
-    attr_reader :sum
     attr_reader :stream
 
     ##
@@ -27,17 +28,17 @@ module Rubinius
       raise IOError, "attempted to load nil stream" unless stream
 
       magic = stream.gets.strip
+      signature = Integer(stream.gets.strip)
       version = Integer(stream.gets.strip)
-      sum = stream.gets.strip
 
-      return new(magic, version, sum, stream)
+      return new(magic, signature, version, stream)
     end
 
     ##
     # Writes the CompiledFile +cm+ to +file+.
-    def self.dump(cm, file)
+    def self.dump(cm, file, signature, version)
       File.open(file, "wb") do |f|
-        new("!RBIX", Rubinius::Signature, "x").encode_to(f, cm)
+        new("!RBIX", signature, version).encode_to(f, cm)
       end
     rescue SystemCallError
       # just skip writing the compiled file if we don't have permissions
@@ -49,8 +50,8 @@ module Rubinius
 
     def encode_to(stream, body)
       stream.puts @magic
+      stream.puts @signature.to_s
       stream.puts @version.to_s
-      stream.puts @sum.to_s
 
       mar = CompiledFile::Marshal.new
       stream << mar.marshal(body)

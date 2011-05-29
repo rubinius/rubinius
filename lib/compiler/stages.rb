@@ -59,11 +59,13 @@ module Rubinius
     class Writer < Stage
       stage :compiled_file
 
-      attr_accessor :name
+      attr_accessor :name, :version
 
       def initialize(compiler, last)
         super
         compiler.writer = self
+
+        @version = 0
         @processor = Rubinius::CompiledFile
       end
 
@@ -84,7 +86,7 @@ module Rubinius
           end
         end
 
-        @processor.dump @input, @name
+        @processor.dump @input, @name, Signature, @version
         @input
       end
     end
