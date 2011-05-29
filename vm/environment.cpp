@@ -683,9 +683,9 @@ namespace rubinius {
 
     load_tool();
 
-    if(shared->config.version_20) {
+    if(LANGUAGE_20_ENABLED(state)) {
       root += "/20";
-    } else if(shared->config.version_19) {
+    } else if(LANGUAGE_19_ENABLED(state)) {
       root += "/19";
     } else {
       root += "/18";

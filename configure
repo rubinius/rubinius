@@ -49,8 +49,9 @@ class Configure
     @tar = ENV['TAR'] || (@windows ? 'bsdtar' : 'tar')
     @perl = ENV['PERL'] || 'perl'
     @install = false
-    @version_19 = false
-    @version_20 = false
+    @default_version = "18"
+    @version_list = ["18", "19"]
+    @supported_versions = ["18", "19", "20"]
     @build_ruby = nil
 
     # LLVM settings
@@ -106,7 +107,7 @@ class Configure
     @libversion = "2.0"
     @version = "#{@libversion}.0dev"
     @release_date = "yyyy-mm-dd"
-    @config_version = 128
+    @config_version = 129
 
     # TODO: add conditionals for platforms
     if RbConfig::CONFIG["build_os"] =~ /darwin/
@@ -166,12 +167,24 @@ class Configure
       @perl = name
     end
 
-    o.on "--default-1.9", "Support Ruby version 1.9 by default" do
-      @version_19 = true
+    o.doc "\n Language version settings"
+
+    o.on "--default-version", "VERSION", "Enable Ruby VERSION as the default" do |v|
+      version = normalize_versions v
+      if version.size > 1
+        @log.error "Only one version can be default, given: #{version.inspect}"
+        failure
+      end
+      @default_version = version.first
+
+      unless @version_list.include? @default_version
+        @log.error "Requested default version #{@default_version} is not enabled."
+        failure
+      end
     end
 
-    o.on "--default-2.0", "Support Ruby version 2.0 by default" do
-      @version_20 = true
+    o.on "--enable-version", "VERSION", "Enable Ruby VERSION support (eg 18,19)" do |v|
+      @version_list = normalize_versions v
     end
 
     o.doc "\n Compiler settings"
@@ -326,6 +339,19 @@ class Configure
 
   def parse(ary)
     @options.parse ary
+  end
+
+  def normalize_versions(str)
+    versions = str.gsub(/[^\d,]/, "").split(',')
+    versions.each do |ver|
+      unless @supported_versions.include? ver
+        @log.error <<-EOM
+Unsupported language version requested: #{ver}. Options are #{@supported_versions.join(", ")}
+        EOM
+        failure
+      end
+    end
+    versions
   end
 
   require 'digest/md5'
@@ -927,6 +953,7 @@ module Rubinius
     :darwin         => #{@darwin},
     :bsd            => #{@bsd},
     :linux          => #{@linux},
+    :version_list   => #{@version_list.inspect},
   }
 end
       EOC
@@ -955,12 +982,18 @@ end
 #define RBX_VERSION       "#{@version}"
 #define RBX_LIB_VERSION   "#{@libversion}"
 #define RBX_LDSHARED      "#{@ldshared}"
-#define RBX_DEFAULT_19    #{@version_19}
-#define RBX_DEFAULT_20    #{@version_20}
 #define RBX_RELEASE_DATE  "#{@release_date}"
 #define RBX_SIZEOF_LONG   #{@sizeof_long}
 #define RBX_LLVM_API_VER  #{@llvm_api_version}
       EOC
+
+      @supported_versions.each do |ver|
+        f.puts "#define RBX_DEFAULT_#{ver}    #{ver == @default_version}"
+      end
+
+      @version_list.each do |ver|
+        f.puts "#define RBX_ENABLED_#{ver}    1"
+      end
 
       if @little_endian
         f.puts "#define RBX_LITTLE_ENDIAN 1"

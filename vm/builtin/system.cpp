@@ -1291,12 +1291,16 @@ namespace rubinius {
     return Qnil;
   }
 
+  Object* System::vm_ruby18_p(STATE) {
+    return LANGUAGE_18_ENABLED(state) ? Qtrue : Qfalse;
+  }
+
   Object* System::vm_ruby19_p(STATE) {
-    return state->shared.config.version_19 ? Qtrue : Qfalse;
+    return LANGUAGE_19_ENABLED(state) ? Qtrue : Qfalse;
   }
 
   Object* System::vm_ruby20_p(STATE) {
-    return state->shared.config.version_20 ? Qtrue : Qfalse;
+    return LANGUAGE_20_ENABLED(state) ? Qtrue : Qfalse;
   }
 
   Object* System::vm_windows_p(STATE) {

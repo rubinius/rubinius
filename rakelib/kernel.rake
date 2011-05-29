@@ -84,10 +84,6 @@ end
 # various tasks below.
 runtime = FileList["runtime/platform.conf"]
 
-# Names of subdirectories of the runtime/ directory based on language
-# version.
-version_names = %w[ 18 19 20 ]
-
 # Names of subdirectories of the language directories.
 dir_names = %w[
   bootstrap
@@ -161,7 +157,7 @@ file compiler_signature => compiler_files + parser_files do |t|
 end
 
 # Index files for loading a particular version of the kernel.
-version_names.each do |ver|
+BUILD_CONFIG[:version_list].each do |ver|
   directory(runtime_base_dir = "runtime/#{ver}")
   runtime << runtime_base_dir
 

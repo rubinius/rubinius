@@ -298,6 +298,9 @@ namespace rubinius {
     // Ruby.primitive :vm_memory_barrier
     static Object* vm_memory_barrier(STATE);
 
+    // Ruby.primitive :vm_ruby18_p
+    static Object* vm_ruby18_p(STATE);
+
     // Ruby.primitive :vm_ruby19_p
     static Object* vm_ruby19_p(STATE);
 

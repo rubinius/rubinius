@@ -88,7 +88,7 @@ namespace rubinius {
     // Now do Object
     Class* basicobject = 0;
     Class* object;
-    if(state->shared.config.version_19 || state->shared.config.version_20) {
+    if(LANGUAGE_19_ENABLED(state) || LANGUAGE_20_ENABLED(state)) {
       basicobject = new_basic_class(force_as<Class>(Qnil));
       GO(basicobject).set(basicobject);
       basicobject->set_object_type(state, BasicObjectType);
@@ -147,7 +147,7 @@ namespace rubinius {
      */
 
     // BasicObject's SingletonClass instance has Class for a superclass
-    if(state->shared.config.version_19 || state->shared.config.version_20) {
+    if(LANGUAGE_19_ENABLED(state) || LANGUAGE_20_ENABLED(state)) {
       SingletonClass::attach(this, basicobject, cls);
     }
 
@@ -160,7 +160,7 @@ namespace rubinius {
     SingletonClass::attach(this, cls, sc);
 
     // See?
-    if(state->shared.config.version_19 || state->shared.config.version_20) {
+    if(LANGUAGE_19_ENABLED(state) || LANGUAGE_20_ENABLED(state)) {
       assert(basicobject->superclass() == Qnil);
       assert(object->superclass() == basicobject);
     } else {
@@ -184,7 +184,7 @@ namespace rubinius {
 
     // Now, finish initializing the basic Class/Module
     G(object)->setup(this, "Object");
-    if(state->shared.config.version_19 || state->shared.config.version_20) {
+    if(LANGUAGE_19_ENABLED(state) || LANGUAGE_20_ENABLED(state)) {
       G(basicobject)->setup(this, "BasicObject", G(object));
     }
     G(klass)->setup(this, "Class");
@@ -400,9 +400,9 @@ namespace rubinius {
     G(rubinius)->set_const(state, "VENDOR", String::create(state, RBX_VENDOR));
     G(rubinius)->set_const(state, "OS", String::create(state, RBX_OS));
 
-    if(state->shared.config.version_20) {
+    if(LANGUAGE_20_ENABLED(state)) {
       G(rubinius)->set_const(state, "RUBY_LIB_VERSION", String::create(state, "20"));
-    } else if(state->shared.config.version_19) {
+    } else if(LANGUAGE_19_ENABLED(state)) {
       G(rubinius)->set_const(state, "RUBY_LIB_VERSION", String::create(state, "19"));
     } else {
       G(rubinius)->set_const(state, "RUBY_LIB_VERSION", String::create(state, "18"));

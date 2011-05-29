@@ -15,7 +15,7 @@ public:
 
   void test_object() {
     TS_ASSERT_EQUALS(G(object)->class_object(state), G(klass));
-    if(state->shared.config.version_19 || state->shared.config.version_20) {
+    if(LANGUAGE_19_ENABLED(state) || LANGUAGE_20_ENABLED(state)) {
       TS_ASSERT_EQUALS(G(object)->superclass(), G(basicobject));
     } else {
       TS_ASSERT_EQUALS(G(object)->superclass(), Qnil);
