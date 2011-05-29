@@ -1,30 +1,30 @@
 ---
 layout: doc_pt_br
-title: Appendix A - Glossary
-previous: How-To - Translate Documentation
+title: Apêndice A - Glossário
+previous: Como - Traduzir Documentação
 previous_url: how-to/translate-documentation
-next: Appendix B - Reading List
+next: Apêndice B - Lendo a Lista
 next_url: appendix-b-reading-list
-review: true
+review: false
 ---
 
-Definitions of terms and phrases used in the Ruby programming language and in
-this implementation. See also "The Ruby Programming Language" by Flanagan and
+Definições dos termos e frases usadas na linguagem de programação Ruby e nessa
+implementação. Veja também "The Ruby Programming Language" by Flanagan and
 Matsumoto [O'Reilly 2008] and "Programming Ruby: The Pragmatic Programmer's
 Guide" 2nd or 3rd Edition by Thomas et al [The Pragmatic Programmers
 2005-2008]
 
 
-* _method lookup or method resolution_
+* método de pesquisa ou resolução de método
 
-  The rule is simple: Take the object located in the class slot of the object
-  (which is not always the return value of Object#class; if the object has one,
-  it'll be the singleton class) and begin searching.
+  A regra é simples: Pegue o objeto localizado na classe de onde o objeto veio
+  (que nem sempre retorna um valor de Objetct#class; se o objeto tiver um. Ele
+  será uma classe singleton) e começa a procurar.
 
-  Searching goes up the superclass chain until the superclass is nil.
+  A busca sobe até a cadeia de superclasses enquanto a superclasse for nil.
 
-  In which case, redo lookup for method_missing. If we fail to find
-  method_missing, fail tragically.
+  Nesse caso, procura pelo method missing. Se ele falhar na busca
+  o method missing falha tragicamente
 
                                             +----------------+
                                             |      nil       |
@@ -75,38 +75,38 @@ Guide" 2nd or 3rd Edition by Thomas et al [The Pragmatic Programmers
         end
       end
 
-  1. Resolve method 'wanker' -- search method_tables in:
+  1. Resolvendo método 'wanker' -- procura método nas tabelas:
 
       1. SingletonClass(F)
       1. SingletonClass(Object)
       1. Class
 
-  Found
+  Encontrado
 
 
 * _method_table_
 
-  A data structure in every class (and module) that contains the methods defined
-  for that class.
+  A estrutura de dados em cada classe (e módulo) que contem os métodos definidos
+  para cada classe.
 
-  In Rubinius, a class's method_table is an instance of LookupTable.
+  No Rubinius um método de classe é uma instância de LookupTable.
 
 
 * _MatzRuby_
 
-  See MRI
+  Veja MRI
 
 
 * _MRI_
 
-  Matz's Ruby Interpreter or Matz's Ruby Implementation. A short name to refer
-  to the official implementation of Ruby. See <http://ruby-lang.org>.
+  Matz's Ruby Interpreter ou implementação do interpretador ruby. O nome da
+  implementação oficial do Ruby. Veja <http://ruby-lang.org>.
 
 
 * _private send_
 
-  A method call that has no explicit lexical receiver. The receiver of the
-  call is +self+. For example:
+  Uma chamada de método que não tem um receptor léxico explícito. O receptor
+  de uma chamada é o +self+. Por exemplo:
 
       class A
       private
@@ -127,44 +127,42 @@ Guide" 2nd or 3rd Edition by Thomas et al [The Pragmatic Programmers
         end
       end
 
-  The call to +you_are_mine+ in the method +sunshine+ is a private send. The
-  call to +today.you_are_mine+ will not succeed because private methods cannot
-  have an explicit receiver. In this case, the object +today+ is the explicit
-  receiver.
-
+  A chamada para +you_are_mine+ no método +sunshine+ é uma chamada privada.
+  A chamada para +today.you_are_mine+ não terá sucesso porque métodos privados
+  não tem receptor explicito. Nesse caso, o objeto +today+ é um receptor 
+  explicito
 
 * _singleton class_
 
-  Every object in Ruby can have one, although they are only created as
-  necessary. The singleton class holds the method and constant tables that
-  belong only to a particular object instance.  For example, the method
-  +hello+ defined below exists only in the singleton class for +obj+.
+  Todo objeto no Ruby pode ter uma, apesar de elas só serem criadas quando
+  necessário. A classe singleton detém o método e a tabela constanteis que
+  pertence somente a uma instancia de objeto particular. Por exemplo, o
+  método +hello+ definido abaixo existe somente na classe singleton de +obj+.
 
       obj = Object.new
       def obj.hello
         puts 'hi'
       end
 
-  Since all classes in Ruby are also objects, they can have singleton classes.
-  The methods called "class methods" are just methods in the method_table of
-  the class's singleton class. The method +honk+ exists in the singleton class
-  for the class +Car+.
+  Todas as classes em Ruby são também objetos, elas podem ter também sua 
+  classe singleton. Os métodos chamados 'métodos de classe' são somente
+  métodos na tabela de métodos da classe singleton. O método +honk+ existe
+  na classe singleton para a classe +Car+.
 
       class Car
         def self.honk
         end
       end
 
-  In Rubinius, singleton classes are all instances of the class
-  SingletonClass. The singleton class for an object can be obtained by calling
-  the +singleton_class+ method.  The overall arrangement of concepts involved
-  here is sometimes referred to as the 'Meta-Object Protocol' or +MOP+.
-
+  No Rubiniys, classes singleton são instancias da classe SingletonClass.
+  A classe singleton para um objeto pode ser obtida pela chamada para
+  método +singleton_class+. O arranjo global dos conceitos envolvidos aqui
+  é as vezes referenciados como o 'Protocolo Meta-Objeto' ou +MOP+.
 
 * _superclass_
 
-  The class that a particular class immediately inherits from. The class Object
-  is the superclass of all classes that do not inherit explicitly from a class.
+  É uma classe que  uma determinada classe herda imediatament. A classe Objetct
+  é a superclasse de todas as classes que não herda explicitamente de outra classe.
 
       class A
       end
@@ -172,5 +170,5 @@ Guide" 2nd or 3rd Edition by Thomas et al [The Pragmatic Programmers
       class B < A
       end
 
-  Class A inherits from Object. In other words, A.superclass == Object. Class B
-  inherits explicitly from class A. So, B.superclass == A.
+  A classe A herda de Object. Em outras palavras, A.superclass == Objetc. A classe B
+  herda explicitamente da classe A. Então, B.superclass == A.
