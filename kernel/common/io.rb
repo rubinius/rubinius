@@ -928,7 +928,11 @@ class IO
       real_arg = 1
     elsif arg.kind_of? String
       # This could be faster.
-      buffer_size = [4096, arg.length].max
+      buffer_size = arg.length
+      # On BSD and Linux, we could read the buffer size out of the ioctl value.
+      # Most Linux ioctl codes predate the convention, so a fallback like this
+      # is still necessary. 
+      buffer_size = 4096 if buffer_size < 4096
       buffer = FFI::MemoryPointer.new buffer_size
       buffer.write_string arg, arg.length
       real_arg = buffer.address
@@ -940,7 +944,8 @@ class IO
     ret = FFI::Platform::POSIX.ioctl descriptor, command, real_arg
     Errno.handle if ret < 0
     if arg.kind_of?(String)
-      arg.replace buffer.read_string buffer_size
+      arg.replace buffer.read_string(buffer_size)
+      buffer.free
     end
     ret
   end
