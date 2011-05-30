@@ -5,14 +5,14 @@ Ruby programming language. The specs describe Ruby language syntax as well as
 the core and standard library classes.
 
 * [RubySpec website](http://rubyspec.org/)
-* [Github repository](http://github.com/rubyspec/rubyspec)
+* [Github repository](https://github.com/rubyspec/rubyspec)
 
 
 ## Running RubySpec
 
 The RubySpec specification files are written using RSpec-compatible syntax.
 RubySpec provides a purpose-built framework, named
-[MSpec](http://github.com/rubyspec/mspec/tree/master), for running the specs.
+[MSpec](https://github.com/rubyspec/mspec/tree/master), for running the specs.
 
 The easiest way to run the RubySpecs suite is to install the MSpec gem.
 
