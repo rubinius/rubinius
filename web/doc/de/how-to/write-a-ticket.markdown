@@ -8,7 +8,7 @@ next_url: how-to/write-a-ruby-spec
 ---
 
 Den Rubinius Issuetracker findest du hier: 
-<http://github.com/evanphx/rubinius/issues>.
+<https://github.com/evanphx/rubinius/issues>.
 
 Damit ein Ticket nützlich ist, sollte es prägnant, fokussiert und umsetzbar 
 sein. Falls es diese Kriterien nicht erfüllt, wird es vermutlich nur den 

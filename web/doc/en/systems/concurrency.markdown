@@ -91,4 +91,4 @@ Actors can also have a parent/child relationship using `Actor.spawn_link`; if th
     end
     sleep 1
 
-This example is a snippet from [girl_friday](http://github.com/mperham/girl_friday).  You can review that codebase for more detail if you have questions.
+This example is a snippet from [girl_friday](https://github.com/mperham/girl_friday).  You can review that codebase for more detail if you have questions.

@@ -105,7 +105,7 @@ improves, overall performance of your code under Rubinius will improve.
 6. Tickets
 
 Please file tickets for bugs or problems that you encounter. The issue tracker
-is: http://github.com/evanphx/rubinius/issues. Run 'rake docs' for more
+is: https://github.com/evanphx/rubinius/issues. Run 'rake docs' for more
 details.
 
 
