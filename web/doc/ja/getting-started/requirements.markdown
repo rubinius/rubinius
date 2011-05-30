@@ -19,7 +19,7 @@ translated: true
   * [GCC and G++ 4.x](http://gcc.gnu.org/)
   * [GNU Bison](http://www.gnu.org/software/bison/)
   * [MRI Ruby 1.8.7+](http://www.ruby-lang.org/) If your system does not have
-    Ruby 1.8.7 installed, consider using [RVM](http://rvm.beginrescueend.com/)
+    Ruby 1.8.7 installed, consider using [RVM](https://rvm.beginrescueend.com/)
     to install it.
   * [Rubygems](http://www.rubygems.org/)
   * [Git](http://git.or.cz/)

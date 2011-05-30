@@ -19,7 +19,7 @@ d'autres paquets disponibles.
   * [GCC et G++ 4.x](http://gcc.gnu.org/)
   * [GNU Bison](http://www.gnu.org/software/bison/)
   * [MRI Ruby 1.8.7+](http://www.ruby-lang.org/) Si votre système n'a pas
-    Ruby 1.8.7 installé, pensez à utiliser [RVM](http://rvm.beginrescueend.com/)
+    Ruby 1.8.7 installé, pensez à utiliser [RVM](https://rvm.beginrescueend.com/)
     pour l'installer.
   * [Rubygems](http://www.rubygems.org/)
   * [Git](http://git.or.cz/)
