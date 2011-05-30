@@ -43,10 +43,10 @@ time by running 'rbx docs'.
 
 You may wish to use the Ruby enVironment Manager (RVM) project to install
 Rubinius. For the most current documentation for RVM, please visit
-http://rvm.beginrescueend.com.
+https://rvm.beginrescueend.com.
 
 Be sure that RVM has been installed properly and is loaded as a function as is
-explained in detail on the basics page, http://rvm.beginrescueend.com/rvm/basics/
+explained in detail on the basics page, https://rvm.beginrescueend.com/rvm/basics/
 
 Assuming all Rubinius dependencies have been preinstalled on the system, you may
 now install Rubinius either latest or head as follows,
@@ -68,7 +68,7 @@ In order to view the dependency list to preinstall for rbx type
 
 For more information on working with rvm please visit the RVM website,
 
-  http://rvm.beginrescueend.com/
+  https://rvm.beginrescueend.com/
 
 4. Version 1.1
 

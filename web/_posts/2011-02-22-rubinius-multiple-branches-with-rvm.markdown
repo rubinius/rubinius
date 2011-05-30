@@ -6,9 +6,9 @@ author: Wayne E. Seguin
 
 This article is written with the assumption that you have RVM installed
 already. If you do not, follow the
-[Installation Instructions](http://rvm.beginrescueend.com/rvm/install/)
+[Installation Instructions](https://rvm.beginrescueend.com/rvm/install/)
 followed by the
-[Basics](http://rvm.beginrescueend.com/rvm/basics/)
+[Basics](https://rvm.beginrescueend.com/rvm/basics/)
 closely first.
 
 
@@ -75,7 +75,7 @@ For Rubinius hydra,
 
 There is a lot more available to you than this, for more information on
 RVM capabilities please visit the [RVM
-Website](http://rvm.beginrescueend.com/) and also come talk to us in #rvm on
+Website](https://rvm.beginrescueend.com/) and also come talk to us in #rvm on
 irc.freenode.net during the daytime EDT.
 
 I hope that this is helpful and informative to you!
