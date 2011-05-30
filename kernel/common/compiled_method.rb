@@ -21,6 +21,7 @@ module Rubinius
     attr_accessor :stack_size    # [Integer] size of stack at compile time
     attr_accessor :local_count   # [Integer] number of local vars
     attr_accessor :required_args # [Integer] number of required args
+    attr_accessor :post_args     # [Integer] number of args after splat
     attr_accessor :total_args    # [Integer] number of total args
     attr_accessor :splat         # [Integer] POSITION of the splat arg
     attr_accessor :literals      # [Tuple]   tuple of the literals

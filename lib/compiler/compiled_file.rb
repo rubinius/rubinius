@@ -172,6 +172,7 @@ module Rubinius
           cm.stack_size    = unmarshal_data
           cm.local_count   = unmarshal_data
           cm.required_args = unmarshal_data
+          cm.post_args     = unmarshal_data
           cm.total_args    = unmarshal_data
           cm.splat         = unmarshal_data
           cm.literals      = unmarshal_data
@@ -295,6 +296,7 @@ module Rubinius
           str.append marshal(val.stack_size)
           str.append marshal(val.local_count)
           str.append marshal(val.required_args)
+          str.append marshal(val.post_args)
           str.append marshal(val.total_args)
           str.append marshal(val.splat)
           str.append marshal(val.literals)

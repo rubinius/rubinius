@@ -559,6 +559,10 @@ module Rubinius
 
       alias_method :total_args, :required_args
 
+      def post_args
+        0
+      end
+
       def names
         case @arguments
         when MultipleAssignment

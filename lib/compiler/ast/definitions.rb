@@ -328,12 +328,14 @@ module Rubinius
         @block_arg.bytecode(g) if @block_arg
       end
 
-      def arity
+      def required_args
         @required.size
       end
 
-      def required_args
-        @required.size
+      alias_method :arity, :required_args
+
+      def post_args
+        0
       end
 
       def total_args
@@ -433,6 +435,26 @@ module Rubinius
         @required = required
         @splat = splat
         @names = args
+      end
+
+      def required_args
+        @required.size | @post.size
+      end
+
+      def post_args
+        @post.size
+      end
+
+      def total_args
+        @required.size + @optional.size + @post.size
+      end
+
+      def map_arguments(scope)
+        @required.each { |arg| scope.new_local arg }
+        @defaults.map_arguments scope if @defaults
+        scope.new_local @splat if @splat.kind_of? Symbol
+        @post.each { |arg| scope.new_local arg }
+        scope.assign_local_reference @block_arg if @block_arg
       end
     end
 

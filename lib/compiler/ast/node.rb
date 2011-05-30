@@ -58,6 +58,7 @@ module Rubinius
         blk.for_block = true
 
         blk.required_args = arguments.required_args
+        blk.post_args = arguments.post_args
         blk.total_args = arguments.total_args
 
         blk
@@ -70,6 +71,7 @@ module Rubinius
 
         if arguments
           meth.required_args = arguments.required_args
+          meth.post_args = arguments.post_args
           meth.total_args = arguments.total_args
           meth.splat_index = arguments.splat_index
         end

@@ -89,8 +89,9 @@ module Rubinius
     # utility methods below clearer
     attr_reader   :g
     attr_accessor :stream, :ip, :redo, :break, :next, :retry,
-                  :name, :file, :line, :required_args, :total_args, :splat_index,
-                  :local_count, :local_names, :primitive, :for_block
+                  :name, :file, :line, :primitive, :for_block,
+                  :required_args, :post_args, :total_args, :splat_index,
+                  :local_count, :local_names
 
 
     def initialize
