@@ -1,5 +1,3 @@
-require File.expand_path("../../compiler", __FILE__)
-
 class CompilerScript
   def initialize
     @print_ast    = nil
