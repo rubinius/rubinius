@@ -136,117 +136,122 @@
 
       
 
-        <p>Rubinius has an instrumenting profiler that provides precise timing for all
-methods that are run. The profiler is implemented at the VM level and the data
-is provided for Ruby code to process.</p>
+        <p>Rubinius hat einen eingebauten Profiler, der eine genaue Zeitmessung für alle
+durchlaufenen Methoden bietet. Der Profiler ist auf VM-Ebene implementiert und
+bietet die erbrachten Daten für Ruby zur weiteren Evaluation.</p>
 
-<h2 id="vm-profiler">VM Profiler</h2>
+<h2 id="vm-profiler">VM-Profiler</h2>
 
-<p>The cast of characters involved in creating and maintaining the profiler
-include VM, SharedState, ProfilerCollection, and Profiler. The VM class is a
-thread local data structure. Each VM instance gets a separate Profiler
-instance. The SharedState instance has a ProfilerCollection instance that maps
-VMs to Profilers and generates the composite results of all the Profilers.</p>
+<p>Zur Erstellung und Erhaltung des Profilers spielen folgende Teilnehmer eine
+Rolle: VM, SharedState, ProfilerCollection und Profiler. Die VM Klasse ist eine
+Thread-lokale Datenstruktur. Das heißt, jede VM-Instanz bekommt eine eigene
+Profiler-Instanz zugewiesen. Die SharedState-Instanz hat eine
+ProfilerCollection-Instanz, die den VMs zugeordnet ist und schließlich die
+zusammenführten Ergebnisse aller Profiler generiert.</p>
 
-<p>The Profiler lives and dies in its own world. The profiler is passed a VM
-instance when it is created because the profiler needs access to it while it
-is gathering info. The STATE argument could be passed into all the profiler
-methods, but it&rsquo;s simple enough to pass it in when the profiler is created.
-The profiler never manipulates the VM instance. It is important to maintain
-this separation.</p>
+<p>Der Profiler lebt und stirbt in seiner eigenen Umgebung. Der Profiler wird bei
+seiner Erstellung an eine VM-Instanz weitergereicht, damit er zur
+Datenerstellung Zugriff auf die VM hat. Das STATE Argument könnte an alle
+Profiler-Methoden weitergegeben werden, muss aber nicht, weil es ausreicht dies
+gleich bei der Erstellung des Profilers zu machen. Der Profiler verändert niemals
+die VM-Instanz. Diese Trennung von Aufgaben muss auf jeden Fall erhalten bleiben.</p>
 
-<p>The VM instance lazily creates its Profiler instance when needed. The VM
-registers the profiler with the SharedState.</p>
+<p>Die VM-Instanz generiert die Profiler-Instanz nur bei Bedarf (lazy). Die VM
+registriert den Profiler dann auch mit dem SharedState.</p>
 
-<p>The SharedState maintains the ProfilerCollection instance and forwards calls
-to register or remove profilers.</p>
+<p>Der SharedState unterhält die ProfilerCollection-Instanz und reicht Aufrufe zur
+Registrierung oder Löschung von Profilern weiter.</p>
 
-<p>The ProfilerCollection instance requests that the VM instance mapped to a
-profiler removes the profiler when the profiler will be deleted.</p>
+<p>Die ProfilerCollection-Instanz gibt den Befehl, dass die VM-Instanz, die einem
+Profiler zugeordnet ist, den Profiler auch entfert, wenn er gelöscht wird.</p>
 
-<h2 id="ruby-profiler">Ruby Profiler</h2>
+<h2 id="ruby-profiler">Ruby-Profiler</h2>
 
-<p>In Ruby land, the Rubinius::Profiler::Instrumenter instance exposes nothing
-about the multi-threaded reality in the VM. The individual C++ Profiler
-instances are not exposed to Ruby. In Ruby, a profiler instance is created.
-That instance can simply start and stop the VM profiler. When the profiler is
-stopped, info about the profiling is returned in a LookupTable. The Ruby
-profiler code can display that info using the #show method.</p>
+<p>In der Ruby-Welt sagt die Rubinius::Profiler::Instrumenter-Instanz nichts über
+die Multi-Thread Realität in der VM aus. Die individuellen
+C++-Profiler-Instanzen sind für Ruby unsichtbar. Wenn in Ruby eine
+Profiler-Instanz erstellt wird, dann kann diese Instanz lediglich den VM-Profiler
+starten und beenden. Wenn der Profiler gestoppt wird, werden die gesammelten
+Daten in einem LookupTable zurückgegeben. Der Ruby Profiler-Code kann dann mit
+der #show-Methode angezeigt werden.</p>
 
-<p>Rubinius provides a compatible standard library profile.rb and profiler.rb.
-Refer to MRI documentation on how to use those.</p>
+<p>Rubinius bietet eine kompatible Standardbibliothek profile.rb und profiler.rb.
+Weitere Informationen finden sich in der MRI Dokumentation.</p>
 
-<p>Looking at lib/profiler.rb, you can see the basic steps for using the profiler
-from Ruby code.</p>
+<p>Betrachtet man lib/profiler.rb, so kann man die grundlegenden Schritte zur
+Nutzung des Profilers in Ruby erkennen:</p>
 
-<pre><code># create a profiler instance
+<pre><code># Eine Profiler-Instanz erstellen
 profiler = Rubinius::Profiler::Instrumenter.new
 
-# start the profiler
+# Den Profiler starten
 profiler.start
 
-# stop the profiler
+# Den Profiler stoppen
 profiler.stop
 
-# get the profile data
+# Die Profiler-Daten abfragen
 data = profiler.info
 
-# or print out the profiler info
+# Oder die Profiler-Daten ausdrucken
 profiler.show  # takes on IO object, defaults to STDOUT
 </code></pre>
 
-<p>You can also use a convenience method to profile work in a block.</p>
+<p>Ebenso kann man eine Methode verwenden, die den Profiler mit einem Block
+verwendet.</p>
 
-<pre><code># create a profiler instance
+<pre><code># Eine Profiler-Instanz erstellen
 profiler = Rubinius::Profiler::Instrumenter.new
 
-# profile some work
+# Ein Profil erstellen
 profiler.profile do
-  # some work
+  # einige Aufgaben
 end
 </code></pre>
 
-<p>The #profile method starts the profiler, yields, stops the profiler and prints
-the profile data by default. Pass &lsquo;false&rsquo; to #profile to not print the data.
-Either way, the profile data itself is returned by #profile.</p>
+<p>Die #profile-Methode startet den Profiler, macht ein yield, hält den Profiler an
+und druckt die Profiler-Daten aus. Wird &lsquo;false&rsquo; als Argument an #profile
+weitergegeben, dann druckt es die Daten nicht aus. Nichtsdestotrotz werden die
+Profiler-Daten als Rückgabewert von #profile zurückgegeben.</p>
 
-<h2 id="how-to-read-the-flat-profiler-output">How to Read the Flat Profiler Output</h2>
+<h2 id="wie-man-die-daten-des-flat-profiler-liest">Wie man die Daten des Flat-Profiler liest</h2>
 
-<p>The flat profiler output has the following columns:</p>
+<p>Der Flat-Profiler gibt Ausgabe-Daten in den folgenden Spalten zurück:</p>
 
 <h3 id="time">% time</h3>
 
-<p>The amount of time spent in this method as a percentage of the total time
-spent in all methods.</p>
+<p>Angabe der Zeitspanne in Prozent, die in dieser Methode verbracht wurde im
+Verhältnis zur Gesamtzeit.</p>
 
 <h3 id="cumulative-seconds">cumulative seconds</h3>
 
-<p>The total amount of time spent in this method and all its direct callees and
-their callees all the way to every leaf method called along a path from this
-method. Consider this method as the root of a call tree. The sum of all the
-time spent in methods in this call tree is the cumulative seconds for this
-method.</p>
+<p>Angabe der kumulierten Zeit, die in dieser Methode, sowie aller weiteren aus ihr
+heraus rekursiv aufgerufenen Methoden verbracht wurde. Diese Methode kann auch
+als die Wurzel im Aufrufbaum gesehen werden. Die Summe aller von ihr aus
+aufgerufenen Methoden ist die kumlierte Sekundenzahl für diese Methode.</p>
 
 <h3 id="self-seconds">self seconds</h3>
 
-<p>The total time spent in this method less the total time spent in all this
-method&rsquo;s callees.</p>
+<p>Die in dieser Methode verbrachte Zeit in Sekunden, ungeachtet der Aufrufe anderer
+Methoden aus ihr selbst heraus.</p>
 
 <h3 id="calls">calls</h3>
 
-<p>The total number of times this method was called.</p>
+<p>Die Anzahl der Aufrufe, die an diese Methode gingen.</p>
 
 <h3 id="self-mscall">self ms/call</h3>
 
-<p>The self seconds as milliseconds divided by the total number of calls.</p>
+<p>Die Angabe der self seconds in Millisekunden geteilt durch die Gesamtzahl aller
+Aufrufe.</p>
 
 <h3 id="total-mscall">total ms/call</h3>
 
-<p>The cumulative seconds as milliseconds divided by the total number of calls.</p>
+<p>cumulative seconds als Millisekunden geteilt durch die Gesamtzahl aller Aufrufe.</p>
 
-<h3 id="example-of-flat-output">Example of Flat Output</h3>
+<h3 id="beispiel-einer-flat-ausgabe">Beispiel einer Flat-Ausgabe</h3>
 
-<p>The following script is the basis of both profile examples below.</p>
+<p>Das folgende Skript ist die Grundlage für die beiden unten angegebenen
+Profiler-Beispiele:</p>
 
 <pre><code>class F
   def foo(a)
@@ -269,8 +274,8 @@ p.profile {
 }
 </code></pre>
 
-<p>Running the script with &lsquo;bin/rbx script.rb&rsquo; should give the following flat
-output.</p>
+<p>Führt man das Skript mit &lsquo;bin/rbx script.rb&rsquo; aus, sollte folgende Tabelle
+ausgegeben werden:</p>
 
 <pre><code>  %   cumulative   self                self     total
  time   seconds   seconds      calls  ms/call  ms/call  name
@@ -289,100 +294,107 @@ output.</p>
 10 methods called a total of 57 times
 </code></pre>
 
-<h2 id="how-to-read-the-graph-output">How to Read the Graph Output</h2>
+<h2 id="wie-man-die-graphen-ausgabe-ausliest">Wie man die Graphen-Ausgabe ausliest</h2>
 
-<p>The graph output is enabled with the configuration option:</p>
+<p>Die Graphen-Ausgabe stellt man über eine Konfigurations-Option ein:</p>
 
 <pre><code>-Xprofiler.graph
 </code></pre>
 
-<p>Given the same script above, the graph output is shown below. Each &ldquo;entry&rdquo; in
-the graph has three sections: 1) the method for the entry, called the
-<em>primary</em> line; 2) the callers of the primary method; and 3) the methods that
-the primary method called. The fields have different meanings based on the
-part of the entry.</p>
+<p>Mit dem vorhin genannten Skript wird der unten angegebene Graph ausgegeben.
+Jeder &ldquo;Eintrag&rdquo; im Graphen hat drei Abschnitte: 1) Die Methode für den Eintrag,
+genannt Primärzeile; 2) die Aufrufer der Primärmethode; und 3) die Methoden,
+die die Primärmethode selber aufrief. Die Felder haben unterschiedliche
+Bedeutungen in Bezug auf den Ort ihres Eintrags.</p>
 
-<p>For the primary line, the fields are as follows:</p>
+<p>Für die Primärzeile gelten die folgenden Felder:</p>
 
 <h3 id="index">index</h3>
 
-<p>An index assigned to each method in the graph to facilitate cross-referencing
-the entries.</p>
+<p>Ein Index, der jeder Methode im Graphen zugeordnet ist, um cross-Referenzen
+zwischen den Einträgen zu ermöglichen.</p>
 
 <h3 id="time-1">% time</h3>
 
-<p>The amount of time spent in this method as a percentage of the total time
-spent in all methods. This is the same as the flat output.</p>
+<p>Die Zeitspanne, die in dieser Methode verbracht wurde als Prozentangabe der
+Gesamtzeit, die für alle Methoden gebraucht wurde. Diese Angabe entspricht der
+Flat-Ausgabe.</p>
 
 <h3 id="self">self</h3>
 
-<p>The total time spent in this method less the total time spent in all this
-method&rsquo;s callees. This is the same as self seconds in the flat output.</p>
+<p>Die in dieser Methode verbrachte Zeit in Sekunden, ungeachtet der Aufrufe anderer
+Methoden aus ihr selbst heraus.</p>
 
 <h3 id="children">children</h3>
 
-<p>The total time spent in all the methods called by this method.</p>
+<p>Die Gesamtzeit, die in allen von die Methode aufgerufenen Methoden verbracht
+wurde.</p>
 
 <h3 id="called">called</h3>
 
-<p>The total number of times this method was called.</p>
+<p>Die Anzahl der Aufrufe, die an diese Methode gingen.</p>
 
 <h3 id="name">name</h3>
 
-<p>The name of the method followed by the index number.</p>
+<p>Der Name der Methode gefolgt von der Indexnummer.</p>
 
-<p>The lines above the primary line are methods that call the primary method. The
-callers&rsquo; fields have the following interpretation:</p>
+<p>Die beiden Zeilen über der Primärzeile sind die Methoden, die die Primärmethode
+aufrufen. Die Felder der Aufrufer haben folgende Bedeutung:</p>
 
 <h3 id="self-1">self</h3>
 
-<p>The total time spent in this method less the total time spent in all this
-method&rsquo;s callees. This is the same as self seconds in the flat output.</p>
+<p>Die Zeitspanne, die in dieser Methode verbracht wurde als Prozentangabe der
+Gesamtzeit, die für alle Methoden gebraucht wurde. Diese Angabe entspricht der
+Flat-Ausgabe.</p>
 
 <h3 id="children-1">children</h3>
 
-<p>The time spent in the method&rsquo;s call to the primary method.</p>
+<p>Die Zeit, die die Methode für Aufrufe an die Primärmethode verbrauchte.</p>
 
 <h3 id="called-1">called</h3>
 
-<p>The called field has two parts separated by a forward slash. The left is the
-number of times this method called the primary method. The right is the total
-number of calls this method made. In other words, the two numbers together
-show a ratio of the calls to the primary method versus all calls made by the
-caller.</p>
+<p>Das called-Feld hat zwei Teile, getrennt durch einen Schrägstrich. Links steht
+die Anzahl der Aufrufe, die diese Methode an die Primärmethode gemacht hat und
+rechts steht die Gesamtzahl der Aufrufe, die diese Methode gemacht hat.
+In anderen Worten, die beiden Zahlen zusammen zeigen das Verhältnis zwischen
+den Aufrufen an die Primärmethode zu allen anderen Methoden.</p>
 
 <h3 id="name-1">name</h3>
 
-<p>The name of the caller followed by its index number. If the index is [0], the
-method does not appear in the graph.</p>
+<p>Der Name der aufrufenden Methode gefolgt vom Index. Ist der Index [0], wird die
+Methode im Grahen nicht dargestellt.</p>
 
-<p>The lines below the primary line are methods that the primary method called.
-The fields for the called methods are as follows:</p>
+<p>Die Zeilen unterhalb der Primärzeile listet Methoden auf, die die Primärmethode
+aufruft.</p>
+
+<p>Die Felder der aufgerufenen Methoden sind wie folgt:</p>
 
 <h3 id="self-2">self</h3>
 
-<p>The total time spent in this method less the total time spent in all this
-method&rsquo;s callees. This is the same as self seconds in the flat output.</p>
+<p>Die Zeitspanne, die in dieser Methode verbracht wurde als Prozentangabe der
+Gesamtzeit, die für alle Methoden gebraucht wurde. Diese Angabe entspricht der
+Flat-Ausgabe.</p>
 
 <h3 id="children-2">children</h3>
 
-<p>This is an estimate of the amount of time this method&rsquo;s callees spent when
-this method was called by the primary method. The estimate is based on the
-ration of the time this method spent when called by the primary method to the
-total time spent in this method.</p>
+<p>Die Angabe ist ein Schätzwert der Zeit, die die Aufgerufenen Methoden brauchten,
+als die Methode von der Primärmethode aufgerufen wurde. Die Schätzung basiert
+auf dem Verhältnis zwischen der Zeit, die diese Methode brauchte, als sie von
+der Primärmethode aufgerufen wurde zu der Zeit, die sie in sich selbst
+verbrauchte.</p>
 
 <h3 id="called-2">called</h3>
 
-<p>The called field has two parts separated by a forward slash. The left is the
-number of times this method was called by the primary method. The right is the
-total number of times this method was called.</p>
+<p>Das called-Feld hat zwei Teile, getrennt durch einen Schrägstrich. Links steht
+die Anzahl der Aufrufe, die diese Methode von der Primärmethode bekam und
+rechts steht die Gesamtzahl der Aufrufe, die an diese Methode gemacht wurden.</p>
 
 <h3 id="name-2">name</h3>
 
-<p>The name of the called method followed by its index number [N]. If there is no
-index present, there is no primary entry for the method in the graph. Use the
--Xprofiler.full_report option to print the entire graph if you need to view
-the entry.</p>
+<p>Der Name der aufgerufenen Methode gefolgt von ihrem Index [N]. Ist kein Index
+vorhanden, dann gibt es für diese Methode auch keinen Primäreintrag im Graphen.
+Um auch solche Methoden anzeigen zu lassen, wird die &lsquo;-Xprofiler.full_report&rsquo;
+Option verwendet, die den vollständigen Graphen generiert.</p>
 
 <pre><code>index  % time     self  children         called       name
 ----------------------------------------------------------
