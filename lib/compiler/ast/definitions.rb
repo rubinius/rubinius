@@ -401,6 +401,8 @@ module Rubinius
 
       def initialize(line, required, optional, splat, post, block)
         @line = line
+        @defaults = nil
+        @block_arg = nil
 
         required ||= []
         args = required.dup
