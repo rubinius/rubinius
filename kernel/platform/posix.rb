@@ -40,7 +40,8 @@ module FFI::Platform::POSIX
   attach_function :chroot,    [:string], :int
 
   # File/IO
-  attach_function :fcntl,    [:int, :int, :int], :int
+  attach_function :fcntl,    [:int, :int, :long], :int
+  attach_function :ioctl,    [:int, :int, :long], :int
   attach_function :fsync,    [:int], :int
   attach_function :dup,      [:int], :int
 
