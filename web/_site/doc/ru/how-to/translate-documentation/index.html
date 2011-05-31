@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
   <head>
-    <title>How-To - Перевод документации - Rubinius</title>
+    <title>Перевод документации - Rubinius</title>
     <meta content='text/html;charset=utf-8' http-equiv='content-type'>
     <meta content='ru' http-equiv='content-language'>
     <meta content='Rubinius is an implementation of the Ruby programming language. The Rubinius bytecode virtual machine is written in C++. The bytecode compiler is written in pure Ruby. The vast majority of the core library is also written in Ruby, with some supporting primitives that interact with the VM directly.' name='description'>
@@ -130,41 +130,129 @@
 
 
     <div class="container documentation">
-      <h2>How-To - Перевод документации</h2>
+      <h2>Перевод документации</h2>
 
       
 
       
 
-        <p>Существуют два вида задач перевода:</p>
+        <p>У переводчика две задачи:</p>
 
 <ol>
-  <li>изменение существующего перевода</li>
-  <li>добавление перевода на другой язык</li>
+  <li>обновление существующего перевода некоторой статьи;</li>
+  <li>добавление нового перевода.</li>
 </ol>
 
-<p>Начните с чтения <a href="/doc/ru/how-to/write-documentation/">Написание
-документации</a></p>
+<p>Начните с чтения главы <a href="/doc/ru/how-to/write-documentation/">&laquo;Написание
+документации&raquo;</a></p>
 
-<h3 id="section">Изменение существующего перевода</h3>
+<h3 id="section">Обновление существующего перевода</h3>
 
-<p>Чтобы изменить существующий перевод откройте нужный файл в директории
-<code>web/doc/LANG</code> и отредактируйте существующий перевод или добавьте свой.</p>
+<p>Чтобы обновить существующий перевод, откройте нужный файл статьи в директории
+<code>web/doc/LANG</code> и отредактируйте существующий текст или добавьте
+свежепереведенный.</p>
 
-<h3 id="section-1">Добавление перевода на другой язык</h3>
+<h3 id="section-1">Добавление нового перевода</h3>
 
-<p>Чтобы начать перевод:</p>
+<p>Чтобы создать новую языковую версию перевода, нужно:</p>
 
 <ol>
-  <li>Скопируйте <code>web/doc/en</code> в <code>web/doc/LANG</code>, где <em>LANG</em> это
-<a href="http://en.wikipedia.org/wiki/List_of_ISO_639-2_codes">ISO-639-2</a> код для
-языка, для которого вы делаете перевод.</li>
-  <li>Отредактируйте ссылки в содержании, чтобы они указывали на правильные файлы
-в переводе. (По некоторы причинам атрибут <code>page.base_dir</code> недоступен, когда
-при обработкех этих файлов Jekyll. С этим моментом предстоит разобраться.)</li>
+  <li>Скопировать <code>web/doc/en</code> в <code>web/doc/LANG</code>, где <em>LANG</em> &mdash; это
+код стандарта <a href="http://en.wikipedia.org/wiki/List_of_ISO_639-2_codes">ISO-639-2</a> для
+языка, на который делается перевод.</li>
+  <li>Отредактировать ссылки в &laquo;Содержании&raquo;, чтобы они указывали на правильные файлы
+перевода. (<strong>Внимание:</strong> по некоторым причинам атрибут <code>page.base_dir</code> недоступен, когда
+файлы обрабатываются программой Jekyll. С этим моментом стоит разобраться.)</li>
   <li>Переведите английский текст на выбранный вами язык.</li>
+  <li>Отредактируйте файл <code>web/_layouts/doc.html</code>: добавьте необходимые значения
+в атрибут yaml-шапки <code>languages</code>.</li>
+  <li>Добавьте необходимые значения в массив <code>TRANS</code> в файле <code>rakelib/web.rake</code>
+(см. ниже).</li>
 </ol>
 
+<h3 id="section-2">Инструменты переводчика</h3>
+
+<p>Мы создали крошечные программки для облегчения жизни переводчиков.
+Точнее, формально программка пока только одна, и называется она <strong>&laquo;Проверка
+соответствия переводов&raquo;</strong>.</p>
+
+<h4 id="section-3">Краткий пример использования</h4>
+
+<pre><code>$ cd rubinius
+$ rake -T
+
+...
+
+rake web:translations:check                # Check web documentation translations for existence and mtime consistency.
+
+$ rake web:translations:check
+(in /usr/home/paul/develop/ruby/rubinius)
+
+TRANSLATION CHECK: Checking 'web/doc/en' recursively against ["de", "es", "fr", "ja", "pl", "pt-br", "ru"] versions
+
+NB:
+
+  LOST IN TRANSLATION:
+    web/doc/en/how-to/write-benchmarks.markdown: doesn't exist in 'ru' edition
+    web/doc/en/bytecode-compiler/customization.markdown: doesn't exist in 'ru' edition
+    web/doc/en/bytecode-compiler/encoder.markdown: doesn't exist in 'ru' edition
+    web/doc/en/bytecode-compiler/packager.markdown: doesn't exist in 'ru' edition
+    web/doc/en/bytecode-compiler/writer.markdown: doesn't exist in 'ru' edition
+
+
+  LAG IN TRANSLATION:
+    web/doc/en/garbage-collector/large-objects.markdown: is younger than its 'pl' version
+    web/doc/en/garbage-collector/mature-generation.markdown: is younger than its 'ru' version
+    web/doc/en/garbage-collector/nursery.markdown: is younger than its 'ru' version
+    web/doc/en/garbage-collector/young-generation.markdown: is younger than its 'ru' version
+    web/doc/en/systems/concurrency.markdown: is younger than its 'pl' version
+    web/doc/en/ruby/instance-variables.markdown: is younger than its 'ru' version
+    web/doc/en/bytecode-compiler/ast.markdown: is younger than its 'ru' version
+    web/doc/en/bytecode-compiler/parser.markdown: is younger than its 'pl' version
+    web/doc/en/garbage-collector.markdown: is younger than its 'ru' version
+</code></pre>
+
+<h4 id="section-4">Пояснения</h4>
+
+<p>Существует rake-задача <code>web:translations:check</code>, которая рекурсивно сверяет
+лидер-версию (сейчас это <code>web/doc/en</code>) с файлами переводов по соответствующему
+списку. Лидер-версия и список переводов определены в <code>rakelib/web.rake</code>:</p>
+
+<pre><code># This is the 'leader' version: all is translated from here.
+LEADER = "web/doc/en"
+
+# Here we MANUALLY list all official doc translations
+TRANS  = [
+  'de',
+  'es',
+  'fr',
+  'ja',
+  'pl',
+  'pt-br',
+  'ru'
+]
+</code></pre>
+
+<p>Для каждого лидер-файла скрипт проверяет:</p>
+
+<ul>
+  <li>есть ли вообще соответствующий файл перевода;</li>
+  <li>если есть, то не старше ли он своей лидер-версии (сравниваются <code>mtime</code>
+файлов)?</li>
+</ul>
+
+<p>Если перевод старше оригинала или вообще отсутствует, Вы увидите то ужасно
+красивое сообщение, которое приведено в нашем примере. Если с файлами все в
+порядке, программа сообщит и об этом &mdash; Вы заметите.</p>
+
+<h4 id="section-5">Заключение</h4>
+
+<p>Эта супер-нано-пупер-тупая тулза была написана для того, чтобы напомнить
+переводчику, какие именно файлы могут нуждаться в немедленной доработке.
+Никакого интеллектуального анализа, например, на валидность перевода и т.п.
+пока не планируется. Если Вы &mdash; умнейший контрибутор Rubinius всех времен и
+народов, мы приглашаем Вас расширить возможности настоящего инструмента,
+помочь обществу и спасти мир!</p>
 
 
     </div>
