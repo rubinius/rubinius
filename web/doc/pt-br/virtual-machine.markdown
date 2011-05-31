@@ -3,7 +3,7 @@ layout: doc_pt_br
 title: Máquina Virtual
 previous: Bootstrapping
 previous_url: bootstrapping
-next:Instruções
+next: Instruções
 next_url: virtual-machine/instructions
 review: true
 ---
