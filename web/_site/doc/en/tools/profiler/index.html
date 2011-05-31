@@ -177,7 +177,7 @@ profiler code can display that info using the #show method.</p>
 Refer to MRI documentation on how to use those.</p>
 
 <p>Looking at lib/profiler.rb, you can see the basic steps for using the profiler
-from Ruby code.</p>
+from Ruby code:</p>
 
 <pre><code># create a profiler instance
 profiler = Rubinius::Profiler::Instrumenter.new
@@ -195,7 +195,7 @@ data = profiler.info
 profiler.show  # takes on IO object, defaults to STDOUT
 </code></pre>
 
-<p>You can also use a convenience method to profile work in a block.</p>
+<p>You can also use a convenience method to profile work in a block:</p>
 
 <pre><code># create a profiler instance
 profiler = Rubinius::Profiler::Instrumenter.new
@@ -246,7 +246,7 @@ method&rsquo;s callees.</p>
 
 <h3 id="example-of-flat-output">Example of Flat Output</h3>
 
-<p>The following script is the basis of both profile examples below.</p>
+<p>The following script is the basis of both profile examples below:</p>
 
 <pre><code>class F
   def foo(a)
@@ -270,7 +270,7 @@ p.profile {
 </code></pre>
 
 <p>Running the script with &lsquo;bin/rbx script.rb&rsquo; should give the following flat
-output.</p>
+output:</p>
 
 <pre><code>  %   cumulative   self                self     total
  time   seconds   seconds      calls  ms/call  ms/call  name
@@ -381,8 +381,8 @@ total number of times this method was called.</p>
 
 <p>The name of the called method followed by its index number [N]. If there is no
 index present, there is no primary entry for the method in the graph. Use the
--Xprofiler.full_report option to print the entire graph if you need to view
-the entry.</p>
+&lsquo;-Xprofiler.full_report&rsquo; option to print the entire graph if you need to view
+the entry:</p>
 
 <pre><code>index  % time     self  children         called       name
 ----------------------------------------------------------

@@ -50,7 +50,7 @@ Rubinius provides a compatible standard library profile.rb and profiler.rb.
 Refer to MRI documentation on how to use those.
 
 Looking at lib/profiler.rb, you can see the basic steps for using the profiler
-from Ruby code.
+from Ruby code:
 
     # create a profiler instance
     profiler = Rubinius::Profiler::Instrumenter.new
@@ -67,7 +67,7 @@ from Ruby code.
     # or print out the profiler info
     profiler.show  # takes on IO object, defaults to STDOUT
 
-You can also use a convenience method to profile work in a block.
+You can also use a convenience method to profile work in a block:
 
     # create a profiler instance
     profiler = Rubinius::Profiler::Instrumenter.new
@@ -126,7 +126,7 @@ The cumulative seconds as milliseconds divided by the total number of calls.
 
 ### Example of Flat Output
 
-The following script is the basis of both profile examples below.
+The following script is the basis of both profile examples below:
 
     class F
       def foo(a)
@@ -150,7 +150,7 @@ The following script is the basis of both profile examples below.
 
 
 Running the script with 'bin/rbx script.rb' should give the following flat
-output.
+output:
 
 
       %   cumulative   self                self     total
@@ -278,8 +278,8 @@ total number of times this method was called.
 
 The name of the called method followed by its index number [N]. If there is no
 index present, there is no primary entry for the method in the graph. Use the
--Xprofiler.full_report option to print the entire graph if you need to view
-the entry.
+'-Xprofiler.full_report' option to print the entire graph if you need to view
+the entry:
 
 
     index  % time     self  children         called       name
