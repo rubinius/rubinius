@@ -290,6 +290,10 @@ module FFI
       raise PrimitiveFailure, "set_field failed"
     end
 
+    # Number of bytes taken up by a pointer.
+    def self.size
+      Rubinius::WORDSIZE / 8
+    end
   end
 
   class MemoryPointer < Pointer
