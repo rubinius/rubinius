@@ -116,6 +116,8 @@ class Method
   end
 
   def parameters
+    return [] unless @executable.respond_to? :local_names
+
     @executable.local_names.each_with_index.map do |name, i|
       if i < @executable.required_args
         [:req, name]
@@ -274,6 +276,8 @@ class UnboundMethod
   end
 
   def parameters
+    return [] unless @executable.respond_to? :local_names
+
     @executable.local_names.each_with_index.map do |name, i|
       if i < @executable.required_args
         [:req, name]
