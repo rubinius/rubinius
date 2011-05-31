@@ -3903,7 +3903,7 @@ parser_tokadd_string(rb_parser_state *parser_state,
 
 #define NEW_STRTERM(func, term, paren) \
   node_newnode(NODE_STRTERM, (VALUE)(func), \
-               (VALUE)((term) | ((paren) << (CHAR_BIT * 2))), NULL)
+               (VALUE)((term) | ((paren) << (CHAR_BIT * 2))), 0)
 #define pslval ((YYSTYPE *)lval)
 static int
 parser_parse_string(rb_parser_state* parser_state, NODE *quote)
