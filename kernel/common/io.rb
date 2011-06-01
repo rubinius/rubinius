@@ -569,49 +569,31 @@ class IO
     end
 
     if readables
-      readables =
-        Rubinius::Type.coerce_to(readables, Array, :to_ary).map do |obj|
-          if obj.kind_of? IO
-            raise IOError, "closed stream" if obj.closed?
-            return [[obj],[],[]] unless obj.buffer_empty?
-            obj
-          else
-            io = Rubinius::Type.coerce_to(obj, IO, :to_io)
-            raise IOError, "closed stream" if io.closed?
-            [obj, io]
-          end
-        end
+      readables = Rubinius::Type.coerce_to(readables, Array, :to_ary)
+      readables.each do |obj|
+        io = Rubinius::Type.coerce_to(obj, IO, :to_io)
+        return [[obj],[],[]] unless io.buffer_empty?
+      end
     end
 
-    if writables
-      writables =
-        Rubinius::Type.coerce_to(writables, Array, :to_ary).map do |obj|
-          if obj.kind_of? IO
-            raise IOError, "closed stream" if obj.closed?
-            obj
-          else
-            io = Rubinius::Type.coerce_to(obj, IO, :to_io)
-            raise IOError, "closed stream" if io.closed?
-            [obj, io]
-          end
+    args = [readables, writables, errorables]
+    args.map! do |set|
+      next unless set
+
+      Rubinius::Type.coerce_to(set, Array, :to_ary).map do |obj|
+        if obj.kind_of? IO
+          raise IOError, "closed stream" if obj.closed?
+          obj
+        else
+          io = Rubinius::Type.coerce_to(obj, IO, :to_io)
+          raise IOError, "closed stream" if io.closed?
+          [obj, io]
         end
+      end
     end
 
-    if errorables
-      errorables =
-        Rubinius::Type.coerce_to(errorables, Array, :to_ary).map do |obj|
-          if obj.kind_of? IO
-            raise IOError, "closed stream" if obj.closed?
-            obj
-          else
-            io = Rubinius::Type.coerce_to(obj, IO, :to_io)
-            raise IOError, "closed stream" if io.closed?
-            [obj, io]
-          end
-        end
-    end
-
-    IO.select_primitive(readables, writables, errorables, timeout)
+    args << timeout
+    IO.select_primitive(*args)
   end
 
   ##
