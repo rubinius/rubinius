@@ -1,6 +1,8 @@
 require File.expand_path('../../lib/ffi/generators', __FILE__)
 
-deps = %w[Rakefile rakelib/platform.rake] + Dir['lib/ffi/*rb']
+directory "runtime"
+
+deps = %w[Rakefile rakelib/platform.rake runtime] + Dir['lib/ffi/*rb']
 
 file 'runtime/platform.conf' => deps do |task|
   puts "GEN runtime/platform.conf"
