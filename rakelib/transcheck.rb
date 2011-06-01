@@ -36,7 +36,7 @@ class Transcheck
     unless (File.split lname).last =~ /^\.{1,2}$/
       if File.directory? lname
 	Dir.new(lname).each do |n|
-	  check_recursive File.join lname, n
+	  check_recursive File.join(lname, n)
 	end
       else
 	@tr_list.each do |lcode|
