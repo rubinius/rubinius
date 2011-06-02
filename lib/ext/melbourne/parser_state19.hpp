@@ -3,7 +3,7 @@
 
 #include "node19.hpp"
 #include "node_types19.hpp"
-#include "local_state.hpp"
+#include "var_table19.hpp"
 #include "encoding_compat.hpp"
 
 #include "bstrlib.h"
@@ -102,7 +102,7 @@ namespace melbourne {
       int column;
       NODE *top_node;
 
-      LocalState* variables;
+      struct local_vars* locals_table;
 
       int ternary_colon;
 
@@ -174,7 +174,7 @@ namespace melbourne {
 #define magic_comments      PARSER_VAR(magic_comments)
 #define column              PARSER_VAR(column)
 #define top_node            PARSER_VAR(top_node)
-#define variables           PARSER_VAR(variables)
+#define locals_table        PARSER_VAR(locals_table)
 #define ternary_colon       PARSER_VAR(ternary_colon)
 #define memory_pools        PARSER_VAR(memory_pools)
 #define pool_size           PARSER_VAR(pool_size)

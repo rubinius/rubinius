@@ -154,8 +154,13 @@ static NODE *parser_gettable(rb_parser_state*,QUID);
 static NODE *parser_assignable(rb_parser_state*, QUID, NODE*);
 static QUID parser_formal_argument(rb_parser_state*, QUID);
 static QUID parser_shadowing_lvar(rb_parser_state*, QUID);
-static int parser_lvar_defined(rb_parser_state*, QUID);
+static bool parser_lvar_defined(rb_parser_state*, QUID);
 static void parser_new_bv(rb_parser_state*, QUID);
+static const struct vtable* parser_bv_push(rb_parser_state*);
+static void parser_bv_pop(rb_parser_state*, const struct vtable*);
+static bool parser_in_block(rb_parser_state*);
+static bool parser_bv_defined(rb_parser_state*, QUID);
+static int parser_bv_var(rb_parser_state*, QUID);
 static NODE *parser_aryset(rb_parser_state*, NODE*, NODE*);
 static NODE *parser_attrset(rb_parser_state*, NODE*, QUID);
 static void rb_parser_backref_error(rb_parser_state*, NODE*);
@@ -168,10 +173,9 @@ static QUID parser_internal_id(rb_parser_state*);
 
 static void parser_local_push(rb_parser_state*, int cnt);
 static void parser_local_pop(rb_parser_state*);
-static intptr_t parser_local_cnt(rb_parser_state*, QUID);
-static int  parser_local_id(rb_parser_state*, QUID);
-static QUID  *parser_local_tbl(rb_parser_state*);
-static QUID   convert_op(QUID id);
+static bool parser_local_id(rb_parser_state*, QUID);
+static QUID* parser_local_tbl(rb_parser_state*);
+static QUID convert_op(QUID id);
 
 #define QUID2SYM(x)   quark_to_symbol(x)
 
@@ -198,6 +202,7 @@ rb_parser_state *parser_alloc_state() {
   tokenbuf = NULL;
   tokidx = 0;
   toksiz = 0;
+  locals_table = 0;
   memory_cur = NULL;
   memory_last_addr = NULL;
   current_pool = 0;
@@ -241,7 +246,7 @@ void pt_free(rb_parser_state *parser_state) {
   int i;
 
   free(tokenbuf);
-  delete variables;
+  local_vars_free(locals_table);
 
   for(std::vector<bstring>::iterator i = magic_comments->begin();
       i != magic_comments->end();
@@ -260,10 +265,12 @@ void pt_free(rb_parser_state *parser_state) {
     free(memory_pools[i]);
   }
   free(memory_pools);
-
 }
 
 #define SHOW_PARSER_WARNS 0
+
+static void rb_compile_warn(const char *file, int line, const char *fmt, ...);
+static void rb_compile_warning(const char *file, int line, const char *fmt, ...);
 
 static int rb_compile_error(rb_parser_state* parser_state, const char *fmt, ...) {
   va_list ar;
@@ -277,10 +284,6 @@ static int rb_compile_error(rb_parser_state* parser_state, const char *fmt, ...)
   yy_error(msg);
 
   return count;
-}
-
-static void rb_compile_warning(rb_parser_state* parser_state, const char *fmt, ...) {
-  // TODO: only in verbose mode.
 }
 
 static int _debug_print(const char *fmt, ...) {
@@ -318,9 +321,6 @@ static QUID rb_id_attrset(QUID);
 static int scan_oct(const char *start, size_t len, size_t *retlen);
 static int scan_hex(const char *start, size_t len, size_t *retlen);
 
-static void parser_reset_block(rb_parser_state* parser_state);
-static NODE *parser_extract_block_vars(rb_parser_state* parser_state, NODE* node, var_table vars);
-
 #define logop(t, a, b)            parser_logop(parser_state, t, a, b)
 #define cond(n)                   parser_cond(parser_state, n)
 #define newline_node(n)           parser_newline_node(parser_state, n)
@@ -334,14 +334,17 @@ static NODE *parser_extract_block_vars(rb_parser_state* parser_state, NODE* node
 #define call_bin_op(a, s, b)      parser_call_bin_op(parser_state, a, s, b)
 #define call_uni_op(n, s)         parser_call_uni_op(parser_state, n, s)
 #define new_args(f,o,r,p,b)       parser_new_args(parser_state, f, o, r, p, b)
-#define reset_block()             parser_reset_block(parser_state)
-#define extract_block_vars(a, b)  parser_extract_block_vars(parser_state, a, b)
 #define ret_args(n)               parser_ret_args(parser_state, n)
 #define assignable(a, b)          parser_assignable(parser_state, a, b)
 #define formal_argument(n)        parser_formal_argument(parser_state, n)
 #define lvar_defined(n)           parser_lvar_defined(parser_state, n)
 #define shadowing_lvar(n)         parser_shadowing_lvar(parser_state, n)
 #define new_bv(n)                 parser_new_bv(parser_state, n)
+#define bv_push()                 parser_bv_push(parser_state)
+#define bv_pop(l)                 parser_bv_pop(parser_state, l)
+#define in_block()                parser_in_block(parser_state)
+#define bv_defined(n)             parser_bv_defined(parser_state, n)
+#define bv_var(n)                 parser_bv_var(parser_state, n)
 #define aryset(a, b)              parser_aryset(parser_state, a, b)
 #define attrset(a, b)             parser_attrset(parser_state, a, b)
 #define match_op(a, b)            parser_match_op(parser_state, a, b)
@@ -369,10 +372,12 @@ static NODE *parser_extract_block_vars(rb_parser_state* parser_state, NODE* node
 #define local_push(cnt)           parser_local_push(parser_state, cnt)
 #define local_pop()               parser_local_pop(parser_state)
 #define local_id(i)               parser_local_id(parser_state, i)
-#define local_cnt(i)              parser_local_cnt(parser_state, i)
 
-#define rb_warning0(fmt)          rb_compile_warning(parser_state, fmt)
-#define rb_warningS(fmt,a)        rb_compile_warning(parser_state, fmt, a)
+#define rb_warn0(fmt)             rb_compile_warn(ruby_sourcefile, ruby_sourceline, fmt)
+#define rb_warnI(fmt,a)           rb_compile_warn(ruby_sourcefile, ruby_sourceline, fmt, a)
+#define rb_warnS(fmt,a)           rb_compile_warn(ruby_sourcefile, ruby_sourceline, fmt, a)
+#define rb_warning0(fmt)          rb_compile_warning(ruby_sourcefile, ruby_sourceline, fmt)
+#define rb_warningS(fmt,a)        rb_compile_warning(ruby_sourcefile, ruby_sourceline, fmt, a)
 
 /* TODO */
 #define CONST_ID(x, y)            ((void)0)
@@ -434,7 +439,7 @@ static NODE *parser_extract_block_vars(rb_parser_state* parser_state, NODE* node
     NODE *node;
     QUID id;
     int num;
-    var_table vars;
+    const struct vtable* vars;
 }
 
 %token
@@ -579,7 +584,7 @@ static NODE *parser_extract_block_vars(rb_parser_state* parser_state, NODE* node
 %%
 program         : {
                     lex_state = EXPR_BEG;
-                    variables = new LocalState(0);
+                    local_push(0);
                     class_nest = 0;
                   }
                   top_compstmt
@@ -909,16 +914,16 @@ block_command   : block_call
 cmd_brace_block : tLBRACE_ARG
                   {
                     /* TODO */
-                    $<num>1 = ruby_sourceline;
-                    reset_block();
+                    $<vars>1 = bv_push();
+                    $<num>$ = ruby_sourceline;
                   }
-                  opt_block_param { $<vars>$ = variables->block_vars; }
+                  opt_block_param
                   compstmt
                   '}'
                   {
-                    /* TODO $$ = NEW_ITER($3, 0, extract_block_vars($5, * $<vars>4)); */
-                    $$ = NEW_ITER($3, extract_block_vars($5, $<vars>4));
+                    $$ = NEW_ITER($3, $4);
                     nd_set_line($$, $<num>2);
+                    bv_pop($<vars>2);
                   }
                 ;
 
@@ -2206,7 +2211,7 @@ bvar            : tIDENTIFIER
                 ;
 
 lambda          : {
-                    // no dyn variables
+                    $<vars>$ = bv_push();
                   }
                   {
                     $<num>$ = lpar_beg;
@@ -2218,6 +2223,7 @@ lambda          : {
                     lpar_beg = $<num>2;
                     $$ = $3;
                     $$->nd_body = NEW_SCOPE($3->nd_head, $4);
+                    bv_pop($<vars>1);
                   }
                 ;
 
@@ -2243,19 +2249,16 @@ lambda_body     : tLAMBEG compstmt '}'
 
 do_block        : keyword_do_block
                   {
+                    $<vars>1 = bv_push();
                     $<num>$ = ruby_sourceline;
-                    reset_block();
                   }
                   opt_block_param
-                  {
-                    $<vars>$ = variables->block_vars;
-                  }
                   compstmt
                   keyword_end
                   {
-                    /* TODO $$ = NEW_ITER($3, 0, extract_block_vars($5, * $<vars>4)); */
-                    $$ = NEW_ITER($3, extract_block_vars($5, $<vars>4));
+                    $$ = NEW_ITER($3, $4);
                     nd_set_line($$, $<num>2);
+                    bv_pop($<vars>1);
                   }
                 ;
 
@@ -2330,27 +2333,27 @@ method_call     : operation paren_args
 
 brace_block     : '{'
                   {
+                    $<vars>1 = bv_push();
                     $<num>$ = ruby_sourceline;
-                    reset_block();
                   }
-                  opt_block_param { $<vars>$ = variables->block_vars; }
+                  opt_block_param
                   compstmt '}'
                   {
-                    /* TODO $$ = NEW_ITER($3, 0, extract_block_vars($5, * $<vars>4)); */
-                    $$ = NEW_ITER($3, extract_block_vars($5, $<vars>4));
+                    $$ = NEW_ITER($3, $4);
                     nd_set_line($$, $<num>2);
+                    bv_pop($<vars>1);
                   }
                 | keyword_do
                   {
+                    $<vars>1 = bv_push();
                     $<num>$ = ruby_sourceline;
-                    reset_block();
                   }
-                  opt_block_param { $<vars>$ = variables->block_vars; }
+                  opt_block_param
                   compstmt keyword_end
                   {
-                    /* TODO $$ = NEW_ITER($3, 0, extract_block_vars($5, * $<vars>4)); */
-                    $$ = NEW_ITER($3, extract_block_vars($5, $<vars>4));
+                    $$ = NEW_ITER($3, $4);
                     nd_set_line($$, $<num>2);
+                    bv_pop($<vars>1);
                   }
                 ;
 
@@ -4205,13 +4208,14 @@ arg_ambiguous()
 static QUID
 parser_formal_argument(rb_parser_state* parser_state, QUID lhs)
 {
-  if(!is_local_id(lhs))
+  if(!is_local_id(lhs)) {
     yy_error("formal argument must be local variable");
+  }
   shadowing_lvar(lhs);
   return lhs;
 }
 
-static int
+static bool
 parser_lvar_defined(rb_parser_state* parser_state, QUID id) {
   return local_id(id);
 }
@@ -5561,6 +5565,7 @@ fixpos(NODE *node, NODE *orig)
   nd_set_line(node, nd_line(orig));
 }
 
+/*
 static void
 parser_warning(rb_parser_state* parser_state, NODE *node, const char *mesg)
 {
@@ -5571,6 +5576,56 @@ parser_warning(rb_parser_state* parser_state, NODE *node, const char *mesg)
     ruby_sourceline = line;
   }
 }
+*/
+
+static void
+rb_compile_warn(const char *file, int line, const char *fmt, ...)
+{
+  // TODO
+  return;
+
+  char buf[BUFSIZ];
+  va_list args;
+
+  if (NIL_P(ruby_verbose)) return;
+
+  snprintf(buf, BUFSIZ, "warning: %s", fmt);
+
+  va_start(args, fmt);
+  // compile_warn_print(file, line, buf, args);
+  va_end(args);
+}
+
+/* rb_compile_warning() reports only in verbose mode */
+void
+rb_compile_warning(const char *file, int line, const char *fmt, ...)
+{
+  // TODO
+  return;
+
+  char buf[BUFSIZ];
+  va_list args;
+
+  snprintf(buf, BUFSIZ, "warning: %s", fmt);
+
+  va_start(args, fmt);
+  // compile_warn_print(file, line, buf, args);
+  va_end(args);
+}
+
+static void
+parser_warning(rb_parser_state* parser_state, NODE *node, const char *mesg)
+{
+  rb_compile_warning(ruby_sourcefile, nd_line(node), "%s", mesg);
+}
+#define parser_warning(node, mesg) parser_warning(parser_state, node, mesg)
+
+static void
+parser_warn(rb_parser_state* parser_state, NODE *node, const char *mesg)
+{
+  rb_compile_warn(ruby_sourcefile, nd_line(node), "%s", mesg);
+}
+#define parser_warn(node, mesg) parser_warn(parser_state, node, mesg)
 
 static NODE*
 parser_block_append(rb_parser_state* parser_state, NODE *head, NODE *tail)
@@ -5587,7 +5642,7 @@ parser_block_append(rb_parser_state* parser_state, NODE *head, NODE *tail)
   case NODE_TRUE:
   case NODE_FALSE:
   case NODE_NIL:
-    parser_warning(parser_state, h, "unused literal ignored");
+    parser_warning(h, "unused literal ignored");
     return tail;
   default:
     h = end = NEW_BLOCK(head);
@@ -5608,7 +5663,7 @@ parser_block_append(rb_parser_state* parser_state, NODE *head, NODE *tail)
   case NODE_REDO:
   case NODE_RETRY:
     if(verbose) {
-      parser_warning(parser_state, nd, "statement not reached");
+      parser_warning(nd, "statement not reached");
     }
     break;
 
@@ -5854,8 +5909,6 @@ call_op(NODE *recv, QUID id, int narg, NODE *arg1, rb_parser_state* parser_state
 static NODE*
 parser_match_op(rb_parser_state* parser_state, NODE *node1, NODE *node2)
 {
-  local_cnt('~');
-
   value_expr(node1);
   value_expr(node2);
   if(node1) {
@@ -5962,55 +6015,21 @@ parser_shadowing_lvar(rb_parser_state* parser_state, QUID name)
 
   CONST_ID(uscore, "_");
   if(uscore == name) return name;
-  /* TODO shadowing variables */
-#if 0
-  if(dyna_in_block()) {
-    if(dvar_curr(name)) {
-      yyerror("duplicated argument name");
-    } else if(dvar_defined(name) || local_id(name)) {
-      rb_warningS("shadowing outer local variable - %s", rb_id2name(name));
-      vtable_add(lvtbl->vars, name);
+
+  if(in_block()) {
+    if(bv_var(name)) {
+      yy_error("duplicate argument name");
+    } else if(bv_defined(name) || local_id(name)) {
+      rb_warningS("shadowing outer local variable - %s", quark_to_string(name));
+      vtable_add(locals_table->vars, name);
     }
   } else {
     if(local_id(name)) {
-      yyerror("duplicated argument name");
+      yy_error("duplicate argument name");
     }
   }
-#endif
+
   return name;
-}
-
-static void
-parser_reset_block(rb_parser_state* parser_state) {
-  if(!variables->block_vars) {
-    variables->block_vars = var_table_create();
-  } else {
-    variables->block_vars = var_table_push(variables->block_vars);
-  }
-}
-
-static NODE *
-parser_extract_block_vars(rb_parser_state* parser_state, NODE* node, var_table vars)
-{
-  int i;
-  NODE *var, *out = node;
-
-  // we don't create any DASGN_CURR nodes
-  goto out;
-
-  if(!node) goto out;
-  if(var_table_size(vars) == 0) goto out;
-
-  var = NULL;
-  for(i = 0; i < var_table_size(vars); i++) {
-    var = NEW_DASGN_CURR(var_table_get(vars, i), var);
-  }
-  out = block_append(var, node);
-
-out:
-  variables->block_vars = var_table_pop(variables->block_vars);
-
-  return out;
 }
 
 static void
@@ -6022,6 +6041,75 @@ parser_new_bv(rb_parser_state* parser_state, QUID name)
     return;
   }
   shadowing_lvar(name);
+  local_var(name);
+}
+
+static const struct vtable*
+parser_bv_push(rb_parser_state* parser_state) {
+  locals_table->args = vtable_alloc(locals_table->args);
+  locals_table->vars = vtable_alloc(locals_table->vars);
+  return locals_table->args;
+}
+
+static void
+bv_pop_tables(rb_parser_state* parser_state)
+{
+  struct vtable *tmp;
+
+  tmp = locals_table->args;
+  locals_table->args = locals_table->args->prev;
+  vtable_free(tmp);
+
+  tmp = locals_table->vars;
+  locals_table->vars = locals_table->vars->prev;
+  vtable_free(tmp);
+}
+
+static void
+parser_bv_pop(rb_parser_state* parser_state, const struct vtable* args) {
+  while(locals_table->args != args) {
+    bv_pop_tables(parser_state);
+    if(!locals_table->args) {
+      struct local_vars *local = locals_table->prev;
+      free(locals_table);
+      locals_table = local;
+    }
+  }
+  bv_pop_tables(parser_state);
+}
+
+static bool
+parser_in_block(rb_parser_state* parser_state) {
+  return locals_table->vars && locals_table->vars->prev;
+}
+
+static bool
+parser_bv_defined(rb_parser_state* parser_state, QUID id)
+{
+  struct vtable *vars, *args;
+
+  args = locals_table->args;
+  vars = locals_table->vars;
+
+  while(vars) {
+    if(vtable_included(args, id)) {
+      return true;
+    }
+    if(vtable_included(vars, id)) {
+      return true;
+    }
+    args = args->prev;
+    vars = vars->prev;
+  }
+
+  return false;
+}
+
+static int
+parser_bv_var(rb_parser_state* parser_state, QUID id)
+{
+  return vtable_included(locals_table->args, id) ||
+            vtable_included(locals_table->vars, id);
 }
 
 static NODE *
@@ -6163,7 +6251,7 @@ parser_value_expr(rb_parser_state* parser_state, NODE *node)
     switch(nd_type(node)) {
     case NODE_DEFN:
     case NODE_DEFS:
-      parser_warning(parser_state, node, "void value expression");
+      parser_warning(node, "void value expression");
       return FALSE;
 
     case NODE_RETURN:
@@ -6381,18 +6469,22 @@ assign_in_cond(NODE *node, rb_parser_state* parser_state)
   return 1;
 }
 
-static int
+static bool
 e_option_supplied()
 {
-  if(strcmp(ruby_sourcefile, "-e") == 0)
-    return TRUE;
-  return FALSE;
+  return strcmp(ruby_sourcefile, "-e") == 0;
 }
 
 static void
 warn_unless_e_option(rb_parser_state* parser_state, NODE *node, const char *str)
 {
-  if(!e_option_supplied()) parser_warning(parser_state, node, str);
+  if(!e_option_supplied()) parser_warning(node, str);
+}
+
+static void
+warning_unless_e_option(rb_parser_state* parser_state, NODE *node, const char *str)
+{
+  if(!e_option_supplied()) parser_warning(node, str);
 }
 
 static NODE *cond0(rb_parser_state* parser_state, NODE *node);
@@ -6441,12 +6533,12 @@ cond0(rb_parser_state* parser_state, NODE *node)
   case NODE_DSTR:
   case NODE_EVSTR:
   case NODE_STR:
+    rb_warn0("string literal in condition");
     break;
 
   case NODE_DREGX:
   case NODE_DREGX_ONCE:
-    local_cnt('_');
-    local_cnt('~');
+    warning_unless_e_option(parser_state, node, "regex literal in condition");
     return NEW_MATCH2(node, NEW_GVAR(rb_parser_sym("$_")));
 
   case NODE_AND:
@@ -6465,17 +6557,22 @@ cond0(rb_parser_state* parser_state, NODE *node)
       int b = literal_node(node->nd_beg);
       int e = literal_node(node->nd_end);
       if((b == 1 && e == 1) || (b + e >= 2 && verbose)) {
+        parser_warn(node, "range literal in condition");
       }
     }
     break;
 
   case NODE_DSYM:
+    parser_warning(node, "literal in condition");
+    break;
+
+  case NODE_LIT:
+    parser_warning(node, "literal in condition");
     break;
 
   case NODE_REGEX:
+    warn_unless_e_option(parser_state, node, "regex literal in condition");
     nd_set_type(node, NODE_MATCH);
-    local_cnt('_');
-    local_cnt('~');
   default:
     break;
   }
@@ -6632,114 +6729,85 @@ parser_new_super(rb_parser_state* parser_state,NODE *a)
 }
 
 static int
-parser_local_var(rb_parser_state* parser_state, QUID id)
-{
-  int idx;
-
-  /* Leave these hardcoded here because they arne't REALLY ids at all. */
-  if(id == '_') {
-    return 0;
-  } else if(id == '~') {
-    return 1;
-  }
-
-  // if there are block variables, check to see if there is already
-  // a local by this name. If not, create one in the top block_vars
-  // table.
-  if(variables->block_vars) {
-    idx = var_table_find_chained(variables->block_vars, id);
-    if(idx >= 0) {
-      return idx;
-    } else {
-      return var_table_add(variables->block_vars, id);
-    }
-  }
-
-  idx = var_table_find(variables->local_vars, id);
-  if(idx >= 0) {
-    return idx + 2;
-  }
-
-  return var_table_add(variables->local_vars, id);
-}
-
-static int
-parser_local_id(rb_parser_state* parser_state, QUID id)
-{
-  if(variables->block_vars) {
-    if(var_table_find_chained(variables->block_vars, id) >= 0) return 1;
-  }
-
-  if(var_table_find(variables->local_vars, id) >= 0) return 1;
-  return 0;
-}
-
-static int
 parser_arg_var(rb_parser_state* parser_state, QUID id)
 {
-  return var_table_add(variables->local_vars, id);
+  vtable_add(locals_table->args, id);
+  return vtable_size(locals_table->args) - 1;
+}
+
+static int
+parser_local_var(rb_parser_state* parser_state, QUID id)
+{
+  vtable_add(locals_table->vars, id);
+  return vtable_size(locals_table->vars) - 1;
+}
+
+static bool
+parser_local_id(rb_parser_state* parser_state, QUID id)
+{
+  struct vtable *vars, *args;
+
+  vars = locals_table->vars;
+  args = locals_table->args;
+
+  while(vars && vars->prev) {
+    vars = vars->prev;
+    args = args->prev;
+  }
+
+  return (vtable_included(args, id) || vtable_included(vars, id));
 }
 
 static void
 parser_local_push(rb_parser_state* parser_state, int top)
 {
-  variables = LocalState::push(variables);
+  struct local_vars *local;
+
+  local = ALLOC(struct local_vars);
+  local->prev = locals_table;
+  local->args = vtable_alloc(0);
+  local->vars = vtable_alloc(0);
+  locals_table = local;
 }
 
 static void
 parser_local_pop(rb_parser_state* parser_state)
 {
-  variables = LocalState::pop(variables);
+  struct local_vars *local = locals_table->prev;
+  vtable_free(locals_table->args);
+  vtable_free(locals_table->vars);
+  free(locals_table);
+  locals_table = local;
 }
 
+static QUID*
+vtable_tblcpy(QUID *buf, const struct vtable *src)
+{
+  int cnt = vtable_size(src);
+
+  if(cnt > 0) {
+    buf[0] = cnt;
+    for(int i = 0; i < cnt; i++) {
+      buf[i] = src->tbl[i];
+    }
+    return buf;
+  }
+  return 0;
+}
 
 static QUID*
 parser_local_tbl(rb_parser_state* parser_state)
 {
-  QUID *lcl_tbl;
-  var_table tbl;
-  int i, len;
-  tbl = variables->local_vars;
-  len = var_table_size(tbl);
-  lcl_tbl = (QUID*)pt_allocate(parser_state, sizeof(QUID) * (len + 3));
-  lcl_tbl[0] = (QUID)len;
-  lcl_tbl[1] = '_';
-  lcl_tbl[2] = '~';
-  for(i = 0; i < len; i++) {
-    lcl_tbl[i + 3] = var_table_get(tbl, i);
-  }
-  return lcl_tbl;
-}
+  int arg_cnt = vtable_size(locals_table->args);
+  int cnt = arg_cnt + vtable_size(locals_table->vars);
+  QUID *buf;
 
-static intptr_t
-parser_local_cnt(rb_parser_state* parser_state, QUID id)
-{
-  int idx;
-  /* Leave these hardcoded here because they arne't REALLY ids at all. */
-  if(id == '_') {
-    return 0;
-  } else if(id == '~') {
-    return 1;
-  }
-
-  // if there are block variables, check to see if there is already
-  // a local by this name. If not, create one in the top block_vars
-  // table.
-  if(variables->block_vars) {
-    idx = var_table_find_chained(variables->block_vars, id);
-    if(idx >= 0) {
-      return idx;
-    } else {
-      return var_table_add(variables->block_vars, id);
-    }
-  }
-
-  idx = var_table_find(variables->local_vars, id);
-  if(idx >= 0) {
-    return idx + 2;
-  }
-
-  return var_table_add(variables->local_vars, id);
+  if(cnt <= 0) return 0;
+  buf = ALLOC_N(QUID, cnt + 1);
+  vtable_tblcpy(buf + 1, locals_table->args);
+  vtable_tblcpy(buf + arg_cnt + 1, locals_table->vars);
+  buf[0] = cnt;
+  return buf;
 }
 
 // TODO: encoding support, rb_usascii_encoding(), see rb_intern3
@@ -6836,8 +6904,9 @@ scan_hex(const char *start, size_t len, size_t *retlen)
 static QUID
 parser_internal_id(rb_parser_state *parser_state)
 {
-  /* TODO */
-  return 1;
+  QUID id = (QUID)vtable_size(locals_table->args) +
+            (QUID)vtable_size(locals_table->vars) + tLAST_TOKEN + 1;
+  return ID_INTERNAL | (id << ID_SCOPE_SHIFT);
 }
 
 const char *op_to_name(QUID id) {

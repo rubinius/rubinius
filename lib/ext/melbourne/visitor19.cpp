@@ -709,10 +709,16 @@ namespace melbourne {
       VALUE post = Qnil;
       VALUE block = Qnil;
 
+      int total_args = 0;
+      QUID* args_ary = 0;
+
       if(node->nd_argc > 0) {
+        total_args = (int)locals[0];
+        args_ary = locals + 1;
+
         args = rb_ary_new();
-        for(int i = 0; i < node->nd_argc; i++) {
-          rb_ary_push(args, Q2SYM(locals[i + 3]));
+        for(int i = 0; i < node->nd_argc && i < total_args; i++) {
+          rb_ary_push(args, Q2SYM(args_ary[i]));
         }
       }
 
@@ -730,14 +736,14 @@ namespace melbourne {
 
         if(NODE* post_args = aux->nd_next) {
           int start;
-          for(start = node->nd_argc + 3; /* none */; start++) {
-            if(locals[start] == post_args->nd_pid)
+          for(start = 0; start < total_args; start++) {
+            if(args_ary[start] == post_args->nd_pid)
               break;
           }
 
           post = rb_ary_new();
-          for(int i = 0; i < post_args->nd_argc; i++) {
-            rb_ary_push(post, Q2SYM(locals[start + i]));
+          for(int i = 0; i < post_args->nd_argc && start + i < total_args; i++) {
+            rb_ary_push(post, Q2SYM(args_ary[start + i]));
           }
         }
       }

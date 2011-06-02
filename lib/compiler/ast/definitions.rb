@@ -386,9 +386,9 @@ module Rubinius
           sexp << :"*#{@splat}"
         end
 
-        sexp << :"&#{@block_arg.name}" if @block_arg
-
         sexp += @post if @post
+
+        sexp << :"&#{@block_arg.name}" if @block_arg
 
         sexp << [:block] + @defaults.to_sexp if @defaults
 

@@ -3,7 +3,7 @@
 #include <assert.h>
 
 #include "ruby.h"
-#include "var_table.hpp"
+#include "var_table18.hpp"
 
 namespace melbourne {
 

@@ -1,7 +1,7 @@
 #ifndef MEL_LOCALSTATE_HPP
 #define MEL_LOCALSTATE_HPP
 
-#include "var_table.hpp"
+#include "var_table18.hpp"
 
 namespace melbourne {
   struct LocalState {

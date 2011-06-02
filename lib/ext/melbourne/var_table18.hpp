@@ -1,5 +1,5 @@
-#ifndef MEL_VAR_TABLE_HPP
-#define MEL_VAR_TABLE_HPP
+#ifndef MEL_VAR_TABLE18_HPP
+#define MEL_VAR_TABLE18_HPP
 
 #ifdef __cplusplus
 extern "C" {
