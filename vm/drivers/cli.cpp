@@ -97,7 +97,7 @@ int main(int argc, char** argv) {
     std::cout << "  rake kernel:clean clean\n";
     std::cout << "  rake\n";
     std::cout << "\nIf the problem persists, please open an issue at:\n";
-    std::cout << "  http://github.com/evanphx/rubinius\n";
+    std::cout << "  https://github.com/evanphx/rubinius\n";
     std::cout << "\nThanks,\n  Management.\n";
     return 1;
   } catch(VMException &e) {

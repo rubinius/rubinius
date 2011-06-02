@@ -8,7 +8,7 @@ next_url: how-to/write-a-ruby-spec
 translated: true
 ---
 
-The Rubinius issue tracker is <http://github.com/evanphx/rubinius/issues>.
+The Rubinius issue tracker is <https://github.com/evanphx/rubinius/issues>.
 
 Para ser útiles, los boletos deben ser concisas, específicas y acciones
 concretas. Si no, el boleto languidecen y se convierten en el desorden. En

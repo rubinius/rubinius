@@ -92,7 +92,7 @@ module Process
 
       # Do not use Kernel.exit. This raises a SystemExit exception, which
       # will run ensure blocks. This is not what MRI does and causes bugs
-      # in programs. See issue http://github.com/evanphx/rubinius/issues#issue/289 for
+      # in programs. See issue https://github.com/evanphx/rubinius/issues/289 for
       # an example
 
       Kernel.exit! status

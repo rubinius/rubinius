@@ -8,7 +8,7 @@ next_url: how-to/write-a-ruby-spec
 ---
 
 Трекер Rubinius-а расположен по адресу
-<http://github.com/evanphx/rubinius/issues>.
+<https://github.com/evanphx/rubinius/issues>.
 
 Тикеты должны быть краткими, предметными и осуществимыми. В противном случае
 тикет будет подолгу весеть в трекере и мешаться. Поэтому тикеты должны

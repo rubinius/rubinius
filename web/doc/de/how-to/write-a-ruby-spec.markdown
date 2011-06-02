@@ -23,4 +23,4 @@ schreiben:
   7. Führe `git format-patch` aus
   8. Erstelle ein Gist (auf http://gist.github.com) mit deinem Patch und 
      verlinke diesen in einem Ticket auf dem Issuetracker:
-     <http://github.com/evanphx/rubinius/issues>
+     <https://github.com/evanphx/rubinius/issues>

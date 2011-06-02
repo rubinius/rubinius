@@ -25,7 +25,7 @@ Ensuite, suivez ces étapes pour corriger un test en échec:
   9.  Exécutez `git status, git add, git commit`, etc. Tout changement apporté aux fichiers de tests sous le dossier
   spec/ruby doit être dans un commit différent de celui utilisé pour corriger le code source.
   10. Exécutez `git format-patch origin`, ce qui extraira les commits accumulés dans la branche en cours depuis sa dernière mise à jour depuis origin, ou `git format-patch -N', ou N (un entier, 1, 2,...) est le nombre de commits que vous souhaitez extraire afin de génerer le patch
-  11. Créez un gist avec votre patch et liez-le dans un ticket sur le gestionnaire de ticket du projet http://github.com/evanphx/rubinius/issues. Vous pouvez ajoutez plusieurs patchs à un seul ticket.
+  11. Créez un gist avec votre patch et liez-le dans un ticket sur le gestionnaire de ticket du projet https://github.com/evanphx/rubinius/issues. Vous pouvez ajoutez plusieurs patchs à un seul ticket.
 
 Quand votre patch est accepté par le project Rubinius, vous aurez un
 droit d'accès au dépôt Rubinius. Communiquez votre nom d'utilisateur

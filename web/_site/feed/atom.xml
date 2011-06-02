@@ -1892,7 +1892,7 @@ your hardest problems with Ruby, and have fun doing it.&lt;/p&gt;
     
     <content type="html">&lt;p&gt;Many thought the day would never come, but Rubinius finally has a blog. That&amp;rsquo;s
 not all, though: We have integrated the website, blog, and documentation using
-Jekyll. The source code for it all is in the main &lt;a href=&quot;http://github.com/evanphx/rubinius&quot;&gt;Rubinius
+Jekyll. The source code for it all is in the main &lt;a href=&quot;https://github.com/evanphx/rubinius&quot;&gt;Rubinius
 repository&lt;/a&gt;.&lt;/p&gt;
 
 &lt;p&gt;People have often requested that we write more about the &lt;em&gt;awesome&lt;/em&gt; features in

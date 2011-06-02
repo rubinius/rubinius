@@ -1,7 +1,7 @@
 The benchmark/rbs benchmarks are imported and refactored from the Ruby
 Benchmark Suite project at:
 
-  http://github.com/acangiano/ruby-benchmark-suite/tree/master
+  https://github.com/acangiano/ruby-benchmark-suite/tree/master
 
 The benchmarks are organized into layers. These are described below from the
 inside out.

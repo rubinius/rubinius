@@ -38,7 +38,7 @@ beheben:
       willst.
   11. Erstelle ein Gist (auf http://gist.github.com) mit deinem Patch und 
       verlinke es in einem neuen Ticket im Issuetracker auf Github: 
-      http://github.com/evanphx/rubinius/issues Es können mehrere Patches pro
+      https://github.com/evanphx/rubinius/issues Es können mehrere Patches pro
       Ticket hinzugefügt werden.
 
 Wenn dein Patch vom Rubinius Projekt akzeptiert wird, erhältst du ein sog. 

@@ -15,7 +15,7 @@ describe "URI.extract" do
   end
 
   it "wraps a URI string in an array" do
-    URI.extract("http://github.com/brixen/rubyspec/tree/master").should == ["http://github.com/brixen/rubyspec/tree/master"]
+    URI.extract("https://github.com/brixen/rubyspec/tree/master").should == ["https://github.com/brixen/rubyspec/tree/master"]
   end
 
   it "pulls a variety of protocol URIs from a string" do

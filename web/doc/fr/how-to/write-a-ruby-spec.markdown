@@ -20,4 +20,4 @@ Ensuite, suivez ces étapes pour écrire le test d'une méthode Ruby:
      historique MRI (aussi connue sous le nom de MatzRuby)
   4. Committez vos changements
   7. Utilisez `git format-patch`
-  8. Créez un gist avec votre patch et faites référence à ce ticket sur notre gestionnaire de ticket <http://github.com/evanphx/rubinius/issues>.
+  8. Créez un gist avec votre patch et faites référence à ce ticket sur notre gestionnaire de ticket <https://github.com/evanphx/rubinius/issues>.
