@@ -1003,8 +1003,10 @@ end
         f.puts "#define RBX_HAVE_TR1_HASH 1"
       end
 
-      if @windows
-        f.puts "#define RBX_WINDOWS 1"
+      [:windows, :darwin, :bsd, :linux].each do |platform|
+        if instance_variable_get(:"@#{platform}")
+          f.puts "#define RBX_#{platform.to_s.upcase} 1"
+        end
       end
     end
 
