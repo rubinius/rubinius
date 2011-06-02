@@ -19,7 +19,10 @@ compare_targets = []
 
 opt = OptionParser.new do |o|
   o.on("-t", "--target TARGET", String,
-          "Use multiple TARGETs for comparison: r:ruby|r19:ruby19|x:rbx|j:jruby") do |t|
+          "Use multiple TARGETs for comparison:",
+          "<path-to-ruby-binary>: will use exact ruby binary",
+          "shortcuts: r:ruby | r19:ruby19 | x:rbx | j:jruby",
+          "^<name>: rvm-managed ruby; will use ~/.rvm/rubies/<name>/bin/ruby") do |t|
     case t
     when 'r', 'ruby'
       targets << 'ruby'
@@ -40,6 +43,9 @@ opt = OptionParser.new do |o|
         rescue TypeError
           targets << t
         end
+      elsif t[0,1] == "^"
+        puts "Found rvm-managed ruby: " + t[1..-1]
+        targets << File.expand_path("~/.rvm/rubies/" + t[1..-1] + "/bin/ruby")
       else
         targets << t
       end
