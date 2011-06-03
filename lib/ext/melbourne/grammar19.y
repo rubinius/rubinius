@@ -144,9 +144,6 @@ static NODE *splat_array(NODE*);
 static NODE *negate_lit(NODE*);
 static NODE *parser_ret_args(rb_parser_state*, NODE*);
 static NODE *arg_blk_pass(NODE*,NODE*);
-static NODE *new_call(rb_parser_state*,NODE*,QUID,NODE*);
-static NODE *new_fcall(rb_parser_state*,QUID,NODE*);
-static NODE *parser_new_super(rb_parser_state*, NODE*);
 static NODE *parser_new_yield(rb_parser_state*, NODE*);
 
 static NODE *parser_gettable(rb_parser_state*,QUID);
@@ -349,7 +346,6 @@ static int scan_hex(const char *start, size_t len, size_t *retlen);
 #define attrset(a, b)             parser_attrset(parser_state, a, b)
 #define match_op(a, b)            parser_match_op(parser_state, a, b)
 #define new_yield(n)              parser_new_yield(parser_state, n)
-#define new_super(n)              parser_new_super(parser_state, n)
 #define evstr2dstr(n)             parser_evstr2dstr(parser_state, n)
 #define literal_concat(a, b)      parser_literal_concat(parser_state, a, b)
 #define new_evstr(n)              parser_new_evstr(parser_state, n)
@@ -4255,9 +4251,7 @@ parser_prepare(rb_parser_state* parser_state)
     return;
   }
   pushback(c);
-  // TODO: lex_lastline into a String
-  // parser_state->enc = rb_enc_get(lex_lastline);
-  parser_state->enc = rb_usascii_encoding();
+  parser_state->enc = rb_enc_get(lex_lastline);
 }
 
 #define IS_ARG()        (lex_state == EXPR_ARG \
@@ -5818,16 +5812,16 @@ parser_new_evstr(rb_parser_state* parser_state, NODE *node)
 static NODE *
 parser_call_bin_op(rb_parser_state* parser_state, NODE *recv, QUID id, NODE *arg1)
 {
-    value_expr(recv);
-    value_expr(arg1);
-    return NEW_CALL(recv, id, NEW_LIST(arg1));
+  value_expr(recv);
+  value_expr(arg1);
+  return NEW_CALL(recv, id, NEW_LIST(arg1));
 }
 
 static NODE *
 parser_call_uni_op(rb_parser_state* parser_state, NODE *recv, QUID id)
 {
-    value_expr(recv);
-    return NEW_CALL(recv, id, 0);
+  value_expr(recv);
+  return NEW_CALL(recv, id, 0);
 }
 
 static const struct {
@@ -6403,20 +6397,6 @@ parser_void_expr0(rb_parser_state* parser_state, NODE *node)
   }
 }
 
-static void
-parser_void_stmts(NODE *node, rb_parser_state* parser_state)
-{
-  if(!verbose) return;
-  if(!node) return;
-  if(nd_type(node) != NODE_BLOCK) return;
-
-  for (;;) {
-    if(!node->nd_next) return;
-    void_expr(node->nd_head);
-    node = node->nd_next;
-  }
-}
-
 static NODE *
 remove_begin(NODE *node)
 {
@@ -6632,10 +6612,6 @@ parser_new_yield(rb_parser_state* parser_state, NODE *node)
 
   if(node) {
     no_blockarg(parser_state, node);
-    if(nd_type(node) == NODE_ARRAY && node->nd_next == 0) {
-      node = node->nd_head;
-      state = Qfalse;
-    }
     if(node && nd_type(node) == NODE_SPLAT) {
       state = Qtrue;
     }
@@ -6696,36 +6672,6 @@ parser_new_args(rb_parser_state* parser_state, NODE *m, NODE *o, QUID r, NODE *p
   }
   ruby_sourceline = saved_line;
   return node;
-}
-
-static NODE*
-new_call(rb_parser_state* parser_state,NODE *r,QUID m,NODE *a)
-{
-  if(a && nd_type(a) == NODE_BLOCK_PASS) {
-    a->nd_iter = NEW_CALL(r,convert_op(m),a->nd_head);
-    return a;
-  }
-  return NEW_CALL(r,convert_op(m),a);
-}
-
-static NODE*
-new_fcall(rb_parser_state* parser_state,QUID m,NODE *a)
-{
-  if(a && nd_type(a) == NODE_BLOCK_PASS) {
-    a->nd_iter = NEW_FCALL(m,a->nd_head);
-    return a;
-  }
-  return NEW_FCALL(m,a);
-}
-
-static NODE*
-parser_new_super(rb_parser_state* parser_state,NODE *a)
-{
-  if(a && nd_type(a) == NODE_BLOCK_PASS) {
-    a->nd_iter = NEW_SUPER(a->nd_head);
-    return a;
-  }
-  return NEW_SUPER(a);
 }
 
 static int
@@ -6928,5 +6874,5 @@ quark id_to_quark(QUID id) {
   return qrk;
 }
 
-}; // namespace grammar18
+}; // namespace grammar19
 }; // namespace melbourne
