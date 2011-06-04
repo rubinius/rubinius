@@ -909,7 +909,6 @@ block_command   : block_call
 
 cmd_brace_block : tLBRACE_ARG
                   {
-                    /* TODO */
                     $<vars>1 = bv_push();
                     $<num>$ = ruby_sourceline;
                   }
@@ -2841,7 +2840,6 @@ f_arg_item      : f_norm_arg
                   }
                 | tLPAREN f_margs rparen
                   {
-                    /* TODO */
                     QUID tid = internal_id();
                     arg_var(tid);
                     $2->nd_value = NEW_LVAR(tid);
@@ -5946,7 +5944,9 @@ parser_gettable(rb_parser_state* parser_state, QUID id)
   } else if(id == keyword__LINE__) {
     return NEW_NUMBER(INT2FIX(ruby_sourceline));
   } else if(is_local_id(id)) {
-    if(local_id(id)) return NEW_LVAR(id);
+    if((in_block() && bv_defined(id)) || local_id(id)) {
+      return NEW_LVAR(id);
+    }
     /* method call without arguments */
     return NEW_VCALL(id);
   } else if(is_global_id(id)) {
