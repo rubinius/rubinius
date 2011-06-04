@@ -314,33 +314,62 @@ describe "An Iter node" do
   end
 
   relates "a = 1; m { |a| a + x }" do
-    compile do |g|
-      g.push 1
-      g.set_local 0
-      g.pop
+    ruby_version_is ""..."1.9" do
+      compile do |g|
+        g.push 1
+        g.set_local 0
+        g.pop
 
-      g.push :self
+        g.push :self
 
-      d = new_block_generator(g)
+        d = new_block_generator(g)
 
-      d.cast_for_single_block_arg
-      d.set_local_depth 1, 0
+        d.cast_for_single_block_arg
+        d.set_local_depth 1, 0
+        d.pop
 
-      d.pop
-      d.push_modifiers
-      d.new_label.set!
+        d.push_modifiers
+        d.new_label.set!
 
-      d.push_local_depth 1, 0
-      d.push :self
-      d.send :x, 0, true
-      d.send :+, 1, false
+        d.push_local_depth 1, 0
+        d.push :self
+        d.send :x, 0, true
+        d.send :+, 1, false
 
-      d.pop_modifiers
-      d.ret
+        d.pop_modifiers
+        d.ret
 
-      g.create_block(d)
+        g.create_block(d)
 
-      g.send_with_block :m, 0, true
+        g.send_with_block :m, 0, true
+      end
+    end
+
+    ruby_version_is "1.9" do
+      compile do |g|
+        g.push 1
+        g.set_local 0
+        g.pop
+
+        g.push :self
+
+        d = new_block_generator(g)
+
+        d.push_modifiers
+        d.new_label.set!
+
+        d.push_local 0
+        d.push :self
+        d.send :x, 0, true
+        d.send :+, 1, false
+
+        d.pop_modifiers
+        d.ret
+
+        g.create_block(d)
+
+        g.send_with_block :m, 0, true
+      end
     end
   end
 
@@ -365,9 +394,12 @@ describe "An Iter node" do
 
       d = new_block_generator(g)
 
-      d.cast_for_single_block_arg
-      d.set_local 0
-      d.pop
+      ruby_version_is ""..."1.9" do
+        d.cast_for_single_block_arg
+        d.set_local 0
+        d.pop
+      end
+
       d.push_modifiers
 
       redo_lbl = d.new_label

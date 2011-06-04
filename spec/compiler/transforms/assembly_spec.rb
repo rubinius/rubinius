@@ -28,9 +28,9 @@ describe "A Call node using InlineAssembly transform" do
       def new(*args)
         obj = allocate()
 
-        Rubinius.asm(args, obj) do |args, obj|
-          run obj
-          run args
+        Rubinius.asm(args, obj) do |x, y|
+          run y
+          run x
           push_block
           send_with_splat :initialize, 0, true
         end
@@ -52,26 +52,28 @@ describe "A Call node using InlineAssembly transform" do
 
         e = new_block_generator(g)
 
-        e.cast_for_multi_block_arg
-        e.shift_array
+        ruby_version_is ""..."1.9" do
+          e.cast_for_multi_block_arg
+          e.shift_array
 
-        e.set_local_depth 1, 0
-        e.pop
-        e.shift_array
-        e.set_local_depth 1, 1
-        e.pop
-        e.pop
+          e.set_local 0
+          e.pop
+          e.shift_array
+          e.set_local 1
+          e.pop
+          e.pop
+        end
 
         e.push_modifiers
         e.new_label.set!
 
         e.push :self
-        e.push_local_depth 1, 1
+        e.push_local 1
         e.send :run, 1, true
         e.pop
 
         e.push :self
-        e.push_local_depth 1, 0
+        e.push_local 0
         e.send :run, 1, true
         e.pop
 
@@ -116,9 +118,9 @@ describe "A Call node using InlineAssembly transform" do
   relates <<-ruby do
       def new(cnt)
         obj = allocate_sized cnt
-        Rubinius.asm(obj) do |obj|
+        Rubinius.asm(obj) do |x|
           push_block
-          run obj
+          run x
           send_with_block :initialize, 0, true
         end
 
@@ -139,10 +141,12 @@ describe "A Call node using InlineAssembly transform" do
 
         e = new_block_generator(g)
 
-        e.cast_for_single_block_arg
+        ruby_version_is ""..."1.9" do
+          e.cast_for_single_block_arg
 
-        e.set_local_depth 1, 1
-        e.pop
+          e.set_local 0
+          e.pop
+        end
 
         e.push_modifiers
         e.new_label.set!
@@ -152,7 +156,7 @@ describe "A Call node using InlineAssembly transform" do
         e.pop
 
         e.push :self
-        e.push_local_depth 1, 1
+        e.push_local 0
         e.send :run, 1, true
         e.pop
 
