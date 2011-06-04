@@ -161,7 +161,15 @@ module Rubinius
         super
         compiler.parser = self
         @transforms = []
-        @processor = Rubinius::Melbourne
+
+        case
+        when Rubinius.ruby18?
+          @processor = Rubinius::Melbourne
+        when Rubinius.ruby19?
+          @processor = Rubinius::Melbourne19
+        when Rubinius.ruby20?
+          @processor = Rubinius::Melbourne20
+        end
       end
 
       def root(klass)

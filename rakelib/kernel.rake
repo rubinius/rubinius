@@ -45,10 +45,10 @@ class KernelCompiler
       parser.processor Rubinius::Melbourne
       writer.version = 18
     when "19"
-      parser.processor Rubinius::Melbourne
+      parser.processor Rubinius::Melbourne19
       writer.version = 19
     when "20"
-      parser.processor Rubinius::Melbourne
+      parser.processor Rubinius::Melbourne20
       writer.version = 20
     end
 

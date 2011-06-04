@@ -323,6 +323,26 @@ namespace rubinius {
     }
 
     config_parser.update_configuration(config);
+
+    // TODO: Add configuration type radio button.
+    if(!(LANGUAGE_18_ENABLED(state) ||
+          LANGUAGE_19_ENABLED(state) ||
+          LANGUAGE_20_ENABLED(state))) {
+#ifdef RBX_ENABLED_18
+      if(RBX_DEFAULT_18)
+        state->shared.config.version_18.set("true");
+#endif
+
+#ifdef RBX_ENABLED_19
+      if(RBX_DEFAULT_19)
+        state->shared.config.version_19.set("true");
+#endif
+
+#ifdef RBX_ENABLED_20
+      if(RBX_DEFAULT_20)
+        state->shared.config.version_20.set("true");
+#endif
+    }
   }
 
   void Environment::load_argv(int argc, char** argv) {

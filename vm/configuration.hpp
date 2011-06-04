@@ -98,15 +98,15 @@ namespace rubinius {
       , gc_autopack(this,     "gc.autopack", true)
 
 #ifdef RBX_ENABLED_18
-      , version_18(this, "18", RBX_DEFAULT_18)
+      , version_18(this, "18", false)
 #endif
 
 #ifdef RBX_ENABLED_19
-      , version_19(this, "19", RBX_DEFAULT_19)
+      , version_19(this, "19", false)
 #endif
 
 #ifdef RBX_ENABLED_20
-      , version_20(this, "20", RBX_DEFAULT_20)
+      , version_20(this, "20", false)
 #endif
 
       , dynamic_interpreter_enabled(this, "interpreter.dynamic")

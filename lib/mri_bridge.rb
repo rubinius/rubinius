@@ -9,6 +9,10 @@ module Rubinius
     attr_accessor :primitive
   end
 
+  def self.ruby18?
+    RUBY_VERSION =~ /^1\.8/
+  end
+
   def self.ruby19?
     RUBY_VERSION =~ /^1\.9/
   end
