@@ -23,9 +23,9 @@ namespace melbourne {
     void vtable_free(struct vtable* tbl) {
       if(tbl) {
         if(tbl->tbl) {
-          free(tbl->tbl);
+          xfree(tbl->tbl);
         }
-        free(tbl);
+        xfree(tbl);
       }
     }
 
@@ -55,10 +55,10 @@ namespace melbourne {
     void local_vars_free(struct local_vars* vars) {
       struct local_vars* prev;
       for(struct local_vars* local = vars; local; local = prev) {
-        if(local->args) free(local->args);
-        if(local->vars) free(local->vars);
+        if(local->args) xfree(local->args);
+        if(local->vars) xfree(local->vars);
         prev = local->prev;
-        free(local);
+        xfree(local);
       }
     }
   };

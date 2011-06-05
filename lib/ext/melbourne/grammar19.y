@@ -6722,7 +6722,7 @@ parser_local_pop(rb_parser_state* parser_state)
   struct local_vars *local = locals_table->prev;
   vtable_free(locals_table->args);
   vtable_free(locals_table->vars);
-  free(locals_table);
+  xfree(locals_table);
   locals_table = local;
 }
 

@@ -1,6 +1,12 @@
 #ifndef MEL_VAR_TABLE19_HPP
 #define MEL_VAR_TABLE19_HPP
 
+// We must use MRI's xfree for ALLOC'd memory.
+#ifdef RUBINIUS
+#undef xfree
+#define xfree free
+#endif
+
 namespace melbourne {
   namespace grammar19 {
     struct vtable {
