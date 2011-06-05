@@ -36,4 +36,4 @@ Since this stage is so simple, you will not need to customize it. You
 might want to instrument it (for instance, for profiling or printing).
 To learn more about general-purpose customization, which you can use to
 instrument any stage, check out [Customizing the Compiler
-Pipeline](/bytecode-compiler/customization/).
+Pipeline](/doc/en/bytecode-compiler/customization/).
