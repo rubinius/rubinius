@@ -625,7 +625,7 @@ to rebuild the compiler.
 
     # Cleanup and at_exit processing.
     def epilogue
-      @stage = "at_exit handler"
+      @stage = "running at_exit handlers"
 
       begin
         Signal.run_handler Signal::Names["EXIT"]
@@ -641,7 +641,7 @@ to rebuild the compiler.
         end
       end
 
-      @stage = "object finalizers"
+      @stage = "running object finalizers"
       GC.start
       ObjectSpace.run_finalizers
 
@@ -664,7 +664,7 @@ to rebuild the compiler.
       thread_state = Rubinius.thread_state
       reason = thread_state[0]
       unless reason == :none
-        STDERR.puts "\nERROR: the VM is exiting improperly"
+        STDERR.puts "\nERROR: the VM is exiting improperly #{@stage}"
         STDERR.puts "intended operation: #{reason.inspect}"
         STDERR.puts "associated value: #{thread_state[1].inspect}"
 
