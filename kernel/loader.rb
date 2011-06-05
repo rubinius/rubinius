@@ -404,13 +404,6 @@ containing the Rubinius standard library files.
         puts
       end
 
-      # This will only trigger if it's not the first option, in which case
-      # we'll just tell the user to make it the first option.
-      options.on "--rebuild-compiler", "Rebuild the Rubinius compiler" do
-        puts "This must be the first and only option."
-        exit 1
-      end
-
       options.doc <<-DOC
 \nRubinius subcommands
 
