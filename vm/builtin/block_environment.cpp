@@ -75,6 +75,109 @@ namespace rubinius {
     return execute_interpreter(state, previous, env, args, invocation);
   }
 
+  // TODO: this is a quick hack to process block arguments in 1.9.
+  class GenericArguments {
+  public:
+    static bool call(STATE, VMMethod* vmm, StackVariables* scope, Arguments& args) {
+      const bool has_splat = (vmm->splat_position >= 0);
+      native_int total_args = args.total();
+
+      // expecting 0, got 0.
+      if(vmm->total_args == 0 && total_args == 0) {
+        if(has_splat) {
+          scope->set_local(vmm->splat_position, Array::create(state, 0));
+        }
+
+        return true;
+      }
+
+      if(!has_splat && total_args > vmm->total_args)
+        total_args = vmm->total_args;
+
+      /* There are 4 types of arguments, illustrated here:
+       *    m(a, b=1, *c, d)
+       *
+       *  where:
+       *    a is a (pre optional/splat) fixed position argument
+       *    b is an optional argument
+       *    c is a splat argument
+       *    d is a post (optional/splat) argument
+       *
+       *  The arity checking above ensures that we have at least one argument
+       *  on the stack for each fixed position argument (ie arguments a and d
+       *  above).
+       *
+       *  The number of (pre) fixed arguments is 'required_args - post_args'.
+       *
+       *  The number of optional arguments is 'total_args - required_args'.
+       *
+       *  We fill in the required arguments, then the optional arguments, and
+       *  the rest (if any) go into an array for the splat.
+       */
+
+      native_int pre_args = vmm->required_args - vmm->post_args;
+      for(native_int i = 0; i < pre_args; i++) {
+        scope->set_local(i, args.get_argument(i));
+      }
+
+      native_int optional_args = vmm->total_args - vmm->required_args;
+      native_int available_args = total_args - vmm->required_args;
+      if(optional_args > 0 && available_args > 0) {
+        native_int stop_index;
+
+        if(available_args < optional_args) {
+          stop_index = pre_args + available_args;
+        } else {
+          stop_index = pre_args + optional_args;
+        }
+
+        for(native_int i = pre_args; i < stop_index; i++) {
+          scope->set_local(i, args.get_argument(i));
+        }
+      }
+
+      if(vmm->post_args > 0) {
+        native_int args_index;
+        if(has_splat) {
+          args_index = vmm->splat_position + 1;
+        } else {
+          args_index = vmm->total_args - vmm->post_args;
+        }
+
+        for(native_int i = total_args - vmm->post_args; i < total_args; i++, args_index++) {
+          scope->set_local(args_index, args.get_argument(i));
+        }
+      }
+
+      if(has_splat) {
+        Array* ary;
+        /* There is a splat. So if the passed in arguments are greater
+         * than the total number of fixed arguments, put the rest of the
+         * arguments into the Array.
+         *
+         * Otherwise, generate an empty Array.
+         *
+         * NOTE: remember that total includes the number of fixed arguments,
+         * even if they're optional, so we can get args.total() == 0, and
+         * total == 1 */
+        if(total_args > vmm->total_args) {
+          size_t splat_size = total_args - vmm->total_args;
+          ary = Array::create(state, splat_size);
+
+          for(size_t i = 0, n = vmm->total_args; i < splat_size; i++, n++) {
+            ary->set(state, i, args.get_argument(n));
+          }
+        } else {
+          ary = Array::create(state, 0);
+        }
+
+        scope->set_local(vmm->splat_position, ary);
+      }
+
+      return true;
+    }
+  };
+
   // Installed by default in BlockEnvironment::execute, it runs the bytecodes
   // for the block in the interpreter.
   //
@@ -117,6 +220,12 @@ namespace rubinius {
     scope->set_parent(env->scope_);
 
     InterpreterCallFrame* frame = ALLOCA_CALLFRAME(vmm->stack_size);
+
+    // TODO: this is a quick hack to process block arguments in 1.9.
+    if(LANGUAGE_19_ENABLED(state) || LANGUAGE_20_ENABLED(state)) {
+      GenericArguments::call(state, vmm, scope, args);
+    }
+
     frame->prepare(vmm->stack_size);
 
     frame->previous = previous;
