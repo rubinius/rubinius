@@ -1,7 +1,7 @@
+basicobject.rbc
 alias.rbc
 array.rbc
 array19.rbc
-basicobject.rbc
 bignum.rbc
 block_environment.rbc
 bytearray.rbc
