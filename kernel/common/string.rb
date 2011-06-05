@@ -292,7 +292,7 @@ class String
       index = @num_bytes + index if index < 0
 
       return if index < 0 || @num_bytes <= index
-      return @data[index]
+      return @data.character_at_index(index)
     end
   end
   alias_method :slice, :[]
