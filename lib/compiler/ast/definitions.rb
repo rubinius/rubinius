@@ -440,7 +440,7 @@ module Rubinius
       end
 
       def required_args
-        @required.size | @post.size
+        @required.size + @post.size
       end
 
       def post_args

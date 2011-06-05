@@ -59,6 +59,7 @@ namespace rubinius {
 
     native_int total_args;
     native_int required_args;
+    native_int post_args;
     native_int splat_position;
 
     native_int stack_size;

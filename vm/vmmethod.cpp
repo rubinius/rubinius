@@ -104,11 +104,12 @@ namespace rubinius {
     addresses = new void*[total];
 
     fill_opcodes(state, meth);
-    stack_size =    meth->stack_size()->to_native();
+    stack_size = meth->stack_size()->to_native();
     number_of_locals = meth->number_of_locals();
 
-    total_args =    meth->total_args()->to_native();
+    total_args = meth->total_args()->to_native();
     required_args = meth->required_args()->to_native();
+    post_args = meth->post_args()->to_native();
 
     if(Fixnum* pos = try_as<Fixnum>(meth->splat())) {
       splat_position = pos->to_native();
@@ -373,9 +374,10 @@ namespace rubinius {
   public:
     static bool call(STATE, VMMethod* vmm, StackVariables* scope, Arguments& args) {
       const bool has_splat = (vmm->splat_position >= 0);
+      native_int total_args = args.total();
 
       // expecting 0, got 0.
-      if(vmm->total_args == 0 and args.total() == 0) {
+      if(vmm->total_args == 0 && total_args == 0) {
         if(has_splat) {
           scope->set_local(vmm->splat_position, Array::create(state, 0));
         }
@@ -384,21 +386,64 @@ namespace rubinius {
       }
 
       // Too few args!
-      if((native_int)args.total() < vmm->required_args) return false;
+      if(total_args < vmm->required_args) return false;
 
       // Too many args (no splat!)
-      if(!has_splat && (native_int)args.total() > vmm->total_args) return false;
+      if(!has_splat && total_args > vmm->total_args) return false;
 
-      // Umm... something too do with figuring out how to handle
-      // splat and optionals.
-      native_int fixed_args = vmm->total_args;
-      if((native_int)args.total() < vmm->total_args) {
-        fixed_args = (native_int)args.total();
+      /* There are 4 types of arguments, illustrated here:
+       *    m(a, b=1, *c, d)
+       *
+       *  where:
+       *    a is a (pre optional/splat) fixed position argument
+       *    b is an optional argument
+       *    c is a splat argument
+       *    d is a post (optional/splat) argument
+       *
+       *  The arity checking above ensures that we have at least one argument
+       *  on the stack for each fixed position argument (ie arguments a and d
+       *  above).
+       *
+       *  The number of (pre) fixed arguments is 'required_args - post_args'.
+       *
+       *  The number of optional arguments is 'total_args - required_args'.
+       *
+       *  We fill in the required arguments, then the optional arguments, and
+       *  the rest (if any) go into an array for the splat.
+       */
+
+      native_int pre_args = vmm->required_args - vmm->post_args;
+      for(native_int i = 0; i < pre_args; i++) {
+        scope->set_local(i, args.get_argument(i));
       }
 
-      // Copy in the normal, fixed position arguments
-      for(native_int i = 0; i < fixed_args; i++) {
-        scope->set_local(i, args.get_argument(i));
+      native_int optional_args = vmm->total_args - vmm->required_args;
+      native_int available_args = total_args - vmm->required_args;
+      if(optional_args > 0 && available_args > 0) {
+        native_int stop_index;
+
+        if(available_args < optional_args) {
+          stop_index = pre_args + available_args;
+        } else {
+          stop_index = pre_args + optional_args;
+        }
+
+        for(native_int i = pre_args; i < stop_index; i++) {
+          scope->set_local(i, args.get_argument(i));
+        }
+      }
+
+      if(vmm->post_args > 0) {
+        native_int args_index;
+        if(has_splat) {
+          args_index = vmm->splat_position + 1;
+        } else {
+          args_index = vmm->total_args - vmm->post_args;
+        }
+
+        for(native_int i = total_args - vmm->post_args; i < total_args; i++, args_index++) {
+          scope->set_local(args_index, args.get_argument(i));
+        }
       }
 
       if(has_splat) {
@@ -412,8 +457,8 @@ namespace rubinius {
          * NOTE: remember that total includes the number of fixed arguments,
          * even if they're optional, so we can get args.total() == 0, and
          * total == 1 */
-        if((native_int)args.total() > vmm->total_args) {
-          size_t splat_size = args.total() - vmm->total_args;
+        if(total_args > vmm->total_args) {
+          size_t splat_size = total_args - vmm->total_args;
           ary = Array::create(state, splat_size);
 
           for(size_t i = 0, n = vmm->total_args; i < splat_size; i++, n++) {
