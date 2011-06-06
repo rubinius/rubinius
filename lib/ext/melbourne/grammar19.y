@@ -6749,7 +6749,7 @@ parser_local_tbl(rb_parser_state* parser_state)
   QUID *buf;
 
   if(cnt <= 0) return 0;
-  buf = ALLOC_N(QUID, cnt + 1);
+  buf = (QUID*)pt_allocate(parser_state, sizeof(QUID) * (cnt + 1));
   vtable_tblcpy(buf + 1, locals_table->args);
   vtable_tblcpy(buf + arg_cnt + 1, locals_table->vars);
   buf[0] = cnt;
