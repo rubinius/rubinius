@@ -6630,7 +6630,7 @@ negate_lit(NODE *node)
     node->nd_lit = LONG2FIX(-FIX2LONG(node->nd_lit));
     break;
   case T_BIGNUM:
-    node->nd_lit = rb_funcall(node->nd_lit, tUMINUS, 0, 0);
+    node->nd_lit = rb_funcall(node->nd_lit, rb_intern("-@"), 0, 0);
     break;
   case T_FLOAT:
     node->nd_lit = rb_float_new(-NUM2DBL(node->nd_lit));
