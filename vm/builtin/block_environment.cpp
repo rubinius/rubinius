@@ -78,7 +78,9 @@ namespace rubinius {
   // TODO: this is a quick hack to process block arguments in 1.9.
   class GenericArguments {
   public:
-    static bool call(STATE, VMMethod* vmm, StackVariables* scope, Arguments& args) {
+    static bool call(STATE, VMMethod* vmm, StackVariables* scope,
+                     Arguments& args, int flags)
+    {
       const bool has_splat = (vmm->splat_position >= 0);
       native_int total_args = args.total();
 
@@ -89,6 +91,18 @@ namespace rubinius {
         }
 
         return true;
+      }
+
+      // Only do destructuring in non-lambda mode
+      if((flags & CallFrame::cIsLambda) == 0) {
+        // If only one argument was yielded and it was an array
+        // and the target block takes 2 or more arguments, then
+        // we destructure the array.
+        if(vmm->required_args > 1 && total_args == 1) {
+          if(Array* ary = try_as<Array>(args.get_argument(0))) {
+            args.use_array(ary);
+          }
+        }
       }
 
       if(!has_splat && total_args > vmm->total_args)
@@ -223,7 +237,7 @@ namespace rubinius {
 
     // TODO: this is a quick hack to process block arguments in 1.9.
     if(LANGUAGE_19_ENABLED(state) || LANGUAGE_20_ENABLED(state)) {
-      GenericArguments::call(state, vmm, scope, args);
+      GenericArguments::call(state, vmm, scope, args, invocation.flags);
     }
 
     frame->prepare(vmm->stack_size);
