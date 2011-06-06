@@ -9,10 +9,14 @@
 desc "Build extensions from lib/ext"
 task :extensions
 
+def clean_extension(name)
+  rm_f FileList["lib/ext/#{name}/*.{o,#{$dlext}}"], :verbose => $verbose
+end
+
 namespace :extensions do
   desc "Clean all lib/ext files"
   task :clean do
-    rm_f FileList["lib/ext/**/*.{o,#{$dlext}}"], :verbose => $verbose
+    clean_extension("**")
     # TODO: implement per extension cleaning. This hack is for
     # openssl and dl, which use extconf.rb and create Makefile.
     rm_f FileList["lib/ext/**/Makefile"], :verbose => $verbose
@@ -81,6 +85,23 @@ def compile_ext(name, opts={})
   end
 
   Rake::Task[:extensions].prerequisites << "extensions:#{task_name}"
+end
+
+# TODO: we must completely rebuild the bootstrap version of Melbourne if the
+# configured build ruby changes. We add the version to be extra sure.
+build_ruby = "lib/ext/melbourne/.build_ruby"
+build_version = "#{BUILD_CONFIG[:build_ruby]}:#{RUBY_VERSION}"
+
+if File.exists?(build_ruby)
+  File.open(build_ruby, "rb") do |f|
+    clean_extension("melbourne/**") if f.read.chomp != build_version
+  end
+else
+  clean_extension("melbourne/**")
+end
+
+File.open(build_ruby, "wb") do |f|
+  f.puts build_version
 end
 
 compile_ext "bigdecimal"
