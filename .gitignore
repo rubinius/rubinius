@@ -82,8 +82,6 @@ vm/capi/include/rbx_config.h
 /lib/syslog.rb
 /lib/readline.rb
 
-/lib/ext/melbourne/Makefile
-
 # LLVM and its Makefiles
 vm/external_libs/llvm/Makefile
 vm/external_libs/llvm/Makefile.common
