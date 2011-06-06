@@ -109,7 +109,7 @@ namespace melbourne {
   extern ID rb_sZArray;
   extern ID rb_sZSuper;
 
-  void init_symbols();
+  void init_symbols20();
 };
 
 #ifdef __cplusplus

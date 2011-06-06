@@ -74,13 +74,13 @@ add_include_dir oniguruma_h_dir
 
 # Build the Melbourne extension against Rubinius
 directory "rbx"
-melbourne_rbx = "rbx/melbourne.#{$DLEXT}"
+melbourne_rbx = "rbx/melbourne20.#{$DLEXT}"
 
 file melbourne_rbx => project_files
 
 # Build the Melbourne extension against MRI
 directory "build"
-melbourne_build = "build/melbourne.#{$DLEXT}"
+melbourne_build = "build/melbourne20.#{$DLEXT}"
 
 file melbourne_build => project_files
 

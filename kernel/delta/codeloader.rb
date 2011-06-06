@@ -88,7 +88,7 @@ module Rubinius
         Rubinius.const_set :COMPILER_PATH, Rubinius::RUNTIME_PATH
         Rubinius.const_set :PARSER_PATH, "#{Rubinius::RUNTIME_PATH}/melbourne"
 
-        ext_path = "#{Rubinius::LIB_PATH}/ext/melbourne/rbx/melbourne"
+        ext_path = "#{Rubinius::LIB_PATH}/ext/melbourne/rbx/melbourne20"
         Rubinius.const_set :PARSER_EXT_PATH, ext_path
 
         begin

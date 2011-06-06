@@ -65,10 +65,10 @@ VALUE melbourne19_file_to_ast(VALUE self, VALUE fname, VALUE start) {
   }
 }
 
-void Init_melbourne(void) {
+void Init_melbourne20(void) {
   VALUE rb_cMelbourne;
 
-  melbourne::init_symbols();
+  melbourne::init_symbols20();
 
 #ifndef RUBINIUS
   VALUE rb_mRubinius = rb_const_get(rb_cObject, rb_intern("Rubinius"));

@@ -118,7 +118,7 @@ namespace melbourne {
 
 namespace melbourne {
 
-  void init_symbols() {
+  void init_symbols20() {
     rb_sOpAnd       = rb_intern("and");
     rb_sOpOr        = rb_intern("or");
 

@@ -220,7 +220,7 @@ namespace :compiler do
   path = File.expand_path("../../lib", __FILE__)
   Rubinius::COMPILER_PATH = path
   Rubinius::PARSER_PATH = "#{path}/melbourne"
-  Rubinius::PARSER_EXT_PATH = "#{path}/ext/melbourne/build/melbourne"
+  Rubinius::PARSER_EXT_PATH = "#{path}/ext/melbourne/build/melbourne20"
 
   melbourne = "lib/ext/melbourne/build/melbourne.#{$dlext}"
 
