@@ -663,12 +663,17 @@ to rebuild the compiler.
         STDERR.puts "associated value: #{thread_state[1].inspect}"
 
         destination = thread_state[2]
-        method = destination.method
 
-        STDERR.puts "destination scope:"
-        STDERR.puts "  method: #{method.name} at #{method.file}:#{method.first_line}"
-        STDERR.puts "  module: #{destination.module.name}"
-        STDERR.puts "  block:  #{destination.block}" if destination.block
+        if destination
+          method = destination.method
+
+          STDERR.puts "destination scope:"
+          STDERR.puts "  method: #{method.name} at #{method.file}:#{method.first_line}"
+          STDERR.puts "  module: #{destination.module.name}"
+          STDERR.puts "  block:  #{destination.block}" if destination.block
+        else
+          STDERR.puts "destination scope: unknown"
+        end
 
         if reason == :catch_throw
           STDERR.puts "throw destination: #{thread_state[4].inspect}"
