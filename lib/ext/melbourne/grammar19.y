@@ -376,6 +376,7 @@ static int scan_hex(const char *start, size_t len, size_t *retlen);
 #define rb_warningS(fmt,a)        rb_compile_warning(ruby_sourcefile, ruby_sourceline, fmt, a)
 
 /* TODO */
+#undef CONST_ID
 #define CONST_ID(x, y)            ((void)0)
 
 #ifndef RE_OPTION_IGNORECASE

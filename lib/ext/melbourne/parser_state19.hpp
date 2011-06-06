@@ -31,11 +31,7 @@ namespace melbourne {
       EXPR_MAX_STATE
     };
 
-#ifdef HAVE_LONG_LONG
-    typedef unsigned LONG_LONG stack_type;
-#else
-    typedef unsigned long stack_type;
-#endif
+typedef VALUE stack_type;
 
     struct StartPosition {
       int line;
