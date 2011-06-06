@@ -301,6 +301,11 @@ namespace melbourne {
       tree = rb_funcall(ptp, rb_sIter, 3, line, iter, body);
       break;
     }
+    case NODE_LAMBDA: {
+      VALUE scope = process_parse_tree(parser_state, ptp, node->nd_body, locals);
+      tree = rb_funcall(ptp, rb_sLambda, 2, line, scope);
+      break;
+    }
     case NODE_BREAK: {
       VALUE expr = Qnil;
 

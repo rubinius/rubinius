@@ -61,6 +61,7 @@ namespace melbourne {
   extern ID rb_sIter;
   extern ID rb_sIVar;
   extern ID rb_sLAsgn;
+  extern ID rb_sLambda;
   extern ID rb_sLit;
   extern ID rb_sLVar;
   extern ID rb_sMAsgn;

@@ -534,6 +534,21 @@ module Rubinius
       method_send
     end
 
+    def process_lambda(line, scope)
+      arguments = scope.array.shift
+      if scope.array.size == 1
+        body = scope.array.shift
+      else
+        body = scope
+      end
+
+      receiver = AST::Self.new line
+      method_send = AST::Send.new line, receiver, :lambda, true
+
+      method_send.block = AST::Iter19.new line, arguments, body
+      method_send
+    end
+
     def process_number(line, value)
       case value
       when Fixnum
