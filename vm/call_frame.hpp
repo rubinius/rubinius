@@ -20,6 +20,7 @@ namespace rubinius {
   class Module;
   class VMMethod;
   class VariableScope;
+  class NativeMethodFrame;
 
   namespace jit {
     class RuntimeData;
@@ -36,7 +37,8 @@ namespace rubinius {
       cBlockAsMethod =      1 << 5,
       cJITed =              1 << 6,
       cBlock =              1 << 7,
-      cInlineBlock =        1 << 8
+      cInlineBlock =        1 << 8,
+      cNativeMethod =       1 << 9
     };
 
     CallFrame* previous;
@@ -195,6 +197,26 @@ namespace rubinius {
 
     bool has_closed_scope_p() {
       return flags & cClosedScope;
+    }
+
+    bool native_method_p() {
+      return flags & cNativeMethod;
+    }
+
+    NativeMethodFrame* native_method_frame() {
+      if(native_method_p()) return (NativeMethodFrame*)dispatch_data;
+      return 0;
+    }
+
+    CallFrame* top_ruby_frame() {
+      // Skip over any natime method frames.
+      CallFrame* cf = this;
+
+      while(cf->native_method_p()) {
+        cf = cf->previous;
+      }
+
+      return cf;
     }
 
     Object* last_match(STATE);

@@ -1111,6 +1111,8 @@ namespace rubinius {
   }
 
   Object* System::vm_check_super_callable(STATE, CallFrame* call_frame) {
+    if(call_frame->native_method_p()) return Qtrue;
+
     Module* mod = call_frame->module()->superclass();
 
     MethodTableBucket* entry;

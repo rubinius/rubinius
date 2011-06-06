@@ -642,9 +642,14 @@ namespace rubinius {
     state->set_call_frame(call_frame);
 
     NativeMethodFrame nmf(env->current_native_frame());
+    CallFrame cf;
+    cf.previous = call_frame;
+    cf.cm = 0;
+    cf.dispatch_data = (void*)&nmf;
+    cf.flags = CallFrame::cNativeMethod;
 
     CallFrame* saved_frame = env->current_call_frame();
-    env->set_current_call_frame(call_frame);
+    env->set_current_call_frame(&cf);
     env->set_current_native_frame(&nmf);
 
     // Be sure to do this after installing nmf as the current

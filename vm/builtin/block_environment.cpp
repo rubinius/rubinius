@@ -237,7 +237,7 @@ namespace rubinius {
 
   Object* BlockEnvironment::of_sender(STATE, CallFrame* call_frame) {
     NativeMethodEnvironment* nme = NativeMethodEnvironment::get();
-    CallFrame* target = call_frame->previous;
+    CallFrame* target = call_frame->previous->top_ruby_frame();
 
     // We assume that code using this is going to use it over and
     // over again (ie Proc.new) so we mark the method as not
@@ -245,7 +245,7 @@ namespace rubinius {
 
     target->cm->backend_method()->set_no_inline();
 
-    if(nme->current_call_frame() == target) {
+    if(nme->current_call_frame() == call_frame->previous) {
       NativeMethodFrame* nmf = nme->current_native_frame();
       if(nmf) return nme->get_object(nmf->block());
     }

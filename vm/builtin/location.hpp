@@ -6,6 +6,7 @@
 
 namespace rubinius {
 
+  class NativeMethodFrame;
   class StaticScope;
 
   class Location : public Object {
@@ -43,6 +44,7 @@ namespace rubinius {
     }
 
     static void init(STATE);
+    static Location* create(STATE, NativeMethodFrame* nmf);
     static Location* create(STATE, CallFrame* call_frame,
                             bool include_variables=false);
     static Array* from_call_stack(STATE, CallFrame* call_frame,

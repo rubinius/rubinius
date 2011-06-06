@@ -74,5 +74,9 @@ module Rubinius
     def defined_line
       0
     end
+
+    def active_path
+      @file
+    end
   end
 end

@@ -705,7 +705,16 @@ VM Options
         end
 
         if exception = thread_state[3]
-          exception.render
+          begin
+            exception.render
+          rescue Exception => e
+            STDERR.puts "Unable to render backtrace: #{e.message} (#{e.class})"
+            STDERR.puts "Raw backtrace data:"
+
+            exception.locations.each do |loc|
+              p [loc.file, loc.line]
+            end
+          end
         end
 
         @exit_code = 1

@@ -4,6 +4,7 @@
 #include "builtin/array.hpp"
 #include "builtin/symbol.hpp"
 #include "builtin/string.hpp"
+#include "builtin/nativemethod.hpp"
 
 #include "vm.hpp"
 
@@ -52,6 +53,25 @@ namespace rubinius {
     return loc;
   }
 
+  Location* Location::create(STATE, NativeMethodFrame* nmf) {
+    NativeMethod* nm = try_as<NativeMethod>(nmf->get_object(nmf->method()));
+    if(!nm) return 0;
+
+    Location* loc = state->new_object<Location>(G(location));
+    if(Module* mod = try_as<Module>(nmf->get_object(nmf->module()))) {
+      loc->method_module(state, mod);
+    }
+
+    loc->receiver(state, nmf->get_object(nmf->receiver()));
+
+    loc->method(state, nm);
+    loc->ip(state, Fixnum::from(-1));
+    loc->flags(state, Fixnum::from(2));
+
+    loc->name(state, nm->name());
+    return loc;
+  }
+
   Array* Location::from_call_stack(STATE, CallFrame* start_call_frame,
                                    bool include_vars, bool on_ip)
   {
@@ -79,6 +99,9 @@ namespace rubinius {
       // Ignore synthetic frames
       if(call_frame->cm) {
         bt->append(state, Location::create(state, call_frame, include_vars));
+      } else if(NativeMethodFrame* nmf = call_frame->native_method_frame()) {
+        Location* loc = Location::create(state, nmf);
+        if(loc) bt->append(state, loc);
       }
 
       call_frame = static_cast<CallFrame*>(call_frame->previous);
