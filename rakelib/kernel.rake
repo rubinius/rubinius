@@ -217,25 +217,25 @@ end
 namespace :compiler do
   signature_path = File.expand_path("../../kernel/signature", __FILE__)
 
-  if BUILD_CONFIG[:which_ruby] == :ruby
-    melbourne = "lib/ext/melbourne/ruby/melbourne.#{$dlext}"
+  path = File.expand_path("../../lib", __FILE__)
+  Rubinius::COMPILER_PATH = path
+  Rubinius::PARSER_PATH = "#{path}/melbourne"
+  Rubinius::PARSER_EXT_PATH = "#{path}/ext/melbourne/build/melbourne"
 
-    file melbourne => "extensions:melbourne_mri"
+  melbourne = "lib/ext/melbourne/build/melbourne.#{$dlext}"
 
-    path = File.expand_path("../../lib", __FILE__)
-    Rubinius::COMPILER_PATH = path
-    Rubinius::PARSER_PATH = "#{path}/melbourne"
-    Rubinius::PARSER_EXT_PATH = "#{path}/ext/melbourne/ruby/melbourne"
+  file melbourne => "extensions:melbourne_build"
 
-    task :load => [compiler_signature, melbourne] + compiler_files do
+  task :load => [compiler_signature, melbourne] + compiler_files do
+
+    if BUILD_CONFIG[:which_ruby] == :ruby
       require "#{Rubinius::COMPILER_PATH}/mri_bridge"
-      require "#{Rubinius::COMPILER_PATH}/compiler"
-      require signature_path
+    elsif BUILD_CONFIG[:which_ruby] == :rbx && RUBY_VERSION < "1.9"
+      require "#{Rubinius::COMPILER_PATH}/rbx_bridge"
     end
-  else
-    task :load => compiler_signature do
-      require signature_path
-    end
+
+    require "#{Rubinius::COMPILER_PATH}/compiler"
+    require signature_path
   end
 end
 

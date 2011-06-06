@@ -93,9 +93,7 @@ compile_ext "digest:sha2"
 compile_ext "digest:bubblebabble"
 compile_ext "syck"
 compile_ext "melbourne", :task => "rbx", :doc => "for Rubinius"
-if BUILD_CONFIG[:which_ruby] == :ruby
-  compile_ext "melbourne", :task => "mri", :doc => "for MRI"
-end
+compile_ext "melbourne", :task => "build", :doc => "for bootstrapping"
 compile_ext "nkf"
 
 # rbx must be able to run to build these because they use
@@ -106,5 +104,5 @@ compile_ext "dbm", :ignore_fail => true, :deps => ["Makefile"]
 compile_ext "gdbm", :ignore_fail => true, :deps => ["Makefile"]
 compile_ext "sdbm", :deps => ["Makefile"]
 
-compile_ext "profiler", :dir => "lib/tooling/profiler", 
+compile_ext "profiler", :dir => "lib/tooling/profiler",
                         :deps => ["Makefile"]

@@ -2,6 +2,8 @@
 # compiler. Also requires files that are available by default in Rubinius.
 
 module Rubinius
+  RUBY_LIB_VERSION = 18
+
   LookupTable = Hash
   class Tuple < Array; end
 
