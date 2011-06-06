@@ -172,7 +172,8 @@ namespace rubinius {
     int fd = 2;
 
     if(getenv("RBX_PAUSE_ON_CRASH")) {
-      std::cerr << "\n========== CRASH, pausing for 60 seconds to attach debugger\n";
+      std::cerr << "\n========== CRASH (" << getpid();
+      std::cerr << "), pausing for 60 seconds to attach debugger\n";
       sleep(60);
     }
 
