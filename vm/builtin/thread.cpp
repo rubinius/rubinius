@@ -119,7 +119,7 @@ namespace rubinius {
     if(!native_thread_) return nil<Tuple>();
 
     VM* vm = native_thread_->vm();
-    CallFrame* cf = vm->saved_call_frame();
+    CallFrame* cf = vm->saved_call_frame()->top_ruby_frame();
 
     VariableScope* scope = cf->promote_scope(state);
 

@@ -624,7 +624,7 @@ namespace rubinius {
   Object* Regexp::last_match_result(STATE, Fixnum* mode, Fixnum* which,
                                     CallFrame* call_frame)
   {
-    Object* current_match = call_frame->top_ruby_frame()->last_match(state);
+    Object* current_match = call_frame->last_match(state);
 
     if(MatchData* match = try_as<MatchData>(current_match)) {
       switch(mode->to_native()) {
@@ -667,7 +667,7 @@ namespace rubinius {
     }
 
     if(CallFrame* parent = call_frame->previous) {
-      parent->top_ruby_frame()->set_last_match(state, obj);
+      parent->set_last_match(state, obj);
     }
 
     return obj;

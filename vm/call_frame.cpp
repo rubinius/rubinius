@@ -9,12 +9,13 @@
 #include "builtin/tuple.hpp"
 #include "builtin/staticscope.hpp"
 #include "builtin/lookuptable.hpp"
+#include "builtin/nativemethod.hpp"
 
 #include "object_utils.hpp"
 
 namespace rubinius {
   Object* CallFrame::last_match(STATE) {
-    CallFrame* use = this;
+    CallFrame* use = this->top_ruby_frame();;
 
     while(use && use->is_inline_block()) {
       CallFrame* yielder = use->previous;
@@ -29,7 +30,7 @@ namespace rubinius {
   }
 
   void CallFrame::set_last_match(STATE, Object* obj) {
-    CallFrame* use = this;
+    CallFrame* use = this->top_ruby_frame();
 
     while(use && use->is_inline_block()) {
       CallFrame* yielder = use->previous;
@@ -73,12 +74,26 @@ namespace rubinius {
     CallFrame* cf = this;
 
     while(cf) {
-      if(!cf->cm) {
+      stream << static_cast<void*>(cf) << ": ";
+
+      if(NativeMethodFrame* nmf = cf->native_method_frame()) {
+        NativeMethod* nm = try_as<NativeMethod>(nmf->get_object(nmf->method()));
+        if(nm || !nm->name()->symbol_p()) {
+          stream << "capi:" << nm->name()->c_str(state) << " at ";
+          stream << nm->file()->c_str(state);
+        } else {
+          stream << "unknown capi";
+        }
+
+        stream << std::endl;
         cf = static_cast<CallFrame*>(cf->previous);
         continue;
       }
 
-      stream << static_cast<void*>(cf) << ": ";
+      if(!cf->cm) {
+        cf = static_cast<CallFrame*>(cf->previous);
+        continue;
+      }
 
       if(cf->is_block_p(state)) {
         stream << "__block__";
@@ -151,7 +166,7 @@ namespace rubinius {
   bool CallFrame::scope_still_valid(VariableScope* scope) {
     CallFrame* cur = this;
     while(cur) {
-      if(cur->scope->on_heap() == scope) return true;
+      if(cur->scope && cur->scope->on_heap() == scope) return true;
       cur = static_cast<CallFrame*>(cur->previous);
     }
 
@@ -161,6 +176,12 @@ namespace rubinius {
   void CallFrame::dump() {
     VM* state = VM::current_state();
     std::cout << "<CallFrame:" << (void*)this << " ";
+
+    if(native_method_p()) {
+      std::cout << "capi>\n";
+      return;
+    }
+
     if(is_inline_frame()) {
       std::cout << "inline ";
     }
@@ -181,6 +202,8 @@ namespace rubinius {
   }
 
   Object* CallFrame::find_breakpoint(STATE) {
+    if(!cm) return 0;
+
     LookupTable* tbl = cm->breakpoints();
     if(tbl->nil_p()) return 0;
 

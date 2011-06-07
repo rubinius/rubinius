@@ -22,6 +22,10 @@ namespace rubinius {
   Location* Location::create(STATE, CallFrame* call_frame,
                              bool include_variables)
   {
+    if(NativeMethodFrame* nmf = call_frame->native_method_frame()) {
+      return create(state, nmf);
+    }
+
     Location* loc = state->new_object<Location>(G(location));
     loc->method_module(state, call_frame->module());
     loc->receiver(state, call_frame->self());

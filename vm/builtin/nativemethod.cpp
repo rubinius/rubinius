@@ -645,6 +645,7 @@ namespace rubinius {
     CallFrame cf;
     cf.previous = call_frame;
     cf.cm = 0;
+    cf.scope = 0;
     cf.dispatch_data = (void*)&nmf;
     cf.flags = CallFrame::cNativeMethod;
 
