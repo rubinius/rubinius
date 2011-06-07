@@ -20,26 +20,24 @@
 namespace melbourne {
   namespace grammar19 {
 
-#define QUID    quark
-
     typedef struct RNode {
       unsigned long flags;
       char *nd_file;
       union {
         RNode *node;
-        QUID id;
+        ID id;
         VALUE value;
-        QUID *tbl;
+        ID *tbl;
       } u1;
       union {
         struct RNode *node;
-        QUID id;
+        ID id;
         long argc;
         VALUE value;
       } u2;
       union {
         struct RNode *node;
-        QUID id;
+        ID id;
         long state;
         long cnt;
         VALUE value;

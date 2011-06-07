@@ -8,6 +8,7 @@ extern "C" {
 #ifdef HAVE_RUBY_ENCODING_H
 #include "ruby/encoding.h"
 #else
+#include "ruby.h"
 
 #define ENCODING_NAMELEN_MAX 63
 
@@ -32,6 +33,12 @@ typedef struct {
 #define rb_enc_asciicompat(enc)             true
 #define rb_enc_str_coderange(str)           ENC_CODERANGE_7BIT
 #define rb_enc_associate(str, enc)          (0)
+
+#define rb_intern2(str, len)                rb_intern3(str, len, rb_usascii_encoding())
+
+ID rb_intern_str(VALUE str);
+ID rb_intern3(const char *name, long len, rb_encoding *enc);
+
 
 rb_encoding* rb_utf8_encoding();
 rb_encoding* rb_usascii_encoding();

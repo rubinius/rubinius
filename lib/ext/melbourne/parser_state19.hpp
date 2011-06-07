@@ -14,8 +14,6 @@
 namespace melbourne {
   namespace grammar19 {
 
-#define QUID    quark
-
     enum lex_state_e {
       EXPR_BEG,       /* ignore newline, +/- is a sign. */
       EXPR_END,       /* newline significant, +/- is an operator. */
@@ -184,8 +182,6 @@ typedef VALUE stack_type;
 #define start_lines         PARSER_VAR(start_lines)
 
 #define node_newnode(t, a, b, c)  parser_node_newnode((rb_parser_state*)parser_state, t, a, b, c)
-
-    quark id_to_quark(QUID id);
   };  // namespace grammar19
 };  // namespace melbourne
 

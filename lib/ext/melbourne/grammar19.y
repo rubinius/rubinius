@@ -136,9 +136,9 @@ static NODE *parser_arg_concat(rb_parser_state*, NODE*, NODE*);
 static NODE *parser_literal_concat(rb_parser_state*, NODE*, NODE*);
 static NODE *parser_new_evstr(rb_parser_state*, NODE*);
 static NODE *parser_evstr2dstr(rb_parser_state*, NODE*);
-static NODE *parser_call_bin_op(rb_parser_state*, NODE*, QUID, NODE*);
-static NODE *parser_call_uni_op(rb_parser_state*, NODE*, QUID);
-static NODE *parser_new_args(rb_parser_state*, NODE*, NODE*, QUID, NODE*, QUID);
+static NODE *parser_call_bin_op(rb_parser_state*, NODE*, ID, NODE*);
+static NODE *parser_call_uni_op(rb_parser_state*, NODE*, ID);
+static NODE *parser_new_args(rb_parser_state*, NODE*, NODE*, ID, NODE*, ID);
 static NODE *splat_array(NODE*);
 
 static NODE *negate_lit(NODE*);
@@ -146,35 +146,33 @@ static NODE *parser_ret_args(rb_parser_state*, NODE*);
 static NODE *arg_blk_pass(NODE*,NODE*);
 static NODE *parser_new_yield(rb_parser_state*, NODE*);
 
-static NODE *parser_gettable(rb_parser_state*,QUID);
+static NODE *parser_gettable(rb_parser_state*,ID);
 #define gettable(i) parser_gettable((rb_parser_state*)parser_state, i)
-static NODE *parser_assignable(rb_parser_state*, QUID, NODE*);
-static QUID parser_formal_argument(rb_parser_state*, QUID);
-static QUID parser_shadowing_lvar(rb_parser_state*, QUID);
-static bool parser_lvar_defined(rb_parser_state*, QUID);
-static void parser_new_bv(rb_parser_state*, QUID);
+static NODE *parser_assignable(rb_parser_state*, ID, NODE*);
+static ID parser_formal_argument(rb_parser_state*, ID);
+static ID parser_shadowing_lvar(rb_parser_state*, ID);
+static bool parser_lvar_defined(rb_parser_state*, ID);
+static void parser_new_bv(rb_parser_state*, ID);
 static const struct vtable* parser_bv_push(rb_parser_state*);
 static void parser_bv_pop(rb_parser_state*, const struct vtable*);
 static bool parser_in_block(rb_parser_state*);
-static bool parser_bv_defined(rb_parser_state*, QUID);
-static int parser_bv_var(rb_parser_state*, QUID);
+static bool parser_bv_defined(rb_parser_state*, ID);
+static int parser_bv_var(rb_parser_state*, ID);
 static NODE *parser_aryset(rb_parser_state*, NODE*, NODE*);
-static NODE *parser_attrset(rb_parser_state*, NODE*, QUID);
+static NODE *parser_attrset(rb_parser_state*, NODE*, ID);
 static void rb_parser_backref_error(rb_parser_state*, NODE*);
 static NODE *parser_node_assign(rb_parser_state*, NODE*, NODE*);
 
 static NODE *parser_match_op(rb_parser_state*, NODE*, NODE*);
-static int parser_arg_var(rb_parser_state*, QUID);
-static int parser_local_var(rb_parser_state*, QUID);
-static QUID parser_internal_id(rb_parser_state*);
+static int parser_arg_var(rb_parser_state*, ID);
+static int parser_local_var(rb_parser_state*, ID);
+static ID parser_internal_id(rb_parser_state*);
 
 static void parser_local_push(rb_parser_state*, int cnt);
 static void parser_local_pop(rb_parser_state*);
-static bool parser_local_id(rb_parser_state*, QUID);
-static QUID* parser_local_tbl(rb_parser_state*);
-static QUID convert_op(QUID id);
-
-#define QUID2SYM(x)   quark_to_symbol(x)
+static bool parser_local_id(rb_parser_state*, ID);
+static ID* parser_local_tbl(rb_parser_state*);
+static ID convert_op(ID id);
 
 rb_parser_state *parser_alloc_state() {
   rb_parser_state *parser_state = (rb_parser_state*)calloc(1, sizeof(rb_parser_state));
@@ -312,8 +310,8 @@ void pop_start_line(rb_parser_state* parser_state) {
 
 #define POP_LINE() pop_start_line((rb_parser_state*)parser_state)
 
-static QUID rb_parser_sym(const char *name);
-static QUID rb_id_attrset(QUID);
+static ID rb_parser_sym(const char *name);
+static ID rb_id_attrset(ID);
 
 static int scan_oct(const char *start, size_t len, size_t *retlen);
 static int scan_hex(const char *start, size_t len, size_t *retlen);
@@ -375,9 +373,6 @@ static int scan_hex(const char *start, size_t len, size_t *retlen);
 #define rb_warning0(fmt)          rb_compile_warning(ruby_sourcefile, ruby_sourceline, fmt)
 #define rb_warningS(fmt,a)        rb_compile_warning(ruby_sourcefile, ruby_sourceline, fmt, a)
 
-/* TODO */
-#undef CONST_ID
-#define CONST_ID(x, y)            ((void)0)
 
 #ifndef RE_OPTION_IGNORECASE
 #define RE_OPTION_IGNORECASE         (1L)
@@ -413,7 +408,7 @@ static int scan_hex(const char *start, size_t len, size_t *retlen);
 #define STR_NEW0()            rb_str_new(0, 0)
 #define STR_NEW3(p,n,e,func)  parser_str_new((p), (n), (e), (func), parser_state->enc)
 #define ENC_SINGLE(cr)        ((cr)==ENC_CODERANGE_7BIT)
-#define TOK_INTERN(mb)        rb_parser_sym(tok())
+#define TOK_INTERN(mb)        rb_intern3(tok(), toklen(), parser_state->enc)
 
 #define NEW_BLOCK_VAR(b, v) NEW_NODE(NODE_BLOCK_PASS, 0, b, v)
 
@@ -434,7 +429,7 @@ static int scan_hex(const char *start, size_t len, size_t *retlen);
 %union {
     VALUE val;
     NODE *node;
-    QUID id;
+    ID id;
     int num;
     const struct vtable* vars;
 }
@@ -702,10 +697,10 @@ stmt            : keyword_alias fitem {lex_state = EXPR_FNAME;} fitem
                   }
                 | keyword_alias tGVAR tBACK_REF
                   {
-                    char buf[3];
-
-                    snprintf(buf, sizeof(buf), "$%c", (char)$3->nd_nth);
-                    $$ = NEW_VALIAS($2, rb_parser_sym(buf));
+                    char buf[2];
+                    buf[0] = '$';
+                    buf[1] = (char)$3->nd_nth;
+                    $$ = NEW_VALIAS($2, rb_intern2(buf, 2));
                   }
                 | keyword_alias tGVAR tNTH_REF
                   {
@@ -771,7 +766,7 @@ stmt            : keyword_alias fitem {lex_state = EXPR_FNAME;} fitem
                   {
                     value_expr($3);
                     if($1) {
-                      QUID vid = $1->nd_vid;
+                      ID vid = $1->nd_vid;
                       if($2 == tOROP) {
                         $1->nd_value = $3;
                         $$ = NEW_OP_ASGN_OR(gettable(vid), $1);
@@ -1187,7 +1182,7 @@ fsym            : fname
 
 fitem           : fsym
                   {
-                    $$ = NEW_LIT(QUID2SYM($1));
+                    $$ = NEW_LIT(ID2SYM($1));
                   }
                 | dsym
                 ;
@@ -1262,7 +1257,7 @@ arg             : lhs '=' arg
                   {
                     value_expr($3);
                     if($1) {
-                      QUID vid = $1->nd_vid;
+                      ID vid = $1->nd_vid;
                       if($2 == tOROP) {
                         $1->nd_value = $3;
                         $$ = NEW_OP_ASGN_OR(gettable(vid), $1);
@@ -1285,7 +1280,7 @@ arg             : lhs '=' arg
                     value_expr($3);
                     $3 = NEW_RESCUE($3, NEW_RESBODY(0, $5, 0), 0);
                     if($1) {
-                      QUID vid = $1->nd_vid;
+                      ID vid = $1->nd_vid;
                       if($2 == tOROP) {
                         $1->nd_value = $3;
                         $$ = NEW_OP_ASGN_OR(gettable(vid), $1);
@@ -2300,12 +2295,12 @@ method_call     : operation paren_args
                   }
                 | primary_value '.' paren_args
                   {
-                    $$ = NEW_CALL($1, rb_parser_sym("call"), $3);
+                    $$ = NEW_CALL($1, rb_intern("call"), $3);
                     fixpos($$, $1);
                   }
                 | primary_value tCOLON2 paren_args
                   {
-                    $$ = NEW_CALL($1, rb_parser_sym("call"), $3);
+                    $$ = NEW_CALL($1, rb_intern("call"), $3);
                     fixpos($$, $1);
                   }
                 | keyword_super paren_args
@@ -2371,7 +2366,7 @@ opt_rescue      : keyword_rescue exc_list exc_var then
                   {
                     if($3) {
                       /* TODO NEW_ERRINFO() */
-                      $3 = node_assign($3, NEW_GVAR(rb_parser_sym("$!")));
+                      $3 = node_assign($3, NEW_GVAR(rb_intern("$!")));
                       $5 = block_append($3, $5);
                     }
                     $$ = NEW_RESBODY($2, $5, $6);
@@ -2408,7 +2403,7 @@ opt_ensure      : keyword_ensure compstmt
 literal         : numeric
                 | symbol
                   {
-                    $$ = NEW_LIT(QUID2SYM($1));
+                    $$ = NEW_LIT(ID2SYM($1));
                   }
                 | dsym
                 ;
@@ -2644,7 +2639,7 @@ dsym            : tSYMBEG xstring_contents tSTRING_END
                   {
                     lex_state = EXPR_END;
                     if(!($$ = $2)) {
-                      $$ = NEW_LIT(QUID2SYM(rb_parser_sym("")));
+                      $$ = NEW_LIT(ID2SYM(rb_intern("")));
                     } else {
                       VALUE lit;
 
@@ -2654,9 +2649,7 @@ dsym            : tSYMBEG xstring_contents tSTRING_END
                         break;
                       case NODE_STR:
                         lit = $$->nd_lit;
-                        // TODO: intern function that takes a String
-                        // so the embedded \x00 or captured.
-                        $$->nd_lit = QUID2SYM(rb_parser_sym(RSTRING_PTR(lit)));
+                        $$->nd_lit = ID2SYM(rb_intern_str(lit));
                         nd_set_type($$, NODE_LIT);
                         break;
                       default:
@@ -2841,7 +2834,7 @@ f_arg_item      : f_norm_arg
                   }
                 | tLPAREN f_margs rparen
                   {
-                    QUID tid = internal_id();
+                    ID tid = internal_id();
                     arg_var(tid);
                     $2->nd_value = NEW_LVAR(tid);
                     $$ = NEW_ARGS_AUX(tid, 1);
@@ -2998,7 +2991,7 @@ assoc           : arg_value tASSOC arg_value
                   }
                 | tLABEL arg_value
                   {
-                    $$ = list_append(NEW_LIST(NEW_LIT(QUID2SYM($1))), $2);
+                    $$ = list_append(NEW_LIST(NEW_LIT(ID2SYM($1))), $2);
                   }
                 ;
 
@@ -3195,7 +3188,7 @@ lex_getline(rb_parser_state* parser_state)
   return line;
 }
 
-VALUE process_parse_tree(rb_parser_state*, VALUE, NODE*, QUID*);
+VALUE process_parse_tree(rb_parser_state*, VALUE, NODE*, ID*);
 
 VALUE
 string_to_ast(VALUE ptp, VALUE name, VALUE source, VALUE line)
@@ -4200,8 +4193,8 @@ arg_ambiguous()
 
 #define IS_ARG() (lex_state == EXPR_ARG || lex_state == EXPR_CMDARG)
 
-static QUID
-parser_formal_argument(rb_parser_state* parser_state, QUID lhs)
+static ID
+parser_formal_argument(rb_parser_state* parser_state, ID lhs)
 {
   if(!is_local_id(lhs)) {
     yy_error("formal argument must be local variable");
@@ -4211,7 +4204,7 @@ parser_formal_argument(rb_parser_state* parser_state, QUID lhs)
 }
 
 static bool
-parser_lvar_defined(rb_parser_state* parser_state, QUID id) {
+parser_lvar_defined(rb_parser_state* parser_state, ID id) {
   return local_id(id);
 }
 
@@ -5272,7 +5265,7 @@ retry:
       tokadd('$');
       tokadd(c);
       tokfix();
-      set_yylval_name(rb_parser_sym(tok()));
+      set_yylval_name(rb_intern(tok()));
       return tGVAR;
 
     case '-':
@@ -5286,7 +5279,7 @@ retry:
       }
     gvar:
       tokfix();
-      set_yylval_name(rb_parser_sym(tok()));
+      set_yylval_name(rb_intern(tok()));
       return tGVAR;
 
     case '&':             /* $&: last match */
@@ -5440,7 +5433,7 @@ retry:
           enum lex_state_e state = lex_state;
           lex_state = kw->state;
           if(state == EXPR_FNAME) {
-            set_yylval_name(rb_parser_sym(kw->name));
+            set_yylval_name(rb_intern(kw->name));
             return kw->id[0];
           }
           if(kw->id[0] == keyword_do) {
@@ -5482,7 +5475,7 @@ retry:
       }
     }
     {
-      QUID ident = TOK_INTERN(!ENC_SINGLE(mb));
+      ID ident = TOK_INTERN(!ENC_SINGLE(mb));
 
       set_yylval_name(ident);
       if(last_state != EXPR_DOT && is_local_id(ident) && lvar_defined(ident)) {
@@ -5809,7 +5802,7 @@ parser_new_evstr(rb_parser_state* parser_state, NODE *node)
 }
 
 static NODE *
-parser_call_bin_op(rb_parser_state* parser_state, NODE *recv, QUID id, NODE *arg1)
+parser_call_bin_op(rb_parser_state* parser_state, NODE *recv, ID id, NODE *arg1)
 {
   value_expr(recv);
   value_expr(arg1);
@@ -5817,14 +5810,14 @@ parser_call_bin_op(rb_parser_state* parser_state, NODE *recv, QUID id, NODE *arg
 }
 
 static NODE *
-parser_call_uni_op(rb_parser_state* parser_state, NODE *recv, QUID id)
+parser_call_uni_op(rb_parser_state* parser_state, NODE *recv, ID id)
 {
   value_expr(recv);
   return NEW_CALL(recv, id, 0);
 }
 
 static const struct {
-  QUID token;
+  ID token;
   const char name[12];
 } op_tbl[] = {
   {tDOT2,     ".."},
@@ -5869,7 +5862,7 @@ static const struct {
   {0, ""}
 };
 
-static QUID convert_op(QUID id) {
+static ID convert_op(ID id) {
   int i;
   for(i = 0; op_tbl[i].token; i++) {
     if(op_tbl[i].token == id) {
@@ -5880,7 +5873,7 @@ static QUID convert_op(QUID id) {
 }
 
 static NODE *
-call_op(NODE *recv, QUID id, int narg, NODE *arg1, rb_parser_state* parser_state)
+call_op(NODE *recv, ID id, int narg, NODE *arg1, rb_parser_state* parser_state)
 {
   value_expr(recv);
   if(narg == 1) {
@@ -5930,7 +5923,7 @@ parser_match_op(rb_parser_state* parser_state, NODE *node1, NODE *node2)
 }
 
 static NODE*
-parser_gettable(rb_parser_state* parser_state, QUID id)
+parser_gettable(rb_parser_state* parser_state, ID id)
 {
   if(id == keyword_self) {
     return NEW_SELF();
@@ -5965,7 +5958,7 @@ parser_gettable(rb_parser_state* parser_state, QUID id)
 }
 
 static NODE*
-parser_assignable(rb_parser_state* parser_state, QUID id, NODE *val)
+parser_assignable(rb_parser_state* parser_state, ID id, NODE *val)
 {
   if(!id) return 0;
   if(id == keyword_self) {
@@ -6003,13 +5996,10 @@ parser_assignable(rb_parser_state* parser_state, QUID id, NODE *val)
   return 0;
 }
 
-static QUID
-parser_shadowing_lvar(rb_parser_state* parser_state, QUID name)
+static ID
+parser_shadowing_lvar(rb_parser_state* parser_state, ID name)
 {
-  QUID uscore;
-
-  CONST_ID(uscore, "_");
-  if(uscore == name) return name;
+  if(rb_intern("_") == name) return name;
 
   if(in_block()) {
     if(bv_var(name)) {
@@ -6028,7 +6018,7 @@ parser_shadowing_lvar(rb_parser_state* parser_state, QUID name)
 }
 
 static void
-parser_new_bv(rb_parser_state* parser_state, QUID name)
+parser_new_bv(rb_parser_state* parser_state, ID name)
 {
   if(!name) return;
   if(!is_local_id(name)) {
@@ -6079,7 +6069,7 @@ parser_in_block(rb_parser_state* parser_state) {
 }
 
 static bool
-parser_bv_defined(rb_parser_state* parser_state, QUID id)
+parser_bv_defined(rb_parser_state* parser_state, ID id)
 {
   struct vtable *vars, *args;
 
@@ -6101,7 +6091,7 @@ parser_bv_defined(rb_parser_state* parser_state, QUID id)
 }
 
 static int
-parser_bv_var(rb_parser_state* parser_state, QUID id)
+parser_bv_var(rb_parser_state* parser_state, ID id)
 {
   return vtable_included(locals_table->args, id) ||
             vtable_included(locals_table->vars, id);
@@ -6126,8 +6116,8 @@ parser_block_dup_check(rb_parser_state* parser_state, NODE *node1, NODE *node2)
   }
 }
 
-static QUID
-rb_id_attrset(QUID id)
+static ID
+rb_id_attrset(ID id)
 {
   id &= ~ID_SCOPE_MASK;
   id |= ID_ATTRSET;
@@ -6135,7 +6125,7 @@ rb_id_attrset(QUID id)
 }
 
 static NODE *
-parser_attrset(rb_parser_state* parser_state, NODE *recv, QUID id)
+parser_attrset(rb_parser_state* parser_state, NODE *recv, ID id)
 {
   if(recv && nd_type(recv) == NODE_SELF) {
     recv = (NODE *)1;
@@ -6478,7 +6468,7 @@ range_op(rb_parser_state* parser_state, NODE *node)
   value_expr(node);
   if(nd_type(node) == NODE_LIT && FIXNUM_P(node->nd_lit)) {
     warn_unless_e_option(parser_state, node, "integer literal in conditional range");
-    return NEW_CALL(node, tEQ, NEW_LIST(NEW_GVAR(rb_parser_sym("$."))));
+    return NEW_CALL(node, tEQ, NEW_LIST(NEW_GVAR(rb_intern("$."))));
   }
   return cond0(parser_state, node);
 }
@@ -6520,7 +6510,7 @@ cond0(rb_parser_state* parser_state, NODE *node)
   case NODE_DREGX:
   case NODE_DREGX_ONCE:
     warning_unless_e_option(parser_state, node, "regex literal in condition");
-    return NEW_MATCH2(node, NEW_GVAR(rb_parser_sym("$_")));
+    return NEW_MATCH2(node, NEW_GVAR(rb_intern("$_")));
 
   case NODE_AND:
   case NODE_OR:
@@ -6652,7 +6642,7 @@ arg_blk_pass(NODE *node1, NODE *node2)
 }
 
 static NODE*
-parser_new_args(rb_parser_state* parser_state, NODE *m, NODE *o, QUID r, NODE *p, QUID b)
+parser_new_args(rb_parser_state* parser_state, NODE *m, NODE *o, ID r, NODE *p, ID b)
 {
   int saved_line = ruby_sourceline;
   NODE *node;
@@ -6676,21 +6666,21 @@ parser_new_args(rb_parser_state* parser_state, NODE *m, NODE *o, QUID r, NODE *p
 }
 
 static int
-parser_arg_var(rb_parser_state* parser_state, QUID id)
+parser_arg_var(rb_parser_state* parser_state, ID id)
 {
   vtable_add(locals_table->args, id);
   return vtable_size(locals_table->args) - 1;
 }
 
 static int
-parser_local_var(rb_parser_state* parser_state, QUID id)
+parser_local_var(rb_parser_state* parser_state, ID id)
 {
   vtable_add(locals_table->vars, id);
   return vtable_size(locals_table->vars) - 1;
 }
 
 static bool
-parser_local_id(rb_parser_state* parser_state, QUID id)
+parser_local_id(rb_parser_state* parser_state, ID id)
 {
   struct vtable *vars, *args;
 
@@ -6727,8 +6717,8 @@ parser_local_pop(rb_parser_state* parser_state)
   locals_table = local;
 }
 
-static QUID*
-vtable_tblcpy(QUID *buf, const struct vtable *src)
+static ID*
+vtable_tblcpy(ID *buf, const struct vtable *src)
 {
   int cnt = vtable_size(src);
 
@@ -6742,15 +6732,15 @@ vtable_tblcpy(QUID *buf, const struct vtable *src)
   return 0;
 }
 
-static QUID*
+static ID*
 parser_local_tbl(rb_parser_state* parser_state)
 {
   int arg_cnt = vtable_size(locals_table->args);
   int cnt = arg_cnt + vtable_size(locals_table->vars);
-  QUID *buf;
+  ID *buf;
 
   if(cnt <= 0) return 0;
-  buf = (QUID*)pt_allocate(parser_state, sizeof(QUID) * (cnt + 1));
+  buf = (ID*)pt_allocate(parser_state, sizeof(ID) * (cnt + 1));
   vtable_tblcpy(buf + 1, locals_table->args);
   vtable_tblcpy(buf + arg_cnt + 1, locals_table->vars);
   buf[0] = cnt;
@@ -6758,13 +6748,13 @@ parser_local_tbl(rb_parser_state* parser_state)
 }
 
 // TODO: encoding support, rb_usascii_encoding(), see rb_intern3
-static QUID
+static ID
 rb_parser_sym(const char *name)
 {
   const char *m = name;
   const char *e = m + strlen(name);
   rb_encoding *enc = rb_usascii_encoding();
-  QUID id, pre, qrk, bef;
+  ID id, pre, qrk, bef;
   int last;
 
   id = 0;
@@ -6810,7 +6800,7 @@ rb_parser_sym(const char *name)
     m += mbclen(*m);
   }
   if(*m) id = ID_JUNK;
-  qrk = (QUID)quark_from_string(name);
+  qrk = (ID)quark_from_string(name);
   pre = qrk + tLAST_TOKEN;
   bef = id;
   id |= ( pre << ID_SCOPE_SHIFT );
@@ -6848,15 +6838,15 @@ scan_hex(const char *start, size_t len, size_t *retlen)
   return retval;
 }
 
-static QUID
+static ID
 parser_internal_id(rb_parser_state *parser_state)
 {
-  QUID id = (QUID)vtable_size(locals_table->args) +
-            (QUID)vtable_size(locals_table->vars) + tLAST_TOKEN + 1;
+  ID id = (ID)vtable_size(locals_table->args) + (ID)vtable_size(locals_table->vars);
+  id += ((tLAST_TOKEN - ID_INTERNAL) >> ID_SCOPE_SHIFT) + 1;
   return ID_INTERNAL | (id << ID_SCOPE_SHIFT);
 }
 
-const char *op_to_name(QUID id) {
+const char *op_to_name(ID id) {
   if(id < tLAST_TOKEN) {
     int i = 0;
 
@@ -6868,7 +6858,7 @@ const char *op_to_name(QUID id) {
   return NULL;
 }
 
-quark id_to_quark(QUID id) {
+quark id_to_quark(ID id) {
   quark qrk;
 
   qrk = (quark)((id >> ID_SCOPE_SHIFT) - tLAST_TOKEN);
