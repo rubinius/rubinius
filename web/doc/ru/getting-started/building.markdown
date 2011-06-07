@@ -28,7 +28,7 @@ Tar-архив можно скачать [здесь](http://rubini.us/download/
 Чтобы использовать Git:
 
   1. Перейдите в директорию для разработок;
-  2. `git clone git://github.com/evanphx/rubinius.git`
+  2. `git clone git://github.com/rubinius/rubinius.git`
 
 
 ### Установка Rubinius

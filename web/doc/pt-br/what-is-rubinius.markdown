@@ -28,7 +28,7 @@ Para instalar Rubinius, siga os passos abaixo. Para informação mais detalhada
 veja [Começando](/doc/pt-br/getting-started/).
 
 
-1. `git clone git://github.com/evanphx/rubinius.git`
+1. `git clone git://github.com/rubinius/rubinius.git`
 1. `cd rubinius`
 1. `./configure --prefix=/path/to/install/dir`
 1. `rake install`

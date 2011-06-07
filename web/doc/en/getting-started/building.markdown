@@ -26,7 +26,7 @@ You can [download the tarball here](http://rubini.us/download/latest).
 To use Git:
 
   1. Change your current working directory to your development directory
-  2. `git clone git://github.com/evanphx/rubinius.git`
+  2. `git clone git://github.com/rubinius/rubinius.git`
 
 
 ### Installing Rubinius

@@ -31,7 +31,7 @@ Then, follow these steps to fix a failing spec:
       -N', where N is the number (1, 2, etc.) of commits for which you want to
       generate patches.
   11. Create a gist with your patch and link to it in a ticket on the issue
-      tracker at http://github.com/evanphx/rubinius/issues. You can add multiple
+      tracker at http://github.com/rubinius/rubinius/issues. You can add multiple
       patches to one ticket.
 
 When your patch is accepted by the Rubinius project, you'll get a commit bit

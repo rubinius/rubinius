@@ -28,7 +28,7 @@ Rubinius работает под Mac OS X и многими другими оп�
 Для установки Rubinius выполните указанные ниже команды. Более подробную
 информацию можно найти в разделе [<<Для начала...>>](/doc/ru/getting-started/).
 
-1. `git clone git://github.com/evanphx/rubinius.git`
+1. `git clone git://github.com/rubinius/rubinius.git`
 1. `cd rubinius`
 1. `./configure --prefix=/путь/до/директории`
 1. `rake install`

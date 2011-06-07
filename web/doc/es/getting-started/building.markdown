@@ -28,7 +28,7 @@ Para usar Git:
 
   1. Utilice la linea de comandos para entrar a su directorio de
   desarrollo.
-  2. `git clone git://github.com/evanphx/rubinius.git`
+  2. `git clone git://github.com/rubinius/rubinius.git`
 
 
 ### Instalación de Rubinius

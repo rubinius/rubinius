@@ -16,7 +16,7 @@ formatting needs, the post can be written in HTML directly.
 
 Clone Rubinius repository as that is where the website and posts are stored.
 
-    git clone https://github.com/evanphx/rubinius.git
+    git clone https://github.com/rubinius/rubinius.git
 
 To get started, ensure you have the `kramdown` and `jekyll` gems installed.
 

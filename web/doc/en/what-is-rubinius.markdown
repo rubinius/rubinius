@@ -29,7 +29,7 @@ Microsoft Windows is coming soon.
 To install Rubinius, use the following steps. For more detailed information,
 see [Getting Started](/doc/en/getting-started/).
 
-1. `git clone git://github.com/evanphx/rubinius.git`
+1. `git clone git://github.com/rubinius/rubinius.git`
 1. `cd rubinius`
 1. `./configure --prefix=/path/to/install/dir`
 1. `rake install`

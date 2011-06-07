@@ -15,5 +15,5 @@ mature collection occurrs. This can be turned off or a static number may be used
 via gc.lifetime. gc.lifetime is used by autotune which sets the initial value.
 
 For more information on configuration variables available read the
-[vm configuration source file ](https://github.com/evanphx/rubinius/blob/master/vm/configuration.hpp)
+[vm configuration source file ](https://github.com/rubinius/rubinius/blob/master/vm/configuration.hpp)
 
