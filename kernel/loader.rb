@@ -80,6 +80,7 @@ containing the Rubinius standard library files.
       end
 
       @main_lib_bin = File.join @main_lib, "bin"
+      Rubinius.const_set :PARSER_EXT_PATH, "#{@main_lib}/ext/melbourne/rbx/melbourne20"
 
       # This conforms more closely to MRI. It is necessary to support
       # paths that mkmf adds when compiling and installing native exts.
