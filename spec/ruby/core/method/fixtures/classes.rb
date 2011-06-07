@@ -41,19 +41,19 @@ module MethodSpecs
     def one_req(a); end
     def two_req(a, b); end
 
-    def zero_with_block(&block); end
-    def one_req_with_block(a, &block); end
-    def two_req_with_block(a, b, &block); end
+    def zero_with_block(&blk); end
+    def one_req_with_block(a, &blk); end
+    def two_req_with_block(a, b, &blk); end
 
     def one_opt(a=nil); end
     def one_req_one_opt(a, b=nil); end
     def one_req_two_opt(a, b=nil, c=nil); end
     def two_req_one_opt(a, b, c=nil); end
 
-    def one_opt_with_block(a=nil, &block); end
-    def one_req_one_opt_with_block(a, b=nil, &block); end
-    def one_req_two_opt_with_block(a, b=nil, c=nil, &block); end
-    def two_req_one_opt_with_block(a, b, c=nil, &block); end
+    def one_opt_with_block(a=nil, &blk); end
+    def one_req_one_opt_with_block(a, b=nil, &blk); end
+    def one_req_two_opt_with_block(a, b=nil, c=nil, &blk); end
+    def two_req_one_opt_with_block(a, b, c=nil, &blk); end
 
     def zero_with_splat(*a); end
     def one_req_with_splat(a, *b); end
@@ -62,12 +62,12 @@ module MethodSpecs
     def two_req_one_opt_with_splat(a, b, c=nil, *d); end
     def one_req_two_opt_with_splat(a, b=nil, c=nil, *d); end
 
-    def zero_with_splat_and_block(*a, &block); end
-    def one_req_with_splat_and_block(a, *b, &block); end
-    def two_req_with_splat_and_block(a, b, *c, &block); end
-    def one_req_one_opt_with_splat_and_block(a, b=nil, *c, &block); end
-    def two_req_one_opt_with_splat_and_block(a, b, c=nil, *d, &block); end
-    def one_req_two_opt_with_splat_and_block(a, b=nil, c=nil, *d, &block); end
+    def zero_with_splat_and_block(*a, &blk); end
+    def one_req_with_splat_and_block(a, *b, &blk); end
+    def two_req_with_splat_and_block(a, b, *c, &blk); end
+    def one_req_one_opt_with_splat_and_block(a, b=nil, *c, &blk); end
+    def two_req_one_opt_with_splat_and_block(a, b, c=nil, *d, &blk); end
+    def one_req_two_opt_with_splat_and_block(a, b=nil, c=nil, *d, &blk); end
 
     define_method(:zero_defined_method, Proc.new {||})
     define_method(:zero_with_splat_defined_method, Proc.new {|*x|})
