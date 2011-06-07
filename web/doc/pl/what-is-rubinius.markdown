@@ -30,7 +30,7 @@ Unix/Linux. Wsparcie dla systemu Microsoft Windows jest planowane wkrótce.
 Aby zainstalować Rubiniusa wykonaj poniższe kroki. Aby dowiedzieć się
 więcej przeczytaj [Pierwsze kroki](/doc/pl/getting-started/).
 
-1. `git clone git://github.com/evanphx/rubinius.git`
+1. `git clone git://github.com/rubinius/rubinius.git`
 1. `cd rubinius`
 1. `./configure --prefix=/path/to/install/dir`
 1. `rake install`

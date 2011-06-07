@@ -18,7 +18,7 @@ HTML directement.
 
 Clonez le dépôt Rubinius afin de récupérer le site web et les billets.
 
-    git clone https://github.com/evanphx/rubinius.git
+    git clone https://github.com/rubinius/rubinius.git
 
 Pour démarrer, assurez-vous d'avoir installé les gems `kramdown` et `jekyll`.
 

@@ -7,7 +7,7 @@ next: Write a Ruby Spec
 next_url: how-to/write-a-ruby-spec
 ---
 
-The Rubinius issue tracker is <http://github.com/evanphx/rubinius/issues>.
+The Rubinius issue tracker is <http://github.com/rubinius/rubinius/issues>.
 
 To be useful, tickets must be concise, focused, and actionable. If not, the
 ticket will languish and become clutter. Accordingly, tickets must fall into

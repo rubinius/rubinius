@@ -27,7 +27,7 @@ RubiniusのソースコードはtarballとしてのGitHubにプロジェクト�
 To use Git:
 
   1. Change your current working directory to your development directory
-  2. `git clone git://github.com/evanphx/rubinius.git`
+  2. `git clone git://github.com/rubinius/rubinius.git`
 
 
 ### Installing Rubinius

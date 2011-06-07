@@ -31,7 +31,7 @@ projekt na Github'ie. Archiwum tar możesz [pobrać tutaj](http://rubini.us/down
 Pobieranie źródeł przy pomocy Git'a:
 
   1. `cd docelowy_katalog`
-  2. `git clone git://github.com/evanphx/rubinius.git`
+  2. `git clone git://github.com/rubinius/rubinius.git`
 
 
 ### Instalacja Rubiniusa

@@ -29,7 +29,7 @@ Vous pouvez [télécharger l'archive ici](http://rubini.us/download/latest).
 Pour utiliser Git :
 
   1. Changez de répertoire courant vers votre répertoire de développement
-  2. `git clone git://github.com/evanphx/rubinius.git`
+  2. `git clone git://github.com/rubinius/rubinius.git`
 
 
 ### Installer Rubinius

@@ -34,7 +34,7 @@ werden](http://rubini.us/download/latest).
 Um Git zu nutzen:
 
   1. Wechsle in dein Entwicklungsverzeichnis
-  2. `git clone git://github.com/evanphx/rubinius.git`
+  2. `git clone git://github.com/rubinius/rubinius.git`
 
 
 ### Rubinius installieren

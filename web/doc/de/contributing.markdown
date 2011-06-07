@@ -73,4 +73,4 @@ andere ebenso davon profitieren und verstehen, wie Rubinius implementiert ist.
   * Alte Tickets prüfen oder schließen
   * Minitests schreiben, die die Fehler reproduzieren. Anschließend prüfen,
     ob es schon Specs für diese Fälle gibt. Wenn nicht, evtl. welche schreiben.
-    
+

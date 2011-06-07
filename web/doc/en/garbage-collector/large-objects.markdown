@@ -19,5 +19,5 @@ object* which by default is 2700 (such a good baud rate eh?) bytes.
     rbx ... -Xgc.large_object=<number of bytes> ...
 
 For more information on configuration variables available read the
-[vm configuration source file ](https://github.com/evanphx/rubinius/blob/master/vm/configuration.hpp)
+[vm configuration source file ](https://github.com/rubinius/rubinius/blob/master/vm/configuration.hpp)
 

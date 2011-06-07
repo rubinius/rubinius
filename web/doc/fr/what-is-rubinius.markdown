@@ -28,7 +28,7 @@ Le support de Microsoft Windows est à venir prochainement.
 Pour installer Rubinius, suivez les instructions suivantes. Pour des informations plus détaillées,
 lisez le chapitre [Démarrage](/doc/fr/getting-started/).
 
-1. `git clone git://github.com/evanphx/rubinius.git`
+1. `git clone git://github.com/rubinius/rubinius.git`
 1. `cd rubinius`
 1. `./configure --prefix=/path/to/install/dir`
 1. `rake install`
