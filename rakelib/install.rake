@@ -94,9 +94,9 @@ namespace :install do
       end
 
       FileList[
-        'runtime/index',
-        'runtime/signature',
         'runtime/platform.conf',
+        'runtime/**/index',
+        'runtime/**/signature',
         'runtime/**/*.rb{a,c}',
         'runtime/**/load_order*.txt'
       ].each do |name|
