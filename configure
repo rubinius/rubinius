@@ -50,7 +50,7 @@ class Configure
     @perl = ENV['PERL'] || 'perl'
     @install = false
     @default_version = "18"
-    @version_list = ["18", "19"]
+    @version_list = ["18"]
     @supported_versions = ["18", "19", "20"]
     @build_ruby = nil
 
@@ -107,7 +107,7 @@ class Configure
     @libversion = "2.0"
     @version = "#{@libversion}.0dev"
     @release_date = "yyyy-mm-dd"
-    @config_version = 129
+    @config_version = 130
 
     # TODO: add conditionals for platforms
     if RbConfig::CONFIG["build_os"] =~ /darwin/
