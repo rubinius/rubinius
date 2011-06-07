@@ -20,7 +20,7 @@ andere/weitere Pakete bereit.
   * [GNU Bison](http://www.gnu.org/software/bison/)
   * [MRI Ruby 1.8.7+](http://www.ruby-lang.org/) Falls Ruby 1.8.7
     nicht auf deinem System installiert ist, sollte
-    [RVM](http://rvm.beginrescueend.com/) in Erwägung gezogen werden.
+    [RVM](https://rvm.beginrescueend.com/) in Erwägung gezogen werden.
   * [Rubygems](http://www.rubygems.org/)
   * [Git](http://git-scm.com)
   * [ZLib](http://www.zlib.net/)

@@ -25,10 +25,13 @@ namespace rubinius {
 
   VariableScope* VariableScope::of_sender(STATE, CallFrame* call_frame) {
     CallFrame* dest = static_cast<CallFrame*>(call_frame->previous);
+    // Skip any frames for native methods
+    while(dest->native_method_p()) { dest = dest->previous; }
     return dest->promote_scope(state);
   }
 
   VariableScope* VariableScope::current(STATE, CallFrame* call_frame) {
+    if(call_frame->native_method_p()) return nil<VariableScope>();
     return call_frame->promote_scope(state);
   }
 

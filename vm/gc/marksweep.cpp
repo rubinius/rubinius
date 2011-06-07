@@ -11,16 +11,19 @@
 
 #include "instruments/stats.hpp"
 
+#include "configuration.hpp"
+
 #include <iostream>
 #include <algorithm>
 
 namespace rubinius {
 
-  MarkSweepGC::MarkSweepGC(ObjectMemory *om)
+  MarkSweepGC::MarkSweepGC(ObjectMemory *om, Configuration& config)
     : GarbageCollector(om)
     , allocated_bytes(0)
     , allocated_objects(0)
-    , next_collection_bytes(MS_COLLECTION_BYTES)
+    , collection_threshold(config.gc_marksweep_threshold)
+    , next_collection_bytes(collection_threshold)
     , free_entries(true)
     , times_collected(0)
     , last_freed(0)
@@ -58,7 +61,7 @@ namespace rubinius {
     next_collection_bytes -= bytes;
     if(next_collection_bytes < 0) {
       *collect_now = true;
-      next_collection_bytes = MS_COLLECTION_BYTES;
+      next_collection_bytes = collection_threshold;
     }
 
     obj->init_header(MatureObjectZone, InvalidType);
@@ -83,6 +86,26 @@ namespace rubinius {
 #else
     free(reinterpret_cast<void*>(obj));
 #endif
+  }
+
+  Object* MarkSweepGC::move_object(Object* orig, size_t bytes,
+                                   bool* collect_now)
+  {
+    Object* obj = allocate(bytes, collect_now);
+    memcpy(obj, orig, bytes);
+
+    // If the header is inflated, repoint it.
+    if(obj->inflated_header_p()) {
+      orig->deflate_header();
+      obj->inflated_header()->set_object(obj);
+    }
+
+    obj->flags().zone = MatureObjectZone;
+    obj->flags().age = 0;
+
+    orig->set_forward(obj);
+
+    return obj;
   }
 
   Object* MarkSweepGC::copy_object(Object* orig) {

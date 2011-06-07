@@ -6,8 +6,7 @@ class Thread
   end
 
   def self.allocate
-    Ruby.primitive :thread_allocate
-    Kernel.raise PrimitiveFailure, "Thread.new primitive failed"
+    raise TypeError, "allocator undefined for Thread"
   end
 
   def self.pass
@@ -90,31 +89,80 @@ class Thread
 
   alias_method :to_s, :inspect
 
-  def self.new(*args, &block)
-    thr = allocate
+  def self.new(*args)
+    thr = Rubinius.invoke_primitive :thread_allocate, self
 
-    thr.send(:initialize, *args, &block)
-    begin
-      thr.fork
-    rescue Exception => e
-      thr.group.remove self
-      raise e
+    Rubinius.asm(args, thr) do |args, obj|
+      run obj
+      dup
+
+      push_false
+      send :setup, 1, true
+      pop
+
+      run args
+      push_block
+      send_with_splat :initialize, 0, true
+      # no pop here, as .asm blocks imply a pop as they're not
+      # allowed to leak a stack value
+    end
+
+    unless thr.thread_is_setup?
+      raise ThreadError, "Thread#initialize not called"
+    end
+
+    return thr
+  end
+
+  def self.start(*args)
+    thr = Rubinius.invoke_primitive :thread_allocate, self
+
+    Rubinius.asm(args, thr) do |args, obj|
+      run obj
+      dup
+
+      push_false
+      send :setup, 1, true
+      pop
+
+      run args
+      push_block
+      send_with_splat :__thread_initialize__, 0, true
+      # no pop here, as .asm blocks imply a pop as they're not
+      # allowed to leak a stack value
     end
 
     return thr
   end
 
   class << self
-    alias_method :start, :new
+    alias_method :fork, :start
   end
 
   def initialize(*args, &block)
-    Kernel.raise ThreadError, "must be called with a block" unless block_given?
-    setup(false)
+    unless block
+      Kernel.raise ThreadError, "no block passed to Thread#initialize"
+    end
+
     @args = args
     @block = block
 
-    Thread.current.group.add self
+    th_group = Thread.current.group
+
+    th_group.add self
+
+    begin
+      fork
+    rescue Exception => e
+      th_group.remove self
+      raise e
+    end
+  end
+
+  alias_method :__thread_initialize__, :initialize
+
+  def thread_is_setup?
+    @block != nil
   end
 
   # Called by Thread#fork in the new thread

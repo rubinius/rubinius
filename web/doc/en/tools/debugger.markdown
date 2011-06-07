@@ -12,9 +12,9 @@ Rubinius includes a reference Ruby source-level debugger.
 ## Invoking in Code
 
 The Rubinius debugger can be invoked from code by embedding a call to start
-the debugger
+the debugger.
 
-Consider the following code in app.rb
+Consider the following code in app.rb:
 
     class Toast
       attr_accessor :setting
@@ -93,7 +93,7 @@ Consider the following Ruby code in bug.rb:
     problem_code
 
 To debug this code, start the debugger from the command line with the
-`-Xdebug` option.
+`-Xdebug` option:
 
     $ rbx -Xdebug bug.rb
 

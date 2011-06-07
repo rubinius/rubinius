@@ -1,9 +1,9 @@
 ---
 layout: doc_ru
 title: Генератор
-previous: Transformations
-previous_url: bytecode-compiler/transformations
-next: JIT Компилятор
-next_url: jit
+previous: AST
+previous_url: bytecode-compiler/ast
+next: Кодировщик
+next_url: bytecode-compiler/encoder
 review: true
 ---

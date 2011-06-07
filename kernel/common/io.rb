@@ -900,7 +900,7 @@ class IO
     if !arg
       arg = 0
     elsif arg == true
-      arg 1
+      arg = 1
     elsif arg.kind_of? String
       raise NotImplementedError, "cannot handle String"
     else
@@ -909,6 +909,45 @@ class IO
 
     command = Rubinius::Type.coerce_to command, Fixnum, :to_int
     FFI::Platform::POSIX.fcntl descriptor, command, arg
+  end
+  
+  ##
+  # Provides a mechanism for issuing low-level commands to
+  # control or query file-oriented I/O streams. Arguments
+  # and results are platform dependent. If arg is a number,
+  # its value is passed directly. If it is a string, it is
+  # interpreted as a binary sequence of bytes (Array#pack
+  # might be a useful way to build this string). On Unix
+  # platforms, see fcntl(2) for details. Not implemented on all platforms.
+  def ioctl(command, arg=0)
+    ensure_open
+
+    if !arg
+      real_arg = 0
+    elsif arg == true
+      real_arg = 1
+    elsif arg.kind_of? String
+      # This could be faster.
+      buffer_size = arg.length
+      # On BSD and Linux, we could read the buffer size out of the ioctl value.
+      # Most Linux ioctl codes predate the convention, so a fallback like this
+      # is still necessary. 
+      buffer_size = 4096 if buffer_size < 4096
+      buffer = FFI::MemoryPointer.new buffer_size
+      buffer.write_string arg, arg.length
+      real_arg = buffer.address
+    else
+      real_arg = Rubinius::Type.coerce_to arg, Fixnum, :to_int
+    end
+
+    command = Rubinius::Type.coerce_to command, Fixnum, :to_int
+    ret = FFI::Platform::POSIX.ioctl descriptor, command, real_arg
+    Errno.handle if ret < 0
+    if arg.kind_of?(String)
+      arg.replace buffer.read_string(buffer_size)
+      buffer.free
+    end
+    ret
   end
 
   ##

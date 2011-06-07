@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
   <head>
-    <title>Многопоточность - Rubinius</title>
+    <title>Параллелизм - Rubinius</title>
     <meta content='text/html;charset=utf-8' http-equiv='content-type'>
     <meta content='ru' http-equiv='content-language'>
     <meta content='Rubinius is an implementation of the Ruby programming language. The Rubinius bytecode virtual machine is written in C++. The bytecode compiler is written in pure Ruby. The vast majority of the core library is also written in Ruby, with some supporting primitives that interact with the VM directly.' name='description'>
@@ -76,6 +76,12 @@
     
     
     
+    <li><a href="/doc/fr/systems/concurrency/"
+      
+      >fr</a></li>
+    
+    
+    
     <li><a href="/doc/ja/systems/concurrency/"
       
       >ja</a></li>
@@ -108,15 +114,15 @@
         <div class="container doc_page_nav">
       
         
-        <span class="label">Previous:</span>
+        <span class="label">Назад:</span>
         <a href="/doc/ru/systems/ffi">FFI</a>
         
 
-        <span class="label">Up:</span>
+        <span class="label">Выше:</span>
         <a href="/doc/ru/">Содержание</a>
 
         
-        <span class="label">Next:</span>
+        <span class="label">Вперед:</span>
         <a href="/doc/ru/systems/io">Ввод/Вывод</a>
         
       
@@ -124,22 +130,120 @@
 
 
     <div class="container documentation">
-      <h2>Многопоточность</h2>
+      <h2>Параллелизм</h2>
 
       
 
       
-        <div class="review">
-  <p>This topic has missing or partial documentation. Please help us improve
-  it.</p>
 
-  <p>See <a href="/doc/ru/how-to/write-documentation">
-    How-To - Write Documentation</a></p>
-</div>
+        <p>Для обеспечения параллелизма Rubinius поддерживает те же базовые конструкции,
+что и MRI Ruby: <code>Treads</code> и <code>Fibers</code>. Создан также и новый API, для реализации
+<strong>акторов</strong>: <code>Actors</code>. Акторы обеспечивают параллелизм без участия мутексов и
+блокировок в передаче статуса между тредами.</p>
 
-      
+<p>Акторы выполняются параллельно, но не имеют общего статуса. Вместо этого они
+передают другим акторам сообщения. В качестве примера создадим два актора
+при помощи <code>Actor.spawn</code>: <code>ping</code> и <code>pong</code>. Пусть они обмениваются сообщениями
+до тех пор, пока совместно не произведут инкремент переменной до 1000:</p>
 
-        
+<pre><code>require 'actor'
+pong = nil
+ping = Actor.spawn do
+  loop do
+    count = Actor.receive
+    break puts(count) if count &gt; 1000
+    pong &lt;&lt; (count + 1)
+  end
+end
+pong = Actor.spawn do
+  loop do
+    count = Actor.receive
+    break puts(count) if count &gt; 1000
+    ping &lt;&lt; (count + 1)
+  end
+end
+ping &lt;&lt; 1
+sleep 1
+</code></pre>
+
+<p>Обратите внимание: акторы принимают сообщения посредством <code>Actor.receive</code>.
+Этот вызов блокирует актор до тех пор, пока сообщение не придет в его
+&laquo;почтовый ящик&raquo;. Передавая <code>Actor.receive</code> блок и используя фильтрацию
+сообщений, можно учитывать в алгоритме тип сообщения:</p>
+
+<pre><code>Actor.receive do |filter|
+  filter.when(Ready) do |who|
+    # SNIP
+  end
+  filter.when(Work) do |work|
+    ready_workers.pop &lt;&lt; work
+  end
+  filter.when(Actor::DeadActorError) do |exit|
+    print "Actor exited with message: #{exit.reason}\n"
+    ready_workers &lt;&lt; Actor.spawn_link(&amp;work_loop)
+  end
+end
+</code></pre>
+
+<p>Фильтры применяют к сообщениям метод <code>===</code>, поэтому <code>when()</code> можно
+передавать, например, регулярные выражения, классы или процедуры &mdash; в
+зависимости от конкретной ситуации.</p>
+
+<p>Акторы могут приобретать отношения &laquo;предок-потомок&raquo; посредством
+<code>Actor.spawn_link</code>. Если потомок по какой-то причине &laquo;умирает&raquo;,
+актор-родитель может получить об этом извещение, если перед запуском потомка
+переменная <code>Actor.trap_exit</code> была установлена в <code>true</code>. Создадим
+актор-супервизор, управляющий некоторой очередью при помощи 10
+акторов-работников, выполняющих непосредственный процессинг очереди. Если
+работник умирает (т.е. инициирует исключение), супервизор получает сообщение
+<code>Actor::DeadActorError</code>.</p>
+
+<pre><code>require 'actor'
+
+Ready = Struct.new(:this)
+Work = Struct.new(:msg)
+
+@supervisor = Actor.spawn do
+  supervisor = Actor.current
+  work_loop = Proc.new do
+    loop do
+      work = Actor.receive
+      puts("Processing: #{work.msg}")
+      supervisor &lt;&lt; Ready[Actor.current]
+    end
+  end
+
+  Actor.trap_exit = true
+  ready_workers = []
+  10.times do |x|
+    # start 10 worker actors
+    ready_workers &lt;&lt; Actor.spawn_link(&amp;work_loop)
+  end
+  loop do
+    Actor.receive do |f|
+      f.when(Ready) do |who|
+        # SNIP
+      end
+      f.when(Work) do |work|
+        ready_workers.pop &lt;&lt; work
+      end
+      f.when(Actor::DeadActorError) do |exit|
+        print "Actor exited with message: #{exit.reason}\n"
+        ready_workers &lt;&lt; Actor.spawn_link(&amp;work_loop)
+      end
+    end
+  end
+end
+
+10.times do |idx|
+  @supervisor &lt;&lt; Work[idx]
+end
+sleep 1
+</code></pre>
+
+<p>Приведенный пример &mdash; фрагмент кода из
+<a href="http://github.com/mperham/girl_friday">&laquo;girl_friday&raquo;</a>. Если у Вас возникли
+вопросы, поизучайте этот проект.</p>
 
 
     </div>
@@ -147,15 +251,15 @@
         <div class="container doc_page_nav">
       
         
-        <span class="label">Previous:</span>
+        <span class="label">Назад:</span>
         <a href="/doc/ru/systems/ffi">FFI</a>
         
 
-        <span class="label">Up:</span>
+        <span class="label">Выше:</span>
         <a href="/doc/ru/">Содержание</a>
 
         
-        <span class="label">Next:</span>
+        <span class="label">Вперед:</span>
         <a href="/doc/ru/systems/io">Ввод/Вывод</a>
         
       

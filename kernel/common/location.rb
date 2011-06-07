@@ -98,7 +98,11 @@ module Rubinius
       l = line()
 
       if l == 0
-        "#{file(relative_to)}+#{@ip}"
+        if @ip < 0
+          file(relative_to)
+        else
+          "#{file(relative_to)}+#{@ip}"
+        end
       else
         "#{file(relative_to)}:#{l}"
       end

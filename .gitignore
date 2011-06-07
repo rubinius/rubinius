@@ -25,6 +25,7 @@ artifacts/
 .depends.mf
 /rubinius_tasks.dot
 /nbproject
+.project
 CI-specs
 COMMIT
 TAGS

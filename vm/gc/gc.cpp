@@ -143,6 +143,12 @@ namespace rubinius {
   void GarbageCollector::walk_call_frame(CallFrame* top_call_frame) {
     CallFrame* call_frame = top_call_frame;
     while(call_frame) {
+      // Skip synthetic, non CompiledMethod frames
+      if(!call_frame->cm) {
+        call_frame = call_frame->previous;
+        continue;
+      }
+
       if(call_frame->custom_static_scope_p() &&
           call_frame->static_scope_ &&
           call_frame->static_scope_->reference_p()) {

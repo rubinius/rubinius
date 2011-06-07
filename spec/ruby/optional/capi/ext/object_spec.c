@@ -42,6 +42,12 @@ static VALUE so_check_convert_type(VALUE self, VALUE obj) {
 }
 #endif
 
+#ifdef HAVE_RB_CHECK_TO_INTEGER
+static VALUE so_check_to_integer(VALUE self, VALUE obj, VALUE method) {
+  return rb_check_to_integer(obj, RSTRING_PTR(method));
+}
+#endif
+
 #ifdef HAVE_RB_CHECK_FROZEN
 static VALUE object_spec_rb_check_frozen(VALUE self, VALUE obj) {
   rb_check_frozen(obj);
@@ -300,6 +306,10 @@ void Init_object_spec() {
 
 #ifdef HAVE_RB_CHECK_CONVERT_TYPE
   rb_define_method(cls, "rb_check_convert_type", so_check_convert_type, 1);
+#endif
+
+#ifdef HAVE_RB_CHECK_TO_INTEGER
+  rb_define_method(cls, "rb_check_to_integer", so_check_to_integer, 2);
 #endif
 
 #ifdef HAVE_RB_CHECK_FROZEN

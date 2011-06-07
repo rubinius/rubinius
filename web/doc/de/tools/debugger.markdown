@@ -7,31 +7,31 @@ next: Profiler
 next_url: tools/profiler
 ---
 
-Rubinius includes a reference Ruby source-level debugger.
+Rubinius kommt mit einer eingebauten Ruby Debugger-API auf Quell-Ebene.
 
-## Invoking in Code
+## Aus aktivem Code heraus starten
 
-The Rubinius debugger can be invoked from code by embedding a call to start
-the debugger
+Der Rubinius Debugger kann direkt aus aktivem Code heraus mit Hilfe eines
+eingebauten Aufrufs gestartet werden.
 
-Consider the following code in app.rb
+Angenommen folgender Code befindet sich in app.rb:
 
-    class Toast
-      attr_accessor :setting
+    class Toaster
+      attr_accessor :einstellung
       def initialize
         require 'rubinius/debugger'
         Rubinius::Debugger.start
-        @setting = :brown
+        @einstellung = :braun
       end
     end
 
-    p Toast.new.setting
+    p Toaster.new.einstellung
 
-Running the code in Rubinius would produce the following:
+Bei Ausführung des Codes in Rubinius käme folgende Ausgabe:
 
     $ rbx app.rb
 
-    | Breakpoint: Toast#initialize at app.rb:5 (15)
+    | Breakpoint: Toaster#initialize at app.rb:5 (15)
     | 5:     Rubinius::Debugger.start
     debug> help
                     help: Show information about debugger commands
@@ -51,7 +51,7 @@ Running the code in Rubinius would produce the following:
                     show: Display the value of a variable or variables
     debug> bt
     | Backtrace:
-    |    0 Toast#initialize at app.rb:5 (15)
+    |    0 Toaster#initialize at app.rb:5 (15)
     |    1 main.__script__ at app.rb:11 (46)
     |    2 Rubinius::CodeLoader#load_script(debug) at kernel/delta/codeloader.rb:67 (44)
     |    3 Rubinius::CodeLoader.load_script(name) at kernel/delta/codeloader.rb:91 (40)
@@ -61,39 +61,39 @@ Running the code in Rubinius would produce the following:
     |    7 Object#__script__ at kernel/loader.rb:621 (60)
     debug> n
 
-    | Breakpoint: Toast#initialize at app.rb:6 (16)
-    | 6:     @setting = :brown
+    | Breakpoint: Toaster#initialize at app.rb:6 (16)
+    | 6:     @einstellung = :braun
     debug> n
 
-    | Breakpoint: Toast#initialize at app.rb:7 (21)
-    | 7:     @kind = :rye
-    debug> p @setting = :light_brown
-    $d0 = :light_brown
+    | Breakpoint: Toaster#initialize at app.rb:7 (21)
+    | 7:     @art = :roggen
+    debug> p @einstellung = :hellbraun
+    $d0 = :hellbraun
     debug> c
-    :light_brown
+    :hellbraun
 
-As shown, help for the debugger commands is available by typing `help` when in
-the debugger.
+Wie angegeben, bekommt man bei der Eingabe von `help` im Debugger eine
+englischsprachige Hilfsanzeige für die verfügbaren Befehle.
 
 
-## Invoking from the Command Line
+## Starten von der Kommandozeile
 
-The Rubinius debugger can be invoked from the command line and will present
-the debugger prompt just before loading the script specified on the command
-line.
+Der Rubinius Debugger kann ebenfalls aus der Kommandozeile heraus gestartet
+werden und zeigt das Debugger Prompt an, noch bevor das dazu angegebene Skript
+geladen wird.
 
-Consider the following Ruby code in bug.rb:
+Angenommen folgender Code befindet sich in app.rb:
 
     def problem_code
-      puts "I have a problem"
+      puts "Ich habe ein Problem"
       a = 1 + 2
-      puts "a math problem" unless a == 4
+      puts "ein Mathe-Problem" unless a == 4
     end
 
     problem_code
 
-To debug this code, start the debugger from the command line with the
-`-Xdebug` option.
+Um diesen Code zu debuggen, kann der Debugger von der Kommandozeile aus mit der
+`-Xdebug` option gestartet werden:
 
     $ rbx -Xdebug bug.rb
 
@@ -108,16 +108,16 @@ To debug this code, start the debugger from the command line with the
     | Set breakpoint 2: bug.rb:2 (+0)
 
     | Breakpoint: Object#problem_code at bug.rb:2 (0)
-    | 2:   puts "I have a problem"
+    | 2:   puts "Ich habe ein Problem"
     debug> n
-    I have a problem
+    I habe ein Problem
 
     | Breakpoint: Object#problem_code at bug.rb:3 (9)
     | 3:   a = 1 + 2
     debug> n
 
     | Breakpoint: Object#problem_code at bug.rb:4 (16)
-    | 4:   puts "a math problem" unless a == 4
+    | 4:   puts "ein Mathe-Problem" unless a == 4
     debug> p a = 4
     $d0 = 4
     debug> n
@@ -126,5 +126,6 @@ To debug this code, start the debugger from the command line with the
     | 7: problem_code
     debug> c
 
-As you can see, executing `p a = 4` in the debugger changes the value of the
-local variable `a` and affects the execution of the Ruby code.
+Wie man sieht, bei der Ausführung von `p a = 4` im Debugger wird der Wert der
+lokalen Variable `a` geändert und beeinflusst damit auch die weitere Ausführung
+des Ruby-Codes.

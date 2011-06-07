@@ -33,7 +33,9 @@ extern "C" {
   ID rb_frame_last_func() {
     NativeMethodEnvironment* env = NativeMethodEnvironment::get();
 
-    return env->get_handle(env->current_call_frame()->name());
+    CallFrame* rcf = env->current_call_frame()->previous->top_ruby_frame();
+
+    return env->get_handle(rcf->name());
   }
 
   static VALUE const_missing(VALUE klass, ID id) {

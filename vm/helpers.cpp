@@ -49,6 +49,8 @@ namespace rubinius {
 
       *found = false;
 
+      call_frame = call_frame->top_ruby_frame();
+
       // Ok, this has to be explained or it will be considered black magic.
       // The scope chain always ends with an entry at the top that contains
       // a parent of nil, and a module of Object. This entry is put in
@@ -117,6 +119,9 @@ namespace rubinius {
 
     Object* const_missing(STATE, Symbol* sym, CallFrame* call_frame) {
       Module* under;
+
+      call_frame = call_frame->top_ruby_frame();
+
       StaticScope* scope = call_frame->static_scope();
       if(scope->nil_p()) {
         under = G(object);
@@ -145,6 +150,8 @@ namespace rubinius {
 
     Class* open_class(STATE, CallFrame* call_frame, Object* super, Symbol* name, bool* created) {
       Module* under;
+
+      call_frame = call_frame->top_ruby_frame();
 
       if(call_frame->static_scope()->nil_p()) {
         under = G(object);
@@ -213,6 +220,8 @@ namespace rubinius {
 
     Module* open_module(STATE, CallFrame* call_frame, Symbol* name) {
       Module* under = G(object);
+
+      call_frame = call_frame->top_ruby_frame();
 
       if(!call_frame->static_scope()->nil_p()) {
         under = call_frame->static_scope()->module();

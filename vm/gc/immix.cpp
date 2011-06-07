@@ -72,6 +72,7 @@ namespace rubinius {
   }
 
   Object* ImmixGC::allocate(int bytes) {
+    if(bytes > immix::cMaxObjectSize) return 0;
 
     Object* obj = allocator_.allocate(bytes).as<Object>();
     obj->init_header(MatureObjectZone, InvalidType);
@@ -81,8 +82,10 @@ namespace rubinius {
   }
 
   Object* ImmixGC::move_object(Object* orig, int bytes) {
+    if(bytes > immix::cMaxObjectSize) return 0;
 
     Object* obj = allocator_.allocate(bytes).as<Object>();
+
     memcpy(obj, orig, bytes);
 
     // If the header is inflated, repoint it.

@@ -90,6 +90,8 @@ namespace immix {
   /// Number of Blocks that fit within a Chunk
   const int cBlocksPerChunk = cChunkSize / cBlockSize;
 
+  const int cMaxObjectSize = cBlockSize - cLineSize; // one reserved line
+
   /// Objects above a certain number of lines in size are considered to be
   /// medium sized objects, which should be allocated only in free blocks.
   /// As the likelihood of finding this many contiguous free lines in a

@@ -41,7 +41,7 @@ namespace rubinius {
   /* ObjectMemory methods */
   ObjectMemory::ObjectMemory(STATE, Configuration& config)
     : young_(new BakerGC(this, config.gc_bytes))
-    , mark_sweep_(new MarkSweepGC(this))
+    , mark_sweep_(new MarkSweepGC(this, config))
     , immix_(new ImmixGC(this))
     , inflated_headers_(new InflatedHeaders)
     , mark_(1)
@@ -457,6 +457,9 @@ step1:
     Object* copy = immix_->move_object(obj, sz);
 
     gc_stats.promoted_object_allocated(sz);
+    if(unlikely(!copy)) {
+      copy = mark_sweep_->move_object(obj, sz, &collect_mature_now);
+    }
 
 #ifdef ENABLE_OBJECT_WATCH
     if(watched_p(obj)) {
@@ -870,7 +873,13 @@ step1:
         root_state_->interrupts.set_perform_gc();
 
         obj = immix_->allocate(bytes);
+
+        if(unlikely(!obj)) {
+          obj = mark_sweep_->allocate(bytes, &collect_mature_now);
+        }
+
         gc_stats.mature_object_allocated(bytes);
+
         if(collect_mature_now) {
           root_state_->interrupts.set_perform_gc();
         }
@@ -898,9 +907,13 @@ step1:
       if(unlikely(!obj)) return NULL;
     } else {
       obj = immix_->allocate(bytes);
-    }
 
-    gc_stats.mature_object_allocated(bytes);
+      if(unlikely(!obj)) {
+        obj = mark_sweep_->allocate(bytes, &collect_mature_now);
+      }
+
+      gc_stats.mature_object_allocated(bytes);
+    }
 
     if(collect_mature_now) {
       root_state_->interrupts.set_perform_gc();

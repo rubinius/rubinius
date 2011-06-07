@@ -232,7 +232,7 @@ namespace rubinius {
     VM* vm = vm_;
     if(!vm) return nil<Tuple>();
 
-    CallFrame* cf = vm->saved_call_frame();
+    CallFrame* cf = vm->saved_call_frame()->top_ruby_frame();
 
     VariableScope* scope = cf->promote_scope(state);
 

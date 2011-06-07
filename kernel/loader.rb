@@ -425,11 +425,11 @@ containing the Rubinius standard library files.
       options.doc <<-DOC
 VM Options
    -X<variable>[=<value>]
-     This option is recognized by the VM before any ruby code loaded.
+     This option is recognized by the VM before any ruby code is loaded.
      It is used to set VM configuration options.
 
      Use -Xconfig.print to see the list of options the VM recognizes.
-     All variables, even ones that VM doesn't understand, are available
+     All variables, even ones that the VM doesn't understand, are available
      in Rubinius::Config.
 
      A number of Rubinius features are driven by setting these variables.
@@ -680,7 +680,16 @@ to rebuild the compiler.
         end
 
         if exception = thread_state[3]
-          exception.render
+          begin
+            exception.render
+          rescue Exception => e
+            STDERR.puts "Unable to render backtrace: #{e.message} (#{e.class})"
+            STDERR.puts "Raw backtrace data:"
+
+            exception.locations.each do |loc|
+              p [loc.file, loc.line]
+            end
+          end
         end
 
         @exit_code = 1

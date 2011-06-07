@@ -19,7 +19,10 @@ compare_targets = []
 
 opt = OptionParser.new do |o|
   o.on("-t", "--target TARGET", String,
-          "Use TARGET to compare against: r:ruby|r19:ruby19|x:rbx|j:jruby") do |t|
+          "Use multiple TARGETs for comparison:",
+          "<path-to-ruby-binary>: will use exact ruby binary",
+          "shortcuts: r:ruby | r19:ruby19 | x:rbx | j:jruby",
+          "^<name>: rvm-managed ruby; will use ~/.rvm/rubies/<name>/bin/ruby") do |t|
     case t
     when 'r', 'ruby'
       targets << 'ruby'
@@ -40,6 +43,9 @@ opt = OptionParser.new do |o|
         rescue TypeError
           targets << t
         end
+      elsif t[0,1] == "^"
+        puts "Found rvm-managed ruby: " + t[1..-1]
+        targets << File.expand_path("~/.rvm/rubies/" + t[1..-1] + "/bin/ruby")
       else
         targets << t
       end
@@ -153,23 +159,23 @@ if results.size > 1
         end
       end
 
+      name_length = sorted.map(&:first).map(&:size).max
       best_name, best_report = sorted.shift
 
-
       if iter
-        STDOUT.printf "%20s: %10d i/s\n", best_name, best_report.ips
+        STDOUT.printf "%#{name_length}s: %10d i/s\n", best_name, best_report.ips
       else
-        STDOUT.puts "#{best_name.rjust(20)}: #{best_report.runtime}s"
+        STDOUT.puts "#{best_name.rjust(name_length)}: #{best_report.runtime}s"
       end
 
       sorted.each do |entry|
         name, report = entry
         if iter
           x = (best_report.ips.to_f / report.ips.to_f)
-          STDOUT.printf "%20s: %10d i/s - %.2fx slower\n", name, report.ips, x
+          STDOUT.printf "%#{name_length}s: %10d i/s - %.2fx slower\n", name, report.ips, x
         else
           x = "%.2f" % (report.ips.to_f / best_report.ips.to_f)
-          STDOUT.puts "#{name.rjust(20)}: #{report.runtime}s - #{x}x slower"
+          STDOUT.puts "#{name.rjust(name_length)}: #{report.runtime}s - #{x}x slower"
         end
       end
     end

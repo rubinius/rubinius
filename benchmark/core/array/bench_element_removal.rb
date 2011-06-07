@@ -28,11 +28,6 @@ Benchmark.ips do |x|
     scratch_array = scratch_array.slice(1, scratch_array.size - 1) until scratch_array.empty?
   end
 
-  x.report "array []=, front to back" do
-    scratch_array = base_array.dup
-    scratch_array[0, 1] = nil until scratch_array.empty?
-  end
-
   x.report "array drop, front to back" do
     scratch_array = base_array.dup
     scratch_array = scratch_array.drop(1) until scratch_array.empty?
@@ -51,6 +46,11 @@ Benchmark.ips do |x|
   x.report "array delete_if, front to back" do
     scratch_array = base_array.dup
     scratch_array.delete_if { true }
+  end
+
+  x.report "array delete, front to back" do
+    scratch_array = base_array.dup
+    scratch_array.delete(scratch_array.first) until scratch_array.empty?
   end
 
   x.report "array pop, back to front" do
@@ -87,11 +87,7 @@ Benchmark.ips do |x|
 
   x.report "array delete, back to front" do
     scratch_array = base_array.dup
-    i = scratch_array.size - 1
-    while i > 0
-      scratch_array.delete(i)
-      i -= 1
-    end
+    scratch_array.delete(scratch_array.last) until scratch_array.empty?
   end
 
   x.report "array take, back to front" do
