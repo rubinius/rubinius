@@ -1,6 +1,6 @@
 ---
 layout: doc_ru
-title: Компилятор в байткод
+title: Байткод-компилятор
 previous: Custom Dispatch Logic
 previous_url: virtual-machine/custom-dispatch-logic
 next: Парсер

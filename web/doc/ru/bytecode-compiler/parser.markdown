@@ -1,7 +1,7 @@
 ---
 layout: doc_ru
 title: Парсер Ruby
-previous: Компилятор в байткод
+previous:  Байткод-компилятор
 previous_url: bytecode-compiler
 next: AST
 next_url: bytecode-compiler/ast
