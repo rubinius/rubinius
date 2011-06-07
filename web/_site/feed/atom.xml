@@ -9,6 +9,164 @@
 
   
   <entry>
+    <title>Inside the Rubinius 2.0 Preview Release</title>
+    <id>http://rubini.us/2011/06/07/inside-rubinius-20-preview/</id>
+    <link rel="alternate" type="text/html" href="http://rubini.us/2011/06/07/inside-rubinius-20-preview/" />
+    <updated>2011-06-07T00:00:00+00:00</updated>
+    <author>
+      <name>Brian Ford</name>
+    </author>
+    
+    <content type="html">&lt;p&gt;Houston, we have a problem. Complex projects are difficult to transition
+forward and Rubinius is a complex project. Rubinius is at the point of a major
+transition and we need your help to move forward.&lt;/p&gt;
+
+&lt;p&gt;Just over a year ago, Rubinius released version 1.0. Since then, dozens of
+contributors have added over 2,200 commits to the master branch and we have
+released seven new versions. At the same time, we have added nearly 450
+commits on a development branch to remove the global interpreter lock (GIL)
+and begin adding Ruby 1.9 and Windows support.&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&quot;/images/rubinius-2-0-developer-preview-blog-post.png&quot; alt=&quot;Rubinius 2.0 Developer Preview&quot; /&gt;&lt;/p&gt;
+
+&lt;p&gt;Today we are releasing &lt;em&gt;Rubinius 2.0 Developer Preview&lt;/em&gt;. The primary focus of
+this release is true Ruby multi-threaded concurrency. Additionally, it
+contains the beginnings of Ruby 1.9 and Microsoft Windows support.&lt;/p&gt;
+
+&lt;h3 id=&quot;rubinius-20-developer-preview&quot;&gt;Rubinius 2.0 Developer Preview&lt;/h3&gt;
+
+&lt;p&gt;We are seeking developers interested in running their Ruby and Rails projects
+on Rubinius to help us iron out issues as we work toward the final 2.0
+release. Let&amp;rsquo;s look at the details of the 2.0 developer preview.&lt;/p&gt;
+
+&lt;p&gt;One of the central features of Rubinius 2.0 is a fundamental change in the
+threading architecture. In Rubinius 2.0, Ruby threads will run with true
+concurrency. This means that if multi-core or multi-CPU hardware is available,
+Ruby code on different threads will actually run in parallel.&lt;/p&gt;
+
+&lt;p&gt;Another central feature of Rubinius 2.0 is support for both Ruby 1.8.7 and
+Ruby 1.9.2 syntax. The Rubinius 2.0 support for Ruby 1.8.7 should be 100%
+backward compatible with the support in the Rubinius master branch. The full
+Ruby concurrency is enabled regardless of what language syntax mode is active.&lt;/p&gt;
+
+&lt;h3 id=&quot;repository-migration&quot;&gt;Repository Migration&lt;/h3&gt;
+
+&lt;p&gt;We are migrating the main Rubinius repository to the &lt;a href=&quot;https://github.com/rubinius&quot;&gt;Rubinius&lt;/a&gt; organization.&lt;/p&gt;
+
+&lt;p&gt;The RVM project has already been updated to work with the new repository. So
+&lt;code&gt;rvm install rbx&lt;/code&gt; will use the new repository.  If you have an existing clone
+of Rubinius, update and run &lt;code&gt;rake github&lt;/code&gt; to point your existing repository to
+the new one.&lt;/p&gt;
+
+&lt;p&gt;You can clone directly from the &lt;a href=&quot;https://github.com/rubinius/rubinius&quot;&gt;new repository&lt;/a&gt;.&lt;/p&gt;
+
+&lt;h3 id=&quot;installation&quot;&gt;Installation&lt;/h3&gt;
+
+&lt;p&gt;For testing Rubinius with your application, installing with RVM is probably
+the easiest. To install the 2.0 developer preview, ensure that RVM is updated:&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;rvm get head
+rvm reload
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;Then, install the Rubinius 2.0.0pre branch:&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;rvm install rbx-2.0.0pre
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;If you are interested in helping develop Rubinius, we suggest you clone the
+repository directly and build. Rubinius runs fine from the source directory so
+you don&amp;rsquo;t need to install it. For more details about building from a clone,
+see &lt;a href=&quot;http://rubini.us/doc/en/getting-started/&quot;&gt;Getting Started&lt;/a&gt;.&lt;/p&gt;
+
+&lt;h3 id=&quot;configuration&quot;&gt;Configuration&lt;/h3&gt;
+
+&lt;p&gt;The goal of Rubinius 2.0 is to fully support both Ruby 1.8.7 and 1.9.2 in a
+single executable. When running Rubinius, you can select which version to use.
+There are configuration options to change which versions are supported and
+which version is the default.&lt;/p&gt;
+
+&lt;p&gt;The first configure option is &lt;code&gt;--enable-version=X[,Y]&lt;/code&gt;. This option sets which
+language versions will be supported. An example is:&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;./configure --enable-version=1.8,1.9
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;The language versions can be specified as &lt;code&gt;18&lt;/code&gt; or &lt;code&gt;1.8&lt;/code&gt;. Multiple versions are
+separated by a comma and no space.&lt;/p&gt;
+
+&lt;p&gt;The second configure option is &lt;code&gt;--default-version=X&lt;/code&gt;. This option sets which
+language version is the default when running Rubinius. An example is:&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;./configure --default-version=1.9
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;These options are intended to be used together. You must enable a version to
+select it as the default, so the options must come in the following order:&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;./configure --enable-version=X,Y --default-version=Y
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;Once you have enabled support for a language version, to select that mode when
+running Rubinius, use the &lt;code&gt;-X18&lt;/code&gt; or &lt;code&gt;-X19&lt;/code&gt; command line switches. For example:&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;rbx -X19 -v
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;This command will run Rubinius with the 1.9 language mode enabled.&lt;/p&gt;
+
+&lt;p&gt;You may also use the &lt;code&gt;RBXOPT&lt;/code&gt; environment variable to select the lanugage
+mode. Assuming that 1.8 is the default mode, the following command would run
+Rubinius with the 1.9 language mode enabled:&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;RBXOPT=-X19 rbx -v
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;Right now, only the 1.8 language mode is enabled in the 2.0.0pre branch.
+However, we will be enabling the 1.9 mode in the very near future. The default
+mode will continue to be 1.8 unless you configure Rubinius to run in 1.9 mode.&lt;/p&gt;
+
+&lt;h3 id=&quot;building-on-windows&quot;&gt;Building on Windows&lt;/h3&gt;
+
+&lt;p&gt;On Windows, Rubinius uses the &lt;a href=&quot;http://mingw-w64.sourceforge.net/&quot;&gt;MinGW-w64&lt;/a&gt;
+compiler to build a native application. There remains a lot of work to do for
+Windows support but the Rubinius VM is currently compiling on Windows 7.&lt;/p&gt;
+
+&lt;p&gt;If you are a bleeding-edge Windows developer interested in diving into
+Rubinius, here&amp;rsquo;s how to get started:&lt;/p&gt;
+
+&lt;ol&gt;
+  &lt;li&gt;Install &lt;em&gt;MRI 1.9&lt;/em&gt; using &lt;a href=&quot;http://rubyinstaller.org/&quot;&gt;RubyInstaller&lt;/a&gt;.&lt;/li&gt;
+  &lt;li&gt;Install &lt;a href=&quot;http://code.google.com/p/msysgit/&quot;&gt;MSysGit&lt;/a&gt;.&lt;/li&gt;
+  &lt;li&gt;Install the 32bit or 64bit MinGW-w64 toolchain.&lt;/li&gt;
+  &lt;li&gt;Clone the Rubinius repository.&lt;/li&gt;
+  &lt;li&gt;In CMD, run &lt;code&gt;ruby configure&lt;/code&gt;.&lt;/li&gt;
+  &lt;li&gt;Run &lt;code&gt;rake&lt;/code&gt;.&lt;/li&gt;
+&lt;/ol&gt;
+
+&lt;h3 id=&quot;moving-forward&quot;&gt;Moving Forward&lt;/h3&gt;
+
+&lt;p&gt;In the near future, we will release another version of Rubinius from the
+current master branch. We hope to merge 2.0.0pre into master as soon as
+possible and continue working toward the 2.0 final release. We&amp;rsquo;ll make that
+decision based on your reports about how the 2.0.0pre branch is working with
+existing 1.8.7 applications.&lt;/p&gt;
+
+&lt;p&gt;We greatly appreciate your help polishing up the Rubinius 2.0 release! Follow
+us on &lt;a href=&quot;http://twitter.com/rubinius&quot;&gt;Twitter&lt;/a&gt; for updates and stop by #rubinius
+on freenode.net to chat about anything on your mind.&lt;/p&gt;
+
+&lt;h3 id=&quot;rubinius-support-on-engineyard-appcloud&quot;&gt;Rubinius Support on EngineYard AppCloud&lt;/h3&gt;
+
+&lt;p&gt;Rubinius 1.2.3 is currently in beta on Engine Yard AppCloud, and we encourage
+users to &lt;a href=&quot;http://docs.engineyard.com/rubinius.html&quot;&gt;give it a try&lt;/a&gt;. Engine
+Yard will support Rubinius 2.0.0 after it’s officially released.&lt;/p&gt;
+
+&lt;p&gt;To learn more about Rubinius, join Engine Yard for a &lt;a href=&quot;http://pages.engineyard.com/RubyPlatformOptionsWebinarJuly212011.html&quot;&gt;Platform Options Webinar&lt;/a&gt; in July.&lt;/p&gt;
+</content>
+  </entry>
+  
+  <entry>
     <title>Announcing Rubinius Rewards</title>
     <id>http://rubini.us/2011/05/26/rubinius-rewards/</id>
     <link rel="alternate" type="text/html" href="http://rubini.us/2011/05/26/rubinius-rewards/" />
