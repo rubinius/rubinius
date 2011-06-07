@@ -100,6 +100,17 @@ task :default => %w[build vm:test] do
   sh "bin/mspec ci --background --agent"
 end
 
+task :github do
+  cur = `git config remote.origin.url`.strip
+  if cur == "git://github.com/evanphx/rubinius.git"
+    sh "git config remote.origin.url git://github.com/rubinius/rubinius.git"
+    puts "\nSwitch to git://github.com/rubinius/rubinius.git"
+  else
+    sh "git config remote.origin.url git@github.com:rubinius/rubinius.git"
+    puts "\nSwitch to github.com:rubinius/rubinius.git"
+  end
+end
+
 # See vm.rake for more information
 desc "Build everything that needs to be built at default level."
 task :build => ["build:build", "gem_bootstrap"]
