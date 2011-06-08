@@ -44,6 +44,9 @@ def build_extconf(name, opts)
 
   ENV["BUILD_RUBY"] = BUILD_CONFIG[:build_ruby]
 
+  include18_dir = File.expand_path("../../vm/capi/18/include", __FILE__)
+  include19_dir = File.expand_path("../../vm/capi/19/include", __FILE__)
+
   unless File.directory? BUILD_CONFIG[:runtime]
     ENV["CFLAGS"]      = "-I#{include18_dir} -I#{include19_dir}"
   end

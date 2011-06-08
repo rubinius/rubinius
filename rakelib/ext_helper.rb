@@ -120,7 +120,7 @@ def include18_dir
 end
 
 def include19_dir
-  File.expand_path("../../vm/capi/18/include", __FILE__)
+  File.expand_path("../../vm/capi/19/include", __FILE__)
 end
 
 def add_rbx_capi

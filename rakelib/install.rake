@@ -16,7 +16,9 @@ end
 install_dirs = [
   BUILD_CONFIG[:bindir],
   BUILD_CONFIG[:libdir],
-  BUILD_CONFIG[:includedir],
+  BUILD_CONFIG[:include18dir],
+  BUILD_CONFIG[:include19dir],
+  BUILD_CONFIG[:include20dir],
   BUILD_CONFIG[:mandir],
   BUILD_CONFIG[:gemsdir]
 ]
@@ -89,8 +91,10 @@ namespace :install do
     else
       install_dirs.each { |name| mkdir_p install_dir(name), :verbose => $verbose }
 
-      FileList["vm/capi/include/**/*.h"].each do |name|
-        install_file name, %r[^vm/capi/include], BUILD_CONFIG[:includedir]
+      [["18", "18"], ["19", "19"], ["19", "20"]].each do |a, b|
+        FileList["vm/capi/#{a}/include/**/*.h"].each do |name|
+          install_file name, %r[^vm/capi/#{a}/include], BUILD_CONFIG[:"include#{b}dir"]
+        end
       end
 
       FileList[
