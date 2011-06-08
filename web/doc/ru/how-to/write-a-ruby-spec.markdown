@@ -20,4 +20,4 @@ next_url: how-to/fix-a-failing-spec
   4. Закоммитьте изменения
   7. Используйте `git format-patch`
   8. Создайте gist с вашим патчем и добавьте ссылку на него в тикет в трекере
-     http://github.com/rubinius/rubinius/issues.
+     https://github.com/rubinius/rubinius/issues.
