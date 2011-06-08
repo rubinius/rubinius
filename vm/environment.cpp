@@ -321,9 +321,13 @@ namespace rubinius {
       if(strncmp(arg, "-X", 2) == 0) {
         config_parser.import_line(arg + 2);
 
-      // If we hit the first non-option, bail.
+      /* If we hit the first non-option, break out so in the following
+       * command line, the first 'rbx' doesn't consume '-Xprofile':
+       *
+       *   rbx bundle exec rbx -Xprofile blah
+       */
       } else if(arg[0] != '-') {
-        return;
+        break;
       }
     }
 
