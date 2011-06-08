@@ -1062,7 +1062,13 @@ class TCPSocket < IPSocket
         syscall = 'bind(2)'
       else
         if @local_addrinfo
-          status = Socket::Foreign.bind sock, @local_addrinfo.first[4]
+          # Pick a local_addrinfo for the family and type of
+          # the remote side
+          li = @local_addrinfo.find do |i|
+            i[1] == family && i[2] == socket_type
+          end
+
+          status = Socket::Foreign.bind sock, li[4]
           syscall = 'bind(2)'
         else
           status = 1
