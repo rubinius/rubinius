@@ -1410,7 +1410,7 @@ Merge: a47f2b8... 42d3212...
 Author: Marnen Laibow-Koser <marnen@marnen.org>
 Date:   Fri Apr 18 02:09:07 2008 -0400
 
-    Merge branch 'master' of git://github.com/evanphx/rubinius
+    Merge branch 'master' of git://github.com/rubinius/rubinius
 
 commit a47f2b852ca309a68b687157a6cd973716328887
 Author: Marnen Laibow-Koser <marnen@marnen.org>
