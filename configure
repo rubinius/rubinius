@@ -1104,10 +1104,22 @@ end
     File.expand_path("../#{name}", __FILE__)
   end
 
+  def check_force_clean
+    if Rubinius::BUILD_CONFIG[:config_version] != @config_version
+      @log.write "\nDetected old configuration settings, forcing a clean build"
+      system("#{build_ruby} -S #{@rake} clean")
+    end
+  end
+
   def run
     unless which_ruby == :ruby or which_ruby == :rbx
       @log.error "Sorry, building Rubinius requires MRI or Rubinius"
       failure
+    end
+
+    if File.exists? @config
+      load @config
+      verify_config = true
     end
 
     options
@@ -1127,6 +1139,9 @@ end
 
     process
     write_config
+
+    check_force_clean if verify_config
+
     print_debug if @verbose
     if @install
       @log.write "\nConfigured. Run 'rake install' to install Rubinius."
