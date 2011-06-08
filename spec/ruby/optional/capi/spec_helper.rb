@@ -20,7 +20,7 @@ def compile_extension(path, name)
   ruby_hdrdir = nil
 
   if RUBY_NAME == 'rbx'
-    hdrdir = Rubinius::HDR_PATH
+    hdrdir = RbConfig::CONFIG["rubyhdrdir"]
   elsif RUBY_NAME =~ /^ruby/
     if hdrdir = RbConfig::CONFIG["rubyhdrdir"]
       arch_hdrdir = File.join hdrdir, RbConfig::CONFIG["arch"]
