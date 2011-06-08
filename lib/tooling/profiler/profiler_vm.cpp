@@ -46,7 +46,8 @@ namespace profiler {
     kSingletonJIT,
     kBlockJIT,
     kFinalizers,
-    kScript
+    kScript,
+    kRoot
   };
 
   class VM;
@@ -313,25 +314,26 @@ namespace profiler {
   class MethodEntry {
     Method*       method_;
     Node*         node_;
-    Node*         previous_;
-    Timer  timer_;
+    MethodEntry*  previous_me_;
+    Timer         timer_;
 
   public:
 
-    MethodEntry(Method* method)
+    MethodEntry(Method* method, Node* node=0)
       : method_(method)
-      , node_(0)
-      , previous_(0)
+      , node_(node)
+      , previous_me_(0)
     {}
 
     void start(Profiler* profiler, Env* env);
     void stop(Profiler* profiler, Env* env);
+    void stop_all(Profiler* profiler, Env* env);
   };
 
   class Profiler {
     MethodMap methods_;
     Node*     root_;
-    Node*     current_;
+    MethodEntry* current_me_;
     int       nodes_;
     uint32_t  threshold_;
     uint64_t  start_time_;
@@ -344,12 +346,12 @@ namespace profiler {
 
     ~Profiler();
 
-    Node* current() {
-      return current_;
+    MethodEntry* current_me() {
+      return current_me_;
     }
 
-    void set_current(Node* node) {
-      current_ = node;
+    void set_current_me(MethodEntry* me) {
+      current_me_ = me;
     }
 
     int next_node_id() {
@@ -467,9 +469,11 @@ namespace profiler {
   }
 
   void MethodEntry::start(Profiler* profiler, Env* env) {
-    previous_ = profiler->current();
-    node_ = previous_->find_sub_node(profiler, method_);
-    profiler->set_current(node_);
+    previous_me_ = profiler->current_me();
+
+    node_ = previous_me_->node_->find_sub_node(profiler, method_);
+
+    profiler->set_current_me(this);
 
     method_->timer.start(env);
     timer_.start(env);
@@ -480,12 +484,18 @@ namespace profiler {
     timer_.stop(env);
     method_->accumulate(timer_.total());
     node_->accumulate(timer_.total());
-    profiler->set_current(previous_);
+
+    profiler->set_current_me(previous_me_);
+  }
+
+  void MethodEntry::stop_all(Profiler* profiler, Env* env) {
+    stop(profiler, env);
+    if(previous_me_) previous_me_->stop_all(profiler, env);
   }
 
   Profiler::Profiler(Env* env)
     : root_(0)
-    , current_(0)
+    , current_me_(0)
     , nodes_(0)
     , threshold_((uint32_t)env->config_get_int("profiler.threshold"))
     , start_time_(env->time_current_ns())
@@ -493,7 +503,9 @@ namespace profiler {
     , id_(env->current_thread_id())
     , attached_(true)
   {
-    root_ = current_ = new Node(0, next_node_id());
+    Method* root_me = new Method(0, 0, 0, kRoot);
+    root_ = new Node(root_me, next_node_id());
+    current_me_ = new MethodEntry(root_me, root_);
   }
 
   Method* Profiler::enter_block(Env* env, rsymbol name, rmodule module, rmethod cm) {
@@ -661,6 +673,9 @@ namespace profiler {
   void Profiler::results(Env* env, rtable profile, rtable nodes, rtable methods,
                          KeyMap& keys, uint64_t runtime)
   {
+
+    current_me_->stop_all(this, env);
+
     WorkList work;
 
     // If we haven't even gone for a total of longer than 10x the threshold,

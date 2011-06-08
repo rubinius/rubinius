@@ -320,6 +320,10 @@ namespace rubinius {
 
       if(strncmp(arg, "-X", 2) == 0) {
         config_parser.import_line(arg + 2);
+
+      // If we hit the first non-option, bail.
+      } else if(arg[0] != '-') {
+        return;
       }
     }
 
@@ -362,17 +366,17 @@ namespace rubinius {
 
     Array* ary = Array::create(state, argc - 1);
     int which_arg = 0;
-    bool load_xflags = false;
+    bool skip_xflags = true;
 
     for(int i=1; i < argc; i++) {
       char* arg = argv[i];
 
       if(strcmp(arg, "--") == 0) {
-        load_xflags = true;
-      }
-
-      if(!load_xflags && strncmp(arg, "-X", 2) == 0) {
-        continue;
+        skip_xflags = false;
+      } else if(strncmp(arg, "-X", 2) == 0) {
+        if(skip_xflags) continue;
+      } else if(arg[1] != '-') {
+        skip_xflags = false;
       }
 
       ary->set(state, which_arg++, String::create(state, arg)->taint(state));

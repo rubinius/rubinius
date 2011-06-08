@@ -110,5 +110,5 @@ next_url: systems/io
     sleep 1
 
 Приведенный пример --- фрагмент кода из
-[<<girl_friday>>](http://github.com/mperham/girl_friday). Если у Вас возникли
+[<<girl_friday>>](https://github.com/mperham/girl_friday). Если у Вас возникли
 вопросы, поизучайте этот проект.

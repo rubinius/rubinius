@@ -1,20 +1,19 @@
 ---
 layout: doc_pl
 title: Debugger
-previous: Tools
+previous: Narzędzia
 previous_url: tools
 next: Profiler
 next_url: tools/profiler
 ---
 
-Rubinius includes a reference Ruby source-level debugger.
+Rubinius zawiera referencyjny debugger na poziomie kodu źródłowego.
 
-## Invoking in Code
+## Wywołanie debuggera
 
-The Rubinius debugger can be invoked from code by embedding a call to start
-the debugger
+Debugger można wywołać z poziomu kodu źródłowego programu wykonując Rubinius::Debugger.start
 
-Consider the following code in app.rb
+Biorąc za przykład kod z app.rb
 
     class Toast
       attr_accessor :setting
@@ -27,7 +26,7 @@ Consider the following code in app.rb
 
     p Toast.new.setting
 
-Running the code in Rubinius would produce the following:
+Wykonanie powyższego kodu w Rubiniusie spowoduje:
 
     $ rbx app.rb
 
@@ -72,17 +71,15 @@ Running the code in Rubinius would produce the following:
     debug> c
     :light_brown
 
-As shown, help for the debugger commands is available by typing `help` when in
-the debugger.
+Opis wszystkich komend uzyskamy wpisując `help` w konsoli debuggera.
 
 
-## Invoking from the Command Line
+## Wywołanie debuggera z linii poleceń
 
-The Rubinius debugger can be invoked from the command line and will present
-the debugger prompt just before loading the script specified on the command
-line.
+Debugger można wywołać z linii poleceń. Debugowanie rozpocznie się
+od pierwszej linii kodu wywoływanego skryptu.
 
-Consider the following Ruby code in bug.rb:
+Zakładając poniższy kod w skrypcie bug.rb:
 
     def problem_code
       puts "I have a problem"
@@ -92,8 +89,7 @@ Consider the following Ruby code in bug.rb:
 
     problem_code
 
-To debug this code, start the debugger from the command line with the
-`-Xdebug` option.
+Aby zdebugować powyższy kod uruchom Rubiniusa z opcją `-Xdebug`.
 
     $ rbx -Xdebug bug.rb
 
@@ -126,5 +122,5 @@ To debug this code, start the debugger from the command line with the
     | 7: problem_code
     debug> c
 
-As you can see, executing `p a = 4` in the debugger changes the value of the
-local variable `a` and affects the execution of the Ruby code.
+Jak widać, wywołanie `p a = 4` w debugerze zmienia wartość zmiennej
+lokalnej `a` oraz wpływa na wykonywany program.

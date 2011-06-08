@@ -101,7 +101,7 @@ running Rubinius, use the `-X18` or `-X19` command line switches. For example:
 
 This command will run Rubinius with the 1.9 language mode enabled.
 
-You may also use the `RBXOPT` environment variable to select the lanugage
+You may also use the `RBXOPT` environment variable to select the language
 mode. Assuming that 1.8 is the default mode, the following command would run
 Rubinius with the 1.9 language mode enabled:
 
