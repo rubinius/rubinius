@@ -12,7 +12,7 @@ us test it.
 
 While we were working on 1.2.1, we were also working on a Top Secret project
 that we've craftily [hidden in plain
-sight](https://github.com/evanphx/rubinius/tree/hydra). I'd like to introduce
+sight](https://github.com/rubinius/rubinius/tree/hydra). I'd like to introduce
 the work we are doing on the hydra branch and the features you can expect to
 see in Rubinius soon.
 

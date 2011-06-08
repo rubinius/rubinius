@@ -7,7 +7,7 @@ if ENV["RUBYLIB"]
 end
 
 # Wipe out CDPATH, it interferes with building in some cases,
-# see http://github.com/evanphx/rubinius/issues#issue/555
+# see http://github.com/rubinius/rubinius/issues#issue/555
 if ENV["CDPATH"]
   ENV.delete("CDPATH")
 end
@@ -102,7 +102,7 @@ end
 
 task :github do
   cur = `git config remote.origin.url`.strip
-  if cur == "git://github.com/evanphx/rubinius.git"
+  if cur == "git://github.com/rubinius/rubinius.git"
     sh "git config remote.origin.url git://github.com/rubinius/rubinius.git"
     puts "\nSwitch to git://github.com/rubinius/rubinius.git"
   else
