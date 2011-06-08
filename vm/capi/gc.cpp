@@ -3,7 +3,7 @@
 #include "objectmemory.hpp"
 
 #include "capi/capi.hpp"
-#include "capi/include/ruby.h"
+#include "capi/18/include/ruby.h"
 
 using namespace rubinius;
 using namespace rubinius::capi;

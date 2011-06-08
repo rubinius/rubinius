@@ -1,12 +1,12 @@
 // TODO: resolve after importing Oniguruma from MRI
 #include <stddef.h>
-#include "capi/include/ruby/oniguruma.h"
+#include "capi/19/include/ruby/oniguruma.h"
 
 #include "builtin/encoding.hpp"
 #include "builtin/nativemethod.hpp"
 
-#include "capi/include/ruby.h"
-#include "capi/include/ruby/encoding.h"
+#include "capi/19/include/ruby.h"
+#include "capi/19/include/ruby/encoding.h"
 
 using namespace rubinius;
 using namespace rubinius::capi;

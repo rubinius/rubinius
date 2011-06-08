@@ -131,7 +131,7 @@ def map_dir(dir, map = nil)
 end
 
 # ---------------------- Changed for Rubinius --------------------------------
-$topdir     = ENV['RBX_CAPI_DIR'] || Rubinius::HDR_PATH
+$topdir     = ENV['RBX_CAPI_DIR'] || RbConfig::CONFIG["rubyhdrdir"]
 $top_srcdir = $topdir
 $hdrdir     = $topdir
 

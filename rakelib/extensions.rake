@@ -17,9 +17,11 @@ namespace :extensions do
   desc "Clean all lib/ext files"
   task :clean do
     clean_extension("**")
+    rm_f FileList["lib/tooling/**/*.{o,#{$dlext}}"], :verbose => $verbose
     # TODO: implement per extension cleaning. This hack is for
     # openssl and dl, which use extconf.rb and create Makefile.
     rm_f FileList["lib/ext/**/Makefile"], :verbose => $verbose
+    rm_f FileList["lib/tooling/**/Makefile"], :verbose => $verbose
     rm_f FileList["lib/ext/dl/*.func"], :verbose => $verbose
   end
 end
@@ -43,11 +45,10 @@ def build_extconf(name, opts)
   ENV["BUILD_RUBY"] = BUILD_CONFIG[:build_ruby]
 
   unless File.directory? BUILD_CONFIG[:runtime]
-    ENV["CFLAGS"]      = "-Ivm/capi/include"
+    ENV["CFLAGS"]      = "-I#{include18_dir} -I#{include19_dir}"
   end
 
   unless opts[:deps] and opts[:deps].all? { |n| File.exists? n }
-  # unless File.exists?("Makefile") and File.exists?("extconf.h")
     sh("#{rbx_build} extconf.rb #{redirect}", &fail_block)
   end
 

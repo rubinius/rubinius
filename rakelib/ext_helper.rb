@@ -115,10 +115,19 @@ def add_mri_capi
   end
 end
 
+def include18_dir
+  File.expand_path("../../vm/capi/18/include", __FILE__)
+end
+
+def include19_dir
+  File.expand_path("../../vm/capi/18/include", __FILE__)
+end
+
 def add_rbx_capi
   add_cflag "-ggdb3 -O2"
   add_cxxflag "-ggdb3 -O2"
-  add_include_dir File.expand_path("../../vm/capi/include", __FILE__)
+  add_include_dir include18_dir
+  add_include_dir include19_dir
 end
 
 # Setup some initial computed values
@@ -194,7 +203,8 @@ init
 #
 def common_headers(*extra)
   @common_headers ||= FileList[
-    File.expand_path("../../vm/capi/include/*.h", __FILE__),
+    include18_dir + "/*.h",
+    include19_dir + "/*.h",
     *extra
   ].existing
 end
@@ -217,7 +227,7 @@ end
 
 def graph_dependencies(sources, directories=[])
   directories = Array(directories)
-  directories.concat [".", File.expand_path("../../vm/capi/include", __FILE__)]
+  directories.concat [".", include18_dir, include19_dir]
 
   grapher = DependencyGrapher.new sources, directories
   grapher.process

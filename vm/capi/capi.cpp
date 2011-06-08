@@ -24,7 +24,7 @@
 #include "arguments.hpp"
 #include "dispatch.hpp"
 #include "capi/capi.hpp"
-#include "capi/include/ruby.h"
+#include "capi/18/include/ruby.h"
 #include <string>
 #include <vector>
 #include <tr1/unordered_map>

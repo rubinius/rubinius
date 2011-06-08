@@ -5,7 +5,7 @@
 #endif
 
 #include "capi/capi.hpp"
-#include "capi/include/ruby.h"
+#include "capi/18/include/ruby.h"
 #include "builtin/thread.hpp"
 
 #include "windows_compat.h"

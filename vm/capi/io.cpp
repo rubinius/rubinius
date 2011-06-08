@@ -8,7 +8,7 @@
 #include "primitives.hpp"
 
 #include "capi/capi.hpp"
-#include "capi/include/ruby.h"
+#include "capi/18/include/ruby.h"
 
 #include "windows_compat.h"
 

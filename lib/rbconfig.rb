@@ -41,7 +41,16 @@ module RbConfig
   CONFIG["TEENY"]              = teeny
   CONFIG["ruby_version"]       = "$(MAJOR).$(MINOR)"
   CONFIG["RUBY_SO_NAME"]       = "rubinius-#{Rubinius::VERSION}"
-  CONFIG["rubyhdrdir"]         = "#{Rubinius::HDR_PATH}"
+
+  case
+  when Rubinius.ruby18?
+    CONFIG["rubyhdrdir"]         = "#{Rubinius::HDR18_PATH}"
+  when Rubinius.ruby19?
+    CONFIG["rubyhdrdir"]         = "#{Rubinius::HDR19_PATH}"
+  when Rubinius.ruby20?
+    CONFIG["rubyhdrdir"]         = "#{Rubinius::HDR20_PATH}"
+  end
+
   CONFIG["LIBS"]               = ""
 
   sitedir                      = Rubinius::SITE_PATH

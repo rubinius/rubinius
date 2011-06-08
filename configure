@@ -86,7 +86,9 @@ class Configure
 
     # File system paths
     @bindir       = root + "/bin"
-    @includedir   = root + "/vm/capi/include"
+    @include18dir = root + "/vm/capi/18/include"
+    @include19dir = root + "/vm/capi/19/include"
+    @include20dir = root + "/vm/capi/19/include"
     @libdir       = root
     @runtime      = @libdir + "/runtime"
     @lib_path     = @libdir + "/lib"
@@ -107,7 +109,7 @@ class Configure
     @libversion = "2.0"
     @version = "#{@libversion}.0dev"
     @release_date = "yyyy-mm-dd"
-    @config_version = 130
+    @config_version = 131
 
     # TODO: add conditionals for platforms
     if RbConfig::CONFIG["build_os"] =~ /darwin/
@@ -244,7 +246,9 @@ class Configure
       end
 
       @bindir       = dir + "/bin"
-      @includedir   = dir + "/include"
+      @include18dir = dir + "/18/include"
+      @include19dir = dir + "/19/include"
+      @include20dir = dir + "/19/include"
       @libdir       = dir
       @runtime      = @libdir + "/runtime"
       @lib_path     = @libdir + "/lib"
@@ -263,7 +267,10 @@ class Configure
 
     o.on "-I", "--includedir", "PATH", "Install Rubinius C-API include files in PATH" do |dir|
       @install = true
-      @includedir = expand dir
+      path = expand dir
+      @include18dir = path + "/18"
+      @include19dir = path + "/19"
+      @include20dir = path + "/20"
     end
 
     o.on "-L", "--libdir", "PATH", "Install Ruby library in PATH" do |dir|
@@ -939,7 +946,9 @@ module Rubinius
     :runtime        => "#{@runtime}",
     :lib_path       => "#{@lib_path}",
     :ext_path       => "#{@ext_path}",
-    :includedir     => "#{@includedir}",
+    :include18dir   => "#{@include18dir}",
+    :include19dir   => "#{@include19dir}",
+    :include20dir   => "#{@include20dir}",
     :mandir         => "#{@mandir}",
     :gemsdir        => "#{@gemsdir}",
     :sitedir        => "#{@sitedir}",
@@ -976,7 +985,9 @@ end
 #define RBX_RUNTIME       "#{@runtime}"
 #define RBX_LIB_PATH      "#{@lib_path}"
 #define RBX_EXT_PATH      "#{@ext_path}"
-#define RBX_HDR_PATH      "#{@includedir}"
+#define RBX_HDR18_PATH    "#{@include18dir}"
+#define RBX_HDR19_PATH    "#{@include19dir}"
+#define RBX_HDR20_PATH    "#{@include20dir}"
 #define RBX_SITE_PATH     "#{@sitedir}"
 #define RBX_VENDOR_PATH   "#{@vendordir}"
 #define RBX_VERSION       "#{@version}"
@@ -1021,7 +1032,9 @@ end
 #define RBX_RUNTIME       "#{@runtime}"
 #define RBX_LIB_PATH      "#{@lib_path}"
 #define RBX_EXT_PATH      "#{@ext_path}"
-#define RBX_HDR_PATH      "#{@includedir}"
+#define RBX_HDR18_PATH    "#{@include18dir}"
+#define RBX_HDR19_PATH    "#{@include19dir}"
+#define RBX_HDR20_PATH    "#{@include20dir}"
 #define RBX_SITE_PATH     "#{@sitedir}"
 #define RBX_VENDOR_PATH   "#{@vendordir}"
 #define RBX_VERSION       "#{@version}"
