@@ -551,6 +551,11 @@ end
 def print_node(f, id, data, depth=0)
   node = data["nodes"][id.to_s]
 
+  unless node
+    puts "Missing node: #{id}"
+    return
+  end
+
   prec = "%.2f" % [100.0 * (node["total"].to_f / data["runtime"].to_f)]
   name = data["methods"][node["method"].to_s]["name"]
 
@@ -568,7 +573,11 @@ def print_node(f, id, data, depth=0)
     end
 
     subs = node["sub_nodes"].sort_by do |s|
-      data["nodes"][s.to_s]["total"].to_f / data["runtime"]
+      if n = data["nodes"][s.to_s]
+        n["total"].to_f / data["runtime"]
+      else
+        0
+      end
     end
 
     subs.reverse_each do |s_id|
