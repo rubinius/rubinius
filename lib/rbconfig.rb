@@ -49,6 +49,8 @@ module RbConfig
     CONFIG["rubyhdrdir"]         = "#{Rubinius::HDR19_PATH}"
   when Rubinius.ruby20?
     CONFIG["rubyhdrdir"]         = "#{Rubinius::HDR20_PATH}"
+  else
+    raise Exception, "no C-API header directory defined"
   end
 
   CONFIG["LIBS"]               = ""

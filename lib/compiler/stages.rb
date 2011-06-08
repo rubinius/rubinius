@@ -169,6 +169,8 @@ module Rubinius
           @processor = Rubinius::Melbourne19
         when Rubinius.ruby20?
           @processor = Rubinius::Melbourne20
+        else
+          raise Exception, "no processor is defined for Parser compiler stage."
         end
       end
 
