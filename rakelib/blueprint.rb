@@ -170,7 +170,6 @@ Daedalus.blueprint do |i|
 
   zlib = i.external_lib "vm/external_libs/zlib" do |l|
     l.cflags = ["-Ivm/external_libs/zlib"]
-    l.objects = [l.file("libz.a")]
     l.to_build do |x|
       unless File.exists?("Makefile") and File.exists?("zconf.h")
         x.command "sh -c ./configure"
@@ -209,7 +208,6 @@ Daedalus.blueprint do |i|
   end
 
 
-  files << zlib
   files << udis
   files << ffi
   files << gdtoa

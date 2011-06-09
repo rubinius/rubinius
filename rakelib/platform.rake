@@ -558,28 +558,27 @@ file 'runtime/platform.conf' => deps do |task|
       signal_constants.each { |c| cg.const c }
     end.write_constants(f)
 
-    unless BUILD_CONFIG[:windows]
-      FFI::Generators::Constants.new 'rbx.platform.zlib' do |cg|
-        cg.include 'zlib.h'
+    FFI::Generators::Constants.new 'rbx.platform.zlib' do |cg|
+      cg.include_dir 'vm/external_libs/zlib'
+      cg.include 'zlib.h'
 
-        zlib_constants = %w[ZLIB_VERSION]
+      zlib_constants = %w[ZLIB_VERSION]
 
-        zlib_constants.each { |c| cg.const c, "%s", "(char *)" }
-      end.write_constants(f)
+      zlib_constants.each { |c| cg.const c, "%s", "(char *)" }
+    end.write_constants(f)
 
-      FFI::Generators::Constants.new 'rbx.platform.dlopen' do |cg|
-        cg.include 'dlfcn.h'
+    FFI::Generators::Constants.new 'rbx.platform.dlopen' do |cg|
+      cg.include 'dlfcn.h'
 
-        dlopen_constants = %w[
-          RTLD_LAZY
-          RTLD_NOW
-          RTLD_LOCAL
-          RTLD_GLOBAL
-        ]
+      dlopen_constants = %w[
+        RTLD_LAZY
+        RTLD_NOW
+        RTLD_LOCAL
+        RTLD_GLOBAL
+      ]
 
-        dlopen_constants.each { |c| cg.const c }
-      end.write_constants(f)
-    end
+      dlopen_constants.each { |c| cg.const c }
+    end.write_constants(f)
 
     f.puts FFI::Generators::Types.new.generate
   end

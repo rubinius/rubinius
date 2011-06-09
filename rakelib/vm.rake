@@ -127,6 +127,7 @@ namespace :build do
                      #{VM_EXE}
                      kernel:build
                      build:ffi:preprocessor
+                     build:zlib
                      extensions
                    ]
 
@@ -149,6 +150,13 @@ namespace :build do
 
   end
 
+  directory 'lib/zlib'
+
+  task :zlib => ['lib/zlib', VM_EXE] do
+    FileList["vm/external_libs/zlib/libz.*"].each do |lib|
+      cp lib, 'lib/zlib/'
+    end
+  end
 end
 
 # Compilation tasks
