@@ -50,6 +50,7 @@ module FFI
 
       def initialize(prefix=nil, options={})
         @includes = []
+        @include_dirs = []
         @constants = {}
         @prefix = prefix
         @platform = Platform.new
@@ -110,7 +111,8 @@ module FFI
       end
 
       def prepare(name, target)
-        "gcc #{@platform.defines} -x c -Wall -Werror #{name} -o #{target} 2>&1"
+        include_dirs = @include_dirs.map { |i| "-I#{i}" }.join(" ")
+        "gcc #{@platform.defines} -x c #{include_dirs} -Wall -Werror #{name} -o #{target} 2>&1"
       end
 
       def prepare_failed
@@ -164,6 +166,10 @@ module FFI
 
       def include(i)
         @includes << i
+      end
+
+      def include_dir(i)
+        @include_dirs << i
       end
     end
 
