@@ -1,15 +1,15 @@
 <!DOCTYPE html>
 <html>
   <head>
-    <title>How-To - Write Documentation - Rubinius</title>
+    <title>Cómo - escribir documentación - Rubinius</title>
     <meta content='text/html;charset=utf-8' http-equiv='content-type'>
     <meta content='es' http-equiv='content-language'>
     <meta content='Rubinius is an implementation of the Ruby programming language. The Rubinius bytecode virtual machine is written in C++. The bytecode compiler is written in pure Ruby. The vast majority of the core library is also written in Ruby, with some supporting primitives that interact with the VM directly.' name='description'>
     <meta content='Less Than Three. &lt;3. http://less.thanthree.com' name='author'>
     <link href='/' rel='home'>
     <link href='/' rel='start'>
-    <link href='/doc/es/how-to/write-a-blog-post' rel='prev' title='Write a Blog Post'>
-    <link href='/doc/es/how-to/translate-documentation' rel='next' title='Translate Documentation'>
+    <link href='/doc/es/how-to/write-a-blog-post' rel='prev' title='Escribir una entrada en el blog'>
+    <link href='/doc/es/how-to/translate-documentation' rel='next' title='Traducir documentación'>
     
     <!--[if IE]><script src="http://html5shiv.googlecode.com/svn/trunk/html5.js" type="text/javascript"></script><![endif]-->
     <script src="/javascripts/jquery-1.3.2.js" type="text/javascript"></script>
@@ -115,7 +115,7 @@
       
         
         <span class="label">Anterior:</span>
-        <a href="/doc/es/how-to/write-a-blog-post">Write a Blog Post</a>
+        <a href="/doc/es/how-to/write-a-blog-post">Escribir una entrada en el blog</a>
         
 
         <span class="label">Subir:</span>
@@ -123,51 +123,43 @@
 
         
         <span class="label">Siguiente:</span>
-        <a href="/doc/es/how-to/translate-documentation">Translate Documentation</a>
+        <a href="/doc/es/how-to/translate-documentation">Traducir documentación</a>
         
       
     </div>
 
 
     <div class="container documentation">
-      <h2>How-To - Write Documentation</h2>
-
-      
-        <div class="review">
-  <p>This page was machine translated. Please help us improve it.</p>
-
-  <p>See <a href="/doc/es/how-to/translate-documentation">
-    How-To - Translate Documentation</a></p>
-</div>
+      <h2>Cómo - escribir documentación</h2>
 
       
 
       
 
-        <p>La documentación Rubinius está integrado con el sitio web y blog. Utiliza
-Jekyll al igual que los otros componentes.</p>
+        <p>La documentación de Rubinius está integrada con el sitio web y el blog.
+Utiliza Jekyll al igual que los otros componentes.</p>
 
-<p>Para empezar, asegúrese de tener la <code>kramdown</code> y <code>jekyll</code> gemas instalado.</p>
+<p>Para empezar, asegúrate de tener las gemas <code>kramdown</code> y <code>jekyll</code> instaladas.</p>
 
 <pre><code> rbx gem install kramdown jekyll
 </code></pre>
 
-<p>La fuente de la documentación se encuentra en la <code>web/doc</code>. Hay subdirectorios
-de cada idioma para que la documentación ha sido traducido (por ejemplo, <code>en</code>,
-<code>es</code>, etc.)</p>
+<p>Los fuentes de la documentación se encuentran en el directorio <code>web/doc</code>. Hay
+subdirectorios por cada idioma para el cual la documentación ha sido traducida
+(por ejemplo <code>en</code>, <code>es</code>, etc.)</p>
 
-<p>Hay una tabla de contenido para cada traducción (por ejemplo,
+<p>Hay una Tabla de Contenido para cada traducción (por ejemplo
 <code>web/doc/es/index.markdown</code>). El resto de la documentación consiste en
-archivos individuales que han YAML atributos para especificar cómo los
-documentos son conectado. Esencialmente, la documentación puede ser visto como
-un doblemente enlazada lista de los documentos con cada documento que apunta a
-la anterior y siguiente documento. La Tabla de Contenidos documento muestra la
-estructura completa.</p>
+archivos individuales que tienen atributos YAML para especificar cómo se
+están conectados los documentos. Esencialmente, la documentación puede ser
+vista como una lista doblemente enlazada de documentos, con cada documento
+apuntando al anterior y al siguiente. El documento Tabla de Contenido
+muestra la estructura completa.</p>
 
-<p>El YAML atributos en una mirada documento como el siguiente:</p>
+<p>Los atributos YAML en un documento se ven como como los siguientes:</p>
 
 <pre><code>---
-layout: doc_en
+layout: doc_es
 title: How-To - Write Documentation
 previous: Write a Blog Post
 previous_url: how-to/write-a-blog-post
@@ -176,42 +168,70 @@ next_url: how-to/translate-documentation
 ---
 </code></pre>
 
-<p>El <em>layout</em> especifica que Jekyll diseño a utilizar al formatear la documento.
-El <em>layout</em> debe ser `doc_LANG», donde <em>LANG</em> es la norma ISO-639-2 código de
-la lengua.</p>
+<p>El <em>layout</em> especifica a Jekyll que diagramación utilizar cuando se formatee
+el documento. El <em>layout</em> debe ser <code>doc_LANG</code>, donde <em>LANG</em> es el código
+ISO-639-2 para el idioma.</p>
 
 <p>El <em>title</em> especifica el título del documento que se muestra en la parte
 superior de la página.</p>
 
-<p>Los atributos <em>previous</em> y <em>previous_url</em> dar el título y enlace a la
-documento anterior. Del mismo modo, los atributos <em>next</em> y <em>next_url</em> dar
-la título y el vínculo para el próximo documento. Estos se utilizan para
-mejorar la navegación documentación y limitando la cantidad de trabajo
-necesario para re-order partes de la documentación.</p>
+<p>Los atributos <em>previous</em> y <em>previous_url</em> dan el título y el vínculo al
+documento anterior. Del mismo modo, los atributos <em>next</em> y <em>next_url</em> dan
+el título y el vínculo para el próximo documento. Éstos se utilizan para
+mejorar la navegación de la documentación, limitando la cantidad de trabajo
+necesario para reordenar partes de ésta.</p>
 
-<h3 id="editing-existing-documentation">Editing Existing Documentation</h3>
+<p>Tanto los fuentes de la documentación como los archivos generados por Jekyll
+son subidos al repositorio de Rubinius. Cuando las personas clonan el
+repositorio de Rubinius, pueden ejecutar <code>rake docs</code> para ver la documentación
+antes de compilar Rubinius o si tienen problemas en la compilación.</p>
 
-<p>Un primer esbozo de la documentación ha sido creado. Hay muchos temas que la
-mera necesidad de contar con documentación escrita para ellos.</p>
+<h3 id="editando-documentacin-ya-existente">Editando documentación ya existente</h3>
 
-<p>Para agregar la documentación de un tema existente, o para arreglar la
-documentación existente, abrir el archivo para el tema de la sección
-<code>web/doc/idioma</code> y añadir o mejorar el documentación.</p>
+<p>Un primer esbozo de la documentación ya ha sido creado. Hay muchos temas que
+simplemente necesitan que se escriba documentación para ellos.</p>
 
-<h3 id="adding-new-documentation">Adding New Documentation</h3>
-
-<p>To add documentation for which no existing topic exists:</p>
+<p>Para agregar documentación a un tema existente o para corregir documentación
+existente:</p>
 
 <ol>
-  <li>Create a new file with the .markdown extension under <code>web/doc/LANG</code>.</li>
-  <li>Set up the attributes to link the new file into the existing files. This
-will require editing the <em>previous</em> and <em>next</em> attributes of the existing
-files to insert the new file.</li>
-  <li>To view your updates while you are working on them, run
+  <li>Abre el archivo para el tema en <code>web/doc/LANG</code>.</li>
+  <li>Agrega o mejora la documentación.</li>
+  <li>Para ver tus modificaciones mientras trabajas en ellas, ejecuta
 <code>rbx -S jekyll --server --auto</code></li>
-  <li>Edit the new file using Markdown syntax.</li>
-  <li>In the <code>web/</code> directory, run <code>rbx -S jekyll</code>.</li>
-  <li>Commit all the changes in the <code>web/</code> directory.</li>
+  <li>Una vez que finalices de agregar o editar documentación, haz commit de tus
+cambios a los archivos fuente.</li>
+  <li>Ejecuta <code>rbx -S jekyll</code> en el directorio <code>web/</code> para forzar la
+actualización de todos los archivos generados en <code>web/_site</code>.</li>
+  <li>Haz commit de los archivos generados. Si haces un cambio pequeño, puedes
+hacer commit de los archivos generados junto con los fuentes de la
+documentación. Si haces muchos cambios, haz commit de los archivos
+generados en forma separada para hacer más fácil la revisión de los
+cambios.</li>
+</ol>
+
+<h3 id="agregando-nueva-documentacin">Agregando nueva documentación</h3>
+
+<p>Para agregar documentación para la cuál no existe un tema:</p>
+
+<ol>
+  <li>Crea un nuevo archivo con extensión .markdown bajo <code>web/doc/LANG</code>.</li>
+  <li>Edita los atributos para enlazar el nuevo archivo en los archivos ya
+existentes. Esto requerirá editar los atributos <em>previous</em> y <em>next</em> de los
+archivos ya existentes para insertar el nuevo archivo, así como también 
+agregar una entrada en <code>index.markdown</code>.</li>
+  <li>Para ver tus modificaciones mientras trabajas en ellas, ejecuta
+<code>rbx -S jekyll --server --auto</code></li>
+  <li>Edita el nuevo archivo utilizando sintaxis Markdown.</li>
+  <li>Una vez que finalices de agregar o editar documentación, haz commit de tus
+cambios a los archivos fuente.</li>
+  <li>Ejecuta <code>rbx -S jekyll</code> en el directorio <code>web/</code> para forzar la
+actualización de todos los archivos generados en <code>web/_site</code>.</li>
+  <li>Haz commit de los archivos generados. Si haces un cambio pequeño, puedes
+hacer commit de los archivos generados junto con los fuentes de la
+documentación. Si haces muchos cambios, haz commit de los archivos
+generados en forma separada para hacer más fácil la revisión de los
+cambios.</li>
 </ol>
 
 
@@ -221,7 +241,7 @@ files to insert the new file.</li>
       
         
         <span class="label">Anterior:</span>
-        <a href="/doc/es/how-to/write-a-blog-post">Write a Blog Post</a>
+        <a href="/doc/es/how-to/write-a-blog-post">Escribir una entrada en el blog</a>
         
 
         <span class="label">Subir:</span>
@@ -229,7 +249,7 @@ files to insert the new file.</li>
 
         
         <span class="label">Siguiente:</span>
-        <a href="/doc/es/how-to/translate-documentation">Translate Documentation</a>
+        <a href="/doc/es/how-to/translate-documentation">Traducir documentación</a>
         
       
     </div>
