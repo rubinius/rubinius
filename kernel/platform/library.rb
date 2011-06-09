@@ -51,7 +51,7 @@ module FFI
 
           # If .new worked, then lib is set and we can use it.
           unless lib
-            raise LoadError, "Unable to find libary among: #{x.inspect}"
+            raise LoadError, "Unable to find library among: #{x.inspect}"
           end
 
           lib
