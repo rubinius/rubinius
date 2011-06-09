@@ -1,6 +1,5 @@
- VM: a C++ VM for running ruby code
-------------------------------------
-(Could probably use a better name than VM)
+ Corundum - The Rubinius VM 
+----------------------------
 
 
  Prerequisites
