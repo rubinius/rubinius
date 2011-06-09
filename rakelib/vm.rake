@@ -310,7 +310,8 @@ namespace :vm do
       'vm/test/runner.cpp',
       'vm/test/runner.o',
       VM_EXE,
-      'vm/.deps'
+      'vm/.deps',
+      'lib/zlib/*'
     ].exclude("vm/gen/config.h")
 
     files.each do |filename|

@@ -3,4 +3,8 @@ vm
 gen/*
 external_libs
 test/test_instructions.hpp
-capi/include/config.h
+
+capi/18/include/config.h
+capi/18/include/rbx_config.h
+capi/19/include/config.h
+capi/19/include/rbx_config.h
