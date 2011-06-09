@@ -127,6 +127,11 @@ namespace :install do
         install_file name, /^lib/, BUILD_CONFIG[:lib_path]
       end
 
+      # Install the zlib library files
+      FileList["lib/zlib/*"].each do |name|
+        install_file name, /^lib/, BUILD_CONFIG[:lib_path]
+      end
+
       # Install the documentation site
       FileList['lib/rubinius/documentation/**/*'].each do |name|
         install_file name, /^lib/, BUILD_CONFIG[:lib_path]
