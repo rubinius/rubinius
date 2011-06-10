@@ -137,6 +137,8 @@ namespace rubinius {
     }
   };
 
+#define SCOPE_LOCK(state, lock) rubinius::ScopeLock __scope_lock__(state, lock, __FILE__, __LINE__)
+
   class Lockable {
     Mutex mutex_;
 

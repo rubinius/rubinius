@@ -164,6 +164,9 @@ namespace rubinius {
     /// True if finalizers are currently being run.
     bool running_finalizers_;
 
+    /// A mutex which protects running the finalizers
+    rubinius::Mutex finalizer_lock_;
+
     /// Mutex used to manage lock contention
     thread::Mutex contention_lock_;
 

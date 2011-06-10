@@ -506,11 +506,11 @@ step1:
     collect_young(gc_data);
     collect_mature(gc_data);
 
-    run_finalizers(state, call_frame);
-
     // Ok, we're good. Get everyone going again.
     state->shared.restart_world(state);
     UNSYNC;
+
+    run_finalizers(state, call_frame);
   }
 
   void ObjectMemory::collect_maybe(STATE, CallFrame* call_frame) {
@@ -610,6 +610,9 @@ step1:
 
     }
 
+    state->shared.restart_world(state);
+    UNSYNC;
+
     // Count the finalizers toward running the mature gc. Not great,
     // but better than not seeing the time at all.
 #ifdef RBX_PROFILER
@@ -622,9 +625,6 @@ step1:
 #else
     run_finalizers(state, call_frame);
 #endif
-
-    state->shared.restart_world(state);
-    UNSYNC;
   }
 
   void ObjectMemory::collect_young(GCData& data, YoungCollectStats* stats) {
@@ -1134,8 +1134,11 @@ step1:
   }
 
   void ObjectMemory::run_all_finalizers(STATE) {
-    if(running_finalizers_) return;
-    running_finalizers_ = true;
+    {
+      SCOPE_LOCK(state, finalizer_lock_);
+      if(running_finalizers_) return;
+      running_finalizers_ = true;
+    }
 
     for(std::list<FinalizeObject>::iterator i = finalize_.begin();
         i != finalize_.end(); )
@@ -1174,8 +1177,11 @@ step1:
   }
 
   void ObjectMemory::run_all_io_finalizers(STATE) {
-    if(running_finalizers_) return;
-    running_finalizers_ = true;
+    {
+      SCOPE_LOCK(state, finalizer_lock_);
+      if(running_finalizers_) return;
+      running_finalizers_ = true;
+    }
 
     for(std::list<FinalizeObject>::iterator i = finalize_.begin();
         i != finalize_.end(); )

@@ -102,7 +102,6 @@ module Enumerable
       def kill(obj_id)
         if @thread
           @thread.kill
-          @thread.join
         end
       end
 
@@ -130,7 +129,6 @@ module Enumerable
       def rewind
         if @thread
           @thread.kill
-          @thread.join
         end
 
         @done = false
