@@ -28,7 +28,7 @@ set.
 
 For instance, to send a method directly using Rubinius bytecode, you
 would need to create a literal representing the name of the method, and
-then call `send_stack` to send the method. In addition, if you wan#ted to
+then call `send_stack` to send the method. In addition, if you wanted to
 call a private method, you would first need to create a bytecode
 specifically allowing private method invocation. If you wanted to invoke
 the method `puts` with no arguments, allowing private method

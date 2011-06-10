@@ -1,6 +1,6 @@
 ---
 layout: doc_pl
-title: How-To - Write a Ticket
+title: Jak zgłosić problem.
 previous: How-To
 previous_url: how-to
 next: Write a Ruby Spec
