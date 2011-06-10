@@ -1083,8 +1083,11 @@ step1:
   }
 
   void ObjectMemory::run_finalizers(STATE, CallFrame* call_frame) {
-    if(running_finalizers_) return;
-    running_finalizers_ = true;
+    {
+      SCOPE_LOCK(state, finalizer_lock_);
+      if(running_finalizers_) return;
+      running_finalizers_ = true;
+    }
 
     for(std::list<FinalizeObject*>::iterator i = to_finalize_.begin();
         i != to_finalize_.end(); ) {
