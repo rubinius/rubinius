@@ -46,9 +46,6 @@ static intptr_t thread_debug_id(pthread_t thr) {
 
 namespace rubinius {
 
-
-/* Class methods */
-
   void Thread::init(STATE) {
     GO(thread).set(state->new_class("Thread", G(object)));
     G(thread)->set_object_type(state, Thread::type);
@@ -74,9 +71,6 @@ namespace rubinius {
     return thr;
   }
 
-
-/* Class primitives */
-
   Thread* Thread::allocate(STATE, Object* self) {
     VM* vm = state->shared.new_vm();
     Thread* thread = Thread::create(state, vm, self);
@@ -87,9 +81,6 @@ namespace rubinius {
   Thread* Thread::current(STATE) {
     return state->thread.get();
   }
-
-
-/* Instance primitives */
 
   Object* Thread::unlock_locks(STATE) {
     std::list<ObjectHeader*>& los = vm_->locked_objects();
@@ -237,9 +228,6 @@ namespace rubinius {
     VariableScope* scope = cf->promote_scope(state);
 
     return Tuple::from(state, 3, Fixnum::from(cf->ip()), cf->cm, scope);
-  }
-
-  void Thread::detach_native_thread() {
   }
 
   void Thread::cleanup() {
