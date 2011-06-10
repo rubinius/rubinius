@@ -1,10 +1,10 @@
 ---
 layout: doc_en
-title: Compiler Transforms
-previous: Compiler
-previous_url: bytecode-compiler/compiler
-next: Generator
-next_url: bytecode-compiler/generator
+title: Transformations
+previous: Writer Stage
+previous_url: bytecode-compiler/writer
+next: Customizing the Pipeline
+next_url: bytecode-compiler/customization
 ---
 
 The bytecode compiler has a simple AST transform mechanism that recognizes

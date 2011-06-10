@@ -1,7 +1,7 @@
 ---
 layout: doc_en
 title: Ruby
-previous: Style Guide
+previous: Contributing - Style Guide
 previous_url: contributing/style-guide
 next: Scripts
 next_url: ruby/scripts

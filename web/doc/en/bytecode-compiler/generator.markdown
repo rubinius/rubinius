@@ -1,10 +1,10 @@
 ---
 layout: doc_en
-title: Generator
-previous: Transformations
-previous_url: bytecode-compiler/transformations
-next: Customizing the Compiler Pipeline
-next_url: bytecode-compiler/customization
+title: Generator Stage
+previous: AST
+previous_url: bytecode-compiler/ast
+next: Encoder Stage
+next_url: bytecode-compiler/encoder
 review: true
 ---
 
