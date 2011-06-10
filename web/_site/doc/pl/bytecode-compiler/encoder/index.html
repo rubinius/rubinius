@@ -136,40 +136,39 @@
 
       
 
-        <p>Once the generator has processed the AST, it needs to properly encode
-the bytecode. This stage is very simple, and is mostly for
-recordkeeping.</p>
+        <p>Po tym jak generator wygenerował bajtkod, musi odpowiednio go
+zakodować. Ten etap jest bardzo prosty i służy głównie ewidencjonowaniu.</p>
 
-<p>The Encoder stage is responsible for two things:</p>
-
-<ul>
-  <li>converting the stream of instructions created in the previous stage
-(when the AST nodes called <code>bytecode</code>) into an instruction sequence.</li>
-  <li>validating that the stack does not underflow, overflow, or otherwise
-contain faulty semantics.</li>
-</ul>
-
-<p>It performs these steps on the main Generator object, as well as any
-child Generators (generators for blocks, methods or other structures
-encountered inside of the main body).</p>
-
-<p>Once this stage is complete, it passes the encoded Generator object to
-the next stage, the Packager stage.</p>
-
-<h2 id="files-referenced">Files Referenced</h2>
+<p>Etap kodowania jest odpowiedzialny za dwie rzeczy:</p>
 
 <ul>
-  <li><em>lib/compiler/generator.rb</em>: The <code>encode</code> method in the file performs
-the bulk of the work in this stage.</li>
+  <li>zamianę strumienia instrukcji utworzonego w poprzednim etapie (gdy
+węzły AST wywoływały `bytecode) na sekwencję instrukcji.</li>
+  <li>sprawdzenie czy stos nie przepełnia się lub w jakikolwiek inny
+sposób znajduje się w niewłaściwym stanie.</li>
 </ul>
 
-<h2 id="customization">Customization</h2>
+<p>Etap ten wykonywany jest na głównym obiekcie <code>Generatora</code> jak również
+na pomniejszych obiektach <code>Generatora</code> (tworzonych dla bloków, metod
+oraz innych struktur sterujących).</p>
 
-<p>Since this stage is so simple, you will not need to customize it. You
-might want to instrument it (for instance, for profiling or printing).
-To learn more about general-purpose customization, which you can use to
-instrument any stage, check out <a href="/doc/en/bytecode-compiler/customization/">Customizing the Compiler
-Pipeline</a>.</p>
+<p>Po wykonaniu powyższego, obiekt <code>Generatora</code> przekazywany jest do
+następnego etapu czyli pakowania.</p>
+
+<h2 id="pliki">Pliki</h2>
+
+<ul>
+  <li><em>lib/compiler/generator.rb</em>: Metoda <code>encode</code> w tym pliku wykonuje
+większą część czynności wymienionych w tym etapie.</li>
+</ul>
+
+<h2 id="dostosowanie-pakowania">Dostosowanie pakowania</h2>
+
+<p>Ponieważ ten etap jest bardzo prosty, nie jest konieczne jego
+dostosowanie. Może wystąpić konieczność zmiany jego działania (np. w
+celu profilowania lub wyświetlania na ekranie). Aby dowiedzieć się
+więcej o dostosowywaniu poszczególnych etapów kompilacji do swoich potrzeb przeczytaj
+<a href="/doc/pl/bytecode-compiler/customization/">Modyfikacja procesu kompilacji</a>.</p>
 
 
     </div>
