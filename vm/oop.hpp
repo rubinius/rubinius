@@ -122,10 +122,10 @@ const int cUndef = 0x22L;
     YoungObjectZone  = 3,
   } gc_zone;
 
-  /* the sizeof(class ObjectHeader) must an increment of the platform
+  /* the sizeof(class ObjectHeader) must be a multiple of the platform
      pointer size, so that the bytes located directly after a
      struct rubinius_object can hold a pointer which can be
-     dereferenced. (an 32 bit platforms, pointers must be aligned
+     dereferenced. (on 32 bit platforms, pointers must be aligned
      on 32bit (word) boundaries. on 64 bit platforms, pointers probably
      have to be aligned on 64bit (double word) boundaries) */
 
