@@ -175,6 +175,11 @@ namespace rubinius {
   }
 
   Object* VM::new_object_typed(Class* cls, size_t size, object_type type) {
+
+    if(unlikely(size > om->large_object_threshold)) {
+      return om->new_object_typed_enduring(this, cls, size, type);
+    }
+
     Object* obj = local_slab().allocate(size).as<Object>();
 
     if(unlikely(!obj)) {
