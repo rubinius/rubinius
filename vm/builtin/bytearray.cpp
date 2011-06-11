@@ -25,12 +25,30 @@ namespace rubinius {
   ByteArray* ByteArray::create(STATE, native_int bytes) {
     assert(bytes >= 0 && bytes < INT32_MAX);
 
-    size_t body = bytes;
-    ByteArray* ba = state->om->new_object_bytes<ByteArray>(state, G(bytearray), body);
+    size_t size = ObjectHeader::align(sizeof(ByteArray) + bytes);
+
+    ByteArray* ba = state->local_slab().allocate(size).as<ByteArray>();
+    if(likely(ba)) {
+      ba->init_header(G(bytearray), YoungObjectZone, ByteArray::type);
+    } else if(state->shared.om->refill_slab(state, state->local_slab())) {
+      ba = state->local_slab().allocate(size).as<ByteArray>();
+
+      if(likely(ba)) {
+        ba->init_header(G(bytearray), YoungObjectZone, ByteArray::type);
+      } else {
+        size_t body = bytes;
+        ba = state->om->new_object_bytes<ByteArray>(state, G(bytearray), body);
+      }
+    } else {
+      size_t body = bytes;
+      ba = state->om->new_object_bytes<ByteArray>(state, G(bytearray), body);
+    }
+
     if(unlikely(!ba)) {
       Exception::memory_error(state);
     }
-    ba->full_size_ = body;
+
+    ba->full_size_ = size;
     memset(ba->bytes, 0, bytes);
     return ba;
   }
