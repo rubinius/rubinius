@@ -59,7 +59,7 @@ Cool.
 
 Well, you should use Rubinius because I said so. Try your code on it. Tell us
 what worked for you. Tell us if something didn't work by opening an
-[issue](https://github.com/evanphx/rubinius/issues/).
+[issue](https://github.com/rubinius/rubinius/issues/).
 Set your imagination loose and tell us what tool you would use if you could.
 
 Spend some time reading the Rubinius source code. Start at the `kernel/`
@@ -166,7 +166,7 @@ Of course, even if the technology in Rubinius sounds terrific in theory, how
 suitable is Rubinius for your application? How does it perform under your
 specific constraints? Again, you do some investigating. You have a solid test
 suite for your application, so you start by running that. If you hit any
-problems, please open an [issue](https://github.com/evanphx/rubinius/issues/)
+problems, please open an [issue](https://github.com/rubinius/rubinius/issues/)
 to let us know.
 
 If everything goes well with the tests, you start running some of the
@@ -550,7 +550,7 @@ about everyone interested in Ruby. Most importantly, try it!
 If we didn't answer your question here, leave us a comment. If you have a
 reason for using Rubinius that we didn't mention, let us know. As always, we
 appreciate your feedback. Chat with us in the #rubinius channel on
-freenode.net, [watch our Github project](https://github.com/evanphx/rubinius),
+freenode.net, [watch our Github project](https://github.com/rubinius/rubinius),
 and [follow us on Twitter](http://twitter.com/rubinius).
 
 P.S. Thanks to David Waite for suggesting the Academic Researcher and Language

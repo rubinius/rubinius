@@ -890,7 +890,7 @@ what the big deal is and you&amp;rsquo;re like, &amp;ldquo;Yo, why would I use R
 
 &lt;p&gt;Well, you should use Rubinius because I said so. Try your code on it. Tell us
 what worked for you. Tell us if something didn&amp;rsquo;t work by opening an
-&lt;a href=&quot;https://github.com/evanphx/rubinius/issues/&quot;&gt;issue&lt;/a&gt;.
+&lt;a href=&quot;https://github.com/rubinius/rubinius/issues/&quot;&gt;issue&lt;/a&gt;.
 Set your imagination loose and tell us what tool you would use if you could.&lt;/p&gt;
 
 &lt;p&gt;Spend some time reading the Rubinius source code. Start at the &lt;code&gt;kernel/&lt;/code&gt;
@@ -999,7 +999,7 @@ machine. We are building a variety of diagnostic tools atop this API.&lt;/li&gt;
 suitable is Rubinius for your application? How does it perform under your
 specific constraints? Again, you do some investigating. You have a solid test
 suite for your application, so you start by running that. If you hit any
-problems, please open an &lt;a href=&quot;https://github.com/evanphx/rubinius/issues/&quot;&gt;issue&lt;/a&gt;
+problems, please open an &lt;a href=&quot;https://github.com/rubinius/rubinius/issues/&quot;&gt;issue&lt;/a&gt;
 to let us know.&lt;/p&gt;
 
 &lt;p&gt;If everything goes well with the tests, you start running some of the
@@ -1391,7 +1391,7 @@ about everyone interested in Ruby. Most importantly, try it!&lt;/p&gt;
 &lt;p&gt;If we didn&amp;rsquo;t answer your question here, leave us a comment. If you have a
 reason for using Rubinius that we didn&amp;rsquo;t mention, let us know. As always, we
 appreciate your feedback. Chat with us in the #rubinius channel on
-freenode.net, &lt;a href=&quot;https://github.com/evanphx/rubinius&quot;&gt;watch our Github project&lt;/a&gt;,
+freenode.net, &lt;a href=&quot;https://github.com/rubinius/rubinius&quot;&gt;watch our Github project&lt;/a&gt;,
 and &lt;a href=&quot;http://twitter.com/rubinius&quot;&gt;follow us on Twitter&lt;/a&gt;.&lt;/p&gt;
 
 &lt;p&gt;P.S. Thanks to David Waite for suggesting the Academic Researcher and Language
@@ -2050,7 +2050,7 @@ your hardest problems with Ruby, and have fun doing it.&lt;/p&gt;
     
     <content type="html">&lt;p&gt;Many thought the day would never come, but Rubinius finally has a blog. That&amp;rsquo;s
 not all, though: We have integrated the website, blog, and documentation using
-Jekyll. The source code for it all is in the main &lt;a href=&quot;http://github.com/evanphx/rubinius&quot;&gt;Rubinius
+Jekyll. The source code for it all is in the main &lt;a href=&quot;http://github.com/rubinius/rubinius&quot;&gt;Rubinius
 repository&lt;/a&gt;.&lt;/p&gt;
 
 &lt;p&gt;People have often requested that we write more about the &lt;em&gt;awesome&lt;/em&gt; features in
