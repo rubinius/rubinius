@@ -7,7 +7,7 @@ if ENV["RUBYLIB"]
 end
 
 # Wipe out CDPATH, it interferes with building in some cases,
-# see http://github.com/evanphx/rubinius/issues#issue/555
+# see http://github.com/rubinius/rubinius/issues#issue/555
 if ENV["CDPATH"]
   ENV.delete("CDPATH")
 end

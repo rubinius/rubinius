@@ -334,7 +334,7 @@ namespace melbourne {
       case_level--;
 
       // Be sure to decrease the case_level before processing the else.
-      // See http://github.com/evanphx/rubinius/issues#issue/240 for an example of
+      // See http://github.com/rubinius/rubinius/issues#issue/240 for an example of
       // why.
       if(else_node) {
         els = process_parse_tree(parse_state, ptp, else_node, locals);
