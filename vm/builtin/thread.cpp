@@ -51,7 +51,9 @@ namespace rubinius {
     G(thread)->set_object_type(state, Thread::type);
   }
 
-  Thread* Thread::create(STATE, VM* target, Object* self, bool main_thread) {
+  Thread* Thread::create(STATE, VM* target, Object* self, Run runner,
+                         bool main_thread)
+  {
     Thread* thr = state->new_object<Thread>(G(thread));
 
     thr->thread_id(state, Fixnum::from(target->thread_id()));
@@ -61,6 +63,7 @@ namespace rubinius {
     thr->recursive_objects(state, LookupTable::create(state));
     thr->vm_ = target;
     thr->klass(state, as<Class>(self));
+    thr->runner_ = runner;
 
     target->thread.set(thr);
 
@@ -71,9 +74,13 @@ namespace rubinius {
     return thr;
   }
 
+  Object* send_run(STATE) {
+    return state->thread.get()->send(state, NULL, state->symbol("__run__"));
+  }
+
   Thread* Thread::allocate(STATE, Object* self) {
     VM* vm = state->shared.new_vm();
-    Thread* thread = Thread::create(state, vm, self);
+    Thread* thread = Thread::create(state, vm, self, send_run);
 
     return thread;
   }
@@ -113,7 +120,7 @@ namespace rubinius {
     vm->thread->init_lock_.unlock();
 
     vm->shared.tool_broker()->thread_start(vm);
-    Object* ret = vm->thread.get()->send(vm, NULL, vm->symbol("__run__"));
+    Object* ret = vm->thread->runner_(vm);
     vm->shared.tool_broker()->thread_stop(vm);
 
     if(!ret) {
