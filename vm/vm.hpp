@@ -312,6 +312,14 @@ namespace rubinius {
         return reinterpret_cast<T*>(new_object_typed_mature(cls, sizeof(T), T::type));
       }
 
+    template <class T>
+      T* new_object_bytes(Class* cls, size_t& bytes) {
+        bytes = ObjectHeader::align(sizeof(T) + bytes);
+        T* obj = reinterpret_cast<T*>(new_object_typed(cls, bytes, T::type));
+
+        return obj;
+      }
+
     /// Create an uninitialized Class object
     Class* new_basic_class(Class* sup);
 
