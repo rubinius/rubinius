@@ -78,7 +78,7 @@ With the JIT, Rubinius performance is quite good, sometimes faster than MRI and 
 
 # Tickets #
 
-Please file tickets for bugs or problems that you encounter. The issue tracker is: http://github.com/rubinius/rubinius/issues. Run 'rake docs' for more details.
+Please file tickets for bugs or problems that you encounter. The issue tracker is: http://github.com/rubinius/rubinius/issues. Run `rake docs` for more details.
 
 
 # Contributing #
