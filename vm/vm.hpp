@@ -320,6 +320,12 @@ namespace rubinius {
         return obj;
       }
 
+    template <class T>
+      T* new_object_variable(Class* cls, size_t fields, size_t& bytes) {
+        bytes = sizeof(T) + (fields * sizeof(Object*));
+        return reinterpret_cast<T*>(new_object_typed(cls, bytes, T::type));
+      }
+
     /// Create an uninitialized Class object
     Class* new_basic_class(Class* sup);
 

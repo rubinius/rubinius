@@ -98,7 +98,12 @@ public:
     util_new_object(om);
     obj = util_new_object(om);
 
-    TS_ASSERT_EQUALS(om.young_->bytes_used(), start + obj->size_in_bytes(state) * 5);
+    // Commented this test, since objects are allocated from slabs
+    // now by default. This means that the bytes used doesn't increase
+    // since the slab where the objects are allocated is already
+    // allocated in the young space.
+
+    // TS_ASSERT_EQUALS(om.young_->bytes_used(), start + obj->size_in_bytes(state) * 5);
 
     om.collect_young(*gc_data);
 
