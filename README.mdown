@@ -33,7 +33,7 @@ After installing Rubinius, you can access the built-in documentation at any time
 
 ## Rubinius with RVM ##
 
-You may wish to use the Ruby enVironment Manager (RVM) project to install Rubinius. For the most current documentation for RVM, please visit [RVM website](https://rvm.beginrescueend.com).
+You may wish to use the Ruby enVironment Manager (RVM) project to install Rubinius. For the most updated documentation for RVM, please visit [RVM website](https://rvm.beginrescueend.com).
 
 Be sure that RVM has been installed properly and is loaded as a function as is explained in detail on the [basics page](https://rvm.beginrescueend.com/rvm/basics/).
 
