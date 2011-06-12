@@ -127,7 +127,7 @@ use_packed:
 
     // type_info_->type is neither PackedObject nor Object, so use the
     // generic path.
-    return state->om->new_object_typed(state, this,
+    return state->new_object_typed(this,
         type_info_->instance_size, type_info_->type);
   }
 
