@@ -401,10 +401,6 @@ module Marshal
       obj = []
       store_unique_object obj
 
-      construct_integer.times do
-        obj << construct
-      end
-
       if @user_class
         cls = get_user_class()
         if cls < Array
@@ -413,6 +409,10 @@ module Marshal
           # This is what MRI does, it's weird.
           return cls.allocate
         end
+      end
+
+      construct_integer.times do
+        obj << construct
       end
 
       obj
