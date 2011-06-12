@@ -367,15 +367,6 @@ module Rubinius
       AST::OpAssignOr.new line, var, value
     end
 
-    def process_opt_arg(line, arg, block)
-      if block
-        block.array.unshift arg
-        block
-      else
-        AST::Block.new line, [arg]
-      end
-    end
-
     def process_or(line, left, right)
       AST::Or.new line, left, right
     end
@@ -556,6 +547,10 @@ module Rubinius
       when Bignum
         AST::NumberLiteral.new line, value
       end
+    end
+
+    def process_opt_arg(line, arguments)
+      AST::Block.new line, arguments
     end
 
     def process_postexe(line, body)

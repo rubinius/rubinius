@@ -588,7 +588,7 @@ module Rubinius
         @iter_arguments = true
       end
 
-      def declare_local_scope(g)
+      def declare_local_scope(scope)
         # Fix the scope for locals introduced by the left. We
         # do this before running the code for the right so that
         # right side sees the proper scoping of the locals on the left.
@@ -597,16 +597,16 @@ module Rubinius
           @left.body.each do |var|
             case var
             when LocalVariable
-              g.state.scope.assign_local_reference var
+              scope.assign_local_reference var
             when MultipleAssignment
-              var.declare_local_scope(g)
+              var.declare_local_scope(scope)
             end
           end
         end
 
         if @splat and @splat.kind_of?(SplatAssignment)
           if @splat.value.kind_of?(LocalVariable)
-            g.state.scope.assign_local_reference @splat.value
+            scope.assign_local_reference @splat.value
           end
         end
       end
@@ -616,7 +616,7 @@ module Rubinius
           g.cast_array unless @right or (@splat and not @left)
         end
 
-        declare_local_scope(g)
+        declare_local_scope(g.state.scope)
 
         if @fixed
           pad_short(g) if @left and !@splat

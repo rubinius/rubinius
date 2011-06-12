@@ -405,7 +405,8 @@ module Rubinius
         @block_arg = nil
 
         required ||= []
-        args = required.dup
+        args = []
+        required.each { |a| args << a if a.kind_of? Symbol }
 
         if optional
           @defaults = DefaultArguments.new line, optional
@@ -452,7 +453,15 @@ module Rubinius
       end
 
       def map_arguments(scope)
-        @required.each { |arg| scope.new_local arg }
+        @required.each do |arg|
+          case arg
+          when MultipleAssignment
+            arg.declare_local_scope(scope)
+          when Symbol
+            scope.new_local arg
+          end
+        end
+
         @defaults.map_arguments scope if @defaults
         scope.new_local @splat if @splat.kind_of? Symbol
         @post.each { |arg| scope.new_local arg }

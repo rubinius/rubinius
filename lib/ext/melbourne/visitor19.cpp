@@ -681,13 +681,14 @@ namespace melbourne {
       break;
     }
     case NODE_OPT_ARG: {
-      VALUE args = Qnil;
+      VALUE args = rb_ary_new();
 
-      if(node->nd_args) {
-        args = process_parse_tree(parser_state, ptp, node->nd_args, locals);
-      }
-      VALUE arg = process_parse_tree(parser_state, ptp, node->nd_value, locals);
-      tree = rb_funcall(ptp, rb_sOptArg, 3, line, arg, args);
+      do {
+        rb_ary_push(args, process_parse_tree(parser_state, ptp, node->nd_body, locals));
+        node = node->nd_next;
+      } while(node);
+
+      tree = rb_funcall(ptp, rb_sOptArg, 2, line, args);
       break;
     }
     case NODE_ARGS: {
@@ -700,13 +701,43 @@ namespace melbourne {
       int total_args = 0;
       ID* args_ary = 0;
 
+      NODE* aux = node->nd_args;
+      NODE* post_args = aux->nd_next;
+      NODE* masgn = 0;
+      NODE* next = 0;
+
       if(node->nd_argc > 0) {
         total_args = (int)locals[0];
         args_ary = locals + 1;
 
+        if(post_args && post_args->nd_next && nd_type(post_args->nd_next) == NODE_AND) {
+          if(nd_type(post_args->nd_next->nd_head) == NODE_BLOCK) {
+            masgn = post_args->nd_next->nd_head->nd_head;
+            next = post_args->nd_next->nd_head->nd_next;
+          } else {
+            masgn = post_args->nd_next->nd_head;
+            next = masgn->nd_next;
+          }
+        }
+
         args = rb_ary_new();
         for(int i = 0; i < node->nd_argc && i < total_args; i++) {
-          rb_ary_push(args, ID2SYM(args_ary[i]));
+          VALUE arg = Qnil;
+
+          if(!(args_ary[i] & 0x7)) {
+            arg = ID2SYM(args_ary[i]);
+          } else if(masgn) {
+            arg = process_parse_tree(parser_state, ptp, masgn, locals);
+            if(next && nd_type(next) == NODE_BLOCK) {
+              masgn = next->nd_head;
+              next = next->nd_next;
+            } else {
+              masgn = next;
+              if(masgn) next = masgn->nd_next;
+            }
+          }
+
+          rb_ary_push(args, arg);
         }
       }
 
@@ -714,25 +745,23 @@ namespace melbourne {
         opts = process_parse_tree(parser_state, ptp, node->nd_opt, locals);
       }
 
-      if(NODE* aux = node->nd_args) {
-        if(aux->nd_rest == 1) {
-          splat = Qtrue;
-        } else if(aux->nd_rest) {
-          splat = ID2SYM(aux->nd_rest);
+      if(aux->nd_rest == 1) {
+        splat = Qtrue;
+      } else if(aux->nd_rest) {
+        splat = ID2SYM(aux->nd_rest);
+      }
+      if(aux->nd_mid) block = ID2SYM(aux->nd_mid);
+
+      if(post_args && post_args->nd_pid) {
+        int start;
+        for(start = 0; start < total_args; start++) {
+          if(args_ary[start] == post_args->nd_pid)
+            break;
         }
-        if(aux->nd_mid) block = ID2SYM(aux->nd_mid);
 
-        if(NODE* post_args = aux->nd_next) {
-          int start;
-          for(start = 0; start < total_args; start++) {
-            if(args_ary[start] == post_args->nd_pid)
-              break;
-          }
-
-          post = rb_ary_new();
-          for(int i = 0; i < post_args->nd_argc && start + i < total_args; i++) {
-            rb_ary_push(post, ID2SYM(args_ary[start + i]));
-          }
+        post = rb_ary_new();
+        for(int i = 0; i < post_args->nd_argc && start + i < total_args; i++) {
+          rb_ary_push(post, ID2SYM(args_ary[start + i]));
         }
       }
 
@@ -740,7 +769,9 @@ namespace melbourne {
       break;
     }
     case NODE_LVAR:
-      tree = rb_funcall(ptp, rb_sLVar, 2, line, ID2SYM(node->nd_vid));
+      if(!(node->nd_vid & 0x7)) {
+        tree = rb_funcall(ptp, rb_sLVar, 2, line, ID2SYM(node->nd_vid));
+      }
       break;
 
     case NODE_IVAR:
