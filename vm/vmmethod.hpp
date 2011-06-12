@@ -70,8 +70,8 @@ namespace rubinius {
     size_t number_of_caches_;
     InlineCache* caches;
 
-#ifdef ENABLE_LLVM
   private:
+#ifdef ENABLE_LLVM
     llvm::Function* llvm_function_;
     int    jitted_bytes_;
     void*  jitted_impl_;
