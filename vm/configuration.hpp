@@ -118,7 +118,7 @@ namespace rubinius {
           "The size (in bytes) of the large object threshold");
 
       gc_lifetime.set_description(
-          "How many young GC cycles an object lives before promoption");
+          "How many young GC cycles an object lives before promotion");
 
       gc_autotune.set_description(
           "Set whether or not the GC should adjust itself for performance");
@@ -172,7 +172,7 @@ namespace rubinius {
           "Print out whenever the JIT is removing unused code");
 
       jit_check_debugging.set_description(
-          "Allow JIT'd methods to deoptimize if there is a debugging request");
+          "Allow JITd methods to deoptimize if there is a debugging request");
 
       capi_global_flush.set_description(
           "Flush all CAPI handles at CAPI call boundaries");
