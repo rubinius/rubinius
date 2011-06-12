@@ -203,7 +203,7 @@ namespace rubinius {
     /**
      *  Interpreting implementation.
      *
-     *  @see  vm/llvm/instructions.cpp for the code.
+     *  @see  vm/instructions.cpp for the code.
      */
     static Object* interpreter(STATE, VMMethod* const vmm,
                                InterpreterCallFrame* const call_frame);
