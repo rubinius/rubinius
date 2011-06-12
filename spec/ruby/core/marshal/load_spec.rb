@@ -159,7 +159,7 @@ describe "Marshal::load" do
   it "assigns classes to nested subclasses of Array correctly" do
     arr = ArraySub.new(ArraySub.new)
     arr_dump = Marshal.dump(arr)
-    Marshal.load(arr).class.should == ArraySub
+    Marshal.load(arr_dump).class.should == ArraySub
   end
 
   it "raises a TypeError with bad Marshal version" do
