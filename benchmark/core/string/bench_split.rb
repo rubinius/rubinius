@@ -11,6 +11,14 @@ Benchmark.ips do |x|
   x.report "mismatched delimiter" do
     string.split('.')
   end
+  
+  x.report "matching delimiter regexp" do
+    string.split(/\|/)
+  end
+
+  x.report "mismatched delimiter regexp" do
+    string.split(/\./)
+  end
 
   irc_str = ":irc.malkier.net UID UqdTi59atgtYoV9NUKvE7qMOwG2Fl 1 1305135275 +x UqdTi59atgtYoV9NUKvE7qMOwG2Fl UqdTi59atgtYoV9NUKvE7qMOwG2Fl 127.0.0.1 XXX :fake omg"
 
