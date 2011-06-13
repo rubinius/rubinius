@@ -209,6 +209,9 @@ rb_parser_state *parser_alloc_state() {
   magic_comments = new std::vector<bstring>;
   start_lines = new std::list<StartPosition>;
 
+  processor = 0;
+  references = rb_ary_new();
+
   return parser_state;
 }
 
@@ -404,8 +407,8 @@ static int scan_hex(const char *start, size_t len, size_t *retlen);
 
 #define UTF8_ENC()            (parser_state->utf8 ? parser_state->utf8 : \
                                 (parser_state->utf8 = rb_utf8_encoding()))
-#define STR_NEW(p,n)          rb_enc_str_new((p),(n),parser_state->enc)
-#define STR_NEW0()            rb_str_new(0, 0)
+#define STR_NEW(p,n)          rb_enc_str_new((p), (n), parser_state->enc)
+#define STR_NEW0()            rb_enc_str_new(0, 0, parser_state->enc)
 #define STR_NEW3(p,n,e,func)  parser_str_new((p), (n), (e), (func), parser_state->enc)
 #define ENC_SINGLE(cr)        ((cr)==ENC_CODERANGE_7BIT)
 #define TOK_INTERN(mb)        rb_intern3(tok(), toklen(), parser_state->enc)
@@ -3202,6 +3205,7 @@ string_to_ast(VALUE ptp, VALUE name, VALUE source, VALUE line)
   lex_gets = lex_get_str;
   lex_gets_ptr = 0;
   processor = ptp;
+  rb_funcall(ptp, rb_intern("references="), 1, references);
   ruby_sourceline = l - 1;
   compile_for_eval = 1;
 
@@ -3258,6 +3262,7 @@ static VALUE parse_io_gets(rb_parser_state* parser_state, VALUE s) {
           lex_io_index = i + 1;
         }
 
+        parser_add_reference(parser_state, str);
         return str;
       }
     }
@@ -3281,6 +3286,7 @@ file_to_ast(VALUE ptp, const char *f, int fd, int start)
   lex_io_buf = (char*)malloc(LEX_IO_BUFLEN);
   lex_gets = parse_io_gets;
   processor = ptp;
+  rb_funcall(ptp, rb_intern("references="), 1, references);
   ruby_sourceline = start - 1;
 
   n = yycompile(parser_state, (char*)f, start);
@@ -5502,7 +5508,13 @@ yylex(void *p)
   return parser_yylex(parser_state);
 }
 
+VALUE
+parser_add_reference(rb_parser_state* parser_state, VALUE obj)
+{
+  rb_ary_push(references, obj);
 
+  return obj;
+}
 
 NODE*
 parser_node_newnode(rb_parser_state* parser_state, enum node_type type,

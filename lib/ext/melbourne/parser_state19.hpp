@@ -109,7 +109,13 @@ typedef VALUE stack_type;
       bool verbose;
 
       bool parse_error;
+
+      // Reference to the object to call methods on to convert the
+      // C parse tree into a Ruby AST.
       VALUE processor;
+
+      // Keep track of any object literals created in the parser.
+      VALUE references;
 
       // Keeps track of lines that 'end' starters are on, to enable
       // better error reporting.
@@ -179,9 +185,16 @@ typedef VALUE stack_type;
 #define verbose             PARSER_VAR(verbose)
 #define parse_error         PARSER_VAR(parse_error)
 #define processor           PARSER_VAR(processor)
+#define references          PARSER_VAR(references)
 #define start_lines         PARSER_VAR(start_lines)
 
-#define node_newnode(t, a, b, c)  parser_node_newnode((rb_parser_state*)parser_state, t, a, b, c)
+#define node_newnode(t, a, b, c)  \
+    parser_node_newnode((rb_parser_state*)parser_state, t, a, b, c)
+#define node_add_reference(obj)   \
+    parser_add_reference((rb_parser_state*)parser_state, obj)
+
+    NODE *parser_node_newnode(rb_parser_state*, enum node_type, VALUE, VALUE, VALUE);
+    VALUE parser_add_reference(rb_parser_state* parser_state, VALUE obj);
   };  // namespace grammar19
 };  // namespace melbourne
 

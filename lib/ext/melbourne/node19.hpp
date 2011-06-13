@@ -132,7 +132,23 @@ namespace melbourne {
 
 #define nd_visi  u2.argc
 
+#undef NEW_NODE
+#undef REF
+
 #define NEW_NODE(t,a0,a1,a2)    node_newnode((t),(VALUE)(a0),(VALUE)(a1),(VALUE)(a2))
+
+#ifdef RUBINIUS
+/* In Rubinius, the object references are handles and the handle
+ * in the native method frame keeps the object from being collected.
+ */
+#define REF(n)                  (n)
+#else
+/* In MRI, we are holding references to objects in memory that the
+ * MRI GC does not see. To keep these objects from being collected,
+ * we add a reference to them to an Array that MRI GC does see.
+ */
+#define REF(n)                  node_add_reference(n)
+#endif
 
 #define NEW_DEFN(i,a,d,p)       NEW_NODE(NODE_DEFN,0,i,NEW_SCOPE(a,d))
 #define NEW_DEFS(r,i,a,d)       NEW_NODE(NODE_DEFS,r,i,NEW_SCOPE(a,d))
@@ -190,11 +206,11 @@ namespace melbourne {
 #define NEW_MATCH2(n1,n2)       NEW_NODE(NODE_MATCH2,n1,n2,0)
 #define NEW_MATCH3(r,n2)        NEW_NODE(NODE_MATCH3,r,n2,0)
 #define NEW_LIT(l)              NEW_NODE(NODE_LIT,l,0,0)
-#define NEW_STR(s)              NEW_NODE(NODE_STR,s,0,0)
-#define NEW_DSTR(s)             NEW_NODE(NODE_DSTR,s,1,0)
-#define NEW_XSTR(s)             NEW_NODE(NODE_XSTR,s,0,0)
-#define NEW_DXSTR(s)            NEW_NODE(NODE_DXSTR,s,0,0)
-#define NEW_DSYM(s)             NEW_NODE(NODE_DSYM,s,0,0)
+#define NEW_STR(s)              NEW_NODE(NODE_STR,REF(s),0,0)
+#define NEW_DSTR(s)             NEW_NODE(NODE_DSTR,REF(s),1,0)
+#define NEW_XSTR(s)             NEW_NODE(NODE_XSTR,REF(s),0,0)
+#define NEW_DXSTR(s)            NEW_NODE(NODE_DXSTR,REF(s),0,0)
+#define NEW_DSYM(s)             NEW_NODE(NODE_DSYM,REF(s),0,0)
 #define NEW_EVSTR(n)            NEW_NODE(NODE_EVSTR,0,(n),0)
 #define NEW_CALL(r,m,a)         NEW_NODE(NODE_CALL,r,m,a)
 #define NEW_FCALL(m,a)          NEW_NODE(NODE_FCALL,0,m,a)
@@ -233,10 +249,10 @@ namespace melbourne {
 #define NEW_ATTRASGN(r,m,a)     NEW_NODE(NODE_ATTRASGN,r,m,a)
 #define NEW_PRELUDE(p,b)        NEW_NODE(NODE_PRELUDE,p,b,0)
 #define NEW_OPTBLOCK(a)         NEW_NODE(NODE_OPTBLOCK,a,0,0)
-#define NEW_REGEX(l,o)          NEW_NODE(NODE_REGEX,l,0,o)
+#define NEW_REGEX(l,o)          NEW_NODE(NODE_REGEX,REF(l),0,o)
 #define NEW_FILE()              NEW_NODE(NODE_FILE,0,0,0)
-#define NEW_NUMBER(l)           NEW_NODE(NODE_NUMBER,l,0,0)
-#define NEW_FLOAT(l)            NEW_NODE(NODE_FLOAT,l,0,0)
+#define NEW_NUMBER(l)           NEW_NODE(NODE_NUMBER,REF(l),0,0)
+#define NEW_FLOAT(l)            NEW_NODE(NODE_FLOAT,REF(l),0,0)
 
 #define NOEX_PUBLIC             0x00,
 #define NOEX_NOSUPER            0x01,
