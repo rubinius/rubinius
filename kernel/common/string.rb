@@ -966,7 +966,7 @@ class String
           raise RuntimeError, "string modified"
         end
       else
-        ret.append replacement.to_sub_replacement(match)
+        replacement.to_sub_replacement(ret, match)
       end
 
       tainted ||= val.tainted?
@@ -1047,7 +1047,7 @@ class String
 
         raise RuntimeError, "string modified" unless @num_bytes == orig_len
       else
-        ret.append replacement.to_sub_replacement(match)
+        replacement.to_sub_replacement(ret, match)
       end
 
       tainted ||= val.tainted?
@@ -1929,15 +1929,16 @@ class String
       if replacement.equal?(undefined)
         replacement = yield(match[0].dup).to_s
         out.taint if replacement.tainted?
+        out << replacement << match.post_match
       else
         out.taint if replacement.tainted?
-        replacement = StringValue(replacement).to_sub_replacement(match)
+        StringValue(replacement).to_sub_replacement(out, match)
+        out << match.post_match
       end
 
       # We have to reset it again to match the specs
       Regexp.last_match = match
 
-      out << replacement << match.post_match
       out.taint if self.tainted?
     else
       out = self
@@ -1977,15 +1978,16 @@ class String
       if replacement.equal?(undefined)
         replacement = yield(match[0].dup).to_s
         out.taint if replacement.tainted?
+        out << replacement << match.post_match
       else
         out.taint if replacement.tainted?
-        replacement = StringValue(replacement).to_sub_replacement(match)
+        replacement = StringValue(replacement).to_sub_replacement(out, match)
+        out << match.post_match
       end
 
       # We have to reset it again to match the specs
       Regexp.last_match = match
 
-      out << replacement << match.post_match
       out.taint if self.tainted?
     else
       out = self
@@ -2336,9 +2338,8 @@ class String
     return modified ? self : nil
   end
 
-  def to_sub_replacement(match)
+  def to_sub_replacement(result, match)
     index = 0
-    result = ""
     while index < @num_bytes
       current = index
       while current < @num_bytes && @data[current] != ?\\
@@ -2374,7 +2375,6 @@ class String
                 end
       index += 1
     end
-    return result
   end
 
   def to_inum(base, check)
