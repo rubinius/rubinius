@@ -23,6 +23,7 @@ namespace rubinius {
     }
   }
 
+
   /**
    * This means we're getting low on memory! Time to schedule a garbage
    * collection.
@@ -352,7 +353,7 @@ namespace rubinius {
             remove = true;
           } else {
             i->queued();
-            object_memory_->to_finalize().push_back(&fi);
+            object_memory_->add_to_finalize(&fi);
 
             // We have to still keep it alive though until we finish with it.
             i->object = saw_object(i->object);

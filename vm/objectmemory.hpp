@@ -29,6 +29,7 @@ namespace rubinius {
   class MarkSweepGC;
   class ImmixGC;
   class InflatedHeaders;
+  class Thread;
 
   namespace gc {
     class Slab;
@@ -164,14 +165,23 @@ namespace rubinius {
     /// True if finalizers are currently being run.
     bool running_finalizers_;
 
+    /// True if finalizers were added in this GC cycle.
+    bool added_finalizers_;
+
     /// A mutex which protects running the finalizers
     rubinius::Mutex finalizer_lock_;
+
+    /// A condition variable used to control access to
+    /// to_finalize_
+    thread::Condition finalizer_var_;
 
     /// Mutex used to manage lock contention
     thread::Mutex contention_lock_;
 
     /// Condition variable used to manage lock contention
     thread::Condition contention_var_;
+
+    TypedRoot<Thread*> finalizer_thread_;
 
   public:
     /// Flag indicating whether a young collection should be performed soon
@@ -255,6 +265,8 @@ namespace rubinius {
     ObjectMemory(STATE, Configuration& config);
     ~ObjectMemory();
 
+    void on_fork();
+
     Object* new_object_typed(STATE, Class* cls, size_t bytes, object_type type);
     Object* new_object_typed_mature(STATE, Class* cls, size_t bytes, object_type type);
     Object* new_object_typed_enduring(STATE, Class* cls, size_t bytes, object_type type);
@@ -329,6 +341,8 @@ namespace rubinius {
     void run_all_finalizers(STATE);
     void run_all_io_finalizers(STATE);
 
+    void add_to_finalize(FinalizeObject* fi);
+
     void find_referers(Object* obj, ObjectArray& result);
     void print_references(Object* obj);
 
@@ -344,6 +358,9 @@ namespace rubinius {
 
     InflatedHeader* inflate_header(STATE, ObjectHeader* obj);
     void inflate_for_id(STATE, ObjectHeader* obj, uint32_t id);
+
+    void in_finalizer_thread(STATE);
+    void start_finalizer_thread(STATE);
 
     /// This only has one use! Don't use it!
     Object* allocate_object_raw(size_t bytes);

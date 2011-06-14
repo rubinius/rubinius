@@ -49,6 +49,8 @@ namespace rubinius {
     , allow_gc_(true)
     , slab_size_(4096)
     , running_finalizers_(false)
+    , added_finalizers_(false)
+    , finalizer_thread_(state, nil<Thread>())
 
     , collect_young_now(false)
     , collect_mature_now(false)
@@ -91,6 +93,12 @@ namespace rubinius {
     // Must be last
     // delete inflated_headers_;
 
+  }
+
+  void ObjectMemory::on_fork() {
+    finalizer_lock_.init();
+    finalizer_var_.init();
+    finalizer_thread_.set(nil<Thread>());
   }
 
   void ObjectMemory::assign_object_id(STATE, Object* obj) {
@@ -508,9 +516,17 @@ step1:
 
     // Ok, we're good. Get everyone going again.
     state->shared.restart_world(state);
+    bool added = added_finalizers_;
+    added_finalizers_ = false;
+
     UNSYNC;
 
-    run_finalizers(state, call_frame);
+    if(added) {
+      if(finalizer_thread_.get() == Qnil) {
+        start_finalizer_thread(state);
+      }
+      finalizer_var_.signal();
+    }
   }
 
   void ObjectMemory::collect_maybe(STATE, CallFrame* call_frame) {
@@ -611,20 +627,17 @@ step1:
     }
 
     state->shared.restart_world(state);
+    bool added = added_finalizers_;
+    added_finalizers_ = false;
+
     UNSYNC;
 
-    // Count the finalizers toward running the mature gc. Not great,
-    // but better than not seeing the time at all.
-#ifdef RBX_PROFILER
-    if(unlikely(state->tooling())) {
-      tooling::GCEntry method(state, tooling::GCFinalizer);
-      run_finalizers(state, call_frame);
-    } else {
-      run_finalizers(state, call_frame);
+    if(added) {
+      if(finalizer_thread_.get() == Qnil) {
+        start_finalizer_thread(state);
+      }
+      finalizer_var_.signal();
     }
-#else
-    run_finalizers(state, call_frame);
-#endif
   }
 
   void ObjectMemory::collect_young(GCData& data, YoungCollectStats* stats) {
@@ -1082,6 +1095,77 @@ step1:
     finalize_.push_back(fi);
   }
 
+  void ObjectMemory::add_to_finalize(FinalizeObject* fi) {
+    SCOPE_LOCK(ManagedThread::current(), finalizer_lock_);
+    to_finalize_.push_back(fi);
+    added_finalizers_ = true;
+  }
+
+  void ObjectMemory::in_finalizer_thread(STATE) {
+    CallFrame* call_frame = 0;
+
+    // Forever
+    for(;;) {
+      FinalizeObject* fi;
+
+      // Take the lock, remove the first one from the list,
+      // then process it.
+      {
+        SCOPE_LOCK(state, finalizer_lock_);
+
+        state->set_call_frame(0);
+
+        while(to_finalize_.empty()) {
+          GCIndependent indy(state);
+          finalizer_var_.wait(finalizer_lock_);
+        }
+
+        fi = to_finalize_.front();
+        to_finalize_.pop_front();
+      }
+
+      if(fi->finalizer) {
+        (*fi->finalizer)(state, fi->object);
+        // Unhook any handle used by fi->object so that we don't accidentally
+        // try and mark it later (after we've finalized it)
+        if(fi->object->inflated_header_p()) {
+          InflatedHeader* ih = fi->object->inflated_header();
+
+          if(capi::Handle* handle = ih->handle()) {
+            handle->forget_object();
+            ih->set_handle(0);
+          }
+        }
+
+        // If the object was remembered, unremember it.
+        if(fi->object->remembered_p()) {
+          unremember_object(fi->object);
+        }
+      } else if(fi->ruby_finalizer) {
+        // Rubinius specific code. If the finalizer is Qtrue, then
+        // send the object the finalize message
+        if(fi->ruby_finalizer == Qtrue) {
+          fi->object->send(state, call_frame, state->symbol("__finalize__"), true);
+        } else {
+          Array* ary = Array::create(state, 1);
+          ary->set(state, 0, fi->object->id(state));
+
+          OnStack<1> os(state, ary);
+
+          fi->ruby_finalizer->send(state, call_frame, state->symbol("call"), ary, Qnil, true);
+        }
+      } else {
+        std::cerr << "Unsupported object to be finalized: "
+                  << fi->object->to_s(state)->c_str(state) << "\n";
+      }
+
+      fi->status = FinalizeObject::eFinalized;
+    }
+
+    state->set_call_frame(0);
+    state->shared.checkpoint(state);
+  }
+
   void ObjectMemory::run_finalizers(STATE, CallFrame* call_frame) {
     {
       SCOPE_LOCK(state, finalizer_lock_);
@@ -1222,6 +1306,18 @@ step1:
     }
 
     running_finalizers_ = false;
+  }
+
+  Object* in_finalizer(STATE) {
+    state->shared.om->in_finalizer_thread(state);
+    return Qnil;
+  }
+
+  void ObjectMemory::start_finalizer_thread(STATE) {
+    VM* vm = state->shared.new_vm();
+    Thread* thr = Thread::create(state, vm, G(thread), in_finalizer);
+    finalizer_thread_.set(thr);
+    thr->fork(state);
   }
 
   size_t& ObjectMemory::loe_usage() {

@@ -395,7 +395,7 @@ namespace rubinius {
               remove = true;
             } else {
               i->queued();
-              object_memory_->to_finalize().push_back(&fi);
+              object_memory_->add_to_finalize(&fi);
 
               // We need to keep it alive still.
               i->object = saw_object(orig);
