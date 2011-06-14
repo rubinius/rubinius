@@ -470,10 +470,10 @@ namespace melbourne {
       VALUE args = process_parse_tree(parser_state, ptp, node->nd_args->nd_2nd, locals);
       switch(node->nd_mid) {
         case 0:
-          op = ID2SYM(rb_sOpOr);
+          op = ID2SYM(rb_intern("or"));
           break;
         case 1:
-          op = ID2SYM(rb_sOpAnd);
+          op = ID2SYM(rb_intern("and"));
           break;
         default:
           op = Q2SYM(node->nd_mid);
@@ -488,10 +488,10 @@ namespace melbourne {
       VALUE recv = process_parse_tree(parser_state, ptp, node->nd_recv, locals);
       switch(node->nd_next->nd_mid) {
         case 0:
-          op = ID2SYM(rb_sOpOr);
+          op = ID2SYM(rb_intern("or"));
           break;
         case 1:
-          op = ID2SYM(rb_sOpAnd);
+          op = ID2SYM(rb_intern("and"));
           break;
         default:
           op = Q2SYM(node->nd_next->nd_mid);

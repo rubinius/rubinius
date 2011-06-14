@@ -9,7 +9,6 @@
 
 namespace melbourne {
   namespace grammar19 {
-  extern long mel_sourceline;
 
   void create_error(rb_parser_state *parser_state, char *msg) {
     VALUE err_msg;
@@ -55,7 +54,7 @@ namespace melbourne {
                rb_intern("process_parse_error"),4,
                err_msg,
                INT2FIX(col),
-               INT2FIX(mel_sourceline),
+               INT2FIX(ruby_sourceline),
                lex_lastline);
 
     parse_error = true;
@@ -414,8 +413,7 @@ namespace melbourne {
       if (node->nd_args) {
         args = process_parse_tree(parser_state, ptp, node->nd_args, locals);
       }
-      tree = rb_funcall(ptp, rb_sCall, 4, line,
-          recv, ID2SYM(node->nd_mid), args);
+      tree = rb_funcall(ptp, rb_sCall, 4, line, recv, ID2SYM(node->nd_mid), args);
       break;
     }
     case NODE_FCALL: {
@@ -453,10 +451,10 @@ namespace melbourne {
       VALUE args = process_parse_tree(parser_state, ptp, node->nd_args->nd_2nd, locals);
       switch(node->nd_mid) {
         case 0:
-          op = ID2SYM(rb_sOpOr);
+          op = ID2SYM(parser_intern("or"));
           break;
         case 1:
-          op = ID2SYM(rb_sOpAnd);
+          op = ID2SYM(parser_intern("and"));
           break;
         default:
           op = ID2SYM(node->nd_mid);
@@ -471,10 +469,10 @@ namespace melbourne {
       VALUE recv = process_parse_tree(parser_state, ptp, node->nd_recv, locals);
       switch(node->nd_next->nd_mid) {
         case 0:
-          op = ID2SYM(rb_sOpOr);
+          op = ID2SYM(parser_intern("or"));
           break;
         case 1:
-          op = ID2SYM(rb_sOpAnd);
+          op = ID2SYM(parser_intern("and"));
           break;
         default:
           op = ID2SYM(node->nd_next->nd_mid);

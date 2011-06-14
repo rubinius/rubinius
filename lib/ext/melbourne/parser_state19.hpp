@@ -124,6 +124,9 @@ typedef VALUE stack_type;
       int line_count;
       bool has_shebang;
 
+      char *ruby_sourcefile;
+      int ruby_sourceline;
+
       rb_encoding *enc;
       rb_encoding *utf8;
     } rb_parser_state;
@@ -187,6 +190,8 @@ typedef VALUE stack_type;
 #define processor           PARSER_VAR(processor)
 #define references          PARSER_VAR(references)
 #define start_lines         PARSER_VAR(start_lines)
+#define ruby_sourcefile     PARSER_VAR(ruby_sourcefile)
+#define ruby_sourceline     PARSER_VAR(ruby_sourceline)
 
 #define node_newnode(t, a, b, c)  \
     parser_node_newnode((rb_parser_state*)parser_state, t, a, b, c)
@@ -195,6 +200,28 @@ typedef VALUE stack_type;
 
     NODE *parser_node_newnode(rb_parser_state*, enum node_type, VALUE, VALUE, VALUE);
     VALUE parser_add_reference(rb_parser_state* parser_state, VALUE obj);
+
+#if defined(HAVE_RUBY_ENCODING_H) && !defined(RUBINIUS)
+#define parser_intern     rb_intern
+#define parser_intern2    rb_intern2
+#define parser_intern3    rb_intern3
+#define parser_intern_str rb_intern_str
+#else
+    ID parser_intern(const char*);
+    ID parser_intern2(const char*, long);
+    ID parser_intern3(const char*, long, rb_encoding*);
+    ID parser_intern_str(VALUE str);
+
+#undef ID2SYM
+#undef ID_SCOPE_SHIFT
+#undef SYMBOL_FLAG
+
+#define ID_SCOPE_SHIFT  3
+#define SYMBOL_FLAG     0xe
+#define ID2SYM(id)  ((VALUE)(((long)(id >> ID_SCOPE_SHIFT))<<8|SYMBOL_FLAG))
+
+#endif
+
   };  // namespace grammar19
 };  // namespace melbourne
 

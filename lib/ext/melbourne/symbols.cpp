@@ -7,9 +7,6 @@ extern "C" {
 #endif
 
 namespace melbourne {
-  ID rb_sOpAnd;
-  ID rb_sOpOr;
-
   ID rb_sAlias;
   ID rb_sAnd;
   ID rb_sArgs;
@@ -119,9 +116,6 @@ namespace melbourne {
 namespace melbourne {
 
   void init_symbols20() {
-    rb_sOpAnd       = rb_intern("and");
-    rb_sOpOr        = rb_intern("or");
-
     rb_sAlias       = rb_intern("process_alias");
     rb_sAnd         = rb_intern("process_and");
     rb_sArgs        = rb_intern("process_args");

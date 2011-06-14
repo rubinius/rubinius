@@ -6,9 +6,6 @@ extern "C" {
 #endif
 
 namespace melbourne {
-  extern ID rb_sOpAnd;
-  extern ID rb_sOpOr;
-
   extern ID rb_sAlias;
   extern ID rb_sAnd;
   extern ID rb_sArgs;

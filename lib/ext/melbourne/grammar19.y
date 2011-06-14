@@ -37,26 +37,13 @@ namespace melbourne {
 
 namespace grammar19 {
 
-/* Defined at least in mach/boolean.h on OS X. */
-#ifdef  TRUE
-  #undef  TRUE
-#endif
-
-#ifdef  FALSE
-  #undef FALSE
-#endif
+#undef TRUE
+#undef FALSE
 
 #define TRUE  true
 #define FALSE false
 
-#define ismbchar(c) (0)
-#define mbclen(c) (1)
-
-long mel_sourceline;
-static char *mel_sourcefile;
-
-#define ruby_sourceline mel_sourceline
-#define ruby_sourcefile mel_sourcefile
+#define numberof(array) (int)(sizeof(array) / sizeof((array)[0]))
 
 static void parser_prepare(rb_parser_state*);
 static int parser_yyerror(rb_parser_state*, const char *);
@@ -65,7 +52,6 @@ static int parser_yyerror(rb_parser_state*, const char *);
 
 #define YYLEX_PARAM parser_state
 
-#define ID_SCOPE_SHIFT  3
 #define ID_SCOPE_MASK   0x07
 #define ID_LOCAL        0x00
 #define ID_INSTANCE     0x01
@@ -411,7 +397,7 @@ static int scan_hex(const char *start, size_t len, size_t *retlen);
 #define STR_NEW0()            rb_enc_str_new(0, 0, parser_state->enc)
 #define STR_NEW3(p,n,e,func)  parser_str_new((p), (n), (e), (func), parser_state->enc)
 #define ENC_SINGLE(cr)        ((cr)==ENC_CODERANGE_7BIT)
-#define TOK_INTERN(mb)        rb_intern3(tok(), toklen(), parser_state->enc)
+#define TOK_INTERN(mb)        parser_intern3(tok(), toklen(), parser_state->enc)
 
 #define NEW_BLOCK_VAR(b, v) NEW_NODE(NODE_BLOCK_PASS, 0, b, v)
 
@@ -703,7 +689,7 @@ stmt            : keyword_alias fitem {lex_state = EXPR_FNAME;} fitem
                     char buf[2];
                     buf[0] = '$';
                     buf[1] = (char)$3->nd_nth;
-                    $$ = NEW_VALIAS($2, rb_intern2(buf, 2));
+                    $$ = NEW_VALIAS($2, parser_intern2(buf, 2));
                   }
                 | keyword_alias tGVAR tNTH_REF
                   {
@@ -798,6 +784,8 @@ stmt            : keyword_alias fitem {lex_state = EXPR_FNAME;} fitem
                       $5 = 0;
                     } else if($5 == tANDOP) {
                       $5 = 1;
+                    } else {
+                      $5 = convert_op($5);
                     }
                     $$ = NEW_OP_ASGN1($1, $5, args);
                     fixpos($$, $1);
@@ -809,6 +797,8 @@ stmt            : keyword_alias fitem {lex_state = EXPR_FNAME;} fitem
                       $4 = 0;
                     } else if($4 == tANDOP) {
                       $4 = 1;
+                    } else {
+                      $4 = convert_op($4);
                     }
                     $$ = NEW_OP_ASGN2($1, $3, $4, $5);
                     fixpos($$, $1);
@@ -820,6 +810,8 @@ stmt            : keyword_alias fitem {lex_state = EXPR_FNAME;} fitem
                       $4 = 0;
                     } else if($4 == tANDOP) {
                       $4 = 1;
+                    } else {
+                      $4 = convert_op($4);
                     }
                     $$ = NEW_OP_ASGN2($1, $3, $4, $5);
                     fixpos($$, $1);
@@ -836,6 +828,8 @@ stmt            : keyword_alias fitem {lex_state = EXPR_FNAME;} fitem
                       $4 = 0;
                     } else if($4 == tANDOP) {
                       $4 = 1;
+                    } else {
+                      $4 = convert_op($4);
                     }
                     $$ = NEW_OP_ASGN2($1, $3, $4, $5);
                     fixpos($$, $1);
@@ -1316,6 +1310,8 @@ arg             : lhs '=' arg
                       $5 = 0;
                     } else if($5 == tANDOP) {
                       $5 = 1;
+                    } else {
+                      $5 = convert_op($5);
                     }
                     $$ = NEW_OP_ASGN1($1, $5, args);
                     fixpos($$, $1);
@@ -1327,6 +1323,8 @@ arg             : lhs '=' arg
                       $4 = 0;
                     } else if($4 == tANDOP) {
                       $4 = 1;
+                    } else {
+                      $4 = convert_op($4);
                     }
                     $$ = NEW_OP_ASGN2($1, $3, $4, $5);
                     fixpos($$, $1);
@@ -1338,6 +1336,8 @@ arg             : lhs '=' arg
                       $4 = 0;
                     } else if($4 == tANDOP) {
                       $4 = 1;
+                    } else {
+                      $4 = convert_op($4);
                     }
                     $$ = NEW_OP_ASGN2($1, $3, $4, $5);
                     fixpos($$, $1);
@@ -1349,6 +1349,8 @@ arg             : lhs '=' arg
                       $4 = 0;
                     } else if($4 == tANDOP) {
                       $4 = 1;
+                    } else {
+                      $4 = convert_op($4);
                     }
                     $$ = NEW_OP_ASGN2($1, $3, $4, $5);
                     fixpos($$, $1);
@@ -2369,7 +2371,7 @@ opt_rescue      : keyword_rescue exc_list exc_var then
                   {
                     if($3) {
                       /* TODO NEW_ERRINFO() */
-                      $3 = node_assign($3, NEW_GVAR(rb_intern("$!")));
+                      $3 = node_assign($3, NEW_GVAR(parser_intern("$!")));
                       $5 = block_append($3, $5);
                     }
                     $$ = NEW_RESBODY($2, $5, $6);
@@ -2642,7 +2644,7 @@ dsym            : tSYMBEG xstring_contents tSTRING_END
                   {
                     lex_state = EXPR_END;
                     if(!($$ = $2)) {
-                      $$ = NEW_LIT(ID2SYM(rb_intern("")));
+                      $$ = NEW_LIT(ID2SYM(parser_intern("")));
                     } else {
                       VALUE lit;
 
@@ -2652,7 +2654,7 @@ dsym            : tSYMBEG xstring_contents tSTRING_END
                         break;
                       case NODE_STR:
                         lit = $$->nd_lit;
-                        $$->nd_lit = ID2SYM(rb_intern_str(lit));
+                        $$->nd_lit = ID2SYM(parser_intern_str(lit));
                         nd_set_type($$, NODE_LIT);
                         break;
                       default:
@@ -3101,7 +3103,7 @@ static int parser_here_document(rb_parser_state*, NODE*);
 #endif
 
 #define parser_encoding_name()    (parser_state->enc->name)
-#define parser_mbclen()           mbclen((lex_p-1),lex_pend,parser->enc)
+#define parser_mbclen()           rb_enc_mbclen((lex_p-1),lex_pend,parser->enc)
 #define parser_precise_mbclen()   rb_enc_precise_mbclen((lex_p-1),lex_pend,parser_state->enc)
 #define is_identchar(p,e,enc)     (rb_enc_isalnum(*p,enc) || (*p) == '_' || !ISASCII(*p))
 #define parser_is_identchar()     (!eofp && \
@@ -5271,7 +5273,7 @@ retry:
       tokadd('$');
       tokadd(c);
       tokfix();
-      set_yylval_name(rb_intern(tok()));
+      set_yylval_name(parser_intern(tok()));
       return tGVAR;
 
     case '-':
@@ -5285,7 +5287,7 @@ retry:
       }
     gvar:
       tokfix();
-      set_yylval_name(rb_intern(tok()));
+      set_yylval_name(parser_intern(tok()));
       return tGVAR;
 
     case '&':             /* $&: last match */
@@ -5439,7 +5441,7 @@ retry:
           enum lex_state_e state = lex_state;
           lex_state = kw->state;
           if(state == EXPR_FNAME) {
-            set_yylval_name(rb_intern(kw->name));
+            set_yylval_name(parser_intern(kw->name));
             return kw->id[0];
           }
           if(kw->id[0] == keyword_do) {
@@ -5818,90 +5820,64 @@ parser_call_bin_op(rb_parser_state* parser_state, NODE *recv, ID id, NODE *arg1)
 {
   value_expr(recv);
   value_expr(arg1);
-  return NEW_CALL(recv, id, NEW_LIST(arg1));
+  return NEW_CALL(recv, convert_op(id), NEW_LIST(arg1));
 }
 
 static NODE *
 parser_call_uni_op(rb_parser_state* parser_state, NODE *recv, ID id)
 {
   value_expr(recv);
-  return NEW_CALL(recv, id, 0);
+  return NEW_CALL(recv, convert_op(id), 0);
 }
 
 static const struct {
   ID token;
-  const char name[12];
+  const char *name;
 } op_tbl[] = {
-  {tDOT2,     ".."},
-  {tDOT3,     "..."},
-  {'+',       "+"},
-  {'-',       "-"},
-  {'+',       "+(binary)"},
-  {'-',       "-(binary)"},
-  {'*',       "*"},
-  {'/',       "/"},
-  {'%',       "%"},
-  {tPOW,      "**"},
-  {tUPLUS,    "+@"},
-  {tUMINUS,   "-@"},
-  {tUPLUS,    "+(unary)"},
-  {tUMINUS,   "-(unary)"},
-  {'|',       "|"},
-  {'^',       "^"},
-  {'&',       "&"},
-  {tCMP,      "<=>"},
-  {'>',       ">"},
-  {tGEQ,      ">="},
-  {'<',       "<"},
-  {tLEQ,      "<="},
-  {tEQ,       "=="},
-  {tEQQ,      "==="},
-  {tNEQ,      "!="},
-  {tMATCH,    "=~"},
-  {tNMATCH,   "!~"},
-  {'!',       "!"},
-  {'~',       "~"},
-  {'!',       "!(unary)"},
-  {'~',       "~(unary)"},
-  {'!',       "!@"},
-  {'~',       "~@"},
-  {tAREF,     "[]"},
-  {tASET,     "[]="},
-  {tLSHFT,    "<<"},
-  {tRSHFT,    ">>"},
-  {tCOLON2,   "::"},
-  {'`',       "`"},
-  {0, ""}
+  {tDOT2,	  ".."},
+  {tDOT3,	  "..."},
+  {'+',	    "+(binary)"},
+  {'-',	    "-(binary)"},
+  {tPOW,	  "**"},
+  {tUPLUS,	"+@"},
+  {tUMINUS,	"-@"},
+  {tCMP,	  "<=>"},
+  {tGEQ,	  ">="},
+  {tLEQ,	  "<="},
+  {tEQ,	    "=="},
+  {tEQQ,	  "==="},
+  {tNEQ,	  "!="},
+  {tMATCH,	"=~"},
+  {tNMATCH,	"!~"},
+  {tAREF,	  "[]"},
+  {tASET,	  "[]="},
+  {tLSHFT,	"<<"},
+  {tRSHFT,	">>"},
+  {tCOLON2,	"::"},
+
+  // Added for Rubinius
+  {'!',     "!"},
+  {'%',     "%"},
+  {'&',     "&"},
+  {'*',     "*"},
+  {'/',     "/"},
+  {'<',     "<"},
+  {'>',     ">"},
+  {'^',     "^"},
+  {'`',     "`"},
+  {'|',     "|"},
+  {'~',     "~"},
 };
 
+#define op_tbl_count numberof(op_tbl)
+
 static ID convert_op(ID id) {
-  int i;
-  for(i = 0; op_tbl[i].token; i++) {
+  for(int i = 0; i < op_tbl_count; i++) {
     if(op_tbl[i].token == id) {
-      return rb_parser_sym(op_tbl[i].name);
+      return parser_intern(op_tbl[i].name);
     }
   }
   return id;
-}
-
-static NODE *
-call_op(NODE *recv, ID id, int narg, NODE *arg1, rb_parser_state* parser_state)
-{
-  value_expr(recv);
-  if(narg == 1) {
-    value_expr(arg1);
-    arg1 = NEW_LIST(arg1);
-  } else {
-    arg1 = 0;
-  }
-
-  id = convert_op(id);
-
-  NODE* n = NEW_CALL(recv, id, arg1);
-
-  fixpos(n, recv);
-
-  return n;
 }
 
 static NODE*
@@ -6011,7 +5987,7 @@ parser_assignable(rb_parser_state* parser_state, ID id, NODE *val)
 static ID
 parser_shadowing_lvar(rb_parser_state* parser_state, ID name)
 {
-  if(rb_intern("_") == name) return name;
+  if(parser_intern("_") == name) return name;
 
   if(in_block()) {
     if(bv_var(name)) {
@@ -6452,8 +6428,10 @@ assign_in_cond(NODE *node, rb_parser_state* parser_state)
   return 1;
 }
 
+#define e_option_supplied()   parser_e_option_supplied(parser_state)
+
 static bool
-e_option_supplied()
+parser_e_option_supplied(rb_parser_state* parser_state)
 {
   return strcmp(ruby_sourcefile, "-e") == 0;
 }
@@ -6480,7 +6458,7 @@ range_op(rb_parser_state* parser_state, NODE *node)
   value_expr(node);
   if(nd_type(node) == NODE_LIT && FIXNUM_P(node->nd_lit)) {
     warn_unless_e_option(parser_state, node, "integer literal in conditional range");
-    return NEW_CALL(node, tEQ, NEW_LIST(NEW_GVAR(rb_intern("$."))));
+    return NEW_CALL(node, tEQ, NEW_LIST(NEW_GVAR(parser_intern("$."))));
   }
   return cond0(parser_state, node);
 }
@@ -6522,7 +6500,7 @@ cond0(rb_parser_state* parser_state, NODE *node)
   case NODE_DREGX:
   case NODE_DREGX_ONCE:
     warning_unless_e_option(parser_state, node, "regex literal in condition");
-    return NEW_MATCH2(node, NEW_GVAR(rb_intern("$_")));
+    return NEW_MATCH2(node, NEW_GVAR(parser_intern("$_")));
 
   case NODE_AND:
   case NODE_OR:
@@ -6759,26 +6737,34 @@ parser_local_tbl(rb_parser_state* parser_state)
   return buf;
 }
 
-// TODO: encoding support, rb_usascii_encoding(), see rb_intern3
-static ID
-rb_parser_sym(const char *name)
+#if !defined(HAVE_RUBY_ENCODING_H) || defined(RUBINIUS)
+
+#ifndef HAVE_RUBY_ENCODING_H
+VALUE
+rb_symbol_new(const char* name, long len, rb_encoding* enc)
+{
+  VALUE str = rb_str_new(name, len);
+  return rb_funcall(str, rb_intern("to_sym"), 0);
+}
+#endif
+
+ID
+parser_intern3(const char* name, long len, rb_encoding* enc)
 {
   const char *m = name;
-  const char *e = m + strlen(name);
-  rb_encoding *enc = rb_usascii_encoding();
-  ID id, pre, qrk, bef;
-  int last;
+  unsigned char c;
+  long last;
 
-  id = 0;
-  last = strlen(name)-1;
-  switch(*name) {
+  VALUE sym = rb_symbol_new(name, len, enc);
+  ID id = (SYM2ID(sym) << ID_SCOPE_SHIFT) & ~ID_INTERNAL;
+
+  last = len-1;
+  switch (*m) {
   case '$':
     id |= ID_GLOBAL;
-    m++;
-    if(!is_identchar(m, e, enc)) m++;
     break;
   case '@':
-    if(name[1] == '@') {
+    if (m[1] == '@') {
       m++;
       id |= ID_CLASS;
     } else {
@@ -6787,37 +6773,47 @@ rb_parser_sym(const char *name)
     m++;
     break;
   default:
-    if(name[0] != '_' && !ISALPHA(name[0]) && !ismbchar(name[0])) {
-      int i;
-
-      for (i=0; op_tbl[i].token; i++) {
-        if(*op_tbl[i].name == *name &&
-          strcmp(op_tbl[i].name, name) == 0) {
-          id = op_tbl[i].token;
+    c = m[0];
+    if (len > 1 && c != '_' && rb_enc_isascii(c, enc) && rb_enc_ispunct(c, enc)) {
+      /* operators */
+      for (int i = 0; i < op_tbl_count; i++) {
+        if (*op_tbl[i].name == *m && strcmp(op_tbl[i].name, m) == 0) {
           return id;
         }
       }
     }
 
-    if(name[last] == '=') {
-      id = ID_ATTRSET;
-    } else if(ISUPPER(name[0])) {
-      id = ID_CONST;
+    if (m[last] == '=') {
+      id |= ID_ATTRSET;
+    } else if (rb_enc_isupper(m[0], enc)) {
+      id |= ID_CONST;
     } else {
-      id = ID_LOCAL;
+      id |= ID_LOCAL;
     }
     break;
   }
-  while(m <= name + last && is_identchar(m, e, enc)) {
-    m += mbclen(*m);
-  }
-  if(*m) id = ID_JUNK;
-  qrk = (ID)quark_from_string(name);
-  pre = qrk + tLAST_TOKEN;
-  bef = id;
-  id |= ( pre << ID_SCOPE_SHIFT );
+
   return id;
 }
+
+ID
+parser_intern2(const char* name, long len)
+{
+  return parser_intern3(name, len, rb_usascii_encoding());
+}
+
+ID
+parser_intern(const char* name)
+{
+  return parser_intern2(name, strlen(name));
+}
+
+ID
+parser_intern_str(VALUE str)
+{
+  return parser_intern2(RSTRING_PTR(str), RSTRING_LEN(str));
+}
+#endif  // !defined(HAVE_RUBY_ENCODING_H) || defined(RUBINIUS)
 
 static int
 scan_oct(const char *start, size_t len, size_t *retlen)
@@ -6856,25 +6852,6 @@ parser_internal_id(rb_parser_state *parser_state)
   ID id = (ID)vtable_size(locals_table->args) + (ID)vtable_size(locals_table->vars);
   id += ((tLAST_TOKEN - ID_INTERNAL) >> ID_SCOPE_SHIFT) + 1;
   return ID_INTERNAL | (id << ID_SCOPE_SHIFT);
-}
-
-const char *op_to_name(ID id) {
-  if(id < tLAST_TOKEN) {
-    int i = 0;
-
-    for (i=0; op_tbl[i].token; i++) {
-      if(op_tbl[i].token == id)
-        return op_tbl[i].name;
-    }
-  }
-  return NULL;
-}
-
-quark id_to_quark(ID id) {
-  quark qrk;
-
-  qrk = (quark)((id >> ID_SCOPE_SHIFT) - tLAST_TOKEN);
-  return qrk;
 }
 
 }; // namespace grammar19
