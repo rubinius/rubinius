@@ -280,9 +280,6 @@ namespace rubinius {
     /// Performs a collection of the young generation.
     void    collect(GCData& data, YoungCollectStats* stats = 0);
 
-    /// Clears the marks on all young generation objects.
-    void    clear_marks();
-
     /// Gathers statistics on the age of objects at the time of their death.
     void    find_lost_souls();
 
@@ -301,10 +298,6 @@ namespace rubinius {
     /// Returns true if the specified object is in the Current space.
     bool in_current_p(Object* obj);
 
-  private:
-    /* Private for inlining */
-    /// Given an object, finds the next object following it.
-    Object*  next_object(Object* obj);
   };
 
 };

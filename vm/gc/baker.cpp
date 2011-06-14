@@ -330,31 +330,6 @@ namespace rubinius {
     }
   }
 
-  inline Object *BakerGC::next_object(Object * obj) {
-    return reinterpret_cast<Object*>(reinterpret_cast<uintptr_t>(obj) +
-      obj->size_in_bytes(object_memory_->state()));
-  }
-
-  void BakerGC::clear_marks() {
-    Object* obj = current->first_object();
-    while(obj < current->current()) {
-      obj->clear_mark();
-      obj = next_object(obj);
-    }
-
-    obj = next->first_object();
-    while(obj < next->current()) {
-      obj->clear_mark();
-      obj = next_object(obj);
-    }
-
-    obj = eden.first_object();
-    while(obj < eden.current()) {
-      obj->clear_mark();
-      obj = next_object(obj);
-    }
-  }
-
   void BakerGC::check_finalize() {
     // If finalizers are running right now, just fixup any finalizer references
     if(object_memory_->running_finalizers()) {
