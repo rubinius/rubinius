@@ -460,6 +460,7 @@ class SortedSet < Set
   end
 
   def add(o)
+    raise ArgumentError, "value must respond to <=>" unless o.respond_to?(:<=>)
     @keys = nil
     @hash[o] = true
     self
