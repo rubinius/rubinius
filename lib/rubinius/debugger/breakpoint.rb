@@ -77,7 +77,7 @@ class Rubinius::Debugger
     end
   end
 
-  class DeferedBreakPoint
+  class DeferredBreakPoint
     def initialize(debugger, frame, klass, which, name, line=nil, list=nil)
       @debugger = debugger
       @frame = frame
@@ -117,7 +117,7 @@ class Rubinius::Debugger
     end
 
     def describe
-      "#{descriptor} - unknown location (defered)"
+      "#{descriptor} - unknown location (deferred)"
     end
 
     def delete!
