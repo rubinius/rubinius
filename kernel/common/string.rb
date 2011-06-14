@@ -1409,7 +1409,7 @@ class String
   #    "hello".partition("x")         #=> ["hello", "", ""]
   #
   def partition(pattern=nil)
-    return super() if block_given?
+    return super() if pattern == nil && block_given?
 
     if pattern.kind_of? Regexp
       if m = pattern.match(self)
