@@ -35,7 +35,6 @@ namespace rubinius {
 
   private:
     Fixnum* num_bytes_;  // slot
-    Fixnum* characters_; // slot
     Object* encoding_;   // slot
     ByteArray* data_;    // slot
     Fixnum* hash_value_; // slot
@@ -45,7 +44,6 @@ namespace rubinius {
     /* accessors */
 
     attr_accessor(num_bytes, Fixnum);
-    attr_accessor(characters, Fixnum);
     attr_accessor(encoding, Object);
     attr_accessor(data, ByteArray);
     attr_accessor(hash_value, Fixnum);

@@ -8,7 +8,6 @@ class String
 
   attr_accessor :data
   attr_accessor :num_bytes
-  attr_accessor :characters
 
   alias_method :__data__, :data
   alias_method :__data__=, :data=
@@ -17,7 +16,6 @@ class String
     str = super()
     str.__data__ = Rubinius::ByteArray.new(1)
     str.num_bytes = 0
-    str.characters = 0
     str
   end
 
@@ -522,7 +520,7 @@ class String
 
       # don't use modify! because it will dup the data when we don't need to.
       @hash_value = nil
-      @num_bytes = @characters = @num_bytes - 1
+      @num_bytes = @num_bytes - 1
       return self
     end
 
@@ -541,7 +539,7 @@ class String
 
       # don't use modify! because it will dup the data when we don't need to.
       @hash_value = nil
-      @num_bytes = @characters = @num_bytes - 1
+      @num_bytes = @num_bytes - 1
     elsif sep.size == 0
       size = @num_bytes
       while size > 0 && @data[size-1] == ?\n
@@ -558,7 +556,7 @@ class String
 
       # don't use modify! because it will dup the data when we don't need to.
       @hash_value = nil
-      @num_bytes = @characters = size
+      @num_bytes = size
     else
       size = sep.size
       return if size > @num_bytes || sep.compare_substring(self, -size, size) != 0
@@ -567,7 +565,7 @@ class String
 
       # don't use modify! because it will dup the data when we don't need to.
       @hash_value = nil
-      @num_bytes = @characters = @num_bytes - size
+      @num_bytes = @num_bytes - size
     end
 
     return self
@@ -599,9 +597,9 @@ class String
 
     if @num_bytes > 1 and @data[@num_bytes-1] == ?\n \
                       and @data[@num_bytes-2] == ?\r
-      @num_bytes = @characters = @num_bytes - 2
+      @num_bytes = @num_bytes - 2
     else
-      @num_bytes = @characters = @num_bytes - 1
+      @num_bytes = @num_bytes - 1
     end
 
     self
@@ -1261,7 +1259,7 @@ class String
     return if start == 0
 
     modify!
-    @num_bytes = @characters = @num_bytes - start
+    @num_bytes = @num_bytes - start
     @data.move_bytes start, @num_bytes, 0
     self
   end
@@ -1315,7 +1313,6 @@ class String
     other.shared!
     @data = other.__data__
     @num_bytes = other.num_bytes
-    @characters = other.characters
     @hash_value = nil
 
     taint if other.tainted?
@@ -1512,7 +1509,7 @@ class String
     return if (stop += 1) == @num_bytes
 
     modify!
-    @num_bytes = @characters = stop
+    @num_bytes = stop
     self
   end
 
@@ -2579,7 +2576,7 @@ class String
   def shorten!(size)
     self.modify!
     return if @num_bytes == 0
-    @num_bytes = @characters = @num_bytes - size
+    @num_bytes = @num_bytes - size
   end
 
   def dump

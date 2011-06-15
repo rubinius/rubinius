@@ -37,7 +37,6 @@ namespace rubinius {
     so = state->new_object<String>(G(string));
 
     so->num_bytes(state, size);
-    so->characters(state, size);
     so->encoding(state, Qnil);
     so->hash_value(state, nil<Fixnum>());
     so->shared(state, Qfalse);
@@ -57,7 +56,6 @@ namespace rubinius {
     so = state->new_object<String>(G(string));
 
     so->num_bytes(state, Fixnum::from(0));
-    so->characters(state, Fixnum::from(0));
     so->encoding(state, Qnil);
     so->hash_value(state, nil<Fixnum>());
     so->shared(state, Qfalse);
@@ -81,7 +79,6 @@ namespace rubinius {
     so = state->new_object<String>(G(string));
 
     so->num_bytes(state, size);
-    so->characters(state, size);
     so->encoding(state, Qnil);
     so->hash_value(state, nil<Fixnum>());
     so->shared(state, Qfalse);
@@ -123,7 +120,6 @@ namespace rubinius {
     String* s = state->new_object<String>(G(string));
 
     s->num_bytes(state, count);
-    s->characters(state, count);
     s->encoding(state, Qnil);
     s->hash_value(state, nil<Fixnum>());
     s->shared(state, Qfalse);
@@ -512,7 +508,6 @@ namespace rubinius {
     byte_address()[tr_data->last] = 0;
 
     num_bytes(state, Fixnum::from(tr_data->last));
-    characters(state, num_bytes_);
 
     return Fixnum::from(tr_data->steps);
   }
