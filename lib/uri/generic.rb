@@ -774,8 +774,12 @@ module URI
       when String
         oth = URI.parse(oth)
       else
-        raise ArgumentError,
-          "bad argument(expected URI object or URI string)"
+        begin
+          oth = URI.parse(StringValue(oth))
+        rescue
+          raise ArgumentError,
+            "bad argument(expected URI object or URI string)"
+        end
       end
 
       if self.relative? && oth.relative?
