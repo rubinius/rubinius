@@ -34,7 +34,7 @@ executable (bin) directory to your PATH.
 
 Rubinius comes with RubyGems built-in. To install a gem, run the following:
 
-  rbx gem install <gem_name>
+  rbx -S gem install <gem_name>
 
 After installing Rubinius, you can access the built-in documentation at any
 time by running 'rbx docs'.
