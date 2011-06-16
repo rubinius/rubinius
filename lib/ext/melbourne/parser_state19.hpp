@@ -217,8 +217,12 @@ typedef VALUE stack_type;
 #undef SYMBOL_FLAG
 
 #define ID_SCOPE_SHIFT  3
+#ifdef RUBINIUS
+#define ID2SYM(id)  (VALUE)((long)(id >> ID_SCOPE_SHIFT))
+#else
 #define SYMBOL_FLAG     0xe
 #define ID2SYM(id)  ((VALUE)(((long)(id >> ID_SCOPE_SHIFT))<<8|SYMBOL_FLAG))
+#endif
 
 #endif
 
