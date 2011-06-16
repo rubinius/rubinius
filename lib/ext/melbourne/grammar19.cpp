@@ -8474,7 +8474,7 @@ lex_get_str(rb_parser_state* parser_state, VALUE s)
     if(*end++ == '\n') break;
   }
   lex_gets_ptr = end - RSTRING_PTR(s);
-  return rb_enc_str_new(beg, end - beg, enc);
+  return parser_add_reference(parser_state, rb_enc_str_new(beg, end - beg, enc));
 }
 
 static VALUE
@@ -8546,7 +8546,8 @@ static VALUE parse_io_gets(rb_parser_state* parser_state, VALUE s) {
         int len = i - lex_io_index + 1;
 
         if(str == Qnil) {
-          str = rb_str_new(lex_io_buf + lex_io_index, len);
+          str = parser_add_reference(parser_state,
+                                     rb_str_new(lex_io_buf + lex_io_index, len));
         } else {
           rb_str_cat(str, lex_io_buf + lex_io_index, len);
         }
@@ -8558,12 +8559,12 @@ static VALUE parse_io_gets(rb_parser_state* parser_state, VALUE s) {
           lex_io_index = i + 1;
         }
 
-        parser_add_reference(parser_state, str);
         return str;
       }
     }
 
-    str = rb_str_new(lex_io_buf + lex_io_index, lex_io_total - lex_io_index);
+    str = parser_add_reference(parser_state, rb_str_new(
+                               lex_io_buf + lex_io_index, lex_io_total - lex_io_index));
     lex_io_total = 0;
   }
 
@@ -9433,7 +9434,7 @@ parser_here_document(rb_parser_state* parser_state, NODE *here)
       if(str) {
         rb_str_cat(str, p, pend - p);
       } else {
-        str = STR_NEW(p, pend - p);
+        str = parser_add_reference(parser_state, STR_NEW(p, pend - p));
       }
       if(pend < lex_pend) rb_str_cat(str, "\n", 1);
       lex_goto_eol(parser_state);
@@ -9475,7 +9476,7 @@ parser_here_document(rb_parser_state* parser_state, NODE *here)
       tokadd(nextc());
       if((c = nextc()) == -1) goto error;
     } while(!whole_match_p(eos, len, indent));
-    str = STR_NEW3(tok(), toklen(), enc, func);
+    str = parser_add_reference(parser_state, STR_NEW3(tok(), toklen(), enc, func));
   }
   heredoc_restore(lex_strterm);
   lex_strterm = NEW_STRTERM(-1, 0, 0);
