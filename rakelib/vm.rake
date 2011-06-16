@@ -150,12 +150,16 @@ namespace :build do
 
   end
 
-  directory 'lib/zlib'
+  if Rubinius::BUILD_CONFIG[:vendor_zlib]
+    directory 'lib/zlib'
 
-  task :zlib => ['lib/zlib', VM_EXE] do
-    FileList["vm/external_libs/zlib/libz.*"].each do |lib|
-      cp lib, 'lib/zlib/'
+    task :zlib => ['lib/zlib', VM_EXE] do
+      FileList["vm/external_libs/zlib/libz.*"].each do |lib|
+        cp lib, 'lib/zlib/'
+      end
     end
+  else
+    task :zlib
   end
 end
 
@@ -311,7 +315,8 @@ namespace :vm do
       'vm/test/runner.o',
       VM_EXE,
       'vm/.deps',
-      'lib/zlib/*'
+      'lib/zlib/*',
+      'lib/zlib'
     ].exclude("vm/gen/config.h")
 
     files.each do |filename|

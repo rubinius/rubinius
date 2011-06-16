@@ -521,8 +521,9 @@ module Zlib
 
   extend FFI::Library
 
-  path = File.expand_path("../zlib", __FILE__)
-  ffi_lib ["#{path}/libz.so.1", "#{path}/libz.1.dylib", "#{path}/libz"]
+  ffi_lib %W[ #{Rubinius::ZLIB_PATH}libz.so.1
+              #{Rubinius::ZLIB_PATH}libz.1.dylib
+              #{Rubinius::ZLIB_PATH}libz ]
 
   # deflateInit2 is a macro pointing to deflateInit2_
   attach_function :deflateInit2_, [

@@ -104,6 +104,7 @@ class Configure
 
     # Library configuration
     @rb_readline = false
+    @vendor_zlib = true
 
     # Essential settings (modify these for creating releases)
     @libversion = "2.0"
@@ -314,6 +315,7 @@ class Configure
     feature "execinfo", default_on
     feature "C-readline", true
     feature "ruby-readline", false
+    feature "vendor-zlib", true
 
     o.doc "\n Help!"
 
@@ -852,6 +854,8 @@ int main() { return tgetnum(""); }
     if @features["ruby-readline"] or !@defines.include?("HAS_READLINE")
       @rb_readline = true
     end
+
+    @vendor_zlib = false unless @features["vendor-zlib"]
   end
 
   def process
@@ -963,6 +967,7 @@ module Rubinius
     :bsd            => #{@bsd},
     :linux          => #{@linux},
     :version_list   => #{@version_list.inspect},
+    :vendor_zlib    => #{@vendor_zlib},
   }
 end
       EOC
@@ -997,6 +1002,12 @@ end
 #define RBX_SIZEOF_LONG   #{@sizeof_long}
 #define RBX_LLVM_API_VER  #{@llvm_api_version}
       EOC
+
+      if @vendor_zlib
+        f.puts %[#define RBX_ZLIB_PATH     "#{@lib_path}/zlib/"]
+      else
+        f.puts %[#define RBX_ZLIB_PATH     ""]
+      end
 
       @supported_versions.each do |ver|
         f.puts "#define RBX_DEFAULT_#{ver}    #{ver == @default_version}"
@@ -1044,7 +1055,14 @@ end
 #define RBX_RELEASE_DATE  "#{@release_date}"
 #define RBX_SIZEOF_LONG   #{@sizeof_long}
 #define RBX_LLVM_API_VER  #{@llvm_api_version}
+
       EOC
+
+      if @vendor_zlib
+        f.puts %[#define RBX_ZLIB_PATH     "#{@lib_path}/zlib/"]
+      else
+        f.puts %[#define RBX_ZLIB_PATH     ""]
+      end
 
       if @little_endian
         f.puts "#define RBX_LITTLE_ENDIAN 1"

@@ -168,23 +168,25 @@ Daedalus.blueprint do |i|
     end
   end
 
-  zlib = i.external_lib "vm/external_libs/zlib" do |l|
-    l.cflags = ["-Ivm/external_libs/zlib"]
-    l.objects = []
-    l.to_build do |x|
-      unless File.exists?("Makefile") and File.exists?("zconf.h")
-        x.command "sh -c ./configure"
-      end
+  if Rubinius::BUILD_CONFIG[:vendor_zlib]
+    zlib = i.external_lib "vm/external_libs/zlib" do |l|
+      l.cflags = ["-Ivm/external_libs/zlib"]
+      l.objects = []
+      l.to_build do |x|
+        unless File.exists?("Makefile") and File.exists?("zconf.h")
+          x.command "sh -c ./configure"
+        end
 
-      if Rubinius::BUILD_CONFIG[:windows]
-        x.command "make -f win32/Makefile.gcc"
-      else
-        x.command make
+        if Rubinius::BUILD_CONFIG[:windows]
+          x.command "make -f win32/Makefile.gcc"
+        else
+          x.command make
+        end
       end
     end
   end
 
-  gcc.add_library zlib
+  gcc.add_library zlib if Rubinius::BUILD_CONFIG[:vendor_zlib]
   gcc.add_library udis
   gcc.add_library ffi
   gcc.add_library gdtoa
@@ -208,7 +210,7 @@ Daedalus.blueprint do |i|
     files << winp
   end
 
-  files << zlib
+  files << zlib if Rubinius::BUILD_CONFIG[:vendor_zlib]
   files << udis
   files << ffi
   files << gdtoa
