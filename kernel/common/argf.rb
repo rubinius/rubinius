@@ -497,6 +497,14 @@ module Rubinius
       @stream = (file == "-" ? STDIN : File.open(file, "r"))
       @filename = file
 
+      if $-i && @stream != STDIN
+        @original_stdout = $stdout
+        @backup_filename = "#{@filename}#{$-i}"
+        File.rename(@filename, @backup_filename)
+        @stream = File.open(@backup_filename, "r")
+        $stdout = @current_output = File.open(@filename, "w")
+      end
+
       return true
     end
     private :advance!

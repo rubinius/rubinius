@@ -276,8 +276,9 @@ containing the Rubinius standard library files.
         done
       end
 
-      options.on "-i", "EXT", "Edit ARGV files in place, making backup with EXT" do |ext|
+      options.on "-i", "[EXT]", "Edit ARGV files in place, making backup with EXT" do |ext|
         # in place edit mode
+        ext ||= ''
         $-i = ext
       end
 
