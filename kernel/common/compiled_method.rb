@@ -281,6 +281,33 @@ module Rubinius
       first_line
     end
 
+    ##
+    #
+    # Given all CompiledMethods in the system, find one that
+    # was defined in file +file+ and encompasses +line+
+    #
+    def self.locate(file, line=nil)
+      file = StringValue file
+
+      if line
+        line = Integer line
+      elsif m = /\A(.*):(\d+)\Z/.match(file)
+        file = m[1]
+        line = m[2].to_i
+      end
+
+      ary = []
+      ObjectSpace.find_object([:kind_of, Rubinius::CompiledMethod], ary)
+
+      methods = ary.find_all do |x|
+        x.scope and path = x.scope.absolute_active_path and \
+                    path.suffix?(file)
+      end
+
+      return methods unless line
+
+      methods.find_all { |x| x.first_ip_on_line(line) }
+    end
 
     ##
     # Is this actually a block of code?
