@@ -62,7 +62,7 @@ class Commit
 
   def benchmark
     begin
-      execute "git clone git://github.com/evanphx/rubinius.git #{working_path}"
+      execute "git clone git://github.com/rubinius/rubinius.git #{working_path}"
 
       Dir.chdir working_path
       execute 'rake build'

@@ -195,7 +195,7 @@ task 'vm/gen/revision.h' do |t|
   git_dir = File.expand_path "../../.git", __FILE__
 
   if !ENV['RELEASE'] and File.directory? git_dir
-    buildrev = `git rev-list --max-count=1 --all`.chomp
+    buildrev = `git rev-parse HEAD`.chomp
   else
     buildrev = "release"
   end

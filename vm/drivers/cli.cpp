@@ -99,7 +99,7 @@ int main(int argc, char** argv) {
     std::cout << "  rake clean" << std::endl;
     std::cout << "  rake or rake install" << std::endl << std::endl;
     std::cout << "If the problem persists, please open an issue at:" << std::endl;
-    std::cout << "  http://github.com/evanphx/rubinius\n";
+    std::cout << "  http://github.com/rubinius/rubinius\n";
     return 1;
   } catch(VMException &e) {
     std::cout << "Unknown VM exception detected." << std::endl;

@@ -1,7 +1,7 @@
 ---
 layout: doc_en
 title: Contributing
-previous: Troubleshooting
+previous: Getting Started - Troubleshooting
 previous_url: getting-started/troubleshooting
 next: Communication
 next_url: contributing/communication

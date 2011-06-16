@@ -156,6 +156,12 @@ describe "Marshal::load" do
     end
   end
 
+  it "assigns classes to nested subclasses of Array correctly" do
+    arr = ArraySub.new(ArraySub.new)
+    arr_dump = Marshal.dump(arr)
+    Marshal.load(arr_dump).class.should == ArraySub
+  end
+
   it "raises a TypeError with bad Marshal version" do
     marshal_data = '\xff\xff'
     marshal_data[0] = (Marshal::MAJOR_VERSION).chr

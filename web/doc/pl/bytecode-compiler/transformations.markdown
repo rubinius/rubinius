@@ -1,27 +1,29 @@
 ---
 layout: doc_pl
-title: Compiler Transforms
-previous: Compiler
-previous_url: bytecode-compiler/compiler
-next: Generator
-next_url: bytecode-compiler/generator
+title: Transformacje AST
+previous: Etap zapisu
+previous_url: bytecode-compiler/writer
+next: Modyfikacja procesu kompilacji
+next_url: bytecode-compiler/customization
 ---
 
-The bytecode compiler has a simple AST transform mechanism that recognizes
-certain AST forms and replaces them. The replaced forms emit different
-bytecode than the original form would have emitted. The source for the
-transforms is in lib/compiler/ast/transforms.rb
+Kompilator bajtkodu posiada prosty mechanizm transformacji AST, który
+rozpoznaje niektóre węzły AST i je zamienia. Zamienione formy emitują
+inny bajtkod niż te oryginalne. Kod źródłowy transformacji znajduje
+się w lib/compiler/ast/transforms.rb
 
-TODO: document the compiler plugin architecture.
+TODO: opisz architekturę pluginów kompilatora
 
 
-### Safe Math Compiler Transform
+### Transformacja Bezpiecznych Operacji Matematycznych
 
-Since the core libraries are built of the same blocks as any other Ruby code
-and since Ruby is a dynamic language with open classes and late binding, it is
-possible to change fundamental classes like Fixnum in ways that violate the
-semantics that other classes depend on. For example, imagine we did the
-following:
+Ponieważ podstawowe biblioteki zbudowane są z tych samych bloków kodu
+Rubiego co każdy inny kod i ponieważ Ruby jest bardzo dynamicznym
+językiem z otwartymi klasami i mechanizmem późnego przypisania metod
+(podczas wykonywania programu, ang. late binding), możliwa jest zmiana
+działania podstawowych klas (np. Fixnum) w sposób który zburzy
+działanie innych klas opierających się na nich. Dla przykładu,
+wyobraźmy sobie poniższy kod:
 
   class Fixnum
     def +(other)
@@ -29,22 +31,20 @@ following:
     end
   end
 
-While it is certainly possible to redefine fixed point arithmetic plus to be
-modulo 5, doing so will certainly cause some class like Array to be unable to
-calculate the correct length when it needs to. The dynamic nature of Ruby is
-one of its cherished features but it is also truly a double-edged sword in
-some respects.
+Z pewnością jest możliwe przedefiniowanie operacji dodawania aby
+zachowywała się inaczej lecz sprawi to, że inne klasy (np. Array) nie
+będą w stanie na przykład policzyć odpowiedniej długości. Dynamiczna
+natura Rubiego jest kijem z dwoma końcami w tym przypadku.
 
-In the standard library the 'mathn' library redefines Fixnum#/ in an unsafe
-and incompatible manner. The library aliases Fixnum#/ to Fixnum#quo, which
-returns a Float by default.
+W bibliotece standardowej 'mathn' przedefiniowuje Fixnum#/ w sposób
+niebezpieczny i niekompatybilny. Biblioteka ta przypisuje Fixnum#/ to
+Fixnum#quo, która to metoda zwraca domyślnie Float.
 
-Because of this there is a special compiler plugin that emits a different
-method name when it encounters the #/ method. The compiler emits #divide
-instead of #/. The numeric classes Fixnum, Bignum, Float, and Numeric all
-define this method.
+Z powyższych powodów specjalny plugin kompilatora emituje inną nazwę
+metody gdy napotka metodę #/. Kompilator emituje #divide zamiast
+#/. Klasy Fixnum, Bignum, Float oraz Numeric wszystkie definiują tą metodę.
 
-The safe math transform is enabled during the compilation of the Core
-libraries to enable the plugin. During regular 'user code' compilation, the
-plugin is not enabled. This enables us to support mathn without breaking the
-core libraries or forcing inconvenient practices.
+Transformacja bezpiecznych operacji matematycznych jest włączona
+podczas kompilacji podstawowych bibliotek. Podcza kompilacji kodu
+użytkownika ta transformacja nie jest aktywna. Dzięki temu Rubinius
+wspiera bibliotekę mathn bez stosowania niewygodnych praktyk.

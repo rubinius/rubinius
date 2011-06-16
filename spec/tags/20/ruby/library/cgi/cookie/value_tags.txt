@@ -1,2 +1,0 @@
-fails:CGI::Cookie#value= automatically converts the passed Object to an Array using #Array
-fails:CGI::Cookie#value= does keep self and the values in sync

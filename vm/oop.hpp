@@ -81,7 +81,7 @@ namespace rubinius {
 /* NOTE if these change, be sure to update vm/capi/include/ruby.h, it contains
  * a private copy of these constants */
 
-/* NOTE ALSO! the special clases array uses this bit pattern, so
+/* NOTE ALSO! the special class array uses this bit pattern, so
  * if you change this, be sure to update the special class array! */
 const int cFalse = 0x0aL;
 #define Qfalse ((Object*)0x0aL)
@@ -128,10 +128,10 @@ const int cUndef = 0x22L;
     YoungObjectZone  = 3,
   } gc_zone;
 
-  /* the sizeof(class ObjectHeader) must an increment of the platform
+  /* the sizeof(class ObjectHeader) must be a multiple of the platform
      pointer size, so that the bytes located directly after a
      struct rubinius_object can hold a pointer which can be
-     dereferenced. (an 32 bit platforms, pointers must be aligned
+     dereferenced. (on 32 bit platforms, pointers must be aligned
      on 32bit (word) boundaries. on 64 bit platforms, pointers probably
      have to be aligned on 64bit (double word) boundaries) */
 

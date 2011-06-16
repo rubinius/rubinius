@@ -71,8 +71,8 @@ namespace rubinius {
     size_t number_of_caches_;
     InlineCache* caches;
 
-#ifdef ENABLE_LLVM
   private:
+#ifdef ENABLE_LLVM
     llvm::Function* llvm_function_;
     int    jitted_bytes_;
     void*  jitted_impl_;
@@ -204,7 +204,7 @@ namespace rubinius {
     /**
      *  Interpreting implementation.
      *
-     *  @see  vm/llvm/instructions.cpp for the code.
+     *  @see  vm/instructions.cpp for the code.
      */
     static Object* interpreter(STATE, VMMethod* const vmm,
                                InterpreterCallFrame* const call_frame);

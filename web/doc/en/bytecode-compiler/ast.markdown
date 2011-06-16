@@ -1,10 +1,10 @@
 ---
 layout: doc_en
 title: Abstract Syntax Trees
-previous: Parser
+previous: Parser Stage
 previous_url: bytecode-compiler/parser
-next: Compiler
-next_url: bytecode-compiler/compiler
+next: Generator Stage
+next_url: bytecode-compiler/generator
 review: true
 ---
 

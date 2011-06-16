@@ -3,7 +3,7 @@ layout: doc_en
 title: Bytecode Compiler
 previous: Virtual Machine - Custom Dispatch Logic
 previous_url: virtual-machine/custom-dispatch-logic
-next: Parser
+next: Parser Stage
 next_url: bytecode-compiler/parser
 review: true
 ---

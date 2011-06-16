@@ -7,7 +7,7 @@ author: Brian Ford
 Many thought the day would never come, but Rubinius finally has a blog. That's
 not all, though: We have integrated the website, blog, and documentation using
 Jekyll. The source code for it all is in the main [Rubinius
-repository](http://github.com/evanphx/rubinius).
+repository](http://github.com/rubinius/rubinius).
 
 People have often requested that we write more about the _awesome_ features in
 Rubinius. We hear you and we'd love to do this. However, there is always a

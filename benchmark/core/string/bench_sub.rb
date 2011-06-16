@@ -27,6 +27,23 @@ Benchmark.ips do |x|
     end
   end
 
+  x.report "gsub single character" do |times|
+    i = 0
+    while i < times
+      para_string.gsub(/./, 'X')
+      i += 1
+    end
+  end
+
+  x.report "gsub! single character" do |times|
+    i = 0
+    para_string2 = para_string.dup
+    while i < times
+      para_string2.gsub(/./, 'X')
+      i += 1
+    end
+  end
+
   x.report "gsub to shorter size" do |times|
     i = 0
     while i < times

@@ -9,6 +9,7 @@ artifacts/
 *.lo
 *.o
 *.rbc
+.rbx
 *.so
 *.swp
 *~

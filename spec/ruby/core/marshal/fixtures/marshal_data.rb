@@ -367,3 +367,9 @@ module MarshalSpec
   }
 end
 
+class ArraySub < Array
+  def initialize(*args)
+    super(args)
+  end
+end
+

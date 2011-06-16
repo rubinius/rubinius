@@ -822,8 +822,17 @@ class CGI
       super(@value)
     end
 
-    attr_accessor("name", "value", "path", "domain", "expires")
+    attr_accessor("name", "path", "domain", "expires")
     attr_reader("secure")
+
+    def value=(val)
+      @value = Array(val)
+      replace(@value)
+    end
+
+    def value
+      @value
+    end
 
     # Set whether the Cookie is a secure cookie or not.
     #
@@ -973,7 +982,7 @@ class CGI
     def read_multipart(boundary, content_length)
       params = Hash.new([])
       boundary = "--" + boundary
-      quoted_boundary = Regexp.quote(boundary, "n")
+      quoted_boundary = Regexp.quote(boundary)
       buf = ""
       bufsize = 10 * 1024
       boundary_end=""
@@ -1482,6 +1491,9 @@ class CGI
           if value[value.size - 1] == true
             checkbox(name, value[0], true) +
             value[value.size - 2]
+          elsif value[value.size - 1] == false
+            checkbox(name, value[0], false) +
+            value[value.size - 2]
           else
             checkbox(name, value[0]) +
             value[value.size - 1]
@@ -1518,6 +1530,8 @@ class CGI
                        "SIZE" => size.to_s }
                    else
                      name["TYPE"] = "file"
+                     name["SIZE"] = name["SIZE"].to_s if name["SIZE"]
+                     name["MAXLENGTH"] = name["MAXLENGTH"].to_s if name["MAXLENGTH"]
                      name
                    end
       attributes["MAXLENGTH"] = maxlength.to_s if maxlength
@@ -1718,6 +1732,8 @@ class CGI
       attributes = if src.kind_of?(String)
                      { "SRC" => src, "ALT" => alt }
                    else
+                     src["WIDTH"] = src["WIDTH"].to_s if src["WIDTH"]
+                     src["HEIGHT"] = src["HEIGHT"].to_s if src["HEIGHT"]
                      src
                    end
       attributes["WIDTH"] = width.to_s if width
@@ -1936,6 +1952,9 @@ class CGI
         else
           if value[value.size - 1] == true
             radio_button(name, value[0], true) +
+            value[value.size - 2]
+          elsif value[value.size - 1] == false
+            radio_button(name, value[0], false) +
             value[value.size - 2]
           else
             radio_button(name, value[0]) +
