@@ -180,6 +180,14 @@ class Delegator
     initialize_methods(obj)
     __setobj__(obj)
   end
+
+  def eql?(obj)
+    __getobj__.eql?(obj)
+  end
+
+  def hash
+    __getobj__.hash
+  end
 end
 
 #
