@@ -432,6 +432,9 @@ module URI
       # authority     = server | reg_name
       # server        = [ [ userinfo "@" ] hostport ]
 
+    when URI
+      scheme, userinfo, host, port,
+        registry, path, opaque, query, fragment = URI::Generic.component.collect{|c| uri.send(c)}
     else
       raise InvalidURIError, "bad URI(is not URI?): #{uri}"
     end
