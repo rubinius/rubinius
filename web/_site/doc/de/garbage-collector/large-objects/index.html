@@ -145,21 +145,20 @@
 
       
 
-        <p>Große Objekte werden statt in der Krippe in der Neugeborenenwanne geboren.</p>
-
-<p>Jedes Objekt, das die definierte bytezahl für große Objekte überschreitet, wird
-direkt im Raum der großen Objekte angelegt. Dies wird getan, um das Kopieren zu
-vermeiden, da das Kopieren von großen Objekte eine zeitaufwendige Operation ist.</p>
+        <p>Jedes Objekt, das eine definierte Bytezahl für große Objekte überschreitet, wird
+direkt im Speicher für großen Objekte angelegt. Auf diese Weise lassen sich
+zeit- und kostenaufwändige Operationen für Kopien vermeiden.</p>
 
 <p>Bemerkt sei, dass man die Anzahl der Bytes die eine <em>großes Objekt</em> ausmachen,
 anpassen kann. Der Standard hierbei sind 2700 Bytes.</p>
 
-<pre><code>rbx ... -Xgc.large_object=&lt;Anzahl der Bytes&gt; ...
+<pre><code>rbx … -Xgc.large_object=&lt;Anzahl der Bytes&gt; …
 </code></pre>
 
-<p>Für mehr Informationen über die vorhandenen Konfigurationsvariablen wird auf die
-<a href="https://github.com/rubinius/rubinius/blob/master/vm/configuration.hpp">Konfigurationsquelldatei der VM</a>
-verwiesen.</p>
+<p>Weitere Informationen über die vorhandenen Konfigurationsvariablen sind in der
+<a href="https://github.com/rubinius/rubinius/blob/master/vm/configuration.hpp">Konfigurationsdatei der
+VM</a>
+einzusehen.</p>
 
 
 

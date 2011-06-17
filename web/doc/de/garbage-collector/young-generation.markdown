@@ -1,22 +1,25 @@
 ---
 layout: doc_de
-title: Junge Generation
-previous: Krippe
+title: Mittlere Generation
+previous: Junge Generation
 previous_url: garbage-collector/nursery
 next: Alte Generation
 next_url: garbage-collector/mature-generation
 review: true
 ---
-Objekte die seit mehr als eines GC-Zyklus lebendig sind, leben im Raum der
-Jungen Generation. Ein Durchlauf der Freispeichersammlung sorgt selbstständig
-dafür, dass Objecte in die Junge Generation verlagert werden.
 
-Objekte leben für X Sammlungen im Raum der Jungen Generation. X wird, abhängig
-davon, wie viele Objekte in die Alte Generation befördert werden, dynamisch
-angepasst.
+Objekte, die mehr als einen GC-Zyklus aktuell sind, werden Mitglied der
+Mittleren Generation. Ein Durchlauf des GC sorgt selbstständig dafür, dass
+Objekte in die Mittlere Generation verlagert werden.
 
-Wenn *zu viele* Objekte während eines GC-Zyklus befördert werden, steigt X.
-Wenn *nicht genug* Objekte während eines GC-Zyklus befördert werden, sinkt X.
+Objekte verbleiben für x Sammlungen im Raum der Mittleren Generation. x wird,
+abhängig davon, wie viele Objekte in die Alte Generation verlagert werden,
+dynamisch angepasst.
 
-Dies wird getan, um die Beförderungsrate stabil zu halten. *Stabil* bedeutet
-dabei eine nur geringe Schwankung in der Anzahl der Beförderungen.
+Wenn *zu viele* Objekte während eines GC-Zyklus verlagert werden, steigt x.
+Wenn *nicht genug* Objekte während eines GC-Zyklus verlagert werden, sinkt x.
+
+Diese Regel besteht, damit die Verlagerungsrate konstant bleibt. Konstant
+bedeutet in diesem Kontext eine geringe Schwankung in der Anzahl der
+Verlagerungen pro Zyklus zu erlangen.
+
