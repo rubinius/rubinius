@@ -739,7 +739,13 @@ class Hash
   end
 
   def values_at(*args)
-    args.collect { |key| self[key] }
+    args.map do |key|
+      if entry = find_entry(key)
+        entry.value
+      else
+        default key
+      end
+    end
   end
 
   alias_method :indexes, :values_at
