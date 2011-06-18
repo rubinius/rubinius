@@ -82,7 +82,7 @@ namespace agent {
     virtual ~Tree() {
       for(NamedItems::iterator i = hash_.begin();
           i != hash_.end();
-          i++) {
+          ++i) {
         delete i->second;
       }
     }
@@ -121,7 +121,7 @@ namespace agent {
 
       for(NamedItems::iterator i = hash_.begin();
           i != hash_.end();
-          i++) {
+          ++i) {
         Item* item = i->second;
         output.e().write_binary(item->name());
       }
@@ -231,7 +231,7 @@ namespace agent {
 
       for(config::Items::iterator i = shared_.config.items_begin();
           i != shared_.config.items_end();
-          i++) {
+          ++i) {
         config::ConfigItem* item = *i;
         output.e().write_binary(item->name());
       }
@@ -290,7 +290,7 @@ namespace agent {
 
       for(CallFrameLocationList::iterator i = shared_.call_frame_locations().begin();
           i != shared_.call_frame_locations().end();
-          i++) {
+          ++i) {
         CallFrame* loc = *(*i);
 
         std::ostringstream ss;
@@ -322,7 +322,7 @@ namespace agent {
 
       for(std::list<ManagedThread*>::iterator i = thrs->begin();
           i != thrs->end();
-          i++) {
+          ++i) {
         ManagedThread* thr = *i;
 
         if(VM* vm = thr->as_vm()) {

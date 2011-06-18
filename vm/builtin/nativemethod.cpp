@@ -40,7 +40,7 @@ namespace rubinius {
     flush_cached_data();
     for(capi::HandleSet::iterator i = handles_.begin();
         i != handles_.end();
-        i++) {
+        ++i) {
       capi::Handle* handle = *i;
       handle->deref();
     }
@@ -104,7 +104,7 @@ namespace rubinius {
     if(check_handles_) {
       for(capi::HandleSet::iterator i = handles_.begin();
           i != handles_.end();
-          i++) {
+          ++i) {
         capi::Handle* handle = *i;
         handle->flush(env);
       }
@@ -127,7 +127,7 @@ namespace rubinius {
     if(check_handles_) {
       for(capi::HandleSet::iterator i = handles_.begin();
           i != handles_.end();
-          i++) {
+          ++i) {
         capi::Handle* handle = *i;
         handle->update(env);
       }

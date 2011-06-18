@@ -99,7 +99,7 @@ namespace jit {
     ~CFGCalculator() {
       for(Blocks::iterator i = blocks_.begin();
           i != blocks_.end();
-          i++) {
+          ++i) {
         delete i->second;
       }
     }

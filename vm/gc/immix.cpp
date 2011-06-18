@@ -142,7 +142,7 @@ namespace rubinius {
     if(data.threads()) {
       for(std::list<ManagedThread*>::iterator i = data.threads()->begin();
           i != data.threads()->end();
-          i++) {
+          ++i) {
         for(Roots::Iterator ri((*i)->roots()); ri.more(); ri.advance()) {
           ri->set(saw_object(ri->get()));
         }
@@ -168,7 +168,7 @@ namespace rubinius {
     if(gh) {
       for(std::list<capi::Handle**>::iterator i = gh->begin();
           i != gh->end();
-          i++) {
+          ++i) {
         capi::Handle** loc = *i;
         if(capi::Handle* hdl = *loc) {
           if(!CAPI_REFERENCE_P(hdl)) continue;
@@ -215,7 +215,7 @@ namespace rubinius {
     // Walk all the call frames
     for(CallFrameLocationList::const_iterator i = data.call_frames().begin();
         i != data.call_frames().end();
-        i++) {
+        ++i) {
       callframes++;
       CallFrame** loc = *i;
       walk_call_frame(*loc);
@@ -244,7 +244,7 @@ namespace rubinius {
 
     for(ObjectArray::iterator oi = current_rs->begin();
         oi != current_rs->end();
-        oi++) {
+        ++oi) {
       tmp = *oi;
       // unremember_object throws a NULL in to remove an object
       // so we don't have to compact the set in unremember
@@ -261,12 +261,12 @@ namespace rubinius {
 
     for(std::list<gc::WriteBarrier*>::iterator wbi = object_memory_->aux_barriers().begin();
         wbi != object_memory_->aux_barriers().end();
-        wbi++) {
+        ++wbi) {
       gc::WriteBarrier* wb = *wbi;
       ObjectArray* rs = wb->remember_set();
       for(ObjectArray::iterator oi = rs->begin();
           oi != rs->end();
-          oi++) {
+          ++oi) {
         tmp = *oi;
 
         if(tmp) {
@@ -374,7 +374,7 @@ namespace rubinius {
     if(object_memory_->running_finalizers()) {
       for(std::list<FinalizeObject>::iterator i = object_memory_->finalize().begin();
           i != object_memory_->finalize().end();
-          i++) {
+          ++i) {
         if(i->object) {
           i->object = saw_object(i->object);
         }
@@ -440,7 +440,7 @@ namespace rubinius {
       if(remove) {
         i = object_memory_->finalize().erase(i);
       } else {
-        i++;
+        ++i;
       }
     }
   }

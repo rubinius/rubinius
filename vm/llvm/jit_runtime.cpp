@@ -32,7 +32,7 @@ namespace jit {
 
     for(std::list<jit::RuntimeData*>::iterator i = runtime_data_.begin();
         i != runtime_data_.end();
-        i++) {
+        ++i) {
       jit::RuntimeData* rd = *i;
 
       tmp = mark.call(rd->method());
@@ -58,7 +58,7 @@ namespace jit {
   void RuntimeDataHolder::visit_all(ObjectVisitor& visit) {
     for(std::list<jit::RuntimeData*>::iterator i = runtime_data_.begin();
         i != runtime_data_.end();
-        i++) {
+        ++i) {
       jit::RuntimeData* rd = *i;
 
       visit.call(rd->method());
@@ -71,7 +71,7 @@ namespace jit {
   void RuntimeDataHolder::run_write_barrier(gc::WriteBarrier* wb, Object* obj) {
     for(std::list<jit::RuntimeData*>::iterator i = runtime_data_.begin();
         i != runtime_data_.end();
-        i++) {
+        ++i) {
       jit::RuntimeData* rd = *i;
 
       obj->write_barrier(wb, rd->method());

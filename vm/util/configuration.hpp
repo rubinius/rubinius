@@ -187,7 +187,7 @@ namespace config {
 
       for(std::vector<Bool*>::iterator i = sub_bools_.begin();
           i != sub_bools_.end();
-          i++) {
+          ++i) {
         (*i)->set(str);
       }
     }
@@ -200,7 +200,7 @@ namespace config {
   inline bool Configuration::import(const char* key, const char* val) {
     for(Items::iterator i = items_.begin();
         i != items_.end();
-        i++) {
+        ++i) {
       ConfigItem* item = *i;
       if(item->set_maybe(key, val)) return true;
     }
@@ -211,7 +211,7 @@ namespace config {
   inline ConfigItem* Configuration::find(const char* key) {
     for(Items::iterator i = items_.begin();
         i != items_.end();
-        i++) {
+        ++i) {
       ConfigItem* item = *i;
       if(item->equal_p(key)) return item;
     }
@@ -222,7 +222,7 @@ namespace config {
   inline void Configuration::print(bool desc) {
     for(Items::iterator i = items_.begin();
         i != items_.end();
-        i++) {
+        ++i) {
       ConfigItem* item = *i;
       std::cout << item->name() << ": ";
       item->print_value(std::cout);

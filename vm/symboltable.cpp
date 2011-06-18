@@ -116,7 +116,7 @@ namespace rubinius {
         symbols[hash] = v;
       } else {
         SymbolIds& v = entry->second;
-        for(SymbolIds::iterator i = v.begin(); i != v.end(); i++) {
+        for(SymbolIds::iterator i = v.begin(); i != v.end(); ++i) {
           std::string& s = strings[*i];
 
           if(!strcmp(s.c_str(), str)) return Symbol::from_index(*i);
@@ -186,7 +186,7 @@ namespace rubinius {
 
     for(SymbolStrings::iterator i = strings.begin();
         i != strings.end();
-        i++) {
+        ++i) {
       total += i->size();
       total += sizeof(std::string);
     }
@@ -198,8 +198,8 @@ namespace rubinius {
     size_t idx = 0;
     Array* ary = Array::create(state, this->size());
 
-    for(SymbolMap::iterator s = symbols.begin(); s != symbols.end(); s++) {
-      for(SymbolIds::iterator i = s->second.begin(); i != s->second.end(); i++) {
+    for(SymbolMap::iterator s = symbols.begin(); s != symbols.end(); ++s) {
+      for(SymbolIds::iterator i = s->second.begin(); i != s->second.end(); ++i) {
         ary->set(state, idx++, (Object*)Symbol::from_index(state, *i));
       }
     }

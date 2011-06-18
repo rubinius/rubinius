@@ -194,7 +194,7 @@ namespace rubinius {
     if(data.threads()) {
       for(std::list<ManagedThread*>::iterator i = data.threads()->begin();
           i != data.threads()->end();
-          i++) {
+          ++i) {
         refill_slab((*i)->local_slab());
       }
     }
@@ -561,7 +561,7 @@ namespace rubinius {
   void ObjectMemory::set_ruby_finalizer(Object* obj, Object* fin) {
     // See if there already one.
     for(std::list<FinalizeObject>::iterator i = finalize_.begin();
-        i != finalize_.end(); i++)
+        i != finalize_.end(); ++i)
     {
       if(i->object == obj) {
         if(fin->nil_p()) {
@@ -699,7 +699,7 @@ namespace rubinius {
     {
       FinalizeObject& fi = *i;
 
-      if(!kind_of<IO>(fi.object)) { i++; continue; }
+      if(!kind_of<IO>(fi.object)) { ++i; continue; }
 
       // Only finalize things that haven't been finalized.
       if(fi.status != FinalizeObject::eFinalized) {
@@ -914,7 +914,7 @@ namespace rubinius {
     std::cout << ary.size() << " total references:\n";
     for(ObjectArray::iterator i = ary.begin();
         i != ary.end();
-        i++) {
+        ++i) {
       std::cout << "  " << (*i)->to_s(state, true)->c_str(state) << "\n";
 
       if(++count == 100) break;

@@ -582,7 +582,7 @@ namespace bert {
         if(elements_) {
           for(ValueList::iterator i = elements_->begin();
               i != elements_->end();
-              i++) {
+              ++i) {
             delete *i;
           }
           delete elements_;
@@ -674,7 +674,7 @@ namespace bert {
 
       for(ValueList::iterator i = elements_->begin();
           i != elements_->end();
-          i++, j++) {
+          ++i, ++j) {
         (*i)->print(stream);
         if(j != last) stream << ", ";
       }

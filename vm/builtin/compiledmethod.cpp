@@ -296,7 +296,7 @@ namespace rubinius {
 
     for(IndirectLiterals::iterator i = vmm->indirect_literals().begin();
         i != vmm->indirect_literals().end();
-        i++) {
+        ++i) {
       Object** ptr = (*i);
       if((tmp = mark.call(*ptr)) != NULL) {
         *ptr = tmp;
