@@ -272,7 +272,7 @@ namespace rubinius {
           // If we've been asked to stop, do so now.
           if(stop_) return;
 
-          while(pending_requests_.size() == 0) {
+          while(pending_requests_.empty()) {
             state = cIdle;
 
             // unlock and wait...
