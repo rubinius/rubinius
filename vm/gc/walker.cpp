@@ -102,7 +102,7 @@ namespace rubinius {
   }
 
   Object* ObjectWalker::next() {
-    if(stack_.size() == 0) return 0;
+    if(stack_.empty()) return 0;
 
     Object* obj = stack_.back();
     stack_.pop_back();
