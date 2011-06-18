@@ -214,9 +214,33 @@ typedef VALUE stack_type;
 
 #undef ID2SYM
 #undef ID_SCOPE_SHIFT
+#undef ID_SCOPE_MASK
+#undef ID_LOCAL
+#undef ID_INSTANCE
+#undef ID_GLOBAL
+#undef ID_ATTRSET
+#undef ID_CONST
+#undef ID_CLASS
+#undef ID_JUNK
+#undef ID_INTERNAL
 #undef SYMBOL_FLAG
 
-#define ID_SCOPE_SHIFT  3
+/* ID_SCOPE_SHIFT must be at least 4 because at 3 the values will overlap
+ * the values of the tokens, causing the parser to mistake the symbol for
+ * '*' with the token tAREF. Hilarity ensues when Fixnum * Fixnum ends up
+ * parsed as Fixnum[Fixnum].
+ */
+#define ID_SCOPE_SHIFT  4
+#define ID_SCOPE_MASK   0x0f
+#define ID_LOCAL        0x00
+#define ID_INSTANCE     0x01
+#define ID_GLOBAL       0x03
+#define ID_ATTRSET      0x04
+#define ID_CONST        0x05
+#define ID_CLASS        0x06
+#define ID_JUNK         0x07
+#define ID_INTERNAL     ID_JUNK
+
 #ifdef RUBINIUS
 #define ID2SYM(id)  (VALUE)((long)(id >> ID_SCOPE_SHIFT))
 #else

@@ -52,16 +52,6 @@ static int parser_yyerror(rb_parser_state*, const char *);
 
 #define YYLEX_PARAM parser_state
 
-#define ID_SCOPE_MASK   0x07
-#define ID_LOCAL        0x00
-#define ID_INSTANCE     0x01
-#define ID_GLOBAL       0x03
-#define ID_ATTRSET      0x04
-#define ID_CONST        0x05
-#define ID_CLASS        0x06
-#define ID_JUNK         0x07
-#define ID_INTERNAL     ID_JUNK
-
 #define is_notop_id(id) ((id)>tLAST_TOKEN)
 #define is_local_id(id) (is_notop_id(id)&&((id)&ID_SCOPE_MASK)==ID_LOCAL)
 #define is_global_id(id) (is_notop_id(id)&&((id)&ID_SCOPE_MASK)==ID_GLOBAL)
