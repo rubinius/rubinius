@@ -282,7 +282,7 @@ module Rubinius
           str = "i\n#{val.size}\n"
           val.opcodes.each do |op|
             unless op.kind_of?(Fixnum)
-              raise TypeError, "InstructionSequence contains non Fixnum"
+              raise TypeError, "InstructionSequence contains non Fixnum: #{op.inspect}"
             end
             str.append "#{op}\n"
           end
