@@ -1,9 +1,9 @@
 require 'benchmark'
 require 'benchmark/ips'
 
-small_file  = File.join(__FILE__, 'small.txt')
-medium_file  = File.join(__FILE__, 'medium.txt')
-large_file  = File.join(__FILE__, 'large.txt')
+small_file  = File.join(File.dirname(__FILE__), 'small.txt')
+medium_file  = File.join(_File.dirname(_FILE__), 'medium.txt')
+large_file  = File.join(_File.dirname(_FILE__), 'large.txt')
 
 Benchmark.ips do |x|
   x.report "File.read a small file" do
