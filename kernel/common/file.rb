@@ -965,6 +965,8 @@ class File < IO
   #  File.owned?(file_name)   => true or false
   def self.owned?(file_name)
     Stat.new(file_name).owned?
+  rescue Errno::ENOENT
+    return false
   end
 
   ##
@@ -989,13 +991,6 @@ class File < IO
     Stat.new(file_name).sticky?
   rescue Errno::ENOENT
     return false
-  end
-
-  ##
-  # Returns true if the named file exists and the effective
-  # used id of the calling process is the owner of the file.
-  def self.owned?(file_name)
-    Stat.new(file_name).owned?
   end
 
   class << self
