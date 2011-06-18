@@ -1537,7 +1537,7 @@ namespace rubinius {
 
       for(std::list<JITMethodInfo*>::iterator i = in_scope.begin();
           i != in_scope.end();
-          i++ ) {
+          ++i) {
         nfo = *i;
 
         JITInlineBlock* ib = nfo->inline_block();

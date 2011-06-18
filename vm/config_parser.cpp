@@ -40,7 +40,7 @@ namespace rubinius {
     ConfigParser::ConfigMap::iterator i = variables.begin();
     while(i != variables.end()) {
       delete i->second;
-      i++;
+      ++i;
     }
   }
 
@@ -176,7 +176,7 @@ namespace rubinius {
       if(i->second->in_section(prefix)) {
         list->push_back(i->second);
       }
-      i++;
+      ++i;
     }
 
     return list;
@@ -185,7 +185,7 @@ namespace rubinius {
   void ConfigParser::update_configuration(Configuration& config) {
     for(ConfigParser::ConfigMap::iterator i = variables.begin();
         i != variables.end();
-        i++) {
+        ++i) {
       if(!config.import(i->first.c_str(), i->second->value.c_str())) {
         if(i->second->in_section("vm.") ||
            i->second->in_section("jit.") ||

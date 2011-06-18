@@ -160,7 +160,7 @@ namespace rubinius {
       TypeInfo* ti = state->om->type_info[obj->type_id()];
       for(TypeInfo::Slots::iterator i = ti->slots.begin();
           i != ti->slots.end();
-          i++) {
+          ++i) {
         Symbol* sym = Symbol::from_index(i->first);
         if(obj->get_ivar(state, sym) == target_) return true;
       }

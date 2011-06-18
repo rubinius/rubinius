@@ -146,7 +146,7 @@ namespace rubinius {
 
     for(IndirectLiterals::iterator i = indirect_literals_.begin();
         i != indirect_literals_.end();
-        i++) {
+        ++i) {
       delete[] *i;
     }
   }

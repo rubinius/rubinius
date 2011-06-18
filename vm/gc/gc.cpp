@@ -234,7 +234,7 @@ namespace rubinius {
 
     for(ObjectArray::iterator i = weak_refs_->begin();
         i != weak_refs_->end();
-        i++) {
+        ++i) {
       WeakRef* ref = try_as<WeakRef>(*i);
       if(!ref) continue; // WTF.
 
