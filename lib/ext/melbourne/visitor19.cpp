@@ -722,7 +722,7 @@ namespace melbourne {
         for(int i = 0; i < node->nd_argc && i < total_args; i++) {
           VALUE arg = Qnil;
 
-          if(!(args_ary[i] & 0x7)) {
+          if(!INTERNAL_ID_P(args_ary[i])) {
             arg = ID2SYM(args_ary[i]);
           } else if(masgn) {
             arg = process_parse_tree(parser_state, ptp, masgn, locals);
@@ -743,7 +743,7 @@ namespace melbourne {
         opts = process_parse_tree(parser_state, ptp, node->nd_opt, locals);
       }
 
-      if(aux->nd_rest == 1) {
+      if(INTERNAL_ID_P(aux->nd_rest)) {
         splat = Qtrue;
       } else if(aux->nd_rest) {
         splat = ID2SYM(aux->nd_rest);
@@ -767,7 +767,7 @@ namespace melbourne {
       break;
     }
     case NODE_LVAR:
-      if(!(node->nd_vid & 0x7)) {
+      if(!INTERNAL_ID_P(node->nd_vid)) {
         tree = rb_funcall(ptp, rb_sLVar, 2, line, ID2SYM(node->nd_vid));
       }
       break;
@@ -833,7 +833,7 @@ namespace melbourne {
       char str[2];
       str[0] = node->nd_nth;
       str[1] = 0;
-      tree = rb_funcall(ptp, rb_sBackRef, 2, line, ID2SYM(rb_intern(str)));
+      tree = rb_funcall(ptp, rb_sBackRef, 2, line, ID2SYM(parser_intern(str)));
       break;
     }
 

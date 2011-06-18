@@ -241,6 +241,8 @@ typedef VALUE stack_type;
 #define ID_JUNK         0x07
 #define ID_INTERNAL     ID_JUNK
 
+#define INTERNAL_ID_P(a)  ((a & ID_INTERNAL) == ID_INTERNAL)
+
 #ifdef RUBINIUS
 #define ID2SYM(id)  (VALUE)((long)(id >> ID_SCOPE_SHIFT))
 #else
