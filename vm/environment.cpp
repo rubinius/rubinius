@@ -359,8 +359,7 @@ namespace rubinius {
         e = b;
         while(*e && !isspace(*e)) e++;
 
-        int len;
-        if((len = e - b) > 0) {
+        if((e - b) > 0) {
           if(strncmp(b, "-X", 2) == 0) {
             *e = 0;
             config_parser.import_line(b + 2);
