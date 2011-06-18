@@ -107,6 +107,9 @@ namespace rubinius {
     // Ruby.primitive :compiledmethod_of_sender
     static CompiledMethod* of_sender(STATE, CallFrame* calling_environment);
 
+    // Ruby.primitive :compiledmethod_current
+    static CompiledMethod* current(STATE, CallFrame* calling_environment);
+
     // Ruby.primitive :compiledmethod_dup
     CompiledMethod* dup_cm(STATE);
 

@@ -244,6 +244,10 @@ namespace rubinius {
     return nil<CompiledMethod>();
   }
 
+  CompiledMethod* CompiledMethod::current(STATE, CallFrame* calling_environment) {
+    return calling_environment->cm;
+  }
+
   void CompiledMethod::Info::mark(Object* obj, ObjectMark& mark) {
     auto_mark(obj, mark);
 

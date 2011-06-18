@@ -32,5 +32,17 @@ module Rubinius
       Ruby.primitive :compiledmethod_of_sender
       raise PrimitiveFailure, "CompiledMethod.of_sender failed"
     end
+
+    # Returns the CompiledMethod object for the currently executing Ruby
+    # method. For example:
+    #
+    #   def m
+    #     p Rubinius::CompiledMethod.current.name
+    #   end
+    #
+    def self.current
+      Ruby.primitive :compiledmethod_current
+      raise PrimitiveFailure, "CompiledMethod.current failed"
+    end
   end
 end
