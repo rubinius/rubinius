@@ -311,6 +311,34 @@ namespace rubinius {
   }
 
   void Environment::load_vm_options(int argc, char**argv) {
+    /* Parse -X options from RBXOPT environment variable.  We parse these
+     * first to permit arguments passed directly to the VM to override
+     * settings from the environment.
+     */
+    char* rbxopt = getenv("RBXOPT");
+    if(rbxopt) {
+      char *e, *b = rbxopt = strdup(rbxopt);
+      char *s = b + strlen(rbxopt);
+
+      while(b < s) {
+        while(*b && isspace(*b)) s++;
+
+        e = b;
+        while(*e && !isspace(*e)) e++;
+
+        int len;
+        if((len = e - b) > 0) {
+          if(strncmp(b, "-X", 2) == 0) {
+            *e = 0;
+            config_parser.import_line(b + 2);
+          }
+          b = e + 1;
+        }
+      }
+
+      free(rbxopt);
+    }
+
     for(int i=1; i < argc; i++) {
       char* arg = argv[i];
 
@@ -387,32 +415,6 @@ namespace rubinius {
     }
 
     state->set_const("ARGV", ary);
-
-    // Parse -X options from RBXOPT environment variable
-
-    char* rbxopt = getenv("RBXOPT");
-    if(rbxopt) {
-      char *e, *b = rbxopt = strdup(rbxopt);
-      char *s = b + strlen(rbxopt);
-
-      while(b < s) {
-        while(*b && isspace(*b)) s++;
-
-        e = b;
-        while(*e && !isspace(*e)) e++;
-
-        int len;
-        if((len = e - b) > 0) {
-          if(strncmp(b, "-X", 2) == 0) {
-            *e = 0;
-            config_parser.import_line(b + 2);
-          }
-          b = e + 1;
-        }
-      }
-
-      free(rbxopt);
-    }
 
     // Now finish up with the config
     if(config.print_config > 1) {
