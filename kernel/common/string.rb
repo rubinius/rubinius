@@ -254,6 +254,15 @@ class String
     end
 
     case index
+    when Fixnum
+      # The same code as in else section.
+      # Copied here to improve performance because Fixnum index is
+      # often used to iterate through String object.
+      index = Rubinius::Type.coerce_to index, Fixnum, :to_int
+      index = @num_bytes + index if index < 0
+
+      return if index < 0 || @num_bytes <= index
+      return @data[index]
     when Regexp
       match_data = index.search_region(self, 0, @num_bytes, true)
       Regexp.last_match = match_data
