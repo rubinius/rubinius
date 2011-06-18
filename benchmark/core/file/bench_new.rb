@@ -1,7 +1,7 @@
 require 'benchmark'
 require 'benchmark/ips'
 
-existing_file = "./lib/ffi.rb"
+existing_file = File.join(__FILE__)
 
 Benchmark.ips do |x|
   x.report "File.new" do

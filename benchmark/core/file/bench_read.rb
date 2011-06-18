@@ -1,11 +1,9 @@
 require 'benchmark'
 require 'benchmark/ips'
 
-small_file  = 'benchmark/core/file/small.txt'
-medium_file = 'benchmark/core/file/medium.txt'
-large_file  = 'benchmark/core/file/large.txt'
-
-existing_file = "./lib/ffi.rb"
+small_file  = File.join(__FILE__, 'small.txt')
+medium_file  = File.join(__FILE__, 'medium.txt')
+large_file  = File.join(__FILE__, 'large.txt')
 
 Benchmark.ips do |x|
   x.report "File.read a small file" do

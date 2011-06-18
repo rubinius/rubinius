@@ -1,8 +1,8 @@
 require 'benchmark'
 require 'benchmark/ips'
 
-existing_file = "./lib/ffi.rb"
-nonexistent_file = "./lib/noexists.rb"
+existing_file = File.join(__FILE__)
+nonexistent_file = File.join(__FILE__, "noexists")
 
 Benchmark.ips do |x|
   x.report "File.exists? - true" do

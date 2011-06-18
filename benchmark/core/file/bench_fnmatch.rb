@@ -1,7 +1,7 @@
 require 'benchmark'
 require 'benchmark/ips'
 
-path = "./lib/ffi/generator.rb"
+path = File.join(__FILE__)
 
 Benchmark.ips do |x|
   x.report "File.fnmatch plain" do
@@ -9,6 +9,6 @@ Benchmark.ips do |x|
   end
 
   x.report "File.fnmatch *" do
-    File.fnmatch("./lib/ffi/*.rb", path)
+    File.fnmatch("*.rb", path)
   end
 end

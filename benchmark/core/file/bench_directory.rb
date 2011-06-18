@@ -1,8 +1,8 @@
 require 'benchmark'
 require 'benchmark/ips'
 
-existing_dir = "./lib/ffi"
-nonexistent_dir = "./lib/noexists"
+existing_dir = File.dirname(__FILE__)
+nonexistent_dir = File.join(__FILE__, 'noexists')
 
 Benchmark.ips do |x|
   x.report "File.directory? - true" do
