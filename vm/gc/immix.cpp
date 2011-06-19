@@ -363,6 +363,9 @@ namespace rubinius {
         std::cout << i << ": " << holes[i] << "\n";
       }
     }
+
+    delete[] holes;
+    holes = NULL;
 #endif
   }
 
