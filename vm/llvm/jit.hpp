@@ -164,6 +164,7 @@ namespace rubinius {
     JITStackArgs* stack_args;
 
     JITMethodInfo* root;
+    int self_class_id;
 
   public:
     JITMethodInfo(jit::Context& ctx, CompiledMethod* cm, VMMethod* v,
@@ -448,6 +449,7 @@ namespace rubinius {
     std::ostream* log_;
 
     gc::WriteBarrier write_barrier_;
+    unsigned int metadata_id_;
 
   public:
 
@@ -548,6 +550,10 @@ namespace rubinius {
 
     gc::WriteBarrier* write_barrier() {
       return &write_barrier_;
+    }
+
+    unsigned int metadata_id() {
+      return metadata_id_;
     }
 
     const llvm::Type* ptr_type(std::string name);

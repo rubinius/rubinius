@@ -649,6 +649,8 @@ namespace rubinius {
 
     add_internal_functions();
 
+    metadata_id_ = ctx_.getMDKindID("rbx-classid");
+
     background_thread_ = new BackgroundCompilerThread(this);
     background_thread_->run();
   }

@@ -12,6 +12,8 @@
 
 #include "llvm/inline_policy.hpp"
 
+#include "llvm/jit_context.hpp"
+
 #include <llvm/Value.h>
 #include <llvm/BasicBlock.h>
 #include <llvm/Function.h>
@@ -28,10 +30,12 @@ namespace rubinius {
 
   struct ValueHint {
     int hint;
+    llvm::MDNode* metadata;
     std::vector<Value*> data;
 
     ValueHint()
       : hint(0)
+      , metadata(0)
     {}
   };
 
@@ -310,28 +314,50 @@ namespace rubinius {
       failure->moveAfter(cont);
     }
 
-    void check_class(Value* obj, Class* klass, BasicBlock* failure) {
+    int check_class(Value* obj, Class* klass, BasicBlock* failure) {
+      int64_t md_id = -1;
+
+      if(Instruction* I = dyn_cast<Instruction>(obj)) {
+        if(llvm::MDNode* md = I->getMetadata(ls_->metadata_id())) {
+          if(md->getNumOperands() >= 1) {
+            if(ConstantInt* ci = dyn_cast<ConstantInt>(md->getOperand(0))) {
+              md_id = ci->getValue().getSExtValue();
+            }
+          }
+        }
+      }
+
       object_type type = (object_type)klass->instance_type()->to_native();
 
       switch(type) {
       case rubinius::Symbol::type:
         verify_guard(check_is_symbol(obj), failure);
-        break;
+        return -1;
       case rubinius::Fixnum::type:
         verify_guard(check_is_fixnum(obj), failure);
-        break;
+        return -1;
       case NilType:
         verify_guard(check_is_immediate(obj, Qnil), failure);
-        break;
+        return -1;
       case TrueType:
         verify_guard(check_is_immediate(obj, Qtrue), failure);
-        break;
+        return -1;
       case FalseType:
         verify_guard(check_is_immediate(obj, Qfalse), failure);
-        break;
+        return -1;
       default:
+        if(md_id == klass->class_id()) {
+          if(ls_->config().jit_inline_debug) {
+            context().inline_log("eliding redundant guard")
+              << "class " << ls_->symbol_cstr(klass->name())
+              << " (" << md_id << ")\n";
+          }
+
+          return klass->class_id();
+        }
+
         check_reference_class(obj, klass->class_id(), failure);
-        break;
+        return klass->class_id();
       }
     }
 
@@ -444,6 +470,12 @@ namespace rubinius {
       }
 
       clear_hint();
+
+      if(Instruction* I = dyn_cast<Instruction>(val)) {
+        if(llvm::MDNode* md = I->getMetadata(ls_->metadata_id())) {
+          set_hint_metadata(md);
+        }
+      }
     }
 
     void set_hint(int hint) {
@@ -454,12 +486,28 @@ namespace rubinius {
       hints_[sp_].hint = hint;
     }
 
+    void set_hint_metadata(llvm::MDNode* md) {
+      if((int)hints_.size() <= sp_) {
+        hints_.resize(sp_ + 1);
+      }
+
+      hints_[sp_].metadata = md;
+    }
+
     int current_hint() {
       if(hints_.size() <= (size_t)sp_) {
         return 0;
       }
 
       return hints_[sp_].hint;
+    }
+
+    llvm::MDNode* current_hint_metadata() {
+      if(hints_.size() <= (size_t)sp_) {
+        return 0;
+      }
+
+      return hints_[sp_].metadata;
     }
 
     ValueHint* current_hint_value() {
@@ -473,11 +521,17 @@ namespace rubinius {
     void clear_hint() {
       if(hints_.size() > (size_t)sp_) {
         hints_[sp_].hint = 0;
+        hints_[sp_].metadata = 0;
       }
     }
 
     llvm::Value* stack_back(int back) {
-      return b().CreateLoad(stack_back_position(back), "stack_load");
+      Instruction* I = b().CreateLoad(stack_back_position(back), "stack_load");
+      if(llvm::MDNode* md = current_hint_metadata()) {
+        I->setMetadata(ls_->metadata_id(), md);
+      }
+
+      return I;
     }
 
     llvm::Value* stack_top() {
@@ -486,6 +540,14 @@ namespace rubinius {
 
     void stack_set_top(Value* val) {
       b().CreateStore(val, stack_ptr());
+
+      clear_hint();
+
+      if(Instruction* I = dyn_cast<Instruction>(val)) {
+        if(llvm::MDNode* md = I->getMetadata(ls_->metadata_id())) {
+          set_hint_metadata(md);
+        }
+      }
     }
 
     llvm::Value* stack_pop() {

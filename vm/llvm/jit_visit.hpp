@@ -1254,7 +1254,7 @@ namespace rubinius {
       b().CreateStore(val, pos);
     }
 
-    Value* get_self(Value* vars = 0) {
+    Instruction* get_self(Value* vars = 0) {
       if(!vars) vars = vars_;
 
       assert(vars);
@@ -1270,7 +1270,19 @@ namespace rubinius {
     }
 
     void visit_push_self() {
-      stack_push(get_self());
+      Instruction* val = get_self();
+
+      if(info().self_class_id >= 0) {
+        llvm::Value *impMD[] = {
+          llvm::ConstantInt::get(ls_->Int32Ty, info().self_class_id)
+        };
+
+        llvm::MDNode *node = llvm::MDNode::get(ls_->ctx(), impMD, 1);
+
+        val->setMetadata(ls_->metadata_id(), node);
+      }
+
+      stack_push(val);
     }
 
     void visit_allow_private() {
