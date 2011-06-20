@@ -100,6 +100,9 @@ results = targets.map do |t|
   cmd, *rest = t.split(/\s+/)
   args.unshift *rest
 
+  p cmd
+  p args
+
   system cmd, *args
 
   if $?.exitstatus != 0

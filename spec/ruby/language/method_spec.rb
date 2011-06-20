@@ -146,59 +146,40 @@ describe "Calling a method" do
     res.first.should == 2501
     res.last.should equal(obj)
   end
-  
-  it "allows []= form with *args in the [] expanded to individual arguments" do
-    obj = Class.new do
-      attr_reader :result
-      def []=(a, b, c, d); @result = [a,b,c,d]; end
-    end.new
-    
-    ary = [2,3]
-    (obj[1, *ary] = 4).should == 4
-    obj.result.should == [1,2,3,4]
-  end
 
-  it "allows []= with multiple *args" do
-    cls = Class.new do
-      attr_reader :result
-      def []=(a, b, c, d); @result = [a,b,c,d]; end
+  ruby_version_is "" ... "1.9" do
+    describe "allows []=" do
+      before :each do
+        @obj = LangMethodSpecs::AttrSet.new
+      end
+
+      it "with *args in the [] expanded to individual arguments" do
+        ary = [2,3]
+        (@obj[1, *ary] = 4).should == 4
+        @obj.result.should == [1,2,3,4]
+      end
+
+      it "with multiple *args" do
+        ary = [2,3]
+        post = [4,5]
+        (@obj[1, *ary] = *post).should == [4,5]
+        @obj.result.should == [1,2,3,[4,5]]
+      end
+
+      it "with multiple *args and unwraps the last splat" do
+        ary = [2,3]
+        post = [4]
+        (@obj[1, *ary] = *post).should == 4
+        @obj.result.should == [1,2,3,4]
+      end
+
+      it "with a *args and multiple rhs args" do
+        ary = [2,3]
+        (@obj[1, *ary] = 4, 5).should == [4,5]
+        @obj.result.should == [1,2,3,[4,5]]
+      end
     end
-
-    obj = cls.new
-
-    ary = [2,3]
-    post = [4,5]
-    (obj[1, *ary] = *post).should == [4,5]
-    obj.result.should == [1,2,3,[4,5]]
   end
-
-  it "allows []= with multiple *args and unwraps the last splat" do
-    cls = Class.new do
-      attr_reader :result
-      def []=(a, b, c, d); @result = [a,b,c,d]; end
-    end
-
-    obj = cls.new
-
-    ary = [2,3]
-    post = [4]
-    (obj[1, *ary] = *post).should == 4
-    obj.result.should == [1,2,3,4]
-  end
-
-  it "allows []= with a *args and multiple rhs args" do
-    cls = Class.new do
-      attr_reader :result
-      def []=(a, b, c, d); @result = [a,b,c,d]; end
-    end
-
-    obj = cls.new
-
-    ary = [2,3]
-    (obj[1, *ary] = 4, 5).should == [4,5]
-    obj.result.should == [1,2,3,[4,5]]
-  end
-
 
   it "allows to pass literal hashes without curly braces as the last parameter" do
     specs.fooP3('abc', 456, 'rbx' => 'cool',

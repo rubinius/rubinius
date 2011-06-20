@@ -70,4 +70,9 @@ module LangMethodSpecs
       self.foo ||= 6
     end
   end
+
+  class AttrSet
+    attr_reader :result
+    def []=(a, b, c, d); @result = [a,b,c,d]; end
+  end
 end
