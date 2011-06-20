@@ -180,12 +180,19 @@ end
 
 task 'vm/vm' => GENERATED do
   blueprint = Daedalus.load "rakelib/blueprint.rb"
-  blueprint.build "vm/vm", @parallel_jobs
+
+  tasks = [
+    "vm/vm",
+    "vm/#{Rubinius::BUILD_CONFIG[:shared_lib_name]}",
+    "vm/#{Rubinius::BUILD_CONFIG[:static_lib_name]}"
+  ]
+
+  blueprint.build tasks, @parallel_jobs
 end
 
 task 'vm/test/runner' => GENERATED do
   blueprint = Daedalus.load "rakelib/blueprint.rb"
-  blueprint.build "vm/test/runner", @parallel_jobs
+  blueprint.build "vm/test/runner", @parallel_job
 end
 
 # Generate files for instructions and interpreters

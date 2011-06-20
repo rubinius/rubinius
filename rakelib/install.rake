@@ -143,9 +143,22 @@ namespace :install do
         install_file name, /^preinstalled-gems/, BUILD_CONFIG[:gemsdir]
       end
 
+      # Install Rubinius headers
+      headers_dir = "#{BUILD_CONFIG[:includedir]}/rubinius"
+      FileList["vm/**/*.h{,pp}"].each do |name|
+        install_file name, /^vm/, headers_dir
+      end
+
       # Install the Rubinius executable
       exe = "#{BUILD_CONFIG[:bindir]}/#{BUILD_CONFIG[:program_name]}"
       install "vm/vm", install_dir(exe), :mode => 0755, :verbose => true
+
+      # Install the Rubinius libraries
+      lib = "#{BUILD_CONFIG[:lib_path]}/#{BUILD_CONFIG[:shared_lib_name]}"
+      install "vm/#{BUILD_CONFIG[:shared_lib_name]}", install_dir(lib), :mode => 0755, :verbose => true
+      
+      lib = "#{BUILD_CONFIG[:lib_path]}/#{BUILD_CONFIG[:static_lib_name]}"
+      install "vm/#{BUILD_CONFIG[:static_lib_name]}", install_dir(lib), :mode => 0644, :verbose => true
 
       # Install the testrb command
       testrb = "#{BUILD_CONFIG[:bindir]}/testrb"

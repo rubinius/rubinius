@@ -147,6 +147,8 @@ module Daedalus
       @log = logger
       @blueprint = blueprint
 
+      @archiver = "ar"
+
       @mod_times = Hash.new do |h,k|
         h[k] = (File.exists?(k) ? File.mtime(k) : Time.at(0))
       end
@@ -209,6 +211,16 @@ module Daedalus
     def link(path, files)
       @log.show "LD", path
       @log.command "#{@path} -o #{path} #{files.join(' ')} #{@libraries.join(' ')} #{@ldflags.join(' ')}"
+    end
+
+    def shared(path, files)
+      @log.show "LIB", path
+      @log.command "#{@path} -shared -W1,soname,#{File.basename(path)} -install_name #{Rubinius::BUILD_CONFIG[:lib_path]}/#{File.basename(path)} #{files.join(' ')} -o #{path} #{@libraries.join(' ')} #{@ldflags.join(' ')}"
+    end
+
+    def static(path, files)
+      @log.show "AR", path
+      @log.command "#{@archiver} rcs #{path} #{files.reverse.join(' ')}"
     end
 
     def calculate_deps(path)
@@ -574,6 +586,36 @@ module Daedalus
     end
   end
 
+  class SharedLibrary < Program
+    def describe(ctx)
+      puts "Shared Library: #{@path}"
+
+      @files.each do |f|
+        f.describe(ctx)
+      end
+    end
+
+    def build(ctx)
+      ctx.log.inc!
+      ctx.shared @path, objects
+    end
+  end
+
+  class StaticLibrary < Program
+    def describe(ctx)
+      puts "Static Library: #{@path}"
+
+      @files.each do |f|
+        f.describe(ctx)
+      end
+    end
+
+    def build(ctx)
+      ctx.log.inc!
+      ctx.static @path, objects
+    end
+  end
+
   class Tasks
     def initialize
       @pre = []
@@ -731,6 +773,18 @@ module Daedalus
       sf = SourceFile.new(file)
       yield sf if block_given?
       sf
+    end
+
+    def shared_lib(name, *files)
+      lib = SharedLibrary.new(name, files)
+      @programs << lib
+      lib
+    end
+
+    def static_lib(name, *files)
+      lib = StaticLibrary.new(name, files)
+      @programs << lib
+      lib
     end
 
     def program(name, *files)
