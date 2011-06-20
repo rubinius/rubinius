@@ -305,7 +305,7 @@ namespace rubinius {
 
       // If we hit the first non-option, bail.
       } else if(arg[0] != '-') {
-        return;
+        break;
       }
     }
 
