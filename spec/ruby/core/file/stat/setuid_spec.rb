@@ -7,5 +7,27 @@ describe "File::Stat#setuid?" do
 end
 
 describe "File::Stat#setuid?" do
-  it "needs to be reviewed for spec completeness"
+  before(:each) do
+    @name = tmp('test.txt')
+    touch @name
+  end
+
+  after(:each) do
+    rm_r @name
+  end
+
+  it "returns false if the file was just made" do
+    st = File.stat(@name)
+    st.setuid?.should == false
+  end
+
+  platform_is_not :windows do
+    it "returns true when the gid bit is set" do
+      system "chmod u+s #{@name}"
+
+      st = File.stat(@name)
+      st.setuid?.should == true
+    end
+  end
+
 end
