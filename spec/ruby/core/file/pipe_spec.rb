@@ -6,5 +6,27 @@ describe "File.pipe?" do
 end
 
 describe "File.pipe?" do
-  it "needs to be reviewed for spec completeness"
+  it "returns false if file does not exist" do
+    File.pipe?("I_am_a_bogus_file").should == false
+  end
+
+  it "returns false if the file is not a pipe" do
+    filename = tmp("i_exist")
+    touch(filename)
+
+    File.pipe?(filename).should == false
+
+    rm_r filename
+  end
+
+  platform_is_not :windows do
+    it "returns true if the file is a pipe" do
+      filename = tmp("i_am_a_pipe")
+      system "mkfifo #{filename}"
+
+      File.pipe?(filename).should == true
+
+      rm_r filename
+    end
+  end
 end
