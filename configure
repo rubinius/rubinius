@@ -104,13 +104,13 @@ class Configure
 
     # Library configuration
     @rb_readline = false
-    @vendor_zlib = true
+    @vendor_zlib = false
 
     # Essential settings (modify these for creating releases)
     @libversion = "2.0"
     @version = "#{@libversion}.0dev"
     @release_date = "yyyy-mm-dd"
-    @config_version = 133
+    @config_version = 134
 
     # TODO: add conditionals for platforms
     if RbConfig::CONFIG["build_os"] =~ /darwin/
