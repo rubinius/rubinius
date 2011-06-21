@@ -53,24 +53,17 @@ describe :date_civil, :shared => true do
 
     d2 = Date.send(@method, 1582, 10, 4, Date::ENGLAND)
     d2.succ.day.should == 5
-
-    # Choose an arbitrary reform date
-    r  = Date.send(@method, 2000, 2, 3)
-
-    d3 = Date.send(@method, 2000, 2, 3, r.jd)
-    (d3 - 1).day.should == 20
-    (d3 - 1).month.should == 1
-
-    lambda { Date.send(@method, 2000, 2, 2, r.jd) }.should raise_error(ArgumentError)
   end
 
-  ruby_bug "1589", "1.8.6.368" do
-    require 'bigdecimal'
-    require 'bigdecimal/util'
-    it "doesn't blow up (illegal instruction and segfault, respectively) when fed huge numbers" do
-      ["9E69999999","1"*10000000].each do |dv|
-        lambda { Date.new(2002,10,dv.to_d) }.should raise_error(BigDecimal::FloatDomainError)
-      end
+  ruby_version_is ""..."1.9.3" do
+    it "choose an arbitrary reform date" do
+      r  = Date.send(@method, 2000, 2, 3)
+
+      d3 = Date.send(@method, 2000, 2, 3, r.jd)
+      (d3 - 1).day.should == 20
+      (d3 - 1).month.should == 1
+
+      lambda { Date.send(@method, 2000, 2, 2, r.jd) }.should raise_error(ArgumentError)
     end
   end
 end

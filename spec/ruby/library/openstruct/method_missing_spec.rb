@@ -45,3 +45,23 @@ describe "OpenStruct#method_missing when not passed any additional arguments" do
     os.method_missing(:name).should be_nil
   end
 end
+
+ruby_bug "redmine:4179", "1.9.2" do
+  describe "OpenStruct#method_missing when called with method name '[]'" do
+    it "raises a NoMethodError" do
+      os = OpenStruct.new
+      lambda { os.method_missing(:[]) }.should raise_error(NoMethodError)
+      lambda { os.method_missing(:[], 1) }.should raise_error(NoMethodError)
+      lambda { os.method_missing(:[], 1, 2) }.should raise_error(NoMethodError)
+    end
+  end
+
+  describe "OpenStruct#method_missing when called with method name '[]='" do
+    it "raises a NoMethodError" do
+      os = OpenStruct.new
+      lambda { os.method_missing(:[]=, 1) }.should raise_error(NoMethodError)
+      lambda { os.method_missing(:[]=, 1, 2) }.should raise_error(NoMethodError)
+      lambda { os.method_missing(:[]=, 1, 2, 3) }.should raise_error(NoMethodError)
+    end
+  end
+end

@@ -7,6 +7,7 @@ require File.expand_path('../fixtures/classes', __FILE__)
 
 autoload :KSAutoloadA, "autoload_a.rb"
 autoload :KSAutoloadB, fixture(__FILE__, "autoload_b.rb")
+autoload :KSAutoloadC, fixture(__FILE__, "autoload_c.rb")
 
 def check_autoload(const)
   autoload? const
@@ -42,11 +43,17 @@ describe "Kernel#autoload" do
   end
 
   it "does not call Kernel.require or Kernel.load to load the file" do
-    filename = fixture(__FILE__, "autoload_c.rb")
-    autoload :KSAutoloadC, filename
     Kernel.should_not_receive(:require)
     Kernel.should_not_receive(:load)
     KSAutoloadC.loaded.should == :ksautoload_c
+  end
+
+  it "can autoload in instance_eval" do
+    instance_eval do
+      # this instance_eval is not needed because specs are run in instance_eval
+      autoload :KSAutoloadD, fixture(__FILE__, "autoload_d.rb")
+      KSAutoloadD.loaded.should == :ksautoload_d
+    end
   end
 end
 

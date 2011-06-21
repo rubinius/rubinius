@@ -53,6 +53,7 @@ describe :io_each, :shared => true do
       @io.send(@method) { ScratchPad << $. }
       ScratchPad.recorded.should == [ 1,2,3,4,5,6,7,8,9 ]
     end
+
     ruby_version_is "" ... "1.8.7" do
       it "raises a LocalJumpError when passed no block" do
         lambda { @io.send(@method) }.should raise_error(LocalJumpError)

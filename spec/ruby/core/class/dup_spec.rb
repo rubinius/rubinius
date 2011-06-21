@@ -37,9 +37,18 @@ describe "Class#dup" do
     klass_dup.message.should == "text"
   end
 
-  it "removes the name from the class if not assigned to a constant" do
-    copy = CoreClassSpecs::Record.dup
-    copy.name.should == ""
+  ruby_version_is ""..."1.9" do
+    it "sets the name from the class to \"\" if not assigned to a constant" do
+      copy = CoreClassSpecs::Record.dup
+      copy.name.should == ""
+    end
+  end
+
+  ruby_version_is "1.9" do
+    it "sets the name from the class to nil if not assigned to a constant" do
+      copy = CoreClassSpecs::Record.dup
+      copy.name.should be_nil
+    end
   end
 
   it "stores the new name if assigned to a constant" do

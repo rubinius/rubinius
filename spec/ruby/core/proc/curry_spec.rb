@@ -3,7 +3,7 @@ require File.expand_path('../../../spec_helper', __FILE__)
 ruby_version_is "1.9" do
   describe "Proc#curry" do
     before(:each) do
-      @proc_add = proc {|x,y,z| (x||0) + (y||0) + (z||0) }
+      @proc_add = Proc.new {|x,y,z| (x||0) + (y||0) + (z||0) }
       @lambda_add = lambda {|x,y,z| (x||0) + (y||0) + (z||0) }
     end
 
@@ -88,13 +88,12 @@ ruby_version_is "1.9" do
     end
 
     it "raises an ArgumentError if called on a lambda that requires more than _arity_ arguments" do
-      p = lambda { true }
-      lambda { p.curry(2) }.should raise_error(ArgumentError)
+      lambda { @lambda_add.curry(2) }.should raise_error(ArgumentError)
+      lambda { lambda{|x, y, z, *more|}.curry(2) }.should raise_error(ArgumentError)
     end
 
     it "raises an ArgumentError if called on a lambda that requires fewer than _arity_ arguments" do
-      p = lambda { true }
-      lambda { p.curry(4) }.should raise_error(ArgumentError)
+      lambda { @lambda_add.curry(4) }.should raise_error(ArgumentError)
     end
 
     it "calls the curried proc with the arguments if _arity_ arguments have been given" do

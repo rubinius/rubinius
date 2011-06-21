@@ -107,7 +107,7 @@ module EnumerableSpecs
   class ArrayConvertable
     attr_accessor :called
     def initialize(*values)
-      @values = values;
+      @values = values
     end
 
     def to_a
@@ -118,6 +118,20 @@ module EnumerableSpecs
     def to_ary
       self.called = :to_ary
       @values
+    end
+  end
+  
+  class EnumConvertable
+    attr_accessor :called
+    attr_accessor :sym
+    def initialize(delegate)
+      @delegate = delegate
+    end
+    
+    def to_enum(sym)
+      self.called = :to_enum
+      self.sym = sym
+      @delegate.to_enum(sym)
     end
   end
 

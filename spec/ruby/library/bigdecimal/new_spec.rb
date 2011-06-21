@@ -18,13 +18,21 @@ describe "BigDecimal.new" do
   end
 
   ruby_bug "1589", "1.8.6.368" do
-    platform_is :wordsize => 32 do
-      it "doesn't segfault when using a very large string to build the number" do
-        BigDecimal.new("1" + "0"*10000000)._dump.should == "10000008:0.1E10000001"
+    ruby_version_is '' ... '1.9.3' do
+      platform_is :wordsize => 32 do
+        it "doesn't segfault when using a very large string to build the number" do
+          BigDecimal.new("1" + "0"*10000000)._dump.should == "10000008:0.1E10000001"
+        end
+      end
+
+      platform_is :wordsize => 64 do
+        it "doesn't segfault when using a very large string to build the number" do
+          BigDecimal.new("1" + "0"*10000000)._dump.should == "10000017:0.1E10000001"
+        end
       end
     end
 
-    platform_is :wordsize => 64 do
+    ruby_version_is '1.9.3' do
       it "doesn't segfault when using a very large string to build the number" do
         BigDecimal.new("1" + "0"*10000000)._dump.should == "10000017:0.1E10000001"
       end

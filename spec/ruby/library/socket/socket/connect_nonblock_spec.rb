@@ -25,7 +25,14 @@ describe "Socket#connect_nonblock" do
   platform_is :freebsd do
     it "takes an encoded socket address and starts the connection to it" do
       lambda {
-        @socket.connect_nonblock(@addr)
+        begin
+          @socket.connect_nonblock(@addr)
+        rescue Errno::EINPROGRESS
+          r = @socket.getsockopt(Socket::SOL_SOCKET, Socket::SO_ERROR)
+          if r.int == Errno::ECONNREFUSED::Errno
+            raise Errno::ECONNREFUSED.new
+          end
+        end
       }.should raise_error(Errno::ECONNREFUSED)
     end
   end
