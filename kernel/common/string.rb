@@ -1195,15 +1195,15 @@ class String
     modify!
 
     if index == 0
-      str.copy_from other, 0, other.size, 0
-      str.copy_from self, 0, @num_bytes, other.size
+      str.copy_from other, 0, osize, 0
+      str.copy_from self, 0, @num_bytes, osize
     elsif index < @num_bytes
       str.copy_from self, 0, index, 0
       str.copy_from other, 0, osize, index
       str.copy_from self, index, @num_bytes - index, index + osize
     else
       str.copy_from self, 0, @num_bytes, 0
-      str.copy_from other, 0, other.size, @num_bytes
+      str.copy_from other, 0, osize, @num_bytes
     end
 
     @num_bytes = size
