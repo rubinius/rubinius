@@ -448,6 +448,8 @@ remember:
     info.set_inline_block(inline_block_);
     info.self_class_id = class_id;
 
+    info.set_self_class(klass);
+
     jit::RuntimeData* rd = new jit::RuntimeData(cm, cache_->name, defined_in);
     context_.add_runtime_data(rd);
 

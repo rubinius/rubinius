@@ -25,6 +25,7 @@
 #include "gc/write_barrier.hpp"
 
 #include "builtin/block_environment.hpp"
+#include "builtin/class.hpp"
 
 #include "instruments/timing.hpp"
 #include "object_utils.hpp"
@@ -152,6 +153,8 @@ namespace rubinius {
 
     llvm::BasicBlock* return_pad_;
     llvm::PHINode* return_phi_;
+
+    TypedRoot<Class*> self_class_;
 
   public:
     VMMethod* vmm;
@@ -374,6 +377,14 @@ namespace rubinius {
 
     void set_counter(llvm::Value* counter) {
       counter_ = counter;
+    }
+
+    Class* self_class() {
+      return self_class_.get();
+    }
+
+    void set_self_class(Class* cls) {
+      self_class_.set(cls);
     }
 
     llvm::AllocaInst* create_alloca(const llvm::Type* type, llvm::Value* size = 0,

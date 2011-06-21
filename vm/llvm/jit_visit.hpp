@@ -5,6 +5,7 @@
 #include "builtin/global_cache_entry.hpp"
 #include "inline_cache.hpp"
 #include "builtin/cache.hpp"
+#include "builtin/lookuptable.hpp"
 
 #include "llvm/access_memory.hpp"
 #include "llvm/jit_operations.hpp"
@@ -2852,6 +2853,11 @@ use_send:
     }
 
     void visit_push_my_offset(opcode i) {
+      if(ls_->config().jit_inline_debug) {
+        context().inline_log("inline slot read")
+             << "offset: " << i << "\n";
+      }
+
       Value* idx[] = {
         ConstantInt::get(ls_->Int32Ty, 0),
         ConstantInt::get(ls_->Int32Ty, offset::vars_self)
@@ -3291,6 +3297,73 @@ use_send:
     }
 
     void visit_push_ivar(opcode which) {
+      Symbol* name = as<Symbol>(literal(which));
+
+      if(Class* klass = try_as<Class>(info().self_class())) {
+
+        if(ls_->config().jit_inline_debug) {
+          context().inline_log("inline ivar read")
+            << ls_->symbol_cstr(name);
+        }
+
+        // Figure out if we should use the table ivar lookup or
+        // the slot ivar lookup.
+
+        TypeInfo* ti = klass->type_info();
+        TypeInfo::Slots::iterator it = ti->slots.find(name->index());
+
+        Value* ivar = 0;
+
+        Value* self = get_self();
+
+        if(it != ti->slots.end()) {
+          int offset = ti->slot_locations[it->second];
+          ivar = get_object_slot(self, offset);
+          if(ls_->config().jit_inline_debug) {
+            ls_->log() << " (slot: " << it->second << ")";
+          }
+        } else {
+          LookupTable* pii = klass->packed_ivar_info();
+          if(!pii->nil_p()) {
+            bool found = false;
+
+            Fixnum* which = try_as<Fixnum>(pii->fetch(0, name, &found));
+            if(found) {
+              int index = which->to_native();
+              int offset = sizeof(Object) + (sizeof(Object*) * index);
+              Value* slot_val = get_object_slot(self, offset);
+
+              Value* cmp = b().CreateICmpEQ(slot_val, constant(Qundef), "prune_undef");
+
+              ivar = b().CreateSelect(cmp, constant(Qnil), slot_val, "select ivar");
+
+              if(ls_->config().jit_inline_debug) {
+                ls_->log() << " (packed index: " << index << ", " << offset << ")";
+              }
+            }
+          }
+        }
+
+        if(ivar) {
+          stack_push(ivar);
+
+          if(ls_->config().jit_inline_debug) {
+            ls_->log() << "\n";
+          }
+
+          return;
+        } else {
+          if(ls_->config().jit_inline_debug) {
+            ls_->log() << " (abort, using slow lookup)\n";
+          }
+        }
+      }
+
+      if(ls_->config().jit_inline_debug) {
+        context().inline_log("slow ivar read")
+          << ls_->symbol_cstr(name) << "\n";
+      }
+
       Signature sig(ls_, ObjType);
 
       sig << VMTy;
