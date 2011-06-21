@@ -3,12 +3,18 @@ require 'net/http'
 require "stringio"
 
 describe "Net::HTTPGenericRequest#exec when passed socket, version, path" do
+  before(:each) do
+    @socket = StringIO.new("")
+    def @socket.continue_timeout
+      1
+    end
+  end
+
   it "executes the request over the socket to the path using the HTTP version" do
     request = Net::HTTPGenericRequest.new("POST", true, true, "/some/path")
-    socket = StringIO.new("")
 
-    request.exec(socket, "1.1", "/some/path")
-    str = socket.string
+    request.exec(@socket, "1.1", "/some/path")
+    str = @socket.string
 
     str.should =~ %r[POST /some/path HTTP/1.1\r\n]
     str.should =~ %r[Accept: \*/\*\r\n]
@@ -16,10 +22,9 @@ describe "Net::HTTPGenericRequest#exec when passed socket, version, path" do
 
     request = Net::HTTPGenericRequest.new("GET", true, true, "/some/path",
                                           "Content-Type" => "text/html")
-    socket = StringIO.new("")
 
-    request.exec(socket, "1.0", "/some/other/path")
-    str = socket.string
+    request.exec(@socket, "1.0", "/some/other/path")
+    str = @socket.string
 
     str.should =~ %r[GET /some/other/path HTTP/1.0\r\n]
     str.should =~ %r[Accept: \*/\*\r\n]
@@ -31,10 +36,9 @@ describe "Net::HTTPGenericRequest#exec when passed socket, version, path" do
     it "sets the 'Content-Type' header to 'application/x-www-form-urlencoded' unless the 'Content-Type' header is supplied" do
       request = Net::HTTPGenericRequest.new("POST", true, true, "/some/path")
       request.body = "Some Content"
-      socket = StringIO.new("")
 
-      request.exec(socket, "1.1", "/some/other/path")
-      str = socket.string
+      request.exec(@socket, "1.1", "/some/other/path")
+      str = @socket.string
 
       str.should =~ %r[POST /some/other/path HTTP/1.1\r\n]
       str.should =~ %r[Accept: \*/\*\r\n]
@@ -47,10 +51,9 @@ describe "Net::HTTPGenericRequest#exec when passed socket, version, path" do
       request = Net::HTTPGenericRequest.new("POST", true, true, "/some/path",
                                             "Content-Type" => "text/html")
       request.body = "Some Content"
-      socket = StringIO.new("")
 
-      request.exec(socket, "1.1", "/some/other/path")
-      str = socket.string
+      request.exec(@socket, "1.1", "/some/other/path")
+      str = @socket.string
 
       str.should =~ %r[POST /some/other/path HTTP/1.1\r\n]
       str.should =~ %r[Accept: \*/\*\r\n]
@@ -65,10 +68,9 @@ describe "Net::HTTPGenericRequest#exec when passed socket, version, path" do
       request = Net::HTTPGenericRequest.new("POST", true, true, "/some/path",
                                             "Content-Length" => "10")
       request.body_stream = StringIO.new("a" * 20)
-      socket = StringIO.new("")
 
-      request.exec(socket, "1.1", "/some/other/path")
-      str = socket.string
+      request.exec(@socket, "1.1", "/some/other/path")
+      str = @socket.string
 
       str.should =~ %r[POST /some/other/path HTTP/1.1\r\n]
       str.should =~ %r[Accept: \*/\*\r\n]
@@ -82,10 +84,9 @@ describe "Net::HTTPGenericRequest#exec when passed socket, version, path" do
                                             "Content-Type" => "text/html",
                                             "Content-Length" => "10")
       request.body_stream = StringIO.new("a" * 20)
-      socket = StringIO.new("")
 
-      request.exec(socket, "1.1", "/some/other/path")
-      str = socket.string
+      request.exec(@socket, "1.1", "/some/other/path")
+      str = @socket.string
 
       str.should =~ %r[POST /some/other/path HTTP/1.1\r\n]
       str.should =~ %r[Accept: \*/\*\r\n]
@@ -99,10 +100,9 @@ describe "Net::HTTPGenericRequest#exec when passed socket, version, path" do
                                             "Content-Type" => "text/html",
                                             "Transfer-Encoding" => "chunked")
       request.body_stream = StringIO.new("a" * 1024 * 2)
-      socket = StringIO.new("")
 
-      request.exec(socket, "1.1", "/some/other/path")
-      str = socket.string
+      request.exec(@socket, "1.1", "/some/other/path")
+      str = @socket.string
 
       str.should =~ %r[POST /some/other/path HTTP/1.1\r\n]
       str.should =~ %r[Accept: \*/\*\r\n]
@@ -115,9 +115,8 @@ describe "Net::HTTPGenericRequest#exec when passed socket, version, path" do
       request = Net::HTTPGenericRequest.new("POST", true, true, "/some/path",
                                             "Content-Type" => "text/html")
       request.body_stream = StringIO.new("Some Content")
-      socket = StringIO.new("")
 
-      lambda { request.exec(socket, "1.1", "/some/other/path") }.should raise_error(ArgumentError)
+      lambda { request.exec(@socket, "1.1", "/some/other/path") }.should raise_error(ArgumentError)
     end
   end
 end

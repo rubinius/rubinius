@@ -318,8 +318,8 @@ namespace rubinius {
   }
 
   void BakerGC::handle_promotions() {
-    while(promoted_stack_.size() > 0 || !fully_scanned_p()) {
-      while(promoted_stack_.size() > 0) {
+    while(!promoted_stack_.empty() || !fully_scanned_p()) {
+      while(!promoted_stack_.empty()) {
         Object* obj = promoted_stack_.back();
         promoted_stack_.pop_back();
 

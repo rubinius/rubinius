@@ -92,3 +92,6 @@ def load_extension(name)
   ext = compile_extension path, name
   require ext
 end
+
+# Constants
+CAPI_SIZEOF_LONG = [0].pack('l!').size

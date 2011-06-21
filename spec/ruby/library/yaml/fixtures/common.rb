@@ -1,3 +1,9 @@
+begin
+  require 'syck'
+rescue LoadError
+  # do nothing
+end
+
 require 'yaml'
 
 $test_file = tmp("yaml_test_file")

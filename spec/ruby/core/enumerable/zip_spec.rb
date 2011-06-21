@@ -34,6 +34,13 @@ describe "Enumerable#zip" do
       EnumerableSpecs::Numerous.new(1,2,3).zip(convertable).should == [[1,4],[2,5],[3,6]]
       convertable.called.should == :to_ary
     end
+    
+    it "converts arguments to arrays using #to_ary" do
+      convertable = EnumerableSpecs::EnumConvertable.new(4..6)
+      EnumerableSpecs::Numerous.new(1,2,3).zip(convertable).should == [[1,4],[2,5],[3,6]]
+      convertable.called.should == :to_enum
+      convertable.sym.should == :each
+    end
   end
 
 end

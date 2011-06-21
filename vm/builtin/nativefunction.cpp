@@ -325,7 +325,10 @@ namespace rubinius {
           }
           arg_types[i] = RBX_FFI_TYPE_CALLBACK;
         } else {
-          if(!type->fixnum_p()) return (NativeFunction*)Primitives::failure();
+          if(!type->fixnum_p()) {
+            XFREE(arg_types);
+            return (NativeFunction*)Primitives::failure();
+          }
           arg_types[i] = as<Integer>(type)->to_native();
 
           /* State can only be passed as the first arg, and it's invisible,
@@ -560,7 +563,10 @@ namespace rubinius {
 
       for(i = 0; i < tot; i++) {
         type = args->get(state, i);
-        if(!type->fixnum_p()) return nil<Array>();
+        if(!type->fixnum_p()) {
+          XFREE(arg_types);
+          return nil<Array>();
+        }
         arg_types[i] = as<Integer>(type)->to_native();
 
         /* State can not be passed. */

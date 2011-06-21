@@ -40,11 +40,11 @@ describe "DateTime.new" do
   end
 
   it "takes the seventh argument as an offset" do
-    DateTime.new(1, 2, 3, 4, 5, 6, 7).offset.should == 7
+    DateTime.new(1, 2, 3, 4, 5, 6, 0.7).offset.should == 0.7
   end
 
   it "takes the eigth argument as the date of calendar reform" do
-    DateTime.new(1, 2, 3, 4, 5, 6, 7, Date::ITALY).start().should == Date::ITALY
+    DateTime.new(1, 2, 3, 4, 5, 6, 0.7, Date::ITALY).start().should == Date::ITALY
   end
 
   it "raises an error on invalid arguments" do

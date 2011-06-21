@@ -7,9 +7,12 @@ describe "Process.maxgroups" do
 
   it "sets the maximum number of gids allowed in the supplemental group access list" do
     n = Process.maxgroups
-    Process.maxgroups = n + 1
-    Process.maxgroups.should == n + 1
-    Process.maxgroups = n
+    begin
+      Process.maxgroups = n - 1
+      Process.maxgroups.should == n - 1
+    ensure
+      Process.maxgroups = n
+    end
   end
 end
 

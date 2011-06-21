@@ -9,7 +9,8 @@ describe "CApiTimeSpecs" do
 
   describe "rb_time_new" do
     it "creates a Time from the sec and usec" do
-      @s.rb_time_new(1232141421, 1413123123).should == Time.at(1232141421, 1413123123)
+      usec = CAPI_SIZEOF_LONG == 8 ? 4611686018427387903 : 1413123123
+      @s.rb_time_new(1232141421, usec).should == Time.at(1232141421, usec)
     end
   end
 end

@@ -276,7 +276,7 @@ namespace bert {
       if(term->contains_string_p() && term->string() == 0) {
         char* buf = new char[term->integer() + 1];
         if(!reader_.read(term->integer(), buf)) {
-          delete buf;
+          delete[] buf;
           return false;
         }
 

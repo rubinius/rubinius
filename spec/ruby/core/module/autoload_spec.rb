@@ -196,11 +196,23 @@ describe "Module#autoload" do
       lambda { ModuleSpecs::Autoload::O }.should raise_error(NameError)
       ModuleSpecs::Autoload.should have_constant(:O)
     end
+  end
 
-    it "does not load the file when refering to the constant in defined?" do
+  ruby_version_is '1.9' ... '1.9.3' do
+    it "return nil on refering the constant with defined?()" do
       module ModuleSpecs::Autoload::Q
         autoload :R, fixture(__FILE__, "autoload.rb")
         defined?(R).should be_nil
+      end
+      ModuleSpecs::Autoload::Q.should have_constant(:R)
+    end
+  end
+
+  ruby_version_is '1.9.3' do
+    it "return 'constant' on refering the constant with defined?()" do
+      module ModuleSpecs::Autoload::Q
+        autoload :R, fixture(__FILE__, "autoload.rb")
+        defined?(R).should == 'constant'
       end
       ModuleSpecs::Autoload::Q.should have_constant(:R)
     end

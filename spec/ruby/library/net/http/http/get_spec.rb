@@ -41,12 +41,12 @@ describe "Net::HTTP.get when passed URI" do
         body.should == "This is the index page."
         response.body.should == "This is the index page."
       end
-    end
 
-    it "yields each read part of the body to the passed block when passed a block" do
-      buf = ""
-      @http.get("/") { |s| buf << s }
-      buf.should == "This is the index page."
+      it "yields each read part of the body to the passed block when passed a block" do
+        buf = ""
+        @http.get("/") { |s| buf << s }
+        buf.should == "This is the index page."
+      end
     end
   end
 end

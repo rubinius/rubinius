@@ -788,6 +788,8 @@ class IO
 
     sep = sep.to_str if sep
     while line = read_to_separator(sep)
+      @lineno += 1
+      $. = @lineno
       yield line
     end
 
@@ -931,7 +933,7 @@ class IO
       buffer_size = arg.length
       # On BSD and Linux, we could read the buffer size out of the ioctl value.
       # Most Linux ioctl codes predate the convention, so a fallback like this
-      # is still necessary. 
+      # is still necessary.
       buffer_size = 4096 if buffer_size < 4096
       buffer = FFI::MemoryPointer.new buffer_size
       buffer.write_string arg, arg.length

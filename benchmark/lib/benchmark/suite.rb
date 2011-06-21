@@ -82,7 +82,7 @@ module Benchmark
       rescue Exception => e
         STDOUT.puts "\nError in #{file}:"
         if e.respond_to? :render
-          e.render(STDERR)
+          e.render
         else
           STDOUT.puts e.backtrace
         end

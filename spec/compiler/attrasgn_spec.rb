@@ -56,7 +56,9 @@ describe "An Attrasgn node" do
       g.send :d, 0, true
       g.dup
       g.move_down 3
-      g.send :[]=, 2, false
+      g.swap
+      g.push :nil
+      g.send_with_splat :[]=, 1, false, true
       g.pop
     end
   end
@@ -88,7 +90,9 @@ describe "An Attrasgn node" do
       bigger.set!
       g.dup
       g.move_down 3
-      g.send :[]=, 2, false
+      g.swap
+      g.push :nil
+      g.send_with_splat :[]=, 1, false, true
       g.pop
     end
   end
@@ -111,7 +115,9 @@ describe "An Attrasgn node" do
       g.make_array 2
       g.dup
       g.move_down 3
-      g.send :[]=, 2, false
+      g.swap
+      g.push :nil
+      g.send_with_splat :[]=, 1, false, true
       g.pop
     end
   end

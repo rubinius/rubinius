@@ -260,7 +260,7 @@ module Rubinius
       end
 
       def splat?
-        @arguments.kind_of? SplatValue
+        @arguments.kind_of? SplatValue or @arguments.kind_of? ConcatArgs
       end
 
       def bytecode(g)

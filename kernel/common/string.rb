@@ -253,6 +253,14 @@ class String
     end
 
     case index
+    when Fixnum
+      # The same code as in else section.
+      # Copied here to improve performance because Fixnum index is
+      # often used to iterate through String object.
+      index = @num_bytes + index if index < 0
+
+      return if index < 0 || @num_bytes <= index
+      return @data[index]
     when Regexp
       match_data = index.search_region(self, 0, @num_bytes, true)
       Regexp.last_match = match_data
@@ -1185,15 +1193,15 @@ class String
     modify!
 
     if index == 0
-      str.copy_from other, 0, other.size, 0
-      str.copy_from self, 0, @num_bytes, other.size
+      str.copy_from other, 0, osize, 0
+      str.copy_from self, 0, @num_bytes, osize
     elsif index < @num_bytes
       str.copy_from self, 0, index, 0
       str.copy_from other, 0, osize, index
       str.copy_from self, index, @num_bytes - index, index + osize
     else
       str.copy_from self, 0, @num_bytes, 0
-      str.copy_from other, 0, other.size, @num_bytes
+      str.copy_from other, 0, osize, @num_bytes
     end
 
     @num_bytes = size

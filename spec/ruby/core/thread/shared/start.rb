@@ -3,10 +3,20 @@ describe :thread_start, :shared => true do
     ScratchPad.clear
   end
 
-  it "raises a ThreadError if not passed a block" do
-    lambda {
-      Thread.send(@method)
-    }.should raise_error(ThreadError)
+  ruby_version_is '' ... '1.9' do
+    it "raises a ThreadError if not passed a block" do
+      lambda {
+        Thread.send(@method)
+      }.should raise_error(ThreadError)
+    end
+  end
+
+  ruby_version_is '1.9' do
+    it "raises a ArgumentError if not passed a block" do
+      lambda {
+        Thread.send(@method)
+      }.should raise_error(ArgumentError)
+    end
   end
 
   it "spawns a new Thread running the block" do
