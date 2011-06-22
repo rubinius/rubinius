@@ -4,6 +4,32 @@
 $expect_verbose = false
 
 class IO
+  # == Overview
+  # expect(match) listens to an IO input stream and returns the contents when
+  # the match is found. If a block is provided, it returns the block applied
+  # to the string
+  #  
+  # +pat+ is the pattern that will be matched against the input. +pat+ can be
+  # a string or a Regexp
+  # +timeout+ is the amount of time the method will try to read from the IO
+  # object before returning. Leaving the +timeout+ to +nil+ causes the read to
+  # block infinitely until an event transpires.
+  #
+  # expect can take a block that will be executed if the input read matches
+  # the pattern provided.
+  #
+  # == Examples of use
+  # 
+  # === With a block
+  #
+  #   STDIN.expect(/stop/) do |m|
+  #     puts "For the love of god " + m
+  #   end
+  #
+  # === Without a block
+  #
+  #   STDIN.expect(/stop/)
+  
   def expect(pat,timeout=9999999)
     case pat
     when String
