@@ -1,6 +1,7 @@
 # This is originally from the pty extension that comes with MRI
 # by default.
-
+#
+# Documentation by Mike Ballou and Brian Miller on 06/21/2011
 $expect_verbose = false
 
 class IO
