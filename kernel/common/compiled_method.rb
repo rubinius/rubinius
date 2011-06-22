@@ -335,7 +335,7 @@ module Rubinius
     #   nil if nothing is found, else an array of size 2 containing the method
     #   the line was found in and the IP pointing there.
     def locate_line(line)
-      ip = 1
+      i = 1
       total = @lines.size
       while i < total
         cur_line = @lines.at(i)
