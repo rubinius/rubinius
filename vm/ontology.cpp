@@ -353,6 +353,7 @@ namespace rubinius {
      * be uniform is simpler.
      */
     G(rubinius)->set_const(state, "BIN_PATH", String::create(state, RBX_BIN_PATH));
+    G(rubinius)->set_const(state, "KERNEL_PATH", String::create(state, RBX_KERNEL_PATH));
     G(rubinius)->set_const(state, "LIB_PATH", String::create(state, RBX_LIB_PATH));
     G(rubinius)->set_const(state, "EXT_PATH", String::create(state, RBX_EXT_PATH));
     G(rubinius)->set_const(state, "HDR_PATH", String::create(state, RBX_HDR_PATH));
