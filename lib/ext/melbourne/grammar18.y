@@ -65,12 +65,6 @@ namespace grammar18 {
 #define string_new(ptr, len) blk2bstr(ptr, len)
 #define string_new2(ptr) cstr2bstr(ptr)
 
-long mel_sourceline;
-static char *mel_sourcefile;
-
-#define ruby_sourceline mel_sourceline
-#define ruby_sourcefile mel_sourcefile
-
 static int
 mel_yyerror(const char *, rb_parser_state*);
 #define yyparse mel_yyparse
@@ -332,27 +326,27 @@ void pop_start_line(rb_parser_state* parser_state) {
 static QUID rb_parser_sym(const char *name);
 static QUID rb_id_attrset(QUID);
 
-static unsigned long scan_oct(const char *start, int len, int *retlen);
-static unsigned long scan_hex(const char *start, int len, int *retlen);
+static int scan_oct(const char *start, int len, int *retlen);
+static int scan_hex(const char *start, int len, int *retlen);
 
 static void reset_block(rb_parser_state *parser_state);
 static NODE *extract_block_vars(rb_parser_state *parser_state, NODE* node, var_table vars);
 
 #ifndef RE_OPTION_IGNORECASE
-#define RE_OPTION_IGNORECASE         (1L)
+#define RE_OPTION_IGNORECASE         (1)
 #endif
 
 #ifndef RE_OPTION_EXTENDED
-#define RE_OPTION_EXTENDED           (2L)
+#define RE_OPTION_EXTENDED           (2)
 #endif
 
 #ifndef RE_OPTION_MULTILINE
-#define RE_OPTION_MULTILINE          (4L)
+#define RE_OPTION_MULTILINE          (4)
 #endif
 
-#define RE_OPTION_DONT_CAPTURE_GROUP (128L)
-#define RE_OPTION_CAPTURE_GROUP      (256L)
-#define RE_OPTION_ONCE               (8192L)
+#define RE_OPTION_DONT_CAPTURE_GROUP (128)
+#define RE_OPTION_CAPTURE_GROUP      (256)
+#define RE_OPTION_ONCE               (8192)
 
 #define NODE_STRTERM NODE_ZARRAY        /* nothing to gc */
 #define NODE_HEREDOC NODE_ARRAY         /* 1, 3 to gc */
@@ -384,6 +378,7 @@ static NODE *extract_block_vars(rb_parser_state *parser_state, NODE* node, var_t
 %pure-parser
 
 %union {
+    VALUE val;
     NODE *node;
     QUID id;
     int num;
@@ -1556,13 +1551,13 @@ call_args2      : arg_value ',' args opt_block_arg
                 ;
 
 command_args    :  {
-                        $<num>$ = cmdarg_stack;
+                        $<val>$ = cmdarg_stack;
                         CMDARG_PUSH(1);
                     }
                   open_args
                     {
                         /* CMDARG_POP() */
-                        cmdarg_stack = $<num>1;
+                        cmdarg_stack = $<val>1;
                         $$ = $2;
                     }
                 ;
@@ -2826,7 +2821,7 @@ lex_get_str(rb_parser_state *parser_state)
       if(*end++ == '\n') break;
     }
 
-    sz = end - beg;
+    sz = (int)(end - beg);
     bcatblk(line_buffer, beg, sz);
     lex_str_used += sz;
 
@@ -2890,7 +2885,7 @@ static bool parse_io_gets(rb_parser_state *parser_state) {
       return false;
     }
 
-    read = strlen(ptr);
+    read = (int)strlen(ptr);
     bcatblk(line_buffer, ptr, read);
 
     /* check whether we read a full line */
@@ -3373,7 +3368,7 @@ static int tokadd_string(int func, int term, int paren, quark *nest, rb_parser_s
 static int
 parse_string(NODE *quote, rb_parser_state *parser_state)
 {
-    int func = quote->nd_func;
+    int func = (int)quote->nd_func;
     int term = nd_term(quote);
     int paren = nd_paren(quote);
     int c, space = 0;
@@ -3539,7 +3534,7 @@ whole_match_p(const char *eos, int len, int indent, rb_parser_state *parser_stat
     if (indent) {
         while (*p && ISSPACE(*p)) p++;
     }
-    n = lex_pend - (p + len);
+    n = (int)(lex_pend - (p + len));
     if (n < 0 || (n > 0 && p[len] != '\n' && p[len] != '\r')) return FALSE;
     if (strncmp(eos, p, len) == 0) return TRUE;
     return FALSE;
@@ -3575,7 +3570,7 @@ here_document(NODE *here, rb_parser_state *parser_state)
     /* Gr. not yet sure what was_bol() means other than it seems like
        it means only 1 character has been consumed. */
 
-    if (was_bol() && whole_match_p(eos, len, indent, parser_state)) {
+    if (was_bol() && whole_match_p(eos, (int)len, indent, parser_state)) {
         heredoc_restore(lex_strterm, parser_state);
         return tSTRING_END;
     }
@@ -3599,9 +3594,9 @@ here_document(NODE *here, rb_parser_state *parser_state)
                 }
             }
             if (str) {
-                bcatblk(str, p, pend - p);
+                bcatblk(str, p, (int)(pend - p));
             } else {
-                str = blk2bstr(p, pend - p);
+                str = blk2bstr(p, (int)(pend - p));
             }
             if (pend < lex_pend) bcatblk(str, "\n", 1);
             lex_p = lex_pend;
@@ -3609,7 +3604,7 @@ here_document(NODE *here, rb_parser_state *parser_state)
                 if (str) bdestroy(str);
                 goto error;
             }
-        } while (!whole_match_p(eos, len, indent, parser_state));
+        } while (!whole_match_p(eos, (int)len, indent, parser_state));
     }
     else {
         newtok(parser_state);
@@ -3641,7 +3636,7 @@ here_document(NODE *here, rb_parser_state *parser_state)
             /* I think this consumes the \n */
             tokadd((char)nextc(), parser_state);
             if ((c = nextc()) == -1) goto error;
-        } while (!whole_match_p(eos, len, indent, parser_state));
+        } while (!whole_match_p(eos, (int)len, indent, parser_state));
         str = string_new(tok(), toklen());
     }
     heredoc_restore(lex_strterm, parser_state);
@@ -3662,7 +3657,7 @@ arg_ambiguous()
 
 
 static char* parse_comment(struct rb_parser_state* parser_state) {
-  int len = lex_pend - lex_p;
+  int len = (int)(lex_pend - lex_p);
 
   char* str = lex_p;
   while(len-- > 0 && ISSPACE(str[0])) str++;
@@ -3731,7 +3726,7 @@ yylex(void *yylval_v, void *vstate)
 
       case '#':         /* it's a comment */
         if(char* str = parse_comment(parser_state)) {
-            int len = lex_pend - str - 1; // - 1 for the \n
+            int len = (int)(lex_pend - str - 1); // - 1 for the \n
             cur_line = blk2bstr(str, len);
             magic_comments->push_back(cur_line);
         }
@@ -4859,10 +4854,10 @@ yylex(void *yylval_v, void *vstate)
 
 
 NODE*
-parser_node_newnode(rb_parser_state *st, enum node_type type,
+parser_node_newnode(rb_parser_state *parser_state, enum node_type type,
                     VALUE a0, VALUE a1, VALUE a2)
 {
-    NODE *n = (NODE*)pt_allocate(st, sizeof(NODE));
+    NODE *n = (NODE*)pt_allocate(parser_state, sizeof(NODE));
 
     n->flags = 0;
     nd_set_type(n, type);
@@ -4905,7 +4900,7 @@ parser_warning(rb_parser_state *parser_state, NODE *node, const char *mesg)
     int line = ruby_sourceline;
     if(emit_warnings) {
       ruby_sourceline = nd_line(node);
-      printf("%s:%li: warning: %s\n", ruby_sourcefile, ruby_sourceline, mesg);
+      printf("%s:%i: warning: %s\n", ruby_sourcefile, ruby_sourceline, mesg);
       ruby_sourceline = line;
     }
 }
@@ -5645,17 +5640,19 @@ assign_in_cond(NODE *node, rb_parser_state *parser_state)
 }
 
 static int
-e_option_supplied()
+parser_e_option_supplied(rb_parser_state* parser_state)
 {
     if (strcmp(ruby_sourcefile, "-e") == 0)
         return TRUE;
     return FALSE;
 }
 
+#define e_option_supplied()   parser_e_option_supplied(parser_state)
+
 static void
-warn_unless_e_option(rb_parser_state *ps, NODE *node, const char *str)
+warn_unless_e_option(rb_parser_state *parser_state, NODE *node, const char *str)
 {
-    if (!e_option_supplied()) parser_warning(ps, node, str);
+    if (!e_option_supplied()) parser_warning(parser_state, node, str);
 }
 
 static NODE *cond0(NODE *node, rb_parser_state *parser_state);
@@ -5927,7 +5924,7 @@ mel_local_tbl(rb_parser_state *parser_state)
     int i, len;
     tbl = variables->local_vars;
     len = var_table_size(tbl);
-    lcl_tbl = (QUID*)pt_allocate(parser_state, sizeof(QUID) * (len + 3));
+    lcl_tbl = (QUID*)pt_allocate(parser_state, (int)(sizeof(QUID) * (len + 3)));
     lcl_tbl[0] = (QUID)len;
     lcl_tbl[1] = '_';
     lcl_tbl[2] = '~';
@@ -5987,7 +5984,7 @@ rb_parser_sym(const char *name)
     int last;
 
     id = 0;
-    last = strlen(name)-1;
+    last = (int)strlen(name)-1;
     switch (*name) {
       case '$':
         id |= ID_GLOBAL;
@@ -6039,34 +6036,34 @@ rb_parser_sym(const char *name)
     return id;
 }
 
-static unsigned long
+static int
 scan_oct(const char *start, int len, int *retlen)
 {
     register const char *s = start;
-    register unsigned long retval = 0;
+    register int retval = 0;
 
     while (len-- && *s >= '0' && *s <= '7') {
         retval <<= 3;
         retval |= *s++ - '0';
     }
-    *retlen = s - start;
+    *retlen = (int)(s - start);
     return retval;
 }
 
-static unsigned long
+static int
 scan_hex(const char *start, int len, int *retlen)
 {
     static const char hexdigit[] = "0123456789abcdef0123456789ABCDEF";
     register const char *s = start;
-    register unsigned long retval = 0;
+    register int retval = 0;
     const char *tmp;
 
     while (len-- && *s && (tmp = strchr(hexdigit, *s))) {
         retval <<= 4;
-        retval |= (tmp - hexdigit) & 15;
+        retval |= (int)((tmp - hexdigit) & 15);
         s++;
     }
-    *retlen = s - start;
+    *retlen = (int)(s - start);
     return retval;
 }
 

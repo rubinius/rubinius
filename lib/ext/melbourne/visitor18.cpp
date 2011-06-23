@@ -11,7 +11,6 @@
 
 namespace melbourne {
   namespace grammar18 {
-  extern long mel_sourceline;
 
   static VALUE string_newfrombstr(bstring str)
   {
@@ -66,7 +65,7 @@ namespace melbourne {
                rb_intern("process_parse_error"),4,
                err_msg,
                INT2FIX(col),
-               INT2FIX(mel_sourceline),
+               INT2FIX(ruby_sourceline),
                string_newfrombstr(lex_lastline));
 
     parse_error = true;

@@ -23,11 +23,7 @@ namespace melbourne {
       EXPR_CLASS,     /* immediate after `class', no here document. */
     };
 
-#ifdef HAVE_LONG_LONG
-    typedef unsigned LONG_LONG stack_type;
-#else
-    typedef unsigned long stack_type;
-#endif
+typedef VALUE stack_type;
 
     struct StartPosition {
       int line;
@@ -104,6 +100,9 @@ namespace melbourne {
       bool parse_error;
       VALUE processor;
 
+      char *ruby_sourcefile;
+      int ruby_sourceline;
+
       // Keeps track of lines that 'end' starters are on, to enable
       // better error reporting.
       std::list<StartPosition>* start_lines;
@@ -164,6 +163,8 @@ namespace melbourne {
 #define parse_error         PARSER_VAR(parse_error)
 #define processor           PARSER_VAR(processor)
 #define start_lines         PARSER_VAR(start_lines)
+#define ruby_sourcefile     PARSER_VAR(ruby_sourcefile)
+#define ruby_sourceline     PARSER_VAR(ruby_sourceline)
 
 #define node_newnode(t, a, b, c)  parser_node_newnode((rb_parser_state*)parser_state, t, a, b, c)
 
