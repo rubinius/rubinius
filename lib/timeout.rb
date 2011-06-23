@@ -90,7 +90,9 @@ module Timeout
       min = @requests.min { |a,b| a.left <=> b.left }
     end
 
-    slept_for = sleep(min.left)
+    before = Time.now
+    sleep(min.left)
+    slept_for = Time.now - before
 
     @mutex.synchronize do
       @requests.delete_if do |r|
@@ -111,6 +113,12 @@ module Timeout
   end
 
   def self.add_timeout(time, exc)
+    req = TimeoutRequest.new(time, Thread.current, exc)
+
+    @mutex.synchronize do
+      @requests << req
+    end
+
     @controller ||= Thread.new do
       while true
         begin
@@ -119,12 +127,6 @@ module Timeout
           STDERR.puts "Error inside timeout thread: #{e.message} (#{e.class})"
         end
       end
-    end
-
-    req = TimeoutRequest.new(time, Thread.current, exc)
-
-    @mutex.synchronize do
-      @requests << req
     end
 
     @controller.run
