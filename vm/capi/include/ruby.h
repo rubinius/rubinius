@@ -381,8 +381,6 @@ typedef struct RIO rb_io_t;
 
 #define OpenFile rb_io_t
 
-#define HAVE_RB_IO_T 1
-
 // Fake it out, just make the ptr be the val
 // MRI checks also that it's not closed...
 #define GetOpenFile(val, ptr) (ptr) = (capi_rio_struct(val))
@@ -1109,9 +1107,6 @@ VALUE rb_uint2big(unsigned long number);
   /** Set the current exception */
   void    rb_set_errinfo(VALUE err);
 
-  // To advertise we have rb_errinfo to extensions
-#define HAVE_RB_ERRINFO 1
-
   /** Remove a previously declared global variable. */
   void    rb_free_global(VALUE global);
 
@@ -1194,7 +1189,6 @@ VALUE rb_uint2big(unsigned long number);
   VALUE   rb_io_close(VALUE io);
 
   int     rb_io_fd(VALUE io);
-#define HAVE_RB_IO_FD 1
 
   int     rb_io_wait_readable(int fd);
   int     rb_io_wait_writable(int fd);
@@ -1505,7 +1499,6 @@ VALUE rb_uint2big(unsigned long number);
    * @note This is NOT an MRI C-API function.
    */
   char* rb_str_ptr_readonly(VALUE self);
-#define HAVE_RB_STR_PTR_READONLY 1
 
   /** Appends other String to self and returns the modified self. */
   VALUE   rb_str_append(VALUE self, VALUE other);
@@ -1665,9 +1658,6 @@ VALUE rb_uint2big(unsigned long number);
   VALUE rb_thread_blocking_region(rb_blocking_function_t* func, void* data,
                                   rb_unblock_function_t* ubf, void* ubf_data);
 
-#define HAVE_TYPE_RB_BLOCKING_FUNCTION_T 1
-#define HAVE_RB_THREAD_BLOCKING_REGION 1
-
   /* Experimental API. Call +func+ with the GIL locked. */
   typedef void* (*rb_thread_call_func)(void*);
 
@@ -1681,8 +1671,6 @@ VALUE rb_uint2big(unsigned long number);
   // variables can be read, but writes ignored.
   extern int* mri_global_debug();
   extern int* mri_global_verbose();
-
-#define HAVE_RB_THREAD_BLOCKING_REGION 1
 
   /* 1.9 provides these, so we will too: */
 #define RUBY_UBF_IO ((rb_unblock_function_t *)-1)
