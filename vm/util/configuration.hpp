@@ -111,6 +111,43 @@ namespace config {
     }
   };
 
+  class Bytes : public ConfigItem {
+  public:
+    long value;
+
+    Bytes(Configuration* config, const char* name, int def = 0)
+      : ConfigItem(config, name)
+      , value(def)
+    {}
+
+    virtual void set(const char* str) {
+      char* end;
+      value = strtol(str, &end, 0);
+      switch(*end) {
+      case 'g':
+      case 'G':
+        value *= 1073741824;
+        break;
+      case 'm':
+      case 'M':
+        value *= 1048576;
+        break;
+      case 'k':
+      case 'K':
+        value *= 1024;
+        break;
+      }
+    }
+
+    virtual void print_value(std::ostream& stream) {
+      stream << value;
+    }
+
+    operator long() {
+      return value;
+    }
+  };
+
   class String : public ConfigItem {
   public:
     std::string value;

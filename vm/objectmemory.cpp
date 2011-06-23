@@ -29,6 +29,10 @@
 
 #include "global_cache.hpp"
 
+// Used by XMALLOC at the bottom
+static long gc_malloc_threshold = 0;
+static long bytes_until_collection = 0;
+
 namespace rubinius {
 
   Object* object_watch = 0;
@@ -75,6 +79,9 @@ namespace rubinius {
     }
 
     TypeInfo::init(this);
+
+    gc_malloc_threshold = config.gc_malloc_threshold;
+    bytes_until_collection = gc_malloc_threshold;
   }
 
   ObjectMemory::~ObjectMemory() {
@@ -939,15 +946,11 @@ void x_print_snapshot() {
   rubinius::VM::current_state()->om->print_new_since_snapshot();
 }
 
-#define DEFAULT_MALLOC_THRESHOLD 10000000
-
-static long bytes_until_collection = DEFAULT_MALLOC_THRESHOLD;
-
 void* XMALLOC(size_t bytes) {
   bytes_until_collection -= bytes;
   if(bytes_until_collection <= 0) {
     rubinius::VM::current_state()->run_gc_soon();
-    bytes_until_collection = DEFAULT_MALLOC_THRESHOLD;
+    bytes_until_collection = gc_malloc_threshold;
   }
   return malloc(bytes);
 }
@@ -960,7 +963,7 @@ void* XREALLOC(void* ptr, size_t bytes) {
   bytes_until_collection -= bytes;
   if(bytes_until_collection <= 0) {
     rubinius::VM::current_state()->run_gc_soon();
-    bytes_until_collection = DEFAULT_MALLOC_THRESHOLD;
+    bytes_until_collection = gc_malloc_threshold;
   }
 
   return realloc(ptr, bytes);
@@ -972,7 +975,7 @@ void* XCALLOC(size_t items, size_t bytes_per) {
   bytes_until_collection -= bytes;
   if(bytes_until_collection <= 0) {
     rubinius::VM::current_state()->run_gc_soon();
-    bytes_until_collection = DEFAULT_MALLOC_THRESHOLD;
+    bytes_until_collection = gc_malloc_threshold;
   }
 
   return calloc(items, bytes_per);
