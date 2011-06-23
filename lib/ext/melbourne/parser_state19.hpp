@@ -201,18 +201,6 @@ typedef VALUE stack_type;
     NODE *parser_node_newnode(rb_parser_state*, enum node_type, VALUE, VALUE, VALUE);
     VALUE parser_add_reference(rb_parser_state* parser_state, VALUE obj);
 
-#if defined(HAVE_RUBY_ENCODING_H) && !defined(RUBINIUS)
-#define parser_intern     rb_intern
-#define parser_intern2    rb_intern2
-#define parser_intern3    rb_intern3
-#define parser_intern_str rb_intern_str
-#else
-    ID parser_intern(const char*);
-    ID parser_intern2(const char*, long);
-    ID parser_intern3(const char*, long, rb_encoding*);
-    ID parser_intern_str(VALUE str);
-
-#undef ID2SYM
 #undef ID_SCOPE_SHIFT
 #undef ID_SCOPE_MASK
 #undef ID_LOCAL
@@ -223,6 +211,32 @@ typedef VALUE stack_type;
 #undef ID_CLASS
 #undef ID_JUNK
 #undef ID_INTERNAL
+
+#if defined(HAVE_RUBY_ENCODING_H) && !defined(RUBINIUS)
+#define ID_SCOPE_SHIFT 3
+#define ID_SCOPE_MASK 0x07
+#define ID_LOCAL      0x00
+#define ID_INSTANCE   0x01
+#define ID_GLOBAL     0x03
+#define ID_ATTRSET    0x04
+#define ID_CONST      0x05
+#define ID_CLASS      0x06
+#define ID_JUNK       0x07
+#define ID_INTERNAL   ID_JUNK
+
+#define parser_intern     rb_intern
+#define parser_intern2    rb_intern2
+#define parser_intern3    rb_intern3
+#define parser_intern_str rb_intern_str
+#define parser_id2name    rb_id2name
+#else
+    ID parser_intern(const char*);
+    ID parser_intern2(const char*, long);
+    ID parser_intern3(const char*, long, rb_encoding*);
+    ID parser_intern_str(VALUE);
+    char* parser_id2name(ID);
+
+#undef ID2SYM
 #undef SYMBOL_FLAG
 
 /* ID_SCOPE_SHIFT must be at least 4 because at 3 the values will overlap
@@ -230,7 +244,7 @@ typedef VALUE stack_type;
  * '*' with the token tAREF. Hilarity ensues when Fixnum * Fixnum ends up
  * parsed as Fixnum[Fixnum].
  */
-#define ID_SCOPE_SHIFT  4
+#define ID_SCOPE_SHIFT  7
 #define ID_SCOPE_MASK   0x0f
 #define ID_LOCAL        0x00
 #define ID_INSTANCE     0x01
@@ -241,8 +255,6 @@ typedef VALUE stack_type;
 #define ID_JUNK         0x07
 #define ID_INTERNAL     ID_JUNK
 
-#define INTERNAL_ID_P(a)  ((a & ID_INTERNAL) == ID_INTERNAL)
-
 #ifdef RUBINIUS
 #define ID2SYM(id)  (VALUE)((long)(id >> ID_SCOPE_SHIFT))
 #else
@@ -251,6 +263,8 @@ typedef VALUE stack_type;
 #endif
 
 #endif
+
+#define INTERNAL_ID_P(a)  ((a & ID_INTERNAL) == ID_INTERNAL)
 
   };  // namespace grammar19
 };  // namespace melbourne

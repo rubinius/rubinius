@@ -5931,8 +5931,7 @@ parser_gettable(rb_parser_state* parser_state, ID id)
   } else if(is_class_id(id)) {
     return NEW_CVAR(id);
   }
-  /* FIXME: indicate which identifier. */
-  rb_compile_error(parser_state, "identifier is not valid 1\n");
+  rb_compile_error(parser_state, "identifier %s is not valid", parser_id2name(id));
   return 0;
 }
 
@@ -5970,7 +5969,7 @@ parser_assignable(rb_parser_state* parser_state, ID id, NODE *val)
   } else if(is_class_id(id)) {
     return NEW_CVASGN(id, val);
   } else {
-    rb_compile_error(parser_state, "identifier %s is not valid to set", rb_id2name(id));
+    rb_compile_error(parser_state, "identifier %s is not valid to set", parser_id2name(id));
   }
   return 0;
 }
@@ -6001,7 +6000,7 @@ parser_new_bv(rb_parser_state* parser_state, ID name)
 {
   if(!name) return;
   if(!is_local_id(name)) {
-    rb_compile_error(parser_state, "invalid local variable - %s", rb_id2name(name));
+    rb_compile_error(parser_state, "invalid local variable - %s", parser_id2name(name));
     return;
   }
   shadowing_lvar(name);
@@ -6803,6 +6802,13 @@ ID
 parser_intern_str(VALUE str)
 {
   return parser_intern2(RSTRING_PTR(str), RSTRING_LEN(str));
+}
+
+char*
+parser_id2name(ID id)
+{
+  VALUE str = rb_funcall(ID2SYM(id), rb_intern("to_s"), 0);
+  return RSTRING_PTR(str);
 }
 #endif  // !defined(HAVE_RUBY_ENCODING_H) || defined(RUBINIUS)
 
