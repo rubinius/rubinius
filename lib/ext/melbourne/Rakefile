@@ -81,7 +81,7 @@ melbourne_build = "build/melbourne20.#{$DLEXT}"
 
 file melbourne_build => project_files
 
-graph_dependencies source_files
+graph_dependencies source_files, [], ext_dir
 
 import dependency_file
 
