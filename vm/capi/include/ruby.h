@@ -1665,6 +1665,9 @@ VALUE rb_uint2big(unsigned long number);
   VALUE rb_thread_blocking_region(rb_blocking_function_t* func, void* data,
                                   rb_unblock_function_t* ubf, void* ubf_data);
 
+#define HAVE_TYPE_RB_BLOCKING_FUNCTION_T 1
+#define HAVE_RB_THREAD_BLOCKING_REGION 1
+
   /* Experimental API. Call +func+ with the GIL locked. */
   typedef void* (*rb_thread_call_func)(void*);
 
