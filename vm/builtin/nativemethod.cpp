@@ -237,7 +237,7 @@ namespace rubinius {
     static Object* invoke(STATE, NativeMethod* nm, NativeMethodEnvironment* env,
                           Arguments& args)
     {
-      VALUE receiver = env->get_handle(args.recv());
+      VALUE receiver = env->current_native_frame()->receiver();
       return env->get_object(nm->func()(receiver));
     }
   };
@@ -247,7 +247,7 @@ namespace rubinius {
     static Object* invoke(STATE, NativeMethod* nm, NativeMethodEnvironment* env,
                           Arguments& args)
     {
-      VALUE receiver = env->get_handle(args.recv());
+      VALUE receiver = env->current_native_frame()->receiver();
       VALUE a1 = env->get_handle(args.get_argument(0));
 
       return env->get_object(nm->func()(receiver, a1));
@@ -259,7 +259,7 @@ namespace rubinius {
     static Object* invoke(STATE, NativeMethod* nm, NativeMethodEnvironment* env,
                           Arguments& args)
     {
-      VALUE receiver = env->get_handle(args.recv());
+      VALUE receiver = env->current_native_frame()->receiver();
       VALUE a1 = env->get_handle(args.get_argument(0));
       VALUE a2 = env->get_handle(args.get_argument(1));
 
@@ -272,7 +272,7 @@ namespace rubinius {
     static Object* invoke(STATE, NativeMethod* nm, NativeMethodEnvironment* env,
                           Arguments& args)
     {
-      VALUE receiver = env->get_handle(args.recv());
+      VALUE receiver = env->current_native_frame()->receiver();
       VALUE a1 = env->get_handle(args.get_argument(0));
       VALUE a2 = env->get_handle(args.get_argument(1));
       VALUE a3 = env->get_handle(args.get_argument(2));
@@ -286,7 +286,7 @@ namespace rubinius {
     static Object* invoke(STATE, NativeMethod* nm, NativeMethodEnvironment* env,
                           Arguments& args)
     {
-      VALUE receiver = env->get_handle(args.recv());
+      VALUE receiver = env->current_native_frame()->receiver();
 
       switch(nm->arity()->to_int()) {
 
