@@ -184,7 +184,6 @@ namespace rubinius {
     class HandleSet {
     public:
       const static int cFastHashSize = 16;
-      const static int cFastHashMask = cFastHashSize - 1;
 
     private:
       SlowHandleSet* slow_;

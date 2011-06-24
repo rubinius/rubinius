@@ -87,6 +87,10 @@ namespace rubinius {
     }
 
     void HandleSet::deref_all() {
+      for(int i = 0; i < cFastHashSize; i++) {
+        if(table_[i]) table_[i]->deref();
+      }
+
       if(slow_) {
         for(SlowHandleSet::iterator i = slow_->begin();
             i != slow_->end();
@@ -94,14 +98,14 @@ namespace rubinius {
           capi::Handle* handle = *i;
           handle->deref();
         }
-      } else {
-        for(int i = 0; i < cFastHashSize; i++) {
-          if(table_[i]) table_[i]->deref();
-        }
       }
     }
 
     void HandleSet::flush_all(NativeMethodEnvironment* env) {
+      for(int i = 0; i < cFastHashSize; i++) {
+        if(table_[i]) table_[i]->flush(env);
+      }
+
       if(slow_) {
         for(SlowHandleSet::iterator i = slow_->begin();
             i != slow_->end();
@@ -109,14 +113,14 @@ namespace rubinius {
           capi::Handle* handle = *i;
           handle->flush(env);
         }
-      } else {
-        for(int i = 0; i < cFastHashSize; i++) {
-          if(table_[i]) table_[i]->flush(env);
-        }
       }
     }
 
     void HandleSet::update_all(NativeMethodEnvironment* env) {
+      for(int i = 0; i < cFastHashSize; i++) {
+        if(table_[i]) table_[i]->update(env);
+      }
+
       if(slow_) {
         for(SlowHandleSet::iterator i = slow_->begin();
             i != slow_->end();
@@ -124,14 +128,14 @@ namespace rubinius {
           capi::Handle* handle = *i;
           handle->update(env);
         }
-      } else {
-        for(int i = 0; i < cFastHashSize; i++) {
-          if(table_[i]) table_[i]->update(env);
-        }
       }
     }
 
     bool HandleSet::slow_add_if_absent(Handle* handle) {
+      for(int i = 0; i < cFastHashSize; i++) {
+        if(table_[i] == handle) return false;
+      }
+
       SlowHandleSet::iterator pos = slow_->find(handle);
       if(pos != slow_->end()) return false;
 
@@ -144,14 +148,6 @@ namespace rubinius {
     void HandleSet::make_slow_and_add(Handle* handle) {
       // Inflate it to the slow set.
       slow_ = new SlowHandleSet;
-
-      for(int i = 0; i < cFastHashSize; i++) {
-        if(table_[i]) {
-          slow_->insert(table_[i]);
-          table_[i] = 0;
-        }
-      }
-
       slow_->insert(handle);
       handle->ref();
     }
