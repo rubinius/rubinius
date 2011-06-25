@@ -1,1 +1,0 @@
-fails:ARGF.gets modifies the files when in place edit mode is on

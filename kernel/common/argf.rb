@@ -489,6 +489,8 @@ module Rubinius
         @init = true
       end
 
+      File.unlink(@backup_filename) if @backup_filename && $-i == ""
+
       return false if @use_stdin_only || ARGV.empty?
 
       @advance = false
@@ -498,11 +500,11 @@ module Rubinius
       @filename = file
 
       if $-i && @stream != STDIN
-        @original_stdout = $stdout
-        @backup_filename = "#{@filename}#{$-i}"
+        backup_extension = $-i == "" ? ".bak" : $-i
+        @backup_filename = "#{@filename}#{backup_extension}"
         File.rename(@filename, @backup_filename)
         @stream = File.open(@backup_filename, "r")
-        $stdout = @current_output = File.open(@filename, "w")
+        $stdout = File.open(@filename, "w")
       end
 
       return true
