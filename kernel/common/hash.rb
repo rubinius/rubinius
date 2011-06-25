@@ -305,7 +305,7 @@ class Hash
     cap = @capacity
     entries = @entries
 
-    @iterating = true
+    @iterating = true unless frozen?
 
     while idx < cap
       entry = entries[idx]
@@ -317,7 +317,7 @@ class Hash
       idx += 1
     end
 
-    @iterating = nil
+    @iterating = nil unless frozen?
 
     nil
   end
@@ -329,7 +329,7 @@ class Hash
     cap = @capacity
     entries = @entries
 
-    @iterating = true
+    @iterating = true unless frozen?
 
     while idx < cap
       entry = entries[idx]
@@ -341,7 +341,7 @@ class Hash
       idx += 1
     end
 
-    @iterating = nil
+    @iterating = nil unless frozen?
 
     self
   end
@@ -589,7 +589,7 @@ class Hash
     entries = @entries
     change = 0
 
-    @iterating = true
+    @iterating = true unless frozen?
 
     i = -1
     while (i += 1) < capacity
@@ -609,7 +609,7 @@ class Hash
       end
     end
 
-    @iterating = nil
+    @iterating = nil unless frozen?
 
     if change > 0
       @size -= change
