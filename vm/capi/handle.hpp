@@ -151,8 +151,16 @@ namespace rubinius {
         return as_.rstring;
       }
 
+      RData*  create_rdata(NativeMethodEnvironment* env);
+      RData*  as_rdata(NativeMethodEnvironment* env) {
+        if(type_ == cRData) {
+          return as_.rdata;
+        } else {
+          return create_rdata(env);
+        }
+      }
+
       RArray* as_rarray(NativeMethodEnvironment* env);
-      RData*  as_rdata(NativeMethodEnvironment* env);
       RString* as_rstring(NativeMethodEnvironment* env, int cache_level);
       RFloat* as_rfloat(NativeMethodEnvironment* env);
       RIO* as_rio(NativeMethodEnvironment* env);
