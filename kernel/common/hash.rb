@@ -210,6 +210,8 @@ class Hash
 
     entry = @entries[index]
     unless entry
+      raise RuntimeError.new("can't add a new key into hash during iteration") if @iterating
+
       @entries[index] = new_entry key, key_hash, value
       return value
     end
@@ -321,6 +323,8 @@ class Hash
     cap = @capacity
     entries = @entries
 
+    @iterating = true
+
     while idx < cap
       entry = entries[idx]
       while entry
@@ -330,6 +334,8 @@ class Hash
 
       idx += 1
     end
+
+    @iterating = nil
 
     self
   end
