@@ -305,6 +305,8 @@ class Hash
     cap = @capacity
     entries = @entries
 
+    @iterating = true
+
     while idx < cap
       entry = entries[idx]
       while entry
@@ -314,6 +316,10 @@ class Hash
 
       idx += 1
     end
+
+    @iterating = nil
+
+    nil
   end
 
   def each
@@ -539,6 +545,8 @@ class Hash
   # into a new +@entries+ vector. Does NOT change the size of the
   # hash. See +#redistribute+.
   def rehash
+    raise RuntimeError.new("can't rehash while iterating") if @iterating
+
     capacity = @capacity
     entries  = @entries
 
@@ -581,6 +589,8 @@ class Hash
     entries = @entries
     change = 0
 
+    @iterating = true
+
     i = -1
     while (i += 1) < capacity
       prev_entry = nil
@@ -598,6 +608,8 @@ class Hash
         entry = entry.next
       end
     end
+
+    @iterating = nil
 
     if change > 0
       @size -= change
