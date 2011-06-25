@@ -246,9 +246,13 @@ namespace rubinius {
     // over again (ie Proc.new) so we mark the method as not
     // inlinable so that this works even with the JIT on.
 
+    if(!target) {
+      return Qnil;
+    }
+
     target->cm->backend_method()->set_no_inline();
 
-    if(target && target->scope) {
+    if(target->scope) {
       return target->scope->block();
     }
 
