@@ -62,15 +62,15 @@ namespace config {
       return true;
     }
 
-    const char* name() {
+    const char* name() const {
       return name_;
     }
 
-    bool set_p() {
+    bool set_p() const {
       return set_;
     }
 
-    const char* description() {
+    const char* description() const {
       return description_;
     }
 
@@ -106,7 +106,7 @@ namespace config {
       stream << value;
     }
 
-    operator long() {
+    operator long() const {
       return value;
     }
   };
@@ -143,7 +143,7 @@ namespace config {
       stream << value;
     }
 
-    operator long() {
+    operator long() const {
       return value;
     }
   };
@@ -170,7 +170,7 @@ namespace config {
       }
     }
 
-    operator const char*() {
+    operator const char*() const {
       return value.c_str();
     }
   };
@@ -203,7 +203,7 @@ namespace config {
       stream << (value ? "true" : "false");
     }
 
-    operator bool() {
+    operator bool() const {
       return value;
     }
   };

@@ -5,7 +5,7 @@
 LinkedList::LinkedList() : head_(NULL), count_(0) { }
 LinkedList::Node::Node() : next_(NULL), prev_(NULL) { }
 
-size_t LinkedList::size() {
+size_t LinkedList::size() const {
   return count_;
 }
 

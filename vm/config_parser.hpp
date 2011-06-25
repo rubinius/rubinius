@@ -16,10 +16,10 @@ namespace rubinius {
       std::string variable;
       std::string value;
 
-      bool is_number();
-      bool is_true();
-      bool in_section(std::string prefix);
-      long to_i();
+      bool is_number() const;
+      bool is_true() const;
+      bool in_section(std::string prefix) const;
+      long to_i() const;
     };
 
     typedef std::map<std::string, Entry*> ConfigMap;
