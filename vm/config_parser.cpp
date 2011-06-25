@@ -152,19 +152,19 @@ namespace rubinius {
     variables[entry->variable] = entry;
   }
 
-  bool ConfigParser::Entry::is_number() {
+  bool ConfigParser::Entry::is_number() const {
     return rubinius::is_number(value.c_str());
   }
 
-  bool ConfigParser::Entry::is_true() {
+  bool ConfigParser::Entry::is_true() const {
     return value == "true";
   }
 
-  long ConfigParser::Entry::to_i() {
+  long ConfigParser::Entry::to_i() const {
     return strtol(value.c_str(), NULL, 10);
   }
 
-  bool ConfigParser::Entry::in_section(std::string prefix) {
+  bool ConfigParser::Entry::in_section(std::string prefix) const {
     return variable.find(prefix) == 0;
   }
 

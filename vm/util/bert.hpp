@@ -86,15 +86,15 @@ namespace bert {
       if(string_) delete[] string_;
     }
 
-    TermType type() {
+    TermType type() const {
       return type_;
     }
 
-    int integer() {
+    int integer() const {
       return integer_;
     }
 
-    double float_number() {
+    double float_number() const {
       return float_;
     }
 
@@ -480,7 +480,7 @@ namespace bert {
       , eof_(false)
     {}
 
-    bool eof_p() {
+    bool eof_p() const {
       return eof_;
     }
 
@@ -593,7 +593,7 @@ namespace bert {
       if(sub_value_) delete sub_value_;
     }
 
-    Type type() {
+    Type type() const {
       return type_;
     }
 
@@ -601,23 +601,23 @@ namespace bert {
       return term_;
     }
 
-    bool integer_p() {
+    bool integer_p() const {
       return type_ == Integer;
     }
 
-    int integer() {
+    int integer() const {
       return term_->integer();
     }
 
-    bool float_p() {
+    bool float_p() const {
       return type_ == Float;
     }
 
-    double float_number() {
+    double float_number() const {
       return term_->float_number();
     }
 
-    bool string_p() {
+    bool string_p() const {
       return type_ == Binary;
     }
 
@@ -625,7 +625,7 @@ namespace bert {
       return term_->string();
     }
 
-    bool boolean() {
+    bool boolean() const {
       return boolean_;
     }
 
@@ -641,7 +641,7 @@ namespace bert {
       time_ = time;
     }
 
-    uint64_t time() {
+    uint64_t time() const {
       return time_;
     }
 
