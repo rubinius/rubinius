@@ -118,7 +118,7 @@ namespace rubinius {
     } while(1);
 
     // Shouldn't be here!
-    rubinius::abort();
+    abort();
   }
 
   bool InlineCache::fill_private(STATE, Symbol* name, Module* start) {
@@ -185,7 +185,7 @@ namespace rubinius {
     } while(1);
 
     // Shouldn't be here!
-    rubinius::abort();
+    abort();
   }
 
   bool InlineCache::fill_method_missing(STATE, Module* module) {
@@ -230,7 +230,7 @@ namespace rubinius {
     } while(1);
 
     // Shouldn't be here!
-    rubinius::abort();
+    abort();
   }
 
   void InlineCache::run_wb(STATE, CompiledMethod* exec) {

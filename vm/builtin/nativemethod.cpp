@@ -147,7 +147,7 @@ namespace rubinius {
   VALUE NativeMethodEnvironment::get_handle(Object* obj) {
     if(obj->reference_p()) {
       if(!current_native_frame_) {
-        rubinius::bug("Unable to create handles with no NMF");
+        bug("Unable to create handles with no NMF");
       }
 
       return current_native_frame_->get_handle(state_, obj);
@@ -178,7 +178,7 @@ namespace rubinius {
 
   capi::HandleSet& NativeMethodEnvironment::handles() {
     if(!current_native_frame_) {
-      rubinius::bug("Requested handles with no frame");
+      bug("Requested handles with no frame");
     }
 
     return current_native_frame_->handles();

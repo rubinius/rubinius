@@ -107,7 +107,7 @@ namespace rubinius {
     std::cerr << "bug. Please report this on the rubinius issue tracker.\n";
     std::cerr << "Include the following backtrace in the issue:\n\n";
 
-    rubinius::abort();
+    abort();
   }
 
   void Environment::setup_cpp_terminate() {

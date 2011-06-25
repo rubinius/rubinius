@@ -492,7 +492,7 @@ namespace rubinius {
     if(thread_state()->raise_reason() == cNone) {
       std::cout << "Exception propogating, but none registered!\n";
       call_frame->print_backtrace(this);
-      rubinius::abort();
+      abort();
     }
   }
 

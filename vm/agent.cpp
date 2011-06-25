@@ -50,7 +50,7 @@ namespace rubinius {
 
     if(pipe(control_) != 0) {
       perror("pipe");
-      rubinius::abort();
+      abort();
     }
 
     add_fd(read_control());
@@ -60,12 +60,12 @@ namespace rubinius {
 
     if(pipe(a2r_) != 0) {
       perror("pipe");
-      rubinius::abort();
+      abort();
     }
 
     if(pipe(r2a_) != 0) {
       perror("pipe");
-      rubinius::abort();
+      abort();
     }
 
     add_fd(r2a_agent());
