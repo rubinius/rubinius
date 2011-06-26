@@ -19,7 +19,7 @@ extern "C" {
 VALUE melbourne18_string_to_ast(VALUE self, VALUE source, VALUE name, VALUE line) {
   StringValue(source);
   StringValue(name);
-  bstring b_str = blk2bstr(RSTRING_PTR(source), RSTRING_LEN(source));
+  bstring b_str = blk2bstr(RSTRING_PTR(source), (int)RSTRING_LEN(source));
   VALUE result = melbourne::grammar18::string_to_ast(self,
       RSTRING_PTR(name), b_str, FIX2INT(line));
   bdestroy(b_str);

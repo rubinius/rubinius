@@ -48,7 +48,7 @@ namespace melbourne {
       if(!err_msg) err_msg = rb_str_new2(msg);
     }
 
-    int col = lex_p - lex_pbeg;
+    int col = (int)(lex_p - lex_pbeg);
 
     rb_funcall(processor,
                rb_intern("process_parse_error"),4,

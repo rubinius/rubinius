@@ -59,7 +59,7 @@ namespace melbourne {
       if(!err_msg) err_msg = rb_str_new2(msg);
     }
 
-    int col = lex_p - lex_pbeg;
+    int col = (int)(lex_p - lex_pbeg);
 
     rb_funcall(processor,
                rb_intern("process_parse_error"),4,
@@ -709,7 +709,7 @@ namespace melbourne {
     case NODE_ARGS: {
       VALUE splat = Qnil, args = rb_ary_new();
       NODE *optnode;
-      int i = 0, max_args = node->nd_cnt;
+      int i = 0, max_args = (int)node->nd_cnt;
 
       /* push regular argument names */
       for (; i < max_args; i++) {
