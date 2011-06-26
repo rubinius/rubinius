@@ -635,20 +635,20 @@ static int scan_hex(const char *start, size_t len, size_t *retlen);
 
 
 #ifndef RE_OPTION_IGNORECASE
-#define RE_OPTION_IGNORECASE         (1L)
+#define RE_OPTION_IGNORECASE         (1)
 #endif
 
 #ifndef RE_OPTION_EXTENDED
-#define RE_OPTION_EXTENDED           (2L)
+#define RE_OPTION_EXTENDED           (2)
 #endif
 
 #ifndef RE_OPTION_MULTILINE
-#define RE_OPTION_MULTILINE          (4L)
+#define RE_OPTION_MULTILINE          (4)
 #endif
 
-#define RE_OPTION_DONT_CAPTURE_GROUP (128L)
-#define RE_OPTION_CAPTURE_GROUP      (256L)
-#define RE_OPTION_ONCE               (8192L)
+#define RE_OPTION_DONT_CAPTURE_GROUP (128)
+#define RE_OPTION_CAPTURE_GROUP      (256)
+#define RE_OPTION_ONCE               (8192)
 
 #define NODE_STRTERM NODE_ZARRAY        /* nothing to gc */
 #define NODE_HEREDOC NODE_ARRAY         /* 1, 3 to gc */
@@ -8531,9 +8531,9 @@ static VALUE parse_io_gets(rb_parser_state* parser_state, VALUE s) {
     }
 
     // TODO: encoding aware.
-    for(int i = lex_io_index; i < lex_io_total; i++) {
+    for(ssize_t i = lex_io_index; i < lex_io_total; i++) {
       if(lex_io_buf[i] == '\n') {
-        int len = i - lex_io_index + 1;
+        ssize_t len = i - lex_io_index + 1;
 
         if(str == Qnil) {
           str = parser_add_reference(parser_state,
@@ -9192,7 +9192,7 @@ parser_tokadd_string(rb_parser_state *parser_state,
 static int
 parser_parse_string(rb_parser_state* parser_state, NODE *quote)
 {
-  int func = quote->nd_func;
+  int func = (int)quote->nd_func;
   int term = nd_term(quote);
   int paren = nd_paren(quote);
   int c, space = 0;
@@ -9352,10 +9352,10 @@ parser_heredoc_restore(rb_parser_state* parser_state, NODE *here)
 }
 
 static int
-parser_whole_match_p(rb_parser_state* parser_state, const char *eos, int len, int indent)
+parser_whole_match_p(rb_parser_state* parser_state, const char *eos, ssize_t len, int indent)
 {
   char *p = lex_pbeg;
-  int n;
+  ssize_t n;
 
   if(indent) {
     while(*p && ISSPACE(*p)) p++;
@@ -9375,7 +9375,7 @@ parser_here_document(rb_parser_state* parser_state, NODE *here)
 {
   int c, func, indent = 0;
   char *eos, *p, *pend;
-  long len;
+  ssize_t len;
   VALUE str = 0;
   rb_encoding* enc = parser_state->enc;
 
@@ -9503,7 +9503,7 @@ parser_lvar_defined(rb_parser_state* parser_state, ID id) {
 
 static char*
 parse_comment(rb_parser_state* parser_state) {
-  int len = lex_pend - lex_p;
+  ssize_t len = lex_pend - lex_p;
 
   char* str = lex_p;
   while(len-- > 0 && ISSPACE(str[0])) str++;
@@ -9608,7 +9608,7 @@ retry:
   case '#':         /* it's a comment */
     // TODO: encoding magic comments
     if(char* str = parse_comment(parser_state)) {
-        int len = lex_pend - str - 1; // - 1 for the \n
+        ssize_t len = lex_pend - str - 1; // - 1 for the \n
         //cur_line = blk2bstr(str, len);
         //magic_comments->push_back(cur_line);
     }
@@ -10449,7 +10449,7 @@ retry:
         c = 'Q';
       } else {
         term = nextc();
-        if(rb_enc_isalnum(term, parser_state->enc) || !parser_isascii()) {
+        if(rb_enc_isalnum((int)term, parser_state->enc) || !parser_isascii()) {
           yy_error("unknown type of % string");
           return 0;
         }
@@ -12014,7 +12014,7 @@ parser_local_tbl(rb_parser_state* parser_state)
   ID *buf;
 
   if(cnt <= 0) return 0;
-  buf = (ID*)pt_allocate(parser_state, sizeof(ID) * (cnt + 1));
+  buf = (ID*)pt_allocate(parser_state, (int)(sizeof(ID) * (cnt + 1)));
   vtable_tblcpy(buf + 1, locals_table->args);
   vtable_tblcpy(buf + arg_cnt + 1, locals_table->vars);
   buf[0] = cnt;
@@ -12110,7 +12110,7 @@ static int
 scan_oct(const char *start, size_t len, size_t *retlen)
 {
   register const char *s = start;
-  register unsigned long retval = 0;
+  register int retval = 0;
 
   while(len-- && *s >= '0' && *s <= '7') {
     retval <<= 3;
@@ -12125,12 +12125,12 @@ scan_hex(const char *start, size_t len, size_t *retlen)
 {
   static const char hexdigit[] = "0123456789abcdef0123456789ABCDEF";
   register const char *s = start;
-  register unsigned long retval = 0;
+  register int retval = 0;
   const char *tmp;
 
   while(len-- && *s && (tmp = strchr(hexdigit, *s))) {
     retval <<= 4;
-    retval |= (tmp - hexdigit) & 15;
+    retval |= (int)((tmp - hexdigit) & 15);
     s++;
   }
   *retlen = s - start;
