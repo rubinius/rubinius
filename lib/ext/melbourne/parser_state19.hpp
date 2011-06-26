@@ -69,8 +69,8 @@ typedef VALUE stack_type;
       /* If this is set, we use the io method. */
       int lex_io;
       char* lex_io_buf;
-      int lex_io_index;
-      int lex_io_total;
+      ssize_t lex_io_index;
+      ssize_t lex_io_total;
       long lex_io_count;
 
       /* Otherwise, we use this. */
