@@ -4,7 +4,7 @@ class Array
   # for any reason. This method is to check if an argument is an array.
   def self.try_convert(obj)
     return nil unless obj.respond_to?(:to_ary)
-    Type.coerce_to(obj, Array, :to_ary)
+    Rubinius::Type.coerce_to(obj, Array, :to_ary)
   end
 
   # Choose a random element, or the random n elements, from the array.
@@ -13,7 +13,7 @@ class Array
   def sample(n=undefined)
     return at(Kernel.rand(size)) if n.equal? undefined
 
-    n = Type.coerce_to(n, Fixnum, :to_int)
+    n = Rubinius::Type.coerce_to(n, Fixnum, :to_int)
     raise ArgumentError, "negative array size" if n < 0
 
     n = size if n > size
