@@ -260,7 +260,7 @@ class String
       index = @num_bytes + index if index < 0
 
       return if index < 0 || @num_bytes <= index
-      return @data[index]
+      return @data.character_at_index(index)
     when Regexp
       match_data = index.search_region(self, 0, @num_bytes, true)
       Regexp.last_match = match_data
