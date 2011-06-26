@@ -474,7 +474,7 @@ namespace rubinius {
 
   void VM::bootstrap_exceptions() {
     Class *exc, *scp, *std, *arg, *nam, *loe, *rex, *stk, *sxp, *sce, *type, *lje, *vme;
-    Class* rng;
+    Class *rng, *rte;
 
 #define dexc(name, sup) new_class(#name, sup)
 
@@ -488,7 +488,7 @@ namespace rubinius {
     dexc(NoMethodError, nam);
     dexc(SyntaxError, scp);
     loe = dexc(LoadError, scp);
-    dexc(RuntimeError, std);
+    rte = dexc(RuntimeError, std);
     sce = dexc(SystemCallError, std);
     stk = dexc(StackError, exc);
     sxp = dexc(StackExploded, stk);
@@ -517,6 +517,7 @@ namespace rubinius {
     GO(exc_arg).set(arg);
     GO(exc_loe).set(loe);
     GO(exc_rex).set(rex);
+    GO(exc_rte).set(rte);
 
     GO(exc_stack_explosion).set(sxp);
     GO(exc_primitive_failure).set(dexc(PrimitiveFailure, exc));

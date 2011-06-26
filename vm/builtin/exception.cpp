@@ -18,6 +18,8 @@
 
 #include "call_frame.hpp"
 
+#include "configuration.hpp"
+
 #include <iostream>
 
 namespace rubinius {
@@ -99,7 +101,14 @@ namespace rubinius {
   }
 
   void Exception::frozen_error(STATE, CallFrame* call_frame) {
-    Exception* exc = Exception::make_exception(state, G(exc_type),
+    Class* klass;
+    if(LANGUAGE_18_ENABLED(state)) {
+      klass = G(exc_type);
+    } else {
+      klass = G(exc_rte);
+    }
+
+    Exception* exc = Exception::make_exception(state, klass,
                         "unable to modify frozen object");
     exc->locations(state, Location::from_call_stack(state, call_frame));
     state->thread_state()->raise_exception(exc);

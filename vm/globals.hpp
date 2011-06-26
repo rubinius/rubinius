@@ -66,7 +66,7 @@ namespace rubinius {
 
     TypedRoot<Class*> exception;
     TypedRoot<Class*> exc_arg, exc_segfault;
-    TypedRoot<Class*> exc_loe, exc_type, exc_rex;
+    TypedRoot<Class*> exc_loe, exc_type, exc_rex, exc_rte;
     TypedRoot<Class*> exc_stack_explosion;
     TypedRoot<Class*> exc_primitive_failure;
 
@@ -183,6 +183,7 @@ namespace rubinius {
       exc_loe(&roots),
       exc_type(&roots),
       exc_rex(&roots),
+      exc_rte(&roots),
       exc_stack_explosion(&roots),
       exc_primitive_failure(&roots),
       external_ivars(&roots),
