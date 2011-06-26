@@ -506,6 +506,7 @@ remember:
     info.set_creator_info(creator_info_);
     info.set_inline_block(inline_block_);
     info.set_block_info(block_info_);
+    info.self_class_id = ops_.info().self_class_id;
 
     jit::RuntimeData* rd = new jit::RuntimeData(ib->method(), nil<Symbol>(), nil<Module>());
     context_.add_runtime_data(rd);
