@@ -9,4 +9,8 @@ module Kernel
   alias_method :eql?, :equal?
   alias_method :==,   :equal?
   alias_method :===,  :equal?
+
+  def !~(other)
+    self =~ other ? false : true
+  end
 end
