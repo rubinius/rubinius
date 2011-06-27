@@ -25,6 +25,7 @@
 #include "gc/write_barrier.hpp"
 
 #include "builtin/block_environment.hpp"
+#include "builtin/class.hpp"
 
 #include "instruments/timing.hpp"
 #include "object_utils.hpp"
@@ -153,6 +154,8 @@ namespace rubinius {
     llvm::BasicBlock* return_pad_;
     llvm::PHINode* return_phi_;
 
+    TypedRoot<Class*> self_class_;
+
   public:
     VMMethod* vmm;
     bool is_block;
@@ -164,6 +167,7 @@ namespace rubinius {
     JITStackArgs* stack_args;
 
     JITMethodInfo* root;
+    int self_class_id;
 
   public:
     JITMethodInfo(jit::Context& ctx, CompiledMethod* cm, VMMethod* v,
@@ -375,6 +379,14 @@ namespace rubinius {
       counter_ = counter;
     }
 
+    Class* self_class() {
+      return self_class_.get();
+    }
+
+    void set_self_class(Class* cls) {
+      self_class_.set(cls);
+    }
+
     llvm::AllocaInst* create_alloca(const llvm::Type* type, llvm::Value* size = 0,
                                     const llvm::Twine& name = "");
 
@@ -448,6 +460,7 @@ namespace rubinius {
     std::ostream* log_;
 
     gc::WriteBarrier write_barrier_;
+    unsigned int metadata_id_;
 
   public:
 
@@ -548,6 +561,10 @@ namespace rubinius {
 
     gc::WriteBarrier* write_barrier() {
       return &write_barrier_;
+    }
+
+    unsigned int metadata_id() {
+      return metadata_id_;
     }
 
     const llvm::Type* ptr_type(std::string name);

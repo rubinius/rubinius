@@ -437,7 +437,7 @@ remember:
                                       CompiledMethod* cm, VMMethod* vmm) {
     context_.enter_inline();
     Value* self = recv();
-    ops_.check_class(self, klass, failure());
+    int class_id = ops_.check_class(self, klass, failure());
 
     JITMethodInfo info(context_, cm, vmm);
     info.set_parent_info(ops_.info());
@@ -446,6 +446,9 @@ remember:
     info.called_args = count_;
     info.root = ops_.root_method_info();
     info.set_inline_block(inline_block_);
+    info.self_class_id = class_id;
+
+    info.set_self_class(klass);
 
     jit::RuntimeData* rd = new jit::RuntimeData(cm, cache_->name, defined_in);
     context_.add_runtime_data(rd);
@@ -503,6 +506,7 @@ remember:
     info.set_creator_info(creator_info_);
     info.set_inline_block(inline_block_);
     info.set_block_info(block_info_);
+    info.self_class_id = ops_.info().self_class_id;
 
     jit::RuntimeData* rd = new jit::RuntimeData(ib->method(), nil<Symbol>(), nil<Module>());
     context_.add_runtime_data(rd);

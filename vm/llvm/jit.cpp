@@ -81,6 +81,7 @@ namespace rubinius {
     , inline_block_(0)
     , block_info_(0)
     , method_(&ctx.state()->roots())
+    , self_class_(&ctx.state()->roots())
     , vmm(v)
     , is_block(false)
     , inline_return(0)
@@ -92,6 +93,7 @@ namespace rubinius {
     , root(0)
   {
     method_.set(cm);
+    self_class_.set(nil<Class>());
   }
 
   void JITMethodInfo::set_function(llvm::Function* func) {
@@ -648,6 +650,8 @@ namespace rubinius {
         0, "profiling_flag");
 
     add_internal_functions();
+
+    metadata_id_ = ctx_.getMDKindID("rbx-classid");
 
     background_thread_ = new BackgroundCompilerThread(this);
     background_thread_->run();
