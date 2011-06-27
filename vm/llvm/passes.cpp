@@ -42,10 +42,10 @@ namespace {
 
       for(Function::iterator bb = f.begin(), e = f.end();
           bb != e;
-          bb++) {
+          ++bb) {
         for(BasicBlock::iterator inst = bb->begin();
             inst != bb->end();
-            inst++) {
+            ++inst) {
           ICmpInst* icmp = dyn_cast<ICmpInst>(inst);
           if(icmp == NULL) continue;
 
@@ -128,10 +128,10 @@ namespace {
 
       for(Function::iterator bb = f.begin(), e = f.end();
           bb != e;
-          bb++) {
+          ++bb) {
         for(BasicBlock::iterator inst = bb->begin();
             inst != bb->end();
-            inst++) {
+            ++inst) {
           CallInst* call = dyn_cast<CallInst>(inst);
           if(!call) continue;
 
@@ -166,7 +166,7 @@ namespace {
 
       for(std::vector<CallInst*>::iterator i = to_remove.begin();
           i != to_remove.end();
-          i++) {
+          ++i) {
         CallInst* call = *i;
         for(Value::use_iterator u = call->use_begin();
             u != call->use_end(); /* nothing */)
@@ -262,10 +262,10 @@ namespace {
 
       for(Function::iterator bb = f.begin(), e = f.end();
           bb != e;
-          bb++) {
+          ++bb) {
         for(BasicBlock::iterator inst = bb->begin();
             inst != bb->end();
-            inst++) {
+            ++inst) {
           CallInst *call = dyn_cast<CallInst>(inst);
           if(call == NULL) continue;
 
@@ -287,7 +287,7 @@ namespace {
 
       for(std::vector<CallInst*>::iterator i = to_remove.begin();
           i != to_remove.end();
-          i++) {
+          ++i) {
         (*i)->eraseFromParent();
       }
 

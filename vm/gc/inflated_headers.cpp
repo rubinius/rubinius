@@ -7,7 +7,7 @@ namespace rubinius {
   InflatedHeaders::~InflatedHeaders() {
     for(Chunks::iterator i = chunks_.begin();
         i != chunks_.end();
-        i++) {
+        ++i) {
       InflatedHeader* chunk = *i;
       delete[] chunk;
     }
@@ -76,7 +76,7 @@ namespace rubinius {
         delete[] chunk;
         i = chunks_.erase(i);
       } else {
-        i++;
+        ++i;
       }
     }
 
@@ -86,7 +86,7 @@ namespace rubinius {
 
     for(Chunks::iterator i = chunks_.begin();
         i != chunks_.end();
-        i++) {
+        ++i) {
       InflatedHeader* chunk = *i;
 
       for(size_t j = 0; j < cChunkSize; j++) {

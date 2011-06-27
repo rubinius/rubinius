@@ -8,15 +8,16 @@ namespace rubinius {
   class Configuration : public config::Configuration {
   public:
     // GC
-    config::Integer gc_bytes;
-    config::Integer gc_large_object;
+    config::Bytes   gc_bytes;
+    config::Bytes   gc_large_object;
     config::Integer gc_lifetime;
     config::Bool    gc_autotune;
     config::Bool    gc_show;
     config::Bool    gc_immix_debug;
     config::Bool    gc_honor_start;
     config::Bool    gc_autopack;
-    config::Integer gc_marksweep_threshold;
+    config::Bytes   gc_marksweep_threshold;
+    config::Bytes   gc_malloc_threshold;
 
     // Language
 #ifdef RBX_ENABLED_18
@@ -89,6 +90,7 @@ namespace rubinius {
     static const int default_jit_max_method_size = 2048;
     static const bool default_jit_on = true;
     static const bool default_gc_autotune = true;
+    static const int default_gc_malloc_threshold = 104857600;
 
     Configuration()
       : gc_bytes(this,        "gc.bytes", default_gc_bytes)
@@ -113,6 +115,9 @@ namespace rubinius {
 #ifdef RBX_ENABLED_20
       , version_20(this, "20", false)
 #endif
+
+      , gc_malloc_threshold(this, "gc.malloc_threshold",
+                            default_gc_malloc_threshold)
 
       , dynamic_interpreter_enabled(this, "interpreter.dynamic")
       , jit_dump_code(this,   "jit.dump_code", default_jit_dump_code)
@@ -168,6 +173,8 @@ namespace rubinius {
 
       gc_marksweep_threshold.set_description(
           "The number of bytes allocated before the marksweep GC region is collected");
+      gc_malloc_threshold.set_description(
+          "How many bytes allocated by C extensions til the GC is run");
 
 #ifdef RBX_ENABLED_18
       version_18.set_description(

@@ -161,7 +161,7 @@ namespace rubinius {
     if(data.threads()) {
       for(std::list<ManagedThread*>::iterator i = data.threads()->begin();
           i != data.threads()->end();
-          i++) {
+          ++i) {
         scan(*i, false);
       }
     }
@@ -185,7 +185,7 @@ namespace rubinius {
     if(gh) {
       for(std::list<capi::Handle**>::iterator i = gh->begin();
           i != gh->end();
-          i++) {
+          ++i) {
         capi::Handle** loc = *i;
         if(capi::Handle* hdl = *loc) {
           if(!CAPI_REFERENCE_P(hdl)) continue;
@@ -225,7 +225,7 @@ namespace rubinius {
     cleared = object_memory_->unremember_objects(mark);
     for(std::list<gc::WriteBarrier*>::iterator wbi = object_memory_->aux_barriers().begin();
         wbi != object_memory_->aux_barriers().end();
-        wbi++) {
+        ++wbi) {
       gc::WriteBarrier* wb = *wbi;
       cleared += wb->unremember_objects(mark);
     }
@@ -322,7 +322,7 @@ namespace rubinius {
     if(object_memory_->running_finalizers()) {
       for(std::list<FinalizeObject>::iterator i = object_memory_->finalize().begin();
           i != object_memory_->finalize().end();
-          i++) {
+          ++i) {
         if(i->object) {
           i->object = saw_object(i->object);
         }
@@ -388,7 +388,7 @@ namespace rubinius {
       if(remove) {
         i = object_memory_->finalize().erase(i);
       } else {
-        i++;
+        ++i;
       }
     }
   }

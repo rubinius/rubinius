@@ -22,6 +22,7 @@
 #include <string.h>
 #include <iostream>
 #include <ctype.h>
+#include <stdint.h>
 
 namespace rubinius {
 

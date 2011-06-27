@@ -176,7 +176,7 @@ namespace rubinius {
     ~Layout() {
       for(LayoutMapping::iterator i = subtrees_.begin();
           i != subtrees_.end();
-          i++) {
+          ++i) {
         delete i->second;
       }
     }
@@ -209,7 +209,7 @@ namespace rubinius {
       std::vector<int> sym_ids;
       for(SymbolList::iterator i = syms.begin();
           i != syms.end();
-          i++) {
+          ++i) {
         sym_ids.push_back(enc.initialize_symbol(state, *i));
       }
 
@@ -218,7 +218,7 @@ namespace rubinius {
 
       for(std::vector<int>::iterator i = sym_ids.begin();
           i != sym_ids.end();
-          i++) {
+          ++i) {
         enc.write4(*i);
       }
     }
@@ -233,7 +233,7 @@ namespace rubinius {
     TypeInfo* ti = state->om->type_info[obj->type_id()];
     for(TypeInfo::Slots::iterator i = ti->slots.begin();
         i != ti->slots.end();
-        i++) {
+        ++i) {
       syms.push_back(Symbol::from_index(i->first));
     }
 
@@ -255,7 +255,7 @@ namespace rubinius {
     // Look down the Layout tree to find the one we want.
     for(SymbolList::iterator i = syms.begin();
         i != syms.end();
-        i++) {
+        ++i) {
       current = current->find_subtree(*i);
     }
 
@@ -369,7 +369,7 @@ namespace rubinius {
     void dump_ivars(STATE, Object* obj, SymbolList& syms) {
       for(SymbolList::iterator i = syms.begin();
           i != syms.end();
-          i++) {
+          ++i) {
         dump_reference(state, obj->get_ivar(state, *i));
       }
     }

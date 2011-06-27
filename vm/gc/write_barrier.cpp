@@ -58,7 +58,7 @@ namespace gc {
 
     for(ObjectArray::iterator oi = remember_set_->begin();
         oi != remember_set_->end();
-        oi++) {
+        ++oi) {
       if(*oi == target) {
         *oi = NULL;
         target->clear_remember();

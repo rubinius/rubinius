@@ -40,6 +40,8 @@ namespace rubinius {
     rdata->dmark = mark;
     rdata->dfree = free;
 
+    data->internal_ = rdata;
+
     // If this Data requires a free function, register this object
     // as needing finalization.
     if(free) {
@@ -49,7 +51,7 @@ namespace rubinius {
     return data;
   }
 
-  RDataShadow* Data::rdata(STATE) {
+  RDataShadow* Data::slow_rdata(STATE) {
     InflatedHeader* ih = state->om->inflate_header(state, this);
     capi::Handle* handle = ih->handle();
 
@@ -90,17 +92,17 @@ namespace rubinius {
   }
 
   void Data::Info::mark(Object* t, ObjectMark& mark) {
-    auto_mark(t, mark);
+    // auto_mark(t, mark);
 
-    STATE = mark.gc->state();
+    Data* data = force_as<Data>(t);
 
-    Data* data = as<Data>(t);
+    RDataShadow* rdata = data->rdata();
 
-    if(data->mark(state)) {
+    if(rdata->dmark) {
       ObjectMark* cur = capi::current_mark();
       capi::set_current_mark(&mark);
 
-      (*data->mark(state))(data->data(state));
+      (*rdata->dmark)(rdata->data);
 
       capi::set_current_mark(cur);
     }

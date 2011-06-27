@@ -9,6 +9,7 @@
 
 #include <stdarg.h>
 #include <iostream>
+#include <stdint.h>
 
 namespace rubinius {
   Tuple* Tuple::bounds_exceeded_error(STATE, const char* method, int index) {

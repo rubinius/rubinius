@@ -18,3 +18,13 @@
 
 #define HAVE_RB_HASH_FOREACH               1
 #define HAVE_RB_HASH_ASET                  1
+
+#define HAVE_TYPE_RB_BLOCKING_FUNCTION_T   1
+#define HAVE_RB_THREAD_BLOCKING_REGION     1
+
+#define HAVE_RB_IO_T                       1
+#define HAVE_RB_IO_FD                      1
+
+#define HAVE_RB_ERRINFO                    1
+
+#define HAVE_RB_STR_PTR_READONLY           1

@@ -91,6 +91,7 @@ class Configure
     @include20dir = root + "/vm/capi/19/include"
     @libdir       = root
     @runtime      = @libdir + "/runtime"
+    @kernel_path  = @libdir + "/kernel"
     @lib_path     = @libdir + "/lib"
     @ext_path     = @libdir + "/lib/ext"
     @mandir       = root + "/man"
@@ -110,7 +111,7 @@ class Configure
     @libversion = "2.0"
     @version = "#{@libversion}.0dev"
     @release_date = "yyyy-mm-dd"
-    @config_version = 134
+    @config_version = 135
 
     # TODO: add conditionals for platforms
     if RbConfig::CONFIG["build_os"] =~ /darwin/
@@ -252,6 +253,7 @@ class Configure
       @include20dir = dir + "/19/include"
       @libdir       = dir
       @runtime      = @libdir + "/runtime"
+      @kernel_path  = @libdir + "/kernel"
       @lib_path     = @libdir + "/lib"
       @ext_path     = @libdir + "/lib/ext"
       @mandir       = dir + "/man"
@@ -275,14 +277,15 @@ class Configure
     end
 
     o.on "-L", "--libdir", "PATH", "Install Ruby library in PATH" do |dir|
-      @install = true
-      @libdir   = expand(dir) + "/rubinius/#{@libversion}"
-      @runtime  = @libdir + "/runtime"
-      @lib_path = @libdir + "/lib"
-      @ext_path = @libdir + "/lib/ext"
+      @install      = true
+      @libdir       = expand(dir) + "/rubinius/#{@libversion}"
+      @runtime      = @libdir + "/runtime"
+      @kernel_path  = @libdir + "/kernel"
+      @lib_path     = @libdir + "/lib"
+      @ext_path     = @libdir + "/lib/ext"
 
-      @sitedir   = @libdir + "/site"
-      @vendordir = @libdir + "/vendor"
+      @sitedir      = @libdir + "/site"
+      @vendordir    = @libdir + "/vendor"
     end
 
     o.on "-M", "--mandir", "PATH", "Install man pages in PATH" do |dir|
@@ -948,6 +951,7 @@ module Rubinius
     :bindir         => "#{@bindir}",
     :libdir         => "#{@libdir}",
     :runtime        => "#{@runtime}",
+    :kernel_path    => "#{@kernel_path}",
     :lib_path       => "#{@lib_path}",
     :ext_path       => "#{@ext_path}",
     :include18dir   => "#{@include18dir}",
@@ -988,6 +992,7 @@ end
 #define RBX_BIN_PATH      "#{@bindir}"
 #define RBX_GEMS_PATH     "#{@gemsdir}"
 #define RBX_RUNTIME       "#{@runtime}"
+#define RBX_KERNEL_PATH   "#{@kernel_path}"
 #define RBX_LIB_PATH      "#{@lib_path}"
 #define RBX_EXT_PATH      "#{@ext_path}"
 #define RBX_HDR18_PATH    "#{@include18dir}"
@@ -1042,6 +1047,7 @@ end
 #define RBX_BIN_PATH      "#{@bindir}"
 #define RBX_GEMS_PATH     "#{@gemsdir}"
 #define RBX_RUNTIME       "#{@runtime}"
+#define RBX_KERNEL_PATH   "#{@kernel_path}"
 #define RBX_LIB_PATH      "#{@lib_path}"
 #define RBX_EXT_PATH      "#{@ext_path}"
 #define RBX_HDR18_PATH    "#{@include18dir}"

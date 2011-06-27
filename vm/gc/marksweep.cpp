@@ -34,7 +34,7 @@ namespace rubinius {
   void MarkSweepGC::free_objects() {
     std::list<Object*>::iterator i;
 
-    for(i = entries.begin(); i != entries.end(); i++) {
+    for(i = entries.begin(); i != entries.end(); ++i) {
       free_object(*i, true);
     }
   }
@@ -142,7 +142,7 @@ namespace rubinius {
     // Walk all the call frames
     for(CallFrameLocationList::const_iterator i = call_frames.begin();
         i != call_frames.end();
-        i++) {
+        ++i) {
       CallFrame** loc = *i;
       walk_call_frame(*loc);
     }
@@ -173,7 +173,7 @@ namespace rubinius {
     for(i = entries.begin(); i != entries.end();) {
       Object* obj = *i;
       if(obj->marked_p(object_memory_->mark())) {
-        i++;
+        ++i;
       } else {
         free_object(obj);
         i = entries.erase(i);
@@ -207,7 +207,7 @@ namespace rubinius {
 
     for(std::list<Object*>::iterator i = entries.begin();
         i != entries.end();
-        i++) {
+        ++i) {
       Object* obj = *i;
       Class* cls = obj->class_object(object_memory_->state());
 
@@ -228,7 +228,7 @@ namespace rubinius {
 
     for(std::map<Class*,PerClass>::iterator i = stats.begin();
         i != stats.end();
-        i++) {
+        ++i) {
       std::cout << i->first->name()->c_str(object_memory_->state()) << "\n"
                 << "  objects: " << i->second.objects << "\n"
                 << "    bytes: " << i->second.bytes << "\n";
@@ -274,7 +274,7 @@ namespace rubinius {
   ObjectPosition MarkSweepGC::validate_object(Object* obj) {
     std::list<Object*>::iterator i;
 
-    for(i = entries.begin(); i != entries.end(); i++) {
+    for(i = entries.begin(); i != entries.end(); ++i) {
       if(*i == obj) return cMatureObject;
     }
 

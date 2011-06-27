@@ -388,7 +388,7 @@ namespace rubinius {
               continue;
             }
           }
-          i++;
+          ++i;
         }
 
         if(!found) {

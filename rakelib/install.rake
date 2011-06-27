@@ -107,6 +107,11 @@ namespace :install do
         install_file name, /^runtime/, BUILD_CONFIG[:runtime]
       end
 
+      # Install the .rb files for the core library (kernel).
+      FileList['kernel/**/*.rb'].each do |name|
+        install_file name, /^kernel/, BUILD_CONFIG[:kernel_path]
+      end
+
       # Install the .rb files for the standard library. This is a
       # separate block from the .rbc files so that the .rb files
       # have an older timestamp and do not trigger recompiling.

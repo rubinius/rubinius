@@ -1068,8 +1068,12 @@ class TCPSocket < IPSocket
             i[1] == family && i[2] == socket_type
           end
 
-          status = Socket::Foreign.bind sock, li[4]
-          syscall = 'bind(2)'
+          if li
+            status = Socket::Foreign.bind sock, li[4]
+            syscall = 'bind(2)'
+          else
+            status = 1
+          end
         else
           status = 1
         end

@@ -43,12 +43,7 @@ namespace rubinius {
 
   NativeMethodFrame::~NativeMethodFrame() {
     flush_cached_data();
-    for(capi::HandleSet::iterator i = handles_.begin();
-        i != handles_.end();
-        i++) {
-      capi::Handle* handle = *i;
-      handle->deref();
-    }
+    handles_.deref_all();
   }
 
   void NativeMethodFrame::check_tracked_handle(capi::Handle* handle,
@@ -58,14 +53,9 @@ namespace rubinius {
       check_handles_ = true;
     }
 
-    // ref() ONLY if it's not already in there!
-    // otherwise the refcount is wrong and we leak handles.
-    capi::HandleSet::iterator pos = handles_.find(handle);
-    if(pos == handles_.end()) {
+    if(handles_.add_if_absent(handle)) {
       // We're seeing this object for the first time in this function.
       // Be sure that it's updated.
-      handle->ref();
-      handles_.insert(handle);
       handle->update(NativeMethodEnvironment::get());
     }
   }
@@ -76,14 +66,9 @@ namespace rubinius {
     capi::Handle* handle = ih->handle();
 
     if(handle) {
-      // ref() ONLY if it's not already in there!
-      // otherwise the refcount is wrong and we leak handles.
-      capi::HandleSet::iterator pos = handles_.find(handle);
-      if(pos == handles_.end()) {
+      if(handles_.add_if_absent(handle)) {
         // We're seeing this object for the first time in this function.
         // Be sure that it's updated.
-        handle->ref();
-        handles_.insert(handle);
         handle->update(NativeMethodEnvironment::get());
       }
     } else {
@@ -92,8 +77,7 @@ namespace rubinius {
 
       state->shared.add_global_handle(state, handle);
 
-      handle->ref();
-      handles_.insert(handle);
+      handles_.add_if_absent(handle);
     }
 
     return handle->as_value();
@@ -107,12 +91,7 @@ namespace rubinius {
     NativeMethodEnvironment* env = NativeMethodEnvironment::get();
 
     if(check_handles_) {
-      for(capi::HandleSet::iterator i = handles_.begin();
-          i != handles_.end();
-          i++) {
-        capi::Handle* handle = *i;
-        handle->flush(env);
-      }
+      handles_.flush_all(env);
     }
 
     if(env->state()->shared.config.capi_global_flush) {
@@ -130,12 +109,7 @@ namespace rubinius {
     NativeMethodEnvironment* env = NativeMethodEnvironment::get();
 
     if(check_handles_) {
-      for(capi::HandleSet::iterator i = handles_.begin();
-          i != handles_.end();
-          i++) {
-        capi::Handle* handle = *i;
-        handle->update(env);
-      }
+      handles_.update_all(env);
     }
 
     if(env->state()->shared.config.capi_global_flush) {
@@ -242,7 +216,7 @@ namespace rubinius {
     static Object* invoke(STATE, NativeMethod* nm, NativeMethodEnvironment* env,
                           Arguments& args)
     {
-      VALUE receiver = env->get_handle(args.recv());
+      VALUE receiver = env->current_native_frame()->receiver();
       return env->get_object(nm->func()(receiver));
     }
   };
@@ -252,7 +226,7 @@ namespace rubinius {
     static Object* invoke(STATE, NativeMethod* nm, NativeMethodEnvironment* env,
                           Arguments& args)
     {
-      VALUE receiver = env->get_handle(args.recv());
+      VALUE receiver = env->current_native_frame()->receiver();
       VALUE a1 = env->get_handle(args.get_argument(0));
 
       return env->get_object(nm->func()(receiver, a1));
@@ -264,7 +238,7 @@ namespace rubinius {
     static Object* invoke(STATE, NativeMethod* nm, NativeMethodEnvironment* env,
                           Arguments& args)
     {
-      VALUE receiver = env->get_handle(args.recv());
+      VALUE receiver = env->current_native_frame()->receiver();
       VALUE a1 = env->get_handle(args.get_argument(0));
       VALUE a2 = env->get_handle(args.get_argument(1));
 
@@ -277,7 +251,7 @@ namespace rubinius {
     static Object* invoke(STATE, NativeMethod* nm, NativeMethodEnvironment* env,
                           Arguments& args)
     {
-      VALUE receiver = env->get_handle(args.recv());
+      VALUE receiver = env->current_native_frame()->receiver();
       VALUE a1 = env->get_handle(args.get_argument(0));
       VALUE a2 = env->get_handle(args.get_argument(1));
       VALUE a3 = env->get_handle(args.get_argument(2));
@@ -291,7 +265,7 @@ namespace rubinius {
     static Object* invoke(STATE, NativeMethod* nm, NativeMethodEnvironment* env,
                           Arguments& args)
     {
-      VALUE receiver = env->get_handle(args.recv());
+      VALUE receiver = env->current_native_frame()->receiver();
 
       switch(nm->arity()->to_int()) {
 

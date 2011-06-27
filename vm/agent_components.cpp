@@ -297,7 +297,7 @@ namespace agent {
 
       for(std::list<ManagedThread*>::iterator i = threads->begin();
           i != threads->end();
-          i++) {
+          ++i) {
         if(VM* vm = (*i)->as_vm()) {
           std::ostringstream ss;
           vm->saved_call_frame()->print_backtrace(state_, ss);

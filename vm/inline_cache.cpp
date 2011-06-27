@@ -667,7 +667,7 @@ namespace rubinius {
     CacheVector& vec = caches_[sym->index()];
     for(CacheVector::iterator i = vec.begin();
         i != vec.end();
-        i++) {
+        ++i) {
       if(*i == cache) {
         vec.erase(i);
         return;
@@ -681,7 +681,7 @@ namespace rubinius {
 
     for(CacheVector::iterator i = vec.begin();
         i != vec.end();
-        i++) {
+        ++i) {
       (*i)->clear();
     }
   }
@@ -699,10 +699,10 @@ namespace rubinius {
 
     for(CacheHash::iterator hi = caches_.begin();
         hi != caches_.end();
-        hi++) {
+        ++hi) {
       for(CacheVector::iterator vi = hi->second.begin();
           vi != hi->second.end();
-          vi++) {
+          ++vi) {
         InlineCache* ic = *vi;
         int seen = ic->classes_seen();
         if(ic->seen_classes_overflow() > 0) {
@@ -729,10 +729,10 @@ namespace rubinius {
 
     for(CacheHash::iterator hi = caches_.begin();
         hi != caches_.end();
-        hi++) {
+        ++hi) {
       for(CacheVector::iterator vi = hi->second.begin();
           vi != hi->second.end();
-          vi++) {
+          ++vi) {
         InlineCache* ic = *vi;
         if(ic->seen_classes_overflow() > 0) {
           ic->print(state, std::cerr);

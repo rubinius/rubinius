@@ -78,7 +78,7 @@ namespace rubinius {
     if(!inliners_ || inliners_ == (Inliners*)Qnil) return;
     for(std::list<CompiledMethod*>::const_iterator i = inliners_->inliners().begin();
         i != inliners_->inliners().end();
-        i++) {
+        ++i) {
       (*i)->backend_method()->deoptimize(state, *i);
     }
 
@@ -101,7 +101,7 @@ namespace rubinius {
 
       for(std::list<CompiledMethod*>::iterator i = inl->inliners().begin();
           i != inl->inliners().end();
-          i++) {
+          ++i) {
         CompiledMethod* cm = *i;
 
         Object* tmp = mark.call(cm);
@@ -126,7 +126,7 @@ namespace rubinius {
     if(exc->inliners_) {
       for(std::list<CompiledMethod*>::iterator i = exc->inliners_->inliners().begin();
           i != exc->inliners_->inliners().end();
-          i++) {
+          ++i) {
         visit.call(*i);
       }
     }

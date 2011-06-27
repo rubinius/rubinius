@@ -1183,25 +1183,23 @@ class String
 
     osize = other.size
     size = @num_bytes + osize
-    str = self.class.new("\0") * size
+    str = self.class.pattern size, "\0"
 
     index = @num_bytes + 1 + index if index < 0
     if index > @num_bytes or index < 0 then
       raise IndexError, "index #{index} out of string"
     end
 
-    modify!
+    Ruby.check_frozen
+    hash_value = nil
 
-    if index == 0
-      str.copy_from other, 0, osize, 0
-      str.copy_from self, 0, @num_bytes, osize
-    elsif index < @num_bytes
-      str.copy_from self, 0, index, 0
-      str.copy_from other, 0, osize, index
-      str.copy_from self, index, @num_bytes - index, index + osize
-    else
+    if index == @num_bytes
       str.copy_from self, 0, @num_bytes, 0
       str.copy_from other, 0, osize, @num_bytes
+    else
+      str.copy_from self, 0, index, 0 if index > 0
+      str.copy_from other, 0, osize, index
+      str.copy_from self, index, @num_bytes - index, index + osize
     end
 
     @num_bytes = size

@@ -160,7 +160,7 @@ namespace jit {
 
     for(std::vector<BasicBlock*>::iterator i = to_remove.begin();
         i != to_remove.end();
-        i++) {
+        ++i) {
       (*i)->eraseFromParent();
     }
 

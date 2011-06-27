@@ -34,6 +34,10 @@
 
 #include "instruments/tooling.hpp"
 
+// Used by XMALLOC at the bottom
+static long gc_malloc_threshold = 0;
+static long bytes_until_collection = 0;
+
 namespace rubinius {
 
   Object* object_watch = 0;
@@ -75,6 +79,9 @@ namespace rubinius {
     }
 
     TypeInfo::init(this);
+
+    gc_malloc_threshold = config.gc_malloc_threshold;
+    bytes_until_collection = gc_malloc_threshold;
   }
 
   ObjectMemory::~ObjectMemory() {
@@ -662,7 +669,7 @@ step1:
     if(data.threads()) {
       for(std::list<ManagedThread*>::iterator i = data.threads()->begin();
           i != data.threads()->end();
-          i++) {
+          ++i) {
         gc::Slab& slab = (*i)->local_slab();
 
         gc_stats.slab_allocated(slab.allocations(), slab.byte_used());
@@ -1057,7 +1064,7 @@ step1:
 
     // See if there already one.
     for(std::list<FinalizeObject>::iterator i = finalize_.begin();
-        i != finalize_.end(); i++)
+        i != finalize_.end(); ++i)
     {
       if(i->object == obj) {
         if(fin->nil_p()) {
@@ -1275,7 +1282,7 @@ step1:
     {
       FinalizeObject& fi = *i;
 
-      if(!kind_of<IO>(fi.object)) { i++; continue; }
+      if(!kind_of<IO>(fi.object)) { ++i; continue; }
 
       // Only finalize things that haven't been finalized.
       if(fi.status != FinalizeObject::eFinalized) {
@@ -1502,7 +1509,7 @@ step1:
     std::cout << ary.size() << " total references:\n";
     for(ObjectArray::iterator i = ary.begin();
         i != ary.end();
-        i++) {
+        ++i) {
       std::cout << "  " << (*i)->to_s(root_state_, true)->c_str(root_state_) << "\n";
 
       if(++count == 100) break;
@@ -1529,7 +1536,6 @@ void x_print_snapshot() {
   rubinius::VM::current()->om->print_new_since_snapshot();
 }
 
-
 // The following memory functions are defined in ruby.h for use by C-API
 // extensions, and also used by library code lifted from MRI (e.g. Oniguruma).
 // They provide some book-keeping around memory usage for non-VM code, so that
@@ -1541,15 +1547,12 @@ void x_print_snapshot() {
 // a significant amount of memory has been malloc-ed should keep non-VM memory
 // usage from growing uncontrollably.
 
-#define DEFAULT_MALLOC_THRESHOLD 10000000
-
-static long bytes_until_collection = DEFAULT_MALLOC_THRESHOLD;
 
 void* XMALLOC(size_t bytes) {
   bytes_until_collection -= bytes;
   if(bytes_until_collection <= 0) {
     rubinius::VM::current()->run_gc_soon();
-    bytes_until_collection = DEFAULT_MALLOC_THRESHOLD;
+    bytes_until_collection = gc_malloc_threshold;
   }
   return malloc(bytes);
 }
@@ -1562,7 +1565,7 @@ void* XREALLOC(void* ptr, size_t bytes) {
   bytes_until_collection -= bytes;
   if(bytes_until_collection <= 0) {
     rubinius::VM::current()->run_gc_soon();
-    bytes_until_collection = DEFAULT_MALLOC_THRESHOLD;
+    bytes_until_collection = gc_malloc_threshold;
   }
 
   return realloc(ptr, bytes);
@@ -1574,9 +1577,8 @@ void* XCALLOC(size_t items, size_t bytes_per) {
   bytes_until_collection -= bytes;
   if(bytes_until_collection <= 0) {
     rubinius::VM::current()->run_gc_soon();
-    bytes_until_collection = DEFAULT_MALLOC_THRESHOLD;
+    bytes_until_collection = gc_malloc_threshold;
   }
 
   return calloc(items, bytes_per);
 }
-

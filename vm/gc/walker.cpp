@@ -34,12 +34,12 @@ namespace rubinius {
 
     for(std::list<gc::WriteBarrier*>::iterator wbi = object_memory_->aux_barriers().begin();
         wbi != object_memory_->aux_barriers().end();
-        wbi++) {
+        ++wbi) {
       gc::WriteBarrier* wb = *wbi;
       ObjectArray* rs = wb->remember_set();
       for(ObjectArray::iterator oi = rs->begin();
           oi != rs->end();
-          oi++) {
+          ++oi) {
         tmp = *oi;
 
         if(tmp) saw_object(tmp);
@@ -53,7 +53,7 @@ namespace rubinius {
     if(data.threads()) {
       for(std::list<ManagedThread*>::iterator i = data.threads()->begin();
           i != data.threads()->end();
-          i++) {
+          ++i) {
         scan(*i, false);
       }
     }

@@ -634,7 +634,7 @@ namespace immix {
     ~BlockAllocator() {
       for(Chunks::iterator i = chunks_.begin();
           i != chunks_.end();
-          i++) {
+          ++i) {
         Chunk* chunk = *i;
         chunk->free();
       }
@@ -728,7 +728,7 @@ namespace immix {
     void reset() {
       for(Chunks::iterator i = chunks_.begin();
           i != chunks_.end();
-          i++) {
+          ++i) {
         Chunk* chunk = *i;
         chunk->update_stats();
       }
@@ -1037,7 +1037,7 @@ namespace immix {
     void sweep_blocks() {
       for(BlockList::const_iterator i = evacuate_.begin();
           i != evacuate_.end();
-          i++) {
+          ++i) {
         Block* block = *i;
         if(block->status() == cEvacuate) {
           block->set_status(cFree);
@@ -1147,7 +1147,7 @@ namespace immix {
       Chunks& chunks = block_allocator_.chunks();
       for(Chunks::iterator i = chunks.begin();
           i != chunks.end();
-          i++) {
+          ++i) {
         if((*i)->contains_address(addr)) return true;
       }
 
