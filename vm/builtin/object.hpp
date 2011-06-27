@@ -327,6 +327,24 @@ namespace rubinius {
     Object*   untaint(STATE);
 
     /**
+     * Returns true if this object's untrusted flag is set.
+     */
+    // Ruby.primitive :object_untrusted_p
+    Object* untrusted_p(STATE);
+
+    /**
+     * Sets the untrusted flag on this object.
+     */
+    // Ruby.primitive :object_untrust
+    Object* untrust(STATE);
+
+    /**
+     * Clears the untrusted flag on this object.
+     */
+    // Ruby.primitive :object_trust
+    Object* trust(STATE);
+
+    /**
      *  Returns an #inspect-like representation of an Object for
      *  use in C++ code. Not called from Ruby code.
      *

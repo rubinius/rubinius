@@ -702,6 +702,21 @@ namespace rubinius {
     return Qfalse;
   }
 
+  Object* Object::trust(STATE) {
+    if(reference_p()) set_untrusted(0);
+    return this;
+  }
+
+  Object* Object::untrust(STATE) {
+    if(reference_p()) set_untrusted();
+    return this;
+  }
+
+  Object* Object::untrusted_p(STATE) {
+    if(reference_p() && is_untrusted_p()) return Qtrue;
+    return Qfalse;
+  }
+
   TypeInfo* Object::type_info(STATE) const {
     return state->om->type_info[get_type()];
   }

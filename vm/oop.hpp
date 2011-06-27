@@ -185,11 +185,13 @@ const int cUndef = 0x22L;
 
     unsigned int Frozen          : 1;
     unsigned int Tainted         : 1;
+    unsigned int Untrusted       : 1;
     unsigned int LockContended   : 1;
-    unsigned int unused          : 7;
+    unsigned int unused          : 6;
 #else
-    unsigned int unused          : 7;
+    unsigned int unused          : 6;
     unsigned int LockContended   : 1;
+    unsigned int Untrusted       : 1;
     unsigned int Tainted         : 1;
     unsigned int Frozen          : 1;
 
@@ -580,6 +582,14 @@ const int cUndef = 0x22L;
 
     void set_tainted(int val=1) {
       flags().Tainted = val;
+    }
+
+    bool is_untrusted_p() {
+      return flags().Untrusted == 1;
+    }
+
+    void set_untrusted(int val=1) {
+      flags().Untrusted = val;
     }
 
     uint32_t object_id() {
