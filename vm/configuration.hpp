@@ -103,6 +103,8 @@ namespace rubinius {
       , gc_autopack(this,     "gc.autopack", true)
       , gc_marksweep_threshold(this, "gc.marksweep_threshold",
                                default_gc_marksweep_threshold)
+      , gc_malloc_threshold(this, "gc.malloc_threshold",
+                            default_gc_malloc_threshold)
 
 #ifdef RBX_ENABLED_18
       , version_18(this, "18", false)
@@ -115,9 +117,6 @@ namespace rubinius {
 #ifdef RBX_ENABLED_20
       , version_20(this, "20", false)
 #endif
-
-      , gc_malloc_threshold(this, "gc.malloc_threshold",
-                            default_gc_malloc_threshold)
 
       , dynamic_interpreter_enabled(this, "interpreter.dynamic")
       , jit_dump_code(this,   "jit.dump_code", default_jit_dump_code)
