@@ -1712,12 +1712,6 @@ class Array
     self
   end
 
-  # Produces a string by joining all elements without a
-  # separator. See #join
-  def to_s
-    join
-  end
-
   # Treats all elements as being Arrays of equal lengths and
   # transposes their rows and columns so that the first contained
   # Array in the result includes the first elements of all the
@@ -1742,27 +1736,6 @@ class Array
     end
 
     out
-  end
-
-  # Returns a new Array by removing duplicate entries
-  # from self. Equality is determined by using a Hash
-  def uniq
-    dup.uniq! or dup
-  end
-
-  # Removes duplicates from the Array in place as #uniq
-  def uniq!
-    im = Rubinius::IdentityMap.from self
-    return if im.size == size
-
-    Ruby.check_frozen
-
-    array = im.to_array
-    @tuple = array.tuple
-    @start = array.start
-    @total = array.total
-
-    self
   end
 
   # Returns a new Array populated from the elements in

@@ -27,4 +27,24 @@ class Array
     result[n..size] = []
     result
   end
+
+  alias_method :to_s, :inspect
+
+  def uniq
+    dup.uniq! or dup
+  end
+
+  def uniq!
+    Ruby.check_frozen
+
+    im = Rubinius::IdentityMap.from self
+    return if im.size == size
+
+    array = im.to_array
+    @tuple = array.tuple
+    @start = array.start
+    @total = array.total
+
+    self
+  end
 end

@@ -41,8 +41,10 @@ class Encoding
   def self.find(name)
     key = StringValue(name).upcase
 
-    entry = Rubinius::Encoding::SymbolMap.find { |n, e| n.to_s.upcase == key }
-    return entry.last if entry
+
+    Rubinius::Encoding::SymbolMap.each do |n, e|
+      return e if n.to_s.upcase == key
+    end
 
     raise ArgumentError, "unknown encoding name - #{name}"
   end

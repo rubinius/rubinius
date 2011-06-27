@@ -19,4 +19,31 @@ class Array
     result[n..size] = []
     result
   end
+
+  # Produces a string by joining all elements without a
+  # separator. See #join
+  def to_s
+    join
+  end
+
+  # Returns a new Array by removing duplicate entries
+  # from self. Equality is determined by using a Hash
+  def uniq
+    dup.uniq! or dup
+  end
+
+  # Removes duplicates from the Array in place as #uniq
+  def uniq!
+    im = Rubinius::IdentityMap.from self
+    return if im.size == size
+
+    Ruby.check_frozen
+
+    array = im.to_array
+    @tuple = array.tuple
+    @start = array.start
+    @total = array.total
+
+    self
+  end
 end

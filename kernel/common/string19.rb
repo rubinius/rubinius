@@ -48,7 +48,8 @@ class String
   end
 
   def encoding
-    @encoding ||= Encoding.new
+    # TODO: temporary until encoding is set on create.
+    @encoding ||= Encoding.find("us-ascii")
   end
 
   def force_encoding(name)
