@@ -2023,69 +2023,6 @@ class String
     dup.succ!
   end
 
-  # Equivalent to <code>String#succ</code>, but modifies the receiver in
-  # place.
-  def succ!
-    self.modify!
-
-    return self if @num_bytes == 0
-
-    carry = nil
-    last_alnum = 0
-    start = @num_bytes - 1
-
-    ctype = Rubinius::CType
-
-    while start >= 0
-      s = @data[start]
-      if ctype.isalnum(s)
-        carry = 0
-        if (?0 <= s && s < ?9) ||
-           (?a <= s && s < ?z) ||
-           (?A <= s && s < ?Z)
-          @data[start] += 1
-        elsif s == ?9
-          @data[start] = ?0
-          carry = ?1
-        elsif s == ?z
-          @data[start] = carry = ?a
-        elsif s == ?Z
-          @data[start] = carry = ?A
-        end
-
-        break if carry == 0
-        last_alnum = start
-      end
-
-      start -= 1
-    end
-
-    if carry.nil?
-      start = length - 1
-      carry = ?\001
-
-      while start >= 0
-        if @data[start] >= 255
-          @data[start] = 0
-        else
-          @data[start] += 1
-          break
-        end
-
-        start -= 1
-      end
-    end
-
-    if start < 0
-      splice! last_alnum, 1, carry.chr + @data[last_alnum].chr
-    end
-
-    return self
-  end
-
-  alias_method :next, :succ
-  alias_method :next!, :succ!
-
   # Returns a basic <em>n</em>-bit checksum of the characters in <i>self</i>,
   # where <em>n</em> is the optional <code>Fixnum</code> parameter, defaulting
   # to 16. The result is simply the sum of the binary value of each character in

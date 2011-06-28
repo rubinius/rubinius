@@ -44,7 +44,7 @@ class String
   end
 
   def ord
-    self[0]
+    @data[0]
   end
 
   def encoding
@@ -55,4 +55,69 @@ class String
   def force_encoding(name)
     self
   end
+
+  # Equivalent to <code>String#succ</code>, but modifies the receiver in
+  # place.
+  #
+  # TODO: make encoding aware.
+  def succ!
+    self.modify!
+
+    return self if @num_bytes == 0
+
+    carry = nil
+    last_alnum = 0
+    start = @num_bytes - 1
+
+    ctype = Rubinius::CType
+
+    while start >= 0
+      s = @data[start]
+      if ctype.isalnum(s)
+        carry = 0
+        if (48 <= s && s < 57) ||
+           (97 <= s && s < 122) ||
+           (65 <= s && s < 90)
+          @data[start] += 1
+        elsif s == 57
+          @data[start] = 48
+          carry = 49
+        elsif s == 122
+          @data[start] = carry = 97
+        elsif s == 90
+          @data[start] = carry = 65
+        end
+
+        break if carry == 0
+        last_alnum = start
+      end
+
+      start -= 1
+    end
+
+    if carry.nil?
+      start = length - 1
+      carry = 1
+
+      while start >= 0
+        if @data[start] >= 255
+          @data[start] = 0
+        else
+          @data[start] += 1
+          break
+        end
+
+        start -= 1
+      end
+    end
+
+    if start < 0
+      splice! last_alnum, 1, carry.chr + @data[last_alnum].chr
+    end
+
+    return self
+  end
+
+  alias_method :next, :succ
+  alias_method :next!, :succ!
 end
