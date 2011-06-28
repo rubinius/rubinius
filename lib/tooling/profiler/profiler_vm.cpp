@@ -485,7 +485,9 @@ namespace profiler {
     method_->accumulate(timer_.total());
     node_->accumulate(timer_.total());
 
-    profiler->set_current_me(previous_me_);
+    if(previous_me_) {
+      profiler->set_current_me(previous_me_);
+    }
   }
 
   void MethodEntry::stop_all(Profiler* profiler, Env* env) {
