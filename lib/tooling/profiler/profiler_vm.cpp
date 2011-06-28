@@ -892,6 +892,9 @@ namespace profiler {
     robject tool_results(Env* env) {
       GlobalState* st = (GlobalState*)env->global_tool_data();
 
+      // If we are already shutting down, ignore this
+      if(!st) return env->nil();
+
       Profiler* profiler = (Profiler*)env->thread_tool_data(cProfileToolID);
 
       // Ignore results requests that don't come from the thread that
