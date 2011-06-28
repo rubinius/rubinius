@@ -633,7 +633,7 @@ class Module
     unless name.kind_of? Symbol
       name = StringValue name
 
-      unless Rubinius::CType.isupper(name[0])
+      unless Rubinius::CType.isupper name.getbyte(0)
         raise NameError, "constant names must begin with a capital letter: #{name}"
       end
     end

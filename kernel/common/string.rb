@@ -889,6 +889,12 @@ class String
     return @data.compare_bytes(other.__data__, @num_bytes, other.size) == 0
   end
 
+  # This method is specifically part of 1.9 but we enable it in 1.8 also
+  # because we need it internally.
+  def getbyte(index)
+    @data[index]
+  end
+
   # Returns a copy of <i>self</i> with <em>all</em> occurrences of <i>pattern</i>
   # replaced with either <i>replacement</i> or the value of the block. The
   # <i>pattern</i> will typically be a <code>Regexp</code>; if it is a
@@ -1583,6 +1589,12 @@ class String
 
     Regexp.last_match = last_match
     return ret
+  end
+
+  # This method is specifically part of 1.9 but we enable it in 1.8 also
+  # because we need it internally.
+  def setbyte(index, byte)
+    @data[index] = byte
   end
 
   # Deletes the specified portion from <i>self</i>, and returns the portion
