@@ -13,4 +13,19 @@ module Kernel
   def !~(other)
     self =~ other ? false : true
   end
+
+  def trust
+    Ruby.primitive :object_trust
+    raise PrimitiveFailure, "Kernel#trust primitive failed"
+  end
+
+  def untrust
+    Ruby.primitive :object_untrust
+    raise PrimitiveFailure, "Kernel#untrust primitive failed"
+  end
+
+  def untrusted?
+    Ruby.primitive :object_untrusted_p
+    raise PrimitiveFailure, "Kernel#untrusted? primitive failed"
+  end
 end
