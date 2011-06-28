@@ -14,6 +14,7 @@ undefined.rbc
 hash.rbc
 type.rbc
 kernel.rbc
+kernel18.rbc
 identitymap.rbc
 array.rbc
 array18.rbc

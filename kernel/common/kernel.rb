@@ -661,8 +661,6 @@ module Kernel
     Rubinius.convert_to_names methods.uniq
   end
 
-  alias_method :send, :__send__
-
   def to_a
     if self.kind_of? Array
       self
