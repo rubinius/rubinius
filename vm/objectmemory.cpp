@@ -674,14 +674,11 @@ step1:
 
         gc_stats.slab_allocated(slab.allocations(), slab.byte_used());
 
-        void* addr = young_->allocate_for_slab(slab_size_);
-        if(addr) {
-          slab.refill(addr, slab_size_);
-        } else {
-          // We failed to allocate a slab, refill it to size 0.
-          // It will fallback to ObjectMemory allocations later on.
-          slab.refill(0, 0);
-        }
+        // Reset the slab to a size of 0 so that the thread has to do
+        // an allocation to get a proper refill. This keeps the number
+        // of threads in the system from starving the available
+        // number of slabs.
+        slab.refill(0, 0);
       }
     }
 
