@@ -142,7 +142,10 @@ module Enumerable
   def collect
     if block_given?
       ary = []
-      each { |o| ary << yield(o) }
+      each do
+        o = Rubinius.single_block_arg
+        ary << yield(*o)
+      end
       ary
     else
       to_enum :collect
@@ -199,6 +202,8 @@ module Enumerable
     each {|obj| yield obj, memo}
     memo
   end
+
+  alias_method :with_object, :each_with_object
 
   ##
   # :call-seq:

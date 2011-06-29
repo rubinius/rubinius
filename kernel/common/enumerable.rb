@@ -440,7 +440,10 @@ module Enumerable
   def find(ifnone=nil)
     return to_enum(:find, ifnone) unless block_given?
 
-    each { |o| return o if yield(o) }
+    each do
+      o = Rubinius.single_block_arg
+      return o if yield(o)
+    end
 
     ifnone.call if ifnone
   end
@@ -461,7 +464,8 @@ module Enumerable
     return to_enum(:find_all) unless block_given?
 
     ary = []
-    each do |o|
+    each do
+      o = Rubinius.single_block_arg
       ary << o if yield(o)
     end
     ary
@@ -881,7 +885,10 @@ module Enumerable
 
   def to_a(*arg)
     ary = []
-    each(*arg) { |o| ary << o }
+    each(*arg) do
+      o = Rubinius.single_block_arg
+      ary << o
+    end
     ary
   end
 
