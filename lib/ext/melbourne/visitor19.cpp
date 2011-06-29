@@ -751,6 +751,9 @@ namespace melbourne {
       if(aux->nd_mid) block = ID2SYM(aux->nd_mid);
 
       if(post_args && post_args->nd_pid) {
+        total_args = (int)locals[0];
+        args_ary = locals + 1;
+
         int start;
         for(start = 0; start < total_args; start++) {
           if(args_ary[start] == post_args->nd_pid)
