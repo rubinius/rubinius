@@ -7,10 +7,10 @@ module Kernel
     end.send(:define_method, *args, &block)
   end
 
-  def enum_for(method=:each, *args)
+  def to_enum(method=:each, *args)
     Enumerator.new(self, method, *args)
   end
-  alias_method :to_enum, :enum_for
+  alias_method :enum_for, :to_enum
 
   # Send message to object with given arguments.
   #
