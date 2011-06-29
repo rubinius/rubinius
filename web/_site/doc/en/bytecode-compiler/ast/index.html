@@ -145,7 +145,111 @@
 
       
 
-        
+        <p>Once the parser has finished calling <code>process_*</code> methods an
+abstract syntax tree is created. The syntax tree represents the
+abstract syntactic structure of the parsed source code. Each node in
+the tree denotes a construct in the source code. This tree is composed of instances
+of classes defined in <em>lib/compiler/ast/</em> directory.
+Each of these classes inherits from <code>Rubinius::AST::Node</code> class.
+The <code>Node</code> class defines a few methods that are utilized
+by the subclasses (eg. pos(g) which records the line number for debugging purposes).</p>
+
+<p>The AST classes usually define at least 3 methods:</p>
+
+<ul>
+  <li>initialize(line, args) - called by various <code>process_*</code> methods in the previous stage</li>
+  <li>bytecode(g) - called by the Generator in the next stage</li>
+  <li>to_sexp - used to represent the AST node as a symbolic expression</li>
+</ul>
+
+<p>The easiest way to see the AST that gets created is to call <code>to_ast</code>
+on a string containing the code, eg:</p>
+
+<pre><code>irb(main):002:0&gt; "a = 1".to_ast
+=&gt; #&lt;Rubinius::AST::LocalVariableAssignment:0xf70
+   @value=#&lt;Rubinius::AST::FixnumLiteral:0xf74 @value=1 @line=1&gt;
+   @name=:a @variable=nil @line=1&gt;
+</code></pre>
+
+<p>or compile the code and pass the -A option:</p>
+
+<pre><code>rbx compile -A -e "def hello;end"
+Script
+  @name: __script__
+  @file: "(snippet)"
+  @body: \
+  Define
+    @name: hello
+    @line: 1
+    @arguments: \
+    FormalArguments
+      @defaults: nil
+      @names: \
+      @block_arg: nil
+      @optional: \
+      @splat: nil
+      @line: 1
+      @required: \
+    @body: \
+    Block
+      @line: 1
+      @array: \
+        NilLiteral
+          @line: 1
+</code></pre>
+
+<p>Similarily it&rsquo;s possible to get a representation of the syntax tree as
+s-expressions:</p>
+
+<pre><code>irb(main):002:0&gt; "a = 1".to_sexp
+=&gt; [:lasgn, :a, [:lit, 1]]
+</code></pre>
+
+<p>or pass the -S option to compile:</p>
+
+<pre><code>rbx compile -S -e "def hello;end"
+[:script, [:defn, :hello, [:args], [:scope, [:block, [:nil]]]]]
+</code></pre>
+
+<p>The AST is a nested structure where nodes contain other nodes. For
+example the <code>hello</code> method defined above is composed of a <code>Script</code> node
+containing <code>Define</code> in its <code>@body</code> which in turns contains
+<code>FormalArguments</code> in its <code>@arguments</code>  and <code>Block</code> in its <code>@body</code>. The
+<code>Block</code> node contains only the <code>NilLiteral</code> in its <code>@array</code>. The
+<code>NilLiteral</code> node is a leaf node, it doesn&rsquo;t contain other nodes.</p>
+
+<p>Note that the following <code>if</code> expression:</p>
+
+<pre><code>rbx compile -S -e ":foo if :bar"
+[:script, [:if, [:lit, :bar], [:lit, :foo], nil]]
+</code></pre>
+
+<p>and the same <code>if</code> expression but written differently</p>
+
+<pre><code>rbx compile -S -e "if :bar then :foo; end"
+[:script, [:if, [:lit, :bar], [:lit, :foo], nil]]
+</code></pre>
+
+<p>produce exactly the same syntax tree. Because the tree doesn&rsquo;t
+represent every detail that appears in the real syntax it is called
+&ldquo;abstract&rdquo;.</p>
+
+<h2 id="files-referenced">Files Referenced</h2>
+
+<ul>
+  <li><em>lib/compiler/ast/</em>: directory containing definitions of all AST classes</li>
+</ul>
+
+<h2 id="customization">Customization</h2>
+
+<p>There are two ways to customize this stage of the compilation process.
+The easiest way to customize the creation of the AST is through
+<a href="/doc/en/bytecode-compiler/transformations/">AST Transforms</a>.</p>
+
+<p>You can also subclass the Melbourne processor and define your own
+handlers for the <code>process_</code> methods. This is an advanced topic that is
+not yet documented.</p>
+
 
 
     </div>
