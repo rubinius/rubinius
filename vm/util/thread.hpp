@@ -146,7 +146,7 @@ namespace thread {
       int err = pthread_join(native_, &bunk);
       if(err != 0) {
         if(err == EDEADLK) {
-          std::cout << "Thread deadlock!\n";
+          std::cout << "Thread deadlock in ::join()!\n";
           abort();   
         }
 
@@ -345,7 +345,7 @@ namespace thread {
       case 0:
         break;
       case EDEADLK:
-        std::cout << "Thread deadlock!\n";
+        std::cout << "Thread deadlock in ::lock()!\n";
         abort();
         break;
       case EINVAL:

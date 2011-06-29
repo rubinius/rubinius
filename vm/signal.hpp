@@ -14,7 +14,6 @@ namespace rubinius {
     VM* vm_;
     int pending_signals_[NSIG];
     int queued_signals_;
-    bool executing_signal_;
     thread::SpinLock lock_;
     int read_fd_;
     int write_fd_;

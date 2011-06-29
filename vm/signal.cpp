@@ -27,7 +27,6 @@ namespace rubinius {
     : thread::Thread()
     , vm_(vm)
     , queued_signals_(0)
-    , executing_signal_(false)
     , exit_(false)
   {
     handler_ = this;
@@ -163,8 +162,6 @@ namespace rubinius {
   }
 
   bool SignalHandler::deliver_signals(CallFrame* call_frame) {
-    if(executing_signal_) return true;
-    executing_signal_ = true;
     queued_signals_ = 0;
 
     for(int i = 0; i < NSIG; i++) {
@@ -186,7 +183,6 @@ namespace rubinius {
       }
     }
 
-    executing_signal_ = false;
     return true;
   }
 }

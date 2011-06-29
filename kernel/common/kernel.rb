@@ -304,11 +304,7 @@ module Kernel
       raise TypeError, 'time interval must be a numeric value'
     end
 
-    key = :__sleep_chanel__
-    unless chan = Thread.current[key]
-      chan = Rubinius::Channel.new
-      Thread.current[key] = chan
-    end
+    chan = Rubinius::Channel.new
 
     start = Process.time
     chan.receive_timeout duration
