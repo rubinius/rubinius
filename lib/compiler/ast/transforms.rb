@@ -130,9 +130,9 @@ module Rubinius
 
       def bytecode(g)
         if @arguments.splat?
-          raise CompileError, "splat argument passed to invoke_primitive"
+          raise CompileError, "splat argument passed to call_custom"
         elsif @block
-          raise CompileError, "block passed to invoke_primitive"
+          raise CompileError, "block passed to call_custom"
         end
 
         pos(g)
@@ -142,6 +142,51 @@ module Rubinius
         selector = @arguments.array.shift
         @arguments.bytecode(g)
         g.call_custom selector.value, @arguments.size
+      end
+    end
+
+    ##
+    # Handles Rubinius.single_block_arg
+    #
+    # Given the following code:
+    #
+    #   m { |x| ... }
+    #
+    # In Ruby 1.8, this has the following semantics:
+    #
+    #   * x == nil if no values are yielded
+    #   * x == val if one value is yielded
+    #   * x == [p, q, r, ...] if more than one value is yielded
+    #   * x == [a, b, c, ...] if one Array is yielded
+    #
+    # In Ruby 1.9, this has the following semantics:
+    #
+    #   * x == nil if no values are yielded
+    #   * x == val if one value is yielded
+    #   * x == p if yield(p, q, r, ...)
+    #   * x == [a, b, c, ...] if one Array is yielded
+    #
+    # However, in Ruby 1.9, the Enumerator code manually implements the 1.8
+    # block argument semantics. This transform exposes the VM instruction we
+    # use in 1.8 mode (cast_for_single_block_arg) so we can use it in 1.9 mode
+    # for Enumerator.
+    #
+    class SingleBlockArg < SendWithArguments
+      transform :default, :single_block_arg, "Rubinius.single_block_arg"
+
+      def self.match?(line, receiver, name, arguments, privately)
+        match_send? receiver, :Rubinius, name, :single_block_arg
+      end
+
+      def bytecode(g)
+        if @arguments.splat?
+          raise CompileError, "splat argument passed to single_block_arg"
+        elsif @block
+          raise CompileError, "block passed to single_block_arg"
+        end
+
+        pos(g)
+        g.cast_for_single_block_arg
       end
     end
 
