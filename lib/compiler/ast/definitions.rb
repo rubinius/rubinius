@@ -452,6 +452,16 @@ module Rubinius
         @required.size + @optional.size + @post.size
       end
 
+      def splat_index
+        if @splat
+          index = @names.size
+          index -= 1 if @block_arg
+          index -= 1 if @splat.kind_of? Symbol
+          index -= @post.size
+          index
+        end
+      end
+
       def map_arguments(scope)
         @required.each do |arg|
           case arg
