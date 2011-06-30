@@ -118,13 +118,20 @@ class Method
   def parameters
     return [] unless @executable.respond_to? :local_names
 
+    m = @executable.required_args - @executable.post_args
+    o = m + @executable.total_args - @executable.required_args
+    p = o + @executable.post_args
+    p += 1 if @executable.splat
+
     @executable.local_names.each_with_index.map do |name, i|
-      if i < @executable.required_args
+      if i < m
         [:req, name]
-      elsif i < @executable.total_args
+      elsif i < o
         [:opt, name]
       elsif @executable.splat == i
         [:rest, name]
+      elsif i < p
+        [:req, name]
       else
         [:block, name]
       end
@@ -278,13 +285,20 @@ class UnboundMethod
   def parameters
     return [] unless @executable.respond_to? :local_names
 
+    m = @executable.required_args - @executable.post_args
+    o = m + @executable.total_args - @executable.required_args
+    p = o + @executable.post_args
+    p += 1 if @executable.splat
+
     @executable.local_names.each_with_index.map do |name, i|
-      if i < @executable.required_args
+      if i < m
         [:req, name]
-      elsif i < @executable.total_args
+      elsif i < o
         [:opt, name]
       elsif @executable.splat == i
         [:rest, name]
+      elsif i < p
+        [:req, name]
       else
         [:block, name]
       end
