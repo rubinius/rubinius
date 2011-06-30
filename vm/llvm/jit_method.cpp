@@ -58,6 +58,7 @@ namespace jit {
 
     valid_flag = b().CreateAlloca(ls_->Int1Ty, 0, "valid_flag");
     info_.set_counter(b().CreateAlloca(ls_->Int32Ty, 0, "counter_alloca"));
+    counter2_ = b().CreateAlloca(ls_->Int32Ty, 0, "counter2");
 
     // The 3 here is because we store {ip, sp, type} per unwind.
     info_.set_unwind_info(b().CreateAlloca(ls_->Int32Ty,
@@ -116,11 +117,210 @@ namespace jit {
     b().SetInsertPoint(body);
   }
 
+  void MethodBuilder::import_args_19_style() {
+    Value* vm_obj = vm;
+    Value* arg_obj = args;
+
+    Value* local_i = counter2_;
+
+    Value* loop_i = info_.counter();
+    Value* arg_ary = b().CreateLoad(
+                       b().CreateConstGEP2_32(args, 0, offset::args_ary,
+                                              "arg_ary_pos"),
+                       "arg_ary");
+
+    // The variables used in the 4 phases.
+    int P = vmm_->post_args;
+    int M = vmm_->required_args - P;
+    Value* T = arg_total;
+    int R = vmm_->required_args;
+    int O = vmm_->total_args - R;
+    int HS = vmm_->splat_position > 0 ? 1 : 0;
+
+
+    // Phase 1, the manditories
+    // 0 ... M
+
+    for(int i = 0; i < M; i++) {
+      Value* int_pos = ConstantInt::get(ls_->Int32Ty, i);
+
+      Value* arg_val_offset = b().CreateConstGEP1_32(arg_ary, i, "arg_val_offset");
+
+      Value* arg_val = b().CreateLoad(arg_val_offset, "arg_val");
+
+      Value* idx2[] = {
+        ConstantInt::get(ls_->Int32Ty, 0),
+        ConstantInt::get(ls_->Int32Ty, offset::vars_tuple),
+        int_pos
+      };
+
+      Value* pos = b().CreateGEP(vars, idx2, idx2+3, "var_pos");
+
+      b().CreateStore(arg_val, pos);
+    }
+
+    // Phase 2, the post args
+    // T-P ... T
+    {
+      BasicBlock* top = BasicBlock::Create(ls_->ctx(), "arg_loop_top", func);
+      BasicBlock* body = BasicBlock::Create(ls_->ctx(), "arg_loop_body", func);
+      BasicBlock* after = BasicBlock::Create(ls_->ctx(), "arg_loop_cont", func);
+
+      // *loop_i = T-P
+      b().CreateStore(
+        b().CreateSub(T, ConstantInt::get(T->getType(), P)),
+        loop_i);
+
+      // *local_i = M+O+HS
+      b().CreateStore(
+        ConstantInt::get(ls_->Int32Ty, M+O+HS),
+        local_i);
+
+      b().CreateBr(top);
+
+      b().SetInsertPoint(top);
+
+      // loop_val = *loop_i
+      Value* loop_val = b().CreateLoad(loop_i, "loop_val");
+
+      // if(loop_val < T) { goto body } else { goto after }
+      b().CreateCondBr(
+          b().CreateICmpSLT(loop_val, T, "loop_test"),
+          body, after);
+
+      // Now, the body
+      b().SetInsertPoint(body);
+
+      // local_val = *local_i
+      Value* local_val = b().CreateLoad(local_i, "local_val");
+
+      Value* idx2[] = {
+        ConstantInt::get(ls_->Int32Ty, 0),
+        ConstantInt::get(ls_->Int32Ty, offset::vars_tuple),
+        local_val
+      };
+
+      // locals[local_idx] = args[loop_val]
+      b().CreateStore(
+          b().CreateLoad(
+            b().CreateGEP(arg_ary, loop_val)),
+          b().CreateGEP(vars, idx2, idx2+3));
+
+      // *loop_i = loop_val + 1
+      b().CreateStore(
+          b().CreateAdd(loop_val, ConstantInt::get(ls_->Int32Ty, 1)),
+          loop_i);
+
+      // *local_i = local_val + 1;
+      b().CreateStore(
+          b().CreateAdd(local_val, ConstantInt::get(ls_->Int32Ty, 1)),
+          local_i);
+
+      b().CreateBr(top);
+
+      b().SetInsertPoint(after);
+    }
+
+    // Phase 3 - optionals
+    // M ... M + min(O, T-R)
+
+    Value* Oval = ConstantInt::get(ls_->Int32Ty, O);
+    Value* left = b().CreateSub(T, ConstantInt::get(ls_->Int32Ty, R));
+
+    Value* limit =
+      b().CreateAdd(
+          ConstantInt::get(ls_->Int32Ty, M),
+          b().CreateSelect(
+            b().CreateICmpSLT(Oval, left),
+            Oval, left));
+
+    {
+      BasicBlock* top = BasicBlock::Create(ls_->ctx(), "opt_arg_loop_top", func);
+      BasicBlock* body = BasicBlock::Create(ls_->ctx(), "opt_arg_loop_body", func);
+      BasicBlock* after = BasicBlock::Create(ls_->ctx(), "opt_arg_loop_cont", func);
+
+      // *loop_i = M
+      b().CreateStore(ConstantInt::get(ls_->Int32Ty, M), loop_i);
+      b().CreateBr(top);
+
+      b().SetInsertPoint(top);
+
+      // loop_val = *loop_i;
+      Value* loop_val = b().CreateLoad(loop_i, "loop_val");
+
+      // if(loop_val < limit) { goto body; } else { goto after; }
+      b().CreateCondBr(
+          b().CreateICmpSLT(loop_val, limit, "loop_test"),
+          body, after);
+
+      // Now, the body
+      b().SetInsertPoint(body);
+
+      Value* idx2[] = {
+        ConstantInt::get(ls_->Int32Ty, 0),
+        ConstantInt::get(ls_->Int32Ty, offset::vars_tuple),
+        loop_val
+      };
+
+      // locals[loop_val] = args[loop_val]
+      b().CreateStore(
+          b().CreateLoad(
+            b().CreateGEP(arg_ary, loop_val)),
+          b().CreateGEP(vars, idx2, idx2+3));
+
+      // *loop_i = loop_val + 1
+      b().CreateStore(
+          b().CreateAdd(loop_val, ConstantInt::get(ls_->Int32Ty, 1)),
+          loop_i);
+
+      b().CreateBr(top);
+
+      b().SetInsertPoint(after);
+    }
+
+    // Phase 4 - splat
+    if(vmm_->splat_position >= 0) {
+      Signature sig(ls_, "Object");
+      sig << "VM";
+      sig << "Arguments";
+      sig << ls_->Int32Ty;
+
+      Value* call_args[] = {
+        vm_obj,
+        arg_obj,
+        ConstantInt::get(ls_->Int32Ty, vmm_->total_args)
+      };
+
+      Function* func = sig.function("rbx_construct_splat");
+      func->setOnlyReadsMemory(true);
+      func->setDoesNotThrow(true);
+
+      CallInst* splat_val = sig.call("rbx_construct_splat", call_args, 3, "splat_val", b());
+
+      splat_val->setOnlyReadsMemory(true);
+      splat_val->setDoesNotThrow(true);
+
+      Value* idx3[] = {
+        ConstantInt::get(ls_->Int32Ty, 0),
+        ConstantInt::get(ls_->Int32Ty, offset::vars_tuple),
+        ConstantInt::get(ls_->Int32Ty, vmm_->splat_position)
+      };
+
+      Value* pos = b().CreateGEP(vars, idx3, idx3+3, "splat_pos");
+      b().CreateStore(splat_val, pos);
+    }
+  }
+
   void MethodBuilder::import_args() {
     Value* vm_obj = vm;
     Value* arg_obj = args;
 
     setup_scope();
+
+    if(vmm_->post_args > 0) {
+      import_args_19_style();
+      return;
+    }
 
     // Import the arguments
     Value* offset = b().CreateConstGEP2_32(args, 0, offset::args_ary, "arg_ary_pos");

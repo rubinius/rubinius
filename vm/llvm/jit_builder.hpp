@@ -60,6 +60,9 @@ namespace jit {
 
     JITMethodInfo& info_;
 
+  protected:
+    llvm::Value* counter2_;
+
   public:
 
     llvm::IRBuilder<>& b() { return builder_; }

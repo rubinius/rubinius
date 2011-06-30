@@ -3247,6 +3247,8 @@ use_send:
     }
 
     void visit_passed_arg(opcode count) {
+      count += vmmethod()->post_args;
+
       if(called_args_ >= 0) {
         if((int)count < called_args_) {
           stack_push(constant(Qtrue));
