@@ -288,7 +288,7 @@ namespace jit {
       Value* call_args[] = {
         vm_obj,
         arg_obj,
-        ConstantInt::get(ls_->Int32Ty, vmm_->total_args)
+        ConstantInt::get(ls_->Int32Ty, M + O)
       };
 
       Function* func = sig.function("rbx_construct_splat");

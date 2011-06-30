@@ -461,7 +461,10 @@ namespace rubinius {
           size_t splat_size = total_args - vmm->total_args;
           ary = Array::create(state, splat_size);
 
-          for(size_t i = 0, n = vmm->total_args; i < splat_size; i++, n++) {
+          for(size_t i = 0, n = vmm->total_args - vmm->post_args;
+              i < splat_size;
+              i++, n++)
+          {
             ary->set(state, i, args.get_argument(n));
           }
         } else {
