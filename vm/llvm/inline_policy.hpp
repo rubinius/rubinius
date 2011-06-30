@@ -39,6 +39,7 @@ namespace rubinius {
     static bool can_inline_p(VMMethod* vmm, InlineOptions& opts) {
       // Reject methods with splat arguments
       if(!opts.allow_splat && vmm->splat_position >= 0) return false;
+      if(vmm->post_args > 0) return false;
 
       InlineEvaluator eval(opts);
 
