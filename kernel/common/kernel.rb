@@ -195,7 +195,10 @@ module Kernel
     return nil if a.empty?
     a.each { |obj| $stdout.puts obj.inspect }
     $stdout.flush
-    nil
+
+    return nil if Rubinius.ruby18?
+
+    a.size == 1 ? a.first : a
   end
   module_function :p
 
