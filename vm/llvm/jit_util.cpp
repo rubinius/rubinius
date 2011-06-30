@@ -275,12 +275,12 @@ extern "C" {
     return call_frame->promote_scope(state);
   }
 
-  Object* rbx_construct_splat(STATE, Arguments& args, size_t total) {
-    if(args.total() > total) {
-      size_t splat_size = args.total() - total;
+  Object* rbx_construct_splat(STATE, Arguments& args, size_t start, size_t total) {
+    size_t splat_size = args.total() - total;
+    if(splat_size > 0) {
       Array* ary = Array::create(state, splat_size);
 
-      for(size_t i = 0, n = total; i < splat_size; i++, n++) {
+      for(size_t i = 0, n = start; i < splat_size; i++, n++) {
         ary->set(state, i, args.get_argument(n));
       }
       return ary;

@@ -133,6 +133,7 @@ namespace jit {
     int P = vmm_->post_args;
     int M = vmm_->required_args - P;
     Value* T = arg_total;
+    int DT = vmm_->total_args;
     int R = vmm_->required_args;
     int O = vmm_->total_args - R;
     int HS = vmm_->splat_position > 0 ? 1 : 0;
@@ -284,18 +285,20 @@ namespace jit {
       sig << "VM";
       sig << "Arguments";
       sig << ls_->Int32Ty;
+      sig << ls_->Int32Ty;
 
       Value* call_args[] = {
         vm_obj,
         arg_obj,
-        ConstantInt::get(ls_->Int32Ty, M + O)
+        ConstantInt::get(ls_->Int32Ty, M + O),
+        ConstantInt::get(ls_->Int32Ty, DT)
       };
 
       Function* func = sig.function("rbx_construct_splat");
       func->setOnlyReadsMemory(true);
       func->setDoesNotThrow(true);
 
-      CallInst* splat_val = sig.call("rbx_construct_splat", call_args, 3, "splat_val", b());
+      CallInst* splat_val = sig.call("rbx_construct_splat", call_args, 4, "splat_val", b());
 
       splat_val->setOnlyReadsMemory(true);
       splat_val->setDoesNotThrow(true);
@@ -417,10 +420,12 @@ namespace jit {
       sig << "VM";
       sig << "Arguments";
       sig << ls_->Int32Ty;
+      sig << ls_->Int32Ty;
 
       Value* call_args[] = {
         vm_obj,
         arg_obj,
+        ConstantInt::get(ls_->Int32Ty, vmm_->total_args),
         ConstantInt::get(ls_->Int32Ty, vmm_->total_args)
       };
 
@@ -428,7 +433,7 @@ namespace jit {
       func->setOnlyReadsMemory(true);
       func->setDoesNotThrow(true);
 
-      CallInst* splat_val = sig.call("rbx_construct_splat", call_args, 3, "splat_val", b());
+      CallInst* splat_val = sig.call("rbx_construct_splat", call_args, 4, "splat_val", b());
 
       splat_val->setOnlyReadsMemory(true);
       splat_val->setDoesNotThrow(true);
