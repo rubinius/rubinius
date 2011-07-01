@@ -100,6 +100,9 @@ module Rubinius
           else
             @conditions = conditions
           end
+        elsif conditions.kind_of? SplatValue
+          @splat = SplatWhen.new line, conditions.value
+          @conditions = nil
         else
           @conditions = conditions
         end
