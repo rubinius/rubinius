@@ -91,8 +91,7 @@ namespace jit {
 
     setup_inline_scope(self, constant(Qnil, obj_type), mod);
 
-#ifdef RBX_ENABLED_19
-    if(ls_->config().version_19) {
+    if(ls_->config().version >= 19) {
       // We don't support splat in an block method!
       assert(vmm_->splat_position < 0);
 
@@ -117,7 +116,6 @@ namespace jit {
       // No argument handling, there are bytecodes in the body that
       // do that. We just have to make stack_args available.
     }
-#endif
 
     b().CreateBr(body);
     b().SetInsertPoint(body);

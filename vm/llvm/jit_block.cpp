@@ -107,11 +107,9 @@ namespace jit {
 
     setup_block_scope();
 
-#ifdef RBX_ENABLED_19
-    if(ls_->config().version_19) {
+    if(ls_->config().version >= 19) {
       import_args_19_style();
     }
-#endif
 
     if(ls_->include_profiling()) {
       Value* test = b().CreateLoad(ls_->profiling(), "profiling");

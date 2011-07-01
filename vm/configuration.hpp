@@ -20,23 +20,22 @@ namespace rubinius {
     config::Bytes   gc_malloc_threshold;
 
     // Language
+    config::Radio   version;
+
 #ifdef RBX_ENABLED_18
-    config::Bool    version_18;
-#define LANGUAGE_18_ENABLED(state)  ((state)->shared.config.version_18)
+#define LANGUAGE_18_ENABLED(state)  ((state)->shared.config.version >= 18)
 #else
 #define LANGUAGE_18_ENABLED(state)  (false)
 #endif
 
 #ifdef RBX_ENABLED_19
-    config::Bool    version_19;
-#define LANGUAGE_19_ENABLED(state)  ((state)->shared.config.version_19)
+#define LANGUAGE_19_ENABLED(state)  ((state)->shared.config.version >= 19)
 #else
 #define LANGUAGE_19_ENABLED(state)  (false)
 #endif
 
 #ifdef RBX_ENABLED_20
-    config::Bool    version_20;
-#define LANGUAGE_20_ENABLED(state)  ((state)->shared.config.version_20)
+#define LANGUAGE_20_ENABLED(state)  ((state)->shared.config.version >= 20)
 #else
 #define LANGUAGE_20_ENABLED(state)  (false)
 #endif
@@ -106,17 +105,7 @@ namespace rubinius {
       , gc_malloc_threshold(this, "gc.malloc_threshold",
                             default_gc_malloc_threshold)
 
-#ifdef RBX_ENABLED_18
-      , version_18(this, "18", false)
-#endif
-
-#ifdef RBX_ENABLED_19
-      , version_19(this, "19", false)
-#endif
-
-#ifdef RBX_ENABLED_20
-      , version_20(this, "20", false)
-#endif
+      , version(this, "version")
 
       , dynamic_interpreter_enabled(this, "interpreter.dynamic")
       , jit_dump_code(this,   "jit.dump_code", default_jit_dump_code)
@@ -176,19 +165,31 @@ namespace rubinius {
           "How many bytes allocated by C extensions til the GC is run");
 
 #ifdef RBX_ENABLED_18
-      version_18.set_description(
-          "Set the supported language version to 1.8");
+#if RBX_DEFAULT_18
+      version.add("18", 18, true);
+#else
+      version.add("18", 18);
+#endif
 #endif
 
 #ifdef RBX_ENABLED_19
-      version_19.set_description(
-          "Set the supported language version to 1.9");
+#if RBX_DEFAULT_19
+      version.add("19", 19, true);
+#else
+      version.add("19", 19);
+#endif
 #endif
 
 #ifdef RBX_ENABLED_20
-      version_20.set_description(
-          "Set the supported language version to 2.0");
+#if RBX_DEFAULT_20
+      version.add("20", 20, true);
+#else
+      version.add("20", 20);
 #endif
+#endif
+
+      version.set_description(
+          "Which version of ruby should we run");
 
       jit_dump_code.set_description(
           "1 == show simple IR, 2 == show optimized IR, 4 == show machine code");
