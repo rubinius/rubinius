@@ -207,7 +207,7 @@ module Rubinius
 
         case arguments
         when PushArgs
-          @arguments = arguments
+          @arguments = PushActualArguments.new arguments
         else
           @arguments = ActualArguments.new line, arguments
         end
@@ -246,13 +246,10 @@ module Rubinius
       end
     end
 
-    class PushArgs < Node
-      attr_accessor :arguments, :value
-
-      def initialize(line, arguments, value)
-        @line = line
-        @arguments = arguments
-        @value = value
+    class PushActualArguments
+      def initialize(pa)
+        @arguments = pa.arguments
+        @value = pa.value
       end
 
       def size

@@ -19,12 +19,11 @@ module Rubinius
     end
 
     class ConcatArgs < Node
-      attr_accessor :array, :rest, :size
+      attr_accessor :array, :rest
 
       def initialize(line, array, rest)
         @line = line
         @array = array
-        @size = array.body.size
         @rest = rest
       end
 
@@ -39,6 +38,28 @@ module Rubinius
         [:argscat, @array.to_sexp, @rest.to_sexp]
       end
     end
+
+    class PushArgs < Node
+      attr_accessor :arguments, :value
+
+      def initialize(line, arguments, value)
+        @line = line
+        @arguments = arguments
+        @value = value
+      end
+
+      def bytecode(g)
+        @arguments.bytecode(g)
+        @value.bytecode(g)
+        g.make_array 1
+        g.send :+, 1
+      end
+
+      def to_sexp
+        [:argspush, @arguments.to_sexp, @value.to_sexp]
+      end
+    end
+
 
     class SValue < Node
       attr_accessor :value

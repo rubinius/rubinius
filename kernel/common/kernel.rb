@@ -664,14 +664,6 @@ module Kernel
     Rubinius.convert_to_names methods.uniq
   end
 
-  def to_a
-    if self.kind_of? Array
-      self
-    else
-      [self]
-    end
-  end
-
   def to_s
     str = "#<#{self.class}:0x#{self.__id__.to_s(16)}>"
     str.taint if tainted?
