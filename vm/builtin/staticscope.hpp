@@ -35,25 +35,25 @@ namespace rubinius {
     static void bootstrap_methods(STATE);
     static StaticScope* create(STATE);
 
-    // Ruby.primitive :static_scope_of_sender
+    // Rubinius.primitive :static_scope_of_sender
     static StaticScope* of_sender(STATE, CallFrame* calling_environment);
 
-    // Ruby.primitive :static_scope_const_set
+    // Rubinius.primitive :static_scope_const_set
     Object* const_set(STATE, Object* name, Object* value);
 
     // The module to use when adding and removing methods
     Module* for_method_definition();
 
-    // Ruby.primitive :static_scope_cvar_defined
+    // Rubinius.primitive :static_scope_cvar_defined
     Object* cvar_defined(STATE, Symbol* name);
 
-    // Ruby.primitive :static_scope_cvar_get
+    // Rubinius.primitive :static_scope_cvar_get
     Object* cvar_get(STATE, Symbol* name);
 
-    // Ruby.primitive :static_scope_cvar_set
+    // Rubinius.primitive :static_scope_cvar_set
     Object* cvar_set(STATE, Symbol* name, Object* value);
 
-    // Ruby.primitive :static_scope_cvar_get_or_set
+    // Rubinius.primitive :static_scope_cvar_get_or_set
     Object* cvar_get_or_set(STATE, Symbol* name, Object* value);
 
     bool top_level_p(STATE) {

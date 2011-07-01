@@ -4,12 +4,12 @@ module Rubinius
     attr_accessor :name
 
     def self.allocate
-      Ruby.primitive :compiledmethod_allocate
+      Rubinius.primitive :compiledmethod_allocate
       raise PrimitiveFailure, "CompiledMethod.allocate primitive failed"
     end
 
     def dup
-      Ruby.primitive :compiledmethod_dup
+      Rubinius.primitive :compiledmethod_dup
       raise PrimitiveFailure, "CompiledMethod#dup primitive failed"
     end
 
@@ -29,7 +29,7 @@ module Rubinius
     # f_cm is the CompiledMethod of f as requested by g.
     #
     def self.of_sender
-      Ruby.primitive :compiledmethod_of_sender
+      Rubinius.primitive :compiledmethod_of_sender
       raise PrimitiveFailure, "CompiledMethod.of_sender failed"
     end
 
@@ -41,7 +41,7 @@ module Rubinius
     #   end
     #
     def self.current
-      Ruby.primitive :compiledmethod_current
+      Rubinius.primitive :compiledmethod_current
       raise PrimitiveFailure, "CompiledMethod.current failed"
     end
   end

@@ -22,7 +22,7 @@ class String
   # Creates a new string from copying _count_ bytes from the
   # _start_ of _ca_.
   def self.from_chararray(ca, start, count)
-    Ruby.primitive :string_from_chararray
+    Rubinius.primitive :string_from_chararray
     raise PrimitiveFailure, "String.from_chararray primitive failed"
   end
 
@@ -158,7 +158,7 @@ class String
   # <code>false</code>. Otherwise, returns <code>true</code> if <i>self</i>
   # <code><=></code> <i>obj</i> returns zero.
   def ==(other)
-    Ruby.primitive :string_equal
+    Rubinius.primitive :string_equal
 
     # Use #=== rather than #kind_of? because other might redefine kind_of?
     unless String === other
@@ -883,7 +883,7 @@ class String
 
   # Two strings are equal if the have the same length and content.
   def eql?(other)
-    Ruby.primitive :string_equal
+    Rubinius.primitive :string_equal
 
     return false unless other.kind_of?(String) && other.size == @num_bytes
     return @data.compare_bytes(other.__data__, @num_bytes, other.size) == 0
@@ -2312,17 +2312,17 @@ class String
   end
 
   def to_inum(base, check)
-    Ruby.primitive :string_to_inum
+    Rubinius.primitive :string_to_inum
     raise ArgumentError, "invalid value for Integer"
   end
 
   def apply_and!(other)
-    Ruby.primitive :string_apply_and
+    Rubinius.primitive :string_apply_and
     raise PrimitiveFailure, "String#apply_and! primitive failed"
   end
 
   def compare_substring(other, start, size)
-    Ruby.primitive :string_compare_substring
+    Rubinius.primitive :string_compare_substring
 
     if start > @num_bytes || start + @num_bytes < 0
       raise IndexError, "index #{start} out of string"
@@ -2354,7 +2354,7 @@ class String
   end
 
   def tr_expand!(limit, invalid_as_empty)
-    Ruby.primitive :string_tr_expand
+    Rubinius.primitive :string_tr_expand
     raise PrimitiveFailure, "String#tr_expand primitive failed"
   end
 
@@ -2681,7 +2681,7 @@ class String
   #     -------+---------+-----------------------------------------
 
   def unpack(directives)
-    Ruby.primitive :string_unpack
+    Rubinius.primitive :string_unpack
 
     unless directives.kind_of? String
       return unpack(StringValue(directives))

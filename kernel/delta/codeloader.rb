@@ -168,7 +168,7 @@ module Rubinius
 
     # Load a compiled version of a Ruby source file.
     def load_compiled_file(path, signature, version)
-      Ruby.primitive :compiledfile_load
+      Rubinius.primitive :compiledfile_load
 
       raise InvalidRBC, path
     end

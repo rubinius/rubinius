@@ -24,7 +24,7 @@ module Kernel
   # Kernel. But in 1.9, :__send__ is defined on BasicObject.
   #
   def send(message, *args)
-    Ruby.primitive :object_send
+    Rubinius.primitive :object_send
 
     # MRI checks for Fixnum explicitly and raises ArgumentError
     # instead of TypeError. Seems silly, so we don't bother.

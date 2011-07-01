@@ -356,7 +356,7 @@ namespace rubinius {
      *  Rubinius. It should be updated accordingly when properly
      *  entered.
      */
-    // Ruby.primitive :nativemethod_load_extension_entry_point
+    // Rubinius.primitive :nativemethod_load_extension_entry_point
     static NativeMethod* load_extension_entry_point(STATE, Pointer* ptr);
 
 

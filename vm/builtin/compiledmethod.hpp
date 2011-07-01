@@ -79,7 +79,7 @@ namespace rubinius {
 
     static void init(STATE);
 
-    // Ruby.primitive :compiledmethod_allocate
+    // Rubinius.primitive :compiledmethod_allocate
     static CompiledMethod* create(STATE);
 
     static Object* primitive_failed(STATE, CallFrame* call_frame, Executable* exec, Module* mod, Arguments& args);
@@ -95,22 +95,22 @@ namespace rubinius {
 
     static Object* default_executor(STATE, CallFrame*, Executable* exec, Module* mod, Arguments& args);
 
-    // Ruby.primitive :compiledmethod_set_breakpoint
+    // Rubinius.primitive :compiledmethod_set_breakpoint
     Object* set_breakpoint(STATE, Fixnum* ip, Object* bp);
 
-    // Ruby.primitive :compiledmethod_clear_breakpoint
+    // Rubinius.primitive :compiledmethod_clear_breakpoint
     Object* clear_breakpoint(STATE, Fixnum* ip);
 
-    // Ruby.primitive :compiledmethod_is_breakpoint
+    // Rubinius.primitive :compiledmethod_is_breakpoint
     Object* is_breakpoint(STATE, Fixnum* ip);
 
-    // Ruby.primitive :compiledmethod_of_sender
+    // Rubinius.primitive :compiledmethod_of_sender
     static CompiledMethod* of_sender(STATE, CallFrame* calling_environment);
 
-    // Ruby.primitive :compiledmethod_current
+    // Rubinius.primitive :compiledmethod_current
     static CompiledMethod* current(STATE, CallFrame* calling_environment);
 
-    // Ruby.primitive :compiledmethod_dup
+    // Rubinius.primitive :compiledmethod_dup
     CompiledMethod* dup_cm(STATE);
 
     String* full_name(STATE);

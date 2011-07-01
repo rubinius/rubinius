@@ -2,7 +2,7 @@
 # but we fake that until method lookup is fixed for 1.9.
 module Kernel
   def equal?(other)
-    Ruby.primitive :object_equal
+    Rubinius.primitive :object_equal
     raise PrimitiveFailure, "Kernel#equal? primitive failed"
   end
 
@@ -15,17 +15,17 @@ module Kernel
   end
 
   def trust
-    Ruby.primitive :object_trust
+    Rubinius.primitive :object_trust
     raise PrimitiveFailure, "Kernel#trust primitive failed"
   end
 
   def untrust
-    Ruby.primitive :object_untrust
+    Rubinius.primitive :object_untrust
     raise PrimitiveFailure, "Kernel#untrust primitive failed"
   end
 
   def untrusted?
-    Ruby.primitive :object_untrusted_p
+    Rubinius.primitive :object_untrusted_p
     raise PrimitiveFailure, "Kernel#untrusted? primitive failed"
   end
 end

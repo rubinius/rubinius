@@ -45,16 +45,16 @@ namespace rubinius {
     attr_accessor(test_then, CallUnit);
     attr_accessor(test_else, CallUnit);
 
-    // Ruby.primitive :callunit_constant_value
+    // Rubinius.primitive :callunit_constant_value
     static CallUnit* create_constant_value(STATE, Object* self, Object* val);
 
-    // Ruby.primitive :callunit_for_method_parts
+    // Rubinius.primitive :callunit_for_method_parts
     static CallUnit* create_for_method(STATE, Object* self, Module* mod, Executable* exec, Symbol* name);
 
-    // Ruby.primitive :callunit_test
+    // Rubinius.primitive :callunit_test
     static CallUnit* create_test(STATE, Object* self, CallUnit* cond, CallUnit* c_then, CallUnit* c_else);
 
-    // Ruby.primitive :callunit_kind_of
+    // Rubinius.primitive :callunit_kind_of
     static CallUnit* create_kind_of(STATE, Object* self, Module* mod, Fixnum* which);
 
     static Object* constant_value_executor(STATE, CallFrame* call_frame,

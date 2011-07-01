@@ -33,7 +33,7 @@ namespace rubinius {
 
     static size_t type_size(size_t type);
 
-    // Ruby.primitive :nativefunction_type_size
+    // Rubinius.primitive :nativefunction_type_size
     static Fixnum* type_size_prim(STATE, Fixnum* type);
 
     static void init(STATE);
@@ -41,10 +41,10 @@ namespace rubinius {
     static NativeFunction* create(STATE, Symbol* name, int args);
     static Object* execute(STATE, CallFrame* call_frame, Executable* exec, Module* mod, Arguments& args);
 
-    // Ruby.primitive :nativefunction_generate
+    // Rubinius.primitive :nativefunction_generate
     static NativeFunction* generate(STATE, Pointer* ptr, Symbol* name, Array* args, Object* ret);
 
-    // Ruby.primitive :nativefunction_generate_tramp
+    // Rubinius.primitive :nativefunction_generate_tramp
     static Array* generate_tramp(STATE, Object* obj, Symbol* name, Array* args, Object* ret);
 
     static Pointer* adjust_tramp(STATE, Object* obj, NativeFunction* orig);

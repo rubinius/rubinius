@@ -48,32 +48,32 @@ class Module
   private :verify_class_variable_name
 
   def class_variable_set(name, val)
-    Ruby.primitive :module_cvar_set
+    Rubinius.primitive :module_cvar_set
 
     class_variable_set verify_class_variable_name(name), val
   end
 
   def class_variable_get(name)
-    Ruby.primitive :module_cvar_get
+    Rubinius.primitive :module_cvar_get
 
     class_variable_get verify_class_variable_name(name)
   end
 
   def class_variable_defined?(name)
-    Ruby.primitive :module_cvar_defined
+    Rubinius.primitive :module_cvar_defined
 
     class_variable_defined? verify_class_variable_name(name)
   end
 
   def remove_class_variable(name)
-    Ruby.primitive :module_cvar_remove
+    Rubinius.primitive :module_cvar_remove
 
     remove_class_variable verify_class_variable_name(name)
   end
   private :remove_class_variable
 
   def __class_variables__
-    Ruby.primitive :module_class_variables
+    Rubinius.primitive :module_class_variables
 
     raise PrimitiveFailure, "module_class_variables failed"
   end
@@ -575,7 +575,7 @@ class Module
   end
 
   def ===(inst)
-    Ruby.primitive :module_case_compare
+    Rubinius.primitive :module_case_compare
     raise PrimitiveFailure, "Module#=== primitive failed"
   end
 

@@ -887,7 +887,7 @@ class CPPParser
   def parse_stream(f)
     class_pattern = /class\s+([^\s]+)\s*:\s*public\s+([^\s]+)/
     slot_pattern = %r!^\s*(\w+)\*?\s+\*?(\w+)_\s*;\s*//\s*slot(.*)!
-    primitive_pattern = %r%^\s*//\s+Ruby.primitive([?!\+])?\s+:(.*)\s*$%
+    primitive_pattern = %r%^\s*//\s+Rubinius.primitive([?!\+])?\s+:(.*)\s*$%
     prototype_pattern = %r!\s*(static\s+)?([\w\*]+)\s+([\w]+)\((.*)\)!
     object_size_pattern = %r|size_t\s+object_size\s*\(const\s+ObjectHeader\s*|
 
@@ -938,7 +938,7 @@ class CPPParser
 
           cpp.add_field idx, name, field_type, flag
           idx += 1
-        # A primitive declaration marked with '// Ruby.primitive'
+        # A primitive declaration marked with '// Rubinius.primitive'
         elsif m = primitive_pattern.match(l)
           overload = m[1] == "!"
           raw = m[1] == "?"

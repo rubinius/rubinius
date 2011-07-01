@@ -23,20 +23,20 @@ namespace rubinius {
 
     static void init(STATE);
 
-    // Ruby.primitive :proc_allocate
+    // Rubinius.primitive :proc_allocate
     static Proc* create(STATE, Object* self);
 
     Object* yield(STATE, CallFrame* call_frame, Arguments& args);
 
     Object* call(STATE, CallFrame* call_frame, Arguments& args);
 
-    // Ruby.primitive? :proc_call
+    // Rubinius.primitive? :proc_call
     Object* call_prim(STATE, CallFrame* call_frame, Executable* exec, Module* mod, Arguments& args);
 
-    // Ruby.primitive? :proc_call_on_object
+    // Rubinius.primitive? :proc_call_on_object
     Object* call_on_object(STATE, CallFrame* call_frame, Executable* exec, Module* mod, Arguments& args);
 
-    // Ruby.primitive :proc_from_env
+    // Rubinius.primitive :proc_from_env
     static Proc* from_env(STATE, Object* self, Object* env);
 
     class Info : public TypeInfo {

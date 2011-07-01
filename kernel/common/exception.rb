@@ -319,7 +319,7 @@ class SystemCallError < StandardError
   attr_reader :errno
 
   def self.errno_error(message, errno)
-    Ruby.primitive :exception_errno_error
+    Rubinius.primitive :exception_errno_error
     raise PrimitiveFailure, "SystemCallError.errno_error failed"
   end
 

@@ -11,7 +11,7 @@ class Encoding
   alias_method :dummy?, :dummy
 
   def replicate(name)
-    Ruby.primitive :encoding_replicate
+    Rubinius.primitive :encoding_replicate
     raise PrimitiveFailure, "Encoding#replicate primitive failed"
   end
 end

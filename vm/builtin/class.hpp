@@ -65,13 +65,13 @@ namespace rubinius {
 
     static Class* create(STATE, Class* super);
 
-    // Ruby.primitive :class_s_allocate
+    // Rubinius.primitive :class_s_allocate
     static Class* s_allocate(STATE);
 
-    // Ruby.primitive+ :class_allocate
+    // Rubinius.primitive+ :class_allocate
     Object* allocate(STATE, CallFrame* calling_environment);
 
-    // Ruby.primitive :class_set_superclass
+    // Rubinius.primitive :class_set_superclass
     Object* set_superclass(STATE, Object* sup);
 
     void auto_pack(STATE);

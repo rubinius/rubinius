@@ -109,7 +109,7 @@ module Rubinius
     # this is.
     #
     def set_breakpoint(ip, obj)
-      Ruby.primitive :compiledmethod_set_breakpoint
+      Rubinius.primitive :compiledmethod_set_breakpoint
       raise ArgumentError, "Unable to set breakpoint on #{inspect} at invalid bytecode address #{ip}"
     end
 
@@ -117,7 +117,7 @@ module Rubinius
     # Erase a breakpoint at +ip+
     #
     def clear_breakpoint(ip)
-      Ruby.primitive :compiledmethod_clear_breakpoint
+      Rubinius.primitive :compiledmethod_clear_breakpoint
       raise ArgumentError, "Unable to clear breakpoint on #{inspect} at invalid bytecode address #{ip}"
     end
 
@@ -125,7 +125,7 @@ module Rubinius
     # Indicate if there is a breakpoint set at +ip+
     #
     def breakpoint?(ip)
-      Ruby.primitive :compiledmethod_is_breakpoint
+      Rubinius.primitive :compiledmethod_is_breakpoint
       raise ArgumentError, "Unable to retrieve breakpoint status on #{inspect} at bytecode address #{ip}"
     end
 

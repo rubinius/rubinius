@@ -60,12 +60,12 @@ module Rubinius
     end
 
     ##
-    # Handles Ruby.primitive
+    # Handles Rubinius.primitive
     class SendPrimitive < SendWithArguments
-      transform :default, :primitive, "Ruby.primitive"
+      transform :default, :primitive, "Rubinius.primitive"
 
       def self.match?(line, receiver, name, arguments, privately)
-        match_send? receiver, :Ruby, name, :primitive
+        match_send? receiver, :Rubinius, name, :primitive
       end
 
       def bytecode(g)

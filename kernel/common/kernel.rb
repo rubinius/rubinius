@@ -468,7 +468,7 @@ module Kernel
   # always false.
 
   def instance_of?(cls)
-    Ruby.primitive :object_instance_of
+    Rubinius.primitive :object_instance_of
 
     if cls.class != Class and cls.class != Module
       # We can obviously compare against Modules but result is always false
@@ -481,7 +481,7 @@ module Kernel
   alias_method :__instance_of__, :instance_of?
 
   def instance_variable_get(sym)
-    Ruby.primitive :object_get_ivar
+    Rubinius.primitive :object_get_ivar
 
     sym = Rubinius::Type.ivar_validate sym
     instance_variable_get sym
@@ -490,7 +490,7 @@ module Kernel
   alias_method :__instance_variable_get__, :instance_variable_get
 
   def instance_variable_set(sym, value)
-    Ruby.primitive :object_set_ivar
+    Rubinius.primitive :object_set_ivar
 
     sym = Rubinius::Type.ivar_validate sym
     instance_variable_set sym, value
@@ -499,7 +499,7 @@ module Kernel
   alias_method :__instance_variable_set__, :instance_variable_set
 
   def remove_instance_variable(sym)
-    Ruby.primitive :object_del_ivar
+    Rubinius.primitive :object_del_ivar
 
     # If it's already a symbol, then we're here because it doesn't exist.
     if sym.kind_of? Symbol
@@ -512,7 +512,7 @@ module Kernel
   private :remove_instance_variable
 
   def all_instance_variables
-    Ruby.primitive :object_ivar_names
+    Rubinius.primitive :object_ivar_names
 
     raise PrimitiveFailure, "Object#instance_variables failed"
   end
@@ -530,7 +530,7 @@ module Kernel
   alias_method :__instance_variables__, :instance_variables
 
   def instance_variable_defined?(name)
-    Ruby.primitive :object_ivar_defined
+    Rubinius.primitive :object_ivar_defined
 
     instance_variable_defined? Rubinius::Type.ivar_validate(name)
   end

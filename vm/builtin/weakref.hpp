@@ -15,7 +15,7 @@ namespace rubinius {
 
   public:
 
-    // Ruby.primitive+ :weakref_object
+    // Rubinius.primitive+ :weakref_object
     Object* object() {
       return object_;
     }
@@ -25,7 +25,7 @@ namespace rubinius {
       write_barrier(wb, obj);
     }
 
-    // Ruby.primitive :weakref_set_object
+    // Rubinius.primitive :weakref_set_object
     Object* set_object(STATE, Object* obj) {
       object_ = obj;
       write_barrier(state, obj);
@@ -34,7 +34,7 @@ namespace rubinius {
 
     static void init(STATE);
 
-    // Ruby.primitive+ :weakref_new
+    // Rubinius.primitive+ :weakref_new
     static WeakRef* create(STATE, Object* obj);
 
     bool alive_p() {

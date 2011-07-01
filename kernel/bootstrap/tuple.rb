@@ -6,17 +6,17 @@ module Rubinius
     end
 
     def self.new(cnt)
-      Ruby.primitive :tuple_allocate
+      Rubinius.primitive :tuple_allocate
       raise PrimitiveFailure, "Tuple.new primitive failed"
     end
 
     def self.pattern(size, obj)
-      Ruby.primitive :tuple_pattern
+      Rubinius.primitive :tuple_pattern
       raise PrimitiveFailure, "Tuple.pattern primitive failed"
     end
 
     def [](idx)
-      Ruby.primitive :tuple_at
+      Rubinius.primitive :tuple_at
 
       unless idx.kind_of? Fixnum
         raise TypeError, "Only Fixnums valid for Tuple indices"
@@ -28,7 +28,7 @@ module Rubinius
     alias_method :at, :[]
 
     def []=(idx, val)
-      Ruby.primitive :tuple_put
+      Rubinius.primitive :tuple_put
 
       unless idx.kind_of? Fixnum
         raise TypeError, "Only Fixnums valid for Tuple indices"
@@ -39,12 +39,12 @@ module Rubinius
     alias_method :put, :[]=
 
     def fields
-      Ruby.primitive :tuple_fields
+      Rubinius.primitive :tuple_fields
       raise PrimitiveFailure, "Tuple#fields primitive failed"
     end
 
     def copy_from(other, start, length, dest)
-      Ruby.primitive :tuple_copy_from
+      Rubinius.primitive :tuple_copy_from
 
       unless other.kind_of? Rubinius::Tuple
         raise TypeError, "Tuple#copy_from was expecting a Tuple, not a #{other.class}"
@@ -97,7 +97,7 @@ module Rubinius
     end
 
     def delete(start,length,object)
-      Ruby.primitive :tuple_delete_inplace
+      Rubinius.primitive :tuple_delete_inplace
 
       start = Rubinius::Type.coerce_to start, Fixnum, :to_i
       length = Rubinius::Type.coerce_to length, Fixnum, :to_i
@@ -144,7 +144,7 @@ module Rubinius
     end
 
     def reverse!(start, total)
-      Ruby.primitive :tuple_reverse
+      Rubinius.primitive :tuple_reverse
 
       reverse(
         Rubinius::Type.coerce_to(start, Fixnum, :to_i),

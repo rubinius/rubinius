@@ -28,10 +28,10 @@ namespace rubinius {
         return ba - 1; // move back up to the pointer to the header
       }
 
-    // Ruby.primitive :bytearray_allocate
+    // Rubinius.primitive :bytearray_allocate
     static ByteArray* allocate(STATE, Fixnum* bytes);
 
-    // Ruby.primitive :bytearray_size
+    // Rubinius.primitive :bytearray_size
     Fixnum* size(STATE);
 
     // Return the number of bytes this ByteArray contains
@@ -43,19 +43,19 @@ namespace rubinius {
       return bytes;
     }
 
-    // Ruby.primitive :bytearray_get_byte
+    // Rubinius.primitive :bytearray_get_byte
     Fixnum* get_byte(STATE, Fixnum* index);
 
-    // Ruby.primitive :bytearray_set_byte
+    // Rubinius.primitive :bytearray_set_byte
     Fixnum* set_byte(STATE, Fixnum* index, Fixnum* value);
 
-    // Ruby.primitive :bytearray_move_bytes
+    // Rubinius.primitive :bytearray_move_bytes
     Fixnum* move_bytes(STATE, Fixnum* start, Fixnum* count, Fixnum* dest);
 
-    // Ruby.primitive :bytearray_fetch_bytes
+    // Rubinius.primitive :bytearray_fetch_bytes
     ByteArray* fetch_bytes(STATE, Fixnum* start, Fixnum* count);
 
-    // Ruby.primitive :bytearray_compare_bytes
+    // Rubinius.primitive :bytearray_compare_bytes
     Fixnum* compare_bytes(STATE, ByteArray* other, Fixnum* a, Fixnum* b);
 
     class Info : public TypeInfo {

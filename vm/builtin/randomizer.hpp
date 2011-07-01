@@ -39,19 +39,19 @@ namespace rubinius {
 
     static Randomizer* create(STATE);
 
-    // Ruby.primitive :randomizer_allocate
+    // Rubinius.primitive :randomizer_allocate
     static Randomizer* allocate(STATE, Object* self);
 
-    // Ruby.primitive :randomizer_gen_seed
+    // Rubinius.primitive :randomizer_gen_seed
     Integer* gen_seed(STATE);
 
-    // Ruby.primitive :randomizer_seed
+    // Rubinius.primitive :randomizer_seed
     Object* seed(STATE, Integer* seed);
 
-    // Ruby.primitive :randomizer_rand_int
+    // Rubinius.primitive :randomizer_rand_int
     Integer* rand_int(STATE, Integer* max);
 
-    // Ruby.primitive :randomizer_rand_float
+    // Rubinius.primitive :randomizer_rand_float
     Float* rand_float(STATE);
 
     class Info : public TypeInfo {

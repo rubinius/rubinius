@@ -23,7 +23,7 @@ module Rubinius
     alias_method :length, :size
 
     def self.allocate
-      Ruby.primitive :methodtable_allocate
+      Rubinius.primitive :methodtable_allocate
       raise PrimitiveFailure, "MethodTable.allocate primitive failed"
     end
 
@@ -35,7 +35,7 @@ module Rubinius
     end
 
     def duplicate
-      Ruby.primitive :methodtable_duplicate
+      Rubinius.primitive :methodtable_duplicate
       raise PrimitiveFailure, "MethodTable#duplicate primitive failed"
     end
 
@@ -48,7 +48,7 @@ module Rubinius
     end
 
     def name?(name)
-      Ruby.primitive :methodtable_has_name
+      Rubinius.primitive :methodtable_has_name
       raise PrimitiveFailure, "MethodTable#name? primitive failed"
     end
 
@@ -57,7 +57,7 @@ module Rubinius
     alias_method :member?,  :name?
 
     def delete(name)
-      Ruby.primitive :methodtable_delete
+      Rubinius.primitive :methodtable_delete
       raise PrimitiveFailure, "MethodTable#delete primitive failed"
     end
 

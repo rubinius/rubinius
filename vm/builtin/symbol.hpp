@@ -23,33 +23,33 @@ namespace rubinius {
 
     native_int index() const;
 
-    // Ruby.primitive :symbol_s_eqq
+    // Rubinius.primitive :symbol_s_eqq
     static Object* is_symbol(STATE, Object* obj) {
       return obj->symbol_p() ? Qtrue : Qfalse;
     }
 
-    // Ruby.primitive :symbol_index
+    // Rubinius.primitive :symbol_index
     Integer* index(STATE);
 
     static void init(STATE);
     static Symbol* from_index(STATE, size_t index);
 
-    // Ruby.primitive :symbol_to_s
+    // Rubinius.primitive :symbol_to_s
     String* to_str(STATE);
 
     // Return the char* for the text that was symbolized
     const char* c_str(STATE) const;
 
-    // Ruby.primitive :symbol_all_symbols
+    // Rubinius.primitive :symbol_all_symbols
     static Array* all_symbols(STATE);
 
-    // Ruby.primitive :symbol_is_ivar
+    // Rubinius.primitive :symbol_is_ivar
     Object* is_ivar_p(STATE);
 
-    // Ruby.primitive :symbol_is_cvar
+    // Rubinius.primitive :symbol_is_cvar
     Object* is_cvar_p(STATE);
 
-    // Ruby.primitive :symbol_is_constant
+    // Rubinius.primitive :symbol_is_constant
     Object* is_constant_p(STATE);
 
     class Info : public TypeInfo {

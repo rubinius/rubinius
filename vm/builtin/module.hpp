@@ -43,31 +43,31 @@ namespace rubinius {
 
     static void bootstrap_methods(STATE);
 
-    // Ruby.primitive :module_allocate
+    // Rubinius.primitive :module_allocate
     static Module* allocate(STATE, Object* self);
 
-    // Ruby.primitive :module_case_compare
+    // Rubinius.primitive :module_case_compare
     Object* case_compare(STATE, Object* obj);
 
-    // Ruby.primitive :module_const_set
+    // Rubinius.primitive :module_const_set
     Object* const_set(STATE, Object* name, Object* value);
 
-    // Ruby.primitive :module_class_variables
+    // Rubinius.primitive :module_class_variables
     Array* class_variables(STATE);
 
-    // Ruby.primitive :module_cvar_defined
+    // Rubinius.primitive :module_cvar_defined
     Object* cvar_defined(STATE, Symbol* name);
 
-    // Ruby.primitive :module_cvar_get
+    // Rubinius.primitive :module_cvar_get
     Object* cvar_get(STATE, Symbol* name);
 
-    // Ruby.primitive :module_cvar_set
+    // Rubinius.primitive :module_cvar_set
     Object* cvar_set(STATE, Symbol* name, Object* val);
 
-    // Ruby.primitive :module_cvar_get_or_set
+    // Rubinius.primitive :module_cvar_get_or_set
     Object* cvar_get_or_set(STATE, Symbol* name, Object* val);
 
-    // Ruby.primitive :module_cvar_remove
+    // Rubinius.primitive :module_cvar_remove
     Object* cvar_remove(STATE, Symbol* name);
 
     void setup(STATE);
@@ -109,7 +109,7 @@ namespace rubinius {
     /* interface */
     static IncludedModule* create(STATE);
 
-    // Ruby.primitive :included_module_allocate
+    // Rubinius.primitive :included_module_allocate
     static IncludedModule* allocate(STATE, Object* self);
 
     class Info : public Module::Info {

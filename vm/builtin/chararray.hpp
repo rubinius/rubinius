@@ -22,10 +22,10 @@ namespace rubinius {
     static CharArray* create(STATE, native_int bytes);
     static CharArray* create_pinned(STATE, native_int bytes);
 
-    // Ruby.primitive :chararray_allocate
+    // Rubinius.primitive :chararray_allocate
     static CharArray* allocate(STATE, Fixnum* bytes);
 
-    // Ruby.primitive :chararray_size
+    // Rubinius.primitive :chararray_size
     Fixnum* size(STATE);
 
     // Return the number of bytes this CharArray contains
@@ -37,19 +37,19 @@ namespace rubinius {
       return bytes;
     }
 
-    // Ruby.primitive :chararray_get_byte
+    // Rubinius.primitive :chararray_get_byte
     Fixnum* get_byte(STATE, Fixnum* index);
 
-    // Ruby.primitive :chararray_set_byte
+    // Rubinius.primitive :chararray_set_byte
     Fixnum* set_byte(STATE, Fixnum* index, Fixnum* value);
 
-    // Ruby.primitive :chararray_move_bytes
+    // Rubinius.primitive :chararray_move_bytes
     Fixnum* move_bytes(STATE, Fixnum* start, Fixnum* count, Fixnum* dest);
 
-    // Ruby.primitive :chararray_fetch_bytes
+    // Rubinius.primitive :chararray_fetch_bytes
     CharArray* fetch_bytes(STATE, Fixnum* start, Fixnum* count);
 
-    // Ruby.primitive :chararray_compare_bytes
+    // Rubinius.primitive :chararray_compare_bytes
     Fixnum* compare_bytes(STATE, CharArray* other, Fixnum* a, Fixnum* b);
 
     /* ::locate searches for +pattern+ in the CharArray. Returns the
@@ -58,16 +58,16 @@ namespace rubinius {
      * not found. Starts searching at index +start+.
      */
 
-    // Ruby.primitive :chararray_locate
+    // Rubinius.primitive :chararray_locate
     Object* locate(STATE, String* pattern, Fixnum* start, Fixnum* max);
 
-    // Ruby.primitive :chararray_prepend
+    // Rubinius.primitive :chararray_prepend
     CharArray* prepend(STATE, String* other);
 
-    // Ruby.primitive :chararray_get_utf8_char
+    // Rubinius.primitive :chararray_get_utf8_char
     Object* get_utf8_char(STATE, Fixnum* offset);
 
-    // Ruby.primitive :chararray_reverse
+    // Rubinius.primitive :chararray_reverse
     CharArray* reverse(STATE, Fixnum* start, Fixnum* total);
 
     char* to_chars(STATE, Fixnum* size);

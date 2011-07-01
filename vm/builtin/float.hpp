@@ -31,98 +31,98 @@ namespace rubinius {
     double to_double(STATE) { return val; }
     void into_string(STATE, char* buf, size_t sz);
 
-    // Ruby.primitive! :float_add
+    // Rubinius.primitive! :float_add
     Float* add(STATE, Float* other);
-    // Ruby.primitive! :float_add
+    // Rubinius.primitive! :float_add
     Float* add(STATE, Integer* other);
 
-    // Ruby.primitive! :float_sub
+    // Rubinius.primitive! :float_sub
     Float* sub(STATE, Float* other);
-    // Ruby.primitive! :float_sub
+    // Rubinius.primitive! :float_sub
     Float* sub(STATE, Integer* other);
 
-    // Ruby.primitive! :float_mul
+    // Rubinius.primitive! :float_mul
     Float* mul(STATE, Float* other);
-    // Ruby.primitive! :float_mul
+    // Rubinius.primitive! :float_mul
     Float* mul(STATE, Integer* other);
 
-    // Ruby.primitive! :float_pow
+    // Rubinius.primitive! :float_pow
     Float* fpow(STATE, Float* other);
-    // Ruby.primitive! :float_pow
+    // Rubinius.primitive! :float_pow
     Float* fpow(STATE, Integer* other);
 
-    // Ruby.primitive! :float_div
+    // Rubinius.primitive! :float_div
     Float* div(STATE, Float* other);
-    // Ruby.primitive! :float_div
+    // Rubinius.primitive! :float_div
     Float* div(STATE, Integer* other);
 
-    // Ruby.primitive! :float_mod
+    // Rubinius.primitive! :float_mod
     Float* mod(STATE, Float* other);
-    // Ruby.primitive! :float_mod
+    // Rubinius.primitive! :float_mod
     Float* mod(STATE, Integer* other);
 
-    // Ruby.primitive! :float_divmod
+    // Rubinius.primitive! :float_divmod
     Array* divmod(STATE, Float* other);
-    // Ruby.primitive! :float_divmod
+    // Rubinius.primitive! :float_divmod
     Array* divmod(STATE, Integer* other);
 
-    // Ruby.primitive :float_neg
+    // Rubinius.primitive :float_neg
     Float* neg(STATE);
 
-    // Ruby.primitive! :float_equal
+    // Rubinius.primitive! :float_equal
     Object* equal(STATE, Float* other);
-    // Ruby.primitive! :float_equal
+    // Rubinius.primitive! :float_equal
     Object* equal(STATE, Integer* other);
 
-    // Ruby.primitive! :float_eql
+    // Rubinius.primitive! :float_eql
     Object* eql(STATE, Float* other);
-    // Ruby.primitive! :float_eql
+    // Rubinius.primitive! :float_eql
     Object* eql(STATE, Integer* other);
 
-    // Ruby.primitive! :float_compare
+    // Rubinius.primitive! :float_compare
     Object* compare(STATE, Float* other);
-    // Ruby.primitive! :float_compare
+    // Rubinius.primitive! :float_compare
     Object* compare(STATE, Integer* other);
 
-    // Ruby.primitive! :float_gt
+    // Rubinius.primitive! :float_gt
     Object* gt(STATE, Float* other);
-    // Ruby.primitive! :float_gt
+    // Rubinius.primitive! :float_gt
     Object* gt(STATE, Integer* other);
 
-    // Ruby.primitive! :float_ge
+    // Rubinius.primitive! :float_ge
     Object* ge(STATE, Float* other);
-    // Ruby.primitive! :float_ge
+    // Rubinius.primitive! :float_ge
     Object* ge(STATE, Integer* other);
 
-    // Ruby.primitive! :float_lt
+    // Rubinius.primitive! :float_lt
     Object* lt(STATE, Float* other);
-    // Ruby.primitive! :float_lt
+    // Rubinius.primitive! :float_lt
     Object* lt(STATE, Integer* other);
 
-    // Ruby.primitive! :float_le
+    // Rubinius.primitive! :float_le
     Object* le(STATE, Float* other);
-    // Ruby.primitive! :float_le
+    // Rubinius.primitive! :float_le
     Object* le(STATE, Integer* other);
 
-    // Ruby.primitive :float_isinf
+    // Rubinius.primitive :float_isinf
     Object* fisinf(STATE);
 
-    // Ruby.primitive :float_isnan
+    // Rubinius.primitive :float_isnan
     Object* fisnan(STATE);
 
-    // Ruby.primitive :float_round
+    // Rubinius.primitive :float_round
     Integer* fround(STATE);
 
-    // Ruby.primitive :float_to_i
+    // Rubinius.primitive :float_to_i
     Integer* to_i(STATE);
 
-    // Ruby.primitive :float_to_s_formatted
+    // Rubinius.primitive :float_to_s_formatted
     String* to_s_formatted(STATE, String* format);
 
-    // Ruby.primitive :float_to_s_minimal
+    // Rubinius.primitive :float_to_s_minimal
     String* to_s_minimal(STATE);
 
-    // Ruby.primitive :float_to_packed
+    // Rubinius.primitive :float_to_packed
     String* to_packed(STATE, Object* want_double);
 
     static int radix()      { return FLT_RADIX; }

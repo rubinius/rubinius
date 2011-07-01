@@ -182,7 +182,7 @@ class Array
   alias_method :slice, :[]
 
   def set_index(index, ent, fin=undefined)
-    Ruby.primitive :array_aset
+    Rubinius.primitive :array_aset
 
     Ruby.check_frozen
 
@@ -535,7 +535,7 @@ class Array
   # Array. If the index is out of range, nil is
   # returned. Slightly faster than +Array#[]+
   def at(idx)
-    Ruby.primitive :array_aref
+    Rubinius.primitive :array_aref
     idx = Rubinius::Type.coerce_to idx, Fixnum, :to_int
 
     total = @start + @total
@@ -606,7 +606,7 @@ class Array
 
   # Appends the elements in the other Array to self
   def concat(other)
-    Ruby.primitive :array_concat
+    Rubinius.primitive :array_concat
 
     other = Rubinius::Type.coerce_to(other, Array, :to_ary)
     return self if other.empty?
@@ -1232,7 +1232,7 @@ class Array
   #       Z     |  Same as ``a'', except that null is added with *
 
   def pack(directives)
-    Ruby.primitive :array_pack
+    Rubinius.primitive :array_pack
 
     unless directives.kind_of? String
       return pack(StringValue(directives))

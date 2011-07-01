@@ -1,43 +1,43 @@
 class Fixnum < Integer
 
   def self.===(obj)
-    Ruby.primitive :fixnum_s_eqq
+    Rubinius.primitive :fixnum_s_eqq
     super
   end
 
   # unary operators
 
   def ~
-    Ruby.primitive :fixnum_invert
+    Rubinius.primitive :fixnum_invert
     raise PrimitiveFailure, "Fixnum#~ primitive failed"
   end
 
   def -@
-    Ruby.primitive :fixnum_neg
+    Rubinius.primitive :fixnum_neg
     raise PrimitiveFailure, "Fixnum#-@ primitive failed"
   end
 
   # binary math operators
 
   def +(o)
-    Ruby.primitive :fixnum_add
+    Rubinius.primitive :fixnum_add
     redo_coerced :+, o
   end
 
   def -(o)
-    Ruby.primitive :fixnum_sub
+    Rubinius.primitive :fixnum_sub
     redo_coerced :-, o
   end
 
   def *(o)
-    Ruby.primitive :fixnum_mul
+    Rubinius.primitive :fixnum_mul
     redo_coerced :*, o
   end
 
   # this method is aliased to / in core
   # see README-DEVELOPERS regarding safe math compiler plugin
   def divide(o)
-    Ruby.primitive :fixnum_div
+    Rubinius.primitive :fixnum_div
     redo_coerced :/, o
   end
   alias_method :/, :divide
@@ -45,24 +45,24 @@ class Fixnum < Integer
   # Must be it's own method, so that super calls the correct method
   # on Numeric
   def div(o)
-    Ruby.primitive :fixnum_div
+    Rubinius.primitive :fixnum_div
     redo_coerced :div, o
   end
 
   def %(o)
-    Ruby.primitive :fixnum_mod
+    Rubinius.primitive :fixnum_mod
     redo_coerced :%, o
   end
 
   def divmod(other)
-    Ruby.primitive :fixnum_divmod
+    Rubinius.primitive :fixnum_divmod
     redo_coerced :divmod, other
   end
 
   # bitwise binary operators
 
   def &(o)
-    Ruby.primitive :fixnum_and
+    Rubinius.primitive :fixnum_and
     if Rubinius::Type.object_kind_of? o, Float
       raise RangeError, ("float %-.10g is out of range of a Fixnum" % o)
     end
@@ -70,7 +70,7 @@ class Fixnum < Integer
   end
 
   def |(o)
-    Ruby.primitive :fixnum_or
+    Rubinius.primitive :fixnum_or
     if Rubinius::Type.object_kind_of? o, Float
       raise RangeError, ("float %-.10g is out of range of a Fixnum" % o)
     end
@@ -78,7 +78,7 @@ class Fixnum < Integer
   end
 
   def ^(o)
-    Ruby.primitive :fixnum_xor
+    Rubinius.primitive :fixnum_xor
     if Rubinius::Type.object_kind_of? o, Float
       raise RangeError, ("float %-.10g is out of range of a Fixnum" % o)
     end
@@ -86,7 +86,7 @@ class Fixnum < Integer
   end
 
   def <<(other)
-    Ruby.primitive :fixnum_left_shift
+    Rubinius.primitive :fixnum_left_shift
 
     other = Rubinius::Type.coerce_to other, Integer, :to_int
     unless other.kind_of? Fixnum
@@ -97,7 +97,7 @@ class Fixnum < Integer
   end
 
   def >>(other)
-    Ruby.primitive :fixnum_right_shift
+    Rubinius.primitive :fixnum_right_shift
 
     other = Rubinius::Type.coerce_to other, Integer, :to_int
     unless other.kind_of? Fixnum
@@ -108,21 +108,21 @@ class Fixnum < Integer
   end
 
   def **(o)
-    Ruby.primitive :fixnum_pow
+    Rubinius.primitive :fixnum_pow
     redo_coerced :**, o
   end
 
   # comparison operators
 
   def ==(o)
-    Ruby.primitive :fixnum_equal
+    Rubinius.primitive :fixnum_equal
     o == self
   end
 
   alias_method :===, :==
 
   def <=>(other)
-    Ruby.primitive :fixnum_compare
+    Rubinius.primitive :fixnum_compare
 
     # DO NOT super to Numeric#<=>. It does not contain the coerce
     # protocol.
@@ -136,28 +136,28 @@ class Fixnum < Integer
   end
 
   def <(other)
-    Ruby.primitive :fixnum_lt
+    Rubinius.primitive :fixnum_lt
 
     b, a = math_coerce other, :compare_error
     a < b
   end
 
   def <=(other)
-    Ruby.primitive :fixnum_le
+    Rubinius.primitive :fixnum_le
 
     b, a = math_coerce other, :compare_error
     a <= b
   end
 
   def >(other)
-    Ruby.primitive :fixnum_gt
+    Rubinius.primitive :fixnum_gt
 
     b, a = math_coerce other, :compare_error
     a > b
   end
 
   def >=(other)
-    Ruby.primitive :fixnum_ge
+    Rubinius.primitive :fixnum_ge
 
     b, a = math_coerce other, :compare_error
     a >= b
@@ -172,7 +172,7 @@ class Fixnum < Integer
   # conversions
 
   def coerce(other)
-    Ruby.primitive :fixnum_coerce
+    Rubinius.primitive :fixnum_coerce
     super other
   end
 
@@ -186,12 +186,12 @@ class Fixnum < Integer
   end
 
   def to_f
-    Ruby.primitive :fixnum_to_f
+    Rubinius.primitive :fixnum_to_f
     raise PrimitiveFailure, "Fixnum#to_f primitive failed"
   end
 
   def size
-    Ruby.primitive :fixnum_size
+    Rubinius.primitive :fixnum_size
     raise PrimitiveFailure, "Fixnum#size primitive failed"
   end
 end

@@ -332,10 +332,10 @@ namespace :vm do
   desc "Show which primitives are missing"
   task :missing_primitives do
     kernel_files = FileList['kernel/**/*.rb'].join " "
-    kernel_primitives = `grep 'Ruby.primitive' #{kernel_files} | awk '{ print $3 }'`
+    kernel_primitives = `grep 'Rubinius.primitive' #{kernel_files} | awk '{ print $3 }'`
     kernel_primitives = kernel_primitives.gsub(':', '').split("\n").sort.uniq
 
-    cpp_primitives = `grep 'Ruby.primitive' vm/builtin/*.hpp | awk '{ print $4 }'`
+    cpp_primitives = `grep 'Rubinius.primitive' vm/builtin/*.hpp | awk '{ print $4 }'`
     cpp_primitives = cpp_primitives.gsub(':', '').split("\n").sort.uniq
 
     missing = kernel_primitives - cpp_primitives

@@ -14,7 +14,7 @@ namespace rubinius {
     /**  Register class with the VM. */
     static void   init(STATE);
 
-    // Ruby.primitive :autoload_allocate
+    // Rubinius.primitive :autoload_allocate
     static Autoload* create(STATE);
 
     Object* resolve(STATE, CallFrame* call_frame);

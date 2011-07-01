@@ -7,17 +7,17 @@ class Array
   alias_method :length, :total
 
   def self.allocate
-    Ruby.primitive :array_allocate
+    Rubinius.primitive :array_allocate
     raise PrimitiveFailure, "Array.allocate primitive failed"
   end
 
   def new_range(start, count)
-    Ruby.primitive :array_new_range
+    Rubinius.primitive :array_new_range
     raise PrimitiveFailure, "Array.new_range primitive failed"
   end
 
   def new_reserved(count)
-    Ruby.primitive :array_new_reserved
+    Rubinius.primitive :array_new_reserved
     raise PrimitiveFailure, "Array.new_reserved primitive failed"
   end
 

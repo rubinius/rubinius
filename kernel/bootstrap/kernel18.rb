@@ -1,6 +1,6 @@
 module Kernel
   def equal?(other)
-    Ruby.primitive :object_equal
+    Rubinius.primitive :object_equal
     raise PrimitiveFailure, "Kernel#equal? primitive failed"
   end
 
@@ -17,7 +17,7 @@ module Kernel
   # be removed or redefined by user code.
   #
   def __send__(message, *args)
-    Ruby.primitive :object_send
+    Rubinius.primitive :object_send
 
     # MRI checks for Fixnum explicitly and raises ArgumentError
     # instead of TypeError. Seems silly, so we don't bother.

@@ -1,7 +1,7 @@
 class Proc
 
   def self.__from_block__(env)
-    Ruby.primitive :proc_from_env
+    Rubinius.primitive :proc_from_env
 
     if Rubinius::Type.object_kind_of? env, Rubinius::BlockEnvironment
       raise PrimitiveFailure, "Unable to create Proc from BlockEnvironment"

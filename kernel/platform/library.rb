@@ -5,12 +5,12 @@ end
 
 module FFI
   def self.generate_function(ptr, name, args, ret)
-    Ruby.primitive :nativefunction_generate
+    Rubinius.primitive :nativefunction_generate
     raise PrimitiveFailure, "FFI.generate_function failed"
   end
 
   def self.generate_trampoline(obj, name, args, ret)
-    Ruby.primitive :nativefunction_generate_tramp
+    Rubinius.primitive :nativefunction_generate_tramp
     raise PrimitiveFailure, "FFI.generate_function_tramp failed"
   end
 

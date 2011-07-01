@@ -58,7 +58,7 @@ namespace rubinius {
       return encoding_;
     }
 
-    // Ruby.primitive :encoding_replicate
+    // Rubinius.primitive :encoding_replicate
     Encoding* replicate(STATE, String* name);
 
     class Info : public TypeInfo {

@@ -5,7 +5,7 @@ module Rubinius
     end
 
     def self.allocate_sized(cnt)
-      Ruby.primitive :bytearray_allocate
+      Rubinius.primitive :bytearray_allocate
       raise PrimitiveFailure, "ByteArray#allocate primitive failed"
     end
 
@@ -21,32 +21,32 @@ module Rubinius
     end
 
     def fetch_bytes(start, count)
-      Ruby.primitive :bytearray_fetch_bytes
+      Rubinius.primitive :bytearray_fetch_bytes
       raise PrimitiveFailure, "ByteArray#fetch_bytes primitive failed"
     end
 
     def move_bytes(start, count, dest)
-      Ruby.primitive :bytearray_move_bytes
+      Rubinius.primitive :bytearray_move_bytes
       raise ArgumentError, "ByteArray#move_bytes primitive failed"
     end
 
     def get_byte(index)
-      Ruby.primitive :bytearray_get_byte
+      Rubinius.primitive :bytearray_get_byte
       raise PrimitiveFailure, "ByteArray#get_byte primitive failed"
     end
 
     def set_byte(index, value)
-      Ruby.primitive :bytearray_set_byte
+      Rubinius.primitive :bytearray_set_byte
       raise PrimitiveFailure, "ByteArray#set_byte primitive failed"
     end
 
     def compare_bytes(other, a, b)
-      Ruby.primitive :bytearray_compare_bytes
+      Rubinius.primitive :bytearray_compare_bytes
       raise PrimitiveFailure, "ByteArray#compare_bytes primitive failed"
     end
 
     def size
-      Ruby.primitive :bytearray_size
+      Rubinius.primitive :bytearray_size
       raise PrimitiveFailure, "ByteArray#size primitive failed"
     end
 

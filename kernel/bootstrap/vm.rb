@@ -7,24 +7,24 @@ class Rubinius::VM
   # running information like locals, self, etc.
   #
   def self.backtrace(frames_to_skip, include_vars=false)
-    Ruby.primitive :vm_backtrace
+    Rubinius.primitive :vm_backtrace
 
     # Add the + 1 to skip this frame
     backtrace(Integer(frames_to_skip) + 1, include_vars)
   end
 
   def self.stats
-    Ruby.primitive :vm_stats
+    Rubinius.primitive :vm_stats
     raise PrimitiveFailure, "Rubinius::VM.stats primitive failed"
   end
 
   def self.dump_heap(path)
-    Ruby.primitive :vm_dump_heap
+    Rubinius.primitive :vm_dump_heap
     raise PrimitiveFailure, "Rubinius::VM.dump_heap failed"
   end
 
   def self.__jit_info__
-    Ruby.primitive :vm_jit_info
+    Rubinius.primitive :vm_jit_info
     raise PrimitiveFailure, "Rubinius::VM.jit_info primitive failed"
   end
 
@@ -61,7 +61,7 @@ class Rubinius::VM
   end
 
   def self.load_library(path, name)
-    Ruby.primitive :load_library
+    Rubinius.primitive :load_library
     raise PrimitiveFailure, "Rubinius::VM.load_library primitive failed"
   end
 

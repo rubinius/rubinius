@@ -86,7 +86,7 @@ namespace rubinius {
      *  @see  vm/vm.hpp
      *  @see  kernel/bootstrap/thread.rb
      */
-    // Ruby.primitive :thread_allocate
+    // Rubinius.primitive :thread_allocate
     static Thread* allocate(STATE, Object* self);
 
     /**
@@ -94,13 +94,13 @@ namespace rubinius {
      *
      *  This is the currently executing Thread.
      */
-    // Ruby.primitive :thread_current
+    // Rubinius.primitive :thread_current
     static Thread* current(STATE);
 
     /**
      *  Attempt to schedule some other Thread.
      */
-    // Ruby.primitive :thread_pass
+    // Rubinius.primitive :thread_pass
     static Object* pass(STATE, CallFrame* calling_environment);
 
 
@@ -117,7 +117,7 @@ namespace rubinius {
      *
      *  @see  kernel/bootstrap/thread.rb
      */
-    // Ruby.primitive :thread_fork
+    // Rubinius.primitive :thread_fork
     Object* fork(STATE);
 
     /**
@@ -127,13 +127,13 @@ namespace rubinius {
      *  but otherwise *potentially* platform-specific for
      *  any other connotations.
      */
-    // Ruby.primitive :thread_priority
+    // Rubinius.primitive :thread_priority
     Object* priority(STATE);
 
     /**
      *  Process an exception raised for this Thread.
      */
-    // Ruby.primitive :thread_raise
+    // Rubinius.primitive :thread_raise
     Object* raise(STATE, Exception* exc);
 
     /**
@@ -143,7 +143,7 @@ namespace rubinius {
      *  but otherwise *potentially* platform-specific for
      *  any other connotations.
      */
-    // Ruby.primitive :thread_set_priority
+    // Rubinius.primitive :thread_set_priority
     Object* set_priority(STATE, Fixnum* priority);
 
     /**
@@ -153,19 +153,19 @@ namespace rubinius {
      *  be invoked on an already-running Thread. The Thread
      *  is queued to be run, although not necessarily immediately.
      */
-    // Ruby.primitive :thread_wakeup
+    // Rubinius.primitive :thread_wakeup
     Thread* wakeup(STATE);
 
-    // Ruby.primitive :thread_context
+    // Rubinius.primitive :thread_context
     Tuple* context(STATE);
 
-    // Ruby.primitive :thread_join
+    // Rubinius.primitive :thread_join
     Object* join(STATE, CallFrame* calling_environment);
 
-    // Ruby.primitive :thread_set_critical
+    // Rubinius.primitive :thread_set_critical
     static Object* set_critical(STATE, Object* obj);
 
-    // Ruby.primitive :thread_unlock_locks
+    // Rubinius.primitive :thread_unlock_locks
     Object* unlock_locks(STATE);
 
     void cleanup();
