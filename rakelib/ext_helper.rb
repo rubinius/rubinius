@@ -26,7 +26,7 @@ $CXXFLAGS = env "CXXFLAGS", Rubinius::BUILD_CONFIG[:user_cppflags]
 
 $DEBUGFLAGS = "-O0" if ENV["DEV"]
 
-$ELIBSDIR = env "ELIBSDIR", File.expand_path("../../vm/external_libs", __FILE__)
+$ELIBSDIR = env "ELIBSDIR", File.expand_path("../../vendor", __FILE__)
 $LIBS     = env "LIBS"
 $LDDIRS   = env "LDDIRS"
 $LDFLAGS  = env "LDFLAGS", Rubinius::BUILD_CONFIG[:user_ldflags]

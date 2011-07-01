@@ -1,7 +1,6 @@
 vm
 .depends.mf
 gen/*
-external_libs
 test/test_instructions.hpp
 
 capi/18/include/config.h

@@ -79,7 +79,7 @@ class Configure
       @llvm_generic_prebuilt  = "llvm-#{@llvm_version}-#{@host}.tar.bz2"
     end
 
-    @llvm_parent_path       = File.join(root, "vm", "external_libs")
+    @llvm_parent_path       = File.join(root, "vendor")
     @llvm_default           = File.join(@llvm_parent_path, "llvm")
     @llvm_prebuilt_path     = File.join(@llvm_parent_path, "prebuilt")
     @llvm_include_path      = File.join(@llvm_default, "include")
@@ -111,7 +111,7 @@ class Configure
     @libversion = "2.0"
     @version = "#{@libversion}.0dev"
     @release_date = "yyyy-mm-dd"
-    @config_version = 135
+    @config_version = 136
 
     # TODO: add conditionals for platforms
     if RbConfig::CONFIG["build_os"] =~ /darwin/

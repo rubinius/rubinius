@@ -57,7 +57,7 @@ namespace :jit do
       end
     end
 
-    str = `llvm-g++ -I. -Ivm -Ivm/external_libs/libtommath -emit-llvm -S -o - "#{path}"`
+    str = `llvm-g++ -I. -Ivm -Ivendor/libtommath -emit-llvm -S -o - "#{path}"`
 
     return unless $?.exitstatus == 0
 
@@ -83,14 +83,14 @@ namespace :jit do
       f.puts(*types)
     end
 
-    `vm/external_libs/llvm/Release/bin/llvm-as < vm/gen/types.ll > vm/gen/types.bc`
-    `vm/external_libs/llvm/Release/bin/llc -march=cpp -cppgen=contents -o vm/llvm/types.cpp.gen vm/gen/types.bc`
+    `vendor/llvm/Release/bin/llvm-as < vm/gen/types.ll > vm/gen/types.bc`
+    `vendor/llvm/Release/bin/llc -march=cpp -cppgen=contents -o vm/llvm/types.cpp.gen vm/gen/types.bc`
   end
 
   task :generate_header do
     puts "GEN vm/llvm/types.cpp.gen"
-    `vm/external_libs/llvm/Release/bin/llvm-as < vm/llvm/types.ll > vm/gen/types.bc`
-    `vm/external_libs/llvm/Release/bin/llc -march=cpp -cppgen=contents -o vm/llvm/types.cpp.gen vm/gen/types.bc`
+    `vendor/llvm/Release/bin/llvm-as < vm/llvm/types.ll > vm/gen/types.bc`
+    `vendor/llvm/Release/bin/llc -march=cpp -cppgen=contents -o vm/llvm/types.cpp.gen vm/gen/types.bc`
   end
 
   task :generate_offsets do

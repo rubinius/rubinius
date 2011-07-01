@@ -1,0 +1,70 @@
+# General ignores
+.deps
+*.data
+prebuilt/*
+
+# LLVM and its Makefiles
+llvm
+llvm/Makefile
+llvm/Makefile.common
+llvm/bindings/Makefile
+llvm/bindings/ocaml/Makefile.ocaml
+llvm/examples/Makefile
+llvm/lib/Makefile
+llvm/projects/Makefile
+llvm/projects/sample/Makefile
+llvm/projects/sample/lib/Makefile
+llvm/projects/sample/lib/sample/Makefile
+llvm/projects/sample/tools/Makefile
+llvm/projects/sample/tools/sample/Makefile
+llvm/runtime/Makefile
+llvm/test/Makefile
+llvm/test/Makefile.tests
+llvm/tools/Makefile
+llvm/utils/Makefile
+
+# libffi
+libffi/Makefile
+libffi/config.log
+libffi/config.status
+libffi/fficonfig.h
+libffi/include/Makefile
+libffi/include/ffi.h
+libffi/include/ffitarget.h
+libffi/libffi.pc
+libffi/libtool
+libffi/man/Makefile
+libffi/src/.dirstamp
+libffi/src/x86/.dirstamp
+libffi/testsuite/Makefile
+
+# oniguruma
+onig/Makefile
+onig/config.h
+onig/config.log
+onig/config.status
+onig/libtool
+onig/onig-config
+onig/sample/Makefile
+
+# libudis
+udis86/Makefile
+udis86/config.h
+udis86/config.log
+udis86/config.status
+udis86/docs/Makefile
+udis86/libtool
+udis86/libudis86/Makefile
+udis86/tests/Makefile
+udis86/udcli/Makefile
+udis86/udcli/udcli
+
+# zlib
+zlib/Makefile
+zlib/example
+zlib/examplesh
+zlib/minigzip
+zlib/minigzipsh
+zlib/zconf.h
+zlib/zlib.pc
+

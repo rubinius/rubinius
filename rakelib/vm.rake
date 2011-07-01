@@ -111,9 +111,9 @@ namespace :build do
   desc "Build LLVM"
   task :llvm do
     if Rubinius::BUILD_CONFIG[:llvm] == :svn
-      unless File.file?("vm/external_libs/llvm/Release/bin/llvm-config")
+      unless File.file?("vendor/llvm/Release/bin/llvm-config")
         ENV["REQUIRES_RTTI"] = "1"
-        Dir.chdir "vm/external_libs/llvm" do
+        Dir.chdir "vendor/llvm" do
           sh %[sh -c "#{expand("./configure")} #{llvm_config_flags}"]
           sh make
         end
@@ -154,7 +154,7 @@ namespace :build do
     directory 'lib/zlib'
 
     task :zlib => ['lib/zlib', VM_EXE] do
-      FileList["vm/external_libs/zlib/libz.*"].each do |lib|
+      FileList["vendor/zlib/libz.*"].each do |lib|
         cp lib, 'lib/zlib/'
       end
     end
@@ -187,7 +187,7 @@ files TYPE_GEN, field_extract_headers + %w[vm/codegen/field_extract.rb] + [:run_
 end
 
 file encoding_database => 'vm/codegen/encoding_extract.rb' do |t|
-  dir = File.expand_path "../vm/external_libs/onig"
+  dir = File.expand_path "../vendor/onig"
   ruby 'vm/codegen/encoding_extract.rb', dir, t.name
 end
 

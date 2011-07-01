@@ -7,7 +7,7 @@ namespace :package do
       prebuilt_archive = "llvm-#{llvm_version}-#{host_triple}.tar.bz2"
     end
 
-    sh "tar -c -C vm/external_libs/llvm --exclude .svn --exclude \"*.dylib\" --exclude \"*.so\" -f - Release/lib Release/bin/llvm-config include | bzip2 -9 > #{prebuilt_archive}"
+    sh "tar -c -C vendor/llvm --exclude .svn --exclude \"*.dylib\" --exclude \"*.so\" -f - Release/lib Release/bin/llvm-config include | bzip2 -9 > #{prebuilt_archive}"
 
     require 'digest/md5'
     md5 = Digest::MD5.new
