@@ -29,6 +29,14 @@ namespace rubinius {
       allow_exceptions = false;
       allow_has_block = false;
     }
+
+    void inlining_block_19() {
+      allow_blocks = false;
+      allow_raise_flow = false;
+      allow_splat = false;
+      allow_exceptions = false;
+      allow_has_block = false;
+    }
   };
 
   class InlineEvaluator : public VisitInstructions<InlineEvaluator> {

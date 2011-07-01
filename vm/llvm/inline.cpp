@@ -526,7 +526,7 @@ remember:
     if(ib->code()->call_count >= 0) ib->code()->call_count /= 2;
 
     BasicBlock* entry = work.setup_inline_block(self,
-        ops_.constant(Qnil, ops_.state()->ptr_type("Module")));
+        ops_.constant(Qnil, ops_.state()->ptr_type("Module")), args);
 
     if(!work.generate_body()) {
       rubinius::bug("LLVM failed to compile a function");

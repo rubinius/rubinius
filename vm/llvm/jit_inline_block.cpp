@@ -7,7 +7,9 @@ using namespace llvm;
 
 namespace rubinius {
 namespace jit {
-  BasicBlock* InlineBlockBuilder::setup_inline_block(Value* self, Value* mod) {
+  BasicBlock* InlineBlockBuilder::setup_inline_block(Value* self, Value* mod,
+                                    JITStackArgs& stack_args)
+  {
     func = info_.function();
     vm = info_.vm();
     prev = info_.parent_call_frame();
@@ -89,8 +91,33 @@ namespace jit {
 
     setup_inline_scope(self, constant(Qnil, obj_type), mod);
 
-    // No argument handling, there are bytecodes in the body that
-    // do that. We just have to make stack_args available.
+#ifdef RBX_ENABLED_19
+    if(ls_->config().version_19) {
+      // We don't support splat in an block method!
+      assert(vmm_->splat_position < 0);
+
+      // block logic has no arity checking, so we process
+      // up to the minimum of stack_args.size and vmm_->total_args;
+      size_t limit = MIN((int)stack_args.size(), (int)vmm_->total_args);
+
+      for(size_t i = 0; i < limit; i++) {
+        Value* int_pos = ConstantInt::get(ls_->Int32Ty, i);
+
+        Value* idx2[] = {
+          ConstantInt::get(ls_->Int32Ty, 0),
+          ConstantInt::get(ls_->Int32Ty, offset::vars_tuple),
+          int_pos
+        };
+
+        Value* pos = b().CreateGEP(vars, idx2, idx2+3, "local_pos");
+
+        b().CreateStore(stack_args.at(i), pos);
+      }
+    } else {
+      // No argument handling, there are bytecodes in the body that
+      // do that. We just have to make stack_args available.
+    }
+#endif
 
     b().CreateBr(body);
     b().SetInsertPoint(body);

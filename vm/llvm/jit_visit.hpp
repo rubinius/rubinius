@@ -1703,7 +1703,15 @@ namespace rubinius {
           // Run the policy on the block code here, if we're not going to
           // inline it, don't inline this either.
           InlineOptions opts;
+#ifdef RBX_ENABLED_19
+          if(ls_->config().version_19) {
+            opts.inlining_block_19();
+          } else {
+            opts.inlining_block();
+          }
+#else
           opts.inlining_block();
+#endif
 
           InlineDecision decision = inline_policy()->inline_p(
                                       block_code->backend_method(), opts);
