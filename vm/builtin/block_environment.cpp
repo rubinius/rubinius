@@ -105,8 +105,29 @@ namespace rubinius {
         }
       }
 
-      if(!has_splat && total_args > vmm->total_args)
-        total_args = vmm->total_args;
+      const native_int P = vmm->post_args;
+      const native_int R = vmm->required_args;
+
+      // M is for mandatory
+      const native_int M = R - P;
+      const native_int T = args.total();
+
+      // DT is for declared total
+      const native_int DT = vmm->total_args;
+      const native_int O = DT - R;
+
+      // HS is for has splat
+      const native_int HS = vmm->splat_position > 0 ? 1 : 0;
+
+      // CT is for clamped total
+      const native_int CT = HS ? T : MIN(T, DT);
+
+      // Z is for the available # of post args
+      const native_int Z = CT - M;
+
+      // U is for the available # of optional args
+      const native_int U = Z - P;
+
 
       /* There are 4 types of arguments, illustrated here:
        *    m(a, b=1, *c, d)
@@ -129,39 +150,31 @@ namespace rubinius {
        *  the rest (if any) go into an array for the splat.
        */
 
-      native_int pre_args = vmm->required_args - vmm->post_args;
-      for(native_int i = 0; i < pre_args; i++) {
+      // Phase 1, mandatory args
+      for(native_int i = 0, l = MIN(M,T);
+          i < l;
+          i++)
+      {
         scope->set_local(i, args.get_argument(i));
       }
 
-      native_int optional_args = vmm->total_args - vmm->required_args;
-      native_int available_args = total_args - vmm->required_args;
-      if(optional_args > 0 && available_args > 0) {
-        native_int stop_index;
-
-        if(available_args < optional_args) {
-          stop_index = pre_args + available_args;
-        } else {
-          stop_index = pre_args + optional_args;
-        }
-
-        for(native_int i = pre_args; i < stop_index; i++) {
-          scope->set_local(i, args.get_argument(i));
-        }
+      // Phase 2, post args
+      for(native_int i = CT - MIN(Z, P), l = M + O + HS;
+          i < CT;
+          i++)
+      {
+        scope->set_local(l, args.get_argument(i));
       }
 
-      if(vmm->post_args > 0) {
-        native_int args_index;
-        if(has_splat) {
-          args_index = vmm->splat_position + 1;
-        } else {
-          args_index = vmm->total_args - vmm->post_args;
-        }
+      // Phase 3, optionals
 
-        for(native_int i = total_args - vmm->post_args; i < total_args; i++, args_index++) {
-          scope->set_local(args_index, args.get_argument(i));
-        }
+      for(native_int i = M, limit = M + MIN(U, O);
+          i < limit;
+          i++)
+      {
+        scope->set_local(i, args.get_argument(i));
       }
+
 
       if(has_splat) {
         Array* ary;
@@ -174,11 +187,14 @@ namespace rubinius {
          * NOTE: remember that total includes the number of fixed arguments,
          * even if they're optional, so we can get args.total() == 0, and
          * total == 1 */
-        if(total_args > vmm->total_args) {
-          size_t splat_size = total_args - vmm->total_args;
+        int splat_size = T - DT;
+        if(splat_size > 0) {
           ary = Array::create(state, splat_size);
 
-          for(size_t i = 0, n = vmm->total_args; i < splat_size; i++, n++) {
+          for(int i = 0, n = M + O;
+              i < splat_size;
+              i++, n++)
+          {
             ary->set(state, i, args.get_argument(n));
           }
         } else {
