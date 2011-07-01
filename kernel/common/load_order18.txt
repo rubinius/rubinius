@@ -12,6 +12,7 @@ tuple.rbc
 exception.rbc
 undefined.rbc
 hash.rbc
+hash18.rbc
 type.rbc
 kernel.rbc
 kernel18.rbc

@@ -11,4 +11,6 @@ class Hash
     @default = Type.coerce_to(proc, Proc, :to_proc)
     @default_proc = true
   end
+
+  alias_method :to_s, :inspect
 end

@@ -715,10 +715,6 @@ class Hash
     self
   end
 
-  def to_s
-    to_a.join
-  end
-
   def value?(value)
     each_entry do |entry|
       return true if entry.value == value
