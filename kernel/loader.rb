@@ -241,7 +241,18 @@ containing the Rubinius standard library files.
 
       options.on "-c", "FILE", "Check the syntax of FILE" do |file|
         if File.exists?(file)
-          mel = Rubinius::Melbourne.new file, 1, []
+          case
+          when Rubinius.ruby18?
+            parser = Rubinius::Melbourne
+          when Rubinius.ruby19?
+            parser = Rubinius::Melbourne19
+          when Rubinius.ruby20?
+            parser = Rubinius::Melbourne20
+          else
+            raise "no parser available for this ruby version"
+          end
+
+          mel = parser.new file, 1, []
 
           begin
             mel.parse_file
