@@ -9,6 +9,50 @@
 
   
   <entry>
+    <title>Rubinius Summit 062011 in Pictures</title>
+    <id>http://rubini.us/2011/07/01/rubinius-summit-in-pictures/</id>
+    <link rel="alternate" type="text/html" href="http://rubini.us/2011/07/01/rubinius-summit-in-pictures/" />
+    <updated>2011-07-01T00:00:00+00:00</updated>
+    <author>
+      <name>Shane Becker</name>
+    </author>
+    
+    <content type="html">&lt;p&gt;Once a month Evan Phoenix, Brian Ford and I (Shane Beccker) get together for a few days in-person face-time. Usually we meet up in San Francisco at the &lt;a href=&quot;http://engineyard.com&quot;&gt;Engine Yard&lt;/a&gt; HQ and spend time with our dear and lovely boss, &lt;a href=&quot;http://twitter.com/drnic&quot;&gt;Dr Nic&lt;/a&gt;. We like to call these little get togethers Rubinius Summits. For the June 2011 Rubinius Summit, Brian came down to LA where both Evan and I live. We spent the week working together at &lt;a href=&quot;http://farmhouse.la&quot;&gt;The Farmhouse&lt;/a&gt; on moving the ball forward toward the 2.0 release. Here&amp;rsquo;s a few pictures of some of the things that went down.&lt;/p&gt;
+
+&lt;h3 id=&quot;i-used-rubinius-at-railsconf-2011-stickers&quot;&gt;I Used Rubinius at RailsConf 2011 stickers&lt;/h3&gt;
+
+&lt;p&gt;&lt;a href=&quot;http://flickr.com/photos/veganstraightedge/5885836117&quot;&gt;&lt;img src=&quot;http://farm7.static.flickr.com/6052/5885836117_ba60ba6408_z.jpg&quot; alt=&quot;&amp;quot;I Used Rubinius at RailsConf 2011&amp;quot; stickers at The Farmhouse in Hollywood, CA&quot; title=&quot;&amp;quot;I Used Rubinius at RailsConf 2011&amp;quot; stickers at The Farmhouse in Hollywood, CA                     &quot; /&gt;&lt;/a&gt;&lt;/p&gt;
+
+&lt;p&gt;These stickers arrived and are ready to be shipped out. If you DMed your address to &lt;a href=&quot;http://twitter.com/rubinius&quot;&gt;us on Twitter&lt;/a&gt;, we&amp;rsquo;ve got you. If you never contacted us, but used Rubinius while at RailsConf 2011 in Baltimore, email us at &lt;a href=&quot;&amp;#109;&amp;#097;&amp;#105;&amp;#108;&amp;#116;&amp;#111;:&amp;#099;&amp;#111;&amp;#109;&amp;#109;&amp;#117;&amp;#110;&amp;#105;&amp;#116;&amp;#121;&amp;#064;&amp;#114;&amp;#117;&amp;#098;&amp;#105;&amp;#110;&amp;#105;&amp;#046;&amp;#117;&amp;#115;&quot;&gt;&amp;#099;&amp;#111;&amp;#109;&amp;#109;&amp;#117;&amp;#110;&amp;#105;&amp;#116;&amp;#121;&amp;#064;&amp;#114;&amp;#117;&amp;#098;&amp;#105;&amp;#110;&amp;#105;&amp;#046;&amp;#117;&amp;#115;&lt;/a&gt; to get your sticker.&lt;/p&gt;
+
+&lt;h3 id=&quot;t-shirts&quot;&gt;T-Shirts!&lt;/h3&gt;
+
+&lt;p&gt;&lt;a href=&quot;http://flickr.com/photos/veganstraightedge/5889084175&quot;&gt;&lt;img src=&quot;http://farm7.static.flickr.com/6019/5889084175_6414a83e97_z.jpg&quot; alt=&quot;Nearly 600 more @Rubinius shirts just arrived at the @farmhouse in Hollywood, CA&quot; title=&quot;Nearly 600 more @Rubinius shirts just arrived at the @farmhouse in Hollywood, CA                             &quot; /&gt;&lt;/a&gt;&lt;/p&gt;
+
+&lt;p&gt;This is what nearly 600 shirts looks like. We&amp;rsquo;ve got a huge back log of people all over the world who responded to our offer of free Rubinius t-shirts. Those will all get shipped out over the next week or so.&lt;/p&gt;
+
+&lt;h3 id=&quot;progress-on-19-support&quot;&gt;Progress on 1.9 Support&lt;/h3&gt;
+&lt;p&gt;&lt;a href=&quot;http://flickr.com/photos/veganstraightedge/5888809669&quot;&gt;&lt;img src=&quot;http://farm6.static.flickr.com/5076/5888809669_134b0d6e23_z.jpg&quot; alt=&quot;Serious @rubinius big brain nerdery happening between @brixen and @evanphx at the @farmhouse in Hollywood, CA&quot; title=&quot;Serious @rubinius big brain nerdery happening between @brixen and @evanphx at the @farmhouse in Hollywood, CA&quot; /&gt;&lt;/a&gt;&lt;/p&gt;
+
+&lt;p&gt;Brian and Evan, like a couple of mad scientists, sketched out how to handle 1.9 block arguments for Rubinus 2.0.&lt;/p&gt;
+
+&lt;p&gt;&lt;a href=&quot;http://flickr.com/photos/veganstraightedge/5889687428&quot;&gt;&lt;img src=&quot;http://farm6.static.flickr.com/5038/5889687428_b2f0f07f40_z.jpg&quot; alt=&quot;A sketch of Ruby 1.9 block args in Rubinus 2.0 by @evanphx and @brixen at the @farmhouse in Hollywood, CA&quot; title=&quot;A sketch of Ruby 1.9 block args in Rubinus 2.0 by @evanphx and @brixen at the @farmhouse in Hollywood, CA    &quot; /&gt;&lt;/a&gt;
+&lt;a href=&quot;http://flickr.com/photos/veganstraightedge/5889686740&quot;&gt;&lt;img src=&quot;http://farm7.static.flickr.com/6024/5889686740_ca7962db63_z.jpg&quot; alt=&quot;A sketch of Ruby 1.9 block args in Rubinus 2.0 by @evanphx and @brixen at the @farmhouse in Hollywood, CA&quot; title=&quot;A sketch of Ruby 1.9 block args in Rubinus 2.0 by @evanphx and @brixen at the @farmhouse in Hollywood, CA    &quot; /&gt;&lt;/a&gt;&lt;/p&gt;
+
+&lt;p&gt;Here are the sketches of 1.9 block arguments for Rubinus 2.0.&lt;/p&gt;
+
+&lt;h3 id=&quot;one-more-thing&quot;&gt;One More Thing&lt;/h3&gt;
+
+&lt;p&gt;We came up with an idea this week for how to better communicate outwardly and be more transparent. We built it up real quick and are launching it &amp;hellip;&lt;em&gt;really soon&lt;/em&gt;. Here&amp;rsquo;s a little teaser.&lt;/p&gt;
+
+&lt;p&gt;&lt;a href=&quot;http://drbl.in/bxbg&quot;&gt;&lt;img src=&quot;http://dribbble.com/system/users/1288/screenshots/202858/rubinius_...thing_2.png&quot; alt=&quot;Rubinius teaser 1&quot; title=&quot;Rubinius teaser 1&quot; /&gt;&lt;/a&gt;
+&lt;a href=&quot;http://drbl.in/bxbf&quot;&gt;&lt;img src=&quot;http://dribbble.com/system/users/1288/screenshots/202857/rubinius_...thing_1.png&quot; alt=&quot;Rubinius teaser 2&quot; title=&quot;Rubinius teaser 2&quot; /&gt;&lt;/a&gt;&lt;/p&gt;
+
+&lt;p&gt;&lt;em&gt;XOXO RBX&lt;/em&gt;&lt;/p&gt;
+</content>
+  </entry>
+  
+  <entry>
     <title>Inside the Rubinius 2.0 Preview Release</title>
     <id>http://rubini.us/2011/06/07/inside-rubinius-20-preview/</id>
     <link rel="alternate" type="text/html" href="http://rubini.us/2011/06/07/inside-rubinius-20-preview/" />
@@ -115,7 +159,7 @@ running Rubinius, use the &lt;code&gt;-X18&lt;/code&gt; or &lt;code&gt;-X19&lt;/
 
 &lt;p&gt;This command will run Rubinius with the 1.9 language mode enabled.&lt;/p&gt;
 
-&lt;p&gt;You may also use the &lt;code&gt;RBXOPT&lt;/code&gt; environment variable to select the lanugage
+&lt;p&gt;You may also use the &lt;code&gt;RBXOPT&lt;/code&gt; environment variable to select the language
 mode. Assuming that 1.8 is the default mode, the following command would run
 Rubinius with the 1.9 language mode enabled:&lt;/p&gt;
 
