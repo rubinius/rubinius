@@ -406,7 +406,7 @@ module Kernel
   end
 
   def extend(*modules)
-    Ruby.check_frozen
+    Rubinius.check_frozen
 
     modules.reverse_each do |mod|
       Rubinius.privately do

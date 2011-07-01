@@ -28,7 +28,7 @@ class Array
   end
 
   def []=(idx, ent)
-    Ruby.check_frozen
+    Rubinius.check_frozen
 
     if idx >= @tuple.fields
       new_tuple = Rubinius::Tuple.new(idx + 10)
@@ -73,7 +73,7 @@ class Array
   # Replaces each element in self with the return value
   # of passing that element to the supplied block.
   def map!
-    Ruby.check_frozen
+    Rubinius.check_frozen
 
     return to_enum(:map!) unless block_given?
 

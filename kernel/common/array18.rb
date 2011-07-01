@@ -37,7 +37,7 @@ class Array
     im = Rubinius::IdentityMap.from self
     return if im.size == size
 
-    Ruby.check_frozen
+    Rubinius.check_frozen
 
     array = im.to_array
     @tuple = array.tuple

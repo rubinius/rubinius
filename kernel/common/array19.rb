@@ -35,7 +35,7 @@ class Array
   end
 
   def uniq!
-    Ruby.check_frozen
+    Rubinius.check_frozen
 
     im = Rubinius::IdentityMap.from self
     return if im.size == size

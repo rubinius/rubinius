@@ -74,12 +74,12 @@ module Rubinius
     end
 
     ##
-    # Handles Ruby.check_frozen
+    # Handles Rubinius.check_frozen
     class CheckFrozen < SendWithArguments
-      transform :default, :frozen, "Ruby.check_frozen"
+      transform :default, :frozen, "Rubinius.check_frozen"
 
       def self.match?(line, receiver, name, arguments, privately)
-        match_send? receiver, :Ruby, name, :check_frozen
+        match_send? receiver, :Rubinius, name, :check_frozen
       end
 
       def bytecode(g)

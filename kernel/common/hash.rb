@@ -201,7 +201,7 @@ class Hash
   end
 
   def []=(key, value)
-    Ruby.check_frozen
+    Rubinius.check_frozen
 
     redistribute @entries if @size > @max_entries
 
@@ -263,7 +263,7 @@ class Hash
   end
 
   def delete(key)
-    Ruby.check_frozen
+    Rubinius.check_frozen
 
     key_hash = key.hash
 
@@ -290,7 +290,7 @@ class Hash
   end
 
   def delete_if(&block)
-    Ruby.check_frozen
+    Rubinius.check_frozen
 
     return to_enum(:delete_if) unless block_given?
 
@@ -396,7 +396,7 @@ class Hash
   end
 
   def initialize(default=undefined, &block)
-    Ruby.check_frozen
+    Rubinius.check_frozen
 
     if !default.equal?(undefined) and block
       raise ArgumentError, "Specify a default or a block, not both"
@@ -567,7 +567,7 @@ class Hash
   end
 
   def reject!
-    Ruby.check_frozen
+    Rubinius.check_frozen
 
     return to_enum(:reject!) unless block_given?
 
@@ -601,7 +601,7 @@ class Hash
   end
 
   def replace(other)
-    Ruby.check_frozen
+    Rubinius.check_frozen
 
     other = Rubinius::Type.coerce_to other, Hash, :to_hash
     return self if self.equal? other
@@ -656,7 +656,7 @@ class Hash
   end
 
   def shift
-    Ruby.check_frozen
+    Rubinius.check_frozen
 
     return default(nil) if empty?
 

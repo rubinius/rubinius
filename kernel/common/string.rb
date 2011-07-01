@@ -436,7 +436,7 @@ class String
   #   a               #=> "Hello"
   #   a.capitalize!   #=> nil
   def capitalize!
-    Ruby.check_frozen
+    Rubinius.check_frozen
 
     cap = capitalize()
     return nil if cap == self
@@ -516,7 +516,7 @@ class String
     if sep.equal?(undefined)
       return if @num_bytes == 0
 
-      Ruby.check_frozen
+      Rubinius.check_frozen
 
       c = @data[@num_bytes-1]
       if c == 10 # ?\n
@@ -542,7 +542,7 @@ class String
         return
       end
 
-      Ruby.check_frozen
+      Rubinius.check_frozen
 
       # don't use modify! because it will dup the data when we don't need to.
       @hash_value = nil
@@ -559,7 +559,7 @@ class String
 
       return if size == @num_bytes
 
-      Ruby.check_frozen
+      Rubinius.check_frozen
 
       # don't use modify! because it will dup the data when we don't need to.
       @hash_value = nil
@@ -568,7 +568,7 @@ class String
       size = sep.size
       return if size > @num_bytes || sep.compare_substring(self, -size, size) != 0
 
-      Ruby.check_frozen
+      Rubinius.check_frozen
 
       # don't use modify! because it will dup the data when we don't need to.
       @hash_value = nil
@@ -708,7 +708,7 @@ class String
   # Downcases the contents of <i>self</i>, returning <code>nil</code> if no
   # changes were made.
   def downcase!
-    Ruby.check_frozen
+    Rubinius.check_frozen
 
     return if @num_bytes == 0
 
@@ -1196,7 +1196,7 @@ class String
       raise IndexError, "index #{index} out of string"
     end
 
-    Ruby.check_frozen
+    Rubinius.check_frozen
     hash_value = nil
 
     if index == @num_bytes
@@ -1315,7 +1315,7 @@ class String
     # If we're replacing with ourselves, then we have nothing to do
     return self if equal?(other)
 
-    Ruby.check_frozen
+    Rubinius.check_frozen
 
     other = StringValue(other)
 
@@ -2397,7 +2397,7 @@ class String
 
   # Unshares shared strings.
   def modify!
-    Ruby.check_frozen
+    Rubinius.check_frozen
 
     if @shared
       @data = @data.dup
