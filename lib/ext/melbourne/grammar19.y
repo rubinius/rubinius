@@ -5892,6 +5892,8 @@ parser_gettable(rb_parser_state* parser_state, ID id)
     return NEW_FILE();
   } else if(id == keyword__LINE__) {
     return NEW_NUMBER(INT2FIX(ruby_sourceline));
+  } else if(id == keyword__ENCODING__) {
+    return NEW_NIL(); // HACK this is a stub, replace this
   } else if(is_local_id(id)) {
     if((in_block() && bv_defined(id)) || local_id(id)) {
       return NEW_LVAR(id);
