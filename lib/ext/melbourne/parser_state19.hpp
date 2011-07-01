@@ -92,7 +92,6 @@ typedef VALUE stack_type;
       void *lval; /* the parser's yylval */
       bool eofp;
 
-      std::vector<bstring>* magic_comments;
       int column;
       NODE *top_node;
 
@@ -174,7 +173,6 @@ typedef VALUE stack_type;
 #define cmdarg_stack        PARSER_VAR(cmdarg_stack)
 #define lval                PARSER_VAR(lval)
 #define eofp                PARSER_VAR(eofp)
-#define magic_comments      PARSER_VAR(magic_comments)
 #define column              PARSER_VAR(column)
 #define top_node            PARSER_VAR(top_node)
 #define locals_table        PARSER_VAR(locals_table)

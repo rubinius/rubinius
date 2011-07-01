@@ -182,7 +182,6 @@ rb_parser_state *parser_alloc_state() {
   memory_pools = NULL;
   emit_warnings = 0;
   verbose = RTEST(ruby_verbose);
-  magic_comments = new std::vector<bstring>;
   start_lines = new std::list<StartPosition>;
 
   processor = 0;
@@ -222,13 +221,6 @@ void pt_free(rb_parser_state *parser_state) {
   free(tokenbuf);
   local_vars_free(locals_table);
 
-  for(std::vector<bstring>::iterator i = magic_comments->begin();
-      i != magic_comments->end();
-      i++) {
-    bdestroy(*i);
-  }
-
-  delete magic_comments;
   delete start_lines;
 
   if(lex_io_buf) free(lex_io_buf);
@@ -2443,7 +2435,7 @@ xstring         : tXSTRING_BEG xstring_contents tSTRING_END
                         nd_set_type(node, NODE_DXSTR);
                         break;
                       default:
-                        node = NEW_NODE(NODE_DXSTR, STR_NEW0(), 1, NEW_LIST(node));
+                        node = NEW_NODE(NODE_DXSTR, REF(STR_NEW0()), 1, NEW_LIST(node));
                         break;
                       }
                     }
@@ -2467,7 +2459,7 @@ regexp          : tREGEXP_BEG regexp_contents tREGEXP_END
                         }
                         break;
                       default:
-                        node = NEW_NODE(NODE_DSTR, STR_NEW0(), 1, NEW_LIST(node));
+                        node = NEW_NODE(NODE_DSTR, REF(STR_NEW0()), 1, NEW_LIST(node));
                       case NODE_DSTR:
                         if(options & RE_OPTION_ONCE) {
                           nd_set_type(node, NODE_DREGX_ONCE);
@@ -2648,7 +2640,7 @@ dsym            : tSYMBEG xstring_contents tSTRING_END
                         nd_set_type($$, NODE_LIT);
                         break;
                       default:
-                        $$ = NEW_NODE(NODE_DSYM, STR_NEW0(), 1, NEW_LIST($$));
+                        $$ = NEW_NODE(NODE_DSYM, REF(STR_NEW0()), 1, NEW_LIST($$));
                         break;
                       }
                     }
@@ -3170,7 +3162,7 @@ lex_get_str(rb_parser_state* parser_state, VALUE s)
     if(*end++ == '\n') break;
   }
   lex_gets_ptr = end - RSTRING_PTR(s);
-  return parser_add_reference(parser_state, rb_enc_str_new(beg, end - beg, enc));
+  return REF(rb_enc_str_new(beg, end - beg, enc));
 }
 
 static VALUE
@@ -3204,12 +3196,6 @@ string_to_ast(VALUE ptp, VALUE name, VALUE source, VALUE line)
   n = yycompile(parser_state, RSTRING_PTR(name), l);
 
   if(!parse_error) {
-    for(std::vector<bstring>::iterator i = magic_comments->begin();
-        i != magic_comments->end();
-        i++) {
-      rb_funcall(ptp, rb_intern("add_magic_comment"), 1,
-        rb_str_new((const char*)(*i)->data, (*i)->slen));
-    }
     ret = process_parse_tree(parser_state, ptp, top_node, NULL);
   } else {
     ret = Qnil;
@@ -3242,8 +3228,7 @@ static VALUE parse_io_gets(rb_parser_state* parser_state, VALUE s) {
         ssize_t len = i - lex_io_index + 1;
 
         if(str == Qnil) {
-          str = parser_add_reference(parser_state,
-                                     rb_str_new(lex_io_buf + lex_io_index, len));
+          str = REF(rb_str_new(lex_io_buf + lex_io_index, len));
         } else {
           rb_str_cat(str, lex_io_buf + lex_io_index, len);
         }
@@ -3259,8 +3244,7 @@ static VALUE parse_io_gets(rb_parser_state* parser_state, VALUE s) {
       }
     }
 
-    str = parser_add_reference(parser_state, rb_str_new(
-                               lex_io_buf + lex_io_index, lex_io_total - lex_io_index));
+    str = REF(rb_str_new(lex_io_buf + lex_io_index, lex_io_total - lex_io_index));
     lex_io_total = 0;
   }
 
@@ -3285,17 +3269,11 @@ file_to_ast(VALUE ptp, const char *f, int fd, int start)
   n = yycompile(parser_state, (char*)f, start);
 
   if(!parse_error) {
-    for(std::vector<bstring>::iterator i = magic_comments->begin();
-        i != magic_comments->end();
-        i++) {
-      rb_funcall(ptp, rb_intern("add_magic_comment"), 1,
-        rb_str_new((const char*)(*i)->data, (*i)->slen));
-    }
-      ret = process_parse_tree(parser_state, ptp, top_node, NULL);
+    ret = process_parse_tree(parser_state, ptp, top_node, NULL);
 
-      if(ruby__end__seen && lex_io) {
-        rb_funcall(ptp, rb_sData, 1, ULONG2NUM(lex_io_count));
-      }
+    if(ruby__end__seen && lex_io) {
+      rb_funcall(ptp, rb_sData, 1, ULONG2NUM(lex_io_count));
+    }
   } else {
     ret = Qnil;
   }
@@ -4036,9 +4014,9 @@ parser_heredoc_identifier(rb_parser_state* parser_state)
      the heredoc identifier that we watch the stream for to
      detect the end of the heredoc. */
   lex_strterm = node_newnode(NODE_HEREDOC,
-                             STR_NEW(tok(), toklen()),  /* nd_lit */
-                             (VALUE)len,                /* nd_nth */
-                             (VALUE)lex_lastline);      /* nd_orig */
+                             REF(STR_NEW(tok(), toklen())), /* nd_lit */
+                             (VALUE)len,                    /* nd_nth */
+                             (VALUE)lex_lastline);          /* nd_orig */
   nd_set_line(lex_strterm, ruby_sourceline);
   return term == '`' ? tXSTRING_BEG : tSTRING_BEG;
 }
@@ -4130,7 +4108,7 @@ parser_here_document(rb_parser_state* parser_state, NODE *here)
       if(str) {
         rb_str_cat(str, p, pend - p);
       } else {
-        str = parser_add_reference(parser_state, STR_NEW(p, pend - p));
+        str = REF(STR_NEW(p, pend - p));
       }
       if(pend < lex_pend) rb_str_cat(str, "\n", 1);
       lex_goto_eol(parser_state);
@@ -4172,7 +4150,7 @@ parser_here_document(rb_parser_state* parser_state, NODE *here)
       tokadd(nextc());
       if((c = nextc()) == -1) goto error;
     } while(!whole_match_p(eos, len, indent));
-    str = parser_add_reference(parser_state, STR_NEW3(tok(), toklen(), enc, func));
+    str = REF(STR_NEW3(tok(), toklen(), enc, func));
   }
   heredoc_restore(lex_strterm);
   lex_strterm = NEW_STRTERM(-1, 0, 0);
@@ -4315,8 +4293,6 @@ retry:
     // TODO: encoding magic comments
     if(char* str = parse_comment(parser_state)) {
         ssize_t len = lex_pend - str - 1; // - 1 for the \n
-        //cur_line = blk2bstr(str, len);
-        //magic_comments->push_back(cur_line);
     }
     lex_p = lex_pend;
     /* fall through */
