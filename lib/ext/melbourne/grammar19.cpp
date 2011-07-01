@@ -7213,7 +7213,7 @@ yyreduce:
   case 402:
 #line 2284 "grammar19.y"
     {
-                    (yyval.node) = NEW_CALL((yyvsp[(1) - (3)].node), rb_intern("call"), (yyvsp[(3) - (3)].node));
+                    (yyval.node) = NEW_CALL((yyvsp[(1) - (3)].node), parser_intern("call"), (yyvsp[(3) - (3)].node));
                     fixpos((yyval.node), (yyvsp[(1) - (3)].node));
                   ;}
     break;
@@ -7221,7 +7221,7 @@ yyreduce:
   case 403:
 #line 2289 "grammar19.y"
     {
-                    (yyval.node) = NEW_CALL((yyvsp[(1) - (3)].node), rb_intern("call"), (yyvsp[(3) - (3)].node));
+                    (yyval.node) = NEW_CALL((yyvsp[(1) - (3)].node), parser_intern("call"), (yyvsp[(3) - (3)].node));
                     fixpos((yyval.node), (yyvsp[(1) - (3)].node));
                   ;}
     break;

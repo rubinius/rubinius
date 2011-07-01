@@ -2282,12 +2282,12 @@ method_call     : operation paren_args
                   }
                 | primary_value '.' paren_args
                   {
-                    $$ = NEW_CALL($1, rb_intern("call"), $3);
+                    $$ = NEW_CALL($1, parser_intern("call"), $3);
                     fixpos($$, $1);
                   }
                 | primary_value tCOLON2 paren_args
                   {
-                    $$ = NEW_CALL($1, rb_intern("call"), $3);
+                    $$ = NEW_CALL($1, parser_intern("call"), $3);
                     fixpos($$, $1);
                   }
                 | keyword_super paren_args
