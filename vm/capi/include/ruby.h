@@ -1742,10 +1742,6 @@ VALUE rb_uint2big(unsigned long number);
   /** Retrieve the nth match for the given MatchData */
   VALUE   rb_reg_nth_match(long nth, VALUE match_data);
 
-  void ruby_setenv(const char *name, const char *value);
-
-  char *ruby_strdup(const char *str);
-
   // include an extconf.h if one is provided
 #ifdef RUBY_EXTCONF_H
 #include RUBY_EXTCONF_H
