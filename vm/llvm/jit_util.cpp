@@ -275,6 +275,7 @@ extern "C" {
     return call_frame->promote_scope(state);
   }
 
+
   Object* rbx_construct_splat(STATE, Arguments& args, size_t start, size_t total) {
     int splat_size = args.total() - total;
     if(splat_size > 0) {
@@ -302,6 +303,16 @@ extern "C" {
     Dispatch dis(G(sym_coerce_into_array));
 
     return dis.send(state, call_frame, args);
+  }
+
+  int rbx_destructure_args(STATE, Arguments& args) {
+    if(args.total() == 1) {
+      if(Array* ary = try_as<Array>(args.get_argument(0))) {
+        args.use_array(ary);
+      }
+    }
+
+    return args.total();
   }
 
   Object* rbx_cast_multi_value(STATE, CallFrame* call_frame, Object* top) {

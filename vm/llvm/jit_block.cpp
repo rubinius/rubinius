@@ -56,6 +56,7 @@ namespace jit {
     pass_one(body);
 
     info_.set_counter(b().CreateAlloca(ls_->Int32Ty, 0, "counter_alloca"));
+    counter2_ = b().CreateAlloca(ls_->Int32Ty, 0, "counter2");
 
     // The 3 here is because we store {ip, sp, type} per unwind.
     info_.set_unwind_info(b().CreateAlloca(ls_->Int32Ty,
@@ -105,6 +106,10 @@ namespace jit {
     nil_stack(vmm_->stack_size, constant(Qnil, obj_type));
 
     setup_block_scope();
+
+    if(ls_->config().version_19) {
+      import_args_19_style();
+    }
 
     if(ls_->include_profiling()) {
       Value* test = b().CreateLoad(ls_->profiling(), "profiling");
@@ -212,7 +217,7 @@ namespace jit {
     b().CreateStore(method, cm_gep);
 
     // flags
-    Value* inv_flags = b().CreateLoad(get_field(block_inv, offset::blockinv_flags),
+    inv_flags_ = b().CreateLoad(get_field(block_inv, offset::blockinv_flags),
         "invocation.flags");
 
     int block_flags = CallFrame::cCustomStaticScope |
@@ -222,7 +227,7 @@ namespace jit {
 
     if(!use_full_scope_) block_flags |= CallFrame::cClosedScope;
 
-    Value* flags = b().CreateOr(inv_flags,
+    Value* flags = b().CreateOr(inv_flags_,
         ConstantInt::get(ls_->Int32Ty, block_flags), "flags");
 
     b().CreateStore(flags, get_field(call_frame, offset::CallFrame::flags));
@@ -247,6 +252,277 @@ namespace jit {
         get_field(call_frame, offset::CallFrame::jit_data));
 
   }
+
+  void BlockBuilder::import_args_19_style() {
+    Value* vm_obj = vm;
+    Value* arg_obj = args;
+
+    if(vmm_->required_args > 1) {
+      Value* lambda_check =
+        b().CreateICmpEQ(
+          b().CreateAnd(
+            inv_flags_,
+            ConstantInt::get(inv_flags_->getType(), CallFrame::cIsLambda)),
+          ConstantInt::get(inv_flags_->getType(), 0));
+
+      BasicBlock* destruct = BasicBlock::Create(ls_->ctx(), "destructure", func);
+      BasicBlock* cont = BasicBlock::Create(ls_->ctx(), "arg_loop_body", func);
+
+      b().CreateCondBr(lambda_check, destruct, cont);
+
+      b().SetInsertPoint(destruct);
+
+      Signature sig(ls_, ls_->Int32Ty);
+      sig << "VM";
+      sig << "Arguments";
+
+      Value* call_args[] = { vm, args };
+
+      sig.call("rbx_destructure_args", call_args, 2, "", b());
+
+      b().CreateBr(cont);
+
+      b().SetInsertPoint(cont);
+    }
+
+    Value* local_i = counter2_;
+
+    Value* loop_i = info_.counter();
+    Value* arg_ary = b().CreateLoad(
+                       b().CreateConstGEP2_32(args, 0, offset::args_ary),
+                       "arg_ary");
+
+    // The variables used in the 4 phases.
+    int P = vmm_->post_args;
+    Value* Pv = ConstantInt::get(ls_->Int32Ty, P);
+
+    int R = vmm_->required_args;
+
+    int M = R - P;
+    Value* Mv = ConstantInt::get(ls_->Int32Ty, M);
+
+    Value* T = b().CreateLoad(
+                 b().CreateConstGEP2_32(arg_obj, 0, offset::args_total),
+                 "args.total");
+
+    int DT = vmm_->total_args;
+    Value* DTv = ConstantInt::get(ls_->Int32Ty, DT);
+
+    int O = DT - R;
+    Value* Ov = ConstantInt::get(ls_->Int32Ty, O);
+
+    int HS = vmm_->splat_position > 0 ? 1 : 0;
+
+    Value* CT = HS ? T
+                   : b().CreateSelect(b().CreateICmpSLT(T, DTv), T, DTv);
+
+    Value* Z = b().CreateSub(CT, ConstantInt::get(ls_->Int32Ty, M));
+    Value* U = b().CreateSub(Z, ConstantInt::get(ls_->Int32Ty, P));
+
+
+
+    // Phase 1, the manditories
+    // 0 ... min(M,T)
+
+    {
+      BasicBlock* top = BasicBlock::Create(ls_->ctx(), "mand_loop_top", func);
+      BasicBlock* body = BasicBlock::Create(ls_->ctx(), "mand_loop_body", func);
+      BasicBlock* after = BasicBlock::Create(ls_->ctx(), "mand_loop_cont", func);
+
+      // limit = min(M,T)
+      Value* limit = b().CreateSelect(b().CreateICmpSLT(Mv, T), Mv, T);
+
+      // *loop_i = T-P
+      b().CreateStore(ConstantInt::get(ls_->Int32Ty, 0), loop_i);
+
+      b().CreateBr(top);
+
+      b().SetInsertPoint(top);
+
+      // loop_val = *loop_i
+      Value* loop_val = b().CreateLoad(loop_i, "loop_val");
+
+      // if(loop_val < T) { goto body } else { goto after }
+      b().CreateCondBr(
+          b().CreateICmpSLT(loop_val, limit, "loop_test"),
+          body, after);
+
+      // Now, the body
+      b().SetInsertPoint(body);
+
+      Value* idx2[] = {
+        ConstantInt::get(ls_->Int32Ty, 0),
+        ConstantInt::get(ls_->Int32Ty, offset::vars_tuple),
+        loop_val
+      };
+
+      // locals[loop_val] = args[loop_val]
+      b().CreateStore(
+          b().CreateLoad(
+            b().CreateGEP(arg_ary, loop_val)),
+          b().CreateGEP(vars, idx2, idx2+3));
+
+      // *loop_i = loop_val + 1
+      b().CreateStore(
+          b().CreateAdd(loop_val, ConstantInt::get(ls_->Int32Ty, 1)),
+          loop_i);
+
+      b().CreateBr(top);
+
+      b().SetInsertPoint(after);
+    }
+
+    // Phase 2, the post args
+    // CT - min(Z,P) ... CT
+    {
+      BasicBlock* top = BasicBlock::Create(ls_->ctx(), "post_loop_top", func);
+      BasicBlock* body = BasicBlock::Create(ls_->ctx(), "post_loop_body", func);
+      BasicBlock* after = BasicBlock::Create(ls_->ctx(), "post_loop_cont", func);
+
+      // *loop_i = CT - min(Z,P)
+      b().CreateStore(
+        b().CreateSub(
+          CT,
+          b().CreateSelect(b().CreateICmpSLT(Z, Pv), Z, Pv)),
+        loop_i);
+
+      // *local_i = M+O+HS
+      b().CreateStore(
+        ConstantInt::get(ls_->Int32Ty, M+O+HS),
+        local_i);
+
+      b().CreateBr(top);
+
+      b().SetInsertPoint(top);
+
+      // loop_val = *loop_i
+      Value* loop_val = b().CreateLoad(loop_i, "loop_val");
+
+      // if(loop_val < T) { goto body } else { goto after }
+      b().CreateCondBr(
+          b().CreateICmpSLT(loop_val, CT, "loop_test"),
+          body, after);
+
+      // Now, the body
+      b().SetInsertPoint(body);
+
+      // local_val = *local_i
+      Value* local_val = b().CreateLoad(local_i, "local_val");
+
+      Value* idx2[] = {
+        ConstantInt::get(ls_->Int32Ty, 0),
+        ConstantInt::get(ls_->Int32Ty, offset::vars_tuple),
+        local_val
+      };
+
+      // locals[local_idx] = args[loop_val]
+      b().CreateStore(
+          b().CreateLoad(
+            b().CreateGEP(arg_ary, loop_val)),
+          b().CreateGEP(vars, idx2, idx2+3));
+
+      // *loop_i = loop_val + 1
+      b().CreateStore(
+          b().CreateAdd(loop_val, ConstantInt::get(ls_->Int32Ty, 1)),
+          loop_i);
+
+      // *local_i = local_val + 1;
+      b().CreateStore(
+          b().CreateAdd(local_val, ConstantInt::get(ls_->Int32Ty, 1)),
+          local_i);
+
+      b().CreateBr(top);
+
+      b().SetInsertPoint(after);
+    }
+
+    // Phase 3 - optionals
+    // M ... M + min(O, U)
+
+    {
+      BasicBlock* top = BasicBlock::Create(ls_->ctx(), "opt_arg_loop_top", func);
+      BasicBlock* body = BasicBlock::Create(ls_->ctx(), "opt_arg_loop_body", func);
+      BasicBlock* after = BasicBlock::Create(ls_->ctx(), "opt_arg_loop_cont", func);
+
+      Value* limit =
+        b().CreateAdd(
+            Mv,
+            b().CreateSelect(b().CreateICmpSLT(Ov, U), Ov, U));
+
+      // *loop_i = M
+      b().CreateStore(Mv, loop_i);
+      b().CreateBr(top);
+
+      b().SetInsertPoint(top);
+
+      // loop_val = *loop_i;
+      Value* loop_val = b().CreateLoad(loop_i, "loop_val");
+
+      // if(loop_val < limit) { goto body; } else { goto after; }
+      b().CreateCondBr(
+          b().CreateICmpSLT(loop_val, limit, "loop_test"),
+          body, after);
+
+      // Now, the body
+      b().SetInsertPoint(body);
+
+      Value* idx2[] = {
+        ConstantInt::get(ls_->Int32Ty, 0),
+        ConstantInt::get(ls_->Int32Ty, offset::vars_tuple),
+        loop_val
+      };
+
+      // locals[loop_val] = args[loop_val]
+      b().CreateStore(
+          b().CreateLoad(
+            b().CreateGEP(arg_ary, loop_val)),
+          b().CreateGEP(vars, idx2, idx2+3));
+
+      // *loop_i = loop_val + 1
+      b().CreateStore(
+          b().CreateAdd(loop_val, ConstantInt::get(ls_->Int32Ty, 1)),
+          loop_i);
+
+      b().CreateBr(top);
+
+      b().SetInsertPoint(after);
+    }
+
+    // Phase 4 - splat
+    if(vmm_->splat_position >= 0) {
+      Signature sig(ls_, "Object");
+      sig << "VM";
+      sig << "Arguments";
+      sig << ls_->Int32Ty;
+      sig << ls_->Int32Ty;
+
+      Value* call_args[] = {
+        vm_obj,
+        arg_obj,
+        ConstantInt::get(ls_->Int32Ty, M + O),
+        ConstantInt::get(ls_->Int32Ty, DT)
+      };
+
+      Function* func = sig.function("rbx_construct_splat");
+      func->setOnlyReadsMemory(true);
+      func->setDoesNotThrow(true);
+
+      CallInst* splat_val = sig.call("rbx_construct_splat", call_args, 4, "splat_val", b());
+
+      splat_val->setOnlyReadsMemory(true);
+      splat_val->setDoesNotThrow(true);
+
+      Value* idx3[] = {
+        ConstantInt::get(ls_->Int32Ty, 0),
+        ConstantInt::get(ls_->Int32Ty, offset::vars_tuple),
+        ConstantInt::get(ls_->Int32Ty, vmm_->splat_position)
+      };
+
+      Value* pos = b().CreateGEP(vars, idx3, idx3+3, "splat_pos");
+      b().CreateStore(splat_val, pos);
+    }
+  }
+
 }
 }
 
