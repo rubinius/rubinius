@@ -602,8 +602,8 @@ class String
 
     self.modify!
 
-    if @num_bytes > 1 and @data[@num_bytes-1] == ?\n \
-                      and @data[@num_bytes-2] == ?\r
+    if @num_bytes > 1 and
+        @data[@num_bytes-1] == 10 and @data[@num_bytes-2] == 13
       @num_bytes = @num_bytes - 2
     else
       @num_bytes = @num_bytes - 1
@@ -807,7 +807,7 @@ class String
         nxt = find_string(sep, pos)
         break unless nxt
 
-        while @data[nxt] == ?\n and nxt < @num_bytes
+        while @data[nxt] == 10 and nxt < @num_bytes
           nxt += 1
         end
 
@@ -1215,7 +1215,7 @@ class String
     self
   end
 
-  ControlCharacters = [?\n, ?\t, ?\a, ?\v, ?\f, ?\r, ?\e, ?\b]
+  ControlCharacters = [10, 9, 7, 11, 12, 13, 27, 8]
   ControlPrintValue = ["\\n", "\\t", "\\a", "\\v", "\\f", "\\r", "\\e", "\\b"]
 
   # Returns a printable version of _self_, with special characters

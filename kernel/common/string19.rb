@@ -1,11 +1,13 @@
 class String
   def self.try_convert(obj)
     return nil unless obj.respond_to?(:to_str)
-    Type.coerce_to(obj, String, :to_str)
+    obj.to_str
   end
 
   def partition(pattern)
-    pattern = Type.coerce_to(pattern, String, :to_str) unless pattern.is_a? Regexp
+    unless pattern.is_a? Regexp
+      pattern = Rubinius::Type.coerce_to(pattern, String, :to_str)
+    end
     i = index(pattern)
     return [self, "", ""] unless i
 
@@ -24,8 +26,8 @@ class String
     return self if self > stop
 
     if stop.size == 1 && size == 1
-      after_stop = stop[0] + (exclusive ? 0 : 1)
-      current = self[0]
+      after_stop = stop.getbyte(0) + (exclusive ? 0 : 1)
+      current = getbyte(0)
       until current == after_stop
         yield current.chr
         current += 1
