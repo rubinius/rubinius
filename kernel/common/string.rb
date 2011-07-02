@@ -519,9 +519,9 @@ class String
       Ruby.check_frozen
 
       c = @data[@num_bytes-1]
-      if c == ?\n
-        @num_bytes -= 1 if @num_bytes > 1 && @data[@num_bytes-2] == ?\r
-      elsif c != ?\r
+      if c == 10 # ?\n
+        @num_bytes -= 1 if @num_bytes > 1 && @data[@num_bytes-2] == 13 # ?\r
+      elsif c != 13 # ?\r
         return
       end
 
@@ -536,9 +536,9 @@ class String
 
     if (sep == $/ && sep == DEFAULT_RECORD_SEPARATOR) || sep == "\n"
       c = @data[@num_bytes-1]
-      if c == ?\n
-        @num_bytes -= 1 if @num_bytes > 1 && @data[@num_bytes-2] == ?\r
-      elsif c != ?\r
+      if c == 10 # ?\n
+        @num_bytes -= 1 if @num_bytes > 1 && @data[@num_bytes-2] == 13 # ?\r
+      elsif c != 13 # ?\r
         return
       end
 
@@ -549,8 +549,8 @@ class String
       @num_bytes = @num_bytes - 1
     elsif sep.size == 0
       size = @num_bytes
-      while size > 0 && @data[size-1] == ?\n
-        if size > 1 && @data[size-2] == ?\r
+      while size > 0 && @data[size-1] == 10 # ?\n
+        if size > 1 && @data[size-2] == 13 # ?\r
           size -= 2
         else
           size -= 1
