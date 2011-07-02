@@ -102,6 +102,7 @@ namespace rubinius {
     // Check the arity in lambda mode
     if(lambda_style) {
       flags = CallFrame::cIsLambda;
+      int total = block_->code()->total_args()->to_native();
       int required = block_->code()->required_args()->to_native();
 
       bool arity_ok = false;
@@ -118,7 +119,8 @@ namespace rubinius {
       } else if(required == 1) {
         arity_ok = true;
       } else {
-        arity_ok = ((size_t)required == args.total());
+        arity_ok = args.total() <= (size_t)total &&
+                   args.total() >= (size_t)required;
       }
 
       if(!arity_ok) {

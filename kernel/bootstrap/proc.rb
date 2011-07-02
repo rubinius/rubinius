@@ -17,4 +17,8 @@ class Proc
   def lambda_style!
     @lambda = true
   end
+
+  def lambda?
+    @lambda
+  end
 end

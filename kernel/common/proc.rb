@@ -76,6 +76,36 @@ class Proc
     @block.arity
   end
 
+  def parameters
+    if @bound_method
+      return @bound_method.parameters
+    end
+
+    code = @block.code
+
+    return [] unless code.respond_to? :local_names
+
+    m = code.required_args - code.post_args
+    o = m + code.total_args - code.required_args
+    p = o + code.post_args
+    p += 1 if code.splat
+
+    code.local_names.each_with_index.map do |name, i|
+      if i < m
+        [:req, name]
+      elsif i < o
+        [:opt, name]
+      elsif code.splat == i
+        [:rest, name]
+      elsif i < p
+        [:req, name]
+      else
+        [:block, name]
+      end
+    end
+  end
+
+
   def to_proc
     self
   end

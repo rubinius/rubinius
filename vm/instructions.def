@@ -2071,7 +2071,7 @@ end
 #   push_block
 
 instruction push_proc() [ -- value ]
-  Object* obj = call_frame->scope->block();
+  Object* obj = call_frame->arguments->block();
   if(RTEST(obj)) {
     Object* prc = Proc::from_env(state, G(proc), obj);
     if(prc == Primitives::failure()) {
