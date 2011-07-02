@@ -369,7 +369,12 @@ module Rubinius
       def bytecode(g)
         pos(g)
 
-        g.make_array @size
+        if Rubinius.ruby19?
+          g.cast_multi_value
+        else
+          g.make_array @size
+        end
+
         @value.bytecode(g)
       end
 
