@@ -55,7 +55,6 @@ namespace rubinius {
   class Array;
   class Message;
   class TypeInfo;
-  class MethodContext;
 
   class Object;
 

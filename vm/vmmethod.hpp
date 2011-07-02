@@ -26,8 +26,6 @@ namespace rubinius {
   typedef std::list<Object**> IndirectLiterals;
 
   class CompiledMethod;
-  class MethodContext;
-  class SendSite;
   class VMMethod;
   class InterpreterCallFrame;
   class InlineCache;

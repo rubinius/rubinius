@@ -51,7 +51,6 @@ namespace rubinius {
   class Primitives;
   class ObjectMemory;
   class TypeInfo;
-  class MethodContext;
   class String;
   class Symbol;
   class ConfigParser;

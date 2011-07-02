@@ -3,7 +3,6 @@
 
 #include "vmmethod.hpp"
 #include "unwind_info.hpp"
-#include "jit_state.h"
 #include "stack_variables.hpp"
 #include "builtin/variable_scope.hpp"
 #include "dispatch.hpp"
