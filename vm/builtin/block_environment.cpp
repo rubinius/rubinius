@@ -78,7 +78,8 @@ namespace rubinius {
   // TODO: this is a quick hack to process block arguments in 1.9.
   class GenericArguments {
   public:
-    static bool call(STATE, VMMethod* vmm, StackVariables* scope,
+    static bool call(STATE, CallFrame* call_frame,
+                     VMMethod* vmm, StackVariables* scope,
                      Arguments& args, int flags)
     {
       const bool has_splat = (vmm->splat_position >= 0);
@@ -99,8 +100,17 @@ namespace rubinius {
         // and the target block takes 2 or more arguments, then
         // we destructure the array.
         if(vmm->required_args > 1 && total_args == 1) {
-          if(Array* ary = try_as<Array>(args.get_argument(0))) {
+          Object* obj = args.get_argument(0);
+          if(Array* ary = try_as<Array>(obj)) {
             args.use_array(ary);
+          } else if(RTEST(obj->respond_to(state, state->symbol("to_ary"), Qfalse))) {
+            obj = obj->send(state, call_frame, state->symbol("to_ary"));
+            if(Array* ary2 = try_as<Array>(obj)) {
+              args.use_array(ary2);
+            } else {
+              Exception::type_error(state, "to_ary must return an Array", call_frame);
+              return false;
+            }
           }
         }
       }
@@ -251,11 +261,6 @@ namespace rubinius {
 
     InterpreterCallFrame* frame = ALLOCA_CALLFRAME(vmm->stack_size);
 
-    // TODO: this is a quick hack to process block arguments in 1.9.
-    if(LANGUAGE_19_ENABLED(state) || LANGUAGE_20_ENABLED(state)) {
-      GenericArguments::call(state, vmm, scope, args, invocation.flags);
-    }
-
     frame->prepare(vmm->stack_size);
 
     frame->previous = previous;
@@ -269,6 +274,13 @@ namespace rubinius {
     frame->flags =    invocation.flags | CallFrame::cCustomStaticScope
                                        | CallFrame::cMultipleScopes
                                        | CallFrame::cBlock;
+
+    // TODO: this is a quick hack to process block arguments in 1.9.
+    if(LANGUAGE_19_ENABLED(state) || LANGUAGE_20_ENABLED(state)) {
+      if(!GenericArguments::call(state, frame, vmm, scope, args, invocation.flags)) {
+        return NULL;
+      }
+    }
 
     // Check the stack and interrupts here rather than in the interpreter
     // loop itself.
