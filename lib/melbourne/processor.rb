@@ -516,7 +516,11 @@ module Rubinius
       when 0
         body = nil
       when 1
-        body = scope.array.shift
+        if scope.locals
+          body = scope
+        else
+          body = scope.array.shift
+        end
       else
         body = scope
       end
@@ -559,7 +563,7 @@ module Rubinius
       node
     end
 
-    def process_scope(line, arguments, body)
+    def process_scope(line, arguments, body, locals)
       case body
       when AST::Begin
         if body.rescue.kind_of? AST::NilLiteral
@@ -582,6 +586,8 @@ module Rubinius
       if arguments and body
         body.array.unshift arguments
       end
+
+      body.locals = locals if locals
 
       body
     end

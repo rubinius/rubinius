@@ -66,11 +66,15 @@ module Rubinius
     # make do and pull them out here rather than having something else reach
     # inside of Block.
     class Block < Node
-      attr_accessor :array
+      attr_accessor :array, :locals
 
       def initialize(line, array)
         @line = line
         @array = array
+
+        # These are any local variable that are declared as explicit
+        # locals for this scope. This is only used by the |a;b| syntax.
+        @locals = nil
       end
 
       def strip_arguments

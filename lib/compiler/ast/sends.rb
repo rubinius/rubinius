@@ -380,6 +380,11 @@ module Rubinius
         @body = body || NilLiteral.new(line)
       end
 
+      # 1.8 doesn't support declared Iter locals
+      def block_local?(name)
+        false
+      end
+
       def module?
         false
       end
@@ -397,6 +402,8 @@ module Rubinius
       def search_local(name)
         if variable = variables[name]
           variable.nested_reference
+        elsif block_local?(name)
+          new_local name
         elsif reference = @parent.search_local(name)
           reference.depth += 1
           reference
@@ -419,6 +426,9 @@ module Rubinius
       # variable in this scope and set the local variable node attribute.
       def assign_local_reference(var)
         if variable = variables[var.name]
+          var.variable = variable.reference
+        elsif block_local?(var.name)
+          variable = new_local var.name
           var.variable = variable.reference
         elsif reference = @parent.search_local(var.name)
           reference.depth += 1
@@ -484,6 +494,16 @@ module Rubinius
         @line = line
         @arguments = arguments
         @body = body || NilLiteral.new(line)
+
+        if @body.kind_of?(Block) and @body.locals
+          @locals = @body.locals.body.map { |x| x.value }
+        else
+          @locals = nil
+        end
+      end
+
+      def block_local?(name)
+        @locals.include?(name) if @locals
       end
     end
 

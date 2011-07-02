@@ -436,12 +436,18 @@ namespace melbourne {
     }
     case NODE_SCOPE: {
       VALUE args = Qnil;
+      VALUE bv_locals = Qnil;
 
       if(node->nd_args) {
-        args = process_parse_tree(parser_state, ptp, node->nd_args, node->nd_tbl);
+        if(nd_type(node->nd_args) == NODE_ARGS_AUX) {
+          args = process_parse_tree(parser_state, ptp, node->nd_args->nd_1st, node->nd_tbl);
+          bv_locals = process_parse_tree(parser_state, ptp, node->nd_args->nd_2nd, node->nd_tbl);
+        } else {
+          args = process_parse_tree(parser_state, ptp, node->nd_args, node->nd_tbl);
+        }
       }
       VALUE body = process_parse_tree(parser_state, ptp, node->nd_body, node->nd_tbl);
-      tree = rb_funcall(ptp, rb_sScope, 3, line, args, body);
+      tree = rb_funcall(ptp, rb_sScope, 4, line, args, body, bv_locals);
       break;
     }
     case NODE_OP_ASGN1: {

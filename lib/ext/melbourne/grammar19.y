@@ -2155,7 +2155,7 @@ opt_block_param : none
 
 block_param_def : '|' opt_bv_decl '|'
                   {
-                    $$ = 0;
+                    $$ = $2 ? NEW_ARGS_AUX(0,$2) : 0;
                   }
                 | tOROP
                   {
@@ -2163,24 +2163,38 @@ block_param_def : '|' opt_bv_decl '|'
                   }
                 | '|' block_param opt_bv_decl '|'
                   {
-                    $$ = $2;
+                    if($3) {
+                      $$ = NEW_ARGS_AUX($2, $3);
+                    } else {
+                      $$ = $2;
+                    }
                   }
                 ;
 
 opt_bv_decl     : none
-                | ';' bv_decls
                   {
                     $$ = 0;
+                  }
+                | ';' bv_decls
+                  {
+                    $$ = $2;
                   }
                 ;
 
 bv_decls        : bvar
+                  {
+                    $$ = NEW_LIST($1);
+                  }
                 | bv_decls ',' bvar
+                  {
+                    $$ = list_append($1, $3);
+                  }
                 ;
 
 bvar            : tIDENTIFIER
                   {
                     new_bv(get_id($1));
+                    $$ = NEW_LIT(ID2SYM(get_id($1)));
                   }
                 | f_bad_arg
                   {
