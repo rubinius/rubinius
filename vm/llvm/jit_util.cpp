@@ -305,14 +305,23 @@ extern "C" {
     return dis.send(state, call_frame, args);
   }
 
-  int rbx_destructure_args(STATE, Arguments& args) {
+  Object* rbx_destructure_args(STATE, CallFrame* call_frame, Arguments& args) {
     if(args.total() == 1) {
-      if(Array* ary = try_as<Array>(args.get_argument(0))) {
+      Object* obj = args.get_argument(0);
+      if(Array* ary = try_as<Array>(obj)) {
         args.use_array(ary);
+      } else if(RTEST(obj->respond_to(state, state->symbol("to_ary"), Qfalse))) {
+        obj = obj->send(state, call_frame, state->symbol("to_ary"));
+        if(Array* ary2 = try_as<Array>(obj)) {
+          args.use_array(ary2);
+        } else {
+          Exception::type_error(state, "to_ary must return an Array", call_frame);
+          return 0;
+        }
       }
     }
 
-    return args.total();
+    return Qnil;
   }
 
   Object* rbx_cast_multi_value(STATE, CallFrame* call_frame, Object* top) {
