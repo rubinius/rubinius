@@ -83,6 +83,11 @@ module Rubinius
         @splat = nil
         @single = nil
 
+        if conditions.kind_of? ConcatArgs
+          @splat = SplatWhen.new line, conditions.rest
+          conditions = conditions.array
+        end
+
         if conditions.kind_of? ArrayLiteral
           if conditions.body.last.kind_of? When
             last = conditions.body.pop
