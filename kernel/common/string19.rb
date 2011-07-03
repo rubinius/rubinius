@@ -1,7 +1,6 @@
 class String
   def self.try_convert(obj)
-    return nil unless obj.respond_to?(:to_str)
-    obj.to_str
+    Rubinius::Type.try_convert obj, String, :to_str
   end
 
   def partition(pattern)

@@ -199,7 +199,7 @@ class Regexp
   def ===(other)
 
     unless other.kind_of?(String)
-      other = Rubinius::Type.try_convert other, String, :to_str
+      other = Rubinius::Type.check_convert_type other, String, :to_str
       unless other
         Regexp.last_match = nil
         return false

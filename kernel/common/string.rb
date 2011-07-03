@@ -873,7 +873,7 @@ class String
 
   def end_with?(*suffixes)
     suffixes.each do |suffix|
-      suffix = Rubinius::Type.try_convert suffix, String, :to_str
+      suffix = Rubinius::Type.check_convert_type suffix, String, :to_str
       next unless suffix
 
       return true if self[-suffix.length, suffix.length] == suffix
@@ -1878,7 +1878,7 @@ class String
 
   def start_with?(*prefixes)
     prefixes.each do |prefix|
-      prefix = Rubinius::Type.try_convert prefix, String, :to_str
+      prefix = Rubinius::Type.check_convert_type prefix, String, :to_str
       next unless prefix
       return true if self[0, prefix.length] == prefix
     end

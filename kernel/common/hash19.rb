@@ -1,7 +1,6 @@
 class Hash
-  def self.try_convert(x)
-    return nil unless x.respond_to? :to_hash
-    x.to_hash
+  def self.try_convert(obj)
+    Rubinius::Type.try_convert obj, Hash, :to_hash
   end
 
   alias_method :key, :index

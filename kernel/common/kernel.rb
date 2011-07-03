@@ -66,7 +66,7 @@ module Kernel
   module_function :Integer
 
   def Array(obj)
-    ary = Rubinius::Type.try_convert obj, Array, :to_ary
+    ary = Rubinius::Type.check_convert_type obj, Array, :to_ary
 
     return ary if ary
 

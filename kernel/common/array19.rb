@@ -3,8 +3,7 @@ class Array
   # Returns converted array or nil if obj cannot be converted
   # for any reason. This method is to check if an argument is an array.
   def self.try_convert(obj)
-    return nil unless obj.respond_to?(:to_ary)
-    Rubinius::Type.coerce_to(obj, Array, :to_ary)
+    Rubinius::Type.try_convert obj, Array, :to_ary
   end
 
   # Choose a random element, or the random n elements, from the array.
