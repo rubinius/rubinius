@@ -118,12 +118,6 @@ module ArraySpecs
     end
   end
 
-  class ArrayNotReallyConvertable
-    def to_ary
-      raise "Oups"
-    end
-  end
-
   class SortSame
     def <=>(other); 0; end
     def ==(other); true; end

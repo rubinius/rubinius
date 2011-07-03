@@ -27,11 +27,4 @@ module StringSpecs
       self.replace(str)
     end
   end
-
-  class StringNotReallyConvertable
-    def to_str
-      raise "Oups"
-    end
-  end
-
 end
