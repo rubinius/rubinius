@@ -211,7 +211,7 @@ namespace rubinius {
     if(fd != 2) {
       close(fd);
       safe_write(2, "\n---------------------------------------------\n");
-      safe_write(2, "CRASH: A fatal error has occured.\n\nBacktrace:\n");
+      safe_write(2, "CRASH: A fatal error has occurred.\n\nBacktrace:\n");
       backtrace_symbols_fd(array, size, 2);
       safe_write(2, "\n\n");
       safe_write(2, "Wrote full error report to: ");
