@@ -58,17 +58,6 @@ end
 describe "Hash#merge!" do
   it_behaves_like(:hash_update, :merge!)
 
-  # see http://redmine.ruby-lang.org/issues/show/1535
-  ruby_bug "#1535", "1.8.8" do
-    it "raises a RuntimeError if a new key is added during iteration" do
-      hash = {1 => 2, 3 => 4, 5 => 6}
-      hash2 = {:foo => :bar, :baz => :qux}
-      lambda{
-        hash.each { hash.merge!(hash2) }
-      }.should raise_error(RuntimeError)
-    end
-  end
-
   it "does not raise an exception if changing the value of an existing key during iteration" do
       hash = {1 => 2, 3 => 4, 5 => 6}
       hash2 = {1 => :foo, 3 => :bar}
