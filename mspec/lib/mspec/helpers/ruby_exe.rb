@@ -73,7 +73,11 @@ class Object
     when :engine
       case RUBY_NAME
       when 'rbx'
-        "bin/rbx"
+        if Rubinius.ruby19?
+          "bin/rbx -X19"
+        else
+          "bin/rbx"
+        end
       when 'jruby'
         "bin/jruby"
       when 'maglev'

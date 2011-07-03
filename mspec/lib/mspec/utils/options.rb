@@ -215,6 +215,8 @@ class MSpecOptions
         config[:target] = 'ruby1.9'
       when 'x', 'rubinius'
         config[:target] = './bin/rbx'
+      when 'x19', 'rubinius19'
+        config[:target] = './bin/rbx -X19'
       when 'X', 'rbx'
         config[:target] = 'rbx'
       when 'j', 'jruby'

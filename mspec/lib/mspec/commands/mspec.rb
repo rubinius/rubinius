@@ -163,7 +163,9 @@ class MSpecMain < MSpecScript
         more = ["--args", config[:target]] + argv
         exec "gdb", *more
       else
-        exec config[:target], *argv
+        cmd, *rest = config[:target].split(/\s+/)
+        argv = rest + argv unless rest.empty?
+        exec cmd, *argv
       end
     end
   end
