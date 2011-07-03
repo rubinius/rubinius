@@ -1,8 +1,6 @@
 #ifndef RBX_VMMETHOD_HPP
 #define RBX_VMMETHOD_HPP
 
-#include <vector>
-
 #include "executor.hpp"
 #include "gc/root.hpp"
 #include "primitives.hpp"
@@ -19,16 +17,13 @@ namespace llvm {
 #endif
 
 namespace rubinius {
-  typedef void* instlocation;
   typedef uintptr_t opcode;
-  typedef uint32_t bpflags;
 
   class CompiledMethod;
   class VMMethod;
   class InterpreterCallFrame;
   class InlineCache;
 
-  typedef Object* (*Runner)(STATE, VMMethod* const vmm, CallFrame* const call_frame);
   typedef Object* (*InterpreterRunner)(STATE, VMMethod* const vmm,
                                        InterpreterCallFrame* const call_frame);
 
@@ -184,12 +179,6 @@ namespace rubinius {
         , call_flags(0)
       {}
     };
-
-    /**
-     *  Dispatch method on the defined interpreter.
-     */
-    static Object* run_interpreter(STATE, VMMethod* const vmm,
-                                   InterpreterCallFrame* const call_frame);
 
     /**
      *  Interpreting implementation.

@@ -126,16 +126,6 @@ namespace rubinius {
   }
 
   void VM::initialize_config() {
-#ifdef USE_DYNAMIC_INTERPRETER
-    if(shared.config.dynamic_interpreter_enabled) {
-      G(rubinius)->set_const(this, "INTERPRETER", symbol("dynamic"));
-    } else {
-      G(rubinius)->set_const(this, "INTERPRETER", symbol("static"));
-    }
-#else
-    G(rubinius)->set_const(this, "INTERPRETER", symbol("static"));
-#endif
-
 #ifdef ENABLE_LLVM
     if(!shared.config.jit_disabled) {
       Array* ary = Array::create(this, 3);

@@ -60,7 +60,6 @@ namespace rubinius {
   class Object;
   class Configuration;
   struct Interrupts;
-  class VMManager;
   class Waiter;
   class LookupTable;
   class SymbolTable;
