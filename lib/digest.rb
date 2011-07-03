@@ -4,10 +4,10 @@ module Digest
   def self.const_missing(name)
     case name
     when :SHA256, :SHA384, :SHA512
-      path = "ext/digest/sha2/sha2"
+      path = "digest/sha2"
     else
       lib = name.to_s.downcase
-      path = "ext/digest/#{lib}/#{lib}"
+      path = "digest/#{lib}"
     end
 
     begin
