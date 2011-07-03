@@ -11,7 +11,6 @@
 #include "util/refcount.hpp"
 
 #include "global_lock.hpp"
-#include "maps.hpp"
 
 #include "call_frame_list.hpp"
 
