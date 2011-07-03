@@ -23,8 +23,6 @@ namespace rubinius {
   typedef uintptr_t opcode;
   typedef uint32_t bpflags;
 
-  typedef std::list<Object**> IndirectLiterals;
-
   class CompiledMethod;
   class VMMethod;
   class InterpreterCallFrame;
@@ -43,7 +41,6 @@ namespace rubinius {
     };
 
   private:
-    IndirectLiterals indirect_literals_;
     VMMethod* parent_;
 
   public:
@@ -139,10 +136,6 @@ namespace rubinius {
 
     size_t inline_cache_count() {
       return number_of_caches_;
-    }
-
-    IndirectLiterals& indirect_literals() {
-      return indirect_literals_;
     }
 
     VMMethod* parent() {

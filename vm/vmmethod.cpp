@@ -143,12 +143,6 @@ namespace rubinius {
       InlineCache* cache = &caches[i];
       cm->shared()->ic_registry()->remove_cache(cache->name, cache);
     }
-
-    for(IndirectLiterals::iterator i = indirect_literals_.begin();
-        i != indirect_literals_.end();
-        ++i) {
-      delete[] *i;
-    }
   }
 
   int VMMethod::size() {
