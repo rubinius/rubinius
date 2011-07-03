@@ -871,6 +871,42 @@ namespace rubinius {
 #ifdef EDQUOT
     set_syserr(EDQUOT, "EDQUOT");
 #endif
+#ifdef EBADRPC
+    set_syserr(EBADRPC, "EBADRPC");
+#endif
+#ifdef ERPCMISMATCH
+    set_syserr(ERPCMISMATCH, "ERPCMISMATCH");
+#endif
+#ifdef EPROGUNAVAIL
+    set_syserr(EPROGUNAVAIL, "EPROGUNAVAIL");
+#endif
+#ifdef EPROGMISMATCH
+    set_syserr(EPROGMISMATCH, "EPROGMISMATCH");
+#endif
+#ifdef EPROCUNAVAIL
+    set_syserr(EPROCUNAVAIL, "EPROCUNAVAIL");
+#endif
+#ifdef EFTYPE
+    set_syserr(EFTYPE, "EFTYPE");
+#endif
+#ifdef EAUTH
+    set_syserr(EAUTH, "EAUTH");
+#endif
+#ifdef ENEEDAUTH
+    set_syserr(ENEEDAUTH, "ENEEDAUTH");
+#endif
+#ifdef ECANCELED
+    set_syserr(ECANCELED, "ECANCELED");
+#endif
+#ifdef ENOATTR
+    set_syserr(ENOATTR, "ENOATTR");
+#endif
+#ifdef EDOOFUS
+    set_syserr(EDOOFUS, "EDOOFUS");
+#endif
+#ifdef ENOTCAPABLE
+    set_syserr(ENOTCAPABLE, "ENOTCAPABLE");
+#endif
 
   }
 };
