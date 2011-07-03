@@ -133,6 +133,7 @@ module Rubinius
       script.data_path = @load_path
 
       @cm = cm
+      CodeLoader.compiled_hook.trigger! script
       return script
     end
 
