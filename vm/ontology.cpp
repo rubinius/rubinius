@@ -907,6 +907,45 @@ namespace rubinius {
 #ifdef ENOTCAPABLE
     set_syserr(ENOTCAPABLE, "ENOTCAPABLE");
 #endif
+#ifdef EPROCLIM
+    set_syserr(EPROCLIM, "EPROCLIM");
+#endif
+#ifdef EPRWOFF
+    set_syserr(EPWROFF, "EPWROFF");
+#endif
+#ifdef EDEVERR
+    set_syserr(EDEVERR, "EDEVERR");
+#endif
+#ifdef ENOPOLICY
+    set_syserr(ENOPOLICY, "ENOPOLICY");
+#endif
+#ifdef ENOMEDIUM
+    set_syserr(ENOMEDIUM, "ENOMEDIUM");
+#endif
+#ifdef EMEDIUMTYPE
+    set_syserr(EMEDIUMTYPE, "EMEDIUMTYPE");
+#endif
+#ifdef ENOKEY
+    set_syserr(ENOKEY, "ENOKEY");
+#endif
+#ifdef EKEYEXPIRED
+    set_syserr(EKEYEXPIRED, "EKEYEXPIRED");
+#endif
+#ifdef EKEYREVOKED
+    set_syserr(EKEYREVOKED, "EKEYREVOKED");
+#endif
+#ifdef EKEYREJECTED
+    set_syserr(EKEYREJECTED, "EKEYREJECTED");
+#endif
+#ifdef EOWNERDEAD
+    set_syserr(EOWNERDEAD, "EOWNERDEAD");
+#endif
+#ifdef ENOTRECOVERABLE
+    set_syserr(ENOTRECOVERABLE, "ENOTRECOVERABLE");
+#endif
+#ifdef ERFKILL
+    set_syserr(ERFKILL, "ERFKILL");
+#endif
 
   }
 };
