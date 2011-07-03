@@ -5,7 +5,6 @@
 #include "builtin/global_cache_entry.hpp"
 #include "inline_cache.hpp"
 
-#include "llvm/access_memory.hpp"
 #include "llvm/jit_operations.hpp"
 #include "llvm/inline.hpp"
 #include "llvm/jit_context.hpp"
