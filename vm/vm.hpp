@@ -15,7 +15,6 @@
 
 #include "call_frame_list.hpp"
 
-#include "async_message.hpp"
 #include "gc/variable_buffer.hpp"
 #include "gc/root_buffer.hpp"
 #include "gc/slab.hpp"
