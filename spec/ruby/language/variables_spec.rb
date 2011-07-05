@@ -96,6 +96,24 @@ describe "Basic assignment" do
     end
   end
 
+  it "sets unavailable values to nil" do
+    ary = []
+    a, b, c = ary
+
+    a.should be_nil
+    b.should be_nil
+    c.should be_nil
+  end
+
+  it "sets the splat to an empty Array if there are no more values" do
+    ary = []
+    a, b, *c = ary
+
+    a.should be_nil
+    b.should be_nil
+    c.should == []
+  end
+
   it "allows multiple values to be assigned" do
     a,b,*c = nil;       [a,b,c].should == [nil, nil, []]
     a,b,*c = 1;         [a,b,c].should == [1, nil, []]
