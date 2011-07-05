@@ -14,13 +14,16 @@ module Rubinius
         puts "#{" " * level}#{value}"
       end
 
-      def print_node(node, level)
+      def print_node(node, level, idx=nil)
         name = node.class.to_s.split("::").last
+
+        name = "#{name} [#{idx}]" if idx
+
         indented_print level, name
       end
 
-      def graph_node(node, level=0)
-        print_node node, level
+      def graph_node(node, level=0, idx=nil)
+        print_node node, level, idx
         level += 2
 
         nodes = []
@@ -61,17 +64,19 @@ module Rubinius
           if value.empty?
             puts "#{" " * level}#{name}: []"
           else
-            puts "#{" " * level}#{name}: \\"
+            puts "#{" " * level}#{name}: ["
             nodes = []
-            value.each do |v|
+            value.each_with_index do |v,i|
               if v.kind_of? @node_kind
-                nodes << v
+                nodes << [v, i]
               else
-                graph_value "-", v, level + 2
+                graph_value "[#{i}] ", v, level + 2
               end
             end
 
-            nodes.each { |n| graph_node n, level + 2 }
+            nodes.each { |n| graph_node n[0], level + 2, n[1] }
+
+            puts "#{' ' * level}]"
           end
         else
           graph_simple name, value.class, level
