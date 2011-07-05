@@ -347,6 +347,28 @@ describe "Assigning multiple values" do
     end
   end
 
+  ruby_version_is "" ... "1.9" do
+    it "wraps a single value in an Array" do
+      *a = 1
+      a.should == [1]
+
+      b = [1]
+      *a = b
+      a.should == [b]
+    end
+  end
+
+  ruby_version_is "1.9" do
+    it "wraps a single value in an Array if it's not already one" do
+      *a = 1
+      a.should == [1]
+
+      b = [1]
+      *a = b
+      a.should == b
+    end
+  end
+
   it "evaluates rhs left-to-right" do
     a = VariablesSpecs::ParAsgn.new
     d, e ,f = a.inc, a.inc, a.inc
