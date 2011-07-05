@@ -920,6 +920,17 @@ namespace melbourne {
       tree = rb_funcall(ptp, rb_sPostExe, 2, line, scope);
       break;
     }
+    case NODE_POSTARG: {
+      VALUE into = Qnil;
+      if(node->nd_1st != RNODE(-1)) {
+        into = process_parse_tree(parser_state, ptp, node->nd_1st, locals);
+      }
+
+      VALUE rest = process_parse_tree(parser_state, ptp, node->nd_2nd, locals);
+
+      tree = rb_funcall(ptp, rb_sPostArg, 3, line, into, rest);
+      break;
+    }
     default: {
       VALUE node_name = rb_str_new2(get_node_type_string((enum node_type)nd_type(node)));
       VALUE node_type = INT2FIX(nd_type(node));

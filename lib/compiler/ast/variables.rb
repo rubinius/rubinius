@@ -369,11 +369,7 @@ module Rubinius
       def bytecode(g)
         pos(g)
 
-        if Rubinius.ruby19?
-          g.cast_multi_value
-        else
-          g.make_array @size
-        end
+        g.make_array @size
 
         @value.bytecode(g)
       end
@@ -531,6 +527,16 @@ module Rubinius
       end
     end
 
+    class PostArg < Node
+      attr_accessor :into, :rest
+
+      def initialize(line, into, rest)
+        @line = line
+        @into = into
+        @rest = rest
+      end
+    end
+
     class MultipleAssignment < Node
       attr_accessor :left, :right, :splat, :block
 
@@ -540,8 +546,21 @@ module Rubinius
         @right = right
         @splat = nil
         @block = nil # support for |&b|
+        @post = nil # in `a,*b,c`, c is in post.
 
-        @fixed = right.kind_of?(ArrayLiteral) ? true : false
+        if Rubinius.ruby18?
+          @fixed = right.kind_of?(ArrayLiteral) ? true : false
+        elsif splat.kind_of?(PostArg)
+          @fixed = false
+          @post = splat.rest
+          splat = splat.into
+        else
+          @fixed = if right.kind_of?(ArrayLiteral)
+                     right.body.size > 1
+                    else
+                      false
+                    end
+        end
 
         if splat.kind_of? Node
           if @left
@@ -643,7 +662,12 @@ module Rubinius
           end
         else
           if @right
-            @right.bytecode(g)
+            if @right.kind_of? ArrayLiteral and @right.body.size == 1
+              @right.body.first.bytecode(g)
+              g.cast_multi_value
+            else
+              @right.bytecode(g)
+            end
 
             g.cast_array unless @right.kind_of? ToArray
           end
@@ -652,6 +676,18 @@ module Rubinius
             g.state.push_masgn
             @left.body.each do |x|
               g.shift_array
+              g.cast_array if x.kind_of? MultipleAssignment and x.left
+              x.bytecode(g)
+              g.pop
+            end
+            g.state.pop_masgn
+          end
+
+          if @post
+            g.state.push_masgn
+            @post.body.each do |x|
+              g.dup
+              g.send :pop, 0
               g.cast_array if x.kind_of? MultipleAssignment and x.left
               x.bytecode(g)
               g.pop
