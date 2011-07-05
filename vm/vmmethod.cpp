@@ -424,7 +424,7 @@ namespace rubinius {
       const native_int O = DT - R;
 
       // HS is for has splat
-      const native_int HS = vmm->splat_position > 0 ? 1 : 0;
+      const native_int HS = has_splat ? 1 : 0;
 
       // Phase 1, manditory args
       for(native_int i = 0; i < M; i++) {
