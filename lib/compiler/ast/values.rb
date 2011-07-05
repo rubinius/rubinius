@@ -28,10 +28,31 @@ module Rubinius
       end
 
       def bytecode(g)
-        @array.bytecode(g)
-        @rest.bytecode(g)
-        g.cast_array
-        g.send :+, 1
+        if @array
+          @array.bytecode(g)
+          @rest.bytecode(g)
+          g.cast_array
+          g.send :+, 1
+        else
+          @rest.bytecode(g)
+          g.cast_array
+        end
+      end
+
+      # Dive down and try to find an array of regular values
+      # that could construct the left side of a concatination.
+      # This is used to minimize the splat doing a send.
+      def peel_lhs
+        case @array
+        when ConcatArgs
+          @array.peel_lhs
+        when ArrayLiteral
+          ary = @array.body
+          @array = nil
+          ary
+        else
+          nil
+        end
       end
 
       def to_sexp

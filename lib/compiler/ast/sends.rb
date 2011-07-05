@@ -318,6 +318,28 @@ module Rubinius
       end
     end
 
+    class CollectSplat < Node
+      def initialize(line, *parts)
+        @line = line
+        @parts = parts
+      end
+
+      def bytecode(g)
+        collect = false
+
+        @parts.each do |x|
+          x.bytecode(g)
+          g.cast_array
+
+          if collect
+            g.send :+, 1
+          else
+            collect = true
+          end
+        end
+      end
+    end
+
     class ActualArguments < Node
       attr_accessor :array, :splat
 
@@ -330,8 +352,25 @@ module Rubinius
           @splat = arguments
           @array = []
         when ConcatArgs
-          @array = arguments.array.body
-          @splat = SplatValue.new line, arguments.rest
+          if arguments.array.kind_of? ArrayLiteral
+            @array = arguments.array.body
+            @splat = SplatValue.new line, arguments.rest
+          else
+            @array = []
+            @splat = CollectSplat.new line, arguments.array, arguments.rest
+          end
+        when PushArgs
+          if arguments.arguments.kind_of? ConcatArgs
+            if ary = arguments.arguments.peel_lhs
+              @array = ary
+            else
+              @array = []
+            end
+          else
+            @array = []
+          end
+
+          @splat = CollectSplat.new line, arguments.arguments, arguments.value
         when ArrayLiteral
           @array = arguments.body
         when nil
