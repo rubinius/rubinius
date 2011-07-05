@@ -83,3 +83,4 @@ fails:Regexp with character classes doesn't match Unicode punctuation characters
 fails:Regexp with character classes doesn't match Unicode control characters with [[:word:]]
 fails:Regexp with character classes doesn't match Unicode format characters with [[:word:]]
 fails:Regexp with character classes doesn't match Unicode private-use characters with [[:word:]]
+fails:Regexp with character classes doesn't match non-ASCII characters with [[:ascii:]]
