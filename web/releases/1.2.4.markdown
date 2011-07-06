@@ -11,7 +11,7 @@ The Rubinius team is proud to announce the availability of 1.2.4.
 compatibility fixes as well as a handful of performance improvements.
 
 Starting with this release, the github repository has changed.
-It is now located at http://github.com/rubinius/rubinius.git.
+It is now located at [http://github.com/rubinius/rubinius](http://github.com/rubinius/rubinius).
 
 
 ## About
@@ -230,7 +230,7 @@ collection, Just-In-Time compilation, and compatibility with existing C APIs.
 * Fixed rb\_num2long, rb\_num2ulong.
 * Reenter managed mode BEFORE creating an FFI result object
 * Honor Time subclasses in the right places
-* `rbx report` should not fail silently when Gist submission didn't work
+* **rbx report** should not fail silently when Gist submission didn't work
 * Add bounds checking to to\_chars and make sure it's 0 terminated
 * Add dummy P rules for pack/unpack
 * Have libc include a version number to deal with gentoo
