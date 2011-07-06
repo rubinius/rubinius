@@ -26,6 +26,12 @@ module Rubinius
       end
 
       def defined(g)
+        if Rubinius.ruby19?
+          g.push_literal "expression"
+          g.string_dup
+          return
+        end
+
         t = g.new_label
         f = g.new_label
         done = g.new_label
@@ -48,6 +54,7 @@ module Rubinius
 
         t.set!
         g.push_literal "expression"
+        g.string_dup
         g.goto done
 
         f.set!

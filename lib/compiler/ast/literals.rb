@@ -427,6 +427,12 @@ module Rubinius
       end
 
       def defined(g)
+        if Rubinius.ruby19?
+          g.push_literal "expression"
+          g.string_dup
+          return
+        end
+
         f = g.new_label
         done = g.new_label
 

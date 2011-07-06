@@ -32,6 +32,7 @@ module Rubinius
       def defined(g)
         if @kind == :~
           g.push_literal "global-variable"
+          g.string_dup
           return
         end
 
@@ -42,7 +43,13 @@ module Rubinius
         g.is_nil
         g.git f
 
-        g.push_literal "$#{@kind}"
+        if Rubinius.ruby19?
+          g.push_literal "global-variable"
+        else
+          g.push_literal "$#{@kind}"
+        end
+        g.string_dup
+
         g.goto done
 
         f.set!
@@ -82,7 +89,13 @@ module Rubinius
         g.is_nil
         g.git f
 
-        g.push_literal "$#{@which}"
+        if Rubinius.ruby19?
+          g.push_literal "global-variable"
+        else
+          g.push_literal "$#{@which}"
+        end
+        g.string_dup
+
         g.goto done
 
         f.set!
