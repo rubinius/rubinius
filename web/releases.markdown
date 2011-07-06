@@ -23,6 +23,7 @@ navigation menu at the top of the screen.
 
 ### Previous Releases
 
+* [1.2.4](/releases/1.2.4/)
 * [1.2.3](/releases/1.2.3/)
 * [1.2.2](/releases/1.2.2/)
 * [1.2.1](/releases/1.2.1/)
