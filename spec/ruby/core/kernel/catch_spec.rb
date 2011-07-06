@@ -26,6 +26,38 @@ describe "Kernel.catch" do
     bad.should == false
   end
 
+  it "allows a String to be used for the label" do
+    x = catch("hello") { throw "hello", :fin }
+    x.should == :fin
+  end
+
+  ruby_version_is "" ... "1.9" do
+    it "matches strings as symbols" do
+      lambda { catch("exit") { throw :exit } }.should_not raise_error
+    end
+
+    it "matches strings with strings that contain the same characters" do
+      lambda { catch("exit") { throw "exit" } }.should_not raise_error
+    end
+  end
+
+  ruby_version_is "1.9" do
+    it "does not match objects that are not exactly the same" do
+      lambda { catch("exit") { throw :exit } }.should raise_error(ArgumentError)
+      lambda { catch("exit") { throw "exit" } }.should raise_error(ArgumentError)
+    end
+
+    it "catches objects that are exactly the same" do
+      lambda { catch(:exit) { throw :exit } }.should_not raise_error
+      lambda { exit = "exit"; catch(exit) { throw exit } }.should_not raise_error
+    end
+  end
+
+  it "requires a block" do
+    lambda { catch :foo }.should raise_error(LocalJumpError)
+  end
+
+
   it "can be used even in a method different from where throw is called" do
     class CatchSpecs
       def self.throwing_method
@@ -60,14 +92,23 @@ describe "Kernel.catch" do
     [one, two, three].should == [1, 2, 3]
   end
 
-  it "raises ArgumentError if more than one arguments are given" do
-    lambda {
-      catch(:one, :two) {}
-    }.should raise_error(ArgumentError)
+  it "supports nesting with the same name" do
+    i = []
+    catch(:exit) do
+      i << :a
+      catch(:exit) do
+        i << :b
+        throw :exit,:msg
+      end.should == :msg
+      i << :b_exit
+    end.should == [:a,:b,:b_exit]
+    i << :a_exit
+
+    i.should == [:a,:b,:b_exit,:a_exit]
   end
 
   ruby_version_is ""..."1.9" do
-    it "raises TypeError if the argument is not a symbol" do
+    it "raises TypeError if the argument is not a Symbol or String" do
       lambda {
         catch(Object.new) {}
       }.should raise_error(TypeError)
