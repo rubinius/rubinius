@@ -65,64 +65,32 @@ describe "A class definition" do
 #    ClassSpecs::A.instance_variables.should == []
 #  end
 
-  ruby_version_is ""..."1.9" do
-    it "allows the declaration of class variables in the body" do
-      ClassSpecs::B.class_variables.should == ["@@cvar"]
-      ClassSpecs::B.send(:class_variable_get, :@@cvar).should == :cvar
-    end
-
-    it "stores instance variables defined in the class body in the class object" do
-      ClassSpecs::B.instance_variables.include?("@ivar").should == true
-      ClassSpecs::B.instance_variable_get(:@ivar).should == :ivar
-    end
-
-    it "allows the declaration of class variables in a class method" do
-      ClassSpecs::C.class_variables.should == []
-      ClassSpecs::C.make_class_variable
-      ClassSpecs::C.class_variables.should == ["@@cvar"]
-    end
-
-    it "allows the definition of class-level instance variables in a class method" do
-      ClassSpecs::C.instance_variables.include?("@civ").should == false
-      ClassSpecs::C.make_class_instance_variable
-      ClassSpecs::C.instance_variables.include?("@civ").should == true
-    end
-
-    it "allows the declaration of class variables in an instance method" do
-      ClassSpecs::D.class_variables.should == []
-      ClassSpecs::D.new.make_class_variable
-      ClassSpecs::D.class_variables.should == ["@@cvar"]
-    end
+  it "allows the declaration of class variables in the body" do
+    ClassSpecs.string_class_variables(ClassSpecs::B).should == ["@@cvar"]
+    ClassSpecs::B.send(:class_variable_get, :@@cvar).should == :cvar
   end
 
-  ruby_version_is "1.9" do
-    it "allows the declaration of class variables in the body" do
-      ClassSpecs::B.class_variables.should == [:@@cvar]
-      ClassSpecs::B.send(:class_variable_get, :@@cvar).should == :cvar
-    end
+  it "stores instance variables defined in the class body in the class object" do
+    ClassSpecs.string_instance_variables(ClassSpecs::B).should include("@ivar")
+    ClassSpecs::B.instance_variable_get(:@ivar).should == :ivar
+  end
 
-    it "stores instance variables defined in the class body in the class object" do
-      ClassSpecs::B.instance_variables.include?(:@ivar).should == true
-      ClassSpecs::B.instance_variable_get(:@ivar).should == :ivar
-    end
+  it "allows the declaration of class variables in a class method" do
+    ClassSpecs::C.class_variables.should == []
+    ClassSpecs::C.make_class_variable
+    ClassSpecs.string_class_variables(ClassSpecs::C).should == ["@@cvar"]
+  end
 
-    it "allows the declaration of class variables in a class method" do
-      ClassSpecs::C.class_variables.should == []
-      ClassSpecs::C.make_class_variable
-      ClassSpecs::C.class_variables.should == [:@@cvar]
-    end
+  it "allows the definition of class-level instance variables in a class method" do
+    ClassSpecs.string_instance_variables(ClassSpecs::C).should_not include("@civ")
+    ClassSpecs::C.make_class_instance_variable
+    ClassSpecs.string_instance_variables(ClassSpecs::C).should include("@civ")
+  end
 
-    it "allows the definition of class-level instance variables in a class method" do
-      ClassSpecs::C.instance_variables.include?(:@civ).should == false
-      ClassSpecs::C.make_class_instance_variable
-      ClassSpecs::C.instance_variables.include?(:@civ).should == true
-    end
-
-    it "allows the declaration of class variables in an instance method" do
-      ClassSpecs::D.class_variables.should == []
-      ClassSpecs::D.new.make_class_variable
-      ClassSpecs::D.class_variables.should == [:@@cvar]
-    end
+  it "allows the declaration of class variables in an instance method" do
+    ClassSpecs::D.class_variables.should == []
+    ClassSpecs::D.new.make_class_variable
+    ClassSpecs.string_class_variables(ClassSpecs::D).should == ["@@cvar"]
   end
 
   it "allows the definition of instance methods" do
@@ -186,8 +154,10 @@ describe "A class definition extending an object (sclass)" do
     ClassSpecs.sclass_with_block { 123 }.should == 123
   end
 
-  it "can use return to cause the enclosing method to return" do
-    ClassSpecs.sclass_with_return.should == :inner
+  not_compliant_on :rubinius do
+    it "can use return to cause the enclosing method to return" do
+      ClassSpecs.sclass_with_return.should == :inner
+    end
   end
 end
 

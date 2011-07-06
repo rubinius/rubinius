@@ -15,9 +15,18 @@ module ClassSpecs
 
   class A; end
 
+  def self.string_class_variables(obj)
+    obj.class_variables.map { |x| x.to_s }
+  end
+
+  def self.string_instance_variables(obj)
+    obj.instance_variables.map { |x| x.to_s }
+  end
+
   class B
     @@cvar = :cvar
     @ivar = :ivar
+
   end
 
   class C
