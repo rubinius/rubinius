@@ -1,4 +1,0 @@
-fails:Assignment via next assigns splatted objects
-fails:Assignment via next assigns objects to a splatted reference
-fails:Assignment via next assigns splatted objects to a splatted reference via a splatted yield
-fails:Assignment via next assigns splatted objects to multiple variables

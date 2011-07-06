@@ -1,2 +1,0 @@
-fails:Ruby character strings are produced from character shortcuts
-fails:Ruby character strings are produced from control character shortcuts

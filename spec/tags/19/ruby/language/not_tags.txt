@@ -1,3 +1,0 @@
-fails:not() returns false if the argument is true
-fails:not() returns true if the argument is false
-fails:not() returns true if the argument is nil

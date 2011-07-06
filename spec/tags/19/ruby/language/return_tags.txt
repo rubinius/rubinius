@@ -1,3 +1,0 @@
-fails:The return keyword when passed a splat returns [] when the ary is empty
-fails:The return keyword when passed a splat returns the array when the array is size of 1
-fails:The return keyword when passed a splat returns an array when used as a splat

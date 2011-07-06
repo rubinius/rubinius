@@ -1,1 +1,0 @@
-fails:A constant on a metaclass appears in the metaclass constant list
