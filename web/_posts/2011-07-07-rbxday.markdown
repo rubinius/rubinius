@@ -1,6 +1,6 @@
 ---
 layout: post
-title: #rbxday
+title: rbxday
 author: Shane Becker
 ---
 
