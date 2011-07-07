@@ -9,6 +9,35 @@
 
   
   <entry>
+    <title>Rbxday</title>
+    <id>http://rubini.us/2011/07/07/rbxday/</id>
+    <link rel="alternate" type="text/html" href="http://rubini.us/2011/07/07/rbxday/" />
+    <updated>2011-07-07T00:00:00+00:00</updated>
+    <author>
+      <name>Shane Becker</name>
+    </author>
+    
+    <content type="html">&lt;h3 id=&quot;wersquore-having-a-party-and-yoursquore-invited&quot;&gt;We&amp;rsquo;re having a party and you&amp;rsquo;re invited!&lt;/h3&gt;
+
+&lt;h3 id=&quot;rbxdayrubiniushttprbxdayrubinius&quot;&gt;&lt;a href=&quot;http://rbxday.rubini.us&quot;&gt;rbxday.rubini.us&lt;/a&gt;&lt;/h3&gt;
+
+&lt;h4 id=&quot;friday-july-15-2011-is-rbxdayhttprbxdayrubinius&quot;&gt;Friday, July 15, 2011 is &lt;a href=&quot;http://rbxday.rubini.us&quot;&gt;#rbxday&lt;/a&gt;&lt;/h4&gt;
+
+&lt;p&gt;The Rubinius 2.0 Preview Release is still cranking along. We&amp;rsquo;re feeling good about how things are going. As always, thank you everyone for all of your contributions. The &lt;a href=&quot;http://rubini.us/releases/1.2.4/#authors&quot; title=&quot;Rubinius : Use Ruby&amp;#8482;&quot;&gt;list of authors on the 1.2.4 release&lt;/a&gt; is just fantastic.&lt;/p&gt;
+
+&lt;p&gt;Moving forward to the 2.0 official release, we need more feedback from you about your code running on Rubinius. Not just what doesn&amp;rsquo;t work and not just bugs (although both of those are important too), but how is your code performing, where are the bottlenecks, etc.&lt;/p&gt;
+
+&lt;p&gt;This is what we&amp;rsquo;re going to do about that. Everyone&amp;hellip; everyone all around the world that uses or cares about Rubinius and its progress, all of us on one day are going to run our code, collect performance data / bug reports and send them up to the Rubinius project.&lt;/p&gt;
+
+&lt;p&gt;&lt;a href=&quot;https://twitter.com/#!/search/%23rbxday&quot;&gt;#rbxday&lt;/a&gt; is a party! Take pictures of you and your buddies on the day of. If you&amp;rsquo;ve got a Rubinius t-shirt or sticker, get them in there. Tweet about it, now and on the day. Get excited. Tell your friends. Get them excited. Use the hashtag #rbxday in your tweets, blog posts and posts. We&amp;rsquo;ll repost them all on the &lt;a href=&quot;http://rbxday.rubini.us&quot;&gt;#rbxday&lt;/a&gt; site.&lt;/p&gt;
+
+&lt;p&gt;Get your party hats on!&lt;/p&gt;
+
+&lt;p&gt;&amp;mdash;XOXO RBX&lt;/p&gt;
+</content>
+  </entry>
+  
+  <entry>
     <title>What&rsquo;s the Status, Kenneth?</title>
     <id>http://rubini.us/2011/07/05/whats-the-status-kenneth/</id>
     <link rel="alternate" type="text/html" href="http://rubini.us/2011/07/05/whats-the-status-kenneth/" />
