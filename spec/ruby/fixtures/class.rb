@@ -115,8 +115,8 @@ class Class
   def self.example_class_method_of_class; end
 end
 class << Class
-  def example_instance_method_of_metaclass; end
-  def self.example_class_method_of_metaclass; end
+  def example_instance_method_of_singleton_class; end
+  def self.example_class_method_of_singleton_class; end
 end
 class Object
   def example_instance_method_of_object; end
