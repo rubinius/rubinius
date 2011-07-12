@@ -4,7 +4,7 @@ comment_count: true
 ---
   {% include blog_nav.html %}
   <div class="container blog_posts">
-  {% for post in site.posts limit:20 %}
+  {% for post in site.posts limit:6 %}
     <div class="post">
       <h2 class="post_title">
         <a href="{{ post.url }}" title="{{ post.title }}" class="post_title">
