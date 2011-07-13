@@ -151,8 +151,10 @@ class BasicSocket < IO
     raise Errno::EAGAIN
   end
 
-
-#
+  def shutdown(how = 2)
+    err = Socket::Foreign.shutdown @descriptor, how
+    Errno.handle "shutdown" unless err == 0
+  end
 
 end
 

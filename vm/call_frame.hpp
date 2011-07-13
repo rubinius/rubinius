@@ -197,7 +197,7 @@ namespace rubinius {
     }
 
     CallFrame* top_ruby_frame() {
-      // Skip over any natime method frames.
+      // Skip over any native method frames.
       CallFrame* cf = this;
 
       while(cf->native_method_p()) {

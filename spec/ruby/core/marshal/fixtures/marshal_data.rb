@@ -149,6 +149,15 @@ module MarshalSpec
       false
     end
   end
+  
+  class StructWithUserInitialize < Struct.new(:a)
+    THREADLOCAL_KEY = :marshal_load_struct_args
+    def initialize(*args)
+      # using thread-local to avoid ivar marshaling
+      Thread.current[THREADLOCAL_KEY] = args
+      super(*args)
+    end
+  end
 
   def self.random_data
     randomizer = Random.new(42)

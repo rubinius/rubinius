@@ -1,5 +1,5 @@
-require File.expand_path('../../fixtures/classes', __FILE__)
 require 'mathn'
+require File.expand_path('../../fixtures/classes', __FILE__)
 
 describe :mathn_math_rsqrt, :shared => true do
   it "returns the square root for Rational numbers" do

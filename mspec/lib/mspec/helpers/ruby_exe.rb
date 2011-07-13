@@ -73,10 +73,10 @@ class Object
     when :engine
       case RUBY_NAME
       when 'rbx'
-        if Rubinius.ruby19?
-          "bin/rbx -X19"
-        else
+        if SpecGuard.ruby_version < "1.9"
           "bin/rbx"
+        else
+          "bin/rbx -X19"
         end
       when 'jruby'
         "bin/jruby"

@@ -169,5 +169,56 @@ Benchmark.ips do |x|
     end
   end
 
-end
+  # String#capitalize
+  x.report "string capitalize from lowercase" do |times|
+    i = 0
+    while i < times
+      lowercase.capitalize
+      i += 1
+    end
+  end
 
+  x.report "string capitalize from uppercase" do |times|
+    i = 0
+    while i < times
+      uppercase.capitalize
+      i += 1
+    end
+  end
+
+  x.report "string capitalize from mixedcase" do |times|
+    i = 0
+    while i < times
+      mixedcase.capitalize
+      i += 1
+    end
+  end
+
+  # String#capitalize!
+  x.report "string capitalize! from lowercase" do |times|
+    i = 0
+    while i < times
+      lowercase = lowercase_o.dup
+      lowercase.capitalize!
+      i += 1
+    end
+  end
+
+  x.report "string capitalize! from uppercase" do |times|
+    i = 0
+    while i < times
+      uppercase = uppercase_o.dup
+      uppercase.capitalize!
+      i += 1
+    end
+  end
+
+  x.report "string capitalize! from mixedcase" do |times|
+    i = 0
+    while i < times
+      mixedcase = mixedcase_o.dup
+      mixedcase.capitalize!
+      i += 1
+    end
+  end
+end

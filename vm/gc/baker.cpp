@@ -250,7 +250,7 @@ namespace rubinius {
       }
     }
 
-    // Handle all promotions to non-young space that occured.
+    // Handle all promotions to non-young space that occurred.
     handle_promotions();
 
     assert(fully_scanned_p());

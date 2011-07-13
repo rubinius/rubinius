@@ -7,7 +7,6 @@
 #include "builtin/cache.hpp"
 #include "builtin/lookuptable.hpp"
 
-#include "llvm/access_memory.hpp"
 #include "llvm/jit_operations.hpp"
 #include "llvm/inline.hpp"
 #include "llvm/jit_context.hpp"

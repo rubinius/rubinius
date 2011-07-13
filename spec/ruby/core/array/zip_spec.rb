@@ -28,6 +28,18 @@ describe "Array#zip" do
     [1, 2].zip(obj).should == [[1, 3], [2, 4]]
   end
 
+  ruby_version_is "1.9.2" do
+    it "uses #each to extract arguments' elements when #to_ary fails" do
+      obj = Class.new do
+        def each(&b)
+          [3,4].each(&b)
+        end
+      end.new
+      
+      [1, 2].zip(obj).should == [[1, 3], [2, 4]]
+    end
+  end
+
   it "calls block if supplied" do
     values = []
     [1, 2, 3, 4].zip(["a", "b", "c", "d", "e"]) { |value|

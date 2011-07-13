@@ -16,11 +16,13 @@ module Rubinius
         g.find_const @name
       end
 
-      def assign_bytecode(g)
+      def assign_bytecode(g, value)
         pos(g)
 
-        @parent.bytecode(g)
+        value.bytecode(g)
         g.push_literal @name
+        @parent.bytecode(g)
+        g.rotate 3
       end
 
       def masgn_bytecode(g)
@@ -97,11 +99,12 @@ module Rubinius
         g.find_const @name
       end
 
-      def assign_bytecode(g)
+      def assign_bytecode(g, value)
         pos(g)
 
         g.push_cpath_top
         g.push_literal @name
+        value.bytecode(g)
       end
 
       def masgn_bytecode(g)
@@ -177,11 +180,12 @@ module Rubinius
         g.push_const @name
       end
 
-      def assign_bytecode(g)
+      def assign_bytecode(g, value)
         pos(g)
 
         g.push_scope
         g.push_literal @name
+        value.bytecode(g)
       end
 
       def masgn_bytecode(g)
@@ -268,8 +272,7 @@ module Rubinius
 
         return masgn_bytecode(g) if g.state.masgn?
 
-        @constant.assign_bytecode(g)
-        @value.bytecode(g)
+        @constant.assign_bytecode(g, @value)
         g.send :const_set, 2
       end
 

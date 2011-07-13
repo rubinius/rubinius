@@ -10,11 +10,8 @@
 
 #include "util/refcount.hpp"
 
-#include "maps.hpp"
-
 #include "call_frame_list.hpp"
 
-#include "async_message.hpp"
 #include "gc/variable_buffer.hpp"
 #include "gc/root_buffer.hpp"
 #include "gc/slab.hpp"
@@ -50,7 +47,6 @@ namespace rubinius {
   class Primitives;
   class ObjectMemory;
   class TypeInfo;
-  class MethodContext;
   class String;
   class Symbol;
   class ConfigParser;

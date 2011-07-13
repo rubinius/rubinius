@@ -1,0 +1,1 @@
+fails:Marshal::load for a Struct calls initialize on the unmarshaled struct

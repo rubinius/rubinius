@@ -41,7 +41,6 @@ namespace rubinius {
 #endif
 
     // JIT/Interpreter
-    config::Bool    dynamic_interpreter_enabled;
     config::Integer jit_dump_code;
     config::Integer jit_call_til_compile;
     config::Integer jit_max_method_size;
@@ -107,7 +106,6 @@ namespace rubinius {
 
       , version(this, "version")
 
-      , dynamic_interpreter_enabled(this, "interpreter.dynamic")
       , jit_dump_code(this,   "jit.dump_code", default_jit_dump_code)
       , jit_call_til_compile(this, "jit.call_til_compile",
                              default_jit_call_til_compile)

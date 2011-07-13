@@ -682,7 +682,7 @@ class Module
     sc_o = Rubinius::Type.object_singleton_class other
 
     sc_s.method_table = sc_o.method_table.dup
-    sc_s.superclass = sc_o.superclass
+    sc_s.superclass = sc_o.direct_superclass
 
     @constant_table = Rubinius::LookupTable.new
 

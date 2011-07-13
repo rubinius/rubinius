@@ -13,6 +13,11 @@ Benchmark.ips do |x|
 
   base_array = (0...5_000).to_a
 
+  x.report "array reject, front to back" do
+    scratch_array = base_array.dup
+    scratch_array = scratch_array.reject { true }
+  end
+
   x.report "array delete_at, front to back" do
     scratch_array = base_array.dup
     scratch_array.delete_at(0) until scratch_array.empty?
@@ -38,6 +43,11 @@ Benchmark.ips do |x|
     scratch_array.shift until scratch_array.empty?
   end
 
+  x.report "array shift(1), front to back" do
+    scratch_array = base_array.dup
+    scratch_array.shift(1) until scratch_array.empty?
+  end
+
   x.report "array drop_while, front to back" do
     scratch_array = base_array.dup
     scratch_array.drop_while { true }
@@ -56,6 +66,11 @@ Benchmark.ips do |x|
   x.report "array pop, back to front" do
     scratch_array = base_array.dup
     scratch_array.pop until scratch_array.empty?
+  end
+
+  x.report "array pop(1), back to front" do
+    scratch_array = base_array.dup
+    scratch_array.pop(1) until scratch_array.empty?
   end
 
   x.report "array delete_at, back to front" do

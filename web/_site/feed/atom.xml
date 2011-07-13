@@ -9,6 +9,160 @@
 
   
   <entry>
+    <title>rbxday</title>
+    <id>http://rubini.us/2011/07/07/rbxday/</id>
+    <link rel="alternate" type="text/html" href="http://rubini.us/2011/07/07/rbxday/" />
+    <updated>2011-07-07T00:00:00+00:00</updated>
+    <author>
+      <name>Shane Becker</name>
+    </author>
+    
+    <content type="html">&lt;h3 id=&quot;wersquore-having-a-party-and-yoursquore-invited&quot;&gt;We&amp;rsquo;re having a party and you&amp;rsquo;re invited!&lt;/h3&gt;
+
+&lt;h3 id=&quot;rbxdayrubiniushttprbxdayrubinius&quot;&gt;&lt;a href=&quot;http://rbxday.rubini.us&quot;&gt;rbxday.rubini.us&lt;/a&gt;&lt;/h3&gt;
+
+&lt;h4 id=&quot;friday-july-15-2011-is-rbxdayhttprbxdayrubinius&quot;&gt;Friday, July 15, 2011 is &lt;a href=&quot;http://rbxday.rubini.us&quot;&gt;#rbxday&lt;/a&gt;&lt;/h4&gt;
+
+&lt;p&gt;The Rubinius 2.0 Preview Release is still cranking along. We&amp;rsquo;re feeling good about how things are going. As always, thank you everyone for all of your contributions. The &lt;a href=&quot;http://rubini.us/releases/1.2.4/#authors&quot; title=&quot;Rubinius : Use Ruby&amp;#8482;&quot;&gt;list of authors on the 1.2.4 release&lt;/a&gt; is just fantastic.&lt;/p&gt;
+
+&lt;p&gt;Moving forward to the 2.0 official release, we need more feedback from you about your code running on Rubinius. Not just what doesn&amp;rsquo;t work and not just bugs (although both of those are important too), but how is your code performing, where are the bottlenecks, etc.&lt;/p&gt;
+
+&lt;p&gt;This is what we&amp;rsquo;re going to do about that. Everyone&amp;hellip; everyone all around the world that uses or cares about Rubinius and its progress, all of us on one day are going to run our code, collect performance data / bug reports and send them up to the Rubinius project.&lt;/p&gt;
+
+&lt;p&gt;&lt;a href=&quot;https://twitter.com/#!/search/%23rbxday&quot;&gt;#rbxday&lt;/a&gt; is a party! Take pictures of you and your buddies on the day of. If you&amp;rsquo;ve got a Rubinius t-shirt or sticker, get them in there. Tweet about it, now and on the day. Get excited. Tell your friends. Get them excited. Use the hashtag #rbxday in your tweets, blog posts and posts. We&amp;rsquo;ll repost them all on the &lt;a href=&quot;http://rbxday.rubini.us&quot;&gt;#rbxday&lt;/a&gt; site.&lt;/p&gt;
+
+&lt;p&gt;Get your party hats on!&lt;/p&gt;
+
+&lt;p&gt;&amp;mdash;XOXO RBX&lt;/p&gt;
+</content>
+  </entry>
+  
+  <entry>
+    <title>What&rsquo;s the Status, Kenneth?</title>
+    <id>http://rubini.us/2011/07/05/whats-the-status-kenneth/</id>
+    <link rel="alternate" type="text/html" href="http://rubini.us/2011/07/05/whats-the-status-kenneth/" />
+    <updated>2011-07-05T00:00:00+00:00</updated>
+    <author>
+      <name>Shane Becker</name>
+    </author>
+    
+    <content type="html">&lt;p&gt;I&amp;rsquo;m pretty sure it started like this.&lt;/p&gt;
+
+&lt;blockquote&gt;
+  &lt;p&gt;&amp;ldquo;Hello, Evan dear.&amp;rdquo; &amp;mdash; &lt;em&gt;Evan&amp;rsquo;s Grandma Betty&lt;/em&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;blockquote&gt;
+  &lt;p&gt;&amp;ldquo;Grandma Betty!&amp;rdquo; &amp;mdash; &lt;em&gt;Evan&lt;/em&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;blockquote&gt;
+  &lt;p&gt;&amp;ldquo;You know, I was thinking about your little Rubinius thingy while I was gardening today. How&amp;rsquo;s it doing?&amp;rdquo; &amp;mdash; &lt;em&gt;Evan&amp;rsquo;s Grandma Betty&lt;/em&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;blockquote&gt;
+  &lt;p&gt;&amp;ldquo;Oh, Grandma Betty, that&amp;rsquo;s so sweet of you to think of me and it. It&amp;rsquo;s coming along still, of course.&amp;rdquo; &amp;mdash; &lt;em&gt;Evan&lt;/em&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;blockquote&gt;
+  &lt;p&gt;&amp;ldquo;That&amp;rsquo;s good to hear. I was specifically wondering how the 1.9 support is looking.&amp;rdquo; &amp;mdash; &lt;em&gt;Evan&amp;rsquo;s Grandma Betty&lt;/em&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;blockquote&gt;
+  &lt;p&gt;&amp;ldquo;Grandma Betty! You do always love the Latest and Greatest&amp;trade;, don&amp;rsquo;t you? Well, let&amp;rsquo;s see. I&amp;rsquo;d say that &lt;em&gt;1.9 support&lt;/em&gt; comes down to 7 main areas: Encoding, String, Regex, Symbol, IO, Argument Processing, Windows Support. Each has varying degrees of progress.&amp;rdquo; &amp;mdash; &lt;em&gt;Evan&lt;/em&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;blockquote&gt;
+  &lt;p&gt;&amp;ldquo;OK. I wish that there was some way for me to keep more up to date on these happenings without needing to calling you. When I call you, I want to hear about that wife and baby of yours.&amp;rdquo; &amp;mdash; &lt;em&gt;Evan&amp;rsquo;s Grandma Betty&lt;/em&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;blockquote&gt;
+  &lt;p&gt;&amp;ldquo;You got it, Grandma Betty. I&amp;rsquo;ll get my Top Nerds&amp;trade; on the case.&amp;rdquo; &amp;mdash; &lt;em&gt;Evan&lt;/em&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;blockquote&gt;
+  &lt;p&gt;[sometime later]&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;blockquote&gt;
+  &lt;p&gt;&amp;ldquo;Alright, Grandma Betty. We made the Rubinius Status Board&amp;trade; especially just for you. It&amp;rsquo;s &lt;a href=&quot;http://status.rubini.us&quot;&gt;status.rubini.us&lt;/a&gt;&amp;rdquo; &amp;mdash; &lt;em&gt;Evan&lt;/em&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;p&gt;That conversation may or may not be &lt;strong&gt;completely fictionalized&lt;/strong&gt;. There is one thing that is most emphatically true: Rubinius has a Status Board&amp;trade; now. If you are ever curious how progress is going on things, go check out &lt;a href=&quot;http://status.rubini.us&quot;&gt;status.rubini.us&lt;/a&gt;. Tell your friends.&lt;/p&gt;
+
+&lt;p&gt;XOXO RBX.&lt;/p&gt;
+</content>
+  </entry>
+  
+  <entry>
+    <title>Rubinius All Around the World</title>
+    <id>http://rubini.us/2011/07/03/all-around-the-world/</id>
+    <link rel="alternate" type="text/html" href="http://rubini.us/2011/07/03/all-around-the-world/" />
+    <updated>2011-07-03T00:00:00+00:00</updated>
+    <author>
+      <name>Shane Becker</name>
+    </author>
+    
+    <content type="html">&lt;p&gt;As a result of the &lt;a href=&quot;http://rubini.us/2011/05/26/rubinius-rewards/&quot; title=&quot;Announcing Rubinius Rewards - Rubinius&quot;&gt;Rubinius Rewards&lt;/a&gt;, people from all over the world have requested Rubinius stickers and t-shirts. That just warms our little hearts and humbles us everyday. Thank you so much. It means the world to us. Keep using Rubinius with passion and excitement. Keep spreading the good word to your friends and anyone who&amp;rsquo;ll listen and care. And keep telling us how Rubinius is working for you. However good or bad, we want to know.&lt;/p&gt;
+
+&lt;p&gt;Here&amp;rsquo;s a map of all the places where we&amp;rsquo;ve sent stickers and/or t-shirts. You can also view it on
+&lt;a href=&quot;http://maps.google.com/maps/ms?msa=0&amp;amp;msid=204706765448868864026.0004a732bcb9b5816e407&amp;amp;ie=UTF8&amp;amp;ll=19.311143,-0.351562&amp;amp;spn=111.602296,333.632812&amp;amp;z=2&amp;amp;source=embed&quot; title=&quot;Rubinius Around the World - Google Maps&quot;&gt;a larger map&lt;/a&gt;. Wow.&lt;/p&gt;
+
+&lt;iframe width=&quot;950&quot; height=&quot;400&quot; frameborder=&quot;0&quot; scrolling=&quot;no&quot; marginheight=&quot;0&quot; marginwidth=&quot;0&quot; src=&quot;http://maps.google.com/maps/ms?msa=0&amp;amp;msid=204706765448868864026.0004a732bcb9b5816e407&amp;amp;ie=UTF8&amp;amp;ll=19.311143,-0.351562&amp;amp;spn=111.602296,333.632812&amp;amp;z=2&amp;amp;output=embed&quot;&gt;&lt;/iframe&gt;
+
+&lt;p&gt;Again, thank you from the bottom of our hearts.&lt;/p&gt;
+
+&lt;p&gt;Stay safe, kids.&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;XOXO RBX&lt;/strong&gt;&lt;/p&gt;
+</content>
+  </entry>
+  
+  <entry>
+    <title>Rubinius Summit 062011 in Pictures</title>
+    <id>http://rubini.us/2011/07/01/rubinius-summit-in-pictures/</id>
+    <link rel="alternate" type="text/html" href="http://rubini.us/2011/07/01/rubinius-summit-in-pictures/" />
+    <updated>2011-07-01T00:00:00+00:00</updated>
+    <author>
+      <name>Shane Becker</name>
+    </author>
+    
+    <content type="html">&lt;p&gt;Once a month Evan Phoenix, Brian Ford and I (Shane Beccker) get together for a few days in-person face-time. Usually we meet up in San Francisco at the &lt;a href=&quot;http://engineyard.com&quot;&gt;Engine Yard&lt;/a&gt; HQ and spend time with our dear and lovely boss, &lt;a href=&quot;http://twitter.com/drnic&quot;&gt;Dr Nic&lt;/a&gt;. We like to call these little get togethers Rubinius Summits. For the June 2011 Rubinius Summit, Brian came down to LA where both Evan and I live. We spent the week working together at &lt;a href=&quot;http://farmhouse.la&quot;&gt;The Farmhouse&lt;/a&gt; on moving the ball forward toward the 2.0 release. Here&amp;rsquo;s a few pictures of some of the things that went down.&lt;/p&gt;
+
+&lt;h3 id=&quot;i-used-rubinius-at-railsconf-2011-stickers&quot;&gt;I Used Rubinius at RailsConf 2011 stickers&lt;/h3&gt;
+
+&lt;p&gt;&lt;a href=&quot;http://flickr.com/photos/veganstraightedge/5885836117&quot;&gt;&lt;img src=&quot;http://farm7.static.flickr.com/6052/5885836117_ba60ba6408_z.jpg&quot; alt=&quot;&amp;quot;I Used Rubinius at RailsConf 2011&amp;quot; stickers at The Farmhouse in Hollywood, CA&quot; title=&quot;&amp;quot;I Used Rubinius at RailsConf 2011&amp;quot; stickers at The Farmhouse in Hollywood, CA                     &quot; /&gt;&lt;/a&gt;&lt;/p&gt;
+
+&lt;p&gt;These stickers arrived and are ready to be shipped out. If you DMed your address to &lt;a href=&quot;http://twitter.com/rubinius&quot;&gt;us on Twitter&lt;/a&gt;, we&amp;rsquo;ve got you. If you never contacted us, but used Rubinius while at RailsConf 2011 in Baltimore, email us at &lt;a href=&quot;&amp;#109;&amp;#097;&amp;#105;&amp;#108;&amp;#116;&amp;#111;:&amp;#099;&amp;#111;&amp;#109;&amp;#109;&amp;#117;&amp;#110;&amp;#105;&amp;#116;&amp;#121;&amp;#064;&amp;#114;&amp;#117;&amp;#098;&amp;#105;&amp;#110;&amp;#105;&amp;#046;&amp;#117;&amp;#115;&quot;&gt;&amp;#099;&amp;#111;&amp;#109;&amp;#109;&amp;#117;&amp;#110;&amp;#105;&amp;#116;&amp;#121;&amp;#064;&amp;#114;&amp;#117;&amp;#098;&amp;#105;&amp;#110;&amp;#105;&amp;#046;&amp;#117;&amp;#115;&lt;/a&gt; to get your sticker.&lt;/p&gt;
+
+&lt;h3 id=&quot;t-shirts&quot;&gt;T-Shirts!&lt;/h3&gt;
+
+&lt;p&gt;&lt;a href=&quot;http://flickr.com/photos/veganstraightedge/5889084175&quot;&gt;&lt;img src=&quot;http://farm7.static.flickr.com/6019/5889084175_6414a83e97_z.jpg&quot; alt=&quot;Nearly 600 more @Rubinius shirts just arrived at the @farmhouse in Hollywood, CA&quot; title=&quot;Nearly 600 more @Rubinius shirts just arrived at the @farmhouse in Hollywood, CA                             &quot; /&gt;&lt;/a&gt;&lt;/p&gt;
+
+&lt;p&gt;This is what nearly 600 shirts looks like. We&amp;rsquo;ve got a huge back log of people all over the world who responded to our offer of free Rubinius t-shirts. Those will all get shipped out over the next week or so.&lt;/p&gt;
+
+&lt;h3 id=&quot;progress-on-19-support&quot;&gt;Progress on 1.9 Support&lt;/h3&gt;
+&lt;p&gt;&lt;a href=&quot;http://flickr.com/photos/veganstraightedge/5888809669&quot;&gt;&lt;img src=&quot;http://farm6.static.flickr.com/5076/5888809669_134b0d6e23_z.jpg&quot; alt=&quot;Serious @rubinius big brain nerdery happening between @brixen and @evanphx at the @farmhouse in Hollywood, CA&quot; title=&quot;Serious @rubinius big brain nerdery happening between @brixen and @evanphx at the @farmhouse in Hollywood, CA&quot; /&gt;&lt;/a&gt;&lt;/p&gt;
+
+&lt;p&gt;Brian and Evan, like a couple of mad scientists, sketched out how to handle 1.9 block arguments for Rubinus 2.0.&lt;/p&gt;
+
+&lt;p&gt;&lt;a href=&quot;http://flickr.com/photos/veganstraightedge/5889687428&quot;&gt;&lt;img src=&quot;http://farm6.static.flickr.com/5038/5889687428_b2f0f07f40_z.jpg&quot; alt=&quot;A sketch of Ruby 1.9 block args in Rubinus 2.0 by @evanphx and @brixen at the @farmhouse in Hollywood, CA&quot; title=&quot;A sketch of Ruby 1.9 block args in Rubinus 2.0 by @evanphx and @brixen at the @farmhouse in Hollywood, CA    &quot; /&gt;&lt;/a&gt;
+&lt;a href=&quot;http://flickr.com/photos/veganstraightedge/5889686740&quot;&gt;&lt;img src=&quot;http://farm7.static.flickr.com/6024/5889686740_ca7962db63_z.jpg&quot; alt=&quot;A sketch of Ruby 1.9 block args in Rubinus 2.0 by @evanphx and @brixen at the @farmhouse in Hollywood, CA&quot; title=&quot;A sketch of Ruby 1.9 block args in Rubinus 2.0 by @evanphx and @brixen at the @farmhouse in Hollywood, CA    &quot; /&gt;&lt;/a&gt;&lt;/p&gt;
+
+&lt;p&gt;Here are the sketches of 1.9 block arguments for Rubinus 2.0.&lt;/p&gt;
+
+&lt;h3 id=&quot;one-more-thing&quot;&gt;One More Thing&lt;/h3&gt;
+
+&lt;p&gt;We came up with an idea this week for how to better communicate outwardly and be more transparent. We built it up real quick and are launching it &amp;hellip;&lt;em&gt;really soon&lt;/em&gt;. Here&amp;rsquo;s a little teaser.&lt;/p&gt;
+
+&lt;p&gt;&lt;a href=&quot;http://drbl.in/bxbg&quot;&gt;&lt;img src=&quot;http://dribbble.com/system/users/1288/screenshots/202858/rubinius_...thing_2.png&quot; alt=&quot;Rubinius teaser 1&quot; title=&quot;Rubinius teaser 1&quot; /&gt;&lt;/a&gt;
+&lt;a href=&quot;http://drbl.in/bxbf&quot;&gt;&lt;img src=&quot;http://dribbble.com/system/users/1288/screenshots/202857/rubinius_...thing_1.png&quot; alt=&quot;Rubinius teaser 2&quot; title=&quot;Rubinius teaser 2&quot; /&gt;&lt;/a&gt;&lt;/p&gt;
+
+&lt;p&gt;&lt;em&gt;XOXO RBX&lt;/em&gt;&lt;/p&gt;
+</content>
+  </entry>
+  
+  <entry>
     <title>Inside the Rubinius 2.0 Preview Release</title>
     <id>http://rubini.us/2011/06/07/inside-rubinius-20-preview/</id>
     <link rel="alternate" type="text/html" href="http://rubini.us/2011/06/07/inside-rubinius-20-preview/" />
@@ -115,7 +269,7 @@ running Rubinius, use the &lt;code&gt;-X18&lt;/code&gt; or &lt;code&gt;-X19&lt;/
 
 &lt;p&gt;This command will run Rubinius with the 1.9 language mode enabled.&lt;/p&gt;
 
-&lt;p&gt;You may also use the &lt;code&gt;RBXOPT&lt;/code&gt; environment variable to select the lanugage
+&lt;p&gt;You may also use the &lt;code&gt;RBXOPT&lt;/code&gt; environment variable to select the language
 mode. Assuming that 1.8 is the default mode, the following command would run
 Rubinius with the 1.9 language mode enabled:&lt;/p&gt;
 

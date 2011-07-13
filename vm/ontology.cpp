@@ -903,6 +903,81 @@ namespace rubinius {
 #ifdef EDQUOT
     set_syserr(EDQUOT, "EDQUOT");
 #endif
+#ifdef EBADRPC
+    set_syserr(EBADRPC, "EBADRPC");
+#endif
+#ifdef ERPCMISMATCH
+    set_syserr(ERPCMISMATCH, "ERPCMISMATCH");
+#endif
+#ifdef EPROGUNAVAIL
+    set_syserr(EPROGUNAVAIL, "EPROGUNAVAIL");
+#endif
+#ifdef EPROGMISMATCH
+    set_syserr(EPROGMISMATCH, "EPROGMISMATCH");
+#endif
+#ifdef EPROCUNAVAIL
+    set_syserr(EPROCUNAVAIL, "EPROCUNAVAIL");
+#endif
+#ifdef EFTYPE
+    set_syserr(EFTYPE, "EFTYPE");
+#endif
+#ifdef EAUTH
+    set_syserr(EAUTH, "EAUTH");
+#endif
+#ifdef ENEEDAUTH
+    set_syserr(ENEEDAUTH, "ENEEDAUTH");
+#endif
+#ifdef ECANCELED
+    set_syserr(ECANCELED, "ECANCELED");
+#endif
+#ifdef ENOATTR
+    set_syserr(ENOATTR, "ENOATTR");
+#endif
+#ifdef EDOOFUS
+    set_syserr(EDOOFUS, "EDOOFUS");
+#endif
+#ifdef ENOTCAPABLE
+    set_syserr(ENOTCAPABLE, "ENOTCAPABLE");
+#endif
+#ifdef EPROCLIM
+    set_syserr(EPROCLIM, "EPROCLIM");
+#endif
+#ifdef EPRWOFF
+    set_syserr(EPWROFF, "EPWROFF");
+#endif
+#ifdef EDEVERR
+    set_syserr(EDEVERR, "EDEVERR");
+#endif
+#ifdef ENOPOLICY
+    set_syserr(ENOPOLICY, "ENOPOLICY");
+#endif
+#ifdef ENOMEDIUM
+    set_syserr(ENOMEDIUM, "ENOMEDIUM");
+#endif
+#ifdef EMEDIUMTYPE
+    set_syserr(EMEDIUMTYPE, "EMEDIUMTYPE");
+#endif
+#ifdef ENOKEY
+    set_syserr(ENOKEY, "ENOKEY");
+#endif
+#ifdef EKEYEXPIRED
+    set_syserr(EKEYEXPIRED, "EKEYEXPIRED");
+#endif
+#ifdef EKEYREVOKED
+    set_syserr(EKEYREVOKED, "EKEYREVOKED");
+#endif
+#ifdef EKEYREJECTED
+    set_syserr(EKEYREJECTED, "EKEYREJECTED");
+#endif
+#ifdef EOWNERDEAD
+    set_syserr(EOWNERDEAD, "EOWNERDEAD");
+#endif
+#ifdef ENOTRECOVERABLE
+    set_syserr(ENOTRECOVERABLE, "ENOTRECOVERABLE");
+#endif
+#ifdef ERFKILL
+    set_syserr(ERFKILL, "ERFKILL");
+#endif
 
   }
 };

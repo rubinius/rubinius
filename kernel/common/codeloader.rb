@@ -69,10 +69,13 @@ module Rubinius
       CodeLoader.loaded @load_path
     end
 
-    # Hook support. This allows code to be told when a file was just loaded
+    # Hook support. This allows code to be told when a file was just compiled,
+    # or when it has finished loading.
+    @compiled_hook = Rubinius::Hook.new
     @loaded_hook = Rubinius::Hook.new
 
     class << self
+      attr_reader :compiled_hook
       attr_reader :loaded_hook
 
       attr_writer :source_extension

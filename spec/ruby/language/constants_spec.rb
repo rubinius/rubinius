@@ -130,6 +130,20 @@ describe "Literal (A::X) constant resolution" do
       ConstantSpecs::ClassB::CS_CONST109 = :const109_2
       ConstantSpecs::ClassB::CS_CONST109.should == :const109_2
     end
+
+    it "evaluates the right hand side before evaluating a constant path" do
+      mod = Module.new
+
+      mod.module_eval <<-EOC
+        ConstantSpecsRHS::B = begin
+          module ConstantSpecsRHS; end
+
+          "hello"
+        end
+      EOC
+
+      mod::ConstantSpecsRHS::B.should == 'hello'
+    end
   end
 
   it "raises a NameError if no constant is defined in the search path" do

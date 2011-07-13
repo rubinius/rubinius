@@ -40,43 +40,11 @@
  */
 namespace rubinius {
 
-  /** System-wide standard interpreter method pointer. */
-  static InterpreterRunner standard_interpreter = 0;
-
-  /** System-wide dynamic interpreter method pointer. */
-  static InterpreterRunner dynamic_interpreter = 0;
-
   void** VMMethod::instructions = 0;
 
   void VMMethod::init(STATE) {
     // Seed the instructions table
     interpreter(0, 0, 0);
-
-#ifdef USE_DYNAMIC_INTERPRETER
-    if(!state->shared.config.dynamic_interpreter_enabled) {
-      dynamic_interpreter = NULL;
-      standard_interpreter = &VMMethod::interpreter;
-      return;
-    }
-
-    /*
-    if(dynamic_interpreter == NULL) {
-      uint8_t* buffer = new uint8_t[1024 * 1024 * 1024];
-      JITCompiler jit(buffer);
-      jit.create_interpreter(state);
-      if(getenv("DUMP_DYN")) {
-        jit.assembler().show();
-      }
-
-      dynamic_interpreter = reinterpret_cast<Runner>(buffer);
-    }
-    */
-
-    standard_interpreter = dynamic_interpreter;
-#else
-    dynamic_interpreter = NULL;
-    standard_interpreter = &VMMethod::interpreter;
-#endif
   }
 
   /*
@@ -84,7 +52,7 @@ namespace rubinius {
    */
   VMMethod::VMMethod(STATE, CompiledMethod* meth)
     : parent_(NULL)
-    , run(standard_interpreter)
+    , run(VMMethod::interpreter)
     , type(NULL)
     , uncommon_count(0)
     , number_of_caches_(0)
@@ -142,12 +110,6 @@ namespace rubinius {
     for(size_t i = 0; i < number_of_caches_; i++) {
       InlineCache* cache = &caches[i];
       cm->shared()->ic_registry()->remove_cache(state, cache->name, cache);
-    }
-
-    for(IndirectLiterals::iterator i = indirect_literals_.begin();
-        i != indirect_literals_.end();
-        ++i) {
-      delete[] *i;
     }
   }
 

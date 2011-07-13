@@ -27,7 +27,8 @@ describe "Kernel.catch" do
   end
 
   it "allows a String to be used for the label" do
-    x = catch("hello") { throw "hello", :fin }
+    name = "hello"
+    x = catch(name) { throw name, :fin }
     x.should == :fin
   end
 
