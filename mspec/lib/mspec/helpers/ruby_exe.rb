@@ -73,7 +73,11 @@ class Object
     when :engine
       case RUBY_NAME
       when 'rbx'
-        "bin/rbx"
+        if SpecGuard.ruby_version < "1.9"
+          "bin/rbx"
+        else
+          "bin/rbx -X19"
+        end
       when 'jruby'
         "bin/jruby"
       when 'maglev'

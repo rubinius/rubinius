@@ -1,14 +1,20 @@
 require 'rubygems'
-require 'spec/rake/spectask'
+
+begin
+  require 'spec/rake/spectask'
+
+  Spec::Rake::SpecTask.new
+  task :default => :spec
+rescue LoadError
+  task :default do
+    STDERR.puts "Please install RSpec 1.6.x to run MSpec specs"
+  end
+end
+
 require 'rake/gempackagetask'
 
 $:.unshift File.expand_path(File.dirname(__FILE__) + '/lib')
-require 'lib/mspec/version'
-
-Spec::Rake::SpecTask.new
-
-task :default => :spec
-
+require 'mspec/version'
 
 spec = Gem::Specification.new do |s|
   s.name                      = %q{mspec}
