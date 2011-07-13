@@ -19,17 +19,15 @@ describe "Array.try_convert" do
     end
 
     it "does not rescue exceptions" do
-      lambda{
-        Array.try_convert(ArraySpecs::ArrayNotReallyConvertable.new)
-      }.should raise_error(RuntimeError)
+      obj = mock("to_ary raises")
+      obj.should_receive(:to_ary).and_raise(RuntimeError)
+      lambda{ Array.try_convert obj }.should raise_error(RuntimeError)
     end
 
     it "checks the result of the conversion" do
-      obj = mock('crazy to_ary')
-      obj.should_receive(:to_ary).and_return(:confused)
-      lambda{
-        Array.try_convert(obj)
-      }.should raise_error(TypeError)
+      obj = mock('to_ary invalid')
+      obj.should_receive(:to_ary).and_return(:invalid_to_ary)
+      lambda{ Array.try_convert obj }.should raise_error(TypeError)
     end
   end
 end

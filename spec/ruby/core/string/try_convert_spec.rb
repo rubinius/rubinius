@@ -20,17 +20,15 @@ describe "String.try_convert" do
     end
 
     it "does not rescue exceptions" do
-      lambda{
-        String.try_convert(StringSpecs::StringNotReallyConvertable.new)
-      }.should raise_error(RuntimeError)
+      obj = mock("to_str raises")
+      obj.should_receive(:to_str).and_raise(RuntimeError)
+      lambda{ String.try_convert obj }.should raise_error(RuntimeError)
     end
 
     it "checks the result of the conversion" do
-      obj = mock('crazy to_str')
-      obj.should_receive(:to_str).and_return(:confused)
-      lambda{
-        String.try_convert(obj)
-      }.should raise_error(TypeError)
+      obj = mock('to_str invaled')
+      obj.should_receive(:to_str).and_return(:invalid_to_str)
+      lambda{ String.try_convert obj }.should raise_error(TypeError)
     end
   end
 end

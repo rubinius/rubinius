@@ -80,6 +80,13 @@ describe "Array#uniq" do
     a[1].tainted?.should == true
   end
 
+  ruby_version_is "1.9" do
+    it "compares elements based on the value returned from the block" do
+      a = [1, 2, 3, 4]
+      a.uniq { |x| x >= 2 ? 1 : 0 }.should == [1, 2]
+    end
+  end
+
   ruby_version_is "" ... "1.9.3" do
     it "returns subclass instance on Array subclasses" do
       ArraySpecs::MyArray[1, 2, 3].uniq.should be_kind_of(ArraySpecs::MyArray)
@@ -151,6 +158,10 @@ describe "Array#uniq!" do
     it "doesn't yield to the block on a frozen array" do
       lambda { ArraySpecs.frozen_array.uniq!{ raise RangeError, "shouldn't yield"}}.should raise_error(RuntimeError)
     end
-  end
 
+    it "compares elements based on the value returned from the block" do
+      a = [1, 2, 3, 4]
+      a.uniq! { |x| x >= 2 ? 1 : 0 }.should == [1, 2]
+    end
+  end
 end

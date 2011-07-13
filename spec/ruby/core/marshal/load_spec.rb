@@ -341,6 +341,37 @@ describe "Marshal::load" do
       Marshal.load("\004\bS:\021Struct::Ure1\a:\006a0:\006b0").should == obj
     end
 
+    ruby_version_is ""..."1.9" do
+      it "calls initialize on the unmarshaled struct" do
+        s = MarshalSpec::StructWithUserInitialize.new('foo')
+        Thread.current[MarshalSpec::StructWithUserInitialize::THREADLOCAL_KEY].should == ['foo']
+        s.a.should == 'foo'
+        
+        dumped = Marshal.dump(s)
+        loaded = Marshal.load(dumped)
+        
+        Thread.current[MarshalSpec::StructWithUserInitialize::THREADLOCAL_KEY].should == [nil]
+        loaded.a.should == 'foo'
+      end
+    end
+
+    ruby_version_is "1.9" do
+      it "does not call initialize on the unmarshaled struct" do
+        threadlocal_key = MarshalSpec::StructWithUserInitialize::THREADLOCAL_KEY
+        
+        s = MarshalSpec::StructWithUserInitialize.new('foo')
+        Thread.current[threadlocal_key].should == ['foo']
+        s.a.should == 'foo'
+        
+        Thread.current[threadlocal_key] = nil
+
+        dumped = Marshal.dump(s)
+        loaded = Marshal.load(dumped)
+
+        Thread.current[threadlocal_key].should == nil
+        loaded.a.should == 'foo'
+      end
+    end
   end
 
   describe "for a user Class" do

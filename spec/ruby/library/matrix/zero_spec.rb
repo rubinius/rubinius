@@ -27,3 +27,21 @@ describe "Matrix.zero" do
     end
   end
 end
+
+ruby_version_is "1.9.3" do
+  describe "Matrix.zero?" do
+    it "returns true for empty matrices" do
+      Matrix.empty.zero?.should == true
+      Matrix.empty(3,0).zero?.should == true
+      Matrix.empty(0,3).zero?.should == true
+    end
+  
+    it "returns true for matrices with zero entries" do
+      Matrix.zero(2,3).zero?.should == true
+    end
+
+    it "returns false for matrices with non zero entries" do
+      Matrix[[1]].zero?.should == false
+    end
+  end
+end

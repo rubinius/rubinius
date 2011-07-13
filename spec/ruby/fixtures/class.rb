@@ -15,9 +15,18 @@ module ClassSpecs
 
   class A; end
 
+  def self.string_class_variables(obj)
+    obj.class_variables.map { |x| x.to_s }
+  end
+
+  def self.string_instance_variables(obj)
+    obj.instance_variables.map { |x| x.to_s }
+  end
+
   class B
     @@cvar = :cvar
     @ivar = :ivar
+
   end
 
   class C
@@ -106,8 +115,8 @@ class Class
   def self.example_class_method_of_class; end
 end
 class << Class
-  def example_instance_method_of_metaclass; end
-  def self.example_class_method_of_metaclass; end
+  def example_instance_method_of_singleton_class; end
+  def self.example_class_method_of_singleton_class; end
 end
 class Object
   def example_instance_method_of_object; end

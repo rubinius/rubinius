@@ -86,11 +86,29 @@ describe "IO.select" do
     lambda { IO.select(nil, nil, Object.new)}.should raise_error(TypeError)
   end
 
-  it "does not raise errors if the first three arguments are nil" do
-    lambda { IO.select(nil, nil, nil, 0)}.should_not raise_error
+  it "sleeps the specified timeout if all streams are nil" do
+    start = Time.now
+    IO.select(nil, nil, nil, 0.1)
+    (Time.now - start).should >= 0.1
   end
 
   it "does not accept negative timeouts" do
     lambda { IO.select(nil, nil, nil, -5)}.should raise_error(ArgumentError)
+  end
+  
+  it "sleeps forever for nil timeout" do
+    started = false
+    finished = false
+    t = Thread.new do
+      started = true
+      IO.select(nil, nil, nil, nil)
+      finished = false
+    end
+    
+    Thread.pass until t.status == "sleep"
+    started.should == true
+    t.kill
+    t.join
+    finished.should == false
   end
 end

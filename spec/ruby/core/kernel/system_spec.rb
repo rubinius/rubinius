@@ -39,16 +39,13 @@ describe "Kernel#system" do
     system("sad").should output_to_fd("") # nothing in stderr
   end
 
-  it "uses /bin/sh if freaky shit is in the command" do
-    begin
-      result = false
-
-      File.exist?("happy").should == false
-      result = system("echo woot > happy")
-      result.should == true
-      File.exist?("happy").should == true
-    ensure
-      File.unlink "happy"
+  platform_is_not :windows do
+    it "executes with `sh` if the command contains shell characters" do
+      `echo $0`.should =~ %r{^(sh|/bin/sh)}
+    end
+    
+    it "ignores SHELL env var and always uses `sh`" do
+      `SHELL=/bin/zsh #{RUBY_EXE} -e 'system "echo $0"'`.should =~ %r{sh|/bin/sh}
     end
   end
 

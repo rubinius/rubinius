@@ -48,12 +48,4 @@ describe "Hash#rehash" do
       lambda { HashSpecs.empty_frozen_hash.rehash }.should raise_error(RuntimeError)
     end
   end
-
-  it "causes a RuntimeError to be raised if called inside an iterator block" do
-    [:delete_if, :each, :each_pair, :each_value,
-     :reject!, :select, :sort_by].each do |method|
-      h = new_hash(:foo => :bar)
-      lambda { h.send(method) { h.rehash } }.should raise_error(RuntimeError)
-    end
-  end
 end

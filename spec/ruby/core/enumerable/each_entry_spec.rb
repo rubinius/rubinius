@@ -4,6 +4,7 @@ require File.expand_path('../fixtures/classes', __FILE__)
 ruby_version_is '1.9' do
   describe "Enumerable#each_entry" do
     before :each do
+      ScratchPad.record []
       @enum = EnumerableSpecs::YieldsMixed.new
       @entries = [1, [2], [3,4], [5,6,7], [8,9], nil, []]
     end
@@ -18,6 +19,11 @@ ruby_version_is '1.9' do
       e = @enum.each_entry
       e.should be_an_instance_of(enumerator_class)
       e.to_a.should == @entries
+    end
+
+    it "passes through the values yielded by #each_with_index" do
+      [:a, :b].each_with_index.each_entry { |x, i| ScratchPad << [x, i] }
+      ScratchPad.recorded.should == [[:a, 0], [:b, 1]]
     end
 
     it "raises an Argument error when extra arguments" do
