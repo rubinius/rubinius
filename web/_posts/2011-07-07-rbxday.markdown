@@ -8,7 +8,7 @@ author: Shane Becker
 
 ### [rbxday.rubini.us](http://rbxday.rubini.us)
 
-#### Friday, July 15, 2011 is [#rbxday](http://rbxday.rubini.us)
+#### Friday, August 5, 2011 is [#rbxday](http://rbxday.rubini.us)
 
 The Rubinius 2.0 Preview Release is still cranking along. We&rsquo;re feeling good about how things are going. As always, thank you everyone for all of your contributions. The [list of authors on the 1.2.4 release](http://rubini.us/releases/1.2.4/#authors "Rubinius : Use Ruby&#8482;") is just fantastic.
 
