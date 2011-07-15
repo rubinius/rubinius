@@ -1422,4 +1422,84 @@ namespace rubinius {
     return cm->backend_method()->execute_as_script(state, cm, calling_environment);
 #endif
   }
+
+#define HASH_TRIE_BASE_SHIFT  6
+
+#if RBX_SIZEOF_LONG == 8
+#define HASH_TRIE_BIT_WIDTH   6
+#define HASH_TRIE_BIT_MASK    0x3f
+#else
+#define HASH_TRIE_BIT_WIDTH   5
+#define HASH_TRIE_BIT_MASK    0x1f
+#endif
+
+  static inline size_t hash_trie_bit(Fixnum* hash, Fixnum* level) {
+    native_int h = hash->to_native();
+    native_int l = level->to_native();
+
+    size_t width = HASH_TRIE_BIT_WIDTH;
+    size_t mask = HASH_TRIE_BIT_MASK;
+    size_t base = HASH_TRIE_BASE_SHIFT;
+    size_t result = 1;
+
+    return result << ((h >> (l * width + base)) & mask);
+  }
+
+  static inline int hash_trie_index(size_t m) {
+#if RBX_SIZEOF_LONG == 8
+    native_int sk5 = 0x5555555555555555;
+    native_int sk3 = 0x3333333333333333;
+    native_int skf0 = 0x0F0F0F0F0F0F0F0F;
+
+    m -= (m >> 1) & sk5;
+    m = (m & sk3) + ((m >> 2) & sk3);
+    m = (m & skf0) + ((m >> 4) & skf0);
+    m += m >> 8;
+    m += m >> 16;
+    m = (m + (m >> 32)) & 0xFF;
+#else
+    native_int sk5 = 0x55555555;
+    native_int sk3 = 0x33333333;
+    native_int skf0 = 0xF0F0F0F;
+
+    m -= (m >> 1) & sk5;
+    m = (m & sk3) + ((m >> 2) & sk3);
+    m = (m & skf0) + ((m >> 4) & skf0);
+    m += m >> 8;
+    m = (m + (m >> 16)) & 0x3F;
+#endif
+
+    return m;
+  }
+
+  Fixnum* System::vm_hash_trie_entry_index(STATE, Fixnum* hash,
+                                           Fixnum* level, Integer* map)
+  {
+    size_t m = map->to_ulong();
+    size_t b = hash_trie_bit(hash, level);
+
+    if(m & b) {
+      return Fixnum::from(hash_trie_index((b - 1) & m));
+    } else {
+      return nil<Fixnum>();
+    }
+  }
+
+  Integer* System::vm_hash_trie_set_bitmap(STATE, Fixnum* hash,
+                                           Fixnum* level, Integer* map)
+  {
+    size_t m = map->to_ulong();
+    size_t b = hash_trie_bit(hash, level);
+
+    return Integer::from(state, m | b);
+  }
+
+  Integer* System::vm_hash_trie_unset_bitmap(STATE, Fixnum* hash,
+                                             Fixnum* level, Integer* map)
+  {
+    size_t m = map->to_ulong();
+    size_t b = hash_trie_bit(hash, level);
+
+    return Integer::from(state, m & ~b);
+  }
 }

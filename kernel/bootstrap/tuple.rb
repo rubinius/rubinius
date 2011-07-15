@@ -151,5 +151,37 @@ module Rubinius
         Rubinius::Type.coerce_to(total, Fixnum, :to_i))
     end
 
+    def delete_at_index(index)
+      return if size == 1
+
+      s = size - 1
+      t = self.class.new s
+
+      if index != 0
+        t.copy_from self, 0, index, 0
+      end
+
+      if index < s
+        t.copy_from self, index+1, s-index, index
+      end
+
+      t
+    end
+
+    def insert_at_index(index, value)
+      t = self.class.new size + 1
+
+      if index != 0
+        t.copy_from self, 0, index, 0
+      end
+
+      if index < size
+        t.copy_from self, index, size-index, index+1
+      end
+
+      t[index] = value
+
+      t
+    end
   end
 end

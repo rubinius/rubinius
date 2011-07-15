@@ -13,8 +13,8 @@ argf.rbc
 tuple.rbc
 exception.rbc
 undefined.rbc
-hash.rbc
 hash19.rbc
+hash_hamt.rbc
 type.rbc
 kernel.rbc
 kernel19.rbc
