@@ -179,6 +179,9 @@ namespace rubinius {
     // Ruby.primitive :thread_context
     Tuple* context(STATE);
 
+    // Ruby.primitive :thread_mri_backtrace
+    Array* mri_backtrace(STATE);
+
 
   public:   /* Class methods */
 

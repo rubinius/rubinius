@@ -44,6 +44,11 @@ class Thread
     Kernel.raise PrimitiveFailure, "Thread#__context__ failed"
   end
 
+  def mri_backtrace
+    Ruby.primitive :thread_mri_backtrace
+    Kernel.raise PrimitiveFailure, "Thread#mri_backtrace primitive failed"
+  end
+
 
   # Don't move the code below here to common, it is entirely
   # Rubinius specific in how we make Threads work.
