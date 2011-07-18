@@ -7,7 +7,7 @@ require 'abbrev'
 
 [["Abbrev::abbrev", lambda {|a| Abbrev::abbrev(a)}],
  ["Array#abbrev", lambda {|a| a.abbrev}]
-].each do |(name, func)|
+].each do |name, func|
 
   describe name do
     it "returns a hash of all unambiguous abbreviations of the array of strings passed in" do
