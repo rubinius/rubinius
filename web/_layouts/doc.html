@@ -10,32 +10,30 @@ languages:
   - pt-br
   - ru
 ---
-  <body>
-    {% include doc_header.html %}
+{% include doc_header.html %}
 
-    {% include lang_nav.html %}
+{% include lang_nav.html %}
 
-    {% include doc_nav.html %}
+{% include doc_nav.html %}
 
-    <div class="container documentation">
-      <h2>{{ page.title }}</h2>
+<div class="container documentation">
+  <h2>{{ page.title }}</h2>
 
-      {% if page.translated %}
-        {% include translated.html %}
-      {% endif %}
+  {% if page.translated %}
+    {% include translated.html %}
+  {% endif %}
 
-      {% if page.review %}
-        {% include review.html %}
-      {% endif %}
+  {% if page.review %}
+    {% include review.html %}
+  {% endif %}
 
-      {{ content }}
-    </div>
+  {{ content }}
+</div>
 
-    {% include doc_nav.html %}
+{% include doc_nav.html %}
 
-    <div class="container">
-      {% include comments.html %}
-    </div>
+<div class="container">
+  {% include comments.html %}
+</div>
 
-    {% include footer.html %}
-  </body>
+{% include footer.html %}
