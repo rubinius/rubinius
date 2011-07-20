@@ -2,63 +2,35 @@ require File.expand_path('../../../spec_helper', __FILE__)
 
 ruby_version_is "1.9" do
   describe "Hash#flatten" do
-
     before(:each) do
-      @h = {:plato => :greek,
-            :witgenstein => [:austrian, :british],
-            :russell => :welsh}
-    end
-
-    it "returns an Array" do
-      new_hash.flatten.should be_an_instance_of(Array)
+      @h = new_hash(:a => 1, :b => [2, 3], :c => 4)
     end
 
     it "returns an empty Array for an empty Hash" do
       new_hash.flatten.should == []
     end
 
-    it "sets each even index of the Array to a key of the Hash" do
-      a = @h.flatten
-      a[0].should == :plato
-      a[2].should == :witgenstein
-      a[4].should == :russell
+    it "returns an unflattened Array of keys and values when not passed an argument" do
+      @h.flatten.should == [:a, 1, :b, [2, 3], :c, 4]
     end
 
-    it "sets each odd index of the Array to the value corresponding to the previous element" do
-      a = @h.flatten
-      a[1].should == :greek
-      a[3].should == [:austrian, :british]
-      a[5].should == :welsh
+    it "does not recursively flatten Hash values when not passed an argument" do
+      h = new_hash(:c => 3)
+      @h[:b] = h
+      @h.flatten.should == [:a, 1, :b, h, :c, 4]
     end
 
-    it "does not recursively flatten Array values when called without arguments" do
-      a = @h.flatten
-      a[3].should == [:austrian, :british]
-    end
-
-    it "does not recursively flatten Hash values when called without arguments" do
-      @h[:russell] = {:born => :wales, :influenced_by => :mill }
-      a = @h.flatten
-      a[5].should_not == {:born => :wales, :influenced_by => :mill }.flatten
-    end
-
-    it "recursively flattens Array values when called with an argument >= 2" do
-      a = @h.flatten(2)
-      a[3].should == :austrian
-      a[4].should == :british
+    it "recursively flattens Array values when passed 2" do
+      @h.flatten(2).should == [:a, 1, :b, 2, 3, :c, 4]
     end
 
     it "recursively flattens Array values to the given depth" do
-      @h[:russell] = [[:born, :wales], [:influenced_by, :mill]]
-      a = @h.flatten(2)
-      a[6].should == [:born, :wales]
-      a[7].should == [:influenced_by, :mill]
+      @h[:b] = [[5, [6], 7], 8]
+      @h.flatten(3).should == [:a, 1, :b, 5, [6], 7, 8, :c, 4]
     end
 
     it "raises an TypeError if given a non-Integer argument" do
-      lambda do
-        @h.flatten(Object.new)
-      end.should raise_error(TypeError)
+      lambda { @h.flatten(Object.new) }.should raise_error(TypeError)
     end
   end
 end

@@ -3,8 +3,9 @@ require File.expand_path('../fixtures/classes', __FILE__)
 
 describe "Hash#invert" do
   it "returns a new hash where keys are values and vice versa" do
-    new_hash(1 => 'a', 2 => 'b', 3 => 'c').invert.should ==
-      new_hash('a' => 1, 'b' => 2, 'c' => 3)
+    h = new_hash(1, 'a', 2, 'b', 3, 'c')
+    hi = new_hash('a', 1, 'b', 2, 'c', 3)
+    h.invert.should == hi
   end
 
   it "handles collisions by overriding with the key coming later in keys()" do
