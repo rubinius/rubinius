@@ -44,7 +44,7 @@ namespace rubinius {
 extern "C" Object* invoke_unknown_primitive(STATE, CallFrame* call_frame,
     Object** args, int arg_count)
 {
-  Exception::internal_error(state, call_frame, "unable to invoked primitive");
+  Exception::internal_error(state, call_frame, "unable to invoke primitive");
   return 0;
 }
 
