@@ -140,11 +140,13 @@ namespace rubinius {
 
     CompiledFile* cf = CompiledFile::load(stream);
     if(cf->magic != "!RBIX") {
+      delete cf;
       return Primitives::failure();
     }
 
     uint64_t ver = version->to_ulong_long();
     if((ver > 0 && cf->version != ver) || cf->sum != "x") {
+      delete cf;
       return Primitives::failure();
     }
 
