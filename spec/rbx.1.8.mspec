@@ -100,9 +100,12 @@ class MSpecScript
 
   # Enable language features
   if Object.const_defined?(:Rubinius) && Rubinius.const_get(:Fiber)
-    ::Fiber = Rubinius::Fiber
-    MSpec.enable_feature :fiber
-    MSpec.enable_feature :fiber_library
+    if Rubinius::Fiber::ENABLED
+      ::Fiber = Rubinius::Fiber
+      MSpec.enable_feature :fiber
+      MSpec.enable_feature :fiber_library
+      MSpec.enable_feature :generator
+    end
   end
 
   # The Readline specs are not enabled by default because the functionality
