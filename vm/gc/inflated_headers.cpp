@@ -1,5 +1,7 @@
 #include "gc/inflated_headers.hpp"
 #include "oop.hpp"
+#include "vm.hpp"
+#include "objectmemory.hpp"
 
 #include <iostream>
 
@@ -33,6 +35,12 @@ namespace rubinius {
     }
 
     chunks_.push_back(chunk);
+    allocations_++;
+    if(allocations_ >= cChunkLimit) {
+      state_->om->collect_mature_now = true;
+      allocations_ = 0;
+    }
+
   }
 
   void InflatedHeaders::deallocate_headers(int mark) {
