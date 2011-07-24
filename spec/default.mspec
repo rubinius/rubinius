@@ -25,4 +25,13 @@ class MSpecScript
 
   # Enable language features
   MSpec.enable_feature :fork
+
+  if Object.const_defined?(:Rubinius) && Rubinius.const_get(:Fiber)
+    if Rubinius::Fiber::ENABLED
+      ::Fiber = Rubinius::Fiber
+      MSpec.enable_feature :fiber
+      MSpec.enable_feature :fiber_library
+      MSpec.enable_feature :generator
+    end
+  end
 end

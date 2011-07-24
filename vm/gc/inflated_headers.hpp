@@ -1,9 +1,11 @@
 #include <stddef.h>
 #include <list>
+#include "prelude.hpp"
 
 namespace rubinius {
   class ObjectHeader;
   class InflatedHeader;
+  class VM;
 
 
   /**
@@ -25,20 +27,24 @@ namespace rubinius {
 
     /// Storage for InflatedHeader references is allocated in chunks.
     static const size_t cChunkSize = 1024;
+    static const size_t cChunkLimit = 16;
 
   private:
+    VM* state_;
     /// Linked list of InflatedHeader pointers.
     Chunks chunks_;
-
     /// Pointer to the first free InflatedHeader slot in the list.
     InflatedHeader* free_list_;
-
+    /// Number of chunks allocated since last GC cycle
+    size_t allocations_;
     /// Number of in-use slots
     int in_use_;
 
   public:
-    InflatedHeaders()
-      : free_list_(0)
+    InflatedHeaders(STATE)
+      : state_(state)
+      , free_list_(0)
+      , allocations_(0)
       , in_use_(0)
     {}
 

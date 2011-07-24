@@ -149,12 +149,14 @@ namespace rubinius {
 
     CompiledFile* cf = CompiledFile::load(stream);
     if(cf->magic != "!RBIX") {
+      delete cf;
       return Primitives::failure();
     }
 
     uint64_t sig = signature->to_ulong_long();
     if((sig > 0 && cf->signature != sig)
         || cf->version != version->to_native()) {
+      delete cf;
       return Primitives::failure();
     }
 
