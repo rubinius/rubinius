@@ -38,6 +38,7 @@ namespace rubinius {
 
   public:
     QueryAgent(SharedState& shared, VM* state);
+    ~QueryAgent();
 
     void set_verbose() {
       verbose_ = true;
