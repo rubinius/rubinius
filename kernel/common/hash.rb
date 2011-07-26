@@ -2,21 +2,21 @@ class Hash
 
   include Enumerable
 
-  # Entry stores key, value pairs in Hash. The key's hash
+  # Bucket stores key, value pairs in Hash. The key's hash
   # is also cached in the entry and recalculated when the
   # Hash#rehash method is called.
 
-  class Entry
+  class Bucket
     attr_accessor :key
     attr_accessor :key_hash
     attr_accessor :value
-    attr_accessor :next
+    attr_accessor :link
 
     def initialize(key, key_hash, value)
       @key      = key
       @key_hash = key_hash
       @value    = value
-      @next     = nil
+      @link     = nil
     end
 
     def match?(key, key_hash)
@@ -26,35 +26,6 @@ class Hash
       end
 
       @key_hash == key_hash and key.eql? @key
-    end
-  end
-
-  # An external iterator that returns only entry chains from the
-  # Hash storage, never nil bins. While somewhat following the API
-  # of Enumerator, it is named Iterator because it does not provide
-  # <code>#each</code> and should not conflict with +Enumerator+ in
-  # MRI 1.8.7+. Returned by <code>Hash#to_iter</code>.
-
-  class Iterator
-    attr_reader :index
-
-    def initialize(entries, capacity)
-      @entries  = entries
-      @capacity = capacity
-      @index    = -1
-    end
-
-    # Returns the next object or +nil+.
-    def next(entry)
-      if entry and entry = entry.next
-        return entry
-      end
-
-      while (@index += 1) < @capacity
-        if entry = @entries[@index]
-          return entry
-        end
-      end
     end
   end
 
@@ -210,7 +181,7 @@ class Hash
 
     entry = @entries[index]
     unless entry
-      @entries[index] = new_entry key, key_hash, value
+      @entries[index] = new_bucket key, key_hash, value
       return value
     end
 
@@ -219,16 +190,16 @@ class Hash
     end
 
     last = entry
-    entry = entry.next
+    entry = entry.link
     while entry
       if entry.match? key, key_hash
         return entry.value = value
       end
 
       last = entry
-      entry = entry.next
+      entry = entry.link
     end
-    last.next = new_entry key, key_hash, value
+    last.link = new_bucket key, key_hash, value
 
     value
   end
@@ -270,15 +241,15 @@ class Hash
     index = key_index key_hash
     if entry = @entries[index]
       if entry.match? key, key_hash
-        @entries[index] = entry.next
+        @entries[index] = entry.link
         @size -= 1
         return entry.value
       end
 
       last = entry
-      while entry = entry.next
+      while entry = entry.link
         if entry.match? key, key_hash
-          last.next = entry.next
+          last.link = entry.link
           @size -= 1
           return entry.value
         end
@@ -307,7 +278,7 @@ class Hash
       entry = entries[idx]
       while entry
         yield entry
-        entry = entry.next
+        entry = entry.link
       end
 
       idx += 1
@@ -325,7 +296,7 @@ class Hash
       entry = entries[idx]
       while entry
         yield [entry.key, entry.value]
-        entry = entry.next
+        entry = entry.link
       end
 
       idx += 1
@@ -375,7 +346,7 @@ class Hash
       if entry.match? key, key_hash
         return entry
       end
-      entry = entry.next
+      entry = entry.link
     end
   end
 
@@ -457,19 +428,19 @@ class Hash
     dup.merge!(other, &block)
   end
 
-  # Returns a new +Entry+ instance having +key+, +key_hash+,
+  # Returns a new +Bucket+ instance having +key+, +key_hash+,
   # and +value+. If +key+ is a kind of +String+, +key+ is
   # duped and frozen.
-  def new_entry(key, key_hash, value)
+  def new_bucket(key, key_hash, value)
     if key.kind_of?(String) and !key.frozen?
       key = key.dup
       key.freeze
     end
 
     @size += 1
-    Entry.new key, key_hash, value
+    Bucket.new key, key_hash, value
   end
-  private :new_entry
+  private :new_bucket
 
   # Adjusts the hash storage and redistributes the entries among
   # the new bins. Any Iterator instance will be invalid after a
@@ -485,11 +456,11 @@ class Hash
     while (i += 1) < capacity
       next unless old = entries[i]
       while old
-        old.next = nil if nxt = old.next
+        old.link = nil if nxt = old.link
 
         index = key_index old.key_hash
         if entry = @entries[index]
-          old.next = entry
+          old.link = entry
         end
         @entries[index] = old
 
@@ -511,11 +482,11 @@ class Hash
     while (i += 1) < capacity
       next unless old = entries[i]
       while old
-        old.next = nil if nxt = old.next
+        old.link = nil if nxt = old.link
 
         index = key_index(old.key_hash = old.key.hash)
         if entry = @entries[index]
-          old.next = entry
+          old.link = entry
         end
         @entries[index] = old
 
@@ -552,13 +523,13 @@ class Hash
         if yield(entry.key,entry.value)
           change += 1
           if !prev_entry
-            entries[i] = entry.next
+            entries[i] = entry.link
           else
-            prev_entry.next = entry.next
-            prev_entry = entry.next
+            prev_entry.link = entry.link
+            prev_entry = entry.link
           end
         end
-        entry = entry.next
+        entry = entry.link
       end
     end
 
@@ -585,15 +556,15 @@ class Hash
     @size     = other.size
 
     # We now contain a list of the other hash's
-    # Entry objects. We need to re-map them to our
+    # Bucket objects. We need to re-map them to our
     # own.
     i = 0
     while i < @capacity
       if orig = @entries[i]
         @entries[i] = self_entry = orig.dup
-        while orig = orig.next
-          self_entry.next = orig.dup
-          self_entry = self_entry.next
+        while orig = orig.link
+          self_entry.link = orig.dup
+          self_entry = self_entry.link
         end
       end
       i += 1
@@ -635,7 +606,7 @@ class Hash
 
     while idx < cap
       if entry = entries[idx]
-        entries[idx] = entry.next
+        entries[idx] = entry.link
         @size -= 1
         break
       end
@@ -673,11 +644,6 @@ class Hash
     end
 
     ary
-  end
-
-  # Returns an external iterator for the bins. See +Iterator+
-  def to_iter
-    Iterator.new @entries, @capacity
   end
 
   def to_hash

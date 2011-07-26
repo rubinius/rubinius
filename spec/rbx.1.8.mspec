@@ -99,12 +99,18 @@ class MSpecScript
                       ]
 
   # Enable language features
-  if Object.const_defined?(:Rubinius) && Rubinius.const_get(:Fiber)
-    if Rubinius::Fiber::ENABLED
+  if Object.const_defined?(:Rubinius)
+    if Rubinius.const_get(:Fiber)
       ::Fiber = Rubinius::Fiber
       MSpec.enable_feature :fiber
       MSpec.enable_feature :fiber_library
       MSpec.enable_feature :generator
+    end
+
+    if Rubinius::Config["hash.hamt"]
+      MSpec.enable_feature :hash_hamt
+    else
+      MSpec.enable_feature :hash_bucket
     end
   end
 
