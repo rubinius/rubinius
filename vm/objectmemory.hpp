@@ -330,7 +330,7 @@ namespace rubinius {
     ObjectPosition validate_object(Object* obj);
     bool valid_young_object_p(Object* obj);
 
-    int mature_bytes_allocated();
+    size_t mature_bytes_allocated();
 
     void collect(STATE, CallFrame* call_frame);
     void collect_maybe(STATE, CallFrame* call_frame);

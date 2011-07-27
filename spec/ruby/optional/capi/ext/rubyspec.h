@@ -256,6 +256,7 @@
 #define HAVE_RB_OBJ_TAINT                  1
 #define HAVE_RB_REQUIRE                    1
 #define HAVE_RB_RESPOND_TO                 1
+#define HAVE_RB_OBJ_RESPOND_TO             1
 #define HAVE_RB_SPECIAL_CONST_P            1
 #define HAVE_RB_TO_ID                      1
 #define HAVE_RB_TO_INT                     1

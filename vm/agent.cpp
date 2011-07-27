@@ -89,6 +89,10 @@ namespace rubinius {
     shared_.globals.rubinius.get()->set_const(state_, "TO_AGENT", to);
   }
 
+  QueryAgent::~QueryAgent() {
+    delete vars_;
+  }
+
   bool QueryAgent::setup_local() {
     if(socketpair(AF_UNIX, SOCK_STREAM, 0, loopback_)) {
       return false;

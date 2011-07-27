@@ -531,6 +531,10 @@ namespace agent {
     threads->add(new ThreadCount(state, ss, "count"));
   }
 
+  VariableAccess::~VariableAccess() {
+    delete root_;
+  }
+
   bool VariableAccess::read_path(Output& output, const char* ipath) {
     if(strlen(ipath) == 1 && ipath[0] == '.') {
       root_->read(output);

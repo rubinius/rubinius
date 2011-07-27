@@ -603,7 +603,7 @@ step1:
     }
 
     if(collect_mature_now) {
-      int before_kb = 0;
+      size_t before_kb = 0;
 
       if(state->shared.config.gc_show) {
         start_time = get_current_time();
@@ -624,8 +624,8 @@ step1:
       if(state->shared.config.gc_show) {
         uint64_t fin_time = get_current_time();
         int diff = (fin_time - start_time) / 1000000;
-        int kb = mature_bytes_allocated() / 1024;
-        fprintf(stderr, "[Full GC %dkB => %dkB %2dms]\n",
+        size_t kb = mature_bytes_allocated() / 1024;
+        fprintf(stderr, "[Full GC %lukB => %lukB %2dms]\n",
             before_kb,
             kb,
             diff);
@@ -856,7 +856,7 @@ step1:
     // std::cout << "Pruned " << count << " handles, " << total << "/" << handles->size() << " total.\n";
   }
 
-  int ObjectMemory::mature_bytes_allocated() {
+  size_t ObjectMemory::mature_bytes_allocated() {
     return immix_->bytes_allocated() + mark_sweep_->allocated_bytes;
   }
 

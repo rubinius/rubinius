@@ -45,6 +45,7 @@ namespace agent {
 
   public:
     VariableAccess(STATE, SharedState& ss);
+    ~VariableAccess();
 
     Tree* root() {
       return root_;

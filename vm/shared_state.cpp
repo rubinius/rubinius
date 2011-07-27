@@ -56,6 +56,9 @@ namespace rubinius {
     delete global_cache;
     delete global_handles_;
     delete cached_handles_;
+    if(agent_) {
+      delete agent_;
+    }
   }
 
   void SharedState::add_managed_thread(ManagedThread* thr) {
