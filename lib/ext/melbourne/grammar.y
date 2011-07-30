@@ -3294,7 +3294,7 @@ static int tokadd_string(int func, int term, int paren, quark *nest, rb_parse_st
 
 #define NEW_STRTERM(func, term, paren) \
   node_newnode(parse_state, NODE_STRTERM, (VALUE)(func), \
-               (VALUE)((term) | ((paren) << (CHAR_BIT * 2))), NULL)
+               (VALUE)((term) | ((paren) << (CHAR_BIT * 2))), 0)
 #define pslval ((YYSTYPE *)parse_state->lval)
 static int
 parse_string(NODE *quote, rb_parse_state *parse_state)
