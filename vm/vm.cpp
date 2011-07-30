@@ -382,7 +382,7 @@ namespace rubinius {
         uint64_t fin_time = get_current_time();
         int diff = (fin_time - start_time) / 1000000;
         size_t kb = om->mature_bytes_allocated() / 1024;
-        fprintf(stderr, "[Full GC %lukB => %lukB %2dms]\n",
+        fprintf(stderr, "[Full GC %zukB => %zukB %2dms]\n",
             before_kb,
             kb,
             diff);
