@@ -22,7 +22,7 @@ So be prepared for an afternoon of very interesting hacking. We really want
 to make it a fun afternoon of experimenting with Rubinius, so anything
 goes! Please leave a message on the 80beans blog if you're planning to come over:
 
-http://www.80beans.com/en/blog/2011/07/29/rbxday-at-the-80beans-office
+[http://www.80beans.com/en/blog/2011/07/29/rbxday-at-the-80beans-office](http://www.80beans.com/en/blog/2011/07/29/rbxday-at-the-80beans-office)
 
 Hopefully see you there!
 
