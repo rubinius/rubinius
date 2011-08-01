@@ -69,6 +69,47 @@
   
     <div class="post">
       <h2 class="post_title">
+        <a href="/2011/07/31/rbxday-at-80beans/" title="Come hack in Amsterdam for &#35;rbxday" class="post_title">
+        Come hack in Amsterdam for &#35;rbxday
+        </a>
+      </h2>
+      <div class="by_line">
+  <p><span class="author">Dirkjan Bussink</span>
+    <span class="date">31 July 2011</span>
+    
+      <a href="http://rubini.us/2011/07/31/rbxday-at-80beans/#disqus_thread" data-disqus-identifier="/2011/07/31/rbxday-at-80beans/"></a>
+
+    
+  </p>
+</div>
+
+      <p>Not only in the US is &#35;rbxday celebrated, but we have also something
+in Amsterdam next Friday. It&rsquo;s really becoming the International Rubinius
+Day that it was set out to be.</p>
+
+<p>The guys are 80beans are sponsoring the event and have graciously offered
+their office as the place to hang out and are providing refreshments. The
+office is located on the Vijzelstraat 72 in Amsterdam and we&rsquo;re starting
+at 3pm.</p>
+
+<p>If you&rsquo;re living in the neighborhood, please come and join us. As long
+term Rubinius contributor Dirkjan Bussink is coming over from the other side of
+the country, so don&rsquo;t feel held back when you&rsquo;re not living in Amsterdam
+itself.</p>
+
+<p>So be prepared for an afternoon of very interesting hacking. We really want
+to make it a fun afternoon of experimenting with Rubinius, so anything
+goes! Please leave a message on the 80beans blog if you&rsquo;re planning to come over:</p>
+
+<p><a href="http://www.80beans.com/en/blog/2011/07/29/rbxday-at-the-80beans-office">http://www.80beans.com/en/blog/2011/07/29/rbxday-at-the-80beans-office</a></p>
+
+<p>Hopefully see you there!</p>
+
+
+    </div>
+  
+    <div class="post">
+      <h2 class="post_title">
         <a href="/2011/07/29/rbxday-at-outright/" title="Outright Hacks &#35;rbxday" class="post_title">
         Outright Hacks &#35;rbxday
         </a>
@@ -295,171 +336,6 @@ now</a>!</p>
 <a href="http://drbl.in/bxbf"><img src="http://dribbble.com/system/users/1288/screenshots/202857/rubinius_...thing_1.png" alt="Rubinius teaser 2" title="Rubinius teaser 2" /></a></p>
 
 <p><em>XOXO RBX</em></p>
-
-    </div>
-  
-    <div class="post">
-      <h2 class="post_title">
-        <a href="/2011/06/07/inside-rubinius-20-preview/" title="Inside the Rubinius 2.0 Preview Release" class="post_title">
-        Inside the Rubinius 2.0 Preview Release
-        </a>
-      </h2>
-      <div class="by_line">
-  <p><span class="author">Brian Ford</span>
-    <span class="date">07 June 2011</span>
-    
-      <a href="http://rubini.us/2011/06/07/inside-rubinius-20-preview/#disqus_thread" data-disqus-identifier="/2011/06/07/inside-rubinius-20-preview/"></a>
-
-    
-  </p>
-</div>
-
-      <p>Houston, we have a problem. Complex projects are difficult to transition
-forward and Rubinius is a complex project. Rubinius is at the point of a major
-transition and we need your help to move forward.</p>
-
-<p>Just over a year ago, Rubinius released version 1.0. Since then, dozens of
-contributors have added over 2,200 commits to the master branch and we have
-released seven new versions. At the same time, we have added nearly 450
-commits on a development branch to remove the global interpreter lock (GIL)
-and begin adding Ruby 1.9 and Windows support.</p>
-
-<p><img src="/images/rubinius-2-0-developer-preview-blog-post.png" alt="Rubinius 2.0 Developer Preview" /></p>
-
-<p>Today we are releasing <em>Rubinius 2.0 Developer Preview</em>. The primary focus of
-this release is true Ruby multi-threaded concurrency. Additionally, it
-contains the beginnings of Ruby 1.9 and Microsoft Windows support.</p>
-
-<h3 id="rubinius-20-developer-preview">Rubinius 2.0 Developer Preview</h3>
-
-<p>We are seeking developers interested in running their Ruby and Rails projects
-on Rubinius to help us iron out issues as we work toward the final 2.0
-release. Let&rsquo;s look at the details of the 2.0 developer preview.</p>
-
-<p>One of the central features of Rubinius 2.0 is a fundamental change in the
-threading architecture. In Rubinius 2.0, Ruby threads will run with true
-concurrency. This means that if multi-core or multi-CPU hardware is available,
-Ruby code on different threads will actually run in parallel.</p>
-
-<p>Another central feature of Rubinius 2.0 is support for both Ruby 1.8.7 and
-Ruby 1.9.2 syntax. The Rubinius 2.0 support for Ruby 1.8.7 should be 100%
-backward compatible with the support in the Rubinius master branch. The full
-Ruby concurrency is enabled regardless of what language syntax mode is active.</p>
-
-<h3 id="repository-migration">Repository Migration</h3>
-
-<p>We are migrating the main Rubinius repository to the <a href="https://github.com/rubinius">Rubinius</a> organization.</p>
-
-<p>The RVM project has already been updated to work with the new repository. So
-<code>rvm install rbx</code> will use the new repository.  If you have an existing clone
-of Rubinius, update and run <code>rake github</code> to point your existing repository to
-the new one.</p>
-
-<p>You can clone directly from the <a href="https://github.com/rubinius/rubinius">new repository</a>.</p>
-
-<h3 id="installation">Installation</h3>
-
-<p>For testing Rubinius with your application, installing with RVM is probably
-the easiest. To install the 2.0 developer preview, ensure that RVM is updated:</p>
-
-<pre><code>rvm get head
-rvm reload
-</code></pre>
-
-<p>Then, install the Rubinius 2.0.0pre branch:</p>
-
-<pre><code>rvm install rbx-2.0.0pre
-</code></pre>
-
-<p>If you are interested in helping develop Rubinius, we suggest you clone the
-repository directly and build. Rubinius runs fine from the source directory so
-you don&rsquo;t need to install it. For more details about building from a clone,
-see <a href="http://rubini.us/doc/en/getting-started/">Getting Started</a>.</p>
-
-<h3 id="configuration">Configuration</h3>
-
-<p>The goal of Rubinius 2.0 is to fully support both Ruby 1.8.7 and 1.9.2 in a
-single executable. When running Rubinius, you can select which version to use.
-There are configuration options to change which versions are supported and
-which version is the default.</p>
-
-<p>The first configure option is <code>--enable-version=X[,Y]</code>. This option sets which
-language versions will be supported. An example is:</p>
-
-<pre><code>./configure --enable-version=1.8,1.9
-</code></pre>
-
-<p>The language versions can be specified as <code>18</code> or <code>1.8</code>. Multiple versions are
-separated by a comma and no space.</p>
-
-<p>The second configure option is <code>--default-version=X</code>. This option sets which
-language version is the default when running Rubinius. An example is:</p>
-
-<pre><code>./configure --default-version=1.9
-</code></pre>
-
-<p>These options are intended to be used together. You must enable a version to
-select it as the default, so the options must come in the following order:</p>
-
-<pre><code>./configure --enable-version=X,Y --default-version=Y
-</code></pre>
-
-<p>Once you have enabled support for a language version, to select that mode when
-running Rubinius, use the <code>-X18</code> or <code>-X19</code> command line switches. For example:</p>
-
-<pre><code>rbx -X19 -v
-</code></pre>
-
-<p>This command will run Rubinius with the 1.9 language mode enabled.</p>
-
-<p>You may also use the <code>RBXOPT</code> environment variable to select the language
-mode. Assuming that 1.8 is the default mode, the following command would run
-Rubinius with the 1.9 language mode enabled:</p>
-
-<pre><code>RBXOPT=-X19 rbx -v
-</code></pre>
-
-<p>Right now, only the 1.8 language mode is enabled in the 2.0.0pre branch.
-However, we will be enabling the 1.9 mode in the very near future. The default
-mode will continue to be 1.8 unless you configure Rubinius to run in 1.9 mode.</p>
-
-<h3 id="building-on-windows">Building on Windows</h3>
-
-<p>On Windows, Rubinius uses the <a href="http://mingw-w64.sourceforge.net/">MinGW-w64</a>
-compiler to build a native application. There remains a lot of work to do for
-Windows support but the Rubinius VM is currently compiling on Windows 7.</p>
-
-<p>If you are a bleeding-edge Windows developer interested in diving into
-Rubinius, here&rsquo;s how to get started:</p>
-
-<ol>
-  <li>Install <em>MRI 1.9</em> using <a href="http://rubyinstaller.org/">RubyInstaller</a>.</li>
-  <li>Install <a href="http://code.google.com/p/msysgit/">MSysGit</a>.</li>
-  <li>Install the 32bit or 64bit MinGW-w64 toolchain.</li>
-  <li>Clone the Rubinius repository.</li>
-  <li>In CMD, run <code>ruby configure</code>.</li>
-  <li>Run <code>rake</code>.</li>
-</ol>
-
-<h3 id="moving-forward">Moving Forward</h3>
-
-<p>In the near future, we will release another version of Rubinius from the
-current master branch. We hope to merge 2.0.0pre into master as soon as
-possible and continue working toward the 2.0 final release. We&rsquo;ll make that
-decision based on your reports about how the 2.0.0pre branch is working with
-existing 1.8.7 applications.</p>
-
-<p>We greatly appreciate your help polishing up the Rubinius 2.0 release! Follow
-us on <a href="http://twitter.com/rubinius">Twitter</a> for updates and stop by #rubinius
-on freenode.net to chat about anything on your mind.</p>
-
-<h3 id="rubinius-support-on-engineyard-appcloud">Rubinius Support on EngineYard AppCloud</h3>
-
-<p>Rubinius 1.2.3 is currently in beta on Engine Yard AppCloud, and we encourage
-users to <a href="http://docs.engineyard.com/rubinius.html">give it a try</a>. Engine
-Yard will support Rubinius 2.0.0 after it’s officially released.</p>
-
-<p>To learn more about Rubinius, join Engine Yard for a <a href="http://pages.engineyard.com/RubyPlatformOptionsWebinarJuly212011.html">Platform Options Webinar</a> in July.</p>
 
     </div>
   
