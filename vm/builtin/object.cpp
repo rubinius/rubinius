@@ -323,7 +323,6 @@ namespace rubinius {
 
   hashval Object::hash(STATE) {
     if(!reference_p()) {
-      return reinterpret_cast<uintptr_t>(this) & FIXNUM_MAX;
 
 #ifdef _LP64
       uintptr_t key = reinterpret_cast<uintptr_t>(this);
@@ -346,6 +345,7 @@ namespace rubinius {
       a = (a^0xb55a4f09) ^ (a>>16);
       return a & FIXNUM_MAX;
 #endif
+
     } else {
       if(String* string = try_as<String>(this)) {
         return string->hash_string(state);
