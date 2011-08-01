@@ -29,6 +29,35 @@ class Hash
     end
   end
 
+  # An external iterator that returns only entry chains from the
+  # Hash storage, never nil bins. While somewhat following the API
+  # of Enumerator, it is named Iterator because it does not provide
+  # <code>#each</code> and should not conflict with +Enumerator+ in
+  # MRI 1.8.7+. Returned by <code>Hash#to_iter</code>.
+
+  class Iterator
+    attr_reader :index
+
+    def initialize(entries, capacity)
+      @entries  = entries
+      @capacity = capacity
+      @index    = -1
+    end
+
+    # Returns the next object or +nil+.
+    def next(entry)
+      if entry and entry = entry.link
+        return entry
+      end
+
+      while (@index += 1) < @capacity
+        if entry = @entries[@index]
+          return entry
+        end
+      end
+    end
+  end
+
   # Hash methods
 
   attr_reader :size
@@ -644,6 +673,11 @@ class Hash
     end
 
     ary
+  end
+
+  # Returns an external iterator for the bins. See +Iterator+
+  def to_iter
+    Iterator.new @entries, @capacity
   end
 
   def to_hash
