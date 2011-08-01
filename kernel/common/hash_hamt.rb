@@ -17,6 +17,8 @@ class Hash
 
     def initialize
       @size = 0
+      @head = nil
+      @tail = nil
       @compare_by_identity = false
     end
 

@@ -14,6 +14,8 @@ class Hash
 
     def initialize
       @compare_by_identity = false
+      @head = nil
+      @tail = nil
     end
 
     def compare_by_identity?
