@@ -65,7 +65,6 @@ namespace rubinius {
     }
 
     Handles::~Handles() {
-      return;
       capi::Handle* handle = front();
 
       while(handle) {

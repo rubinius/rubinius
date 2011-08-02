@@ -5,6 +5,13 @@ $:.unshift File.dirname(__FILE__)
 require 'type'
 require 'dlconfig'
 
+if name = ARGV.shift
+  OUTPUT = File.open name, "wb"
+  at_exit { OUTPUT.close }
+else
+  OUTPUT = STDOUT
+end
+
 def output_arg(x,i)
   "args[#{i}].#{DLTYPE[x][:stmem]}"
 end
@@ -36,7 +43,7 @@ def output_case(types)
 <<EOF
   case #{num}:
 #ifdef DEBUG
-    printf("#{callfunc_stm}\\n");
+    OUTPUT.printf("#{callfunc_stm}\\n");
 #endif
     #{callfunc_stm};
     break;
@@ -44,7 +51,7 @@ EOF
 end
 
 def rec_output(types = [VOID])
-  print output_case(types)
+  OUTPUT.print output_case(types)
   if( types.length <= MAX_ARG )
     DLTYPE.keys.sort.each{|t|
       if( t != VOID && DLTYPE[t][:sym] )

@@ -360,7 +360,7 @@ namespace rubinius {
     }
 
     if(om->collect_mature_now) {
-      int before_kb = 0;
+      size_t before_kb = 0;
 
       if(shared.config.gc_show) {
         start_time = get_current_time();
@@ -381,8 +381,8 @@ namespace rubinius {
       if(shared.config.gc_show) {
         uint64_t fin_time = get_current_time();
         int diff = (fin_time - start_time) / 1000000;
-        int kb = om->mature_bytes_allocated() / 1024;
-        fprintf(stderr, "[Full GC %dkB => %dkB %2dms]\n",
+        size_t kb = om->mature_bytes_allocated() / 1024;
+        fprintf(stderr, "[Full GC %zukB => %zukB %2dms]\n",
             before_kb,
             kb,
             diff);

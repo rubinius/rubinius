@@ -376,4 +376,9 @@ extern "C" {
     if(RTEST(result)) return Qtrue;
     return Qfalse;
   }
+
+  int rb_obj_respond_to(VALUE obj, ID method_name, int priv) {
+    VALUE include_private = priv == 1 ? Qtrue : Qfalse;
+    return RTEST(rb_funcall(obj, rb_intern("respond_to?"), 2, ID2SYM(method_name), include_private));
+  }
 }

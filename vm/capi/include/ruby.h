@@ -1399,6 +1399,9 @@ VALUE rb_uint2big(unsigned long number);
   /** 1 if obj.respond_to? method_name evaluates true, 0 otherwise. */
   int     rb_respond_to(VALUE object, ID method_name);
 
+  /** 1 if obj.respond_to? method_name evaluates true, 0 otherwise. */
+  int     rb_obj_respond_to(VALUE obj, ID id, int priv);
+
   /** Returns the current $SAFE level. */
   int     rb_safe_level();
 

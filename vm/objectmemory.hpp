@@ -210,7 +210,7 @@ namespace rubinius {
     ObjectPosition validate_object(Object* obj);
     bool valid_young_object_p(Object* obj);
 
-    int mature_bytes_allocated();
+    size_t mature_bytes_allocated();
 
     void needs_finalization(Object* obj, FinalizerFunction func);
     void set_ruby_finalizer(Object* obj, Object* fin);

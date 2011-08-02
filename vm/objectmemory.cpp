@@ -42,7 +42,7 @@ namespace rubinius {
     : young_(new BakerGC(this, config.gc_bytes))
     , mark_sweep_(new MarkSweepGC(this, config))
     , immix_(new ImmixGC(this))
-    , inflated_headers_(new InflatedHeaders)
+    , inflated_headers_(new InflatedHeaders(state))
     , mark_(1)
     , code_manager_(&state->shared)
     , allow_gc_(true)
@@ -350,7 +350,7 @@ namespace rubinius {
     // std::cout << "Pruned " << count << " handles, " << total << "/" << handles->size() << " total.\n";
   }
 
-  int ObjectMemory::mature_bytes_allocated() {
+  size_t ObjectMemory::mature_bytes_allocated() {
     return immix_->bytes_allocated() + mark_sweep_->allocated_bytes;
   }
 

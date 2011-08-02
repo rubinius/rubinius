@@ -9,6 +9,80 @@
 
   
   <entry>
+    <title>Come hack in Amsterdam for &#35;rbxday</title>
+    <id>http://rubini.us/2011/07/31/rbxday-at-80beans/</id>
+    <link rel="alternate" type="text/html" href="http://rubini.us/2011/07/31/rbxday-at-80beans/" />
+    <updated>2011-07-31T00:00:00+00:00</updated>
+    <author>
+      <name>Dirkjan Bussink</name>
+    </author>
+    
+    <content type="html">&lt;p&gt;Not only in the US is &amp;#35;rbxday celebrated, but we have also something
+in Amsterdam next Friday. It&amp;rsquo;s really becoming the International Rubinius
+Day that it was set out to be.&lt;/p&gt;
+
+&lt;p&gt;The guys are 80beans are sponsoring the event and have graciously offered
+their office as the place to hang out and are providing refreshments. The
+office is located on the Vijzelstraat 72 in Amsterdam and we&amp;rsquo;re starting
+at 3pm.&lt;/p&gt;
+
+&lt;p&gt;If you&amp;rsquo;re living in the neighborhood, please come and join us. As long
+term Rubinius contributor Dirkjan Bussink is coming over from the other side of
+the country, so don&amp;rsquo;t feel held back when you&amp;rsquo;re not living in Amsterdam
+itself.&lt;/p&gt;
+
+&lt;p&gt;So be prepared for an afternoon of very interesting hacking. We really want
+to make it a fun afternoon of experimenting with Rubinius, so anything
+goes! Please leave a message on the 80beans blog if you&amp;rsquo;re planning to come over:&lt;/p&gt;
+
+&lt;p&gt;&lt;a href=&quot;http://www.80beans.com/en/blog/2011/07/29/rbxday-at-the-80beans-office&quot;&gt;http://www.80beans.com/en/blog/2011/07/29/rbxday-at-the-80beans-office&lt;/a&gt;&lt;/p&gt;
+
+&lt;p&gt;Hopefully see you there!&lt;/p&gt;
+
+</content>
+  </entry>
+  
+  <entry>
+    <title>Outright Hacks &#35;rbxday</title>
+    <id>http://rubini.us/2011/07/29/rbxday-at-outright/</id>
+    <link rel="alternate" type="text/html" href="http://rubini.us/2011/07/29/rbxday-at-outright/" />
+    <updated>2011-07-29T00:00:00+00:00</updated>
+    <author>
+      <name>Brian Ford</name>
+    </author>
+    
+    <content type="html">&lt;p&gt;Hey Ruby bytecode fans! The first ever &lt;strong&gt;International Rubinius Day&lt;/strong&gt; is next
+Friday, August 5th. Around the world people will be trying their code on
+Rubinius and generally having a fun time. Follow the activities on Twitter
+under the &lt;em&gt;#rbxday&lt;/em&gt; tag and use that to let folks know what you&amp;rsquo;re up to. Stay
+tuned to the &lt;a href=&quot;http://rbxday.rubini.us/&quot;&gt;rbxday website&lt;/a&gt; for details as the day
+unfolds.&lt;/p&gt;
+
+&lt;p&gt;If you are located in, around, or within traveling distance of beautiful
+Mountain View, CA, the terrific folks at &lt;a href=&quot;http://outright.com&quot;&gt;Outright.com&lt;/a&gt;
+are sponsoring a real live &lt;em&gt;#rbxday&lt;/em&gt; event! Come hang out with a bunch of
+hardcore Ruby nerds, including Brian Ford (that&amp;rsquo;s me) from the Rubinius team.
+Plan to be inspired by all the great stuff people are working on. There will
+be mountains of top-shelf Rubinius schwag, as well as &lt;em&gt;free beer and pizza&lt;/em&gt;.
+(Just don&amp;rsquo;t get too trashed as there will also be lightning talks and an IR
+helicopter obstacle course.)&lt;/p&gt;
+
+&lt;p&gt;The &lt;a href=&quot;http://rbxday.eventbrite.com/&quot;&gt;party&lt;/a&gt; will be from 1:00 pm to 8:00 pm on
+Friday August 5th at Outright&amp;rsquo;s offices in downtown Mountain View. (They have
+an application that does some seriously awesome stuff with small business
+accounting.) There are plenty of desks, monitors and whiteboards available, so
+bring your laptop and be ready to jam.&lt;/p&gt;
+
+&lt;p&gt;Space is limited, and the coolest developers in the valley are already coming,
+so if you know your stuff and want to have fun, &lt;a href=&quot;http://rbxday.eventbrite.com/&quot;&gt;rsvp
+now&lt;/a&gt;!&lt;/p&gt;
+
+&lt;p&gt;See you there!&lt;/p&gt;
+
+</content>
+  </entry>
+  
+  <entry>
     <title>rbxday</title>
     <id>http://rubini.us/2011/07/07/rbxday/</id>
     <link rel="alternate" type="text/html" href="http://rubini.us/2011/07/07/rbxday/" />
@@ -30,6 +104,8 @@
 &lt;p&gt;This is what we&amp;rsquo;re going to do about that. Everyone&amp;hellip; everyone all around the world that uses or cares about Rubinius and its progress, all of us on one day are going to run our code, collect performance data / bug reports and send them up to the Rubinius project.&lt;/p&gt;
 
 &lt;p&gt;&lt;a href=&quot;https://twitter.com/#!/search/%23rbxday&quot;&gt;#rbxday&lt;/a&gt; is a party! Take pictures of you and your buddies on the day of. If you&amp;rsquo;ve got a Rubinius t-shirt or sticker, get them in there. Tweet about it, now and on the day. Get excited. Tell your friends. Get them excited. Use the hashtag #rbxday in your tweets, blog posts and posts. We&amp;rsquo;ll repost them all on the &lt;a href=&quot;http://rbxday.rubini.us&quot;&gt;#rbxday&lt;/a&gt; site.&lt;/p&gt;
+
+&lt;p&gt;Make sure you&amp;rsquo;re looking your best in your photos because we&amp;rsquo;ll be picking a winner for our favorite &lt;a href=&quot;http://twitter.com/#!/search/%23rbxday&quot; title=&quot;#rbxday search on Twitter&quot;&gt;#rbxday&lt;/a&gt; glamourshot. Tweet them using the hashtag &lt;a href=&quot;http://twitter.com/#!/search/%23rbxday&quot; title=&quot;#rbxday search on Twitter&quot;&gt;#rbxday&lt;/a&gt; and we&amp;rsquo;ll announce the winning photo Monday, August 8, 2011 on the &lt;a href=&quot;http://facebook.com/engineyard&quot;&gt;Engine Yard Facebook page&lt;/a&gt;. We&amp;rsquo;ll have a nifty prize for the winner too, so make sure your pic is goofy, sultry, or otherwise impressive. Bonus points for creativity.&lt;/p&gt;
 
 &lt;p&gt;Get your party hats on!&lt;/p&gt;
 

@@ -28,6 +28,10 @@ describe "CApiObject" do
 
     def foo
     end
+
+    def private_foo
+    end
+    private :private_foo
   end
 
   class AryChild < Array
@@ -79,6 +83,13 @@ describe "CApiObject" do
   it "rb_respond_to should return 1 if respond_to? is true and 0 if respond_to? is false" do
     @o.rb_respond_to(ObjectTest.new, :foo).should == true
     @o.rb_respond_to(ObjectTest.new, :bar).should == false
+  end
+
+  it "rb_obj_respond_to should return true if respond_to? is true and false if respond_to? is false" do
+    @o.rb_obj_respond_to(ObjectTest.new, :foo, true).should == true
+    @o.rb_obj_respond_to(ObjectTest.new, :bar, true).should == false
+    @o.rb_obj_respond_to(ObjectTest.new, :private_foo, false).should == false
+    @o.rb_obj_respond_to(ObjectTest.new, :private_foo, true).should == true
   end
 
   it "rb_to_id should return a symbol representation of the object" do
