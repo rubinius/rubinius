@@ -605,14 +605,14 @@ namespace rubinius {
 #endif
   }
 
-  Object* System::vm_watch_signal(STATE, Fixnum* sig) {
+  Object* System::vm_watch_signal(STATE, Fixnum* sig, Object* ignored) {
     SignalHandler* h = state->shared.signal_handler();
     if(h) {
       native_int i = sig->to_native();
       if(i < 0) {
-        h->add_signal(-i, true);
+        h->add_signal(-i, SignalHandler::eDefault);
       } else {
-        h->add_signal(i);
+        h->add_signal(i, ignored == Qtrue ? SignalHandler::eIgnore : SignalHandler::eCustom);
       }
 
       return Qtrue;

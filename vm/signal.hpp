@@ -21,11 +21,17 @@ namespace rubinius {
     bool exit_;
 
   public:
+    enum HandlerType {
+      eDefault,
+      eIgnore,
+      eCustom
+    };
+
     SignalHandler(VM* vm);
 
     void perform();
 
-    void add_signal(int sig, bool def=false);
+    void add_signal(int sig, HandlerType type = eCustom);
     void handle_signal(int sig);
     static void signal_tramp(int sig);
 

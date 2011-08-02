@@ -4,9 +4,9 @@ module Rubinius
     list.map! { |x| x.to_s }
   end
 
-  def self.watch_signal(sig)
+  def self.watch_signal(sig, ignored)
     Ruby.primitive :vm_watch_signal
-    watch_signal(sig.to_signal)
+    watch_signal(sig.to_signal, ignored)
   end
 
   def self.find_method(obj, name)
