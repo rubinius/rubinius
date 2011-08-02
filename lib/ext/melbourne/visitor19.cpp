@@ -752,7 +752,12 @@ namespace melbourne {
       if(INTERNAL_ID_P(aux->nd_rest)) {
         splat = Qtrue;
       } else if(aux->nd_rest) {
-        splat = ID2SYM(aux->nd_rest);
+        if(aux->nd_rest == 1) {
+          // m { |a,| ... }
+          splat = Qfalse;
+        } else {
+          splat = ID2SYM(aux->nd_rest);
+        }
       }
       if(aux->nd_mid) block = ID2SYM(aux->nd_mid);
 
@@ -802,7 +807,7 @@ namespace melbourne {
       break;
 
     case NODE_STR:              /* u1 */
-      tree = rb_funcall(ptp, rb_sStr, 2, line, node->nd_head);
+      tree = rb_funcall(ptp, rb_sStr, 2, line, node->nd_lit);
       break;
 
     case NODE_REGEX:

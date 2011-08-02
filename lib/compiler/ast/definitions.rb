@@ -420,11 +420,15 @@ module Rubinius
           @optional = []
         end
 
-        if splat.kind_of? Symbol
+        case splat
+        when Symbol
           args << splat
-        elsif splat
+        when true
           splat = :@unnamed_splat
           args << splat
+        when false
+          # TODO
+          splat = nil
         end
 
         if post
