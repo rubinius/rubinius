@@ -163,11 +163,14 @@ class MSpecScript
                       ]
 
   # Enable language features
-  MSpec.enable_feature :fiber
-  MSpec.enable_feature :fiber_library
-  MSpec.enable_feature :fork
   MSpec.enable_feature :encoding
 
   # These are encoding-aware methods backported to 1.8.7+ (eg String#bytes)
   MSpec.enable_feature :encoding_transition
+
+  if Rubinius::Config["hash.hamt"]
+    MSpec.enable_feature :hash_hamt
+  else
+    MSpec.enable_feature :hash_bucket
+  end
 end
