@@ -161,7 +161,7 @@ namespace rubinius {
     static Fixnum* vm_memory_size(STATE, Object* obj);
 
     // Rubinius.primitive :vm_watch_signal
-    static Object*  vm_watch_signal(STATE, Fixnum* sig);
+    static Object*  vm_watch_signal(STATE, Fixnum* sig, Object* ignored);
 
     // Rubinius.primitive :vm_time
     static Object*  vm_time(STATE);

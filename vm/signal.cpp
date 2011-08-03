@@ -137,7 +137,7 @@ namespace rubinius {
     }
   }
 
-  void SignalHandler::add_signal(STATE, int sig, bool def) {
+  void SignalHandler::add_signal(STATE, int sig, HandlerType type) {
     SYNC(state);
 
 #ifndef RBX_WINDOWS
@@ -148,8 +148,10 @@ namespace rubinius {
 
     struct sigaction action;
 
-    if(def) {
+    if(type == eDefault) {
       action.sa_handler = SIG_DFL;
+    } else if(type == eIgnore) {
+      action.sa_handler = SIG_IGN;
     } else {
       action.sa_handler = signal_tramp;
     }
