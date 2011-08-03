@@ -9,6 +9,73 @@
 
   
   <entry>
+    <title>&#35;rbxday In Real Life</title>
+    <id>http://rubini.us/2011/08/03/rbxday-in-real-life/</id>
+    <link rel="alternate" type="text/html" href="http://rubini.us/2011/08/03/rbxday-in-real-life/" />
+    <updated>2011-08-03T00:00:00+00:00</updated>
+    <author>
+      <name>Brian Ford</name>
+    </author>
+    
+    <content type="html">&lt;p&gt;The first ever &lt;a href=&quot;https://twitter.com/#!/search/%23rbxday&quot;&gt;#rbxday&lt;/a&gt; is fast
+approaching on Friday, August 5th. Depending on your time zone, that is either
+tomorrow or the day after tomorrow. To help you get prepared, here are a few
+updates.&lt;/p&gt;
+
+&lt;p&gt;Originally, the idea for &lt;a href=&quot;https://twitter.com/#!/search/%23rbxday&quot;&gt;#rbxday&lt;/a&gt;
+was a day that people all around the world could have fun experimenting with
+Ruby and Rubinius. Try your application or pet Ruby project on Rubinius, or
+pull out that idea you&amp;rsquo;ve been wanting to explore, code it up, and run it on
+Rubinius. We are not asking anyone to contribute to Rubinius, but we would be
+most flattered if you wanted to dig into the Rubinius code to see what&amp;rsquo;s going
+on under the hood. To sum up, the motto of the day is &amp;ldquo;Ruby, Rubinius, Fun Fun Fun Fun&amp;rdquo;.&lt;/p&gt;
+
+&lt;p&gt;Of course, a great way to multiply fun is to share it with others. Several
+people have taken the initiative of organizing meetups on
+&lt;a href=&quot;https://twitter.com/#!/search/%23rbxday&quot;&gt;#rbxday&lt;/a&gt;:&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;&lt;strong&gt;Mountain View, CA&lt;/strong&gt;: &lt;a href=&quot;https://twitter.com/#!/bcurren&quot;&gt;@bcurren&lt;/a&gt; co-founder
+of &lt;a href=&quot;http://outright.com&quot;&gt;Outright.com&lt;/a&gt;, sign up at &lt;a href=&quot;http://rbxday.eventbrite.com/&quot;&gt;rbxday.eventbrite.com&lt;/a&gt;&lt;/li&gt;
+  &lt;li&gt;&lt;strong&gt;Amsterdam&lt;/strong&gt;: &lt;a href=&quot;http://twitter.com/dbussink&quot;&gt;@dbussink&lt;/a&gt; long time
+Rubinius contributor, event at &lt;a href=&quot;http://80beans.com/en/blog/2011/07/29/rbxday-at-the-80beans-office&quot;&gt;80beans&lt;/a&gt;&lt;/li&gt;
+  &lt;li&gt;&lt;strong&gt;Portland, OR&lt;/strong&gt;: &lt;a href=&quot;http://twitter.com/kyledrake&quot;&gt;@kyledrake&lt;/a&gt; avid
+Rubyist, event at &lt;a href=&quot;http://piepdx.com&quot;&gt;PIE&lt;/a&gt;, see &lt;a href=&quot;http://calagator.org/events/1250461183&quot;&gt;Calagator.org&lt;/a&gt; for details&lt;/li&gt;
+  &lt;li&gt;&lt;strong&gt;Barcelona&lt;/strong&gt;: &lt;a href=&quot;http://twitter.com/txustice&quot;&gt;@txustice&lt;/a&gt; inventor of &lt;a href=&quot;http://blog.txustice.me/2011/06/rexpl-interactive-bytecode-console-for-rubinius/&quot;&gt;cool Rubinius technology&lt;/a&gt;, event at &lt;a href=&quot;http://blog.codegram.com/2011/8/celebrate-rbxday-with-us-at-codegram&quot;&gt;Codegram&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;A huge thanks to everyone who has organized one of these events. They did so
+on their own initiative and show the true power of a community. If you&amp;rsquo;re near
+one of the events, please do attend. If not, &lt;em&gt;there&amp;rsquo;s still time to organize
+one near you.&lt;/em&gt;&lt;/p&gt;
+
+&lt;p&gt;If you are joining &lt;a href=&quot;http://twitter.com/#!/search/%23rbxday&quot;&gt;#rbxday&lt;/a&gt; from the
+comfort of your own home, tweet about it, include pictures, and join us in
+the #rubinius IRC channel on freenode.net. We would love to hear from you.&lt;/p&gt;
+
+&lt;p&gt;A final thought about all the ways you can help Rubinius. You don&amp;rsquo;t have to
+contribute code directly to help. Each of these activities is just as
+valuable, and if you think of any I didn&amp;rsquo;t include, please let me know:&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;Wearing your Rubinius shirt&lt;/li&gt;
+  &lt;li&gt;Talking to co-workers about Rubinius&lt;/li&gt;
+  &lt;li&gt;Asking your company to sponsor some of your time contributing to Rubinius&lt;/li&gt;
+  &lt;li&gt;Writing libraries in Ruby&lt;/li&gt;
+  &lt;li&gt;Writing blog posts or books about Ruby technology, like fully-concurrent
+threads in JRuby and Rubinius 2.0&lt;/li&gt;
+  &lt;li&gt;Talking to people about what you find painful in Ruby and how we may be able
+to improve those pain points&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;Above all, please do have fun. That&amp;rsquo;s no gimmick. The world needs more fun.&lt;/p&gt;
+
+&lt;p&gt;Put a tag on it &lt;a href=&quot;http://twitter.com/#!/search/%23rbxday&quot;&gt;#rbxday&lt;/a&gt;.&lt;/p&gt;
+
+</content>
+  </entry>
+  
+  <entry>
     <title>Come hack in Amsterdam for &#35;rbxday</title>
     <id>http://rubini.us/2011/07/31/rbxday-at-80beans/</id>
     <link rel="alternate" type="text/html" href="http://rubini.us/2011/07/31/rbxday-at-80beans/" />
