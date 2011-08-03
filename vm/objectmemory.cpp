@@ -1,5 +1,6 @@
 #include <stdlib.h>
 #include <iostream>
+#include <iomanip>
 #include <sys/time.h>
 
 #include "config.h"
@@ -593,12 +594,9 @@ step1:
         uint64_t fin_time = get_current_time();
         int diff = (fin_time - start_time) / 1000000;
 
-        fprintf(stderr, "[GC %0.1f%% %d/%d %d %2dms]\n",
-                  stats.percentage_used,
-                  stats.promoted_objects,
-                  stats.excess_objects,
-                  stats.lifetime,
-                  diff);
+        std::cerr << "[GC " << std::fixed << std::setprecision(1) << stats.percentage_used << "% "
+                  << stats.promoted_objects << "/" << stats.excess_objects << " "
+                  << stats.lifetime << " " << diff << "ms]" << std::endl;
       }
     }
 
@@ -625,7 +623,7 @@ step1:
         uint64_t fin_time = get_current_time();
         int diff = (fin_time - start_time) / 1000000;
         size_t kb = mature_bytes_allocated() / 1024;
-        std::cerr << "[Full GC " << before_kb << "kB => " << kb << "kB " << diff << "ms]\n";
+        std::cerr << "[Full GC " << before_kb << "kB => " << kb << "kB " << diff << "ms]" << std::endl;
       }
     }
 
