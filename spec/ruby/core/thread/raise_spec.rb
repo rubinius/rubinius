@@ -77,7 +77,8 @@ describe "Thread#raise on a running thread" do
   before :each do
     ScratchPad.clear
     @thr = ThreadSpecs.running_thread
-    Thread.pass while @thr.status and @thr.status != "run"
+    Thread.pass while ScratchPad.recorded != :running
+    ScratchPad.clear
   end
 
   after :each do

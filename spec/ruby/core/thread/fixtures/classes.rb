@@ -50,6 +50,7 @@ module ThreadSpecs
   def self.running_thread
     Thread.new do
       begin
+        ScratchPad.record :running
         loop {}
         ScratchPad.record :woken
       rescue Object => e
