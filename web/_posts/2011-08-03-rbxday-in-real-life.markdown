@@ -21,13 +21,29 @@ Of course, a great way to multiply fun is to share it with others. Several
 people have taken the initiative of organizing meetups on
 [#rbxday](https://twitter.com/#!/search/%23rbxday):
 
-* **Mountain View, CA**: [@bcurren](https://twitter.com/#!/bcurren) co-founder
-  of [Outright.com](http://outright.com), sign up at [rbxday.eventbrite.com](http://rbxday.eventbrite.com/)
-* **Amsterdam**: [@dbussink](http://twitter.com/dbussink) long time
-  Rubinius contributor, event at [80beans](http://80beans.com/en/blog/2011/07/29/rbxday-at-the-80beans-office)
-* **Portland, OR**: [@kyledrake](http://twitter.com/kyledrake) avid
-  Rubyist, event at [PIE](http://piepdx.com), see [Calagator.org](http://calagator.org/events/1250461183) for details
-* **Barcelona**: [@txustice](http://twitter.com/txustice) inventor of [cool Rubinius technology](http://blog.txustice.me/2011/06/rexpl-interactive-bytecode-console-for-rubinius/), event at [Codegram](http://blog.codegram.com/2011/8/celebrate-rbxday-with-us-at-codegram)
+* **San Francisco, CA, USA**: [Melissa Sheehan - @engineyard](http://twitter.com/engineyard)
+  of [Engine Yard](http://engineyard.com)
+
+* **Mountain View, CA, USA**: [Ben Curren - @bcurren](http://twitter.com/bcurren) co-founder
+  of [Outright.com](http://outright.com),
+  sign up at [rbxday.eventbrite.com](http://rbxday.eventbrite.com/)
+
+* **Los Angeles, CA, USA**: [Shane Becker - @veganstraightedge](http://twitter.com/veganstraightedge)
+  Open Source Cheerleader at [Engine Yard](http://engineyard.com)
+  for [Rubinius](http://rubini.us), 10am - 8pm at
+  [the Farmhouse](http://farmhouse.la)
+
+* **Portland, OR, USA**: [Kyle Drake - @kyledrake](http://twitter.com/kyledrake)
+  avid Rubyist, event at [PIE](http://piepdx.com), see
+  [Calagator.org](http://calagator.org/events/1250461183) for details
+
+* **Amsterdam, Netherlands**: [Dirkjan Bussink - @dbussink](http://twitter.com/dbussink)
+  long time Rubinius contributor, event at
+  [80beans](http://80beans.com/en/blog/2011/07/29/rbxday-at-the-80beans-office)
+
+* **Barcelona, Spain**: [Josep M. Bach - @txustice](http://twitter.com/txustice) inventor of
+  [cool Rubinius technology](http://blog.txustice.me/2011/06/rexpl-interactive-bytecode-console-for-rubinius),
+  event at [Codegram](http://blog.codegram.com/2011/8/celebrate-rbxday-with-us-at-codegram)
 
 A huge thanks to everyone who has organized one of these events. They did so
 on their own initiative and show the true power of a community. If you're near
@@ -36,7 +52,8 @@ one near you.*
 
 If you are joining [#rbxday](http://twitter.com/#!/search/%23rbxday) from the
 comfort of your own home, tweet about it, include pictures, and join us in
-the \#rubinius IRC channel on freenode.net. We would love to hear from you.
+the [\#rubinius](irc://irc.freenode.net#rubinius) IRC channel on freenode.net.
+We would love to hear from you.
 
 A final thought about all the ways you can help Rubinius. You don't have to
 contribute code directly to help. Each of these activities is just as
@@ -50,8 +67,8 @@ valuable, and if you think of any I didn't include, please let me know:
   threads in JRuby and Rubinius 2.0
 * Talking to people about what you find painful in Ruby and how we may be able
   to improve those pain points
+* Testing your code on Rubinius and submitting bug/performance reports
 
 Above all, please do have fun. That's no gimmick. The world needs more fun.
 
 Put a tag on it [#rbxday](http://twitter.com/#!/search/%23rbxday).
-

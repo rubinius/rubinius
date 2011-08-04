@@ -35,13 +35,36 @@ people have taken the initiative of organizing meetups on
 &lt;a href=&quot;https://twitter.com/#!/search/%23rbxday&quot;&gt;#rbxday&lt;/a&gt;:&lt;/p&gt;
 
 &lt;ul&gt;
-  &lt;li&gt;&lt;strong&gt;Mountain View, CA&lt;/strong&gt;: &lt;a href=&quot;https://twitter.com/#!/bcurren&quot;&gt;@bcurren&lt;/a&gt; co-founder
-of &lt;a href=&quot;http://outright.com&quot;&gt;Outright.com&lt;/a&gt;, sign up at &lt;a href=&quot;http://rbxday.eventbrite.com/&quot;&gt;rbxday.eventbrite.com&lt;/a&gt;&lt;/li&gt;
-  &lt;li&gt;&lt;strong&gt;Amsterdam&lt;/strong&gt;: &lt;a href=&quot;http://twitter.com/dbussink&quot;&gt;@dbussink&lt;/a&gt; long time
-Rubinius contributor, event at &lt;a href=&quot;http://80beans.com/en/blog/2011/07/29/rbxday-at-the-80beans-office&quot;&gt;80beans&lt;/a&gt;&lt;/li&gt;
-  &lt;li&gt;&lt;strong&gt;Portland, OR&lt;/strong&gt;: &lt;a href=&quot;http://twitter.com/kyledrake&quot;&gt;@kyledrake&lt;/a&gt; avid
-Rubyist, event at &lt;a href=&quot;http://piepdx.com&quot;&gt;PIE&lt;/a&gt;, see &lt;a href=&quot;http://calagator.org/events/1250461183&quot;&gt;Calagator.org&lt;/a&gt; for details&lt;/li&gt;
-  &lt;li&gt;&lt;strong&gt;Barcelona&lt;/strong&gt;: &lt;a href=&quot;http://twitter.com/txustice&quot;&gt;@txustice&lt;/a&gt; inventor of &lt;a href=&quot;http://blog.txustice.me/2011/06/rexpl-interactive-bytecode-console-for-rubinius/&quot;&gt;cool Rubinius technology&lt;/a&gt;, event at &lt;a href=&quot;http://blog.codegram.com/2011/8/celebrate-rbxday-with-us-at-codegram&quot;&gt;Codegram&lt;/a&gt;&lt;/li&gt;
+  &lt;li&gt;
+    &lt;p&gt;&lt;strong&gt;San Francisco, CA, USA&lt;/strong&gt;: &lt;a href=&quot;http://twitter.com/engineyard&quot;&gt;Melissa Sheehan - @engineyard&lt;/a&gt;
+of &lt;a href=&quot;http://engineyard.com&quot;&gt;Engine Yard&lt;/a&gt;&lt;/p&gt;
+  &lt;/li&gt;
+  &lt;li&gt;
+    &lt;p&gt;&lt;strong&gt;Mountain View, CA, USA&lt;/strong&gt;: &lt;a href=&quot;http://twitter.com/bcurren&quot;&gt;Ben Curren - @bcurren&lt;/a&gt; co-founder
+of &lt;a href=&quot;http://outright.com&quot;&gt;Outright.com&lt;/a&gt;,
+sign up at &lt;a href=&quot;http://rbxday.eventbrite.com/&quot;&gt;rbxday.eventbrite.com&lt;/a&gt;&lt;/p&gt;
+  &lt;/li&gt;
+  &lt;li&gt;
+    &lt;p&gt;&lt;strong&gt;Los Angeles, CA, USA&lt;/strong&gt;: &lt;a href=&quot;http://twitter.com/veganstraightedge&quot;&gt;Shane Becker - @veganstraightedge&lt;/a&gt;
+Open Source Cheerleader at &lt;a href=&quot;http://engineyard.com&quot;&gt;Engine Yard&lt;/a&gt;
+for &lt;a href=&quot;http://rubini.us&quot;&gt;Rubinius&lt;/a&gt;, 10am - 8pm at
+&lt;a href=&quot;http://farmhouse.la&quot;&gt;the Farmhouse&lt;/a&gt;&lt;/p&gt;
+  &lt;/li&gt;
+  &lt;li&gt;
+    &lt;p&gt;&lt;strong&gt;Portland, OR, USA&lt;/strong&gt;: &lt;a href=&quot;http://twitter.com/kyledrake&quot;&gt;Kyle Drake - @kyledrake&lt;/a&gt;
+avid Rubyist, event at &lt;a href=&quot;http://piepdx.com&quot;&gt;PIE&lt;/a&gt;, see
+&lt;a href=&quot;http://calagator.org/events/1250461183&quot;&gt;Calagator.org&lt;/a&gt; for details&lt;/p&gt;
+  &lt;/li&gt;
+  &lt;li&gt;
+    &lt;p&gt;&lt;strong&gt;Amsterdam, Netherlands&lt;/strong&gt;: &lt;a href=&quot;http://twitter.com/dbussink&quot;&gt;Dirkjan Bussink - @dbussink&lt;/a&gt;
+long time Rubinius contributor, event at
+&lt;a href=&quot;http://80beans.com/en/blog/2011/07/29/rbxday-at-the-80beans-office&quot;&gt;80beans&lt;/a&gt;&lt;/p&gt;
+  &lt;/li&gt;
+  &lt;li&gt;
+    &lt;p&gt;&lt;strong&gt;Barcelona, Spain&lt;/strong&gt;: &lt;a href=&quot;http://twitter.com/txustice&quot;&gt;Josep M. Bach - @txustice&lt;/a&gt; inventor of
+&lt;a href=&quot;http://blog.txustice.me/2011/06/rexpl-interactive-bytecode-console-for-rubinius&quot;&gt;cool Rubinius technology&lt;/a&gt;,
+event at &lt;a href=&quot;http://blog.codegram.com/2011/8/celebrate-rbxday-with-us-at-codegram&quot;&gt;Codegram&lt;/a&gt;&lt;/p&gt;
+  &lt;/li&gt;
 &lt;/ul&gt;
 
 &lt;p&gt;A huge thanks to everyone who has organized one of these events. They did so
@@ -51,7 +74,8 @@ one near you.&lt;/em&gt;&lt;/p&gt;
 
 &lt;p&gt;If you are joining &lt;a href=&quot;http://twitter.com/#!/search/%23rbxday&quot;&gt;#rbxday&lt;/a&gt; from the
 comfort of your own home, tweet about it, include pictures, and join us in
-the #rubinius IRC channel on freenode.net. We would love to hear from you.&lt;/p&gt;
+the &lt;a href=&quot;irc://irc.freenode.net#rubinius&quot;&gt;#rubinius&lt;/a&gt; IRC channel on freenode.net.
+We would love to hear from you.&lt;/p&gt;
 
 &lt;p&gt;A final thought about all the ways you can help Rubinius. You don&amp;rsquo;t have to
 contribute code directly to help. Each of these activities is just as
@@ -66,12 +90,12 @@ valuable, and if you think of any I didn&amp;rsquo;t include, please let me know
 threads in JRuby and Rubinius 2.0&lt;/li&gt;
   &lt;li&gt;Talking to people about what you find painful in Ruby and how we may be able
 to improve those pain points&lt;/li&gt;
+  &lt;li&gt;Testing your code on Rubinius and submitting bug/performance reports&lt;/li&gt;
 &lt;/ul&gt;
 
 &lt;p&gt;Above all, please do have fun. That&amp;rsquo;s no gimmick. The world needs more fun.&lt;/p&gt;
 
 &lt;p&gt;Put a tag on it &lt;a href=&quot;http://twitter.com/#!/search/%23rbxday&quot;&gt;#rbxday&lt;/a&gt;.&lt;/p&gt;
-
 </content>
   </entry>
   
