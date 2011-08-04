@@ -6719,16 +6719,12 @@ parser_local_tbl(rb_parser_state* parser_state)
   return buf;
 }
 
-#if !defined(HAVE_RUBY_ENCODING_H) || defined(RUBINIUS)
-
-#ifndef HAVE_RUBY_ENCODING_H
 VALUE
 rb_symbol_new(const char* name, long len, rb_encoding* enc)
 {
   VALUE str = rb_str_new(name, len);
   return rb_funcall(str, rb_intern("to_sym"), 0);
 }
-#endif
 
 ID
 parser_intern3(const char* name, long len, rb_encoding* enc)
@@ -6802,7 +6798,6 @@ parser_id2name(ID id)
   VALUE str = rb_funcall(ID2SYM(id), rb_intern("to_s"), 0);
   return RSTRING_PTR(str);
 }
-#endif  // !defined(HAVE_RUBY_ENCODING_H) || defined(RUBINIUS)
 
 static int
 scan_oct(const char *start, size_t len, size_t *retlen)

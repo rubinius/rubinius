@@ -210,24 +210,6 @@ typedef VALUE stack_type;
 #undef ID_JUNK
 #undef ID_INTERNAL
 
-#if defined(HAVE_RUBY_ENCODING_H) && !defined(RUBINIUS)
-#define ID_SCOPE_SHIFT 3
-#define ID_SCOPE_MASK 0x07
-#define ID_LOCAL      0x00
-#define ID_INSTANCE   0x01
-#define ID_GLOBAL     0x03
-#define ID_ATTRSET    0x04
-#define ID_CONST      0x05
-#define ID_CLASS      0x06
-#define ID_JUNK       0x07
-#define ID_INTERNAL   ID_JUNK
-
-#define parser_intern     rb_intern
-#define parser_intern2    rb_intern2
-#define parser_intern3    rb_intern3
-#define parser_intern_str rb_intern_str
-#define parser_id2name    rb_id2name
-#else
     ID parser_intern(const char*);
     ID parser_intern2(const char*, long);
     ID parser_intern3(const char*, long, rb_encoding*);
@@ -258,8 +240,6 @@ typedef VALUE stack_type;
 #else
 #define SYMBOL_FLAG     0xe
 #define ID2SYM(id)  ((VALUE)(((long)(id >> ID_SCOPE_SHIFT))<<8|SYMBOL_FLAG))
-#endif
-
 #endif
 
 #define INTERNAL_ID_P(a)  ((a & ID_INTERNAL) == ID_INTERNAL)
