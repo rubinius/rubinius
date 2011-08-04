@@ -30,7 +30,7 @@ extern "C" int pthread_setname_np(const char*);
 namespace thread {
 
   static inline void fail(const char* str) {
-    printf("ABORTING: %s\n", str);
+    std::cerr << "ABORTING: " << str << std::endl;
     abort();
   }
 

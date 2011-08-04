@@ -66,9 +66,8 @@ namespace rubinius {
         FILE* f = fdopen(fd, flags_modestr(io_obj->mode()->to_native()));
 
         if(!f) {
-          fprintf(stderr, "Error convert fd (%d) to lowlevel IO: %s (%d)",
-              fd, strerror(errno), errno);
-
+          std::cerr << "Error convert fd (" << fd << ") to lowlevel IO: "
+                    << strerror(errno) << " (" << errno << ")" << std::endl;
           rb_raise(rb_eTypeError,
               "unable to convert fd (%d) to lowlevel IO: %s (%d)",
               fd, strerror(errno), errno);

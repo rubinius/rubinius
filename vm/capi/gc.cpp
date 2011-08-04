@@ -70,7 +70,7 @@ extern "C" {
   void rb_memerror() {
     // MRI raises a NoMemError here, but we're going to just
     // print out and error and exit.
-    fprintf(stderr, "[FATAL] Out of memory. Game Over.\n");
+    std::cerr << "[FATAL] Out of memory. Game Over." << std::endl;
     exit(EXIT_FAILURE);
   }
 }

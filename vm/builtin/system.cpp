@@ -310,7 +310,7 @@ namespace rubinius {
       }
 
       // bad news, shouldn't be here.
-      printf("Exec failed: %s\n", strerror(errno));
+      std::cerr << "execvp failed: " << strerror(errno) << std::endl;
       exit(1);
     }
 
@@ -1289,7 +1289,7 @@ namespace rubinius {
 
     if(obj->unlock(state) == eUnlocked) return Qnil;
     if(cDebugThreading) {
-      std::cerr << "[LOCK " << state->thread_id() << " unlock failed]\n";
+      std::cerr << "[LOCK " << state->thread_id() << " unlock failed]" << std::endl;
     }
     return Primitives::failure();
   }

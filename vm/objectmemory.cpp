@@ -189,7 +189,7 @@ step1:
         if(new_val.f.meaning != eAuxWordLock) {
           if(cDebugThreading) {
             std::cerr << "[LOCK " << state->thread_id()
-              << " contend_for_lock error: not thin locked.]\n";
+              << " contend_for_lock error: not thin locked.]" << std::endl;
           }
           *error = true;
           return eLockError;
@@ -204,7 +204,7 @@ step1:
       // for the us to be told to retry.
 
       if(cDebugThreading) {
-        std::cerr << "[LOCK " << state->thread_id() << " waiting on contention]\n";
+        std::cerr << "[LOCK " << state->thread_id() << " waiting on contention]" << std::endl;
       }
 
       if(us > 0) {
@@ -229,7 +229,7 @@ step1:
         }
 
         if(cDebugThreading) {
-          std::cerr << "[LOCK " << state->thread_id() << " notified of contention breakage]\n";
+          std::cerr << "[LOCK " << state->thread_id() << " notified of contention breakage]" << std::endl;
         }
 
         // Someone is interrupting us trying to lock.
@@ -238,7 +238,7 @@ step1:
 
           if(!state->interrupted_exception()->nil_p()) {
             if(cDebugThreading) {
-              std::cerr << "[LOCK " << state->thread_id() << " detected interrupt]\n";
+              std::cerr << "[LOCK " << state->thread_id() << " detected interrupt]" << std::endl;
             }
 
             state->clear_sleeping();
@@ -250,12 +250,12 @@ step1:
       state->clear_sleeping();
 
       if(cDebugThreading) {
-        std::cerr << "[LOCK " << state->thread_id() << " contention broken]\n";
+        std::cerr << "[LOCK " << state->thread_id() << " contention broken]" << std::endl;
       }
 
       if(timeout) {
         if(cDebugThreading) {
-          std::cerr << "[LOCK " << state->thread_id() << " contention timed out]\n";
+          std::cerr << "[LOCK " << state->thread_id() << " contention timed out]" << std::endl;
         }
 
         return eLockTimeout;
@@ -334,7 +334,7 @@ step1:
       orig = obj->header;
       if(orig.f.meaning != tmp.f.meaning) {
         if(cDebugThreading) {
-          std::cerr << "[LOCK object header consistence error detected.]\n";
+          std::cerr << "[LOCK object header consistence error detected.]" << std::endl;
         }
         return false;
       }
@@ -369,12 +369,12 @@ step1:
         // We have to be locking the object to inflate it, thats the law.
         if(new_val.f.aux_word >> cAuxLockTIDShift != state->thread_id()) {
           if(cDebugThreading) {
-            std::cerr << "[LOCK " << state->thread_id() << " object locked by another thread while inflating for contention]\n";
+            std::cerr << "[LOCK " << state->thread_id() << " object locked by another thread while inflating for contention]" << std::endl;
           }
           return false;
         }
         if(cDebugThreading) {
-          std::cerr << "[LOCK " << state->thread_id() << " being unlocked and inflated atomicly]\n";
+          std::cerr << "[LOCK " << state->thread_id() << " being unlocked and inflated atomicly]" << std::endl;
         }
 
         ih = inflated_headers_->allocate(obj);
@@ -383,7 +383,7 @@ step1:
         break;
       case eAuxWordInflated:
         if(cDebugThreading) {
-          std::cerr << "[LOCK " << state->thread_id() << " asked to inflated already inflated lock]\n";
+          std::cerr << "[LOCK " << state->thread_id() << " asked to inflated already inflated lock]" << std::endl;
         }
         return false;
       }
@@ -397,7 +397,7 @@ step1:
       if(!obj->header.atomic_set(orig, new_val)) continue;
 
       if(cDebugThreading) {
-        std::cerr << "[LOCK " << state->thread_id() << " inflated lock for contention.]\n";
+        std::cerr << "[LOCK " << state->thread_id() << " inflated lock for contention.]" << std::endl;
       }
 
       // Now inflated but not locked, which is what we want.
@@ -500,7 +500,7 @@ step1:
     }
 
     if(cDebugThreading) {
-      std::cerr << "\n[ " << state << " WORLD beginning GC.]\n";
+      std::cerr << std::endl << "[ " << state << " WORLD beginning GC.]" << std::endl;
     }
 
     // Stops all other threads, so we're only here by ourselves.
@@ -551,7 +551,7 @@ step1:
     }
 
     if(cDebugThreading) {
-      std::cerr << "\n[" << state << " WORLD beginning GC.]\n";
+      std::cerr << std::endl << "[" << state << " WORLD beginning GC.]" << std::endl;
     }
 
     // Stops all other threads, so we're only here by ourselves.
@@ -1154,7 +1154,7 @@ step1:
         }
       } else {
         std::cerr << "Unsupported object to be finalized: "
-                  << fi->object->to_s(state)->c_str(state) << "\n";
+                  << fi->object->to_s(state)->c_str(state) << std::endl;
       }
 
       fi->status = FinalizeObject::eFinalized;
@@ -1207,7 +1207,7 @@ step1:
         }
       } else {
         std::cerr << "Unsupported object to be finalized: "
-                  << fi->object->to_s(state)->c_str(state) << "\n";
+                  << fi->object->to_s(state)->c_str(state) << std::endl;
       }
 
       fi->status = FinalizeObject::eFinalized;
@@ -1249,7 +1249,7 @@ step1:
           }
         } else {
           std::cerr << "During shutdown, unsupported object to be finalized: "
-                    << fi.object->to_s(state)->c_str(state) << "\n";
+                    << fi.object->to_s(state)->c_str(state) << std::endl;
         }
       }
 
@@ -1294,7 +1294,7 @@ step1:
           }
         } else {
           std::cerr << "During shutdown, unsupported object to be finalized: "
-                    << fi.object->to_s(state)->c_str(state) << "\n";
+                    << fi.object->to_s(state)->c_str(state) << std::endl;
         }
       }
 
