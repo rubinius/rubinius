@@ -4,7 +4,12 @@ title: &#35;rbxday In Real Life
 author: Brian Ford
 ---
 
-The first ever [#rbxday](https://twitter.com/#!/search/%23rbxday) is fast
+**UPDATE:** _We have added several locations since this post was first
+published. See the list below for all the current details. Also, stay tuned to
+the official [rbxday.rubini.us](http://rbxday.rubini.us) website for updates
+throughout_ [#rbxday](https://twitter.com/#!/search/%23rbxday).
+
+**The first ever** [#rbxday](https://twitter.com/#!/search/%23rbxday) is fast
 approaching on Friday, August 5th. Depending on your time zone, that is either
 tomorrow or the day after tomorrow. To help you get prepared, here are a few
 updates.
@@ -44,6 +49,9 @@ people have taken the initiative of organizing meetups on
 * **Barcelona, Spain**: [Josep M. Bach - @txustice](http://twitter.com/txustice) inventor of
   [cool Rubinius technology](http://blog.txustice.me/2011/06/rexpl-interactive-bytecode-console-for-rubinius),
   event at [Codegram](http://blog.codegram.com/2011/8/celebrate-rbxday-with-us-at-codegram)
+
+* **Montevideo, Uruguay**: [Santiago Pastorino - @spastorino](http://twitter.com/spastorino)
+  co-founder of [@wyeworks](http://twitter.com/wyeworks), event at the [WyeWorks office](http://www.wyeworks.com/)
 
 A huge thanks to everyone who has organized one of these events. They did so
 on their own initiative and show the true power of a community. If you're near
