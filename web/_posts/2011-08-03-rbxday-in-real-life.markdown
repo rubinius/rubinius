@@ -59,12 +59,12 @@ A final thought about all the ways you can help Rubinius. You don't have to
 contribute code directly to help. Each of these activities is just as
 valuable, and if you think of any I didn't include, please let me know:
 
-* Wearing your Rubinius shirt
+* Wearing your [Rubinius shirt](http://rubini.us/2011/05/26/rubinius-rewards)
 * Talking to co-workers about Rubinius
 * Asking your company to sponsor some of your time contributing to Rubinius
 * Writing libraries in Ruby
 * Writing blog posts or books about Ruby technology, like fully-concurrent
-  threads in JRuby and Rubinius 2.0
+  threads in [JRuby](http://jruby.org) and Rubinius 2.0
 * Talking to people about what you find painful in Ruby and how we may be able
   to improve those pain points
 * Testing your code on Rubinius and submitting bug/performance reports
