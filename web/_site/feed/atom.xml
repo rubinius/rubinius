@@ -82,12 +82,12 @@ contribute code directly to help. Each of these activities is just as
 valuable, and if you think of any I didn&amp;rsquo;t include, please let me know:&lt;/p&gt;
 
 &lt;ul&gt;
-  &lt;li&gt;Wearing your Rubinius shirt&lt;/li&gt;
+  &lt;li&gt;Wearing your &lt;a href=&quot;http://rubini.us/2011/05/26/rubinius-rewards&quot;&gt;Rubinius shirt&lt;/a&gt;&lt;/li&gt;
   &lt;li&gt;Talking to co-workers about Rubinius&lt;/li&gt;
   &lt;li&gt;Asking your company to sponsor some of your time contributing to Rubinius&lt;/li&gt;
   &lt;li&gt;Writing libraries in Ruby&lt;/li&gt;
   &lt;li&gt;Writing blog posts or books about Ruby technology, like fully-concurrent
-threads in JRuby and Rubinius 2.0&lt;/li&gt;
+threads in &lt;a href=&quot;http://jruby.org&quot;&gt;JRuby&lt;/a&gt; and Rubinius 2.0&lt;/li&gt;
   &lt;li&gt;Talking to people about what you find painful in Ruby and how we may be able
 to improve those pain points&lt;/li&gt;
   &lt;li&gt;Testing your code on Rubinius and submitting bug/performance reports&lt;/li&gt;
