@@ -7,6 +7,7 @@
 #include "builtin/symbol.hpp"
 #include "builtin/float.hpp"
 #include "builtin/channel.hpp"
+#include "builtin/location.hpp"
 
 #include "objectmemory.hpp"
 #include "arguments.hpp"
@@ -124,6 +125,15 @@ namespace rubinius {
     VariableScope* scope = cf->promote_scope(state);
 
     return Tuple::from(state, 3, Fixnum::from(cf->ip()), cf->cm, scope);
+  }
+
+  Array* Thread::mri_backtrace(STATE) {
+    if(!native_thread_) return nil<Array>();
+
+    VM* vm = native_thread_->vm();
+    CallFrame* call_frame = vm->saved_call_frame()->top_ruby_frame();
+
+    return Location::mri_backtrace(state, call_frame);
   }
 
   void Thread::detach_native_thread() {
