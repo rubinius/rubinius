@@ -27,7 +27,7 @@ people have taken the initiative of organizing meetups on
 [#rbxday](https://twitter.com/#!/search/%23rbxday):
 
 * **San Francisco, CA, USA**: [Melissa Sheehan - @engineyard](http://twitter.com/engineyard)
-  of [Engine Yard](http://engineyard.com)
+  of [Engine Yard](http://engineyard.com), sign up at [rbxdaysf.eventbrite.com](http://rbxdaysf.eventbrite.com/)
 
 * **Mountain View, CA, USA**: [Ben Curren - @bcurren](http://twitter.com/bcurren) co-founder
   of [Outright.com](http://outright.com),
