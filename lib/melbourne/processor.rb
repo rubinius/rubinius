@@ -95,6 +95,7 @@ module Rubinius
       end
 
       if node = process_transforms(line, receiver, name, arguments)
+        node.block = block if block
         return node
       end
 
@@ -220,6 +221,7 @@ module Rubinius
       end
 
       if node = process_transforms(line, receiver, name, arguments, true)
+        node.block = block if block
         return node
       end
 
