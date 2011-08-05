@@ -323,6 +323,13 @@ static VALUE object_spec_rb_equal(VALUE self, VALUE a, VALUE b) {
 }
 #endif
 
+#ifdef HAVE_RB_CLASS_INHERITED_P
+static VALUE object_spec_rb_class_inherited_p(VALUE self, VALUE mod, VALUE arg) {
+  return rb_class_inherited_p(mod, arg);
+}
+#endif
+
+
 void Init_object_spec() {
   VALUE cls;
   cls = rb_define_class("CApiObjectSpecs", rb_cObject);
@@ -469,6 +476,10 @@ void Init_object_spec() {
 
 #ifdef HAVE_RB_EQUAL
   rb_define_method(cls, "rb_equal", object_spec_rb_equal, 2);
+#endif
+
+#ifdef HAVE_RB_CLASS_INHERITED_P
+  rb_define_method(cls, "rb_class_inherited_p", object_spec_rb_class_inherited_p, 2);
 #endif
 
 #ifdef HAVE_RB_OBJ_INSTANCE_EVAL
