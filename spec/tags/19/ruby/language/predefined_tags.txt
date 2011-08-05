@@ -4,3 +4,4 @@ fails:Execution variable $: does not include '.' when the taint check level > 1
 fails:Global variable $-a is read-only
 fails:Global variable $-l is read-only
 fails:Global variable $-p is read-only
+fails:Processing RUBYOPT prints the version number for '-v'

@@ -1,0 +1,1 @@
+fails:String#index with Regexp supports \G which matches at the given start offset

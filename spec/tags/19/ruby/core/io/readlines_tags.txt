@@ -16,3 +16,4 @@ fails:IO#readlines when passed a string that starts with a | gets data from the 
 fails:IO#readlines when passed a string that starts with a | gets data from a fork when passed -
 fails:IO#readlines raises an IOError if the stream is opened for append only
 fails:IO#readlines raises an IOError if the stream is opened for write only
+fails:IO.readlines when passed an empty String as a separator returns an Array containing all paragraphs

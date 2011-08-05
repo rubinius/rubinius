@@ -1,2 +1,6 @@
 fails:File.expand_path accepts objects that have a #to_path method
 fails:File.expand_path produces a String in the default external encoding
+fails:File.expand_path expand_path for commoms unix path  give a full path
+fails:File.expand_path expands ~ENV['USER'] to the user's home directory
+fails:File.expand_path expands ../foo with ~/dir as base dir to /path/to/user/home/foo
+fails:File.expand_path does not modify a HOME string argument

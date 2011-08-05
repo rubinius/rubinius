@@ -363,3 +363,27 @@ fails:Array#pack with '@' returns a String in ASCII 8-bit
 fails:Array#pack with '@' doesn't care even if breaks a character
 fails:Array#pack with format 'x' returns an US-ASCII string
 fails:String#unpack with 'w' directive produces a BER-compressed integer
+fails:Array#pack with format 'n' does not raise a RangeError even when a pack argument is >= 2**64
+fails:Array#pack with format 'n' does not raise a RangeError even when a pack argument is <= -2**64
+fails:Array#pack with format 'v' does not raise a RangeError even when a pack argument is >= 2**64
+fails:Array#pack with format 'v' does not raise a RangeError even when a pack argument is <= -2**64
+fails:Array#pack with format 's' does not raise a RangeError even when a pack argument is >= 2**64
+fails:Array#pack with format 's' does not raise a RangeError even when a pack argument is <= -2**64
+fails:Array#pack with format 'S' does not raise a RangeError even when a pack argument is >= 2**64
+fails:Array#pack with format 'S' does not raise a RangeError even when a pack argument is <= -2**64
+fails:Array#pack with format 's!' does not raise a RangeError even when a pack argument is >= 2**64
+fails:Array#pack with format 's!' does not raise a RangeError even when a pack argument is <= -2**64
+fails:Array#pack with format 's_' does not raise a RangeError even when a pack argument is >= 2**64
+fails:Array#pack with format 's_' does not raise a RangeError even when a pack argument is <= -2**64
+fails:Array#pack with format 'S!' does not raise a RangeError even when a pack argument is >= 2**64
+fails:Array#pack with format 'S!' does not raise a RangeError even when a pack argument is <= -2**64
+fails:Array#pack with format 'S_' does not raise a RangeError even when a pack argument is >= 2**64
+fails:Array#pack with format 'S_' does not raise a RangeError even when a pack argument is <= -2**64
+fails:Array#pack with format 'l!' drops higher bytes when a pack argument is >= 2**64
+fails:Array#pack with format 'l!' drops higher bytes when a pack argument is < -2**64
+fails:Array#pack with format 'l_' drops higher bytes when a pack argument is >= 2**64
+fails:Array#pack with format 'l_' drops higher bytes when a pack argument is < -2**64
+fails:Array#pack with format 'L!' drops higher bytes when a pack argument is >= 2**64
+fails:Array#pack with format 'L!' drops higher bytes when a pack argument is < -2**64
+fails:Array#pack with format 'L_' drops higher bytes when a pack argument is >= 2**64
+fails:Array#pack with format 'L_' drops higher bytes when a pack argument is < -2**64

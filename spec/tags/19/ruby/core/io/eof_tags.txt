@@ -10,3 +10,4 @@ fails:IO#eof? raises IOError on stream closed for reading by close_read
 fails:IO#eof? returns true on one-byte stream after single-byte read
 fails:IO#eof? returns true on receiving side of Pipe when writing side is closed
 fails:IO#eof? returns false on receiving side of Pipe when writing side wrote some data
+fails:IO#eof? does not consume the data from the stream

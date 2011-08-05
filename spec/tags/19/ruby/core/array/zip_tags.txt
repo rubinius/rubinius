@@ -1,0 +1,1 @@
+fails:Array#zip uses #each to extract arguments' elements when #to_ary fails

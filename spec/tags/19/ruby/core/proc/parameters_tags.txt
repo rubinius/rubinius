@@ -1,0 +1,3 @@
+fails:Proc#parameters sets the first element of each sub-Array to :opt for optional arguments
+fails:Proc#parameters regards named parameters in procs as optional
+fails:Proc#parameters adds nameless rest arg for "star" argument

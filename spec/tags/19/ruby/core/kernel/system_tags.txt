@@ -1,2 +1,3 @@
 fails:Kernel#system returns nil when command execution fails
 fails:Kernel#system is a private method
+fails:Kernel#system does not write to stderr when it can't find a command

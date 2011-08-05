@@ -1,0 +1,6 @@
+fails:Dir.[] calls #to_path to convert patterns
+fails:Dir.[] matches a set '{<string>,<other>,...}' which also uses a glob
+fails:Dir.[] matches dot or non-dotfiles with '{,.}*'
+fails:Dir.[] respects the order of {} expressions, expanding left most first
+fails:Dir.[] respects the optional nested {} expressions
+fails:Dir.[] recursively matches directories with '**/<characters>'

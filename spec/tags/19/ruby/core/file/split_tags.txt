@@ -1,1 +1,2 @@
 fails:File.split accepts an object that has a #to_path method
+fails:File.split collapses multiple '/' characters and strips trailing ones

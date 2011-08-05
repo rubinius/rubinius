@@ -3,3 +3,12 @@ fails:IO#putc writes the first byte of a String
 fails:IO#putc calls #to_int on a non-Integer and writes the first byte of the value
 fails:IO#putc writes a Numeric that fits in a byte
 fails:IO#putc write the first byte of a Numeric that does not fit in a byte
+fails:IO#putc calls #to_int to convert an object to a Integer
+fails:IO#putc raises IOError on a closed stream
+fails:IO#putc raises an TypeError when passed nil
+fails:IO#putc raises an TypeError when passed false
+fails:IO#putc raises an TypeError when passed true
+fails:IO#putc with a Fixnum argument writes one character as a String
+fails:IO#putc with a Fixnum argument writes the low byte as a String
+fails:IO#putc with a String argument writes one character
+fails:IO#putc with a String argument writes the first character

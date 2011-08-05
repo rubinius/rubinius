@@ -1,0 +1,1 @@
+fails:ARGF.readline reads all lines of stdin

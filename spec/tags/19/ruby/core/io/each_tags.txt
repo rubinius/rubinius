@@ -10,3 +10,5 @@ fails:IO#each when passed a String containing one space as a separator tries to 
 fails:IO#each when passed nil as a separator yields self's content starting from the current position when the passed separator is nil
 fails:IO#each when passed an empty String as a separator yields each paragraph
 fails:IO#each uses $/ as the default line separator
+fails:IO#each with no separator makes line count accessible via lineno
+fails:IO#each with no separator makes line count accessible via $.

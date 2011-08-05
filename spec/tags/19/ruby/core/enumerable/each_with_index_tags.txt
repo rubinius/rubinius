@@ -1,1 +1,2 @@
 fails:Enumerable#each_with_index returns an enumerator if no block
+fails:Enumerable#each_with_index passes extra parameters to each

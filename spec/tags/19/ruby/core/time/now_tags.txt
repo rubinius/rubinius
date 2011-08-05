@@ -1,0 +1,1 @@
+fails:Time.now creates a time based on the current system time
