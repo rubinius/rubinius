@@ -428,6 +428,28 @@ describe "CApiObject" do
     end
   end
 
+  describe "rb_class_inherited_p" do
+
+    it "returns true if mod equals arg" do
+      @o.rb_class_inherited_p(Array, Array).should be_true
+    end
+
+    it "returns true if mod is a subclass of arg" do
+      @o.rb_class_inherited_p(Array, Object).should be_true
+    end
+
+    it "returns nil if mod is not a subclass of arg" do
+      @o.rb_class_inherited_p(Array, Hash).should be_nil
+    end
+
+    it "raises a TypeError if arg is no class or module" do
+      lambda{
+        @o.rb_class_inherited_p(1, 2)
+      }.should raise_error(TypeError)
+    end
+
+  end
+
   describe "instance variable access" do
     before do
       @test = ObjectTest.new
