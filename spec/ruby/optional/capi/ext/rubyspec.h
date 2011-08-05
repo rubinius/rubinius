@@ -262,6 +262,7 @@
 #define HAVE_RB_TO_INT                     1
 #define HAVE_RTEST                         1
 #define HAVE_TYPE                          1
+#define HAVE_BUILTIN_TYPE                  1
 
 /* Proc */
 #define HAVE_RB_PROC_NEW                   1
