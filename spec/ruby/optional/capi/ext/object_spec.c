@@ -238,6 +238,43 @@ static VALUE so_is_type_data(VALUE self, VALUE obj) {
 }
 #endif
 
+#ifdef HAVE_BUILTIN_TYPE
+static VALUE so_is_builtin_type_object(VALUE self, VALUE obj) {
+  if(BUILTIN_TYPE(obj) == T_OBJECT) {
+    return Qtrue;
+  }
+  return Qfalse;
+}
+
+static VALUE so_is_builtin_type_array(VALUE self, VALUE obj) {
+  if(BUILTIN_TYPE(obj) == T_ARRAY) {
+    return Qtrue;
+  }
+  return Qfalse;
+}
+
+static VALUE so_is_builtin_type_module(VALUE self, VALUE obj) {
+  if(BUILTIN_TYPE(obj) == T_MODULE) {
+    return Qtrue;
+  }
+  return Qfalse;
+}
+
+static VALUE so_is_builtin_type_class(VALUE self, VALUE obj) {
+  if(BUILTIN_TYPE(obj) == T_CLASS) {
+    return Qtrue;
+  }
+  return Qfalse;
+}
+
+static VALUE so_is_builtin_type_data(VALUE self, VALUE obj) {
+  if(BUILTIN_TYPE(obj) == T_DATA) {
+    return Qtrue;
+  }
+  return Qfalse;
+}
+#endif
+
 #ifdef HAVE_RB_TO_INT
 static VALUE object_spec_rb_to_int(VALUE self, VALUE obj) {
   return rb_to_int(obj);
@@ -416,6 +453,14 @@ void Init_object_spec() {
   rb_define_method(cls, "rb_is_type_module", so_is_type_module, 1);
   rb_define_method(cls, "rb_is_type_class", so_is_type_class, 1);
   rb_define_method(cls, "rb_is_type_data", so_is_type_data, 1);
+#endif
+
+#ifdef HAVE_BUILTIN_TYPE
+  rb_define_method(cls, "rb_is_builtin_type_object", so_is_builtin_type_object, 1);
+  rb_define_method(cls, "rb_is_builtin_type_array", so_is_builtin_type_array, 1);
+  rb_define_method(cls, "rb_is_builtin_type_module", so_is_builtin_type_module, 1);
+  rb_define_method(cls, "rb_is_builtin_type_class", so_is_builtin_type_class, 1);
+  rb_define_method(cls, "rb_is_builtin_type_data", so_is_builtin_type_data, 1);
 #endif
 
 #ifdef HAVE_RB_TO_INT
