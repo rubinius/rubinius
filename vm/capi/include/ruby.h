@@ -748,6 +748,7 @@ VALUE rb_uint2big(unsigned long number);
   int   rb_cmpint(VALUE val, VALUE a, VALUE b);
   void  rb_cmperr(VALUE x, VALUE y);
   VALUE rb_equal(VALUE a, VALUE b);
+  VALUE rb_class_inherited_p(VALUE mod, VALUE arg);
 
 #define   Data_Make_Struct(klass, type, mark, free, sval) (\
             sval = ALLOC(type), \
