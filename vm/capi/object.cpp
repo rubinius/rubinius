@@ -46,7 +46,7 @@ extern "C" {
     {T_NIL,      "nil"},
     {T_OBJECT,  "Object"},
     {T_CLASS,    "Class"},
-    {T_ICLASS,  "iClass"},  /* internal use: mixed-in module holder */
+    {T_ICLASS,  "iClass"},    /* internal use: mixed-in module holder */
     {T_MODULE,  "Module"},
     {T_FLOAT,   "Float"},
     {T_STRING,  "String"},
@@ -59,13 +59,13 @@ extern "C" {
     {T_FILE,    "File"},
     {T_TRUE,    "true"},
     {T_FALSE,   "false"},
-    {T_SYMBOL,  "Symbol"},  /* :symbol */
-    {T_DATA,    "Data"},  /* internal use: wrapped C pointers */
-    {T_MATCH,   "MatchData"},  /* data of $~ */
-    {T_VARMAP,  "Varmap"},  /* internal use: dynamic variables */
-    {T_SCOPE,   "Scope"},  /* internal use: variable scope */
-    {T_NODE,    "Node"},  /* internal use: syntax tree node */
-    {T_UNDEF,   "undef"},  /* internal use: #undef; should not happen */
+    {T_SYMBOL,  "Symbol"},    /* :symbol */
+    {T_DATA,    "Data"},      /* internal use: wrapped C pointers */
+    {T_MATCH,   "MatchData"}, /* data of $~ */
+    {T_VARMAP,  "Varmap"},    /* internal use: dynamic variables */
+    {T_SCOPE,   "Scope"},     /* internal use: variable scope */
+    {T_NODE,    "Node"},      /* internal use: syntax tree node */
+    {T_UNDEF,   "undef"},     /* internal use: #undef; should not happen */
     {-1,  0}
   };
 
