@@ -1,6 +1,12 @@
 #include "environment.hpp"
+#include "builtin/object.hpp"
+
+using namespace rubinius;
 
 typedef Environment* rbx_ctx;
+typedef Object* rbx_obj;
+
+#define RUBINIUS_CONST(ctx, n) ctx->state->globals().rubinius.get()->get_const(ctx->state, ctx->state->symbol(n));
 
 extern "C"{
 /**
@@ -31,6 +37,24 @@ bool rbx_eval_file(rbx_ctx ctx, const char * file);
  * Finding out what went wrong will be defined later.
  */
 bool rbx_eval(rbx_ctx ctx, const char * code);
+
+/**
+ * Send a message to an object
+ * 
+ * Send +msg+ to object +rcv+ with arguments specified by +argc+ and the
+ * variadic parameters that follow. All arguments *must* be of type rbx_obj.
+ */
+rbx_obj rbx_send(rbx_ctx ctx, rbx_obj recv, const char* msg, int argc, ...);
+
+/**
+ * Acquire global lock
+ */
+void rbx_lock(rbx_ctx ctx);
+
+/**
+ * Release global lock
+ */
+void rbx_unlock(rbx_ctx ctx);
 
 /**
  * Clean up a context
