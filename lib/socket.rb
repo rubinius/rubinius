@@ -175,10 +175,10 @@ class Socket < BasicSocket
     all_valid.each {|name, value| Socket.const_set name, Integer(value) }
 
 
-    afamilies = all_valid.select { |name,| name =~ /^AF_/ }
+    afamilies = all_valid.to_a.select { |name,| name =~ /^AF_/ }
     afamilies.map! {|name, value| [value.to_i, name] }
 
-    pfamilies = all_valid.select { |name,| name =~ /^PF_/ }
+    pfamilies = all_valid.to_a.select { |name,| name =~ /^PF_/ }
     pfamilies.map! {|name, value| [value.to_i, name] }
 
     AF_TO_FAMILY = Hash[*afamilies.flatten]
