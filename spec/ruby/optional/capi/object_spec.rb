@@ -194,6 +194,18 @@ describe "CApiObject" do
     @o.rb_is_type_data(Time.now).should == true
   end
 
+  it "BUILTIN_TYPE should return the type constant for the object" do
+    class DescArray < Array
+    end
+    @o.rb_is_builtin_type_object([]).should == false
+    @o.rb_is_builtin_type_object(ObjectTest.new).should == true
+    @o.rb_is_builtin_type_array([]).should == true
+    @o.rb_is_builtin_type_array(DescArray.new).should == true
+    @o.rb_is_builtin_type_module(ObjectTest).should == false
+    @o.rb_is_builtin_type_class(ObjectTest).should == true
+    @o.rb_is_builtin_type_data(Time.now).should == true
+  end
+
   describe "RTEST" do
     it "returns C false if passed Qfalse" do
       @o.RTEST(false).should be_false

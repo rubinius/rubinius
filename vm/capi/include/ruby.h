@@ -657,6 +657,11 @@ VALUE rb_uint2big(unsigned long number);
 /** Return an integer type id for the object. @see rb_type() */
 #define TYPE(handle)      rb_type(handle)
 
+/** Alias to rb_type. This is not exactly the same as in MRI, but it makes sure
+ * that it won't segfault if you give BUILTIN_TYPE an immediate such as a Fixnum
+ */
+#define BUILTIN_TYPE(handle) rb_type(handle)
+
 /** Convert unsigned int to a Ruby Integer. */
 #define UINT2FIX(i)       UINT2NUM((i))
 
