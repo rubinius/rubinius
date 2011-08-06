@@ -504,4 +504,14 @@ describe "Marshal::load" do
     end
   end
 
+  describe "for a Module" do
+    it "loads a module" do
+      Marshal.load("\x04\bm\vKernel").should == Kernel
+    end
+
+    it "loads an old module" do
+      Marshal.load("\x04\bM\vKernel").should == Kernel
+    end
+  end
+
 end

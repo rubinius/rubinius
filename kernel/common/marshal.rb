@@ -313,7 +313,7 @@ module Marshal
               true
             when ?F
               false
-            when ?c, ?m
+            when ?c, ?m, ?M
               # Don't use construct_symbol, because we must not
               # memoize this symbol.
               name = get_byte_sequence.to_sym
