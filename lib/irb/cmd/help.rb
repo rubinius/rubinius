@@ -9,25 +9,22 @@
 #   
 #
 
-require 'rdoc/ri/ri_driver'
+require 'rdoc/ri/driver'
 
 module IRB
   module ExtendCommand
     module Help
-      begin
-        @ri = RiDriver.new
-      rescue SystemExit
-      else
-        def self.execute(context, *names)
-          names.each do |name|
-            begin
-              @ri.get_info_for(name.to_s)
-            rescue RiError
-              puts $!.message
-            end
+      include RDoc::RI
+      def self.execute(context, *names)
+        names.each do |name|
+          begin
+            Driver.run(['-T', name.to_s])
+          rescue Driver::NotFoundError
+            puts $!.message
+          rescue SystemExit
           end
-          nil
         end
+        nil
       end
     end
   end
