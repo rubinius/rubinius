@@ -9,6 +9,76 @@
 
   
   <entry>
+    <title>&#35;rbxday Blog Posts</title>
+    <id>http://rubini.us/2011/08/05/rbxday-blog-posts/</id>
+    <link rel="alternate" type="text/html" href="http://rubini.us/2011/08/05/rbxday-blog-posts/" />
+    <updated>2011-08-05T00:00:00+00:00</updated>
+    <author>
+      <name>Shane Becker</name>
+    </author>
+    
+    <content type="html">&lt;p&gt;With just a few hours left in the first &lt;a href=&quot;http://rbxday.rubini.us&quot;&gt;#rbxday&lt;/a&gt;,
+I wanted to share a few blog posts that people have written for today.
+It seems like lots of people are having lots of fun all while using Rubinius.
+That&amp;rsquo;s what really matters.&lt;/p&gt;
+
+&lt;p&gt;And I think &lt;a href=&quot;http://twitter.com/andrewwk&quot;&gt;Andrew W. K.&lt;/a&gt;
+would probably be proud of that.&lt;/p&gt;
+
+&lt;p&gt;Onto the blog posts&amp;hellip;&lt;/p&gt;
+
+&lt;p&gt;Nathan Engdahl on the
+&lt;a href=&quot;http://bluebox.net/news/2011/08/rubinius-day&quot; title=&quot;Rubinius Day&quot;&gt;Blue Box Group blog&lt;/a&gt;
+writes:&lt;/p&gt;
+
+&lt;blockquote&gt;
+  &lt;p&gt;What is Rubinius you ask? Quite simply, it’s an alternative implementation
+of Ruby, written in Ruby, designed for modern web developers. It provides
+tools for simpler development of web applications. Rubinius strives for a
+particularly fast and optimized implementation, ensuring applications run
+at peak efficiency.&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;p&gt;Chris White &lt;a href=&quot;http://rubysource.blogspot.com/2011/08/taking-byte-out-of-ruby.html&quot; title=&quot;A Source For All Things Ruby: Taking A Byte Out of Ruby&quot;&gt;compares bytecode&lt;/a&gt;
+from MRI, JRuby and Rubinius:&lt;/p&gt;
+
+&lt;blockquote&gt;
+  &lt;p&gt;Many developers don&amp;rsquo;t think too much about what&amp;rsquo;s going on behind the
+scenes when they run their Ruby code. That&amp;rsquo;s the beauty of it, easy to
+write code that&amp;rsquo;s given to Ruby and run for the developer. At some point
+the developer may wonder, what&amp;rsquo;s REALLY going on behind the scenes. How is
+it that something meant to run Ruby can host &lt;a href=&quot;http://rubini.us/projects&amp;quot;&quot;&gt;so many other languages&lt;/a&gt;?
+The answer lies in what&amp;rsquo;s known as a VM, or Virtual Machine.&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;p&gt;Finally, there&amp;rsquo;s the
+&lt;a href=&quot;http://rubysfera.pl/2011/08/kod-zrodlowy-rubiego-w-rubym/&quot; title=&quot;Kod źródłowy Rubiego w Rubym&quot;&gt;Rubysfera blog&lt;/a&gt;
+that&amp;rsquo;s not written in a language that I can read. So, I&amp;rsquo;ll just assume that
+they&amp;rsquo;re talking about Chocolate Rubinius Cake and how to bake it. ;)&lt;/p&gt;
+
+&lt;blockquote&gt;
+  &lt;p&gt;Rubiniusa (implementacji Rubiego, napisanej w Rubym) nikomu chyba
+przedstawiać nie trzeba. Obecnie obsługiwana jest wersja języka 1.8.7, a
+niektóre benchmarki pokazują, że Rubinius w tej wersji może osiągać szybkość
+porównywalną z JRuby. Benchmarki, benchmarkami, najciekawsza jest możliwość
+zajrzenia do implementacji języka w Rubym.&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;p&gt;&lt;em&gt;Seriously though, I have no idea what that post says.
+If you do, please let me know.&lt;/em&gt;&lt;/p&gt;
+
+&lt;p&gt;There&amp;rsquo;s still time. Go test your app running on Rubinius. Tweet about it.
+Use the hashtag &lt;a href=&quot;https://twitter.com/#!/search/%23rbxday&quot;&gt;#rbxday&lt;/a&gt;, so we
+notice you and re-share your tweet. If there are bugs, please
+&lt;a href=&quot;https://github.com/rubinius/rubinius/issues&quot;&gt;create an issue&lt;/a&gt; on Github.
+Give us any other feedback you want on the
+&lt;a href=&quot;http://rbxday.rubini.us/feedback&quot;&gt;rbxday.rubini.us&lt;/a&gt; website.&lt;/p&gt;
+
+&lt;p&gt;&lt;em&gt;&amp;mdash; XOXO RBX&lt;/em&gt;&lt;/p&gt;
+</content>
+  </entry>
+  
+  <entry>
     <title>&#35;rbxday In Real Life</title>
     <id>http://rubini.us/2011/08/03/rbxday-in-real-life/</id>
     <link rel="alternate" type="text/html" href="http://rubini.us/2011/08/03/rbxday-in-real-life/" />
