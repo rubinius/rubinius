@@ -514,4 +514,15 @@ describe "Marshal::load" do
     end
   end
 
+  describe "for a wrapped C pointer" do
+    it "loads" do
+      data = "\004\bd:\rUserData" \
+             "[\a[\b\"\aCN\"\vnobodyi\021[\b\"\aDC\"\fexamplei\e"
+
+      expected = UserData.parse 'CN=nobody/DC=example'
+
+      Marshal.load(data).to_a.should == expected.to_a
+    end
+  end
+
 end
