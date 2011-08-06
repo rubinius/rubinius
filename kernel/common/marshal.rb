@@ -443,7 +443,7 @@ module Marshal
 
       obj = klass.allocate
 
-      # TODO ensure obj is a wrapped C pointer
+      # TODO ensure obj is a wrapped C pointer (T_DATA in MRI-land)
 
       store_unique_object obj
 

@@ -130,7 +130,7 @@ end
 
 require 'openssl'
 
-class UserData < OpenSSL::X509::Name.dup
+class UserData < OpenSSL::X509::Name
   alias _dump_data to_a
 
   def _load_data entries
@@ -138,6 +138,10 @@ class UserData < OpenSSL::X509::Name.dup
       add_entry(*entry)
     end
   end
+end
+
+class UserDataUnloadable < UserData
+  undef _load_data
 end
 
 module Meths
