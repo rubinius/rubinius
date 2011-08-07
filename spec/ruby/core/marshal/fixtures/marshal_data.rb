@@ -128,6 +128,22 @@ end
 class UserString < String
 end
 
+require 'openssl'
+
+class UserData < OpenSSL::X509::Name
+  alias _dump_data to_a
+
+  def _load_data entries
+    entries.each do |entry|
+      add_entry(*entry)
+    end
+  end
+end
+
+class UserDataUnloadable < UserData
+  undef _load_data
+end
+
 module Meths
   def meths_method() end
 end

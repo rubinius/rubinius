@@ -283,6 +283,9 @@ class IO
       ret |= RDWR
     when ?b
       ret |= BINARY
+    when ?:
+      warn("encoding options not supported in 1.8")
+      return ret
     else
       raise ArgumentError, "invalid mode -- #{mode}"
     end
@@ -295,6 +298,9 @@ class IO
       ret |= RDWR
     when ?b
       ret |= BINARY
+    when ?:
+      warn("encoding options not supported in 1.8")
+      return ret
     else
       raise ArgumentError, "invalid mode -- #{mode}"
     end

@@ -313,7 +313,7 @@ module Marshal
               true
             when ?F
               false
-            when ?c, ?m
+            when ?c, ?m, ?M
               # Don't use construct_symbol, because we must not
               # memoize this symbol.
               name = get_byte_sequence.to_sym
@@ -348,6 +348,8 @@ module Marshal
               construct_user_defined ivar_index
             when ?U
               construct_user_marshal
+            when ?d
+              construct_data
             when ?@
               num = construct_integer
               obj = @objects[num]
@@ -432,6 +434,27 @@ module Marshal
       obj = result * sign
 
       store_unique_object obj
+    end
+
+    def construct_data
+      name = get_symbol
+      klass = const_lookup name
+      store_unique_object klass
+
+      obj = klass.allocate
+
+      # TODO ensure obj is a wrapped C pointer (T_DATA in MRI-land)
+
+      store_unique_object obj
+
+      unless obj.respond_to? :_load_data then
+        raise TypeError,
+              "class #{name} needs to have instance method `_load_data'"
+      end
+
+      obj._load_data construct
+
+      obj
     end
 
     def construct_float

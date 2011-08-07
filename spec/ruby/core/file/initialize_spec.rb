@@ -4,6 +4,14 @@ describe "File#initialize" do
   it "needs to be reviewed for spec completeness"
 end
 
+ruby_version_is '1.8' do
+  describe "File#initialize" do
+    it 'ignores encoding options in mode parameter' do
+      lambda { File.new(__FILE__, 'r:UTF-8:iso-8859-1') }.should_not raise_error
+    end
+  end
+end
+
 ruby_version_is '1.9' do
   describe "File#initialize" do
     it 'accepts encoding options in mode parameter' do

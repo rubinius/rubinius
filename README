@@ -40,7 +40,7 @@ For more information about building and running Rubinius, run 'rake docs'.
 
 4. Installing Rubinius with RVM
 
-Rubinius can be installed using the Ruby enVironment Manager (RVM) project.
+Rubinius can be installed using the Ruby Version Manager (RVM) project.
 
 To install Rubinius with RVM, use the following steps:
 
