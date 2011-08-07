@@ -1932,11 +1932,11 @@ class String
       if replacement.equal?(undefined)
         replacement = yield(match[0].dup).to_s
         out.taint if replacement.tainted?
-        out << replacement << match.post_match
+        out.append(replacement).append(match.post_match)
       else
         out.taint if replacement.tainted?
         StringValue(replacement).to_sub_replacement(out, match)
-        out << match.post_match
+        out.append(match.post_match)
       end
 
       # We have to reset it again to match the specs
@@ -1981,11 +1981,11 @@ class String
       if replacement.equal?(undefined)
         replacement = yield(match[0].dup).to_s
         out.taint if replacement.tainted?
-        out << replacement << match.post_match
+        out.append(replacement).append(match.post_match)
       else
         out.taint if replacement.tainted?
         replacement = StringValue(replacement).to_sub_replacement(out, match)
-        out << match.post_match
+        out.append(match.post_match)
       end
 
       # We have to reset it again to match the specs
@@ -2348,19 +2348,19 @@ class String
       while current < @num_bytes && @data[current] != ?\\
         current += 1
       end
-      result << substring(index, current - index)
+      result.append(substring(index, current - index))
       break if current == @num_bytes
 
       # found backslash escape, looking next
       if current == @num_bytes - 1
-        result << ?\\ # backslash at end of string
+        result.append(?\\.chr) # backslash at end of string
         break
       end
       index = current + 1
 
       cap = @data[index]
 
-      result << case cap
+      additional = case cap
                 when ?&
                   match[0]
                 when ?`
@@ -2374,8 +2374,9 @@ class String
                 when ?\\ # escaped backslash
                   '\\'
                 else     # unknown escape
-                  '\\' << cap
+                  '\\'.append(cap.chr)
                 end
+      result.append(additional)
       index += 1
     end
   end
@@ -2586,9 +2587,8 @@ class String
   end
 
   def dump
-    str = self.class.new '"'
-    str << transform(Rubinius::CType::Printed, false)
-    str << '"'
+    str = self.class.new %{"#{transform(Rubinius::CType::Printed, false)}"}
+    str.taint if tainted?
     str
   end
 
