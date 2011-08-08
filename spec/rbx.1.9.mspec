@@ -109,7 +109,6 @@ class MSpecScript
     '^spec/ruby/core/encoding/default_internal',
     '^spec/ruby/core/io/open',
     '^spec/ruby/core/kernel/define_singleton_method',
-    '^spec/ruby/core/marshal',
     '^spec/ruby/core/method/parameters',
     '^spec/ruby/core/module/name',
     '^spec/ruby/core/numeric/to_c',
