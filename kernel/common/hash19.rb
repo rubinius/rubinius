@@ -582,8 +582,12 @@ class Hash
   def redistribute(entries)
     capacity = @capacity
 
-    # TODO: grow smaller too
-    __setup__ @capacity * 2, @max_entries * 2, @size
+    # Rather than using __setup__, initialize the specific values we need to
+    # change so we don't eg overwrite @state.
+    @capacity    = capacity * 2
+    @entries     = Entries.new @capacity
+    @mask        = @capacity - 1
+    @max_entries = @max_entries * 2
 
     i = -1
     while (i += 1) < capacity
@@ -663,9 +667,8 @@ class Hash
     other = Rubinius::Type.coerce_to other, Hash, :to_hash
     return self if self.equal? other
 
-    # Normally this would be a call to __setup__,
-    # but that will create a new unused Tuple
-    # that we would wind up replacing anyways.
+    # Normally this would be a call to __setup__, but that will create a new
+    # unused Tuple that we would wind up replacing anyways.
     @capacity = other.capacity
     @entries  = Entries.new @capacity
     @mask     = @capacity - 1
