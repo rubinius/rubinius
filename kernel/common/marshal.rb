@@ -53,7 +53,7 @@ end
 
 class Symbol
   def __marshal__(ms)
-    if idx = ms.find_symlink(self) then
+    if idx = ms.find_symlink(self)
       ";#{ms.serialize_integer(idx)}"
     else
       ms.add_symlink self
@@ -134,7 +134,7 @@ class Array
     out << ms.serialize_user_class(self, Array)
     out << "["
     out << ms.serialize_integer(self.length)
-    unless empty? then
+    unless empty?
       each do |element|
         out << ms.serialize(element)
       end
@@ -149,16 +149,18 @@ class Hash
   def __marshal__(ms)
     raise TypeError, "can't dump hash with default proc" if default_proc
 
-    #excluded_ivars = %w[@bins @count @records]
-    excluded_ivars = %w[@capacity @mask @max_entries @size @entries @default_proc @default]
+    excluded_ivars = %w[
+      @capacity @mask @max_entries @size @entries @default_proc @default
+      @state @compare_by_identity @head @tail @table
+    ]
 
     out =  ms.serialize_instance_variables_prefix(self, excluded_ivars)
     out << ms.serialize_extended_object(self)
     out << ms.serialize_user_class(self, Hash)
     out << (self.default ? "}" : "{")
     out << ms.serialize_integer(length)
-    unless empty? then
-      each_pair do |(key, val)|
+    unless empty?
+      each_pair do |key, val|
         out << ms.serialize(key)
         out << ms.serialize(val)
       end
@@ -173,11 +175,11 @@ end
 
 class Float
   def __marshal__(ms)
-    str = if nan? then
+    str = if nan?
             "nan"
-          elsif zero? then
+          elsif zero?
             (1.0 / self) < 0 ? '-0' : '0'
-          elsif infinite? then
+          elsif infinite?
             self < 0 ? "-inf" : "inf"
           else
             ("%.*g" % [17, self]) + ms.serialize_mantissa(self)
@@ -307,13 +309,13 @@ module Marshal
     def construct(ivar_index = nil, call_proc = true)
       type = consume_byte()
       obj = case type
-            when ?0
+            when 48   # ?0
               nil
-            when ?T
+            when 84   # ?T
               true
-            when ?F
+            when 70   # ?F
               false
-            when ?c, ?m, ?M
+            when 99, 109, 77  # ?c, ?m, ?M
               # Don't use construct_symbol, because we must not
               # memoize this symbol.
               name = get_byte_sequence.to_sym
@@ -322,49 +324,49 @@ module Marshal
               store_unique_object obj
 
               obj
-            when ?i
+            when 105  # ?i
               construct_integer
-            when ?l
+            when 108  # ?l
               construct_bignum
-            when ?f
+            when 102  # ?f
               construct_float
-            when ?:
+            when 58   # ?:
               construct_symbol
-            when ?"
+            when 34   # ?"
               construct_string
-            when ?/
+            when 47   # ?/
               construct_regexp
-            when ?[
+            when 91   # ?[
               construct_array
-            when ?{
+            when 123  # ?{
               construct_hash
-            when ?}
+            when 125  # ?}
               construct_hash_def
-            when ?S
+            when 83   # ?S
               construct_struct
-            when ?o
+            when 111  # ?o
               construct_object
-            when ?u
+            when 117  # ?u
               construct_user_defined ivar_index
-            when ?U
+            when 85   # ?U
               construct_user_marshal
-            when ?d
+            when 100  # ?d
               construct_data
-            when ?@
+            when 64   # ?@
               num = construct_integer
               obj = @objects[num]
 
               raise ArgumentError, "dump format error (unlinked)" unless obj
 
               return obj
-            when ?;
+            when 59   # ?;
               num = construct_integer
               sym = @symbols[num]
 
               raise ArgumentError, "bad symbol" unless sym
 
               return sym
-            when ?e
+            when 101  # ?e
               @modules ||= []
 
               name = get_symbol
@@ -375,13 +377,13 @@ module Marshal
               extend_object obj
 
               obj
-            when ?C
+            when 67   # ?C
               name = get_symbol
               @user_class = name
 
               construct nil, false
 
-            when ?I
+            when 73   # ?I
               ivar_index = @has_ivar.length
               @has_ivar.push true
 
@@ -421,14 +423,14 @@ module Marshal
     end
 
     def construct_bignum
-      sign = consume_byte() == ?- ? -1 : 1
+      sign = consume_byte() == 45 ? -1 : 1  # ?-
       size = construct_integer * 2
 
       result = 0
 
       data = consume size
       (0...size).each do |exp|
-        result += (data[exp] * 2**(exp*8))
+        result += (data.getbyte(exp) * 2**(exp*8))
       end
 
       obj = result * sign
@@ -447,7 +449,7 @@ module Marshal
 
       store_unique_object obj
 
-      unless obj.respond_to? :_load_data then
+      unless obj.respond_to? :_load_data
         raise TypeError,
               "class #{name} needs to have instance method `_load_data'"
       end
@@ -600,7 +602,7 @@ module Marshal
 
       construct_integer.times do |i|
         slot = get_symbol
-        unless members[i].intern == slot then
+        unless members[i].intern == slot
           raise TypeError, "struct %s is not compatible (%p for %p)" %
             [klass, slot, members[i]]
         end
@@ -624,7 +626,7 @@ module Marshal
 
       data = get_byte_sequence
 
-      if ivar_index and @has_ivar[ivar_index] then
+      if ivar_index and @has_ivar[ivar_index]
         set_instance_variables data
         @has_ivar[ivar_index] = false
       end
@@ -645,7 +647,7 @@ module Marshal
 
       extend_object obj if @modules
 
-      unless obj.respond_to? :marshal_load then
+      unless obj.respond_to? :marshal_load
         raise TypeError, "instance of #{klass} needs to have method `marshal_load'"
       end
 
@@ -698,12 +700,12 @@ module Marshal
       type = consume_byte()
 
       case type
-      when TYPE_SYMBOL then
+      when 58 # TYPE_SYMBOL
         @call = false
         obj = construct_symbol
         @call = true
         obj
-      when TYPE_SYMLINK then
+      when 59 # TYPE_SYMLINK
         num = construct_integer
         @symbols[num]
       else
@@ -727,9 +729,9 @@ module Marshal
         add_object obj
 
         # ORDER MATTERS.
-        if obj.respond_to? :marshal_dump then
+        if obj.respond_to? :marshal_dump
           str = serialize_user_marshal obj
-        elsif obj.respond_to? :_dump then
+        elsif obj.respond_to? :_dump
           str = serialize_user_defined obj
         else
           str = obj.__marshal__ self
@@ -775,7 +777,7 @@ module Marshal
 
       ivars -= exclude_ivars if exclude_ivars
 
-      if ivars.length > 0 then
+      if ivars.length > 0
         "I"
       else
         ''
@@ -844,18 +846,18 @@ module Marshal
       str = (n < 0 ? 'l-' : 'l+')
       cnt = 0
       num = n.abs
- 
+
       while num != 0
         str << (num & 0xff).chr
         num >>= 8
         cnt += 1
       end
- 
+
       if cnt % 2 == 1
         str << "\0"
         cnt += 1
       end
- 
+
       str[0..1] + serialize_fixnum(cnt / 2) + str[2..-1]
     end
 
@@ -951,10 +953,10 @@ module Marshal
       raise TypeError, "instance of IO needed"
     end
 
-    major = data[0]
-    minor = data[1]
+    major = data.getbyte 0
+    minor = data.getbyte 1
 
-    if major != MAJOR_VERSION or minor > MINOR_VERSION then
+    if major != MAJOR_VERSION or minor > MINOR_VERSION
       raise TypeError, "incompatible marshal file format (can't be read)\n\tformat version #{MAJOR_VERSION}.#{MINOR_VERSION} required; #{major}.#{minor} given"
     end
 
@@ -969,4 +971,3 @@ module Marshal
   end
 
 end
-
