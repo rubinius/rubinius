@@ -333,9 +333,9 @@ namespace rubinius {
 
   void VM::initialize_platform_data() {
     // HACK test hooking up IO
-    IO* in_io  = IO::create(state, fileno(stdin));
-    IO* out_io = IO::create(state, fileno(stdout));
-    IO* err_io = IO::create(state, fileno(stderr));
+    IO* in_io  = IO::create(state, STDIN_FILENO);
+    IO* out_io = IO::create(state, STDOUT_FILENO);
+    IO* err_io = IO::create(state, STDERR_FILENO);
 
     out_io->sync(state, Qtrue);
     err_io->sync(state, Qtrue);

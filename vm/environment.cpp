@@ -158,7 +158,7 @@ namespace rubinius {
 
     crashing = 1;
 
-    int fd = 2;
+    int fd = STDERR_FILENO;
 
     if(getenv("RBX_PAUSE_ON_CRASH")) {
       std::cerr << "\n========== CRASH (" << getpid();
@@ -170,7 +170,7 @@ namespace rubinius {
     if(report_path[0]) {
       fd = open(report_path, O_WRONLY | O_CREAT | O_TRUNC, 0666);
       // If we can't open this path, use stderr.
-      if(fd == -1) fd = 2;
+      if(fd == -1) fd = STDERR_FILENO;
     }
 
     // print out all the frames to stderr
@@ -208,7 +208,7 @@ namespace rubinius {
 
     // If we didn't write to stderr, then close the file down and
     // write info to stderr about reporting the error.
-    if(fd != 2) {
+    if(fd != STDERR_FILENO) {
       close(fd);
       safe_write(2, "\n---------------------------------------------\n");
       safe_write(2, "CRASH: A fatal error has occurred.\n\nBacktrace:\n");
