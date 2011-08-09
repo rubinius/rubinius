@@ -568,7 +568,7 @@ namespace rubinius {
       // If argument handling fails..
       if(ArgumentHandler::call(state, vmm, scope, args) == false) {
         Exception* exc =
-          Exception::make_argument_error(state, vmm->required_args, args.total(), args.name());
+          Exception::make_argument_error(state, vmm->total_args, args.total(), args.name());
         exc->locations(state, Location::from_call_stack(state, previous));
         state->thread_state()->raise_exception(exc);
 

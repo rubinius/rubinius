@@ -509,7 +509,7 @@ namespace jit {
       vm_obj,
       prev,
       arg_obj,
-      ConstantInt::get(ls_->Int32Ty, vmm_->required_args)
+      ConstantInt::get(ls_->Int32Ty, vmm_->total_args)
     };
 
     Value* val = sig.call("rbx_arg_error", call_args, 4, "ret", b());
