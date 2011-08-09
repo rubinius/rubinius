@@ -239,7 +239,8 @@ namespace rubinius {
     // child
     if(pid == 0) {
       close(fds[0]);
-      dup2(fds[1], 1);
+      dup2(fds[1], STDOUT_FILENO);
+      close(fds[1]);
 
       // detect and decide to use sh or not.
       char* s = const_cast<char*>(c_str);
