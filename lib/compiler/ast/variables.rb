@@ -567,12 +567,10 @@ module Rubinius
           @fixed = false
           @post = splat.rest
           splat = splat.into
+        elsif right.kind_of?(ArrayLiteral)
+          @fixed = right.body.size > 1
         else
-          @fixed = if right.kind_of?(ArrayLiteral)
-                     right.body.size > 1
-                    else
-                      false
-                    end
+          @fixed = false
         end
 
         if splat.kind_of? Node
