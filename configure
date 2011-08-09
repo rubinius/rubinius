@@ -369,15 +369,7 @@ Unsupported language version requested: #{ver}. Options are #{@supported_version
   require 'digest/md5'
 
   def md5_checksum(md5_path, full_path)
-    md5 = Digest::MD5.new
-
-    File.open full_path, "rb" do |file|
-      until file.eof?
-        md5 << file.read(1024)
-      end
-    end
-
-    return md5.hexdigest == File.read(md5_path).strip.split(" ").first
+    return Digest::MD5.file(full_path).hexdigest == File.read(md5_path).strip.split(" ").first
   end
 
   require 'net/http'

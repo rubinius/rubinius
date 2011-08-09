@@ -259,7 +259,8 @@ namespace rubinius {
     // child
     if(pid == 0) {
       close(fds[0]);
-      dup2(fds[1], 1);
+      dup2(fds[1], STDOUT_FILENO);
+      close(fds[1]);
 
       // detect and decide to use sh or not.
       char* s = const_cast<char*>(c_str);
@@ -317,20 +318,34 @@ namespace rubinius {
     close(fds[1]);
 
     std::string buf;
-    {
-      GCIndependent guard(state, calling_environment);
+    for(;;) {
+
+      ssize_t bytes = 0;
       char raw_buf[1024];
-
-      for(;;) {
-        ssize_t bytes = read(fds[0], raw_buf, 1023);
-        if(bytes == 0) break;
-        if(bytes == -1) {
-          if(errno == EINTR) continue;
-          Exception::errno_error(state, "reading child data", errno, "read(2)");
-        }
-
-        buf.append(raw_buf, bytes);
+      {
+        GCIndependent guard(state, calling_environment);
+        bytes = read(fds[0], raw_buf, 1023);
       }
+
+      if(bytes < 0) {
+        switch(errno) {
+          case EAGAIN:
+          case EINTR:
+            if(!state->check_async(calling_environment)) {
+              close(fds[0]);
+              return NULL;
+            }
+            continue;
+          default:
+            close(fds[0]);
+            Exception::errno_error(state, "reading child data", errno, "read(2)");
+        }
+      }
+
+      if(bytes == 0) {
+        break;
+      }
+      buf.append(raw_buf, bytes);
     }
 
     close(fds[0]);
@@ -365,7 +380,10 @@ namespace rubinius {
 
     if(pid == -1) {
       if(errno == ECHILD) return Qfalse;
-      if(errno == EINTR)  goto retry;
+      if(errno == EINTR) {
+        if(!state->check_async(calling_environment)) return NULL;
+        goto retry;
+      }
 
       // TODO handle other errnos?
       return Qfalse;
