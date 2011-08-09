@@ -2337,7 +2337,7 @@ class String
     i, size = 0, strings.size
     while i < size
       str = StringValue(strings[i]).dup
-      if str.size > 1 && str[0] == ?^
+      if str.size > 1 && str.getbyte(0) == 94 # ?^
         pos, neg = 0, 1
       else
         pos, neg = 1, 0
@@ -2346,7 +2346,7 @@ class String
       set = String.pattern 256, neg
       str.tr_expand! nil, true
       j, chars = -1, str.size
-      set[str[j]] = pos while (j += 1) < chars
+      set.setbyte(str.getbyte(j), pos) while (j += 1) < chars
 
       table.apply_and! set
       i += 1

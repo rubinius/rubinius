@@ -155,7 +155,6 @@ class MSpecScript
     '^spec/core/bytearray/element_set',
     '^spec/core/chararray',
     '^spec/core/ctype',
-    '^spec/core/string/count_table',
     '^spec/library/config/rbconfig',
 
     '^spec/compiler/attrasgn',
