@@ -9,25 +9,13 @@ fails:Marshal.dump dumps an extended_array having ivar
 fails:Marshal.dump dumps an extended_struct having fields with same objects
 fails:Marshal.dump returns an untrusted string if object is untrusted
 fails:Marshal.dump returns an untrusted string if object is untrusted deep in nested structure
-fails:Marshal.dump dumps a Fixnum 2**16
-fails:Marshal.dump dumps a Fixnum 2**24
-fails:Marshal.dump dumps a Bignum 2**64
-fails:Marshal.dump dumps a Bignum 2**90
-fails:Marshal.dump dumps a Class String
-fails:Marshal.dump dumps a Module Marshal
-fails:Marshal.dump dumps a Module nested
 fails:Marshal.dump dumps a _dump object
 fails:Marshal.dump dumps a _dump object extended
 fails:Marshal.dump dumps a marshal_dump object
 fails:Marshal.dump dumps a Regexp
 fails:Marshal.dump dumps a Regexp subclass /i
-fails:Marshal.dump dumps a Float 0.0
-fails:Marshal.dump dumps a Float -0.0
-fails:Marshal.dump dumps a Float Infinity
-fails:Marshal.dump dumps a Float -Infinity
-fails:Marshal.dump dumps a Float 1.0
-fails:Marshal.dump dumps a Hash
-fails:Marshal.dump dumps a Hash subclass
-fails:Marshal.dump dumps a Array
-fails:Marshal.dump dumps a Array subclass
 fails:Marshal.dump dumps a Random
+fails:Marshal.dump dumps a String empty
+fails:Marshal.dump dumps a String small
+fails:Marshal.dump dumps a String big
+fails:Marshal.dump dumps a String extended
