@@ -408,31 +408,42 @@ module Rubinius
         @defaults = nil
         @block_arg = nil
 
-        required ||= []
-        args = []
-        required.each { |a| args << a if a.kind_of? Symbol }
+        @required = []
+        names = []
+
+        if required
+          required.each do |arg|
+            case arg
+            when Symbol
+              names << arg
+              @required << arg
+            when MultipleAssignment
+              @required << PatternArguments.from_masgn(arg)
+            end
+          end
+        end
 
         if optional
           @defaults = DefaultArguments.new line, optional
           @optional = @defaults.names
-          args.concat @optional
+          names.concat @optional
         else
           @optional = []
         end
 
         case splat
         when Symbol
-          args << splat
+          names << splat
         when true
           splat = :@unnamed_splat
-          args << splat
+          names << splat
         when false
           # TODO
           splat = nil
         end
 
         if post
-          args.concat post
+          names.concat post
           @post = post
         else
           @post = []
@@ -440,12 +451,11 @@ module Rubinius
 
         if block
           @block_arg = BlockArgument.new line, block
-          args << block
+          names << block
         end
 
-        @required = required
         @splat = splat
-        @names = args
+        @names = names
       end
 
       def required_args
@@ -473,8 +483,8 @@ module Rubinius
       def map_arguments(scope)
         @required.each do |arg|
           case arg
-          when MultipleAssignment
-            arg.declare_local_scope(scope)
+          when PatternArguments
+            arg.map_arguments scope
           when Symbol
             scope.new_local arg
           end
@@ -484,6 +494,65 @@ module Rubinius
         scope.new_local @splat if @splat.kind_of? Symbol
         @post.each { |arg| scope.new_local arg }
         scope.assign_local_reference @block_arg if @block_arg
+      end
+
+      def bytecode(g)
+        map_arguments g.state.scope
+
+        @required.each do |arg|
+          if arg.kind_of? PatternArguments
+            arg.argument.position_bytecode(g)
+            arg.bytecode(g)
+            g.pop
+          end
+        end
+
+        @defaults.bytecode(g) if @defaults
+        @block_arg.bytecode(g) if @block_arg
+      end
+    end
+
+    class PatternArguments < Node
+      attr_accessor :arguments, :argument
+
+      def self.from_masgn(node)
+        array = []
+        node.left.body.map do |n|
+          case n
+          when MultipleAssignment
+            array << PatternArguments.from_masgn(n)
+          when LocalVariable
+            array << PatternVariable.new(n.line, n.name)
+          end
+        end
+
+        PatternArguments.new node.line, ArrayLiteral.new(node.line, array)
+      end
+
+      def initialize(line, arguments)
+        @line = line
+        @arguments = arguments
+        @argument = nil
+      end
+
+      # Assign the left-most, depth-first PatternVariable so that this local
+      # will be assigned the passed argument at that position. The rest of the
+      # pattern will be destructured from the value of this assignment.
+      def map_arguments(scope)
+        arguments = @arguments.body
+        while arguments
+          node = arguments.first
+          if node.kind_of? PatternVariable
+            @argument = node
+            scope.assign_local_reference node
+            return
+          end
+          arguments = node.arguments.body
+        end
+      end
+
+      def bytecode(g)
+        @arguments.body.each { |arg| arg.bytecode(g) }
       end
     end
 

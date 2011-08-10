@@ -733,5 +733,34 @@ module Rubinius
         sexp
       end
     end
+
+    class PatternVariable < Node
+      include LocalVariable
+
+      attr_accessor :name, :value
+
+      def initialize(line, name)
+        @line = line
+        @name = name
+        @variable = nil
+      end
+
+      def position_bytecode(g)
+        @variable.get_bytecode(g)
+        g.cast_array
+      end
+
+      def bytecode(g)
+        pos(g)
+
+        unless @variable
+          g.state.scope.assign_local_reference self
+        end
+
+        g.shift_array
+        @variable.set_bytecode(g)
+        g.pop
+      end
+    end
   end
 end
