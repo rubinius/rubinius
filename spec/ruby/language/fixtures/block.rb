@@ -1,4 +1,24 @@
 module BlockSpecs
+  class Yielder
+    def z
+      yield
+    end
+
+    def m(*a)
+      yield(*a)
+    end
+
+    def s(a)
+      yield(a)
+    end
+
+    def r(a)
+      yield(*a)
+    end
+  end
+
+  # TODO: rewrite all specs that use Yield to use Yielder
+
   class Yield
     def splat(*args)
       yield *args
