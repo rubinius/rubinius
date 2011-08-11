@@ -7,7 +7,7 @@ next: Write Documentation
 next_url: how-to/write-documentation
 ---
 
-The Rubinius blog uses Jekyll and is integrated with the website and
+The [Rubinius blog][1] uses [Jekyll][2] and is integrated with the website and
 documentation. We encourage and appreciate guest blog posts about your
 experiences using or developing Rubinius.
 
@@ -51,3 +51,5 @@ the master branch.
 Tell us that there is a new blog post. We may have some feedback for you before
 publishing.
 
+[1]: /blog "Rubinius' Blog"
+[2]: https://github.com/mojombo/jekyll "Mojombo's Jekyll"
