@@ -1,0 +1,31 @@
+fails:The defined? keyword when called with a method name having a local variable as receiver calls #respond_to_missing?
+fails:The defined? keyword for an expression returns 'method' for an expression with '!='
+fails:The defined? keyword for an expression returns 'method' for an expression with '!~'
+fails:The defined? keyword for an expression with logical connectives returns nil for an expression with '!' and an unset global variable
+fails:The defined? keyword for an expression with logical connectives returns nil for an expression with '!' and an unset instance variable
+fails:The defined? keyword for an expression with logical connectives returns 'method' for a 'not' expression with a method
+fails:The defined? keyword for an expression with logical connectives calls a method in a 'not' expression and returns 'method'
+fails:The defined? keyword for an expression with logical connectives returns nil for an expression with 'not' and an unset global variable
+fails:The defined? keyword for an expression with logical connectives returns nil for an expression with 'not' and an unset instance variable
+fails:The defined? keyword for an expression with logical connectives returns 'expression' for an expression with '&&/and' and an undefined method
+fails:The defined? keyword for an expression with logical connectives returns 'expression' for an expression with '&&/and' and an unset class variable
+fails:The defined? keyword for an expression with logical connectives does not call a method in an '&&' expression and returns 'expression'
+fails:The defined? keyword for an expression with logical connectives does not call a method in an 'and' expression and returns 'expression'
+fails:The defined? keyword for an expression with logical connectives returns 'expression' for an expression with '||/or' and an undefined method
+fails:The defined? keyword for an expression with logical connectives returns 'expression' for an expression with '||/or' and an unset class variable
+fails:The defined? keyword for an expression with logical connectives does not call a method in an '||' expression and returns 'expression'
+fails:The defined? keyword for an expression with logical connectives does not call a method in an 'or' expression and returns 'expression'
+fails:The defined? keyword for an expression with a dynamic String returns 'expression' when the String contains a call to an undefined method
+fails:The defined? keyword for an expression with a dynamic String does not call the method in the String
+fails:The defined? keyword for an expression with a dynamic Regexp returns 'expression' when the Regexp contains a call to an undefined method
+fails:The defined? keyword for an expression with a dynamic Regexp does not call the method in the Regexp
+fails:The defined? keyword for variables when a String matches a Regexp returns 'global-variable' for $&
+fails:The defined? keyword for variables when a String matches a Regexp returns 'global-variable' for $`
+fails:The defined? keyword for variables when a String matches a Regexp returns 'global-variable' for $'
+fails:The defined? keyword for variables when a String matches a Regexp returns 'global-variable' for $+
+fails:The defined? keyword for variables when a String matches a Regexp returns 'global-variable' for the capture references
+fails:The defined? keyword for variables when a Regexp matches a String returns 'global-variable' for $&
+fails:The defined? keyword for variables when a Regexp matches a String returns 'global-variable' for $`
+fails:The defined? keyword for variables when a Regexp matches a String returns 'global-variable' for $'
+fails:The defined? keyword for variables when a Regexp matches a String returns 'global-variable' for $+
+fails:The defined? keyword for variables when a Regexp matches a String returns 'global-variable' for the capture references

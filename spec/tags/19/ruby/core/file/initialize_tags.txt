@@ -1,0 +1,2 @@
+fails:File#initialize accepts encoding options in mode parameter
+fails:File#initialize accepts encoding options as a hash parameter

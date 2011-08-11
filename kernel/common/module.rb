@@ -48,32 +48,32 @@ class Module
   private :verify_class_variable_name
 
   def class_variable_set(name, val)
-    Ruby.primitive :module_cvar_set
+    Rubinius.primitive :module_cvar_set
 
     class_variable_set verify_class_variable_name(name), val
   end
 
   def class_variable_get(name)
-    Ruby.primitive :module_cvar_get
+    Rubinius.primitive :module_cvar_get
 
     class_variable_get verify_class_variable_name(name)
   end
 
   def class_variable_defined?(name)
-    Ruby.primitive :module_cvar_defined
+    Rubinius.primitive :module_cvar_defined
 
     class_variable_defined? verify_class_variable_name(name)
   end
 
   def remove_class_variable(name)
-    Ruby.primitive :module_cvar_remove
+    Rubinius.primitive :module_cvar_remove
 
     remove_class_variable verify_class_variable_name(name)
   end
   private :remove_class_variable
 
   def __class_variables__
-    Ruby.primitive :module_class_variables
+    Rubinius.primitive :module_class_variables
 
     raise PrimitiveFailure, "module_class_variables failed"
   end
@@ -227,32 +227,29 @@ class Module
   end
 
   def instance_methods(all=true)
+    ary = []
     if all and self.direct_superclass
       table = Rubinius::LookupTable.new
 
       mod = self
 
-      ary = []
       while mod
         mod.method_table.each do |name, obj, vis|
           unless table.key?(name)
             table[name] = true
-            ary << name.to_s if vis == :public or vis == :protected
+            ary << name if vis == :public or vis == :protected
           end
         end
 
         mod = mod.direct_superclass
       end
-
-      return ary
     else
-      out = []
       method_table.each do |name, obj, vis|
-        out << name.to_s if vis == :public or vis == :protected
+        ary << name if vis == :public or vis == :protected
       end
-
-      return out
     end
+
+    Rubinius.convert_to_names ary
   end
 
   def public_instance_methods(all=true)
@@ -268,31 +265,28 @@ class Module
   end
 
   def filter_methods(filter, all)
+    ary = []
     if all and self.direct_superclass
       table = Rubinius::LookupTable.new
-      ary = []
       mod = self
 
       while mod
         mod.method_table.each do |name, obj, vis|
           unless table.key?(name)
             table[name] = true
-            ary << name.to_s if vis == filter
+            ary << name if vis == filter
           end
         end
 
         mod = mod.direct_superclass
       end
-
-      return ary
     else
-      out = []
       method_table.each do |name, obj, vis|
-        out << name.to_s if vis == filter
+        ary << name if vis == filter
       end
-
-      return out
     end
+
+    Rubinius.convert_to_names ary
   end
 
   private :filter_methods
@@ -480,22 +474,6 @@ class Module
     Rubinius.convert_to_names tbl.keys
   end
 
-  def const_defined?(name)
-    name = normalize_const_name(name)
-    return true if @constant_table.has_key? name
-
-    # a silly special case
-    if self.equal? Object
-      mod = direct_superclass
-      while mod.kind_of? Rubinius::IncludedModule
-        return true if mod.constant_table.has_key? name
-        mod = mod.direct_superclass
-      end
-    end
-
-    return false
-  end
-
   def const_get(name)
     name = normalize_const_name(name)
 
@@ -597,7 +575,7 @@ class Module
   end
 
   def ===(inst)
-    Ruby.primitive :module_case_compare
+    Rubinius.primitive :module_case_compare
     raise PrimitiveFailure, "Module#=== primitive failed"
   end
 
@@ -655,7 +633,7 @@ class Module
     unless name.kind_of? Symbol
       name = StringValue name
 
-      unless Rubinius::CType.isupper(name[0])
+      unless Rubinius::CType.isupper name.getbyte(0)
         raise NameError, "constant names must begin with a capital letter: #{name}"
       end
     end

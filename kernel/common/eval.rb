@@ -68,7 +68,7 @@ module Kernel
 
     be = Rubinius::Compiler.construct_block string, binding,
                                             filename, lineno
-   
+
     be.set_eval_binding binding
 
     be.call_on_instance(binding.self)

@@ -197,6 +197,7 @@ module Rubinius
       @for_block = nil
 
       @required_args = 0
+      @post_args = 0
       @total_args = 0
 
       @detected_args = 0
@@ -218,7 +219,7 @@ module Rubinius
 
     attr_reader   :ip, :stream, :iseq, :literals
     attr_accessor :break, :redo, :next, :retry, :file, :name,
-                  :required_args, :total_args, :splat_index,
+                  :required_args, :post_args, :total_args, :splat_index,
                   :local_count, :local_names, :primitive, :for_block,
                   :current_block, :detected_args, :detected_locals
 
@@ -255,6 +256,7 @@ module Rubinius
       cm.lines          = @lines.to_tuple
 
       cm.required_args  = @required_args
+      cm.post_args      = @post_args
       cm.total_args     = @total_args
       cm.splat          = @splat_index
       cm.local_count    = @local_count

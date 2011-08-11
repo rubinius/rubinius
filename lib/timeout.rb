@@ -79,59 +79,55 @@ module Timeout
     end
   end
 
-  def self.handle_requests
-    while @requests.empty?
-      sleep
-    end
+  @chan = Rubinius::Channel.new
 
-    min = nil
+  def self.watch_channel
+    reqs = []
 
-    @mutex.synchronize do
-      min = @requests.min { |a,b| a.left <=> b.left }
-    end
-
-    before = Time.now
-    sleep(min.left)
-    slept_for = Time.now - before
-
-    @mutex.synchronize do
-      @requests.delete_if do |r|
-        should_delete = false
-        begin
-          if r.elapsed(slept_for)
-            r.cancel
-            should_delete = true
-          end
-        rescue Exception => e
-          STDERR.puts "Error while checking timeouts: #{e.message} (#{e.class})"
-          should_delete = true
+    while true
+      begin
+        while reqs.empty?
+          req = @chan.receive
+          reqs << req if req
         end
 
-        should_delete
+        min = reqs.min { |a,b| a.left <=> b.left }
+
+        if min.left > 0
+          before = Time.now
+
+          req = @chan.receive_timeout(min.left)
+
+          slept_for = Time.now - before
+
+          reqs << req if req
+        else
+          slept_for = 0
+        end
+
+        reqs.delete_if do |r|
+          if r.elapsed(slept_for)
+            r.cancel
+            true
+          else
+            false
+          end
+        end
+
+      rescue Exception => e
+        e.render("ERROR IN TIMEOUT THREAD")
       end
     end
   end
 
+  # Spin up the thread up front to avoid a thread collision problem spinning
+  # it up lazily.
+  @controller = Thread.new { watch_channel }
+
   def self.add_timeout(time, exc)
-    req = TimeoutRequest.new(time, Thread.current, exc)
-
-    @mutex.synchronize do
-      @requests << req
-    end
-
-    @controller ||= Thread.new do
-      while true
-        begin
-          handle_requests
-        rescue Exception => e
-          STDERR.puts "Error inside timeout thread: #{e.message} (#{e.class})"
-        end
-      end
-    end
-
-    @controller.run
-
-    return req
+    r = TimeoutRequest.new(time, Thread.current, exc)
+    @chan << r
+    return r
   end
 
   ##
@@ -142,13 +138,13 @@ module Timeout
   # Note that this is both a method of module Timeout, so you can 'include
   # Timeout' into your classes so they have a #timeout method, as well as a
   # module method, so you can call it directly as Timeout.timeout().
-  
+
   def timeout(sec, exception=Error)
     return yield if sec == nil or sec.zero?
     raise ThreadError, "timeout within critical session" if Thread.critical
 
     req = Timeout.add_timeout sec, exception
-    
+
     begin
       yield sec
     ensure
@@ -169,7 +165,7 @@ end
 # Timeout#timeout.
 
 def timeout(n, e=Timeout::Error, &block) # :nodoc:
-  Timeout::timeout(n, e, &block)
+  Timeout.timeout(n, e, &block)
 end
 
 ##

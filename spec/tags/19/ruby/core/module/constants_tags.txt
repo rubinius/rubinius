@@ -1,0 +1,3 @@
+fails:Module.constants returns Module's constants when given a parameter
+fails:Module#constants returns an array of Symbol names of all constants defined in the moduleand all included modules
+fails:Module#constants doesn't returns inherited constants when passed false

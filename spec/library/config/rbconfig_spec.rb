@@ -66,10 +66,24 @@ describe "RbConfig::CONFIG" do
   entries = {
     "RUBY_SO_NAME"      => "rubinius-#{Rubinius::VERSION}",
     "ruby_install_name" => "rbx",
-    "ruby_version"      => "1.8",
   }
 
   it_has_entries 'RbConfig::CONFIG', entries
+
+  ruby_version_is "1.8"..."1.9" do
+    it_has_entries 'RbConfig::CONFIG', "ruby_version" => "1.8"
+    it_has_entries 'RbConfig::CONFIG', "rubyhdrdir" => Rubinius::HDR18_PATH
+  end
+
+  ruby_version_is "1.9"..."2.0" do
+    it_has_entries 'RbConfig::CONFIG', "ruby_version" => "1.9"
+    it_has_entries 'RbConfig::CONFIG', "rubyhdrdir" => Rubinius::HDR19_PATH
+  end
+
+  ruby_version_is "2.0" do
+    it_has_entries 'RbConfig::CONFIG', "ruby_version" => "2.0"
+    it_has_entries 'RbConfig::CONFIG', "rubyhdrdir" => Rubinius::HDR19_PATH
+  end
 end
 
 describe "RbConfig::MAKEFILE_CONFIG" do
@@ -102,18 +116,17 @@ describe "RbConfig::MAKEFILE_CONFIG" do
     "archdir"            => "#{sitelibdir}/#{arch}",
     "sitearchdir"        => "#{sitelibdir}/#{arch}",
     "sitedir"            => "#{sitedir}",
-    "rubyhdrdir"         => "#{Rubinius::HDR_PATH}"
   }
 
   it_has_entries 'RbConfig::MAKEFILE_CONFIG', entries
 end
 
-describe "RbConfig#ruby" do 
-  
+describe "RbConfig#ruby" do
+
   RbConfig.respond_to?(:ruby).should eql(true)
 
   rb_path = RbConfig.ruby
-  rb_path.should be_kind_of(String)  
+  rb_path.should be_kind_of(String)
 
   # needs to be an executable
   File.executable?(rb_path).should eql(true)

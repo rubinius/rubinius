@@ -1,0 +1,2 @@
+incomplete:Actor#trap_exit= needs to be reviewed for spec completeness
+incomplete:Actor#trap_exit? needs to be reviewed for spec completeness

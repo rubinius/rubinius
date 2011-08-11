@@ -10,7 +10,7 @@
 #include "exception_point.hpp"
 
 #include "capi/capi.hpp"
-#include "capi/include/ruby.h"
+#include "capi/18/include/ruby.h"
 
 #include <stdarg.h>
 
@@ -153,8 +153,7 @@ namespace rubinius {
         flush_ = flush_cached_rarray;
         update_ = update_cached_rarray;
 
-        env->state()->shared.global_handles()->move(this,
-            env->state()->shared.cached_handles());
+        env->state()->shared.make_handle_cached(env->state(), this);
       }
 
       return as_.rarray;

@@ -485,7 +485,9 @@ namespace profiler {
     method_->accumulate(timer_.total());
     node_->accumulate(timer_.total());
 
-    profiler->set_current_me(previous_me_);
+    if(previous_me_) {
+      profiler->set_current_me(previous_me_);
+    }
   }
 
   void MethodEntry::stop_all(Profiler* profiler, Env* env) {
@@ -889,6 +891,9 @@ namespace profiler {
 
     robject tool_results(Env* env) {
       GlobalState* st = (GlobalState*)env->global_tool_data();
+
+      // If we are already shutting down, ignore this
+      if(!st) return env->nil();
 
       Profiler* profiler = (Profiler*)env->thread_tool_data(cProfileToolID);
 

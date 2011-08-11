@@ -1,0 +1,4 @@
+fails:Encoding.compatible? returns an Encoding object if the given encodings are compatible
+fails:Encoding.compatible? returns the encoding of the string that would result from concatenating the arguments
+fails:Encoding.compatible? returns nil if there is not a compatible encoding for the arguments
+fails:Encoding.compatible? returns nil unless both arguments are Strings

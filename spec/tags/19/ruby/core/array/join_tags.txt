@@ -1,0 +1,4 @@
+fails:Array#join returns a string formed by concatenating each element.to_str separated by separator without trailing separator
+fails:Array#join raises an ArgumentError when the Array is recursive
+fails:Array#join returns a string which would be infected with untrustworthiness of the array, its elements or the separator when the array is not empty
+fails:Array#join sets the result String's encoding to the first String's encoding

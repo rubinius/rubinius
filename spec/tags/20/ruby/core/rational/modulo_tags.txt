@@ -1,0 +1,1 @@
+fails:Rational#% raises a ZeroDivisionError when the argument is 0.0

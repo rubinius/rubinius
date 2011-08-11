@@ -10,6 +10,7 @@
 #include "builtin/string.hpp"
 #include "builtin/lookuptable.hpp"
 #include "builtin/call_unit.hpp"
+#include "builtin/cache.hpp"
 
 #include "ffi.hpp"
 #include "marshal.hpp"
@@ -99,36 +100,47 @@ namespace rubinius {
   }
 
   VMMethod* CompiledMethod::internalize(STATE, const char** reason, int* ip) {
-    if(!backend_method_) {
-      {
-        timer::Running<double, timer::milliseconds> tr(
-            state->shared.stats.verification_time);
+    VMMethod* vmm = backend_method_;
+    atomic::memory_barrier();
+    if(!vmm) {
+      hard_lock(state);
 
-        BytecodeVerification bv(this);
-        if(!bv.verify(state)) {
-          if(reason) *reason = bv.failure_reason();
-          if(ip) *ip = bv.failure_ip();
-          std::cerr << "Error validating bytecode: " << bv.failure_reason() << "\n";
-          return 0;
+      vmm = backend_method_;
+      if(!vmm) {
+        {
+          BytecodeVerification bv(this);
+          if(!bv.verify(state)) {
+            if(reason) *reason = bv.failure_reason();
+            if(ip) *ip = bv.failure_ip();
+            std::cerr << "Error validating bytecode: " << bv.failure_reason() << "\n";
+            return 0;
+          }
         }
+
+        vmm = new VMMethod(state, this);
+
+        if(!resolve_primitive(state)) {
+          vmm->setup_argument_handler(this);
+        }
+
+        // We need to have an explicit memory barrier here, because we need to
+        // be sure that vmm is completely initialized before it's set.
+        // Otherwise another thread might see a partially initialized
+        // VMMethod.
+        atomic::memory_barrier();
+        backend_method_ = vmm;
       }
 
-      VMMethod* vmm = NULL;
-      vmm = new VMMethod(state, this);
-      backend_method_ = vmm;
-
-      resolve_primitive(state);
-      return vmm;
+      hard_unlock(state);
     }
-
-    return backend_method_;
+    return vmm;
   }
 
   Object* CompiledMethod::primitive_failed(STATE, CallFrame* call_frame,
-                            Dispatch& msg, Arguments& args)
+              Executable* exec, Module* mod, Arguments& args)
   {
-    if(try_as<CompiledMethod>(msg.method)) {
-      return VMMethod::execute(state, call_frame, msg, args);
+    if(try_as<CompiledMethod>(exec)) {
+      return VMMethod::execute(state, call_frame, exec, mod, args);
     }
 
     // TODO fix me to raise an exception
@@ -140,20 +152,25 @@ namespace rubinius {
     backend_method_->specialize(state, this, ti);
   }
 
-  Object* CompiledMethod::default_executor(STATE, CallFrame* call_frame, Dispatch& msg,
-                                           Arguments& args) {
-    CompiledMethod* cm = as<CompiledMethod>(msg.method);
-    const char* reason = 0;
-    int ip = -1;
+  Object* CompiledMethod::default_executor(STATE, CallFrame* call_frame,
+                          Executable* exec, Module* mod, Arguments& args)
+  {
+    LockableScopedLock lg(state, &state->shared, __FILE__, __LINE__);
 
-    if(!cm->internalize(state, &reason, &ip)) {
-      Exception::bytecode_error(state, call_frame, cm, ip, reason);
-      return 0;
+    CompiledMethod* cm = as<CompiledMethod>(exec);
+    if(cm->execute == default_executor) {
+      const char* reason = 0;
+      int ip = -1;
+
+      if(!cm->internalize(state, &reason, &ip)) {
+        Exception::bytecode_error(state, call_frame, cm, ip, reason);
+        return 0;
+      }
     }
 
-    // Refactor
-    cm->backend_method_->find_super_instructions();
-    return cm->execute(state, call_frame, msg, args);
+    lg.unlock();
+
+    return cm->execute(state, call_frame, exec, mod, args);
   }
 
   void CompiledMethod::post_marshal(STATE) {
@@ -227,6 +244,10 @@ namespace rubinius {
     return nil<CompiledMethod>();
   }
 
+  CompiledMethod* CompiledMethod::current(STATE, CallFrame* calling_environment) {
+    return calling_environment->cm;
+  }
+
   void CompiledMethod::Info::mark(Object* obj, ObjectMark& mark) {
     auto_mark(obj, mark);
 
@@ -250,26 +271,11 @@ namespace rubinius {
     for(size_t i = 0; i < vmm->inline_cache_count(); i++) {
       InlineCache* cache = &vmm->caches[i];
 
-      if(cache->module) {
-        tmp = mark.call(cache->module);
+      MethodCacheEntry* mce = cache->cache_;
+      if(mce) {
+        tmp = mark.call(mce);
         if(tmp) {
-          cache->module = (Module*)tmp;
-          mark.just_set(obj, tmp);
-        }
-      }
-
-      if(cache->method) {
-        tmp = mark.call(cache->method);
-        if(tmp) {
-          cache->method = (Executable*)tmp;
-          mark.just_set(obj, tmp);
-        }
-      }
-
-      if(cache->klass_) {
-        tmp = mark.call(cache->klass_);
-        if(tmp) {
-          cache->klass_ = (Class*)tmp;
+          cache->cache_ = (MethodCacheEntry*)tmp;
           mark.just_set(obj, tmp);
         }
       }
@@ -314,17 +320,8 @@ namespace rubinius {
     for(size_t i = 0; i < vmm->inline_cache_count(); i++) {
       InlineCache* cache = &vmm->caches[i];
 
-      if(cache->module) {
-        visit.call(cache->module);
-      }
-
-      if(cache->method) {
-        visit.call(cache->method);
-      }
-
-      if(cache->klass_) {
-        visit.call(cache->klass_);
-      }
+      MethodCacheEntry* mce = cache->cache_;
+      if(mce) visit.call(mce);
 
       for(int i = 0; i < cTrackedICHits; i++) {
         Module* mod = cache->seen_classes_[i].klass();

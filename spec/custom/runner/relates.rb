@@ -49,7 +49,7 @@ class SpecDataRelation
   # characters.
   def format(ruby)
     if /\n/ =~ ruby
-      lines = ruby.rstrip.to_a
+      lines = ruby.rstrip.each_line.to_a
       if /( *)/ =~ lines.first
         if $1.size > 4
           dedent = $1.size - 4

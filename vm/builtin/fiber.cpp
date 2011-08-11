@@ -98,7 +98,7 @@ namespace rubinius {
 
     assert(0 && "fatal start_on_stack error");
 #else
-    abort();
+    rubinius::bug("Fibers not supported on this platform");
 #endif
   }
 

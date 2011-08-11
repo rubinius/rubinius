@@ -3,14 +3,14 @@ require File.expand_path('../../../spec_helper', __FILE__)
 describe "A Call node using PrimitiveDeclaration transform" do
   relates <<-ruby do
       def m
-        Ruby.primitive :prim
+        Rubinius.primitive :prim
         raise PrimitiveFailure, "failed"
       end
     ruby
 
     compile do |g|
       in_method :m do |d|
-        d.push_const :Ruby
+        d.push_const :Rubinius
         d.push_literal :prim
         d.send :primitive, 1, false
         d.pop

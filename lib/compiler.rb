@@ -1,15 +1,14 @@
-base = File.expand_path "../", __FILE__
+require Rubinius::PARSER_PATH
 
-require base + "/melbourne"
-
-require base + "/compiler/compiler"
-require base + "/compiler/stages"
-require base + "/compiler/locals"
-require base + "/compiler/ast"
-require base + "/compiler/generator_methods"
-require base + "/compiler/generator"
-require base + "/compiler/iseq"
-require base + "/compiler/opcodes"
-require base + "/compiler/compiled_file"
-require base + "/compiler/evaluator"
-require base + "/compiler/printers"
+path = Rubinius::COMPILER_PATH
+require path + "/compiler/compiler"
+require path + "/compiler/stages"
+require path + "/compiler/locals"
+require path + "/compiler/ast"
+require path + "/compiler/generator_methods"
+require path + "/compiler/generator"
+require path + "/compiler/iseq"
+require path + "/compiler/opcodes"
+require path + "/compiler/compiled_file"
+require path + "/compiler/evaluator"
+require path + "/compiler/printers"

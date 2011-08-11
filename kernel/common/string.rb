@@ -4,7 +4,6 @@ DEFAULT_RECORD_SEPARATOR = "\n"
 
 class String
   include Comparable
-  include Enumerable
 
   attr_accessor :data
   attr_accessor :num_bytes
@@ -14,17 +13,17 @@ class String
 
   def self.allocate
     str = super()
-    str.__data__ = Rubinius::ByteArray.new(1)
+    str.__data__ = Rubinius::CharArray.new(1)
     str.num_bytes = 0
     str
   end
 
   ##
   # Creates a new string from copying _count_ bytes from the
-  # _start_ of _ba_.
-  def self.from_bytearray(ba, start, count)
-    Ruby.primitive :string_from_bytearray
-    raise PrimitiveFailure, "String.from_bytearray primitive failed"
+  # _start_ of _ca_.
+  def self.from_chararray(ca, start, count)
+    Rubinius.primitive :string_from_chararray
+    raise PrimitiveFailure, "String.from_chararray primitive failed"
   end
 
   class << self
@@ -159,7 +158,7 @@ class String
   # <code>false</code>. Otherwise, returns <code>true</code> if <i>self</i>
   # <code><=></code> <i>obj</i> returns zero.
   def ==(other)
-    Ruby.primitive :string_equal
+    Rubinius.primitive :string_equal
 
     # Use #=== rather than #kind_of? because other might redefine kind_of?
     unless String === other
@@ -261,7 +260,7 @@ class String
       index = @num_bytes + index if index < 0
 
       return if index < 0 || @num_bytes <= index
-      return @data[index]
+      return @data.character_at_index(index)
     when Regexp
       match_data = index.search_region(self, 0, @num_bytes, true)
       Regexp.last_match = match_data
@@ -299,7 +298,7 @@ class String
       index = @num_bytes + index if index < 0
 
       return if index < 0 || @num_bytes <= index
-      return @data[index]
+      return @data.character_at_index(index)
     end
   end
   alias_method :slice, :[]
@@ -437,7 +436,7 @@ class String
   #   a               #=> "Hello"
   #   a.capitalize!   #=> nil
   def capitalize!
-    Ruby.check_frozen
+    Rubinius.check_frozen
 
     cap = capitalize()
     return nil if cap == self
@@ -517,12 +516,12 @@ class String
     if sep.equal?(undefined)
       return if @num_bytes == 0
 
-      Ruby.check_frozen
+      Rubinius.check_frozen
 
       c = @data[@num_bytes-1]
-      if c == ?\n
-        @num_bytes -= 1 if @num_bytes > 1 && @data[@num_bytes-2] == ?\r
-      elsif c != ?\r
+      if c == 10 # ?\n
+        @num_bytes -= 1 if @num_bytes > 1 && @data[@num_bytes-2] == 13 # ?\r
+      elsif c != 13 # ?\r
         return
       end
 
@@ -537,21 +536,21 @@ class String
 
     if (sep == $/ && sep == DEFAULT_RECORD_SEPARATOR) || sep == "\n"
       c = @data[@num_bytes-1]
-      if c == ?\n
-        @num_bytes -= 1 if @num_bytes > 1 && @data[@num_bytes-2] == ?\r
-      elsif c != ?\r
+      if c == 10 # ?\n
+        @num_bytes -= 1 if @num_bytes > 1 && @data[@num_bytes-2] == 13 # ?\r
+      elsif c != 13 # ?\r
         return
       end
 
-      Ruby.check_frozen
+      Rubinius.check_frozen
 
       # don't use modify! because it will dup the data when we don't need to.
       @hash_value = nil
       @num_bytes = @num_bytes - 1
     elsif sep.size == 0
       size = @num_bytes
-      while size > 0 && @data[size-1] == ?\n
-        if size > 1 && @data[size-2] == ?\r
+      while size > 0 && @data[size-1] == 10 # ?\n
+        if size > 1 && @data[size-2] == 13 # ?\r
           size -= 2
         else
           size -= 1
@@ -560,7 +559,7 @@ class String
 
       return if size == @num_bytes
 
-      Ruby.check_frozen
+      Rubinius.check_frozen
 
       # don't use modify! because it will dup the data when we don't need to.
       @hash_value = nil
@@ -569,7 +568,7 @@ class String
       size = sep.size
       return if size > @num_bytes || sep.compare_substring(self, -size, size) != 0
 
-      Ruby.check_frozen
+      Rubinius.check_frozen
 
       # don't use modify! because it will dup the data when we don't need to.
       @hash_value = nil
@@ -603,8 +602,8 @@ class String
 
     self.modify!
 
-    if @num_bytes > 1 and @data[@num_bytes-1] == ?\n \
-                      and @data[@num_bytes-2] == ?\r
+    if @num_bytes > 1 and
+        @data[@num_bytes-1] == 10 and @data[@num_bytes-2] == 13
       @num_bytes = @num_bytes - 2
     else
       @num_bytes = @num_bytes - 1
@@ -709,7 +708,7 @@ class String
   # Downcases the contents of <i>self</i>, returning <code>nil</code> if no
   # changes were made.
   def downcase!
-    Ruby.check_frozen
+    Rubinius.check_frozen
 
     return if @num_bytes == 0
 
@@ -808,7 +807,7 @@ class String
         nxt = find_string(sep, pos)
         break unless nxt
 
-        while @data[nxt] == ?\n and nxt < @num_bytes
+        while @data[nxt] == 10 and nxt < @num_bytes
           nxt += 1
         end
 
@@ -861,7 +860,6 @@ class String
     self
   end
 
-  alias_method :each, :each_line
   alias_method :lines, :each_line
 
 
@@ -875,7 +873,7 @@ class String
 
   def end_with?(*suffixes)
     suffixes.each do |suffix|
-      suffix = Rubinius::Type.try_convert suffix, String, :to_str
+      suffix = Rubinius::Type.check_convert_type suffix, String, :to_str
       next unless suffix
 
       return true if self[-suffix.length, suffix.length] == suffix
@@ -885,10 +883,16 @@ class String
 
   # Two strings are equal if the have the same length and content.
   def eql?(other)
-    Ruby.primitive :string_equal
+    Rubinius.primitive :string_equal
 
     return false unless other.kind_of?(String) && other.size == @num_bytes
     return @data.compare_bytes(other.__data__, @num_bytes, other.size) == 0
+  end
+
+  # This method is specifically part of 1.9 but we enable it in 1.8 also
+  # because we need it internally.
+  def getbyte(index)
+    @data[index]
   end
 
   # Returns a copy of <i>self</i> with <em>all</em> occurrences of <i>pattern</i>
@@ -1192,7 +1196,7 @@ class String
       raise IndexError, "index #{index} out of string"
     end
 
-    Ruby.check_frozen
+    Rubinius.check_frozen
     hash_value = nil
 
     if index == @num_bytes
@@ -1211,7 +1215,7 @@ class String
     self
   end
 
-  ControlCharacters = [?\n, ?\t, ?\a, ?\v, ?\f, ?\r, ?\e, ?\b]
+  ControlCharacters = [10, 9, 7, 11, 12, 13, 27, 8]
   ControlPrintValue = ["\\n", "\\t", "\\a", "\\v", "\\f", "\\r", "\\e", "\\b"]
 
   # Returns a printable version of _self_, with special characters
@@ -1311,7 +1315,7 @@ class String
     # If we're replacing with ourselves, then we have nothing to do
     return self if equal?(other)
 
-    Ruby.check_frozen
+    Rubinius.check_frozen
 
     other = StringValue(other)
 
@@ -1585,6 +1589,12 @@ class String
 
     Regexp.last_match = last_match
     return ret
+  end
+
+  # This method is specifically part of 1.9 but we enable it in 1.8 also
+  # because we need it internally.
+  def setbyte(index, byte)
+    @data[index] = byte
   end
 
   # Deletes the specified portion from <i>self</i>, and returns the portion
@@ -1868,7 +1878,7 @@ class String
 
   def start_with?(*prefixes)
     prefixes.each do |prefix|
-      prefix = Rubinius::Type.try_convert prefix, String, :to_str
+      prefix = Rubinius::Type.check_convert_type prefix, String, :to_str
       next unless prefix
       return true if self[0, prefix.length] == prefix
     end
@@ -2024,69 +2034,6 @@ class String
   def succ
     dup.succ!
   end
-
-  # Equivalent to <code>String#succ</code>, but modifies the receiver in
-  # place.
-  def succ!
-    self.modify!
-
-    return self if @num_bytes == 0
-
-    carry = nil
-    last_alnum = 0
-    start = @num_bytes - 1
-
-    ctype = Rubinius::CType
-
-    while start >= 0
-      s = @data[start]
-      if ctype.isalnum(s)
-        carry = 0
-        if (?0 <= s && s < ?9) ||
-           (?a <= s && s < ?z) ||
-           (?A <= s && s < ?Z)
-          @data[start] += 1
-        elsif s == ?9
-          @data[start] = ?0
-          carry = ?1
-        elsif s == ?z
-          @data[start] = carry = ?a
-        elsif s == ?Z
-          @data[start] = carry = ?A
-        end
-
-        break if carry == 0
-        last_alnum = start
-      end
-
-      start -= 1
-    end
-
-    if carry.nil?
-      start = length - 1
-      carry = ?\001
-
-      while start >= 0
-        if @data[start] >= 255
-          @data[start] = 0
-        else
-          @data[start] += 1
-          break
-        end
-
-        start -= 1
-      end
-    end
-
-    if start < 0
-      splice! last_alnum, 1, carry.chr + @data[last_alnum].chr
-    end
-
-    return self
-  end
-
-  alias_method :next, :succ
-  alias_method :next!, :succ!
 
   # Returns a basic <em>n</em>-bit checksum of the characters in <i>self</i>,
   # where <em>n</em> is the optional <code>Fixnum</code> parameter, defaulting
@@ -2253,22 +2200,6 @@ class String
     modified ? self : nil
   end
 
-  def upto(stop, exclusive=false)
-    stop = StringValue(stop)
-    return self if self > stop
-
-    after_stop = exclusive ? stop : stop.succ
-    current = self
-
-    until current == after_stop
-      yield current
-      current = StringValue(current.succ)
-      break if current.size > stop.size || current.size == 0
-    end
-
-    self
-  end
-
   def tr_trans(source, replacement, squeeze)
     source = StringValue(source).dup
     replacement = StringValue(replacement).dup
@@ -2382,17 +2313,17 @@ class String
   end
 
   def to_inum(base, check)
-    Ruby.primitive :string_to_inum
+    Rubinius.primitive :string_to_inum
     raise ArgumentError, "invalid value for Integer"
   end
 
   def apply_and!(other)
-    Ruby.primitive :string_apply_and
+    Rubinius.primitive :string_apply_and
     raise PrimitiveFailure, "String#apply_and! primitive failed"
   end
 
   def compare_substring(other, start, size)
-    Ruby.primitive :string_compare_substring
+    Rubinius.primitive :string_compare_substring
 
     if start > @num_bytes || start + @num_bytes < 0
       raise IndexError, "index #{start} out of string"
@@ -2406,7 +2337,7 @@ class String
     i, size = 0, strings.size
     while i < size
       str = StringValue(strings[i]).dup
-      if str.size > 1 && str[0] == ?^
+      if str.size > 1 && str.getbyte(0) == 94 # ?^
         pos, neg = 0, 1
       else
         pos, neg = 1, 0
@@ -2415,7 +2346,7 @@ class String
       set = String.pattern 256, neg
       str.tr_expand! nil, true
       j, chars = -1, str.size
-      set[str[j]] = pos while (j += 1) < chars
+      set.setbyte(str.getbyte(j), pos) while (j += 1) < chars
 
       table.apply_and! set
       i += 1
@@ -2424,7 +2355,7 @@ class String
   end
 
   def tr_expand!(limit, invalid_as_empty)
-    Ruby.primitive :string_tr_expand
+    Rubinius.primitive :string_tr_expand
     raise PrimitiveFailure, "String#tr_expand primitive failed"
   end
 
@@ -2467,7 +2398,7 @@ class String
 
   # Unshares shared strings.
   def modify!
-    Ruby.check_frozen
+    Rubinius.check_frozen
 
     if @shared
       @data = @data.dup
@@ -2750,7 +2681,7 @@ class String
   #     -------+---------+-----------------------------------------
 
   def unpack(directives)
-    Ruby.primitive :string_unpack
+    Rubinius.primitive :string_unpack
 
     unless directives.kind_of? String
       return unpack(StringValue(directives))

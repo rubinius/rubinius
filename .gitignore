@@ -66,17 +66,16 @@ tmtags
 !/bin/rbx
 
 # don't ignore spec/tags
-!spec/tags
+!/spec/tags
 
 /vm/log
 /vm/.deps
+/vm/vm.exe
 
 /kernel/signature.rb
 
 /lib/compiler/opcodes.rb
 /lib/compiler/generator_methods.rb
-
-vm/capi/include/rbx_config.h
 
 /lib/etc.rb
 /lib/kernel.rb
@@ -84,27 +83,6 @@ vm/capi/include/rbx_config.h
 /lib/fcntl.rb
 /lib/syslog.rb
 /lib/readline.rb
-
-/lib/ext/melbourne/Makefile
-
-# LLVM and its Makefiles
-vm/external_libs/llvm/Makefile
-vm/external_libs/llvm/Makefile.common
-vm/external_libs/llvm/bindings/Makefile
-vm/external_libs/llvm/bindings/ocaml/Makefile.ocaml
-vm/external_libs/llvm/examples/Makefile
-vm/external_libs/llvm/lib/Makefile
-vm/external_libs/llvm/projects/Makefile
-vm/external_libs/llvm/projects/sample/Makefile
-vm/external_libs/llvm/projects/sample/lib/Makefile
-vm/external_libs/llvm/projects/sample/lib/sample/Makefile
-vm/external_libs/llvm/projects/sample/tools/Makefile
-vm/external_libs/llvm/projects/sample/tools/sample/Makefile
-vm/external_libs/llvm/runtime/Makefile
-vm/external_libs/llvm/test/Makefile
-vm/external_libs/llvm/test/Makefile.tests
-vm/external_libs/llvm/tools/Makefile
-vm/external_libs/llvm/utils/Makefile
 
 # Generated documentation
 doc/generated/vm

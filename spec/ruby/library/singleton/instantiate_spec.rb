@@ -9,7 +9,9 @@ describe "Singleton._instantiate?" do
 
   ruby_version_is "" ... "1.9" do
     # JRuby doesn't support "_instantiate?" intentionally (JRUBY-2239)
-    not_compliant_on :jruby do
+    # Rubinius is no longer compliant either since it uses singleton.rb from MRI 1.9
+    # which no longer defines this private method
+    not_compliant_on(:jruby, :rubinius) do
       it "returns nil until it is instantiated" do
         SingletonSpecs::NotInstantiated.send(:_instantiate?).should == nil
         SingletonSpecs::NotInstantiated.instance

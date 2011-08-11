@@ -58,12 +58,14 @@ namespace tooling {
     return rbxti::s(results_func_(state->tooling_env()));
   }
 
-  void* ToolBroker::enter_method(STATE, Dispatch& msg, Arguments& args, CompiledMethod* cm) {
+  void* ToolBroker::enter_method(STATE, Executable* exec, Module* o_mod,
+                                 Arguments& args, CompiledMethod* cm)
+  {
     if(!enter_method_func_) return 0;
 
     rbxti::robject recv = rbxti::s(args.recv());
-    rbxti::rsymbol name = rbxti::o(msg.name);
-    rbxti::rmodule mod =  rbxti::o(msg.module);
+    rbxti::rsymbol name = rbxti::o(args.name());
+    rbxti::rmodule mod =  rbxti::o(o_mod);
     rbxti::rmethod meth = rbxti::o(cm);
 
     return enter_method_func_(state->tooling_env(), recv, name, mod, meth);

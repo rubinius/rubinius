@@ -1,0 +1,1 @@
+fails:Kernel#format is a private method

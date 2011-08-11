@@ -51,17 +51,17 @@ namespace rubinius {
                              Object* block, CallFrame* call_frame)
   {
     Dispatch disp(name, mod, this);
-    Arguments args(recv, 0, 0);
+    Arguments args(name, recv, 0, 0);
     args.use_array(ary);
     args.set_block(block);
 
-    return execute(state, call_frame, disp, args);
+    return execute(state, call_frame, disp.method, disp.module, args);
   }
 
-  Object* Executable::default_executor(STATE, CallFrame* call_frame, Dispatch& msg,
+  Object* Executable::default_executor(STATE, CallFrame* call_frame, Executable* exec, Module* mod,
                                        Arguments& args) {
-    args.unshift2(state, args.recv(), msg.name);
-    args.set_recv(msg.method);
+    args.unshift2(state, args.recv(), args.name());
+    args.set_recv(exec);
 
     Dispatch dis(state->symbol("call"));
     return dis.send(state, call_frame, args);

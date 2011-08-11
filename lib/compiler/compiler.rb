@@ -52,6 +52,7 @@ module Rubinius
       parser.input file, line
 
       writer = compiler.writer
+      writer.version = Rubinius::RUBY_LIB_VERSION
       writer.name = output ? output : compiled_name(file)
 
       begin
@@ -316,6 +317,20 @@ module Rubinius
 
       parser = compiler.parser
       parser.root AST::Snippet
+      parser.input string
+      transforms.each { |x| parser.enable_transform x }
+
+      compiler.generator.processor TestGenerator
+
+      compiler.run
+    end
+
+    def self.compile_test_bytecode_19(string, transforms)
+      compiler = new :string, :bytecode
+
+      parser = compiler.parser
+      parser.root AST::Snippet
+      parser.processor Rubinius::Melbourne19
       parser.input string
       transforms.each { |x| parser.enable_transform x }
 

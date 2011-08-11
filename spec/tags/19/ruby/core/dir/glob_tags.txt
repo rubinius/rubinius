@@ -1,0 +1,6 @@
+fails:Dir.glob calls #to_path to convert patterns
+fails:Dir.glob matches a set '{<string>,<other>,...}' which also uses a glob
+fails:Dir.glob matches dot or non-dotfiles with '{,.}*'
+fails:Dir.glob respects the order of {} expressions, expanding left most first
+fails:Dir.glob respects the optional nested {} expressions
+fails:Dir.glob recursively matches directories with '**/<characters>'

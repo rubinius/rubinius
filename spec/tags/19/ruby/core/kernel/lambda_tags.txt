@@ -1,0 +1,1 @@
+fails:Kernel.lambda checks the arity when 1 arg is specified

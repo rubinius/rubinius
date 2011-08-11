@@ -39,6 +39,6 @@ namespace rubinius {
       args.unshift(state, original_name);
     }
 
-    return method->execute(state, call_frame, *this, args);
+    return method->execute(state, call_frame, method, module, args);
   }
 }

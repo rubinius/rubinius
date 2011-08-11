@@ -1,5 +1,6 @@
 #include "vm/symboltable.hpp"
 #include "vm/exception.hpp"
+#include "configuration.hpp"
 
 #include "builtin/array.hpp"
 #include "builtin/exception.hpp"
@@ -53,13 +54,12 @@ namespace rubinius {
   }
 
   Symbol* SymbolTable::lookup(STATE, const char* str) {
-    Symbol* sym = lookup(str);
-    if(!sym) {
+    if(*str == 0 && LANGUAGE_18_ENABLED(state)) {
       Exception::argument_error(state, "Cannot create a symbol from an empty string");
       return NULL;
     }
 
-    return sym;
+    return lookup(str);
   }
 
   struct SpecialOperator {
@@ -96,8 +96,6 @@ namespace rubinius {
 
   Symbol* SymbolTable::lookup(const char* str) {
     size_t sym;
-
-    if(*str == 0) return NULL;
 
     if(const char* op = find_special(str)) {
       str = op;

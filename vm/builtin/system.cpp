@@ -7,12 +7,18 @@
 #include <string.h>
 #include <sstream>
 
+#include "vm/config.h"
+
+#ifdef RBX_WINDOWS
+#include "windows_compat.h"
+#else
 #include <sys/resource.h>
 #include <sys/wait.h>
-#include <unistd.h>
 #include <pwd.h>
-
 #include <dlfcn.h>
+#endif
+
+#include <unistd.h>
 
 #include "vm/call_frame.hpp"
 #include "vm/helpers.hpp"
@@ -49,14 +55,13 @@
 #include "signal.hpp"
 #include "lookup_data.hpp"
 
-#include "instruments/stats.hpp"
-
 #include "configuration.hpp"
 
 #include "inline_cache.hpp"
 
 #include "agent.hpp"
 
+#include "windows_compat.h"
 #include "util/sha1.h"
 
 #include "instruments/tooling.hpp"
@@ -112,7 +117,9 @@ namespace rubinius {
 
   }
 
-  void System::attach_primitive(STATE, Module* mod, bool meta, Symbol* name, Symbol* prim) {
+  void System::attach_primitive(STATE, Module* mod, bool meta,
+                                Symbol* name, Symbol* prim)
+  {
     MethodTable* tbl;
 
     if(meta) {
@@ -132,7 +139,9 @@ namespace rubinius {
   //
   // HACK: remove this when performance is better and compiled_file.rb
   // unmarshal_data method works.
-  Object* System::compiledfile_load(STATE, String* path, Integer* version) {
+  Object* System::compiledfile_load(STATE, String* path,
+                                    Integer* signature, Integer* version)
+  {
     std::ifstream stream(path->c_str(state));
     if(!stream) {
       return Primitives::failure();
@@ -144,8 +153,9 @@ namespace rubinius {
       return Primitives::failure();
     }
 
-    uint64_t ver = version->to_ulong_long();
-    if((ver > 0 && cf->version != ver) || cf->sum != "x") {
+    uint64_t sig = signature->to_ulong_long();
+    if((sig > 0 && cf->signature != sig)
+        || cf->version != version->to_native()) {
       delete cf;
       return Primitives::failure();
     }
@@ -215,12 +225,22 @@ namespace rubinius {
 
     delete[] argv;
 
+#ifdef ENABLE_LLVM
+    LLVMState::start(state);
+#endif
+
     /* execvp() returning means it failed. */
     Exception::errno_error(state, "execvp(2) failed");
     return NULL;
   }
 
-  Object* System::vm_replace(STATE, String* str, CallFrame* calling_environment) {
+  Object* System::vm_replace(STATE, String* str,
+                             CallFrame* calling_environment)
+  {
+#ifdef RBX_WINDOWS
+    // TODO: Windows
+    return Primitives::failure();
+#else
     int fds[2];
 
     if(pipe(fds) != 0) return Primitives::failure();
@@ -291,7 +311,7 @@ namespace rubinius {
       }
 
       // bad news, shouldn't be here.
-      printf("Exec failed: %s\n", strerror(errno));
+      std::cerr << "execvp failed: " << strerror(errno) << std::endl;
       exit(1);
     }
 
@@ -303,12 +323,12 @@ namespace rubinius {
       ssize_t bytes = 0;
       char raw_buf[1024];
       {
-        GlobalLock::UnlockGuard lock(state, calling_environment);
+        GCIndependent guard(state, calling_environment);
         bytes = read(fds[0], raw_buf, 1023);
       }
 
       if(bytes < 0) {
-       switch(errno) {
+        switch(errno) {
           case EAGAIN:
           case EINTR:
             if(!state->check_async(calling_environment)) {
@@ -332,10 +352,16 @@ namespace rubinius {
 
     return Tuple::from(state, 2, Fixnum::from(pid),
                        String::create(state, buf.c_str(), buf.size()));
+#endif  // RBX_WINDOWS
   }
 
   Object* System::vm_wait_pid(STATE, Fixnum* pid_obj, Object* no_hang,
-                              CallFrame* calling_environment) {
+                              CallFrame* calling_environment)
+  {
+#ifdef RBX_WINDOWS
+    // TODO: Windows
+    return Primitives::failure();
+#else
     pid_t input_pid = pid_obj->to_native();
     int options = 0;
     int status;
@@ -348,7 +374,7 @@ namespace rubinius {
   retry:
 
     {
-      GlobalLock::UnlockGuard lock(state, calling_environment);
+      GCIndependent guard(state, calling_environment);
       pid = waitpid(input_pid, &status, options);
     }
 
@@ -380,6 +406,7 @@ namespace rubinius {
     }
 
     return Tuple::from(state, 4, output, termsig, stopsig, Fixnum::from(pid));
+#endif  // RBX_WINDOWS
   }
 
   Object* System::vm_exit(STATE, Fixnum* code) {
@@ -387,29 +414,23 @@ namespace rubinius {
     return NULL;
   }
 
-  Fixnum* System::vm_fork(VM* state)
+  Fixnum* System::vm_fork(VM* state, CallFrame* calling_environment)
   {
+#ifdef RBX_WINDOWS
+    // TODO: Windows
+    return force_as<Fixnum>(Primitives::failure());
+#else
     int result = 0;
 
 #ifdef ENABLE_LLVM
-    LLVMState::pause(state);
+    {
+      GCIndependent guard(state, calling_environment);
+      LLVMState::pause(state);
+    }
 #endif
-
-    GlobalLock& lock = state->global_lock();
 
     // ok, now fork!
     result = ::fork();
-
-    // Ok, now in the child, reinitialize the lock and lock it.
-    // We can't lock it without reinitializing it, because it's
-    // associated with the parent resources, and we're in the child!
-    if(result == 0) {
-      lock.init();
-
-      lock.take();
-
-    // otherwise, we're locking in the parent, so we can just lock as normal.
-    }
 
     // We're in the child...
     if(result == 0) {
@@ -418,6 +439,7 @@ namespace rubinius {
       state->shared.reinit();
 
       SignalHandler::on_fork();
+      state->shared.om->on_fork();
 
       // Re-initialize LLVM
 #ifdef ENABLE_LLVM
@@ -425,7 +447,10 @@ namespace rubinius {
 #endif
     } else {
 #ifdef ENABLE_LLVM
+    {
+      GCIndependent guard(state, calling_environment);
       LLVMState::unpause(state);
+    }
 #endif
     }
 
@@ -435,6 +460,7 @@ namespace rubinius {
     }
 
     return Fixnum::from(result);
+#endif
   }
 
   Object* System::vm_gc_start(STATE, Object* force) {
@@ -484,9 +510,9 @@ namespace rubinius {
 
   Object* System::vm_reset_method_cache(STATE, Symbol* name) {
     // 1. clear the global cache
-    state->global_cache()->clear(name);
+    state->global_cache()->clear(state, name);
 
-    state->shared.ic_registry()->clear(name);
+    state->shared.ic_registry()->clear(state, name);
     return name;
   }
 
@@ -608,29 +634,14 @@ namespace rubinius {
 #endif
   }
 
-  Object* System::vm_stats_gc_clear(STATE) {
-#ifdef RBX_GC_STATS
-    stats::GCStats::clear();
-#endif
-    return Qnil;
-  }
-
-  Object* System::vm_stats_gc_info(STATE) {
-#ifdef RBX_GC_STATS
-    return stats::GCStats::get()->to_ruby(state);
-#else
-    return Qnil;
-#endif
-  }
-
   Object* System::vm_watch_signal(STATE, Fixnum* sig, Object* ignored) {
     SignalHandler* h = state->shared.signal_handler();
     if(h) {
       native_int i = sig->to_native();
       if(i < 0) {
-        h->add_signal(-i, SignalHandler::eDefault);
+        h->add_signal(state, -i, SignalHandler::eDefault);
       } else {
-        h->add_signal(i, ignored == Qtrue ? SignalHandler::eIgnore : SignalHandler::eCustom);
+        h->add_signal(state, i, ignored == Qtrue ? SignalHandler::eIgnore : SignalHandler::eCustom);
       }
 
       return Qtrue;
@@ -652,6 +663,10 @@ namespace rubinius {
   }
 
   Array* System::vm_times(STATE) {
+#ifdef RBX_WINDOWS
+    // TODO: Windows
+    return force_as<Array>(Primitives::failure());
+#else
     struct rusage buf;
 
     Array* ary = Array::create(state, 4);
@@ -701,9 +716,12 @@ namespace rubinius {
 #endif
 
     return ary;
+#endif
   }
 
-  Class* System::vm_open_class(STATE, Symbol* name, Object* sup, StaticScope* scope) {
+  Class* System::vm_open_class(STATE, Symbol* name, Object* sup,
+                               StaticScope* scope)
+  {
     Module* under;
 
     if(scope->nil_p()) {
@@ -715,7 +733,9 @@ namespace rubinius {
     return vm_open_class_under(state, name, sup, under);
   }
 
-  Class* System::vm_open_class_under(STATE, Symbol* name, Object* super, Module* under) {
+  Class* System::vm_open_class_under(STATE, Symbol* name, Object* super,
+                                     Module* under)
+  {
     bool found = false;
 
     Object* obj = under->get_const(state, name, &found);
@@ -731,8 +751,10 @@ namespace rubinius {
                 << cls->true_superclass(state)->name()->c_str(state);
 
         Exception* exc =
-          Exception::make_type_error(state, Class::type, super, message.str().c_str());
-        // exc->locations(state, System::vm_backtrace(state, Fixnum::from(0), call_frame));
+          Exception::make_type_error(state, Class::type, super,
+                                     message.str().c_str());
+        // exc->locations(state, System::vm_backtrace(state,
+        //                Fixnum::from(0), call_frame));
         state->thread_state()->raise_exception(exc);
         return NULL;
       }
@@ -794,7 +816,8 @@ namespace rubinius {
   }
 
   Object* System::vm_add_method(STATE, Symbol* name, CompiledMethod* method,
-                                StaticScope* scope, Object* vis) {
+                                StaticScope* scope, Object* vis)
+  {
     Module* mod = scope->for_method_definition();
 
     method->scope(state, scope);
@@ -882,7 +905,7 @@ namespace rubinius {
   }
 
   Object* System::vm_inc_global_serial(STATE) {
-    return Fixnum::from(state->shared.inc_global_serial());
+    return Fixnum::from(state->shared.inc_global_serial(state));
   }
 
   Object* System::vm_jit_block(STATE, BlockEnvironment* env, Object* show) {
@@ -961,11 +984,13 @@ namespace rubinius {
     return NULL;
   }
 
-  Object* System::vm_catch(STATE, Symbol* dest, Object* obj, CallFrame* call_frame) {
+  Object* System::vm_catch(STATE, Symbol* dest, Object* obj,
+                           CallFrame* call_frame)
+  {
     LookupData lookup(obj, obj->lookup_begin(state), false);
     Dispatch dis(state->symbol("call"));
 
-    Arguments args;
+    Arguments args(state->symbol("call"));
     args.set_recv(obj);
 
     Object* ret = dis.send(state, call_frame, lookup, args);
@@ -1070,7 +1095,9 @@ namespace rubinius {
     return vm_get_kcode(state);
   }
 
-  Object* System::vm_const_defined(STATE, Symbol* sym, CallFrame* calling_environment) {
+  Object* System::vm_const_defined(STATE, Symbol* sym,
+                                   CallFrame* calling_environment)
+  {
     bool found;
 
     Object* res = Helpers::const_get(state, calling_environment, sym, &found);
@@ -1088,7 +1115,8 @@ namespace rubinius {
     Object* res = Helpers::const_get_under(state, under, sym, &found);
     if(!found) {
       if(send_const_missing->true_p()) {
-        res = Helpers::const_missing_under(state, under, sym, calling_environment);
+        res = Helpers::const_missing_under(state, under, sym,
+                                           calling_environment);
       } else {
         res = Primitives::failure();
       }
@@ -1097,7 +1125,9 @@ namespace rubinius {
     return res;
   }
 
-  Object* System::vm_check_callable(STATE, Object* obj, Symbol* sym, Object* self) {
+  Object* System::vm_check_callable(STATE, Object* obj, Symbol* sym,
+                                    Object* self)
+  {
     Module* mod = obj->lookup_begin(state);
 
     MethodTableBucket* entry;
@@ -1158,6 +1188,10 @@ namespace rubinius {
   }
 
   String* System::vm_get_user_home(STATE, String* name) {
+#ifdef RBX_WINDOWS
+    // TODO: Windows
+    return force_as<String>(Primitives::failure());
+#else
     struct passwd *pwd;
     String* home = 0;
 
@@ -1169,10 +1203,11 @@ namespace rubinius {
 
     endpwent();
     return home;
+#endif
   }
 
   IO* System::vm_agent_io(STATE) {
-    QueryAgent* agent = state->shared.autostart_agent();
+    QueryAgent* agent = state->shared.autostart_agent(state);
     int sock = agent->loopback_socket();
     if(sock < 0) {
       if(!agent->setup_local()) return nil<IO>();
@@ -1193,6 +1228,137 @@ namespace rubinius {
     if(!obj->reference_p()) return Qfalse;
     state->om->set_ruby_finalizer(obj, fin);
     return Qtrue;
+  }
+
+  Object* System::vm_object_lock(STATE, Object* obj, CallFrame* call_frame) {
+    if(!obj->reference_p()) return Primitives::failure();
+    state->set_call_frame(call_frame);
+
+    switch(obj->lock(state)) {
+    case eLocked:
+      return Qtrue;
+    case eLockTimeout:
+    case eUnlocked:
+    case eLockError:
+      return Primitives::failure();
+    case eLockInterrupted:
+      {
+        Exception* exc = state->interrupted_exception();
+        assert(!exc->nil_p());
+        state->clear_interrupted_exception();
+        exc->locations(state, Location::from_call_stack(state, call_frame));
+        state->thread_state()->raise_exception(exc);
+        return 0;
+      }
+    }
+
+    return Qnil;
+  }
+
+  Object* System::vm_object_lock_timed(STATE, Object* obj, Integer* time,
+                                       CallFrame* call_frame)
+  {
+    if(!obj->reference_p()) return Primitives::failure();
+    state->set_call_frame(call_frame);
+
+    switch(obj->lock(state, time->to_native())) {
+    case eLocked:
+      return Qtrue;
+    case eLockTimeout:
+      return Qfalse;
+    case eUnlocked:
+    case eLockError:
+      return Primitives::failure();
+    case eLockInterrupted:
+      {
+        Exception* exc = state->interrupted_exception();
+        assert(!exc->nil_p());
+        state->clear_interrupted_exception();
+        exc->locations(state, Location::from_call_stack(state, call_frame));
+        state->thread_state()->raise_exception(exc);
+        return 0;
+      }
+      return 0;
+    }
+
+    return Qnil;
+  }
+
+  Object* System::vm_object_trylock(STATE, Object* obj,
+                                    CallFrame* call_frame)
+  {
+    if(!obj->reference_p()) return Primitives::failure();
+    state->set_call_frame(call_frame);
+    if(obj->try_lock(state) == eLocked) return Qtrue;
+    return Qfalse;
+  }
+
+  Object* System::vm_object_locked_p(STATE, Object* obj) {
+    if(!obj->reference_p()) return Qfalse;
+    if(obj->locked_p(state)) return Qtrue;
+    return Qfalse;
+  }
+
+  Object* System::vm_object_unlock(STATE, Object* obj,
+                                   CallFrame* call_frame)
+  {
+    if(!obj->reference_p()) return Primitives::failure();
+    state->set_call_frame(call_frame);
+
+    if(obj->unlock(state) == eUnlocked) return Qnil;
+    if(cDebugThreading) {
+      std::cerr << "[LOCK " << state->thread_id() << " unlock failed]" << std::endl;
+    }
+    return Primitives::failure();
+  }
+
+  Object* System::vm_memory_barrier(STATE) {
+    atomic::memory_barrier();
+    return Qnil;
+  }
+
+  Object* System::vm_ruby18_p(STATE) {
+    return LANGUAGE_18_ENABLED(state) ? Qtrue : Qfalse;
+  }
+
+  Object* System::vm_ruby19_p(STATE) {
+    return LANGUAGE_19_ENABLED(state) ? Qtrue : Qfalse;
+  }
+
+  Object* System::vm_ruby20_p(STATE) {
+    return LANGUAGE_20_ENABLED(state) ? Qtrue : Qfalse;
+  }
+
+  Object* System::vm_windows_p(STATE) {
+#ifdef RBX_WINDOWS
+    return Qtrue;
+#else
+    return Qfalse;
+#endif
+  }
+
+  Object* System::vm_darwin_p(STATE) {
+#ifdef RBX_DARWIN
+    return Qtrue;
+#else
+    return Qfalse;
+#endif
+  }
+
+  Object* System::vm_bsd_p(STATE) {
+#ifdef RBX_BSD
+    return Qtrue;
+#else
+    return Qfalse;
+#endif
+  }
+
+  Object* System::vm_linux_p(STATE) {
+#ifdef RBX_LINUX
+    return Qtrue;
+#else
+    return Qfalse;
+#endif
   }
 
   String* System::sha1_hash(STATE, String* str) {
@@ -1259,7 +1425,7 @@ namespace rubinius {
                                 CallFrame* calling_environment)
   {
     Dispatch msg(state->symbol("__script__"), G(object), cm);
-    Arguments args(G(main), Qnil, 0, 0);
+    Arguments args(state->symbol("__script__"), G(main), Qnil, 0, 0);
 
     cm->internalize(state, 0, 0);
 
@@ -1273,5 +1439,85 @@ namespace rubinius {
 #else
     return cm->backend_method()->execute_as_script(state, cm, calling_environment);
 #endif
+  }
+
+#define HASH_TRIE_BASE_SHIFT  6
+
+#if RBX_SIZEOF_LONG == 8
+#define HASH_TRIE_BIT_WIDTH   6
+#define HASH_TRIE_BIT_MASK    0x3f
+#else
+#define HASH_TRIE_BIT_WIDTH   5
+#define HASH_TRIE_BIT_MASK    0x1f
+#endif
+
+  static inline size_t hash_trie_bit(Fixnum* hash, Fixnum* level) {
+    native_int h = hash->to_native();
+    native_int l = level->to_native();
+
+    size_t width = HASH_TRIE_BIT_WIDTH;
+    size_t mask = HASH_TRIE_BIT_MASK;
+    size_t base = HASH_TRIE_BASE_SHIFT;
+    size_t result = 1;
+
+    return result << ((h >> (l * width + base)) & mask);
+  }
+
+  static inline int hash_trie_index(size_t m) {
+#if RBX_SIZEOF_LONG == 8
+    native_int sk5 = 0x5555555555555555;
+    native_int sk3 = 0x3333333333333333;
+    native_int skf0 = 0x0F0F0F0F0F0F0F0F;
+
+    m -= (m >> 1) & sk5;
+    m = (m & sk3) + ((m >> 2) & sk3);
+    m = (m & skf0) + ((m >> 4) & skf0);
+    m += m >> 8;
+    m += m >> 16;
+    m = (m + (m >> 32)) & 0xFF;
+#else
+    native_int sk5 = 0x55555555;
+    native_int sk3 = 0x33333333;
+    native_int skf0 = 0xF0F0F0F;
+
+    m -= (m >> 1) & sk5;
+    m = (m & sk3) + ((m >> 2) & sk3);
+    m = (m & skf0) + ((m >> 4) & skf0);
+    m += m >> 8;
+    m = (m + (m >> 16)) & 0x3F;
+#endif
+
+    return m;
+  }
+
+  Fixnum* System::vm_hash_trie_entry_index(STATE, Fixnum* hash,
+                                           Fixnum* level, Integer* map)
+  {
+    size_t m = map->to_ulong();
+    size_t b = hash_trie_bit(hash, level);
+
+    if(m & b) {
+      return Fixnum::from(hash_trie_index((b - 1) & m));
+    } else {
+      return nil<Fixnum>();
+    }
+  }
+
+  Integer* System::vm_hash_trie_set_bitmap(STATE, Fixnum* hash,
+                                           Fixnum* level, Integer* map)
+  {
+    size_t m = map->to_ulong();
+    size_t b = hash_trie_bit(hash, level);
+
+    return Integer::from(state, m | b);
+  }
+
+  Integer* System::vm_hash_trie_unset_bitmap(STATE, Fixnum* hash,
+                                             Fixnum* level, Integer* map)
+  {
+    size_t m = map->to_ulong();
+    size_t b = hash_trie_bit(hash, level);
+
+    return Integer::from(state, m & ~b);
   }
 }

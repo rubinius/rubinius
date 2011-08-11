@@ -1,0 +1,2 @@
+fails:Math.log2 raises an TypeError if the argument cannot be coerced with Float()
+fails:Math.log2 raises an TypeError if passed a numerical argument as a string

@@ -1,5 +1,6 @@
 #include <iostream>
 
+#include "config.h"
 #include "vm.hpp"
 
 #include "exception.hpp"
@@ -25,6 +26,10 @@
 
 #include "capi/capi.hpp"
 #include "capi/handle.hpp"
+
+#ifdef RBX_WINDOWS
+#include <malloc.h>
+#endif
 
 namespace rubinius {
   /** Thread-local NativeMethodEnvironment instance. */
@@ -56,7 +61,7 @@ namespace rubinius {
   }
 
   VALUE NativeMethodFrame::get_handle(STATE, Object* obj) {
-    InflatedHeader* ih = state->om->inflate_header(obj);
+    InflatedHeader* ih = state->om->inflate_header(state, obj);
 
     capi::Handle* handle = ih->handle();
 
@@ -70,7 +75,7 @@ namespace rubinius {
       handle = new capi::Handle(state, obj);
       ih->set_handle(handle);
 
-      state->shared.global_handles()->add(handle);
+      state->shared.add_global_handle(state, handle);
 
       handles_.add_if_absent(handle);
     }
@@ -142,7 +147,7 @@ namespace rubinius {
   }
 
   void NativeMethodEnvironment::delete_global(VALUE val) {
-    abort();
+    rubinius::bug("NME::delete_global was used");
   }
 
   Object* NativeMethodEnvironment::block() {
@@ -585,14 +590,14 @@ namespace rubinius {
 
   template <class ArgumentHandler>
   Object* NativeMethod::executor_implementation(STATE,
-      CallFrame* call_frame, Dispatch& msg, Arguments& args) {
-    NativeMethod* nm = as<NativeMethod>(msg.method);
+      CallFrame* call_frame, Executable* exec, Module* mod, Arguments& args) {
+    NativeMethod* nm = as<NativeMethod>(exec);
 
     int arity = nm->arity()->to_int();
 
     if(arity >= 0 && (size_t)arity != args.total()) {
       Exception* exc = Exception::make_argument_error(
-          state, arity, args.total(), msg.name);
+          state, arity, args.total(), args.name());
       exc->locations(state, Location::from_call_stack(state, call_frame));
       state->thread_state()->raise_exception(exc);
 
@@ -632,8 +637,12 @@ namespace rubinius {
     nmf.setup(
         env->get_handle(args.recv()),
         env->get_handle(args.block()),
-        env->get_handle(msg.method),
-        env->get_handle(msg.module));
+        env->get_handle(exec),
+        env->get_handle(mod));
+
+    // We've got things setup (they can be GC'd properly), so we need to
+    // wait before entering the extension code.
+    state->shared.enter_capi(state);
 
     Object* ret;
     ExceptionPoint ep(env);
@@ -645,7 +654,7 @@ namespace rubinius {
     } else {
 #ifdef RBX_PROFILER
       if(unlikely(state->tooling())) {
-        tooling::MethodEntry method(state, msg, args);
+        tooling::MethodEntry method(state, exec, mod, args);
         ret = ArgumentHandler::invoke(state, nm, env, args);
       } else {
         ret = ArgumentHandler::invoke(state, nm, env, args);
@@ -658,6 +667,8 @@ namespace rubinius {
     env->set_current_call_frame(saved_frame);
     env->set_current_native_frame(nmf.previous());
     ep.pop(env);
+
+    state->shared.leave_capi(state);
 
     // Handle any signals that occurred while the native method
     // was running.

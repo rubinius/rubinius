@@ -11,30 +11,15 @@ namespace rubinius {
 
   class Channel;
   class Exception;
-  class NativeThread;
 
   /**
-   *  Error class for deadlocks.
-   */
-  class DeadLock : public Assertion {
-  public:
-    DeadLock(const char* msg) : Assertion(msg) { }
-  };
-
-
-  /**
-   *  Ruby-side Thread implementation.
+   *  Ruby Thread implementation.
    *
    *  Each Thread is backed by a native thread. This class
    *  provides the interface Ruby expects to see to manipulate
    *  Thread execution.
-   *
-   *  @see  vm/native_thread.hpp
-   *  @see  vm/util/thread.hpp
    */
   class Thread : public Object {
-  private:  /* Instance vars */
-
     /** Thread is created and valid and not yet done? */
     Object* alive_;        // slot
 
@@ -43,45 +28,45 @@ namespace rubinius {
 
     Channel* control_channel_; // slot
 
+    /** LookupTable of objects that contain themselves. */
     LookupTable* recursive_objects_;  // slot
 
     Thread* debugger_thread_; // slot
 
-    /**
-     *  Actual OS backend thread associated with this Thread.
-     *
-     *  @see Thread::fork()
-     */
-    NativeThread* native_thread_;
+    Fixnum* thread_id_; // slot
+
+    thread::SpinLock init_lock_;
+
+    /// The VM state for this thread and this thread alone
+    VM* vm_;
+
+    typedef Object* (*Run)(STATE);
+
+    Run runner_;
 
   public:
     const static object_type type = ThreadType;
 
-    /** Register class with the VM. */
     static void   init(VM* state);
 
-
-  public:   /* Accessors */
-
-    /** Thread created, valid and not yet done? */
+  public:
     attr_accessor(alive, Object);
 
-    /** Thread alive but not currently running? */
     attr_accessor(sleep, Object);
 
     attr_accessor(control_channel, Channel);
 
-    /** LookupTable of objects that contain themselves. */
     attr_accessor(recursive_objects, LookupTable);
 
     attr_accessor(debugger_thread, Thread);
 
-    /** OS thread associated with this Thread, if any. */
-    NativeThread* native_thread() {
-      return native_thread_;
+    attr_accessor(thread_id, Fixnum);
+
+    VM* vm() {
+      return vm_;
     }
 
-  public:   /* Class primitives */
+  public:
 
     /**
      *  Allocate a Thread object.
@@ -99,27 +84,23 @@ namespace rubinius {
      *  @see  Thread::create()
      *
      *  @see  vm/vm.hpp
-     *  @see  kernel/common/thread.rb
+     *  @see  kernel/bootstrap/thread.rb
      */
-    // Ruby.primitive :thread_allocate
+    // Rubinius.primitive :thread_allocate
     static Thread* allocate(STATE, Object* self);
 
     /**
      *  Returns the Thread object for the state.
      *
-     *  This is theoretically the currently executing Thread.
+     *  This is the currently executing Thread.
      */
-    // Ruby.primitive :thread_current
+    // Rubinius.primitive :thread_current
     static Thread* current(STATE);
 
     /**
      *  Attempt to schedule some other Thread.
-     *
-     *  The other Thread, if found, is set as the active
-     *  one but this only goes in effect once this pass
-     *  is over.
      */
-    // Ruby.primitive :thread_pass
+    // Rubinius.primitive :thread_pass
     static Object* pass(STATE, CallFrame* calling_environment);
 
 
@@ -134,10 +115,9 @@ namespace rubinius {
      *
      *  @see  Thread::allocate()
      *
-     *  @see  kernel/common/thread.rb
-     *  @see  vm/native_thread.hpp
+     *  @see  kernel/bootstrap/thread.rb
      */
-    // Ruby.primitive :thread_fork
+    // Rubinius.primitive :thread_fork
     Object* fork(STATE);
 
     /**
@@ -147,13 +127,13 @@ namespace rubinius {
      *  but otherwise *potentially* platform-specific for
      *  any other connotations.
      */
-    // Ruby.primitive :thread_priority
+    // Rubinius.primitive :thread_priority
     Object* priority(STATE);
 
     /**
      *  Process an exception raised for this Thread.
      */
-    // Ruby.primitive :thread_raise
+    // Rubinius.primitive :thread_raise
     Object* raise(STATE, Exception* exc);
 
     /**
@@ -163,7 +143,7 @@ namespace rubinius {
      *  but otherwise *potentially* platform-specific for
      *  any other connotations.
      */
-    // Ruby.primitive :thread_set_priority
+    // Rubinius.primitive :thread_set_priority
     Object* set_priority(STATE, Fixnum* priority);
 
     /**
@@ -173,14 +153,22 @@ namespace rubinius {
      *  be invoked on an already-running Thread. The Thread
      *  is queued to be run, although not necessarily immediately.
      */
-    // Ruby.primitive :thread_wakeup
+    // Rubinius.primitive :thread_wakeup
     Thread* wakeup(STATE);
 
-    // Ruby.primitive :thread_context
+    // Rubinius.primitive :thread_context
     Tuple* context(STATE);
 
+    // Rubinius.primitive :thread_join
+    Object* join(STATE, CallFrame* calling_environment);
 
-  public:   /* Class methods */
+    // Rubinius.primitive :thread_set_critical
+    static Object* set_critical(STATE, Object* obj);
+
+    // Rubinius.primitive :thread_unlock_locks
+    Object* unlock_locks(STATE);
+
+    void cleanup();
 
     /**
      *  Create a Thread object.
@@ -192,20 +180,10 @@ namespace rubinius {
      *
      *  @see  Thread::allocate().
      */
-    static Thread* create(STATE, VM* target, Object* self, pthread_t tid = 0);
+    static Thread* create(STATE, VM* target, Object* self, Run runner,
+                          bool main_thread = false);
 
-
-  public:   /* Instance methods */
-
-    /**
-     *  Disassociate the OS thread from this Thread.
-     *
-     *  Only done once the native thread has completed.
-     *
-     *  @see  Thread::fork()
-     *  @see  NativeThread::perform()
-     */
-    void detach_native_thread();
+    static void* in_new_thread(void*);
 
   public:   /* TypeInfo */
 

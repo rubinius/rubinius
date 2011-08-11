@@ -129,14 +129,14 @@ namespace rubinius {
      *  Kernel#dup.
      */
 
-    // Ruby.primitive :object_copy_object
+    // Rubinius.primitive :object_copy_object
     Object* copy_object_prim(STATE, Object* other, CallFrame* calling_environment);
 
     /**
      * Copies this Object's MetaClass to the other Object. Called
      * by Kernel#clone.
      */
-    // Ruby.primitive :object_copy_singleton_class
+    // Rubinius.primitive :object_copy_singleton_class
     Object* copy_singleton_class(STATE, Object* other);
 
     /** True if this Object* is actually a Fixnum, false otherwise. */
@@ -185,14 +185,14 @@ namespace rubinius {
      *
      *  Uses Task::send_message_slowly().
      */
-    // Ruby.primitive? :object_send
-    Object* send_prim(STATE, Executable* exec, CallFrame* call_frame, Dispatch& msg, Arguments& args);
+    // Rubinius.primitive? :object_send
+    Object* send_prim(STATE, CallFrame* call_frame, Executable* exec, Module* mod, Arguments& args);
 
 
   public:   /* Ruby interface */
 
     /** Returns the Class object of which this Object is an instance. */
-    // Ruby.primitive+ :object_class
+    // Rubinius.primitive+ :object_class
     Class*    class_object(STATE) const;
 
     /**
@@ -201,15 +201,15 @@ namespace rubinius {
      *  Returns true if and only if this and the other object are
      *  the SAME object, false otherwise.
      */
-    // Ruby.primitive :object_equal
+    // Rubinius.primitive :object_equal
     Object*   equal(STATE, Object* other);
 
     /** Sets the frozen flag. Rubinius does NOT currently support freezing. */
-    // Ruby.primitive :object_freeze
+    // Rubinius.primitive :object_freeze
     Object*   freeze(STATE);
 
     /** Returns true if this Object's frozen flag set, false otherwise. */
-    // Ruby.primitive :object_frozen_p
+    // Rubinius.primitive :object_frozen_p
     Object*   frozen_p(STATE);
 
     /**
@@ -218,7 +218,7 @@ namespace rubinius {
      *  Return the Object stored as instance variable under the given
      *  identifier.
      */
-    // Ruby.primitive :object_get_ivar
+    // Rubinius.primitive :object_get_ivar
     Object*   get_ivar_prim(STATE, Symbol* sym);
 
     Object*   get_ivar(STATE, Symbol* sym);
@@ -226,7 +226,7 @@ namespace rubinius {
     // A version that only attempts to find +sym+ in the ivars slot
     Object*   get_table_ivar(STATE, Symbol* sym);
 
-    // Ruby.primitive :object_del_ivar
+    // Rubinius.primitive :object_del_ivar
     Object*   del_ivar(STATE, Symbol* sym);
     Object*   del_table_ivar(STATE, Symbol* sym, bool* removed = 0);
 
@@ -234,11 +234,11 @@ namespace rubinius {
 
     Object*   ivar_defined(STATE, Symbol* sym);
 
-    // Ruby.primitive :object_ivar_defined
+    // Rubinius.primitive :object_ivar_defined
     Object*   ivar_defined_prim(STATE, Symbol* sym);
 
     /** Returns the structure containing this object's instance variables. */
-    // Ruby.primitive :object_ivar_names
+    // Rubinius.primitive :object_ivar_names
     Array*   ivar_names(STATE);
 
     Array*   ivar_names(STATE, Array* ary);
@@ -247,11 +247,11 @@ namespace rubinius {
     hashval   hash(STATE);
 
     /** Returns the hash value as an Integer. @see hash(). */
-    // Ruby.primitive :object_hash
+    // Rubinius.primitive :object_hash
     Integer*  hash_prim(STATE);
 
     /** Returns an Integer ID for this object. Created as needed. */
-    // Ruby.primitive :object_id
+    // Rubinius.primitive :object_id
     Integer*  id(STATE);
 
     /** Indicates if this object has been assigned an object id. */
@@ -268,7 +268,7 @@ namespace rubinius {
      *  Returns true if given Module is this Object's class,
      *  superclass or an included Module, false otherwise.
      */
-    // Ruby.primitive :object_kind_of
+    // Rubinius.primitive :object_kind_of
     Object*   kind_of_prim(STATE, Module* klass);
 
     /**
@@ -277,7 +277,7 @@ namespace rubinius {
      *  Returns true if given Module is this Object's class,
      *  false otherwise.
      */
-    // Ruby.primitive :object_instance_of
+    // Rubinius.primitive :object_instance_of
     Object*   instance_of_prim(STATE, Module* klass);
 
     /** Return object's MetaClass object. Created as needed. */
@@ -289,7 +289,7 @@ namespace rubinius {
      *  Store the given object in the instance variable by
      *  given identifier.
      */
-    // Ruby.primitive :object_set_ivar
+    // Rubinius.primitive :object_set_ivar
     Object*   set_ivar_prim(STATE, Symbol* sym, Object* val);
 
     Object*   set_ivar(STATE, Symbol* sym, Object* val);
@@ -298,7 +298,7 @@ namespace rubinius {
     Object*   set_table_ivar(STATE, Symbol* sym, Object* val);
 
     /** String describing this object (through TypeInfo.) */
-    // Ruby.primitive :object_show
+    // Rubinius.primitive :object_show
     Object*   show(STATE);
     /** Indented String describing this object (through TypeInfo.) */
     Object*   show(STATE, int level);
@@ -310,20 +310,38 @@ namespace rubinius {
     /**
      *  Set tainted flag on this object.
      */
-    // Ruby.primitive :object_taint
+    // Rubinius.primitive :object_taint
     Object*   taint(STATE);
 
     /**
      *  Returns true if this object's tainted flag is set.
      */
-    // Ruby.primitive :object_tainted_p
+    // Rubinius.primitive :object_tainted_p
     Object*   tainted_p(STATE);
 
     /**
      *  Clears the tainted flag on this object.
      */
-    // Ruby.primitive :object_untaint
+    // Rubinius.primitive :object_untaint
     Object*   untaint(STATE);
+
+    /**
+     * Returns true if this object's untrusted flag is set.
+     */
+    // Rubinius.primitive :object_untrusted_p
+    Object* untrusted_p(STATE);
+
+    /**
+     * Sets the untrusted flag on this object.
+     */
+    // Rubinius.primitive :object_untrust
+    Object* untrust(STATE);
+
+    /**
+     * Clears the untrusted flag on this object.
+     */
+    // Rubinius.primitive :object_trust
+    Object* trust(STATE);
 
     /**
      *  Returns an #inspect-like representation of an Object for
@@ -338,13 +356,13 @@ namespace rubinius {
      *
      * Returns Qtrue if this responds to method +meth+
      */
-    // Ruby.primitive :object_respond_to
+    // Rubinius.primitive :object_respond_to
     Object* respond_to(STATE, Symbol* name, Object* priv);
 
-    // Ruby.primitive :object_respond_to_public
+    // Rubinius.primitive :object_respond_to_public
     Object* respond_to_public(STATE, Object* obj);
 
-    // Ruby.primitive :object_is_fixnum
+    // Rubinius.primitive :object_is_fixnum
     Object* is_fixnum() {
       return FIXNUM_P(this) ? Qtrue : Qfalse;
     }

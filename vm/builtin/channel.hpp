@@ -31,6 +31,7 @@ namespace rubinius {
     thread::Condition condition_;
     thread::Mutex mutex_;
     int waiters_;
+    int semaphore_count_;
 
   public:
     /* accessors */
@@ -39,22 +40,22 @@ namespace rubinius {
 
     /* interface */
 
-    // Ruby.primitive :channel_new
+    // Rubinius.primitive :channel_new
     static Channel* create(STATE);
 
     /** Remove Thread from waiting list, if it is there. */
     void    cancel_waiter(STATE, const Thread* waiter);
 
-    // Ruby.primitive :channel_send
+    // Rubinius.primitive :channel_send
     Object* send(STATE, Object*);
 
-    // Ruby.primitive :channel_receive
+    // Rubinius.primitive :channel_receive
     Object* receive(STATE, CallFrame* calling_environment);
 
-    // Ruby.primitive :channel_try_receive
+    // Rubinius.primitive :channel_try_receive
     Object* try_receive(STATE);
 
-    // Ruby.primitive :channel_receive_timeout
+    // Rubinius.primitive :channel_receive_timeout
     Object* receive_timeout(STATE, Object* duration, CallFrame* calling_environment);
 
     bool has_readers_p();

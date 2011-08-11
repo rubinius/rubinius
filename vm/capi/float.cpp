@@ -1,5 +1,5 @@
 #include "capi/capi.hpp"
-#include "capi/include/ruby.h"
+#include "capi/18/include/ruby.h"
 
 #include "builtin/float.hpp"
 
@@ -35,8 +35,7 @@ namespace rubinius {
 
         flush_ = flush_cached_rfloat;
 
-        env->state()->shared.global_handles()->move(this,
-            env->state()->shared.cached_handles());
+        env->state()->shared.make_handle_cached(env->state(), this);
       }
 
       return as_.rfloat;

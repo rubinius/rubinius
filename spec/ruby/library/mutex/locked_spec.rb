@@ -13,7 +13,7 @@ describe "Mutex#locked?" do
     m.locked?.should be_false
   end
 
-  it "returns the status of the lock" do
+  it "indicates that when a Thread exits it unlocks it's locked Mutexes" do
     m1 = Mutex.new
     m2 = Mutex.new
 

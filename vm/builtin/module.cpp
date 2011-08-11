@@ -25,7 +25,7 @@ namespace rubinius {
   }
 
   Module* Module::create(STATE) {
-    Module* mod = state->om->new_object_enduring<Module>(G(module));
+    Module* mod = state->om->new_object_enduring<Module>(state, G(module));
 
     mod->name(state, nil<Symbol>());
     mod->superclass(state, nil<Module>());
@@ -90,12 +90,12 @@ namespace rubinius {
 
   void Module::set_const(STATE, Object* sym, Object* val) {
     constants()->store(state, sym, val);
-    state->shared.inc_global_serial();
+    state->shared.inc_global_serial(state);
   }
 
   void Module::del_const(STATE, Symbol* sym) {
     constants()->remove(state, sym);
-    state->shared.inc_global_serial();
+    state->shared.inc_global_serial(state);
   }
 
   void Module::set_const(STATE, const char* name, Object* val) {
@@ -130,7 +130,7 @@ namespace rubinius {
   void Module::add_method(STATE, Symbol* name, Executable* exec, Symbol* vis) {
     if(!vis) vis = G(sym_public);
     method_table_->store(state, name, exec, vis);
-    state->global_cache()->clear(this, name);
+    state->global_cache()->clear(state, this, name);
   }
 
   Executable* Module::find_method(Symbol* name, Module** defined_in) {
@@ -367,7 +367,7 @@ namespace rubinius {
 
   IncludedModule* IncludedModule::create(STATE) {
     IncludedModule* imod;
-    imod = state->om->new_object_enduring<IncludedModule>(G(included_module));
+    imod = state->om->new_object_enduring<IncludedModule>(state, G(included_module));
 
     imod->name(state, state->symbol("<included module>"));
     imod->superclass(state, nil<Module>());

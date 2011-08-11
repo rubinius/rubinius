@@ -15,22 +15,22 @@ module Rubinius
     end
 
     def self.object_class(obj)
-      Ruby.primitive :vm_object_class
+      Rubinius.primitive :vm_object_class
       raise PrimitiveFailure, "Rubinius::Type.object_class failed"
     end
 
     def self.object_singleton_class(obj)
-      Ruby.primitive :vm_object_singleton_class
+      Rubinius.primitive :vm_object_singleton_class
       raise TypeError, "no singleton class available for a #{Type.object_class(obj)}"
     end
 
     def self.singleton_class_object(mod)
-      Ruby.primitive :vm_singleton_class_object
+      Rubinius.primitive :vm_singleton_class_object
       raise PrimitiveFailure, "Rubinius::Type.singleton_class_object failed"
     end
 
     def self.object_respond_to?(obj, name)
-      Ruby.primitive :vm_object_respond_to
+      Rubinius.primitive :vm_object_respond_to
       raise PrimitiveFailure, "Rubinius::Type.object_respond_to? failed"
     end
   end

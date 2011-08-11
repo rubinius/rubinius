@@ -1,12 +1,21 @@
+#include "config.h"
 #include "signal.hpp"
 #include "vm.hpp"
 
-#include "native_thread.hpp"
-
 #include "builtin/module.hpp"
+#include "builtin/array.hpp"
+
+#include "builtin/array.hpp"
+#include "builtin/module.hpp"
+
 #include <iostream>
-#include <sys/select.h>
 #include <fcntl.h>
+
+#ifndef RBX_WINDOWS
+#include <sys/select.h>
+#endif
+
+#include "windows_compat.h"
 
 namespace rubinius {
   struct CallFrame;
@@ -18,7 +27,6 @@ namespace rubinius {
     : thread::Thread()
     , vm_(vm)
     , queued_signals_(0)
-    , executing_signal_(false)
     , exit_(false)
   {
     handler_ = this;
@@ -26,7 +34,6 @@ namespace rubinius {
 
     for(int i = 0; i < NSIG; i++) {
       pending_signals_[i] = 0;
-      running_signals_[i] = 0;
     }
 
     reopen_pipes();
@@ -64,14 +71,18 @@ namespace rubinius {
   }
 
   void SignalHandler::perform() {
+#ifndef RBX_WINDOWS
     sigset_t set;
     sigfillset(&set);
     pthread_sigmask(SIG_BLOCK, &set, NULL);
+#endif
+
+    set_name("rbx.signal-dispatch");
 
     for(;;) {
       fd_set fds;
       FD_ZERO(&fds);
-      FD_SET(read_fd_, &fds);
+      FD_SET((int_fd_t)read_fd_, &fds);
 
       int n = select(read_fd_ + 1, &fds, NULL, NULL, NULL);
       if(exit_) return;
@@ -84,11 +95,9 @@ namespace rubinius {
         }
 
         {
-          GlobalLock::LockGuard guard(vm_->global_lock());
-
           vm_->check_local_interrupts = true;
           vm_->get_attention();
-          vm_->wakeup();
+          vm_->wakeup(vm_);
 
         }
       }
@@ -113,8 +122,12 @@ namespace rubinius {
     if(vm_->should_interrupt_with_signal()) {
       vm_->check_local_interrupts = true;
 
-      if(pthread_self() != main_thread) {
+      if(!pthread_equal(pthread_self(), main_thread)) {
+#ifdef RBX_WINDOWS
+        // TODO: Windows
+#else
         pthread_kill(main_thread, SIGVTALRM);
+#endif
       }
       return;
     }
@@ -124,7 +137,10 @@ namespace rubinius {
     }
   }
 
-  void SignalHandler::add_signal(int sig, HandlerType type) {
+  void SignalHandler::add_signal(STATE, int sig, HandlerType type) {
+    SYNC(state);
+
+#ifndef RBX_WINDOWS
     sigset_t sigs;
     sigemptyset(&sigs);
     sigaddset(&sigs, sig);
@@ -144,29 +160,31 @@ namespace rubinius {
     sigfillset(&action.sa_mask);
 
     sigaction(sig, &action, NULL);
+#endif
   }
 
-  void SignalHandler::deliver_signals(CallFrame* call_frame) {
-    if(executing_signal_) return;
-    executing_signal_ = true;
+  bool SignalHandler::deliver_signals(CallFrame* call_frame) {
     queued_signals_ = 0;
 
-    // We run all handlers, even if one handler raises an exception. The
-    // rest of the signals handles will simply see the exception.
     for(int i = 0; i < NSIG; i++) {
       if(pending_signals_[i] > 0) {
         pending_signals_[i] = 0;
-        running_signals_[i] = 1;
 
         Array* args = Array::create(vm_, 1);
         args->set(vm_, 0, Fixnum::from(i));
 
-        vm_->globals().rubinius->send(vm_, call_frame,
-            vm_->symbol("received_signal"), args, Qnil);
-        running_signals_[i] = 0;
+        // Check whether the send raised an exception and
+        // stop running the handlers if that happens
+        if(!vm_->globals().rubinius->send(vm_, call_frame,
+               vm_->symbol("received_signal"), args, Qnil)) {
+          if(vm_->thread_state()->raise_reason() == cException ||
+             vm_->thread_state()->raise_reason() == cExit) {
+            return false;
+          }
+        }
       }
     }
 
-    executing_signal_ = false;
+    return true;
   }
 }

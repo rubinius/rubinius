@@ -1,8 +1,9 @@
 #ifndef RBX_SHARED_STATE_H
 #define RBX_SHARED_STATE_H
 
+#include "config.h"
+
 #include "util/refcount.hpp"
-#include "global_lock.hpp"
 #include "call_frame_list.hpp"
 #include "gc/variable_buffer.hpp"
 #include "gc/root_buffer.hpp"
@@ -14,6 +15,12 @@
 #include "symboltable.hpp"
 
 #include "primitives.hpp"
+
+#include "lock.hpp"
+
+#ifdef RBX_WINDOWS
+#include <winsock2.h>
+#endif
 
 namespace rubinius {
   namespace capi {
@@ -58,14 +65,21 @@ namespace rubinius {
     }
   };
 
-  class SharedState : public RefCount {
+
+  /**
+   * SharedState represents the global shared state that needs to be shared
+   * across all VM instances.
+   *
+   * Rubinius makes no use of global variables; instead, all shared state is
+   * stored in a reference counted instance of this class. This makes it
+   * possible in theory to have multiple independent Rubinius runtimes in a
+   * single process.
+   */
+
+  class SharedState : public RefCount, public Lockable {
   private:
     bool initialized_;
-    GlobalLock lock_;
     SignalHandler* signal_handler_;
-    CallFrameLocationList cf_locations_;
-    VariableRootBuffers variable_root_buffers_;
-    RootBuffers         root_buffers_;
 
     capi::Handles* global_handles_;
     capi::Handles* cached_handles_;
@@ -87,6 +101,16 @@ namespace rubinius {
     VM* root_vm_;
     Environment* env_;
     tooling::ToolBroker* tool_broker_;
+
+    thread::Mutex onig_lock_;
+
+    // This lock is to implement Thread.critical. It is not critical as
+    // the name would make it sound.
+    thread::Mutex ruby_critical_lock_;
+    pthread_t ruby_critical_thread_;
+    bool ruby_critical_set_;
+
+    Mutex capi_lock_;
 
   public:
     Globals globals;
@@ -111,10 +135,6 @@ namespace rubinius {
       initialized_ = true;
     }
 
-    GlobalLock& global_lock() {
-      return lock_;
-    }
-
     SignalHandler* signal_handler() {
       return signal_handler_;
     }
@@ -127,10 +147,6 @@ namespace rubinius {
     VM* new_vm();
     void remove_vm(VM*);
 
-    CallFrameLocationList& call_frame_locations() {
-      return cf_locations_;
-    }
-
     std::list<ManagedThread*>* threads() {
       return &threads_;
     }
@@ -138,21 +154,12 @@ namespace rubinius {
     void add_managed_thread(ManagedThread* thr);
     void remove_managed_thread(ManagedThread* thr);
 
-    int new_thread_id() {
-      return thread_ids_++;
-    }
-
-    VariableRootBuffers* variable_buffers() {
-      return &variable_root_buffers_;
-    }
-
-    RootBuffers* root_buffers() {
-      return &root_buffers_;
-    }
-
     capi::Handles* global_handles() {
       return global_handles_;
     }
+
+    void add_global_handle(VM*, capi::Handle* handle);
+    void make_handle_cached(VM*, capi::Handle* handle);
 
     capi::Handles* cached_handles() {
       return cached_handles_;
@@ -174,9 +181,12 @@ namespace rubinius {
       return global_serial_;
     }
 
-    int inc_global_serial() {
+    int inc_global_serial(THREAD) {
+      SYNC(state);
       return ++global_serial_;
     }
+
+    uint32_t new_thread_id(THREAD);
 
     int* global_serial_address() {
       return &global_serial_;
@@ -186,11 +196,13 @@ namespace rubinius {
       return ic_registry_;
     }
 
-    unsigned int inc_class_count() {
+    unsigned int inc_class_count(THREAD) {
+      SYNC(state);
       return ++class_count_;
     }
 
-    uint64_t inc_method_count() {
+    uint64_t inc_method_count(THREAD) {
+      SYNC(state);
       return ++method_count_;
     }
 
@@ -223,10 +235,18 @@ namespace rubinius {
       agent_ = agent;
     }
 
-    QueryAgent* autostart_agent();
+    QueryAgent* autostart_agent(STATE);
 
     Environment* env() {
       return env_;
+    }
+
+    thread::Mutex& onig_lock() {
+      return onig_lock_;
+    }
+
+    VM* root_vm() {
+      return root_vm_;
     }
 
     tooling::ToolBroker* tool_broker() {
@@ -238,11 +258,22 @@ namespace rubinius {
 
     void pre_exec();
     void reinit();
-    void stop_the_world();
-    void restart_world();
-    void checkpoint();
-    void gc_dependent();
-    void gc_independent();
+
+    void ask_for_stopage();
+    bool should_stop();
+
+    void stop_the_world(THREAD);
+    void restart_world(THREAD);
+
+    bool checkpoint(THREAD);
+    void gc_dependent(THREAD);
+    void gc_independent(THREAD);
+
+    void set_critical(STATE);
+    void clear_critical(STATE);
+
+    void enter_capi(STATE);
+    void leave_capi(STATE);
   };
 }
 

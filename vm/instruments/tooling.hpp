@@ -50,7 +50,7 @@ namespace tooling {
     }
 
   public:
-    void* enter_method(VM* state, Dispatch& msg, Arguments& args, CompiledMethod* cm);
+    void* enter_method(VM* state, Executable* exec, Module* mod, Arguments& args, CompiledMethod* cm);
     void  leave_method(VM* state, void* tag);
 
     void* enter_block(VM* state, BlockEnvironment* env, Module* mod);
@@ -107,10 +107,10 @@ namespace tooling {
 
   class MethodEntry : public Entry {
   public:
-    MethodEntry(STATE, Dispatch& msg, Arguments& args, CompiledMethod* cm=0)
+    MethodEntry(STATE, Executable* exec, Module* mod, Arguments& args, CompiledMethod* cm=0)
       : Entry(state)
     {
-      tag_ = broker_->enter_method(state, msg, args, cm);
+      tag_ = broker_->enter_method(state, exec, mod, args, cm);
     }
 
     ~MethodEntry() {

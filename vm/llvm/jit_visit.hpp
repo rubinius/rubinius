@@ -4,6 +4,8 @@
 #include "builtin/tuple.hpp"
 #include "builtin/global_cache_entry.hpp"
 #include "inline_cache.hpp"
+#include "builtin/cache.hpp"
+#include "builtin/lookuptable.hpp"
 
 #include "llvm/jit_operations.hpp"
 #include "llvm/inline.hpp"
@@ -96,6 +98,7 @@ namespace rubinius {
     // The single Arguments object on the stack, plus positions into it
     // that we store the call info
     Value* out_args_;
+    Value* out_args_name_;
     Value* out_args_recv_;
     Value* out_args_block_;
     Value* out_args_total_;
@@ -124,10 +127,11 @@ namespace rubinius {
     void init_out_args() {
       out_args_ = info().out_args();
 
-      out_args_recv_ = ptr_gep(out_args_, 0, "out_args_recv");
-      out_args_block_= ptr_gep(out_args_, 1, "out_args_block");
-      out_args_total_= ptr_gep(out_args_, 2, "out_args_total");
-      out_args_arguments_ = ptr_gep(out_args_, 3, "out_args_arguments");
+      out_args_name_ = ptr_gep(out_args_, 0, "out_args_name");
+      out_args_recv_ = ptr_gep(out_args_, 1, "out_args_recv");
+      out_args_block_= ptr_gep(out_args_, 2, "out_args_block");
+      out_args_total_= ptr_gep(out_args_, 3, "out_args_total");
+      out_args_arguments_ = ptr_gep(out_args_, 4, "out_args_arguments");
       out_args_container_ = ptr_gep(out_args_, offset::args_container,
                                     "out_args_container");
     }
@@ -197,7 +201,7 @@ namespace rubinius {
 
       set_block(start);
 
-      ip_pos_ = b().CreateConstGEP2_32(call_frame_, 0, offset::cf_ip, "ip_pos");
+      ip_pos_ = b().CreateConstGEP2_32(call_frame_, 0, offset::CallFrame::ip, "ip_pos");
 
       global_serial_pos = b().CreateIntToPtr(
           ConstantInt::get(ls_->IntPtrTy, (intptr_t)ls_->shared().global_serial_address()),
@@ -230,13 +234,13 @@ namespace rubinius {
 
     Value* scope() {
       return b().CreateLoad(
-          b().CreateConstGEP2_32(call_frame_, 0, offset::cf_scope, "scope_pos"),
+          b().CreateConstGEP2_32(call_frame_, 0, offset::CallFrame::scope, "scope_pos"),
           "scope");
     }
 
     Value* top_scope() {
       return b().CreateLoad(
-          b().CreateConstGEP2_32(call_frame_, 0, offset::cf_top_scope, "top_scope_pos"),
+          b().CreateConstGEP2_32(call_frame_, 0, offset::CallFrame::top_scope, "top_scope_pos"),
           "top_scope");
     }
 
@@ -1096,10 +1100,10 @@ namespace rubinius {
     }
 
     Value* get_literal(opcode which) {
-      Value* gep = b().CreateConstGEP2_32(call_frame_, 0, offset::cf_cm, "cm_pos");
+      Value* gep = b().CreateConstGEP2_32(call_frame_, 0, offset::CallFrame::cm, "cm_pos");
       Value* cm =  b().CreateLoad(gep, "cm");
 
-      gep = b().CreateConstGEP2_32(cm, 0, offset::cm_literals, "literals_pos");
+      gep = b().CreateConstGEP2_32(cm, 0, offset::CompiledMethod::literals, "literals_pos");
       Value* lits = b().CreateLoad(gep, "literals");
 
       Value* idx2[] = {
@@ -1250,7 +1254,7 @@ namespace rubinius {
       b().CreateStore(val, pos);
     }
 
-    Value* get_self(Value* vars = 0) {
+    Instruction* get_self(Value* vars = 0) {
       if(!vars) vars = vars_;
 
       assert(vars);
@@ -1266,7 +1270,19 @@ namespace rubinius {
     }
 
     void visit_push_self() {
-      stack_push(get_self());
+      Instruction* val = get_self();
+
+      if(info().self_class_id >= 0) {
+        llvm::Value *impMD[] = {
+          llvm::ConstantInt::get(ls_->Int32Ty, info().self_class_id)
+        };
+
+        llvm::MDNode *node = llvm::MDNode::get(ls_->ctx(), impMD, 1);
+
+        val->setMetadata(ls_->metadata_id(), node);
+      }
+
+      stack_push(val);
     }
 
     void visit_allow_private() {
@@ -1440,7 +1456,10 @@ namespace rubinius {
     void visit_send_stack(opcode which, opcode args) {
       InlineCache* cache = reinterpret_cast<InlineCache*>(which);
 
-      if(cache->method) {
+      MethodCacheEntry* mce = cache->cache();
+      atomic::memory_barrier();
+
+      if(mce) {
         BasicBlock* failure = new_block("fallback");
         BasicBlock* cont = new_block("continue");
 
@@ -1671,7 +1690,10 @@ namespace rubinius {
       InlineCache* cache = reinterpret_cast<InlineCache*>(which);
       CompiledMethod* block_code = 0;
 
-      if(cache->method &&
+      MethodCacheEntry* mce = cache->cache();
+      atomic::memory_barrier();
+
+      if(mce &&
           ls_->config().jit_inline_blocks &&
           !context().inlined_block()) {
         if(has_literal_block) {
@@ -1680,7 +1702,11 @@ namespace rubinius {
           // Run the policy on the block code here, if we're not going to
           // inline it, don't inline this either.
           InlineOptions opts;
-          opts.inlining_block();
+          if(ls_->config().version >= 19) {
+            opts.inlining_block_19();
+          } else {
+            opts.inlining_block();
+          }
 
           InlineDecision decision = inline_policy()->inline_p(
                                       block_code->backend_method(), opts);
@@ -2200,7 +2226,8 @@ use_send:
     void visit_push_scope() {
       if(info().is_block && !in_inlined_block()) {
         Value* scope = b().CreateLoad(
-            b().CreateConstGEP2_32(call_frame_, 0, offset::cf_static_scope, "scope_pos"),
+            b().CreateConstGEP2_32(call_frame_, 0,
+                                   offset::CallFrame::static_scope, "scope_pos"),
             "cm");
 
         stack_push(scope);
@@ -2211,15 +2238,15 @@ use_send:
           JITMethodInfo* creator = info().creator_info();
           assert(creator);
           cm = b().CreateLoad(
-              b().CreateConstGEP2_32(creator->call_frame(), 0, offset::cf_cm, "cm_pos"),
+              b().CreateConstGEP2_32(creator->call_frame(), 0, offset::CallFrame::cm, "cm_pos"),
               "cm");
         } else {
           cm = b().CreateLoad(
-              b().CreateConstGEP2_32(call_frame_, 0, offset::cf_cm, "cm_pos"),
+              b().CreateConstGEP2_32(call_frame_, 0, offset::CallFrame::cm, "cm_pos"),
               "cm");
         }
 
-        Value* gep = b().CreateConstGEP2_32(cm, 0, offset::cm_static_scope, "scope_pos");
+        Value* gep = b().CreateConstGEP2_32(cm, 0, offset::CompiledMethod::scope, "scope_pos");
         stack_push(b().CreateLoad(gep, "scope"));
       }
     }
@@ -2829,6 +2856,11 @@ use_send:
     }
 
     void visit_push_my_offset(opcode i) {
+      if(ls_->config().jit_inline_debug) {
+        context().inline_log("inline slot read")
+             << "offset: " << i << "\n";
+      }
+
       Value* idx[] = {
         ConstantInt::get(ls_->Int32Ty, 0),
         ConstantInt::get(ls_->Int32Ty, offset::vars_self)
@@ -3218,6 +3250,8 @@ use_send:
     }
 
     void visit_passed_arg(opcode count) {
+      count += vmmethod()->post_args;
+
       if(called_args_ >= 0) {
         if((int)count < called_args_) {
           stack_push(constant(Qtrue));
@@ -3268,6 +3302,73 @@ use_send:
     }
 
     void visit_push_ivar(opcode which) {
+      Symbol* name = as<Symbol>(literal(which));
+
+      if(Class* klass = try_as<Class>(info().self_class())) {
+
+        if(ls_->config().jit_inline_debug) {
+          context().inline_log("inline ivar read")
+            << ls_->symbol_cstr(name);
+        }
+
+        // Figure out if we should use the table ivar lookup or
+        // the slot ivar lookup.
+
+        TypeInfo* ti = klass->type_info();
+        TypeInfo::Slots::iterator it = ti->slots.find(name->index());
+
+        Value* ivar = 0;
+
+        Value* self = get_self();
+
+        if(it != ti->slots.end()) {
+          int offset = ti->slot_locations[it->second];
+          ivar = get_object_slot(self, offset);
+          if(ls_->config().jit_inline_debug) {
+            ls_->log() << " (slot: " << it->second << ")";
+          }
+        } else {
+          LookupTable* pii = klass->packed_ivar_info();
+          if(!pii->nil_p()) {
+            bool found = false;
+
+            Fixnum* which = try_as<Fixnum>(pii->fetch(0, name, &found));
+            if(found) {
+              int index = which->to_native();
+              int offset = sizeof(Object) + (sizeof(Object*) * index);
+              Value* slot_val = get_object_slot(self, offset);
+
+              Value* cmp = b().CreateICmpEQ(slot_val, constant(Qundef), "prune_undef");
+
+              ivar = b().CreateSelect(cmp, constant(Qnil), slot_val, "select ivar");
+
+              if(ls_->config().jit_inline_debug) {
+                ls_->log() << " (packed index: " << index << ", " << offset << ")";
+              }
+            }
+          }
+        }
+
+        if(ivar) {
+          stack_push(ivar);
+
+          if(ls_->config().jit_inline_debug) {
+            ls_->log() << "\n";
+          }
+
+          return;
+        } else {
+          if(ls_->config().jit_inline_debug) {
+            ls_->log() << " (abort, using slow lookup)\n";
+          }
+        }
+      }
+
+      if(ls_->config().jit_inline_debug) {
+        context().inline_log("slow ivar read")
+          << ls_->symbol_cstr(name) << "\n";
+      }
+
       Signature sig(ls_, ObjType);
 
       sig << VMTy;
@@ -3370,14 +3471,16 @@ use_send:
       Signature sig(ls_, ObjType);
 
       sig << VMTy;
+      sig << CallFrameTy;
       sig << ObjArrayTy;
 
       Value* call_args[] = {
         vm_,
+        call_frame_,
         stack_back_position(0)
       };
 
-      Value* val = sig.call("rbx_shift_array", call_args, 2, "field", b());
+      Value* val = sig.call("rbx_shift_array", call_args, 3, "field", b());
       stack_push(val);
     }
 

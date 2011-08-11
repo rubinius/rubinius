@@ -1,0 +1,1 @@
+fails:Delegator#== is not delegated when passed self

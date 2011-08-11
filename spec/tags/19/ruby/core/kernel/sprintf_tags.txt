@@ -1,0 +1,4 @@
+fails:Kernel#sprintf with negative values with format %x precedes the number with '..'
+fails:Kernel#sprintf with negative values with format %u precedes the number with '-'
+fails:Kernel#sprintf with negative values with format %b or %B precedes the number with '..'
+fails:Kernel#sprintf passes some tests for negative %u

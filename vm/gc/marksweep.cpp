@@ -42,11 +42,6 @@ namespace rubinius {
   Object* MarkSweepGC::allocate(size_t bytes, bool *collect_now) {
     Object* obj;
 
-#ifdef RBX_GC_STATS
-    stats::GCStats::get()->mature_bytes_allocated += bytes;
-    stats::GCStats::get()->allocate_mature.start();
-#endif
-
 #ifdef USE_DLMALLOC
     obj = reinterpret_cast<Object*>(malloc_.allocate(bytes));
 #else
@@ -54,7 +49,9 @@ namespace rubinius {
 #endif
 
     // If the allocation failed, we return a NULL pointer
-    if(unlikely(!obj)) return NULL;
+    if(unlikely(!obj)) {
+        return NULL;
+    }
 
     entries.push_back(obj);
 
@@ -69,10 +66,6 @@ namespace rubinius {
 
     obj->init_header(MatureObjectZone, InvalidType);
 
-#ifdef RBX_GC_STATS
-    stats::GCStats::get()->allocate_mature.stop();
-#endif
-
     return obj;
   }
 
@@ -83,7 +76,7 @@ namespace rubinius {
       last_freed++;
 
       allocated_objects--;
-      allocated_bytes -= obj->size_in_bytes(object_memory_->state);
+      allocated_bytes -= obj->size_in_bytes(object_memory_->state());
     }
 
     obj->set_zone(UnspecifiedZone);
@@ -95,19 +88,36 @@ namespace rubinius {
 #endif
   }
 
+  Object* MarkSweepGC::move_object(Object* orig, size_t bytes,
+                                   bool* collect_now)
+  {
+    Object* obj = allocate(bytes, collect_now);
+    memcpy(obj, orig, bytes);
+
+    // If the header is inflated, repoint it.
+    if(obj->inflated_header_p()) {
+      orig->deflate_header();
+      obj->inflated_header()->set_object(obj);
+    }
+
+    obj->flags().zone = MatureObjectZone;
+    obj->flags().age = 0;
+
+    orig->set_forward(obj);
+
+    return obj;
+  }
+
   Object* MarkSweepGC::copy_object(Object* orig) {
     bool collect;
-    Object* obj = allocate(orig->size_in_bytes(object_memory_->state), &collect);
+    Object* obj = allocate(orig->size_in_bytes(object_memory_->state()), &collect);
 
-    obj->initialize_full_state(object_memory_->state, orig, 0);
+    obj->initialize_full_state(object_memory_->state(), orig, 0);
 
     return obj;
   }
 
   Object* MarkSweepGC::saw_object(Object* obj) {
-#ifdef RBX_GC_STATS
-    stats::GCStats::get()->objects_seen++;
-#endif
     if(obj->marked_p(object_memory_->mark())) return NULL;
     obj->mark(object_memory_->mark());
 
@@ -199,18 +209,18 @@ namespace rubinius {
         i != entries.end();
         ++i) {
       Object* obj = *i;
-      Class* cls = obj->class_object(object_memory_->state);
+      Class* cls = obj->class_object(object_memory_->state());
 
       std::map<Class*,PerClass>::iterator j = stats.find(cls);
       if(j == stats.end()) {
         PerClass pc;
         pc.objects++;
-        pc.bytes += obj->size_in_bytes(object_memory_->state);
+        pc.bytes += obj->size_in_bytes(object_memory_->state());
 
         stats[cls] = pc;
       } else {
         j->second.objects++;
-        j->second.bytes += obj->size_in_bytes(object_memory_->state);
+        j->second.bytes += obj->size_in_bytes(object_memory_->state());
       }
     }
 
@@ -219,7 +229,7 @@ namespace rubinius {
     for(std::map<Class*,PerClass>::iterator i = stats.begin();
         i != stats.end();
         ++i) {
-      std::cout << i->first->name()->c_str(object_memory_->state) << "\n"
+      std::cout << i->first->name()->c_str(object_memory_->state()) << "\n"
                 << "  objects: " << i->second.objects << "\n"
                 << "    bytes: " << i->second.bytes << "\n";
     }
@@ -232,7 +242,7 @@ namespace rubinius {
         i++) {
       Object* obj = *i;
       if(ByteArray* ba = try_as<ByteArray>(obj)) {
-        ba->show(object_memory_->state);
+        ba->show(object_memory_->state());
         if(++count == 10) break;
       }
     }
@@ -251,9 +261,9 @@ namespace rubinius {
     for(i = sorted.begin(); i != sorted.end();) {
       Object* obj = *i;
 
-      size_t sz = obj->size_in_bytes(object_memory_->state);
+      size_t sz = obj->size_in_bytes(object_memory_->state());
 
-      std::cout << obj->to_s(object_memory_->state, true)->c_str() << " bytes=" << sz << "\n";
+      std::cout << obj->to_s(object_memory_->state(), true)->c_str() << " bytes=" << sz << "\n";
       if(++count == 30) break;
 
       i++;

@@ -1,0 +1,2 @@
+fails:File#to_path does not canonicalize the path it returns
+fails:File#to_path preserves the encoding of the path

@@ -19,6 +19,7 @@
 #include "builtin/integer.hpp"
 #include "builtin/float.hpp"
 #include "builtin/location.hpp"
+#include "builtin/cache.hpp"
 
 #include "instruments/tooling.hpp"
 
@@ -57,12 +58,12 @@ extern "C" {
     return obj;
   }
 
-  void rbx_begin_profiling(STATE, void* data, Dispatch& msg, Arguments& args,
+  void rbx_begin_profiling(STATE, void* data, Executable* exec, Module* mod, Arguments& args,
                            CompiledMethod* cm)
   {
     // Use placement new to stick the class into data, which is on the callers
     // stack.
-    new(data) tooling::MethodEntry(state, msg, args, cm);
+    new(data) tooling::MethodEntry(state, exec, mod, args, cm);
   }
 
   void rbx_begin_profiling_block(STATE, void* data, BlockEnvironment* env,
@@ -80,7 +81,7 @@ extern "C" {
   Object* rbx_simple_send(STATE, CallFrame* call_frame, Symbol* name,
                           int count, Object** args) {
     Object* recv = args[0];
-    Arguments out_args(recv, count, args+1);
+    Arguments out_args(name, recv, count, args+1);
     Dispatch dis(name);
 
     return dis.send(state, call_frame, out_args);
@@ -89,7 +90,7 @@ extern "C" {
   Object* rbx_simple_send_private(STATE, CallFrame* call_frame, Symbol* name,
                                   int count, Object** args) {
     Object* recv = args[0];
-    Arguments out_args(recv, count, args+1);
+    Arguments out_args(name, recv, count, args+1);
     LookupData lookup(recv, recv->lookup_begin(state), true);
     Dispatch dis(name);
 
@@ -99,7 +100,7 @@ extern "C" {
   Object* rbx_splat_send(STATE, CallFrame* call_frame, Symbol* name,
                           int count, Object** args) {
     Object* recv = args[0];
-    Arguments out_args(recv, args[count+2], count, args+1);
+    Arguments out_args(name, recv, args[count+2], count, args+1);
     Dispatch dis(name);
 
     if(Array* ary = try_as<Array>(args[count+1])) {
@@ -112,7 +113,7 @@ extern "C" {
   Object* rbx_splat_send_private(STATE, CallFrame* call_frame, Symbol* name,
                                   int count, Object** args) {
     Object* recv = args[0];
-    Arguments out_args(recv, args[count+2], count, args+1);
+    Arguments out_args(name, recv, args[count+2], count, args+1);
     LookupData lookup(recv, recv->lookup_begin(state), true);
     Dispatch dis(name);
 
@@ -126,7 +127,7 @@ extern "C" {
   Object* rbx_super_send(STATE, CallFrame* call_frame, Symbol* name,
                           int count, Object** args) {
     Object* recv = call_frame->self();
-    Arguments out_args(recv, args[count], count, args);
+    Arguments out_args(name, recv, args[count], count, args);
     LookupData lookup(recv, call_frame->module()->superclass(), true);
     Dispatch dis(name);
 
@@ -136,7 +137,7 @@ extern "C" {
   Object* rbx_super_splat_send(STATE, CallFrame* call_frame, Symbol* name,
                           int count, Object** args) {
     Object* recv = call_frame->self();
-    Arguments out_args(recv, args[count+1], count, args);
+    Arguments out_args(name, recv, args[count+1], count, args);
     LookupData lookup(recv, call_frame->module()->superclass(), true);
     Dispatch dis(name);
 
@@ -180,7 +181,7 @@ extern "C" {
       tup->put(state, v->total_args, splat_obj);
     }
 
-    Arguments out_args(recv, block, arg_count, 0);
+    Arguments out_args(name, recv, block, arg_count, 0);
     out_args.use_tuple(tup, arg_count);
 
     LookupData lookup(recv, call_frame->module()->superclass(), true);
@@ -189,10 +190,9 @@ extern "C" {
     return dis.send(state, call_frame, lookup, out_args, eSuper);
   }
 
-  Object* rbx_arg_error(STATE, CallFrame* call_frame, Dispatch& msg, Arguments& args,
-                        int required) {
+  Object* rbx_arg_error(STATE, CallFrame* call_frame, Arguments& args, int required) {
     Exception* exc =
-        Exception::make_argument_error(state, required, args.total(), msg.name);
+        Exception::make_argument_error(state, required, args.total(), args.name());
     exc->locations(state, Location::from_call_stack(state, call_frame));
     state->thread_state()->raise_exception(exc);
 
@@ -217,7 +217,7 @@ extern "C" {
   {
     if(kind_of<String>(obj)) return obj;
 
-    Arguments args(obj, Qnil, 0, 0);
+    Arguments args(cache->name, obj, Qnil, 0, 0);
     Object* ret = cache->execute(state, call_frame, args);
     if(!ret) return 0;
 
@@ -275,12 +275,13 @@ extern "C" {
     return call_frame->promote_scope(state);
   }
 
-  Object* rbx_construct_splat(STATE, Arguments& args, size_t total) {
-    if(args.total() > total) {
-      size_t splat_size = args.total() - total;
+
+  Object* rbx_construct_splat(STATE, Arguments& args, size_t start, size_t total) {
+    int splat_size = args.total() - total;
+    if(splat_size > 0) {
       Array* ary = Array::create(state, splat_size);
 
-      for(size_t i = 0, n = total; i < splat_size; i++, n++) {
+      for(int i = 0, n = start; i < splat_size; i++, n++) {
         ary->set(state, i, args.get_argument(n));
       }
       return ary;
@@ -298,10 +299,29 @@ extern "C" {
 
     // coerce
     Object* recv = G(array);
-    Arguments args(recv, 1, &top);
+    Arguments args(G(sym_coerce_into_array), recv, 1, &top);
     Dispatch dis(G(sym_coerce_into_array));
 
     return dis.send(state, call_frame, args);
+  }
+
+  Object* rbx_destructure_args(STATE, CallFrame* call_frame, Arguments& args) {
+    if(args.total() == 1) {
+      Object* obj = args.get_argument(0);
+      if(Array* ary = try_as<Array>(obj)) {
+        args.use_array(ary);
+      } else if(RTEST(obj->respond_to(state, state->symbol("to_ary"), Qfalse))) {
+        obj = obj->send(state, call_frame, state->symbol("to_ary"));
+        if(Array* ary2 = try_as<Array>(obj)) {
+          args.use_array(ary2);
+        } else {
+          Exception::type_error(state, "to_ary must return an Array", call_frame);
+          return 0;
+        }
+      }
+    }
+
+    return Qnil;
   }
 
   Object* rbx_cast_multi_value(STATE, CallFrame* call_frame, Object* top) {
@@ -351,9 +371,14 @@ extern "C" {
     }
 
     Array* ary = Array::create(state, args.total());
+    assert(kind_of<Array>(ary));
+
     for(size_t i = 0; i < args.total(); i++) {
+      assert(kind_of<Array>(ary));
       ary->set(state, i, args.get_argument(i));
     }
+
+    assert(kind_of<Array>(ary));
 
     return ary;
   }
@@ -417,9 +442,10 @@ extern "C" {
   Object* rbx_check_serial(STATE, CallFrame* call_frame, InlineCache* cache,
                            int serial, Object* recv)
   {
-    if(cache->update_and_validate(state, call_frame, recv) &&
-         cache->method->serial()->to_native() == serial) {
-      return Qtrue;
+    if(cache->update_and_validate(state, call_frame, recv)) {
+      MethodCacheEntry* mce = cache->cache();
+
+      if(mce && mce->method()->serial()->to_native() == serial) return Qtrue;
     }
 
     return Qfalse;
@@ -428,9 +454,10 @@ extern "C" {
   Object* rbx_check_serial_private(STATE, CallFrame* call_frame, InlineCache* cache,
                            int serial, Object* recv)
   {
-    if(cache->update_and_validate(state, call_frame, recv) &&
-         cache->method->serial()->to_native() == serial) {
-      return Qtrue;
+    if(cache->update_and_validate_private(state, call_frame, recv)) {
+      MethodCacheEntry* mce = cache->cache();
+
+      if(mce && mce->method()->serial()->to_native() == serial) return Qtrue;
     }
 
     return Qfalse;
@@ -489,7 +516,7 @@ extern "C" {
   Object* rbx_meta_send_call(STATE, CallFrame* call_frame, int count, Object** args) {
     Object* t1 = args[0];
 
-    Arguments out_args(Qnil, count, args+1);
+    Arguments out_args(G(sym_call), Qnil, count, args+1);
 
     if(BlockEnvironment *env = try_as<BlockEnvironment>(t1)) {
       return env->call(state, call_frame, out_args);
@@ -503,7 +530,7 @@ extern "C" {
   Object* rbx_yield_stack(STATE, CallFrame* call_frame, Object* block,
                           int count, Object** args)
   {
-    Arguments out_args(block, count, args);
+    Arguments out_args(G(sym_call), block, count, args);
 
     if(BlockEnvironment *env = try_as<BlockEnvironment>(block)) {
       return env->call(state, call_frame, out_args);
@@ -524,7 +551,7 @@ extern "C" {
   {
     Object* ary = stk[count];
 
-    Arguments args(block, count, stk);
+    Arguments args(G(sym_call), block, count, stk);
 
     if(!ary->nil_p()) {
       args.append(state, as<Array>(ary));
@@ -788,14 +815,13 @@ extern "C" {
       state->collect_maybe(call_frame);
     }
 
-    state->global_lock().checkpoint(state, call_frame);
+    state->set_call_frame(call_frame);
+    state->shared.checkpoint(state);
 
     return Qtrue;
   }
 
   Object* rbx_check_interrupts(STATE, CallFrame* call_frame) {
-    state->global_lock().checkpoint(state, call_frame);
-
     if(unlikely(state->interrupts.check)) {
       state->interrupts.checked();
 
@@ -806,18 +832,21 @@ extern "C" {
     }
 
     if(!state->check_async(call_frame)) return NULL;
+
+    state->set_call_frame(call_frame);
+    state->shared.checkpoint(state);
     return Qtrue;
   }
 
   int rbx_enter_unmanaged(STATE, CallFrame* call_frame) {
     state->set_call_frame(call_frame);
-    state->global_lock().drop();
+    state->shared.gc_independent(state);
     return 0;
   }
 
   int rbx_exit_unmanaged(STATE, CallFrame* call_frame) {
     state->set_call_frame(call_frame);
-    state->global_lock().take();
+    state->shared.gc_dependent(state);
     return 0;
   }
 
@@ -917,7 +946,7 @@ extern "C" {
     return Qnil;
   }
 
-  Object* rbx_shift_array(STATE, Object** loc) {
+  Object* rbx_shift_array(STATE, CallFrame* call_frame, Object** loc) {
     Array* array = as<Array>(*loc);
     size_t size = (size_t)array->size();
 
@@ -1075,6 +1104,10 @@ extern "C" {
                                           unwind_count, unwinds);
   }
 
+  Object* rbx_restart_interp(STATE, CallFrame* call_frame, Executable* exec, Module* mod, Arguments& args) {
+    return VMMethod::execute(state, call_frame, exec, mod, args);
+  }
+
   Object* rbx_continue_debugging(STATE, CallFrame* call_frame,
                                  int32_t entry_ip, native_int sp,
                                  CallFrame* method_call_frame,
@@ -1119,10 +1152,6 @@ extern "C" {
 
     return VMMethod::debugger_interpreter_continue(state, vmm, call_frame,
                                           sp, is, unwind_count, unwinds);
-  }
-
-  Object* rbx_restart_interp(STATE, CallFrame* call_frame, Dispatch& msg, Arguments& args) {
-    return VMMethod::execute(state, call_frame, msg, args);
   }
 
   Object* rbx_flush_scope(STATE, StackVariables* vars) {

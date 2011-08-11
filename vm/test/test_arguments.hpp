@@ -33,7 +33,7 @@ public:
   }
 
   void test_prepend() {
-    Arguments args(2, static_args);
+    Arguments args(state->symbol("blah"), 2, static_args);
 
     Array* ary = Array::create(state, 2);
     ary->set(state, 0, state->symbol("blah"));
@@ -49,7 +49,7 @@ public:
   }
 
   void test_append() {
-    Arguments args(2, static_args);
+    Arguments args(state->symbol("blah"), 2, static_args);
 
     Array* ary = Array::create(state, 2);
     ary->set(state, 0, state->symbol("blah"));
@@ -69,7 +69,7 @@ public:
     ary->set(state, 0, Fixnum::from(3));
     ary->set(state, 1, Fixnum::from(4));
 
-    Arguments args(ary);
+    Arguments args(state->symbol("blah"), ary);
 
     TS_ASSERT_EQUALS(Fixnum::from(3), args.get_argument(0));
     TS_ASSERT_EQUALS(Fixnum::from(4), args.get_argument(1));
@@ -77,7 +77,7 @@ public:
   }
 
   void test_unshift() {
-    Arguments args(1, static_args);
+    Arguments args(state->symbol("blah"), 1, static_args);
 
     TS_ASSERT_EQUALS(1U, args.total());
     args.unshift(state, Fixnum::from(47));
@@ -88,7 +88,7 @@ public:
   }
 
   void test_unshift_into_splat() {
-    Arguments args(2, static_args);
+    Arguments args(state->symbol("blah"), 2, static_args);
     Array* ary = Array::create(state, 1);
     ary->set(state, 0, Fixnum::from(3));
 
@@ -103,7 +103,7 @@ public:
   }
 
   void test_unshit_argument_multiple_times() {
-    Arguments args(1, static_args);
+    Arguments args(state->symbol("blah"), 1, static_args);
 
     TS_ASSERT_EQUALS(1U, args.total());
     args.unshift(state, Fixnum::from(47));
@@ -117,7 +117,7 @@ public:
   }
 
   void test_shift() {
-    Arguments args(2, static_args);
+    Arguments args(state->symbol("blah"), 2, static_args);
 
     TS_ASSERT_EQUALS(2U, args.total());
 
@@ -129,7 +129,7 @@ public:
   }
 
   void test_shift_then_unshift() {
-    Arguments args(2, static_args);
+    Arguments args(state->symbol("blah"), 2, static_args);
 
     Fixnum* shifted = as<Fixnum>(args.shift(state));
     TS_ASSERT_EQUALS(shifted, Fixnum::from(3));
@@ -142,7 +142,7 @@ public:
   }
 
   void test_shift_one_then_unshift_one() {
-    Arguments args(1, static_args);
+    Arguments args(state->symbol("blah"), 1, static_args);
 
     Fixnum* shifted = as<Fixnum>(args.shift(state));
     TS_ASSERT_EQUALS(shifted, Fixnum::from(3));
@@ -156,7 +156,7 @@ public:
   }
 
   void test_shift_in_array() {
-    Arguments args(1, static_args);
+    Arguments args(state->symbol("blah"), 1, static_args);
 
     Array* ary = Array::create(state, 1);
     ary->set(state, 0, state->symbol("number_two"));
@@ -172,7 +172,7 @@ public:
   }
 
   void test_shift_one_then_unshift_two() {
-    Arguments args(1, static_args);
+    Arguments args(state->symbol("blah"), 1, static_args);
 
     Fixnum* shifted = as<Fixnum>(args.shift(state));
     TS_ASSERT_EQUALS(shifted, three);
@@ -187,7 +187,7 @@ public:
   }
 
   void test_as_array() {
-    Arguments args(1, static_args);
+    Arguments args(state->symbol("blah"), 1, static_args);
 
     Array* ary = args.as_array(state);
     TS_ASSERT_EQUALS(ary->size(), 1U);

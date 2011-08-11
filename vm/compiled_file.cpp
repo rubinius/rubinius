@@ -19,15 +19,16 @@
 
 namespace rubinius {
   CompiledFile* CompiledFile::load(std::istream& stream) {
-    std::string magic, sum;
-    uint64_t ver;
+    std::string magic;
+    uint64_t signature;
+    int version;
 
     stream >> magic;
-    stream >> ver;
-    stream >> sum;
+    stream >> signature;
+    stream >> version;
     stream.get(); // eat the \n
 
-    return new CompiledFile(magic, ver, sum, &stream);
+    return new CompiledFile(magic, signature, version, &stream);
   }
 
   Object* CompiledFile::body(STATE) {
@@ -40,15 +41,12 @@ namespace rubinius {
 
     state->thread_state()->clear();
 
-    GlobalLock::LockGuard lock(state->global_lock());
-
-    Dispatch msg(cm->name(), G(object), cm.get());
-    Arguments args(G(main), 0, 0);
+    Arguments args(state->symbol("script"), G(main), 0, 0);
 
     cm.get()->scope(state, StaticScope::create(state));
     cm.get()->scope()->module(state, G(object));
 
-    cm->execute(state, NULL, msg, args);
+    cm->execute(state, NULL, cm.get(), G(object), args);
 
     return true;
   }

@@ -1,1 +1,5 @@
 before_script: ./configure
+env:
+  - "RBXOPT=-X18"
+notifications:
+  disabled: true

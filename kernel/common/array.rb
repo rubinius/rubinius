@@ -36,7 +36,7 @@ class Array
   # result. The block supercedes any object given. If
   # neither is provided, the Array is filled with nil.
   def initialize(size_or_array=undefined, obj=undefined)
-    Ruby.check_frozen
+    Rubinius.check_frozen
 
     if size_or_array.equal? undefined
       unless @total == 0
@@ -182,9 +182,9 @@ class Array
   alias_method :slice, :[]
 
   def set_index(index, ent, fin=undefined)
-    Ruby.primitive :array_aset
+    Rubinius.primitive :array_aset
 
-    Ruby.check_frozen
+    Rubinius.check_frozen
 
     ins_length = nil
     unless fin.equal? undefined
@@ -357,7 +357,7 @@ class Array
   # Appends the object to the end of the Array.
   # Returns self so several appends can be chained.
   def <<(obj)
-    Ruby.check_frozen
+    Rubinius.check_frozen
 
     set_index(@total, obj)
     self
@@ -461,7 +461,7 @@ class Array
   # lengths are the same. The element comparison is the primary
   # and length is only checked if the former results in 0's.
   def <=>(other)
-    other = Rubinius::Type.try_convert other, Array, :to_ary
+    other = Rubinius::Type.check_convert_type other, Array, :to_ary
     return 0 if equal? other
     return nil if other.nil?
 
@@ -535,7 +535,7 @@ class Array
   # Array. If the index is out of range, nil is
   # returned. Slightly faster than +Array#[]+
   def at(idx)
-    Ruby.primitive :array_aref
+    Rubinius.primitive :array_aref
     idx = Rubinius::Type.coerce_to idx, Fixnum, :to_int
 
     total = @start + @total
@@ -552,7 +552,7 @@ class Array
 
   # Removes all elements in the Array and leaves it empty
   def clear()
-    Ruby.check_frozen
+    Rubinius.check_frozen
 
     @tuple = Rubinius::Tuple.new(1)
     @total = 0
@@ -593,7 +593,7 @@ class Array
 
   # Removes all nil elements from self, returns nil if no changes
   def compact!
-    Ruby.check_frozen
+    Rubinius.check_frozen
 
     if (deleted = @tuple.delete(@start,@total,nil)) > 0
       @total -= deleted
@@ -606,12 +606,12 @@ class Array
 
   # Appends the elements in the other Array to self
   def concat(other)
-    Ruby.primitive :array_concat
+    Rubinius.primitive :array_concat
 
     other = Rubinius::Type.coerce_to(other, Array, :to_ary)
     return self if other.empty?
 
-    Ruby.check_frozen
+    Rubinius.check_frozen
 
     concat other
   end
@@ -651,7 +651,7 @@ class Array
         # We MUST check frozen here, not at the top, because MRI
         # requires that #delete not raise unless an element would
         # be deleted.
-        Ruby.check_frozen
+        Rubinius.check_frozen
         tuple.put i, key
       end
       i += 1
@@ -675,7 +675,7 @@ class Array
   # the deleted element or nil if the index is out of
   # range. Negative indices count backwards from end.
   def delete_at(idx)
-    Ruby.check_frozen
+    Rubinius.check_frozen
 
     idx = Rubinius::Type.coerce_to idx, Fixnum, :to_int
 
@@ -701,7 +701,7 @@ class Array
 
   # Deletes every element from self for which block evaluates to true
   def delete_if(&block)
-    Ruby.check_frozen
+    Rubinius.check_frozen
 
     return to_enum(:delete_if) unless block_given?
 
@@ -808,7 +808,7 @@ class Array
   # array.fill(start [, length]) {|index| block }  -> array
   # array.fill(range) {|index| block }             -> array
   def fill(a=undefined, b=undefined, c=undefined)
-    Ruby.check_frozen
+    Rubinius.check_frozen
 
     if block_given?
       if undefined != c
@@ -1054,7 +1054,7 @@ class Array
   def insert(idx, *items)
     return self if items.length == 0
 
-    Ruby.check_frozen
+    Rubinius.check_frozen
 
     # Adjust the index for correct insertion
     idx = Rubinius::Type.coerce_to idx, Fixnum, :to_int
@@ -1232,7 +1232,7 @@ class Array
   #       Z     |  Same as ``a'', except that null is added with *
 
   def pack(directives)
-    Ruby.primitive :array_pack
+    Rubinius.primitive :array_pack
 
     unless directives.kind_of? String
       return pack(StringValue(directives))
@@ -1330,7 +1330,7 @@ class Array
 
   # Removes and returns the last element from the Array.
   def pop(many=undefined)
-    Ruby.check_frozen
+    Rubinius.check_frozen
 
     if many.equal? undefined
       return nil if @total == 0
@@ -1434,7 +1434,7 @@ class Array
   # Equivalent to #delete_if except that returns nil if
   # no changes were made.
   def reject!(&block)
-    Ruby.check_frozen
+    Rubinius.check_frozen
 
     return to_enum(:reject!) unless block_given?
 
@@ -1448,7 +1448,7 @@ class Array
   # Replaces contents of self with contents of other,
   # adjusting size as needed.
   def replace(other)
-    Ruby.check_frozen
+    Rubinius.check_frozen
 
     other = Rubinius::Type.coerce_to other, Array, :to_ary
 
@@ -1470,7 +1470,7 @@ class Array
   # Reverses the order of elements in self. Returns self
   # even if no changes are made
   def reverse!
-    Ruby.check_frozen
+    Rubinius.check_frozen
 
     return self unless @total > 1
 
@@ -1539,7 +1539,7 @@ class Array
   # Array or nil if empty. All other elements are
   # moved down one index.
   def shift(n=undefined)
-    Ruby.check_frozen
+    Rubinius.check_frozen
 
     if n.equal? undefined
       return nil if @total == 0
@@ -1586,7 +1586,7 @@ class Array
   # or by a range. Returns the deleted object, subarray, or nil if the
   # index is out of range. Equivalent to:
   def slice!(start, length=undefined)
-    Ruby.check_frozen
+    Rubinius.check_frozen
 
     if length.equal? undefined
       if start.kind_of? Range
@@ -1639,7 +1639,7 @@ class Array
 
   # Shuffles elements in self in place.
   def shuffle!
-    Ruby.check_frozen
+    Rubinius.check_frozen
 
     size.times do |i|
       r = i + Kernel.rand(size - i)
@@ -1667,7 +1667,7 @@ class Array
   #
   # For results and methodology, see the commit message.
   def sort_inplace(&block)
-    Ruby.check_frozen
+    Rubinius.check_frozen
 
     return self unless @total > 1
 
@@ -1712,12 +1712,6 @@ class Array
     self
   end
 
-  # Produces a string by joining all elements without a
-  # separator. See #join
-  def to_s
-    join
-  end
-
   # Treats all elements as being Arrays of equal lengths and
   # transposes their rows and columns so that the first contained
   # Array in the result includes the first elements of all the
@@ -1742,27 +1736,6 @@ class Array
     end
 
     out
-  end
-
-  # Returns a new Array by removing duplicate entries
-  # from self. Equality is determined by using a Hash
-  def uniq
-    dup.uniq! or dup
-  end
-
-  # Removes duplicates from the Array in place as #uniq
-  def uniq!
-    im = Rubinius::IdentityMap.from self
-    return if im.size == size
-
-    Ruby.check_frozen
-
-    array = im.to_array
-    @tuple = array.tuple
-    @start = array.start
-    @total = array.total
-
-    self
   end
 
   # Returns a new Array populated from the elements in
@@ -1838,7 +1811,7 @@ class Array
   def unshift(*values)
     return self if values.empty?
 
-    Ruby.check_frozen
+    Rubinius.check_frozen
 
     if @start > values.size
       # fit the new values in between 0 and @start if possible
@@ -1915,7 +1888,7 @@ class Array
       while i < total
         o = tuple.at i
 
-        if ary = Rubinius::Type.try_convert(o, Array, :to_ary)
+        if ary = Rubinius::Type.check_convert_type(o, Array, :to_ary)
           modified = true
           recursively_flatten(ary, out, max_levels)
         else

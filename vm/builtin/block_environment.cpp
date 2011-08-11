@@ -1,6 +1,8 @@
 /* A BlockEnvironment is created when a block is created. Its primary
  * operation is call, which activates the code associated with the block. */
 
+#include "config.h"
+
 #include "builtin/object.hpp"
 #include "builtin/symbol.hpp"
 
@@ -23,6 +25,11 @@
 
 #include "instruments/tooling.hpp"
 #include "configuration.hpp"
+#include "on_stack.hpp"
+
+#ifdef RBX_WINDOWS
+#include <malloc.h>
+#endif
 
 #ifdef ENABLE_LLVM
 #include "llvm/jit.hpp"
@@ -33,7 +40,8 @@
 namespace rubinius {
 
   void BlockEnvironment::init(STATE) {
-    GO(blokenv).set(state->new_class("BlockEnvironment", G(object), G(rubinius)));
+    GO(blokenv).set(state->new_class("BlockEnvironment", G(object),
+                                     G(rubinius)));
     G(blokenv)->set_object_type(state, BlockEnvironmentType);
     G(blokenv)->name(state, state->symbol("Rubinius::BlockEnvironment"));
   }
@@ -52,13 +60,13 @@ namespace rubinius {
                             BlockInvocation& invocation)
   {
 
-#ifdef ENABLE_LLVM
     VMMethod* vmm = env->vmmethod(state);
     if(!vmm) {
       Exception::internal_error(state, previous, "invalid bytecode method");
       return 0;
     }
 
+#ifdef ENABLE_LLVM
     if(void* ptr = vmm->native_function()) {
       return (*((BlockExecutor)ptr))(state, previous, env, args, invocation);
     }
@@ -66,6 +74,149 @@ namespace rubinius {
 
     return execute_interpreter(state, previous, env, args, invocation);
   }
+
+  // TODO: this is a quick hack to process block arguments in 1.9.
+  class GenericArguments {
+  public:
+    static bool call(STATE, CallFrame* call_frame,
+                     VMMethod* vmm, StackVariables* scope,
+                     Arguments& args, int flags)
+    {
+      const bool has_splat = (vmm->splat_position >= 0);
+      native_int total_args = args.total();
+
+      // expecting 0, got 0.
+      if(vmm->total_args == 0 && total_args == 0) {
+        if(has_splat) {
+          scope->set_local(vmm->splat_position, Array::create(state, 0));
+        }
+
+        return true;
+      }
+
+      // Only do destructuring in non-lambda mode
+      if((flags & CallFrame::cIsLambda) == 0) {
+        // If only one argument was yielded and it was an array
+        // and the target block takes 2 or more arguments, then
+        // we destructure the array.
+        if(vmm->required_args > 1 && total_args == 1) {
+          Object* obj = args.get_argument(0);
+          if(Array* ary = try_as<Array>(obj)) {
+            args.use_array(ary);
+          } else if(RTEST(obj->respond_to(state, state->symbol("to_ary"), Qfalse))) {
+            obj = obj->send(state, call_frame, state->symbol("to_ary"));
+            if(Array* ary2 = try_as<Array>(obj)) {
+              args.use_array(ary2);
+            } else {
+              Exception::type_error(state, "to_ary must return an Array", call_frame);
+              return false;
+            }
+          }
+        }
+      }
+
+      const native_int P = vmm->post_args;
+      const native_int R = vmm->required_args;
+
+      // M is for mandatory
+      const native_int M = R - P;
+      const native_int T = args.total();
+
+      // DT is for declared total
+      const native_int DT = vmm->total_args;
+      const native_int O = DT - R;
+
+      // HS is for has splat
+      const native_int HS = vmm->splat_position > 0 ? 1 : 0;
+
+      // CT is for clamped total
+      const native_int CT = HS ? T : MIN(T, DT);
+
+      // Z is for the available # of post args
+      const native_int Z = CT - M;
+
+      // U is for the available # of optional args
+      const native_int U = Z - P;
+
+
+      /* There are 4 types of arguments, illustrated here:
+       *    m(a, b=1, *c, d)
+       *
+       *  where:
+       *    a is a (pre optional/splat) fixed position argument
+       *    b is an optional argument
+       *    c is a splat argument
+       *    d is a post (optional/splat) argument
+       *
+       *  The arity checking above ensures that we have at least one argument
+       *  on the stack for each fixed position argument (ie arguments a and d
+       *  above).
+       *
+       *  The number of (pre) fixed arguments is 'required_args - post_args'.
+       *
+       *  The number of optional arguments is 'total_args - required_args'.
+       *
+       *  We fill in the required arguments, then the optional arguments, and
+       *  the rest (if any) go into an array for the splat.
+       */
+
+      // Phase 1, mandatory args
+      for(native_int i = 0, l = MIN(M,T);
+          i < l;
+          i++)
+      {
+        scope->set_local(i, args.get_argument(i));
+      }
+
+      // Phase 2, post args
+      for(native_int i = CT - MIN(Z, P), l = M + O + HS;
+          i < CT;
+          i++)
+      {
+        scope->set_local(l, args.get_argument(i));
+      }
+
+      // Phase 3, optionals
+
+      for(native_int i = M, limit = M + MIN(U, O);
+          i < limit;
+          i++)
+      {
+        scope->set_local(i, args.get_argument(i));
+      }
+
+
+      if(has_splat) {
+        Array* ary;
+        /* There is a splat. So if the passed in arguments are greater
+         * than the total number of fixed arguments, put the rest of the
+         * arguments into the Array.
+         *
+         * Otherwise, generate an empty Array.
+         *
+         * NOTE: remember that total includes the number of fixed arguments,
+         * even if they're optional, so we can get args.total() == 0, and
+         * total == 1 */
+        int splat_size = T - DT;
+        if(splat_size > 0) {
+          ary = Array::create(state, splat_size);
+
+          for(int i = 0, n = M + O;
+              i < splat_size;
+              i++, n++)
+          {
+            ary->set(state, i, args.get_argument(n));
+          }
+        } else {
+          ary = Array::create(state, 0);
+        }
+
+        scope->set_local(vmm->splat_position, ary);
+      }
+
+      return true;
+    }
+  };
 
   // Installed by default in BlockEnvironment::execute, it runs the bytecodes
   // for the block in the interpreter.
@@ -97,7 +248,8 @@ namespace rubinius {
 #endif
 
     size_t scope_size = sizeof(StackVariables) +
-      (vmm->number_of_locals * sizeof(Object*));
+                         (vmm->number_of_locals * sizeof(Object*));
+
     StackVariables* scope =
       reinterpret_cast<StackVariables*>(alloca(scope_size));
 
@@ -108,6 +260,7 @@ namespace rubinius {
     scope->set_parent(env->scope_);
 
     InterpreterCallFrame* frame = ALLOCA_CALLFRAME(vmm->stack_size);
+
     frame->prepare(vmm->stack_size);
 
     frame->previous = previous;
@@ -119,8 +272,15 @@ namespace rubinius {
     frame->scope =    scope;
     frame->top_scope_ = env->top_scope_;
     frame->flags =    invocation.flags | CallFrame::cCustomStaticScope
-                     | CallFrame::cMultipleScopes
-                     | CallFrame::cBlock;
+                                       | CallFrame::cMultipleScopes
+                                       | CallFrame::cBlock;
+
+    // TODO: this is a quick hack to process block arguments in 1.9.
+    if(LANGUAGE_19_ENABLED(state) || LANGUAGE_20_ENABLED(state)) {
+      if(!GenericArguments::call(state, frame, vmm, scope, args, invocation.flags)) {
+        return NULL;
+      }
+    }
 
     // Check the stack and interrupts here rather than in the interpreter
     // loop itself.
@@ -129,8 +289,6 @@ namespace rubinius {
       if(!state->check_interrupts(frame, frame)) return NULL;
     }
 
-    state->global_lock().checkpoint(state, frame);
-
     if(unlikely(state->interrupts.check)) {
       state->interrupts.checked();
       if(state->interrupts.perform_gc) {
@@ -138,6 +296,9 @@ namespace rubinius {
         state->collect_maybe(frame);
       }
     }
+
+    state->set_call_frame(frame);
+    state->shared.checkpoint(state);
 
 #ifdef RBX_PROFILER
     if(unlikely(state->tooling())) {
@@ -158,13 +319,16 @@ namespace rubinius {
 #endif
   }
 
-  Object* BlockEnvironment::call(STATE, CallFrame* call_frame, Arguments& args, int flags) {
+  Object* BlockEnvironment::call(STATE, CallFrame* call_frame,
+                                 Arguments& args, int flags)
+  {
     BlockInvocation invocation(scope_->self(), code_->scope(), flags);
     return invoke(state, call_frame, this, args, invocation);
   }
 
-  Object* BlockEnvironment::call_prim(STATE, Executable* exec,
-      CallFrame* call_frame, Dispatch& msg, Arguments& args)
+  Object* BlockEnvironment::call_prim(STATE, CallFrame* call_frame,
+                                      Executable* exec, Module* mod,
+                                      Arguments& args)
   {
     return call(state, call_frame, args);
   }
@@ -174,7 +338,8 @@ namespace rubinius {
   {
     if(args.total() < 1) {
       Exception* exc =
-        Exception::make_argument_error(state, 1, args.total(), state->symbol("__block__"));
+        Exception::make_argument_error(state, 1, args.total(),
+                                       state->symbol("__block__"));
       exc->locations(state, Location::from_call_stack(state, call_frame));
       state->thread_state()->raise_exception(exc);
       return NULL;
@@ -186,12 +351,14 @@ namespace rubinius {
     return invoke(state, call_frame, this, args, invocation);
   }
 
-  Object* BlockEnvironment::call_under(STATE, Executable* exec,
-      CallFrame* call_frame, Dispatch& msg, Arguments& args)
+  Object* BlockEnvironment::call_under(STATE,CallFrame* call_frame,
+                                       Executable* exec, Module* mod,
+                                       Arguments& args)
   {
     if(args.total() < 2) {
       Exception* exc =
-        Exception::make_argument_error(state, 2, args.total(), state->symbol("__block__"));
+        Exception::make_argument_error(state, 2, args.total(),
+                                       state->symbol("__block__"));
       exc->locations(state, Location::from_call_stack(state, call_frame));
       state->thread_state()->raise_exception(exc);
       return NULL;
@@ -205,10 +372,13 @@ namespace rubinius {
   }
 
 
-  BlockEnvironment* BlockEnvironment::under_call_frame(STATE, CompiledMethod* cm,
-      VMMethod* caller, CallFrame* call_frame, size_t index)
+  BlockEnvironment* BlockEnvironment::under_call_frame(STATE,
+      CompiledMethod* cm, VMMethod* caller,
+      CallFrame* call_frame, size_t index)
   {
-    BlockEnvironment* be = state->new_object<BlockEnvironment>(G(blokenv));
+    OnStack<1> os(state, cm);
+
+    state->set_call_frame(call_frame);
 
     VMMethod* vmm = cm->internalize(state);
     if(!vmm) {
@@ -218,6 +388,7 @@ namespace rubinius {
 
     vmm->set_parent(caller);
 
+    BlockEnvironment* be = state->new_object<BlockEnvironment>(G(blokenv));
     be->scope(state, call_frame->promote_scope(state));
     be->top_scope(state, call_frame->top_scope(state));
     be->code(state, cm);

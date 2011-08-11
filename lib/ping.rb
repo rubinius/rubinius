@@ -41,7 +41,7 @@ module Ping
   #
   #   Ping.pingecho "google.com", 10, 80
   #
-  def pingecho(host, timeout=5, service="echo")
+  def pingecho(host, timeout=10, service="echo")
     begin
       timeout(timeout) do
         s = TCPSocket.new(host, service)

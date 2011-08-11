@@ -1,7 +1,7 @@
 #include "builtin/nativemethod.hpp"
 #include "capi/handle.hpp"
 
-#include "capi/include/ruby.h"
+#include "capi/18/include/ruby.h"
 
 namespace rubinius {
   namespace capi {

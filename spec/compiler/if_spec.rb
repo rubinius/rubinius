@@ -1,6 +1,41 @@
 require File.expand_path('../../spec_helper', __FILE__)
 
 describe "An If node" do
+  nil_condition = lambda do |g|
+    f = g.new_label
+    done = g.new_label
+
+    g.push :nil
+    g.gif f
+
+    g.push :self
+    g.send :a, 0, true
+    g.goto done
+
+    f.set!
+    g.push :nil
+
+    done.set!
+  end
+
+  not_nil_condition = lambda do |g|
+    f = g.new_label
+    done = g.new_label
+
+    g.push :nil
+    g.send :"!", 0, false
+    g.gif f
+
+    g.push :nil
+    g.goto done
+
+    f.set!
+    g.push :self
+    g.send :a, 0, true
+
+    done.set!
+  end
+
   relates <<-ruby do
       if true then
         10
@@ -127,25 +162,6 @@ describe "An If node" do
     end
   end
 
-  relates "a if not b" do
-    compile do |g|
-      else_label = g.new_label
-      done = g.new_label
-
-      g.push :self
-      g.send :b, 0, true
-      g.gif else_label
-      g.push :nil
-      g.goto done
-
-      else_label.set!
-      g.push :self
-      g.send :a, 0, true
-
-      done.set!
-    end
-  end
-
   relates "a if b" do
     compile do |g|
       nope = g.new_label
@@ -161,25 +177,6 @@ describe "An If node" do
 
       nope.set!
       g.push :nil
-
-      done.set!
-    end
-  end
-
-  relates "if not b then a end" do
-    compile do |g|
-      else_label = g.new_label
-      done = g.new_label
-
-      g.push :self
-      g.send :b, 0, true
-      g.gif else_label
-      g.push :nil
-      g.goto done
-
-      else_label.set!
-      g.push :self
-      g.send :a, 0, true
 
       done.set!
     end
@@ -205,59 +202,12 @@ describe "An If node" do
     end
   end
 
-  nil_condition_sexp = [:if, [:nil], [:call, nil, :a, [:arglist]], nil]
-
-  nil_condition = lambda do |g|
-    f = g.new_label
-    done = g.new_label
-
-    g.push :nil
-    g.gif f
-
-    g.push :self
-    g.send :a, 0, true
-    g.goto done
-
-    f.set!
-    g.push :nil
-
-    done.set!
-  end
-
   relates "a if ()" do
     compile(&nil_condition)
   end
 
   relates "if () then a end" do
     compile(&nil_condition)
-  end
-
-  relates "a unless not ()" do
-    compile(&nil_condition)
-  end
-
-  relates "unless not () then a end" do
-    compile(&nil_condition)
-  end
-
-  relates "a unless not b" do
-    compile do |g|
-      nope = g.new_label
-      done = g.new_label
-
-      g.push :self
-      g.send :b, 0, true
-      g.gif nope
-
-      g.push :self
-      g.send :a, 0, true
-      g.goto done
-
-      nope.set!
-      g.push :nil
-
-      done.set!
-    end
   end
 
   relates "a unless b" do
@@ -279,26 +229,6 @@ describe "An If node" do
     end
   end
 
-  relates "unless not b then a end" do
-    compile do |g|
-      nope = g.new_label
-      done = g.new_label
-
-      g.push :self
-      g.send :b, 0, true
-      g.gif nope
-
-      g.push :self
-      g.send :a, 0, true
-      g.goto done
-
-      nope.set!
-      g.push :nil
-
-      done.set!
-    end
-  end
-
   relates "unless b then a end" do
     compile do |g|
       else_label = g.new_label
@@ -315,6 +245,173 @@ describe "An If node" do
       g.send :a, 0, true
 
       done.set!
+    end
+  end
+
+  ruby_version_is ""..."1.9" do
+    relates "a if not b" do
+      compile do |g|
+        else_label = g.new_label
+        done = g.new_label
+
+        g.push :self
+        g.send :b, 0, true
+        g.gif else_label
+        g.push :nil
+        g.goto done
+
+        else_label.set!
+        g.push :self
+        g.send :a, 0, true
+
+        done.set!
+      end
+    end
+
+    relates "if not b then a end" do
+      compile do |g|
+        else_label = g.new_label
+        done = g.new_label
+
+        g.push :self
+        g.send :b, 0, true
+        g.gif else_label
+        g.push :nil
+        g.goto done
+
+        else_label.set!
+        g.push :self
+        g.send :a, 0, true
+
+        done.set!
+      end
+    end
+
+    relates "a unless ! ()" do
+      compile(&nil_condition)
+    end
+
+    relates "unless ! () then a end" do
+      compile(&nil_condition)
+    end
+
+    relates "a unless not b" do
+      compile do |g|
+        nope = g.new_label
+        done = g.new_label
+
+        g.push :self
+        g.send :b, 0, true
+        g.gif nope
+
+        g.push :self
+        g.send :a, 0, true
+        g.goto done
+
+        nope.set!
+        g.push :nil
+
+        done.set!
+      end
+    end
+
+    relates "unless not b then a end" do
+      compile do |g|
+        nope = g.new_label
+        done = g.new_label
+
+        g.push :self
+        g.send :b, 0, true
+        g.gif nope
+
+        g.push :self
+        g.send :a, 0, true
+        g.goto done
+
+        nope.set!
+        g.push :nil
+
+        done.set!
+      end
+    end
+  end
+
+  ruby_version_is "1.9" do
+    relates "a if not b" do
+      compile do |g|
+        f = g.new_label
+        done = g.new_label
+
+        g.push :self
+        g.send :b, 0, true
+        g.send :"!", 0, false
+        g.gif f
+
+        g.push :self
+        g.send :a, 0, true
+        g.goto done
+
+        f.set!
+        g.push :nil
+
+        done.set!
+      end
+    end
+
+    relates "if not b then a end" do
+      compile do |g|
+        f = g.new_label
+        done = g.new_label
+
+        g.push :self
+        g.send :b, 0, true
+        g.send :"!", 0, false
+        g.gif f
+
+        g.push :self
+        g.send :a, 0, true
+        g.goto done
+
+        f.set!
+        g.push :nil
+
+        done.set!
+      end
+    end
+
+    relates "a unless ! ()" do
+      compile(&not_nil_condition)
+    end
+
+    relates "unless ! () then a end" do
+      compile(&not_nil_condition)
+    end
+
+    unless_not_condition = lambda do |g|
+      f = g.new_label
+      done = g.new_label
+
+      g.push :self
+      g.send :b, 0, true
+      g.send :"!", 0, false
+      g.gif f
+
+      g.push :nil
+      g.goto done
+
+      f.set!
+      g.push :self
+      g.send :a, 0, true
+
+      done.set!
+    end
+
+    relates "a unless not b" do
+      compile(&unless_not_condition)
+    end
+
+    relates "unless not b then a end" do
+      compile(&unless_not_condition)
     end
   end
 end

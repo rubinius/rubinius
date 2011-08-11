@@ -1,0 +1,2 @@
+fails:Delegator when frozen is not writeable
+fails:Delegator when frozen causes mutative calls to raise RuntimeError

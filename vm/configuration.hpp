@@ -2,6 +2,7 @@
 #define RBX_CONFIGURATION_HPP
 
 #include "util/configuration.hpp"
+#include "vm/config.h"
 
 namespace rubinius {
   class Configuration : public config::Configuration {
@@ -17,6 +18,27 @@ namespace rubinius {
     config::Bool    gc_autopack;
     config::Bytes   gc_marksweep_threshold;
     config::Bytes   gc_malloc_threshold;
+
+    // Language
+    config::Radio   version;
+
+#ifdef RBX_ENABLED_18
+#define LANGUAGE_18_ENABLED(state)  ((state)->shared.config.version == 18)
+#else
+#define LANGUAGE_18_ENABLED(state)  (false)
+#endif
+
+#ifdef RBX_ENABLED_19
+#define LANGUAGE_19_ENABLED(state)  ((state)->shared.config.version == 19)
+#else
+#define LANGUAGE_19_ENABLED(state)  (false)
+#endif
+
+#ifdef RBX_ENABLED_20
+#define LANGUAGE_20_ENABLED(state)  ((state)->shared.config.version == 20)
+#else
+#define LANGUAGE_20_ENABLED(state)  (false)
+#endif
 
     // JIT/Interpreter
     config::Integer jit_dump_code;
@@ -53,6 +75,7 @@ namespace rubinius {
     config::Bool    profile;
     config::Integer profiler_threshold;
     config::String  report_path;
+    config::Bool    thread_debug;
 
     // defaults
     static const int default_gc_bytes = 1048576 * 3;
@@ -78,9 +101,10 @@ namespace rubinius {
       , gc_autopack(this,     "gc.autopack", true)
       , gc_marksweep_threshold(this, "gc.marksweep_threshold",
                                default_gc_marksweep_threshold)
-
       , gc_malloc_threshold(this, "gc.malloc_threshold",
                             default_gc_malloc_threshold)
+
+      , version(this, "version")
 
       , jit_dump_code(this,   "jit.dump_code", default_jit_dump_code)
       , jit_call_til_compile(this, "jit.call_til_compile",
@@ -113,6 +137,7 @@ namespace rubinius {
       , profile(this,         "profile")
       , profiler_threshold(this,  "profiler.threshold", 1000000)
       , report_path(this,     "vm.crash_report_path")
+      , thread_debug(this,    "thread.debug")
     {
       gc_bytes.set_description(
           "The number of bytes the young generation of the GC should use");
@@ -136,6 +161,33 @@ namespace rubinius {
           "The number of bytes allocated before the marksweep GC region is collected");
       gc_malloc_threshold.set_description(
           "How many bytes allocated by C extensions til the GC is run");
+
+#ifdef RBX_ENABLED_18
+#if RBX_DEFAULT_18
+      version.add("18", 18, true);
+#else
+      version.add("18", 18);
+#endif
+#endif
+
+#ifdef RBX_ENABLED_19
+#if RBX_DEFAULT_19
+      version.add("19", 19, true);
+#else
+      version.add("19", 19);
+#endif
+#endif
+
+#ifdef RBX_ENABLED_20
+#if RBX_DEFAULT_20
+      version.add("20", 20, true);
+#else
+      version.add("20", 20);
+#endif
+#endif
+
+      version.set_description(
+          "Which version of ruby should we run");
 
       jit_dump_code.set_description(
           "1 == show simple IR, 2 == show optimized IR, 4 == show machine code");
@@ -214,6 +266,9 @@ namespace rubinius {
 
       report_path.set_description(
           "Set a custom path to write crash reports");
+
+      thread_debug.set_description(
+          "Print threading notices when they occur");
     }
 
     void finalize() { }

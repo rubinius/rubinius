@@ -1,0 +1,1 @@
+fails:StringIO#ungetc when passed [char] tries to convert the passed argument to an String using #to_str

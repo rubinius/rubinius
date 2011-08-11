@@ -3,36 +3,36 @@ class Bignum < Integer
   # unary operators
 
   def ~
-    Ruby.primitive :bignum_invert
+    Rubinius.primitive :bignum_invert
     raise PrimitiveFailure, "Bignum#~ primitive failed"
   end
 
   def -@
-    Ruby.primitive :bignum_neg
+    Rubinius.primitive :bignum_neg
     raise PrimitiveFailure, "Bignum#-@ primitive failed"
   end
 
   # binary math operators
 
   def +(o)
-    Ruby.primitive :bignum_add
+    Rubinius.primitive :bignum_add
     redo_coerced :+, o
   end
 
   def -(o)
-    Ruby.primitive :bignum_sub
+    Rubinius.primitive :bignum_sub
     redo_coerced :-, o
   end
 
   def *(o)
-    Ruby.primitive :bignum_mul
+    Rubinius.primitive :bignum_mul
     redo_coerced :*, o
   end
 
   # this method is aliased to / in core
   # see README-DEVELOPERS regarding safe math compiler plugin
   def divide(o)
-    Ruby.primitive :bignum_div
+    Rubinius.primitive :bignum_div
     redo_coerced :/, o
   end
 
@@ -41,39 +41,39 @@ class Bignum < Integer
   # Bignum#/(Float) return different things.
   #
   def div(other)
-    Ruby.primitive :bignum_div
+    Rubinius.primitive :bignum_div
     redo_coerced :div, other
   end
 
   def %(other)
-    Ruby.primitive :bignum_mod
+    Rubinius.primitive :bignum_mod
     redo_coerced :%, other
   end
 
   def divmod(other)
-    Ruby.primitive :bignum_divmod
+    Rubinius.primitive :bignum_divmod
     redo_coerced :divmod, other
   end
 
   # bitwise binary operators
 
   def &(o)
-    Ruby.primitive :bignum_and
+    Rubinius.primitive :bignum_and
     super(o)
   end
 
   def |(o)
-    Ruby.primitive :bignum_or
+    Rubinius.primitive :bignum_or
     super(o)
   end
 
   def ^(o)
-    Ruby.primitive :bignum_xor
+    Rubinius.primitive :bignum_xor
     super(o)
   end
 
   def <<(other)
-    Ruby.primitive :bignum_left_shift
+    Rubinius.primitive :bignum_left_shift
 
     other = Rubinius::Type.coerce_to other, Integer, :to_int
     unless other.kind_of? Fixnum
@@ -84,7 +84,7 @@ class Bignum < Integer
   end
 
   def >>(other)
-    Ruby.primitive :bignum_right_shift
+    Rubinius.primitive :bignum_right_shift
 
     other = Rubinius::Type.coerce_to other, Integer, :to_int
     unless other.kind_of? Fixnum
@@ -95,40 +95,40 @@ class Bignum < Integer
   end
 
   def **(o)
-    Ruby.primitive :bignum_pow
+    Rubinius.primitive :bignum_pow
     redo_coerced :**, o
   end
 
   # comparison operators
 
   def <(other)
-    Ruby.primitive :bignum_lt
+    Rubinius.primitive :bignum_lt
     redo_compare :<, other
   end
 
   def <=(other)
-    Ruby.primitive :bignum_le
+    Rubinius.primitive :bignum_le
     redo_compare :<=, other
   end
 
   def >(other)
-    Ruby.primitive :bignum_gt
+    Rubinius.primitive :bignum_gt
     redo_compare :>, other
   end
 
   def >=(other)
-    Ruby.primitive :bignum_ge
+    Rubinius.primitive :bignum_ge
     redo_compare :>=, other
   end
 
   def ==(o)
-    Ruby.primitive :bignum_equal
+    Rubinius.primitive :bignum_equal
     # This is to make sure the return value is true or false
     o == self ? true : false
   end
 
   def <=>(other)
-    Ruby.primitive :bignum_compare
+    Rubinius.primitive :bignum_compare
 
     # We do not use redo_compare here because Ruby does not
     # raise if any part of the coercion or comparison raises
@@ -144,17 +144,17 @@ class Bignum < Integer
   # conversions
 
   def self.from_float(value)
-    Ruby.primitive :bignum_from_float
+    Rubinius.primitive :bignum_from_float
     raise PrimitiveFailure, "Bignum.from_float primitive failed"
   end
 
   def coerce(other)
-    Ruby.primitive :bignum_coerce
+    Rubinius.primitive :bignum_coerce
     super other
   end
 
   def to_f
-    Ruby.primitive :bignum_to_float
+    Rubinius.primitive :bignum_to_float
     raise PrimitiveFailure, "Bignum#to_f primitive failed"
   end
 
@@ -168,7 +168,7 @@ class Bignum < Integer
   end
 
   def size
-    Ruby.primitive :bignum_size
+    Rubinius.primitive :bignum_size
     raise PrimitiveFailure, "Bignum#size primitive failed"
   end
 end

@@ -19,26 +19,68 @@ module Rubinius
     end
 
     class ConcatArgs < Node
-      attr_accessor :array, :rest, :size
+      attr_accessor :array, :rest
 
       def initialize(line, array, rest)
         @line = line
         @array = array
-        @size = array.body.size
         @rest = rest
       end
 
       def bytecode(g)
-        @array.bytecode(g)
-        @rest.bytecode(g)
-        g.cast_array
-        g.send :+, 1
+        if @array
+          @array.bytecode(g)
+          @rest.bytecode(g)
+          g.cast_array
+          g.send :+, 1
+        else
+          @rest.bytecode(g)
+          g.cast_array
+        end
+      end
+
+      # Dive down and try to find an array of regular values
+      # that could construct the left side of a concatination.
+      # This is used to minimize the splat doing a send.
+      def peel_lhs
+        case @array
+        when ConcatArgs
+          @array.peel_lhs
+        when ArrayLiteral
+          ary = @array.body
+          @array = nil
+          ary
+        else
+          nil
+        end
       end
 
       def to_sexp
         [:argscat, @array.to_sexp, @rest.to_sexp]
       end
     end
+
+    class PushArgs < Node
+      attr_accessor :arguments, :value
+
+      def initialize(line, arguments, value)
+        @line = line
+        @arguments = arguments
+        @value = value
+      end
+
+      def bytecode(g)
+        @arguments.bytecode(g)
+        @value.bytecode(g)
+        g.make_array 1
+        g.send :+, 1
+      end
+
+      def to_sexp
+        [:argspush, @arguments.to_sexp, @value.to_sexp]
+      end
+    end
+
 
     class SValue < Node
       attr_accessor :value

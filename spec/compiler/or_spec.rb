@@ -18,43 +18,86 @@ describe "An Or node" do
     end
   end
 
-  or_complex = lambda do |g|
-    j1 = g.new_label
-    j2 = g.new_label
-    j3 = g.new_label
+  ruby_version_is ""..."1.9" do
+    or_complex = lambda do |g|
+      j1 = g.new_label
+      j2 = g.new_label
+      j3 = g.new_label
 
-    g.push :self
-    g.send :a, 0, true
-    g.dup
-    g.git j1
-    g.pop
+      g.push :self
+      g.send :a, 0, true
+      g.dup
+      g.git j1
+      g.pop
 
-    g.push :self
-    g.send :b, 0, true
-    j1.set!
-    g.dup
-    g.git j3
-    g.pop
+      g.push :self
+      g.send :b, 0, true
+      j1.set!
+      g.dup
+      g.git j3
+      g.pop
 
-    g.push :self
-    g.send :c, 0, true
-    g.dup
-    g.gif j2
-    g.pop
+      g.push :self
+      g.send :c, 0, true
+      g.dup
+      g.gif j2
+      g.pop
 
-    g.push :self
-    g.send :d, 0, true
+      g.push :self
+      g.send :d, 0, true
 
-    j2.set!
-    j3.set!
+      j2.set!
+      j3.set!
+    end
+
+    relates "((a || b) || (c && d))" do
+      compile(&or_complex)
+    end
+
+    relates "((a or b) or (c and d))" do
+      compile(&or_complex)
+    end
   end
 
-  relates "((a || b) || (c && d))" do
-    compile(&or_complex)
-  end
+  ruby_version_is "1.9" do
+    or_complex = lambda do |g|
+      j1 = g.new_label
+      j2 = g.new_label
+      j3 = g.new_label
 
-  relates "((a or b) or (c and d))" do
-    compile(&or_complex)
+      g.push :self
+      g.send :a, 0, true
+      g.dup
+      g.git j3
+      g.pop
+
+      g.push :self
+      g.send :b, 0, true
+      g.dup
+      g.git j2
+      g.pop
+
+      g.push :self
+      g.send :c, 0, true
+      g.dup
+      g.gif j1
+      g.pop
+
+      g.push :self
+      g.send :d, 0, true
+
+      j1.set!
+      j2.set!
+      j3.set!
+    end
+
+    relates "((a || b) || (c && d))" do
+      compile(&or_complex)
+    end
+
+    relates "((a or b) or (c and d))" do
+      compile(&or_complex)
+    end
   end
 
   relates "() or a" do

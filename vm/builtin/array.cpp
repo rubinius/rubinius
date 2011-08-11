@@ -95,8 +95,8 @@ namespace rubinius {
     if(Tuple* tup = try_as<Tuple>(value)) {
       return Array::from_tuple(state, tup);
     } else if(RTEST(value->respond_to(state, state->symbol("to_ary"), Qtrue))) {
-      Arguments args(value, 0, 0);
-      Dispatch dis(state->symbol("to_ary"));
+      Arguments args(state->symbol("to_ary"), value, 0, 0);
+      Dispatch dis(args.name());
 
       Object* res = dis.send(state, call_frame, args);
       if(!res) return 0;

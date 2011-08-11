@@ -23,6 +23,14 @@ namespace rubinius {
     return as<Bignum>(this)->to_long();
   }
 
+  unsigned long Integer::to_ulong() {
+    if(fixnum_p()) {
+      return (force_as<Fixnum>(this))->to_ulong();
+    }
+
+    return as<Bignum>(this)->to_ulong();
+  }
+
   long long Integer::to_long_long() {
     if(fixnum_p()) {
       return (force_as<Fixnum>(this))->to_long_long();

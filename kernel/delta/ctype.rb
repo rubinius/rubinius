@@ -1,17 +1,19 @@
 module Rubinius::CType
   def self.toprint(num)
+    # The character literals (?x) are Fixnums in 1.8 and Strings in 1.9
+    # so we use literal values instead so this is 1.8/1.9 compatible.
     case num
-    when ?\n: '\n'
-    when ?\t: '\t'
-    when ?\a: '\a'
-    when ?\v: '\v'
-    when ?\f: '\f'
-    when ?\r: '\r'
-    when ?\e: '\e'
-    when ?\b: '\b'
-    when ?":  '\"'
-    when ?\\: '\\\\'
-    when ?#:  Rubinius::Tuple['#$', '\#$', '#@', '\#@', '#{', '\#{', '#', '#']
+    when 7;  '\a'
+    when 8;  '\b'
+    when 9;  '\t'
+    when 10; '\n'
+    when 11; '\v'
+    when 12; '\f'
+    when 13; '\r'
+    when 27; '\e'
+    when 34; '\"'
+    when 35;  Rubinius::Tuple['#$', '\#$', '#@', '\#@', '#{', '\#{', '#', '#']
+    when 92; '\\\\'
     else
       if num < 32 || num > 126
         str = "\\000"

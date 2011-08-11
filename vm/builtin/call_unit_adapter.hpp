@@ -17,11 +17,11 @@ namespace rubinius {
   public:
     attr_accessor(unit, CallUnit);
 
-    // Ruby.primitive :callunitadapter_create
+    // Rubinius.primitive :callunitadapter_create
     static CallUnitAdapter* create(STATE, Object* self, CallUnit* unit);
 
     static Object* adapter_executor(STATE, CallFrame* call_frame,
-                           Dispatch& msg, Arguments& args);
+                           Executable* exec, Module* mod, Arguments& args);
 
     class Info : public Executable::Info {
     public:

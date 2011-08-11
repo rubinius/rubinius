@@ -1,0 +1,2 @@
+fails:Kernel.proc is a private method
+fails:Kernel.proc returns from the creation site of the proc, not just the proc itself

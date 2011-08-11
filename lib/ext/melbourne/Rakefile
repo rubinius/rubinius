@@ -8,7 +8,7 @@ rule ".o" do |t|
   source = t.prerequisites.first
 
   report_command "CXX #{source}"
-  qsh "#{$CXX} -c -o #{t.name} #{$CXXFLAGS} #{File.expand_path(source)}"
+  qsh "#{$CXX} -c -o #{t.name} #{$CXXFLAGS} #{$DEBUGFLAGS} #{File.expand_path(source)}"
 end
 
 def set_ext_dir(dir)
@@ -21,7 +21,7 @@ def ext_dir
 end
 
 def source_files
-  sources("grammar.cpp")
+  sources("grammar18.cpp", "grammar19.cpp")
 end
 
 # Setup project files
@@ -42,14 +42,28 @@ when ["build:rbx"]
   puts "Building Melbourne for Rubinius"
   add_rbx_capi
   set_ext_dir "rbx"
-when ["build:mri"]
-  puts "Building Melbourne for MRI"
-  add_mri_capi
-  set_ext_dir "ruby"
-  add_link_dir RbConfig::CONFIG["libdir"]
+when ["build:build"]
+  set_ext_dir "build"
 
-  if RbConfig::CONFIG["ENABLE_SHARED"] == "yes"
-    add_ldflag RbConfig::CONFIG["LIBRUBYARG"]
+  if Rubinius::BUILD_CONFIG[:which_ruby] == :ruby
+    puts "Building bootstrap Melbourne for MRI"
+    add_mri_capi
+    add_link_dir RbConfig::CONFIG["libdir"]
+
+    # timezone and timespec are available in mingw-w64
+    if RbConfig::CONFIG['host_os'] =~ /mingw/
+      add_define "HAVE_STRUCT_TIMEZONE"
+      add_define "HAVE_STRUCT_TIMESPEC"
+    end
+
+    if RbConfig::CONFIG["ENABLE_SHARED"] == "yes"
+      add_ldflag RbConfig::CONFIG["LIBRUBYARG"]
+    end
+  else
+    puts "Building bootstrap Melbourne for Rubinius"
+    add_cflag "-ggdb3 -O2"
+    add_cxxflag "-ggdb3 -O2"
+    add_include_dir RbConfig::CONFIG["rubyhdrdir"]
   end
 end
 
@@ -57,17 +71,17 @@ add_objects project_files, ext_dir
 
 # Build the Melbourne extension against Rubinius
 directory "rbx"
-melbourne_rbx = "rbx/melbourne.#{$DLEXT}"
+melbourne_rbx = "rbx/melbourne20.#{$DLEXT}"
 
 file melbourne_rbx => project_files
 
 # Build the Melbourne extension against MRI
-directory "ruby"
-melbourne_mri = "ruby/melbourne.#{$DLEXT}"
+directory "build"
+melbourne_build = "build/melbourne20.#{$DLEXT}"
 
-file melbourne_mri => project_files
+file melbourne_build => project_files
 
-graph_dependencies source_files
+graph_dependencies source_files, [], ext_dir
 
 import dependency_file
 
@@ -76,9 +90,9 @@ namespace :build do
   desc "Build Melbourne for Rubinius"
   task :rbx => melbourne_rbx
 
-  desc "Build Melbourne for MRI"
-  task :mri => melbourne_mri
+  desc "Build bootstrap Melbourne"
+  task :build => melbourne_build
 end
 
 desc "Build Melbourne for both Rubinius and MRI"
-task :build => %w[build:mri build:rbx]
+task :build => %w[build:build build:rbx]

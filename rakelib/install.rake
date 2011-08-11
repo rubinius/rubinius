@@ -16,7 +16,9 @@ end
 install_dirs = [
   BUILD_CONFIG[:bindir],
   BUILD_CONFIG[:libdir],
-  BUILD_CONFIG[:includedir],
+  BUILD_CONFIG[:include18dir],
+  BUILD_CONFIG[:include19dir],
+  BUILD_CONFIG[:include20dir],
   BUILD_CONFIG[:mandir],
   BUILD_CONFIG[:gemsdir]
 ]
@@ -89,16 +91,18 @@ namespace :install do
     else
       install_dirs.each { |name| mkdir_p install_dir(name), :verbose => $verbose }
 
-      FileList["vm/capi/include/*.h"].each do |name|
-        install_file name, %r[^vm/capi/include], BUILD_CONFIG[:includedir]
+      [["18", "18"], ["19", "19"], ["19", "20"]].each do |a, b|
+        FileList["vm/capi/#{a}/include/**/*.h"].each do |name|
+          install_file name, %r[^vm/capi/#{a}/include], BUILD_CONFIG[:"include#{b}dir"]
+        end
       end
 
       FileList[
-        'runtime/index',
-        'runtime/signature',
         'runtime/platform.conf',
+        'runtime/**/index',
+        'runtime/**/signature',
         'runtime/**/*.rb{a,c}',
-        'runtime/**/load_order.txt'
+        'runtime/**/load_order*.txt'
       ].each do |name|
         install_file name, /^runtime/, BUILD_CONFIG[:runtime]
       end
@@ -126,6 +130,13 @@ namespace :install do
       # TODO: handle this better in daedalus.
       FileList["lib/tooling/**/*.#{$dlext}"].each do |name|
         install_file name, /^lib/, BUILD_CONFIG[:lib_path]
+      end
+
+      if Rubinius::BUILD_CONFIG[:vendor_zlib]
+        # Install the zlib library files
+        FileList["lib/zlib/*"].each do |name|
+          install_file name, /^lib/, BUILD_CONFIG[:lib_path]
+        end
       end
 
       # Install the documentation site

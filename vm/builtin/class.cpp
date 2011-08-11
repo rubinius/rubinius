@@ -25,9 +25,9 @@
 namespace rubinius {
 
   Class* Class::create(STATE, Class* super) {
-    Class* cls = state->om->new_object_enduring<Class>(G(klass));
+    Class* cls = state->om->new_object_enduring<Class>(state, G(klass));
 
-    cls->init(state->shared.inc_class_count());
+    cls->init(state->shared.inc_class_count(state));
 
     cls->name(state, nil<Symbol>());
     cls->instance_type(state, super->instance_type());
@@ -48,9 +48,9 @@ namespace rubinius {
   }
 
   Class* Class::s_allocate(STATE) {
-    Class* cls = as<Class>(state->om->new_object_enduring<Class>(G(klass)));
+    Class* cls = as<Class>(state->om->new_object_enduring<Class>(state, G(klass)));
 
-    cls->init(state->shared.inc_class_count());
+    cls->init(state->shared.inc_class_count(state));
     cls->setup(state);
 
     cls->set_type_info(state->om->type_info[ObjectType]);
@@ -60,7 +60,6 @@ namespace rubinius {
   void Class::init(int id) {
     class_id_ = id;
     set_packed_size(0);
-    building_ = true;
   }
 
   Object* Class::allocate(STATE, CallFrame* calling_environment) {
@@ -71,20 +70,19 @@ use_packed:
       // Pull the size out into a local to deal with this moving later on.
       uint32_t size = packed_size_;
 
-      PackedObject* obj = reinterpret_cast<PackedObject*>(
-                            state->local_slab().allocate(size));
+      PackedObject* obj = state->local_slab().allocate(size).as<PackedObject>();
 
       if(likely(obj)) {
         obj->init_header(this, YoungObjectZone, PackedObject::type);
       } else {
-        if(state->shared.om->refill_slab(state->local_slab())) {
-          obj = reinterpret_cast<PackedObject*>(state->local_slab().allocate(size));
+        if(state->shared.om->refill_slab(state, state->local_slab())) {
+          obj = state->local_slab().allocate(size).as<PackedObject>();
 
           if(likely(obj)) {
             obj->init_header(this, YoungObjectZone, PackedObject::type);
           } else {
             obj = reinterpret_cast<PackedObject*>(
-                state->om->new_object_fast(this, size, PackedObject::type));
+                state->om->new_object_fast(state, this, size, PackedObject::type));
           }
         } else {
           state->shared.om->collect_young_now = true;
@@ -97,13 +95,13 @@ use_packed:
 
           // Don't use 'this' after here! it's been moved! use 'self'!
 
-          obj = reinterpret_cast<PackedObject*>(state->local_slab().allocate(size));
+          obj = state->local_slab().allocate(size).as<PackedObject>();
 
           if(likely(obj)) {
             obj->init_header(self, YoungObjectZone, PackedObject::type);
           } else {
             obj = reinterpret_cast<PackedObject*>(
-                state->om->new_object_fast(self, size, PackedObject::type));
+                state->om->new_object_fast(state, self, size, PackedObject::type));
           }
         }
       }
@@ -121,19 +119,16 @@ use_packed:
     } else if(!type_info_->allow_user_allocate || kind_of<SingletonClass>(this)) {
       Exception::type_error(state, "direct allocation disabled");
       return Qnil;
-    } else if(!building_) {
-      return state->om->new_object_typed(this,
-          type_info_->instance_size, type_info_->type);
-    } else {
-      if(type_info_->type == Object::type) {
-        if(auto_pack(state)) goto use_packed;
-      }
-
-      building_ = false;
-
-      return state->om->new_object_typed(this,
-          type_info_->instance_size, type_info_->type);
+    } else if(type_info_->type == Object::type) {
+      // transition all normal object classes to PackedObject
+      auto_pack(state);
+      goto use_packed;
     }
+
+    // type_info_->type is neither PackedObject nor Object, so use the
+    // generic path.
+    return state->new_object_typed(this,
+        type_info_->instance_size, type_info_->type);
   }
 
   Class* Class::true_superclass(STATE) {
@@ -180,21 +175,24 @@ use_packed:
     type_info_ = state->om->type_info[type];
   }
 
-  bool Class::auto_pack(STATE) {
-    if(building_) {
-      building_ = false;
+  /* Look at this class and it's superclass contents (which includes
+   * included modules) and calculate out how to allocate the slots.
+   *
+   * This locks the class so that construction is serialized.
+   */
+  void Class::auto_pack(STATE) {
+    hard_lock(state);
 
-      // If autopack is off, ignore this.
-      if(!state->shared.config.gc_autopack) return false;
+    // If another thread did this work while we were waiting on the lock,
+    // don't redo it.
+    if(type_info_->type == PackedObject::type) return;
 
-      // Only transition Object typed objects to Packed
-      if(type_info_->type != Object::type) return false;
+    size_t slots = 0;
 
-      // Reject methods that already have packing.
-      if(packed_size_) return true;
+    LookupTable* lt = LookupTable::create(state);
 
-      LookupTable* lt = LookupTable::create(state);
-
+    // If autopacking is enabled, figure out how many slots to use.
+    if(state->shared.config.gc_autopack) {
       Module* mod = this;
 
       int slot = 0;
@@ -226,16 +224,15 @@ use_packed:
 
         mod = mod->superclass();
       }
-
-      size_t slots = lt->entries()->to_native();
-
-      packed_size_ = sizeof(Object) + (slots * sizeof(Object*));
-      packed_ivar_info(state, lt);
-
-      set_object_type(state, PackedObject::type);
+      slots = lt->entries()->to_native();
     }
 
-    return type_info_->type == PackedObject::type;
+    packed_size_ = sizeof(Object) + (slots * sizeof(Object*));
+    packed_ivar_info(state, lt);
+
+    set_object_type(state, PackedObject::type);
+
+    hard_unlock(state);
   }
 
   Class* Class::real_class(STATE, Class* klass) {
@@ -248,8 +245,8 @@ use_packed:
 
   SingletonClass* SingletonClass::attach(STATE, Object* obj, Class* sup) {
     SingletonClass *sc;
-    sc = state->om->new_object_enduring<SingletonClass>(G(klass));
-    sc->init(state->shared.inc_class_count());
+    sc = state->om->new_object_enduring<SingletonClass>(state, G(klass));
+    sc->init(state->shared.inc_class_count(state));
 
     sc->attached_instance(state, obj);
     sc->setup(state);

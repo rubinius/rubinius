@@ -25,12 +25,12 @@ module KernelSpecs
     code = File.read name
 
     be = Rubinius::Compiler.construct_block code, empty_binding, name
-    Rubinius::CompiledFile.dump be.code, cache
+    Rubinius::CompiledFile.dump be.code, cache, 0, 0
   end
 
   def self.run_cache(cache)
     cl = Rubinius::CodeLoader.new cache
-    cm = cl.load_compiled_file cache, Rubinius::Signature
+    cm = cl.load_compiled_file cache, 0, 0
 
     script = cm.create_script
     MAIN.__send__ :__script__

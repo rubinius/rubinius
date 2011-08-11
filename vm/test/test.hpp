@@ -23,15 +23,11 @@ public:
     config_parser = new ConfigParser;
     shared = new SharedState(0, config, *config_parser);
     state = shared->new_vm();
-    state->initialize();
-    state->boot();
-
-    state->global_lock().take();
+    state->initialize_as_root();
   }
 
   void destroy() {
-    state->global_lock().drop();
-    VM::discard(state);
+    VM::discard(state, state);
     SharedState::discard(shared);
   }
 

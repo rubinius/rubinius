@@ -207,7 +207,7 @@ module Rubinius
 
         case arguments
         when PushArgs
-          @arguments = arguments
+          @arguments = PushActualArguments.new arguments
         else
           @arguments = ActualArguments.new line, arguments
         end
@@ -246,13 +246,10 @@ module Rubinius
       end
     end
 
-    class PushArgs < Node
-      attr_accessor :arguments, :value
-
-      def initialize(line, arguments, value)
-        @line = line
-        @arguments = arguments
-        @value = value
+    class PushActualArguments
+      def initialize(pa)
+        @arguments = pa.arguments
+        @value = pa.value
       end
 
       def size
@@ -312,6 +309,37 @@ module Rubinius
       end
     end
 
+    class BlockPass19 < BlockPass
+      attr_accessor :arguments
+
+      def initialize(line, arguments, body)
+        super(line, body)
+        @arguments = arguments
+      end
+    end
+
+    class CollectSplat < Node
+      def initialize(line, *parts)
+        @line = line
+        @parts = parts
+      end
+
+      def bytecode(g)
+        collect = false
+
+        @parts.each do |x|
+          x.bytecode(g)
+          g.cast_array
+
+          if collect
+            g.send :+, 1
+          else
+            collect = true
+          end
+        end
+      end
+    end
+
     class ActualArguments < Node
       attr_accessor :array, :splat
 
@@ -324,8 +352,25 @@ module Rubinius
           @splat = arguments
           @array = []
         when ConcatArgs
-          @array = arguments.array.body
-          @splat = SplatValue.new line, arguments.rest
+          if arguments.array.kind_of? ArrayLiteral
+            @array = arguments.array.body
+            @splat = SplatValue.new line, arguments.rest
+          else
+            @array = []
+            @splat = CollectSplat.new line, arguments.array, arguments.rest
+          end
+        when PushArgs
+          if arguments.arguments.kind_of? ConcatArgs
+            if ary = arguments.arguments.peel_lhs
+              @array = ary
+            else
+              @array = []
+            end
+          else
+            @array = []
+          end
+
+          @splat = CollectSplat.new line, arguments.arguments, arguments.value
         when ArrayLiteral
           @array = arguments.body
         when nil
@@ -374,6 +419,11 @@ module Rubinius
         @body = body || NilLiteral.new(line)
       end
 
+      # 1.8 doesn't support declared Iter locals
+      def block_local?(name)
+        false
+      end
+
       def module?
         false
       end
@@ -391,6 +441,8 @@ module Rubinius
       def search_local(name)
         if variable = variables[name]
           variable.nested_reference
+        elsif block_local?(name)
+          new_local name
         elsif reference = @parent.search_local(name)
           reference.depth += 1
           reference
@@ -413,6 +465,9 @@ module Rubinius
       # variable in this scope and set the local variable node attribute.
       def assign_local_reference(var)
         if variable = variables[var.name]
+          var.variable = variable.reference
+        elsif block_local?(var.name)
+          variable = new_local var.name
           var.variable = variable.reference
         elsif reference = @parent.search_local(var.name)
           reference.depth += 1
@@ -470,6 +525,24 @@ module Rubinius
 
       def to_sexp
         [sexp_name, @arguments.to_sexp, @body.to_sexp]
+      end
+    end
+
+    class Iter19 < Iter
+      def initialize(line, arguments, body)
+        @line = line
+        @arguments = arguments
+        @body = body || NilLiteral.new(line)
+
+        if @body.kind_of?(Block) and @body.locals
+          @locals = @body.locals.body.map { |x| x.value }
+        else
+          @locals = nil
+        end
+      end
+
+      def block_local?(name)
+        @locals.include?(name) if @locals
       end
     end
 
@@ -541,6 +614,10 @@ module Rubinius
       end
 
       alias_method :total_args, :required_args
+
+      def post_args
+        0
+      end
 
       def names
         case @arguments

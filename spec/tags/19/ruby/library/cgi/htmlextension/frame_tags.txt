@@ -1,0 +1,1 @@
+fails:CGI::HtmlExtension#frame initializes the HTML Generation methods for the Frameset version of HTML4

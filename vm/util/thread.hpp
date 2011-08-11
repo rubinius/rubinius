@@ -9,14 +9,31 @@
 #include <pthread.h>
 #include <errno.h>
 #include <signal.h>
-#include <assert.h>
+#include <stdlib.h>
+#include <stdio.h>
 
 #include <sstream>
 #include <iostream>
 
-#define pthread_check(expr) if((expr) != 0) { assert(0 && "failed: " #expr); }
+#include "util/atomic.hpp"
+
+intptr_t thread_debug_self();
+
+#define pthread_check(expr) if((expr) != 0) { fail(#expr); }
+
+#if defined(__APPLE__) && (__ENVIRONMENT_MAC_OS_X_VERSION_MIN_REQUIRED__ >= 1060)
+// This is behind a silly define, so we just pull it out here.
+extern "C" int pthread_setname_np(const char*);
+#define HAVE_PTHREAD_SETNAME
+#endif
 
 namespace thread {
+
+  static inline void fail(const char* str) {
+    std::cerr << "ABORTING: " << str << std::endl;
+    abort();
+  }
+
   enum Code {
     cLocked,
     cUnlocked,
@@ -26,39 +43,6 @@ namespace thread {
     cTimedOut
   };
 
-#if 0
-  static void block_all_signals() {
-    sigset_t set;
-    sigfillset(&set);
-
-    pthread_sigmask(SIG_BLOCK, &set, NULL);
-  }
-
-  static void accept_signal(int sig) {
-    sigset_t set;
-    sigemptyset(&set);
-    sigaddset(&set, sig);
-
-    pthread_sigmask(SIG_UNBLOCK, &set, NULL);
-  }
-
-  static void ignore_signal(int sig) {
-    sigset_t set;
-    sigemptyset(&set);
-    sigaddset(&set, sig);
-
-    pthread_sigmask(SIG_BLOCK, &set, NULL);
-  }
-
-  static void wait_on_signal(int sig) {
-    sigset_t set;
-    sigemptyset(&set);
-    sigaddset(&set, sig);
-
-    int bunk;
-    sigwait(&set, &bunk);
-  }
-#endif
   template <typename T = void*>
   class ThreadData {
     pthread_key_t native_;
@@ -85,6 +69,7 @@ namespace thread {
     pthread_t native_;
     bool delete_on_exit_;
     size_t stack_size_;
+    const char* name_;
 
     static void* trampoline(void* arg) {
       Thread* self = reinterpret_cast<Thread*>(arg);
@@ -94,14 +79,34 @@ namespace thread {
     }
 
   public:
-    Thread(size_t stack_size = 0, pthread_t tid = 0)
-      : native_(tid)
+    Thread(size_t stack_size = 0, bool delete_on_exit = true)
+      : delete_on_exit_(delete_on_exit)
       , stack_size_(stack_size)
-    {
-      delete_on_exit_ = (tid != 0);
-    }
+    {}
 
     virtual ~Thread() { }
+
+    // Set the name of the thread. Be sure to call this inside perform
+    // so that the system can see the proper thread to set if that is
+    // available (OS X only atm)
+    void set_name(const char* name) {
+      name_ = name;
+#ifdef HAVE_PTHREAD_SETNAME
+      pthread_setname_np(name);
+#endif
+    }
+
+    static pthread_t self() {
+      return pthread_self();
+    }
+
+    static bool equal_p(pthread_t t1, pthread_t t2) {
+      return pthread_equal(t1, t2);
+    }
+
+    static void signal(pthread_t thr, int signal) {
+      pthread_kill(thr, signal);
+    }
 
     pthread_t* native() {
       return &native_;
@@ -141,8 +146,8 @@ namespace thread {
       int err = pthread_join(native_, &bunk);
       if(err != 0) {
         if(err == EDEADLK) {
-          std::cout << "Thread deadlock!\n";
-          assert(0);
+          std::cout << "Thread deadlock in ::join()!\n";
+          abort();   
         }
 
         // Ignore the other errors, since they mean there is no thread
@@ -151,7 +156,7 @@ namespace thread {
     }
 
     bool in_self_p() {
-      return pthread_self() == native_;
+      return pthread_equal(pthread_self(), native_);
     }
 
     void cancel() {
@@ -230,22 +235,27 @@ namespace thread {
       , locked_(initial)
     { }
 
+    LockGuardTemplate(T* in_lock, bool initial = false)
+      : lock_(*in_lock)
+      , locked_(initial)
+    { }
+
     void lock() {
       if(locked_) return;
       if(cDebugLockGuard) {
-        std::cout << "[[ " << pthread_self() << "   Locking " << lock_.describe() << " ]]\n";
+        std::cout << "[[ " << thread_debug_self() << "   Locking " << lock_.describe() << " ]]\n";
       }
       lock_.lock();
       locked_ = true;
       if(cDebugLockGuard) {
-        std::cout << "[[ " << pthread_self() << "   Locked " << lock_.describe() << " ]]\n";
+        std::cout << "[[ " << thread_debug_self() << "   Locked " << lock_.describe() << " ]]\n";
       }
     }
 
     void unlock() {
       if(!locked_) return;
       if(cDebugLockGuard) {
-        std::cout << "[[ " << pthread_self() << " Unlocking " << lock_.describe() << " ]]\n";
+        std::cout << "[[ " << thread_debug_self() << " Unlocking " << lock_.describe() << " ]]\n";
       }
       lock_.unlock();
       locked_ = false;
@@ -287,26 +297,37 @@ namespace thread {
 
   private:
     pthread_mutex_t native_;
+    pthread_t owner_;
+    bool locked_;
 
   public:
-    void init() {
+    void init(bool rec=false) {
       pthread_mutexattr_t attr;
       pthread_mutexattr_init(&attr);
-      pthread_mutexattr_settype(&attr, PTHREAD_MUTEX_RECURSIVE);
+      if(rec) {
+        pthread_mutexattr_settype(&attr, PTHREAD_MUTEX_RECURSIVE);
+      } else {
+        pthread_mutexattr_settype(&attr, PTHREAD_MUTEX_ERRORCHECK);
+      }
+
       pthread_check(pthread_mutex_init(&native_, &attr));
     }
 
-    Mutex() {
-      init();
+    Mutex(bool rec=false) {
+      init(rec);
     }
 
     ~Mutex() {
       int err = pthread_mutex_destroy(&native_);
       if(err != 0) {
-        if(err == EBUSY) assert(0 && "mutex is busy!");
-        if(err == EINVAL) assert(0 && "mutex is dead!");
-        assert(0 && "mutex is screwed!");
+        if(err == EBUSY) fail("mutex is busy!");
+        if(err == EINVAL) fail("mutex is dead!");
+        fail("mutex is screwed!");
       }
+    }
+
+    pthread_t owner() {
+      return owner_;
     }
 
     pthread_mutex_t* native() {
@@ -314,19 +335,30 @@ namespace thread {
     }
 
     void lock() {
-      int err;
       if(cDebugLockGuard) {
-        std::cout << "[[ " << pthread_self() << "   MLocking " << describe() << " ]]\n";
+        std::cout << "[[ " << thread_debug_self() << "   MLocking " << describe() << " ]]\n";
       }
-      if((err = pthread_mutex_lock(&native_)) != 0) {
-        if(err == EDEADLK) {
-          std::cout << "Thread deadlock!\n";
-        }
 
-        assert(0);
+      int err = pthread_mutex_lock(&native_);
+
+      switch(err) {
+      case 0:
+        break;
+      case EDEADLK:
+        std::cout << "Thread deadlock in ::lock()!\n";
+        abort();
+        break;
+      case EINVAL:
+        std::cout << "Mutex invalid (Thread corrupt?)\n";
+        abort();
+        break;
       }
+
+      owner_ = pthread_self();
+      locked_ = true;
+
       if(cDebugLockGuard) {
-        std::cout << "[[ " << pthread_self() << "    MLocked " << describe() << " ]]\n";
+        std::cout << "[[ " << thread_debug_self() << "    MLocked " << describe() << " ]]\n";
       }
     }
 
@@ -334,20 +366,26 @@ namespace thread {
       int err = pthread_mutex_trylock(&native_);
       if(err != 0) {
         if(err == EBUSY) return cLockBusy;
-        assert(0);
+        abort();
       }
+
+      owner_ = pthread_self();
+      locked_ = true;
 
       return cLocked;
     }
 
     Code unlock() {
       if(cDebugLockGuard) {
-        std::cout << "[[ " << pthread_self() << "   MUnlocking " << describe() << " ]]\n";
+        std::cout << "[[ " << thread_debug_self() << "   MUnlocking " << describe() << " ]]\n";
       }
+
+      locked_ = false;
+
       int err = pthread_mutex_unlock(&native_);
       if(err != 0) {
         if(err == EPERM) return cNotYours;
-        assert(0);
+        abort();
       }
 
       return cUnlocked;
@@ -387,24 +425,24 @@ namespace thread {
 
     void wait(Mutex& mutex) {
       if(cDebugLockGuard) {
-        std::cout << "[[ " << pthread_self() << "   CUnlocking " << mutex.describe() << " ]]\n";
+        std::cout << "[[ " << thread_debug_self() << "   CUnlocking " << mutex.describe() << " ]]\n";
       }
 
       pthread_check(pthread_cond_wait(&native_, mutex.native()));
 
       if(cDebugLockGuard) {
-        std::cout << "[[ " << pthread_self() << "   CLocked " << mutex.describe() << " ]]\n";
+        std::cout << "[[ " << thread_debug_self() << "   CLocked " << mutex.describe() << " ]]\n";
       }
     }
 
     Code wait_until(Mutex& mutex, const struct timespec* ts) {
       if(cDebugLockGuard) {
-        std::cout << "[[ " << pthread_self() << "   CUnlocking " << mutex.describe() << " ]]\n";
+        std::cout << "[[ " << thread_debug_self() << "   CUnlocking " << mutex.describe() << " ]]\n";
       }
 
       int err = pthread_cond_timedwait(&native_, mutex.native(), ts);
       if(cDebugLockGuard) {
-        std::cout << "[[ " << pthread_self() << "   CLocked " << mutex.describe() << " ]]\n";
+        std::cout << "[[ " << thread_debug_self() << "   CLocked " << mutex.describe() << " ]]\n";
       }
 
       if(err != 0) {
@@ -425,7 +463,7 @@ namespace thread {
           std::cout << "Unknown failure from pthread_cond_timedwait!\n";
         }
 
-        assert(0);
+        abort();
       }
       return cReady;
     }
@@ -492,12 +530,7 @@ namespace thread {
   };
 };
 
-#elif ((__GNUC__ == 4) && (__GNUC_MINOR__ >= 1))
-
-// You can uncomment this to use compare_and_swap, but
-// CAS doesn't have any fencing, so it's not known how they'll
-// behave.
-// #define USE_SYNC_CAS
+#else
 
 namespace thread {
   class SpinLock {
@@ -514,26 +547,15 @@ namespace thread {
     {}
 
     void lock() {
-#ifdef USE_SYNC_CAS
-      while(!__sync_bool_compare_and_swap(&lock_, 1, 0));
-      __sync_synchronize(); // HM?!
-#else
-      __sync_lock_test_and_set(&lock_, 1);
-#endif
+      while(!atomic::compare_and_swap(&lock_, 1, 0));
     }
 
     void unlock() {
-#ifdef USE_SYNC_CAS
       lock_ = 1;
-#else
-      // See http://bugs.mysql.com/bug.php?id=34175 about using
-      // __sync_lock_release
-      __sync_lock_test_and_set(&lock_, 0);
-#endif
     }
 
     Code try_lock() {
-      if(__sync_bool_compare_and_swap(&lock_, 1, 0)) {
+      if(atomic::compare_and_swap(&lock_, 1, 0)) {
         return cLocked;
       }
 
@@ -548,12 +570,6 @@ namespace thread {
     }
   };
 }
-
-#else
-
-namespace thread {
-  typedef Mutex SpinLock;
-};
 
 #endif
 

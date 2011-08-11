@@ -17,13 +17,6 @@ describe "Rubinius::Type.try_convert" do
     Rubinius::Type.try_convert(obj, TypeSpecs::A, :coerce).should equal(val)
   end
 
-  it "returns nil if the method raises an exception" do
-    obj = mock("Type.coerce_to")
-    obj.should_receive(:coerce).and_raise(Exception)
-
-    Rubinius::Type.try_convert(obj, TypeSpecs::A, :coerce).should be_nil
-  end
-
   it "raises a TypeError if the method does not return the specified type" do
     obj = mock("Type.coerce_to")
     obj.should_receive(:coerce).and_return(TypeSpecs::C.new)

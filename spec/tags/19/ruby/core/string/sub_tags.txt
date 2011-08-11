@@ -1,0 +1,13 @@
+fails:String#sub! with pattern, replacement raises a RuntimeError when self is frozen
+fails:String#sub! with pattern and block raises a RuntimeError when self is frozen
+fails:String#sub with pattern, replacement replaces \1 sequences with the regexp's corresponding capture
+fails:String#sub with pattern, replacement treats \1 sequences without corresponding captures as empty strings
+fails:String#sub with pattern, replacement replaces \& and \0 with the complete match
+fails:String#sub with pattern, replacement replaces \` with everything before the current match
+fails:String#sub with pattern, replacement replaces \' with everything after the current match
+fails:String#sub with pattern, replacement replaces \\\+ with \\+
+fails:String#sub with pattern, replacement replaces \+ with the last paren that actually matched
+fails:String#sub with pattern, replacement treats \+ as an empty string if there was no captures
+fails:String#sub with pattern, replacement maps \\ in replacement to \
+fails:String#sub with pattern, replacement replaces \\1 with \1
+fails:String#sub with pattern, replacement replaces \\\1 with \

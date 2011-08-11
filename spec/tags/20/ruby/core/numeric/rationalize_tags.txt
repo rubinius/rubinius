@@ -1,0 +1,3 @@
+fails:Numeric#rationalize returns a Rational object
+fails:Numeric#rationalize uses self as the numerator
+fails:Numeric#rationalize uses 1 as the denominator

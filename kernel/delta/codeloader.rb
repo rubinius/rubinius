@@ -82,6 +82,23 @@ module Rubinius
       attr_accessor :load_compiled
       attr_accessor :check_version
 
+      # Loads the pre-compiled bytecode compiler. Sets up paths needed by the
+      # compiler to find dependencies like the parser.
+      def load_compiler
+        Rubinius.const_set :COMPILER_PATH, Rubinius::RUNTIME_PATH
+        Rubinius.const_set :PARSER_PATH, "#{Rubinius::RUNTIME_PATH}/melbourne"
+
+        # TODO: handle install
+        # ext_path = "#{Rubinius::LIB_PATH}/ext/melbourne/rbx/melbourne20"
+        # Rubinius.const_set :PARSER_EXT_PATH, ext_path
+
+        begin
+          require_compiled "#{Rubinius::COMPILER_PATH}/compiler"
+        rescue Rubinius::InvalidRBC => e
+          raise LoadError, "Unable to load the bytecode compiler", e
+        end
+      end
+
       def require_compiled(name, check_version=true)
         new(name).require_compiled(check_version)
       end
@@ -106,10 +123,11 @@ module Rubinius
     # TODO: Make the compiled version checking logic available as a Compiler
     # convenience method.
     def load_file(wrap=false)
-      version = CodeLoader.check_version ? Signature : 0
+      signature = CodeLoader.check_version ? Signature : 0
+      version = Rubinius::RUBY_LIB_VERSION
 
       if CodeLoader.load_compiled
-        cm = load_compiled_file @load_path, version
+        cm = load_compiled_file @load_path, signature, version
       else
         compiled_name = Compiler.compiled_name @load_path
 
@@ -118,7 +136,7 @@ module Rubinius
             cm = compile_file @load_path, compiled_name
           else
             begin
-              cm = load_compiled_file compiled_name, version
+              cm = load_compiled_file compiled_name, signature, version
             rescue TypeError, InvalidRBC
               cm = compile_file @load_path, compiled_name
             end
@@ -150,8 +168,8 @@ module Rubinius
     end
 
     # Load a compiled version of a Ruby source file.
-    def load_compiled_file(path, version)
-      Ruby.primitive :compiledfile_load
+    def load_compiled_file(path, signature, version)
+      Rubinius.primitive :compiledfile_load
 
       raise InvalidRBC, path
     end

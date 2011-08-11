@@ -15,10 +15,6 @@ namespace rubinius {
     std::cout << "[GC IMMIX: Added a chunk: " << count << "]\n";
 #endif
 
-#ifdef RBX_GC_STATS
-    stats::GCStats::get()->chunks_added++;
-#endif
-
     if(object_memory_) {
       if(gc_->dec_chunks_left() <= 0) {
         // object_memory_->collect_mature_now = true;
@@ -27,14 +23,18 @@ namespace rubinius {
     }
   }
 
-  // This means we're getting low on memory!
+
+  /**
+   * This means we're getting low on memory! Time to schedule a garbage
+   * collection.
+   */
   void ImmixGC::ObjectDescriber::last_block() {
     if(object_memory_) {
       object_memory_->collect_mature_now = true;
     }
   }
 
-  void ImmixGC::ObjectDescriber::set_forwarding_pointer(immix::Address from, immix::Address to) {
+  void ImmixGC::ObjectDescriber::set_forwarding_pointer(memory::Address from, memory::Address to) {
     from.as<Object>()->set_forward(to.as<Object>());
   }
 
@@ -47,16 +47,16 @@ namespace rubinius {
     reset_chunks_left();
   }
 
-  immix::Address ImmixGC::ObjectDescriber::copy(immix::Address original,
+  memory::Address ImmixGC::ObjectDescriber::copy(memory::Address original,
       immix::Allocator& alloc) {
     Object* orig = original.as<Object>();
 
-    immix::Address copy_addr = alloc.allocate(
-        orig->size_in_bytes(object_memory_->state));
+    memory::Address copy_addr = alloc.allocate(
+        orig->size_in_bytes(object_memory_->state()));
 
     Object* copy = copy_addr.as<Object>();
 
-    copy->initialize_full_state(object_memory_->state, orig, 0);
+    copy->initialize_full_state(object_memory_->state(), orig, 0);
 
     copy->set_zone(MatureObjectZone);
     copy->set_in_immix();
@@ -64,55 +64,73 @@ namespace rubinius {
     return copy_addr;
   }
 
-  int ImmixGC::ObjectDescriber::size(immix::Address addr) {
-    return addr.as<Object>()->size_in_bytes(object_memory_->state);
+  int ImmixGC::ObjectDescriber::size(memory::Address addr) {
+    return addr.as<Object>()->size_in_bytes(object_memory_->state());
   }
 
   ImmixGC::~ImmixGC() {
-    // TODO free data
+    // @todo free data
   }
 
   Object* ImmixGC::allocate(int bytes) {
-#ifdef RBX_GC_STATS
-    stats::GCStats::get()->mature_bytes_allocated += bytes;
-    stats::GCStats::get()->allocate_mature.start();
-#endif
-
     if(bytes > immix::cMaxObjectSize) return 0;
 
     Object* obj = allocator_.allocate(bytes).as<Object>();
     obj->init_header(MatureObjectZone, InvalidType);
     obj->set_in_immix();
 
-#ifdef RBX_GC_STATS
-    stats::GCStats::get()->allocate_mature.stop();
-#endif
+    return obj;
+  }
+
+  Object* ImmixGC::move_object(Object* orig, int bytes) {
+    if(bytes > immix::cMaxObjectSize) return 0;
+
+    Object* obj = allocator_.allocate(bytes).as<Object>();
+
+    memcpy(obj, orig, bytes);
+
+    // If the header is inflated, repoint it.
+    if(obj->inflated_header_p()) {
+      orig->deflate_header();
+      obj->inflated_header()->set_object(obj);
+    }
+
+    obj->flags().zone = MatureObjectZone;
+    obj->flags().age = 0;
+
+    obj->set_in_immix();
+
+    orig->set_forward(obj);
 
     return obj;
   }
 
   Object* ImmixGC::saw_object(Object* obj) {
+#ifdef ENABLE_OBJECT_WATCH
     if(watched_p(obj)) {
       std::cout << "detected " << obj << " during immix scanning.\n";
     }
+#endif
 
     if(!obj->reference_p()) return obj;
 
-    immix::Address fwd = gc_.mark_address(immix::Address(obj), allocator_);
+    memory::Address fwd = gc_.mark_address(memory::Address(obj), allocator_);
     Object* copy = fwd.as<Object>();
 
     // Check and update an inflated header
     if(copy && copy != obj && obj->inflated_header_p()) {
       InflatedHeader* ih = obj->deflate_header();
       ih->reset_object(copy);
-      copy->set_inflated_header(ih);
+      if(!copy->set_inflated_header(ih)) {
+        rubinius::bug("Massive IMMIX inflated header screwup.");
+      }
     }
 
     return copy;
   }
 
   ObjectPosition ImmixGC::validate_object(Object* obj) {
-    if(gc_.allocated_address(immix::Address(obj))) {
+    if(gc_.allocated_address(memory::Address(obj))) {
       if(obj->in_immix_p()) {
         return cInImmix;
       } else {
@@ -123,6 +141,9 @@ namespace rubinius {
     return cUnknown;
   }
 
+  /**
+   * Performs a garbage collection of the immix space.
+   */
   void ImmixGC::collect(GCData& data) {
     Object* tmp;
 
@@ -130,8 +151,6 @@ namespace rubinius {
 
     int via_handles_ = 0;
     int via_roots = 0;
-    int via_stack = 0;
-    int callframes = 0;
 
     for(Roots::Iterator i(data.roots()); i.more(); i.advance()) {
       tmp = i->get();
@@ -143,9 +162,7 @@ namespace rubinius {
       for(std::list<ManagedThread*>::iterator i = data.threads()->begin();
           i != data.threads()->end();
           ++i) {
-        for(Roots::Iterator ri((*i)->roots()); ri.more(); ri.advance()) {
-          ri->set(saw_object(ri->get()));
-        }
+        scan(*i, false);
       }
     }
 
@@ -185,42 +202,6 @@ namespace rubinius {
       }
     }
 
-    for(VariableRootBuffers::Iterator i(data.variable_buffers());
-        i.more(); i.advance()) {
-      Object*** buffer = i->buffer();
-      for(int idx = 0; idx < i->size(); idx++) {
-        Object** var = buffer[idx];
-        Object* tmp = *var;
-
-        via_stack++;
-        if(tmp->reference_p())saw_object(tmp);
-      }
-    }
-
-    RootBuffers* rb = data.root_buffers();
-    if(rb) {
-      for(RootBuffers::Iterator i(*rb);
-          i.more();
-          i.advance())
-      {
-        Object** buffer = i->buffer();
-        for(int idx = 0; idx < i->size(); idx++) {
-          Object* tmp = buffer[idx];
-
-          if(tmp->reference_p()) saw_object(tmp);
-        }
-      }
-    }
-
-    // Walk all the call frames
-    for(CallFrameLocationList::const_iterator i = data.call_frames().begin();
-        i != data.call_frames().end();
-        ++i) {
-      callframes++;
-      CallFrame** loc = *i;
-      walk_call_frame(*loc);
-    }
-
     gc_.process_mark_stack(allocator_);
 
     // We've now finished marking the entire object graph.
@@ -238,49 +219,16 @@ namespace rubinius {
     // properly.
     allocator_.get_new_block();
 
-    ObjectArray *current_rs = object_memory_->remember_set();
-
+    // Clear unreachable objects from the various remember sets
     int cleared = 0;
-
-    for(ObjectArray::iterator oi = current_rs->begin();
-        oi != current_rs->end();
-        ++oi) {
-      tmp = *oi;
-      // unremember_object throws a NULL in to remove an object
-      // so we don't have to compact the set in unremember
-      if(tmp) {
-        assert(tmp->zone() == MatureObjectZone);
-        assert(!tmp->forwarded_p());
-
-        if(!tmp->marked_p(object_memory_->mark())) {
-          cleared++;
-          *oi = NULL;
-        }
-      }
-    }
-
+    unsigned int mark = object_memory_->mark();
+    cleared = object_memory_->unremember_objects(mark);
     for(std::list<gc::WriteBarrier*>::iterator wbi = object_memory_->aux_barriers().begin();
         wbi != object_memory_->aux_barriers().end();
         ++wbi) {
       gc::WriteBarrier* wb = *wbi;
-      ObjectArray* rs = wb->remember_set();
-      for(ObjectArray::iterator oi = rs->begin();
-          oi != rs->end();
-          ++oi) {
-        tmp = *oi;
-
-        if(tmp) {
-          assert(tmp->zone() == MatureObjectZone);
-          assert(!tmp->forwarded_p());
-
-          if(!tmp->marked_p(object_memory_->mark())) {
-            cleared++;
-            *oi = NULL;
-          }
-        }
-      }
+      cleared += wb->unremember_objects(mark);
     }
-
 
     // Now, calculate how much space we're still using.
     immix::Chunks& chunks = gc_.block_allocator().chunks();
@@ -296,7 +244,7 @@ namespace rubinius {
 
     double percentage_live = (double)live_bytes / (double)total_bytes;
 
-    if(object_memory_->state->shared.config.gc_immix_debug) {
+    if(object_memory_->state()->shared.config.gc_immix_debug) {
       std::cerr << "[GC IMMIX: " << clear_marked_objects() << " marked"
                 << ", "
                 << via_roots << " roots "
@@ -307,7 +255,7 @@ namespace rubinius {
     }
 
     if(percentage_live >= 0.90) {
-      if(object_memory_->state->shared.config.gc_immix_debug) {
+      if(object_memory_->state()->shared.config.gc_immix_debug) {
         std::cerr << "[GC IMMIX: expanding. "
                    << (int)(percentage_live * 100)
                    << "%]\n";
@@ -408,7 +356,7 @@ namespace rubinius {
             remove = true;
           } else {
             i->queued();
-            object_memory_->to_finalize().push_back(&fi);
+            object_memory_->add_to_finalize(&fi);
 
             // We have to still keep it alive though until we finish with it.
             i->object = saw_object(i->object);

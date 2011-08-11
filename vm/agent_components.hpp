@@ -1,4 +1,7 @@
+#ifndef RBX_WINDOWS
 #include <sys/utsname.h>
+#endif
+
 #include "vm.hpp"
 #include "configuration.hpp"
 #include "call_frame.hpp"

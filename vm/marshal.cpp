@@ -153,6 +153,7 @@ namespace rubinius {
     cm->stack_size(state, (Fixnum*)unmarshal());
     cm->local_count(state, (Fixnum*)unmarshal());
     cm->required_args(state, (Fixnum*)unmarshal());
+    cm->post_args(state, (Fixnum*)unmarshal());
     cm->total_args(state, (Fixnum*)unmarshal());
     cm->splat(state, unmarshal());
     cm->literals(state, (Tuple*)unmarshal());

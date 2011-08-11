@@ -1,0 +1,3 @@
+fails:CGI::HtmlExtension#br when each HTML generation returns the doctype declaration for HTML3
+fails:CGI::HtmlExtension#br when each HTML generation returns the doctype declaration for HTML4
+fails:CGI::HtmlExtension#br when each HTML generation returns the doctype declaration for the Transitional version of HTML4

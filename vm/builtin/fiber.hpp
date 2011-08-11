@@ -81,20 +81,20 @@ namespace rubinius {
   public:
     static void init(STATE);
 
-    // Ruby.primitive :fiber_new
+    // Rubinius.primitive :fiber_new
     static Fiber* create(STATE, Integer* stack_size, Object* callable);
     static void start_on_stack();
 
-    // Ruby.primitive :fiber_s_current
+    // Rubinius.primitive :fiber_s_current
     static Fiber* current(STATE);
 
-    // Ruby.primitive :fiber_resume
+    // Rubinius.primitive :fiber_resume
     Object* resume(STATE, Arguments& args, CallFrame* calling_environment);
 
-    // Ruby.primitive :fiber_transfer
+    // Rubinius.primitive :fiber_transfer
     Object* transfer(STATE, Arguments& args, CallFrame* calling_environment);
 
-    // Ruby.primitive :fiber_s_yield
+    // Rubinius.primitive :fiber_s_yield
     static Object* s_yield(STATE, Arguments& args, CallFrame* calling_environment);
 
     static void finalize(STATE, Fiber* fib);

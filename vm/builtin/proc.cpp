@@ -74,10 +74,7 @@ namespace rubinius {
     if(bound_method_->nil_p()) {
       ret= block_->call(state, call_frame, args, flags);
     } else if(NativeMethod* nm = try_as<NativeMethod>(bound_method_)) {
-      Dispatch dis(state->symbol("call"));
-      dis.method = nm;
-      dis.module = G(rubinius);
-      ret = nm->execute(state, call_frame, dis, args);
+      ret = nm->execute(state, call_frame, nm, G(object), args);
     } else {
       Dispatch dis(state->symbol("__yield__"));
       ret = dis.send(state, call_frame, args);
@@ -91,17 +88,13 @@ namespace rubinius {
       // NOTE! To match MRI semantics, this explicitely ignores lambda_.
       return block_->call(state, call_frame, args, 0);
     } else if(NativeMethod* nm = try_as<NativeMethod>(bound_method_)) {
-      Dispatch dis(state->symbol("call"));
-      dis.method = nm;
-      dis.module = G(rubinius);
-      return nm->execute(state, call_frame, dis, args);
+      return nm->execute(state, call_frame, nm, G(object), args);
     } else {
-      Dispatch dis;
-      return call_prim(state, NULL, call_frame, dis, args);
+      return call_prim(state, call_frame, NULL, NULL, args);
     }
   }
 
-  Object* Proc::call_prim(STATE, Executable* exec, CallFrame* call_frame, Dispatch& msg,
+  Object* Proc::call_prim(STATE, CallFrame* call_frame, Executable* exec, Module* mod,
                           Arguments& args) {
     bool lambda_style = RTEST(lambda_);
     int flags = 0;
@@ -109,6 +102,7 @@ namespace rubinius {
     // Check the arity in lambda mode
     if(lambda_style) {
       flags = CallFrame::cIsLambda;
+      int total = block_->code()->total_args()->to_native();
       int required = block_->code()->required_args()->to_native();
 
       bool arity_ok = false;
@@ -125,7 +119,8 @@ namespace rubinius {
       } else if(required == 1) {
         arity_ok = true;
       } else {
-        arity_ok = ((size_t)required == args.total());
+        arity_ok = args.total() <= (size_t)total &&
+                   args.total() >= (size_t)required;
       }
 
       if(!arity_ok) {
@@ -141,10 +136,7 @@ namespace rubinius {
     if(bound_method_->nil_p()) {
       ret = block_->call(state, call_frame, args, flags);
     } else if(NativeMethod* nm = try_as<NativeMethod>(bound_method_)) {
-      Dispatch dis(state->symbol("call"));
-      dis.method = nm;
-      dis.module = G(rubinius);
-      ret = nm->execute(state, call_frame, dis, args);
+      ret = nm->execute(state, call_frame, nm, G(object), args);
     } else {
       Dispatch dis(state->symbol("__yield__"));
       ret = dis.send(state, call_frame, args);
@@ -153,8 +145,8 @@ namespace rubinius {
     return ret;
   }
 
-  Object* Proc::call_on_object(STATE, Executable* exec, CallFrame* call_frame,
-                               Dispatch& msg, Arguments& args) {
+  Object* Proc::call_on_object(STATE, CallFrame* call_frame,
+                               Executable* exec, Module* mod, Arguments& args) {
     bool lambda_style = !lambda_->nil_p();
     int flags = 0;
 

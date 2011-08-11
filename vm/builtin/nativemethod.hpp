@@ -342,7 +342,7 @@ namespace rubinius {
 
     /** Set up and call native method. */
     template <class ArgumentHandler>
-    static Object* executor_implementation(STATE, CallFrame* call_frame, Dispatch& msg,
+    static Object* executor_implementation(STATE, CallFrame* call_frame, Executable* exec, Module* mod,
                                            Arguments& message);
 
     /**
@@ -356,7 +356,7 @@ namespace rubinius {
      *  Rubinius. It should be updated accordingly when properly
      *  entered.
      */
-    // Ruby.primitive :nativemethod_load_extension_entry_point
+    // Rubinius.primitive :nativemethod_load_extension_entry_point
     static NativeMethod* load_extension_entry_point(STATE, Pointer* ptr);
 
 

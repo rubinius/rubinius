@@ -3,7 +3,7 @@ require File.expand_path('../fixtures/classes', __FILE__)
 
 describe "Rubinius::LookupTable#initialize" do
   it "is private" do
-    Rubinius::LookupTable.private_instance_methods.should include("initialize")
+    Rubinius::LookupTable.should have_private_instance_method(:initialize)
   end
 
   it "is called on subclasses" do

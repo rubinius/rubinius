@@ -6,7 +6,7 @@
 #include "builtin/string.hpp"
 
 #include "capi/capi.hpp"
-#include "capi/include/ruby.h"
+#include "capi/18/include/ruby.h"
 
 #include <string.h>
 
@@ -35,22 +35,22 @@ namespace rubinius {
 
     /* We use the garbage collector's feature to "pin" an Object at a
      * particular memory location to allow C code to write directly into the
-     * contets of a Ruby String (actually, a ByteArray, which provides the
+     * contets of a Ruby String (actually, a CharArray, which provides the
      * storage for String). Since any method on String that mutates self may
-     * cause a new ByteArray to be created, we always check whether the
+     * cause a new CharArray to be created, we always check whether the
      * String is pinned and update the RString structure unconditionally.
      */
     void ensure_pinned(NativeMethodEnvironment* env, String* string, RString* rstring) {
-      ByteArray* ba = as<ByteArray>(string->data());
-      size_t byte_size = ba->size();
+      CharArray* ca = string->data();
+      size_t byte_size = ca->size();
 
-      if(!ba->pinned_p()) {
-        ba = ByteArray::create_pinned(env->state(), byte_size);
-        memcpy(ba->raw_bytes(), string->byte_address(), byte_size);
-        string->data(env->state(), ba);
+      if(!ca->pinned_p()) {
+        ca = CharArray::create_pinned(env->state(), byte_size);
+        memcpy(ca->raw_bytes(), string->byte_address(), byte_size);
+        string->data(env->state(), ca);
       }
 
-      char* ptr = reinterpret_cast<char*>(ba->raw_bytes());
+      char* ptr = reinterpret_cast<char*>(ca->raw_bytes());
 
       ptr[byte_size-1] = 0;
       rstring->dmwmb = rstring->ptr = ptr;
@@ -61,7 +61,7 @@ namespace rubinius {
 
     /* We are in C-land returning to Ruby-land. The value of RString.len
      * may have changed. We raise an exception if the value of len exceeds
-     * the capacity of the underlying ByteArray or if the value of ptr has
+     * the capacity of the underlying CharArray or if the value of ptr has
      * changed.
      */
     void flush_cached_rstring(NativeMethodEnvironment* env, Handle* handle) {
@@ -74,7 +74,7 @@ namespace rubinius {
               "changing the value of RSTRING(obj)->ptr is not supported");
         }
 
-        if(rstring->len > as<ByteArray>(string->data())->size()) {
+        if(rstring->len > as<CharArray>(string->data())->size()) {
           rb_raise(rb_eRuntimeError,
               "RSTRING(obj)->len must be <= capacity of the String");
         } else if(rstring->len != string->num_bytes()->to_native()) {
@@ -88,7 +88,7 @@ namespace rubinius {
 
     /* We were in Ruby-land and we are heading into C-land. In Ruby-land, we
      * may have updated the existing String bytes, appended more, shifted the
-     * start of the String, or replaced the ByteArray so we ensure that the
+     * start of the String, or replaced the CharArray so we ensure that the
      * RString structure contents are update.
      */
     void update_cached_rstring(NativeMethodEnvironment* env, Handle* handle) {
@@ -125,11 +125,11 @@ namespace rubinius {
       // associated RString structure.
       ensure_pinned(env, string, as_.rstring);
 
-      /* In Ruby, regardless of the contents in the ByteArray for a String,
+      /* In Ruby, regardless of the contents in the CharArray for a String,
        * the String's size is the authority on the length of the String.
        * However, for the C-API, we cannot assume this because C code may be
        * writing to the cache behind our backs, so we faithfully keep the full
-       * contents of the ByteArray and the C cache in sync. If there has never
+       * contents of the CharArray and the C cache in sync. If there has never
        * been a cache created for a string, however, we must set put a null
        * byte in the cache based on the String size.
        */
@@ -286,12 +286,12 @@ extern "C" {
 
     String* string = capi_get_string(env, self);
 
-    size_t size = as<ByteArray>(string->data())->size();
+    size_t size = as<CharArray>(string->data())->size();
     if(size != len) {
       if(size < len) {
-        ByteArray* ba = ByteArray::create_pinned(env->state(), len+1);
-        memcpy(ba->raw_bytes(), string->byte_address(), size);
-        string->data(env->state(), ba);
+        CharArray* ca = CharArray::create_pinned(env->state(), len+1);
+        memcpy(ca->raw_bytes(), string->byte_address(), size);
+        string->data(env->state(), ca);
       }
 
       string->byte_address()[len] = 0;
@@ -409,11 +409,11 @@ extern "C" {
 #define HAVE_RB_STR_COPIED_PTR 1
 
   void rb_str_flush(VALUE self) {
-    // Using pinned ByteArray, we don't need this anymore.
+    // Using pinned CharArray, we don't need this anymore.
   }
 
   void rb_str_update(VALUE self) {
-    // Using pinned ByteArray, we don't need this anymore.
+    // Using pinned CharArray, we don't need this anymore.
   }
 
   char* rb_str_ptr_readonly(VALUE self) {
@@ -436,7 +436,7 @@ extern "C" {
 
     String* string = capi_get_string(env, self);
 
-    size_t byte_size = as<ByteArray>(string->data())->size();
+    size_t byte_size = as<CharArray>(string->data())->size();
     if(len > byte_size) len = byte_size - 1;
 
     string->byte_address()[len] = 0;

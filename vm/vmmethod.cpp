@@ -1,3 +1,4 @@
+#include "config.h"
 #include "arguments.hpp"
 #include "dispatch.hpp"
 #include "call_frame.hpp"
@@ -19,18 +20,19 @@
 
 #include "instruments/tooling.hpp"
 #include "instruments/timing.hpp"
-#include "config.h"
 
 #include "raise_reason.hpp"
 #include "inline_cache.hpp"
 
 #include "configuration.hpp"
 
+#ifdef RBX_WINDOWS
+#include <malloc.h>
+#endif
+
 #ifdef ENABLE_LLVM
 #include "llvm/jit.hpp"
 #endif
-
-#define USE_SPECIALIZED_EXECUTE
 
 /*
  * An internalization of a CompiledMethod which holds the instructions for the
@@ -60,30 +62,28 @@ namespace rubinius {
     , jitted_impl_(NULL)
 #endif
     , name_(meth->name())
-    , method_id_(state->shared.inc_method_count())
+    , method_id_(state->shared.inc_method_count(state))
     , debugging(false)
     , flags(0)
   {
-    meth->set_executor(&VMMethod::execute);
-
     total = meth->iseq()->opcodes()->num_fields();
 
     opcodes = new opcode[total];
     addresses = new void*[total];
 
     fill_opcodes(state, meth);
-    stack_size =    meth->stack_size()->to_native();
+    stack_size = meth->stack_size()->to_native();
     number_of_locals = meth->number_of_locals();
 
-    total_args =    meth->total_args()->to_native();
+    total_args = meth->total_args()->to_native();
     required_args = meth->required_args()->to_native();
-    if(meth->splat()->nil_p()) {
-      splat_position = -1;
-    } else {
-      splat_position = as<Integer>(meth->splat())->to_native();
-    }
+    post_args = meth->post_args()->to_native();
 
-    setup_argument_handler(meth);
+    if(Fixnum* pos = try_as<Fixnum>(meth->splat())) {
+      splat_position = pos->to_native();
+    } else {
+      splat_position = -1;
+    }
 
     // Disable JIT for large methods
     if(meth->primitive()->nil_p() &&
@@ -106,10 +106,10 @@ namespace rubinius {
     }
   }
 
-  void VMMethod::cleanup(CodeManager* cm) {
+  void VMMethod::cleanup(STATE, CodeManager* cm) {
     for(size_t i = 0; i < number_of_caches_; i++) {
       InlineCache* cache = &caches[i];
-      cm->shared()->ic_registry()->remove_cache(cache->name, cache);
+      cm->shared()->ic_registry()->remove_cache(state, cache->name, cache);
     }
   }
 
@@ -244,7 +244,7 @@ namespace rubinius {
           }
         }
 
-        state->shared.ic_registry()->add_cache(name, cache);
+        state->shared.ic_registry()->add_cache(state, name, cache);
 
         opcodes[ip + 1] = reinterpret_cast<intptr_t>(cache);
         update_addresses(ip, 1);
@@ -259,8 +259,6 @@ namespace rubinius {
   }
 
   // Argument handler implementations
-
-#ifdef USE_SPECIALIZED_EXECUTE
 
   // For when the method expects no arguments at all (no splat, nothing)
   class NoArguments {
@@ -332,16 +330,16 @@ namespace rubinius {
       return true;
     }
   };
-#endif
 
   // The fallback, can handle all cases
   class GenericArguments {
   public:
     static bool call(STATE, VMMethod* vmm, StackVariables* scope, Arguments& args) {
       const bool has_splat = (vmm->splat_position >= 0);
+      native_int total_args = args.total();
 
       // expecting 0, got 0.
-      if(vmm->total_args == 0 and args.total() == 0) {
+      if(vmm->total_args == 0 && total_args == 0) {
         if(has_splat) {
           scope->set_local(vmm->splat_position, Array::create(state, 0));
         }
@@ -350,23 +348,68 @@ namespace rubinius {
       }
 
       // Too few args!
-      if((native_int)args.total() < vmm->required_args) return false;
+      if(total_args < vmm->required_args) return false;
 
       // Too many args (no splat!)
-      if(!has_splat && (native_int)args.total() > vmm->total_args) return false;
+      if(!has_splat && total_args > vmm->total_args) return false;
 
-      // Umm... something too do with figuring out how to handle
-      // splat and optionals.
-      native_int fixed_args = vmm->total_args;
-      if((native_int)args.total() < vmm->total_args) {
-        fixed_args = (native_int)args.total();
-      }
+      /* There are 4 types of arguments, illustrated here:
+       *    m(a, b=1, *c, d)
+       *
+       *  where:
+       *    a is a (pre optional/splat) fixed position argument
+       *    b is an optional argument
+       *    c is a splat argument
+       *    d is a post (optional/splat) argument
+       *
+       *  The arity checking above ensures that we have at least one argument
+       *  on the stack for each fixed position argument (ie arguments a and d
+       *  above).
+       *
+       *  The number of (pre) fixed arguments is 'required_args - post_args'.
+       *
+       *  The number of optional arguments is 'total_args - required_args'.
+       *
+       *  We fill in the required arguments, then the optional arguments, and
+       *  the rest (if any) go into an array for the splat.
+       */
 
-      // Copy in the normal, fixed position arguments
-      for(native_int i = 0; i < fixed_args; i++) {
+      const native_int P = vmm->post_args;
+      const native_int R = vmm->required_args;
+
+      // M is for mandatory
+      const native_int M = R - P;
+      const native_int T = total_args;
+
+      // DT is for declared total
+      const native_int DT = vmm->total_args;
+      const native_int O = DT - R;
+
+      // HS is for has splat
+      const native_int HS = has_splat ? 1 : 0;
+
+      // Phase 1, manditory args
+      for(native_int i = 0; i < M; i++) {
         scope->set_local(i, args.get_argument(i));
       }
 
+      // Phase 2, post args
+      for(native_int i = T - P, l = M + O + HS;
+          i < T;
+          i++, l++)
+      {
+        scope->set_local(l, args.get_argument(i));
+      }
+
+      // Phase 3, optionals
+      for(native_int i = M, limit = M + MIN(O, T-R);
+          i < limit;
+          i++)
+      {
+        scope->set_local(i, args.get_argument(i));
+      }
+
+      // Phase 4, splat
       if(has_splat) {
         Array* ary;
         /* There is a splat. So if the passed in arguments are greater
@@ -378,11 +421,14 @@ namespace rubinius {
          * NOTE: remember that total includes the number of fixed arguments,
          * even if they're optional, so we can get args.total() == 0, and
          * total == 1 */
-        if((native_int)args.total() > vmm->total_args) {
-          size_t splat_size = args.total() - vmm->total_args;
+        int splat_size = T - DT;
+        if(splat_size > 0) {
           ary = Array::create(state, splat_size);
 
-          for(size_t i = 0, n = vmm->total_args; i < splat_size; i++, n++) {
+          for(int i = 0, n = M + O;
+              i < splat_size;
+              i++, n++)
+          {
             ary->set(state, i, args.get_argument(n));
           }
         } else {
@@ -452,7 +498,6 @@ namespace rubinius {
   }
 
   void VMMethod::setup_argument_handler(CompiledMethod* meth) {
-#ifdef USE_SPECIALIZED_EXECUTE
     // If there are no optionals, only a fixed number of positional arguments.
     if(total_args == required_args) {
       // if no arguments are expected
@@ -488,7 +533,6 @@ namespace rubinius {
 
     // Lastly, use the generic case that handles all cases
     meth->set_executor(&VMMethod::execute_specialized<GenericArguments>);
-#endif
   }
 
   /* This is the execute implementation used by normal Ruby code,
@@ -502,9 +546,9 @@ namespace rubinius {
    */
   template <typename ArgumentHandler>
     Object* VMMethod::execute_specialized(STATE, CallFrame* previous,
-        Dispatch& msg, Arguments& args) {
+        Executable* exec, Module* mod, Arguments& args) {
 
-      CompiledMethod* cm = as<CompiledMethod>(msg.method);
+      CompiledMethod* cm = as<CompiledMethod>(exec);
       VMMethod* vmm = cm->backend_method();
 
       size_t scope_size = sizeof(StackVariables) +
@@ -517,14 +561,14 @@ namespace rubinius {
       // look in the wrong place.
       //
       // Thus, we have to cache the value in the StackVariables.
-      scope->initialize(args.recv(), args.block(), msg.module, vmm->number_of_locals);
+      scope->initialize(args.recv(), args.block(), mod, vmm->number_of_locals);
 
       InterpreterCallFrame* frame = ALLOCA_CALLFRAME(vmm->stack_size);
 
       // If argument handling fails..
       if(ArgumentHandler::call(state, vmm, scope, args) == false) {
         Exception* exc =
-          Exception::make_argument_error(state, vmm->required_args, args.total(), msg.name);
+          Exception::make_argument_error(state, vmm->total_args, args.total(), args.name());
         exc->locations(state, Location::from_call_stack(state, previous));
         state->thread_state()->raise_exception(exc);
 
@@ -536,7 +580,7 @@ namespace rubinius {
       frame->previous = previous;
       frame->flags =    0;
       frame->arguments = &args;
-      frame->dispatch_data = &msg;
+      frame->dispatch_data = 0;
       frame->cm =       cm;
       frame->scope =    scope;
 
@@ -560,8 +604,6 @@ namespace rubinius {
         if(!state->check_interrupts(frame, frame)) return NULL;
       }
 
-      state->global_lock().checkpoint(state, frame);
-
       if(unlikely(state->interrupts.check)) {
         state->interrupts.checked();
         if(state->interrupts.perform_gc) {
@@ -570,9 +612,12 @@ namespace rubinius {
         }
       }
 
+      state->set_call_frame(frame);
+      state->shared.checkpoint(state);
+
 #ifdef RBX_PROFILER
       if(unlikely(state->tooling())) {
-        tooling::MethodEntry method(state, msg, args, cm);
+        tooling::MethodEntry method(state, exec, mod, args, cm);
         return (*vmm->run)(state, vmm, frame);
       } else {
         return (*vmm->run)(state, vmm, frame);
@@ -583,8 +628,8 @@ namespace rubinius {
     }
 
   /** This is used as a fallback way of entering the interpreter */
-  Object* VMMethod::execute(STATE, CallFrame* previous, Dispatch& msg, Arguments& args) {
-    return execute_specialized<GenericArguments>(state, previous, msg, args);
+  Object* VMMethod::execute(STATE, CallFrame* previous, Executable* exec, Module* mod, Arguments& args) {
+    return execute_specialized<GenericArguments>(state, previous, exec, mod, args);
   }
 
   Object* VMMethod::execute_as_script(STATE, CompiledMethod* cm, CallFrame* previous) {
@@ -606,7 +651,7 @@ namespace rubinius {
 
     frame->prepare(vmm->stack_size);
 
-    Arguments args(G(main), Qnil, 0, 0);
+    Arguments args(state->symbol("__script__"), G(main), Qnil, 0, 0);
 
     frame->previous = previous;
     frame->flags =    0;
@@ -624,8 +669,6 @@ namespace rubinius {
       if(!state->check_interrupts(frame, frame)) return NULL;
     }
 
-    state->global_lock().checkpoint(state, frame);
-
     if(unlikely(state->interrupts.check)) {
       state->interrupts.checked();
       if(state->interrupts.perform_gc) {
@@ -633,6 +676,9 @@ namespace rubinius {
         state->collect_maybe(frame);
       }
     }
+
+    state->set_call_frame(frame);
+    state->shared.checkpoint(state);
 
     // Don't generate profiling info here, it's expected
     // to be done by the caller.

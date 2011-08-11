@@ -1,68 +1,87 @@
 #include <stdlib.h>
+#include <string.h>
 #include "gc/heap.hpp"
 #include "instruments/stats.hpp"
 
 namespace rubinius {
-  /* Heap methods */
+
+  /**
+   * Allocates a new chunk of memory of +bytes+ size.
+   */
   Heap::Heap(size_t bytes)
     : size_(bytes)
     , owner_(true)
   {
-    start_ = reinterpret_cast<address>(malloc(size_));
-    last_ = (void*)((uintptr_t)start_ + bytes - 1);
+    start_ = Address(malloc(size_));
+    last_ = start_ + bytes - 1;
 
     int red_zone = bytes / 1024;
-    limit_ = (address)((uintptr_t)last_ - red_zone);
+    limit_ = last_ - red_zone;
 
     reset();
   }
 
-  Heap::Heap(void* start, size_t bytes)
+  /**
+   * Allocates a new Heap of +bytes+ size at the specified address.
+   * The new Heap is not the owner of the underlying memory, and will not
+   * free it on destruction.
+   */
+  Heap::Heap(Address start, size_t bytes)
     : start_(start)
     , size_(bytes)
     , owner_(false)
   {
-    last_ = (void*)((uintptr_t)start_ + bytes - 1);
+    last_ = start_ + bytes - 1;
 
     int red_zone = bytes / 1024;
-    limit_ = (address)((uintptr_t)last_ - red_zone);
+    limit_ = last_ - red_zone;
 
     reset();
   }
 
+  /**
+   * Destroys the Heap; if the underlying memory is owned by this object,
+   * it is freed.
+   */
   Heap::~Heap() {
     if(owner_) {
       free(start_);
     }
   }
 
+  /**
+   * Resets the Heap bump allocation pointer, making the entire heap memory
+   * available again for allocations.
+   *
+   * Note: The memory is not zeroed.
+   */
   void Heap::reset() {
     current_ = start_;
     scan_ = start_;
   }
 
-  size_t Heap::remaining() {
-    size_t bytes = (uintptr_t)last_ - (uintptr_t)current_;
-    return bytes;
-  }
 
-  size_t Heap::used() {
-    size_t bytes = (uintptr_t)current_ - (uintptr_t)start_;
-    return bytes;
-  }
-
-  Object* Heap::copy_object(STATE, Object* orig) {
+  /**
+   * Moves +orig+ Object into this Heap, and sets a forwarding pointer to the
+   * new location.
+   *
+   * @returns the new location of +orig+.
+   */
+  Object* Heap::move_object(STATE, Object* orig) {
     size_t bytes = orig->size_in_bytes(state);
-    Object* tmp = (Object*)allocate(bytes);
-    tmp->init_header(YoungObjectZone, orig->type_id());
+    Object* tmp = allocate(bytes).as<Object>();
 
-    tmp->initialize_full_state(state, orig, orig->age());
+    memcpy(tmp, orig, bytes);
 
-#ifdef RBX_GC_STATS
-    stats::GCStats::get()->objects_copied++;
-    stats::GCStats::get()->bytes_copied += bytes;
-#endif
+    // If the header is inflated, repoint it.
+    if(tmp->inflated_header_p()) {
+      orig->deflate_header();
+      tmp->inflated_header()->set_object(tmp);
+    }
+
+    orig->set_forward(tmp);
 
     return tmp;
   }
+
 }

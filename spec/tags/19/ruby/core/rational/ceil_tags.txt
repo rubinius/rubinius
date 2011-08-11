@@ -1,0 +1,2 @@
+fails:Rational#ceil returns an Integer
+fails:Rational#ceil returns the smallest integer >= self as an integer

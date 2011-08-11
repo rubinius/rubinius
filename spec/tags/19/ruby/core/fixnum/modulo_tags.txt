@@ -1,0 +1,2 @@
+fails:Fixnum#% raises a ZeroDivisionError when the given argument is 0 and a Float
+fails:Fixnum#modulo raises a ZeroDivisionError when the given argument is 0 and a Float

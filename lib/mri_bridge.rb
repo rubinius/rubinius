@@ -2,11 +2,37 @@
 # compiler. Also requires files that are available by default in Rubinius.
 
 module Rubinius
+  RUBY_LIB_VERSION = 18
+
   LookupTable = Hash
   class Tuple < Array; end
 
   class Executable
     attr_accessor :primitive
+  end
+
+  def self.ruby18?
+    RUBY_VERSION =~ /^1\.8/
+  end
+
+  def self.ruby19?
+    RUBY_VERSION =~ /^1\.9/
+  end
+
+  def self.ruby20?
+    RUBY_VERSION =~ /^2\.0/
+  end
+
+  class Channel
+    def receive
+    end
+
+    def <<(val)
+    end
+
+    def as_lock
+      yield
+    end
   end
 end
 

@@ -26,9 +26,6 @@ namespace rubinius {
 
   GCData::GCData(STATE)
     : roots_(state->globals().roots)
-    , call_frames_(state->shared.call_frame_locations())
-    , variable_buffers_(*state->variable_buffers())
-    , root_buffers_(state->root_buffers())
     , handles_(state->shared.global_handles())
     , cached_handles_(state->shared.cached_handles())
     , global_cache_(state->shared.global_cache)
@@ -40,18 +37,28 @@ namespace rubinius {
                    :object_memory_(om), weak_refs_(NULL) { }
 
   VM* GarbageCollector::state() {
-    return object_memory_->state;
+    return object_memory_->state();
   }
 
-  /* Understands how to read the inside of an object and find all references
-   * located within. It copies the objects pointed to, but does not follow into
-   * those further (ie, not recursive) */
+  /**
+   * Scans the specified Object +obj+ for references to other Objects, and
+   * marks those Objects as reachable. Understands how to read the inside of
+   * an Object and find all references located within. For each reference
+   * found, it marks the object pointed to as live (which may trigger
+   * movement of the object in a copying garbage collector), but does not
+   * recursively scan into the referenced object (since such recursion could
+   * be arbitrarily deep, depending on the object graph, and this could cause
+   * the stack to blow up).
+   * /param obj The Object to be scanned for references to other Objects.
+   */
   void GarbageCollector::scan_object(Object* obj) {
     Object* slot;
 
+#ifdef ENABLE_OBJECT_WATCH
     if(watched_p(obj)) {
       std::cout << "detected " << obj << " during scan_object.\n";
     }
+#endif
 
     // Check and update an inflated header
     if(obj->inflated_header_p()) {
@@ -88,6 +95,11 @@ namespace rubinius {
     }
   }
 
+
+  /**
+   * Removes a mature object from the remembered set, ensuring it will not keep
+   * alive any young objects if no other live references to those objects exist.
+   */
   void GarbageCollector::delete_object(Object* obj) {
     if(obj->remembered_p()) {
       object_memory_->unremember_object(obj);
@@ -124,6 +136,10 @@ namespace rubinius {
     }
   }
 
+
+  /**
+   * Walks the chain of objects accessible from the specified CallFrame.
+   */
   void GarbageCollector::walk_call_frame(CallFrame* top_call_frame) {
     CallFrame* call_frame = top_call_frame;
     while(call_frame) {
@@ -157,11 +173,6 @@ namespace rubinius {
       if(call_frame->multiple_scopes_p() &&
           call_frame->top_scope_) {
         call_frame->top_scope_ = (VariableScope*)mark_object(call_frame->top_scope_);
-      }
-
-      if(Dispatch* msg = call_frame->dispatch()) {
-        msg->module = (Module*)mark_object(msg->module);
-        msg->method = (Executable*)mark_object(msg->method);
       }
 
       if(BlockEnvironment* env = call_frame->block_env()) {
@@ -204,30 +215,60 @@ namespace rubinius {
     }
   }
 
-  class UnmarkVisitor : public ObjectVisitor {
-    std::vector<Object*> stack_;
-    ObjectMemory* object_memory_;
-
-  public:
-
-    UnmarkVisitor(ObjectMemory* om)
-      : object_memory_(om)
-    {}
-
-    Object* call(Object* obj) {
-      if(watched_p(obj)) {
-        std::cout << "detected " << obj << " during unmarking.\n";
-      }
-
-      if(obj->reference_p() && obj->marked_p(object_memory_->mark())) {
-        obj->clear_mark();
-        stack_.push_back(obj);
-      }
-
-      return obj;
+  void GarbageCollector::scan(ManagedThread* thr, bool young_only) {
+    for(Roots::Iterator ri(thr->roots()); ri.more(); ri.advance()) {
+      ri->set(saw_object(ri->get()));
     }
 
-  };
+    scan(thr->variable_root_buffers(), young_only);
+    scan(thr->root_buffers(), young_only);
+
+    if(VM* vm = thr->as_vm()) {
+      if(CallFrame* cf = vm->saved_call_frame()) {
+        walk_call_frame(cf);
+      }
+    }
+
+    std::list<ObjectHeader*>& los = thr->locked_objects();
+    for(std::list<ObjectHeader*>::iterator i = los.begin();
+        i != los.end();
+        i++) {
+      *i = saw_object((Object*)*i);
+    }
+  }
+
+  void GarbageCollector::scan(VariableRootBuffers& buffers, bool young_only) {
+    for(VariableRootBuffers::Iterator vi(buffers);
+        vi.more();
+        vi.advance())
+    {
+      Object*** buffer = vi->buffer();
+      for(int idx = 0; idx < vi->size(); idx++) {
+        Object** var = buffer[idx];
+        Object* tmp = *var;
+
+        if(tmp->reference_p() && (!young_only || tmp->young_object_p())) {
+          *var = saw_object(tmp);
+        }
+      }
+    }
+  }
+
+  void GarbageCollector::scan(RootBuffers& buffers, bool young_only) {
+    for(RootBuffers::Iterator i(buffers);
+        i.more();
+        i.advance())
+    {
+      Object** buffer = i->buffer();
+      for(int idx = 0; idx < i->size(); idx++) {
+        Object* tmp = buffer[idx];
+
+        if(tmp->reference_p() && (!young_only || tmp->young_object_p())) {
+          buffer[idx] = saw_object(tmp);
+        }
+      }
+    }
+  }
 
   void GarbageCollector::clean_weakrefs(bool check_forwards) {
     if(!weak_refs_) return;
@@ -257,4 +298,5 @@ namespace rubinius {
     delete weak_refs_;
     weak_refs_ = NULL;
   }
+
 }

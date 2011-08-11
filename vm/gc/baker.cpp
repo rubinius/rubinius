@@ -9,8 +9,6 @@
 #include "builtin/class.hpp"
 #include "builtin/io.hpp"
 
-#include "instruments/stats.hpp"
-
 #include "call_frame.hpp"
 
 #include "gc/gc.hpp"
@@ -19,6 +17,16 @@
 #include "capi/tag.hpp"
 
 namespace rubinius {
+
+  /**
+   * Creates a BakerGC of the specified size.
+   *
+   * The requested size is allocated as a contiguous heap, which is then split
+   * into three spaces:
+   * - Eden, which gets half of the heap
+   * - Heap A and Heap B, which get one quarter of the heap each. Heaps A and B
+   *   alternate between being the Current and Next space on each collection.
+   */
   BakerGC::BakerGC(ObjectMemory *om, size_t bytes)
     : GarbageCollector(om)
     , full(bytes * 2)
@@ -38,12 +46,23 @@ namespace rubinius {
 
   BakerGC::~BakerGC() { }
 
+  /**
+   * Called for each object in the young generation that is seen during garbage
+   * collection. An object is seen by scanning from the root objects to all
+   * reachable objects. Therefore, only reachable objects will be seen, and
+   * reachable objects may be seen more than once.
+   *
+   * @returns the new address for the object, so that the source reference can
+   * be updated when the object has been moved.
+   */
   Object* BakerGC::saw_object(Object* obj) {
     Object* copy;
 
+#ifdef ENABLE_OBJECT_WATCH
     if(watched_p(obj)) {
       std::cout << "detected " << obj << " during baker collection\n";
     }
+#endif
 
     if(!obj->reference_p()) return obj;
 
@@ -53,15 +72,15 @@ namespace rubinius {
 
     // This object is already in the next space, we don't want to
     // copy it again!
-    // TODO test this!
     if(next->contains_p(obj)) return obj;
 
     if(unlikely(obj->inc_age() >= lifetime_)) {
       copy = object_memory_->promote_object(obj);
 
       promoted_push(copy);
-    } else if(likely(next->enough_space_p(obj->size_in_bytes(object_memory_->state)))) {
-      copy = next->copy_object(object_memory_->state, obj);
+    } else if(likely(next->enough_space_p(
+                obj->size_in_bytes(object_memory_->state())))) {
+      copy = next->move_object(object_memory_->state(), obj);
       total_objects++;
     } else {
       copy_spills_++;
@@ -69,25 +88,37 @@ namespace rubinius {
       promoted_push(copy);
     }
 
+#ifdef ENABLE_OBJECT_WATCH
     if(watched_p(copy)) {
       std::cout << "detected " << copy << " during baker collection (2)\n";
     }
+#endif
 
-    obj->set_forward(copy);
     return copy;
   }
 
+
+  /**
+   * Scans the remaining unscanned portion of the Next heap.
+   */
   void BakerGC::copy_unscanned() {
-    Object* iobj = next->next_unscanned(object_memory_->state);
+    Object* iobj = next->next_unscanned(object_memory_->state());
 
     while(iobj) {
       assert(iobj->zone() == YoungObjectZone);
       if(!iobj->forwarded_p()) scan_object(iobj);
-      iobj = next->next_unscanned(object_memory_->state);
+      iobj = next->next_unscanned(object_memory_->state());
     }
   }
 
+
+  /**
+   * Returns true if the young generation has been fully scanned in the
+   * current collection.
+   */
   bool BakerGC::fully_scanned_p() {
+    // Note: The spaces are swapped at the start of collection, which is why we
+    // check the Next heap
     return next->fully_scanned_p();
   }
 
@@ -99,14 +130,10 @@ namespace rubinius {
   const static int cUnderFullTimes = -3;
   const static size_t cMaximumLifetime = 6;
 
-  /* Perform garbage collection on the young objects. */
+  /**
+   * Perform garbage collection on the young objects.
+   */
   void BakerGC::collect(GCData& data, YoungCollectStats* stats) {
-#ifdef RBX_GC_STATS
-    stats::GCStats::get()->bytes_copied.start();
-    stats::GCStats::get()->objects_copied.start();
-    stats::GCStats::get()->objects_promoted.start();
-    stats::GCStats::get()->collect_young.start();
-#endif
 
     Object* tmp;
     ObjectArray *current_rs = object_memory_->swap_remember_set();
@@ -116,6 +143,7 @@ namespace rubinius {
     copy_spills_ = 0;
     reset_promoted();
 
+    // Start by copying objects in the remember set
     for(ObjectArray::iterator oi = current_rs->begin();
         oi != current_rs->end();
         ++oi) {
@@ -161,9 +189,7 @@ namespace rubinius {
       for(std::list<ManagedThread*>::iterator i = data.threads()->begin();
           i != data.threads()->end();
           ++i) {
-        for(Roots::Iterator ri((*i)->roots()); ri.more(); ri.advance()) {
-          ri->set(saw_object(ri->get()));
-        }
+        scan(*i, true);
       }
     }
 
@@ -224,55 +250,16 @@ namespace rubinius {
       }
     }
 
-    for(VariableRootBuffers::Iterator i(data.variable_buffers());
-        i.more(); i.advance()) {
-      Object*** buffer = i->buffer();
-      for(int idx = 0; idx < i->size(); idx++) {
-        Object** var = buffer[idx];
-        Object* tmp = *var;
-
-        if(tmp->reference_p() && tmp->young_object_p()) {
-          *var = saw_object(tmp);
-        }
-      }
-    }
-
-    RootBuffers* rb = data.root_buffers();
-    if(rb) {
-      for(RootBuffers::Iterator i(*rb);
-          i.more();
-          i.advance())
-      {
-        Object** buffer = i->buffer();
-        for(int idx = 0; idx < i->size(); idx++) {
-          Object* tmp = buffer[idx];
-
-          if(tmp->reference_p() && tmp->young_object_p()) {
-            buffer[idx] = saw_object(tmp);
-          }
-        }
-      }
-    }
-
-    // Walk all the call frames
-    for(CallFrameLocationList::iterator i = data.call_frames().begin();
-        i != data.call_frames().end();
-        ++i) {
-      CallFrame** loc = *i;
-      walk_call_frame(*loc);
-    }
-
     // Handle all promotions to non-young space that occurred.
     handle_promotions();
 
     assert(fully_scanned_p());
     // We're now done seeing the entire object graph of normal, live references.
     // Now we get to handle the unusual references, like finalizers and such.
-    //
 
-    /* Update finalizers. Doing so can cause objects that would have just died
-     * to continue life until we can get around to running the finalizer. That
-     * more promoted objects, etc. */
+    // Update finalizers. Doing so can cause objects that would have just died
+    // to continue life until we can get around to running the finalizer. That
+    // means more promoted objects, etc.
     check_finalize();
 
     // Run promotions again, because checking finalizers can keep more objects
@@ -281,16 +268,10 @@ namespace rubinius {
 
     assert(fully_scanned_p());
 
-#ifdef RBX_GC_STATS
-    // Lost souls just tracks the ages of objects, so we know how old they
-    // were when they died.
-    // find_lost_souls();
-#endif
-
-    /* Check any weakrefs and replace dead objects with nil*/
+    // Check any weakrefs and replace dead objects with nil
     clean_weakrefs(true);
 
-    /* Swap the 2 halves */
+    // Swap the 2 halves
     Heap *x = next;
     next = current;
     current = x;
@@ -306,6 +287,7 @@ namespace rubinius {
       stats->excess_objects = copy_spills_;
     }
 
+    // Tune the age at which promotion occurs
     if(autotune_) {
       double used = current->percentage_used();
       if(used > cOverFullThreshold) {
@@ -333,12 +315,6 @@ namespace rubinius {
       }
     }
 
-#ifdef RBX_GC_STATS
-    stats::GCStats::get()->collect_young.stop();
-    stats::GCStats::get()->objects_copied.stop();
-    stats::GCStats::get()->objects_promoted.stop();
-    stats::GCStats::get()->bytes_copied.stop();
-#endif
   }
 
   void BakerGC::handle_promotions() {
@@ -351,53 +327,6 @@ namespace rubinius {
       }
 
       copy_unscanned();
-    }
-  }
-
-  inline Object *BakerGC::next_object(Object * obj) {
-    return reinterpret_cast<Object*>(reinterpret_cast<uintptr_t>(obj) +
-      obj->size_in_bytes(object_memory_->state));
-  }
-
-  void BakerGC::clear_marks() {
-    Object* obj = current->first_object();
-    while(obj < current->current()) {
-      obj->clear_mark();
-      obj = next_object(obj);
-    }
-
-    obj = next->first_object();
-    while(obj < next->current()) {
-      obj->clear_mark();
-      obj = next_object(obj);
-    }
-
-    obj = eden.first_object();
-    while(obj < eden.current()) {
-      obj->clear_mark();
-      obj = next_object(obj);
-    }
-  }
-
-  void BakerGC::find_lost_souls() {
-    Object* obj = current->first_object();
-    while(obj < current->current()) {
-      if(!obj->forwarded_p()) {
-#ifdef RBX_GC_STATS
-        stats::GCStats::get()->lifetimes[obj->age()]++;
-#endif
-      }
-      obj = next_object(obj);
-    }
-
-    obj = eden.first_object();
-    while(obj < eden.current()) {
-      if(!obj->forwarded_p()) {
-#ifdef RBX_GC_STATS
-        stats::GCStats::get()->lifetimes[obj->age()]++;
-#endif
-      }
-      obj = next_object(obj);
     }
   }
 
@@ -441,7 +370,7 @@ namespace rubinius {
               remove = true;
             } else {
               i->queued();
-              object_memory_->to_finalize().push_back(&fi);
+              object_memory_->add_to_finalize(&fi);
 
               // We need to keep it alive still.
               i->object = saw_object(orig);
@@ -483,7 +412,7 @@ namespace rubinius {
   }
 
   ObjectPosition BakerGC::validate_object(Object* obj) {
-    if(current->in_current_p(obj) || eden.in_current_p(obj)) {
+    if(current->contains_p(obj) || eden.contains_p(obj)) {
       return cValid;
     } else if(next->contains_p(obj)) {
       return cInWrongYoungHalf;

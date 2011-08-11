@@ -1,0 +1,2 @@
+fails:String#replace raises a RuntimeError on a frozen instance that is modified
+fails:String#replace raises a RuntimeError on a frozen instance that would not be modified

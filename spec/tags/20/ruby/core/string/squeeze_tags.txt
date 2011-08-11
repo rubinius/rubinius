@@ -1,0 +1,2 @@
+fails:String#squeeze raises an error when the parameter is out of the sequence
+fails:String#squeeze! raises a RuntimeError when self is frozen

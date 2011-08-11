@@ -194,6 +194,7 @@ namespace rubinius {
     onig_free(old_reg);
   }
 
+  // Called with the onig_lock held.
   void Regexp::maybe_recompile(STATE) {
     const UChar *pat;
     const UChar *end;
@@ -262,6 +263,8 @@ namespace rubinius {
       enc = get_enc_from_kcode(kcode);
       forced_encoding_ = true;
     }
+
+    thread::Mutex::LockGuard lg(state->shared.onig_lock());
 
     err = onig_new(&this->onig_data, pat, end, opts, enc, ONIG_SYNTAX_RUBY, &err_info);
 
@@ -378,6 +381,8 @@ namespace rubinius {
       Exception::argument_error(state, "Not properly initialized Regexp");
     }
 
+    thread::Mutex::LockGuard lg(state->shared.onig_lock());
+
     maybe_recompile(state);
 
     region = onig_region_new();
@@ -443,6 +448,8 @@ namespace rubinius {
     if(unlikely(!onig_data)) {
       Exception::argument_error(state, "Not properly initialized Regexp");
     }
+
+    thread::Mutex::LockGuard lg(state->shared.onig_lock());
 
     maybe_recompile(state);
     region = onig_region_new();

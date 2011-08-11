@@ -17,25 +17,25 @@ describe "String#count_table" do
 
   it "returns a String with entries corresponding to characters set to 1" do
     t = "".count_table "-\\|*\030 abcde"
-    256.times { |i| t[i].should == ("-|*\030 abcde".include?(i.chr) ? 1 : 0) }
+    256.times { |i| t.getbyte(i).should == ("-|*\030 abcde".include?(i.chr) ? 1 : 0) }
   end
 
   it "returns a String with entries corresponding to sequences set to 1" do
     t = "".count_table "-ab-g\\d-abhi--A\\"
     256.times { |i|
-      t[i].should == ("-abcdefgbhA\\".include?(i.chr) ? 1 : 0)
+      t.getbyte(i).should == ("-abcdefgbhA\\".include?(i.chr) ? 1 : 0)
     }
   end
 
   it "returns a String with entries corresponding included and excluded characters" do
     t = "".count_table "ab", "^bc"
-    256.times { |i| t[i].should == (i == ?a ? 1 : 0) }
+    256.times { |i| t.getbyte(i).should == (i == 97 ? 1 : 0) }
   end
 
   it "returns a String with entries set to false for '^abc-e' inverse match strings" do
     t = "".count_table "^ab-g\\d-abhi--A\\"
     256.times { |i|
-      t[i].should == ("abcdefgbhA\\".include?(i.chr) ? 0 : 1)
+      t.getbyte(i).should == ("abcdefgbhA\\".include?(i.chr) ? 0 : 1)
     }
   end
 end

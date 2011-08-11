@@ -1,0 +1,64 @@
+
+-------------------------------------
+Using the test suite for winpthreads
+-------------------------------------
+
+This test suite is originally designed for testing compliance: it just says when the tests pass without any further information.
+Because this is inconvenient for work in progress, the behaviour has been modified to show more information for debugging while keeping the changes minimal 
+(for syncing purposes)
+
+Procedure:
+----------
+
+1. Enter the winpthreads dir:
+   $ cd winpthreads
+2. Build the winpthreads lib
+   $ make
+3. Make a copy for the test-suite:
+   $ cp libpthread.a libpthreadGC2.a
+4. Enter the test-suite dir:
+   $ cd tests
+5. (optional) Clean:
+   $ make clean
+6. Build the suite. This will also run the tests. A few might crash so you have to click a dialog away.
+   The tool "runall.exe" will also be built.
+   $ make GC-static
+   To log both the compile results and the asserts:
+   $ make GC-static 2> compile-errors.log
+7. Now you have a bunch of .exe and maybe some .pass files. Remove the .pass files. They don't contain much useful yet.
+   $ rm *.pass
+8. Re-run the tests in debugging mode. Again some crash dialogs maybe.
+   runall will skip files with already an .pass or .fail output.
+   $ runall .
+9. Now 3 types of files will be generated for each source (.c) file (runall excludes itself):
+   The stderr output with the asserts will be logged to corresponding .fail
+   and .pass files.
+   - .pass : the test has passed (exited with 0).
+   - .fail : the test has failed (exited with != 0).
+   - .x : no .exe found. Probably the compile has failed.
+   Note that when a test crashes, a .fail output will be generated, even without failed asserts.
+
+Module testing:
+---------------
+
+Sometimes you want to test, debug and modify a single test, say once2.c:
+1. Copy test.h to the debug test dir:
+   $ cp test.h ../test
+2. Copy the file to the debug test dir:
+   $ cp once2.c ../test
+3. Enter the debug test dir:
+   $ cd ../test
+4. Build and run it:
+   $ make once2.exe
+   $ ./once2.exe
+
+Benchtests:
+-----------
+
+These work, but you have to compile them by hand like this:
+$ make benchlib.o
+$ make benchtest1.exe
+$ make benchtest2.exe
+$ make benchtest3.exe
+$ make benchtest4.exe
+$ make benchtest5.exe

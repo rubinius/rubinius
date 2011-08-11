@@ -14,7 +14,7 @@ class Symbol
   #                                  :Tms, :getwd, :$=, :ThreadGroup,
   #                                  :wait2, :$>]
   def self.all_symbols
-    Ruby.primitive :symbol_all_symbols
+    Rubinius.primitive :symbol_all_symbols
     raise PrimitiveFailure, "Symbol.all_symbols failed."
   end
 

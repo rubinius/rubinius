@@ -60,31 +60,58 @@ describe "A Masgn node" do
     end
   end
 
-  relates "a, b, *c = 1, 2, *[3, 4]" do
-    compile do |g|
-      g.push 1
-      g.push 2
-      g.make_array 2
-      g.push 3
-      g.push 4
-      g.make_array 2
-      g.cast_array
-      g.send :+, 1
-      g.cast_array
+  ruby_version_is ""..."1.9" do
+    relates "a, b, *c = 1, 2, *[3, 4]" do
+      compile do |g|
+        g.push 1
+        g.push 2
+        g.make_array 2
+        g.push 3
+        g.push 4
+        g.make_array 2
+        g.cast_array
+        g.send :+, 1
+        g.cast_array
 
-      g.shift_array
-      g.set_local 0
-      g.pop
+        g.shift_array
+        g.set_local 0
+        g.pop
 
-      g.shift_array
-      g.set_local 1
-      g.pop
+        g.shift_array
+        g.set_local 1
+        g.pop
 
-      g.cast_array
-      g.set_local 2
-      g.pop
+        g.cast_array
+        g.set_local 2
+        g.pop
 
-      g.push :true
+        g.push :true
+      end
+    end
+  end
+
+  ruby_version_is "1.9" do
+    relates "a, b, *c = 1, 2, *[3, 4]" do
+      compile do |g|
+        g.push 1
+        g.push 2
+        g.push 3
+        g.push 4
+        g.make_array 2
+        g.rotate 3
+
+        g.set_local 0
+        g.pop
+
+        g.set_local 1
+        g.pop
+
+        g.cast_array
+        g.set_local 2
+        g.pop
+
+        g.push :true
+      end
     end
   end
 

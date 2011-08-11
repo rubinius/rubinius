@@ -47,7 +47,7 @@ module FFI
 
     # Return the address pointed to as an Integer
     def address
-      Ruby.primitive :pointer_address
+      Rubinius.primitive :pointer_address
       raise PrimitiveFailure, "Unable to find address"
     end
 
@@ -55,7 +55,7 @@ module FFI
 
     # Set the address pointed to from an Integer
     def address=(address)
-      Ruby.primitive :pointer_set_address
+      Rubinius.primitive :pointer_set_address
       raise PrimitiveFailure, "MemoryPointer#address= primitive failed"
     end
 
@@ -65,7 +65,7 @@ module FFI
 
     # Add +value+ to the address pointed to and return a new Pointer
     def +(value)
-      Ruby.primitive :pointer_add
+      Rubinius.primitive :pointer_add
       raise PrimitiveFailure, "Unable to add"
     end
 
@@ -79,19 +79,19 @@ module FFI
     #
     # Write +obj+ as a C short at the memory pointed to.
     def write_short(obj)
-      Ruby.primitive :pointer_write_short
+      Rubinius.primitive :pointer_write_short
       raise PrimitiveFailure, "Unable to write short"
     end
 
     # Read a C short from the memory pointed to.
     def read_short
-      Ruby.primitive :pointer_read_short
+      Rubinius.primitive :pointer_read_short
       raise PrimitiveFailure, "Unable to read short"
     end
 
     # Write +obj+ as a C int at the memory pointed to.
     def write_int(obj)
-      Ruby.primitive :pointer_write_int
+      Rubinius.primitive :pointer_write_int
       raise PrimitiveFailure, "Unable to write integer"
     end
 
@@ -102,7 +102,7 @@ module FFI
 
     # Read a C int from the memory pointed to.
     def read_int_signed(sign)
-      Ruby.primitive :pointer_read_int
+      Rubinius.primitive :pointer_read_int
       raise PrimitiveFailure, "Unable to read integer"
     end
 
@@ -130,19 +130,19 @@ module FFI
 
     # Write +obj+ as a C long at the memory pointed to.
     def write_long(obj)
-      Ruby.primitive :pointer_write_long
+      Rubinius.primitive :pointer_write_long
       raise PrimitiveFailure, "Unable to write long"
     end
 
     # Read a C long from the memory pointed to.
     def read_long
-      Ruby.primitive :pointer_read_long
+      Rubinius.primitive :pointer_read_long
       raise PrimitiveFailure, "Unable to read long"
     end
 
     # Write +obj+ as a C long long at the memory pointed to.
     def write_long_long(obj)
-      Ruby.primitive :pointer_write_long_long
+      Rubinius.primitive :pointer_write_long_long
       raise PrimitiveFailure, "Unable to write long long"
     end
 
@@ -150,28 +150,28 @@ module FFI
 
     # Read a C long from the memory pointed to.
     def read_long_long
-      Ruby.primitive :pointer_read_long_long
+      Rubinius.primitive :pointer_read_long_long
       raise PrimitiveFailure, "Unable to read long long"
     end
 
     alias_method :read_int64, :read_long_long
 
     def network_order(start, size)
-      Ruby.primitive :pointer_network_order
+      Rubinius.primitive :pointer_network_order
       raise PrimitiveFailure, "Unable to convert to network order"
     end
 
     # Read +len+ bytes from the memory pointed to and return them as
     # a String
     def read_string_length(len)
-      Ruby.primitive :pointer_read_string
+      Rubinius.primitive :pointer_read_string
       raise PrimitiveFailure, "Unable to read string"
     end
 
     # Read bytes from the memory pointed to until a NULL is seen, return
     # the bytes as a String
     def read_string_to_null
-      Ruby.primitive :pointer_read_string_to_null
+      Rubinius.primitive :pointer_read_string_to_null
       raise PrimitiveFailure, "Unable to read string to null"
     end
 
@@ -192,7 +192,7 @@ module FFI
     # Write String +str+ as bytes into the memory pointed to. Only
     # write up to +len+ bytes.
     def write_string_length(str, len)
-      Ruby.primitive :pointer_write_string
+      Rubinius.primitive :pointer_write_string
       raise PrimitiveFailure, "Unable to write string"
     end
 
@@ -205,31 +205,31 @@ module FFI
 
     # Read bytes from the memory pointed to and return them as a Pointer
     def read_pointer
-      Ruby.primitive :pointer_read_pointer
+      Rubinius.primitive :pointer_read_pointer
       raise PrimitiveFailure, "Unable to read pointer"
     end
 
     # Write +obj+ as a C float
     def write_float(obj)
-      Ruby.primitive :pointer_write_float
+      Rubinius.primitive :pointer_write_float
       raise PrimitiveFailure, "Unable to write float"
     end
 
     # Read bytes as a C float
     def read_float
-      Ruby.primitive :pointer_read_float
+      Rubinius.primitive :pointer_read_float
       raise PrimitiveFailure, "Unable to read float"
     end
 
     # Write +obj+ as a C double
     def write_double(obj)
-      Ruby.primitive :pointer_write_double
+      Rubinius.primitive :pointer_write_double
       raise PrimitiveFailure, "Unable to write double"
     end
 
     # Read bytes as a C double
     def read_double
-      Ruby.primitive :pointer_read_double
+      Rubinius.primitive :pointer_read_double
       raise PrimitiveFailure, "Unable to read double"
     end
 
@@ -280,13 +280,13 @@ module FFI
 
     # Read bytes from +offset+ from the memory pointed to as type +type+
     def get_at_offset(offset, type)
-      Ruby.primitive :pointer_get_at_offset
+      Rubinius.primitive :pointer_get_at_offset
       raise PrimitiveFailure, "get_field failed"
     end
 
     # Write +val+ as type +type+ to bytes from +offset+
     def set_at_offset(offset, type, val)
-      Ruby.primitive :pointer_set_at_offset
+      Rubinius.primitive :pointer_set_at_offset
       raise PrimitiveFailure, "set_field failed"
     end
 
@@ -356,7 +356,7 @@ module FFI
     end
 
     def self.malloc(total)
-      Ruby.primitive :pointer_malloc
+      Rubinius.primitive :pointer_malloc
       raise PrimitiveFailure, "Pointer.malloc failed"
     end
 
@@ -408,7 +408,7 @@ module FFI
     # If +val+ is true, this MemoryPointer object will call
     # free() on it's address when it is garbage collected.
     def autorelease=(val)
-      Ruby.primitive :pointer_set_autorelease
+      Rubinius.primitive :pointer_set_autorelease
       raise PrimitiveFailure, "Unable to change autorelease"
     end
 

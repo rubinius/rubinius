@@ -1,3 +1,5 @@
+#include "vm/config.h"
+
 #include "builtin/array.hpp"
 #include "builtin/data.hpp"
 #include "builtin/fixnum.hpp"
@@ -22,10 +24,14 @@
 #include "arguments.hpp"
 #include "dispatch.hpp"
 #include "capi/capi.hpp"
-#include "capi/include/ruby.h"
+#include "capi/18/include/ruby.h"
 #include <string>
 #include <vector>
 #include <tr1/unordered_map>
+
+#ifdef RBX_WINDOWS
+#include <malloc.h>
+#endif
 
 namespace rubinius {
   namespace capi {
@@ -141,14 +147,27 @@ namespace rubinius {
       }
 
       Object* recv = env->get_object(receiver);
+
+      // Unlock, we're leaving extension code.
+      env->state()->shared.leave_capi(env->state());
+
       Object* ret = recv->send(env->state(), env->current_call_frame(),
           reinterpret_cast<Symbol*>(method_name), args, blk);
+
+      // We need to get the handle for the return value before getting
+      // the GEL so that ret isn't accidentally GCd while we wait.
+      VALUE ret_handle = 0;
+      if(ret) ret_handle = env->get_handle(ret);
+
+      // Re-entering extension code
+      env->state()->shared.enter_capi(env->state());
+
       env->update_cached_data();
 
       // An exception occurred
       if(!ret) env->current_ep()->return_to(env);
 
-      return env->get_handle(ret);
+      return ret_handle;
     }
 
     VALUE capi_funcall_backend_native(NativeMethodEnvironment* env,
@@ -164,19 +183,30 @@ namespace rubinius {
 
       env->flush_cached_data();
 
+      // Unlock, we're leaving extension code.
+      env->state()->shared.leave_capi(env->state());
+
       LookupData lookup(recv, recv->lookup_begin(env->state()), true);
-      Arguments args_o(recv, block, arg_count, args);
+      Arguments args_o(method, recv, block, arg_count, args);
       Dispatch dis(method);
 
       Object* ret = dis.send(env->state(), env->current_call_frame(),
                              lookup, args_o);
+
+      // We need to get the handle for the return value before getting
+      // the GEL so that ret isn't accidentally GCd while we wait.
+      VALUE ret_handle = 0;
+      if(ret) ret_handle = env->get_handle(ret);
+
+      // Re-entering extension code
+      env->state()->shared.enter_capi(env->state());
 
       env->update_cached_data();
 
       // An exception occurred
       if(!ret) env->current_ep()->return_to(env);
 
-      return env->get_handle(ret);
+      return ret_handle;
     }
 
     VALUE capi_yield_backend(NativeMethodEnvironment* env,
@@ -189,11 +219,15 @@ namespace rubinius {
       }
 
       env->flush_cached_data();
+
+      // Unlock, we're leaving extension code.
+      env->state()->shared.leave_capi(env->state());
+
       Object* ret = RBX_Qnil;
       STATE = env->state();
 
       CallFrame* call_frame = env->current_call_frame();
-      Arguments args(blk, arg_count, arg_vals);
+      Arguments args(G(sym_call), blk, arg_count, arg_vals);
 
       if(BlockEnvironment* be = try_as<BlockEnvironment>(blk)) {
         ret = be->call(state, call_frame, args);
@@ -208,12 +242,20 @@ namespace rubinius {
         ret = dis.send(state, call_frame, args);
       }
 
+      // We need to get the handle for the return value before getting
+      // the GEL so that ret isn't accidentally GCd while we wait.
+      VALUE ret_handle = 0;
+      if(ret) ret_handle = env->get_handle(ret);
+
+      // Re-entering extension code
+      env->state()->shared.enter_capi(env->state());
+
       env->update_cached_data();
 
       // An exception occurred
       if(!ret) env->current_ep()->return_to(env);
 
-      return env->get_handle(ret);
+      return ret_handle;
     }
 
     VALUE capi_call_super_native(NativeMethodEnvironment* env,
@@ -232,19 +274,30 @@ namespace rubinius {
       Module* mod =  c_as<Module>(env->get_object(frame->module()));
       Symbol* name = c_as<NativeMethod>(env->get_object(frame->method()))->name();
 
+      // Unlock, we're leaving extension code.
+      env->state()->shared.leave_capi(env->state());
+
       LookupData lookup(recv, mod->superclass(), true);
-      Arguments args_o(recv, arg_count, args);
+      Arguments args_o(name, recv, arg_count, args);
       Dispatch dis(name);
 
       Object* ret = dis.send(env->state(), env->current_call_frame(),
                              lookup, args_o);
+
+      // We need to get the handle for the return value before getting
+      // the GEL so that ret isn't accidentally GCd while we wait.
+      VALUE ret_handle = 0;
+      if(ret) ret_handle = env->get_handle(ret);
+
+      // Re-entering extension code
+      env->state()->shared.enter_capi(env->state());
 
       env->update_cached_data();
 
       // An exception occurred
       if(!ret) env->current_ep()->return_to(env);
 
-      return env->get_handle(ret);
+      return ret_handle;
     }
 
     /** Make sure the name has the given prefix. */
@@ -505,14 +558,27 @@ extern "C" {
     Array* ary = capi::c_as<Array>(env->get_object(args));
 
     Object* obj = env->get_object(recv);
+
+    // Unlock, we're leaving extension code.
+    env->state()->shared.leave_capi(env->state());
+
     Object* ret = obj->send(env->state(), env->current_call_frame(),
         reinterpret_cast<Symbol*>(mid), ary, RBX_Qnil);
+
+    // We need to get the handle for the return value before getting
+    // the GEL so that ret isn't accidentally GCd while we wait.
+    VALUE ret_handle = 0;
+    if(ret) ret_handle = env->get_handle(ret);
+
+    // Re-entering extension code
+    env->state()->shared.enter_capi(env->state());
+
     env->update_cached_data();
 
     // An exception occurred
     if(!ret) env->current_ep()->return_to(env);
 
-    return env->get_handle(ret);
+    return ret_handle;
   }
 
 

@@ -1,22 +1,22 @@
 #ifndef MEL_LOCALSTATE_HPP
 #define MEL_LOCALSTATE_HPP
 
-#include "var_table.hpp"
+#include "var_table18.hpp"
 
 namespace melbourne {
   struct LocalState {
     LocalState* prev;
-    var_table variables;
+    var_table local_vars;
     var_table block_vars;
 
     LocalState(LocalState* prev)
       : prev(prev)
-      , variables(var_table_create())
+      , local_vars(var_table_create())
       , block_vars(0)
     {}
 
     ~LocalState() {
-      var_table_destroy(variables);
+      var_table_destroy(local_vars);
       if(block_vars) {
         var_table_destroy(block_vars);
       }

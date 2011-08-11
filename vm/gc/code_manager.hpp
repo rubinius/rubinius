@@ -7,8 +7,31 @@ namespace rubinius {
   class CodeResource;
   class SharedState;
 
+
+  /**
+   * Manages memory for code-based resources that are owned by Ruby objects,
+   * such as VMMethod instances, JIT code, FFI resources etc.
+   *
+   * These objects are not directly accessible via Ruby code, but are used by
+   * the VM to support the running of Ruby code. As such, these objects also
+   * need to be garbage collected, since references to these VM internal
+   * objects are only held by Ruby objects (e.g. methods); when the associated
+   * Ruby object is no longer reachable, these objects can also be collected.
+   *
+   * Unlike the other memory managers that manage memory for Ruby objects,
+   * objects managed by this class are created and destroyed using new and
+   * delete.
+   */
+
   class CodeManager {
     const static int cDefaultChunkSize = 64;
+
+    /**
+     * A chunk of memory used to store an array of references to CodeResource
+     * instances. Chunks also maintain a next pointer, so that a linked list
+     * of Chunks can be created for handling an arbitrarily large list of
+     * CodeResource references.
+     */
 
     struct Chunk {
       CodeResource** resources;

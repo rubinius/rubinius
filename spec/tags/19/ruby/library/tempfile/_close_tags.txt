@@ -1,0 +1,1 @@
+fails:Tempfile#_close is protected

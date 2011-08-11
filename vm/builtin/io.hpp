@@ -5,10 +5,9 @@
 #include "type_info.hpp"
 
 namespace rubinius {
-  class ByteArray;
+  class CharArray;
   class Channel;
   class String;
-  class ByteArray;
 
   class IO : public Object {
   public:
@@ -47,13 +46,13 @@ namespace rubinius {
 
   /* Class primitives */
 
-    // Ruby.primitive :io_allocate
+    // Rubinius.primitive :io_allocate
     static IO*      allocate(STATE, Object* self);
 
-    // Ruby.primitive :io_connect_pipe
+    // Rubinius.primitive :io_connect_pipe
     static Object*  connect_pipe(STATE, IO* lhs, IO* rhs);
 
-    // Ruby.primitive :io_open
+    // Rubinius.primitive :io_open
     static Fixnum*  open(STATE, String* path, Fixnum* mode, Fixnum* perm);
 
     /**
@@ -61,15 +60,15 @@ namespace rubinius {
      *
      *  @todo Replace with an evented version when redoing events. --rue
      */
-    // Ruby.primitive :io_select
+    // Rubinius.primitive :io_select
     static Object*  select(STATE, Object* readables, Object* writables, Object* errorables, Object* timeout, CallFrame* calling_environment);
 
-    // Ruby.primitive :io_fnmatch
+    // Rubinius.primitive :io_fnmatch
     static Object* fnmatch(STATE, String* pattern, String* path, Fixnum* flags);
 
   /* Instance primitives */
 
-    // Ruby.primitive :io_ensure_open
+    // Rubinius.primitive :io_ensure_open
     Object* ensure_open(STATE);
 
     /**
@@ -77,37 +76,37 @@ namespace rubinius {
      *
      *  Returns Qnil at EOF.
      */
-    // Ruby.primitive :io_sysread
+    // Rubinius.primitive :io_sysread
     Object* sysread(STATE, Fixnum* number_of_bytes, CallFrame* calling_environment);
 
-    // Ruby.primitive :io_read_if_available
+    // Rubinius.primitive :io_read_if_available
     Object* read_if_available(STATE, Fixnum* number_of_bytes);
 
-    // Ruby.primitive :io_socket_read
+    // Rubinius.primitive :io_socket_read
     Object* socket_read(STATE, Fixnum* bytes, Fixnum* flags, Fixnum* type, CallFrame* calling_environment);
 
-    // Ruby.primitive :io_seek
+    // Rubinius.primitive :io_seek
     Integer* seek(STATE, Integer* amount, Fixnum* whence);
 
-    // Ruby.primitive :io_write
+    // Rubinius.primitive :io_write
     Object* write(STATE, String* buf, CallFrame* calling_environment);
 
-    // Ruby.primitive :io_reopen
+    // Rubinius.primitive :io_reopen
     Object* reopen(STATE, IO* other);
 
-    // Ruby.primitive :io_reopen_path
+    // Rubinius.primitive :io_reopen_path
     Object* reopen_path(STATE, String* other, Fixnum * mode);
 
-    // Ruby.primitive :io_close
+    // Rubinius.primitive :io_close
     Object* close(STATE);
 
-    // Ruby.primitive :io_accept
+    // Rubinius.primitive :io_accept
     Object* accept(STATE, CallFrame* calling_environment);
 
-    // Ruby.primitive :io_send_io
+    // Rubinius.primitive :io_send_io
     Object* send_io(STATE, IO* io);
 
-    // Ruby.primitive :io_recv_fd
+    // Rubinius.primitive :io_recv_fd
     Object* recv_fd(STATE, CallFrame* calling_environment);
 
     /**
@@ -117,16 +116,16 @@ namespace rubinius {
      *  It also shuts the stream *in all processes*, not
      *  just the current one.
      */
-    // Ruby.primitive :io_shutdown
+    // Rubinius.primitive :io_shutdown
     Object* shutdown(STATE, Fixnum* how);
 
-    // Ruby.primitive :io_blocking_read
+    // Rubinius.primitive :io_blocking_read
     Object* blocking_read(STATE, Fixnum* count);
 
-    // Ruby.primitive :io_query
+    // Rubinius.primitive :io_query
     Object* query(STATE, Symbol* op);
 
-    // Ruby.primitive :io_write_nonblock
+    // Rubinius.primitive :io_write_nonblock
     Object* write_nonblock(STATE, String* buf);
 
     void set_nonblock(STATE);
@@ -146,18 +145,18 @@ namespace rubinius {
     const static object_type type = IOBufferType;
 
   private:
-    ByteArray* storage_; // slot
-    Channel* channel_;   // slot
-    Integer* total_;      // slot
-    Integer* used_;       // slot
-    Integer* start_;      // slot
-    Object* eof_;         // slot
-    Object* write_synced_;// slot
+    CharArray* storage_;   // slot
+    Channel* channel_;     // slot
+    Integer* total_;       // slot
+    Integer* used_;        // slot
+    Integer* start_;       // slot
+    Object* eof_;          // slot
+    Object* write_synced_; // slot
 
   public:
     /* accessors */
 
-    attr_accessor(storage, ByteArray);
+    attr_accessor(storage, CharArray);
     attr_accessor(channel, Channel);
     attr_accessor(total, Integer);
     attr_accessor(used, Integer);
@@ -168,13 +167,13 @@ namespace rubinius {
     /* interface */
 
     static IOBuffer* create(STATE, size_t bytes = IOBUFFER_SIZE);
-    // Ruby.primitive :iobuffer_allocate
+    // Rubinius.primitive :iobuffer_allocate
     static IOBuffer* allocate(STATE);
 
-    // Ruby.primitive :iobuffer_unshift
+    // Rubinius.primitive :iobuffer_unshift
     Object* unshift(STATE, String* str, Fixnum* start_pos);
 
-    // Ruby.primitive :iobuffer_fill
+    // Rubinius.primitive :iobuffer_fill
     Object* fill(STATE, IO* io, CallFrame* calling_environment);
 
     void reset(STATE);

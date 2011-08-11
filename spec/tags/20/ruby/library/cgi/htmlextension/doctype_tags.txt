@@ -1,0 +1,4 @@
+fails:CGI::HtmlExtension#doctype when each HTML generation returns the doctype declaration for HTML3
+fails:CGI::HtmlExtension#doctype when each HTML generation returns the doctype declaration for HTML4
+fails:CGI::HtmlExtension#doctype when each HTML generation returns the doctype declaration for the Frameset version of HTML4
+fails:CGI::HtmlExtension#doctype when each HTML generation returns the doctype declaration for the Transitional version of HTML4

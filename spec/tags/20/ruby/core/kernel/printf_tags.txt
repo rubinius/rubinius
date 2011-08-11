@@ -1,0 +1,1 @@
+fails:Kernel#printf is a private method

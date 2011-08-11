@@ -44,7 +44,9 @@ module Rubinius
         size = 1 if size <= 0
         puts "\n#{"=" * size} #{name} #{"=" * (size + name.size % 2)}"
         print "Arguments:   "
-        print "#{cm.required_args} required, #{cm.total_args} total"
+        print "#{cm.required_args} required, "
+        print "#{cm.post_args} post, "
+        print "#{cm.total_args} total"
         print cm.splat ? ", (splat)\n" : "\n"
         print "Locals:      #{cm.local_count}"
         print cm.local_count > 0 ? ": #{cm.local_names.join ", "}\n" : "\n"

@@ -6,9 +6,6 @@ extern "C" {
 #endif
 
 namespace melbourne {
-  extern ID rb_sOpAnd;
-  extern ID rb_sOpOr;
-
   extern ID rb_sAlias;
   extern ID rb_sAnd;
   extern ID rb_sArgs;
@@ -61,6 +58,7 @@ namespace melbourne {
   extern ID rb_sIter;
   extern ID rb_sIVar;
   extern ID rb_sLAsgn;
+  extern ID rb_sLambda;
   extern ID rb_sLit;
   extern ID rb_sLVar;
   extern ID rb_sMAsgn;
@@ -78,8 +76,10 @@ namespace melbourne {
   extern ID rb_sOpAsgn2;
   extern ID rb_sOpAsgnAnd;
   extern ID rb_sOpAsgnOr;
+  extern ID rb_sOptArg;
   extern ID rb_sOr;
   extern ID rb_sPostExe;
+  extern ID rb_sPostArg;
   extern ID rb_sRedo;
   extern ID rb_sRegex;
   extern ID rb_sResbody;
@@ -98,6 +98,7 @@ namespace melbourne {
   extern ID rb_sUndef;
   extern ID rb_sUntil;
   extern ID rb_sVAlias;
+  extern ID rb_sValues;
   extern ID rb_sVCall;
   extern ID rb_sWhen;
   extern ID rb_sWhile;
@@ -106,7 +107,7 @@ namespace melbourne {
   extern ID rb_sZArray;
   extern ID rb_sZSuper;
 
-  void init_symbols();
+  void init_symbols20();
 };
 
 #ifdef __cplusplus

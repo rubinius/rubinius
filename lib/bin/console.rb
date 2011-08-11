@@ -24,6 +24,8 @@ class Console
     while true
       str = Readline.readline("console> ")
 
+      str = "quit" unless str
+
       cmd, args = str.split(/\s+/, 2)
 
       case cmd

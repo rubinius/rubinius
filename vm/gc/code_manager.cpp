@@ -1,5 +1,6 @@
 #include <string.h>
 
+#include "vm.hpp"
 #include "gc/code_manager.hpp"
 #include "gc/code_resource.hpp"
 
@@ -8,7 +9,7 @@ namespace rubinius {
     : next(0)
   {
     resources = new CodeResource*[size];
-    memset(resources, 0, sizeof(CodeManager*) * size);
+    memset(resources, 0, sizeof(CodeResource*) * size);
   }
 
   CodeManager::Chunk::~Chunk() {
@@ -92,7 +93,7 @@ namespace rubinius {
             bytes_used_ -= cr->size();
 
             freed_resources_++;
-            cr->cleanup(this);
+            cr->cleanup(shared_->root_vm(), this);
             delete cr;
             chunk->resources[i] = 0;
           } else {

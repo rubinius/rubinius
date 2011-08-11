@@ -2,6 +2,7 @@
 #define RBX_SIGNAL_HPP
 
 #include "util/thread.hpp"
+#include "lock.hpp"
 
 #include <list>
 
@@ -9,12 +10,10 @@ namespace rubinius {
   class VM;
   struct CallFrame;
 
-  class SignalHandler : public thread::Thread {
+  class SignalHandler : public thread::Thread, Lockable {
     VM* vm_;
     int pending_signals_[NSIG];
-    int running_signals_[NSIG];
     int queued_signals_;
-    bool executing_signal_;
     thread::SpinLock lock_;
     int read_fd_;
     int write_fd_;
@@ -31,11 +30,11 @@ namespace rubinius {
 
     void perform();
 
-    void add_signal(int sig, HandlerType type = eCustom);
+    void add_signal(VM*, int sig, HandlerType type = eCustom);
     void handle_signal(int sig);
     static void signal_tramp(int sig);
 
-    void deliver_signals(CallFrame* call_frame);
+    bool deliver_signals(CallFrame* call_frame);
 
     void reopen_pipes();
     static void on_fork();

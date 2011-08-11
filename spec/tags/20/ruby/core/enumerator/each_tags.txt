@@ -1,0 +1,7 @@
+fails:Enumerator#each yields each element of self to the given block
+fails:Enumerator#each calls #each on the object given in the constructor by default
+fails:Enumerator#each calls #each on the underlying object until it's exhausted
+fails:Enumerator#each calls the method given in the constructor instead of #each
+fails:Enumerator#each calls the method given in the constructor until it's exhausted
+fails:Enumerator#each raises a NoMethodError if the object doesn't respond to #each
+fails:Enumerator#each returns an Enumerator if no block is given

@@ -58,6 +58,7 @@ module Rubinius
         blk.for_block = true
 
         blk.required_args = arguments.required_args
+        blk.post_args = arguments.post_args
         blk.total_args = arguments.total_args
 
         blk
@@ -70,6 +71,7 @@ module Rubinius
 
         if arguments
           meth.required_args = arguments.required_args
+          meth.post_args = arguments.post_args
           meth.total_args = arguments.total_args
           meth.splat_index = arguments.splat_index
         end
@@ -94,12 +96,16 @@ module Rubinius
         bytecode(g)
       end
 
-      def visit(arg=true, &block)
-        instance_variables.each do |name|
-          child = instance_variable_get name
-          next unless child.kind_of? Node
-          next unless ch_arg = block.call(arg, child)
-          child.visit(ch_arg, &block)
+      # This method implements a sort of tree iterator, yielding each Node
+      # instance to the provided block with the first argument to #walk. If
+      # the block returns a non-true value, the walk is terminated.
+      #
+      # This method is really an iterator, not a Visitor pattern.
+      def walk(arg=true, &block)
+        children do |child|
+          if ch_arg = block.call(arg, child)
+            child.walk(ch_arg, &block)
+          end
         end
       end
 
@@ -121,6 +127,122 @@ module Rubinius
 
       def to_sexp
         [:node, self.class.name]
+      end
+
+      # Yields each child of this Node to the block. Additionally, for any
+      # attribute that is an Array, yields each element that is a Node.
+      def children
+        instance_variables.each do |var|
+          child = instance_variable_get var
+          if child.kind_of? Node
+            yield child
+          elsif child.kind_of? Array
+            child.each { |x| yield x if x.kind_of? Node }
+          end
+        end
+      end
+
+      # The equivalent of Some::Module.demodulize.underscore in ActiveSupport.
+      # The code is shamelessly borrowed as well.
+      def node_name
+        name = self.class.name.gsub(/^.*::/, '')
+        name.gsub!(/([A-Z]+)([A-Z][a-z])/,'\1_\2')
+        name.gsub!(/([a-z\d])([A-Z])/,'\1_\2')
+        name.downcase!
+        name
+      end
+
+      # Supports the Visitor pattern on a tree of Nodes. The +visitor+ should
+      # be an object that responds to methods named after the Node subclasses.
+      # The method called is determined by the #node_name method. Passes both
+      # the node and its parent so that the visitor can maintain nesting
+      # information if desired.
+      #
+      # The #visit implements a read-only traversal of the tree. To modify the
+      # tree, see the #transform methed.
+      def visit(visitor, parent=nil)
+        visitor.send self.node_name, self, parent
+        children { |c| c.visit visitor, self }
+      end
+
+      # Called by #transform to update the child of a Node instance. The
+      # default just calls the attr_accessor for the child. However, Node
+      # subclasses that must synchronize other internal state can override
+      # this method.
+      def set_child(name, node)
+        send :"#{name}=", node
+      end
+
+      # Yields each attribute and its name to the block.
+      def attributes
+        instance_variables.each do |var|
+          child = instance_variable_get var
+          name = var.to_s[1..-1]
+          yield child, name
+        end
+      end
+
+      # A fixed-point algorithm for transforming an AST with a visitor. The
+      # traversal is top-down. The visitor object's method corresponding to
+      # each node (see #node_name) is called for each node, passing the node
+      # and its parent.
+      #
+      # To replace the node in the tree, the visitor method should return a
+      # new node; otherwise, return the existing node. The visitor is free to
+      # change values in the node, but substituting a node causes the entire
+      # tree to be walked repeatedly until no modifications are made.
+      def transform(visitor, parent=nil, state=nil)
+        state ||= TransformState.new
+
+        node = visitor.send :"node_#{node_name}", self, parent
+        state.modify unless equal? node
+
+        node.attributes do |attr, name|
+          if attr.kind_of? Node
+            child = attr.transform visitor, node, state
+            unless attr.equal? child
+              state.modify
+              node.set_child name, child
+            end
+          elsif attr.kind_of? Array
+            attr.each_with_index do |x, i|
+              if x.kind_of? Node
+                child = x.transform visitor, node, state
+                unless x.equal? child
+                  state.modify
+                  attr[i] = child
+                end
+              end
+            end
+          end
+        end
+
+        # Repeat the walk until the tree is not modified.
+        if parent.nil? and state.modified?
+          state.unmodify
+          node = transform visitor, nil, state
+        end
+
+        node
+      end
+
+      # Manage the state of the #transform method.
+      class TransformState
+        def initialized
+          @modified = false
+        end
+
+        def modified?
+          @modified
+        end
+
+        def modify
+          @modified = true
+        end
+
+        def unmodify
+          @modified = false
+        end
       end
     end
 

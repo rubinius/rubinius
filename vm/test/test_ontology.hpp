@@ -15,7 +15,11 @@ public:
 
   void test_object() {
     TS_ASSERT_EQUALS(G(object)->class_object(state), G(klass));
-    TS_ASSERT_EQUALS(G(object)->superclass(), Qnil);
+    if(LANGUAGE_19_ENABLED(state) || LANGUAGE_20_ENABLED(state)) {
+      TS_ASSERT_EQUALS(G(object)->superclass(), G(basicobject));
+    } else {
+      TS_ASSERT_EQUALS(G(object)->superclass(), Qnil);
+    }
     check_const(object, "Object");
   }
 
@@ -112,6 +116,17 @@ public:
     TS_ASSERT_EQUALS(cls->superclass(), G(object));
     TS_ASSERT_EQUALS((object_type)cls->instance_type()->to_native(), ByteArrayType);
     TS_ASSERT_EQUALS(G(rubinius)->get_const(state, "ByteArray"), G(bytearray));
+  }
+
+  void test_chararray() {
+    Class *cls;
+
+    cls = G(chararray);
+
+    TS_ASSERT_EQUALS(cls->class_object(state), G(klass));
+    TS_ASSERT_EQUALS(cls->superclass(), G(object));
+    TS_ASSERT_EQUALS((object_type)cls->instance_type()->to_native(), CharArrayType);
+    TS_ASSERT_EQUALS(G(rubinius)->get_const(state, "CharArray"), G(chararray));
   }
 
   void test_string() {

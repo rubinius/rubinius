@@ -51,138 +51,138 @@ namespace rubinius {
 
     static Bignum* create(STATE, Fixnum* f);
 
-    // Ruby.primitive :bignum_from_float
+    // Rubinius.primitive :bignum_from_float
     static Integer* from_float(STATE, Float* f);
 
-    // Ruby.primitive! :bignum_initialize_copy
+    // Rubinius.primitive! :bignum_initialize_copy
     Bignum* initialize_copy(STATE, Bignum* other);
 
-    // Ruby.primitive! :bignum_add
+    // Rubinius.primitive! :bignum_add
     Integer* add(STATE, Fixnum* b);
-    // Ruby.primitive! :bignum_add
+    // Rubinius.primitive! :bignum_add
     Integer* add(STATE, Bignum* b);
-    // Ruby.primitive! :bignum_add
+    // Rubinius.primitive! :bignum_add
     Float*  add(STATE, Float* b);
 
-    // Ruby.primitive! :bignum_sub
+    // Rubinius.primitive! :bignum_sub
     Integer* sub(STATE, Fixnum* b);
-    // Ruby.primitive! :bignum_sub
+    // Rubinius.primitive! :bignum_sub
     Integer* sub(STATE, Bignum* b);
-    // Ruby.primitive! :bignum_sub
+    // Rubinius.primitive! :bignum_sub
     Float*  sub(STATE, Float* b);
 
-    // Ruby.primitive! :bignum_mul
+    // Rubinius.primitive! :bignum_mul
     Integer* mul(STATE, Fixnum* b);
-    // Ruby.primitive! :bignum_mul
+    // Rubinius.primitive! :bignum_mul
     Integer* mul(STATE, Bignum* b);
-    // Ruby.primitive! :bignum_mul
+    // Rubinius.primitive! :bignum_mul
     Float*  mul(STATE, Float* b);
 
     Integer* divide(STATE, Fixnum* b, Integer** mod);
     Integer* divide(STATE, Bignum* b, Integer** mod);
 
-    // Ruby.primitive! :bignum_div
+    // Rubinius.primitive! :bignum_div
     Integer* div(STATE, Fixnum* b);
-    // Ruby.primitive! :bignum_div
+    // Rubinius.primitive! :bignum_div
     Integer* div(STATE, Bignum* b);
 
-    // Ruby.primitive! :bignum_divmod
+    // Rubinius.primitive! :bignum_divmod
     Array* divmod(STATE, Fixnum* b);
-    // Ruby.primitive! :bignum_divmod
+    // Rubinius.primitive! :bignum_divmod
     Array* divmod(STATE, Bignum* b);
-    // Ruby.primitive! :bignum_divmod
+    // Rubinius.primitive! :bignum_divmod
     Array* divmod(STATE, Float* b);
 
-    // Ruby.primitive! :bignum_mod
+    // Rubinius.primitive! :bignum_mod
     Integer* mod(STATE, Fixnum* b);
-    // Ruby.primitive! :bignum_mod
+    // Rubinius.primitive! :bignum_mod
     Integer* mod(STATE, Bignum* b);
-    // Ruby.primitive! :bignum_mod
+    // Rubinius.primitive! :bignum_mod
     Float* mod(STATE, Float* b);
 
-    // Ruby.primitive :bignum_invert
+    // Rubinius.primitive :bignum_invert
     Integer* invert(STATE);
-    // Ruby.primitive :bignum_neg
+    // Rubinius.primitive :bignum_neg
     Integer* neg(STATE);
 
-    // Ruby.primitive! :bignum_equal
+    // Rubinius.primitive! :bignum_equal
     Object* equal(STATE, Fixnum* b);
-    // Ruby.primitive! :bignum_equal
+    // Rubinius.primitive! :bignum_equal
     Object* equal(STATE, Bignum* b);
-    // Ruby.primitive! :bignum_equal
+    // Rubinius.primitive! :bignum_equal
     Object* equal(STATE, Float* b);
 
-    // Ruby.primitive! :bignum_compare
+    // Rubinius.primitive! :bignum_compare
     Object* compare(STATE, Fixnum* b);
-    // Ruby.primitive! :bignum_compare
+    // Rubinius.primitive! :bignum_compare
     Object* compare(STATE, Bignum* b);
-    // Ruby.primitive! :bignum_compare
+    // Rubinius.primitive! :bignum_compare
     Object* compare(STATE, Float* b);
 
-    // Ruby.primitive! :bignum_and
+    // Rubinius.primitive! :bignum_and
     Integer* bit_and(STATE, Integer* b);
-    // Ruby.primitive! :bignum_and
+    // Rubinius.primitive! :bignum_and
     Integer* bit_and(STATE, Float* b);
 
-    // Ruby.primitive! :bignum_or
+    // Rubinius.primitive! :bignum_or
     Integer* bit_or(STATE, Integer* b);
-    // Ruby.primitive! :bignum_or
+    // Rubinius.primitive! :bignum_or
     Integer* bit_or(STATE, Float* b);
 
-    // Ruby.primitive! :bignum_xor
+    // Rubinius.primitive! :bignum_xor
     Integer* bit_xor(STATE, Integer* b);
-    // Ruby.primitive! :bignum_xor
+    // Rubinius.primitive! :bignum_xor
     Integer* bit_xor(STATE, Float* b);
 
-    // Ruby.primitive :bignum_left_shift
+    // Rubinius.primitive :bignum_left_shift
     Integer* left_shift(STATE, Fixnum* bits);
-    // Ruby.primitive :bignum_right_shift
+    // Rubinius.primitive :bignum_right_shift
     Integer* right_shift(STATE, Fixnum* bits);
 
-    // Ruby.primitive! :bignum_pow
+    // Rubinius.primitive! :bignum_pow
     Object* pow(STATE, Fixnum *exponent);
-    // Ruby.primitive! :bignum_pow
+    // Rubinius.primitive! :bignum_pow
     Object* pow(STATE, Bignum* exponent);
-    // Ruby.primitive! :bignum_pow
+    // Rubinius.primitive! :bignum_pow
     Float*  pow(STATE, Float *exponent);
 
-    // Ruby.primitive! :bignum_gt
+    // Rubinius.primitive! :bignum_gt
     Object* gt(STATE, Fixnum* b);
-    // Ruby.primitive! :bignum_gt
+    // Rubinius.primitive! :bignum_gt
     Object* gt(STATE, Bignum* b);
-    // Ruby.primitive! :bignum_gt
+    // Rubinius.primitive! :bignum_gt
     Object* gt(STATE, Float* b);
 
-    // Ruby.primitive! :bignum_ge
+    // Rubinius.primitive! :bignum_ge
     Object* ge(STATE, Fixnum* b);
-    // Ruby.primitive! :bignum_ge
+    // Rubinius.primitive! :bignum_ge
     Object* ge(STATE, Bignum* b);
-    // Ruby.primitive! :bignum_ge
+    // Rubinius.primitive! :bignum_ge
     Object* ge(STATE, Float* b);
 
-    // Ruby.primitive! :bignum_lt
+    // Rubinius.primitive! :bignum_lt
     Object* lt(STATE, Fixnum* b);
-    // Ruby.primitive! :bignum_lt
+    // Rubinius.primitive! :bignum_lt
     Object* lt(STATE, Bignum* b);
-    // Ruby.primitive! :bignum_lt
+    // Rubinius.primitive! :bignum_lt
     Object* lt(STATE, Float* b);
 
-    // Ruby.primitive! :bignum_le
+    // Rubinius.primitive! :bignum_le
     Object* le(STATE, Fixnum* b);
-    // Ruby.primitive! :bignum_le
+    // Rubinius.primitive! :bignum_le
     Object* le(STATE, Bignum* b);
-    // Ruby.primitive! :bignum_le
+    // Rubinius.primitive! :bignum_le
     Object* le(STATE, Float* b);
 
-    // Ruby.primitive :bignum_to_float
+    // Rubinius.primitive :bignum_to_float
     Float* to_float(STATE);
 
-    // Ruby.primitive! :bignum_coerce
+    // Rubinius.primitive! :bignum_coerce
     Array* coerce(STATE, Bignum* other);
-    // Ruby.primitive! :bignum_coerce
+    // Rubinius.primitive! :bignum_coerce
     Array* coerce(STATE, Fixnum* other);
 
-    // Ruby.primitive :bignum_to_s
+    // Rubinius.primitive :bignum_to_s
     String* to_s(STATE, Fixnum* base);
 
     // Format the bignum using +radix+ and store the result
@@ -193,7 +193,7 @@ namespace rubinius {
 
     double to_double(STATE);
 
-    // Ruby.primitive :bignum_size
+    // Rubinius.primitive :bignum_size
     Integer* size(STATE);
     hashval hash_bignum(STATE);
 

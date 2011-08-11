@@ -1,5 +1,4 @@
-/* An Environment is the toplevel class for Rubinius. It manages multiple
- * VMs, as well as imports C data from the process into Rubyland. */
+#include "config.h"
 #include "prelude.hpp"
 #include "environment.hpp"
 #include "config_parser.hpp"
@@ -31,7 +30,6 @@
 #include "signal.hpp"
 #include "object_utils.hpp"
 
-#include "native_thread.hpp"
 #include "inline_cache.hpp"
 
 #include "agent.hpp"
@@ -44,11 +42,15 @@
 #include <fstream>
 #include <sstream>
 #include <string>
+#ifdef RBX_WINDOWS
+#include "windows_compat.h"
+#else
 #include <sys/utsname.h>
+#include <dlfcn.h>
+#endif
 #include <fcntl.h>
 #include <unistd.h>
 #include <sys/param.h>
-#include <dlfcn.h>
 
 namespace rubinius {
 
@@ -62,12 +64,19 @@ namespace rubinius {
     : argc_(argc)
     , argv_(argv)
     , signature_(0)
+    , version_(0)
     , agent(0)
   {
 #ifdef ENABLE_LLVM
     if(!llvm::llvm_start_multithreaded()) {
       assert(0 && "llvm doesn't support threading!");
     }
+
+#ifdef LLVM_JIT_DEBUG
+    if(getenv("RBX_GDBJIT")) {
+      llvm::JITEmitDebugInfo = true;
+    }
+#endif
 #endif
 
     VM::init_stack_size();
@@ -97,7 +106,7 @@ namespace rubinius {
   }
 
   Environment::~Environment() {
-    VM::discard(state);
+    VM::discard(state, state);
     SharedState::discard(shared);
   }
 
@@ -116,7 +125,9 @@ namespace rubinius {
     std::set_terminate(cpp_exception_bug);
   }
 
+#ifndef RBX_WINDOWS
   static void null_func(int sig) {}
+#endif
 
 #ifdef USE_EXECINFO
 
@@ -228,11 +239,12 @@ namespace rubinius {
     if(write(2, msg, sizeof(msg)) == 0) exit(1);
 
     switch(sig) {
-    case SIGHUP:
-      if(write(2, "SIGHUP\n", 6) == 0) exit(1);
-      break;
     case SIGTERM:
       if(write(2, "SIGTERM\n", 7) == 0) exit(1);
+      break;
+#ifndef RBX_WINDOWS
+    case SIGHUP:
+      if(write(2, "SIGHUP\n", 6) == 0) exit(1);
       break;
     case SIGUSR1:
       if(write(2, "SIGUSR1\n", 7) == 0) exit(1);
@@ -240,6 +252,7 @@ namespace rubinius {
     case SIGUSR2:
       if(write(2, "SIGUSR2\n", 7) == 0) exit(1);
       break;
+#endif
     default:
       if(write(2, "UNKNOWN\n", 8) == 0) exit(1);
       break;
@@ -249,17 +262,20 @@ namespace rubinius {
   }
 
   void Environment::start_signals() {
+#ifndef RBX_WINDOWS
     struct sigaction action;
     action.sa_handler = null_func;
     action.sa_flags = 0;
     sigfillset(&action.sa_mask);
-    sigaction(NativeThread::cWakeupSignal, &action, NULL);
+    sigaction(SIGVTALRM, &action, NULL);
+#endif
 
     state->set_run_signals(true);
     SignalHandler* handler = new SignalHandler(state);
     shared->set_signal_handler(handler);
     handler->run();
 
+#ifndef RBX_WINDOWS
     // Ignore sigpipe.
     signal(SIGPIPE, SIG_IGN);
 
@@ -282,17 +298,47 @@ namespace rubinius {
       void* ary[1];
       backtrace(ary, 1);
     }
-#endif
+#endif  // USE_EXEC_INFO
 
     // Setup some other signal that normally just cause the process
     // to terminate so that we print out a message, then terminate.
     signal(SIGHUP,  quit_handler);
-    signal(SIGTERM, quit_handler);
     signal(SIGUSR1, quit_handler);
     signal(SIGUSR2, quit_handler);
+#endif  // ifndef RBX_WINDOWS
+
+    signal(SIGTERM, quit_handler);
   }
 
   void Environment::load_vm_options(int argc, char**argv) {
+    /* Parse -X options from RBXOPT environment variable.  We parse these
+     * first to permit arguments passed directly to the VM to override
+     * settings from the environment.
+     */
+    char* rbxopt = getenv("RBXOPT");
+    if(rbxopt) {
+      char *e, *b = rbxopt = strdup(rbxopt);
+      char *s = b + strlen(rbxopt);
+
+      while(b < s) {
+        while(*b && isspace(*b)) s++;
+
+        e = b;
+        while(*e && !isspace(*e)) e++;
+
+        int len;
+        if((len = e - b) > 0) {
+          if(strncmp(b, "-X", 2) == 0) {
+            *e = 0;
+            config_parser.import_line(b + 2);
+          }
+          b = e + 1;
+        }
+      }
+
+      free(rbxopt);
+    }
+
     for(int i=1; i < argc; i++) {
       char* arg = argv[i];
 
@@ -303,7 +349,11 @@ namespace rubinius {
       if(strncmp(arg, "-X", 2) == 0) {
         config_parser.import_line(arg + 2);
 
-      // If we hit the first non-option, bail.
+      /* If we hit the first non-option, break out so in the following
+       * command line, the first 'rbx' doesn't consume '-Xprofile':
+       *
+       *   rbx bundle exec rbx -Xprofile blah
+       */
       } else if(arg[0] != '-') {
         break;
       }
@@ -346,31 +396,6 @@ namespace rubinius {
 
     state->set_const("ARGV", ary);
 
-    // Parse -X options from RBXOPT environment variable
-
-    char* rbxopt = getenv("RBXOPT");
-    if(rbxopt) {
-      char *e, *b = rbxopt = strdup(rbxopt);
-      char *s = b + strlen(rbxopt);
-
-      while(b < s) {
-        while(*b && isspace(*b)) s++;
-
-        e = b;
-        while(*e && !isspace(*e)) e++;
-
-        if((e - b) > 0) {
-          if(strncmp(b, "-X", 2) == 0) {
-            *e = 0;
-            config_parser.import_line(b + 2);
-          }
-          b = e + 1;
-        }
-      }
-
-      free(rbxopt);
-    }
-
     // Now finish up with the config
     if(config.print_config > 1) {
       std::cout << "========= Configuration =========\n";
@@ -408,10 +433,12 @@ namespace rubinius {
   }
 
   void Environment::load_directory(std::string dir) {
+    // Read the version-specific load order file.
     std::string path = dir + "/load_order.txt";
     std::ifstream stream(path.c_str());
     if(!stream) {
-      throw std::runtime_error("Unable to load directory, load_order.txt is missing");
+      std::string msg = "Unable to load directory, " + path + " is missing";
+      throw std::runtime_error(msg);
     }
 
     while(!stream.eof()) {
@@ -452,8 +479,7 @@ namespace rubinius {
   }
 
   void Environment::boot_vm() {
-    state->initialize();
-    state->boot();
+    state->initialize_as_root();
   }
 
   void Environment::run_file(std::string file) {
@@ -466,7 +492,8 @@ namespace rubinius {
 
     CompiledFile* cf = CompiledFile::load(stream);
     if(cf->magic != "!RBIX") throw std::runtime_error("Invalid file");
-    if((signature_ > 0 && cf->version != signature_) || cf->sum != "x") {
+    if((signature_ > 0 && cf->signature != signature_)
+        || cf->version != version_) {
       throw BadKernelFile(file);
     }
 
@@ -507,19 +534,26 @@ namespace rubinius {
 
     state->set_call_frame(0);
 
-    state->global_lock().take();
+    // Handle an edge case where another thread is waiting to stop the world.
+    if(state->shared.should_stop()) {
+      state->shared.checkpoint(state);
+    }
 
 #ifdef ENABLE_LLVM
     LLVMState::shutdown(state);
 #endif
 
-    state->shared.stop_the_world();
+    // Hold everyone.
+    state->shared.stop_the_world(state);
     shared->om->run_all_io_finalizers(state);
 
     // TODO: temporarily disable to sort out finalizing Pointer objects
     // shared->om->run_all_finalizers(state);
   }
 
+  /**
+   * Returns the exit code to use when exiting the rbx process.
+   */
   int Environment::exit_code() {
 
 #ifdef ENABLE_LLVM
@@ -553,29 +587,29 @@ namespace rubinius {
     agent->run();
   }
 
-  /* Loads the runtime kernel files. They're stored in /kernel.
-   * These files consist of classes needed to bootstrap the kernel
-   * and just get things started in general.
+  /**
+   * Loads the runtime kernel files stored in /runtime.
+   * These files consist of the compiled Ruby /kernel code in .rbc files, which
+   * are needed to bootstrap the Ruby kernel.
+   * This method is called after the VM has completed bootstrapping, and is
+   * ready to load Ruby code.
    *
-   * @param root [String] The file root for /kernel. This expects to find
-   *                      alpha.rbc (will compile if not there).
-   * @param env  [Environment&] The environment for Rubinius. It is the uber
-   *                      manager for multiple VMs and process-Ruby interaction. 
+   * @param root The path to the /runtime directory. All kernel loading is
+   *             relative to this path.
    */
   void Environment::load_kernel(std::string root) {
-    std::string dirs = root + "/index";
-    std::ifstream stream(dirs.c_str());
+    // Check that the index file exists; this tells us which sub-directories to
+    // load, and the order in which to load them
+    std::string index = root + "/index";
+    std::ifstream stream(index.c_str());
     if(!stream) {
       std::string error = "Unable to load kernel index: " + root;
       throw std::runtime_error(error);
     }
 
-    // Load the ruby file to prepare for bootstrapping Ruby!
-    // The bootstrapping for the VM is already done by the time we're here.
-
-    // First, pull in the signature file. This helps control when .rbc files need
-    // to be discarded.
-
+    // Pull in the signature file; this helps control when .rbc files need to
+    // be discarded and recompiled due to changes to the compiler since the
+    // .rbc files were created.
     std::string sig_path = root + "/signature";
     std::ifstream sig_stream(sig_path.c_str());
     if(sig_stream) {
@@ -588,10 +622,12 @@ namespace rubinius {
       throw std::runtime_error(error);
     }
 
+    version_ = as<Fixnum>(G(rubinius)->get_const(
+          state, state->symbol("RUBY_LIB_VERSION")))->to_native();
+
     // Load alpha
     run_file(root + "/alpha.rbc");
 
-    // Read the index and load the directories listed.
     while(!stream.eof()) {
       std::string line;
 
@@ -643,6 +679,13 @@ namespace rubinius {
     }
   }
 
+  /**
+   * Runs rbx from the filesystem, loading the Ruby kernel files relative to
+   * the supplied root directory.
+   *
+   * @param root The path to the Rubinius /runtime directory, which contains
+   * the loader.rbc and kernel files.
+   */
   void Environment::run_from_filesystem(std::string root) {
     int i = 0;
     state->set_stack_start(&i);
@@ -656,12 +699,21 @@ namespace rubinius {
 
     load_tool();
 
+    if(LANGUAGE_20_ENABLED(state)) {
+      root += "/20";
+    } else if(LANGUAGE_19_ENABLED(state)) {
+      root += "/19";
+    } else {
+      root += "/18";
+    }
+    G(rubinius)->set_const(state, "RUNTIME_PATH", String::create(state, root.c_str()));
+
     load_kernel(root);
 
     start_signals();
     run_file(root + "/loader.rbc");
 
-    state->global_lock().take();
+    state->thread_state()->clear();
 
     Object* loader = G(rubinius)->get_const(state, state->symbol("Loader"));
     if(loader->nil_p()) {
@@ -676,7 +728,5 @@ namespace rubinius {
     OnStack<1> os2(state, inst);
 
     inst->send(state, 0, state->symbol("main"));
-
-    state->global_lock().drop();
   }
 }

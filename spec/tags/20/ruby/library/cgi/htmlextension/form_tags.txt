@@ -1,0 +1,8 @@
+fails:CGI::HtmlExtension#form when passed no arguments returns a 'form'-element
+fails:CGI::HtmlExtension#form when passed no arguments includes the return value of the passed block when passed a block
+fails:CGI::HtmlExtension#form when passed method returns a 'form'-element with the passed method
+fails:CGI::HtmlExtension#form when passed method includes the return value of the passed block when passed a block
+fails:CGI::HtmlExtension#form when passed method, action returns a 'form'-element with the passed method and the passed action
+fails:CGI::HtmlExtension#form when passed method, action includes the return value of the passed block when passed a block
+fails:CGI::HtmlExtension#form when passed method, action, enctype returns a 'form'-element with the passed method, action and enctype
+fails:CGI::HtmlExtension#form when passed method, action, enctype includes the return value of the passed block when passed a block

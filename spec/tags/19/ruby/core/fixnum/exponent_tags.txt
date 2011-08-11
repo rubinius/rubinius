@@ -1,0 +1,2 @@
+fails:Fixnum#** raises a ZeroDivisionError for 0**-1
+fails:Fixnum#** returns a complex number when negative and raised to a fractional power

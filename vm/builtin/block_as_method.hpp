@@ -16,11 +16,11 @@ namespace rubinius {
   public:
     attr_accessor(block_env, BlockEnvironment);
 
-    // Ruby.primitive :block_as_method_create
+    // Rubinius.primitive :block_as_method_create
     static BlockAsMethod* create(STATE, Object* self, BlockEnvironment* be);
 
     static Object* block_executor(STATE, CallFrame* call_frame,
-                           Dispatch& msg, Arguments& args);
+                           Executable* exec, Module* mod, Arguments& args);
 
     class Info : public Executable::Info {
     public:

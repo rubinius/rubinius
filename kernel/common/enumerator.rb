@@ -102,7 +102,6 @@ module Enumerable
       def kill(obj_id)
         if @thread
           @thread.kill
-          @thread.join
         end
       end
 
@@ -130,7 +129,6 @@ module Enumerable
       def rewind
         if @thread
           @thread.kill
-          @thread.join
         end
 
         @done = false
@@ -207,9 +205,9 @@ module Enumerable
 end
 
 module Kernel
-  def enum_for(method=:each, *args)
+  def to_enum(method=:each, *args)
     Enumerable::Enumerator.new(self, method, *args)
   end
 
-  alias_method :to_enum, :enum_for
+  alias_method :enum_for, :to_enum
 end

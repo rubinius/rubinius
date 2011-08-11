@@ -4,19 +4,20 @@ module Rubinius
 
   class CompiledFile
     ##
-    # Create a CompiledFile with +magic+ magic bytes, of version +ver+,
-    # data containing a SHA1 sum of +sum+. The optional +stream+ is used
-    # to lazy load the body.
+    # Create a CompiledFile with +magic+ bytes, +signature+, and +version+.
+    # The optional +stream+ is used to lazy load the body.
 
-    def initialize(magic, ver, sum, stream=nil)
-      @magic, @version, @sum = magic, ver, sum
+    def initialize(magic, signature, version, stream=nil)
+      @magic = magic
+      @signature = signature
+      @version = version
       @stream = stream
       @data = nil
     end
 
     attr_reader :magic
+    attr_reader :signature
     attr_reader :version
-    attr_reader :sum
     attr_reader :stream
 
     ##
@@ -27,17 +28,17 @@ module Rubinius
       raise IOError, "attempted to load nil stream" unless stream
 
       magic = stream.gets.strip
+      signature = Integer(stream.gets.strip)
       version = Integer(stream.gets.strip)
-      sum = stream.gets.strip
 
-      return new(magic, version, sum, stream)
+      return new(magic, signature, version, stream)
     end
 
     ##
     # Writes the CompiledFile +cm+ to +file+.
-    def self.dump(cm, file)
-      File.open(file, "w") do |f|
-        new("!RBIX", Rubinius::Signature, "x").encode_to(f, cm)
+    def self.dump(cm, file, signature, version)
+      File.open(file, "wb") do |f|
+        new("!RBIX", signature, version).encode_to(f, cm)
       end
     rescue SystemCallError
       # just skip writing the compiled file if we don't have permissions
@@ -49,8 +50,8 @@ module Rubinius
 
     def encode_to(stream, body)
       stream.puts @magic
+      stream.puts @signature.to_s
       stream.puts @version.to_s
-      stream.puts @sum.to_s
 
       mar = CompiledFile::Marshal.new
       stream << mar.marshal(body)
@@ -171,6 +172,7 @@ module Rubinius
           cm.stack_size    = unmarshal_data
           cm.local_count   = unmarshal_data
           cm.required_args = unmarshal_data
+          cm.post_args     = unmarshal_data
           cm.total_args    = unmarshal_data
           cm.splat         = unmarshal_data
           cm.literals      = unmarshal_data
@@ -206,7 +208,7 @@ module Rubinius
       def next_string
         count = @data.locate "\n", @start
         count = @size unless count
-        str = String.from_bytearray @data, @start, count - @start
+        str = String.from_chararray @data, @start, count - @start
         @start = count
         str
       end
@@ -216,7 +218,7 @@ module Rubinius
       ##
       # Returns the next _count_ bytes in _@data_.
       def next_bytes(count)
-        str = String.from_bytearray @data, @start, count
+        str = String.from_chararray @data, @start, count
         @start += count
         str
       end
@@ -280,7 +282,7 @@ module Rubinius
           str = "i\n#{val.size}\n"
           val.opcodes.each do |op|
             unless op.kind_of?(Fixnum)
-              raise TypeError, "InstructionSequence contains non Fixnum"
+              raise TypeError, "InstructionSequence contains non Fixnum: #{op.inspect}"
             end
             str.append "#{op}\n"
           end
@@ -294,6 +296,7 @@ module Rubinius
           str.append marshal(val.stack_size)
           str.append marshal(val.local_count)
           str.append marshal(val.required_args)
+          str.append marshal(val.post_args)
           str.append marshal(val.total_args)
           str.append marshal(val.splat)
           str.append marshal(val.literals)

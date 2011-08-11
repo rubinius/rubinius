@@ -32,6 +32,7 @@ namespace rubinius {
 
 
   #define STATE rubinius::VM* state
+  #define THREAD rubinius::ManagedThread* state
   #define G(whatever) state->globals().whatever.get()
   #define GO(whatever) state->globals().whatever
 

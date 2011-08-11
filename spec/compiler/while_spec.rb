@@ -1,13 +1,6 @@
 require File.expand_path('../../spec_helper', __FILE__)
 
 describe "A While node" do
-  pre_while_sexp = [
-    :while,
-     [:call, nil, :a, [:arglist]],
-     [:call, [:call, nil, :b, [:arglist]], :+, [:arglist, [:lit, 1]]],
-     true
-  ]
-
   pre_while = lambda do |g|
     top    = g.new_label
     rdo    = g.new_label
@@ -47,6 +40,94 @@ describe "A While node" do
     ruby
 
     compile(&pre_while)
+  end
+
+  ruby_version_is "1.9" do
+    while_not = lambda do |g|
+      top    = g.new_label
+      rdo    = g.new_label
+      brk    = g.new_label
+      post   = g.new_label
+      bottom = g.new_label
+
+      g.push_modifiers
+
+      top.set!
+      g.push :self
+      g.send :a, 0, true
+      g.send :"!", 0, false
+      g.gif bottom
+
+      rdo.set!
+      g.push :self
+      g.send :b, 0, true
+      g.push 1
+      g.send :+, 1, false
+
+      post.set!
+      g.pop
+      g.check_interrupts
+      g.goto top
+
+      bottom.set!
+      g.push :nil
+
+      brk.set!
+      g.pop_modifiers
+    end
+
+    relates <<-ruby do
+        while not a
+          b + 1
+        end
+      ruby
+
+      compile(&while_not)
+    end
+
+    relates "b + 1 while not a" do
+      compile(&while_not)
+    end
+
+    relates <<-ruby do
+        begin
+          b + 1
+        end while not a
+      ruby
+
+      compile do |g|
+        top    = g.new_label
+        brk    = g.new_label
+        post   = g.new_label
+        bottom = g.new_label
+
+        g.push_modifiers
+
+        top.set!
+
+        g.push :self
+        g.send :b, 0, true
+        g.push 1
+        g.send :+, 1, false
+
+        post.set!
+        g.pop
+        g.check_interrupts
+
+        g.push :self
+        g.send :a, 0, true
+        g.send :"!", 0, false
+        g.gif bottom
+
+        g.goto top
+
+        bottom.set!
+        g.push :nil
+
+        brk.set!
+        g.pop_modifiers
+      end
+    end
   end
 
   relates <<-ruby do
@@ -131,25 +212,20 @@ describe "A While node" do
     compile(&pre_while)
   end
 
-  relates <<-ruby do
-      until not a
-        b + 1
-      end
-    ruby
+  ruby_version_is ""..."1.9" do
+    relates <<-ruby do
+        until not a
+          b + 1
+        end
+      ruby
 
-    compile(&pre_while)
+      compile(&pre_while)
+    end
+
+    relates "b + 1 until not a" do
+      compile(&pre_while)
+    end
   end
-
-  relates "b + 1 until not a" do
-    compile(&pre_while)
-  end
-
-  post_while_sexp = [
-    :while,
-     [:call, nil, :a, [:arglist]],
-     [:call, [:call, nil, :b, [:arglist]], :+, [:arglist, [:lit, 1]]],
-     false
-  ]
 
   post_while = lambda do |g|
     top    = g.new_label
@@ -192,16 +268,16 @@ describe "A While node" do
     compile(&post_while)
   end
 
-  relates <<-ruby do
-      begin
-        b + 1
-      end until not a
-    ruby
+  ruby_version_is ""..."1.9" do
+    relates <<-ruby do
+        begin
+          b + 1
+        end until not a
+      ruby
 
-    compile(&post_while)
+      compile(&post_while)
+    end
   end
-
-  nil_condition_sexp = [:while, [:nil], [:call, nil, :a, [:arglist]], true]
 
   nil_condition = lambda do |g|
     top    = g.new_label
@@ -245,17 +321,33 @@ describe "A While node" do
     compile(&nil_condition)
   end
 
-  relates "a until not ()" do
-    compile(&nil_condition)
-  end
+  ruby_version_is ""..."1.9" do
+    relates "a until not ()" do
+      compile(&nil_condition)
+    end
 
-  relates <<-ruby do
-      until not ()
-        a
-      end
-    ruby
+    relates <<-ruby do
+        until not ()
+          a
+        end
+      ruby
 
-    compile(&nil_condition)
+      compile(&nil_condition)
+    end
+
+    relates "a until ! ()" do
+      compile(&nil_condition)
+    end
+
+    relates <<-ruby do
+        until ! ()
+          a
+        end
+      ruby
+
+      compile(&nil_condition)
+    end
+
   end
 
   relates <<-ruby do

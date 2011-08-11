@@ -1,0 +1,1 @@
+fails:Fixnum#** returns a complex number when negative and raised to a fractional power

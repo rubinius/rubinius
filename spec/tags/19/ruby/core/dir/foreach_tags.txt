@@ -1,0 +1,1 @@
+fails:Dir.foreach calls #to_path on non-String arguments

@@ -21,6 +21,7 @@ module Rubinius
     attr_accessor :stack_size    # [Integer] size of stack at compile time
     attr_accessor :local_count   # [Integer] number of local vars
     attr_accessor :required_args # [Integer] number of required args
+    attr_accessor :post_args     # [Integer] number of args after splat
     attr_accessor :total_args    # [Integer] number of total args
     attr_accessor :splat         # [Integer] POSITION of the splat arg
     attr_accessor :literals      # [Tuple]   tuple of the literals
@@ -108,7 +109,7 @@ module Rubinius
     # this is.
     #
     def set_breakpoint(ip, obj)
-      Ruby.primitive :compiledmethod_set_breakpoint
+      Rubinius.primitive :compiledmethod_set_breakpoint
       raise ArgumentError, "Unable to set breakpoint on #{inspect} at invalid bytecode address #{ip}"
     end
 
@@ -116,7 +117,7 @@ module Rubinius
     # Erase a breakpoint at +ip+
     #
     def clear_breakpoint(ip)
-      Ruby.primitive :compiledmethod_clear_breakpoint
+      Rubinius.primitive :compiledmethod_clear_breakpoint
       raise ArgumentError, "Unable to clear breakpoint on #{inspect} at invalid bytecode address #{ip}"
     end
 
@@ -124,7 +125,7 @@ module Rubinius
     # Indicate if there is a breakpoint set at +ip+
     #
     def breakpoint?(ip)
-      Ruby.primitive :compiledmethod_is_breakpoint
+      Rubinius.primitive :compiledmethod_is_breakpoint
       raise ArgumentError, "Unable to retrieve breakpoint status on #{inspect} at bytecode address #{ip}"
     end
 
@@ -280,6 +281,33 @@ module Rubinius
       first_line
     end
 
+    ##
+    #
+    # Given all CompiledMethods in the system, find one that
+    # was defined in file +file+ and encompasses +line+
+    #
+    def self.locate(file, line=nil)
+      file = StringValue file
+
+      if line
+        line = Integer line
+      elsif m = /\A(.*):(\d+)\Z/.match(file)
+        file = m[1]
+        line = m[2].to_i
+      end
+
+      ary = []
+      ObjectSpace.find_object([:kind_of, Rubinius::CompiledMethod], ary)
+
+      methods = ary.find_all do |x|
+        x.scope and path = x.scope.absolute_active_path and \
+                    path.suffix?(file)
+      end
+
+      return methods unless line
+
+      methods.find_all { |x| x.first_ip_on_line(line) }
+    end
 
     ##
     # Is this actually a block of code?

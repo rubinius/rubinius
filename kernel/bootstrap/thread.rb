@@ -1,7 +1,7 @@
 class Thread
 
   def self.current
-    Ruby.primitive :thread_current
+    Rubinius.primitive :thread_current
     Kernel.raise PrimitiveFailure, "Threadcurrent primitive failed"
   end
 
@@ -10,45 +10,54 @@ class Thread
   end
 
   def self.pass
-    Ruby.primitive :thread_pass
+    Rubinius.primitive :thread_pass
     Kernel.raise PrimitiveFailure, "Thread#pass primitive failed"
   end
 
   def fork
-    Ruby.primitive :thread_fork
+    Rubinius.primitive :thread_fork
     Kernel.raise PrimitiveFailure, "Thread#fork primitive failed"
   end
 
   def raise_prim(exc)
-    Ruby.primitive :thread_raise
+    Rubinius.primitive :thread_raise
     Kernel.raise PrimitiveFailure, "Thread#raise primitive failed"
   end
 
   def wakeup
-    Ruby.primitive :thread_wakeup
+    Rubinius.primitive :thread_wakeup
     Kernel.raise ThreadError, "Thread#wakeup primitive failed, thread may be dead"
   end
 
   def priority
-    Ruby.primitive :thread_priority
+    Rubinius.primitive :thread_priority
     Kernel.raise ThreadError, "Unable to get Thread priority"
   end
 
   def priority=(val)
-    Ruby.primitive :thread_set_priority
+    Rubinius.primitive :thread_set_priority
     Kernel.raise ThreadError, "Unable to set Thread priority"
   end
 
   def __context__
-    Ruby.primitive :thread_context
+    Rubinius.primitive :thread_context
     Kernel.raise PrimitiveFailure, "Thread#__context__ failed"
   end
 
+  def native_join
+    Rubinius.primitive :thread_join
+    Kernel.raise PrimitiveFailure, "Thread#native_join failed"
+  end
 
-  # Don't move the code below here to common, it is entirely
-  # Rubinius specific in how we make Threads work.
-  #
-  # kernel/common/thread.rb is only for non-Rubinius specific code.
+  def self.set_critical(obj)
+    Rubinius.primitive :thread_set_critical
+    Kernel.raise PrimitiveFailure, "Thread.set_critical failed"
+  end
+
+  def unlock_locks
+    Rubinius.primitive :thread_unlock_locks
+    Kernel.raise PrimitiveFailure, "Thread#unlock_locks failed"
+  end
 
   class Die < Exception; end # HACK
 
@@ -75,8 +84,10 @@ class Thread
     stat = status()
     stat = "dead" unless stat
 
-    "#<#{self.class}:0x#{object_id.to_s(16)} #{stat}>"
+    "#<#{self.class}:0x#{object_id.to_s(16)} id=#{@thread_id} #{stat}>"
   end
+
+  alias_method :to_s, :inspect
 
   def self.new(*args)
     thr = Rubinius.invoke_primitive :thread_allocate, self
@@ -136,9 +147,16 @@ class Thread
     @args = args
     @block = block
 
-    Thread.current.group.add self
+    th_group = Thread.current.group
 
-    fork
+    th_group.add self
+
+    begin
+      fork
+    rescue Exception => e
+      th_group.remove self
+      raise e
+    end
   end
 
   alias_method :__thread_initialize__, :initialize
@@ -156,6 +174,7 @@ class Thread
         @result = @block.call(*@args)
       ensure
         @lock.receive
+        unlock_locks
         @joins.each { |join| join.send self }
       end
     rescue Die
@@ -247,6 +266,7 @@ class Thread
   end
 
   def self.critical=(value)
+    set_critical value
     @critical = !!value
   end
 
@@ -397,33 +417,4 @@ class Thread
 
   alias_method :run, :wakeup
 
-  class Context
-    attr_reader :ip
-    attr_reader :method
-    attr_reader :variables
-
-    def initialize(ip, method, variables)
-      @ip = ip
-      @method = method
-      @variables = variables
-    end
-
-    def file
-      @method.file
-    end
-
-    def line
-      @method.line_from_ip @ip
-    end
-
-    def locals
-      @variables.locals
-    end
-  end
-
-  def context
-    Context.new(*__context__)
-  end
-
-  alias_method :current_context, :context
 end

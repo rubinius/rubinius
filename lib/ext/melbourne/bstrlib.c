@@ -1629,7 +1629,7 @@ bstring auxr = (bstring) repl;
 			int sl;
 			int * t;
 			mlen += mlen;
-			sl = sizeof (int *) * mlen;
+			sl = (int)(sizeof (int *) * mlen);
 			if (static_d == d) d = NULL;
 			if (sl < mlen || NULL == (t = (int *) bstr__realloc (d, sl))) {
 				ret = BSTR_ERR;

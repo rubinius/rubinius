@@ -55,7 +55,7 @@ namespace config {
     virtual void set(const char* str) = 0;
     virtual void print_value(std::ostream& stream) = 0;
 
-    bool set_maybe(const char* key, const char* val) {
+    virtual bool set_maybe(const char* key, const char* val) {
       if(strcmp(name_, key) != 0) return false;
 
       set(val);
@@ -204,6 +204,81 @@ namespace config {
     }
 
     operator bool() const {
+      return value;
+    }
+  };
+
+  class Radio : public ConfigItem {
+  public:
+    int value;
+    int which;
+
+  private:
+    std::vector<const char*> names_;
+    std::vector<int> values_;
+
+  public:
+    Radio(Configuration* config, const char* name)
+      : ConfigItem(config, name)
+    {
+      value = 0;
+      which = -1;
+    }
+
+    int add(const char* name, int v, bool def=false) {
+      int w = names_.size();
+      names_.push_back(name);
+      values_.push_back(v);
+
+      if(def) {
+        value = v;
+        which = w;
+      }
+
+      return w;
+    }
+
+    virtual bool set_maybe(const char* key, const char* val) {
+      for(size_t i = 0; i < names_.size(); i++) {
+        if(strcmp(names_[i], key) == 0) {
+          which = i;
+          value = values_[i];
+          return true;
+        }
+      }
+
+      return ConfigItem::set_maybe(key, val);
+    }
+
+    virtual void set(const char* str) {
+      for(size_t i = 0; i < names_.size(); i++) {
+        if(strcmp(names_[i], str) == 0) {
+          which = i;
+          value = values_[i];
+          return;
+        }
+      }
+
+      which = -1;
+      value = 0;
+    }
+
+    virtual void print_value(std::ostream& stream) {
+      if(which < 0) {
+        stream << "<no value>";
+      } else {
+        stream << names_[which];
+      }
+
+      stream << " (possible:";
+      for(size_t i = 0; i < names_.size(); i++) {
+        stream << " " << names_[i];
+      }
+
+      stream << ")";
+    }
+
+    operator int() const {
       return value;
     }
   };

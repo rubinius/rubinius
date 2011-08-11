@@ -557,7 +557,9 @@ def print_node(f, id, data, depth=0)
   end
 
   prec = "%.2f" % [100.0 * (node["total"].to_f / data["runtime"].to_f)]
-  name = data["methods"][node["method"].to_s]["name"]
+
+  meth = data["methods"][node["method"].to_s]
+  name = "<a href=\"txmt://open?url=file://#{meth['file']}&line=#{meth['line']}\">#{meth['name']}</a>"
 
   color = prec.to_i / 10
 

@@ -1,25 +1,33 @@
+#include "vm/config.h"
+
 #include <iostream>
 
 #include <fcntl.h>
+#ifdef RBX_WINDOWS
+#include <winsock2.h>
+#include <ws2tcpip.h>
+#else
 #include <sys/ioctl.h>
 #include <sys/socket.h>
+#include <netdb.h>
+#include <sys/un.h>
+#endif
 #include <sys/types.h>
 #include <sys/time.h>
 #include <sys/types.h>
-#include <netdb.h>
-#include <sys/un.h>
 #ifdef __OpenBSD__
 #include <sys/uio.h>
 #endif
 
 #include "builtin/io.hpp"
+#include "builtin/array.hpp"
 #include "builtin/bytearray.hpp"
 #include "builtin/channel.hpp"
 #include "builtin/class.hpp"
 #include "builtin/exception.hpp"
 #include "builtin/fixnum.hpp"
+#include "builtin/array.hpp"
 #include "builtin/string.hpp"
-#include "builtin/bytearray.hpp"
 #include "primitives.hpp"
 
 #include "vm.hpp"
@@ -28,9 +36,9 @@
 #include "vm/object_utils.hpp"
 #include "vm/on_stack.hpp"
 
-#include "native_thread.hpp"
-
 #include "capi/handle.hpp"
+
+#include "windows_compat.h"
 
 namespace rubinius {
   void IO::init(STATE) {
@@ -45,7 +53,12 @@ namespace rubinius {
     IO* io = state->new_object<IO>(G(io));
     io->descriptor(state, Fixnum::from(fd));
 
+#ifdef RBX_WINDOWS
+    // TODO: Windows
+    int acc_mode = 0;
+#else
     int acc_mode = fcntl(fd, F_GETFL);
+#endif
     if(acc_mode < 0) {
       // Assume it's closed.
       if(errno == EBADF) {
@@ -117,7 +130,7 @@ namespace rubinius {
         native_int descriptor = io->to_fd();
         highest = descriptor > highest ? descriptor : highest;
 
-        if(descriptor >= 0) FD_SET(descriptor, set);
+        if(descriptor >= 0) FD_SET((int_fd_t)descriptor, set);
       }
 
       return highest;
@@ -215,8 +228,7 @@ namespace rubinius {
     state->thread->sleep(state, Qtrue);
 
     {
-      GlobalLock::UnlockGuard lock(state, calling_environment);
-
+      GCIndependent guard(state, calling_environment);
       events = ::select((highest + 1), maybe_read_set,
                                                   maybe_write_set,
                                                   maybe_error_set,
@@ -446,10 +458,14 @@ namespace rubinius {
   }
 
   void IO::set_mode(STATE) {
+#ifdef F_GETFL
     int acc_mode = fcntl(to_fd(), F_GETFL);
     if(acc_mode < 0) {
       Exception::errno_error(state);
     }
+#else
+    int acc_mode = 0;
+#endif
     mode(state, Fixnum::from(acc_mode));
   }
 
@@ -535,7 +551,7 @@ namespace rubinius {
     state->thread->sleep(state, Qtrue);
 
     {
-      GlobalLock::UnlockGuard lock(state, calling_environment);
+      GCIndependent guard(state, calling_environment);
       bytes_read = ::read(fd, buffer->byte_address(), count);
     }
 
@@ -570,7 +586,7 @@ namespace rubinius {
     FD_ZERO(&set);
 
     native_int fd = descriptor()->to_native();
-    FD_SET(fd, &set);
+    FD_SET((int_fd_t)fd, &set);
 
     struct timeval tv = {0,0};
     int res = ::select(fd+1, &set, 0, 0, &tv);
@@ -609,7 +625,7 @@ namespace rubinius {
 
   Object* IO::write(STATE, String* buf, CallFrame* call_frame) {
     native_int left = buf->size();
-    native_int data_size = as<ByteArray>(buf->data())->size();
+    native_int data_size = as<CharArray>(buf->data())->size();
     if(unlikely(left > data_size)) {
       left = data_size;
     }
@@ -619,8 +635,7 @@ namespace rubinius {
     bool error = false;
 
     {
-      GlobalLock::UnlockGuard guard(state, call_frame);
-
+      GCIndependent guard(state, call_frame);
       uint8_t* cur = bytes;
       while(left > 0) {
         ssize_t cnt = ::write(fd, cur, left);
@@ -632,7 +647,7 @@ namespace rubinius {
             // Pause before continuing
             fd_set fds;
             FD_ZERO(&fds);
-            FD_SET(fd, &fds);
+            FD_SET((int_fd_t)fd, &fds);
 
             ::select(fd+1, NULL, &fds, NULL, NULL);
 
@@ -665,7 +680,7 @@ namespace rubinius {
     set_nonblock(state);
 
     native_int buf_size = buf->size();
-    native_int data_size = as<ByteArray>(buf->data())->size();
+    native_int data_size = as<CharArray>(buf->data())->size();
     if(unlikely(buf_size > data_size)) {
       buf_size = data_size;
     }
@@ -745,6 +760,7 @@ namespace rubinius {
     return ary;
   }
 
+#ifndef RBX_WINDOWS
   static const char* unixpath(struct sockaddr_un *sockaddr, socklen_t len) {
     if (sockaddr->sun_path < (char*)sockaddr + len) {
       return sockaddr->sun_path;
@@ -758,6 +774,7 @@ namespace rubinius {
     ary->set(state, 1, String::create(state, unixpath(addr, len)));
     return ary;
   }
+#endif
 
   Object* IO::socket_read(STATE, Fixnum* bytes, Fixnum* flags, Fixnum* type,
                           CallFrame* calling_environment) {
@@ -777,9 +794,9 @@ namespace rubinius {
     state->thread->sleep(state, Qtrue);
 
     {
-      GlobalLock::UnlockGuard lock(state, calling_environment);
+      GCIndependent guard(state, calling_environment);
       bytes_read = recvfrom(descriptor()->to_native(),
-                            buffer->byte_address(), size,
+                            (char*)buffer->byte_address(), size,
                             flags->to_native(),
                             (struct sockaddr*)buf, &alen);
     }
@@ -816,9 +833,11 @@ namespace rubinius {
         ary->set(state, 1, Qnil);
       }
       break;
+#ifndef RBX_WINDOWS
     case 2: // unix
       ary->set(state, 1, unixaddr(state, (struct sockaddr_un*)buf, alen));
       break;
+#endif
     default:
       ary->set(state, 1, String::create(state, buf, alen));
     }
@@ -833,11 +852,13 @@ namespace rubinius {
 
     if(op == state->symbol("tty?")) {
       return isatty(fd) ? Qtrue : Qfalse;
+#ifndef RBX_WINDOWS
     } else if(op == state->symbol("ttyname")) {
       return String::create(state, ttyname(fd));
-    } else {
-      return Qnil;
+#endif
     }
+
+    return Qnil;
   }
 
   // Stole/ported from 1.8.7. The system fnmatch doesn't support
@@ -1045,7 +1066,7 @@ failed: /* try next '*' position */
     state->thread->sleep(state, Qtrue);
 
     {
-      GlobalLock::UnlockGuard lock(state, calling_environment);
+      GCIndependent guard(state, calling_environment);
       new_fd = ::accept(fd, (struct sockaddr*)&socka, &sock_len);
       set = true;
     }
@@ -1157,7 +1178,7 @@ failed: /* try next '*' position */
     state->thread->sleep(state, Qtrue);
 
     {
-      GlobalLock::UnlockGuard lock(state, calling_environment);
+      GCIndependent guard(state);
       code = recvmsg(read_fd, &msg, 0);
     }
 
@@ -1187,8 +1208,12 @@ failed: /* try next '*' position */
   }
 
   void IO::set_nonblock(STATE) {
+#ifdef F_GETFL
     int flags = fcntl(descriptor_->to_native(), F_GETFL);
     if(flags == -1) return;
+#else
+    int flags = 0;
+#endif
 
     if((flags & O_NONBLOCK) == 0) {
       flags |= O_NONBLOCK;
@@ -1199,7 +1224,7 @@ failed: /* try next '*' position */
 /* IOBuffer methods */
   IOBuffer* IOBuffer::create(STATE, size_t bytes) {
     IOBuffer* buf = state->new_object<IOBuffer>(G(iobuffer));
-    buf->storage(state, ByteArray::create(state, bytes));
+    buf->storage(state, CharArray::create(state, bytes));
     buf->channel(state, Channel::create(state));
     buf->total(state, Fixnum::from(bytes));
     buf->used(state, Fixnum::from(0));
@@ -1220,7 +1245,7 @@ failed: /* try next '*' position */
     write_synced(state, Qfalse);
     native_int start_pos_native = start_pos->to_native();
     native_int str_size = str->size();
-    native_int data_size = as<ByteArray>(str->data())->size();
+    native_int data_size = as<CharArray>(str->data())->size();
     if(unlikely(str_size > data_size)) {
       str_size = data_size;
     }
@@ -1255,7 +1280,7 @@ failed: /* try next '*' position */
     state->thread->sleep(state, Qtrue);
 
     {
-      GlobalLock::UnlockGuard lock(state, calling_environment);
+      GCIndependent guard(state, calling_environment);
       bytes_read = read(fd, temp_buffer, count);
     }
 

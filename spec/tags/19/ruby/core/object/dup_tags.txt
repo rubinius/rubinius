@@ -1,0 +1,1 @@
+fails:Object#dup preserves untrusted state from the original

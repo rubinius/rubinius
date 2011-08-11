@@ -5,21 +5,21 @@ end
 
 module FFI
   def self.generate_function(ptr, name, args, ret)
-    Ruby.primitive :nativefunction_generate
+    Rubinius.primitive :nativefunction_generate
     raise PrimitiveFailure, "FFI.generate_function failed"
   end
 
   def self.generate_trampoline(obj, name, args, ret)
-    Ruby.primitive :nativefunction_generate_tramp
+    Rubinius.primitive :nativefunction_generate_tramp
     raise PrimitiveFailure, "FFI.generate_function_tramp failed"
   end
 
   module Library
 
-    case Rubinius::OS_TYPE
-    when :windows
+    case
+    when Rubinius.windows?
       LIBC = "msvcrt.dll"
-    when :darwin
+    when Rubinius.darwin?
       LIBC = "libc.dylib"
     else
       LIBC = "libc#{Rubinius::LIBSUFFIX}.6"
@@ -109,22 +109,43 @@ module FFI
         end
       end
 
-      raise FFI::NotFoundError, "Unable to find '#{cname}'"
+      ffi_function_missing cname, mname, args, ret
     end
+
+    # Generic error method attached in place of missing foreign functions
+    # during kernel loading. See kernel/delta/ffi.rb for a version that raises
+    # immediately if the foreign function is unavaiblable.
+    def ffi_function_not_implemented(*args)
+      raise NotImplementedError, "function not implemented on this platform"
+    end
+
+    # Protocol for attaching foregin functions. If #attach_function fails to
+    # find a foreign function, this method will be called. Client code can
+    # provide an override to customize features.
+    def ffi_function_missing(cname, mname, args, ret)
+      if func = Rubinius.find_method(self, :ffi_function_not_implemented)
+        func = func[0].dup
+        func.name = cname.to_sym
+        add_function mname, func
+      end
+    end
+
+    def add_function(name, func)
+      # Make it available as a method callable directly..
+      sc = Rubinius::Type.object_singleton_class(self)
+      sc.method_table.store name, func, :public
+
+      # and expose it as a private method for people who
+      # want to include this module.
+      method_table.store name, func, :private
+    end
+    private :add_function
 
     def pointer_as_function(name, ptr, args, ret)
       args.map! { |a| find_type a }
 
       if func = FFI.generate_function(ptr, name.to_sym, args, find_type(ret))
-
-        # Make it available as a method callable directly..
-        sc = Rubinius::Type.object_singleton_class(self)
-        sc.method_table.store name, func, :public
-
-        # and expose it as a private method for people who
-        # want to include this module.
-        method_table.store name, func, :private
-
+        add_function name, func
         return func
       end
 
@@ -189,10 +210,17 @@ module FFI
     pointer_as_function :open_library, FFI::Pointer::DLOPEN, [:string, :int], :pointer
     pointer_as_function :last_error, FFI::Pointer::DLERROR, [], :string
 
-    RTLD_LAZY   = Rubinius::Config['rbx.platform.dlopen.RTLD_LAZY']
-    RTLD_NOW    = Rubinius::Config['rbx.platform.dlopen.RTLD_NOW']
-    RTLD_GLOBAL = Rubinius::Config['rbx.platform.dlopen.RTLD_GLOBAL']
-    RTLD_LOCAL  = Rubinius::Config['rbx.platform.dlopen.RTLD_LOCAL']
+    if Rubinius.windows?
+      RTLD_LAZY   = 0
+      RTLD_NOW    = 0
+      RTLD_GLOBAL = 0
+      RTLD_LOCAL  = 0
+    else
+      RTLD_LAZY   = Rubinius::Config['rbx.platform.dlopen.RTLD_LAZY']
+      RTLD_NOW    = Rubinius::Config['rbx.platform.dlopen.RTLD_NOW']
+      RTLD_GLOBAL = Rubinius::Config['rbx.platform.dlopen.RTLD_GLOBAL']
+      RTLD_LOCAL  = Rubinius::Config['rbx.platform.dlopen.RTLD_LOCAL']
+    end
 
     class << self
       alias_method :open, :new

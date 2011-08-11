@@ -14,6 +14,8 @@
 #include "objectmemory.hpp"
 #include "primitives.hpp"
 
+#include "windows_compat.h"
+
 #include <gdtoa.h>
 
 #include <unistd.h>
@@ -30,7 +32,7 @@ namespace rubinius {
   }
 
   /* Creates a String instance with +num_bytes+ == +size+ and
-   * having a ByteArray with at least (size + 1) bytes.
+   * having a CharArray with at least (size + 1) bytes.
    */
   String* String::create(STATE, Fixnum* size) {
     String *so;
@@ -43,7 +45,7 @@ namespace rubinius {
     so->shared(state, Qfalse);
 
     native_int bytes = size->to_native() + 1;
-    ByteArray* ba = ByteArray::create(state, bytes);
+    CharArray* ba = CharArray::create(state, bytes);
     ba->raw_bytes()[bytes-1] = 0;
 
     so->data(state, ba);
@@ -61,7 +63,7 @@ namespace rubinius {
     so->hash_value(state, nil<Fixnum>());
     so->shared(state, Qfalse);
 
-    ByteArray* ba = ByteArray::create(state, bytes+1);
+    CharArray* ba = CharArray::create(state, bytes+1);
     ba->raw_bytes()[bytes] = 0;
 
     so->data(state, ba);
@@ -71,7 +73,7 @@ namespace rubinius {
 
   /*
    * Creates a String instance with +num_bytes+ bytes of storage.
-   * It also pins the ByteArray used for storage, so it can be passed
+   * It also pins the CharArray used for storage, so it can be passed
    * to an external function (like ::read)
    */
   String* String::create_pinned(STATE, Fixnum* size) {
@@ -85,7 +87,7 @@ namespace rubinius {
     so->shared(state, Qfalse);
 
     native_int bytes = size->to_native() + 1;
-    ByteArray* ba = ByteArray::create_pinned(state, bytes);
+    CharArray* ba = CharArray::create_pinned(state, bytes);
     ba->raw_bytes()[bytes-1] = 0;
 
     so->data(state, ba);
@@ -115,7 +117,7 @@ namespace rubinius {
     return so;
   }
 
-  String* String::from_bytearray(STATE, ByteArray* ba, Fixnum* start,
+  String* String::from_chararray(STATE, CharArray* ca, Fixnum* start,
                                  Fixnum* count)
   {
     String* s = state->new_object<String>(G(string));
@@ -126,7 +128,7 @@ namespace rubinius {
     s->shared(state, Qfalse);
 
     // fetch_bytes NULL terminates
-    s->data(state, ba->fetch_bytes(state, start, count));
+    s->data(state, ca->fetch_bytes(state, start, count));
 
     return s;
   }
@@ -206,8 +208,8 @@ namespace rubinius {
   Object* String::secure_compare(STATE, String* other) {
     native_int s1 = num_bytes()->to_native();
     native_int s2 = other->num_bytes()->to_native();
-    native_int d1 = as<ByteArray>(data_)->size();
-    native_int d2 = as<ByteArray>(other->data_)->size();
+    native_int d1 = as<CharArray>(data_)->size();
+    native_int d2 = as<CharArray>(other->data_)->size();
 
     if(unlikely(s1 > d1)) {
       s1 = d1;
@@ -256,7 +258,7 @@ namespace rubinius {
   void String::unshare(STATE) {
     if(shared_ == Qtrue) {
       if(data_->reference_p()) {
-        data(state, as<ByteArray>(data_->duplicate(state)));
+        data(state, as<CharArray>(data_->duplicate(state)));
       }
       shared(state, Qfalse);
     }
@@ -265,7 +267,7 @@ namespace rubinius {
   String* String::append(STATE, String* other) {
     // Clamp the length of the other string to the maximum byte array size
     native_int length = other->size();
-    native_int data_length = as<ByteArray>(other->data_)->size();
+    native_int data_length = as<CharArray>(other->data_)->size();
     if(unlikely(length > data_length)) {
       length = data_length;
     }
@@ -280,7 +282,7 @@ namespace rubinius {
 
   String* String::append(STATE, const char* other, native_int length) {
     native_int current_size = size();
-    native_int data_size = as<ByteArray>(data_)->size();
+    native_int data_size = as<CharArray>(data_)->size();
 
     // Clamp the string size the maximum underlying byte array size
     if(unlikely(current_size > data_size)) {
@@ -297,11 +299,11 @@ namespace rubinius {
         capacity *= 2;
       } while(capacity < new_size + 1);
 
-      // No need to call unshare and duplicate a ByteArray
+      // No need to call unshare and duplicate a CharArray
       // just to throw it away.
       if(shared_ == Qtrue) shared(state, Qfalse);
 
-      ByteArray* ba = ByteArray::create(state, capacity);
+      CharArray* ba = CharArray::create(state, capacity);
       memcpy(ba->raw_bytes(), byte_address(), current_size);
       data(state, ba);
     } else {
@@ -331,9 +333,9 @@ namespace rubinius {
       Exception::argument_error(state, "too large byte array size");
     }
 
-    ByteArray* ba = ByteArray::create(state, sz + 1);
+    CharArray* ba = CharArray::create(state, sz + 1);
     native_int copy_size = sz;
-    native_int data_size = as<ByteArray>(data_)->size();
+    native_int data_size = as<CharArray>(data_)->size();
 
     // Check that we don't copy any data outside the existing byte array
     if(unlikely(copy_size > data_size)) {
@@ -499,7 +501,7 @@ namespace rubinius {
 
   Fixnum* String::tr_replace(STATE, struct tr_data* tr_data) {
     if(tr_data->last + 1 > (native_int)size() || shared_->true_p()) {
-      ByteArray* ba = ByteArray::create(state, tr_data->last + 1);
+      CharArray* ba = CharArray::create(state, tr_data->last + 1);
 
       data(state, ba);
       shared(state, Qfalse);
@@ -533,7 +535,7 @@ namespace rubinius {
     uint8_t* in_p = byte_address();
 
     native_int str_size = size();
-    native_int data_size = as<ByteArray>(data_)->size();
+    native_int data_size = as<CharArray>(data_)->size();
     if(unlikely(str_size > data_size)) {
       str_size = data_size;
     }
@@ -649,7 +651,7 @@ namespace rubinius {
     // This bounds checks on the total capacity rather than the virtual
     // size() of the String. This allows for string adjustment within
     // the capacity without having to change the virtual size first.
-    native_int sz = as<ByteArray>(data_)->size();
+    native_int sz = as<CharArray>(data_)->size();
     if(dst >= sz) return this;
     if(dst < 0) dst = 0;
     if(cnt > sz - dst) cnt = sz - dst;
@@ -666,8 +668,8 @@ namespace rubinius {
     native_int cnt = size->to_native();
     native_int sz = this->size();
     native_int osz = other->size();
-    native_int dsz = as<ByteArray>(data_)->size();
-    native_int odsz = as<ByteArray>(other->data_)->size();
+    native_int dsz = as<CharArray>(data_)->size();
+    native_int odsz = as<CharArray>(other->data_)->size();
 
     if(unlikely(sz > dsz)) {
       sz = dsz;
@@ -960,7 +962,7 @@ return_value:
     native_int start = start_f->to_native();
     native_int count = count_f->to_native();
     native_int total = num_bytes_->to_native();
-    native_int data_size = as<ByteArray>(data_)->size();
+    native_int data_size = as<CharArray>(data_)->size();
 
     // Clamp the string size the maximum underlying byte array size
     if(unlikely(total > data_size)) {

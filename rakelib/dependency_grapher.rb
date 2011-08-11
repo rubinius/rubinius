@@ -20,6 +20,8 @@
 require 'set'
 
 class DependencyGrapher
+  DEV_NULL = RUBY_PLATFORM =~ /mingw|mswin/ ? 'NUL' : '/dev/null'
+
   class ExpressionEvaluator
     def initialize(expression)
       @expression = expression
@@ -86,10 +88,11 @@ class DependencyGrapher
 
     attr_reader :name, :object_name, :includes, :dependencies
 
-    def initialize(name, parser)
+    def initialize(name, parser, objects_dir=nil)
       super parser
       @name = name
       @object_name = name.sub(/((c(pp)?)|S)$/, 'o')
+      @objects_dir = objects_dir
       @includes = []
     end
 
@@ -108,10 +111,14 @@ class DependencyGrapher
 
     def print_dependencies(out, max)
       str = "#{@object_name}:"
+      str = "#{@objects_dir}/#{str}" if @objects_dir
       out.print str
 
       width = str.size
       @dependencies.each do |name|
+        # Omit drive letter on Windows.
+        name = name[2..-1] if name[1] == ?:
+
         size = name.size + 1
         if width + size > max
           width = 0
@@ -385,7 +392,7 @@ class DependencyGrapher
     end
   end
 
-  attr_accessor :file_names, :directories, :defines, :system_defines
+  attr_accessor :file_names, :directories, :defines, :system_defines, :objects_dir
   attr_reader :sources
 
   def initialize(files, directories=[], defines=nil)
@@ -393,12 +400,13 @@ class DependencyGrapher
     @directories = directories
     @defines = defines
 
+    @objects_dir = nil
     @system_defines = {}
     @sources = []
   end
 
   def get_system_defines
-    lines = `cpp -dM #{@defines} /dev/null`.split("\n")
+    lines = `cpp -dM #{@defines} #{DEV_NULL}`.split("\n")
 
     source = SourceFile.new "sytem_defines", self
     parser = FileParser.new source, @directories
@@ -411,7 +419,7 @@ class DependencyGrapher
     get_system_defines
 
     @file_names.each do |name|
-      source = SourceFile.new name, self
+      source = SourceFile.new name, self, @objects_dir
       parser = FileParser.new source, @directories
 
       parser.parse_file name

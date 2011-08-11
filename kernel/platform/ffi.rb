@@ -41,7 +41,7 @@ module FFI
     # takes up on this platform.
 
     def type_size(type)
-      Ruby.primitive :nativefunction_type_size
+      Rubinius.primitive :nativefunction_type_size
 
       case type
       when Symbol

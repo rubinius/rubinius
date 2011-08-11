@@ -49,6 +49,7 @@ namespace rubinius {
 
     native_int total_args;
     native_int required_args;
+    native_int post_args;
     native_int splat_position;
 
     native_int stack_size;
@@ -79,7 +80,7 @@ namespace rubinius {
 
     VMMethod(STATE, CompiledMethod* meth);
     virtual ~VMMethod();
-    virtual void cleanup(CodeManager* cm);
+    virtual void cleanup(STATE, CodeManager* cm);
     virtual int size();
 
 #ifdef ENABLE_LLVM
@@ -163,10 +164,10 @@ namespace rubinius {
 
     void specialize(STATE, CompiledMethod* original, TypeInfo* ti);
     void compile(STATE);
-    static Object* execute(STATE, CallFrame* call_frame, Dispatch& msg, Arguments& args);
+    static Object* execute(STATE, CallFrame* call_frame, Executable* exec, Module* mod, Arguments& args);
 
     template <typename ArgumentHandler>
-      static Object* execute_specialized(STATE, CallFrame* call_frame, Dispatch& msg, Arguments& args);
+      static Object* execute_specialized(STATE, CallFrame* call_frame, Executable* exec, Module* mod, Arguments& args);
 
     Object* execute_as_script(STATE, CompiledMethod*cm, CallFrame* previous);
 

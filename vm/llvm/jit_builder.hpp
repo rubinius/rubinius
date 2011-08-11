@@ -24,7 +24,8 @@ namespace jit {
 
     llvm::Value* vm;
     llvm::Value* prev;
-    llvm::Value* msg;
+    llvm::Value* exec;
+    llvm::Value* module;
     llvm::Value* args;
     llvm::Value* block_env;
     llvm::Value* block_inv;
@@ -58,6 +59,9 @@ namespace jit {
     llvm::BasicBlock* method_body_;
 
     JITMethodInfo& info_;
+
+  protected:
+    llvm::Value* counter2_;
 
   public:
 

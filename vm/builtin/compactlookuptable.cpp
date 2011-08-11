@@ -20,7 +20,7 @@ namespace rubinius {
 
   CompactLookupTable* CompactLookupTable::create(STATE) {
     size_t bytes;
-    CompactLookupTable* tbl = state->om->new_object_variable<CompactLookupTable>
+    CompactLookupTable* tbl = state->new_object_variable<CompactLookupTable>
       (G(compactlookuptable), COMPACTLOOKUPTABLE_SIZE, bytes);
     tbl->full_size_ = bytes;
     return tbl;

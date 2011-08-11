@@ -55,7 +55,7 @@ namespace rubinius {
 
   Object* CallUnit::constant_value_executor(STATE, CallFrame* call_frame,
                                             CallUnit* unit,
-                                            Dispatch& msg,
+                                            Executable* exec, Module* mod,
                                             Arguments& args)
   {
     return unit->value();
@@ -63,33 +63,32 @@ namespace rubinius {
 
   Object* CallUnit::method_executor(STATE, CallFrame* call_frame,
                                             CallUnit* unit,
-                                            Dispatch& msg,
+                                            Executable* exec, Module* mod,
                                             Arguments& args)
   {
-    msg.method = unit->executable();
-    msg.name = unit->name();
-    msg.module = unit->module();
-    return unit->executable()->execute(state, call_frame, msg, args);
+    args.set_name(unit->name());
+    return unit->executable()->execute(state, call_frame,
+                                 unit->executable(), unit->module(), args);
   }
 
   Object* CallUnit::test_executor(STATE, CallFrame* call_frame,
                                             CallUnit* unit,
-                                            Dispatch& msg,
+                                            Executable* exec, Module* mod,
                                             Arguments& args)
   {
     Object* ret = unit->test_condition()->execute(
-             state, call_frame, unit->test_condition(), msg, args);
+             state, call_frame, unit->test_condition(), exec, mod, args);
     if(!ret) return ret;
     if(RTEST(ret)) {
-      return unit->test_then()->execute(state, call_frame, unit->test_then(), msg, args);
+      return unit->test_then()->execute(state, call_frame, unit->test_then(), exec, mod, args);
     } else {
-      return unit->test_else()->execute(state, call_frame, unit->test_else(), msg, args);
+      return unit->test_else()->execute(state, call_frame, unit->test_else(), exec, mod, args);
     }
   }
 
   Object* CallUnit::kind_of_executor(STATE, CallFrame* call_frame,
                                             CallUnit* unit,
-                                            Dispatch& msg,
+                                            Executable* exec, Module* mod,
                                             Arguments& args)
   {
     Object* obj;

@@ -49,6 +49,8 @@ namespace rubinius {
     Integer* bins_;    // slot
     Integer* entries_; // slot
 
+    void   redistribute(STATE, size_t size);
+
   public:
     /* accessors */
 
@@ -61,30 +63,28 @@ namespace rubinius {
     static MethodTable* create(STATE, size_t sz = METHODTABLE_MIN_SIZE);
     void setup(STATE, size_t sz);
 
-    // Ruby.primitive :methodtable_allocate
+    // Rubinius.primitive :methodtable_allocate
     static MethodTable* allocate(STATE, Object* self);
 
-    // Ruby.primitive :methodtable_store
+    // Rubinius.primitive :methodtable_store
     Object* store(STATE, Symbol* name, Object* meth, Symbol* vis);
 
-    // Ruby.primitive :methodtable_alias
+    // Rubinius.primitive :methodtable_alias
     Object* alias(STATE, Symbol* name, Symbol* vis, Symbol* orig_name, Object* orig_method, Module* orig_mod);
 
-    // Ruby.primitive :methodtable_duplicate
+    // Rubinius.primitive :methodtable_duplicate
     MethodTable* duplicate(STATE);
-
-    void   redistribute(STATE, size_t size);
 
     MethodTableBucket* find_entry(STATE, Symbol* name);
     MethodTableBucket* find_entry(Symbol* name);
 
-    // Ruby.primitive :methodtable_lookup
+    // Rubinius.primitive :methodtable_lookup
     MethodTableBucket* lookup(STATE, Symbol* name);
 
-    // Ruby.primitive :methodtable_delete
+    // Rubinius.primitive :methodtable_delete
     Executable* remove(STATE, Symbol* name);
 
-    // Ruby.primitive :methodtable_has_name
+    // Rubinius.primitive :methodtable_has_name
     Object* has_name(STATE, Symbol* name);
 
     class Info : public TypeInfo {

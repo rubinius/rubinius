@@ -24,8 +24,7 @@ namespace rubinius {
 
         for(int i = 0; i < cache_->classes_seen(); i++) {
           context_.inline_log("class")
-            << ops_.state()->symbol_cstr(cache_->tracked_class(i)->name())
-            << " " << cache_->tracked_class_hits(i) << "\n";
+            << ops_.state()->symbol_cstr(cache_->tracked_class(i)->name()) << "\n";
         }
       }
 
@@ -403,7 +402,7 @@ remember:
                                        "select ivar");
 
           if(ops_.state()->config().jit_inline_debug) {
-            ops_.state()->log() << " (packed index: " << index << ")";
+            ops_.state()->log() << " (packed index: " << index << ", " << offset << ")";
           }
         }
       }
@@ -438,7 +437,7 @@ remember:
                                       CompiledMethod* cm, VMMethod* vmm) {
     context_.enter_inline();
     Value* self = recv();
-    ops_.check_class(self, klass, failure());
+    int class_id = ops_.check_class(self, klass, failure());
 
     JITMethodInfo info(context_, cm, vmm);
     info.set_parent_info(ops_.info());
@@ -447,6 +446,9 @@ remember:
     info.called_args = count_;
     info.root = ops_.root_method_info();
     info.set_inline_block(inline_block_);
+    info.self_class_id = class_id;
+
+    info.set_self_class(klass);
 
     jit::RuntimeData* rd = new jit::RuntimeData(cm, cache_->name, defined_in);
     context_.add_runtime_data(rd);
@@ -473,7 +475,9 @@ remember:
 
     BasicBlock* entry = work.setup_inline(self, blk, args);
 
-    if(!work.generate_body()) { abort(); }
+    if(!work.generate_body()) {
+      rubinius::bug("LLVM failed to compile a function");
+    }
 
     // Branch to the inlined method!
     ops_.create_branch(entry);
@@ -502,6 +506,7 @@ remember:
     info.set_creator_info(creator_info_);
     info.set_inline_block(inline_block_);
     info.set_block_info(block_info_);
+    info.self_class_id = ops_.info().self_class_id;
 
     jit::RuntimeData* rd = new jit::RuntimeData(ib->method(), nil<Symbol>(), nil<Module>());
     context_.add_runtime_data(rd);
@@ -521,9 +526,11 @@ remember:
     if(ib->code()->call_count >= 0) ib->code()->call_count /= 2;
 
     BasicBlock* entry = work.setup_inline_block(self,
-        ops_.constant(Qnil, ops_.state()->ptr_type("Module")));
+        ops_.constant(Qnil, ops_.state()->ptr_type("Module")), args);
 
-    if(!work.generate_body()) { abort(); }
+    if(!work.generate_body()) {
+      rubinius::bug("LLVM failed to compile a function");
+    }
 
     // Branch to the inlined block!
     ops_.create_branch(entry);
@@ -757,7 +764,7 @@ remember:
       }
 
       default:
-        abort();
+        rubinius::bug("Unknown FFI type in JIT FFI inliner");
       }
     }
 
@@ -883,9 +890,7 @@ remember:
 
     default:
       result = 0;
-      std::cout << "Invalid return type.\n";
-      abort();
-
+      rubinius::bug("Invalid FFI type in JIT");
     }
 
     exception_safe();

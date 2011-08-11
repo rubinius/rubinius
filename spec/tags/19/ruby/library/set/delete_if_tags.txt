@@ -1,0 +1,1 @@
+fails:Set#delete_if returns an Enumerator when passed no block

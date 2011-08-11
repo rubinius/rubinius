@@ -1,8 +1,6 @@
 Daedalus.blueprint do |i|
   gcc = i.gcc!
 
-  system_includes = "-I/usr/local/include -I/opt/local/include"
-
   gcc.cflags << "-Ivm -Ivm/test/cxxtest -I. "
   gcc.cflags << "-pipe -Wall -fno-omit-frame-pointer"
   gcc.cflags << "-ggdb3 -Werror"
@@ -40,7 +38,10 @@ Daedalus.blueprint do |i|
   end
 
   gcc.ldflags << "-lstdc++" << "-lm"
-  gcc.ldflags << "-L/usr/local/lib -L/opt/local/lib"
+
+  %w[ /usr/local/lib /opt/local/lib ].each do |path|
+    gcc.ldflags << "-L#{path}" if File.exists? path
+  end
 
   make = "make"
 
@@ -57,7 +58,7 @@ Daedalus.blueprint do |i|
   when /haiku/i
     gcc.ldflags << "-ldl" << "-lnetwork"
   when /bsd/i
-    gcc.ldflags << "-lcrypt" << "-rdynamic"
+    gcc.ldflags << "-ldl" << "-lcrypt" << "-rdynamic"
     make = "gmake"
   when /mingw|win32/i
     gcc.ldflags << "-lws2_32"
@@ -82,12 +83,12 @@ Daedalus.blueprint do |i|
   # Libraries
   case Rubinius::BUILD_CONFIG[:llvm]
   when :prebuilt, :svn
-    llvm = i.external_lib "vm/external_libs/llvm" do |l|
-      conf = "vm/external_libs/llvm/Release/bin/llvm-config"
+    llvm = i.external_lib "vendor/llvm" do |l|
+      conf = "vendor/llvm/Release/bin/llvm-config"
       flags = `#{perl} #{conf} --cflags`.strip.split(/\s+/)
       flags.delete_if { |x| x.index("-O") == 0 || x.index("-I") == 0 }
       flags.delete_if { |x| x =~ /-D__STDC/ }
-      flags << "-Ivm/external_libs/llvm/include" << "-DENABLE_LLVM"
+      flags << "-Ivendor/llvm/include" << "-DENABLE_LLVM"
       l.cflags = flags
 
       ldflags = `#{perl} #{conf} --ldflags`.strip
@@ -123,67 +124,86 @@ Daedalus.blueprint do |i|
     raise "get out"
   end
 
-  ltm = i.external_lib "vm/external_libs/libtommath" do |l|
-    l.cflags = ["-Ivm/external_libs/libtommath"]
+  ltm = i.external_lib "vendor/libtommath" do |l|
+    l.cflags = ["-Ivendor/libtommath"]
     l.objects = [l.file("libtommath.a")]
     l.to_build do |x|
       x.command make
     end
   end
 
-  onig = i.external_lib "vm/external_libs/onig" do |l|
-    l.cflags = ["-Ivm/external_libs/onig"]
+  onig = i.external_lib "vendor/onig" do |l|
+    l.cflags = ["-Ivendor/onig"]
     l.objects = [l.file(".libs/libonig.a")]
     l.to_build do |x|
-      x.command "./configure" unless File.exists?("Makefile")
+      x.command "sh -c ./configure" unless File.exists?("Makefile")
       x.command make
     end
   end
 
-  gdtoa = i.external_lib "vm/external_libs/libgdtoa" do |l|
-    l.cflags = ["-Ivm/external_libs/libgdtoa"]
+  gdtoa = i.external_lib "vendor/libgdtoa" do |l|
+    l.cflags = ["-Ivendor/libgdtoa"]
     l.objects = [l.file("libgdtoa.a")]
     l.to_build do |x|
       x.command make
     end
   end
 
-  ffi = i.external_lib "vm/external_libs/libffi" do |l|
-    l.cflags = ["-Ivm/external_libs/libffi/include"]
+  ffi = i.external_lib "vendor/libffi" do |l|
+    l.cflags = ["-Ivendor/libffi/include"]
     l.objects = [l.file(".libs/libffi.a")]
     l.to_build do |x|
-      x.command "./configure" unless File.exists?("Makefile")
+      x.command "sh -c ./configure" unless File.exists?("Makefile")
       x.command make
     end
   end
 
-  udis = i.external_lib "vm/external_libs/udis86" do |l|
-    l.cflags = ["-Ivm/external_libs/udis86"]
+  udis = i.external_lib "vendor/udis86" do |l|
+    l.cflags = ["-Ivendor/udis86"]
     l.objects = [l.file("libudis86/.libs/libudis86.a")]
     l.to_build do |x|
       unless File.exists?("Makefile") and File.exists?("libudis86/Makefile")
-        x.command "./configure"
+        x.command "sh -c ./configure"
       end
-
       x.command make
     end
   end
 
+  if Rubinius::BUILD_CONFIG[:vendor_zlib]
+    zlib = i.external_lib "vendor/zlib" do |l|
+      l.cflags = ["-Ivendor/zlib"]
+      l.objects = []
+      l.to_build do |x|
+        unless File.exists?("Makefile") and File.exists?("zconf.h")
+          x.command "sh -c ./configure"
+        end
 
+        if Rubinius::BUILD_CONFIG[:windows]
+          x.command "make -f win32/Makefile.gcc"
+        else
+          x.command make
+        end
+      end
+    end
+  end
+
+  gcc.add_library zlib if Rubinius::BUILD_CONFIG[:vendor_zlib]
   gcc.add_library udis
   gcc.add_library ffi
   gcc.add_library gdtoa
   gcc.add_library onig
   gcc.add_library ltm
 
-  gcc.cflags << system_includes + " "
+  %w[ /usr/local/include /opt/local/include ].each do |path|
+    gcc.cflags << "-I#{path} " if File.exists? path
+  end
 
   if Rubinius::BUILD_CONFIG[:windows]
-    winp = i.external_lib "vm/external_libs/winpthreads" do |l|
-      l.cflags = ["-Ivm/external_libs/winpthreads/include"]
+    winp = i.external_lib "vendor/winpthreads" do |l|
+      l.cflags = ["-Ivendor/winpthreads/include"]
       l.objects = [l.file("libpthread.a")]
       l.to_build do |x|
-        x.command "./configure" unless File.exists?("Makefile")
+        x.command "sh -c ./configure" unless File.exists?("Makefile")
         x.command make
       end
     end
@@ -193,7 +213,7 @@ Daedalus.blueprint do |i|
     files << winp
   end
 
-
+  files << zlib if Rubinius::BUILD_CONFIG[:vendor_zlib]
   files << udis
   files << ffi
   files << gdtoa

@@ -8,7 +8,8 @@ namespace jit {
       : InlineMethodBuilder(ls, info, rd)
     {}
 
-    llvm::BasicBlock* setup_inline_block(llvm::Value* self, llvm::Value* mod);
+    llvm::BasicBlock* setup_inline_block(llvm::Value* self, llvm::Value* mod,
+                                         JITStackArgs& stack_args);
   };
 }
 }

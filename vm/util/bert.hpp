@@ -5,7 +5,12 @@
 #include <unistd.h>
 #include <assert.h>
 #include <stdlib.h>
+#include <stdint.h>
+#ifdef RBX_WINDOWS
+#include <winsock2.h>
+#else
 #include <arpa/inet.h>
+#endif
 #include <string.h>
 
 #include <stdio.h>

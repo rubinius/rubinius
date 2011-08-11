@@ -1,0 +1,1 @@
+fails:Module#class_variable_set raises a RuntimeError when self is frozen

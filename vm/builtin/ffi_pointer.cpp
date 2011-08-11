@@ -1,11 +1,16 @@
+#include "vm/config.h"
 
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdint.h>
 #include <unistd.h>
 #include <sys/stat.h>
+#ifdef RBX_WINDOWS
+#include <winsock2.h>
+#else
 #include <dlfcn.h>
 #include <arpa/inet.h>
+#endif
 
 #include "vm.hpp"
 #include "oop.hpp"
@@ -24,6 +29,8 @@
 #include "ffi_util.hpp"
 #include "arguments.hpp"
 #include "dispatch.hpp"
+
+#include "windows_compat.h"
 
 namespace rubinius {
 

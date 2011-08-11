@@ -1,0 +1,1 @@
+fails:StringScanner#initialize_copy is a private method

@@ -22,20 +22,20 @@ namespace rubinius {
 
   class RootBuffer : public LinkedList::Node {
     Object** buffer_;
-    RootBuffers* roots_;
+    RootBuffers& roots_;
     int size_;
 
   public:
-    RootBuffer(RootBuffers* roots, Object** buffer, int size)
+    RootBuffer(RootBuffers& roots, Object** buffer, int size)
       : buffer_(buffer)
       , roots_(roots)
       , size_(size)
     {
-      roots->add(this);
+      roots.add(this);
     }
 
     ~RootBuffer() {
-      roots_->remove(this);
+      roots_.remove(this);
     }
 
     int size() {

@@ -1,5 +1,7 @@
 #ifdef ENABLE_LLVM
 
+#include "vm/config.h"
+
 #include "vmmethod.hpp"
 #include "llvm/jit.hpp"
 #include "llvm/jit_context.hpp"
@@ -24,6 +26,8 @@
 
 #include <llvm/Target/TargetOptions.h>
 
+#include "windows_compat.h"
+
 namespace autogen_types {
   void makeLLVMModuleContents(llvm::Module* module);
 }
@@ -33,7 +37,9 @@ namespace autogen_types {
 #include <fstream>
 #include <iomanip>
 #include <stdlib.h>
+#ifndef RBX_WINDOWS
 #include <dlfcn.h>
+#endif
 
 #include "llvm/jit_compiler.hpp"
 #include "llvm/jit_method.hpp"
@@ -75,6 +81,7 @@ namespace rubinius {
     , inline_block_(0)
     , block_info_(0)
     , method_(&ctx.state()->roots())
+    , self_class_(&ctx.state()->roots())
     , vmm(v)
     , is_block(false)
     , inline_return(0)
@@ -86,6 +93,7 @@ namespace rubinius {
     , root(0)
   {
     method_.set(cm);
+    self_class_.set(nil<Class>());
   }
 
   void JITMethodInfo::set_function(llvm::Function* func) {
@@ -123,6 +131,11 @@ namespace rubinius {
     state->shared.llvm_state->shutdown_i();
   }
 
+  void LLVMState::start(STATE) {
+    if(!state->shared.llvm_state) return;
+    state->shared.llvm_state->start_i();
+  }
+
   void LLVMState::on_fork(STATE) {
     if(!state->shared.llvm_state) return;
     state->shared.llvm_state->on_fork_i();
@@ -154,7 +167,8 @@ namespace rubinius {
       cUnknown,
       cRunning,
       cPaused,
-      cIdle
+      cIdle,
+      cStopped
     };
 
     thread::Mutex mutex_;
@@ -172,7 +186,8 @@ namespace rubinius {
 
   public:
     BackgroundCompilerThread(LLVMState* ls)
-      : ls_(ls)
+      : Thread(0, false)
+      , ls_(ls)
       , state(cUnknown)
       , stop_(false)
       , pause_(false)
@@ -190,6 +205,8 @@ namespace rubinius {
     void stop() {
       {
         thread::Mutex::LockGuard guard(mutex_);
+        if(state == cStopped) return;
+
         stop_ = true;
 
         if(state == cIdle) {
@@ -202,6 +219,18 @@ namespace rubinius {
       }
 
       join();
+
+      {
+        thread::Mutex::LockGuard guard(mutex_);
+        state = cStopped;
+      }
+    }
+
+    void start() {
+      thread::Mutex::LockGuard guard(mutex_);
+      if(state != cStopped) return;
+      state = cUnknown;
+      run();
     }
 
     void pause() {
@@ -242,10 +271,15 @@ namespace rubinius {
     }
 
     virtual void perform() {
+      set_name("rbx.jit");
+
+      ManagedThread::set_current(ls_);
+
+#ifndef RBX_WINDOWS
       sigset_t set;
       sigfillset(&set);
-
       pthread_sigmask(SIG_SETMASK, &set, NULL);
+#endif
 
       for(;;) { // forever
 
@@ -259,7 +293,7 @@ namespace rubinius {
             state = cPaused;
 
             paused_ = true;
-            pause_condition_.signal();
+            pause_condition_.broadcast();
 
             while(pause_) {
               condition_.wait(mutex_);
@@ -290,7 +324,7 @@ namespace rubinius {
 
         // This isn't ideal, but it's the safest. Keep the GC from
         // running while we're building the IR.
-        ls_->shared().gc_dependent();
+        ls_->shared().gc_dependent(ls_);
 
         // mutex now unlock, allowing others to push more requests
         //
@@ -299,7 +333,7 @@ namespace rubinius {
 
         void* func = 0;
         {
-          timer::Running<size_t, 1000000> timer(ls_->shared().stats.jit_time_spent);
+          timer::Running<1000000> timer(ls_->shared().stats.jit_time_spent);
 
           if(req->is_block()) {
             jit.compile_block(ls_, req->method(), req->vmmethod());
@@ -325,7 +359,7 @@ namespace rubinius {
 
           // We don't depend on the GC here, so let it run independent
           // of us.
-          ls_->shared().gc_independent();
+          ls_->shared().gc_independent(ls_);
 
           continue;
         }
@@ -366,7 +400,7 @@ namespace rubinius {
 
         // We don't depend on the GC here, so let it run independent
         // of us.
-        ls_->shared().gc_independent();
+        ls_->shared().gc_independent(ls_);
       }
     }
   };
@@ -491,10 +525,10 @@ namespace rubinius {
   }
 
   LLVMState::LLVMState(STATE)
-    : ManagedThread(state->shared, ManagedThread::eSystem)
+    : ManagedThread(state->shared.new_thread_id(state),
+                    state->shared, ManagedThread::eSystem)
     , ctx_(llvm::getGlobalContext())
     , config_(state->shared.config)
-    , global_lock_(state->global_lock())
     , symbols_(state->shared.symbols)
     , jitted_methods_(0)
     , queued_methods_(0)
@@ -509,7 +543,7 @@ namespace rubinius {
 
     set_name("Background Compiler");
     state->shared.add_managed_thread(this);
-    state->shared.om->add_aux_barrier(&write_barrier_);
+    state->shared.om->add_aux_barrier(state, &write_barrier_);
 
     if(state->shared.config.jit_log.value.size() == 0) {
       log_ = &std::cerr;
@@ -617,13 +651,15 @@ namespace rubinius {
 
     add_internal_functions();
 
+    metadata_id_ = ctx_.getMDKindID("rbx-classid");
+
     background_thread_ = new BackgroundCompilerThread(this);
     background_thread_->run();
   }
 
   LLVMState::~LLVMState() {
     shared_.remove_managed_thread(this);
-    shared_.om->del_aux_barrier(&write_barrier_);
+    shared_.om->del_aux_barrier(0, &write_barrier_);
   }
 
   bool LLVMState::debug_p() {
@@ -632,6 +668,10 @@ namespace rubinius {
 
   void LLVMState::shutdown_i() {
     background_thread_->stop();
+  }
+
+  void LLVMState::start_i() {
+    background_thread_->start();
   }
 
   void LLVMState::on_fork_i() {
@@ -736,7 +776,7 @@ namespace rubinius {
   }
 
   void LLVMState::remove(llvm::Function* func) {
-    shared_.stats.jitted_methods--;
+    shared_.stats.jitted_methods.dec();
 
     // Deallocate the JITed code
     engine_->freeMachineCodeForFunction(func);
@@ -832,6 +872,7 @@ namespace rubinius {
   }
 
   void LLVMState::show_machine_code(void* buffer, size_t size) {
+#ifndef RBX_WINDOWS
     ud_t ud;
 
     ud_init(&ud);
@@ -886,6 +927,7 @@ namespace rubinius {
 
       std::cout << "\n";
     }
+#endif  // !RBX_WINDOWS
   }
 
 }
