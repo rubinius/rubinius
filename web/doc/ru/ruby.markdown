@@ -58,3 +58,4 @@ Ruby _большинство_ сущностей являются объекта
 7. [Переменные экземпляра](/doc/ru/ruby/instance-variables/)
 8. [Переменные класса](/doc/ru/ruby/class-variables/)
 9. [Глобальные переменные](/doc/ru/ruby/global-variables/)
+
