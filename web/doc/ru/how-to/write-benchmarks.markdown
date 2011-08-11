@@ -1,32 +1,32 @@
 ---
 layout: doc_ru
-title: How-To - Write Benchmarks
-previous: Fix a Failing Spec
+title: How-To - Написание бенчмарков
+previous: Исправление неработающей спецификации
 previous_url: how-to/fix-a-failing-spec
-next: Write a Blog Post
+next: Написание сообщения в блог
 next_url: how-to/write-a-blog-post
-translated: true
-
 ---
 
-Why benchmarks?
+Зачем они нужны?
 
-Benchmarks are a great tool for comparing Rubinius with the rest of the Ruby
-runtimes, i.e. MRI, JRuby, IronRuby and other implementations. It is not so
-much intended to measure Rubinius itself so if you want to contribute writing
-benchmarks make sure to follow these steps:
+Бенчмарки --- превосходный инструмент для сравнения Rubinius с другими
+Ruby-платформами, такими как MRI, JRuby, IronRuby и другие. Мы не задавались
+целью промерять Rubinius сам по себе, поэтому, если Вы хотите поделиться
+написанным бенчмарком, соблюдите, пожалуйста, следующее:
 
-  1.  Find existing benchmarks in rubinius/benchmarks and study their layout.
-  3.  Each benchmark file should measure one specific aspect of Ruby. For 
-      example different ways of deleting keys/values from a Hash.
-  4.  Use the benchmark framework.
-  5.  Keep the benchmarks short and simple.
-  6.  The benchmarks are not meant to measure Rubinius. So if you're writing a 
-      benchmark for a class with bang and no-bang methods you will want to use
-      a duplicate of a variable in the bang method but you don't need to dup
-      in the no-bang method. 
+  1.  Найдите готовые бенчмарки в  `rubinius/benchmarks` и изучите их
+      конструкцию.
+  3.  Каждый бенчмарк-файл должен замерять один специфический момент. К
+      примеру, различные способы удаления пар ключ/значение из Hash.
+  4.  Пользуйтесь бенчмарк-инфраструктурой.
+  5.  Пишите бенчмарки просто и кратко.
+  6.  Бенчмарки не предназначены для замеров Rubinius. Поэтому, если пишете
+      бенчмарк для класса, содержащего бэнг- и не-бэнг-методы, Вам можно
+      пользоваться копией переменной в бэнг-методе, но не нужно дублировать ее
+      не-бэнг-методом.
 
-If you want to test a benchmark you can run it file or even directory wise:
+Если захотите проверить бенчмарк, можете запускать его и пофайлово, и
+подиректорно:
 
     bin/benchmark benchmark/core/string/bench_case.rb
     bin/benchmark benchmark/core
