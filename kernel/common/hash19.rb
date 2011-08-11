@@ -301,6 +301,8 @@ class Hash
   end
 
   def compare_by_identity
+    Rubinius.check_frozen
+
     @state = State.new unless @state
     @state.compare_by_identity
     self
@@ -311,8 +313,8 @@ class Hash
     @state.compare_by_identity?
   end
 
-  def default(key=nil)
-    if key and @default_proc
+  def default(key=undefined)
+    if @default_proc and !key.equal?(undefined)
       @default_proc.call(self, key)
     else
       @default
@@ -329,9 +331,15 @@ class Hash
   end
 
   # Sets the default proc to be executed on each key lookup
-  def default_proc=(proc)
+  def default_proc=(prc)
+    prc = Rubinius::Type.coerce_to prc, Proc, :to_proc
+
+    if prc.lambda? and prc.arity != 2
+      raise TypeError, "default proc must have arity 2"
+    end
+
     @default = nil
-    @default_proc = Rubinius::Type.coerce_to(proc, Proc, :to_proc)
+    @default_proc = prc
   end
 
   def delete(key)

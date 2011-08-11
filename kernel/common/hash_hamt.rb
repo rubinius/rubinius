@@ -430,6 +430,8 @@ class Hash
   end
 
   def compare_by_identity
+    Rubinius.check_frozen
+
     @state = State.new unless @state
     @state.compare_by_identity
     self
@@ -440,8 +442,8 @@ class Hash
     @state.compare_by_identity?
   end
 
-  def default(key=nil)
-    if key and @default_proc
+  def default(key=undefined)
+    if @default_proc and !key.equal?(undefined)
       @default_proc.call(self, key)
     else
       @default

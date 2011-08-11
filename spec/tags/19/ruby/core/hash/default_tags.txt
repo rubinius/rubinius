@@ -1,2 +1,0 @@
-fails:Hash#default= raises a RuntimeError if called on a frozen instance
-fails:Hash#default uses the default proc to compute a default value, passing given key
