@@ -1,4 +1,3 @@
 before_script: ./configure
 env:
   - "RBXOPT=-X18"
-  - "RBXOPT=-X19"
