@@ -1,4 +1,3 @@
-fails:Encoding.aliases returns a Hash
 fails:Encoding.aliases has Strings as keys
 fails:Encoding.aliases has Strings as values
 fails:Encoding.aliases has alias names as its keys

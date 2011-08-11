@@ -1,5 +1,0 @@
-fails:Array#collect returns an Enumerator when no block given
-fails:Array#collect does not copy untrusted status
-fails:Array#collect! returns an Enumerator when no block given, and the enumerator can modify the original array
-fails:Array#collect! keeps untrusted status
-fails:Array#collect! raises a RuntimeError on a frozen array

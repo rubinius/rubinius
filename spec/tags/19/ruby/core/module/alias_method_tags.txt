@@ -1,1 +1,0 @@
-fails:Module#alias_method accesses a method defined on Object from Kernel

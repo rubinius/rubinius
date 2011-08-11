@@ -1,1 +1,0 @@
-fails:ARGF.each_char returns an Enumerator when passed no block

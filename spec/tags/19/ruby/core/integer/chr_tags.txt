@@ -1,7 +1,6 @@
 fails:Integer#chr without argument returns a US-ASCII String if self is between 0 and 127 (inclusive)
 fails:Integer#chr without argument returns an ASCII-8BIT String if self is between 128 and 255 (inclusive)
 fails:Integer#chr without argument interprets self as a codepoint in the corresponding character set
-fails:Integer#chr without argument raises a RangeError is self is greater than 255 and the internal encoding is nil
 fails:Integer#chr without argument infers the encoding from Encoding.default_internal
 fails:Integer#chr with an encoding argument returns a String
 fails:Integer#chr with an encoding argument returns a new String for each call

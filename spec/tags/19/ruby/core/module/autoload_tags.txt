@@ -1,4 +1,3 @@
-fails:Module#autoload sets the autoload constant in the constants table
 fails:Module#autoload does not remove the constant from the constant table if load fails
 fails:Module#autoload does not remove the constant from the constant table if the loaded files does not define it
 fails:Module#autoload does not load the file when refering to the constant in defined?

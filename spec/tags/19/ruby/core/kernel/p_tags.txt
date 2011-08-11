@@ -1,2 +1,0 @@
-fails:Kernel#p is a private method
-fails:Kernel#p is not affected by setting $\, $/ or $,

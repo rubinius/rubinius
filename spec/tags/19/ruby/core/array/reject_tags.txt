@@ -1,3 +1,0 @@
-fails:Array#reject returns an Enumerator if no block given
-fails:Array#reject! raises a RuntimeError on a frozen array
-fails:Array#reject! returns an Enumerator if no block given

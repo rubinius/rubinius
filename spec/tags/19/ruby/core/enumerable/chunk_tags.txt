@@ -1,5 +1,3 @@
-fails:Enumerable#chunk raises an ArgumentError if called without a block
-fails:Enumerable#chunk returns an Enumerator if given a block
 fails:Enumerable#chunk yields each element of the Enumerable to the block
 fails:Enumerable#chunk returns an Enumerator of 2-element Arrays
 fails:Enumerable#chunk sets the first element of each sub-Array to the return value of the block

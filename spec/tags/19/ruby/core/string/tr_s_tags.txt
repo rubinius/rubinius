@@ -1,1 +1,0 @@
-fails:String#tr_s! raises a RuntimeError if self is frozen

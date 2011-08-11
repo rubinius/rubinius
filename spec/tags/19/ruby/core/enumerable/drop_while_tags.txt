@@ -1,1 +1,0 @@
-fails:Enumerable#drop_while returns an Enumerator if no block given

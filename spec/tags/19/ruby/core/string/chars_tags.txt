@@ -1,4 +1,3 @@
-fails:String#chars returns an enumerator when no block given
 fails:String#chars returns characters in the same encoding as self
 fails:String#chars works with multibyte characters
 fails:String#chars works if the String's contents is invalid for its encoding

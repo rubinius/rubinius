@@ -1,1 +1,0 @@
-fails:Time.new creates a time based on the current system time

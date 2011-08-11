@@ -1,4 +1,0 @@
-fails:File.open creates the file and returns writable descriptor when called with 'w' mode and r-o permissions
-fails:File.open opens the existing file, does not change permissions even when they are specified
-fails:File.open opens a file for binary read-write starting at the beginning of the file
-fails:File.open opens a file for binary read-write and truncate the file

@@ -1,2 +1,0 @@
-fails:Array#to_s is equivalent to Array#inspect
-fails:Array#to_s is equivalent to Array#inspect in a recursive array

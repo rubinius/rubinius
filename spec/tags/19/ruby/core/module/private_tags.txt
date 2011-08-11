@@ -1,2 +1,0 @@
-fails:Module#private makes a public Object instance method private in a new module
-fails:Module#private makes a public Object instance method private in Kernel

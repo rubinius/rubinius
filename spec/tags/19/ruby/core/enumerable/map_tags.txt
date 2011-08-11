@@ -1,2 +1,0 @@
-fails:Enumerable#map gathers initial args as elements when each yields multiple
-fails:Enumerable#map returns an enumerator when no block given
