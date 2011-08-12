@@ -1,103 +1,124 @@
 require File.expand_path('../../spec_helper', __FILE__)
 require File.expand_path('../fixtures/yield', __FILE__)
 
-describe "Assignment via yield" do
+# Note that these specs use blocks defined as { |*a| ... } to capture the
+# arguments with which the block is invoked. This is slightly confusing
+# because the outer Array is a consequence of |*a| but it is necessary to
+# clearly distinguish some behaviors.
 
-  it "assigns objects to block variables" do
-    def f; yield nil; end;      f {|a| a.should == nil }
-    def f; yield 1; end;        f {|a| a.should == 1 }
-    def f; yield []; end;       f {|a| a.should == [] }
-    def f; yield [1]; end;      f {|a| a.should == [1] }
-    def f; yield [nil]; end;    f {|a| a.should == [nil] }
-    def f; yield [[]]; end;     f {|a| a.should == [[]] }
-    def f; yield [*[]]; end;    f {|a| a.should == [] }
-    def f; yield [*[1]]; end;   f {|a| a.should == [1] }
-    def f; yield [*[1,2]]; end; f {|a| a.should == [1,2] }
+describe "The yield call" do
+  before :each do
+    @y = YieldSpecs::Yielder.new
   end
 
-  it "assigns splatted objects to block variables" do
-    def f; yield *1; end;       f {|a| a.should == 1 }
-  end
-
-  it "assigns splatted objects to block variables" do
-    def f; yield *nil; end;     f {|a| a.should == nil }
-    def f; yield *[1]; end;     f {|a| a.should == 1 }
-    def f; yield *[nil]; end;   f {|a| a.should == nil }
-    def f; yield *[[]]; end;    f {|a| a.should == [] }
-    def f; yield *[*[1]]; end;  f {|a| a.should == 1 }
-  end
-
-  it "assigns objects followed by splatted objects to block variables" do
-    def f; yield 1, *nil; end;     f {|a, b| b.should == nil }
-    def f; yield 1, *1; end;       f {|a, b| b.should == 1 }
-    def f; yield 1, *[1]; end;     f {|a, b| b.should == 1 }
-    def f; yield 1, *[nil]; end;   f {|a, b| b.should == nil }
-    def f; yield 1, *[[]]; end;    f {|a, b| b.should == [] }
-    def f; yield 1, *[*[1]]; end;  f {|a, b| b.should == 1 }
-  end
-
-  it "assigns objects to block variables that include the splat operator inside the block" do
-    def f; yield; end;          f {|*a| a.should == [] }
-    def f; yield nil; end;      f {|*a| a.should == [nil] }
-    def f; yield 1; end;        f {|*a| a.should == [1] }
-    def f; yield []; end;       f {|*a| a.should == [[]] }
-    def f; yield [1]; end;      f {|*a| a.should == [[1]] }
-    def f; yield [nil]; end;    f {|*a| a.should == [[nil]] }
-    def f; yield [[]]; end;     f {|*a| a.should == [[[]]] }
-    def f; yield [1,2]; end;    f {|*a| a.should == [[1,2]] }
-    def f; yield [*[]]; end;    f {|*a| a.should == [[]] }
-    def f; yield [*[1]]; end;   f {|*a| a.should == [[1]] }
-    def f; yield [*[1,2]]; end; f {|*a| a.should == [[1,2]] }
-  end
-
-  it "assigns objects to multiple block variables" do
-    def f; yield; end;          f {|a,b,*c| [a,b,c].should == [nil,nil,[]] }
-    def f; yield nil; end;      f {|a,b,*c| [a,b,c].should == [nil,nil,[]] }
-    def f; yield 1; end;        f {|a,b,*c| [a,b,c].should == [1,nil,[]] }
-    def f; yield []; end;       f {|a,b,*c| [a,b,c].should == [nil,nil,[]] }
-    def f; yield [1]; end;      f {|a,b,*c| [a,b,c].should == [1,nil,[]] }
-    def f; yield [nil]; end;    f {|a,b,*c| [a,b,c].should == [nil,nil,[]] }
-    def f; yield [[]]; end;     f {|a,b,*c| [a,b,c].should == [[],nil,[]] }
-    def f; yield [*[]]; end;    f {|a,b,*c| [a,b,c].should == [nil,nil,[]] }
-    def f; yield [*[1]]; end;   f {|a,b,*c| [a,b,c].should == [1,nil,[]] }
-    def f; yield [*[1,2]]; end; f {|a,b,*c| [a,b,c].should == [1,2,[]] }
-  end
-
-  it "assigns objects to splatted block variables that include the splat operator inside the block" do
-    def f; yield *1; end;        f {|*a| a.should == [1] }
-    def f; yield *[]; end;       f {|*a| a.should == [] }
-    def f; yield *[1]; end;      f {|*a| a.should == [1] }
-    def f; yield *[nil]; end;    f {|*a| a.should == [nil] }
-    def f; yield *[[]]; end;     f {|*a| a.should == [[]] }
-    def f; yield *[*[]]; end;    f {|*a| a.should == [] }
-    def f; yield *[*[1]]; end;   f {|*a| a.should == [1] }
-    def f; yield *[*[1,2]]; end; f {|*a| a.should == [1,2] }
-  end
-
-  it "assigns splatted objects to multiple block variables" do
-    def f; yield *nil; end;      f {|a,b,*c| [a,b,c].should == [nil,nil,[]] }
-    def f; yield *1; end;        f {|a,b,*c| [a,b,c].should == [1,nil,[]] }
-    def f; yield *[]; end;       f {|a,b,*c| [a,b,c].should == [nil,nil,[]] }
-    def f; yield *[1]; end;      f {|a,b,*c| [a,b,c].should == [1,nil,[]] }
-    def f; yield *[nil]; end;    f {|a,b,*c| [a,b,c].should == [nil,nil,[]] }
-    def f; yield *[*[]]; end;    f {|a,b,*c| [a,b,c].should == [nil,nil,[]] }
-    def f; yield *[*[1]]; end;   f {|a,b,*c| [a,b,c].should == [1,nil,[]] }
-    def f; yield *[*[1,2]]; end; f {|a,b,*c| [a,b,c].should == [1,2,[]] }
-  end
-
-  ruby_version_is "" ... "1.9" do
-    it "assigns objects to splatted block variables that include the splat operator inside the block" do
-      def f; yield *nil; end;      f {|*a| a.should == [nil] }
-    end
-
-    it "assigns splatted objects to multiple block variables" do
-      def f; yield *[[]]; end;     f {|a,b,*c| [a,b,c].should == [[],nil,[]] }
+  describe "taking no arguments" do
+    it "raises a LocalJumpError when the method is not passed a block" do
+      lambda { @y.z }.should raise_error(LocalJumpError)
     end
   end
-end
 
-describe "The yield keyword" do
-  it "raises a LocalJumpError when invoked in a method not passed a block" do
-    lambda { YieldSpecs::no_block }.should raise_error(LocalJumpError)
+  describe "taking a single argument" do
+    it "raises a LocalJumpError when the method is not passed a block" do
+      lambda { @y.s(1) }.should raise_error(LocalJumpError)
+    end
+
+    it "passes an empty Array when the argument is an empty Array" do
+      @y.s([]) { |*a| a }.should == [[]]
+    end
+
+    it "passes nil as a value" do
+      @y.s(nil) { |*a| a }.should == [nil]
+    end
+
+    it "passes a single value" do
+      @y.s(1) { |*a| a }.should == [1]
+    end
+
+    it "passes a single, multi-value Array" do
+      @y.s([1, 2, 3]) { |*a| a }.should == [[1, 2, 3]]
+    end
+  end
+
+  describe "taking multiple arguments" do
+    it "raises a LocalJumpError when the method is not passed a block" do
+      lambda { @y.m(1, 2, 3) }.should raise_error(LocalJumpError)
+    end
+
+    it "passes the arguments to the block" do
+      @y.m(1, 2, 3) { |*a| a }.should == [1, 2, 3]
+    end
+  end
+
+  describe "taking a single splatted argument" do
+    it "raises a LocalJumpError when the method is not passed a block" do
+      lambda { @y.r(0) }.should raise_error(LocalJumpError)
+    end
+
+    it "passes a single value" do
+      @y.r(1) { |*a| a }.should == [1]
+    end
+
+    it "passes no arguments when the argument is an empty Array" do
+      @y.r([]) { |*a| a }.should == []
+    end
+
+    it "passes the value when the argument is an Array containing a single value" do
+      @y.r([1]) { |*a| a }.should == [1]
+    end
+
+    it "passes the values of the Array as individual arguments" do
+      @y.r([1, 2, 3]) { |*a| a }.should == [1, 2, 3]
+    end
+
+    it "passes the element of a single element Array" do
+      @y.r([[1, 2]]) { |*a| a }.should == [[1, 2]]
+      @y.r([nil]) { |*a| a }.should == [nil]
+      @y.r([[]]) { |*a| a }.should == [[]]
+    end
+
+    ruby_version_is ""..."1.9" do
+      it "passes nil as a value" do
+        @y.r(nil) { |*a| a }.should == [nil]
+      end
+    end
+
+    ruby_version_is "1.9" do
+      it "passes no values when give nil as an argument" do
+        @y.r(nil) { |*a| a }.should == []
+      end
+    end
+  end
+
+  describe "taking multiple arguments with a splat" do
+    it "raises a LocalJumpError when the method is not passed a block" do
+      lambda { @y.rs(1, 2, [3, 4]) }.should raise_error(LocalJumpError)
+    end
+
+    it "passes the arguments to the block" do
+      @y.rs(1, 2, 3) { |*a| a }.should == [1, 2, 3]
+    end
+
+    it "does not pass an argument value if the splatted argument is an empty Array" do
+      @y.rs(1, 2, []) { |*a| a }.should == [1, 2]
+    end
+
+    it "passes the Array elements as arguments if the splatted argument is a non-empty Array" do
+      @y.rs(1, 2, [3]) { |*a| a }.should == [1, 2, 3]
+      @y.rs(1, 2, [nil]) { |*a| a }.should == [1, 2, nil]
+      @y.rs(1, 2, [[]]) { |*a| a }.should == [1, 2, []]
+      @y.rs(1, 2, [3, 4, 5]) { |*a| a }.should == [1, 2, 3, 4, 5]
+    end
+
+    ruby_version_is ""..."1.9" do
+      it "passes nil as the argument value if the splatted argument is nil" do
+        @y.rs(1, 2, nil) { |*a| a }.should == [1, 2, nil]
+      end
+    end
+
+    ruby_version_is "1.9" do
+      it "does not pass an argument value if the splatted argument is nil" do
+        @y.rs(1, 2, nil) { |*a| a }.should == [1, 2]
+      end
+    end
   end
 end
