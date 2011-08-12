@@ -25,4 +25,18 @@ module ProcSpecs
 
     attr_reader :first, :second
   end
+
+  class Arity
+    def arity_check(&block)
+      pn = Proc.new(&block).arity
+      pr = proc(&block).arity
+      lm = lambda(&block).arity
+
+      if pn == pr and pr == lm
+        return pn
+      else
+        return :arity_check_failed
+      end
+    end
+  end
 end
