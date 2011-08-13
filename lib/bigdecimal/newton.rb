@@ -75,3 +75,4 @@ module Newton
     nRetry
   end
 end
+

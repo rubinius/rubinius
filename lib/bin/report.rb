@@ -93,3 +93,4 @@ url = Gist.write(data, true, "crashreport.txt")
 
 puts "Report submitted at: #{url}"
 puts "Please open a Rubinius issue and provide this url."
+

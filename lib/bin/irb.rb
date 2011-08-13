@@ -11,3 +11,4 @@ require "irb"
 require 'irb/rubinius'
 
 IRB.start(__FILE__)
+

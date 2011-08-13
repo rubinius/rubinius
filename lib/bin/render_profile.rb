@@ -617,4 +617,3 @@ File.open output, "w" do |f|
   f.puts "<div id=\"sentinel\"></div></body></html>"
 end
 
-
