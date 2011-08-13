@@ -36,3 +36,4 @@ module Rubinius
     module_function :environ_as_hash
   end
 end
+
