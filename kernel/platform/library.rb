@@ -254,3 +254,4 @@ module FFI
     CURRENT_PROCESS = DynamicLibrary.new(nil)
   end
 end
+
