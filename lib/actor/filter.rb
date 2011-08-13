@@ -29,40 +29,41 @@
 # POSSIBILITY OF SUCH DAMAGE.
 
 class Actor
-class Filter
-  attr_reader :timeout
-  attr_reader :timeout_action
+  class Filter
+    attr_reader :timeout
+    attr_reader :timeout_action
 
-  def initialize
-    @pairs = []
-    @timeout = nil
-    @timeout_action = nil
-  end
-
-  def timeout?
-    not @timeout.nil?
-  end
-
-  def when(pattern, &action)
-    raise ArgumentError, "no block given" unless action
-    @pairs.push [pattern, action]
-    self
-  end
-
-  def after(seconds, &action)
-    raise ArgumentError, "no block given" unless action
-
-    seconds = seconds.to_f
-    if !@timeout or seconds < @timeout
-      @timeout = seconds
-      @timeout_action = action
+    def initialize
+      @pairs = []
+      @timeout = nil
+      @timeout_action = nil
     end
-    self
-  end
 
-  def action_for(value)
-    pair = @pairs.find { |pattern, action| pattern === value }
-    pair ? pair.last : nil
+    def timeout?
+      not @timeout.nil?
+    end
+
+    def when(pattern, &action)
+      raise ArgumentError, "no block given" unless action
+      @pairs.push [pattern, action]
+      self
+    end
+
+    def after(seconds, &action)
+      raise ArgumentError, "no block given" unless action
+
+      seconds = seconds.to_f
+      if !@timeout or seconds < @timeout
+        @timeout = seconds
+        @timeout_action = action
+      end
+      self
+    end
+
+    def action_for(value)
+      pair = @pairs.find { |pattern, action| pattern === value }
+      pair ? pair.last : nil
+    end
   end
 end
-end
+

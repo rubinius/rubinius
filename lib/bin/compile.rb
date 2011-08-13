@@ -233,3 +233,4 @@ class CompilerScript
 end
 
 CompilerScript.new.main
+

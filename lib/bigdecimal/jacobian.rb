@@ -26,13 +26,13 @@ module Jacobian
     aa = a.abs
     bb = b.abs
     if aa == zero &&  bb == zero then
-          true
+      true
     else
-          if ((a-b)/(aa+bb)).abs < e then
-             true
-          else
-             false
-          end
+      if ((a-b)/(aa+bb)).abs < e then
+        true
+      else
+        false
+      end
     end
   end
   #++
@@ -83,3 +83,4 @@ module Jacobian
     dfdx
   end
 end
+
