@@ -6,3 +6,4 @@ module FFI::Platform::File
   ALT_SEPARATOR = nil
   PATH_SEPARATOR = ':'
 end
+

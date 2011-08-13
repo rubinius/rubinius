@@ -732,3 +732,4 @@ end
 class Object
   include Kernel
 end
+
