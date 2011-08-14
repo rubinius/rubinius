@@ -570,22 +570,31 @@ module Rubinius
           arguments.iter_arguments
 
           if arguments.splat
-            @splat = arguments.splat = arguments.splat.value
+            case arguments.splat
+            when EmptySplat
+              @splat_index = -2
+            else
+              @splat = arguments.splat = arguments.splat.value
+            end
 
             @optional = 1
             if arguments.left
               @prelude = :multi
-              @arity = -(arguments.left.body.size + 1)
-              @required_args = arguments.left.body.size
+              size = arguments.left.body.size
+              @arity = -(size + 1)
+              @required_args = size
             else
               @prelude = :splat
               @arity = -1
             end
           elsif arguments.left
-            @splat_index = nil
+            size = arguments.left.body.size
             @prelude = :multi
-            @arity = arguments.left.body.size
-            @required_args = arguments.left.body.size
+            @arity = size
+            @required_args = size
+
+            # distinguish { |a, | ... } from { |a| ... }
+            @splat_index = nil unless size == 1
           else
             @splat_index = 0
             @prelude = :multi

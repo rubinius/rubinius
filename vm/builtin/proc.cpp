@@ -107,15 +107,20 @@ namespace rubinius {
 
       bool arity_ok = false;
       if(Fixnum* fix = try_as<Fixnum>(block_->code()->splat())) {
-        if(fix->to_native() == -2) {
+        if(fix->to_native() == -1) {
+          // splat = -1 is used to distinguish { |a, | } from { |a| }
+          if(args.total() == (size_t)required) arity_ok = true;
+        } else if(fix->to_native() == -2) {
           arity_ok = true;
         } else if(args.total() >= (size_t)required) {
           arity_ok = true;
         }
 
-      // Bug-to-bug compatibility: when required is 1, we accept any number of
-      // args. Why? No fucking clue. I guess perhaps you then get all the arguments
-      // as an array?
+      /* For blocks taking one argument { |a|  }, in 1.8, there is a warning
+       * issued but no exception raised when less than or more than one
+       * argument is passed. If more than one is passed, 'a' receives an Array
+       * of all the arguments.
+       */
       } else if(required == 1) {
         arity_ok = true;
       } else {
