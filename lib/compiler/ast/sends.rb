@@ -559,6 +559,7 @@ module Rubinius
         @required_args = 0
         @splat = nil
         @block = nil
+        @prelude = nil
 
         array = []
         case arguments
@@ -573,6 +574,8 @@ module Rubinius
             case arguments.splat
             when EmptySplat
               @splat_index = -2
+              arguments.splat = nil
+              @prelude = :empty
             else
               @splat = arguments.splat = arguments.splat.value
             end
@@ -584,7 +587,7 @@ module Rubinius
               @arity = -(size + 1)
               @required_args = size
             else
-              @prelude = :splat
+              @prelude = :splat unless @prelude
               @arity = -1
             end
           elsif arguments.left
@@ -679,6 +682,9 @@ module Rubinius
           g.cast_for_splat_block_arg
           g.cast_array
           arguments_bytecode(g)
+          g.pop
+        when :empty
+          g.cast_for_splat_block_arg
           g.pop
         end
 

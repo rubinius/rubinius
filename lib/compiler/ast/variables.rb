@@ -422,6 +422,8 @@ module Rubinius
       end
 
       def bytecode(g)
+        return if @size == 0
+
         pos(g)
 
         g.make_array @size

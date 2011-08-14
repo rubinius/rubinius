@@ -274,7 +274,7 @@ module Rubinius
           required = 0
         when :blank
           required = -1
-          count = 0
+          d.cast_for_splat_block_arg
         when :single
           required = 1
           d.cast_for_single_block_arg
