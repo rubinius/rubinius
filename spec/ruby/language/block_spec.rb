@@ -132,6 +132,19 @@ describe "A block" do
       @y.s(obj) { |a, b| [a, b] }.should == [1, 2]
     end
 
+    it "does not call #to_ary if the single yielded object is an Array" do
+      obj = [1, 2]
+      obj.should_not_receive(:to_ary)
+
+      @y.s(obj) { |a, b| [a, b] }.should == [1, 2]
+    end
+
+    it "does not call #to_ary if the object does not respond to #to_ary" do
+      obj = mock("block yield no to_ary")
+
+      @y.s(obj) { |a, b| [a, b] }.should == [obj, nil]
+    end
+
     it "raises an TypeError if #to_ary does not return an Array" do
       obj = mock("block yield to_ary invalid")
       obj.should_receive(:to_ary).and_return(1)
@@ -184,6 +197,19 @@ describe "A block" do
       @y.s(obj) { |a, *b| [a, b] }.should == [1, [2]]
     end
 
+    it "does not call #to_ary if the single yielded object is an Array" do
+      obj = [1, 2]
+      obj.should_not_receive(:to_ary)
+
+      @y.s(obj) { |a, *b| [a, b] }.should == [1, [2]]
+    end
+
+    it "does not call #to_ary if the object does not respond to #to_ary" do
+      obj = mock("block yield no to_ary")
+
+      @y.s(obj) { |a, *b| [a, b] }.should == [obj, []]
+    end
+
     it "raises an TypeError if #to_ary does not return an Array" do
       obj = mock("block yield to_ary invalid")
       obj.should_receive(:to_ary).and_return(1)
@@ -199,6 +225,19 @@ describe "A block" do
 
     it "does not raise an exception when values are yielded" do
       @y.s(0) { |*| 1 }.should == 1
+    end
+
+    it "does not call #to_ary if the single yielded object is an Array" do
+      obj = [1, 2]
+      obj.should_not_receive(:to_ary)
+
+      @y.s(obj) { |*| 1 }.should == 1
+    end
+
+    it "does not call #to_ary if the object does not respond to #to_ary" do
+      obj = mock("block yield no to_ary")
+
+      @y.s(obj) { |*| 1 }.should == 1
     end
 
     ruby_version_is ""..."1.9" do
@@ -246,6 +285,19 @@ describe "A block" do
 
     it "assigns a single Array value passed to the argument by wrapping it in an Array" do
       @y.s([1, 2, 3]) { |*a| a }.should == [[1, 2, 3]]
+    end
+
+    it "does not call #to_ary if the single yielded object is an Array" do
+      obj = [1, 2]
+      obj.should_not_receive(:to_ary)
+
+      @y.s(obj) { |*a| a }.should == [[1, 2]]
+    end
+
+    it "does not call #to_ary if the object does not respond to #to_ary" do
+      obj = mock("block yield no to_ary")
+
+      @y.s(obj) { |*a| a }.should == [obj]
     end
 
     ruby_version_is ""..."1.9" do
@@ -306,6 +358,19 @@ describe "A block" do
       @y.s(obj) { |a, | a }.should == 1
     end
 
+    it "does not call #to_ary if the single yielded object is an Array" do
+      obj = [1, 2]
+      obj.should_not_receive(:to_ary)
+
+      @y.s(obj) { |a, | a }.should == 1
+    end
+
+    it "does not call #to_ary if the object does not respond to #to_ary" do
+      obj = mock("block yield no to_ary")
+
+      @y.s(obj) { |a, | a }.should == obj
+    end
+
     it "raises an TypeError if #to_ary does not return an Array" do
       obj = mock("block yield to_ary invalid")
       obj.should_receive(:to_ary).and_return(1)
@@ -328,6 +393,19 @@ describe "A block" do
       obj.should_receive(:to_ary).and_return([1, 2])
 
       @y.s(obj) { |(a, b)| [a, b] }.should == [1, 2]
+    end
+
+    it "does not call #to_ary if the single yielded object is an Array" do
+      obj = [1, 2]
+      obj.should_not_receive(:to_ary)
+
+      @y.s(obj) { |(a, b)| [a, b] }.should == [1, 2]
+    end
+
+    it "does not call #to_ary if the object does not respond to #to_ary" do
+      obj = mock("block yield no to_ary")
+
+      @y.s(obj) { |(a, b)| [a, b] }.should == [obj, nil]
     end
 
     it "raises an TypeError if #to_ary does not return an Array" do
