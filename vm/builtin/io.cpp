@@ -518,7 +518,7 @@ namespace rubinius {
     }
 
     // don't close stdin, stdout, stderr (0, 1, 2)
-    if(fd >= 3) {
+    if(fd > STDERR_FILENO) {
       io->descriptor(state, Fixnum::from(-1));
 
       // If there is a handle for this IO, and it's been promoted into

@@ -1,5 +1,6 @@
 require File.expand_path('../../../../spec_helper', __FILE__)
 require File.expand_path('../../fixtures/classes', __FILE__)
+require File.expand_path('../shared/basic', __FILE__)
 require File.expand_path('../shared/float', __FILE__)
 
 describe "String#unpack with format 'G'" do

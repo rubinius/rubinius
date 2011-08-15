@@ -53,4 +53,10 @@ describe "Time.at" do
     t.should be_kind_of(c)
   end
 
+  it "returns a subclass instance when passed a Time object" do
+    c = Class.new(Time)
+    t = c.at(Time.now)
+    t.should be_kind_of(c)
+  end
+
 end

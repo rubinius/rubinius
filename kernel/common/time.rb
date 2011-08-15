@@ -8,7 +8,9 @@ class Time
   }
 
   def self.at(sec, usec=nil)
-    return sec.dup if sec.kind_of? Time
+    if sec.kind_of? Time
+      return specific(sec.to_i, sec.usec, sec.gmt?)
+    end
 
     if sec.kind_of?(Integer) || usec
       sec  = Rubinius::Type.coerce_to sec, Integer, :to_i
