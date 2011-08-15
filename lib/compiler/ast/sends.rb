@@ -680,7 +680,6 @@ module Rubinius
           g.pop
         when :splat
           g.cast_for_splat_block_arg
-          g.cast_array
           arguments_bytecode(g)
           g.pop
         when :empty

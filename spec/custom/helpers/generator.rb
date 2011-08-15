@@ -282,8 +282,6 @@ module Rubinius
         when :splat
           required = -1
           d.cast_for_splat_block_arg
-          d.cast_array
-          d.cast_array
           d.set_local 0
         when :rest
           count = required.abs - 1
