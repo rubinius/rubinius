@@ -46,7 +46,7 @@ describe "String#match" do
     "hello".match(obj)[0].should == "h"
 
     obj = mock('.')
-    def obj.respond_to?(type) true end
+    def obj.respond_to?(type, *) true end
     def obj.method_missing(*args) "." end
     "hello".match(obj)[0].should == "h"
   end

@@ -175,7 +175,7 @@ ruby_version_is "1.9" do
     it "works with inclusive ranges" do
       prng = Random.new
       r = 3..5
-      20.times.map { prng.rand(r) }.uniq.sort.should == [3,4,5]
+      40.times.map { prng.rand(r) }.uniq.sort.should == [3,4,5]
     end
 
     it "works with exclusive ranges" do
