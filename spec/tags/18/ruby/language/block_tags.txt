@@ -1,0 +1,2 @@
+fails:A block taking |a, b| arguments does not destructure a splatted Array
+fails:A block taking |a, *b| arguments does not destructure a splatted Array
