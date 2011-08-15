@@ -1,0 +1,2 @@
+fails:Proc#arity returns -2 for a block taking |a, *| arguments
+fails:Proc#arity returns -2 for a block taking |(a, *)| arguments

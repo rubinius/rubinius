@@ -1,0 +1,2 @@
+fails:A Proc taking |a, | arguments raises an ArgumentError when passed no values
+fails:A Proc taking |a, | arguments raises an ArgumentError when passed more than one value
