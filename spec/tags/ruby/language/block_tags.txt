@@ -1,4 +1,2 @@
 fails:A block taking |a, b| arguments does not destructure a splatted Array
 fails:A block taking |a, *b| arguments does not destructure a splatted Array
-fails:A block taking |*a| arguments calls #to_ary to convert a single yielded object to an Array
-fails:A block taking |*a| arguments raises an TypeError if #to_ary does not return an Array

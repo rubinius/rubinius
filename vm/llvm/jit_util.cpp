@@ -320,13 +320,34 @@ extern "C" {
     return Qnil;
   }
 
-  Object* rbx_cast_for_splat_block_arg(STATE, Arguments& args) {
-    Array* ary = Array::create(state, args.total());
-    for(size_t i = 0; i < args.total(); i++) {
-      ary->set(state, i, args.get_argument(i));
+  Object* rbx_cast_for_splat_block_arg(STATE, CallFrame* call_frame, Arguments& args) {
+    if(args.total() == 1) {
+      Object* obj = args.get_argument(0);
+      if(!kind_of<Array>(obj)) {
+        /* Yes, you are reading this code correctly: In Ruby 1.8, calling a
+         * block with these forms { |*| } and { |*a| } with a single argument
+         * that is not an Array and which responds to #to_ary will cause #to_ary
+         * to be called and its return value ignored. Ultimately, the original
+         * object itself is wrapped in an Array and passed to the block.
+         */
+        if(RTEST(obj->respond_to(state, state->symbol("to_ary"), Qfalse))) {
+          Object* ignored = obj->send(state, call_frame, state->symbol("to_ary"));
+          if(!kind_of<Array>(ignored)) {
+            Exception::type_error(state, "to_ary must return an Array", call_frame);
+            return 0;
+          }
+        }
+      }
+      Array* ary = Array::create(state, 1);
+      ary->set(state, 0, obj);
+      return ary;
+    } else {
+      Array* ary = Array::create(state, args.total());
+      for(size_t i = 0; i < args.total(); i++) {
+        ary->set(state, i, args.get_argument(i));
+      }
+      return ary;
     }
-
-    return ary;
   }
 
   Object* rbx_cast_for_multi_block_arg(STATE, CallFrame* call_frame, Arguments& args) {
@@ -354,6 +375,51 @@ extern "C" {
     for(size_t i = 0; i < args.total(); i++) {
       ary->set(state, i, args.get_argument(i));
     }
+
+    return ary;
+  }
+
+  Object* rbx_cast_for_splat_block_arg_varargs(STATE, CallFrame* call_frame,
+                                               int count, ...)
+  {
+    va_list ap;
+
+    if(count == 1) {
+      va_start(ap, count);
+
+      Object* obj = va_arg(ap, Object*);
+
+      if(!kind_of<Array>(obj)) {
+        /* Yes, you are reading this code correctly: In Ruby 1.8, calling a
+         * block with these forms { |*| } and { |*a| } with a single argument
+         * that is not an Array and which responds to #to_ary will cause #to_ary
+         * to be called and its return value ignored. Ultimately, the original
+         * object itself is wrapped in an Array and passed to the block.
+         */
+        if(RTEST(obj->respond_to(state, state->symbol("to_ary"), Qfalse))) {
+          Object* ignored = obj->send(state, call_frame, state->symbol("to_ary"));
+          if(!kind_of<Array>(ignored)) {
+            Exception::type_error(state, "to_ary must return an Array", call_frame);
+            obj = 0;
+          }
+        }
+      }
+
+      Array* ary = Array::create(state, 1);
+      ary->set(state, 0, obj);
+      obj = ary;
+
+      va_end(ap);
+      return obj;
+    }
+
+    Array* ary = Array::create(state, count);
+
+    va_start(ap, count);
+    for(int i = 0; i < count; i++) {
+      ary->set(state, i, va_arg(ap, Object*));
+    }
+    va_end(ap);
 
     return ary;
   }

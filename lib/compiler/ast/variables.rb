@@ -408,6 +408,8 @@ module Rubinius
       end
 
       def bytecode(g)
+        return if @size == 0
+
         pos(g)
 
         g.make_array @size
@@ -552,8 +554,10 @@ module Rubinius
           else
             @splat = SplatWrapped.new line, splat
           end
-        elsif splat and @fixed
-          @splat = EmptySplat.new line, right.body.size
+        elsif splat
+          # We need a node for eg { |*| } and { |a, *| }
+          size = @fixed ? right.body.size : 0
+          @splat = EmptySplat.new line, size
         end
       end
 

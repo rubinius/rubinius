@@ -1278,12 +1278,33 @@ end
 #   them into an `Array`, which is then pushed on the stack.
 
 instruction cast_for_splat_block_arg() [ -- arguments ]
-  Array* ary = Array::create(state, call_frame->arguments->total());
-  for(size_t i = 0; i < call_frame->arguments->total(); i++) {
-    ary->set(state, i, call_frame->arguments->get_argument(i));
+  if(call_frame->arguments->total() == 1) {
+    Object* obj = call_frame->arguments->get_argument(0);
+    if(!kind_of<Array>(obj)) {
+      /* Yes, you are reading this code correctly: In Ruby 1.8, calling a
+       * block with these forms { |*| } and { |*a| } with a single argument
+       * that is not an Array and which responds to #to_ary will cause #to_ary
+       * to be called and its return value ignored. Ultimately, the original
+       * object itself is wrapped in an Array and passed to the block.
+       */
+      if(RTEST(obj->respond_to(state, state->symbol("to_ary"), Qfalse))) {
+        Object* ignored = obj->send(state, call_frame, state->symbol("to_ary"));
+        if(!kind_of<Array>(ignored)) {
+          Exception::type_error(state, "to_ary must return an Array", call_frame);
+          RUN_EXCEPTION();
+        }
+      }
+    }
+    Array* ary = Array::create(state, 1);
+    ary->set(state, 0, obj);
+    stack_push(ary);
+  } else {
+    Array* ary = Array::create(state, call_frame->arguments->total());
+    for(size_t i = 0; i < call_frame->arguments->total(); i++) {
+      ary->set(state, i, call_frame->arguments->get_argument(i));
+    }
+    stack_push(ary);
   }
-
-  stack_push(ary);
 end
 
 # [Description]
