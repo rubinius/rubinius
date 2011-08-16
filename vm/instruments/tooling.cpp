@@ -51,11 +51,13 @@ namespace tooling {
 
     state->shared.config.jit_disabled.set("false");
 
+    Object* res = rbxti::s(results_func_(state->tooling_env()));
+
     // This finds all the methods again and this time makes them available
     // for JIT.
     System::vm_deoptimize_all(state, Qfalse);
 
-    return rbxti::s(results_func_(state->tooling_env()));
+    return res;
   }
 
   void* ToolBroker::enter_method(STATE, Executable* exec, Module* o_mod,
