@@ -46,60 +46,6 @@ namespace rubinius {
     int flags = 0;
 
     // Check the arity in lambda mode
-    if(bound_method_->nil_p() && lambda_style) {
-      flags = CallFrame::cIsLambda;
-      int required = block_->code()->required_args()->to_native();
-
-      bool check_arity = true;
-      if(Fixnum* fix = try_as<Fixnum>(block_->code()->splat())) {
-        if(fix->to_native() == -2) check_arity = false;
-      }
-
-      // Bug-to-bug compatibility: when required is 1, we accept any number of
-      // args. Why? No fucking clue. I guess perhaps you then get all the arguments
-      // as an array?
-      if(required == 1) check_arity = false;
-
-      if(check_arity && ((size_t)required != args.total())) {
-        Exception* exc =
-          Exception::make_argument_error(state, required, args.total(),
-              state->symbol("__block__"));
-        exc->locations(state, Location::from_call_stack(state, call_frame));
-        state->thread_state()->raise_exception(exc);
-        return NULL;
-      }
-    }
-
-    Object* ret;
-    if(bound_method_->nil_p()) {
-      ret= block_->call(state, call_frame, args, flags);
-    } else if(NativeMethod* nm = try_as<NativeMethod>(bound_method_)) {
-      ret = nm->execute(state, call_frame, nm, G(object), args);
-    } else {
-      Dispatch dis(state->symbol("__yield__"));
-      ret = dis.send(state, call_frame, args);
-    }
-
-    return ret;
-  }
-
-  Object* Proc::yield(STATE, CallFrame* call_frame, Arguments& args) {
-    if(bound_method_->nil_p()) {
-      // NOTE! To match MRI semantics, this explicitely ignores lambda_.
-      return block_->call(state, call_frame, args, 0);
-    } else if(NativeMethod* nm = try_as<NativeMethod>(bound_method_)) {
-      return nm->execute(state, call_frame, nm, G(object), args);
-    } else {
-      return call_prim(state, call_frame, NULL, NULL, args);
-    }
-  }
-
-  Object* Proc::call_prim(STATE, CallFrame* call_frame, Executable* exec, Module* mod,
-                          Arguments& args) {
-    bool lambda_style = RTEST(lambda_);
-    int flags = 0;
-
-    // Check the arity in lambda mode
     if(lambda_style) {
       flags = CallFrame::cIsLambda;
       int total = block_->code()->total_args()->to_native();
@@ -130,7 +76,8 @@ namespace rubinius {
 
       if(!arity_ok) {
         Exception* exc =
-          Exception::make_argument_error(state, required, args.total(), state->symbol("__block__"));
+          Exception::make_argument_error(state, required, args.total(),
+              state->symbol("__block__"));
         exc->locations(state, Location::from_call_stack(state, call_frame));
         state->thread_state()->raise_exception(exc);
         return NULL;
@@ -148,6 +95,22 @@ namespace rubinius {
     }
 
     return ret;
+  }
+
+  Object* Proc::yield(STATE, CallFrame* call_frame, Arguments& args) {
+    if(bound_method_->nil_p()) {
+      // NOTE! To match MRI semantics, this explicitely ignores lambda_.
+      return block_->call(state, call_frame, args, 0);
+    } else if(NativeMethod* nm = try_as<NativeMethod>(bound_method_)) {
+      return nm->execute(state, call_frame, nm, G(object), args);
+    } else {
+      return call_prim(state, call_frame, NULL, NULL, args);
+    }
+  }
+
+  Object* Proc::call_prim(STATE, CallFrame* call_frame, Executable* exec, Module* mod,
+                          Arguments& args) {
+    return call(state, call_frame, args);
   }
 
   Object* Proc::call_on_object(STATE, CallFrame* call_frame,
