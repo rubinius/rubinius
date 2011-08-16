@@ -43,6 +43,7 @@ continuation.rbc
 delegated_method.rbc
 fixnum.rbc
 dir.rbc
+lrucache.rbc
 dir_glob.rbc
 env.rbc
 errno.rbc
