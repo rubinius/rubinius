@@ -17,18 +17,28 @@ namespace rubinius {
   bool Inliner::consider() {
     Class* klass = cache_->dominating_class();
     if(!klass) {
-      if(ops_.state()->config().jit_inline_debug) {
-        context_.inline_log("NOT inlining")
-          << ops_.state()->symbol_cstr(cache_->name)
-          << ". Cache contains " << cache_->classes_seen() << " entries\n";
-
-        for(int i = 0; i < cache_->classes_seen(); i++) {
-          context_.inline_log("class")
-            << ops_.state()->symbol_cstr(cache_->tracked_class(i)->name()) << "\n";
-        }
+      // If the inlining context has the self klass staticly known
+      // and it's in the cache, use it without worrying about
+      // multiple classes in the cache.
+      int64_t md_id = ops_.metadata_id(recv());
+      if(md_id > 0) {
+        klass = cache_->find_class_by_id(md_id);
       }
 
-      return false;
+      if(!klass) {
+        if(ops_.state()->config().jit_inline_debug) {
+          std::ostream& log = context_.inline_log("NOT inlining");
+          log << ops_.state()->symbol_cstr(cache_->name)
+              << ". Cache contains " << cache_->classes_seen() << " entries: ";
+
+          for(int i = 0; i < cache_->classes_seen(); i++) {
+            log << ops_.state()->symbol_cstr(cache_->tracked_class(i)->name())
+                << " ";
+          }
+          log << "\n";
+        }
+        return false;
+      }
     }
 
     // If the cache has a dominating class, inline!

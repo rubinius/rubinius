@@ -212,6 +212,15 @@ namespace rubinius {
       return seen_classes_[which].klass();
     }
 
+    Class* find_class_by_id(int64_t id) {
+      for(int i = 0; i < cTrackedICHits; i++) {
+        Class* cls = seen_classes_[i].klass();
+        if(cls && cls->class_id() == id) return cls;
+      }
+
+      return 0;
+    }
+
     Class* dominating_class() {
       int seen = classes_seen();
       switch(seen) {

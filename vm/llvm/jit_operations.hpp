@@ -314,6 +314,30 @@ namespace rubinius {
       failure->moveAfter(cont);
     }
 
+    int64_t metadata_id(llvm::MDNode* md) {
+      int64_t md_id = -1;
+
+      if(md->getNumOperands() >= 1) {
+        if(ConstantInt* ci = dyn_cast<ConstantInt>(md->getOperand(0))) {
+          md_id = ci->getValue().getSExtValue();
+        }
+      }
+
+      return md_id;
+    }
+
+    int64_t metadata_id(llvm::Value* obj) {
+      int64_t md_id = -1;
+
+      if(Instruction* I = dyn_cast<Instruction>(obj)) {
+        if(llvm::MDNode* md = I->getMetadata(ls_->metadata_id())) {
+          md_id = metadata_id(md);
+        }
+      }
+
+      return md_id;
+    }
+
     int check_class(Value* obj, Class* klass, BasicBlock* failure) {
       int64_t md_id = -1;
 
@@ -510,6 +534,16 @@ namespace rubinius {
       return hints_[sp_].metadata;
     }
 
+    llvm::MDNode* hint_metadata(int back) {
+      int pos = sp_ - back;
+
+      if(hints_.size() <= (size_t)pos) {
+        return 0;
+      }
+
+      return hints_[pos].metadata;
+    }
+
     ValueHint* current_hint_value() {
       if((int)hints_.size() <= sp_) {
         hints_.resize(sp_ + 1);
@@ -527,7 +561,7 @@ namespace rubinius {
 
     llvm::Value* stack_back(int back) {
       Instruction* I = b().CreateLoad(stack_back_position(back), "stack_load");
-      if(llvm::MDNode* md = current_hint_metadata()) {
+      if(llvm::MDNode* md = hint_metadata(back)) {
         I->setMetadata(ls_->metadata_id(), md);
       }
 
