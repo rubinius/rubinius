@@ -645,6 +645,19 @@ VM Options
       end
     end
 
+    def run_at_exits
+      until AtExit.empty?
+        begin
+          AtExit.shift.call
+        rescue SystemExit => e
+          @exit_code = e.status
+          # We recurse down so that future at_exits
+          # see the current exception
+          run_at_exits
+        end
+      end
+    end
+
     # Cleanup and at_exit processing.
     def epilogue
       @stage = "at_exit handler"
@@ -655,13 +668,7 @@ VM Options
         @exit_code = e.status
       end
 
-      until AtExit.empty?
-        begin
-          AtExit.shift.call
-        rescue SystemExit => e
-          @exit_code = e.status
-        end
-      end
+      run_at_exits
 
       @stage = "object finalizers"
       GC.start
