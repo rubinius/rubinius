@@ -176,7 +176,7 @@ To breakpoint on class method start of Debugger line 4, use:
     end
 
     class DeleteBreakpoint < Command
-      pattern "d", "delete"
+      pattern "d", "del", "delete"
       help "Delete a breakpoint"
       ext_help "Specify the breakpoint by number, use 'info break' to see the numbers"
 
