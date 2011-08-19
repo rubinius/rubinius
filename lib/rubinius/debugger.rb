@@ -16,9 +16,8 @@ require 'compiler/iseq'
 class Rubinius::Debugger
   include Rubinius::Debugger::Display
 
-  # Used to try and show the source for the kernel. Should
-  # mostly work, but it's a hack.
-  ROOT_DIR = File.expand_path(File.dirname(__FILE__) + "/..")
+  # Find the source for the kernel.
+  ROOT_DIR = File.expand_path("../", Rubinius::KERNEL_PATH)
 
   # Create a new debugger object. The debugger starts up a thread
   # which is where the command line interface executes from. Other

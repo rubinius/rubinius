@@ -148,7 +148,113 @@
 
   
 
-    
+    <p>Rubinius unterstützt die selben Konstrukte zur Nebenläufigkeit wie Ruby, Threads
+und Fibers, dazu aber noch eine neue API: Actors. Actors stellen Nebenläufigkeit
+ohne wechselseitigen Ausschluss (Mutex) oder Zugriffssperren (Locking) beim
+gegenseitigen Austausch von Zuständen zwischen Threads zur Verfügung.</p>
+
+<p>Actors führen nebenläufig aus, teilen sich aber keine Zustände. Anstelle dessen
+schicken sie Mitteilungen an andere Actors. Im folgenden Beispiel werden zwei
+Actors, ping und pong, mit Hilfe eines <code>Actor.spawn</code> erstellt. Beide schicken
+sich Mitteilungen zu, so lange bis sie gemeinsam eine Variable auf 100 erhöht
+haben:</p>
+
+<pre><code>require 'actor'
+pong = nil
+ping = Actor.spawn do
+  loop do
+    count = Actor.receive
+    break puts(count) if count &gt; 1000
+    pong &lt;&lt; (count + 1)
+  end
+end
+pong = Actor.spawn do
+  loop do
+    count = Actor.receive
+    break puts(count) if count &gt; 1000
+    ping &lt;&lt; (count + 1)
+  end
+end
+ping &lt;&lt; 1
+sleep 1
+</code></pre>
+
+<p>Actors empfangen Mitteilungen über <code>Actor.receive</code>. Das blockiert den Actor so
+lange, bis eine Mitteilung eingeht. Unterschiedliche Arten von Mitteilungen
+können in einem an <code>Actor.receive</code> angehängen Block mit einem Mitteilungs-Filter
+verarbeitet werden:</p>
+
+<pre><code>Actor.receive do |filter|
+  filter.when(Ready) do |who|
+    # SNIP
+  end
+  filter.when(Work) do |work|
+    ready_workers.pop &lt;&lt; work
+  end
+  filter.when(Actor::DeadActorError) do |exit|
+    print "Actor exited with message: #{exit.reason}\n"
+    ready_workers &lt;&lt; Actor.spawn_link(&amp;work_loop)
+  end
+end
+</code></pre>
+
+<p>Mitteilungs-Filter verwenden === für die Mitteilungen, deshalb können auch
+reguläre Ausdrücke, Klassen oder proc mit <code>when()</code> eingesetzt werden.</p>
+
+<p>Actors können mit Hilfe eines <code>Actor.spawn_link</code> auch eine Eltern-Kind Beziehung
+haben. Sollte der Kind-Actor aus irgendeinem Grund beendet werden, kann der
+Eltern-Actor über die Einstellung <code>Actor.trap_exit = true</code> vor dem
+<code>Actor.spawn_link</code> darüber im weiteren Verlauf benachrichtigt werden. Im
+folgenden Beispiel wird ein Supervisor-Actor erstellt, der eine Arbeits-Queue
+mit 10 Arbeitern verwaltet. Der Supervisor wird mittels einer
+<code>Actor::DeadActorError</code> Mitteilung über die Beendigung eines Arbeiters (z.B.
+wegen einer Exception) benachrichtigt:</p>
+
+<pre><code>require 'actor'
+
+Ready = Struct.new(:this)
+Work = Struct.new(:msg)
+
+@supervisor = Actor.spawn do
+  supervisor = Actor.current
+  work_loop = Proc.new do
+    loop do
+      work = Actor.receive
+      puts("Processing: #{work.msg}")
+      supervisor &lt;&lt; Ready[Actor.current]
+    end
+  end
+
+  Actor.trap_exit = true
+  ready_workers = []
+  10.times do |x|
+    # starte 10 Arbeiter Actors
+    ready_workers &lt;&lt; Actor.spawn_link(&amp;work_loop)
+  end
+  loop do
+    Actor.receive do |f|
+      f.when(Ready) do |who|
+        # SNIP
+      end
+      f.when(Work) do |work|
+        ready_workers.pop &lt;&lt; work
+      end
+      f.when(Actor::DeadActorError) do |exit|
+        print "Actor exited with message: #{exit.reason}\n"
+        ready_workers &lt;&lt; Actor.spawn_link(&amp;work_loop)
+      end
+    end
+  end
+end
+
+10.times do |idx|
+  @supervisor &lt;&lt; Work[idx]
+end
+sleep 1
+</code></pre>
+
+<p>Dieses Beispiel stammt von <a href="http://github.com/mperham/girl_friday">girl_friday</a>.
+Weitere Einzelheiten finden sich im Repository.</p>
 
 
 </div>

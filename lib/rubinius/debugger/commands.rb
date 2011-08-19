@@ -116,7 +116,7 @@ To breakpoint on class method start of Debugger line 4, use:
       HELP
 
       def run(args, temp=false)
-        m = /([A-Z]\w*(?:::[A-Z]\w*)*)([.#])([a-zA-Z0-9_\[\]]+[!?=]?)(?:[:](\d+))?/.match(args)
+        m = /([A-Z]\w*(?:::[A-Z]\w*)*)([.#]|::)([a-zA-Z0-9_\[\]]+[!?=]?)(?:[:](\d+))?/.match(args)
         unless m
           error "Unrecognized position: '#{args}'"
           return
@@ -176,7 +176,7 @@ To breakpoint on class method start of Debugger line 4, use:
     end
 
     class DeleteBreakpoint < Command
-      pattern "d", "delete"
+      pattern "d", "del", "delete"
       help "Delete a breakpoint"
       ext_help "Specify the breakpoint by number, use 'info break' to see the numbers"
 
