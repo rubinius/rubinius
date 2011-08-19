@@ -262,7 +262,6 @@ module Marshal
       # loading
       if stream
         @stream = stream
-        @byte_array = stream.data
       else
         @stream = nil
       end
@@ -659,20 +658,6 @@ module Marshal
       obj
     end
 
-    def consume(bytes)
-      raise ArgumentError, "marshal data too short" if @consumed > @stream.size
-      data = @stream[@consumed, bytes]
-      @consumed += bytes
-      data
-    end
-
-    def consume_byte
-      raise ArgumentError, "marshal data too short" if @consumed > @byte_array.size
-      data = @byte_array[@consumed]
-      @consumed += 1
-      return data
-    end
-
     def extend_object(obj)
       obj.__extend__(@modules.pop) until @modules.empty?
     end
@@ -911,6 +896,46 @@ module Marshal
 
   end
 
+  class IOState < State
+    def consume(bytes)
+      @stream.read(bytes)
+    end
+
+    def consume_byte
+      b = @stream.getc
+      raise EOFError unless b
+      b
+    end
+  end
+
+  class StringState < State
+    def initialize(stream, depth, prc)
+      super stream, depth, prc
+
+      if @stream
+        @byte_array = stream.data
+      end
+
+    end
+
+    def consume(bytes)
+      raise ArgumentError, "marshal data too short" if @consumed > @stream.size
+      data = @stream[@consumed, bytes]
+      @consumed += bytes
+      data
+    end
+
+    def consume_byte
+      raise ArgumentError, "marshal data too short" if @consumed > @byte_array.size
+      data = @byte_array[@consumed]
+      @consumed += 1
+      return data
+    end
+
+  end
+
+
+
   def self.dump(obj, an_io=nil, limit=nil)
     unless limit
       if an_io.kind_of? Fixnum
@@ -938,29 +963,28 @@ module Marshal
     return str
   end
 
-  def self.load(obj, proc = nil)
+  def self.load(obj, prc = nil)
     if obj.respond_to? :to_str
       data = obj.to_s
-    elsif obj.respond_to? :read
-      data = obj.read
-      if data.empty?
-        raise EOFError, "end of file reached"
-      end
-    elsif obj.respond_to? :getc  # FIXME - don't read all of it upfront
-      data = ''
-      data << c while (c = obj.getc.chr)
+
+      major = data.getbyte 0
+      minor = data.getbyte 1
+
+      ms = StringState.new data, nil, prc
+
+    elsif obj.respond_to?(:read) and obj.respond_to?(:getc)
+      ms = IOState.new obj, nil, prc
+
+      major = ms.consume_byte
+      minor = ms.consume_byte
     else
       raise TypeError, "instance of IO needed"
     end
-
-    major = data.getbyte 0
-    minor = data.getbyte 1
 
     if major != MAJOR_VERSION or minor > MINOR_VERSION
       raise TypeError, "incompatible marshal file format (can't be read)\n\tformat version #{MAJOR_VERSION}.#{MINOR_VERSION} required; #{major}.#{minor} given"
     end
 
-    ms = State.new data, nil, proc
     ms.construct
   rescue NameError => e
     raise ArgumentError, e.message
