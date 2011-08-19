@@ -476,11 +476,11 @@ namespace rubinius {
     }
 
     void visit_push_nil() {
-      stack_push(constant(Qnil));
+      stack_push(constant(Qnil), type::KnownType::nil());
     }
 
     void visit_push_true() {
-      stack_push(constant(Qtrue));
+      stack_push(constant(Qtrue), type::KnownType::true_());
     }
 
     void visit_push_undef() {
@@ -491,27 +491,28 @@ namespace rubinius {
     }
 
     void visit_push_false() {
-      stack_push(constant(Qfalse));
+      stack_push(constant(Qfalse), type::KnownType::false_());
     }
 
     void visit_push_int(opcode arg) {
-      stack_push(constant(Fixnum::from(arg)));
+      stack_push(constant(Fixnum::from(arg)),
+                 type::KnownType::fixnum(arg));
     }
 
     void visit_meta_push_0() {
-      stack_push(constant(Fixnum::from(0)));
+      stack_push(constant(Fixnum::from(0)), type::KnownType::fixnum(0));
     }
 
     void visit_meta_push_1() {
-      stack_push(constant(Fixnum::from(1)));
+      stack_push(constant(Fixnum::from(1)), type::KnownType::fixnum(1));
     }
 
     void visit_meta_push_2() {
-      stack_push(constant(Fixnum::from(2)));
+      stack_push(constant(Fixnum::from(2)), type::KnownType::fixnum(2));
     }
 
     void visit_meta_push_neg_1() {
-      stack_push(constant(Fixnum::from(-1)));
+      stack_push(constant(Fixnum::from(-1)), type::KnownType::fixnum(-1));
     }
 
     void visit_ret() {
@@ -1189,7 +1190,22 @@ namespace rubinius {
 
       Value* pos = b().CreateGEP(vars_, idx2, idx2+3, "local_pos");
 
-      stack_push(b().CreateLoad(pos, "local"));
+      LocalInfo* li = info().get_local(which);
+
+      /*
+      if(li->known_type().known_p()) {
+        std::cout << "push_local type known for " << which << ": "
+                  << li->known_type().describe() << ". "
+                  << (li->static_type_argument_p() ? "STA" : "not STA")
+                  << "\n";
+      }
+      */
+
+      if(!info().use_full_scope() && li->static_type_argument_p()) {
+        stack_push(b().CreateLoad(pos, "local"), li->known_type());
+      } else {
+        stack_push(b().CreateLoad(pos, "local"));
+      }
     }
 
     void set_scope_local(Value* scope, opcode which) {
@@ -1273,13 +1289,7 @@ namespace rubinius {
       Instruction* val = get_self();
 
       if(info().self_class_id >= 0) {
-        llvm::Value *impMD[] = {
-          llvm::ConstantInt::get(ls_->Int32Ty, info().self_class_id)
-        };
-
-        llvm::MDNode *node = llvm::MDNode::get(ls_->ctx(), impMD, 1);
-
-        val->setMetadata(ls_->metadata_id(), node);
+        type::KnownType::instance(info().self_class_id).associate(ls_, val);
       }
 
       stack_push(val);

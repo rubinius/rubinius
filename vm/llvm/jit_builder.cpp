@@ -209,11 +209,12 @@ namespace jit {
     Symbol* s_module_eval_;
 
     CFGCalculator& cfg_;
+    JITMethodInfo& info_;
 
   public:
 
     PassOne(LLVMState* ls, BlockMap& map, Function* func, BasicBlock* start,
-            CFGCalculator& cfg)
+            CFGCalculator& cfg, JITMethodInfo& info)
       : ls_(ls)
       , map_(map)
       , function_(func)
@@ -225,6 +226,7 @@ namespace jit {
       , sp_(-1)
       , calls_evalish_(false)
       , cfg_(cfg)
+      , info_(info)
     {
       JITBasicBlock& jbb = map_[0];
       jbb.reachable = true;
@@ -454,6 +456,16 @@ namespace jit {
       calls_evalish_ = true;
       number_of_sends_++;
     }
+
+    void visit_push_local(opcode which) {
+      LocalInfo* li = info_.get_local(which);
+      li->inc_push();
+    }
+
+    void visit_set_local(opcode which) {
+      LocalInfo* li = info_.get_local(which);
+      li->inc_set();
+    }
   };
 
   void Builder::pass_one(BasicBlock* body) {
@@ -461,7 +473,7 @@ namespace jit {
     cfg.build();
 
     // Pass 1, detect BasicBlock boundaries
-    PassOne finder(ls_, block_map_, func, body, cfg);
+    PassOne finder(ls_, block_map_, func, body, cfg, info_);
     finder.drive(vmm_);
 
     if(finder.creates_blocks() || finder.calls_evalish()) {

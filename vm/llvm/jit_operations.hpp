@@ -13,6 +13,7 @@
 #include "llvm/inline_policy.hpp"
 
 #include "llvm/jit_context.hpp"
+#include "llvm/types.hpp"
 
 #include <llvm/Value.h>
 #include <llvm/BasicBlock.h>
@@ -32,10 +33,12 @@ namespace rubinius {
     int hint;
     llvm::MDNode* metadata;
     std::vector<Value*> data;
+    type::KnownType known_type;
 
     ValueHint()
       : hint(0)
       , metadata(0)
+      , known_type()
     {}
   };
 
@@ -314,43 +317,7 @@ namespace rubinius {
       failure->moveAfter(cont);
     }
 
-    int64_t metadata_id(llvm::MDNode* md) {
-      int64_t md_id = -1;
-
-      if(md->getNumOperands() >= 1) {
-        if(ConstantInt* ci = dyn_cast<ConstantInt>(md->getOperand(0))) {
-          md_id = ci->getValue().getSExtValue();
-        }
-      }
-
-      return md_id;
-    }
-
-    int64_t metadata_id(llvm::Value* obj) {
-      int64_t md_id = -1;
-
-      if(Instruction* I = dyn_cast<Instruction>(obj)) {
-        if(llvm::MDNode* md = I->getMetadata(ls_->metadata_id())) {
-          md_id = metadata_id(md);
-        }
-      }
-
-      return md_id;
-    }
-
     int check_class(Value* obj, Class* klass, BasicBlock* failure) {
-      int64_t md_id = -1;
-
-      if(Instruction* I = dyn_cast<Instruction>(obj)) {
-        if(llvm::MDNode* md = I->getMetadata(ls_->metadata_id())) {
-          if(md->getNumOperands() >= 1) {
-            if(ConstantInt* ci = dyn_cast<ConstantInt>(md->getOperand(0))) {
-              md_id = ci->getValue().getSExtValue();
-            }
-          }
-        }
-      }
-
       object_type type = (object_type)klass->instance_type()->to_native();
 
       switch(type) {
@@ -358,7 +325,17 @@ namespace rubinius {
         verify_guard(check_is_symbol(obj), failure);
         return -1;
       case rubinius::Fixnum::type:
-        verify_guard(check_is_fixnum(obj), failure);
+        {
+          type::KnownType kt = type::KnownType::extract(ls_, obj);
+
+          if(kt.static_fixnum_p()) {
+            if(ls_->config().jit_inline_debug) {
+              context().inline_log("eliding guard") << "detected static fixnum\n";
+            }
+          } else {
+            verify_guard(check_is_fixnum(obj), failure);
+          }
+        }
         return -1;
       case NilType:
         verify_guard(check_is_immediate(obj, Qnil), failure);
@@ -370,18 +347,22 @@ namespace rubinius {
         verify_guard(check_is_immediate(obj, Qfalse), failure);
         return -1;
       default:
-        if(md_id == klass->class_id()) {
-          if(ls_->config().jit_inline_debug) {
-            context().inline_log("eliding redundant guard")
-              << "class " << ls_->symbol_cstr(klass->name())
-              << " (" << md_id << ")\n";
+        {
+          type::KnownType kt = type::KnownType::extract(ls_, obj);
+
+          if(kt.class_id() == klass->class_id()) {
+            if(ls_->config().jit_inline_debug) {
+              context().inline_log("eliding redundant guard")
+                << "class " << ls_->symbol_cstr(klass->name())
+                << " (" << klass->class_id() << ")\n";
+            }
+
+            return klass->class_id();
           }
 
+          check_reference_class(obj, klass->class_id(), failure);
           return klass->class_id();
         }
-
-        check_reference_class(obj, klass->class_id(), failure);
-        return klass->class_id();
       }
     }
 
@@ -495,11 +476,29 @@ namespace rubinius {
 
       clear_hint();
 
-      if(Instruction* I = dyn_cast<Instruction>(val)) {
-        if(llvm::MDNode* md = I->getMetadata(ls_->metadata_id())) {
-          set_hint_metadata(md);
-        }
+      if(type::KnownType::has_hint(ls_, val)) {
+        set_known_type(type::KnownType::extract(ls_, val));
       }
+    }
+
+    void stack_push(Value* val, type::KnownType kt) {
+      kt.associate(ls_, val);
+
+      stack_ptr_adjust(1);
+      Value* stack_pos = stack_ptr();
+
+      if(val->getType() == cast<llvm::PointerType>(stack_pos->getType())->getElementType()) {
+        b().CreateStore(val, stack_pos);
+      } else {
+        Value* cst = b().CreateBitCast(
+          val,
+          ObjType, "casted");
+        b().CreateStore(cst, stack_pos);
+      }
+
+      clear_hint();
+
+      set_known_type(kt);
     }
 
     void set_hint(int hint) {
@@ -508,6 +507,14 @@ namespace rubinius {
       }
 
       hints_[sp_].hint = hint;
+    }
+
+    void set_known_type(type::KnownType kt) {
+      if((int)hints_.size() <= sp_) {
+        hints_.resize(sp_ + 1);
+      }
+
+      hints_[sp_].known_type = kt;
     }
 
     void set_hint_metadata(llvm::MDNode* md) {
@@ -544,6 +551,16 @@ namespace rubinius {
       return hints_[pos].metadata;
     }
 
+    type::KnownType hint_known_type(int back) {
+      int pos = sp_ - back;
+
+      if(hints_.size() <= (size_t)pos) {
+        return type::KnownType::unknown();
+      }
+
+      return hints_[pos].known_type;
+    }
+
     ValueHint* current_hint_value() {
       if((int)hints_.size() <= sp_) {
         hints_.resize(sp_ + 1);
@@ -561,9 +578,8 @@ namespace rubinius {
 
     llvm::Value* stack_back(int back) {
       Instruction* I = b().CreateLoad(stack_back_position(back), "stack_load");
-      if(llvm::MDNode* md = hint_metadata(back)) {
-        I->setMetadata(ls_->metadata_id(), md);
-      }
+      type::KnownType kt = hint_known_type(back);
+      kt.associate(ls_, I);
 
       return I;
     }
@@ -577,10 +593,8 @@ namespace rubinius {
 
       clear_hint();
 
-      if(Instruction* I = dyn_cast<Instruction>(val)) {
-        if(llvm::MDNode* md = I->getMetadata(ls_->metadata_id())) {
-          set_hint_metadata(md);
-        }
+      if(type::KnownType::has_hint(ls_, val)) {
+        set_known_type(type::KnownType::extract(ls_, val));
       }
     }
 

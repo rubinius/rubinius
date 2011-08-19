@@ -30,6 +30,8 @@
 #include "instruments/timing.hpp"
 #include "object_utils.hpp"
 
+#include "llvm/local_info.hpp"
+
 namespace rubinius {
 
   namespace jit {
@@ -155,6 +157,7 @@ namespace rubinius {
     llvm::PHINode* return_phi_;
 
     TypedRoot<Class*> self_class_;
+    std::map<int, LocalInfo> local_info_;
 
   public:
     VMMethod* vmm;
@@ -387,6 +390,17 @@ namespace rubinius {
       self_class_.set(cls);
     }
 
+    LocalInfo* get_local(int which) {
+      std::map<int, LocalInfo>::iterator i = local_info_.find(which);
+      if(i == local_info_.end()) {
+        LocalInfo li(which);
+        local_info_[which] = li;
+        return &local_info_[which];
+      }
+
+      return &i->second;
+    }
+
     llvm::AllocaInst* create_alloca(const llvm::Type* type, llvm::Value* size = 0,
                                     const llvm::Twine& name = "");
 
@@ -461,6 +475,8 @@ namespace rubinius {
 
     gc::WriteBarrier write_barrier_;
     unsigned int metadata_id_;
+
+    int fixnum_class_id_;
 
   public:
 
@@ -565,6 +581,10 @@ namespace rubinius {
 
     unsigned int metadata_id() {
       return metadata_id_;
+    }
+
+    int fixnum_class_id() {
+      return fixnum_class_id_;
     }
 
     const llvm::Type* ptr_type(std::string name);

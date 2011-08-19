@@ -653,6 +653,8 @@ namespace rubinius {
 
     metadata_id_ = ctx_.getMDKindID("rbx-classid");
 
+    fixnum_class_id_ = G(fixnum_class)->class_id();
+
     background_thread_ = new BackgroundCompilerThread(this);
     background_thread_->run();
   }

@@ -113,7 +113,17 @@ namespace jit {
 
       Value* pos = b().CreateGEP(vars, idx2, idx2+3, "local_pos");
 
-      b().CreateStore(stack_args[i], pos);
+      Value* arg_val = stack_args.at(i);
+
+      LocalInfo* li = info_.get_local(i);
+      li->make_argument();
+
+      if(type::KnownType::has_hint(ls_, arg_val)) {
+        type::KnownType kt = type::KnownType::extract(ls_, arg_val);
+        li->set_known_type(kt);
+      }
+
+      b().CreateStore(arg_val, pos);
     }
 
     b().CreateBr(body);

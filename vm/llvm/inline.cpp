@@ -20,9 +20,12 @@ namespace rubinius {
       // If the inlining context has the self klass staticly known
       // and it's in the cache, use it without worrying about
       // multiple classes in the cache.
-      int64_t md_id = ops_.metadata_id(recv());
-      if(md_id > 0) {
-        klass = cache_->find_class_by_id(md_id);
+      type::KnownType kt = type::KnownType::extract(ops_.state(), recv());
+
+      if(kt.instance_p()) {
+        klass = cache_->find_class_by_id(kt.class_id());
+      } else if(kt.fixnum_p()) {
+        klass = cache_->find_class_by_id(ops_.state()->fixnum_class_id());
       }
 
       if(!klass) {

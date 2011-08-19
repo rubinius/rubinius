@@ -585,10 +585,36 @@ namespace rubinius {
       symbol_s_eqq(ops_, *this);
 
     } else {
+      if(prim == Primitives::object_hash && count_ == 0) {
+        Value* V = recv();
+        type::KnownType kt = type::KnownType::extract(ops_.state(), V);
+        if(kt.static_fixnum_p()) {
+          exception_safe();
+          set_result(ops_.constant(Fixnum::from(kt.value())->fixnum_hash()));
+
+          if(ops_.state()->config().jit_inline_debug) {
+            context_.inline_log("inlining")
+              << "static hash value of " << kt.value() << "\n";
+          }
+
+          return true;
+        }
+      }
+
       JITStubResults stub_res;
 
       if(Primitives::get_jit_stub(cm->prim_index(), stub_res)) {
         if(stub_res.arg_count() == count_) {
+          if(ops_.state()->config().jit_inline_debug) {
+            context_.inline_log("inlining")
+              << ops_.state()->enclosure_name(cm)
+              << "#"
+              << ops_.state()->symbol_cstr(cm->name())
+              << " into "
+              << ops_.state()->symbol_cstr(ops_.method_name())
+              << ". generic primitive: " << stub_res.name() << "\n";
+          }
+
           Value* self = recv();
           ops_.check_class(self, klass, failure());
 
@@ -635,15 +661,6 @@ namespace rubinius {
 
           set_result(res);
 
-          if(ops_.state()->config().jit_inline_debug) {
-            context_.inline_log("inlining")
-              << ops_.state()->enclosure_name(cm)
-              << "#"
-              << ops_.state()->symbol_cstr(cm->name())
-              << " into "
-              << ops_.state()->symbol_cstr(ops_.method_name())
-              << ". generic primitive: " << stub_res.name() << "\n";
-          }
           return true;
 
         }
