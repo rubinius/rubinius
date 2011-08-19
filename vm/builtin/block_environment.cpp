@@ -96,10 +96,19 @@ namespace rubinius {
 
       // Only do destructuring in non-lambda mode
       if((flags & CallFrame::cIsLambda) == 0) {
-        // If only one argument was yielded and it was an array
-        // and the target block takes 2 or more arguments, then
-        // we destructure the array.
-        if(vmm->required_args > 1 && total_args == 1) {
+        /* If only one argument was yielded and it was an array, and the block
+         * takes:
+         *
+         *  1. 2 or more arguments
+         *  2. or 1 argument and a splat
+         *  3. or has the form { |a, | }
+         *  
+         * then we destructure the Array.
+         */
+        if(total_args == 1
+            && (vmm->required_args > 1
+              || (vmm->required_args == 1
+                && (has_splat || vmm->splat_position == -3)))) {
           Object* obj = args.get_argument(0);
           if(Array* ary = try_as<Array>(obj)) {
             args.use_array(ary);

@@ -415,8 +415,7 @@ module Rubinius
     end
 
     def arity
-      if @required_args == @total_args and
-         @splat.nil?
+      if @required_args == @total_args and (@splat.nil? or @splat == -3)
         @required_args
       else
         -(@required_args + 1)

@@ -407,6 +407,7 @@ module Rubinius
         @line = line
         @defaults = nil
         @block_arg = nil
+        @splat_index = nil
 
         @required = []
         names = []
@@ -438,7 +439,7 @@ module Rubinius
           splat = :@unnamed_splat
           names << splat
         when false
-          # TODO
+          @splat_index = -3
           splat = nil
         end
 
@@ -471,6 +472,8 @@ module Rubinius
       end
 
       def splat_index
+        return @splat_index if @splat_index
+
         if @splat
           index = @names.size
           index -= 1 if @block_arg
