@@ -118,9 +118,11 @@ namespace jit {
       LocalInfo* li = info_.get_local(i);
       li->make_argument();
 
-      if(type::KnownType::has_hint(ls_, arg_val)) {
-        type::KnownType kt = type::KnownType::extract(ls_, arg_val);
-        li->set_known_type(kt);
+      if(ls_->type_optz()) {
+        if(type::KnownType::has_hint(ls_, arg_val)) {
+          type::KnownType kt = type::KnownType::extract(ls_, arg_val);
+          li->set_known_type(kt);
+        }
       }
 
       b().CreateStore(arg_val, pos);

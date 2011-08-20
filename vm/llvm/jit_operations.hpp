@@ -326,11 +326,15 @@ namespace rubinius {
         return -1;
       case rubinius::Fixnum::type:
         {
-          type::KnownType kt = type::KnownType::extract(ls_, obj);
+          if(ls_->type_optz()) {
+            type::KnownType kt = type::KnownType::extract(ls_, obj);
 
-          if(kt.static_fixnum_p()) {
-            if(ls_->config().jit_inline_debug) {
-              context().inline_log("eliding guard") << "detected static fixnum\n";
+            if(kt.static_fixnum_p()) {
+              if(ls_->config().jit_inline_debug) {
+                context().inline_log("eliding guard") << "detected static fixnum\n";
+              }
+            } else {
+              verify_guard(check_is_fixnum(obj), failure);
             }
           } else {
             verify_guard(check_is_fixnum(obj), failure);

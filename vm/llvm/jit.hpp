@@ -478,6 +478,8 @@ namespace rubinius {
 
     int fixnum_class_id_;
 
+    bool type_optz_;
+
   public:
 
     uint64_t time_spent;
@@ -585,6 +587,10 @@ namespace rubinius {
 
     int fixnum_class_id() {
       return fixnum_class_id_;
+    }
+
+    bool type_optz() {
+      return type_optz_;
     }
 
     const llvm::Type* ptr_type(std::string name);
