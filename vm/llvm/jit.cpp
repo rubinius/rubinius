@@ -655,6 +655,8 @@ namespace rubinius {
 
     fixnum_class_id_ = G(fixnum_class)->class_id();
 
+    type_optz_ = state->shared.config.jit_type_optz;
+
     background_thread_ = new BackgroundCompilerThread(this);
     background_thread_->run();
   }

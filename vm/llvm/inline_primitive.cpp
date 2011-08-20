@@ -585,19 +585,21 @@ namespace rubinius {
       symbol_s_eqq(ops_, *this);
 
     } else {
-      if(prim == Primitives::object_hash && count_ == 0) {
-        Value* V = recv();
-        type::KnownType kt = type::KnownType::extract(ops_.state(), V);
-        if(kt.static_fixnum_p()) {
-          exception_safe();
-          set_result(ops_.constant(Fixnum::from(kt.value())->fixnum_hash()));
+      if(ops_.state()->type_optz()) {
+        if(prim == Primitives::object_hash && count_ == 0) {
+          Value* V = recv();
+          type::KnownType kt = type::KnownType::extract(ops_.state(), V);
+          if(kt.static_fixnum_p()) {
+            exception_safe();
+            set_result(ops_.constant(Fixnum::from(kt.value())->fixnum_hash()));
 
-          if(ops_.state()->config().jit_inline_debug) {
-            context_.inline_log("inlining")
-              << "static hash value of " << kt.value() << "\n";
+            if(ops_.state()->config().jit_inline_debug) {
+              context_.inline_log("inlining")
+                << "static hash value of " << kt.value() << "\n";
+            }
+
+            return true;
           }
-
-          return true;
         }
       }
 

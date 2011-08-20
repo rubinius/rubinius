@@ -17,15 +17,18 @@ namespace rubinius {
   bool Inliner::consider() {
     Class* klass = cache_->dominating_class();
     if(!klass) {
-      // If the inlining context has the self klass staticly known
-      // and it's in the cache, use it without worrying about
-      // multiple classes in the cache.
-      type::KnownType kt = type::KnownType::extract(ops_.state(), recv());
 
-      if(kt.instance_p()) {
-        klass = cache_->find_class_by_id(kt.class_id());
-      } else if(kt.fixnum_p()) {
-        klass = cache_->find_class_by_id(ops_.state()->fixnum_class_id());
+      if(ops_.state()->type_optz()) {
+        // If the inlining context has the self klass staticly known
+        // and it's in the cache, use it without worrying about
+        // multiple classes in the cache.
+        type::KnownType kt = type::KnownType::extract(ops_.state(), recv());
+
+        if(kt.instance_p()) {
+          klass = cache_->find_class_by_id(kt.class_id());
+        } else if(kt.fixnum_p()) {
+          klass = cache_->find_class_by_id(ops_.state()->fixnum_class_id());
+        }
       }
 
       if(!klass) {

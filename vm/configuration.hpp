@@ -56,6 +56,7 @@ namespace rubinius {
     config::Bool    jit_show_uncommon;
     config::Bool    jit_show_remove;
     config::Bool    jit_check_debugging;
+    config::Bool    jit_type_optz;
 
     // Tools
     config::String  tool_to_load;
@@ -123,6 +124,7 @@ namespace rubinius {
       , jit_show_uncommon(this, "jit.uncommon.print", false)
       , jit_show_remove(this, "jit.removal.print", false)
       , jit_check_debugging(this, "jit.check_debugging", false)
+      , jit_type_optz(this, "jit.type.optz", false)
 
       , tool_to_load(this, "tool")
 
