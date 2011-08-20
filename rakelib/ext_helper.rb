@@ -109,8 +109,15 @@ def add_mri_capi
 end
 
 def add_rbx_capi
-  add_cflag "-ggdb3 -O2"
-  add_cxxflag "-ggdb3 -O2"
+  add_cflag "-ggdb3"
+  add_cxxflag "-ggdb3"
+  if ENV['DEV']
+    add_cflag "-O0"
+    add_cxxflag "-O0"
+  else
+    add_cflag "-O2"
+    add_cxxflag "-O2"
+  end
   add_include_dir File.expand_path("../../vm/capi/include", __FILE__)
 end
 
