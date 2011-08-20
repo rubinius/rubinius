@@ -750,6 +750,9 @@ namespace profiler {
 
   namespace {
     void tool_enable(Env* env) {
+      // Ignore if we are already enabled
+      if(env->global_tool_data()) return;
+
       GlobalState* st = new GlobalState;
       env->set_global_tool_data(st);
 
@@ -889,6 +892,8 @@ namespace profiler {
 
     robject tool_results(Env* env) {
       GlobalState* st = (GlobalState*)env->global_tool_data();
+
+      if(!st) return env->nil();
 
       Profiler* profiler = (Profiler*)env->thread_tool_data(cProfileToolID);
 
