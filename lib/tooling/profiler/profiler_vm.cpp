@@ -522,7 +522,7 @@ namespace profiler {
       if(as_module) {
         return get_method(env, cm, name, env->module_name(as_module), kSingleton);
       } else {
-        rstring str = env->to_s(recv);
+        rstring str = env->to_s(mod);
         return get_method(env, cm, name, env->string_to_symbol(str), kSingleton);
       }
     } else {

@@ -668,7 +668,11 @@ namespace rubinius {
         } else {
           name << mod->name()->c_str(state);
         }
-        name << "(" << this->class_object(state)->name()->c_str(state) << ")";
+        if(SingletonClass* sc = try_as<SingletonClass>(mod)) {
+          name << "(" << sc->true_superclass(state)->name()->c_str(state) << ")";
+        } else {
+          name << "(" << this->class_object(state)->name()->c_str(state) << ")";
+        }
       } else {
         if(this->class_object(state)->name()->nil_p()) {
           name << "Object";
