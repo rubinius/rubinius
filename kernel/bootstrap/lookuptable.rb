@@ -96,7 +96,7 @@ module Rubinius
 
     def values
       Ruby.primitive :lookuptable_values
-      raise PrimitiveFailure, "LookupTable#keys primitive failed"
+      raise PrimitiveFailure, "LookupTable#values primitive failed"
     end
 
     def each
