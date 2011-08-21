@@ -124,8 +124,15 @@ def include19_dir
 end
 
 def add_rbx_capi
-  add_cflag "-ggdb3 -O2"
-  add_cxxflag "-ggdb3 -O2"
+  add_cflag "-ggdb3"
+  add_cxxflag "-ggdb3"
+  if ENV['DEV']
+    add_cflag "-O0"
+    add_cxxflag "-O0"
+  else
+    add_cflag "-O2"
+    add_cxxflag "-O2"
+  end
   add_include_dir include18_dir
   add_include_dir include19_dir
 end

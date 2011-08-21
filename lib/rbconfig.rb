@@ -120,7 +120,12 @@ module RbConfig
   # since we hardcode using gcc, and this flag is only
   # used by mkmf to compile extensions, be sure PIC is in
   # there
-  CONFIG["CFLAGS"]             = "-ggdb3 -O2 -fPIC"
+  CONFIG["CFLAGS"]             = "-ggdb3 -fPIC"
+  if ENV['DEV']
+    CONFIG["CFLAGS"] << " -O0"
+  else
+    CONFIG["CFLAGS"] << " -O2"
+  end
   if user = Rubinius::BUILD_CONFIG[:user_cflags]
     CONFIG["CFLAGS"] << " #{user}" unless user.empty?
   end

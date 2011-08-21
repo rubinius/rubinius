@@ -536,7 +536,7 @@ namespace profiler {
       if(as_module) {
         return get_method(env, cm, name, env->module_name(as_module), kSingleton);
       } else {
-        rstring str = env->to_s(recv);
+        rstring str = env->to_s(mod);
         return get_method(env, cm, name, env->string_to_symbol(str), kSingleton);
       }
     } else {
@@ -762,6 +762,9 @@ namespace profiler {
 
   namespace {
     void tool_enable(Env* env) {
+      // Ignore if we are already enabled
+      if(env->global_tool_data()) return;
+
       GlobalState* st = new GlobalState;
       env->set_global_tool_data(st);
 
