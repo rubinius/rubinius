@@ -281,10 +281,10 @@ namespace rubinius {
   Object* InlineCache::empty_cache_custom(STATE, InlineCache* cache, CallFrame* call_frame,
                                           Arguments& args)
   {
-    MethodCacheEntry* mce = cache->cache_;
-
     args.set_name(cache->name);
     Object* const recv = args.recv();
+    Class* const recv_class = recv->lookup_begin(state);
+
     Array*  ary = Array::create(state, args.total() + 2);
     ary->set(state, 0, recv);
     ary->set(state, 1, cache->name);
@@ -299,8 +299,16 @@ namespace rubinius {
     if(!ret) return 0;
 
     if(CallUnit* cu = try_as<CallUnit>(ret)) {
+      MethodCacheEntry* mce = 0;
+
+      mce = MethodCacheEntry::create(state, recv_class, cu->module(), cu->executable());
+
+      atomic::memory_barrier();
+
+      cache->cache_ = mce;
+      call_frame->cm->write_barrier(state, mce);
+
       cache->call_unit_ = cu;
-      // kludge.
       call_frame->cm->write_barrier(state, cu);
 
       cache->execute_backend_ = check_cache_custom;
