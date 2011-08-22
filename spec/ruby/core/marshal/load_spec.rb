@@ -162,6 +162,13 @@ describe "Marshal::load" do
     Marshal.load(arr_dump).class.should == ArraySub
   end
 
+  it "loads subclasses of Array with overridden << and push correctly" do
+    arr = ArraySubPush.new
+    arr[0] = '1'
+    arr_dump = Marshal.dump(arr)
+    Marshal.load(arr_dump).should == arr
+  end
+
   it "raises a TypeError with bad Marshal version" do
     marshal_data = '\xff\xff'
     marshal_data[0] = (Marshal::MAJOR_VERSION).chr

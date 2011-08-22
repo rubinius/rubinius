@@ -398,3 +398,10 @@ class ArraySub < Array
   end
 end
 
+class ArraySubPush < Array
+  def << value
+    raise 'broken'
+  end
+  alias_method :push, :<<
+end
+
