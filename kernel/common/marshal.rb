@@ -413,8 +413,8 @@ module Marshal
         end
       end
 
-      construct_integer.times do
-        obj << construct
+      construct_integer.times do |i|
+        obj.__append__ construct
       end
 
       obj

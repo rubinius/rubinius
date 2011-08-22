@@ -363,6 +363,8 @@ class Array
     self
   end
 
+  alias_method :__append__, :<<
+
   # Creates a new Array containing only elements common to
   # both Arrays, without duplicates. Also known as a 'set
   # intersection'
