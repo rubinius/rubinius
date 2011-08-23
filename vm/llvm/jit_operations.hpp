@@ -577,6 +577,7 @@ namespace rubinius {
       if(hints_.size() > (size_t)sp_) {
         hints_[sp_].hint = 0;
         hints_[sp_].metadata = 0;
+        hints_[sp_].known_type = type::KnownType::unknown();
       }
     }
 
