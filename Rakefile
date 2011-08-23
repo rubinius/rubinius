@@ -181,10 +181,13 @@ end
 
 desc 'Move the preinstalled gem setup into place'
 task :gem_bootstrap do
-  unless File.directory?("gems/rubinius")
-    sh "mkdir -p gems/rubinius"
-    sh "cp -r preinstalled-gems/bin gems/bin"
-    sh "cp -r preinstalled-gems/data gems/rubinius/preinstalled"
+  pre_gems = Dir["preinstalled-gems/data/specifications/*.gemspec"].sort
+  ins_gems = Dir["gems/rubinius/specifications/*.gemspec"].sort
+  unless pre_gems == ins_gems
+    FileUtils.rm_r "gems/rubinius"
+    FileUtils.mkdir_p "gems/rubinius"
+    FileUtils.cp_r "preinstalled-gems/bin", "gems/bin"
+    FileUtils.cp_r "preinstalled-gems/data", "gems/rubinius/preinstalled"
   end
 end
 
