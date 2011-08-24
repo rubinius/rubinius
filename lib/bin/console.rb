@@ -316,7 +316,7 @@ else
   else
     case agents.size
     when 0
-      puts "Unable to find any agents to connect to.  Please specify one."
+      puts "Unable to find any agents to connect to. Please specify one."
       exit 1
     when 1
       agent = agents.first
