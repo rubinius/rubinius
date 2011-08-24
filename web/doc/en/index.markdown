@@ -67,6 +67,7 @@ next_url: what-is-rubinius
     1. [Write a Blog Post](/doc/en/how-to/write-a-blog-post/)
     1. [Write Documentation](/doc/en/how-to/write-documentation/)
     1. [Translate Documentation](/doc/en/how-to/translate-documentation/)
+    1. [Commit to Github](/doc/en/how-to/commit-to-github/)
 1. [Appendix A - Glossary](/doc/en/appendix-a-glossary/)
 1. [Appendix B - Reading List](/doc/en/appendix-b-reading-list/)
 1. [Index of Terms](/doc/en/index-of-terms/)

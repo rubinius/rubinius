@@ -3,8 +3,8 @@ layout: doc_en
 title: How-To - Translate Documentation
 previous: Write Documentation
 previous_url: how-to/write-documentation
-next: Appendix A - Glossary
-next_url: appendix-a-glossary
+next: Commit to Github
+next_url: how-to/commit-to-github
 ---
 
 There are two translation tasks:
