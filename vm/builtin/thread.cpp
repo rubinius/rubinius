@@ -13,6 +13,7 @@
 #include "arguments.hpp"
 #include "dispatch.hpp"
 #include "call_frame.hpp"
+#include "environment.hpp"
 
 #include "instruments/tooling.hpp"
 
@@ -125,7 +126,7 @@ namespace rubinius {
 
     if(!ret) {
       if(vm->thread_state()->raise_reason() == cExit) {
-        std::cerr << "Exit from thread detected.\n";
+        vm->shared.env()->halt();
       }
     }
 

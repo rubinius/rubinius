@@ -3,6 +3,7 @@
 #include "config_parser.hpp"
 #include "config.h"
 #include "objectmemory.hpp"
+#include "environment.hpp"
 #include "instruments/tooling.hpp"
 #include "instruments/timing.hpp"
 #include "global_cache.hpp"
@@ -148,6 +149,7 @@ namespace rubinius {
 
     config.jit_inline_debug.set("no");
 
+    env_->state = state;
     threads_.clear();
     threads_.push_back(state);
 

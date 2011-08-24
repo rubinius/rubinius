@@ -86,7 +86,11 @@ namespace rubinius {
       FD_SET((int_fd_t)read_fd_, &fds);
 
       int n = select(read_fd_ + 1, &fds, NULL, NULL, NULL);
-      if(exit_) return;
+      if(exit_) {
+        close(write_fd_);
+        close(read_fd_);
+        return;
+      }
 
       if(n == 1) {
         // drain a bunch

@@ -547,6 +547,7 @@ namespace rubinius {
     state->shared.stop_the_world(state);
     shared->om->run_all_io_finalizers(state);
 
+    SignalHandler::shutdown();
     // TODO: temporarily disable to sort out finalizing Pointer objects
     // shared->om->run_all_finalizers(state);
   }
