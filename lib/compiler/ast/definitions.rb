@@ -420,6 +420,7 @@ module Rubinius
               @required << arg
             when MultipleAssignment
               @required << PatternArguments.from_masgn(arg)
+              @splat_index = -4 if @required.size == 1
             end
           end
         end

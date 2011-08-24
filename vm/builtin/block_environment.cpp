@@ -96,29 +96,42 @@ namespace rubinius {
 
       // Only do destructuring in non-lambda mode
       if((flags & CallFrame::cIsLambda) == 0) {
-        /* If only one argument was yielded and it was an array, and the block
-         * takes:
+        /* If only one argument was yielded and:
          *
-         *  1. 2 or more arguments
-         *  2. or 1 argument and a splat
-         *  3. or has the form { |a, | }
-         *  
-         * then we destructure the Array.
+         *  1. the block takes two or more arguments
+         *  2. OR takes one argument and a splat
+         *  3. OR has the form { |a, | }
+         *  4. OR has the form { |(a, b)| }
+         *
+         * then we check if the one argument is an Array. If it is not, call
+         * #to_ary to convert it to an Array and raise if #to_ary does not
+         * return an Array.
+         *
+         * Finally, in cases 1-3 above, we destructure the Array into the
+         * block's arguments.
          */
         if(total_args == 1
             && (vmm->required_args > 1
               || (vmm->required_args == 1
-                && (has_splat || vmm->splat_position == -3)))) {
+                && (has_splat || vmm->splat_position < -2)))) {
           Object* obj = args.get_argument(0);
-          if(Array* ary = try_as<Array>(obj)) {
-            args.use_array(ary);
-          } else if(RTEST(obj->respond_to(state, state->symbol("to_ary"), Qfalse))) {
-            obj = obj->send(state, call_frame, state->symbol("to_ary"));
-            if(Array* ary2 = try_as<Array>(obj)) {
-              args.use_array(ary2);
+          Array* ary = 0;
+
+          if(!(ary = try_as<Array>(obj))) {
+            if(RTEST(obj->respond_to(state, state->symbol("to_ary"), Qfalse))) {
+              obj = obj->send(state, call_frame, state->symbol("to_ary"));
+              if(!(ary = try_as<Array>(obj))) {
+                Exception::type_error(state, "to_ary must return an Array", call_frame);
+                return false;
+              }
+            }
+          }
+
+          if(ary) {
+            if(vmm->splat_position == -4) {
+              args.use_argument(ary);
             } else {
-              Exception::type_error(state, "to_ary must return an Array", call_frame);
-              return false;
+              args.use_array(ary);
             }
           }
         }

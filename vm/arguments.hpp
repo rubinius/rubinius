@@ -106,6 +106,10 @@ namespace rubinius {
       return total_;
     }
 
+    void use_argument(Object* obj) {
+      arguments_[0] = obj;
+    }
+
     void use_array(Array* ary) {
       use_tuple(ary->tuple(), ary->size());
     }
