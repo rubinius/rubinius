@@ -679,6 +679,7 @@ namespace rubinius {
   }
 
   void LLVMState::on_fork_i() {
+    shared_.add_managed_thread(this);
     background_thread_->restart();
   }
 

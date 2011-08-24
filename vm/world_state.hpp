@@ -174,7 +174,7 @@ namespace rubinius {
   private:
     void wait_to_run(THREAD) {
       if(cDebugThreading) {
-        std::cerr << "[" << VM::current() << " WORLD stopping, waiting to be resarted]\n";
+        std::cerr << "[" << VM::current() << " WORLD stopping, waiting to be restarted]\n";
       }
 
       if(state->run_state_ != ManagedThread::eRunning) {
@@ -193,7 +193,7 @@ namespace rubinius {
       state->run_state_ = ManagedThread::eRunning;
 
       if(cDebugThreading) {
-        std::cerr << "[" << VM::current() << " WORLD resarted]\n";
+        std::cerr << "[" << VM::current() << " WORLD restarted]\n";
       }
     }
   };

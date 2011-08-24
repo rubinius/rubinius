@@ -142,11 +142,14 @@ namespace rubinius {
     if(agent_) agent_->cleanup();
   }
 
-  void SharedState::reinit() {
+  void SharedState::reinit(STATE) {
     // For now, we disable inline debugging here. This makes inspecting
     // it much less confusing.
 
     config.jit_inline_debug.set("no");
+
+    threads_.clear();
+    threads_.push_back(state);
 
     world_->reinit();
 

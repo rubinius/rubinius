@@ -257,7 +257,7 @@ namespace rubinius {
     void enable_preemption();
 
     void pre_exec();
-    void reinit();
+    void reinit(STATE);
 
     void ask_for_stopage();
     bool should_stop();

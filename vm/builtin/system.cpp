@@ -436,7 +436,7 @@ namespace rubinius {
     if(result == 0) {
       /*  @todo any other re-initialisation needed? */
 
-      state->shared.reinit();
+      state->shared.reinit(state);
 
       SignalHandler::on_fork();
       state->shared.om->on_fork();
