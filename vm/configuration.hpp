@@ -32,6 +32,7 @@ namespace rubinius {
     config::Bool    jit_debug;
     config::Bool    jit_sync;
     config::Bool    jit_show_uncommon;
+    config::Integer jit_deoptimize_threshold;
     config::Bool    jit_show_remove;
     config::Bool    jit_check_debugging;
 
@@ -63,6 +64,9 @@ namespace rubinius {
     static const int default_jit_dump_code = 0;
     static const int default_jit_call_til_compile = 4000;
     static const int default_jit_max_method_size = 2048;
+    // 500 is a number picked after doing some tuning on a specific benchmark.
+    // Not sure if it's the right value, but it seems to work fine.
+    static const int default_jit_deoptimize_threshold = 500;
     static const bool default_jit_on = true;
     static const bool default_gc_autotune = true;
     static const int default_gc_malloc_threshold = 104857600;
@@ -97,6 +101,7 @@ namespace rubinius {
       , jit_debug(this,      "jit.debug", false)
       , jit_sync(this,       "jit.sync", false)
       , jit_show_uncommon(this, "jit.uncommon.print", false)
+      , jit_deoptimize_threshold(this, "jit.deoptimize_threshold", default_jit_deoptimize_threshold)
       , jit_show_remove(this, "jit.removal.print", false)
       , jit_check_debugging(this, "jit.check_debugging", false)
 
