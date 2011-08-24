@@ -71,11 +71,11 @@ describe "A Proc" do
       @l.call([1, 2]).should == [1, 2]
     end
 
-    it "does not call #to_ary to convert a single yielded object to an Array" do
+    it "does not call #to_ary to convert a single passed object to an Array" do
       obj = mock("block yield to_ary")
       obj.should_not_receive(:to_ary)
 
-      @l.call(obj) { |a| a }.should equal(obj)
+      @l.call(obj).should equal(obj)
     end
 
     ruby_version_is ""..."1.9" do
@@ -137,6 +137,12 @@ describe "A Proc" do
         @l.call(1, 2, 3).should == [1, [2, 3]]
     end
 
+    it "does not call #to_ary to convert a single passed object to an Array" do
+      obj = mock("block yield to_ary")
+      obj.should_not_receive(:to_ary)
+
+      @l.call(obj).should == [obj, []]
+    end
   end
 
   describe "taking |*| arguments" do
@@ -150,6 +156,13 @@ describe "A Proc" do
 
     it "does not raise an exception when passed multiple values" do
       @l.call(2, 3, 4).should == 1
+    end
+
+    it "does not call #to_ary to convert a single passed object to an Array" do
+      obj = mock("block yield to_ary")
+      obj.should_not_receive(:to_ary)
+
+      @l.call(obj).should == 1
     end
   end
 
@@ -168,6 +181,13 @@ describe "A Proc" do
 
     it "assigns the argument an Array wrapping all values passed" do
       @l.call(1, 2, 3).should == [1, 2, 3]
+    end
+
+    it "does not call #to_ary to convert a single passed object to an Array" do
+      obj = mock("block yield to_ary")
+      obj.should_not_receive(:to_ary)
+
+      @l.call(obj).should == [obj]
     end
   end
 
@@ -190,6 +210,13 @@ describe "A Proc" do
 
     it "does not destructure when passed a single Array" do
       @l.call([1,2]).should == [1, 2]
+    end
+
+    it "does not call #to_ary to convert a single passed object to an Array" do
+      obj = mock("block yield to_ary")
+      obj.should_not_receive(:to_ary)
+
+      @l.call(obj).should == obj
     end
   end
 
