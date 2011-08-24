@@ -15,6 +15,7 @@
 #include "arguments.hpp"
 #include "dispatch.hpp"
 #include "call_frame.hpp"
+#include "configuration.hpp"
 
 namespace rubinius {
 
@@ -53,13 +54,37 @@ namespace rubinius {
 
       bool arity_ok = false;
       if(Fixnum* fix = try_as<Fixnum>(block_->code()->splat())) {
-        if(fix->to_native() == -1) {
-          // splat = -1 is used to distinguish { |a, | } from { |a| }
+        switch(fix->to_native()) {
+        case -2:
+          arity_ok = true;
+          break;
+        case -4:
+          // splat = -4 means { |(a, b)| }
+          if(args.total() == 1) {
+            Array* ary = 0;
+            Object* obj = args.get_argument(0);
+
+            if(!(ary = try_as<Array>(obj))) {
+              if(RTEST(obj->respond_to(state, state->symbol("to_ary"), Qfalse))) {
+                obj = obj->send(state, call_frame, state->symbol("to_ary"));
+                if(!(ary = try_as<Array>(obj))) {
+                  Exception::type_error(state, "to_ary must return an Array", call_frame);
+                  return 0;
+                }
+              }
+            }
+
+            if(ary) args.use_argument(ary);
+          }
+          // fall through for arity check
+        case -3:
+          // splat = -3 is used to distinguish { |a, | } from { |a| }
           if(args.total() == (size_t)required) arity_ok = true;
-        } else if(fix->to_native() == -2) {
-          arity_ok = true;
-        } else if(args.total() >= (size_t)required) {
-          arity_ok = true;
+          break;
+        default:
+          if(args.total() >= (size_t)required) {
+            arity_ok = true;
+          }
         }
 
       /* For blocks taking one argument { |a|  }, in 1.8, there is a warning
@@ -67,7 +92,7 @@ namespace rubinius {
        * argument is passed. If more than one is passed, 'a' receives an Array
        * of all the arguments.
        */
-      } else if(required == 1) {
+      } else if(required == 1 && LANGUAGE_18_ENABLED(state)) {
         arity_ok = true;
       } else {
         arity_ok = args.total() <= (size_t)total &&
