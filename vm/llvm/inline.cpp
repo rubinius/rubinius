@@ -19,9 +19,8 @@ namespace rubinius {
     if(!klass) {
 
       if(ops_.state()->type_optz()) {
-        // If the inlining context has the self klass staticly known
-        // and it's in the cache, use it without worrying about
-        // multiple classes in the cache.
+        // If the receiver has a known type, then attempt to pull that specific
+        // class out of the cache.
         type::KnownType kt = type::KnownType::extract(ops_.state(), recv());
 
         if(kt.instance_p()) {
