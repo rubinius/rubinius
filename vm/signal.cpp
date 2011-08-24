@@ -24,7 +24,7 @@ namespace rubinius {
   pthread_t main_thread;
 
   SignalHandler::SignalHandler(VM* vm)
-    : thread::Thread()
+    : thread::Thread(0, false)
     , vm_(vm)
     , queued_signals_(0)
     , exit_(false)
@@ -50,6 +50,7 @@ namespace rubinius {
 
   void SignalHandler::on_fork() {
     if(handler_) {
+      handler_->exit_ = false;
       handler_->reopen_pipes();
       handler_->run();
     }

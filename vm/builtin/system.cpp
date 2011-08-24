@@ -214,10 +214,7 @@ namespace rubinius {
 
     (void)::execvp(path->c_str(state), argv);
 
-    // UG. Disaster.
-    //
-    // Clean up and let the caller know their unix system is
-    // crumbling around them.
+    // Hmmm, execvp failed, we need to recover here.
 
     for(int i = 0; i < NSIG; i++) {
       signal(i, (void(*)(int))old_handlers[i]);
@@ -228,6 +225,8 @@ namespace rubinius {
 #ifdef ENABLE_LLVM
     LLVMState::start(state);
 #endif
+
+    SignalHandler::on_fork();
 
     /* execvp() returning means it failed. */
     Exception::errno_error(state, "execvp(2) failed");
