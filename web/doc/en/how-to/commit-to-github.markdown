@@ -40,8 +40,9 @@ rebase the master branch prior to the merge.
 12. git rebase master
 13. git checkout master
 14. git merge name-of-fix-branch
+15. git push origin master
 
-Steps 9 through 14 can be automated via a script to save on all
+Steps 9 through 15 can be automated via a script to save on all
 of that typing. 
 
 ### Committers With Read-only Access to Rubinius Repository
