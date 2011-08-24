@@ -16,7 +16,7 @@ namespace jit {
     LLVMState* ls = cm->shared()->llvm_state;
     assert(ls);
 
-    if(ls->config().jit_show_remove) {
+    if(ls->config().jit_removal_print) {
       void* fin = (void*)((intptr_t)native_func_ + native_size_);
 
       std::cout << "Remove function: " << function_ << " / "

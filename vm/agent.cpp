@@ -441,8 +441,8 @@ namespace rubinius {
 
     const char* tmpdir = 0;
 
-    if(shared_.config.qa_tmpdir.value.size() > 0) {
-      tmpdir = shared_.config.qa_tmpdir.value.c_str();
+    if(shared_.config.agent_tmpdir.value.size() > 0) {
+      tmpdir = shared_.config.agent_tmpdir.value.c_str();
     } else {
       tmpdir = getenv("TMPDIR");
     }

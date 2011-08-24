@@ -229,7 +229,7 @@ Object* VMMethod::uncommon_interpreter(STATE,
   // 500 is a number picked after doing some tuning on a specific benchmark.
   // Not sure if it's the right value, but it seems to work fine.
   if(++method_vmm->uncommon_count > 500) {
-    if(state->shared.config.jit_show_uncommon) {
+    if(state->shared.config.jit_uncommon_print) {
       std::cerr << "[[[ Deoptimizing uncommon method ]]]\n";
       call_frame->print_backtrace(state);
 

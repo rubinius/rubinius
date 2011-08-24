@@ -40,6 +40,7 @@ TYPE_GEN    = %w[ vm/gen/includes.hpp
                   vm/gen/primitives_glue.gen.cpp ]
 
 GENERATED = %W[ vm/gen/revision.h
+                vm/gen/config_variables.h
                 #{encoding_database} ] + TYPE_GEN + INSN_GEN
 
 # Files are in order based on dependencies. For example,
@@ -203,6 +204,10 @@ task 'vm/gen/revision.h' do |t|
   File.open t.name, "wb" do |f|
     f.puts %[#define RBX_BUILD_REV     "#{buildrev}"]
   end
+end
+
+task 'vm/gen/config_variables.h' => 'lib/rubinius/configuration.rb' do
+  ruby 'vm/codegen/config_vars.rb', 'vm/gen/config_variables.h'
 end
 
 require 'projects/daedalus/daedalus'

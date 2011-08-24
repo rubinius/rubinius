@@ -455,6 +455,16 @@ VM Options
         handle_simple_options(argv)
       end
 
+      if Rubinius::Config['help']
+        STDOUT.puts "Rubinius configuration variables:"
+        STDOUT.puts "  These variables are normally set via -X and read via Rubinius::Config[var]."
+        STDOUT.puts
+
+        require 'rubinius/configuration'
+        Rubinius::ConfigurationVariables.instance.show_help(STDOUT)
+        exit 0
+      end
+
       if str = Rubinius::Config['tool.require']
         begin
           require str
