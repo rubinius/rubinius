@@ -1126,6 +1126,9 @@ VALUE rb_uint2big(unsigned long number);
   /** Returns a string formatted with Kernel#sprintf. */
   VALUE rb_f_sprintf(int argc, const VALUE* argv);
 
+  /** Returns a File opened with the specified mode. */
+  VALUE rb_file_open(const char* name, const char* mode);
+
   /**
    *  Call method on receiver, args as varargs. Calls private methods.
    */
