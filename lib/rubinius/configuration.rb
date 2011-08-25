@@ -88,7 +88,7 @@ Rubinius::ConfigurationVariables.define do |c|
     s.vm_variable "check_debugging", false,
       "Allow JITd methods to deoptimize if there is a debugging request"
 
-    s.vm_variable "type.optz", false,
+    s.vm_variable "type.optz", true,
       "Enable optimizations based on type flow"
   end
 
