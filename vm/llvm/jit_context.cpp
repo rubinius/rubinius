@@ -30,6 +30,30 @@ namespace jit {
     return l;
   }
 
+  void Context::info(const char* msg) {
+    if(!ls_->config().jit_inline_debug) return;
+
+    std::ostream& l = ls_->log();
+
+    for(int i = 0; i <= inline_depth_ - 1; i++) {
+      l << "|";
+    }
+
+    l << "+ " << msg << "\n";
+  }
+
+  std::ostream& Context::info_log(const char* header) {
+    std::ostream& l = ls_->log();
+
+    for(int i = 0; i <= inline_depth_ - 1; i++) {
+      l << "|";
+    }
+
+    l << "+ " << header << ": ";
+    return l;
+  }
+
+
 }}
 
 #endif

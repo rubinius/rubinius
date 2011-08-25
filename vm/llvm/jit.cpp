@@ -654,6 +654,8 @@ namespace rubinius {
     metadata_id_ = ctx_.getMDKindID("rbx-classid");
 
     fixnum_class_id_ = G(fixnum_class)->class_id();
+    symbol_class_id_ = G(symbol)->class_id();
+    string_class_id_ = G(string)->class_id();
 
     type_optz_ = state->shared.config.jit_type_optz;
 

@@ -67,6 +67,10 @@ namespace rubinius {
       , creator_info_(0)
     {}
 
+    jit::Context& context() {
+      return context_;
+    }
+
     Value* recv() {
       return ops_.stack_back(self_pos_);
     }

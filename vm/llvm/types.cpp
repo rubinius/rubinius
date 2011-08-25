@@ -72,6 +72,8 @@ namespace type {
       return "<type: static fixnum>";
     case eInstance:
       return "<type: instance>";
+    case eSymbol:
+      return "<type: symbol>";
     }
 
     return "Confused type info!";

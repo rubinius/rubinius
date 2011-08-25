@@ -58,6 +58,8 @@ namespace jit {
     void add_runtime_data(jit::RuntimeData* rd);
 
     std::ostream& inline_log(const char* header);
+    void info(const char* msg);
+    std::ostream& info_log(const char* header);
   };
 
 }}

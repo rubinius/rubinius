@@ -477,6 +477,8 @@ namespace rubinius {
     unsigned int metadata_id_;
 
     int fixnum_class_id_;
+    int symbol_class_id_;
+    int string_class_id_;
 
     bool type_optz_;
 
@@ -587,6 +589,14 @@ namespace rubinius {
 
     int fixnum_class_id() {
       return fixnum_class_id_;
+    }
+
+    int symbol_class_id() {
+      return symbol_class_id_;
+    }
+
+    int string_class_id() {
+      return string_class_id_;
     }
 
     bool type_optz() {

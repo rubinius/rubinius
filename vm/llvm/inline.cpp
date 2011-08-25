@@ -27,6 +27,8 @@ namespace rubinius {
           klass = cache_->find_class_by_id(kt.class_id());
         } else if(kt.fixnum_p()) {
           klass = cache_->find_class_by_id(ops_.state()->fixnum_class_id());
+        } else if(kt.symbol_p()) {
+          klass = cache_->find_class_by_id(ops_.state()->symbol_class_id());
         }
       }
 
@@ -325,6 +327,7 @@ remember:
         << "\n";
     }
 
+    context_.enter_inline();
     ops_.state()->add_accessor_inlined();
 
     Value* val  = arg(0);
@@ -363,6 +366,8 @@ remember:
 
     exception_safe();
     set_result(val);
+
+    context_.leave_inline();
   }
 
   void Inliner::inline_ivar_access(Class* klass, AccessVariable* acc) {
@@ -379,6 +384,7 @@ remember:
         << ops_.state()->symbol_cstr(ops_.method_name());
     }
 
+    context_.enter_inline();
     ops_.state()->add_accessor_inlined();
 
     Value* self = recv();
@@ -445,6 +451,8 @@ remember:
     if(ops_.state()->config().jit_inline_debug) {
       ops_.state()->log() << "\n";
     }
+
+    context_.leave_inline();
 
   }
 

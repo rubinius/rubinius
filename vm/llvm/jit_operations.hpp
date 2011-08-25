@@ -322,7 +322,17 @@ namespace rubinius {
 
       switch(type) {
       case rubinius::Symbol::type:
-        verify_guard(check_is_symbol(obj), failure);
+        if(ls_->type_optz()) {
+          type::KnownType kt = type::KnownType::extract(ls_, obj);
+
+          if(kt.symbol_p()) {
+            context().info("eliding guard: detected symbol");
+          } else {
+            verify_guard(check_is_symbol(obj), failure);
+          }
+        } else {
+          verify_guard(check_is_symbol(obj), failure);
+        }
         return -1;
       case rubinius::Fixnum::type:
         {
@@ -330,9 +340,7 @@ namespace rubinius {
             type::KnownType kt = type::KnownType::extract(ls_, obj);
 
             if(kt.static_fixnum_p()) {
-              if(ls_->config().jit_inline_debug) {
-                context().inline_log("eliding guard") << "detected static fixnum\n";
-              }
+              context().info("eliding guard: detected static fixnum");
             } else {
               verify_guard(check_is_fixnum(obj), failure);
             }
@@ -356,7 +364,7 @@ namespace rubinius {
 
           if(kt.class_id() == klass->class_id()) {
             if(ls_->config().jit_inline_debug) {
-              context().inline_log("eliding redundant guard")
+              context().info_log("eliding redundant guard")
                 << "class " << ls_->symbol_cstr(klass->name())
                 << " (" << klass->class_id() << ")\n";
             }
@@ -420,6 +428,7 @@ namespace rubinius {
     void set_sp(int sp) {
       sp_ = sp;
       assert(sp_ >= -1 && sp_ < vmmethod()->stack_size);
+      hints_.clear();
     }
 
     void remember_sp() {

@@ -16,7 +16,8 @@ namespace rubinius {
       eFalse = 2,
       eNil = 3,
       eStaticFixnum = 4,
-      eInstance = 5
+      eInstance = 5,
+      eSymbol = 6
     };
 
     class KnownType {
@@ -58,8 +59,16 @@ namespace rubinius {
         return KnownType(eStaticFixnum, val);
       }
 
+      static KnownType symbol() {
+        return KnownType(eSymbol);
+      }
+
       bool known_p() {
         return kind_ != eUnknown;
+      }
+
+      bool unknown_p() {
+        return kind_ == eUnknown;
       }
 
       Kind kind() {
@@ -85,6 +94,10 @@ namespace rubinius {
 
       bool static_fixnum_p() {
         return kind_ == eStaticFixnum;
+      }
+
+      bool symbol_p() {
+        return kind_ == eSymbol;
       }
 
       const char* describe();

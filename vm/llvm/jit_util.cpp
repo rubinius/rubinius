@@ -1382,6 +1382,10 @@ extern "C" {
       return Qnil;
     }
   }
+
+  Object* rbx_string_hash(STATE, String* str) {
+    return Integer::from(state, str->hash_string(state));
+  }
 }
 
 #endif

@@ -1120,7 +1120,7 @@ namespace rubinius {
     void visit_push_literal(opcode which) {
       Object* lit = literal(which);
       if(Symbol* sym = try_as<Symbol>(lit)) {
-        stack_push(constant(sym));
+        stack_push(constant(sym), type::KnownType::symbol());
       } else if(kind_of<Fixnum>(lit)) {
         stack_push(constant(lit));
       } else {
@@ -1147,7 +1147,7 @@ namespace rubinius {
 
       Value* dup = b().CreateCall(func, call_args, call_args+3, "string_dup");
       check_for_exception(dup);
-      stack_push(dup);
+      stack_push(dup, type::KnownType::instance(ls_->string_class_id()));
     }
 
     void push_scope_local(Value* scope, opcode which) {
