@@ -1475,8 +1475,6 @@ namespace rubinius {
 
         Inliner inl(context(), *this, cache, args, failure);
         if(inl.consider()) {
-          // Uncommon doesn't yet know how to synthesize UnwindInfos, so
-          // don't do uncommon if there are handlers.
           if(!inl.fail_to_send() && !in_inlined_block()) {
             BasicBlock* cur = b().GetInsertBlock();
 
