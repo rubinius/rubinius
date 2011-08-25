@@ -9,4 +9,6 @@ module Kernel
     end
   end
 
+  alias_method :proc, :lambda
+  module_function :proc
 end

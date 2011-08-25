@@ -40,4 +40,11 @@ module Kernel
 
     __send__ message, *args
   end
+
+  def proc(&prc)
+    raise ArgumentError, "block required" unless prc
+    return prc
+  end
+
+  module_function :proc
 end

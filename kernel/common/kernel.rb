@@ -263,9 +263,8 @@ module Kernel
     prc.lambda_style!
     return prc
   end
-  alias_method :proc, :lambda
+
   module_function :lambda
-  module_function :proc
 
   def caller(start=1, exclude_kernel=true)
     # The + 1 is to skip this frame
