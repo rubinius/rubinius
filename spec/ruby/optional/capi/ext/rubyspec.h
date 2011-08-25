@@ -129,6 +129,9 @@
 #define HAVE_RB_EXC_RAISE                  1
 #define HAVE_RB_SET_ERRINFO                1
 
+/* File */
+#define HAVE_RB_FILE_OPEN                  1
+
 /* Float */
 #define HAVE_RB_FLOAT_NEW                  1
 #define HAVE_RB_RFLOAT                     1
