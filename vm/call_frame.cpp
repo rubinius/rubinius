@@ -120,10 +120,14 @@ namespace rubinius {
           const char* mod_name;
           if(cf->module()->nil_p()) {
             mod_name = cf->cm->scope()->module()->name()->c_str(state);
-          } else if(cf->module()->name()->nil_p()) {
-            mod_name = cf->cm->scope()->module()->name()->c_str(state);
           } else {
-            mod_name = cf->module()->name()->c_str(state);
+            if(Symbol* s = try_as<Symbol>(cf->module()->name())) {
+              mod_name = s->c_str(state);
+            } else if(Symbol* s = try_as<Symbol>(cf->cm->scope()->module()->name())) {
+              mod_name = s->c_str(state);
+            } else {
+              mod_name = "<anonymous module>";
+            }
           }
           stream << mod_name << "#";
         }
