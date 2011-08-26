@@ -128,6 +128,8 @@ namespace rubinius {
     }
   };
 
+  typedef std::map<int, LocalInfo> LocalMap;
+
   class JITMethodInfo {
     jit::Context& context_;
     llvm::Function* function_;
@@ -157,7 +159,7 @@ namespace rubinius {
     llvm::PHINode* return_phi_;
 
     TypedRoot<Class*> self_class_;
-    std::map<int, LocalInfo> local_info_;
+    LocalMap local_info_;
 
   public:
     VMMethod* vmm;
@@ -170,7 +172,7 @@ namespace rubinius {
     JITStackArgs* stack_args;
 
     JITMethodInfo* root;
-    int self_class_id;
+    type::KnownType self_type;
 
   public:
     JITMethodInfo(jit::Context& ctx, CompiledMethod* cm, VMMethod* v,
@@ -417,6 +419,8 @@ namespace rubinius {
     bool landing_pad;
     int exception_type;
 
+    LocalMap local_info_;
+
   public:
     JITBasicBlock()
       : block(0)
@@ -433,6 +437,19 @@ namespace rubinius {
     llvm::BasicBlock* entry() {
       if(prologue) return prologue;
       return block;
+    }
+
+    void add_local(int which, type::KnownType kt) {
+      LocalInfo li(which);
+      li.set_known_type(kt);
+
+      local_info_[which] = li;
+    }
+
+    LocalInfo* get_local(int which) {
+      LocalMap::iterator i = local_info_.find(which);
+      if(i == local_info_.end()) return 0;
+      return &i->second;
     }
   };
 

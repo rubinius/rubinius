@@ -32,6 +32,8 @@ namespace rubinius {
 
     bool fail_to_send_;
 
+    type::KnownType guarded_type_;
+
   public:
 
     Inliner(jit::Context& ctx,
@@ -132,6 +134,10 @@ namespace rubinius {
       fail_to_send_ = true;
     }
 
+    type::KnownType guarded_type() {
+      return guarded_type_;
+    }
+
     bool consider();
     void inline_block(JITInlineBlock* ib, Value* self);
 
@@ -153,6 +159,9 @@ namespace rubinius {
 
     int detect_jit_intrinsic(Class* klass, CompiledMethod* cm);
     void inline_intrinsic(Class* klass, CompiledMethod* cm, int which);
+
+    void check_class(llvm::Value* recv, Class* klass, llvm::BasicBlock* bb=0);
+    void check_recv(Class* klass, llvm::BasicBlock* bb=0);
   };
 
 }

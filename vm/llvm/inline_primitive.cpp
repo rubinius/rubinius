@@ -419,8 +419,7 @@ namespace rubinius {
 
       i.use_send_for_failure();
 
-      Value* self = i.recv();
-      ops.check_class(self, klass, i.failure());
+      i.check_recv(klass);
 
       Value* arg = i.arg(0);
 
@@ -462,7 +461,7 @@ namespace rubinius {
       rhs->addIncoming(unboxed_rhs, unbox_block);
       rhs->addIncoming(fix_rhs, convert_block);
 
-      Value* fself = ops.b().CreateBitCast(self, ops.state()->ptr_type("Float"),
+      Value* fself = ops.b().CreateBitCast(i.recv(), ops.state()->ptr_type("Float"),
           "self_float");
 
       Value* lhs = ops.b().CreateLoad(
@@ -514,8 +513,7 @@ namespace rubinius {
 
       i.use_send_for_failure();
 
-      Value* self = i.recv();
-      ops.check_class(self, klass, i.failure());
+      i.check_recv(klass);
 
       // Support compare against Floats and Fixnums inline
       BasicBlock* do_compare = ops.new_block("float_compare");
@@ -551,7 +549,7 @@ namespace rubinius {
       rhs->addIncoming(unboxed_rhs, unboxed_block);
       rhs->addIncoming(converted_rhs, converted_block);
 
-      Value* fself = ops.b().CreateBitCast(self, ops.state()->ptr_type("Float"),
+      Value* fself = ops.b().CreateBitCast(i.recv(), ops.state()->ptr_type("Float"),
           "self_float");
       Value* lhs = ops.b().CreateLoad(
           ops.b().CreateConstGEP2_32(fself, 0, 1, "self.value_pos"), "fself");
@@ -590,11 +588,9 @@ namespace rubinius {
       log("object_equal");
       i.context().enter_inline();
 
-      Value* self = i.recv();
+      i.check_recv(klass);
 
-      ops.check_class(self, klass, i.failure());
-
-      Value* cmp = ops.create_equal(self, i.arg(0), "idenity_equal");
+      Value* cmp = ops.create_equal(i.recv(), i.arg(0), "idenity_equal");
       Value* imm_value = SelectInst::Create(cmp, ops.constant(Qtrue),
           ops.constant(Qfalse), "select_bool", ops.current_block());
 
@@ -734,8 +730,7 @@ namespace rubinius {
 
           context_.enter_inline();
 
-          Value* self = recv();
-          ops_.check_class(self, klass, failure());
+          check_recv(klass);
 
           std::vector<Value*> call_args;
 
@@ -749,7 +744,7 @@ namespace rubinius {
           }
 
           sig << "Object";
-          call_args.push_back(self);
+          call_args.push_back(recv());
 
           for(int i = 0; i < stub_res.arg_count(); i++) {
             sig << "Object";

@@ -15,24 +15,37 @@ namespace rubinius {
       eTrue = 1,
       eFalse = 2,
       eNil = 3,
-      eStaticFixnum = 4,
-      eInstance = 5,
-      eSymbol = 6
+      eFixnum = 4,
+      eStaticFixnum = 5,
+      eInstance = 6,
+      eSymbol = 7
+    };
+
+    enum Source {
+      eUnknownSource = 0,
+      eLocal = 1
     };
 
     class KnownType {
       Kind kind_;
       int value_;
 
+      Source source_;
+      int source_id_;
+
     public:
       KnownType()
         : kind_(eUnknown)
         , value_(0)
+        , source_(eUnknownSource)
+        , source_id_(0)
       {}
 
-      KnownType(Kind kind, int value=0)
+      KnownType(Kind kind, int value=0, Source s=eUnknownSource, int sid=0)
         : kind_(kind)
         , value_(value)
+        , source_(s)
+        , source_id_(sid)
       {}
 
       static KnownType unknown() {
@@ -57,6 +70,10 @@ namespace rubinius {
 
       static KnownType fixnum(int val) {
         return KnownType(eStaticFixnum, val);
+      }
+
+      static KnownType fixnum() {
+        return KnownType(eFixnum);
       }
 
       static KnownType symbol() {
@@ -89,7 +106,7 @@ namespace rubinius {
       }
 
       bool fixnum_p() {
-        return kind_ == eStaticFixnum;
+        return kind_ == eStaticFixnum || kind_ == eFixnum;
       }
 
       bool static_fixnum_p() {
@@ -98,6 +115,28 @@ namespace rubinius {
 
       bool symbol_p() {
         return kind_ == eSymbol;
+      }
+
+      void set_local_source(int id) {
+        source_ = eLocal;
+        source_id_ = id;
+      }
+
+      Source source() {
+        return source_;
+      }
+
+      bool local_source_p() {
+        return source_ == eLocal;
+      }
+
+      int local_id() {
+        if(source_ != eLocal) return -1;
+        return source_id_;
+      }
+
+      int source_id() {
+        return source_id_;
       }
 
       const char* describe();
@@ -109,6 +148,9 @@ namespace rubinius {
       static KnownType extract(LLVMState* ls, llvm::Value* I);
 
       static bool has_hint(LLVMState* ls, llvm::Value* V);
+
+      void inherit_source(LLVMState* ls, llvm::Value* V);
+      void inherit_source(type::KnownType kt);
     };
   }
 }

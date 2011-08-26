@@ -1190,6 +1190,14 @@ namespace rubinius {
 
       Value* pos = b().CreateGEP(vars_, idx2, idx2+3, "local_pos");
 
+      if(LocalInfo* bli = current_jbb_->get_local(which)) {
+        type::KnownType kt = bli->known_type();
+        kt.set_local_source(which);
+
+        stack_push(b().CreateLoad(pos, "local"), kt);
+        return;
+      }
+
       LocalInfo* li = info().get_local(which);
 
       /*
@@ -1202,9 +1210,15 @@ namespace rubinius {
       */
 
       if(!info().use_full_scope() && li->static_type_argument_p()) {
-        stack_push(b().CreateLoad(pos, "local"), li->known_type());
+        type::KnownType kt = li->known_type();
+        kt.set_local_source(which);
+
+        stack_push(b().CreateLoad(pos, "local"), kt);
       } else {
-        stack_push(b().CreateLoad(pos, "local"));
+        type::KnownType kt;
+        kt.set_local_source(which);
+
+        stack_push(b().CreateLoad(pos, "local"), kt);
       }
     }
 
@@ -1288,9 +1302,7 @@ namespace rubinius {
     void visit_push_self() {
       Instruction* val = get_self();
 
-      if(info().self_class_id >= 0) {
-        type::KnownType::instance(info().self_class_id).associate(ls_, val);
-      }
+      info().self_type.associate(ls_, val);
 
       stack_push(val);
     }
@@ -1487,6 +1499,12 @@ namespace rubinius {
               check_for_exception(inl.result());
             }
             stack_push(inl.result());
+
+            type::KnownType kt = inl.guarded_type();
+
+            if(kt.local_source_p() && kt.known_p()) {
+              current_jbb_->add_local(kt.local_id(), kt);
+            }
 
             b().CreateBr(cont);
 

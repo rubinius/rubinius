@@ -14,6 +14,18 @@
 #include "ffi_util.hpp"
 
 namespace rubinius {
+
+  void Inliner::check_class(llvm::Value* recv, Class* klass, llvm::BasicBlock* bb) {
+    if(!bb) bb = failure();
+
+    guarded_type_ = ops_.check_class(recv, klass, bb);
+    guarded_type_.inherit_source(ops_.state(), recv);
+  }
+
+  void Inliner::check_recv(Class* klass, llvm::BasicBlock* bb) {
+    check_class(recv(), klass, bb);
+  }
+
   bool Inliner::consider() {
     Class* klass = cache_->dominating_class();
     if(!klass) {
@@ -265,11 +277,7 @@ remember:
 
     VMMethod* vmm = cm->backend_method();
 
-    Value* self = recv();
-
-    if(klass) {
-      ops_.check_class(self, klass, failure());
-    }
+    if(klass) check_recv(klass);
 
     Value* val = 0;
     /////
@@ -298,7 +306,7 @@ remember:
       val = ops_.constant(Fixnum::from(-1));
       break;
     case InstructionSequence::insn_push_self:
-      val = self;
+      val = recv();
       break;
     default:
       assert(0 && "Trivial detection is broken!");
@@ -330,10 +338,11 @@ remember:
     context_.enter_inline();
     ops_.state()->add_accessor_inlined();
 
-    Value* val  = arg(0);
-    Value* self = recv();
+    check_recv(klass);
 
-    ops_.check_reference_class(self, klass->class_id(), failure());
+    Value* val  = arg(0);
+
+    Value* self = recv();
 
     // Figure out if we should use the table ivar lookup or
     // the slot ivar lookup.
@@ -459,8 +468,8 @@ remember:
   void Inliner::inline_generic_method(Class* klass, Module* defined_in,
                                       CompiledMethod* cm, VMMethod* vmm) {
     context_.enter_inline();
-    Value* self = recv();
-    int class_id = ops_.check_class(self, klass, failure());
+
+    check_recv(klass);
 
     JITMethodInfo info(context_, cm, vmm);
     info.set_parent_info(ops_.info());
@@ -469,7 +478,8 @@ remember:
     info.called_args = count_;
     info.root = ops_.root_method_info();
     info.set_inline_block(inline_block_);
-    info.self_class_id = class_id;
+
+    info.self_type = guarded_type_;
 
     info.set_self_class(klass);
 
@@ -496,7 +506,7 @@ remember:
 
     if(vmm->call_count >= 0) vmm->call_count /= 2;
 
-    BasicBlock* entry = work.setup_inline(self, blk, args);
+    BasicBlock* entry = work.setup_inline(recv(), blk, args);
 
     if(!work.generate_body()) {
       rubinius::bug("LLVM failed to compile a function");
@@ -529,7 +539,7 @@ remember:
     info.set_creator_info(creator_info_);
     info.set_inline_block(inline_block_);
     info.set_block_info(block_info_);
-    info.self_class_id = ops_.info().self_class_id;
+    info.self_type = ops_.info().self_type;
 
     jit::RuntimeData* rd = new jit::RuntimeData(ib->method(), nil<Symbol>(), nil<Module>());
     context_.add_runtime_data(rd);
@@ -614,9 +624,7 @@ remember:
   }
 
   bool Inliner::inline_ffi(Class* klass, NativeFunction* nf) {
-    Value* self = recv();
-
-    ops_.check_class(self, klass, failure());
+    check_recv(klass);
 
     ///
 

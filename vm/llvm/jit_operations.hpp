@@ -317,7 +317,7 @@ namespace rubinius {
       failure->moveAfter(cont);
     }
 
-    int check_class(Value* obj, Class* klass, BasicBlock* failure) {
+    type::KnownType check_class(Value* obj, Class* klass, BasicBlock* failure) {
       object_type type = (object_type)klass->instance_type()->to_native();
 
       switch(type) {
@@ -327,13 +327,15 @@ namespace rubinius {
 
           if(kt.symbol_p()) {
             context().info("eliding guard: detected symbol");
+            return kt;
           } else {
             verify_guard(check_is_symbol(obj), failure);
           }
         } else {
           verify_guard(check_is_symbol(obj), failure);
         }
-        return -1;
+
+        return type::KnownType::symbol();
       case rubinius::Fixnum::type:
         {
           if(ls_->type_optz()) {
@@ -341,6 +343,7 @@ namespace rubinius {
 
             if(kt.static_fixnum_p()) {
               context().info("eliding guard: detected static fixnum");
+              return kt;
             } else {
               verify_guard(check_is_fixnum(obj), failure);
             }
@@ -348,16 +351,16 @@ namespace rubinius {
             verify_guard(check_is_fixnum(obj), failure);
           }
         }
-        return -1;
+        return type::KnownType::fixnum();
       case NilType:
         verify_guard(check_is_immediate(obj, Qnil), failure);
-        return -1;
+        return type::KnownType::nil();
       case TrueType:
         verify_guard(check_is_immediate(obj, Qtrue), failure);
-        return -1;
+        return type::KnownType::true_();
       case FalseType:
         verify_guard(check_is_immediate(obj, Qfalse), failure);
-        return -1;
+        return type::KnownType::false_();
       default:
         {
           type::KnownType kt = type::KnownType::extract(ls_, obj);
@@ -369,11 +372,11 @@ namespace rubinius {
                 << " (" << klass->class_id() << ")\n";
             }
 
-            return klass->class_id();
+            return kt;
           }
 
           check_reference_class(obj, klass->class_id(), failure);
-          return klass->class_id();
+          return type::KnownType::instance(klass->class_id());
         }
       }
     }

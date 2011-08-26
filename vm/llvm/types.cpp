@@ -5,14 +5,26 @@
 namespace rubinius {
 namespace type {
   void KnownType::associate(LLVMState* ls, llvm::Instruction* I) {
-    if(kind_ == eUnknown) return;
+    if(kind_ == eUnknown && source_ == eUnknownSource) return;
 
-    llvm::Value *impMD[] = {
-      llvm::ConstantInt::get(ls->Int32Ty, kind_),
-      llvm::ConstantInt::get(ls->Int32Ty, value_)
-    };
+    llvm::MDNode* node;
+    if(source_ != eUnknownSource) {
+      llvm::Value *impMD[] = {
+        llvm::ConstantInt::get(ls->Int32Ty, kind_),
+        llvm::ConstantInt::get(ls->Int32Ty, value_),
+        llvm::ConstantInt::get(ls->Int32Ty, source_),
+        llvm::ConstantInt::get(ls->Int32Ty, source_id_)
+      };
 
-    llvm::MDNode *node = llvm::MDNode::get(ls->ctx(), impMD, 2);
+      node = llvm::MDNode::get(ls->ctx(), impMD, 4);
+    } else {
+      llvm::Value *impMD[] = {
+        llvm::ConstantInt::get(ls->Int32Ty, kind_),
+        llvm::ConstantInt::get(ls->Int32Ty, value_)
+      };
+
+      node = llvm::MDNode::get(ls->ctx(), impMD, 2);
+    }
 
     I->setMetadata(ls->metadata_id(), node);
   }
@@ -22,7 +34,6 @@ namespace type {
       associate(ls, I);
     }
   }
-
 
   KnownType KnownType::extract(LLVMState* ls, llvm::Value* V) {
     if(Instruction* I = dyn_cast<Instruction>(V)) {
@@ -42,6 +53,18 @@ namespace type {
           return KnownType((Kind)kind->getValue().getSExtValue(),
                            value->getValue().getSExtValue());
         }
+      } else if(md->getNumOperands() == 4) {
+        ConstantInt* kind = dyn_cast<ConstantInt>(md->getOperand(0));
+        ConstantInt* value = dyn_cast<ConstantInt>(md->getOperand(1));
+        ConstantInt* source = dyn_cast<ConstantInt>(md->getOperand(2));
+        ConstantInt* source_id = dyn_cast<ConstantInt>(md->getOperand(3));
+
+        if(kind && value && source && source_id) {
+          return KnownType((Kind)kind->getValue().getSExtValue(),
+                           value->getValue().getSExtValue(),
+                           (Source)source->getValue().getSExtValue(),
+                           source_id->getValue().getSExtValue());
+        }
       }
     }
 
@@ -58,6 +81,17 @@ namespace type {
     return false;
   }
 
+  void KnownType::inherit_source(LLVMState* ls, llvm::Value* V) {
+    inherit_source(extract(ls, V));
+  }
+
+  void KnownType::inherit_source(KnownType kt) {
+    if(kt.source() == eUnknownSource) return;
+
+    source_ = kt.source();
+    source_id_ = kt.source_id();
+  }
+
   const char* KnownType::describe() {
     switch(kind_) {
     case eUnknown:
@@ -68,6 +102,8 @@ namespace type {
       return "<type: false>";
     case eNil:
       return "<type: nil>";
+    case eFixnum:
+      return "<type: fixnum>";
     case eStaticFixnum:
       return "<type: static fixnum>";
     case eInstance:
