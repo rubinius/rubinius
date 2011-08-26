@@ -15,26 +15,32 @@ module Rubinius
       end
     end
 
-    if @object_db = Rubinius::Config['rbc.db']
-      @object_db = ".rbx" unless @object_db.kind_of? String
-    end
+    if RBC_DB = Rubinius::Config['rbc.db']
+      def self.compiled_name(file)
+        full = "#{File.expand_path(file)}#{Rubinius::RUBY_LIB_VERSION}"
+        hash = Rubinius.invoke_primitive :sha1_hash, full
+        dir = hash[0,2]
 
-    def self.compiled_name(file)
-      if file.suffix? ".rb"
-        path = file + "c"
-      else
-        path = file + ".compiled.rbc"
+        path = "#{RBC_DB}/#{dir}/#{hash}"
       end
+    else
+      def self.compiled_name(file)
+        name = File.expand_path file
 
-      if db = @object_db and !File.exists?(path)
-        full = File.expand_path(file)
+        if name.prefix? Rubinius::OS_STARTUP_DIR
+          db = "#{Rubinius::OS_STARTUP_DIR}/.rbx"
+        else
+          db = File.expand_path "~/.rbx"
+        end
+
+        return if File.exists?(db) and !File.owned?(db)
+
+        full = "#{name}#{Rubinius::RUBY_LIB_VERSION}"
         hash = Rubinius.invoke_primitive :sha1_hash, full
         dir = hash[0,2]
 
         path = "#{db}/#{dir}/#{hash}"
       end
-
-      path
     end
 
     def self.compile(file, output=nil, line=1, transforms=:default)

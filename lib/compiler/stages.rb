@@ -70,7 +70,7 @@ module Rubinius
       end
 
       def run
-        @name = "#{@input.file}c" unless @name
+        return @input unless @name
 
         dir = File.dirname(@name)
         unless File.directory?(dir)

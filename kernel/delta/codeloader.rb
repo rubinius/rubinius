@@ -131,7 +131,7 @@ module Rubinius
       else
         compiled_name = Compiler.compiled_name @load_path
 
-        if File.exists? compiled_name
+        if compiled_name and File.exists? compiled_name
           if @stat.mtime > File.mtime(compiled_name)
             cm = compile_file @load_path, compiled_name
           else
