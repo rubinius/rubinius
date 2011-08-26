@@ -2276,7 +2276,7 @@ class String
     index = 0
     while index < @num_bytes
       current = index
-      while current < @num_bytes && @data[current] != ?\\
+      while current < @num_bytes && @data[current] != 92  # ?\\
         current += 1
       end
       result.append(substring(index, current - index))
@@ -2284,7 +2284,7 @@ class String
 
       # found backslash escape, looking next
       if current == @num_bytes - 1
-        result.append(?\\.chr) # backslash at end of string
+        result.append("\\") # backslash at end of string
         break
       end
       index = current + 1
@@ -2292,17 +2292,17 @@ class String
       cap = @data[index]
 
       additional = case cap
-                when ?&
+                when 38   # ?&
                   match[0]
-                when ?`
+                when 96   # ?`
                   match.pre_match
-                when ?'
+                when 39   # ?'
                   match.post_match
-                when ?+
+                when 43   # ?+
                   match.captures.compact[-1].to_s
-                when ?0..?9
-                  match[cap - ?0].to_s
-                when ?\\ # escaped backslash
+                when 48..57   # ?0..?9
+                  match[cap - 48].to_s
+                when 92 # ?\\ escaped backslash
                   '\\'
                 else     # unknown escape
                   '\\'.append(cap.chr)
