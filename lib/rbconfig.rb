@@ -99,6 +99,7 @@ module RbConfig
   CONFIG["MAKEDIRS"]           = "mkdir -p"
   # compile tools
   CONFIG["CC"]                 = Rubinius::BUILD_CONFIG[:cc]
+  CONFIG["CXX"]                = Rubinius::BUILD_CONFIG[:cxx]
   CONFIG["CPP"]                = "#{Rubinius::BUILD_CONFIG[:cc]} -E"
   CONFIG["YACC"]               = "bison -y"
   CONFIG["RANLIB"]             = "ranlib"
@@ -142,7 +143,9 @@ module RbConfig
 
   CONFIG["OBJEXT"]             = "o"
   CONFIG["GNU_LD"]             = ""
-  CONFIG["CPPOUTFILE"]         = ""
+  CONFIG["CPPOUTFILE"]         = "-o conftest.i"
+  CONFIG["OUTFLAG"]            = "-o "
+  CONFIG["COUTFLAG"]           = "-o "
   CONFIG["OUTFLAG"]            = "-o "
   CONFIG["YFLAGS"]             = ""
   CONFIG["ASFLAGS"]            = ""

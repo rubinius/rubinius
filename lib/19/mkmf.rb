@@ -15,7 +15,7 @@ if File::FNM_SYSCASE.zero?
 end
 SRC_EXT = %w[c m].concat(CXX_EXT)
 $static = nil
-$config_h = '$(arch_hdrdir)/ruby/config.h'
+$config_h = '$(hdrdir)/config.h'
 $default_static = $static
 
 unless defined? $configure_args
@@ -154,7 +154,16 @@ def map_dir(dir, map = nil)
 end
 
 # ---------------------- Changed for Rubinius --------------------------------
-$topdir     = ENV['RBX_CAPI_DIR'] || RbConfig::CONFIG["rubyhdrdir"]
+if dir = ENV['RBX_CAPI_DIR']
+  if Rubinius.ruby18?
+    $topdir = "#{dir}/vm/capi/18/include"
+  else
+    $topdir = "#{dir}/vm/capi/19/include"
+  end
+else
+  $topdir = RbConfig::CONFIG["rubyhdrdir"]
+end
+
 $top_srcdir = $topdir
 $hdrdir     = $topdir
 
@@ -1581,7 +1590,10 @@ def depend_rules(depend)
   depend.each_line do |line|
     line.gsub!(/\.o\b/, ".#{$OBJEXT}")
     line.gsub!(/\$\((?:hdr|top)dir\)\/config.h/, $config_h)
-    line.gsub!(%r"\$\(hdrdir\)/(?!ruby(?![^:;/\s]))(?=[-\w]+\.h)", '\&ruby/')
+    # MRI 1.9 puts all the header files in <include>/ruby/
+    # Since we build both 1.9 and 1.8 extensions in 1.9 mode, leaving the
+    # header files in 1.9 mode the same for now.
+    # line.gsub!(%r"\$\(hdrdir\)/(?!ruby(?![^:;/\s]))(?=[-\w]+\.h)", '\&ruby/')
     if $nmake && /\A\s*\$\(RM|COPY\)/ =~ line
       line.gsub!(%r"[-\w\./]{2,}"){$&.tr("/", "\\")}
       line.gsub!(/(\$\((?!RM|COPY)[^:)]+)(?=\))/, '\1:/=\\')
@@ -1898,7 +1910,7 @@ site-install-rb: install-rb
   if File.exist?(depend)
     mfile.print("###\n", *depend_rules(File.read(depend)))
   else
-    headers = %w[$(hdrdir)/ruby.h $(hdrdir)/ruby/defines.h]
+    headers = %w[$(hdrdir)/ruby.h $(hdrdir)/defines.h]
     if RULE_SUBST
       headers.each {|h| h.sub!(/.*/, &RULE_SUBST.method(:%))}
     end
@@ -1939,7 +1951,7 @@ def init_mkmf(config = CONFIG)
   $LIBPATH = []
   $INSTALLFILES = []
   $NONINSTALLFILES = [/~\z/, /\A#.*#\z/, /\A\.#/, /\.bak\z/i, /\.orig\z/, /\.rej\z/, /\.l[ao]\z/, /\.o\z/]
-  $VPATH = %w[$(srcdir) $(arch_hdrdir)/ruby $(hdrdir)/ruby]
+  $VPATH = %w[$(srcdir) $(hdrdir) $(arch_hdrdir)/ruby $(hdrdir)/ruby]
 
   $objs = nil
   $srcs = nil
