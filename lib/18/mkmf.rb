@@ -131,7 +131,16 @@ def map_dir(dir, map = nil)
 end
 
 # ---------------------- Changed for Rubinius --------------------------------
-$topdir     = ENV['RBX_CAPI_DIR'] || RbConfig::CONFIG["rubyhdrdir"]
+if dir = ENV['RBX_CAPI_DIR']
+  if Rubinius.ruby18?
+    $topdir = "#{dir}/vm/capi/18/include"
+  else
+    $topdir = "#{dir}/vm/capi/19/include"
+  end
+else
+  $topdir = RbConfig::CONFIG["rubyhdrdir"]
+end
+
 $top_srcdir = $topdir
 $hdrdir     = $topdir
 
