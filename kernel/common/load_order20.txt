@@ -90,3 +90,5 @@ time.rbc
 true.rbc
 variable_scope.rbc
 capi.rbc
+complex.rbc
+rational.rbc
