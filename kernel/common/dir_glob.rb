@@ -100,7 +100,7 @@ class Dir
             next if ent == "." || ent == ".."
             full = path_join(path, ent)
 
-            if File.directory? full and (allow_dots or ent[0] != ?.)
+            if File.directory? full and (allow_dots or ent.getbyte(0) != 46) # ?.
               stack << full
               @next.call env, full
             end
@@ -133,7 +133,7 @@ class Dir
         while ent = dir.read
           next if ent == "." || ent == ".."
 
-          if File.directory? ent and (allow_dots or ent[0] != ?.)
+          if File.directory? ent and (allow_dots or ent.getbyte(0) != 46) # ?.
             stack << ent
             @next.call env, ent
           end
@@ -147,7 +147,7 @@ class Dir
             next if ent == "." || ent == ".."
             full = path_join(path, ent)
 
-            if File.directory? full and ent[0] != ?.
+            if File.directory? full and ent.getbyte(0) != 46  # ?.
               stack << full
               @next.call env, full
             end
@@ -289,7 +289,7 @@ class Dir
     def self.single_compile(glob, flags=0, suffixes=nil)
       parts = path_split(glob)
 
-      if glob[-1] == ?/
+      if glob.getbyte(-1) == 47 # ?/
         last = DirectoriesOnly.new nil, flags
       else
         file = parts.pop
@@ -332,7 +332,7 @@ class Dir
         end
       end
 
-      if glob[0] == ?/
+      if glob.getbyte(0) == 47  # ?/
         last = RootDirectory.new last, flags
       end
 
@@ -386,7 +386,7 @@ class Dir
           end
 
           # Split strips an empty closing part, so we need to add it back in
-          if braces[-1] == ?,
+          if braces.getbyte(-1) == 44 # ?,
             matches << stem if File.exists? stem
           end
         else
@@ -445,12 +445,12 @@ class Dir
         while i < total
           char = data.get_byte(i)
 
-          if char == ?{
+          if char == 123  # ?{
             lbrace = i if nest == 0
             nest += 1
           end
 
-          if char == ?}
+          if char == 125  # ?}
             nest -= 1
           end
 
@@ -459,7 +459,7 @@ class Dir
             break
           end
 
-          if char == ?\\ and escape
+          if char == 92 and escape  # ?\\
             escapes = true
             i += 1
           end
@@ -491,11 +491,11 @@ class Dir
           pos += 1
           last = pos
 
-          while pos < rbrace and not (pattern[pos] == ?, and nest == 0)
-            nest += 1 if pattern[pos] == ?{
-              nest -= 1 if pattern[pos] == ?}
+          while pos < rbrace and not (pattern.getbyte(pos) == 44 and nest == 0) # ?,
+            nest += 1 if pattern.getbyte(pos) == 123  # ?{
+              nest -= 1 if pattern.getbyte(pos) == 125  # ?}
 
-              if pattern[pos] == ?\\ and escape
+              if pattern.getbyte(pos) == 92 and escape # ?\\
                 pos += 1
                 break if pos == rbrace
               end
