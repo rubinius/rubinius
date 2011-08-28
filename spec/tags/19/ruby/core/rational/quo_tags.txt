@@ -1,0 +1,1 @@
+fails:Rational#quo calls #/ on the coerced Rational with the coerced Object

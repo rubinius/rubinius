@@ -1,3 +1,0 @@
-fails:Complex#+ with Complex adds both the real and imaginary components
-fails:Complex#+ with Integer adds the real number to the real component of self
-fails:Complex#+ with Object tries to coerce self into other

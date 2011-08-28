@@ -1,3 +1,0 @@
-fails:Complex#* with Complex multiplies according to the usual rule for complex numbers: (a + bi) * (c + di) = ac - bd + (ad + bc)i
-fails:Complex#* with Integer multiplies both parts of self by the given Integer
-fails:Complex#* with Object tries to coerce self into other

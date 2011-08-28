@@ -1,4 +1,0 @@
-fails:Complex when passed [Complex, Complex] returns a new Complex number based on the two given numbers
-fails:Complex when passed [Complex] returns the passed Complex number
-fails:Complex when passed [Integer, Integer] returns a new Complex number
-fails:Complex when passed [Integer] returns a new Complex number with 0 as the imaginary component
