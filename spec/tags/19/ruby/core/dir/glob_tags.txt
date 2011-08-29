@@ -1,1 +1,0 @@
-fails:Dir.glob calls #to_path to convert patterns

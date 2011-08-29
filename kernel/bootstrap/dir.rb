@@ -5,7 +5,7 @@ class Dir
   end
 
   def initialize(path)
-    path = StringValue path
+    path = Rubinius::Type.coerce_to_path path
     Rubinius.invoke_primitive :dir_open, self, path
   end
 

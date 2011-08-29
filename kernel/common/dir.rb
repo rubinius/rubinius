@@ -3,7 +3,7 @@ class Dir
 
   def self.[](*patterns)
     if patterns.size == 1
-      patterns = StringValue(patterns[0]).split("\0")
+      patterns = Rubinius::Type.coerce_to_path(patterns[0]).split("\0")
     end
 
     files = []
@@ -19,7 +19,7 @@ class Dir
     if pattern.kind_of? Array
       patterns = pattern
     else
-      pattern = StringValue pattern
+      pattern = Rubinius::Type.coerce_to_path pattern
 
       return [] if pattern.empty?
 
@@ -57,7 +57,7 @@ class Dir
   end
 
   def self.chdir(path = ENV['HOME'])
-    path = StringValue path
+    path = Rubinius::Type.coerce_to_path path
 
     if block_given?
       original_path = self.getwd
@@ -82,7 +82,7 @@ class Dir
   end
 
   def self.mkdir(path, mode = 0777)
-    error = FFI::Platform::POSIX.mkdir(StringValue(path), mode)
+    error = FFI::Platform::POSIX.mkdir(Rubinius::Type.coerce_to_path(path), mode)
     if error != 0
       Errno.handle path
     end
@@ -90,7 +90,7 @@ class Dir
   end
 
   def self.rmdir(path)
-    error = FFI::Platform::POSIX.rmdir(StringValue(path))
+    error = FFI::Platform::POSIX.rmdir(Rubinius::Type.coerce_to_path(path))
     if error != 0
       Errno.handle path
     end
@@ -130,7 +130,7 @@ class Dir
   end
 
   def self.chroot(path)
-    ret = FFI::Platform::POSIX.chroot StringValue(path)
+    ret = FFI::Platform::POSIX.chroot Rubinius::Type.coerce_to_path(path)
     Errno.handle path
     return ret
   end
