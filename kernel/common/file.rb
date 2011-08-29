@@ -289,7 +289,7 @@ class File < IO
     end
 
     paths.each do |path|
-      POSIX.lchown Rubinius::Type.coerce_to_path(path), owner_int, group_int
+      POSIX.lchown Rubinius::Type.coerce_to_path(path), owner, group
     end
 
     paths.size
