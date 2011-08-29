@@ -9,6 +9,7 @@
 #include "builtin/tuple.hpp"
 #include "builtin/array.hpp"
 
+#include "configuration.hpp"
 #include "vm.hpp"
 #include "object_utils.hpp"
 #include "objectmemory.hpp"
@@ -760,7 +761,8 @@ namespace rubinius {
     if(base == 1 || base > 36) return nil<Integer>();
     // Strict mode can only be invoked from Ruby via Kernel#Integer()
     // which does not allow bases other than 0.
-    if(base != 0 && strict == Qtrue) return nil<Integer>();
+    if(base != 0 && strict == Qtrue && LANGUAGE_18_ENABLED(state))
+      return nil<Integer>();
 
     // Skip any combination of leading whitespace and underscores.
     // Leading whitespace is OK in strict mode, but underscores are not.
