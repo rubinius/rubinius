@@ -1,1 +1,0 @@
-fails:File.new coerces filename using #to_path

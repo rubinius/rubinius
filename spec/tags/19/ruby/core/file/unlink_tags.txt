@@ -1,1 +1,0 @@
-fails:File.unlink accepts an object that has a #to_path method

@@ -1,1 +1,0 @@
-fails:File.writable? accepts an object that has a #to_path method

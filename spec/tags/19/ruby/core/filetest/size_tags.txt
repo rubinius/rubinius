@@ -1,2 +1,0 @@
-fails:FileTest.size? accepts an object that has a #to_path method
-fails:FileTest.size accepts an object that has a #to_path method

@@ -1,1 +1,0 @@
-fails:File::Stat#executable? accepts an object that has a #to_path method

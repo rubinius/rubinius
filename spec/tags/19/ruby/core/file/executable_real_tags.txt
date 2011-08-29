@@ -1,1 +1,0 @@
-fails:File.executable_real? accepts an object that has a #to_path method

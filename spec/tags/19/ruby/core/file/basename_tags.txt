@@ -1,4 +1,3 @@
-fails:File.basename accepts an object that has a #to_path method
 fails:File.basename return the basename of a path (basic cases)
 fails:File.basename return the last component of the filename
 fails:File.basename return the basename for unix format
