@@ -1,2 +1,0 @@
-fails:Numeric#conjugate returns self
-fails:Numeric#conjugate raises an ArgumentError if given any arguments

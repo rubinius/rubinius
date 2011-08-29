@@ -1,5 +1,0 @@
-fails:Numeric#arg returns 0 if positive
-fails:Numeric#arg returns NaN if self is NaN
-fails:Numeric#arg returns Pi if negative
-fails:Numeric#arg returns Pi if -0.0
-fails:Numeric#arg raises an ArgumentError if given any arguments

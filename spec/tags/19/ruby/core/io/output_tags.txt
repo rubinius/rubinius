@@ -1,3 +1,0 @@
-fails:IO#<< raises an error if the stream is closed
-fails:IO#<< writes an object to the IO stream
-fails:IO#<< calls #to_s on the object to print it

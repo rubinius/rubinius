@@ -1,1 +1,0 @@
-fails:IO#pid returns nil for IO not associated with a process

@@ -1,1 +1,0 @@
-fails:Rational#/ calls #/ on the coerced Rational with the coerced Object

@@ -18,11 +18,3 @@ fails:String#gsub! with pattern and replacement untrusts self if replacement is 
 fails:String#gsub! with pattern and replacement raises a RuntimeError when self is frozen
 fails:String#gsub! with pattern and block untrusts self if block's result is untrusted
 fails:String#gsub! with pattern and block raises a RuntimeError when self is frozen
-fails:String#gsub with pattern and replacement replaces \1 sequences with the regexp's corresponding capture
-fails:String#gsub with pattern and replacement treats \1 sequences without corresponding captures as empty strings
-fails:String#gsub with pattern and replacement replaces \& and \0 with the complete match
-fails:String#gsub with pattern and replacement replaces \` with everything before the current match
-fails:String#gsub with pattern and replacement replaces \' with everything after the current match
-fails:String#gsub with pattern and replacement replaces \+ with the last paren that actually matched
-fails:String#gsub with pattern and replacement treats \+ as an empty string if there was no captures
-fails:String#gsub with pattern and replacement maps \\ in replacement to \

@@ -1,1 +1,0 @@
-fails:Hash#each_pair yields the key only to a block expecting |key,|
