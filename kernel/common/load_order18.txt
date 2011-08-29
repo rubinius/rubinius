@@ -14,6 +14,7 @@ undefined.rbc
 hash.rbc
 hash18.rbc
 type.rbc
+type18.rbc
 kernel.rbc
 kernel18.rbc
 identitymap.rbc

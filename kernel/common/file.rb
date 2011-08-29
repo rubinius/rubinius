@@ -66,7 +66,7 @@ class File < IO
       super(path_or_fd, mode)
       @path = nil
     else
-      path = StringValue(path_or_fd)
+      path = Rubinius::Type.coerce_to_path path_or_fd
 
       fd = IO.sysopen(path, mode, perm)
       if fd < 0
@@ -115,8 +115,8 @@ class File < IO
   #
   #  File.basename("/home/gumby/work/ruby.rb")          #=> "ruby.rb"
   #  File.basename("/home/gumby/work/ruby.rb", ".rb")   #=> "ruby"
-  def self.basename(path,ext=undefined)
-    path = StringValue(path)
+  def self.basename(path, ext=undefined)
+    path = Rubinius::Type.coerce_to_path(path)
 
     slash = "/"
 
@@ -197,7 +197,7 @@ class File < IO
     mode = clamp_short mode
 
     paths.each do |path|
-      POSIX.chmod StringValue(path), mode
+      POSIX.chmod Rubinius::Type.coerce_to_path(path), mode
     end
     paths.size
   end
@@ -211,7 +211,7 @@ class File < IO
     mode = Rubinius::Type.coerce_to(mode, Integer, :to_int)
 
     paths.each do |path|
-      POSIX.lchmod StringValue(path), mode
+      POSIX.lchmod Rubinius::Type.coerce_to_path(path), mode
     end
 
     paths.size
@@ -242,7 +242,7 @@ class File < IO
     end
 
     paths.each do |path|
-      POSIX.chown StringValue(path), owner, group
+      POSIX.chown Rubinius::Type.coerce_to_path(path), owner, group
     end
 
     paths.size
@@ -289,7 +289,7 @@ class File < IO
     end
 
     paths.each do |path|
-      POSIX.lchown StringValue(path), owner_int, group_int
+      POSIX.lchown Rubinius::Type.coerce_to_path(path), owner_int, group_int
     end
 
     paths.size
@@ -343,7 +343,7 @@ class File < IO
   #
   #  File.dirname("/home/gumby/work/ruby.rb")   #=> "/home/gumby/work"
   def self.dirname(path)
-    path = StringValue(path)
+    path = Rubinius::Type.coerce_to_path(path)
 
     # edge case
     return "." if path.empty?
@@ -394,7 +394,7 @@ class File < IO
   ##
   # Return true if the named file exists.
   def self.exist?(path)
-    POSIX.stat(StringValue(path), Stat::EXISTS_STRUCT.pointer) == 0
+    POSIX.stat(Rubinius::Type.coerce_to_path(path), Stat::EXISTS_STRUCT.pointer) == 0
   end
 
   ##
@@ -409,7 +409,7 @@ class File < IO
   #  File.expand_path("~oracle/bin")           #=> "/home/oracle/bin"
   #  File.expand_path("../../bin", "/tmp/x")   #=> "/bin"
   def self.expand_path(path, dir=nil)
-    path = StringValue(path)
+    path = Rubinius::Type.coerce_to_path(path)
 
     first = path[0]
     if first == ?~
@@ -485,7 +485,7 @@ class File < IO
   #  File.extname("test")            #=> ""
   #  File.extname(".profile")        #=> ""
   def self.extname(path)
-    path = StringValue(path)
+    path = Rubinius::Type.coerce_to_path(path)
     path_size = path.size
 
     dot_idx = path.find_string_reverse(".", path_size)
@@ -578,7 +578,7 @@ class File < IO
   #  File.fnmatch(pattern, 'a/.b/c/foo', File::FNM_PATHNAME | File::FNM_DOTMATCH) #=> true
   def self.fnmatch(pattern, path, flags=0)
     pattern = StringValue(pattern)
-    path    = StringValue(path)
+    path    = Rubinius::Type.coerce_to_path(path)
     flags   = Rubinius::Type.coerce_to(flags, Fixnum, :to_int)
 
     super pattern, path, flags
@@ -621,8 +621,8 @@ class File < IO
   #   open("d", "w") {}
   #   p File.identical?("a", "d")      #=> false
   def self.identical?(orig, copy)
-    st_o = stat(StringValue(orig))
-    st_c = stat(StringValue(copy))
+    st_o = stat(Rubinius::Type.coerce_to_path(orig))
+    st_c = stat(Rubinius::Type.coerce_to_path(copy))
 
     return false unless st_o.ino == st_c.ino
     return false unless st_o.ftype == st_c.ftype
@@ -658,7 +658,7 @@ class File < IO
     else
       # We need to use dup here, since it's possible that
       # StringValue gives us a direct object we shouldn't mutate
-      first = StringValue(first).dup
+      first = Rubinius::Type.coerce_to_path(first).dup
     end
 
     ret = first
@@ -676,7 +676,7 @@ class File < IO
 
         raise ArgumentError, "recursive array" if recursion
       else
-        value = StringValue(el)
+        value = Rubinius::Type.coerce_to_path(el)
       end
 
       if value.prefix? sep
@@ -698,7 +698,7 @@ class File < IO
   #  File.link("testfile", ".testfile")   #=> 0
   #  IO.readlines(".testfile")[0]         #=> "This is line one\n"
   def self.link(from, to)
-    n = POSIX.link StringValue(from), StringValue(to)
+    n = POSIX.link Rubinius::Type.coerce_to_path(from), Rubinius::Type.coerce_to_path(to)
     Errno.handle if n == -1
     n
   end
@@ -754,7 +754,7 @@ class File < IO
   #  File.readlink("link2test")              #=> "testfile"
   def self.readlink(path)
     FFI::MemoryPointer.new(1024) do |ptr|
-      n = POSIX.readlink StringValue(path), ptr, 1024
+      n = POSIX.readlink Rubinius::Type.coerce_to_path(path), ptr, 1024
       Errno.handle if n == -1
 
       return ptr.read_string(n)
@@ -767,7 +767,7 @@ class File < IO
   #
   #  File.rename("afile", "afile.bak")   #=> 0
   def self.rename(from, to)
-    n = POSIX.rename StringValue(from), StringValue(to)
+    n = POSIX.rename Rubinius::Type.coerce_to_path(from), Rubinius::Type.coerce_to_path(to)
     Errno.handle if n == -1
     n
   end
@@ -814,7 +814,7 @@ class File < IO
   #
   #  File.split("/home/gumby/.profile")   #=> ["/home/gumby", ".profile"]
   def self.split(path)
-    p = StringValue(path)
+    p = Rubinius::Type.coerce_to_path(path)
     [dirname(p), basename(p)]
   end
 
@@ -833,7 +833,7 @@ class File < IO
   #
   #  File.symlink("testfile", "link2test")   #=> 0
   def self.symlink(from, to)
-    n = POSIX.symlink StringValue(from), StringValue(to)
+    n = POSIX.symlink Rubinius::Type.coerce_to_path(from), Rubinius::Type.coerce_to_path(to)
     Errno.handle if n == -1
     n
   end
@@ -866,7 +866,7 @@ class File < IO
   #  File.truncate("out", 5)   #=> 0
   #  File.size("out")          #=> 5
   def self.truncate(path, length)
-    path = StringValue(path)
+    path = Rubinius::Type.coerce_to_path(path)
 
     unless exist?(path)
       raise Errno::ENOENT, path
@@ -906,7 +906,7 @@ class File < IO
   # See also Dir::rmdir.
   def self.unlink(*paths)
     paths.each do |path|
-      n = POSIX.unlink StringValue(path)
+      n = POSIX.unlink Rubinius::Type.coerce_to_path(path)
       Errno.handle if n == -1
     end
 
@@ -932,7 +932,7 @@ class File < IO
 
       paths.each do |path|
 
-        n = POSIX.utimes(StringValue(path), ptr)
+        n = POSIX.utimes(Rubinius::Type.coerce_to_path(path), ptr)
         Errno.handle unless n == 0
       end
     end
@@ -1007,6 +1007,9 @@ class File < IO
 
   def reopen(other, mode = 'r+')
     rewind unless closed?
+    unless other.kind_of? IO
+      other = Rubinius::Type.coerce_to_path(other)
+    end
     super(other, mode)
   end
 
@@ -1099,7 +1102,7 @@ class File::Stat
   attr_reader :path
 
   def self.create(path)
-    path = StringValue path
+    path = Rubinius::Type.coerce_to_path path
     stat = allocate
     Rubinius.privately { stat.setup path, Struct.new }
   end
@@ -1142,7 +1145,7 @@ class File::Stat
   end
 
   def initialize(path)
-    @path = StringValue path
+    @path = Rubinius::Type.coerce_to_path path
     @stat = Struct.new
     result = POSIX.stat @path, @stat.pointer
     Errno.handle path unless result == 0
