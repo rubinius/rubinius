@@ -49,7 +49,7 @@ namespace rubinius {
   }
 
   Object* Channel::send(STATE, Object* val) {
-    thread::Mutex::LockGuard lg(mutex_);
+    GCLockGuard lg(state, mutex_);
 
     if(val->nil_p()) {
       semaphore_count_++;
@@ -72,7 +72,7 @@ namespace rubinius {
   }
 
   Object* Channel::try_receive(STATE) {
-    thread::Mutex::LockGuard lg(mutex_);
+    GCLockGuard lg(state, mutex_);
 
     if(semaphore_count_ > 0) {
       semaphore_count_--;
@@ -89,7 +89,7 @@ namespace rubinius {
 
 #define NANOSECONDS 1000000000
   Object* Channel::receive_timeout(STATE, Object* duration, CallFrame* call_frame) {
-    thread::Mutex::LockGuard lg(mutex_);
+    GCLockGuard lg(state, mutex_);
 
     if(semaphore_count_ > 0) {
       semaphore_count_--;

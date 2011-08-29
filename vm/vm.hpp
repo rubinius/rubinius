@@ -9,6 +9,7 @@
 #include "thread_state.hpp"
 
 #include "util/refcount.hpp"
+#include "util/thread.hpp"
 
 #include "call_frame_list.hpp"
 
@@ -450,6 +451,26 @@ namespace rubinius {
       vm_->shared.gc_dependent(vm_);
     }
   };
+
+  template <class T>
+  class GCIndependentLockGuard : public thread::LockGuardTemplate<T> {
+    VM* vm_;
+  public:
+    GCIndependentLockGuard(STATE, T& in_lock)
+      : thread::LockGuardTemplate<T>(in_lock, false)
+      , vm_(state)
+    {
+      vm_->shared.gc_independent(vm_);
+      this->lock();
+      vm_->shared.gc_dependent(vm_);
+    }
+
+    ~GCIndependentLockGuard() {
+      this->unlock();
+    }
+  };
+
+   typedef GCIndependentLockGuard<thread::Mutex> GCLockGuard;
 };
 
 #endif

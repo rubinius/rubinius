@@ -612,7 +612,7 @@ step2:
 
   LockStatus InflatedHeader::lock_mutex_timed(STATE, const struct timespec* ts) {
     // Gain exclusive access to the insides of the InflatedHeader.
-    thread::Mutex::LockGuard lg(mutex_);
+    GCLockGuard lg(state, mutex_);
 
     // We've got exclusive access to the lock parts of the InflatedHeader now.
     //
@@ -698,7 +698,7 @@ step2:
 
   LockStatus InflatedHeader::try_lock_mutex(STATE) {
     // Gain exclusive access to the insides of the InflatedHeader.
-    thread::Mutex::LockGuard lg(mutex_);
+    GCLockGuard lg(state, mutex_);
 
     // We've got exclusive access to the lock parts of the InflatedHeader now.
     //
@@ -738,14 +738,14 @@ step2:
 
   bool InflatedHeader::locked_mutex_p(STATE) {
     // Gain exclusive access to the insides of the InflatedHeader.
-    thread::Mutex::LockGuard lg(mutex_);
+    GCLockGuard lg(state, mutex_);
 
     return owner_id_ != 0;
   }
 
   LockStatus InflatedHeader::unlock_mutex(STATE) {
     // Gain exclusive access to the insides of the InflatedHeader.
-    thread::Mutex::LockGuard lg(mutex_);
+    GCLockGuard lg(state, mutex_);
 
     // Sanity check.
     if(owner_id_ != state->thread_id()) {
@@ -780,7 +780,7 @@ step2:
 
   void InflatedHeader::unlock_mutex_for_terminate(STATE) {
     // Gain exclusive access to the insides of the InflatedHeader.
-    thread::Mutex::LockGuard lg(mutex_);
+    GCLockGuard lg(state, mutex_);
 
     // We've got exclusive access to the lock parts of the InflatedHeader now.
 
