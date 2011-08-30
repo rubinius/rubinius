@@ -777,7 +777,8 @@ namespace rubinius {
 
           context_.leave_inline();
           return true;
-
+        } else {
+          return false;
         }
       } else {
         // Add more primitive inlining!
