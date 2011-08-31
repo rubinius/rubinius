@@ -289,7 +289,7 @@ class File < IO
     end
 
     paths.each do |path|
-      POSIX.lchown StringValue(path), owner_int, group_int
+      POSIX.lchown StringValue(path), owner, group
     end
 
     paths.size
