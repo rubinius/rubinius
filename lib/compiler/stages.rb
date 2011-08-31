@@ -67,6 +67,7 @@ module Rubinius
 
         @version = 0
         @processor = Rubinius::CompiledFile
+        @signature = Rubinius::Signature
       end
 
       def run
@@ -86,7 +87,7 @@ module Rubinius
           end
         end
 
-        @processor.dump @input, @name, Signature, @version
+        @processor.dump @input, @name, @signature, @version
         @input
       end
     end
