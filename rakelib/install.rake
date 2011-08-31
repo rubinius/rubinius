@@ -51,12 +51,6 @@ def need_install?
   File.expand_path(Dir.pwd) != install_dir(BUILD_CONFIG[:libdir])
 end
 
-def precompile(dir)
-  (Dir["#{dir}/*.rb"] + Dir["#{dir}/**/*.rb"]).each do |file|
-    Rubinius::Compiler.compile file, "#{file}c", 1, [:default]
-  end
-end
-
 def install_file(source, pattern, dest)
   return if File.directory? source
 
@@ -68,20 +62,9 @@ def install_file(source, pattern, dest)
 end
 
 desc "Install Rubinius"
-task :install => %w[ build install:build install:files ]
+task :install => %w[ build install:files ]
 
 namespace :install do
-  desc "Compile all lib Ruby files"
-  task :build do
-    if need_install?
-      puts "Compiling library files for install..."
-      precompile "lib"
-
-      puts "Compiling pre-installed gem files for install..."
-      precompile "preinstalled-gems/rubinius/0.13/gems"
-    end
-  end
-
   desc "Install all the Rubinius files"
   task :files do
     if need_sudo? install_dirs
