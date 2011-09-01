@@ -18,7 +18,8 @@ namespace rubinius {
       eFixnum = 4,
       eStaticFixnum = 5,
       eInstance = 6,
-      eSymbol = 7
+      eSymbol = 7,
+      eType = 8
     };
 
     enum Source {
@@ -80,6 +81,10 @@ namespace rubinius {
         return KnownType(eSymbol);
       }
 
+      static KnownType type() {
+        return KnownType(eType);
+      }
+
       bool known_p() {
         return kind_ != eUnknown;
       }
@@ -115,6 +120,10 @@ namespace rubinius {
 
       bool symbol_p() {
         return kind_ == eSymbol;
+      }
+
+      bool type_p() {
+        return kind_ == eType;
       }
 
       void set_local_source(int id) {

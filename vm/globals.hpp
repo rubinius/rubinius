@@ -113,6 +113,7 @@ namespace rubinius {
     TypedRoot<Class*> fiber;
     TypedRoot<Class*> alias;
     TypedRoot<Class*> encoding;
+    TypedRoot<Module*> type;
 
     /* Add new globals above this line. */
 
@@ -232,7 +233,8 @@ namespace rubinius {
       cls_weakref(&roots),
       fiber(&roots),
       alias(&roots),
-      encoding(&roots)
+      encoding(&roots),
+      type(&roots)
 
       /* Add initialize of globals above this line. */
     { }

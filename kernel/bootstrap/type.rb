@@ -7,11 +7,8 @@ module Rubinius
     # Performs a direct kind_of? check on the object bypassing any method
     # overrides.
     def self.object_kind_of?(obj, cls)
-      Rubinius.asm(cls, obj) {|c, o|
-        run c
-        run o
-        kind_of
-      }
+      Rubinius.primitive :vm_object_kind_of
+      raise PrimitiveFailure, "Rubinius::Type.kind_of failed"
     end
 
     def self.object_class(obj)
@@ -32,6 +29,11 @@ module Rubinius
     def self.object_respond_to?(obj, name)
       Rubinius.primitive :vm_object_respond_to
       raise PrimitiveFailure, "Rubinius::Type.object_respond_to? failed"
+    end
+
+    def self.object_equal(a, b)
+      Rubinius.primitive :vm_object_equal
+      raise PrimitiveFailure, "Rubinius::Type.object_equal failed"
     end
   end
 end

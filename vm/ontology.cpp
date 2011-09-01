@@ -333,8 +333,8 @@ namespace rubinius {
     GO(vm).set(new_class_under("VM", G(rubinius)));
     G(vm)->name(state, state->symbol("Rubinius::VM"));
 
-    Module* type = new_module("Type", G(rubinius));
-    type->name(state, state->symbol("Rubinius::Type"));
+    GO(type).set(new_module("Type", G(rubinius)));
+    G(type)->name(state, state->symbol("Rubinius::Type"));
 
     System::bootstrap_methods(this);
     Module::bootstrap_methods(this);

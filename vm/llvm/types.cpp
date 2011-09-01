@@ -110,6 +110,8 @@ namespace type {
       return "<type: instance>";
     case eSymbol:
       return "<type: symbol>";
+    case eType:
+      return "<obj: Rubinius::Type>";
     }
 
     return "Confused type info!";

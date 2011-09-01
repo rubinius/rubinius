@@ -599,6 +599,17 @@ namespace rubinius {
       i.context().leave_inline();
     }
 
+    void type_object_equal() {
+      log("type_object_equal");
+
+      Value* cmp = ops.create_equal(i.arg(0), i.arg(1), "idenity_equal");
+      Value* imm_value = SelectInst::Create(cmp, ops.constant(Qtrue),
+          ops.constant(Qfalse), "select_bool", ops.current_block());
+
+      i.exception_safe();
+      i.set_result(imm_value);
+    }
+
     void known_string_hash() {
       log("String#hash");
       i.context().enter_inline();
@@ -692,6 +703,10 @@ namespace rubinius {
       if(!ip.static_symbol_s_eqq()) {
         ip.symbol_s_eqq();
       }
+
+    } else if(prim == Primitives::vm_object_equal && count_ == 2) {
+      ip.type_object_equal();
+
     } else {
       if(ops_.state()->type_optz()) {
         if(prim == Primitives::object_hash && count_ == 0) {

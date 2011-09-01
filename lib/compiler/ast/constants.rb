@@ -1,5 +1,16 @@
 module Rubinius
   module AST
+
+    class TypeConstant < Node
+      def initialize(line)
+        @line = line
+      end
+
+      def bytecode(g)
+        g.push_type
+      end
+    end
+
     class ScopedConstant < Node
       attr_accessor :parent, :name
 

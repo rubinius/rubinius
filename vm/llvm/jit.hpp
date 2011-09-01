@@ -626,7 +626,7 @@ namespace rubinius {
     void compile_soon(STATE, CompiledMethod* cm, BlockEnvironment* block=0);
     void remove(llvm::Function* func);
 
-    CallFrame* find_candidate(CompiledMethod* start, CallFrame* call_frame);
+    CallFrame* find_candidate(STATE, CompiledMethod* start, CallFrame* call_frame);
     void compile_callframe(STATE, CompiledMethod* start, CallFrame* call_frame,
                            int primitive = -1);
 

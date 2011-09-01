@@ -247,7 +247,7 @@ class Hash
     # current MRI documentation comment is wrong.  Actual behavior is:
     # Hash.new { 1 }.default # => nil
     if @default_proc
-      key.equal?(undefined) ? nil : @default.call(self, key)
+      Rubinius::Type.object_equal(key, undefined) ? nil : @default.call(self, key)
     else
       @default
     end

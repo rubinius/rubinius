@@ -2208,3 +2208,16 @@
    Normally literal is `:to_s`, but this instruction leaves it up to the user
    to indicate for flexibility.
 
+<h3><a class="instruction" name="push_type">push_type()</a></h3>
+
+
+
+<table class="stack_effect">
+<thead>
+<tr><th>Before</th><th>After</th></tr>
+</thead>
+<tbody>
+<tr><td>...</td><td>constant</td></tr>
+<tr><td></td><td>...</td></tr>
+</tbody>
+</table>

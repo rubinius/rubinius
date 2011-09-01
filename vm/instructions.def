@@ -2231,3 +2231,8 @@ instruction meta_to_s(literal) [ object -- string ] => send
     CHECK_AND_PUSH(ret);
   }
 end
+
+instruction push_type() [ -- constant ]
+  stack_push(G(type));
+end
+

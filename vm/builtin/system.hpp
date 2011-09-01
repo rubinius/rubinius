@@ -207,6 +207,16 @@ namespace rubinius {
     // Rubinius.primitive :vm_object_respond_to
     static Object* vm_object_respond_to(STATE, Object* obj, Symbol* sym);
 
+    // A robust way to find out if two references are the same, since #equal? can
+    // be redefined
+    // Rubinius.primitive :vm_object_equal
+    static Object* vm_object_equal(STATE, Object* a, Object* b);
+
+    // A robust way to find out if an object is a kind of a Module, since #kind_of?
+    // can be redefined
+    // Rubinius.primitive :vm_object_kind_of
+    static Object* vm_object_kind_of(STATE, Object* obj, Module* mod);
+
     // Increment the internal global serial number, used for caching
     // Rubinius.primitive :vm_inc_global_serial
     static Object* vm_inc_global_serial(STATE);

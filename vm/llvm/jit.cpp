@@ -524,6 +524,8 @@ namespace rubinius {
     }
   }
 
+  static const bool debug_search = false;
+
   LLVMState::LLVMState(STATE)
     : ManagedThread(state->shared.new_thread_id(state),
                     state->shared, ManagedThread::eSystem)
@@ -718,20 +720,20 @@ namespace rubinius {
 
     // Ignore it!
     if(cm->backend_method()->call_count <= 1) {
-      if(config().jit_inline_debug) {
-        log() << "JIT: ignoring candidate! "
-          << symbol_cstr(cm->name()) << "\n";
-      }
+      // if(config().jit_inline_debug) {
+        // log() << "JIT: ignoring candidate! "
+          // << symbol_cstr(cm->name()) << "\n";
+      // }
       return;
     }
 
-    if(config().jit_inline_debug) {
+    if(debug_search) {
       if(block) {
-        log() << "JIT: queueing block inside: "
-          << symbol_cstr(cm->name()) << "\n";
+        std::cout << "JIT: queueing block inside: "
+          << enclosure_name(cm) << "#" << symbol_cstr(cm->name()) << "\n";
       } else {
-        log() << "JIT: queueing method: "
-          << symbol_cstr(cm->name()) << "\n";
+        std::cout << "JIT: queueing method: "
+          << enclosure_name(cm) << "#" << symbol_cstr(cm->name()) << "\n";
       }
     }
 
@@ -761,15 +763,15 @@ namespace rubinius {
 
       mux.unlock();
 
-      if(config().jit_inline_debug) {
-        if(block) {
-          log() << "JIT: compiled block inside: "
-                << symbol_cstr(cm->name()) << "\n";
-        } else {
-          log() << "JIT: compiled method: "
-                << symbol_cstr(cm->name()) << "\n";
-        }
-      }
+      // if(config().jit_inline_debug) {
+        // if(block) {
+          // log() << "JIT: compiled block inside: "
+                // << symbol_cstr(cm->name()) << "\n";
+        // } else {
+          // log() << "JIT: compiled method: "
+                // << symbol_cstr(cm->name()) << "\n";
+        // }
+      // }
     } else {
       background_thread_->add(req);
 
@@ -793,25 +795,43 @@ namespace rubinius {
     func->eraseFromParent();
   }
 
-  const static int cInlineMaxDepth = 4;
+  const static int cInlineMaxDepth = 2;
+  const static size_t eMaxInlineSendCount = 10;
 
   void LLVMState::compile_callframe(STATE, CompiledMethod* start, CallFrame* call_frame,
                                     int primitive) {
-    if(config().jit_inline_debug) {
-      if(start) {
-        log() << "JIT: target search from "
-          << symbol_cstr(start->name()) << "\n";
-      } else {
-        log() << "JIT: target search from primitive\n";
-      }
+
+    if(debug_search) {
+      std::cout << "\nJIT:       triggered: "
+            << enclosure_name(start) << "#"
+            << symbol_cstr(start->name()) << "\n";
     }
 
-    CallFrame* candidate = find_candidate(start, call_frame);
+    // if(config().jit_inline_debug) {
+      // if(start) {
+        // std::cout << "JIT: target search from "
+          // << symbol_cstr(start->name()) << "\n";
+      // } else {
+        // std::cout << "JIT: target search from primitive\n";
+      // }
+    // }
+
+    CallFrame* candidate = find_candidate(state, start, call_frame);
     if(!candidate || candidate->jitted_p() || candidate->inline_method_p()) {
-      if(config().jit_inline_debug) {
-        log() << "JIT: unable to find candidate\n";
+      if(debug_search) {
+        std::cout << "JIT: invalid candidate returned\n";
       }
+
       return;
+    }
+
+    if(debug_search) {
+      std::cout << "! ";
+      candidate->print_backtrace(state, 1);
+    }
+
+    if(start && candidate->cm != start) {
+      start->backend_method()->call_count = 0;
     }
 
     if(candidate->cm->backend_method()->call_count <= 1) {
@@ -829,28 +849,86 @@ namespace rubinius {
 
 #define SMALL_METHOD_SIZE 50
 
-  CallFrame* LLVMState::find_candidate(CompiledMethod* start, CallFrame* call_frame) {
+  CallFrame* LLVMState::find_candidate(STATE, CompiledMethod* start, CallFrame* call_frame) {
     if(!config_.jit_inline_generic) {
       return call_frame;
     }
 
     int depth = cInlineMaxDepth;
 
-    if(!start) {
-      start = call_frame->cm;
-      call_frame = call_frame->previous;
-      depth--;
+    if(!start) rubinius::bug("null start");
+    if(!call_frame) rubinius::bug("null call_frame");
+
+    // if(!start) {
+      // start = call_frame->cm;
+      // call_frame = call_frame->previous;
+      // depth--;
+    // }
+
+    if(debug_search) {
+      std::cout << "> call_count: " << call_frame->cm->backend_method()->call_count
+            << " size: " << call_frame->cm->backend_method()->total
+            << " sends: " << call_frame->cm->backend_method()->inline_cache_count()
+            << "\n";
+
+      call_frame->print_backtrace(state, 1);
     }
 
-    if(!call_frame || start->backend_method()->total > SMALL_METHOD_SIZE) {
+    if(start->backend_method()->total > SMALL_METHOD_SIZE) {
+      if(debug_search) {
+        std::cout << "JIT: STOP. reason: trigger method isn't small: "
+              << start->backend_method()->total << " > "
+              << SMALL_METHOD_SIZE
+              << "\n";
+      }
+
       return call_frame;
     }
 
-    CallFrame* caller = call_frame;
+    VMMethod* vmm = start->backend_method();
+
+    if(vmm->required_args != vmm->total_args) {
+      if(debug_search) {
+        std::cout << "JIT: STOP. reason: trigger method req_args != total_args\n";
+      }
+
+      return call_frame;
+    }
+
+    if(vmm->no_inline_p()) {
+      if(debug_search) {
+        std::cout << "JIT: STOP. reason: trigger method no_inline_p() = true\n";
+      }
+
+      return call_frame;
+    }
+
+    CallFrame* callee = call_frame;
+    call_frame = call_frame->previous;
+
+    // Now start looking at callers.
 
     while(depth-- > 0) {
       CompiledMethod* cur = call_frame->cm;
+
+      if(!cur) {
+        if(debug_search) {
+          std::cout << "JIT: STOP. reason: synthetic CallFrame hit\n";
+        }
+        return callee;
+      }
+
       VMMethod* vmm = cur->backend_method();
+
+      if(debug_search) {
+        std::cout << "> call_count: " << vmm->call_count
+              << " size: " << vmm->total
+              << " sends: " << vmm->inline_cache_count()
+              << "\n";
+
+        call_frame->print_backtrace(state, 1);
+      }
+
 
       /*
       if(call_frame->block_p()
@@ -858,24 +936,84 @@ namespace rubinius {
           || vmm->call_count < 200 // not called much
           || vmm->jitted() // already jitted
           || vmm->parent() // is a block
-        ) return caller;
+        ) return callee;
       */
 
-      if(vmm->required_args != vmm->total_args // has a splat
-          || vmm->call_count < 200 // not called much
-          || vmm->jitted() // already jitted
-          || !vmm->no_inline_p() // method marked as not inlinable
-        ) return caller;
+      if(vmm->required_args != vmm->total_args) {
+        if(debug_search) {
+          std::cout << "JIT: STOP. reason: req_args != total_args\n";
+        }
+        return callee;
+      }
 
-      CallFrame* next = call_frame->previous;
+      if(vmm->call_count < 200) {
+        if(debug_search) {
+          std::cout << "JIT: STOP. reason: call_count too small: "
+                << vmm->call_count << " < 200\n";
+        }
 
-      if(!next|| cur->backend_method()->total > SMALL_METHOD_SIZE) return call_frame;
+        return callee;
+      }
 
-      caller = call_frame;
-      call_frame = next;
+      if(vmm->jitted()) {
+        if(debug_search) {
+          std::cout << "JIT: STOP. reason: already jitted\n";
+        }
+
+        return callee;
+      }
+
+      if(vmm->no_inline_p()) {
+        if(debug_search) {
+          std::cout << "JIT: STOP. reason: no_inline_p() = true\n";
+        }
+
+        return callee;
+      }
+
+      if(vmm->inline_cache_count() > eMaxInlineSendCount) {
+        if(debug_search) {
+          std::cout << "JIT: STOP. reason: high send count\n";
+        }
+
+        return call_frame;
+      }
+
+      // if(vmm->required_args != vmm->total_args // has a splat
+          // || vmm->call_count < 200 // not called much
+          // || vmm->jitted() // already jitted
+          // || !vmm->no_inline_p() // method marked as not inlinable
+        // ) return callee;
+
+      CallFrame* prev = call_frame->previous;
+
+      if(!prev) {
+        if(debug_search) {
+          std::cout << "JIT: STOP. reason: toplevel method\n";
+        }
+        return call_frame;
+      }
+
+      // if(cur->backend_method()->total > SMALL_METHOD_SIZE) {
+        // if(debug_search) {
+          // std::cout << "JIT: STOP. reason: big method: "
+                // << cur->backend_method()->total << " > "
+                // << SMALL_METHOD_SIZE
+                // << "\n";
+        // }
+
+        // return call_frame;
+      // }
+
+      // if(!next || cur->backend_method()->total > SMALL_METHOD_SIZE) return call_frame;
+
+      callee->cm->backend_method()->call_count = 0;
+
+      callee = call_frame;
+      call_frame = prev;
     }
 
-    return caller;
+    return callee;
   }
 
   void LLVMState::show_machine_code(void* buffer, size_t size) {

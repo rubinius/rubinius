@@ -3341,6 +3341,24 @@ use_send:
       push_system_object(1);
     }
 
+    void visit_push_type() {
+      // we're calling something that returns an Object
+      Signature sig(ls_, ObjType);
+      // given a system state and a 32bit int
+      sig << VMTy;
+      sig << ls_->Int32Ty;
+
+      // the actual values of which are the calling arguments
+      Value* call_args[] = {
+        vm_,
+        ConstantInt::get(ls_->Int32Ty, 2)
+      };
+
+      // call the function we just described using the builder
+      Value* val = sig.call("rbx_push_system_object", call_args, 2, "so", b());
+      stack_push(val, type::KnownType::type());
+    }
+
     void visit_push_ivar(opcode which) {
       Symbol* name = as<Symbol>(literal(which));
 

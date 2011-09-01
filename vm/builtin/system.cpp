@@ -903,6 +903,14 @@ namespace rubinius {
     return obj->respond_to(state, name, Qfalse);
   }
 
+  Object* System::vm_object_equal(STATE, Object* a, Object* b) {
+    return a == b ? Qtrue : Qfalse;
+  }
+
+  Object* System::vm_object_kind_of(STATE, Object* obj, Module* mod) {
+    return obj->kind_of_p(state, mod) ? Qtrue : Qfalse;
+  }
+
   Object* System::vm_inc_global_serial(STATE) {
     return Fixnum::from(state->shared.inc_global_serial(state));
   }

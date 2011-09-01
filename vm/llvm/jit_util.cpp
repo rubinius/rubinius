@@ -969,6 +969,8 @@ extern "C" {
       return G(object);
     case 1:
       return G(rubinius);
+    case 2:
+      return G(type);
     default:
       return Qnil;
     }

@@ -365,7 +365,14 @@ namespace rubinius {
         {
           type::KnownType kt = type::KnownType::extract(ls_, obj);
 
-          if(kt.class_id() == klass->class_id()) {
+          if(kt.type_p()) {
+            if(ls_->config().jit_inline_debug) {
+              context().info_log("eliding guard") << "Type object used staticly\n";
+            }
+
+            return kt;
+
+          } else if(kt.class_id() == klass->class_id()) {
             if(ls_->config().jit_inline_debug) {
               context().info_log("eliding redundant guard")
                 << "class " << ls_->symbol_cstr(klass->name())
