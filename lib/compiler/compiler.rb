@@ -24,22 +24,39 @@ module Rubinius
         path = "#{RBC_DB}/#{dir}/#{hash}"
       end
     else
+      def self.compiled_cache_writable?(db, dir)
+        File.owned?(db) or File.owned?(dir)
+      end
+
       def self.compiled_name(file)
         name = File.expand_path file
 
-        if name.prefix? Rubinius::OS_STARTUP_DIR
-          db = "#{Rubinius::OS_STARTUP_DIR}/.rbx"
-        else
-          db = File.expand_path "~/.rbx"
-        end
+        # If the file we are compiling is in a subdirectory of the current
+        # working directory when Rubinius is started, try to cache the
+        # compiled code in <cwd>/.rbx if:
+        #
+        #   1. <cwd>/.rbx exists and is owned by the process user
+        #       OR
+        #   2. if <cwd> is owned by the process user
+        #
+        # Otherwise, try to cache the compiled code in ~/.rbx if:
+        #
+        #   1. ~/.rbx exists and is owned by the process user
+        #       OR
+        #   2. ~/ is owned by the process user
 
-        return if File.exists?(db) and !File.owned?(db)
+        dir = Rubinius::OS_STARTUP_DIR
+        db = "#{dir}/.rbx"
+        unless name.prefix?(dir) and compiled_cache_writable?(db, dir)
+          dir = File.expand_path "~/"
+          db = "#{dir}/.rbx"
+          return unless compiled_cache_writable?(db, dir)
+        end
 
         full = "#{name}#{Rubinius::RUBY_LIB_VERSION}"
         hash = Rubinius.invoke_primitive :sha1_hash, full
-        dir = hash[0,2]
 
-        path = "#{db}/#{dir}/#{hash}"
+        path = "#{db}/#{hash[0, 2]}/#{hash}"
       end
     end
 
