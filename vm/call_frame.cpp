@@ -66,14 +66,19 @@ namespace rubinius {
     return 0;
   }
 
-  void CallFrame::print_backtrace(STATE) {
-    print_backtrace(state, std::cout);
+  void CallFrame::print_backtrace(STATE, int total) {
+    print_backtrace(state, std::cout, total);
   }
 
-  void CallFrame::print_backtrace(STATE, std::ostream& stream) {
+  void CallFrame::print_backtrace(STATE, std::ostream& stream, int total) {
     CallFrame* cf = this;
 
+    int i = -1;
+
     while(cf) {
+      i++;
+
+      if(total > 0 && i == total) return;
       stream << static_cast<void*>(cf) << ": ";
 
       if(NativeMethodFrame* nmf = cf->native_method_frame()) {
