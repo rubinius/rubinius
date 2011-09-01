@@ -19,6 +19,8 @@
 
 #include "gc/gc.hpp"
 
+#include "util/atomic.hpp"
+
 #define OPTION_IGNORECASE         ONIG_OPTION_IGNORECASE
 #define OPTION_EXTENDED           ONIG_OPTION_EXTEND
 #define OPTION_MULTILINE          ONIG_OPTION_MULTILINE
@@ -122,6 +124,7 @@ namespace rubinius {
 
     o_reg->onig_data = NULL;
     o_reg->forced_encoding_ = false;
+    o_reg->lock_ = 0;
 
     return o_reg;
   }
@@ -374,18 +377,13 @@ namespace rubinius {
   {
     int beg, max;
     const UChar *str;
-    OnigRegion *region;
     Object* md;
 
     if(unlikely(!onig_data)) {
       Exception::argument_error(state, "Not properly initialized Regexp");
     }
 
-    thread::Mutex::LockGuard lg(state->shared.onig_lock());
-
-    maybe_recompile(state);
-
-    region = onig_region_new();
+    // thread::Mutex::LockGuard lg(state->shared.onig_lock());
 
     max = string->size();
     str = (UChar*)string->byte_address();
@@ -398,18 +396,36 @@ namespace rubinius {
       return Qnil;
     }
 
+    maybe_recompile(state);
+
+    int begin_reg[10] = { ONIG_REGION_NOTPOS, ONIG_REGION_NOTPOS,
+                         ONIG_REGION_NOTPOS, ONIG_REGION_NOTPOS,
+                         ONIG_REGION_NOTPOS, ONIG_REGION_NOTPOS,
+                         ONIG_REGION_NOTPOS, ONIG_REGION_NOTPOS,
+                         ONIG_REGION_NOTPOS, ONIG_REGION_NOTPOS };
+    int end_reg[10] =  { ONIG_REGION_NOTPOS, ONIG_REGION_NOTPOS,
+                         ONIG_REGION_NOTPOS, ONIG_REGION_NOTPOS,
+                         ONIG_REGION_NOTPOS, ONIG_REGION_NOTPOS,
+                         ONIG_REGION_NOTPOS, ONIG_REGION_NOTPOS,
+                         ONIG_REGION_NOTPOS, ONIG_REGION_NOTPOS };
+
+    OnigRegion region = { 10, 0, begin_reg, end_reg, 0, 0 };
+    // onig_region_init(&region);
+
+    while(!atomic::compare_and_swap(&lock_, 0, 1));
+
     int* back_match = onig_data->int_map_backward;
 
     if(!RTEST(forward)) {
       beg = onig_search(onig_data, str, str + max,
                         str + i_end,
                         str + i_start,
-                        region, ONIG_OPTION_NONE);
+                        &region, ONIG_OPTION_NONE);
     } else {
       beg = onig_search(onig_data, str, str + max,
                         str + i_start,
                         str + i_end,
-                        region, ONIG_OPTION_NONE);
+                        &region, ONIG_OPTION_NONE);
     }
 
     // Seems like onig must setup int_map_backward lazily, so we have to watch
@@ -427,14 +443,15 @@ namespace rubinius {
       write_barrier(state, ba);
     }
 
+    lock_ = 0;
 
     if(beg == ONIG_MISMATCH) {
-      onig_region_free(region, 1);
+      onig_region_free(&region, 0);
       return Qnil;
     }
 
-    md = get_match_data(state, region, string, this, 0);
-    onig_region_free(region, 1);
+    md = get_match_data(state, &region, string, this, 0);
+    onig_region_free(&region, 0);
     return md;
   }
 
@@ -442,17 +459,13 @@ namespace rubinius {
     int beg, max;
     const UChar *str;
     const UChar *fin;
-    OnigRegion *region;
     Object* md = Qnil;
 
     if(unlikely(!onig_data)) {
       Exception::argument_error(state, "Not properly initialized Regexp");
     }
 
-    thread::Mutex::LockGuard lg(state->shared.onig_lock());
-
-    maybe_recompile(state);
-    region = onig_region_new();
+    // thread::Mutex::LockGuard lg(state->shared.onig_lock());
 
     max = string->size();
     native_int pos = start->to_native();
@@ -464,9 +477,16 @@ namespace rubinius {
     if(pos > max) return Qnil;
     str += pos;
 
+    maybe_recompile(state);
+
+    OnigRegion region;
+    onig_region_init(&region);
+
+    while(!atomic::compare_and_swap(&lock_, 0, 1));
+
     int* back_match = onig_data->int_map_backward;
 
-    beg = onig_match(onig_data, str, fin, str, region,
+    beg = onig_match(onig_data, str, fin, str, &region,
                      ONIG_OPTION_NONE);
 
     // Seems like onig must setup int_map_backward lazily, so we have to watch
@@ -484,11 +504,13 @@ namespace rubinius {
       write_barrier(state, ba);
     }
 
+    lock_ = 0;
+
     if(beg != ONIG_MISMATCH) {
-      md = get_match_data(state, region, string, this, pos);
+      md = get_match_data(state, &region, string, this, pos);
     }
 
-    onig_region_free(region, 1);
+    onig_region_free(&region, 0);
     return md;
   }
 
@@ -496,7 +518,6 @@ namespace rubinius {
     int beg, max;
     const UChar *str;
     const UChar *fin;
-    OnigRegion *region;
     Object* md = Qnil;
 
     if(unlikely(!onig_data)) {
@@ -504,7 +525,6 @@ namespace rubinius {
     }
 
     maybe_recompile(state);
-    region = onig_region_new();
 
     max = string->size();
     native_int pos = start->to_native();
@@ -514,10 +534,15 @@ namespace rubinius {
 
     str += pos;
 
+    OnigRegion region;
+    onig_region_init(&region);
+
+    while(!atomic::compare_and_swap(&lock_, 0, 1));
+
     int* back_match = onig_data->int_map_backward;
 
     beg = onig_search(onig_data, str, fin, str, fin,
-                      region, ONIG_OPTION_NONE);
+                      &region, ONIG_OPTION_NONE);
 
     // Seems like onig must setup int_map_backward lazily, so we have to watch
     // for it to appear here.
@@ -534,11 +559,13 @@ namespace rubinius {
       write_barrier(state, ba);
     }
 
+    lock_ = 0;
+
     if(beg != ONIG_MISMATCH) {
-      md = get_match_data(state, region, string, this, pos);
+      md = get_match_data(state, &region, string, this, pos);
     }
 
-    onig_region_free(region, 1);
+    onig_region_free(&region, 0);
     return md;
   }
 

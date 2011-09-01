@@ -27,6 +27,7 @@ namespace rubinius {
     LookupTable* names_; // slot
     regex_t* onig_data;
     bool forced_encoding_;
+    uint32_t lock_;
 
   public:
     /* accessors */

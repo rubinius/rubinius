@@ -131,6 +131,40 @@ namespace rubinius {
     }
 
   /**
+   *  Cast Object* into builtin T*.
+   *
+   *  Given builtin class +T+, return +obj+ cast as type +T*+. If
+   *  +obj+ is not exactly of type +T+, throw's a TypeError exception.
+   *
+   *  @see  builtin/object.cpp has specialised versions.
+   */
+  template <class T>
+    static inline T* as_instance(Object* obj) {
+      if(!instance_of<T>(obj)) {
+        TypeError::raise(T::type, obj);
+      }
+
+      return static_cast<T*>(obj);
+    }
+
+  /**
+   *  Cast const Object* into builtin const T*.
+   *
+   *  Given builtin class +T+, return +obj+ cast as type +T*+. If
+   *  +obj+ is not exactly of type +T+, throw's a TypeError exception.
+   *
+   *  @see  builtin/object.cpp has specialised versions.
+   */
+  template <class T>
+    static inline const T* as_instance(const Object* obj) {
+      if(!instance_of<T>(obj)) {
+        TypeError::raise(T::type, obj);
+      }
+
+      return static_cast<const T*>(obj);
+    }
+
+  /**
    *  Non-raising version of as().
    *
    *  Similar to as<>, but returns NULL if the type is invalid. ONLY
@@ -158,6 +192,40 @@ namespace rubinius {
   template <class T>
     static inline const T* try_as(const Object* obj) {
       if(!kind_of<T>(obj)) {
+        return NULL;
+      }
+
+      return static_cast<const T*>(obj);
+    }
+
+  /**
+   *  Non-raising version of as_instance().
+   *
+   *  Similar to as_instance<>, but returns NULL if the type is invalid. ONLY
+   *  use this when doing a conditional cast.
+   *
+   *  @see  builtin/object.cpp has specialised versions.
+   */
+  template <class T>
+    static inline T* try_as_instance(Object* obj) {
+      if(!instance_of<T>(obj)) {
+        return NULL;
+      }
+
+      return static_cast<T*>(obj);
+    }
+
+  /**
+   *  Non-raising version of as(), for const objects.
+   *
+   *  Similar to as<>, but returns NULL if the type is invalid. ONLY
+   *  use this when doing a conditional cast.
+   *
+   *  @see  builtin/object.cpp has specialised versions.
+   */
+  template <class T>
+    static inline const T* try_as_instance(const Object* obj) {
+      if(!instance_of<T>(obj)) {
         return NULL;
       }
 

@@ -8,6 +8,7 @@
 #include "builtin/integer.hpp"
 #include "builtin/tuple.hpp"
 #include "builtin/array.hpp"
+#include "builtin/regexp.hpp"
 
 #include "configuration.hpp"
 #include "vm.hpp"
@@ -244,16 +245,32 @@ namespace rubinius {
   }
 
   String* String::string_dup(STATE) {
-    String* ns;
+    Module* mod = klass_;
+    Class*  cls = try_as_instance<Class>(mod);
 
-    ns = as<String>(duplicate(state));
-    ns->shared(state, Qtrue);
+    if(unlikely(!cls)) {
+      while(!cls) {
+        mod = mod->superclass();
+
+        if(mod->nil_p()) rubinius::bug("Object::class_object() failed to find a class");
+
+        cls = try_as_instance<Class>(mod);
+      }
+    }
+
+    String* so = state->new_object<String>(cls);
+
+    so->set_tainted(is_tainted_p());
+
+    so->num_bytes(state, num_bytes());
+    so->encoding(state, encoding());
+    so->data(state, data());
+    so->hash_value(state, hash_value());
+
+    so->shared(state, Qtrue);
     shared(state, Qtrue);
 
-    // Fix for subclassing
-    ns->klass(state, class_object(state));
-
-    return ns;
+    return so;
   }
 
   void String::unshare(STATE) {

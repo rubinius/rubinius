@@ -183,11 +183,30 @@ onig_region_resize(OnigRegion* region, int n)
     if (region->beg == 0 || region->end == 0)
       return ONIGERR_MEMORY;
 
+    region->malloced = 1;
     region->allocated = n;
   }
   else if (region->allocated < n) {
-    region->beg = (int* )xrealloc(region->beg, n * sizeof(int));
-    region->end = (int* )xrealloc(region->end, n * sizeof(int));
+    if (region->malloced) {
+      region->beg = (int* )xrealloc(region->beg, n * sizeof(int));
+      region->end = (int* )xrealloc(region->end, n * sizeof(int));
+    } else {
+      int i;
+      int* b = (int* )xmalloc(n * sizeof(int));
+      int* e = (int* )xmalloc(n * sizeof(int));
+      region->malloced = 1;
+
+      if (b == 0 || e == 0)
+        return ONIGERR_MEMORY;
+
+      for (i = 0; i < region->num_regs; i++) {
+        b[i] = region->beg[i];
+        e[i] = region->end[i];
+      }
+
+      region->beg = b;
+      region->end = e;
+    }
 
     if (region->beg == 0 || region->end == 0)
       return ONIGERR_MEMORY;
@@ -202,9 +221,10 @@ static int
 onig_region_resize_clear(OnigRegion* region, int n)
 {
   int r;
-  
+
   r = onig_region_resize(region, n);
   if (r != 0) return r;
+
   onig_region_clear(region);
   return 0;
 }
@@ -232,6 +252,7 @@ onig_region_init(OnigRegion* region)
   region->beg          = (int* )0;
   region->end          = (int* )0;
   region->history_root = (OnigCaptureTreeNode* )0;
+  region->malloced     = 0;
 }
 
 extern OnigRegion*
@@ -249,8 +270,10 @@ onig_region_free(OnigRegion* r, int free_self)
 {
   if (r) {
     if (r->allocated > 0) {
-      if (r->beg) xfree(r->beg);
-      if (r->end) xfree(r->end);
+      if (r->malloced) {
+        if (r->beg) xfree(r->beg);
+        if (r->end) xfree(r->end);
+      }
       r->allocated = 0;
     }
 #ifdef USE_CAPTURE_HISTORY
@@ -276,8 +299,22 @@ onig_region_copy(OnigRegion* to, OnigRegion* from)
     }
   }
   else if (to->allocated < from->num_regs) {
-    to->beg = (int* )xrealloc(to->beg, RREGC_SIZE);
-    to->end = (int* )xrealloc(to->end, RREGC_SIZE);
+    if (to->malloced) {
+      to->beg = (int* )xrealloc(to->beg, RREGC_SIZE);
+      to->end = (int* )xrealloc(to->end, RREGC_SIZE);
+    } else {
+      int* b = (int* )xmalloc(RREGC_SIZE);
+      int* e = (int* )xmalloc(RREGC_SIZE);
+      to->malloced = 1;
+
+      for (i = 0; i < to->num_regs; i++) {
+        b[i] = to->beg[i];
+        e[i] = to->end[i];
+      }
+
+      to->beg = b;
+      to->end = e;
+    }
     to->allocated = from->num_regs;
   }
 
