@@ -1020,28 +1020,34 @@ class String
   def gsub!(pattern, replacement=undefined)
     # Because of the behavior of $~, this is duplicated from gsub! because
     # if we call gsub! from gsub, the last_match can't be updated properly.
-    unless block_given? or replacement != undefined
-      return to_enum(:gsub, pattern, replacement)
-    end
 
-    tainted = false
+    if undefined.equal? replacement
+      unless block_given?
+        return to_enum(:gsub, pattern, replacement)
+      end
 
-    unless replacement.equal?(undefined)
+      tainted = false
+    else
       tainted = replacement.tainted?
-      replacement = StringValue(replacement)
-      tainted ||= replacement.tainted?
+      unless replacement.kind_of? String
+        replacement = StringValue(replacement)
+        tainted ||= replacement.tainted?
+      end
     end
 
-    pattern = get_pattern(pattern, true)
+    pattern = get_pattern(pattern, true) unless pattern.kind_of? Regexp
+    match = pattern.search_region(self, 0, @num_bytes, true)
+
+    return nil unless match
+
     orig_len = @num_bytes
 
     last_end = 0
     offset = nil
-    ret = substring(0,0) # Empty string and string subclass
 
     last_match = nil
-    match = pattern.match_from self, last_end
 
+    ret = substring(0,0) # Empty string and string subclass
     offset = match.begin 0 if match
 
     while match
