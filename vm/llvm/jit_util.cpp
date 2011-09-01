@@ -1047,9 +1047,9 @@ extern "C" {
       if(str) {
         size += str->size();
       } else {
-        // This isn't how MRI does this. If sub isn't a String, it converts the
+        // This isn't how MRI does this. If sub isn't a String, it converts
         // the original object via any_to_s, not the bad value returned from #to_s.
-        // This quite a bit harder to implement in rubinius atm, so i'm opting for
+        // This quite a bit harder to implement in rubinius atm, so I'm opting for
         // this way instead.
 
         str = obj->to_s(state, false);
@@ -1103,7 +1103,7 @@ extern "C" {
     } else if(call_frame->scope_still_valid(call_frame->scope->parent())) {
       state->thread_state()->raise_break(top, call_frame->scope->parent());
     } else {
-      Exception* exc = Exception::make_exception(state, G(jump_error), "attempted to break to exitted method");
+      Exception* exc = Exception::make_exception(state, G(jump_error), "attempted to break to exited method");
       exc->locations(state, Location::from_call_stack(state, call_frame));
       state->thread_state()->raise_exception(exc);
     }

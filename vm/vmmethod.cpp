@@ -388,7 +388,7 @@ namespace rubinius {
       // HS is for has splat
       const native_int HS = has_splat ? 1 : 0;
 
-      // Phase 1, manditory args
+      // Phase 1, mandatory args
       for(native_int i = 0; i < M; i++) {
         scope->set_local(i, args.get_argument(i));
       }

@@ -667,7 +667,7 @@ namespace rubinius {
       // negative values, we have to simulate the effects of being
       // twos complement. Namely, if we shift past a set bit, we have
       // to subtract 1 because that show up as the shifted twos
-      // complement represententation.
+      // complement representation.
       //
       // Observe:
       //

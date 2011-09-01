@@ -51,7 +51,7 @@ namespace rubinius {
         // Already independent, ignore.
         return;
       case ManagedThread::eSuspended:
-        // This is sort of bad. We're already suspendend
+        // This is sort of bad. We're already suspended
         // and want to go independent. Abort on this.
         rubinius::bug("Trying to make a suspended thread independent");
         break;
@@ -110,7 +110,7 @@ namespace rubinius {
       }
 
       if(state->run_state_ != ManagedThread::eRunning) {
-        rubinius::bug("A non-running thread is trying to wait til alone");
+        rubinius::bug("A non-running thread is trying to wait till alone");
       }
 
       // For ourself..

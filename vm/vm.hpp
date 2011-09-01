@@ -407,7 +407,7 @@ namespace rubinius {
 
   /**
    * Instantiation of an instance of this class causes Ruby execution on all
-   * threads to be susepended. Upon destruction of the instance, Ruby execution
+   * threads to be suspended. Upon destruction of the instance, Ruby execution
    * is resumed.
    */
 

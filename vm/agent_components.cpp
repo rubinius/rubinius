@@ -58,7 +58,7 @@ namespace agent {
     }
 
     virtual void set(Output& output, bert::Value* val) {
-      output.error("unimplemneted");
+      output.error("unimplemented");
     }
 
     virtual bool set_path(Output& output, const char* path, bert::Value* val) {

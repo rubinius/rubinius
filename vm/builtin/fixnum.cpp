@@ -207,7 +207,7 @@ namespace rubinius {
         }
         result = intermediate;
       }
-      // The exp > 1 check is to not overflow unneccesary if this is the
+      // The exp > 1 check is to not overflow unnecessary if this is the
       // last iteration of the algorithm
       if(exp > 1) {
         if(!FIT_SQRT(base)) {

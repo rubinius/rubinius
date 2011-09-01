@@ -187,7 +187,7 @@ namespace rubinius {
     /// Flag indicating whether a young collection should be performed soon
     bool collect_young_now;
 
-    /// Falg indicating whether a full collection should be performed soon
+    /// Flag indicating whether a full collection should be performed soon
     bool collect_mature_now;
 
     VM* root_state_;
@@ -198,7 +198,7 @@ namespace rubinius {
     TypeInfo* type_info[(int)LastObjectType];
 
     /* Config variables */
-    /// Threshhold size at which an object is considered a large object, and
+    /// Threshold size at which an object is considered a large object, and
     /// therefore allocated in the large object space.
     size_t large_object_threshold;
 
@@ -238,7 +238,7 @@ namespace rubinius {
     }
 
     /**
-     * Adds an additional write-barrier to the auxilliary write-barriers list.
+     * Adds an additional write-barrier to the auxiliary write-barriers list.
      */
     void add_aux_barrier(STATE, gc::WriteBarrier* wb) {
       SYNC(state);
@@ -246,7 +246,7 @@ namespace rubinius {
     }
 
     /**
-     * Removes a write-barrier from the auxilliary wirte-barriers list.
+     * Removes a write-barrier from the auxiliary write-barriers list.
      */
     void del_aux_barrier(STATE, gc::WriteBarrier* wb) {
       SYNC(state);

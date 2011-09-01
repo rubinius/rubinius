@@ -20,7 +20,7 @@ namespace rubinius {
     while(use && use->is_inline_block()) {
       CallFrame* yielder = use->previous;
       if(!yielder) return Qnil;
-      // This works because the creater is always one above
+      // This works because the creator is always one above
       // the yielder with inline blocks.
       use = yielder->previous;
     }
@@ -35,7 +35,7 @@ namespace rubinius {
     while(use && use->is_inline_block()) {
       CallFrame* yielder = use->previous;
       if(!yielder) return;
-      // This works because the creater is always one above
+      // This works because the creator is always one above
       // the yielder with inline blocks.
       use = yielder->previous;
     }

@@ -248,7 +248,7 @@ namespace rubinius {
 
     pid_t pid = fork();
 
-    // errror
+    // error
     if(pid == -1) {
       close(fds[0]);
       close(fds[1]);

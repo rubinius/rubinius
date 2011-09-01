@@ -788,7 +788,7 @@ namespace rubinius {
     // Try and detect a base prefix on the front. We have to do this
     // even though we might have been told the base, because we have
     // to know if we should discard the bytes that make up the prefix
-    // if it's redundent with passed in base.
+    // if it's redundant with passed in base.
     //
     // For example, if base == 16 and str == "0xa", we return
     // to return 10. But if base == 10 and str == "0xa", we fail

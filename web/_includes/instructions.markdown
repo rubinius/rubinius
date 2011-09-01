@@ -465,9 +465,9 @@
 
    Updates the value of a local variable contained in an enclosing scope
 
-   Read a value from the top of thes stack and use it to update a local
+   Read a value from the top of these stack and use it to update a local
    variable in an enclosing scope. The _depth_ and _index_ operands
-   indentify the specific local the same as in `push_local_depth`.
+   identify the specific local the same as in `push_local_depth`.
 
 
 <table class="stack_effect">
@@ -742,7 +742,7 @@
    Create an array and populate with values on the stack
 
    Creates a new array, populating its contents by remove the number of
-   values specidied by operand _count_ and putting them into the array in the
+   values specified by operand _count_ and putting them into the array in the
    order they were on the stack. The resulting array is pushed onto the
    stack.
 
@@ -982,7 +982,7 @@
 
 #### Notes
    Currently this only has one use, which is that send_stack_with_splat
-   checks if flags is set to CALL_FLAG_CONCAT which indicase that
+   checks if flags is set to CALL_FLAG_CONCAT which indicates that
    the splat represents arguments at the beginning rather than the end.
 
 <h3><a class="instruction" name="allow_private">allow_private()</a></h3>
@@ -1127,9 +1127,9 @@
 
    Call a method on the superclass with a block
 
-   The same as `send_stack_with_block`, but reciever is the current self
+   The same as `send_stack_with_block`, but receiver is the current self
    instead of being read from the stack, and the method to call is looked up
-   starting with the reciever superclass.
+   starting with the receiver superclass.
 
 
 <table class="stack_effect">
@@ -1406,7 +1406,7 @@
    Build a new string using many substrings
 
    Remove _count_ elements from the stack and interpret each as a `String`.
-   Build a new string which is all the removed elements concated together in
+   Build a new string which is all the removed elements concatenated together in
    the order they were on the stack.
 
    Push the resulting string.
@@ -1614,7 +1614,7 @@
 
 #### Notes
    Fields are similar to instance variables, but have dedicated storage
-   allocated. They are primarily used on core or bootstap classes.
+   allocated. They are primarily used on core or bootstrap classes.
    This instruction should not be used directly. The VM will specialize
    push_ivar instructions into this.
 
@@ -1968,7 +1968,7 @@
 
    Push the block passed as an argument to the current invocation.
    This differs from `push_block` in that in is not the block for the
-   currrent scope because of how the current block is seen within
+   current scope because of how the current block is seen within
    an existing block.
 
 
@@ -2099,7 +2099,7 @@
 </table>
 
 #### Notes
-   An optimzation to deal with check for frozen.
+   An optimization to deal with check for frozen.
 
 <h3><a class="instruction" name="cast_multi_value">cast_multi_value()</a></h3>
 

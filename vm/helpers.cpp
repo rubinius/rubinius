@@ -60,7 +60,7 @@ namespace rubinius {
       // scope (ie, Object) initially because we need to lookup up
       // the superclass chain first, because falling back on the default.
       //
-      // The rub comes from the fact that if a user explicitely opens up
+      // The rub comes from the fact that if a user explicitly opens up
       // Object in their code, we DO consider it. Like:
       //
       // class Idiot
@@ -104,7 +104,7 @@ namespace rubinius {
         }
       }
 
-      // Lastly, check Object specificly
+      // Lastly, check Object specifically
       result = G(object)->get_const(state, name, found, true);
       if(*found) return result;
 

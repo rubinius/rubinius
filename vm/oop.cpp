@@ -481,7 +481,7 @@ step2:
         // Don't call state->del_locked_object() here. We iterate over
         // that list to call this function, so we don't want to invalidate
         // the iterators. Plus, we don't need to cleanup the list anyway, this
-        // is only used when the Thread is exitting.
+        // is only used when the Thread is exiting.
 
 
         if(new_val.f.LockContended == 1) {
@@ -755,7 +755,7 @@ step2:
       return eLockError;
     }
 
-    // If the count has dropped to 0, we're truely done, so tell anyone
+    // If the count has dropped to 0, we're truly done, so tell anyone
     // blocking on mutex_.
     if(rec_lock_count_ == 0) {
       state->del_locked_object(object_);
@@ -797,7 +797,7 @@ step2:
     // Don't call state->del_locked_object() here. We iterate over
     // that list to call this function, so we don't want to invalidate
     // the iterators. Plus, we don't need to cleanup the list anyway, this
-    // is only used when the Thread is exitting.
+    // is only used when the Thread is exiting.
 
     owner_id_ = 0;
     condition_.signal();

@@ -155,7 +155,7 @@ namespace rubinius {
     VM::discard(vm, vm);
 
     if(cDebugThreading) {
-      std::cerr << "[LOCK thread " << vm->thread_id() << " exitted]\n";
+      std::cerr << "[LOCK thread " << vm->thread_id() << " exited]\n";
     }
 
     return 0;
