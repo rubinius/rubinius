@@ -189,14 +189,13 @@ end
 # Namespace for holding platform-specific C constants.
 
 module FFI::Platform
-  case Rubinius::OS_TYPE
-  when :windows
+  case
+  when Rubinius.windows?
     LIBSUFFIX = ".dll"
-  when :darwin
+  when Rubinius.darwin?
     LIBSUFFIX = ".dylib"
   else
     LIBSUFFIX = ".so"
   end
-
 end
 
