@@ -448,7 +448,7 @@ namespace rubinius {
         unsigned *rEBX, unsigned *rECX, unsigned *rEDX) {
 #if defined(__x86_64__) || defined(_M_AMD64) || defined (_M_X64)
 #if defined(__GNUC__)
-      // gcc doesn't know cpuid would clobber ebx/rbx. Preseve it manually.
+      // gcc doesn't know cpuid would clobber ebx/rbx. Preserve it manually.
       asm ("movq\t%%rbx, %%rsi\n\t"
           "cpuid\n\t"
           "xchgq\t%%rbx, %%rsi\n\t"
@@ -982,7 +982,7 @@ namespace rubinius {
       // if(vmm->required_args != vmm->total_args // has a splat
           // || vmm->call_count < 200 // not called much
           // || vmm->jitted() // already jitted
-          // || !vmm->no_inline_p() // method marked as not inlinable
+          // || !vmm->no_inline_p() // method marked as not inlineable
         // ) return callee;
 
       CallFrame* prev = call_frame->previous;

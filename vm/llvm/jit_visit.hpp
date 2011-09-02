@@ -1616,7 +1616,7 @@ namespace rubinius {
 
     void emit_create_block(opcode which, bool push=false) {
       // if we're inside an inlined method that has a block
-      // visible, that means that we've note yet emited the code to
+      // visible, that means that we've note yet emitted the code to
       // actually create the block for this inlined block.
       //
       // But, because we're about to create a block here, it might
@@ -1922,7 +1922,7 @@ use_send:
     }
 
     void visit_push_has_block() {
-      // We're in an inlined method, we know if there is a block staticly.
+      // We're in an inlined method, we know if there is a block statically.
       if(info().for_inlined_method()) {
         // Check for an inlined block being present, if so, this is a
         // constant!
@@ -2720,7 +2720,7 @@ use_send:
       JITInlineBlock* ib = info().inline_block();
 
       // Hey! Look at that! We know the block we'd be yielding to
-      // staticly! woo! ok, lets just emit the code for it here!
+      // statically! woo! ok, lets just emit the code for it here!
       if(ib && ib->code()) {
         context().set_inlined_block(true);
 
@@ -3207,7 +3207,7 @@ use_send:
         JITInlineBlock* ib = info().inline_block();
 
         // Hey! Look at that! We know the block we'd be yielding to
-        // staticly! woo! ok, lets just emit the code for it here!
+        // statically! woo! ok, lets just emit the code for it here!
         if(ib && ib->code()) {
           skip_yield_stack_ = true; // skip the yield_stack, we're doing the work here.
 

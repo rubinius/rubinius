@@ -590,7 +590,7 @@ namespace rubinius {
 
       i.check_recv(klass);
 
-      Value* cmp = ops.create_equal(i.recv(), i.arg(0), "idenity_equal");
+      Value* cmp = ops.create_equal(i.recv(), i.arg(0), "identity_equal");
       Value* imm_value = SelectInst::Create(cmp, ops.constant(Qtrue),
           ops.constant(Qfalse), "select_bool", ops.current_block());
 
@@ -602,7 +602,7 @@ namespace rubinius {
     void type_object_equal() {
       log("type_object_equal");
 
-      Value* cmp = ops.create_equal(i.arg(0), i.arg(1), "idenity_equal");
+      Value* cmp = ops.create_equal(i.arg(0), i.arg(1), "identity_equal");
       Value* imm_value = SelectInst::Create(cmp, ops.constant(Qtrue),
           ops.constant(Qfalse), "select_bool", ops.current_block());
 

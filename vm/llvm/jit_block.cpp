@@ -326,7 +326,7 @@ namespace jit {
 
 
 
-    // Phase 1, the manditories
+    // Phase 1, the mandatories
     // 0 ... min(M,T)
 
     {

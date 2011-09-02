@@ -367,7 +367,7 @@ namespace rubinius {
 
           if(kt.type_p()) {
             if(ls_->config().jit_inline_debug) {
-              context().info_log("eliding guard") << "Type object used staticly\n";
+              context().info_log("eliding guard") << "Type object used statically\n";
             }
 
             return kt;
@@ -629,7 +629,7 @@ namespace rubinius {
       return val;
     }
 
-    // Scope maintainence
+    // Scope maintenance
     void flush_scope_to_heap(Value* vars) {
       Value* pos = b().CreateConstGEP2_32(vars, 0, offset::vars_on_heap,
                                      "on_heap_pos");
