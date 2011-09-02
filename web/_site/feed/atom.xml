@@ -19,14 +19,7 @@
     
     <content type="html">&lt;h3 id=&quot;bad-news-first&quot;&gt;Bad News First&lt;/h3&gt;
 
-&lt;table&gt;
-  &lt;tbody&gt;
-    &lt;tr&gt;
-      &lt;td&gt;The [General Availability shirts](http://www.flickr.com/photos/veganstraightedge/5709097384 &amp;ldquo;Rubinius &amp;quot;Use Ruby™&amp;quot; TShirts at the Farmhouse in Hollywood, CA&lt;/td&gt;
-      &lt;td&gt;Flickr - Photo Sharing!&amp;rdquo;) are retired. We gave out about 1,000 to people all over the world. That&amp;rsquo;s very awesome. We&amp;rsquo;re really happy with the excitement about Rubinius from you all. Thank you, again. But it&amp;rsquo;s time to move on from these shirts. If you&amp;rsquo;ve already got one, good on you. If you haven&amp;rsquo;t yet, sorry. There will be other chances in the future, though.&lt;/td&gt;
-    &lt;/tr&gt;
-  &lt;/tbody&gt;
-&lt;/table&gt;
+&lt;p&gt;The &lt;a href=&quot;http://www.flickr.com/photos/veganstraightedge/5709097384&quot; title=&quot;Rubinius &amp;quot;Use Ruby™&amp;quot; TShirts at the Farmhouse in Hollywood, CA&quot;&gt;General Availability shirts&lt;/a&gt; are retired. We gave out about 1,000 to people all over the world. That&amp;rsquo;s very awesome. We&amp;rsquo;re really happy with the excitement about Rubinius from you all. Thank you, again. But it&amp;rsquo;s time to move on from these shirts. If you&amp;rsquo;ve already got one, good on you. If you haven&amp;rsquo;t yet, sorry. There will be other chances in the future, though.&lt;/p&gt;
 
 &lt;p&gt;Likewise, the &lt;a href=&quot;http://asset.rubini.us/web/images/blog/rubinius_square_sticker.png&quot;&gt;Square&lt;/a&gt; and &lt;a href=&quot;http://asset.rubini.us/web/images/blog/rubinius_bumper_sticker.png&quot;&gt;Bumper Stickers&lt;/a&gt; have been retired, too.&lt;/p&gt;
 
@@ -42,18 +35,8 @@
 
 &lt;p&gt;Rubinius friend of the family, &lt;a href=&quot;http://hrrrthrrr.com&quot; title=&quot;hrrrthrrr&quot;&gt;Heather Peterson&lt;/a&gt; (&lt;a href=&quot;http://twitter.com/hrrrthrrr&quot;&gt;@hrrrthrrr&lt;/a&gt;) drew up some Rubinius sketches for us to use on upcoming t-shirts and stickers. As a little thing, we&amp;rsquo;re giving away her original artwork as prize.&lt;/p&gt;
 
-&lt;table&gt;
-  &lt;tbody&gt;
-    &lt;tr&gt;
-      &lt;td&gt;[&lt;img src=&quot;http://farm7.static.flickr.com/6186/6106800183_f6bd6918f4_z.jpg&quot; alt=&quot;Rubinius sketch by Heather Peterson (@hrrrthrrr) on Flickr&quot; /&gt;](http://flickr.com/veganstraightedge/6106800183 &amp;ldquo;Rubinius sketch by Heather Peterson (@hrrrthrrr)&lt;/td&gt;
-      &lt;td&gt;Flickr - Photo Sharing!&amp;rdquo;)&lt;/td&gt;
-    &lt;/tr&gt;
-    &lt;tr&gt;
-      &lt;td&gt;[&lt;img src=&quot;http://farm7.static.flickr.com/6072/6106803145_f565d6738e_z.jpg&quot; alt=&quot;Rubinius sketch by Heather Peterson (@hrrrthrrr) on Flickr&quot; /&gt;](http://flickr.com/veganstraightedge/6106803145 &amp;ldquo;Rubinius sketch by Heather Peterson (@hrrrthrrr)&lt;/td&gt;
-      &lt;td&gt;Flickr - Photo Sharing!&amp;rdquo;)&lt;/td&gt;
-    &lt;/tr&gt;
-  &lt;/tbody&gt;
-&lt;/table&gt;
+&lt;p&gt;&lt;a href=&quot;http://flickr.com/veganstraightedge/6106800183&quot; title=&quot;Rubinius sketch by Heather Peterson (@hrrrthrrr)&quot;&gt;&lt;img src=&quot;http://farm7.static.flickr.com/6186/6106800183_f6bd6918f4_z.jpg&quot; alt=&quot;Rubinius sketch by Heather Peterson (@hrrrthrrr) on Flickr&quot; /&gt;&lt;/a&gt;
+&lt;a href=&quot;http://flickr.com/veganstraightedge/6106803145&quot; title=&quot;Rubinius sketch by Heather Peterson (@hrrrthrrr)&quot;&gt;&lt;img src=&quot;http://farm7.static.flickr.com/6072/6106803145_f565d6738e_z.jpg&quot; alt=&quot;Rubinius sketch by Heather Peterson (@hrrrthrrr) on Flickr&quot; /&gt;&lt;/a&gt;&lt;/p&gt;
 
 &lt;p&gt;To enter, write a blog post about Rubinius and tweet at &lt;a href=&quot;http://twitter.com/rubinius&quot;&gt;@rubinius&lt;/a&gt; with a link to your post by Wednesday, September 7, 2011 Midnight PDT. Posts will be judged by me (Shane Becker), Evan Phoenix and Brian Ford. The winner will be announced on Friday September 9, 2011. All entrants will be linked to from &lt;a href=&quot;http://rubini.us/blog&quot; title=&quot;Rubinius : Use Ruby&amp;#8482;&quot;&gt;the Rubinius blog&lt;/a&gt; and &lt;a href=&quot;http://twitter.com/rubinius&quot;&gt;@rubinius&lt;/a&gt; Twitter account.&lt;/p&gt;
 
