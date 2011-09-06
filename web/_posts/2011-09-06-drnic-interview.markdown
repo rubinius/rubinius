@@ -4,8 +4,8 @@ title: Dr Nic Interviewed by Obie Fernandez about Rails, Rails Installer, Ruby V
 author: Shane Becker
 ---
 
-    Dr Nic Williams talks about the state of the Rails community, the reasons
-    for supporting JRuby and Rubinius implementations and for creating Rails
-    Installer.
+> Dr Nic Williams talks about the state of the Rails community, the reasons
+> for supporting JRuby and Rubinius implementations and for creating Rails
+> Installer.
 
 [Watch and listen on InfoQ](http://www.infoq.com/interviews/drnic-rails-ruby-vm "InfoQ: Dr Nic Williams on Rails, Rails Installer and the Future of Ruby VMs").

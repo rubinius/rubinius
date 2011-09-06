@@ -17,10 +17,11 @@
       <name>Shane Becker</name>
     </author>
     
-    <content type="html">&lt;pre&gt;&lt;code&gt;Dr Nic Williams talks about the state of the Rails community, the reasons
+    <content type="html">&lt;blockquote&gt;
+  &lt;p&gt;Dr Nic Williams talks about the state of the Rails community, the reasons
 for supporting JRuby and Rubinius implementations and for creating Rails
-Installer.
-&lt;/code&gt;&lt;/pre&gt;
+Installer.&lt;/p&gt;
+&lt;/blockquote&gt;
 
 &lt;p&gt;&lt;a href=&quot;http://www.infoq.com/interviews/drnic-rails-ruby-vm&quot; title=&quot;InfoQ: Dr Nic Williams on Rails, Rails Installer and the Future of Ruby VMs&quot;&gt;Watch and listen on InfoQ&lt;/a&gt;.&lt;/p&gt;
 </content>
@@ -657,7 +658,11 @@ Yard will support Rubinius 2.0.0 after it’s officially released.&lt;/p&gt;
       <name>Shane Becker</name>
     </author>
     
-    <content type="html">&lt;h2 id=&quot;tldr&quot;&gt;tl;dr&lt;/h2&gt;
+    <content type="html">&lt;h3 id=&quot;update&quot;&gt;Update&lt;/h3&gt;
+
+&lt;p&gt;See &lt;a href=&quot;http://rubini.us/2011/09/02/retiring-some-rubinius-rewards/&quot; title=&quot;Retiring (Some) Rubinius Rewards - Rubinius&quot;&gt;this post&lt;/a&gt; about retired shirts/stickers and to see what&amp;rsquo;s still available.&lt;/p&gt;
+
+&lt;h2 id=&quot;tldr&quot;&gt;tl;dr&lt;/h2&gt;
 
 &lt;p&gt;Email &lt;a href=&quot;&amp;#109;&amp;#097;&amp;#105;&amp;#108;&amp;#116;&amp;#111;:&amp;#099;&amp;#111;&amp;#109;&amp;#109;&amp;#117;&amp;#110;&amp;#105;&amp;#116;&amp;#121;&amp;#064;&amp;#114;&amp;#117;&amp;#098;&amp;#105;&amp;#110;&amp;#105;&amp;#046;&amp;#117;&amp;#115;&quot;&gt;&amp;#099;&amp;#111;&amp;#109;&amp;#109;&amp;#117;&amp;#110;&amp;#105;&amp;#116;&amp;#121;&amp;#064;&amp;#114;&amp;#117;&amp;#098;&amp;#105;&amp;#110;&amp;#105;&amp;#046;&amp;#117;&amp;#115;&lt;/a&gt; to get stickers and
 t-shirts. Include your mailing address.&lt;/p&gt;
