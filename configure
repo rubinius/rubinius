@@ -172,6 +172,10 @@ class Configure
       @llvm_path = dir
     end
 
+    o.on "--llvm-config", "PROGRAM", "File system path to the llvm-config program" do |program|
+      @llvm_configure = program
+    end
+
     o.on "--update-prebuilt", "Update prebuilt LLVM packages from the internet" do
       update_prebuilt @llvm_generic_prebuilt, true
     end
@@ -535,12 +539,18 @@ class Configure
 
   def setup_config
     @log.print "  Checking for 'llvm-config': "
-    which = ENV['PATH'].split(":").find do |path|
-      File.exists? File.join(path, "llvm-config")
+
+    config = @llvm_configure
+    if !config
+      which = ENV['PATH'].split(":").find do |path|
+        File.exists? File.join(path, "llvm-config")
+      end
+      if which
+        config = File.join(which, "llvm-config")
+      end
     end
 
-    if which
-      config = File.join(which, "llvm-config")
+    if config
       version = `#{@perl} #{config} --version`.strip
       parts = version.sub(/svn$/, "").split(".").map { |i| i.to_i }
       api_version = ("%d%02d" % parts[0..1]).to_i
