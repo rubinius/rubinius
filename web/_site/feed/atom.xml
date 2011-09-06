@@ -9,6 +9,24 @@
 
   
   <entry>
+    <title>Dr Nic Interviewed by Obie Fernandez about Rails, Rails Installer, Ruby Virtual Machines and More</title>
+    <id>http://rubini.us/2011/09/06/drnic-interview/</id>
+    <link rel="alternate" type="text/html" href="http://rubini.us/2011/09/06/drnic-interview/" />
+    <updated>2011-09-06T00:00:00+00:00</updated>
+    <author>
+      <name>Shane Becker</name>
+    </author>
+    
+    <content type="html">&lt;pre&gt;&lt;code&gt;Dr Nic Williams talks about the state of the Rails community, the reasons
+for supporting JRuby and Rubinius implementations and for creating Rails
+Installer.
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;&lt;a href=&quot;http://www.infoq.com/interviews/drnic-rails-ruby-vm&quot; title=&quot;InfoQ: Dr Nic Williams on Rails, Rails Installer and the Future of Ruby VMs&quot;&gt;Watch and listen on InfoQ&lt;/a&gt;.&lt;/p&gt;
+</content>
+  </entry>
+  
+  <entry>
     <title>Retiring (Some) Rubinius Rewards</title>
     <id>http://rubini.us/2011/09/02/retiring-some-rubinius-rewards/</id>
     <link rel="alternate" type="text/html" href="http://rubini.us/2011/09/02/retiring-some-rubinius-rewards/" />
