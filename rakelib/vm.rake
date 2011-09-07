@@ -206,8 +206,9 @@ task 'vm/gen/revision.h' do |t|
   end
 end
 
-task 'vm/gen/config_variables.h' => 'lib/rubinius/configuration.rb' do
-  ruby 'vm/codegen/config_vars.rb', 'vm/gen/config_variables.h'
+file 'vm/gen/config_variables.h' => %w[lib/rubinius/configuration.rb config.rb] do |t|
+  puts "GEN #{t.name}"
+  ruby 'vm/codegen/config_vars.rb', t.name
 end
 
 require 'projects/daedalus/daedalus'
