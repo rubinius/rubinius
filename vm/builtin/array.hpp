@@ -54,8 +54,11 @@ namespace rubinius {
     // Rubinius.primitive :array_concat
     Array* concat(STATE, Array* other);
 
-    // Rubinius.primitive :array_pack
-    String* pack(STATE, String* directives, CallFrame* calling_environment);
+    // Rubinius.primitive :array_pack18
+    String* pack18(STATE, String* directives, CallFrame* calling_environment);
+
+    // Rubinius.primitive :array_pack19
+    String* pack19(STATE, String* directives, CallFrame* calling_environment);
 
     Object* get(STATE, size_t idx);
     Object* set(STATE, size_t idx, Object* val);
