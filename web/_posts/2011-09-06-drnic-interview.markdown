@@ -1,6 +1,6 @@
 ---
 layout: post
-title: Dr Nic Interviewed by Obie Fernandez about Rails, Rails Installer, Ruby Virtual Machines and More
+title: Dr Nic Interviewed by Obie Fernandez about Rails, RailsInstaller, Ruby Virtual Machines and More
 author: Shane Becker
 ---
 
@@ -8,4 +8,4 @@ author: Shane Becker
 > for supporting JRuby and Rubinius implementations and for creating Rails
 > Installer.
 
-[Watch and listen on InfoQ](http://www.infoq.com/interviews/drnic-rails-ruby-vm "InfoQ: Dr Nic Williams on Rails, Rails Installer and the Future of Ruby VMs").
+[Watch and listen on InfoQ](http://www.infoq.com/interviews/drnic-rails-ruby-vm "InfoQ: Dr Nic Williams on Rails, RailsInstaller and the Future of Ruby VMs").
