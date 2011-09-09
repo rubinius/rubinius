@@ -64,9 +64,7 @@ class Hash
 
   # #entries is a method provided by Enumerable which calls #to_a,
   # so we have to not collide with that.
-  def __entries__
-    @entries
-  end
+  attr_reader_specific :entries, :__entries__
 
   attr_reader :capacity
   attr_reader :max_entries
@@ -126,7 +124,7 @@ class Hash
 
   # Creates a fully-formed instance of Hash.
   def self.allocate
-    hash = super()
+    hash = __allocate__
     Rubinius.privately { hash.__setup__ }
     hash
   end
@@ -267,10 +265,12 @@ class Hash
 
     key_hash = key.hash
 
+    ents = @entries
+
     index = key_index key_hash
-    if entry = @entries[index]
+    if entry = ents[index]
       if entry.match? key, key_hash
-        @entries[index] = entry.link
+        ents[index] = entry.link
         @size -= 1
         return entry.value
       end
@@ -404,11 +404,6 @@ class Hash
     self
   end
   private :initialize
-
-  def initialize_copy(other)
-    replace other
-  end
-  private :initialize_copy
 
   def inspect
     out = []
@@ -575,28 +570,41 @@ class Hash
     other = Rubinius::Type.coerce_to other, Hash, :to_hash
     return self if self.equal? other
 
-    # Normally this would be a call to __setup__,
-    # but that will create a new unused Tuple
-    # that we would wind up replacing anyways.
-    @entries = other.__entries__.dup
-    @capacity = other.capacity
-    @mask     = @capacity - 1
-    @max_entries = other.max_entries
-    @size     = other.size
+    size = other.size
 
-    # We now contain a list of the other hash's
-    # Bucket objects. We need to re-map them to our
-    # own.
-    i = 0
-    while i < @capacity
-      if orig = @entries[i]
-        @entries[i] = self_entry = orig.dup
-        while orig = orig.link
-          self_entry.link = orig.dup
-          self_entry = self_entry.link
+    # If we're replacing ourself with a Hash that is empty,
+    # then fast path.
+    if 0 == size
+
+      __setup__
+
+    else
+
+      # Normally this would be a call to __setup__,
+      # but that will create a new unused Tuple
+      # that we would wind up replacing anyways.
+      ents = @entries = other.__entries__.dup
+      capa = @capacity = other.capacity
+      @mask     = @capacity - 1
+      @max_entries = other.max_entries
+      @size     = size
+
+      # We now contain a list of the other hash's
+      # Bucket objects. We need to re-map them to our
+      # own.
+      i = 0
+
+      while i < capa
+        if orig = ents[i]
+          ents[i] = self_entry = orig.dup
+          while orig = orig.link
+            self_entry.link = orig.dup
+            self_entry = self_entry.link
+          end
         end
+        i += 1
       end
-      i += 1
+
     end
 
     if other.default_proc
@@ -609,6 +617,9 @@ class Hash
 
     self
   end
+
+  alias_method :initialize_copy, :replace
+  private :initialize_copy
 
   def select
     return to_enum(:select) unless block_given?

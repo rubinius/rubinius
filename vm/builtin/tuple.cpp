@@ -62,23 +62,40 @@ namespace rubinius {
   Tuple* Tuple::create(STATE, native_int fields) {
     assert(fields >= 0 && fields < INT32_MAX);
 
+    // Fast path using GC optimized tuple creation
+    Tuple* tup = state->new_young_tuple_dirty(fields);
+
+    if(likely(tup)) {
+      for(native_int i = 0; i < fields; i++) {
+        tup->field[i] = Qnil;
+      }
+
+      return tup;
+    }
+
+    // Slow path.
+
     size_t bytes;
-    Tuple* tup = state->new_object_variable<Tuple>(G(tuple), fields, bytes);
+
+    tup = state->new_object_variable<Tuple>(G(tuple), fields, bytes);
     if(unlikely(!tup)) {
       Exception::memory_error(state);
     }
+
     tup->full_size_ = bytes;
     return tup;
   }
 
   Tuple* Tuple::allocate(STATE, Fixnum* fields) {
     native_int size = fields->to_native();
+
     if(size < 0) {
       Exception::argument_error(state, "negative tuple size");
     } else if(size > INT32_MAX) {
       Exception::argument_error(state, "too large tuple size");
     }
-    return Tuple::create(state, fields->to_native());
+
+    return create(state, fields->to_native());
   }
 
   Tuple* Tuple::from(STATE, native_int fields, ...) {
@@ -272,6 +289,7 @@ namespace rubinius {
     // val is referend size times, we only need to hit the write
     // barrier once
     if(val->reference_p()) tuple->write_barrier(state, val);
+
     for(native_int i = 0; i < cnt; i++) {
       // bounds checking is covered because we instantiated the tuple
       // in this method
@@ -279,6 +297,40 @@ namespace rubinius {
     }
 
     return tuple;
+  }
+
+  Tuple* Tuple::tuple_dup(STATE) {
+    native_int fields = num_fields();
+
+    Tuple* tup = state->new_young_tuple_dirty(fields);
+
+    if(likely(tup)) {
+      for(native_int i = 0; i < fields; i++) {
+        Object *obj = field[i];
+
+        // fields equals size so bounds checking is unecessary
+        tup->field[i] = obj;
+
+        // Because tup is promised to be a young object,
+        // we can elide the write barrier usage.
+      }
+
+      return tup;
+    }
+
+    // Otherwise, use slower creation path that might create
+    // a mature object.
+    tup = create(state, fields);
+
+    for(native_int i = 0; i < fields; i++) {
+      Object *obj = field[i];
+
+      // fields equals size so bounds checking is unecessary
+      tup->field[i] = obj;
+      if(obj->reference_p()) tup->write_barrier(state, obj);
+    }
+
+    return tup;
   }
 
   size_t Tuple::Info::object_size(const ObjectHeader* obj) {

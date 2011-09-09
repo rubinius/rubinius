@@ -200,8 +200,7 @@ module Kernel
   # if defined.
   #
   def dup
-    cls = Rubinius.invoke_primitive :object_class, self
-    copy = cls.allocate
+    copy = Rubinius.invoke_primitive(:object_class, self).allocate
 
     Rubinius.invoke_primitive :object_copy_object, copy, self
 

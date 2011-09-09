@@ -599,6 +599,28 @@ namespace rubinius {
       i.context().leave_inline();
     }
 
+    void class_allocate() {
+      log("class_allocate");
+      i.context().enter_inline();
+
+      i.check_recv(klass);
+
+      Value* V = i.recv();
+
+      Signature sig(ops.state(), "Object");
+      sig << "VM";
+      sig << "CallFrame";
+      sig << "Object";
+
+      Value* call_args[] = { ops.vm(), ops.call_frame(), V };
+
+      Value* out = sig.call("rbx_create_instance", call_args, 3,
+                            "instance", ops.b());
+
+      i.set_result(out);
+      i.context().leave_inline();
+    }
+
     void type_object_equal() {
       log("type_object_equal");
 
@@ -707,6 +729,9 @@ namespace rubinius {
     } else if(prim == Primitives::vm_object_equal && count_ == 2) {
       ip.type_object_equal();
 
+    } else if(prim == Primitives::class_allocate && count_ == 0) {
+      ip.class_allocate();
+
     } else {
       if(ops_.state()->type_optz()) {
         if(prim == Primitives::object_hash && count_ == 0) {
@@ -804,7 +829,7 @@ namespace rubinius {
             << ops_.state()->symbol_cstr(cm->name())
             << " into "
             << ops_.state()->symbol_cstr(ops_.method_name())
-            << ". primitive: "
+            << ". No fast stub. primitive: "
             << ops_.state()->symbol_cstr(cm->primitive())
             << "\n";
         }

@@ -61,6 +61,9 @@ namespace rubinius {
 
     Tuple* bounds_exceeded_error(STATE, const char* method, int index);
 
+    // Rubinius.primitive :tuple_dup
+    Tuple* tuple_dup(STATE);
+
   public: // Inline Functions
     Object* at(native_int index) {
       if(index < 0 || num_fields() <= index) return Qnil;

@@ -7,6 +7,7 @@
 #include "builtin/class.hpp"
 #include "builtin/compiledmethod.hpp"
 #include "lock.hpp"
+#include "object_utils.hpp"
 
 #include <vector>
 #include <tr1/unordered_map>
@@ -220,6 +221,21 @@ namespace rubinius {
 
       return 0;
     }
+
+    Class* find_singletonclass(int64_t id) {
+      for(int i = 0; i < cTrackedICHits; i++) {
+        if(Class* cls = seen_classes_[i].klass()) {
+          if(SingletonClass* sc = try_as<SingletonClass>(cls)) {
+            if(Class* ref = try_as<Class>(sc->attached_instance())) {
+              if(ref->class_id() == id) return cls;
+            }
+          }
+        }
+      }
+
+      return 0;
+    }
+
 
     Class* dominating_class() {
       int seen = classes_seen();

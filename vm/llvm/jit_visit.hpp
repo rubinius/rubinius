@@ -1399,10 +1399,25 @@ namespace rubinius {
       BasicBlock* inline_body = 0;
 
       if(invoker == invoke_object_class && args == 1) {
+        Value* obj = stack_back(0);
+
+        type::KnownType kt = type::KnownType::extract(state(), obj);
+        if(kt.instance_p()) {
+          if(state()->config().jit_inline_debug) {
+            context().inline_log("inlining") << "direct class of reference\n";
+          }
+
+          stack_remove(1);
+
+          inline_klass = b().CreateBitCast(reference_class(obj), ObjType);
+          stack_push(inline_klass, type::KnownType::class_object(kt.class_id()));
+          return;
+        }
+
         if(state()->config().jit_inline_debug) {
           context().inline_log("inlining") << "custom object_class invoker\n";
         }
-        Value* obj = stack_back(0);
+
         Value* is_ref = check_is_reference(obj);
 
         BasicBlock* cont = new_block("check_class");
@@ -3448,6 +3463,48 @@ use_send:
     }
 
     void visit_set_ivar(opcode which) {
+      Symbol* name = as<Symbol>(literal(which));
+
+      if(Class* klass = try_as<Class>(info().self_class())) {
+
+        if(ls_->config().jit_inline_debug) {
+          context().inline_log("inline ivar write")
+            << ls_->symbol_cstr(name);
+        }
+
+        // slot ivars (Array#@size for example) have type checks, so use the slow
+        // path for now.
+
+        Value* self = get_self();
+
+        LookupTable* pii = klass->packed_ivar_info();
+        if(!pii->nil_p()) {
+          bool found = false;
+
+          Fixnum* which = try_as<Fixnum>(pii->fetch(0, name, &found));
+          if(found) {
+            int index = which->to_native();
+            int offset = sizeof(Object) + (sizeof(Object*) * index);
+
+            set_object_slot(self, offset, stack_top());
+
+            if(ls_->config().jit_inline_debug) {
+              ls_->log() << " (packed index: " << index << ", " << offset << ")\n";
+            }
+            return;
+          }
+        }
+
+        if(ls_->config().jit_inline_debug) {
+          ls_->log() << " (abort, using slow write)\n";
+        }
+      }
+
+      if(ls_->config().jit_inline_debug) {
+        context().inline_log("slow ivar write")
+          << ls_->symbol_cstr(name) << "\n";
+      }
+
       set_has_side_effects();
 
       Signature sig(ls_, ObjType);

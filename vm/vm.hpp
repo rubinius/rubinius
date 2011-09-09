@@ -323,6 +323,9 @@ namespace rubinius {
         return reinterpret_cast<T*>(new_object_typed(cls, bytes, T::type));
       }
 
+    /// Create a Tuple in the young GC space, return NULL if not possible.
+    Tuple* new_young_tuple_dirty(size_t fields);
+
     /// Create an uninitialized Class object
     Class* new_basic_class(Class* sup);
 

@@ -433,6 +433,18 @@ const int cUndef = 0x22L;
       ivars_ = Qnil;
     }
 
+    // Can only be used when the caller is sure that the object doesn't
+    // have an inflated header, which is true of any brand new (ie fresh)
+    // objects.
+    void init_fresh_header(Class* cls, gc_zone loc, object_type type) {
+      header.flags64 = 0;
+      header.f.obj_type = type;
+      header.f.zone = loc;
+
+      klass_ = cls;
+      ivars_ = Qnil;
+    }
+
     void** pointer_to_body() {
       return __body__;
     }

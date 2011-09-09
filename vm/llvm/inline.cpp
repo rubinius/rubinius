@@ -37,6 +37,8 @@ namespace rubinius {
 
         if(kt.instance_p()) {
           klass = cache_->find_class_by_id(kt.class_id());
+        } else if(kt.class_p()) {
+          klass = cache_->find_singletonclass(kt.class_id());
         } else if(kt.fixnum_p()) {
           klass = cache_->find_class_by_id(ops_.state()->fixnum_class_id());
         } else if(kt.symbol_p()) {

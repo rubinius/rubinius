@@ -1388,6 +1388,10 @@ extern "C" {
   Object* rbx_string_hash(STATE, String* str) {
     return Integer::from(state, str->hash_string(state));
   }
+
+  Object* rbx_create_instance(STATE, CallFrame* call_frame, Class* cls) {
+    return cls->allocate(state, call_frame);
+  }
 }
 
 #endif

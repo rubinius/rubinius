@@ -85,6 +85,8 @@ module Rubinius
     end
 
     def dup
+      Rubinius.primitive :tuple_dup
+
       obj = self.class.new(self.size)
 
       Rubinius.invoke_primitive :object_copy_object, obj, self

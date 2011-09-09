@@ -190,6 +190,29 @@ namespace rubinius {
     return obj;
   }
 
+  Tuple* VM::new_young_tuple_dirty(size_t fields) {
+    size_t bytes = sizeof(Tuple) + (sizeof(Object*) * fields);
+
+    if(unlikely(bytes > om->large_object_threshold)) {
+      return 0;
+    }
+
+    Tuple* tup = local_slab().allocate(bytes).as<Tuple>();
+
+    if(unlikely(!tup)) {
+      if(shared.om->refill_slab(this, local_slab())) {
+        tup = local_slab().allocate(bytes).as<Tuple>();
+      }
+
+      if(!tup) return 0;
+    }
+
+    tup->init_header(G(tuple), YoungObjectZone, Tuple::type);
+    tup->full_size_ = bytes;
+
+    return tup;
+  }
+
   Object* VM::new_object_typed_mature(Class* cls, size_t bytes, object_type type) {
     return om->new_object_typed_mature(this, cls, bytes, type);
   }
