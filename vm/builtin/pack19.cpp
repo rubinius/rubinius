@@ -225,8 +225,9 @@ namespace rubinius {
 #define b64_uu_byte3(t, b, c)   t[077 & (((b[1] << 2) & 074) | ((c >> 6) & 03))];
 #define b64_uu_byte4(t, b)      t[077 & b[2]];
 
-    void b64_uu_encode(String* s, std::string& str, native_int count,
-                              const char* table, int padding, bool encode_size)
+    void b64_uu_encode(String* s, std::string& str,
+                       native_int count, native_int count_flag,
+                       const char* table, int padding, bool encode_size)
     {
       char *buf = ALLOCA_N(char, count * 4 / 3 + 6);
       native_int i, chars, line, total = s->size();
@@ -257,7 +258,9 @@ namespace rubinius {
         }
 
         b += chars;
-        buf[i++] = '\n';
+        if(encode_size || (!encode_size && count_flag > 0)) {
+          buf[i++] = '\n';
+        }
         str.append(buf, i);
       }
     }
@@ -622,10 +625,12 @@ namespace rubinius {
     native_int array_size = self->size();
     native_int index = 0;
     native_int count = 0;
+    native_int count_flag = -1;
     native_int stop = 0;
     bool rest = false;
     bool platform = false;
     bool tainted = false;
+    bool untrusted = false;
 
     String* string_value = 0;
     std::string str("");
@@ -634,6 +639,7 @@ namespace rubinius {
     str.reserve(array_size * 4);
 
     if(RTEST(directives->tainted_p(state))) tainted = true;
+    if(RTEST(directives->untrusted_p(state))) untrusted = true;
 
 static const short _eof_actions[] = {
 	0, 1, 3, 3, 7, 7, 9, 9, 
@@ -9439,6 +9445,7 @@ f7:
   }
 	{
     if(RTEST(string_value->tainted_p(state))) tainted = true;
+    if(RTEST(string_value->untrusted_p(state))) untrusted = true;
     native_int size = string_value->size();
     if(rest) count = size;
     if(count <= size) {
@@ -9471,6 +9478,7 @@ f59:
   }
 	{
     if(RTEST(string_value->tainted_p(state))) tainted = true;
+    if(RTEST(string_value->untrusted_p(state))) untrusted = true;
     native_int size = string_value->size();
     if(rest) count = size;
     if(count <= size) {
@@ -9503,6 +9511,7 @@ f57:
   }
 	{
     if(RTEST(string_value->tainted_p(state))) tainted = true;
+    if(RTEST(string_value->untrusted_p(state))) untrusted = true;
     native_int size = string_value->size();
     if(rest) count = size;
     if(count <= size) {
@@ -9533,6 +9542,7 @@ f69:
     }
   }
 	{
+    count_flag = count;
     if(rest || count < 3) {
       count = 45;
     } else {
@@ -9545,7 +9555,7 @@ f69:
     if(!string_value) return 0;
   }
 	{
-    pack19::b64_uu_encode(string_value, str, count, pack19::b64_table, '=', false);
+    pack19::b64_uu_encode(string_value, str, count, count_flag, pack19::b64_table, '=', false);
   }
 	{
     count = 1;
@@ -9560,6 +9570,7 @@ f73:
     }
   }
 	{
+    count_flag = count;
     if(rest || count < 3) {
       count = 45;
     } else {
@@ -9572,7 +9583,7 @@ f73:
     if(!string_value) return 0;
   }
 	{
-    pack19::b64_uu_encode(string_value, str, count, pack19::uu_table, '`', true);
+    pack19::b64_uu_encode(string_value, str, count, count_flag, pack19::uu_table, '`', true);
   }
 	{
     count = 1;
@@ -9596,6 +9607,7 @@ f134:
   }
 	{
     if(RTEST(string_value->tainted_p(state))) tainted = true;
+    if(RTEST(string_value->untrusted_p(state))) untrusted = true;
     native_int size = string_value->size();
     if(rest) count = size;
     if(count <= size) {
@@ -9631,6 +9643,7 @@ f102:
   }
 	{
     if(RTEST(string_value->tainted_p(state))) tainted = true;
+    if(RTEST(string_value->untrusted_p(state))) untrusted = true;
     native_int size = string_value->size();
     if(rest) count = size;
     if(count <= size) {
@@ -9666,6 +9679,7 @@ f104:
   }
 	{
     if(RTEST(string_value->tainted_p(state))) tainted = true;
+    if(RTEST(string_value->untrusted_p(state))) untrusted = true;
     native_int size = string_value->size();
     if(rest) count = size;
     if(count <= size) {
@@ -9699,6 +9713,7 @@ f92:
     }
   }
 	{
+    count_flag = count;
     if(rest || count < 3) {
       count = 45;
     } else {
@@ -9711,7 +9726,7 @@ f92:
     if(!string_value) return 0;
   }
 	{
-    pack19::b64_uu_encode(string_value, str, count, pack19::b64_table, '=', false);
+    pack19::b64_uu_encode(string_value, str, count, count_flag, pack19::b64_table, '=', false);
   }
 	{
     count = 1;
@@ -9729,6 +9744,7 @@ f88:
     }
   }
 	{
+    count_flag = count;
     if(rest || count < 3) {
       count = 45;
     } else {
@@ -9741,7 +9757,7 @@ f88:
     if(!string_value) return 0;
   }
 	{
-    pack19::b64_uu_encode(string_value, str, count, pack19::uu_table, '`', true);
+    pack19::b64_uu_encode(string_value, str, count, count_flag, pack19::uu_table, '`', true);
   }
 	{
     count = 1;
@@ -9766,6 +9782,10 @@ _again:
       result->taint(state);
       tainted = false;
     }
+    if(untrusted) {
+      result->untrust(state);
+      untrusted = false;
+    }
     return result;
   }
 	break;
@@ -9787,6 +9807,10 @@ _again:
       result->taint(state);
       tainted = false;
     }
+    if(untrusted) {
+      result->untrust(state);
+      untrusted = false;
+    }
     return result;
   }
 	break;
@@ -9801,6 +9825,10 @@ _again:
     if(tainted) {
       result->taint(state);
       tainted = false;
+    }
+    if(untrusted) {
+      result->untrust(state);
+      untrusted = false;
     }
     return result;
   }
@@ -9820,6 +9848,10 @@ _again:
     if(tainted) {
       result->taint(state);
       tainted = false;
+    }
+    if(untrusted) {
+      result->untrust(state);
+      untrusted = false;
     }
     return result;
   }
@@ -9845,6 +9877,10 @@ _again:
       result->taint(state);
       tainted = false;
     }
+    if(untrusted) {
+      result->untrust(state);
+      untrusted = false;
+    }
     return result;
   }
 	break;
@@ -9862,6 +9898,10 @@ _again:
     if(tainted) {
       result->taint(state);
       tainted = false;
+    }
+    if(untrusted) {
+      result->untrust(state);
+      untrusted = false;
     }
     return result;
   }
@@ -9885,6 +9925,10 @@ _again:
       result->taint(state);
       tainted = false;
     }
+    if(untrusted) {
+      result->untrust(state);
+      untrusted = false;
+    }
     return result;
   }
 	break;
@@ -9903,6 +9947,10 @@ _again:
     if(tainted) {
       result->taint(state);
       tainted = false;
+    }
+    if(untrusted) {
+      result->untrust(state);
+      untrusted = false;
     }
     return result;
   }
@@ -9923,6 +9971,10 @@ _again:
       result->taint(state);
       tainted = false;
     }
+    if(untrusted) {
+      result->untrust(state);
+      untrusted = false;
+    }
     return result;
   }
 	break;
@@ -9941,6 +9993,10 @@ _again:
     if(tainted) {
       result->taint(state);
       tainted = false;
+    }
+    if(untrusted) {
+      result->untrust(state);
+      untrusted = false;
     }
     return result;
   }
@@ -9969,6 +10025,10 @@ _again:
       result->taint(state);
       tainted = false;
     }
+    if(untrusted) {
+      result->untrust(state);
+      untrusted = false;
+    }
     return result;
   }
 	break;
@@ -9987,6 +10047,10 @@ _again:
     if(tainted) {
       result->taint(state);
       tainted = false;
+    }
+    if(untrusted) {
+      result->untrust(state);
+      untrusted = false;
     }
     return result;
   }
@@ -10007,6 +10071,10 @@ _again:
       result->taint(state);
       tainted = false;
     }
+    if(untrusted) {
+      result->untrust(state);
+      untrusted = false;
+    }
     return result;
   }
 	break;
@@ -10025,6 +10093,10 @@ _again:
     if(tainted) {
       result->taint(state);
       tainted = false;
+    }
+    if(untrusted) {
+      result->untrust(state);
+      untrusted = false;
     }
     return result;
   }
@@ -10045,6 +10117,10 @@ _again:
       result->taint(state);
       tainted = false;
     }
+    if(untrusted) {
+      result->untrust(state);
+      untrusted = false;
+    }
     return result;
   }
 	break;
@@ -10063,6 +10139,10 @@ _again:
     if(tainted) {
       result->taint(state);
       tainted = false;
+    }
+    if(untrusted) {
+      result->untrust(state);
+      untrusted = false;
     }
     return result;
   }
@@ -10087,6 +10167,10 @@ _again:
       result->taint(state);
       tainted = false;
     }
+    if(untrusted) {
+      result->untrust(state);
+      untrusted = false;
+    }
     return result;
   }
 	break;
@@ -10105,6 +10189,10 @@ _again:
     if(tainted) {
       result->taint(state);
       tainted = false;
+    }
+    if(untrusted) {
+      result->untrust(state);
+      untrusted = false;
     }
     return result;
   }
@@ -10125,6 +10213,10 @@ _again:
       result->taint(state);
       tainted = false;
     }
+    if(untrusted) {
+      result->untrust(state);
+      untrusted = false;
+    }
     return result;
   }
 	break;
@@ -10143,6 +10235,10 @@ _again:
     if(tainted) {
       result->taint(state);
       tainted = false;
+    }
+    if(untrusted) {
+      result->untrust(state);
+      untrusted = false;
     }
     return result;
   }
@@ -10163,6 +10259,10 @@ _again:
       result->taint(state);
       tainted = false;
     }
+    if(untrusted) {
+      result->untrust(state);
+      untrusted = false;
+    }
     return result;
   }
 	break;
@@ -10181,6 +10281,10 @@ _again:
     if(tainted) {
       result->taint(state);
       tainted = false;
+    }
+    if(untrusted) {
+      result->untrust(state);
+      untrusted = false;
     }
     return result;
   }
@@ -10201,6 +10305,10 @@ _again:
       result->taint(state);
       tainted = false;
     }
+    if(untrusted) {
+      result->untrust(state);
+      untrusted = false;
+    }
     return result;
   }
 	break;
@@ -10220,6 +10328,10 @@ _again:
       result->taint(state);
       tainted = false;
     }
+    if(untrusted) {
+      result->untrust(state);
+      untrusted = false;
+    }
     return result;
   }
 	break;
@@ -10238,6 +10350,10 @@ _again:
     if(tainted) {
       result->taint(state);
       tainted = false;
+    }
+    if(untrusted) {
+      result->untrust(state);
+      untrusted = false;
     }
     return result;
   }
@@ -10261,6 +10377,10 @@ _again:
       result->taint(state);
       tainted = false;
     }
+    if(untrusted) {
+      result->untrust(state);
+      untrusted = false;
+    }
     return result;
   }
 	break;
@@ -10283,6 +10403,10 @@ _again:
       result->taint(state);
       tainted = false;
     }
+    if(untrusted) {
+      result->untrust(state);
+      untrusted = false;
+    }
     return result;
   }
 	break;
@@ -10304,6 +10428,10 @@ _again:
     if(tainted) {
       result->taint(state);
       tainted = false;
+    }
+    if(untrusted) {
+      result->untrust(state);
+      untrusted = false;
     }
     return result;
   }
@@ -10335,6 +10463,10 @@ _again:
       result->taint(state);
       tainted = false;
     }
+    if(untrusted) {
+      result->untrust(state);
+      untrusted = false;
+    }
     return result;
   }
 	break;
@@ -10356,6 +10488,10 @@ _again:
     if(tainted) {
       result->taint(state);
       tainted = false;
+    }
+    if(untrusted) {
+      result->untrust(state);
+      untrusted = false;
     }
     return result;
   }
@@ -10379,6 +10515,10 @@ _again:
       result->taint(state);
       tainted = false;
     }
+    if(untrusted) {
+      result->untrust(state);
+      untrusted = false;
+    }
     return result;
   }
 	break;
@@ -10400,6 +10540,10 @@ _again:
     if(tainted) {
       result->taint(state);
       tainted = false;
+    }
+    if(untrusted) {
+      result->untrust(state);
+      untrusted = false;
     }
     return result;
   }
@@ -10423,6 +10567,10 @@ _again:
       result->taint(state);
       tainted = false;
     }
+    if(untrusted) {
+      result->untrust(state);
+      untrusted = false;
+    }
     return result;
   }
 	break;
@@ -10444,6 +10592,10 @@ _again:
     if(tainted) {
       result->taint(state);
       tainted = false;
+    }
+    if(untrusted) {
+      result->untrust(state);
+      untrusted = false;
     }
     return result;
   }
@@ -10471,6 +10623,10 @@ _again:
       result->taint(state);
       tainted = false;
     }
+    if(untrusted) {
+      result->untrust(state);
+      untrusted = false;
+    }
     return result;
   }
 	break;
@@ -10492,6 +10648,10 @@ _again:
     if(tainted) {
       result->taint(state);
       tainted = false;
+    }
+    if(untrusted) {
+      result->untrust(state);
+      untrusted = false;
     }
     return result;
   }
@@ -10515,6 +10675,10 @@ _again:
       result->taint(state);
       tainted = false;
     }
+    if(untrusted) {
+      result->untrust(state);
+      untrusted = false;
+    }
     return result;
   }
 	break;
@@ -10536,6 +10700,10 @@ _again:
     if(tainted) {
       result->taint(state);
       tainted = false;
+    }
+    if(untrusted) {
+      result->untrust(state);
+      untrusted = false;
     }
     return result;
   }
@@ -10559,6 +10727,10 @@ _again:
       result->taint(state);
       tainted = false;
     }
+    if(untrusted) {
+      result->untrust(state);
+      untrusted = false;
+    }
     return result;
   }
 	break;
@@ -10580,6 +10752,10 @@ _again:
     if(tainted) {
       result->taint(state);
       tainted = false;
+    }
+    if(untrusted) {
+      result->untrust(state);
+      untrusted = false;
     }
     return result;
   }
@@ -10603,6 +10779,10 @@ _again:
       result->taint(state);
       tainted = false;
     }
+    if(untrusted) {
+      result->untrust(state);
+      untrusted = false;
+    }
     return result;
   }
 	break;
@@ -10624,6 +10804,10 @@ _again:
     if(tainted) {
       result->taint(state);
       tainted = false;
+    }
+    if(untrusted) {
+      result->untrust(state);
+      untrusted = false;
     }
     return result;
   }
@@ -10647,6 +10831,10 @@ _again:
       result->taint(state);
       tainted = false;
     }
+    if(untrusted) {
+      result->untrust(state);
+      untrusted = false;
+    }
     return result;
   }
 	break;
@@ -10669,6 +10857,10 @@ _again:
       result->taint(state);
       tainted = false;
     }
+    if(untrusted) {
+      result->untrust(state);
+      untrusted = false;
+    }
     return result;
   }
 	break;
@@ -10690,6 +10882,10 @@ _again:
     if(tainted) {
       result->taint(state);
       tainted = false;
+    }
+    if(untrusted) {
+      result->untrust(state);
+      untrusted = false;
     }
     return result;
   }
@@ -10721,6 +10917,10 @@ _again:
       result->taint(state);
       tainted = false;
     }
+    if(untrusted) {
+      result->untrust(state);
+      untrusted = false;
+    }
     return result;
   }
 	break;
@@ -10746,6 +10946,10 @@ _again:
     if(tainted) {
       result->taint(state);
       tainted = false;
+    }
+    if(untrusted) {
+      result->untrust(state);
+      untrusted = false;
     }
     return result;
   }
@@ -10773,6 +10977,10 @@ _again:
       result->taint(state);
       tainted = false;
     }
+    if(untrusted) {
+      result->untrust(state);
+      untrusted = false;
+    }
     return result;
   }
 	break;
@@ -10798,6 +11006,10 @@ _again:
     if(tainted) {
       result->taint(state);
       tainted = false;
+    }
+    if(untrusted) {
+      result->untrust(state);
+      untrusted = false;
     }
     return result;
   }
@@ -10825,6 +11037,10 @@ _again:
       result->taint(state);
       tainted = false;
     }
+    if(untrusted) {
+      result->untrust(state);
+      untrusted = false;
+    }
     return result;
   }
 	break;
@@ -10848,6 +11064,10 @@ _again:
     if(tainted) {
       result->taint(state);
       tainted = false;
+    }
+    if(untrusted) {
+      result->untrust(state);
+      untrusted = false;
     }
     return result;
   }
@@ -10878,6 +11098,10 @@ _again:
       result->taint(state);
       tainted = false;
     }
+    if(untrusted) {
+      result->untrust(state);
+      untrusted = false;
+    }
     return result;
   }
 	break;
@@ -10906,6 +11130,10 @@ _again:
     if(tainted) {
       result->taint(state);
       tainted = false;
+    }
+    if(untrusted) {
+      result->untrust(state);
+      untrusted = false;
     }
     return result;
   }
@@ -10936,6 +11164,10 @@ _again:
       result->taint(state);
       tainted = false;
     }
+    if(untrusted) {
+      result->untrust(state);
+      untrusted = false;
+    }
     return result;
   }
 	break;
@@ -10965,6 +11197,10 @@ _again:
       result->taint(state);
       tainted = false;
     }
+    if(untrusted) {
+      result->untrust(state);
+      untrusted = false;
+    }
     return result;
   }
 	break;
@@ -10992,6 +11228,10 @@ _again:
       result->taint(state);
       tainted = false;
     }
+    if(untrusted) {
+      result->untrust(state);
+      untrusted = false;
+    }
     return result;
   }
 	break;
@@ -11008,6 +11248,7 @@ _again:
   }
 	{
     if(RTEST(string_value->tainted_p(state))) tainted = true;
+    if(RTEST(string_value->untrusted_p(state))) untrusted = true;
     native_int size = string_value->size();
     if(rest) count = size;
     if(count <= size) {
@@ -11027,6 +11268,10 @@ _again:
       result->taint(state);
       tainted = false;
     }
+    if(untrusted) {
+      result->untrust(state);
+      untrusted = false;
+    }
     return result;
   }
 	break;
@@ -11043,6 +11288,7 @@ _again:
   }
 	{
     if(RTEST(string_value->tainted_p(state))) tainted = true;
+    if(RTEST(string_value->untrusted_p(state))) untrusted = true;
     native_int size = string_value->size();
     if(rest) count = size;
     if(count <= size) {
@@ -11062,6 +11308,10 @@ _again:
       result->taint(state);
       tainted = false;
     }
+    if(untrusted) {
+      result->untrust(state);
+      untrusted = false;
+    }
     return result;
   }
 	break;
@@ -11078,6 +11328,7 @@ _again:
   }
 	{
     if(RTEST(string_value->tainted_p(state))) tainted = true;
+    if(RTEST(string_value->untrusted_p(state))) untrusted = true;
     native_int size = string_value->size();
     if(rest) count = size;
     if(count <= size) {
@@ -11101,6 +11352,10 @@ _again:
       result->taint(state);
       tainted = false;
     }
+    if(untrusted) {
+      result->untrust(state);
+      untrusted = false;
+    }
     return result;
   }
 	break;
@@ -11111,6 +11366,7 @@ _again:
     }
   }
 	{
+    count_flag = count;
     if(rest || count < 3) {
       count = 45;
     } else {
@@ -11123,13 +11379,17 @@ _again:
     if(!string_value) return 0;
   }
 	{
-    pack19::b64_uu_encode(string_value, str, count, pack19::b64_table, '=', false);
+    pack19::b64_uu_encode(string_value, str, count, count_flag, pack19::b64_table, '=', false);
   }
 	{
     String* result = String::create(state, str.c_str(), str.size());
     if(tainted) {
       result->taint(state);
       tainted = false;
+    }
+    if(untrusted) {
+      result->untrust(state);
+      untrusted = false;
     }
     return result;
   }
@@ -11141,6 +11401,7 @@ _again:
     }
   }
 	{
+    count_flag = count;
     if(rest || count < 3) {
       count = 45;
     } else {
@@ -11153,13 +11414,17 @@ _again:
     if(!string_value) return 0;
   }
 	{
-    pack19::b64_uu_encode(string_value, str, count, pack19::uu_table, '`', true);
+    pack19::b64_uu_encode(string_value, str, count, count_flag, pack19::uu_table, '`', true);
   }
 	{
     String* result = String::create(state, str.c_str(), str.size());
     if(tainted) {
       result->taint(state);
       tainted = false;
+    }
+    if(untrusted) {
+      result->untrust(state);
+      untrusted = false;
     }
     return result;
   }
@@ -11180,6 +11445,7 @@ _again:
   }
 	{
     if(RTEST(string_value->tainted_p(state))) tainted = true;
+    if(RTEST(string_value->untrusted_p(state))) untrusted = true;
     native_int size = string_value->size();
     if(rest) count = size;
     if(count <= size) {
@@ -11198,6 +11464,10 @@ _again:
     if(tainted) {
       result->taint(state);
       tainted = false;
+    }
+    if(untrusted) {
+      result->untrust(state);
+      untrusted = false;
     }
     return result;
   }
@@ -11218,6 +11488,7 @@ _again:
   }
 	{
     if(RTEST(string_value->tainted_p(state))) tainted = true;
+    if(RTEST(string_value->untrusted_p(state))) untrusted = true;
     native_int size = string_value->size();
     if(rest) count = size;
     if(count <= size) {
@@ -11236,6 +11507,10 @@ _again:
     if(tainted) {
       result->taint(state);
       tainted = false;
+    }
+    if(untrusted) {
+      result->untrust(state);
+      untrusted = false;
     }
     return result;
   }
@@ -11256,6 +11531,7 @@ _again:
   }
 	{
     if(RTEST(string_value->tainted_p(state))) tainted = true;
+    if(RTEST(string_value->untrusted_p(state))) untrusted = true;
     native_int size = string_value->size();
     if(rest) count = size;
     if(count <= size) {
@@ -11279,6 +11555,10 @@ _again:
       result->taint(state);
       tainted = false;
     }
+    if(untrusted) {
+      result->untrust(state);
+      untrusted = false;
+    }
     return result;
   }
 	break;
@@ -11292,6 +11572,7 @@ _again:
     }
   }
 	{
+    count_flag = count;
     if(rest || count < 3) {
       count = 45;
     } else {
@@ -11304,13 +11585,17 @@ _again:
     if(!string_value) return 0;
   }
 	{
-    pack19::b64_uu_encode(string_value, str, count, pack19::b64_table, '=', false);
+    pack19::b64_uu_encode(string_value, str, count, count_flag, pack19::b64_table, '=', false);
   }
 	{
     String* result = String::create(state, str.c_str(), str.size());
     if(tainted) {
       result->taint(state);
       tainted = false;
+    }
+    if(untrusted) {
+      result->untrust(state);
+      untrusted = false;
     }
     return result;
   }
@@ -11325,6 +11610,7 @@ _again:
     }
   }
 	{
+    count_flag = count;
     if(rest || count < 3) {
       count = 45;
     } else {
@@ -11337,13 +11623,17 @@ _again:
     if(!string_value) return 0;
   }
 	{
-    pack19::b64_uu_encode(string_value, str, count, pack19::uu_table, '`', true);
+    pack19::b64_uu_encode(string_value, str, count, count_flag, pack19::uu_table, '`', true);
   }
 	{
     String* result = String::create(state, str.c_str(), str.size());
     if(tainted) {
       result->taint(state);
       tainted = false;
+    }
+    if(untrusted) {
+      result->untrust(state);
+      untrusted = false;
     }
     return result;
   }

@@ -17,3 +17,5 @@ codeloader.rbc
 ffi.rbc
 ruby_constants18.rbc
 ruby_constants.rbc
+pack.rbc
+pack18.rbc
