@@ -84,13 +84,13 @@ containing the Rubinius standard library files.
       # This conforms more closely to MRI. It is necessary to support
       # paths that mkmf adds when compiling and installing native exts.
       additions = []
-      additions << "#{Rubinius::SITE_PATH}/#{Rubinius::LIB_VERSION}-rbx/#{Rubinius::CPU}-#{Rubinius::OS}"
-      additions << "#{Rubinius::SITE_PATH}/#{Rubinius::LIB_VERSION}-rbx"
-      additions << Rubinius::SITE_PATH
-      additions << "#{Rubinius::VENDOR_PATH}/#{Rubinius::LIB_VERSION}-rbx/#{Rubinius::CPU}-#{Rubinius::OS}"
-      additions << "#{Rubinius::VENDOR_PATH}/#{Rubinius::LIB_VERSION}-rbx"
-      additions << Rubinius::VENDOR_PATH
-      additions << @main_lib
+      additions << "#{Rubinius::SITE_PATH}/#{Rubinius::LIB_VERSION}-rbx" # sitelibdir
+      additions << "#{Rubinius::SITE_PATH}/#{Rubinius::LIB_VERSION}-rbx/#{Rubinius::CPU}-#{Rubinius::OS}" # sitearchdir
+      additions << Rubinius::SITE_PATH # sitedir
+      additions << "#{Rubinius::VENDOR_PATH}/#{Rubinius::LIB_VERSION}-rbx" # vendorlibdir
+      additions << "#{Rubinius::VENDOR_PATH}/#{Rubinius::LIB_VERSION}-rbx/#{Rubinius::CPU}-#{Rubinius::OS}" # vendorarchdir
+      additions << Rubinius::VENDOR_PATH # vendordir
+      additions << @main_lib # rubylibdir
       additions.uniq!
 
       $LOAD_PATH.unshift(*additions)
