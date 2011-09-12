@@ -9,7 +9,7 @@ describe "ByteArray#[]=" do
   it "sets the byte at index" do
     str = "01234"
     b = ByteArraySpecs.new_bytearray str
-    (0...str.size).each { |i| b[i] = b[i] + ?A }
+    (0...str.size).each { |i| b[i] = b[i] + 65 }
 
     "qrstu".each_byte.with_index { |x, i| b[i].should == x }
   end

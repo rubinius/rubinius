@@ -104,27 +104,14 @@ class MSpecScript
     'spec/build',
 
     # Excluded while building out basic 1.9 infrastructure
-    '^spec/ruby/core/basicobject/basic_object_class',
-    '^spec/ruby/core/basicobject/metaclass',
     '^spec/ruby/core/encoding/default_internal',
     '^spec/ruby/core/io/open',
-    '^spec/ruby/core/kernel/define_singleton_method',
-    '^spec/ruby/core/method/parameters',
     '^spec/ruby/core/module/name',
     '^spec/ruby/core/numeric/to_c',
     '^spec/ruby/core/proc/arity',
-    '^spec/ruby/core/proc/parameters',
     '^spec/ruby/core/process/spawn',
     '^spec/ruby/core/process/status',
     '^spec/ruby/core/string/getbyte',
-    '^spec/ruby/language/array',
-    '^spec/ruby/language/case',
-    '^spec/ruby/language/literal_lambda',
-    '^spec/ruby/language/method',
-    '^spec/ruby/language/super',
-    '^spec/ruby/language/symbol',
-    '^spec/ruby/language/variables',
-    '^spec/ruby/command_line/dash_e',
 
     '^spec/ruby/library/abbrev',
     '^spec/ruby/library/cgi',
@@ -151,15 +138,6 @@ class MSpecScript
     '^spec/ruby/optional/capi/class',
     '^spec/ruby/optional/capi/io',
     '^spec/ruby/optional/capi/time',
-
-    '^spec/core/bytearray/element_set',
-    '^spec/core/chararray',
-    '^spec/core/ctype',
-    '^spec/library/config/rbconfig',
-
-    '^spec/compiler/attrasgn',
-    '^spec/compiler/ensure',
-    '^spec/compiler/masgn',
 
     # Excluded because the specs are extremely system dependent.
     '^spec/ruby/library/syslog',

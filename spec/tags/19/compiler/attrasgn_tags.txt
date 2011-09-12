@@ -1,0 +1,1 @@
+fails:An Attrasgn node is compiled from 'a[b, *c] = *d'
