@@ -12,3 +12,4 @@ fails:"CSV.parse parses 'foo,bar\nbaz,quz' into [['foo','bar'],['baz','quz']]"
 fails:"CSV.parse parses 'foo,bar'\nbaz' into [['foo','bar'],['baz']]"
 fails:"CSV.parse parses 'foo\nbar,baz' into [['foo'],['bar','baz']]"
 fails:CSV.parse parses 'foo' into [['foo']] with a separator of ;
+fails:CSV.parse parses '' into []
