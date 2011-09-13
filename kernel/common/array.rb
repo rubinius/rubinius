@@ -357,8 +357,6 @@ class Array
   # Appends the object to the end of the Array.
   # Returns self so several appends can be chained.
   def <<(obj)
-    Rubinius.check_frozen
-
     set_index(@total, obj)
     self
   end
