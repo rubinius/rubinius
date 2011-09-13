@@ -25,7 +25,6 @@ namespace rubinius {
 #else
 #define LANGUAGE_20_ENABLED(state)  (false)
 #endif
-    
 
 #include "vm/gen/config_variables.h"
     void finalize() { }

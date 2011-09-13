@@ -198,4 +198,3 @@ module FFI::Platform
     LIBSUFFIX = ".so"
   end
 end
-

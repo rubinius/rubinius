@@ -73,6 +73,8 @@ module MethodSpecs
     define_method(:zero_with_splat_defined_method, Proc.new {|*x|})
     define_method(:one_req_defined_method, Proc.new {|x|})
     define_method(:two_req_defined_method, Proc.new {|x, y|})
+    define_method(:no_args_defined_method) {}
+    define_method(:two_grouped_defined_method) {|(x1,x2)|}
   end
 
   module MyMod

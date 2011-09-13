@@ -4,6 +4,10 @@ title: Announcing Rubinius Rewards
 author: Shane Becker
 ---
 
+### Update
+
+See [this post](http://rubini.us/2011/09/02/retiring-some-rubinius-rewards/ "Retiring (Some) Rubinius Rewards - Rubinius") about retired shirts/stickers and to see what's still available.
+
 ## tl;dr
 
 Email [community@rubini.us](mailto:community@rubini.us) to get stickers and

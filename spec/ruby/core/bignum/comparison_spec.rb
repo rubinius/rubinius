@@ -130,7 +130,7 @@ describe "Bignum#<=>" do
   end
 
   # The tests below are taken from matz's revision 23730 for Ruby trunk
-  ruby_bug "[ruby-dev:38672] [Bug #1645]", "1.8.7.302" do
+  ruby_bug "[ruby-dev:38672] [Bug #1645]", "1.8.7.334" do
     it "returns 1 when self is Infinity and other is a Bignum" do
       (infinity_value <=> Float::MAX.to_i*2).should == 1
     end

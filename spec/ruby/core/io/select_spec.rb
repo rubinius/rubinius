@@ -33,6 +33,7 @@ describe "IO.select" do
     t.abort_on_exception = true
     result = IO.select [@rd], nil, nil, nil
     result.should == [[@rd], [], []]
+    t.join
   end
 
   it "leaves out IO objects for which there is no I/O ready" do

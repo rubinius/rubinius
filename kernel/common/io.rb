@@ -1,4 +1,7 @@
 class IO
+
+  include Enumerable
+
   # Import platform constants
 
   SEEK_SET = Rubinius::Config['rbx.platform.io.SEEK_SET']

@@ -512,6 +512,13 @@ describe "File.open" do
   it "raises an ArgumentError if passed an invalid string for mode" do
     lambda { File.open(@file, 'fake') }.should raise_error(ArgumentError)
   end
+  
+  ruby_version_is "1.9.2" do
+    it "defaults external_encoding to ASCII-8BIT for binary modes" do
+      File.open(@file, 'rb') {|f| f.external_encoding.should == Encoding::ASCII_8BIT}
+      File.open(@file, 'wb+') {|f| f.external_encoding.should == Encoding::ASCII_8BIT}
+    end
+  end
 end
 
 describe "File.open" do

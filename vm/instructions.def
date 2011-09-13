@@ -354,7 +354,7 @@ end
 # [Description]
 #   Updates the value of a local variable contained in an enclosing scope
 #
-#   Read a value from the top of these stack and use it to update a local
+#   Read a value from the top of the stack and use it to update a local
 #   variable in an enclosing scope. The _depth_ and _index_ operands
 #   identify the specific local the same as in `push_local_depth`.
 # [See Also]
