@@ -1,0 +1,6 @@
+fails:Integer#round rounds itself as a float if passed a positive precision
+fails:Integer#round returns itself if passed zero
+fails:Integer#round returns itself rounded if passed a negative value
+fails:Integer#round returns 0 if passed a big negative value
+fails:Integer#round raises a RangeError when its argument can not be converted to a Fixnum
+fails:Integer#round raises a TypeError when its argument can not be converted to an Integer

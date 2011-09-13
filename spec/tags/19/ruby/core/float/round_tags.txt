@@ -1,1 +1,7 @@
 fails:Float#round rounds self to an optionally given precision
+fails:Float#round raises a TypeError when its argument can not be converted to an Integer
+fails:Float#round raises FloatDomainError for exceptional values when passed a non-positive precision
+fails:Float#round returns self for exceptional values when passed a non-negative precision
+fails:Float#round works for corner cases
+fails:Float#round returns rounded values for big values
+fails:Float#round returns the expected float for precisions over the whole range of Floats
