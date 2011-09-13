@@ -108,6 +108,10 @@ module ClassSpecs
   class L; end
 
   class M < L; end
+  
+  module AnonymousClasses
+    # used as a container for anonymous class specs testing const assignment
+  end
 end
 
 class Class

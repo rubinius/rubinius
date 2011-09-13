@@ -61,5 +61,13 @@ describe "Socket::IPSocket#addr" do
       addrinfo[2].should == "127.0.0.1"
       addrinfo[3].should == "127.0.0.1"
     end
+    
+    it "returns an address in the array if passed false" do
+      addrinfo = @socket.addr(false)
+      addrinfo[0].should == "AF_INET"
+      addrinfo[1].should == SocketSpecs.port
+      addrinfo[2].should == "127.0.0.1"
+      addrinfo[3].should == "127.0.0.1"
+    end
   end
 end

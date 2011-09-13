@@ -68,5 +68,13 @@ describe "Socket::IPSocket#peeraddr" do
       addrinfo[2].should == "127.0.0.1"
       addrinfo[3].should == "127.0.0.1"
     end
+    
+    it "returns an IP instead of hostname if passed false" do
+      addrinfo = @client.peeraddr(false)
+      addrinfo[0].should == "AF_INET"
+      addrinfo[1].should == SocketSpecs.port
+      addrinfo[2].should == "127.0.0.1"
+      addrinfo[3].should == "127.0.0.1"
+    end
   end
 end

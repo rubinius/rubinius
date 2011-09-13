@@ -74,4 +74,14 @@ module IOSpecs
   def self.io_mock(obj, method, &block)
     obj.singleton_class.send(:define_method, method, &block)
   end
+
+  module CopyStream
+    def self.from=(from)
+      @from = from
+    end
+
+    def self.from
+      @from
+    end
+  end
 end

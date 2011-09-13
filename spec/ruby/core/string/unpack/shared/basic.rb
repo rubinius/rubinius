@@ -1,4 +1,8 @@
 describe :string_unpack_basic, :shared => true do
+  it "ignores whitespace in the format string" do
+    "abc".unpack("a \t\n\v\f\r"+unpack_format).should be_an_instance_of(Array)
+  end
+
   it "calls #to_str to coerce the directives string" do
     d = mock("unpack directive")
     d.should_receive(:to_str).and_return("a"+unpack_format)

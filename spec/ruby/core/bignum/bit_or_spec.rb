@@ -39,16 +39,34 @@ describe "Bignum#|" do
     end
   end
 
-  it "tries to convert the given argument to an Integer using to_int" do
-    (obj = mock('2')).should_receive(:to_int).and_return(2)
-    (@bignum | obj).should == 9223372036854775819
+  ruby_version_is ""..."1.9.4" do
+    it "calls #to_int to convert an object to an Integer" do
+      obj = mock("bignum bit or")
+      obj.should_receive(:to_int).and_return(3)
+
+      (@bignum | obj).should == 9223372036854775819
+    end
+
+    it "raises a TypeError if #to_int does not return an Integer" do
+      obj = mock("bignum bit or")
+      obj.should_receive(:to_int).and_return("3")
+
+      lambda { @bignum | obj }.should raise_error(TypeError)
+    end
+
+    it "raises a TypeError if the object does not respond to #to_int" do
+      obj = mock("bignum bit or")
+
+      lambda { @bignum | obj }.should raise_error(TypeError)
+    end
   end
 
-  it "raises a TypeError when the given argument can't be converted to Integer" do
-    obj = mock('asdf')
-    lambda { @bignum | obj }.should raise_error(TypeError)
+  ruby_version_is "1.9.4" do
+    it "raises a TypeError and does not call #to_int when defined on an object" do
+      obj = mock("bignum bit or")
+      obj.should_not_receive(:to_int)
 
-    obj.should_receive(:to_int).and_return("asdf")
-    lambda { @bignum | obj }.should raise_error(TypeError)
+      lambda { @bignum | obj }.should raise_error(TypeError)
+    end
   end
 end

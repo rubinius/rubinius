@@ -47,4 +47,9 @@ describe "Regexps with interpolation" do
     var = "#comment\n  foo  #comment\n  |  bar"
     (/#{var}/x =~ "foo").should == (/foo|bar/ =~ "foo")
   end
+
+  it "allows escape sequences in interpolated regexps" do
+    escape_seq = %r{"\x80"}n
+    %r{#{escape_seq}}n.should == /(?-mix:"\x80")/n
+  end
 end
