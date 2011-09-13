@@ -3,4 +3,5 @@ env:
   - "RBXOPT=-X18"
   - "RBXOPT=-X19"
 notifications:
-  disabled: true
+  webhooks:
+    - http://elle.fallingsnow.net:13424/
