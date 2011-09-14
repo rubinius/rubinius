@@ -117,7 +117,7 @@ static NODE *parser_call_uni_op(rb_parser_state*, NODE*, ID);
 static NODE *parser_new_args(rb_parser_state*, NODE*, NODE*, ID, NODE*, ID);
 static NODE *splat_array(NODE*);
 
-static NODE *negate_lit(NODE*);
+static NODE *parser_negate_lit(rb_parser_state*, NODE*);
 static NODE *parser_ret_args(rb_parser_state*, NODE*);
 static NODE *arg_blk_pass(NODE*,NODE*);
 static NODE *parser_new_yield(rb_parser_state*, NODE*);
@@ -300,6 +300,7 @@ static int scan_hex(const char *start, size_t len, size_t *retlen);
 #define call_bin_op(a, s, b)      parser_call_bin_op(parser_state, a, s, b)
 #define call_uni_op(n, s)         parser_call_uni_op(parser_state, n, s)
 #define new_args(f,o,r,p,b)       parser_new_args(parser_state, f, o, r, p, b)
+#define negate_lit(n)             parser_negate_lit(parser_state, n)
 #define ret_args(n)               parser_ret_args(parser_state, n)
 #define assignable(a, b)          parser_assignable(parser_state, a, b)
 #define formal_argument(n)        parser_formal_argument(parser_state, n)
@@ -6585,17 +6586,17 @@ parser_new_yield(rb_parser_state* parser_state, NODE *node)
 }
 
 static NODE*
-negate_lit(NODE *node)
+parser_negate_lit(rb_parser_state* parser_state, NODE *node)
 {
   switch(TYPE(node->nd_lit)) {
   case T_FIXNUM:
     node->nd_lit = LONG2FIX(-FIX2LONG(node->nd_lit));
     break;
   case T_BIGNUM:
-    node->nd_lit = rb_funcall(node->nd_lit, rb_intern("-@"), 0, 0);
+    node->nd_lit = REF(rb_funcall(node->nd_lit, rb_intern("-@"), 0, 0));
     break;
   case T_FLOAT:
-    node->nd_lit = rb_float_new(-NUM2DBL(node->nd_lit));
+    node->nd_lit = REF(rb_float_new(-NUM2DBL(node->nd_lit)));
     break;
   default:
     break;
