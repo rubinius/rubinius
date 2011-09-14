@@ -1,6 +1,8 @@
 #include "llvm/jit_inline_method.hpp"
 
 namespace rubinius {
+  class JITStackArgs;
+
 namespace jit {
   class InlineBlockBuilder : public InlineMethodBuilder {
   public:

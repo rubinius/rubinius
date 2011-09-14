@@ -1,6 +1,6 @@
 #ifdef ENABLE_LLVM
 
-#include "llvm/jit.hpp"
+#include "llvm/state.hpp"
 #include "llvm/jit_context.hpp"
 #include "llvm/jit_runtime.hpp"
 

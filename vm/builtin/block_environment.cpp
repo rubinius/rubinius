@@ -32,7 +32,7 @@
 #endif
 
 #ifdef ENABLE_LLVM
-#include "llvm/jit.hpp"
+#include "llvm/state.hpp"
 #endif
 
 #include <iostream>

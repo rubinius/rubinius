@@ -3,6 +3,8 @@
 #include "llvm/jit_method.hpp"
 #include "llvm/jit_context.hpp"
 
+#include "llvm/method_info.hpp"
+
 #include "call_frame.hpp"
 #include "vmmethod.hpp"
 #include "instruments/tooling.hpp"

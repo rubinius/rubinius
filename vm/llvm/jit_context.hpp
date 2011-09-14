@@ -4,6 +4,8 @@
 #include <list>
 
 namespace rubinius {
+  class JITMethodInfo;
+
 namespace jit {
   class RuntimeData;
   class RuntimeDataHolder;

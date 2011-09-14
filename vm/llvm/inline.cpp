@@ -1,11 +1,12 @@
 #ifdef ENABLE_LLVM
 
-#include "llvm/jit.hpp"
 #include "llvm/inline.hpp"
 #include "llvm/jit_inline_method.hpp"
 #include "llvm/jit_inline_block.hpp"
 #include "llvm/jit_runtime.hpp"
 #include "llvm/jit_context.hpp"
+
+#include "llvm/stack_args.hpp"
 
 #include "builtin/methodtable.hpp"
 #include "builtin/nativefunction.hpp"

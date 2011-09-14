@@ -12,8 +12,13 @@ namespace llvm {
 
 namespace rubinius {
   class LLVMState;
+  class JITMethodInfo;
+  class VMMethod;
 
 namespace jit {
+  class Context;
+  class Builder;
+
   class Compiler {
     llvm::Function* function_;
     llvm::MachineCodeInfo* mci_;

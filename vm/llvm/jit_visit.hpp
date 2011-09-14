@@ -11,6 +11,8 @@
 #include "llvm/inline.hpp"
 #include "llvm/jit_context.hpp"
 
+#include "llvm/stack_args.hpp"
+
 #include <llvm/DerivedTypes.h>
 
 #include <list>

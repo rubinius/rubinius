@@ -15,7 +15,7 @@
 #include "builtin/module.hpp"
 
 #ifdef ENABLE_LLVM
-#include "llvm/jit.hpp"
+#include "llvm/state.hpp"
 #if RBX_LLVM_API_VER == 208
 #include <llvm/System/Threading.h>
 #elif RBX_LLVM_API_VER == 209

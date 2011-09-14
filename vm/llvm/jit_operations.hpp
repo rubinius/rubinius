@@ -15,6 +15,8 @@
 #include "llvm/jit_context.hpp"
 #include "llvm/types.hpp"
 
+#include "llvm/method_info.hpp"
+
 #include <llvm/Value.h>
 #include <llvm/BasicBlock.h>
 #include <llvm/Function.h>
@@ -24,6 +26,8 @@
 using namespace llvm;
 
 namespace rubinius {
+
+  class JITStackArgs;
 
   namespace jit {
     class Context;

@@ -10,7 +10,7 @@
 #include <iostream>
 
 #ifdef ENABLE_LLVM
-#include "llvm/jit.hpp"
+#include "llvm/state.hpp"
 #endif
 
 namespace rubinius {

@@ -1,8 +1,9 @@
 #ifdef ENABLE_LLVM
-#include "llvm/jit_runtime.hpp"
-#include "gc/code_manager.hpp"
-#include "llvm/jit.hpp"
 
+#include "llvm/jit_runtime.hpp"
+#include "llvm/state.hpp"
+
+#include "gc/code_manager.hpp"
 #include "gc/gc.hpp"
 
 #include "builtin/symbol.hpp"

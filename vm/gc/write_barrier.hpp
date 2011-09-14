@@ -2,8 +2,10 @@
 #define RBX_GC_WRITE_BARRIER_HPP
 
 #include "util/thread.hpp"
+#include "builtin/object.hpp"
 
 namespace rubinius {
+
 namespace gc {
 
   /**

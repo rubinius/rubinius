@@ -3,12 +3,14 @@
 
 #include "unwind_info.hpp"
 
-#include "llvm/jit.hpp"
+#include "llvm/basic_block.hpp"
 #include "llvm/offset.hpp"
 #include <llvm/Support/IRBuilder.h>
 
 namespace rubinius {
   class InlinePolicy;
+  class VMMethod;
+  class JITMethodInfo;
 
 namespace jit {
   class Builder {

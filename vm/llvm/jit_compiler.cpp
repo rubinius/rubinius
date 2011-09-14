@@ -1,7 +1,6 @@
 #ifdef ENABLE_LLVM
 
 #include "vmmethod.hpp"
-#include "llvm/jit.hpp"
 #include "llvm/jit_context.hpp"
 
 #include "builtin/fixnum.hpp"
@@ -29,10 +28,13 @@
 
 #include <sys/time.h>
 
-#include "llvm/jit.hpp"
+#include "llvm/state.hpp"
 #include "llvm/jit_compiler.hpp"
 #include "llvm/jit_method.hpp"
 #include "llvm/jit_block.hpp"
+
+#include "llvm/method_info.hpp"
+
 #include "llvm/passes.hpp"
 #include "instructions_util.hpp"
 

@@ -1,6 +1,5 @@
 #ifdef ENABLE_LLVM
 
-#include "llvm/jit.hpp"
 #include "llvm/inline.hpp"
 #include "llvm/jit_context.hpp"
 

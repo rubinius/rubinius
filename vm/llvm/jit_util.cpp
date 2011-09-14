@@ -1,8 +1,10 @@
 #ifdef ENABLE_LLVM
 
+#include "llvm/state.hpp"
+#include "llvm/method_info.hpp"
+
 #include "vm.hpp"
 #include "objectmemory.hpp"
-#include "llvm/jit.hpp"
 #include "call_frame.hpp"
 #include "builtin/object.hpp"
 #include "builtin/symbol.hpp"

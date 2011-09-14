@@ -1,6 +1,8 @@
 #ifdef ENABLE_LLVM
 
 #include "llvm/jit_inline_method.hpp"
+#include "llvm/method_info.hpp"
+
 #include "call_frame.hpp"
 
 using namespace llvm;

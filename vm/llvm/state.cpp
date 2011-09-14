@@ -1,19 +1,30 @@
 #ifdef ENABLE_LLVM
 
+#include "llvm/state.hpp"
+
+#include "llvm/jit_compiler.hpp"
+#include "llvm/jit_method.hpp"
+#include "llvm/jit_block.hpp"
+#include "llvm/method_info.hpp"
+#include "llvm/background_compile_request.hpp"
+#include "llvm/jit_context.hpp"
+
 #include "vm/config.h"
 
-#include "vmmethod.hpp"
-#include "llvm/jit.hpp"
-#include "llvm/jit_context.hpp"
 #include "builtin/fixnum.hpp"
 #include "builtin/staticscope.hpp"
 #include "builtin/module.hpp"
-#include "field_offset.hpp"
 #include "builtin/compiledmethod.hpp"
+#include "builtin/class.hpp"
+#include "builtin/block_environment.hpp"
+
+#include "vmmethod.hpp"
+#include "field_offset.hpp"
 #include "objectmemory.hpp"
 
 #include "call_frame.hpp"
 #include "configuration.hpp"
+#include "instruments/timing.hpp"
 
 #include <llvm/Target/TargetData.h>
 // #include <llvm/LinkAllPasses.h>
@@ -41,9 +52,6 @@ namespace autogen_types {
 #include <dlfcn.h>
 #endif
 
-#include "llvm/jit_compiler.hpp"
-#include "llvm/jit_method.hpp"
-#include "llvm/jit_block.hpp"
 #include "llvm/passes.hpp"
 #include "instructions_util.hpp"
 
@@ -54,69 +62,6 @@ namespace autogen_types {
 using namespace llvm;
 
 namespace rubinius {
-
-  AllocaInst* JITMethodInfo::create_alloca(const Type* type, Value* size,
-                                           const Twine& name)
-  {
-    return new AllocaInst(type, size, name,
-        function_->getEntryBlock().getTerminator());
-  }
-
-  JITMethodInfo::JITMethodInfo(jit::Context& ctx, CompiledMethod* cm, VMMethod* v,
-                  JITMethodInfo* parent)
-    : context_(ctx)
-    , function_(0)
-    , entry_(0)
-    , call_frame_(0)
-    , stack_(0)
-    , vm_(0)
-    , args_(0)
-    , previous_(0)
-    , profiling_entry_(0)
-    , out_args_(0)
-    , counter_(0)
-    , parent_info_(parent)
-    , creator_info_(0)
-    , use_full_scope_(false)
-    , inline_block_(0)
-    , block_info_(0)
-    , method_(&ctx.state()->roots())
-    , self_class_(&ctx.state()->roots())
-    , vmm(v)
-    , is_block(false)
-    , inline_return(0)
-    , return_value(0)
-    , inline_policy(0)
-    , fin_block(0)
-    , called_args(-1)
-    , stack_args(0)
-    , root(0)
-  {
-    method_.set(cm);
-    self_class_.set(nil<Class>());
-  }
-
-  void JITMethodInfo::set_function(llvm::Function* func) {
-    function_ = func;
-
-    return_pad_ = llvm::BasicBlock::Create(context_.state()->ctx(), "return_pad", func);
-    return_phi_ = llvm::PHINode::Create(
-       context_.state()->ptr_type("Object"), "return_phi", return_pad_);
-  }
-
-  JITInlineBlock::JITInlineBlock(LLVMState* ls, llvm::PHINode* phi, llvm::BasicBlock* brk,
-                   CompiledMethod* cm, VMMethod* code,
-                   JITMethodInfo* scope, int which)
-      : block_break_result_(phi)
-      , block_break_loc_(brk)
-      , code_(code)
-      , method_(&ls->roots())
-      , scope_(scope)
-      , which_(which)
-      , created_object_(false)
-    {
-      method_.set(cm);
-    }
 
   LLVMState* LLVMState::get(STATE) {
     if(!state->shared.llvm_state) {

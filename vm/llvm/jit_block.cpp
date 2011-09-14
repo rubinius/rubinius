@@ -2,6 +2,7 @@
 
 #include "llvm/jit_block.hpp"
 #include "llvm/jit_context.hpp"
+#include "llvm/method_info.hpp"
 
 #include "call_frame.hpp"
 #include "stack_variables.hpp"
