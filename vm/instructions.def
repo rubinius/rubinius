@@ -407,6 +407,12 @@ end
 #   Arguments are specified via a zero-index, so the first argument is 0.
 
 instruction passed_arg(index) [ -- boolean ]
+  if(!call_frame->arguments) {
+    Exception::internal_error(state, call_frame,
+                              "no arguments object");
+    RUN_EXCEPTION();
+  }
+
   if(index < (int)call_frame->arguments->total() - vmm->post_args) {
     stack_push(Qtrue);
   } else {
@@ -1162,6 +1168,12 @@ end
 #   _This instruction is deprecated and no longer used._
 
 instruction passed_blockarg(count) [ -- boolean ]
+  if(!call_frame->arguments) {
+    Exception::internal_error(state, call_frame,
+                              "no arguments object");
+    RUN_EXCEPTION();
+  }
+
   if(count == (int)call_frame->arguments->total()) {
     stack_push(Qtrue);
   } else {
@@ -1205,6 +1217,12 @@ end
 #   block that accepts one argument.
 
 instruction cast_for_single_block_arg() [ -- argument ]
+  if(!call_frame->arguments) {
+    Exception::internal_error(state, call_frame,
+                              "no arguments object");
+    RUN_EXCEPTION();
+  }
+
   int k = call_frame->arguments->total();
   if(k == 0) {
     stack_push(Qnil);
@@ -1248,6 +1266,12 @@ end
 #   lambda semantics or not.
 
 instruction cast_for_multi_block_arg() [ -- array ]
+  if(!call_frame->arguments) {
+    Exception::internal_error(state, call_frame,
+                              "no arguments object");
+    RUN_EXCEPTION();
+  }
+
   /* If there is only one argument and that thing is an array...
      AND the thing being invoked is not a lambda... */
   if(!(call_frame->flags & CallFrame::cIsLambda) &&
@@ -1282,6 +1306,12 @@ end
 #   them into an `Array`, which is then pushed on the stack.
 
 instruction cast_for_splat_block_arg() [ -- arguments ]
+  if(!call_frame->arguments) {
+    Exception::internal_error(state, call_frame,
+                              "no arguments object");
+    RUN_EXCEPTION();
+  }
+
   if(call_frame->arguments->total() == 1) {
     Object* obj = call_frame->arguments->get_argument(0);
     if(!kind_of<Array>(obj)) {
@@ -2043,6 +2073,12 @@ end
 #   push_block
 
 instruction push_block_arg() [ -- block ]
+  if(!call_frame->arguments) {
+    Exception::internal_error(state, call_frame,
+                              "no arguments object");
+    RUN_EXCEPTION();
+  }
+
   stack_push(call_frame->arguments->block());
 end
 
@@ -2092,6 +2128,12 @@ end
 #   push_block
 
 instruction push_proc() [ -- value ]
+  if(!call_frame->arguments) {
+    Exception::internal_error(state, call_frame,
+                              "no arguments object");
+    RUN_EXCEPTION();
+  }
+
   Object* obj = call_frame->arguments->block();
   if(RTEST(obj)) {
     Object* prc = Proc::from_env(state, G(proc), obj);
