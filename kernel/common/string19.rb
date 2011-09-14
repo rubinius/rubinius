@@ -3,6 +3,11 @@ class String
     Rubinius::Type.try_convert obj, String, :to_str
   end
 
+  def encode(to=undefined, from=undefined, options=nil)
+    # TODO
+    self
+  end
+
   def partition(pattern)
     unless pattern.is_a? Regexp
       pattern = Rubinius::Type.coerce_to(pattern, String, :to_str)
