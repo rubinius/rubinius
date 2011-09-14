@@ -474,7 +474,7 @@ class IO
   #  IO.read("testfile", 20)       #=> "This is line one\nThi"
   #  IO.read("testfile", 20, 10)   #=> "ne one\nThis is line "
   def self.read(name, length=undefined, offset=0)
-    name = StringValue(name)
+    name = Rubinius::Type.coerce_to_path name
     length ||= undefined
     offset ||= 0
 
