@@ -9,6 +9,54 @@ class IO
     end
   end
 
+  def self.read(name, length_or_options=undefined, offset=0, options=nil)
+    name = Rubinius::Type.coerce_to_path name
+    mode = "r"
+
+    if length_or_options.equal? undefined
+      length = undefined
+    elsif Rubinius::Type.object_kind_of? length_or_options, Hash
+      length = undefined
+      offset = 0
+      options = length_or_options
+    elsif length_or_options
+      offset = Rubinius::Type.coerce_to(offset || 0, Fixnum, :to_int)
+      raise Errno::EINVAL, "offset must not be negative" if offset < 0
+
+      length = Rubinius::Type.coerce_to(length_or_options, Fixnum, :to_int)
+      raise ArgumentError, "length must not be negative" if length < 0
+    else
+      length = undefined
+    end
+
+    if options
+      mode = options[:mode] || "r"
+    end
+
+    # Detect pipe mode
+    if name[0] == ?|
+      io = IO.popen(name[1..-1], "r")
+      return nil unless io # child process
+    else
+      io = File.new(name, mode)
+    end
+
+    str = nil
+    begin
+      io.seek(offset) unless offset == 0
+
+      if length.equal?(undefined)
+        str = io.read
+      else
+        str = io.read length
+      end
+    ensure
+      io.close
+    end
+
+    return str
+  end
+
   class StreamCopier
     def initialize(from, to, length, offset)
       @length = length

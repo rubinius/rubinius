@@ -52,6 +52,7 @@ eval.rbc
 false.rbc
 fiber.rbc
 io.rbc
+io18.rbc
 file.rbc
 filetest.rbc
 float.rbc
