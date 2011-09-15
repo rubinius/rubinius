@@ -5,24 +5,21 @@
 
 #include "llvm/inline_block.hpp"
 
+#include "llvm/jit_context.hpp"
+
 namespace rubinius {
   class JITStackArgs;
   class InlinePolicy;
 
   class JITMethodInfo {
     jit::Context& context_;
-    llvm::Function* function_;
     llvm::BasicBlock* entry_;
     llvm::Value* call_frame_;
     llvm::Value* stack_;
-    llvm::Value* vm_;
     llvm::Value* args_;
     llvm::Value* variables_;
     llvm::Value* previous_;
     llvm::Value* profiling_entry_;
-    llvm::Value* out_args_;
-    llvm::Value* counter_;
-    llvm::Value* unwind_info_;
 
     JITMethodInfo* parent_info_;
     JITMethodInfo* creator_info_;
@@ -61,18 +58,16 @@ namespace rubinius {
       return context_;
     }
 
-    void set_function(llvm::Function* func);
-
     llvm::Function* function() {
-      return function_;
+      return context_.function();
     }
 
     void set_vm(llvm::Value* vm) {
-      vm_ = vm;
+      context_.set_vm(vm);
     }
 
     llvm::Value* vm() {
-      return vm_;
+      return context_.vm();
     }
 
     void set_args(llvm::Value* args) {
@@ -100,11 +95,7 @@ namespace rubinius {
     }
 
     llvm::Value* unwind_info() {
-      return unwind_info_;
-    }
-
-    void set_unwind_info(llvm::Value* unwind) {
-      unwind_info_ = unwind;
+      return context_.unwind_info();
     }
 
     void set_entry(llvm::BasicBlock* entry) {
@@ -157,12 +148,8 @@ namespace rubinius {
 
     void set_parent_info(JITMethodInfo& info) {
       parent_info_ = &info;
-      vm_ = info.vm();
-      out_args_ = info.out_args();
-      counter_ = info.counter();
-      unwind_info_ = info.unwind_info();
 
-      set_function(info.function());
+      setup_return();
     }
 
     llvm::Value* parent_call_frame() {
@@ -239,12 +226,8 @@ namespace rubinius {
       return block_info_->block_break_result();
     }
 
-    void set_out_args(llvm::Value* out_args) {
-      out_args_ = out_args;
-    }
-
     llvm::Value* out_args() {
-      return out_args_;
+      return context_.out_args();
     }
 
     bool use_full_scope() {
@@ -256,11 +239,7 @@ namespace rubinius {
     }
 
     llvm::Value* counter() {
-      return counter_;
-    }
-
-    void set_counter(llvm::Value* counter) {
-      counter_ = counter;
+      return context_.counter();
     }
 
     Class* self_class() {
@@ -282,8 +261,12 @@ namespace rubinius {
       return &i->second;
     }
 
+    void setup_return();
+
     llvm::AllocaInst* create_alloca(const llvm::Type* type, llvm::Value* size = 0,
                                     const llvm::Twine& name = "");
+
+    llvm::BasicBlock* new_block(const char* name);
 
   };
 

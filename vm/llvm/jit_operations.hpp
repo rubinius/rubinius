@@ -205,8 +205,12 @@ namespace rubinius {
       return call_frame_;
     }
 
-    Value* cint(int num) {
-      return ConstantInt::get(ls_->Int32Ty, num);
+    llvm::Value* cint(int num) {
+      return ls_->cint(num);
+    }
+
+    llvm::Value* clong(uintptr_t num) {
+      return llvm::ConstantInt::get(ls_->IntPtrTy, num);
     }
 
     // Type resolution and manipulation
@@ -238,10 +242,10 @@ namespace rubinius {
 
     Value* check_type_bits(Value* obj, int type, const char* name = "is_type") {
       Value* word_idx[] = {
-        ConstantInt::get(ls_->Int32Ty, 0),
-        ConstantInt::get(ls_->Int32Ty, 0),
-        ConstantInt::get(ls_->Int32Ty, 0),
-        ConstantInt::get(ls_->Int32Ty, 0)
+        zero_,
+        zero_,
+        zero_,
+        zero_
       };
 
       if(obj->getType() != ObjType) {
@@ -719,7 +723,7 @@ namespace rubinius {
           obj, ls_->Int32Ty, "as_int");
 
       return b().CreateLShr(
-          i, ConstantInt::get(ls_->Int32Ty, 1),
+          i, one_,
           "lshr");
     }
 
@@ -783,8 +787,8 @@ namespace rubinius {
     // Tuple access
     Value* get_tuple_size(Value* tup) {
       Value* idx[] = {
-        ConstantInt::get(ls_->Int32Ty, 0),
-        ConstantInt::get(ls_->Int32Ty, offset::tuple_full_size)
+        zero_,
+        cint(offset::tuple_full_size)
       };
 
       Value* pos = create_gep(tup, idx, 2, "table_size_pos");
@@ -811,7 +815,7 @@ namespace rubinius {
           llvm::PointerType::getUnqual(ObjType), "obj_array");
 
       Value* idx2[] = {
-        ConstantInt::get(ls_->Int32Ty, offset / sizeof(Object*))
+        cint(offset / sizeof(Object*))
       };
 
       Value* pos = create_gep(cst, idx2, 1, "field_pos");
@@ -827,7 +831,7 @@ namespace rubinius {
           llvm::PointerType::getUnqual(ObjType), "obj_array");
 
       Value* idx2[] = {
-        ConstantInt::get(ls_->Int32Ty, offset / sizeof(Object*))
+        cint(offset / sizeof(Object*))
       };
 
       Value* pos = create_gep(cst, idx2, 1, "field_pos");

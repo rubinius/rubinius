@@ -22,18 +22,12 @@ namespace jit {
     const llvm::Type* stack_vars_type;
     const llvm::Type* obj_type;
     const llvm::Type* obj_ary_type;
-    llvm::Function* func;
 
-    llvm::Value* vm;
-    llvm::Value* prev;
-    llvm::Value* exec;
-    llvm::Value* module;
-    llvm::Value* args;
     llvm::Value* block_env;
     llvm::Value* block_inv;
     llvm::Value* top_scope;
-
-    llvm::BasicBlock* block;
+    llvm::Value* module;
+    llvm::Value* exec;
 
     llvm::Value* call_frame;
     llvm::Value* stk;
@@ -58,7 +52,7 @@ namespace jit {
     BlockMap block_map_;
 
     llvm::BasicBlock* import_args_;
-    llvm::BasicBlock* method_body_;
+    llvm::BasicBlock* body_;
 
     JITMethodInfo& info_;
 
@@ -79,6 +73,8 @@ namespace jit {
 
     void check_self_type();
 
+    void alloc_frame(const char* body_name);
+
     bool generate_body();
     void generate_hard_return();
 
@@ -89,6 +85,17 @@ namespace jit {
       return b().CreateIntToPtr(
         llvm::ConstantInt::get(ls_->Int64Ty, (intptr_t)obj),
         obj_type, "constant");
+    }
+
+    llvm::Value* cint(int num) {
+      switch(num) {
+      case 0:
+        return ls_->Zero;
+      case 1:
+        return ls_->One;
+      default:
+        return llvm::ConstantInt::get(ls_->Int32Ty, num);
+      }
     }
 
   };

@@ -12,22 +12,20 @@ namespace jit {
   BasicBlock* InlineMethodBuilder::setup_inline(Value* self, Value* blk,
       std::vector<Value*>& stack_args)
   {
-    func = info_.function();
-    vm = info_.vm();
-    prev = info_.parent_call_frame();
-    args = ConstantExpr::getNullValue(ls_->ptr_type("Arguments"));
+    llvm::Value* prev = info_.parent_call_frame();
+    llvm::Value* args = ConstantExpr::getNullValue(ls_->ptr_type("Arguments"));
 
-    BasicBlock* entry = BasicBlock::Create(ls_->ctx(), "inline_entry", func);
+    BasicBlock* entry = BasicBlock::Create(ls_->ctx(), "inline_entry", info_.function());
     b().SetInsertPoint(entry);
 
     info_.set_args(args);
     info_.set_previous(prev);
     info_.set_entry(entry);
 
-    BasicBlock* body = BasicBlock::Create(ls_->ctx(), "method_body", func);
+    BasicBlock* body = BasicBlock::Create(ls_->ctx(), "method_body", info_.function());
     pass_one(body);
 
-    BasicBlock* alloca_block = &func->getEntryBlock();
+    BasicBlock* alloca_block = &info_.function()->getEntryBlock();
 
     Value* cfstk = new AllocaInst(obj_type,
         ConstantInt::get(ls_->Int32Ty,
@@ -78,11 +76,11 @@ namespace jit {
     int flags = CallFrame::cInlineFrame;
     if(!use_full_scope_) flags |= CallFrame::cClosedScope;
 
-    b().CreateStore(ConstantInt::get(ls_->Int32Ty, flags),
+    b().CreateStore(cint(flags),
         get_field(call_frame, offset::CallFrame::flags));
 
     // ip
-    b().CreateStore(ConstantInt::get(ls_->Int32Ty, 0),
+    b().CreateStore(cint(0),
         get_field(call_frame, offset::CallFrame::ip));
 
     // scope
@@ -105,11 +103,11 @@ namespace jit {
     assert(stack_args.size() <= (size_t)vmm_->total_args);
 
     for(size_t i = 0; i < stack_args.size(); i++) {
-      Value* int_pos = ConstantInt::get(ls_->Int32Ty, i);
+      Value* int_pos = cint(i);
 
       Value* idx2[] = {
-        ConstantInt::get(ls_->Int32Ty, 0),
-        ConstantInt::get(ls_->Int32Ty, offset::vars_tuple),
+        cint(0),
+        cint(offset::vars_tuple),
         int_pos
       };
 

@@ -9,17 +9,17 @@ namespace type {
     llvm::MDNode* node;
     if(source_ != eUnknownSource) {
       llvm::Value *impMD[] = {
-        llvm::ConstantInt::get(ls->Int32Ty, kind_),
-        llvm::ConstantInt::get(ls->Int32Ty, value_),
-        llvm::ConstantInt::get(ls->Int32Ty, source_),
-        llvm::ConstantInt::get(ls->Int32Ty, source_id_)
+        ls->cint(kind_),
+        ls->cint(value_),
+        ls->cint(source_),
+        ls->cint(source_id_)
       };
 
       node = llvm::MDNode::get(ls->ctx(), impMD, 4);
     } else {
       llvm::Value *impMD[] = {
-        llvm::ConstantInt::get(ls->Int32Ty, kind_),
-        llvm::ConstantInt::get(ls->Int32Ty, value_)
+        ls->cint(kind_),
+        ls->cint(value_)
       };
 
       node = llvm::MDNode::get(ls->ctx(), impMD, 2);

@@ -528,6 +528,9 @@ namespace rubinius {
 
     Int8PtrTy = llvm::PointerType::getUnqual(Int8Ty);
 
+    Zero = llvm::ConstantInt::get(Int32Ty, 0);
+    One = llvm::ConstantInt::get(Int32Ty, 1);
+
     bool fast_code_passes = false;
 
     module_ = new llvm::Module("rubinius", ctx_);

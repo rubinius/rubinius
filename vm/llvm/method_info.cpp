@@ -11,28 +11,26 @@ namespace rubinius {
                                            const llvm::Twine& name)
   {
     return new llvm::AllocaInst(type, size, name,
-        function_->getEntryBlock().getTerminator());
+        function()->getEntryBlock().getTerminator());
   }
 
   JITMethodInfo::JITMethodInfo(jit::Context& ctx, CompiledMethod* cm, VMMethod* v,
                   JITMethodInfo* parent)
     : context_(ctx)
-    , function_(0)
     , entry_(0)
     , call_frame_(0)
     , stack_(0)
-    , vm_(0)
     , args_(0)
     , previous_(0)
     , profiling_entry_(0)
-    , out_args_(0)
-    , counter_(0)
     , parent_info_(parent)
     , creator_info_(0)
     , use_full_scope_(false)
     , inline_block_(0)
     , block_info_(0)
     , method_(&ctx.state()->roots())
+    , return_pad_(0)
+    , return_phi_(0)
     , self_class_(&ctx.state()->roots())
     , vmm(v)
     , is_block(false)
@@ -48,13 +46,13 @@ namespace rubinius {
     self_class_.set(nil<Object>());
   }
 
-  void JITMethodInfo::set_function(llvm::Function* func) {
-    function_ = func;
-
-    return_pad_ = llvm::BasicBlock::Create(context_.state()->ctx(), "return_pad", func);
+  void JITMethodInfo::setup_return() {
+    return_pad_ = llvm::BasicBlock::Create(context_.state()->ctx(), "return_pad", function());
     return_phi_ = llvm::PHINode::Create(
        context_.state()->ptr_type("Object"), "return_phi", return_pad_);
   }
 
-
+  llvm::BasicBlock* JITMethodInfo::new_block(const char* name) {
+    return llvm::BasicBlock::Create(context_.state()->ctx(), name, function());
+  }
 }

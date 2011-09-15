@@ -162,6 +162,8 @@ namespace rubinius {
 
     void check_class(llvm::Value* recv, Class* klass, llvm::BasicBlock* bb=0);
     void check_recv(Class* klass, llvm::BasicBlock* bb=0);
+
+    void prime_info(JITMethodInfo& info);
   };
 
 }

@@ -33,74 +33,27 @@ namespace jit {
        << ls_->symbol_cstr(info_.method()->name())
        << "$block@" << ls_->add_jitted_method();
 
-    func = Function::Create(ft, GlobalValue::ExternalLinkage,
+    llvm::Function* func = Function::Create(ft, GlobalValue::ExternalLinkage,
                             ss.str().c_str(), ls_->module());
 
     Function::arg_iterator ai = func->arg_begin();
-    vm =   ai++; vm->setName("state");
-    prev = ai++; prev->setName("previous");
+    llvm::Value* vm =   ai++; vm->setName("state");
+    llvm::Value* prev = ai++; prev->setName("previous");
     block_env = ai++; block_env->setName("env");
-    args = ai++; args->setName("args");
+    llvm::Value* args = ai++; args->setName("args");
     block_inv = ai++; block_inv->setName("invocation");
 
     BasicBlock* block = BasicBlock::Create(ls_->ctx(), "entry", func);
     b().SetInsertPoint(block);
 
-    info_.set_function(func);
+    info_.context().set_function(func);
+
     info_.set_vm(vm);
     info_.set_args(args);
     info_.set_previous(prev);
     info_.set_entry(block);
 
-    BasicBlock* body = BasicBlock::Create(ls_->ctx(), "block_body", func);
-
-    pass_one(body);
-
-    info_.set_counter(b().CreateAlloca(ls_->Int32Ty, 0, "counter_alloca"));
-    counter2_ = b().CreateAlloca(ls_->Int32Ty, 0, "counter2");
-
-    // The 3 here is because we store {ip, sp, type} per unwind.
-    info_.set_unwind_info(b().CreateAlloca(ls_->Int32Ty,
-          ConstantInt::get(ls_->Int32Ty, rubinius::kMaxUnwindInfos * 3),
-          "unwind_info"));
-
-    valid_flag = b().CreateAlloca(ls_->Int1Ty, 0, "valid_flag");
-
-    Value* cfstk = b().CreateAlloca(obj_type,
-        ConstantInt::get(ls_->Int32Ty,
-          (sizeof(CallFrame) / sizeof(Object*)) + vmm_->stack_size),
-        "cfstk");
-
-    call_frame = b().CreateBitCast(
-        cfstk,
-        llvm::PointerType::getUnqual(cf_type), "call_frame");
-
-    info_.set_out_args(b().CreateAlloca(ls_->type("Arguments"), 0, "out_args"));
-
-    if(ls_->include_profiling()) {
-      method_entry_ = b().CreateAlloca(ls_->Int8Ty,
-          ConstantInt::get(ls_->Int32Ty, sizeof(tooling::MethodEntry)),
-          "method_entry");
-
-      info_.set_profiling_entry(method_entry_);
-    }
-
-    info_.set_call_frame(call_frame);
-
-    stk = b().CreateConstGEP1_32(cfstk, sizeof(CallFrame) / sizeof(Object*), "stack");
-
-    info_.set_stack(stk);
-
-    Value* var_mem = b().CreateAlloca(obj_type,
-        ConstantInt::get(ls_->Int32Ty,
-          (sizeof(StackVariables) / sizeof(Object*)) + vmm_->number_of_locals),
-        "var_mem");
-
-    vars = b().CreateBitCast(
-        var_mem,
-        llvm::PointerType::getUnqual(stack_vars_type), "vars");
-
-    info_.set_variables(vars);
+    alloc_frame("block_body");
 
     initialize_frame(vmm_->stack_size);
 
@@ -143,9 +96,9 @@ namespace jit {
 
       b().SetInsertPoint(cont);
     }
-    b().CreateBr(body);
 
-    b().SetInsertPoint(body);
+    b().CreateBr(body_);
+    b().SetInsertPoint(body_);
   }
 
   void BlockBuilder::setup_block_scope() {
@@ -199,7 +152,7 @@ namespace jit {
                             "env.code");
 
     // previous
-    b().CreateStore(prev, get_field(call_frame, offset::CallFrame::previous));
+    b().CreateStore(info_.previous(), get_field(call_frame, offset::CallFrame::previous));
 
     // static_scope
     Value* ss = b().CreateLoad(get_field(block_inv, offset::blockinv_static_scope),
@@ -208,7 +161,7 @@ namespace jit {
     b().CreateStore(ss, get_field(call_frame, offset::CallFrame::static_scope));
 
     // arguments
-    b().CreateStore(args, get_field(call_frame, offset::CallFrame::arguments));
+    b().CreateStore(info_.args(), get_field(call_frame, offset::CallFrame::arguments));
 
     // msg
     b().CreateStore(Constant::getNullValue(ls_->Int8PtrTy),
@@ -229,12 +182,12 @@ namespace jit {
     if(!use_full_scope_) block_flags |= CallFrame::cClosedScope;
 
     Value* flags = b().CreateOr(inv_flags_,
-        ConstantInt::get(ls_->Int32Ty, block_flags), "flags");
+        cint(block_flags), "flags");
 
     b().CreateStore(flags, get_field(call_frame, offset::CallFrame::flags));
 
     // ip
-    b().CreateStore(ConstantInt::get(ls_->Int32Ty, 0),
+    b().CreateStore(cint(0),
         get_field(call_frame, offset::CallFrame::ip));
 
     // scope
@@ -255,9 +208,6 @@ namespace jit {
   }
 
   void BlockBuilder::import_args_19_style() {
-    Value* vm_obj = vm;
-    Value* arg_obj = args;
-
     if(vmm_->required_args > 1) {
       Value* lambda_check =
         b().CreateICmpEQ(
@@ -266,8 +216,8 @@ namespace jit {
             ConstantInt::get(inv_flags_->getType(), CallFrame::cIsLambda)),
           ConstantInt::get(inv_flags_->getType(), 0));
 
-      BasicBlock* destruct = BasicBlock::Create(ls_->ctx(), "destructure", func);
-      BasicBlock* cont = BasicBlock::Create(ls_->ctx(), "arg_loop_body", func);
+      BasicBlock* destruct = BasicBlock::Create(ls_->ctx(), "destructure", info_.function());
+      BasicBlock* cont = BasicBlock::Create(ls_->ctx(), "arg_loop_body", info_.function());
 
       b().CreateCondBr(lambda_check, destruct, cont);
 
@@ -278,7 +228,7 @@ namespace jit {
       sig << "CallFrame";
       sig << "Arguments";
 
-      Value* call_args[] = { vm, call_frame, args };
+      Value* call_args[] = { info_.vm(), info_.call_frame(), info_.args() };
 
       Value* val = sig.call("rbx_destructure_args", call_args, 3, "", b());
 
@@ -295,35 +245,35 @@ namespace jit {
 
     Value* loop_i = info_.counter();
     Value* arg_ary = b().CreateLoad(
-                       b().CreateConstGEP2_32(args, 0, offset::args_ary),
+                       b().CreateConstGEP2_32(info_.args(), 0, offset::args_ary),
                        "arg_ary");
 
     // The variables used in the 4 phases.
     int P = vmm_->post_args;
-    Value* Pv = ConstantInt::get(ls_->Int32Ty, P);
+    Value* Pv = cint(P);
 
     int R = vmm_->required_args;
 
     int M = R - P;
-    Value* Mv = ConstantInt::get(ls_->Int32Ty, M);
+    Value* Mv = cint(M);
 
     Value* T = b().CreateLoad(
-                 b().CreateConstGEP2_32(arg_obj, 0, offset::args_total),
+                 b().CreateConstGEP2_32(info_.args(), 0, offset::args_total),
                  "args.total");
 
     int DT = vmm_->total_args;
-    Value* DTv = ConstantInt::get(ls_->Int32Ty, DT);
+    Value* DTv = cint(DT);
 
     int O = DT - R;
-    Value* Ov = ConstantInt::get(ls_->Int32Ty, O);
+    Value* Ov = cint(O);
 
     int HS = vmm_->splat_position > 0 ? 1 : 0;
 
     Value* CT = HS ? T
                    : b().CreateSelect(b().CreateICmpSLT(T, DTv), T, DTv);
 
-    Value* Z = b().CreateSub(CT, ConstantInt::get(ls_->Int32Ty, M));
-    Value* U = b().CreateSub(Z, ConstantInt::get(ls_->Int32Ty, P));
+    Value* Z = b().CreateSub(CT, cint(M));
+    Value* U = b().CreateSub(Z, cint(P));
 
 
 
@@ -331,15 +281,15 @@ namespace jit {
     // 0 ... min(M,T)
 
     {
-      BasicBlock* top = BasicBlock::Create(ls_->ctx(), "mand_loop_top", func);
-      BasicBlock* body = BasicBlock::Create(ls_->ctx(), "mand_loop_body", func);
-      BasicBlock* after = BasicBlock::Create(ls_->ctx(), "mand_loop_cont", func);
+      BasicBlock* top = info_.new_block("mand_loop_top");
+      BasicBlock* body = info_.new_block("mand_loop_body");
+      BasicBlock* after = info_.new_block("mand_loop_cont");
 
       // limit = min(M,T)
       Value* limit = b().CreateSelect(b().CreateICmpSLT(Mv, T), Mv, T);
 
       // *loop_i = T-P
-      b().CreateStore(ConstantInt::get(ls_->Int32Ty, 0), loop_i);
+      b().CreateStore(cint(0), loop_i);
 
       b().CreateBr(top);
 
@@ -357,8 +307,8 @@ namespace jit {
       b().SetInsertPoint(body);
 
       Value* idx2[] = {
-        ConstantInt::get(ls_->Int32Ty, 0),
-        ConstantInt::get(ls_->Int32Ty, offset::vars_tuple),
+        cint(0),
+        cint(offset::vars_tuple),
         loop_val
       };
 
@@ -370,7 +320,7 @@ namespace jit {
 
       // *loop_i = loop_val + 1
       b().CreateStore(
-          b().CreateAdd(loop_val, ConstantInt::get(ls_->Int32Ty, 1)),
+          b().CreateAdd(loop_val, cint(1)),
           loop_i);
 
       b().CreateBr(top);
@@ -381,9 +331,9 @@ namespace jit {
     // Phase 2, the post args
     // CT - min(Z,P) ... CT
     {
-      BasicBlock* top = BasicBlock::Create(ls_->ctx(), "post_loop_top", func);
-      BasicBlock* body = BasicBlock::Create(ls_->ctx(), "post_loop_body", func);
-      BasicBlock* after = BasicBlock::Create(ls_->ctx(), "post_loop_cont", func);
+      BasicBlock* top = info_.new_block("post_loop_top");
+      BasicBlock* body = info_.new_block("post_loop_body");
+      BasicBlock* after = info_.new_block("post_loop_cont");
 
       // *loop_i = CT - min(Z,P)
       b().CreateStore(
@@ -394,7 +344,7 @@ namespace jit {
 
       // *local_i = M+O+HS
       b().CreateStore(
-        ConstantInt::get(ls_->Int32Ty, M+O+HS),
+        cint(M+O+HS),
         local_i);
 
       b().CreateBr(top);
@@ -416,8 +366,8 @@ namespace jit {
       Value* local_val = b().CreateLoad(local_i, "local_val");
 
       Value* idx2[] = {
-        ConstantInt::get(ls_->Int32Ty, 0),
-        ConstantInt::get(ls_->Int32Ty, offset::vars_tuple),
+        cint(0),
+        cint(offset::vars_tuple),
         local_val
       };
 
@@ -429,12 +379,12 @@ namespace jit {
 
       // *loop_i = loop_val + 1
       b().CreateStore(
-          b().CreateAdd(loop_val, ConstantInt::get(ls_->Int32Ty, 1)),
+          b().CreateAdd(loop_val, cint(1)),
           loop_i);
 
       // *local_i = local_val + 1;
       b().CreateStore(
-          b().CreateAdd(local_val, ConstantInt::get(ls_->Int32Ty, 1)),
+          b().CreateAdd(local_val, cint(1)),
           local_i);
 
       b().CreateBr(top);
@@ -446,9 +396,9 @@ namespace jit {
     // M ... M + min(O, U)
 
     {
-      BasicBlock* top = BasicBlock::Create(ls_->ctx(), "opt_arg_loop_top", func);
-      BasicBlock* body = BasicBlock::Create(ls_->ctx(), "opt_arg_loop_body", func);
-      BasicBlock* after = BasicBlock::Create(ls_->ctx(), "opt_arg_loop_cont", func);
+      BasicBlock* top = info_.new_block("opt_arg_loop_top");
+      BasicBlock* body = info_.new_block("opt_arg_loop_body");
+      BasicBlock* after = info_.new_block("opt_arg_loop_cont");
 
       Value* limit =
         b().CreateAdd(
@@ -473,8 +423,8 @@ namespace jit {
       b().SetInsertPoint(body);
 
       Value* idx2[] = {
-        ConstantInt::get(ls_->Int32Ty, 0),
-        ConstantInt::get(ls_->Int32Ty, offset::vars_tuple),
+        cint(0),
+        cint(offset::vars_tuple),
         loop_val
       };
 
@@ -486,7 +436,7 @@ namespace jit {
 
       // *loop_i = loop_val + 1
       b().CreateStore(
-          b().CreateAdd(loop_val, ConstantInt::get(ls_->Int32Ty, 1)),
+          b().CreateAdd(loop_val, cint(1)),
           loop_i);
 
       b().CreateBr(top);
@@ -503,10 +453,10 @@ namespace jit {
       sig << ls_->Int32Ty;
 
       Value* call_args[] = {
-        vm_obj,
-        arg_obj,
-        ConstantInt::get(ls_->Int32Ty, M + O),
-        ConstantInt::get(ls_->Int32Ty, DT)
+        info_.vm(),
+        info_.args(),
+        cint(M + O),
+        cint(DT)
       };
 
       Function* func = sig.function("rbx_construct_splat");
@@ -519,9 +469,9 @@ namespace jit {
       splat_val->setDoesNotThrow(true);
 
       Value* idx3[] = {
-        ConstantInt::get(ls_->Int32Ty, 0),
-        ConstantInt::get(ls_->Int32Ty, offset::vars_tuple),
-        ConstantInt::get(ls_->Int32Ty, vmm_->splat_position)
+        cint(0),
+        cint(offset::vars_tuple),
+        cint(vmm_->splat_position)
       };
 
       Value* pos = b().CreateGEP(vars, idx3, idx3+3, "splat_pos");

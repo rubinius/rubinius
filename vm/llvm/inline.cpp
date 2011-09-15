@@ -468,6 +468,15 @@ remember:
 
   }
 
+  void Inliner::prime_info(JITMethodInfo& info) {
+    info.set_parent_info(ops_.info());
+
+    info.inline_policy = ops_.inline_policy();
+    info.called_args = count_;
+    info.root = ops_.root_method_info();
+    info.set_inline_block(inline_block_);
+  }
+
   void Inliner::inline_generic_method(Class* klass, Module* defined_in,
                                       CompiledMethod* cm, VMMethod* vmm) {
     context_.enter_inline();
@@ -475,12 +484,8 @@ remember:
     check_recv(klass);
 
     JITMethodInfo info(context_, cm, vmm);
-    info.set_parent_info(ops_.info());
 
-    info.inline_policy = ops_.inline_policy();
-    info.called_args = count_;
-    info.root = ops_.root_method_info();
-    info.set_inline_block(inline_block_);
+    prime_info(info);
 
     info.self_type = guarded_type_;
 
@@ -532,15 +537,12 @@ remember:
     context_.enter_inline();
 
     JITMethodInfo info(context_, ib->method(), ib->code());
-    info.set_parent_info(ops_.info());
 
-    info.inline_policy = ops_.inline_policy();
-    info.called_args = count_;
-    info.root = ops_.root_method_info();
+    prime_info(info);
+
     info.is_block = true;
 
     info.set_creator_info(creator_info_);
-    info.set_inline_block(inline_block_);
     info.set_block_info(block_info_);
     info.self_type = ops_.info().self_type;
 

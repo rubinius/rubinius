@@ -94,6 +94,9 @@ namespace rubinius {
 
     const llvm::Type* Int8PtrTy;
 
+    llvm::Value* Zero;
+    llvm::Value* One;
+
     static LLVMState* get(STATE);
     static void shutdown(STATE);
     static void start(STATE);
@@ -195,6 +198,17 @@ namespace rubinius {
 
     bool type_optz() {
       return type_optz_;
+    }
+
+    llvm::Value* cint(int num) {
+      switch(num) {
+      case 0:
+        return Zero;
+      case 1:
+        return One;
+      default:
+        return llvm::ConstantInt::get(Int32Ty, num);
+      }
     }
 
     const llvm::Type* ptr_type(std::string name);

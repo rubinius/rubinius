@@ -13,26 +13,23 @@ namespace jit {
   BasicBlock* InlineBlockBuilder::setup_inline_block(Value* self, Value* mod,
                                     JITStackArgs& stack_args)
   {
-    func = info_.function();
-    vm = info_.vm();
-    prev = info_.parent_call_frame();
-    args = ConstantExpr::getNullValue(ls_->ptr_type("Arguments"));
+    llvm::Value* prev = info_.parent_call_frame();
+    llvm::Value* args = ConstantExpr::getNullValue(ls_->ptr_type("Arguments"));
 
-    BasicBlock* entry = BasicBlock::Create(ls_->ctx(), "inline_entry", func);
+    BasicBlock* entry = BasicBlock::Create(ls_->ctx(), "inline_entry", info_.function());
     b().SetInsertPoint(entry);
 
     info_.set_args(args);
     info_.set_previous(prev);
     info_.set_entry(entry);
 
-    BasicBlock* body = BasicBlock::Create(ls_->ctx(), "block_body", func);
+    BasicBlock* body = BasicBlock::Create(ls_->ctx(), "block_body", info_.function());
     pass_one(body);
 
-    BasicBlock* alloca_block = &func->getEntryBlock();
+    BasicBlock* alloca_block = &info_.function()->getEntryBlock();
 
     Value* cfstk = new AllocaInst(obj_type,
-        ConstantInt::get(ls_->Int32Ty,
-          (sizeof(CallFrame) / sizeof(Object*)) + vmm_->stack_size),
+        cint((sizeof(CallFrame) / sizeof(Object*)) + vmm_->stack_size),
         "cfstk", alloca_block->getTerminator());
 
     call_frame = b().CreateBitCast(
@@ -46,8 +43,7 @@ namespace jit {
     info_.set_stack(stk);
 
     Value* var_mem = new AllocaInst(obj_type,
-        ConstantInt::get(ls_->Int32Ty,
-          (sizeof(StackVariables) / sizeof(Object*)) + vmm_->number_of_locals),
+        cint((sizeof(StackVariables) / sizeof(Object*)) + vmm_->number_of_locals),
         "var_mem", alloca_block->getTerminator());
 
     vars = b().CreateBitCast(
@@ -80,11 +76,11 @@ namespace jit {
     int flags = CallFrame::cInlineFrame | CallFrame::cInlineBlock;
     if(!use_full_scope_) flags |= CallFrame::cClosedScope;
 
-    b().CreateStore(ConstantInt::get(ls_->Int32Ty, flags),
+    b().CreateStore(cint(flags),
         get_field(call_frame, offset::CallFrame::flags));
 
     // ip
-    b().CreateStore(ConstantInt::get(ls_->Int32Ty, 0),
+    b().CreateStore(cint(0),
         get_field(call_frame, offset::CallFrame::ip));
 
     // scope
@@ -103,11 +99,11 @@ namespace jit {
       size_t limit = MIN((int)stack_args.size(), (int)vmm_->total_args);
 
       for(size_t i = 0; i < limit; i++) {
-        Value* int_pos = ConstantInt::get(ls_->Int32Ty, i);
+        Value* int_pos = cint(i);
 
         Value* idx2[] = {
-          ConstantInt::get(ls_->Int32Ty, 0),
-          ConstantInt::get(ls_->Int32Ty, offset::vars_tuple),
+          cint(0),
+          cint(offset::vars_tuple),
           int_pos
         };
 
