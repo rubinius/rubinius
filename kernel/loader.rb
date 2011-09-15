@@ -558,6 +558,12 @@ to rebuild the compiler.
       end
     end
 
+    def rubygems
+      @stage = "loading Rubygems"
+
+      require "rubygems" if Rubinius.ruby19?
+    end
+
     # Require any -r arguments
     def requires
       @stage = "requiring command line files"
@@ -760,6 +766,7 @@ to rebuild the compiler.
           load_paths
           debugger
           agent
+          rubygems
           requires
           evals
           script
