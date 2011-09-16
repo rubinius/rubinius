@@ -8,9 +8,25 @@
 #include <ucontext.h>
 typedef ucontext_t fiber_context_t;
 #else
-struct fiber_context_t {
-  int dummy;
-};
+
+struct fiber_context_t;
+
+#if defined(IS_X8664)
+#define FIBER_ENABLED
+#define FIBER_NATIVE
+#define FIBER_ASM_X8664
+#endif
+
+// #if defined(IS_X86)
+// #define FIBER_ENABLED
+// #define FIBER_NATIVE
+// #define FIBER_ASM_X8632
+// #elif defined(IS_X8664)
+// #define FIBER_ENABLED
+// #define FIBER_NATIVE
+// #define FIBER_ASM_X8664
+// #endif
+
 #endif
 
 #include <signal.h>
