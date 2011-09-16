@@ -191,10 +191,10 @@ end
 module FFI::Platform
   case
   when Rubinius.windows?
-    LIBSUFFIX = ".dll"
+    LIBSUFFIX = "dll"
   when Rubinius.darwin?
-    LIBSUFFIX = ".dylib"
+    LIBSUFFIX = "dylib"
   else
-    LIBSUFFIX = ".so"
+    LIBSUFFIX = "so"
   end
 end
