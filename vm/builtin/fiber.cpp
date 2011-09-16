@@ -108,9 +108,11 @@ static void fiber_makectx(fiber_context_t* ctx, void* func, void** stack_bottom
 
 #else // FIBER_NATIVE
 
+#ifndef FIBER_ENABLED
 struct fiber_context_t {
   int dummy;
 }
+#endif
 
 #endif
 
