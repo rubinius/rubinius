@@ -89,7 +89,7 @@ static inline void fiber_switch(fiber_context_t* from, fiber_context_t* to) {
     : "+S" (from), "+D" (to) : : "eax", "ecx", "edx", "memory", "cc");
 }
 
-static void fiber_makectx(fiber_context_t* ctx, void* func, void** stack_bottom
+static void fiber_makectx(fiber_context_t* ctx, void* func, void** stack_bottom,
                           int stack_size)
 {
   // Get a pointer to the highest address as stack that is properly aligned
@@ -102,7 +102,7 @@ static void fiber_makectx(fiber_context_t* ctx, void* func, void** stack_bottom
   ctx->eip = func;
   ctx->esp = stack;
   ctx->ebp = 0;
-  stack[0] = 0xdeadcafe;
+  stack[0] = (void*)0xdeadcafe;
 }
 #endif
 
