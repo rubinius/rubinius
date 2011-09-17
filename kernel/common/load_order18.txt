@@ -77,6 +77,7 @@ regexp.rbc
 signal.rbc
 sprinter.rbc
 symbol.rbc
+symbol18.rbc
 thread.rbc
 thread_group.rbc
 throw_catch.rbc
