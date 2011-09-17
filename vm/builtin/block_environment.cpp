@@ -102,13 +102,14 @@ namespace rubinius {
          *  2. OR takes one argument and a splat
          *  3. OR has the form { |a, | }
          *  4. OR has the form { |(a, b)| }
+         *  5. OR has the form { |(a, b), c| }
          *
          * then we check if the one argument is an Array. If it is not, call
          * #to_ary to convert it to an Array and raise if #to_ary does not
          * return an Array.
          *
-         * Finally, in cases 1-3 above, we destructure the Array into the
-         * block's arguments.
+         * Finally, in cases 1-3, and 5 above, we destructure the Array into
+         * the block's arguments.
          */
         if(total_args == 1
             && (vmm->required_args > 1
@@ -128,7 +129,7 @@ namespace rubinius {
           }
 
           if(ary) {
-            if(vmm->splat_position == -4) {
+            if(vmm->splat_position == -4 && vmm->required_args == 1) {
               args.use_argument(ary);
             } else {
               args.use_array(ary);
