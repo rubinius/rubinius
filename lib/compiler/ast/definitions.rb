@@ -485,11 +485,12 @@ module Rubinius
       end
 
       def map_arguments(scope)
-        @required.each do |arg|
+        @required.each.with_index do |arg, index|
           case arg
           when PatternArguments
             arg.map_arguments scope
           when Symbol
+            @required[index] = arg = :"_#{index}" if arg == :_
             scope.new_local arg
           end
         end
