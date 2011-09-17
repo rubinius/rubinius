@@ -150,7 +150,10 @@ module Enumerable
     return to_enum :sort_by unless block_given?
 
     # Transform each value to a tuple with the value and it's sort by value
-    sort_values = map { |x| SortedElement.new(x, yield(x)) }
+    sort_values = map do
+      x = Rubinius.single_block_arg
+      SortedElement.new(x, yield(x))
+    end
 
     # Now sort the tuple according to the sort by value
     sort_values.sort!
