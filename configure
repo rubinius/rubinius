@@ -863,7 +863,7 @@ int main() { return tgetnum(""); }
       @rb_readline = true
     end
 
-    @vendor_zlib = false unless @features["vendor-zlib"]
+    @vendor_zlib = true if @features["vendor-zlib"]
   end
 
   def process
