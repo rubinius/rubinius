@@ -325,7 +325,7 @@ class Configure
     feature "execinfo", default_on
     feature "C-readline", true
     feature "ruby-readline", false
-    feature "vendor-zlib", true
+    feature "vendor-zlib", !!@windows
 
     o.doc "\n Help!"
 
