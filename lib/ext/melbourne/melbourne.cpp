@@ -54,7 +54,7 @@ VALUE melbourne19_file_to_ast(VALUE self, VALUE fname, VALUE start) {
   StringValue(fname);
 
   int fd = open(RSTRING_PTR(fname), O_RDONLY);
-  if(fd) {
+  if(fd != -1) {
     VALUE result = melbourne::grammar19::file_to_ast(self,
         RSTRING_PTR(fname), fd, FIX2INT(start));
     close(fd);
