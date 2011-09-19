@@ -1,9 +1,17 @@
 class Symbol
+  def <=>(other)
+    return unless other.kind_of? Symbol
+
+    to_s <=> other.to_s
+  end
+
   def capitalize
     to_s.capitalize.to_sym
   end
 
   def casecmp(other)
+    return unless other.kind_of? Symbol
+
     to_s.casecmp(other.to_s)
   end
 
