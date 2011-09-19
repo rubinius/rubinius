@@ -1,2 +1,0 @@
-fails:Matrix#collect returns an enumerator if no block is given
-fails:Matrix#collect for a subclass of Matrix returns an instance of that subclass
