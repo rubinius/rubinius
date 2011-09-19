@@ -1,7 +1,4 @@
 before_script: ./configure
-env:
-  - "RBXOPT=-X18"
-  - "RBXOPT=-X19"
 notifications:
   email: false
   webhooks: http://elle.fallingsnow.net:13424/
