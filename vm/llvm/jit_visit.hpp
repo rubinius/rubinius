@@ -3168,6 +3168,7 @@ use_send:
       flush();
 
       Value* val = sig.call("rbx_find_const", call_args, 4, "constant", b());
+      check_for_exception(val);
       stack_push(val);
     }
 
