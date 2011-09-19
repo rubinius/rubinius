@@ -1,1 +1,2 @@
 fails:Matrix#rect returns [receiver.real, receiver.imag]
+fails:Matrix#rect for a subclass of Matrix returns instances of that subclass
