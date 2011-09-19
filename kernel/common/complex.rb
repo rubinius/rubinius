@@ -360,6 +360,10 @@ class Complex < Numeric
     Complex(@real.numerator*(cd/@real.denominator),
 	    @image.numerator*(cd/@image.denominator))
   end
+
+  def real?
+    false
+  end
   
   #
   # Standard string representation of the complex number.
@@ -414,6 +418,7 @@ class Complex < Numeric
   # The imaginary part of a complex number.
   attr_reader :image
   alias imag image
+  alias imaginary image
   
 end
 

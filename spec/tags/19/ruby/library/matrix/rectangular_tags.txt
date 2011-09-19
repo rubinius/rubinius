@@ -1,2 +1,0 @@
-fails:Matrix#rectangular returns [receiver.real, receiver.imag]
-fails:Matrix#rectangular for a subclass of Matrix returns instances of that subclass

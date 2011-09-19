@@ -46,6 +46,7 @@ compiled_method.rbc
 continuation.rbc
 delegated_method.rbc
 fixnum.rbc
+fixnum19.rbc
 dir.rbc
 dir19.rbc
 lrucache.rbc
@@ -63,6 +64,7 @@ file.rbc
 file19.rbc
 filetest.rbc
 float.rbc
+float19.rbc
 immediate.rbc
 location.rbc
 lookuptable.rbc
