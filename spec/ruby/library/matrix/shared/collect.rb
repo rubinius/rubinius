@@ -1,3 +1,6 @@
+require File.expand_path('../../fixtures/classes', __FILE__)
+require 'matrix'
+
 describe :collect, :shared => true do
   before :all do
     @m = Matrix[ [1, 2], [1, 2] ]
@@ -14,6 +17,14 @@ describe :collect, :shared => true do
   ruby_bug "#1531", "1.8.7" do
     it "returns an enumerator if no block is given" do
       @m.send(@method).should be_an_instance_of(enumerator_class)
+    end
+  end
+
+  ruby_bug "rubymine #5307", "1.9.3" do
+    describe "for a subclass of Matrix" do
+      it "returns an instance of that subclass" do
+        MatrixSub.ins.send(@method){1}.should be_an_instance_of(MatrixSub)
+      end
     end
   end
 end

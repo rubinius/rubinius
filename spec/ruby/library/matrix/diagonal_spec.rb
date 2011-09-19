@@ -1,4 +1,5 @@
 require File.expand_path('../../../spec_helper', __FILE__)
+require File.expand_path('../fixtures/classes', __FILE__)
 require 'matrix'
 
 describe "Matrix.diagonal" do
@@ -28,6 +29,12 @@ describe "Matrix.diagonal" do
           @m[i, j].should == 0
         end
       end
+    end
+  end
+
+  describe "for a subclass of Matrix" do
+    it "returns an instance of that subclass" do
+      MatrixSub.diagonal(1).should be_an_instance_of(MatrixSub)
     end
   end
 end

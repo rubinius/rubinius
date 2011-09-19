@@ -1,9 +1,8 @@
 describe :hash_replace, :shared => true do
   it "replaces the contents of self with other" do
     h = new_hash(:a => 1, :b => 2)
-    hr = new_hash(:c, -1, :d, -2)
-    h.send(@method, hr).should equal(h)
-    h.should == hr
+    h.send(@method, :c => -1, :d => -2).should equal(h)
+    h.should == new_hash(:c => -1, :d => -2)
   end
 
   it "tries to convert the passed argument to a hash using #to_hash" do

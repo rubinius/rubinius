@@ -32,6 +32,11 @@ describe :tcpsocket_new, :shared => true do
       end
     end
 
+    it "silently ignores 'nil' as the third parameter" do
+      @socket = TCPSocket.send(@method, @hostname, SocketSpecs.port, nil)
+      @socket.should be_an_instance_of(TCPSocket)
+    end
+
     it "connects to a listening server with host and port" do
       @socket = TCPSocket.send(@method, @hostname, SocketSpecs.port)
       @socket.should be_an_instance_of(TCPSocket)

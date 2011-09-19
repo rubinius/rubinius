@@ -77,7 +77,7 @@ describe "IO.select" do
     lambda { IO.select(nil, [obj]) }.should raise_error(TypeError)
   end
 
-  it "raises TypeError if the specified timeout value is not Numeric" do
+  it "raises a TypeError if the specified timeout value is not Numeric" do
     lambda { IO.select([@rd], nil, nil, Object.new) }.should raise_error(TypeError)
   end
 
@@ -90,26 +90,29 @@ describe "IO.select" do
   it "sleeps the specified timeout if all streams are nil" do
     start = Time.now
     IO.select(nil, nil, nil, 0.1)
-    (Time.now - start).should be_close(0.1, 0.005)
+    (Time.now - start).should >= 0.1
   end
 
-  it "does not accept negative timeouts" do
+  it "raises an ArgumentError when passed a negative timeout" do
     lambda { IO.select(nil, nil, nil, -5)}.should raise_error(ArgumentError)
   end
-  
-  it "sleeps forever for nil timeout" do
-    started = false
-    finished = false
+end
+
+describe "IO.select" do
+  before :each do
+    ScratchPad.clear
+  end
+
+  it "sleeps forever when passed nil for timeout" do
     t = Thread.new do
-      started = true
+      ScratchPad.record :thread_started
       IO.select(nil, nil, nil, nil)
-      finished = false
+      ScratchPad.record :select_returned
     end
-    
-    Thread.pass until t.status == "sleep"
-    started.should == true
+
+    Thread.pass until ScratchPad.recorded == :thread_started
     t.kill
     t.join
-    finished.should == false
+    ScratchPad.recorded.should == :thread_started
   end
 end

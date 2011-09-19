@@ -57,4 +57,14 @@ describe "Range#step" do
     end
   end
 
+  ruby_bug "redmine #4576", "1.9.3" do
+    describe "given Float values and step" do
+      it "returns float values of the form step * n + begin and never the end value if the range is exclusive" do
+        (1.0...6.4).step(1.8).to_a.should eql [1.0, 2.8, 4.6]
+        (1.0..6.4).step(1.8).to_a.should eql [1.0, 2.8, 4.6, 6.4]
+        # Because 3 * 18.2 + 1.0 == 55.599999999999994, we have:
+        (1.0...55.6).step(18.2).to_a.should eql [1.0, 19.2, 37.4, 55.599999999999994]
+      end
+    end
+  end
 end

@@ -1,7 +1,8 @@
 require File.expand_path('../../../spec_helper', __FILE__)
+require File.expand_path('../fixtures/classes', __FILE__)
 require 'matrix'
 
-ruby_version_is "1.8.8" do
+ruby_version_is "1.9" do
   describe "Matrix.build" do
 
     it "returns a Matrix object of the given size" do
@@ -65,4 +66,11 @@ ruby_version_is "1.8.8" do
       m.column_size.should == 3
     end
   end
+
+  describe "for a subclass of Matrix" do
+    it "returns an instance of that subclass" do
+      MatrixSub.build(3){1}.should be_an_instance_of(MatrixSub)
+    end
+  end
 end
+

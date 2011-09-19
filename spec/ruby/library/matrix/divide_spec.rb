@@ -1,5 +1,6 @@
 require File.expand_path('../../../spec_helper', __FILE__)
 require File.expand_path('../spec_helper', __FILE__)
+require File.expand_path('../fixtures/classes', __FILE__)
 require 'matrix'
 
 describe "Matrix#/" do
@@ -37,6 +38,16 @@ describe "Matrix#/" do
 
   it "returns an instance of Matrix" do
     (@a /@b).should be_kind_of(Matrix)
+  end
+
+  ruby_bug "rubymine #5307", "1.9.3" do
+    describe "for a subclass of Matrix" do
+      it "returns an instance of that subclass" do
+        m = MatrixSub.ins
+        (m/m).should be_an_instance_of(MatrixSub)
+        (m/1).should be_an_instance_of(MatrixSub)
+      end
+    end
   end
 
   ruby_bug "redmine:2365", "1.8.7" do

@@ -1,4 +1,5 @@
 require File.expand_path('../../../spec_helper', __FILE__)
+require File.expand_path('../fixtures/classes', __FILE__)
 require 'matrix'
 
 describe "Matrix#**" do
@@ -55,6 +56,12 @@ describe "Matrix#**" do
       ((a ** 0.5) ** 2).round(8).should == a
       a = Matrix[[7, 10], [15, 22]]
       ((a ** 0.25) ** 4).round(8).should == a
+    end
+  end
+
+  describe "for a subclass of Matrix" do
+    it "returns an instance of that subclass" do
+      (MatrixSub.ins ** 1).should be_an_instance_of(MatrixSub)
     end
   end
 end

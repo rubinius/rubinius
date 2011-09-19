@@ -1,4 +1,5 @@
 require File.expand_path('../../../spec_helper', __FILE__)
+require File.expand_path('../fixtures/classes', __FILE__)
 require 'matrix'
 
 describe "Matrix.columns" do
@@ -32,6 +33,14 @@ describe "Matrix.columns" do
       v.row_size.should == 0
       v.column_size.should == 3
       v.should == Matrix[[], [], []].transpose
+    end
+  end
+
+  ruby_bug "rubymine #5307", "1.9.3" do
+    describe "for a subclass of Matrix" do
+      it "returns an instance of that subclass" do
+        MatrixSub.columns([[1]]).should be_an_instance_of(MatrixSub)
+      end
     end
   end
 end

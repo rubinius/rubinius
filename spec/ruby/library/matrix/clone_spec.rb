@@ -1,4 +1,5 @@
 require File.expand_path('../../../spec_helper', __FILE__)
+require File.expand_path('../fixtures/classes', __FILE__)
 require 'matrix'
 
 describe "Matrix#clone" do
@@ -16,8 +17,11 @@ describe "Matrix#clone" do
     end
   end
 
-  before(:each) do
-    @a = Matrix[[1, 2], [3, 4], [5, 6]]
+  ruby_bug "redmine #5307", "1.9.4" do
+    describe "for a subclass of Matrix" do
+      it "returns an instance of that subclass" do
+        MatrixSub.ins.clone.should be_an_instance_of(MatrixSub)
+      end
+    end
   end
-
 end

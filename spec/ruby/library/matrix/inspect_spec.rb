@@ -1,4 +1,5 @@
 require File.expand_path('../../../spec_helper', __FILE__)
+require File.expand_path('../fixtures/classes', __FILE__)
 require 'matrix'
 
 describe "Matrix#inspect" do
@@ -18,5 +19,13 @@ describe "Matrix#inspect" do
     obj = mock("some_value")
     obj.should_receive(:inspect).and_return("some_value")
     Matrix[ [1, 2], [3, obj] ].inspect.should == "Matrix[[1, 2], [3, some_value]]"
+  end
+
+  ruby_bug "rubymine #5307", "1.9.3" do
+    describe "for a subclass of Matrix" do
+      it "returns a string using the subclass' name" do
+        MatrixSub.ins.inspect.should == "MatrixSub[[1, 0], [0, 1]]"
+      end
+    end
   end
 end

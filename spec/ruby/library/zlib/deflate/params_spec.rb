@@ -2,12 +2,6 @@ require File.expand_path('../../../../spec_helper', __FILE__)
 require 'zlib'
 
 describe 'Zlib::Deflate#params' do
-  # This spec appears to be dependent on the version of zlib.
-  # It appears that version 1.2.3+ will cause this spec to fail.
-  # If that's true, we need some way to specify zlib version guards
-  # on top of rubyspec version guards. Which all sounds like an
-  # incredibly big pile of fun.
-  quarantine! do
   ruby_bug '239', '1.9.0' do
   it 'changes the deflate parameters' do
     data = 'abcdefghijklm'
@@ -20,7 +14,6 @@ describe 'Zlib::Deflate#params' do
     d << data
 
     Zlib::Inflate.inflate(d.finish).should == 'abcdefghijklm'
-  end
   end
   end
 end
