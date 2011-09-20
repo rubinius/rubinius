@@ -58,7 +58,7 @@ class Numeric
   # See Complex#arg.
   #
   def arg
-    Math.atan2!(0, self)
+    Math.atan2(0, self)
   end
   alias angle arg
   
@@ -213,8 +213,8 @@ class Complex < Numeric
       r, theta = polar
       ore = other.real
       oim = other.image
-      nr = Math.exp!(ore*Math.log!(r) - oim * theta)
-      ntheta = theta*ore + oim*Math.log!(r)
+      nr = Math.exp(ore*Math.log(r) - oim * theta)
+      ntheta = theta*ore + oim*Math.log(r)
       Complex.polar(nr, ntheta)
     elsif other.kind_of?(Integer)
       if other > 0
@@ -295,7 +295,7 @@ class Complex < Numeric
   # Argument (angle from (1,0) on the complex plane).
   #
   def arg
-    Math.atan2!(@image, @real)
+    Math.atan2(@image, @real)
   end
   alias angle arg
   

@@ -25,6 +25,10 @@ module Math
     1124000727777607680000.0
   ]
 
+  def cbrt(x)
+    x = Rubinius::Type.coerce_to_float x
+  end
+
   def gamma(x)
     x = Rubinius::Type.coerce_to_float x
 

@@ -27,6 +27,7 @@ global.rbc
 backtrace.rbc
 comparable.rbc
 numeric.rbc
+numeric19.rbc
 ctype.rbc
 precision.rbc
 integer.rbc
