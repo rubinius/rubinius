@@ -1,2 +1,0 @@
-fails:IO#pos raises IOError on closed stream
-fails:IO#pos= raises IOError on closed stream
