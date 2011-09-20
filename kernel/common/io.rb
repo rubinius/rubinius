@@ -1505,7 +1505,7 @@ class IO
         mode = IO.parse_mode(mode)
       end
 
-      reopen_path StringValue(other), mode
+      reopen_path Rubinius::Type.coerce_to_path(other), mode
       seek 0, SEEK_SET
     end
 
