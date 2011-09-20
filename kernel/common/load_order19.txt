@@ -83,6 +83,7 @@ struct.rbc
 process.rbc
 random.rbc
 regexp.rbc
+regexp19.rbc
 signal.rbc
 sprinter.rbc
 symbol.rbc
