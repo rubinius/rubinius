@@ -57,6 +57,10 @@ class IO
     return str
   end
 
+  def self.try_convert(obj)
+    Rubinius::Type.try_convert obj, IO, :to_io
+  end
+
   class StreamCopier
     def initialize(from, to, length, offset)
       @length = length
