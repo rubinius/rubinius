@@ -614,6 +614,7 @@ class Module
     if entry = @method_table.lookup(name)
       sc = class << self; self; end
       sc.method_table.store name, entry.method, :public
+      Rubinius::VM.reset_method_cache name
       private name
     end
   end

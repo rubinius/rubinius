@@ -46,6 +46,7 @@ class Module
         method_name = Rubinius::Type.coerce_to_symbol meth
         mod, method = lookup_method(method_name)
         sc.method_table.store method_name, method.method, :public
+        Rubinius::VM.reset_method_cache method_name
         set_visibility method_name, :private
       end
     end
