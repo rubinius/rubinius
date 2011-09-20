@@ -1,3 +1,0 @@
-fails:Math.atan2 raises an TypeError if the argument cannot be coerced with Float()
-fails:Math.atan2 raises a TypeError if the argument is nil
-fails:Math.atan2 accepts any argument that can be coerced with Float()

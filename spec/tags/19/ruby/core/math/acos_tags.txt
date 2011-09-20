@@ -1,3 +1,0 @@
-fails:Math.acos raises an TypeError if the argument cannot be coerced with Float()
-fails:Math.acos raises a TypeError if the argument is nil
-fails:Math.acos accepts any argument that can be coerced with Float()

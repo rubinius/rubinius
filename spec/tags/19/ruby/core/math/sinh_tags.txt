@@ -1,2 +1,0 @@
-fails:Math.sinh raises a TypeError if the argument cannot be coerced with Float()
-fails:Math.sinh raises a TypeError if the argument is nil

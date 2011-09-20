@@ -8,6 +8,7 @@ module.rbc
 filetest.rbc
 kernel.rbc
 math.rbc
+math19.rbc
 options.rbc
 stats.rbc
 signal.rbc

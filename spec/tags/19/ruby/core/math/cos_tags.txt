@@ -1,3 +1,0 @@
-fails:Math.cos raises a TypeError unless the argument is Numeric and has #to_f
-fails:Math.cos raises a TypeError if the argument is nil
-fails:Math.cos coerces its argument with #to_f

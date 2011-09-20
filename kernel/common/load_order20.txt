@@ -71,6 +71,7 @@ lookuptable.rbc
 main.rbc
 marshal.rbc
 math.rbc
+math19.rbc
 method.rbc
 method_table.rbc
 native_method.rbc
