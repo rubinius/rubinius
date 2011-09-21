@@ -19,7 +19,7 @@ module Rubinius
     #   @stat : a File.stat instance
     #   @type : the kind of file to load, :ruby or :library
     def initialize(path)
-      @path = StringValue(path)
+      @path = Rubinius::Type.coerce_to_path path
       @load_path = nil
       @file_path = nil
       @feature = nil
