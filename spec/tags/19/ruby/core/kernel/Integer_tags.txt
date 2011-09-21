@@ -1,10 +1,2 @@
 fails:Kernel.Integer raises a TypeError when passed nil
-fails:Kernel.Integer accepts wholly lowercase alphabetic strings for bases > 10
-fails:Kernel.Integer accepts wholly uppercase alphabetic strings for bases > 10
-fails:Kernel.Integer accepts mixed-case alphabetic strings for bases > 10
-fails:Kernel.Integer accepts alphanumeric strings for bases > 10
 fails:Kernel#Integer raises a TypeError when passed nil
-fails:Kernel#Integer accepts wholly lowercase alphabetic strings for bases > 10
-fails:Kernel#Integer accepts wholly uppercase alphabetic strings for bases > 10
-fails:Kernel#Integer accepts mixed-case alphabetic strings for bases > 10
-fails:Kernel#Integer accepts alphanumeric strings for bases > 10

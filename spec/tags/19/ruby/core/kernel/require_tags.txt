@@ -18,5 +18,3 @@ fails:Kernel.require ($LOAD_FEATURES) adds the suffix of the resolved filename
 fails:Kernel.require ($LOAD_FEATURES) does not load a non-canonical path for a file already loaded
 fails:Kernel.require ($LOAD_FEATURES) does not load a ./ relative path for a file already loaded
 fails:Kernel.require ($LOAD_FEATURES) does not load a ../ relative path for a file already loaded
-fails:Kernel#require (path resolution) calls #to_str on non-String objects returned by #to_path
-fails:Kernel.require (path resolution) calls #to_str on non-String objects returned by #to_path

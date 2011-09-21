@@ -1,6 +1,0 @@
-fails:Kernel#methods when not passed an argument returns a unique list for an object extended by a module
-fails:Kernel#methods when not passed an argument returns a unique list for a class including a module
-fails:Kernel#methods when not passed an argument returns a unique list for a subclass of a class that includes a module
-fails:Kernel#methods when passed true returns a unique list for an object extended by a module
-fails:Kernel#methods when passed true returns a unique list for a class including a module
-fails:Kernel#methods when passed true returns a unique list for a subclass of a class that includes a module
