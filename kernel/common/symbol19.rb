@@ -39,6 +39,12 @@ class Symbol
   alias_method :intern, :to_sym
   alias_method :id2name, :to_s
 
+  def match(other)
+    to_s =~ other
+  end
+
+  alias_method :=~, :match
+
   def swapcase
     to_s.swapcase.to_sym
   end
