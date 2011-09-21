@@ -1,14 +1,15 @@
 module Rubinius
   module Type
     def self.coerce_to_path(obj)
-      unless object_kind_of?(obj, String)
-        if converted = try_convert(obj, String, :to_path)
-          obj = converted
-        else
-          obj = StringValue(obj)
+      if object_kind_of?(obj, String)
+        obj
+      else
+        if object_respond_to? obj, :to_path
+          obj = obj.to_path
         end
+
+        StringValue(obj)
       end
-      obj
     end
 
     def self.coerce_to_float(obj)
