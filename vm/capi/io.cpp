@@ -126,6 +126,22 @@ extern "C" {
     return io->descriptor()->to_native();
   }
 
+  long rb_io_fread(char* ptr, int len, FILE* f) {
+    NativeMethodEnvironment* env = NativeMethodEnvironment::get();
+
+    long ret;
+
+    env->state()->shared.leave_capi(env->state());
+    {
+      GCIndependent guard(env);
+      ret = fread(ptr, 1, len, f);
+    }
+
+    env->state()->shared.enter_capi(env->state());
+
+    return ret;
+  }
+
   int rb_io_wait_readable(int fd) {
     bool retry = false;
 

@@ -1211,6 +1211,8 @@ VALUE rb_uint2big(unsigned long number);
   int     rb_io_fd(VALUE io);
 #define HAVE_RB_IO_FD 1
 
+  long    rb_io_fread(char* data, int len, FILE* f);
+
   int     rb_io_wait_readable(int fd);
   int     rb_io_wait_writable(int fd);
 
@@ -1222,6 +1224,9 @@ VALUE rb_uint2big(unsigned long number);
   void    rb_thread_wait_fd(int fd);
   void    rb_thread_fd_writable(int fd);
   void    rb_thread_wait_for(struct timeval time);
+
+/* This is a HACK. */
+#define rb_io_taint_check(io) io
 
   /** Mark ruby object ptr. */
   void    rb_gc_mark(VALUE ptr);
