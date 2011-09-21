@@ -76,6 +76,7 @@ struct.rbc
 process.rbc
 random.rbc
 regexp.rbc
+regexp18.rbc
 signal.rbc
 sprinter.rbc
 symbol.rbc
