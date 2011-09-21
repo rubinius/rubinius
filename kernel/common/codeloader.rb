@@ -188,19 +188,6 @@ module Rubinius
       path[0] == ?/ or path.prefix?("./") or path.prefix?("../")
     end
 
-    # Searches $LOAD_PATH for a file named +name+. Does not append any file
-    # extension to +name+ while searching. Used by #load to resolve the name
-    # to a full path to load. Also used by #require when the file extension is
-    # provided.
-    def search_load_path(name)
-      $LOAD_PATH.each do |dir|
-        path = "#{dir}/#{name}"
-        return path if loadable? path
-      end
-
-      return nil
-    end
-
     # Main logic for converting a name to an actual file to load. Used by
     # #load and by #require when the file extension is provided.
     #
@@ -209,7 +196,7 @@ module Rubinius
     # name in $LOAD_PATH.
     #
     # Returns true if a loadable file is found, otherwise returns false.
-    def verify_load_path(path)
+    def verify_load_path(path, loading=false)
       path = File.expand_path path if home_path? path
 
       @feature = path
@@ -217,7 +204,7 @@ module Rubinius
       if qualified_path? path
         return false unless loadable? path
       else
-        return false unless path = search_load_path(path)
+        return false unless path = search_load_path(path, loading)
         path = "./#{path}" unless qualified_path? path
       end
 
@@ -230,7 +217,7 @@ module Rubinius
     # Called directly by #load. Either resolves the path passed to Kernel#load
     # to a specific file or raises a LoadError.
     def resolve_load_path
-      load_error unless verify_load_path @path
+      load_error unless verify_load_path @path, true
     end
 
     # Combines +directory+, +name+, and +extension+ to check if the result is
