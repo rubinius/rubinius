@@ -97,16 +97,6 @@ namespace rubinius {
 
     Value* global_serial_pos;
 
-    // The single Arguments object on the stack, plus positions into it
-    // that we store the call info
-    Value* out_args_;
-    Value* out_args_name_;
-    Value* out_args_recv_;
-    Value* out_args_block_;
-    Value* out_args_total_;
-    Value* out_args_arguments_;
-    Value* out_args_container_;
-
     int called_args_;
     int sends_done_;
     bool has_side_effects_;
@@ -125,18 +115,6 @@ namespace rubinius {
     static const int cHintLazyBlockArgs = 1;
 
     class Unsupported {};
-
-    void init_out_args() {
-      out_args_ = info().out_args();
-
-      out_args_name_ = ptr_gep(out_args_, 0, "out_args_name");
-      out_args_recv_ = ptr_gep(out_args_, 1, "out_args_recv");
-      out_args_block_= ptr_gep(out_args_, 2, "out_args_block");
-      out_args_total_= ptr_gep(out_args_, 3, "out_args_total");
-      out_args_arguments_ = ptr_gep(out_args_, 4, "out_args_arguments");
-      out_args_container_ = ptr_gep(out_args_, offset::args_container,
-                                    "out_args_container");
-    }
 
     JITVisit(LLVMState* ls, JITMethodInfo& info, BlockMap& bm,
              llvm::BasicBlock* start)
@@ -656,18 +634,6 @@ namespace rubinius {
       sig << ObjType;
       sig << ls_->IntPtrTy;
       sig << ObjArrayTy;
-    }
-
-    void setup_out_args(int args) {
-      b().CreateStore(stack_back(args), out_args_recv_);
-      b().CreateStore(constant(Qnil), out_args_block_);
-      b().CreateStore(cint(args),
-                    out_args_total_);
-      b().CreateStore(Constant::getNullValue(ptr_type("Tuple")),
-                      out_args_container_);
-      if(args > 0) {
-        b().CreateStore(stack_objects(args), out_args_arguments_);
-      }
     }
 
     void setup_out_args_with_block(int args) {
@@ -1370,6 +1336,7 @@ namespace rubinius {
       sig << ls_->Int32Ty;
       sig << ls_->IntPtrTy;
       sig << "CallFrame";
+      sig << ls_->VoidPtrTy;
       sig << ls_->Int32Ty;
       sig << llvm::PointerType::getUnqual(ls_->Int32Ty);
 
@@ -1383,11 +1350,12 @@ namespace rubinius {
         cint(current_ip_),
         sp,
         root_callframe,
+        constant(info().context().runtime_data_holder(), ls_->VoidPtrTy),
         cint(unwinds),
         info().unwind_info()
       };
 
-      Value* call = sig.call("rbx_continue_uncommon", call_args, 7, "", b());
+      Value* call = sig.call("rbx_continue_uncommon", call_args, 8, "", b());
 
       info().add_return_value(call, current_block());
       b().CreateBr(info().return_pad());

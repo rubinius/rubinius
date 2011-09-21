@@ -121,6 +121,75 @@ namespace rubinius {
           decision = policy->inline_p(vmm, opts);
         }
 
+        // If a method was too big and has a compiled version, then
+        // rather than inline it, emit a straight call to the compiled
+        // version!
+        if(decision == cTooBig && !inline_block_
+                               && !kind_of<IncludedModule>(defined_in)
+                               && vmm->jitted()) {
+          if(ops_.state()->config().jit_inline_debug) {
+            context_.inline_log("direct call")
+              << ops_.state()->enclosure_name(cm)
+              << "#"
+              << ops_.state()->symbol_cstr(cm->name())
+              << " into "
+              << ops_.state()->symbol_cstr(ops_.method_name())
+              << ".\n";
+          }
+
+          check_recv(klass);
+          ops_.setup_out_args(count_);
+
+          std::vector<const Type*> ftypes;
+          ftypes.push_back(ops_.state()->ptr_type("VM"));
+          ftypes.push_back(ops_.state()->ptr_type("CallFrame"));
+          ftypes.push_back(ops_.state()->ptr_type("Executable"));
+          ftypes.push_back(ops_.state()->ptr_type("Module"));
+          ftypes.push_back(ops_.state()->ptr_type("Arguments"));
+
+          const Type *ft = llvm::PointerType::getUnqual(FunctionType::get(ops_.state()->ptr_type("Object"), ftypes, false));
+
+          // We can't extract and use a specialized version of cm because we don't
+          // yet have the ability to check if the specialized version has been
+          // invalidated. Once that is added, we can use find_specialized on cm.
+          // Until then, we need to go the slow path through the specialized picker.
+          executor target = cm->execute;
+
+          Value* func = ops_.b().CreateIntToPtr(
+              ops_.clong(reinterpret_cast<uintptr_t>(target)),
+              ft, "direct_method");
+
+          jit::RuntimeData* rd = new jit::RuntimeData(cm, cache_->name, defined_in);
+          ops_.context().add_runtime_data(rd);
+
+          Value* rt_rd = ops_.constant(rd, ops_.state()->ptr_type("jit::RuntimeData"));
+
+          // cm
+          Value* rd_method = 
+            ops_.b().CreateBitCast(
+              ops_.b().CreateLoad(
+                ops_.b().CreateConstGEP2_32(rt_rd, 0, offset::runtime_data_method, "method_pos"),
+                "cm"),
+              ops_.state()->ptr_type("Executable"));
+
+          Value* rd_mod = ops_.b().CreateLoad(
+              ops_.b().CreateConstGEP2_32(rt_rd, 0, offset::runtime_data_module, "module_pos"),
+              "module");
+
+          Value* call_args[] = {
+            ops_.vm(),
+            ops_.call_frame(),
+            rd_method,
+            rd_mod,
+            ops_.out_args()
+          };
+
+          Value* dc_res = ops_.b().CreateCall(func, call_args, call_args+5, "dc_res");
+          set_result(dc_res);
+
+          goto remember;
+        }
+
         if(decision != cInline) {
           if(ops_.state()->config().jit_inline_debug) {
 
@@ -150,7 +219,11 @@ namespace rubinius {
             default:
               ops_.state()->log() << "no policy";
             }
-            ops_.state()->log() << "\n";
+            if(vmm->jitted()) {
+              ops_.state()->log() << " (jitted)\n";
+            } else {
+              ops_.state()->log() << " (interp)\n";
+            }
           }
           return false;
         }
@@ -493,6 +566,7 @@ remember:
 
     jit::RuntimeData* rd = new jit::RuntimeData(cm, cache_->name, defined_in);
     context_.add_runtime_data(rd);
+    info.set_runtime_data(rd);
 
     jit::InlineMethodBuilder work(ops_.state(), info, rd);
     work.valid_flag = ops_.valid_flag();
@@ -548,6 +622,7 @@ remember:
 
     jit::RuntimeData* rd = new jit::RuntimeData(ib->method(), nil<Symbol>(), nil<Module>());
     context_.add_runtime_data(rd);
+    info.set_runtime_data(rd);
 
     jit::InlineBlockBuilder work(ops_.state(), info, rd);
     work.valid_flag = ops_.valid_flag();

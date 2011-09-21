@@ -67,7 +67,7 @@ namespace rubinius {
     }
 
 #ifdef ENABLE_LLVM
-    if(void* ptr = vmm->native_function()) {
+    if(executor ptr = vmm->unspecialized) {
       return (*((BlockExecutor)ptr))(state, previous, env, args, invocation);
     }
 #endif
@@ -262,7 +262,7 @@ namespace rubinius {
       if(vmm->call_count >= state->shared.config.jit_call_til_compile) {
         LLVMState* ls = LLVMState::get(state);
 
-        ls->compile_soon(state, env->code(), env);
+        ls->compile_soon(state, env->code(), env, true);
 
       } else {
         vmm->call_count++;

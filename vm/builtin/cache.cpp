@@ -1,4 +1,6 @@
 #include "builtin/cache.hpp"
+#include "builtin/compiledmethod.hpp"
+#include "builtin/class.hpp"
 
 namespace rubinius {
   MethodCacheEntry* MethodCacheEntry::create(STATE, Class* klass, Module* mod,

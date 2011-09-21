@@ -13,6 +13,8 @@ namespace rubinius {
   class JITMethodInfo;
 
 namespace jit {
+  class RuntimeData;
+
   class Builder {
   public:
     LLVMState* ls_;
@@ -58,6 +60,7 @@ namespace jit {
 
   protected:
     llvm::Value* counter2_;
+    jit::RuntimeData* runtime_data_;
 
   public:
 

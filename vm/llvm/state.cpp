@@ -274,17 +274,18 @@ namespace rubinius {
         // mutex now unlock, allowing others to push more requests
         //
 
-        jit::Compiler jit;
+        jit::Compiler jit(ls_);
+
+        int spec_id = 0;
+        if(Class* cls = req->receiver_class()) {
+          spec_id = cls->class_id();
+        }
 
         void* func = 0;
         {
           timer::Running<1000000> timer(ls_->shared().stats.jit_time_spent);
 
-          if(req->is_block()) {
-            jit.compile_block(ls_, req->method(), req->vmmethod());
-          } else {
-            jit.compile_method(ls_, req->method(), req->vmmethod());
-          }
+          jit.compile(ls_, req);
 
           func = jit.generate_function(ls_);
         }
@@ -316,16 +317,22 @@ namespace rubinius {
         // If the method has had jit'ing request disabled since we started
         // JIT'ing it, discard our work.
         if(!req->vmmethod()->jit_disabled()) {
-          req->vmmethod()->set_jitted(jit.llvm_function(),
-                                      jit.code_bytes(),
-                                      func);
+
+          jit::RuntimeDataHolder* rd = jit.context().runtime_data_holder();
 
           if(!req->is_block()) {
-            req->method()->execute = reinterpret_cast<executor>(func);
+            if(spec_id) {
+              req->method()->add_specialized(spec_id, reinterpret_cast<executor>(func), rd);
+            } else {
+              req->method()->set_unspecialized(reinterpret_cast<executor>(func), rd);
+            }
+          } else {
+            req->method()->set_unspecialized(reinterpret_cast<executor>(func), rd);
           }
+
           assert(req->method()->jit_data());
 
-          req->method()->jit_data()->run_write_barrier(ls_->write_barrier(), req->method());
+          rd->run_write_barrier(ls_->write_barrier(), req->method());
 
           ls_->shared().stats.jitted_methods++;
 
@@ -523,6 +530,8 @@ namespace rubinius {
     IntPtrTy = Int32Ty;
 #endif
 
+    VoidPtrTy = llvm::PointerType::getUnqual(Int8Ty);
+
     FloatTy = Type::getFloatTy(ctx_);
     DoubleTy = Type::getDoubleTy(ctx_);
 
@@ -661,9 +670,9 @@ namespace rubinius {
     return symbol_cstr(ss->module()->name());
   }
 
-  void LLVMState::compile_soon(STATE, CompiledMethod* cm, BlockEnvironment* block) {
-    Object* placement;
-    bool is_block = false;
+  void LLVMState::compile_soon(STATE, CompiledMethod* cm, Object* placement,
+                               bool is_block)
+  {
     bool wait = config().jit_sync;
 
     // Ignore it!
@@ -676,7 +685,7 @@ namespace rubinius {
     }
 
     if(debug_search) {
-      if(block) {
+      if(is_block) {
         std::cout << "JIT: queueing block inside: "
           << enclosure_name(cm) << "#" << symbol_cstr(cm->name()) << "\n";
       } else {
@@ -686,13 +695,6 @@ namespace rubinius {
     }
 
     cm->backend_method()->call_count = -1;
-
-    if(block) {
-      is_block = true;
-      placement = block;
-    } else {
-      placement = Qnil;
-    }
 
     BackgroundCompileRequest* req =
       new BackgroundCompileRequest(state, cm, placement, is_block);
@@ -725,7 +727,7 @@ namespace rubinius {
 
       if(state->shared.config.jit_show_compiling) {
         llvm::outs() << "[[[ JIT Queued"
-          << (block ? " block " : " method ")
+          << (is_block ? " block " : " method ")
           << queued_methods() << "/"
           << jitted_methods() << " ]]]\n";
       }
@@ -789,9 +791,13 @@ namespace rubinius {
     }
 
     if(candidate->block_p()) {
-      compile_soon(state, candidate->cm, candidate->block_env());
+      compile_soon(state, candidate->cm, candidate->block_env(), true);
     } else {
-      compile_soon(state, candidate->cm);
+      if(candidate->cm->can_specialize_p()) {
+        compile_soon(state, candidate->cm, candidate->self()->class_object(state));
+      } else {
+        compile_soon(state, candidate->cm, Qnil);
+      }
     }
   }
 

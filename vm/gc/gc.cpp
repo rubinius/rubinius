@@ -194,6 +194,7 @@ namespace rubinius {
         }
       }
 
+
 #ifdef ENABLE_LLVM
       if(jit::RuntimeDataHolder* jd = call_frame->jit_data()) {
         jd->set_mark();

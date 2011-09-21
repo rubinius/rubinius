@@ -554,6 +554,10 @@ namespace rubinius {
       Executable* meth = mce->method();
       Module* mod = mce->stored_module();
 
+      // if(mce->execute) {
+        // return mce->execute(state, call_frame, meth, mod, args);
+      // }
+
       return meth->execute(state, call_frame, meth, mod, args);
     }
 

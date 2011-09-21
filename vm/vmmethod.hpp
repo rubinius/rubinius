@@ -35,6 +35,20 @@ namespace rubinius {
       eNoInline = 1 << 0
     };
 
+    const static int cMaxSpecializations = 3;
+
+    struct Specialization {
+      int class_id;
+      executor execute;
+      jit::RuntimeDataHolder* jit_data;
+    };
+
+    enum ExecuteStatus {
+      eInterpret,
+      eJIT,
+      eJITDisable,
+    };
+
   private:
     VMMethod* parent_;
 
@@ -61,12 +75,11 @@ namespace rubinius {
     size_t number_of_caches_;
     InlineCache* caches;
 
+    Specialization specializations[cMaxSpecializations];
+    executor unspecialized;
+
   private:
-#ifdef ENABLE_LLVM
-    llvm::Function* llvm_function_;
-    int    jitted_bytes_;
-    void*  jitted_impl_;
-#endif
+    ExecuteStatus execute_status_;
 
     Symbol* name_;
     uint64_t method_id_;
@@ -83,41 +96,17 @@ namespace rubinius {
     virtual void cleanup(STATE, CodeManager* cm);
     virtual int size();
 
-#ifdef ENABLE_LLVM
     bool jitted() {
-      return jit_disabled() && jitted_impl_ != 0;
+      return execute_status_ == eJIT;
     }
 
     bool jit_disabled() {
-      return jitted_bytes_ == -1;
+      return execute_status_ == eJITDisable;
     }
 
-    void set_jitted(llvm::Function* func, size_t bytes, void* impl) {
-      llvm_function_ = func;
-      jitted_impl_ = impl;
-      jitted_bytes_ = bytes;
+    void set_execute_status(ExecuteStatus s) {
+      execute_status_ = s;
     }
-
-    void* native_function() {
-      return jitted_impl_;
-    }
-
-    llvm::Function* llvm_function() {
-      return llvm_function_;
-    }
-
-    void* jitted_impl() {
-      return jitted_impl_;
-    }
-
-    size_t jitted_bytes() {
-      return jitted_bytes_;
-    }
-#else
-    bool jitted() {
-      return false;
-    }
-#endif
 
     void update_addresses(int index, int operands=0) {
       addresses[index] = instructions[opcodes[index]];
@@ -201,7 +190,7 @@ namespace rubinius {
 
     static Object* uncommon_interpreter(STATE, VMMethod* const vmm,
       CallFrame* const call_frame, int32_t entry_ip, native_int sp,
-      CallFrame* const method_call_frame,
+      CallFrame* const method_call_frame, jit::RuntimeDataHolder* rd,
       int32_t unwind_count, int32_t* unwinds);
 
     void setup_argument_handler(CompiledMethod* meth);
@@ -212,7 +201,8 @@ namespace rubinius {
     void initialize_caches(STATE, CompiledMethod* original, int sends);
     void find_super_instructions();
 
-    void deoptimize(STATE, CompiledMethod* original, bool disable=false);
+    void deoptimize(STATE, CompiledMethod* original, jit::RuntimeDataHolder* rd,
+                    bool disable=false);
 
     /*
      * Helper class for iterating over an Opcode array.  Used to convert a

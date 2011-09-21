@@ -88,6 +88,7 @@ namespace rubinius {
     const llvm::Type* Int32Ty;
     const llvm::Type* Int64Ty;
     const llvm::Type* IntPtrTy;
+    const llvm::Type* VoidPtrTy;
 
     const llvm::Type* FloatTy;
     const llvm::Type* DoubleTy;
@@ -214,7 +215,7 @@ namespace rubinius {
     const llvm::Type* ptr_type(std::string name);
     const llvm::Type* type(std::string name);
 
-    void compile_soon(STATE, CompiledMethod* cm, BlockEnvironment* block=0);
+    void compile_soon(STATE, CompiledMethod* cm, Object* extra, bool is_block=false);
     void remove(llvm::Function* func);
 
     CallFrame* find_candidate(STATE, CompiledMethod* start, CallFrame* call_frame);

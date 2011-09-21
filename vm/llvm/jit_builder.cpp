@@ -22,6 +22,7 @@ namespace jit {
     , import_args_(0)
     , body_(0)
     , info_(i)
+    , runtime_data_(0)
   {
     llvm::Module* mod = ls->module();
     cf_type = mod->getTypeByName("struct.rubinius::CallFrame");

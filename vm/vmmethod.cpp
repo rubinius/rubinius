@@ -57,10 +57,7 @@ namespace rubinius {
     , uncommon_count(0)
     , number_of_caches_(0)
     , caches(0)
-#ifdef ENABLE_LLVM
-    , llvm_function_(NULL)
-    , jitted_impl_(NULL)
-#endif
+    , execute_status_(eInterpret)
     , name_(meth->name())
     , method_id_(state->shared.inc_method_count(state))
     , debugging(false)
@@ -92,6 +89,13 @@ namespace rubinius {
       call_count = 0;
     } else {
       call_count = -1;
+    }
+
+    unspecialized = 0;
+    for(int i = 0; i < cMaxSpecializations; i++) {
+      specializations[i].class_id = 0;
+      specializations[i].execute = 0;
+      specializations[i].jit_data = 0;
     }
 
     state->shared.om->add_code_resource(this);
@@ -691,36 +695,41 @@ namespace rubinius {
 
   // If +disable+ is set, then the method is tagged as not being
   // available for JIT.
-  void VMMethod::deoptimize(STATE, CompiledMethod* original, bool disable) {
-#ifdef ENABLE_LLVM
-    if(jitted_impl_) {
-      // This resets execute to use the interpreter
-      setup_argument_handler(original);
+  void VMMethod::deoptimize(STATE, CompiledMethod* original,
+                            jit::RuntimeDataHolder* rd, 
+                            bool disable)
+  {
+    bool still_others = false;
 
-      // Don't call LLVMState::get(state)->remove(llvm_function_)
-      // here. We let the CodeManager do that later, when we're sure
-      // the llvm function is no longer used.
-      llvm_function_ = 0;
-
-      jitted_impl_ = 0;
-
-      if(disable) {
-        jitted_bytes_ = -1;
-      } else {
-        jitted_bytes_ = 0;
+    for(int i = 0; i < cMaxSpecializations; i++) {
+      if(!rd) {
+        specializations[i].class_id = 0;
+        specializations[i].execute = 0;
+        specializations[i].jit_data = 0;
+      } else if(specializations[i].jit_data == rd) {
+        specializations[i].class_id = 0;
+        specializations[i].execute = 0;
+        specializations[i].jit_data = 0;
+      } else if(specializations[i].jit_data) {
+        still_others = true;
       }
+    }
 
-      // Remove any JIT data, which will be cleanup by the CodeManager
-      // later.
+    if(!rd || original->jit_data() == rd) {
       original->set_jit_data(0);
     }
 
-    if(disable) {
-      call_count = -1;
-    } else {
-      call_count = 0;
+    if(!still_others) {
+      execute_status_ = eInterpret;
+      // This resets execute to use the interpreter
+      setup_argument_handler(original);
     }
-#endif
+
+    if(disable) {
+      execute_status_ = eJITDisable;
+    } else if(execute_status_ == eJITDisable && still_others) {
+      execute_status_ = eJIT;
+    }
   }
 
   /*

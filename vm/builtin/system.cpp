@@ -921,7 +921,7 @@ namespace rubinius {
 
     VMMethod* vmm = env->vmmethod(state);
 
-    jit::Compiler jit;
+    jit::Compiler jit(ls);
     jit.compile_block(ls, env->code(), vmm);
 
     if(show->true_p()) {
@@ -953,7 +953,7 @@ namespace rubinius {
     while(obj) {
       if(CompiledMethod* cm = try_as<CompiledMethod>(obj)) {
         if(VMMethod* vmm = cm->backend_method()) {
-          vmm->deoptimize(state, cm, disable);
+          vmm->deoptimize(state, cm, 0, disable);
         }
         total++;
       }

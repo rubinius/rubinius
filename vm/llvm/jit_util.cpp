@@ -1129,6 +1129,7 @@ extern "C" {
   Object* rbx_continue_uncommon(STATE, CallFrame* call_frame,
                                 int32_t entry_ip, native_int sp,
                                 CallFrame* method_call_frame,
+                                jit::RuntimeDataHolder* rd,
                                 int32_t unwind_count,
                                 int32_t* unwinds)
   {
@@ -1170,7 +1171,7 @@ extern "C" {
 
     return VMMethod::uncommon_interpreter(state, vmm, call_frame,
                                           entry_ip, sp,
-                                          method_call_frame,
+                                          method_call_frame, rd,
                                           unwind_count, unwinds);
   }
 

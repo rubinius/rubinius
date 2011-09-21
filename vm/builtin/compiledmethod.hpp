@@ -59,6 +59,11 @@ namespace rubinius {
     }
 #endif
 
+    bool can_specialize_p();
+    void set_unspecialized(executor exec, jit::RuntimeDataHolder* rd);
+    void add_specialized(int spec_id, executor exec, jit::RuntimeDataHolder* rd);
+    executor find_specialized(int spec_id);
+
     attr_accessor(metadata, Object);
     attr_accessor(name, Symbol);
     attr_accessor(iseq, InstructionSequence);
@@ -94,6 +99,7 @@ namespace rubinius {
     void specialize(STATE, TypeInfo* ti);
 
     static Object* default_executor(STATE, CallFrame*, Executable* exec, Module* mod, Arguments& args);
+    static Object* specialized_executor(STATE, CallFrame*, Executable* exec, Module* mod, Arguments& args);
 
     // Rubinius.primitive :compiledmethod_set_breakpoint
     Object* set_breakpoint(STATE, Fixnum* ip, Object* bp);

@@ -4,6 +4,8 @@
 #include "llvm/state.hpp"
 
 #include "builtin/compiledmethod.hpp"
+#include "builtin/class.hpp"
+
 #include "object_utils.hpp"
 
 namespace rubinius {
@@ -12,19 +14,19 @@ namespace rubinius {
 
   class BackgroundCompileRequest {
     TypedRoot<CompiledMethod*> method_;
-    TypedRoot<Object*> mm_;
+    TypedRoot<Object*> extra_;
     bool is_block_;
     thread::Condition* waiter_;
 
   public:
-    BackgroundCompileRequest(STATE, CompiledMethod* cm, Object* mm, bool is_block=false)
+    BackgroundCompileRequest(STATE, CompiledMethod* cm, Object* extra, bool is_block=false)
       : method_(state)
-      , mm_(state)
+      , extra_(state)
       , is_block_(is_block)
       , waiter_(0)
     {
       method_.set(cm);
-      mm_.set(mm);
+      extra_.set(extra);
     }
 
     VMMethod* vmmethod() {
@@ -36,7 +38,11 @@ namespace rubinius {
     }
 
     BlockEnvironment* block_env() {
-      return try_as<BlockEnvironment>(mm_.get());
+      return try_as<BlockEnvironment>(extra_.get());
+    }
+
+    Class* receiver_class() {
+      return try_as<Class>(extra_.get());
     }
 
     bool is_block() {

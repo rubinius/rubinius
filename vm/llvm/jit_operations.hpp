@@ -16,6 +16,7 @@
 #include "llvm/types.hpp"
 
 #include "llvm/method_info.hpp"
+#include "llvm/jit_runtime.hpp"
 
 #include <llvm/Value.h>
 #include <llvm/BasicBlock.h>
@@ -53,6 +54,18 @@ namespace rubinius {
 
     llvm::IRBuilder<> builder_;
     std::vector<ValueHint> hints_;
+
+  protected:
+
+    // The single Arguments object on the stack, plus positions into it
+    // that we store the call info
+    Value* out_args_;
+    Value* out_args_name_;
+    Value* out_args_recv_;
+    Value* out_args_block_;
+    Value* out_args_total_;
+    Value* out_args_arguments_;
+    Value* out_args_container_;
 
   protected:
     JITMethodInfo& method_info_;
@@ -128,6 +141,34 @@ namespace rubinius {
 
     virtual ~JITOperations() {
       if(inline_policy_ and own_policy_) delete inline_policy_;
+    }
+
+    void init_out_args() {
+      out_args_ = info().out_args();
+
+      out_args_name_ = ptr_gep(out_args_, 0, "out_args_name");
+      out_args_recv_ = ptr_gep(out_args_, 1, "out_args_recv");
+      out_args_block_= ptr_gep(out_args_, 2, "out_args_block");
+      out_args_total_= ptr_gep(out_args_, 3, "out_args_total");
+      out_args_arguments_ = ptr_gep(out_args_, 4, "out_args_arguments");
+      out_args_container_ = ptr_gep(out_args_, offset::args_container,
+                                    "out_args_container");
+    }
+
+    void setup_out_args(int args) {
+      b().CreateStore(stack_back(args), out_args_recv_);
+      b().CreateStore(constant(Qnil), out_args_block_);
+      b().CreateStore(cint(args),
+                    out_args_total_);
+      b().CreateStore(Constant::getNullValue(ptr_type("Tuple")),
+                      out_args_container_);
+      if(args > 0) {
+        b().CreateStore(stack_objects(args), out_args_arguments_);
+      }
+    }
+
+    Value* out_args() {
+      return out_args_;
     }
 
     IRBuilder<>& b() { return builder_; }
@@ -914,6 +955,12 @@ namespace rubinius {
       Value* call_args[] = { val };
 
       sig.call("rbx_jit_debug_spot", call_args, 1, "", b());
+    }
+
+    Value* gc_literal(Object* obj, const Type* type) {
+      jit::GCLiteral* lit = method_info_.runtime_data()->new_literal(obj);
+      Value* ptr = constant(lit->address_of_object(), llvm::PointerType::getUnqual(type));
+      return b().CreateLoad(ptr, "gc_literal");
     }
 
     virtual void check_for_exception(llvm::Value* val, bool pass_top=true) = 0;

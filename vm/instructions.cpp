@@ -220,6 +220,7 @@ Object* VMMethod::uncommon_interpreter(STATE,
                                        int32_t entry_ip,
                                        native_int sp,
                                        CallFrame* const method_call_frame,
+                                       jit::RuntimeDataHolder* rd,
                                        int32_t unwind_count,
                                        int32_t* input_unwinds)
 {
@@ -236,7 +237,7 @@ Object* VMMethod::uncommon_interpreter(STATE,
     }
 
     method_vmm->uncommon_count = 0;
-    method_vmm->deoptimize(state, method_call_frame->cm);
+    method_vmm->deoptimize(state, method_call_frame->cm, rd);
   }
 
 #include "vm/gen/instruction_locations.hpp"

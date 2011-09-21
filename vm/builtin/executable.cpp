@@ -79,7 +79,7 @@ namespace rubinius {
     for(std::list<CompiledMethod*>::const_iterator i = inliners_->inliners().begin();
         i != inliners_->inliners().end();
         ++i) {
-      (*i)->backend_method()->deoptimize(state, *i);
+      (*i)->backend_method()->deoptimize(state, *i, 0);
     }
 
     inliners_->inliners().clear();
