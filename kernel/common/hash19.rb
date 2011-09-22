@@ -296,6 +296,8 @@ class Hash
   end
 
   def clear
+    Rubinius.check_frozen
+
     __setup__
     self
   end
