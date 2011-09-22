@@ -405,12 +405,12 @@ namespace rubinius {
       config.print();
     }
 
-    if(config.agent_port > 0) {
+    if(config.agent_start > 0) {
       // if port_ is 1, the user wants to use a randomly assigned local
       // port which will be written to the temp file for console to pick
       // up.
 
-      int port = config.agent_port;
+      int port = config.agent_start;
       if(port == 1) port = 0;
       start_agent(port);
     }

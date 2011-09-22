@@ -96,7 +96,7 @@ Rubinius::ConfigurationVariables.define do |c|
   end
 
   c.section "agent" do |s|
-    s.vm_variable "port", 0, 
+    s.vm_variable "start", 0,
       "Start the QueryAgent on a TCP port. Default port is a random port"
 
     s.vm_variable "verbose", false,
