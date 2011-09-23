@@ -11,7 +11,6 @@ argf.rbc
 tuple.rbc
 exception.rbc
 undefined.rbc
-hash.rbc
 hash18.rbc
 type.rbc
 type18.rbc
