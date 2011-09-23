@@ -73,8 +73,8 @@ class Configure
 
 
     if @host == "i686-pc-linux-gnu" || @host == "x86_64-unknown-linux-gnu"
-      failure unless check_tool_version @cc, '-dumpversion', /(\d+)\.(\d+)/, [4,1]
-      failure unless check_tool_version 'bison', '--version', /bison \(GNU Bison\) (\d+)\.(\d+)/, [2,4]
+      check_tool_version @cc, '-dumpversion', [4, 1]
+      check_tool_version 'bison', '--version', [2, 3]
 
       @gcc_major = `#{@cc} -dumpversion`.strip.split(".")[0,2].join(".")
       @llvm_generic_prebuilt  = "llvm-#{@llvm_version}-#{@host}-#{@gcc_major}.tar.bz2"
@@ -921,16 +921,22 @@ int main() { return tgetnum(""); }
     return "#{name}-#{version}"
   end
 
-  def check_tool_version(tool_name, opts, version_regexp, expected_version)
-    @log.write "Checking #{tool_name}:"
-    output = `#{tool_name} #{opts}` rescue 'oops'
+  def check_tool_version(tool_name, opts, version, regexp=/(?=\d)(\d+).(\d+).?(\d+)?/)
+    @log.print "Checking #{tool_name}:"
+
+    output = `#{tool_name} #{opts}`
+
     if $?.exitstatus == 0
-      version = output.scan(version_regexp)[0].map(&:to_i)
-      @log.error "  Expected #{tool_name} version >= #{expected_version.join '.'} , found #{version.join '.'}"
-      (version <=> expected_version) >=0
+      v = output.scan(regexp)[0].map(&:to_i)
+      unless (v <=> version) >= 0
+        msg = " Expected #{tool_name} version >= #{version.join('.')}, found #{v.join('.')}"
+        @log.error msg
+        failure
+      end
+      @log.write " found"
     else
-      @log.error "  #{tool_name} not found"
-      false
+      @log.error " not found"
+      failure
     end
   end
 
