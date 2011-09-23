@@ -5989,7 +5989,11 @@ rb_parser_sym(const char *name)
       case '$':
         id |= ID_GLOBAL;
         m++;
-        if (!is_identchar(*m)) m++;
+        if(!m[0]) { // Detect a :"$"
+          id = ID_LOCAL;
+        } else if (!is_identchar(*m)) {
+          m++;
+        }
         break;
       case '@':
         if (name[1] == '@') {
