@@ -237,7 +237,6 @@ class Hash
   alias_method :__store__, :[]=
 
   def clear
-    Rubinius.check_frozen
     __setup__
     self
   end
