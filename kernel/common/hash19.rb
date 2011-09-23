@@ -295,13 +295,6 @@ class Hash
     nil
   end
 
-  def clear
-    Rubinius.check_frozen
-
-    __setup__
-    self
-  end
-
   def compare_by_identity
     Rubinius.check_frozen
 
