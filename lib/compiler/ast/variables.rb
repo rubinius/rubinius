@@ -320,9 +320,10 @@ module Rubinius
         # @value can be nil if this is coming via an masgn, which means
         # the value is already on the stack.
         if @name == :$!
+          g.push_self
           @value.bytecode(g) if @value
           pos(g)
-          g.raise_exc
+          g.send :raise, 1, true
         elsif @name == :$~
           pos(g)
           # this is a noop for now, but we need to run the
