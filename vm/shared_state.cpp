@@ -230,7 +230,7 @@ namespace rubinius {
   void SharedState::clear_critical(STATE) {
     SYNC(state);
 
-    if(pthread_equal(ruby_critical_thread_, pthread_self())) {
+    if(ruby_critical_set_ && pthread_equal(ruby_critical_thread_, pthread_self())) {
       ruby_critical_set_ = false;
       ruby_critical_lock_.unlock();
     }
