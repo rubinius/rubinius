@@ -42,7 +42,7 @@ class MSpecMain < MSpecScript
     end
 
     options.on("-A", "--valgrind", "Run under valgrind") do
-      config[:flags] << '--valgrind'
+      config[:use_valgrind] = true
     end
 
     options.on("--warnings", "Don't supress warnings") do
@@ -159,7 +159,10 @@ class MSpecMain < MSpecScript
     if config[:multi] and config[:command] == "ci"
       multi_exec argv
     else
-      if config[:use_gdb]
+      if config[:use_valgrind]
+        more = ["--db-attach=#{config[:use_gdb] ? 'yes' : 'no'}", config[:target]] + argv
+        exec "valgrind", *more
+      elsif config[:use_gdb]
         more = ["--args", config[:target]] + argv
         exec "gdb", *more
       else
