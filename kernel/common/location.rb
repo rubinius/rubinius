@@ -118,12 +118,28 @@ module Rubinius
         "missing_backtrace_unknown_location"
       end
 
+      def method
+        "missing_backtrace_unknown_location"
+      end
+
       def line
         "<no line>"
       end
 
-      def position
+      def position(dir=nil)
         "<no file>"
+      end
+
+      def name
+        "missing_backtrace_unknown_name"
+      end
+
+      def is_jit
+        false
+      end
+
+      def inlined?
+        false
       end
     end
   end
