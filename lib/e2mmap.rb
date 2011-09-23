@@ -159,12 +159,7 @@ module Exception2MessageMapper
   #
   def E2MM.Raise(klass = E2MM, err = nil, *rest)
     if form = e2mm_message(klass, err)
-      $! = err.new(sprintf(form, *rest))
-      $@ = caller(1) if $@.nil?
-      #p $@
-      #p __FILE__
-      $@.shift if $@[0] =~ /^#{Regexp.quote(__FILE__)}:/
-      raise
+      raise err, sprintf(form, *rest)
     else
       E2MM.Fail E2MM, ErrNotRegisteredException, err.inspect
     end
