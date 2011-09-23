@@ -59,7 +59,7 @@ module Exception2MessageMapper
     super
     cl.bind(self) unless cl == E2MM
   end
-  
+
   # backward compatibility
   def E2MM.extend_to(b)
     c = eval("self", b)
@@ -69,12 +69,12 @@ module Exception2MessageMapper
   def bind(cl)
     self.module_eval %[
       def Raise(err = nil, *rest)
-	Exception2MessageMapper.Raise(self.class, err, *rest)
+        Exception2MessageMapper.Raise(self.class, err, *rest)
       end
       alias Fail Raise
 
       def self.included(mod)
-	mod.extend Exception2MessageMapper
+        mod.extend Exception2MessageMapper
       end
     ]
   end
@@ -101,7 +101,7 @@ module Exception2MessageMapper
     public :fail
   end
 
-  
+
   # def_e2message(c, m)
   #	    c:  exception
   #	    m:  message_form
@@ -110,7 +110,7 @@ module Exception2MessageMapper
   def def_e2message(c, m)
     E2MM.def_e2message(self, c, m)
   end
-  
+
   # def_exception(n, m, s)
   #	    n:  exception_name
   #	    m:  message_form
@@ -137,7 +137,7 @@ module Exception2MessageMapper
     E2MM.instance_eval{@MessageMap[[k, c]] = m}
     c
   end
-  
+
   # E2MM.def_exception(k, n, m, s)
   #	    k:  class to define exception under.
   #	    n:  exception_name
@@ -176,9 +176,9 @@ module Exception2MessageMapper
   def E2MM.e2mm_message(klass, exp)
     for c in klass.ancestors
       if mes = @MessageMap[[c,exp]]
-	#p mes
-	m = klass.instance_eval('"' + mes + '"')
-	return m
+        #p mes
+        m = klass.instance_eval('"' + mes + '"')
+        return m
       end
     end
     nil
@@ -188,8 +188,8 @@ module Exception2MessageMapper
   end
 
   E2MM.def_exception(E2MM, 
-		     :ErrNotRegisteredException, 
-		     "not registerd exception(%s)")
+                     :ErrNotRegisteredException, 
+                     "not registerd exception(%s)")
 end
 
 
