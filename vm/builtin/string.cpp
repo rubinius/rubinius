@@ -618,7 +618,7 @@ namespace rubinius {
 
       if(out_p + len > out_end) {
         native_int pos = out_p - output;
-        out_size += out_chunk;
+        out_size += (len > out_chunk ? len : out_chunk);
         output = (uint8_t*)realloc(output, out_size);
         out_p = output + pos;
         out_end = output + out_size;
