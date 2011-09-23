@@ -16,6 +16,12 @@ namespace rubinius {
     int lock_line_;
 
   public:
+    Lock()
+      : locking_thread_(0)
+      , lock_file_(0)
+      , lock_line_(0)
+    {}
+
     virtual ~Lock() { }
 
     ManagedThread* locking_thread() {
