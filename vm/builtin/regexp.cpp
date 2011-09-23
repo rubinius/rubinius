@@ -412,7 +412,6 @@ namespace rubinius {
                          ONIG_REGION_NOTPOS, ONIG_REGION_NOTPOS };
 
     OnigRegion region = { 10, 0, begin_reg, end_reg, 0, 0 };
-    // onig_region_init(&region);
 
     int* back_match = onig_data->int_map_backward;
 
@@ -481,8 +480,18 @@ namespace rubinius {
 
     maybe_recompile(state);
 
-    OnigRegion region;
-    onig_region_init(&region);
+    int begin_reg[10] = { ONIG_REGION_NOTPOS, ONIG_REGION_NOTPOS,
+                         ONIG_REGION_NOTPOS, ONIG_REGION_NOTPOS,
+                         ONIG_REGION_NOTPOS, ONIG_REGION_NOTPOS,
+                         ONIG_REGION_NOTPOS, ONIG_REGION_NOTPOS,
+                         ONIG_REGION_NOTPOS, ONIG_REGION_NOTPOS };
+    int end_reg[10] =  { ONIG_REGION_NOTPOS, ONIG_REGION_NOTPOS,
+                         ONIG_REGION_NOTPOS, ONIG_REGION_NOTPOS,
+                         ONIG_REGION_NOTPOS, ONIG_REGION_NOTPOS,
+                         ONIG_REGION_NOTPOS, ONIG_REGION_NOTPOS,
+                         ONIG_REGION_NOTPOS, ONIG_REGION_NOTPOS };
+
+    OnigRegion region = { 10, 0, begin_reg, end_reg, 0, 0 };
 
     int* back_match = onig_data->int_map_backward;
 
@@ -536,8 +545,18 @@ namespace rubinius {
 
     str += pos;
 
-    OnigRegion region;
-    onig_region_init(&region);
+    int begin_reg[10] = { ONIG_REGION_NOTPOS, ONIG_REGION_NOTPOS,
+                         ONIG_REGION_NOTPOS, ONIG_REGION_NOTPOS,
+                         ONIG_REGION_NOTPOS, ONIG_REGION_NOTPOS,
+                         ONIG_REGION_NOTPOS, ONIG_REGION_NOTPOS,
+                         ONIG_REGION_NOTPOS, ONIG_REGION_NOTPOS };
+    int end_reg[10] =  { ONIG_REGION_NOTPOS, ONIG_REGION_NOTPOS,
+                         ONIG_REGION_NOTPOS, ONIG_REGION_NOTPOS,
+                         ONIG_REGION_NOTPOS, ONIG_REGION_NOTPOS,
+                         ONIG_REGION_NOTPOS, ONIG_REGION_NOTPOS,
+                         ONIG_REGION_NOTPOS, ONIG_REGION_NOTPOS };
+
+    OnigRegion region = { 10, 0, begin_reg, end_reg, 0, 0 };
 
     int* back_match = onig_data->int_map_backward;
 
