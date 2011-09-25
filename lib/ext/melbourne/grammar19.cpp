@@ -4743,6 +4743,7 @@ yyreduce:
                     }
                     top_node = block_append(top_node, (yyvsp[(2) - (2)].node));
                     class_nest = 0;
+                    local_pop();
                   ;}
     break;
 

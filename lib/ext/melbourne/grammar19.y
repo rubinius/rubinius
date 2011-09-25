@@ -567,6 +567,7 @@ program         : {
                     }
                     top_node = block_append(top_node, $2);
                     class_nest = 0;
+                    local_pop();
                   }
                 ;
 
