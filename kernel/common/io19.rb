@@ -139,4 +139,209 @@ class IO
   def self.copy_stream(from, to, max_length=nil, offset=nil)
     StreamCopier.new(from, to, max_length, offset).run
   end
+
+  # Argument matrix for IO#gets and IO#each:
+  #
+  #  separator / limit | nil | >= 0 | < 0
+  # ===================+=====+======+=====
+  #  String (nonempty) |  A  |  B   |  C
+  #                    +-----+------+-----
+  #  ""                |  D  |  E   |  F
+  #                    +-----+------+-----
+  #  nil               |  G  |  H   |  I
+  #
+
+  class EachReader
+    def initialize(io, buffer, separator, limit)
+      @io = io
+      @buffer = buffer
+      @separator = separator
+      @limit = limit
+      @skip = nil
+    end
+
+    def each(&block)
+      if @separator
+        if @separator.empty?
+          @separator = "\n\n"
+          @skip = 10
+        end
+
+        if @limit
+          read_to_separator_with_limit(&block)
+        else
+          read_to_separator(&block)
+        end
+      else
+        if @limit
+          read_to_limit(&block)
+        else
+          read_all(&block)
+        end
+      end
+    end
+
+    # method A, D
+    def read_to_separator
+      str = ""
+
+      until @buffer.exhausted?
+        available = @buffer.fill_from @io, @skip
+        break unless available > 0
+
+        if count = @buffer.find(@separator)
+          str << @buffer.shift(count)
+
+          str.taint
+          $. = @io.increment_lineno
+          @buffer.discard @skip if @skip
+
+          yield str
+
+          str = ""
+        else
+          str << @buffer.shift
+        end
+      end
+
+      str << @buffer.shift
+      unless str.empty?
+        str.taint
+        $. = @io.increment_lineno
+        yield str
+      end
+    end
+
+    # method B, E
+    def read_to_separator_with_limit
+      str = ""
+
+      #TODO: implement ignoring encoding with negative limit
+      wanted = limit = @limit.abs
+
+      until @buffer.exhausted?
+        available = @buffer.fill_from @io, @skip
+        break unless available > 0
+
+        if count = @buffer.find(@separator)
+          bytes = count < wanted ? count : wanted
+          str << @buffer.shift(bytes)
+
+          str.taint
+          $. = @io.increment_lineno
+          @buffer.discard @skip if @skip
+
+          yield str
+
+          str = ""
+          wanted = limit
+        else
+          if wanted < available
+            str << @buffer.shift(wanted)
+
+            str.taint
+            $. = @io.increment_lineno
+            @buffer.discard @skip if @skip
+
+            yield str
+
+            str = ""
+            wanted = limit
+          else
+            str << @buffer.shift
+            wanted -= available
+          end
+        end
+      end
+
+      str << @buffer.shift
+      unless str.empty?
+        str.taint
+        $. = @io.increment_lineno
+        yield str
+      end
+    end
+
+    # Method G
+    def read_all
+      str = ""
+      until @buffer.exhausted?
+        @buffer.fill_from @io
+        str << @buffer.shift
+      end
+
+      unless str.empty?
+        str.taint
+        $. = @io.increment_lineno
+        yield str
+      end
+    end
+
+    # Method H
+    def read_to_limit
+      str = ""
+      wanted = limit = @limit.abs
+
+      until @buffer.exhausted?
+        available = @buffer.fill_from @io
+        if wanted < available
+          str << @buffer.shift(wanted)
+
+          str.taint
+          $. = @io.increment_lineno
+          yield str
+
+          str = ""
+          wanted = limit
+        else
+          str << @buffer.shift
+          wanted -= evailable
+        end
+      end
+    end
+  end
+
+  def increment_lineno
+    @lineno += 1
+  end
+
+  def each(sep_or_limit=$/, limit=nil, &block)
+    return to_enum(:each, sep_or_limit, limit) unless block_given?
+
+    ensure_open_and_readable
+
+    if limit
+      limit = Rubinius::Type.coerce_to limit, Integer, :to_int
+      sep = sep_or_limit ? StringValue(sep_or_limit) : nil
+    else
+      case sep_or_limit
+      when String
+        sep = sep_or_limit
+      when nil
+        sep = nil
+      else
+        unless sep = Rubinius::Type.check_convert_type(sep_or_limit, String, :to_str)
+          sep = $/
+          limit = Rubinius::Type.coerce_to sep_or_limit, Integer, :to_int
+        end
+      end
+    end
+
+    return if @ibuffer.exhausted?
+
+    EachReader.new(self, @ibuffer, sep, limit).each(&block)
+
+    self
+  end
+
+  alias_method :each_line, :each
+
+  def gets(sep_or_limit=$/, limit=nil)
+    each sep_or_limit, limit do |line|
+      $_ = line if line
+      return line
+    end
+
+    nil
+  end
 end
