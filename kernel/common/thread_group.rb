@@ -9,18 +9,25 @@ class ThreadGroup
     end
     thread.add_to_group self
 
-    @threads.delete_if { |w| !w.weakref_alive? or !w.object.alive? }
+    @threads.delete_if do |w|
+      obj = w.__object__
+      !(obj and obj.alive?)
+    end
+
     @threads << WeakRef.new(thread)
     self
   end
 
   def remove(thread)
-    @threads.delete_if { |w| !w.weakref_alive? or !w.object.alive? or w.object == thread }
+    @threads.delete_if { |w| w.__object__ == thread }
   end
 
   def list
     list = []
-    @threads.each { |w| list << w.object if w.weakref_alive? and w.object.alive? }
+    @threads.each do |w|
+      obj = w.__object__
+      list << obj if obj and obj.alive?
+    end
     list
   end
 end
