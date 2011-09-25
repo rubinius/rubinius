@@ -224,9 +224,9 @@ namespace rubinius {
     native_int max = max_o->to_native();
 
     if(len == 0) return start;
+    if(max == 0) return Qnil;
 
-    if(max == 0 || max > size()) max = size();
-
+    if(max > size()) max = size();
     max -= (len - 1);
 
     for(native_int i = start->to_native(); i < max; i++) {
