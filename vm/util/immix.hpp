@@ -637,6 +637,7 @@ namespace immix {
           ++i) {
         Chunk* chunk = *i;
         chunk->free();
+        delete chunk;
       }
     }
 

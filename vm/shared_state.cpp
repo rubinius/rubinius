@@ -51,6 +51,7 @@ namespace rubinius {
     if(!initialized_) return;
 
     // std::cerr << "Time waiting: " << world_->time_waiting() << "\n";
+    delete tool_broker_;
     delete world_;
     delete ic_registry_;
     delete om;

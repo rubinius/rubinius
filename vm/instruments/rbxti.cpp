@@ -340,4 +340,9 @@ namespace rbxti {
 
     return env;
   }
+
+  void destroy_env(Env* env) {
+    delete env->private_;
+    delete env;
+  }
 }

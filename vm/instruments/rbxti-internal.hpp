@@ -17,6 +17,7 @@ namespace rubinius {
 
 namespace rbxti {
   Env* create_env(rubinius::VM*);
+  void destroy_env(Env*);
 
   static inline rubinius::Module* i(rmodule mod) {
     return (rubinius::Module*)mod;

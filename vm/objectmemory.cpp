@@ -99,7 +99,7 @@ namespace rubinius {
     delete young_;
 
     // Must be last
-    // delete inflated_headers_;
+    delete inflated_headers_;
 
   }
 
