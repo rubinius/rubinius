@@ -2,7 +2,7 @@
 #include <tr1/unordered_map>
 #include <vector>
 #include <string.h>
-#include <stdint.h>
+#include <stdlib.h>
 
 using namespace melbourne;
 
