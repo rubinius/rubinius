@@ -157,6 +157,20 @@ extern "C" {
 #define PTHREAD_MUTEX_ERRORCHECK_NP	PTHREAD_MUTEX_ERRORCHECK
 #define PTHREAD_MUTEX_RECURSIVE_NP	PTHREAD_MUTEX_RECURSIVE
 
+/* Windows doesn't have this, so declare it ourselves. */
+#ifndef _TIMESPEC_DEFINED
+#define _TIMESPEC_DEFINED
+struct timespec {
+  time_t  tv_sec;   /* Seconds */
+  long    tv_nsec;  /* Nanoseconds */
+};
+
+struct itimerspec {
+  struct timespec  it_interval;  /* Timer period */
+  struct timespec  it_value;     /* Timer expiration */
+};
+#endif
+
 void * pthread_timechange_handler_np(void * dummy);
 int pthread_delay_np (const struct timespec *interval);
 int pthread_num_processors_np(void);
@@ -211,20 +225,6 @@ struct _pthread_cleanup
 /* Note that if async cancelling is used, then there is a race here */
 #define pthread_cleanup_pop(E)\
     (pthread_self().p->clean = _pthread_cup.next, (E?_pthread_cup.func((pthread_once_t *)_pthread_cup.arg):0));}
-
-/* Windows doesn't have this, so declare it ourselves. */
-#ifndef _TIMESPEC_DEFINED
-#define _TIMESPEC_DEFINED
-struct timespec {
-  time_t  tv_sec;   /* Seconds */
-  long    tv_nsec;  /* Nanoseconds */
-};
-
-struct itimerspec {
-  struct timespec  it_interval;  /* Timer period */
-  struct timespec  it_value;     /* Timer expiration */
-};
-#endif
 
 /* Some POSIX realtime extensions, mostly stubbed */
 #define SCHED_OTHER     0
