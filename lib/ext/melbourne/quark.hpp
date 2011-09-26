@@ -9,6 +9,7 @@ namespace melbourne {
 
   quark quark_from_string(const char* str);
   const char* quark_to_string(const quark quark);
+  void quark_cleanup();
 }
 #endif
 

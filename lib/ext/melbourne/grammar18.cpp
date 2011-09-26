@@ -8059,6 +8059,7 @@ string_to_ast(VALUE ptp, const char *f, bstring s, int line)
     }
     pt_free(parser_state);
     free(parser_state);
+    quark_cleanup();
     return ret;
 }
 
@@ -8120,6 +8121,7 @@ file_to_ast(VALUE ptp, const char *f, FILE *file, int start)
 
     pt_free(parser_state);
     free(parser_state);
+    quark_cleanup();
     return ret;
 }
 

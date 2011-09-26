@@ -2,6 +2,7 @@
 #include <tr1/unordered_map>
 #include <vector>
 #include <string.h>
+#include <stdint.h>
 
 using namespace melbourne;
 
@@ -49,4 +50,14 @@ const char* melbourne::quark_to_string(quark q) {
   if (q >= quarks.size())
     return NULL;
   return quarks[q];
+}
+
+void melbourne::quark_cleanup() {
+
+  for (quark_map::iterator it = quark_indexes.begin(); it != quark_indexes.end(); ++it) {
+    free((char *)it->first);
+  }
+
+  quark_indexes.clear();
+  quarks.clear();
 }
