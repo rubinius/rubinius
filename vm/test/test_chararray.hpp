@@ -184,6 +184,7 @@ class TestCharArray : public CxxTest::TestSuite, public VMTest {
 
   void test_locate() {
     CharArray* c = String::create(state, "xyZfoo\nzyx")->data();
+    Fixnum* size = Fixnum::from(c->size());
     Fixnum* zero = Fixnum::from(0);
     Fixnum* three = Fixnum::from(3);
     Fixnum* seven = Fixnum::from(7);
@@ -192,13 +193,13 @@ class TestCharArray : public CxxTest::TestSuite, public VMTest {
 
     String* foo_nl = String::create(state, "foo\n");
 
-    TS_ASSERT_EQUALS(three, c->locate(state, String::create(state, ""), three, zero));
-    TS_ASSERT_EQUALS(Qnil, c->locate(state, String::create(state, "\n\n"), zero, zero));
-    TS_ASSERT_EQUALS(seven, (Fixnum*)c->locate(state, String::create(state, "\n"), zero, zero));
-    TS_ASSERT_EQUALS(Qnil, c->locate(state, foo_nl, four, zero));
-    TS_ASSERT_EQUALS(seven, (Fixnum*)c->locate(state, foo_nl, two, zero));
-    TS_ASSERT_EQUALS(seven, (Fixnum*)c->locate(state, foo_nl, three, zero));
+    TS_ASSERT_EQUALS(three, (Fixnum*)c->locate(state, String::create(state, ""), three, size));
+    TS_ASSERT_EQUALS(Qnil, c->locate(state, String::create(state, "\n\n"), zero, size));
+    TS_ASSERT_EQUALS(seven, (Fixnum*)c->locate(state, String::create(state, "\n"), zero, size));
+    TS_ASSERT_EQUALS(Qnil, c->locate(state, foo_nl, four, size));
+    TS_ASSERT_EQUALS(seven, (Fixnum*)c->locate(state, foo_nl, two, size));
+    TS_ASSERT_EQUALS(seven, (Fixnum*)c->locate(state, foo_nl, three, size));
     TS_ASSERT_EQUALS(Fixnum::from(10), (Fixnum*)c->locate(state,
-                     String::create(state, "yx"), three, zero));
+                     String::create(state, "yx"), three, size));
   }
 };
