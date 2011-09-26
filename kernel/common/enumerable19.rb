@@ -142,8 +142,7 @@ module Enumerable
   def collect
     if block_given?
       ary = []
-      each do
-        o = Rubinius.single_block_arg
+      each do |*o|
         ary << yield(*o)
       end
       ary
