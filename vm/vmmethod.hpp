@@ -77,6 +77,7 @@ namespace rubinius {
 
     Specialization specializations[cMaxSpecializations];
     executor unspecialized;
+    executor fallback;
 
   private:
     ExecuteStatus execute_status_;

@@ -22,6 +22,7 @@
 #include "gc/managed.hpp"
 #include "gc/write_barrier.hpp"
 #include "configuration.hpp"
+#include "util/thread.hpp"
 
 namespace rubinius {
   typedef std::map<int, LocalInfo> LocalMap;
@@ -75,6 +76,8 @@ namespace rubinius {
     int string_class_id_;
 
     bool type_optz_;
+
+    thread::SpinLock method_update_lock_;
 
   public:
 
@@ -210,6 +213,14 @@ namespace rubinius {
       default:
         return llvm::ConstantInt::get(Int32Ty, num);
       }
+    }
+
+    void start_method_update() {
+      method_update_lock_.lock();
+    }
+
+    void end_method_update() {
+      method_update_lock_.unlock();
     }
 
     const llvm::Type* ptr_type(std::string name);

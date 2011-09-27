@@ -119,7 +119,9 @@ namespace rubinius {
 
         vmm = new VMMethod(state, this);
 
-        if(!resolve_primitive(state)) {
+        if(resolve_primitive(state)) {
+          vmm->fallback = execute;
+        } else {
           vmm->setup_argument_handler(this);
         }
 
@@ -186,12 +188,18 @@ namespace rubinius {
     executor target = v->unspecialized;
 
     for(int i = 0; i < VMMethod::cMaxSpecializations; i++) {
-      if(v->specializations[i].class_id == id) {
-        target = v->specializations[i].execute;
+      int c_id = v->specializations[i].class_id;
+      executor x = v->specializations[i].execute;
+
+      if(c_id == id && x != 0) {
+        target = x;
         break;
       }
     }
 
+    // This is a bug. We should not have this setup if there are no
+    // specializations. FIX THIS BUG!
+    if(!target) target = v->fallback;
 
     return target(state, call_frame, exec, mod, args);
   }
@@ -278,6 +286,11 @@ namespace rubinius {
 
   String* CompiledMethod::full_name(STATE) {
     return name_->to_str(state);
+  }
+
+  void CompiledMethod::set_interpreter(executor interp) {
+    set_executor(interp);
+    backend_method_->fallback = interp;
   }
 
   Object* CompiledMethod::set_breakpoint(STATE, Fixnum* ip, Object* bp) {

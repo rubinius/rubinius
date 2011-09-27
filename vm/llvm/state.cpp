@@ -320,6 +320,8 @@ namespace rubinius {
 
           jit::RuntimeDataHolder* rd = jit.context().runtime_data_holder();
 
+          ls_->start_method_update();
+
           if(!req->is_block()) {
             if(spec_id) {
               req->method()->add_specialized(spec_id, reinterpret_cast<executor>(func), rd);
@@ -331,6 +333,8 @@ namespace rubinius {
           }
 
           assert(req->method()->jit_data());
+
+          ls_->end_method_update();
 
           rd->run_write_barrier(ls_->write_barrier(), req->method());
 
@@ -694,6 +698,8 @@ namespace rubinius {
       }
     }
 
+    // Don't do this because it prevents other class from heating
+    // it up too!
     cm->backend_method()->call_count = -1;
 
     BackgroundCompileRequest* req =

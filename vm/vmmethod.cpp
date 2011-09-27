@@ -92,6 +92,8 @@ namespace rubinius {
     }
 
     unspecialized = 0;
+    fallback = 0;
+
     for(int i = 0; i < cMaxSpecializations; i++) {
       specializations[i].class_id = 0;
       specializations[i].execute = 0;
@@ -502,41 +504,41 @@ namespace rubinius {
   }
 
   void VMMethod::setup_argument_handler(CompiledMethod* meth) {
+    // Firstly, use the generic case that handles all cases
+    fallback = &VMMethod::execute_specialized<GenericArguments>;
+
     // If there are no optionals, only a fixed number of positional arguments.
     if(total_args == required_args) {
       // if no arguments are expected
       if(total_args == 0) {
         // and there is no splat, use the fastest case.
         if(splat_position == -1) {
-          meth->set_executor(&VMMethod::execute_specialized<NoArguments>);
+          fallback = &VMMethod::execute_specialized<NoArguments>;
 
         // otherwise use the splat only case.
         } else {
-          meth->set_executor(&VMMethod::execute_specialized<SplatOnlyArgument>);
+          fallback = &VMMethod::execute_specialized<SplatOnlyArgument>;
         }
-        return;
-
       // Otherwise use the few specialized cases iff there is no splat
       } else if(splat_position == -1) {
         switch(total_args) {
         case 1:
-          meth->set_executor(&VMMethod::execute_specialized<OneArgument>);
-          return;
+          fallback= &VMMethod::execute_specialized<OneArgument>;
+          break;
         case 2:
-          meth->set_executor(&VMMethod::execute_specialized<TwoArguments>);
-          return;
+          fallback = &VMMethod::execute_specialized<TwoArguments>;
+          break;
         case 3:
-          meth->set_executor(&VMMethod::execute_specialized<ThreeArguments>);
-          return;
+          fallback = &VMMethod::execute_specialized<ThreeArguments>;
+          break;
         default:
-          meth->set_executor(&VMMethod::execute_specialized<FixedArguments>);
-          return;
+          fallback = &VMMethod::execute_specialized<FixedArguments>;
+          break;
         }
       }
     }
 
-    // Lastly, use the generic case that handles all cases
-    meth->set_executor(&VMMethod::execute_specialized<GenericArguments>);
+    meth->set_executor(fallback);
   }
 
   /* This is the execute implementation used by normal Ruby code,
@@ -699,6 +701,9 @@ namespace rubinius {
                             jit::RuntimeDataHolder* rd, 
                             bool disable)
   {
+    LLVMState* ls = LLVMState::get(state);
+    ls->start_method_update();
+
     bool still_others = false;
 
     for(int i = 0; i < cMaxSpecializations; i++) {
@@ -716,20 +721,39 @@ namespace rubinius {
     }
 
     if(!rd || original->jit_data() == rd) {
+      unspecialized = 0;
       original->set_jit_data(0);
     }
 
+    if(original->jit_data()) still_others = true;
+
     if(!still_others) {
       execute_status_ = eInterpret;
+
       // This resets execute to use the interpreter
-      setup_argument_handler(original);
+      original->set_executor(fallback);
     }
 
     if(disable) {
       execute_status_ = eJITDisable;
+      original->set_executor(fallback);
     } else if(execute_status_ == eJITDisable && still_others) {
       execute_status_ = eJIT;
     }
+
+    if(original->execute == CompiledMethod::specialized_executor) {
+      bool found = false;
+
+      for(int i = 0; i < cMaxSpecializations; i++) {
+        if(specializations[i].execute) found = true;
+      }
+
+      if(unspecialized) found = true;
+
+      if(!found) rubinius::bug("no specializations!");
+    }
+
+    ls->end_method_update();
   }
 
   /*
