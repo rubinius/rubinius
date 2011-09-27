@@ -49,38 +49,44 @@ namespace rubinius {
   }
 
   Object* Channel::send(STATE, Object* val) {
+    Channel* self = this;
+    OnStack<2> os(state, val, self);
+
     GCLockGuard lg(state, mutex_);
 
     if(val->nil_p()) {
-      semaphore_count_++;
+      self->semaphore_count_++;
     } else {
-      if(semaphore_count_ > 0) {
-        for(int i = 0; i < semaphore_count_; i++) {
-          value_->append(state, Qnil);
+      if(self->semaphore_count_ > 0) {
+        for(int i = 0; i < self->semaphore_count_; i++) {
+          self->value_->append(state, Qnil);
         }
-        semaphore_count_ = 0;
+        self->semaphore_count_ = 0;
       }
 
-      value_->append(state, val);
+      self->value_->append(state, val);
     }
 
-    if(waiters_ > 0) {
-      condition_.signal();
+    if(self->waiters_ > 0) {
+      self->condition_.signal();
     }
 
     return Qnil;
   }
 
   Object* Channel::try_receive(STATE) {
+    Channel* self = this;
+    OnStack<1> os(state, self);
+
     GCLockGuard lg(state, mutex_);
 
-    if(semaphore_count_ > 0) {
-      semaphore_count_--;
+    if(self->semaphore_count_ > 0) {
+      self->semaphore_count_--;
       return Qnil;
     }
 
-    if(value_->empty_p()) return Qnil;
-    return value_->shift(state);
+    if(self->value_->empty_p()) return Qnil;
+    return self->value_->shift(state);
   }
 
   Object* Channel::receive(STATE, CallFrame* call_frame) {
@@ -89,14 +95,26 @@ namespace rubinius {
 
 #define NANOSECONDS 1000000000
   Object* Channel::receive_timeout(STATE, Object* duration, CallFrame* call_frame) {
+    // Passing control away means that the GC might run. So we need
+    // to stash this into a root, and read it back out again after
+    // control is returned.
+    //
+    // DO NOT USE this AFTER wait().
+
+    // We have to do this because we can't pass this to OnStack, since C++
+    // won't let us reassign it.
+
+    Channel* self = this;
+    OnStack<2> os(state, self, duration);
+
     GCLockGuard lg(state, mutex_);
 
-    if(semaphore_count_ > 0) {
-      semaphore_count_--;
+    if(self->semaphore_count_ > 0) {
+      self->semaphore_count_--;
       return Qnil;
     }
 
-    if(!value_->empty_p()) return value_->shift(state);
+    if(!self->value_->empty_p()) return self->value_->shift(state);
 
     // Otherwise, we need to wait for a value.
     struct timespec ts = {0,0};
@@ -114,20 +132,9 @@ namespace rubinius {
       return Primitives::failure();
     }
 
-    // Passing control away means that the GC might run. So we need
-    // to stash this into a root, and read it back out again after
-    // control is returned.
-    //
-    // DO NOT USE this AFTER wait().
-
-    // We have to do this because we can't pass this to OnStack, since C++
-    // won't let us reassign it.
-    Channel* self = this;
-    OnStack<1> sv(state, self);
-
     // We pin this so we can pass condition_ out without worrying about
     // us moving it.
-    if(!this->pin()) {
+    if(!self->pin()) {
       rubinius::bug("unable to pin Channel");
     }
 
@@ -139,18 +146,18 @@ namespace rubinius {
       ts.tv_nsec  = nano % NANOSECONDS;
     }
 
-    waiters_++;
+    self->waiters_++;
 
-    state->wait_on_channel(this);
+    state->wait_on_channel(self);
 
     for(;;) {
       {
         GCIndependent gc_guard(state, call_frame);
 
         if(use_timed_wait) {
-          if(condition_.wait_until(mutex_, &ts) == thread::cTimedOut) break;
+          if(self->condition_.wait_until(mutex_, &ts) == thread::cTimedOut) break;
         } else {
-          condition_.wait(mutex_);
+          self->condition_.wait(mutex_);
         }
       }
 
@@ -166,8 +173,8 @@ namespace rubinius {
 
     if(!state->check_async(call_frame)) return NULL;
 
-    if(semaphore_count_ > 0) {
-      semaphore_count_--;
+    if(self->semaphore_count_ > 0) {
+      self->semaphore_count_--;
       return Qnil;
     }
 

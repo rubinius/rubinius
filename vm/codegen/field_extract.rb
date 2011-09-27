@@ -193,6 +193,10 @@ class CPPPrimitive < BasicPrimitive
       i += 1
     end
 
+    unless @safe
+      str << "  state->set_call_frame(call_frame);\n"
+    end
+
     args.unshift "recv" if @pass_self
     args.unshift "state" if @pass_state
 
