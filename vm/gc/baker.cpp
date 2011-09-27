@@ -264,9 +264,12 @@ namespace rubinius {
 
     // Run promotions again, because checking finalizers can keep more objects
     // alive (and thus promoted).
-    handle_promotions();
+    while(handle_promotions()) {
+      check_finalize();
+    }
 
-    assert(fully_scanned_p());
+    if(!promoted_stack_.empty()) rubinius::bug("promote stack has elements!");
+    if(!fully_scanned_p()) rubinius::bug("more young refs");
 
     // Check any weakrefs and replace dead objects with nil
     clean_weakrefs(true);
@@ -317,7 +320,9 @@ namespace rubinius {
 
   }
 
-  void BakerGC::handle_promotions() {
+  bool BakerGC::handle_promotions() {
+    if(promoted_stack_.empty() && fully_scanned_p()) return false;
+
     while(!promoted_stack_.empty() || !fully_scanned_p()) {
       while(!promoted_stack_.empty()) {
         Object* obj = promoted_stack_.back();
@@ -328,6 +333,8 @@ namespace rubinius {
 
       copy_unscanned();
     }
+
+    return true;
   }
 
   void BakerGC::check_finalize() {

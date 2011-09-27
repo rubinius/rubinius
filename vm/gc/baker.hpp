@@ -289,7 +289,7 @@ namespace rubinius {
 
     /// Scans any references held by objects that have been promoted to the
     /// mature generation.
-    void    handle_promotions();
+    bool    handle_promotions();
 
     /// Validates the specified object, and returns an ObjectPosition value
     /// indicating in which space in the young generation the object lies.

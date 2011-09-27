@@ -210,7 +210,9 @@ namespace rubinius {
 
     // Finalize can cause more things to continue to live, so we must
     // check the mark_stack again.
-    gc_.process_mark_stack(allocator_);
+    while(gc_.process_mark_stack(allocator_)) {
+      check_finalize();
+    }
 
     // Sweep up the garbage
     gc_.sweep_blocks();
