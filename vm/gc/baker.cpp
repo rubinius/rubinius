@@ -264,9 +264,7 @@ namespace rubinius {
 
     // Run promotions again, because checking finalizers can keep more objects
     // alive (and thus promoted).
-    while(handle_promotions()) {
-      check_finalize();
-    }
+    handle_promotions();
 
     if(!promoted_stack_.empty()) rubinius::bug("promote stack has elements!");
     if(!fully_scanned_p()) rubinius::bug("more young refs");
