@@ -124,7 +124,7 @@ namespace rubinius {
         // If a method was too big and has a compiled version, then
         // rather than inline it, emit a straight call to the compiled
         // version!
-        if(decision == cTooBig && !inline_block_
+        if(0 && decision == cTooBig && !inline_block_
                                && !kind_of<IncludedModule>(defined_in)
                                && vmm->jitted()) {
           if(ops_.state()->config().jit_inline_debug) {
