@@ -37,6 +37,12 @@ namespace rubinius {
     // Rubinius.primitive :pointer_add
     Pointer* add(STATE, Integer* amount);
 
+    // Rubinius.primitive :pointer_write_char
+    Integer* write_char(STATE, Integer* val);
+
+    // Rubinius.primitive :pointer_read_char
+    Integer* read_char(STATE);
+
     // Rubinius.primitive :pointer_write_short
     Integer* write_short(STATE, Integer* val);
 
