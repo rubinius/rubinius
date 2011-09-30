@@ -185,8 +185,12 @@ namespace rubinius {
     return val;
   }
 
-  Integer* Pointer::read_long(STATE) {
-    return Integer::from(state, *(long*)pointer);
+  Integer* Pointer::read_long(STATE, Object* sign) {
+    if(RTEST(sign)) {
+      return Integer::from(state, *(long*)pointer);
+    } else {
+      return Integer::from(state, *(unsigned long*)pointer);
+    }
   }
 
   Integer* Pointer::write_long_long(STATE, Integer* val) {
@@ -206,12 +210,12 @@ namespace rubinius {
   Float* Pointer::read_float(STATE) {
     return Float::create(state, (double)(*(float*)pointer));
   }
-  
+
   Float* Pointer::write_double(STATE, Float* flt) {
     *(double*)pointer = flt->val;
     return flt;
   }
-  
+
   Float* Pointer::read_double(STATE) {
     return Float::create(state, *(double*)pointer);
   }
@@ -456,7 +460,7 @@ namespace rubinius {
         result = NULL;
       } else {
         String* str = as<String>(val);
-        /* TODO this is probably not correct. Saving away an 
+        /* TODO this is probably not correct. Saving away an
          * internal pointer to the string means that when the string
          * moves, the data will point at the wrong place. Probably need to
          * copy the string data instead */

@@ -135,9 +135,17 @@ module FFI
     end
 
     # Read a C long from the memory pointed to.
-    def read_long
+    def read_long(sign=true)
+      read_long_signed(sign)
+    end
+
+    def read_long_signed(sign)
       Rubinius.primitive :pointer_read_long
       raise PrimitiveFailure, "Unable to read long"
+    end
+
+    def read_ulong
+      read_long_signed(false)
     end
 
     # Write +obj+ as a C long long at the memory pointed to.
