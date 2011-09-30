@@ -77,6 +77,18 @@ module FFI
 
     # Below here are methods for reading and writing memory pointed to
     #
+    # Write +obj+ as a C char at the memory pointed to.
+    def write_char(obj)
+      Rubinius.primitive :pointer_write_char
+      raise PrimitiveFailure, "Unable to write char"
+    end
+
+    # Read a C char from the memory pointed to.
+    def read_char
+      Rubinius.primitive :pointer_read_char
+      raise PrimitiveFailure, "Unable to read char"
+    end
+
     # Write +obj+ as a C short at the memory pointed to.
     def write_short(obj)
       Rubinius.primitive :pointer_write_short
