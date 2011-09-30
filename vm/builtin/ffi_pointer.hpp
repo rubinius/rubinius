@@ -53,7 +53,7 @@ namespace rubinius {
     Integer* write_long(STATE, Integer* val);
 
     // Rubinius.primitive :pointer_read_long
-    Integer* read_long(STATE);
+    Integer* read_long(STATE, Object* sign);
 
     // Rubinius.primitive :pointer_write_long_long
     Integer* write_long_long(STATE, Integer* val);
