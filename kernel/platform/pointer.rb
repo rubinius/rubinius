@@ -83,11 +83,15 @@ module FFI
       raise PrimitiveFailure, "Unable to write short"
     end
 
+    alias :write_int16, :write_short
+
     # Read a C short from the memory pointed to.
     def read_short
       Rubinius.primitive :pointer_read_short
       raise PrimitiveFailure, "Unable to read short"
     end
+
+    alias :read_int16, :read_short
 
     # Write +obj+ as a C int at the memory pointed to.
     def write_int(obj)
