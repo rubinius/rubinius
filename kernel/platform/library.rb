@@ -194,10 +194,6 @@ module FFI
         return type
       end
 
-      if name.kind_of?(Class) and name < FFI::Struct
-        name = :pointer
-      end
-
       FFI.find_type(name)
     end
   end

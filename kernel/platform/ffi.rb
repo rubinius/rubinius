@@ -182,6 +182,16 @@ module FFI
       attr_reader :size
       attr_reader :implementation
     end
+
+    class StructByValue
+      def initialize(struct)
+        @implementation = struct
+      end
+
+      attr_reader :implementation
+    end
+
+    Struct = StructByValue
   end
 end
 
