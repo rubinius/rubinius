@@ -1,12 +1,40 @@
 class Module
+  def constants(search_parents=true)
+    tbl = Rubinius::LookupTable.new
+
+    @constant_table.each do |name, val|
+      tbl[name] = true
+    end
+
+    if search_parents
+      current = self.direct_superclass
+
+      while current and current != Object
+        current.constant_table.each do |name, val|
+          tbl[name] = true unless tbl.has_key? name
+        end
+
+        current = current.direct_superclass
+      end
+    end
+
+    # special case: Module.constants returns Object's constants
+    if self.equal? Module
+      Object.constant_table.each do |name, val|
+        tbl[name] = true unless tbl.has_key? name
+      end
+    end
+
+    tbl
+  end
+
   def const_defined?(name, search_parents=true)
     name = normalize_const_name(name)
     return true if @constant_table.has_key? name
 
-    # a silly special case
-    if self.equal? Object
+    if search_parents
       mod = direct_superclass
-      while mod.kind_of? Rubinius::IncludedModule
+      while mod
         return true if mod.constant_table.has_key? name
         mod = mod.direct_superclass
       end
