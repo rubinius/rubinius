@@ -177,9 +177,19 @@ module FFI
       raise PrimitiveFailure, "Unable to read char"
     end
 
+    def primitive_write_char(obj)
+      Rubinius.primitive :pointer_write_char
+      raise PrimitiveFailure, "Unable to write char"
+    end
+
     def primitive_read_short(signed=true)
       Rubinius.primitive :pointer_read_short
       raise PrimitiveFailure, "Unable to read short"
+    end
+
+    def primitive_write_short(obj)
+      Rubinius.primitive :pointer_write_short
+      raise PrimitiveFailure, "Unable to write short"
     end
 
     def primitive_read_int(signed=true)
@@ -187,9 +197,19 @@ module FFI
       raise PrimitiveFailure, "Unable to read int"
     end
 
+    def primitive_write_int(obj)
+      Rubinius.primitive :pointer_write_int
+      raise PrimitiveFailure, "Unable to write int"
+    end
+
     def primitive_read_long(signed=true)
       Rubinius.primitive :pointer_read_long
       raise PrimitiveFailure, "Unable to read long"
+    end
+
+    def primitive_write_long(obj)
+      Rubinius.primitive :pointer_write_long
+      raise PrimitiveFailure, "Unable to write long"
     end
 
     def primitive_read_long_long(signed=true)
@@ -197,14 +217,29 @@ module FFI
       raise PrimitiveFailure, "Unable to read long"
     end
 
+    def primitive_write_long_long(obj)
+      Rubinius.primitive :pointer_write_long_long
+      raise PrimitiveFailure, "Unable to write long_long"
+    end
+
     def primitive_read_float
       Rubinius.primitive :pointer_read_float
       raise PrimitiveFailure, "Unable to read float"
     end
 
+    def primitive_write_float(obj)
+      Rubinius.primitive :pointer_write_float
+      raise PrimitiveFailure, "Unable to write float"
+    end
+
     def primitive_read_double
       Rubinius.primitive :pointer_read_double
       raise PrimitiveFailure, "Unable to read double"
+    end
+
+    def primitive_write_double(obj)
+      Rubinius.primitive :pointer_write_double
+      raise PrimitiveFailure, "Unable to write double"
     end
 
     def primitive_read_pointer
