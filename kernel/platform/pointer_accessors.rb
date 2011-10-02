@@ -30,8 +30,8 @@ module FFI
       (self + offset).read_int8
     end
 
-    def put_int8(offset)
-      (self + offset).write_int8
+    def put_int8(offset, obj)
+      (self + offset).write_int8(obj)
     end
 
     def read_array_of_int8(length, signed=true)
@@ -62,8 +62,8 @@ module FFI
       (self + offset).read_uint8
     end
 
-    def put_uint8(offset)
-      (self + offset).write_uint8
+    def put_uint8(offset, obj)
+      (self + offset).write_uint8(obj)
     end
 
     def read_array_of_uint8(length)
@@ -100,8 +100,8 @@ module FFI
       (self + offset).read_int16
     end
 
-    def put_int16(offset)
-      (self + offset).write_int16
+    def put_int16(offset, obj)
+      (self + offset).write_int16(obj)
     end
 
     def read_array_of_int16(length, signed=true)
@@ -132,8 +132,8 @@ module FFI
       (self + offset).read_uint16
     end
 
-    def put_uint16(offset)
-      (self + offset).write_uint16
+    def put_uint16(offset, obj)
+      (self + offset).write_uint16(obj)
     end
 
     def read_array_of_uint16(length)
@@ -170,8 +170,8 @@ module FFI
       (self + offset).read_int32
     end
 
-    def put_int32(offset)
-      (self + offset).write_int32
+    def put_int32(offset, obj)
+      (self + offset).write_int32(obj)
     end
 
     def read_array_of_int32(length, signed=true)
@@ -202,8 +202,8 @@ module FFI
       (self + offset).read_uint32
     end
 
-    def put_uint32(offset)
-      (self + offset).write_uint32
+    def put_uint32(offset, obj)
+      (self + offset).write_uint32(obj)
     end
 
     def read_array_of_uint32(length)
@@ -240,8 +240,8 @@ module FFI
       (self + offset).read_int64
     end
 
-    def put_int64(offset)
-      (self + offset).write_int64
+    def put_int64(offset, obj)
+      (self + offset).write_int64(obj)
     end
 
     def read_array_of_int64(length, signed=true)
@@ -272,8 +272,8 @@ module FFI
       (self + offset).read_uint64
     end
 
-    def put_uint64(offset)
-      (self + offset).write_uint64
+    def put_uint64(offset, obj)
+      (self + offset).write_uint64(obj)
     end
 
     def read_array_of_uint64(length)
@@ -310,8 +310,8 @@ module FFI
       (self + offset).read_long
     end
 
-    def put_long(offset)
-      (self + offset).write_long
+    def put_long(offset, obj)
+      (self + offset).write_long(obj)
     end
 
     def read_array_of_long(length, signed=true)
@@ -342,8 +342,8 @@ module FFI
       (self + offset).read_ulong
     end
 
-    def put_ulong(offset)
-      (self + offset).write_ulong
+    def put_ulong(offset, obj)
+      (self + offset).write_ulong(obj)
     end
 
     def read_array_of_ulong(length)
@@ -380,8 +380,8 @@ module FFI
       (self + offset).read_float32
     end
 
-    def put_float32(offset)
-      (self + offset).write_float32
+    def put_float32(offset, obj)
+      (self + offset).write_float32(obj)
     end
 
     def read_array_of_float32(length)
@@ -418,8 +418,8 @@ module FFI
       (self + offset).read_float64
     end
 
-    def put_float64(offset)
-      (self + offset).write_float64
+    def put_float64(offset, obj)
+      (self + offset).write_float64(obj)
     end
 
     def read_array_of_float64(length)
@@ -456,8 +456,8 @@ module FFI
       (self + offset).read_float
     end
 
-    def put_float(offset)
-      (self + offset).write_float
+    def put_float(offset, obj)
+      (self + offset).write_float(obj)
     end
 
     def read_array_of_float(length)
@@ -494,8 +494,8 @@ module FFI
       (self + offset).read_double
     end
 
-    def put_double(offset)
-      (self + offset).write_double
+    def put_double(offset, obj)
+      (self + offset).write_double(obj)
     end
 
     def read_array_of_double(length)
@@ -532,8 +532,8 @@ module FFI
       (self + offset).read_char
     end
 
-    def put_char(offset)
-      (self + offset).write_char
+    def put_char(offset, obj)
+      (self + offset).write_char(obj)
     end
 
     def read_array_of_char(length, signed=true)
@@ -564,8 +564,8 @@ module FFI
       (self + offset).read_uchar
     end
 
-    def put_uchar(offset)
-      (self + offset).write_uchar
+    def put_uchar(offset, obj)
+      (self + offset).write_uchar(obj)
     end
 
     def read_array_of_uchar(length)
@@ -602,8 +602,8 @@ module FFI
       (self + offset).read_short
     end
 
-    def put_short(offset)
-      (self + offset).write_short
+    def put_short(offset, obj)
+      (self + offset).write_short(obj)
     end
 
     def read_array_of_short(length, signed=true)
@@ -634,8 +634,8 @@ module FFI
       (self + offset).read_ushort
     end
 
-    def put_ushort(offset)
-      (self + offset).write_ushort
+    def put_ushort(offset, obj)
+      (self + offset).write_ushort(obj)
     end
 
     def read_array_of_ushort(length)
@@ -672,8 +672,8 @@ module FFI
       (self + offset).read_int
     end
 
-    def put_int(offset)
-      (self + offset).write_int
+    def put_int(offset, obj)
+      (self + offset).write_int(obj)
     end
 
     def read_array_of_int(length, signed=true)
@@ -704,8 +704,8 @@ module FFI
       (self + offset).read_uint
     end
 
-    def put_uint(offset)
-      (self + offset).write_uint
+    def put_uint(offset, obj)
+      (self + offset).write_uint(obj)
     end
 
     def read_array_of_uint(length)
@@ -742,8 +742,8 @@ module FFI
       (self + offset).read_long_long
     end
 
-    def put_long_long(offset)
-      (self + offset).write_long_long
+    def put_long_long(offset, obj)
+      (self + offset).write_long_long(obj)
     end
 
     def read_array_of_long_long(length, signed=true)
@@ -774,8 +774,8 @@ module FFI
       (self + offset).read_ulong_long
     end
 
-    def put_ulong_long(offset)
-      (self + offset).write_ulong_long
+    def put_ulong_long(offset, obj)
+      (self + offset).write_ulong_long(obj)
     end
 
     def read_array_of_ulong_long(length)
@@ -812,8 +812,8 @@ module FFI
       (self + offset).read_pointer
     end
 
-    def put_pointer(offset)
-      (self + offset).write_pointer
+    def put_pointer(offset, obj)
+      (self + offset).write_pointer(obj)
     end
 
     def read_array_of_pointer(length)
