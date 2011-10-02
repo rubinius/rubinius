@@ -1,5 +1,6 @@
 ffi.rbc
 library.rbc
+pointer_accessors.rbc
 pointer.rbc
 env.rbc
 file.rbc
