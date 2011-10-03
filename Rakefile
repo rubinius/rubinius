@@ -97,6 +97,8 @@ def run_specs(flags=nil)
     ENV["CFLAGS"]      = "-Ivm/capi"
   end
 
+  ENV.delete("RUBYOPT")
+
   sh "bin/mspec ci #{ENV['CI_MODE_FLAG'] || flags} --background --agent"
 end
 
