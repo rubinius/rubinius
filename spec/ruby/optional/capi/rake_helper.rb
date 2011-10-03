@@ -7,7 +7,7 @@ common = "-I shotgun/lib/subtend -g #{input}"
 case PLATFORM
 when /darwin/
   output = "#{$cwd}/#{$ext_name}.bundle"
-  build_cmd = "cc -dynamic -bundle -undefined suppress -flat_namespace #{common} -o #{output}"
+  build_cmd = "cc -bundle -undefined suppress -flat_namespace #{common} -o #{output}"
 else
   output = "#{$cwd}/#{$ext_name}.so"
   build_cmd = "cc -shared #{common} -o #{output}"

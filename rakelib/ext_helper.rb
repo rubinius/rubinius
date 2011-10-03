@@ -99,7 +99,14 @@ def add_mri_capi
   $LIBS << " #{DEFAULT["LIBS"]}"
   $LIBS << " #{DEFAULT["DLDLIBS"]}"
 
-  unless RUBY_PLATFORM =~ /mingw/
+  case RUBY_PLATFORM
+  when /mingw/
+    # do nothing
+  when /darwin/
+    # necessary to avoid problems with RVM injecting flags into the MRI build
+    # process.
+    add_ldflag DEFAULT["LDSHARED"].split[1..-1].join(' ').gsub(/-dynamiclib/, "")
+  else
     add_ldflag DEFAULT["LDSHARED"].split[1..-1].join(' ')
   end
 
@@ -183,7 +190,7 @@ when /openbsd/
 when /darwin/
   # on Unix we need a g++ link, not gcc.
   # Ff line contributed by Daniel Harple.
-  $LDSHARED = "#{$CXX} -dynamic -bundle -undefined suppress -flat_namespace -lstdc++"
+  $LDSHARED = "#{$CXX} -bundle -undefined suppress -flat_namespace -lstdc++"
 
 when /aix/
   $LDSHARED = "#{$CXX} -shared -Wl,-G -Wl,-brtl"
