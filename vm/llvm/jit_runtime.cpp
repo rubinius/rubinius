@@ -14,6 +14,10 @@
 namespace rubinius {
 namespace jit {
 
+  RuntimeDataHolder::~RuntimeDataHolder() {
+    runtime_data_.clear();
+  }
+
   void RuntimeDataHolder::cleanup(STATE, CodeManager* cm) {
     LLVMState* ls = cm->shared()->llvm_state;
     assert(ls);

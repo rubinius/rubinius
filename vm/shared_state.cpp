@@ -16,6 +16,10 @@
 #include "agent.hpp"
 #include "world_state.hpp"
 
+#ifdef ENABLE_LLVM
+#include "llvm/state.hpp"
+#endif
+
 namespace rubinius {
 
   SharedState::SharedState(Environment* env, Configuration& config, ConfigParser& cp)
@@ -51,6 +55,13 @@ namespace rubinius {
     if(!initialized_) return;
 
     // std::cerr << "Time waiting: " << world_->time_waiting() << "\n";
+
+#ifdef ENABLE_LLVM
+    if(llvm_state) {
+      delete llvm_state;
+    }
+#endif
+
     delete tool_broker_;
     delete world_;
     delete ic_registry_;

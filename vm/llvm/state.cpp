@@ -7,6 +7,7 @@
 #include "llvm/jit_block.hpp"
 #include "llvm/method_info.hpp"
 #include "llvm/background_compile_request.hpp"
+#include "llvm/disassembler.hpp"
 #include "llvm/jit_context.hpp"
 
 #include "vm/config.h"
@@ -629,6 +630,9 @@ namespace rubinius {
   LLVMState::~LLVMState() {
     shared_.remove_managed_thread(this);
     shared_.om->del_aux_barrier(0, &write_barrier_);
+    delete passes_;
+    delete module_;
+    delete background_thread_;
   }
 
   bool LLVMState::debug_p() {
@@ -977,6 +981,8 @@ namespace rubinius {
   }
 
   void LLVMState::show_machine_code(void* buffer, size_t size) {
+
+#if defined(IS_X86) || defined(IS_X8664)
 #ifndef RBX_WINDOWS
     ud_t ud;
 
@@ -1033,6 +1039,13 @@ namespace rubinius {
       std::cout << "\n";
     }
 #endif  // !RBX_WINDOWS
+
+#else
+    JITDisassembler disassembler(buffer, size);
+    std::string output = disassembler.print_machine_code();
+    std::cout << output;
+#endif // !IS_X86
+
   }
 
 }
