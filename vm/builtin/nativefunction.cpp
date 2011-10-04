@@ -656,8 +656,12 @@ namespace rubinius {
     RootBuffer vrf(state->root_buffers(), args.arguments(), args.total());
 
     void** values = ALLOCA_N(void*, ffi_data->arg_count);
+    void** heap_allocations = ALLOCA_N(void*, ffi_data->arg_count);
+    size_t i;
 
-    for(size_t i = 0; i < ffi_data->arg_count; i++) {
+    for(i = 0; i < ffi_data->arg_count; i++) {
+      heap_allocations[i] = NULL;
+
       switch(ffi_data->arg_types[i]) {
       case RBX_FFI_TYPE_CHAR: {
         char* tmp = ALLOCA(char);
@@ -861,9 +865,16 @@ namespace rubinius {
           so = as<String>(obj);
           size = so->size();
 
-          char* data = ALLOCA_N(char, size + 1);
+          char* data = (char *)malloc(sizeof(char) * (size + 1));
+
+          if (!data) {
+            rubinius::bug("could not allocate memory for string");
+          }
+
           memcpy(data, so->c_str(state), size);
           data[size] = 0;
+
+          heap_allocations[i] = data;
           *tmp = data;
         }
         values[i] = tmp;
@@ -1033,6 +1044,12 @@ namespace rubinius {
     }
 
     env->set_current_call_frame(saved_frame);
+
+    for(i = 0; i < ffi_data->arg_count; i++) {
+      if (heap_allocations[i]) {
+        free(heap_allocations[i]);
+      }
+    }
 
     return ret;
   }
