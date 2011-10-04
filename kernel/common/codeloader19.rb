@@ -11,9 +11,18 @@ module Rubinius
         return path if loadable? path
       end
 
-      return name if loading and loadable? "./#{name}"
-
       return nil
+    end
+
+    # requires files relative to the current directory. We do one interesting
+    # check to make sure it's not called inside of an eval.
+    def self.require_relative(name, scope)
+      script = scope.current_script
+      if script
+        require File.expand_path(name, File.dirname(script.data_path))
+      else
+        raise LoadError.new "Something is wrong in trying to get relative path"
+      end
     end
   end
 end

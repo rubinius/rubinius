@@ -85,4 +85,15 @@ module Kernel
   end
 
   module_function :proc
+
+  # Attempt to load the given file, returning true if successful. Works just
+  # like Kernel#require, except that it searches relative to the current
+  # directory.
+  #
+  def require_relative(name)
+    scope = Rubinius::StaticScope.of_sender
+    Rubinius::CodeLoader.require_relative(name, scope)
+  end
+  module_function :require_relative
+
 end
