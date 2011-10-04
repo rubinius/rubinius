@@ -40,6 +40,8 @@ extern "C" {
       RUBY_DATA_FUNC mark, RUBY_DATA_FUNC free) {
     NativeMethodEnvironment* env = NativeMethodEnvironment::get();
 
+    if(!klass) klass = rb_cObject;
+
     Class* data_klass = c_as<Class>(env->get_object(klass));
 
     Data* data = Data::create(env->state(), ptr, mark, free);
