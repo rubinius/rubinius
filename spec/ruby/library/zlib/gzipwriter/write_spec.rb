@@ -20,5 +20,13 @@ describe "GzipWriter#write" do
     @io.string[10..-1].should == @zip[10..-1]
   end
 
-end
+  it "handles inputs of 2^23 bytes" do
+    input = '.' * (2 ** 23)
 
+    Zlib::GzipWriter.wrap @io do |gzio|
+      gzio.write input
+    end
+
+    @io.string.size.should == 8176
+  end
+end
