@@ -1,4 +1,0 @@
-fails:Kernel#load (path resolution) calls #to_path on non-String objects
-fails:Kernel#load (path resolution) calls #to_path on a String
-fails:Kernel.load (path resolution) calls #to_path on non-String objects
-fails:Kernel.load (path resolution) calls #to_path on a String
