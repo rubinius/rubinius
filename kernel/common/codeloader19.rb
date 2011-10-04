@@ -11,6 +11,8 @@ module Rubinius
         return path if loadable? path
       end
 
+      return name if loading and loadable? "./#{name}"
+
       return nil
     end
 
