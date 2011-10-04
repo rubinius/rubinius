@@ -870,6 +870,8 @@ namespace rubinius {
     CallFrame* callee = call_frame;
     call_frame = call_frame->previous;
 
+    if(!call_frame) return callee;
+
     // Now start looking at callers.
 
     while(depth-- > 0) {
