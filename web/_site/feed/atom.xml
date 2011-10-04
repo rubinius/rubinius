@@ -9,6 +9,33 @@
 
   
   <entry>
+    <title>Steve Klabnik Thinks Rubinius is Awesome</title>
+    <id>http://rubini.us/2011/10/04/steve-klabnik-thinks-rubinius-is-awesome/</id>
+    <link rel="alternate" type="text/html" href="http://rubini.us/2011/10/04/steve-klabnik-thinks-rubinius-is-awesome/" />
+    <updated>2011-10-04T00:00:00+00:00</updated>
+    <author>
+      <name>Shane Becker</name>
+    </author>
+    
+    <content type="html">&lt;p&gt;Steve Klabnik &lt;a href=&quot;https://github.com/rubinius/rubinius/pull/1184&quot;&gt;added support for &lt;code&gt;require_relative&lt;/code&gt; to Rubinius&lt;/a&gt;. He documents his process and &lt;a href=&quot;http://blog.steveklabnik.com/2011/10/04/rubinius-is-awesome.html&quot; title=&quot;Rubinius Is Awesome - Literate Programming&quot;&gt;how much fun he had&lt;/a&gt;. We&amp;rsquo;re glad to hear that Steve thinks Rubinius is awesome. Making Rubinius awesome for rubyists has always been one of our core tenets.&lt;/p&gt;
+
+&lt;blockquote&gt;
+  &lt;p&gt;Even if I didn’t have some code to look at, because Rubinius is just Ruby,
+it was really easy to dive in and check out the code, because it’s all Ruby.
+Seriously. Rubinius is just Ruby. Just Ruby. Ruby.&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;blockquote&gt;
+  &lt;p&gt;So dive in and add some features today! If having an awesome alternate Ruby implementation
+isn’t enough for you, the rbx team will bribe you with special stickers for committers, and sweet 
+black-on-black tshirts for people with 10 commits or more!&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;p&gt;&lt;a href=&quot;http://blog.steveklabnik.com/2011/10/04/rubinius-is-awesome.html&quot; title=&quot;Rubinius Is Awesome - Literate Programming&quot;&gt;Read all about it on his blog Literate Programming&lt;/a&gt;.&lt;/p&gt;
+</content>
+  </entry>
+  
+  <entry>
     <title>Dr Nic Interviewed by Obie Fernandez about Rails, RailsInstaller, Ruby Virtual Machines and More</title>
     <id>http://rubini.us/2011/09/06/drnic-interview/</id>
     <link rel="alternate" type="text/html" href="http://rubini.us/2011/09/06/drnic-interview/" />
