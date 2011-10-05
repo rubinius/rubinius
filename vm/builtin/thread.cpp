@@ -20,6 +20,8 @@
 #include "vm/object_utils.hpp"
 #include "vm.hpp"
 
+#include "on_stack.hpp"
+
 #include "windows_compat.h"
 
 #include <sys/time.h>
@@ -195,6 +197,8 @@ namespace rubinius {
   }
 
   Object* Thread::raise(STATE, Exception* exc) {
+    OnStack<1> os(state, exc);
+
     thread::SpinLock::LockGuard lg(init_lock_);
 
     VM* vm = vm_;
