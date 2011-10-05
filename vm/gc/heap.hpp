@@ -97,7 +97,7 @@ namespace rubinius {
      */
     bool contains_p(Address addr) {
       if(addr < start_) return false;
-      if(addr >= last_) return false;
+      if(addr >= current_) return false;
       return true;
     }
 
