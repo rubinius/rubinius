@@ -1,1 +1,0 @@
-fails:File.split collapses multiple '/' characters and strips trailing ones

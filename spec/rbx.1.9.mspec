@@ -123,7 +123,6 @@ class MSpecScript
     '^spec/ruby/library/logger',
     '^spec/ruby/library/net',
     '^spec/ruby/library/openssl',
-    '^spec/ruby/library/pathname',
     '^spec/ruby/library/prime',
     '^spec/ruby/library/resolv',
     '^spec/ruby/library/rexml',

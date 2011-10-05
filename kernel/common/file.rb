@@ -130,7 +130,7 @@ class File < IO
         data = path.data
         found = false
         pos.downto(0) do |i|
-          if data[i] != ?/
+          if data[i] != 47  # ?/
             path = path.substring(0, i+1)
             found = true
             break
@@ -327,7 +327,7 @@ class File < IO
     start ||= (path.size - 1)
 
     start.downto(0) do |i|
-      if data[i] != ?/
+      if data[i] != 47  # ?/
         return i
       end
     end
