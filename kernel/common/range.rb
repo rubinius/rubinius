@@ -206,7 +206,8 @@ class Range
     hash ^= @begin.hash << 1
     hash ^= @end.hash << 9
     hash ^= excl << 24;
-    return hash
+    # Are we throwing away too much here for a good hash value distribution?
+    return hash & Fixnum::MAX
   end
 
   # Convert this range object to a printable form (using
