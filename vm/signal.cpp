@@ -7,9 +7,12 @@
 
 #include "builtin/array.hpp"
 #include "builtin/module.hpp"
+#include "builtin/class.hpp"
 
 #include <iostream>
 #include <fcntl.h>
+
+#include "builtin/thread.hpp"
 
 #ifndef RBX_WINDOWS
 #include <sys/select.h>
@@ -23,11 +26,16 @@ namespace rubinius {
   static SignalHandler* handler_ = 0;
   pthread_t main_thread;
 
+  Object* handle_tramp(STATE) {
+    handler_->perform(state);
+    return Qnil;
+  }
+
   SignalHandler::SignalHandler(VM* vm)
-    : thread::Thread(0, false)
-    , vm_(vm)
+    : target_(vm)
     , queued_signals_(0)
     , exit_(false)
+    , thread_(vm)
   {
     handler_ = this;
     main_thread = pthread_self();
@@ -37,6 +45,11 @@ namespace rubinius {
     }
 
     reopen_pipes();
+
+    self_ = vm->shared.new_vm();
+
+    thread_.set(Thread::create(vm, self_, vm->shared.globals.thread.get(),
+                               handle_tramp, false));
   }
 
   void SignalHandler::reopen_pipes() {
@@ -48,12 +61,19 @@ namespace rubinius {
     write_fd_ = f[1];
   }
 
-  void SignalHandler::on_fork() {
-    if(handler_) {
-      handler_->exit_ = false;
-      handler_->reopen_pipes();
-      handler_->run();
-    }
+  void SignalHandler::on_fork(STATE) {
+    if(handler_) handler_->on_fork_i(state);
+  }
+
+  void SignalHandler::on_fork_i(STATE) {
+    exit_ = false;
+    reopen_pipes();
+
+    if(!self_) self_ = state->shared.new_vm();
+    thread_.set(Thread::create(state, self_, state->shared.globals.thread.get(),
+                               handle_tramp, false));
+
+    run(state);
   }
 
   void SignalHandler::shutdown() {
@@ -61,31 +81,38 @@ namespace rubinius {
   }
 
   void SignalHandler::shutdown_i() {
+    self_ = 0;
     exit_ = true;
     if(write(write_fd_, "!", 1) < 0) {
       perror("SignalHandler::shutdown_i failed to write");
     }
-
-    // Very unlikely we'd call this from inside the signal thread, but
-    // you can never be too careful with thread programming.
-    if(!in_self_p()) join();
   }
 
-  void SignalHandler::perform() {
+  void SignalHandler::run(STATE) {
+    thread_.get()->fork(state);
+  }
+
+  void SignalHandler::perform(STATE) {
 #ifndef RBX_WINDOWS
     sigset_t set;
     sigfillset(&set);
     pthread_sigmask(SIG_BLOCK, &set, NULL);
 #endif
 
-    set_name("rbx.signal-dispatch");
+    thread::Thread::set_os_name("rbx.signal-dispatch");
 
     for(;;) {
       fd_set fds;
       FD_ZERO(&fds);
       FD_SET((int_fd_t)read_fd_, &fds);
 
-      int n = select(read_fd_ + 1, &fds, NULL, NULL, NULL);
+      int n;
+
+      {
+        GCIndependent indy(state, 0);
+        n = select(read_fd_ + 1, &fds, NULL, NULL, NULL);
+      }
+
       if(exit_) {
         close(write_fd_);
         close(read_fd_);
@@ -100,9 +127,9 @@ namespace rubinius {
         }
 
         {
-          vm_->check_local_interrupts = true;
-          vm_->get_attention();
-          vm_->wakeup(vm_);
+          target_->check_local_interrupts = true;
+          target_->get_attention();
+          target_->wakeup(state);
 
         }
       }
@@ -119,13 +146,13 @@ namespace rubinius {
 
     // If the main thread is running, just tell it that
     // there are local interrupts waiting.
-    if(!vm_->waiting_p()) {
-      vm_->check_local_interrupts = true;
+    if(!target_->waiting_p()) {
+      target_->check_local_interrupts = true;
       return;
     }
 
-    if(vm_->should_interrupt_with_signal()) {
-      vm_->check_local_interrupts = true;
+    if(target_->should_interrupt_with_signal()) {
+      target_->check_local_interrupts = true;
 
       if(!pthread_equal(pthread_self(), main_thread)) {
 #ifdef RBX_WINDOWS
@@ -168,22 +195,22 @@ namespace rubinius {
 #endif
   }
 
-  bool SignalHandler::deliver_signals(CallFrame* call_frame) {
+  bool SignalHandler::deliver_signals(STATE, CallFrame* call_frame) {
     queued_signals_ = 0;
 
     for(int i = 0; i < NSIG; i++) {
       if(pending_signals_[i] > 0) {
         pending_signals_[i] = 0;
 
-        Array* args = Array::create(vm_, 1);
-        args->set(vm_, 0, Fixnum::from(i));
+        Array* args = Array::create(state, 1);
+        args->set(state, 0, Fixnum::from(i));
 
         // Check whether the send raised an exception and
         // stop running the handlers if that happens
-        if(!vm_->globals().rubinius->send(vm_, call_frame,
-               vm_->symbol("received_signal"), args, Qnil)) {
-          if(vm_->thread_state()->raise_reason() == cException ||
-             vm_->thread_state()->raise_reason() == cExit) {
+        if(!G(rubinius)->send(state, call_frame,
+               state->symbol("received_signal"), args, Qnil)) {
+          if(state->thread_state()->raise_reason() == cException ||
+             state->thread_state()->raise_reason() == cExit) {
             return false;
           }
         }

@@ -273,7 +273,7 @@ namespace rubinius {
     state->set_run_signals(true);
     SignalHandler* handler = new SignalHandler(state);
     shared->set_signal_handler(handler);
-    handler->run();
+    handler->run(state);
 
 #ifndef RBX_WINDOWS
     // Ignore sigpipe.

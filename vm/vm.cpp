@@ -424,7 +424,7 @@ namespace rubinius {
     check_local_interrupts = false;
 
     if(run_signals_) {
-      if(!shared.signal_handler()->deliver_signals(call_frame)) {
+      if(!shared.signal_handler()->deliver_signals(this, call_frame)) {
         return false;
       }
     }
