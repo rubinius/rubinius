@@ -13,4 +13,12 @@ describe "Range#hash" do
     (0...10).hash.should == (0...10).hash
     (0..10).hash.should_not == (0...10).hash
   end
+
+  it "generates a Fixnum for the hash value" do
+    (0..0).hash.should be_an_instance_of(Fixnum)
+    (0..1).hash.should be_an_instance_of(Fixnum)
+    (0...10).hash.should be_an_instance_of(Fixnum)
+    (0..10).hash.should be_an_instance_of(Fixnum)
+  end
+
 end
