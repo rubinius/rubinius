@@ -1,9 +1,10 @@
 before_script: ./configure
 notifications:
-  email:
+  recipients:
     - evan+notify@phx.io
     - bford@engineyard.com
     - d.bussink@gmail.com
+  email:
     on_success: change
     on_failure: always
   webhooks: http://elle.fallingsnow.net:13424/
