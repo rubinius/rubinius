@@ -106,6 +106,8 @@ namespace rubinius {
         , native_size_(0)
       {}
 
+      ~RuntimeDataHolder();
+
       virtual void cleanup(VM* vm, CodeManager* cm);
 
       virtual const char* kind() {
