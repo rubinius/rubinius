@@ -1,4 +1,9 @@
 before_script: ./configure
 notifications:
-  email: false
+  email:
+    - evan+notify@phx.io
+    - bford@engineyard.com
+    - d.bussink@gmail.com
+    on_success: change
+    on_failure: always
   webhooks: http://elle.fallingsnow.net:13424/
