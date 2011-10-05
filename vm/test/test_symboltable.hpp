@@ -1,6 +1,7 @@
 #include "vm/test/test.hpp"
 
 #include "symboltable.hpp"
+#include "configuration.hpp"
 #include "builtin/array.hpp"
 
 #include <algorithm>
@@ -39,8 +40,15 @@ public:
   void test_lookup_with_empty_string() {
     String* str = String::create(state, "");
 
-    TS_ASSERT_THROWS_ASSERT(symbols->lookup(state, str), const RubyException &e,
-                            TS_ASSERT(Exception::argument_error_p(state, e.exception)));
+    if(LANGUAGE_18_ENABLED(state)) {
+      TS_ASSERT_THROWS_ASSERT(symbols->lookup(state, str), const RubyException &e,
+                              TS_ASSERT(Exception::argument_error_p(state, e.exception)));
+    } else {
+      Symbol* sym = symbols->lookup(state, str);
+      String* str2 = symbols->lookup_string(state, sym);
+      TS_ASSERT_EQUALS(Qtrue, str->equal(state, str2));
+    }
+
   }
 
   /* Uncomment when 2 strings are found that have colliding hash values
