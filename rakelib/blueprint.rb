@@ -11,6 +11,7 @@ Daedalus.blueprint do |i|
 
   if ENV['DEV']
     gcc.cflags << "-O0"
+    gcc.mtime_only = true
   else
     gcc.cflags << "-O2"
   end

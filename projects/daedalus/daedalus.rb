@@ -161,7 +161,11 @@ module Daedalus
           h[k] = ""
         end
       end
+
+      @mtime_only = false
     end
+
+    attr_accessor :mtime_only
 
     def header_directories
       dirs = []
@@ -356,6 +360,9 @@ module Daedalus
       end
 
       return true unless File.exists?(object_path)
+
+      return true if ctx.mtime_only and ctx.mtime(@path) > ctx.mtime(object_path)
+
       return true unless @data[:sha1] == sha1(ctx)
       return false
     end
