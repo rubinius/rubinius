@@ -1225,14 +1225,11 @@ failed: /* try next '*' position */
   IOBuffer* IOBuffer::create(STATE, size_t bytes) {
     IOBuffer* buf = state->new_object<IOBuffer>(G(iobuffer));
     buf->storage(state, CharArray::create(state, bytes));
-    buf->channel(state, Channel::create(state));
+    buf->channel(state, Channel::create_primed(state));
     buf->total(state, Fixnum::from(bytes));
     buf->used(state, Fixnum::from(0));
     buf->reset(state);
     buf->write_synced(state, Qtrue);
-
-    // Prime the channel
-    buf->channel()->send(state, Qtrue);
 
     return buf;
   }
