@@ -721,6 +721,8 @@ namespace melbourne {
           } else {
             masgn = post_args->nd_next->nd_head;
             next = masgn->nd_next;
+            // -1 comes from: mlhs_head tSTAR
+            if(masgn->nd_cnt == -1) next = 0;
           }
         }
 
