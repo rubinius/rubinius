@@ -1,1 +1,0 @@
-fails:BasicObject#method_missing should raise NoMethodError if undefined method is called

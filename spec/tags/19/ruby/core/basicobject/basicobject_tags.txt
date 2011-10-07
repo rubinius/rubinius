@@ -1,1 +1,0 @@
-fails:BasicObject subclass contains Kernel methods when including Kernel
