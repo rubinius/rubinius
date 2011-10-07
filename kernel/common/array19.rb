@@ -100,6 +100,14 @@ class Array
     result[n..size] = []
     result
   end
+  
+  def sort_by!(&block)
+    Rubinius.check_frozen
+    
+    return to_enum :sort_by! unless block_given?
+    
+    replace sort_by(&block)
+  end
 
   alias_method :to_s, :inspect
 
