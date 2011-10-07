@@ -12,7 +12,7 @@ describe :matrix_conjugate, :shared => true do
     Matrix.empty(3, 0).send(@method).should == Matrix.empty(3, 0)
   end
 
-  ruby_bug "rubymine #5307", "1.9.3" do
+  ruby_bug "redmine #5307", "1.9.3" do
     describe "for a subclass of Matrix" do
       it "returns an instance of that subclass" do
         MatrixSub.ins.send(@method).should be_an_instance_of(MatrixSub)

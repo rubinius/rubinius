@@ -136,7 +136,7 @@ describe "Numeric#step" do
   end
 
   describe "Numeric#step with [stop, +step] when self, stop or step is a Float" do
-    it "yields while increasing self by step while stop < stop" do
+    it "yields while increasing self by step while < stop" do
       1.5.step(5, 1, &@prc)
       ScratchPad.recorded.should == [1.5, 2.5, 3.5, 4.5]
     end
@@ -149,6 +149,14 @@ describe "Numeric#step" do
     it "does not yield when self is greater than stop" do
       2.5.step(1.5, 1, &@prc)
       ScratchPad.recorded.should == []
+    end
+
+    ruby_bug "redmine #4576", "1.9.3" do
+      it "is careful about not yielding a value greater than limit" do
+        # As 9*1.3+1.0 == 12.700000000000001 > 12.7, we test:
+        1.0.step(12.7, 1.3, &@prc)
+        ScratchPad.recorded.should eql [1.0, 2.3, 3.6, 4.9, 6.2, 7.5, 8.8, 10.1, 11.4]
+      end
     end
   end
 
@@ -166,6 +174,14 @@ describe "Numeric#step" do
     it "does not yield when self is less than stop" do
       1.step(5, -1.5, &@prc)
       ScratchPad.recorded.should == []
+    end
+
+    ruby_bug "redmine #4576", "1.9.3" do
+      it "is careful about not yielding a value smaller than limit" do
+        # As -9*1.3-1.0 == -12.700000000000001 < -12.7, we test:
+        -1.0.step(-12.7, -1.3, &@prc)
+        ScratchPad.recorded.should eql [-1.0, -2.3, -3.6, -4.9, -6.2, -7.5, -8.8, -10.1, -11.4]
+      end
     end
   end
 

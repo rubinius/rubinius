@@ -59,7 +59,7 @@ describe "Matrix.[]" do
     m.column_size.should == 0
   end
 
-  ruby_bug "rubymine #5307", "1.9.3" do
+  ruby_bug "redmine #5307", "1.9.3" do
     describe "for a subclass of Matrix" do
       it "returns an instance of that subclass" do
         MatrixSub[ [20,30], [40.5, 9] ].should be_an_instance_of(MatrixSub)

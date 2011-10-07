@@ -1,4 +1,5 @@
 require File.expand_path('../../../spec_helper', __FILE__)
+require File.expand_path('../../../fixtures/thread_runner', __FILE__)
 
 describe "IO.select" do
   before :each do
@@ -98,21 +99,20 @@ describe "IO.select" do
   end
 end
 
-describe "IO.select" do
-  before :each do
-    ScratchPad.clear
-  end
-
-  it "sleeps forever when passed nil for timeout" do
-    t = Thread.new do
-      ScratchPad.record :thread_started
+describe "IO.select when passed nil for timeout" do
+  it "sleeps forever" do
+    t = ThreadRunner.new do
       IO.select(nil, nil, nil, nil)
-      ScratchPad.record :select_returned
     end
 
-    Thread.pass until ScratchPad.recorded == :thread_started
-    t.kill
-    t.join
-    ScratchPad.recorded.should == :thread_started
+    t.status.should == :killed
+  end
+
+  it "sets the thread's status to 'sleep'" do
+    t = ThreadRunner.new do
+      IO.select(nil, nil, nil, nil)
+    end
+
+    t.thread_status.should == "sleep"
   end
 end

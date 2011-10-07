@@ -1,5 +1,6 @@
 require File.expand_path('../../../spec_helper', __FILE__)
 require File.expand_path('../fixtures/classes', __FILE__)
+require File.expand_path('../shared/to_s', __FILE__)
 
 describe "Array#inspect" do
   it "returns a string" do
@@ -60,4 +61,6 @@ describe "Array#inspect" do
       s.untrusted?.should == true
     end
   end
+  
+  it_behaves_like :array_to_s, :inspect
 end

@@ -35,7 +35,7 @@ describe "Matrix#+" do
     end
   end
 
-  ruby_bug "rubymine #5307", "1.9.3" do
+  ruby_bug "redmine #5307", "1.9.3" do
     describe "for a subclass of Matrix" do
       it "returns an instance of that subclass" do
         m = MatrixSub.ins

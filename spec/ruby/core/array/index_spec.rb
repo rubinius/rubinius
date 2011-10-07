@@ -1,34 +1,6 @@
 require File.expand_path('../../../spec_helper', __FILE__)
+require File.expand_path('../shared/index', __FILE__)
 
 describe "Array#index" do
-  it "returns the index of the first element == to object" do
-    x = mock('3')
-    def x.==(obj) 3 == obj; end
-
-    [2, x, 3, 1, 3, 1].index(3).should == 1
-    [2, 3.0, 3, x, 1, 3, 1].index(x).should == 1
-  end
-
-  it "returns 0 if first element == to object" do
-    [2, 1, 3, 2, 5].index(2).should == 0
-  end
-
-  it "returns size-1 if only last element == to object" do
-    [2, 1, 3, 1, 5].index(5).should == 4
-  end
-
-  it "returns nil if no element == to object" do
-    [2, 1, 1, 1, 1].index(3).should == nil
-  end
-
-  ruby_version_is "1.8.7" do
-    it "accepts a block instead of an argument" do
-      [4, 2, 1, 5, 1, 3].index {|x| x < 2}.should == 2
-    end
-
-    it "ignore the block if there is an argument" do
-      [4, 2, 1, 5, 1, 3].index(5) {|x| x < 2}.should == 3
-    end
-
-  end
+  it_behaves_like(:array_index, :index)
 end

@@ -21,7 +21,7 @@ describe "Matrix#inspect" do
     Matrix[ [1, 2], [3, obj] ].inspect.should == "Matrix[[1, 2], [3, some_value]]"
   end
 
-  ruby_bug "rubymine #5307", "1.9.3" do
+  ruby_bug "redmine #5307", "1.9.3" do
     describe "for a subclass of Matrix" do
       it "returns a string using the subclass' name" do
         MatrixSub.ins.inspect.should == "MatrixSub[[1, 0], [0, 1]]"

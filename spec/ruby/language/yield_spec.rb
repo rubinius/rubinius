@@ -15,6 +15,10 @@ describe "The yield call" do
     it "raises a LocalJumpError when the method is not passed a block" do
       lambda { @y.z }.should raise_error(LocalJumpError)
     end
+
+    it "ignores assignment to the explicit block argument and calls the passed block" do
+      @y.ze { 42 }.should == 42
+    end
   end
 
   describe "taking a single argument" do

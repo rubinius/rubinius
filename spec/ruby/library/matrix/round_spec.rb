@@ -14,7 +14,7 @@ ruby_version_is "1.9.3" do
       Matrix.empty(3, 0).round(42).should == Matrix.empty(3, 0)
     end
 
-    ruby_bug "rubymine #5307", "1.9.3" do
+    ruby_bug "redmine #5307", "1.9.3" do
       describe "for a subclass of Matrix" do
         it "returns an instance of that subclass" do
           MatrixSub.ins.round.should be_an_instance_of(MatrixSub)
