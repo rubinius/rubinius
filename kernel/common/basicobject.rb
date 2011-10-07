@@ -1,5 +1,7 @@
 class BasicObject
-  def method_missing(*args) end
+  def method_missing(meth, *args)
+    Kernel.raise NoMethodError, "Unable to send '#{meth}' on instance of BasicObject"
+  end
   private :method_missing
 
   def singleton_method_added(name) end
@@ -10,4 +12,7 @@ class BasicObject
 
   def singleton_method_undefined(name) end
   private :singleton_method_undefined
+
+  def initialize(*args) end
+  private :initialize
 end
