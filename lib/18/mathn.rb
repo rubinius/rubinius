@@ -1,5 +1,5 @@
 #
-#   mathn.rb - 
+#   mathn.rb -
 #   	$Release Version: 0.5 $
 #   	$Revision: 1.1.1.1.4.1 $
 #   	$Date: 1998/01/16 12:36:05 $
@@ -7,7 +7,7 @@
 #
 # --
 #
-#   
+#
 #
 
 require "complex.rb"
@@ -46,7 +46,12 @@ class Integer
     raise ZeroDivisionError if self == 0
     ps = Prime.new
     value = self
-    pv = []
+    if value < 0
+      value = -value
+      pv = [[-1, 1]]
+    else
+      pv = []
+    end
     for prime in ps
       count = 0
       while (value1, mod = value.divmod(prime)
@@ -65,7 +70,7 @@ class Integer
     return pv
   end
 end
-  
+
 class Prime
   include Enumerable
 
@@ -241,7 +246,7 @@ module Math
       #      if !(x.kind_of?(Rational) and y.kind_of?(Rational))
       #	return a**Rational(1,2)
       #      end
-      if a.image >= 0 
+      if a.image >= 0
         Complex(x, y)
       else
         Complex(x, -y)
@@ -276,7 +281,7 @@ module Math
         if answer != 0
           if main * 4  < side * side
             applo = main.div(side)
-          else 
+          else
             applo = ((sqrt!(side * side + 4 * main) - side)/2.0).to_i + 1
           end
         else
