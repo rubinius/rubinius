@@ -6,6 +6,7 @@
 
 #include <algorithm>
 #include <vector>
+#include <string.h>
 
 class TestSymbolTable : public CxxTest::TestSuite, public VMTest {
 public:
@@ -73,8 +74,8 @@ public:
     const char* str = "__uint_fast64_t";
     const char* str2 = "TkIF_MOD";
 
-    TS_ASSERT_EQUALS(String::hash_str((unsigned char*)str, std::strlen(str)),
-                     String::hash_str((unsigned char*)str2, std::strlen(str2)));
+    TS_ASSERT_EQUALS(String::hash_str((unsigned char*)str, strlen(str)),
+                     String::hash_str((unsigned char*)str2, strlen(str2)));
 
     sym  = symbols->lookup(state, std::string(str));
     sym2 = symbols->lookup(state, std::string(str2));
