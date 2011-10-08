@@ -1,22 +1,19 @@
 require File.expand_path('../../../spec_helper', __FILE__)
 
 describe :symbol_succ, :shared => true do
-  it "returns symbol with last character incremented" do
-    :a.send(@method).should == :b
-    :A.send(@method).should == :B
-    :abc.send(@method).should == :abd
-    :a1.send(@method).should == :a2
+  it "returns a successor" do
+    :abcd.send(@method).should == :abce
+    :THX1138.send(@method).should == :THX1139
   end
 
-  it "wraps 'z' and 'Z' to 'aa' and 'AA' respectively" do
-    :z.send(@method).should == :aa
-    :Z.send(@method).should == :AA
-    :AZ.send(@method).should == :BA
+  it "propagates a 'carry'" do
+    :"1999zzz".send(@method).should == :"2000aaa"
+    :ZZZ9999.send(@method).should == :AAAA0000
   end
 
-  it "works with symbols with non-alphanumeric characters" do
-    :"[".send(@method).should == :"\\"
-    :"a[".send(@method).should == :"b["
+  it "increments non-alphanumeric characters when no alphanumeric characters are present" do
+    :"<<koala>>".send(@method).should == :"<<koalb>>"
+    :"***".send(@method).should == :"**+"
   end
 end
 
