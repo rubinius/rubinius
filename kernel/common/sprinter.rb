@@ -926,13 +926,23 @@ module Rubinius
             padding = format_negative_int(radix)
 
             if zero_pad?
-              zero_pad padding
-
-            elsif !precision? && !@f_zero
-              @g.push_literal ".."
-              @g.string_dup
-              @g.string_append
+              # Sorry this code is terrible
+              if @prec_static
+                @prec_static = @prec_static - 2
+                zero_pad(padding)
+                @prec_static = @prec_static + 2
+              elsif @width_static
+                @width_static = @width_static - 2
+                zero_pad(padding)
+                @width_static = @width_static + 2
+              else
+                zero_pad(padding)
+              end
             end
+
+            @g.push_literal ".."
+            @g.string_dup
+            @g.string_append
 
             have_formatted.set!
           end
