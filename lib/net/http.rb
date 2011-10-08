@@ -1238,6 +1238,7 @@ module Net   #:nodoc:
 
     # Iterates for each header values.
     def each_value   #:yield: +value+
+      return to_enum(__method__) unless block_given?
       @header.each_value do |va|
         yield va.join(', ')
       end
