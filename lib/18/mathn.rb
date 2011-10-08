@@ -46,7 +46,12 @@ class Integer
     raise ZeroDivisionError if self == 0
     ps = Prime.new
     value = self
-    pv = []
+    if value < 0
+      value = -value
+      pv = [[-1, 1]]
+    else
+      pv = []
+    end
     for prime in ps
       count = 0
       while (value1, mod = value.divmod(prime)
