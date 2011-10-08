@@ -6,6 +6,14 @@ class Array
     Rubinius::Type.try_convert obj, Array, :to_ary
   end
 
+  def keep_if(&block)
+    Rubinius.check_frozen
+
+    return to_enum :keep_if unless block_given?
+
+    replace select(&block)
+  end
+
   ##
   #  call-seq:
   #     arr.pack ( aTemplateString ) -> aBinaryString
@@ -99,6 +107,15 @@ class Array
 
     result[n..size] = []
     result
+  end
+
+  def select!(&block)
+    Rubinius.check_frozen
+
+    return to_enum :select! unless block_given?
+
+    ary = select(&block)
+    replace ary unless size == ary.size
   end
   
   def sort_by!(&block)

@@ -1,3 +1,0 @@
-fails:Array#select! returns nil if no changes were made in the array
-fails:Array#select! deletes elements for which the block returns a false value
-fails:Array#select! returns an enumerator if no block is given
