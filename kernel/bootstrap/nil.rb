@@ -32,4 +32,8 @@ class NilClass
   def to_i
     0
   end
+  
+  def to_r
+    Rational(0, 1)
+  end
 end
