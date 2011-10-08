@@ -1231,6 +1231,7 @@ module Net   #:nodoc:
 
     # Iterates for each capitalized header names.
     def each_capitalized_name(&block)   #:yield: +key+
+      return to_enum(__method__) unless block_given?
       @header.each_key do |k|
         yield capitalize(k)
       end
@@ -1261,6 +1262,7 @@ module Net   #:nodoc:
 
     # As for #each_header, except the keys are provided in capitalized form.
     def each_capitalized
+      return to_enum(__method__) unless block_given?
       @header.each do |k,v|
         yield capitalize(k), v.join(', ')
       end
