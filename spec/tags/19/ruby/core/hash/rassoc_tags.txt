@@ -1,3 +1,0 @@
-fails:Hash#rassoc returns an Array if the argument is a value of the Hash
-fails:Hash#rassoc sets the first element of the Array to the key of the located value
-fails:Hash#rassoc sets the last element of the Array to the located value

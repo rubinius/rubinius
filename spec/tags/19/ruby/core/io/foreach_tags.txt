@@ -1,4 +1,3 @@
 fails:IO.foreach with an object as the separator argument calls #to_str once for each line read to convert it to a String
 fails:IO.foreach with an object as the separator argument calls #to_path on non-String arguments
 fails:IO.foreach accepts an optional options argument
-fails:IO.foreach with an empty String as the separator argument yields a sequence of paragraphs when the separator is an empty string
