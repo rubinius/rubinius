@@ -1,9 +1,0 @@
-fails:Symbol#<=> with Symbol compares individual characters based on their ascii value
-fails:Symbol#<=> with Symbol returns -1 when self is less than other
-fails:Symbol#<=> with Symbol returns 0 when self is equal to other
-fails:Symbol#<=> with Symbol returns 1 when self is greater than other
-fails:Symbol#<=> with Symbol considers symbol that comes lexicographically first to be less if the symbols have same size
-fails:Symbol#<=> with Symbol doesn't consider shorter string to be less if longer string starts with shorter one
-fails:Symbol#<=> with Symbol compares shorter string with corresponding number of first chars of longer string
-fails:Symbol#<=> returns nil if its argument does not provide #to_sym
-fails:Symbol#<=> returns nil if its argument does not provide #<=>
