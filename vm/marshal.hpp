@@ -37,6 +37,7 @@ namespace rubinius {
     Float* get_float();
     InstructionSequence* get_iseq();
     CompiledMethod* get_cmethod();
+    Object* get_constant();
 
   public:
     class Error {

@@ -367,6 +367,8 @@ namespace rubinius {
     void set_const(const char* name, Object* val);
     void set_const(Module* mod, const char* name, Object* val);
 
+    Object* path2class(const char* name);
+
 #ifdef ENABLE_LLVM
     llvm::Module* llvm_module();
     void llvm_cleanup();

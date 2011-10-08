@@ -141,6 +141,11 @@ module Rubinius
           str = next_bytes count
           discard # remove the \n
           return str.to_sym
+        when ?c
+          count = next_string.to_i
+          str = next_bytes count
+          discard
+          return str.split("::").inject(Object) { |a,n| a.const_get(n) }
         when ?p
           count = next_string.to_i
           obj = Tuple.new(count)
@@ -305,7 +310,12 @@ module Rubinius
           str.append marshal(val.local_names)
           str
         else
-          raise ArgumentError, "Unknown type #{val.class}: #{val.inspect}"
+          if val.respond_to? :rbx_marshal_constant
+            name = StringValue(val.rbx_marshal_constant)
+            "c\n#{name.size}\n#{name}\n"
+          else
+            raise ArgumentError, "Unknown type #{val.class}: #{val.inspect}"
+          end
         end
       end
     end

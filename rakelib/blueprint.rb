@@ -16,6 +16,10 @@ Daedalus.blueprint do |i|
     gcc.cflags << "-O2"
   end
 
+  if ENV['POKE']
+    gcc.mtime_only = true
+  end
+
   # This is necessary for the gcc sync prims to fully work
   if Rubinius::BUILD_CONFIG[:x86_32]
     gcc.cflags << "-march=i686"

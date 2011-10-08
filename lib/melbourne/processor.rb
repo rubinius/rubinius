@@ -541,6 +541,12 @@ module Rubinius
       method_send
     end
 
+    def process_for(line, iter, arguments, body)
+      send = AST::Send.new line, iter, :each
+      send.block = AST::For19.new line, arguments, body
+      send
+    end
+
     def process_lambda(line, scope)
       arguments = scope.array.shift
       if scope.array.size == 1

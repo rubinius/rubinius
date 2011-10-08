@@ -734,6 +734,60 @@ module Rubinius
       end
     end
 
+    class For19Arguments < Node
+      def initialize(line, arguments)
+        @line = line
+        @arguments = arguments
+
+        if @arguments.kind_of? MultipleAssignment
+          @args = 0
+          @splat = 0
+        else
+          @args = 1
+          @splat = nil
+        end
+      end
+
+      def bytecode(g)
+        if @splat
+          g.push_literal Rubinius::Compiler::Runtime
+          g.push_local 0
+          g.send :unwrap_block_arg, 1
+        else
+          g.push_local 0
+        end
+
+        @arguments.bytecode(g)
+        g.pop
+      end
+
+      def required_args
+        @args
+      end
+
+      def total_args
+        @args
+      end
+
+      def post_args
+        0
+      end
+
+      def splat_index
+        @splat
+      end
+    end
+
+    class For19 < For
+      def initialize(line, arguments, body)
+        @line = line
+        @arguments = For19Arguments.new line, arguments
+        @body = body || NilLiteral.new(line)
+
+        new_local :"$for_args"
+      end
+    end
+
     class Negate < Node
       attr_accessor :value
 
