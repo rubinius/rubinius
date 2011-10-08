@@ -79,6 +79,7 @@ method.rbc
 method_table.rbc
 native_method.rbc
 nil.rbc
+nil19.rbc
 objectspace.rbc
 string.rbc
 string19.rbc
