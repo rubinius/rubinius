@@ -42,6 +42,10 @@ module Rubinius
         @block_env.code.total_args
       end
 
+      def post_args
+        @block_env.code.post_args
+      end
+
       def splat
         @block_env.code.splat
       end
