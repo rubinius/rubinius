@@ -19,8 +19,8 @@ typedef unsigned LONG_LONG st_data_t;
 typedef struct st_table st_table;
 
 struct st_hash_type {
-    int (*compare)();
-    int (*hash)();
+    int (*compare)(ANYARGS /*st_data_t, st_data_t*/); /* st_compare_func* */
+    int (*hash)(ANYARGS /*st_data_t*/);        /* st_hash_func* */
 };
 
 struct st_table {
@@ -68,15 +68,15 @@ struct st_table_entry {
 static int st_internal_numcmp(long, long);
 static int st_internal_numhash(long);
 static struct st_hash_type type_st_internal_numhash = {
-    st_internal_numcmp,
-    st_internal_numhash,
+    (int (*)(ANYARGS))st_internal_numcmp,
+    (int (*)(ANYARGS))st_internal_numhash,
 };
 
 /* extern int strcmp(const char *, const char *); */
 static int st_internal_strhash(const char *);
 static struct st_hash_type type_st_internal_strhash = {
-    strcmp,
-    st_internal_strhash,
+    (int (*)(ANYARGS))strcmp,
+    (int (*)(ANYARGS))st_internal_strhash,
 };
 
 static void st_internal_rehash(st_table *);
@@ -131,8 +131,7 @@ static long st_internal_primes[] = {
 };
 
 static int
-st_internal_new_size(size)
-    int size;
+st_internal_new_size(int size)
 {
     int i;
 
@@ -149,9 +148,7 @@ st_internal_new_size(size)
 }
 
 static st_table*
-st_init_table_with_size(type, size)
-    struct st_hash_type *type;
-    int size;
+st_init_table_with_size(struct st_hash_type *type, int size)
 {
     st_table *tbl;
 
@@ -167,8 +164,7 @@ st_init_table_with_size(type, size)
 }
 
 static st_table*
-st_init_table(type)
-    struct st_hash_type *type;
+st_init_table(struct st_hash_type *type)
 {
     return st_init_table_with_size(type, 0);
 }
@@ -180,8 +176,7 @@ st_init_numtable(void)
 }
 
 static st_table*
-st_init_numtable_with_size(size)
-    int size;
+st_init_numtable_with_size(int size)
 {
     return st_init_table_with_size(&type_st_internal_numhash, size);
 }
@@ -193,15 +188,13 @@ st_init_strtable(void)
 }
 
 static st_table*
-st_init_strtable_with_size(size)
-    int size;
+st_init_strtable_with_size(int size)
 {
     return st_init_table_with_size(&type_st_internal_strhash, size);
 }
 
 static void
-st_free_table(table)
-    st_table *table;
+st_free_table(st_table *table)
 {
     register st_table_entry *ptr, *next;
     int i;
@@ -233,10 +226,9 @@ st_free_table(table)
 } while (0)
 
 static int
-st_lookup(table, key, value)
-    st_table *table;
-    register st_data_t key;
-    st_data_t *value;
+st_lookup(st_table *table,
+    register st_data_t key,
+    st_data_t *value)
 {
     unsigned int hash_val, bin_pos;
     register st_table_entry *ptr;
@@ -272,10 +264,9 @@ do {\
 } while (0)
 
 static int
-st_insert(table, key, value)
-    register st_table *table;
-    register st_data_t key;
-    st_data_t value;
+st_insert(register st_table *table,
+    register st_data_t key,
+    st_data_t value)
 {
     unsigned int hash_val, bin_pos;
     register st_table_entry *ptr;
@@ -294,10 +285,7 @@ st_insert(table, key, value)
 }
 
 static void
-st_add_direct(table, key, value)
-    st_table *table;
-    st_data_t key;
-    st_data_t value;
+st_add_direct(st_table *table, st_data_t key, st_data_t value)
 {
     unsigned int hash_val, bin_pos;
 
@@ -307,8 +295,7 @@ st_add_direct(table, key, value)
 }
 
 static void
-st_internal_rehash(table)
-    register st_table *table;
+st_internal_rehash(register st_table *table)
 {
     register st_table_entry *ptr, *next, **new_bins;
     int i, old_num_bins = table->num_bins, new_num_bins;
@@ -333,8 +320,7 @@ st_internal_rehash(table)
 }
 
 static st_table*
-st_copy(old_table)
-    st_table *old_table;
+st_copy(st_table *old_table)
 {
     st_table *new_table;
     st_table_entry *ptr, *entry;
@@ -374,10 +360,9 @@ st_copy(old_table)
 }
 
 static int
-st_delete(table, key, value)
-    register st_table *table;
-    register st_data_t *key;
-    st_data_t *value;
+st_delete(register st_table *table,
+    register st_data_t *key,
+    st_data_t *value)
 {
     unsigned int hash_val;
     st_table_entry *tmp;
@@ -416,11 +401,10 @@ st_delete(table, key, value)
 }
 
 static int
-st_delete_safe(table, key, value, never)
-    register st_table *table;
-    register st_data_t *key;
-    st_data_t *value;
-    st_data_t never;
+st_delete_safe(register st_table *table,
+    register st_data_t *key,
+    st_data_t *value,
+    st_data_t never)
 {
     unsigned int hash_val;
     register st_table_entry *ptr;
@@ -447,18 +431,16 @@ st_delete_safe(table, key, value, never)
 }
 
 static int
-st_internal_delete_never(key, value, never)
-    st_data_t key, value, never;
+st_internal_delete_never(st_data_t key, st_data_t value, st_data_t never)
 {
     if (value == never) return ST_DELETE;
     return ST_CONTINUE;
 }
 
 static int
-st_foreach(table, func, arg)
-    st_table *table;
-    int (*func)();
-    st_data_t arg;
+st_foreach(st_table *table,
+    int (*func)(ANYARGS),
+    st_data_t arg)
 {
     st_table_entry *ptr, *last, *tmp;
     enum st_retval retval;
@@ -467,7 +449,7 @@ st_foreach(table, func, arg)
     for(i = 0; i < table->num_bins; i++) {
 	last = 0;
 	for(ptr = table->bins[i]; ptr != 0;) {
-	    retval = (*func)(ptr->key, ptr->record, arg);
+	    retval = (enum st_retval)func(ptr->key, ptr->record, arg);
 	    switch (retval) {
 	    case ST_CHECK:	/* check if hash is modified during iteration */
 	        tmp = 0;
@@ -505,20 +487,17 @@ st_foreach(table, func, arg)
 }
 
 static void
-st_cleanup_safe(table, never)
-    st_table *table;
-    st_data_t never;
+st_cleanup_safe( st_table *table, st_data_t never)
 {
     int num_entries = table->num_entries;
 
-    st_foreach(table, st_internal_delete_never, never);
+    st_foreach(table, (int (*)(ANYARGS))st_internal_delete_never, never);
     table->num_entries = num_entries;
 }
 
 
 static int
-st_internal_strhash(string)
-    register const char *string;
+st_internal_strhash( register const char *string )
 {
     register int c;
 
@@ -532,15 +511,13 @@ st_internal_strhash(string)
 }
 
 static int
-st_internal_numcmp(x, y)
-    long x, y;
+st_internal_numcmp(long x, long y)
 {
     return x != y;
 }
 
 static int
-st_internal_numhash(n)
-    long n;
+st_internal_numhash(long n)
 {
     return n;
 }
