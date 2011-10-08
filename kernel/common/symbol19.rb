@@ -36,6 +36,10 @@ class Symbol
     end
   end
 
+  def empty?
+    to_s.empty?
+  end
+
   alias_method :intern, :to_sym
   alias_method :id2name, :to_s
 
