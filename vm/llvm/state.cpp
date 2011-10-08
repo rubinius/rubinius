@@ -661,7 +661,7 @@ namespace rubinius {
   }
 
   Symbol* LLVMState::symbol(const char* sym) {
-    return symbols_.lookup(sym);
+    return symbols_.lookup(sym, strlen(sym));
   }
 
   const char* LLVMState::symbol_cstr(const Symbol* sym) {

@@ -267,7 +267,7 @@ namespace rubinius {
 
 
   Symbol* VM::symbol(const char* str) {
-    return shared.symbols.lookup(this, str);
+    return shared.symbols.lookup(this, str, strlen(str));
   }
 
   Symbol* VM::symbol(String* str) {

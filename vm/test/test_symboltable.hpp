@@ -22,19 +22,11 @@ public:
   }
 
   void test_lookup_with_c_str() {
-    Object* sym = symbols->lookup(state, "unique");
+    Object* sym = symbols->lookup(state, std::string("unique"));
     TS_ASSERT(sym->symbol_p());
 
-    Object* sym2 = symbols->lookup(state, "unique");
+    Object* sym2 = symbols->lookup(state, std::string("unique"));
     TS_ASSERT_EQUALS(sym, sym2);
-  }
-
-  void test_lookup_with_string_containing_null() {
-    String* str = String::create(state, "abxdc");
-    str->byte_address()[2] = 0;
-
-    TS_ASSERT_THROWS_ASSERT(symbols->lookup(state, str), const RubyException &e,
-                            TS_ASSERT(Exception::argument_error_p(state, e.exception)));
   }
 
   void test_lookup_with_empty_string() {
@@ -51,7 +43,30 @@ public:
 
   }
 
-  /* Uncomment when 2 strings are found that have colliding hash values
+  void test_lookup_with_null_character_in_string() {
+    String* str1 = String::create(state, "\0", 1);
+    String* str2 = String::create(state, "\0\0", 2);
+
+    if(LANGUAGE_18_ENABLED(state)) {
+      TS_ASSERT_THROWS_ASSERT(symbols->lookup(state, str1), const RubyException &e,
+                              TS_ASSERT(Exception::argument_error_p(state, e.exception)));
+      TS_ASSERT_THROWS_ASSERT(symbols->lookup(state, str2), const RubyException &e,
+                              TS_ASSERT(Exception::argument_error_p(state, e.exception)));
+    } else {
+      Symbol* sym1 = symbols->lookup(state, str1);
+      Symbol* sym2 = symbols->lookup(state, str2);
+
+      TS_ASSERT(sym1 != sym2);
+
+      String* str3 = symbols->lookup_string(state, sym1);
+      String* str4 = symbols->lookup_string(state, sym2);
+
+      TS_ASSERT_EQUALS(Qtrue, str1->equal(state, str3));
+      TS_ASSERT_EQUALS(Qtrue, str2->equal(state, str4));
+      TS_ASSERT_EQUALS(symbols->size(), 2U);
+    }
+  }
+
   void notest_lookup_colliding_hash() {
     Object* sym;
     Object* sym2;
@@ -61,8 +76,8 @@ public:
     TS_ASSERT_EQUALS(String::hash_str((unsigned char*)str, std::strlen(str)),
                      String::hash_str((unsigned char*)str2, std::strlen(str2)));
 
-    sym  = symbols->lookup(state, str);
-    sym2 = symbols->lookup(state, str2);
+    sym  = symbols->lookup(state, std::string(str));
+    sym2 = symbols->lookup(state, std::string(str2));
 
     TS_ASSERT(sym != sym2);
   }
@@ -81,7 +96,6 @@ public:
 
     TS_ASSERT(sym != sym2);
   }
-  */
 
   void test_lookup_string() {
     Symbol* sym = symbols->lookup(state, "circle");
@@ -113,7 +127,7 @@ public:
     symbols->lookup(state, "dos");
     symbols->lookup(state, "tres");
 
-    TS_ASSERT_EQUALS(symbols->size(), 3U)
+    TS_ASSERT_EQUALS(symbols->size(), 3U);
   }
 
   void test_many_symbols() {
