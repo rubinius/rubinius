@@ -1,2 +1,0 @@
-fails:A Proc taking |*| arguments does not call #to_ary to convert a single passed object to an Array
-fails:A Proc taking |*a| arguments does not call #to_ary to convert a single passed object to an Array
