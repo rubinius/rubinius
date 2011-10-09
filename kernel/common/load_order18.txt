@@ -85,6 +85,7 @@ thread.rbc
 thread_group.rbc
 throw_catch.rbc
 time.rbc
+time18.rbc
 true.rbc
 variable_scope.rbc
 capi.rbc

@@ -193,14 +193,6 @@ class Time
     Process.times
   end
 
-  def inspect
-    if @is_gmt
-      strftime("%a %b %d %H:%M:%S UTC %Y")
-    else
-      strftime("%a %b %d %H:%M:%S %z %Y")
-    end
-  end
-
   def +(arg)
     raise TypeError, 'time + time?' if arg.kind_of?(Time)
 
@@ -381,7 +373,6 @@ class Time
   alias_method :ctime,      :asctime
   alias_method :mday,       :day
   alias_method :to_i,       :seconds
-  alias_method :to_s,       :inspect
   alias_method :tv_sec,     :seconds
   alias_method :tv_usec,    :usec
   alias_method :utc,        :gmtime
