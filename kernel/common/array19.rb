@@ -110,6 +110,16 @@ class Array
     result
   end
   
+  def select!(&block)
+    Rubinius.check_frozen
+
+    return nil if self == self.select(&block)
+
+    return to_enum :select! unless block_given?
+    
+    replace select(&block)
+  end
+  
   def sort_by!(&block)
     Rubinius.check_frozen
     
