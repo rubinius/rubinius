@@ -1,1 +1,0 @@
-fails:URI#eql? returns false for when compared to non-uri objects

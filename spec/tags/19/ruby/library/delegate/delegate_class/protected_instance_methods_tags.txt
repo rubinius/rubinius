@@ -1,2 +1,0 @@
-fails:DelegateClass.protected_instance_methods includes the protected methods of the delegated class
-fails:DelegateClass.protected_instance_methods includes protected instance methods of the DelegateClass class

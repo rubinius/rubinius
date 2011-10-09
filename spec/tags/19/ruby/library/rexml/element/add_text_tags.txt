@@ -1,1 +1,0 @@
-fails:REXML::Element#add_namespace accepts a Text
