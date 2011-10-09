@@ -6,4 +6,10 @@ class Numeric
   def rationalize
     Rational(self,1)
   end
+  
+  def rect
+    [self, 0]
+  end
+  alias_method :rectangular, :rect
+
 end
