@@ -15,8 +15,7 @@ describe "String#rstrip" do
     " hello ".rstrip!.should == " hello"
     "\tgoodbye\r\n".rstrip!.should == "\tgoodbye"
     "goodbye \000".rstrip!.should == "goodbye"
-    "goodbye \000 ".rstrip!.should == "goodbye \000"
     "".rstrip!.should == nil
-    " \n \000\v\000".rstrip!.should == " \n \000"
+    " \n \000\v\000".rstrip!.should == ""
   end
 end
