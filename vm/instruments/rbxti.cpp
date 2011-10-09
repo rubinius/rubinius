@@ -173,12 +173,12 @@ namespace rbxti {
 
   void Env::symbol_cstr(rsymbol rsym, char* data, int size) {
     Symbol* sym = i(rsym);
-    const char* cur = sym->c_str(private_->state());
+    std::string cur = sym->debug_str(private_->state());
 
-    int out = strlen(cur);
+    int out = cur.size();
     if(out > size - 1) out = size - 1;
 
-    memcpy(data, cur, out);
+    memcpy(data, cur.c_str(), out);
     data[out] = 0;
   }
 

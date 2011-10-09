@@ -28,11 +28,11 @@ namespace jit {
 
     FunctionType* ft = FunctionType::get(ls_->ptr_type("Object"), ftypes, false);
 
-    std::stringstream ss;
+    std::ostringstream ss;
     ss << std::string("_X_")
        << ls_->enclosure_name(info_.method())
        << "#"
-       << ls_->symbol_cstr(info_.method()->name())
+       << ls_->symbol_debug_str(info_.method()->name())
        << "@" << ls_->add_jitted_method();
 
     llvm::Function* func = Function::Create(ft, GlobalValue::ExternalLinkage,

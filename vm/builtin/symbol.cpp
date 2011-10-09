@@ -36,8 +36,12 @@ namespace rubinius {
     return state->shared.symbols.lookup_string(state, this);
   }
 
-  const char* Symbol::c_str(STATE) const {
-    return state->shared.symbols.lookup_cstring(state, this);
+  std::string& Symbol::cpp_str(STATE) {
+    return state->shared.symbols.lookup_cppstring(this);
+  }
+
+  std::string Symbol::debug_str(STATE) {
+    return state->shared.symbols.lookup_debug_string(this);
   }
 
   Array* Symbol::all_symbols(STATE) {
@@ -58,7 +62,7 @@ namespace rubinius {
 
   void Symbol::Info::show(STATE, Object* self, int level) {
     Symbol* sym = try_as<Symbol>(self);
-    std::cout << ":" << sym->c_str(state) << std::endl;
+    std::cout << ":" << sym->debug_str(state) << std::endl;
   }
 
   void Symbol::Info::show_simple(STATE, Object* self, int level) {

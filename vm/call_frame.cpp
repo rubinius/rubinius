@@ -84,7 +84,7 @@ namespace rubinius {
       if(NativeMethodFrame* nmf = cf->native_method_frame()) {
         NativeMethod* nm = try_as<NativeMethod>(nmf->get_object(nmf->method()));
         if(nm || !nm->name()->symbol_p()) {
-          stream << "capi:" << nm->name()->c_str(state) << " at ";
+          stream << "capi:" << nm->name()->debug_str(state) << " at ";
           stream << nm->file()->c_str(state);
         } else {
           stream << "unknown capi";
@@ -105,13 +105,13 @@ namespace rubinius {
       } else {
         if(SingletonClass* sc = try_as<SingletonClass>(cf->module())) {
           if(Module* mod = try_as<Module>(sc->attached_instance())) {
-            stream << mod->name()->c_str(state) << ".";
+            stream << mod->name()->debug_str(state) << ".";
           } else {
             if(sc->attached_instance() == G(main)) {
               stream << "MAIN.";
             } else {
               stream << "#<" <<
-                sc->attached_instance()->class_object(state)->name()->c_str(state) <<
+                sc->attached_instance()->class_object(state)->name()->debug_str(state) <<
                 ":" << (void*)sc->attached_instance()->id(state)->to_native() << ">.";
             }
           }
@@ -119,17 +119,17 @@ namespace rubinius {
           if(im->module()->name()->nil_p()) {
             stream << "<anonymous module>#";
           } else {
-            stream << im->module()->name()->c_str(state) << "#";
+            stream << im->module()->name()->debug_str(state) << "#";
           }
         } else {
-          const char* mod_name;
+          std::string mod_name;
           if(cf->module()->nil_p()) {
-            mod_name = cf->cm->scope()->module()->name()->c_str(state);
+            mod_name = cf->cm->scope()->module()->name()->debug_str(state);
           } else {
             if(Symbol* s = try_as<Symbol>(cf->module()->name())) {
-              mod_name = s->c_str(state);
+              mod_name = s->debug_str(state);
             } else if(Symbol* s = try_as<Symbol>(cf->cm->scope()->module()->name())) {
-              mod_name = s->c_str(state);
+              mod_name = s->debug_str(state);
             } else {
               mod_name = "<anonymous module>";
             }
@@ -139,15 +139,15 @@ namespace rubinius {
 
         Symbol* name = try_as<Symbol>(cf->name());
         if(name) {
-          stream << name->c_str(state);
+          stream << name->debug_str(state);
         } else {
-          stream << cf->cm->name()->c_str(state);
+          stream << cf->cm->name()->debug_str(state);
         }
       }
 
       stream << " in ";
       if(Symbol* file_sym = try_as<Symbol>(cf->cm->file())) {
-        stream << file_sym->c_str(state) << ":" << cf->line(state);
+        stream << file_sym->debug_str(state) << ":" << cf->line(state);
       } else {
         stream << "<unknown>";
       }
@@ -198,9 +198,9 @@ namespace rubinius {
     if(is_block_p(state)) {
       std::cout << "block ";
     } else if(dispatch_data) {
-      std::cout << "name=" << name()->c_str(state) << " ";
+      std::cout << "name=" << name()->debug_str(state) << " ";
     } else {
-      std::cout << "name=" << cm->name()->c_str(state) << " ";
+      std::cout << "name=" << cm->name()->debug_str(state) << " ";
     }
 
     std::cout << "ip=" << ip_ << " ";

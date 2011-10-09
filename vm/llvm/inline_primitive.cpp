@@ -29,9 +29,9 @@ namespace rubinius {
         i.context().inline_log("inlining")
           << ops.state()->enclosure_name(cm)
           << "#"
-          << ops.state()->symbol_cstr(cm->name())
+          << ops.state()->symbol_debug_str(cm->name())
           << " into "
-          << ops.state()->symbol_cstr(ops.method_name())
+          << ops.state()->symbol_debug_str(ops.method_name())
           << ". primitive " << name << "\n";
       }
     }
@@ -761,9 +761,9 @@ namespace rubinius {
             context_.inline_log("inlining")
               << ops_.state()->enclosure_name(cm)
               << "#"
-              << ops_.state()->symbol_cstr(cm->name())
+              << ops_.state()->symbol_debug_str(cm->name())
               << " into "
-              << ops_.state()->symbol_cstr(ops_.method_name())
+              << ops_.state()->symbol_debug_str(ops_.method_name())
               << ". generic primitive: " << stub_res.name() << "\n";
           }
 
@@ -825,11 +825,11 @@ namespace rubinius {
           context_.inline_log("NOT inlining")
             << ops_.state()->enclosure_name(cm)
             << "#"
-            << ops_.state()->symbol_cstr(cm->name())
+            << ops_.state()->symbol_debug_str(cm->name())
             << " into "
-            << ops_.state()->symbol_cstr(ops_.method_name())
+            << ops_.state()->symbol_debug_str(ops_.method_name())
             << ". No fast stub. primitive: "
-            << ops_.state()->symbol_cstr(cm->primitive())
+            << ops_.state()->symbol_debug_str(cm->primitive())
             << "\n";
         }
 

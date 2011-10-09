@@ -306,7 +306,7 @@ namespace rubinius {
 
       while(entry) {
        if(Symbol* sym = try_as<Symbol>(entry->name())) {
-          std::cout << ":" << sym->c_str(state);
+          std::cout << ":" << sym->debug_str(state);
         } else if(Fixnum* fix = try_as<Fixnum>(entry->name())) {
           std::cout << fix->to_native();
         }

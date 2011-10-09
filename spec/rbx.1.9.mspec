@@ -129,7 +129,6 @@ class MSpecScript
     '^spec/ruby/library/securerandom',
     '^spec/ruby/library/shellwords/shellwords',
     '^spec/ruby/library/socket',
-    '^spec/ruby/library/tempfile',
     '^spec/ruby/library/uri',
     '^spec/ruby/library/yaml',
     '^spec/ruby/library/zlib',

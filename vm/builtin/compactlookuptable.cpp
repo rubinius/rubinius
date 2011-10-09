@@ -130,7 +130,7 @@ namespace rubinius {
     std::cout << ": " << size << std::endl;
     indent(++level);
     for(size_t i = 0; i < size; i++) {
-      std::cout << ":" << as<Symbol>(keys->get(state, i))->c_str(state);
+      std::cout << ":" << as<Symbol>(keys->get(state, i))->debug_str(state);
       if(i < size - 1) std::cout << ", ";
     }
     std::cout << std::endl;

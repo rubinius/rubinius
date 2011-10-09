@@ -10,11 +10,22 @@ class Array
     level = Rubinius::Type.coerce_to(level, Integer, :to_int)
     return self.dup if level == 0
 
+<<<<<<< HEAD
     out = new_reserved size
     recursively_flatten(self, out, level)
     out
   end
   
+=======
+  def keep_if(&block)
+    Rubinius.check_frozen
+
+    return to_enum :keep_if unless block_given?
+
+    replace select(&block)
+  end
+
+>>>>>>> 392f4bb1d51c7b1f6b54518ad077b8a7572fc8a4
   ##
   #  call-seq:
   #     arr.pack ( aTemplateString ) -> aBinaryString
@@ -108,6 +119,15 @@ class Array
 
     result[n..size] = []
     result
+  end
+
+  def select!(&block)
+    Rubinius.check_frozen
+
+    return to_enum :select! unless block_given?
+
+    ary = select(&block)
+    replace ary unless size == ary.size
   end
   
   def sort_by!(&block)

@@ -660,22 +660,22 @@ namespace rubinius {
     background_thread_->unpause();
   }
 
-  Symbol* LLVMState::symbol(const char* sym) {
+  Symbol* LLVMState::symbol(const std::string sym) {
     return symbols_.lookup(sym);
   }
 
-  const char* LLVMState::symbol_cstr(const Symbol* sym) {
+  std::string LLVMState::symbol_debug_str(const Symbol* sym) {
     if(sym == reinterpret_cast<const Symbol*>(Qnil)) return "<nil>";
-    return symbols_.lookup_cstring(sym);
+    return symbols_.lookup_debug_string(sym);
   }
 
-  const char* LLVMState::enclosure_name(CompiledMethod* cm) {
+  std::string LLVMState::enclosure_name(CompiledMethod* cm) {
     StaticScope* ss = cm->scope();
     if(!kind_of<StaticScope>(ss) || !kind_of<Module>(ss->module())) {
       return "ANONYMOUS";
     }
 
-    return symbol_cstr(ss->module()->name());
+    return symbol_debug_str(ss->module()->name());
   }
 
   void LLVMState::compile_soon(STATE, CompiledMethod* cm, Object* placement,
@@ -687,7 +687,7 @@ namespace rubinius {
     if(cm->backend_method()->call_count <= 1) {
       // if(config().jit_inline_debug) {
         // log() << "JIT: ignoring candidate! "
-          // << symbol_cstr(cm->name()) << "\n";
+          // << symbol_debug_str(cm->name()) << "\n";
       // }
       return;
     }
@@ -695,10 +695,10 @@ namespace rubinius {
     if(debug_search) {
       if(is_block) {
         std::cout << "JIT: queueing block inside: "
-          << enclosure_name(cm) << "#" << symbol_cstr(cm->name()) << "\n";
+          << enclosure_name(cm) << "#" << symbol_debug_str(cm->name()) << "\n";
       } else {
         std::cout << "JIT: queueing method: "
-          << enclosure_name(cm) << "#" << symbol_cstr(cm->name()) << "\n";
+          << enclosure_name(cm) << "#" << symbol_debug_str(cm->name()) << "\n";
       }
     }
 
@@ -726,10 +726,10 @@ namespace rubinius {
       // if(config().jit_inline_debug) {
         // if(block) {
           // log() << "JIT: compiled block inside: "
-                // << symbol_cstr(cm->name()) << "\n";
+                // << symbol_debug_str(cm->name()) << "\n";
         // } else {
           // log() << "JIT: compiled method: "
-                // << symbol_cstr(cm->name()) << "\n";
+                // << symbol_debug_str(cm->name()) << "\n";
         // }
       // }
     } else {
@@ -764,13 +764,13 @@ namespace rubinius {
     if(debug_search) {
       std::cout << "\nJIT:       triggered: "
             << enclosure_name(start) << "#"
-            << symbol_cstr(start->name()) << "\n";
+            << symbol_debug_str(start->name()) << "\n";
     }
 
     // if(config().jit_inline_debug) {
       // if(start) {
         // std::cout << "JIT: target search from "
-          // << symbol_cstr(start->name()) << "\n";
+          // << symbol_debug_str(start->name()) << "\n";
       // } else {
         // std::cout << "JIT: target search from primitive\n";
       // }

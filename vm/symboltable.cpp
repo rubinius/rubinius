@@ -7,6 +7,9 @@
 #include "builtin/string.hpp"
 #include "builtin/symbol.hpp"
 
+#include <iostream>
+#include <iomanip>
+
 namespace rubinius {
 
   SymbolTable::Kind SymbolTable::detect_kind(const char* str, int size) {
@@ -49,17 +52,17 @@ namespace rubinius {
     bytes_used_ += (str.size() + sizeof(str));
 
     strings.push_back(str);
-    kinds.push_back(detect_kind(str.c_str(), str.size()));
+    kinds.push_back(detect_kind(str.data(), str.size()));
     return strings.size() - 1;
   }
 
-  Symbol* SymbolTable::lookup(STATE, const char* str) {
-    if(*str == 0 && LANGUAGE_18_ENABLED(state)) {
+  Symbol* SymbolTable::lookup(STATE, const char* str, size_t length) {
+    if(length == 0 && LANGUAGE_18_ENABLED(state)) {
       Exception::argument_error(state, "Cannot create a symbol from an empty string");
       return NULL;
     }
 
-    return lookup(str);
+    return lookup(str, length);
   }
 
   struct SpecialOperator {
@@ -82,10 +85,10 @@ namespace rubinius {
 
   const static int cNumSpecialOperators = 8;
 
-  static const char* find_special(const char* check) {
+  static const char* find_special(const char* check, size_t length) {
     for(int i = 0; i < cNumSpecialOperators; i++) {
       SpecialOperator* op = &SpecialOperators[i];
-      if(*op->name == *check && strcmp(op->name, check) == 0) {
+      if(*op->name == *check && strncmp(op->name, check, length) == 0) {
         return op->symbol;
       }
     }
@@ -93,15 +96,23 @@ namespace rubinius {
     return 0;
   }
 
+  Symbol* SymbolTable::lookup(std::string str) {
+    return lookup(str.data(), str.size());
+  }
 
-  Symbol* SymbolTable::lookup(const char* str) {
+  Symbol* SymbolTable::lookup(STATE, std::string str) {
+    return lookup(str.data(), str.size());
+  }
+
+  Symbol* SymbolTable::lookup(const char* str, size_t length) {
     size_t sym;
 
-    if(const char* op = find_special(str)) {
+    if(const char* op = find_special(str, length)) {
       str = op;
+      length = strlen(str);
     }
 
-    hashval hash = String::hash_str(str);
+    hashval hash = String::hash_str((unsigned char*)str, length);
 
     // Symbols can be looked up by multiple threads at the same time.
     // This is fast operation, so we protect this with a spinlock.
@@ -109,7 +120,7 @@ namespace rubinius {
       thread::SpinLock::LockGuard guard(lock_);
       SymbolMap::iterator entry = symbols.find(hash);
       if(entry == symbols.end()) {
-        sym = add(std::string(str));
+        sym = add(std::string(str, length));
         SymbolIds v(1, sym);
         symbols[hash] = v;
       } else {
@@ -117,9 +128,9 @@ namespace rubinius {
         for(SymbolIds::iterator i = v.begin(); i != v.end(); ++i) {
           std::string& s = strings[*i];
 
-          if(!strcmp(s.c_str(), str)) return Symbol::from_index(*i);
+          if(!strncmp(s.data(), str, length)) return Symbol::from_index(*i);
         }
-        sym = add(std::string(str));
+        sym = add(std::string(str, length));
         v.push_back(sym);
       }
     }
@@ -134,16 +145,19 @@ namespace rubinius {
     }
 
     const char* bytes = str->c_str(state);
+    size_t size = str->size();
 
-    for(native_int i = 0; i < str->size(); i++) {
-      if(bytes[i] == 0) {
-        Exception::argument_error(state,
-            "cannot create a symbol from a string containing `\\0'");
-        return NULL;
+    if(LANGUAGE_18_ENABLED(state)) {
+      for(size_t i = 0; i < size; i++) {
+        if(bytes[i] == 0) {
+          Exception::argument_error(state,
+              "cannot create a symbol from a string containing `\\0'");
+          return NULL;
+        }
       }
     }
 
-    return lookup(state, bytes);
+    return lookup(state, bytes, size);
   }
 
   String* SymbolTable::lookup_string(STATE, const Symbol* sym) {
@@ -153,26 +167,26 @@ namespace rubinius {
     }
 
     std::string& str = strings[sym->index()];
-    return String::create(state, str.c_str());
-  }
-
-  const char* SymbolTable::lookup_cstring(STATE, const Symbol* sym) {
-    if(sym->nil_p()) {
-      Exception::argument_error(state, "Cannot look up Symbol from nil");
-      return NULL;
-    }
-
-    std::string& str = strings[sym->index()];
-    return str.c_str();
-  }
-
-  const char* SymbolTable::lookup_cstring(const Symbol* sym) {
-    std::string& str = strings[sym->index()];
-    return str.c_str();
+    return String::create(state, str.data(), str.size());
   }
 
   std::string& SymbolTable::lookup_cppstring(const Symbol* sym) {
     return strings[sym->index()];
+  }
+
+  std::string SymbolTable::lookup_debug_string(const Symbol* sym) {
+    std::string str = lookup_cppstring(sym);
+    std::ostringstream os;
+    unsigned char* cstr = (unsigned char*) str.data();
+    size_t size = str.size();
+    for(size_t i = 0; i < size; ++i) {
+      if(isprint(cstr[i])) {
+        os << cstr[i];
+      } else {
+        os << "\\x" << std::setw(2) << std::setfill('0') << std::hex << (unsigned int)cstr[i];
+      }
+    }
+    return os.str();
   }
 
   size_t SymbolTable::size() {

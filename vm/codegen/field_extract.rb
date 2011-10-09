@@ -711,7 +711,7 @@ Object* #{@name}::Info::get_field(STATE, Object* _t, size_t index) {
   switch(index) {
 #{generate_gets}  }
 
-  std::stringstream error;
+  std::ostringstream error;
   error << "Unable to access field " << index << " in a #{@name} instance";
 
   Exception::assertion_error(state, error.str().c_str());

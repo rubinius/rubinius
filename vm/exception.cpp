@@ -42,7 +42,7 @@ namespace rubinius {
 
   void RubyException::show(STATE) {
     std::cout << exception->message_c_str(state)
-              << " (" << exception->class_object(state)->name()->c_str(state) << ") \n";
+              << " (" << exception->class_object(state)->name()->debug_str(state) << ") \n";
     print_backtrace();
   }
 

@@ -1,3 +1,0 @@
-fails:Delegator#methods includes all public methods of the delegate object
-fails:Delegator#methods includes all protected methods of the delegate object
-fails:Delegator#methods includes instance methods of the Delegator class

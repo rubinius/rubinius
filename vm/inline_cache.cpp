@@ -645,7 +645,7 @@ namespace rubinius {
   }
 
   void InlineCache::print(STATE, std::ostream& stream) {
-    stream << "name: " << name->c_str(state) << "\n"
+    stream << "name: " << name->debug_str(state) << "\n"
            << "seen classes: " << classes_seen() << "\n"
            << "overflows: " << seen_classes_overflow_ << "\n"
            << "classes:\n";
@@ -655,12 +655,12 @@ namespace rubinius {
       if(mod) {
         if(SingletonClass* sc = try_as<SingletonClass>(mod)) {
           if(Module* inner = try_as<Module>(sc->attached_instance())) {
-            stream << "  SingletonClass:" << inner->name()->c_str(state);
+            stream << "  SingletonClass:" << inner->name()->debug_str(state);
           } else {
-            stream << "  SingletonClass:" << sc->attached_instance()->class_object(state)->name()->c_str(state);
+            stream << "  SingletonClass:" << sc->attached_instance()->class_object(state)->name()->debug_str(state);
           }
         } else {
-          stream << "  " << mod->name()->c_str(state);
+          stream << "  " << mod->name()->debug_str(state);
         }
 
         stream << "\n";

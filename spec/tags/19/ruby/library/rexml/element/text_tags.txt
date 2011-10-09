@@ -1,1 +1,0 @@
-fails:REXML::Element#text returns the text node value

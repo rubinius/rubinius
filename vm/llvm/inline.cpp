@@ -50,11 +50,11 @@ namespace rubinius {
       if(!klass) {
         if(ops_.state()->config().jit_inline_debug) {
           std::ostream& log = context_.inline_log("NOT inlining");
-          log << ops_.state()->symbol_cstr(cache_->name)
+          log << ops_.state()->symbol_debug_str(cache_->name)
               << ". Cache contains " << cache_->classes_seen() << " entries: ";
 
           for(int i = 0; i < cache_->classes_seen(); i++) {
-            log << ops_.state()->symbol_cstr(cache_->tracked_class(i)->name())
+            log << ops_.state()->symbol_debug_str(cache_->tracked_class(i)->name())
                 << " ";
           }
           log << "\n";
@@ -71,7 +71,7 @@ namespace rubinius {
     if(!meth) {
       if(ops_.state()->config().jit_inline_debug) {
         context_.inline_log("NOT inlining")
-          << ops_.state()->symbol_cstr(cache_->name)
+          << ops_.state()->symbol_debug_str(cache_->name)
           << ". Inliner error, method missing.\n";
       }
       return false;
@@ -80,7 +80,7 @@ namespace rubinius {
     if(instance_of<Module>(defined_in)) {
       if(ops_.state()->config().jit_inline_debug) {
         context_.inline_log("NOT inlining")
-          << ops_.state()->symbol_cstr(cache_->name)
+          << ops_.state()->symbol_debug_str(cache_->name)
           << ". Not inlining methods defined in Modules.\n";
       }
       return false;
@@ -131,9 +131,9 @@ namespace rubinius {
             context_.inline_log("direct call")
               << ops_.state()->enclosure_name(cm)
               << "#"
-              << ops_.state()->symbol_cstr(cm->name())
+              << ops_.state()->symbol_debug_str(cm->name())
               << " into "
-              << ops_.state()->symbol_cstr(ops_.method_name())
+              << ops_.state()->symbol_debug_str(ops_.method_name())
               << ".\n";
           }
 
@@ -196,9 +196,9 @@ namespace rubinius {
             context_.inline_log("NOT inlining")
               << ops_.state()->enclosure_name(cm)
               << "#"
-              << ops_.state()->symbol_cstr(cm->name())
+              << ops_.state()->symbol_debug_str(cm->name())
               << " into "
-              << ops_.state()->symbol_cstr(ops_.method_name())
+              << ops_.state()->symbol_debug_str(ops_.method_name())
               << ". ";
 
             switch(decision) {
@@ -232,14 +232,14 @@ namespace rubinius {
           context_.inline_log("inlining")
             << ops_.state()->enclosure_name(cm)
             << "#"
-            << ops_.state()->symbol_cstr(cm->name())
+            << ops_.state()->symbol_debug_str(cm->name())
             << " into "
-            << ops_.state()->symbol_cstr(ops_.method_name());
+            << ops_.state()->symbol_debug_str(ops_.method_name());
 
           StaticScope* ss = cm->scope();
           if(kind_of<StaticScope>(ss) && klass != ss->module() && !klass->name()->nil_p()) {
             ops_.state()->log() << " ("
-              << ops_.state()->symbol_cstr(klass->name()) << ")";
+              << ops_.state()->symbol_debug_str(klass->name()) << ")";
           }
 
           if(inline_block_) {
@@ -259,9 +259,9 @@ namespace rubinius {
           context_.inline_log("NOT inlining")
             << ops_.state()->enclosure_name(cm)
             << "#"
-            << ops_.state()->symbol_cstr(cm->name())
+            << ops_.state()->symbol_debug_str(cm->name())
             << " into "
-            << ops_.state()->symbol_cstr(ops_.method_name())
+            << ops_.state()->symbol_debug_str(ops_.method_name())
             << ". generic inlining disabled\n";
         }
 
@@ -272,10 +272,10 @@ namespace rubinius {
         if(ops_.state()->config().jit_inline_debug) {
           context_.inline_log("inlining")
             << "FFI call to "
-            << ops_.state()->symbol_cstr(nf->name())
+            << ops_.state()->symbol_debug_str(nf->name())
             << "() into "
-            << ops_.state()->symbol_cstr(ops_.method_name())
-            << " (" << ops_.state()->symbol_cstr(klass->name()) << ")\n";
+            << ops_.state()->symbol_debug_str(ops_.method_name())
+            << " (" << ops_.state()->symbol_debug_str(klass->name()) << ")\n";
         }
       } else {
         return false;
@@ -283,11 +283,11 @@ namespace rubinius {
     } else {
       if(ops_.state()->config().jit_inline_debug) {
         context_.inline_log("NOT inlining")
-          << ops_.state()->symbol_cstr(klass->name())
+          << ops_.state()->symbol_debug_str(klass->name())
           << "#"
-          << ops_.state()->symbol_cstr(cache_->name)
+          << ops_.state()->symbol_debug_str(cache_->name)
           << " into "
-          << ops_.state()->symbol_cstr(ops_.method_name())
+          << ops_.state()->symbol_debug_str(ops_.method_name())
           << ". unhandled executable type\n";
       }
       return false;
@@ -302,7 +302,7 @@ remember:
   void Inliner::inline_block(JITInlineBlock* ib, Value* self) {
     if(ops_.state()->config().jit_inline_debug) {
       context_.inline_log("inlining block into")
-        << ops_.state()->symbol_cstr(ops_.method_name())
+        << ops_.state()->symbol_debug_str(ops_.method_name())
         << "\n";
     }
 
@@ -345,10 +345,10 @@ remember:
       context_.inline_log("inlining")
         << ops_.state()->enclosure_name(cm)
         << "#"
-        << ops_.state()->symbol_cstr(cm->name())
+        << ops_.state()->symbol_debug_str(cm->name())
         << " into "
-        << ops_.state()->symbol_cstr(ops_.method_name())
-        << " (" << ops_.state()->symbol_cstr(klass->name()) << ") trivial\n";
+        << ops_.state()->symbol_debug_str(ops_.method_name())
+        << " (" << ops_.state()->symbol_debug_str(klass->name()) << ") trivial\n";
     }
 
     VMMethod* vmm = cm->backend_method();
@@ -402,12 +402,12 @@ remember:
     if(ops_.state()->config().jit_inline_debug) {
       context_.inline_log("inlining")
         << "writer to '"
-        << ops_.state()->symbol_cstr(acc->name())
+        << ops_.state()->symbol_debug_str(acc->name())
         << "' on "
-        << ops_.state()->symbol_cstr(klass->name())
+        << ops_.state()->symbol_debug_str(klass->name())
         << " in "
         << "#"
-        << ops_.state()->symbol_cstr(ops_.method_name())
+        << ops_.state()->symbol_debug_str(ops_.method_name())
         << "\n";
     }
 
@@ -461,12 +461,12 @@ remember:
     if(ops_.state()->config().jit_inline_debug) {
       context_.inline_log("inlining")
         << "read to '"
-        << ops_.state()->symbol_cstr(acc->name())
+        << ops_.state()->symbol_debug_str(acc->name())
         << "' on "
-        << ops_.state()->symbol_cstr(klass->name())
+        << ops_.state()->symbol_debug_str(klass->name())
         << " in "
         << "#"
-        << ops_.state()->symbol_cstr(ops_.method_name());
+        << ops_.state()->symbol_debug_str(ops_.method_name());
     }
 
     context_.enter_inline();

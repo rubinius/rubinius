@@ -1,1 +1,0 @@
-fails:Prime.instance returns a object with no obsolete features

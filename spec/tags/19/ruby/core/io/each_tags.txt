@@ -1,1 +1,0 @@
-fails:IO#each when passed an empty String as a separator yields each paragraph

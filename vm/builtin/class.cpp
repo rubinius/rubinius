@@ -296,15 +296,15 @@ use_packed:
     SingletonClass* cls = as<SingletonClass>(self);
     Module* mod = try_as<Module>(cls->attached_instance());
 
-    const char* name;
+    std::string name;
 
     if(mod) {
-      name = mod->name()->nil_p() ? "<anonymous>" : mod->name()->c_str(state);
+      name = mod->name()->nil_p() ? "<anonymous>" : mod->name()->debug_str(state);
     } else {
       name = "<some object>";
     }
 
-    std::cout << "#<SingletonClass:" << self->class_object(state)->name()->c_str(state) <<
+    std::cout << "#<SingletonClass:" << self->class_object(state)->name()->debug_str(state) <<
       " " << name << ":" << (void*)self << ">" << std::endl;
   }
 }
