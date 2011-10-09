@@ -1,1 +1,0 @@
-fails:SortedSet#reject! returns an Enumerator when passed no block
