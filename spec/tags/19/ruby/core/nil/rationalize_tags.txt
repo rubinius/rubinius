@@ -1,2 +1,0 @@
-fails:NilClass#rationalize returns 0/1
-fails:NilClass#rationalize ignores arguments
