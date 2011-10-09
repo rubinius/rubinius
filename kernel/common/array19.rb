@@ -5,7 +5,16 @@ class Array
   def self.try_convert(obj)
     Rubinius::Type.try_convert obj, Array, :to_ary
   end
+  
+  def flatten(level=-1)
+    level = Rubinius::Type.coerce_to(level, Integer, :to_int)
+    return self.dup if level == 0
 
+    out = new_reserved size
+    recursively_flatten(self, out, level)
+    out
+  end
+  
   ##
   #  call-seq:
   #     arr.pack ( aTemplateString ) -> aBinaryString
