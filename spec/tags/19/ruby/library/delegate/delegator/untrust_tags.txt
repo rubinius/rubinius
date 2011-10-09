@@ -1,3 +1,0 @@
-fails:Delegator#untrust returns self
-fails:Delegator#untrust untrusts the delegator
-fails:Delegator#untrust untrusts the delegated object
