@@ -50,6 +50,7 @@ class String
   end
 
   def ord
+    raise ArgumentError, 'empty string' if empty?
     @data[0]
   end
 
