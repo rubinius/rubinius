@@ -85,6 +85,7 @@ string.rbc
 string19.rbc
 range.rbc
 struct.rbc
+struct19.rbc
 process.rbc
 random.rbc
 regexp.rbc
