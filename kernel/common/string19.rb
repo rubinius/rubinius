@@ -289,13 +289,9 @@ class String
 
     stop = @num_bytes - 1
 
-    while stop >= 0 && @data[stop] == 0
-      stop -= 1
-    end
-
     ctype = Rubinius::CType
 
-    while stop >= 0 && ctype.isspace(@data[stop])
+    while stop >= 0 && (@data[stop] == 0 || ctype.isspace(@data[stop]))
       stop -= 1
     end
 
