@@ -230,4 +230,57 @@ class String
 
     raise ArgumentError, "invalid directives string: #{directives}"
   end
+
+  # Removes trailing whitespace from <i>self</i>, returning <code>nil</code> if
+  # no change was made. See also <code>String#lstrip!</code> and
+  # <code>String#strip!</code>.
+  #
+  #   "  hello  ".rstrip   #=> "  hello"
+  #   "hello".rstrip!      #=> nil
+  def rstrip!
+    return if @num_bytes == 0
+
+    stop = @num_bytes - 1
+
+    while stop >= 0 && @data[stop] == 0
+      stop -= 1
+    end
+
+    ctype = Rubinius::CType
+
+    while stop >= 0 && ctype.isspace(@data[stop])
+      stop -= 1
+    end
+
+    return if (stop += 1) == @num_bytes
+
+    modify!
+    @num_bytes = stop
+    self
+  end
+
+  # Removes leading whitespace from <i>self</i>, returning <code>nil</code> if no
+  # change was made. See also <code>String#rstrip!</code> and
+  # <code>String#strip!</code>.
+  #
+  #   "  hello  ".lstrip   #=> "hello  "
+  #   "hello".lstrip!      #=> nil
+  def lstrip!
+    return if @num_bytes == 0
+
+    start = 0
+
+    ctype = Rubinius::CType
+
+    while start < @num_bytes && ctype.isspace(@data[start])
+      start += 1
+    end
+
+    return if start == 0
+
+    modify!
+    @num_bytes = @num_bytes - start
+    @data.move_bytes start, @num_bytes, 0
+    self
+  end
 end
