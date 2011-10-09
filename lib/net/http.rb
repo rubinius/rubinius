@@ -1209,7 +1209,7 @@ module Net   #:nodoc:
     # if there's no header field named key.  See Hash#fetch
     def fetch(key, *args, &block)   #:yield: +key+
       a = @header.fetch(key.downcase, *args, &block)
-      a.join(', ')
+      a.kind_of?(Array) ? a.join(', ') : a
     end
 
     # Iterates for each header names and values.
