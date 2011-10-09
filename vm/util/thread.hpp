@@ -396,7 +396,7 @@ namespace thread {
     }
 
     std::string describe() {
-      std::stringstream ss;
+      std::ostringstream ss;
       ss << "Mutex ";
       ss << (void*)this;
       return ss.str();
@@ -482,7 +482,7 @@ namespace thread {
     bool try_lock() { return cLocked; }
 
     std::string describe() {
-      std::stringstream ss;
+      std::ostringstream ss;
       ss << "NullLock ";
       ss << (void*)this;
       return ss.str();
@@ -526,7 +526,7 @@ namespace thread {
     }
 
     std::string describe() {
-      std::stringstream ss;
+      std::ostringstream ss;
       ss << "SpinLock ";
       ss << (void*)this;
       return ss.str();
@@ -567,7 +567,7 @@ namespace thread {
     }
 
     std::string describe() {
-      std::stringstream ss;
+      std::ostringstream ss;
       ss << "SpinLock ";
       ss << (void*)this;
       return ss.str();

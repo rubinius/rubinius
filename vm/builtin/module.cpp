@@ -48,13 +48,13 @@ namespace rubinius {
     method_table(state, MethodTable::create(state));
   }
 
-  void Module::setup(STATE, const char* str, Module* under) {
+  void Module::setup(STATE, std::string str, Module* under) {
     setup(state, state->symbol(str), under);
 
     if(under && under != G(object)) {
       std::ostringstream ss;
-      ss << under->name()->c_str(state) << "::" << str;
-      this->name(state, state->symbol(ss.str().c_str()));
+      ss << under->name()->cpp_str(state) << "::" << str;
+      this->name(state, state->symbol(ss.str()));
     }
   }
 
@@ -98,7 +98,7 @@ namespace rubinius {
     state->shared.inc_global_serial(state);
   }
 
-  void Module::set_const(STATE, const char* name, Object* val) {
+  void Module::set_const(STATE, std::string name, Object* val) {
     set_const(state, state->symbol(name), val);
   }
 
@@ -123,7 +123,7 @@ namespace rubinius {
     return get_const(state, sym, &found);
   }
 
-  Object* Module::get_const(STATE, const char* sym) {
+  Object* Module::get_const(STATE, std::string sym) {
     return get_const(state, state->symbol(sym));
   }
 
@@ -235,9 +235,9 @@ namespace rubinius {
       mod = as<Module>(sc->attached_instance());
     }
 
-    std::stringstream ss;
+    std::ostringstream ss;
     ss << "uninitialized class variable ";
-    ss << name->c_str(state);
+    ss << name->debug_str(state);
     ss << " in module ";
     if(mod->name()->nil_p()) {
       if(kind_of<Class>(mod)) {
@@ -246,7 +246,7 @@ namespace rubinius {
         ss << "#<Module>";
       }
     } else {
-      ss << mod->name()->c_str(state);
+      ss << mod->name()->debug_str(state);
     }
 
     RubyException::raise(
@@ -320,7 +320,7 @@ namespace rubinius {
     Object* value = mod_to_query->del_table_ivar(state, name, &removed);
     if(removed) return value;
 
-    std::stringstream ss;
+    std::ostringstream ss;
     mod = this;
     if(SingletonClass* sc = try_as<SingletonClass>(mod)) {
       mod = as<Module>(sc->attached_instance());
@@ -328,11 +328,11 @@ namespace rubinius {
 
     if (this->cvar_defined(state, name) == Qtrue) {
       ss << "cannot remove ";
-      ss << name->c_str(state);
+      ss << name->debug_str(state);
       ss << " for ";
     } else {
       ss << "uninitialized class variable ";
-      ss << name->c_str(state);
+      ss << name->debug_str(state);
       ss << " in module ";
     }
 
@@ -343,7 +343,7 @@ namespace rubinius {
         ss << "#<Module>";
       }
     } else {
-      ss << mod->name()->c_str(state);
+      ss << mod->name()->debug_str(state);
     }
 
     RubyException::raise(

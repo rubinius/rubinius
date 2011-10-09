@@ -627,7 +627,7 @@ namespace rubinius {
   }
 
   String* Object::to_s(STATE, bool address) {
-    std::stringstream name;
+    std::ostringstream name;
 
     if(!reference_p()) {
       if(nil_p()) return String::create(state, "nil");
@@ -638,7 +638,7 @@ namespace rubinius {
         name << fix->to_native();
         return String::create(state, name.str().c_str());
       } else if(Symbol* sym = try_as<Symbol>(this)) {
-        name << ":\"" << sym->c_str(state) << "\"";
+        name << ":\"" << sym->debug_str(state) << "\"";
         return String::create(state, name.str().c_str());
       }
     }
@@ -651,18 +651,18 @@ namespace rubinius {
         if(mod->name()->nil_p()) {
           name << "Class";
         } else {
-          name << mod->name()->c_str(state);
+          name << mod->name()->debug_str(state);
         }
         if(SingletonClass* sc = try_as<SingletonClass>(mod)) {
-          name << "(" << sc->true_superclass(state)->name()->c_str(state) << ")";
+          name << "(" << sc->true_superclass(state)->name()->debug_str(state) << ")";
         } else {
-          name << "(" << this->class_object(state)->name()->c_str(state) << ")";
+          name << "(" << this->class_object(state)->name()->debug_str(state) << ")";
         }
       } else {
         if(this->class_object(state)->name()->nil_p()) {
           name << "Object";
         } else {
-          name << this->class_object(state)->name()->c_str(state);
+          name << this->class_object(state)->name()->debug_str(state);
         }
       }
     }

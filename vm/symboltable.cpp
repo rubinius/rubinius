@@ -7,6 +7,9 @@
 #include "builtin/string.hpp"
 #include "builtin/symbol.hpp"
 
+#include <iostream>
+#include <iomanip>
+
 namespace rubinius {
 
   SymbolTable::Kind SymbolTable::detect_kind(const char* str, int size) {
@@ -167,23 +170,23 @@ namespace rubinius {
     return String::create(state, str.data(), str.size());
   }
 
-  const char* SymbolTable::lookup_cstring(STATE, const Symbol* sym) {
-    if(sym->nil_p()) {
-      Exception::argument_error(state, "Cannot look up Symbol from nil");
-      return NULL;
-    }
-
-    std::string& str = strings[sym->index()];
-    return str.c_str();
-  }
-
-  const char* SymbolTable::lookup_cstring(const Symbol* sym) {
-    std::string& str = strings[sym->index()];
-    return str.c_str();
-  }
-
   std::string& SymbolTable::lookup_cppstring(const Symbol* sym) {
     return strings[sym->index()];
+  }
+
+  std::string SymbolTable::lookup_debug_string(const Symbol* sym) {
+    std::string str = lookup_cppstring(sym);
+    std::ostringstream os;
+    unsigned char* cstr = (unsigned char*) str.data();
+    size_t size = str.size();
+    for(size_t i = 0; i < size; ++i) {
+      if(isprint(cstr[i])) {
+        os << cstr[i];
+      } else {
+        os << "\\x" << std::setw(2) << std::setfill('0') << std::hex << (unsigned int)cstr[i];
+      }
+    }
+    return os.str();
   }
 
   size_t SymbolTable::size() {

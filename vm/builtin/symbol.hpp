@@ -37,8 +37,11 @@ namespace rubinius {
     // Rubinius.primitive :symbol_to_s
     String* to_str(STATE);
 
-    // Return the char* for the text that was symbolized
-    const char* c_str(STATE) const;
+    // Return the underlying std::string from the symbol table
+    std::string& cpp_str(STATE);
+
+    // Return a representation to be used when debugging
+    std::string debug_str(STATE);
 
     // Rubinius.primitive :symbol_all_symbols
     static Array* all_symbols(STATE);

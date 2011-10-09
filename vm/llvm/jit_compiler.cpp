@@ -88,9 +88,9 @@ namespace jit {
       gettimeofday(&tv, NULL);
 
       ls->log() << "JIT: compiling block in "
-        << ls->symbol_cstr(cm->name())
+        << ls->symbol_debug_str(cm->name())
         << " near "
-        << ls->symbol_cstr(cm->file()) << ":"
+        << ls->symbol_debug_str(cm->file()) << ":"
         << cm->start_line()
         << " (" << tv.tv_sec << "." << tv.tv_usec << ")\n";
     }
@@ -116,7 +116,7 @@ namespace jit {
       ls->log() << "JIT: compiling "
         << ls->enclosure_name(cm)
         << "#"
-        << ls->symbol_cstr(cm->name())
+        << ls->symbol_debug_str(cm->name())
         << " (" << tv.tv_sec << "." << tv.tv_usec << ")\n";
     }
 
@@ -193,7 +193,7 @@ namespace jit {
 
     if(ls->jit_dump_code() & cOptimized) {
       llvm::outs() << "[[[ LLVM Optimized IR: "
-        << ls->symbol_cstr(info.method()->name()) << " ]]]\n";
+        << ls->symbol_debug_str(info.method()->name()) << " ]]]\n";
       llvm::outs() << *func << "\n";
     }
 

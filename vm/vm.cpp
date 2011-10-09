@@ -265,9 +265,8 @@ namespace rubinius {
     return mod;
   }
 
-
-  Symbol* VM::symbol(const char* str) {
-    return shared.symbols.lookup(this, str, strlen(str));
+  Symbol* VM::symbol(std::string str) {
+    return shared.symbols.lookup(this, str);
   }
 
   Symbol* VM::symbol(String* str) {

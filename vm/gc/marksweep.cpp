@@ -229,7 +229,7 @@ namespace rubinius {
     for(std::map<Class*,PerClass>::iterator i = stats.begin();
         i != stats.end();
         ++i) {
-      std::cout << i->first->name()->c_str(object_memory_->state()) << "\n"
+      std::cout << i->first->name()->debug_str(object_memory_->state()) << "\n"
                 << "  objects: " << i->second.objects << "\n"
                 << "    bytes: " << i->second.bytes << "\n";
     }

@@ -102,13 +102,13 @@ namespace rubinius {
 
       symbols_[sym] = id;
 
-      const char* str = sym->c_str(state);
-      int sz = strlen(str);
+      std::string str = sym->cpp_str(state);
+      int sz = str.size();
 
       write1(cSymbolCode);
       write4(id);
       write4(sz);
-      write_raw(str, sz);
+      write_raw(str.data(), sz);
 
       return id;
     }

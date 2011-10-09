@@ -37,7 +37,7 @@ namespace rubinius {
       if(Location* loc = try_as<Location>(locations_->get(state, i))) {
         if(CompiledMethod* meth = try_as<CompiledMethod>(loc->method())) {
           if(Symbol* file_sym = try_as<Symbol>(meth->file())) {
-            std::cout << file_sym->c_str(state) << ":"
+            std::cout << file_sym->debug_str(state) << ":"
                       << meth->line(state, loc->ip()->to_native())
                       << "\n";
             continue;

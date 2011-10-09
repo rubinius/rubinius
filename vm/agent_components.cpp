@@ -245,7 +245,7 @@ namespace agent {
       if(config::ConfigItem* item = shared_.config.find(path)) {
         output.ok("value");
 
-        std::stringstream ss;
+        std::ostringstream ss;
         item->print_value(ss);
 
         if(config::Integer* i = dynamic_cast<config::Integer*>(item)) {

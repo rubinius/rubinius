@@ -115,8 +115,8 @@ namespace rubinius {
   }
 
   static bool kernel_method(STATE, CompiledMethod* cm) {
-    const char* s = cm->file()->c_str(state);
-    if(strncmp(s, "kernel/", 7) == 0) return true;
+    std::string s = cm->file()->cpp_str(state);
+    if(s.size() >= 7 && strncmp(s.data(), "kernel/", 7) == 0) return true;
     return false;
   }
 

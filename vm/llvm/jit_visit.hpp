@@ -3352,7 +3352,7 @@ use_send:
 
         if(ls_->config().jit_inline_debug) {
           context().inline_log("inline ivar read")
-            << ls_->symbol_cstr(name);
+            << ls_->symbol_debug_str(name);
         }
 
         // Figure out if we should use the table ivar lookup or
@@ -3410,7 +3410,7 @@ use_send:
 
       if(ls_->config().jit_inline_debug) {
         context().inline_log("slow ivar read")
-          << ls_->symbol_cstr(name) << "\n";
+          << ls_->symbol_debug_str(name) << "\n";
       }
 
       Signature sig(ls_, ObjType);
@@ -3440,7 +3440,7 @@ use_send:
 
         if(ls_->config().jit_inline_debug) {
           context().inline_log("inline ivar write")
-            << ls_->symbol_cstr(name);
+            << ls_->symbol_debug_str(name);
         }
 
         // slot ivars (Array#@size for example) have type checks, so use the slow
@@ -3473,7 +3473,7 @@ use_send:
 
       if(ls_->config().jit_inline_debug) {
         context().inline_log("slow ivar write")
-          << ls_->symbol_cstr(name) << "\n";
+          << ls_->symbol_debug_str(name) << "\n";
       }
 
       set_has_side_effects();

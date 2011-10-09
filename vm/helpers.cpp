@@ -182,9 +182,9 @@ namespace rubinius {
       if(cls->true_superclass(state) != super) {
         std::ostringstream message;
         message << "Superclass mismatch: given "
-                << as<Module>(super)->name()->c_str(state)
+                << as<Module>(super)->name()->debug_str(state)
                 << " but previously set to "
-                << cls->true_superclass(state)->name()->c_str(state);
+                << cls->true_superclass(state)->name()->debug_str(state);
         Exception* exc =
           Exception::make_type_error(state, Class::type, super, message.str().c_str());
         exc->locations(state, Location::from_call_stack(state, call_frame));

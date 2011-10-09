@@ -71,13 +71,13 @@ namespace rubinius {
     Object* cvar_remove(STATE, Symbol* name);
 
     void setup(STATE);
-    void setup(STATE, const char* name, Module* under = NULL);
+    void setup(STATE, std::string name, Module* under = NULL);
     void setup(STATE, Symbol* name, Module* under = NULL);
     void set_const(STATE, Object* sym, Object* val);
-    void set_const(STATE, const char* name, Object* val);
+    void set_const(STATE, std::string name, Object* val);
     Object* get_const(STATE, Symbol* sym);
     Object* get_const(STATE, Symbol* sym, bool* found, bool check_super=false);
-    Object* get_const(STATE, const char* sym);
+    Object* get_const(STATE, std::string sym);
 
     void del_const(STATE, Symbol* sym);
 

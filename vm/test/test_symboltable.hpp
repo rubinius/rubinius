@@ -117,10 +117,23 @@ public:
                             TS_ASSERT(Exception::argument_error_p(state, e.exception)));
   }
 
-  void test_lookup_cstring_nil() {
-    TS_ASSERT_THROWS_ASSERT(symbols->lookup_cstring(state, reinterpret_cast<Symbol*>(Qnil)),
-                            const RubyException &e,
-                            TS_ASSERT(Exception::argument_error_p(state, e.exception)));
+  void test_lookup_debug_str() {
+    if(LANGUAGE_18_ENABLED(state)) {
+      String* str1 = String::create(state, "blah\1wha", 8);
+      Symbol* sym1 = symbols->lookup(state, str1);
+      std::string symstr1 = symbols->lookup_debug_string(sym1);
+      TS_ASSERT(!strncmp("blah\\x01wha", symstr1.c_str(), 11));
+    } else {
+      String* str1 = String::create(state, "blah\0wha", 8);
+      Symbol* sym1 = symbols->lookup(state, str1);
+      std::string symstr1 = symbols->lookup_debug_string(sym1);
+      TS_ASSERT(!strncmp("blah\\x00wha", symstr1.c_str(), 11));
+    }
+
+    String* str2 = String::create(state, "blahéwha", 8);
+    Symbol* sym2 = symbols->lookup(state, str2);
+    std::string symstr2 = symbols->lookup_debug_string(sym2);
+    TS_ASSERT(!strncmp("blah\\xc3\\xa9wha", symstr2.c_str(), 11));
   }
 
   void test_size() {
@@ -135,7 +148,7 @@ public:
     size_t size = symbols->size();
 
     for(size_t i = 0; i < 100; i++) {
-      std::stringstream stream;
+      std::ostringstream stream;
       stream << "sym" << i;
       symbols->lookup(state, stream.str().c_str());
     }

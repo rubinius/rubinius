@@ -208,7 +208,7 @@ public:
     Symbol* sym;
 
     for(size_t i = 0; i < size; i++) {
-      std::stringstream name;
+      std::ostringstream name;
       name << "@test" << i;
       sym = state->symbol(name.str().c_str());
       obj->set_ivar(state, sym, Fixnum::from(i));
@@ -224,7 +224,7 @@ public:
     Symbol* sym;
 
     for(size_t i = 0; i < size; i++) {
-      std::stringstream name;
+      std::ostringstream name;
       name << "@test" << i;
       sym = state->symbol(name.str().c_str());
       obj->set_ivar(state, sym, Fixnum::from(i));
