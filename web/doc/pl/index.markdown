@@ -63,6 +63,7 @@ next_url: what-is-rubinius
     1. [zgłosić problem](/doc/pl/how-to/write-a-ticket/)
     1. [dodać specyfikację RubySpec](/doc/pl/how-to/write-a-ruby-spec/)
     1. [naprawić specyfikację RubySpec](/doc/pl/how-to/fix-a-failing-spec/)
+    1. [napisać testy wydajnościowe](/doc/pl/how-to/write-benchmarks/)
     1. [napisać posta na bloga Rubiniusa](/doc/pl/how-to/write-a-blog-post/)
     1. [napisać dokumentację](/doc/pl/how-to/write-documentation/)
     1. [przetłumaczyć dokumentację](/doc/pl/how-to/translate-documentation/)
