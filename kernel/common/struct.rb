@@ -372,7 +372,13 @@ class Struct
         values << "#{var}=#{val.inspect}"
       end
 
-      "#<struct #{self.class.inspect} #{values.join(', ')}>"
+      name = self.class.name
+      
+      if name.empty?
+        "#<struct #{values.join(', ')}>"
+      else
+        "#<struct #{self.class.name} #{values.join(', ')}>"
+      end
     end
   end
 
