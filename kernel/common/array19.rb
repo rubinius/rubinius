@@ -5,7 +5,7 @@ class Array
   def self.try_convert(obj)
     Rubinius::Type.try_convert obj, Array, :to_ary
   end
-  
+
   def flatten(level=-1)
     level = Rubinius::Type.coerce_to(level, Integer, :to_int)
     return self.dup if level == 0
@@ -126,12 +126,12 @@ class Array
     ary = select(&block)
     replace ary unless size == ary.size
   end
-  
+
   def sort_by!(&block)
     Rubinius.check_frozen
-    
+
     return to_enum :sort_by! unless block_given?
-    
+
     replace sort_by(&block)
   end
 
@@ -153,5 +153,50 @@ class Array
     @total = array.total
 
     self
+  end
+
+  #  call-seq:
+  #     ary.zip(arg, ...)                   -> new_ary
+  #     ary.zip(arg, ...) {| arr | block }  -> nil
+  #
+  #  Converts any arguments to arrays, then merges elements of
+  #  +self+ with corresponding elements from each argument. This
+  #  generates a sequence of <code>self.size</code> <em>n</em>-element
+  #  arrays, where <em>n</em> is one more that the count of arguments. If
+  #  the size of any argument is less than <code>enumObj.size</code>,
+  #  <code>nil</code> values are supplied. If a block is given, it is
+  #  invoked for each output array, otherwise an array of arrays is
+  #  returned.
+  #
+  #     a = [ 4, 5, 6 ]
+  #     b = [ 7, 8, 9 ]
+  #     [1,2,3].zip(a, b)      #=> [[1, 4, 7], [2, 5, 8], [3, 6, 9]]
+  #     [1,2].zip(a,b)         #=> [[1, 4, 7], [2, 5, 8]]
+  #     a.zip([1,2],[8])       #=> [[4,1,8], [5,2,nil], [6,nil,nil]]
+  #
+  def zip(*others)
+    out = Array.new(size) { [] }
+    others = others.map do |ary|
+      if ary.respond_to?(:to_ary)
+        ary.to_ary
+      else
+        elements = []
+        ary.each { |e| elements << e }
+        elements
+      end
+    end
+
+    size.times do |i|
+      slot = out.at(i)
+      slot << @tuple.at(@start + i)
+      others.each { |ary| slot << ary.at(i) }
+    end
+
+    if block_given?
+      out.each { |ary| yield ary }
+      return nil
+    end
+
+    out
   end
 end
