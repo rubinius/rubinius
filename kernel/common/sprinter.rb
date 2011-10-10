@@ -1116,7 +1116,9 @@ module Rubinius
       AtomMap[?b] = AtomMap[?B] = ExtIntegerAtom
       AtomMap[?x] = AtomMap[?X] = ExtIntegerAtom
       AtomMap[?o] = ExtIntegerAtom
-      AtomMap[?u] = ExtIntegerAtomU
+      AtomMap[?u] = IntegerAtom
+      # Following alt. definition required for 1.8
+      # AtomMap[?u] = ExtIntegerAtomU
 
       def parse
         @arg_count = 0
