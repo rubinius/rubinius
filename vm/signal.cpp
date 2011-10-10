@@ -61,15 +61,17 @@ namespace rubinius {
     write_fd_ = f[1];
   }
 
-  void SignalHandler::on_fork(STATE) {
-    if(handler_) handler_->on_fork_i(state);
+  void SignalHandler::on_fork(STATE, bool full) {
+    if(handler_) handler_->on_fork_i(state, full);
   }
 
-  void SignalHandler::on_fork_i(STATE) {
+  void SignalHandler::on_fork_i(STATE, bool full) {
     exit_ = false;
     reopen_pipes();
 
-    if(!self_) self_ = state->shared.new_vm();
+    if(full && self_) rubinius::bug("signal thread restart issue");
+
+    self_ = state->shared.new_vm();
     thread_.set(Thread::create(state, self_, state->shared.globals.thread.get(),
                                handle_tramp, false));
 
@@ -81,15 +83,20 @@ namespace rubinius {
   }
 
   void SignalHandler::shutdown_i() {
-    self_ = 0;
+    pthread_t os = self_->os_thread();
+
     exit_ = true;
     if(write(write_fd_, "!", 1) < 0) {
       perror("SignalHandler::shutdown_i failed to write");
     }
+
+    void* blah;
+    pthread_join(os, &blah);
   }
 
   void SignalHandler::run(STATE) {
-    thread_.get()->fork(state);
+    int error = thread_.get()->fork_attached(state);
+    if(error) rubinius::bug("Unable to start signal handler thread");
   }
 
   void SignalHandler::perform(STATE) {
@@ -113,17 +120,18 @@ namespace rubinius {
         n = select(read_fd_ + 1, &fds, NULL, NULL, NULL);
       }
 
-      if(exit_) {
-        close(write_fd_);
-        close(read_fd_);
-        return;
-      }
-
       if(n == 1) {
         // drain a bunch
         char buf[512];
         if(read(read_fd_, buf, sizeof(buf)) < 0) {
           perror("SignalHandler::perform failed to read");
+        }
+
+        if(exit_) {
+          close(write_fd_);
+          close(read_fd_);
+          self_ = 0;
+          return;
         }
 
         {

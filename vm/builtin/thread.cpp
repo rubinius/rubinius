@@ -177,6 +177,14 @@ namespace rubinius {
     return Qnil;
   }
 
+  int Thread::fork_attached(STATE) {
+    pthread_attr_t attrs;
+    pthread_attr_init(&attrs);
+    pthread_attr_setstacksize(&attrs, 4194304);
+
+    return pthread_create(&vm_->os_thread(), &attrs, in_new_thread, (void*)vm_);
+  }
+
   Object* Thread::pass(STATE, CallFrame* calling_environment) {
     struct timespec ts = {0, 0};
     nanosleep(&ts, NULL);
