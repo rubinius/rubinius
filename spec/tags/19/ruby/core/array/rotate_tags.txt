@@ -1,9 +1,0 @@
-fails:Array#rotate returns a copy of the array whose first n elements is moved to the last
-fails:Array#rotate returns a copy of the array when the length is one
-fails:Array#rotate returns an empty array when self is empty
-fails:Array#rotate does not return self
-fails:Array#rotate returns subclass instance for Array subclasses
-fails:Array#rotate! moves the first n elements to the last and returns self
-fails:Array#rotate! does nothing and returns self when the length is zero or one
-fails:Array#rotate! returns self
-fails:Array#rotate! raises a RuntimeError on a frozen array
