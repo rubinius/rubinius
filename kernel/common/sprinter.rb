@@ -931,7 +931,7 @@ module Rubinius
                 @prec_static = @prec_static - 2
                 zero_pad(padding)
                 @prec_static = @prec_static + 2
-              elsif @width_static
+              elsif @width_static && @format_code != 'u'
                 @width_static = @width_static - 2
                 zero_pad(padding)
                 @width_static = @width_static + 2
@@ -940,9 +940,11 @@ module Rubinius
               end
             end
 
-            @g.push_literal ".."
-            @g.string_dup
-            @g.string_append
+            if @format_code != 'u' || !@f_zero || precision?
+              @g.push_literal ".."
+              @g.string_dup
+              @g.string_append
+            end
 
             have_formatted.set!
           end
