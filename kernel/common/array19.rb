@@ -96,22 +96,22 @@ class Array
 
     raise ArgumentError, "invalid directives string: #{directives}"
   end
-  
+
   def rotate(n=1)
     return self.dup if length == 1
     return []       if empty?
-    
+
     ary = self.dup
     idx = n % ary.size
-    
+
     ary[idx..-1].concat ary[0...idx]
   end
-  
+
   def rotate!(cnt=1)
     Rubinius.check_frozen
-    
+
     return self if length == 0 || length == 1
-    
+
     ary = rotate(cnt)
     replace ary
   end
@@ -217,5 +217,26 @@ class Array
     end
 
     out
+  end
+
+  def unshift(*values)
+    Rubinius.check_frozen
+
+    return self if values.empty?
+
+    if @start > values.size
+      # fit the new values in between 0 and @start if possible
+      @start -= values.size
+      @tuple.copy_from(values.tuple,0,values.size,@start)
+    else
+      new_tuple = Rubinius::Tuple.new @total + values.size
+      new_tuple.copy_from values.tuple, 0, values.size, 0
+      new_tuple.copy_from @tuple, @start, @total, values.size
+      @start = 0
+      @tuple = new_tuple
+    end
+
+    @total += values.size
+    self
   end
 end
