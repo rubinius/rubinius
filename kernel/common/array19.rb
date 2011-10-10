@@ -5,7 +5,18 @@ class Array
   def self.try_convert(obj)
     Rubinius::Type.try_convert obj, Array, :to_ary
   end
+  
+  def flatten(level=-1)
+    level = Rubinius::Type.coerce_to(level, Integer, :to_int)
+    return self.dup if level == 0
 
+<<<<<<< HEAD
+    out = new_reserved size
+    recursively_flatten(self, out, level)
+    out
+  end
+  
+=======
   def keep_if(&block)
     Rubinius.check_frozen
 
@@ -14,6 +25,7 @@ class Array
     replace select(&block)
   end
 
+>>>>>>> 392f4bb1d51c7b1f6b54518ad077b8a7572fc8a4
   ##
   #  call-seq:
   #     arr.pack ( aTemplateString ) -> aBinaryString
@@ -116,6 +128,16 @@ class Array
 
     ary = select(&block)
     replace ary unless size == ary.size
+  end
+  
+  def select!(&block)
+    Rubinius.check_frozen
+
+    return nil if self == self.select(&block)
+
+    return to_enum :select! unless block_given?
+    
+    replace select(&block)
   end
   
   def sort_by!(&block)
