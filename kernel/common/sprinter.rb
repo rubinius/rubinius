@@ -772,7 +772,7 @@ module Rubinius
         def bytecode
           # A fast, common case.
           wid = @width_static
-          if @f_zero and wid and !@f_space and !@f_plus
+          if @f_zero and wid and !@f_space and !@f_plus and !@prec_static
             @g.push :self
 
             push_value
