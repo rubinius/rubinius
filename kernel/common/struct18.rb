@@ -1,11 +1,4 @@
 class Struct
-  def self.members
-    return self::STRUCT_ATTRS.map {|member| member.to_sym }
-  end
-  
-  def members
-    return self.class.members
-  end
   
   ##
   # call-seq:
@@ -25,16 +18,10 @@ class Struct
         values << "#{var}=#{val.inspect}"
       end
 
-      name = self.class.name
-      
-      if name.empty?
-        "#<struct #{values.join(', ')}>"
-      else
-        "#<struct #{self.class.name} #{values.join(', ')}>"
-      end
+      "#<struct #{self.class.inspect} #{values.join(', ')}>"
     end
   end
-
+  
   alias_method :inspect, :to_s
 
 end

@@ -73,6 +73,7 @@ string.rbc
 string18.rbc
 range.rbc
 struct.rbc
+struct18.rbc
 process.rbc
 random.rbc
 regexp.rbc
