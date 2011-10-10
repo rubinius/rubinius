@@ -1,1 +1,0 @@
-fails:Array#choice raises NoMethodError
