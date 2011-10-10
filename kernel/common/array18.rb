@@ -168,4 +168,25 @@ class Array
 
     out
   end
+
+  def unshift(*values)
+    return self if values.empty?
+
+    Rubinius.check_frozen
+
+    if @start > values.size
+      # fit the new values in between 0 and @start if possible
+      @start -= values.size
+      @tuple.copy_from(values.tuple,0,values.size,@start)
+    else
+      new_tuple = Rubinius::Tuple.new @total + values.size
+      new_tuple.copy_from values.tuple, 0, values.size, 0
+      new_tuple.copy_from @tuple, @start, @total, values.size
+      @start = 0
+      @tuple = new_tuple
+    end
+
+    @total += values.size
+    self
+  end
 end
