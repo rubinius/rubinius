@@ -1,14 +1,12 @@
 fails:String#encode with no arguments returns a copy of self
 fails:String#encode with no arguments returns a copy of self transcoded to Encoding.default_internal
 fails:String#encode transcodes to the default internal encoding with no argument
-fails:String#encode accepts a target encoding name as a String for an argument
 fails:String#encode transcodes self to the given encoding
 fails:String#encode can convert between encodings where a multi-stage conversion path is needed
 fails:String#encode raises an Encoding::InvalidByteSequenceError for invalid byte sequences
 fails:String#encode raises UndefinedConversionError if the String contains characters invalid for the target     encoding
 fails:String#encode raises Encoding::ConverterNotFoundError for invalid target encodings
 fails:String#encode replaces invalid characters
-fails:String#encode replaces undefined characters
 fails:String#encode replaces xml characters
 fails:String#encode replaces xml characters and quotes the result
 fails:String#encode returns a copy of self when called with only a target encoding
