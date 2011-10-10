@@ -226,7 +226,7 @@ namespace rubinius {
     LLVMState::start(state);
 #endif
 
-    SignalHandler::on_fork(state);
+    SignalHandler::on_fork(state, false);
 
     /* execvp() returning means it failed. */
     Exception::errno_error(state, "execvp(2) failed");
@@ -437,7 +437,7 @@ namespace rubinius {
 
       state->shared.reinit(state);
 
-      SignalHandler::on_fork(state);
+      SignalHandler::on_fork(state, false);
       state->shared.om->on_fork();
 
       // Re-initialize LLVM

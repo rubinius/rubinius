@@ -121,6 +121,14 @@ namespace rubinius {
     Object* fork(STATE);
 
     /**
+     *  Execute the Thread.
+     *
+     *  This leaves the thread in an attached state, so that
+     *  a pthread_join() later on will work.
+     */
+    int fork_attached(STATE);
+
+    /**
      *  Retrieve the priority set for this Thread.
      *
      *  The value is numeric, higher being more important

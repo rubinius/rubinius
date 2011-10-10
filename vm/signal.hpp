@@ -44,8 +44,8 @@ namespace rubinius {
 
     void reopen_pipes();
 
-    static void on_fork(VM*);
-    void on_fork_i(VM*);
+    static void on_fork(VM*, bool full=true);
+    void on_fork_i(VM*, bool full);
 
     static void shutdown();
     void shutdown_i();
