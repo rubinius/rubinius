@@ -897,17 +897,6 @@ class Array
     self[0,n]
   end
 
-  # Recursively flatten any contained Arrays into an one-dimensional result.
-  # The optional level argument determines the level of recursion to flatten
-  def flatten(level=-1)
-    level = Rubinius::Type.coerce_to(level, Integer, :to_int)
-    return self if level == 0
-
-    out = new_reserved size
-    recursively_flatten(self, out, level)
-    out
-  end
-
   # Flattens self in place as #flatten. If no changes are
   # made, returns nil, otherwise self.
   # The optional level argument determines the level of recursion to flatten
