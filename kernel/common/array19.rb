@@ -96,6 +96,25 @@ class Array
 
     raise ArgumentError, "invalid directives string: #{directives}"
   end
+  
+  def rotate(n=1)
+    return self.dup if length == 1
+    return []       if empty?
+    
+    ary = self.dup
+    idx = n % ary.size
+    
+    ary[idx..-1].concat ary[0...idx]
+  end
+  
+  def rotate!(cnt=1)
+    Rubinius.check_frozen
+    
+    return self if length == 0 || length == 1
+    
+    ary = rotate(cnt)
+    replace ary
+  end
 
   # Choose a random element, or the random n elements, from the array.
   # If the array is empty, the first form returns nil, and the second
