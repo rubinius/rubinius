@@ -344,6 +344,7 @@ namespace rubinius {
 
     Module* new_module(const char* name, Module* under = NULL);
 
+    Symbol* symbol(const char* str);
     Symbol* symbol(std::string str);
     Symbol* symbol(String* str);
 
