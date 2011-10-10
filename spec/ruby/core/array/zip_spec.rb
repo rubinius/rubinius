@@ -35,7 +35,7 @@ describe "Array#zip" do
           [3,4].each(&b)
         end
       end.new
-      
+
       [1, 2].zip(obj).should == [[1, 3], [2, 4]]
     end
   end
