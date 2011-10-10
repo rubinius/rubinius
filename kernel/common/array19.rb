@@ -6,25 +6,6 @@ class Array
     Rubinius::Type.try_convert obj, Array, :to_ary
   end
 
-  def choice(n=undefined)
-    raise NoMethodError if size == 0
-    return at(Kernel.rand(size)) if n.equal? undefined
-
-    n = Type.coerce_to(n, Fixnum, :to_int)
-    raise ArgumentError, "negative array size" if n < 0
-
-    n = size if n > size
-    result = Array.new(self)
-
-    n.times do |i|
-      r = i + Kernel.rand(size - i)
-      result.tuple.swap(i,r)
-    end
-
-    result[n..size] = []
-    result
-  end
-
   def flatten(level=-1)
     level = Rubinius::Type.coerce_to(level, Integer, :to_int)
     return self.dup if level == 0

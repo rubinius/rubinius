@@ -1441,11 +1441,6 @@ class Array
     nil
   end
 
-  # Choose a random element from an array.
-  def choice
-    at Kernel.rand(size)
-  end
-
   # Some code depends on Array having it's own #select method,
   # not just using the Enumerable one. This alias achieves that.
   alias_method :select, :find_all
