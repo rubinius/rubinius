@@ -50,6 +50,7 @@ class String
   end
 
   def ord
+    raise ArgumentError, 'empty string' if empty?
     @data[0]
   end
 
@@ -274,5 +275,142 @@ class String
     end
 
     raise ArgumentError, "invalid directives string: #{directives}"
+  end
+
+  # Removes trailing whitespace from <i>self</i>, returning <code>nil</code> if
+  # no change was made. See also <code>String#lstrip!</code> and
+  # <code>String#strip!</code>.
+  #
+  #   "  hello  ".rstrip   #=> "  hello"
+  #   "hello".rstrip!      #=> nil
+  def rstrip!
+    Rubinius.check_frozen
+    return if @num_bytes == 0
+
+    stop = @num_bytes - 1
+
+    ctype = Rubinius::CType
+
+    while stop >= 0 && (@data[stop] == 0 || ctype.isspace(@data[stop]))
+      stop -= 1
+    end
+
+    return if (stop += 1) == @num_bytes
+
+    modify!
+    @num_bytes = stop
+    self
+  end
+
+  # Removes leading whitespace from <i>self</i>, returning <code>nil</code> if no
+  # change was made. See also <code>String#rstrip!</code> and
+  # <code>String#strip!</code>.
+  #
+  #   "  hello  ".lstrip   #=> "hello  "
+  #   "hello".lstrip!      #=> nil
+  def lstrip!
+    Rubinius.check_frozen
+    return if @num_bytes == 0
+
+    start = 0
+
+    ctype = Rubinius::CType
+
+    while start < @num_bytes && ctype.isspace(@data[start])
+      start += 1
+    end
+
+    return if start == 0
+
+    modify!
+    @num_bytes = @num_bytes - start
+    @data.move_bytes start, @num_bytes, 0
+    self
+  end
+
+  # Processes <i>self</i> as for <code>String#chop</code>, returning <i>self</i>,
+  # or <code>nil</code> if <i>self</i> is the empty string.  See also
+  # <code>String#chomp!</code>.
+  def chop!
+    Rubinius.check_frozen
+    return if @num_bytes == 0
+
+    self.modify!
+
+    if @num_bytes > 1 and
+        @data[@num_bytes-1] == 10 and @data[@num_bytes-2] == 13
+      @num_bytes = @num_bytes - 2
+    else
+      @num_bytes = @num_bytes - 1
+    end
+
+    self
+  end
+
+  # Modifies <i>self</i> in place as described for <code>String#chomp</code>,
+  # returning <i>self</i>, or <code>nil</code> if no modifications were made.
+  #---
+  # NOTE: TypeError is raised in String#replace and not in String#chomp! when
+  # self is frozen. This is intended behaviour.
+  #+++
+  def chomp!(sep=undefined)
+    Rubinius.check_frozen
+
+    # special case for performance. No seperator is by far the most common usage.
+    if sep.equal?(undefined)
+      return if @num_bytes == 0
+
+      c = @data[@num_bytes-1]
+      if c == 10 # ?\n
+        @num_bytes -= 1 if @num_bytes > 1 && @data[@num_bytes-2] == 13 # ?\r
+      elsif c != 13 # ?\r
+        return
+      end
+
+      # don't use modify! because it will dup the data when we don't need to.
+      @hash_value = nil
+      @num_bytes = @num_bytes - 1
+      return self
+    end
+
+    return if sep.nil? || @num_bytes == 0
+    sep = StringValue sep
+
+    if (sep == $/ && sep == DEFAULT_RECORD_SEPARATOR) || sep == "\n"
+      c = @data[@num_bytes-1]
+      if c == 10 # ?\n
+        @num_bytes -= 1 if @num_bytes > 1 && @data[@num_bytes-2] == 13 # ?\r
+      elsif c != 13 # ?\r
+        return
+      end
+
+      # don't use modify! because it will dup the data when we don't need to.
+      @hash_value = nil
+      @num_bytes = @num_bytes - 1
+    elsif sep.size == 0
+      size = @num_bytes
+      while size > 0 && @data[size-1] == 10 # ?\n
+        if size > 1 && @data[size-2] == 13 # ?\r
+          size -= 2
+        else
+          size -= 1
+        end
+      end
+
+      return if size == @num_bytes
+
+      # don't use modify! because it will dup the data when we don't need to.
+      @hash_value = nil
+      @num_bytes = size
+    else
+      size = sep.size
+      return if size > @num_bytes || sep.compare_substring(self, -size, size) != 0
+
+      # don't use modify! because it will dup the data when we don't need to.
+      @hash_value = nil
+      @num_bytes = @num_bytes - size
+    end
+
+    return self
   end
 end
