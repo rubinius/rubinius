@@ -62,6 +62,7 @@ location.rbc
 lookuptable.rbc
 main.rbc
 marshal.rbc
+marshal18.rbc
 math.rbc
 math18.rbc
 method.rbc
