@@ -12,7 +12,7 @@ with_feature :hash_hamt do
     end
 
     it "returns the entry if it is found" do
-      entry = Hash::Entry.new :a, 1, @state
+      entry = Hash::Item.new :a, 1, @state
       @trie.add entry, :b, :b.hash, 2
       @trie.lookup(:a, :a.hash).should equal(entry)
     end

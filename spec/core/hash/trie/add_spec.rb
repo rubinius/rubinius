@@ -15,7 +15,7 @@ with_feature :hash_hamt do
 
       k2 = mock("Hash key2")
 
-      entry = Hash::Entry.new k1, 1, @state
+      entry = Hash::Item.new k1, 1, @state
       @trie.add entry, k2, key_hash, 2
       @trie.entries[0].should be_an_instance_of(Hash::List)
     end
@@ -28,12 +28,12 @@ with_feature :hash_hamt do
 
       k2 = mock("Hash key2")
 
-      entry = Hash::Entry.new k1, 1, @state
+      entry = Hash::Item.new k1, 1, @state
       @trie.add entry, k2, 0b10_000001_000000, 2
       @trie.entries[0].should be_an_instance_of(Hash::Trie)
     end
 
-    it "inserts two Entry instances if the key hash values do not collide" do
+    it "inserts two Item instances if the key hash values do not collide" do
       k1_hash = 0b1_000001_001000
 
       k1 = mock("Hash key1")
@@ -41,10 +41,10 @@ with_feature :hash_hamt do
 
       k2 = mock("Hash key2")
 
-      entry = Hash::Entry.new k1, 1, @state
+      entry = Hash::Item.new k1, 1, @state
       @trie.add entry, k2, 0b10_000010_000000, 2
-      @trie.entries[0].should be_an_instance_of(Hash::Entry)
-      @trie.entries[1].should be_an_instance_of(Hash::Entry)
+      @trie.entries[0].should be_an_instance_of(Hash::Item)
+      @trie.entries[1].should be_an_instance_of(Hash::Item)
     end
   end
 end
