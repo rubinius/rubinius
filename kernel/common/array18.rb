@@ -105,6 +105,14 @@ class Array
     raise ArgumentError, "invalid directives string: #{directives}"
   end
 
+  # Appends the given object(s) to the Array and returns
+  # the modified self.
+  def push(*args)
+    return self if args.empty?
+
+    concat args
+  end
+
   # Produces a string by joining all elements without a
   # separator. See #join
   def to_s

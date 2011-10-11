@@ -1300,14 +1300,6 @@ class Array
     result
   end
 
-  # Appends the given object(s) to the Array and returns
-  # the modified self.
-  def push(*args)
-    return self if args.empty?
-
-    concat args
-  end
-
   # Searches through contained Arrays within the Array,
   # comparing obj with the second element of each using
   # elem == obj. Returns the first matching Array, nil
