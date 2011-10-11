@@ -86,6 +86,7 @@ objectspace.rbc
 string.rbc
 string19.rbc
 range.rbc
+range19.rbc
 struct.rbc
 struct19.rbc
 process.rbc
