@@ -40,7 +40,7 @@ class Hash
     end
   end
 
-  class Entry
+  class Item
     attr_accessor :state
     attr_accessor :previous
     attr_accessor :next
@@ -131,15 +131,15 @@ class Hash
     def insert(key, key_hash, value)
       @entries.each { |e| return e if e.insert(key, key_hash, value) }
 
-      entry = Entry.new key, value, @state
-      @entries = @entries.insert_at_index @entries.size, entry
+      item = Item.new key, value, @state
+      @entries = @entries.insert_at_index @entries.size, item
 
-      entry
+      item
     end
 
-    def add(entry, key, key_hash, value)
-      @entries[0] = entry
-      @entries[1] = Entry.new key, value, @state
+    def add(item, key, key_hash, value)
+      @entries[0] = item
+      @entries[1] = Item.new key, value, @state
     end
 
     def delete(key, key_hash)
@@ -172,58 +172,58 @@ class Hash
     end
 
     def lookup(key, key_hash)
-      return unless index = entry_index(key_hash)
+      return unless index = item_index(key_hash)
       @entries[index].lookup key, key_hash
     end
 
     def insert(key, key_hash, value)
-      if index = entry_index(key_hash)
-        entry = @entries[index]
-        unless entry.insert key, key_hash, value
+      if index = item_index(key_hash)
+        item = @entries[index]
+        unless item.insert key, key_hash, value
           trie = Trie.new @state, @level + 1
-          trie.add entry, key, key_hash, value
+          trie.add item, key, key_hash, value
           @entries[index] = trie
           return trie
         else
-          return entry
+          return item
         end
       else
         @bmp = set_bitmap key_hash
-        index = entry_index key_hash
-        entry = Entry.new key, value, @state
-        @entries = @entries.insert_at_index index, entry
-        return entry
+        index = item_index key_hash
+        item = Item.new key, value, @state
+        @entries = @entries.insert_at_index index, item
+        return item
       end
     end
 
-    def add(entry, key, key_hash, value)
-      entry_hash = entry.key_hash
-      bmp = @bmp = set_bitmap(entry_hash)
+    def add(item, key, key_hash, value)
+      item_hash = item.key_hash
+      bmp = @bmp = set_bitmap(item_hash)
       @bmp = set_bitmap key_hash
 
       if bmp == @bmp
-        if entry_hash == key_hash
+        if item_hash == key_hash
           list = List.new @state, key_hash
-          list.add entry, key, key_hash, value
+          list.add item, key, key_hash, value
           @entries = Vector[list]
         else
           trie = Trie.new @state, @level + 1
-          trie.add entry, key, key_hash, value
+          trie.add item, key, key_hash, value
           @entries = Vector[trie]
         end
       else
         @entries = Vector.new 2
-        @entries[entry_index(entry_hash)] = entry
-        @entries[entry_index(key_hash)] = Entry.new key, value, @state
+        @entries[item_index(item_hash)] = item
+        @entries[item_index(key_hash)] = Item.new key, value, @state
       end
     end
 
     def delete(key, key_hash)
-      return unless index = entry_index(key_hash)
+      return unless index = item_index(key_hash)
 
-      entry = @entries[index]
-      if de = entry.delete(key, key_hash)
-        if entry.empty?
+      item = @entries[index]
+      if de = item.delete(key, key_hash)
+        if item.empty?
           @bmp = unset_bitmap key_hash
 
           @entries = @entries.delete_at_index index
@@ -233,8 +233,8 @@ class Hash
       end
     end
 
-    def entry_index(key_hash)
-      Rubinius.invoke_primitive :vm_hash_trie_entry_index, key_hash, @level, @bmp
+    def item_index(key_hash)
+      Rubinius.invoke_primitive :vm_hash_trie_item_index, key_hash, @level, @bmp
     end
 
     def set_bitmap(key_hash)
@@ -255,36 +255,36 @@ class Hash
       @entries = Vector.new 64
     end
 
-    def entry_index(key_hash)
+    def item_index(key_hash)
       key_hash & 0b111111
     end
 
     def lookup(key, key_hash)
-      if entry = @entries[entry_index(key_hash)]
-        entry.lookup key, key_hash
+      if item = @entries[item_index(key_hash)]
+        item.lookup key, key_hash
       end
     end
 
     def insert(key, key_hash, value)
-      index = entry_index key_hash
-      if entry = @entries[index]
-        unless entry.insert key, key_hash, value
+      index = item_index key_hash
+      if item = @entries[index]
+        unless item.insert key, key_hash, value
           trie = Trie.new @state, 0
-          trie.add entry, key, key_hash, value
+          trie.add item, key, key_hash, value
           @entries[index] = trie
         end
       else
-        entry = Entry.new key, value, @state
-        @entries[index] = entry
+        item = Item.new key, value, @state
+        @entries[index] = item
       end
     end
 
     def delete(key, key_hash)
-      index = entry_index key_hash
-      return unless entry = @entries[index]
+      index = item_index key_hash
+      return unless item = @entries[index]
 
-      if de = entry.delete(key, key_hash)
-        if entry.empty?
+      if de = item.delete(key, key_hash)
+        if item.empty?
           @entries[index] = nil
         end
         return de
@@ -303,9 +303,9 @@ class Hash
     end
 
     # Returns the next object or +nil+.
-    def next(entry)
-      if entry
-        return entry if entry = entry.next
+    def next(item)
+      if item
+        return item if item = item.next
       else
         return @state.head
       end
@@ -381,9 +381,9 @@ class Hash
   def hash
     val = size
     Thread.detect_outermost_recursion self do
-      each_entry do |entry|
-        val ^= entry.key.hash
-        val ^= entry.value.hash
+      each_item do |item|
+        val ^= item.key.hash
+        val ^= item.value.hash
       end
     end
 
@@ -396,8 +396,8 @@ class Hash
   private :initialize_copy
 
   def [](key)
-    if @table and entry = @table.lookup(key, key.hash)
-      return entry.value
+    if @table and item = @table.lookup(key, key.hash)
+      return item.value
     end
 
     default key
@@ -419,7 +419,7 @@ class Hash
   alias_method :store, :[]=
 
   def assoc(key)
-    each_entry { |e| return e.key, e.value if key == e.key }
+    each_item { |e| return e.key, e.value if key == e.key }
     nil
   end
 
@@ -474,8 +474,8 @@ class Hash
     Rubinius.check_frozen
 
     if @table
-      if entry = @table.delete(key, key.hash)
-        return entry.value
+      if item = @table.delete(key, key.hash)
+        return item.value
       end
     end
 
@@ -489,7 +489,7 @@ class Hash
 
     return to_enum(:delete_if) unless block_given?
 
-    each_entry { |e| delete e.key if yield(e.key, e.value) }
+    each_item { |e| delete e.key if yield(e.key, e.value) }
 
     self
   end
@@ -498,10 +498,10 @@ class Hash
     return to_enum(:each) unless block_given?
 
     if @state
-      entry = @state.head
-      while entry
-        yield [entry.key, entry.value]
-        entry = entry.next
+      item = @state.head
+      while item
+        yield [item.key, item.value]
+        item = item.next
       end
     end
 
@@ -510,20 +510,20 @@ class Hash
 
   alias_method :each_pair, :each
 
-  def each_entry
+  def each_item
     return unless @state
 
-    entry = @state.head
-    while entry
-      yield entry
-      entry = entry.next
+    item = @state.head
+    while item
+      yield item
+      item = item.next
     end
   end
 
   def each_key
     return to_enum(:each_key) unless block_given?
 
-    each_entry { |e| yield e.key }
+    each_item { |e| yield e.key }
 
     self
   end
@@ -531,7 +531,7 @@ class Hash
   def each_value
     return to_enum(:each_value) unless block_given?
 
-    each_entry { |e| yield e.value }
+    each_item { |e| yield e.value }
 
     self
   end
@@ -551,13 +551,13 @@ class Hash
     return false unless other.size == size
 
     Thread.detect_recursion self, other do
-      other.each_entry do |e|
+      other.each_item do |e|
 
-        return false unless entry = @table.lookup(e.key, e.key.hash)
+        return false unless item = @table.lookup(e.key, e.key.hash)
 
         # Order of the comparison matters! We must compare our value with
         # the other Hash's value and not the other way around.
-        return false unless entry.value.eql?(e.value)
+        return false unless item.value.eql?(e.value)
       end
     end
 
@@ -568,8 +568,8 @@ class Hash
 
   def fetch(key, default=undefined)
     unless empty?
-      if entry = @table.lookup(key, key.hash)
-        return entry.value
+      if item = @table.lookup(key, key.hash)
+        return item.value
       end
     end
 
@@ -590,7 +590,7 @@ class Hash
   def inspect
     out = []
     return '{...}' if Thread.detect_recursion self do
-      each_entry do |e|
+      each_item do |e|
         str =  e.key.inspect
         str << '=>'
         str << e.value.inspect
@@ -604,7 +604,7 @@ class Hash
 
   def invert
     h = Hash.allocate
-    each_entry { |e| h[e.value] = e.key }
+    each_item { |e| h[e.value] = e.key }
     h
   end
 
@@ -613,13 +613,13 @@ class Hash
 
     return to_enum(:keep_if) unless block_given?
 
-    each_entry { |e| delete e.key unless yield(e.key, e.value) }
+    each_item { |e| delete e.key unless yield(e.key, e.value) }
 
     self
   end
 
   def key(value)
-    each_entry { |e| return e.key if e.value == value }
+    each_item { |e| return e.key if e.value == value }
 
     nil
   end
@@ -640,7 +640,7 @@ class Hash
 
   def keys
     ary = []
-    each_entry { |e| ary << e.key }
+    each_item { |e| ary << e.key }
     ary
   end
 
@@ -661,16 +661,16 @@ class Hash
     end
 
     if block_given?
-      other.each_entry do |e|
+      other.each_item do |e|
         key = e.key
-        if entry = @table.lookup(key, key.hash)
-          entry.value = yield(key, entry.value, e.value)
+        if item = @table.lookup(key, key.hash)
+          item.value = yield(key, item.value, e.value)
         else
           @table.insert key, key.hash, e.value
         end
       end
     else
-      other.each_entry do |e|
+      other.each_item do |e|
         key = e.key
         @table.insert key, key.hash, e.value
       end
@@ -682,7 +682,7 @@ class Hash
   alias_method :update, :merge!
 
   def rassoc(value)
-    each_entry { |e| return e.key, e.value if value == e.value }
+    each_item { |e| return e.key, e.value if value == e.value }
     nil
   end
 
@@ -691,13 +691,13 @@ class Hash
 
     return if empty?
 
-    entry = @state.head
+    item = @state.head
     @state = State.from @state
     table = Table.new @state
 
-    while entry
-      table.insert entry.key, entry.key.hash, entry.value
-      entry = entry.next
+    while item
+      table.insert item.key, item.key.hash, item.value
+      item = item.next
     end
 
     @table = table
@@ -737,7 +737,7 @@ class Hash
     @state.compare_by_identity if other.compare_by_identity?
     @table = Table.new @state
 
-    other.each_entry do |e|
+    other.each_item do |e|
       key = e.key
       @table.insert key, key.hash, e.value
     end
@@ -755,7 +755,7 @@ class Hash
 
     hsh = Hash.allocate
 
-    each_entry do |e|
+    each_item do |e|
       key = e.key
       value = e.value
       hsh[key] = value if yield(key, value)
@@ -772,7 +772,7 @@ class Hash
     return nil if empty?
 
     size = @state.size
-    each_entry { |e| delete e.key unless yield(e.key, e.value) }
+    each_item { |e| delete e.key unless yield(e.key, e.value) }
     return nil if size == @state.size
 
     self
@@ -783,10 +783,10 @@ class Hash
 
     return default(nil) if empty?
 
-    entry = @state.head
-    @table.delete entry.key, entry.key.hash
+    item = @state.head
+    @table.delete item.key, item.key.hash
 
-    return entry.key, entry.value
+    return item.key, item.value
   end
 
   def size
@@ -797,7 +797,7 @@ class Hash
 
   def to_a
     ary = []
-    each_entry { |e| ary << [e.key, e.value] }
+    each_item { |e| ary << [e.key, e.value] }
     ary
   end
 
@@ -811,7 +811,7 @@ class Hash
   end
 
   def value?(value)
-    each_entry { |e| return true if value == e.value }
+    each_item { |e| return true if value == e.value }
     false
   end
 
@@ -819,7 +819,7 @@ class Hash
 
   def values
     ary = []
-    each_entry { |e| ary << e.value }
+    each_item { |e| ary << e.value }
     ary
   end
 
@@ -828,8 +828,8 @@ class Hash
       args.map { |key| default key }
     else
       args.map do |key|
-        if entry = @table.lookup(key, key.hash)
-          entry.value
+        if item = @table.lookup(key, key.hash)
+          item.value
         else
           default key
         end

@@ -1497,7 +1497,7 @@ namespace rubinius {
     return m;
   }
 
-  Fixnum* System::vm_hash_trie_entry_index(STATE, Fixnum* hash,
+  Fixnum* System::vm_hash_trie_item_index(STATE, Fixnum* hash,
                                            Fixnum* level, Integer* map)
   {
     size_t m = map->to_ulong();

@@ -338,8 +338,8 @@ namespace rubinius {
     // Rubinius.primitive :vm_run_script
     static Object* vm_run_script(STATE, CompiledMethod* cm, CallFrame* calling_environment);
 
-    // Rubinius.primitive :vm_hash_trie_entry_index
-    static Fixnum* vm_hash_trie_entry_index(STATE, Fixnum* hash, Fixnum* level, Integer* map);
+    // Rubinius.primitive :vm_hash_trie_item_index
+    static Fixnum* vm_hash_trie_item_index(STATE, Fixnum* hash, Fixnum* level, Integer* map);
 
     // Rubinius.primitive :vm_hash_trie_set_bitmap
     static Integer* vm_hash_trie_set_bitmap(STATE, Fixnum* hash, Fixnum* level, Integer* map);
