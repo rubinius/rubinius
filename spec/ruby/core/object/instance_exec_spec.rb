@@ -54,17 +54,15 @@ ruby_version_is "1.8.7" do
       ObjectSpecs::IVars.new.instance_exec { @secret }.should == 99
     end
 
-    ruby_version_is "1.9" do
-      it "executes Method objects as if they were procs" do
-        anonymous_class = Class.new do
-          def hola
-            to_s
-          end
-        end.new
+    it "executes Method objects as if they were procs" do
+      anonymous_class = Class.new do
+        def hola
+          to_s
+        end
+      end.new
 
-        method = anonymous_class.method(:hola)
-        'foo'.instance_exec(&method).should == 'foo'
-      end
+      method = anonymous_class.method(:hola)
+      'foo'.instance_exec(&method).should == 'foo'
     end
 
     ruby_version_is ""..."1.9" do
