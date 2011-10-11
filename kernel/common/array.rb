@@ -1242,46 +1242,6 @@ class Array
     end
   end
 
-  # Returns an array of all combinations of elements from all arrays.  The
-  # length of the returned array is the product of the length of ary and the
-  # argument arrays
-  #
-  # --
-  # Implementation notes: We build a block that will generate all the
-  # combinations by building it up successively using "inject" and starting
-  # with one responsible to append the values.
-  # ++
-  def product(*args)
-    args.map! { |x| Rubinius::Type.coerce_to(x, Array, :to_ary) }
-
-    # Check the result size will fit in an Array.
-    sum = args.inject(size) { |n, x| n * x.size }
-
-    if sum > Fixnum::MAX
-      raise RangeError, "product result is too large"
-    end
-
-    # TODO rewrite this to not use a tree of Proc objects.
-
-    # to get the results in the same order as in MRI, vary the last argument first
-    args.reverse!
-
-    result = []
-    args.push self
-
-    outer_lambda = args.inject(result.method(:push)) do |trigger, values|
-      lambda do |partial|
-        values.each do |val|
-          trigger.call(partial.dup << val)
-        end
-      end
-    end
-
-    outer_lambda.call([])
-
-    result
-  end
-
   # Searches through contained Arrays within the Array,
   # comparing obj with the second element of each using
   # elem == obj. Returns the first matching Array, nil

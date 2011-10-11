@@ -133,6 +133,52 @@ class Array
     raise ArgumentError, "invalid directives string: #{directives}"
   end
 
+  # Returns an array of all combinations of elements from all arrays.  The
+  # length of the returned array is the product of the length of ary and the
+  # argument arrays
+  #
+  # --
+  # Implementation notes: We build a block that will generate all the
+  # combinations by building it up successively using "inject" and starting
+  # with one responsible to append the values.
+  # ++
+  def product(*args, &block)
+    args.map! { |x| Rubinius::Type.coerce_to(x, Array, :to_ary) }
+
+    # Check the result size will fit in an Array.
+    sum = args.inject(size) { |n, x| n * x.size }
+
+    if sum > Fixnum::MAX
+      raise RangeError, "product result is too large"
+    end
+
+    # TODO rewrite this to not use a tree of Proc objects.
+
+    # to get the results in the same order as in MRI, vary the last argument first
+    args.reverse!
+
+    result = []
+    args.push self
+
+    outer_lambda = args.inject(result.method(:push)) do |trigger, values|
+      lambda do |partial|
+        values.each do |val|
+          trigger.call(partial.dup << val)
+        end
+      end
+    end
+
+    outer_lambda.call([])
+
+    if block_given?
+      block_result = self
+      result.each {|v| block_result << yield(v) }
+      block_result
+    else
+      result
+    end
+  end
+
   # Appends the given object(s) to the Array and returns
   # the modified self.
   def push(*args)
