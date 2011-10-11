@@ -2,11 +2,11 @@ class Struct
   def self.members
     return self::STRUCT_ATTRS.map {|member| member.to_sym }
   end
-  
+
   def members
     return self.class.members
   end
-  
+
   ##
   # call-seq:
   #   struct.to_s      => string
@@ -26,8 +26,8 @@ class Struct
       end
 
       name = self.class.name
-      
-      if name.empty?
+
+      if name.nil? || name.empty?
         "#<struct #{values.join(', ')}>"
       else
         "#<struct #{self.class.name} #{values.join(', ')}>"
