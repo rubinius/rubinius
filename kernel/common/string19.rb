@@ -3,6 +3,15 @@ class String
     Rubinius::Type.try_convert obj, String, :to_str
   end
 
+  def initialize(arg = undefined)
+    Rubinius.check_frozen
+    replace StringValue(arg) unless arg.equal?(undefined)
+
+    self
+  end
+
+  private :initialize
+
   def encode(to=undefined, from=undefined, options=nil)
     # TODO
     self
