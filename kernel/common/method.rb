@@ -27,10 +27,6 @@ class Method
   attr_reader :defined_in
   attr_reader :executable
 
-  def name
-    @name.to_s
-  end
-
   ##
   # Method objects are equal if they have the same body and are bound to the
   # same object.
