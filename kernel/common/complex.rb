@@ -284,6 +284,8 @@ class Complex < Numeric
     Math.hypot(@real, @image)
   end
   
+  alias_method :magnitude, :abs
+  
   #
   # Square of the absolute value.
   #
