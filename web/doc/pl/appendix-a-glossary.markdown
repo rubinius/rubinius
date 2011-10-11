@@ -1,9 +1,9 @@
 ---
 layout: doc_pl
-title: Appendix A - Glossary
-previous: How-To - Translate Documentation
+title: Dodatek A - Słowniczek
+previous: Jak przetłumaczyć dokumentację
 previous_url: how-to/translate-documentation
-next: Appendix B - Reading List
+next: Dodatek B - Warte przeczytania
 next_url: appendix-b-reading-list
 review: true
 ---

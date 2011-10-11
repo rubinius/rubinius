@@ -1,9 +1,9 @@
 ---
 layout: doc_pl
-title: How-To - Write a Blog Post
+title: Jak napisać posta na bloga Rubiniusa
 previous: How-To - Pisanie testów wydajnościowych
 previous_url: how-to/write-benchmarks
-next: Write Documentation
+next: Jak napisać dokumentację
 next_url: how-to/write-documentation
 ---
 

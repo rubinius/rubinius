@@ -1,9 +1,9 @@
 ---
 layout: doc_pl
-title: Global Variables
-previous: Class Variables
+title: Zmienne globalne
+previous: Zmienne klasy
 previous_url: ruby/class-variables
-next: Specs
+next: Specyfikacja
 next_url: specs
 review: true
 ---

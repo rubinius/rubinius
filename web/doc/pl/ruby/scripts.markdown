@@ -1,9 +1,9 @@
 ---
 layout: doc_pl
-title: Scripts
+title: Skrypty
 previous: Ruby
 previous_url: ruby
-next: Methods
+next: Metody
 next_url: ruby/methods
 review: true
 ---

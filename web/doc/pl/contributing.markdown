@@ -51,7 +51,7 @@ oraz łatę rozwiązującą go.
         jako <dir> podać dowolny podkatalog z katalogu spec/
 
   2. Znajdź funkcjonalność dla której nie powstały jeszcze
-     specyfikacje. Zobacz [Jak napisać specyfikację Ruby Spec](/doc/en/how-to/write-a-ruby-spec).
+     specyfikacje. Zobacz [Jak napisać specyfikację Ruby Spec](/doc/pl/how-to/write-a-ruby-spec).
 
 
 ## Popraw niedziałające specyfikacje

@@ -1,9 +1,9 @@
 ---
 layout: doc_pl
-title: Constants
-previous: Methods
+title: Stałe
+previous: Metody
 previous_url: ruby/methods
-next: Classes & Modules
+next: Klasy i moduły
 next_url: ruby/classes-and-modules
 review: true
 ---

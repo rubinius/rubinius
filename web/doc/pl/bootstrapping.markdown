@@ -3,7 +3,7 @@ layout: doc_pl
 title: Bootstrapping
 previous: Build System
 previous_url: build-system
-next: Virtual Machine
+next: Wirtualna maszyna
 next_url: virtual-machine
 ---
 

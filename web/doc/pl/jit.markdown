@@ -1,8 +1,8 @@
 ---
 layout: doc_pl
-title: JIT Compiler
-previous: Bytecode Compiler - Generator
-previous_url: bytecode-compiler/generator
+title: Kompilator JIT
+previous: Kompilator bajtkodu - Modyfikacja procesu kompilacji
+previous_url: bytecode-compiler/customization
 next: Garbage Collector
 next_url: garbage-collector
 review: true

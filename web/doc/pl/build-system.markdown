@@ -1,7 +1,7 @@
 ---
 layout: doc_pl
 title: Build System
-previous: Specs - Compiler
+previous: Specyfikacja - Kompilator
 previous_url: specs/compiler
 next: Bootstrapping
 next_url: bootstrapping

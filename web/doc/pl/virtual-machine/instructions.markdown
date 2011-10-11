@@ -1,7 +1,7 @@
 ---
 layout: doc_pl
-title: Instructions
-previous: Virtual Machine
+title: Instrukcje
+previous: Maszyna wirtualna
 previous_url: virtual-machine
 next: Custom Dispatch Logic
 next_url: virtual-machine/custom-dispatch-logic

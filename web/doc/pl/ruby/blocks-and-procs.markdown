@@ -1,9 +1,9 @@
 ---
 layout: doc_pl
-title: Blocks & Procs
-previous: Classes & Modules
+title: Bloki i konstrukcje Proc
+previous: Klasy i moduły
 previous_url: ruby/classes-and-modules
-next: Local Variables
+next: Zmienne lokalne
 next_url: ruby/local-variables
 review: true
 ---

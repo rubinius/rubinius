@@ -1,9 +1,9 @@
 ---
 layout: doc_pl
-title: How-To - Translate Documentation
-previous: Write Documentation
+title: Jak przetłumaczyć dokumentację
+previous: Jak napisać dokumentację
 previous_url: how-to/write-documentation
-next: Appendix A - Glossary
+next: Dodatek A - Słowniczek
 next_url: appendix-a-glossary
 ---
 
@@ -13,7 +13,7 @@ There are two translation tasks:
 1. creating a completely new translation
 
 Begin by reading [How-To - Write
-Documentation](/doc/en/how-to/write-documentation/)
+Documentation](/doc/pl/how-to/write-documentation/)
 
 
 ### Updating an Existing Translation

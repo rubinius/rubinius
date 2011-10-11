@@ -1,9 +1,9 @@
 ---
 layout: doc_pl
 title: Custom Dispatch Logic
-previous: Instructions
+previous: Instrukcje
 previous_url: virtual-machine/instructions
-next: Bytecode Compiler
+next: Kompilator bajtkodu
 next_url: bytecode-compiler
 review: true
 ---
