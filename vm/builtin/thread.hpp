@@ -167,6 +167,9 @@ namespace rubinius {
     // Rubinius.primitive :thread_context
     Tuple* context(STATE);
 
+    // Rubinius.primitive :thread_mri_backtrace
+    Array* mri_backtrace(STATE);
+
     // Rubinius.primitive :thread_join
     Object* join(STATE, CallFrame* calling_environment);
 
