@@ -385,7 +385,7 @@ class Complex < Numeric
   # Returns "<tt>Complex(<i>real</i>, <i>image</i>)</tt>".
   #
   def inspect
-    sprintf("Complex(%s, %s)", @real.inspect, @image.inspect)
+    "(#{to_s})"
   end
 
   
