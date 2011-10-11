@@ -23,6 +23,7 @@ loadedfeatures.rbc
 global.rbc
 backtrace.rbc
 comparable.rbc
+comparable18.rbc
 numeric.rbc
 ctype.rbc
 precision.rbc

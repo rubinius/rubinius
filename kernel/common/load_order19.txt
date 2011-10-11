@@ -26,6 +26,7 @@ loadedfeatures.rbc
 global.rbc
 backtrace.rbc
 comparable.rbc
+comparable19.rbc
 numeric.rbc
 numeric19.rbc
 ctype.rbc
