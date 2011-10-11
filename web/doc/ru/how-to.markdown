@@ -15,3 +15,4 @@ review: true
 1. [Написание сообщения в блог](/doc/ru/how-to/write-a-blog-post/)
 1. [Написание документации](/doc/ru/how-to/write-documentation/)
 1. [Перевод документации](/doc/ru/how-to/translate-documentation/)
+1. [Коммиты в Github](/doc/ru/how-to/commit-to-github/)

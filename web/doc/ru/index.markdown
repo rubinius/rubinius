@@ -67,6 +67,7 @@ next_url: what-is-rubinius
     1. [Написание сообщения в блог](/doc/ru/how-to/write-a-blog-post/)
     1. [Написание документации](/doc/ru/how-to/write-documentation/)
     1. [Перевод документации](/doc/ru/how-to/translate-documentation/)
+    1. [Коммиты в Github](/doc/ru/how-to/commit-to-github/)
 1. [Приложение A - Глоссарий](/doc/ru/appendix-a-glossary/)
 1. [Приложение B - Список литературы](/doc/ru/appendix-b-reading-list/)
 1. [Список терминов](/doc/ru/index-of-terms/)
