@@ -14,7 +14,7 @@ Make sure you have read:
 
 Then, follow these steps to fix a failing spec:
 
-  1.  Fork the [Rubinius project on GitHub](https://github.com/rubinius/rubinius)
+  1.  Fork the [Rubinius project on GitHub](https://github.com/rubinius/rubinius).
   2.  Clone your fork locally and run `git checkout -b branch_name` to create a new branch (where branch_name is
       a brief description for the problem you are fixing.
   3.  Run `rake` to ensure that all CI specs are passing.
@@ -23,13 +23,15 @@ Then, follow these steps to fix a failing spec:
   6.  Run `rake build` to build your change.
   7.  Run `bin/mspec spec/some/spec_file.rb` to see if your change makes the
       spec pass.
+      Add a "-txVERSION" argument at the end if you'd want to tackle Ruby VERSION. 
+      For example: "-tx19" for Ruby 1.9.
   8.  Repeat until your spec passes.
   9.  Run `rake` to ensure there are no regressions.
   10.  Change directory to Rubinius root if not already there.
   11.  Run `git status, git add, git commit`, etc. Any changes made to the spec
       files under the spec/ruby directory must be in a different commit from
       changes made to other Rubinius source code files.
-  12. Upload your new branch to Github
+  12. Push your new branch to Github.
   13. Issue a Pull Request.
       To do this, go to your fork on GitHub, change to your new branch and click "Pull Request".
       Next, write a description of your change if required and click "Send pull request".
