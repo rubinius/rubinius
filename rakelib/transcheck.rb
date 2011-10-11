@@ -20,7 +20,7 @@ class Transcheck
 
   # Fires up the recursive directories check.
   def check
-    puts "\nTRANSLATION CHECK: Checking '#{@leader}' recursively against #{@tr_list} versions\n\n" if @verbose
+    puts "\nTRANSLATION CHECK: Checking '#{@leader}' recursively against #{@tr_list.join ", "} versions\n\n" if @verbose
     check_recursive @leader
   end
 
@@ -35,18 +35,18 @@ class Transcheck
   def check_recursive lname
     unless (File.split lname).last =~ /^\.{1,2}$/
       if File.directory? lname
-	Dir.new(lname).each do |n|
-	  check_recursive File.join(lname, n)
-	end
+        Dir.new(lname).each do |n|
+          check_recursive File.join(lname, n)
+        end
       else
-	@tr_list.each do |lcode|
-	  tfname = File.join @base, lcode, (lname.gsub leader, '')
-	  if File.exists? tfname
-	    @bugs[lname] = "is younger than its '#{lcode}' version" if File.mtime(tfname) < File.mtime(lname)
-	  else
-	    @bugs[lname] = "doesn't exist in '#{lcode}' edition"
-	  end
-	end
+        @tr_list.each do |lcode|
+          tfname = File.join @base, lcode, (lname.gsub leader, '')
+          if File.exists? tfname
+            @bugs[lname] = "is younger than its '#{lcode}' version" if File.mtime(tfname) < File.mtime(lname)
+          else
+            @bugs[lname] = "doesn't exist in '#{lcode}' edition"
+          end
+        end
       end
     end
   end
@@ -69,13 +69,13 @@ class Transcheck
       [/younger/,        "LAG"]
     ].each do |re,lbl|
       if (hsh = @bugs.select do |k,v|
-	v =~ re
+        v =~ re
       end).size > 0
-        puts "\n  #{lbl} IN TRANSLATION:"
-	hsh.each do |bug|
-	  puts "    " + (bug.join ": ")
-	end
-	puts
+      puts "\n  #{lbl} IN TRANSLATION:"
+      hsh.each do |bug|
+        puts "    " + (bug.join ": ")
+      end
+      puts
       end
     end
   end
