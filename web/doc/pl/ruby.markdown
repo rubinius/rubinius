@@ -1,9 +1,9 @@
 ---
 layout: doc_pl
 title: Ruby
-previous: Style Guide
+previous: Style programowania
 previous_url: contributing/style-guide
-next: Scripts
+next: Skrypty
 next_url: ruby/scripts
 review: true
 ---
@@ -47,12 +47,12 @@ Each of the following elements of Ruby are discussed from the perspective of
 understanding how Rubinius implements them and how the concept of _scope_ is
 involved in each one.
 
-1. [Scripts](/doc/en/ruby/scripts/)
-1. [Methods](/doc/en/ruby/methods/)
-1. [Constants](/doc/en/ruby/constants/)
-1. [Classes & Modules](/doc/en/ruby/classes-and-modules/)
-1. [Blocks & Procs](/doc/en/ruby/blocks-and-procs/)
-1. [Local Variables](/doc/en/ruby/local-variables/)
-1. [Instance Variables](/doc/en/ruby/instance-variables/)
-1. [Class Variables](/doc/en/ruby/class-variables/)
-1. [Global Variables](/doc/en/ruby/global-variables/)
+1. [Skrypty](/doc/pl/ruby/scripts/)
+1. [Metody](/doc/pl/ruby/methods/)
+1. [Stałe](/doc/pl/ruby/constants/)
+1. [Klasy i moduły](/doc/pl/ruby/classes-and-modules/)
+1. [Bloki i konstrukcje Proc](/doc/pl/ruby/blocks-and-procs/)
+1. [Zmienne lokalne](/doc/pl/ruby/local-variables/)
+1. [Zmienne instancji](/doc/pl/ruby/instance-variables/)
+1. [Zmienne klasy](/doc/pl/ruby/class-variables/)
+1. [Zmienne globalne](/doc/pl/ruby/global-variables/)

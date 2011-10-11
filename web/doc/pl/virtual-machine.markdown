@@ -1,12 +1,12 @@
 ---
 layout: doc_pl
-title: Virtual Machine
+title: Maszyna wirtualna
 previous: Bootstrapping
 previous_url: bootstrapping
-next: Instructions
+next: Instrukcje
 next_url: virtual-machine/instructions
 review: true
 ---
 
-1. [Instructions](/doc/en/virtual-machine/instructions/)
-1. [Custom Dispatch Logic](/doc/en/virtual-machine/custom-dispatch-logic/)
+1. [Instrukcje](/doc/pl/virtual-machine/instructions/)
+1. [Custom Dispatch Logic](/doc/pl/virtual-machine/custom-dispatch-logic/)

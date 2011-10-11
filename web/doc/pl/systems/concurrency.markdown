@@ -1,6 +1,6 @@
 ---
 layout: doc_pl
-title: Concurrency
+title: Współbieżność
 previous: FFI
 previous_url: systems/ffi
 next: IO

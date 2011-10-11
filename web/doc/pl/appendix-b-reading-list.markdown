@@ -1,9 +1,9 @@
 ---
 layout: doc_pl
-title: Appendix B - Reading List
-previous: Appendix A - Glossary
+title: Dodatek B - Warte przeczytania
+previous: Dodatek A - Słowniczek
 previous_url: appendix-a-glossary
-next: Terms Index
+next: Słownik pojęć
 next_url: terms-index
 review: true
 ---

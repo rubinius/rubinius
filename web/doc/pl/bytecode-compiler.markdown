@@ -1,7 +1,7 @@
 ---
 layout: doc_pl
 title: Kompilator bajtkodu
-previous: Virtual Machine - Custom Dispatch Logic
+previous: Maszyna wirtualna - Custom Dispatch Logic
 previous_url: virtual-machine/custom-dispatch-logic
 next: Etap parsowania
 next_url: bytecode-compiler/parser
@@ -29,7 +29,7 @@ poniżej.
 1. [Etap generowania](/doc/pl/bytecode-compiler/generator/)
 1. [Etap kodowania](/doc/pl/bytecode-compiler/encoder/)
 1. [Etap pakowania](/doc/pl/bytecode-compiler/packager/)
-1. [Etap zapisu](/doc/en/bytecode-compiler/writer/)
+1. [Etap zapisu](/doc/pl/bytecode-compiler/writer/)
 1. Printers
 1. [Transformacje](/doc/pl/bytecode-compiler/transformations/)
 1. [Modyfikacja procesu kompilacji](/doc/pl/bytecode-compiler/customization/)

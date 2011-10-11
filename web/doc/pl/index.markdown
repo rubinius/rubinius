@@ -67,6 +67,6 @@ next_url: what-is-rubinius
     1. [napisać posta na bloga Rubiniusa](/doc/pl/how-to/write-a-blog-post/)
     1. [napisać dokumentację](/doc/pl/how-to/write-documentation/)
     1. [przetłumaczyć dokumentację](/doc/pl/how-to/translate-documentation/)
-1. [Appendix A - Słowniczek](/doc/pl/appendix-a-glossary/)
-1. [Appendix B - Warte przeczytania](/doc/pl/appendix-b-reading-list/)
+1. [Dodatek A - Słowniczek](/doc/pl/appendix-a-glossary/)
+1. [Dodatek B - Warte przeczytania](/doc/pl/appendix-b-reading-list/)
 1. [Słownik pojęć](/doc/pl/index-of-terms/)

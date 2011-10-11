@@ -1,9 +1,9 @@
 ---
 layout: doc_pl
 title: Jak zgłosić problem.
-previous: How-To
+previous: Jak
 previous_url: how-to
-next: Write a Ruby Spec
+next: Jak dodać specyfikację RubySpec
 next_url: how-to/write-a-ruby-spec
 ---
 
@@ -36,9 +36,9 @@ simply not appropriate for a ticket.
   1. Double-check.
 
      1. Do a full rebuild ('rake clean; rake') after a 'git pull' or fresh clone.
-     2. Read [Troubleshooting](/doc/en/getting-started/troubleshooting)
+     2. Read [Troubleshooting](/doc/pl/getting-started/troubleshooting)
         to see if something there resolves the issue.
-     3. Read [Specs](/doc/en/specs/).
+     3. Read [Spec](/doc/pl/specs/).
 
   2. Give your ticket a specific, preferably short title.
 

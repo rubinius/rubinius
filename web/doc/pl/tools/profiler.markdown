@@ -3,7 +3,7 @@ layout: doc_pl
 title: Profiler
 previous: Debugger
 previous_url: tools/debugger
-next: Memory Analysis
+next: Analiza pamięci
 next_url: tools/memory-analysis
 ---
 
