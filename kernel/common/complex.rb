@@ -369,27 +369,9 @@ class Complex < Numeric
   # Standard string representation of the complex number.
   #
   def to_s
-    if @real != 0
-      if defined?(Rational) and @image.kind_of?(Rational) and @image.denominator != 1
-	if @image >= 0
-	  @real.to_s+"+("+@image.to_s+")i"
-	else
-	  @real.to_s+"-("+(-@image).to_s+")i"
-	end
-      else
-	if @image >= 0
-	  @real.to_s+"+"+@image.to_s+"i"
-	else
-	  @real.to_s+"-"+(-@image).to_s+"i"
-	end
-      end
-    else
-      if defined?(Rational) and @image.kind_of?(Rational) and @image.denominator != 1
-	"("+@image.to_s+")i"
-      else
-	@image.to_s+"i"
-      end
-    end
+    signal = "+" unless @image < 0
+    
+    "#{@real}#{signal}#{@image}i"
   end
   
   #
