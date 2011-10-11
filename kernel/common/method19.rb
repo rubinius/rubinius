@@ -1,3 +1,9 @@
+class Method
+  def name
+    @name
+  end
+end
+
 class UnboundMethod
 
   def name
@@ -5,3 +11,4 @@ class UnboundMethod
   end
 
 end
+
