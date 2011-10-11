@@ -1,1 +1,0 @@
-fails:Array#insert raises a RuntimeError on frozen arrays when the array would not be modified

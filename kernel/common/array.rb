@@ -1020,24 +1020,6 @@ class Array
 
   alias_method :indices, :indexes
 
-  # For a positive index, inserts the given values before
-  # the element at the given index. Negative indices count
-  # backwards from the end and the values are inserted
-  # after them.
-  def insert(idx, *items)
-    return self if items.length == 0
-
-    Rubinius.check_frozen
-
-    # Adjust the index for correct insertion
-    idx = Rubinius::Type.coerce_to idx, Fixnum, :to_int
-    idx += (@total + 1) if idx < 0    # Negatives add AFTER the element
-    raise IndexError, "#{idx} out of bounds" if idx < 0
-
-    self[idx, 0] = items   # Cheat
-    self
-  end
-
   # Produces a printable string of the Array. The string
   # is constructed by calling #inspect on all elements.
   # Descends through contained Arrays, recursive ones

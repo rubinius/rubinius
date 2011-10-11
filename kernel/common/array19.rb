@@ -33,6 +33,24 @@ class Array
     nil
   end
 
+  # For a positive index, inserts the given values before
+  # the element at the given index. Negative indices count
+  # backwards from the end and the values are inserted
+  # after them.
+  def insert(idx, *items)
+    Rubinius.check_frozen
+
+    return self if items.length == 0
+
+    # Adjust the index for correct insertion
+    idx = Rubinius::Type.coerce_to idx, Fixnum, :to_int
+    idx += (@total + 1) if idx < 0    # Negatives add AFTER the element
+    raise IndexError, "#{idx} out of bounds" if idx < 0
+
+    self[idx, 0] = items   # Cheat
+    self
+  end
+
   def keep_if(&block)
     Rubinius.check_frozen
 
