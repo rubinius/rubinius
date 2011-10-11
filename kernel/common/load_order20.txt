@@ -77,6 +77,7 @@ marshal19.rbc
 math.rbc
 math19.rbc
 method.rbc
+method19.rbc
 method_table.rbc
 native_method.rbc
 nil.rbc
