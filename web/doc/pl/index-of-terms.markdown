@@ -1,7 +1,7 @@
 ---
 layout: doc_pl
-title: Index of Terms
-previous: Appendix B - Reading List
+title: Słownik pojęć
+previous: Dodatek B - Warte przeczytania
 previous_url: appendix-b-reading-list
 review: true
 ---

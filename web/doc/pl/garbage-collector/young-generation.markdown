@@ -1,9 +1,9 @@
 ---
 layout: doc_pl
-title: Young Generation
-previous: Nursery
+title: Młoda generacja
+previous: Żłobek
 previous_url: garbage-collector/nursery
-next: Mature Generation
+next: Dojrzała generacja
 next_url: garbage-collector/mature-generation
 review: true
 ---

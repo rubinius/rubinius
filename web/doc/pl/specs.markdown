@@ -1,7 +1,7 @@
 ---
 layout: doc_pl
-title: Specs
-previous: Ruby - Global Variables
+title: Specyfikacja
+previous: Zmienne globalne
 previous_url: ruby/global-variables
 next: RubySpec
 next_url: specs/rubyspec

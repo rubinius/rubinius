@@ -1,14 +1,14 @@
 ---
 layout: doc_pl
 title: Garbage Collector
-previous: JIT Compiler
+previous: Kompilator JIT
 previous_url: jit
-next: Nursery
+next: Żłobek
 next_url: garbage-collector/nursery
 review: true
 ---
 
-1. [Nursery](/doc/en/garbage-collector/nursery/)
-1. [Young Generation](/doc/en/garbage-collector/young-generation/)
-1. [Mature Generation](/doc/en/garbage-collector/mature-generation/)
-1. [Large Objects](/doc/en/garbage-collector/large-objects/)
+1. [Źłobek](/doc/pl/garbage-collector/nursery/)
+1. [Młoda Generacja](/doc/pl/garbage-collector/young-generation/)
+1. [Dojrzała Generacja](/doc/pl/garbage-collector/mature-generation/)
+1. [Duże Obiekty](/doc/pl/garbage-collector/large-objects/)

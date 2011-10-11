@@ -1,6 +1,6 @@
 ---
 layout: doc_pl
-title: Compiler Specs
+title: Kompilator
 previous: RubySpec
 previous_url: specs/rubyspec
 next: Build System

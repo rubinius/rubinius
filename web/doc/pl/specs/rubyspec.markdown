@@ -1,9 +1,9 @@
 ---
 layout: doc_pl
 title: RubySpec
-previous: Specs
+previous: Specyfikacja
 previous_url: specs
-next: Compiler Specs
+next: Kompilator
 next_url: specs/compiler
 review: true
 ---

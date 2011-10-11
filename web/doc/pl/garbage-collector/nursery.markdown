@@ -1,9 +1,9 @@
 ---
 layout: doc_pl
-title: Nursery
+title: Żłobek
 previous: Garbage Collector
 previous_url: garbage-collector
-next: Young Generation
+next: Młoda generacja
 next_url: garbage-collector/young-generation
 review: true
 ---

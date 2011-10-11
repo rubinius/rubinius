@@ -1,15 +1,15 @@
 ---
 layout: doc_pl
-title: Rubinius Systems
-previous: Garbage Collector - Large Objects
+title: Systemy Rubiniusa
+previous: Garbage Collector - Duże obiekty
 previous_url: garbage-collector/large-objects
 next: Primitives
 next_url: systems/primitives
 review: true
 ---
 
-1. [Primitives](/doc/en/systems/primitives/)
-1. [FFI](/doc/en/systems/ffi/)
-1. [Concurrency](/doc/en/systems/concurrency/)
-1. [IO](/doc/en/systems/io/)
-1. [C-API](/doc/en/systems/c-api/)
+1. [Primitives](/doc/pl/systems/primitives/)
+1. [FFI](/doc/pl/systems/ffi/)
+1. [Współbieżność](/doc/pl/systems/concurrency/)
+1. [IO](/doc/pl/systems/io/)
+1. [C-API](/doc/pl/systems/c-api/)
