@@ -14,4 +14,8 @@ class Module
 
     return false
   end
+
+  def name
+    @module_name ? @module_name.to_s : nil
+  end
 end
