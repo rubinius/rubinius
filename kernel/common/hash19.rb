@@ -37,7 +37,7 @@ class Hash
   end
 
   # Bucket stores key, value pairs in Hash. The key's hash
-  # is also cached in the entry and recalculated when the
+  # is also cached in the item and recalculated when the
   # Hash#rehash method is called.
 
   class Bucket
@@ -97,9 +97,9 @@ class Hash
     end
 
     # Returns the next object or +nil+.
-    def next(entry)
-      if entry
-        return entry if entry = entry.next
+    def next(item)
+      if item
+        return item if item = item.next
       else
         return @state.head
       end
@@ -193,15 +193,15 @@ class Hash
     return false unless other.size == size
 
     Thread.detect_recursion self, other do
-      each_entry do |entry|
-        other_entry = other.find_entry(entry.key)
+      each_item do |item|
+        other_item = other.find_item(item.key)
 
         # Other doesn't even have this key
-        return false unless other_entry
+        return false unless other_item
 
         # Order of the comparison matters! We must compare our value with
         # the other Hash's value and not the other way around.
-        return false unless entry.value == other_entry.value
+        return false unless item.value == other_item.value
       end
     end
     true
@@ -218,15 +218,15 @@ class Hash
     return false unless other.size == size
 
     Thread.detect_recursion self, other do
-      each_entry do |entry|
-        other_entry = other.find_entry(entry.key)
+      each_item do |item|
+        other_item = other.find_item(item.key)
 
         # Other doesn't even have this key
-        return false unless other_entry
+        return false unless other_item
 
         # Order of the comparison matters! We must compare our value with
         # the other Hash's value and not the other way around.
-        return false unless entry.value.eql?(other_entry.value)
+        return false unless item.value.eql?(other_item.value)
       end
     end
     true
@@ -235,9 +235,9 @@ class Hash
   def hash
     val = size
     Thread.detect_outermost_recursion self do
-      each_entry do |entry|
-        val ^= entry.key.hash
-        val ^= entry.value.hash
+      each_item do |item|
+        val ^= item.key.hash
+        val ^= item.value.hash
       end
     end
 
@@ -245,8 +245,8 @@ class Hash
   end
 
   def [](key)
-    if entry = find_entry(key)
-      entry.value
+    if item = find_item(key)
+      item.value
     else
       default key
     end
@@ -260,25 +260,25 @@ class Hash
     key_hash = key.hash
     index = key_hash & @mask
 
-    entry = @entries[index]
-    unless entry
+    item = @entries[index]
+    unless item
       @entries[index] = new_bucket key, key_hash, value
       return value
     end
 
-    if @state.match? entry.key, entry.key_hash, key, key_hash
-      return entry.value = value
+    if @state.match? item.key, item.key_hash, key, key_hash
+      return item.value = value
     end
 
-    last = entry
-    entry = entry.link
-    while entry
-      if @state.match? entry.key, entry.key_hash, key, key_hash
-        return entry.value = value
+    last = item
+    item = item.link
+    while item
+      if @state.match? item.key, item.key_hash, key, key_hash
+        return item.value = value
       end
 
-      last = entry
-      entry = entry.link
+      last = item
+      item = item.link
     end
     last.link = new_bucket key, key_hash, value
 
@@ -291,7 +291,7 @@ class Hash
   alias_method :__store__, :[]=
 
   def assoc(key)
-    each_entry { |e| return e.key, e.value if key == e.key }
+    each_item { |e| return e.key, e.value if key == e.key }
     nil
   end
 
@@ -350,21 +350,21 @@ class Hash
     key_hash = key.hash
 
     index = key_index key_hash
-    if entry = @entries[index]
-      if entry.delete key, key_hash
-        @entries[index] = entry.link
+    if item = @entries[index]
+      if item.delete key, key_hash
+        @entries[index] = item.link
         @size -= 1
-        return entry.value
+        return item.value
       end
 
-      last = entry
-      while entry = entry.link
-        if entry.delete key, key_hash
-          last.link = entry.link
+      last = item
+      while item = item.link
+        if item.delete key, key_hash
+          last.link = item.link
           @size -= 1
-          return entry.value
+          return item.value
         end
-        last = entry
+        last = item
       end
     end
 
@@ -376,17 +376,17 @@ class Hash
 
     return to_enum(:delete_if) unless block_given?
 
-    each_entry { |e| delete e.key if yield(e.key, e.value) }
+    each_item { |e| delete e.key if yield(e.key, e.value) }
     self
   end
 
-  def each_entry
+  def each_item
     return unless @state
 
-    entry = @state.head
-    while entry
-      yield entry
-      entry = entry.next
+    item = @state.head
+    while item
+      yield item
+      item = item.next
     end
   end
 
@@ -395,10 +395,10 @@ class Hash
 
     return unless @state
 
-    entry = @state.head
-    while entry
-      yield [entry.key, entry.value]
-      entry = entry.next
+    item = @state.head
+    while item
+      yield [item.key, item.value]
+      item = item.next
     end
 
     self
@@ -409,15 +409,15 @@ class Hash
   def each_key
     return to_enum(:each_key) unless block_given?
 
-    each_entry { |e| yield e.key }
+    each_item { |e| yield e.key }
     self
   end
 
   def each_value
     return to_enum(:each_value) unless block_given?
 
-    each_entry do |entry|
-      yield entry.value
+    each_item do |item|
+      yield item.value
     end
     self
   end
@@ -428,8 +428,8 @@ class Hash
   end
 
   def fetch(key, default=undefined)
-    if entry = find_entry(key)
-      return entry.value
+    if item = find_item(key)
+      return item.value
     end
 
     return yield(key) if block_given?
@@ -437,17 +437,17 @@ class Hash
     raise IndexError, 'key not found'
   end
 
-  # Searches for an entry matching +key+. Returns the entry
+  # Searches for an item matching +key+. Returns the item
   # if found. Otherwise returns +nil+.
-  def find_entry(key)
+  def find_item(key)
     key_hash = key.hash
 
-    entry = @entries[key_index(key_hash)]
-    while entry
-      if @state.match? entry.key, entry.key_hash, key, key_hash
-        return entry
+    item = @entries[key_index(key_hash)]
+    while item
+      if @state.match? item.key, item.key_hash, key, key_hash
+        return item
       end
-      entry = entry.link
+      item = item.link
     end
   end
 
@@ -456,8 +456,8 @@ class Hash
   end
 
   def key(value)
-    each_entry do |entry|
-      return entry.key if entry.value == value
+    each_item do |item|
+      return item.key if item.value == value
     end
     nil
   end
@@ -469,7 +469,7 @@ class Hash
 
     return to_enum(:keep_if) unless block_given?
 
-    each_entry { |e| delete e.key unless yield(e.key, e.value) }
+    each_item { |e| delete e.key unless yield(e.key, e.value) }
 
     self
   end
@@ -501,10 +501,10 @@ class Hash
   def inspect
     out = []
     return '{...}' if Thread.detect_recursion self do
-      each_entry do |entry|
-        str =  entry.key.inspect
+      each_item do |item|
+        str =  item.key.inspect
         str << '=>'
-        str << entry.value.inspect
+        str << item.value.inspect
         out << str
       end
     end
@@ -515,14 +515,14 @@ class Hash
 
   def invert
     inverted = {}
-    each_entry do |entry|
-      inverted[entry.value] = entry.key
+    each_item do |item|
+      inverted[item.value] = item.key
     end
     inverted
   end
 
   def key?(key)
-    find_entry(key) != nil
+    find_item(key) != nil
   end
 
   alias_method :has_key?, :key?
@@ -537,8 +537,8 @@ class Hash
 
   def keys
     ary = []
-    each_entry do |entry|
-      ary << entry.key
+    each_item do |item|
+      ary << item.key
     end
     ary
   end
@@ -553,17 +553,17 @@ class Hash
     other = Rubinius::Type.coerce_to other, Hash, :to_hash
 
     if block_given?
-      other.each_entry do |entry|
-        key = entry.key
+      other.each_item do |item|
+        key = item.key
         if key? key
-          __store__ key, yield(key, self[key], entry.value)
+          __store__ key, yield(key, self[key], item.value)
         else
-          __store__ key, entry.value
+          __store__ key, item.value
         end
       end
     else
-      other.each_entry do |entry|
-        __store__ entry.key, entry.value
+      other.each_item do |item|
+        __store__ item.key, item.value
       end
     end
     self
@@ -606,8 +606,8 @@ class Hash
         old.link = nil if nxt = old.link
 
         index = key_index old.key_hash
-        if entry = @entries[index]
-          old.link = entry
+        if item = @entries[index]
+          old.link = item
         end
         @entries[index] = old
 
@@ -617,7 +617,7 @@ class Hash
   end
 
   def rassoc(value)
-    each_entry { |e| return e.key, e.value if value == e.value }
+    each_item { |e| return e.key, e.value if value == e.value }
     nil
   end
 
@@ -637,8 +637,8 @@ class Hash
         old.link = nil if nxt = old.link
 
         index = key_index(old.key_hash = old.key.hash)
-        if entry = @entries[index]
-          old.link = entry
+        if item = @entries[index]
+          old.link = item
         end
         @entries[index] = old
 
@@ -688,8 +688,8 @@ class Hash
     @state = State.new
     @state.compare_by_identity if other.compare_by_identity?
 
-    other.each_entry do |entry|
-      __store__ entry.key, entry.value
+    other.each_item do |item|
+      __store__ item.key, item.value
     end
 
     @default = other.default
@@ -703,9 +703,9 @@ class Hash
 
     selected = Hash.allocate
 
-    each_entry do |entry|
-      if yield(entry.key, entry.value)
-        selected[entry.key] = entry.value
+    each_item do |item|
+      if yield(item.key, item.value)
+        selected[item.key] = item.value
       end
     end
 
@@ -720,7 +720,7 @@ class Hash
     return nil if empty?
 
     size = @size
-    each_entry { |e| delete e.key unless yield(e.key, e.value) }
+    each_item { |e| delete e.key unless yield(e.key, e.value) }
     return nil if size == @size
 
     self
@@ -731,10 +731,10 @@ class Hash
 
     return default(nil) if empty?
 
-    entry = @state.head
-    delete entry.key
+    item = @state.head
+    delete item.key
 
-    return entry.key, entry.value
+    return item.key, item.value
   end
 
   # Sets the underlying data structures.
@@ -742,7 +742,7 @@ class Hash
   # @capacity is the maximum number of +@entries+.
   # @max_entries is the maximum number of entries before redistributing.
   # @size is the number of pairs, equivalent to <code>hsh.size</code>.
-  # @entrien is the vector of storage for the entry chains.
+  # @entrien is the vector of storage for the item chains.
   def __setup__(capacity=MIN_SIZE, max=MAX_ENTRIES, size=0)
     @capacity = capacity
     @mask     = capacity - 1
@@ -760,8 +760,8 @@ class Hash
   def to_a
     ary = []
 
-    each_entry do |entry|
-      ary << [entry.key, entry.value]
+    each_item do |item|
+      ary << [item.key, item.value]
     end
 
     ary
@@ -777,8 +777,8 @@ class Hash
   end
 
   def value?(value)
-    each_entry do |entry|
-      return true if value == entry.value
+    each_item do |item|
+      return true if value == item.value
     end
     false
   end
@@ -788,8 +788,8 @@ class Hash
   def values
     ary = []
 
-    each_entry do |entry|
-      ary << entry.value
+    each_item do |item|
+      ary << item.value
     end
 
     ary
@@ -797,8 +797,8 @@ class Hash
 
   def values_at(*args)
     args.map do |key|
-      if entry = find_entry(key)
-        entry.value
+      if item = find_item(key)
+        item.value
       else
         default key
       end

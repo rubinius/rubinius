@@ -61,23 +61,6 @@ module Rubinius
       raise PrimitiveFailure, "MethodTable#delete primitive failed"
     end
 
-    def each_entry
-      raise LocalJumpError, "no block given" unless block_given?
-
-      i = 0
-      while i < @bins
-        if entry = @values.at(i)
-          while entry
-            yield entry
-            entry = entry.next
-          end
-        end
-        i += 1
-      end
-      self
-    end
-
-
     def each
       raise LocalJumpError, "no block given" unless block_given?
 
