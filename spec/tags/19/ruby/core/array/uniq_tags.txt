@@ -1,2 +1,0 @@
-fails:Array#uniq compares elements based on the value returned from the block
-fails:Array#uniq! compares elements based on the value returned from the block

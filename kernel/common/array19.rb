@@ -156,14 +156,18 @@ class Array
 
   alias_method :to_s, :inspect
 
-  def uniq
-    dup.uniq! or dup
+  def uniq(&block)
+    dup.uniq!(&block) or dup
   end
 
-  def uniq!
+  def uniq!(&block)
     Rubinius.check_frozen
 
-    im = Rubinius::IdentityMap.from self
+    if block_given?
+      im = Rubinius::IdentityMap.from(self, &block)
+    else
+      im = Rubinius::IdentityMap.from(self)
+    end
     return if im.size == size
 
     array = im.to_array
