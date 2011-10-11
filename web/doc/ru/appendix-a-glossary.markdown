@@ -1,8 +1,8 @@
 ---
 layout: doc_ru
 title: Приложение A - Глоссарий
-previous: How-To - Перевод документации
-previous_url: how-to/translate-documentation
+previous: How-To - Коммиты в Github
+previous_url: how-to/commit-to-github
 next: Приложение B - Список литературы
 next_url: appendix-b-reading-list
 review: true

@@ -3,8 +3,8 @@ layout: doc_ru
 title: Перевод документации
 previous: Написание Документации
 previous_url: how-to/write-documentation
-next: Приложение A - Глоссарий
-next_url: appendix-a-glossary
+next: Коммиты в Github
+next_url: how-to/commit-to-github
 ---
 
 У переводчика две задачи:
