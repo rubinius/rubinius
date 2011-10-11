@@ -15,6 +15,24 @@ class Array
     out
   end
 
+  # Flattens self in place as #flatten. If no changes are
+  # made, returns nil, otherwise self.
+  # The optional level argument determines the level of recursion to flatten
+  def flatten!(level=-1)
+    Rubinius.check_frozen
+
+    level = Rubinius::Type.coerce_to(level, Integer, :to_int)
+    return nil if level == 0
+
+    out = new_reserved size
+    if recursively_flatten(self, out, level)
+      replace(out)
+      return self
+    end
+
+    nil
+  end
+
   def keep_if(&block)
     Rubinius.check_frozen
 
