@@ -56,4 +56,10 @@ class Symbol
   def upcase
     to_s.upcase.to_sym
   end
+
+  def succ
+    to_s.succ.to_sym
+  end
+
+  alias_method :next, :succ
 end
