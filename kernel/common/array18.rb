@@ -4,6 +4,18 @@ class Array
     at Kernel.rand(size)
   end
 
+  # Appends the elements in the other Array to self
+  def concat(other)
+    Rubinius.primitive :array_concat
+
+    other = Rubinius::Type.coerce_to(other, Array, :to_ary)
+    return self if other.empty?
+
+    Rubinius.check_frozen
+
+    concat other
+  end
+
   # Recursively flatten any contained Arrays into an one-dimensional result.
   # The optional level argument determines the level of recursion to flatten
   def flatten(level=-1)

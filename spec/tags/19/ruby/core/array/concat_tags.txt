@@ -1,1 +1,0 @@
-fails:Array#concat raises a RuntimeError when Array is frozen and no modification occurs

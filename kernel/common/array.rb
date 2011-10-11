@@ -604,18 +604,6 @@ class Array
     end
   end
 
-  # Appends the elements in the other Array to self
-  def concat(other)
-    Rubinius.primitive :array_concat
-
-    other = Rubinius::Type.coerce_to(other, Array, :to_ary)
-    return self if other.empty?
-
-    Rubinius.check_frozen
-
-    concat other
-  end
-
   # Calls block for each element repeatedly n times or forever if none
   # or nil is given. If a non-positive number is given or the array is empty,
   # does nothing. Returns nil if the loop has finished without getting interrupted.

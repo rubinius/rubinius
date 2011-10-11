@@ -6,6 +6,18 @@ class Array
     Rubinius::Type.try_convert obj, Array, :to_ary
   end
 
+  # Appends the elements in the other Array to self
+  def concat(other)
+    Rubinius.primitive :array_concat
+
+    other = Rubinius::Type.coerce_to(other, Array, :to_ary)
+    Rubinius.check_frozen
+
+    return self if other.empty?
+
+    concat other
+  end
+
   def flatten(level=-1)
     level = Rubinius::Type.coerce_to(level, Integer, :to_int)
     return self.dup if level == 0
