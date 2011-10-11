@@ -26,13 +26,8 @@ Then, follow these steps to fix a failing spec:
   9.  Run `git status, git add, git commit`, etc. Any changes made to the spec
       files under the spec/ruby directory must be in a different commit from
       changes made to other Rubinius source code files.
-  10. Run `git format-patch origin`, which will extract commits that the current
-      branch accumulated since the last pull from origin, or `git format-patch
-      -N', where N is the number (1, 2, etc.) of commits for which you want to
-      generate patches.
-  11. Create a gist with your patch and link to it in a ticket on the issue
-      tracker at http://github.com/rubinius/rubinius/issues. You can add multiple
-      patches to one ticket.
+  10. Upload your new branch to Github and issue a Pull Request. More commits and discussion
+      could be worked out on the Pull Request interface.
 
 When your patch is accepted by the Rubinius project, you'll get a commit bit
 for the Rubinius repository. Let Evan know what your Github username is.
