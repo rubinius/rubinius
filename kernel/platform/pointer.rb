@@ -22,6 +22,8 @@ module FFI
   # invalid address will cause bus errors and segmentation faults.
   #
   class Pointer
+    include PointerAccessors
+
     def initialize(a1, a2=undefined)
       if a2.equal? undefined
         self.address = a1
@@ -75,87 +77,6 @@ module FFI
       return address == other.address
     end
 
-    # Below here are methods for reading and writing memory pointed to
-    #
-    # Write +obj+ as a C short at the memory pointed to.
-    def write_short(obj)
-      Rubinius.primitive :pointer_write_short
-      raise PrimitiveFailure, "Unable to write short"
-    end
-
-    # Read a C short from the memory pointed to.
-    def read_short
-      Rubinius.primitive :pointer_read_short
-      raise PrimitiveFailure, "Unable to read short"
-    end
-
-    # Write +obj+ as a C int at the memory pointed to.
-    def write_int(obj)
-      Rubinius.primitive :pointer_write_int
-      raise PrimitiveFailure, "Unable to write integer"
-    end
-
-    # Read a C int from the memory pointed to.
-    def read_int(sign=true)
-      read_int_signed(sign)
-    end
-
-    # Read a C int from the memory pointed to.
-    def read_int_signed(sign)
-      Rubinius.primitive :pointer_read_int
-      raise PrimitiveFailure, "Unable to read integer"
-    end
-
-    # FFI compat methods
-
-    def put_int32(offset, val)
-      (self + offset).write_int(val)
-    end
-
-    alias_method :put_uint32, :put_int32
-    alias_method :put_int,    :put_int32
-    alias_method :put_uint,   :put_int32
-
-    def get_int32(offset)
-      (self + offset).read_int_signed(true)
-    end
-
-    alias_method :get_int, :get_int32
-
-    def get_uint32(offset)
-      (self + offset).read_int_signed(false)
-    end
-
-    alias_method :get_uint, :get_int32
-
-    # Write +obj+ as a C long at the memory pointed to.
-    def write_long(obj)
-      Rubinius.primitive :pointer_write_long
-      raise PrimitiveFailure, "Unable to write long"
-    end
-
-    # Read a C long from the memory pointed to.
-    def read_long
-      Rubinius.primitive :pointer_read_long
-      raise PrimitiveFailure, "Unable to read long"
-    end
-
-    # Write +obj+ as a C long long at the memory pointed to.
-    def write_long_long(obj)
-      Rubinius.primitive :pointer_write_long_long
-      raise PrimitiveFailure, "Unable to write long long"
-    end
-
-    alias_method :write_int64, :write_long_long
-
-    # Read a C long from the memory pointed to.
-    def read_long_long
-      Rubinius.primitive :pointer_read_long_long
-      raise PrimitiveFailure, "Unable to read long long"
-    end
-
-    alias_method :read_int64, :read_long_long
-
     def network_order(start, size)
       Rubinius.primitive :pointer_network_order
       raise PrimitiveFailure, "Unable to convert to network order"
@@ -203,65 +124,20 @@ module FFI
       write_string_length(str, len);
     end
 
-    # Read bytes from the memory pointed to and return them as a Pointer
-    def read_pointer
-      Rubinius.primitive :pointer_read_pointer
-      raise PrimitiveFailure, "Unable to read pointer"
-    end
-
-    # Write +obj+ as a C float
-    def write_float(obj)
-      Rubinius.primitive :pointer_write_float
-      raise PrimitiveFailure, "Unable to write float"
-    end
-
-    # Read bytes as a C float
-    def read_float
-      Rubinius.primitive :pointer_read_float
-      raise PrimitiveFailure, "Unable to read float"
-    end
-
-    # Write +obj+ as a C double
-    def write_double(obj)
-      Rubinius.primitive :pointer_write_double
-      raise PrimitiveFailure, "Unable to write double"
-    end
-
-    # Read bytes as a C double
-    def read_double
-      Rubinius.primitive :pointer_read_double
-      raise PrimitiveFailure, "Unable to read double"
-    end
-
-    # Read memory as an array of C ints of length +length+, returned
-    # as an Array of Integers
-    def read_array_of_int(length)
-      read_array_of_type(:int, :read_int, length)
-    end
-
-    # Write ary to the memory pointed to as a sequence of ints
-    def write_array_of_int(ary)
-      write_array_of_type(:int, :write_int, ary)
-    end
-
-    # Read memory as an array of C longs of length +length+, returned
-    # as an Array of Integers
-    def read_array_of_long(length)
-      read_array_of_type(:long, :read_long, length)
-    end
-
-    # Write ary to the memory pointed to as a sequence of longs
-    def write_array_of_long(ary)
-      write_array_of_type(:long, :write_long, ary)
-    end
-
     # Read a sequence of types +type+, length +length+, using method +reader+
-    def read_array_of_type(type, reader, length)
+    def read_array_of_type(type, reader, length, signed=nil)
+      # If signed is not nil and is actually a boolean,
+      # then use that as an argument to the reader, which
+      # is then assumed to support signed reading.
+      args = []
+      args = [signed] if !signed.nil?
+
+      # Build up the array
       ary = []
       size = FFI.type_size(FFI.find_type type)
       tmp = self
       length.times {
-        ary << tmp.send(reader)
+        ary << tmp.send(reader, *args)
         tmp += size
       }
       ary
@@ -293,6 +169,82 @@ module FFI
     # Number of bytes taken up by a pointer.
     def self.size
       Rubinius::WORDSIZE / 8
+    end
+
+    # Primitive methods
+    def primitive_read_char(signed=true)
+      Rubinius.primitive :pointer_read_char
+      raise PrimitiveFailure, "Unable to read char"
+    end
+
+    def primitive_write_char(obj)
+      Rubinius.primitive :pointer_write_char
+      raise PrimitiveFailure, "Unable to write char"
+    end
+
+    def primitive_read_short(signed=true)
+      Rubinius.primitive :pointer_read_short
+      raise PrimitiveFailure, "Unable to read short"
+    end
+
+    def primitive_write_short(obj)
+      Rubinius.primitive :pointer_write_short
+      raise PrimitiveFailure, "Unable to write short"
+    end
+
+    def primitive_read_int(signed=true)
+      Rubinius.primitive :pointer_read_int
+      raise PrimitiveFailure, "Unable to read int"
+    end
+
+    def primitive_write_int(obj)
+      Rubinius.primitive :pointer_write_int
+      raise PrimitiveFailure, "Unable to write int"
+    end
+
+    def primitive_read_long(signed=true)
+      Rubinius.primitive :pointer_read_long
+      raise PrimitiveFailure, "Unable to read long"
+    end
+
+    def primitive_write_long(obj)
+      Rubinius.primitive :pointer_write_long
+      raise PrimitiveFailure, "Unable to write long"
+    end
+
+    def primitive_read_long_long(signed=true)
+      Rubinius.primitive :pointer_read_long_long
+      raise PrimitiveFailure, "Unable to read long"
+    end
+
+    def primitive_write_long_long(obj)
+      Rubinius.primitive :pointer_write_long_long
+      raise PrimitiveFailure, "Unable to write long_long"
+    end
+
+    def primitive_read_float
+      Rubinius.primitive :pointer_read_float
+      raise PrimitiveFailure, "Unable to read float"
+    end
+
+    def primitive_write_float(obj)
+      Rubinius.primitive :pointer_write_float
+      raise PrimitiveFailure, "Unable to write float"
+    end
+
+    def primitive_read_double
+      Rubinius.primitive :pointer_read_double
+      raise PrimitiveFailure, "Unable to read double"
+    end
+
+    def primitive_write_double(obj)
+      Rubinius.primitive :pointer_write_double
+      raise PrimitiveFailure, "Unable to write double"
+    end
+
+    def primitive_read_pointer
+      Rubinius.primitive :pointer_read_pointer
+      raise PrimitiveFailure, "Unable to read pointer"
     end
   end
 
