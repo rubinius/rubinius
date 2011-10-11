@@ -131,7 +131,7 @@ class String
   def to_r
     return Rational(0,1) if empty?
     
-    clean       = self.strip
+    clean       = strip
     numerator   = clean.gsub(".","").to_i
     denominator = 1
     
