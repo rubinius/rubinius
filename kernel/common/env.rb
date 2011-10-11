@@ -159,6 +159,10 @@ module Rubinius
     def invert
       to_hash.invert
     end
+    
+    def key(value)
+      index(value)
+    end
 
     def keys
       keys = []
@@ -193,6 +197,12 @@ module Rubinius
       clear
       other.each { |k, v| self[k] = v }
     end
+    
+    def select(&blk)
+      return to_enum unless block_given?
+      to_hash.select(&blk)
+    end
+
 
     def shift
       env = environ()
