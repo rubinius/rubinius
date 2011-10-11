@@ -9,6 +9,7 @@
 #include "builtin/channel.hpp"
 #include "builtin/nativemethod.hpp"
 #include "builtin/fiber.hpp"
+#include "builtin/location.hpp"
 
 #include "objectmemory.hpp"
 #include "arguments.hpp"
@@ -335,6 +336,18 @@ namespace rubinius {
     VariableScope* scope = cf->promote_scope(state);
 
     return Tuple::from(state, 3, Fixnum::from(cf->ip()), cf->cm, scope);
+  }
+
+  Array* Thread::mri_backtrace(STATE, GCToken gct, CallFrame* calling_environment) {
+    thread::SpinLock::LockGuard lg(init_lock_);
+
+    VM* vm = vm_;
+    if(!vm) return nil<Array>();
+    StopTheWorld stop(state, gct, calling_environment);
+
+    CallFrame* cf = vm->saved_call_frame();
+
+    return Location::mri_backtrace(state, cf);
   }
 
   void Thread::cleanup() {

@@ -176,6 +176,9 @@ namespace rubinius {
     // Rubinius.primitive :thread_context
     Tuple* context(STATE);
 
+    // Rubinius.primitive :thread_mri_backtrace
+    Array* mri_backtrace(STATE, GCToken gct, CallFrame* calling_environment);
+
     // Rubinius.primitive :thread_join
     Object* join(STATE, GCToken gct, CallFrame* calling_environment);
 
