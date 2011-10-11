@@ -115,6 +115,16 @@ class Array
     raise ArgumentError, "invalid directives string: #{directives}"
   end
 
+  # Appends the given object(s) to the Array and returns
+  # the modified self.
+  def push(*args)
+    Rubinius.check_frozen
+
+    return self if args.empty?
+
+    concat args
+  end
+
   def rotate(n=1)
     return self.dup if length == 1
     return []       if empty?
