@@ -256,6 +256,7 @@ namespace rubinius {
 
     VM* vm = vm_;
     if(!vm) return nil<Array>();
+    StopTheWorld stop(vm);
 
     CallFrame* cf = vm->saved_call_frame()->top_ruby_frame();
 
