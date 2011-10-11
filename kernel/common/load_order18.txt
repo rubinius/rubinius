@@ -8,6 +8,7 @@ enumerable.rbc
 enumerable18.rbc
 enumerator.rbc
 argf.rbc
+argf18.rbc
 tuple.rbc
 exception.rbc
 undefined.rbc

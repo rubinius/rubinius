@@ -370,26 +370,6 @@ module Rubinius
     end
 
     #
-    # Read all lines from stream.
-    #
-    # Reads all lines into an Array using #gets and
-    # returns the Array.
-    #
-    # @see  #gets
-    #
-    def readlines(sep=$/)
-      return nil unless advance!
-
-      lines = []
-      while line = gets(sep)
-        lines << line
-      end
-
-      lines
-    end
-    alias_method :to_a, :readlines
-
-    #
     # Read next line of text.
     #
     # As #gets, but an EOFError is raised if the stream

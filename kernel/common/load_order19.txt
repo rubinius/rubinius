@@ -10,6 +10,7 @@ enumerable.rbc
 enumerator.rbc
 enumerator19.rbc
 argf.rbc
+argf19.rbc
 tuple.rbc
 exception.rbc
 undefined.rbc
