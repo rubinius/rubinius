@@ -14,7 +14,7 @@ with_feature :hash_hamt do
 
     it "returns the entry if it is found" do
       entry = @table.lookup(:a, :a.hash)
-      entry.should be_an_instance_of(Hash::Entry)
+      entry.should be_an_instance_of(Hash::Item)
       entry.value.should == 1
     end
   end

@@ -578,6 +578,18 @@ class Hash
     raise IndexError, 'key not found'
   end
 
+  # Searches for an item matching +key+. Returns the item
+  # if found. Otherwise returns +nil+. Called from the C-API.
+  def find_item(key)
+    unless empty?
+      if item = @table.lookup(key, key.hash)
+        return item
+      end
+    end
+
+    nil
+  end
+
   def flatten(level=1)
     to_a.flatten(level)
   end
@@ -836,5 +848,8 @@ class Hash
       end
     end
   end
+
+  # Used internally in Rubinius to get around subclasses redefining #[]=
+  alias_method :__store__, :[]=
 end
 end

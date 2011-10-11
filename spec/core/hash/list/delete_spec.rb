@@ -5,7 +5,7 @@ with_feature :hash_hamt do
     before :each do
       @state = Hash::State.new
       @list = Hash::List.new @state, :a.hash
-      @entry = Hash::Entry.new :a, 1, @state
+      @entry = Hash::Item.new :a, 1, @state
       @list.add @entry, :b, :b.hash, 2
     end
 

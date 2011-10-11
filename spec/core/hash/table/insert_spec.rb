@@ -7,12 +7,12 @@ with_feature :hash_hamt do
       @table = Hash::Table.new @state
     end
 
-    it "inserts an Entry if there is no entry at the index" do
+    it "inserts an Item if there is no entry at the index" do
       @table.insert(:a, 0, 1)
-      @table.entries[0].should be_an_instance_of(Hash::Entry)
+      @table.entries[0].should be_an_instance_of(Hash::Item)
     end
 
-    it "inserts a Trie if there is an Entry at the index" do
+    it "inserts a Trie if there is an Item at the index" do
       k1 = mock("Hash key1")
       k1_hash = 0b01000000
       k1.should_receive(:hash).and_return(k1_hash)

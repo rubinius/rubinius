@@ -1,10 +1,10 @@
 require File.expand_path('../../../../spec_helper', __FILE__)
 
 with_feature :hash_hamt do
-  describe "Hash::Entry#lookup" do
+  describe "Hash::Item#lookup" do
     before :each do
       @state = Hash::State.new
-      @entry = Hash::Entry.new 1, 2, @state
+      @entry = Hash::Item.new 1, 2, @state
     end
 
     it "returns itself if the keys match" do

@@ -8,11 +8,11 @@ with_feature :hash_hamt do
       @trie.entries = Rubinius::Tuple[nil]
     end
 
-    it "inserts an Entry if there is no entry at the index" do
+    it "inserts an Item if there is no entry at the index" do
       @trie.insert(:a, 0, 1)
       entry = @trie.entries[0]
 
-      entry.should be_an_instance_of(Hash::Entry)
+      entry.should be_an_instance_of(Hash::Item)
       entry.key.should equal(:a)
     end
 
