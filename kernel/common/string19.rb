@@ -132,7 +132,7 @@ class String
     return Rational(0,1) if empty?
     
     clean       = strip
-    numerator   = clean.gsub(".","").to_i
+    numerator   = clean.gsub(".", "").to_i
     denominator = 1
     
     if clean.match(/\d\.\d/)
