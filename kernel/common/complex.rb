@@ -365,6 +365,12 @@ class Complex < Numeric
     false
   end
   
+  def rect
+    return @real, @image
+  end
+  
+  alias_method :rectangular, :rect
+  
   #
   # Standard string representation of the complex number.
   #
