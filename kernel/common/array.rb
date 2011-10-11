@@ -897,22 +897,6 @@ class Array
     self[0,n]
   end
 
-  # Flattens self in place as #flatten. If no changes are
-  # made, returns nil, otherwise self.
-  # The optional level argument determines the level of recursion to flatten
-  def flatten!(level=-1)
-    level = Rubinius::Type.coerce_to(level, Integer, :to_int)
-    return nil if level == 0
-
-    out = new_reserved size
-    if recursively_flatten(self, out, level)
-      replace(out)
-      return self
-    end
-
-    nil
-  end
-
   # Computes a Fixnum hash code for this Array. Any two
   # Arrays with the same content will have the same hash
   # code (similar to #eql?)
