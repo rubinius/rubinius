@@ -120,6 +120,13 @@ class Proc
       obj = allocate()
       obj.bound_method = meth
 
+      # Methods don't need to take into account its block environment, so we
+      # made one up for instance_exec to work properly with them as if they were
+      # procs.
+      block_environment = Rubinius::BlockEnvironment.new
+      block_environment.under_context(Rubinius::VariableScope.new, meth.executable)
+      obj.block = block_environment
+
       return obj
     end
 
