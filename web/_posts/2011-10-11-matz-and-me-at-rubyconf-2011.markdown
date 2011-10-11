@@ -1,6 +1,6 @@
 ---
 layout: post
-title: Matz and I at RubyConf 2011
+title: Matz and Me at RubyConf 2011
 author: Shane Becker
 ---
 
