@@ -199,10 +199,6 @@ class UnboundMethod
   attr_reader :executable
   attr_reader :defined_in
 
-  def name
-    @name.to_s
-  end
-
   ##
   # UnboundMethod objects are equal if and only if they refer to the same
   # method. One may be an alias for the other or both for a common one. Both
