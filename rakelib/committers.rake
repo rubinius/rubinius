@@ -1,6 +1,6 @@
 # shell command for quarterly list of committers
 def quarterly_committers(start_month, year=Time.now.year)
-  "git log --since='#{start_month}/1/#{year}' --until='#{start_month + 2}/31/#{year}' | git shortlog -n -s"
+  "git log --since='#{start_month}/1/#{year}' --until='#{start_month + 2}/31/#{year}' | git shortlog -n -s -e"
 end
 
 def future?(start_month, year=Time.now.year)
