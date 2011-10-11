@@ -86,7 +86,7 @@ public:
     long one = 1;
     void *addr = &one;
     Pointer* ptr = Pointer::create(state, addr);
-    TS_ASSERT(Integer::from(state, 1)->equal(state, ptr->read_long(state)));
+    TS_ASSERT(Integer::from(state, 1)->equal(state, ptr->read_long(state, Qtrue)));
   }
 
   void test_write_long() {
@@ -94,7 +94,7 @@ public:
     void *addr = &one;
     Pointer* ptr = Pointer::create(state, addr);
     ptr->write_long(state, Integer::from(state, 0xfffffffa));
-    TS_ASSERT(Integer::from(state, 0xfffffffa)->equal(state, ptr->read_long(state)));
+    TS_ASSERT(Integer::from(state, 0xfffffffa)->equal(state, ptr->read_long(state, Qtrue)));
   }
 
   void test_read_float() {
