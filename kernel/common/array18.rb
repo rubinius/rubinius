@@ -283,4 +283,10 @@ class Array
     @total += values.size
     self
   end
+
+  # Returns a copy of self with all nil elements removed
+  def compact
+    out = dup
+    out.compact! || out
+  end
 end
