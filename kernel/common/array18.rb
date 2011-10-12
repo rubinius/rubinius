@@ -183,6 +183,22 @@ class Array
     concat args
   end
 
+  # Replaces contents of self with contents of other,
+  # adjusting size as needed.
+  def replace(other)
+    Rubinius.check_frozen
+
+    other = Rubinius::Type.coerce_to other, Array, :to_ary
+
+    @tuple = other.tuple.dup
+    @total = other.total
+    @start = other.start
+    self
+  end
+
+  alias_method :initialize_copy, :replace
+  private :initialize_copy
+
   # Produces a string by joining all elements without a
   # separator. See #join
   def to_s
