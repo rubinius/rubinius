@@ -1239,6 +1239,8 @@ class String
 
   # Reverses <i>self</i> in place.
   def reverse!
+    Rubinius.check_frozen
+
     return self if @num_bytes <= 1
     self.modify!
 
