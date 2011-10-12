@@ -772,7 +772,7 @@ module Rubinius
         def bytecode
           # A fast, common case.
           wid = @width_static
-          if @f_zero and wid and !@f_space and !@f_plus
+          if @f_zero and wid and !@f_space and !@f_plus and !@prec_static
             @g.push :self
 
             push_value
@@ -926,9 +926,21 @@ module Rubinius
             padding = format_negative_int(radix)
 
             if zero_pad?
-              zero_pad padding
+              # Sorry this code is terrible
+              if @prec_static
+                @prec_static = @prec_static - 2
+                zero_pad(padding)
+                @prec_static = @prec_static + 2
+              elsif @width_static && @format_code != 'u'
+                @width_static = @width_static - 2
+                zero_pad(padding)
+                @width_static = @width_static + 2
+              else
+                zero_pad(padding)
+              end
+            end
 
-            elsif !precision? && !@f_zero
+            if @format_code != 'u' || !@f_zero || precision?
               @g.push_literal ".."
               @g.string_dup
               @g.string_append
@@ -1104,7 +1116,9 @@ module Rubinius
       AtomMap[?b] = AtomMap[?B] = ExtIntegerAtom
       AtomMap[?x] = AtomMap[?X] = ExtIntegerAtom
       AtomMap[?o] = ExtIntegerAtom
-      AtomMap[?u] = ExtIntegerAtomU
+      AtomMap[?u] = IntegerAtom
+      # Following alt. definition required for 1.8
+      # AtomMap[?u] = ExtIntegerAtomU
 
       def parse
         @arg_count = 0
