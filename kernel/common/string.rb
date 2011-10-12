@@ -601,6 +601,13 @@ class String
     end
   end
 
+  # Clears the contents of <i>self</i>, returning the empty string.
+  def clear
+    Rubinius.check_frozen
+    self.delete!(self)
+    self
+  end
+
   # Returns a copy of <i>self</i> with all uppercase letters replaced with their
   # lowercase counterparts. The operation is locale insensitive---only
   # characters ``A'' to ``Z'' are affected.
