@@ -398,11 +398,7 @@ class Rational < Numeric
   #   Rational(8).to_s            #  "8"
   #
   def to_s
-    if @denominator == 1
-      @numerator.to_s
-    else
-      @numerator.to_s+"/"+@denominator.to_s
-    end
+    @numerator.to_s+"/"+@denominator.to_s
   end
 
   #
@@ -418,7 +414,7 @@ class Rational < Numeric
   #   Rational(5,8).inspect     # -> "Rational(5, 8)"
   #
   def inspect
-    sprintf("Rational(%s, %s)", @numerator.inspect, @denominator.inspect)
+    "(#{to_s})"
   end
 
   #
