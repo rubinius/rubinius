@@ -139,46 +139,46 @@
 
   
 
-    <p>The bytecode compiler has a simple AST transform mechanism that recognizes
-certain AST forms and replaces them. The replaced forms emit different
-bytecode than the original form would have emitted. The source for the
-transforms is in lib/compiler/ast/transforms.rb</p>
+    <p>В байткод-компиляторе реализован простой механизм AST-трансформации,
+распознающий и подменяющий определенные AST-конструкции. Измененные
+конструкции порождают байткод иной, чем изначальные. Исходники преобразований
+находятся в <code>lib/compiler/ast/transforms.rb</code>.</p>
 
-<p>TODO: document the compiler plugin architecture.</p>
+<p>TODO: описать plugin-архитектуру компилятора.</p>
 
-<h3 id="safe-math-compiler-transform">Safe Math Compiler Transform</h3>
+<h3 id="section">Безопасная математическая трансформация</h3>
 
-<p>Since the core libraries are built of the same blocks as any other Ruby code
-and since Ruby is a dynamic language with open classes and late binding, it is
-possible to change fundamental classes like Fixnum in ways that violate the
-semantics that other classes depend on. For example, imagine we did the
-following:</p>
+<p>Поскольку базовые (core) библиотеки построены из тех же блоков, что и любой
+другой Ruby-код, а Ruby &mdash; язык динамический, с открытыми классами и
+отложенным связыванием, появляется возможность изменять фундаментальные классы
+вроде <code>Fixnum</code> таким образом, что нарушается семантика, от которой зависят
+другие классы. К примеру, представьте себе такое нововведение:</p>
 
-<p>class Fixnum
-    def +(other)
-      (self + other) % 5
-    end
-  end</p>
+<pre><code>class Fixnum
+  def +(other)
+    (self + other) % 5
+  end
+end
+</code></pre>
 
-<p>While it is certainly possible to redefine fixed point arithmetic plus to be
-modulo 5, doing so will certainly cause some class like Array to be unable to
-calculate the correct length when it needs to. The dynamic nature of Ruby is
-one of its cherished features but it is also truly a double-edged sword in
-some respects.</p>
+<p>Хотя переопределение <em>арифметического_с_фиксированной_точкой_плюса</em> в
+<em>остаток_от_деления_на_пять</em> вполне возможно, это действие обязательно
+заставит некоторый класс вроде <code>Array</code> не смочь в нужный момент вычислить,
+например, корректную длину. Динамическая натура Ruby &mdash; одна из его любимых
+черт, но она же в некотором смысле и палка о двух концах.</p>
 
-<p>In the standard library the &lsquo;mathn&rsquo; library redefines Fixnum#/ in an unsafe
-and incompatible manner. The library aliases Fixnum#/ to Fixnum#quo, which
-returns a Float by default.</p>
+<p>Одна из стандартных библиотек, <code>mathn</code>, переопределяет <code>Fixnum#/</code> в опасной и
+несовместимой манере. Библиотека алиасит <code>Fixnum#/</code> в <code>Fixnum#quo</code>, который по
+умолчанию возвращает <code>Float</code>.</p>
 
-<p>Because of this there is a special compiler plugin that emits a different
-method name when it encounters the #/ method. The compiler emits #divide
-instead of #/. The numeric classes Fixnum, Bignum, Float, and Numeric all
-define this method.</p>
+<p>Из-за этого сделан специальный плагин компилятора, который, встречая <code>#/</code>,
+порождает иное имя метода. Компилятор вместо <code>#/</code> выдает <code>#divide</code>. Численные
+классы <code>Fixnum, Bignum, Float</code> и <code>Numeric</code> все определяют этот метод.</p>
 
-<p>The safe math transform is enabled during the compilation of the Core
-libraries to enable the plugin. During regular &lsquo;user code&rsquo; compilation, the
-plugin is not enabled. This enables us to support mathn without breaking the
-core libraries or forcing inconvenient practices.</p>
+<p>Для запуска плагина безопасная трансформация математики включается в момент
+компиляции Core libraries. Когда компилируется обычный &laquo;юзер-код&raquo;, плагин
+выключен. Это делает возможной поддержку <code>mathn</code> без повреждения базовых
+библиотек и принуждения к использованию прочих нехороших приемов.</p>
 
 
 </div>

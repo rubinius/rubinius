@@ -7,44 +7,43 @@ next: Настройка конвейера
 next_url: bytecode-compiler/customization
 ---
 
-The bytecode compiler has a simple AST transform mechanism that recognizes
-certain AST forms and replaces them. The replaced forms emit different
-bytecode than the original form would have emitted. The source for the
-transforms is in lib/compiler/ast/transforms.rb
+В байткод-компиляторе реализован простой механизм AST-трансформации,
+распознающий и подменяющий определенные AST-конструкции. Измененные
+конструкции порождают байткод иной, чем изначальные. Исходники преобразований
+находятся в `lib/compiler/ast/transforms.rb`.
 
-TODO: document the compiler plugin architecture.
+TODO: описать plugin-архитектуру компилятора.
 
 
-### Safe Math Compiler Transform
+### Безопасная математическая трансформация
 
-Since the core libraries are built of the same blocks as any other Ruby code
-and since Ruby is a dynamic language with open classes and late binding, it is
-possible to change fundamental classes like Fixnum in ways that violate the
-semantics that other classes depend on. For example, imagine we did the
-following:
+Поскольку базовые (core) библиотеки построены из тех же блоков, что и любой
+другой Ruby-код, а Ruby --- язык динамический, с открытыми классами и
+отложенным связыванием, появляется возможность изменять фундаментальные классы
+вроде `Fixnum` таким образом, что нарушается семантика, от которой зависят
+другие классы. К примеру, представьте себе такое нововведение:
 
-  class Fixnum
-    def +(other)
-      (self + other) % 5
+    class Fixnum
+      def +(other)
+        (self + other) % 5
+      end
     end
-  end
 
-While it is certainly possible to redefine fixed point arithmetic plus to be
-modulo 5, doing so will certainly cause some class like Array to be unable to
-calculate the correct length when it needs to. The dynamic nature of Ruby is
-one of its cherished features but it is also truly a double-edged sword in
-some respects.
+Хотя переопределение _арифметического\_с\_фиксированной\_точкой\_плюса_ в
+_остаток\_от\_деления\_на\_пять_ вполне возможно, это действие обязательно
+заставит некоторый класс вроде `Array` не смочь в нужный момент вычислить,
+например, корректную длину. Динамическая натура Ruby --- одна из его любимых
+черт, но она же в некотором смысле и палка о двух концах.
 
-In the standard library the 'mathn' library redefines Fixnum#/ in an unsafe
-and incompatible manner. The library aliases Fixnum#/ to Fixnum#quo, which
-returns a Float by default.
+Одна из стандартных библиотек, `mathn`, переопределяет `Fixnum#/` в опасной и
+несовместимой манере. Библиотека алиасит `Fixnum#/` в `Fixnum#quo`, который по
+умолчанию возвращает `Float`.
 
-Because of this there is a special compiler plugin that emits a different
-method name when it encounters the #/ method. The compiler emits #divide
-instead of #/. The numeric classes Fixnum, Bignum, Float, and Numeric all
-define this method.
+Из-за этого сделан специальный плагин компилятора, который, встречая `#/`,
+порождает иное имя метода. Компилятор вместо `#/` выдает `#divide`. Численные
+классы `Fixnum, Bignum, Float` и `Numeric` все определяют этот метод.
 
-The safe math transform is enabled during the compilation of the Core
-libraries to enable the plugin. During regular 'user code' compilation, the
-plugin is not enabled. This enables us to support mathn without breaking the
-core libraries or forcing inconvenient practices.
+Для запуска плагина безопасная трансформация математики включается в момент
+компиляции Core libraries. Когда компилируется обычный <<юзер-код>>, плагин
+выключен. Это делает возможной поддержку `mathn` без повреждения базовых
+библиотек и принуждения к использованию прочих нехороших приемов.
