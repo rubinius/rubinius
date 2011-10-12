@@ -1,5 +1,0 @@
-fails:IO#gets accepts an integer as first parameter to limit the output's size
-fails:IO#gets accepts an integer as second parameter to limit the output's size
-fails:IO#gets accepts an integer as limit parameter which is smaller than IO size
-fails:IO#gets accepts an integer as limit parameter which is same as IO size
-fails:IO#gets accepts an integer as limit parameter which is greater than IO size

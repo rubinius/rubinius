@@ -1,1 +1,0 @@
-fails:Hash#store raises a RuntimeError if a new key is added during iteration

@@ -1,1 +1,0 @@
-fails:Class#initialize should raise a TypeError (even for BasicObject)

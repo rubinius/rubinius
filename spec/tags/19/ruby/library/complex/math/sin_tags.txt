@@ -1,1 +1,0 @@
-fails:Math#sin should be private

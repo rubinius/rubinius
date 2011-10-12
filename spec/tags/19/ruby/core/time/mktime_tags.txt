@@ -1,4 +1,3 @@
 fails:Time.mktime creates a time based on given values, interpreted in the local time zone
 fails:Time.mktime creates a time based on given C-style gmtime arguments, interpreted in the local time zone
-fails:Time.mktime should accept various year ranges
 unstable(fails on 32-bit linux):Time.mktime accepts various year ranges

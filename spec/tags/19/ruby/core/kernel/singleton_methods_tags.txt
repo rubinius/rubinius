@@ -1,2 +1,0 @@
-fails:Kernel#singleton_methods returns a list of names of singleton methods in object and superclasses when passed true
-fails:Kernel#singleton_methods includes public and protected methods defined through a mixin into the metaclass based on the flag

@@ -1,1 +1,0 @@
-fails:Math#cos should be private

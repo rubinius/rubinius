@@ -30,7 +30,6 @@ fails:Random#rand with Range works with inclusive ranges
 fails:Random#rand with Range works with exclusive ranges
 fails:Random#rand with Range returns the same sequence for a given seed
 fails:Random#rand with Range eventually returns all possible values
-fails:Random#rand with Range allows the startpoint to be an object of a different class to the endpoint
 fails:Random#rand with Range raises an ArgumentError when the startpoint lacks #+ and #- methods
 fails:Random#rand with Range raises an ArgumentError when the endpoint lacks #+ and #- methods
 fails:Random#rand with Range considers Integers as Floats if one end point is a float

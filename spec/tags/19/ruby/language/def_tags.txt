@@ -1,3 +1,1 @@
-fails:Defining an 'initialize' method should make it private
-fails:Defining an 'initialize_copy' method should make it private
 fails:The def keyword within a closure looks outside the closure for the visibility
