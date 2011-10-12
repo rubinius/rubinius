@@ -13,7 +13,7 @@ def future?(start_month, year=Time.now.year)
     true
   elsif year < Time.now.year
     false
-  else Date.parse("#{start_month + 2}/28/#{year}") > Date.today
+  elsif Date.parse("#{start_month + 2}/28/#{year}") > Date.today
     puts
     puts "WARNING: That's the current quarter."
     puts
