@@ -50,6 +50,11 @@ class Bignum < Integer
     redo_coerced :%, other
   end
 
+  def divmod(other)
+    Rubinius.primitive :bignum_divmod
+    redo_coerced :divmod, other
+  end
+
   # bitwise binary operators
 
   def &(o)
