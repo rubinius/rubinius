@@ -1266,22 +1266,6 @@ class Array
     self
   end
 
-  # Replaces contents of self with contents of other,
-  # adjusting size as needed.
-  def replace(other)
-    Rubinius.check_frozen
-
-    other = Rubinius::Type.coerce_to other, Array, :to_ary
-
-    @tuple = other.tuple.dup
-    @total = other.total
-    @start = other.start
-    self
-  end
-
-  alias_method :initialize_copy, :replace
-  private :initialize_copy
-
   # Returns a new Array or subclass populated from self
   # but in reverse order.
   def reverse
