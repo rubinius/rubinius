@@ -62,6 +62,48 @@ class String
   def force_encoding(name)
     self
   end
+  
+  # Deletes the specified portion from <i>self</i>, and returns the portion
+  # deleted. The forms that take a <code>Fixnum</code> will raise an
+  # <code>IndexError</code> if the value is out of range; the <code>Range</code>
+  # form will raise a <code>RangeError</code>, and the <code>Regexp</code> and
+  # <code>String</code> forms will silently ignore the assignment.
+  #
+  #   string = "this is a string"
+  #   string.slice!(2)        #=> 105
+  #   string.slice!(3..6)     #=> " is "
+  #   string.slice!(/s.*t/)   #=> "sa st"
+  #   string.slice!("r")      #=> "r"
+  #   string                  #=> "thing"
+  def slice!(one, two=undefined)
+    Rubinius.check_frozen
+    # This is un-DRY, but it's a simple manual argument splitting. Keeps
+    # the code fast and clean since the sequence are pretty short.
+    #
+    if two.equal?(undefined)
+      result = slice(one)
+
+      if one.kind_of? Regexp
+        lm = Regexp.last_match
+        self[one] = '' if result
+        Regexp.last_match = lm
+      else
+        self[one] = '' if result
+      end
+    else
+      result = slice(one, two)
+
+      if one.kind_of? Regexp
+        lm = Regexp.last_match
+        self[one, two] = '' if result
+        Regexp.last_match = lm
+      else
+        self[one, two] = '' if result
+      end
+    end
+
+    result
+  end
 
   # Equivalent to <code>String#succ</code>, but modifies the receiver in
   # place.
