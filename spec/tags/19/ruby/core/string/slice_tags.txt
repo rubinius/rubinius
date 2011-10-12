@@ -7,9 +7,3 @@ fails:String#slice with Regexp, group raises an IndexError if there is no captur
 fails:String#slice with Regexp, group raises an IndexError when given the empty String as a group name
 fails:String#slice with Regexp, group returns subclass instances
 fails:String#slice with Regexp, group sets $~ to MatchData when there is a match and nil when there's none
-fails:String#slice! with index raises a RuntimeError if self is frozen
-fails:String#slice! with index, length raises a RuntimeError if self is frozen
-fails:String#slice! Range raises a RuntimeError on a frozen instance that would not be modified
-fails:String#slice! with Regexp raises a RuntimeError on a frozen instance that would not be modified
-fails:String#slice! with Regexp, index raises a RuntimeError if self is frozen
-fails:String#slice! with String raises a RuntimeError if self is frozen
