@@ -107,6 +107,6 @@ time19.rbc
 true.rbc
 variable_scope.rbc
 capi.rbc
-complex19.rbc
+complex.rbc
 rational.rbc
 rational19.rbc
