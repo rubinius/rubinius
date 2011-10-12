@@ -3,6 +3,14 @@ class String
 
   alias_method :each, :each_line
 
+  def initialize(arg = undefined)
+    replace StringValue(arg) unless arg.equal?(undefined)
+
+    self
+  end
+
+  private :initialize
+
   def upto(stop, exclusive=false)
     stop = StringValue(stop)
     return self if self > stop
