@@ -112,13 +112,6 @@ class Complex < Numeric
   end
 
   #
-  # Creates a +Complex+ number in terms of +r+ (radius) and +theta+ (angle).
-  #
-  def Complex.polar(r, theta)
-    Complex(r*Math.cos(theta), r*Math.sin(theta))
-  end
-
-  #
   # Creates a +Complex+ number <tt>a</tt>+<tt>b</tt><i>i</i>.
   #
   def Complex.new!(a, b=0)
