@@ -1,0 +1,1 @@
+fails:CGI::QueryExtension#cache_control returns ENV['HTTP_CACHE_CONTROL']

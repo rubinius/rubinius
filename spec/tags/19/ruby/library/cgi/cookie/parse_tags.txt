@@ -1,0 +1,2 @@
+fails:CGI::Cookie.parse parses a raw cookie string into a hash of Cookies
+fails:CGI::Cookie.parse unescapes the Cookie values

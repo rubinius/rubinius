@@ -1,0 +1,1 @@
+fails:CGI::QueryExtension#remote_addr returns ENV['REMOTE_ADDR']

@@ -1,0 +1,1 @@
+fails:CGI::QueryExtension#gateway_interface returns ENV['GATEWAY_INTERFACE']

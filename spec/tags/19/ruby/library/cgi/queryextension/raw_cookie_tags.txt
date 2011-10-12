@@ -1,0 +1,1 @@
+fails:CGI::QueryExtension#raw_cookie returns ENV['HTTP_COOKIE']

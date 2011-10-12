@@ -1,0 +1,1 @@
+fails:CGI::QueryExtension#query_string returns ENV['QUERY_STRING']

@@ -113,7 +113,6 @@ class MSpecScript
     '^spec/ruby/core/process/status',
     '^spec/ruby/core/string/getbyte',
 
-    '^spec/ruby/library/cgi',
     '^spec/ruby/library/csv/generate',
     '^spec/ruby/library/delegate',
     '^spec/ruby/library/logger',

@@ -1,0 +1,1 @@
+fails:CGI::QueryExtension#server_name returns ENV['SERVER_NAME']

@@ -1,0 +1,1 @@
+fails:CGI::QueryExtension#accept returns ENV['HTTP_ACCEPT']

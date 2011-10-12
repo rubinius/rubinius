@@ -1,0 +1,1 @@
+fails:CGI::QueryExtension#keys returns all parameter keys as an Array

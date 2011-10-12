@@ -1,0 +1,1 @@
+fails:CGI::QueryExtension#key? returns true when the passed key exists in the HTTP Query
