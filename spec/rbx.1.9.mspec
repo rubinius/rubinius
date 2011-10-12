@@ -117,7 +117,6 @@ class MSpecScript
     '^spec/ruby/library/delegate',
     '^spec/ruby/library/logger',
     '^spec/ruby/library/net',
-    '^spec/ruby/library/socket',
     '^spec/ruby/library/uri',
     '^spec/ruby/library/yaml',
     '^spec/ruby/library/zlib',
