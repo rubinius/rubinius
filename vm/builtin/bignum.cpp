@@ -16,6 +16,7 @@
 #include "builtin/float.hpp"
 #include "builtin/string.hpp"
 #include "builtin/bytearray.hpp"
+#include "configuration.hpp"
 
 #include "missing/math.h"
 
@@ -531,6 +532,12 @@ namespace rubinius {
   }
 
   Array* Bignum::divmod(STATE, Float* denominator) {
+    if(LANGUAGE_19_ENABLED(state)) {
+      if(denominator->val == 0.0) {
+        Exception::zero_division_error(state, "divided by 0");
+      }
+    }
+
     return Float::coerce(state, this)->divmod(state, denominator);
   }
 
