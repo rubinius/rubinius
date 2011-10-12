@@ -1008,25 +1008,6 @@ class Array
 
   alias_method :indices, :indexes
 
-  # Produces a printable string of the Array. The string
-  # is constructed by calling #inspect on all elements.
-  # Descends through contained Arrays, recursive ones
-  # are indicated as [...].
-  def inspect
-    return "[]" if @total == 0
-
-    comma = ", "
-    result = "["
-
-    return "[...]" if Thread.detect_recursion self do
-      each { |o| result << o.inspect << comma }
-    end
-
-    result.taint if tainted?
-    result.shorten!(2)
-    result << "]"
-  end
-
   # Generates a string from converting all elements of
   # the Array to strings, inserting a separator between
   # each. The separator defaults to $,. Detects recursive

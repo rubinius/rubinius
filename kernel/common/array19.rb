@@ -63,6 +63,26 @@ class Array
     self
   end
 
+  # Produces a printable string of the Array. The string
+  # is constructed by calling #inspect on all elements.
+  # Descends through contained Arrays, recursive ones
+  # are indicated as [...].
+  def inspect
+    return "[]" if @total == 0
+
+    comma = ", "
+    result = "["
+
+    return "[...]" if Thread.detect_recursion self do
+      each { |o| result << o.inspect << comma }
+    end
+
+    result.taint if tainted?
+    result.untrust if untrusted?
+    result.shorten!(2)
+    result << "]"
+  end
+
   def keep_if(&block)
     Rubinius.check_frozen
 
