@@ -201,6 +201,25 @@ class Array
     concat args
   end
 
+  # Replaces contents of self with contents of other,
+  # adjusting size as needed.
+  def replace(other)
+    Rubinius.check_frozen
+
+    other = Rubinius::Type.coerce_to other, Array, :to_ary
+
+    @tuple = other.tuple.dup
+    @total = other.total
+    @start = other.start
+
+    self.untrust if other.untrusted?
+
+    self
+  end
+
+  alias_method :initialize_copy, :replace
+  private :initialize_copy
+
   def rotate(n=1)
     return self.dup if length == 1
     return []       if empty?
