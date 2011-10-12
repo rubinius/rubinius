@@ -604,7 +604,7 @@ class String
   # Clears the contents of <i>self</i>, returning the empty string.
   def clear
     Rubinius.check_frozen
-    self.delete!(self)
+    delete!(self)
     self
   end
 

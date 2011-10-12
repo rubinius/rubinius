@@ -212,7 +212,7 @@ class Array
     @total = other.total
     @start = other.start
 
-    self.untrust if other.untrusted?
+    untrust if other.untrusted?
 
     self
   end
