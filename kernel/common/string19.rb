@@ -16,6 +16,11 @@ class String
     # TODO
     self
   end
+  
+  def hex
+    return 0 if self.chars.first == "_"
+    to_inum(16, false)
+  end
 
   def partition(pattern)
     unless pattern.is_a? Regexp

@@ -2,6 +2,18 @@ class String
   include Enumerable
 
   alias_method :each, :each_line
+  
+  # Treats leading characters from <i>self</i> as a string of hexadecimal digits
+  # (with an optional sign and an optional <code>0x</code>) and returns the
+  # corresponding number. Zero is returned on error.
+  #
+  #    "0x0a".hex     #=> 10
+  #    "-1234".hex    #=> -4660
+  #    "0".hex        #=> 0
+  #    "wombat".hex   #=> 0
+  def hex
+    to_inum(16, false)
+  end
 
   def initialize(arg = undefined)
     replace StringValue(arg) unless arg.equal?(undefined)
