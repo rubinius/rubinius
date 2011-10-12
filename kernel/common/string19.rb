@@ -62,6 +62,65 @@ class String
   def force_encoding(name)
     self
   end
+
+  # Reverses <i>self</i> in place.
+  def reverse!
+    Rubinius.check_frozen
+
+    return self if @num_bytes <= 1
+    self.modify!
+
+    @data.reverse(0, @num_bytes)
+    self
+  end
+
+
+  # Performs the substitutions of <code>String#sub</code> in place,
+  # returning <i>self</i>, or <code>nil</code> if no substitutions were
+  # performed.
+  #
+  def sub!(pattern, replacement=undefined)
+    # Copied mostly from sub to keep Regexp.last_match= working right.
+
+    if replacement.equal?(undefined) and !block_given?
+      raise ArgumentError, "wrong number of arguments (1 for 2)"
+    end
+
+    unless pattern
+      raise ArgumentError, "wrong number of arguments (0 for 2)"
+    end
+
+    Rubinius.check_frozen
+
+    if match = get_pattern(pattern, true).match_from(self, 0)
+      out = match.pre_match
+
+      Regexp.last_match = match
+
+      if replacement.equal?(undefined)
+        replacement = yield(match[0].dup).to_s
+        out.taint if replacement.tainted?
+        out.append(replacement).append(match.post_match)
+      else
+        out.taint if replacement.tainted?
+        replacement = StringValue(replacement).to_sub_replacement(out, match)
+        out.append(match.post_match)
+      end
+
+      # We have to reset it again to match the specs
+      Regexp.last_match = match
+
+      out.taint if self.tainted?
+    else
+      out = self
+      Regexp.last_match = nil
+      return nil
+    end
+
+    replace(out)
+
+    return self
+  end
   
   # Deletes the specified portion from <i>self</i>, and returns the portion
   # deleted. The forms that take a <code>Fixnum</code> will raise an
