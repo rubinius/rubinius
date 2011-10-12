@@ -1,3 +1,2 @@
-incomplete:Actor#notify_exited needs to be reviewed for spec completeness
 fails:Actor#notify_exited kills actors not trapping exits
 fails:Actor#notify_exited delivers a message to an actor trapping exits

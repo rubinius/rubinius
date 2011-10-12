@@ -1,1 +1,0 @@
-incomplete:File.pipe? needs to be reviewed for spec completeness
