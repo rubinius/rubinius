@@ -1239,6 +1239,8 @@ class String
 
   # Reverses <i>self</i> in place.
   def reverse!
+    Rubinius.check_frozen
+
     return self if @num_bytes <= 1
     self.modify!
 
@@ -1811,6 +1813,8 @@ class String
     unless pattern
       raise ArgumentError, "wrong number of arguments (0 for 2)"
     end
+
+    Rubinius.check_frozen
 
     if match = get_pattern(pattern, true).match_from(self, 0)
       out = match.pre_match
