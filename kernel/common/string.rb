@@ -1814,6 +1814,8 @@ class String
       raise ArgumentError, "wrong number of arguments (0 for 2)"
     end
 
+    Rubinius.check_frozen
+
     if match = get_pattern(pattern, true).match_from(self, 0)
       out = match.pre_match
 
