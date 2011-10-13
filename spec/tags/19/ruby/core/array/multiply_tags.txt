@@ -1,2 +1,1 @@
 fails:Array#* with a string raises an ArgumentError when the Array is recursive
-fails:Array#* with a string returns a string which would be infected with untrustworthiness of the array, its elements or the separator when the array is not empty
