@@ -3150,11 +3150,12 @@ use_send:
       Value* top = stack_pop();
       Value* call_args[] = {
         vm_,
+        call_frame_,
         top,
         stack_pop()
       };
 
-      Value* val = sig.call("rbx_instance_of", call_args, 3, "constant", b());
+      Value* val = sig.call("rbx_instance_of", call_args, 4, "constant", b());
       stack_push(val);
     }
 
@@ -3583,11 +3584,12 @@ use_send:
 
       Value* call_args[] = {
         vm_,
+        call_frame_,
         val,
         stack_pop()
       };
 
-      Value* str = sig.call("rbx_string_append", call_args, 3, "string", b());
+      Value* str = sig.call("rbx_string_append", call_args, 4, "string", b());
       stack_push(str);
     }
 

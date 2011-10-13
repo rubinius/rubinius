@@ -37,6 +37,22 @@
 
 #define both_fixnum_p(_p1, _p2) ((uintptr_t)(_p1) & (uintptr_t)(_p2) & TAG_FIXNUM)
 
+#define CPP_TRY try {
+
+#define CPP_CATCH \
+    } catch(TypeError& e) { \
+      Exception* exc = \
+        Exception::make_type_error(state, e.type, e.object, e.reason); \
+      exc->locations(state, Location::from_call_stack(state, call_frame)); \
+      state->thread_state()->raise_exception(exc); \
+      return NULL; \
+    } catch(const RubyException& exc) { \
+      exc.exception->locations(state, \
+            Location::from_call_stack(state, call_frame)); \
+      state->thread_state()->raise_exception(exc.exception); \
+      return NULL; \
+    }
+
 using namespace rubinius;
 
 extern "C" {
@@ -143,7 +159,9 @@ extern "C" {
     LookupData lookup(recv, call_frame->module()->superclass(), true);
     Dispatch dis(name);
 
-    out_args.append(state, as<Array>(args[count]));
+    if(Array* ary = try_as<Array>(args[count])) {
+      out_args.append(state, ary);
+    }
 
     return dis.send(state, call_frame, lookup, out_args);
   }
@@ -202,16 +220,11 @@ extern "C" {
   }
 
   Object* rbx_string_dup(STATE, CallFrame* call_frame, Object* obj) {
-    try {
-      return as<String>(obj)->string_dup(state);
-    } catch(TypeError& e) {
-      Exception* exc =
-        Exception::make_type_error(state, e.type, e.object, e.reason);
-      exc->locations(state, Location::from_call_stack(state, call_frame));
+    CPP_TRY
 
-      state->thread_state()->raise_exception(exc);
-      return NULL;
-    }
+    return as<String>(obj)->string_dup(state);
+
+    CPP_CATCH
   }
 
   Object* rbx_meta_to_s(STATE, CallFrame* call_frame, InlineCache* cache,
@@ -231,6 +244,8 @@ extern "C" {
   }
 
   Object* rbx_create_block(STATE, CallFrame* call_frame, int index) {
+    CPP_TRY
+
     Object* _lit = call_frame->cm->literals()->at(state, index);
     CompiledMethod* cm = as<CompiledMethod>(_lit);
 
@@ -242,6 +257,8 @@ extern "C" {
     VMMethod* vmm = call_frame->cm->backend_method();
     return BlockEnvironment::under_call_frame(state, cm, vmm,
                                               call_frame, index);
+
+    CPP_CATCH
   }
 
   Object* rbx_create_block_multi(STATE, CompiledMethod* cm, int index, int count, ...) {
@@ -332,6 +349,8 @@ extern "C" {
   }
 
   Object* rbx_add_scope(STATE, CallFrame* call_frame, Object* top) {
+    CPP_TRY
+
     Module* mod = as<Module>(top);
     StaticScope* scope = StaticScope::create(state);
     scope->module(state, mod);
@@ -340,6 +359,8 @@ extern "C" {
     // call_frame->static_scope_ = scope;
 
     return Qnil;
+
+    CPP_CATCH
   }
 
   Object* rbx_cast_for_splat_block_arg(STATE, CallFrame* call_frame, Arguments& args) {
@@ -532,6 +553,8 @@ extern "C" {
   }
 
   Object* rbx_find_const(STATE, CallFrame* call_frame, int index, Object* top) {
+    CPP_TRY
+
     bool found;
     Module* under = as<Module>(top);
     Symbol* sym = as<Symbol>(call_frame->cm->literals()->at(state, index));
@@ -544,12 +567,18 @@ extern "C" {
     }
 
     return res;
+
+    CPP_CATCH
   }
 
-  Object* rbx_instance_of(STATE, Object* top, Object* b1) {
+  Object* rbx_instance_of(STATE, CallFrame* call_frame, Object* top, Object* b1) {
+    CPP_TRY
+
     Class* cls = as<Class>(b1);
     if(top->class_object(state) == cls) return Qtrue;
     return Qfalse;
+
+    CPP_CATCH
   }
 
   Object* rbx_kind_of(STATE, Object* top, Object* b1) {
@@ -639,6 +668,8 @@ extern "C" {
   }
 
   Object* rbx_meta_send_op_gt(STATE, CallFrame* call_frame, Object** stk) {
+    CPP_TRY
+
     Object* t1 = stk[0];
     Object* t2 = stk[1];
     if(both_fixnum_p(t1, t2)) {
@@ -648,6 +679,8 @@ extern "C" {
     }
 
     return rbx_simple_send(state, call_frame, G(sym_gt), 1, stk);
+
+    CPP_CATCH
   }
 
   Object* rbx_meta_send_op_minus(STATE, CallFrame* call_frame, Object** stk) {
@@ -1017,6 +1050,8 @@ extern "C" {
   }
 
   Object* rbx_shift_array(STATE, CallFrame* call_frame, Object** loc) {
+    CPP_TRY
+
     Array* array = as<Array>(*loc);
     size_t size = (size_t)array->size();
 
@@ -1032,12 +1067,16 @@ extern "C" {
 
     *loc = smaller_array;
     return shifted_value;
+
+    CPP_CATCH
   }
 
-  Object* rbx_string_append(STATE, Object* left, Object* right) {
-    // TODO Don't use as<>, since it will throw a C++ exception
-    // into JITd code.
+  Object* rbx_string_append(STATE, CallFrame* call_frame, Object* left, Object* right) {
+    CPP_TRY
+
     return as<String>(left)->append(state, as<String>(right));
+
+    CPP_CATCH
   }
 
   Object* rbx_string_build(STATE, CallFrame* call_frame, int count, Object** parts) {
@@ -1393,21 +1432,11 @@ extern "C" {
   }
 
   Object* rbx_create_instance(STATE, CallFrame* call_frame, Class* cls) {
-    try {
-      return cls->allocate(state, call_frame);
-    } catch(TypeError& e) {
-      Exception* exc =
-        Exception::make_type_error(state, e.type, e.object, e.reason);
-      exc->locations(state, Location::from_call_stack(state, call_frame));
+    CPP_TRY
 
-      state->thread_state()->raise_exception(exc);
-      return NULL;
-    } catch(const RubyException& exc) {
-      exc.exception->locations(state,
-            Location::from_call_stack(state, call_frame));
-      state->thread_state()->raise_exception(exc.exception);
-      return NULL;
-    }
+    return cls->allocate(state, call_frame);
+
+    CPP_CATCH
   }
 }
 
