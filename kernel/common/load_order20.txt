@@ -12,6 +12,7 @@ enumerator19.rbc
 argf.rbc
 tuple.rbc
 exception.rbc
+exception19.rbc
 undefined.rbc
 hash19.rbc
 hash_hamt.rbc
@@ -85,6 +86,7 @@ objectspace.rbc
 string.rbc
 string19.rbc
 range.rbc
+range19.rbc
 struct.rbc
 process.rbc
 random.rbc
