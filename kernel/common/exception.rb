@@ -111,8 +111,6 @@ class Exception
     to_s
   end
 
-  alias_method :to_str, :message
-
   def inspect
     "#<#{self.class.name}: #{self.to_s}>"
   end

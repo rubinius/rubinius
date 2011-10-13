@@ -13,6 +13,7 @@ argf.rbc
 argf19.rbc
 tuple.rbc
 exception.rbc
+exception19.rbc
 undefined.rbc
 hash19.rbc
 hash_hamt.rbc
