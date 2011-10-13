@@ -1,5 +1,4 @@
 class Regexp
-  
   def ===(other)
     unless other.kind_of?(String)
       other = Rubinius::Type.check_convert_type other, String, :to_str
