@@ -298,12 +298,9 @@ class Array
   #     a.repeated_combination(0).to_a  #=> [[]] # one combination of length 0
   #
   def repeated_combination(combination_size, &block)
+    combination_size = combination_size.to_i
     unless block_given?
-      enumerator = []
-      repeated_combination(combination_size) do |comb|
-        enumerator << comb
-      end
-      return Enumerator.new(enumerator, :each)
+      return Enumerator.new(self, :repeated_combination, combination_size)
     end
 
     if combination_size < 0
@@ -330,7 +327,59 @@ class Array
 
   private :compile_repeated_combinations
 
-  # Replaces contents of self with contents of other,
+  #  call-seq:
+  #     ary.repeated_permutation(n) { |p| block } -> ary
+  #     ary.repeated_permutation(n)               -> an_enumerator
+  #
+  # When invoked with a block, yield all repeated permutations of length
+  # <i>n</i> of the elements of <i>ary</i>, then return the array itself.
+  # The implementation makes no guarantees about the order in which
+  # the repeated permutations are yielded.
+  #
+  # If no block is given, an enumerator is returned instead.
+  #
+  # Examples:
+  #
+  #     a = [1, 2]
+  #     a.repeated_permutation(1).to_a  #=> [[1], [2]]
+  #     a.repeated_permutation(2).to_a  #=> [[1,1],[1,2],[2,1],[2,2]]
+  #     a.repeated_permutation(3).to_a  #=> [[1,1,1],[1,1,2],[1,2,1],[1,2,2],
+  #                                     #    [2,1,1],[2,1,2],[2,2,1],[2,2,2]]
+  #     a.repeated_permutation(0).to_a  #=> [[]] # one permutation of length 0
+  #
+  def repeated_permutation(combination_size, &block)
+    combination_size = combination_size.to_i
+    unless block_given?
+      return Enumerator.new(self, :repeated_permutation, combination_size)
+    end
+
+    if combination_size < 0
+      # yield nothing
+    elsif combination_size == 0
+      yield []
+    else
+      Rubinius.privately do
+        dup.compile_repeated_permutations(combination_size, [], 0, &block)
+      end
+    end
+
+    return self
+  end
+
+  def compile_repeated_permutations(combination_size, place, index, &block)
+    length.times do |i|
+      place[index] = i
+      if index < (combination_size-1)
+        compile_repeated_permutations(combination_size,place,index + 1, &block)
+      else
+        yield place.map { |element| self[element] }
+      end
+    end
+  end
+
+  private :compile_repeated_permutations
+
+  # replaces contents of self with contents of other,
   # adjusting size as needed.
   def replace(other)
     Rubinius.check_frozen
