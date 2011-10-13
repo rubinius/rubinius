@@ -240,16 +240,6 @@ describe "Array#sort!" do
     it "raises a RuntimeError on a frozen array" do
       lambda { ArraySpecs.frozen_array.sort! }.should raise_error(RuntimeError)
     end
-
-    it "ignores any changes of self which would take place during sort!ing" do
-      a = [3, 2, 1]
-      a.sort! {|x,y| a << 4; a.should include(4); x <=> y }
-      a.should == [1, 2, 3]
-
-      a = [3, 2, 1]
-      a.sort! {|x,y| a.replace([:a, :b, :c, :d, :e]); x <=> y}
-      a.should == [1, 2, 3]
-    end
   end
 
   it "returns the specified value when it would break in the given block" do
