@@ -106,6 +106,12 @@ namespace rubinius {
   }
 
   Float* Float::mod(STATE, Float* other) {
+    if(LANGUAGE_19_ENABLED(state)) {
+      if(other->val == 0.0) {
+        Exception::zero_division_error(state, "divided by 0");
+      }
+    }
+
     double res = fmod(this->val, other->val);
     if((other->val < 0.0 && this->val > 0.0 && res != 0) ||
        (other->val > 0.0 && this->val < 0.0 && res != 0)) {
