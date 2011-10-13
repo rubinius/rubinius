@@ -3,6 +3,20 @@ class Regexp
     Rubinius::Type.try_convert obj, Regexp, :to_regexp
   end
 
+  # Performs normal match and returns MatchData object from $~ or nil
+  def match(str)
+    unless str
+      Regexp.last_match = nil
+      return nil
+    end
+
+    raise TypeError if str.is_a?(Exception)
+    
+    str = StringValue(str)
+
+    Regexp.last_match = search_region(str, 0, str.size, true)
+  end
+
   def ===(other)
     if other.kind_of? Symbol
       other = other.to_s

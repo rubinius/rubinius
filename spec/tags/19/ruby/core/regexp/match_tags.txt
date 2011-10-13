@@ -1,1 +1,0 @@
-fails:Regexp#match raises TypeError when the given argument is an Exception
