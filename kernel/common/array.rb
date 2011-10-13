@@ -386,54 +386,6 @@ class Array
     im.to_array
   end
 
-  # Repetition operator when supplied a #to_int argument:
-  # returns a new Array as a concatenation of the given number
-  # of the original Arrays. With an argument that responds to
-  # #to_str, functions exactly like #join instead.
-  def *(multiplier)
-    if multiplier.respond_to? :to_str
-      return join(multiplier)
-
-    else
-      # Aaargh stupid MRI's stupid specific stupid error stupid types stupid
-      multiplier = Rubinius::Type.coerce_to multiplier, Fixnum, :to_int
-
-      raise ArgumentError, "Count cannot be negative" if multiplier < 0
-
-      case @total
-      when 0
-        # Edge case
-        out = self.class.allocate
-        out.taint if tainted?
-        return out
-      when 1
-        # Easy case
-        tuple = Rubinius::Tuple.pattern multiplier, at(0)
-        out = self.class.allocate
-        out.tuple = tuple
-        out.total = multiplier
-        out.taint if tainted?
-        return out
-      end
-
-      new_total = multiplier * @total
-      new_tuple = Rubinius::Tuple.new(new_total)
-
-      out = self.class.allocate
-      out.tuple = new_tuple
-      out.total = new_total
-      out.taint if tainted?
-
-      offset = 0
-      while offset < new_total
-        new_tuple.copy_from @tuple, @start, @total, offset
-        offset += @total
-      end
-
-      out
-    end
-  end
-
   # Create a concatenation of the two Arrays.
   def +(other)
     other = Rubinius::Type.coerce_to other, Array, :to_ary
