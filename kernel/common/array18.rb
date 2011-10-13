@@ -139,7 +139,7 @@ class Array
     out = ""
     return "[...]" if Thread.detect_recursion self do
       sep = sep ? StringValue(sep) : $,
-      out.taint if sep.tainted? or self.tainted?
+      out.taint if sep.tainted? || tainted?
 
       # We've manually unwound the first loop entry for performance
       # reasons.
