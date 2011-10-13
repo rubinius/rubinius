@@ -1393,7 +1393,21 @@ extern "C" {
   }
 
   Object* rbx_create_instance(STATE, CallFrame* call_frame, Class* cls) {
-    return cls->allocate(state, call_frame);
+    try {
+      return cls->allocate(state, call_frame);
+    } catch(TypeError& e) {
+      Exception* exc =
+        Exception::make_type_error(state, e.type, e.object, e.reason);
+      exc->locations(state, Location::from_call_stack(state, call_frame));
+
+      state->thread_state()->raise_exception(exc);
+      return NULL;
+    } catch(const RubyException& exc) {
+      exc.exception->locations(state,
+            Location::from_call_stack(state, call_frame));
+      state->thread_state()->raise_exception(exc.exception);
+      return NULL;
+    }
   }
 }
 
