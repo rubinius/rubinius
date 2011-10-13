@@ -24,11 +24,14 @@ class Hash
 
     def compare_by_identity
       @compare_by_identity = true
+
       class << self
         def match?(this_key, this_hash, other_key, other_hash)
           other_key.equal? this_key
         end
       end
+
+      self
     end
 
     def match?(this_key, this_hash, other_key, other_hash)
