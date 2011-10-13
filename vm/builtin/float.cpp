@@ -8,6 +8,7 @@
 #include "vm.hpp"
 #include "vm/object_utils.hpp"
 #include "primitives.hpp"
+#include "configuration.hpp"
 
 #include <gdtoa.h>
 
@@ -118,6 +119,12 @@ namespace rubinius {
   }
 
   Array* Float::divmod(STATE, Float* other) {
+    if(LANGUAGE_19_ENABLED(state)) {
+      if(other->val == 0.0) {
+        Exception::zero_division_error(state, "divided by 0");
+      }
+    }
+
     Array* ary = Array::create(state, 2);
     ary->set(state, 0, Bignum::from_double(state, floor(this->val / other->val) ));
     ary->set(state, 1, mod(state, other));
