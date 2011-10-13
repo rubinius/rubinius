@@ -490,4 +490,34 @@ class String
 
     return self
   end
+
+  # Replaces the contents and taintedness of <i>string</i> with the corresponding
+  # values in <i>other</i>.
+  #
+  #   s = "hello"         #=> "hello"
+  #   s.replace "world"   #=> "world"
+  def replace(other)
+    # If we're replacing with ourselves, then we have nothing to do
+    return self if equal?(other)
+
+    Rubinius.check_frozen
+
+    other = StringValue(other)
+
+    @shared = true
+    other.shared!
+    @data = other.__data__
+    @num_bytes = other.num_bytes
+    @hash_value = nil
+
+    taint if other.tainted?
+
+    self
+  end
+  alias_method :initialize_copy, :replace
+  # private :initialize_copy
+
+  # Returns a new string with the characters from <i>self</i> in reverse order.
+  #
+  #   "stressed".reverse   #=> "desserts"
 end
