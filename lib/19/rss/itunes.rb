@@ -282,7 +282,7 @@ module RSS
           end
 
           components = duration.split(':')
-          components[3..-1] = nil if components.size > 3
+          component.slice!(3..-1) if components.size > 3
 
           components.unshift("00") until components.size == 3
 
