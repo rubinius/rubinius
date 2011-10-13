@@ -12,15 +12,16 @@ namespace rubinius {
   namespace type {
     enum Kind {
       eUnknown = 0,
-      eTrue = 1,
-      eFalse = 2,
-      eNil = 3,
-      eFixnum = 4,
-      eStaticFixnum = 5,
-      eInstance = 6,
-      eSymbol = 7,
-      eType = 8,
-      eClassObject = 9
+      eTrue,
+      eFalse,
+      eNil,
+      eFixnum,
+      eStaticFixnum,
+      eInstance,
+      eSingletonInstance,
+      eSymbol,
+      eType,
+      eClassObject
     };
 
     enum Source {
@@ -56,6 +57,10 @@ namespace rubinius {
 
       static KnownType instance(int class_id) {
         return KnownType(eInstance, class_id);
+      }
+
+      static KnownType singleton_instance(int class_id) {
+        return KnownType(eSingletonInstance, class_id);
       }
 
       static KnownType nil() {
@@ -107,7 +112,11 @@ namespace rubinius {
       }
 
       bool instance_p() {
-        return kind_ == eInstance;
+        return kind_ == eInstance || kind_ == eSingletonInstance;
+      }
+
+      bool singleton_instance_p() {
+        return kind_ == eSingletonInstance;
       }
 
       bool class_p() {
@@ -115,8 +124,14 @@ namespace rubinius {
       }
 
       int class_id() {
-        if(kind_ == eInstance || kind_ == eClassObject) return value_;
-        return -1;
+        switch(kind_) {
+        case eInstance:
+        case eSingletonInstance:
+        case eClassObject:
+          return value_;
+        default:
+          return -1;
+        }
       }
 
       bool fixnum_p() {

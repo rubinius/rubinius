@@ -107,6 +107,8 @@ namespace type {
       return "<type: static fixnum>";
     case eInstance:
       return "<type: instance>";
+    case eSingletonInstance:
+      return "<type: singleton instance>";
     case eSymbol:
       return "<type: symbol>";
     case eType:

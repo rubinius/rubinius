@@ -432,7 +432,11 @@ namespace rubinius {
           }
 
           check_reference_class(obj, klass->class_id(), failure);
-          return type::KnownType::instance(klass->class_id());
+          if(kind_of<SingletonClass>(klass)) {
+            return type::KnownType::singleton_instance(klass->class_id());
+          } else {
+            return type::KnownType::instance(klass->class_id());
+          }
         }
       }
     }

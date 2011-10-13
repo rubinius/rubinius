@@ -1372,7 +1372,7 @@ namespace rubinius {
         Value* obj = stack_back(0);
 
         type::KnownType kt = type::KnownType::extract(state(), obj);
-        if(kt.instance_p()) {
+        if(kt.instance_p() && !kt.singleton_instance_p()) {
           if(state()->config().jit_inline_debug) {
             context().inline_log("inlining") << "direct class of reference\n";
           }
