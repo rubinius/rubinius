@@ -273,6 +273,63 @@ class Array
     concat args
   end
 
+  #  call-seq:
+  #     ary.repeated_combination(n) { |c| block } -> ary
+  #     ary.repeated_combination(n)               -> an_enumerator
+  #
+  # When invoked with a block, yields all repeated combinations of
+  # length <i>n</i> of elements from <i>ary</i> and then returns
+  # <i>ary</i> itself.
+  # The implementation makes no guarantees about the order in which
+  # the repeated combinations are yielded.
+  #
+  # If no block is given, an enumerator is returned instead.
+  #
+  # Examples:
+  #
+  #     a = [1, 2, 3]
+  #     a.repeated_combination(1).to_a  #=> [[1], [2], [3]]
+  #     a.repeated_combination(2).to_a  #=> [[1,1],[1,2],[1,3],[2,2],[2,3],[3,3]]
+  #     a.repeated_combination(3).to_a  #=> [[1,1,1],[1,1,2],[1,1,3],[1,2,2],[1,2,3],
+  #                                     #    [1,3,3],[2,2,2],[2,2,3],[2,3,3],[3,3,3]]
+  #     a.repeated_combination(4).to_a  #=> [[1,1,1,1],[1,1,1,2],[1,1,1,3],[1,1,2,2],[1,1,2,3],
+  #                                     #    [1,1,3,3],[1,2,2,2],[1,2,2,3],[1,2,3,3],[1,3,3,3],
+  #                                     #    [2,2,2,2],[2,2,2,3],[2,2,3,3],[2,3,3,3],[3,3,3,3]]
+  #     a.repeated_combination(0).to_a  #=> [[]] # one combination of length 0
+  #
+  def repeated_combination(combination_size, &block)
+    if !block_given?
+      enumerator = []
+      repeated_combination(combination_size) do |comb|
+        enumerator << comb
+      end
+      return Enumerator.new(enumerator, :each)
+    end
+
+    if combination_size < 0
+      # yield nothing
+    else
+      Rubinius.privately do
+        dup.compile_repeated_combinations(combination_size, [], 0, combination_size, &block)
+      end
+    end
+
+    return self
+  end
+
+  def compile_repeated_combinations(combination_size, place, index, depth, &block)
+    if depth > 0
+      (length - index).times do |i|
+        place[combination_size-depth] = index + i
+        compile_repeated_combinations(combination_size,place,index + i,depth-1, &block)
+      end
+    else
+      yield place.map { |element| self[element] }
+    end
+  end
+
+  private :compile_repeated_combinations
+
   # Replaces contents of self with contents of other,
   # adjusting size as needed.
   def replace(other)
