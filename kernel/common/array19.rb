@@ -25,6 +25,7 @@ class Array
         # Edge case
         out = self.class.allocate
         out.taint if tainted?
+        out.untrust if untrusted?
         return out
       when 1
         # Easy case
@@ -33,6 +34,7 @@ class Array
         out.tuple = tuple
         out.total = multiplier
         out.taint if tainted?
+        out.untrust if untrusted?
         return out
       end
 
@@ -43,6 +45,7 @@ class Array
       out.tuple = new_tuple
       out.total = new_total
       out.taint if tainted?
+      out.untrust if untrusted?
 
       offset = 0
       while offset < new_total
