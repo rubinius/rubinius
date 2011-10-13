@@ -298,7 +298,7 @@ class Array
   #     a.repeated_combination(0).to_a  #=> [[]] # one combination of length 0
   #
   def repeated_combination(combination_size, &block)
-    if !block_given?
+    unless block_given?
       enumerator = []
       repeated_combination(combination_size) do |comb|
         enumerator << comb
