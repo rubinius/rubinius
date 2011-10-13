@@ -1,1 +1,0 @@
-fails:Exception#to_str has been deprecated
