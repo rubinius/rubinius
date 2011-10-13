@@ -249,7 +249,7 @@ class Regexp
     return nil
   end
 
-  # Performs normal match and returns MatchData object from $~ or nil
+  # Performs normal match and returns MatchData object from $~ or nil.
   def match(str)
     unless str
       Regexp.last_match = nil
