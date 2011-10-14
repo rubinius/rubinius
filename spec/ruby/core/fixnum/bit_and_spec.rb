@@ -33,6 +33,12 @@ describe "Fixnum#&" do
     end
   end
 
+  ruby_version_is "1.9" do
+    it "raises a TypeError when passed a Float" do
+      lambda { (3 & 3.4) }.should raise_error(TypeError)
+    end
+  end
+
   ruby_version_is ""..."1.9.4" do
     it "calls #to_int to convert an object to an Integer" do
       obj = mock("fixnum bit and")
