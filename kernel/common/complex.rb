@@ -61,6 +61,7 @@ class Numeric
     Math.atan2(0, self)
   end
   alias angle arg
+  alias phase arg
   
   #
   # See Complex#polar.
