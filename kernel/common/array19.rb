@@ -286,7 +286,8 @@ class Array
     out = ""
     return "[...]" if Thread.detect_recursion self do
       sep = sep ? StringValue(sep) : $,
-      out.taint if sep.tainted? or self.tainted?
+      out.taint if sep.tainted? || tainted?
+      out.untrust if sep.untrusted? || untrusted?
 
       # We've manually unwound the first loop entry for performance
       # reasons.
@@ -302,10 +303,15 @@ class Array
       when Array
         out.append x.join(sep)
       else
-        out.append x.to_s
+        begin
+          out.append x.to_str
+        rescue NoMethodError
+          out.append x.to_s
+        end
       end
 
       out.taint if x.tainted?
+      out.untrust if x.untrusted?
 
       total = @start + size()
       i = @start + 1
@@ -325,10 +331,15 @@ class Array
         when Array
           out.append x.join(sep)
         else
-          out.append x.to_s
+          begin
+            out.append x.to_str
+          rescue NoMethodError
+            out.append x.to_s
+          end
         end
 
         out.taint if x.tainted?
+        out.untrust if x.untrusted?
 
         i += 1
       end

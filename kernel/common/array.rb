@@ -787,58 +787,6 @@ class Array
 
   alias_method :indices, :indexes
 
-  # Generates a string from converting all elements of
-  # the Array to strings, inserting a separator between
-  # each. The separator defaults to $,. Detects recursive
-  # Arrays.
-  def join(sep=nil)
-    return "" if @total == 0
-
-    out = ""
-    return "[...]" if Thread.detect_recursion self do
-      sep = sep ? StringValue(sep) : $,
-      out.taint if sep.tainted? or self.tainted?
-
-      # We've manually unwound the first loop entry for performance
-      # reasons.
-      x = @tuple[@start]
-      case x
-      when String
-        out.append x
-      when Array
-        out.append x.join(sep)
-      else
-        out.append x.to_s
-      end
-
-      out.taint if x.tainted?
-
-      total = @start + size()
-      i = @start + 1
-
-      while i < total
-        out.append sep
-
-        x = @tuple[i]
-
-        case x
-        when String
-          out.append x
-        when Array
-          out.append x.join(sep)
-        else
-          out.append x.to_s
-        end
-
-        out.taint if x.tainted?
-
-        i += 1
-      end
-    end
-
-    out
-  end
-
   # Returns the last element or n elements of self. If
   # the Array is empty, without a count nil is returned,
   # otherwise an empty Array. Always returns an Array.
