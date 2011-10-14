@@ -54,7 +54,7 @@ describe "String#squeeze" do
   end
 
   ruby_version_is "1.9" do
-    it "raises an error when the parameter is out of the sequence" do
+    it "raises an error when the parameter is out of sequence" do
       s = "--subbookkeeper--"
       lambda { s.squeeze("e-b") }.should raise_error(ArgumentError)
       lambda { s.squeeze("^e-b") }.should raise_error(ArgumentError)
