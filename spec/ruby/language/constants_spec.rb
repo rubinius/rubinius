@@ -345,4 +345,29 @@ describe "Constant resolution within methods" do
     ConstantSpecs::ClassA.constx.should == :CS_CONSTX
     ConstantSpecs::ClassA.new.constx.should == :CS_CONSTX
   end
+
+  describe "with ||=" do
+    ruby_version_is ""..."1.9" do
+      it "raises a NameError if the constant is not defined" do
+        ConstantSpecs.should_not have_constant(:OpAssignUndefined)
+        lambda do
+          module ConstantSpecs
+            OpAssignUndefined ||= 42
+          end
+        end.should raise_error(NameError)
+      end
+    end
+
+    ruby_version_is "1.9" do
+      it "assignes constant if previously undefined" do
+        ConstantSpecs.should_not have_constant(:OpAssignUndefined)
+        # Literally opening the module is required to avoid content
+        # re-assignment error
+        module ConstantSpecs
+          OpAssignUndefined ||= 42
+        end
+        ConstantSpecs::OpAssignUndefined.should == 42
+      end
+    end
+  end
 end
