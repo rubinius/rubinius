@@ -268,6 +268,9 @@ class Rational < Numeric
   #   r.divmod Rational(1,2)   # -> [3, Rational(1,4)]
   #
   def divmod(other)
+    if other.is_a?(Float) && other == 0.0
+      raise ZeroDivisionError, "division by zero"
+    end
     value = (self / other).floor
     return value, self - other * value
   end
