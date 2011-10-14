@@ -299,7 +299,7 @@ namespace rubinius {
                                        | CallFrame::cBlock;
 
     // TODO: this is a quick hack to process block arguments in 1.9.
-    if(LANGUAGE_19_ENABLED(state) || LANGUAGE_20_ENABLED(state)) {
+    if(!LANGUAGE_18_ENABLED(state)) {
       if(!GenericArguments::call(state, frame, vmm, scope, args, invocation.flags)) {
         return NULL;
       }

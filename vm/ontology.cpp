@@ -88,7 +88,7 @@ namespace rubinius {
     // Now do Object
     Class* basicobject = 0;
     Class* object;
-    if(LANGUAGE_19_ENABLED(state) || LANGUAGE_20_ENABLED(state)) {
+    if(!LANGUAGE_18_ENABLED(state)) {
       basicobject = new_basic_class(force_as<Class>(Qnil));
       GO(basicobject).set(basicobject);
       basicobject->set_object_type(state, BasicObjectType);
@@ -147,7 +147,7 @@ namespace rubinius {
      */
 
     // BasicObject's SingletonClass instance has Class for a superclass
-    if(LANGUAGE_19_ENABLED(state) || LANGUAGE_20_ENABLED(state)) {
+    if(!LANGUAGE_18_ENABLED(state)) {
       SingletonClass::attach(this, basicobject, cls);
     }
 
@@ -160,7 +160,7 @@ namespace rubinius {
     SingletonClass::attach(this, cls, sc);
 
     // See?
-    if(LANGUAGE_19_ENABLED(state) || LANGUAGE_20_ENABLED(state)) {
+    if(!LANGUAGE_18_ENABLED(state)) {
       assert(basicobject->superclass() == Qnil);
       assert(object->superclass() == basicobject);
     } else {
@@ -184,7 +184,7 @@ namespace rubinius {
 
     // Now, finish initializing the basic Class/Module
     G(object)->setup(this, "Object");
-    if(LANGUAGE_19_ENABLED(state) || LANGUAGE_20_ENABLED(state)) {
+    if(!LANGUAGE_18_ENABLED(state)) {
       G(basicobject)->setup(this, "BasicObject", G(object));
     }
     G(klass)->setup(this, "Class");

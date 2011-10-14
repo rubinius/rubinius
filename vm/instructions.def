@@ -644,7 +644,7 @@ instruction cast_array() [ value -- array ]
   // Use stack_top and not stack_pop because we may need
   // to preserve and reread the value from the stack below.
   Object* t1 = stack_top();
-  if(LANGUAGE_19_ENABLED(state) && t1->nil_p()) {
+  if(!LANGUAGE_18_ENABLED(state) && t1->nil_p()) {
     t1 = Array::create(state, 0);
   } else if(Tuple* tup = try_as<Tuple>(t1)) {
     t1 = Array::from_tuple(state, tup);

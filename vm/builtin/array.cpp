@@ -158,7 +158,7 @@ namespace rubinius {
   }
 
   Array* Array::concat(STATE, Array* other) {
-    if(LANGUAGE_19_ENABLED(state)) {
+    if(!LANGUAGE_18_ENABLED(state)) {
       if(is_frozen_p()) return force_as<Array>(Primitives::failure());
     }
 

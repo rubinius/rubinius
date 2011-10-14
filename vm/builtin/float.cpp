@@ -106,7 +106,7 @@ namespace rubinius {
   }
 
   Float* Float::mod(STATE, Float* other) {
-    if(LANGUAGE_19_ENABLED(state)) {
+    if(!LANGUAGE_18_ENABLED(state)) {
       if(other->val == 0.0) {
         Exception::zero_division_error(state, "divided by 0");
       }
@@ -125,7 +125,7 @@ namespace rubinius {
   }
 
   Array* Float::divmod(STATE, Float* other) {
-    if(LANGUAGE_19_ENABLED(state)) {
+    if(!LANGUAGE_18_ENABLED(state)) {
       if(other->val == 0.0) {
         Exception::zero_division_error(state, "divided by 0");
       }

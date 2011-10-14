@@ -564,7 +564,7 @@ namespace rubinius {
   }
 
   Integer* Bignum::bit_and(STATE, Float* b) {
-    if(LANGUAGE_19_ENABLED(state)) {
+    if(!LANGUAGE_18_ENABLED(state)) {
       Exception::type_error(state, "can't convert Float into Integer for bitwise arithmetic");
     }
     return bit_and(state, Bignum::from_double(state, b->val));
@@ -583,7 +583,7 @@ namespace rubinius {
   }
 
   Integer* Bignum::bit_or(STATE, Float* b) {
-    if(LANGUAGE_19_ENABLED(state)) {
+    if(!LANGUAGE_18_ENABLED(state)) {
       Exception::type_error(state, "can't convert Float into Integer for bitwise arithmetic");
     }
     return bit_or(state, Bignum::from_double(state, b->val));
@@ -601,7 +601,7 @@ namespace rubinius {
   }
 
   Integer* Bignum::bit_xor(STATE, Float* b) {
-    if(LANGUAGE_19_ENABLED(state)) {
+    if(!LANGUAGE_18_ENABLED(state)) {
       Exception::type_error(state, "can't convert Float into Integer for bitwise arithmetic");
     }
     return bit_xor(state, Bignum::from_double(state, b->val));
