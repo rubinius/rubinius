@@ -88,6 +88,24 @@ class String
     self
   end
 
+  # Builds a set of characters from the <i>*strings</i> parameter(s) using the
+  # procedure described for <code>String#count</code>. Returns a new string
+  # where runs of the same character that occur in this set are replaced by a
+  # single character. If no arguments are given, all runs of identical
+  # characters are replaced by a single character.
+  #
+  #   "yellow moon".squeeze                  #=> "yelow mon"
+  #   "  now   is  the".squeeze(" ")         #=> " now is the"
+  #   "putters shoot balls".squeeze("m-z")   #=> "puters shot balls"
+  def squeeze(*strings)
+    if strings.first =~ /.+\-.+/
+      range = strings.first.gsub(/-/, '').split('')
+      raise ArgumentError, "invalid range #{strings} in string transliteration" unless range == range.sort
+    end
+
+    str = dup
+    str.squeeze!(*strings) || str
+  end
 
   # Performs the substitutions of <code>String#sub</code> in place,
   # returning <i>self</i>, or <code>nil</code> if no substitutions were
