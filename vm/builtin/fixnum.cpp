@@ -8,6 +8,7 @@
 
 #include "primitives.hpp"
 #include "vm/object_utils.hpp"
+#include "vm/configuration.hpp"
 
 #include <iostream>
 
@@ -363,6 +364,9 @@ namespace rubinius {
   }
 
   Integer* Fixnum::bit_and(STATE, Float* other) {
+    if(LANGUAGE_19_ENABLED(state)) {
+      Exception::type_error(state, "can't convert Float into Integer for bitwise arithmetic");
+    }
     return Fixnum::from(to_native() & (native_int)other->val);
   }
 
@@ -375,6 +379,9 @@ namespace rubinius {
   }
 
   Integer* Fixnum::bit_or(STATE, Float* other) {
+    if(LANGUAGE_19_ENABLED(state)) {
+      Exception::type_error(state, "can't convert Float into Integer for bitwise arithmetic");
+    }
     return Fixnum::from(to_native() | (native_int)other->val);
   }
 
@@ -387,6 +394,9 @@ namespace rubinius {
   }
 
   Integer* Fixnum::bit_xor(STATE, Float* other) {
+    if(LANGUAGE_19_ENABLED(state)) {
+      Exception::type_error(state, "can't convert Float into Integer for bitwise arithmetic");
+    }
     return Fixnum::from(to_native() ^ (native_int)other->val);
   }
 
