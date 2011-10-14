@@ -1,1 +1,0 @@
-fails:Enumerable#zip converts arguments to arrays using #to_ary
