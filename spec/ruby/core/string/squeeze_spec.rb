@@ -46,7 +46,7 @@ describe "String#squeeze" do
   end
 
   ruby_version_is "1.8" ... "1.9" do
-    it "doesn't change chars when the parameter is out of the sequence" do
+    it "doesn't change chars when the parameter is out of sequence" do
       s = "--subbookkeeper--"
       s.squeeze("e-b").should == s
       s.squeeze("^e-b").should == s.squeeze
@@ -54,7 +54,7 @@ describe "String#squeeze" do
   end
 
   ruby_version_is "1.9" do
-    it "raises an error when the parameter is out of the sequence" do
+    it "raises an ArgumentError when the parameter is out of sequence" do
       s = "--subbookkeeper--"
       lambda { s.squeeze("e-b") }.should raise_error(ArgumentError)
       lambda { s.squeeze("^e-b") }.should raise_error(ArgumentError)
@@ -102,6 +102,22 @@ describe "String#squeeze!" do
     a.squeeze!("u", "sq").should == nil
     a.squeeze!("q").should == nil
     a.should == "squeeze"
+  end
+
+  ruby_version_is "1.8" ... "1.9" do
+    it "returns nil when the parameter is out of sequence" do
+      s = "--subbookkeeper--"
+      s.squeeze!("e-b").should == nil
+      s.squeeze!("^e-b").should == nil
+    end
+  end
+
+  ruby_version_is "1.9" do
+    it "raises an ArgumentError when the parameter is out of sequence" do
+      s = "--subbookkeeper--"
+      lambda { s.squeeze!("e-b") }.should raise_error(ArgumentError)
+      lambda { s.squeeze!("^e-b") }.should raise_error(ArgumentError)
+    end
   end
 
   ruby_version_is ""..."1.9" do
