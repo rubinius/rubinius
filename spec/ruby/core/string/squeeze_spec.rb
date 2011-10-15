@@ -104,6 +104,14 @@ describe "String#squeeze!" do
     a.should == "squeeze"
   end
 
+  ruby_version_is "1.9" do
+    it "raises an error when the parameter is out of sequence" do
+      s = "--subbookkeeper--"
+      lambda { s.squeeze!("e-b") }.should raise_error(ArgumentError)
+      lambda { s.squeeze!("^e-b") }.should raise_error(ArgumentError)
+    end
+  end
+
   ruby_version_is ""..."1.9" do
     it "raises a TypeError when self is frozen" do
       a = "yellow moon"
