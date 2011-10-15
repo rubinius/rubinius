@@ -224,7 +224,7 @@ module Rubinius
         @finish = finish
       end
 
-      def sexp_key
+      def sexp_name
         :flip2
       end
 
@@ -239,12 +239,12 @@ module Rubinius
       end
 
       def to_sexp
-        [sexp_key, @start.to_sexp, @finish.to_sexp]
+        [sexp_name, @start.to_sexp, @finish.to_sexp]
       end
     end
 
     class Flip3 < Flip2
-      def sexp_key
+      def sexp_name
         :flip3
       end
     end
