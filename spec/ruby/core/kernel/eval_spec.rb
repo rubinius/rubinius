@@ -282,4 +282,31 @@ describe "Kernel#eval" do
       eval('KernelSpecs::EvalTest.call_yield') { "content" }
     }.should raise_error(LocalJumpError)
   end
+
+  it "returns from the scope calling #eval when evaluating 'return'" do
+    lambda { eval("return :eval") }.call.should == :eval
+  end
+
+  ruby_bug "#", "1.9" do
+    # TODO: investigate this further on 1.8.7. This is one oddity:
+    #
+    # In a script body:
+    #
+    #   lambda { return }
+    #     works as expected
+    #
+    #   def quix; yield; end
+    #   lambda { quix { return } }
+    #     raises a LocalJumpError
+
+    it "unwinds through a Proc-style closure and returns from a lambda-style closure in the closure chain" do
+      code = fixture __FILE__, "eval_return_with_lambda.rb"
+      ruby_exe(code).chomp.should == "a,b,c,eval,f"
+    end
+  end
+
+  it "raises a LocalJumpError if there is no lambda-style closure in the chain" do
+    code = fixture __FILE__, "eval_return_without_lambda.rb"
+    ruby_exe(code).chomp.should == "a,b,c,e,LocalJumpError,f"
+  end
 end

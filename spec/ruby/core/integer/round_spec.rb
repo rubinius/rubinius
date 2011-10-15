@@ -30,7 +30,7 @@ describe "Integer#round" do
       end
     end
 
-    ruby_bug "redmine #5271", "1.9.2" do
+    ruby_bug "redmine #5271", "1.9.3" do
       it "returns 0 if passed a big negative value" do
         42.round(-2**30).should eql(0)
       end
