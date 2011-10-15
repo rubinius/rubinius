@@ -224,28 +224,26 @@ module Rubinius
         @finish = finish
       end
 
+      def sexp_key
+        :flip2
+      end
+
       def bytecode(g)
-        g.push :nil
+        g.push_literal Rubinius::Compiler::Runtime
+        g.push_literal sexp_key == :flip2
+        @start.bytecode(g)
+        @finish.bytecode(g)
+        g.send :flip_flop, 3
       end
 
       def to_sexp
-        [:flip2, @start.to_sexp, @finish.to_sexp]
+        [sexp_key, @start.to_sexp, @finish.to_sexp]
       end
     end
 
-    class Flip3 < Node
-      def initialize(line, start, finish)
-        @line = line
-        @start = start
-        @finish = finish
-      end
-
-      def bytecode(g)
-        g.push :nil
-      end
-
-      def to_sexp
-        [:flip3, @start.to_sexp, @finish.to_sexp]
+    class Flip3 < Flip2
+      def sexp_key
+        :flip3
       end
     end
 

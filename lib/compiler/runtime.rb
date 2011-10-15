@@ -39,6 +39,21 @@ module Rubinius
 
     module_function :find_constant_for_op_asign_or
 
+    def flip_flop(including, start, finish)
+      cm = Rubinius::CompiledMethod.of_sender
+
+      if start
+        cm.flip_flop = true
+        return true unless including
+      end
+
+      return false unless cm.flip_flop
+      cm.flip_flop = false if finish
+      true
+    end
+
+    module_function :flip_flop
+
     def self.rbx_marshal_constant
       name
     end

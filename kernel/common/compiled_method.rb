@@ -29,6 +29,7 @@ module Rubinius
     attr_accessor :file          # [Symbol]  the file where this comes from
     attr_accessor :local_names   # [Array<Symbol>] names of the local vars
     attr_accessor :scope
+    attr_accessor :flip_flop
 
     ##
     # Compare this method with +other+. Instead of bugging out if +other+
