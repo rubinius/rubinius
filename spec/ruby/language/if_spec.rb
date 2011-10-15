@@ -241,6 +241,53 @@ describe "The if expression" do
       10.times { |i| ScratchPad << i if (i == 4)...(i == 5) }
       ScratchPad.recorded.should == [4, 5]
     end
+
+    it "allows combining two flip-flops" do
+      10.times { |i| ScratchPad << i if (i == 4)...(i == 5) or (i == 7)...(i == 8) }
+      ScratchPad.recorded.should == [4, 5, 7, 8]
+    end
+
+    it "should evaluate the first conditions lazyly with inclusive-end range" do
+      collector = proc { |i| ScratchPad << i }
+      10.times { |i| i if collector[i]...false }
+      ScratchPad.recorded.should == [0]
+    end
+
+    it "should evaluate the first conditions lazyly with exclusive-end range" do
+      collector = proc { |i| ScratchPad << i }
+      10.times { |i| i if collector[i]..false }
+      ScratchPad.recorded.should == [0]
+    end
+
+    it "should evaluate the second conditions lazyly with inclusive-end range" do
+      collector = proc { |i| ScratchPad << i }
+      10.times { |i| i if (i == 4)...collector[i] }
+      ScratchPad.recorded.should == [5]
+    end
+
+    it "should evaluate the second conditions lazyly with exclusive-end range" do
+      collector = proc { |i| ScratchPad << i }
+      10.times { |i| i if (i == 4)..collector[i] }
+      ScratchPad.recorded.should == [4]
+    end
+
+    it "scopes state by flip-flop" do
+      store_me = proc { |i| ScratchPad << i if (i == 4)..(i == 7) }
+      store_me[1]
+      store_me[4]
+      proc { store_me[1] }.call
+      store_me[7]
+      store_me[5]
+      ScratchPad.recorded.should == [4, 1, 7]
+    end
+
+    it 'keeps flip-flops from interfering' do
+      a = proc { |i| ScratchPad << i if (i == 4)..(i == 7) }
+      b = proc { |i| ScratchPad << i if (i == 4)..(i == 7) }
+      6.times(&a)
+      6.times(&b)
+      ScratchPad.recorded.should == [4, 5, 4, 5]
+    end
   end
 end
 
