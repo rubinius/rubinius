@@ -370,9 +370,13 @@ module Rubinius
 
     class OpAssignOr19 < OpAssignOr
       def bytecode(g)
+        pos(g)
+
         g.state.push_op_asgn
-        super(g)
-        g.state.pop_op_asgn
+        @left.or_bytecode(g) do
+          g.state.pop_op_asgn
+          @right.bytecode(g)
+        end
       end
     end
   end

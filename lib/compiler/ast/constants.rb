@@ -189,7 +189,10 @@ module Rubinius
         pos(g)
 
         if g.state.op_asgn?
-          g.push_const_or_nil @name
+          g.push_literal Rubinius::Compiler::Runtime
+          g.push_literal @name
+          g.push_scope
+          g.send :find_constant_for_op_asign_or, 2
         else
           g.push_const @name
         end
