@@ -104,6 +104,14 @@ describe "String#squeeze!" do
     a.should == "squeeze"
   end
 
+  ruby_version_is "1.8" ... "1.9" do
+    it "returns nil when the parameter is out of sequence" do
+      s = "--subbookkeeper--"
+      s.squeeze!("e-b").should == nil
+      s.squeeze!("^e-b").should == nil
+    end
+  end
+
   ruby_version_is "1.9" do
     it "raises an error when the parameter is out of sequence" do
       s = "--subbookkeeper--"
