@@ -1622,31 +1622,6 @@ class String
     str.squeeze!(*strings) || str
   end
 
-  # Squeezes <i>self</i> in place, returning either <i>self</i>, or
-  # <code>nil</code> if no changes were made.
-  def squeeze!(*strings)
-    return if @num_bytes == 0
-    self.modify!
-
-    table = count_table(*strings).__data__
-
-    i, j, last = 1, 0, @data[0]
-    while i < @num_bytes
-      c = @data[i]
-      unless c == last and table[c] == 1
-        @data[j+=1] = last = c
-      end
-      i += 1
-    end
-
-    if (j += 1) < @num_bytes
-      @num_bytes = j
-      self
-    else
-      nil
-    end
-  end
-
   def start_with?(*prefixes)
     prefixes.each do |prefix|
       prefix = Rubinius::Type.check_convert_type prefix, String, :to_str
