@@ -270,6 +270,16 @@ describe "The if expression" do
       10.times { |i| i if (i == 4)..collector[i] }
       ScratchPad.recorded.should == [4]
     end
+
+    it "scopes state by flip-flop" do
+      store_me = proc { |i| ScratchPad << i if (i == 4)..(i == 7) }
+      store_me[1]
+      store_me[4]
+      proc { store_me[1] }.call
+      store_me[7]
+      store_me[5]
+      ScratchPad.recorded.should == [4, 1, 7]
+    end
   end
 end
 
