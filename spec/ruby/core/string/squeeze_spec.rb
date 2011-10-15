@@ -46,7 +46,7 @@ describe "String#squeeze" do
   end
 
   ruby_version_is "1.8" ... "1.9" do
-    it "doesn't change chars when the parameter is out of the sequence" do
+    it "doesn't change chars when the parameter is out of sequence" do
       s = "--subbookkeeper--"
       s.squeeze("e-b").should == s
       s.squeeze("^e-b").should == s.squeeze
