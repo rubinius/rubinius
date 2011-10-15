@@ -571,6 +571,10 @@ module Rubinius
       end
     end
 
+    def process_op_asgn_or(line, var, value)
+      AST::OpAssignOr19.new line, var, value
+    end
+
     def process_opt_arg(line, arguments)
       AST::Block.new line, arguments
     end

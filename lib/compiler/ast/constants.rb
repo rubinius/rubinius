@@ -188,7 +188,11 @@ module Rubinius
       def bytecode(g)
         pos(g)
 
-        g.push_const @name
+        if g.state.op_asgn?
+          g.push_const_or_nil @name
+        else
+          g.push_const @name
+        end
       end
 
       def assign_bytecode(g, value)

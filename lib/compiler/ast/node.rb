@@ -263,6 +263,7 @@ module Rubinius
         @block = 0
         @masgn = 0
         @loop = 0
+        @op_asgn = 0
         @rescue = []
         @name = []
       end
@@ -325,6 +326,18 @@ module Rubinius
 
       def masgn?
         @masgn > 0
+      end
+
+      def push_op_asgn
+        @op_asgn += 1
+      end
+
+      def pop_op_asgn
+        @op_asgn -= 1 if op_asgn?
+      end
+
+      def op_asgn?
+        @op_asgn > 0
       end
 
       def push_super(scope)
