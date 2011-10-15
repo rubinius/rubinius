@@ -39,21 +39,19 @@ module Rubinius
 
     module_function :find_constant_for_op_asign_or
 
-    def flip_flop(index, including, start, finish)
+    def get_flip_flop(index)
       cm = Rubinius::CompiledMethod.of_sender
-      cm.flip_flops ||= []
-
-      if start
-        cm.flip_flops[index] = true
-        return true unless including
-      end
-
-      return false unless cm.flip_flops[index]
-      cm.flip_flops[index] = false if finish
-      true
+      cm.scope.flip_flops_for(cm)[index]
     end
 
-    module_function :flip_flop
+    module_function :get_flip_flop
+
+    def set_flip_flop(index, value)
+      cm = Rubinius::CompiledMethod.of_sender
+      cm.scope.flip_flops_for(cm)[index] = value
+    end
+
+    module_function :set_flip_flop
 
     def self.rbx_marshal_constant
       name

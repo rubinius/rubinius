@@ -228,14 +228,52 @@ module Rubinius
         :flip2
       end
 
+      def exclusive?
+        false
+      end
+
       def bytecode(g)
-        g.push_literal Rubinius::Compiler::Runtime
-        g.push_literal g.state.flip_flops
-        g.push_literal sexp_key == :flip2
-        @start.bytecode(g)
-        @finish.bytecode(g)
-        g.send :flip_flop, 4
+        done = g.new_label
+        on_label = g.new_label
+        index = g.state.flip_flops
         g.state.push_flip_flop
+
+        get_flip_flop(g, index)
+        g.git on_label
+
+        @start.bytecode(g)
+        g.dup
+        g.gif done
+        g.pop
+        set_flip_flop(g, index, true)
+
+        if exclusive?
+          g.goto done
+        else
+          g.pop
+        end
+
+        on_label.set!
+        g.push_literal true
+        @finish.bytecode(g)
+        g.gif done
+        set_flip_flop(g, index, false)
+        g.pop
+
+        done.set!
+      end
+
+      def get_flip_flop(g, index)
+        g.push_literal Rubinius::Compiler::Runtime
+        g.push_literal index
+        g.send(:get_flip_flop, 1)
+      end
+
+      def set_flip_flop(g, index, value)
+        g.push_literal Rubinius::Compiler::Runtime
+        g.push_literal index
+        g.push_literal value
+        g.send(:set_flip_flop, 2)
       end
 
       def to_sexp
@@ -246,6 +284,10 @@ module Rubinius
     class Flip3 < Flip2
       def sexp_name
         :flip3
+      end
+
+      def exclusive?
+        true
       end
     end
 

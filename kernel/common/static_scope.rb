@@ -32,6 +32,9 @@ module Rubinius
     # Set to indicate that no methods may be add to this scope
     attr_accessor :disabled_for_methods
 
+    # Lazy initialized hash map used for flip-flops
+    attr_accessor :flip_flops
+
     def inspect
       "#<#{self.class.name}:0x#{self.object_id.to_s(16)} parent=#{@parent.inspect} module=#{@module}>"
     end
@@ -138,6 +141,11 @@ module Rubinius
       end
 
       return Object.const_defined?(name)
+    end
+
+    def flip_flops_for(cm)
+      @flip_flops ||= {}
+      @flip_flops[cm] ||= []
     end
   end
 end
