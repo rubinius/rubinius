@@ -280,6 +280,14 @@ describe "The if expression" do
       store_me[5]
       ScratchPad.recorded.should == [4, 1, 7]
     end
+
+    it 'keeps flip-flops from interfering' do
+      a = proc { |i| ScratchPad << i if (i == 4)..(i == 7) }
+      b = proc { |i| ScratchPad << i if (i == 4)..(i == 7) }
+      6.times(&a)
+      6.times(&b)
+      ScratchPad.recorded.should == [4, 5, 4, 5]
+    end
   end
 end
 
