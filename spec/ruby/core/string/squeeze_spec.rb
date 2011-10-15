@@ -1,6 +1,8 @@
 require File.expand_path('../../../spec_helper', __FILE__)
 require File.expand_path('../fixtures/classes.rb', __FILE__)
 
+# TODO: rewrite all these specs
+
 describe "String#squeeze" do
   it "returns new string where runs of the same character are replaced by a single character when no args are given" do
     "yellow moon".squeeze.should == "yelow mon"
@@ -108,7 +110,11 @@ describe "String#squeeze!" do
     it "returns nil when the parameter is out of sequence" do
       s = "--subbookkeeper--"
       s.squeeze!("e-b").should == nil
-      s.squeeze!("^e-b").should == nil
+    end
+
+    it "removes runs of the same character when the negated sequence is out of order" do
+      s = "--subbookkeeper--"
+      s.squeeze!("^e-b").should == "-subokeper-"
     end
   end
 
