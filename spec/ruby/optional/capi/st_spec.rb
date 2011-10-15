@@ -1,6 +1,6 @@
 require File.expand_path('../spec_helper', __FILE__)
 
-load_extension("st")
+load_extension("st", :language=>:cpp)
 
 describe "C-API ST-Hash function" do
   before :each do

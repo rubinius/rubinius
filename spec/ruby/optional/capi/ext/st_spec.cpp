@@ -1,4 +1,6 @@
+extern "C" {
 #include "ruby.h"
+}
 #include "rubyspec.h"
 
 #ifdef RUBY_VERSION_IS_1_9
@@ -15,6 +17,18 @@ extern "C" {
 
 #ifdef __cplusplus
 extern "C" {
+#endif
+
+/*
+ * VALUEFUNC(f) is a macro used to typecast a C function that implements
+ * a Ruby method so that it can be passed as an argument to API functions
+ * like rb_define_method() and rb_define_singleton_method(). Needed
+ * when compiling C++ code.
+ */
+#ifdef __cplusplus
+#  define VALUEFUNC(f) ((VALUE (*)(ANYARGS)) f)
+#else
+#  define VALUEFUNC(f) (f)
 #endif
 
 
@@ -43,7 +57,7 @@ VALUE st_spec_lookup(VALUE self, VALUE key) {
   VALUE value;
   int res;
   Data_Get_Struct(self, st_table, table);
-  res = st_lookup(table, NUM2LONG(key), &value);
+  res = st_lookup(table, NUM2LONG(key), (st_data_t*)&value);
   return res ? value : Qnil;
 }
 #endif
@@ -55,7 +69,7 @@ VALUE st_spec_delete(VALUE self, VALUE key) {
   int res;
   st_data_t key2 = NUM2LONG(key);
   Data_Get_Struct(self, st_table, table);
-  res = st_delete(table, &key2, &value);
+  res = st_delete(table, &key2, (st_data_t*)&value);
   return res ? value : Qnil;
 }
 #endif
@@ -80,7 +94,7 @@ VALUE st_spec_foreach(VALUE self) {
   st_table *table;
   VALUE other = rb_hash_new();
   Data_Get_Struct(self, st_table, table);
-  st_foreach(table, st_spec_foreach_i, other);
+  st_foreach(table, (int (*)(...))st_spec_foreach_i, other);
   return other;
 }
 
@@ -88,7 +102,7 @@ VALUE st_spec_foreach_stop(VALUE self) {
   st_table *table;
   VALUE other = rb_hash_new();
   Data_Get_Struct(self, st_table, table);
-  st_foreach(table, st_spec_foreach_stop_i, other);
+  st_foreach(table, (int (*)(...))st_spec_foreach_stop_i, other);
   return other;
 }
 
@@ -96,7 +110,7 @@ VALUE st_spec_foreach_delete(VALUE self) {
   st_table *table;
   VALUE other = rb_hash_new();
   Data_Get_Struct(self, st_table, table);
-  st_foreach(table, st_spec_foreach_delete_i, other);
+  st_foreach(table, (int (*)(...))st_spec_foreach_delete_i, other);
   return other;
 }
 #endif
@@ -110,21 +124,21 @@ void Init_st_spec() {
 #endif
 
 #ifdef HAVE_ST_INSERT
-  rb_define_method(cls, "st_insert", st_spec_insert, 2);
+  rb_define_method(cls, "st_insert", VALUEFUNC(st_spec_insert), 2);
 #endif
 
 #ifdef HAVE_ST_LOOKUP
-  rb_define_method(cls, "st_lookup", st_spec_lookup, 1);
+  rb_define_method(cls, "st_lookup", VALUEFUNC(st_spec_lookup), 1);
 #endif
 
 #ifdef HAVE_ST_DELETE
-  rb_define_method(cls, "st_delete", st_spec_delete, 1);
+  rb_define_method(cls, "st_delete", VALUEFUNC(st_spec_delete), 1);
 #endif
 
 #ifdef HAVE_ST_FOREACH
-  rb_define_method(cls, "st_foreach", st_spec_foreach, 0);
-  rb_define_method(cls, "st_foreach_stop", st_spec_foreach_stop, 0);
-  rb_define_method(cls, "st_foreach_delete", st_spec_foreach_delete, 0);
+  rb_define_method(cls, "st_foreach", VALUEFUNC(st_spec_foreach), 0);
+  rb_define_method(cls, "st_foreach_stop", VALUEFUNC(st_spec_foreach_stop), 0);
+  rb_define_method(cls, "st_foreach_delete", VALUEFUNC(st_spec_foreach_delete), 0);
 #endif
 
 }
