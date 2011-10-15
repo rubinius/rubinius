@@ -224,28 +224,72 @@ module Rubinius
         @finish = finish
       end
 
+      def sexp_name
+        :flip2
+      end
+
+      def exclusive?
+        false
+      end
+
       def bytecode(g)
-        g.push :nil
+        done = g.new_label
+        on_label = g.new_label
+        index = g.state.flip_flops
+        g.state.push_flip_flop
+
+        get_flip_flop(g, index)
+        g.git on_label
+
+        @start.bytecode(g)
+        g.dup
+        g.gif done
+        g.pop
+        set_flip_flop(g, index, true)
+
+        if exclusive?
+          g.goto done
+        else
+          g.pop
+        end
+
+        on_label.set!
+        g.push_literal true
+        @finish.bytecode(g)
+        g.gif done
+        set_flip_flop(g, index, false)
+        g.pop
+
+        done.set!
+      end
+
+      def get_flip_flop(g, index)
+        g.push_literal Rubinius::Compiler::Runtime
+        g.push_scope
+        g.push_literal index
+        g.send(:get_flip_flop, 2)
+      end
+
+      def set_flip_flop(g, index, value)
+        g.push_literal Rubinius::Compiler::Runtime
+        g.push_scope
+        g.push_literal index
+        g.push_literal value
+        g.send(:set_flip_flop, 3)
       end
 
       def to_sexp
-        [:flip2, @start.to_sexp, @finish.to_sexp]
+        [sexp_name, @start.to_sexp, @finish.to_sexp]
       end
     end
 
-    class Flip3 < Node
-      def initialize(line, start, finish)
-        @line = line
-        @start = start
-        @finish = finish
+    class Flip3 < Flip2
+      def sexp_name
+        :flip3
       end
 
-      def bytecode(g)
-        g.push :nil
-      end
-
-      def to_sexp
-        [:flip3, @start.to_sexp, @finish.to_sexp]
+      def exclusive?
+        true
       end
     end
 
