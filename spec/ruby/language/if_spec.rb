@@ -247,13 +247,25 @@ describe "The if expression" do
       ScratchPad.recorded.should == [4, 5, 7, 8]
     end
 
-    it "should evaluate conditions lazyly with inclusive-end range" do
+    it "should evaluate the first conditions lazyly with inclusive-end range" do
+      collector = proc { |i| ScratchPad << i }
+      10.times { |i| i if collector[i]...false }
+      ScratchPad.recorded.should == [0]
+    end
+
+    it "should evaluate the first conditions lazyly with exclusive-end range" do
+      collector = proc { |i| ScratchPad << i }
+      10.times { |i| i if collector[i]..false }
+      ScratchPad.recorded.should == [0]
+    end
+
+    it "should evaluate the second conditions lazyly with inclusive-end range" do
       collector = proc { |i| ScratchPad << i }
       10.times { |i| i if (i == 4)...collector[i] }
       ScratchPad.recorded.should == [5]
     end
 
-    it "should evaluate conditions lazyly with exclusive-end range" do
+    it "should evaluate the second conditions lazyly with exclusive-end range" do
       collector = proc { |i| ScratchPad << i }
       10.times { |i| i if (i == 4)..collector[i] }
       ScratchPad.recorded.should == [4]
