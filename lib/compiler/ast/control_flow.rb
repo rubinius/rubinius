@@ -265,15 +265,17 @@ module Rubinius
 
       def get_flip_flop(g, index)
         g.push_literal Rubinius::Compiler::Runtime
+        g.push_scope
         g.push_literal index
-        g.send(:get_flip_flop, 1)
+        g.send(:get_flip_flop, 2)
       end
 
       def set_flip_flop(g, index, value)
         g.push_literal Rubinius::Compiler::Runtime
+        g.push_scope
         g.push_literal index
         g.push_literal value
-        g.send(:set_flip_flop, 2)
+        g.send(:set_flip_flop, 3)
       end
 
       def to_sexp
