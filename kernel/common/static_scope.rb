@@ -142,11 +142,6 @@ module Rubinius
 
       return Object.const_defined?(name)
     end
-
-    def flip_flops_for(cm)
-      @flip_flops ||= {}
-      @flip_flops[cm] ||= []
-    end
   end
 end
 

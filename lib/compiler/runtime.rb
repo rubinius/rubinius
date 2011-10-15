@@ -40,15 +40,15 @@ module Rubinius
     module_function :find_constant_for_op_asign_or
 
     def get_flip_flop(scope, index)
-      cm = Rubinius::CompiledMethod.of_sender
-      scope.flip_flops_for(cm)[index]
+      scope.flip_flops ||= {}
+      scope.flip_flops[index]
     end
 
     module_function :get_flip_flop
 
     def set_flip_flop(scope, index, value)
-      cm = Rubinius::CompiledMethod.of_sender
-      scope.flip_flops_for(cm)[index] = value
+      scope.flip_flops ||= {}
+      scope.flip_flops[index] = value
     end
 
     module_function :set_flip_flop

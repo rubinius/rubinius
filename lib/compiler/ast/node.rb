@@ -255,13 +255,18 @@ module Rubinius
     # bytecode. An instance of State is pushed onto a stack in the Generator
     # instance as each ClosedScope or Iter is entered, and popped when left.
     class State
-      attr_reader :scope, :super, :eval, :flip_flops
+      attr_reader :scope, :super, :eval
+
+      class << self
+        attr_accessor :flip_flops
+      end
+
+      self.flip_flops ||= 0
 
       def initialize(scope)
         @scope = scope
         @ensure = 0
         @block = 0
-        @flip_flops = 0
         @masgn = 0
         @loop = 0
         @op_asgn = 0
@@ -317,8 +322,12 @@ module Rubinius
         @block > 0
       end
 
+      def flip_flops
+        State.flip_flops
+      end
+
       def push_flip_flop
-        @flip_flops += 1
+        State.flip_flops += 1
       end
 
       def push_masgn
