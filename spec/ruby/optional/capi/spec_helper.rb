@@ -14,10 +14,11 @@ end
 
 CAPI_RUBY_SIGNATURE = "#{RUBY_NAME}-#{RUBY_VERSION}"
 
-def compile_extension(path, name)
+def compile_extension(path, name, params={})
   # TODO use rakelib/ext_helper.rb?
   arch_hdrdir = nil
   ruby_hdrdir = nil
+  is_cpp = params[:language] == :cpp
 
   if RUBY_NAME == 'rbx'
     hdrdir = RbConfig::CONFIG["rubyhdrdir"]
@@ -36,7 +37,7 @@ def compile_extension(path, name)
   end
 
   ext       = File.join(path, "#{name}_spec")
-  source    = "#{ext}.c"
+  source    = is_cpp ? "#{ext}.cpp" : "#{ext}.c"
   obj       = "#{ext}.o"
   lib       = "#{ext}.#{RbConfig::CONFIG['DLEXT']}"
   signature = "#{ext}.sig"
@@ -55,8 +56,13 @@ def compile_extension(path, name)
   # avoid problems where compilation failed but previous shlib exists
   File.delete lib if File.exists? lib
 
-  cc        = RbConfig::CONFIG["CC"]
-  cflags    = (ENV["CFLAGS"] || RbConfig::CONFIG["CFLAGS"]).dup
+  if is_cpp
+    cc        = RbConfig::CONFIG["CXX"] || RbConfig::CONFIG["CC"]
+    cflags    = (ENV["CXXFLAGS"] || RbConfig::CONFIG["CXXFLAGS"] || RbConfig::CONFIG["CFLAGS"]).dup
+  else
+    cc        = RbConfig::CONFIG["CC"]
+    cflags    = (ENV["CFLAGS"] || RbConfig::CONFIG["CFLAGS"]).dup
+  end
   cflags   += " -fPIC" unless cflags.include?("-fPIC")
   incflags  = "-I#{path} -I#{hdrdir}"
   incflags << " -I#{arch_hdrdir}" if arch_hdrdir
@@ -86,10 +92,10 @@ def compile_extension(path, name)
   lib
 end
 
-def load_extension(name)
+def load_extension(name, params={})
   path = File.join(File.dirname(__FILE__), 'ext')
 
-  ext = compile_extension path, name
+  ext = compile_extension path, name, params
   require ext
 end
 
