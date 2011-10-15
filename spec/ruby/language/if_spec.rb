@@ -241,6 +241,11 @@ describe "The if expression" do
       10.times { |i| ScratchPad << i if (i == 4)...(i == 5) }
       ScratchPad.recorded.should == [4, 5]
     end
+
+    it "allows combining two flip-flops" do
+      10.times { |i| ScratchPad << i if (i == 4)...(i == 5) or (i == 7)...(i == 8) }
+      ScratchPad.recorded.should == [4, 5, 7, 8]
+    end
   end
 end
 
