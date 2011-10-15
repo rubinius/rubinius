@@ -112,14 +112,16 @@ compiler_files = FileList[
   opcodes,
   "lib/compiler/generator_methods.rb",
   "lib/melbourne.rb",
-  "lib/melbourne/**/*.rb"
+  "lib/melbourne/**/*.rb",
+  "vm/marshal.[ch]pp"
 ]
 
 parser_files = FileList[
   "lib/ext/melbourne/**/*.{c,h}pp",
   "lib/ext/melbourne/grammar18.y",
   "lib/ext/melbourne/grammar19.y",
-  "lib/ext/melbourne/lex.c.tab"
+  "lib/ext/melbourne/lex.c.tab",
+  "lib/ext/melbourne/lex.c.blt"
 ]
 
 
