@@ -39,16 +39,17 @@ module Rubinius
 
     module_function :find_constant_for_op_asign_or
 
-    def flip_flop(including, start, finish)
+    def flip_flop(index, including, start, finish)
       cm = Rubinius::CompiledMethod.of_sender
+      cm.flip_flops ||= []
 
       if start
-        cm.flip_flop = true
+        cm.flip_flops[index] = true
         return true unless including
       end
 
-      return false unless cm.flip_flop
-      cm.flip_flop = false if finish
+      return false unless cm.flip_flops[index]
+      cm.flip_flops[index] = false if finish
       true
     end
 

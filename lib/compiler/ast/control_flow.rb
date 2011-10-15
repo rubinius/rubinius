@@ -230,10 +230,12 @@ module Rubinius
 
       def bytecode(g)
         g.push_literal Rubinius::Compiler::Runtime
+        g.push_literal g.state.flip_flops
         g.push_literal sexp_key == :flip2
         @start.bytecode(g)
         @finish.bytecode(g)
-        g.send :flip_flop, 3
+        g.send :flip_flop, 4
+        g.state.push_flip_flop
       end
 
       def to_sexp
