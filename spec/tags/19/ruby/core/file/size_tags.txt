@@ -1,1 +1,0 @@
-fails:File#size raises an IOError on a closed file
