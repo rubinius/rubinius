@@ -99,11 +99,12 @@ module Kernel
   def String(obj)
     return obj if obj.kind_of? String
 
-    unless obj.respond_to? :to_s
-      raise TypeError, "Unable to convert to a String"
+    begin
+      str = obj.to_s
+    rescue NoMethodError
+      raise TypeError, "#to_s is not defined"
     end
 
-    str = obj.to_s
     unless str.kind_of? String
       raise TypeError, "#to_s did not return a String"
     end
