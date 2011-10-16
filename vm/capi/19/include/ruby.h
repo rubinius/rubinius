@@ -35,6 +35,14 @@
 #include "ruby/intern.h"
 #include "ruby/defines.h"
 
+/* There are C-exts like pg and mysql that are using this define to dectect
+ * whether they are running in 1.9 mode. This is extremely broken, but instead
+ * of trying to chase down all those libraries now, we'll see how far this
+ * gets us. It shouldn't cause issues because any C-exts that use MRI
+ * internals would not compile regardless of this define.
+ */
+#define RUBY_VM 1 /* Fake YARV */
+
 #define RUBY_COMPAT_LEVEL 2
 
 #ifdef __cplusplus
