@@ -164,8 +164,9 @@ else
   $topdir = RbConfig::CONFIG["rubyhdrdir"]
 end
 
-$top_srcdir = $topdir
-$hdrdir     = $topdir
+$top_srcdir  = $topdir
+$hdrdir      = $topdir
+$arch_hdrdir = $hdrdir
 
 unless File.exists?($hdrdir + "/ruby.h")
   abort "mkmf.rb can't find header files for ruby at #{$hdrdir}/ruby.h"
@@ -1910,7 +1911,7 @@ site-install-rb: install-rb
   if File.exist?(depend)
     mfile.print("###\n", *depend_rules(File.read(depend)))
   else
-    headers = %w[$(hdrdir)/ruby.h $(hdrdir)/defines.h]
+    headers = %w[$(hdrdir)/ruby.h $(hdrdir)/ruby/defines.h]
     if RULE_SUBST
       headers.each {|h| h.sub!(/.*/, &RULE_SUBST.method(:%))}
     end
