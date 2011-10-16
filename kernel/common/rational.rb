@@ -75,9 +75,11 @@ class Rational < Numeric
       num = -num
       den = -den
     end
-    gcd = num.gcd(den)
-    num = num.div(gcd)
-    den = den.div(gcd)
+    if num.kind_of?(Integer)
+      gcd = num.gcd(den)
+      num = num.div(gcd)
+      den = den.div(gcd)
+    end
     if den == 1 && defined?(Unify)
       num
     else
