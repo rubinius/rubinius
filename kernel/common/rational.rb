@@ -452,6 +452,7 @@ class Integer
   # The result is positive, no matter the sign of the arguments.
   #
   def gcd(other)
+    raise TypeError, "Expected Integer but got #{other.class}" unless other.kind_of?(Integer)
     min = self.abs
     max = other.abs
     while min > 0
