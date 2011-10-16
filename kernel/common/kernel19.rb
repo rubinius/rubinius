@@ -96,4 +96,20 @@ module Kernel
   end
   module_function :require_relative
 
+  def String(obj)
+    return obj if obj.kind_of? String
+
+    begin
+      str = obj.to_s
+    rescue NoMethodError
+      raise TypeError, "can't convert #{obj.class} into String"
+    end
+
+    unless str.kind_of? String
+      raise TypeError, "#to_s did not return a String"
+    end
+
+    return str
+  end
+  module_function :String
 end

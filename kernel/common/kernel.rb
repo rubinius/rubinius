@@ -47,22 +47,6 @@ module Kernel
   end
   module_function :Array
 
-  def String(obj)
-    return obj if obj.kind_of? String
-
-    unless obj.respond_to? :to_s
-      raise TypeError, "Unable to convert to a String"
-    end
-
-    str = obj.to_s
-    unless str.kind_of? String
-      raise TypeError, "#to_s did not return a String"
-    end
-
-    return str
-  end
-  module_function :String
-
   ##
   # MRI uses a macro named StringValue which has essentially the same
   # semantics as obj.coerce_to(String, :to_str), but rather than using that
