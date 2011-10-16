@@ -19,18 +19,6 @@ extern "C" {
 extern "C" {
 #endif
 
-/*
- * VALUEFUNC(f) is a macro used to typecast a C function that implements
- * a Ruby method so that it can be passed as an argument to API functions
- * like rb_define_method() and rb_define_singleton_method(). Needed
- * when compiling C++ code.
- */
-#ifdef __cplusplus
-#  define VALUEFUNC(f) ((VALUE (*)(ANYARGS)) f)
-#else
-#  define VALUEFUNC(f) (f)
-#endif
-
 
 #ifdef HAVE_ST_INIT_STRTABLE
 VALUE st_spec_alloc(VALUE self) {
@@ -124,21 +112,21 @@ void Init_st_spec() {
 #endif
 
 #ifdef HAVE_ST_INSERT
-  rb_define_method(cls, "st_insert", VALUEFUNC(st_spec_insert), 2);
+  rb_define_method(cls, "st_insert", RUBY_METHOD_FUNC(st_spec_insert), 2);
 #endif
 
 #ifdef HAVE_ST_LOOKUP
-  rb_define_method(cls, "st_lookup", VALUEFUNC(st_spec_lookup), 1);
+  rb_define_method(cls, "st_lookup", RUBY_METHOD_FUNC(st_spec_lookup), 1);
 #endif
 
 #ifdef HAVE_ST_DELETE
-  rb_define_method(cls, "st_delete", VALUEFUNC(st_spec_delete), 1);
+  rb_define_method(cls, "st_delete", RUBY_METHOD_FUNC(st_spec_delete), 1);
 #endif
 
 #ifdef HAVE_ST_FOREACH
-  rb_define_method(cls, "st_foreach", VALUEFUNC(st_spec_foreach), 0);
-  rb_define_method(cls, "st_foreach_stop", VALUEFUNC(st_spec_foreach_stop), 0);
-  rb_define_method(cls, "st_foreach_delete", VALUEFUNC(st_spec_foreach_delete), 0);
+  rb_define_method(cls, "st_foreach", RUBY_METHOD_FUNC(st_spec_foreach), 0);
+  rb_define_method(cls, "st_foreach_stop", RUBY_METHOD_FUNC(st_spec_foreach_stop), 0);
+  rb_define_method(cls, "st_foreach_delete", RUBY_METHOD_FUNC(st_spec_foreach_delete), 0);
 #endif
 
 }
