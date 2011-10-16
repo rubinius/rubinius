@@ -32,8 +32,8 @@
 #include <fcntl.h>
 #include <errno.h>
 
-#include "intern.h"
-#include "defines.h"
+#include "ruby/intern.h"
+#include "ruby/defines.h"
 
 #define RUBY_COMPAT_LEVEL 2
 

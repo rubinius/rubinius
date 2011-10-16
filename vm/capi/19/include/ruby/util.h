@@ -1,2 +1,7 @@
-// This provides nothing, it's a noop for code that needs
-// this file to exist.
+void ruby_setenv(const char *name, const char *value);
+#undef setenv
+#define setenv(name,val) ruby_setenv(name,val)
+
+char *ruby_strdup(const char *str);
+#undef strdup
+#define strdup(s) ruby_strdup(s)
