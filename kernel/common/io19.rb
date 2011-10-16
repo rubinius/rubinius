@@ -366,7 +366,7 @@ class IO
     else
       args.each do |arg|
         if arg.equal? nil
-          str = "nil"
+          str = ""
         elsif Thread.guarding? arg
           str = "[...]"
         elsif arg.kind_of?(Array)
