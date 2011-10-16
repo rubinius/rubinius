@@ -20,6 +20,32 @@ module Enumerable
     end
   end
 
+  ##
+  # :call-seq:
+  #   enum.each_with_index { |obj, i| block }  -> enum or enumerator
+  #
+  # Calls +block+ with two arguments, the item and its index, for
+  # each item in +enum+.
+  #
+  #   hash = {}
+  #   %w[cat dog wombat].each_with_index { |item, index|
+  #     hash[item] = index
+  #   }
+  #
+  #   p hash   #=> {"cat"=>0, "wombat"=>2, "dog"=>1}
+
+  def each_with_index
+    return to_enum(:each_with_index) unless block_given?
+
+    idx = 0
+    each do |o|
+      yield o, idx
+      idx += 1
+    end
+
+    self
+  end
+
   alias_method :map, :collect
   alias_method :enum_cons, :each_cons
   alias_method :enum_slice, :each_slice
