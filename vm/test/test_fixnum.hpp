@@ -545,13 +545,6 @@ class TestFixnum : public CxxTest::TestSuite, public VMTest {
     TS_ASSERT_EQUALS(Fixnum::from(-5)->bit_and(state, Bignum::from(state, (native_int)-3)), Fixnum::from(-7));
   }
 
-  void test_and_with_float() {
-    TS_ASSERT_EQUALS(Fixnum::from(5)->bit_and(state, Float::create(state,  3.1)), Fixnum::from(1));
-    TS_ASSERT_EQUALS(Fixnum::from(5)->bit_and(state, Float::create(state,  2.9)), Fixnum::from(0));
-    TS_ASSERT_EQUALS(Fixnum::from(5)->bit_and(state, Float::create(state, -3.1)), Fixnum::from(5));
-    TS_ASSERT_EQUALS(Fixnum::from(5)->bit_and(state, Float::create(state, -2.9)), Fixnum::from(4));
-  }
-
   void test_or() {
     TS_ASSERT_EQUALS(Fixnum::from( 5)->bit_or(state, Fixnum::from( 3)), Fixnum::from( 7));
     TS_ASSERT_EQUALS(Fixnum::from(-5)->bit_or(state, Fixnum::from( 3)), Fixnum::from(-5));
@@ -566,13 +559,6 @@ class TestFixnum : public CxxTest::TestSuite, public VMTest {
     TS_ASSERT_EQUALS(Fixnum::from(-5)->bit_or(state, Bignum::from(state, (native_int)-3)), Fixnum::from(-1));
   }
 
-  void test_or_with_float() {
-    TS_ASSERT_EQUALS(Fixnum::from(5)->bit_or(state, Float::create(state,  3.1)), Fixnum::from( 7));
-    TS_ASSERT_EQUALS(Fixnum::from(5)->bit_or(state, Float::create(state,  2.9)), Fixnum::from( 7));
-    TS_ASSERT_EQUALS(Fixnum::from(5)->bit_or(state, Float::create(state, -3.1)), Fixnum::from(-3));
-    TS_ASSERT_EQUALS(Fixnum::from(5)->bit_or(state, Float::create(state, -2.9)), Fixnum::from(-1));
-  }
-
   void test_xor() {
     TS_ASSERT_EQUALS(Fixnum::from( 5)->bit_xor(state, Fixnum::from( 3)), Fixnum::from( 6));
     TS_ASSERT_EQUALS(Fixnum::from(-5)->bit_xor(state, Fixnum::from( 3)), Fixnum::from(-8));
@@ -585,13 +571,6 @@ class TestFixnum : public CxxTest::TestSuite, public VMTest {
     TS_ASSERT_EQUALS(Fixnum::from(-5)->bit_xor(state, Bignum::from(state, (native_int) 3)), Fixnum::from(-8));
     TS_ASSERT_EQUALS(Fixnum::from( 5)->bit_xor(state, Bignum::from(state, (native_int)-3)), Fixnum::from(-8));
     TS_ASSERT_EQUALS(Fixnum::from(-5)->bit_xor(state, Bignum::from(state, (native_int)-3)), Fixnum::from( 6));
-  }
-
-  void test_xor_with_float() {
-    TS_ASSERT_EQUALS(Fixnum::from(5)->bit_xor(state, Float::create(state,  3.1)), Fixnum::from( 6));
-    TS_ASSERT_EQUALS(Fixnum::from(5)->bit_xor(state, Float::create(state,  2.9)), Fixnum::from( 7));
-    TS_ASSERT_EQUALS(Fixnum::from(5)->bit_xor(state, Float::create(state, -3.1)), Fixnum::from(-8));
-    TS_ASSERT_EQUALS(Fixnum::from(5)->bit_xor(state, Float::create(state, -2.9)), Fixnum::from(-5));
   }
 
   void test_invert() {
