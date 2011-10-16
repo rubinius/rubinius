@@ -299,7 +299,7 @@ class Rational < Numeric
   #
   def == (other)
     if other.kind_of?(Rational)
-      @numerator == other.numerator and @denominator == other.denominator
+      @numerator == other.numerator and (@denominator == other.denominator or @numerator.zero?)
     elsif other.kind_of?(Integer)
       self == Rational.new!(other, 1)
     elsif other.kind_of?(Float)
