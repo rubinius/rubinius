@@ -102,7 +102,7 @@ module Kernel
     begin
       str = obj.to_s
     rescue NoMethodError
-      raise TypeError, "#to_s is not defined"
+      raise TypeError, "can't convert #{obj.class} into String"
     end
 
     unless str.kind_of? String
@@ -112,5 +112,4 @@ module Kernel
     return str
   end
   module_function :String
-
 end
