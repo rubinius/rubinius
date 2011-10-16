@@ -6,6 +6,7 @@ class File
   end
 
   def size
+    raise IOError.new("File is closed") if closed?
     stat.size
   end
 
