@@ -363,9 +363,6 @@ class IO
   def puts(*args)
     if args.empty?
       write DEFAULT_RECORD_SEPARATOR
-    elsif args == [nil]
-      write ''
-      write DEFAULT_RECORD_SEPARATOR
     else
       args.each do |arg|
         if arg.equal? nil
