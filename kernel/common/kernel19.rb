@@ -96,4 +96,20 @@ module Kernel
   end
   module_function :require_relative
 
+  def String(obj)
+    return obj if obj.kind_of? String
+
+    unless obj.respond_to? :to_s
+      raise TypeError, "Unable to convert to a String"
+    end
+
+    str = obj.to_s
+    unless str.kind_of? String
+      raise TypeError, "#to_s did not return a String"
+    end
+
+    return str
+  end
+  module_function :String
+
 end
