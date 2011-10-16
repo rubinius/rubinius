@@ -6,6 +6,7 @@ class File
   end
 
   def size
+    raise IOError, "closed stream" if closed?
     stat.size
   end
 

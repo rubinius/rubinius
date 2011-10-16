@@ -39,6 +39,12 @@ describe "IO#puts" do
       @io.should_receive(:write).with("\n")
       @io.puts(nil).should == nil
     end
+
+    it "writes empty string with a newline when when given nil as multiple args" do
+      @io.should_receive(:write).with("").twice
+      @io.should_receive(:write).with("\n").twice
+      @io.puts(nil, nil).should == nil
+    end
   end
 
   it "calls to_s before writing non-string objects" do
