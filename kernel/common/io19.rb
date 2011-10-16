@@ -344,4 +344,48 @@ class IO
 
     nil
   end
+
+  ##
+  # Writes the given objects to ios as with IO#print.
+  # Writes a record separator (typically a newline)
+  # after any that do not already end with a newline
+  # sequence. If called with an array argument, writes
+  # each element on a new line. If called without arguments,
+  # outputs a single record separator.
+  #
+  #  $stdout.puts("this", "is", "a", "test")
+  # produces:
+  #
+  #  this
+  #  is
+  #  a
+  #  test
+  def puts(*args)
+    if args.empty?
+      write DEFAULT_RECORD_SEPARATOR
+    else
+      args.each do |arg|
+        if arg.equal? nil
+          str = ""
+        elsif Thread.guarding? arg
+          str = "[...]"
+        elsif arg.kind_of?(Array)
+          Thread.recursion_guard arg do
+            arg.each do |a|
+              puts a
+            end
+          end
+        else
+          str = arg.to_s
+        end
+
+        if str
+          write str
+          write DEFAULT_RECORD_SEPARATOR unless str.suffix?(DEFAULT_RECORD_SEPARATOR)
+        end
+      end
+    end
+
+    nil
+  end
 end
