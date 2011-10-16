@@ -75,9 +75,11 @@ class Rational < Numeric
       num = -num
       den = -den
     end
-    gcd = num.gcd(den)
-    num = num.div(gcd)
-    den = den.div(gcd)
+    if num.kind_of?(Integer)
+      gcd = num.gcd(den)
+      num = num.div(gcd)
+      den = den.div(gcd)
+    end
     if den == 1 && defined?(Unify)
       num
     else
@@ -300,7 +302,7 @@ class Rational < Numeric
   #
   def == (other)
     if other.kind_of?(Rational)
-      @numerator == other.numerator and @denominator == other.denominator
+      @numerator == other.numerator and (@denominator == other.denominator or @numerator.zero?)
     elsif other.kind_of?(Integer)
       self == Rational.new!(other, 1)
     elsif other.kind_of?(Float)
