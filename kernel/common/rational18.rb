@@ -1,11 +1,4 @@
 class Rational
-  def to_s
-    @numerator.to_s+"/"+@denominator.to_s
-  end
-  
-  def inspect
-    "(#{to_s})"
-  end
 
   #
   # Returns the remainder when this value is divided by +other+.
@@ -18,9 +11,6 @@ class Rational
   #   r % 0.26             # -> 0.19
   #
   def % (other)
-    if other == 0.0
-      raise ZeroDivisionError, "division by zero"
-    end
     value = (self / other).floor
     return self - other * value
   end

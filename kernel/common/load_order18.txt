@@ -95,3 +95,5 @@ time18.rbc
 true.rbc
 variable_scope.rbc
 capi.rbc
+rational.rbc
+rational18.rbc
