@@ -7,17 +7,6 @@ module Kernel
     end.send(:define_method, *args, &block)
   end
 
-  def instance_variables
-    ary = []
-    all_instance_variables.each do |sym|
-      ary << sym if sym.is_ivar?
-    end
-
-    return ary
-  end
-
-  alias_method :__instance_variables__, :instance_variables
-
   def Integer(obj, base=nil)
     if obj.kind_of? String
       if obj.empty?
