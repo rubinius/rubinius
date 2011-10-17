@@ -28,7 +28,7 @@ class Module
       Rubinius.add_writer name, self, vis if attributes.last
     else
       attributes.each do |name|
-        raise TypeError, "#{name.inspect} is not a symbol" if !name.respond_to?(:to_str) || !name.to_s.is_a?(String) || name.to_s.empty?
+        raise TypeError, "#{name.inspect} is not a symbol" unless name.respond_to?(:to_str) || name.to_s.is_a?(String)
         Rubinius.add_reader(name, self, vis)
       end
     end
