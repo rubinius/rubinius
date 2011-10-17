@@ -18,4 +18,8 @@ class Module
   def name
     @module_name ? @module_name.to_s : nil
   end
+
+  def attr(*attributes)
+    attributes.each { |attribute| attr_reader attribute.to_sym }
+  end
 end
