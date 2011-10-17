@@ -570,7 +570,7 @@ class Array
 
   #  call-seq:
   #     array.zip(arg, ...)                   -> an_array
-  #     array.zip(arg, ...) {| arr | block }  -> nil
+  #     array.zip(arg, ...) { |arr| block }   -> nil
   #
   #  Converts any arguments to arrays, then merges elements of
   #  <i>self</i> with corresponding elements from each argument. This
@@ -613,7 +613,7 @@ class Array
     if @start > values.size
       # fit the new values in between 0 and @start if possible
       @start -= values.size
-      @tuple.copy_from(values.tuple,0,values.size,@start)
+      @tuple.copy_from(values.tuple, 0, values.size, @start)
     else
       new_tuple = Rubinius::Tuple.new @total + values.size
       new_tuple.copy_from values.tuple, 0, values.size, 0

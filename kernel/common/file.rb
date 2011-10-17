@@ -320,7 +320,7 @@ class File < IO
     end
   end
 
-  def self.last_nonslash(path,start=nil)
+  def self.last_nonslash(path, start=nil)
     # Find the first non-/ from the right
     data = path.data
     idx = nil

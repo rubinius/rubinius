@@ -1,8 +1,8 @@
 module Enumerable
   ##
   # :call-seq:
-  #    enum.chunk {|elt| ... } => enumerator
-  #    enum.chunk(initial_state) {|elt, state| ... } => enumerator
+  #    enum.chunk { |elt| ... } => enumerator
+  #    enum.chunk(initial_state) { |elt, state| ... } => enumerator
   #
   # Creates an enumerator for each chunked elements.
   # The consecutive elements which have same block value are chunked.
@@ -10,15 +10,15 @@ module Enumerable
   # The result enumerator yields the block value and an array of chunked elements.
   # So "each" method can be called as follows.
   #
-  #   enum.chunk {|elt| key }.each {|key, ary| ... }
-  #   enum.chunk(initial_state) {|elt, state| key }.each {|key, ary| ... }
+  #   enum.chunk { |elt| key }.each { |key, ary| ... }
+  #   enum.chunk(initial_state) { |elt, state| key }.each { |key, ary| ... }
   #
   # For example, consecutive even numbers and odd numbers can be
   # splitted as follows.
   #
-  #   [3,1,4,1,5,9,2,6,5,3,5].chunk {|n|
+  #   [3,1,4,1,5,9,2,6,5,3,5].chunk { |n|
   #     n.even?
-  #   }.each {|even, ary|
+  #   }.each { |even, ary|
   #     p [even, ary]
   #   }
   #   #=> [false, [3, 1]]
@@ -30,8 +30,8 @@ module Enumerable
   # This method is especially useful for sorted series of elements.
   # The following example counts words for each initial letter.
   #
-  #   open("/usr/share/dict/words", "r:iso-8859-1") {|f|
-  #     f.chunk {|line| line.ord }.each {|ch, lines| p [ch.chr, lines.length] }
+  #   open("/usr/share/dict/words", "r:iso-8859-1") { |f|
+  #     f.chunk { |line| line.ord }.each { |ch, lines| p [ch.chr, lines.length] }
   #   }
   #   #=> ["\n", 1]
   #   #   ["A", 1327]
@@ -49,10 +49,10 @@ module Enumerable
   # For example, the sequence of hyphens in svn log can be eliminated as follows.
   #
   #   sep = "-"*72 + "\n"
-  #   IO.popen("svn log README") {|f|
-  #     f.chunk {|line|
+  #   IO.popen("svn log README") { |f|
+  #     f.chunk { |line|
   #       line != sep || nil
-  #     }.each {|_, lines|
+  #     }.each { |_, lines|
   #       pp lines
   #     }
   #   }
@@ -68,9 +68,9 @@ module Enumerable
   #
   # paragraphs separated by empty lines can be parsed as follows.
   #
-  #   File.foreach("README").chunk {|line|
+  #   File.foreach("README").chunk { |line|
   #     /\A\s*\z/ !~ line || nil
-  #   }.each {|_, lines|
+  #   }.each { |_, lines|
   #     pp lines
   #   }
   #
@@ -79,8 +79,8 @@ module Enumerable
   # pass other lines, chunk can be used as follows.
   #
   #   pat = /\A[A-Z][A-Za-z0-9_]+\#/
-  #   open(filename) {|f|
-  #     f.chunk {|line| pat =~ line ? $& : :_alone }.each {|key, lines|
+  #   open(filename) { |f|
+  #     f.chunk { |line| pat =~ line ? $& : :_alone }.each { |key, lines|
   #       if key != :_alone
   #         print lines.sort.join('')
   #       else
@@ -100,10 +100,10 @@ module Enumerable
     ::Enumerator.new do |yielder|
       previous = nil
       accumulate = []
-      block = initial_state.nil? ? original_block : Proc.new{|val| original_block.yield(val, initial_state.clone)}
+      block = initial_state.nil? ? original_block : Proc.new{ |val| original_block.yield(val, initial_state.clone)}
       each do |val|
         key = block.yield(val)
-        if key.nil? || (key.is_a?(Symbol) && key.to_s[0,1] == "_")
+        if key.nil? || (key.is_a?(Symbol) && key.to_s[0, 1] == "_")
           yielder.yield [previous, accumulate] unless accumulate.empty?
           accumulate = []
           previous = nil
@@ -155,7 +155,7 @@ module Enumerable
 
   #
   # call-seq:
-  #    enum.each_entry {|obj| block}  => enum
+  #    enum.each_entry { |obj| block }  => enum
   #
   # Calls <i>block</i> once for each element in <i>self</i>, passing that
   # element as a parameter, converting multiple values from yield to an
@@ -168,7 +168,7 @@ module Enumerable
   #        yield 1,2
   #      end
   #    end
-  #    Foo.new.each_entry{|o| print o, " -- "}
+  #    Foo.new.each_entry{ |o| print o, " -- " }
   #
   # produces:
   #
@@ -184,7 +184,7 @@ module Enumerable
 
   ##
   # :call-seq:
-  #   each_with_object(obj) {|(*args), memo_obj| ... }
+  #   each_with_object(obj) { |(*args), memo_obj| ... }
   #   each_with_object(obj)
   #
   # Iterates the given block for each element with an arbitrary
@@ -193,12 +193,12 @@ module Enumerable
   # If no block is given, returns an enumerator.
   #
   # e.g.:
-  #     evens = (1..10).each_with_object([]) {|i, a| a << i*2 }
+  #     evens = (1..10).each_with_object([]) { |i, a| a << i*2 }
   #     # => [2, 4, 6, 8, 10, 12, 14, 16, 18, 20]
 
   def each_with_object(memo)
     return to_enum :each_with_object, memo unless block_given?
-    each {|obj| yield obj, memo}
+    each { |obj| yield obj, memo }
     memo
   end
 
@@ -206,13 +206,13 @@ module Enumerable
 
   ##
   # :call-seq:
-  #    enum.flat_map       {| obj | block }  => array
-  #    enum.collect_concat {| obj | block }  => array
+  #    enum.flat_map       { | obj | block }  => array
+  #    enum.collect_concat { | obj | block }  => array
   #
   # Returns a new array with the concatenated results of running
   # <em>block</em> once for every element in <i>enum</i>.
   #
-  #    [[1,2],[3,4]].flat_map {|i| i }   #=> [1, 2, 3, 4]
+  #    [[1,2],[3,4]].flat_map { |i| i }   #=> [1, 2, 3, 4]
 
   def flat_map(&block)
     return to_enum(:flat_map) unless block_given?
@@ -223,8 +223,8 @@ module Enumerable
   #
   #  call-seq:
   #     enum.slice_before(pattern) => enumerator
-  #     enum.slice_before {|elt| bool } => enumerator
-  #     enum.slice_before(initial_state) {|elt, state| bool } => enumerator
+  #     enum.slice_before { |elt| bool } => enumerator
+  #     enum.slice_before(initial_state) { |elt, state| bool } => enumerator
   #
   #  Creates an enumerator for each chunked elements.
   #  The beginnings of chunks are defined by _pattern_ and the block.
@@ -235,28 +235,28 @@ module Enumerable
   #  The result enumerator yields the chunked elements as an array.
   #  So "each" method can be called as follows.
   #
-  #    enum.slice_before(pattern).each {|ary| ... }
-  #    enum.slice_before {|elt| bool }.each {|ary| ... }
-  #    enum.slice_before(initial_state) {|elt, state| bool }.each {|ary| ... }
+  #    enum.slice_before(pattern).each { |ary| ... }
+  #    enum.slice_before { |elt| bool }.each { |ary| ... }
+  #    enum.slice_before(initial_state) { |elt, state| bool }.each { |ary| ... }
   #
   #  For example, iteration over ChangeLog entries can be implemented as
   #  follows.
   #
   #    # iterate over ChangeLog entries.
-  #    open("ChangeLog") {|f|
-  #      f.slice_before(/\A\S/).each {|e| pp e}
+  #    open("ChangeLog") { |f|
+  #      f.slice_before(/\A\S/).each { |e| pp e}
   #    }
   #
   #    # same as above.  block is used instead of pattern argument.
-  #    open("ChangeLog") {|f|
-  #      f.slice_before {|line| /\A\S/ === line }.each {|e| pp e}
+  #    open("ChangeLog") { |f|
+  #      f.slice_before { |line| /\A\S/ === line }.each { |e| pp e}
   #    }
   #
   # "svn proplist -R" produces multiline output for each file.
   # They can be chunked as follows: 
   #
-  #    IO.popen([{"LC_ALL"=>"C"}, "svn", "proplist", "-R"]) {|f|
-  #      f.lines.slice_before(/\AProp/).each {|lines| p lines }
+  #    IO.popen([{"LC_ALL"=>"C"}, "svn", "proplist", "-R"]) { |f|
+  #      f.lines.slice_before(/\AProp/).each { |lines| p lines }
   #    }
   #    #=> ["Properties on '.':\n", "  svn:ignore\n", "  svk:merge\n"]
   #    #   ["Properties on 'goruby.c':\n", "  svn:eol-style\n"]
@@ -270,7 +270,7 @@ module Enumerable
   #
   #    a = [3,1,4,1,5,9,2,6,5,3,5]
   #    n = 0
-  #    p a.slice_before {|elt|
+  #    p a.slice_before { |elt|
   #      prev, n = n, elt
   #      prev > elt
   #    }.to_a
@@ -289,7 +289,7 @@ module Enumerable
   #    # this assumes all characters have same width.
   #    def wordwrap(words, maxwidth)
   #      # if cols is a local variable, 2nd "each" may start with non-zero cols.
-  #      words.slice_before(cols: 0) {|w, h|
+  #      words.slice_before(cols: 0) { |w, h|
   #        h[:cols] += 1 if h[:cols] != 0
   #        h[:cols] += w.length
   #        if maxwidth < h[:cols]
@@ -303,7 +303,7 @@ module Enumerable
   #    text = (1..20).to_a.join(" ")
   #    enum = wordwrap(text.split(/\s+/), 10)
   #    puts "-"*10
-  #    enum.each {|ws| puts ws.join(" ") }
+  #    enum.each { |ws| puts ws.join(" ") }
   #    puts "-"*10
   #    #=> ----------
   #    #   1 2 3 4 5
@@ -318,15 +318,15 @@ module Enumerable
   # So each mail can be extracted by slice before Unix From line.
   #
   #    # parse mbox
-  #    open("mbox") {|f|
-  #      f.slice_before {|line|
+  #    open("mbox") { |f|
+  #      f.slice_before { |line|
   #        line.start_with? "From "
-  #      }.each {|mail|
+  #      }.each { |mail|
   #        unix_from = mail.shift
   #        i = mail.index("\n")
   #        header = mail[0...i]
   #        body = mail[(i+1)..-1]
-  #        fields = header.slice_before {|line| !" \t".include?(line[0]) }.to_a
+  #        fields = header.slice_before { |line| !" \t".include?(line[0]) }.to_a
   #        p unix_from
   #        pp fields
   #        pp body
@@ -334,12 +334,12 @@ module Enumerable
   #    }
   #
   #    # split mails in mbox (slice before Unix From line after an empty line)
-  #    open("mbox") {|f|
-  #      f.slice_before(emp: true) {|line,h|
+  #    open("mbox") { |f|
+  #      f.slice_before(emp: true) { |line,h|
   #      prevemp = h[:emp]
   #      h[:emp] = line == "\n"
   #      prevemp && line.start_with?("From ")
-  #    }.each {|mail|
+  #    }.each { |mail|
   #      pp mail
   #    }
   #
@@ -349,7 +349,7 @@ module Enumerable
       has_init = !(arg.equal? undefined)
     else
       raise ArgumentError, "wrong number of arguments (0 for 1)" if arg.equal? undefined
-      block = Proc.new{|elem| arg === elem }
+      block = Proc.new{ |elem| arg === elem }
     end
     Enumerator.new do |yielder|
       init = arg.dup if has_init

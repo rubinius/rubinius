@@ -36,7 +36,7 @@
 #       'x'# @length
 #     end
 #   end
-#   
+#
 #   r = Xs.new(3)..Xs.new(6)   #=> xxx..xxxxxx
 #   r.to_a                     #=> [xxx, xxxx, xxxxx, xxxxxx]
 #   r.member?(Xs.new(5))       #=> true
@@ -57,7 +57,7 @@ class Range
 
   def initialize(first, last, exclude_end = false)
     raise NameError, "`initialize' called twice" if @begin
-    
+
     unless first.kind_of?(Fixnum) && last.kind_of?(Fixnum)
       begin
         raise ArgumentError, "bad value for range" unless first <=> last
@@ -65,7 +65,7 @@ class Range
         raise ArgumentError, "bad value for range"
       end
     end
-    
+
     @begin = first
     @end = last
     @excl = exclude_end
@@ -87,7 +87,7 @@ class Range
       self.first == other.first and
       self.last == other.last and
       self.exclude_end? == other.exclude_end?
-   
+
   end
   alias_method :eql?, :==
 

@@ -69,7 +69,7 @@ module FFI
     def config_hash(name)
       vals = {}
       section = "rbx.platform.#{name}."
-      Rubinius::Config.section section do |key,value|
+      Rubinius::Config.section section do |key, value|
         vals[key.substring(section.size, key.length)] = value
       end
       vals

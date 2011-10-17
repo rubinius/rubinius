@@ -197,7 +197,7 @@ class Module
     return nil
   end
 
-  def attr(name,writeable=false)
+  def attr(name, writeable=false)
     vis = Rubinius::VariableScope.of_sender.method_visibility
 
     Rubinius.add_reader name, self, vis

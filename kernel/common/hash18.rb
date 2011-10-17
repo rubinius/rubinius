@@ -559,7 +559,7 @@ class Hash
 
     hsh = self.class.new
     hsh.taint if self.tainted?
-    self.each { |k,v| hsh[k] = v unless yield(k,v) }
+    self.each { |k, v| hsh[k] = v unless yield(k, v) }
     hsh
   end
 
@@ -577,7 +577,7 @@ class Hash
       prev_item = nil
       item = entries[i]
       while item
-        if yield(item.key,item.value)
+        if yield(item.key, item.value)
           change += 1
           if !prev_item
             entries[i] = item.link

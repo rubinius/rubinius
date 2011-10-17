@@ -16,7 +16,7 @@ class String
     # TODO
     self
   end
-  
+
   def hex
     return 0 if self.chars.first == "_"
     to_inum(16, false)
@@ -164,7 +164,7 @@ class String
 
     return self
   end
-  
+
   # Deletes the specified portion from <i>self</i>, and returns the portion
   # deleted. The forms that take a <code>Fixnum</code> will raise an
   # <code>IndexError</code> if the value is out of range; the <code>Range</code>
@@ -271,14 +271,14 @@ class String
 
   alias_method :next, :succ
   alias_method :next!, :succ!
-  
+
   def to_r
     return Rational(0,1) if empty?
-    
+
     clean       = strip
     numerator   = clean.gsub(".", "").to_i
     denominator = 1
-    
+
     if clean.match(/\d\.\d/)
       denominator = 10**clean.split(".")[1].to_i.to_s.length
     end
@@ -286,7 +286,7 @@ class String
     if clean.match(/\d\/\d/)
       denominator *= clean.split("/")[1].to_i
     end
-    
+
     return Rational(numerator, denominator)
   end
 

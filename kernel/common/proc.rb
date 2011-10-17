@@ -37,7 +37,7 @@ class Proc
 
     block = __from_block__(env)
 
-    Rubinius.asm(block, args) do |b,a|
+    Rubinius.asm(block, args) do |b, a|
       run b
       run a
       run b

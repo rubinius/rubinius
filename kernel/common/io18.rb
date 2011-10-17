@@ -110,7 +110,7 @@ class IO
   # opened for reading or an IOError will be raised.
   #
   #  f = File.new("testfile")
-  #  f.each {|line| puts "#{f.lineno}: #{line}" }
+  #  f.each { |line| puts "#{f.lineno}: #{line}" }
   # produces:
   #
   #  1: This is line one
@@ -230,7 +230,7 @@ class IO
   #  p f.readlines
   #  puts "Parent is #{Process.pid}"
   #  IO.popen ("date") { |f| puts f.gets }
-  #  IO.popen("-") {|f| $stderr.puts "#{Process.pid} is here, f is #{f}"}
+  #  IO.popen("-") { |f| $stderr.puts "#{Process.pid} is here, f is #{f}"}
   #  p $?
   # produces:
   #

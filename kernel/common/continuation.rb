@@ -8,7 +8,7 @@
 # For instance:
 #
 #   arr = [ "Freddie", "Herbie", "Ron", "Max", "Ringo" ]
-#   callcc{|$cc|}
+#   callcc{ |$cc| }
 #   puts(message = arr.shift)
 #   $cc.call unless message =~ /Max/
 #
@@ -22,7 +22,7 @@
 # This (somewhat contrived) example allows the inner loop to abandon
 # processing early:
 #
-#   callcc {|cont|
+#   callcc { |cont|
 #     for i in 0..4
 #       print "\n#{i}: "
 #       for j in i*5...(i+1)*5

@@ -724,7 +724,7 @@ class IO
     command = Rubinius::Type.coerce_to command, Fixnum, :to_int
     FFI::Platform::POSIX.fcntl descriptor, command, arg
   end
-  
+
   ##
   # Provides a mechanism for issuing low-level commands to
   # control or query file-oriented I/O streams. Arguments

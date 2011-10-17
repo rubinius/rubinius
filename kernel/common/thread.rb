@@ -11,7 +11,7 @@ class Thread
   # Implementation note: ideally, the recursive_objects
   # lookup table would be different per method call.
   # Currently it doesn't cause problems, but if ever
-  # a method :foo calls a method :bar which could 
+  # a method :foo calls a method :bar which could
   # recurse back to :foo, it could require making
   # the tables independant.
 

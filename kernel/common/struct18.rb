@@ -1,5 +1,5 @@
 class Struct
-  
+
   ##
   # call-seq:
   #   struct.to_s      => string
@@ -21,7 +21,6 @@ class Struct
       "#<struct #{self.class.inspect} #{values.join(', ')}>"
     end
   end
-  
-  alias_method :inspect, :to_s
 
+  alias_method :inspect, :to_s
 end

@@ -29,7 +29,7 @@ module Rubinius
 
     def initialize(hash=nil)
       return unless hash
-      hash.each do |k,v|
+      hash.each do |k, v|
         self[k] = v
       end
     end

@@ -622,7 +622,7 @@ class String
 
   # Passes each byte in <i>self</i> to the given block.
   #
-  #   "hello".each_byte {|c| print c, ' ' }
+  #   "hello".each_byte { |c| print c, ' ' }
   #
   # <em>produces:</em>
   #
@@ -646,11 +646,11 @@ class String
   # appended together.
   #
   #   print "Example one\n"
-  #   "hello\nworld".each {|s| p s}
+  #   "hello\nworld".each { |s| p s }
   #   print "Example two\n"
-  #   "hello\nworld".each('l') {|s| p s}
+  #   "hello\nworld".each('l') { |s| p s }
   #   print "Example three\n"
-  #   "hello\n\n\nworld".each('') {|s| p s}
+  #   "hello\n\n\nworld".each('') { |s| p s }
   #
   # <em>produces:</em>
   #
@@ -804,7 +804,7 @@ class String
   #
   #   "hello".gsub(/[aeiou]/, '*')              #=> "h*ll*"
   #   "hello".gsub(/([aeiou])/, '<\1>')         #=> "h<e>ll<o>"
-  #   "hello".gsub(/./) {|s| s[0].to_s + ' '}   #=> "104 101 108 108 111 "
+  #   "hello".gsub(/./) { |s| s[0].to_s + ' ' } #=> "104 101 108 108 111 "
   def gsub(pattern, replacement=undefined)
     unless block_given? or replacement != undefined
       return to_enum(:gsub, pattern, replacement)
@@ -827,7 +827,7 @@ class String
 
     last_end = 0
     offset = nil
-    ret = substring(0,0) # Empty string and string subclass
+    ret = substring(0, 0) # Empty string and string subclass
 
     last_match = nil
     match = pattern.match_from self, last_end
@@ -932,7 +932,7 @@ class String
 
     last_match = nil
 
-    ret = substring(0,0) # Empty string and string subclass
+    ret = substring(0, 0) # Empty string and string subclass
     offset = match.begin 0 if match
 
     while match
@@ -1327,9 +1327,9 @@ class String
   #
   # And the block form:
   #
-  #   a.scan(/\w+/) {|w| print "<<#{w}>> " }
+  #   a.scan(/\w+/) { |w| print "<<#{w}>> " }
   #   print "\n"
-  #   a.scan(/(.)(.)/) {|x,y| print y, x }
+  #   a.scan(/(.)(.)/) { |x,y| print y, x }
   #   print "\n"
   #
   # <em>produces:</em>
@@ -1382,8 +1382,10 @@ class String
   # This method is specifically part of 1.9 but we enable it in 1.8 also
   # because we need it internally.
   def setbyte(index, byte)
-    raise TypeError, "can't convert #{byte.class} into Integer" unless byte.instance_of?(Fixnum)
-    
+    unless byte.instance_of?(Fixnum)
+      raise TypeError, "can't convert #{byte.class} into Integer"
+    end
+
     Rubinius.check_frozen
 
     index = size + index if index < 0
@@ -1651,7 +1653,7 @@ class String
   #
   #   "hello".sub(/[aeiou]/, '*')               #=> "h*llo"
   #   "hello".sub(/([aeiou])/, '<\1>')          #=> "h<e>llo"
-  #   "hello".sub(/./) {|s| s[0].to_s + ' ' }   #=> "104 ello"
+  #   "hello".sub(/./) { |s| s[0].to_s + ' ' }  #=> "104 ello"
   def sub(pattern, replacement=undefined)
     if replacement.equal?(undefined) and !block_given?
       raise ArgumentError, "wrong number of arguments (1 for 2)"

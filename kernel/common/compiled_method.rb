@@ -331,7 +331,7 @@ module Rubinius
     #
     # @return [Tuple]
     def child_methods
-      literals.select {|lit| lit.kind_of? CompiledMethod }
+      literals.select { |lit| lit.kind_of? CompiledMethod }
     end
 
     def change_name(name)
@@ -548,7 +548,7 @@ module Rubinius
       # A nice human readable interpretation of this set of instructions
       def to_s
         str = "%04d:  %-27s" % [@ip, opcode]
-        str << @args.map{|a| a.inspect}.join(', ')
+        str << @args.map{ |a| a.inspect }.join(', ')
         if @comment
           str << "    # #{@comment}"
         end

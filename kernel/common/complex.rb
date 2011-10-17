@@ -131,7 +131,7 @@ class Complex < Numeric
   # Creates a +Complex+ number <tt>a</tt>+<tt>b</tt><i>i</i>.
   #
   def Complex.new!(a, b=0)
-    new(a,b)
+    new(a, b)
   end
 
   def initialize(a, b)
@@ -375,7 +375,7 @@ class Complex < Numeric
   def rationalize
     raise RangeError, "non-zero imaginary part" unless @image.zero?
 
-    Rational(@real,1)
+    Rational(@real, 1)
   end
 
   def real?
@@ -424,7 +424,7 @@ class Complex < Numeric
   #
   # +I+ is the imaginary number.  It exists at point (0,1) on the complex plane.
   #
-  I = Complex(0,1)
+  I = Complex(0, 1)
 
   # The real part of a complex number.
   attr_reader :real
