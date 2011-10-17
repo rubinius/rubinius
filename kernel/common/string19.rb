@@ -631,4 +631,16 @@ class String
   end
   alias_method :concat, :<<
 
+  # Returns a one-character string at the beginning of the string.
+  #
+  #   a = "abcde"
+  #   a.chr    #=> "a"
+  def chr
+    if empty?
+      self
+    else
+      self[0]
+    end
+  end
+
 end
