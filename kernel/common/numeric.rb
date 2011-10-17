@@ -47,20 +47,7 @@ class Numeric
     raise ArgumentError, "step cannot be 0" if step == 0
 
     value = self
-    if value.kind_of? Fixnum and limit.kind_of? Fixnum and step.kind_of? Fixnum
-      if step > 0
-        while value <= limit
-          yield value
-          value += step
-        end
-      else
-        while value >= limit
-          yield value
-          value += step
-        end
-      end
-
-    elsif value.kind_of? Float or limit.kind_of? Float or step.kind_of? Float
+    if value.kind_of? Float or limit.kind_of? Float or step.kind_of? Float
       # Ported from MRI
 
       value = FloatValue(value)
