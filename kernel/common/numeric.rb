@@ -54,22 +54,16 @@ class Numeric
       limit = FloatValue(limit)
       step =  FloatValue(step)
 
-      range = limit - value
-      n = range / step;
-      err = (value.abs + limit.abs + range.abs) / step.abs * Float::EPSILON
-
       if step.infinite?
         yield value if step > 0 ? value <= limit : value >= limit
       else
-        err = 0.5 if err > 0.5
-        n = (n + err).floor + 1
         i = 0
-        while i < n
+        while (step > 0 and i * step + value <= limit) or
+            (step < 0 and i * step + value >= limit)
           yield i * step + value
           i += 1
         end
       end
-
     else
       if step > 0
         until value > limit
