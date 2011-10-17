@@ -1,5 +1,15 @@
 # :enddoc:
 
+class Rational < Numeric
+  def div(other)
+    if other.is_a?(Float) && other == 0.0
+      raise ZeroDivisionError, "division by zero"
+    end
+
+    (self / other).floor
+  end
+end
+
 class Fixnum
 
   alias quof fdiv
