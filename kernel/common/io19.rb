@@ -467,7 +467,14 @@ class IO
           return nil
         end
       elsif str.kind_of? Array
-        Process.perform_exec str.first, str
+        if str.first.kind_of? Hash
+          env = str.first
+          env.each {|k,v| ENV[k] = v}
+          cmd = str[1..-1]
+        else
+          cmd = str
+        end
+        Process.perform_exec cmd.first, cmd.map(&:to_s)
       else
         Process.perform_exec "/bin/sh", ["sh", "-c", str]
       end
