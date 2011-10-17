@@ -5,6 +5,7 @@ exception.rbc
 file.rbc
 rubinius.rbc
 module.rbc
+module19.rbc
 filetest.rbc
 kernel.rbc
 math.rbc
