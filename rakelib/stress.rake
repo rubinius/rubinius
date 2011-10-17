@@ -12,6 +12,7 @@ namespace :stress do
       rails
       rspec
       rspec
+      sinatra
       unicorn
       yajl-ruby
     ]
