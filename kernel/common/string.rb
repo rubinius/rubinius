@@ -1382,6 +1382,10 @@ class String
   # This method is specifically part of 1.9 but we enable it in 1.8 also
   # because we need it internally.
   def setbyte(index, byte)
+    raise TypeError, "can't convert #{byte.class} into Integer" unless byte.instance_of?(Fixnum)
+    
+    Rubinius.check_frozen
+
     index = size + index if index < 0
     @data[index] = byte
   end
