@@ -18,7 +18,12 @@ describe :strscan_concat_fixnum, :shared => true do
     lambda { a.send(@method, 333) }.should raise_error(TypeError)
     b = StringScanner.new("")
     lambda { b.send(@method, (256 * 3 + 64)) }.should raise_error(TypeError)
-    lambda { b.send(@method, -200)           }.should raise_error(TypeError)
+    ruby_version_is '1.8' ... '1.9' do
+      lambda { b.send(@method, -200)           }.should raise_error(TypeError)
+    end
+    ruby_version_is '1.9' do
+      lambda { b.send(@method, -200)           }.should raise_error(RangeError)
+    end
   end
 
   it "doesn't call to_int on the argument" do
