@@ -17,10 +17,17 @@ namespace :stress do
       yajl-ruby
     ]
 
-    STRESS_ITERATIONS.times do
-      gems.each do |gem|
-        sh "bin/rbx -S gem install #{gem}"
+    gem_home = File.expand_path "stress_gems_install"
+
+    begin
+      STRESS_ITERATIONS.times do
+        gems.each do |gem|
+          FileUtils.rm_rf gem_home
+          sh "bin/rbx -S gem install -i #{gem_home} #{gem}"
+        end
       end
+    ensure
+      FileUtils.rm_rf gem_home
     end
   end
 end
