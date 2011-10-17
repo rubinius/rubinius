@@ -1111,14 +1111,11 @@ class Date
   # Get the minute of this date.
   def min() time[1] end
   
-  # Alias min to minute
-  def minute() time[1] end
-
   # Get the second of this date.
   def sec() time[2] end
 
-  # Alias sec to second
-  def second() time[2] end
+  alias_method :minute, :min
+  alias_method :second, :sec
 
   # Get the fraction-of-a-second of this date.  The unit is in days.
   # I do NOT recommend you to use this method.
