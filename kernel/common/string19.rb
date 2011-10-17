@@ -605,4 +605,16 @@ class String
   # Returns a new string with the characters from <i>self</i> in reverse order.
   #
   #   "stressed".reverse   #=> "desserts"
+
+  # Returns a one-character string at the beginning of the string.
+  #
+  #   a = "abcde"
+  #   a.chr    #=> "a"
+  def chr
+    if empty?
+      self
+    else
+      self[0]
+    end
+  end
 end
