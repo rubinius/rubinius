@@ -606,6 +606,18 @@ class String
   #
   #   "stressed".reverse   #=> "desserts"
 
+  # Returns a one-character string at the beginning of the string.
+  #
+  #   a = "abcde"
+  #   a.chr    #=> "a"
+  def chr
+    if empty?
+      self
+    else
+      self[0]
+    end
+  end
+
   # Append --- Concatenates the given object to <i>self</i>. If the object is a
   # <code>Fixnum</code> between 0 and 255, it is converted to a character before
   # concatenation.
