@@ -1,4 +1,2 @@
 fails:String#setbyte can invalidate a String's encoding
 fails:String#setbyte raises an IndexError unless the index is inside the String
-fails:String#setbyte raises a RuntimeError if self is frozen
-fails:String#setbyte raises a TypeError unless the second argument is an Integer
