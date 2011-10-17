@@ -11,8 +11,13 @@
  * (See the file 'LICENCE'.)
  */
 #include "ossl.h"
-#include <rubysig.h>
-#include <rubyio.h>
+
+#ifdef HAVE_RUBY_IO_H
+#include "ruby/io.h"
+#else
+#include "rubysig.h"
+#include "rubyio.h"
+#endif
 
 #if defined(HAVE_UNISTD_H)
 #  include <unistd.h> /* for read(), and write() */

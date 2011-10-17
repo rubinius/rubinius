@@ -1,3 +1,6 @@
+#ifndef RBX_CAPI_RUBY_DEFINES_H
+#define RBX_CAPI_RUBY_DEFINES_H
+
 /* Stub file provided for C extensions that expect it. All regular
  * defines and prototypes are in ruby.h
  */
@@ -20,3 +23,5 @@
 #define HAVE_RB_HASH_ASET                  1
 
 #define HAVE_RUBY_ENCODING_H               1
+
+#endif

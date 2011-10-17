@@ -2,9 +2,13 @@
  * $Id: ptr.c 15471 2008-02-14 08:46:06Z matz $
  */
 
-#include <ruby.h>
+#include "ruby.h"
 #include <ctype.h>
+#ifdef HAVE_RUBY_ST_H
+#include "ruby/st.h"
+#else
 #include "st.h"
+#endif
 #include "dl.h"
 
 VALUE rb_cDLPtrData;
