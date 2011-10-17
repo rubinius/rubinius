@@ -1,4 +1,2 @@
-fails:IO.popen with a leading Array parameter uses the Array as command plus args for the child process
-fails:IO.popen with a leading Array parameter uses a leading Hash in the Array as additional environment variables
 critical:IO.popen with a leading Array parameter uses the Array as command plus args for the child process
 critical:IO.popen with a leading Array parameter uses a trailing Hash in the Array for spawn-like settings

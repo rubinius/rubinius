@@ -845,20 +845,6 @@ class TestBignum : public CxxTest::TestSuite, public VMTest {
     TS_ASSERT_EQUALS(FIXNUM_MIN, fix->to_native());
   }
 
-  void test_bit_and_with_float() {
-    Bignum* pos = Bignum::from(state, 23472);
-    Integer* fix = pos->bit_and(state, Float::create(state, -21090.2));
-
-    TS_ASSERT(kind_of<Fixnum>(fix));
-    TS_ASSERT_EQUALS(2448, fix->to_native());
-
-    Bignum* neg = Bignum::from(state, -23472);
-    fix = neg->bit_and(state, Float::create(state, 2109047.7));
-
-    TS_ASSERT(kind_of<Fixnum>(fix));
-    TS_ASSERT_EQUALS(2106448, fix->to_native());
-  }
-
   void test_bit_or() {
     Bignum* pos = Bignum::from(state, 1);
     Integer* fix = pos->bit_or(state, Bignum::from(state, FIXNUM_MAX));
@@ -896,20 +882,6 @@ class TestBignum : public CxxTest::TestSuite, public VMTest {
 
     TS_ASSERT(kind_of<Fixnum>(fix));
     TS_ASSERT_EQUALS(FIXNUM_MIN, fix->to_native());
-  }
-
-  void test_bit_or_with_float() {
-    Bignum* pos = Bignum::from(state, 23472);
-    Integer* fix = pos->bit_or(state, Float::create(state, -21090.1));
-
-    TS_ASSERT(kind_of<Fixnum>(fix));
-    TS_ASSERT_EQUALS(-66, fix->to_native());
-
-    Bignum* neg = Bignum::from(state, -23472);
-    fix = neg->bit_or(state, Float::create(state, 2109047.9));
-
-    TS_ASSERT(kind_of<Fixnum>(fix));
-    TS_ASSERT_EQUALS(-20873, fix->to_native());
   }
 
   void test_bit_xor() {
@@ -950,20 +922,6 @@ class TestBignum : public CxxTest::TestSuite, public VMTest {
 
     TS_ASSERT(kind_of<Fixnum>(fix));
     TS_ASSERT_EQUALS(FIXNUM_MIN, fix->to_native());
-  }
-
-  void test_bit_xor_with_float() {
-    Bignum* pos = Bignum::from(state, 23472);
-    Integer* fix = pos->bit_xor(state, Float::create(state, -21090.1));
-
-    TS_ASSERT(kind_of<Fixnum>(fix));
-    TS_ASSERT_EQUALS(-2514, fix->to_native());
-
-    Bignum* neg = Bignum::from(state, -23472);
-    fix = neg->bit_xor(state, Float::create(state, 2109047.9));
-
-    TS_ASSERT(kind_of<Fixnum>(fix));
-    TS_ASSERT_EQUALS(-2127321, fix->to_native());
   }
 
   void test_gt() {

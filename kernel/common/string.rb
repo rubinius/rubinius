@@ -88,29 +88,6 @@ class String
     r
   end
 
-  # Append --- Concatenates the given object to <i>self</i>. If the object is a
-  # <code>Fixnum</code> between 0 and 255, it is converted to a character before
-  # concatenation.
-  #
-  #   a = "hello "
-  #   a << "world"   #=> "hello world"
-  #   a.concat(33)   #=> "hello world!"
-  def <<(other)
-    modify!
-
-    unless other.kind_of? String
-      if other.kind_of?(Integer) && other >= 0 && other <= 255
-        other = other.chr
-      else
-        other = StringValue(other)
-      end
-    end
-
-    taint if other.tainted?
-    append(other)
-  end
-  alias_method :concat, :<<
-
   # call-seq:
   #   str <=> other_str   => -1, 0, +1
   #
@@ -1405,6 +1382,10 @@ class String
   # This method is specifically part of 1.9 but we enable it in 1.8 also
   # because we need it internally.
   def setbyte(index, byte)
+    raise TypeError, "can't convert #{byte.class} into Integer" unless byte.instance_of?(Fixnum)
+    
+    Rubinius.check_frozen
+
     index = size + index if index < 0
     @data[index] = byte
   end

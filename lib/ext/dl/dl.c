@@ -2,8 +2,14 @@
  * $Id: dl.c 18479 2008-08-11 00:37:21Z shyouhei $
  */
 
-#include <ruby.h>
-#include <rubyio.h>
+#include "ruby.h"
+
+#ifdef HAVE_RUBY_IO_H
+#include "ruby/io.h"
+#else
+#include "rubyio.h"
+#endif
+
 #include <ctype.h>
 #include "dl.h"
 

@@ -6,21 +6,21 @@
 #       by Keiju ISHITSUKA(SHL Japan Inc.)
 #
 # Documentation by Kevin Jackson and Gavin Sinclair.
-# 
+#
 # When you <tt>require 'rational'</tt>, all interactions between numbers
 # potentially return a rational result.  For example:
 #
 #   1.quo(2)              # -> 0.5
 #   require 'rational'
 #   1.quo(2)              # -> Rational(1,2)
-# 
+#
 # See Rational for full documentation.
 #
 
 
 #
 # Creates a Rational number (i.e. a fraction).  +a+ and +b+ should be Integers:
-# 
+#
 #   Rational(1,3)           # -> 1/3
 #
 # Note: trying to construct a Rational with floating point or real values
@@ -51,7 +51,7 @@ end
 # Examples:
 #   Rational(5,6)             # -> 5/6
 #   Rational(5)               # -> 5/1
-# 
+#
 # Rational numbers are reduced to their lowest terms:
 #   Rational(6,10)            # -> 3/5
 #
@@ -75,9 +75,11 @@ class Rational < Numeric
       num = -num
       den = -den
     end
-    gcd = num.gcd(den)
-    num = num.div(gcd)
-    den = den.div(gcd)
+    if num.kind_of?(Integer)
+      gcd = num.gcd(den)
+      num = num.div(gcd)
+      den = den.div(gcd)
+    end
     if den == 1 && defined?(Unify)
       num
     else
@@ -256,10 +258,13 @@ class Rational < Numeric
   #   r % 0.26             # -> 0.19
   #
   def % (other)
+    if other == 0.0
+      raise ZeroDivisionError, "division by zero"
+    end
     value = (self / other).floor
     return self - other * value
   end
-
+  
   #
   # Returns the quotient _and_ remainder.
   #
@@ -297,7 +302,7 @@ class Rational < Numeric
   #
   def == (other)
     if other.kind_of?(Rational)
-      @numerator == other.numerator and @denominator == other.denominator
+      @numerator == other.numerator and (@denominator == other.denominator or @numerator.zero?)
     elsif other.kind_of?(Integer)
       self == Rational.new!(other, 1)
     elsif other.kind_of?(Float)
@@ -467,6 +472,7 @@ class Integer
   # The result is positive, no matter the sign of the arguments.
   #
   def gcd(other)
+    raise TypeError, "Expected Integer but got #{other.class}" unless other.kind_of?(Integer)
     min = self.abs
     max = other.abs
     while min > 0

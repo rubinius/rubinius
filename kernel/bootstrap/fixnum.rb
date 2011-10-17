@@ -42,13 +42,6 @@ class Fixnum < Integer
   end
   alias_method :/, :divide
 
-  # Must be it's own method, so that super calls the correct method
-  # on Numeric
-  def div(o)
-    Rubinius.primitive :fixnum_div
-    redo_coerced :div, o
-  end
-
   def %(o)
     Rubinius.primitive :fixnum_mod
     redo_coerced :%, o
