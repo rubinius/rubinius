@@ -46,6 +46,7 @@ compiled_method.rbc
 continuation.rbc
 delegated_method.rbc
 fixnum.rbc
+fixnum18.rbc
 dir.rbc
 lrucache.rbc
 dir_glob.rbc
