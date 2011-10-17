@@ -1,4 +1,7 @@
 before_script: ./configure
+branches:
+  only:
+    - master
 notifications:
   recipients:
     - evan+notify@phx.io
