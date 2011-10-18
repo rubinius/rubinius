@@ -98,7 +98,7 @@ module Rubinius
       obj
     end
 
-    def delete(start,length,object)
+    def delete(start, length, object)
       Rubinius.primitive :tuple_delete_inplace
 
       start = Rubinius::Type.coerce_to start, Fixnum, :to_i

@@ -225,7 +225,7 @@ class Regexp
     if options & KCODE_MASK == 0
       str << 'n'
     else
-      str << kcode[0,1]
+      str << kcode[0, 1]
     end
     str.hash
   end
@@ -236,7 +236,7 @@ class Regexp
 
     str = "/#{escape}/#{option_to_string(options)}"
     k = kcode()
-    str << k[0,1] if k and k != "none"
+    str << k[0, 1] if k and k != "none"
     return str
   end
 
@@ -529,7 +529,7 @@ class Regexp
     hash = {}
 
     if @names
-      @names.each do |k,v|
+      @names.each do |k, v|
         hash[k.to_s] = [v + 1] # we only have one location currently for a key
       end
     end
@@ -555,7 +555,7 @@ class Regexp
   def names
     if @names
       ary = Array.new(@names.size)
-      @names.each do |k,v|
+      @names.each do |k, v|
         ary[v] = k.to_s
       end
 
@@ -621,7 +621,7 @@ class MatchData
 
     return out
   end
-  
+
   def names
     @regexp.names
   end
@@ -684,7 +684,7 @@ class MatchData
       "#<MatchData \"#{matched_area}\">"
     else
       idx = 0
-      capts.map! {|capture| "#{idx += 1}:#{capture.inspect}"}
+      capts.map! { |capture| "#{idx += 1}:#{capture.inspect}" }
       "#<MatchData \"#{matched_area}\" #{capts.join(" ")}>"
     end
   end

@@ -264,7 +264,7 @@ class Rational < Numeric
     value = (self / other).floor
     return self - other * value
   end
-  
+
   #
   # Returns the quotient _and_ remainder.
   #

@@ -469,7 +469,7 @@ class Array
 
     if block_given?
       block_result = self
-      result.each {|v| block_result << yield(v) }
+      result.each { |v| block_result << yield(v) }
       block_result
     else
       result
@@ -583,7 +583,7 @@ class Array
     length.times do |i|
       place[index] = i
       if index < (combination_size-1)
-        compile_repeated_permutations(combination_size,place,index + 1, &block)
+        compile_repeated_permutations(combination_size, place, index + 1, &block)
       else
         yield place.map { |element| self[element] }
       end
@@ -644,7 +644,7 @@ class Array
 
     n.times do |i|
       r = i + Kernel.rand(size - i)
-      result.tuple.swap(i,r)
+      result.tuple.swap(i, r)
     end
 
     result[n..size] = []
@@ -796,7 +796,7 @@ class Array
 
   #  call-seq:
   #     ary.zip(arg, ...)                   -> new_ary
-  #     ary.zip(arg, ...) {| arr | block }  -> nil
+  #     ary.zip(arg, ...) { |arr| block }   -> nil
   #
   #  Converts any arguments to arrays, then merges elements of
   #  +self+ with corresponding elements from each argument. This
@@ -847,7 +847,7 @@ class Array
     if @start > values.size
       # fit the new values in between 0 and @start if possible
       @start -= values.size
-      @tuple.copy_from(values.tuple,0,values.size,@start)
+      @tuple.copy_from(values.tuple, 0, values.size, @start)
     else
       new_tuple = Rubinius::Tuple.new @total + values.size
       new_tuple.copy_from values.tuple, 0, values.size, 0

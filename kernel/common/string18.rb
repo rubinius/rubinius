@@ -2,7 +2,7 @@ class String
   include Enumerable
 
   alias_method :each, :each_line
-  
+
   # Treats leading characters from <i>self</i> as a string of hexadecimal digits
   # (with an optional sign and an optional <code>0x</code>) and returns the
   # corresponding number. Zero is returned on error.
@@ -47,7 +47,7 @@ class String
     @data.reverse(0, @num_bytes)
     self
   end
-  
+
   # Deletes the specified portion from <i>self</i>, and returns the portion
   # deleted. The forms that take a <code>Fixnum</code> will raise an
   # <code>IndexError</code> if the value is out of range; the <code>Range</code>

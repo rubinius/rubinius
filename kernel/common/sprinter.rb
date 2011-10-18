@@ -288,9 +288,9 @@ module Rubinius
 
         @g.local_count = @arg_count + 1
         if @index_mode == :absolute
-          @g.local_names = (0...@arg_count).map {|i| :"#{i + 1}$" } + [:splat]
+          @g.local_names = (0...@arg_count).map { |i| :"#{i + 1}$" } + [:splat]
         else
-          @g.local_names = (0...@arg_count).map {|i| :"arg#{i}" } + [:splat]
+          @g.local_names = (0...@arg_count).map { |i| :"arg#{i}" } + [:splat]
         end
 
         @g.string_build @append_parts

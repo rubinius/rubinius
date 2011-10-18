@@ -267,7 +267,7 @@ class SyntaxError < ScriptError
     exc
   end
 
-  def import_position(c,l, code)
+  def import_position(c, l, code)
     @column = c
     @line = l
     @code = code

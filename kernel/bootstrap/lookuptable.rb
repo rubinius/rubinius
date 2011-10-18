@@ -7,7 +7,7 @@
 # NOTE: the value used to determine the bin is the "pointer" value of
 # key >> 2. This makes it possible to calculate the bin from Ruby with
 # the same result as in C. For example:
-# 
+#
 #   l = LookupTable.new
 #   loc = :a.hash & (l.bins - 1)  # => 12
 #   class LookupTable
@@ -48,7 +48,7 @@ module Rubinius
 
     def initialize(hash=nil)
       return unless hash
-      hash.each do |k,v|
+      hash.each do |k, v|
         self[k] = v
       end
     end

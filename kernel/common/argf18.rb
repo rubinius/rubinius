@@ -1,7 +1,6 @@
 module Rubinius
-  
   class ARGFClass
-    
+
     #
     # Read all lines from stream.
     #
@@ -20,8 +19,7 @@ module Rubinius
 
       lines
     end
-    alias_method :to_a, :readlines
-    
-  end
 
+    alias_method :to_a, :readlines
+  end
 end

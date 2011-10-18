@@ -7,7 +7,7 @@ module Rubinius
     attach_function :setenv,   [:string,  :string, :int], :int
     attach_function :unsetenv, [:string], :int
     attach_function :environ,  'ffi_environ', [], :pointer
-    
+
     def environ_as_hash
       env = environ()
       ptr_size = FFI.type_size FFI.find_type(:pointer)
@@ -30,7 +30,7 @@ module Rubinius
         offset += ptr_size
         cur = env + offset
       end
-      
+
       hash
     end
     module_function :environ_as_hash

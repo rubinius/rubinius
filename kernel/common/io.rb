@@ -724,7 +724,7 @@ class IO
     command = Rubinius::Type.coerce_to command, Fixnum, :to_int
     FFI::Platform::POSIX.fcntl descriptor, command, arg
   end
-  
+
   ##
   # Provides a mechanism for issuing low-level commands to
   # control or query file-oriented I/O streams. Arguments
@@ -830,7 +830,7 @@ class IO
   def getbyte
     char = read 1
     return nil if char.nil?
-    char[0]
+    char.bytes.to_a[0]
   end
 
   ##
@@ -1079,6 +1079,7 @@ class IO
 
   def readbyte
     byte = getbyte
+    raise EOFError, "end of file reached" unless byte
     raise EOFError, "end of file" unless bytes
     byte
   end

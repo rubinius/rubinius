@@ -130,7 +130,7 @@ class Array
       right_idx += @total if right_idx < 0
       right_idx -= 1 if arg1.exclude_end?
 
-      return new_range(0,0) if right_idx < start_idx
+      return new_range(0, 0) if right_idx < start_idx
 
       count = right_idx - start_idx + 1
 
@@ -164,7 +164,7 @@ class Array
     # Check start boundaries
     if start_idx >= @total
       # Odd MRI boundary case
-      return new_range(0,0) if start_idx == @total
+      return new_range(0, 0) if start_idx == @total
       return nil
     end
 
@@ -374,7 +374,7 @@ class Array
   def compact!
     Rubinius.check_frozen
 
-    if (deleted = @tuple.delete(@start,@total,nil)) > 0
+    if (deleted = @tuple.delete(@start, @total, nil)) > 0
       @total -= deleted
       reallocate_shrink()
       return self
@@ -571,9 +571,9 @@ class Array
   # array.fill(obj)                                -> array
   # array.fill(obj, start [, length])              -> array
   # array.fill(obj, range)                         -> array
-  # array.fill {|index| block }                    -> array
-  # array.fill(start [, length]) {|index| block }  -> array
-  # array.fill(range) {|index| block }             -> array
+  # array.fill { |index| block }                   -> array
+  # array.fill(start [, length]) { |index| block } -> array
+  # array.fill(range) { |index| block }            -> array
   def fill(a=undefined, b=undefined, c=undefined)
     Rubinius.check_frozen
 
@@ -661,7 +661,7 @@ class Array
     n = Rubinius::Type.coerce_to n, Fixnum, :to_int
     raise ArgumentError, "Size must be positive" if n < 0
 
-    self[0,n]
+    self[0, n]
   end
 
   # Computes a Fixnum hash code for this Array. Any two
@@ -1101,7 +1101,7 @@ class Array
 
     size.times do |i|
       r = i + Kernel.rand(size - i)
-      @tuple.swap(i,r)
+      @tuple.swap(i, r)
     end
     self
   end

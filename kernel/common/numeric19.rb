@@ -7,11 +7,11 @@ class Numeric
     0
   end
   alias_method :imaginary, :imag
-  
+
   def rationalize
-    Rational(self,1)
+    Rational(self, 1)
   end
-  
+
   def rect
     [self, 0]
   end
