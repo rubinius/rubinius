@@ -54,6 +54,7 @@ class Bignum
 end
 
 class Rational
+  Unify = true
   remove_method :**
   def ** (other)
     if other.kind_of?(Rational)
