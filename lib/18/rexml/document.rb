@@ -78,7 +78,7 @@ module REXML
           x.kind_of?(Element) || x.kind_of?(DocType)
         }
         if @children[ insert_before_index ] # Not null = not end of list
-          if @children[ insert_before_index ].kind_of DocType
+          if @children[ insert_before_index ].kind_of? DocType
             @children[ insert_before_index ] = child
           else
             @children[ index_before_index-1, 0 ] = child
