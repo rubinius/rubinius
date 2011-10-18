@@ -58,8 +58,8 @@ class Numeric
         yield value if step > 0 ? value <= limit : value >= limit
       else
         i = 0
-        while (step > 0 and i * step + value <= limit) or
-            (step < 0 and i * step + value >= limit)
+        while ((step > 0) && (i * step + value <= limit)) ||
+            ((step < 0) && (i * step + value >= limit))
           yield i * step + value
           i += 1
         end
