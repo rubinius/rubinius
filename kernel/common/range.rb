@@ -279,11 +279,11 @@ class Range
     end
 
     if first.kind_of?(Numeric)
-      last -= 1 if @excl
-
-      while first <= last
-        yield first
-        first += step_size
+      i = 0
+      while (@excl && (step_size * i + first < last)) ||
+          (!@excl && (step_size * i + first <= last))
+        yield step_size * i + first
+        i += 1
       end
     else
       counter = 0
