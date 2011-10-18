@@ -11,7 +11,6 @@ namespace :stress do
       puppet
       rails
       rspec
-      rspec
       sinatra
       unicorn
       yajl-ruby
