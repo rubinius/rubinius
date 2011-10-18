@@ -197,14 +197,5 @@ class Module
     return nil
   end
 
-  def attr(name, writeable=false)
-    vis = Rubinius::VariableScope.of_sender.method_visibility
-
-    Rubinius.add_reader name, self, vis
-    Rubinius.add_writer name, self, vis if writeable
-
-    return nil
-  end
-
   private :alias_method
 end

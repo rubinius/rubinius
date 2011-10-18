@@ -1,2 +1,0 @@
-fails:IO#readlines when passed an empty String returns an Array containing all paragraphs
-fails:IO.readlines when passed an empty String as a separator returns an Array containing all paragraphs
