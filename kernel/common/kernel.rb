@@ -473,10 +473,10 @@ module Kernel
   def instance_variables
     ary = []
     all_instance_variables.each do |sym|
-      ary << sym.to_s if sym.is_ivar?
+      ary << sym if sym.is_ivar?
     end
 
-    ary
+    Rubinius.convert_to_names ary
   end
 
   alias_method :__instance_variables__, :instance_variables
