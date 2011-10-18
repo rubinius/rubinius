@@ -9,6 +9,425 @@
 
   
   <entry>
+    <title>Contributing to Rubinius</title>
+    <id>http://rubini.us/2011/10/18/contributing-to-rubinius/</id>
+    <link rel="alternate" type="text/html" href="http://rubini.us/2011/10/18/contributing-to-rubinius/" />
+    <updated>2011-10-18T00:00:00+00:00</updated>
+    <author>
+      <name>Brian Ford</name>
+    </author>
+    
+    <content type="html">&lt;p&gt;Implementing Ruby is a lot of hard work. The Rubinius project has been lucky
+to have &lt;a href=&quot;http://it.isagit.com/rubinius/rubinius&quot;&gt;more than 240 contributors&lt;/a&gt;,
+many with &lt;em&gt;hundreds&lt;/em&gt; of commits, including code, benchmarks, documentation,
+translations, and more. Lately, we have seen a surge of new folks working hard
+on 1.9 language features. While we concentrate on making Rubinius easy to
+contribute to, this post should clarify some things and pave an easier road to
+your first Rubinius commit.&lt;/p&gt;
+
+&lt;h3 id=&quot;contributions&quot;&gt;Contributions&lt;/h3&gt;
+
+&lt;p&gt;Before diving into the Rubinius code, I want to emphasize that there are many
+ways that you can contribute to Rubinius. One of the most valuable for us is
+trying your own library or application on Rubinius. We&amp;rsquo;ve worked super hard to
+make using Rubinius in place of MRI as simple as possible. For example, with a
+typical Rails application, here is all you should need to do to get set up:&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;rvm install rbx
+rvm use rbx
+gem install bundler
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;Once you&amp;rsquo;ve got Rubinius and Bundler installed, running your application
+should be this simple:&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;cd &amp;lt;my_application&amp;gt;
+rm Gemfile.lock
+bundle install
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;Note the step of removing the &lt;code&gt;Gemfile.lock&lt;/code&gt;. This is necessary to force
+bundler to resolve the dependencies for Rubinius. This is very important. Not
+all gems for MRI will work with Rubinius, and in some cases Rubinius has
+built-in gems or stubs that need to be considered when resolving dependencies
+(ruby-debug and ffi are two examples).&lt;/p&gt;
+
+&lt;p&gt;Once &lt;code&gt;bundle install&lt;/code&gt; is finished, you should be able to start your
+application just like you would under MRI. If you have any trouble, please let
+us know. Issues for Rubinius are &lt;a href=&quot;https://github.com/rubinius/rubinius/issues&quot;&gt;tracked on
+Github&lt;/a&gt;.&lt;/p&gt;
+
+&lt;p&gt;Another way to contribute to Rubinius is talking about the project. If you
+tried your application and your 50 gems installed without problems, consider
+&lt;a href=&quot;https://twitter.com/rubinius&quot;&gt;tweeting at us&lt;/a&gt; or writing up a quick blog post
+about your experiences. If you&amp;rsquo;ve done something
+&lt;a href=&quot;http://fancy-lang.org/&quot;&gt;fancy&lt;/a&gt; that you&amp;rsquo;d like to share with us, we&amp;rsquo;re always
+happy to have &lt;a href=&quot;http://rubini.us/2011/02/23/introduction-to-fancy/&quot;&gt;guest blog
+posts&lt;/a&gt;, too. We even have
+documentation on &lt;a href=&quot;http://rubini.us/doc/en/how-to/write-a-blog-post/&quot;&gt;how to write a blog
+post&lt;/a&gt;.&lt;/p&gt;
+
+&lt;h3 id=&quot;clone--build&quot;&gt;Clone &amp;amp; Build&lt;/h3&gt;
+
+&lt;p&gt;Before we can do anything else, we need to get the Rubinius source code and
+build it. Run the commands below to do this:&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;git clone git://github.com/rubinius/rubinius.git
+cd rubinius
+./configure
+rake
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;You can run Rubinius directly from the build directory, there is no need to
+install it. We provide symlinks for common commands like &lt;code&gt;gem&lt;/code&gt;, &lt;code&gt;rake&lt;/code&gt;, &lt;code&gt;irb&lt;/code&gt;,
+&lt;code&gt;ri&lt;/code&gt;, &lt;code&gt;rdoc&lt;/code&gt;, and even &lt;code&gt;ruby&lt;/code&gt;. Just add &lt;code&gt;&amp;lt;rbx_clone&amp;gt;/bin&lt;/code&gt; to your &lt;code&gt;PATH&lt;/code&gt;.&lt;/p&gt;
+
+&lt;p&gt;If you run into any trouble with these steps, see the &lt;a href=&quot;http://rubini.us/doc/en/getting-started/&quot;&gt;Getting
+Started&lt;/a&gt; page for more information.
+You may need to install libraries required to build Rubinius. If you don&amp;rsquo;t
+find answers there, visit the &lt;code&gt;#rubinius&lt;/code&gt; channel on freenode.net and we&amp;rsquo;ll
+help you out.&lt;/p&gt;
+
+&lt;p&gt;While the build is running, let&amp;rsquo;s get a quick overview of how Rubinius is
+organized.&lt;/p&gt;
+
+&lt;h3 id=&quot;code-tour&quot;&gt;Code Tour&lt;/h3&gt;
+
+&lt;p&gt;There are two main divisions in the Rubinius source code. The virtual machine,
+garbage collector, and just-in-time (JIT) compiler are written in C++. The
+Ruby core library, bytecode compiler, and various tools like the profiler and
+debugger are written mostly or all in Ruby.&lt;/p&gt;
+
+&lt;h4 id=&quot;ruby-core-library&quot;&gt;Ruby Core Library&lt;/h4&gt;
+
+&lt;p&gt;The Ruby core library is found in the &lt;code&gt;kernel/&lt;/code&gt; directory. The kernel is
+divided into subdirectories that are loaded in order when Rubinius boots. The
+divisions were made to help share the Ruby core library with other
+implementations. I&amp;rsquo;ll cover those basic divisions here. For more details about
+how the loading process works, see the
+&lt;a href=&quot;http://rubini.us/doc/en/bootstrapping/&quot;&gt;Bootstrapping&lt;/a&gt; documentation.&lt;/p&gt;
+
+&lt;ol&gt;
+  &lt;li&gt;&lt;code&gt;alpha.rb&lt;/code&gt; - Sets up very basic Ruby features needed to start loading the
+rest of the core library.&lt;/li&gt;
+  &lt;li&gt;&lt;code&gt;bootstrap/&lt;/code&gt;- Contains implementation-specific features needed to load the
+main parts of the core library.&lt;/li&gt;
+  &lt;li&gt;&lt;code&gt;platform/&lt;/code&gt; - Contains platform-specific features like the FFI
+(foreign-function interface) code that is used extensively in Rubinius to
+bind to standard &lt;code&gt;libc&lt;/code&gt; functions.&lt;/li&gt;
+  &lt;li&gt;&lt;code&gt;common/&lt;/code&gt; - Contains the majority of the Ruby core library and the code
+should be implementation-agnostic.&lt;/li&gt;
+  &lt;li&gt;&lt;code&gt;delta/&lt;/code&gt; - Contains more implementation-specific code that may extend or
+override code from &lt;code&gt;common/&lt;/code&gt;.&lt;/li&gt;
+&lt;/ol&gt;
+
+&lt;p&gt;Most of the work on the Ruby core library will be done in &lt;code&gt;kernel/common/&lt;/code&gt;.&lt;/p&gt;
+
+&lt;h4 id=&quot;rubinius-vm&quot;&gt;Rubinius VM&lt;/h4&gt;
+
+&lt;p&gt;The concept of a virtual machine is somewhat nebulous. It can be hard to draw
+the lines around the different components. In Rubinius, the code for the
+bytecode interpreter, garbage collector, and JIT compiler is under the &lt;code&gt;vm/&lt;/code&gt;
+directory. There are subdirectories for the garbage collector (&lt;code&gt;vm/gc/&lt;/code&gt;) and
+the JIT compiler (&lt;code&gt;vm/llvm/&lt;/code&gt;). The &lt;code&gt;main()&lt;/code&gt; function is in
+&lt;code&gt;vm/drivers/cli.cpp&lt;/code&gt;.&lt;/p&gt;
+
+&lt;p&gt;One of the important parts of Rubinius are the low-level operations that
+cannot be defined in Ruby. These are things like adding two Fixnums together.
+These operations are called primitives and the code for them is in
+&lt;code&gt;vm/builtin&lt;/code&gt;. Since you will likely encounter these in the core library, we&amp;rsquo;ll
+delve into them a bit.&lt;/p&gt;
+
+&lt;h4 id=&quot;primitives&quot;&gt;Primitives&lt;/h4&gt;
+
+&lt;p&gt;All methods that can be called in Ruby are exposed as, well, Ruby methods. If
+you open &lt;code&gt;kernel/bootstrap/fixnum.rb&lt;/code&gt;, you should see the following code:&lt;/p&gt;
+
+&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;ruby&quot;&gt;&lt;span class=&quot;lineno&quot;&gt;1&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;def&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;to_f&lt;/span&gt;
+&lt;span class=&quot;lineno&quot;&gt;2&lt;/span&gt;   &lt;span class=&quot;no&quot;&gt;Rubinius&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;primitive&lt;/span&gt; &lt;span class=&quot;ss&quot;&gt;:fixnum_to_f&lt;/span&gt;
+&lt;span class=&quot;lineno&quot;&gt;3&lt;/span&gt;   &lt;span class=&quot;k&quot;&gt;raise&lt;/span&gt; &lt;span class=&quot;no&quot;&gt;PrimitiveFailure&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&amp;quot;Fixnum#to_f primitive failed&amp;quot;&lt;/span&gt;
+&lt;span class=&quot;lineno&quot;&gt;4&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;end&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;p&gt;The &lt;code&gt;Rubinius.primitive :fixnum_to_f&lt;/code&gt; code looks like a normal Ruby method
+call but it is not. It&amp;rsquo;s actually a compiler directive to tag this Ruby method
+as having an associated primitive operation. The name of the primitive is
+&lt;code&gt;fixnum_to_f&lt;/code&gt;. This naming convention is standard, being composed of the class
+name and the method name. Methods in Ruby that are characters, like &lt;code&gt;+&lt;/code&gt;, are
+given word names for the primitives.&lt;/p&gt;
+
+&lt;p&gt;When this method is run, the primitive operation is invoked. If the primitive
+operation fails, the Ruby code following the &lt;code&gt;Rubinius.primitive&lt;/code&gt; line is run.
+This code can perform any Ruby operation. For example, it may coerce the
+arguments to a particular class and re-dispatch to itself. If no other
+operation is appropriate, the method should raise an exception.&lt;/p&gt;
+
+&lt;p&gt;To see how the Ruby method relates to the primitive code, open
+&lt;code&gt;vm/builtin/fixnum.hpp&lt;/code&gt;:&lt;/p&gt;
+
+&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;cpp&quot;&gt;&lt;span class=&quot;lineno&quot;&gt;1&lt;/span&gt; &lt;span class=&quot;c1&quot;&gt;// Rubinius.primitive :fixnum_to_f&lt;/span&gt;
+&lt;span class=&quot;lineno&quot;&gt;2&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;Float&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;*&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;to_f&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;STATE&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;);&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;p&gt;The &lt;code&gt;vm/builtin/*.hpp&lt;/code&gt; files are processed by the Rubinius build system to
+automatically generate C++ code to resolve and bind these primitive
+operations. The comment provides the link between the Ruby method and the C++
+method.&lt;/p&gt;
+
+&lt;p&gt;Finally, the actual implementation of this primitive is found in
+&lt;code&gt;vm/builtin/fixnum.cpp&lt;/code&gt;:&lt;/p&gt;
+
+&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;cpp&quot;&gt;&lt;span class=&quot;lineno&quot;&gt;1&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;Float&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;*&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;Fixnum&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;::&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;to_f&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;STATE&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+&lt;span class=&quot;lineno&quot;&gt;2&lt;/span&gt;   &lt;span class=&quot;k&quot;&gt;return&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;Float&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;::&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;create&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;state&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;kt&quot;&gt;double&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;to_native&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;());&lt;/span&gt;
+&lt;span class=&quot;lineno&quot;&gt;3&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;p&gt;Here you can see that a new Float object is being created from the value of
+the Fixnum. Rubinius names the C++ classes that implement the Ruby primitive
+operations the same as their Ruby counterparts. One of the goals of Rubinius
+is to build an elegant, easily comprehensible system, and we feel that this
+consistency has been a great benefit toward that goal.&lt;/p&gt;
+
+&lt;p&gt;Now that we have a basic idea of the structure of Rubinius, let&amp;rsquo;s look at some
+aspects of its runtime behavior, in particular, supporting different Ruby
+language modes.&lt;/p&gt;
+
+&lt;h3 id=&quot;language-modes&quot;&gt;Language Modes&lt;/h3&gt;
+
+&lt;p&gt;Rubinius 2.0 (the master branch) implements both 1.8 and 1.9 language features
+in one executable. You can select the language mode at runtime by passing the
+&lt;code&gt;-X18&lt;/code&gt; or &lt;code&gt;-X19&lt;/code&gt; flag, either as a command line option or by setting the
+&lt;code&gt;RBXOPT&lt;/code&gt; environment variable. Both commands below should have the same
+effect:&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;RBXOPT=-X19 bin/rbx -v
+bin/rbx -X19 -v
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;If I run that on my system, I will see the following:&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;rubinius 2.0.0dev (1.9.2 0f223599 yyyy-mm-dd JI) [x86_64-apple-darwin10.8.0]
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;The default language mode is 1.8, so if you invoke &lt;code&gt;rbx&lt;/code&gt; with no other
+options, you&amp;rsquo;ll be running in 1.8 mode. You can change the default mode with a
+configure time option as follows:&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;./configure --default-version=1.9
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;If you configure Rubinius to have a default language mode of 1.9, you can
+access 1.8 mode with the &lt;code&gt;-X18&lt;/code&gt; runtime option as discussed above.&lt;/p&gt;
+
+&lt;p&gt;Ok, we&amp;rsquo;ve got the code, we understand something about how it is organized,
+we&amp;rsquo;ve got the runtime behavior down, now let&amp;rsquo;s look at actually implementing
+Ruby. To do that, we need to know how Ruby behaves, and that is what RubySpec
+is all about.&lt;/p&gt;
+
+&lt;h3 id=&quot;by-the-spec&quot;&gt;By the Spec&lt;/h3&gt;
+
+&lt;p&gt;Rubinius created the RubySpec project to ensure that we would be faithfully
+implementing Ruby behavior, and we are constantly contributing more to it.
+Basically, Rubinius does it by the spec. So, any commit to the Ruby core
+library in Rubinius must either have new specs or make existing specs pass. To
+effectively contribute to Rubinius, you&amp;rsquo;ll need to understand some basics
+about RubySpec. I recommend that you have a read through the documentation at
+&lt;a href=&quot;http://rubyspec.org/&quot;&gt;rubyspec.org&lt;/a&gt;.&lt;/p&gt;
+
+&lt;p&gt;RubySpec includes a custom-built framework for the specs called MSpec. The
+syntax is intended to be consistent with &lt;a href=&quot;http://rspec.info&quot;&gt;RSpec&lt;/a&gt;, but there
+are various facilities that are purpose-built to support multiple
+implementations, multiple versions of Ruby, and multiple platforms.&lt;/p&gt;
+
+&lt;h4 id=&quot;running-specs&quot;&gt;Running Specs&lt;/h4&gt;
+
+&lt;p&gt;MSpec provides several different scripts to run the specs under different
+conditions. The default behavior is to simply run all the specs. If you invoke
+the following command, it will run all the Ruby Array specs in the default
+language mode, which should be 1.8 unless you configured 1.9 to be the
+default:&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;bin/mspec core/array
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;To Run the specs in 1.9 mode, add the &lt;code&gt;-tx19&lt;/code&gt; option:&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;bin/mspec -tx19 core/array
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;The &lt;code&gt;-t&lt;/code&gt; option specifies which target to run the specs under. The default in
+Rubinius is to run them with Rubinius, so &lt;code&gt;-tx&lt;/code&gt; is implied. You can easily run
+with another target by giving the name of an executable on your PATH or the
+full path to an executable. Since the specs are intended to show the behavior
+of MRI, if you are writing new specs you need to run them under MRI 1.8.7 and
+1.9.2. I have those on my PATH, so I can do the following:&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;bin/mspec -t ruby1.8.7 core/array
+bin/mspec -t ruby1.9.2 core/array
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;Finally, if you are running &lt;code&gt;bin/mspec&lt;/code&gt; in the Rubinius source directory, the
+location of the RubySpecs are known (&lt;code&gt;spec/ruby/&lt;/code&gt;), so you can use the full
+path or the shortened version &lt;code&gt;core/array&lt;/code&gt; above.&lt;/p&gt;
+
+&lt;h4 id=&quot;continuous-integration&quot;&gt;Continuous Integration&lt;/h4&gt;
+
+&lt;p&gt;One goal of MSpec is to make it as easy as possible to run the specs for the
+parts of Ruby that have been implemented. It takes a long time to implement
+all of Ruby correctly, but we want to know that the parts we have implemented
+don&amp;rsquo;t get broken while working on other parts. That is the role of continuous
+integration. To use CI effectively, we need to partition the specs into those
+that we expect to pass and those we know we don&amp;rsquo;t pass yet. MSpec provides a
+facility for this, called tagging, that we&amp;rsquo;ll look at shortly. For now, we&amp;rsquo;ll
+just look at running the specs in CI mode.&lt;/p&gt;
+
+&lt;p&gt;To run all the Rubinius specs in CI mode under the default language version,
+use the following command:&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;bin/mspec ci
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;Likewise, to run these specs in the 1.9 language mode, add the &lt;code&gt;-tx19&lt;/code&gt; option:&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;bin/mspec ci -tx19
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;The &lt;code&gt;bin/mspec ci&lt;/code&gt; command runs the &lt;code&gt;mspec-ci&lt;/code&gt; script. You should be familiar
+with this mechanism from working with Git. It&amp;rsquo;s the same idea. The &lt;code&gt;mspec&lt;/code&gt;
+script itself is just a utility to invoke the various specific MSpec scripts.
+To see the options for &lt;code&gt;mspec&lt;/code&gt;, run the following command&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;bin/mspec -h
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;There are three basic functions that MSpec performs and these correspond to
+&lt;code&gt;mspec-run&lt;/code&gt;, &lt;code&gt;mspec-ci&lt;/code&gt;, and &lt;code&gt;mspec-tag&lt;/code&gt;. When not given an operation, &lt;code&gt;mspec&lt;/code&gt;
+assumes &lt;code&gt;run&lt;/code&gt;, so the following two commands are equivalent:&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;mspec core/array
+mspec run core/array
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;If the operation is given, it must be the first parameter to &lt;code&gt;mspec&lt;/code&gt;. In the
+case below, the first command runs &lt;code&gt;mspec-ci&lt;/code&gt; with &lt;code&gt;core/array&lt;/code&gt; while the
+second command runs &lt;code&gt;mspec-run&lt;/code&gt; with &lt;code&gt;core/array&lt;/code&gt; and &lt;code&gt;ci&lt;/code&gt; as files.&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;mspec ci core/array
+mspec core/array ci
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;Now that we&amp;rsquo;ve got the basics of MSpec down, let&amp;rsquo;s look at how we find specs
+that fail on Rubinius. To do this, we&amp;rsquo;ll use the &lt;code&gt;mspec tag&lt;/code&gt; command.&lt;/p&gt;
+
+&lt;h4 id=&quot;tagged-specs&quot;&gt;Tagged Specs&lt;/h4&gt;
+
+&lt;p&gt;Since Rubinius uses the tagging mechanism to create the set of CI specs to
+run, the best way to discover what parts of RubySpec that Rubinius isn&amp;rsquo;t
+passing yet is to list the specs that are tagged. There&amp;rsquo;s a command for that:&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;bin/mspec tag --list fails -tx19 :ci_files
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;This command lists all the specs that are tagged as failing. There&amp;rsquo;s some new
+syntax here, namely &lt;code&gt;:ci_files&lt;/code&gt;. MSpec has the concept of pseudo-directories.
+Basically, they are lists of files. The reason for this is that running all
+the core or standard library specs in RubySpec is not as simple as just
+running all the files under &lt;code&gt;spec/ruby/core&lt;/code&gt; or &lt;code&gt;spec/ruby/library&lt;/code&gt;. It&amp;rsquo;s more
+complicated than that because there are 1.8- and 1.9-specific libraries.
+Rather than wrapping everything in &lt;code&gt;ruby_version_is&lt;/code&gt; guards, MSpec adds
+version-specific lists and names them, for example, &lt;code&gt;:core&lt;/code&gt; and &lt;code&gt;:library&lt;/code&gt;.&lt;/p&gt;
+
+&lt;p&gt;In this case, we&amp;rsquo;re using the list of files specified by &lt;code&gt;:ci_files&lt;/code&gt;. This
+list excludes some files that are known to cause problems if they are run.&lt;/p&gt;
+
+&lt;p&gt;The list of specs that are currently marked as failing is pretty long. We can
+reduce the number of tags we are looking at by giving a smaller set of specs
+to run.  For example, let&amp;rsquo;s just run the File specs:&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;bin/mspec tag --list fails -tx19 core/file
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;Looking at the output from this command, we notice (at least at the time of
+writing this post) that there are several failures in the
+&lt;code&gt;File.world_writable?&lt;/code&gt; specs. We can run just these specs:&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;bin/mspec tag --list fails -tx19 core/file/world_writable
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;If we look into the documentation for &lt;code&gt;File.world_writable?&lt;/code&gt;, we&amp;rsquo;ll find that
+it is a new method introduced in 1.9. Excellent, this gives us an opportunity
+to talk about language-specific changes in Rubinius.&lt;/p&gt;
+
+&lt;h3 id=&quot;language-specific-changes&quot;&gt;Language-specific Changes&lt;/h3&gt;
+
+&lt;p&gt;When Rubinius boots, it loads different files depending on what language mode
+it is running. In the &lt;code&gt;kernel/**/&lt;/code&gt; directories, there are &lt;code&gt;load_order18.txt&lt;/code&gt;
+and &lt;code&gt;load_order19.txt&lt;/code&gt; files. These files are used during the build process to
+create separate runtime kernels for Rubinius. You can see these in the
+&lt;code&gt;runtime/18&lt;/code&gt; and &lt;code&gt;runtime/19&lt;/code&gt; directories after building.&lt;/p&gt;
+
+&lt;p&gt;Here&amp;rsquo;s how language-specific features are handled in the Rubinius kernel.&lt;/p&gt;
+
+&lt;ol&gt;
+  &lt;li&gt;If there are no language-specific methods, the name of the file in
+&lt;code&gt;kernel/common&lt;/code&gt; is the name of the class. In the case here, the file is
+&lt;code&gt;kernel/common/file.rb&lt;/code&gt;. This rule applies regardless of whether the class
+is 1.8- or 1.9-specific. For example, Rational is part of the 1.9 core
+library, but does not exist in the core library in 1.8. The Rational class
+is in &lt;code&gt;kernel/core/rational.rb&lt;/code&gt;.&lt;/li&gt;
+  &lt;li&gt;If there are version-specific methods, they go in &lt;code&gt;kernel/common/file18.rb&lt;/code&gt;
+and &lt;code&gt;kernel/common/file19.rb&lt;/code&gt;. The correct file is then added to the
+appropriate &lt;code&gt;load_orderNN.txt&lt;/code&gt; file.&lt;/li&gt;
+&lt;/ol&gt;
+
+&lt;p&gt;In the case of &lt;code&gt;File.world_writable?&lt;/code&gt;, there is no 1.8 version. So, we open
+&lt;code&gt;kernel/common/file19.rb&lt;/code&gt; and add the method definition. After changing any of
+the &lt;code&gt;kernel/**/*.rb&lt;/code&gt; files, we have to build Rubinius. Run the following
+command to do that:&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;rake build
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;After making the change, we verify that the specs pass by running the specs
+&lt;em&gt;without&lt;/em&gt; the CI tags:&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;bin/mspec -tx19 core/file/world_writable
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;If all the specs pass, then you&amp;rsquo;re ready to remove the CI tags. To do so, run
+the following command:&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;bin/mspec tag --del fails -tx19 core/file/world_writable
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;After removing the CI tags, the final step is to ensure that all specs still
+pass. To run all the CI specs in both 1.8 and 1.9 modes, simply do:&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;rake
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;If everything passes, you&amp;rsquo;re ready to submit a pull request. All in all, that
+wasn&amp;rsquo;t too bad, right?&lt;/p&gt;
+
+&lt;p&gt;One final note, if you are making changes to RubySpec, make separate commits
+in your pull request for changes to &lt;code&gt;spec/ruby/**/*_specs.rb&lt;/code&gt; and another
+commit for any other Rubinius files. It is fine to commit the removed tags
+with the other Rubinius changes.&lt;/p&gt;
+
+&lt;h3 id=&quot;wrapping-presents&quot;&gt;Wrapping Presents&lt;/h3&gt;
+
+&lt;p&gt;The information here should give you everything you need to get your feet wet
+in Rubinius. By the way, today is Evan&amp;rsquo;s birthday. If you&amp;rsquo;re not taking him to
+dinner, why don&amp;rsquo;t you show your appreciation for this fantastic project he
+created by grabbing Rubinius and hacking on some Ruby code. Be safe and have
+fun! We can&amp;rsquo;t wait to hear from you.&lt;/p&gt;
+</content>
+  </entry>
+  
+  <entry>
     <title>Matz and Me at RubyConf 2011</title>
     <id>http://rubini.us/2011/10/11/matz-and-me-at-rubyconf-2011/</id>
     <link rel="alternate" type="text/html" href="http://rubini.us/2011/10/11/matz-and-me-at-rubyconf-2011/" />
