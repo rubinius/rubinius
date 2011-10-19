@@ -32,6 +32,15 @@ module ThreadSpecs
     end
   end
 
+  # TODO: In the great Thread spec rewrite, abstract this
+  class << self
+    attr_accessor :state
+  end
+
+  def self.clear_state
+    @state = nil
+  end
+
   def self.spin_until_sleeping(t)
     Thread.pass while t.status and t.status != "sleep"
   end
@@ -50,7 +59,8 @@ module ThreadSpecs
   def self.running_thread
     Thread.new do
       begin
-        loop {}
+        ThreadSpecs.state = :running
+        loop { }
         ScratchPad.record :woken
       rescue Object => e
         ScratchPad.record e

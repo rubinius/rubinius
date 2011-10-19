@@ -26,6 +26,18 @@ namespace rubinius {
 
   using std::endl;
 
+  Object* UnMarshaller::get_constant() {
+    char data[1024];
+    size_t count;
+
+    stream >> count;
+    stream.get();
+    stream.read(data, count + 1);
+    data[count] = 0; // clamp
+
+    return state->path2class(data);
+  }
+
   Object* UnMarshaller::get_int() {
     char data[1024];
 
@@ -153,6 +165,7 @@ namespace rubinius {
     cm->stack_size(state, (Fixnum*)unmarshal());
     cm->local_count(state, (Fixnum*)unmarshal());
     cm->required_args(state, (Fixnum*)unmarshal());
+    cm->post_args(state, (Fixnum*)unmarshal());
     cm->total_args(state, (Fixnum*)unmarshal());
     cm->splat(state, unmarshal());
     cm->literals(state, (Tuple*)unmarshal());
@@ -191,6 +204,8 @@ namespace rubinius {
       return get_iseq();
     case 'M':
       return get_cmethod();
+    case 'c':
+      return get_constant();
     default:
       std::string str = "unknown marshal code: ";
       str.append( 1, code );

@@ -41,7 +41,7 @@ module FFI
     # takes up on this platform.
 
     def type_size(type)
-      Ruby.primitive :nativefunction_type_size
+      Rubinius.primitive :nativefunction_type_size
 
       case type
       when Symbol
@@ -69,7 +69,7 @@ module FFI
     def config_hash(name)
       vals = {}
       section = "rbx.platform.#{name}."
-      Rubinius::Config.section section do |key,value|
+      Rubinius::Config.section section do |key, value|
         vals[key.substring(section.size, key.length)] = value
       end
       vals
@@ -182,6 +182,16 @@ module FFI
       attr_reader :size
       attr_reader :implementation
     end
+
+    class StructByValue
+      def initialize(struct)
+        @implementation = struct
+      end
+
+      attr_reader :implementation
+    end
+
+    Struct = StructByValue
   end
 end
 
@@ -189,5 +199,12 @@ end
 # Namespace for holding platform-specific C constants.
 
 module FFI::Platform
+  case
+  when Rubinius.windows?
+    LIBSUFFIX = "dll"
+  when Rubinius.darwin?
+    LIBSUFFIX = "dylib"
+  else
+    LIBSUFFIX = "so"
+  end
 end
-

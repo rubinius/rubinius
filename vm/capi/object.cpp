@@ -5,7 +5,7 @@
 #include "builtin/symbol.hpp"
 
 #include "capi/capi.hpp"
-#include "capi/include/ruby.h"
+#include "capi/18/include/ruby.h"
 
 using namespace rubinius;
 using namespace rubinius::capi;
@@ -43,10 +43,10 @@ extern "C" {
     int type;
     const char *name;
   } builtin_types[] = {
-    {T_NIL,	    "nil"},
-    {T_OBJECT,	"Object"},
-    {T_CLASS,	  "Class"},
-    {T_ICLASS,  "iClass"},	/* internal use: mixed-in module holder */
+    {T_NIL,      "nil"},
+    {T_OBJECT,  "Object"},
+    {T_CLASS,    "Class"},
+    {T_ICLASS,  "iClass"},    /* internal use: mixed-in module holder */
     {T_MODULE,  "Module"},
     {T_FLOAT,   "Float"},
     {T_STRING,  "String"},
@@ -59,13 +59,13 @@ extern "C" {
     {T_FILE,    "File"},
     {T_TRUE,    "true"},
     {T_FALSE,   "false"},
-    {T_SYMBOL,  "Symbol"},	/* :symbol */
-    {T_DATA,    "Data"},	/* internal use: wrapped C pointers */
-    {T_MATCH,   "MatchData"},	/* data of $~ */
-    {T_VARMAP,  "Varmap"},	/* internal use: dynamic variables */
-    {T_SCOPE,   "Scope"},	/* internal use: variable scope */
-    {T_NODE,    "Node"},	/* internal use: syntax tree node */
-    {T_UNDEF,   "undef"},	/* internal use: #undef; should not happen */
+    {T_SYMBOL,  "Symbol"},    /* :symbol */
+    {T_DATA,    "Data"},      /* internal use: wrapped C pointers */
+    {T_MATCH,   "MatchData"}, /* data of $~ */
+    {T_VARMAP,  "Varmap"},    /* internal use: dynamic variables */
+    {T_SCOPE,   "Scope"},     /* internal use: variable scope */
+    {T_NODE,    "Node"},      /* internal use: syntax tree node */
+    {T_UNDEF,   "undef"},     /* internal use: #undef; should not happen */
     {-1,  0}
   };
 
@@ -375,5 +375,18 @@ extern "C" {
     VALUE result = rb_funcall(obj1, rb_intern("=="), 1, obj2);
     if(RTEST(result)) return Qtrue;
     return Qfalse;
+  }
+
+  VALUE rb_class_inherited_p(VALUE mod, VALUE arg) {
+    if(TYPE(arg) != T_MODULE && TYPE(arg) != T_CLASS) {
+      rb_raise(rb_eTypeError, "compared with non class/module");
+    }
+
+    return rb_funcall(mod, rb_intern("<="), 1, arg);
+  }
+
+  int rb_obj_respond_to(VALUE obj, ID method_name, int priv) {
+    VALUE include_private = priv == 1 ? Qtrue : Qfalse;
+    return RTEST(rb_funcall(obj, rb_intern("respond_to?"), 2, ID2SYM(method_name), include_private));
   }
 }

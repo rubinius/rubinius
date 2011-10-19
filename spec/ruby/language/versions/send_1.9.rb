@@ -117,4 +117,80 @@ describe "Invoking a method" do
     specs.destructure4r([1, 2, 3, 4]).should == [1, 2, [], 3, 4]
     specs.destructure4r([1, 2, 3, 4, 5]).should == [1, 2, [3], 4, 5]
   end
+
+  describe 'new-style hash arguments' do
+    describe 'as the only parameter' do
+      it 'passes without curly braces' do
+        specs.fooM1(rbx: 'cool', specs: :fail_sometimes, non_sym: 1234).should ==
+          [{ :rbx => 'cool', :specs => :fail_sometimes, :non_sym => 1234 }]
+      end
+
+      it 'passes without curly braces or parens' do
+        (specs.fooM1 rbx: 'cool', specs: :fail_sometimes, non_sym: 1234).should ==
+          [{ :rbx => 'cool', :specs => :fail_sometimes, :non_sym => 1234 }]
+      end
+
+      it 'handles a hanging comma without curly braces' do
+        specs.fooM1(abc: 123,).should == [{:abc => 123}]
+        specs.fooM1(rbx: 'cool', specs: :fail_sometimes, non_sym: 1234,).should ==
+          [{ :rbx => 'cool', :specs => :fail_sometimes, :non_sym => 1234 }]
+      end
+    end
+
+    describe 'as the last parameter' do
+      it 'passes without curly braces' do
+        specs.fooM3('abc', 123, rbx: 'cool', specs: :fail_sometimes, non_sym: 1234).should ==
+          ['abc', 123, { :rbx => 'cool', :specs => :fail_sometimes, :non_sym => 1234 }]
+      end
+
+      it 'passes without curly braces or parens' do
+        (specs.fooM3 'abc', 123, rbx: 'cool', specs: :fail_sometimes, non_sym: 1234).should ==
+          ['abc', 123, { :rbx => 'cool', :specs => :fail_sometimes, :non_sym => 1234 }]
+      end
+
+      it 'handles a hanging comma without curly braces' do
+        specs.fooM3('abc', 123, abc: 123,).should == ['abc', 123, {:abc => 123}]
+        specs.fooM3('abc', 123, rbx: 'cool', specs: :fail_sometimes, non_sym: 1234,).should ==
+          ['abc', 123, { :rbx => 'cool', :specs => :fail_sometimes, :non_sym => 1234 }]
+      end
+    end
+  end
+
+  describe 'mixed new- and old-style hash arguments' do
+    describe 'as the only parameter' do
+      it 'passes without curly braces' do
+        specs.fooM1(rbx: 'cool', :specs => :fail_sometimes, non_sym: 1234).should ==
+          [{ :rbx => 'cool', :specs => :fail_sometimes, :non_sym => 1234 }]
+      end
+
+      it 'passes without curly braces or parens' do
+        (specs.fooM1 :rbx => 'cool', specs: :fail_sometimes, non_sym: 1234).should ==
+          [{ :rbx => 'cool', :specs => :fail_sometimes, :non_sym => 1234 }]
+      end
+
+      it 'handles a hanging comma without curly braces' do
+        specs.fooM1(rbx: 'cool', specs: :fail_sometimes, :non_sym => 1234,).should ==
+          [{ :rbx => 'cool', :specs => :fail_sometimes, :non_sym => 1234 }]
+      end
+    end
+
+    describe 'as the last parameter' do
+      it 'passes without curly braces' do
+        specs.fooM3('abc', 123, rbx: 'cool', :specs => :fail_sometimes, non_sym: 1234).should ==
+          ['abc', 123, { :rbx => 'cool', :specs => :fail_sometimes, :non_sym => 1234 }]
+      end
+
+      it 'passes without curly braces or parens' do
+        (specs.fooM3 'abc', 123, :rbx => 'cool', specs: :fail_sometimes, non_sym: 1234).should ==
+          ['abc', 123, { :rbx => 'cool', :specs => :fail_sometimes, :non_sym => 1234 }]
+      end
+
+      it 'handles a hanging comma without curly braces' do
+        specs.fooM3('abc', 123, rbx: 'cool', specs: :fail_sometimes, :non_sym => 1234,).should ==
+          ['abc', 123, { :rbx => 'cool', :specs => :fail_sometimes, :non_sym => 1234 }]
+      end
+    end
+  end
+
 end
+

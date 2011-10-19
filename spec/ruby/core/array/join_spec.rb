@@ -1,5 +1,6 @@
 require File.expand_path('../../../spec_helper', __FILE__)
 require File.expand_path('../fixtures/classes', __FILE__)
+require File.expand_path('../fixtures/encoded_strings', __FILE__)
 require File.expand_path('../shared/join', __FILE__)
 
 describe "Array#join" do
@@ -47,12 +48,30 @@ describe "Array#join" do
   end
 
   ruby_version_is "1.9" do
-    it "sets the result String's encoding to the first String's encoding" do
-      ary1 = ['foo'.force_encoding('utf-8'), 'bar', 'baz']
-      ary2 = ['foo', 'bar'.force_encoding('utf-8'), 'baz'.force_encoding('utf-8')]
+    it "uses the first encoding when other strings are compatible" do
+      ary1 = ArraySpecs.array_with_7bit_utf8_and_usascii_strings
+      ary2 = ArraySpecs.array_with_usascii_and_7bit_utf8_strings
+      ary3 = ArraySpecs.array_with_utf8_and_7bit_ascii8bit_strings
+      ary4 = ArraySpecs.array_with_usascii_and_7bit_ascii8bit_strings
 
       ary1.join.encoding.should == Encoding::UTF_8
-      ary2.join.encoding.should == 'foo'.encoding
+      ary2.join.encoding.should == Encoding::US_ASCII
+      ary3.join.encoding.should == Encoding::UTF_8
+      ary4.join.encoding.should == Encoding::US_ASCII
+    end
+
+    it "uses the widest common encoding when other strings are incompatible" do
+      ary1 = ArraySpecs.array_with_utf8_and_usascii_strings
+      ary2 = ArraySpecs.array_with_usascii_and_utf8_strings
+
+      ary1.join.encoding.should == Encoding::UTF_8
+      ary2.join.encoding.should == Encoding::UTF_8
+    end
+
+    it "fails for arrays with incompatibly-encoded strings" do
+      ary_utf8_bad_ascii8bit = ArraySpecs.array_with_utf8_and_ascii8bit_strings
+      
+      lambda { ary_utf8_bad_ascii8bit.join }.should raise_error(EncodingError)
     end
   end
 end

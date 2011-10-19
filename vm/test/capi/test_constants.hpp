@@ -5,7 +5,7 @@
 #include "builtin/nativemethod.hpp"
 
 #include "capi/capi.hpp"
-#include "capi/include/ruby.h"
+#include "capi/18/include/ruby.h"
 
 #include "capi_reset.h"
 

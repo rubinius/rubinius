@@ -21,7 +21,7 @@ describe "String#rindex with object" do
       "hello".rindex(obj).should == "hello".rindex("lo")
 
       obj = mock('o')
-      def obj.respond_to?(arg) true end
+      def obj.respond_to?(arg, *) true end
       def obj.method_missing(*args) "o" end
       "hello".rindex(obj).should == "hello".rindex("o")
     end
@@ -106,7 +106,7 @@ ruby_version_is ""..."1.9" do
       "str".rindex(?s, obj).should == 0
 
       obj = mock('5')
-      def obj.respond_to?(arg) true end
+      def obj.respond_to?(arg, *) true end
       def obj.method_missing(*args); 5; end
       "str".rindex(?s, obj).should == 0
     end
@@ -282,7 +282,7 @@ describe "String#rindex with String" do
     "str".rindex("st", obj).should == 0
 
     obj = mock('5')
-    def obj.respond_to?(arg) true end
+    def obj.respond_to?(arg, *) true end
     def obj.method_missing(*args) 5 end
     "str".rindex("st", obj).should == 0
   end
@@ -426,7 +426,7 @@ describe "String#rindex with Regexp" do
     "str".rindex(/../, obj).should == 1
 
     obj = mock('5')
-    def obj.respond_to?(arg) true end
+    def obj.respond_to?(arg, *) true end
     def obj.method_missing(*args); 5; end
     "str".rindex(/../, obj).should == 1
   end

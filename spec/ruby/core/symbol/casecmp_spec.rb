@@ -1,7 +1,7 @@
 require File.expand_path('../../../spec_helper', __FILE__)
 
 ruby_version_is "1.9" do
-  describe "Symbol#casecmp" do
+  describe "Symbol#casecmp with Symbol" do
     it "compares symbols without regard to case" do
       :abcdef.casecmp(:abcde).should == 1
       :aBcDeF.casecmp(:abcdef).should == 0
@@ -56,6 +56,21 @@ ruby_version_is "1.9" do
       upper_a_umlaut.casecmp(lower_a_umlaut).should == -1
       lower_a_tilde.casecmp(upper_a_tilde).should == 1
       lower_a_umlaut.casecmp(upper_a_umlaut).should == 1
+    end
+  end
+
+  describe "Symbol#casecmp" do
+    it "returns nil if other is a String" do
+      :abc.casecmp("abc").should be_nil
+    end
+
+    it "returns nil if other is a Fixnum" do
+      :abc.casecmp(1).should be_nil
+    end
+
+    it "returns nil if other is an object" do
+      obj = mock("string <=>")
+      :abc.casecmp(obj).should be_nil
     end
   end
 end

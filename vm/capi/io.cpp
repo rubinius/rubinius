@@ -8,7 +8,9 @@
 #include "primitives.hpp"
 
 #include "capi/capi.hpp"
-#include "capi/include/ruby.h"
+#include "capi/18/include/ruby.h"
+
+#include "windows_compat.h"
 
 #include <fcntl.h>
 
@@ -64,9 +66,8 @@ namespace rubinius {
         FILE* f = fdopen(fd, flags_modestr(io_obj->mode()->to_native()));
 
         if(!f) {
-          fprintf(stderr, "Error convert fd (%d) to lowlevel IO: %s (%d)",
-              fd, strerror(errno), errno);
-
+          std::cerr << "Error convert fd (" << fd << ") to lowlevel IO: "
+                    << strerror(errno) << " (" << errno << ")" << std::endl;
           rb_raise(rb_eTypeError,
               "unable to convert fd (%d) to lowlevel IO: %s (%d)",
               fd, strerror(errno), errno);
@@ -125,6 +126,22 @@ extern "C" {
     return io->descriptor()->to_native();
   }
 
+  long rb_io_fread(char* ptr, int len, FILE* f) {
+    NativeMethodEnvironment* env = NativeMethodEnvironment::get();
+
+    long ret;
+
+    env->state()->shared.leave_capi(env->state());
+    {
+      GCIndependent guard(env);
+      ret = fread(ptr, 1, len, f);
+    }
+
+    env->state()->shared.enter_capi(env->state());
+
+    return ret;
+  }
+
   int rb_io_wait_readable(int fd) {
     bool retry = false;
 
@@ -150,17 +167,23 @@ extern "C" {
 
     fd_set fds;
     FD_ZERO(&fds);
-    FD_SET(fd, &fds);
+    FD_SET((int_fd_t)fd, &fds);
 
     int ready = 0;
 
     NativeMethodEnvironment* env = NativeMethodEnvironment::get();
-    GlobalLock::UnlockGuard guard(env);
 
-    while(!ready) {
-      ready = select(fd+1, &fds, 0, 0, 0);
-      if(!retry) break;
+    env->state()->shared.leave_capi(env->state());
+    {
+      GCIndependent guard(env);
+
+      while(!ready) {
+        ready = select(fd+1, &fds, 0, 0, 0);
+        if(!retry) break;
+      }
     }
+
+    env->state()->shared.enter_capi(env->state());
 
     return Qtrue;
   }
@@ -190,17 +213,22 @@ extern "C" {
 
     fd_set fds;
     FD_ZERO(&fds);
-    FD_SET(fd, &fds);
+    FD_SET((int_fd_t)fd, &fds);
 
     int ready = 0;
 
     NativeMethodEnvironment* env = NativeMethodEnvironment::get();
-    GlobalLock::UnlockGuard guard(env);
+    env->state()->shared.leave_capi(env->state());
+    {
+      GCIndependent guard(env->state());
 
-    while(!ready) {
-      ready = select(fd+1, 0, &fds, 0, 0);
-      if(!retry) break;
+      while(!ready) {
+        ready = select(fd+1, 0, &fds, 0, 0);
+        if(!retry) break;
+      }
     }
+
+    env->state()->shared.enter_capi(env->state());
 
     return Qtrue;
   }
@@ -213,15 +241,18 @@ extern "C" {
     fd_set fds;
 
     FD_ZERO(&fds);
-    FD_SET(fd, &fds);
+    FD_SET((int_fd_t)fd, &fds);
 
     int ready = 0;
 
     NativeMethodEnvironment* env = NativeMethodEnvironment::get();
-    GlobalLock::UnlockGuard guard(env);
+    env->state()->shared.leave_capi(env->state());
+    {
+      GCIndependent guard(env);
 
-    while(!ready) {
-      ready = select(fd+1, &fds, 0, 0, 0);
+      while(!ready) {
+        ready = select(fd+1, &fds, 0, 0, 0);
+      }
     }
   }
 
@@ -233,16 +264,20 @@ extern "C" {
     fd_set fds;
 
     FD_ZERO(&fds);
-    FD_SET(fd, &fds);
+    FD_SET((int_fd_t)fd, &fds);
 
     int ready = 0;
 
     NativeMethodEnvironment* env = NativeMethodEnvironment::get();
-    GlobalLock::UnlockGuard guard(env);
+    {
+      GCIndependent guard(env);
 
-    while(!ready) {
-      ready = select(fd+1, 0, &fds, 0, 0);
+      while(!ready) {
+        ready = select(fd+1, 0, &fds, 0, 0);
+      }
     }
+
+    env->state()->shared.enter_capi(env->state());
   }
 
   void rb_io_set_nonblock(rb_io_t* iot) {

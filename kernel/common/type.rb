@@ -35,7 +35,7 @@ module Rubinius
     # Same as coerce_to but returns nil if conversion fails.
     # Corresponds to MRI's rb_check_convert_type()
     #
-    def self.try_convert(obj, cls, meth)
+    def self.check_convert_type(obj, cls, meth)
       return obj if object_kind_of?(obj, cls)
       return nil unless obj.respond_to?(meth)
 
@@ -44,6 +44,21 @@ module Rubinius
       rescue Exception
         return nil
       end
+
+      return ret if ret.nil? || object_kind_of?(ret, cls)
+
+      msg = "Coercion error: obj.#{meth} did NOT return a #{cls} (was #{object_class(ret)})"
+      raise TypeError, msg
+    end
+
+    ##
+    # Uses the logic of [Array, Hash, String].try_convert.
+    #
+    def self.try_convert(obj, cls, meth)
+      return obj if object_kind_of?(obj, cls)
+      return nil unless obj.respond_to?(meth)
+
+      ret = obj.__send__(meth)
 
       return ret if ret.nil? || object_kind_of?(ret, cls)
 

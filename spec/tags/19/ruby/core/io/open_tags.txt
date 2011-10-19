@@ -1,0 +1,9 @@
+fails:IO.open uses the external encoding specified in the mode argument
+fails:IO.open uses the external and the internal encoding specified in the mode argument
+fails:IO.open uses the external encoding specified via the :external_encoding option
+fails:IO.open uses the internal encoding specified via the :internal_encoding option
+fails:IO.open uses the colon-separated encodings specified via the :encoding option
+fails:IO.open ingores the :encoding option when the :external_encoding option is present
+fails:IO.open ingores the :encoding option when the :internal_encoding option is present
+fails:IO.open uses the encoding specified via the :mode option hash
+fails:IO.open ignores the :internal_encoding option when the same as the external encoding

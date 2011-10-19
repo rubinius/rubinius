@@ -89,6 +89,20 @@ module LangSendSpecs
       @obj
     end
   end
+
+  class MethodMissing
+    def initialize
+      @message = nil
+      @args = nil
+    end
+
+    attr_reader :message, :args
+
+    def method_missing(m, *a)
+      @message = m
+      @args = a
+    end
+  end
 end
 
 def lang_send_rest_len(*a)

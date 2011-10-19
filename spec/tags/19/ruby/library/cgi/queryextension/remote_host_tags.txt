@@ -1,0 +1,1 @@
+fails:CGI::QueryExtension#remote_host returns ENV['REMOTE_HOST']

@@ -117,6 +117,69 @@ module Rubinius
         "#{@generator.name}: line: #{line}, IP: #{ip}"
       end
 
+      SEPARATOR_SIZE = 40
+
+      def invalid(message)
+        if $DEBUG
+          puts message
+          name = @generator.name.inspect
+          size = (SEPARATOR_SIZE - name.size - 2) / 2
+          size = 1 if size <= 0
+          puts "\n#{"=" * size} #{name} #{"=" * (size + name.size % 2)}"
+
+          literals = @generator.literals
+          names = @generator.local_names
+          stream = @generator.stream
+          i = 0
+          n = stream.size
+          stack = 0
+
+          while i < n
+            insn = InstructionSet[stream[i]]
+            printf "[%3d] %04d  %-28s" % [stack, i, insn.opcode.inspect]
+
+            args = stream[i+1, insn.size-1]
+            if insn.size > 1
+              insn.args.each_with_index do |kind, index|
+                arg = args[index]
+                case kind
+                when :literal
+                  printf "%s " % literals[arg].inspect
+                when :local
+                  printf "%s " % (names ? names[arg] : arg)
+                else
+                  printf "%d " % arg
+                end
+              end
+            end
+
+            puts
+
+            if insn.variable_stack?
+              use = insn.stack_consumed
+              if use.kind_of? Array
+                use = args[use[1] - 1] + use[0]
+              end
+
+              pro = insn.stack_produced
+              if pro.kind_of? Array
+                pro = (args[pro[1] - 1] * pro[2]) + pro[0]
+              end
+
+              stack += pro - use
+            else
+              stack += insn.stack_difference
+            end
+
+            i += insn.size
+          end
+
+          puts "-" * SEPARATOR_SIZE
+        end
+
+        raise CompileError, message
+      end
+
       def visited?
         @visited
       end
@@ -140,15 +203,15 @@ module Rubinius
           net_size = @enter_size + @stack
 
           if net_size < 0
-            raise CompileError, "net stack underflow in block starting at #{location}"
+            invalid "net stack underflow in block starting at #{location}"
           end
 
           if @enter_size + @min_size < 0
-            raise CompileError, "minimum stack underflow in block starting at #{location}"
+            invalid "minimum stack underflow in block starting at #{location}"
           end
 
           if @exit_size and @enter_size + @exit_size < 1
-            raise CompileError, "exit stack underflow in block starting at #{location(@exit_ip)}"
+            invalid "exit stack underflow in block starting at #{location(@exit_ip)}"
           end
 
           if @left
@@ -166,12 +229,11 @@ module Rubinius
       def check_stack(stack_size)
         if @enter_size
           unless stack_size == @enter_size
-            msg = "unbalanced stack at #{location}: #{stack_size} != #{@enter_size}"
-            raise CompileError, msg
+            invalid "unbalanced stack at #{location}: #{stack_size} != #{@enter_size}"
           end
         else
           if not @closed
-            raise CompileError, "control fails to exit properly at #{location}"
+            invalid "control fails to exit properly at #{location}"
           end
 
           @enter_size = stack_size
@@ -197,6 +259,7 @@ module Rubinius
       @for_block = nil
 
       @required_args = 0
+      @post_args = 0
       @total_args = 0
 
       @detected_args = 0
@@ -218,7 +281,7 @@ module Rubinius
 
     attr_reader   :ip, :stream, :iseq, :literals
     attr_accessor :break, :redo, :next, :retry, :file, :name,
-                  :required_args, :total_args, :splat_index,
+                  :required_args, :post_args, :total_args, :splat_index,
                   :local_count, :local_names, :primitive, :for_block,
                   :current_block, :detected_args, :detected_locals
 
@@ -255,6 +318,7 @@ module Rubinius
       cm.lines          = @lines.to_tuple
 
       cm.required_args  = @required_args
+      cm.post_args      = @post_args
       cm.total_args     = @total_args
       cm.splat          = @splat_index
       cm.local_count    = @local_count

@@ -29,6 +29,7 @@ namespace rubinius {
     static Integer* from(STATE, unsigned long long i);
 
     long                to_long();
+    unsigned long       to_ulong();
     long long           to_long_long();
     unsigned long long  to_ulong_long();
 

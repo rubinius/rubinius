@@ -1,0 +1,1 @@
+fails:File.setuid? should return true when the gid bit is set

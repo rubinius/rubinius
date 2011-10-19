@@ -10,7 +10,7 @@
 #include <iostream>
 
 #ifdef ENABLE_LLVM
-#include "llvm/jit.hpp"
+#include "llvm/state.hpp"
 #endif
 
 namespace rubinius {
@@ -22,9 +22,9 @@ namespace rubinius {
   }
 #endif
 
-  Object* Primitives::unknown_primitive(STATE, CallFrame* call_frame, Dispatch& msg, Arguments& args) {
+  Object* Primitives::unknown_primitive(STATE, CallFrame* call_frame, Executable* exec, Module* mod, Arguments& args) {
     std::string message = std::string("Called unbound or invalid primitive from method name: ");
-    message += msg.name->to_str(state)->c_str(state);
+    message += args.name()->to_str(state)->c_str(state);
 
     Exception::assertion_error(state, message.c_str());
 
@@ -44,7 +44,7 @@ namespace rubinius {
 extern "C" Object* invoke_unknown_primitive(STATE, CallFrame* call_frame,
     Object** args, int arg_count)
 {
-  Exception::internal_error(state, call_frame, "unable to invoked primitive");
+  Exception::internal_error(state, call_frame, "unable to invoke primitive");
   return 0;
 }
 

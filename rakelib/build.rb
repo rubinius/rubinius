@@ -1,7 +1,7 @@
 def llvm_configure
   case Rubinius::BUILD_CONFIG[:llvm]
   when :svn, :prebuilt
-    "vm/external_libs/llvm/Release/bin/llvm-config"
+    "vendor/llvm/Release/bin/llvm-config"
   when :config
     Rubinius::BUILD_CONFIG[:llvm_configure]
   else
@@ -20,7 +20,7 @@ def llvm_flags
 
   case Rubinius::BUILD_CONFIG[:llvm]
   when :svn, :prebuilt
-    @llvm_flags = ["-Ivm/external_libs/llvm/include"]
+    @llvm_flags = ["-Ivendor/llvm/include"]
   else
     @llvm_flags = []
   end
@@ -33,14 +33,20 @@ end
 def llvm_link_flags
   return "" unless LLVM_ENABLE
 
-  `#{build_perl} #{llvm_configure} --ldflags`.strip
+  flags = `#{build_perl} #{llvm_configure} --ldflags`.strip
+  flags.sub!(%r[-L/([a-zA-Z])/], '-L\1:/') if Rubinius::BUILD_CONFIG[:windows]
+
+  flags
 end
 
 def llvm_lib_files
   return [] unless LLVM_ENABLE
 
   files = `#{build_perl} #{llvm_configure} --libfiles`.split(/\s+/)
-  files.select { |f| File.file? f }
+  files.select do |f|
+    f.sub!(%r[^/([a-zA-Z])/], '\1:/') if Rubinius::BUILD_CONFIG[:windows]
+    File.file? f
+  end
 end
 
 def llvm_version

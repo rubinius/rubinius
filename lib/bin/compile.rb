@@ -1,5 +1,3 @@
-require File.expand_path("../../compiler", __FILE__)
-
 class CompilerScript
   def initialize
     @print_ast    = nil
@@ -10,6 +8,7 @@ class CompilerScript
     @files        = []
     @strings      = []
     @stdin        = false
+    @use_19       = false
   end
 
   def options(argv=ARGV)
@@ -103,6 +102,10 @@ class CompilerScript
       @ignore = true
     end
 
+    @options.on "--1.9", "Use the 1.9 parser" do
+      @use_19 = true
+    end
+
 
     @options.doc "\n Help!"
 
@@ -139,6 +142,7 @@ class CompilerScript
   def set_output(compiler, name)
     if writer = compiler.writer
       writer.name = name
+      writer.version = @use_19 ? 19 : 18
     end
   end
 
@@ -167,6 +171,21 @@ class CompilerScript
     end
   end
 
+  def new_compiler(from, to)
+    compiler = Rubinius::Compiler.new from, to
+
+    parser = compiler.parser
+    parser.root Rubinius::AST::Script
+
+    parser.processor Rubinius::Melbourne19 if @use_19
+
+    enable_transforms parser
+
+    set_printers compiler
+
+    compiler
+  end
+
   def compile_files
     collect_files
 
@@ -181,14 +200,11 @@ class CompilerScript
       end
 
       protect file do
-        compiler = Rubinius::Compiler.new :file, :compiled_file
+        compiler = new_compiler :file, :compiled_file
 
         parser = compiler.parser
-        parser.root Rubinius::AST::Script
         parser.input file
-        enable_transforms parser
 
-        set_printers compiler
         set_output compiler, output
 
         compiler.run
@@ -198,18 +214,14 @@ class CompilerScript
 
   def compile_string(string, origin)
     if @output_name
-      compiler = Rubinius::Compiler.new :string, :compiled_file
+      compiler = new_compiler :string, :compiled_file
       set_output compiler, @output_name
     else
-      compiler = Rubinius::Compiler.new :string, :compiled_method
+      compiler = new_compiler :string, :compiled_method
     end
 
     parser = compiler.parser
-    parser.root Rubinius::AST::Script
-    enable_transforms parser
     parser.input string, origin, 1
-
-    set_printers compiler
 
     compiler.run
   end

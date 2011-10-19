@@ -4,11 +4,17 @@
 #include <stddef.h>
 #include <ctype.h>
 #include <stdint.h>
+#include <assert.h>
 
 #include "config.h"
 #include "object_types.hpp"
 #include "type_info.hpp"
 #include "detection.hpp"
+#include "util/thread.hpp"
+
+namespace thread {
+  class Mutex;
+}
 
 namespace rubinius {
 
@@ -139,10 +145,33 @@ const int cUndef = 0x22L;
   class Object;
   class VM;
 
+  enum LockStatus {
+    eUnlocked,
+    eLocked,
+    eLockTimeout,
+    eLockInterrupted,
+    eLockError
+  };
+
+  enum AuxWordMeaning {
+    eAuxWordEmpty = 0,
+    eAuxWordObjID = 1,
+    eAuxWordLock =  2,
+    eAuxWordInflated = 3
+  };
+
+  const static int AuxMeaningWidth = 2;
+  const static int AuxMeaningMask  = 3;
+  const static int cAuxLockTIDShift = 8;
+  const static int cAuxLockRecCountMask = 0xff;
+  const static int cAuxLockRecCountMax  = 0xff - 1;
+
+  const static bool cDebugThreading = false;
+
   struct ObjectFlags {
 #ifdef RBX_LITTLE_ENDIAN
     // inflated MUST be first, because rest is used as a pointer
-    unsigned int inflated        : 1;
+    unsigned int meaning         : 2;
     object_type  obj_type        : 8;
     gc_zone      zone            : 2;
     unsigned int age             : 4;
@@ -156,9 +185,13 @@ const int cUndef = 0x22L;
 
     unsigned int Frozen          : 1;
     unsigned int Tainted         : 1;
-    unsigned int unused          : 9;
+    unsigned int Untrusted       : 1;
+    unsigned int LockContended   : 1;
+    unsigned int unused          : 6;
 #else
-    unsigned int unused          : 9;
+    unsigned int unused          : 6;
+    unsigned int LockContended   : 1;
+    unsigned int Untrusted       : 1;
     unsigned int Tainted         : 1;
     unsigned int Frozen          : 1;
 
@@ -173,32 +206,52 @@ const int cUndef = 0x22L;
     gc_zone      zone            : 2;
     object_type  obj_type        : 8;
     // inflated MUST be first, because rest is used as a pointer
-    unsigned int inflated        : 1;
+    unsigned int meaning         : 2;
 #endif
 
-#ifdef RBX_OBJECT_ID_IN_HEADER
-    uint32_t object_id;
-#endif
+    uint32_t aux_word;
   };
 
   union HeaderWord {
     struct ObjectFlags f;
+    uint64_t flags64;
     void* all_flags;
+
+    bool atomic_set(HeaderWord& old, HeaderWord& nw);
   };
 
   namespace capi {
     class Handle;
   }
 
+
+  /**
+   * An InflatedHeader is used on the infrequent occasions when an Object needs
+   * to store more metadata than can fit in the ObjectHeader HeaderWord struct.
+   */
   class InflatedHeader {
+    // Treat the header as either storage for the ObjectFlags, or as a pointer
+    // to the next free InflatedHeader in the InflatedHeaders free list.
     union {
       ObjectFlags flags_;
       InflatedHeader* next_;
     };
+
     ObjectHeader* object_;
     capi::Handle* handle_;
+    uint32_t object_id_;
+
+    thread::Mutex mutex_;
+    thread::Condition condition_;
+    uint32_t owner_id_;
+    int rec_lock_count_;
 
   public:
+
+    InflatedHeader()
+      : mutex_(false)
+    {}
+
     ObjectFlags& flags() {
       return flags_;
     }
@@ -211,6 +264,14 @@ const int cUndef = 0x22L;
       return object_;
     }
 
+    uint32_t object_id() {
+      return object_id_;
+    }
+
+    void set_object_id(uint32_t id) {
+      object_id_ = id;
+    }
+
     void set_next(InflatedHeader* next) {
       next_ = next;
     }
@@ -219,6 +280,9 @@ const int cUndef = 0x22L;
       next_ = 0;
       object_ = 0;
       handle_ = 0;
+      object_id_ = 0;
+      rec_lock_count_ = 0;
+      owner_id_ = 0;
     }
 
     bool used_p() {
@@ -241,6 +305,17 @@ const int cUndef = 0x22L;
     void set_handle(capi::Handle* handle) {
       handle_ = handle;
     }
+
+    bool update(HeaderWord header);
+    void initialize_mutex(int thread_id, int count);
+    LockStatus lock_mutex(STATE, size_t us=0);
+    LockStatus lock_mutex_timed(STATE, const struct timespec* ts);
+    LockStatus try_lock_mutex(STATE);
+    bool locked_mutex_p(STATE);
+    LockStatus unlock_mutex(STATE);
+    void unlock_mutex_for_terminate(STATE);
+
+    void wakeup();
   };
 
   class ObjectHeader {
@@ -274,29 +349,22 @@ const int cUndef = 0x22L;
   public: // accessors for header members
 
     bool inflated_header_p() const {
-      return header.f.inflated;
+      return header.f.meaning == eAuxWordInflated;
     }
 
-    InflatedHeader* inflated_header() const {
+    static InflatedHeader* header_to_inflated_header(HeaderWord header) {
       uintptr_t untagged =
-        reinterpret_cast<uintptr_t>(header.all_flags) & ~1;
+        reinterpret_cast<uintptr_t>(header.all_flags) & ~AuxMeaningMask;
       return reinterpret_cast<InflatedHeader*>(untagged);
     }
 
-    void set_inflated_header(InflatedHeader* ih) {
-      ih->reset_object(this);
-      ih->flags() = header.f; // probably should be in reset_object
-      header.all_flags = ih;
-      header.f.inflated = 1;
+    InflatedHeader* inflated_header() const {
+      return header_to_inflated_header(header);
     }
 
-    InflatedHeader* deflate_header() {
-      InflatedHeader* ih = inflated_header();
-      header.f = ih->flags();
-      header.f.inflated = 0;
+    bool set_inflated_header(InflatedHeader* ih);
 
-      return ih;
-    }
+    InflatedHeader* deflate_header();
 
     ObjectFlags& flags() const {
       if(inflated_header_p()) return inflated_header()->flags();
@@ -334,7 +402,7 @@ const int cUndef = 0x22L;
 
   public:
 
-    void initialize_copy(Object* other, unsigned int age);
+    void initialize_copy(ObjectMemory* om, Object* other, unsigned int age);
 
     /* Copies the body of +other+ into +this+ */
     void copy_body(VM* state, Object* other);
@@ -351,15 +419,27 @@ const int cUndef = 0x22L;
     /* Initialize the objects data with the most basic info. This is done
      * right after an object is created. */
     void init_header(gc_zone loc, object_type type) {
-      header.all_flags = 0;
+      header.flags64 = 0;
       flags().obj_type = type;
       set_zone(loc);
     }
 
     void init_header(Class* cls, gc_zone loc, object_type type) {
-      header.all_flags = 0;
+      header.flags64 = 0;
       flags().obj_type = type;
       set_zone(loc);
+
+      klass_ = cls;
+      ivars_ = Qnil;
+    }
+
+    // Can only be used when the caller is sure that the object doesn't
+    // have an inflated header, which is true of any brand new (ie fresh)
+    // objects.
+    void init_fresh_header(Class* cls, gc_zone loc, object_type type) {
+      header.flags64 = 0;
+      header.f.obj_type = type;
+      header.f.zone = loc;
 
       klass_ = cls;
       ivars_ = Qnil;
@@ -436,15 +516,12 @@ const int cUndef = 0x22L;
      */
 
     void set_forward(ObjectHeader* fwd) {
-      // If the header is inflated, repoint it.
-      if(inflated_header_p()) {
-        InflatedHeader* ih = deflate_header();
+      assert(flags().meaning == fwd->flags().meaning);
 
-        ih->set_object(fwd);
-        fwd->set_inflated_header(ih);
-      }
-
-      flags().Forwarded = 1;
+      // Wipe out the meaning since the only thing that matters
+      // now is the forwarded bit
+      header.f.meaning = eAuxWordEmpty;
+      header.f.Forwarded = 1;
 
       // DO NOT USE klass() because we need to get around the
       // write barrier!
@@ -519,15 +596,44 @@ const int cUndef = 0x22L;
       flags().Tainted = val;
     }
 
-#ifdef RBX_OBJECT_ID_IN_HEADER
-    uint32_t object_id() {
-      return flags().object_id;
+    bool is_untrusted_p() {
+      return flags().Untrusted == 1;
     }
 
-    void set_object_id(uint32_t id) {
-      flags().object_id = id;
+    void set_untrusted(int val=1) {
+      flags().Untrusted = val;
     }
-#endif
+
+    uint32_t object_id() {
+      // Pull this out into a local so that we don't see any concurrent
+      // changes to header.
+      HeaderWord tmp = header;
+
+      switch(tmp.f.meaning) {
+      case eAuxWordInflated:
+        return header_to_inflated_header(tmp)->object_id();
+      case eAuxWordObjID:
+        return tmp.f.aux_word;
+      default:
+        return 0;
+      }
+    }
+
+    void set_object_id(STATE, ObjectMemory* om, uint32_t id);
+
+    LockStatus lock(STATE, size_t us=0);
+    LockStatus try_lock(STATE);
+    bool locked_p(STATE);
+    LockStatus unlock(STATE);
+    void unlock_for_terminate(STATE);
+
+    // Abort if unable to lock
+    void hard_lock(STATE, size_t us=0);
+
+    // Abort if unable to unlock
+    void hard_unlock(STATE);
+
+    void wait(STATE);
 
     bool nil_p() const {
       return this == reinterpret_cast<ObjectHeader*>(Qnil);

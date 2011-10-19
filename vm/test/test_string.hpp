@@ -549,10 +549,10 @@ public:
 
   }
 
-  void test_from_bytearray() {
-    ByteArray* ba = String::create(state, "partial to ruby")->data();
+  void test_from_chararray() {
+    CharArray* ca = String::create(state, "partial to ruby")->data();
     Fixnum* six = Fixnum::from(6);
-    String* s = String::from_bytearray(state, ba, six, six);
+    String* s = String::from_chararray(state, ca, six, six);
     TS_ASSERT_EQUALS(six, s->num_bytes());
     TS_ASSERT_SAME_DATA("l to r", s->c_str(state), 6);
   }

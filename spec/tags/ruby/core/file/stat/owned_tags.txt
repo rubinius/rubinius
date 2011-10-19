@@ -1,1 +1,0 @@
-incomplete:File::Stat#owned? needs to be reviewed for spec completeness

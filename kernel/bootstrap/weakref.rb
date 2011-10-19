@@ -3,17 +3,17 @@ class WeakRef
   class RefError < RuntimeError; end
 
   def self.new
-    Ruby.primitive :weakref_new
+    Rubinius.primitive :weakref_new
     raise PrimitiveFailure, "WeakRef.new failed"
   end
 
   def __setobj__(obj)
-    Ruby.primitive :weakref_set_object
+    Rubinius.primitive :weakref_set_object
     raise PrimitiveFailure, "WeakRef#__setobj__ failed"
   end
 
   def __object__
-    Ruby.primitive :weakref_object
+    Rubinius.primitive :weakref_object
     raise PrimitiveFailure, "WeakRef#object failed"
   end
 

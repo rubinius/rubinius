@@ -100,7 +100,7 @@ class Dir
             next if ent == "." || ent == ".."
             full = path_join(path, ent)
 
-            if File.directory? full and (allow_dots or ent[0] != ?.)
+            if File.directory? full and (allow_dots or ent.getbyte(0) != 46) # ?.
               stack << full
               @next.call env, full
             end
@@ -133,7 +133,7 @@ class Dir
         while ent = dir.read
           next if ent == "." || ent == ".."
 
-          if File.directory? ent and (allow_dots or ent[0] != ?.)
+          if File.directory? ent and (allow_dots or ent.getbyte(0) != 46) # ?.
             stack << ent
             @next.call env, ent
           end
@@ -147,7 +147,7 @@ class Dir
             next if ent == "." || ent == ".."
             full = path_join(path, ent)
 
-            if File.directory? full and ent[0] != ?.
+            if File.directory? full and ent.getbyte(0) != 46  # ?.
               stack << full
               @next.call env, full
             end
@@ -289,7 +289,7 @@ class Dir
     def self.single_compile(glob, flags=0, suffixes=nil)
       parts = path_split(glob)
 
-      if glob[-1] == ?/
+      if glob.getbyte(-1) == 47 # ?/
         last = DirectoriesOnly.new nil, flags
       else
         file = parts.pop
@@ -319,13 +319,20 @@ class Dir
             last = RecursiveDirectories.new last, flags
           end
         elsif /^[^\*\?\]]+$/.match(dir)
+          while /^[^\*\?\]]+$/.match(parts[-2])
+            next_sep = parts.pop
+            next_sect = parts.pop
+
+            dir = next_sect << next_sep << dir
+          end
+
           last = ConstantDirectory.new last, flags, dir
         elsif !dir.empty?
           last = DirectoryMatch.new last, flags, dir
         end
       end
 
-      if glob[0] == ?/
+      if glob.getbyte(0) == 47  # ?/
         last = RootDirectory.new last, flags
       end
 
@@ -336,6 +343,25 @@ class Dir
       env = Environment.new(matches)
       node.call env, nil
       env.matches
+    end
+
+    total = Rubinius::Config['glob.cache']
+
+    case total
+    when Fixnum
+      if total == 0
+        @glob_cache = nil
+      else
+        @glob_cache = Rubinius::LRUCache.new(total)
+      end
+    when false
+      @glob_cache = nil
+    else
+      @glob_cache = Rubinius::LRUCache.new(50)
+    end
+
+    def self.glob_cache
+      @glob_cache
     end
 
     def self.glob(pattern, flags, matches=[])
@@ -360,7 +386,7 @@ class Dir
           end
 
           # Split strips an empty closing part, so we need to add it back in
-          if braces[-1] == ?,
+          if braces.getbyte(-1) == 44 # ?,
             matches << stem if File.exists? stem
           end
         else
@@ -370,13 +396,30 @@ class Dir
         return matches
       end
 
+      ec_key = nil
+
+      if gc = @glob_cache
+        ec_key = [pattern, flags]
+        if patterns = gc.retrieve(ec_key)
+          patterns.each do |node|
+            run node, matches
+          end
+
+          return matches
+        end
+      end
+
       if pattern.include? "{"
         patterns = compile(pattern, flags)
+
+        gc.set ec_key, patterns if ec_key
 
         patterns.each do |node|
           run node, matches
         end
       elsif node = single_compile(pattern, flags)
+        gc.set ec_key, [node] if ec_key
+
         run node, matches
       else
         matches
@@ -402,12 +445,12 @@ class Dir
         while i < total
           char = data.get_byte(i)
 
-          if char == ?{
+          if char == 123  # ?{
             lbrace = i if nest == 0
             nest += 1
           end
 
-          if char == ?}
+          if char == 125  # ?}
             nest -= 1
           end
 
@@ -416,7 +459,7 @@ class Dir
             break
           end
 
-          if char == ?\\ and escape
+          if char == 92 and escape  # ?\\
             escapes = true
             i += 1
           end
@@ -448,11 +491,11 @@ class Dir
           pos += 1
           last = pos
 
-          while pos < rbrace and not (pattern[pos] == ?, and nest == 0)
-            nest += 1 if pattern[pos] == ?{
-              nest -= 1 if pattern[pos] == ?}
+          while pos < rbrace and not (pattern.getbyte(pos) == 44 and nest == 0) # ?,
+            nest += 1 if pattern.getbyte(pos) == 123  # ?{
+              nest -= 1 if pattern.getbyte(pos) == 125  # ?}
 
-              if pattern[pos] == ?\\ and escape
+              if pattern.getbyte(pos) == 92 and escape # ?\\
                 pos += 1
                 break if pos == rbrace
               end

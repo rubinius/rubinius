@@ -1,11 +1,12 @@
 #ifdef ENABLE_LLVM
 
-#include "llvm/jit.hpp"
 #include "llvm/inline.hpp"
 #include "llvm/jit_inline_method.hpp"
 #include "llvm/jit_inline_block.hpp"
 #include "llvm/jit_runtime.hpp"
 #include "llvm/jit_context.hpp"
+
+#include "llvm/stack_args.hpp"
 
 #include "builtin/methodtable.hpp"
 #include "builtin/nativefunction.hpp"
@@ -14,22 +15,52 @@
 #include "ffi_util.hpp"
 
 namespace rubinius {
+
+  void Inliner::check_class(llvm::Value* recv, Class* klass, llvm::BasicBlock* bb) {
+    if(!bb) bb = failure();
+
+    guarded_type_ = ops_.check_class(recv, klass, bb);
+    guarded_type_.inherit_source(ops_.state(), recv);
+  }
+
+  void Inliner::check_recv(Class* klass, llvm::BasicBlock* bb) {
+    check_class(recv(), klass, bb);
+  }
+
   bool Inliner::consider() {
     Class* klass = cache_->dominating_class();
     if(!klass) {
-      if(ops_.state()->config().jit_inline_debug) {
-        context_.inline_log("NOT inlining")
-          << ops_.state()->symbol_cstr(cache_->name)
-          << ". Cache contains " << cache_->classes_seen() << " entries\n";
 
-        for(int i = 0; i < cache_->classes_seen(); i++) {
-          context_.inline_log("class")
-            << ops_.state()->symbol_cstr(cache_->tracked_class(i)->name())
-            << " " << cache_->tracked_class_hits(i) << "\n";
+      if(ops_.state()->type_optz()) {
+        // If the receiver has a known type, then attempt to pull that specific
+        // class out of the cache.
+        type::KnownType kt = type::KnownType::extract(ops_.state(), recv());
+
+        if(kt.instance_p()) {
+          klass = cache_->find_class_by_id(kt.class_id());
+        } else if(kt.class_p()) {
+          klass = cache_->find_singletonclass(kt.class_id());
+        } else if(kt.fixnum_p()) {
+          klass = cache_->find_class_by_id(ops_.state()->fixnum_class_id());
+        } else if(kt.symbol_p()) {
+          klass = cache_->find_class_by_id(ops_.state()->symbol_class_id());
         }
       }
 
-      return false;
+      if(!klass) {
+        if(ops_.state()->config().jit_inline_debug) {
+          std::ostream& log = context_.inline_log("NOT inlining");
+          log << ops_.state()->symbol_debug_str(cache_->name)
+              << ". Cache contains " << cache_->classes_seen() << " entries: ";
+
+          for(int i = 0; i < cache_->classes_seen(); i++) {
+            log << ops_.state()->symbol_debug_str(cache_->tracked_class(i)->name())
+                << " ";
+          }
+          log << "\n";
+        }
+        return false;
+      }
     }
 
     // If the cache has a dominating class, inline!
@@ -40,7 +71,7 @@ namespace rubinius {
     if(!meth) {
       if(ops_.state()->config().jit_inline_debug) {
         context_.inline_log("NOT inlining")
-          << ops_.state()->symbol_cstr(cache_->name)
+          << ops_.state()->symbol_debug_str(cache_->name)
           << ". Inliner error, method missing.\n";
       }
       return false;
@@ -49,7 +80,7 @@ namespace rubinius {
     if(instance_of<Module>(defined_in)) {
       if(ops_.state()->config().jit_inline_debug) {
         context_.inline_log("NOT inlining")
-          << ops_.state()->symbol_cstr(cache_->name)
+          << ops_.state()->symbol_debug_str(cache_->name)
           << ". Not inlining methods defined in Modules.\n";
       }
       return false;
@@ -90,15 +121,84 @@ namespace rubinius {
           decision = policy->inline_p(vmm, opts);
         }
 
+        // If a method was too big and has a compiled version, then
+        // rather than inline it, emit a straight call to the compiled
+        // version!
+        if(0 && decision == cTooBig && !inline_block_
+                               && !kind_of<IncludedModule>(defined_in)
+                               && vmm->jitted()) {
+          if(ops_.state()->config().jit_inline_debug) {
+            context_.inline_log("direct call")
+              << ops_.state()->enclosure_name(cm)
+              << "#"
+              << ops_.state()->symbol_debug_str(cm->name())
+              << " into "
+              << ops_.state()->symbol_debug_str(ops_.method_name())
+              << ".\n";
+          }
+
+          check_recv(klass);
+          ops_.setup_out_args(count_);
+
+          std::vector<const Type*> ftypes;
+          ftypes.push_back(ops_.state()->ptr_type("VM"));
+          ftypes.push_back(ops_.state()->ptr_type("CallFrame"));
+          ftypes.push_back(ops_.state()->ptr_type("Executable"));
+          ftypes.push_back(ops_.state()->ptr_type("Module"));
+          ftypes.push_back(ops_.state()->ptr_type("Arguments"));
+
+          const Type *ft = llvm::PointerType::getUnqual(FunctionType::get(ops_.state()->ptr_type("Object"), ftypes, false));
+
+          // We can't extract and use a specialized version of cm because we don't
+          // yet have the ability to check if the specialized version has been
+          // invalidated. Once that is added, we can use find_specialized on cm.
+          // Until then, we need to go the slow path through the specialized picker.
+          executor target = cm->execute;
+
+          Value* func = ops_.b().CreateIntToPtr(
+              ops_.clong(reinterpret_cast<uintptr_t>(target)),
+              ft, "direct_method");
+
+          jit::RuntimeData* rd = new jit::RuntimeData(cm, cache_->name, defined_in);
+          ops_.context().add_runtime_data(rd);
+
+          Value* rt_rd = ops_.constant(rd, ops_.state()->ptr_type("jit::RuntimeData"));
+
+          // cm
+          Value* rd_method = 
+            ops_.b().CreateBitCast(
+              ops_.b().CreateLoad(
+                ops_.b().CreateConstGEP2_32(rt_rd, 0, offset::runtime_data_method, "method_pos"),
+                "cm"),
+              ops_.state()->ptr_type("Executable"));
+
+          Value* rd_mod = ops_.b().CreateLoad(
+              ops_.b().CreateConstGEP2_32(rt_rd, 0, offset::runtime_data_module, "module_pos"),
+              "module");
+
+          Value* call_args[] = {
+            ops_.vm(),
+            ops_.call_frame(),
+            rd_method,
+            rd_mod,
+            ops_.out_args()
+          };
+
+          Value* dc_res = ops_.b().CreateCall(func, call_args, call_args+5, "dc_res");
+          set_result(dc_res);
+
+          goto remember;
+        }
+
         if(decision != cInline) {
           if(ops_.state()->config().jit_inline_debug) {
 
             context_.inline_log("NOT inlining")
               << ops_.state()->enclosure_name(cm)
               << "#"
-              << ops_.state()->symbol_cstr(cm->name())
+              << ops_.state()->symbol_debug_str(cm->name())
               << " into "
-              << ops_.state()->symbol_cstr(ops_.method_name())
+              << ops_.state()->symbol_debug_str(ops_.method_name())
               << ". ";
 
             switch(decision) {
@@ -119,7 +219,11 @@ namespace rubinius {
             default:
               ops_.state()->log() << "no policy";
             }
-            ops_.state()->log() << "\n";
+            if(vmm->jitted()) {
+              ops_.state()->log() << " (jitted)\n";
+            } else {
+              ops_.state()->log() << " (interp)\n";
+            }
           }
           return false;
         }
@@ -128,14 +232,14 @@ namespace rubinius {
           context_.inline_log("inlining")
             << ops_.state()->enclosure_name(cm)
             << "#"
-            << ops_.state()->symbol_cstr(cm->name())
+            << ops_.state()->symbol_debug_str(cm->name())
             << " into "
-            << ops_.state()->symbol_cstr(ops_.method_name());
+            << ops_.state()->symbol_debug_str(ops_.method_name());
 
           StaticScope* ss = cm->scope();
           if(kind_of<StaticScope>(ss) && klass != ss->module() && !klass->name()->nil_p()) {
             ops_.state()->log() << " ("
-              << ops_.state()->symbol_cstr(klass->name()) << ")";
+              << ops_.state()->symbol_debug_str(klass->name()) << ")";
           }
 
           if(inline_block_) {
@@ -155,9 +259,9 @@ namespace rubinius {
           context_.inline_log("NOT inlining")
             << ops_.state()->enclosure_name(cm)
             << "#"
-            << ops_.state()->symbol_cstr(cm->name())
+            << ops_.state()->symbol_debug_str(cm->name())
             << " into "
-            << ops_.state()->symbol_cstr(ops_.method_name())
+            << ops_.state()->symbol_debug_str(ops_.method_name())
             << ". generic inlining disabled\n";
         }
 
@@ -168,10 +272,10 @@ namespace rubinius {
         if(ops_.state()->config().jit_inline_debug) {
           context_.inline_log("inlining")
             << "FFI call to "
-            << ops_.state()->symbol_cstr(nf->name())
+            << ops_.state()->symbol_debug_str(nf->name())
             << "() into "
-            << ops_.state()->symbol_cstr(ops_.method_name())
-            << " (" << ops_.state()->symbol_cstr(klass->name()) << ")\n";
+            << ops_.state()->symbol_debug_str(ops_.method_name())
+            << " (" << ops_.state()->symbol_debug_str(klass->name()) << ")\n";
         }
       } else {
         return false;
@@ -179,11 +283,11 @@ namespace rubinius {
     } else {
       if(ops_.state()->config().jit_inline_debug) {
         context_.inline_log("NOT inlining")
-          << ops_.state()->symbol_cstr(klass->name())
+          << ops_.state()->symbol_debug_str(klass->name())
           << "#"
-          << ops_.state()->symbol_cstr(cache_->name)
+          << ops_.state()->symbol_debug_str(cache_->name)
           << " into "
-          << ops_.state()->symbol_cstr(ops_.method_name())
+          << ops_.state()->symbol_debug_str(ops_.method_name())
           << ". unhandled executable type\n";
       }
       return false;
@@ -198,7 +302,7 @@ remember:
   void Inliner::inline_block(JITInlineBlock* ib, Value* self) {
     if(ops_.state()->config().jit_inline_debug) {
       context_.inline_log("inlining block into")
-        << ops_.state()->symbol_cstr(ops_.method_name())
+        << ops_.state()->symbol_debug_str(ops_.method_name())
         << "\n";
     }
 
@@ -241,19 +345,15 @@ remember:
       context_.inline_log("inlining")
         << ops_.state()->enclosure_name(cm)
         << "#"
-        << ops_.state()->symbol_cstr(cm->name())
+        << ops_.state()->symbol_debug_str(cm->name())
         << " into "
-        << ops_.state()->symbol_cstr(ops_.method_name())
-        << " (" << ops_.state()->symbol_cstr(klass->name()) << ") trivial\n";
+        << ops_.state()->symbol_debug_str(ops_.method_name())
+        << " (" << ops_.state()->symbol_debug_str(klass->name()) << ") trivial\n";
     }
 
     VMMethod* vmm = cm->backend_method();
 
-    Value* self = recv();
-
-    if(klass) {
-      ops_.check_class(self, klass, failure());
-    }
+    if(klass) check_recv(klass);
 
     Value* val = 0;
     /////
@@ -282,7 +382,7 @@ remember:
       val = ops_.constant(Fixnum::from(-1));
       break;
     case InstructionSequence::insn_push_self:
-      val = self;
+      val = recv();
       break;
     default:
       assert(0 && "Trivial detection is broken!");
@@ -302,21 +402,23 @@ remember:
     if(ops_.state()->config().jit_inline_debug) {
       context_.inline_log("inlining")
         << "writer to '"
-        << ops_.state()->symbol_cstr(acc->name())
+        << ops_.state()->symbol_debug_str(acc->name())
         << "' on "
-        << ops_.state()->symbol_cstr(klass->name())
+        << ops_.state()->symbol_debug_str(klass->name())
         << " in "
         << "#"
-        << ops_.state()->symbol_cstr(ops_.method_name())
+        << ops_.state()->symbol_debug_str(ops_.method_name())
         << "\n";
     }
 
+    context_.enter_inline();
     ops_.state()->add_accessor_inlined();
 
-    Value* val  = arg(0);
-    Value* self = recv();
+    check_recv(klass);
 
-    ops_.check_reference_class(self, klass->class_id(), failure());
+    Value* val  = arg(0);
+
+    Value* self = recv();
 
     // Figure out if we should use the table ivar lookup or
     // the slot ivar lookup.
@@ -349,6 +451,8 @@ remember:
 
     exception_safe();
     set_result(val);
+
+    context_.leave_inline();
   }
 
   void Inliner::inline_ivar_access(Class* klass, AccessVariable* acc) {
@@ -357,14 +461,15 @@ remember:
     if(ops_.state()->config().jit_inline_debug) {
       context_.inline_log("inlining")
         << "read to '"
-        << ops_.state()->symbol_cstr(acc->name())
+        << ops_.state()->symbol_debug_str(acc->name())
         << "' on "
-        << ops_.state()->symbol_cstr(klass->name())
+        << ops_.state()->symbol_debug_str(klass->name())
         << " in "
         << "#"
-        << ops_.state()->symbol_cstr(ops_.method_name());
+        << ops_.state()->symbol_debug_str(ops_.method_name());
     }
 
+    context_.enter_inline();
     ops_.state()->add_accessor_inlined();
 
     Value* self = recv();
@@ -403,7 +508,7 @@ remember:
                                        "select ivar");
 
           if(ops_.state()->config().jit_inline_debug) {
-            ops_.state()->log() << " (packed index: " << index << ")";
+            ops_.state()->log() << " (packed index: " << index << ", " << offset << ")";
           }
         }
       }
@@ -432,24 +537,36 @@ remember:
       ops_.state()->log() << "\n";
     }
 
+    context_.leave_inline();
+
   }
 
-  void Inliner::inline_generic_method(Class* klass, Module* defined_in,
-                                      CompiledMethod* cm, VMMethod* vmm) {
-    context_.enter_inline();
-    Value* self = recv();
-    ops_.check_class(self, klass, failure());
-
-    JITMethodInfo info(context_, cm, vmm);
+  void Inliner::prime_info(JITMethodInfo& info) {
     info.set_parent_info(ops_.info());
 
     info.inline_policy = ops_.inline_policy();
     info.called_args = count_;
     info.root = ops_.root_method_info();
     info.set_inline_block(inline_block_);
+  }
+
+  void Inliner::inline_generic_method(Class* klass, Module* defined_in,
+                                      CompiledMethod* cm, VMMethod* vmm) {
+    context_.enter_inline();
+
+    check_recv(klass);
+
+    JITMethodInfo info(context_, cm, vmm);
+
+    prime_info(info);
+
+    info.self_type = guarded_type_;
+
+    info.set_self_class(klass);
 
     jit::RuntimeData* rd = new jit::RuntimeData(cm, cache_->name, defined_in);
     context_.add_runtime_data(rd);
+    info.set_runtime_data(rd);
 
     jit::InlineMethodBuilder work(ops_.state(), info, rd);
     work.valid_flag = ops_.valid_flag();
@@ -471,9 +588,11 @@ remember:
 
     if(vmm->call_count >= 0) vmm->call_count /= 2;
 
-    BasicBlock* entry = work.setup_inline(self, blk, args);
+    BasicBlock* entry = work.setup_inline(recv(), blk, args);
 
-    if(!work.generate_body()) { abort(); }
+    if(!work.generate_body()) {
+      rubinius::bug("LLVM failed to compile a function");
+    }
 
     // Branch to the inlined method!
     ops_.create_branch(entry);
@@ -492,19 +611,18 @@ remember:
     context_.enter_inline();
 
     JITMethodInfo info(context_, ib->method(), ib->code());
-    info.set_parent_info(ops_.info());
 
-    info.inline_policy = ops_.inline_policy();
-    info.called_args = count_;
-    info.root = ops_.root_method_info();
+    prime_info(info);
+
     info.is_block = true;
 
     info.set_creator_info(creator_info_);
-    info.set_inline_block(inline_block_);
     info.set_block_info(block_info_);
+    info.self_type = ops_.info().self_type;
 
     jit::RuntimeData* rd = new jit::RuntimeData(ib->method(), nil<Symbol>(), nil<Module>());
     context_.add_runtime_data(rd);
+    info.set_runtime_data(rd);
 
     jit::InlineBlockBuilder work(ops_.state(), info, rd);
     work.valid_flag = ops_.valid_flag();
@@ -521,9 +639,11 @@ remember:
     if(ib->code()->call_count >= 0) ib->code()->call_count /= 2;
 
     BasicBlock* entry = work.setup_inline_block(self,
-        ops_.constant(Qnil, ops_.state()->ptr_type("Module")));
+        ops_.constant(Qnil, ops_.state()->ptr_type("Module")), args);
 
-    if(!work.generate_body()) { abort(); }
+    if(!work.generate_body()) {
+      rubinius::bug("LLVM failed to compile a function");
+    }
 
     // Branch to the inlined block!
     ops_.create_branch(entry);
@@ -584,9 +704,7 @@ remember:
   }
 
   bool Inliner::inline_ffi(Class* klass, NativeFunction* nf) {
-    Value* self = recv();
-
-    ops_.check_class(self, klass, failure());
+    check_recv(klass);
 
     ///
 
@@ -757,7 +875,7 @@ remember:
       }
 
       default:
-        abort();
+        rubinius::bug("Unknown FFI type in JIT FFI inliner");
       }
     }
 
@@ -883,9 +1001,7 @@ remember:
 
     default:
       result = 0;
-      std::cout << "Invalid return type.\n";
-      abort();
-
+      rubinius::bug("Invalid FFI type in JIT");
     }
 
     exception_safe();

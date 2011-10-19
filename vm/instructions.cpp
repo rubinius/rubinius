@@ -18,6 +18,7 @@
 #include "builtin/system.hpp"
 #include "builtin/global_cache_entry.hpp"
 #include "builtin/location.hpp"
+#include "builtin/cache.hpp"
 
 #include "call_frame.hpp"
 
@@ -136,7 +137,7 @@ continue_to_run:
 
   // There is no reason to be here. Either the bytecode loop exits,
   // or it jumps to exception;
-  abort();
+  rubinius::bug("Control flow error in interpreter");
 
   // If control finds it's way down here, there is an exception.
 exception:
@@ -209,9 +210,7 @@ exception:
     break;
   } // switch
 
-  std::cout << "bug!\n";
-  call_frame->print_backtrace(state);
-  abort();
+  rubinius::bug("Control flow error in interpreter");
   return NULL;
 }
 
@@ -221,16 +220,15 @@ Object* VMMethod::uncommon_interpreter(STATE,
                                        int32_t entry_ip,
                                        native_int sp,
                                        CallFrame* const method_call_frame,
+                                       jit::RuntimeDataHolder* rd,
                                        int32_t unwind_count,
                                        int32_t* input_unwinds)
 {
 
   VMMethod* method_vmm = method_call_frame->cm->backend_method();
 
-  // 500 is a number picked after doing some tuning on a specific benchmark.
-  // Not sure if it's the right value, but it seems to work fine.
-  if(++method_vmm->uncommon_count > 500) {
-    if(state->shared.config.jit_show_uncommon) {
+  if(++method_vmm->uncommon_count > state->shared.config.jit_deoptimize_threshold) {
+    if(state->shared.config.jit_uncommon_print) {
       std::cerr << "[[[ Deoptimizing uncommon method ]]]\n";
       call_frame->print_backtrace(state);
 
@@ -239,7 +237,7 @@ Object* VMMethod::uncommon_interpreter(STATE,
     }
 
     method_vmm->uncommon_count = 0;
-    method_vmm->deoptimize(state, method_call_frame->cm);
+    method_vmm->deoptimize(state, method_call_frame->cm, rd);
   }
 
 #include "vm/gen/instruction_locations.hpp"
@@ -292,7 +290,7 @@ continue_to_run:
   }
 
   // No reason to be here!
-  abort();
+  rubinius::bug("Control flow error in interpreter");
 
 exception:
   ThreadState* th = state->thread_state();
@@ -364,9 +362,7 @@ exception:
     break;
   } // switch
 
-  std::cout << "bug!\n";
-  call_frame->print_backtrace(state);
-  abort();
+  rubinius::bug("Control flow error in interpreter");
   return NULL;
 }
 
@@ -438,7 +434,7 @@ continue_to_run:
   }
 
   // no reason to be here!
-  abort();
+  rubinius::bug("Control flow error in interpreter");
 
   // If control finds it's way down here, there is an exception.
 exception:
@@ -513,9 +509,7 @@ exception:
     break;
   } // switch
 
-  std::cout << "bug!\n";
-  call_frame->print_backtrace(state);
-  abort();
+  rubinius::bug("Control flow error in interpreter");
   return NULL;
 }
 
@@ -571,7 +565,7 @@ continue_to_run:
   }
 
   // No reason to be here!
-  abort();
+  rubinius::bug("Control flow error in interpreter");
 
 exception:
   ThreadState* th = state->thread_state();
@@ -643,8 +637,6 @@ exception:
     break;
   } // switch
 
-  std::cout << "bug!\n";
-  call_frame->print_backtrace(state);
-  abort();
+  rubinius::bug("Control flow error in interpreter");
   return NULL;
 }

@@ -60,7 +60,7 @@ namespace rubinius {
       // scope (ie, Object) initially because we need to lookup up
       // the superclass chain first, because falling back on the default.
       //
-      // The rub comes from the fact that if a user explicitely opens up
+      // The rub comes from the fact that if a user explicitly opens up
       // Object in their code, we DO consider it. Like:
       //
       // class Idiot
@@ -104,7 +104,7 @@ namespace rubinius {
         }
       }
 
-      // Lastly, check Object specificly
+      // Lastly, check Object specifically
       result = G(object)->get_const(state, name, found, true);
       if(*found) return result;
 
@@ -182,9 +182,9 @@ namespace rubinius {
       if(cls->true_superclass(state) != super) {
         std::ostringstream message;
         message << "Superclass mismatch: given "
-                << as<Module>(super)->name()->c_str(state)
+                << as<Module>(super)->name()->debug_str(state)
                 << " but previously set to "
-                << cls->true_superclass(state)->name()->c_str(state);
+                << cls->true_superclass(state)->name()->debug_str(state);
         Exception* exc =
           Exception::make_type_error(state, Class::type, super, message.str().c_str());
         exc->locations(state, Location::from_call_stack(state, call_frame));

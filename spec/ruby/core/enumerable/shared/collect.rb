@@ -1,9 +1,18 @@
 describe :enumerable_collect, :shared => true do
+  before :each do
+    ScratchPad.record []
+  end
+
   it "returns a new array with the results of passing each element to block" do
     entries = [0, 1, 3, 4, 5, 6]
     numerous = EnumerableSpecs::Numerous.new(*entries)
     numerous.send(@method) { |i| i % 2 }.should == [0, 1, 1, 0, 1, 0]
     numerous.send(@method) { |i| i }.should == entries
+  end
+
+  it "passes through the values yielded by #each_with_index" do
+    [:a, :b].each_with_index.send(@method) { |x, i| ScratchPad << [x, i]; nil }
+    ScratchPad.recorded.should == [[:a, 0], [:b, 1]]
   end
 
   ruby_version_is "" ... "1.9" do

@@ -36,26 +36,29 @@ namespace rubinius {
 
     void   setup(STATE, size_t size);
 
-    // Ruby.primitive :array_allocate
+    // Rubinius.primitive :array_allocate
     static Array* allocate(STATE, Object* self);
 
-    // Ruby.primitive :array_new_range
+    // Rubinius.primitive :array_new_range
     Array* new_range(STATE, Fixnum* start, Fixnum* count);
 
-    // Ruby.primitive :array_new_reserved
+    // Rubinius.primitive :array_new_reserved
     Array* new_reserved(STATE, Fixnum* count);
 
-    // Ruby.primitive :array_aref
+    // Rubinius.primitive :array_aref
     Object* aref(STATE, Fixnum* idx);
 
-    // Ruby.primitive :array_aset
+    // Rubinius.primitive :array_aset
     Object* aset(STATE, Fixnum* idx, Object* val);
 
-    // Ruby.primitive :array_concat
+    // Rubinius.primitive :array_concat
     Array* concat(STATE, Array* other);
 
-    // Ruby.primitive :array_pack
-    String* pack(STATE, String* directives, CallFrame* calling_environment);
+    // Rubinius.primitive :array_pack18
+    String* pack18(STATE, String* directives, CallFrame* calling_environment);
+
+    // Rubinius.primitive :array_pack19
+    String* pack19(STATE, String* directives, CallFrame* calling_environment);
 
     Object* get(STATE, size_t idx);
     Object* set(STATE, size_t idx, Object* val);

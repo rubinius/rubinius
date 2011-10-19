@@ -9,7 +9,10 @@
  * (See the file 'LICENCE'.)
  */
 #include "ossl.h"
-#include <rubysig.h>
+
+#ifndef HAVE_RUBY_IO_H
+#include "rubysig.h"
+#endif
 
 #define WrapX509Store(klass, obj, st) do { \
     if (!st) { \

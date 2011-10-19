@@ -15,3 +15,4 @@ review: true
 1. [Write a Blog Post](/doc/en/how-to/write-a-blog-post/)
 1. [Write Documentation](/doc/en/how-to/write-documentation/)
 1. [Translate Documentation](/doc/en/how-to/translate-documentation/)
+1. [Commit to Github](/doc/en/how-to/commit-to-github/)

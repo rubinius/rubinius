@@ -23,6 +23,34 @@ describe "IO.read" do
       p.should_receive(:to_path).and_return(@fname)
       IO.read(p)
     end
+
+    it "accepts an empty options Hash" do
+      IO.read(@fname, {}).should == @contents
+    end
+
+    it "accepts a length, offset, and empty options Hash" do
+      IO.read(@fname, 3, 0, {}).should == @contents[0, 3]
+    end
+
+    it "raises an IOError if the options Hash specifies write mode" do
+      lambda { IO.read(@fname, 3, 0, {:mode => "w"}) }.should raise_error(IOError)
+    end
+
+    it "raises an IOError if the options Hash specifies append only mode" do
+      lambda { IO.read(@fname, {:mode => "a"}) }.should raise_error(IOError)
+    end
+
+    it "reads the file if the options Hash includes read mode" do
+      IO.read(@fname, {:mode => "r"}).should == @contents
+    end
+
+    it "reads the file if the options Hash includes read/write mode" do
+      IO.read(@fname, {:mode => "r+"}).should == @contents
+    end
+
+    it "reads the file if the options Hash includes read/write append mode" do
+      IO.read(@fname, {:mode => "a+"}).should == @contents
+    end
   end
 
   it "treats second nil argument as no length limit" do

@@ -7,7 +7,7 @@
 # NOTE: the value used to determine the bin is the "pointer" value of
 # key >> 2. This makes it possible to calculate the bin from Ruby with
 # the same result as in C. For example:
-# 
+#
 #   l = LookupTable.new
 #   loc = :a.hash & (l.bins - 1)  # => 12
 #   class LookupTable
@@ -42,13 +42,13 @@ module Rubinius
     alias_method :length, :size
 
     def self.allocate
-      Ruby.primitive :lookuptable_allocate
+      Rubinius.primitive :lookuptable_allocate
       raise PrimitiveFailure, "LookupTable.allocate primitive failed"
     end
 
     def initialize(hash=nil)
       return unless hash
-      hash.each do |k,v|
+      hash.each do |k, v|
         self[k] = v
       end
     end
@@ -56,7 +56,7 @@ module Rubinius
     private :initialize
 
     def duplicate
-      Ruby.primitive :lookuptable_duplicate
+      Rubinius.primitive :lookuptable_duplicate
       raise PrimitiveFailure, "LookupTable#duplicate primitive failed"
     end
 
@@ -71,12 +71,12 @@ module Rubinius
     alias_method :clone, :dup
 
     def fetch(key, return_on_failure)
-      Ruby.primitive :lookuptable_fetch
+      Rubinius.primitive :lookuptable_fetch
       raise PrimitiveFailure, "fetch failed"
     end
 
     def key?(key)
-      Ruby.primitive :lookuptable_has_key
+      Rubinius.primitive :lookuptable_has_key
       raise PrimitiveFailure, "LookupTable#key? primitive failed"
     end
 
@@ -85,18 +85,18 @@ module Rubinius
     alias_method :member?,  :key?
 
     def delete(key)
-      Ruby.primitive :lookuptable_delete
+      Rubinius.primitive :lookuptable_delete
       raise PrimitiveFailure, "LookupTable#delete primitive failed"
     end
 
     def keys
-      Ruby.primitive :lookuptable_keys
+      Rubinius.primitive :lookuptable_keys
       raise PrimitiveFailure, "LookupTable#keys primitive failed"
     end
 
     def values
-      Ruby.primitive :lookuptable_values
-      raise PrimitiveFailure, "LookupTable#keys primitive failed"
+      Rubinius.primitive :lookuptable_values
+      raise PrimitiveFailure, "LookupTable#values primitive failed"
     end
 
     def each
@@ -115,8 +115,6 @@ module Rubinius
       end
       self
     end
-
-    alias_method :each_entry, :each
 
     def empty?
       @entries == 0

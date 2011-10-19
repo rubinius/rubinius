@@ -28,6 +28,10 @@ describe "CApiObject" do
 
     def foo
     end
+
+    def private_foo
+    end
+    private :private_foo
   end
 
   class AryChild < Array
@@ -79,6 +83,13 @@ describe "CApiObject" do
   it "rb_respond_to should return 1 if respond_to? is true and 0 if respond_to? is false" do
     @o.rb_respond_to(ObjectTest.new, :foo).should == true
     @o.rb_respond_to(ObjectTest.new, :bar).should == false
+  end
+
+  it "rb_obj_respond_to should return true if respond_to? is true and false if respond_to? is false" do
+    @o.rb_obj_respond_to(ObjectTest.new, :foo, true).should == true
+    @o.rb_obj_respond_to(ObjectTest.new, :bar, true).should == false
+    @o.rb_obj_respond_to(ObjectTest.new, :private_foo, false).should == false
+    @o.rb_obj_respond_to(ObjectTest.new, :private_foo, true).should == true
   end
 
   it "rb_to_id should return a symbol representation of the object" do
@@ -181,6 +192,18 @@ describe "CApiObject" do
     @o.rb_is_type_module(ObjectTest).should == false
     @o.rb_is_type_class(ObjectTest).should == true
     @o.rb_is_type_data(Time.now).should == true
+  end
+
+  it "BUILTIN_TYPE should return the type constant for the object" do
+    class DescArray < Array
+    end
+    @o.rb_is_builtin_type_object([]).should == false
+    @o.rb_is_builtin_type_object(ObjectTest.new).should == true
+    @o.rb_is_builtin_type_array([]).should == true
+    @o.rb_is_builtin_type_array(DescArray.new).should == true
+    @o.rb_is_builtin_type_module(ObjectTest).should == false
+    @o.rb_is_builtin_type_class(ObjectTest).should == true
+    @o.rb_is_builtin_type_data(Time.now).should == true
   end
 
   describe "RTEST" do
@@ -403,6 +426,28 @@ describe "CApiObject" do
       m2.should_receive(:==).and_return(nil)
       @o.rb_equal(m2, "hello").should be_false
     end
+  end
+
+  describe "rb_class_inherited_p" do
+
+    it "returns true if mod equals arg" do
+      @o.rb_class_inherited_p(Array, Array).should be_true
+    end
+
+    it "returns true if mod is a subclass of arg" do
+      @o.rb_class_inherited_p(Array, Object).should be_true
+    end
+
+    it "returns nil if mod is not a subclass of arg" do
+      @o.rb_class_inherited_p(Array, Hash).should be_nil
+    end
+
+    it "raises a TypeError if arg is no class or module" do
+      lambda{
+        @o.rb_class_inherited_p(1, 2)
+      }.should raise_error(TypeError)
+    end
+
   end
 
   describe "instance variable access" do

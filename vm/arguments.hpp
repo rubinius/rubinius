@@ -11,6 +11,7 @@ namespace rubinius {
   class GarbageCollector;
 
   class Arguments {
+    Symbol* name_;
     Object* recv_;
     Object* block_;
 
@@ -19,43 +20,56 @@ namespace rubinius {
     Tuple* argument_container_;
 
   public:
-    Arguments(Object* recv, Object* block, uint32_t total, Object** buffer)
-      : recv_(recv)
+    Arguments(Symbol* name, Object* recv, Object* block, uint32_t total, Object** buffer)
+      : name_(name)
+      , recv_(recv)
       , block_(block)
       , total_(total)
       , arguments_(buffer)
       , argument_container_(0)
     {}
 
-    Arguments(Object* recv, uint32_t total, Object** buffer)
-      : recv_(recv)
+    Arguments(Symbol* name, Object* recv, uint32_t total, Object** buffer)
+      : name_(name)
+      , recv_(recv)
       , block_(Qnil)
       , total_(total)
       , arguments_(buffer)
       , argument_container_(0)
     {}
 
-    Arguments(uint32_t total, Object** buffer)
-      : recv_(Qnil)
+    Arguments(Symbol* name, uint32_t total, Object** buffer)
+      : name_(name)
+      , recv_(Qnil)
       , block_(Qnil)
       , total_(total)
       , arguments_(buffer)
       , argument_container_(0)
     {}
 
-    Arguments()
-      : recv_(Qnil)
+    Arguments(Symbol* name)
+      : name_(name)
+      , recv_(Qnil)
       , block_(Qnil)
       , total_(0)
       , arguments_(0)
       , argument_container_(0)
     {}
 
-    Arguments(Array* ary)
-      : recv_(Qnil)
+    Arguments(Symbol* name, Array* ary)
+      : name_(name)
+      , recv_(Qnil)
       , block_(Qnil)
     {
       use_array(ary);
+    }
+
+    Symbol* name() {
+      return name_;
+    }
+
+    void set_name(Symbol* n) {
+      name_ = n;
     }
 
     Object* recv() {
@@ -90,6 +104,10 @@ namespace rubinius {
 
     uint32_t total() {
       return total_;
+    }
+
+    void use_argument(Object* obj) {
+      arguments_[0] = obj;
     }
 
     void use_array(Array* ary) {

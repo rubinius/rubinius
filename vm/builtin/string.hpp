@@ -3,7 +3,7 @@
 
 #include "builtin/object.hpp"
 #include "builtin/fixnum.hpp"
-#include "builtin/bytearray.hpp"
+#include "builtin/chararray.hpp"
 
 #include "type_info.hpp"
 #include <ctype.h> // For isdigit and friends
@@ -26,7 +26,7 @@
 
 
 namespace rubinius {
-  class ByteArray;
+  class CharArray;
   class Float;
 
   class String : public Object {
@@ -36,7 +36,7 @@ namespace rubinius {
   private:
     Fixnum* num_bytes_;  // slot
     Object* encoding_;   // slot
-    ByteArray* data_;    // slot
+    CharArray* data_;    // slot
     Fixnum* hash_value_; // slot
     Object* shared_;     // slot
 
@@ -45,7 +45,7 @@ namespace rubinius {
 
     attr_accessor(num_bytes, Fixnum);
     attr_accessor(encoding, Object);
-    attr_accessor(data, ByteArray);
+    attr_accessor(data, CharArray);
     attr_accessor(hash_value, Fixnum);
     attr_accessor(shared, Object);
 
@@ -55,8 +55,8 @@ namespace rubinius {
 
     static String* create(STATE, Fixnum* size);
 
-    // Ruby.primitive :string_from_bytearray
-    static String* from_bytearray(STATE, ByteArray* ba, Fixnum* start, Fixnum* count);
+    // Rubinius.primitive :string_from_chararray
+    static String* from_chararray(STATE, CharArray* ca, Fixnum* start, Fixnum* count);
     static String* create(STATE, const char* str);
     static String* create(STATE, const char* str, native_int bytes);
     static String* create_pinned(STATE, Fixnum* size);
@@ -68,7 +68,7 @@ namespace rubinius {
     // Hash the byte array _bp_ which contains _sz_ bytes.
     static hashval hash_str(const unsigned char *bp, unsigned int sz);
 
-    // Ruby.primitive :string_equal
+    // Rubinius.primitive :string_equal
     Object* equal(STATE, String* other) {
       if(this->num_bytes() != other->num_bytes()) return Qfalse;
       int comp = memcmp(
@@ -80,7 +80,7 @@ namespace rubinius {
     }
 
 
-    // Ruby.primitive :string_secure_compare
+    // Rubinius.primitive :string_secure_compare
     Object* secure_compare(STATE, String* other);
 
     // Returns the number of bytes this String contains
@@ -106,10 +106,10 @@ namespace rubinius {
 
     void unshare(STATE);
     hashval hash_string(STATE);
-    // Ruby.primitive :symbol_lookup
+    // Rubinius.primitive :symbol_lookup
     Symbol* to_sym(STATE);
 
-    // Ruby.primitive :string_dup
+    // Rubinius.primitive :string_dup
     String* string_dup(STATE);
 
     String* add(STATE, String* other);
@@ -120,7 +120,7 @@ namespace rubinius {
      *
      *  Returns self.
      */
-    // Ruby.primitive :string_append
+    // Rubinius.primitive :string_append
     String* append(STATE, String* other);
 
     /**
@@ -137,56 +137,59 @@ namespace rubinius {
     /** Append length bytes from C string. Returns self. */
     String* append(STATE, const char* other, native_int length);
 
-    // Ruby.primitive :string_to_f
+    // Rubinius.primitive :string_to_f
     Float* to_f(STATE);
     double to_double(STATE);
 
     Integer* to_i(STATE, Fixnum* base = Fixnum::from(0), Object* strict = Qtrue);
 
-    // Ruby.primitive :string_to_inum
+    // Rubinius.primitive :string_to_inum
     Integer* to_inum_prim(STATE, Fixnum* base, Object* strict);
 
-    // Ruby.primitive :string_apply_and
+    // Rubinius.primitive :string_apply_and
     String* apply_and(STATE, String* other);
 
-    // Ruby.primitive :string_tr_expand
+    // Rubinius.primitive :string_tr_expand
     Fixnum* tr_expand(STATE, Object* limit, Object* invalid_as_empty);
     Fixnum* tr_replace(STATE, struct tr_data* data);
 
-    // Ruby.primitive :string_copy_from
+    // Rubinius.primitive :string_copy_from
     String* copy_from(STATE, String* other, Fixnum* start, Fixnum* size, Fixnum* dest);
 
-    // Ruby.primitive :string_compare_substring
+    // Rubinius.primitive :string_compare_substring
     Fixnum* compare_substring(STATE, String* other, Fixnum* start, Fixnum* size);
 
-    // Ruby.primitive :string_crypt
+    // Rubinius.primitive :string_crypt
     String* crypt(STATE, String* salt);
 
-    // Ruby.primitive :string_pattern
+    // Rubinius.primitive :string_pattern
     static String* pattern(STATE, Object* self, Fixnum* size, Object* pattern);
 
-    // Ruby.primitive :string_substring
+    // Rubinius.primitive :string_substring
     String* substring(STATE, Fixnum* start, Fixnum* count);
 
-    // Ruby.primitive :string_index
+    // Rubinius.primitive :string_index
     Fixnum* index(STATE, String* pattern, Fixnum* start);
 
-    // Ruby.primitive :string_rindex
+    // Rubinius.primitive :string_rindex
     Fixnum* rindex(STATE, String* pattern, Fixnum* start);
 
-    // Ruby.primitive :string_transform
+    // Rubinius.primitive :string_transform
     String* transform(STATE, Tuple* table, Object* respect_kcode);
 
-    // Ruby.primitive :string_find_character
+    // Rubinius.primitive :string_find_character
     String* find_character(STATE, Fixnum* offset);
 
-    // Ruby.primitive :string_awk_split
+    // Rubinius.primitive :string_awk_split
     Array* awk_split(STATE, Fixnum* limit);
 
-    // Ruby.primitive :string_unpack
-    Array* unpack(STATE, String *directives);
+    // Rubinius.primitive :string_unpack18
+    Array* unpack18(STATE, String *directives);
 
-    // Ruby.primitive :string_resize_capacity
+    // Rubinius.primitive :string_unpack19
+    Array* unpack19(STATE, String *directives);
+
+    // Rubinius.primitive :string_resize_capacity
     String* resize_capacity(STATE, Fixnum* count);
 
     class Info : public TypeInfo {

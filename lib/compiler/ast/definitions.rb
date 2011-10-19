@@ -66,11 +66,15 @@ module Rubinius
     # make do and pull them out here rather than having something else reach
     # inside of Block.
     class Block < Node
-      attr_accessor :array
+      attr_accessor :array, :locals
 
       def initialize(line, array)
         @line = line
         @array = array
+
+        # These are any local variable that are declared as explicit
+        # locals for this scope. This is only used by the |a;b| syntax.
+        @locals = nil
       end
 
       def strip_arguments
@@ -328,12 +332,14 @@ module Rubinius
         @block_arg.bytecode(g) if @block_arg
       end
 
-      def arity
+      def required_args
         @required.size
       end
 
-      def required_args
-        @required.size
+      alias_method :arity, :required_args
+
+      def post_args
+        0
       end
 
       def total_args
@@ -384,11 +390,174 @@ module Rubinius
           sexp << :"*#{@splat}"
         end
 
+        sexp += @post if @post
+
         sexp << :"&#{@block_arg.name}" if @block_arg
 
         sexp << [:block] + @defaults.to_sexp if @defaults
 
         sexp
+      end
+    end
+
+    class FormalArguments19 < FormalArguments
+      attr_accessor :post
+
+      def initialize(line, required, optional, splat, post, block)
+        @line = line
+        @defaults = nil
+        @block_arg = nil
+        @splat_index = nil
+
+        @required = []
+        names = []
+
+        if required
+          required.each do |arg|
+            case arg
+            when Symbol
+              names << arg
+              @required << arg
+            when MultipleAssignment
+              @required << PatternArguments.from_masgn(arg)
+              @splat_index = -4 if @required.size == 1
+            end
+          end
+        end
+
+        if optional
+          @defaults = DefaultArguments.new line, optional
+          @optional = @defaults.names
+          names.concat @optional
+        else
+          @optional = []
+        end
+
+        case splat
+        when Symbol
+          names << splat
+        when true
+          splat = :@unnamed_splat
+          names << splat
+        when false
+          @splat_index = -3
+          splat = nil
+        end
+
+        if post
+          names.concat post
+          @post = post
+        else
+          @post = []
+        end
+
+        if block
+          @block_arg = BlockArgument.new line, block
+          names << block
+        end
+
+        @splat = splat
+        @names = names
+      end
+
+      def required_args
+        @required.size + @post.size
+      end
+
+      def post_args
+        @post.size
+      end
+
+      def total_args
+        @required.size + @optional.size + @post.size
+      end
+
+      def splat_index
+        return @splat_index if @splat_index
+
+        if @splat
+          index = @names.size
+          index -= 1 if @block_arg
+          index -= 1 if @splat.kind_of? Symbol
+          index -= @post.size
+          index
+        end
+      end
+
+      def map_arguments(scope)
+        @required.each.with_index do |arg, index|
+          case arg
+          when PatternArguments
+            arg.map_arguments scope
+          when Symbol
+            @required[index] = arg = :"_#{index}" if arg == :_
+            scope.new_local arg
+          end
+        end
+
+        @defaults.map_arguments scope if @defaults
+        scope.new_local @splat if @splat.kind_of? Symbol
+        @post.each { |arg| scope.new_local arg }
+        scope.assign_local_reference @block_arg if @block_arg
+      end
+
+      def bytecode(g)
+        map_arguments g.state.scope
+
+        @required.each do |arg|
+          if arg.kind_of? PatternArguments
+            arg.argument.position_bytecode(g)
+            arg.bytecode(g)
+            g.pop
+          end
+        end
+
+        @defaults.bytecode(g) if @defaults
+        @block_arg.bytecode(g) if @block_arg
+      end
+    end
+
+    class PatternArguments < Node
+      attr_accessor :arguments, :argument
+
+      def self.from_masgn(node)
+        array = []
+        node.left.body.map do |n|
+          case n
+          when MultipleAssignment
+            array << PatternArguments.from_masgn(n)
+          when LocalVariable
+            array << PatternVariable.new(n.line, n.name)
+          end
+        end
+
+        PatternArguments.new node.line, ArrayLiteral.new(node.line, array)
+      end
+
+      def initialize(line, arguments)
+        @line = line
+        @arguments = arguments
+        @argument = nil
+      end
+
+      # Assign the left-most, depth-first PatternVariable so that this local
+      # will be assigned the passed argument at that position. The rest of the
+      # pattern will be destructured from the value of this assignment.
+      def map_arguments(scope)
+        arguments = @arguments.body
+        while arguments
+          node = arguments.first
+          if node.kind_of? PatternVariable
+            @argument = node
+            scope.assign_local_reference node
+            return
+          end
+          arguments = node.arguments.body
+        end
+      end
+
+      def bytecode(g)
+        @arguments.body.each { |arg| arg.bytecode(g) }
       end
     end
 

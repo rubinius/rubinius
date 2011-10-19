@@ -20,9 +20,9 @@ module Rubinius
     ROW_GROWTH = 9
 
     # Converts one or more Enumerable instances to a single IdentityMap
-    def self.from(*arrays)
+    def self.from(*arrays, &block)
       im = allocate
-      Rubinius.privately { im.load arrays }
+      Rubinius.privately { im.load(arrays, &block) }
       im
     end
 
@@ -36,10 +36,15 @@ module Rubinius
 
     # Adds +item+ to the IdentityMap if it does not already exist. May cause
     # a row to be added or enlarged. Returns +self+.
-    def insert(item)
+    def insert(item, &block)
       redistribute if @size > @max
 
-      item_hash = item.hash
+      if block_given?
+        item_hash = yield(item).hash
+      else
+        item_hash = item.hash
+      end
+
       index = item_hash & @mask
       table = @table
 
@@ -47,7 +52,7 @@ module Rubinius
         index += 1
 
         if num_entries == 1
-          return self if match? table, index, item, item_hash
+          return self if match?(table, index, item, item_hash, &block)
 
           table[index-1] = 2
           table[index] = promote_row table, index, item, item_hash, @size
@@ -57,7 +62,7 @@ module Rubinius
           total = row[0]
 
           while i < total
-            return self if match? row, i, item, item_hash
+            return self if match?(row, i, item, item_hash, &block)
             i += 3
           end
 
@@ -242,18 +247,22 @@ module Rubinius
 
     # Given an Array of Enumerable instances, computes a bounding set
     # to contain them and then adds each item to the IdentityMap.
-    def load(arrays)
+    def load(arrays, &block)
       resize(arrays.inject(0) { |sum, array| sum + array.size })
       @size = 0
 
       arrays.each do |array|
-        array.each { |item| insert item }
+        array.each { |item| insert(item, &block) }
       end
     end
     private :load
 
-    def match?(table, index, item, item_hash)
-      table[index] == item_hash and item.eql? table[index+1]
+    def match?(table, index, item, item_hash, &block)
+      if block_given?
+        table[index] == item_hash and yield(item).eql? yield(table[index+1])
+      else
+        table[index] == item_hash and item.eql? table[index+1]
+      end
     end
     private :match?
 

@@ -1,8 +1,8 @@
 ---
 layout: doc_en
 title: Appendix A - Glossary
-previous: How-To - Translate Documentation
-previous_url: how-to/translate-documentation
+previous: How-To - Commit Changes to Github
+previous_url: how-to/commit-to-github
 next: Appendix B - Reading List
 next_url: appendix-b-reading-list
 review: true

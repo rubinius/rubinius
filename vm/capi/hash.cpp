@@ -1,5 +1,5 @@
 #include "capi/capi.hpp"
-#include "capi/include/ruby.h"
+#include "capi/18/include/ruby.h"
 
 using namespace rubinius;
 using namespace rubinius::capi;
@@ -35,7 +35,7 @@ extern "C" {
   }
 
   VALUE rb_hash_lookup(VALUE self, VALUE key) {
-    VALUE entry = rb_funcall(self, rb_intern("find_entry"), 1, key);
+    VALUE entry = rb_funcall(self, rb_intern("find_item"), 1, key);
     if(entry != Qnil) {
       return rb_funcall(entry, rb_intern("value"), 0);
     } else {

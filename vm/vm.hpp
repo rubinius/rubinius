@@ -9,13 +9,10 @@
 #include "thread_state.hpp"
 
 #include "util/refcount.hpp"
-
-#include "global_lock.hpp"
-#include "maps.hpp"
+#include "util/thread.hpp"
 
 #include "call_frame_list.hpp"
 
-#include "async_message.hpp"
 #include "gc/variable_buffer.hpp"
 #include "gc/root_buffer.hpp"
 #include "gc/slab.hpp"
@@ -23,7 +20,6 @@
 #include "shared_state.hpp"
 
 #include <vector>
-#include <pthread.h>
 #include <setjmp.h>
 
 namespace llvm {
@@ -47,11 +43,11 @@ namespace rubinius {
     class WriteBarrier;
   }
 
+  class Channel;
   class GlobalCache;
   class Primitives;
   class ObjectMemory;
   class TypeInfo;
-  class MethodContext;
   class String;
   class Symbol;
   class ConfigParser;
@@ -62,7 +58,6 @@ namespace rubinius {
   class Configuration;
   struct Interrupts;
   class VMManager;
-  class Waiter;
   class LookupTable;
   class SymbolTable;
   class SharedState;
@@ -71,6 +66,16 @@ namespace rubinius {
   enum MethodMissingReason {
     eNone, ePrivate, eProtected, eSuper, eVCall, eNormal
   };
+
+
+  /**
+   * Represents an execution context for running Ruby code.
+   *
+   * Each Ruby thread is backed by an instance of this class, as well as an
+   * instance of the Thread class. Thread manages the (Ruby visible) thread-
+   * related state, while this class manages the execution machinery for
+   * running Ruby code.
+   */
 
   class VM : public ManagedThread {
   private:
@@ -91,10 +96,14 @@ namespace rubinius {
   public:
     /* Data members */
     SharedState& shared;
-    thread::Mutex local_lock_;
-    Waiter* waiter_;
+    TypedRoot<Channel*> waiting_channel_;
+    TypedRoot<Exception*> interrupted_exception_;
+
     bool interrupt_with_signal_;
-    pthread_t os_thread_;
+    InflatedHeader* waiting_header_;
+
+    void (*custom_wakeup_)(void*);
+    void* custom_wakeup_data_;
 
     ObjectMemory* om;
     Interrupts& interrupts;
@@ -103,18 +112,22 @@ namespace rubinius {
 
     ThreadState thread_state_;
 
-    // The Thread object for this VM state
+    /// The Thread object for this VM state
     TypedRoot<Thread*> thread;
 
-    // The current fiber running on this thread
+    /// The current fiber running on this thread
     TypedRoot<Fiber*> current_fiber;
 
-    // Root fiber, if any (lazily initialized)
+    /// Root fiber, if any (lazily initialized)
     TypedRoot<Fiber*> root_fiber;
 
     static unsigned long cStackDepthMax;
 
   public: /* Inline methods */
+
+    uint32_t thread_id() {
+      return id_;
+    }
 
     bool run_signals_p() {
       return run_signals_;
@@ -128,14 +141,6 @@ namespace rubinius {
       return &thread_state_;
     }
 
-    GlobalLock& global_lock() {
-      return shared.global_lock();
-    }
-
-    thread::Mutex& local_lock() {
-      return local_lock_;
-    }
-
     CallFrame** call_frame_location() {
       return &saved_call_frame_;
     }
@@ -146,16 +151,6 @@ namespace rubinius {
 
     CallFrame* saved_call_frame() {
       return saved_call_frame_;
-    }
-
-    // NOTE this will need to be VM local, ie Thread local, once the GIL
-    // is removed.
-    VariableRootBuffers* variable_buffers() {
-      return shared.variable_buffers();
-    }
-
-    RootBuffers* root_buffers() {
-      return shared.root_buffers();
     }
 
     GlobalCache* global_cache() {
@@ -238,6 +233,14 @@ namespace rubinius {
       thread_step_ = true;
     }
 
+    Exception* interrupted_exception() {
+      return interrupted_exception_.get();
+    }
+
+    void clear_interrupted_exception() {
+      interrupted_exception_.set(Qnil);
+    }
+
     rbxti::Env* tooling_env() {
       return tooling_env_;
     }
@@ -257,29 +260,19 @@ namespace rubinius {
   public:
     static void init_stack_size();
 
-    // Better than current_state, uses a pthread local.
     static VM* current();
     static void set_current(VM* vm);
 
-    // Returns the current VM state object.
-    static VM* current_state();
-
-    // Registers a VM* object as the current state.
-    static void register_state(VM*);
-
-    static void discard(VM*);
+    static void discard(STATE, VM*);
 
   public:
 
     /* Prototypes */
-    VM(SharedState& shared);
+    VM(uint32_t id, SharedState& shared);
 
     void check_exception(CallFrame* call_frame);
 
-    void initialize();
-
-    // Initialize the basic objects and the execution machinery
-    void boot();
+    void initialize_as_root();
 
     void bootstrap_class();
     void bootstrap_ontology();
@@ -291,7 +284,6 @@ namespace rubinius {
     void initialize_fundamental_constants();
     void initialize_builtin_classes();
     void initialize_platform_data();
-    void boot_threads();
 
     void set_current_fiber(Fiber* fib);
 
@@ -317,25 +309,43 @@ namespace rubinius {
         return reinterpret_cast<T*>(new_object_typed_mature(cls, sizeof(T), T::type));
       }
 
-    // Create an uninitialized Class object
+    template <class T>
+      T* new_object_bytes(Class* cls, size_t& bytes) {
+        bytes = ObjectHeader::align(sizeof(T) + bytes);
+        T* obj = reinterpret_cast<T*>(new_object_typed(cls, bytes, T::type));
+
+        return obj;
+      }
+
+    template <class T>
+      T* new_object_variable(Class* cls, size_t fields, size_t& bytes) {
+        bytes = sizeof(T) + (fields * sizeof(Object*));
+        return reinterpret_cast<T*>(new_object_typed(cls, bytes, T::type));
+      }
+
+    /// Create a Tuple in the young GC space, return NULL if not possible.
+    Tuple* new_young_tuple_dirty(size_t fields);
+
+    /// Create an uninitialized Class object
     Class* new_basic_class(Class* sup);
 
-    // Create a Class of name +name+ as an Object subclass
+    /// Create a Class of name +name+ as an Object subclass
     Class* new_class(const char* name);
 
-    // Create a Class of name +name+ as a subclass of +super_class+
+    /// Create a Class of name +name+ as a subclass of +super_class+
     Class* new_class(const char* name, Class* super_class);
 
-    // Create a Class of name +name+ as a subclass of +sup+
-    // under Module +under+
+    /// Create a Class of name +name+ as a subclass of +sup+
+    /// under Module +under+
     Class* new_class(const char* name, Class* sup, Module* under);
 
-    // Create a Class of name +name+ under +under+
+    /// Create a Class of name +name+ under +under+
     Class* new_class_under(const char* name, Module* under);
 
     Module* new_module(const char* name, Module* under = NULL);
 
     Symbol* symbol(const char* str);
+    Symbol* symbol(std::string str);
     Symbol* symbol(String* str);
 
     TypeInfo* find_type(int type);
@@ -346,7 +356,7 @@ namespace rubinius {
     Thread* current_thread();
     void collect(CallFrame* call_frame);
 
-    // Check the flags in ObjectMemory and collect if we need to.
+    /// Check the GC flags in ObjectMemory and collect if we need to.
     void collect_maybe(CallFrame* call_frame);
 
     void raise_from_errno(const char* reason);
@@ -357,6 +367,8 @@ namespace rubinius {
     void set_const(const char* name, Object* val);
     void set_const(Module* mod, const char* name, Object* val);
 
+    Object* path2class(const char* name);
+
 #ifdef ENABLE_LLVM
     llvm::Module* llvm_module();
     void llvm_cleanup();
@@ -365,23 +377,25 @@ namespace rubinius {
     void print_backtrace();
 
 
-    // Run the garbage collectors as soon as you can
+    /// Run the garbage collectors as soon as you can
     void run_gc_soon();
 
-    void install_waiter(Waiter& waiter);
+    void wait_on_channel(Channel* channel);
+    void wait_on_inflated_lock(InflatedHeader* ih);
+    void wait_on_custom_function(void (*func)(void*), void* data);
     void clear_waiter();
-    bool wakeup();
+    bool wakeup(STATE);
+    bool waiting_p();
+
+    void set_sleeping();
+    void clear_sleeping();
 
     void interrupt_with_signal();
     bool should_interrupt_with_signal() {
       return interrupt_with_signal_;
     }
 
-    bool waiting_p() {
-      return interrupt_with_signal_ || waiter_ != NULL;
-    }
-
-    void register_raise(Exception* exc);
+    void register_raise(STATE, Exception* exc);
 
     bool process_async(CallFrame* call_frame);
 
@@ -396,6 +410,13 @@ namespace rubinius {
     static std::list<Roots*>* roots;
   };
 
+
+  /**
+   * Instantiation of an instance of this class causes Ruby execution on all
+   * threads to be suspended. Upon destruction of the instance, Ruby execution
+   * is resumed.
+   */
+
   class StopTheWorld {
     VM* vm_;
 
@@ -403,13 +424,59 @@ namespace rubinius {
     StopTheWorld(STATE) :
       vm_(state)
     {
-      vm_->shared.stop_the_world();
+      vm_->shared.stop_the_world(vm_);
     }
 
     ~StopTheWorld() {
-      vm_->shared.restart_world();
+      vm_->shared.restart_world(vm_);
     }
   };
+
+  class NativeMethodEnvironment;
+
+  class GCIndependent {
+    VM* vm_;
+
+  public:
+    GCIndependent(STATE, CallFrame* call_frame)
+      : vm_(state)
+    {
+      vm_->set_call_frame(call_frame);
+      vm_->shared.gc_independent(vm_);
+    }
+
+    GCIndependent(STATE)
+      : vm_(state)
+    {
+      vm_->shared.gc_independent(vm_);
+    }
+
+    GCIndependent(NativeMethodEnvironment* env);
+
+    ~GCIndependent() {
+      vm_->shared.gc_dependent(vm_);
+    }
+  };
+
+  template <class T>
+  class GCIndependentLockGuard : public thread::LockGuardTemplate<T> {
+    VM* vm_;
+  public:
+    GCIndependentLockGuard(STATE, T& in_lock)
+      : thread::LockGuardTemplate<T>(in_lock, false)
+      , vm_(state)
+    {
+      vm_->shared.gc_independent(vm_);
+      this->lock();
+      vm_->shared.gc_dependent(vm_);
+    }
+
+    ~GCIndependentLockGuard() {
+      this->unlock();
+    }
+  };
+
+   typedef GCIndependentLockGuard<thread::Mutex> GCLockGuard;
 };
 
 #endif

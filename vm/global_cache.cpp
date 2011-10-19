@@ -87,7 +87,7 @@ keep_looking:
 
     Module* klass = lookup.from;
 
-    entry = state->global_cache()->lookup(klass, name);
+    entry = state->global_cache()->lookup(state, klass, name);
     if(entry) {
       if(lookup.priv || entry->is_public) {
         msg.method = entry->method;

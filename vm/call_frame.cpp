@@ -20,7 +20,7 @@ namespace rubinius {
     while(use && use->is_inline_block()) {
       CallFrame* yielder = use->previous;
       if(!yielder) return Qnil;
-      // This works because the creater is always one above
+      // This works because the creator is always one above
       // the yielder with inline blocks.
       use = yielder->previous;
     }
@@ -35,7 +35,7 @@ namespace rubinius {
     while(use && use->is_inline_block()) {
       CallFrame* yielder = use->previous;
       if(!yielder) return;
-      // This works because the creater is always one above
+      // This works because the creator is always one above
       // the yielder with inline blocks.
       use = yielder->previous;
     }
@@ -66,20 +66,25 @@ namespace rubinius {
     return 0;
   }
 
-  void CallFrame::print_backtrace(STATE) {
-    print_backtrace(state, std::cout);
+  void CallFrame::print_backtrace(STATE, int total) {
+    print_backtrace(state, std::cout, total);
   }
 
-  void CallFrame::print_backtrace(STATE, std::ostream& stream) {
+  void CallFrame::print_backtrace(STATE, std::ostream& stream, int total) {
     CallFrame* cf = this;
 
+    int i = -1;
+
     while(cf) {
+      i++;
+
+      if(total > 0 && i == total) return;
       stream << static_cast<void*>(cf) << ": ";
 
       if(NativeMethodFrame* nmf = cf->native_method_frame()) {
         NativeMethod* nm = try_as<NativeMethod>(nmf->get_object(nmf->method()));
         if(nm || !nm->name()->symbol_p()) {
-          stream << "capi:" << nm->name()->c_str(state) << " at ";
+          stream << "capi:" << nm->name()->debug_str(state) << " at ";
           stream << nm->file()->c_str(state);
         } else {
           stream << "unknown capi";
@@ -100,13 +105,13 @@ namespace rubinius {
       } else {
         if(SingletonClass* sc = try_as<SingletonClass>(cf->module())) {
           if(Module* mod = try_as<Module>(sc->attached_instance())) {
-            stream << mod->name()->c_str(state) << ".";
+            stream << mod->name()->debug_str(state) << ".";
           } else {
             if(sc->attached_instance() == G(main)) {
               stream << "MAIN.";
             } else {
               stream << "#<" <<
-                sc->attached_instance()->class_object(state)->name()->c_str(state) <<
+                sc->attached_instance()->class_object(state)->name()->debug_str(state) <<
                 ":" << (void*)sc->attached_instance()->id(state)->to_native() << ">.";
             }
           }
@@ -114,31 +119,35 @@ namespace rubinius {
           if(im->module()->name()->nil_p()) {
             stream << "<anonymous module>#";
           } else {
-            stream << im->module()->name()->c_str(state) << "#";
+            stream << im->module()->name()->debug_str(state) << "#";
           }
         } else {
-          const char* mod_name;
+          std::string mod_name;
           if(cf->module()->nil_p()) {
-            mod_name = cf->cm->scope()->module()->name()->c_str(state);
-          } else if(cf->module()->name()->nil_p()) {
-            mod_name = cf->cm->scope()->module()->name()->c_str(state);
+            mod_name = cf->cm->scope()->module()->name()->debug_str(state);
           } else {
-            mod_name = cf->module()->name()->c_str(state);
+            if(Symbol* s = try_as<Symbol>(cf->module()->name())) {
+              mod_name = s->debug_str(state);
+            } else if(Symbol* s = try_as<Symbol>(cf->cm->scope()->module()->name())) {
+              mod_name = s->debug_str(state);
+            } else {
+              mod_name = "<anonymous module>";
+            }
           }
           stream << mod_name << "#";
         }
 
         Symbol* name = try_as<Symbol>(cf->name());
         if(name) {
-          stream << name->c_str(state);
+          stream << name->debug_str(state);
         } else {
-          stream << cf->cm->name()->c_str(state);
+          stream << cf->cm->name()->debug_str(state);
         }
       }
 
       stream << " in ";
       if(Symbol* file_sym = try_as<Symbol>(cf->cm->file())) {
-        stream << file_sym->c_str(state) << ":" << cf->line(state);
+        stream << file_sym->debug_str(state) << ":" << cf->line(state);
       } else {
         stream << "<unknown>";
       }
@@ -174,7 +183,7 @@ namespace rubinius {
   }
 
   void CallFrame::dump() {
-    VM* state = VM::current_state();
+    VM* state = VM::current();
     std::cout << "<CallFrame:" << (void*)this << " ";
 
     if(native_method_p()) {
@@ -189,9 +198,9 @@ namespace rubinius {
     if(is_block_p(state)) {
       std::cout << "block ";
     } else if(dispatch_data) {
-      std::cout << "name=" << name()->c_str(state) << " ";
+      std::cout << "name=" << name()->debug_str(state) << " ";
     } else {
-      std::cout << "name=" << cm->name()->c_str(state) << " ";
+      std::cout << "name=" << cm->name()->debug_str(state) << " ";
     }
 
     std::cout << "ip=" << ip_ << " ";
@@ -218,7 +227,7 @@ namespace rubinius {
   /* For debugging. */
   extern "C" {
     void __printbt__(CallFrame* call_frame) {
-      call_frame->print_backtrace(VM::current_state());
+      call_frame->print_backtrace(VM::current());
     }
   }
 }

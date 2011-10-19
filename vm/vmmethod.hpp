@@ -1,8 +1,6 @@
 #ifndef RBX_VMMETHOD_HPP
 #define RBX_VMMETHOD_HPP
 
-#include <vector>
-
 #include "executor.hpp"
 #include "gc/root.hpp"
 #include "primitives.hpp"
@@ -19,20 +17,13 @@ namespace llvm {
 #endif
 
 namespace rubinius {
-  typedef void* instlocation;
   typedef uintptr_t opcode;
-  typedef uint32_t bpflags;
-
-  typedef std::list<Object**> IndirectLiterals;
 
   class CompiledMethod;
-  class MethodContext;
-  class SendSite;
   class VMMethod;
   class InterpreterCallFrame;
   class InlineCache;
 
-  typedef Object* (*Runner)(STATE, VMMethod* const vmm, CallFrame* const call_frame);
   typedef Object* (*InterpreterRunner)(STATE, VMMethod* const vmm,
                                        InterpreterCallFrame* const call_frame);
 
@@ -44,8 +35,21 @@ namespace rubinius {
       eNoInline = 1 << 0
     };
 
+    const static int cMaxSpecializations = 3;
+
+    struct Specialization {
+      int class_id;
+      executor execute;
+      jit::RuntimeDataHolder* jit_data;
+    };
+
+    enum ExecuteStatus {
+      eInterpret,
+      eJIT,
+      eJITDisable,
+    };
+
   private:
-    IndirectLiterals indirect_literals_;
     VMMethod* parent_;
 
   public:
@@ -59,6 +63,7 @@ namespace rubinius {
 
     native_int total_args;
     native_int required_args;
+    native_int post_args;
     native_int splat_position;
 
     native_int stack_size;
@@ -70,12 +75,12 @@ namespace rubinius {
     size_t number_of_caches_;
     InlineCache* caches;
 
+    Specialization specializations[cMaxSpecializations];
+    executor unspecialized;
+    executor fallback;
+
   private:
-#ifdef ENABLE_LLVM
-    llvm::Function* llvm_function_;
-    int    jitted_bytes_;
-    void*  jitted_impl_;
-#endif
+    ExecuteStatus execute_status_;
 
     Symbol* name_;
     uint64_t method_id_;
@@ -89,44 +94,20 @@ namespace rubinius {
 
     VMMethod(STATE, CompiledMethod* meth);
     virtual ~VMMethod();
-    virtual void cleanup(CodeManager* cm);
+    virtual void cleanup(STATE, CodeManager* cm);
     virtual int size();
 
-#ifdef ENABLE_LLVM
     bool jitted() {
-      return jit_disabled() && jitted_impl_ != 0;
+      return execute_status_ == eJIT;
     }
 
     bool jit_disabled() {
-      return jitted_bytes_ == -1;
+      return execute_status_ == eJITDisable;
     }
 
-    void set_jitted(llvm::Function* func, size_t bytes, void* impl) {
-      llvm_function_ = func;
-      jitted_impl_ = impl;
-      jitted_bytes_ = bytes;
+    void set_execute_status(ExecuteStatus s) {
+      execute_status_ = s;
     }
-
-    void* native_function() {
-      return jitted_impl_;
-    }
-
-    llvm::Function* llvm_function() {
-      return llvm_function_;
-    }
-
-    void* jitted_impl() {
-      return jitted_impl_;
-    }
-
-    size_t jitted_bytes() {
-      return jitted_bytes_;
-    }
-#else
-    bool jitted() {
-      return false;
-    }
-#endif
 
     void update_addresses(int index, int operands=0) {
       addresses[index] = instructions[opcodes[index]];
@@ -141,10 +122,6 @@ namespace rubinius {
 
     size_t inline_cache_count() {
       return number_of_caches_;
-    }
-
-    IndirectLiterals& indirect_literals() {
-      return indirect_literals_;
     }
 
     VMMethod* parent() {
@@ -177,10 +154,10 @@ namespace rubinius {
 
     void specialize(STATE, CompiledMethod* original, TypeInfo* ti);
     void compile(STATE);
-    static Object* execute(STATE, CallFrame* call_frame, Dispatch& msg, Arguments& args);
+    static Object* execute(STATE, CallFrame* call_frame, Executable* exec, Module* mod, Arguments& args);
 
     template <typename ArgumentHandler>
-      static Object* execute_specialized(STATE, CallFrame* call_frame, Dispatch& msg, Arguments& args);
+      static Object* execute_specialized(STATE, CallFrame* call_frame, Executable* exec, Module* mod, Arguments& args);
 
     Object* execute_as_script(STATE, CompiledMethod*cm, CallFrame* previous);
 
@@ -193,12 +170,6 @@ namespace rubinius {
         , call_flags(0)
       {}
     };
-
-    /**
-     *  Dispatch method on the defined interpreter.
-     */
-    static Object* run_interpreter(STATE, VMMethod* const vmm,
-                                   InterpreterCallFrame* const call_frame);
 
     /**
      *  Interpreting implementation.
@@ -220,7 +191,7 @@ namespace rubinius {
 
     static Object* uncommon_interpreter(STATE, VMMethod* const vmm,
       CallFrame* const call_frame, int32_t entry_ip, native_int sp,
-      CallFrame* const method_call_frame,
+      CallFrame* const method_call_frame, jit::RuntimeDataHolder* rd,
       int32_t unwind_count, int32_t* unwinds);
 
     void setup_argument_handler(CompiledMethod* meth);
@@ -231,7 +202,8 @@ namespace rubinius {
     void initialize_caches(STATE, CompiledMethod* original, int sends);
     void find_super_instructions();
 
-    void deoptimize(STATE, CompiledMethod* original, bool disable=false);
+    void deoptimize(STATE, CompiledMethod* original, jit::RuntimeDataHolder* rd,
+                    bool disable=false);
 
     /*
      * Helper class for iterating over an Opcode array.  Used to convert a

@@ -2,6 +2,8 @@ require "rbconfig"
 
 $verbose = Rake.application.options.trace || ARGV.delete("-v")
 
+DEV_NULL = RUBY_PLATFORM =~ /mingw|mswin/ ? 'NUL' : '/dev/null'
+
 def env(name, default = "")
   (ENV[name] || default).dup
 end
@@ -19,13 +21,15 @@ $CXX      = env "CXX", "g++"
 $LDSHARED = env "LDSHARED", $CXX
 $YACC     = env "YACC", "bison"
 
-$CFLAGS   = env "CFLAGS"
-$CXXFLAGS = env "CXXFLAGS"
+$CFLAGS   = env "CFLAGS", Rubinius::BUILD_CONFIG[:user_cflags]
+$CXXFLAGS = env "CXXFLAGS", Rubinius::BUILD_CONFIG[:user_cppflags]
 
-$ELIBSDIR = env "ELIBSDIR", File.expand_path("../../vm/external_libs", __FILE__)
+$DEBUGFLAGS = "-O0" if ENV["DEV"]
+
+$ELIBSDIR = env "ELIBSDIR", File.expand_path("../../vendor", __FILE__)
 $LIBS     = env "LIBS"
 $LDDIRS   = env "LDDIRS"
-$LDFLAGS  = env "LDFLAGS"
+$LDFLAGS  = env "LDFLAGS", Rubinius::BUILD_CONFIG[:user_ldflags]
 
 $DLEXT    = env "DLEXT", DEFAULT["DLEXT"]
 $LIBEXT   = env "LIBEXT", DEFAULT["LIBEXT"]
@@ -95,7 +99,17 @@ def add_mri_capi
   $LIBS << " #{DEFAULT["LIBS"]}"
   $LIBS << " #{DEFAULT["DLDLIBS"]}"
 
-  add_ldflag DEFAULT["LDSHARED"].split[1..-1].join(' ')
+  case RUBY_PLATFORM
+  when /mingw/
+    # do nothing
+  when /darwin/
+    # necessary to avoid problems with RVM injecting flags into the MRI build
+    # process.
+    add_ldflag DEFAULT["LDSHARED"].split[1..-1].join(' ').gsub(/-dynamiclib/, "")
+  else
+    add_ldflag DEFAULT["LDSHARED"].split[1..-1].join(' ')
+  end
+
   add_ldflag DEFAULT["LDFLAGS"]
   rubyhdrdir = DEFAULT["rubyhdrdir"]
   if RUBY_VERSION =~ /\A1\.9\./
@@ -108,10 +122,26 @@ def add_mri_capi
   end
 end
 
+def include18_dir
+  File.expand_path("../../vm/capi/18/include", __FILE__)
+end
+
+def include19_dir
+  File.expand_path("../../vm/capi/19/include", __FILE__)
+end
+
 def add_rbx_capi
-  add_cflag "-ggdb3 -O2"
-  add_cxxflag "-ggdb3 -O2"
-  add_include_dir File.expand_path("../../vm/capi/include", __FILE__)
+  add_cflag "-ggdb3"
+  add_cxxflag "-ggdb3"
+  if ENV['DEV']
+    add_cflag "-O0"
+    add_cxxflag "-O0"
+  else
+    add_cflag "-O2"
+    add_cxxflag "-O2"
+  end
+  add_include_dir include18_dir
+  add_include_dir include19_dir
 end
 
 # Setup some initial computed values
@@ -124,12 +154,12 @@ add_link_dir "."
 # (Adapted from EventMachine. Thank you EventMachine and tmm1 !)
 #
 case RUBY_PLATFORM
-when /mswin32/, /mingw32/, /bccwin32/
+when /mswin/, /mingw/, /bccwin32/
   # TODO: discovery helpers
   #check_heads(%w[windows.h winsock.h], true)
   #check_libs(%w[kernel32 rpcrt4 gdi32], true)
 
-  if GNU_CHAIN
+  if RUBY_PLATFORM =~ /mingw/
     $LDSHARED = "#{$CXX} -shared -lstdc++"
   else
     add_define "-EHs", "-GR"
@@ -160,7 +190,7 @@ when /openbsd/
 when /darwin/
   # on Unix we need a g++ link, not gcc.
   # Ff line contributed by Daniel Harple.
-  $LDSHARED = "#{$CXX} -dynamic -bundle -undefined suppress -flat_namespace -lstdc++"
+  $LDSHARED = "#{$CXX} -bundle -undefined suppress -flat_namespace -lstdc++"
 
 when /aix/
   $LDSHARED = "#{$CXX} -shared -Wl,-G -Wl,-brtl"
@@ -187,7 +217,8 @@ init
 #
 def common_headers(*extra)
   @common_headers ||= FileList[
-    File.expand_path("../../vm/capi/include/*.h", __FILE__),
+    include18_dir + "/*.h",
+    include19_dir + "/*.h",
     *extra
   ].existing
 end
@@ -208,11 +239,12 @@ def dependency_file
   ".depends.mf"
 end
 
-def graph_dependencies(sources, directories=[])
+def graph_dependencies(sources, directories=[], objects_dir=nil)
   directories = Array(directories)
-  directories.concat [".", File.expand_path("../../vm/capi/include", __FILE__)]
+  directories.concat [".", include18_dir, include19_dir]
 
   grapher = DependencyGrapher.new sources, directories
+  grapher.objects_dir = objects_dir
   grapher.process
 
   File.open dependency_file, "w" do |file|
@@ -229,7 +261,7 @@ end
 # Quiet the eff up already. Rakes barfing sh is maddening
 #
 def qsh(cmd)
-  cmd << " > /dev/null" unless $verbose
+  cmd << " > #{DEV_NULL}" unless $verbose
   puts cmd if $verbose
   unless result = rake_system(cmd)
     fail "Command failed with status (#{$?.exitstatus}): [#{cmd}]"
@@ -487,12 +519,12 @@ end
 
 rule ".o" => ".c" do |t|
   report_command "CC #{t.source}"
-  qsh "#{$CC} -c -o #{t.name} #{$CFLAGS} #{t.source}"
+  qsh "#{$CC} -c -o #{t.name} #{$CFLAGS} #{$DEBUGFLAGS} #{t.source}"
 end
 
 rule ".o" => ".cpp" do |t|
   report_command "CXX #{t.source}"
-  qsh "#{$CXX} -c -o #{t.name} #{$CXXFLAGS} #{t.source}"
+  qsh "#{$CXX} -c -o #{t.name} #{$CXXFLAGS} #{$DEBUGFLAGS} #{t.source}"
 end
 
 rule ".#{$DLEXT}" do |t|

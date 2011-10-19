@@ -15,11 +15,11 @@ class Integer < Numeric
   def &(other)
     self & Rubinius::Type.coerce_to(other, Integer, :to_int)
   end
-   
+
   def |(other)
     self | Rubinius::Type.coerce_to(other, Integer, :to_int)
   end
-  
+
   def ^(other)
     self ^ Rubinius::Type.coerce_to(other, Integer, :to_int)
   end
@@ -35,10 +35,12 @@ class Integer < Numeric
   alias_method :floor, :to_i
 
   def chr
-    raise RangeError.new("#{self} is out of the valid character range") if self > 255 || self < 0
+    if self > 255 || self < 0
+      raise RangeError.new("#{self} is out of the valid character range")
+    end
     String.pattern 1, self
   end
-  
+
   def [](index)
     index = Rubinius::Type.coerce_to(index, Integer, :to_int)
     return 0 if index.is_a?(Bignum)

@@ -48,6 +48,7 @@ namespace rubinius {
     virtual ~MarkSweepGC();
     void   free_objects();
     Object* allocate(size_t bytes, bool *collect_now);
+    Object* move_object(Object* orig, size_t bytes, bool *collect_now);
     Object* copy_object(Object* obj);
     void   sweep_objects();
     void   free_object(Object* obj, bool fast = false);

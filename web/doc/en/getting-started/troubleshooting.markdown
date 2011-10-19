@@ -13,7 +13,7 @@ running Rubinius along with suggested solutions.
 For any error, a first step is to ensure you have a current, clean checkout of
 Rubinius. Before going further, consider running the following steps:
 
-    $ git co master
+    $ git checkout master
     $ git reset --hard
     $ git pull
     $ rake distclean

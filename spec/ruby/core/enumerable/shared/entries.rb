@@ -4,6 +4,10 @@ describe :enumerable_entries, :shared => true do
     numerous.send(@method).should == [1, nil, "a", 2, false, true]
   end
 
+  it "passes through the values yielded by #each_with_index" do
+    [:a, :b].each_with_index.send(@method).should == [[:a, 0], [:b, 1]]
+  end
+
   ruby_version_is '1.8.7' do
     it "passes arguments to each" do
       count = EnumerableSpecs::EachCounter.new(1, 2, 3)

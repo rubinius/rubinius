@@ -410,48 +410,48 @@ module Process
       @termsig = termsig
       @stopsig = stopsig
     end
-    
+
     def to_i
       @exitstatus
     end
-    
+
     def to_s
       @exitstatus.to_s
     end
-    
+
     def &(num)
       @exitstatus & num
     end
-    
+
     def ==(other)
       other = other.to_i if other.kind_of? Process::Status
       @exitstatus == other
     end
-    
+
     def >>(num)
       @exitstatus >> num
     end
-    
+
     def coredump?
       false
     end
-    
+
     def exited?
       @exitstatus != nil
     end
-    
+
     def pid
       @pid
     end
-    
+
     def signaled?
       @termsig != nil
     end
-    
+
     def stopped?
       @stopsig != nil
     end
-    
+
     def success?
       if exited?
         @exitstatus == 0

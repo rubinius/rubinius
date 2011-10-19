@@ -129,6 +129,16 @@ public:
     TS_ASSERT_EQUALS(obj2->raw_bytes()[0], 8);
   }
 
+  void test_dup_chars() {
+    CharArray* obj = CharArray::create(state, 1);
+
+    obj->raw_bytes()[0] = 9;
+
+    CharArray* obj2 = (CharArray*)obj->duplicate(state);
+
+    TS_ASSERT_EQUALS(obj2->raw_bytes()[0], 9);
+  }
+
   void test_kind_of_p() {
     String* str = String::create(state, "blah");
 
@@ -198,7 +208,7 @@ public:
     Symbol* sym;
 
     for(size_t i = 0; i < size; i++) {
-      std::stringstream name;
+      std::ostringstream name;
       name << "@test" << i;
       sym = state->symbol(name.str().c_str());
       obj->set_ivar(state, sym, Fixnum::from(i));
@@ -214,7 +224,7 @@ public:
     Symbol* sym;
 
     for(size_t i = 0; i < size; i++) {
-      std::stringstream name;
+      std::ostringstream name;
       name << "@test" << i;
       sym = state->symbol(name.str().c_str());
       obj->set_ivar(state, sym, Fixnum::from(i));

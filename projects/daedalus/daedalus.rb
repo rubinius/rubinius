@@ -161,7 +161,11 @@ module Daedalus
           h[k] = ""
         end
       end
+
+      @mtime_only = false
     end
+
+    attr_accessor :mtime_only
 
     def header_directories
       dirs = []
@@ -242,7 +246,14 @@ module Daedalus
       @path = path
 
       if File.exists?(data_path)
-        @data = Marshal.load(File.read(data_path)) rescue {}
+        begin
+          File.open data_path, "rb" do |f|
+            @data = Marshal.load(f.read)
+          end
+        rescue
+          STDERR.puts "WARNING: Path#initialize: load '#{data_path}' failed"
+          @data = {}
+        end
       else
         @data = {}
       end
@@ -265,7 +276,7 @@ module Daedalus
     end
 
     def save!
-      File.open(data_path, "w") do |f|
+      File.open(data_path, "wb") do |f|
         f << Marshal.dump(data)
       end
     end
@@ -349,6 +360,9 @@ module Daedalus
       end
 
       return true unless File.exists?(object_path)
+
+      return true if ctx.mtime_only and ctx.mtime(@path) > ctx.mtime(object_path)
+
       return true unless @data[:sha1] == sha1(ctx)
       return false
     end
@@ -430,7 +444,14 @@ module Daedalus
       @data_file = "#{@build_dir}.data"
 
       if File.exists?(@data_file)
-        @data = Marshal.load(File.read(@data_file)) rescue {}
+        begin
+          File.open @data_file, "rb" do |f|
+            @data = Marshal.load(f.read)
+          end
+        rescue
+          STDERR.puts "WARNING: ExternalLibrary#to_build: load '#{data_path}' failed"
+          @data = {}
+        end
       else
         @data = {}
       end
@@ -488,7 +509,7 @@ module Daedalus
 
       @data[:sha1] = sha1()
 
-      File.open(@data_file, "w") do |f|
+      File.open(@data_file, "wb") do |f|
         f << Marshal.dump(@data)
       end
     end

@@ -86,7 +86,7 @@ namespace rubinius {
      * Ruby code.
      */
     static executor resolve_primitive(STATE, Symbol* name, int* index = 0);
-    static Object* unknown_primitive(STATE, CallFrame* call_frame, Dispatch& msg, Arguments& args);
+    static Object* unknown_primitive(STATE, CallFrame* call_frame, Executable* exec, Module* mod, Arguments& args);
     static bool get_jit_stub(int index, JITStubResults& res);
     static InvokePrimitive get_invoke_stub(STATE, Symbol* name);
 

@@ -1,0 +1,2 @@
+fails:Kernel.Integer raises a TypeError when passed nil
+fails:Kernel#Integer raises a TypeError when passed nil

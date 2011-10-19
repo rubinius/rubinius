@@ -1,9 +1,9 @@
 ---
 layout: doc_pl
-title: Methods
-previous: Scripts
+title: Metody
+previous: Skrypty
 previous_url: ruby/scripts
-next: Constants
+next: Stałe
 next_url: ruby/constants
 review: true
 ---

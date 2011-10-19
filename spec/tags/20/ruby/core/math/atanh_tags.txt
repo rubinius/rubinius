@@ -1,0 +1,5 @@
+fails:Math.atanh raises an Math::DomainError for arguments greater than 1.0
+fails:Math.atanh raises an Math::DomainError for arguments less than -1.0
+fails:Math#atanh is a private instance method
+fails:Math#atanh raises an Math::DomainError for arguments greater than 1.0
+fails:Math#atanh raises an Math::DomainError for arguments less than -1.0

@@ -30,22 +30,22 @@ namespace rubinius {
 
     static void finalize(STATE, Dir* dir);
 
-    // Ruby.primitive :dir_allocate
+    // Rubinius.primitive :dir_allocate
     static Dir* allocate(STATE, Object* self);
 
-    // Ruby.primitive :dir_open
+    // Rubinius.primitive :dir_open
     Object* open(STATE, String *path);
 
-    // Ruby.primitive :dir_close
+    // Rubinius.primitive :dir_close
     Object* close(STATE);
 
-    // Ruby.primitive :dir_closed_p
+    // Rubinius.primitive :dir_closed_p
     Object* closed_p(STATE);
 
-    // Ruby.primitive :dir_read
+    // Rubinius.primitive :dir_read
     Object* read(STATE);
 
-    // Ruby.primitive :dir_control
+    // Rubinius.primitive :dir_control
     Object* control(STATE, Fixnum* kind, Integer* pos);
     void guard(STATE);
 

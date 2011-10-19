@@ -104,16 +104,16 @@ namespace rubinius {
 
     VariableScope* promote(STATE);
 
-    // Ruby.primitive :variable_scope_of_sender
+    // Rubinius.primitive :variable_scope_of_sender
     static VariableScope* of_sender(STATE, CallFrame* calling_environment);
 
-    // Ruby.primitive :variable_scope_current
+    // Rubinius.primitive :variable_scope_current
     static VariableScope* current(STATE, CallFrame* calling_environment);
 
-    // Ruby.primitive :variable_scope_locals
+    // Rubinius.primitive :variable_scope_locals
     Tuple* locals(STATE);
 
-    // Ruby.primitive :variable_scope_method_visibility
+    // Rubinius.primitive :variable_scope_method_visibility
     Object* method_visibility(STATE);
 
   public: // Rubinius Type stuff

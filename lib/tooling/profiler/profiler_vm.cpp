@@ -127,12 +127,12 @@ namespace profiler {
       start_ = env->time_current_ns();
     }
 
-    void stop(Env* env) {
+    void stop(Env* env, uint64_t cur) {
       if(!started_) return;
 
       started_ = false;
 
-      last_ = env->time_current_ns() - start_;
+      last_ = cur - start_;
       total_ += last_;
 
       if(min_ == 0 || min_ > last_) min_ = last_;
@@ -162,11 +162,11 @@ namespace profiler {
       Timer::start(env);
     }
 
-    void stop(Env* env) {
+    void stop(Env* env, uint64_t cur) {
       if(!started_) return;
 
       ++count_;
-      if(--entered_ == 0) Timer::stop(env);
+      if(--entered_ == 0) Timer::stop(env, cur);
     }
   };
 
@@ -327,7 +327,7 @@ namespace profiler {
 
     void start(Profiler* profiler, Env* env);
     void stop(Profiler* profiler, Env* env);
-    void stop_all(Profiler* profiler, Env* env);
+    void stop_all(Profiler* profiler, Env* env, uint64_t end_time);
   };
 
   class Profiler {
@@ -370,9 +370,13 @@ namespace profiler {
       return end_time_ - start_time_;
     }
 
-    void detach(Env* env) {
-      end_time_ = env->time_current_ns();
-      attached_ = false;
+    void detach(Env* env, uint64_t end_time) {
+      if(attached_) {
+        end_time_ = end_time;
+        attached_ = false;
+
+        current_me_->stop_all(this, env, end_time);
+      }
     }
 
     bool attached_p() {
@@ -480,17 +484,27 @@ namespace profiler {
   }
 
   void MethodEntry::stop(Profiler* profiler, Env* env) {
-    method_->timer.stop(env);
-    timer_.stop(env);
+    uint64_t cur = env->time_current_ns();
+
+    method_->timer.stop(env, cur);
+    timer_.stop(env, cur);
+
     method_->accumulate(timer_.total());
     node_->accumulate(timer_.total());
 
-    profiler->set_current_me(previous_me_);
+    if(previous_me_) {
+      profiler->set_current_me(previous_me_);
+    }
   }
 
-  void MethodEntry::stop_all(Profiler* profiler, Env* env) {
-    stop(profiler, env);
-    if(previous_me_) previous_me_->stop_all(profiler, env);
+  void MethodEntry::stop_all(Profiler* profiler, Env* env, uint64_t end_time) {
+    method_->timer.stop(env, end_time);
+    timer_.stop(env, end_time);
+
+    method_->accumulate(timer_.total());
+    node_->accumulate(timer_.total());
+
+    if(previous_me_) previous_me_->stop_all(profiler, env, end_time);
   }
 
   Profiler::Profiler(Env* env)
@@ -522,7 +536,7 @@ namespace profiler {
       if(as_module) {
         return get_method(env, cm, name, env->module_name(as_module), kSingleton);
       } else {
-        rstring str = env->to_s(recv);
+        rstring str = env->to_s(mod);
         return get_method(env, cm, name, env->string_to_symbol(str), kSingleton);
       }
     } else {
@@ -674,8 +688,6 @@ namespace profiler {
                          KeyMap& keys, uint64_t runtime)
   {
 
-    current_me_->stop_all(this, env);
-
     WorkList work;
 
     // If we haven't even gone for a total of longer than 10x the threshold,
@@ -750,6 +762,9 @@ namespace profiler {
 
   namespace {
     void tool_enable(Env* env) {
+      // Ignore if we are already enabled
+      if(env->global_tool_data()) return;
+
       GlobalState* st = new GlobalState;
       env->set_global_tool_data(st);
 
@@ -882,13 +897,18 @@ namespace profiler {
       if(!profiler) return;
 
       env->thread_tool_set_data(cProfileToolID, 0);
-      profiler->detach(env);
+      profiler->detach(env, env->time_current_ns());
 
       env->disable_thread_tooling();
     }
 
     robject tool_results(Env* env) {
+      uint64_t fin = env->time_current_ns();
+
       GlobalState* st = (GlobalState*)env->global_tool_data();
+
+      // If we are already shutting down, ignore this
+      if(!st) return env->nil();
 
       Profiler* profiler = (Profiler*)env->thread_tool_data(cProfileToolID);
 
@@ -896,7 +916,7 @@ namespace profiler {
       // started profiling.
       if(st->main_profiler != profiler) return env->nil();
 
-      profiler->detach(env);
+      profiler->detach(env, fin);
 
       env->thread_tool_set_data(cProfileToolID, 0);
 
@@ -918,7 +938,7 @@ namespace profiler {
         env->table_store(thread, env->symbol("methods"), methods);
         env->table_store(thread, env->symbol("nodes"),   nodes);
 
-        uint64_t runtime = profiler->runtime();
+        uint64_t runtime = prof->runtime();
         env->table_store(thread, env->symbol("runtime"), env->integer_new(runtime));
 
         KeyMap keys;

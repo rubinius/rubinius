@@ -32,7 +32,7 @@ module Signal
       old = @handlers.delete(number)
 
       if number != Names["EXIT"]
-        Rubinius.watch_signal(-number)
+        Rubinius.watch_signal(-number, prc.nil?)
       end
 
       return "DEFAULT" unless had_old
@@ -55,7 +55,7 @@ module Signal
     @handlers[number] = prc
 
     if number != Names["EXIT"]
-      Rubinius.watch_signal number
+      Rubinius.watch_signal(number, prc.nil?)
     end
 
     return "DEFAULT" unless had_old

@@ -1,4 +1,5 @@
 require File.expand_path('../../../spec_helper', __FILE__)
+require File.expand_path('../fixtures/classes', __FILE__)
 require 'matrix'
 
 describe "Matrix.rows" do
@@ -30,5 +31,11 @@ describe "Matrix.rows" do
     @b << 6
     @m_ref.row(0).to_a.should == @a
     @m_ref.row(1).to_a.should == @b
+  end
+
+  describe "for a subclass of Matrix" do
+    it "returns an instance of that subclass" do
+      MatrixSub.rows([[0, 1], [0, 1]]).should be_an_instance_of(MatrixSub)
+    end
   end
 end

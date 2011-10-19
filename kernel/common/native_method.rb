@@ -51,7 +51,7 @@ module Rubinius
     # +ptr+ is an FFI::Pointer to a C function.
     #
     def self.load_entry_point(ptr)
-      Ruby.primitive :nativemethod_load_extension_entry_point
+      Rubinius.primitive :nativemethod_load_extension_entry_point
       raise PrimitiveFailure, "Unable to load #{library_path}"
     end
 

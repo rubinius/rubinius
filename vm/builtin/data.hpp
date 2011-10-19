@@ -25,9 +25,7 @@ namespace rubinius {
     typedef   void (*FreeFunctor)(void*);
 
   private:
-    void (*dmark_)(void*);
-    void (*dfree_)(void*);
-    void *data_;
+    RDataShadow* internal_;
 
   public:   /* Interface */
 
@@ -39,7 +37,16 @@ namespace rubinius {
 
     static void finalize(STATE, Data* data);
 
-    RDataShadow* rdata(STATE);
+    RDataShadow* rdata(STATE) {
+      return internal_;
+    }
+
+    RDataShadow* rdata() {
+      return internal_;
+    }
+
+    RDataShadow* slow_rdata(STATE);
+
     void* data(STATE);
     FreeFunctor free(STATE);
     MarkFunctor mark(STATE);

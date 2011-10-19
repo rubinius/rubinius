@@ -29,6 +29,14 @@ namespace rubinius {
       allow_exceptions = false;
       allow_has_block = false;
     }
+
+    void inlining_block_19() {
+      allow_blocks = false;
+      allow_raise_flow = false;
+      allow_splat = false;
+      allow_exceptions = false;
+      allow_has_block = false;
+    }
   };
 
   class InlineEvaluator : public VisitInstructions<InlineEvaluator> {
@@ -39,6 +47,7 @@ namespace rubinius {
     static bool can_inline_p(VMMethod* vmm, InlineOptions& opts) {
       // Reject methods with splat arguments
       if(!opts.allow_splat && vmm->splat_position >= 0) return false;
+      if(vmm->post_args > 0) return false;
 
       InlineEvaluator eval(opts);
 

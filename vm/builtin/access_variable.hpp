@@ -27,11 +27,11 @@ namespace rubinius {
     /* interface */
 
     static void init(STATE);
-    // Ruby.primitive :accessvariable_allocate
+    // Rubinius.primitive :accessvariable_allocate
     static AccessVariable* allocate(STATE);
-    static Object* access_execute(STATE, CallFrame* call_frame, Dispatch& msg, Arguments& args);
-    static Object* access_read_regular_ivar(STATE, CallFrame* call_frame, Dispatch& msg, Arguments& args);
-    static Object* access_write_regular_ivar(STATE, CallFrame* call_frame, Dispatch& msg, Arguments& args);
+    static Object* access_execute(STATE, CallFrame* call_frame, Executable* exec, Module* mod, Arguments& args);
+    static Object* access_read_regular_ivar(STATE, CallFrame* call_frame, Executable* exec, Module* mod, Arguments& args);
+    static Object* access_write_regular_ivar(STATE, CallFrame* call_frame, Executable* exec, Module* mod, Arguments& args);
 
     class Info : public Executable::Info {
     public:

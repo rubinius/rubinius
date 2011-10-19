@@ -1,0 +1,8 @@
+fails:CGI::HtmlExtension#multipart_form when passed no arguments returns a 'form'-element with it's enctype set to multipart
+fails:CGI::HtmlExtension#multipart_form when passed no arguments includes the return value of the passed block when passed a block
+fails:CGI::HtmlExtension#multipart_form when passed action returns a 'form'-element with the passed action
+fails:CGI::HtmlExtension#multipart_form when passed action includes the return value of the passed block when passed a block
+fails:CGI::HtmlExtension#multipart_form when passed action, enctype returns a 'form'-element with the passed action and enctype
+fails:CGI::HtmlExtension#multipart_form when passed action, enctype includes the return value of the passed block when passed a block
+fails:CGI::HtmlExtension#multipart_form when passed Hash returns a 'form'-element with the passed Hash as attributes
+fails:CGI::HtmlExtension#multipart_form when passed Hash includes the return value of the passed block when passed a block

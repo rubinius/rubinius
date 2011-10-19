@@ -1,24 +1,15 @@
 #ifndef RBX_LLVM_OFFSET_HPP
 #define RBX_LLVM_OFFSET_HPP
 
-namespace offset {
-  const static int cf_previous = 0;
-  const static int cf_static_scope = 1;
-  const static int cf_msg = 2;
-  const static int cf_cm = 3;
-  const static int cf_flags = 4;
-  const static int cf_ip = 5;
-  const static int cf_jit_data = 6;
-  const static int cf_top_scope = 7;
-  const static int cf_scope = 8;
-  const static int cf_arguments = 9;
-  const static int cf_stk = 10;
+#include "llvm/offset_specific.hpp"
 
-  const static int args_recv = 0;
-  const static int args_block = 1;
-  const static int args_total = 2;
-  const static int args_ary = 3;
-  const static int args_container = 4;
+namespace offset {
+  const static int args_name = 0;
+  const static int args_recv = 1;
+  const static int args_block = 2;
+  const static int args_total = 3;
+  const static int args_ary = 4;
+  const static int args_container = 5;
 
   const static int vars_on_heap = 0;
   const static int vars_parent = 1;
@@ -40,11 +31,6 @@ namespace offset {
 
   const static int tuple_full_size = 1;
   const static int tuple_field = 2;
-
-  const static int cm_backend_method = 14;
-  const static int cm_jit_data = 15;
-  const static int cm_literals = 16;
-  const static int cm_static_scope = 12;
 
   const static int msg_name = 0;
   const static int msg_module = 1;

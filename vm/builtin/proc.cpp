@@ -15,6 +15,7 @@
 #include "arguments.hpp"
 #include "dispatch.hpp"
 #include "call_frame.hpp"
+#include "configuration.hpp"
 
 namespace rubinius {
 
@@ -46,21 +47,59 @@ namespace rubinius {
     int flags = 0;
 
     // Check the arity in lambda mode
-    if(bound_method_->nil_p() && lambda_style) {
+    if(lambda_style) {
       flags = CallFrame::cIsLambda;
+      int total = block_->code()->total_args()->to_native();
       int required = block_->code()->required_args()->to_native();
 
-      bool check_arity = true;
+      bool arity_ok = false;
       if(Fixnum* fix = try_as<Fixnum>(block_->code()->splat())) {
-        if(fix->to_native() == -2) check_arity = false;
+        switch(fix->to_native()) {
+        case -2:
+          arity_ok = true;
+          break;
+        case -4:
+          // splat = -4 means { |(a, b)| }
+          if(args.total() == 1) {
+            Array* ary = 0;
+            Object* obj = args.get_argument(0);
+
+            if(!(ary = try_as<Array>(obj))) {
+              if(RTEST(obj->respond_to(state, state->symbol("to_ary"), Qfalse))) {
+                obj = obj->send(state, call_frame, state->symbol("to_ary"));
+                if(!(ary = try_as<Array>(obj))) {
+                  Exception::type_error(state, "to_ary must return an Array", call_frame);
+                  return 0;
+                }
+              }
+            }
+
+            if(ary) args.use_argument(ary);
+          }
+          // fall through for arity check
+        case -3:
+          // splat = -3 is used to distinguish { |a, | } from { |a| }
+          if(args.total() == (size_t)required) arity_ok = true;
+          break;
+        default:
+          if(args.total() >= (size_t)required) {
+            arity_ok = true;
+          }
+        }
+
+      /* For blocks taking one argument { |a|  }, in 1.8, there is a warning
+       * issued but no exception raised when less than or more than one
+       * argument is passed. If more than one is passed, 'a' receives an Array
+       * of all the arguments.
+       */
+      } else if(required == 1 && LANGUAGE_18_ENABLED(state)) {
+        arity_ok = true;
+      } else {
+        arity_ok = args.total() <= (size_t)total &&
+                   args.total() >= (size_t)required;
       }
 
-      // Bug-to-bug compatibility: when required is 1, we accept any number of
-      // args. Why? No fucking clue. I guess perhaps you then get all the arguments
-      // as an array?
-      if(required == 1) check_arity = false;
-
-      if(check_arity && ((size_t)required != args.total())) {
+      if(!arity_ok) {
         Exception* exc =
           Exception::make_argument_error(state, required, args.total(),
               state->symbol("__block__"));
@@ -72,12 +111,9 @@ namespace rubinius {
 
     Object* ret;
     if(bound_method_->nil_p()) {
-      ret= block_->call(state, call_frame, args, flags);
+      ret = block_->call(state, call_frame, args, flags);
     } else if(NativeMethod* nm = try_as<NativeMethod>(bound_method_)) {
-      Dispatch dis(state->symbol("call"));
-      dis.method = nm;
-      dis.module = G(rubinius);
-      ret = nm->execute(state, call_frame, dis, args);
+      ret = nm->execute(state, call_frame, nm, G(object), args);
     } else {
       Dispatch dis(state->symbol("__yield__"));
       ret = dis.send(state, call_frame, args);
@@ -91,70 +127,19 @@ namespace rubinius {
       // NOTE! To match MRI semantics, this explicitely ignores lambda_.
       return block_->call(state, call_frame, args, 0);
     } else if(NativeMethod* nm = try_as<NativeMethod>(bound_method_)) {
-      Dispatch dis(state->symbol("call"));
-      dis.method = nm;
-      dis.module = G(rubinius);
-      return nm->execute(state, call_frame, dis, args);
+      return nm->execute(state, call_frame, nm, G(object), args);
     } else {
-      Dispatch dis;
-      return call_prim(state, NULL, call_frame, dis, args);
+      return call_prim(state, call_frame, NULL, NULL, args);
     }
   }
 
-  Object* Proc::call_prim(STATE, Executable* exec, CallFrame* call_frame, Dispatch& msg,
+  Object* Proc::call_prim(STATE, CallFrame* call_frame, Executable* exec, Module* mod,
                           Arguments& args) {
-    bool lambda_style = RTEST(lambda_);
-    int flags = 0;
-
-    // Check the arity in lambda mode
-    if(lambda_style) {
-      flags = CallFrame::cIsLambda;
-      int required = block_->code()->required_args()->to_native();
-
-      bool arity_ok = false;
-      if(Fixnum* fix = try_as<Fixnum>(block_->code()->splat())) {
-        if(fix->to_native() == -2) {
-          arity_ok = true;
-        } else if(args.total() >= (size_t)required) {
-          arity_ok = true;
-        }
-
-      // Bug-to-bug compatibility: when required is 1, we accept any number of
-      // args. Why? No fucking clue. I guess perhaps you then get all the arguments
-      // as an array?
-      } else if(required == 1) {
-        arity_ok = true;
-      } else {
-        arity_ok = ((size_t)required == args.total());
-      }
-
-      if(!arity_ok) {
-        Exception* exc =
-          Exception::make_argument_error(state, required, args.total(), state->symbol("__block__"));
-        exc->locations(state, Location::from_call_stack(state, call_frame));
-        state->thread_state()->raise_exception(exc);
-        return NULL;
-      }
-    }
-
-    Object* ret;
-    if(bound_method_->nil_p()) {
-      ret = block_->call(state, call_frame, args, flags);
-    } else if(NativeMethod* nm = try_as<NativeMethod>(bound_method_)) {
-      Dispatch dis(state->symbol("call"));
-      dis.method = nm;
-      dis.module = G(rubinius);
-      ret = nm->execute(state, call_frame, dis, args);
-    } else {
-      Dispatch dis(state->symbol("__yield__"));
-      ret = dis.send(state, call_frame, args);
-    }
-
-    return ret;
+    return call(state, call_frame, args);
   }
 
-  Object* Proc::call_on_object(STATE, Executable* exec, CallFrame* call_frame,
-                               Dispatch& msg, Arguments& args) {
+  Object* Proc::call_on_object(STATE, CallFrame* call_frame,
+                               Executable* exec, Module* mod, Arguments& args) {
     bool lambda_style = !lambda_->nil_p();
     int flags = 0;
 

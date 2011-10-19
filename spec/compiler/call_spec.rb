@@ -308,43 +308,47 @@ describe "A Call node" do
     end
   end
 
-  relates "o.m(42, :a => 1, :b => 2, *c)" do
-    compile do |g|
-      g.push :self
-      g.send :o, 0, true
-      g.push 42
-      g.push_cpath_top
-      g.find_const :Hash
-      g.push 2
-      g.send :new_from_literal, 1
+  ruby_version_is ""..."1.9" do
+    relates "o.m(42, :a => 1, :b => 2, *c)" do
+      compile do |g|
+        g.push :self
+        g.send :o, 0, true
+        g.push 42
+        g.push_cpath_top
+        g.find_const :Hash
+        g.push 2
+        g.send :new_from_literal, 1
 
-      g.dup
-      g.push_literal :a
-      g.push 1
-      g.send :[]=, 2
-      g.pop
+        g.dup
+        g.push_literal :a
+        g.push 1
+        g.send :[]=, 2
+        g.pop
 
-      g.dup
-      g.push_literal :b
-      g.push 2
-      g.send :[]=, 2
-      g.pop
+        g.dup
+        g.push_literal :b
+        g.push 2
+        g.send :[]=, 2
+        g.pop
 
-      g.push :self
-      g.send :c, 0, true
-      g.cast_array
-      g.push :nil
-      g.send_with_splat :m, 2, false, false
+        g.push :self
+        g.send :c, 0, true
+        g.cast_array
+        g.push :nil
+        g.send_with_splat :m, 2, false, false
+      end
     end
   end
 
-  relates "a (1,2,3)" do
-    compile do |g|
-      g.push :self
-      g.push 1
-      g.push 2
-      g.push 3
-      g.send :a, 3, true
+  ruby_version_is ""..."1.9" do
+    relates "a (1,2,3)" do
+      compile do |g|
+        g.push :self
+        g.push 1
+        g.push 2
+        g.push 3
+        g.send :a, 3, true
+      end
     end
   end
 
@@ -442,33 +446,35 @@ describe "A Call node" do
     end
   end
 
-  relates "m(42, :a => 1, :b => 2, *c)" do
-    compile do |g|
-      g.push :self
-      g.push 42
-      g.push_cpath_top
-      g.find_const :Hash
-      g.push 2
-      g.send :new_from_literal, 1
+  ruby_version_is ""..."1.9" do
+    relates "m(42, :a => 1, :b => 2, *c)" do
+      compile do |g|
+        g.push :self
+        g.push 42
+        g.push_cpath_top
+        g.find_const :Hash
+        g.push 2
+        g.send :new_from_literal, 1
 
-      g.dup
-      g.push_literal :a
-      g.push 1
-      g.send :[]=, 2
-      g.pop
+        g.dup
+        g.push_literal :a
+        g.push 1
+        g.send :[]=, 2
+        g.pop
 
-      g.dup
-      g.push_literal :b
-      g.push 2
-      g.send :[]=, 2
-      g.pop
+        g.dup
+        g.push_literal :b
+        g.push 2
+        g.send :[]=, 2
+        g.pop
 
-      g.push :self
-      g.send :c, 0, true
-      g.cast_array
-      g.push :nil
+        g.push :self
+        g.send :c, 0, true
+        g.cast_array
+        g.push :nil
 
-      g.send_with_splat :m, 2, true, false
+        g.send_with_splat :m, 2, true, false
+      end
     end
   end
 

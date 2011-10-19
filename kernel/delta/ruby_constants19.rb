@@ -1,0 +1,2 @@
+RUBY_VERSION      = "1.9.2"
+RUBY_PATCHLEVEL   = 0

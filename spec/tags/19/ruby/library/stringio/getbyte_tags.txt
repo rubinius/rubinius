@@ -1,0 +1,1 @@
+fails:StringIO#getbyte returns the 8-bit byte at the current position

@@ -1,0 +1,2 @@
+fails:Array.[] can unpack 2 or more nested referenced array
+fails:Array.[] constructs a nested Hash for tailing key-value pairs

@@ -1,0 +1,1 @@
+fails:CGI::QueryExtension#accept_charset returns ENV['HTTP_ACCEPT_CHARSET']

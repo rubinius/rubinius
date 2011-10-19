@@ -26,6 +26,12 @@ module Rubinius
       end
 
       def defined(g)
+        if Rubinius.ruby19?
+          g.push_literal "expression"
+          g.string_dup
+          return
+        end
+
         t = g.new_label
         f = g.new_label
         done = g.new_label
@@ -48,6 +54,7 @@ module Rubinius
 
         t.set!
         g.push_literal "expression"
+        g.string_dup
         g.goto done
 
         f.set!
@@ -358,6 +365,18 @@ module Rubinius
 
       def sexp_name
         :op_asgn_or
+      end
+    end
+
+    class OpAssignOr19 < OpAssignOr
+      def bytecode(g)
+        pos(g)
+
+        g.state.push_op_asgn
+        @left.or_bytecode(g) do
+          g.state.pop_op_asgn
+          @right.bytecode(g)
+        end
       end
     end
   end

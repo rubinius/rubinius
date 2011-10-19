@@ -1,6 +1,7 @@
 #ifndef RBX_GC_IMMIX
 #define RBX_GC_IMMIX
 
+#include "util/address.hpp"
 #include "util/immix.hpp"
 #include "gc/gc.hpp"
 #include "exception.hpp"
@@ -11,7 +12,32 @@ namespace rubinius {
   class ObjectMemory;
   class ImmixGC;
 
+  /**
+   * ImmixGC uses the immix memory management strategy to perform garbage
+   * collection on the mature objects in the immix space.
+   */
+
   class ImmixGC : public GarbageCollector {
+
+    /**
+     * Class used as an interface to the Rubinius specific object memory layout
+     * by the (general purpose) Immix memory manager. By imposing this interface
+     * between ObjectMemory and the utility Immix memory manager, the latter can
+     * be made reusable.
+     *
+     * The Immix memory manager delegates to this class to:
+     * - determine the size of an object at a particular memory address
+     * - copy an object
+     * - return the forwarding pointer for an object
+     * - set the forwarding pointer for an object that it moves
+     * - mark an address as visited
+     * - determine if an object is pinned and cannot be moved
+     * - walk all root pointers
+     *
+     * It will also notify this class when:
+     * - it adds chunks
+     * - allocates from the last free block, indicating a collection is needed
+     */
     class ObjectDescriber {
       ObjectMemory* object_memory_;
       ImmixGC* gc_;
@@ -29,29 +55,35 @@ namespace rubinius {
       void added_chunk(int count);
       void last_block();
 
-      void set_forwarding_pointer(immix::Address from, immix::Address to);
+      void set_forwarding_pointer(memory::Address from, memory::Address to);
 
-      immix::Address forwarding_pointer(immix::Address cur) {
+      memory::Address forwarding_pointer(memory::Address cur) {
         Object* obj = cur.as<Object>();
 
         if(obj->forwarded_p()) return obj->forward();
 
-        return immix::Address::null();
+        return memory::Address::null();
       }
 
-      bool pinned(immix::Address addr) {
+      bool pinned(memory::Address addr) {
         return addr.as<Object>()->pinned_p();
       }
 
-      immix::Address copy(immix::Address original, immix::Allocator& alloc);
+      memory::Address copy(memory::Address original, immix::Allocator& alloc);
 
-      void walk_pointers(immix::Address addr, immix::Marker<ObjectDescriber>& mark) {
+      void walk_pointers(memory::Address addr, immix::Marker<ObjectDescriber>& mark) {
         gc_->scan_object(addr.as<Object>());
       }
 
-      int size(immix::Address addr);
+      int size(memory::Address addr);
 
-      bool mark_address(immix::Address addr, immix::MarkStack& ms) {
+      /**
+       * Called when the immix::GC object wishes to mark an object.
+       *
+       * @returns true if the object is not already marked, and in the Immix
+       * space; otherwise false.
+       */
+      bool mark_address(memory::Address addr, immix::MarkStack& ms) {
         Object* obj = addr.as<Object>();
 
         if(obj->marked_p(object_memory_->mark())) return false;
@@ -78,6 +110,7 @@ namespace rubinius {
     virtual ~ImmixGC();
 
     Object* allocate(int bytes);
+    Object* move_object(Object* orig, int bytes);
 
     virtual Object* saw_object(Object*);
     void collect(GCData& data);

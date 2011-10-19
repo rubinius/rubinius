@@ -23,19 +23,19 @@ module Rubinius
     alias_method :length, :size
 
     def self.allocate
-      Ruby.primitive :methodtable_allocate
+      Rubinius.primitive :methodtable_allocate
       raise PrimitiveFailure, "MethodTable.allocate primitive failed"
     end
 
     def initialize(hash=nil)
       return unless hash
-      hash.each do |k,v|
+      hash.each do |k, v|
         self[k] = v
       end
     end
 
     def duplicate
-      Ruby.primitive :methodtable_duplicate
+      Rubinius.primitive :methodtable_duplicate
       raise PrimitiveFailure, "MethodTable#duplicate primitive failed"
     end
 
@@ -48,7 +48,7 @@ module Rubinius
     end
 
     def name?(name)
-      Ruby.primitive :methodtable_has_name
+      Rubinius.primitive :methodtable_has_name
       raise PrimitiveFailure, "MethodTable#name? primitive failed"
     end
 
@@ -57,26 +57,9 @@ module Rubinius
     alias_method :member?,  :name?
 
     def delete(name)
-      Ruby.primitive :methodtable_delete
+      Rubinius.primitive :methodtable_delete
       raise PrimitiveFailure, "MethodTable#delete primitive failed"
     end
-
-    def each_entry
-      raise LocalJumpError, "no block given" unless block_given?
-
-      i = 0
-      while i < @bins
-        if entry = @values.at(i)
-          while entry
-            yield entry
-            entry = entry.next
-          end
-        end
-        i += 1
-      end
-      self
-    end
-
 
     def each
       raise LocalJumpError, "no block given" unless block_given?

@@ -46,8 +46,8 @@ namespace rubinius {
      * the constructor for Globals, again, at the END of the list. */
 
     /* classes for the core 'types' */
-    TypedRoot<Class*> blokctx, cmethod, tuple, module, object, array;
-    TypedRoot<Class*> klass, methtbl, bytearray, methctx, blank;
+    TypedRoot<Class*> blokctx, cmethod, tuple, module, basicobject, object, array;
+    TypedRoot<Class*> klass, methtbl, bytearray, chararray, methctx, blank;
     TypedRoot<Class*> blokenv, bignum, regexp, matchdata;
     TypedRoot<Class*> string, symbol, io;
     TypedRoot<Class*> nil_class, true_class, false_class, fixnum_class, undef_class;
@@ -66,7 +66,7 @@ namespace rubinius {
 
     TypedRoot<Class*> exception;
     TypedRoot<Class*> exc_arg, exc_segfault;
-    TypedRoot<Class*> exc_loe, exc_type, exc_rex;
+    TypedRoot<Class*> exc_loe, exc_type, exc_rex, exc_rte;
     TypedRoot<Class*> exc_stack_explosion;
     TypedRoot<Class*> exc_primitive_failure;
 
@@ -112,6 +112,8 @@ namespace rubinius {
     TypedRoot<Class*> cls_weakref;
     TypedRoot<Class*> fiber;
     TypedRoot<Class*> alias;
+    TypedRoot<Class*> encoding;
+    TypedRoot<Module*> type;
 
     /* Add new globals above this line. */
 
@@ -123,11 +125,13 @@ namespace rubinius {
       cmethod(&roots),
       tuple(&roots),
       module(&roots),
+      basicobject(&roots),
       object(&roots),
       array(&roots),
       klass(&roots),
       methtbl(&roots),
       bytearray(&roots),
+      chararray(&roots),
       methctx(&roots),
       blank(&roots),
       blokenv(&roots),
@@ -180,6 +184,7 @@ namespace rubinius {
       exc_loe(&roots),
       exc_type(&roots),
       exc_rex(&roots),
+      exc_rte(&roots),
       exc_stack_explosion(&roots),
       exc_primitive_failure(&roots),
       external_ivars(&roots),
@@ -227,7 +232,9 @@ namespace rubinius {
       global_cache_entry(&roots),
       cls_weakref(&roots),
       fiber(&roots),
-      alias(&roots)
+      alias(&roots),
+      encoding(&roots),
+      type(&roots)
 
       /* Add initialize of globals above this line. */
     { }

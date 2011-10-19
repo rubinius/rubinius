@@ -1,0 +1,3 @@
+fails:CGI.parse when passed String parses a HTTP Query String into a Hash
+fails:CGI.parse when passed String allows passing multiple values for one key
+fails:CGI.parse when passed String unescapes keys and values

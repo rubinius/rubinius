@@ -1,0 +1,1 @@
+fails:Rational#divmod when passed a Float raises a ZeroDivisionError when passed 0

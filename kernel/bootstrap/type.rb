@@ -7,31 +7,33 @@ module Rubinius
     # Performs a direct kind_of? check on the object bypassing any method
     # overrides.
     def self.object_kind_of?(obj, cls)
-      Rubinius.asm(cls, obj) {|c, o|
-        run c
-        run o
-        kind_of
-      }
+      Rubinius.primitive :vm_object_kind_of
+      raise PrimitiveFailure, "Rubinius::Type.kind_of failed"
     end
 
     def self.object_class(obj)
-      Ruby.primitive :vm_object_class
+      Rubinius.primitive :vm_object_class
       raise PrimitiveFailure, "Rubinius::Type.object_class failed"
     end
 
     def self.object_singleton_class(obj)
-      Ruby.primitive :vm_object_singleton_class
+      Rubinius.primitive :vm_object_singleton_class
       raise TypeError, "no singleton class available for a #{Type.object_class(obj)}"
     end
 
     def self.singleton_class_object(mod)
-      Ruby.primitive :vm_singleton_class_object
+      Rubinius.primitive :vm_singleton_class_object
       raise PrimitiveFailure, "Rubinius::Type.singleton_class_object failed"
     end
 
     def self.object_respond_to?(obj, name)
-      Ruby.primitive :vm_object_respond_to
+      Rubinius.primitive :vm_object_respond_to
       raise PrimitiveFailure, "Rubinius::Type.object_respond_to? failed"
+    end
+
+    def self.object_equal(a, b)
+      Rubinius.primitive :vm_object_equal
+      raise PrimitiveFailure, "Rubinius::Type.object_equal failed"
     end
   end
 end

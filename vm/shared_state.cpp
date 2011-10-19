@@ -3,6 +3,7 @@
 #include "config_parser.hpp"
 #include "config.h"
 #include "objectmemory.hpp"
+#include "environment.hpp"
 #include "instruments/tooling.hpp"
 #include "instruments/timing.hpp"
 #include "global_cache.hpp"
@@ -13,106 +14,13 @@
 #include "configuration.hpp"
 
 #include "agent.hpp"
+#include "world_state.hpp"
+
+#ifdef ENABLE_LLVM
+#include "llvm/state.hpp"
+#endif
 
 namespace rubinius {
-
-  class WorldState {
-    thread::Mutex mutex_;
-    thread::Condition waiting_to_stop_;
-    thread::Condition waiting_to_run_;
-    int pending_threads_;
-    bool should_stop_;
-
-    uint64_t time_waiting_;
-
-  public:
-    WorldState()
-      : pending_threads_(0)
-      , should_stop_(false)
-      , time_waiting_(0)
-    {}
-
-    uint64_t time_waiting() {
-      return time_waiting_;
-    }
-
-    // Called after a fork(), when we know we're alone again, to get
-    // everything back in the proper order.
-    void reinit() {
-      mutex_.init();
-      waiting_to_stop_.init();
-      waiting_to_run_.init();
-      pending_threads_ = 1;
-      should_stop_ = false;
-    }
-
-    // If called when the GC is waiting to run,
-    //   wait until the GC tells us it's ok to continue.
-    // always increments pending_threads_ at the end.
-    void become_independent() {
-      thread::Mutex::LockGuard guard(mutex_);
-
-      // If someone is waiting on us to stop, stop now.
-      if(should_stop_) wait_to_run();
-      pending_threads_--;
-    }
-
-    void become_dependent() {
-      thread::Mutex::LockGuard guard(mutex_);
-
-      // If the GC is running, wait here...
-      while(should_stop_) {
-        waiting_to_run_.wait(mutex_);
-      }
-
-      pending_threads_++;
-    }
-
-    void wait_til_alone() {
-      thread::Mutex::LockGuard guard(mutex_);
-      should_stop_ = true;
-
-      // For ourself..
-      pending_threads_--;
-
-      timer::Running<uint64_t> timer(time_waiting_);
-
-      while(pending_threads_ > 0) {
-        waiting_to_stop_.wait(mutex_);
-      }
-    }
-
-    void wake_all_waiters() {
-      thread::Mutex::LockGuard guard(mutex_);
-
-      should_stop_ = false;
-
-      // For ourself..
-      pending_threads_++;
-
-      waiting_to_run_.broadcast();
-    }
-
-    void checkpoint() {
-      // Test should_stop_ without the lock, because we do this a lot.
-      if(should_stop_) {
-        thread::Mutex::LockGuard guard(mutex_);
-        wait_to_run();
-      }
-    }
-
-  private:
-    void wait_to_run() {
-      pending_threads_--;
-      waiting_to_stop_.signal();
-
-      while(should_stop_) {
-        waiting_to_run_.wait(mutex_);
-      }
-
-      pending_threads_++;
-    }
-  };
 
   SharedState::SharedState(Environment* env, Configuration& config, ConfigParser& cp)
     : initialized_(false)
@@ -128,6 +36,8 @@ namespace rubinius {
     , root_vm_(0)
     , env_(env)
     , tool_broker_(new tooling::ToolBroker)
+    , ruby_critical_set_(false)
+
     , om(0)
     , global_cache(new GlobalCache)
     , config(config)
@@ -145,19 +55,32 @@ namespace rubinius {
     if(!initialized_) return;
 
     // std::cerr << "Time waiting: " << world_->time_waiting() << "\n";
+
+#ifdef ENABLE_LLVM
+    if(llvm_state) {
+      delete llvm_state;
+    }
+#endif
+
+    delete tool_broker_;
     delete world_;
     delete ic_registry_;
     delete om;
     delete global_cache;
     delete global_handles_;
     delete cached_handles_;
+    if(agent_) {
+      delete agent_;
+    }
   }
 
   void SharedState::add_managed_thread(ManagedThread* thr) {
+    SYNC(0);
     threads_.push_back(thr);
   }
 
   void SharedState::remove_managed_thread(ManagedThread* thr) {
+    SYNC(0);
     threads_.remove(thr);
   }
 
@@ -171,46 +94,76 @@ namespace rubinius {
     if(ss->deref()) delete ss;
   }
 
+  uint32_t SharedState::new_thread_id(THREAD) {
+    SYNC(state);
+    return ++thread_ids_;
+  }
+
   VM* SharedState::new_vm() {
-    VM* vm = new VM(*this);
-    cf_locations_.push_back(vm->call_frame_location());
+    uint32_t id = new_thread_id(0);
+
+    SYNC(0);
+
+    // TODO calculate the thread id by finding holes in the
+    // field of ids, so we reuse ids.
+
+    VM* vm = new VM(id, *this);
     threads_.push_back(vm);
 
     this->ref();
 
-    // If there is no root vm, then the first on created becomes it.
+    // If there is no root vm, then the first one created becomes it.
     if(!root_vm_) root_vm_ = vm;
     return vm;
   }
 
   void SharedState::remove_vm(VM* vm) {
-    cf_locations_.remove(vm->call_frame_location());
-    threads_.remove(vm);
+    SYNC(0);
     this->deref();
 
     // Don't delete ourself here, it's too problematic.
   }
 
-  QueryAgent* SharedState::autostart_agent() {
+
+  void SharedState::add_global_handle(STATE, capi::Handle* handle) {
+    SYNC(state);
+    global_handles_->add(handle);
+  }
+
+  void SharedState::make_handle_cached(STATE, capi::Handle* handle) {
+    SYNC(state);
+    global_handles_->move(handle, cached_handles_);
+  }
+
+
+  QueryAgent* SharedState::autostart_agent(STATE) {
+    SYNC(state);
     if(agent_) return agent_;
     agent_ = new QueryAgent(*this, root_vm_);
     return agent_;
   }
 
-  // Create the preemption thread and call scheduler_loop() in the new thread
+  /**
+   * Create the preemption thread and call scheduler_loop() in the new thread.
+   */
   void SharedState::enable_preemption() {
     interrupts.enable_preempt = true;
   }
 
   void SharedState::pre_exec() {
+    SYNC(0);
     if(agent_) agent_->cleanup();
   }
 
-  void SharedState::reinit() {
+  void SharedState::reinit(STATE) {
     // For now, we disable inline debugging here. This makes inspecting
     // it much less confusing.
 
     config.jit_inline_debug.set("no");
+
+    env_->state = state;
+    threads_.clear();
+    threads_.push_back(state);
 
     world_->reinit();
 
@@ -221,23 +174,85 @@ namespace rubinius {
     }
   }
 
-  void SharedState::stop_the_world() {
-    world_->wait_til_alone();
+  void SharedState::ask_for_stopage() {
+    world_->ask_for_stopage();
   }
 
-  void SharedState::restart_world() {
-    world_->wake_all_waiters();
+  bool SharedState::should_stop() {
+    return world_->should_stop();
   }
 
-  void SharedState::checkpoint() {
-    world_->checkpoint();
+  void SharedState::stop_the_world(THREAD) {
+    world_->wait_til_alone(state);
+
+    // Verify that everyone is stopped and we're alone.
+    for(std::list<ManagedThread*>::iterator i = threads_.begin();
+        i != threads_.end();
+        i++) {
+      ManagedThread *th = *i;
+      switch(th->run_state()) {
+      case ManagedThread::eAlone:
+        if(th != state) {
+          rubinius::bug("Tried to stop but someone else is alone!");
+        }
+        break;
+      case ManagedThread::eRunning:
+        rubinius::bug("Tried to stop but threads still running!");
+        break;
+      case ManagedThread::eSuspended:
+      case ManagedThread::eIndependent:
+        // Ok, this is fine.
+        break;
+      }
+    }
   }
 
-  void SharedState::gc_dependent() {
-    world_->become_dependent();
+  void SharedState::restart_world(THREAD) {
+    world_->wake_all_waiters(state);
   }
 
-  void SharedState::gc_independent() {
-    world_->become_independent();
+  bool SharedState::checkpoint(THREAD) {
+    return world_->checkpoint(state);
+  }
+
+  void SharedState::gc_dependent(THREAD) {
+    world_->become_dependent(state);
+  }
+
+  void SharedState::gc_independent(THREAD) {
+    world_->become_independent(state);
+  }
+
+  void SharedState::set_critical(STATE) {
+    SYNC(state);
+
+    if(!ruby_critical_set_ ||
+         !pthread_equal(ruby_critical_thread_, pthread_self())) {
+
+      UNSYNC;
+      GCIndependent gc_guard(state);
+      ruby_critical_lock_.lock();
+      ruby_critical_thread_ = pthread_self();
+      ruby_critical_set_ = true;
+    }
+
+    return;
+  }
+
+  void SharedState::clear_critical(STATE) {
+    SYNC(state);
+
+    if(ruby_critical_set_ && pthread_equal(ruby_critical_thread_, pthread_self())) {
+      ruby_critical_set_ = false;
+      ruby_critical_lock_.unlock();
+    }
+  }
+
+  void SharedState::enter_capi(STATE) {
+    capi_lock_.lock(state);
+  }
+
+  void SharedState::leave_capi(STATE) {
+    capi_lock_.unlock(state);
   }
 }

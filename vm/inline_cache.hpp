@@ -6,6 +6,8 @@
 #include "builtin/module.hpp"
 #include "builtin/class.hpp"
 #include "builtin/compiledmethod.hpp"
+#include "lock.hpp"
+#include "object_utils.hpp"
 
 #include <vector>
 #include <tr1/unordered_map>
@@ -17,24 +19,22 @@ namespace rubinius {
   struct CallFrame;
   class Arguments;
   class CallUnit;
+  class MethodCacheEntry;
 
   // How many receiver class have been seen to keep track of inside an IC
   const static int cTrackedICHits = 3;
 
   class InlineCacheHit {
     Class* seen_class_;
-    int hits_;
 
   public:
 
     InlineCacheHit()
       : seen_class_(0)
-      , hits_(0)
     {}
 
-    int* assign(Class* mod) {
+    void assign(Class* mod) {
       seen_class_ = mod;
-      return &hits_;
     }
 
     Class* klass() {
@@ -45,20 +45,16 @@ namespace rubinius {
       seen_class_ = mod;
     }
 
-    int hits() {
-      return hits_;
-    }
-
-    int* hits_address() {
-      return &hits_;
-    }
-
     friend class InlineCache;
     friend class CompiledMethod::Info;
   };
 
-  class InlineCache : public Dispatch {
-    Class* klass_;
+  class InlineCache {
+  public:
+    Symbol* name;
+
+  private:
+    MethodCacheEntry* cache_;
     CallUnit* call_unit_;
 
     typedef Object* (*CacheExecutor)(STATE, InlineCache*, CallFrame*, Arguments& args);
@@ -71,9 +67,9 @@ namespace rubinius {
     VMMethod* vmm_;
 #endif
 
-    int* hits_;
     int seen_classes_overflow_;
     InlineCacheHit seen_classes_[cTrackedICHits];
+    int private_lock_;
 
   public:
 
@@ -119,23 +115,23 @@ namespace rubinius {
     static Object* disabled_cache_super(STATE, InlineCache* cache, CallFrame* call_frame,
                                   Arguments& args);
 
-    MethodMissingReason fill_public(STATE, Object* self, Symbol* name);
-    bool fill_private(STATE, Symbol* name, Module* start);
-    bool fill_method_missing(STATE, Module* start);
+    MethodMissingReason fill_public(STATE, Object* self, Symbol* name, Class* klass,
+                                    MethodCacheEntry*& mce);
+    bool fill_private(STATE, Symbol* name, Module* start, Class* klass,
+                      MethodCacheEntry*& mce);
+    bool fill_method_missing(STATE, Class* klass, MethodCacheEntry*& mce);
 
-    void run_wb(STATE, CompiledMethod* exec);
-
-    bool update_and_validate(STATE, CallFrame* call_frame, Object* recv);
-    bool update_and_validate_private(STATE, CallFrame* call_frame, Object* recv);
+    MethodCacheEntry* update_and_validate(STATE, CallFrame* call_frame, Object* recv);
+    MethodCacheEntry* update_and_validate_private(STATE, CallFrame* call_frame, Object* recv);
 
     InlineCache()
-      : Dispatch()
-      , klass_(0)
+      : name(0)
+      , cache_(0)
       , call_unit_(0)
       , initial_backend_(empty_cache)
       , execute_backend_(empty_cache)
-      , hits_(0)
       , seen_classes_overflow_(0)
+      , private_lock_(0)
     {}
 
 #ifdef TRACK_IC_LOCATION
@@ -162,12 +158,8 @@ namespace rubinius {
       name = sym;
     }
 
-    Class* klass() {
-      return klass_;
-    }
-
-    void set_klass(Class* klass) {
-      klass_ = klass;
+    MethodCacheEntry* cache() {
+      return cache_;
     }
 
     void set_is_private() {
@@ -198,26 +190,14 @@ namespace rubinius {
       return (*initial_backend_)(state, this, call_frame, args);
     }
 
-    bool valid_p(STATE, Object* obj) {
-      return klass_ == obj->lookup_begin(state);
-    }
-
     void clear() {
-      klass_ = 0;
+      cache_ = 0;
     }
 
-    void update_seen_classes();
+    void update_seen_classes(MethodCacheEntry* mce);
 
     int seen_classes_overflow() {
       return seen_classes_overflow_;
-    }
-
-    int hits() {
-      return *hits_;
-    }
-
-    void inc_hits() {
-      *hits_ = *hits_ + 1;
     }
 
     int classes_seen() {
@@ -233,9 +213,29 @@ namespace rubinius {
       return seen_classes_[which].klass();
     }
 
-    int tracked_class_hits(int which) {
-      return seen_classes_[which].hits();
+    Class* find_class_by_id(int64_t id) {
+      for(int i = 0; i < cTrackedICHits; i++) {
+        Class* cls = seen_classes_[i].klass();
+        if(cls && cls->class_id() == id) return cls;
+      }
+
+      return 0;
     }
+
+    Class* find_singletonclass(int64_t id) {
+      for(int i = 0; i < cTrackedICHits; i++) {
+        if(Class* cls = seen_classes_[i].klass()) {
+          if(SingletonClass* sc = try_as<SingletonClass>(cls)) {
+            if(Class* ref = try_as<Class>(sc->attached_instance())) {
+              if(ref->class_id() == id) return cls;
+            }
+          }
+        }
+      }
+
+      return 0;
+    }
+
 
     Class* dominating_class() {
       int seen = classes_seen();
@@ -271,29 +271,19 @@ namespace rubinius {
       }
     }
 
-    int total_hits() {
-      int hits = 0;
-      for(int i = 0; i < cTrackedICHits; i++) {
-        if(seen_classes_[i].klass()) {
-          hits += seen_classes_[i].hits();
-        }
-      }
-
-      return hits;
-    }
   };
 
   // Registry, used to clear ICs by method name
-  class InlineCacheRegistry {
+  class InlineCacheRegistry : Lockable {
     typedef std::list<InlineCache*> CacheVector;
     typedef std::tr1::unordered_map<native_int, CacheVector> CacheHash;
 
     CacheHash caches_;
 
   public:
-    void add_cache(Symbol* sym, InlineCache* cache);
-    void remove_cache(Symbol* sym, InlineCache* cache);
-    void clear(Symbol* sym);
+    void add_cache(STATE, Symbol* sym, InlineCache* cache);
+    void remove_cache(STATE, Symbol* sym, InlineCache* cache);
+    void clear(STATE, Symbol* sym);
 
     void print_stats(STATE);
   };

@@ -32,6 +32,7 @@ module Rubinius
       def defined(g)
         if @kind == :~
           g.push_literal "global-variable"
+          g.string_dup
           return
         end
 
@@ -42,7 +43,13 @@ module Rubinius
         g.is_nil
         g.git f
 
-        g.push_literal "$#{@kind}"
+        if Rubinius.ruby19?
+          g.push_literal "global-variable"
+        else
+          g.push_literal "$#{@kind}"
+        end
+        g.string_dup
+
         g.goto done
 
         f.set!
@@ -82,7 +89,13 @@ module Rubinius
         g.is_nil
         g.git f
 
-        g.push_literal "$#{@which}"
+        if Rubinius.ruby19?
+          g.push_literal "global-variable"
+        else
+          g.push_literal "$#{@which}"
+        end
+        g.string_dup
+
         g.goto done
 
         f.set!
@@ -307,9 +320,10 @@ module Rubinius
         # @value can be nil if this is coming via an masgn, which means
         # the value is already on the stack.
         if @name == :$!
+          g.push_self
           @value.bytecode(g) if @value
           pos(g)
-          g.raise_exc
+          g.send :raise, 1, true
         elsif @name == :$~
           pos(g)
           # this is a noop for now, but we need to run the
@@ -370,6 +384,7 @@ module Rubinius
         pos(g)
 
         g.make_array @size
+
         @value.bytecode(g)
       end
 
@@ -408,6 +423,8 @@ module Rubinius
       end
 
       def bytecode(g)
+        return if @size == 0
+
         pos(g)
 
         g.make_array @size
@@ -526,6 +543,16 @@ module Rubinius
       end
     end
 
+    class PostArg < Node
+      attr_accessor :into, :rest
+
+      def initialize(line, into, rest)
+        @line = line
+        @into = into
+        @rest = rest
+      end
+    end
+
     class MultipleAssignment < Node
       attr_accessor :left, :right, :splat, :block
 
@@ -535,8 +562,19 @@ module Rubinius
         @right = right
         @splat = nil
         @block = nil # support for |&b|
+        @post = nil # in `a,*b,c`, c is in post.
 
-        @fixed = right.kind_of?(ArrayLiteral) ? true : false
+        if Rubinius.ruby18?
+          @fixed = right.kind_of?(ArrayLiteral) ? true : false
+        elsif splat.kind_of?(PostArg)
+          @fixed = false
+          @post = splat.rest
+          splat = splat.into
+        elsif right.kind_of?(ArrayLiteral)
+          @fixed = right.body.size > 1
+        else
+          @fixed = false
+        end
 
         if splat.kind_of? Node
           if @left
@@ -552,8 +590,10 @@ module Rubinius
           else
             @splat = SplatWrapped.new line, splat
           end
-        elsif splat and @fixed
-          @splat = EmptySplat.new line, right.body.size
+        elsif splat
+          # We need a node for eg { |*| } and { |a, *| }
+          size = @fixed ? right.body.size : 0
+          @splat = EmptySplat.new line, size
         end
       end
 
@@ -588,7 +628,7 @@ module Rubinius
         @iter_arguments = true
       end
 
-      def declare_local_scope(g)
+      def declare_local_scope(scope)
         # Fix the scope for locals introduced by the left. We
         # do this before running the code for the right so that
         # right side sees the proper scoping of the locals on the left.
@@ -597,16 +637,16 @@ module Rubinius
           @left.body.each do |var|
             case var
             when LocalVariable
-              g.state.scope.assign_local_reference var
+              scope.assign_local_reference var
             when MultipleAssignment
-              var.declare_local_scope(g)
+              var.declare_local_scope(scope)
             end
           end
         end
 
         if @splat and @splat.kind_of?(SplatAssignment)
           if @splat.value.kind_of?(LocalVariable)
-            g.state.scope.assign_local_reference @splat.value
+            scope.assign_local_reference @splat.value
           end
         end
       end
@@ -616,7 +656,7 @@ module Rubinius
           g.cast_array unless @right or (@splat and not @left)
         end
 
-        declare_local_scope(g)
+        declare_local_scope(g.state.scope)
 
         if @fixed
           pad_short(g) if @left and !@splat
@@ -638,7 +678,12 @@ module Rubinius
           end
         else
           if @right
-            @right.bytecode(g)
+            if @right.kind_of? ArrayLiteral and @right.body.size == 1
+              @right.body.first.bytecode(g)
+              g.cast_multi_value
+            else
+              @right.bytecode(g)
+            end
 
             g.cast_array unless @right.kind_of? ToArray
           end
@@ -647,6 +692,18 @@ module Rubinius
             g.state.push_masgn
             @left.body.each do |x|
               g.shift_array
+              g.cast_array if x.kind_of? MultipleAssignment and x.left
+              x.bytecode(g)
+              g.pop
+            end
+            g.state.pop_masgn
+          end
+
+          if @post
+            g.state.push_masgn
+            @post.body.each do |x|
+              g.dup
+              g.send :pop, 0
               g.cast_array if x.kind_of? MultipleAssignment and x.left
               x.bytecode(g)
               g.pop
@@ -679,6 +736,35 @@ module Rubinius
         sexp = [:masgn, left]
         sexp << @right.to_sexp if @right
         sexp
+      end
+    end
+
+    class PatternVariable < Node
+      include LocalVariable
+
+      attr_accessor :name, :value
+
+      def initialize(line, name)
+        @line = line
+        @name = name
+        @variable = nil
+      end
+
+      def position_bytecode(g)
+        @variable.get_bytecode(g)
+        g.cast_array
+      end
+
+      def bytecode(g)
+        pos(g)
+
+        unless @variable
+          g.state.scope.assign_local_reference self
+        end
+
+        g.shift_array
+        @variable.set_bytecode(g)
+        g.pop
       end
     end
   end

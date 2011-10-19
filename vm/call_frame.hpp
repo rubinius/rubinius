@@ -3,10 +3,10 @@
 
 #include "vmmethod.hpp"
 #include "unwind_info.hpp"
-#include "jit_state.h"
 #include "stack_variables.hpp"
 #include "builtin/variable_scope.hpp"
 #include "dispatch.hpp"
+#include "arguments.hpp"
 
 #include <ostream>
 
@@ -85,37 +85,25 @@ namespace rubinius {
 
 #ifdef ENABLE_LLVM
     Symbol* name() {
-      if(dispatch_data) {
-        if(inline_method_p()) {
-          return reinterpret_cast<jit::RuntimeData*>(dispatch_data)->name();
-        } else if(block_p()) {
-          return reinterpret_cast<Symbol*>(Qnil);
-        } else {
-          return reinterpret_cast<Dispatch*>(dispatch_data)->name;
-        }
+      if(inline_method_p() && dispatch_data) {
+        return reinterpret_cast<jit::RuntimeData*>(dispatch_data)->name();
+      } else if(block_p()) {
+        return reinterpret_cast<Symbol*>(Qnil);
+      } else if(arguments) {
+        return arguments->name();
       }
 
       return reinterpret_cast<Symbol*>(Qnil);
     }
 #else
     Symbol* name() {
-      if(dispatch_data && !block_p()) {
-        return reinterpret_cast<Dispatch*>(dispatch_data)->name;
+      if(arguments && !block_p()) {
+        return arguments->name();
       }
 
       return reinterpret_cast<Symbol*>(Qnil);
     }
 #endif
-
-    Dispatch* dispatch() {
-      if(dispatch_data) {
-        if(!inline_method_p() && !block_p()) {
-          return reinterpret_cast<Dispatch*>(dispatch_data);
-        }
-      }
-
-      return NULL;
-    }
 
 #ifdef ENABLE_LLVM
     jit::RuntimeData* runtime_data() {
@@ -209,7 +197,7 @@ namespace rubinius {
     }
 
     CallFrame* top_ruby_frame() {
-      // Skip over any natime method frames.
+      // Skip over any native method frames.
       CallFrame* cf = this;
 
       while(cf->native_method_p()) {
@@ -252,8 +240,8 @@ namespace rubinius {
 
     VariableScope* method_scope(STATE);
 
-    void print_backtrace(STATE);
-    void print_backtrace(STATE, std::ostream& stream);
+    void print_backtrace(STATE, int count=0);
+    void print_backtrace(STATE, std::ostream& stream, int count=0);
     int line(STATE);
 
     bool scope_still_valid(VariableScope* scope);

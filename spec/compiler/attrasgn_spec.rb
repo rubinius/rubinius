@@ -169,29 +169,31 @@ describe "An Attrasgn node" do
     end
   end
 
-  relates "m { |a.b| }" do
-    compile do |g|
-      g.push :self
+  ruby_version_is ""..."1.9" do
+    relates "m { |a.b| }" do
+      compile do |g|
+        g.push :self
 
-      d = new_block_generator(g)
+        d = new_block_generator(g)
 
-      d.cast_for_single_block_arg
+        d.cast_for_single_block_arg
 
-      d.push :self
-      d.send :a, 0, true
-      d.swap
-      d.send :b=, 1, false
-      d.pop
+        d.push :self
+        d.send :a, 0, true
+        d.swap
+        d.send :b=, 1, false
+        d.pop
 
-      d.push_modifiers
-      d.new_label.set!
-      d.push :nil
-      d.pop_modifiers
-      d.ret
+        d.push_modifiers
+        d.new_label.set!
+        d.push :nil
+        d.pop_modifiers
+        d.ret
 
-      g.create_block(d)
+        g.create_block(d)
 
-      g.send_with_block :m, 0, true
+        g.send_with_block :m, 0, true
+      end
     end
   end
 end

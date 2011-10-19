@@ -1,0 +1,1 @@
+fails:CGI::QueryExtension#server_protocol returns ENV['SERVER_PROTOCOL']

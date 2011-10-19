@@ -31,14 +31,14 @@ module Rubinius
     # Creates a new Channel and registers it with the VM.
 
     def self.new
-      Ruby.primitive :channel_new
+      Rubinius.primitive :channel_new
       raise PrimitiveFailure, "Channel.new primitive failed"
     end
 
     # We must be sure a Channel is always created properly, so handle
     # this the same as new.
     def self.allocate
-      Ruby.primitive :channel_new
+      Rubinius.primitive :channel_new
       raise PrimitiveFailure, "Channel.new primitive failed"
     end
 
@@ -47,7 +47,7 @@ module Rubinius
     # will be woken up and handed +obj+.
 
     def send(obj)
-      Ruby.primitive :channel_send
+      Rubinius.primitive :channel_send
       raise PrimitiveFailure, "Channel#send primitive failed"
     end
 
@@ -58,17 +58,17 @@ module Rubinius
     # is empty, Thread.current is put to sleep until #send is called.
 
     def receive
-      Ruby.primitive :channel_receive
+      Rubinius.primitive :channel_receive
       raise PrimitiveFailure, "Channel#receive primitive failed"
     end
 
     def receive_timeout(duration)
-      Ruby.primitive :channel_receive_timeout
+      Rubinius.primitive :channel_receive_timeout
       raise PrimitiveFailure, "Channel#receive_timeout primitive failed"
     end
 
     def try_receive
-      Ruby.primitive :channel_try_receive
+      Rubinius.primitive :channel_try_receive
       raise PrimitiveFailure, "Channel#try_receive primitive failed"
     end
 

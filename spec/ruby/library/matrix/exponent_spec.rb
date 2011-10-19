@@ -1,4 +1,5 @@
 require File.expand_path('../../../spec_helper', __FILE__)
+require File.expand_path('../fixtures/classes', __FILE__)
 require 'matrix'
 
 describe "Matrix#**" do
@@ -35,18 +36,32 @@ describe "Matrix#**" do
     end
   end
 
-  ruby_version_is "" ... "1.8.8" do
+  ruby_version_is "" ... "1.9.1" do
     it "raises a ErrOperationNotDefined exception for powers that aren't Integers" do
       lambda {Matrix[ [1,2], [8,2] ] ** 2.5}.should \
 	raise_error(Matrix::ErrOperationNotDefined)
     end
   end
 
-  ruby_version_is "1.8.8" do
+  ruby_version_is "1.9.1" ... "1.9.3" do
     it "raises a ErrOperationNotImplemented exception for powers that aren't Integers" do
       lambda {Matrix[ [1,2], [8,2] ] ** 2.5}.should \
 	raise_error(Matrix::ErrOperationNotImplemented)
     end
   end
 
+  ruby_version_is "1.9.3" do
+    it "returns the power for non integer powers" do
+      a = Matrix[[5, 4], [4, 5]]
+      ((a ** 0.5) ** 2).round(8).should == a
+      a = Matrix[[7, 10], [15, 22]]
+      ((a ** 0.25) ** 4).round(8).should == a
+    end
+  end
+
+  describe "for a subclass of Matrix" do
+    it "returns an instance of that subclass" do
+      (MatrixSub.ins ** 1).should be_an_instance_of(MatrixSub)
+    end
+  end
 end

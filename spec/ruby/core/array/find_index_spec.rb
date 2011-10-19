@@ -1,7 +1,8 @@
 require File.expand_path('../../../spec_helper', __FILE__)
+require File.expand_path('../shared/index', __FILE__)
 
-ruby_version_is "1.9" do
-  describe "Array#find_index" do
-    it "needs to be reviewed for spec completeness"
+describe "Array#find_index" do
+  ruby_version_is "1.8.7" do
+    it_behaves_like :array_index, :find_index
   end
 end

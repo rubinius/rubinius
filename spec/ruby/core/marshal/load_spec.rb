@@ -162,6 +162,13 @@ describe "Marshal::load" do
     Marshal.load(arr_dump).class.should == ArraySub
   end
 
+  it "loads subclasses of Array with overridden << and push correctly" do
+    arr = ArraySubPush.new
+    arr[0] = '1'
+    arr_dump = Marshal.dump(arr)
+    Marshal.load(arr_dump).should == arr
+  end
+
   it "raises a TypeError with bad Marshal version" do
     marshal_data = '\xff\xff'
     marshal_data[0] = (Marshal::MAJOR_VERSION).chr
@@ -341,6 +348,37 @@ describe "Marshal::load" do
       Marshal.load("\004\bS:\021Struct::Ure1\a:\006a0:\006b0").should == obj
     end
 
+    ruby_version_is ""..."1.9" do
+      it "calls initialize on the unmarshaled struct" do
+        s = MarshalSpec::StructWithUserInitialize.new('foo')
+        Thread.current[MarshalSpec::StructWithUserInitialize::THREADLOCAL_KEY].should == ['foo']
+        s.a.should == 'foo'
+        
+        dumped = Marshal.dump(s)
+        loaded = Marshal.load(dumped)
+        
+        Thread.current[MarshalSpec::StructWithUserInitialize::THREADLOCAL_KEY].should == [nil]
+        loaded.a.should == 'foo'
+      end
+    end
+
+    ruby_version_is "1.9" do
+      it "does not call initialize on the unmarshaled struct" do
+        threadlocal_key = MarshalSpec::StructWithUserInitialize::THREADLOCAL_KEY
+        
+        s = MarshalSpec::StructWithUserInitialize.new('foo')
+        Thread.current[threadlocal_key].should == ['foo']
+        s.a.should == 'foo'
+        
+        Thread.current[threadlocal_key] = nil
+
+        dumped = Marshal.dump(s)
+        loaded = Marshal.load(dumped)
+
+        Thread.current[threadlocal_key].should == nil
+        loaded.a.should == 'foo'
+      end
+    end
   end
 
   describe "for a user Class" do
@@ -470,6 +508,40 @@ describe "Marshal::load" do
       it "roundtrips 4611686018427387903 from dump/load correctly" do
         Marshal.load(Marshal.dump(4611686018427387903)).should == 4611686018427387903
       end
+    end
+  end
+
+  describe "for a Module" do
+    it "loads a module" do
+      Marshal.load("\x04\bm\vKernel").should == Kernel
+    end
+
+    it "loads an old module" do
+      Marshal.load("\x04\bM\vKernel").should == Kernel
+    end
+  end
+
+  describe "for a wrapped C pointer" do
+    it "loads" do
+      data = "\004\bd:\rUserData" \
+             "[\a[\b\"\aCN\"\vnobodyi\021[\b\"\aDC\"\fexamplei\e"
+
+      expected = UserData.parse 'CN=nobody/DC=example'
+
+      Marshal.load(data).to_a.should == expected.to_a
+    end
+
+    it "raises TypeError when the local class is missing _data_load" do
+      data = "\004\bd:\027UserDataUnloadable" \
+             "[\a[\b\"\aCN\"\vnobodyi\021[\b\"\aDC\"\fexamplei\e"
+
+      lambda { Marshal.load data }.should raise_error(TypeError)
+    end
+
+    it "raises ArgumentError when the local class is a regular object" do
+      data = "\004\bd:\020UserDefined\0"
+
+      lambda { Marshal.load data }.should raise_error(ArgumentError)
     end
   end
 

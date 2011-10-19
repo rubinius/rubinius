@@ -130,6 +130,20 @@ describe "Literal (A::X) constant resolution" do
       ConstantSpecs::ClassB::CS_CONST109 = :const109_2
       ConstantSpecs::ClassB::CS_CONST109.should == :const109_2
     end
+
+    it "evaluates the right hand side before evaluating a constant path" do
+      mod = Module.new
+
+      mod.module_eval <<-EOC
+        ConstantSpecsRHS::B = begin
+          module ConstantSpecsRHS; end
+
+          "hello"
+        end
+      EOC
+
+      mod::ConstantSpecsRHS::B.should == 'hello'
+    end
   end
 
   it "raises a NameError if no constant is defined in the search path" do
@@ -330,5 +344,30 @@ describe "Constant resolution within methods" do
   it "sends #const_missing to the original class or module scope" do
     ConstantSpecs::ClassA.constx.should == :CS_CONSTX
     ConstantSpecs::ClassA.new.constx.should == :CS_CONSTX
+  end
+
+  describe "with ||=" do
+    ruby_version_is ""..."1.9" do
+      it "raises a NameError if the constant is not defined" do
+        ConstantSpecs.should_not have_constant(:OpAssignUndefined)
+        lambda do
+          module ConstantSpecs
+            OpAssignUndefined ||= 42
+          end
+        end.should raise_error(NameError)
+      end
+    end
+
+    ruby_version_is "1.9" do
+      it "assignes constant if previously undefined" do
+        ConstantSpecs.should_not have_constant(:OpAssignUndefined)
+        # Literally opening the module is required to avoid content
+        # re-assignment error
+        module ConstantSpecs
+          OpAssignUndefined ||= 42
+        end
+        ConstantSpecs::OpAssignUndefined.should == 42
+      end
+    end
   end
 end

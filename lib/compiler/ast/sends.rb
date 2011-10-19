@@ -207,7 +207,7 @@ module Rubinius
 
         case arguments
         when PushArgs
-          @arguments = arguments
+          @arguments = PushActualArguments.new arguments
         else
           @arguments = ActualArguments.new line, arguments
         end
@@ -246,13 +246,10 @@ module Rubinius
       end
     end
 
-    class PushArgs < Node
-      attr_accessor :arguments, :value
-
-      def initialize(line, arguments, value)
-        @line = line
-        @arguments = arguments
-        @value = value
+    class PushActualArguments
+      def initialize(pa)
+        @arguments = pa.arguments
+        @value = pa.value
       end
 
       def size
@@ -312,6 +309,37 @@ module Rubinius
       end
     end
 
+    class BlockPass19 < BlockPass
+      attr_accessor :arguments
+
+      def initialize(line, arguments, body)
+        super(line, body)
+        @arguments = arguments
+      end
+    end
+
+    class CollectSplat < Node
+      def initialize(line, *parts)
+        @line = line
+        @parts = parts
+      end
+
+      def bytecode(g)
+        collect = false
+
+        @parts.each do |x|
+          x.bytecode(g)
+          g.cast_array
+
+          if collect
+            g.send :+, 1
+          else
+            collect = true
+          end
+        end
+      end
+    end
+
     class ActualArguments < Node
       attr_accessor :array, :splat
 
@@ -324,8 +352,25 @@ module Rubinius
           @splat = arguments
           @array = []
         when ConcatArgs
-          @array = arguments.array.body
-          @splat = SplatValue.new line, arguments.rest
+          if arguments.array.kind_of? ArrayLiteral
+            @array = arguments.array.body
+            @splat = SplatValue.new line, arguments.rest
+          else
+            @array = []
+            @splat = CollectSplat.new line, arguments.array, arguments.rest
+          end
+        when PushArgs
+          if arguments.arguments.kind_of? ConcatArgs
+            if ary = arguments.arguments.peel_lhs
+              @array = ary
+            else
+              @array = []
+            end
+          else
+            @array = []
+          end
+
+          @splat = CollectSplat.new line, arguments.arguments, arguments.value
         when ArrayLiteral
           @array = arguments.body
         when nil
@@ -374,6 +419,11 @@ module Rubinius
         @body = body || NilLiteral.new(line)
       end
 
+      # 1.8 doesn't support declared Iter locals
+      def block_local?(name)
+        false
+      end
+
       def module?
         false
       end
@@ -391,6 +441,8 @@ module Rubinius
       def search_local(name)
         if variable = variables[name]
           variable.nested_reference
+        elsif block_local?(name)
+          new_local name
         elsif reference = @parent.search_local(name)
           reference.depth += 1
           reference
@@ -413,6 +465,9 @@ module Rubinius
       # variable in this scope and set the local variable node attribute.
       def assign_local_reference(var)
         if variable = variables[var.name]
+          var.variable = variable.reference
+        elsif block_local?(var.name)
+          variable = new_local var.name
           var.variable = variable.reference
         elsif reference = @parent.search_local(var.name)
           reference.depth += 1
@@ -473,6 +528,24 @@ module Rubinius
       end
     end
 
+    class Iter19 < Iter
+      def initialize(line, arguments, body)
+        @line = line
+        @arguments = arguments
+        @body = body || NilLiteral.new(line)
+
+        if @body.kind_of?(Block) and @body.locals
+          @locals = @body.locals.body.map { |x| x.value }
+        else
+          @locals = nil
+        end
+      end
+
+      def block_local?(name)
+        @locals.include?(name) if @locals
+      end
+    end
+
     class IterArguments < Node
       attr_accessor :prelude, :arity, :optional, :arguments, :splat_index
       attr_accessor :required_args
@@ -486,6 +559,7 @@ module Rubinius
         @required_args = 0
         @splat = nil
         @block = nil
+        @prelude = nil
 
         array = []
         case arguments
@@ -497,22 +571,33 @@ module Rubinius
           arguments.iter_arguments
 
           if arguments.splat
-            @splat = arguments.splat = arguments.splat.value
+            case arguments.splat
+            when EmptySplat
+              @splat_index = -2
+              arguments.splat = nil
+              @prelude = :empty
+            else
+              @splat = arguments.splat = arguments.splat.value
+            end
 
             @optional = 1
             if arguments.left
               @prelude = :multi
-              @arity = -(arguments.left.body.size + 1)
-              @required_args = arguments.left.body.size
+              size = arguments.left.body.size
+              @arity = -(size + 1)
+              @required_args = size
             else
-              @prelude = :splat
+              @prelude = :splat unless @prelude
               @arity = -1
             end
           elsif arguments.left
-            @splat_index = nil
+            size = arguments.left.body.size
             @prelude = :multi
-            @arity = arguments.left.body.size
-            @required_args = arguments.left.body.size
+            @arity = size
+            @required_args = size
+
+            # distinguish { |a, | ... } from { |a| ... }
+            @splat_index = nil unless size == 1
           else
             @splat_index = 0
             @prelude = :multi
@@ -541,6 +626,10 @@ module Rubinius
       end
 
       alias_method :total_args, :required_args
+
+      def post_args
+        0
+      end
 
       def names
         case @arguments
@@ -591,8 +680,10 @@ module Rubinius
           g.pop
         when :splat
           g.cast_for_splat_block_arg
-          g.cast_array
           arguments_bytecode(g)
+          g.pop
+        when :empty
+          g.cast_for_splat_block_arg
           g.pop
         end
 
@@ -640,6 +731,60 @@ module Rubinius
 
       def sexp_name
         :for
+      end
+    end
+
+    class For19Arguments < Node
+      def initialize(line, arguments)
+        @line = line
+        @arguments = arguments
+
+        if @arguments.kind_of? MultipleAssignment
+          @args = 0
+          @splat = 0
+        else
+          @args = 1
+          @splat = nil
+        end
+      end
+
+      def bytecode(g)
+        if @splat
+          g.push_literal Rubinius::Compiler::Runtime
+          g.push_local 0
+          g.send :unwrap_block_arg, 1
+        else
+          g.push_local 0
+        end
+
+        @arguments.bytecode(g)
+        g.pop
+      end
+
+      def required_args
+        @args
+      end
+
+      def total_args
+        @args
+      end
+
+      def post_args
+        0
+      end
+
+      def splat_index
+        @splat
+      end
+    end
+
+    class For19 < For
+      def initialize(line, arguments, body)
+        @line = line
+        @arguments = For19Arguments.new line, arguments
+        @body = body || NilLiteral.new(line)
+
+        new_local :"$for_args"
       end
     end
 

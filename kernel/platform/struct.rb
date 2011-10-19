@@ -121,6 +121,9 @@ module FFI
 
           type = FFI::Type::Array.new(type_code, ary_size, klass)
           element_size = type_size * ary_size
+        elsif f.kind_of?(Class) and f < FFI::Struct
+          type = FFI::Type::StructByValue.new(f)
+          element_size = f.size
         else
           if @enclosing_module
             type_code = @enclosing_module.find_type(f)
@@ -257,6 +260,8 @@ module FFI
         (@pointer + offset).read_string
       when FFI::Type::Array
         type.implementation.new(type, @pointer + offset)
+      when FFI::Type::StructByValue
+        type.implementation.new(@pointer + offset)
       when Rubinius::NativeFunction
         ptr = @pointer.get_at_offset(offset, FFI::TYPE_PTR)
         if ptr
@@ -275,3 +280,4 @@ module FFI
 
   end
 end
+

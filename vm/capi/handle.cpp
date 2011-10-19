@@ -1,7 +1,7 @@
 #include "builtin/nativemethod.hpp"
 #include "capi/handle.hpp"
 
-#include "capi/include/ruby.h"
+#include "capi/18/include/ruby.h"
 
 namespace rubinius {
   namespace capi {
@@ -65,7 +65,6 @@ namespace rubinius {
     }
 
     Handles::~Handles() {
-      return;
       capi::Handle* handle = front();
 
       while(handle) {
@@ -76,6 +75,80 @@ namespace rubinius {
 
         handle = next;
       }
+    }
+
+    HandleSet::HandleSet()
+      : slow_(0)
+    {
+      for(int i = 0; i < cFastHashSize; i++) {
+        table_[i] = 0;
+      }
+    }
+
+    void HandleSet::deref_all() {
+      for(int i = 0; i < cFastHashSize; i++) {
+        if(table_[i]) table_[i]->deref();
+      }
+
+      if(slow_) {
+        for(SlowHandleSet::iterator i = slow_->begin();
+            i != slow_->end();
+            ++i) {
+          capi::Handle* handle = *i;
+          handle->deref();
+        }
+      }
+    }
+
+    void HandleSet::flush_all(NativeMethodEnvironment* env) {
+      for(int i = 0; i < cFastHashSize; i++) {
+        if(table_[i]) table_[i]->flush(env);
+      }
+
+      if(slow_) {
+        for(SlowHandleSet::iterator i = slow_->begin();
+            i != slow_->end();
+            ++i) {
+          capi::Handle* handle = *i;
+          handle->flush(env);
+        }
+      }
+    }
+
+    void HandleSet::update_all(NativeMethodEnvironment* env) {
+      for(int i = 0; i < cFastHashSize; i++) {
+        if(table_[i]) table_[i]->update(env);
+      }
+
+      if(slow_) {
+        for(SlowHandleSet::iterator i = slow_->begin();
+            i != slow_->end();
+            ++i) {
+          capi::Handle* handle = *i;
+          handle->update(env);
+        }
+      }
+    }
+
+    bool HandleSet::slow_add_if_absent(Handle* handle) {
+      for(int i = 0; i < cFastHashSize; i++) {
+        if(table_[i] == handle) return false;
+      }
+
+      SlowHandleSet::iterator pos = slow_->find(handle);
+      if(pos != slow_->end()) return false;
+
+      slow_->insert(handle);
+      handle->ref();
+
+      return true;
+    }
+
+    void HandleSet::make_slow_and_add(Handle* handle) {
+      // Inflate it to the slow set.
+      slow_ = new SlowHandleSet;
+      slow_->insert(handle);
+      handle->ref();
     }
   }
 }

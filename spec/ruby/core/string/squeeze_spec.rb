@@ -1,6 +1,8 @@
 require File.expand_path('../../../spec_helper', __FILE__)
 require File.expand_path('../fixtures/classes.rb', __FILE__)
 
+# TODO: rewrite all these specs
+
 describe "String#squeeze" do
   it "returns new string where runs of the same character are replaced by a single character when no args are given" do
     "yellow moon".squeeze.should == "yelow mon"
@@ -46,7 +48,7 @@ describe "String#squeeze" do
   end
 
   ruby_version_is "1.8" ... "1.9" do
-    it "doesn't change chars when the parameter is out of the sequence" do
+    it "doesn't change chars when the parameter is out of sequence" do
       s = "--subbookkeeper--"
       s.squeeze("e-b").should == s
       s.squeeze("^e-b").should == s.squeeze
@@ -54,7 +56,7 @@ describe "String#squeeze" do
   end
 
   ruby_version_is "1.9" do
-    it "raises an error when the parameter is out of the sequence" do
+    it "raises an ArgumentError when the parameter is out of sequence" do
       s = "--subbookkeeper--"
       lambda { s.squeeze("e-b") }.should raise_error(ArgumentError)
       lambda { s.squeeze("^e-b") }.should raise_error(ArgumentError)
@@ -102,6 +104,26 @@ describe "String#squeeze!" do
     a.squeeze!("u", "sq").should == nil
     a.squeeze!("q").should == nil
     a.should == "squeeze"
+  end
+
+  ruby_version_is "1.8" ... "1.9" do
+    it "returns nil when the parameter is out of sequence" do
+      s = "--subbookkeeper--"
+      s.squeeze!("e-b").should == nil
+    end
+
+    it "removes runs of the same character when the negated sequence is out of order" do
+      s = "--subbookkeeper--"
+      s.squeeze!("^e-b").should == "-subokeper-"
+    end
+  end
+
+  ruby_version_is "1.9" do
+    it "raises an ArgumentError when the parameter is out of sequence" do
+      s = "--subbookkeeper--"
+      lambda { s.squeeze!("e-b") }.should raise_error(ArgumentError)
+      lambda { s.squeeze!("^e-b") }.should raise_error(ArgumentError)
+    end
   end
 
   ruby_version_is ""..."1.9" do

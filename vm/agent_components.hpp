@@ -1,4 +1,7 @@
+#ifndef RBX_WINDOWS
 #include <sys/utsname.h>
+#endif
+
 #include "vm.hpp"
 #include "configuration.hpp"
 #include "call_frame.hpp"
@@ -42,6 +45,7 @@ namespace agent {
 
   public:
     VariableAccess(STATE, SharedState& ss);
+    ~VariableAccess();
 
     Tree* root() {
       return root_;

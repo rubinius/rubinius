@@ -4,7 +4,12 @@
 module Rubinius
   class GlobalVariables
     def initialize
-      load_path = %w[.]
+      if Rubinius.ruby19?
+        load_path = []
+      else
+        load_path = %w[.]
+      end
+
       loaded_features = LoadedFeatures.new
 
       @internal = LookupTable.new

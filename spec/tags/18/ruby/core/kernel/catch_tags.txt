@@ -1,0 +1,2 @@
+fails:Kernel.catch passes the given symbol to its block
+fails:Kernel.catch passes a symbol converted from the given string to its block

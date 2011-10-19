@@ -1,6 +1,7 @@
 describe :enumerable_find, :shared => true do
   # #detect and #find are aliases, so we only need one function
   before :each do
+    ScratchPad.record []
     @elements = [2, 4, 6, 8, 10]
     @numerous = EnumerableSpecs::Numerous.new(*@elements)
     @empty = []
@@ -46,11 +47,17 @@ describe :enumerable_find, :shared => true do
     @empty.send(@method, fail_proc) {|e| true}.should == "yay"
   end
 
+  it "passes through the values yielded by #each_with_index" do
+    [:a, :b].each_with_index.send(@method) { |x, i| ScratchPad << [x, i]; nil }
+    ScratchPad.recorded.should == [[:a, 0], [:b, 1]]
+  end
+
   ruby_version_is "" ... "1.8.7" do
     it "raises a LocalJumpError if no block given" do
       lambda { @numerous.send(@method) }.should raise_error(LocalJumpError)
     end
   end
+
   ruby_version_is "1.8.7" do
     it "returns an enumerator when no block given" do
       @numerous.send(@method).should be_an_instance_of(enumerator_class)

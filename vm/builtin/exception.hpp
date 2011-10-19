@@ -82,7 +82,7 @@ namespace rubinius {
                                int ip, const char* reason);
     static void frozen_error(STATE, CallFrame* frame);
 
-    // Ruby.primitive :exception_errno_error
+    // Rubinius.primitive :exception_errno_error
     static Object* errno_error(STATE, Object* reason, Fixnum* ern);
 
     static void errno_error(STATE, const char* reason = NULL, int ern = 0,

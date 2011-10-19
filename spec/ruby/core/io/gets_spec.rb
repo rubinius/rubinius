@@ -161,47 +161,55 @@ end
 ruby_version_is "1.9" do
   describe "IO#gets" do
     before :each do
-      @name = tmp("gets_specs")
+      @name = tmp("io_gets")
+      touch(@name) { |f| f.write "one\n\ntwo\n\nthree\nfour\n" }
+      @io = new_io @name, fmode("r:utf-8")
     end
 
     after :each do
-      @io.close
       rm_r @name
+      @io.close
     end
 
-    it "accepts an integer as first parameter to limit the output's size" do
-      touch(@name) { |f| f.print("waduswadus") }
+    it "calls #to_int to convert a single object argument to an Integer limit" do
+      obj = mock("io gets limit")
+      obj.should_receive(:to_int).and_return(6)
 
-      @io = new_io @name, fmode("r:utf-8")
-      @io.gets(5).should == "wadus"
+      @io.gets(obj).should == "one\n"
     end
 
-    it "accepts an integer as second parameter to limit the output's size" do
-      touch(@name) { |f| f.print("wa\n\ndus\n\nwadus") }
+    it "calls #to_int to convert the second object argument to an Integer limit" do
+      obj = mock("io gets limit")
+      obj.should_receive(:to_int).and_return(2)
 
-      @io = new_io @name, fmode("r:utf-8")
-      @io.gets('\n\n', 5).should == "wa\n\nd"
+      @io.gets(nil, obj).should == "on"
     end
 
-    it "accepts an integer as limit parameter which is smaller than IO size" do
-      touch(@name) { |f| f.print("ABCD\n") }
+    it "calls #to_str to convert the first argument to a String when passed a limit" do
+      obj = mock("io gets separator")
+      obj.should_receive(:to_str).and_return($/)
 
-      @io = new_io @name, fmode("r:utf-8")
-      @io.gets("", 2).should == "AB"
+      @io.gets(obj, 5).should == "one\n"
     end
 
-    it "accepts an integer as limit parameter which is same as IO size" do
-      touch(@name) { |f| f.print("ABC\n") }
-
-      @io = new_io @name, fmode("r:utf-8")
-      @io.gets("", 4).should == "ABC\n"
+    it "reads to the default seperator when passed a single argument greater than the number of bytes to the separator" do
+      @io.gets(6).should == "one\n"
     end
 
-    it "accepts an integer as limit parameter which is greater than IO size" do
-      touch(@name) { |f| f.print("A\n") }
+    it "reads limit bytes when passed a single argument less than the number of bytes to the default separator" do
+      @io.gets(3).should == "one"
+    end
 
-      @io = new_io @name, fmode("r:utf-8")
-      @io.gets("", 10).should == "A\n"
+    it "reads limit bytes when passed nil and a limit" do
+      @io.gets(nil, 6).should == "one\n\nt"
+    end
+
+    it "reads until the next paragraph when passed '' and a limit greater than the next paragraph" do
+      @io.gets("", 6).should == "one\n\n"
+    end
+
+    it "reads limit bytes when passed '' and a limit less than the next paragraph" do
+      @io.gets("", 3).should == "one"
     end
   end
 end

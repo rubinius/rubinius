@@ -1,0 +1,8 @@
+fails:CGI::HtmlExtension#checkbox_group when passed name, values ... returns a sequence of 'checkbox'-elements with the passed name and the passed values
+fails:CGI::HtmlExtension#checkbox_group when passed name, values ... allows passing a value inside an Array
+fails:CGI::HtmlExtension#checkbox_group when passed name, values ... allows passing a value as an Array containing the value and the checked state or a label
+fails:CGI::HtmlExtension#checkbox_group when passed name, values ... allows passing a value as an Array containing the value, a label and the checked state
+fails:CGI::HtmlExtension#checkbox_group when passed name, values ... returns an empty String when passed no values
+fails:CGI::HtmlExtension#checkbox_group when passed name, values ... ignores a passed block
+fails:CGI::HtmlExtension#checkbox_group when passed Hash uses the passed Hash to generate the checkbox sequence
+fails:CGI::HtmlExtension#checkbox_group when passed Hash ignores a passed block

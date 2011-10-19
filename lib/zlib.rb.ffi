@@ -83,6 +83,7 @@ module Zlib
 
   @@@
   constants :required => true do |c|
+    c.include_dir 'vendor/zlib'
     c.include 'zlib.h'
 
     c.const 'ZLIB_VERSION', '%s', '(char *)', nil, to_s
@@ -121,6 +122,7 @@ module Zlib
 
   @@@
   constants do |c|
+    c.include_dir 'vendor/zlib'
     c.include 'zconf.h'
 
     c.const 'MAX_WBITS'
@@ -148,6 +150,7 @@ module Zlib
 
   @@@
   constants do |c|
+    c.include_dir 'vendor/zlib'
     c.include 'zlib.h'
 
     c.const 'OS_CODE'
@@ -240,6 +243,7 @@ module Zlib
     def self.use_zstream_layout
       @@@
       struct do |s|
+        s.include_dir 'vendor/zlib'
         s.include "zlib.h"
 
         s.name "struct z_stream_s"
@@ -517,7 +521,9 @@ module Zlib
 
   extend FFI::Library
 
-  ffi_lib ['libz.so.1', 'libz.1.dylib', 'libz']
+  ffi_lib %W[ #{Rubinius::ZLIB_PATH}libz.so.1
+              #{Rubinius::ZLIB_PATH}libz.1.dylib
+              #{Rubinius::ZLIB_PATH}libz ]
 
   # deflateInit2 is a macro pointing to deflateInit2_
   attach_function :deflateInit2_, [

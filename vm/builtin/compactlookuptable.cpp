@@ -20,7 +20,7 @@ namespace rubinius {
 
   CompactLookupTable* CompactLookupTable::create(STATE) {
     size_t bytes;
-    CompactLookupTable* tbl = state->om->new_object_variable<CompactLookupTable>
+    CompactLookupTable* tbl = state->new_object_variable<CompactLookupTable>
       (G(compactlookuptable), COMPACTLOOKUPTABLE_SIZE, bytes);
     tbl->full_size_ = bytes;
     return tbl;
@@ -130,7 +130,7 @@ namespace rubinius {
     std::cout << ": " << size << std::endl;
     indent(++level);
     for(size_t i = 0; i < size; i++) {
-      std::cout << ":" << as<Symbol>(keys->get(state, i))->c_str(state);
+      std::cout << ":" << as<Symbol>(keys->get(state, i))->debug_str(state);
       if(i < size - 1) std::cout << ", ";
     }
     std::cout << std::endl;

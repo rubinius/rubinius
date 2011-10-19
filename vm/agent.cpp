@@ -1,12 +1,21 @@
+#include "config.h"
+
 #include <string.h>
 #include <limits.h>
 #include <sys/types.h>
-#include <sys/socket.h>
 #include <sys/stat.h>
+
+#ifdef RBX_WINDOWS
+#include <winsock2.h>
+#include <ws2tcpip.h>
+#else
+#include <sys/socket.h>
 #include <netinet/in.h>
 #include <netdb.h>
 #include <arpa/inet.h>
+#endif
 
+#include "windows_compat.h"
 #include "util/bert.hpp"
 
 #include "vm.hpp"
@@ -14,8 +23,6 @@
 #include "agent.hpp"
 #include "exception.hpp"
 #include "call_frame.hpp"
-
-#include "config.h"
 
 #include "agent_components.hpp"
 #include "environment.hpp"
@@ -82,6 +89,10 @@ namespace rubinius {
     shared_.globals.rubinius.get()->set_const(state_, "TO_AGENT", to);
   }
 
+  QueryAgent::~QueryAgent() {
+    delete vars_;
+  }
+
   bool QueryAgent::setup_local() {
     if(socketpair(AF_UNIX, SOCK_STREAM, 0, loopback_)) {
       return false;
@@ -104,7 +115,7 @@ namespace rubinius {
 
     // To avoid TIME_WAIT / EADDRINUSE
     int on = 1;
-    setsockopt(server_fd_, SOL_SOCKET, SO_REUSEADDR, &on, sizeof(on));
+    setsockopt(server_fd_, SOL_SOCKET, SO_REUSEADDR, (const char*)&on, sizeof(on));
 
     struct sockaddr_in sin = {};
     sin.sin_family = AF_INET;
@@ -381,7 +392,7 @@ namespace rubinius {
               continue;
             }
           }
-          i++;
+          ++i;
         }
 
         if(!found) {
@@ -430,8 +441,8 @@ namespace rubinius {
 
     const char* tmpdir = 0;
 
-    if(shared_.config.qa_tmpdir.value.size() > 0) {
-      tmpdir = shared_.config.qa_tmpdir.value.c_str();
+    if(shared_.config.agent_tmpdir.value.size() > 0) {
+      tmpdir = shared_.config.agent_tmpdir.value.c_str();
     } else {
       tmpdir = getenv("TMPDIR");
     }

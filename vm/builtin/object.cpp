@@ -85,15 +85,13 @@ namespace rubinius {
   }
 
   Object* Object::copy_object(STATE, Object* other) {
-    initialize_copy(other, age());
+    initialize_copy(state->om, other, age());
 
     write_barrier(state, klass());
     write_barrier(state, ivars());
 
-#ifdef RBX_OBJECT_ID_IN_HEADER
     // Don't inherit the object_id from the original.
-    set_object_id(0);
-#endif
+    set_object_id(state, state->om, 0);
 
     /* C extensions use Data objects for various purposes. The object
      * usually is made an instance of some extension class. So, we
@@ -126,22 +124,12 @@ namespace rubinius {
       if(LookupTable* lt = try_as<LookupTable>(other->ivars())) {
         ivars(state, lt->duplicate(state));
 
-        // We store the object_id in the ivar table, so nuke it.
-#ifndef RBX_OBJECT_ID_IN_HEADER
-        LookupTable* ld = as<LookupTable>(ivars());
-        ld->remove(state, G(sym_object_id));
-#endif
       } else {
         // Use as<> so that we throw a TypeError if there is something else
         // here.
         CompactLookupTable* clt = as<CompactLookupTable>(other->ivars());
         ivars(state, clt->duplicate(state));
 
-        // We store the object_id in the ivar table, so nuke it.
-#ifndef RBX_OBJECT_ID_IN_HEADER
-        CompactLookupTable* ld = as<CompactLookupTable>(ivars());
-        ld->remove(state, G(sym_object_id));
-#endif
       };
     }
 
@@ -335,7 +323,6 @@ namespace rubinius {
 
   hashval Object::hash(STATE) {
     if(!reference_p()) {
-      return reinterpret_cast<uintptr_t>(this) & FIXNUM_MAX;
 
 #ifdef _LP64
       uintptr_t key = reinterpret_cast<uintptr_t>(this);
@@ -358,6 +345,7 @@ namespace rubinius {
       a = (a^0xb55a4f09) ^ (a>>16);
       return a & FIXNUM_MAX;
 #endif
+
     } else {
       if(String* string = try_as<String>(this)) {
         return string->hash_string(state);
@@ -379,7 +367,7 @@ namespace rubinius {
     if(reference_p()) {
 #ifdef RBX_OBJECT_ID_IN_HEADER
       if(object_id() == 0) {
-        set_object_id(++state->om->last_object_id);
+        state->om->assign_object_id(state, this);
       }
 
       // Shift it up so we don't waste the numeric range in the actual
@@ -392,10 +380,7 @@ namespace rubinius {
 
       /* Lazy allocate object's ids, since most don't need them. */
       if(id->nil_p()) {
-        /* All references have an even object_id. last_object_id starts out at 0
-         * but we don't want to use 0 as an object_id, so we just add before using */
-        id = Integer::from(state, ++state->om->last_object_id << TAG_REF_WIDTH);
-        set_ivar(state, G(sym_object_id), id);
+        id = state->om->assign_object_id_ivar(state, this);
       }
 
       return as<Integer>(id);
@@ -412,8 +397,7 @@ namespace rubinius {
 #ifdef RBX_OBJECT_ID_IN_HEADER
     return object_id() > 0;
 #else
-    Object* id = get_ivar(state, G(sym_object_id));
-    return !id->nil_p();
+    return get_ivar(state, G(sym_object_id)) != Qnil;
 #endif
   }
 
@@ -474,7 +458,7 @@ namespace rubinius {
     LookupData lookup(this, this->lookup_begin(state), allow_private);
     Dispatch dis(name);
 
-    Arguments args(ary);
+    Arguments args(name, ary);
     args.set_block(block);
     args.set_recv(this);
 
@@ -485,14 +469,14 @@ namespace rubinius {
     LookupData lookup(this, this->lookup_begin(state), allow_private);
     Dispatch dis(name);
 
-    Arguments args;
+    Arguments args(name);
     args.set_block(Qnil);
     args.set_recv(this);
 
     return dis.send(state, caller, lookup, args);
   }
 
-  Object* Object::send_prim(STATE, Executable* exec, CallFrame* call_frame, Dispatch& msg,
+  Object* Object::send_prim(STATE, CallFrame* call_frame, Executable* exec, Module* mod,
                             Arguments& args) {
     if(args.total() < 1) return Primitives::failure();
 
@@ -511,6 +495,7 @@ namespace rubinius {
 
     // Discard the 1st argument.
     args.shift(state);
+    args.set_name(sym);
 
     Dispatch dis(sym);
     LookupData lookup(this, this->lookup_begin(state), true);
@@ -642,7 +627,7 @@ namespace rubinius {
   }
 
   String* Object::to_s(STATE, bool address) {
-    std::stringstream name;
+    std::ostringstream name;
 
     if(!reference_p()) {
       if(nil_p()) return String::create(state, "nil");
@@ -653,7 +638,7 @@ namespace rubinius {
         name << fix->to_native();
         return String::create(state, name.str().c_str());
       } else if(Symbol* sym = try_as<Symbol>(this)) {
-        name << ":\"" << sym->c_str(state) << "\"";
+        name << ":\"" << sym->debug_str(state) << "\"";
         return String::create(state, name.str().c_str());
       }
     }
@@ -666,14 +651,18 @@ namespace rubinius {
         if(mod->name()->nil_p()) {
           name << "Class";
         } else {
-          name << mod->name()->c_str(state);
+          name << mod->name()->debug_str(state);
         }
-        name << "(" << this->class_object(state)->name()->c_str(state) << ")";
+        if(SingletonClass* sc = try_as<SingletonClass>(mod)) {
+          name << "(" << sc->true_superclass(state)->name()->debug_str(state) << ")";
+        } else {
+          name << "(" << this->class_object(state)->name()->debug_str(state) << ")";
+        }
       } else {
         if(this->class_object(state)->name()->nil_p()) {
           name << "Object";
         } else {
-          name << this->class_object(state)->name()->c_str(state);
+          name << this->class_object(state)->name()->debug_str(state);
         }
       }
     }
@@ -714,6 +703,21 @@ namespace rubinius {
 
   Object* Object::tainted_p(STATE) {
     if(reference_p() && is_tainted_p()) return Qtrue;
+    return Qfalse;
+  }
+
+  Object* Object::trust(STATE) {
+    if(reference_p()) set_untrusted(0);
+    return this;
+  }
+
+  Object* Object::untrust(STATE) {
+    if(reference_p()) set_untrusted();
+    return this;
+  }
+
+  Object* Object::untrusted_p(STATE) {
+    if(reference_p() && is_untrusted_p()) return Qtrue;
     return Qfalse;
   }
 

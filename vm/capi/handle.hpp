@@ -151,8 +151,16 @@ namespace rubinius {
         return as_.rstring;
       }
 
+      RData*  create_rdata(NativeMethodEnvironment* env);
+      RData*  as_rdata(NativeMethodEnvironment* env) {
+        if(type_ == cRData) {
+          return as_.rdata;
+        } else {
+          return create_rdata(env);
+        }
+      }
+
       RArray* as_rarray(NativeMethodEnvironment* env);
-      RData*  as_rdata(NativeMethodEnvironment* env);
       RString* as_rstring(NativeMethodEnvironment* env, int cache_level);
       RFloat* as_rfloat(NativeMethodEnvironment* env);
       RIO* as_rio(NativeMethodEnvironment* env);
@@ -179,7 +187,52 @@ namespace rubinius {
     };
 
 
-    typedef std::tr1::unordered_set<Handle*> HandleSet;
+    typedef std::tr1::unordered_set<Handle*> SlowHandleSet;
+
+    class HandleSet {
+    public:
+      const static int cFastHashSize = 16;
+
+    private:
+      SlowHandleSet* slow_;
+      Handle* table_[cFastHashSize];
+
+    public:
+      HandleSet();
+      ~HandleSet() {
+        if(slow_) delete slow_;
+      }
+
+      void deref_all();
+      void flush_all(NativeMethodEnvironment* env);
+      void update_all(NativeMethodEnvironment* env);
+
+      bool add_if_absent(Handle* handle) {
+        // ref() ONLY if it's not already in there!
+        // otherwise the refcount is wrong and we leak handles.
+
+        if(unlikely(slow_)) {
+          return slow_add_if_absent(handle);
+        } else {
+          for(int i = 0; i < cFastHashSize; i++) {
+            if(!table_[i]) {
+              table_[i] = handle;
+              handle->ref();
+
+              return true;
+            }
+            if(table_[i] == handle) return false;
+          }
+
+          make_slow_and_add(handle);
+          return true;
+        }
+      }
+
+    private:
+      void make_slow_and_add(Handle* handle);
+      bool slow_add_if_absent(Handle* handle);
+    };
   }
 }
 

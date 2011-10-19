@@ -33,33 +33,36 @@ namespace rubinius {
   /** Primitives */
   public:
 
-    // Ruby.primitive :tuple_allocate
+    // Rubinius.primitive :tuple_allocate
     static Tuple* allocate(STATE, Fixnum* fields);
 
-    // Ruby.primitive :tuple_at
+    // Rubinius.primitive :tuple_at
     Object* at_prim(STATE, Fixnum* pos);
 
     Object* put(STATE, native_int idx, Object* val);
 
-    // Ruby.primitive :tuple_put
+    // Rubinius.primitive :tuple_put
     Object* put_prim(STATE, Fixnum* idx, Object* val);
 
-    // Ruby.primitive :tuple_fields
+    // Rubinius.primitive :tuple_fields
     Object* fields_prim(STATE);
 
-    // Ruby.primitive :tuple_pattern
+    // Rubinius.primitive :tuple_pattern
     static Tuple* pattern(STATE, Fixnum* size, Object* val);
 
-    // Ruby.primitive :tuple_copy_from
+    // Rubinius.primitive :tuple_copy_from
     Tuple* copy_from(STATE, Tuple* other, Fixnum *start, Fixnum *length, Fixnum *dest);
 
-    // Ruby.primitive :tuple_delete_inplace
+    // Rubinius.primitive :tuple_delete_inplace
     Fixnum* delete_inplace(STATE, Fixnum *start, Fixnum *length, Object *obj);
 
-    // Ruby.primitive :tuple_reverse
+    // Rubinius.primitive :tuple_reverse
     Object* reverse(STATE, Fixnum* start, Fixnum* total);
 
     Tuple* bounds_exceeded_error(STATE, const char* method, int index);
+
+    // Rubinius.primitive :tuple_dup
+    Tuple* tuple_dup(STATE);
 
   public: // Inline Functions
     Object* at(native_int index) {

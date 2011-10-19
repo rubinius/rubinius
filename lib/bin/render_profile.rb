@@ -51,6 +51,7 @@ li {
 }
 .color01 { background:#adbdeb }
 .color05 { background:#9daddb }
+.colorS { background:white }
 .color0 { background:#8d9dcb }
 .color1 { background:#89bccb }
 .color2 { background:#56e3e7 }
@@ -557,18 +558,29 @@ def print_node(f, id, data, depth=0)
   end
 
   prec = "%.2f" % [100.0 * (node["total"].to_f / data["runtime"].to_f)]
-  name = data["methods"][node["method"].to_s]["name"]
 
-  color = prec.to_i / 10
+  meth = data["methods"][node["method"].to_s]
+  name = "<a href=\"txmt://open?url=file://#{meth['file']}&line=#{meth['line']}\">#{meth['name']}</a> (#{node['called']}/#{meth['called']})"
+
+  if prec.to_f <= 1.0
+    color = "S"
+  else
+    color = prec.to_i / 10
+  end
+
+  child = node['sub_nodes'].map { |x| data['nodes'][x.to_s] }.inject(0) { |a,n| a + n['total'] }
+  s = node['total'] - child
+
+  self_prec = "%.2f" % [100.0 * (s / data['runtime'].to_f)]
 
   if node["sub_nodes"].empty?
-    f.puts %Q!<li class="color#{color}" style="display:block"><img src="http://asset.rubini.us/empty.png"> #{prec}% #{name}!
+    f.puts %Q!<li class="color#{color}" style="display:block"><img src="http://asset.rubini.us/empty.png"> #{prec}% (#{self_prec}%) #{name}!
   else
     if depth > 20
-      f.puts %Q!<li class="color#{color}" style="display:block"><img class="toggle" src="http://asset.rubini.us/plus.png"> #{prec}% #{name}!
+      f.puts %Q!<li class="color#{color}" style="display:block"><img class="toggle" src="http://asset.rubini.us/plus.png"> #{prec}% (#{self_prec}%) #{name}!
       f.puts "<ul style=\"display:none\">"
     else
-      f.puts %Q!<li class="color#{color}" style="display:block"><img class="toggle" src="http://asset.rubini.us/minus.png"> #{prec}% #{name}!
+      f.puts %Q!<li class="color#{color}" style="display:block"><img class="toggle" src="http://asset.rubini.us/minus.png"> #{prec}% (#{self_prec}%) #{name}!
       f.puts "<ul>"
     end
 

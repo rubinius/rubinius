@@ -28,8 +28,14 @@ extern "C" {
 #if defined(RFILE) /*&& !defined(OSSL_DEBUG)*/
 #  undef RFILE
 #endif
-#include <ruby.h>
-#include <rubyio.h>
+
+#include "ruby.h"
+
+#ifdef HAVE_RUBY_IO_H
+#include "ruby/io.h"
+#else
+#include "rubyio.h"
+#endif
 
 /*
  * Check the OpenSSL version

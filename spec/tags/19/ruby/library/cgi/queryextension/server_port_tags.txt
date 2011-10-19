@@ -1,0 +1,1 @@
+fails:CGI::QueryExtension#server_port returns ENV['SERVER_PORT'] as Integer

@@ -15,26 +15,49 @@ module Rubinius
       end
     end
 
-    if @object_db = Rubinius::Config['rbc.db']
-      @object_db = ".rbx" unless @object_db.kind_of? String
-    end
-
-    def self.compiled_name(file)
-      if file.suffix? ".rb"
-        path = file + "c"
-      else
-        path = file + ".compiled.rbc"
-      end
-
-      if db = @object_db and !File.exists?(path)
-        full = File.expand_path(file)
+    if RBC_DB = Rubinius::Config['rbc.db']
+      def self.compiled_name(file)
+        full = "#{File.expand_path(file)}#{Rubinius::RUBY_LIB_VERSION}"
         hash = Rubinius.invoke_primitive :sha1_hash, full
         dir = hash[0,2]
 
-        path = "#{db}/#{dir}/#{hash}"
+        path = "#{RBC_DB}/#{dir}/#{hash}"
+      end
+    else
+      def self.compiled_cache_writable?(db, dir)
+        File.owned?(db) or File.owned?(dir)
       end
 
-      path
+      def self.compiled_name(file)
+        name = File.expand_path file
+
+        # If the file we are compiling is in a subdirectory of the current
+        # working directory when Rubinius is started, try to cache the
+        # compiled code in <cwd>/.rbx if:
+        #
+        #   1. <cwd>/.rbx exists and is owned by the process user
+        #       OR
+        #   2. if <cwd> is owned by the process user
+        #
+        # Otherwise, try to cache the compiled code in ~/.rbx if:
+        #
+        #   1. ~/.rbx exists and is owned by the process user
+        #       OR
+        #   2. ~/ is owned by the process user
+
+        dir = Rubinius::OS_STARTUP_DIR
+        db = "#{dir}/.rbx"
+        unless name.prefix?(dir) and compiled_cache_writable?(db, dir)
+          dir = File.expand_path "~/"
+          db = "#{dir}/.rbx"
+          return unless compiled_cache_writable?(db, dir)
+        end
+
+        full = "#{name}#{Rubinius::RUBY_LIB_VERSION}"
+        hash = Rubinius.invoke_primitive :sha1_hash, full
+
+        path = "#{db}/#{hash[0, 2]}/#{hash}"
+      end
     end
 
     def self.compile(file, output=nil, line=1, transforms=:default)
@@ -52,6 +75,7 @@ module Rubinius
       parser.input file, line
 
       writer = compiler.writer
+      writer.version = Rubinius::RUBY_LIB_VERSION
       writer.name = output ? output : compiled_name(file)
 
       begin
@@ -316,6 +340,20 @@ module Rubinius
 
       parser = compiler.parser
       parser.root AST::Snippet
+      parser.input string
+      transforms.each { |x| parser.enable_transform x }
+
+      compiler.generator.processor TestGenerator
+
+      compiler.run
+    end
+
+    def self.compile_test_bytecode_19(string, transforms)
+      compiler = new :string, :bytecode
+
+      parser = compiler.parser
+      parser.root AST::Snippet
+      parser.processor Rubinius::Melbourne19
       parser.input string
       transforms.each { |x| parser.enable_transform x }
 

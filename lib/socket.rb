@@ -151,8 +151,10 @@ class BasicSocket < IO
     raise Errno::EAGAIN
   end
 
-
-#
+  def shutdown(how = 2)
+    err = Socket::Foreign.shutdown @descriptor, how
+    Errno.handle "shutdown" unless err == 0
+  end
 
 end
 
@@ -173,10 +175,10 @@ class Socket < BasicSocket
     all_valid.each {|name, value| Socket.const_set name, Integer(value) }
 
 
-    afamilies = all_valid.select { |name,| name =~ /^AF_/ }
+    afamilies = all_valid.to_a.select { |name,| name =~ /^AF_/ }
     afamilies.map! {|name, value| [value.to_i, name] }
 
-    pfamilies = all_valid.select { |name,| name =~ /^PF_/ }
+    pfamilies = all_valid.to_a.select { |name,| name =~ /^PF_/ }
     pfamilies.map! {|name, value| [value.to_i, name] }
 
     AF_TO_FAMILY = Hash[*afamilies.flatten]
@@ -1068,8 +1070,12 @@ class TCPSocket < IPSocket
             i[1] == family && i[2] == socket_type
           end
 
-          status = Socket::Foreign.bind sock, li[4]
-          syscall = 'bind(2)'
+          if li
+            status = Socket::Foreign.bind sock, li[4]
+            syscall = 'bind(2)'
+          else
+            status = 1
+          end
         else
           status = 1
         end

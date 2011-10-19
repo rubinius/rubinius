@@ -7,28 +7,18 @@ class Array
   alias_method :length, :total
 
   def self.allocate
-    Ruby.primitive :array_allocate
+    Rubinius.primitive :array_allocate
     raise PrimitiveFailure, "Array.allocate primitive failed"
   end
 
   def new_range(start, count)
-    Ruby.primitive :array_new_range
+    Rubinius.primitive :array_new_range
     raise PrimitiveFailure, "Array.new_range primitive failed"
   end
 
   def new_reserved(count)
-    Ruby.primitive :array_new_reserved
+    Rubinius.primitive :array_new_reserved
     raise PrimitiveFailure, "Array.new_reserved primitive failed"
-  end
-
-  def self.coerce_into_array(obj)
-    return [obj] unless obj
-
-    return obj.to_ary if obj.respond_to?(:to_ary)
-
-    # Just call #to_a, which wraps the reciever in an
-    # array if it's not one.
-    return obj.to_a
   end
 
   # THIS MUST NOT BE REMOVED. the kernel requires a simple
@@ -38,7 +28,7 @@ class Array
   end
 
   def []=(idx, ent)
-    Ruby.check_frozen
+    Rubinius.check_frozen
 
     if idx >= @tuple.fields
       new_tuple = Rubinius::Tuple.new(idx + 10)
@@ -80,32 +70,10 @@ class Array
     self
   end
 
-  # Creates a new Array from the return values of passing
-  # each element in self to the supplied block.
-  def map
-    return dup unless block_given?
-    out = Array.new size
-
-    i = @start
-    total = i + @total
-    tuple = @tuple
-
-    out_tuple = out.tuple
-
-    j = 0
-    while i < total
-      out_tuple[j] = yield tuple.at(i)
-      i += 1
-      j += 1
-    end
-
-    out
-  end
-
   # Replaces each element in self with the return value
   # of passing that element to the supplied block.
   def map!
-    Ruby.check_frozen
+    Rubinius.check_frozen
 
     return to_enum(:map!) unless block_given?
 

@@ -8,6 +8,7 @@
 #include "llvm/control_flow.hpp"
 #include "llvm/cfg.hpp"
 
+#include "instruments/tooling.hpp"
 #include <llvm/Analysis/CaptureTracking.h>
 
 namespace rubinius {
@@ -19,8 +20,9 @@ namespace jit {
     , builder_(ls->ctx())
     , use_full_scope_(false)
     , import_args_(0)
-    , method_body_(0)
+    , body_(0)
     , info_(i)
+    , runtime_data_(0)
   {
     llvm::Module* mod = ls->module();
     cf_type = mod->getTypeByName("struct.rubinius::CallFrame");
@@ -45,13 +47,13 @@ namespace jit {
       return;
     }
 
-    Value* max = ConstantInt::get(ls_->Int32Ty, size);
-    Value* one = ConstantInt::get(ls_->Int32Ty, 1);
+    Value* max = cint(size);
+    Value* one = cint(1);
 
-    BasicBlock* top = BasicBlock::Create(ls_->ctx(), "stack_nil", func);
-    BasicBlock* cont = BasicBlock::Create(ls_->ctx(), "bottom", func);
+    BasicBlock* top = info_.new_block("stack_nil");
+    BasicBlock* cont = info_.new_block("bottom");
 
-    b().CreateStore(ConstantInt::get(ls_->Int32Ty, 0), info_.counter());
+    b().CreateStore(cint(0), info_.counter());
 
     b().CreateBr(top);
 
@@ -79,9 +81,9 @@ namespace jit {
     if(size <= 5) {
       for(int i = 0; i < size; i++) {
         Value* idx[] = {
-          ConstantInt::get(ls_->Int32Ty, 0),
-          ConstantInt::get(ls_->Int32Ty, offset::vars_tuple),
-          ConstantInt::get(ls_->Int32Ty, i)
+          cint(0),
+          cint(offset::vars_tuple),
+          cint(i)
         };
 
         Value* gep = b().CreateGEP(vars, idx, idx+3, "local_pos");
@@ -90,13 +92,13 @@ namespace jit {
       return;
     }
 
-    Value* max = ConstantInt::get(ls_->Int32Ty, size);
-    Value* one = ConstantInt::get(ls_->Int32Ty, 1);
+    Value* max = cint(size);
+    Value* one = cint(1);
 
-    BasicBlock* top = BasicBlock::Create(ls_->ctx(), "locals_nil", func);
-    BasicBlock* cont = BasicBlock::Create(ls_->ctx(), "bottom", func);
+    BasicBlock* top = info_.new_block("locals_nil");
+    BasicBlock* cont = info_.new_block("bottom");
 
-    b().CreateStore(ConstantInt::get(ls_->Int32Ty, 0), info_.counter());
+    b().CreateStore(cint(0), info_.counter());
 
     b().CreateBr(top);
 
@@ -104,8 +106,8 @@ namespace jit {
 
     Value* cur = b().CreateLoad(info_.counter(), "counter");
     Value* idx[] = {
-      ConstantInt::get(ls_->Int32Ty, 0),
-      ConstantInt::get(ls_->Int32Ty, offset::vars_tuple),
+      cint(0),
+      cint(offset::vars_tuple),
       cur
     };
 
@@ -136,14 +138,14 @@ namespace jit {
     // Now, validate class_id
 
     Value* self = b().CreateLoad(
-        b().CreateConstGEP2_32(args, 0, offset::args_recv), "self");
+        b().CreateConstGEP2_32(info_.args(), 0, offset::args_recv), "self");
 
-    BasicBlock* restart_interp = BasicBlock::Create(ls_->ctx(), "restart_interp", func);
-    BasicBlock* check_class = BasicBlock::Create(ls_->ctx(), "check_class", func);
-    BasicBlock* cont = BasicBlock::Create(ls_->ctx(), "prologue_continue", func);
+    BasicBlock* restart_interp = info_.new_block("restart_interp");
+    BasicBlock* check_class = info_.new_block("check_class");
+    BasicBlock* cont = info_.new_block("prologue_continue");
 
-    Value* mask = ConstantInt::get(ls_->Int32Ty, TAG_REF_MASK);
-    Value* zero = ConstantInt::get(ls_->Int32Ty, TAG_REF);
+    Value* mask = cint(TAG_REF_MASK);
+    Value* zero = cint(TAG_REF);
 
     Value* lint = b().CreateAnd(
         b().CreatePtrToInt(self, ls_->Int32Ty),
@@ -156,9 +158,9 @@ namespace jit {
     b().SetInsertPoint(check_class);
 
     Value* class_idx[] = {
-      ConstantInt::get(ls_->Int32Ty, 0),
-      ConstantInt::get(ls_->Int32Ty, 0),
-      ConstantInt::get(ls_->Int32Ty, 1)
+      cint(0),
+      cint(0),
+      cint(1)
     };
 
     Value* self_class = b().CreateLoad(
@@ -169,22 +171,22 @@ namespace jit {
         b().CreateConstGEP2_32(self_class, 0, 3),
         "class_id");
 
-    Value* equal = b().CreateICmpEQ(runtime_id,
-        ConstantInt::get(ls_->Int32Ty, klass_id));
+    Value* equal = b().CreateICmpEQ(runtime_id, cint(klass_id));
 
     b().CreateCondBr(equal, cont, restart_interp);
 
     b().SetInsertPoint(restart_interp);
 
-    Value* call_args[] = { vm, prev, msg, args };
+    Value* call_args[] = { info_.vm(), info_.previous(), exec, module, info_.args() };
 
     Signature sig(ls_, "Object");
     sig << "VM";
     sig << "CallFrame";
-    sig << "Dispatch";
+    sig << "Executable";
+    sig << "Module";
     sig << "Arguments";
 
-    b().CreateRet(sig.call("rbx_restart_interp", call_args, 4, "ir", b()));
+    b().CreateRet(sig.call("rbx_restart_interp", call_args, 5, "ir", b()));
 
     b().SetInsertPoint(cont);
   }
@@ -208,11 +210,12 @@ namespace jit {
     Symbol* s_module_eval_;
 
     CFGCalculator& cfg_;
+    JITMethodInfo& info_;
 
   public:
 
     PassOne(LLVMState* ls, BlockMap& map, Function* func, BasicBlock* start,
-            CFGCalculator& cfg)
+            CFGCalculator& cfg, JITMethodInfo& info)
       : ls_(ls)
       , map_(map)
       , function_(func)
@@ -224,6 +227,7 @@ namespace jit {
       , sp_(-1)
       , calls_evalish_(false)
       , cfg_(cfg)
+      , info_(info)
     {
       JITBasicBlock& jbb = map_[0];
       jbb.reachable = true;
@@ -453,6 +457,16 @@ namespace jit {
       calls_evalish_ = true;
       number_of_sends_++;
     }
+
+    void visit_push_local(opcode which) {
+      LocalInfo* li = info_.get_local(which);
+      li->inc_push();
+    }
+
+    void visit_set_local(opcode which) {
+      LocalInfo* li = info_.get_local(which);
+      li->inc_set();
+    }
   };
 
   void Builder::pass_one(BasicBlock* body) {
@@ -460,7 +474,7 @@ namespace jit {
     cfg.build();
 
     // Pass 1, detect BasicBlock boundaries
-    PassOne finder(ls_, block_map_, func, body, cfg);
+    PassOne finder(ls_, block_map_, info_.function(), body, cfg, info_);
     finder.drive(vmm_);
 
     if(finder.creates_blocks() || finder.calls_evalish()) {
@@ -526,7 +540,7 @@ namespace jit {
     }
 
     // See if we should check interrupts now
-    if(method_body_ && (visitor.sends_done() > 2 || loops_)) {
+    if(!info_.is_block && body_ && (visitor.sends_done() > 2 || loops_)) {
       BasicBlock* cur = b().GetInsertBlock();
 
       // Remove the branch to method_body
@@ -541,14 +555,14 @@ namespace jit {
       func_ci->setDoesNotCapture(1, true);
       func_ci->setDoesNotCapture(2, true);
 
-      Value* call_args[] = { vm, call_frame };
+      Value* call_args[] = { info_.vm(), call_frame };
 
-      BasicBlock* ret_null = BasicBlock::Create(ls_->ctx(), "ret_null", func);
+      BasicBlock* ret_null = info_.new_block("ret_null");
 
       Value* ret = sig.call("rbx_prologue_check", call_args, 2, "ci", b());
       b().CreateCondBr(
           b().CreateICmpEQ(ret, Constant::getNullValue(obj_type)),
-          ret_null, method_body_);
+          ret_null, body_);
 
       b().SetInsertPoint(ret_null);
       b().CreateRet(Constant::getNullValue(obj_type));
@@ -574,6 +588,53 @@ namespace jit {
   void Builder::generate_hard_return() {
     b().SetInsertPoint(info_.return_pad());
     b().CreateRet(info_.return_phi());
+  }
+
+  void Builder::alloc_frame(const char* body_name) {
+    info_.setup_return();
+
+    body_ = info_.new_block(body_name);
+
+    pass_one(body_);
+
+    info_.context().init_variables(b());
+
+    counter2_ = b().CreateAlloca(ls_->Int32Ty, 0, "counter2");
+
+    valid_flag = b().CreateAlloca(ls_->Int1Ty, 0, "valid_flag");
+
+    Value* cfstk = b().CreateAlloca(obj_type,
+        cint((sizeof(CallFrame) / sizeof(Object*)) + vmm_->stack_size),
+        "cfstk");
+
+    Value* var_mem = b().CreateAlloca(obj_type,
+        cint((sizeof(StackVariables) / sizeof(Object*)) + vmm_->number_of_locals),
+        "var_mem");
+
+    call_frame = b().CreateBitCast(
+        cfstk,
+        llvm::PointerType::getUnqual(cf_type), "call_frame");
+
+    if(ls_->include_profiling()) {
+      method_entry_ = b().CreateAlloca(ls_->Int8Ty,
+          cint(sizeof(tooling::MethodEntry)),
+          "method_entry");
+
+      info_.set_profiling_entry(method_entry_);
+    }
+
+    info_.set_call_frame(call_frame);
+
+    stk = b().CreateConstGEP1_32(cfstk, sizeof(CallFrame) / sizeof(Object*), "stack");
+
+    info_.set_stack(stk);
+
+    vars = b().CreateBitCast(
+        var_mem,
+        llvm::PointerType::getUnqual(stack_vars_type), "vars");
+
+    info_.set_variables(vars);
+
   }
 }
 }

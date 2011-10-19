@@ -36,17 +36,18 @@ ruby_version_is "1.9" do
     end
   end
 
-  # Note: This is inconsistent with Array#<=> which calls #to_ary instead of
-  # just using it as an indicator.
   describe "Symbol#<=>" do
-    it "returns nil if its argument does not provide #to_sym" do
-      (:abc <=> 1).should == nil
-      (:abc <=> mock('x')).should == nil
+    it "returns nil if other is a String" do
+      (:abc <=> "abc").should be_nil
     end
 
-    it "returns nil if its argument does not provide #<=>" do
-      obj = mock('x')
-      (:abc <=> obj).should == nil
+    it "returns nil if other is a Fixnum" do
+      (:abc <=> 1).should be_nil
+    end
+
+    it "returns nil if other is an object" do
+      obj = mock("string <=>")
+      (:abc <=> obj).should be_nil
     end
   end
 end

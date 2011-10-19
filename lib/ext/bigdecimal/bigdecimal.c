@@ -732,6 +732,7 @@ BigDecimalCmp(VALUE self, VALUE r,char op)
     S_INT e;
     Real *a, *b;
     GUARD_OBJ(a,GetVpValue(self,1));
+    if(VpIsNaN(a)) return Qfalse;
     b = GetVpValue(r,0);
     if(!b) {
         ID f = 0;
@@ -748,6 +749,7 @@ BigDecimalCmp(VALUE self, VALUE r,char op)
         return rb_num_coerce_cmp(self,r,f);
     }
     SAVE(b);
+    if(VpIsNaN(b)) return Qfalse;
     e = VpComp(a, b);
     if(e==999) return Qnil;
     switch(op)
@@ -786,6 +788,11 @@ BigDecimal_nonzero(VALUE self)
 static VALUE
 BigDecimal_comp(VALUE self, VALUE r)
 {
+    Real *a, *b;
+    GUARD_OBJ(a,GetVpValue(self,1));
+    GUARD_OBJ(b,GetVpValue(self,0));
+    if(VpIsNaN(a) || VpIsNaN(b)) return Qnil;
+
     return BigDecimalCmp(self, r, '*');
 }
 

@@ -40,7 +40,7 @@ namespace rubinius {
     ConfigParser::ConfigMap::iterator i = variables.begin();
     while(i != variables.end()) {
       delete i->second;
-      i++;
+      ++i;
     }
   }
 
@@ -152,19 +152,19 @@ namespace rubinius {
     variables[entry->variable] = entry;
   }
 
-  bool ConfigParser::Entry::is_number() {
+  bool ConfigParser::Entry::is_number() const {
     return rubinius::is_number(value.c_str());
   }
 
-  bool ConfigParser::Entry::is_true() {
+  bool ConfigParser::Entry::is_true() const {
     return value == "true";
   }
 
-  long ConfigParser::Entry::to_i() {
+  long ConfigParser::Entry::to_i() const {
     return strtol(value.c_str(), NULL, 10);
   }
 
-  bool ConfigParser::Entry::in_section(std::string prefix) {
+  bool ConfigParser::Entry::in_section(std::string prefix) const {
     return variable.find(prefix) == 0;
   }
 
@@ -176,7 +176,7 @@ namespace rubinius {
       if(i->second->in_section(prefix)) {
         list->push_back(i->second);
       }
-      i++;
+      ++i;
     }
 
     return list;
@@ -185,7 +185,7 @@ namespace rubinius {
   void ConfigParser::update_configuration(Configuration& config) {
     for(ConfigParser::ConfigMap::iterator i = variables.begin();
         i != variables.end();
-        i++) {
+        ++i) {
       if(!config.import(i->first.c_str(), i->second->value.c_str())) {
         if(i->second->in_section("vm.") ||
            i->second->in_section("jit.") ||

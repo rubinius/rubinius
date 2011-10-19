@@ -18,8 +18,8 @@ class CompileAsMatcher
   end
 
   def diff(actual, expected)
-    actual = actual.pretty_inspect.to_a
-    expected = expected.pretty_inspect.to_a
+    actual = actual.pretty_inspect.each_line.to_a
+    expected = expected.pretty_inspect.each_line.to_a
 
     line = actual.each_with_index do |item, index|
       break index unless item == expected[index]

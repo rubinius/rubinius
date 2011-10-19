@@ -1,0 +1,1 @@
+fails:Singleton._instantiate? returns nil until it is instantiated

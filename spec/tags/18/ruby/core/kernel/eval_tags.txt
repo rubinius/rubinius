@@ -1,0 +1,2 @@
+fails:Kernel#eval unwinds through a Proc-style closure and returns from a lambda-style closure in the closure chain
+fails:Kernel#eval raises a LocalJumpError if there is no lambda-style closure in the chain

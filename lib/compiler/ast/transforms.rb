@@ -60,12 +60,12 @@ module Rubinius
     end
 
     ##
-    # Handles Ruby.primitive
+    # Handles Rubinius.primitive
     class SendPrimitive < SendWithArguments
-      transform :default, :primitive, "Ruby.primitive"
+      transform :default, :primitive, "Rubinius.primitive"
 
       def self.match?(line, receiver, name, arguments, privately)
-        match_send? receiver, :Ruby, name, :primitive
+        match_send? receiver, :Rubinius, name, :primitive
       end
 
       def bytecode(g)
@@ -74,12 +74,12 @@ module Rubinius
     end
 
     ##
-    # Handles Ruby.check_frozen
+    # Handles Rubinius.check_frozen
     class CheckFrozen < SendWithArguments
-      transform :default, :frozen, "Ruby.check_frozen"
+      transform :default, :frozen, "Rubinius.check_frozen"
 
       def self.match?(line, receiver, name, arguments, privately)
-        match_send? receiver, :Ruby, name, :check_frozen
+        match_send? receiver, :Rubinius, name, :check_frozen
       end
 
       def bytecode(g)
@@ -130,9 +130,9 @@ module Rubinius
 
       def bytecode(g)
         if @arguments.splat?
-          raise CompileError, "splat argument passed to invoke_primitive"
+          raise CompileError, "splat argument passed to call_custom"
         elsif @block
-          raise CompileError, "block passed to invoke_primitive"
+          raise CompileError, "block passed to call_custom"
         end
 
         pos(g)
@@ -142,6 +142,51 @@ module Rubinius
         selector = @arguments.array.shift
         @arguments.bytecode(g)
         g.call_custom selector.value, @arguments.size
+      end
+    end
+
+    ##
+    # Handles Rubinius.single_block_arg
+    #
+    # Given the following code:
+    #
+    #   m { |x| ... }
+    #
+    # In Ruby 1.8, this has the following semantics:
+    #
+    #   * x == nil if no values are yielded
+    #   * x == val if one value is yielded
+    #   * x == [p, q, r, ...] if more than one value is yielded
+    #   * x == [a, b, c, ...] if one Array is yielded
+    #
+    # In Ruby 1.9, this has the following semantics:
+    #
+    #   * x == nil if no values are yielded
+    #   * x == val if one value is yielded
+    #   * x == p if yield(p, q, r, ...)
+    #   * x == [a, b, c, ...] if one Array is yielded
+    #
+    # However, in Ruby 1.9, the Enumerator code manually implements the 1.8
+    # block argument semantics. This transform exposes the VM instruction we
+    # use in 1.8 mode (cast_for_single_block_arg) so we can use it in 1.9 mode
+    # for Enumerator.
+    #
+    class SingleBlockArg < SendWithArguments
+      transform :default, :single_block_arg, "Rubinius.single_block_arg"
+
+      def self.match?(line, receiver, name, arguments, privately)
+        match_send? receiver, :Rubinius, name, :single_block_arg
+      end
+
+      def bytecode(g)
+        if @arguments.splat?
+          raise CompileError, "splat argument passed to single_block_arg"
+        elsif @block
+          raise CompileError, "block passed to single_block_arg"
+        end
+
+        pos(g)
+        g.cast_for_single_block_arg
       end
     end
 
@@ -178,7 +223,7 @@ module Rubinius
       end
 
       def map_sends
-        visit do |result, node|
+        walk do |result, node|
           case node
           when Send, SendWithArguments
             node.privately = true
@@ -383,117 +428,6 @@ module Rubinius
         else
           super(g)
         end
-      end
-    end
-
-    class ArrayZen < Node
-      transform :magic, :array_zen, "Array Zen support"
-
-      def self.fixup_send(acc, node, recurse=true)
-        if node.kind_of? Send and
-           node.receiver.kind_of? Self and
-           (node.name == acc or node.name == :_)
-          node.check_for_local = true
-          return
-        end
-
-        if node.kind_of? ArrayLiteral
-          node.body.each { |x| fixup_send(acc, x) }
-        end
-
-        return unless recurse
-
-        node.visit do |result, n|
-          case n
-          when Send
-            fixup_send(acc, n, false)
-          when ArrayLiteral
-            n.body.each { |x| fixup_send(acc, x) }
-          end
-
-          true
-        end
-      end
-
-      def self.match?(line, receiver, name, arguments, privately)
-        return nil unless name == :"+@"
-        return nil unless receiver.kind_of? ArrayLiteral
-
-        ary = receiver.body
-
-        transform = ary.shift
-        source = ary.shift
-
-        unless ary.empty?
-          raise SyntaxError, "invalid array zen form"
-        end
-
-        unless source.kind_of? SendWithArguments
-          raise SyntaxError, "invalid array zen form"
-        end
-
-        unless source.name == :in
-          raise SyntaxError, "invalid array zen form"
-        end
-
-        var = source.receiver
-        source_ary = source.arguments.array.first
-
-        # Ok! it's the form we want. That was a lot of checking.
-
-        acc = var.name
-        acc_node = LocalVariableAssignment.new(line, acc, nil)
-
-        fixup_send(acc, transform)
-
-        new(line, acc_node, source_ary, transform)
-      end
-
-      def initialize(line, var, source, transform)
-        @line = line
-        @var = var
-        @source = source
-        @transform = transform
-
-        @res_set = LocalVariableAssignment.new(line, :_, nil)
-        @res = LocalVariableAccess.new(line, :_)
-      end
-
-      def bytecode(g)
-        pos(g)
-
-        done = g.new_label
-        top = g.new_label
-
-        g.make_array 0
-        @res_set.bytecode(g)
-        g.pop
-
-        @source.bytecode(g)
-        g.send :to_iter, 0
-
-        top.set!
-
-        g.dup
-        g.send :next, 0
-        g.gif done
-
-        g.dup
-        g.send :item, 0
-        @var.bytecode(g)
-        g.pop
-
-        @res.bytecode(g)
-        @transform.bytecode(g)
-        g.send :<<, 1
-        g.pop
-
-        g.goto top
-
-        done.set!
-
-        g.pop # iter
-        @res.bytecode(g)
       end
     end
 

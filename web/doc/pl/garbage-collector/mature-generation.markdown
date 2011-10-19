@@ -1,9 +1,9 @@
 ---
 layout: doc_pl
-title: Mature Generation
-previous: Young Generation
+title: Dojrzała generacja
+previous: Młoda generacja
 previous_url: garbage-collector/young-generation
-next: Large Objects
+next: Duże obiekty
 next_url: garbage-collector/large-objects
 review: true
 ---

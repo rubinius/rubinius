@@ -57,7 +57,7 @@ public:
     return head_;
   }
 
-  size_t size();
+  size_t size() const;
   void   add(Node*);
   void   remove(Node*);
 

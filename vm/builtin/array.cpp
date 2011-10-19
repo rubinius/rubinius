@@ -8,6 +8,7 @@
 #include "objectmemory.hpp"
 #include "primitives.hpp"
 
+#include "configuration.hpp"
 #include "arguments.hpp"
 #include "dispatch.hpp"
 
@@ -95,8 +96,8 @@ namespace rubinius {
     if(Tuple* tup = try_as<Tuple>(value)) {
       return Array::from_tuple(state, tup);
     } else if(RTEST(value->respond_to(state, state->symbol("to_ary"), Qtrue))) {
-      Arguments args(value, 0, 0);
-      Dispatch dis(state->symbol("to_ary"));
+      Arguments args(state->symbol("to_ary"), value, 0, 0);
+      Dispatch dis(args.name());
 
       Object* res = dis.send(state, call_frame, args);
       if(!res) return 0;
@@ -157,10 +158,16 @@ namespace rubinius {
   }
 
   Array* Array::concat(STATE, Array* other) {
+    if(!LANGUAGE_18_ENABLED(state)) {
+      if(is_frozen_p()) return force_as<Array>(Primitives::failure());
+    }
+
     size_t osize = other->size();
 
     if(osize == 0) return this;
-    if(is_frozen_p()) return force_as<Array>(Primitives::failure());
+    if(LANGUAGE_18_ENABLED(state)) {
+      if(is_frozen_p()) return force_as<Array>(Primitives::failure());
+    }
 
     if(osize == 1) {
       set(state, size(), other->get(state, 0));

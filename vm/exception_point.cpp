@@ -1,5 +1,9 @@
+#include <setjmp.h>
+
+#include "config.h"
 #include "exception_point.hpp"
 #include "builtin/nativemethod.hpp"
+#include "windows_compat.h"
 
 namespace rubinius {
   ExceptionPoint::ExceptionPoint(NativeMethodEnvironment* env)
@@ -12,10 +16,10 @@ namespace rubinius {
   void ExceptionPoint::return_to(NativeMethodEnvironment* env) {
     jumped_to_ = true;
     env->set_current_ep(this);
-    _longjmp(__jump_buffer, 1);
+    long_jump(__jump_buffer, 1);
 
     // If control reaches here, longjmp failed, i.e. disaster.
-    abort();
+    rubinius::bug("ExceptionPoint return_to failed");
   }
 
   void ExceptionPoint::pop(NativeMethodEnvironment* env) {

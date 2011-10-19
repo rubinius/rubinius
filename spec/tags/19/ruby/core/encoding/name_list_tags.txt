@@ -1,0 +1,1 @@
+fails:Encoding.name_list includes all aliases

@@ -23,7 +23,7 @@ namespace rubinius {
       }
 
       ~ControlFlowWalker() {
-        delete seen_;
+        delete[] seen_;
       }
 
       void add_section(int ip) {

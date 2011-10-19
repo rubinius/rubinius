@@ -9,13 +9,19 @@
 desc "Build extensions from lib/ext"
 task :extensions
 
+def clean_extension(name)
+  rm_f FileList["lib/ext/#{name}/*.{o,#{$dlext}}"], :verbose => $verbose
+end
+
 namespace :extensions do
   desc "Clean all lib/ext files"
   task :clean do
-    rm_f FileList["lib/ext/**/*.{o,#{$dlext}}"], :verbose => $verbose
+    clean_extension("**")
+    rm_f FileList["lib/tooling/**/*.{o,#{$dlext}}"], :verbose => $verbose
     # TODO: implement per extension cleaning. This hack is for
     # openssl and dl, which use extconf.rb and create Makefile.
     rm_f FileList["lib/ext/**/Makefile"], :verbose => $verbose
+    rm_f FileList["lib/tooling/**/Makefile"], :verbose => $verbose
     rm_f FileList["lib/ext/dl/*.func"], :verbose => $verbose
   end
 end
@@ -38,12 +44,14 @@ def build_extconf(name, opts)
 
   ENV["BUILD_RUBY"] = BUILD_CONFIG[:build_ruby]
 
+  include18_dir = File.expand_path("../../vm/capi/18/include", __FILE__)
+  include19_dir = File.expand_path("../../vm/capi/19/include", __FILE__)
+
   unless File.directory? BUILD_CONFIG[:runtime]
-    ENV["CFLAGS"]      = "-Ivm/capi/include"
+    ENV["CFLAGS"]      = "-I#{include18_dir} -I#{include19_dir}"
   end
 
   unless opts[:deps] and opts[:deps].all? { |n| File.exists? n }
-  # unless File.exists?("Makefile") and File.exists?("extconf.h")
     sh("#{rbx_build} extconf.rb #{redirect}", &fail_block)
   end
 
@@ -83,6 +91,23 @@ def compile_ext(name, opts={})
   Rake::Task[:extensions].prerequisites << "extensions:#{task_name}"
 end
 
+# TODO: we must completely rebuild the bootstrap version of Melbourne if the
+# configured build ruby changes. We add the version to be extra sure.
+build_ruby = "lib/ext/melbourne/.build_ruby"
+build_version = "#{BUILD_CONFIG[:build_ruby]}:#{RUBY_VERSION}"
+
+if File.exists?(build_ruby)
+  File.open(build_ruby, "rb") do |f|
+    clean_extension("melbourne/**") if f.read.chomp != build_version
+  end
+else
+  clean_extension("melbourne/**")
+end
+
+File.open(build_ruby, "wb") do |f|
+  f.puts build_version
+end
+
 compile_ext "bigdecimal"
 compile_ext "readline" if BUILD_CONFIG[:defines].include? "HAS_READLINE"
 compile_ext "digest"
@@ -93,9 +118,7 @@ compile_ext "digest:sha2"
 compile_ext "digest:bubblebabble"
 compile_ext "syck"
 compile_ext "melbourne", :task => "rbx", :doc => "for Rubinius"
-if BUILD_CONFIG[:which_ruby] == :ruby
-  compile_ext "melbourne", :task => "mri", :doc => "for MRI"
-end
+compile_ext "melbourne", :task => "build", :doc => "for bootstrapping"
 compile_ext "nkf"
 
 # rbx must be able to run to build these because they use
@@ -106,5 +129,5 @@ compile_ext "dbm", :ignore_fail => true, :deps => ["Makefile"]
 compile_ext "gdbm", :ignore_fail => true, :deps => ["Makefile"]
 compile_ext "sdbm", :deps => ["Makefile"]
 
-compile_ext "profiler", :dir => "lib/tooling/profiler", 
+compile_ext "profiler", :dir => "lib/tooling/profiler",
                         :deps => ["Makefile"]

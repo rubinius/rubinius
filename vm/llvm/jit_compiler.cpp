@@ -1,12 +1,12 @@
 #ifdef ENABLE_LLVM
 
 #include "vmmethod.hpp"
-#include "llvm/jit.hpp"
 #include "llvm/jit_context.hpp"
 
 #include "builtin/fixnum.hpp"
 #include "builtin/staticscope.hpp"
 #include "builtin/module.hpp"
+#include "builtin/block_environment.hpp"
 #include "field_offset.hpp"
 
 #include "call_frame.hpp"
@@ -29,10 +29,14 @@
 
 #include <sys/time.h>
 
-#include "llvm/jit.hpp"
+#include "llvm/state.hpp"
 #include "llvm/jit_compiler.hpp"
 #include "llvm/jit_method.hpp"
 #include "llvm/jit_block.hpp"
+#include "llvm/background_compile_request.hpp"
+
+#include "llvm/method_info.hpp"
+
 #include "llvm/passes.hpp"
 #include "instructions_util.hpp"
 
@@ -68,6 +72,14 @@ namespace jit {
     return mci_->address();
   }
 
+  void Compiler::compile(LLVMState* ls, BackgroundCompileRequest* req) {
+    if(req->is_block()) {
+      compile_block(ls, req->method(), req->vmmethod());
+    } else {
+      compile_method(ls, req);
+    }
+  }
+
   void Compiler::compile_block(LLVMState* ls, CompiledMethod* cm, VMMethod* vmm) {
     if(ls->config().jit_inline_debug) {
       assert(vmm->parent());
@@ -76,26 +88,27 @@ namespace jit {
       gettimeofday(&tv, NULL);
 
       ls->log() << "JIT: compiling block in "
-        << ls->symbol_cstr(cm->name())
+        << ls->symbol_debug_str(cm->name())
         << " near "
-        << ls->symbol_cstr(cm->file()) << ":"
+        << ls->symbol_debug_str(cm->file()) << ":"
         << cm->start_line()
         << " (" << tv.tv_sec << "." << tv.tv_usec << ")\n";
     }
 
-    jit::Context ctx(ls);
-    JITMethodInfo info(ctx, cm, vmm);
+    JITMethodInfo info(ctx_, cm, vmm);
     info.is_block = true;
 
-    ctx.set_root(&info);
+    ctx_.set_root(&info);
 
     jit::BlockBuilder work(ls, info);
     work.setup();
 
-    compile_builder(ctx, ls, info, work);
+    compile_builder(ctx_, ls, info, work);
   }
 
-  void Compiler::compile_method(LLVMState* ls, CompiledMethod* cm, VMMethod* vmm) {
+  void Compiler::compile_method(LLVMState* ls, BackgroundCompileRequest* req) {
+    CompiledMethod* cm = req->method();
+
     if(ls->config().jit_inline_debug) {
       struct timeval tv;
       gettimeofday(&tv, NULL);
@@ -103,20 +116,23 @@ namespace jit {
       ls->log() << "JIT: compiling "
         << ls->enclosure_name(cm)
         << "#"
-        << ls->symbol_cstr(cm->name())
+        << ls->symbol_debug_str(cm->name())
         << " (" << tv.tv_sec << "." << tv.tv_usec << ")\n";
     }
 
-    jit::Context ctx(ls);
-    JITMethodInfo info(ctx, cm, vmm);
+    JITMethodInfo info(ctx_, cm, cm->backend_method());
     info.is_block = false;
 
-    ctx.set_root(&info);
+    if(Class* cls = req->receiver_class()) {
+      info.set_self_class(cls);
+    }
+
+    ctx_.set_root(&info);
 
     jit::MethodBuilder work(ls, info);
     work.setup();
 
-    compile_builder(ctx, ls, info, work);
+    compile_builder(ctx_, ls, info, work);
   }
 
   void Compiler::compile_builder(jit::Context& ctx, LLVMState* ls, JITMethodInfo& info,
@@ -160,7 +176,7 @@ namespace jit {
 
     for(std::vector<BasicBlock*>::iterator i = to_remove.begin();
         i != to_remove.end();
-        i++) {
+        ++i) {
       (*i)->eraseFromParent();
     }
 
@@ -177,7 +193,7 @@ namespace jit {
 
     if(ls->jit_dump_code() & cOptimized) {
       llvm::outs() << "[[[ LLVM Optimized IR: "
-        << ls->symbol_cstr(info.method()->name()) << " ]]]\n";
+        << ls->symbol_debug_str(info.method()->name()) << " ]]]\n";
       llvm::outs() << *func << "\n";
     }
 
@@ -189,7 +205,7 @@ namespace jit {
     // Do this way after we've validated the IR so things are consistent.
     ctx.runtime_data_holder()->set_function(func, mci_->address(), mci_->size());
 
-    info.method()->set_jit_data(ctx.runtime_data_holder());
+    // info.method()->set_jit_data(ctx.runtime_data_holder());
     ls->shared().om->add_code_resource(ctx.runtime_data_holder());
 
   }

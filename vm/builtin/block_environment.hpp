@@ -55,7 +55,7 @@ namespace rubinius {
     static void init(STATE);
     VMMethod* vmmethod(STATE);
 
-    // Ruby.primitive :blockenvironment_allocate
+    // Rubinius.primitive :blockenvironment_allocate
     static BlockEnvironment* allocate(STATE);
 
     static Object* invoke(STATE, CallFrame* previous,
@@ -71,15 +71,15 @@ namespace rubinius {
 
     Object* call(STATE, CallFrame* call_frame, Arguments& args, int flags=0);
 
-    // Ruby.primitive? :block_call
-    Object* call_prim(STATE, Executable* exec, CallFrame* call_frame, Dispatch& msg, Arguments& args);
+    // Rubinius.primitive? :block_call
+    Object* call_prim(STATE, CallFrame* call_frame, Executable* exec, Module* mod, Arguments& args);
 
     Object* call_on_object(STATE, CallFrame* call_frame, Arguments& args, int flags=0);
 
-    // Ruby.primitive? :block_call_under
-    Object* call_under(STATE, Executable* exec, CallFrame* call_frame, Dispatch& msg, Arguments& args);
+    // Rubinius.primitive? :block_call_under
+    Object* call_under(STATE, CallFrame* call_frame, Executable* exec, Module* mod, Arguments& args);
 
-    // Ruby.primitive :block_env_of_sender
+    // Rubinius.primitive :block_env_of_sender
     static Object* of_sender(STATE, CallFrame* calling_environment);
 
     BlockEnvironment* dup(STATE);

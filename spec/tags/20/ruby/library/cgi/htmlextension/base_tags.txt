@@ -1,0 +1,4 @@
+fails:CGI::HtmlExtension#base when bassed a String returns a 'base'-element, using the passed String as the 'href'-attribute
+fails:CGI::HtmlExtension#base when bassed a String ignores a passed block
+fails:CGI::HtmlExtension#base when passed a Hash returns a 'base'-element, using the passed Hash for attributes
+fails:CGI::HtmlExtension#base when passed a Hash ignores a passed block

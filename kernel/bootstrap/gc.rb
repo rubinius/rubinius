@@ -4,7 +4,7 @@ module GC
   end
 
   def self.run(force)
-    Ruby.primitive :vm_gc_start
+    Rubinius.primitive :vm_gc_start
     raise PrimitiveFailure, "GC.run primitive failed"
   end
 
@@ -45,7 +45,7 @@ end
 
 module ObjectSpace
   def self.find_object(query, callable)
-    Ruby.primitive :vm_find_object
+    Rubinius.primitive :vm_find_object
     raise PrimitiveFailure, "vm_each_object failed"
   end
 end

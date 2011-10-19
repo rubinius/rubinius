@@ -6,7 +6,7 @@
 #include "call_frame.hpp"
 
 #include "capi/capi.hpp"
-#include "capi/include/ruby.h"
+#include "capi/18/include/ruby.h"
 
 using namespace rubinius;
 using namespace rubinius::capi;
@@ -189,10 +189,8 @@ extern "C" {
   }
 
   void rb_undef(VALUE handle, ID name) {
-    NativeMethodEnvironment* env = NativeMethodEnvironment::get();
-
     Symbol* sym = reinterpret_cast<Symbol*>(name);
-    rb_undef_method(handle, sym->c_str(env->state()));
+    rb_funcall(handle, rb_intern("undef_method!"), 1, sym);
     // In MRI, rb_undef also calls the undef_method hooks, maybe we should?
   }
 

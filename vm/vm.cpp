@@ -5,8 +5,10 @@
 
 #include "vm/object_utils.hpp"
 
+#include "builtin/array.hpp"
 #include "builtin/class.hpp"
 #include "builtin/fixnum.hpp"
+#include "builtin/array.hpp"
 #include "builtin/list.hpp"
 #include "builtin/lookuptable.hpp"
 #include "builtin/symbol.hpp"
@@ -16,6 +18,8 @@
 #include "builtin/system.hpp"
 #include "builtin/fiber.hpp"
 #include "builtin/location.hpp"
+#include "builtin/nativemethod.hpp"
+#include "builtin/channel.hpp"
 
 #include "instruments/tooling.hpp"
 #include "instruments/rbxti-internal.hpp"
@@ -24,7 +28,6 @@
 #include "config_parser.hpp"
 #include "config.h"
 
-#include "native_thread.hpp"
 #include "call_frame.hpp"
 #include "signal.hpp"
 #include "configuration.hpp"
@@ -35,7 +38,9 @@
 #include <iostream>
 #include <iomanip>
 #include <signal.h>
+#ifndef RBX_WINDOWS
 #include <sys/resource.h>
+#endif
 
 // Reset macros since we're inside state
 #undef G
@@ -45,24 +50,31 @@
 
 namespace rubinius {
 
-  bool GlobalLock::debug_locking = false;
   unsigned long VM::cStackDepthMax = 655300;
 
-  // getrlimit can report there is 4G of stack (ie, unlimited).
-  // Even when there is unlimited stack, we clamp the max to
-  // this value (currently 128M)
+#ifndef RBX_WINDOWS
+  /**
+   * Maximum amount of stack space to use.
+   * getrlimit can report there is 4G of stack (ie, unlimited).  Even when
+   * there is unlimited stack, we clamp the max to this value (currently 128M).
+   */
   static rlim_t cMaxStack = (1024 * 1024 * 128);
+#endif
 
-  VM::VM(SharedState& shared)
-    : ManagedThread(shared, ManagedThread::eRuby)
+  VM::VM(uint32_t id, SharedState& shared)
+    : ManagedThread(id, shared, ManagedThread::eRuby)
     , saved_call_frame_(0)
     , stack_start_(0)
     , run_signals_(false)
     , thread_step_(false)
 
     , shared(shared)
-    , waiter_(NULL)
+    , waiting_channel_(this, (Channel*)Qnil)
+    , interrupted_exception_(this, (Exception*)Qnil)
     , interrupt_with_signal_(false)
+    , waiting_header_(0)
+    , custom_wakeup_(0)
+    , custom_wakeup_data_(0)
     , om(shared.om)
     , interrupts(shared.interrupts)
     , check_local_interrupts(false)
@@ -72,70 +84,53 @@ namespace rubinius {
     , root_fiber(this, nil<Fiber>())
   {
     set_stack_size(cStackDepthMax);
-    os_thread_ = pthread_self(); // initial value
 
     if(shared.om) {
       young_start_ = shared.om->young_start();
       young_end_ = shared.om->yound_end();
-      shared.om->refill_slab(local_slab_);
+      shared.om->refill_slab(this, local_slab_);
     }
 
     tooling_env_ = rbxti::create_env(this);
     tooling_ = false;
   }
 
-  void VM::discard(VM* vm) {
+  void VM::discard(STATE, VM* vm) {
+    rbxti::destroy_env(vm->tooling_env_);
     vm->saved_call_frame_ = 0;
     vm->shared.remove_vm(vm);
+
     delete vm;
   }
 
-  void VM::initialize() {
-    VM::register_state(this);
-
+  void VM::initialize_as_root() {
     om = new ObjectMemory(this, shared.config);
     shared.om = om;
 
     young_start_ = shared.om->young_start();
     young_end_ = shared.om->yound_end();
 
-    om->refill_slab(local_slab_);
+    om->refill_slab(this, local_slab_);
 
     shared.set_initialized();
 
-    // This seems like we should do this in VM(), ie, for every VM and
-    // therefore every Thread object in the process. But in fact, because
-    // we're using the GIL atm, we only do it once. When the GIL goes
-    // away, this needs to be moved to VM().
+    shared.gc_dependent(this);
 
-    shared.gc_dependent();
-  }
-
-  void VM::boot() {
     TypeInfo::auto_learn_fields(this);
 
     bootstrap_ontology();
 
     VMMethod::init(this);
 
-    // Setup the main Thread, which is a reflect of the pthread_self()
+    // Setup the main Thread, which is wrapper of the main native thread
     // when the VM boots.
-    boot_threads();
+    thread.set(Thread::create(this, this, G(thread), 0, true), &globals().roots);
+    thread->sleep(this, Qfalse);
 
-    GlobalLock::debug_locking = shared.config.gil_debug;
+    VM::set_current(this);
   }
 
   void VM::initialize_config() {
-#ifdef USE_DYNAMIC_INTERPRETER
-    if(shared.config.dynamic_interpreter_enabled) {
-      G(rubinius)->set_const(this, "INTERPRETER", symbol("dynamic"));
-    } else {
-      G(rubinius)->set_const(this, "INTERPRETER", symbol("static"));
-    }
-#else
-    G(rubinius)->set_const(this, "INTERPRETER", symbol("static"));
-#endif
-
 #ifdef ENABLE_LLVM
     if(!shared.config.jit_disabled) {
       Array* ary = Array::create(this, 3);
@@ -156,47 +151,37 @@ namespace rubinius {
 #endif
   }
 
-  // HACK so not thread safe or anything!
-  static VM* __state = NULL;
-
-  VM* VM::current_state() {
-    return __state;
-  }
-
-  void VM::register_state(VM *vm) {
-    __state = vm;
-  }
-
-  thread::ThreadData<VM*> _current_vm;
-
+  /**
+   * Returns the current VM executing on this pthread.
+   */
   VM* VM::current() {
-    return _current_vm.get();
+    return ManagedThread::current()->as_vm();
   }
 
+  /**
+   * Sets this VM instance as the current VM on this pthread.
+   */
   void VM::set_current(VM* vm) {
-    vm->os_thread_ = pthread_self();
-    _current_vm.set(vm);
-  }
-
-  void VM::boot_threads() {
-    thread.set(Thread::create(this, this, G(thread), pthread_self()), &globals().roots);
-    thread->sleep(this, Qfalse);
-
-    VM::set_current(this);
+    ManagedThread::set_current(vm);
   }
 
   Object* VM::new_object_typed(Class* cls, size_t size, object_type type) {
-    Object* obj = reinterpret_cast<Object*>(local_slab().allocate(size));
+
+    if(unlikely(size > om->large_object_threshold)) {
+      return om->new_object_typed_enduring(this, cls, size, type);
+    }
+
+    Object* obj = local_slab().allocate(size).as<Object>();
 
     if(unlikely(!obj)) {
-      if(shared.om->refill_slab(local_slab())) {
-        obj = reinterpret_cast<Object*>(local_slab().allocate(size));
+      if(shared.om->refill_slab(this, local_slab())) {
+        obj = local_slab().allocate(size).as<Object>();
       }
 
       // If refill_slab fails, obj will still be NULL.
 
       if(!obj) {
-        return om->new_object_typed(cls, size, type);
+        return om->new_object_typed(this, cls, size, type);
       }
     }
 
@@ -206,8 +191,31 @@ namespace rubinius {
     return obj;
   }
 
+  Tuple* VM::new_young_tuple_dirty(size_t fields) {
+    size_t bytes = sizeof(Tuple) + (sizeof(Object*) * fields);
+
+    if(unlikely(bytes > om->large_object_threshold)) {
+      return 0;
+    }
+
+    Tuple* tup = local_slab().allocate(bytes).as<Tuple>();
+
+    if(unlikely(!tup)) {
+      if(shared.om->refill_slab(this, local_slab())) {
+        tup = local_slab().allocate(bytes).as<Tuple>();
+      }
+
+      if(!tup) return 0;
+    }
+
+    tup->init_header(G(tuple), YoungObjectZone, Tuple::type);
+    tup->full_size_ = bytes;
+
+    return tup;
+  }
+
   Object* VM::new_object_typed_mature(Class* cls, size_t bytes, object_type type) {
-    return om->new_object_typed_mature(cls, bytes, type);
+    return om->new_object_typed_mature(this, cls, bytes, type);
   }
 
   Object* VM::new_object_from_type(Class* cls, TypeInfo* ti) {
@@ -215,8 +223,8 @@ namespace rubinius {
   }
 
   Class* VM::new_basic_class(Class* sup) {
-    Class *cls = om->new_object_enduring<Class>(G(klass));
-    cls->init(shared.inc_class_count());
+    Class *cls = om->new_object_enduring<Class>(this, G(klass));
+    cls->init(shared.inc_class_count(this));
 
     if(sup->nil_p()) {
       cls->instance_type(this, Fixnum::from(ObjectType));
@@ -257,8 +265,11 @@ namespace rubinius {
     return mod;
   }
 
-
   Symbol* VM::symbol(const char* str) {
+    return shared.symbols.lookup(str, strlen(str));
+  }
+
+  Symbol* VM::symbol(std::string str) {
     return shared.symbols.lookup(this, str);
   }
 
@@ -279,6 +290,7 @@ namespace rubinius {
   }
 
   void VM::init_stack_size() {
+#ifndef RBX_WINDOWS
     struct rlimit rlim;
     if(getrlimit(RLIMIT_STACK, &rlim) == 0) {
       rlim_t space = rlim.rlim_cur/5;
@@ -292,6 +304,7 @@ namespace rubinius {
         cStackDepthMax = adjusted;
       }
     }
+#endif
   }
 
   TypeInfo* VM::find_type(int type) {
@@ -310,108 +323,12 @@ namespace rubinius {
 
   void VM::collect(CallFrame* call_frame) {
     this->set_call_frame(call_frame);
-
-    // Don't go any further unless we're allowed to GC.
-    if(!om->can_gc()) return;
-
-    // Stops all other threads, so we're only here by ourselves.
-    StopTheWorld guard(this);
-
-    GCData gc_data(this);
-
-    om->collect_young(gc_data);
-    om->collect_mature(gc_data);
-
-    om->run_finalizers(this, call_frame);
+    om->collect(this, call_frame);
   }
 
   void VM::collect_maybe(CallFrame* call_frame) {
     this->set_call_frame(call_frame);
-
-    // Don't go any further unless we're allowed to GC.
-    if(!om->can_gc()) return;
-
-    // Stops all other threads, so we're only here by ourselves.
-    StopTheWorld guard(this);
-
-    GCData gc_data(this);
-
-    uint64_t start_time = 0;
-
-    if(om->collect_young_now) {
-      if(shared.config.gc_show) {
-        start_time = get_current_time();
-      }
-
-      YoungCollectStats stats;
-
-#ifdef RBX_PROFILER
-      if(unlikely(tooling())) {
-        tooling::GCEntry method(this, tooling::GCYoung);
-        om->collect_young(gc_data, &stats);
-      } else {
-        om->collect_young(gc_data, &stats);
-      }
-#else
-      om->collect_young(gc_data, &stats);
-#endif
-
-      if(shared.config.gc_show) {
-        uint64_t fin_time = get_current_time();
-        int diff = (fin_time - start_time) / 1000000;
-
-        fprintf(stderr, "[GC %0.1f%% %d/%d %d %2dms]\n",
-                  stats.percentage_used,
-                  stats.promoted_objects,
-                  stats.excess_objects,
-                  stats.lifetime,
-                  diff);
-      }
-    }
-
-    if(om->collect_mature_now) {
-      int before_kb = 0;
-
-      if(shared.config.gc_show) {
-        start_time = get_current_time();
-        before_kb = om->mature_bytes_allocated() / 1024;
-      }
-
-#ifdef RBX_PROFILER
-      if(unlikely(tooling())) {
-        tooling::GCEntry method(this, tooling::GCMature);
-        om->collect_mature(gc_data);
-      } else {
-        om->collect_mature(gc_data);
-      }
-#else
-      om->collect_mature(gc_data);
-#endif
-
-      if(shared.config.gc_show) {
-        uint64_t fin_time = get_current_time();
-        int diff = (fin_time - start_time) / 1000000;
-        int kb = om->mature_bytes_allocated() / 1024;
-        fprintf(stderr, "[Full GC %dkB => %dkB %2dms]\n",
-            before_kb,
-            kb,
-            diff);
-      }
-
-    }
-
-    // Count the finalizers toward running the mature gc. Not great,
-    // but better than not seeing the time at all.
-#ifdef RBX_PROFILER
-      if(unlikely(tooling())) {
-        tooling::GCEntry method(this, tooling::GCFinalizer);
-        om->run_finalizers(this, call_frame);
-      } else {
-        om->run_finalizers(this, call_frame);
-      }
-#else
-      om->run_finalizers(this, call_frame);
-#endif
+    om->collect_maybe(this, call_frame);
   }
 
   void VM::set_const(const char* name, Object* val) {
@@ -422,28 +339,73 @@ namespace rubinius {
     mod->set_const(this, (char*)name, val);
   }
 
-  void VM::print_backtrace() {
-    abort();
+  Object* VM::path2class(const char* path) {
+    Module* mod = shared.globals.object.get();
+
+    char* copy = strdup(path);
+    char* cur = copy;
+
+    for(;;) {
+      char* pos = strstr(cur, "::");
+      if(pos) *pos = 0;
+
+      Object* obj = mod->get_const(this, symbol(cur));
+
+      if(pos) {
+        if(Module* m = try_as<Module>(obj)) {
+          mod = m;
+        } else {
+          free(copy);
+          return Qnil;
+        }
+      } else {
+        free(copy);
+        return obj;
+      }
+
+      cur = pos + 2;
+    }
   }
 
-  void VM::install_waiter(Waiter& waiter) {
-    waiter_ = &waiter;
+  void VM::print_backtrace() {
+    abort();
   }
 
   void VM::interrupt_with_signal() {
     interrupt_with_signal_ = true;
   }
 
-  bool VM::wakeup() {
+  bool VM::wakeup(STATE) {
+    SYNC(state);
+
+    check_local_interrupts = true;
+
+    // Wakeup any locks hanging around with contention
+    om->release_contention(this);
+
     if(interrupt_with_signal_) {
+#ifdef RBX_WINDOWS
+      // TODO: wake up the thread
+#else
       pthread_kill(os_thread_, SIGVTALRM);
+#endif
+      return true;
+    } else if(InflatedHeader* ih = waiting_header_) {
+      // We shouldn't hold the VM lock and the IH lock at the same time,
+      // other threads can grab them and deadlock.
+      UNSYNC;
+      ih->wakeup();
       return true;
     } else {
-      // Use a local here because waiter_ can get reset to NULL by another thread
-      // We can't use a mutex here because this is called from inside a
-      // signal handler.
-      if(Waiter* w = waiter_) {
-        w->run();
+      Channel* chan = waiting_channel_.get();
+
+      if(!chan->nil_p()) {
+        UNSYNC;
+        chan->send(state, Qnil);
+        return true;
+      } else if(custom_wakeup_) {
+        UNSYNC;
+        (*custom_wakeup_)(custom_wakeup_data_);
         return true;
       }
 
@@ -452,45 +414,78 @@ namespace rubinius {
   }
 
   void VM::clear_waiter() {
+    SYNC(0);
     interrupt_with_signal_ = false;
-    waiter_ = NULL;
+    waiting_channel_.set((Channel*)Qnil);
+    waiting_header_ = 0;
+    custom_wakeup_ = 0;
+    custom_wakeup_data_ = 0;
+  }
+
+  void VM::wait_on_channel(Channel* chan) {
+    SYNC(0);
+    thread->sleep(this, Qtrue);
+    waiting_channel_.set(chan);
+  }
+
+  void VM::wait_on_inflated_lock(InflatedHeader* ih) {
+    SYNC(0);
+    waiting_header_ = ih;
+  }
+
+  void VM::wait_on_custom_function(void (*func)(void*), void* data) {
+    SYNC(0);
+    custom_wakeup_ = func;
+    custom_wakeup_data_ = data;
+  }
+
+  bool VM::waiting_p() {
+    return interrupt_with_signal_ || !waiting_channel_->nil_p();
+  }
+
+  void VM::set_sleeping() {
+    thread->sleep(this, Qtrue);
+  }
+
+  void VM::clear_sleeping() {
+    thread->sleep(this, Qfalse);
   }
 
   bool VM::process_async(CallFrame* call_frame) {
     check_local_interrupts = false;
 
     if(run_signals_) {
-      shared.signal_handler()->deliver_signals(call_frame);
-    }
-
-    switch(thread_state_.raise_reason()) {
-    case cException:
-      {
-        Exception* exc = thread_state_.current_exception();
-        if(exc->locations()->nil_p() ||
-            exc->locations()->size() == 0) {
-          exc->locations(this, Location::from_call_stack(this, call_frame));
-        }
-
+      if(!shared.signal_handler()->deliver_signals(this, call_frame)) {
         return false;
       }
-    case cNone:
-      return true;
+    }
 
-    default:
+    Exception* exc = interrupted_exception_.get();
+    if(!exc->nil_p()) {
+      interrupted_exception_.set((Exception*)Qnil);
+
+      // Only write the locations if there are none.
+      if(exc->locations()->nil_p() || exc->locations()->size() == 0) {
+        exc->locations(this, Location::from_call_stack(this, call_frame));
+      }
+
+      thread_state_.raise_exception(exc);
       return false;
     }
+
+    return true;
   }
 
-  void VM::register_raise(Exception* exc) {
-    thread_state_.raise_exception(exc);
+  void VM::register_raise(STATE, Exception* exc) {
+    SYNC(state);
+    interrupted_exception_.set(exc);
     check_local_interrupts = true;
     get_attention();
   }
 
   void VM::check_exception(CallFrame* call_frame) {
     if(thread_state()->raise_reason() == cNone) {
-      std::cout << "Exception propogating, but none registered!\n";
+      std::cout << "Exception propagating, but none registered!\n";
       call_frame->print_backtrace(this);
       rubinius::abort();
     }
@@ -528,4 +523,11 @@ namespace rubinius {
     set_stack_size(fib->stack_size());
     current_fiber.set(fib);
   }
+
+  GCIndependent::GCIndependent(NativeMethodEnvironment* env)
+    : vm_(env->state())
+  {
+    vm_->set_call_frame(env->current_call_frame());
+    vm_->shared.gc_independent(vm_);
+  };
 };

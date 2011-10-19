@@ -86,7 +86,7 @@ class MSpecScript
   # first two numbers in RUBY_VERSION. For example, on MRI 1.8.6,
   # the file name would be 'ruby.1.8.mspec'.
   def load_default
-    return if load 'default.mspec'
+    load 'default.mspec'
 
     if Object.const_defined?(:RUBY_ENGINE)
       engine = RUBY_ENGINE

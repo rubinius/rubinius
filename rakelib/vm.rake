@@ -4,9 +4,20 @@ require 'rakelib/instruction_parser'
 require 'rakelib/generator_task'
 
 require 'tmpdir'
+require 'ostruct'
+
+config = OpenStruct.new
+config.use_jit = true
+config.compile_with_llvm = false
+
+CONFIG = config
+DEV_NULL = RUBY_PLATFORM =~ /mingw|mswin/ ? 'NUL' : '/dev/null'
+VM_EXE = RUBY_PLATFORM =~ /mingw|mswin/ ? 'vm/vm.exe' : 'vm/vm'
 
 ############################################################
 # Files, Flags, & Constants
+
+encoding_database = "vm/gen/encoding_database.cpp"
 
 ENV.delete 'CDPATH' # confuses llvm_config
 
@@ -28,12 +39,15 @@ TYPE_GEN    = %w[ vm/gen/includes.hpp
                   vm/gen/primitives_declare.hpp
                   vm/gen/primitives_glue.gen.cpp ]
 
-GENERATED = %w[ vm/gen/revision.h ] + TYPE_GEN + INSN_GEN
+GENERATED = %W[ vm/gen/revision.h
+                vm/gen/config_variables.h
+                #{encoding_database} ] + TYPE_GEN + INSN_GEN
 
 # Files are in order based on dependencies. For example,
 # CompactLookupTable inherits from Tuple, so the header
 # for compactlookuptable.hpp has to come after tuple.hpp
 field_extract_headers = %w[
+  vm/builtin/basicobject.hpp
   vm/builtin/object.hpp
   vm/builtin/integer.hpp
   vm/builtin/fixnum.hpp
@@ -45,6 +59,7 @@ field_extract_headers = %w[
   vm/builtin/block_environment.hpp
   vm/builtin/block_as_method.hpp
   vm/builtin/bytearray.hpp
+  vm/builtin/chararray.hpp
   vm/builtin/io.hpp
   vm/builtin/channel.hpp
   vm/builtin/module.hpp
@@ -84,6 +99,8 @@ field_extract_headers = %w[
   vm/builtin/thunk.hpp
   vm/builtin/call_unit.hpp
   vm/builtin/call_unit_adapter.hpp
+  vm/builtin/cache.hpp
+  vm/builtin/encoding.hpp
 ]
 
 ############################################################
@@ -95,36 +112,56 @@ namespace :build do
   desc "Build LLVM"
   task :llvm do
     if Rubinius::BUILD_CONFIG[:llvm] == :svn
-      unless File.file?("vm/external_libs/llvm/Release/bin/llvm-config")
-        sh "cd vm/external_libs/llvm; REQUIRES_RTTI=1 ./configure #{llvm_config_flags}; REQUIRES_RTTI=1 #{make}"
+      unless File.file?("vendor/llvm/Release/bin/llvm-config")
+        ENV["REQUIRES_RTTI"] = "1"
+        Dir.chdir "vendor/llvm" do
+          sh %[sh -c "#{expand("./configure")} #{llvm_config_flags}"]
+          sh make
+        end
       end
     end
   end
 
   # Issue the actual build commands. NEVER USE DIRECTLY.
-  task :build => %w[
+  task :build => %W[
                      build:llvm
-                     vm/vm
+                     #{VM_EXE}
                      kernel:build
                      build:ffi:preprocessor
+                     build:zlib
                      extensions
                    ]
 
   namespace :ffi do
 
-    FFI_PREPROCESSABLES = %w[ lib/etc.rb
-                              lib/fcntl.rb
-                              lib/syslog.rb
+    FFI_PREPROCESSABLES = %w[ lib/fcntl.rb
                               lib/zlib.rb
                             ]
+
+    unless BUILD_CONFIG[:windows]
+      FFI_PREPROCESSABLES.concat %w[ lib/etc.rb
+                                     lib/syslog.rb
+                                   ]
+    end
 
     # Generate the .rb files from lib/*.rb.ffi
     task :preprocessor => FFI_PREPROCESSABLES
 
-    FFI::Generator::Task.new FFI_PREPROCESSABLES
+    FFI::FileProcessor::Task.new FFI_PREPROCESSABLES
 
   end
 
+  if Rubinius::BUILD_CONFIG[:vendor_zlib]
+    directory 'lib/zlib'
+
+    task :zlib => ['lib/zlib', VM_EXE] do
+      FileList["vendor/zlib/libz.*"].each do |lib|
+        cp lib, 'lib/zlib/'
+      end
+    end
+  else
+    task :zlib
+  end
 end
 
 # Compilation tasks
@@ -150,6 +187,11 @@ end
 files TYPE_GEN, field_extract_headers + %w[vm/codegen/field_extract.rb] + [:run_field_extract] do
 end
 
+file encoding_database => 'vm/codegen/encoding_extract.rb' do |t|
+  dir = File.expand_path "../vendor/onig"
+  ruby 'vm/codegen/encoding_extract.rb', dir, t.name
+end
+
 task 'vm/gen/revision.h' do |t|
   git_dir = File.expand_path "../../.git", __FILE__
 
@@ -162,6 +204,11 @@ task 'vm/gen/revision.h' do |t|
   File.open t.name, "wb" do |f|
     f.puts %[#define RBX_BUILD_REV     "#{buildrev}"]
   end
+end
+
+file 'vm/gen/config_variables.h' => %w[lib/rubinius/configuration.rb config.rb] do |t|
+  puts "GEN #{t.name}"
+  ruby 'vm/codegen/config_vars.rb', t.name
 end
 
 require 'projects/daedalus/daedalus'
@@ -178,9 +225,9 @@ else
   @parallel_jobs = nil
 end
 
-task 'vm/vm' => GENERATED do
+task VM_EXE => GENERATED do
   blueprint = Daedalus.load "rakelib/blueprint.rb"
-  blueprint.build "vm/vm", @parallel_jobs
+  blueprint.build VM_EXE, @parallel_jobs
 end
 
 task 'vm/test/runner' => GENERATED do
@@ -272,8 +319,10 @@ namespace :vm do
       'vm/test/runner',
       'vm/test/runner.cpp',
       'vm/test/runner.o',
-      'vm/vm',
-      'vm/.deps'
+      VM_EXE,
+      'vm/.deps',
+      'lib/zlib/*',
+      'lib/zlib'
     ].exclude("vm/gen/config.h")
 
     files.each do |filename|
@@ -289,10 +338,10 @@ namespace :vm do
   desc "Show which primitives are missing"
   task :missing_primitives do
     kernel_files = FileList['kernel/**/*.rb'].join " "
-    kernel_primitives = `grep 'Ruby.primitive' #{kernel_files} | awk '{ print $3 }'`
+    kernel_primitives = `grep 'Rubinius.primitive' #{kernel_files} | awk '{ print $3 }'`
     kernel_primitives = kernel_primitives.gsub(':', '').split("\n").sort.uniq
 
-    cpp_primitives = `grep 'Ruby.primitive' vm/builtin/*.hpp | awk '{ print $4 }'`
+    cpp_primitives = `grep 'Rubinius.primitive' vm/builtin/*.hpp | awk '{ print $4 }'`
     cpp_primitives = cpp_primitives.gsub(':', '').split("\n").sort.uniq
 
     missing = kernel_primitives - cpp_primitives

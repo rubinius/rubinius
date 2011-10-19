@@ -4,26 +4,24 @@
 #include "builtin/data.hpp"
 
 #include "capi/capi.hpp"
-#include "capi/include/ruby.h"
+#include "capi/18/include/ruby.h"
 
 using namespace rubinius;
 using namespace rubinius::capi;
 
 namespace rubinius {
   namespace capi {
-    RData* Handle::as_rdata(NativeMethodEnvironment* env) {
-      if(type_ != cRData) {
-        type_ = cRData;
+    RData* Handle::create_rdata(NativeMethodEnvironment* env) {
+      type_ = cRData;
 
-        RData* rdata = new RData;
-        // Yes, we initialize it with garbage data. This is because when
-        // Data creates this, it makes sure to initialize it before
-        // anyone sees it.
+      RData* rdata = new RData;
+      // Yes, we initialize it with garbage data. This is because when
+      // Data creates this, it makes sure to initialize it before
+      // anyone sees it.
 
-        as_.rdata = rdata;
-      }
+      as_.rdata = rdata;
 
-      return as_.rdata;
+      return rdata;
     }
   }
 }
@@ -41,6 +39,8 @@ extern "C" {
   VALUE rb_data_object_alloc(VALUE klass, void* ptr,
       RUBY_DATA_FUNC mark, RUBY_DATA_FUNC free) {
     NativeMethodEnvironment* env = NativeMethodEnvironment::get();
+
+    if(!klass) klass = rb_cObject;
 
     Class* data_klass = c_as<Class>(env->get_object(klass));
 

@@ -11,7 +11,7 @@ File.open(path, "w+") do |f|
   f.puts "void blah(#{klass}* thing) { useme(thing); }"
 end
 
-str = `llvm-g++ -I. -I.. -Iexternal_libs/libtommath -emit-llvm -S -o - "#{path}"`
+str = `llvm-g++ -I. -I.. -Ivendor/libtommath -emit-llvm -S -o - "#{path}"`
 
 str.split("\n").each do |line|
   if /%"?struct.#{klass}"? = type/.match(line)

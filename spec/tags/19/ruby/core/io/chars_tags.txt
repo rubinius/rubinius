@@ -1,0 +1,3 @@
+fails:IO#chars returns an enumerator of the next chars from the stream
+fails:IO#chars yields each character
+fails:IO#chars raises an IOError when the stream for the enumerator is closed

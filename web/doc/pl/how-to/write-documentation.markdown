@@ -1,9 +1,9 @@
 ---
 layout: doc_pl
-title: How-To - Write Documentation
-previous: Write a Blog Post
+title: Jak napisać dokumentację
+previous: Jak napisać posta na bloga Rubiniusa
 previous_url: how-to/write-a-blog-post
-next: Translate Documentation
+next: Jak przetłumaczyć dokumentację
 next_url: how-to/translate-documentation
 ---
 

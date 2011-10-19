@@ -16,7 +16,9 @@ end
 install_dirs = [
   BUILD_CONFIG[:bindir],
   BUILD_CONFIG[:libdir],
-  BUILD_CONFIG[:includedir],
+  BUILD_CONFIG[:include18dir],
+  BUILD_CONFIG[:include19dir],
+  BUILD_CONFIG[:include20dir],
   BUILD_CONFIG[:mandir],
   BUILD_CONFIG[:gemsdir]
 ]
@@ -49,12 +51,6 @@ def need_install?
   File.expand_path(Dir.pwd) != install_dir(BUILD_CONFIG[:libdir])
 end
 
-def precompile(dir)
-  (Dir["#{dir}/*.rb"] + Dir["#{dir}/**/*.rb"]).each do |file|
-    Rubinius::Compiler.compile file, "#{file}c", 1, [:default]
-  end
-end
-
 def install_file(source, pattern, dest)
   return if File.directory? source
 
@@ -66,20 +62,9 @@ def install_file(source, pattern, dest)
 end
 
 desc "Install Rubinius"
-task :install => %w[ build install:build install:files ]
+task :install => %w[ build install:files ]
 
 namespace :install do
-  desc "Compile all lib Ruby files"
-  task :build do
-    if need_install?
-      puts "Compiling library files for install..."
-      precompile "lib"
-
-      puts "Compiling pre-installed gem files for install..."
-      precompile "preinstalled-gems/rubinius/0.13/gems"
-    end
-  end
-
   desc "Install all the Rubinius files"
   task :files do
     if need_sudo? install_dirs
@@ -89,18 +74,25 @@ namespace :install do
     else
       install_dirs.each { |name| mkdir_p install_dir(name), :verbose => $verbose }
 
-      FileList["vm/capi/include/*.h"].each do |name|
-        install_file name, %r[^vm/capi/include], BUILD_CONFIG[:includedir]
+      [["18", "18"], ["19", "19"], ["19", "20"]].each do |a, b|
+        FileList["vm/capi/#{a}/include/**/*.h"].each do |name|
+          install_file name, %r[^vm/capi/#{a}/include], BUILD_CONFIG[:"include#{b}dir"]
+        end
       end
 
       FileList[
-        'runtime/index',
-        'runtime/signature',
         'runtime/platform.conf',
+        'runtime/**/index',
+        'runtime/**/signature',
         'runtime/**/*.rb{a,c}',
-        'runtime/**/load_order.txt'
+        'runtime/**/load_order*.txt'
       ].each do |name|
         install_file name, /^runtime/, BUILD_CONFIG[:runtime]
+      end
+
+      # Install the .rb files for the core library (kernel).
+      FileList['kernel/**/*.rb'].each do |name|
+        install_file name, /^kernel/, BUILD_CONFIG[:kernel_path]
       end
 
       # Install the .rb files for the standard library. This is a
@@ -121,6 +113,13 @@ namespace :install do
       # TODO: handle this better in daedalus.
       FileList["lib/tooling/**/*.#{$dlext}"].each do |name|
         install_file name, /^lib/, BUILD_CONFIG[:lib_path]
+      end
+
+      if Rubinius::BUILD_CONFIG[:vendor_zlib]
+        # Install the zlib library files
+        FileList["lib/zlib/*"].each do |name|
+          install_file name, /^lib/, BUILD_CONFIG[:lib_path]
+        end
       end
 
       # Install the documentation site

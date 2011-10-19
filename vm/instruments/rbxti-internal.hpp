@@ -1,7 +1,7 @@
 #ifndef RBX_INSTRUMENTS_RBXTI_INTERNALS_HPP
 #define RBX_INSTRUMENTS_RBXTI_INTERNALS_HPP
 
-#include "capi/include/rbxti.hpp"
+#include "capi/18/include/rbxti.hpp"
 
 namespace rubinius {
   class VM;
@@ -17,6 +17,7 @@ namespace rubinius {
 
 namespace rbxti {
   Env* create_env(rubinius::VM*);
+  void destroy_env(Env*);
 
   static inline rubinius::Module* i(rmodule mod) {
     return (rubinius::Module*)mod;

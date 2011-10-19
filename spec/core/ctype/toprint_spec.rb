@@ -3,7 +3,8 @@ require File.expand_path('../../../spec_helper', __FILE__)
 describe "CType#toprint" do
   it "returns escaped control characters" do
     a = []
-    [?\n, ?\t, ?\a, ?\v, ?\f, ?\r, ?\e, ?\b].each do |c|
+    # ?\n, ?\t, ?\a, ?\v, ?\f, ?\r, ?\e, ?\b
+    [10, 9, 7, 11, 12, 13, 27, 8].each do |c|
       a << Rubinius::CType.toprint(c)
     end
 
@@ -11,16 +12,16 @@ describe "CType#toprint" do
   end
 
   it "returns '\\\"' for '?\"'" do
-    Rubinius::CType.toprint(?").should == "\\\""
+    Rubinius::CType.toprint(34).should == "\\\""
   end
 
   it "returns '\\\\' for '?\\'" do
-    Rubinius::CType.toprint(?\\).should == "\\\\"
+    Rubinius::CType.toprint(92).should == "\\\\"
   end
 
   it "returns a table of transforms for '?#'" do
     table = Rubinius::Tuple['#$', '\#$', '#@', '\#@', '#{', '\#{', '#', '#']
-    Rubinius::CType.toprint(?#).to_a.should == table.to_a
+    Rubinius::CType.toprint(35).to_a.should == table.to_a
   end
 
   it "returns an octal value for values 0..31 except for control characters" do

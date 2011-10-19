@@ -1,0 +1,1 @@
+fails:CGI::QueryExtension#script_name returns ENV['SCRIPT_NAME']

@@ -32,28 +32,9 @@ class FalseClass
   end
 end
 
-class Class
-  def __marshal__(ms)
-    if Rubinius::Type.singleton_class_object(self)
-      raise TypeError, "singleton class can't be dumped"
-    elsif name.empty?
-      raise TypeError, "can't dump anonymous module #{self}"
-    end
-
-    "c#{ms.serialize_integer(name.length)}#{name}"
-  end
-end
-
-class Module
-  def __marshal__(ms)
-    raise TypeError, "can't dump anonymous module #{self}" if name.empty?
-    "m#{ms.serialize_integer(name.length)}#{name}"
-  end
-end
-
 class Symbol
   def __marshal__(ms)
-    if idx = ms.find_symlink(self) then
+    if idx = ms.find_symlink(self)
       ";#{ms.serialize_integer(idx)}"
     else
       ms.add_symlink self
@@ -106,7 +87,8 @@ end
 
 class Struct
   def __marshal__(ms)
-    exclude = _attrs.map { |a| "@#{a}" }
+    attr_syms = _attrs.map { |a| "@#{a}".to_sym }
+    exclude = Rubinius.convert_to_names attr_syms
 
     out =  ms.serialize_instance_variables_prefix(self, exclude)
     out << ms.serialize_extended_object(self)
@@ -134,7 +116,7 @@ class Array
     out << ms.serialize_user_class(self, Array)
     out << "["
     out << ms.serialize_integer(self.length)
-    unless empty? then
+    unless empty?
       each do |element|
         out << ms.serialize(element)
       end
@@ -149,16 +131,19 @@ class Hash
   def __marshal__(ms)
     raise TypeError, "can't dump hash with default proc" if default_proc
 
-    #excluded_ivars = %w[@bins @count @records]
-    excluded_ivars = %w[@capacity @mask @max_entries @size @entries @default_proc @default]
+    exclude_syms = %w[
+      @capacity @mask @max_entries @size @entries @default_proc @default
+      @state @compare_by_identity @head @tail @table
+    ].map { |a| a.to_sym }
+    excluded_ivars = Rubinius.convert_to_names exclude_syms
 
     out =  ms.serialize_instance_variables_prefix(self, excluded_ivars)
     out << ms.serialize_extended_object(self)
     out << ms.serialize_user_class(self, Hash)
     out << (self.default ? "}" : "{")
     out << ms.serialize_integer(length)
-    unless empty? then
-      each_pair do |(key, val)|
+    unless empty?
+      each_pair do |key, val|
         out << ms.serialize(key)
         out << ms.serialize(val)
       end
@@ -173,11 +158,11 @@ end
 
 class Float
   def __marshal__(ms)
-    str = if nan? then
+    str = if nan?
             "nan"
-          elsif zero? then
+          elsif zero?
             (1.0 / self) < 0 ? '-0' : '0'
-          elsif infinite? then
+          elsif infinite?
             self < 0 ? "-inf" : "inf"
           else
             ("%.*g" % [17, self]) + ms.serialize_mantissa(self)
@@ -260,7 +245,6 @@ module Marshal
       # loading
       if stream
         @stream = stream
-        @byte_array = stream.data
       else
         @stream = nil
       end
@@ -307,13 +291,13 @@ module Marshal
     def construct(ivar_index = nil, call_proc = true)
       type = consume_byte()
       obj = case type
-            when ?0
+            when 48   # ?0
               nil
-            when ?T
+            when 84   # ?T
               true
-            when ?F
+            when 70   # ?F
               false
-            when ?c, ?m
+            when 99, 109, 77  # ?c, ?m, ?M
               # Don't use construct_symbol, because we must not
               # memoize this symbol.
               name = get_byte_sequence.to_sym
@@ -322,47 +306,49 @@ module Marshal
               store_unique_object obj
 
               obj
-            when ?i
+            when 105  # ?i
               construct_integer
-            when ?l
+            when 108  # ?l
               construct_bignum
-            when ?f
+            when 102  # ?f
               construct_float
-            when ?:
+            when 58   # ?:
               construct_symbol
-            when ?"
+            when 34   # ?"
               construct_string
-            when ?/
+            when 47   # ?/
               construct_regexp
-            when ?[
+            when 91   # ?[
               construct_array
-            when ?{
+            when 123  # ?{
               construct_hash
-            when ?}
+            when 125  # ?}
               construct_hash_def
-            when ?S
+            when 83   # ?S
               construct_struct
-            when ?o
+            when 111  # ?o
               construct_object
-            when ?u
+            when 117  # ?u
               construct_user_defined ivar_index
-            when ?U
+            when 85   # ?U
               construct_user_marshal
-            when ?@
+            when 100  # ?d
+              construct_data
+            when 64   # ?@
               num = construct_integer
               obj = @objects[num]
 
               raise ArgumentError, "dump format error (unlinked)" unless obj
 
               return obj
-            when ?;
+            when 59   # ?;
               num = construct_integer
               sym = @symbols[num]
 
               raise ArgumentError, "bad symbol" unless sym
 
               return sym
-            when ?e
+            when 101  # ?e
               @modules ||= []
 
               name = get_symbol
@@ -373,13 +359,13 @@ module Marshal
               extend_object obj
 
               obj
-            when ?C
+            when 67   # ?C
               name = get_symbol
               @user_class = name
 
               construct nil, false
 
-            when ?I
+            when 73   # ?I
               ivar_index = @has_ivar.length
               @has_ivar.push true
 
@@ -411,27 +397,48 @@ module Marshal
         end
       end
 
-      construct_integer.times do
-        obj << construct
+      construct_integer.times do |i|
+        obj.__append__ construct
       end
 
       obj
     end
 
     def construct_bignum
-      sign = consume_byte() == ?- ? -1 : 1
+      sign = consume_byte() == 45 ? -1 : 1  # ?-
       size = construct_integer * 2
 
       result = 0
 
       data = consume size
       (0...size).each do |exp|
-        result += (data[exp] * 2**(exp*8))
+        result += (data.getbyte(exp) * 2**(exp*8))
       end
 
       obj = result * sign
 
       store_unique_object obj
+    end
+
+    def construct_data
+      name = get_symbol
+      klass = const_lookup name
+      store_unique_object klass
+
+      obj = klass.allocate
+
+      # TODO ensure obj is a wrapped C pointer (T_DATA in MRI-land)
+
+      store_unique_object obj
+
+      unless obj.respond_to? :_load_data
+        raise TypeError,
+              "class #{name} needs to have instance method `_load_data'"
+      end
+
+      obj._load_data construct
+
+      obj
     end
 
     def construct_float
@@ -577,7 +584,7 @@ module Marshal
 
       construct_integer.times do |i|
         slot = get_symbol
-        unless members[i].intern == slot then
+        unless members[i].intern == slot
           raise TypeError, "struct %s is not compatible (%p for %p)" %
             [klass, slot, members[i]]
         end
@@ -601,7 +608,7 @@ module Marshal
 
       data = get_byte_sequence
 
-      if ivar_index and @has_ivar[ivar_index] then
+      if ivar_index and @has_ivar[ivar_index]
         set_instance_variables data
         @has_ivar[ivar_index] = false
       end
@@ -622,7 +629,7 @@ module Marshal
 
       extend_object obj if @modules
 
-      unless obj.respond_to? :marshal_load then
+      unless obj.respond_to? :marshal_load
         raise TypeError, "instance of #{klass} needs to have method `marshal_load'"
       end
 
@@ -632,20 +639,6 @@ module Marshal
       obj.marshal_load data
 
       obj
-    end
-
-    def consume(bytes)
-      raise ArgumentError, "marshal data too short" if @consumed > @stream.size
-      data = @stream[@consumed, bytes]
-      @consumed += bytes
-      data
-    end
-
-    def consume_byte
-      raise ArgumentError, "marshal data too short" if @consumed > @byte_array.size
-      data = @byte_array[@consumed]
-      @consumed += 1
-      return data
     end
 
     def extend_object(obj)
@@ -675,12 +668,12 @@ module Marshal
       type = consume_byte()
 
       case type
-      when TYPE_SYMBOL then
+      when 58 # TYPE_SYMBOL
         @call = false
         obj = construct_symbol
         @call = true
         obj
-      when TYPE_SYMLINK then
+      when 59 # TYPE_SYMLINK
         num = construct_integer
         @symbols[num]
       else
@@ -704,9 +697,9 @@ module Marshal
         add_object obj
 
         # ORDER MATTERS.
-        if obj.respond_to? :marshal_dump then
+        if obj.respond_to? :marshal_dump
           str = serialize_user_marshal obj
-        elsif obj.respond_to? :_dump then
+        elsif obj.respond_to? :_dump
           str = serialize_user_defined obj
         else
           str = obj.__marshal__ self
@@ -752,7 +745,7 @@ module Marshal
 
       ivars -= exclude_ivars if exclude_ivars
 
-      if ivars.length > 0 then
+      if ivars.length > 0
         "I"
       else
         ''
@@ -772,7 +765,7 @@ module Marshal
           sym = ivar.to_sym
           val = obj.__instance_variable_get__(sym)
           if strip_ivars
-            str << serialize(ivar[1..-1].to_sym)
+            str << serialize(ivar.to_s[1..-1].to_sym)
           else
             str << serialize(sym)
           end
@@ -821,18 +814,18 @@ module Marshal
       str = (n < 0 ? 'l-' : 'l+')
       cnt = 0
       num = n.abs
- 
+
       while num != 0
         str << (num & 0xff).chr
         num >>= 8
         cnt += 1
       end
- 
+
       if cnt % 2 == 1
         str << "\0"
         cnt += 1
       end
- 
+
       str[0..1] + serialize_fixnum(cnt / 2) + str[2..-1]
     end
 
@@ -886,6 +879,46 @@ module Marshal
 
   end
 
+  class IOState < State
+    def consume(bytes)
+      @stream.read(bytes)
+    end
+
+    def consume_byte
+      b = @stream.getc
+      raise EOFError unless b
+      b
+    end
+  end
+
+  class StringState < State
+    def initialize(stream, depth, prc)
+      super stream, depth, prc
+
+      if @stream
+        @byte_array = stream.data
+      end
+
+    end
+
+    def consume(bytes)
+      raise ArgumentError, "marshal data too short" if @consumed > @stream.size
+      data = @stream[@consumed, bytes]
+      @consumed += bytes
+      data
+    end
+
+    def consume_byte
+      raise ArgumentError, "marshal data too short" if @consumed > @byte_array.size
+      data = @byte_array[@consumed]
+      @consumed += 1
+      return data
+    end
+
+  end
+
+
+
   def self.dump(obj, an_io=nil, limit=nil)
     unless limit
       if an_io.kind_of? Fixnum
@@ -913,29 +946,28 @@ module Marshal
     return str
   end
 
-  def self.load(obj, proc = nil)
+  def self.load(obj, prc = nil)
     if obj.respond_to? :to_str
       data = obj.to_s
-    elsif obj.respond_to? :read
-      data = obj.read
-      if data.empty?
-        raise EOFError, "end of file reached"
-      end
-    elsif obj.respond_to? :getc  # FIXME - don't read all of it upfront
-      data = ''
-      data << c while (c = obj.getc.chr)
+
+      major = data.getbyte 0
+      minor = data.getbyte 1
+
+      ms = StringState.new data, nil, prc
+
+    elsif obj.respond_to?(:read) and obj.respond_to?(:getc)
+      ms = IOState.new obj, nil, prc
+
+      major = ms.consume_byte
+      minor = ms.consume_byte
     else
       raise TypeError, "instance of IO needed"
     end
 
-    major = data[0]
-    minor = data[1]
-
-    if major != MAJOR_VERSION or minor > MINOR_VERSION then
+    if major != MAJOR_VERSION or minor > MINOR_VERSION
       raise TypeError, "incompatible marshal file format (can't be read)\n\tformat version #{MAJOR_VERSION}.#{MINOR_VERSION} required; #{major}.#{minor} given"
     end
 
-    ms = State.new data, nil, proc
     ms.construct
   rescue NameError => e
     raise ArgumentError, e.message
@@ -946,4 +978,3 @@ module Marshal
   end
 
 end
-

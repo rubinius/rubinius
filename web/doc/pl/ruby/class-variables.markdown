@@ -1,9 +1,9 @@
 ---
 layout: doc_pl
-title: Class Variables
-previous: Instance Variables
+title: Zmienne klasy
+previous: Zmienne instancji
 previous_url: ruby/instance-variables
-next: Global Variables
+next: Zmienne globalne
 next_url: ruby/global-variables
 review: true
 ---

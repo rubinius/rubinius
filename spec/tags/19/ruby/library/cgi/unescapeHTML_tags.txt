@@ -1,0 +1,5 @@
+fails:CGI.unescapeHTML unescapes '&amp; &lt; &gt; &quot;' to '& < > "'
+fails:CGI.unescapeHTML doesn't unescape other html entities such as '&copy;' or '&heart'
+fails:CGI.unescapeHTML unescapes '&#99' format entities
+fails:CGI.unescapeHTML unescapes '&#x9999' format entities
+fails:CGI.unescapeHTML leaves invalid formatted strings

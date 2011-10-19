@@ -1,6 +1,12 @@
 #include "ruby.h"
-#include "intern.h"
 #include "rubyspec.h"
+
+#ifdef RUBY_VERSION_IS_1_9
+#include "ruby/intern.h"
+#else
+#include "intern.h"
+#endif
+
 
 #ifdef __cplusplus
 extern "C" {

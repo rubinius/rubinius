@@ -128,6 +128,22 @@ end
 class UserString < String
 end
 
+require 'openssl'
+
+class UserData < OpenSSL::X509::Name
+  alias _dump_data to_a
+
+  def _load_data entries
+    entries.each do |entry|
+      add_entry(*entry)
+    end
+  end
+end
+
+class UserDataUnloadable < UserData
+  undef _load_data
+end
+
 module Meths
   def meths_method() end
 end
@@ -147,6 +163,15 @@ module MarshalSpec
   class BasicObjectSubWithRespondToFalse
     def respond_to?(a)
       false
+    end
+  end
+  
+  class StructWithUserInitialize < Struct.new(:a)
+    THREADLOCAL_KEY = :marshal_load_struct_args
+    def initialize(*args)
+      # using thread-local to avoid ivar marshaling
+      Thread.current[THREADLOCAL_KEY] = args
+      super(*args)
     end
   end
 
@@ -371,5 +396,12 @@ class ArraySub < Array
   def initialize(*args)
     super(args)
   end
+end
+
+class ArraySubPush < Array
+  def << value
+    raise 'broken'
+  end
+  alias_method :push, :<<
 end
 

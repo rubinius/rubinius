@@ -42,7 +42,7 @@ namespace rubinius {
 
   void RubyException::show(STATE) {
     std::cout << exception->message_c_str(state)
-              << " (" << exception->class_object(state)->name()->c_str(state) << ") \n";
+              << " (" << exception->class_object(state)->name()->debug_str(state) << ") \n";
     print_backtrace();
   }
 
@@ -109,10 +109,13 @@ namespace rubinius {
     }
   }
 
+
+  static bool hard_abort = true;
+
   void abort() {
     std::cout << "Abort!" << std::endl;
     print_backtrace();
-    ::abort();
+    if(hard_abort) ::abort();
   }
 
   void bug(const char* message) {

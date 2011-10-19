@@ -24,6 +24,8 @@ class Console
     while true
       str = Readline.readline("console> ")
 
+      str = "quit" unless str
+
       cmd, args = str.split(/\s+/, 2)
 
       case cmd
@@ -222,6 +224,8 @@ help              - You're lookin' at it
     attr_reader :pid, :port, :command, :path
 
     def self.find_all
+      cleanup true
+
       unless dir = ENV['TMPDIR']
         dir = "/tmp"
         return [] unless File.directory?(dir) and File.readable?(dir)
@@ -237,7 +241,7 @@ help              - You're lookin' at it
       end
     end
 
-    def self.cleanup
+    def self.cleanup(quiet=false)
       unless dir = ENV['TMPDIR']
         dir = "/tmp"
         return [] unless File.directory?(dir) and File.readable?(dir)
@@ -249,9 +253,9 @@ help              - You're lookin' at it
 
       agents.map do |path|
         pid, port, cmd, exec = File.readlines(path)
-        `kill -0 #{pid}`
+        `kill -0 #{pid.strip} 2>&1`
         if $?.exitstatus != 0
-          puts "Removing #{path}"
+          puts "Removing #{path}" unless quiet
           File.unlink path
         end
       end
@@ -314,7 +318,7 @@ else
   else
     case agents.size
     when 0
-      puts "Unable to find any agents to connect to please specify one"
+      puts "Unable to find any agents to connect to. Please specify one."
       exit 1
     when 1
       agent = agents.first

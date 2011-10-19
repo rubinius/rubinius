@@ -134,11 +134,13 @@ ruby_version_is "1.9" do
       lambda { 620.chr(Encoding::TIS_620)     }.should raise_error(RangeError)
     end
 
-    it "raises a RangeError is self is less than 0" do
-      lambda { -1.chr(Encoding::UTF_8)             }.\
-        should raise_error(RangeError)
-      lambda { -bignum_value.chr(Encoding::EUC_JP) }.\
-        should raise_error(RangeError)
+    ruby_bug "http://redmine.ruby-lang.org/issues/4869", "1.9.2.290" do
+      it "raises a RangeError is self is less than 0" do
+        lambda { -1.chr(Encoding::UTF_8)             }.\
+          should raise_error(RangeError)
+        lambda { -bignum_value.chr(Encoding::EUC_JP) }.\
+          should raise_error(RangeError)
+      end
     end
   end
 end

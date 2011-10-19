@@ -13,7 +13,9 @@ namespace rubinius {
   class ConfigParser;
   class QueryAgent;
 
-  // throw when there is a bad signature on a kernel .rbc file.
+  /**
+   * Thrown when there is a bad signature on a kernel .rbc file.
+   */
   class BadKernelFile : public std::runtime_error {
   public:
     BadKernelFile(const std::string& str)
@@ -21,11 +23,26 @@ namespace rubinius {
     {}
   };
 
+
+  /**
+   * The environment context under which Rubinius virtual machines are executed.
+   *
+   * Environment and configuration data is processed and stored in an Environment
+   * instance, which uses this information to bootstrap the VM. It also stores
+   * all runtime shared state.
+   */
+
   class Environment {
     int argc_;
     char** argv_;
 
+    /// Signature to be used to verify the validity of .rbc files.
+    /// If the signature in a .rbc file does not match this value, the file
+    /// needs to be recompiled.
     uint64_t signature_;
+
+    // The Ruby library version with which the .rbc file is compatible.
+    int version_;
 
   public:
     SharedState* shared;
@@ -49,7 +66,6 @@ namespace rubinius {
 
     void setup_cpp_terminate();
 
-    void load_config_argv(int argc, char** argv);
     void load_vm_options(int argc, char** argv);
     void load_argv(int argc, char** argv);
     void load_kernel(std::string root);

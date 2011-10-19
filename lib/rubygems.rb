@@ -1232,22 +1232,22 @@ unless gem_preluded then # TODO: remove guard after 1.9.2 dropped
     require 'rubygems/defaults/operating_system'
   rescue LoadError
   end
+end
 
-  if defined?(RUBY_ENGINE) then
-    begin
-      ##
-      # Defaults the ruby implementation wants to provide for RubyGems
+if defined?(RUBY_ENGINE) then
+  begin
+    ##
+    # Defaults the ruby implementation wants to provide for RubyGems
 
-      require "rubygems/defaults/#{RUBY_ENGINE}"
-    rescue LoadError
-    end
+    require "rubygems/defaults/#{RUBY_ENGINE}"
+  rescue LoadError
   end
 end
 
 ##
 # Enables the require hook for RubyGems.
 
-require 'rubygems/custom_require' unless Gem::GEM_PRELUDE_SUCKAGE
+require 'rubygems/custom_require' # unless Gem::GEM_PRELUDE_SUCKAGE
 
 Gem.clear_paths
 

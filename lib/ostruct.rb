@@ -89,7 +89,7 @@ class OpenStruct
   def method_missing(mid, *args) # :nodoc:
     mname = mid.id2name
     len = args.length
-    if mname.chomp!('=')
+    if mname.chomp!('=') && mname != "[]"
       if len != 1
         raise ArgumentError, "wrong number of arguments (#{len} for 1)", caller(1)
       end

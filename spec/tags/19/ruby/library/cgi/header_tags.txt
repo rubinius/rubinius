@@ -1,0 +1,7 @@
+fails:CGI#header when passed no arguments returns a HTML header specifiying the Content-Type as text/html
+fails:CGI#header when passed no arguments includes Cookies in the @output_cookies field
+fails:CGI#header when passed String returns a HTML header specifiying the Content-Type as the passed String's content
+fails:CGI#header when passed String includes Cookies in the @output_cookies field
+fails:CGI#header when passed Hash returns a HTML header based on the Hash's key/value pairs
+fails:CGI#header when passed Hash includes Cookies in the @output_cookies field
+fails:CGI#header when passed Hash returns a HTML header specifiying the Content-Type as text/html when passed an empty Hash

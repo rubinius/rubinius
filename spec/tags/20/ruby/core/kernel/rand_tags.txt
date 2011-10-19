@@ -1,0 +1,1 @@
+fails:Kernel.rand is a private method

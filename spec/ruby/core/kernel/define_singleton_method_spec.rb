@@ -26,7 +26,7 @@ ruby_version_is '1.9' do
           lambda{KernelSpecs::Parent.child_class_method}.should raise_error(NoMethodError)
         end
 
-        it "will raise when attempting to define an object's singleton method from another objetc's singleton method" do
+        it "will raise when attempting to define an object's singleton method from another object's singleton method" do
           other = KernelSpecs::Parent.new
           p = KernelSpecs::Parent.new
           class << p

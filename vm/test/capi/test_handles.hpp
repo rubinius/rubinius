@@ -5,7 +5,7 @@
 #include "builtin/nativemethod.hpp"
 
 #include "capi/capi.hpp"
-#include "capi/include/ruby.h"
+#include "capi/18/include/ruby.h"
 
 #include "capi_reset.h"
 
@@ -69,19 +69,5 @@ class TestCApiHandles : public CxxTest::TestSuite, public VMTest {
     TS_ASSERT(!CAPI_UNDEF_P(cCApiQtrue));
     TS_ASSERT(!CAPI_UNDEF_P(cCApiQnil));
     TS_ASSERT(CAPI_UNDEF_P(cCApiQundef));
-  }
-
-  void test_CAPI_GLOBAL_HANDLE_P() {
-    VALUE val = CAPI_APPLY_GLOBAL_TAG(3);
-
-    TS_ASSERT(CAPI_GLOBAL_HANDLE_P(val));
-    TS_ASSERT(!CAPI_LOCAL_HANDLE_P(val));
-  }
-
-  void test_CAPI_LOCAL_HANDLE_P() {
-    VALUE val = CAPI_APPLY_LOCAL_TAG(4);
-
-    TS_ASSERT(CAPI_LOCAL_HANDLE_P(val));
-    TS_ASSERT(!CAPI_GLOBAL_HANDLE_P(val));
   }
 };

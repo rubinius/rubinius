@@ -7,9 +7,13 @@ namespace rubinius {
   class GarbageCollector;
   class Object;
 
+
   /**
-   *  Implementation in gc.cpp for now..
+   * Used by GarbageCollector implementations to mark objects that are still
+   * reachable. ObjectMark carries a GarbageCollector instance with it as it
+   * visits an object and its contents.
    */
+
   class ObjectMark {
   public:
     GarbageCollector* gc;

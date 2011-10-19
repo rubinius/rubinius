@@ -1,3 +1,4 @@
+require File.expand_path('../../fixtures/classes', __FILE__)
 require 'matrix'
 
 describe :equal, :shared => true do
@@ -26,5 +27,9 @@ describe :equal, :shared => true do
       Matrix.empty(0, 0).send(@method, Matrix.empty(6, 0)).should be_false
       Matrix.empty(0, 0).send(@method, Matrix.empty(0, 6)).should be_false
     end
+  end
+
+  it "doesn't distinguish on subclasses" do
+    MatrixSub.ins.send(@method, Matrix.I(2)).should be_true
   end
 end

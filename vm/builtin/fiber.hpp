@@ -3,15 +3,27 @@
 
 #include "vm/config.h"
 
-#ifdef HAS_UCONTEXT
+#if defined(IS_X86)
+#define FIBER_ENABLED
+#define FIBER_NATIVE
+#define FIBER_ASM_X8632
+struct fiber_context_t;
+
+#elif defined(IS_X8664)
+#define FIBER_ENABLED
+#define FIBER_NATIVE
+#define FIBER_ASM_X8664
+struct fiber_context_t;
+
+#elif defined(HAS_UCONTEXT)
 #define FIBER_ENABLED
 #include <ucontext.h>
 typedef ucontext_t fiber_context_t;
+
 #else
-struct fiber_context_t {
-  int dummy;
-};
+struct fiber_context_t;
 #endif
+
 
 #include <signal.h>
 #include <stdio.h>
@@ -81,20 +93,20 @@ namespace rubinius {
   public:
     static void init(STATE);
 
-    // Ruby.primitive :fiber_new
+    // Rubinius.primitive :fiber_new
     static Fiber* create(STATE, Integer* stack_size, Object* callable);
     static void start_on_stack();
 
-    // Ruby.primitive :fiber_s_current
+    // Rubinius.primitive :fiber_s_current
     static Fiber* current(STATE);
 
-    // Ruby.primitive :fiber_resume
+    // Rubinius.primitive :fiber_resume
     Object* resume(STATE, Arguments& args, CallFrame* calling_environment);
 
-    // Ruby.primitive :fiber_transfer
+    // Rubinius.primitive :fiber_transfer
     Object* transfer(STATE, Arguments& args, CallFrame* calling_environment);
 
-    // Ruby.primitive :fiber_s_yield
+    // Rubinius.primitive :fiber_s_yield
     static Object* s_yield(STATE, Arguments& args, CallFrame* calling_environment);
 
     static void finalize(STATE, Fiber* fib);

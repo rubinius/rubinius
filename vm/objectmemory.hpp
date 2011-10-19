@@ -13,29 +13,14 @@
 #include "gc/finalize.hpp"
 #include "gc/write_barrier.hpp"
 
+#include "util/thread.hpp"
+#include "lock.hpp"
+
 class TestObjectMemory; // So we can friend it properly
 
 namespace rubinius {
 
   class Object;
-
-  /* ObjectMemory is the primary API that the rest of the VM uses to interact
-   * with actions such as allocating objects, storing data in objects, and
-   * perform garbage collection.
-   *
-   * It is current split between 2 generations, the BakerGC, which handles
-   * the young objects, and the MarkSweepGC, which handles the mature.
-   *
-   * Basic tasks:
-   *
-   * Allocate an object of a given class and number of fields.
-   *   If the object is large, it's put to start in the mature space,
-   *   otherwise in the young space.
-   *
-   * Detection of memory condition requiring collection of both generations
-   *   independently.
-   *
-   */
 
   struct CallFrame;
   class GCData;
@@ -44,6 +29,7 @@ namespace rubinius {
   class MarkSweepGC;
   class ImmixGC;
   class InflatedHeaders;
+  class Thread;
 
   namespace gc {
     class Slab;
@@ -67,46 +53,162 @@ namespace rubinius {
     {}
   };
 
-  class ObjectMemory : public gc::WriteBarrier {
+
+  struct GCStats {
+
+    atomic::integer young_objects_allocated;
+    atomic::integer young_bytes_allocated;
+    atomic::integer promoted_objects_allocated;
+    atomic::integer promoted_bytes_allocated;
+    atomic::integer mature_objects_allocated;
+    atomic::integer mature_bytes_allocated;
+
+    atomic::integer young_collection_count;
+    atomic::integer full_collection_count;
+
+    atomic::integer total_young_collection_time;
+    atomic::integer total_full_collection_time;
+    atomic::integer last_young_collection_time;
+    atomic::integer last_full_collection_time;
+
+    void young_object_allocated(uint64_t size) {
+      young_objects_allocated.inc();
+      young_bytes_allocated.add(size);
+    }
+
+    void promoted_object_allocated(uint64_t size) {
+      promoted_objects_allocated.inc();
+      promoted_bytes_allocated.add(size);
+    }
+
+    void mature_object_allocated(uint64_t size) {
+      mature_objects_allocated.inc();
+      mature_bytes_allocated.add(size);
+    }
+
+    void slab_allocated(uint64_t count, uint64_t size) {
+      young_objects_allocated.add(count);
+      young_bytes_allocated.add(size);
+    }
+
+    GCStats()
+      : young_objects_allocated(0)
+      , young_bytes_allocated(0)
+      , promoted_objects_allocated(0)
+      , promoted_bytes_allocated(0)
+      , mature_objects_allocated(0)
+      , mature_bytes_allocated(0)
+      , young_collection_count(0)
+      , full_collection_count(0)
+      , total_young_collection_time(0)
+      , total_full_collection_time(0)
+      , last_young_collection_time(0)
+      , last_full_collection_time(0)
+    {}
+  };
+
+
+  /**
+   * ObjectMemory is the primary API that the rest of the VM uses to interact
+   * with actions such as allocating objects, storing data in objects, and
+   * performing garbage collection.
+   *
+   * It is currently split between 3 generations, the BakerGC, which handles
+   * the young objects, the ImmixGC which handles mature objects, and the
+   * MarkSweepGC, which handles large objects.
+   *
+   * ObjectMemory also manages the memory used for CodeResources, which are
+   * internal objects used for executing Ruby code. This includes VMMethod,
+   * various JIT classes, and FFI data.
+   *
+   * Basic tasks:
+   * - Allocate an object of a given class and number of fields. If the object
+   *   is large, it's allocated in the large object space, otherwise in the
+   *   young space.
+   * - Detection of memory condition requiring collection of the young and
+   *   mautre generations independently.
+   */
+
+  class ObjectMemory : public gc::WriteBarrier, public Lockable {
+
+    /// BakerGC used for the young generation
     BakerGC* young_;
+
+    /// MarkSweepGC used for the large object store
     MarkSweepGC* mark_sweep_;
 
+    /// ImmixGC used for the mature generation
     ImmixGC* immix_;
+
+    /// Storage for all InflatedHeader instances.
     InflatedHeaders* inflated_headers_;
 
+    /// The current mark value used when marking objects.
     unsigned int mark_;
+
+    /// Garbage collector for CodeResource objects.
     CodeManager code_manager_;
     std::list<FinalizeObject> finalize_;
     std::list<FinalizeObject*> to_finalize_;
+
+    /// Flag controlling whether garbage collections are allowed
     bool allow_gc_;
 
+    /// List of additional write-barriers that may hold objects with references
+    /// to young objects.
     std::list<gc::WriteBarrier*> aux_barriers_;
+
+    /// Size of slabs to be allocated to threads for lockless thread-local
+    /// allocations.
     size_t slab_size_;
+
+    /// True if finalizers are currently being run.
     bool running_finalizers_;
 
+    /// True if finalizers were added in this GC cycle.
+    bool added_finalizers_;
+
+    /// A mutex which protects running the finalizers
+    rubinius::Mutex finalizer_lock_;
+
+    /// A condition variable used to control access to
+    /// to_finalize_
+    thread::Condition finalizer_var_;
+
+    /// Mutex used to manage lock contention
+    thread::Mutex contention_lock_;
+
+    /// Condition variable used to manage lock contention
+    thread::Condition contention_var_;
+
+    TypedRoot<Thread*> finalizer_thread_;
+
   public:
+    /// Flag indicating whether a young collection should be performed soon
     bool collect_young_now;
+
+    /// Flag indicating whether a full collection should be performed soon
     bool collect_mature_now;
 
-    STATE;
+    VM* root_state_;
+    /// Counter used for issuing object ids when #object_id is called on a
+    /// Ruby object.
     size_t last_object_id;
     size_t last_snapshot_id;
     TypeInfo* type_info[(int)LastObjectType];
 
     /* Config variables */
+    /// Threshold size at which an object is considered a large object, and
+    /// therefore allocated in the large object space.
     size_t large_object_threshold;
 
-    /* Stats */
-    size_t objects_allocated;
-    size_t bytes_allocated;
-
-    size_t young_collections;
-    size_t full_collections;
-
-    size_t young_collection_time;
-    size_t full_collection_time;
+    GCStats gc_stats;
 
   public:
+    VM* state() {
+      return root_state_;
+    }
+
     unsigned int mark() {
       return mark_;
     }
@@ -135,11 +237,19 @@ namespace rubinius {
       allow_gc_ = false;
     }
 
-    void add_aux_barrier(gc::WriteBarrier* wb) {
+    /**
+     * Adds an additional write-barrier to the auxiliary write-barriers list.
+     */
+    void add_aux_barrier(STATE, gc::WriteBarrier* wb) {
+      SYNC(state);
       aux_barriers_.push_back(wb);
     }
 
-    void del_aux_barrier(gc::WriteBarrier* wb) {
+    /**
+     * Removes a write-barrier from the auxiliary write-barriers list.
+     */
+    void del_aux_barrier(STATE, gc::WriteBarrier* wb) {
+      SYNC(state);
       aux_barriers_.remove(wb);
     }
 
@@ -155,38 +265,40 @@ namespace rubinius {
     ObjectMemory(STATE, Configuration& config);
     ~ObjectMemory();
 
-    Object* new_object_typed(Class* cls, size_t bytes, object_type type);
-    Object* new_object_typed_mature(Class* cls, size_t bytes, object_type type);
-    Object* new_object_typed_enduring(Class* cls, size_t bytes, object_type type);
+    void on_fork();
 
-    Object* new_object_fast(Class* cls, size_t bytes, object_type type);
+    Object* new_object_typed(STATE, Class* cls, size_t bytes, object_type type);
+    Object* new_object_typed_mature(STATE, Class* cls, size_t bytes, object_type type);
+    Object* new_object_typed_enduring(STATE, Class* cls, size_t bytes, object_type type);
+
+    Object* new_object_fast(STATE, Class* cls, size_t bytes, object_type type);
 
     template <class T>
-      T* new_object_bytes(Class* cls, size_t& bytes) {
+      T* new_object_bytes(STATE, Class* cls, size_t& bytes) {
         bytes = ObjectHeader::align(sizeof(T) + bytes);
-        T* obj = reinterpret_cast<T*>(new_object_typed(cls, bytes, T::type));
+        T* obj = reinterpret_cast<T*>(new_object_typed(state, cls, bytes, T::type));
 
         return obj;
       }
 
     template <class T>
-      T* new_object_bytes_mature(Class* cls, size_t& bytes) {
+      T* new_object_bytes_mature(STATE, Class* cls, size_t& bytes) {
         bytes = ObjectHeader::align(sizeof(T) + bytes);
-        T* obj = reinterpret_cast<T*>(new_object_typed_mature(cls, bytes, T::type));
+        T* obj = reinterpret_cast<T*>(new_object_typed_mature(state, cls, bytes, T::type));
 
         return obj;
       }
 
     template <class T>
-      T* new_object_variable(Class* cls, size_t fields, size_t& bytes) {
+      T* new_object_variable(STATE, Class* cls, size_t fields, size_t& bytes) {
         bytes = sizeof(T) + (fields * sizeof(Object*));
-        return reinterpret_cast<T*>(new_object_typed(cls, bytes, T::type));
+        return reinterpret_cast<T*>(new_object_typed(state, cls, bytes, T::type));
       }
 
     template <class T>
-      T* new_object_enduring(Class* cls) {
+      T* new_object_enduring(STATE, Class* cls) {
         return reinterpret_cast<T*>(
-            new_object_typed_enduring(cls, sizeof(T), T::type));
+            new_object_typed_enduring(state, cls, sizeof(T), T::type));
       }
 
     TypeInfo* find_type_info(Object* obj);
@@ -195,7 +307,15 @@ namespace rubinius {
     void collect_mature(GCData& data);
     Object* promote_object(Object* obj);
 
-    bool refill_slab(gc::Slab& slab);
+    bool refill_slab(STATE, gc::Slab& slab);
+
+    void assign_object_id(STATE, Object* obj);
+    Integer* assign_object_id_ivar(STATE, Object* obj);
+    bool inflate_lock_count_overflow(STATE, ObjectHeader* obj, int count);
+    LockStatus contend_for_lock(STATE, ObjectHeader* obj, bool* error, size_t us=0);
+    void release_contention(STATE);
+    bool inflate_and_lock(STATE, ObjectHeader* obj);
+    bool inflate_for_contention(STATE, ObjectHeader* obj);
 
     bool valid_object_p(Object* obj);
     void debug_marksweep(bool val);
@@ -210,13 +330,18 @@ namespace rubinius {
     ObjectPosition validate_object(Object* obj);
     bool valid_young_object_p(Object* obj);
 
-    int mature_bytes_allocated();
+    size_t mature_bytes_allocated();
+
+    void collect(STATE, CallFrame* call_frame);
+    void collect_maybe(STATE, CallFrame* call_frame);
 
     void needs_finalization(Object* obj, FinalizerFunction func);
     void set_ruby_finalizer(Object* obj, Object* fin);
     void run_finalizers(STATE, CallFrame* call_frame);
     void run_all_finalizers(STATE);
     void run_all_io_finalizers(STATE);
+
+    void add_to_finalize(FinalizeObject* fi);
 
     void find_referers(Object* obj, ObjectArray& result);
     void print_references(Object* obj);
@@ -231,9 +356,13 @@ namespace rubinius {
     size_t& immix_usage();
     size_t& code_usage();
 
-    InflatedHeader* inflate_header(ObjectHeader* obj);
+    InflatedHeader* inflate_header(STATE, ObjectHeader* obj);
+    void inflate_for_id(STATE, ObjectHeader* obj, uint32_t id);
 
-    // This only has one use! Don't use it!
+    void in_finalizer_thread(STATE);
+    void start_finalizer_thread(STATE);
+
+    /// This only has one use! Don't use it!
     Object* allocate_object_raw(size_t bytes);
 
   private:
@@ -243,6 +372,15 @@ namespace rubinius {
   public:
     friend class ::TestObjectMemory;
 
+
+    /**
+     * Object used to prevent garbage collections from running for a short
+     * period while the memory is scanned, e.g. to find referrers to an
+     * object or take a snapshot of the heap. Typically, an instance of
+     * this class is created at the start of a method that requires the
+     * heap to be stable. When the method ends, the object goes out of
+     * scope and is destroyed, re-enabling garbage collections.
+     */
 
     class GCInhibit {
       ObjectMemory* om_;

@@ -1,9 +1,9 @@
 ---
 layout: doc_pl
 title: Modyfikacja procesu kompilacji
-previous: Transformations
+previous: Transformacje
 previous_url: bytecode-compiler/transformations
-next: JIT Compiler
+next: Kompilator JIT
 next_url: jit
 review: true
 ---

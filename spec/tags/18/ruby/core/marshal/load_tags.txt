@@ -1,0 +1,2 @@
+fails:Marshal::load for a Struct calls initialize on the unmarshaled struct
+fails:Marshal::load for a wrapped C pointer raises ArgumentError when the local class is a regular object

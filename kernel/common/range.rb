@@ -36,7 +36,7 @@
 #       'x'# @length
 #     end
 #   end
-#   
+#
 #   r = Xs.new(3)..Xs.new(6)   #=> xxx..xxxxxx
 #   r.to_a                     #=> [xxx, xxxx, xxxxx, xxxxxx]
 #   r.member?(Xs.new(5))       #=> true
@@ -57,7 +57,7 @@ class Range
 
   def initialize(first, last, exclude_end = false)
     raise NameError, "`initialize' called twice" if @begin
-    
+
     unless first.kind_of?(Fixnum) && last.kind_of?(Fixnum)
       begin
         raise ArgumentError, "bad value for range" unless first <=> last
@@ -65,7 +65,7 @@ class Range
         raise ArgumentError, "bad value for range"
       end
     end
-    
+
     @begin = first
     @end = last
     @excl = exclude_end
@@ -87,7 +87,7 @@ class Range
       self.first == other.first and
       self.last == other.last and
       self.exclude_end? == other.exclude_end?
-   
+
   end
   alias_method :eql?, :==
 
@@ -169,6 +169,20 @@ class Range
       first.upto(last) do |s|
         yield s unless @excl && s == last
       end
+    when Symbol
+      current = first
+      if @excl
+        while (current <=> last) < 0
+          yield current
+          current = (current.to_s.bytes.to_a.last + 1).chr.to_sym
+        end
+      else
+        while (c = current <=> last) && c <= 0
+          yield current
+          break if c == 0
+          current = (current.to_s.bytes.to_a.last + 1).chr.to_sym
+        end
+      end
     else
       current = first
       if @excl
@@ -206,7 +220,8 @@ class Range
     hash ^= @begin.hash << 1
     hash ^= @end.hash << 9
     hash ^= excl << 24;
-    return hash
+    # Are we throwing away too much here for a good hash value distribution?
+    return hash & Fixnum::MAX
   end
 
   # Convert this range object to a printable form (using
@@ -264,11 +279,11 @@ class Range
     end
 
     if first.kind_of?(Numeric)
-      last -= 1 if @excl
-
-      while first <= last
-        yield first
-        first += step_size
+      i = 0
+      while (@excl && (step_size * i + first < last)) ||
+          (!@excl && (step_size * i + first <= last))
+        yield step_size * i + first
+        i += 1
       end
     else
       counter = 0

@@ -22,6 +22,14 @@ describe "File.utime" do
     File.mtime(@file2).to_i.should be_close(@mtime.to_i, 2)
   end
 
+  it "uses the current times if two nil values are passed" do
+    File.utime(nil, nil, @file1, @file2)
+    File.atime(@file1).to_i.should be_close(Time.now.to_i, 2)
+    File.mtime(@file1).to_i.should be_close(Time.now.to_i, 2)
+    File.atime(@file2).to_i.should be_close(Time.now.to_i, 2)
+    File.mtime(@file2).to_i.should be_close(Time.now.to_i, 2)
+  end
+
   ruby_version_is "1.9" do
     it "accepts an object that has a #to_path method" do
       File.utime(@atime, @mtime, mock_to_path(@file1), mock_to_path(@file2))

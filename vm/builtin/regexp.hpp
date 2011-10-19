@@ -27,6 +27,7 @@ namespace rubinius {
     LookupTable* names_; // slot
     regex_t* onig_data;
     bool forced_encoding_;
+    uint32_t lock_;
 
   public:
     /* accessors */
@@ -43,38 +44,38 @@ namespace rubinius {
     /* The Regexp options bit flags fit well within a Fixnum. If more
      * options are added, this should be double-checked.
      */
-    // Ruby.primitive :regexp_initialize
+    // Rubinius.primitive :regexp_initialize
     Regexp* initialize(STATE, String* pattern, Fixnum* options);
     void maybe_recompile(STATE);
 
-    // Ruby.primitive :regexp_options
+    // Rubinius.primitive :regexp_options
     Fixnum* options(STATE);
 
-    // Ruby.primitive :regexp_search_region
+    // Rubinius.primitive :regexp_search_region
     Object* match_region(STATE, String* string, Fixnum* start, Fixnum* end, Object* forward);
 
-    // Ruby.primitive :regexp_match_start
+    // Rubinius.primitive :regexp_match_start
     Object* match_start(STATE, String* string, Fixnum* start);
 
-    // Ruby.primitive :regexp_search_from
+    // Rubinius.primitive :regexp_search_from
     Object* search_from(STATE, String* string, Fixnum* start);
 
-    // Ruby.primitive :regexp_allocate
+    // Rubinius.primitive :regexp_allocate
     static Regexp* allocate(STATE, Object* self);
 
-    // Ruby.primitive :regexp_last_match_result
+    // Rubinius.primitive :regexp_last_match_result
     static Object* last_match_result(STATE, Fixnum* mode, Fixnum* which, CallFrame* calling_environment);
 
-    // Ruby.primitive :regexp_last_match
+    // Rubinius.primitive :regexp_last_match
     static Object* last_match(STATE, Arguments& args, CallFrame* calling_environment);
 
-    // Ruby.primitive :regexp_set_last_match
+    // Rubinius.primitive :regexp_set_last_match
     static Object* set_last_match(STATE, Object* obj, CallFrame* calling_environment);
 
-    // Ruby.primitive :regexp_propagate_last_match
+    // Rubinius.primitive :regexp_propagate_last_match
     static Object* propagate_last_match(STATE, CallFrame* calling_environment);
 
-    // Ruby.primitive :regexp_set_block_last_match
+    // Rubinius.primitive :regexp_set_block_last_match
     static Object* set_block_last_match(STATE, CallFrame* calling_environment);
 
     void make_managed(STATE);

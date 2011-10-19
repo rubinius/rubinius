@@ -18,5 +18,10 @@ describe "SystemExit#initialize" do
     s.status.should == 10
     s.message.should == 'message'
   end
+
+  it "sets the status to 0 by default" do
+    s = SystemExit.new
+    s.status.should == 0
+  end
 end
 

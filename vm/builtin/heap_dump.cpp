@@ -2,6 +2,8 @@
 // because it uses a whole bunch of local classes and it's cleaner to have
 // all that be in it's own file.
 
+#include "vm/config.h"
+
 #include "vm/vm.hpp"
 
 #include "gc/gc.hpp"
@@ -10,6 +12,8 @@
 
 #include "builtin/object.hpp"
 #include "builtin/array.hpp"
+#include "builtin/bytearray.hpp"
+#include "builtin/chararray.hpp"
 #include "builtin/symbol.hpp"
 #include "builtin/module.hpp"
 #include "builtin/string.hpp"
@@ -21,7 +25,11 @@
 #include "object_utils.hpp"
 
 #include <fcntl.h>
+#ifdef RBX_WINDOWS
+#include <winsock2.h>
+#else
 #include <arpa/inet.h>
+#endif
 
 #include <map>
 #include <vector>
@@ -41,6 +49,7 @@ namespace rubinius {
   const static int cImmCode =    'i';
   const static int cTupleCode =  't';
   const static int cBytesCode =  'b';
+  const static int cCharsCode =  'c';
   const static int cFooterCode = '-';
 
   class Encoder {
@@ -93,13 +102,13 @@ namespace rubinius {
 
       symbols_[sym] = id;
 
-      const char* str = sym->c_str(state);
-      int sz = strlen(str);
+      std::string str = sym->cpp_str(state);
+      int sz = str.size();
 
       write1(cSymbolCode);
       write4(id);
       write4(sz);
-      write_raw(str, sz);
+      write_raw(str.data(), sz);
 
       return id;
     }
@@ -167,7 +176,7 @@ namespace rubinius {
     ~Layout() {
       for(LayoutMapping::iterator i = subtrees_.begin();
           i != subtrees_.end();
-          i++) {
+          ++i) {
         delete i->second;
       }
     }
@@ -200,7 +209,7 @@ namespace rubinius {
       std::vector<int> sym_ids;
       for(SymbolList::iterator i = syms.begin();
           i != syms.end();
-          i++) {
+          ++i) {
         sym_ids.push_back(enc.initialize_symbol(state, *i));
       }
 
@@ -209,7 +218,7 @@ namespace rubinius {
 
       for(std::vector<int>::iterator i = sym_ids.begin();
           i != sym_ids.end();
-          i++) {
+          ++i) {
         enc.write4(*i);
       }
     }
@@ -224,7 +233,7 @@ namespace rubinius {
     TypeInfo* ti = state->om->type_info[obj->type_id()];
     for(TypeInfo::Slots::iterator i = ti->slots.begin();
         i != ti->slots.end();
-        i++) {
+        ++i) {
       syms.push_back(Symbol::from_index(i->first));
     }
 
@@ -246,7 +255,7 @@ namespace rubinius {
     // Look down the Layout tree to find the one we want.
     for(SymbolList::iterator i = syms.begin();
         i != syms.end();
-        i++) {
+        ++i) {
       current = current->find_subtree(*i);
     }
 
@@ -344,6 +353,13 @@ namespace rubinius {
         enc.write1(cBytesCode);
         enc.write4(ba->size());
         enc.write_raw((const char*)ba->raw_bytes(), ba->size());
+      } else if(CharArray* ca = try_as<CharArray>(obj)) {
+        enc.write2(syms.size() + 1);
+        dump_ivars(state, obj, syms);
+
+        enc.write1(cCharsCode);
+        enc.write4(ca->size());
+        enc.write_raw((const char*)ca->raw_bytes(), ca->size());
       } else {
         enc.write2(syms.size());
         dump_ivars(state, obj, syms);
@@ -353,7 +369,7 @@ namespace rubinius {
     void dump_ivars(STATE, Object* obj, SymbolList& syms) {
       for(SymbolList::iterator i = syms.begin();
           i != syms.end();
-          i++) {
+          ++i) {
         dump_reference(state, obj->get_ivar(state, *i));
       }
     }

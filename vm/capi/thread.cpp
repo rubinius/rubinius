@@ -1,26 +1,14 @@
+#include "vm/config.h"
+
+#ifndef RBX_WINDOWS
+#include <sys/select.h>
+#endif
+
 #include "capi/capi.hpp"
-#include "capi/include/ruby.h"
+#include "capi/18/include/ruby.h"
 #include "builtin/thread.hpp"
-#include "native_thread.hpp"
 
-namespace rubinius {
-  class UnblockFuncWaiter : public Waiter {
-    rb_unblock_function_t* ubf_;
-    void* ubf_data_;
-
-  public:
-    UnblockFuncWaiter(rb_unblock_function_t* ubf, void* ubf_data)
-      : ubf_(ubf)
-      , ubf_data_(ubf_data)
-    {}
-
-    void wakeup() {
-      if (ubf_ != NULL) {
-        (*ubf_)(ubf_data_);
-      }
-    }
-  };
-}
+#include "windows_compat.h"
 
 using namespace rubinius;
 
@@ -57,12 +45,17 @@ extern "C" {
     }
 
     for(;;) {
+      env->state()->shared.leave_capi(env->state());
       {
-        GlobalLock::UnlockGuard guard(env);
+        GCIndependent guard(env);
         ret = select(max, read, write, except, tvp);
       }
 
-      if(!env->state()->check_async(env->current_call_frame())) {
+      bool ok = env->state()->check_async(env->current_call_frame());
+
+      env->state()->shared.enter_capi(env->state());
+
+      if(!ok) {
         // Ok, there was an exception raised by an async event. We need
         // to unwind through the caller back the entrance to the native
         // method.
@@ -93,12 +86,11 @@ extern "C" {
 
   VALUE rb_thread_current(void) {
     NativeMethodEnvironment* env = NativeMethodEnvironment::get();
-    GlobalLock::UnlockGuard guard(env);
     Thread* thread = env->state()->thread.get();
-    
+
     return env->get_handle(thread);
   }
-  
+
 
   int rb_thread_alone() {
     VALUE list = rb_funcall(rb_cThread, rb_intern("list"), 0);
@@ -130,18 +122,19 @@ extern "C" {
                                   rb_unblock_function_t ubf, void* ubf_data) {
     NativeMethodEnvironment* env = NativeMethodEnvironment::get();
     VM* state = env->state();
-    UnblockFuncWaiter waiter(ubf, ubf_data);
     VALUE ret = Qnil;
 
     if (ubf == RUBY_UBF_IO || ubf == RUBY_UBF_PROCESS) {
       state->interrupt_with_signal();
     } else {
-      state->install_waiter(waiter);
+      state->wait_on_custom_function(ubf, ubf_data);
     }
+    env->state()->shared.leave_capi(env->state());
     {
-      GlobalLock::UnlockGuard guard(env);
+      GCIndependent guard(env);
       ret = (*func)(data);
     }
+    env->state()->shared.enter_capi(env->state());
     state->clear_waiter();
 
     return ret;
@@ -153,12 +146,13 @@ extern "C" {
   void* rb_thread_call_with_gvl(void* (*func)(void*), void* data) {
     NativeMethodEnvironment* env = NativeMethodEnvironment::get();
 
-    void* ret = 0;
+    env->state()->shared.enter_capi(env->state());
+    env->state()->shared.gc_dependent(env->state());
 
-    {
-      GlobalLock::LockGuard guard(env->state()->global_lock());
-      ret = (*func)(data);
-    }
+    void* ret = (*func)(data);
+
+    env->state()->shared.gc_independent(env->state());
+    env->state()->shared.leave_capi(env->state());
 
     return ret;
   }

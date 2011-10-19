@@ -1,0 +1,1 @@
+fails:CGI::QueryExtension#path_translated returns ENV['PATH_TRANSLATED']

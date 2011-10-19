@@ -8,6 +8,7 @@
 
 #include "primitives.hpp"
 #include "vm/object_utils.hpp"
+#include "vm/configuration.hpp"
 
 #include <iostream>
 
@@ -207,7 +208,7 @@ namespace rubinius {
         }
         result = intermediate;
       }
-      // The exp > 1 check is to not overflow unneccesary if this is the
+      // The exp > 1 check is to not overflow unnecessary if this is the
       // last iteration of the algorithm
       if(exp > 1) {
         if(!FIT_SQRT(base)) {
@@ -363,6 +364,9 @@ namespace rubinius {
   }
 
   Integer* Fixnum::bit_and(STATE, Float* other) {
+    if(!LANGUAGE_18_ENABLED(state)) {
+      Exception::type_error(state, "can't convert Float into Integer for bitwise arithmetic");
+    }
     return Fixnum::from(to_native() & (native_int)other->val);
   }
 
@@ -375,6 +379,9 @@ namespace rubinius {
   }
 
   Integer* Fixnum::bit_or(STATE, Float* other) {
+    if(!LANGUAGE_18_ENABLED(state)) {
+      Exception::type_error(state, "can't convert Float into Integer for bitwise arithmetic");
+    }
     return Fixnum::from(to_native() | (native_int)other->val);
   }
 
@@ -387,6 +394,9 @@ namespace rubinius {
   }
 
   Integer* Fixnum::bit_xor(STATE, Float* other) {
+    if(!LANGUAGE_18_ENABLED(state)) {
+      Exception::type_error(state, "can't convert Float into Integer for bitwise arithmetic");
+    }
     return Fixnum::from(to_native() ^ (native_int)other->val);
   }
 

@@ -1,0 +1,1 @@
+fails:Array#dup copies untrusted status from the original

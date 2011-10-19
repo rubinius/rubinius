@@ -1,5 +1,4 @@
 #include "llvm/jit_operations.hpp"
-#include "llvm/access_memory.hpp"
 
 #include "builtin/access_variable.hpp"
 #include "builtin/iseq.hpp"
@@ -32,6 +31,8 @@ namespace rubinius {
     JITMethodInfo* creator_info_;
 
     bool fail_to_send_;
+
+    type::KnownType guarded_type_;
 
   public:
 
@@ -67,6 +68,10 @@ namespace rubinius {
       , from_unboxed_array_(false)
       , creator_info_(0)
     {}
+
+    jit::Context& context() {
+      return context_;
+    }
 
     Value* recv() {
       return ops_.stack_back(self_pos_);
@@ -129,6 +134,10 @@ namespace rubinius {
       fail_to_send_ = true;
     }
 
+    type::KnownType guarded_type() {
+      return guarded_type_;
+    }
+
     bool consider();
     void inline_block(JITInlineBlock* ib, Value* self);
 
@@ -150,6 +159,11 @@ namespace rubinius {
 
     int detect_jit_intrinsic(Class* klass, CompiledMethod* cm);
     void inline_intrinsic(Class* klass, CompiledMethod* cm, int which);
+
+    void check_class(llvm::Value* recv, Class* klass, llvm::BasicBlock* bb=0);
+    void check_recv(Class* klass, llvm::BasicBlock* bb=0);
+
+    void prime_info(JITMethodInfo& info);
   };
 
 }

@@ -5,16 +5,8 @@ require File.expand_path('../fixtures/variables', __FILE__)
 # real parsed forms, not the superficial code forms.
 describe "Basic assignment" do
   it "allows the rhs to be assigned to the lhs" do
-    a = nil;       a.should == nil
-    a = 1;         a.should == 1
-    a = [];        a.should == []
-    a = [1];       a.should == [1]
-    a = [nil];     a.should == [nil]
-    a = [[]];      a.should == [[]]
-    a = [1,2];     a.should == [1,2]
-    a = [*[]];     a.should == []
-    a = [*[1]];    a.should == [1]
-    a = [*[1,2]];  a.should == [1, 2]
+    a = nil
+    a.should == nil
   end
 
   it "assigns nil to lhs when rhs is an empty expression" do
@@ -45,9 +37,6 @@ describe "Basic assignment" do
       a = *[nil];    a.should == nil
       a = *[[]];     a.should == []
       a = *[1,2];    a.should == [1,2]
-      a = *[*[]];    a.should == nil
-      a = *[*[1]];   a.should == 1
-      a = *[*[1,2]]; a.should == [1,2]
     end
   end
 
@@ -60,9 +49,6 @@ describe "Basic assignment" do
       a = *[nil];    a.should == [nil]
       a = *[[]];     a.should == [[]]
       a = *[1,2];    a.should == [1,2]
-      a = *[*[]];    a.should == []
-      a = *[*[1]];   a.should == [1]
-      a = *[*[1,2]]; a.should == [1,2]
     end
   end
 
@@ -73,12 +59,7 @@ describe "Basic assignment" do
       *a = 1;        a.should == [1]
       *a = [];       a.should == [[]]
       *a = [1];      a.should == [[1]]
-      *a = [nil];    a.should == [[nil]]
-      *a = [[]];     a.should == [[[]]]
       *a = [1,2];    a.should == [[1,2]]
-      *a = [*[]];    a.should == [[]]
-      *a = [*[1]];   a.should == [[1]]
-      *a = [*[1,2]]; a.should == [[1,2]]
     end
   end
 
@@ -89,12 +70,7 @@ describe "Basic assignment" do
       *a = 1;        a.should == [1]
       *a = [];       a.should == []
       *a = [1];      a.should == [1]
-      *a = [nil];    a.should == [nil]
-      *a = [[]];     a.should == [[]]
       *a = [1,2];    a.should == [1,2]
-      *a = [*[]];    a.should == []
-      *a = [*[1]];   a.should == [1]
-      *a = [*[1,2]]; a.should == [1,2]
     end
   end
 
@@ -105,11 +81,7 @@ describe "Basic assignment" do
       *a = *[];       a.should == []
       *a = *[1];      a.should == [1]
       *a = *[nil];    a.should == [nil]
-      *a = *[[]];     a.should == [[]]
       *a = *[1,2];    a.should == [1,2]
-      *a = *[*[]];    a.should == []
-      *a = *[*[1]];   a.should == [1]
-      *a = *[*[1,2]]; a.should == [1,2]
     end
   end
 
@@ -120,12 +92,26 @@ describe "Basic assignment" do
       *a = *[];       a.should == []
       *a = *[1];      a.should == [1]
       *a = *[nil];    a.should == [nil]
-      *a = *[[]];     a.should == [[]]
       *a = *[1,2];    a.should == [1,2]
-      *a = *[*[]];    a.should == []
-      *a = *[*[1]];   a.should == [1]
-      *a = *[*[1,2]]; a.should == [1,2]
     end
+  end
+
+  it "sets unavailable values to nil" do
+    ary = []
+    a, b, c = ary
+
+    a.should be_nil
+    b.should be_nil
+    c.should be_nil
+  end
+
+  it "sets the splat to an empty Array if there are no more values" do
+    ary = []
+    a, b, *c = ary
+
+    a.should be_nil
+    b.should be_nil
+    c.should == []
   end
 
   it "allows multiple values to be assigned" do
@@ -136,9 +122,6 @@ describe "Basic assignment" do
     a,b,*c = [nil];     [a,b,c].should == [nil, nil, []]
     a,b,*c = [[]];      [a,b,c].should == [[], nil, []]
     a,b,*c = [1,2];     [a,b,c].should == [1,2,[]]
-    a,b,*c = [*[]];     [a,b,c].should == [nil, nil, []]
-    a,b,*c = [*[1]];    [a,b,c].should == [1, nil, []]
-    a,b,*c = [*[1,2]];  [a,b,c].should == [1, 2, []]
 
     a,b,*c = *nil;      [a,b,c].should == [nil, nil, []]
     a,b,*c = *1;        [a,b,c].should == [1, nil, []]
@@ -147,9 +130,6 @@ describe "Basic assignment" do
     a,b,*c = *[nil];    [a,b,c].should == [nil, nil, []]
     a,b,*c = *[[]];     [a,b,c].should == [[], nil, []]
     a,b,*c = *[1,2];    [a,b,c].should == [1,2,[]]
-    a,b,*c = *[*[]];    [a,b,c].should == [nil, nil, []]
-    a,b,*c = *[*[1]];   [a,b,c].should == [1, nil, []]
-    a,b,*c = *[*[1,2]]; [a,b,c].should == [1, 2, []]
   end
 
   it "calls to_a on the given argument when using a splat" do
@@ -380,16 +360,36 @@ describe "Assigning multiple values" do
 
   not_compliant_on :rubinius do
     it "returns the rhs values used for assignment as an array" do
-      o = Object.new
-      def o.masgn; a, b, c = 1, 2, 3; end
+      x = begin; a, b, c = 1, 2, 3; end
+      x.should == [1,2,3]
+    end
+  end
 
-      o.masgn.should == [1,2,3]
+  ruby_version_is "" ... "1.9" do
+    it "wraps a single value in an Array" do
+      *a = 1
+      a.should == [1]
+
+      b = [1]
+      *a = b
+      a.should == [b]
+    end
+  end
+
+  ruby_version_is "1.9" do
+    it "wraps a single value in an Array if it's not already one" do
+      *a = 1
+      a.should == [1]
+
+      b = [1]
+      *a = b
+      a.should == b
     end
   end
 
   it "evaluates rhs left-to-right" do
     a = VariablesSpecs::ParAsgn.new
-    d,e,f = a.inc, a.inc, a.inc
+    d, e ,f = a.inc, a.inc, a.inc
     d.should == 1
     e.should == 2
     f.should == 3
@@ -397,19 +397,22 @@ describe "Assigning multiple values" do
 
   it "supports parallel assignment to lhs args via object.method=" do
     a = VariablesSpecs::ParAsgn.new
-    a.x,b = 1,2
+    a.x, b = 1, 2
+
     a.x.should == 1
     b.should == 2
 
     c = VariablesSpecs::ParAsgn.new
-    c.x,a.x = a.x,b
+    c.x, a.x = a.x, b
+
     c.x.should == 1
     a.x.should == 2
   end
 
   it "supports parallel assignment to lhs args using []=" do
     a = [1,2,3]
-    a[3],b = 4,5
+    a[3], b = 4,5
+
     a.should == [1,2,3,4]
     b.should == 5
   end
@@ -428,14 +431,9 @@ describe "Assigning multiple values" do
     *a = nil
     a.should == [nil]
 
-    a,=*[1]
+    a, = *[1]
     a.should == 1
-    a,=*[[1]]
-    a.should == [1]
-    a,=*[[[1]]]
-    a.should == [[1]]
   end
-
 
   ruby_version_is ""..."1.9" do
     it "calls #to_ary on rhs arg if rhs has only a single arg" do

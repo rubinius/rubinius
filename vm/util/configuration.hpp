@@ -55,22 +55,22 @@ namespace config {
     virtual void set(const char* str) = 0;
     virtual void print_value(std::ostream& stream) = 0;
 
-    bool set_maybe(const char* key, const char* val) {
+    virtual bool set_maybe(const char* key, const char* val) {
       if(strcmp(name_, key) != 0) return false;
 
       set(val);
       return true;
     }
 
-    const char* name() {
+    const char* name() const {
       return name_;
     }
 
-    bool set_p() {
+    bool set_p() const {
       return set_;
     }
 
-    const char* description() {
+    const char* description() const {
       return description_;
     }
 
@@ -106,7 +106,44 @@ namespace config {
       stream << value;
     }
 
-    operator long() {
+    operator long() const {
+      return value;
+    }
+  };
+
+  class Bytes : public ConfigItem {
+  public:
+    long value;
+
+    Bytes(Configuration* config, const char* name, int def = 0)
+      : ConfigItem(config, name)
+      , value(def)
+    {}
+
+    virtual void set(const char* str) {
+      char* end;
+      value = strtol(str, &end, 0);
+      switch(*end) {
+      case 'g':
+      case 'G':
+        value *= 1073741824;
+        break;
+      case 'm':
+      case 'M':
+        value *= 1048576;
+        break;
+      case 'k':
+      case 'K':
+        value *= 1024;
+        break;
+      }
+    }
+
+    virtual void print_value(std::ostream& stream) {
+      stream << value;
+    }
+
+    operator long() const {
       return value;
     }
   };
@@ -133,7 +170,7 @@ namespace config {
       }
     }
 
-    operator const char*() {
+    operator const char*() const {
       return value.c_str();
     }
   };
@@ -166,7 +203,82 @@ namespace config {
       stream << (value ? "true" : "false");
     }
 
-    operator bool() {
+    operator bool() const {
+      return value;
+    }
+  };
+
+  class Radio : public ConfigItem {
+  public:
+    int value;
+    int which;
+
+  private:
+    std::vector<const char*> names_;
+    std::vector<int> values_;
+
+  public:
+    Radio(Configuration* config, const char* name)
+      : ConfigItem(config, name)
+    {
+      value = 0;
+      which = -1;
+    }
+
+    int add(const char* name, int v, bool def=false) {
+      int w = names_.size();
+      names_.push_back(name);
+      values_.push_back(v);
+
+      if(def) {
+        value = v;
+        which = w;
+      }
+
+      return w;
+    }
+
+    virtual bool set_maybe(const char* key, const char* val) {
+      for(size_t i = 0; i < names_.size(); i++) {
+        if(strcmp(names_[i], key) == 0) {
+          which = i;
+          value = values_[i];
+          return true;
+        }
+      }
+
+      return ConfigItem::set_maybe(key, val);
+    }
+
+    virtual void set(const char* str) {
+      for(size_t i = 0; i < names_.size(); i++) {
+        if(strcmp(names_[i], str) == 0) {
+          which = i;
+          value = values_[i];
+          return;
+        }
+      }
+
+      which = -1;
+      value = 0;
+    }
+
+    virtual void print_value(std::ostream& stream) {
+      if(which < 0) {
+        stream << "<no value>";
+      } else {
+        stream << names_[which];
+      }
+
+      stream << " (possible:";
+      for(size_t i = 0; i < names_.size(); i++) {
+        stream << " " << names_[i];
+      }
+
+      stream << ")";
+    }
+
+    operator int() const {
       return value;
     }
   };
@@ -187,7 +299,7 @@ namespace config {
 
       for(std::vector<Bool*>::iterator i = sub_bools_.begin();
           i != sub_bools_.end();
-          i++) {
+          ++i) {
         (*i)->set(str);
       }
     }
@@ -200,7 +312,7 @@ namespace config {
   inline bool Configuration::import(const char* key, const char* val) {
     for(Items::iterator i = items_.begin();
         i != items_.end();
-        i++) {
+        ++i) {
       ConfigItem* item = *i;
       if(item->set_maybe(key, val)) return true;
     }
@@ -211,7 +323,7 @@ namespace config {
   inline ConfigItem* Configuration::find(const char* key) {
     for(Items::iterator i = items_.begin();
         i != items_.end();
-        i++) {
+        ++i) {
       ConfigItem* item = *i;
       if(item->equal_p(key)) return item;
     }
@@ -222,7 +334,7 @@ namespace config {
   inline void Configuration::print(bool desc) {
     for(Items::iterator i = items_.begin();
         i != items_.end();
-        i++) {
+        ++i) {
       ConfigItem* item = *i;
       std::cout << item->name() << ": ";
       item->print_value(std::cout);

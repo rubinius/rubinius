@@ -1,0 +1,2 @@
+fails:Module#define_method when given an UnboundMethod adds the new method to the methods list
+fails:Module#define_method is private

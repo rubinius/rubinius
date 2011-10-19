@@ -5,6 +5,13 @@ $:.unshift File.dirname(__FILE__)
 require 'type'
 require 'dlconfig'
 
+if name = ARGV.shift
+  OUTPUT = File.open name, "wb"
+  at_exit { OUTPUT.close }
+else
+  OUTPUT = STDOUT
+end
+
 def mkfunc(rettype, fnum, argc)
   args = (0..(argc-1)).collect{|i| "long arg#{i}"}.join(", ")
 
@@ -51,6 +58,6 @@ end
 
 DLTYPE.keys.sort.each{|t|
   for n in 0..(MAX_CALLBACK - 1)
-    print(mkfunc(t, n, 15), "\n\n")
+    OUTPUT.print(mkfunc(t, n, 15), "\n\n")
   end
 }

@@ -706,4 +706,29 @@ describe "A Defn node" do
       end
     end
   end
+
+  ruby_version_is "1.9" do
+    relates "(not true)" do
+      compile do |g|
+        g.push :true
+        g.send :"!", 0, false
+      end
+    end
+
+    relates <<-ruby do
+        a = 1
+        b = !a
+      ruby
+
+      compile do |g|
+        g.push 1
+        g.set_local 0
+        g.pop
+
+        g.push_local 0
+        g.send :"!", 0, false
+        g.set_local 1
+      end
+    end
+  end
 end

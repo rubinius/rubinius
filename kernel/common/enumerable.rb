@@ -150,7 +150,10 @@ module Enumerable
     return to_enum :sort_by unless block_given?
 
     # Transform each value to a tuple with the value and it's sort by value
-    sort_values = map { |x| SortedElement.new(x, yield(x)) }
+    sort_values = map do
+      x = Rubinius.single_block_arg
+      SortedElement.new(x, yield(x))
+    end
 
     # Now sort the tuple according to the sort by value
     sort_values.sort!
@@ -285,30 +288,6 @@ module Enumerable
 
   ##
   # :call-seq:
-  #   enum.collect { | obj | block }  => array
-  #   enum.map     { | obj | block }  => array
-  #
-  # Returns a new array with the results of running +block+ once for every
-  # element in +enum+.
-  #
-  #   (1..4).collect { |i| i*i }   #=> [1, 4, 9, 16]
-  #   (1..4).collect { "cat"  }   #=> ["cat", "cat", "cat", "cat"]
-
-  def collect
-    if block_given?
-      ary = []
-      each { |o| ary << yield(o) }
-      ary
-    else
-      to_a
-    end
-  end
-
-  alias_method :map, :collect
-
-
-  ##
-  # :call-seq:
   #   enum.cycle(n = nil){ | obj | block } => nil or enumerator
   #
   # Calls block for each element of enum repeatedly n times or forever if none
@@ -318,8 +297,8 @@ module Enumerable
   # Enumerable#cycle saves elements in an internal array so changes to enum after the first pass have no effect.
   #
   #   a = ["a", "b", "c"]
-  #   a.cycle {|x| puts x }  # prints a, b, c, a, b, c,.. forever.
-  #   a.cycle(2) {|x| puts x }  # prints a, b, c, a, b, c.
+  #   a.cycle { |x| puts x }  # prints a, b, c, a, b, c,.. forever.
+  #   a.cycle(2) { |x| puts x }  # prints a, b, c, a, b, c.
 
   def cycle(many=nil)
     return to_enum(:cycle, many) unless block_given?
@@ -372,7 +351,7 @@ module Enumerable
 
   ##
   # :call-seq:
-  #   enum.drop_while {|obj| block } => array
+  #   enum.drop_while { |obj| block } => array
   #
   # Drops elements up to, but not including, the first element for which the block
   # returns nil or false and returns an array containing the remaining elements.
@@ -404,8 +383,6 @@ module Enumerable
     nil
   end
 
-  alias_method :enum_cons, :each_cons
-
   def each_slice(slice_size)
     return to_enum(:each_slice, slice_size) unless block_given?
 
@@ -425,36 +402,6 @@ module Enumerable
     nil
   end
 
-  alias_method :enum_slice, :each_slice
-
-  ##
-  # :call-seq:
-  #   enum.each_with_index { |obj, i| block }  -> enum or enumerator
-  #
-  # Calls +block+ with two arguments, the item and its index, for
-  # each item in +enum+.
-  #
-  #   hash = {}
-  #   %w[cat dog wombat].each_with_index { |item, index|
-  #     hash[item] = index
-  #   }
-  #
-  #   p hash   #=> {"cat"=>0, "wombat"=>2, "dog"=>1}
-
-  def each_with_index
-    return to_enum(:each_with_index) unless block_given?
-
-    idx = 0
-    each do |o|
-      yield o, idx
-      idx += 1
-    end
-
-    self
-  end
-
-  alias_method :enum_with_index, :each_with_index
-
   ##
   # :call-seq:
   #   enum.detect(ifnone=nil) { | obj | block }  => obj or nil
@@ -470,7 +417,10 @@ module Enumerable
   def find(ifnone=nil)
     return to_enum(:find, ifnone) unless block_given?
 
-    each { |o| return o if yield(o) }
+    each do
+      o = Rubinius.single_block_arg
+      return o if yield(o)
+    end
 
     ifnone.call if ifnone
   end
@@ -491,7 +441,8 @@ module Enumerable
     return to_enum(:find_all) unless block_given?
 
     ary = []
-    each do |o|
+    each do
+      o = Rubinius.single_block_arg
       ary << o if yield(o)
     end
     ary
@@ -502,7 +453,7 @@ module Enumerable
   ##
   # :call-seq:
   #   enum.find_index(value) => int
-  #   enum.find_index{|elem| block } => int
+  #   enum.find_index{ |elem| block } => int
   #   enum.find_index => enumerator
   #
   # Compares each entry in enum with value or passes to block.
@@ -698,7 +649,7 @@ module Enumerable
   end
 
   def self.sort_proc
-    @sort_proc ||= Proc.new do |a,b|
+    @sort_proc ||= Proc.new do |a, b|
       unless ret = a <=> b
         raise ArgumentError, "Improper spaceship value"
       end
@@ -911,7 +862,10 @@ module Enumerable
 
   def to_a(*arg)
     ary = []
-    each(*arg) { |o| ary << o }
+    each(*arg) do
+      o = Rubinius.single_block_arg
+      ary << o
+    end
     ary
   end
 
@@ -933,41 +887,5 @@ module Enumerable
   end
 
   alias_method :member?, :include?
-
-  ##
-  # :call-seq:
-  #    enum.zip(arg, ...)                   => array
-  #    enum.zip(arg, ...) { |arr| block }   => nil
-  #
-  # Converts any arguments to arrays, then merges elements of +enum+ with
-  # corresponding elements from each argument. This generates a sequence of
-  # enum#size +n+-element arrays, where +n+ is one more that the count of
-  # arguments. If the size of any argument is less than enum#size, nil values
-  # are supplied. If a block given, it is invoked for each output array,
-  # otherwise an array of arrays is returned.
-  #
-  #   a = [ 4, 5, 6 ]
-  #   b = [ 7, 8, 9 ]
-  #
-  #   (1..3).zip(a, b)      #=> [[1, 4, 7], [2, 5, 8], [3, 6, 9]]
-  #   "cat\ndog".zip([1])   #=> [["cat\n", 1], ["dog", nil]]
-  #   (1..3).zip            #=> [[1], [2], [3]]
-
-  def zip(*args)
-    args.map! { |a| a.to_a }
-
-    results = []
-
-    each_with_index do |o, i|
-      entry = args.inject([o]) { |ary, a| ary << a[i] }
-
-      yield entry if block_given?
-
-      results << entry
-    end
-
-    return nil if block_given?
-    results
-  end
 
 end

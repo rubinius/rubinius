@@ -188,6 +188,15 @@ describe "Invoking a method" do
       [{ :rbx => :cool, :specs => :fail_sometimes }]
   end
 
+  describe "when the method is not available" do
+    it "invokes method_missing" do
+      o = LangSendSpecs::MethodMissing.new
+      o.not_there(1,2)
+      o.message.should == :not_there
+      o.args.should == [1,2]
+    end
+  end
+
 end
 
 describe "Invoking a private setter method" do
@@ -215,3 +224,4 @@ describe "Invoking a private getter method" do
 end
 
 language_version __FILE__, "send"
+

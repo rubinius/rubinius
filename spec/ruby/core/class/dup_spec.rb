@@ -19,6 +19,19 @@ describe "Class#dup" do
     klass_dup.message.should == "text"
   end
 
+  it "retains an included module in the ancestor chain for the singleton class" do
+    klass = Class.new
+    mod = Module.new do
+      def hello
+        "hello"
+      end
+    end
+
+    klass.extend(mod)
+    klass_dup = klass.dup
+    klass_dup.hello.should == "hello"
+  end
+
   it "retains the correct ancestor chain for the singleton class" do
     super_klass = Class.new do
       def hello

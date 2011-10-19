@@ -132,14 +132,14 @@ module Rubinius
       # OS can handle that in a million different bad ways.
 
       keys = []
-      each { |k,v| keys << k }
+      each { |k, v| keys << k }
       keys.each { |k| delete k }
 
       self
     end
 
     def has_value?(value)
-      each { |k,v| return true if v == value }
+      each { |k, v| return true if v == value }
       return false
     end
 
@@ -160,15 +160,19 @@ module Rubinius
       to_hash.invert
     end
 
+    def key(value)
+      index(value)
+    end
+
     def keys
       keys = []
-      each { |k,v| keys << k }
+      each { |k, v| keys << k }
       keys
     end
 
     def values
       vals = []
-      each { |k,v| vals << v }
+      each { |k, v| vals << v }
       vals
     end
 
@@ -179,7 +183,7 @@ module Rubinius
 
     def length
       sz = 0
-      each { |k,v| sz += 1 }
+      each { |k, v| sz += 1 }
       sz
     end
 
@@ -193,6 +197,12 @@ module Rubinius
       clear
       other.each { |k, v| self[k] = v }
     end
+
+    def select(&blk)
+      return to_enum unless block_given?
+      to_hash.select(&blk)
+    end
+
 
     def shift
       env = environ()
@@ -218,7 +228,7 @@ module Rubinius
 
     def to_a
       ary = []
-      each { |k,v| ary << [k,v] }
+      each { |k, v| ary << [k, v] }
       ary
     end
 

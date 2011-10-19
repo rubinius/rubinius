@@ -1,0 +1,2 @@
+fails:Array#initialize is private
+fails:Array#initialize raises a RuntimeError on frozen arrays

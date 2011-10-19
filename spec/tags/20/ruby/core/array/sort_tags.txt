@@ -1,0 +1,2 @@
+fails:Array#sort! raises a RuntimeError on a frozen array
+fails:Array#sort! ignores any changes of self which would take place during sort!ing

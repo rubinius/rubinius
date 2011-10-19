@@ -51,6 +51,14 @@ module Rubinius
       Rubinius.const_set 'TERMINAL_WIDTH', width
 
       $VERBOSE = false
+
+      # We export the language mode into the environment so subprocesses like
+      # extension compiling during gem installs use the correct mode.
+      options = ENV["RBXOPT"]
+      language_mode = "-X#{Rubinius::RUBY_LIB_VERSION}"
+      unless options and options.include? language_mode
+        ENV["RBXOPT"] = "#{options} #{language_mode}".strip
+      end
     end
 
     # Setup $LOAD_PATH.
@@ -60,7 +68,7 @@ module Rubinius
       @main_lib = nil
 
       if env_lib = ENV['RBX_LIB']
-        @main_lib = env_lib if File.exists?(env_lib)
+        @main_lib = File.expand_path(env_lib) if File.exists?(env_lib)
       end
 
       # Use the env version if it's set.
@@ -80,10 +88,12 @@ containing the Rubinius standard library files.
       end
 
       @main_lib_bin = File.join @main_lib, "bin"
+      Rubinius.const_set :PARSER_EXT_PATH, "#{@main_lib}/ext/melbourne/rbx/melbourne20"
 
       # This conforms more closely to MRI. It is necessary to support
       # paths that mkmf adds when compiling and installing native exts.
       additions = []
+      additions << "#{@main_lib}/#{Rubinius::RUBY_LIB_VERSION}"
       additions << Rubinius::SITE_PATH
       additions << "#{Rubinius::SITE_PATH}/#{Rubinius::CPU}-#{Rubinius::OS}"
       additions << Rubinius::VENDOR_PATH
@@ -94,7 +104,7 @@ containing the Rubinius standard library files.
       $LOAD_PATH.unshift(*additions)
 
       if ENV['RUBYLIB'] and not ENV['RUBYLIB'].empty? then
-        rubylib_paths = ENV['RUBYLIB'].split(':')
+        rubylib_paths = ENV['RUBYLIB'].split(File::PATH_SEPARATOR)
         $LOAD_PATH.unshift(*rubylib_paths)
       end
     end
@@ -239,7 +249,18 @@ containing the Rubinius standard library files.
 
       options.on "-c", "FILE", "Check the syntax of FILE" do |file|
         if File.exists?(file)
-          mel = Rubinius::Melbourne.new file, 1, []
+          case
+          when Rubinius.ruby18?
+            parser = Rubinius::Melbourne
+          when Rubinius.ruby19?
+            parser = Rubinius::Melbourne19
+          when Rubinius.ruby20?
+            parser = Rubinius::Melbourne20
+          else
+            raise "no parser available for this ruby version"
+          end
+
+          mel = parser.new file, 1, []
 
           begin
             mel.parse_file
@@ -387,11 +408,6 @@ containing the Rubinius standard library files.
       # TODO: convert all these to -X options
       options.doc "\nRubinius options"
 
-      options.on "--gc-stats", "Show GC stats" do
-        stats = Stats::GC.new
-        at_exit { stats.show }
-      end
-
       @profile = Rubinius::Config['profile'] || Rubinius::Config['jit.profile']
 
       options.on "--vv", "Display version and extra info" do
@@ -407,13 +423,6 @@ containing the Rubinius standard library files.
           puts "  JIT disabled"
         end
         puts
-      end
-
-      # This will only trigger if it's not the first option, in which case
-      # we'll just tell the user to make it the first option.
-      options.on "--rebuild-compiler", "Rebuild the Rubinius compiler" do
-        puts "This must be the first and only option."
-        exit 1
       end
 
       options.doc <<-DOC
@@ -452,6 +461,16 @@ VM Options
 
       if @early_option_stop and @simple_options
         handle_simple_options(argv)
+      end
+
+      if Rubinius::Config['help']
+        STDOUT.puts "Rubinius configuration variables:"
+        STDOUT.puts "  These variables are normally set via -X and read via Rubinius::Config[var]."
+        STDOUT.puts
+
+        require 'rubinius/configuration'
+        Rubinius::ConfigurationVariables.instance.show_help(STDOUT)
+        exit 0
       end
 
       if str = Rubinius::Config['tool.require']
@@ -509,34 +528,17 @@ VM Options
     def load_compiler
       @stage = "loading the compiler"
 
-      # This happens before we parse ARGV, so we have to check ARGV ourselves
-      # here.
-
-      rebuild = (ARGV.last == "--rebuild-compiler")
-
       begin
-        CodeLoader.require_compiled "compiler", rebuild ? false : true
-      rescue Rubinius::InvalidRBC => e
-        STDERR.puts "There was an error loading the compiler."
-        STDERR.puts "It appears that your compiler is out of date with the VM."
-        STDERR.puts "\nPlease use 'rbx --rebuild-compiler' or 'rake [install]' to"
-        STDERR.puts "bring the compiler back to date."
+        CodeLoader.load_compiler
+      rescue LoadError => e
+        STDERR.puts <<-EOM
+Unable to load the bytecode compiler. Please run 'rake' or 'rake install'
+to rebuild the compiler.
+
+        EOM
+
+        e.render
         exit 1
-      end
-
-      if rebuild
-        STDOUT.puts "Rebuilding compiler..."
-        files =
-          ["#{@main_lib}/compiler.rb"] +
-          Dir["#{@main_lib}/compiler/*.rb"] +
-          Dir["#{@main_lib}/compiler/**/*.rb"]
-
-        files.each do |file|
-          puts "#{file}"
-          Rubinius.compile_file file, true
-        end
-
-        exit 0
       end
     end
 
@@ -562,6 +564,12 @@ VM Options
       if Rubinius::Config['agent.start']
         Rubinius::AgentRegistry.spawn_thread
       end
+    end
+
+    def rubygems
+      @stage = "loading Rubygems"
+
+      require "rubygems" if Rubinius.ruby19?
     end
 
     # Require any -r arguments
@@ -645,9 +653,22 @@ VM Options
       end
     end
 
+    def run_at_exits
+      until AtExit.empty?
+        begin
+          AtExit.shift.call
+        rescue SystemExit => e
+          @exit_code = e.status
+          # We recurse down so that future at_exits
+          # see the current exception
+          run_at_exits
+        end
+      end
+    end
+
     # Cleanup and at_exit processing.
     def epilogue
-      @stage = "at_exit handler"
+      @stage = "running at_exit handlers"
 
       begin
         Signal.run_handler Signal::Names["EXIT"]
@@ -655,15 +676,9 @@ VM Options
         @exit_code = e.status
       end
 
-      until AtExit.empty?
-        begin
-          AtExit.shift.call
-        rescue SystemExit => e
-          @exit_code = e.status
-        end
-      end
+      run_at_exits
 
-      @stage = "object finalizers"
+      @stage = "running object finalizers"
       GC.start
       ObjectSpace.run_finalizers
 
@@ -672,9 +687,6 @@ VM Options
         p VM.jit_info
       end
 
-      if Config['rbx.gc_stats']
-        Stats::GC.new.show
-      end
     rescue Object => e
       e.render "An exception occurred #{@stage}"
       @exit_code = 1
@@ -689,17 +701,22 @@ VM Options
       thread_state = Rubinius.thread_state
       reason = thread_state[0]
       unless reason == :none
-        STDERR.puts "\nERROR: the VM is exiting improperly"
+        STDERR.puts "\nERROR: the VM is exiting improperly #{@stage}"
         STDERR.puts "intended operation: #{reason.inspect}"
         STDERR.puts "associated value: #{thread_state[1].inspect}"
 
         destination = thread_state[2]
-        method = destination.method
 
-        STDERR.puts "destination scope:"
-        STDERR.puts "  method: #{method.name} at #{method.file}:#{method.first_line}"
-        STDERR.puts "  module: #{destination.module.name}"
-        STDERR.puts "  block:  #{destination.block}" if destination.block
+        if destination
+          method = destination.method
+
+          STDERR.puts "destination scope:"
+          STDERR.puts "  method: #{method.name} at #{method.file}:#{method.first_line}"
+          STDERR.puts "  module: #{destination.module.name}"
+          STDERR.puts "  block:  #{destination.block}" if destination.block
+        else
+          STDERR.puts "destination scope: unknown"
+        end
 
         if reason == :catch_throw
           STDERR.puts "throw destination: #{thread_state[4].inspect}"
@@ -729,7 +746,7 @@ VM Options
         path = "#{ENV['HOME']}/.rubinius_last_error"
       end
 
-      File.open(path, "w") do |f|
+      File.open(path, "wb") do |f|
         f.puts "Rubinius Crash Report #rbxcrashreport"
         f.puts ""
         f.puts "[[Exception]]"
@@ -757,6 +774,7 @@ VM Options
           load_paths
           debugger
           agent
+          rubygems
           requires
           evals
           script
@@ -808,3 +826,4 @@ VM Options
     end
   end
 end
+

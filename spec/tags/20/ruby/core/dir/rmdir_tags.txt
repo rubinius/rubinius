@@ -1,0 +1,1 @@
+fails:Dir.rmdir calls #to_path on non-String arguments

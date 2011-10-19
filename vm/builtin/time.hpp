@@ -38,32 +38,32 @@ namespace rubinius {
 
     static void init(STATE);
 
-    // Ruby.primitive :time_s_specific
+    // Rubinius.primitive :time_s_specific
     static Time* specific(STATE, Object* self, Integer* sec, Integer* usec, Object* gmt);
 
-    // Ruby.primitive :time_s_now
+    // Rubinius.primitive :time_s_now
     static Time* now(STATE, Object* self);
 
-    // Ruby.primitive :time_s_from_array
+    // Rubinius.primitive :time_s_from_array
     static Time* from_array(STATE, Object* self, Fixnum* sec, Fixnum* min, Fixnum* hour, Fixnum* mday, Fixnum* mon, Fixnum* year, Fixnum* usec, Fixnum* isdst, Object* from_gmt);
 
-    // Ruby.primitive :time_dup
+    // Rubinius.primitive :time_dup
     Time* dup(STATE);
 
-    // Ruby.primitive :time_seconds
+    // Rubinius.primitive :time_seconds
     Integer* seconds(STATE) {
       return Integer::from(state, seconds_);
     }
 
-    // Ruby.primitive :time_useconds
+    // Rubinius.primitive :time_useconds
     Integer* useconds(STATE) {
       return Integer::from(state, microseconds_);
     }
 
-    // Ruby.primitive :time_decompose
+    // Rubinius.primitive :time_decompose
     Array* calculate_decompose(STATE, Object* gmt);
 
-    // Ruby.primitive :time_strftime
+    // Rubinius.primitive :time_strftime
     String* strftime(STATE, String* format);
 
     class Info : public TypeInfo {

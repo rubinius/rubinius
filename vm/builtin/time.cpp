@@ -1,3 +1,5 @@
+#include "config.h"
+
 #include "vm.hpp"
 #include "vm/object_utils.hpp"
 #include "objectmemory.hpp"
@@ -14,6 +16,8 @@
 
 #include <sys/time.h>
 #include <time.h>
+
+#include "windows_compat.h"
 
 namespace rubinius {
   void Time::init(STATE) {
@@ -104,8 +108,10 @@ namespace rubinius {
     }
 
     tm.tm_wday = -1;
+#ifndef RBX_WINDOWS
     tm.tm_gmtoff = 0;
     tm.tm_zone = 0;
+#endif
     tm.tm_year = year->to_native() - 1900;
 
     tm.tm_isdst = isdst->to_native();
@@ -148,7 +154,7 @@ namespace rubinius {
     if(!decomposed_->nil_p()) return decomposed_;
 
     time_t seconds = seconds_;
-    struct tm tm;
+    struct tm tm = {0};
 
     if(RTEST(use_gmt)) {
       gmtime_r(&seconds, &tm);

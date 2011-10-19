@@ -4,25 +4,29 @@
 # isspace, islower, ... are not in MRI core library.
 
 module Rubinius::CType
+  # The character literals (?x) are Fixnums in 1.8 and Strings in 1.9
+  # so we use literal values instead so this is 1.8/1.9 compatible.
+
+  # \n \r \t \f \v \a \b \e
   def self.isctrl(num)
-    num == ?\n or num == ?\r or num == ?\t or num == ?\f or
-    num == ?\v or num == ?\a or num == ?\e or num == ?\b
+    (num >= 7 and num <= 13) or num == 27
   end
 
+  # ' ' \n \t \r \f \v
   def self.isspace(num)
-    num == ?\s or num == ?\n or num == ?\t or num == ?\r or num == ?\f or num == ?\v
+    num == 32 or (num >= 9 and num <= 13)
   end
 
   def self.isupper(num)
-    num >= ?A and num <= ?Z
+    num >= 65 and num <= 90
   end
 
   def self.islower(num)
-    num >= ?a and num <= ?z
+    num >= 97 and num <= 122
   end
 
   def self.isdigit(num)
-    num >= ?0 and num <= ?9
+    num >= 48 and num <= 57
   end
 
   def self.isalnum(num)
@@ -30,7 +34,7 @@ module Rubinius::CType
   end
 
   def self.toupper!(num)
-    num - ?\s
+    num - 32
   end
 
   def self.toupper(num)
@@ -38,11 +42,10 @@ module Rubinius::CType
   end
 
   def self.tolower!(num)
-    num + ?\s
+    num + 32
   end
 
   def self.tolower(num)
     isupper(num) ? tolower!(num) : num
   end
-
 end

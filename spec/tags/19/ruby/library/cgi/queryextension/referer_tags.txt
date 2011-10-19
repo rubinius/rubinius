@@ -1,0 +1,1 @@
+fails:CGI::QueryExtension#referer returns ENV['HTTP_REFERER']

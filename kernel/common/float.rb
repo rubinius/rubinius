@@ -17,24 +17,24 @@ class Float < Numeric
   end
 
   def -@
-    Ruby.primitive :float_neg
+    Rubinius.primitive :float_neg
     raise PrimitiveFailure, "Float#-@ primitive failed"
   end
 
   def +(other)
-    Ruby.primitive :float_add
+    Rubinius.primitive :float_add
     b, a = math_coerce other
     a + b
   end
 
   def -(other)
-    Ruby.primitive :float_sub
+    Rubinius.primitive :float_sub
     b, a = math_coerce other
     a - b
   end
 
   def *(other)
-    Ruby.primitive :float_mul
+    Rubinius.primitive :float_mul
     b, a = math_coerce other
     a * b
   end
@@ -44,7 +44,7 @@ class Float < Numeric
   #++
 
   def divide(other)
-    Ruby.primitive :float_div
+    Rubinius.primitive :float_div
     redo_coerced :/, other
   end
 
@@ -54,20 +54,20 @@ class Float < Numeric
 
 
   def divmod(other)
-    Ruby.primitive :float_divmod
+    Rubinius.primitive :float_divmod
     b, a = math_coerce other
     a.divmod b
   end
 
   def **(other)
-    Ruby.primitive :float_pow
+    Rubinius.primitive :float_pow
     b, a = math_coerce other
     a ** b
   end
 
   def %(other)
     return 0 / 0.to_f if other == 0
-    Ruby.primitive :float_mod
+    Rubinius.primitive :float_mod
     b, a = math_coerce other
     a % b
   end
@@ -75,37 +75,37 @@ class Float < Numeric
   alias_method :modulo, :%
 
   def <(other)
-    Ruby.primitive :float_lt
+    Rubinius.primitive :float_lt
     b, a = math_coerce other, :compare_error
     a < b
   end
 
   def <=(other)
-    Ruby.primitive :float_le
+    Rubinius.primitive :float_le
     b, a = math_coerce other, :compare_error
     a <= b
   end
 
   def >(other)
-    Ruby.primitive :float_gt
+    Rubinius.primitive :float_gt
     b, a = math_coerce other, :compare_error
     a > b
   end
 
   def >=(other)
-    Ruby.primitive :float_ge
+    Rubinius.primitive :float_ge
     b, a = math_coerce other, :compare_error
     a >= b
   end
 
   def <=>(other)
-    Ruby.primitive :float_compare
+    Rubinius.primitive :float_compare
     b, a = math_coerce other, :compare_error
     a <=> b
   end
 
   def ==(other)
-    Ruby.primitive :float_equal
+    Rubinius.primitive :float_equal
     begin
       b, a = math_coerce(other)
       return a == b
@@ -115,17 +115,17 @@ class Float < Numeric
   end
 
   def eql?(other)
-    Ruby.primitive :float_eql
+    Rubinius.primitive :float_eql
     raise PrimitiveFailure, "Float#eql? primitive failed"
   end
 
   def nan?
-    Ruby.primitive :float_isnan
+    Rubinius.primitive :float_isnan
     raise PrimitiveFailure, "Float#nan? primitive failed"
   end
 
   def infinite?
-    Ruby.primitive :float_isinf
+    Rubinius.primitive :float_isinf
     raise PrimitiveFailure, "Float#infinite? primitive failed"
   end
 
@@ -138,7 +138,7 @@ class Float < Numeric
   end
 
   def to_i
-    Ruby.primitive :float_to_i
+    Rubinius.primitive :float_to_i
     raise PrimitiveFailure, "Float#to_i primitive failed"
   end
 
@@ -152,23 +152,23 @@ class Float < Numeric
   alias_method :inspect, :to_s
 
   def to_s_minimal
-    Ruby.primitive :float_to_s_minimal
+    Rubinius.primitive :float_to_s_minimal
     raise PrimitiveFailure, "minimally formatted string exceeds character buffer size"
   end
 
   def to_s_formatted(fmt)
-    Ruby.primitive :float_to_s_formatted
+    Rubinius.primitive :float_to_s_formatted
     raise PrimitiveFailure, "String#to_s_formatted output exceeds buffer size"
   end
   private :to_s_formatted
 
   def to_packed(size)
-    Ruby.primitive :float_to_packed
+    Rubinius.primitive :float_to_packed
     raise PrimitiveFailure, "float_to_packed failed"
   end
 
   def round
-    Ruby.primitive :float_round
+    Rubinius.primitive :float_round
     raise PrimitiveFailure, "float_round failed"
   end
 

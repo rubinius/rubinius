@@ -35,21 +35,21 @@ class Rubinius::VM
   # Used to support error reporting where IO is not reliable yet.
   #
   def self.write_error(str)
-    Ruby.primitive :vm_write_error
+    Rubinius.primitive :vm_write_error
     raise PrimitiveFailure, "Rubinius::VM.write_error primitive failed"
   end
 
   # Prints Ruby backtrace at point of call.
   #
   def self.show_backtrace
-    Ruby.primitive :vm_show_backtrace
+    Rubinius.primitive :vm_show_backtrace
     raise PrimitiveFailure, "Rubinius::VM.show_backtrace primitive failed"
   end
 
   # Reset the method cache globally for given method name.
   #
   def self.reset_method_cache(sym)
-    Ruby.primitive :vm_reset_method_cache
+    Rubinius.primitive :vm_reset_method_cache
     raise PrimitiveFailure, "Rubinius::VM.reset_method_cache primitive failed"
   end
 end
@@ -59,7 +59,7 @@ class Object
   # Prints basic information about the object to stdout.
   #
   def __show__
-    Ruby.primitive :object_show
+    Rubinius.primitive :object_show
     "<unknown>"
   end
 end
@@ -76,7 +76,7 @@ class Class
   # See .new
   #
   def allocate
-    Ruby.primitive :class_allocate
+    Rubinius.primitive :class_allocate
     raise RuntimeError, "Class#allocate primitive failed on #{self.inspect}"
   end
 
@@ -113,7 +113,7 @@ module Kernel
   # explicit receiver, since class by itself is a keyword.
   #
   def class
-    Ruby.primitive :object_class
+    Rubinius.primitive :object_class
     raise PrimitiveFailure, "Kernel#class primitive failed."
   end
 
@@ -121,7 +121,7 @@ module Kernel
   #
   # This is the same as #class, but named to always be available.
   def __class__
-    Ruby.primitive :object_class
+    Rubinius.primitive :object_class
     raise PrimitiveFailure, "Kernel#class primitive failed."
   end
 
@@ -157,7 +157,7 @@ module Kernel
   # If the argument is not a Class or Module, a TypeError is raised.
   #
   def kind_of?(cls)
-    Ruby.primitive :object_kind_of
+    Rubinius.primitive :object_kind_of
     raise TypeError, 'kind_of? requires a Class or Module argument'
   end
 
@@ -200,8 +200,7 @@ module Kernel
   # if defined.
   #
   def dup
-    cls = Rubinius.invoke_primitive :object_class, self
-    copy = cls.allocate
+    copy = Rubinius.invoke_primitive(:object_class, self).allocate
 
     Rubinius.invoke_primitive :object_copy_object, copy, self
 
@@ -258,7 +257,7 @@ module Rubinius
     # Specialised allocation.
     #
     def self.allocate
-      Ruby.primitive :accessvariable_allocate
+      Rubinius.primitive :accessvariable_allocate
       raise PrimitiveFailure, "AccessVariable.allocate primitive failed"
     end
 
@@ -303,14 +302,14 @@ module Rubinius
     # Retrieve value for given key.
     #
     def [](key)
-      Ruby.primitive :lookuptable_aref
+      Rubinius.primitive :lookuptable_aref
       raise PrimitiveFailure, "LookupTable#[] primitive failed"
     end
 
     # Store value under key.
     #
     def []=(key, val)
-      Ruby.primitive :lookuptable_store
+      Rubinius.primitive :lookuptable_store
       raise PrimitiveFailure, "LookupTable#[]= primitive failed"
     end
   end
@@ -325,21 +324,21 @@ module Rubinius
     # Perform lookup for method name.
     #
     def lookup(name)
-      Ruby.primitive :methodtable_lookup
+      Rubinius.primitive :methodtable_lookup
       raise PrimitiveFailure, "MethodTable#lookup primitive failed"
     end
 
     # Store Executable under name, with given visibility.
     #
     def store(name, exec, visibility)
-      Ruby.primitive :methodtable_store
+      Rubinius.primitive :methodtable_store
       raise PrimitiveFailure, "MethodTable#store primitive failed"
     end
 
     # Make an alias from +original_name+ in +original_mod+ to +name+
     # with visibility +vis+
     def alias(name, visibility, original_name, original_exec, original_mod)
-      Ruby.primitive :methodtable_alias
+      Rubinius.primitive :methodtable_alias
       raise PrimitiveFailure, "MethodTable#alias primitive failed"
     end
   end
@@ -350,7 +349,7 @@ class Symbol
   # Produce String representation of this Symbol.
   #
   def to_s
-    Ruby.primitive :symbol_to_s
+    Rubinius.primitive :symbol_to_s
     raise PrimitiveFailure, "Symbol#to_s primitive failed."
   end
 
@@ -380,7 +379,7 @@ class String
   # TODO: Add taintedness-check
   #++
   def to_sym
-    Ruby.primitive :symbol_lookup
+    Rubinius.primitive :symbol_lookup
     raise PrimitiveFailure, "Unable to symbolize: #{self.dump}"
   end
 
@@ -409,7 +408,7 @@ module Process
   end
 
   def self.exit!(code=1)
-    Ruby.primitive :vm_exit
+    Rubinius.primitive :vm_exit
 
     case code
     when true
@@ -431,7 +430,7 @@ class Module
   # Specialised allocator.
   #
   def self.allocate
-    Ruby.primitive :module_allocate
+    Rubinius.primitive :module_allocate
     raise PrimitiveFailure, "Module.allocate primitive failed"
   end
 
@@ -615,6 +614,7 @@ class Module
     if entry = @method_table.lookup(name)
       sc = class << self; self; end
       sc.method_table.store name, entry.method, :public
+      Rubinius::VM.reset_method_cache name
       private name
     end
   end
@@ -668,7 +668,7 @@ module Rubinius
     # Specialised allocator.
     #
     def self.allocate
-      Ruby.primitive :included_module_allocate
+      Rubinius.primitive :included_module_allocate
       raise PrimitiveFailure, "IncludedModule.allocate primitive failed"
     end
 
@@ -732,3 +732,4 @@ end
 class Object
   include Kernel
 end
+

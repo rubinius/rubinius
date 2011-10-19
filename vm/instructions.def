@@ -354,9 +354,9 @@ end
 # [Description]
 #   Updates the value of a local variable contained in an enclosing scope
 #
-#   Read a value from the top of thes stack and use it to update a local
+#   Read a value from the top of the stack and use it to update a local
 #   variable in an enclosing scope. The _depth_ and _index_ operands
-#   indentify the specific local the same as in `push_local_depth`.
+#   identify the specific local the same as in `push_local_depth`.
 # [See Also]
 #   push_local_depth
 # [Example]
@@ -407,7 +407,13 @@ end
 #   Arguments are specified via a zero-index, so the first argument is 0.
 
 instruction passed_arg(index) [ -- boolean ]
-  if(index < (int)call_frame->arguments->total()) {
+  if(!call_frame->arguments) {
+    Exception::internal_error(state, call_frame,
+                              "no arguments object");
+    RUN_EXCEPTION();
+  }
+
+  if(index < (int)call_frame->arguments->total() - vmm->post_args) {
     stack_push(Qtrue);
   } else {
     stack_push(Qfalse);
@@ -573,7 +579,7 @@ instruction raise_break() [ value -- value ] => raise
   } else if(call_frame->scope_still_valid(call_frame->scope->parent())) {
     state->thread_state()->raise_break(stack_top(), call_frame->scope->parent());
   } else {
-    Exception* exc = Exception::make_exception(state, G(jump_error), "attempted to break to exitted method");
+    Exception* exc = Exception::make_exception(state, G(jump_error), "attempted to break to exited method");
     exc->locations(state, Location::from_call_stack(state, call_frame));
     state->thread_state()->raise_exception(exc);
   }
@@ -595,7 +601,7 @@ section "Manipulate arrays"
 #   Create an array and populate with values on the stack
 #
 #   Creates a new array, populating its contents by remove the number of
-#   values specidied by operand _count_ and putting them into the array in the
+#   values specified by operand _count_ and putting them into the array in the
 #   order they were on the stack. The resulting array is pushed onto the
 #   stack.
 # [Stack Before]
@@ -625,7 +631,8 @@ end
 #
 #   1. If the input is a tuple, a new array object is created based on the
 #      tuple data.
-#   1. If the input is an array, it is unmodified.
+#   2. If the input is an array, it is unmodified.
+#   3. If in 1.9 mode and the input is nil, an empty Array is returned
 #
 #   If the input is any other type, call `Array.coerce_into_array(value)`.
 #   If the return value of the method call is an `Array`, make it the result.
@@ -637,10 +644,13 @@ instruction cast_array() [ value -- array ]
   // Use stack_top and not stack_pop because we may need
   // to preserve and reread the value from the stack below.
   Object* t1 = stack_top();
-  if(Tuple* tup = try_as<Tuple>(t1)) {
+  if(!LANGUAGE_18_ENABLED(state) && t1->nil_p()) {
+    t1 = Array::create(state, 0);
+  } else if(Tuple* tup = try_as<Tuple>(t1)) {
     t1 = Array::from_tuple(state, tup);
   } else if(!kind_of<Array>(t1)) {
-    Arguments args(G(array), 1, &t1);
+    Object* recv = G(array);
+    Arguments args(G(sym_coerce_into_array), recv, 1, &t1);
     Dispatch dis(G(sym_coerce_into_array));
 
     Object* res = dis.send(state, call_frame, args);
@@ -873,7 +883,7 @@ section "Send messages"
 #   argument _flags_.
 # [Notes]
 #   Currently this only has one use, which is that send_stack_with_splat
-#   checks if flags is set to CALL_FLAG_CONCAT which indicase that
+#   checks if flags is set to CALL_FLAG_CONCAT which indicates that
 #   the splat represents arguments at the beginning rather than the end.
 
 instruction set_call_flags(flags) [ -- ]
@@ -904,7 +914,7 @@ instruction send_method(literal) [ receiver -- value ] => send
 
   SET_ALLOW_PRIVATE(false);
 
-  Arguments args(recv, Qnil, 0, 0);
+  Arguments args(cache->name, recv, Qnil, 0, 0);
   Object* ret = cache->execute(state, call_frame, args);
 
   (void)stack_pop();
@@ -943,7 +953,7 @@ instruction send_stack(literal count) [ receiver +count -- value ] => send
 
   SET_ALLOW_PRIVATE(false);
 
-  Arguments args(recv, Qnil, count,
+  Arguments args(cache->name, recv, Qnil, count,
                  stack_back_position(count));
 
   Object* ret = cache->execute(state, call_frame, args);
@@ -984,7 +994,7 @@ instruction send_stack_with_block(literal count) [ block receiver +count -- valu
   Object* recv = stack_back(count);
   InlineCache* cache = reinterpret_cast<InlineCache*>(literal);
 
-  Arguments args(recv, block, count,
+  Arguments args(cache->name, recv, block, count,
                  stack_back_position(count));
 
   SET_ALLOW_PRIVATE(false);
@@ -1029,7 +1039,7 @@ instruction send_stack_with_splat(literal count) [ block array receiver +count -
   Object* recv =  stack_back(count);
   InlineCache* cache = reinterpret_cast<InlineCache*>(literal);
 
-  Arguments args(recv, block, count,
+  Arguments args(cache->name, recv, block, count,
                  stack_back_position(count));
 
   if(!ary->nil_p()) {
@@ -1053,9 +1063,9 @@ end
 # [Description]
 #   Call a method on the superclass with a block
 #
-#   The same as `send_stack_with_block`, but reciever is the current self
+#   The same as `send_stack_with_block`, but receiver is the current self
 #   instead of being read from the stack, and the method to call is looked up
-#   starting with the reciever superclass.
+#   starting with the receiver superclass.
 # [Stack Before]
 #   block
 #   argN
@@ -1072,8 +1082,8 @@ instruction send_super_stack_with_block(literal count) [ block +count -- value ]
   InlineCache* cache = reinterpret_cast<InlineCache*>(literal);
   Object* const recv = call_frame->self();
 
-  Arguments new_args(recv, block, count,
-                 stack_back_position(count));
+  Arguments new_args(cache->name, recv, block, count,
+                     stack_back_position(count));
 
   SET_ALLOW_PRIVATE(false);
 
@@ -1114,8 +1124,8 @@ instruction send_super_stack_with_splat(literal count) [ block array +count -- v
   Object* const recv = call_frame->self();
   InlineCache* cache = reinterpret_cast<InlineCache*>(literal);
 
-  Arguments new_args(recv, block, count,
-                 stack_back_position(count));
+  Arguments new_args(cache->name, recv, block, count,
+                     stack_back_position(count));
 
   if(!ary->nil_p()) {
     if(CALL_FLAGS() & CALL_FLAG_CONCAT) {
@@ -1158,6 +1168,12 @@ end
 #   _This instruction is deprecated and no longer used._
 
 instruction passed_blockarg(count) [ -- boolean ]
+  if(!call_frame->arguments) {
+    Exception::internal_error(state, call_frame,
+                              "no arguments object");
+    RUN_EXCEPTION();
+  }
+
   if(count == (int)call_frame->arguments->total()) {
     stack_push(Qtrue);
   } else {
@@ -1201,6 +1217,12 @@ end
 #   block that accepts one argument.
 
 instruction cast_for_single_block_arg() [ -- argument ]
+  if(!call_frame->arguments) {
+    Exception::internal_error(state, call_frame,
+                              "no arguments object");
+    RUN_EXCEPTION();
+  }
+
   int k = call_frame->arguments->total();
   if(k == 0) {
     stack_push(Qnil);
@@ -1244,6 +1266,12 @@ end
 #   lambda semantics or not.
 
 instruction cast_for_multi_block_arg() [ -- array ]
+  if(!call_frame->arguments) {
+    Exception::internal_error(state, call_frame,
+                              "no arguments object");
+    RUN_EXCEPTION();
+  }
+
   /* If there is only one argument and that thing is an array...
      AND the thing being invoked is not a lambda... */
   if(!(call_frame->flags & CallFrame::cIsLambda) &&
@@ -1278,12 +1306,39 @@ end
 #   them into an `Array`, which is then pushed on the stack.
 
 instruction cast_for_splat_block_arg() [ -- arguments ]
-  Array* ary = Array::create(state, call_frame->arguments->total());
-  for(size_t i = 0; i < call_frame->arguments->total(); i++) {
-    ary->set(state, i, call_frame->arguments->get_argument(i));
+  if(!call_frame->arguments) {
+    Exception::internal_error(state, call_frame,
+                              "no arguments object");
+    RUN_EXCEPTION();
   }
 
-  stack_push(ary);
+  if(call_frame->arguments->total() == 1) {
+    Object* obj = call_frame->arguments->get_argument(0);
+    if(!kind_of<Array>(obj)) {
+      /* Yes, you are reading this code correctly: In Ruby 1.8, calling a
+       * block with these forms { |*| } and { |*a| } with a single argument
+       * that is not an Array and which responds to #to_ary will cause #to_ary
+       * to be called and its return value ignored. Ultimately, the original
+       * object itself is wrapped in an Array and passed to the block.
+       */
+      if(RTEST(obj->respond_to(state, state->symbol("to_ary"), Qfalse))) {
+        Object* ignored = obj->send(state, call_frame, state->symbol("to_ary"));
+        if(!kind_of<Array>(ignored)) {
+          Exception::type_error(state, "to_ary must return an Array", call_frame);
+          RUN_EXCEPTION();
+        }
+      }
+    }
+    Array* ary = Array::create(state, 1);
+    ary->set(state, 0, obj);
+    stack_push(ary);
+  } else {
+    Array* ary = Array::create(state, call_frame->arguments->total());
+    for(size_t i = 0; i < call_frame->arguments->total(); i++) {
+      ary->set(state, i, call_frame->arguments->get_argument(i));
+    }
+    stack_push(ary);
+  }
 end
 
 # [Description]
@@ -1304,7 +1359,7 @@ instruction yield_stack(count) [ +count -- value ] => yield
   flush_ip();
   Object* t1 = call_frame->scope->block();
   Object* ret;
-  Arguments args(t1, count, stack_back_position(count));
+  Arguments args(G(sym_call), t1, count, stack_back_position(count));
 
   if(BlockEnvironment *env = try_as<BlockEnvironment>(t1)) {
     ret = env->call(state, call_frame, args);
@@ -1344,7 +1399,7 @@ instruction yield_splat(count) [ array +count -- value ] => yield
   Object* ary = stack_pop();
   Object* t1 = call_frame->scope->block();
 
-  Arguments args(t1, count, stack_back_position(count));
+  Arguments args(G(sym_call), t1, count, stack_back_position(count));
 
   if(!ary->nil_p()) {
     args.append(state, as<Array>(ary));
@@ -1388,7 +1443,7 @@ end
 #   Build a new string using many substrings
 #
 #   Remove _count_ elements from the stack and interpret each as a `String`.
-#   Build a new string which is all the removed elements concated together in
+#   Build a new string which is all the removed elements concatenated together in
 #   the order they were on the stack.
 #
 #   Push the resulting string.
@@ -1419,21 +1474,21 @@ instruction string_build(count) [ +count -- string ]
 
     if(str) {
       native_int cur_size = str->size();
-      native_int data_size = as<ByteArray>(str->data())->size();
+      native_int data_size = as<CharArray>(str->data())->size();
       if(unlikely(cur_size > data_size)) {
         cur_size = data_size;
       }
       size += cur_size;
     } else {
-      // This isn't how MRI does this. If sub isn't a String, it converts the
+      // This isn't how MRI does this. If sub isn't a String, it converts
       // the original object via any_to_s, not the bad value returned from #to_s.
-      // This quite a bit harder to implement in rubinius atm, so i'm opting for
+      // This quite a bit harder to implement in rubinius atm, so I'm opting for
       // this way instead.
 
       str = obj->to_s(state, false);
       tainted |= str->is_tainted_p();
       native_int cur_size = str->size();
-      native_int data_size = as<ByteArray>(str->data())->size();
+      native_int data_size = as<CharArray>(str->data())->size();
       if(unlikely(cur_size > data_size)) {
         cur_size = data_size;
       }
@@ -1451,7 +1506,7 @@ instruction string_build(count) [ +count -- string ]
     Object* obj = stack_back(i);
     String* sub = as<String>(obj);
     native_int sub_size = sub->size();
-    native_int data_size = as<ByteArray>(sub->data())->size();
+    native_int data_size = as<CharArray>(sub->data())->size();
     if(unlikely(sub_size > data_size)) {
       sub_size = data_size;
     }
@@ -1527,8 +1582,6 @@ instruction check_interrupts() [ -- ]
   // This is used in loops, and allows loops to heat a method up.
   if(vmm->call_count >= 0) vmm->call_count++;
 
-  state->global_lock().checkpoint(state, call_frame);
-
   // The | here reduces the number of branches to check
   if(unlikely(state->interrupts.check)) {
     state->interrupts.checked();
@@ -1540,6 +1593,9 @@ instruction check_interrupts() [ -- ]
   }
 
   if(!state->check_async(call_frame)) RUN_EXCEPTION();
+
+  state->set_call_frame(call_frame);
+  state->shared.checkpoint(state);
 end
 
 # [Description]
@@ -1586,9 +1642,10 @@ instruction check_serial(literal serial) [ receiver -- boolean ]
   Object* recv = stack_pop();
   InlineCache* cache = reinterpret_cast<InlineCache*>(literal);
 
-  if(cache->update_and_validate(state, call_frame, recv) &&
-       cache->method &&
-       cache->method->serial()->to_native() == serial) {
+  MethodCacheEntry* mce =
+      cache->update_and_validate(state, call_frame, recv);
+
+  if(mce && mce->method()->serial()->to_native() == serial) {
      stack_push(Qtrue);
   } else {
     stack_push(Qfalse);
@@ -1605,9 +1662,10 @@ instruction check_serial_private(literal serial) [ receiver -- boolean ]
   Object* recv = stack_pop();
   InlineCache* cache = reinterpret_cast<InlineCache*>(literal);
 
-  if(cache->update_and_validate_private(state, call_frame, recv) &&
-       cache->method &&
-       cache->method->serial()->to_native() == serial) {
+  MethodCacheEntry* mce =
+      cache->update_and_validate_private(state, call_frame, recv);
+
+  if(mce && mce->method()->serial()->to_native() == serial) {
      stack_push(Qtrue);
   } else {
     stack_push(Qfalse);
@@ -1621,7 +1679,7 @@ section "Access object fields"
 #   stack.
 # [Notes]
 #   Fields are similar to instance variables, but have dedicated storage
-#   allocated. They are primarily used on core or bootstap classes.
+#   allocated. They are primarily used on core or bootstrap classes.
 #   This instruction should not be used directly. The VM will specialize
 #   push_ivar instructions into this.
 
@@ -1737,7 +1795,7 @@ instruction meta_send_op_plus(literal) [ value1 value2 -- sum ] => send
     stack_push(res);
   } else {
     flush_ip();
-    Arguments out_args(left, 1, stack_back_position(1));
+    Arguments out_args(G(sym_plus), left, 1, stack_back_position(1));
     InlineCache* cache = reinterpret_cast<InlineCache*>(literal);
     Object* ret = cache->execute(state, call_frame, out_args);
     stack_clear(2);
@@ -1763,7 +1821,7 @@ instruction meta_send_op_minus(literal) [ value1 value2 -- difference ] => send
     stack_set_top(((Fixnum*)(left))->sub(state, (Fixnum*)(right)));
   } else {
     flush_ip();
-    Arguments out_args(left, 1, stack_back_position(1));
+    Arguments out_args(G(sym_minus), left, 1, stack_back_position(1));
     InlineCache* cache = reinterpret_cast<InlineCache*>(literal);
     Object* ret = cache->execute(state, call_frame, out_args);
     stack_clear(2);
@@ -1793,7 +1851,7 @@ instruction meta_send_op_equal(literal) [ value1 value2 -- boolean ] => send
   } else {
     flush_ip();
 
-    Arguments out_args(t1, 1, stack_back_position(1));
+    Arguments out_args(G(sym_equal), t1, 1, stack_back_position(1));
     Object* ret = cache->execute(state, call_frame, out_args);
     stack_clear(2);
 
@@ -1819,8 +1877,8 @@ instruction meta_send_op_lt(literal) [ value1 value2 -- boolean ]
     stack_set_top((j < k) ? Qtrue : Qfalse);
   } else {
     flush_ip();
-    Arguments out_args(t1, 1, stack_back_position(1));
     InlineCache* cache = reinterpret_cast<InlineCache*>(literal);
+    Arguments out_args(cache->name, t1, 1, stack_back_position(1));
     Object* ret = cache->execute(state, call_frame, out_args);
     stack_clear(2);
 
@@ -1846,8 +1904,8 @@ instruction meta_send_op_gt(literal) [ value1 value2 -- boolean ]
     stack_set_top((j > k) ? Qtrue : Qfalse);
   } else {
     flush_ip();
-    Arguments out_args(t1, 1, stack_back_position(1));
     InlineCache* cache = reinterpret_cast<InlineCache*>(literal);
+    Arguments out_args(cache->name, t1, 1, stack_back_position(1));
     Object* ret = cache->execute(state, call_frame, out_args);
     stack_clear(2);
 
@@ -1875,8 +1933,8 @@ instruction meta_send_op_tequal(literal) [ value1 value2 -- boolean ] => send
     stack_set_top((t1 == t2) ? Qtrue : Qfalse);
   } else {
     flush_ip();
-    Arguments out_args(t1, 1, stack_back_position(1));
     InlineCache* cache = reinterpret_cast<InlineCache*>(literal);
+    Arguments out_args(cache->name, t1, 1, stack_back_position(1));
     Object* ret = cache->execute(state, call_frame, out_args);
     stack_clear(2);
 
@@ -1900,7 +1958,7 @@ instruction meta_send_call(literal count) [ receiver +count -- value ] => send
   Object* t1 = stack_back(count);
   Object* ret;
 
-  Arguments out_args(t1, count, stack_back_position(count));
+  Arguments out_args(G(sym_call), t1, count, stack_back_position(count));
 
   if(BlockEnvironment *env = try_as<BlockEnvironment>(t1)) {
     ret = env->call(state, call_frame, out_args);
@@ -1987,14 +2045,14 @@ instruction zsuper(literal) [ block -- value ]
     tup->put(state, v->total_args, splat_obj);
   }
 
-  Arguments new_args(recv, block, arg_count, 0);
+  InlineCache* cache = reinterpret_cast<InlineCache*>(literal);
+
+  Arguments new_args(cache->name, recv, block, arg_count, 0);
   new_args.use_tuple(tup, arg_count);
 
   SET_ALLOW_PRIVATE(false);
 
   Object* ret;
-
-  InlineCache* cache = reinterpret_cast<InlineCache*>(literal);
 
   Symbol* current_name = call_frame->original_name();
   if(cache->name != current_name) {
@@ -2009,12 +2067,18 @@ end
 # [Description]
 #   Push the block passed as an argument to the current invocation.
 #   This differs from `push_block` in that in is not the block for the
-#   currrent scope because of how the current block is seen within
+#   current scope because of how the current block is seen within
 #   an existing block.
 # [See Also]
 #   push_block
 
 instruction push_block_arg() [ -- block ]
+  if(!call_frame->arguments) {
+    Exception::internal_error(state, call_frame,
+                              "no arguments object");
+    RUN_EXCEPTION();
+  }
+
   stack_push(call_frame->arguments->block());
 end
 
@@ -2064,7 +2128,13 @@ end
 #   push_block
 
 instruction push_proc() [ -- value ]
-  Object* obj = call_frame->scope->block();
+  if(!call_frame->arguments) {
+    Exception::internal_error(state, call_frame,
+                              "no arguments object");
+    RUN_EXCEPTION();
+  }
+
+  Object* obj = call_frame->arguments->block();
   if(RTEST(obj)) {
     Object* prc = Proc::from_env(state, G(proc), obj);
     if(prc == Primitives::failure()) {
@@ -2081,7 +2151,7 @@ end
 #   Check if the value on the top of the stack is frozen.  If so, raise a
 #   `TypeError` indicating so.
 # [Notes]
-#   An optimzation to deal with check for frozen.
+#   An optimization to deal with check for frozen.
 
 instruction check_frozen() [ value -- value ]
   Object* value = stack_top();
@@ -2168,7 +2238,7 @@ instruction call_custom(literal count) [ receiver +count -- value ] => send
 
   SET_ALLOW_PRIVATE(false);
 
-  Arguments args(recv, Qnil, count,
+  Arguments args(cache->name, recv, Qnil, count,
                  stack_back_position(count));
 
   Object* ret = cache->execute(state, call_frame, args);
@@ -2193,7 +2263,7 @@ instruction meta_to_s(literal) [ object -- string ] => send
 
     SET_ALLOW_PRIVATE(false);
 
-    Arguments args(stack_top(), Qnil, 0, 0);
+    Arguments args(cache->name, stack_top(), Qnil, 0, 0);
     Object* ret = cache->execute(state, call_frame, args);
     if(ret && !kind_of<String>(ret)) {
       ret = stack_top()->to_s(state, false);
@@ -2203,3 +2273,8 @@ instruction meta_to_s(literal) [ object -- string ] => send
     CHECK_AND_PUSH(ret);
   }
 end
+
+instruction push_type() [ -- constant ]
+  stack_push(G(type));
+end
+

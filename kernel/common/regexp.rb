@@ -1,6 +1,6 @@
 class Regexp
-  ValidKcode    = [?n,?e,?s,?u]
-  KcodeValue    = [16,32,48,64]
+  ValidKcode    = [110, 101, 115, 117]  # [?n,?e,?s,?u]
+  KcodeValue    = [16, 32, 48, 64]
 
   IGNORECASE         = 1
   EXTENDED           = 2
@@ -25,28 +25,30 @@ class Regexp
     i += 1
   end
 
-  ESCAPE_TABLE[?\ ] = '\\ ' # '?\ ' is a space
-  ESCAPE_TABLE[?[ ] = '\\['
-  ESCAPE_TABLE[?] ] = '\\]'
-  ESCAPE_TABLE[?{ ] = '\\{'
-  ESCAPE_TABLE[?} ] = '\\}'
-  ESCAPE_TABLE[?( ] = '\\('
-  ESCAPE_TABLE[?) ] = '\\)'
-  ESCAPE_TABLE[?| ] = '\\|'
-  ESCAPE_TABLE[?- ] = '\\-'
-  ESCAPE_TABLE[?* ] = '\\*'
-  ESCAPE_TABLE[?. ] = '\\.'
-  ESCAPE_TABLE[?\\] = '\\\\'
-  ESCAPE_TABLE[?? ] = '\\?'
-  ESCAPE_TABLE[?+ ] = '\\+'
-  ESCAPE_TABLE[?^ ] = '\\^'
-  ESCAPE_TABLE[?$ ] = '\\$'
-  ESCAPE_TABLE[?# ] = '\\#'
-  ESCAPE_TABLE[?\n] = '\\n'
-  ESCAPE_TABLE[?\r] = '\\r'
-  ESCAPE_TABLE[?\f] = '\\f'
-  ESCAPE_TABLE[?\t] = '\\t'
-  ESCAPE_TABLE[?\v] = '\\v'
+  # The character literals (?x) are Fixnums in 1.8 and Strings in 1.9
+  # so we use literal values instead so this is 1.8/1.9 compatible.
+  ESCAPE_TABLE[9]   = '\\t'
+  ESCAPE_TABLE[10]  = '\\n'
+  ESCAPE_TABLE[11]  = '\\v'
+  ESCAPE_TABLE[12]  = '\\f'
+  ESCAPE_TABLE[13]  = '\\r'
+  ESCAPE_TABLE[32]  = '\\ '
+  ESCAPE_TABLE[35]  = '\\#'
+  ESCAPE_TABLE[36]  = '\\$'
+  ESCAPE_TABLE[40]  = '\\('
+  ESCAPE_TABLE[41]  = '\\)'
+  ESCAPE_TABLE[42]  = '\\*'
+  ESCAPE_TABLE[43]  = '\\+'
+  ESCAPE_TABLE[45]  = '\\-'
+  ESCAPE_TABLE[46]  = '\\.'
+  ESCAPE_TABLE[63]  = '\\?'
+  ESCAPE_TABLE[91]  = '\\['
+  ESCAPE_TABLE[92]  = '\\\\'
+  ESCAPE_TABLE[93]  = '\\]'
+  ESCAPE_TABLE[94]  = '\\^'
+  ESCAPE_TABLE[123] = '\\{'
+  ESCAPE_TABLE[124] = '\\|'
+  ESCAPE_TABLE[125] = '\\}'
 
   ##
   # Constructs a new regular expression from the given pattern. The pattern
@@ -194,25 +196,6 @@ class Regexp
     arr
   end
 
-  def ===(other)
-
-    unless other.kind_of?(String)
-      other = Rubinius::Type.try_convert other, String, :to_str
-      unless other
-        Regexp.last_match = nil
-        return false
-      end
-    end
-
-    if match = match_from(other, 0)
-      Regexp.last_match = match
-      true
-    else
-      Regexp.last_match = nil
-      false
-    end
-  end
-
   def casefold?
     (options & IGNORECASE) > 0 ? true : false
   end
@@ -242,7 +225,7 @@ class Regexp
     if options & KCODE_MASK == 0
       str << 'n'
     else
-      str << kcode[0,1]
+      str << kcode[0, 1]
     end
     str.hash
   end
@@ -253,7 +236,7 @@ class Regexp
 
     str = "/#{escape}/#{option_to_string(options)}"
     k = kcode()
-    str << k[0,1] if k and k != "none"
+    str << k[0, 1] if k and k != "none"
     return str
   end
 
@@ -386,11 +369,11 @@ class Regexp
     # TODO: audit specs for this method when specs are running
     def create_parts
       return unless @index < @source.size
-      char =  @source[@index].chr
+      char =  @source.getbyte(@index).chr
       case char
       when '('
         idx = @index + 1
-        if idx < @source.size and @source[idx].chr == '?'
+        if idx < @source.size and @source.getbyte(idx).chr == '?'
           process_group
         else
           push_current_character!
@@ -444,7 +427,7 @@ class Regexp
 
     def process_group_options
       @parts.last.has_options!
-      case @source[@index].chr
+      case @source.getbyte(@index).chr
       when ')'
         return
       when ':'
@@ -457,7 +440,7 @@ class Regexp
     end
 
     def process_until_group_finished
-      if @source[@index].chr == ")"
+      if @source.getbyte(@index).chr == ")"
         @index += 1
         return
       else
@@ -467,12 +450,12 @@ class Regexp
     end
 
     def push_current_character!
-      @parts.last << @source[@index].chr
+      @parts.last << @source.getbyte(@index).chr
       @index += 1
     end
 
     def push_option!
-      @parts.last.push_option!(@source[@index].chr)
+      @parts.last.push_option!(@source.getbyte(@index).chr)
       @index += 1
     end
 
@@ -546,7 +529,7 @@ class Regexp
     hash = {}
 
     if @names
-      @names.each do |k,v|
+      @names.each do |k, v|
         hash[k.to_s] = [v + 1] # we only have one location currently for a key
       end
     end
@@ -572,7 +555,7 @@ class Regexp
   def names
     if @names
       ary = Array.new(@names.size)
-      @names.each do |k,v|
+      @names.each do |k, v|
         ary[v] = k.to_s
       end
 
@@ -638,7 +621,7 @@ class MatchData
 
     return out
   end
-  
+
   def names
     @regexp.names
   end
@@ -701,7 +684,7 @@ class MatchData
       "#<MatchData \"#{matched_area}\">"
     else
       idx = 0
-      capts.map! {|capture| "#{idx += 1}:#{capture.inspect}"}
+      capts.map! { |capture| "#{idx += 1}:#{capture.inspect}" }
       "#<MatchData \"#{matched_area}\" #{capts.join(" ")}>"
     end
   end

@@ -530,7 +530,7 @@ class Gem::Specification
     if File.exists?(cm_path)
       begin
         cl = Rubinius::CodeLoader.new(cm_path)
-        cm = cl.load_compiled_file cm_path, Rubinius::Signature
+        cm = cl.load_compiled_file cm_path, Rubinius::Signature, Rubinius::RUBY_LIB_VERSION
       rescue TypeError, Rubinius::InvalidRBC
         # ignore, no prob.
       end

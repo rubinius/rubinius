@@ -1,0 +1,1 @@
+fails:Delegator#private_methods includes all private instance methods of the Delegate class

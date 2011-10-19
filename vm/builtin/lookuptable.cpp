@@ -348,7 +348,7 @@ namespace rubinius {
     indent(++level);
     for(size_t i = 0; i < size; i++) {
       if(Symbol* sym = try_as<Symbol>(keys->get(state, i))) {
-        std::cout << ":" << sym->c_str(state);
+        std::cout << ":" << sym->debug_str(state);
       } else if(Fixnum* fix = try_as<Fixnum>(keys->get(state, i))) {
         std::cout << fix->to_native();
       }

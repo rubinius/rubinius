@@ -1,0 +1,3 @@
+fails:Delegator#!= is not delegated when passed self
+fails:Delegator#!= is delegated when passed the delegated object
+fails:Delegator#!= is delegated in general

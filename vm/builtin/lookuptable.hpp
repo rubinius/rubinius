@@ -59,23 +59,23 @@ namespace rubinius {
     static LookupTable* create(STATE, size_t sz = LOOKUPTABLE_MIN_SIZE);
     void setup(STATE, size_t sz);
 
-    // Ruby.primitive :lookuptable_allocate
+    // Rubinius.primitive :lookuptable_allocate
     static LookupTable* allocate(STATE, Object* self);
 
-    // Ruby.primitive :lookuptable_store
+    // Rubinius.primitive :lookuptable_store
     Object* store(STATE, Object* key, Object* val);
 
-    // Ruby.primitive :lookuptable_aref
+    // Rubinius.primitive :lookuptable_aref
     Object* aref(STATE, Object* key);
     /** Compatibility, this is the same as aref(). */
     Object* fetch(STATE, Object* key);
 
-    // Ruby.primitive :lookuptable_fetch
+    // Rubinius.primitive :lookuptable_fetch
     Object* fetch(STATE, Object* key, Object* return_on_failure);
 
     Object* fetch(STATE, Object* key, bool* found);
 
-    // Ruby.primitive :lookuptable_duplicate
+    // Rubinius.primitive :lookuptable_duplicate
     LookupTable* duplicate(STATE);
 
     void   redistribute(STATE, size_t size);
@@ -85,31 +85,31 @@ namespace rubinius {
 
     Object* remove(STATE, Object* key, bool* removed = 0);
 
-    // Ruby.primitive :lookuptable_delete
+    // Rubinius.primitive :lookuptable_delete
     Object* delete_prim(STATE, Object* key) {
       return remove(state, key, 0);
     }
 
-    // Ruby.primitive :lookuptable_has_key
+    // Rubinius.primitive :lookuptable_has_key
     Object* has_key(STATE, Object* key);
 
     static Array* collect(STATE, LookupTable* tbl,
                           Object* (*action)(STATE, LookupTableBucket*));
     static Object* get_key(STATE, LookupTableBucket* entry);
 
-    // Ruby.primitive :lookuptable_keys
+    // Rubinius.primitive :lookuptable_keys
     Array* all_keys(STATE);
 
     Array* filtered_keys(STATE, ObjectMatcher& match, Array* ary=0);
 
     static Object* get_value(STATE, LookupTableBucket* entry);
 
-    // Ruby.primitive :lookuptable_values
+    // Rubinius.primitive :lookuptable_values
     Array* all_values(STATE);
 
     static Object* get_entry(STATE, LookupTableBucket* entry);
 
-    // Ruby.primitive :lookuptable_entries
+    // Rubinius.primitive :lookuptable_entries
     Array* all_entries(STATE);
 
     // This must be below all primitive declarations due to parsing bug

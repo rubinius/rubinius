@@ -4,15 +4,16 @@ module Digest
   def self.const_missing(name)
     case name
     when :SHA256, :SHA384, :SHA512
-      lib = 'digest/sha2.so'
+      path = "digest/sha2"
     else
-      lib = File.join('digest', name.to_s.downcase)
+      lib = name.to_s.downcase
+      path = "digest/#{lib}"
     end
 
     begin
-      require lib
+      require path
     rescue LoadError => e
-      raise LoadError, "library not found for class Digest::#{name} -- #{lib}", caller(1)
+      raise LoadError, "library not found for class Digest::#{name} -- #{path}", caller(1)
     end
     unless Digest.const_defined?(name)
       raise NameError, "uninitialized constant Digest::#{name}", caller(1)

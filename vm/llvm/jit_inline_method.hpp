@@ -8,14 +8,12 @@ namespace jit {
   class RuntimeData;
 
   class InlineMethodBuilder : public MethodBuilder {
-  protected:
-    jit::RuntimeData* runtime_data_;
-
   public:
     InlineMethodBuilder(LLVMState* ls, JITMethodInfo& info, jit::RuntimeData* rd)
       : MethodBuilder(ls, info)
-      , runtime_data_(rd)
-    {}
+    {
+      runtime_data_ = rd;
+    }
 
     llvm::BasicBlock* setup_inline(llvm::Value* self, llvm::Value* blk,
         std::vector<llvm::Value*>& args);

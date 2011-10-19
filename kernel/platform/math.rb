@@ -38,3 +38,4 @@ module FFI::Platform::Math
     log10(x) / log10(2.0)
   end
 end
+

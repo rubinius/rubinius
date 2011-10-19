@@ -1,0 +1,1 @@
+fails:Module#private_method_defined? raises an TypeError if passed a Fixnum

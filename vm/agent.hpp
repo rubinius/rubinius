@@ -1,7 +1,11 @@
+#ifndef RBX_WINDOWS
 #include <sys/select.h>
+#endif
 #include <vector>
 
 #include "util/thread.hpp"
+
+#include "windows_compat.h"
 
 namespace rubinius {
   class SharedState;
@@ -38,6 +42,7 @@ namespace rubinius {
 
   public:
     QueryAgent(SharedState& shared, VM* state);
+    ~QueryAgent();
 
     void set_verbose() {
       verbose_ = true;
@@ -52,12 +57,12 @@ namespace rubinius {
     }
 
     void add_fd(int fd) {
-      FD_SET(fd, &fds_);
+      FD_SET((int_fd_t)fd, &fds_);
       if(fd > max_fd_) max_fd_ = fd;
     }
 
     void remove_fd(int fd) {
-      FD_CLR(fd, &fds_);
+      FD_CLR((int_fd_t)fd, &fds_);
     }
 
     int loopback_socket() {

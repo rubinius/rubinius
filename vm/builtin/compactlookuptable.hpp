@@ -17,33 +17,33 @@ namespace rubinius {
 
     static void init(STATE);
 
-    // Ruby.primitive :compactlookuptable_allocate
+    // Rubinius.primitive :compactlookuptable_allocate
     static CompactLookupTable* create(STATE);
 
-    // Ruby.primitive :compactlookuptable_fetch
+    // Rubinius.primitive :compactlookuptable_fetch
     Object* fetch(STATE, Object* key);
 
     Object* fetch(STATE, Object* key, bool* found);
 
     Object* remove(STATE, Object* key, bool* removed = 0);
 
-    // Ruby.primitive :compactlookuptable_remove
+    // Rubinius.primitive :compactlookuptable_remove
     Object* remove_prim(STATE, Object* key) {
       return remove(state, key);
     }
 
-    // Ruby.primitive :compactlookuptable_store
+    // Rubinius.primitive :compactlookuptable_store
     Object* store(STATE, Object* key, Object* val);
 
-    // Ruby.primitive :compactlookuptable_has_key
+    // Rubinius.primitive :compactlookuptable_has_key
     Object* has_key(STATE, Object* key);
 
-    // Ruby.primitive :compactlookuptable_keys
+    // Rubinius.primitive :compactlookuptable_keys
     Array* keys(STATE);
 
     Array* filtered_keys(STATE, ObjectMatcher& matcher, Array* ary=0);
 
-    // Ruby.primitive :compactlookuptable_values
+    // Rubinius.primitive :compactlookuptable_values
     Array* values(STATE);
 
     LookupTable* to_lookuptable(STATE);

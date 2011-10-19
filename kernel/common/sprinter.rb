@@ -1,18 +1,37 @@
 module Rubinius
   class Sprinter
-    class << self
-      def get(format)
-        if t = format.data.instance_variable_get(:@cached_sprinter)
-          return t[1] if t[0] == format
-        end
 
-        sprinter = new(format)
+    total = Rubinius::Config['printf.cache']
 
-        format.data.instance_variable_set(:@cached_sprinter,
-                                          Tuple[format.dup, sprinter])
-
-        sprinter
+    case total
+    when Fixnum
+      if total == 0
+        @cache = nil
+      else
+        @cache = Rubinius::LRUCache.new(total)
       end
+    when false
+      @cache = nil
+    else
+      @cache = Rubinius::LRUCache.new(50)
+    end
+
+    def self.cache
+      @cache
+    end
+
+    def self.get(format)
+      if ec = @cache
+        if sprinter = ec.retrieve(format)
+          return sprinter
+        end
+      end
+
+      sprinter = new(format)
+
+      ec.set(format, sprinter) if ec
+
+      sprinter
     end
 
     def initialize(format)
@@ -269,9 +288,9 @@ module Rubinius
 
         @g.local_count = @arg_count + 1
         if @index_mode == :absolute
-          @g.local_names = (0...@arg_count).map {|i| :"#{i + 1}$" } + [:splat]
+          @g.local_names = (0...@arg_count).map { |i| :"#{i + 1}$" } + [:splat]
         else
-          @g.local_names = (0...@arg_count).map {|i| :"arg#{i}" } + [:splat]
+          @g.local_names = (0...@arg_count).map { |i| :"arg#{i}" } + [:splat]
         end
 
         @g.string_build @append_parts

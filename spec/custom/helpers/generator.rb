@@ -89,8 +89,9 @@ module Rubinius
     # utility methods below clearer
     attr_reader   :g
     attr_accessor :stream, :ip, :redo, :break, :next, :retry,
-                  :name, :file, :line, :required_args, :total_args, :splat_index,
-                  :local_count, :local_names, :primitive, :for_block
+                  :name, :file, :line, :primitive, :for_block,
+                  :required_args, :post_args, :total_args, :splat_index,
+                  :local_count, :local_names
 
 
     def initialize
@@ -262,48 +263,49 @@ module Rubinius
     def in_block_send(name, type, required=nil, call_count=0, vis=true)
       d = new_block_generator(g)
 
-      count = nil
+      # Arguments for blocks are handled differently in 1.9
+      ruby_version_is ""..."1.9" do
+        count = nil
 
-      case type
-      when :none
-        required = -1
-      when :empty
-        required = 0
-      when :blank
-        required = -1
-        count = 0
-      when :single
-        required = 1
-        d.cast_for_single_block_arg
-        d.set_local 0
-      when :splat
-        required = -1
-        d.cast_for_splat_block_arg
-        d.cast_array
-        d.cast_array
-        d.set_local 0
-      when :rest
-        count = required.abs - 1
-      when :multi
-        count = required.abs
-      end
+        case type
+        when :none
+          required = -1
+        when :empty
+          required = 0
+        when :blank
+          required = -1
+          d.cast_for_splat_block_arg
+        when :single
+          required = 1
+          d.cast_for_single_block_arg
+          d.set_local 0
+        when :splat
+          required = -1
+          d.cast_for_splat_block_arg
+          d.set_local 0
+        when :rest
+          count = required.abs - 1
+        when :multi
+          count = required.abs
+        end
 
-      if count
-        d.cast_for_multi_block_arg
+        if count
+          d.cast_for_multi_block_arg
 
-        (0...count).each do |n|
-          d.shift_array
-          d.set_local n
+          (0...count).each do |n|
+            d.shift_array
+            d.set_local n
+            d.pop
+          end
+        end
+
+        if type == :rest
+          d.set_local count
+        end
+
+        if type != :none and type != :empty and type != 0
           d.pop
         end
-      end
-
-      if type == :rest
-        d.set_local count
-      end
-
-      if type != :none and type != :empty and type != 0
-        d.pop
       end
 
       d.push_modifiers

@@ -1,0 +1,3 @@
+fails:CGI::QueryExtension#[] it returns the value for the parameter with the given key
+fails:CGI::QueryExtension#[] only returns the first value for parameters with multiple values
+fails:CGI::QueryExtension#[] returns a String

@@ -1,6 +1,8 @@
 #ifdef ENABLE_LLVM
 
 #include "llvm/jit_inline_method.hpp"
+#include "llvm/method_info.hpp"
+
 #include "call_frame.hpp"
 
 using namespace llvm;
@@ -10,22 +12,20 @@ namespace jit {
   BasicBlock* InlineMethodBuilder::setup_inline(Value* self, Value* blk,
       std::vector<Value*>& stack_args)
   {
-    func = info_.function();
-    vm = info_.vm();
-    prev = info_.parent_call_frame();
-    args = ConstantExpr::getNullValue(ls_->ptr_type("Arguments"));
+    llvm::Value* prev = info_.parent_call_frame();
+    llvm::Value* args = ConstantExpr::getNullValue(ls_->ptr_type("Arguments"));
 
-    BasicBlock* entry = BasicBlock::Create(ls_->ctx(), "inline_entry", func);
+    BasicBlock* entry = BasicBlock::Create(ls_->ctx(), "inline_entry", info_.function());
     b().SetInsertPoint(entry);
 
     info_.set_args(args);
     info_.set_previous(prev);
     info_.set_entry(entry);
 
-    BasicBlock* body = BasicBlock::Create(ls_->ctx(), "method_body", func);
+    BasicBlock* body = BasicBlock::Create(ls_->ctx(), "method_body", info_.function());
     pass_one(body);
 
-    BasicBlock* alloca_block = &func->getEntryBlock();
+    BasicBlock* alloca_block = &info_.function()->getEntryBlock();
 
     Value* cfstk = new AllocaInst(obj_type,
         ConstantInt::get(ls_->Int32Ty,
@@ -57,34 +57,34 @@ namespace jit {
     //  Setup the CallFrame
     //
     // previous
-    b().CreateStore(prev, get_field(call_frame, offset::cf_previous));
+    b().CreateStore(prev, get_field(call_frame, offset::CallFrame::previous));
 
     // msg
     b().CreateStore(
         b().CreatePointerCast(rd, ls_->Int8PtrTy),
-        get_field(call_frame, offset::cf_msg));
+        get_field(call_frame, offset::CallFrame::dispatch_data));
 
     // cm
     method = b().CreateLoad(
         b().CreateConstGEP2_32(rd, 0, offset::runtime_data_method, "method_pos"),
         "cm");
 
-    Value* cm_gep = get_field(call_frame, offset::cf_cm);
+    Value* cm_gep = get_field(call_frame, offset::CallFrame::cm);
     b().CreateStore(method, cm_gep);
 
     // flags
     int flags = CallFrame::cInlineFrame;
     if(!use_full_scope_) flags |= CallFrame::cClosedScope;
 
-    b().CreateStore(ConstantInt::get(ls_->Int32Ty, flags),
-        get_field(call_frame, offset::cf_flags));
+    b().CreateStore(cint(flags),
+        get_field(call_frame, offset::CallFrame::flags));
 
     // ip
-    b().CreateStore(ConstantInt::get(ls_->Int32Ty, 0),
-        get_field(call_frame, offset::cf_ip));
+    b().CreateStore(cint(0),
+        get_field(call_frame, offset::CallFrame::ip));
 
     // scope
-    b().CreateStore(vars, get_field(call_frame, offset::cf_scope));
+    b().CreateStore(vars, get_field(call_frame, offset::CallFrame::scope));
 
     nil_stack(vmm_->stack_size, constant(Qnil, obj_type));
 
@@ -103,17 +103,29 @@ namespace jit {
     assert(stack_args.size() <= (size_t)vmm_->total_args);
 
     for(size_t i = 0; i < stack_args.size(); i++) {
-      Value* int_pos = ConstantInt::get(ls_->Int32Ty, i);
+      Value* int_pos = cint(i);
 
       Value* idx2[] = {
-        ConstantInt::get(ls_->Int32Ty, 0),
-        ConstantInt::get(ls_->Int32Ty, offset::vars_tuple),
+        cint(0),
+        cint(offset::vars_tuple),
         int_pos
       };
 
       Value* pos = b().CreateGEP(vars, idx2, idx2+3, "local_pos");
 
-      b().CreateStore(stack_args[i], pos);
+      Value* arg_val = stack_args.at(i);
+
+      LocalInfo* li = info_.get_local(i);
+      li->make_argument();
+
+      if(ls_->type_optz()) {
+        if(type::KnownType::has_hint(ls_, arg_val)) {
+          type::KnownType kt = type::KnownType::extract(ls_, arg_val);
+          li->set_known_type(kt);
+        }
+      }
+
+      b().CreateStore(arg_val, pos);
     }
 
     b().CreateBr(body);

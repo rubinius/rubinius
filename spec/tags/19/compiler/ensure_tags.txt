@@ -1,0 +1,1 @@
+fails:"An Ensure node is compiled from \n    begin\n      # do nothing\n    rescue\n      # do nothing\n    ensure\n      # do nothing\n    end"

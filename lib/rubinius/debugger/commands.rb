@@ -116,7 +116,7 @@ To breakpoint on class method start of Debugger line 4, use:
       HELP
 
       def run(args, temp=false)
-        m = /([A-Z]\w*(?:::[A-Z]\w*)*)([.#])(\w+[!?=]?)(?:[:](\d+))?/.match(args)
+        m = /([A-Z]\w*(?:::[A-Z]\w*)*)([.#]|::)([a-zA-Z0-9_\[\]]+[!?=]?)(?:[:](\d+))?/.match(args)
         unless m
           error "Unrecognized position: '#{args}'"
           return
@@ -131,7 +131,7 @@ To breakpoint on class method start of Debugger line 4, use:
           klass = run_code(klass_name)
         rescue NameError
           error "Unable to find class/module: #{m[1]}"
-          ask_defered klass_name, which, name, line
+          ask_deferred klass_name, which, name, line
           return
         end
 
@@ -143,7 +143,7 @@ To breakpoint on class method start of Debugger line 4, use:
           end
         rescue NameError
           error "Unable to find method '#{name}' in #{klass}"
-          ask_defered klass_name, which, name, line
+          ask_deferred klass_name, which, name, line
           return
         end
 
@@ -154,12 +154,12 @@ To breakpoint on class method start of Debugger line 4, use:
         return bp
       end
 
-      def ask_defered(klass_name, which, name, line)
+      def ask_deferred(klass_name, which, name, line)
         answer = ask "Would you like to defer this breakpoint to later? [y/n] "
 
         if answer.strip.downcase[0] == ?y
-          @debugger.add_defered_breakpoint(klass_name, which, name, line)
-          info "Defered breakpoint created."
+          @debugger.add_deferred_breakpoint(klass_name, which, name, line)
+          info "Deferred breakpoint created."
         end
       end
 
@@ -176,7 +176,7 @@ To breakpoint on class method start of Debugger line 4, use:
     end
 
     class DeleteBreakpoint < Command
-      pattern "d", "delete"
+      pattern "d", "del", "delete"
       help "Delete a breakpoint"
       ext_help "Specify the breakpoint by number, use 'info break' to see the numbers"
 

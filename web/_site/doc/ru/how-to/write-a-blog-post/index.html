@@ -1,57 +1,60 @@
 <!DOCTYPE html>
-<html>
+<html dir="ltr" lang="ru">
+
   <head>
     <title>How-To - Написание сообщения в блог - Rubinius</title>
-    <meta content='text/html;charset=utf-8' http-equiv='content-type'>
+  	<meta charset="UTF-8">
+  	<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+
     <meta content='ru' http-equiv='content-language'>
     <meta content='Rubinius is an implementation of the Ruby programming language. The Rubinius bytecode virtual machine is written in C++. The bytecode compiler is written in pure Ruby. The vast majority of the core library is also written in Ruby, with some supporting primitives that interact with the VM directly.' name='description'>
-    <meta content='Less Than Three. &lt;3. http://less.thanthree.com' name='author'>
     <link href='/' rel='home'>
     <link href='/' rel='start'>
-    <link href='/doc/ru/how-to/fix-a-failing-spec' rel='prev' title='Исправление неработающей спецификации'>
-    <link href='/doc/ru/how-to/write-documentation' rel='next' title='Написание Документации'>
+    <link href='/doc/ru/how-to/write-benchmarks' rel='prev' title='Написание бенчмарков'>
+    <link href='/doc/ru/how-to/write-documentation'         rel='next' title='Написание документации'>
     
     <!--[if IE]><script src="http://html5shiv.googlecode.com/svn/trunk/html5.js" type="text/javascript"></script><![endif]-->
-    <script src="/javascripts/jquery-1.3.2.js" type="text/javascript"></script>
-    <script src="/javascripts/paging_keys.js" type="text/javascript"></script>
+    <script src="/javascripts/jquery-1.3.2.js"></script>
+    <script src="/javascripts/paging_keys.js"></script>
     
-    <script src="/javascripts/application.js" type="text/javascript"></script>
+    <script src="/javascripts/application.js"></script>
     <style>article, aside, dialog, figure, footer, header, hgroup, menu, nav, section { display: block; }</style>
 
-    <link href="/stylesheets/blueprint/screen.css" media="screen" rel="stylesheet" type="text/css" />
-    <link href="/stylesheets/application.css" media="screen" rel="stylesheet" type="text/css" />
-    <link href="/stylesheets/blueprint/print.css" media="print" rel="stylesheet" type="text/css" />
+    <link href="/stylesheets/blueprint/screen.css" media="screen" rel="stylesheet" />
+    <link href="/stylesheets/application.css"      media="screen" rel="stylesheet" />
+    <link href="/stylesheets/blueprint/print.css"  media="print"  rel="stylesheet" />
     <!--[if IE]><link href="/stylesheets/blueprint/ie.css" media="screen" rel="stylesheet" type="text/css" /><![endif]-->
-    <!--[if IE]><link href="/stylesheets/ie.css" media="screen" rel="stylesheet" type="text/css" /><![endif]-->
-    <link href="/stylesheets/pygments.css" media="screen" rel="stylesheet" type="text/css" />
+    <!--[if IE]><link href="/stylesheets/ie.css"           media="screen" rel="stylesheet" type="text/css" /><![endif]-->
+    <link href="/stylesheets/pygments.css" media="screen" rel="stylesheet" />
   </head>
-    <body>
-        <div class='container'>
-      <div class='span-21 doc_menu'>
-        <header>
-                    <nav>
-            <ul>
-              <li><a href="/">Home</a></li>
-              <li><a id="blog" href="/blog/">Blog</a></li>
-              <li><a id="documentation" href="/doc/en/">Documentation</a></li>
-              <li><a href="/projects/">Projects</a></li>
-              <li><a href="/roadmap/">Roadmap</a></li>
-              <li><a href="/releases/">Releases</a></li>
-            </ul>
-          </nav>
 
-        </header>
-      </div>
-            <div class='span-3 last'>
-        <div id='version'>
-          <a href="/releases/1.2.3">1.2.3</a>
-        </div>
-      </div>
+  <body>
+    <div class='container'>
+  <div class='span-21 doc_menu'>
+    <header>
+      <nav>
+  <ul>
+    <li><a href="/">Home</a></li>
+    <li><a id="blog" href="/blog">Blog</a></li>
+    <li><a id="documentation" href="/doc/en">Documentation</a></li>
+    <li><a href="/projects">Projects</a></li>
+    <li><a href="/roadmap">Roadmap</a></li>
+    <li><a href="/releases">Releases</a></li>
+  </ul>
+</nav>
 
-    </div>
+    </header>
+  </div>
+  <div class='span-3 last'>
+  <div id='version'>
+    <a href="/releases/1.2.4">1.2.4</a>
+  </div>
+</div>
+
+</div>
 
 
-    <div class="container languages">
+<div class="container languages">
   <nav>
   <span class="label">Языки:</span>
   <ul>
@@ -111,121 +114,154 @@
 </div>
 
 
-        <div class="container doc_page_nav">
-      
-        
-        <span class="label">Назад:</span>
-        <a href="/doc/ru/how-to/fix-a-failing-spec">Исправление неработающей спецификации</a>
-        
+<div class="container doc_page_nav">
+  
+    
+    <span class="label">Назад:</span>
+    <a href="/doc/ru/how-to/write-benchmarks">Написание бенчмарков</a>
+    
 
-        <span class="label">Выше:</span>
-        <a href="/doc/ru/">Содержание</a>
+    <span class="label">Выше:</span>
+    <a href="/doc/ru/">Содержание</a>
 
-        
-        <span class="label">Вперед:</span>
-        <a href="/doc/ru/how-to/write-documentation">Написание Документации</a>
-        
-      
-    </div>
+    
+    <span class="label">Вперед:</span>
+    <a href="/doc/ru/how-to/write-documentation">Написание документации</a>
+    
+  
+</div>
 
 
-    <div class="container documentation">
-      <h2>How-To - Написание сообщения в блог</h2>
+<div class="container documentation">
+  <h2>How-To - Написание сообщения в блог</h2>
 
-      
+  
 
-      
+  
 
-        <p>Блог Rubinius использует Jekyll, также он интегрирован с веб-сайтом и
+    <p><a href="/blog" title="Rubinius' Blog">Блог Rubinius</a> использует <a href="https://github.com/mojombo/jekyll" title="Mojombo's Jekyll">Jekyll</a> и интегрирован с веб-сайтом и
 документацией. Мы ценим и всячески поощряем посты в блог, в которых
-рассказывается об вашем опыте использования Rubinius или об участии в его
-разработке.</p>
+Вы рассказываете о своем опыте использования или разработки Rubinius.</p>
 
-<p>Для начала убедитесь, что у вас установлены гемы <code>kramdown</code> и <code>jekyll</code>.</p>
-
-<pre><code>rbx gem install jekyll kramdown
-</code></pre>
-
-<p>Markdown является предпочтительным форматом для сообщений в блог. Однако, если
-вам необходимо особое форматирование, пост может быть оформлен прямо в HTML.</p>
+<p>Markdown является предпочтительным форматом для сообщений блога. Однако, если
+вам необходимо особое форматирование, пост может быть написан сразу на HTML.</p>
 
 <ol>
-  <li>Создайте файл в <code>web/_posts/</code> используя для его имени следующий формат:
-<code>YYYY-MM-DD-perma-link.markdown</code>.</li>
-  <li>Напишите сообщение.</li>
-  <li>Выполните <code>rbx -S jekyll</code> в директории <code>web/</code>.</li>
-  <li>Сделайте коммит со всеми изменениями в директории <code>web/</code>.</li>
-  <li>Отправьте патч или, если у вас есть право коммита, отправьте изменения
-в master.</li>
-  <li>Сообщите нам о новом посте, возможно перед публикацией у нас будут
-некоторые рекомендации по его улучшению.</li>
+  <li>
+    <p>Клонируйте репозиторий Rubinius-а: сайт и блог находятся внутри:</p>
+
+    <pre><code>git clone https://github.com/rubinius/rubinius.git
+</code></pre>
+  </li>
+  <li>
+    <p>Перед началом работы убедитесь, что у Вас установлены гемы <code>kramdown</code> и
+<code>jekyll</code>:</p>
+
+    <pre><code> rbx gem install jekyll kramdown
+</code></pre>
+  </li>
+  <li>
+    <p>Зайдите в директорию постов:</p>
+
+    <pre><code> cd web/_posts
+</code></pre>
+  </li>
+  <li>
+    <p>Создайте файл, используя для его имени следующий формат:
+<code>YYYY-MM-DD-perma-link.markdown</code>.</p>
+
+    <pre><code> touch "%(date +"%Y-%m-%d")-perma-link-title.markdown"
+</code></pre>
+  </li>
+  <li>
+    <p>Напишите Ваше сногсшибательное сообщение:</p>
+
+    <pre><code> cat /dev/random &gt; &lt;&lt;the file post&gt;&gt; # :-p
+</code></pre>
+  </li>
+  <li>
+    <p>Запустите Jekyll, чтобы скомпилировать сайт с учетом Вашего поста:</p>
+
+    <pre><code> cd ../web/
+ rbx -S jekyll
+</code></pre>
+  </li>
+  <li>
+    <p>Сделайте коммит со всеми изменениями в директории <code>web/</code>:</p>
+
+    <pre><code> cd ../
+ git add web/
+ git commit -m "Wrote a blog post on ....."
+</code></pre>
+  </li>
+  <li>
+    <p>Отправьте патч, пулл-реквест или, если у вас есть право коммита в главный
+репозиторий, опубликуйте изменения в нем в ветви &laquo;master&raquo;.</p>
+  </li>
+  <li>
+    <p>Сообщите нам о новом посте: возможно перед публикацией мы захотим с Вами
+дополнительно пообщаться.</p>
+  </li>
 </ol>
 
 
-    </div>
 
-        <div class="container doc_page_nav">
-      
-        
-        <span class="label">Назад:</span>
-        <a href="/doc/ru/how-to/fix-a-failing-spec">Исправление неработающей спецификации</a>
-        
+</div>
 
-        <span class="label">Выше:</span>
-        <a href="/doc/ru/">Содержание</a>
+<div class="container doc_page_nav">
+  
+    
+    <span class="label">Назад:</span>
+    <a href="/doc/ru/how-to/write-benchmarks">Написание бенчмарков</a>
+    
 
-        
-        <span class="label">Вперед:</span>
-        <a href="/doc/ru/how-to/write-documentation">Написание Документации</a>
-        
-      
-    </div>
+    <span class="label">Выше:</span>
+    <a href="/doc/ru/">Содержание</a>
+
+    
+    <span class="label">Вперед:</span>
+    <a href="/doc/ru/how-to/write-documentation">Написание документации</a>
+    
+  
+</div>
 
 
-    <div class="container">
-      <div id="disqus_thread"></div>
+<div class="container">
+  <div id="disqus_thread"></div>
 <script type="text/javascript">
-    var disqus_shortname = 'rubinius';
-    var disqus_identifier = '/doc/ru/how-to/write-a-blog-post/';
-    var disqus_url = 'http://rubini.us/doc/ru/how-to/write-a-blog-post/';
+  var disqus_shortname  = 'rubinius';
+  var disqus_identifier = '/doc/ru/how-to/write-a-blog-post/';
+  var disqus_url = 'http://rubini.us/doc/ru/how-to/write-a-blog-post/';
 
-    (function() {
-        var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
-        dsq.src = 'http://' + disqus_shortname + '.disqus.com/embed.js';
-        (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
-    })();
+  (function() {
+    var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+    dsq.src = 'http://' + disqus_shortname + '.disqus.com/embed.js';
+    (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+  })();
 </script>
 <noscript>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
 
-    </div>
+</div>
 
-        <footer>
-      <div class='container'>
-        <nav>
-          <ul>
-            <li><a href="http://twitter.com/rubinius">Follow Rubinius on Twitter</a></li>
-            <li><a href="http://github.com/rubinius/rubinius">Fork Rubinius on github</a></li>
-            <li><a href="http://engineyard.com">An Engine Yard project</a></li>
+<footer>
+  <div class='container'>
+    <nav>
+      <ul>
+        <li><a rel="external" href="http://twitter.com/rubinius">Follow Rubinius on Twitter</a></li>
+        <li><a rel="external" href="http://github.com/rubinius/rubinius">Fork Rubinius on github</a></li>
+        <li><a rel="external" href="http://engineyard.com">An Engine Yard project</a></li>
+      </ul>
+    </nav>
+  </div>
+</footer>
 
-            <li id='credit'>
-              Site design by
-              <a href="http://less.thanthree.com">Less Than Three</a>
-            </li>
-          </ul>
-        </nav>
-      </div>
-    </footer>
-        <script type="text/javascript">
-        var gaJsHost = (("https:" == document.location.protocol) ? "https://ssl." : "http://www.");
-        document.write(unescape("%3Cscript src='" + gaJsHost + "google-analytics.com/ga.js' type='text/javascript'%3E%3C/script%3E"));
-        </script>
+<script>
+  var _gaq=[['_setAccount','UA-12328521-1'],['_trackPageview']];
+  (function(d,t){var g=d.createElement(t),s=d.getElementsByTagName(t)[0];g.async=1;
+  g.src=('https:'==location.protocol?'//ssl':'//www')+'.google-analytics.com/ga.js';
+  s.parentNode.insertBefore(g,s)}(document,'script'));
+</script>
 
-        <script type="text/javascript">
-        try {
-        var pageTracker = _gat._getTracker("UA-12328521-1");
-        pageTracker._trackPageview();
-        } catch(err) {}</script>
 
   </body>
-
 </html>

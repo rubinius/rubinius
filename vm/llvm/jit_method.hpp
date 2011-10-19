@@ -13,6 +13,7 @@ namespace jit {
 
     void check_arity();
     void import_args();
+    void import_args_19_style();
     void setup_scope();
     void initialize_frame(int);
     void return_value(llvm::Value* ret, llvm::BasicBlock* cont = 0);

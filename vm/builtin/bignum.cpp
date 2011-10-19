@@ -16,6 +16,7 @@
 #include "builtin/float.hpp"
 #include "builtin/string.hpp"
 #include "builtin/bytearray.hpp"
+#include "configuration.hpp"
 
 #include "missing/math.h"
 
@@ -563,6 +564,9 @@ namespace rubinius {
   }
 
   Integer* Bignum::bit_and(STATE, Float* b) {
+    if(!LANGUAGE_18_ENABLED(state)) {
+      Exception::type_error(state, "can't convert Float into Integer for bitwise arithmetic");
+    }
     return bit_and(state, Bignum::from_double(state, b->val));
   }
 
@@ -579,6 +583,9 @@ namespace rubinius {
   }
 
   Integer* Bignum::bit_or(STATE, Float* b) {
+    if(!LANGUAGE_18_ENABLED(state)) {
+      Exception::type_error(state, "can't convert Float into Integer for bitwise arithmetic");
+    }
     return bit_or(state, Bignum::from_double(state, b->val));
   }
 
@@ -594,6 +601,9 @@ namespace rubinius {
   }
 
   Integer* Bignum::bit_xor(STATE, Float* b) {
+    if(!LANGUAGE_18_ENABLED(state)) {
+      Exception::type_error(state, "can't convert Float into Integer for bitwise arithmetic");
+    }
     return bit_xor(state, Bignum::from_double(state, b->val));
   }
 
@@ -667,7 +677,7 @@ namespace rubinius {
       // negative values, we have to simulate the effects of being
       // twos complement. Namely, if we shift past a set bit, we have
       // to subtract 1 because that show up as the shifted twos
-      // complement represententation.
+      // complement representation.
       //
       // Observe:
       //

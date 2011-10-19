@@ -129,6 +129,9 @@
 #define HAVE_RB_EXC_RAISE                  1
 #define HAVE_RB_SET_ERRINFO                1
 
+/* File */
+#define HAVE_RB_FILE_OPEN                  1
+
 /* Float */
 #define HAVE_RB_FLOAT_NEW                  1
 #define HAVE_RB_RFLOAT                     1
@@ -236,6 +239,7 @@
 #define HAVE_RB_CLASS_OF                   1
 #define HAVE_RB_CONVERT_TYPE               1
 #define HAVE_RB_EQUAL                      1
+#define HAVE_RB_CLASS_INHERITED_P          1
 #define HAVE_RB_EXTEND_OBJECT              1
 #define HAVE_RB_INSPECT                    1
 #define HAVE_RB_IVAR_DEFINED               1
@@ -256,11 +260,13 @@
 #define HAVE_RB_OBJ_TAINT                  1
 #define HAVE_RB_REQUIRE                    1
 #define HAVE_RB_RESPOND_TO                 1
+#define HAVE_RB_OBJ_RESPOND_TO             1
 #define HAVE_RB_SPECIAL_CONST_P            1
 #define HAVE_RB_TO_ID                      1
 #define HAVE_RB_TO_INT                     1
 #define HAVE_RTEST                         1
 #define HAVE_TYPE                          1
+#define HAVE_BUILTIN_TYPE                  1
 
 /* Proc */
 #define HAVE_RB_PROC_NEW                   1

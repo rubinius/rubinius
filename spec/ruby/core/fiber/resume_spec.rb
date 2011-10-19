@@ -14,7 +14,7 @@ with_feature :fiber do
     end
 
     with_feature :fork do
-      ruby_bug "redmine #595", "1.9.2" do
+      ruby_bug "redmine #595", "1.9.3" do
         it "executes the ensure clause" do
           rd, wr = IO.pipe
           if Kernel::fork then

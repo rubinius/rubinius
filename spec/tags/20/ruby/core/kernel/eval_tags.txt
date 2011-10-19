@@ -1,0 +1,2 @@
+fails:Kernel#eval is a private method
+fails:Kernel#eval doesn't accept a Proc object as a binding
