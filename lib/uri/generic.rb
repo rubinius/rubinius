@@ -769,6 +769,8 @@ module URI
     # return base and rel.
     # you can modify `base', but can not `rel'.
     def merge0(oth)
+      oth = oth.to_str if oth.respond_to?(:to_str)
+
       case oth
       when Generic
       when String
