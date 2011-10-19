@@ -9,7 +9,7 @@ describe "Struct#instance_variables" do
   end
 
   ruby_version_is ""..."1.9" do
-    it "returns the correct array if an instance variable is added" do
+    it "returns an array with one name if an instance variable is added" do
       car = StructClasses::Car.new("Hugo", "Foo", "1972")
       car.instance_variables.should == []
       car.instance_variable_set("@test", 1)
@@ -18,7 +18,7 @@ describe "Struct#instance_variables" do
   end
 
   ruby_version_is "1.9" do
-    it "returns the correct array if an instance variable is added" do
+    it "returns an array with one name if an instance variable is added" do
       car = StructClasses::Car.new("Hugo", "Foo", "1972")
       car.instance_variables.should == []
       car.instance_variable_set("@test", 1)
