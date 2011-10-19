@@ -381,7 +381,11 @@ module URI
     case uri
     when ''
       # null uri
-
+    when Generic
+      scheme, opaque, userinfo, host, port,
+        registry, path, query, fragment =
+          uri.scheme, uri.opaque, uri.userinfo, uri.host, uri.port,
+            uri.registry, uri.path, uri.query, uri.fragment
     when ABS_URI
       scheme, opaque, userinfo, host, port, 
         registry, path, query, fragment = $~[1..-1]

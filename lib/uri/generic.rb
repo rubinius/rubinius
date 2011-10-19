@@ -769,6 +769,8 @@ module URI
     # return base and rel.
     # you can modify `base', but can not `rel'.
     def merge0(oth)
+      oth = oth.to_str if oth.respond_to?(:to_str)
+
       case oth
       when Generic
       when String
@@ -840,6 +842,8 @@ module URI
     private :route_from_path
 
     def route_from0(oth)
+      oth = oth.to_str if oth.respond_to?(:to_str)
+
       case oth
       when Generic
       when String
@@ -952,6 +956,8 @@ module URI
     #   #=> #<URI::Generic:0x2020c2f6 URL:/main.rbx?page=1>
     #    
     def route_to(oth)
+      oth = oth.to_str if oth.respond_to?(:to_str)
+
       case oth
       when Generic
       when String
