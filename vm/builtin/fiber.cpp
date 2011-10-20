@@ -101,7 +101,6 @@ static void fiber_makectx(fiber_context_t* ctx, void* func, void** stack_bottom,
 
   void** stack = (void**)(s - diff) - 1;
 
-  if(stack % 16 != 0) rubinius::bug("stack alignment issue");
   *--stack = (void*)0xdeadcafe;
 
   ctx->eip = func;
