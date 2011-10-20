@@ -16,6 +16,8 @@
 #include "call_frame.hpp"
 #include "arguments.hpp"
 
+#include "on_stack.hpp"
+
 #ifdef FIBER_NATIVE
 
 #if defined(FIBER_ASM_X8664)
@@ -138,6 +140,9 @@ namespace rubinius {
     // Lazily allocate a root fiber.
     if(fib->nil_p()) {
       fib = state->new_object<Fiber>(G(fiber));
+      if(fib->zone() != YoungObjectZone) {
+        state->om->remember_object(fib);
+      }
       fib->prev_ = nil<Fiber>();
       fib->top_ = 0;
       fib->root_ = true;
@@ -169,6 +174,8 @@ namespace rubinius {
     VM* state = VM::current();
 
     Fiber* fib = Fiber::current(state);
+
+    OnStack<1> os(state, fib);
 
     // Affix this fiber to this thread now.
     fib->state_ = state;
@@ -224,6 +231,9 @@ namespace rubinius {
     }
 
     Fiber* fib = state->new_object<Fiber>(G(fiber));
+    if(fib->zone() != YoungObjectZone) {
+      state->om->remember_object(fib);
+    }
     fib->starter(state, callable);
     fib->prev(state, nil<Fiber>());
     fib->top_ = 0;
@@ -424,6 +434,8 @@ namespace rubinius {
 
   void Fiber::Info::mark(Object* obj, ObjectMark& mark) {
     auto_mark(obj, mark);
+
+    mark.remember_object(obj);
 
     Fiber* fib = (Fiber*)obj;
     if(CallFrame* cf = fib->call_frame()) {
