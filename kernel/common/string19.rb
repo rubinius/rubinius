@@ -51,13 +51,15 @@ class String
         current += 1
       end
     else
-      after_stop = exclusive ? stop : stop.succ
-      current = self
+      unless stop.size < size
+        after_stop = exclusive ? stop : stop.succ
+        current = self
 
-      until current == after_stop
-        yield current
-        current = StringValue(current.succ)
-        break if current.size > stop.size || current.size == 0
+        until current == after_stop
+          yield current
+          current = StringValue(current.succ)
+          break if current.size > stop.size || current.size == 0
+        end
       end
     end
     self
