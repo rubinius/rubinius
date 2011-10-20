@@ -2,6 +2,28 @@ class Integer
   alias_method :magnitude, :abs
 
   #
+  # Returns the <em>greatest common denominator</em> of the two numbers (+self+
+  # and +n+).
+  #
+  # Examples:
+  #   72.gcd 168           # -> 24
+  #   19.gcd 36            # -> 1
+  #
+  # The result is positive, no matter the sign of the arguments.
+  #
+  def gcd(other)
+    raise TypeError, "Expected Integer but got #{other.class}" unless other.kind_of?(Integer)
+    min = self.abs
+    max = other.abs
+    while min > 0
+      tmp = min
+      min = max % min
+      max = tmp
+    end
+    max
+  end
+
+  #
   # In an integer, the value _is_ the numerator of its rational equivalent.
   # Therefore, this method returns +self+.
   #
@@ -23,27 +45,6 @@ class Integer
     Rational(self, 1)
   end
 
-  #
-  # Returns the <em>greatest common denominator</em> of the two numbers (+self+
-  # and +n+).
-  #
-  # Examples:
-  #   72.gcd 168           # -> 24
-  #   19.gcd 36            # -> 1
-  #
-  # The result is positive, no matter the sign of the arguments.
-  #
-  def gcd(other)
-    raise TypeError, "Expected Integer but got #{other.class}" unless other.kind_of?(Integer)
-    min = self.abs
-    max = other.abs
-    while min > 0
-      tmp = min
-      min = max % min
-      max = tmp
-    end
-    max
-  end
 
   #
   # Returns the <em>lowest common multiple</em> (LCM) of the two arguments
