@@ -58,6 +58,7 @@ static void fiber_makectx(fiber_context_t* ctx, void* func, void** stack_bottom,
 
   void** stack = (void**)(s - diff) - 1;
 
+  *--stack = (void*)0xdeadcafedeadcafe;  /* Dummy return address. */
   ctx->rip = (void*)fiber_wrap_main;
   ctx->rsp = stack;
   ctx->rbp = 0;
@@ -67,7 +68,6 @@ static void fiber_makectx(fiber_context_t* ctx, void* func, void** stack_bottom,
   ctx->r14 = 0;
   ctx->r15 = 0;
 
-  stack[0] = (void*)0xdeadcafedeadcafe;  /* Dummy return address. */
 }
 
 #elif defined(FIBER_ASM_X8632)
@@ -99,10 +99,12 @@ static void fiber_makectx(fiber_context_t* ctx, void* func, void** stack_bottom,
 
   void** stack = (void**)(s - diff) - 1;
 
+  if(stack % 16 != 0) rubinius::bug("stack alignment issue");
+  *--stack = (void*)0xdeadcafe;
+
   ctx->eip = func;
   ctx->esp = stack;
   ctx->ebp = 0;
-  stack[0] = (void*)0xdeadcafe;
 }
 #endif
 
@@ -217,8 +219,8 @@ namespace rubinius {
 #ifdef FIBER_ENABLED
     int stack_size = i_stack_size->to_native();
 
-    if(stack_size < 64 * 1024) {
-      stack_size = 64 * 1024;
+    if(stack_size < 1024 * 1024) {
+      stack_size = 1024 * 1024;
     }
 
     Fiber* fib = state->new_object<Fiber>(G(fiber));
