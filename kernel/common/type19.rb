@@ -24,5 +24,12 @@ module Rubinius
         raise TypeError, "can't convert #{obj.class} into Float"
       end
     end
+
+    def self.coerce_to_symbol(obj)
+      obj = obj.to_str if obj.respond_to?(:to_str)
+      coerce_to(obj, Symbol, :to_sym)
+    rescue TypeError
+      raise TypeError, "#{obj} is not a symbol"
+    end
   end
 end
