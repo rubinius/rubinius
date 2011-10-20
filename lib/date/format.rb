@@ -178,7 +178,7 @@ class Date
   end
 
   def emit_w(e, w, f) # :nodoc:
-    f[:w] = [f[:w], w].compact.max
+    f[:w] = w unless f[:w]
     emit(e, f)
   end
 
