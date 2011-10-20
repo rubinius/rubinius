@@ -13,6 +13,7 @@
 #include "builtin/string.hpp"
 #include "builtin/symbol.hpp"
 #include "builtin/module.hpp"
+#include "builtin/nativemethod.hpp"
 
 #ifdef ENABLE_LLVM
 #include "llvm/state.hpp"
@@ -538,6 +539,8 @@ namespace rubinius {
     if(state->shared.should_stop()) {
       state->shared.checkpoint(state);
     }
+
+    NativeMethod::cleanup_thread(state);
 
 #ifdef ENABLE_LLVM
     LLVMState::shutdown(state);

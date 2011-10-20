@@ -148,4 +148,3 @@ class Integer < Numeric
     self
   end
 end
-
