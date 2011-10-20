@@ -209,13 +209,12 @@ class String
   #    a["bye"]               #=> nil
   def [](index, other = undefined)
     unless other.equal?(undefined)
-      length = Rubinius::Type.coerce_to(other, Fixnum, :to_int)
-
       if index.kind_of? Regexp
-        match, str = subpattern(index, length)
+        match, str = subpattern(index, other)
         Regexp.last_match = match
         return str
       else
+        length = Rubinius::Type.coerce_to(other, Fixnum, :to_int)
         start  = Rubinius::Type.coerce_to(index, Fixnum, :to_int)
         return substring(start, length)
       end
@@ -2095,23 +2094,20 @@ class String
   end
 
   def subpattern(pattern, capture)
-    # TODO: A part of the functionality here should go into MatchData#[]
     match = pattern.match(self)
-    if !match or capture >= match.size
-      return nil
+
+    return nil unless match
+
+    if index = Rubinius::Type.check_convert_type(capture, Fixnum, :to_int)
+      return nil if index >= match.size || -index >= match.size
+      capture = index
     end
 
-    if capture < 0
-      capture += match.size
-      return nil if capture <= 0
-    end
-
-    start = match.begin(capture)
-    count = match.end(capture) - match.begin(capture)
-    str = self.substring(start, count)
+    str = match[capture]
     str.taint if pattern.tainted?
     [match, str]
   end
+  private :subpattern
 
   def subpattern_set(pattern, capture, replacement)
     unless match = pattern.match(self)
