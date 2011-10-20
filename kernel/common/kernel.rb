@@ -34,19 +34,6 @@ module Kernel
   end
   module_function :Float
 
-  def Array(obj)
-    ary = Rubinius::Type.check_convert_type obj, Array, :to_ary
-
-    return ary if ary
-
-    if obj.respond_to? :to_a
-      Rubinius::Type.coerce_to(obj, Array, :to_a)
-    else
-      [obj]
-    end
-  end
-  module_function :Array
-
   ##
   # MRI uses a macro named StringValue which has essentially the same
   # semantics as obj.coerce_to(String, :to_str), but rather than using that
