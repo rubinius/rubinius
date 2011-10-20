@@ -37,7 +37,7 @@ ruby_version_is "1.9" do
       inf.numerator.infinite?.should == 1
     end
 
-    it "returns -Infinity for Infinity" do
+    it "returns -Infinity for -Infinity" do
       inf = -(1/0.0)
       inf.infinite?.should == -1
       inf.numerator.infinite?.should == -1
