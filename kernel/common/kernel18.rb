@@ -58,4 +58,17 @@ module Kernel
     return str
   end
   module_function :String
+  
+  def Array(obj)
+    ary = Rubinius::Type.check_convert_type obj, Array, :to_ary
+
+    return ary if ary
+
+    if obj.respond_to? :to_a
+      Rubinius::Type.coerce_to(obj, Array, :to_a)
+    else
+      [obj]
+    end
+  end
+  module_function :Array
 end
