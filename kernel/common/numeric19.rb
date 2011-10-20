@@ -22,4 +22,12 @@ class Numeric
   end
 
   alias_method :magnitude, :abs
+
+  def numerator
+    to_r.numerator
+  end
+
+  def denominator
+    to_r.denominator
+  end
 end
