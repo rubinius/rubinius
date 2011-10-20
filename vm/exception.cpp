@@ -132,6 +132,11 @@ namespace rubinius {
     ::abort();
   }
 
+  void warn(const char* message) {
+    std::cerr << "[WARNING: " << message << "]\n";
+    print_backtrace();
+  }
+
   void print_backtrace(size_t max) {
     VMException::Backtrace s = get_trace(2, max);
     demangle(s);
