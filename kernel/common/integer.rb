@@ -201,6 +201,7 @@ class Integer < Numeric
   #   6.lcm 9        # -> 18
   #
   def lcm(other)
+    raise TypeError, "Expected Integer but got #{other.class}" unless other.kind_of?(Integer)
     if self.zero? or other.zero?
       0
     else
