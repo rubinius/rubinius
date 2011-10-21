@@ -335,6 +335,14 @@ class StringIO
     ary
   end
 
+  def readpartial(length = nil, buffer = "")
+    val = read(length, buffer)
+    unless val
+      raise IO::EOFError, "end of file reached"
+    end
+    val
+  end
+
   def reopen(string = nil, mode = nil)
     if string
       if !string.is_a?(String) and !mode
