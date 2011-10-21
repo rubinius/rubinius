@@ -8,7 +8,7 @@ class Numeric
   end
   alias_method :imaginary, :imag
 
-  def rationalize
+  def rationalize(eps = nil)
     Rational(self, 1)
   end
 

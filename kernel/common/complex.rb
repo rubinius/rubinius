@@ -372,7 +372,7 @@ class Complex < Numeric
 	    @image.numerator*(cd/@image.denominator))
   end
 
-  def rationalize
+  def rationalize(eps = nil)
     raise RangeError, "non-zero imaginary part" unless @image.zero?
 
     Rational(@real, 1)
