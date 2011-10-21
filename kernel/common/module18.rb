@@ -23,4 +23,6 @@ class Module
 
     return nil
   end
+
+  private :attr
 end

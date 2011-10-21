@@ -197,5 +197,5 @@ class Module
     return nil
   end
 
-  private :alias_method
+  private :alias_method, :attr_reader, :attr_writer, :attr_accessor
 end
