@@ -411,6 +411,8 @@ class StringIO
     str
   end
 
+  alias_method :readpartial, :sysread
+
   def tell
     @pos
   end
