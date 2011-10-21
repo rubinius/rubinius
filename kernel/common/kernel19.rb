@@ -125,4 +125,8 @@ module Kernel
     end
   end
   module_function :Array
+
+  def =~(other)
+    nil
+  end
 end
