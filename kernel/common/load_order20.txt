@@ -93,6 +93,7 @@ random.rbc
 regexp.rbc
 regexp19.rbc
 signal.rbc
+signal19.rbc
 sprinter.rbc
 symbol.rbc
 symbol19.rbc
