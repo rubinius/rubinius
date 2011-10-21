@@ -437,7 +437,6 @@ class StringIO
 
   def ungetc(char)
     raise IOError, "not opened for reading" unless @readable
-    char = Rubinius::Type.coerce_to char, Integer, :to_int
 
     if @pos > @string.size
       @string[@string.size .. @pos] = "\000" * (@pos - @string.size)
