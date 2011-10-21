@@ -124,7 +124,7 @@ class Proc
       # made one up for instance_exec to work properly with them as if they were
       # procs.
       block_environment = Rubinius::BlockEnvironment.new
-      block_environment.under_context(Rubinius::VariableScope.new, meth.executable)
+      block_environment.under_context(Rubinius::VariableScope.of_sender, meth.executable)
       obj.block = block_environment
 
       return obj
