@@ -12,9 +12,9 @@ class File
 
   def self.absolute_path(obj, dir = nil)
     if dir.nil?
-      self.path(obj)
+      path(obj)
     else
-      self.expand_path(obj, dir)
+      expand_path(obj, dir)
     end
   end
 

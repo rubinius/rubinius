@@ -54,7 +54,6 @@ delegated_method.rbc
 fixnum.rbc
 fixnum19.rbc
 dir.rbc
-dir19.rbc
 lrucache.rbc
 dir_glob.rbc
 encoding.rbc
@@ -69,6 +68,7 @@ io.rbc
 io19.rbc
 file.rbc
 file19.rbc
+dir19.rbc
 filetest.rbc
 float.rbc
 float19.rbc
