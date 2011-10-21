@@ -36,5 +36,10 @@ ruby_version_is "1.9" do
     it "raises a FloatDomainError for NaN" do
       lambda { nan_value.rationalize }.should raise_error(FloatDomainError)
     end
+
+    it "raises ArgumentError when passed more than one argument" do
+      lambda { 0.3.rationalize(0.1, 0.1) }.should raise_error(ArgumentError)
+      lambda { 0.3.rationalize(0.1, 0.1, 2) }.should raise_error(ArgumentError)
+    end
   end
 end
