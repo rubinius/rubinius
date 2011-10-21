@@ -29,5 +29,10 @@ ruby_version_is "1.9" do
       r.rationalize(0.05).should == Rational(-1,3)
       r.rationalize(0.001).should == Rational(-3,10)
     end
+
+    it "raises ArgumentError when passed more than one argument" do
+      lambda { Rational(1,1).rationalize(0.1, 0.1) }.should raise_error(ArgumentError)
+      lambda { Rational(1,1).rationalize(0.1, 0.1, 2) }.should raise_error(ArgumentError)
+    end
   end
 end

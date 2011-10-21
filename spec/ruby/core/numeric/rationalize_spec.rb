@@ -28,5 +28,14 @@ ruby_version_is "1.9" do
         number.rationalize.denominator.should == 1
       end
     end
+
+    it "ignores a single argument" do
+      1.rationalize(0.1).should == Rational(1,1)
+    end
+
+    it "raises ArgumentError when passed more than one argument" do
+      lambda { 1.rationalize(0.1, 0.1) }.should raise_error(ArgumentError)
+      lambda { 1.rationalize(0.1, 0.1, 2) }.should raise_error(ArgumentError)
+    end
   end
 end
