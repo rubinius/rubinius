@@ -26,6 +26,7 @@ lookuptable.rbc
 method_table.rbc
 nil.rbc
 object.rbc
+object19.rbc
 proc.rbc
 process.rbc
 regexp.rbc
