@@ -28,4 +28,20 @@ module Kernel
     Rubinius.primitive :object_untrusted_p
     raise PrimitiveFailure, "Kernel#untrusted? primitive failed"
   end
+  
+  def clone
+    cls = Rubinius.invoke_primitive :object_class, self
+    copy = cls.allocate
+
+    Rubinius.invoke_primitive :object_copy_object, copy, self
+    Rubinius.invoke_primitive :object_copy_singleton_class, copy, self
+
+    Rubinius.privately do
+      copy.initialize_copy self
+    end
+
+    copy.freeze if frozen?
+    copy.untrust if untrusted?
+    copy
+  end
 end
