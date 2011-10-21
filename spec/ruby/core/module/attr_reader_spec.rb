@@ -58,4 +58,8 @@ describe "Module#attr_reader" do
 
     lambda { c.new.foo }.should raise_error(NoMethodError)
   end
+
+  it "is a private method" do
+    lambda { Class.new.attr_reader(:foo) }.should raise_error(NoMethodError)
+  end
 end

@@ -63,4 +63,8 @@ describe "Module#attr_accessor" do
     lambda { c.new.foo }.should raise_error(NoMethodError)
     lambda { c.new.foo=1 }.should raise_error(NoMethodError)
   end
+
+  it "is a private method" do
+    lambda { Class.new.attr_accessor(:foo) }.should raise_error(NoMethodError)
+  end
 end
