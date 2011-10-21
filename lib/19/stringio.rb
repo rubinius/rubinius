@@ -208,10 +208,6 @@ class StringIO
   end
   alias_method :size, :length
 
-  def path
-    nil
-  end
-
   def pid
     nil
   end
