@@ -2,6 +2,7 @@ basicobject.rbc
 class.rbc
 binding.rbc
 proc.rbc
+proc19.rbc
 autoload.rbc
 module.rbc
 module19.rbc
