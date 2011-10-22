@@ -7,6 +7,18 @@ module Kernel
     end.send(:define_method, *args, &block)
   end
 
+  def loop
+    return to_enum(:loop) unless block_given?
+
+    begin
+      while true
+        yield
+      end
+    rescue StopIteration
+    end
+  end
+  module_function :loop
+
   def Integer(obj, base=nil)
     if obj.kind_of? String
       if obj.empty?

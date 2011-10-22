@@ -224,18 +224,6 @@ module Kernel
   end
   module_function :global_variables
 
-  def loop
-    raise LocalJumpError, "no block given" unless block_given?
-
-    begin
-      while true
-        yield
-      end
-    rescue StopIteration
-    end
-  end
-  module_function :loop
-
   #
   # Sleeps the current thread for +duration+ seconds.
   #
