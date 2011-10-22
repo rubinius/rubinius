@@ -1,3 +1,0 @@
-fails:DateTime#strftime shows the number of fractional seconds with leading zeroes to two decimal places
-fails:DateTime#strftime shows the number of fractional milliseconds with leading zeroes
-fails:DateTime#strftime shows the number of fractional microseconds with leading zeroes
