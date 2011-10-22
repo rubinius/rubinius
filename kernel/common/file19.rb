@@ -29,5 +29,15 @@ class File
     nil
   end
 
+  def self.world_writable?(path)
+    path = Rubinius::Type.coerce_to_path path
+    return nil unless exists? path
+    mode = Stat.new(path).mode
+    if (mode & Stat::S_IWOTH) == Stat::S_IWOTH
+      tmp = mode & (Stat::S_IRUGO | Stat::S_IWUGO | Stat::S_IXUGO)
+      return Rubinius::Type.coerce_to tmp, Fixnum, :to_int
+    end
+  end
+
   alias_method :to_path, :path
 end
