@@ -47,7 +47,7 @@ class Module
   end
   private :verify_class_variable_name
 
-  def class_variable_set(name, val)
+  def __class_variable_set__(name, val)
     Rubinius.primitive :module_cvar_set
 
     class_variable_set verify_class_variable_name(name), val
