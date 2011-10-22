@@ -88,12 +88,6 @@ describe "IO.select" do
     lambda { IO.select(nil, nil, Object.new)}.should raise_error(TypeError)
   end
 
-  it "sleeps the specified timeout if all streams are nil" do
-    start = Time.now
-    IO.select(nil, nil, nil, 0.1)
-    (Time.now - start).should >= 0.1
-  end
-
   it "raises an ArgumentError when passed a negative timeout" do
     lambda { IO.select(nil, nil, nil, -5)}.should raise_error(ArgumentError)
   end
