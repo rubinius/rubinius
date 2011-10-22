@@ -40,4 +40,9 @@ class Module
   end
 
   private :attr
+  
+  def class_variable_set(key, value)
+    raise RuntimeError, "can't modify frozen #{self.class}" if frozen?
+    __class_variable_set__(key, value)
+  end
 end
