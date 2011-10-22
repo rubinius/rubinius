@@ -1,4 +1,9 @@
 class Numeric
+  def div(other)
+    raise ZeroDivisionError, "divided by 0" if other == 0
+    self.__slash__(other).floor
+  end
+
   def i
     Complex(0, self)
   end
