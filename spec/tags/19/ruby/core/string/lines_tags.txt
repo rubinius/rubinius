@@ -1,1 +1,0 @@
-fails:String#lines does not care if the string is modified while substituting
