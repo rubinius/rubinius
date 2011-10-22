@@ -376,8 +376,14 @@ class DependencyGrapher
 
     # Parse methods
 
-    def parse_file(name)
-      parse IO.readlines(name)
+    if defined? Encoding
+      def parse_file(name)
+        parse IO.readlines(name, :encoding => "ascii-8bit")
+      end
+    else
+      def parse_file(name)
+        parse IO.readlines(name)
+      end
     end
 
     def parse(lines)
