@@ -18,5 +18,16 @@ class File
     end
   end
 
+  def self.world_readable?(path)
+    path = Rubinius::Type.coerce_to_path path
+    return nil unless exists? path
+    mode = Stat.new(path).mode
+    if (mode & Stat::S_IROTH) == Stat::S_IROTH
+      tmp = mode & (Stat::S_IRUGO | Stat::S_IWUGO | Stat::S_IXUGO)
+      return Rubinius::Type.coerce_to tmp, Fixnum, :to_int
+    end
+    nil
+  end
+
   alias_method :to_path, :path
 end
