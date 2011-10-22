@@ -1000,6 +1000,18 @@ class File < IO
     return false
   end
 
+
+  def self.world_readable?(path)
+    path = Rubinius::Type.coerce_to_path path
+    return nil unless exists?(path)
+    mode = Stat.new(path).mode
+    if ((mode & Stat::S_IROTH) == Stat::S_IROTH)
+      tmp =  (mode & (Stat::S_IRUGO | Stat::S_IWUGO | Stat::S_IXUGO))
+      return Rubinius::Type.coerce_to(tmp, Fixnum, :to_int)
+    end
+    nil
+  end
+
   class << self
     alias_method :delete,   :unlink
     alias_method :exists?,  :exist?
@@ -1088,6 +1100,10 @@ class File::Stat
   S_IROTH  = Rubinius::Config['rbx.platform.file.S_IROTH']
   S_IWOTH  = Rubinius::Config['rbx.platform.file.S_IWOTH']
   S_IXOTH  = Rubinius::Config['rbx.platform.file.S_IXOTH']
+
+  S_IRUGO  = (S_IRUSR | S_IRGRP | S_IROTH)
+  S_IWUGO  = (S_IWUSR | S_IWGRP | S_IWOTH)
+  S_IXUGO  = (S_IXUSR | S_IXGRP | S_IXOTH)
 
   S_IFMT   = Rubinius::Config['rbx.platform.file.S_IFMT']
   S_IFIFO  = Rubinius::Config['rbx.platform.file.S_IFIFO']
