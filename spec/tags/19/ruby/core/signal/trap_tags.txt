@@ -1,1 +1,0 @@
-fails:Signal.trap ignores the signal when passed nil
