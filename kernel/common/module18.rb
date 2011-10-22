@@ -25,4 +25,6 @@ class Module
   end
 
   private :attr
+  
+  alias_method :class_variable_set, :__class_variable_set__
 end
