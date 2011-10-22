@@ -21,6 +21,16 @@ module Rubinius
 
     def handshake!
       @handshake = @decoder.read_any
+      if @handshake[0] == :file_auth
+        File.open(@handshake[1], "w") do |f|
+          f.puts "agent start"
+        end
+
+        @encoder.write_any :ok
+
+        @handshake = @decoder.read_any
+      end
+
       unless @handshake[0] == :hello_query_agent
         raise "Error receiving hello: #{@handshake.inspect}"
       end

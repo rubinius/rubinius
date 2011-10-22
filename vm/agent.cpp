@@ -4,6 +4,7 @@
 #include <limits.h>
 #include <sys/types.h>
 #include <sys/stat.h>
+#include <fcntl.h>
 
 #ifdef RBX_WINDOWS
 #include <winsock2.h>
@@ -38,7 +39,6 @@
 #include <mach-o/dyld.h>
 #endif
 
-
 namespace rubinius {
   QueryAgent::QueryAgent(SharedState& shared, VM* state)
     : Thread()
@@ -51,6 +51,8 @@ namespace rubinius {
     , max_fd_(0)
     , exit_(false)
     , vars_(0)
+    , local_only_(true)
+    , tmp_key_(0)
   {
     FD_ZERO(&fds_);
     vars_ = new agent::VariableAccess(state, shared);
@@ -213,15 +215,83 @@ namespace rubinius {
 
       delete val;
     }
+
+    void write_welcome(int client) {
+      bert::IOWriter writer(client);
+      bert::Encoder<bert::IOWriter> encoder(writer);
+      encoder.write_version();
+
+      encoder.write_tuple(2);
+      encoder.write_atom("hello_query_agent");
+      encoder.write_binary(RBX_HOST);
+    }
+
+    void request_auth(int client, std::string name) {
+      bert::IOWriter writer(client);
+      bert::Encoder<bert::IOWriter> encoder(writer);
+      encoder.write_version();
+
+      encoder.write_tuple(2);
+      encoder.write_atom("file_auth");
+      encoder.write_binary(name.c_str());
+    }
+
   }
 
 
-  bool QueryAgent::process_commands(int client) {
-    bert::IOReader reader(client);
+  bool QueryAgent::process_commands(Client& client) {
+    bert::IOReader reader(client.socket);
     bert::Decoder<bert::IOReader> decoder(reader);
 
-    bert::IOWriter writer(client);
+    bert::IOWriter writer(client.socket);
     bert::Encoder<bert::IOWriter> encoder(writer);
+
+    if(client.needs_auth_p()) {
+      std::stringstream name;
+      std::ifstream file;
+      bert::Value* val = 0;
+
+      name << "/tmp/agent-auth." << getuid() << "-" << getpid() << "." << client.auth_key;
+
+      int ver = decoder.read_version();
+      if(ver != 131) goto auth_error;
+
+      val = decoder.next_value();
+      if(!val) goto auth_error;
+
+      if(reader.eof_p()) {
+        delete val;
+        goto auth_error;
+      }
+
+      if(!val->equal_atom("ok")) goto auth_error;
+
+      file.open(name.str().c_str());
+
+      char key[PATH_MAX];
+      file.getline(key, PATH_MAX);
+
+      if(strcmp(key, "agent start") != 0) goto auth_error;
+
+      if(verbose_) {
+        struct sockaddr_in sin;
+        socklen_t len = sizeof(sin);
+
+        getpeername(client.socket, (struct sockaddr*)&sin, &len);
+        std::cerr << "[QA: Authenticated " << inet_ntoa(sin.sin_addr)
+                  << ":" << ntohs(sin.sin_port) << "]\n";
+      }
+
+      client.set_running();
+      write_welcome(client.socket);
+
+      unlink(name.str().c_str());
+      return true;
+
+auth_error:
+      unlink(name.str().c_str());
+      return false;
+    }
 
     int ver = decoder.read_version();
     if(ver != 131) return false;
@@ -246,7 +316,7 @@ namespace rubinius {
           if(key->type() == bert::Binary) {
             agent::Output output(writer);
             if(!vars_->set_path(output, key->string(), value)) {
-              set_ruby(this, client, key->string(), value);
+              set_ruby(this, client.socket, key->string(), value);
             }
             delete val;
             return true;
@@ -263,7 +333,7 @@ namespace rubinius {
             agent::Output output(writer);
 
             if(!vars_->read_path(output, key->string())) {
-              get_ruby(this, client, key->string());
+              get_ruby(this, client.socket, key->string());
             }
 
             delete val;
@@ -277,7 +347,7 @@ namespace rubinius {
 
       // If the client ask is the loopback client, give it some extra
       // commands.
-      } else if(client == loopback_[0]) {
+      } else if(client.socket == loopback_[0]) {
         if(cmd->equal_atom("bind")) {
           if(val->elements()->size() == 2) {
             bert::Value* port = val->get_element(1);
@@ -353,40 +423,77 @@ namespace rubinius {
         socklen_t addr_size = sizeof(sin);
         int client = accept(server_fd_, (struct sockaddr *)&sin, &addr_size);
 
+        if(local_only_) {
+          if(sin.sin_addr.s_addr != inet_addr("127.0.0.1")) {
+            std::cerr << "[QA: Reject connection from " << inet_ntoa(sin.sin_addr)
+                      << ":" << ntohs(sin.sin_port) << "]\n";
+            close(client);
+            continue;
+          }
+
+          Client cl(client);
+
+          cl.begin_auth(tmp_key_++);
+
+          std::stringstream name;
+          name << "/tmp/agent-auth." << getuid() << "-" << getpid() << "." << cl.auth_key;
+
+          int file = open(name.str().c_str(), O_CREAT | O_WRONLY | O_EXCL, 0600);
+          if(file == -1) {
+            std::cerr << "[QA: Unable to open '" << name.str() << "' to begin local auth]\n";
+            close(client);
+            continue;
+          }
+
+          close(file);
+
+          if(verbose_) {
+            std::cerr << "[QA: Requesting file auth from " << inet_ntoa(sin.sin_addr)
+                      << ":" << ntohs(sin.sin_port) << "]\n";
+          }
+
+          request_auth(client, name.str());
+
+          add_fd(client);
+
+          sockets_.push_back(cl);
+
+          continue;
+        }
+
         if(verbose_) {
           std::cerr << "[QA: Connection from " << inet_ntoa(sin.sin_addr)
                     << ":" << ntohs(sin.sin_port) << "]\n";
         }
 
-        bert::IOWriter writer(client);
-        bert::Encoder<bert::IOWriter> encoder(writer);
-        encoder.write_version();
-
-        encoder.write_tuple(2);
-        encoder.write_atom("hello_query_agent");
-        encoder.write_binary(RBX_HOST);
+        write_welcome(client);
 
         add_fd(client);
 
-        sockets_.push_back(client);
+        Client cl(client);
+        cl.set_running();
+
+        sockets_.push_back(cl);
       } else {
         bool found = false;
-        for(std::vector<int>::iterator i = sockets_.begin();
+        for(std::vector<Client>::iterator i = sockets_.begin();
             i != sockets_.end(); /* nothing */) {
-          int client = *i;
-          if(FD_ISSET(client, &read_fds)) {
+          Client& client = *i;
+
+          if(FD_ISSET(client.socket, &read_fds)) {
             found = true;
             if(!process_commands(client)) {
               if(verbose_) {
                 struct sockaddr_in sin;
                 socklen_t len = sizeof(sin);
 
-                getpeername(*i, (struct sockaddr*)&sin, &len);
+                getpeername(client.socket, (struct sockaddr*)&sin, &len);
                 std::cerr << "[QA: Disconnected " << inet_ntoa(sin.sin_addr)
                           << ":" << ntohs(sin.sin_port) << "]\n";
               }
-              remove_fd(client);
-              close(client);
+
+              remove_fd(client.socket);
+              close(client.socket);
 
               i = sockets_.erase(i);
               continue;
