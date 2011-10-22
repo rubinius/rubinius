@@ -9,6 +9,18 @@ module Kernel
     end
   end
 
+  def loop
+    raise LocalJumpError, "no block given" unless block_given?
+
+    begin
+      while true
+        yield
+      end
+    rescue StopIteration
+    end
+  end
+  module_function :loop
+
   def Integer(obj)
     case obj
     when Integer
