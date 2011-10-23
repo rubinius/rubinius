@@ -7,6 +7,7 @@ module18.rbc
 enumerable.rbc
 enumerable18.rbc
 enumerator.rbc
+enumerator18.rbc
 argf.rbc
 argf18.rbc
 tuple.rbc
