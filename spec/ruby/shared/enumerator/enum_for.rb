@@ -12,4 +12,22 @@ describe :enum_for, :shared => true do
     enum = [1,2].send(@method)
     enum.map { |v| v }.should == [1,2].each { |v| v }
   end
+
+  it "exposes multi-arg yields as an array" do
+    o = Object.new
+    def o.each
+      yield :a
+      yield :b1, :b2
+      yield [:c]
+      yield :d1, :d2
+      yield :e1, :e2, :e3
+    end
+
+    enum = o.send(@method)
+    enum.next.should == :a
+    enum.next.should == [:b1, :b2]
+    enum.next.should == [:c]
+    enum.next.should == [:d1, :d2]
+    enum.next.should == [:e1, :e2, :e3]
+  end
 end
