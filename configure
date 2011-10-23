@@ -15,6 +15,9 @@ require File.join(root, "kernel", "delta", "options")
 
 class Configure
 
+  class CompileCheckProgramError < RuntimeError
+  end
+
   def initialize(root)
     @log = Logger.new "configure.log"
 
@@ -25,7 +28,7 @@ class Configure
     /([^-]+)-([^-]+)-(.*)/ =~ @host
     @cpu, @vendor, @os = $1, $2, $3
     @little_endian = false
-    @sizeof_long = 0
+    @sizeof = {}
 
     # TODO: For better cross-compiling support, it may be necessary to
     # use the feature facility to check for a define in the compiler.
@@ -713,8 +716,7 @@ Unsupported language version requested: #{ver}. Options are #{@supported_version
       return $?.exitstatus unless run
 
       unless $?.exitstatus == 0
-        @log.error "compiling configure test program failed"
-        failure
+        raise CompileCheckProgramError, "compiling configure test program failed"
       end
 
       system expand("./#{basename}")
@@ -724,16 +726,21 @@ Unsupported language version requested: #{ver}. Options are #{@supported_version
     end
   end
 
-  def detect_sizeof_long
-    @log.print "Checking sizeof(long): "
+  def detect_sizeof(type, includes=[])
+    @log.print "Checking sizeof(#{type}): "
 
-    @sizeof_long = check_program do |f|
-      src = "int main() { return sizeof(long); }"
-      f.puts src
-      @log.log src
+    begin
+      @sizeof[type] = check_program do |f|
+        src = includes.map { |inc| "#include <#{inc}>\n" }.join
+        src << "int main() { return sizeof(#{type}); }"
+        f.puts src
+        @log.log src
+      end
+    rescue CompileCheckProgramError
+      @log.write "unavailable"
+    else
+      @log.write "#{@sizeof[type]} bytes"
     end
-
-    @log.write "#{@sizeof_long} bytes"
   end
 
   def detect_endian
@@ -774,7 +781,7 @@ int main() { X x; return 0; }
 
     @x86_32 = false
 
-    if @sizeof_long == 4
+    if @sizeof['long'] == 4
       status = check_program do |f|
         src = <<-EOP
 int main() {
@@ -876,12 +883,26 @@ int main() { return tgetnum(""); }
 
     @log.write ""
 
-    detect_sizeof_long
-    detect_endian
-    detect_tr1_hash
-    detect_x86_32bit
-    detect_features
-    detect_curses
+    begin
+      detect_sizeof('int')
+      detect_sizeof('short')
+      detect_sizeof('long')
+      detect_sizeof('long long')
+      detect_sizeof('__int64')
+      detect_sizeof('off_t', ['unistd.h'])
+      detect_sizeof('void*')
+      detect_sizeof('float')
+      detect_sizeof('double')
+      detect_sizeof('time_t', ['time.h'])
+      detect_endian
+      detect_tr1_hash
+      detect_x86_32bit
+      detect_features
+      detect_curses
+    rescue CompileCheckProgramError
+      @log.error "compiling configure test program failed"
+      failure
+    end
   end
 
   def which_ruby
@@ -970,7 +991,7 @@ module Rubinius
     :vendor         => "#{@vendor}",
     :os             => "#{@os}",
     :little_endian  => #{@little_endian},
-    :sizeof_long    => #{@sizeof_long},
+    :sizeof_long    => #{@sizeof['long']},
     :x86_32         => #{@x86_32},
     :bindir         => "#{@bindir}",
     :libdir         => "#{@libdir}",
@@ -1029,7 +1050,7 @@ end
 #define RBX_LIB_VERSION   "#{@libversion}"
 #define RBX_LDSHARED      "#{@ldshared}"
 #define RBX_RELEASE_DATE  "#{@release_date}"
-#define RBX_SIZEOF_LONG   #{@sizeof_long}
+#define RBX_SIZEOF_LONG   #{@sizeof['long']}
 #define RBX_LLVM_API_VER  #{@llvm_api_version}
       EOC
 
@@ -1084,7 +1105,7 @@ end
 #define RBX_LIB_VERSION   "#{@libversion}"
 #define RBX_LDSHARED      "#{@ldshared}"
 #define RBX_RELEASE_DATE  "#{@release_date}"
-#define RBX_SIZEOF_LONG   #{@sizeof_long}
+#define RBX_SIZEOF_LONG   #{@sizeof['long']}
 #define RBX_LLVM_API_VER  #{@llvm_api_version}
 
       EOC
@@ -1123,6 +1144,19 @@ end
 #ifndef NORETURN
 #define NORETURN(x) __attribute__ ((noreturn)) x
 #endif
+
+#define HAVE_LONG_LONG #{@sizeof['long long'] ?  1 : 0}
+#define HAVE_OFF_T #{@sizeof['off_t'] ?  1 : 0}
+#define SIZEOF_INT #{@sizeof['int'] || 0}
+#define SIZEOF_SHORT #{@sizeof['short'] || 0}
+#define SIZEOF_LONG #{@sizeof['long'] || 0}
+#define SIZEOF_LONG_LONG #{@sizeof['long long'] || 0}
+#define SIZEOF___INT64 #{@sizeof['__int64'] || 0}
+#define SIZEOF_OFF_T #{@sizeof['off_t'] || 0}
+#define SIZEOF_VOIDP #{@sizeof['void*'] || 0}
+#define SIZEOF_FLOAT #{@sizeof['float'] || 0}
+#define SIZEOF_DOUBLE #{@sizeof['double'] || 0}
+#define SIZEOF_TIME_T #{@sizeof['time_t'] || 0}
       EOC
 
       if @windows
