@@ -141,4 +141,26 @@ module Kernel
   def =~(other)
     nil
   end
+  
+  def Float(obj)
+    raise TypeError, "can't convert nil into Float" if obj.nil?
+
+    case obj
+    when Float
+      obj
+    when String
+      valid_re = /^\s*[+-]?((\d+_?)*\d+(\.(\d+_?)*\d+)?|\.(\d+_?)*\d+)(\s*|([eE][+-]?(\d+_?)*\d+)\s*)$/
+
+      m = valid_re.match(obj)
+
+      if !m or !m.pre_match.empty? or !m.post_match.empty?
+        raise ArgumentError, "invalid value for Float(): #{obj.inspect}"
+      end
+      obj.convert_float
+    else
+      Rubinius::Type.coerce_to(obj, Float, :to_f)
+    end
+  end
+  module_function :Float
+  
 end
