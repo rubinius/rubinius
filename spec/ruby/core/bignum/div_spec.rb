@@ -13,8 +13,8 @@ describe "Bignum#div" do
     end
 
     it "raises FloatDomainError if the argument is a float zero" do
-      lambda { bignum_value(88).div(0.0) }.should raise_error(FloatDomainError, "Infinity")
-      lambda { bignum_value(88).div(-0.0) }.should raise_error(FloatDomainError, "-Infinity")
+      lambda { bignum_value(88).div(0.0) }.should raise_error(FloatDomainError)
+      lambda { bignum_value(88).div(-0.0) }.should raise_error(FloatDomainError)
     end
   end
 end

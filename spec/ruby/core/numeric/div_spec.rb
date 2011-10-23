@@ -26,9 +26,9 @@ describe "Numeric#div" do
     end
 
     it "raises ZeroDivisionError for 0" do
-      lambda { @obj.div(0) }.should raise_error(ZeroDivisionError, "divided by 0")
-      lambda { @obj.div(0.0) }.should raise_error(ZeroDivisionError, "divided by 0")
-      lambda { @obj.div(Complex(0,0)) }.should raise_error(ZeroDivisionError, "divided by 0")
+      lambda { @obj.div(0) }.should raise_error(ZeroDivisionError)
+      lambda { @obj.div(0.0) }.should raise_error(ZeroDivisionError)
+      lambda { @obj.div(Complex(0,0)) }.should raise_error(ZeroDivisionError)
     end
   end
 end
