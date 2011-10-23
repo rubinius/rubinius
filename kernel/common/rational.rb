@@ -222,8 +222,14 @@ class Rational < Numeric
   #
   def ** (other)
     if other.kind_of?(Rational)
+      if self == 0 && other < 0 && other.denominator == 1
+        raise ZeroDivisionError, "divided by 0"
+      end
       Float(self) ** other
     elsif other.kind_of?(Integer)
+      if self == 0 && other < 0
+        raise ZeroDivisionError, "divided by 0"
+      end
       if other > 0
         num = @numerator ** other
         den = @denominator ** other
