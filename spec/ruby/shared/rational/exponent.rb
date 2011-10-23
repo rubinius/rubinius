@@ -141,4 +141,46 @@ describe :rational_exponent, :shared => true do
 
     (rational ** obj).should == :result
   end
+
+  ruby_version_is ""..."1.9" do
+    it "returns Rational(1, 0) for Rational(0, 1) passed a negative Integer" do
+      [-1, -4, -9999].each do |exponent|
+        result = (Rational(0, 1) ** exponent)
+        result.numerator.should eql(1)
+        result.denominator.should eql(0)
+      end
+    end
+
+    conflicts_with :Prime do
+      it "returns Infinity for Rational(0, 1) passed a negative Rational" do
+        [Rational(-1,1), Rational(-3,1), Rational(-3,2)].each do |exponent|
+          (Rational(0, 1) ** exponent).infinite?.should == 1
+        end
+      end
+    end
+  end
+
+  ruby_version_is "1.9" do
+    it "raises ZeroDivisionError for Rational(0, 1) passed a negative Integer" do
+      [-1, -4, -9999].each do |exponent|
+        lambda { Rational(0, 1) ** exponent }.should raise_error(ZeroDivisionError, "divided by 0")
+      end
+    end
+
+    it "raises ZeroDivisionError for Rational(0, 1) passed a negative Rational with denominator 1" do
+      [Rational(-1,1), Rational(-3,1)].each do |exponent|
+        lambda { Rational(0, 1) ** exponent }.should raise_error(ZeroDivisionError, "divided by 0")
+      end
+    end
+
+    it "returns Infinity for Rational(0, 1) passed a negative Rational with denominator not 1" do
+      (Rational(0, 1) ** Rational(-3,2)).infinite?.should == 1
+    end
+  end
+
+  it "returns Infinity for Rational(0, 1) passed a negative Float" do
+    [-1.0, -3.0, -3.14].each do |exponent|
+      (Rational(0, 1) ** exponent).infinite?.should == 1
+    end
+  end
 end
