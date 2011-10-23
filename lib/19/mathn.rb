@@ -29,7 +29,7 @@ class Fixnum
 
   def ** (other)
     if self < 0 && other.round != other
-      Complex(self, 0.0) ** other
+      Complex.new!(self, 0.0) ** other
     else
       power!(other)
     end
@@ -45,7 +45,7 @@ class Bignum
 
   def ** (other)
     if self < 0 && other.round != other
-      Complex(self, 0.0) ** other
+      Complex.new!(self, 0.0) ** other
     else
       power!(other)
     end
@@ -202,7 +202,7 @@ class Float
 
   def ** (other)
     if self < 0 && other.round != other
-      Complex(self, 0.0) ** other
+      Complex.new!(self, 0.0) ** other
     else
       power!(other)
     end
