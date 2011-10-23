@@ -33,5 +33,14 @@ module Enumerable
 
       raise StopIteration, "iteration reached end"
     end
+
+    # Rewinds the enumeration sequence by the next method.
+    #
+    # If the enclosed object responds to a "rewind" method, it is called.
+    #
+    def rewind
+      @generator.rewind if @generator
+      self
+    end
   end
 end

@@ -73,6 +73,16 @@ module Enumerable
       item
     end
 
+    # Rewinds the enumeration sequence by the next method.
+    #
+    # If the enclosed object responds to a "rewind" method, it is called.
+    #
+    def rewind
+      @generator.rewind if @generator
+      @lookahead = []
+      self
+    end
+
     # A supporting class for Enumerator that allows for easy proxying to a Generator's yield.
     class Yielder
       def initialize(&block)
