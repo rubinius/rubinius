@@ -1,1 +1,0 @@
-fails:String#each_line does not care if the string is modified while substituting
