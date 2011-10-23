@@ -11,7 +11,6 @@ module Kernel
     while scope
       if scope.method.local_names
         scope.method.local_names.each do |name|
-          name = name
           locals << name
         end
       end
