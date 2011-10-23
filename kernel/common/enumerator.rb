@@ -188,7 +188,7 @@ module Enumerable
       rescue StopIteration
       end
 
-      @generator.rewind
+      @generator.rewind if Rubinius.ruby18?
 
       raise StopIteration, "iteration reached end"
     end
