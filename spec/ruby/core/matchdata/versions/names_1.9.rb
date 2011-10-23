@@ -14,7 +14,7 @@ describe "MatchData#names" do
 
   it "returns the names of the named capture groups" do
     md = 'haystack'.match(/(?<yellow>hay).(?<pin>tack)/)
-    md.names.should == ['yellow', 'pin']
+    md.names.sort.should == ['pin', 'yellow']
   end
 
   it "returns [] if there were no named captures" do
@@ -23,7 +23,7 @@ describe "MatchData#names" do
 
   it "returns each name only once" do
     md = 'haystack'.match(/(?<hay>hay)(?<dot>.)(?<hay>tack)/)
-    md.names.should == ['hay', 'dot']
+    md.names.sort.should == ['dot', 'hay']
   end
 
   it "equals Regexp#names" do

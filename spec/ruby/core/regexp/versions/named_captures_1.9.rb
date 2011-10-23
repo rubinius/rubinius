@@ -11,7 +11,7 @@ describe "Regexp#named_captures" do
 
   it "sets the keys of the Hash to the names of the capture groups" do
     rex = /this (?<is>is) [aA] (?<pat>pate?rn)/
-    rex.named_captures.keys.should == ['is','pat']
+    rex.named_captures.keys.sort.should == ['is','pat']
   end
 
   it "sets the values of the Hash to Arrays" do
