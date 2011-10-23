@@ -19,7 +19,6 @@ ruby_version_is "1.8.7" do
         obj = mock('rewinder')
         enum = enumerator_class.new(obj)
         obj.should_receive(:each).at_most(1)
-        obj.should_receive(:rewind)
         lambda { enum.rewind.should == enum }.should_not raise_error
       end
     end
