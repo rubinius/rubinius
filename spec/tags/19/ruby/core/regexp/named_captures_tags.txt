@@ -1,2 +1,0 @@
-fails:Regexp#named_captures works with duplicate capture group names
-fails:Regexp#named_captures sets the keys of the Hash to the names of the capture groups
