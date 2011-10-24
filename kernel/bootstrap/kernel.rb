@@ -78,4 +78,12 @@ module Kernel
   end
   private :yield_gdb
 
+  # :internal:
+  #
+  # Backend method for Object#dup and Object#clone.
+  #
+  # Redefined in kernel/common/kernel.rb
+  #
+  def initialize_copy(other)
+  end
 end
