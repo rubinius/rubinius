@@ -10,6 +10,8 @@
 
 #include "object_utils.hpp"
 
+#include "configuration.hpp"
+
 namespace rubinius {
   BlockAsMethod* BlockAsMethod::create(STATE, Object* self, BlockEnvironment* be) {
     BlockAsMethod* pe = state->new_object<BlockAsMethod>(as<Class>(self));
@@ -35,7 +37,7 @@ namespace rubinius {
      *  -------------|---------------|-------|-------
      *  { || }       |  0            |  nil  |  ==
      *  {  }         |  0            |  -2   |  none
-     *  { |a| }      |  1            |  nil  |  none
+     *  { |a| }      |  1            |  nil  |  none (1.8), == (>= 1.9)
      *  { |*a| }     |  0            |  0    |  none
      *  { |a, b| }   |  2            |  nil  |  ==
      *  { |a, *b| }  |  1            |  1    |  >=
@@ -45,8 +47,9 @@ namespace rubinius {
      * no arguments are passed). This is handled by the bytecode prologue
      * of the block.
      */
-    if((splat->nil_p() && (required == 0 || required > 1)
-            && (size_t)required != args.total())
+    if((splat->nil_p()
+          && ((LANGUAGE_18_ENABLED(state) && (required == 0 || required > 1)) || !LANGUAGE_18_ENABLED(state))
+          && (size_t)required != args.total())
         || (!splat->nil_p() && required > 0 && (size_t)required > args.total())) {
       Exception* exc =
         Exception::make_argument_error(state, required, args.total(), args.name());
