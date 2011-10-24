@@ -17,6 +17,11 @@ class Proc
     }
   end
 
+  def to_s
+    l = " (lambda)" if lambda?
+    "#<#{self.class}:0x#{self.object_id.to_s(16)}@#{@block.file}:#{@block.line}#{l}>"
+  end
+
   # private
   # Marking the following as private causes a VM exception
 
