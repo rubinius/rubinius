@@ -5,6 +5,7 @@
 #include <cmath>
 #include <vector>
 #include <tr1/unordered_map>
+#include <string.h>
 
 namespace melbourne {
 
