@@ -103,13 +103,14 @@ namespace rubinius {
 
   static int _gather_names(const UChar *name, const UChar *name_end,
       int ngroup_num, int *group_nums, regex_t *reg, struct _gather_data *gd) {
-    Array* ary = Array::create(gd->state, ngroup_num);
+    STATE = gd->state;
+    Array* ary = Array::create(state, ngroup_num);
 
     for(int i = 0; i < ngroup_num; i++) {
-      ary->set(gd->state, i, Fixnum::from(group_nums[i]));
+      ary->set(state, i, Fixnum::from(group_nums[i]));
     }
 
-    gd->tbl->store(gd->state, gd->state->symbol((char*)name), ary);
+    gd->tbl->store(state, state->symbol((char*)name), ary);
     return 0;
   }
 
