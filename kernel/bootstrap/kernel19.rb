@@ -28,4 +28,18 @@ module Kernel
     Rubinius.primitive :object_untrusted_p
     raise PrimitiveFailure, "Kernel#untrusted? primitive failed"
   end
+
+  def dup
+    copy = Rubinius.invoke_primitive(:object_class, self).allocate
+
+    Rubinius.invoke_primitive :object_copy_object, copy, self
+
+    Rubinius.privately do
+      copy.initialize_copy self
+    end
+    
+    copy.untrust if untrusted?
+    
+    copy
+  end
 end
