@@ -105,6 +105,8 @@ Rubinius::ConfigurationVariables.define do |c|
     s.vm_variable "tmpdir", :string,
       "Where to store files used to discover running query agents"
 
+    s.vm_variable "password", :string,
+      "The password required to connect to the agent"
   end
 
   c.vm_variable "tool", :string,
