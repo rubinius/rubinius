@@ -66,15 +66,6 @@ module Rubinius
       raise TypeError, msg
     end
 
-    def self.coerce_to_symbol(obj)
-      if object_kind_of?(obj, Fixnum)
-        raise ArgumentError, "Fixnums (#{obj}) cannot be used as symbols"
-      end
-      obj = obj.to_str if obj.respond_to?(:to_str)
-
-      coerce_to(obj, Symbol, :to_sym)
-    end
-
     def self.coerce_to_comparison(a, b)
       unless cmp = (a <=> b)
         raise ArgumentError, "comparison of #{a.inspect} with #{b.inspect} failed"
