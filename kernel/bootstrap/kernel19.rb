@@ -32,7 +32,7 @@ module Kernel
   # Generic shallow copy of object.
   #
   # Copies instance variables, but does not recursively copy the
-  # objects they reference. Copies taintedness.
+  # objects they reference. Copies taintedness and trustiness.
   #
   # In contrast to .clone, .dup can be considered as creating a
   # new object of the same class and populating it with data from
@@ -60,7 +60,7 @@ module Kernel
   # Direct shallow copy of object.
   #
   # Copies instance variables, but does not recursively copy the
-  # objects they reference. Copies taintedness and frozenness.
+  # objects they reference. Copies taintedness, frozenness and trustiness.
   #
   # In contrast to .dup, .clone can be considered to actually
   # clone the existing object, including its internal state
