@@ -554,7 +554,11 @@ class Regexp
   #
   def names
     if @names
-      @names.keys.map { |k| k.to_s }
+      names = []
+      @names.each do |k,v|
+        names[v.first] = k.to_s
+      end
+      names.compact
     else
       []
     end
