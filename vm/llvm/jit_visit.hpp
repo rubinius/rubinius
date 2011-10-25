@@ -556,8 +556,8 @@ namespace rubinius {
         Value* val = b().CreateLoad(pos, "rotate");
         Value* val2 = b().CreateLoad(pos2, "rotate");
 
-        b().CreateStore(val2, pos);
-        b().CreateStore(val, pos2);
+        store_stack_back_position(offset, val2);
+        store_stack_back_position(i, val);
       }
     }
 
@@ -569,12 +569,10 @@ namespace rubinius {
         int current = target + 1;
 
         Value* tmp = stack_back(current);
-        Value* pos = stack_back_position(target);
-
-        b().CreateStore(tmp, pos);
+        store_stack_back_position(target, tmp);
       }
 
-      b().CreateStore(val, stack_back_position(positions));
+      store_stack_back_position(positions, val);
     }
 
     void visit_check_frozen() {

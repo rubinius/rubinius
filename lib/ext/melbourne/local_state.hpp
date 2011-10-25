@@ -4,38 +4,40 @@
 #include "var_table18.hpp"
 
 namespace melbourne {
-  struct LocalState {
-    LocalState* prev;
-    var_table local_vars;
-    var_table block_vars;
+  namespace grammar18 {
+    struct LocalState {
+      LocalState* prev;
+      var_table local_vars;
+      var_table block_vars;
 
-    LocalState(LocalState* prev)
-      : prev(prev)
-      , local_vars(var_table_create())
-      , block_vars(0)
-    {}
+      LocalState(LocalState* prev)
+        : prev(prev)
+        , local_vars(var_table_create())
+        , block_vars(0)
+      {}
 
-    ~LocalState() {
-      var_table_destroy(local_vars);
-      if(block_vars) {
-        var_table_destroy(block_vars);
+      ~LocalState() {
+        var_table_destroy(local_vars);
+        if(block_vars) {
+          var_table_destroy(block_vars);
+        }
       }
-    }
 
-    bool blocks_p() {
-      return block_vars != NULL;
-    }
+      bool blocks_p() {
+        return block_vars != NULL;
+      }
 
-    static LocalState* push(LocalState* cur) {
-      return new LocalState(cur);
-    }
+      static LocalState* push(LocalState* cur) {
+        return new LocalState(cur);
+      }
 
-    static LocalState* pop(LocalState* cur) {
-      LocalState* tmp = cur->prev;
-      delete cur;
-      return tmp;
-    }
+      static LocalState* pop(LocalState* cur) {
+        LocalState* tmp = cur->prev;
+        delete cur;
+        return tmp;
+      }
+    };
   };
-}
+};
 
 #endif
