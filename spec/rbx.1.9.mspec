@@ -44,11 +44,17 @@ class MSpecScript
     '^library/dl',  # reimplemented and API changed
   ]
 
+  set :unsupported_library, [
+    # Libraries that Rubinius does not support
+
+    '^library/mathn'
+  ]
+
   # Standard library specs
   set :library, [
     'spec/ruby/library',
     'spec/library',
-  ] + get(:obsolete_library)
+  ] + get(:obsolete_library) + get(:unsupported_library)
 
   # An ordered list of the directories containing specs to run
   set :files, get(:language) + get(:core) + get(:library) +
@@ -58,7 +64,7 @@ class MSpecScript
     'spec/ruby/language',
     'spec/ruby/core',
     'spec/ruby/library',
-  ] + get(:obsolete_library)
+  ] + get(:obsolete_library) + get(:unsupported_library)
 
   # An ordered list of the directories containing specs to run
   # as the CI process.
@@ -100,7 +106,7 @@ class MSpecScript
 
     # Excluded because the specs are extremely system dependent.
     '^spec/ruby/library/syslog',
-  ] + get(:obsolete_library)
+  ] + get(:obsolete_library) + get(:unsupported_library)
 
   # The set of substitutions to transform a spec filename
   # into a tag filename.
