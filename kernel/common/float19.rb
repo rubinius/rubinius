@@ -6,10 +6,6 @@ class Float
     0
   end
 
-  def real?
-    true
-  end
-
   def numerator
     if nan?
       NAN
