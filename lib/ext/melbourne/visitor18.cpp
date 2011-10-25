@@ -71,24 +71,24 @@ namespace melbourne {
     parse_error = true;
   }
 
-  const char *op_to_name(QUID id);
+  const char *op_to_name(rb_parser_state* parser_state, QUID id);
 
 
-  static VALUE quark_to_symbol(quark quark) {
+  static VALUE quark_to_symbol(rb_parser_state* parser_state, quark quark) {
     const char *op;
-    if((op = op_to_name(quark)) ||
-       (op = quark_to_string(id_to_quark(quark)))) {
+    if((op = op_to_name(parser_state, quark)) ||
+       (op = quark_to_string(parser_state, id_to_quark(parser_state, quark)))) {
       return ID2SYM(rb_intern(op));
     } else {
       fprintf(stderr,
               "unable to retrieve string from parser symbol(quark: %#zx, id: %#zx)\n",
-              quark, id_to_quark(quark));
+              quark, id_to_quark(parser_state, quark));
       abort();
     }
   }
 
 #define nd_3rd    u3.node
-#define Q2SYM(v)  quark_to_symbol(v)
+#define Q2SYM(v)  quark_to_symbol(parser_state, v)
 
   VALUE process_parse_tree(rb_parser_state*, VALUE, NODE*, QUID*);
 
@@ -740,7 +740,7 @@ namespace melbourne {
       if (arg_count > 0) {
         /* *arg name */
         if (locals[i + 3]) {
-          splat = quark_to_symbol(locals[i + 3]);
+          splat = quark_to_symbol(parser_state, locals[i + 3]);
         } else {
           splat = Qtrue;
         }

@@ -180,7 +180,7 @@ static intptr_t  mel_local_cnt(rb_parser_state*,QUID);
 static int  mel_local_id(rb_parser_state*,QUID);
 #define local_id(i) mel_local_id(vps, i)
 static QUID  *mel_local_tbl(rb_parser_state *st);
-static QUID   convert_op(QUID id);
+static QUID   convert_op(rb_parser_state *st, QUID id);
 
 #define QUID2SYM(x)   (x)
 
@@ -217,6 +217,9 @@ rb_parser_state *parser_alloc_state() {
   verbose = RTEST(ruby_verbose);
   magic_comments = new std::vector<bstring>;
   start_lines = new std::list<StartPosition>;
+
+  quark_indexes = quark_map();
+  quarks = quark_vector();
 
   return parser_state;
 }
@@ -276,6 +279,8 @@ void pt_free(rb_parser_state *parser_state) {
   }
   free(memory_pools);
 
+  quark_cleanup(parser_state);
+
 }
 
 #define SHOW_PARSER_WARNS 0
@@ -323,8 +328,8 @@ void pop_start_line(rb_parser_state* parser_state) {
 
 #define POP_LINE() pop_start_line((rb_parser_state*)parser_state)
 
-static QUID rb_parser_sym(const char *name);
-static QUID rb_id_attrset(QUID);
+static QUID rb_parser_sym(rb_parser_state *parser_state, const char *name);
+static QUID rb_id_attrset(rb_parser_state *parser_state, QUID);
 
 static int scan_oct(const char *start, int len, int *retlen);
 static int scan_hex(const char *start, int len, int *retlen);
@@ -594,7 +599,7 @@ stmt            : kALIAS fitem {lex_state = EXPR_FNAME;} fitem
                         char buf[3];
 
                         snprintf(buf, sizeof(buf), "$%c", (char)$3->nd_nth);
-                        $$ = NEW_VALIAS($2, rb_parser_sym(buf));
+                        $$ = NEW_VALIAS($2, rb_parser_sym((rb_parser_state*)parser_state, buf));
                     }
                 | kALIAS tGVAR tNTH_REF
                     {
@@ -1078,7 +1083,7 @@ fname           : tIDENTIFIER
                 | op
                     {
                         lex_state = EXPR_END;
-                        $$ = convert_op($1);
+                        $$ = convert_op((rb_parser_state*)parser_state, $1);
                     }
                 | reswords
                     {
@@ -1660,9 +1665,9 @@ primary         : literal
                 | primary_value '[' aref_args ']'
                     {
                         if ($1 && nd_type($1) == NODE_SELF) {
-                            $$ = NEW_FCALL(convert_op(tAREF), $3);
+                            $$ = NEW_FCALL(convert_op((rb_parser_state*) parser_state, tAREF), $3);
                         } else {
-                            $$ = NEW_CALL($1, convert_op(tAREF), $3);
+                            $$ = NEW_CALL($1, convert_op((rb_parser_state*) parser_state, tAREF), $3);
                         }
                         fixpos($$, $1);
                     }
@@ -2103,12 +2108,12 @@ method_call     : operation paren_args
                     }
                 | primary_value '\\' operation2
                     {
-                        $$ = NEW_CALL($1, rb_parser_sym("get_reference"),
+                        $$ = NEW_CALL($1, rb_parser_sym((rb_parser_state*) parser_state, "get_reference"),
                         NEW_LIST(NEW_LIT(QUID2SYM($3))));
                     }
                 | tUBS operation2
                     {
-                        $$ = NEW_FCALL(rb_parser_sym("get_reference"),
+                        $$ = NEW_FCALL(rb_parser_sym((rb_parser_state*) parser_state, "get_reference"),
                         NEW_LIST(NEW_LIT(QUID2SYM($2))));
                     }
                 | kSUPER paren_args
@@ -2174,7 +2179,7 @@ opt_rescue      : kRESCUE exc_list exc_var then
                   opt_rescue
                     {
                         if ($3) {
-                            $3 = node_assign($3, NEW_GVAR(rb_parser_sym("$!")), vps);
+                            $3 = node_assign($3, NEW_GVAR(rb_parser_sym((rb_parser_state*) parser_state, "$!")), vps);
                             $5 = block_append(vps, $3, $5);
                         }
                         $$ = NEW_RESBODY($2, $5, $6);
@@ -2428,7 +2433,7 @@ dsym            : tSYMBEG xstring_contents tSTRING_END
                               case NODE_STR:
                                 /* TODO: this line should never fail unless nd_str is binary */
                                 if (strlen(bdatae($$->nd_str,"")) == (size_t)blength($$->nd_str)) {
-                                  QUID tmp = rb_parser_sym(bdata($$->nd_str));
+                                  QUID tmp = rb_parser_sym((rb_parser_state*) parser_state, bdata($$->nd_str));
                                   bdestroy($$->nd_str);
                                   $$->nd_lit = QUID2SYM(tmp);
                                   nd_set_type($$, NODE_LIT);
@@ -2868,7 +2873,6 @@ string_to_ast(VALUE ptp, const char *f, bstring s, int line)
     }
     pt_free(parser_state);
     free(parser_state);
-    quark_cleanup();
     return ret;
 }
 
@@ -2930,7 +2934,6 @@ file_to_ast(VALUE ptp, const char *f, FILE *file, int start)
 
     pt_free(parser_state);
     free(parser_state);
-    quark_cleanup();
     return ret;
 }
 
@@ -4572,14 +4575,14 @@ yylex(void *yylval_v, void *vstate)
 
               case 1:
                 lex_strterm = NEW_STRTERM(str_xquote, term, paren);
-                pslval->id = rb_parser_sym(tmpstr);
+                pslval->id = rb_parser_sym(parser_state, tmpstr);
                 return tXSTRING_BEG;
 
               default:
                 lex_strterm = NEW_STRTERM(str_xquote, term, paren);
                 tmpstr[0] = c;
                 tmpstr[1] = 0;
-                pslval->id = rb_parser_sym(tmpstr);
+                pslval->id = rb_parser_sym(parser_state, tmpstr);
                 return tXSTRING_BEG;
             }
         }
@@ -4637,7 +4640,7 @@ yylex(void *yylval_v, void *vstate)
             tokadd('$', parser_state);
             tokadd((char)c, parser_state);
             tokfix();
-            pslval->id = rb_parser_sym(tok());
+            pslval->id = rb_parser_sym(parser_state, tok());
             return tGVAR;
 
           case '-':
@@ -4647,7 +4650,7 @@ yylex(void *yylval_v, void *vstate)
             tokadd((char)c, parser_state);
           gvar:
             tokfix();
-            pslval->id = rb_parser_sym(tok());
+            pslval->id = rb_parser_sym(parser_state, tok());
             /* xxx shouldn't check if valid option variable */
             return tGVAR;
 
@@ -4799,7 +4802,7 @@ yylex(void *yylval_v, void *vstate)
                     enum lex_state_e state = lex_state;
                     lex_state = kw->state;
                     if (state == EXPR_FNAME) {
-                        pslval->id = rb_parser_sym(kw->name);
+                        pslval->id = rb_parser_sym(parser_state, kw->name);
                         // Hack. Ignore the different variants of do
                         // if we're just trying to match a FNAME
                         if(kw->id[0] == kDO) return kDO;
@@ -4839,7 +4842,7 @@ yylex(void *yylval_v, void *vstate)
                 lex_state = EXPR_END;
             }
         }
-        pslval->id = rb_parser_sym(tok());
+        pslval->id = rb_parser_sym(parser_state, tok());
         if(is_local_id(pslval->id) &&
            last_state != EXPR_DOT &&
            local_id(pslval->id)) {
@@ -5138,11 +5141,11 @@ static const struct {
     {0, ""}
 };
 
-static QUID convert_op(QUID id) {
+static QUID convert_op(rb_parser_state *parser_state, QUID id) {
     int i;
     for(i = 0; op_tbl[i].token; i++) {
         if(op_tbl[i].token == id) {
-            return rb_parser_sym(op_tbl[i].name);
+            return rb_parser_sym(parser_state, op_tbl[i].name);
         }
     }
     return id;
@@ -5160,7 +5163,7 @@ call_op(NODE *recv, QUID id, int narg, NODE *arg1, rb_parser_state *parser_state
         arg1 = 0;
     }
 
-    id = convert_op(id);
+    id = convert_op(parser_state, id);
 
 
     NODE* n = NEW_CALL(recv, id, arg1);
@@ -5199,7 +5202,7 @@ match_gen(NODE *node1, NODE *node2, rb_parser_state *parser_state)
         }
     }
 
-    return NEW_CALL(node1, convert_op(tMATCH), NEW_LIST(node2));
+    return NEW_CALL(node1, convert_op(parser_state, tMATCH), NEW_LIST(node2));
 }
 
 static NODE*
@@ -5335,12 +5338,12 @@ aryset(NODE *recv, NODE *idx, rb_parser_state *parser_state)
         recv = (NODE *)1;
     else
         value_expr(recv);
-    return NEW_ATTRASGN(recv, convert_op(tASET), idx);
+    return NEW_ATTRASGN(recv, convert_op(parser_state, tASET), idx);
 }
 
 
 static QUID
-rb_id_attrset(QUID id)
+rb_id_attrset(rb_parser_state* parser_state, QUID id)
 {
     id &= ~ID_SCOPE_MASK;
     id |= ID_ATTRSET;
@@ -5354,7 +5357,7 @@ attrset(NODE *recv, QUID id, rb_parser_state *parser_state)
         recv = (NODE *)1;
     else
         value_expr(recv);
-    return NEW_ATTRASGN(recv, rb_id_attrset(id), 0);
+    return NEW_ATTRASGN(recv, rb_id_attrset(parser_state, id), 0);
 }
 
 static void
@@ -5676,7 +5679,7 @@ range_op(NODE *node, rb_parser_state *parser_state)
     }
     if (type == NODE_LIT && FIXNUM_P(node->nd_lit)) {
         warn_unless_e_option(parser_state, node, "integer literal in conditional range");
-        return call_op(node,tEQ,1,NEW_GVAR(rb_parser_sym("$.")), parser_state);
+        return call_op(node,tEQ,1,NEW_GVAR(rb_parser_sym(parser_state, "$.")), parser_state);
     }
     return node;
 }
@@ -5718,7 +5721,7 @@ cond0(NODE *node, rb_parser_state *parser_state)
       case NODE_DREGX_ONCE:
         local_cnt('_');
         local_cnt('~');
-        return NEW_MATCH2(node, NEW_GVAR(rb_parser_sym("$_")));
+        return NEW_MATCH2(node, NEW_GVAR(rb_parser_sym(parser_state, "$_")));
 
       case NODE_AND:
       case NODE_OR:
@@ -5875,13 +5878,13 @@ arg_prepend(rb_parser_state *parser_state, NODE *node1, NODE *node2)
 }
 
 static NODE*
-new_call(rb_parser_state *parser_state,NODE *r,QUID m,NODE *a)
+new_call(rb_parser_state *parser_state, NODE *r,QUID m,NODE *a)
 {
     if (a && nd_type(a) == NODE_BLOCK_PASS) {
-        a->nd_iter = NEW_CALL(r,convert_op(m),a->nd_head);
+        a->nd_iter = NEW_CALL(r, convert_op(parser_state, m),a->nd_head);
         return a;
     }
-    return NEW_CALL(r,convert_op(m),a);
+    return NEW_CALL(r, convert_op(parser_state, m),a);
 }
 
 static NODE*
@@ -5891,7 +5894,7 @@ new_fcall(rb_parser_state *parser_state,QUID m,NODE *a)
         a->nd_iter = NEW_FCALL(m,a->nd_head);
         return a;
     }
-    return NEW_FCALL(m,a);
+    return NEW_FCALL(m, a);
 }
 
 static NODE*
@@ -5979,7 +5982,7 @@ mel_local_id(rb_parser_state *parser_state, QUID id)
 }
 
 static QUID
-rb_parser_sym(const char *name)
+rb_parser_sym(rb_parser_state *parser_state, const char *name)
 {
     const char *m = name;
     QUID id, pre, qrk, bef;
@@ -6035,7 +6038,7 @@ rb_parser_sym(const char *name)
         m += mbclen(*m);
     }
     if (*m) id = ID_JUNK;
-    qrk = (QUID)quark_from_string(name);
+    qrk = (QUID)quark_from_string(parser_state, name);
     pre = qrk + tLAST_TOKEN;
     bef = id;
     id |= ( pre << ID_SCOPE_SHIFT );
@@ -6073,7 +6076,7 @@ scan_hex(const char *start, int len, int *retlen)
     return retval;
 }
 
-const char *op_to_name(QUID id) {
+const char *op_to_name(rb_parser_state* parser_state, QUID id) {
   if(id < tLAST_TOKEN) {
     int i = 0;
 
@@ -6084,7 +6087,7 @@ const char *op_to_name(QUID id) {
   }
   return NULL;
 }
-quark id_to_quark(QUID id) {
+quark id_to_quark(rb_parser_state* parser_state, QUID id) {
   quark qrk;
 
   qrk = (quark)((id >> ID_SCOPE_SHIFT) - tLAST_TOKEN);

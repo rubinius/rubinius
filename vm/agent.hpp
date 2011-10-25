@@ -70,6 +70,8 @@ namespace rubinius {
     agent::VariableAccess* vars_;
 
     bool local_only_;
+    bool use_password_;
+    std::string password_;
     uint32_t tmp_key_;
 
     const static int cBackLog = 10;
@@ -135,6 +137,8 @@ namespace rubinius {
     void make_discoverable();
 
     virtual void perform();
+    bool check_password(Client& client);
+    bool check_file_auth(Client& client);
     bool process_commands(Client& client);
 
     void on_fork();
