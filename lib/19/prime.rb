@@ -82,7 +82,7 @@ end
 #   has many prime factors. e.g. for Prime#prime? .
 class Prime
   include Enumerable
-  @the_instance = Prime.new
+  @the_instance = Prime.allocate
 
   # obsolete. Use +Prime+::+instance+ or class methods of +Prime+.
   def initialize
