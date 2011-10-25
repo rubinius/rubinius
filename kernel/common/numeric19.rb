@@ -34,4 +34,8 @@ class Numeric
   def denominator
     to_r.denominator
   end
+
+  def real?
+    true
+  end
 end
