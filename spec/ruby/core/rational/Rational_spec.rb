@@ -1,5 +1,6 @@
 ruby_version_is "1.9" do
   require File.expand_path('../../../shared/rational/Rational', __FILE__)
+  require File.expand_path('../../../fixtures/rational', __FILE__)
 
   describe "Rational()" do
     describe "passed two arguments" do
@@ -39,22 +40,38 @@ ruby_version_is "1.9" do
       end
     end
 
-    it "raises a TypeError if the arguments are not Integers" do
-      lambda {
-        Rational(nil)
-      }.should raise_error(TypeError)
+    describe "when passed a Numeric" do
+      it "calls #to_r to convert the first argument to a Rational" do
+        num = RationalSpecs::SubNumeric.new(2)
 
-      lambda {
-        Rational(nil, 1)
-      }.should raise_error(TypeError)
+        Rational(num).should == Rational(2)
+      end
+    end
 
-      lambda {
-        Rational(:foo, 1)
-      }.should raise_error(TypeError)
+    describe "when passed a Complex" do
+      it "returns a Rational from the real part if the imaginary part is 0" do
+        Rational(Complex(1, 0)).should == Rational(1)
+      end
 
-      lambda {
-        Rational(:foo)
-      }.should raise_error(TypeError)
+      it "raises a RangeError if the imaginary part is not 0" do
+        lambda { Rational(Complex(1, 2)) }.should raise_error(RangeError)
+      end
+    end
+
+    it "raises a TypeError if the first argument is nil" do
+      lambda { Rational(nil) }.should raise_error(TypeError)
+    end
+
+    it "raises a TypeError if the second argument is nil" do
+      lambda { Rational(1, nil) }.should raise_error(TypeError)
+    end
+
+    it "raises a TypeError if the first argument is a Symbol" do
+      lambda { Rational(:sym) }.should raise_error(TypeError)
+    end
+
+    it "raises a TypeError if the second argument is a Symbol" do
+      lambda { Rational(1, :sym) }.should raise_error(TypeError)
     end
   end
 end
