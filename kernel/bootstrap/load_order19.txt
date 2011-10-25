@@ -36,6 +36,7 @@ static_scope.rbc
 string.rbc
 symbol.rbc
 thread.rbc
+thread19.rbc
 thunk.rbc
 time.rbc
 true.rbc
