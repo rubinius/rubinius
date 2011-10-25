@@ -1,6 +1,11 @@
 require File.expand_path('../../../spec_helper', __FILE__)
+require File.expand_path('../shared/quo', __FILE__)
 
 describe "Numeric#fdiv" do
+  ruby_version_is ""..."1.9" do
+    it_behaves_like :numeric_quo_18, :fdiv
+  end
+
   ruby_version_is "1.9" do
     it "coerces self with #to_f" do
       numeric = mock_numeric('numeric')
@@ -29,9 +34,5 @@ describe "Numeric#fdiv" do
     it "returns NaN if other is NaN" do
       3334.fdiv(0/0.0).nan?.should be_true
     end
-  end
-
-  ruby_version_is ""..."1.9" do
-    it "needs to be reviewed for spec completeness"
   end
 end

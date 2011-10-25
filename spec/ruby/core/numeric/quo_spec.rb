@@ -1,14 +1,10 @@
 require File.expand_path('../../../spec_helper', __FILE__)
 require File.expand_path('../fixtures/classes', __FILE__)
+require File.expand_path('../shared/quo', __FILE__)
 
 describe "Numeric#quo" do
   ruby_version_is ""..."1.9" do
-    it "returns the result of calling self#/ with other" do
-      obj = NumericSpecs::Subclass.new
-      obj.should_receive(:/).with(19).and_return(:result)
-
-      obj.quo(19).should == :result
-    end
+    it_behaves_like :numeric_quo_18, :quo
   end
 
   ruby_version_is "1.9" do

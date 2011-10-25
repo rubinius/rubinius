@@ -1,1 +1,3 @@
-# TODO: port MRI code
+class Rational
+  Unify = true
+end

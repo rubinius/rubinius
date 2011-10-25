@@ -89,6 +89,12 @@ namespace rubinius {
 
     shared_.globals.rubinius.get()->set_const(state_, "FROM_AGENT", from);
     shared_.globals.rubinius.get()->set_const(state_, "TO_AGENT", to);
+
+    if(shared_.config.agent_password.set_p()) {
+      local_only_ = false;
+      use_password_ = true;
+      password_ = std::string(shared_.config.agent_password);
+    }
   }
 
   QueryAgent::~QueryAgent() {
@@ -236,42 +242,99 @@ namespace rubinius {
       encoder.write_binary(name.c_str());
     }
 
+    void request_password(int client) {
+      bert::IOWriter writer(client);
+      bert::Encoder<bert::IOWriter> encoder(writer);
+      encoder.write_version();
+
+      encoder.write_tuple(1);
+      encoder.write_atom("password_auth");
+    }
   }
 
+  bool QueryAgent::check_password(Client& client) {
+    bert::IOReader reader(client.socket);
+    bert::Decoder<bert::IOReader> decoder(reader);
 
-  bool QueryAgent::process_commands(Client& client) {
+    bert::IOWriter writer(client.socket);
+    bert::Encoder<bert::IOWriter> encoder(writer);
+    bert::Value* val = 0;
+
+    int ver = decoder.read_version();
+    if(ver != 131) return false;
+
+    val = decoder.next_value();
+    if(!val) return false;
+
+    if(reader.eof_p()) {
+      delete val;
+      return false;
+    }
+
+    if(val->type() == bert::Tuple) {
+      bert::Value* cmd = val->get_element(0);
+      if(cmd->equal_atom("password")) {
+        bert::Value* pass = val->get_element(1);
+
+        if(pass->type() == bert::Binary) {
+          if(password_ == std::string(pass->string())) return true;
+        }
+      }
+    }
+
+    return false;
+  }
+
+  bool QueryAgent::check_file_auth(Client& client) {
     bert::IOReader reader(client.socket);
     bert::Decoder<bert::IOReader> decoder(reader);
 
     bert::IOWriter writer(client.socket);
     bert::Encoder<bert::IOWriter> encoder(writer);
 
+    std::stringstream name;
+    std::ifstream file;
+    bert::Value* val = 0;
+
+    name << "/tmp/agent-auth." << getuid() << "-" << getpid() << "." << client.auth_key;
+
+    int ver = decoder.read_version();
+    if(ver != 131) goto auth_error;
+
+    val = decoder.next_value();
+    if(!val) goto auth_error;
+
+    if(reader.eof_p()) {
+      delete val;
+      goto auth_error;
+    }
+
+    if(!val->equal_atom("ok")) goto auth_error;
+
+    file.open(name.str().c_str());
+
+    char key[PATH_MAX];
+    file.getline(key, PATH_MAX);
+
+    if(strcmp(key, "agent start") != 0) goto auth_error;
+
+    unlink(name.str().c_str());
+    return true;
+
+auth_error:
+    unlink(name.str().c_str());
+    return false;
+  }
+
+  bool QueryAgent::process_commands(Client& client) {
     if(client.needs_auth_p()) {
-      std::stringstream name;
-      std::ifstream file;
-      bert::Value* val = 0;
-
-      name << "/tmp/agent-auth." << getuid() << "-" << getpid() << "." << client.auth_key;
-
-      int ver = decoder.read_version();
-      if(ver != 131) goto auth_error;
-
-      val = decoder.next_value();
-      if(!val) goto auth_error;
-
-      if(reader.eof_p()) {
-        delete val;
-        goto auth_error;
+      if(local_only_) {
+        if(!check_file_auth(client)) return false;
+      } else if(use_password_) {
+        if(!check_password(client)) return false;
+      } else {
+        return false;
       }
-
-      if(!val->equal_atom("ok")) goto auth_error;
-
-      file.open(name.str().c_str());
-
-      char key[PATH_MAX];
-      file.getline(key, PATH_MAX);
-
-      if(strcmp(key, "agent start") != 0) goto auth_error;
 
       if(verbose_) {
         struct sockaddr_in sin;
@@ -279,19 +342,19 @@ namespace rubinius {
 
         getpeername(client.socket, (struct sockaddr*)&sin, &len);
         std::cerr << "[QA: Authenticated " << inet_ntoa(sin.sin_addr)
-                  << ":" << ntohs(sin.sin_port) << "]\n";
+          << ":" << ntohs(sin.sin_port) << "]\n";
       }
 
       client.set_running();
       write_welcome(client.socket);
-
-      unlink(name.str().c_str());
       return true;
-
-auth_error:
-      unlink(name.str().c_str());
-      return false;
     }
+
+    bert::IOReader reader(client.socket);
+    bert::Decoder<bert::IOReader> decoder(reader);
+
+    bert::IOWriter writer(client.socket);
+    bert::Encoder<bert::IOWriter> encoder(writer);
 
     int ver = decoder.read_version();
     if(ver != 131) return false;
@@ -453,6 +516,22 @@ auth_error:
           }
 
           request_auth(client, name.str());
+
+          add_fd(client);
+
+          sockets_.push_back(cl);
+
+          continue;
+        } else if(use_password_) {
+          Client cl(client);
+          cl.begin_auth(0);
+
+          if(verbose_) {
+            std::cerr << "[QA: Requesting password auth from " << inet_ntoa(sin.sin_addr)
+                      << ":" << ntohs(sin.sin_port) << "]\n";
+          }
+
+          request_password(client);
 
           add_fd(client);
 
