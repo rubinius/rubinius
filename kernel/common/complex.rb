@@ -388,6 +388,14 @@ class Complex < Numeric
 
   alias_method :rectangular, :rect
 
+  def to_r
+    unless @image.equal? 0
+      raise RangeError, "cannot convert #{inspect} into Rational"
+    end
+
+    Rational(@real)
+  end
+
   #
   # Standard string representation of the complex number.
   #

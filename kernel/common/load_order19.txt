@@ -111,3 +111,4 @@ variable_scope.rbc
 capi.rbc
 complex.rbc
 rational.rbc
+rationalizer.rbc

@@ -275,21 +275,7 @@ class String
   alias_method :next!, :succ!
 
   def to_r
-    return Rational(0,1) if empty?
-
-    clean       = strip
-    numerator   = clean.gsub(".", "").to_i
-    denominator = 1
-
-    if clean.match(/\d\.\d/)
-      denominator = 10**clean.split(".")[1].to_i.to_s.length
-    end
-
-    if clean.match(/\d\/\d/)
-      denominator *= clean.split("/")[1].to_i
-    end
-
-    return Rational(numerator, denominator)
+    Rationalizer.new(self).convert
   end
 
   ##
