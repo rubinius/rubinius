@@ -3,10 +3,6 @@ class Fixnum < Integer
     0
   end
 
-  def real?
-    true
-  end
-
   # Must be it's own method, so that super calls the correct method
   # on Numeric
   def div(o)
