@@ -3,6 +3,10 @@ class Numeric
     Complex(0, self)
   end
 
+  def to_c
+    Complex(self, 0)
+  end
+
   def imag
     0
   end
