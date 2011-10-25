@@ -29,6 +29,8 @@
 
 #include "vm/object_utils.hpp"
 
+#include "configuration.hpp"
+
 namespace rubinius {
 
   Class* Object::class_object(STATE) const {
@@ -131,6 +133,10 @@ namespace rubinius {
         ivars(state, clt->duplicate(state));
 
       };
+    }
+
+    if(!LANGUAGE_18_ENABLED(state) && other->untrusted_p(state) == Qtrue) {
+      untrust(state);
     }
 
     return this;
