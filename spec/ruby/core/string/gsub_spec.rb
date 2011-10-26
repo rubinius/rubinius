@@ -291,7 +291,7 @@ ruby_version_is "1.9" do
       "food!".gsub(/./, hsh).should == "[]00[]!"
     end
 
-    it "raises a TypeError if the hash has a default proc" do
+    it "does not raise a TypeError if the hash has a default proc" do
       hsh = new_hash
       hsh.default_proc = lambda { |k,v| 'lamb' }
       lambda do
