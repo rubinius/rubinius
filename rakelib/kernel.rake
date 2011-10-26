@@ -232,7 +232,7 @@ namespace :compiler do
 
     if BUILD_CONFIG[:which_ruby] == :ruby
       require "#{Rubinius::COMPILER_PATH}/mri_bridge"
-    elsif BUILD_CONFIG[:which_ruby] == :rbx && RUBY_VERSION < "1.9"
+    elsif BUILD_CONFIG[:which_ruby] == :rbx && RUBY_VERSION =~ /^1\.8/
       require "#{Rubinius::COMPILER_PATH}/rbx_bridge"
     end
 

@@ -112,7 +112,7 @@ def add_mri_capi
 
   add_ldflag DEFAULT_CONFIG["LDFLAGS"]
   rubyhdrdir = DEFAULT_CONFIG["rubyhdrdir"]
-  if RUBY_VERSION =~ /\A1\.9\./
+  if rubyhdrdir
     arch_hdrdir = "#{rubyhdrdir}/#{DEFAULT_CONFIG['arch']}"
     add_include_dir rubyhdrdir
     add_include_dir arch_hdrdir
