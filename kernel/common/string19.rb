@@ -774,7 +774,8 @@ class String
     else
       tainted = replacement.tainted?
       untrusted ||= replacement.untrusted?
-      replacement = StringValue(replacement)
+      hash = Rubinius::Type.check_convert_type(replacement, Hash, :to_hash)
+      replacement = StringValue(replacement) unless hash
       tainted ||= replacement.tainted?
       untrusted ||= replacement.untrusted?
       use_yield = false
@@ -807,11 +808,14 @@ class String
         ret.append substring(last_end, pre_len)
       end
 
-      if use_yield
+      if use_yield || hash
         Regexp.last_match = match
 
-        val = yield match.to_s
-
+        if use_yield
+          val = yield match.to_s
+        else
+          val = hash[match.to_s]
+        end
         val = val.to_s unless val.kind_of?(String)
 
         tainted ||= val.tainted?
