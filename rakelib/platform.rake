@@ -8,7 +8,7 @@ file 'runtime/platform.conf' => deps do |task|
   puts "GEN runtime/platform.conf"
 
   File.open task.name, "wb" do |f|
-    addrinfo = FFI::Generators::Structures.new 'addrinfo' do |s|
+    FFI::Generators::Structures.new 'addrinfo' do |s|
       if BUILD_CONFIG[:windows]
         s.include "ws2tcpip.h"
       else
@@ -128,13 +128,13 @@ file 'runtime/platform.conf' => deps do |task|
     # O_SHLOCK on Bsd/Darwin, etc.  Binary doesn't exist at all in many non-Unix
     # variants.  This should come out of something like config.h
 
-    fixme_constants = %w{
-      LOCK_SH
-      LOCK_EX
-      LOCK_NB
-      LOCK_UN
-      BINARY
-    }
+    # fixme_constants = %w{
+    #   LOCK_SH
+    #   LOCK_EX
+    #   LOCK_NB
+    #   LOCK_UN
+    #   BINARY
+    # }
 
     FFI::Generators::Constants.new 'rbx.platform.file' do |cg|
       cg.include 'stdio.h'

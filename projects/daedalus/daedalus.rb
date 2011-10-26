@@ -338,7 +338,7 @@ module Daedalus
         dependencies(ctx).each do |d|
           begin
             sha1 << ctx.sha1(d)
-          rescue StandardError => e
+          rescue StandardError
             raise "Unable to find dependency '#{d}' from #{@path}"
           end
         end
