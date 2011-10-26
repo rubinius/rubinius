@@ -1,4 +1,3 @@
-fails:String#gsub with pattern and Hash untrusts the result if a hash value is untrusted
 fails:String#gsub with pattern and block untrusts the result if the original string or replacement is untrusted
 fails:String#gsub! with pattern and replacement untrusts self if replacement is untrusted
 fails:String#gsub! with pattern and replacement raises a RuntimeError when self is frozen
