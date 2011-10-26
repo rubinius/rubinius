@@ -865,9 +865,120 @@ class String
     return ret
   end
 
+  def gsub!(pattern, replacement=undefined)
+    unless block_given? or replacement != undefined
+      return to_enum(:gsub, pattern, replacement)
+    end
+
+    raise RuntimeError, "can't modify frozen String" if frozen?
+
+    tainted = false
+    untrusted = untrusted?
+
+    if replacement.equal?(undefined)
+      use_yield = true
+    else
+      tainted = replacement.tainted?
+      untrusted ||= replacement.untrusted?
+      hash = Rubinius::Type.check_convert_type(replacement, Hash, :to_hash)
+      replacement = StringValue(replacement) unless hash
+      tainted ||= replacement.tainted?
+      untrusted ||= replacement.untrusted?
+      use_yield = false
+    end
+
+    pattern = get_pattern(pattern, true)
+    orig_len = @num_bytes
+    orig_data = @data
+
+    last_end = 0
+    offset = nil
+    ret = substring(0, 0) # Empty string and string subclass
+
+    last_match = nil
+    match = pattern.match_from self, last_end
+
+    if match
+      ma_range = match.full
+      ma_start = ma_range.at(0)
+      ma_end   = ma_range.at(1)
+
+      offset = ma_start
+    else
+      Regexp.last_match = nil
+      return nil
+    end
+
+    while match
+      nd = ma_start - 1
+      pre_len = nd-last_end+1
+
+      if pre_len > 0
+        ret.append substring(last_end, pre_len)
+      end
+
+      if use_yield || hash
+        Regexp.last_match = match
+
+        if use_yield
+          val = yield match.to_s
+        else
+          val = hash[match.to_s]
+        end
+        untrusted = true if val.untrusted?
+        val = val.to_s unless val.kind_of?(String)
+
+        tainted ||= val.tainted?
+        ret.append val
+
+        if !@data.equal?(orig_data) or @num_bytes != orig_len
+          raise RuntimeError, "string modified"
+        end
+      else
+        replacement.to_sub_replacement(ret, match)
+      end
+
+      tainted ||= val.tainted?
+
+      last_end = ma_end
+
+      if ma_start == ma_end
+        if char = find_character(offset)
+          offset += char.size
+        else
+          offset += 1
+        end
+      else
+        offset = ma_end
+      end
+
+      last_match = match
+
+      match = pattern.match_from self, offset
+      break unless match
+
+      ma_range = match.full
+      ma_start = ma_range.at(0)
+      ma_end   = ma_range.at(1)
+
+      offset = ma_start
+    end
+
+    Regexp.last_match = last_match
+
+    str = substring(last_end, @num_bytes-last_end+1)
+    ret.append str if str
+
+    self.taint if tainted
+    self.untrust if untrusted
+
+    replace(ret)
+    return self
+  end
+
   # Performs the substitutions of <code>String#gsub</code> in place, returning
   # <i>self</i>, or <code>nil</code> if no substitutions were performed.
-  def gsub!(pattern, replacement=undefined)
+  def _gsub!(pattern, replacement=undefined)
     # Because of the behavior of $~, this is duplicated from gsub! because
     # if we call gsub! from gsub, the last_match can't be updated properly.
 
