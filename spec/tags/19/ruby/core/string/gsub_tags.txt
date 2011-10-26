@@ -1,4 +1,3 @@
-fails:String#gsub with pattern and replacement untrusts the result if the original string or replacement is untrusted
 fails:String#gsub with pattern and Hash returns a copy of self with all occurrences of pattern replaced with the value of the corresponding hash key
 fails:String#gsub with pattern and Hash ignores keys that don't correspond to matches
 fails:String#gsub with pattern and Hash returns an empty string if the pattern matches but the hash specifies no replacements
