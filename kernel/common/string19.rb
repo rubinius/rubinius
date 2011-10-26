@@ -815,8 +815,8 @@ class String
           val = yield match.to_s
         else
           val = hash[match.to_s]
-          untrusted = true if val.untrusted?
         end
+        untrusted = true if val.untrusted?
         val = val.to_s unless val.kind_of?(String)
 
         tainted ||= val.tainted?
