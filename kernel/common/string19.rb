@@ -605,10 +605,12 @@ class String
     modify!
 
     unless other.kind_of? String
-      if other.kind_of?(Integer) && other >= 0 && other <= 255
-        other = other.chr
-      elsif other.kind_of?(Integer) && other < 0
-        raise RangeError, "negative argument"
+      if other.kind_of? Integer
+        if other >= 0 and other <= 255
+          other = other.chr
+        else
+          raise RangeError, "negative value for character"
+        end
       else
         other = StringValue(other)
       end

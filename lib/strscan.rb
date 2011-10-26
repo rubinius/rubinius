@@ -46,7 +46,7 @@ class StringScanner
   end
 
   def concat(str)
-    @string << str
+    @string << StringValue(str)
     self
   end
   alias_method :<<, :concat
