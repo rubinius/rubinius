@@ -1,5 +1,6 @@
 basicobject.rbc
 class.rbc
+class19.rbc
 binding.rbc
 proc.rbc
 proc19.rbc
