@@ -6,7 +6,7 @@ extern "C" {
 #endif
 
 #ifdef HAVE_RB_TIME_NEW
-# ifdef RUBY_VERSION_IS_1_8
+# ifdef RUBY_VERSION_IS_1_8_EX_1_9
 static VALUE time_spec_rb_time_new(VALUE self, VALUE sec, VALUE usec) {
   return rb_time_new(NUM2LONG(sec), NUM2LONG(usec));
 }

@@ -40,6 +40,25 @@ describe "IO.popen" do
         File.unlink tmp_file if File.exist? tmp_file
       end
     end
+
+    it "waits for the child to finish" do
+      begin
+        tmp_file = tmp "IO_popen_spec_#{$$}"
+
+        data = IO.popen "cat > #{tmp_file} && sleep 1", 'w' do |io|
+          io.write "bar"
+        end
+
+        $?.exitstatus.should == 0
+
+        system 'sync' # sync to flush writes for File.read below
+
+        File.read(tmp_file).should == 'bar'
+
+      ensure
+        File.unlink tmp_file if File.exist? tmp_file
+      end
+    end
   end
 
   it "returns the value of the block when passed a block" do

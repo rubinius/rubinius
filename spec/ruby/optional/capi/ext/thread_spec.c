@@ -1,5 +1,6 @@
 #include <math.h>
 #include <errno.h>
+#include <unistd.h>
 
 #include "ruby.h"
 #include "rubyspec.h"
