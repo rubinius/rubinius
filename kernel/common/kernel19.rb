@@ -162,5 +162,10 @@ module Kernel
     end
   end
   module_function :Float
-  
+
+  # obj <=> other -> 0 or nil
+  def <=>(other)
+    self == other ? 0 : nil
+  end
+
 end
