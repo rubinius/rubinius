@@ -507,12 +507,6 @@ class Rational < Numeric
 end
 
 class Fixnum
-  remove_method :quo
-
-  # If Rational is defined, returns a Rational number instead of a Fixnum.
-  def quo(other)
-    Rational(self, 1) / other
-  end
   alias rdiv quo
 
   # Returns a Rational number if the result is in fact rational (i.e. +other+ < 0).
@@ -526,12 +520,6 @@ class Fixnum
 end
 
 class Bignum
-  remove_method :quo
-
-  # If Rational is defined, returns a Rational number instead of a Float.
-  def quo(other)
-    Rational(self, 1) / other
-  end
   alias rdiv quo
 
   # Returns a Rational number if the result is in fact rational (i.e. +other+ < 0).

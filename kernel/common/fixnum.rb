@@ -38,8 +38,6 @@ class Fixnum < Integer
     end
   end
 
-  alias_method :quo, :fdiv
-
   # taint and untaint are noops on Fixnum
   def taint
     self

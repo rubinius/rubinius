@@ -25,6 +25,4 @@ class Bignum < Integer
   def fdiv(n)
     to_f / n
   end
-
-  alias_method :quo, :fdiv
 end

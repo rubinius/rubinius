@@ -36,6 +36,7 @@ precision.rbc
 integer.rbc
 integer18.rbc
 bignum.rbc
+bignum18.rbc
 block_environment.rbc
 bytearray.rbc
 chararray.rbc

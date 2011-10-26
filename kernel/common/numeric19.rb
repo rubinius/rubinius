@@ -4,6 +4,14 @@ class Numeric
     self.__slash__(other).floor
   end
 
+  def fdiv(other)
+    self.__slash__(other)
+  end
+
+  def quo(other)
+    Rational(self) / other
+  end
+
   def modulo(other)
     self - other * self.div(other)
   end

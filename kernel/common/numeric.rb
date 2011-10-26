@@ -18,12 +18,6 @@ class Numeric
     [div(other), self % other]
   end
 
-  def quo(other)
-    self.__slash__(other)
-  end
-
-  alias_method :fdiv, :quo
-
   def eql?(other)
     return false unless other.instance_of? self.class
     self == other

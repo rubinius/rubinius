@@ -5,4 +5,6 @@ class Fixnum < Integer
     Rubinius.primitive :fixnum_div
     redo_coerced :div, o
   end
+
+  alias_method :quo, :fdiv
 end
