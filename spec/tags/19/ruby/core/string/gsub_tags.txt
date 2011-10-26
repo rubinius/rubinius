@@ -1,2 +1,0 @@
-fails:String#gsub! with pattern and replacement untrusts self if replacement is untrusted
-fails:String#gsub! with pattern and block untrusts self if block's result is untrusted

@@ -879,11 +879,14 @@ class String
       end
 
       tainted = false
+      untrusted = false
     else
       tainted = replacement.tainted?
+      untrusted = replacement.untrusted?
       unless replacement.kind_of? String
         replacement = StringValue(replacement)
         tainted ||= replacement.tainted?
+        untrusted ||= replacement.untrusted?
       end
     end
 
@@ -912,6 +915,7 @@ class String
 
         val = yield(match[0]).to_s
         tainted ||= val.tainted?
+        untrusted ||= val.untrusted?
         ret.append val
 
         raise RuntimeError, "string modified" unless @num_bytes == orig_len
@@ -920,6 +924,7 @@ class String
       end
 
       tainted ||= val.tainted?
+      untrusted ||= val.untrusted?
 
       last_end = match.end(0)
 
@@ -947,6 +952,7 @@ class String
     ret.append str if str
 
     ret.taint if tainted || self.tainted?
+    self.untrust if untrusted
 
     if last_match
       replace(ret)
