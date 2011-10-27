@@ -42,6 +42,8 @@ module Kernel
       else
         obj.to_int
       end
+    when NilClass
+      raise TypeError, "can't convert nil into Integer"
     else
       # Can't use coerce_to or try_convert because I think there is an
       # MRI bug here where it will return the value without checking
