@@ -73,6 +73,10 @@ module Enumerable
       item
     end
 
+    def peek_values
+      Array(self.peek)
+    end
+
     # Rewinds the enumeration sequence by the next method.
     #
     # If the enclosed object responds to a "rewind" method, it is called.
