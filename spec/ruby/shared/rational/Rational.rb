@@ -1,92 +1,10 @@
 require File.expand_path('../../../spec_helper', __FILE__)
+require File.expand_path('../../../fixtures/rational', __FILE__)
 
-describe :rational_rational_two, :shared => true do
-  before(:each) do
-    @args = {
-      [1, 2]   => [1, 2],
-      [2, 1]   => [2, 1],
-      ["6", 5] => [6, 5],
-      [-8, -6] => [4, 3],
-      [99999**99, 209] => [999010484943188636608805980402802915400434536979655386654009490813859457598616206837179821412302692420911878238392114694353872205705469979997758000847544074497398071603034467574810862492956315403164145181317850364010376300213453752437982265518464568325790559557401725276413045564927258325699353130042548208064924009216093547546101231747525975999315735437260590254281341103015581933843191009768771215462495272328209801935290153265929807401919949633636861142033871459231063562556848951490009899999, 209],
-      [30.21, 0.22] => [362809985980967168, 2642111781390691],
-      [-28, 2.3] => [-31525197391593472, 2589569785738035]
-    }
-  end
-
-  it "returns a Rational instance" do
-    @args.each_pair do |arguments, expected|
-      rat = Rational(arguments.first, arguments.last)
-      rat.should be_an_instance_of(Rational)
-    end
-  end
-
-  it "sets the numerator to the first argument" do
-    @args.each_pair do |arguments, expected|
-      rat = Rational(arguments.first, arguments.last)
-      rat.numerator.should == expected.first
-    end
-  end
-
-  it "sets the denominator to the second argument" do
-    @args.each_pair do |arguments, expected|
-      rat = Rational(arguments.first, arguments.last)
-      rat.denominator.should == expected.last
-    end
-  end
-
-  it "automatically reduces the Rational" do
-    rat = Rational(2, 4)
-    rat.numerator.should == 1
-    rat.denominator.should == 2
-
-    rat = Rational(3, 9)
-    rat.numerator.should == 1
-    rat.denominator.should == 3
-  end
-end
-
-describe :rational_rational_int_int, :shared => true do
-  it "returns a new Rational number" do
-    rat = Rational(1, 2)
-    rat.numerator.should == 1
-    rat.denominator.should == 2
-    rat.should be_an_instance_of(Rational)
-
-    rat = Rational(-3, -5)
-    rat.numerator.should == 3
-    rat.denominator.should == 5
-    rat.should be_an_instance_of(Rational)
-
-    rat = Rational(bignum_value, 3)
-    rat.numerator.should == bignum_value
-    rat.denominator.should == 3
-    rat.should be_an_instance_of(Rational)
-  end
-
-  it "automatically reduces the Rational" do
-    rat = Rational(2, 4)
-    rat.numerator.should == 1
-    rat.denominator.should == 2
-
-    rat = Rational(3, 9)
-    rat.numerator.should == 1
-    rat.denominator.should == 3
-  end
-end
-
-
-describe :rational_rational_int, :shared => true do
-  # Guard against the Mathn library
-  conflicts_with :Prime do
-    ruby_version_is ""..."1.9" do
-      it "returns a new Rational number with 1 as the denominator" do
-        Rational(1).should eql(Rational.new!(1, 1))
-        Rational(-3).should eql(Rational.new!(-3, 1))
-        Rational(bignum_value).should eql(Rational.new!(bignum_value, 1))
-      end
-    end
-
-    ruby_version_is "1.9" do
+describe :Rational, :shared => true do
+  describe "passed Integer" do
+    # Guard against the Mathn library
+    conflicts_with :Prime do
       it "returns a new Rational number with 1 as the denominator" do
         Rational(1).should eql(Rational(1, 1))
         Rational(-3).should eql(Rational(-3, 1))
@@ -94,20 +12,110 @@ describe :rational_rational_int, :shared => true do
       end
     end
   end
-end
 
-ruby_version_is ""..."1.9" do
-  describe :rational_rational_int_rat_unify, :shared => true do
-    after :each do
-      Rational.send :remove_const, :Unify
+  describe "passed two integers" do
+    it "returns a new Rational number" do
+      rat = Rational(1, 2)
+      rat.numerator.should == 1
+      rat.denominator.should == 2
+      rat.should be_an_instance_of(Rational)
+
+      rat = Rational(-3, -5)
+      rat.numerator.should == 3
+      rat.denominator.should == 5
+      rat.should be_an_instance_of(Rational)
+
+      rat = Rational(bignum_value, 3)
+      rat.numerator.should == bignum_value
+      rat.denominator.should == 3
+      rat.should be_an_instance_of(Rational)
     end
 
-    it "returns the passed Integer when Rational::Unify is defined" do
-      Rational::Unify = true
+    it "reduces the Rational" do
+      rat = Rational(2, 4)
+      rat.numerator.should == 1
+      rat.denominator.should == 2
 
-      Rational(1).should eql(1)
-      Rational(-3).should eql(-3)
-      Rational(bignum_value).should eql(bignum_value)
+      rat = Rational(3, 9)
+      rat.numerator.should == 1
+      rat.denominator.should == 3
+    end
+  end
+
+  ruby_version_is "1.9" do
+    describe "when passed a String" do
+      it "converts the String to a Rational using the same method as String#to_r" do
+        r = Rational(13, 25)
+        s_r = ".52".to_r
+        r_s = Rational(".52")
+
+        r_s.should == r
+        r_s.should == s_r
+      end
+
+      it "scales the Rational value of the first argument by the Rational value of the second" do
+        Rational(".52", ".6").should == Rational(13, 15)
+        Rational(".52", "1.6").should == Rational(13, 40)
+      end
+
+      it "does not use the same method as Float#to_r" do
+        r = Rational(3, 5)
+        f_r = 0.6.to_r
+        r_s = Rational("0.6")
+
+        r_s.should == r
+        r_s.should_not == f_r
+      end
+    end
+
+    describe "when passed a Numeric" do
+      it "calls #to_r to convert the first argument to a Rational" do
+        num = RationalSpecs::SubNumeric.new(2)
+
+        Rational(num).should == Rational(2)
+      end
+    end
+
+    describe "when passed a Complex" do
+      it "returns a Rational from the real part if the imaginary part is 0" do
+        Rational(Complex(1, 0)).should == Rational(1)
+      end
+
+      it "raises a RangeError if the imaginary part is not 0" do
+        lambda { Rational(Complex(1, 2)) }.should raise_error(RangeError)
+      end
+    end
+
+    it "raises a TypeError if the first argument is nil" do
+      lambda { Rational(nil) }.should raise_error(TypeError)
+    end
+
+    it "raises a TypeError if the second argument is nil" do
+      lambda { Rational(1, nil) }.should raise_error(TypeError)
+    end
+
+    it "raises a TypeError if the first argument is a Symbol" do
+      lambda { Rational(:sym) }.should raise_error(TypeError)
+    end
+
+    it "raises a TypeError if the second argument is a Symbol" do
+      lambda { Rational(1, :sym) }.should raise_error(TypeError)
+    end
+  end
+
+  ruby_version_is ""..."1.9" do
+    describe "when Rational::Unify is defined" do
+      after :each do
+        Rational.send :remove_const, :Unify
+      end
+
+      it "returns the passed Integer" do
+        Rational::Unify = true
+
+        Rational(1).should eql(1)
+        Rational(-3).should eql(-3)
+        Rational(bignum_value).should eql(bignum_value)
+      end
     end
   end
 end
