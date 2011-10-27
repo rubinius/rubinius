@@ -51,6 +51,7 @@ delegated_method.rbc
 fixnum.rbc
 fixnum18.rbc
 dir.rbc
+dir18.rbc
 lrucache.rbc
 dir_glob.rbc
 env.rbc
