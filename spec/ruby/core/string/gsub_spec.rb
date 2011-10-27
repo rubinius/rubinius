@@ -291,12 +291,10 @@ ruby_version_is "1.9" do
       "food!".gsub(/./, hsh).should == "[]00[]!"
     end
 
-    it "does not raise a TypeError if the hash has a default proc" do
+    it "uses the hash's value set from default_proc for missing keys" do
       hsh = new_hash
       hsh.default_proc = lambda { |k,v| 'lamb' }
-      lambda do
-        "food!".gsub(/./, hsh)
-      end.should_not raise_error(TypeError)
+      "food!".gsub(/./, hsh).should == "lamblamblamblamblamb"
     end
 
     it "sets $~ to MatchData of last match and nil when there's none for access from outside" do
@@ -382,12 +380,10 @@ ruby_version_is "1.9" do
       "food!".gsub!(/./, hsh).should == "[]00[]!"
     end
 
-    it "does not raise a TypeError if the hash has a default proc" do
+    it "uses the hash's value set from default_proc for missing keys" do
       hsh = new_hash
       hsh.default_proc = lambda { |k,v| 'lamb' }
-      lambda do
-        "food!".gsub!(/./, hsh)
-      end.should_not raise_error(TypeError)
+      "food!".gsub!(/./, hsh).should == "lamblamblamblamblamb"
     end
 
     it "sets $~ to MatchData of last match and nil when there's none for access from outside" do
