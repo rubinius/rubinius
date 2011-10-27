@@ -75,8 +75,8 @@ module Enumerable
           @done = false
           @fiber = Rubinius::Fiber.new(0) do
             obj = @object
-            obj.each do |val|
-              Rubinius::Fiber.yield val
+            obj.each do |*val|
+              Rubinius::Fiber.yield *val
             end
             @done = true
           end
@@ -119,11 +119,12 @@ module Enumerable
         reset unless @thread
 
         @hold_channel << nil
-        val = @channel.receive
+        vals = @channel.receive
 
         raise StopIteration, "iteration has ended" if @done
 
-        return val
+        # return *[1] == [1], unfortunately.
+        return vals.size == 1 ? vals.first : vals
       end
 
       def rewind
@@ -141,9 +142,9 @@ module Enumerable
         @hold_channel = Rubinius::Channel.new
 
         @thread = Thread.new do
-          @object.__send__(@method, *@args) do |val|
+          @object.__send__(@method, *@args) do |*vals|
             @hold_channel.receive
-            @channel << val
+            @channel << vals
           end
 
           # Hold to indicate done to avoid race conditions setting
