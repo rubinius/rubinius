@@ -78,6 +78,7 @@ module Enumerable
     # If the enclosed object responds to a "rewind" method, it is called.
     #
     def rewind
+      @object.rewind if @object.respond_to? :rewind
       @generator.rewind if @generator
       @lookahead = []
       self
