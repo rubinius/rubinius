@@ -1,9 +1,4 @@
 describe :float_quo, :shared => true do
-  before(:all) do
-    @inf = 1/0.00
-    @nan = 0/0.0
-  end
-
   it "performs floating-point division between self and a Fixnum" do
     8.9.send(@method, 7).should == 1.2714285714285716
   end
@@ -17,8 +12,8 @@ describe :float_quo, :shared => true do
   end
 
   it "returns NaN when the argument is NaN" do
-    -1819.999999.send(@method, @nan).nan?.should be_true
-    11109.1981271.send(@method, @nan).nan?.should be_true
+    -1819.999999.send(@method, nan_value).nan?.should be_true
+    11109.1981271.send(@method, nan_value).nan?.should be_true
   end
 
   it "returns Infinity when the argument is 0.0" do
@@ -38,11 +33,11 @@ describe :float_quo, :shared => true do
   end
 
   it "returns 0.0 when the argument is Infinity" do
-    47292.2821.send(@method, @inf).should == 0.0
+    47292.2821.send(@method, infinity_value).should == 0.0
   end
 
   it "returns -0.0 when the argument is -Infinity" do
-    1.9999918.send(@method, -@inf).should == -0.0
+    1.9999918.send(@method, -infinity_value).should == -0.0
   end
 
   it "performs floating-point division between self and a Rational" do
