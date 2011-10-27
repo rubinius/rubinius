@@ -436,9 +436,8 @@ namespace rubinius {
       /*  @todo any other re-initialisation needed? */
 
       state->shared.reinit(state);
-
+      state->shared.om->on_fork(state);
       SignalHandler::on_fork(state, false);
-      state->shared.om->on_fork();
 
       // Re-initialize LLVM
 #ifdef ENABLE_LLVM

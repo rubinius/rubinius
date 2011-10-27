@@ -165,6 +165,12 @@ namespace rubinius {
     threads_.clear();
     threads_.push_back(state);
 
+    // Reinit the locks for this object
+    lock_init(state);
+    onig_lock_.init();
+    ruby_critical_lock_.init();
+    capi_lock_.init();
+
     world_->reinit();
 
     if(agent_) {
