@@ -25,6 +25,11 @@ describe "Dir.entries" do
       p.should_receive(:to_path).and_return(DirSpecs.mock_dir)
       Dir.entries(p)
     end
+
+    it "accepts an options Hash" do
+      a = Dir.entries("#{DirSpecs.mock_dir}/deeply/nested", :encoding => "utf-8").sort
+      a.should == %w|. .. .dotfile.ext directory|
+    end
   end
 
   it "raises a SystemCallError if called with a nonexistent diretory" do
