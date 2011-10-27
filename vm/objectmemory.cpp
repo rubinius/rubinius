@@ -105,6 +105,7 @@ namespace rubinius {
 
   void ObjectMemory::on_fork(STATE) {
     lock_init(state);
+    contention_lock_.init();
     finalizer_lock_.init();
     finalizer_var_.init();
     finalizer_thread_.set(nil<Thread>());
