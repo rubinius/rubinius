@@ -85,9 +85,9 @@ describe "Object#to_yaml" do
   end
 
   it "returns the YAML representation of numeric constants" do
-    (0.0/0.0).to_yaml.should == "--- .NaN\n"
-    (1.0/0.0).to_yaml.should == "--- .Inf\n"
-    (-1.0/0.0).to_yaml.should == "--- -.Inf\n"
+    nan_value.to_yaml.should == "--- .NaN\n"
+    infinity_value.to_yaml.should == "--- .Inf\n"
+    (-infinity_value).to_yaml.should == "--- -.Inf\n"
     (0.0).to_yaml.should == "--- 0.0\n"
   end
 

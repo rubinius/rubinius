@@ -13,7 +13,7 @@ ruby_version_is "1.9" do
         72829,
         3.333333333333,
         0.1,
-        1/0.0
+        infinity_value
       ].map { |n| [-n, n] }.flatten
     end
 
@@ -30,7 +30,7 @@ ruby_version_is "1.9" do
     end
 
     it "returns NaN when self is NaN" do
-      (0/0.0).abs2.nan?.should be_true
+      nan_value.abs2.nan?.should be_true
     end
   end
 end

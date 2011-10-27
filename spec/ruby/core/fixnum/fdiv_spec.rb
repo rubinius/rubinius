@@ -1,11 +1,6 @@
 require File.expand_path('../../../spec_helper', __FILE__)
 
 describe "Fixnum#fdiv" do
-  before(:all) do
-    @inf = 1/0.0
-    @nan = 0/0.0
-  end
-
   it "performs floating-point division between self and a Fixnum" do
     8.fdiv(7).should be_close(1.14285714285714, TOLERANCE)
   end
@@ -19,8 +14,8 @@ describe "Fixnum#fdiv" do
   end
 
   it "returns NaN when the argument is NaN" do
-    -1.fdiv(@nan).nan?.should be_true
-    1.fdiv(@nan).nan?.should be_true
+    -1.fdiv(nan_value).nan?.should be_true
+    1.fdiv(nan_value).nan?.should be_true
   end
 
   it "returns Infinity when the argument is 0" do

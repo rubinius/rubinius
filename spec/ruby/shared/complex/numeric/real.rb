@@ -7,8 +7,8 @@ describe :numeric_real, :shared => true do
       398.72,         # Float
       Rational(3, 4), # Rational
       bignum_value, # Bignum
-      Float::MAX * 2, # Infinity
-      0/0.0           # NaN
+      infinity_value,
+      nan_value
     ].map{|n| [n,-n]}.flatten
   end
 

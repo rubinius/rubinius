@@ -14,8 +14,8 @@ describe "Math.tan" do
   end
 
   it "returns NaN if called with +-Infinitty" do
-    Math.tan(1.0/0.0).nan?.should == true
-    Math.tan(1.0/-0.0).nan?.should == true
+    Math.tan(infinity_value).nan?.should == true
+    Math.tan(-infinity_value).nan?.should == true
   end
 
   ruby_version_is ""..."1.9" do

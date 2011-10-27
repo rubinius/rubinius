@@ -10,9 +10,9 @@ describe "Float#round" do
   end
 
   it "raises FloatDomainError for exceptional values" do
-    lambda { (+1.0/0).round }.should raise_error(FloatDomainError)
-    lambda { (-1.0/0).round }.should raise_error(FloatDomainError)
-    lambda { ( 0.0/0).round }.should raise_error(FloatDomainError)
+    lambda { (+infinity_value).round }.should raise_error(FloatDomainError)
+    lambda { (-infinity_value).round }.should raise_error(FloatDomainError)
+    lambda { nan_value.round }.should raise_error(FloatDomainError)
   end
 
   ruby_version_is "1.9" do

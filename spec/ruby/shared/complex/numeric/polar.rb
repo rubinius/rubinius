@@ -8,7 +8,7 @@ describe :numeric_polar, :shared => true do
       987.18273,
       Float::MAX,
       Rational(13,7),
-      1/0.0,
+      infinity_value,
     ]
     @neg_numbers = @pos_numbers.map {|n| -n}
     @numbers = @pos_numbers + @neg_numbers
