@@ -1,1 +1,0 @@
-fails:Kernel#trust can not be called on frozen object

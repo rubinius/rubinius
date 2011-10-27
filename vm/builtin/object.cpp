@@ -155,6 +155,12 @@ namespace rubinius {
     if(reference_p() && is_frozen_p()) return Qtrue;
     return Qfalse;
   }
+  
+  void Object::check_forzen(STATE) {
+    if(frozen_p(state) == Qtrue) {
+      Exception::runtime_error(state, "can't modify frozen object");
+    }
+  }
 
   Object* Object::get_field(STATE, size_t index) {
     return type_info(state)->get_field(state, this, index);
@@ -714,12 +720,18 @@ namespace rubinius {
   }
 
   Object* Object::trust(STATE) {
-    if(reference_p()) set_untrusted(0);
+    if(untrusted_p(state) == Qtrue) {
+      check_forzen(state);
+      if(reference_p()) set_untrusted(0);
+    }
     return this;
   }
 
   Object* Object::untrust(STATE) {
-    if(reference_p()) set_untrusted();
+    if(untrusted_p(state) == Qfalse) {
+      check_forzen(state);
+      if(reference_p()) set_untrusted();
+    }
     return this;
   }
 

@@ -391,6 +391,13 @@ namespace rubinius {
       virtual void auto_mark(Object* obj, ObjectMark& mark) {}
     };
 
+  private:
+    /**
+     * Checks if object is frozen and raises RuntimeError if it is.
+     * Similar to CRuby rb_check_frozen
+     */
+    void check_forzen(STATE);
+
   };
 
 
