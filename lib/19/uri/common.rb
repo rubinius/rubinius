@@ -718,9 +718,8 @@ module URI
 
   TBLENCWWWCOMP_ = {} # :nodoc:
   TBLDECWWWCOMP_ = {} # :nodoc:
-  # TODO: Uncomment when we support more encodings
-  # HTML5ASCIIINCOMPAT = [Encoding::UTF_7, Encoding::UTF_16BE, Encoding::UTF_16LE,
-  #   Encoding::UTF_32BE, Encoding::UTF_32LE] # :nodoc:
+  HTML5ASCIIINCOMPAT = [Encoding::UTF_7, Encoding::UTF_16BE, Encoding::UTF_16LE,
+    Encoding::UTF_32BE, Encoding::UTF_32LE] # :nodoc:
 
   # Encode given +str+ to URL-encoded form data.
   #
@@ -744,13 +743,12 @@ module URI
       end
     end
     str = str.to_s
-    # TODO: Uncomment when we support more encodings, force UTF-8 for now
-    # if HTML5ASCIIINCOMPAT.include?(str.encoding)
+    if HTML5ASCIIINCOMPAT.include?(str.encoding)
       str = str.encode(Encoding::UTF_8)
-    # else
-    #   str = str.dup
-    # end
-    # str.force_encoding(Encoding::ASCII_8BIT)
+    else
+      str = str.dup
+    end
+    str.force_encoding(Encoding::ASCII_8BIT)
     str.gsub!(/[^*\-.0-9A-Z_a-z]/, TBLENCWWWCOMP_)
     str.force_encoding(Encoding::US_ASCII)
   end
