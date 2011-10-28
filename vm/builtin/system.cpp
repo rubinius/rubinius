@@ -69,6 +69,8 @@
 
 #include "gc/walker.hpp"
 
+#include "on_stack.hpp"
+
 #ifdef ENABLE_LLVM
 #include "llvm/state.hpp"
 #include "llvm/jit_compiler.hpp"
@@ -828,16 +830,22 @@ namespace rubinius {
     return Tuple::from(state, 2, dis.method, dis.module);
   }
 
-  Object* System::vm_add_method(STATE, GCToken gct, Symbol* name, CompiledMethod* method,
+  Object* System::vm_add_method(STATE, GCToken gct, Symbol* name,
+                                CompiledMethod* method,
                                 StaticScope* scope, Object* vis)
   {
     Module* mod = scope->for_method_definition();
 
     method->scope(state, scope);
     method->serial(state, Fixnum::from(0));
+
+    OnStack<4> os(state, mod, method, scope, vis);
+
     mod->add_method(state, gct, name, method);
 
     if(Class* cls = try_as<Class>(mod)) {
+      OnStack<1> o2(state, cls);
+
       if(!method->internalize(state, gct)) {
         Exception::argument_error(state, "invalid bytecode method");
         return 0;
@@ -853,7 +861,8 @@ namespace rubinius {
     bool add_ivars = false;
 
     if(Class* cls = try_as<Class>(mod)) {
-      add_ivars = !kind_of<SingletonClass>(cls) && cls->type_info()->type == Object::type;
+      add_ivars = !kind_of<SingletonClass>(cls) &&
+                  cls->type_info()->type == Object::type;
     } else {
       add_ivars = true;
     }
@@ -880,12 +889,17 @@ namespace rubinius {
     return method;
   }
 
-  Object* System::vm_attach_method(STATE, GCToken gct, Symbol* name, CompiledMethod* method,
-                                   StaticScope* scope, Object* recv) {
+  Object* System::vm_attach_method(STATE, GCToken gct, Symbol* name,
+                                   CompiledMethod* method,
+                                   StaticScope* scope, Object* recv)
+  {
     Module* mod = recv->singleton_class(state);
 
     method->scope(state, scope);
     method->serial(state, Fixnum::from(0));
+
+    OnStack<2> os(state, mod, method);
+
     mod->add_method(state, gct, name, method);
 
     vm_reset_method_cache(state, name);
@@ -929,9 +943,13 @@ namespace rubinius {
     return Fixnum::from(state->shared.inc_global_serial(state));
   }
 
-  Object* System::vm_jit_block(STATE, GCToken gct, BlockEnvironment* env, Object* show) {
+  Object* System::vm_jit_block(STATE, GCToken gct, BlockEnvironment* env,
+                               Object* show)
+  {
 #ifdef ENABLE_LLVM
     LLVMState* ls = LLVMState::get(state);
+
+    OnStack<2> os(state, env, show);
 
     VMMethod* vmm = env->vmmethod(state, gct);
 
@@ -1254,7 +1272,9 @@ namespace rubinius {
     return Qtrue;
   }
 
-  Object* System::vm_object_lock(STATE, GCToken gct, Object* obj, CallFrame* call_frame) {
+  Object* System::vm_object_lock(STATE, GCToken gct, Object* obj,
+                                 CallFrame* call_frame)
+  {
     if(!obj->reference_p()) return Primitives::failure();
     state->set_call_frame(call_frame);
 
@@ -1450,6 +1470,8 @@ namespace rubinius {
   {
     Dispatch msg(state->symbol("__script__"), G(object), cm);
     Arguments args(state->symbol("__script__"), G(main), Qnil, 0, 0);
+
+    OnStack<1> os(state, cm);
 
     cm->internalize(state, gct, 0, 0);
 

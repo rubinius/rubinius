@@ -15,6 +15,8 @@
 
 #include "global_cache.hpp"
 
+#include "on_stack.hpp"
+
 namespace rubinius {
 
   void Module::bootstrap_methods(STATE) {
@@ -128,10 +130,15 @@ namespace rubinius {
     return get_const(state, state->symbol(sym));
   }
 
-  void Module::add_method(STATE, GCToken gct, Symbol* name, Executable* exec, Symbol* vis) {
+  void Module::add_method(STATE, GCToken gct, Symbol* name, Executable* exec,
+                          Symbol* vis)
+  {
+    Module* self = this;
+    OnStack<2> os(state, self, exec);
+
     if(!vis) vis = G(sym_public);
     method_table_->store(state, gct, name, exec, vis);
-    state->global_cache()->clear(state, this, name);
+    state->global_cache()->clear(state, self, name);
   }
 
   Executable* Module::find_method(Symbol* name, Module** defined_in) {

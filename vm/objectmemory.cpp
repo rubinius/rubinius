@@ -163,6 +163,8 @@ namespace rubinius {
     bool timeout = false;
     struct timespec ts = {0,0};
 
+    OnStack<1> os(state, obj);
+
     {
       GCLockGuard lg(state, gct, contention_lock_);
 
@@ -171,7 +173,6 @@ namespace rubinius {
       // If the lock is already inflated, no problem, just lock it!
 
       // Be sure obj is updated by the GC while we're waiting for it
-      OnStack<1> os(state, obj);
 
 step1:
       // Only contend if the header is thin locked.

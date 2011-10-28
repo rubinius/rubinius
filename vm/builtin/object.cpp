@@ -28,6 +28,7 @@
 #include "global_cache.hpp"
 
 #include "vm/object_utils.hpp"
+#include "on_stack.hpp"
 
 #include "configuration.hpp"
 
@@ -59,15 +60,22 @@ namespace rubinius {
 
   Object* Object::copy_singleton_class(STATE, GCToken gct, Object* other) {
     if(SingletonClass* sc = try_as<SingletonClass>(other->klass())) {
-      MethodTable* source_methods = sc->method_table()->duplicate(state, gct);
-      LookupTable* source_constants = sc->constant_table()->duplicate(state);
+      MethodTable* source_methods = 0;
+      LookupTable* source_constants = 0;
+      Object* self = this;
 
-      singleton_class(state)->method_table(state, source_methods);
-      singleton_class(state)->constant_table(state, source_constants);
+      OnStack<4> os(state, self, sc, source_methods, source_constants);
+
+      source_methods = sc->method_table()->duplicate(state, gct);
+      source_constants = sc->constant_table()->duplicate(state);
+
+      self->singleton_class(state)->method_table(state, source_methods);
+      self->singleton_class(state)->constant_table(state, source_constants);
       // TODO inc the global serial here?
 
       // This allows us to preserve included modules
-      singleton_class(state)->superclass(state, sc->superclass());
+      self->singleton_class(state)->superclass(state, sc->superclass());
+      return self;
     }
 
     return this;

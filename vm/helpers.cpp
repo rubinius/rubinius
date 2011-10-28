@@ -24,7 +24,10 @@
 #include "call_frame.hpp"
 #include "lookup_data.hpp"
 
+#include "on_stack.hpp"
+
 #include "helpers.hpp"
+
 namespace rubinius {
   namespace Helpers {
     Object* const_get_under(STATE, Module* mod, Symbol* name, bool* found) {
@@ -292,6 +295,8 @@ namespace rubinius {
       }
 
       Array* locs = Location::from_call_stack(state, call_frame, true, true);
+
+      OnStack<1> os(state, my_control);
 
       debugger_chan->send(state, gct,
           Tuple::from(state, 4, bp, cur, my_control, locs));
