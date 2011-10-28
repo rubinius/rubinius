@@ -3,6 +3,7 @@ class.rbc
 binding.rbc
 proc.rbc
 autoload.rbc
+autoload19.rbc
 module.rbc
 module19.rbc
 enumerable19.rbc

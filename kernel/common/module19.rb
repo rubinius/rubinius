@@ -45,4 +45,33 @@ class Module
     raise RuntimeError, "can't modify frozen #{self.class}" if frozen?
     __class_variable_set__(key, value)
   end
+
+  # Install a new Autoload object into the constants table
+  # See kernel/common/autoload.rb
+  def autoload(name, path)
+    path = Rubinius::Type.coerce_to_path(path)
+
+    raise ArgumentError, "empty file name" if path.empty?
+
+    return if Rubinius::CodeLoader.feature_provided?(path)
+
+    name = normalize_const_name(name)
+
+    if existing = @constant_table[name]
+      if existing.kind_of? Autoload
+        # If there is already an Autoload here, just change the path to
+        # autoload!
+        existing.set_path(path)
+      else
+        # Trying to register an autoload for a constant that already exists,
+        # ignore the request entirely.
+      end
+
+      return
+    end
+
+    constant_table[name] = Autoload.new(name, self, path)
+    Rubinius.inc_global_serial
+    return nil
+  end
 end

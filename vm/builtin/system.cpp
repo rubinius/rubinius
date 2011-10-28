@@ -1107,7 +1107,10 @@ namespace rubinius {
     bool found;
 
     Object* res = Helpers::const_get(state, calling_environment, sym, &found);
-    if(!found) return Primitives::failure();
+
+    if(!found || (!LANGUAGE_18_ENABLED(state) && kind_of<Autoload>(res))) {
+      return Primitives::failure();
+    }
 
     return res;
   }
