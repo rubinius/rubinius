@@ -57,21 +57,23 @@ class Module
 
     name = normalize_const_name(name)
 
-    if existing = @constant_table[name]
-      if existing.kind_of? Autoload
-        # If there is already an Autoload here, just change the path to
-        # autoload!
-        existing.set_path(path)
-      else
-        # Trying to register an autoload for a constant that already exists,
-        # ignore the request entirely.
+    [self, (class << Object; self; end)].each do |receiver|
+      if existing = receiver.constant_table[name]
+        if existing.kind_of? Autoload
+          # If there is already an Autoload here, just change the path to
+          # autoload!
+          existing.set_path(path)
+        else
+          # Trying to register an autoload for a constant that already exists,
+          # ignore the request entirely.
+        end
+
+        return
       end
 
-      return
+      receiver.constant_table[name] = Autoload.new(name, self, path)
+      Rubinius.inc_global_serial
     end
-
-    constant_table[name] = Autoload.new(name, self, path)
-    Rubinius.inc_global_serial
     return nil
   end
 end
