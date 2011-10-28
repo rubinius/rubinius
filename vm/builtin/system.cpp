@@ -6,6 +6,7 @@
 #include <stdarg.h>
 #include <string.h>
 #include <sstream>
+#include <signal.h>
 
 #include "vm/config.h"
 
@@ -372,12 +373,24 @@ namespace rubinius {
       options |= WNOHANG;
     }
 
+    sig_t hup_func;
+    sig_t quit_func;
+    sig_t int_func;
+
   retry:
+
+    hup_func  = signal(SIGHUP, SIG_IGN);
+    quit_func = signal(SIGQUIT, SIG_IGN);
+    int_func  = signal(SIGINT, SIG_IGN);
 
     {
       GCIndependent guard(state, calling_environment);
       pid = waitpid(input_pid, &status, options);
     }
+
+    signal(SIGHUP, hup_func);
+    signal(SIGQUIT, quit_func);
+    signal(SIGINT, int_func);
 
     if(pid == -1) {
       if(errno == ECHILD) return Qfalse;
