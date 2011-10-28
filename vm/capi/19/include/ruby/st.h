@@ -112,22 +112,22 @@ struct st_table_entry {
 static int st_numcmp(st_data_t, st_data_t);
 static st_index_t st_numhash(st_data_t);
 static const struct st_hash_type type_numhash = {
-    st_numcmp,
-    st_numhash,
+    (int (*)(ANYARGS))st_numcmp,
+    (st_index_t (*)(ANYARGS))st_numhash,
 };
 
 /* extern int strcmp(const char *, const char *); */
 static st_index_t st_internal_strhash(st_data_t);
 static const struct st_hash_type type_st_internal_strhash = {
-    strcmp,
-    st_internal_strhash,
+    (int (*)(ANYARGS))strcmp,
+    (st_index_t (*)(ANYARGS))st_internal_strhash,
 };
 
 static int st_strcasecmp(const char *, const char *);
 static st_index_t st_internal_strcasehash(st_data_t);
 static const struct st_hash_type type_st_internal_strcasehash = {
-    st_strcasecmp,
-    st_internal_strcasehash,
+    (int (*)(ANYARGS))st_strcasecmp,
+    (st_index_t (*)(ANYARGS))st_internal_strcasehash,
 };
 
 static void st_internal_rehash(st_table *);
@@ -667,7 +667,7 @@ st_delete_safe(register st_table *table, register st_data_t *key, st_data_t *val
         for (i = 0; i < table->num_entries; i++) {
             if ((st_data_t)table->bins[i*2] == *key) {
                 if (value != 0) *value = (st_data_t)table->bins[i*2+1];
-                table->bins[i*2] = (void *)never;
+                table->bins[i*2] = (st_table_entry *)never;
                 return 1;
             }
         }
@@ -717,12 +717,12 @@ st_cleanup_safe(st_table *table, st_data_t never)
         ptr = *(last = &table->bins[i]);
         while (ptr != 0) {
             if (ptr->key == never) {
-          tmp = ptr;
-          *last = ptr = ptr->next;
-          free(tmp);
+                tmp = ptr;
+                *last = ptr = ptr->next;
+                free(tmp);
             }
             else {
-          ptr = *(last = &ptr->next);
+                ptr = *(last = &ptr->next);
             }
         }
     }
@@ -741,7 +741,7 @@ st_foreach(st_table *table, int (*func)(ANYARGS), st_data_t arg)
             st_data_t key, val;
             key = (st_data_t)table->bins[i*2];
             val = (st_data_t)table->bins[i*2+1];
-            retval = (*func)(key, val, arg);
+            retval = (enum st_retval)func(key, val, arg);
             if (!table->entries_packed) goto unpacked;
             switch (retval) {
               case ST_CHECK:  /* check if hash is modified during iteration */
@@ -751,7 +751,7 @@ st_foreach(st_table *table, int (*func)(ANYARGS), st_data_t arg)
                 }
                 if (j == table->num_entries) {
                     /* call func with error notice */
-                    retval = (*func)(0, 0, arg, 1);
+                    retval = (enum st_retval)func(0, 0, arg, 1);
                     return 1;
                 }
                 /* fall through */
@@ -781,13 +781,13 @@ st_foreach(st_table *table, int (*func)(ANYARGS), st_data_t arg)
     if (ptr != 0) {
         do {
           i = ptr->hash % table->num_bins;
-          retval = (*func)(ptr->key, ptr->record, arg);
+          retval = (enum st_retval)func(ptr->key, ptr->record, arg);
           switch (retval) {
             case ST_CHECK:  /* check if hash is modified during iteration */
                 for (tmp = table->bins[i]; tmp != ptr; tmp = tmp->next) {
                     if (!tmp) {
                         /* call func with error notice */
-                        retval = (*func)(0, 0, arg, 1);
+                        retval = (enum st_retval)func(0, 0, arg, 1);
                         return 1;
                     }
                 }
