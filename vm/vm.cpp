@@ -401,7 +401,8 @@ namespace rubinius {
 
       if(!chan->nil_p()) {
         UNSYNC;
-        chan->send(state, GCToken(), Qnil);
+        GCTokenImpl gct;
+        chan->send(state, gct, Qnil);
         return true;
       } else if(custom_wakeup_) {
         UNSYNC;

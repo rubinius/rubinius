@@ -227,6 +227,7 @@ namespace rubinius {
   }
 
   void ChannelCallback::call(Object* obj) {
-    channel->send(state, GCToken(), obj);
+    GCTokenImpl gct;
+    channel->send(state, gct, obj);
   }
 }

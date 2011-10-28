@@ -134,11 +134,13 @@ namespace rubinius {
 
     vm->thread->init_lock_.lock();
 
+    GCTokenImpl gct;
+
     std::list<ObjectHeader*>& los = vm->locked_objects();
     for(std::list<ObjectHeader*>::iterator i = los.begin();
         i != los.end();
         i++) {
-      (*i)->unlock_for_terminate(vm, GCToken());
+      (*i)->unlock_for_terminate(vm, gct);
     }
 
     NativeMethod::cleanup_thread(vm);

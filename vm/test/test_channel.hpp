@@ -28,14 +28,16 @@ class TestChannel : public CxxTest::TestSuite, public VMTest {
   }
 
   void test_send_queues_values() {
-    chan->send(state, GCToken(), Qtrue);
+    GCTokenImpl gct;
+    chan->send(state, gct, Qtrue);
     TS_ASSERT_EQUALS(as<List>(chan->value())->size(), 1U);
-    chan->send(state, GCToken(), Qtrue);
+    chan->send(state, gct, Qtrue);
     TS_ASSERT_EQUALS(as<List>(chan->value())->size(), 2U);
   }
 
   void test_send_then_receive() {
-    chan->send(state, GCToken(), Qtrue);
+    GCTokenImpl gct;
+    chan->send(state, gct, Qtrue);
 
     TS_ASSERT(kind_of<List>(chan->value()));
     List* lst = as<List>(chan->value());
@@ -43,7 +45,7 @@ class TestChannel : public CxxTest::TestSuite, public VMTest {
     TS_ASSERT_EQUALS(lst->locate(state, 0), Qtrue);
 
     CallFrame cf;
-    Object* obj = chan->receive(state, GCToken(), &cf);
+    Object* obj = chan->receive(state, gct, &cf);
     TS_ASSERT_EQUALS(obj, Qtrue);
     TS_ASSERT_EQUALS(lst->size(), 0U);
   }
