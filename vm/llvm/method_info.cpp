@@ -1,3 +1,5 @@
+#ifdef ENABLE_LLVM
+
 #include "llvm/state.hpp"
 
 #include "llvm/method_info.hpp"
@@ -69,3 +71,5 @@ namespace rubinius {
     return runtime_data_;
   }
 }
+
+#endif

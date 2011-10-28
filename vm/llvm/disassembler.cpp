@@ -1,3 +1,5 @@
+#ifdef ENABLE_LLVM
+
 #include "vm/config.h"
 #include "llvm/disassembler.hpp"
 #if RBX_LLVM_API_VER == 208
@@ -109,3 +111,5 @@ namespace rubinius {
   }
 
 }
+
+#endif

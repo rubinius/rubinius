@@ -705,6 +705,7 @@ namespace rubinius {
                             jit::RuntimeDataHolder* rd, 
                             bool disable)
   {
+#ifdef ENABLE_LLVM
     LLVMState* ls = LLVMState::get(state);
     ls->start_method_update();
 
@@ -758,6 +759,7 @@ namespace rubinius {
     }
 
     ls->end_method_update();
+#endif
   }
 
   /*
