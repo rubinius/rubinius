@@ -312,7 +312,7 @@ namespace rubinius {
     Integer* assign_object_id_ivar(STATE, Object* obj);
     bool inflate_lock_count_overflow(STATE, ObjectHeader* obj, int count);
     LockStatus contend_for_lock(STATE, GCToken gct, ObjectHeader* obj, bool* error, size_t us=0);
-    void release_contention(STATE);
+    void release_contention(STATE, GCToken gct);
     bool inflate_and_lock(STATE, ObjectHeader* obj);
     bool inflate_for_contention(STATE, ObjectHeader* obj);
 

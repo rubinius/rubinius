@@ -164,7 +164,7 @@ namespace rubinius {
     struct timespec ts = {0,0};
 
     {
-      thread::Mutex::LockGuard lg(contention_lock_);
+      GCLockGuard lg(state, gct, contention_lock_);
 
       // We want to lock obj, but someone else has it locked.
       //
@@ -281,8 +281,8 @@ step1:
     }
   }
 
-  void ObjectMemory::release_contention(STATE) {
-    thread::Mutex::LockGuard lg(contention_lock_);
+  void ObjectMemory::release_contention(STATE, GCToken gct) {
+    GCLockGuard lg(state, gct, contention_lock_);
     contention_var_.broadcast();
   }
 

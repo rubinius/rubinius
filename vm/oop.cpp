@@ -399,7 +399,7 @@ step2:
             if(!state->om->inflate_for_contention(state, this)) continue;
 
             state->del_locked_object(this);
-            state->om->release_contention(state);
+            state->om->release_contention(state, gct);
 
             return eUnlocked;
           }
@@ -487,7 +487,7 @@ step2:
         if(new_val.f.LockContended == 1) {
           // If we couldn't inflate for contention, redo.
           if(!state->om->inflate_for_contention(state, this)) continue;
-          state->om->release_contention(state);
+          state->om->release_contention(state, gct);
         }
 
         return;

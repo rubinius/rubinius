@@ -206,7 +206,7 @@ namespace rubinius {
     return Qnil;
   }
 
-  Object* Thread::raise(STATE, Exception* exc) {
+  Object* Thread::raise(STATE, GCToken gct, Exception* exc) {
     OnStack<1> os(state, exc);
 
     thread::SpinLock::LockGuard lg(init_lock_);
@@ -216,7 +216,7 @@ namespace rubinius {
 
     vm->register_raise(state, exc);
 
-    vm->wakeup(state);
+    vm->wakeup(state, gct);
     return exc;
   }
 
@@ -224,7 +224,7 @@ namespace rubinius {
     return new_priority;
   }
 
-  Thread* Thread::wakeup(STATE) {
+  Thread* Thread::wakeup(STATE, GCToken gct) {
     thread::SpinLock::LockGuard lg(init_lock_);
 
     if(alive() == Qfalse || !vm_) {
@@ -232,11 +232,14 @@ namespace rubinius {
     }
 
     VM* vm = vm_;
-    if(!vm) return this;
+    Thread* self = this;
+    OnStack<1> os(state, self);
 
-    vm->wakeup(state);
+    if(!vm) return self;
 
-    return this;
+    vm->wakeup(state, gct);
+
+    return self;
   }
 
   Tuple* Thread::context(STATE) {

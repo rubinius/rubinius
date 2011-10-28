@@ -384,7 +384,7 @@ namespace rubinius {
     void wait_on_inflated_lock(InflatedHeader* ih);
     void wait_on_custom_function(void (*func)(void*), void* data);
     void clear_waiter();
-    bool wakeup(STATE);
+    bool wakeup(STATE, GCToken gct);
     bool waiting_p();
 
     void set_sleeping();

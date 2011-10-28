@@ -375,13 +375,13 @@ namespace rubinius {
     interrupt_with_signal_ = true;
   }
 
-  bool VM::wakeup(STATE) {
+  bool VM::wakeup(STATE, GCToken gct) {
     SYNC(state);
 
     check_local_interrupts = true;
 
     // Wakeup any locks hanging around with contention
-    om->release_contention(this);
+    om->release_contention(this, gct);
 
     if(interrupt_with_signal_) {
 #ifdef RBX_WINDOWS
@@ -401,7 +401,6 @@ namespace rubinius {
 
       if(!chan->nil_p()) {
         UNSYNC;
-        GCTokenImpl gct;
         chan->send(state, gct, Qnil);
         return true;
       } else if(custom_wakeup_) {
