@@ -92,12 +92,12 @@ namespace rubinius {
     return state->thread.get();
   }
 
-  Object* Thread::unlock_locks(STATE) {
+  Object* Thread::unlock_locks(STATE, GCToken gct) {
     std::list<ObjectHeader*>& los = vm_->locked_objects();
     for(std::list<ObjectHeader*>::iterator i = los.begin();
         i != los.end();
         i++) {
-      (*i)->unlock_for_terminate(vm_);
+      (*i)->unlock_for_terminate(vm_, gct);
     }
     los.clear();
     return Qnil;
@@ -138,7 +138,7 @@ namespace rubinius {
     for(std::list<ObjectHeader*>::iterator i = los.begin();
         i != los.end();
         i++) {
-      (*i)->unlock_for_terminate(vm);
+      (*i)->unlock_for_terminate(vm, GCToken());
     }
 
     NativeMethod::cleanup_thread(vm);

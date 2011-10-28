@@ -27,6 +27,8 @@
 #include "bytecode_verification.hpp"
 #include "instruments/timing.hpp"
 
+#include "on_stack.hpp"
+
 #ifdef ENABLE_LLVM
 #include "llvm/state.hpp"
 #include "llvm/jit_compiler.hpp"
@@ -99,11 +101,11 @@ namespace rubinius {
     return as<Fixnum>(lines_->at(state, fin+1))->to_native();
   }
 
-  VMMethod* CompiledMethod::internalize(STATE, const char** reason, int* ip) {
+  VMMethod* CompiledMethod::internalize(STATE, GCToken gct, const char** reason, int* ip) {
     VMMethod* vmm = backend_method_;
     atomic::memory_barrier();
     if(!vmm) {
-      hard_lock(state);
+      hard_lock(state, gct);
 
       vmm = backend_method_;
       if(!vmm) {
@@ -133,7 +135,7 @@ namespace rubinius {
         backend_method_ = vmm;
       }
 
-      hard_unlock(state);
+      hard_unlock(state, gct);
     }
     return vmm;
   }
@@ -164,7 +166,10 @@ namespace rubinius {
       const char* reason = 0;
       int ip = -1;
 
-      if(!cm->internalize(state, &reason, &ip)) {
+      OnStack<4> os(state, cm, exec, mod, args.argument_container_location());
+      GCTokenImpl gct;
+
+      if(!cm->internalize(state, gct, &reason, &ip)) {
         Exception::bytecode_error(state, call_frame, cm, ip, reason);
         return 0;
       }
@@ -293,10 +298,10 @@ namespace rubinius {
     backend_method_->fallback = interp;
   }
 
-  Object* CompiledMethod::set_breakpoint(STATE, Fixnum* ip, Object* bp) {
+  Object* CompiledMethod::set_breakpoint(STATE, GCToken gct, Fixnum* ip, Object* bp) {
     int i = ip->to_native();
     if(backend_method_ == NULL) {
-      if(!internalize(state)) return Primitives::failure();
+      if(!internalize(state, gct)) return Primitives::failure();
     }
     if(!backend_method_->validate_ip(state, i)) return Primitives::failure();
 

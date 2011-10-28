@@ -174,7 +174,7 @@ namespace rubinius {
     static Object* set_critical(STATE, Object* obj);
 
     // Rubinius.primitive :thread_unlock_locks
-    Object* unlock_locks(STATE);
+    Object* unlock_locks(STATE, GCToken gct);
 
     void cleanup();
 

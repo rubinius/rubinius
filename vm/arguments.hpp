@@ -120,6 +120,10 @@ namespace rubinius {
       argument_container_ = tup;
     }
 
+    Tuple*& argument_container_location() {
+      return argument_container_;
+    }
+
     Array* as_array(STATE);
     void append(STATE, Array* ary);
     void prepend(STATE, Array* ary);

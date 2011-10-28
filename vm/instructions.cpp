@@ -93,6 +93,7 @@ Object* VMMethod::interpreter(STATE,
   }
 
   InterpreterState is;
+  GCTokenImpl gct;
 
 #ifdef X86_ESI_SPEEDUP
   register void** ip_ptr asm ("esi") = vmm->addresses;
@@ -244,6 +245,7 @@ Object* VMMethod::uncommon_interpreter(STATE,
 
   opcode* stream = vmm->opcodes;
   InterpreterState is;
+  GCTokenImpl gct;
 
   Object** stack_ptr = call_frame->stk + sp;
 
@@ -385,6 +387,7 @@ Object* VMMethod::debugger_interpreter(STATE,
 
   opcode* stream = vmm->opcodes;
   InterpreterState is;
+  GCTokenImpl gct;
 
   int current_unwind = 0;
   UnwindInfo unwinds[kMaxUnwindInfos];
@@ -403,7 +406,7 @@ continue_to_run:
 #undef DISPATCH
 #define DISPATCH \
     if(Object* bp = call_frame->find_breakpoint(state)) { \
-      if(!Helpers::yield_debugger(state, call_frame, bp)) goto exception; \
+      if(!Helpers::yield_debugger(state, gct, call_frame, bp)) goto exception; \
     } \
     goto *insn_locations[stream[call_frame->inc_ip()]];
 
@@ -524,6 +527,7 @@ Object* VMMethod::debugger_interpreter_continue(STATE,
 
 #include "vm/gen/instruction_locations.hpp"
 
+  GCTokenImpl gct;
   opcode* stream = vmm->opcodes;
 
   Object** stack_ptr = call_frame->stk + sp;
@@ -534,7 +538,7 @@ continue_to_run:
 #undef DISPATCH
 #define DISPATCH \
     if(Object* bp = call_frame->find_breakpoint(state)) { \
-      if(!Helpers::yield_debugger(state, call_frame, bp)) goto exception; \
+      if(!Helpers::yield_debugger(state, gct, call_frame, bp)) goto exception; \
     } \
     goto *insn_locations[stream[call_frame->inc_ip()]];
 

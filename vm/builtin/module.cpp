@@ -18,7 +18,8 @@
 namespace rubinius {
 
   void Module::bootstrap_methods(STATE) {
-    System::attach_primitive(state,
+    GCTokenImpl gct;
+    System::attach_primitive(state, gct,
                              G(module), false,
                              state->symbol("const_set"),
                              state->symbol("module_const_set"));
@@ -127,9 +128,9 @@ namespace rubinius {
     return get_const(state, state->symbol(sym));
   }
 
-  void Module::add_method(STATE, Symbol* name, Executable* exec, Symbol* vis) {
+  void Module::add_method(STATE, GCToken gct, Symbol* name, Executable* exec, Symbol* vis) {
     if(!vis) vis = G(sym_public);
-    method_table_->store(state, name, exec, vis);
+    method_table_->store(state, gct, name, exec, vis);
     state->global_cache()->clear(state, this, name);
   }
 

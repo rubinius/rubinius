@@ -649,7 +649,7 @@ extern "C" {
       break;
     }
 
-    module->add_method(state, method_name, method, visibility);
+    module->add_method(state, GCToken(), method_name, method, visibility);
   }
 
   VALUE capi_class_superclass(VALUE class_handle) {

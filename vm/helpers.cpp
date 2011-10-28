@@ -1,4 +1,4 @@
-#include "helpers.hpp"
+
 #include "builtin/object.hpp"
 #include "call_frame.hpp"
 #include "builtin/autoload.hpp"
@@ -24,6 +24,7 @@
 #include "call_frame.hpp"
 #include "lookup_data.hpp"
 
+#include "helpers.hpp"
 namespace rubinius {
   namespace Helpers {
     Object* const_get_under(STATE, Module* mod, Symbol* name, bool* found) {
@@ -252,7 +253,7 @@ namespace rubinius {
       return module;
     }
 
-    bool yield_debugger(STATE, CallFrame* call_frame, Object* bp) {
+    bool yield_debugger(STATE, GCToken gct, CallFrame* call_frame, Object* bp) {
       Thread* cur = Thread::current(state);
       Thread* debugger = cur->debugger_thread();
 
@@ -292,11 +293,11 @@ namespace rubinius {
 
       Array* locs = Location::from_call_stack(state, call_frame, true, true);
 
-      debugger_chan->send(state,
+      debugger_chan->send(state, gct,
           Tuple::from(state, 4, bp, cur, my_control, locs));
 
       // Block until the debugger wakes us back up.
-      Object* ret = my_control->receive(state, call_frame);
+      Object* ret = my_control->receive(state, gct, call_frame);
 
       // Do not access any locals other than ret beyond here unless you add OnStack<>
       // to them! The GC has probably run and moved things.

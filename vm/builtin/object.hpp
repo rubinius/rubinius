@@ -137,7 +137,7 @@ namespace rubinius {
      * by Kernel#clone.
      */
     // Rubinius.primitive :object_copy_singleton_class
-    Object* copy_singleton_class(STATE, Object* other);
+    Object* copy_singleton_class(STATE, GCToken gct, Object* other);
 
     /** True if this Object* is actually a Fixnum, false otherwise. */
     bool fixnum_p() const;

@@ -321,14 +321,14 @@ namespace rubinius {
     interrupts.set_perform_gc();
   }
 
-  void VM::collect(CallFrame* call_frame) {
+  void VM::collect(GCToken gct, CallFrame* call_frame) {
     this->set_call_frame(call_frame);
-    om->collect(this, call_frame);
+    om->collect(this, gct, call_frame);
   }
 
-  void VM::collect_maybe(CallFrame* call_frame) {
+  void VM::collect_maybe(GCToken gct, CallFrame* call_frame) {
     this->set_call_frame(call_frame);
-    om->collect_maybe(this, call_frame);
+    om->collect_maybe(this, gct, call_frame);
   }
 
   void VM::set_const(const char* name, Object* val) {
@@ -401,7 +401,7 @@ namespace rubinius {
 
       if(!chan->nil_p()) {
         UNSYNC;
-        chan->send(state, Qnil);
+        chan->send(state, GCToken(), Qnil);
         return true;
       } else if(custom_wakeup_) {
         UNSYNC;
@@ -491,7 +491,7 @@ namespace rubinius {
     }
   }
 
-  bool VM::check_interrupts(CallFrame* call_frame, void* end) {
+  bool VM::check_interrupts(GCToken gct, CallFrame* call_frame, void* end) {
     // First, we might be here because someone reset the stack_limit_ so that
     // we'd fall into here to check interrupts even if the stack is fine,
     //
@@ -512,7 +512,7 @@ namespace rubinius {
     // If the current thread is trying to step, debugger wise, then assist!
     if(thread_step()) {
       clear_thread_step();
-      if(!Helpers::yield_debugger(this, call_frame, Qnil)) return false;
+      if(!Helpers::yield_debugger(this, gct, call_frame, Qnil)) return false;
     }
 
     return true;

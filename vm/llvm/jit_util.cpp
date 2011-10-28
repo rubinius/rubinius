@@ -255,7 +255,8 @@ extern "C" {
     }
 
     VMMethod* vmm = call_frame->cm->backend_method();
-    return BlockEnvironment::under_call_frame(state, cm, vmm,
+    GCTokenImpl gct;
+    return BlockEnvironment::under_call_frame(state, gct, cm, vmm,
                                               call_frame, index);
 
     CPP_CATCH
@@ -287,7 +288,8 @@ extern "C" {
     cm->scope(state, closest->static_scope());
 
     VMMethod* vmm = closest->cm->backend_method();
-    return BlockEnvironment::under_call_frame(state, cm, vmm, closest, index);
+    GCTokenImpl gct;
+    return BlockEnvironment::under_call_frame(state, gct, cm, vmm, closest, index);
   }
 
   Object* rbx_promote_variables(STATE, CallFrame* call_frame) {
@@ -905,7 +907,9 @@ extern "C" {
   }
 
   Object* rbx_prologue_check(STATE, CallFrame* call_frame) {
-    if(!state->check_interrupts(call_frame, &state)) return NULL;
+    GCTokenImpl gct;
+
+    if(!state->check_interrupts(gct, call_frame, &state)) return NULL;
 
     if(!state->interrupts.check) return Qtrue;
 
@@ -913,7 +917,7 @@ extern "C" {
 
     if(state->interrupts.perform_gc) {
       state->interrupts.perform_gc = false;
-      state->collect_maybe(call_frame);
+      state->collect_maybe(gct, call_frame);
     }
 
     state->set_call_frame(call_frame);
@@ -923,12 +927,14 @@ extern "C" {
   }
 
   Object* rbx_check_interrupts(STATE, CallFrame* call_frame) {
+    GCTokenImpl gct;
+
     if(unlikely(state->interrupts.check)) {
       state->interrupts.checked();
 
       if(state->interrupts.perform_gc) {
         state->interrupts.perform_gc = true;
-        state->collect_maybe(call_frame);
+        state->collect_maybe(gct, call_frame);
       }
     }
 
@@ -1434,7 +1440,8 @@ extern "C" {
   Object* rbx_create_instance(STATE, CallFrame* call_frame, Class* cls) {
     CPP_TRY
 
-    return cls->allocate(state, call_frame);
+    GCTokenImpl gct;
+    return cls->allocate(state, gct, call_frame);
 
     CPP_CATCH
   }

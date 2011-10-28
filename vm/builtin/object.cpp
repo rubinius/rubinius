@@ -57,9 +57,9 @@ namespace rubinius {
     return other->copy_object(state, this);
   }
 
-  Object* Object::copy_singleton_class(STATE, Object* other) {
+  Object* Object::copy_singleton_class(STATE, GCToken gct, Object* other) {
     if(SingletonClass* sc = try_as<SingletonClass>(other->klass())) {
-      MethodTable* source_methods = sc->method_table()->duplicate(state);
+      MethodTable* source_methods = sc->method_table()->duplicate(state, gct);
       LookupTable* source_constants = sc->constant_table()->duplicate(state);
 
       singleton_class(state)->method_table(state, source_methods);

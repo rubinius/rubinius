@@ -83,7 +83,7 @@ namespace rubinius {
 
     void set_name(STATE, Module* under, Symbol* name);
 
-    void add_method(STATE, Symbol* name, Executable* exec, Symbol* vis = 0);
+    void add_method(STATE, GCToken gct, Symbol* name, Executable* exec, Symbol* vis = 0);
 
     Executable* find_method(Symbol* name, Module** defined_in = 0);
 

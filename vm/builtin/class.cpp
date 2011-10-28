@@ -62,7 +62,7 @@ namespace rubinius {
     set_packed_size(0);
   }
 
-  Object* Class::allocate(STATE, CallFrame* calling_environment) {
+  Object* Class::allocate(STATE, GCToken gct, CallFrame* calling_environment) {
     if(type_info_->type == PackedObject::type) {
 use_packed:
       assert(packed_size_ > 0);
@@ -91,7 +91,7 @@ use_packed:
 
           OnStack<1> os(state, self);
 
-          state->collect_maybe(calling_environment);
+          state->collect_maybe(gct, calling_environment);
 
           // Don't use 'this' after here! it's been moved! use 'self'!
 
@@ -121,7 +121,7 @@ use_packed:
       return Qnil;
     } else if(type_info_->type == Object::type) {
       // transition all normal object classes to PackedObject
-      auto_pack(state);
+      auto_pack(state, gct);
       goto use_packed;
     }
 
@@ -180,8 +180,8 @@ use_packed:
    *
    * This locks the class so that construction is serialized.
    */
-  void Class::auto_pack(STATE) {
-    hard_lock(state);
+  void Class::auto_pack(STATE, GCToken gct) {
+    hard_lock(state, gct);
 
     // If another thread did this work while we were waiting on the lock,
     // don't redo it.
@@ -232,7 +232,7 @@ use_packed:
 
     set_object_type(state, PackedObject::type);
 
-    hard_unlock(state);
+    hard_unlock(state, gct);
   }
 
   Class* Class::real_class(STATE, Class* klass) {

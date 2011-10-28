@@ -47,7 +47,7 @@ namespace rubinius {
     return tbl;
   }
 
-  MethodTable* MethodTable::duplicate(STATE) {
+  MethodTable* MethodTable::duplicate(STATE, GCToken gct) {
     size_t size, i;
     MethodTable *dup;
 
@@ -63,7 +63,7 @@ namespace rubinius {
       MethodTableBucket* entry = try_as<MethodTableBucket>(values_->at(state, i));
 
       while(entry) {
-        dup->store(state, entry->name(), entry->method(), entry->visibility());
+        dup->store(state, gct, entry->name(), entry->method(), entry->visibility());
         entry = try_as<MethodTableBucket>(entry->next());
       }
     }
@@ -98,12 +98,12 @@ namespace rubinius {
     bins(state, Fixnum::from(size));
   }
 
-  Object* MethodTable::store(STATE, Symbol* name, Object* exec, Symbol* vis) {
+  Object* MethodTable::store(STATE, GCToken gct, Symbol* name, Object* exec, Symbol* vis) {
     unsigned int num_entries, num_bins, bin;
     MethodTableBucket* entry;
     MethodTableBucket* last = NULL;
 
-    hard_lock(state);
+    hard_lock(state, gct);
 
     Executable* method;
     if(exec->nil_p()) {
@@ -130,7 +130,7 @@ namespace rubinius {
       if(entry->name() == name) {
         entry->method(state, method);
         entry->visibility(state, vis);
-        hard_unlock(state);
+        hard_unlock(state, gct);
         return name;
       }
       last = entry;
@@ -145,11 +145,11 @@ namespace rubinius {
 
     entries(state, Fixnum::from(num_entries + 1));
 
-    hard_unlock(state);
+    hard_unlock(state, gct);
     return name;
   }
 
-  Object* MethodTable::alias(STATE, Symbol* name, Symbol* vis,
+  Object* MethodTable::alias(STATE, GCToken gct, Symbol* name, Symbol* vis,
                              Symbol* orig_name, Object* orig_method,
                              Module* orig_mod)
   {
@@ -157,7 +157,7 @@ namespace rubinius {
     MethodTableBucket* entry;
     MethodTableBucket* last = NULL;
 
-    hard_lock(state);
+    hard_lock(state, gct);
     Executable* orig_exec;
 
     if(Alias* alias = try_as<Alias>(orig_method)) {
@@ -186,7 +186,7 @@ namespace rubinius {
       if(entry->name() == name) {
         entry->method(state, method);
         entry->visibility(state, vis);
-        hard_unlock(state);
+        hard_unlock(state, gct);
         return name;
       }
       last = entry;
@@ -200,7 +200,7 @@ namespace rubinius {
     }
 
     entries(state, Fixnum::from(num_entries + 1));
-    hard_unlock(state);
+    hard_unlock(state, gct);
     return name;
   }
   MethodTableBucket* MethodTable::find_entry(STATE, Symbol* name) {
@@ -243,12 +243,12 @@ namespace rubinius {
     return nil<MethodTableBucket>();
   }
 
-  Executable* MethodTable::remove(STATE, Symbol* name) {
+  Executable* MethodTable::remove(STATE, GCToken gct, Symbol* name) {
     hashval bin;
     MethodTableBucket* entry;
     MethodTableBucket* last = NULL;
 
-    hard_lock(state);
+    hard_lock(state, gct);
 
     size_t num_entries = entries_->to_native();
     size_t num_bins = bins_->to_native();
@@ -269,7 +269,7 @@ namespace rubinius {
           values_->put(state, bin, entry->next());
         }
         entries(state, Fixnum::from(entries_->to_native() - 1));
-        hard_unlock(state);
+        hard_unlock(state, gct);
         return val;
       }
 
@@ -277,7 +277,7 @@ namespace rubinius {
       entry = try_as<MethodTableBucket>(entry->next());
     }
 
-    hard_unlock(state);
+    hard_unlock(state, gct);
 
     return nil<Executable>();
   }

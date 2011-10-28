@@ -18,6 +18,13 @@ namespace rubinius {
   class ObjectMemory;
   class ObjectHeader;
 
+  class GCTokenImpl {
+  private:
+    int dummy;
+  };
+
+  typedef GCTokenImpl& GCToken;
+
   /**
    *  Static type information for the VM.
    *
