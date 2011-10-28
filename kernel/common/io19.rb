@@ -58,6 +58,16 @@ class IO
     return str
   end
 
+  def self.sysopen(path, mode = "r", perm = 0666)
+    path = Rubinius::Type.coerce_to_path path
+
+    unless mode.kind_of? Integer
+      mode = parse_mode StringValue(mode)
+    end
+
+    open_with_mode path, mode, perm
+  end
+
   def self.try_convert(obj)
     Rubinius::Type.try_convert obj, IO, :to_io
   end
