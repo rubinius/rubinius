@@ -375,9 +375,9 @@ static int scan_hex(const char *start, size_t len, size_t *retlen);
 #define nd_nest u3.cnt
 
 #define UTF8_ENC()            (parser_state->utf8 ? parser_state->utf8 : \
-                                (parser_state->utf8 = rb_utf8_encoding()))
-#define STR_NEW(p,n)          rb_enc_str_new((p), (n), parser_state->enc)
-#define STR_NEW0()            rb_enc_str_new(0, 0, parser_state->enc)
+                                (parser_state->utf8 = parser_utf8_encoding()))
+#define STR_NEW(p,n)          parser_enc_str_new((p), (n), parser_state->enc)
+#define STR_NEW0()            parser_enc_str_new(0, 0, parser_state->enc)
 #define STR_NEW3(p,n,e,func)  parser_str_new((p), (n), (e), (func), parser_state->enc)
 #define ENC_SINGLE(cr)        ((cr)==ENC_CODERANGE_7BIT)
 #define TOK_INTERN(mb)        parser_intern3(tok(), toklen(), parser_state->enc)
@@ -3101,9 +3101,9 @@ static int parser_here_document(rb_parser_state*, NODE*);
 #endif
 
 #define parser_encoding_name()    (parser_state->enc->name)
-#define parser_mbclen()           rb_enc_mbclen((lex_p-1),lex_pend,parser->enc)
-#define parser_precise_mbclen()   rb_enc_precise_mbclen((lex_p-1),lex_pend,parser_state->enc)
-#define is_identchar(p,e,enc)     (rb_enc_isalnum(*p,enc) || (*p) == '_' || !ISASCII(*p))
+#define parser_mbclen()           parser_enc_mbclen((lex_p-1),lex_pend,parser->enc)
+#define parser_precise_mbclen()   parser_enc_precise_mbclen((lex_p-1),lex_pend,parser_state->enc)
+#define is_identchar(p,e,enc)     (parser_enc_isalnum(*p,enc) || (*p) == '_' || !ISASCII(*p))
 #define parser_is_identchar()     (!eofp && \
                                    is_identchar((lex_p-1),lex_pend,parser_state->enc))
 
@@ -3153,8 +3153,8 @@ yycompile(rb_parser_state* parser_state, char *f, int line)
 static rb_encoding*
 must_be_ascii_compatible(VALUE s)
 {
-  rb_encoding *enc = rb_enc_get(s);
-  if(!rb_enc_asciicompat(enc)) {
+  rb_encoding *enc = parser_enc_get(s);
+  if(!parser_enc_asciicompat(enc)) {
     // TODO: handle this in a way that doesn't leak parser state
     // rb_raise(rb_eArgError, "invalid source encoding");
   }
@@ -3178,7 +3178,7 @@ lex_get_str(rb_parser_state* parser_state, VALUE s)
     if(*end++ == '\n') break;
   }
   lex_gets_ptr = end - RSTRING_PTR(s);
-  return REF(rb_enc_str_new(beg, end - beg, enc));
+  return REF(parser_enc_str_new(beg, end - beg, enc));
 }
 
 static VALUE
@@ -3322,12 +3322,12 @@ parser_str_new(const char *p, long n, rb_encoding *enc, int func, rb_encoding *e
 {
   VALUE str;
 
-  str = rb_enc_str_new(p, n, enc);
-  if(!(func & STR_FUNC_REGEXP) && rb_enc_asciicompat(enc)) {
-    if(rb_enc_str_coderange(str) == ENC_CODERANGE_7BIT) {
+  str = parser_enc_str_new(p, n, enc);
+  if(!(func & STR_FUNC_REGEXP) && parser_enc_asciicompat(enc)) {
+    if(parser_enc_str_coderange(str) == ENC_CODERANGE_7BIT) {
       // Do nothing.
-    } else if(enc0 == rb_usascii_encoding() && enc != rb_utf8_encoding()) {
-      rb_enc_associate(str, rb_ascii8bit_encoding());
+    } else if(enc0 == parser_usascii_encoding() && enc != parser_utf8_encoding()) {
+      parser_enc_associate(str, parser_ascii8bit_encoding());
     }
   }
 
@@ -3623,8 +3623,8 @@ parser_read_escape(rb_parser_state *parser_state, int flags, rb_encoding **encp)
 static void
 parser_tokaddmbc(rb_parser_state* parser_state, int c, rb_encoding *enc)
 {
-  int len = rb_enc_codelen(c, enc);
-  rb_enc_mbcput(c, tokspace(len), enc);
+  int len = parser_enc_codelen(c, enc);
+  parser_enc_mbcput(c, tokspace(len), enc);
 }
 
 static int
@@ -3784,10 +3784,10 @@ parser_tokadd_string(rb_parser_state *parser_state,
 
 #define mixed_error(enc1, enc2) if(!errbuf) {	\
     size_t len = sizeof(mixed_msg) - 4;	\
-    len += strlen(rb_enc_name(enc1));	\
-    len += strlen(rb_enc_name(enc2));	\
+    len += strlen(parser_enc_name(enc1));	\
+    len += strlen(parser_enc_name(enc2));	\
     errbuf = ALLOCA_N(char, len);		\
-    snprintf(errbuf, len, mixed_msg, rb_enc_name(enc1), rb_enc_name(enc2));		\
+    snprintf(errbuf, len, mixed_msg, parser_enc_name(enc1), parser_enc_name(enc2));		\
     yy_error(errbuf);			\
   }
 
@@ -4226,7 +4226,7 @@ parser_prepare(rb_parser_state* parser_state)
     if(lex_pend - lex_p >= 2 &&
         (unsigned char)lex_p[0] == 0xbb &&
         (unsigned char)lex_p[1] == 0xbf) {
-      parser_state->enc = rb_utf8_encoding();
+      parser_state->enc = parser_utf8_encoding();
       lex_p += 2;
       lex_pbeg = lex_p;
       return;
@@ -4236,7 +4236,7 @@ parser_prepare(rb_parser_state* parser_state)
     return;
   }
   pushback(c);
-  parser_state->enc = rb_enc_get(lex_lastline);
+  parser_state->enc = parser_enc_get(lex_lastline);
 }
 
 #define IS_ARG()        (lex_state == EXPR_ARG \
@@ -4540,7 +4540,7 @@ retry:
       rb_compile_error(parser_state, "incomplete character syntax");
       return 0;
     }
-    if(rb_enc_isspace(c, parser_state->enc)) {
+    if(parser_enc_isspace(c, parser_state->enc)) {
       if(!IS_ARG()){
         int c2 = 0;
         switch(c) {
@@ -4577,7 +4577,7 @@ retry:
     enc = parser_state->enc;
     if(!parser_isascii()) {
       if(tokadd_mbchar(c) == -1) return 0;
-    } else if((rb_enc_isalnum(c, parser_state->enc) || c == '_') &&
+    } else if((parser_enc_isalnum(c, parser_state->enc) || c == '_') &&
               lex_p < lex_pend && is_identchar(lex_p, lex_pend, parser_state->enc)) {
       goto ternary;
     } else if(c == '\\') {
@@ -5147,7 +5147,7 @@ retry:
         c = 'Q';
       } else {
         term = nextc();
-        if(rb_enc_isalnum((int)term, parser_state->enc) || !parser_isascii()) {
+        if(parser_enc_isalnum((int)term, parser_state->enc) || !parser_isascii()) {
           yy_error("unknown type of % string");
           return 0;
         }
@@ -5709,10 +5709,10 @@ static int
 literal_concat0(rb_parser_state* parser_state, VALUE head, VALUE tail)
 {
   if(NIL_P(tail)) return 1;
-  if(!rb_enc_compatible(head, tail)) {
+  if(!parser_enc_compatible(head, tail)) {
     rb_compile_error(parser_state, "string literal encodings differ (%s / %s)",
-    rb_enc_name(rb_enc_get(head)),
-    rb_enc_name(rb_enc_get(tail)));
+    parser_enc_name(parser_enc_get(head)),
+    parser_enc_name(parser_enc_get(tail)));
     rb_str_resize(head, 0);
     rb_str_resize(tail, 0);
     return 0;
@@ -6754,7 +6754,7 @@ parser_intern3(const char* name, long len, rb_encoding* enc)
     break;
   default:
     c = m[0];
-    if (len > 1 && c != '_' && rb_enc_isascii(c, enc) && rb_enc_ispunct(c, enc)) {
+    if (len > 1 && c != '_' && parser_enc_isascii(c, enc) && parser_enc_ispunct(c, enc)) {
       /* operators */
       for (int i = 0; i < op_tbl_count; i++) {
         if (*op_tbl[i].name == *m && strcmp(op_tbl[i].name, m) == 0) {
@@ -6765,7 +6765,7 @@ parser_intern3(const char* name, long len, rb_encoding* enc)
 
     if (m[last] == '=') {
       id |= ID_ATTRSET;
-    } else if (rb_enc_isupper(m[0], enc)) {
+    } else if (parser_enc_isupper(m[0], enc)) {
       id |= ID_CONST;
     } else {
       id |= ID_LOCAL;
@@ -6779,7 +6779,7 @@ parser_intern3(const char* name, long len, rb_encoding* enc)
 ID
 parser_intern2(const char* name, long len)
 {
-  return parser_intern3(name, len, rb_usascii_encoding());
+  return parser_intern3(name, len, parser_usascii_encoding());
 }
 
 ID
