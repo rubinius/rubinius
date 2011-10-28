@@ -396,7 +396,7 @@ namespace rubinius {
      * Checks if object is frozen and raises RuntimeError if it is.
      * Similar to CRuby rb_check_frozen
      */
-    void check_forzen(STATE);
+    void check_frozen(STATE);
 
   };
 

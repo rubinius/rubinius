@@ -156,7 +156,7 @@ namespace rubinius {
     return Qfalse;
   }
   
-  void Object::check_forzen(STATE) {
+  void Object::check_frozen(STATE) {
     if(frozen_p(state) == Qtrue) {
       Exception::runtime_error(state, "can't modify frozen object");
     }
@@ -721,7 +721,7 @@ namespace rubinius {
 
   Object* Object::trust(STATE) {
     if(untrusted_p(state) == Qtrue) {
-      check_forzen(state);
+      check_frozen(state);
       if(reference_p()) set_untrusted(0);
     }
     return this;
@@ -729,7 +729,7 @@ namespace rubinius {
 
   Object* Object::untrust(STATE) {
     if(untrusted_p(state) == Qfalse) {
-      check_forzen(state);
+      check_frozen(state);
       if(reference_p()) set_untrusted();
     }
     return this;
