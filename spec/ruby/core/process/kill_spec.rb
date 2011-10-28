@@ -77,25 +77,25 @@ describe "Process.kill" do
       Signal.trap("HUP", @saved_trap)
     end
 
-    with_tty do # 0 goes to the entire process group, not just current pid
-      it "sends the given signal to the current process if pid is zero" do
+    with_tty do
+      it "sends the given signal to the current process group if pid is zero" do
         Process.kill("HUP", 0).should == 1
       end
 
       it "accepts integer signal numbers" do
-        Process.kill(1, 0).should == 1
+        Process.kill(1, Process.pid).should == 1
       end
 
       it "accepts POSIX signal names without 'SIG' prefix" do
-        Process.kill("HUP", 0).should == 1
+        Process.kill("HUP", Process.pid).should == 1
       end
 
       it "accepts POSIX signal names with 'SIG' prefix" do
-        Process.kill("SIGHUP", 0).should == 1
+        Process.kill("SIGHUP", Process.pid).should == 1
       end
 
       it "coerces the pid to an Integer" do
-        Process.kill(1, mock_int(0)).should == 1
+        Process.kill(1, mock_int(Process.pid)).should == 1
       end
     end
   end
