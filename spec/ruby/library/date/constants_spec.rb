@@ -3,14 +3,6 @@ require File.expand_path('../../../spec_helper', __FILE__)
 
 describe "Date constants" do
 
-  it "defines ITALY" do
-    Date::ITALY.should == 2299161 # 1582-10-15
-  end
-
-  it "defines ENGLAND" do
-    Date::ENGLAND.should == 2361222 # 1752-09-14
-  end
-
   # Fixes in 1.8.7
   ruby_bug "#", "1.8.6" do
     it "defines JULIAN" do
@@ -23,6 +15,14 @@ describe "Date constants" do
     it "defines GREGORIAN" do
       (Date::GREGORIAN <=> -Date::Infinity.new).should == 0
     end
+  end
+
+  it "defines ITALY" do
+    Date::ITALY.should == 2299161 # 1582-10-15
+  end
+
+  it "defines ENGLAND" do
+    Date::ENGLAND.should == 2361222 # 1752-09-14
   end
 
   it "defines MONTHNAMES" do
@@ -53,7 +53,7 @@ describe "Date constants" do
     end
   end
 
-  ruby_version_is '1.8.7' do
+  ruby_version_is "1.8.7" ... "1.9.3"do
 
     it "defines HALF_DAYS_IN_DAY" do
       Date::HALF_DAYS_IN_DAY.should == Rational(1, 2)
