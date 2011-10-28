@@ -101,42 +101,49 @@ namespace rubinius {
     return as<Fixnum>(lines_->at(state, fin+1))->to_native();
   }
 
-  VMMethod* CompiledMethod::internalize(STATE, GCToken gct, const char** reason, int* ip) {
+  VMMethod* CompiledMethod::internalize(STATE, GCToken gct,
+                                        const char** reason, int* ip)
+  {
     VMMethod* vmm = backend_method_;
+
     atomic::memory_barrier();
+
+    if(vmm) return vmm;
+
+    CompiledMethod* self = this;
+    OnStack<1> os(state, self);
+
+    self->hard_lock(state, gct);
+
+    vmm = self->backend_method_;
     if(!vmm) {
-      hard_lock(state, gct);
-
-      vmm = backend_method_;
-      if(!vmm) {
-        {
-          BytecodeVerification bv(this);
-          if(!bv.verify(state)) {
-            if(reason) *reason = bv.failure_reason();
-            if(ip) *ip = bv.failure_ip();
-            std::cerr << "Error validating bytecode: " << bv.failure_reason() << "\n";
-            return 0;
-          }
+      {
+        BytecodeVerification bv(self);
+        if(!bv.verify(state)) {
+          if(reason) *reason = bv.failure_reason();
+          if(ip) *ip = bv.failure_ip();
+          std::cerr << "Error validating bytecode: " << bv.failure_reason() << "\n";
+          return 0;
         }
-
-        vmm = new VMMethod(state, this);
-
-        if(resolve_primitive(state)) {
-          vmm->fallback = execute;
-        } else {
-          vmm->setup_argument_handler(this);
-        }
-
-        // We need to have an explicit memory barrier here, because we need to
-        // be sure that vmm is completely initialized before it's set.
-        // Otherwise another thread might see a partially initialized
-        // VMMethod.
-        atomic::memory_barrier();
-        backend_method_ = vmm;
       }
 
-      hard_unlock(state, gct);
+      vmm = new VMMethod(state, self);
+
+      if(self->resolve_primitive(state)) {
+        vmm->fallback = execute;
+      } else {
+        vmm->setup_argument_handler(self);
+      }
+
+      // We need to have an explicit memory barrier here, because we need to
+      // be sure that vmm is completely initialized before it's set.
+      // Otherwise another thread might see a partially initialized
+      // VMMethod.
+      atomic::memory_barrier();
+      backend_method_ = vmm;
     }
+
+    self->hard_unlock(state, gct);
     return vmm;
   }
 
@@ -299,19 +306,24 @@ namespace rubinius {
   }
 
   Object* CompiledMethod::set_breakpoint(STATE, GCToken gct, Fixnum* ip, Object* bp) {
+    CompiledMethod* self = this;
+    OnStack<3> os(state, self, ip, bp);
+
     int i = ip->to_native();
-    if(backend_method_ == NULL) {
-      if(!internalize(state, gct)) return Primitives::failure();
-    }
-    if(!backend_method_->validate_ip(state, i)) return Primitives::failure();
-
-    if(breakpoints_->nil_p()) {
-      breakpoints(state, LookupTable::create(state));
+    if(self->backend_method_ == NULL) {
+      if(!self->internalize(state, gct)) return Primitives::failure();
     }
 
-    breakpoints_->store(state, ip, bp);
-    backend_method_->debugging = 1;
-    backend_method_->run = VMMethod::debugger_interpreter;
+    if(!self->backend_method_->validate_ip(state, i)) return Primitives::failure();
+
+    if(self->breakpoints_->nil_p()) {
+      self->breakpoints(state, LookupTable::create(state));
+    }
+
+    self->breakpoints_->store(state, ip, bp);
+    self->backend_method_->debugging = 1;
+    self->backend_method_->run = VMMethod::debugger_interpreter;
+
     return ip;
   }
 
