@@ -456,17 +456,6 @@ class IO
     IO.select_primitive(readables, writables, errorables, timeout)
   end
 
-  ##
-  # Opens the given path, returning the underlying file descriptor as a Fixnum.
-  #  IO.sysopen("testfile")   #=> 3
-  def self.sysopen(path, mode = "r", perm = 0666)
-    unless mode.kind_of? Integer
-      mode = parse_mode StringValue(mode)
-    end
-
-    open_with_mode path, mode, perm
-  end
-
   #
   # Internally associate +io+ with the given descriptor.
   #
