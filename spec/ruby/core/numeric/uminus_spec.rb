@@ -18,4 +18,14 @@ describe "Numeric#-@" do
     9223372036854775808.send(:-@).should == -9223372036854775808
     -9223372036854775808.send(:-@).should == 9223372036854775808
   end
+
+  describe "with a Numeric subclass" do
+    it "calls #coerce(0) on self, then subtracts the second element of the result from the first" do
+      ten  = mock_numeric('10')
+      zero = mock_numeric('0')
+      ten.should_receive(:coerce).with(0).and_return([zero, ten])
+      zero.should_receive(:-).with(ten).and_return(-10)
+      ten.send(:-@).should == -10
+    end
+  end
 end
