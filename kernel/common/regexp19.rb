@@ -54,4 +54,13 @@ class MatchData
 
     return to_a[idx]
   end
+
+  attr_reader :regexp
+
+  def ==(other)
+    other.kind_of?(MatchData) &&
+      string == other.string  &&
+      regexp == other.regexp  &&
+      captures == other.captures
+  end
 end
