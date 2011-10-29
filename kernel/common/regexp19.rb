@@ -63,4 +63,5 @@ class MatchData
       regexp == other.regexp  &&
       captures == other.captures
   end
+  alias_method :eql?, :==
 end
