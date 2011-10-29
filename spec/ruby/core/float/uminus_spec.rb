@@ -8,4 +8,21 @@ describe "Float#-@" do
     (--5.5).should be_close(5.5, TOLERANCE)
     -8.551.send(:-@).should be_close(8.551, TOLERANCE)
   end
+
+  it "negates self at Float boundaries" do
+    Float::MAX.send(:-@).should be_close(0.0 - Float::MAX, TOLERANCE)
+    Float::MIN.send(:-@).should be_close(0.0 - Float::MIN, TOLERANCE)
+  end
+
+  it "returns negative infinity for positive infinity" do
+    infinity_value.send(:-@).infinite?.should == -1
+  end
+
+  it "returns positive infinity for negative infinity" do
+    (-infinity_value).send(:-@).infinite?.should == 1
+  end
+
+  it "returns NaN for NaN" do
+    nan_value.send(:-@).nan?.should == true
+  end
 end

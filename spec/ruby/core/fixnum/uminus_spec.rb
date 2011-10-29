@@ -8,4 +8,9 @@ describe "Fixnum#-@" do
     (--5).should == 5
     -8.send(:-@).should == 8
   end
+
+  it "negates self at Fixnum/Bignum boundaries" do
+    fixnum_max.send(:-@).should == (0 - fixnum_max)
+    fixnum_min.send(:-@).should == (0 - fixnum_min)
+  end
 end
