@@ -530,7 +530,7 @@ class Regexp
 
     if @names
       @names.each do |k, v|
-        hash[k.to_s] = [v + 1] # we only have one location currently for a key
+        hash[k.to_s] = v
       end
     end
 
@@ -554,12 +554,11 @@ class Regexp
   #
   def names
     if @names
-      ary = Array.new(@names.size)
-      @names.each do |k, v|
-        ary[v] = k.to_s
+      names = []
+      @names.each do |k,v|
+        names[v.first] = k.to_s
       end
-
-      return ary
+      names.compact
     else
       []
     end
@@ -666,13 +665,17 @@ class MatchData
         return @source.substring(x, y-x)
       end
     when Symbol
-      num = @regexp.name_table[idx]
-      raise ArgumentError, "Unknown named group '#{idx}'" unless num
-      return self[num + 1]
+      if @regexp.name_table && nums = @regexp.name_table[idx]
+        return self[nums.last]
+      else
+        raise IndexError, "Unknown named group '#{idx}'"
+      end
     when String
-      num = @regexp.name_table[idx.to_sym]
-      raise ArgumentError, "Unknown named group '#{idx}'" unless num
-      return self[num + 1]
+      if @regexp.name_table && nums = @regexp.name_table[idx.to_sym]
+        return self[nums.last]
+      else
+        raise IndexError, "Unknown named group '#{idx}'"
+      end
     end
 
     return to_a[idx]
