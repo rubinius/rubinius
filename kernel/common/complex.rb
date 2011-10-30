@@ -84,20 +84,14 @@ end
 # Creates a Complex number.  +a+ and +b+ should be Numeric.  The result will be
 # <tt>a+bi</tt>.
 #
-def Complex(a, b = 0)
-  if b == 0 and (a.kind_of?(Complex) or defined? Complex::Unify)
-    a
-  else
-    Complex.new( a.real-b.imag, a.imag+b.real )
-  end
+def Complex(*args)
+  Complex.send :convert, *args
 end
 
 #
-# The complex number class.  See complex.rb for an overview.
+# The complex number class.
 #
 class Complex < Numeric
-  @RCS_ID='-$Id: complex.rb,v 1.3 1998/07/08 10:05:28 keiju Exp keiju $-'
-
   undef_method :step
   undef_method :div
   undef_method :divmod
@@ -105,6 +99,43 @@ class Complex < Numeric
   undef_method :truncate
   undef_method :ceil
   undef_method :round
+
+  def self.convert(real, imag = undefined)
+    if real.equal?(nil) || imag.equal?(nil)
+      raise TypeError, "cannot convert nil into Complex"
+    end
+
+    real = real.to_c if real.kind_of?(String)
+    imag = imag.to_c if imag.kind_of?(String)
+
+    if real.kind_of?(Complex) && !real.imag.kind_of?(Float) && real.imag == 0
+      real = real.real
+    end
+
+    if imag.kind_of?(Complex) && !imag.imag.kind_of?(Float) && imag.imag == 0
+      imag = imag.real
+    end
+
+    if real.kind_of?(Complex) && !imag.kind_of?(Float) && imag == 0
+      return real
+    end
+
+    if imag.equal? undefined
+      if real.kind_of?(Numeric) && !real.real?
+        return real
+      elsif !real.kind_of?(Numeric)
+        return Rubinius::Type.coerce_to(real, Complex, :to_c)
+      else
+        imag = 0
+      end
+    elsif real.kind_of?(Numeric) && imag.kind_of?(Numeric) && (!real.real? || !imag.real?)
+      return real + imag * Complex(0, 1)
+    end
+
+    rect(real, imag)
+  end
+
+  private_class_method :convert
 
   def Complex.generic?(other) # :nodoc:
     other.kind_of?(Integer) or
@@ -132,15 +163,7 @@ class Complex < Numeric
   end
   private_class_method :check_real?
 
-
-  #
-  # Creates a +Complex+ number <tt>a</tt>+<tt>b</tt><i>i</i>.
-  #
-  def Complex.new!(a, b=0)
-    new(a, b)
-  end
-
-  def initialize(a, b)
+  def initialize(a, b = 0)
     raise TypeError, "non numeric 1st arg `#{a.inspect}'" if !a.kind_of? Numeric
     raise TypeError, "`#{a.inspect}' for 1st arg" if a.kind_of? Complex
     raise TypeError, "non numeric 2nd arg `#{b.inspect}'" if !b.kind_of? Numeric
@@ -356,7 +379,7 @@ class Complex < Numeric
   #
   def coerce(other)
     if Complex.generic?(other)
-      return Complex.new!(other), self
+      return Complex.new(other), self
     else
       super
     end
