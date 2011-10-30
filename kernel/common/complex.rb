@@ -112,6 +112,12 @@ class Complex < Numeric
     (defined?(Rational) and other.kind_of?(Rational))
   end
 
+  def Complex.rect(real, imag=0)
+    raise TypeError, 'not a real' unless check_real?(real) && check_real?(imag)
+    new(real, imag)
+  end
+  class << self; alias_method :rectangular, :rect end
+
   #
   # Creates a +Complex+ number in terms of +r+ (radius) and +theta+ (angle).
   #
