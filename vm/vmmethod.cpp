@@ -606,15 +606,17 @@ namespace rubinius {
       // Check the stack and interrupts here rather than in the interpreter
       // loop itself.
 
+      GCTokenImpl gct;
+
       if(state->detect_stack_condition(frame)) {
-        if(!state->check_interrupts(frame, frame)) return NULL;
+        if(!state->check_interrupts(gct, frame, frame)) return NULL;
       }
 
       if(unlikely(state->interrupts.check)) {
         state->interrupts.checked();
         if(state->interrupts.perform_gc) {
           state->interrupts.perform_gc = false;
-          state->collect_maybe(frame);
+          state->collect_maybe(gct, frame);
         }
       }
 
@@ -671,15 +673,17 @@ namespace rubinius {
     // Check the stack and interrupts here rather than in the interpreter
     // loop itself.
 
+    GCTokenImpl gct;
+
     if(state->detect_stack_condition(frame)) {
-      if(!state->check_interrupts(frame, frame)) return NULL;
+      if(!state->check_interrupts(gct, frame, frame)) return NULL;
     }
 
     if(unlikely(state->interrupts.check)) {
       state->interrupts.checked();
       if(state->interrupts.perform_gc) {
         state->interrupts.perform_gc = false;
-        state->collect_maybe(frame);
+        state->collect_maybe(gct, frame);
       }
     }
 
@@ -701,6 +705,7 @@ namespace rubinius {
                             jit::RuntimeDataHolder* rd, 
                             bool disable)
   {
+#ifdef ENABLE_LLVM
     LLVMState* ls = LLVMState::get(state);
     ls->start_method_update();
 
@@ -754,6 +759,7 @@ namespace rubinius {
     }
 
     ls->end_method_update();
+#endif
   }
 
   /*

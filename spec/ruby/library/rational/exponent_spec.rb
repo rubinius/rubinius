@@ -13,7 +13,7 @@ ruby_version_is ""..."1.9" do
     it_behaves_like(:rational_exponent_float, :**)
   end
 
-  describe "Rational#** when pass Integer" do
+  describe "Rational#** when passed Integer" do
     it_behaves_like(:rational_exponent_int, :**)
   end
 end

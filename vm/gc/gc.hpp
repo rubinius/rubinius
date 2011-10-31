@@ -42,9 +42,12 @@ namespace rubinius {
     GlobalCache* global_cache_;
     std::list<ManagedThread*>* threads_;
     std::list<capi::Handle**>* global_handle_locations_;
+    GCTokenImpl* gc_token_;
 
   public:
+    GCData(STATE, GCToken gct);
     GCData(STATE);
+
     GCData(Roots& r,
            capi::Handles* handles = NULL, capi::Handles* cached_handles = NULL,
            GlobalCache *cache = NULL, std::list<ManagedThread*>* ths = NULL,
@@ -79,6 +82,10 @@ namespace rubinius {
 
     std::list<capi::Handle**>* global_handle_locations() {
       return global_handle_locations_;
+    }
+
+    GCTokenImpl* gc_token() {
+      return gc_token_;
     }
   };
 

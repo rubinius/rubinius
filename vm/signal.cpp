@@ -106,6 +106,7 @@ namespace rubinius {
     pthread_sigmask(SIG_BLOCK, &set, NULL);
 #endif
 
+    GCTokenImpl gct;
     thread::Thread::set_os_name("rbx.signal-dispatch");
 
     for(;;) {
@@ -137,7 +138,7 @@ namespace rubinius {
         {
           target_->check_local_interrupts = true;
           target_->get_attention();
-          target_->wakeup(state);
+          target_->wakeup(state, gct);
 
         }
       }

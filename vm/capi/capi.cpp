@@ -649,7 +649,8 @@ extern "C" {
       break;
     }
 
-    module->add_method(state, method_name, method, visibility);
+    GCTokenImpl gct;
+    module->add_method(state, gct, method_name, method, visibility);
   }
 
   VALUE capi_class_superclass(VALUE class_handle) {

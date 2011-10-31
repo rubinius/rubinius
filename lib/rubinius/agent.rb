@@ -2,9 +2,9 @@ require 'rubinius/bert'
 
 module Rubinius
   class Agent
-    def self.connect(host, port)
+    def self.connect(host, port, &b)
       i = new TCPSocket.new(host, port)
-      i.handshake!
+      i.handshake!(&b)
       return i
     end
 
@@ -13,14 +13,36 @@ module Rubinius
       new Rubinius.agent_io
     end
 
-    def initialize(io)
+    def initialize(io, password=nil)
       @io = io
       @decoder = BERT::Decode.new(@io)
       @encoder = BERT::Encode.new(@io)
+      @password = password
     end
 
     def handshake!
       @handshake = @decoder.read_any
+      if @handshake[0] == :file_auth
+        File.open(@handshake[1], "w") do |f|
+          f.puts "agent start"
+        end
+
+        @encoder.write_any :ok
+
+        @handshake = @decoder.read_any
+      elsif @handshake[0] == :password_auth
+        if @password
+          @encoder.write_any t[:password, @password]
+        elsif block_given?
+          password = yield
+          @encoder.write_any t[:password, password.to_s]
+        else
+          raise "Password required, none available"
+        end
+
+        @handshake = @decoder.read_any
+      end
+
       unless @handshake[0] == :hello_query_agent
         raise "Error receiving hello: #{@handshake.inspect}"
       end

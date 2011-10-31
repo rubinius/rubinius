@@ -1,2 +1,0 @@
-fails:IO#each_byte yields each byte
-fails:IO#each_byte returns an Enumerator when passed no block

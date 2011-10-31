@@ -274,7 +274,7 @@ namespace rubinius {
   };
 
   // Registry, used to clear ICs by method name
-  class InlineCacheRegistry : Lockable {
+  class InlineCacheRegistry : public Lockable {
     typedef std::list<InlineCache*> CacheVector;
     typedef std::tr1::unordered_map<native_int, CacheVector> CacheHash;
 

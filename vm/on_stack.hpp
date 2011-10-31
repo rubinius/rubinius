@@ -1,3 +1,6 @@
+#ifndef RBX_ON_STACK_HPP
+#define RBX_ON_STACK_HPP
+
 #include "gc/variable_buffer.hpp"
 
 namespace rubinius {
@@ -86,3 +89,5 @@ namespace rubinius {
     }
   };
 }
+
+#endif

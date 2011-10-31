@@ -26,6 +26,7 @@ lookuptable.rbc
 method_table.rbc
 nil.rbc
 object.rbc
+object19.rbc
 proc.rbc
 process.rbc
 regexp.rbc
@@ -35,6 +36,7 @@ static_scope.rbc
 string.rbc
 symbol.rbc
 thread.rbc
+thread19.rbc
 thunk.rbc
 time.rbc
 true.rbc

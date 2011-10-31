@@ -1,17 +1,18 @@
 #include "ruby.h"
 #include "rubyspec.h"
-#ifdef RUBY_VERSION_IS_1_8
+#ifdef RUBY_VERSION_IS_1_8_EX_1_9
 #include "rubyio.h"
 #else
 #include "ruby/io.h"
 #endif
 #include <fcntl.h>
+#include <unistd.h>
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-#ifdef RUBY_VERSION_IS_LT_1_8_7
+#ifdef RUBY_VERSION_IS_1_8_EX_1_8_7
 #define rb_io_t OpenFile
 #endif
 
@@ -89,9 +90,10 @@ typedef VALUE wait_bool;
 
 VALUE io_spec_rb_io_wait_readable(VALUE self, VALUE io, VALUE read_p) {
   int fd = io_spec_get_fd(io);
-  set_non_blocking(fd);
   char buf[RB_IO_WAIT_READABLE_BUF];
   wait_bool ret;
+
+  set_non_blocking(fd);
 
   if(RTEST(read_p)) {
     rb_ivar_set(self, rb_intern("@write_data"), Qtrue);

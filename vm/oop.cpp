@@ -9,6 +9,8 @@
 #include "objectmemory.hpp"
 #include "configuration.hpp"
 
+#include "on_stack.hpp"
+
 #include <assert.h>
 #include <sys/time.h>
 
@@ -120,14 +122,17 @@ namespace rubinius {
     }
   }
 
-  LockStatus ObjectHeader::lock(STATE, size_t us) {
+  LockStatus ObjectHeader::lock(STATE, GCToken gct, size_t us) {
     // #1 Attempt to lock an unlocked object using CAS.
+
+    ObjectHeader* self = this;
+    OnStack<1> os(state, self);
 
 step1:
     // Construct 2 new headers: one is the version we hope that
     // is in use and the other is what we want it to be. The CAS
     // the new one into place.
-    HeaderWord orig = header;
+    HeaderWord orig = self->header;
 
     orig.f.meaning = eAuxWordEmpty;
     orig.f.aux_word = 0;
@@ -137,7 +142,7 @@ step1:
     new_val.f.meaning = eAuxWordLock;
     new_val.f.aux_word = state->thread_id() << cAuxLockTIDShift;
 
-    if(header.atomic_set(orig, new_val)) {
+    if(self->header.atomic_set(orig, new_val)) {
       if(cDebugThreading) {
         std::cerr << "[LOCK " << state->thread_id() << " locked with CAS]\n";
       }
@@ -152,7 +157,7 @@ step1:
     // #2 See if we're locking the object recursively.
 
 step2:
-    orig = header;
+    orig = self->header;
     switch(orig.f.meaning) {
     case eAuxWordEmpty:
       // O_o why is it empty? must be some weird concurrency stuff going
@@ -171,7 +176,7 @@ step2:
         // Inflate the lock then.
         if(++count > cAuxLockRecCountMax) {
           // If we can't inflate the lock, try the whole thing over again.
-          if(!state->om->inflate_lock_count_overflow(state, this, count)) {
+          if(!state->om->inflate_lock_count_overflow(state, self, count)) {
             goto step1;
           }
           // The header is now set to inflated, and the current thread
@@ -185,14 +190,14 @@ step2:
           // thread might ask for an object_id and the header will
           // be inflated. So if we can't swap in the new header, we'll start
           // this step over.
-          if(!header.atomic_set(orig, new_val)) goto step2;
+          if(!self->header.atomic_set(orig, new_val)) goto step2;
 
           if(cDebugThreading) {
             std::cerr << "[LOCK " << state->thread_id() << " recursively locked with CAS]\n";
           }
 
           // wonderful! Locked! weeeee!
-          state->add_locked_object(this);
+          state->add_locked_object(self);
         }
         return eLocked;
 
@@ -202,7 +207,7 @@ step2:
         // We weren't able to contend for it, probably because the header changed.
         // Do it all over again.
         bool error = false;
-        LockStatus ret = state->om->contend_for_lock(state, this, &error, us);
+        LockStatus ret = state->om->contend_for_lock(state, gct, self, &error, us);
         if(error) goto step1;
         return ret;
       }
@@ -210,7 +215,7 @@ step2:
     // The header is inflated, use the full lock.
     case eAuxWordInflated: {
       InflatedHeader* ih = ObjectHeader::header_to_inflated_header(orig);
-      return ih->lock_mutex(state, us);
+      return ih->lock_mutex(state, gct, us);
     }
 
     // The header is being used for something other than locking, so we need to
@@ -219,18 +224,18 @@ step2:
       // If we couldn't inflate the lock, that means the header was in some
       // weird state that we didn't detect and handle properly. So redo
       // the whole locking procedure again.
-      if(!state->om->inflate_and_lock(state, this)) goto step1;
+      if(!state->om->inflate_and_lock(state, self)) goto step1;
       return eLocked;
     }
 
     return eUnlocked;
   }
 
-  void ObjectHeader::hard_lock(STATE, size_t us) {
-    if(lock(state, us) != eLocked) rubinius::bug("Unable to lock object");
+  void ObjectHeader::hard_lock(STATE, GCToken gct, size_t us) {
+    if(lock(state, gct, us) != eLocked) rubinius::bug("Unable to lock object");
   }
 
-  LockStatus ObjectHeader::try_lock(STATE) {
+  LockStatus ObjectHeader::try_lock(STATE, GCToken gct) {
     // #1 Attempt to lock an unlocked object using CAS.
 
 step1:
@@ -307,7 +312,7 @@ step2:
     // The header is inflated, use the full lock.
     case eAuxWordInflated: {
       InflatedHeader* ih = ObjectHeader::header_to_inflated_header(orig);
-      return ih->try_lock_mutex(state);
+      return ih->try_lock_mutex(state, gct);
     }
 
     // The header is being used for something other than locking, so we need to
@@ -323,7 +328,7 @@ step2:
     return eUnlocked;
   }
 
-  bool ObjectHeader::locked_p(STATE) {
+  bool ObjectHeader::locked_p(STATE, GCToken gct) {
     // Construct 2 new headers: one is the version we hope that
     // is in use and the other is what we want it to be. The CAS
     // the new one into place.
@@ -338,13 +343,13 @@ step2:
     case eAuxWordInflated:
       {
         InflatedHeader* ih = ObjectHeader::header_to_inflated_header(orig);
-        return ih->locked_mutex_p(state);
+        return ih->locked_mutex_p(state, gct);
       }
     }
     return false;
   }
 
-  LockStatus ObjectHeader::unlock(STATE) {
+  LockStatus ObjectHeader::unlock(STATE, GCToken gct) {
     // This case is slightly easier than locking.
 
     for(;;) {
@@ -365,7 +370,7 @@ step2:
 
       case eAuxWordInflated: {
         InflatedHeader* ih = ObjectHeader::header_to_inflated_header(orig);
-        return ih->unlock_mutex(state);
+        return ih->unlock_mutex(state, gct);
       }
 
       case eAuxWordLock: {
@@ -399,7 +404,7 @@ step2:
             if(!state->om->inflate_for_contention(state, this)) continue;
 
             state->del_locked_object(this);
-            state->om->release_contention(state);
+            state->om->release_contention(state, gct);
 
             return eUnlocked;
           }
@@ -443,11 +448,11 @@ step2:
     return eLockError;
   }
 
-  void ObjectHeader::hard_unlock(STATE) {
-    if(unlock(state) != eUnlocked) rubinius::bug("Unable to unlock object");
+  void ObjectHeader::hard_unlock(STATE, GCToken gct) {
+    if(unlock(state, gct) != eUnlocked) rubinius::bug("Unable to unlock object");
   }
 
-  void ObjectHeader::unlock_for_terminate(STATE) {
+  void ObjectHeader::unlock_for_terminate(STATE, GCToken gct) {
     // This case is slightly easier than locking.
 
     for(;;) {
@@ -461,7 +466,7 @@ step2:
 
       case eAuxWordInflated: {
         InflatedHeader* ih = ObjectHeader::header_to_inflated_header(orig);
-        ih->unlock_mutex_for_terminate(state);
+        ih->unlock_mutex_for_terminate(state, gct);
         return;
       }
 
@@ -487,7 +492,7 @@ step2:
         if(new_val.f.LockContended == 1) {
           // If we couldn't inflate for contention, redo.
           if(!state->om->inflate_for_contention(state, this)) continue;
-          state->om->release_contention(state);
+          state->om->release_contention(state, gct);
         }
 
         return;
@@ -596,8 +601,8 @@ step2:
     rec_lock_count_ = count;
   }
 
-  LockStatus InflatedHeader::lock_mutex(STATE, size_t us) {
-    if(us == 0) return lock_mutex_timed(state, 0);
+  LockStatus InflatedHeader::lock_mutex(STATE, GCToken gct, size_t us) {
+    if(us == 0) return lock_mutex_timed(state, gct, 0);
 
     struct timeval tv;
     struct timespec ts;
@@ -607,12 +612,16 @@ step2:
     ts.tv_sec = tv.tv_sec + (us / 1000000);
     ts.tv_nsec = (us % 10000000) * 1000;
 
-    return lock_mutex_timed(state, &ts);
+    return lock_mutex_timed(state, gct, &ts);
   }
 
-  LockStatus InflatedHeader::lock_mutex_timed(STATE, const struct timespec* ts) {
+  LockStatus InflatedHeader::lock_mutex_timed(STATE, GCToken gct,
+                                              const struct timespec* ts)
+  {
+    OnStack<1> os(state, object_);
+
     // Gain exclusive access to the insides of the InflatedHeader.
-    GCLockGuard lg(state, mutex_);
+    GCLockGuard lg(state, gct, mutex_);
 
     // We've got exclusive access to the lock parts of the InflatedHeader now.
     //
@@ -696,9 +705,11 @@ step2:
     return eLocked;
   }
 
-  LockStatus InflatedHeader::try_lock_mutex(STATE) {
+  LockStatus InflatedHeader::try_lock_mutex(STATE, GCToken gct) {
+    OnStack<1> os(state, object_);
+
     // Gain exclusive access to the insides of the InflatedHeader.
-    GCLockGuard lg(state, mutex_);
+    GCLockGuard lg(state, gct, mutex_);
 
     // We've got exclusive access to the lock parts of the InflatedHeader now.
     //
@@ -736,16 +747,20 @@ step2:
     return locked ? eLocked : eUnlocked;
   }
 
-  bool InflatedHeader::locked_mutex_p(STATE) {
+  bool InflatedHeader::locked_mutex_p(STATE, GCToken gct) {
+    OnStack<1> os(state, object_);
+
     // Gain exclusive access to the insides of the InflatedHeader.
-    GCLockGuard lg(state, mutex_);
+    GCLockGuard lg(state, gct, mutex_);
 
     return owner_id_ != 0;
   }
 
-  LockStatus InflatedHeader::unlock_mutex(STATE) {
+  LockStatus InflatedHeader::unlock_mutex(STATE, GCToken gct) {
+    OnStack<1> os(state, object_);
+
     // Gain exclusive access to the insides of the InflatedHeader.
-    GCLockGuard lg(state, mutex_);
+    GCLockGuard lg(state, gct, mutex_);
 
     // Sanity check.
     if(owner_id_ != state->thread_id()) {
@@ -778,9 +793,11 @@ step2:
     return eUnlocked;
   }
 
-  void InflatedHeader::unlock_mutex_for_terminate(STATE) {
+  void InflatedHeader::unlock_mutex_for_terminate(STATE, GCToken gct) {
+    OnStack<1> os(state, object_);
+
     // Gain exclusive access to the insides of the InflatedHeader.
-    GCLockGuard lg(state, mutex_);
+    GCLockGuard lg(state, gct, mutex_);
 
     // We've got exclusive access to the lock parts of the InflatedHeader now.
 

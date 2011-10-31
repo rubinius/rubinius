@@ -18,6 +18,37 @@ namespace rubinius {
   class Thread;
 
   class QueryAgent : public thread::Thread {
+    struct Client {
+      enum State {
+        eUnknown,
+        eWaitingAuth,
+        eRunning
+      } state;
+
+      int socket;
+      int auth_key;
+
+      Client(int s)
+        : state(eUnknown)
+        , socket(s)
+      {}
+
+      void set_running() {
+        state = eRunning;
+      }
+
+      bool needs_auth_p() {
+        return state == eWaitingAuth;
+      }
+
+      void begin_auth(int key) {
+        auth_key = key;
+        state = eWaitingAuth;
+      }
+
+    };
+
+  private:
     SharedState& shared_;
     VM* state_;
     bool running_;
@@ -34,9 +65,14 @@ namespace rubinius {
     int a2r_[2];
     int r2a_[2];
 
-    std::vector<int> sockets_;
+    std::vector<Client> sockets_;
 
     agent::VariableAccess* vars_;
+
+    bool local_only_;
+    bool use_password_;
+    std::string password_;
+    uint32_t tmp_key_;
 
     const static int cBackLog = 10;
 
@@ -101,7 +137,9 @@ namespace rubinius {
     void make_discoverable();
 
     virtual void perform();
-    bool process_commands(int client);
+    bool check_password(Client& client);
+    bool check_file_auth(Client& client);
+    bool process_commands(Client& client);
 
     void on_fork();
     void cleanup();

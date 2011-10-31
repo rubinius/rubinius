@@ -13,6 +13,12 @@ ruby_version_is "1.8.7" do
       end
     end
 
+    ruby_version_is ""..."1.9" do
+      it "raises TypeError when called on a Float range" do
+        lambda { (303.20..908.1111).max }.should raise_error(TypeError)
+      end
+    end
+
     it "returns nil when the endpoint is less than the start point" do
       (100..10).max.should be_nil
       ('z'..'l').max.should be_nil

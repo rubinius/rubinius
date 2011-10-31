@@ -15,8 +15,6 @@
 
 #include "ruby.h"
 
-#include "quark.hpp"
-
 namespace melbourne {
   namespace grammar19 {
 

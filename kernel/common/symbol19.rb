@@ -62,4 +62,10 @@ class Symbol
   end
 
   alias_method :next, :succ
+
+  def [](index, other = undefined)
+    to_s[index, other]
+  end
+
+  alias_method :slice, :[]
 end

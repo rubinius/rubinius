@@ -91,11 +91,11 @@ describe :kernel_integer, :shared => true do
   end
 
   it "raises a FloatDomainError when passed NaN" do
-    lambda { Integer(0.0/0.0) }.should raise_error(FloatDomainError)
+    lambda { Integer(nan_value) }.should raise_error(FloatDomainError)
   end
 
   it "raises a FloatDomainError when passed Infinity" do
-    lambda { Integer(1.0/0.0) }.should raise_error(FloatDomainError)
+    lambda { Integer(infinity_value) }.should raise_error(FloatDomainError)
   end
 end
 

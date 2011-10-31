@@ -22,7 +22,7 @@ describe :kernel_float, :shared => true do
   end
 
   it "returns the identical NaN for NaN" do
-    nan = 0.0/0.0
+    nan = nan_value
     nan.nan?.should be_true
     nan2 = @object.send(:Float, nan)
     nan2.nan?.should be_true
@@ -30,9 +30,9 @@ describe :kernel_float, :shared => true do
   end
 
   it "returns the same Infinity for Infinity" do
-    infinity = 1.0/0.0
+    infinity = infinity_value
     infinity2 = @object.send(:Float, infinity)
-    infinity2.should == (1.0/0.0)
+    infinity2.should == infinity_value
     infinity.should equal(infinity2)
   end
 
@@ -199,14 +199,14 @@ describe :kernel_float, :shared => true do
 
   ruby_version_is '' ... '1.9' do
     it "raises an Argument Error if to_f is called and it returns NaN" do
-      (nan = mock('NaN')).should_receive(:to_f).once.and_return(0.0/0.0)
+      (nan = mock('NaN')).should_receive(:to_f).once.and_return(nan_value)
       lambda { @object.send(:Float, nan) }.should raise_error(ArgumentError)
     end
   end
 
   ruby_version_is '1.9' do
     it "returns the identical NaN if to_f is called and it returns NaN" do
-      nan = 0.0/0.0
+      nan = nan_value
       (nan_to_f = mock('NaN')).should_receive(:to_f).once.and_return(nan)
       nan2 = @object.send(:Float, nan_to_f)
       nan2.nan?.should be_true
@@ -215,7 +215,7 @@ describe :kernel_float, :shared => true do
   end
 
   it "returns the identical Infinity if to_f is called and it returns Infinity" do
-    infinity = 1.0/0.0
+    infinity = infinity_value
     (infinity_to_f = mock('Infinity')).should_receive(:to_f).once.and_return(infinity)
     infinity2 = @object.send(:Float, infinity_to_f)
     infinity2.should equal(infinity)

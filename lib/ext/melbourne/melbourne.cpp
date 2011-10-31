@@ -11,6 +11,7 @@
 
 #include <unistd.h>
 #include <fcntl.h>
+#include <errno.h>
 
 #ifdef __cplusplus
 extern "C" {
@@ -30,7 +31,9 @@ VALUE melbourne18_string_to_ast(VALUE self, VALUE source, VALUE name, VALUE line
 VALUE melbourne18_file_to_ast(VALUE self, VALUE fname, VALUE start) {
   StringValue(fname);
 
-  FILE *file = fopen(RSTRING_PTR(fname), "r");
+  char* c_name = RSTRING_PTR(fname);
+
+  FILE *file = fopen(c_name, "r");
   if(file) {
     VALUE result = melbourne::grammar18::file_to_ast(self,
         RSTRING_PTR(fname), file, FIX2INT(start));
@@ -38,7 +41,7 @@ VALUE melbourne18_file_to_ast(VALUE self, VALUE fname, VALUE start) {
 
     return result;
   } else {
-    rb_raise(rb_eLoadError, "no such file to load -- %s", RSTRING_PTR(fname));
+    rb_raise(rb_eLoadError, "%s -- %s", strerror(errno), c_name);
   }
 }
 

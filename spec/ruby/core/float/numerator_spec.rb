@@ -26,21 +26,15 @@ ruby_version_is "1.9" do
     end
 
     it "returns NaN for NaN" do
-      nan = 0/0.0
-      nan.nan?.should be_true
-      nan.numerator.nan?.should be_true
+      nan_value.numerator.nan?.should be_true
     end
 
     it "returns Infinity for Infinity" do
-      inf = 1/0.0
-      inf.infinite?.should == 1
-      inf.numerator.infinite?.should == 1
+      infinity_value.numerator.infinite?.should == 1
     end
 
-    it "returns -Infinity for Infinity" do
-      inf = -(1/0.0)
-      inf.infinite?.should == -1
-      inf.numerator.infinite?.should == -1
+    it "returns -Infinity for -Infinity" do
+      (-infinity_value).numerator.infinite?.should == -1
     end
 
   end

@@ -12,6 +12,8 @@
 #include "builtin/string.hpp"
 #include "builtin/alias.hpp"
 
+#include "on_stack.hpp"
+
 #include <iostream>
 
 #define METHODTABLE_MAX_DENSITY 0.75
@@ -47,9 +49,9 @@ namespace rubinius {
     return tbl;
   }
 
-  MethodTable* MethodTable::duplicate(STATE) {
+  MethodTable* MethodTable::duplicate(STATE, GCToken gct) {
     size_t size, i;
-    MethodTable *dup;
+    MethodTable* dup = 0;
 
     size = bins_->to_native();
     dup = MethodTable::create(state, size);
@@ -59,14 +61,20 @@ namespace rubinius {
 
     size_t num = bins_->to_native();
 
+    MethodTable* self = this;
+    MethodTableBucket* entry = 0;
+
+    OnStack<3> os(state, dup, self, entry);
+
     for(i = 0; i < num; i++) {
-      MethodTableBucket* entry = try_as<MethodTableBucket>(values_->at(state, i));
+      entry = try_as<MethodTableBucket>(self->values_->at(state, i));
 
       while(entry) {
-        dup->store(state, entry->name(), entry->method(), entry->visibility());
+        dup->store(state, gct, entry->name(), entry->method(), entry->visibility());
         entry = try_as<MethodTableBucket>(entry->next());
       }
     }
+
     return dup;
   }
 
@@ -98,12 +106,13 @@ namespace rubinius {
     bins(state, Fixnum::from(size));
   }
 
-  Object* MethodTable::store(STATE, Symbol* name, Object* exec, Symbol* vis) {
-    unsigned int num_entries, num_bins, bin;
-    MethodTableBucket* entry;
-    MethodTableBucket* last = NULL;
+  Object* MethodTable::store(STATE, GCToken gct, Symbol* name, Object* exec,
+                             Symbol* vis)
+  {
+    MethodTable* self = this;
 
-    hard_lock(state);
+    OnStack<2> os(state, self, exec);
+    hard_lock(state, gct);
 
     Executable* method;
     if(exec->nil_p()) {
@@ -116,23 +125,26 @@ namespace rubinius {
       }
     }
 
-    num_entries = entries_->to_native();
-    num_bins = bins_->to_native();
+    native_int num_entries = self->entries_->to_native();
+    native_int num_bins = self->bins_->to_native();
 
     if(max_density_p(num_entries, num_bins)) {
-      redistribute(state, num_bins <<= 1);
+      self->redistribute(state, num_bins <<= 1);
     }
 
-    bin = find_bin(key_hash(name), num_bins);
-    entry = try_as<MethodTableBucket>(values_->at(state, bin));
+    native_int bin = find_bin(key_hash(name), num_bins);
+
+    MethodTableBucket* entry = try_as<MethodTableBucket>(self->values_->at(state, bin));
+    MethodTableBucket* last = NULL;
 
     while(entry) {
       if(entry->name() == name) {
         entry->method(state, method);
         entry->visibility(state, vis);
-        hard_unlock(state);
+        self->hard_unlock(state, gct);
         return name;
       }
+
       last = entry;
       entry = try_as<MethodTableBucket>(entry->next());
     }
@@ -140,24 +152,25 @@ namespace rubinius {
     if(last) {
       last->next(state, MethodTableBucket::create(state, name, method, vis));
     } else {
-      values_->put(state, bin, MethodTableBucket::create(state, name, method, vis));
+      self->values_->put(state, bin,
+                         MethodTableBucket::create(state, name, method, vis));
     }
 
-    entries(state, Fixnum::from(num_entries + 1));
+    self->entries(state, Fixnum::from(num_entries + 1));
 
-    hard_unlock(state);
+    self->hard_unlock(state, gct);
     return name;
   }
 
-  Object* MethodTable::alias(STATE, Symbol* name, Symbol* vis,
+  Object* MethodTable::alias(STATE, GCToken gct, Symbol* name, Symbol* vis,
                              Symbol* orig_name, Object* orig_method,
                              Module* orig_mod)
   {
-    unsigned int num_entries, num_bins, bin;
-    MethodTableBucket* entry;
-    MethodTableBucket* last = NULL;
+    MethodTable* self = this;
 
-    hard_lock(state);
+    OnStack<3> os(state, self, orig_method, orig_mod);
+    hard_lock(state, gct);
+
     Executable* orig_exec;
 
     if(Alias* alias = try_as<Alias>(orig_method)) {
@@ -172,23 +185,26 @@ namespace rubinius {
 
     Alias* method = Alias::create(state, orig_name, orig_mod, orig_exec);
 
-    num_entries = entries_->to_native();
-    num_bins = bins_->to_native();
+    native_int num_entries = self->entries_->to_native();
+    native_int num_bins = self->bins_->to_native();
 
     if(max_density_p(num_entries, num_bins)) {
-      redistribute(state, num_bins <<= 1);
+      self->redistribute(state, num_bins <<= 1);
     }
 
-    bin = find_bin(key_hash(name), num_bins);
-    entry = try_as<MethodTableBucket>(values_->at(state, bin));
+    native_int bin = find_bin(key_hash(name), num_bins);
+
+    MethodTableBucket* entry = try_as<MethodTableBucket>(self->values_->at(state, bin));
+    MethodTableBucket* last = NULL;
 
     while(entry) {
       if(entry->name() == name) {
         entry->method(state, method);
         entry->visibility(state, vis);
-        hard_unlock(state);
+        self->hard_unlock(state, gct);
         return name;
       }
+
       last = entry;
       entry = try_as<MethodTableBucket>(entry->next());
     }
@@ -196,13 +212,16 @@ namespace rubinius {
     if(last) {
       last->next(state, MethodTableBucket::create(state, name, method, vis));
     } else {
-      values_->put(state, bin, MethodTableBucket::create(state, name, method, vis));
+      self->values_->put(state, bin,
+                         MethodTableBucket::create(state, name, method, vis));
     }
 
-    entries(state, Fixnum::from(num_entries + 1));
-    hard_unlock(state);
+    self->entries(state, Fixnum::from(num_entries + 1));
+
+    self->hard_unlock(state, gct);
     return name;
   }
+
   MethodTableBucket* MethodTable::find_entry(STATE, Symbol* name) {
     unsigned int bin;
 
@@ -243,22 +262,24 @@ namespace rubinius {
     return nil<MethodTableBucket>();
   }
 
-  Executable* MethodTable::remove(STATE, Symbol* name) {
-    hashval bin;
-    MethodTableBucket* entry;
-    MethodTableBucket* last = NULL;
+  Executable* MethodTable::remove(STATE, GCToken gct, Symbol* name) {
+    MethodTable* self = this;
 
-    hard_lock(state);
+    OnStack<1> os(state, self);
 
-    size_t num_entries = entries_->to_native();
-    size_t num_bins = bins_->to_native();
+    self->hard_lock(state, gct);
 
-    if(min_density_p(num_entries, num_bins) && (num_bins >> 1) >= METHODTABLE_MIN_SIZE) {
-      redistribute(state, num_bins >>= 1);
+    native_int num_entries = self->entries_->to_native();
+    native_int num_bins = self->bins_->to_native();
+
+    if(min_density_p(num_entries, num_bins) &&
+         (num_bins >> 1) >= METHODTABLE_MIN_SIZE) {
+      self->redistribute(state, num_bins >>= 1);
     }
 
-    bin = find_bin(key_hash(name), num_bins);
-    entry = try_as<MethodTableBucket>(values_->at(state, bin));
+    native_int bin = find_bin(key_hash(name), num_bins);
+    MethodTableBucket* entry = try_as<MethodTableBucket>(self->values_->at(state, bin));
+    MethodTableBucket* last = NULL;
 
     while(entry) {
       if(entry->name() == name) {
@@ -266,10 +287,11 @@ namespace rubinius {
         if(last) {
           last->next(state, entry->next());
         } else {
-          values_->put(state, bin, entry->next());
+          self->values_->put(state, bin, entry->next());
         }
-        entries(state, Fixnum::from(entries_->to_native() - 1));
-        hard_unlock(state);
+
+        self->entries(state, Fixnum::from(entries_->to_native() - 1));
+        self->hard_unlock(state, gct);
         return val;
       }
 
@@ -277,7 +299,7 @@ namespace rubinius {
       entry = try_as<MethodTableBucket>(entry->next());
     }
 
-    hard_unlock(state);
+    self->hard_unlock(state, gct);
 
     return nil<Executable>();
   }

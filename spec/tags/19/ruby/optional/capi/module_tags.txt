@@ -1,8 +1,0 @@
-fails:CApiModule rb_define_global_function defines a method on Object
-fails:CApiModule rb_define_method defines a method on a class
-fails:CApiModule rb_define_method defines a method on a module
-fails:CApiModule rb_define_module_function defines a private instance method
-fails:CApiModule rb_define_private_method defines a private method on a class
-fails:CApiModule rb_define_private_method defines a private method on a module
-fails:CApiModule rb_define_protected_method defines a protected method on a class
-fails:CApiModule rb_define_protected_method defines a protected method on a module

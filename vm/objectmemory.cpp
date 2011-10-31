@@ -103,7 +103,9 @@ namespace rubinius {
 
   }
 
-  void ObjectMemory::on_fork() {
+  void ObjectMemory::on_fork(STATE) {
+    lock_init(state);
+    contention_lock_.init();
     finalizer_lock_.init();
     finalizer_var_.init();
     finalizer_thread_.set(nil<Thread>());
@@ -154,22 +156,23 @@ namespace rubinius {
     return true;
   }
 
-  LockStatus ObjectMemory::contend_for_lock(STATE, ObjectHeader* obj,
+  LockStatus ObjectMemory::contend_for_lock(STATE, GCToken gct, ObjectHeader* obj,
                                             bool* error, size_t us)
   {
     bool timed = false;
     bool timeout = false;
     struct timespec ts = {0,0};
 
+    OnStack<1> os(state, obj);
+
     {
-      thread::Mutex::LockGuard lg(contention_lock_);
+      GCLockGuard lg(state, gct, contention_lock_);
 
       // We want to lock obj, but someone else has it locked.
       //
       // If the lock is already inflated, no problem, just lock it!
 
       // Be sure obj is updated by the GC while we're waiting for it
-      OnStack<1> os(state, obj);
 
 step1:
       // Only contend if the header is thin locked.
@@ -273,14 +276,14 @@ step1:
     InflatedHeader* ih = obj->inflated_header();
 
     if(timed) {
-      return ih->lock_mutex_timed(state, &ts);
+      return ih->lock_mutex_timed(state, gct, &ts);
     } else {
-      return ih->lock_mutex(state);
+      return ih->lock_mutex(state, gct);
     }
   }
 
-  void ObjectMemory::release_contention(STATE) {
-    thread::Mutex::LockGuard lg(contention_lock_);
+  void ObjectMemory::release_contention(STATE, GCToken gct) {
+    GCLockGuard lg(state, gct, contention_lock_);
     contention_var_.broadcast();
   }
 
@@ -486,7 +489,7 @@ step1:
     return copy;
   }
 
-  void ObjectMemory::collect(STATE, CallFrame* call_frame) {
+  void ObjectMemory::collect(STATE, GCToken gct, CallFrame* call_frame) {
     // Don't go any further unless we're allowed to GC.
     if(!can_gc()) return;
 
@@ -517,7 +520,7 @@ step1:
     // Now we're alone, but we lock again just to safe.
     RESYNC;
 
-    GCData gc_data(state);
+    GCData gc_data(state, gct);
 
     collect_young(gc_data);
     collect_mature(gc_data);
@@ -537,7 +540,7 @@ step1:
     }
   }
 
-  void ObjectMemory::collect_maybe(STATE, CallFrame* call_frame) {
+  void ObjectMemory::collect_maybe(STATE, GCToken gct, CallFrame* call_frame) {
     // Don't go any further unless we're allowed to GC.
     if(!can_gc()) return;
 
@@ -568,7 +571,7 @@ step1:
     // Now we're alone, but we lock again just to safe.
     RESYNC;
 
-    GCData gc_data(state);
+    GCData gc_data(state, gct);
 
     uint64_t start_time = 0;
 

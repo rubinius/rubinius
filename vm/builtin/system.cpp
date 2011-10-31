@@ -6,6 +6,7 @@
 #include <stdarg.h>
 #include <string.h>
 #include <sstream>
+#include <signal.h>
 
 #include "vm/config.h"
 
@@ -68,6 +69,8 @@
 
 #include "gc/walker.hpp"
 
+#include "on_stack.hpp"
+
 #ifdef ENABLE_LLVM
 #include "llvm/state.hpp"
 #include "llvm/jit_compiler.hpp"
@@ -80,44 +83,46 @@
 namespace rubinius {
 
   void System::bootstrap_methods(STATE) {
-    System::attach_primitive(state,
+    GCTokenImpl gct;
+
+    System::attach_primitive(state, gct,
                              G(rubinius), true,
                              state->symbol("open_class"),
                              state->symbol("vm_open_class"));
 
-    System::attach_primitive(state,
+    System::attach_primitive(state, gct,
                              G(rubinius), true,
                              state->symbol("open_class_under"),
                              state->symbol("vm_open_class_under"));
 
-    System::attach_primitive(state,
+    System::attach_primitive(state, gct,
                              G(rubinius), true,
                              state->symbol("open_module"),
                              state->symbol("vm_open_module"));
 
-    System::attach_primitive(state,
+    System::attach_primitive(state, gct,
                              G(rubinius), true,
                              state->symbol("open_module_under"),
                              state->symbol("vm_open_module_under"));
 
-    System::attach_primitive(state,
+    System::attach_primitive(state, gct,
                              G(rubinius), true,
                              state->symbol("add_defn_method"),
                              state->symbol("vm_add_method"));
 
-    System::attach_primitive(state,
+    System::attach_primitive(state, gct,
                              G(rubinius), true,
                              state->symbol("attach_method"),
                              state->symbol("vm_attach_method"));
 
-    System::attach_primitive(state,
+    System::attach_primitive(state, gct,
                              as<Module>(G(rubinius)->get_const(state, "Type")), true,
                              state->symbol("object_singleton_class"),
                              state->symbol("vm_object_singleton_class"));
 
   }
 
-  void System::attach_primitive(STATE, Module* mod, bool meta,
+  void System::attach_primitive(STATE, GCToken gct, Module* mod, bool meta,
                                 Symbol* name, Symbol* prim)
   {
     MethodTable* tbl;
@@ -132,7 +137,7 @@ namespace rubinius {
     oc->primitive(state, prim);
     oc->resolve_primitive(state);
 
-    tbl->store(state, name, oc, G(sym_public));
+    tbl->store(state, gct, name, oc, G(sym_public));
   }
 
 /* Primitives */
@@ -370,12 +375,24 @@ namespace rubinius {
       options |= WNOHANG;
     }
 
+    sig_t hup_func;
+    sig_t quit_func;
+    sig_t int_func;
+
   retry:
+
+    hup_func  = signal(SIGHUP, SIG_IGN);
+    quit_func = signal(SIGQUIT, SIG_IGN);
+    int_func  = signal(SIGINT, SIG_IGN);
 
     {
       GCIndependent guard(state, calling_environment);
       pid = waitpid(input_pid, &status, options);
     }
+
+    signal(SIGHUP, hup_func);
+    signal(SIGQUIT, quit_func);
+    signal(SIGINT, int_func);
 
     if(pid == -1) {
       if(errno == ECHILD) return Qfalse;
@@ -436,9 +453,8 @@ namespace rubinius {
       /*  @todo any other re-initialisation needed? */
 
       state->shared.reinit(state);
-
+      state->shared.om->on_fork(state);
       SignalHandler::on_fork(state, false);
-      state->shared.om->on_fork();
 
       // Re-initialize LLVM
 #ifdef ENABLE_LLVM
@@ -814,17 +830,23 @@ namespace rubinius {
     return Tuple::from(state, 2, dis.method, dis.module);
   }
 
-  Object* System::vm_add_method(STATE, Symbol* name, CompiledMethod* method,
+  Object* System::vm_add_method(STATE, GCToken gct, Symbol* name,
+                                CompiledMethod* method,
                                 StaticScope* scope, Object* vis)
   {
     Module* mod = scope->for_method_definition();
 
     method->scope(state, scope);
     method->serial(state, Fixnum::from(0));
-    mod->add_method(state, name, method);
+
+    OnStack<4> os(state, mod, method, scope, vis);
+
+    mod->add_method(state, gct, name, method);
 
     if(Class* cls = try_as<Class>(mod)) {
-      if(!method->internalize(state)) {
+      OnStack<1> o2(state, cls);
+
+      if(!method->internalize(state, gct)) {
         Exception::argument_error(state, "invalid bytecode method");
         return 0;
       }
@@ -839,7 +861,8 @@ namespace rubinius {
     bool add_ivars = false;
 
     if(Class* cls = try_as<Class>(mod)) {
-      add_ivars = !kind_of<SingletonClass>(cls) && cls->type_info()->type == Object::type;
+      add_ivars = !kind_of<SingletonClass>(cls) &&
+                  cls->type_info()->type == Object::type;
     } else {
       add_ivars = true;
     }
@@ -866,13 +889,18 @@ namespace rubinius {
     return method;
   }
 
-  Object* System::vm_attach_method(STATE, Symbol* name, CompiledMethod* method,
-                                   StaticScope* scope, Object* recv) {
+  Object* System::vm_attach_method(STATE, GCToken gct, Symbol* name,
+                                   CompiledMethod* method,
+                                   StaticScope* scope, Object* recv)
+  {
     Module* mod = recv->singleton_class(state);
 
     method->scope(state, scope);
     method->serial(state, Fixnum::from(0));
-    mod->add_method(state, name, method);
+
+    OnStack<2> os(state, mod, method);
+
+    mod->add_method(state, gct, name, method);
 
     vm_reset_method_cache(state, name);
 
@@ -915,11 +943,15 @@ namespace rubinius {
     return Fixnum::from(state->shared.inc_global_serial(state));
   }
 
-  Object* System::vm_jit_block(STATE, BlockEnvironment* env, Object* show) {
+  Object* System::vm_jit_block(STATE, GCToken gct, BlockEnvironment* env,
+                               Object* show)
+  {
 #ifdef ENABLE_LLVM
     LLVMState* ls = LLVMState::get(state);
 
-    VMMethod* vmm = env->vmmethod(state);
+    OnStack<2> os(state, env, show);
+
+    VMMethod* vmm = env->vmmethod(state, gct);
 
     jit::Compiler jit(ls);
     jit.compile_block(ls, env->code(), vmm);
@@ -1108,7 +1140,10 @@ namespace rubinius {
     bool found;
 
     Object* res = Helpers::const_get(state, calling_environment, sym, &found);
-    if(!found) return Primitives::failure();
+
+    if(!found || (!LANGUAGE_18_ENABLED(state) && kind_of<Autoload>(res))) {
+      return Primitives::failure();
+    }
 
     return res;
   }
@@ -1237,11 +1272,13 @@ namespace rubinius {
     return Qtrue;
   }
 
-  Object* System::vm_object_lock(STATE, Object* obj, CallFrame* call_frame) {
+  Object* System::vm_object_lock(STATE, GCToken gct, Object* obj,
+                                 CallFrame* call_frame)
+  {
     if(!obj->reference_p()) return Primitives::failure();
     state->set_call_frame(call_frame);
 
-    switch(obj->lock(state)) {
+    switch(obj->lock(state, gct)) {
     case eLocked:
       return Qtrue;
     case eLockTimeout:
@@ -1262,13 +1299,13 @@ namespace rubinius {
     return Qnil;
   }
 
-  Object* System::vm_object_lock_timed(STATE, Object* obj, Integer* time,
+  Object* System::vm_object_lock_timed(STATE, GCToken gct, Object* obj, Integer* time,
                                        CallFrame* call_frame)
   {
     if(!obj->reference_p()) return Primitives::failure();
     state->set_call_frame(call_frame);
 
-    switch(obj->lock(state, time->to_native())) {
+    switch(obj->lock(state, gct, time->to_native())) {
     case eLocked:
       return Qtrue;
     case eLockTimeout:
@@ -1291,28 +1328,28 @@ namespace rubinius {
     return Qnil;
   }
 
-  Object* System::vm_object_trylock(STATE, Object* obj,
+  Object* System::vm_object_trylock(STATE, GCToken gct, Object* obj,
                                     CallFrame* call_frame)
   {
     if(!obj->reference_p()) return Primitives::failure();
     state->set_call_frame(call_frame);
-    if(obj->try_lock(state) == eLocked) return Qtrue;
+    if(obj->try_lock(state, gct) == eLocked) return Qtrue;
     return Qfalse;
   }
 
-  Object* System::vm_object_locked_p(STATE, Object* obj) {
+  Object* System::vm_object_locked_p(STATE, GCToken gct, Object* obj) {
     if(!obj->reference_p()) return Qfalse;
-    if(obj->locked_p(state)) return Qtrue;
+    if(obj->locked_p(state, gct)) return Qtrue;
     return Qfalse;
   }
 
-  Object* System::vm_object_unlock(STATE, Object* obj,
+  Object* System::vm_object_unlock(STATE, GCToken gct, Object* obj,
                                    CallFrame* call_frame)
   {
     if(!obj->reference_p()) return Primitives::failure();
     state->set_call_frame(call_frame);
 
-    if(obj->unlock(state) == eUnlocked) return Qnil;
+    if(obj->unlock(state, gct) == eUnlocked) return Qnil;
     if(cDebugThreading) {
       std::cerr << "[LOCK " << state->thread_id() << " unlock failed]" << std::endl;
     }
@@ -1428,13 +1465,15 @@ namespace rubinius {
     return tuple;
   }
 
-  Object* System::vm_run_script(STATE, CompiledMethod* cm,
+  Object* System::vm_run_script(STATE, GCToken gct, CompiledMethod* cm,
                                 CallFrame* calling_environment)
   {
     Dispatch msg(state->symbol("__script__"), G(object), cm);
     Arguments args(state->symbol("__script__"), G(main), Qnil, 0, 0);
 
-    cm->internalize(state, 0, 0);
+    OnStack<1> os(state, cm);
+
+    cm->internalize(state, gct, 0, 0);
 
 #ifdef RBX_PROFILER
     if(unlikely(state->tooling())) {

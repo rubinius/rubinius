@@ -28,7 +28,7 @@ namespace rubinius {
     Module*   open_module(VM*, CallFrame* call_frame, Symbol* name);
     Module*   open_module(VM*, CallFrame* call_frame, Module* under, Symbol* name);
 
-    bool yield_debugger(VM*, CallFrame* call_frame, Object* bp);
+    bool yield_debugger(VM*, GCToken gct, CallFrame* call_frame, Object* bp);
   };
 }
 

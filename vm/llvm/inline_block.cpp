@@ -1,3 +1,5 @@
+#ifdef ENABLE_LLVM
+
 #include "llvm/state.hpp"
 
 #include "llvm/inline_block.hpp"
@@ -19,3 +21,4 @@ namespace rubinius {
     }
 }
 
+#endif

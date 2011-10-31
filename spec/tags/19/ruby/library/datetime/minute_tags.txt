@@ -1,7 +1,0 @@
-fails:DateTime.minute returns 0 if no argument is passed
-fails:DateTime.minute returns the minute passed as argument
-fails:DateTime.minute adds 60 to negative minutes
-fails:DateTime.minute returns the absolute value of a Rational
-fails:DateTime.minute returns the absolute value of a Float
-fails:DateTime.minute returns a fraction of an hour
-fails:DateTime.minute takes a minute fraction near 60

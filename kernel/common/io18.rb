@@ -51,6 +51,17 @@ class IO
   end
 
   ##
+  # Opens the given path, returning the underlying file descriptor as a Fixnum.
+  #  IO.sysopen("testfile")   #=> 3
+  def self.sysopen(path, mode = "r", perm = 0666)
+    unless mode.kind_of? Integer
+      mode = parse_mode StringValue(mode)
+    end
+
+    open_with_mode path, mode, perm
+  end
+
+  ##
   # Chains together buckets of input from the buffer until
   # locating +sep+. If +sep+ is +nil+, returns +read_all+.
   # If +sep+ is +""+, reads until +"\n\n"+. Otherwise, reads

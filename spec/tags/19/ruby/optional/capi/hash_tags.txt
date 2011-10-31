@@ -1,1 +1,0 @@
-fails:C-API Hash function rb_hash_delete_if returns an Enumerator when no block is passed

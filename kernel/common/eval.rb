@@ -11,7 +11,6 @@ module Kernel
     while scope
       if scope.method.local_names
         scope.method.local_names.each do |name|
-          name = name.to_s
           locals << name
         end
       end
@@ -22,7 +21,7 @@ module Kernel
       scope = scope.parent
     end
 
-    locals
+    Rubinius.convert_to_names(locals)
   end
   module_function :local_variables
 

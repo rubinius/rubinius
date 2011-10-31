@@ -9,6 +9,18 @@ module Kernel
     end
   end
 
+  def loop
+    raise LocalJumpError, "no block given" unless block_given?
+
+    begin
+      while true
+        yield
+      end
+    rescue StopIteration
+    end
+  end
+  module_function :loop
+
   def Integer(obj)
     case obj
     when Integer
@@ -58,4 +70,43 @@ module Kernel
     return str
   end
   module_function :String
+  
+  def Array(obj)
+    ary = Rubinius::Type.check_convert_type obj, Array, :to_ary
+
+    return ary if ary
+
+    if obj.respond_to? :to_a
+      Rubinius::Type.coerce_to(obj, Array, :to_a)
+    else
+      [obj]
+    end
+  end
+  module_function :Array
+  
+  def Float(obj)
+    raise TypeError, "can't convert nil into Float" if obj.nil?
+
+    case obj
+    when Float
+      obj
+    when String
+      valid_re = /^\s*[+-]?((\d+_?)*\d+(\.(\d+_?)*\d+)?|\.(\d+_?)*\d+)(\s*|([eE][+-]?(\d+_?)*\d+)\s*)$/
+
+      m = valid_re.match(obj)
+
+      if !m or !m.pre_match.empty? or !m.post_match.empty?
+        raise ArgumentError, "invalid value for Float(): #{obj.inspect}"
+      end
+      obj.convert_float
+    else
+      coerced_value = Rubinius::Type.coerce_to(obj, Float, :to_f)
+      if coerced_value.nan?
+        raise ArgumentError, "invalid value for Float(): #{coerced_value.inspect}"
+      end
+      coerced_value
+    end
+  end
+  module_function :Float
+  
 end

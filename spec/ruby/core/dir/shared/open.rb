@@ -51,5 +51,10 @@ describe :dir_open, :shared => true do
       p.should_receive(:to_path).and_return(DirSpecs.mock_dir)
       Dir.send(@method, p) { true }
     end
+
+    it "accepts an options Hash" do
+      dir = Dir.send(@method, DirSpecs.mock_dir, :encoding => "utf-8") {|dir| dir }
+      dir.should be_kind_of(Dir)
+    end
   end
 end

@@ -92,12 +92,12 @@ namespace rubinius {
     return state->thread.get();
   }
 
-  Object* Thread::unlock_locks(STATE) {
+  Object* Thread::unlock_locks(STATE, GCToken gct) {
     std::list<ObjectHeader*>& los = vm_->locked_objects();
     for(std::list<ObjectHeader*>::iterator i = los.begin();
         i != los.end();
         i++) {
-      (*i)->unlock_for_terminate(vm_);
+      (*i)->unlock_for_terminate(vm_, gct);
     }
     los.clear();
     return Qnil;
@@ -134,11 +134,13 @@ namespace rubinius {
 
     vm->thread->init_lock_.lock();
 
+    GCTokenImpl gct;
+
     std::list<ObjectHeader*>& los = vm->locked_objects();
     for(std::list<ObjectHeader*>::iterator i = los.begin();
         i != los.end();
         i++) {
-      (*i)->unlock_for_terminate(vm);
+      (*i)->unlock_for_terminate(vm, gct);
     }
 
     NativeMethod::cleanup_thread(vm);
@@ -204,7 +206,7 @@ namespace rubinius {
     return Qnil;
   }
 
-  Object* Thread::raise(STATE, Exception* exc) {
+  Object* Thread::raise(STATE, GCToken gct, Exception* exc) {
     OnStack<1> os(state, exc);
 
     thread::SpinLock::LockGuard lg(init_lock_);
@@ -214,7 +216,7 @@ namespace rubinius {
 
     vm->register_raise(state, exc);
 
-    vm->wakeup(state);
+    vm->wakeup(state, gct);
     return exc;
   }
 
@@ -222,7 +224,7 @@ namespace rubinius {
     return new_priority;
   }
 
-  Thread* Thread::wakeup(STATE) {
+  Thread* Thread::wakeup(STATE, GCToken gct) {
     thread::SpinLock::LockGuard lg(init_lock_);
 
     if(alive() == Qfalse || !vm_) {
@@ -230,11 +232,14 @@ namespace rubinius {
     }
 
     VM* vm = vm_;
-    if(!vm) return this;
+    Thread* self = this;
+    OnStack<1> os(state, self);
 
-    vm->wakeup(state);
+    if(!vm) return self;
 
-    return this;
+    vm->wakeup(state, gct);
+
+    return self;
   }
 
   Tuple* Thread::context(STATE) {

@@ -23,7 +23,7 @@ describe :file_stat, :shared => true do
   end
 
   # TODO: Fix
-  it "returns a File::Stat objecw when called on an instance of File" do
+  it "returns a File::Stat object when called on an instance of File" do
     File.open(@file) do |f|
       st = f.send(@method)
 

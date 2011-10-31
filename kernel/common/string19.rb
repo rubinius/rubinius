@@ -275,21 +275,7 @@ class String
   alias_method :next!, :succ!
 
   def to_r
-    return Rational(0,1) if empty?
-
-    clean       = strip
-    numerator   = clean.gsub(".", "").to_i
-    denominator = 1
-
-    if clean.match(/\d\.\d/)
-      denominator = 10**clean.split(".")[1].to_i.to_s.length
-    end
-
-    if clean.match(/\d\/\d/)
-      denominator *= clean.split("/")[1].to_i
-    end
-
-    return Rational(numerator, denominator)
+    Rationalizer.new(self).convert
   end
 
   ##
@@ -619,10 +605,12 @@ class String
     modify!
 
     unless other.kind_of? String
-      if other.kind_of?(Integer) && other >= 0 && other <= 255
-        other = other.chr
-      elsif other.kind_of?(Integer) && other < 0
-        raise RangeError, "negative argument"
+      if other.kind_of? Integer
+        if other >= 0 and other <= 255
+          other = other.chr
+        else
+          raise RangeError, "negative value for character"
+        end
       else
         other = StringValue(other)
       end
@@ -645,4 +633,370 @@ class String
     end
   end
 
+  # Splits <i>self</i> using the supplied parameter as the record separator
+  # (<code>$/</code> by default), passing each substring in turn to the supplied
+  # block. If a zero-length record separator is supplied, the string is split on
+  # <code>\n</code> characters, except that multiple successive newlines are
+  # appended together.
+  #
+  #   print "Example one\n"
+  #   "hello\nworld".each { |s| p s }
+  #   print "Example two\n"
+  #   "hello\nworld".each('l') { |s| p s }
+  #   print "Example three\n"
+  #   "hello\n\n\nworld".each('') { |s| p s }
+  #
+  # <em>produces:</em>
+  #
+  #   Example one
+  #   "hello\n"
+  #   "world"
+  #   Example two
+  #   "hel"
+  #   "l"
+  #   "o\nworl"
+  #   "d"
+  #   Example three
+  #   "hello\n\n\n"
+  #   "world"
+  def each_line(sep=$/)
+    return to_enum(:each_line, sep) unless block_given?
+
+    # weird edge case.
+    if sep.nil?
+      yield self
+      return self
+    end
+
+    sep = StringValue(sep)
+
+    pos = 0
+
+    size = @num_bytes
+    orig_data = @data
+
+    # If the separator is empty, we're actually in paragraph mode. This
+    # is used so infrequently, we'll handle it completely separately from
+    # normal line breaking.
+    if sep.empty?
+      sep = "\n\n"
+      pat_size = 2
+
+      while pos < size
+        nxt = find_string(sep, pos)
+        break unless nxt
+
+        while @data[nxt] == 10 and nxt < @num_bytes
+          nxt += 1
+        end
+
+        match_size = nxt - pos
+
+        # string ends with \n's
+        break if pos == @num_bytes
+
+        str = substring(pos, match_size)
+        yield str unless str.empty?
+
+        # detect mutation within the block
+        if !@data.equal?(orig_data) or @num_bytes != size
+          raise RuntimeError, "string modified while iterating"
+        end
+
+        pos = nxt
+      end
+
+      # No more separates, but we need to grab the last part still.
+      fin = substring(pos, @num_bytes - pos)
+      yield fin if fin and !fin.empty?
+
+    else
+
+      # This is the normal case.
+      pat_size = sep.size
+      unmodified_self = clone
+
+      while pos < size
+        nxt = unmodified_self.find_string(sep, pos)
+        break unless nxt
+
+        match_size = nxt - pos
+        str = unmodified_self.substring(pos, match_size + pat_size)
+        yield str unless str.empty?
+
+        pos = nxt + pat_size
+      end
+
+      # No more separates, but we need to grab the last part still.
+      fin = unmodified_self.substring(pos, @num_bytes - pos)
+      yield fin unless fin.empty?
+    end
+
+    self
+  end
+
+  alias_method :lines, :each_line
+
+  # Returns a copy of <i>self</i> with <em>all</em> occurrences of <i>pattern</i>
+  # replaced with either <i>replacement</i> or the value of the block. The
+  # <i>pattern</i> will typically be a <code>Regexp</code>; if it is a
+  # <code>String</code> then no regular expression metacharacters will be
+  # interpreted (that is <code>/\d/</code> will match a digit, but
+  # <code>'\d'</code> will match a backslash followed by a 'd').
+  #
+  # If a string is used as the replacement, special variables from the match
+  # (such as <code>$&</code> and <code>$1</code>) cannot be substituted into it,
+  # as substitution into the string occurs before the pattern match
+  # starts. However, the sequences <code>\1</code>, <code>\2</code>, and so on
+  # may be used to interpolate successive groups in the match.
+  #
+  # In the block form, the current match string is passed in as a parameter, and
+  # variables such as <code>$1</code>, <code>$2</code>, <code>$`</code>,
+  # <code>$&</code>, and <code>$'</code> will be set appropriately. The value
+  # returned by the block will be substituted for the match on each call.
+  #
+  # The result inherits any tainting andd trustiness in the original string or any supplied
+  # replacement string.
+  #
+  #   "hello".gsub(/[aeiou]/, '*')              #=> "h*ll*"
+  #   "hello".gsub(/([aeiou])/, '<\1>')         #=> "h<e>ll<o>"
+  #   "hello".gsub(/./) { |s| s[0].to_s + ' ' } #=> "104 101 108 108 111 "
+  def gsub(pattern, replacement=undefined)
+    unless block_given? or replacement != undefined
+      return to_enum(:gsub, pattern, replacement)
+    end
+
+    tainted = false
+    untrusted = untrusted?
+
+    if replacement.equal?(undefined)
+      use_yield = true
+    else
+      tainted = replacement.tainted?
+      untrusted ||= replacement.untrusted?
+      hash = Rubinius::Type.check_convert_type(replacement, Hash, :to_hash)
+      replacement = StringValue(replacement) unless hash
+      tainted ||= replacement.tainted?
+      untrusted ||= replacement.untrusted?
+      use_yield = false
+    end
+
+    pattern = get_pattern(pattern, true)
+    orig_len = @num_bytes
+    orig_data = @data
+
+    last_end = 0
+    offset = nil
+    ret = substring(0, 0) # Empty string and string subclass
+
+    last_match = nil
+    match = pattern.match_from self, last_end
+
+    if match
+      ma_range = match.full
+      ma_start = ma_range.at(0)
+      ma_end   = ma_range.at(1)
+
+      offset = ma_start
+    end
+
+    while match
+      nd = ma_start - 1
+      pre_len = nd-last_end+1
+
+      if pre_len > 0
+        ret.append substring(last_end, pre_len)
+      end
+
+      if use_yield || hash
+        Regexp.last_match = match
+
+        if use_yield
+          val = yield match.to_s
+        else
+          val = hash[match.to_s]
+        end
+        untrusted = true if val.untrusted?
+        val = val.to_s unless val.kind_of?(String)
+
+        tainted ||= val.tainted?
+        ret.append val
+
+        if !@data.equal?(orig_data) or @num_bytes != orig_len
+          raise RuntimeError, "string modified"
+        end
+      else
+        replacement.to_sub_replacement(ret, match)
+      end
+
+      tainted ||= val.tainted?
+
+      last_end = ma_end
+
+      if ma_start == ma_end
+        if char = find_character(offset)
+          offset += char.size
+        else
+          offset += 1
+        end
+      else
+        offset = ma_end
+      end
+
+      last_match = match
+
+      match = pattern.match_from self, offset
+      break unless match
+
+      ma_range = match.full
+      ma_start = ma_range.at(0)
+      ma_end   = ma_range.at(1)
+
+      offset = ma_start
+    end
+
+    Regexp.last_match = last_match
+
+    str = substring(last_end, @num_bytes-last_end+1)
+    ret.append str if str
+
+    ret.taint if tainted || self.tainted?
+    ret.untrust if untrusted
+    return ret
+  end
+
+  # Returns <i>self</i> with <em>all</em> occurrences of <i>pattern</i>
+  # replaced with either <i>replacement</i> or the value of the block. The
+  # <i>pattern</i> will typically be a <code>Regexp</code>; if it is a
+  # <code>String</code> then no regular expression metacharacters will be
+  # interpreted (that is <code>/\d/</code> will match a digit, but
+  # <code>'\d'</code> will match a backslash followed by a 'd').
+  #
+  # If a string is used as the replacement, special variables from the match
+  # (such as <code>$&</code> and <code>$1</code>) cannot be substituted into it,
+  # as substitution into the string occurs before the pattern match
+  # starts. However, the sequences <code>\1</code>, <code>\2</code>, and so on
+  # may be used to interpolate successive groups in the match.
+  #
+  # In the block form, the current match string is passed in as a parameter, and
+  # variables such as <code>$1</code>, <code>$2</code>, <code>$`</code>,
+  # <code>$&</code>, and <code>$'</code> will be set appropriately. The value
+  # returned by the block will be substituted for the match on each call.
+  #
+  # The result inherits any tainting andd trustiness in any supplied
+  # replacement string.
+  #
+  #   "hello".gsub!(/[aeiou]/, '*')              #=> "h*ll*"
+  #   "hello".gsub!(/([aeiou])/, '<\1>')         #=> "h<e>ll<o>"
+  #   "hello".gsub!(/./) { |s| s[0].to_s + ' ' } #=> "104 101 108 108 111 "
+  def gsub!(pattern, replacement=undefined)
+    unless block_given? or replacement != undefined
+      return to_enum(:gsub, pattern, replacement)
+    end
+
+    raise RuntimeError, "can't modify frozen String" if frozen?
+
+    tainted = false
+    untrusted = untrusted?
+
+    if replacement.equal?(undefined)
+      use_yield = true
+    else
+      tainted = replacement.tainted?
+      untrusted ||= replacement.untrusted?
+      hash = Rubinius::Type.check_convert_type(replacement, Hash, :to_hash)
+      replacement = StringValue(replacement) unless hash
+      tainted ||= replacement.tainted?
+      untrusted ||= replacement.untrusted?
+      use_yield = false
+    end
+
+    pattern = get_pattern(pattern, true)
+    orig_len = @num_bytes
+    orig_data = @data
+
+    last_end = 0
+    offset = nil
+    ret = substring(0, 0) # Empty string and string subclass
+
+    last_match = nil
+    match = pattern.match_from self, last_end
+
+    if match
+      ma_range = match.full
+      ma_start = ma_range.at(0)
+      ma_end   = ma_range.at(1)
+
+      offset = ma_start
+    else
+      Regexp.last_match = nil
+      return nil
+    end
+
+    while match
+      nd = ma_start - 1
+      pre_len = nd-last_end+1
+
+      if pre_len > 0
+        ret.append substring(last_end, pre_len)
+      end
+
+      if use_yield || hash
+        Regexp.last_match = match
+
+        if use_yield
+          val = yield match.to_s
+        else
+          val = hash[match.to_s]
+        end
+        untrusted = true if val.untrusted?
+        val = val.to_s unless val.kind_of?(String)
+
+        tainted ||= val.tainted?
+        ret.append val
+
+        if !@data.equal?(orig_data) or @num_bytes != orig_len
+          raise RuntimeError, "string modified"
+        end
+      else
+        replacement.to_sub_replacement(ret, match)
+      end
+
+      tainted ||= val.tainted?
+
+      last_end = ma_end
+
+      if ma_start == ma_end
+        if char = find_character(offset)
+          offset += char.size
+        else
+          offset += 1
+        end
+      else
+        offset = ma_end
+      end
+
+      last_match = match
+
+      match = pattern.match_from self, offset
+      break unless match
+
+      ma_range = match.full
+      ma_start = ma_range.at(0)
+      ma_end   = ma_range.at(1)
+
+      offset = ma_start
+    end
+
+    Regexp.last_match = last_match
+
+    str = substring(last_end, @num_bytes-last_end+1)
+    ret.append str if str
+
+    self.taint if tainted
+    self.untrust if untrusted
+
+    replace(ret)
+    return self
+  end
 end

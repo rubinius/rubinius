@@ -11,7 +11,7 @@ end
 # Common settings. These can be augmented or overridden
 # by the particular extension Rakefile.
 #
-DEFAULT = RbConfig::CONFIG
+DEFAULT_CONFIG = RbConfig::CONFIG.dup
 
 # Don't like the globals? Too bad, they are simple and the
 # duration of this process is supposed to be short.
@@ -31,8 +31,8 @@ $LIBS     = env "LIBS"
 $LDDIRS   = env "LDDIRS"
 $LDFLAGS  = env "LDFLAGS", Rubinius::BUILD_CONFIG[:user_ldflags]
 
-$DLEXT    = env "DLEXT", DEFAULT["DLEXT"]
-$LIBEXT   = env "LIBEXT", DEFAULT["LIBEXT"]
+$DLEXT    = env "DLEXT", DEFAULT_CONFIG["DLEXT"]
+$LIBEXT   = env "LIBEXT", DEFAULT_CONFIG["LIBEXT"]
 
 $BITS        = 1.size == 8 ? 64 : 32
 
@@ -90,14 +90,14 @@ def add_external_lib(*libs)
 end
 
 def add_mri_capi
-  add_cflag DEFAULT["DEFS"]
-  add_cflag DEFAULT["CFLAGS"]
+  add_cflag DEFAULT_CONFIG["DEFS"]
+  add_cflag DEFAULT_CONFIG["CFLAGS"]
 
-  add_cxxflag DEFAULT["DEFS"]
-  add_cxxflag DEFAULT["CFLAGS"]
+  add_cxxflag DEFAULT_CONFIG["DEFS"]
+  add_cxxflag DEFAULT_CONFIG["CFLAGS"]
 
-  $LIBS << " #{DEFAULT["LIBS"]}"
-  $LIBS << " #{DEFAULT["DLDLIBS"]}"
+  $LIBS << " #{DEFAULT_CONFIG["LIBS"]}"
+  $LIBS << " #{DEFAULT_CONFIG["DLDLIBS"]}"
 
   case RUBY_PLATFORM
   when /mingw/
@@ -105,20 +105,20 @@ def add_mri_capi
   when /darwin/
     # necessary to avoid problems with RVM injecting flags into the MRI build
     # process.
-    add_ldflag DEFAULT["LDSHARED"].split[1..-1].join(' ').gsub(/-dynamiclib/, "")
+    add_ldflag DEFAULT_CONFIG["LDSHARED"].split[1..-1].join(' ').gsub(/-dynamiclib/, "")
   else
-    add_ldflag DEFAULT["LDSHARED"].split[1..-1].join(' ')
+    add_ldflag DEFAULT_CONFIG["LDSHARED"].split[1..-1].join(' ')
   end
 
-  add_ldflag DEFAULT["LDFLAGS"]
-  rubyhdrdir = DEFAULT["rubyhdrdir"]
-  if RUBY_VERSION =~ /\A1\.9\./
-    arch_hdrdir = "#{rubyhdrdir}/#{DEFAULT['arch']}"
+  add_ldflag DEFAULT_CONFIG["LDFLAGS"]
+  rubyhdrdir = DEFAULT_CONFIG["rubyhdrdir"]
+  if rubyhdrdir
+    arch_hdrdir = "#{rubyhdrdir}/#{DEFAULT_CONFIG['arch']}"
     add_include_dir rubyhdrdir
     add_include_dir arch_hdrdir
-    add_link_dir DEFAULT["archdir"]
+    add_link_dir DEFAULT_CONFIG["archdir"]
   else
-    add_include_dir DEFAULT["archdir"]
+    add_include_dir DEFAULT_CONFIG["archdir"]
   end
 end
 

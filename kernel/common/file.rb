@@ -397,6 +397,11 @@ class File < IO
     POSIX.stat(Rubinius::Type.coerce_to_path(path), Stat::EXISTS_STRUCT.pointer) == 0
   end
 
+  # Pull a constant for Dir local to File so that we don't have to depend
+  # on the global Dir constant working. This sounds silly, I know, but it's a
+  # little bit of defensive coding so Rubinius can run things like fakefs better.
+  PrivateDir = ::Dir
+
   ##
   # Converts a pathname to an absolute pathname. Relative
   # paths are referenced from the current working directory
@@ -440,9 +445,9 @@ class File < IO
       end
     elsif first != ?/
       if dir
-        dir = File.expand_path dir
+        dir = expand_path dir
       else
-        dir = Dir.pwd
+        dir = PrivateDir.pwd
       end
 
       path = "#{dir}/#{path}"
@@ -849,7 +854,7 @@ class File < IO
   ##
   # Copies a file from to to. If to is a directory, copies from to to/from.
   def self.syscopy(from, to)
-    out = File.directory?(to) ? to + File.basename(from) : to
+    out = directory?(to) ? to + basename(from) : to
 
     open(out, 'w') do |f|
       f.write read(from).read
@@ -1083,6 +1088,10 @@ class File::Stat
   S_IROTH  = Rubinius::Config['rbx.platform.file.S_IROTH']
   S_IWOTH  = Rubinius::Config['rbx.platform.file.S_IWOTH']
   S_IXOTH  = Rubinius::Config['rbx.platform.file.S_IXOTH']
+
+  S_IRUGO  = S_IRUSR | S_IRGRP | S_IROTH
+  S_IWUGO  = S_IWUSR | S_IWGRP | S_IWOTH
+  S_IXUGO  = S_IXUSR | S_IXGRP | S_IXOTH
 
   S_IFMT   = Rubinius::Config['rbx.platform.file.S_IFMT']
   S_IFIFO  = Rubinius::Config['rbx.platform.file.S_IFIFO']

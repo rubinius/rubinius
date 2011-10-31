@@ -137,7 +137,7 @@ namespace rubinius {
      * by Kernel#clone.
      */
     // Rubinius.primitive :object_copy_singleton_class
-    Object* copy_singleton_class(STATE, Object* other);
+    Object* copy_singleton_class(STATE, GCToken gct, Object* other);
 
     /** True if this Object* is actually a Fixnum, false otherwise. */
     bool fixnum_p() const;
@@ -390,6 +390,13 @@ namespace rubinius {
 
       virtual void auto_mark(Object* obj, ObjectMark& mark) {}
     };
+
+  private:
+    /**
+     * Checks if object is frozen and raises RuntimeError if it is.
+     * Similar to CRuby rb_check_frozen
+     */
+    void check_frozen(STATE);
 
   };
 

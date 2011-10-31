@@ -17,6 +17,7 @@
 #include "lock.hpp"
 
 class TestObjectMemory; // So we can friend it properly
+class TestVM; // So we can friend it properly
 
 namespace rubinius {
 
@@ -265,7 +266,7 @@ namespace rubinius {
     ObjectMemory(STATE, Configuration& config);
     ~ObjectMemory();
 
-    void on_fork();
+    void on_fork(STATE);
 
     Object* new_object_typed(STATE, Class* cls, size_t bytes, object_type type);
     Object* new_object_typed_mature(STATE, Class* cls, size_t bytes, object_type type);
@@ -303,8 +304,6 @@ namespace rubinius {
 
     TypeInfo* find_type_info(Object* obj);
     void set_young_lifetime(size_t age);
-    void collect_young(GCData& data, YoungCollectStats* stats = 0);
-    void collect_mature(GCData& data);
     Object* promote_object(Object* obj);
 
     bool refill_slab(STATE, gc::Slab& slab);
@@ -312,8 +311,8 @@ namespace rubinius {
     void assign_object_id(STATE, Object* obj);
     Integer* assign_object_id_ivar(STATE, Object* obj);
     bool inflate_lock_count_overflow(STATE, ObjectHeader* obj, int count);
-    LockStatus contend_for_lock(STATE, ObjectHeader* obj, bool* error, size_t us=0);
-    void release_contention(STATE);
+    LockStatus contend_for_lock(STATE, GCToken gct, ObjectHeader* obj, bool* error, size_t us=0);
+    void release_contention(STATE, GCToken gct);
     bool inflate_and_lock(STATE, ObjectHeader* obj);
     bool inflate_for_contention(STATE, ObjectHeader* obj);
 
@@ -332,8 +331,8 @@ namespace rubinius {
 
     size_t mature_bytes_allocated();
 
-    void collect(STATE, CallFrame* call_frame);
-    void collect_maybe(STATE, CallFrame* call_frame);
+    void collect(STATE, GCToken gct, CallFrame* call_frame);
+    void collect_maybe(STATE, GCToken gct, CallFrame* call_frame);
 
     void needs_finalization(Object* obj, FinalizerFunction func);
     void set_ruby_finalizer(Object* obj, Object* fin);
@@ -369,8 +368,12 @@ namespace rubinius {
     Object* allocate_object(size_t bytes);
     Object* allocate_object_mature(size_t bytes);
 
+    void collect_young(GCData& data, YoungCollectStats* stats = 0);
+    void collect_mature(GCData& data);
+
   public:
     friend class ::TestObjectMemory;
+    friend class ::TestVM;
 
 
     /**

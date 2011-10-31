@@ -16,8 +16,8 @@ ruby_version_is "1.9" do
         0.0,
         12.0,
         Float::MAX,
-        1/0.0,
-        0/0.0
+        infinity_value,
+        nan_value
       ]
     end
 

@@ -1781,6 +1781,10 @@ VALUE rb_uint2big(unsigned long number);
 #include RUBY_EXTCONF_H
 #endif
 
+#ifdef HAVE_RUBY_ENCODING_H
+#include "encoding.h"
+#endif
+
 #ifdef __cplusplus
 }
 #endif

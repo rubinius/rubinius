@@ -29,5 +29,32 @@ describe "Date#gregorian_leap?" do
 end
 
 describe "Date.gregorian?" do
-  it "needs to be reviewed for spec completeness"
+  ruby_version_is "" ... "1.9" do
+
+    it "marks the date as Gregorian if using the Gregorian calendar" do
+      Date.gregorian?(Date.civil(1007, 2, 27).jd, Date::GREGORIAN).should == true
+    end
+
+    it "marks the date as not Gregorian if using the Julian calendar" do
+      Date.gregorian?(Date.civil(1007, 2, 27).jd, Date::JULIAN).should == false
+    end
+
+    it "marks the date before the English Day of Calendar Reform as not Gregorian" do
+      Date.gregorian?(Date.civil(1752, 9, 13).jd, Date::ENGLAND).should == false
+    end
+
+    it "marks the date after the English Day of Calendar Reform as Gregorian" do
+      Date.gregorian?(Date.civil(1752, 9, 14).jd, Date::ENGLAND).should == true
+    end
+
+    it "marks the date before the Italian Day of Calendar Reform as not Gregorian" do
+      Date.gregorian?(Date.civil(1582, 10, 4).jd, Date::ITALY).should == false
+    end
+
+    it "marks the date after the Italian Day of Calendar Reform as Gregorian" do
+      Date.gregorian?(Date.civil(1582, 10, 15).jd, Date::ITALY).should == true
+    end
+
+  end
+
 end

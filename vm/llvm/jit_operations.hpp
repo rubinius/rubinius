@@ -523,6 +523,12 @@ namespace rubinius {
       return stack_position(-back);
     }
 
+    void store_stack_back_position(int back, Value* val) {
+      Value* pos = stack_back_position(back);
+      clear_hint(-back);
+      b().CreateStore(val, pos);
+    }
+
     Value* stack_objects(int count) {
       return stack_position(-(count - 1));
     }
@@ -650,6 +656,15 @@ namespace rubinius {
         hints_[sp_].hint = 0;
         hints_[sp_].metadata = 0;
         hints_[sp_].known_type = type::KnownType::unknown();
+      }
+    }
+
+    void clear_hint(int back) {
+      int target = sp_ + back;
+      if(hints_.size() > (size_t)target) {
+        hints_[target].hint = 0;
+        hints_[target].metadata = 0;
+        hints_[target].known_type = type::KnownType::unknown();
       }
     }
 

@@ -4,7 +4,14 @@
 #include <stdint.h>
 
 #if (__GNUC__ > 4) || ((__GNUC__ == 4) && (__GNUC_MINOR__ >= 1))
+
+// On "4.1.2 (Gentoo 4.1.2 p1.1)" 32-bit, gcc sync intrinsics are missing
+#if (__GNUC__ == 4 && __GNUC_MINOR__ == 1 && defined(i386))
+#define X86_SYNC 1
+#define X86_32_SYNC 1
+#else
 #define GCC_SYNC 1
+#endif
 
 #elif defined(__APPLE__)
 #define APPLE_SYNC 1
@@ -95,11 +102,13 @@ namespace atomic {
     int new_val_lo = new_val & 0xffffffff;
 
     __asm__ __volatile__ (
-        "lock; cmpxchg8b %1; sete %0"
-      : "=q" (result)
-      : "m" (*ptr), "d" (old_val_hi), "a" (old_val_lo),
-                    "c" (new_val_hi), "b" (new_val_hi)
-      : "memory");
+      "push %%ebx; mov %5, %%ebx;"
+      "lock; cmpxchg8b %1; sete %0;"
+      "pop %%ebx"
+    : "=q" (result)
+    : "m" (*ptr), "d" (old_val_hi), "a" (old_val_lo),
+                  "c" (new_val_hi), "r" (new_val_lo)
+    : "memory");
 
     return result;
 #elif defined(X86_64_SYNC)

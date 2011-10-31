@@ -75,4 +75,8 @@ describe "Module#attr_writer" do
 
     lambda { c.new.foo=1 }.should raise_error(NoMethodError)
   end
+
+  it "is a private method" do
+    lambda { Class.new.attr_writer(:foo) }.should raise_error(NoMethodError)
+  end
 end

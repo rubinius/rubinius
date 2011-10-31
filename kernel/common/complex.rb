@@ -372,7 +372,7 @@ class Complex < Numeric
 	    @image.numerator*(cd/@image.denominator))
   end
 
-  def rationalize
+  def rationalize(eps = nil)
     raise RangeError, "non-zero imaginary part" unless @image.zero?
 
     Rational(@real, 1)
@@ -387,6 +387,14 @@ class Complex < Numeric
   end
 
   alias_method :rectangular, :rect
+
+  def to_r
+    unless @image.equal? 0
+      raise RangeError, "cannot convert #{inspect} into Rational"
+    end
+
+    Rational(@real)
+  end
 
   #
   # Standard string representation of the complex number.

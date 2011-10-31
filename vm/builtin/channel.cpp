@@ -62,11 +62,12 @@ namespace rubinius {
     // waiting_->remove(state, waiter);
   }
 
-  Object* Channel::send(STATE, Object* val) {
+  Object* Channel::send(STATE, GCToken gct, Object* val) {
     Channel* self = this;
+
     OnStack<2> os(state, val, self);
 
-    GCLockGuard lg(state, mutex_);
+    GCLockGuard lg(state, gct, mutex_);
 
     if(val->nil_p()) {
       self->semaphore_count_++;
@@ -88,11 +89,11 @@ namespace rubinius {
     return Qnil;
   }
 
-  Object* Channel::try_receive(STATE) {
+  Object* Channel::try_receive(STATE, GCToken gct) {
     Channel* self = this;
     OnStack<1> os(state, self);
 
-    GCLockGuard lg(state, mutex_);
+    GCLockGuard lg(state, gct, mutex_);
 
     if(self->semaphore_count_ > 0) {
       self->semaphore_count_--;
@@ -103,12 +104,12 @@ namespace rubinius {
     return self->value_->shift(state);
   }
 
-  Object* Channel::receive(STATE, CallFrame* call_frame) {
-    return receive_timeout(state, Qnil, call_frame);
+  Object* Channel::receive(STATE, GCToken gct, CallFrame* call_frame) {
+    return receive_timeout(state, gct, Qnil, call_frame);
   }
 
 #define NANOSECONDS 1000000000
-  Object* Channel::receive_timeout(STATE, Object* duration, CallFrame* call_frame) {
+  Object* Channel::receive_timeout(STATE, GCToken gct, Object* duration, CallFrame* call_frame) {
     // Passing control away means that the GC might run. So we need
     // to stash this into a root, and read it back out again after
     // control is returned.
@@ -121,7 +122,7 @@ namespace rubinius {
     Channel* self = this;
     OnStack<2> os(state, self, duration);
 
-    GCLockGuard lg(state, mutex_);
+    GCLockGuard lg(state, gct, mutex_);
 
     if(self->semaphore_count_ > 0) {
       self->semaphore_count_--;
@@ -214,7 +215,8 @@ namespace rubinius {
     }
 
     virtual void call(Object* obj) {
-      chan->send(state, obj);
+      GCTokenImpl gct;
+      chan->send(state, gct, obj);
     }
   };
 
@@ -225,6 +227,7 @@ namespace rubinius {
   }
 
   void ChannelCallback::call(Object* obj) {
-    channel->send(state, obj);
+    GCTokenImpl gct;
+    channel->send(state, gct, obj);
   }
 }

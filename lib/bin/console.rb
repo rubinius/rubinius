@@ -13,7 +13,9 @@ class Console
   end
 
   def connect(notice=true)
-    @agent = Rubinius::Agent.connect "localhost", @port
+    @agent = Rubinius::Agent.connect "localhost", @port do
+      Readline.readline("password> ")
+    end
 
     if notice
       puts "Connected to localhost:#{@port}, host type: #{@agent.handshake[1]}"

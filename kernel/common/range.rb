@@ -322,12 +322,5 @@ class Range
 
     super
   end
-
-  def max &a
-    return super(&a) if block_given?
-    return nil if @end < @begin
-    @end
-  end
-
 end
 

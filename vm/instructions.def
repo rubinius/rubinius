@@ -1192,7 +1192,7 @@ instruction create_block(literal) [ -- block ]
   // TODO: We do not need to be doing this everytime.
   cm->scope(state, call_frame->static_scope());
 
-  Object* be = BlockEnvironment::under_call_frame(state, cm, vmm, call_frame,
+  Object* be = BlockEnvironment::under_call_frame(state, gct, cm, vmm, call_frame,
                                                   literal);
 
   CHECK_AND_PUSH(be);
@@ -1588,7 +1588,7 @@ instruction check_interrupts() [ -- ]
 
     if(state->interrupts.perform_gc) {
       state->interrupts.perform_gc = false;
-      state->collect_maybe(call_frame);
+      state->collect_maybe(gct, call_frame);
     }
   }
 
@@ -1606,7 +1606,7 @@ end
 
 instruction yield_debugger() [ -- ]
   flush_ip();
-  Helpers::yield_debugger(state, call_frame, Qnil);
+  Helpers::yield_debugger(state, gct, call_frame, Qnil);
 end
 
 # [Description]

@@ -16,6 +16,8 @@
 #include "call_frame.hpp"
 #include "arguments.hpp"
 
+#include "on_stack.hpp"
+
 #ifdef FIBER_NATIVE
 
 #if defined(FIBER_ASM_X8664)
@@ -58,6 +60,7 @@ static void fiber_makectx(fiber_context_t* ctx, void* func, void** stack_bottom,
 
   void** stack = (void**)(s - diff) - 1;
 
+  *--stack = (void*)0xdeadcafedeadcafe;  /* Dummy return address. */
   ctx->rip = (void*)fiber_wrap_main;
   ctx->rsp = stack;
   ctx->rbp = 0;
@@ -67,7 +70,6 @@ static void fiber_makectx(fiber_context_t* ctx, void* func, void** stack_bottom,
   ctx->r14 = 0;
   ctx->r15 = 0;
 
-  stack[0] = (void*)0xdeadcafedeadcafe;  /* Dummy return address. */
 }
 
 #elif defined(FIBER_ASM_X8632)
@@ -99,10 +101,11 @@ static void fiber_makectx(fiber_context_t* ctx, void* func, void** stack_bottom,
 
   void** stack = (void**)(s - diff) - 1;
 
+  *--stack = (void*)0xdeadcafe;
+
   ctx->eip = func;
   ctx->esp = stack;
   ctx->ebp = 0;
-  stack[0] = (void*)0xdeadcafe;
 }
 #endif
 
@@ -136,6 +139,9 @@ namespace rubinius {
     // Lazily allocate a root fiber.
     if(fib->nil_p()) {
       fib = state->new_object<Fiber>(G(fiber));
+      if(fib->zone() != YoungObjectZone) {
+        state->om->remember_object(fib);
+      }
       fib->prev_ = nil<Fiber>();
       fib->top_ = 0;
       fib->root_ = true;
@@ -167,6 +173,8 @@ namespace rubinius {
     VM* state = VM::current();
 
     Fiber* fib = Fiber::current(state);
+
+    OnStack<1> os(state, fib);
 
     // Affix this fiber to this thread now.
     fib->state_ = state;
@@ -217,11 +225,14 @@ namespace rubinius {
 #ifdef FIBER_ENABLED
     int stack_size = i_stack_size->to_native();
 
-    if(stack_size < 64 * 1024) {
-      stack_size = 64 * 1024;
+    if(stack_size < 1024 * 1024) {
+      stack_size = 1024 * 1024;
     }
 
     Fiber* fib = state->new_object<Fiber>(G(fiber));
+    if(fib->zone() != YoungObjectZone) {
+      state->om->remember_object(fib);
+    }
     fib->starter(state, callable);
     fib->prev(state, nil<Fiber>());
     fib->top_ = 0;
@@ -422,6 +433,8 @@ namespace rubinius {
 
   void Fiber::Info::mark(Object* obj, ObjectMark& mark) {
     auto_mark(obj, mark);
+
+    mark.remember_object(obj);
 
     Fiber* fib = (Fiber*)obj;
     if(CallFrame* cf = fib->call_frame()) {

@@ -82,7 +82,7 @@ static VALUE class_spec_cvar_get(VALUE self, VALUE klass, VALUE name) {
 }
 #endif
 
-#ifdef RUBY_VERSION_IS_1_8
+#ifdef RUBY_VERSION_IS_1_8_EX_1_9
 #ifdef HAVE_RB_CVAR_SET
 static VALUE class_spec_cvar_set(VALUE self, VALUE klass, VALUE name, VALUE val) {
 	rb_cvar_set(klass, rb_intern(StringValuePtr(name)), val, 0);

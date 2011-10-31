@@ -3,6 +3,7 @@ class.rbc
 binding.rbc
 proc.rbc
 autoload.rbc
+autoload19.rbc
 module.rbc
 module19.rbc
 enumerable19.rbc
@@ -105,3 +106,4 @@ variable_scope.rbc
 capi.rbc
 complex.rbc
 rational.rbc
+rationalizer.rbc

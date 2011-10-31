@@ -129,4 +129,8 @@ describe "Module#attr" do
     (o = mock('123')).should_receive(:to_str).and_return(123)
     lambda { Class.new { attr o } }.should raise_error(TypeError)
   end
+
+  it "is a private method" do
+    lambda { Class.new.attr(:foo) }.should raise_error(NoMethodError)
+  end
 end

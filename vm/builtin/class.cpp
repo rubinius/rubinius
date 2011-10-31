@@ -62,48 +62,26 @@ namespace rubinius {
     set_packed_size(0);
   }
 
-  Object* Class::allocate(STATE, CallFrame* calling_environment) {
-    if(type_info_->type == PackedObject::type) {
-use_packed:
-      assert(packed_size_ > 0);
+  namespace {
+    Object* collect_and_allocate(STATE, GCToken gct, Class* self,
+                                 CallFrame* calling_environment)
+    {
+      state->shared.om->collect_young_now = true;
 
-      // Pull the size out into a local to deal with this moving later on.
-      uint32_t size = packed_size_;
+      OnStack<1> os(state, self);
 
+      state->collect_maybe(gct, calling_environment);
+
+      // Don't use 'this' after here! it's been moved! use 'self'!
+
+      uint32_t size = self->packed_size();
       PackedObject* obj = state->local_slab().allocate(size).as<PackedObject>();
 
       if(likely(obj)) {
-        obj->init_header(this, YoungObjectZone, PackedObject::type);
+        obj->init_header(self, YoungObjectZone, PackedObject::type);
       } else {
-        if(state->shared.om->refill_slab(state, state->local_slab())) {
-          obj = state->local_slab().allocate(size).as<PackedObject>();
-
-          if(likely(obj)) {
-            obj->init_header(this, YoungObjectZone, PackedObject::type);
-          } else {
-            obj = reinterpret_cast<PackedObject*>(
-                state->om->new_object_fast(state, this, size, PackedObject::type));
-          }
-        } else {
-          state->shared.om->collect_young_now = true;
-
-          Class* self = this;
-
-          OnStack<1> os(state, self);
-
-          state->collect_maybe(calling_environment);
-
-          // Don't use 'this' after here! it's been moved! use 'self'!
-
-          obj = state->local_slab().allocate(size).as<PackedObject>();
-
-          if(likely(obj)) {
-            obj->init_header(self, YoungObjectZone, PackedObject::type);
-          } else {
-            obj = reinterpret_cast<PackedObject*>(
-                state->om->new_object_fast(state, self, size, PackedObject::type));
-          }
-        }
+        obj = reinterpret_cast<PackedObject*>(
+            state->om->new_object_fast(state, self, size, PackedObject::type));
       }
 
       // Don't use 'this' !!! The above code might have GC'd
@@ -116,19 +94,64 @@ use_packed:
       }
 
       return obj;
+    }
+
+    Object* allocate_packed(STATE, GCToken gct, Class* self,
+                            CallFrame* calling_environment)
+    {
+      uint32_t size = self->packed_size();
+
+      assert(size > 0);
+
+      PackedObject* obj = state->local_slab().allocate(size).as<PackedObject>();
+
+      if(likely(obj)) {
+        obj->init_header(self, YoungObjectZone, PackedObject::type);
+      } else {
+        if(state->shared.om->refill_slab(state, state->local_slab())) {
+          obj = state->local_slab().allocate(size).as<PackedObject>();
+
+          if(likely(obj)) {
+            obj->init_header(self, YoungObjectZone, PackedObject::type);
+          } else {
+            obj = reinterpret_cast<PackedObject*>(
+                state->om->new_object_fast(state, self, size, PackedObject::type));
+          }
+        } else {
+          return collect_and_allocate(state, gct, self, calling_environment);
+        }
+      }
+
+      uintptr_t body = reinterpret_cast<uintptr_t>(obj->body_as_array());
+      for(size_t i = 0; i < size - sizeof(ObjectHeader);
+          i += sizeof(Object*)) {
+        Object** pos = reinterpret_cast<Object**>(body + i);
+        *pos = Qundef;
+      }
+
+      return obj;
+    }
+  }
+
+  Object* Class::allocate(STATE, GCToken gct, CallFrame* calling_environment) {
+    if(type_info_->type == PackedObject::type) {
+      return allocate_packed(state, gct, this, calling_environment);
     } else if(!type_info_->allow_user_allocate || kind_of<SingletonClass>(this)) {
       Exception::type_error(state, "direct allocation disabled");
       return Qnil;
     } else if(type_info_->type == Object::type) {
       // transition all normal object classes to PackedObject
-      auto_pack(state);
-      goto use_packed;
-    }
+      Class* self = this;
+      OnStack<1> os(state, self);
 
-    // type_info_->type is neither PackedObject nor Object, so use the
-    // generic path.
-    return state->new_object_typed(this,
-        type_info_->instance_size, type_info_->type);
+      auto_pack(state, gct);
+      return allocate_packed(state, gct, self, calling_environment);
+    } else {
+      // type_info_->type is neither PackedObject nor Object, so use the
+      // generic path.
+      return state->new_object_typed(this,
+          type_info_->instance_size, type_info_->type);
+    }
   }
 
   Class* Class::true_superclass(STATE) {
@@ -180,12 +203,15 @@ use_packed:
    *
    * This locks the class so that construction is serialized.
    */
-  void Class::auto_pack(STATE) {
-    hard_lock(state);
+  void Class::auto_pack(STATE, GCToken gct) {
+    Class* self = this;
+    OnStack<1> os(state, self);
+
+    hard_lock(state, gct);
 
     // If another thread did this work while we were waiting on the lock,
     // don't redo it.
-    if(type_info_->type == PackedObject::type) return;
+    if(self->type_info_->type == PackedObject::type) return;
 
     size_t slots = 0;
 
@@ -193,7 +219,7 @@ use_packed:
 
     // If autopacking is enabled, figure out how many slots to use.
     if(state->shared.config.gc_autopack) {
-      Module* mod = this;
+      Module* mod = self;
 
       int slot = 0;
 
@@ -228,11 +254,11 @@ use_packed:
     }
 
     packed_size_ = sizeof(Object) + (slots * sizeof(Object*));
-    packed_ivar_info(state, lt);
+    self->packed_ivar_info(state, lt);
 
-    set_object_type(state, PackedObject::type);
+    self->set_object_type(state, PackedObject::type);
 
-    hard_unlock(state);
+    self->hard_unlock(state, gct);
   }
 
   Class* Class::real_class(STATE, Class* klass) {

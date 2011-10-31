@@ -134,8 +134,9 @@ class Bignum < Integer
     # raise if any part of the coercion or comparison raises
     # an exception.
     begin
-      a, b = other.coerce self
-      a <=> b
+      coerced = other.coerce self
+      return nil unless coerced
+      coerced[0] <=> coerced[1]
     rescue
       return nil
     end

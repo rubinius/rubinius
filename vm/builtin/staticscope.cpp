@@ -19,7 +19,8 @@ namespace rubinius {
   }
 
   void StaticScope::bootstrap_methods(STATE) {
-    System::attach_primitive(state,
+    GCTokenImpl gct;
+    System::attach_primitive(state, gct,
                              G(staticscope), false,
                              state->symbol("const_set"),
                              state->symbol("static_scope_const_set"));

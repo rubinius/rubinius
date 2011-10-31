@@ -10,6 +10,7 @@ class IO
   end
 
   def self.read(name, length_or_options=undefined, offset=0, options=nil)
+    offset = 0 if offset.nil?
     name = Rubinius::Type.coerce_to_path name
     mode = "r"
 
@@ -55,6 +56,16 @@ class IO
     end
 
     return str
+  end
+
+  def self.sysopen(path, mode = "r", perm = 0666)
+    path = Rubinius::Type.coerce_to_path path
+
+    unless mode.kind_of? Integer
+      mode = parse_mode StringValue(mode)
+    end
+
+    open_with_mode path, mode, perm
   end
 
   def self.try_convert(obj)

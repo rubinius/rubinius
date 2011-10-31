@@ -24,8 +24,8 @@ ruby_version_is "1.9" do
     end
 
     it "returns 1 for NaN and Infinity" do
-      (0/0.0).denominator.should == 1
-      (1/0.0).denominator.should == 1
+      nan_value.denominator.should == 1
+      infinity_value.denominator.should == 1
     end
   end
 end

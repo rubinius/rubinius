@@ -207,7 +207,7 @@ namespace rubinius {
       return true;
     }
 
-    bool check_interrupts(CallFrame* call_frame, void* end);
+    bool check_interrupts(GCToken gct, CallFrame* call_frame, void* end);
 
     MethodMissingReason method_missing_reason() {
       return method_missing_reason_;
@@ -354,10 +354,10 @@ namespace rubinius {
     void init_native_libraries();
 
     Thread* current_thread();
-    void collect(CallFrame* call_frame);
+    void collect(GCToken gct, CallFrame* call_frame);
 
     /// Check the GC flags in ObjectMemory and collect if we need to.
-    void collect_maybe(CallFrame* call_frame);
+    void collect_maybe(GCToken gct, CallFrame* call_frame);
 
     void raise_from_errno(const char* reason);
     void raise_exception(Exception* exc);
@@ -384,7 +384,7 @@ namespace rubinius {
     void wait_on_inflated_lock(InflatedHeader* ih);
     void wait_on_custom_function(void (*func)(void*), void* data);
     void clear_waiter();
-    bool wakeup(STATE);
+    bool wakeup(STATE, GCToken gct);
     bool waiting_p();
 
     void set_sleeping();
@@ -462,7 +462,7 @@ namespace rubinius {
   class GCIndependentLockGuard : public thread::LockGuardTemplate<T> {
     VM* vm_;
   public:
-    GCIndependentLockGuard(STATE, T& in_lock)
+    GCIndependentLockGuard(STATE, GCToken gct, T& in_lock)
       : thread::LockGuardTemplate<T>(in_lock, false)
       , vm_(state)
     {

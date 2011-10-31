@@ -153,6 +153,10 @@ namespace rubinius {
       return mutex_;
     }
 
+    void lock_init(ManagedThread* th) {
+      mutex_.init(th);
+    }
+
     void lock(ManagedThread* th) {
       mutex_.lock(th);
     }

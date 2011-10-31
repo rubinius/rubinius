@@ -17,6 +17,7 @@
 #include "object_utils.hpp"
 #include "vm.hpp"
 #include "objectmemory.hpp"
+#include "on_stack.hpp"
 
 #include "builtin/array.hpp"
 #include "builtin/class.hpp"
@@ -889,108 +890,116 @@ namespace rubinius {
 
     state->set_call_frame(call_frame);
 
+    // Make sure we have this on the stack
+    NativeFunction* self = this;
+    OnStack<1> on(state, self);
+
+    // We need to have ffi_data on the stack since
+    // a GC might move this and there ffi_data will
+    // point at the wrong place in memory
+    FFIData* ffi_data_local = ffi_data;
     state->shared.gc_independent(state);
 
-    switch(ffi_data->ret_type) {
+    switch(ffi_data_local->ret_type) {
     case RBX_FFI_TYPE_CHAR: {
       ffi_arg result;
-      ffi_call(&ffi_data->cif, FFI_FN(ffi_data->ep), &result, values);
+      ffi_call(&ffi_data_local->cif, FFI_FN(ffi_data_local->ep), &result, values);
       state->shared.gc_dependent(state);
       ret = Fixnum::from((native_int)result);
       break;
     }
     case RBX_FFI_TYPE_UCHAR: {
       ffi_arg result;
-      ffi_call(&ffi_data->cif, FFI_FN(ffi_data->ep), &result, values);
+      ffi_call(&ffi_data_local->cif, FFI_FN(ffi_data_local->ep), &result, values);
       state->shared.gc_dependent(state);
       ret = Fixnum::from((native_int)result);
       break;
     }
     case RBX_FFI_TYPE_BOOL: {
       ffi_arg result;
-      ffi_call(&ffi_data->cif, FFI_FN(ffi_data->ep), &result, values);
+      ffi_call(&ffi_data_local->cif, FFI_FN(ffi_data_local->ep), &result, values);
       state->shared.gc_dependent(state);
       ret = (result != 0) ? Qtrue : Qfalse;
       break;
     }
     case RBX_FFI_TYPE_SHORT: {
       ffi_arg result;
-      ffi_call(&ffi_data->cif, FFI_FN(ffi_data->ep), &result, values);
+      ffi_call(&ffi_data_local->cif, FFI_FN(ffi_data_local->ep), &result, values);
       state->shared.gc_dependent(state);
       ret = Fixnum::from((native_int)result);
       break;
     }
     case RBX_FFI_TYPE_USHORT: {
       ffi_arg result;
-      ffi_call(&ffi_data->cif, FFI_FN(ffi_data->ep), &result, values);
+      ffi_call(&ffi_data_local->cif, FFI_FN(ffi_data_local->ep), &result, values);
       state->shared.gc_dependent(state);
       ret = Fixnum::from((native_int)result);
       break;
     }
     case RBX_FFI_TYPE_INT: {
       ffi_arg result;
-      ffi_call(&ffi_data->cif, FFI_FN(ffi_data->ep), &result, values);
+      ffi_call(&ffi_data_local->cif, FFI_FN(ffi_data_local->ep), &result, values);
       state->shared.gc_dependent(state);
       ret = Integer::from(state, (native_int)result);
       break;
     }
     case RBX_FFI_TYPE_UINT: {
       ffi_arg result;
-      ffi_call(&ffi_data->cif, FFI_FN(ffi_data->ep), &result, values);
+      ffi_call(&ffi_data_local->cif, FFI_FN(ffi_data_local->ep), &result, values);
       state->shared.gc_dependent(state);
       ret = Integer::from(state, (unsigned int)result);
       break;
     }
     case RBX_FFI_TYPE_LONG: {
       long result;
-      ffi_call(&ffi_data->cif, FFI_FN(ffi_data->ep), &result, values);
+      ffi_call(&ffi_data_local->cif, FFI_FN(ffi_data_local->ep), &result, values);
       state->shared.gc_dependent(state);
       ret = Integer::from(state, result);
       break;
     }
     case RBX_FFI_TYPE_ULONG: {
       unsigned long result;
-      ffi_call(&ffi_data->cif, FFI_FN(ffi_data->ep), &result, values);
+      ffi_call(&ffi_data_local->cif, FFI_FN(ffi_data_local->ep), &result, values);
       state->shared.gc_dependent(state);
       ret = Integer::from(state, result);
       break;
     }
     case RBX_FFI_TYPE_FLOAT: {
       float result;
-      ffi_call(&ffi_data->cif, FFI_FN(ffi_data->ep), &result, values);
+      ffi_call(&ffi_data_local->cif, FFI_FN(ffi_data_local->ep), &result, values);
       state->shared.gc_dependent(state);
       ret = Float::create(state, (double)result);
       break;
     }
     case RBX_FFI_TYPE_DOUBLE: {
       double result;
-      ffi_call(&ffi_data->cif, FFI_FN(ffi_data->ep), &result, values);
+      ffi_call(&ffi_data_local->cif, FFI_FN(ffi_data_local->ep), &result, values);
       state->shared.gc_dependent(state);
       ret = Float::create(state, result);
       break;
     }
     case RBX_FFI_TYPE_LONG_LONG: {
       long long result;
-      ffi_call(&ffi_data->cif, FFI_FN(ffi_data->ep), &result, values);
+      ffi_call(&ffi_data_local->cif, FFI_FN(ffi_data_local->ep), &result, values);
       state->shared.gc_dependent(state);
       ret = Integer::from(state, result);
       break;
     }
     case RBX_FFI_TYPE_ULONG_LONG: {
       unsigned long long result;
-      ffi_call(&ffi_data->cif, FFI_FN(ffi_data->ep), &result, values);
+      ffi_call(&ffi_data_local->cif, FFI_FN(ffi_data_local->ep), &result, values);
       state->shared.gc_dependent(state);
       ret = Integer::from(state, result);
       break;
     }
     case RBX_FFI_TYPE_OBJECT: {
-      ffi_call(&ffi_data->cif, FFI_FN(ffi_data->ep), &ret, values);
+      ffi_call(&ffi_data_local->cif, FFI_FN(ffi_data_local->ep), &ret, values);
       state->shared.gc_dependent(state);
       break;
     }
     case RBX_FFI_TYPE_PTR: {
       void* result;
-      ffi_call(&ffi_data->cif, FFI_FN(ffi_data->ep), &result, values);
+      ffi_call(&ffi_data_local->cif, FFI_FN(ffi_data_local->ep), &result, values);
       state->shared.gc_dependent(state);
       if(result == NULL) {
         ret = Qnil;
@@ -1001,7 +1010,7 @@ namespace rubinius {
     }
     case RBX_FFI_TYPE_STRING: {
       char* result;
-      ffi_call(&ffi_data->cif, FFI_FN(ffi_data->ep), &result, values);
+      ffi_call(&ffi_data_local->cif, FFI_FN(ffi_data_local->ep), &result, values);
       state->shared.gc_dependent(state);
       if(result == NULL) {
         ret = Qnil;
@@ -1016,7 +1025,7 @@ namespace rubinius {
       Object* s;
       Object* p;
 
-      ffi_call(&ffi_data->cif, FFI_FN(ffi_data->ep), &result, values);
+      ffi_call(&ffi_data_local->cif, FFI_FN(ffi_data_local->ep), &result, values);
       state->shared.gc_dependent(state);
 
       if(result == NULL) {
@@ -1036,7 +1045,7 @@ namespace rubinius {
     default:
     case RBX_FFI_TYPE_VOID: {
       ffi_arg result;
-      ffi_call(&ffi_data->cif, FFI_FN(ffi_data->ep), &result, values);
+      ffi_call(&ffi_data_local->cif, FFI_FN(ffi_data_local->ep), &result, values);
       state->shared.gc_dependent(state);
       ret = Qnil;
       break;
@@ -1045,7 +1054,7 @@ namespace rubinius {
 
     env->set_current_call_frame(saved_frame);
 
-    for(i = 0; i < ffi_data->arg_count; i++) {
+    for(i = 0; i < ffi_data_local->arg_count; i++) {
       if (heap_allocations[i]) {
         free(heap_allocations[i]);
       }

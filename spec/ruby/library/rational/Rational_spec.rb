@@ -1,15 +1,7 @@
 require File.expand_path('../../../shared/rational/Rational', __FILE__)
 
 ruby_version_is ""..."1.9" do
-  describe "Rational() passed Integer, Integer" do
-    it_behaves_like(:rational_rational_int_int, :Rational)
-  end
-
-  describe "Rational() passed Integer" do
-    it_behaves_like(:rational_rational_int, :Rational)
-  end
-
-  describe "Rational() passed Integer when Unify is defined" do
-    it_behaves_like(:rational_rational_int_rat_unify, :Rational)
+  describe "Rational()" do
+    it_behaves_like(:Rational, :Rational)
   end
 end

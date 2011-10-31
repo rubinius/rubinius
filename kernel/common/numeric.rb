@@ -18,10 +18,6 @@ class Numeric
     [div(other), self % other]
   end
 
-  def div(other)
-    Float(self.__slash__(other)).floor
-  end
-
   def quo(other)
     self.__slash__(other)
   end
