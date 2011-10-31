@@ -28,3 +28,4 @@ fails:String#encode! raises a RuntimeError when called on a frozen String when i
 fails:String#encode! returns self when called with only a target encoding
 fails:String#encode! returns self even when no changes are made
 fails:String#encode! tags the String with the given encoding
+fails:String#encode replaces undefined characters
