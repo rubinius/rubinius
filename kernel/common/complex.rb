@@ -421,34 +421,3 @@ class Complex < Numeric
   alias imaginary image
 
 end
-
-class Integer
-
-  unless defined?(1.numerator)
-    def numerator() self end
-    def denominator() 1 end
-
-    def gcd(other)
-      min = self.abs
-      max = other.abs
-      while min > 0
-        tmp = min
-        min = max % min
-        max = tmp
-      end
-      max
-    end
-
-    def lcm(other)
-      if self.zero? or other.zero?
-        0
-      else
-        (self.div(self.gcd(other)) * other).abs
-      end
-    end
-
-  end
-
-end
-class Complex
-end
