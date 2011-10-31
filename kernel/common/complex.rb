@@ -25,61 +25,6 @@
 #    cosh sinh tanh acos asin atan atan2 acosh asinh atanh
 #
 
-
-#
-# Numeric is a built-in class on which Fixnum, Bignum, etc., are based.  Here
-# some methods are added so that all number types can be treated to some extent
-# as Complex numbers.
-#
-class Numeric
-  #
-  # Returns a Complex number <tt>(0,<i>self</i>)</tt>.
-  #
-  def im
-    Complex(0, self)
-  end
-
-  #
-  # The real part of a complex number, i.e. <i>self</i>.
-  #
-  def real
-    self
-  end
-
-  #
-  # The imaginary part of a complex number, i.e. 0.
-  #
-  def image
-    0
-  end
-  alias imag image
-
-  #
-  # See Complex#arg.
-  #
-  def arg
-    Math.atan2(0, self)
-  end
-  alias angle arg
-  alias phase arg
-
-  #
-  # See Complex#polar.
-  #
-  def polar
-    return abs, arg
-  end
-
-  #
-  # See Complex#conjugate (short answer: returns <i>self</i>).
-  #
-  def conjugate
-    self
-  end
-  alias conj conjugate
-end
-
-
 #
 # Creates a Complex number.  +a+ and +b+ should be Numeric.  The result will be
 # <tt>a+bi</tt>.
