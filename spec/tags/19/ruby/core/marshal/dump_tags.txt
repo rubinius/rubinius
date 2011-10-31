@@ -19,3 +19,4 @@ fails:Marshal.dump dumps a String empty
 fails:Marshal.dump dumps a String small
 fails:Marshal.dump dumps a String big
 fails:Marshal.dump dumps a String extended
+fails:Marshal.dump raises a TypeError if an instance has a singleton class
