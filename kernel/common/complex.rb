@@ -114,7 +114,7 @@ class Complex < Numeric
     raise TypeError, "non numeric 2nd arg `#{b.inspect}'" if !b.kind_of? Numeric
     raise TypeError, "`#{b.inspect}' for 2nd arg" if b.kind_of? Complex
     @real = a
-    @image = b
+    @imag = b
   end
 
   def -@
@@ -127,10 +127,10 @@ class Complex < Numeric
   def + (other)
     if other.kind_of?(Complex)
       re = @real + other.real
-      im = @image + other.image
+      im = @imag + other.imag
       Complex(re, im)
     elsif Complex.generic?(other)
-      Complex(@real + other, @image)
+      Complex(@real + other, @imag)
     else
       x , y = other.coerce(self)
       x + y
@@ -143,10 +143,10 @@ class Complex < Numeric
   def - (other)
     if other.kind_of?(Complex)
       re = @real - other.real
-      im = @image - other.image
+      im = @imag - other.imag
       Complex(re, im)
     elsif Complex.generic?(other)
-      Complex(@real - other, @image)
+      Complex(@real - other, @imag)
     else
       x , y = other.coerce(self)
       x - y
@@ -158,11 +158,11 @@ class Complex < Numeric
   #
   def * (other)
     if other.kind_of?(Complex)
-      re = @real*other.real - @image*other.image
-      im = @real*other.image + @image*other.real
+      re = @real*other.real - @imag*other.imag
+      im = @real*other.imag + @imag*other.real
       Complex(re, im)
     elsif Complex.generic?(other)
-      Complex(@real * other, @image * other)
+      Complex(@real * other, @imag * other)
     else
       x , y = other.coerce(self)
       x * y
@@ -176,7 +176,7 @@ class Complex < Numeric
     if other.kind_of?(Complex)
       self*other.conjugate/other.abs2
     elsif Complex.generic?(other)
-      Complex(@real/other, @image/other)
+      Complex(@real/other, @imag/other)
     else
       x, y = other.coerce(self)
       x/y
@@ -186,7 +186,7 @@ class Complex < Numeric
   alias_method :/, :divide
 
   def quo(other)
-    Complex(@real.quo(1), @image.quo(1)) / other
+    Complex(@real.quo(1), @imag.quo(1)) / other
   end
 
   #
@@ -199,7 +199,7 @@ class Complex < Numeric
     if other.kind_of?(Complex)
       r, theta = polar
       ore = other.real
-      oim = other.image
+      oim = other.imag
       nr = Math.exp(ore*Math.log(r) - oim * theta)
       ntheta = theta*ore + oim*Math.log(r)
       Complex.polar(nr, ntheta)
@@ -211,7 +211,7 @@ class Complex < Numeric
 	while n != 0
 	  while (div, mod = n.divmod(2)
 		 mod == 0)
-	    x = Complex(x.real*x.real - x.image*x.image, 2*x.real*x.image)
+	    x = Complex(x.real*x.real - x.imag*x.imag, 2*x.real*x.imag)
 	    n = div
 	  end
 	  z *= x
@@ -239,9 +239,9 @@ class Complex < Numeric
   #
   def % (other)
     if other.kind_of?(Complex)
-      Complex(@real % other.real, @image % other.image)
+      Complex(@real % other.real, @imag % other.imag)
     elsif Complex.generic?(other)
-      Complex(@real % other, @image % other)
+      Complex(@real % other, @imag % other)
     else
       x , y = other.coerce(self)
       x % y
@@ -252,10 +252,10 @@ class Complex < Numeric
 #    def divmod(other)
 #      if other.kind_of?(Complex)
 #        rdiv, rmod = @real.divmod(other.real)
-#        idiv, imod = @image.divmod(other.image)
+#        idiv, imod = @imag.divmod(other.imag)
 #        return Complex(rdiv, idiv), Complex(rmod, rmod)
 #      elsif Complex.generic?(other)
-#        Complex(@real.divmod(other), @image.divmod(other))
+#        Complex(@real.divmod(other), @imag.divmod(other))
 #      else
 #        x , y = other.coerce(self)
 #        x.divmod(y)
@@ -268,7 +268,7 @@ class Complex < Numeric
   # plane.
   #
   def abs
-    Math.hypot(@real, @image)
+    Math.hypot(@real, @imag)
   end
 
   alias_method :magnitude, :abs
@@ -277,14 +277,14 @@ class Complex < Numeric
   # Square of the absolute value.
   #
   def abs2
-    @real*@real + @image*@image
+    @real*@real + @imag*@imag
   end
 
   #
   # Argument (angle from (1,0) on the complex plane).
   #
   def arg
-    Math.atan2(@image, @real)
+    Math.atan2(@imag, @real)
   end
   alias angle arg
 
@@ -299,7 +299,7 @@ class Complex < Numeric
   # Complex conjugate (<tt>z + z.conjugate = 2 * z.real</tt>).
   #
   def conjugate
-    Complex(@real, -@image)
+    Complex(@real, -@imag)
   end
   alias conj conjugate
 
@@ -315,9 +315,9 @@ class Complex < Numeric
   #
   def == (other)
     if other.kind_of?(Complex)
-      @real == other.real and @image == other.image
+      @real == other.real and @imag == other.imag
     elsif Complex.generic?(other)
-      @real == other and @image == 0
+      @real == other and @imag == 0
     else
       other == self
     end
@@ -338,7 +338,7 @@ class Complex < Numeric
   # FIXME
   #
   def denominator
-    @real.denominator.lcm(@image.denominator)
+    @real.denominator.lcm(@imag.denominator)
   end
 
   #
@@ -347,11 +347,11 @@ class Complex < Numeric
   def numerator
     cd = denominator
     Complex(@real.numerator*(cd/@real.denominator),
-	    @image.numerator*(cd/@image.denominator))
+	    @imag.numerator*(cd/@imag.denominator))
   end
 
   def rationalize(eps = nil)
-    raise RangeError, "non-zero imaginary part" unless @image.zero?
+    raise RangeError, "non-zero imaginary part" unless @imag.zero?
 
     Rational(@real, 1)
   end
@@ -361,13 +361,13 @@ class Complex < Numeric
   end
 
   def rect
-    return @real, @image
+    return @real, @imag
   end
 
   alias_method :rectangular, :rect
 
   def to_r
-    unless @image.equal? 0
+    unless @imag.equal? 0
       raise RangeError, "cannot convert #{inspect} into Rational"
     end
 
@@ -378,20 +378,20 @@ class Complex < Numeric
   # Standard string representation of the complex number.
   #
   def to_s
-    signal = "+" unless @image < 0
+    signal = "+" unless @imag < 0
 
-    "#{@real}#{signal}#{@image}i"
+    "#{@real}#{signal}#{@imag}i"
   end
 
   #
   # Returns a hash code for the complex number.
   #
   def hash
-    @real.hash ^ @image.hash
+    @real.hash ^ @imag.hash
   end
 
   #
-  # Returns "<tt>Complex(<i>real</i>, <i>image</i>)</tt>".
+  # Returns "<tt>Complex(<i>real</i>, <i>imag</i>)</tt>".
   #
   def inspect
     "(#{to_s})"
@@ -416,8 +416,6 @@ class Complex < Numeric
   attr_reader :real
 
   # The imaginary part of a complex number.
-  attr_reader :image
-  alias imag image
-  alias imaginary image
-
+  attr_reader :imag
+  alias_method :imaginary, :imag
 end
