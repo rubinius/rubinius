@@ -381,7 +381,7 @@ namespace rubinius {
     check_local_interrupts = true;
 
     // Wakeup any locks hanging around with contention
-    om->release_contention(this, gct);
+    om->release_contention(state, gct);
 
     if(interrupt_with_signal_) {
 #ifdef RBX_WINDOWS
