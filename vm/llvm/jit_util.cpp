@@ -365,6 +365,18 @@ extern "C" {
     CPP_CATCH
   }
 
+  Object* rbx_set_scope(STATE, CallFrame* call_frame, Object* top) {
+    CPP_TRY
+
+    StaticScope* scope = as<StaticScope>(top);
+    call_frame->cm->scope(state, scope);
+    // call_frame->static_scope_ = scope;
+
+    return Qnil;
+
+    CPP_CATCH
+  }
+
   Object* rbx_cast_for_splat_block_arg(STATE, CallFrame* call_frame, Arguments& args) {
     if(args.total() == 1) {
       Object* obj = args.get_argument(0);

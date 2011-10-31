@@ -2027,6 +2027,26 @@ use_send:
       b().CreateCall(func, call_args, call_args+3);
     }
 
+    void visit_set_scope() {
+      std::vector<const Type*> types;
+
+      types.push_back(VMTy);
+      types.push_back(CallFrameTy);
+      types.push_back(ObjType);
+
+      FunctionType* ft = FunctionType::get(ObjType, types, false);
+      Function* func = cast<Function>(
+          module_->getOrInsertFunction("rbx_set_scope", ft));
+
+      Value* call_args[] = {
+        vm_,
+        call_frame_,
+        stack_pop()
+      };
+
+      b().CreateCall(func, call_args, call_args+3);
+    }
+
     Object* current_literal(opcode which) {
       return info().method()->literals()->at(which);
     }

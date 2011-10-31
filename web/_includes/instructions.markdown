@@ -2221,3 +2221,18 @@
 <tr><td></td><td>...</td></tr>
 </tbody>
 </table>
+<h3><a class="instruction" name="set_scope">set_scope()</a></h3>
+
+   Set the scope of the current `CompiledMethod` to the given `StaticScope`
+   on the stack.
+
+
+<table class="stack_effect">
+<thead>
+<tr><th>Before</th><th>After</th></tr>
+</thead>
+<tbody>
+<tr><td>scope</td><td>...</td></tr>
+<tr><td>...</td><td></td></tr>
+</tbody>
+</table>

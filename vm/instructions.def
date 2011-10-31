@@ -2278,3 +2278,14 @@ instruction push_type() [ -- constant ]
   stack_push(G(type));
 end
 
+# [Description]
+#   Set the scope of the current `CompiledMethod` to the given `StaticScope`
+#   on the stack.
+
+instruction set_scope() [ scope -- ]
+  Object* obj = stack_pop();
+  StaticScope* scope = as<StaticScope>(obj);
+  call_frame->cm->scope(state, scope);
+  call_frame->static_scope_ = scope;
+end
+
