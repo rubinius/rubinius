@@ -172,6 +172,10 @@ class Complex < Numeric
     @image = b
   end
 
+  def -@
+    Complex(-real, -imag)
+  end
+
   #
   # Addition with real or complex number.
   #
