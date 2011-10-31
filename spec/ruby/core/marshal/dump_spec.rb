@@ -54,6 +54,14 @@ describe "Marshal.dump" do
     lambda { Marshal.dump(mod)   }.should raise_error(TypeError)
   end
 
+  it "raises a TypeError if an instance has a singleton class" do
+    obj = "test"
+    def obj.test
+    end
+
+    lambda { Marshal.dump(obj) }.should raise_error(TypeError)
+  end
+
   it "raises a TypeError if _dump returns a non-string" do
     lambda { Marshal.dump(MarshalSpec::Bad_Dump.new) }.should raise_error(TypeError)
   end
