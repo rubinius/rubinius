@@ -27,7 +27,7 @@ class ConfigurationVariables
     io.puts "Configuration() :"
     all = @variables.map { |v| v.initializer }.compact
     
-    io.puts all.join",\n"
+    io.puts all.join(",\n")
     io.puts "{"
 
     @variables.each do |v|
