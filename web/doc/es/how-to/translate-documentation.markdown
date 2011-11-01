@@ -1,9 +1,9 @@
 ---
 layout: doc_es
-title: How-To - Translate Documentation
-previous: Write Documentation
+title: Cómo - traducir documentación
+previous: Escribir documentación
 previous_url: how-to/write-documentation
-next: Appendix A - Glossary
+next: Apéndice A - Glosario
 next_url: appendix-a-glossary
 ---
 

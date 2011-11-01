@@ -1,24 +1,25 @@
 ---
 layout: doc_es
-title: How-To - Write a Ruby Spec
-previous: Write a Ticket
+title: Cómo - escribir una especificación en Ruby
+previous: Escribir un ticket
 previous_url: how-to/write-a-ticket
 next: Fix a Failing Spec
 next_url: how-to/fix-a-failing-spec
 translated: true
 ---
 
-Make sure you have read:
+Asegúrese de haber leído:
 
-  *  [Getting Started](/doc/es/getting-started/)
-  *  [Specs](/doc/es/specs/)
+  *  [Primeros pasos](/doc/es/getting-started/)
+  *  [Especificaciones](/doc/es/specs/)
 
-Then, follow these steps to write a spec for a Ruby method:
+A continuación, siga estos pasos para escribir la especificación de 
+un método de Ruby:
 
-  1. Edit a file under `spec/ruby/...`
-  2. Run `bin/mspec -tr spec/ruby/some/spec_file.rb`
-  3. Repeat until the spec passes on MatzRuby
-  4. Commit your changes
+  1. Editar un archivo bajo `spec/ruby/...`
+  2. Ejecute `bin/mspec -tr spec/ruby/some/spec_file.rb`
+  3. Repita hasta que la especificación pase la MatzRuby
+  4. Envice sus cambios
   7. Use `git format-patch`
-  8. Create a gist with your patch and link to it in a ticket on the issue
-     tracker at http://github.com/rubinius/rubinius/issues.
+  8. Crea un gist con su parche y enlace a un billete de incidencia en el
+     tracker en http://github.com/rubinius/rubinius/issues.
