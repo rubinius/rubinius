@@ -7,16 +7,13 @@ next: Aportando a Rubinius
 next_url: contributing
 ---
 
-Los siguientes son errores que usted podría encontrar durante la
-construcción, instalación o ejecución de Rubinius junto con propuestas de
-solución.
+Los siguientes son errores que usted podría encontrar durante la construcción, 
+instalación o ejecución de Rubinius junto con propuestas de solución.
 
-Para cualquier error, un primer paso es asegurarse de que tiene una
-copia actual, limpia de Rubinius. Antes de seguir adelante, considere ejecutar los
-siguientes pasos:
+Para cualquier error, un primer paso es asegurarse de que tiene una copia actual, limpia
+de Rubinius. Antes de seguir adelante, considere ejecutar los siguientes pasos:
 
-
-    $ git co master
+    $ git checkout master
     $ git reset --hard
     $ git pull
     $ rake distclean
@@ -25,8 +22,8 @@ siguientes pasos:
 
 ### Rubinius no puede encontrar el directorio `runtime`
 
-Despues de construir o instalar Rubinius, ocurre el siguiente error al
-intentar ejecutar Rubinius:
+  Después de construir o instalar Rubinius, ocurre el siguiente error al
+  intentar ejecutar Rubinius:
 
     ERROR: unable to find runtime directory
 
@@ -54,13 +51,13 @@ intentar ejecutar Rubinius:
   construcción de Rubinius, vuelva a configurar y a construir.
 
   En general, no cambie el nombre del directorio de instalación
-  despues de la instalación de Rubinius o el nombre del directorio
+  después de la instalación de Rubinius o el nombre del directorio
   fuente de si realizo una construcción para desarrollador.
 
 ### La construcción de Rubinius termina en error de segmentación en FreeBSD
 
-En FreeBSD, incluyendo hasta la version 8.1 estable, existe un
-problema con _execinfo_ que cause un error al iniciar Rubinius.
+  En FreeBSD, incluyendo hasta la versión 8.1 estable, existe un problema con
+  _execinfo_ que cause un error al iniciar Rubinius.
 
 #### Solución
 

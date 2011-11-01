@@ -25,7 +25,7 @@ permite comprobar rapidamente que los cambios hechos al código de
 Rubinius no causan regresiones.
 
 Se puede encontrar más información sobre la organización de las
-especificacioens y guías para escribirlas en [RubySpec](http://rubyspec.org/).
+especificaciones y guías para escribirlas en [RubySpec](http://rubyspec.org/).
 
 Utilice el siguiente flujo para agregar especificaciones y código para Rubinius:
 

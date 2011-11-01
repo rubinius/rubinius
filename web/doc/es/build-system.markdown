@@ -10,10 +10,9 @@ review: true
 
 TODO: Faltan muchos detalles.
 
-Rubinius utiliza Rake como sistema de construcción para sus propios
-archivos. Sin embargo, Rubinius también incluye el código fuente de
-varias bibliotecas externas y éstas utilizan comunmente archivos para
-make.
+Rubinius utiliza Rake como sistema de construcción para sus propios archivos.
+Sin embargo, Rubinius también incluye el código fuente de varias bibliotecas
+externas y éstas utilizan comúnmente archivos para make.
 
 
 ## Construir para desarrollo o para instalación.
