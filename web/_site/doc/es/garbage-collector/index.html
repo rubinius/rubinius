@@ -148,8 +148,27 @@
 
   
 
-    <ol>
-  <li><a href="/doc/es/garbage-collector/nursery/">Guarderia</a></li>
+    <h2 id="introduccin">Introducción</h2>
+
+<p>Rubinius implementa la <a href="http://en.wikipedia.org/wiki/Garbage_collection_&#40;computer_science&#41;#Generational_GC_.28ephemeral_GC.29">Generational Garbage Collector (GC)</a>.
+Rubinus gestiona el GC la asignación dinámica y liberación de memoria de 
+espacio dinámico de un pronceso ejecutandose en un proceso de 
+funcionamiento de Rubinius.</p>
+
+<h2 id="definicin">Definición</h2>
+
+<ol>
+  <li>Nosotros decimos que un objecto <em>vive</em> si hay al menos una estructura
+(variable) en el intérprete que hace referencia al objecto.</li>
+  <li>Cuando el Colector de basura (GC) se ejecuta, este es llamado como una <em>colección</em>.</li>
+  <li>El número de veces que el GC se ejecuta llama al número de <em>ciclos de GC</em>
+o a la <em>colección de GC</em>.</li>
+</ol>
+
+<h2 id="ciclo-de-vida-del-objecto">Ciclo de vida del Objecto</h2>
+
+<ol>
+  <li><a href="/doc/es/garbage-collector/nursery/">Guardería</a></li>
   <li><a href="/doc/es/garbage-collector/young-generation/">Generación Joven</a></li>
   <li><a href="/doc/es/garbage-collector/mature-generation/">Generación Madura</a></li>
   <li><a href="/doc/es/garbage-collector/large-objects/">Objetos grandes</a></li>
