@@ -726,9 +726,9 @@ module Enumerable
   # block is not given, none? will return true only if any of the collection
   # members is true.
   #
-  #    %w{ant bear cat}.none? { |word| word.length == 4}   #=> true
-  #    %w{ant bear cat}.none? { |word| word.length >= 4}   #=> false
-  #    [ nil, true, 99 ].none?                             #=> true
+  #    %w{ant bear cat}.none? { |word| word.length == 4}   #=> false
+  #    %w{ant bear cat}.none? { |word| word.length >= 5}   #=> true
+  #    [ nil, true, 99 ].none?                             #=> false
 
   def none?
     if block_given?
@@ -751,8 +751,8 @@ module Enumerable
   # are true.
   #
   #   %w[ant bear cat].one? { |word| word.length == 4}   #=> true
-  #   %w[ant bear cat].one? { |word| word.length >= 4}   #=> false
-  #   [ nil, true, 99 ].one?                             #=> true
+  #   %w[ant bear cat].one? { |word| word.length >= 5}   #=> false
+  #   [ nil, true, 99 ].one?                             #=> false
 
   def one?
     found_one = false
