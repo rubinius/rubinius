@@ -4,7 +4,7 @@
 
 namespace rubinius {
   void Alias::init(STATE) {
-    GO(alias).set(state->new_class("Alias", G(executable), G(rubinius)));
+    GO(alias).set(state->vm()->new_class("Alias", G(executable), G(rubinius)));
     G(alias)->set_object_type(state, AliasType);
   }
 

@@ -24,7 +24,7 @@
 
 namespace rubinius {
   void Exception::init(STATE) {
-    GO(exception).set(state->new_class("Exception", G(object)));
+    GO(exception).set(state->vm()->new_class("Exception", G(object)));
     G(exception)->set_object_type(state, ExceptionType);
   }
 
@@ -133,12 +133,12 @@ namespace rubinius {
 
     std::ostringstream msg;
 
-    TypeInfo* wanted = state->find_type(type);
+    TypeInfo* wanted = state->vm()->find_type(type);
 
     if(!object->reference_p()) {
       msg << "Tried to use non-reference value " << object;
     } else {
-      TypeInfo* was = state->find_type(object->type_id());
+      TypeInfo* was = state->vm()->find_type(object->type_id());
       msg << "Tried to use object of type " <<
         was->type_name << " (" << was->type << ")";
     }
@@ -207,12 +207,12 @@ namespace rubinius {
   }
 
   void Exception::object_bounds_exceeded_error(STATE, Object* obj, int index) {
-    TypeInfo* info = state->find_type(obj->type_id()); // HACK use object
+    TypeInfo* info = state->vm()->find_type(obj->type_id()); // HACK use object
     std::ostringstream msg;
 
     msg << "Bounds of object exceeded:" << std::endl;
     msg << "      type: " << info->type_name << ", bytes: " <<
-           obj->body_in_bytes(state) << ", accessed: " << index << std::endl;
+           obj->body_in_bytes(state->vm()) << ", accessed: " << index << std::endl;
 
     RubyException::raise(make_exception(state, get_object_bounds_exceeded_error(state),
                                         msg.str().c_str()));

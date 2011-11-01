@@ -23,6 +23,8 @@ namespace rubinius {
     std::list<CompiledMethod*>& inliners() {
       return inliners_;
     }
+
+    void cleanup(State* state, CodeManager* cm) { }
   };
 
   class Executable : public Object {

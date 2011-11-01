@@ -21,13 +21,13 @@ namespace rubinius {
   /* Register the List and List::Node classes as globals */
   void List::init(STATE) {
     Class* cls;
-    cls = state->new_class_under("List", G(rubinius));
+    cls = state->vm()->new_class_under("List", G(rubinius));
 
     GO(list).set(cls);
     cls->set_object_type(state, ListType);
     G(list)->name(state, state->symbol("Rubinius::List"));
 
-    GO(list_node).set(state->new_class("Node", G(object), cls));
+    GO(list_node).set(state->vm()->new_class("Node", G(object), cls));
 
     G(list_node)->set_object_type(state, ListNodeType);
   }

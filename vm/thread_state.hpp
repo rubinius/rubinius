@@ -19,7 +19,7 @@ namespace rubinius {
     TypedRoot<VariableScope*> destination_scope_;
 
   public:
-    ThreadState(VM* vm);
+    ThreadState(VM* state);
 
     Exception* current_exception() {
       return current_exception_.get();

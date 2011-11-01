@@ -35,6 +35,20 @@ namespace rubinius {
     set(obj, &state->globals().roots);
   }
 
+  Root::Root(VM* vm)
+    : LinkedList::Node()
+    , roots_(&vm->globals().roots)
+    , object_(Qundef)
+  {}
+
+  Root::Root(VM* vm, Object* obj)
+    : LinkedList::Node()
+    , roots_(NULL)
+    , object_(Qundef)
+  {
+    set(obj, &vm->globals().roots);
+  }
+
   void Root::set(Object* obj, Roots* r) {
     // Still in the same set, no problem, just repoint
     // object.

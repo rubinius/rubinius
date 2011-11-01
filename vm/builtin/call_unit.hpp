@@ -15,7 +15,7 @@ namespace rubinius {
       eKindOf
     };
 
-    typedef Object* (*Execute)(VM*, CallFrame*, CallUnit* unit,
+    typedef Object* (*Execute)(State*, CallFrame*, CallUnit* unit,
                                Executable* exec, Module* mod, Arguments& args);
 
   private:

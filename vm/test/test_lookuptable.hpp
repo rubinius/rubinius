@@ -20,7 +20,7 @@ public:
   }
 
   void test_allocate() {
-    Class* sub = state->new_class("LookupTableSub", G(lookuptable), 0);
+    Class* sub = state->vm()->new_class("LookupTableSub", G(lookuptable), 0);
     LookupTable* tbl = LookupTable::allocate(state, sub);
 
     TS_ASSERT_EQUALS(tbl->klass(), sub);

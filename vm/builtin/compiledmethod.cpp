@@ -38,7 +38,7 @@
 namespace rubinius {
 
   void CompiledMethod::init(STATE) {
-    GO(cmethod).set(state->new_class("CompiledMethod", G(executable), G(rubinius)));
+    GO(cmethod).set(state->vm()->new_class("CompiledMethod", G(executable), G(rubinius)));
     G(cmethod)->set_object_type(state, CompiledMethodType);
     G(cmethod)->name(state, state->symbol("Rubinius::CompiledMethod"));
   }
@@ -166,7 +166,7 @@ namespace rubinius {
   Object* CompiledMethod::default_executor(STATE, CallFrame* call_frame,
                           Executable* exec, Module* mod, Arguments& args)
   {
-    LockableScopedLock lg(state, &state->shared, __FILE__, __LINE__);
+    LockableScopedLock lg(state, &state->vm()->shared, __FILE__, __LINE__);
 
     CompiledMethod* cm = as<CompiledMethod>(exec);
     if(cm->execute == default_executor) {

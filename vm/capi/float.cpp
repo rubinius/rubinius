@@ -35,7 +35,7 @@ namespace rubinius {
 
         flush_ = flush_cached_rfloat;
 
-        env->state()->shared.make_handle_cached(env->state(), this);
+        env->state()->vm()->shared.make_handle_cached(env->state(), this);
       }
 
       return as_.rfloat;

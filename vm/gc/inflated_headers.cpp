@@ -1,7 +1,7 @@
-#include "gc/inflated_headers.hpp"
 #include "oop.hpp"
 #include "vm.hpp"
 #include "objectmemory.hpp"
+#include "gc/inflated_headers.hpp"
 
 #include <iostream>
 

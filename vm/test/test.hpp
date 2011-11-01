@@ -15,20 +15,22 @@ using namespace rubinius;
 class VMTest {
 public:
   SharedState* shared;
-  VM* state;
+  State* state;
   ConfigParser* config_parser;
   Configuration config;
 
   void create() {
     config_parser = new ConfigParser;
     shared = new SharedState(0, config, *config_parser);
-    state = shared->new_vm();
-    state->initialize_as_root();
+    VM* vm = shared->new_vm();
+    vm->initialize_as_root();
+    state = new State(vm);
   }
 
   void destroy() {
-    VM::discard(state, state);
+    VM::discard(state, state->vm());
     SharedState::discard(shared);
+    delete state;
   }
 
   void setUp() {

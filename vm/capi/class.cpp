@@ -59,7 +59,7 @@ extern "C" {
   VALUE rb_path2class(const char* name) {
     NativeMethodEnvironment* env = NativeMethodEnvironment::get();
 
-    Module* mod = env->state()->shared.globals.object.get();
+    Module* mod = env->state()->vm()->shared.globals.object.get();
 
     char* base = strdup(name);
     char* str = base;

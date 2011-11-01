@@ -18,7 +18,7 @@ namespace jit {
     runtime_data_.clear();
   }
 
-  void RuntimeDataHolder::cleanup(STATE, CodeManager* cm) {
+  void RuntimeDataHolder::cleanup(State* state, CodeManager* cm) {
     LLVMState* ls = cm->shared()->llvm_state;
     assert(ls);
 

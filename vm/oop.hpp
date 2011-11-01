@@ -408,7 +408,7 @@ const int cUndef = 0x22L;
     void copy_body(VM* state, Object* other);
 
     /* Used to make an exact state copy of +this+ into +other* */
-    void initialize_full_state(STATE, Object* other, unsigned int age);
+    void initialize_full_state(VM* vm, Object* other, unsigned int age);
 
     /* Clear the body of the object, by setting each field to Qnil */
     void clear_fields(size_t bytes);
@@ -451,15 +451,15 @@ const int cUndef = 0x22L;
 
     /* It's the slow case, should be called only if there's no cached
      * instance size. */
-    size_t slow_size_in_bytes(STATE) const;
+    size_t slow_size_in_bytes(VM* vm) const;
 
     /* The whole point of this is inlining */
-    size_t size_in_bytes(STATE) const {
+    size_t size_in_bytes(VM* vm) const {
       register size_t size = TypeInfo::instance_sizes[type_id()];
       if(size != 0) {
         return size;
       } else {
-        return slow_size_in_bytes(state);
+        return slow_size_in_bytes(vm);
       }
     }
 

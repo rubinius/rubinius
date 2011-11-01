@@ -9,7 +9,7 @@ namespace rubinius {
   }
 
   void Autoload::init(STATE) {
-    GO(autoload).set(state->new_class("Autoload"));
+    GO(autoload).set(state->vm()->new_class("Autoload"));
     G(autoload)->set_object_type(state, AutoloadType);
   }
 

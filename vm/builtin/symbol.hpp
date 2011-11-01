@@ -42,6 +42,7 @@ namespace rubinius {
 
     // Return a representation to be used when debugging
     std::string debug_str(STATE);
+    std::string debug_str(SharedState& shared);
 
     // Rubinius.primitive :symbol_all_symbols
     static Array* all_symbols(STATE);

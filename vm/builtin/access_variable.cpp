@@ -16,7 +16,7 @@ namespace rubinius {
 
   void AccessVariable::init(STATE) {
     // HACK test superclass of AccessVariable
-    GO(access_variable).set(state->new_class("AccessVariable", G(executable), G(rubinius)));
+    GO(access_variable).set(state->vm()->new_class("AccessVariable", G(executable), G(rubinius)));
     G(access_variable)->set_object_type(state, AccessVariableType);
     G(access_variable)->name(state, state->symbol("Rubinius::AccessVariable"));
   }
@@ -91,7 +91,7 @@ namespace rubinius {
 
       if(self->reference_p()) {
         // Promote this to use a direct accessor
-        if(TypeInfo* ti = state->om->find_type_info(self)) {
+        if(TypeInfo* ti = state->vm()->om->find_type_info(self)) {
           TypeInfo::Slots::iterator it = ti->slots.find(access->name()->index());
           if(it != ti->slots.end()) {
             // Found one!
@@ -117,7 +117,7 @@ namespace rubinius {
 
     if(self->reference_p()) {
       // Promote this to use a direct accessor
-      if(TypeInfo* ti = state->om->find_type_info(self)) {
+      if(TypeInfo* ti = state->vm()->om->find_type_info(self)) {
         TypeInfo::Slots::iterator it = ti->slots.find(access->name()->index());
         if(it != ti->slots.end()) {
           // Found one!

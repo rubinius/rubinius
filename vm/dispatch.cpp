@@ -23,7 +23,7 @@ namespace rubinius {
     Symbol* original_name = name;
 
     if(!GlobalCache::resolve(state, name, *this, lookup)) {
-      state->set_method_missing_reason(reason);
+      state->vm()->set_method_missing_reason(reason);
 
       method_missing = true;
       lookup.priv = true;

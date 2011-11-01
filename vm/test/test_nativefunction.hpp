@@ -4,7 +4,7 @@
 #include "builtin/ffi_pointer.hpp"
 #include "ffi.hpp"
 
-VM *global_state;
+State *global_state;
 
 extern "C" {
 

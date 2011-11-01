@@ -28,21 +28,23 @@ namespace rubinius {
 
 namespace rbxti {
   class EnvPrivate {
-    VM* state_;
+    State state_obj_;
+    State* state_;
     void* tool_data[rubinius::tooling::cTotalToolDatas];
     rubinius::tooling::ToolBroker* broker_;
 
   public:
-    EnvPrivate(STATE)
-      : state_(state)
-      , broker_(state->shared.tool_broker())
+    EnvPrivate(VM* vm)
+      : state_obj_(vm)
+      , state_(&state_obj_)
+      , broker_(vm->shared.tool_broker())
     {
       for(int i = 0; i < rubinius::tooling::cTotalToolDatas; i++) {
         tool_data[i] = 0;
       }
     }
 
-    VM* state() { return state_; }
+    State* state() { return state_; }
 
     void* get_tool_data(int i) {
       return tool_data[i];
@@ -58,7 +60,7 @@ namespace rbxti {
   };
 
   long Env::config_get_int(const char* name) {
-    config::ConfigItem* item = private_->state()->shared.config.find(name);
+    config::ConfigItem* item = private_->state()->vm()->shared.config.find(name);
     if(config::Integer* cint = dynamic_cast<config::Integer*>(item)) {
       return cint->value;
     }
@@ -66,9 +68,9 @@ namespace rbxti {
   }
 
   void Env::config_set(const char* name, const char* val) {
-    if(private_->state()->shared.config.import(name, val)) return;
+    if(private_->state()->vm()->shared.config.import(name, val)) return;
 
-    private_->state()->shared.user_variables.set(name, val);
+    private_->state()->vm()->shared.user_variables.set(name, val);
   }
 
   rsymbol Env::cast_to_rsymbol(robject obj) {
@@ -148,15 +150,15 @@ namespace rbxti {
   }
 
   void Env::enable_thread_tooling() {
-    private_->state()->enable_tooling();
+    private_->state()->vm()->enable_tooling();
   }
 
   void Env::disable_thread_tooling() {
-    private_->state()->disable_tooling();
+    private_->state()->vm()->disable_tooling();
   }
 
   int Env::current_thread_id() {
-    return private_->state()->thread_id();
+    return private_->state()->vm()->thread_id();
   }
 
   rinteger Env::integer_new(r_mint val) {
@@ -334,7 +336,7 @@ namespace rbxti {
     private_->global()->set_tool_thread_stop(func);
   }
 
-  Env* create_env(STATE) {
+  Env* create_env(VM* state) {
     Env* env = new Env;
     env->private_ = new EnvPrivate(state);
 

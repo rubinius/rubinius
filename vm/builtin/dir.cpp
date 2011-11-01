@@ -15,7 +15,7 @@
 
 namespace rubinius {
   void Dir::init(STATE) {
-    GO(dir).set(state->new_class("Dir", G(object)));
+    GO(dir).set(state->vm()->new_class("Dir", G(object)));
     G(dir)->set_object_type(state, DirType);
   }
 
@@ -23,7 +23,7 @@ namespace rubinius {
     Dir* d = state->new_object<Dir>(G(dir));
     d->os_ = 0;
 
-    state->om->needs_finalization(d, (FinalizerFunction)&Dir::finalize);
+    state->vm()->om->needs_finalization(d, (FinalizerFunction)&Dir::finalize);
 
     return d;
   }

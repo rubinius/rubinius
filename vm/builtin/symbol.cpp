@@ -16,7 +16,7 @@
 
 namespace rubinius {
   void Symbol::init(STATE) {
-    GO(symbol).set(state->new_class("Symbol"));
+    GO(symbol).set(state->vm()->new_class("Symbol"));
     G(symbol)->set_object_type(state, Symbol::type);
   }
 
@@ -33,31 +33,35 @@ namespace rubinius {
   }
 
   String* Symbol::to_str(STATE) {
-    return state->shared.symbols.lookup_string(state, this);
+    return state->vm()->shared.symbols.lookup_string(state, this);
   }
 
   std::string& Symbol::cpp_str(STATE) {
-    return state->shared.symbols.lookup_cppstring(this);
+    return state->vm()->shared.symbols.lookup_cppstring(this);
+  }
+
+  std::string Symbol::debug_str(SharedState& shared) {
+    return shared.symbols.lookup_debug_string(this);
   }
 
   std::string Symbol::debug_str(STATE) {
-    return state->shared.symbols.lookup_debug_string(this);
+    return debug_str(state->vm()->shared);
   }
 
   Array* Symbol::all_symbols(STATE) {
-    return state->shared.symbols.all_as_array(state);
+    return state->vm()->shared.symbols.all_as_array(state);
   }
 
   Object* Symbol::is_ivar_p(STATE) {
-    return state->shared.symbols.kind(state, this) == SymbolTable::IVar ? Qtrue : Qfalse;
+    return state->vm()->shared.symbols.kind(state, this) == SymbolTable::IVar ? Qtrue : Qfalse;
   }
 
   Object* Symbol::is_cvar_p(STATE) {
-    return state->shared.symbols.kind(state, this) == SymbolTable::CVar ? Qtrue : Qfalse;
+    return state->vm()->shared.symbols.kind(state, this) == SymbolTable::CVar ? Qtrue : Qfalse;
   }
 
   Object* Symbol::is_constant_p(STATE) {
-    return state->shared.symbols.kind(state, this) == SymbolTable::Constant ? Qtrue : Qfalse;
+    return state->vm()->shared.symbols.kind(state, this) == SymbolTable::Constant ? Qtrue : Qfalse;
   }
 
   void Symbol::Info::show(STATE, Object* self, int level) {

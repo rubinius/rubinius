@@ -35,7 +35,7 @@ public:
   }
 
   void test_allocate() {
-    Class* sub = state->new_class("RegexpSub", G(regexp), 0);
+    Class* sub = state->vm()->new_class("RegexpSub", G(regexp), 0);
     Regexp* re = Regexp::allocate(state, sub);
 
     TS_ASSERT_EQUALS(re->klass(), sub);

@@ -35,6 +35,7 @@ namespace rubinius {
   class ObjectMemory;
   class GlobalCache;
   class ConfigParser;
+  class State;
   class VM;
   class Configuration;
   class LLVMState;
@@ -158,8 +159,8 @@ namespace rubinius {
       return global_handles_;
     }
 
-    void add_global_handle(VM*, capi::Handle* handle);
-    void make_handle_cached(VM*, capi::Handle* handle);
+    void add_global_handle(State*, capi::Handle* handle);
+    void make_handle_cached(State*, capi::Handle* handle);
 
     capi::Handles* cached_handles() {
       return cached_handles_;
@@ -181,7 +182,7 @@ namespace rubinius {
       return global_serial_;
     }
 
-    int inc_global_serial(THREAD) {
+    int inc_global_serial(STATE) {
       SYNC(state);
       return ++global_serial_;
     }
@@ -196,12 +197,12 @@ namespace rubinius {
       return ic_registry_;
     }
 
-    unsigned int inc_class_count(THREAD) {
+    unsigned int inc_class_count(STATE) {
       SYNC(state);
       return ++class_count_;
     }
 
-    uint64_t inc_method_count(THREAD) {
+    uint64_t inc_method_count(STATE) {
       SYNC(state);
       return ++method_count_;
     }
@@ -265,7 +266,13 @@ namespace rubinius {
     void stop_the_world(THREAD);
     void restart_world(THREAD);
 
+    void stop_threads_externally();
+    void restart_threads_externally();
+
     bool checkpoint(THREAD);
+    void gc_dependent(STATE);
+    void gc_independent(STATE);
+
     void gc_dependent(THREAD);
     void gc_independent(THREAD);
 

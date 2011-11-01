@@ -15,7 +15,7 @@
 namespace rubinius {
 
   void Fixnum::init(STATE) {
-    GO(fixnum_class).set(state->new_class("Fixnum", G(integer)));
+    GO(fixnum_class).set(state->vm()->new_class("Fixnum", G(integer)));
     G(fixnum_class)->set_object_type(state, FixnumType);
 
     G(fixnum_class)->set_const(state, "MIN", Fixnum::from(FIXNUM_MIN));

@@ -6,7 +6,7 @@
 
 namespace rubinius {
   void WeakRef::init(STATE) {
-    GO(cls_weakref).set(state->new_class("WeakRef", G(object)));
+    GO(cls_weakref).set(state->vm()->new_class("WeakRef", G(object)));
      G(cls_weakref)->set_object_type(state, WeakRefType);
   }
 

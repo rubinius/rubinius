@@ -67,7 +67,7 @@ namespace rubinius {
    *
    * @returns the new location of +orig+.
    */
-  Object* Heap::move_object(STATE, Object* orig) {
+  Object* Heap::move_object(VM* state, Object* orig) {
     size_t bytes = orig->size_in_bytes(state);
     Object* tmp = allocate(bytes).as<Object>();
 

@@ -22,7 +22,7 @@
 namespace rubinius {
 
   void Float::init(STATE) {
-    GO(floatpoint).set(state->new_class("Float", G(numeric)));
+    GO(floatpoint).set(state->vm()->new_class("Float", G(numeric)));
     G(floatpoint)->set_object_type(state, FloatType);
 
     G(floatpoint)->set_const(state, "RADIX",      Fixnum::from(FLT_RADIX));
@@ -40,7 +40,7 @@ namespace rubinius {
   }
 
   Float* Float::create(STATE, double val) {
-    Float* flt = state->new_struct<Float>(G(floatpoint));
+    Float* flt = state->vm()->new_struct<Float>(G(floatpoint));
     flt->val = val;
     return flt;
   }

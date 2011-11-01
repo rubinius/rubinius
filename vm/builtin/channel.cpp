@@ -24,13 +24,13 @@
 namespace rubinius {
 
   void Channel::init(STATE) {
-    GO(channel).set(state->new_class("Channel", G(object), G(rubinius)));
+    GO(channel).set(state->vm()->new_class("Channel", G(object), G(rubinius)));
     G(channel)->set_object_type(state, Channel::type);
     G(channel)->name(state, state->symbol("Rubinius::Channel"));
   }
 
   Channel* Channel::create(STATE) {
-    Channel* chan = state->new_object_mature<Channel>(G(channel));
+    Channel* chan = state->vm()->new_object_mature<Channel>(G(channel));
     chan->waiters_ = 0;
     chan->semaphore_count_ = 0;
 
@@ -44,7 +44,7 @@ namespace rubinius {
   }
 
   Channel* Channel::create_primed(STATE) {
-    Channel* chan = state->new_object_mature<Channel>(G(channel));
+    Channel* chan = state->vm()->new_object_mature<Channel>(G(channel));
     chan->waiters_ = 0;
     chan->semaphore_count_ = 1;
 
@@ -163,7 +163,7 @@ namespace rubinius {
 
     self->waiters_++;
 
-    state->wait_on_channel(self);
+    state->vm()->wait_on_channel(self);
 
     for(;;) {
       {
@@ -180,8 +180,8 @@ namespace rubinius {
       if(self->semaphore_count_ > 0 || !self->value()->empty_p()) break;
     }
 
-    state->clear_waiter();
-    state->thread->sleep(state, Qfalse);
+    state->vm()->clear_waiter();
+    state->vm()->thread->sleep(state, Qfalse);
 
     self->unpin();
     self->waiters_--;

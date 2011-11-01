@@ -14,7 +14,7 @@
 
 namespace rubinius {
   void Location::init(STATE) {
-    GO(location).set(state->new_class("Location", G(object), G(rubinius)));
+    GO(location).set(state->vm()->new_class("Location", G(object), G(rubinius)));
     G(location)->set_object_type(state, LocationType);
     G(location)->name(state, state->symbol("Rubinius::Location"));
   }

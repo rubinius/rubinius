@@ -47,7 +47,7 @@ namespace rubinius {
   public:
     const static object_type type = ThreadType;
 
-    static void   init(VM* state);
+    static void   init(State* state);
 
   public:
     attr_accessor(alive, Object);

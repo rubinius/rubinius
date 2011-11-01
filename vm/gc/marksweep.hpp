@@ -56,7 +56,7 @@ namespace rubinius {
     void   collect(Roots &roots, CallFrameLocationList& call_frame);
     void after_marked();
 
-    void profile();
+    void profile(STATE);
 
     ObjectPosition validate_object(Object* obj);
   };

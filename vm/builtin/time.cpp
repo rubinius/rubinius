@@ -21,7 +21,7 @@
 
 namespace rubinius {
   void Time::init(STATE) {
-    GO(time_class).set(state->new_class("Time", G(object)));
+    GO(time_class).set(state->vm()->new_class("Time", G(object)));
     G(time_class)->set_object_type(state, TimeType);
   }
 

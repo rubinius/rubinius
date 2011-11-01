@@ -85,6 +85,8 @@ namespace rubinius {
 
     freed_resources_ = 0;
 
+    State state(shared_->root_vm());
+
     while(chunk) {
       for(int i = 0; i < chunk_size_; i++) {
         if(CodeResource* cr = chunk->resources[i]) {
@@ -93,7 +95,7 @@ namespace rubinius {
             bytes_used_ -= cr->size();
 
             freed_resources_++;
-            cr->cleanup(shared_->root_vm(), this);
+            cr->cleanup(&state, this);
             delete cr;
             chunk->resources[i] = 0;
           } else {

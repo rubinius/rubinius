@@ -193,7 +193,7 @@ namespace rubinius {
   }
 
   void Bignum::init(STATE) {
-    GO(bignum).set(state->new_class("Bignum", G(integer)));
+    GO(bignum).set(state->vm()->new_class("Bignum", G(integer)));
     G(bignum)->set_object_type(state, BignumType);
   }
 
@@ -220,7 +220,7 @@ namespace rubinius {
   }
 
   Bignum* Bignum::create(STATE) {
-    Bignum* o = state->new_struct<Bignum>(G(bignum));
+    Bignum* o = state->vm()->new_struct<Bignum>(G(bignum));
     mp_init_managed(state, o->mp_val());
     return o;
   }
@@ -1268,7 +1268,7 @@ namespace rubinius {
 
   extern "C" void* MANAGED_REALLOC_MPINT(void* s, mp_int* a, size_t bytes) {
     assert(s);
-    VM* state = reinterpret_cast<VM*>(s);
+    State* state = reinterpret_cast<State*>(s);
 
     ByteArray* storage = ByteArray::create(state, bytes);
     a->managed = reinterpret_cast<void*>(storage);

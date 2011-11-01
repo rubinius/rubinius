@@ -40,7 +40,7 @@
 namespace rubinius {
 
   void BlockEnvironment::init(STATE) {
-    GO(blokenv).set(state->new_class("BlockEnvironment", G(object),
+    GO(blokenv).set(state->vm()->new_class("BlockEnvironment", G(object),
                                      G(rubinius)));
     G(blokenv)->set_object_type(state, BlockEnvironmentType);
     G(blokenv)->name(state, state->symbol("Rubinius::BlockEnvironment"));
@@ -267,7 +267,7 @@ namespace rubinius {
 
 #ifdef ENABLE_LLVM
     if(vmm->call_count >= 0) {
-      if(vmm->call_count >= state->shared.config.jit_call_til_compile) {
+      if(vmm->call_count >= state->vm()->shared.config.jit_call_til_compile) {
         LLVMState* ls = LLVMState::get(state);
 
         ls->compile_soon(state, env->code(), env, true);
@@ -322,19 +322,19 @@ namespace rubinius {
       if(!state->check_interrupts(gct, frame, frame)) return NULL;
     }
 
-    if(unlikely(state->interrupts.check)) {
-      state->interrupts.checked();
-      if(state->interrupts.perform_gc) {
-        state->interrupts.perform_gc = false;
-        state->collect_maybe(gct, frame);
+    if(unlikely(state->vm()->interrupts.check)) {
+      state->vm()->interrupts.checked();
+      if(state->vm()->interrupts.perform_gc) {
+        state->vm()->interrupts.perform_gc = false;
+        state->vm()->collect_maybe(gct, frame);
       }
     }
 
     state->set_call_frame(frame);
-    state->shared.checkpoint(state);
+    state->checkpoint();
 
 #ifdef RBX_PROFILER
-    if(unlikely(state->tooling())) {
+    if(unlikely(state->vm()->tooling())) {
       Module* mod = scope->module();
       if(SingletonClass* sc = try_as<SingletonClass>(mod)) {
         if(Module* ma = try_as<Module>(sc->attached_instance())) {

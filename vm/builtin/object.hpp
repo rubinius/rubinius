@@ -103,6 +103,9 @@ namespace rubinius {
     void        write_barrier(STATE, void* obj);
     void        inline_write_barrier_passed(STATE, void* obj);
 
+    void        write_barrier(VM*, void* obj);
+    void        inline_write_barrier_passed(VM*, void* obj);
+
     /** Special-case write_barrier() for Fixnums. */
     void        write_barrier(STATE, Fixnum* obj);
     /** Special-case write_barrier() for Symbols. */
@@ -430,10 +433,19 @@ namespace rubinius {
   inline void Object::write_barrier(STATE, void* ptr) {
     Object* obj = reinterpret_cast<Object*>(ptr);
     if(!REFERENCE_P(obj) ||
-        state->young_object_p(this) ||
-        !state->young_object_p(obj)) return;
+        state->vm()->young_object_p(this) ||
+        !state->vm()->young_object_p(obj)) return;
 
     inline_write_barrier_passed(state, ptr);
+  }
+
+  inline void Object::write_barrier(VM* vm, void* ptr) {
+    Object* obj = reinterpret_cast<Object*>(ptr);
+    if(!REFERENCE_P(obj) ||
+         vm->young_object_p(this) ||
+        !vm->young_object_p(obj)) return;
+
+    inline_write_barrier_passed(vm, ptr);
   }
 
   // Used in filtering APIs

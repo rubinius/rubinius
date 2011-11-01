@@ -7,12 +7,12 @@
 #include "builtin/exception.hpp"
 
 namespace rubinius {
-  ThreadState::ThreadState(VM* vm)
-    : current_exception_(vm, nil<Exception>())
-    , raise_value_(vm, Qnil)
-    , throw_dest_(vm, Qnil)
+  ThreadState::ThreadState(VM* state)
+    : current_exception_(state, nil<Exception>())
+    , raise_value_(state, Qnil)
+    , throw_dest_(state, Qnil)
     , raise_reason_(cNone)
-    , destination_scope_(vm, nil<VariableScope>())
+    , destination_scope_(state, nil<VariableScope>())
   {}
 
   Object* ThreadState::state_as_object(STATE) {

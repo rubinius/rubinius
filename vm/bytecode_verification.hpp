@@ -6,6 +6,7 @@
 
 namespace rubinius {
   class CompiledMethod;
+  class State;
   class VM;
   class Tuple;
 
@@ -43,8 +44,8 @@ namespace rubinius {
     BytecodeVerification(CompiledMethod* cm);
     ~BytecodeVerification();
 
-    bool verify(VM* state);
-    bool verify_from(VM* state, int sp, int ip, std::list<Section>& ips);
+    bool verify(STATE);
+    bool verify_from(STATE, int sp, int ip, std::list<Section>& ips);
 
     const char* failure_reason() { return fail_reason_; }
     int failure_ip() { return fail_ip_; }

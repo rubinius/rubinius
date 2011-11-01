@@ -153,7 +153,7 @@ namespace rubinius {
         flush_ = flush_cached_rarray;
         update_ = update_cached_rarray;
 
-        env->state()->shared.make_handle_cached(env->state(), this);
+        env->state()->vm()->shared.make_handle_cached(env->state(), this);
       }
 
       return as_.rarray;

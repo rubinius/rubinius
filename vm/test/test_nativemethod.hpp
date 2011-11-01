@@ -33,7 +33,6 @@ class TestNativeMethod : public CxxTest::TestSuite, public VMTest {
 
     nme->set_current_call_frame(cf);
     nme->set_current_native_frame(nmf);
-    nme->set_state(state);
 
     return nme;
   }

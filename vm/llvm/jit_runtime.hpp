@@ -108,7 +108,7 @@ namespace rubinius {
 
       ~RuntimeDataHolder();
 
-      virtual void cleanup(VM* vm, CodeManager* cm);
+      virtual void cleanup(State* vm, CodeManager* cm);
 
       virtual const char* kind() {
         return "jit-runtime";

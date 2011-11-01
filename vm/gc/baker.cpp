@@ -370,7 +370,8 @@ namespace rubinius {
           if(!i->object->forwarded_p()) {
             // Run C finalizers now rather that queue them.
             if(i->finalizer) {
-              (*i->finalizer)(state(), i->object);
+              State state_obj(state());
+              (*i->finalizer)(&state_obj, i->object);
               i->status = FinalizeObject::eFinalized;
               remove = true;
             } else {

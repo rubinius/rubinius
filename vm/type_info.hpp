@@ -83,9 +83,7 @@ namespace rubinius {
 
   public:   /* Interface */
 
-    void set_state(STATE) {
-      state_ = state;
-    }
+    void set_state(STATE);
 
     VM* state() {
       return state_;

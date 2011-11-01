@@ -24,7 +24,7 @@
 
 namespace rubinius {
 
-  GCData::GCData(STATE)
+  GCData::GCData(VM* state)
     : roots_(state->globals().roots)
     , handles_(state->shared.global_handles())
     , cached_handles_(state->shared.cached_handles())
@@ -34,7 +34,7 @@ namespace rubinius {
     , gc_token_(0)
   {}
 
-  GCData::GCData(STATE, GCToken gct)
+  GCData::GCData(VM* state, GCToken gct)
     : roots_(state->globals().roots)
     , handles_(state->shared.global_handles())
     , cached_handles_(state->shared.cached_handles())

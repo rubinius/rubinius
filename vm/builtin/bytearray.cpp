@@ -17,7 +17,7 @@
 namespace rubinius {
 
   void ByteArray::init(STATE) {
-    GO(bytearray).set(state->new_class_under("ByteArray", G(rubinius)));
+    GO(bytearray).set(state->vm()->new_class_under("ByteArray", G(rubinius)));
     G(bytearray)->set_object_type(state, ByteArrayType);
     G(bytearray)->name(state, state->symbol("Rubinius::ByteArray"));
   }
@@ -26,7 +26,7 @@ namespace rubinius {
     assert(bytes >= 0 && bytes < INT32_MAX);
 
     size_t body = bytes;
-    ByteArray* ba = state->new_object_bytes<ByteArray>(G(bytearray), body);
+    ByteArray* ba = state->vm()->new_object_bytes<ByteArray>(G(bytearray), body);
 
     if(unlikely(!ba)) {
       Exception::memory_error(state);
@@ -41,7 +41,7 @@ namespace rubinius {
     assert(bytes >= 0 && bytes < INT32_MAX);
 
     size_t body = bytes;
-    ByteArray* ba = state->om->new_object_bytes_mature<ByteArray>(state, G(bytearray), body);
+    ByteArray* ba = state->vm()->om->new_object_bytes_mature<ByteArray>(state, G(bytearray), body);
     if(unlikely(!ba)) {
       Exception::memory_error(state);
     }
