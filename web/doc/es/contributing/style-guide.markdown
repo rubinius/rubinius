@@ -1,6 +1,6 @@
 ---
 layout: doc_es
-title: Gúia de estilo
+title: Guía de estilo
 previous: Comunicación
 previous_url: contributing/communication
 next: Ruby

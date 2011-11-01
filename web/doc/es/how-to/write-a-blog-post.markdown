@@ -1,6 +1,6 @@
 ---
 layout: doc_es
-title: How-To - Write a Blog Post
+title: Cómo - escribir un post en el Blog
 previous: Fix a Failing Spec
 previous_url: how-to/fix-a-failing-spec
 next: Write Documentation
@@ -12,11 +12,11 @@ El blog Rubinius utiliza Jekyll y está integrado con el sitio web y
 documentación. Animamos y apreciar los mensajes de evaluación sobre su blog
 experiencias en el uso o el desarrollo de Rubinius.
 
-Para empezar, asegúrese de tener la `kramdown` y `jekyll` gemas instalado.
+Para empezar, asegúrese de tener las gemas `kramdown` y `jekyll` instaladas.
 
      rbx gem install kramdown jekyll
 
-El formato preferido para los puestos blog es Markdown. Sin embargo, si usted
+El formato preferido para los post en el blog es Markdown. Sin embargo, si usted
 tiene especial necesidades del formato, el mensaje puede estar escrito en HTML
 directamente.
 
