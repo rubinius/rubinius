@@ -124,32 +124,26 @@ class Complex < Numeric
   #
   # Addition with real or complex number.
   #
-  def + (other)
+  def +(other)
     if other.kind_of?(Complex)
-      re = @real + other.real
-      im = @imag + other.imag
-      Complex(re, im)
-    elsif Complex.generic?(other)
-      Complex(@real + other, @imag)
+      Complex(real + other.real, imag + other.imag)
+    elsif other.kind_of?(Numeric) && other.real?
+      Complex(real + other, imag)
     else
-      x , y = other.coerce(self)
-      x + y
+      redo_coerced(:+, other)
     end
   end
 
   #
   # Subtraction with real or complex number.
   #
-  def - (other)
+  def -(other)
     if other.kind_of?(Complex)
-      re = @real - other.real
-      im = @imag - other.imag
-      Complex(re, im)
-    elsif Complex.generic?(other)
-      Complex(@real - other, @imag)
+      Complex(real - other.real, imag - other.imag)
+    elsif other.kind_of?(Numeric) && other.real?
+      Complex(real - other, imag)
     else
-      x , y = other.coerce(self)
-      x - y
+      redo_coerced(:-, other)
     end
   end
 
