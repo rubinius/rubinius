@@ -5,10 +5,11 @@
 extern "C" {
 #endif
 
+#include "ruby.h"
+
 #ifdef HAVE_RUBY_ENCODING_H
 #include "ruby/encoding.h"
 #else
-#include "ruby.h"
 
 #include <ctype.h>
 
