@@ -599,7 +599,7 @@ namespace rubinius {
       Exception* exc = Exception::make_argument_error(
           state, arity, args.total(), args.name());
       exc->locations(state, Location::from_call_stack(state, call_frame));
-      state->vm()->thread_state()->raise_exception(exc);
+      state->raise_exception(exc);
 
       return NULL;
     }

@@ -87,7 +87,7 @@ namespace rubinius {
       Exception* exc =
         Exception::make_type_error(state, type_id(), other);
       exc->locations(state, Location::from_call_stack(state, call_frame));
-      state->vm()->thread_state()->raise_exception(exc);
+      state->raise_exception(exc);
       return NULL;
     }
 

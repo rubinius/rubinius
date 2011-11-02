@@ -770,7 +770,7 @@ namespace rubinius {
                                      message.str().c_str());
         // exc->locations(state, System::vm_backtrace(state,
         //                Fixnum::from(0), call_frame));
-        state->vm()->thread_state()->raise_exception(exc);
+        state->raise_exception(exc);
         return NULL;
       }
 
@@ -997,7 +997,7 @@ namespace rubinius {
   }
 
   Object* System::vm_raise_exception(STATE, Exception* exc) {
-    state->vm()->thread_state()->raise_exception(exc);
+    state->raise_exception(exc);
     return NULL;
   }
 
@@ -1291,7 +1291,7 @@ namespace rubinius {
         assert(!exc->nil_p());
         state->vm()->clear_interrupted_exception();
         exc->locations(state, Location::from_call_stack(state, call_frame));
-        state->vm()->thread_state()->raise_exception(exc);
+        state->raise_exception(exc);
         return 0;
       }
     }
@@ -1319,7 +1319,7 @@ namespace rubinius {
         assert(!exc->nil_p());
         state->vm()->clear_interrupted_exception();
         exc->locations(state, Location::from_call_stack(state, call_frame));
-        state->vm()->thread_state()->raise_exception(exc);
+        state->raise_exception(exc);
         return 0;
       }
       return 0;

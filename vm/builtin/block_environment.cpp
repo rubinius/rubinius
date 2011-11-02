@@ -374,7 +374,7 @@ namespace rubinius {
         Exception::make_argument_error(state, 1, args.total(),
                                        state->symbol("__block__"));
       exc->locations(state, Location::from_call_stack(state, call_frame));
-      state->thread_state()->raise_exception(exc);
+      state->raise_exception(exc);
       return NULL;
     }
 
@@ -393,7 +393,7 @@ namespace rubinius {
         Exception::make_argument_error(state, 2, args.total(),
                                        state->symbol("__block__"));
       exc->locations(state, Location::from_call_stack(state, call_frame));
-      state->thread_state()->raise_exception(exc);
+      state->raise_exception(exc);
       return NULL;
     }
 

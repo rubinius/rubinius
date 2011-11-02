@@ -103,7 +103,7 @@ namespace rubinius {
         Exception::make_type_error(state, e.type, e.object, e.reason);
       exc->locations(state, Location::from_call_stack(state, call_frame));
 
-      state->vm()->thread_state()->raise_exception(exc);
+      state->raise_exception(exc);
       return NULL;
     }
   }
@@ -648,7 +648,7 @@ namespace rubinius {
           Exception::make_argument_error(state, ffi_data->arg_count,
                                          args.total(), args.name());
         exc->locations(state, Location::from_call_stack(state, call_frame));
-        state->vm()->thread_state()->raise_exception(exc);
+        state->raise_exception(exc);
 
         return NULL;
       }

@@ -304,7 +304,7 @@ namespace rubinius {
     cur = Fiber::current(state);
 
     if(!cur->exception()->nil_p()) {
-      state->vm()->thread_state()->raise_exception(cur->exception());
+      state->raise_exception(cur->exception());
       cur->exception(state, nil<Exception>());
       return 0;
     }
@@ -357,7 +357,7 @@ namespace rubinius {
     cur = Fiber::current(state);
 
     if(!cur->exception()->nil_p()) {
-      state->vm()->thread_state()->raise_exception(cur->exception());
+      state->raise_exception(cur->exception());
       cur->exception(state, nil<Exception>());
       return 0;
     }

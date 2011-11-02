@@ -234,8 +234,7 @@ namespace rubinius {
       } else if(Proc* proc = try_as<Proc>(blk)) {
         ret = proc->yield(state, call_frame, args);
       } else if(blk->nil_p()) {
-        state->thread_state()->raise_exception(
-            Exception::make_lje(state, call_frame));
+        state->raise_exception(Exception::make_lje(state, call_frame));
         ret = NULL;
       } else {
         Dispatch dis(G(sym_call));
@@ -356,7 +355,7 @@ namespace rubinius {
       NativeMethodEnvironment* env = NativeMethodEnvironment::get();
       exception->locations(env->state(), Location::from_call_stack(env->state(),
                            env->current_call_frame()));
-      env->state()->vm()->thread_state()->raise_exception(exception);
+      env->state()->raise_exception(exception);
 
       env->current_ep()->return_to(env);
     }

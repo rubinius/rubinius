@@ -44,12 +44,12 @@
       Exception* exc = \
         Exception::make_type_error(state, e.type, e.object, e.reason); \
       exc->locations(state, Location::from_call_stack(state, call_frame)); \
-      state->vm()->thread_state()->raise_exception(exc); \
+      state->raise_exception(exc); \
       return NULL; \
     } catch(const RubyException& exc) { \
       exc.exception->locations(state, \
             Location::from_call_stack(state, call_frame)); \
-      state->vm()->thread_state()->raise_exception(exc.exception); \
+      state->raise_exception(exc.exception); \
       return NULL; \
     }
 
@@ -214,7 +214,7 @@ extern "C" {
     Exception* exc =
         Exception::make_argument_error(state, required, args.total(), args.name());
     exc->locations(state, Location::from_call_stack(state, call_frame));
-    state->vm()->thread_state()->raise_exception(exc);
+    state->raise_exception(exc);
 
     return NULL;
   }
@@ -636,7 +636,7 @@ extern "C" {
     } else if(Proc* proc = try_as<Proc>(block)) {
       return proc->yield(state, call_frame, out_args);
     } else if(block->nil_p()) {
-      state->vm()->thread_state()->raise_exception(Exception::make_lje(state, call_frame));
+      state->raise_exception(Exception::make_lje(state, call_frame));
       return NULL;
     }
 
@@ -661,7 +661,7 @@ extern "C" {
     } else if(Proc* proc = try_as<Proc>(block)) {
       return proc->yield(state, call_frame, args);
     } else if(block->nil_p()) {
-      state->vm()->thread_state()->raise_exception(Exception::make_lje(state, call_frame));
+      state->raise_exception(Exception::make_lje(state, call_frame));
       return NULL;
     }
 
@@ -1126,7 +1126,7 @@ extern "C" {
        !call_frame->scope_still_valid(call_frame->top_scope(state))) {
       Exception* exc = Exception::make_exception(state, G(jump_error), "unexpected return");
       exc->locations(state, Location::from_call_stack(state, call_frame));
-      state->vm()->thread_state()->raise_exception(exc);
+      state->raise_exception(exc);
     } else {
       if(call_frame->flags & CallFrame::cIsLambda) {
         state->vm()->thread_state()->raise_return(top, call_frame->promote_scope(state));
@@ -1154,7 +1154,7 @@ extern "C" {
     } else {
       Exception* exc = Exception::make_exception(state, G(jump_error), "attempted to break to exited method");
       exc->locations(state, Location::from_call_stack(state, call_frame));
-      state->vm()->thread_state()->raise_exception(exc);
+      state->raise_exception(exc);
     }
     return Qnil;
   }
@@ -1284,7 +1284,7 @@ extern "C" {
 
     Exception* exc =
       Exception::make_type_error(state, Fixnum::type, obj, "invalid type for FFI");
-    state->vm()->thread_state()->raise_exception(exc);
+    state->raise_exception(exc);
 
     *valid = false;
     return 0;
@@ -1298,7 +1298,7 @@ extern "C" {
 
     Exception* exc =
       Exception::make_type_error(state, Float::type, obj, "invalid type for FFI");
-    state->vm()->thread_state()->raise_exception(exc);
+    state->raise_exception(exc);
 
     *valid = false;
     return 0.0;
@@ -1312,7 +1312,7 @@ extern "C" {
 
     Exception* exc =
       Exception::make_type_error(state, Float::type, obj, "invalid type for FFI");
-    state->vm()->thread_state()->raise_exception(exc);
+    state->raise_exception(exc);
 
     *valid = false;
     return 0.0;
@@ -1326,7 +1326,7 @@ extern "C" {
 
     Exception* exc =
       Exception::make_type_error(state, Fixnum::type, obj, "invalid type for FFI");
-    state->vm()->thread_state()->raise_exception(exc);
+    state->raise_exception(exc);
 
     *valid = false;
     return 0ULL;
@@ -1343,7 +1343,7 @@ extern "C" {
 
     Exception* exc =
       Exception::make_type_error(state, Fixnum::type, obj, "invalid type for FFI");
-    state->vm()->thread_state()->raise_exception(exc);
+    state->raise_exception(exc);
 
     *valid = false;
     return 0;
@@ -1357,7 +1357,7 @@ extern "C" {
 
     Exception* exc =
       Exception::make_type_error(state, Fixnum::type, obj, "invalid type for FFI");
-    state->vm()->thread_state()->raise_exception(exc);
+    state->raise_exception(exc);
 
     *valid = false;
     return 0;

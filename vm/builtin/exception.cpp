@@ -87,7 +87,7 @@ namespace rubinius {
   void Exception::internal_error(STATE, CallFrame* call_frame, const char* reason) {
     Exception* exc = Exception::make_exception(state, G(exc_vm_internal), reason);
     exc->locations(state, Location::from_call_stack(state, call_frame));
-    state->thread_state()->raise_exception(exc);
+    state->raise_exception(exc);
   }
 
   void Exception::bytecode_error(STATE, CallFrame* call_frame, 
@@ -97,7 +97,7 @@ namespace rubinius {
     exc->set_ivar(state, state->symbol("@compiled_method"), cm);
     exc->set_ivar(state, state->symbol("@ip"), Fixnum::from(ip));
     exc->locations(state, Location::from_call_stack(state, call_frame));
-    state->thread_state()->raise_exception(exc);
+    state->raise_exception(exc);
   }
 
   void Exception::frozen_error(STATE, CallFrame* call_frame) {
@@ -111,7 +111,7 @@ namespace rubinius {
     Exception* exc = Exception::make_exception(state, klass,
                         "unable to modify frozen object");
     exc->locations(state, Location::from_call_stack(state, call_frame));
-    state->thread_state()->raise_exception(exc);
+    state->raise_exception(exc);
   }
 
   void Exception::argument_error(STATE, int expected, int given) {
@@ -167,7 +167,7 @@ namespace rubinius {
   void Exception::type_error(STATE, const char* reason, CallFrame* call_frame) {
     Exception* exc = Exception::make_exception(state, G(exc_type), reason);
     exc->locations(state, Location::from_call_stack(state, call_frame));
-    state->thread_state()->raise_exception(exc);
+    state->raise_exception(exc);
   }
 
   void Exception::float_domain_error(STATE, const char* reason) {

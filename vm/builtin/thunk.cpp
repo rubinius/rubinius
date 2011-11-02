@@ -27,7 +27,7 @@ namespace rubinius {
       Exception* exc =
         Exception::make_argument_error(state, 0, args.total(), args.name());
       exc->locations(state, Location::from_call_stack(state, call_frame));
-      state->thread_state()->raise_exception(exc);
+      state->raise_exception(exc);
       return NULL;
     }
 

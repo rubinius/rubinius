@@ -22,6 +22,11 @@ namespace rubinius {
       return (ManagedThread*)vm_;
     }
 
+    Object* raise_exception(Exception* exc) {
+      vm_->thread_state()->raise_exception(exc);
+      return 0;
+    }
+
     void set_call_frame(CallFrame* cf) {
       vm_->set_call_frame(cf);
     }

@@ -126,13 +126,13 @@ continue_to_run:
       Exception::make_type_error(state, e.type, e.object, e.reason);
     exc->locations(state, Location::from_call_stack(state, call_frame));
 
-    state->vm()->thread_state()->raise_exception(exc);
+    state->raise_exception(exc);
     call_frame->scope->flush_to_heap(state);
     return NULL;
   } catch(const RubyException& exc) {
     exc.exception->locations(state,
           Location::from_call_stack(state, call_frame));
-    state->vm()->thread_state()->raise_exception(exc.exception);
+    state->raise_exception(exc.exception);
     return NULL;
   }
 
@@ -281,13 +281,13 @@ continue_to_run:
       Exception::make_type_error(state, e.type, e.object, e.reason);
     exc->locations(state, Location::from_call_stack(state, call_frame));
 
-    state->vm()->thread_state()->raise_exception(exc);
+    state->raise_exception(exc);
     call_frame->scope->flush_to_heap(state);
     return NULL;
   } catch(const RubyException& exc) {
     exc.exception->locations(state,
           Location::from_call_stack(state, call_frame));
-    state->vm()->thread_state()->raise_exception(exc.exception);
+    state->raise_exception(exc.exception);
     return NULL;
   }
 
@@ -426,13 +426,13 @@ continue_to_run:
       Exception::make_type_error(state, e.type, e.object, e.reason);
     exc->locations(state, Location::from_call_stack(state, call_frame));
 
-    state->vm()->thread_state()->raise_exception(exc);
+    state->raise_exception(exc);
     call_frame->scope->flush_to_heap(state);
     return NULL;
   } catch(const RubyException& exc) {
     exc.exception->locations(state,
           Location::from_call_stack(state, call_frame));
-    state->vm()->thread_state()->raise_exception(exc.exception);
+    state->raise_exception(exc.exception);
     return NULL;
   }
 
@@ -558,13 +558,13 @@ continue_to_run:
       Exception::make_type_error(state, e.type, e.object, e.reason);
     exc->locations(state, Location::from_call_stack(state, call_frame));
 
-    state->vm()->thread_state()->raise_exception(exc);
+    state->raise_exception(exc);
     call_frame->scope->flush_to_heap(state);
     return NULL;
   } catch(const RubyException& exc) {
     exc.exception->locations(state,
           Location::from_call_stack(state, call_frame));
-    state->vm()->thread_state()->raise_exception(exc.exception);
+    state->raise_exception(exc.exception);
     return NULL;
   }
 

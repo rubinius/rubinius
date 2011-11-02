@@ -104,7 +104,7 @@ namespace rubinius {
           Exception::make_argument_error(state, required, args.total(),
               state->symbol("__block__"));
         exc->locations(state, Location::from_call_stack(state, call_frame));
-        state->thread_state()->raise_exception(exc);
+        state->raise_exception(exc);
         return NULL;
       }
     }
@@ -152,7 +152,7 @@ namespace rubinius {
         Exception* exc =
           Exception::make_argument_error(state, required, args.total(), state->symbol("__block__"));
         exc->locations(state, Location::from_call_stack(state, call_frame));
-        state->thread_state()->raise_exception(exc);
+        state->raise_exception(exc);
         return NULL;
       }
     }
@@ -163,7 +163,7 @@ namespace rubinius {
       Exception* exc =
         Exception::make_type_error(state, BlockEnvironment::type, block_, "Invalid proc style");
       exc->locations(state, Location::from_call_stack(state, call_frame));
-      state->thread_state()->raise_exception(exc);
+      state->raise_exception(exc);
       return NULL;
     }
 
