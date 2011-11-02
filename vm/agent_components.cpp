@@ -488,47 +488,47 @@ namespace agent {
     young->add(new StaticInteger<int>("bytes", ss.config.gc_bytes * 2));
 
     Tree* mature = mem->get_tree("mature");
-    mature->add(new ReadInteger<size_t>("bytes", &state->vm()->om->immix_usage()));
+    mature->add(new ReadInteger<size_t>("bytes", &state->memory()->immix_usage()));
 
     Tree* large = mem->get_tree("large");
-    large->add(new ReadInteger<size_t>("bytes", &state->vm()->om->loe_usage()));
+    large->add(new ReadInteger<size_t>("bytes", &state->memory()->loe_usage()));
 
     Tree* code = mem->get_tree("code");
-    code->add(new ReadInteger<size_t>("bytes", &state->vm()->om->code_usage()));
+    code->add(new ReadInteger<size_t>("bytes", &state->memory()->code_usage()));
 
     Tree* symbols = mem->get_tree("symbols");
     symbols->add(new ReadInteger<size_t>("bytes", &ss.symbols.bytes_used()));
 
     Tree* counter = mem->get_tree("counter");
     counter->add(new ReadAtomicInteger("young_objects",
-                       state->vm()->om->gc_stats.young_objects_allocated));
+                       state->memory()->gc_stats.young_objects_allocated));
     counter->add(new ReadAtomicInteger("young_bytes",
-                       state->vm()->om->gc_stats.young_bytes_allocated));
+                       state->memory()->gc_stats.young_bytes_allocated));
     counter->add(new ReadAtomicInteger("promoted_objects",
-                       state->vm()->om->gc_stats.promoted_objects_allocated));
+                       state->memory()->gc_stats.promoted_objects_allocated));
     counter->add(new ReadAtomicInteger("promoted_bytes",
-                       state->vm()->om->gc_stats.promoted_bytes_allocated));
+                       state->memory()->gc_stats.promoted_bytes_allocated));
     counter->add(new ReadAtomicInteger("mature_objects",
-                       state->vm()->om->gc_stats.mature_objects_allocated));
+                       state->memory()->gc_stats.mature_objects_allocated));
     counter->add(new ReadAtomicInteger("mature_bytes",
-                       state->vm()->om->gc_stats.mature_bytes_allocated));
+                       state->memory()->gc_stats.mature_bytes_allocated));
 
     Tree* gc_young = system_->get_tree("gc")->get_tree("young");
 
     gc_young->add(new ReadAtomicInteger("count",
-                       state->vm()->om->gc_stats.young_collection_count));
+                       state->memory()->gc_stats.young_collection_count));
     gc_young->add(new ReadAtomicInteger("total_wallclock",
-                       state->vm()->om->gc_stats.total_young_collection_time));
+                       state->memory()->gc_stats.total_young_collection_time));
     gc_young->add(new ReadAtomicInteger("last_wallclock",
-                       state->vm()->om->gc_stats.last_young_collection_time));
+                       state->memory()->gc_stats.last_young_collection_time));
 
     Tree* gc_full = system_->get_tree("gc")->get_tree("full");
     gc_full->add(new ReadAtomicInteger("count",
-                       state->vm()->om->gc_stats.full_collection_count));
+                       state->memory()->gc_stats.full_collection_count));
     gc_full->add(new ReadAtomicInteger("total_wallclock",
-                       state->vm()->om->gc_stats.total_full_collection_time));
+                       state->memory()->gc_stats.total_full_collection_time));
     gc_full->add(new ReadAtomicInteger("last_wallclock",
-                       state->vm()->om->gc_stats.last_full_collection_time));
+                       state->memory()->gc_stats.last_full_collection_time));
 
     Tree* jit = system_->get_tree("jit");
     jit->add(new ReadAtomicInteger("methods", ss.stats.jitted_methods));

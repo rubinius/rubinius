@@ -41,7 +41,7 @@ namespace rubinius {
     assert(bytes >= 0 && bytes < INT32_MAX);
 
     size_t body = bytes;
-    ByteArray* ba = state->vm()->om->new_object_bytes_mature<ByteArray>(state, G(bytearray), body);
+    ByteArray* ba = state->memory()->new_object_bytes_mature<ByteArray>(state, G(bytearray), body);
     if(unlikely(!ba)) {
       Exception::memory_error(state);
     }

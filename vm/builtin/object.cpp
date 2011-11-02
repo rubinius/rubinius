@@ -95,13 +95,13 @@ namespace rubinius {
   }
 
   Object* Object::copy_object(STATE, Object* other) {
-    initialize_copy(state->vm()->om, other, age());
+    initialize_copy(state->memory(), other, age());
 
     write_barrier(state, klass());
     write_barrier(state, ivars());
 
     // Don't inherit the object_id from the original.
-    set_object_id(state, state->vm()->om, 0);
+    set_object_id(state, state->memory(), 0);
 
     /* C extensions use Data objects for various purposes. The object
      * usually is made an instance of some extension class. So, we
@@ -122,7 +122,7 @@ namespace rubinius {
     // this is that other is rarely mature, and the remember_set is
     // flushed on each collection anyway.
     if(zone() == MatureObjectZone) {
-      state->vm()->om->remember_object(this);
+      state->memory()->remember_object(this);
     }
 
     // Copy ivars.
@@ -246,7 +246,7 @@ namespace rubinius {
 
     // We might be trying to access a slot, so try that first.
 
-    TypeInfo* ti = state->vm()->om->find_type_info(this);
+    TypeInfo* ti = state->memory()->find_type_info(this);
     if(ti) {
       TypeInfo::Slots::iterator it = ti->slots.find(sym->index());
       if(it != ti->slots.end()) {
@@ -387,7 +387,7 @@ namespace rubinius {
     if(reference_p()) {
 #ifdef RBX_OBJECT_ID_IN_HEADER
       if(object_id() == 0) {
-        state->vm()->om->assign_object_id(state, this);
+        state->memory()->assign_object_id(state, this);
       }
 
       // Shift it up so we don't waste the numeric range in the actual
@@ -400,7 +400,7 @@ namespace rubinius {
 
       /* Lazy allocate object's ids, since most don't need them. */
       if(id->nil_p()) {
-        id = state->vm()->om->assign_object_id_ivar(state, this);
+        id = state->memory()->assign_object_id_ivar(state, this);
       }
 
       return as<Integer>(id);
@@ -585,7 +585,7 @@ namespace rubinius {
     }
 
     /* We might be trying to access a field, so check there first. */
-    TypeInfo* ti = state->vm()->om->find_type_info(this);
+    TypeInfo* ti = state->memory()->find_type_info(this);
     if(ti) {
       TypeInfo::Slots::iterator it = ti->slots.find(sym->index());
       if(it != ti->slots.end()) {
@@ -622,7 +622,7 @@ namespace rubinius {
     }
 
     /* We might be trying to access a field, so check there first. */
-    TypeInfo* ti = state->vm()->om->find_type_info(this);
+    TypeInfo* ti = state->memory()->find_type_info(this);
     if(ti) {
       TypeInfo::Slots::iterator it = ti->slots.find(sym->index());
       // Can't remove a slot, so just bail.
@@ -703,7 +703,7 @@ namespace rubinius {
   }
 
   Object* Object::show(STATE, int level) {
-    if(reference_p() && !state->vm()->om->valid_object_p(this)) rubinius::warn("bad object in show");
+    if(reference_p() && !state->memory()->valid_object_p(this)) rubinius::warn("bad object in show");
     type_info(state)->show(state, this, level);
     return Qnil;
   }
@@ -749,7 +749,7 @@ namespace rubinius {
   }
 
   TypeInfo* Object::type_info(STATE) const {
-    return state->vm()->om->type_info[get_type()];
+    return state->memory()->type_info[get_type()];
   }
 
   Object* Object::untaint(STATE) {
@@ -806,7 +806,7 @@ namespace rubinius {
    */
   void Object::inline_write_barrier_passed(STATE, void* obj) {
     if(!remembered_p()) {
-      state->vm()->om->remember_object(this);
+      state->memory()->remember_object(this);
     }
   }
 

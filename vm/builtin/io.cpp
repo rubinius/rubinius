@@ -75,7 +75,7 @@ namespace rubinius {
 
     // Don't bother to add finalization for stdio
     if(fd >= 3) {
-      state->vm()->om->needs_finalization(io, (FinalizerFunction)&IO::finalize);
+      state->memory()->needs_finalization(io, (FinalizerFunction)&IO::finalize);
     }
 
     return io;
@@ -92,7 +92,7 @@ namespace rubinius {
     // Ensure the instance's class is set (i.e. for subclasses of IO)
     io->klass(state, as<Class>(self));
 
-    state->vm()->om->needs_finalization(io, (FinalizerFunction)&IO::finalize);
+    state->memory()->needs_finalization(io, (FinalizerFunction)&IO::finalize);
 
     return io;
   }

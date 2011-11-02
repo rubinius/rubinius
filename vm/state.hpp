@@ -5,13 +5,16 @@ namespace rubinius {
   class VM;
   class ManagedThread;
   class ThreadState;
+  class SharedState;
 
   class State {
     VM* vm_;
+    SharedState& shared_;
 
   public:
     State(VM* vm)
       : vm_(vm)
+      , shared_(vm->shared)
     {}
 
     VM* vm() {
@@ -54,6 +57,10 @@ namespace rubinius {
     
     ThreadState* thread_state() {
       return vm_->thread_state();
+    }
+
+    ObjectMemory* memory() {
+      return shared_.memory();
     }
 
     bool detect_stack_condition(void* end) {

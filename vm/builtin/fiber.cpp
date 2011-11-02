@@ -140,7 +140,7 @@ namespace rubinius {
     if(fib->nil_p()) {
       fib = state->new_object<Fiber>(G(fiber));
       if(fib->zone() != YoungObjectZone) {
-        state->vm()->om->remember_object(fib);
+        state->memory()->remember_object(fib);
       }
       fib->prev_ = nil<Fiber>();
       fib->top_ = 0;
@@ -156,7 +156,7 @@ namespace rubinius {
       fib->context_ = new ucontext_t;
 #endif
 
-      state->vm()->om->needs_finalization(fib, (FinalizerFunction)&Fiber::finalize);
+      state->memory()->needs_finalization(fib, (FinalizerFunction)&Fiber::finalize);
 
       state->vm()->current_fiber.set(fib);
       state->vm()->root_fiber.set(fib);
@@ -232,7 +232,7 @@ namespace rubinius {
 
     Fiber* fib = state->new_object<Fiber>(G(fiber));
     if(fib->zone() != YoungObjectZone) {
-      state->vm()->om->remember_object(fib);
+      state->memory()->remember_object(fib);
     }
     fib->starter(state, callable);
     fib->prev(state, nil<Fiber>());
@@ -243,7 +243,7 @@ namespace rubinius {
     fib->stack_size_ = stack_size;
     fib->stack_ = malloc(stack_size);
 
-    state->vm()->om->needs_finalization(fib, (FinalizerFunction)&Fiber::finalize);
+    state->memory()->needs_finalization(fib, (FinalizerFunction)&Fiber::finalize);
 
 #ifdef FIBER_NATIVE
     fib->context_ = new fiber_context_t;

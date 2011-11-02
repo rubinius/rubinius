@@ -61,7 +61,7 @@ namespace rubinius {
   }
 
   VALUE NativeMethodFrame::get_handle(STATE, Object* obj) {
-    InflatedHeader* ih = state->vm()->om->inflate_header(state, obj);
+    InflatedHeader* ih = state->memory()->inflate_header(state, obj);
 
     capi::Handle* handle = ih->handle();
 

@@ -25,7 +25,7 @@
 namespace rubinius {
 
   Class* Class::create(STATE, Class* super) {
-    Class* cls = state->vm()->om->new_object_enduring<Class>(state, G(klass));
+    Class* cls = state->memory()->new_object_enduring<Class>(state, G(klass));
 
     cls->init(state->vm()->shared.inc_class_count(state));
 
@@ -33,7 +33,7 @@ namespace rubinius {
     cls->instance_type(state, super->instance_type());
 
     if(super->type_info()->type == PackedObject::type) {
-      cls->set_type_info(state->vm()->om->type_info[ObjectType]);
+      cls->set_type_info(state->memory()->type_info[ObjectType]);
     } else {
       cls->set_type_info(super->type_info());
     }
@@ -48,12 +48,12 @@ namespace rubinius {
   }
 
   Class* Class::s_allocate(STATE) {
-    Class* cls = as<Class>(state->vm()->om->new_object_enduring<Class>(state, G(klass)));
+    Class* cls = as<Class>(state->memory()->new_object_enduring<Class>(state, G(klass)));
 
     cls->init(state->vm()->shared.inc_class_count(state));
     cls->setup(state);
 
-    cls->set_type_info(state->vm()->om->type_info[ObjectType]);
+    cls->set_type_info(state->memory()->type_info[ObjectType]);
     return cls;
   }
 
@@ -81,7 +81,7 @@ namespace rubinius {
         obj->init_header(self, YoungObjectZone, PackedObject::type);
       } else {
         obj = reinterpret_cast<PackedObject*>(
-            state->vm()->om->new_object_fast(state, self, size, PackedObject::type));
+            state->memory()->new_object_fast(state, self, size, PackedObject::type));
       }
 
       // Don't use 'this' !!! The above code might have GC'd
@@ -115,7 +115,7 @@ namespace rubinius {
             obj->init_header(self, YoungObjectZone, PackedObject::type);
           } else {
             obj = reinterpret_cast<PackedObject*>(
-                state->vm()->om->new_object_fast(state, self, size, PackedObject::type));
+                state->memory()->new_object_fast(state, self, size, PackedObject::type));
           }
         } else {
           return collect_and_allocate(state, gct, self, calling_environment);
@@ -183,7 +183,7 @@ namespace rubinius {
 
     instance_type(state, sup->instance_type());
     if(sup->type_info()->type == PackedObject::type) {
-      set_type_info(state->vm()->om->type_info[ObjectType]);
+      set_type_info(state->memory()->type_info[ObjectType]);
     } else {
       set_type_info(sup->type_info());
     }
@@ -195,7 +195,7 @@ namespace rubinius {
 
   void Class::set_object_type(STATE, size_t type) {
     instance_type(state, Fixnum::from(type));
-    type_info_ = state->vm()->om->type_info[type];
+    type_info_ = state->memory()->type_info[type];
   }
 
   /* Look at this class and it's superclass contents (which includes
@@ -271,14 +271,14 @@ namespace rubinius {
 
   SingletonClass* SingletonClass::attach(STATE, Object* obj, Class* sup) {
     SingletonClass *sc;
-    sc = state->vm()->om->new_object_enduring<SingletonClass>(state, G(klass));
+    sc = state->memory()->new_object_enduring<SingletonClass>(state, G(klass));
     sc->init(state->vm()->shared.inc_class_count(state));
 
     sc->attached_instance(state, obj);
     sc->setup(state);
 
     if(kind_of<PackedObject>(obj)) {
-      sc->set_type_info(state->vm()->om->type_info[Object::type]);
+      sc->set_type_info(state->memory()->type_info[Object::type]);
     } else {
       sc->set_type_info(obj->klass()->type_info());
     }

@@ -58,7 +58,7 @@ class TestVM : public CxxTest::TestSuite, public VMTest {
     //  state->om->young.total_objects << ")" << std::endl;
 
     GCData gc_data(state->vm());
-    state->vm()->om->collect_young(gc_data);
+    state->memory()->collect_young(gc_data);
 
     index = 0;
     root = static_cast<Root*>(state->globals().roots.head());
@@ -71,7 +71,7 @@ class TestVM : public CxxTest::TestSuite, public VMTest {
       root = static_cast<Root*>(root->next());
     }
 
-    HeapDebug hd(state->vm()->om);
+    HeapDebug hd(state->memory());
     hd.walk(state->globals().roots);
 
     //std::cout << "total: " << hd.seen_objects << " (" <<

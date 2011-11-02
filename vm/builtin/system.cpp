@@ -484,8 +484,8 @@ namespace rubinius {
     // by usercode trying to be clever, we can use force to know that we
     // should NOT ignore it.
     if(RTEST(force) || state->vm()->shared.config.gc_honor_start) {
-      state->vm()->om->collect_young_now = true;
-      state->vm()->om->collect_mature_now = true;
+      state->memory()->collect_young_now = true;
+      state->memory()->collect_mature_now = true;
       state->vm()->interrupts.set_perform_gc();
     }
     return Qnil;
@@ -852,7 +852,7 @@ namespace rubinius {
       }
 
       object_type type = (object_type)cls->instance_type()->to_native();
-      TypeInfo* ti = state->vm()->om->type_info[type];
+      TypeInfo* ti = state->memory()->type_info[type];
       if(ti) {
         method->specialize(state, ti);
       }
@@ -970,7 +970,7 @@ namespace rubinius {
   }
 
   Object* System::vm_deoptimize_all(STATE, Object* o_disable) {
-    ObjectWalker walker(state->vm()->om);
+    ObjectWalker walker(state->memory());
     GCData gc_data(state->vm());
 
     // Seed it with the root objects.
@@ -1268,7 +1268,7 @@ namespace rubinius {
 
   Object* System::vm_set_finalizer(STATE, Object* obj, Object* fin) {
     if(!obj->reference_p()) return Qfalse;
-    state->vm()->om->set_ruby_finalizer(obj, fin);
+    state->memory()->set_ruby_finalizer(obj, fin);
     return Qtrue;
   }
 

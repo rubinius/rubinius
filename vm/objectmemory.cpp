@@ -117,7 +117,7 @@ namespace rubinius {
     // Double check we've got no id still after the lock.
     if(obj->object_id() > 0) return;
 
-    obj->set_object_id(state, state->vm()->om, ++last_object_id);
+    obj->set_object_id(state, state->memory(), ++last_object_id);
   }
 
   Integer* ObjectMemory::assign_object_id_ivar(STATE, Object* obj) {
@@ -126,7 +126,7 @@ namespace rubinius {
     if(id->nil_p()) {
       /* All references have an even object_id. last_object_id starts out at 0
        * but we don't want to use 0 as an object_id, so we just add before using */
-      id = Integer::from(state, ++state->vm()->om->last_object_id << TAG_REF_WIDTH);
+      id = Integer::from(state, ++state->memory()->last_object_id << TAG_REF_WIDTH);
       obj->set_ivar(state, G(sym_object_id), id);
     }
     return as<Integer>(id);

@@ -157,7 +157,7 @@ namespace rubinius {
       if(obj->ivars() == target_) return true;
 
       // Check slots.
-      TypeInfo* ti = state->vm()->om->type_info[obj->type_id()];
+      TypeInfo* ti = state->memory()->type_info[obj->type_id()];
       for(TypeInfo::Slots::iterator i = ti->slots.begin();
           i != ti->slots.end();
           ++i) {
@@ -257,7 +257,7 @@ namespace rubinius {
   Object* System::vm_find_object(STATE, Array* arg, Object* callable,
                                  CallFrame* calling_environment)
   {
-    ObjectMemory::GCInhibit inhibitor(state->vm()->om);
+    ObjectMemory::GCInhibit inhibitor(state->memory());
 
     // Support an aux mode, where callable is an array and we just append
     // objects to it rather than #call it.
@@ -290,7 +290,7 @@ namespace rubinius {
     }
 
     state->set_call_frame(calling_environment);
-    ObjectWalker walker(state->vm()->om);
+    ObjectWalker walker(state->memory());
     GCData gc_data(state->vm());
 
     // Seed it with the root objects.

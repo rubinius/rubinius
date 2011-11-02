@@ -176,7 +176,7 @@ step2:
         // Inflate the lock then.
         if(++count > cAuxLockRecCountMax) {
           // If we can't inflate the lock, try the whole thing over again.
-          if(!state->vm()->om->inflate_lock_count_overflow(state, self, count)) {
+          if(!state->memory()->inflate_lock_count_overflow(state, self, count)) {
             goto step1;
           }
           // The header is now set to inflated, and the current thread
@@ -207,7 +207,7 @@ step2:
         // We weren't able to contend for it, probably because the header changed.
         // Do it all over again.
         bool error = false;
-        LockStatus ret = state->vm()->om->contend_for_lock(state, gct, self, &error, us);
+        LockStatus ret = state->memory()->contend_for_lock(state, gct, self, &error, us);
         if(error) goto step1;
         return ret;
       }
@@ -224,7 +224,7 @@ step2:
       // If we couldn't inflate the lock, that means the header was in some
       // weird state that we didn't detect and handle properly. So redo
       // the whole locking procedure again.
-      if(!state->vm()->om->inflate_and_lock(state, self)) goto step1;
+      if(!state->memory()->inflate_and_lock(state, self)) goto step1;
       return eLocked;
     }
 
@@ -282,7 +282,7 @@ step2:
         // Inflate the lock then.
         if(++count > cAuxLockRecCountMax) {
           // If we can't inflate the lock, try the whole thing over again.
-          if(!state->vm()->om->inflate_lock_count_overflow(state, this, count)) {
+          if(!state->memory()->inflate_lock_count_overflow(state, this, count)) {
             goto step1;
           }
           // The header is now set to inflated, and the current thread
@@ -321,7 +321,7 @@ step2:
       // If we couldn't inflate the lock, that means the header was in some
       // weird state that we didn't detect and handle properly. So redo
       // the whole locking procedure again.
-      if(!state->vm()->om->inflate_and_lock(state, this)) goto step1;
+      if(!state->memory()->inflate_and_lock(state, this)) goto step1;
       return eLocked;
     }
 
@@ -401,10 +401,10 @@ step2:
           if(orig.f.LockContended == 1) {
             // unlock and inflate as one step to keep things
             // consistent.
-            if(!state->vm()->om->inflate_for_contention(state, this)) continue;
+            if(!state->memory()->inflate_for_contention(state, this)) continue;
 
             state->vm()->del_locked_object(this);
-            state->vm()->om->release_contention(state, gct);
+            state->memory()->release_contention(state, gct);
 
             return eUnlocked;
           }
@@ -491,8 +491,8 @@ step2:
 
         if(new_val.f.LockContended == 1) {
           // If we couldn't inflate for contention, redo.
-          if(!state->vm()->om->inflate_for_contention(state, this)) continue;
-          state->vm()->om->release_contention(state, gct);
+          if(!state->memory()->inflate_for_contention(state, this)) continue;
+          state->memory()->release_contention(state, gct);
         }
 
         return;

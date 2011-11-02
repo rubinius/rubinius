@@ -123,7 +123,7 @@ namespace rubinius {
     autorelease = val->true_p() ? true : false;
 
     if(autorelease && !set_finalizer) {
-      state->vm()->om->needs_finalization(this,
+      state->memory()->needs_finalization(this,
           (FinalizerFunction)&Pointer::finalize);
       set_finalizer = true;
     }

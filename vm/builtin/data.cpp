@@ -21,7 +21,7 @@ namespace rubinius {
 
     // Data is just a heap alias for the handle, so go ahead and create
     // the handle and populate it as an RData now.
-    InflatedHeader* ih = state->vm()->om->inflate_header(state, data);
+    InflatedHeader* ih = state->memory()->inflate_header(state, data);
     capi::Handle* handle = ih->handle();
 
     assert(!handle && "can't already have a handle, it's brand new!");
@@ -45,14 +45,14 @@ namespace rubinius {
     // If this Data requires a free function, register this object
     // as needing finalization.
     if(free) {
-      state->vm()->om->needs_finalization(data, (FinalizerFunction)&Data::finalize);
+      state->memory()->needs_finalization(data, (FinalizerFunction)&Data::finalize);
     }
 
     return data;
   }
 
   RDataShadow* Data::slow_rdata(STATE) {
-    InflatedHeader* ih = state->vm()->om->inflate_header(state, this);
+    InflatedHeader* ih = state->memory()->inflate_header(state, this);
     capi::Handle* handle = ih->handle();
 
     assert(handle && handle->is_rdata() && "invalid initialized Data object");

@@ -23,7 +23,7 @@ namespace rubinius {
     Dir* d = state->new_object<Dir>(G(dir));
     d->os_ = 0;
 
-    state->vm()->om->needs_finalization(d, (FinalizerFunction)&Dir::finalize);
+    state->memory()->needs_finalization(d, (FinalizerFunction)&Dir::finalize);
 
     return d;
   }

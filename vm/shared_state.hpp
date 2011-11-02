@@ -254,6 +254,10 @@ namespace rubinius {
       return tool_broker_;
     }
 
+    ObjectMemory* memory() {
+      return om;
+    }
+
     void scheduler_loop();
     void enable_preemption();
 
