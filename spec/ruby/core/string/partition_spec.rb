@@ -16,6 +16,12 @@ ruby_version_is '1.8.7' do
       "hello!".partition(/l./).should == ["he", "ll", "o!"]
     end
 
+    it "sets global vars if regexp used" do
+      "hello!".partition(/(.l)(.o)/)
+      $1.should == "el"
+      $2.should == "lo"
+    end
+
     ruby_bug "redmine #1510", '1.9.1' do
       it "converts its argument using :to_str" do
         find = mock('l')
