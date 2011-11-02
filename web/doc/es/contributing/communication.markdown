@@ -5,7 +5,6 @@ previous: Aportando a Rubinius
 previous_url: contributing
 next: Guía de estilo
 next_url: contributing/style-guide
-review: true
 ---
 
 El equipo de Rubinius aprecia y premia sus constribuciones. Rubinius es un proyecto

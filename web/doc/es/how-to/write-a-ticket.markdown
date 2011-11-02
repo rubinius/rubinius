@@ -3,9 +3,8 @@ layout: doc_es
 title: How-To - Write a Ticket
 previous: How-To
 previous_url: how-to
-next: Write a Ruby Spec
+next: Escribir una especificación en Ruby
 next_url: how-to/write-a-ruby-spec
-translated: true
 ---
 
 The Rubinius issue tracker is <http://github.com/rubinius/rubinius/issues>.
@@ -54,8 +53,9 @@ simplemente no es apropiado para un boleto.
       * La línea de comandos para invocar el programa
       * El seguimiento hacia atrás o resultado del programa en comparación con
         resultado esperado.
-      * La información de su máquina. `uname-a` es generalmente bueno (si hay alguna
-         "desconocido" en campos que, por favor, más detalles sobre ellos.)
+      * La información de su máquina. `uname-a` es generalmente bueno (si hay
+        alguna "desconocido" en campos que, por favor, más detalles sobre
+        ellos.)
 
 
 ## Instrucciones adicionales para las entradas con parches

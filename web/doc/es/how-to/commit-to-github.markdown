@@ -43,11 +43,11 @@ rama principal antes de la fusión (merge).
 15. git push origin master
 
 Pasos de 9 a 15 se pueden automatizar vía un script que guarde todos
-lo que escribimos. 
+lo que escribimos.
 
 ### Committers con acceso de sólo-lectura al repositorio de Rubinius
 
 Por favor, lea:
 
-  *  [Cómo escribir un ticket](/doc/en/how-to/write-a-ticket)
+  *  [Cómo escribir un ticket](/doc/es/how-to/write-a-ticket)
 

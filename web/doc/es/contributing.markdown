@@ -7,7 +7,7 @@ next: Comunicación
 next_url: contributing/communication
 ---
 
-El proyecto Rubinius acepta sus aportaciones. Hay muchas cosas que hacer en las que 
+El proyecto Rubinius acepta sus aportaciones. Hay muchas cosas que hacer en las que
 puede ayudar. Lo más importante es que usted debe hacer algo que le interesa.
 Esa es la mejor manera de tener el entusiasmo y la energía para su trabajo.
 
@@ -73,7 +73,7 @@ detalles de implementación.
 
 ## Mantenga el código limpio
 
-Revise la [Guía de estilo](/doc/en/contributing/style-guide/) para las directrices
+Revise la [Guía de estilo](/doc/es/contributing/style-guide/) para las directrices
 de programación.
 
 ## Mantenimiento a los reportes de error

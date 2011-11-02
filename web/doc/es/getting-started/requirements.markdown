@@ -30,8 +30,8 @@ operativo o su manejador de paquetes podría tener otros paquetes disponibles.
 
 ### Apple OS X
 
-La forma más fácil de conseguir un entorno de construcción para Apple OS X es instalar 
-XCode Tools and Utilities. Una vez instalado, puede habilitar el envio de errores para 
+La forma más fácil de conseguir un entorno de construcción para Apple OS X es instalar
+XCode Tools and Utilities. Una vez instalado, puede habilitar el envio de errores para
 desarrolladores en: /Developer/Applications/Utilities/CrashReporterPrefs.app
 
 
@@ -45,5 +45,5 @@ desarrolladores en: /Developer/Applications/Utilities/CrashReporterPrefs.app
 ### FreeBSD
 
 Rubinius tiene un port en el árbol de ports de FreeBSD. Y se llama `lang/rubinius`. Puede
-encontrar más información acerca de este port en <http://freshports.org>. Una vez 
+encontrar más información acerca de este port en <http://freshports.org>. Una vez
 instalado el port, automáticamente se incluirán todas las dependencias.

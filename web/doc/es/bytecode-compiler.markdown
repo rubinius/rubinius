@@ -13,7 +13,7 @@ la máquina virtual pueda ejecutar. Su uso es trata de una serie de etapas
 secuenciales de transformación y que la máquina virtual la entienda.
 
 Cada una de estas etapas desacoplan el resto del proceso, sólo se espera una
-forma de entrada particular y se envía su salida a la siguiente. Como 
+forma de entrada particular y se envía su salida a la siguiente. Como
 resultado, el proceso de compilación es muy configurable, y puede instrumentar
 simplemente cualquiera de las etapas.
 
