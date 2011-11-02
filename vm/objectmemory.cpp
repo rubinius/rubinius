@@ -496,7 +496,7 @@ step1:
     SYNC(state);
 
     // If we were checkpointed, then someone else ran the GC, just return.
-    if(state->vm()->shared.should_stop()) {
+    if(state->shared().should_stop()) {
       UNSYNC;
       state->checkpoint();
       return;
@@ -509,7 +509,7 @@ step1:
     // Stops all other threads, so we're only here by ourselves.
     //
     // First, ask them to stop.
-    state->vm()->shared.ask_for_stopage();
+    state->shared().ask_for_stopage();
 
     // Now unlock ObjectMemory so that they can spin to any checkpoints.
     UNSYNC;
@@ -547,7 +547,7 @@ step1:
     SYNC(state);
 
     // If we were checkpointed, then someone else ran the GC, just return.
-    if(state->vm()->shared.should_stop()) {
+    if(state->shared().should_stop()) {
       UNSYNC;
       state->checkpoint();
       return;
@@ -560,7 +560,7 @@ step1:
     // Stops all other threads, so we're only here by ourselves.
     //
     // First, ask them to stop.
-    state->vm()->shared.ask_for_stopage();
+    state->shared().ask_for_stopage();
 
     // Now unlock ObjectMemory so that they can spin to any checkpoints.
     UNSYNC;
@@ -576,7 +576,7 @@ step1:
     uint64_t start_time = 0;
 
     if(collect_young_now) {
-      if(state->vm()->shared.config.gc_show) {
+      if(state->shared().config.gc_show) {
         start_time = get_current_time();
       }
 
@@ -593,7 +593,7 @@ step1:
       collect_young(gc_data, &stats);
 #endif
 
-      if(state->vm()->shared.config.gc_show) {
+      if(state->shared().config.gc_show) {
         uint64_t fin_time = get_current_time();
         int diff = (fin_time - start_time) / 1000000;
 
@@ -606,7 +606,7 @@ step1:
     if(collect_mature_now) {
       size_t before_kb = 0;
 
-      if(state->vm()->shared.config.gc_show) {
+      if(state->shared().config.gc_show) {
         start_time = get_current_time();
         before_kb = mature_bytes_allocated() / 1024;
       }
@@ -622,7 +622,7 @@ step1:
       collect_mature(gc_data);
 #endif
 
-      if(state->vm()->shared.config.gc_show) {
+      if(state->shared().config.gc_show) {
         uint64_t fin_time = get_current_time();
         int diff = (fin_time - start_time) / 1000000;
         size_t kb = mature_bytes_allocated() / 1024;
@@ -1310,12 +1310,12 @@ step1:
   }
 
   Object* in_finalizer(STATE) {
-    state->vm()->shared.om->in_finalizer_thread(state);
+    state->shared().om->in_finalizer_thread(state);
     return Qnil;
   }
 
   void ObjectMemory::start_finalizer_thread(STATE) {
-    VM* vm = state->vm()->shared.new_vm();
+    VM* vm = state->shared().new_vm();
     Thread* thr = Thread::create(state, vm, G(thread), in_finalizer);
     finalizer_thread_.set(thr);
     thr->fork(state);

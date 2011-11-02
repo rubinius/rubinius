@@ -290,7 +290,7 @@ namespace rubinius {
       sassert(status == FFI_OK);
     }
 
-    state->vm()->shared.om->add_code_resource(data);
+    state->shared().om->add_code_resource(data);
     this->ffi_data = data;
   }
 
@@ -370,7 +370,7 @@ namespace rubinius {
 
     State* state = env->state();
 
-    state->vm()->shared.gc_dependent(state);
+    state->shared().gc_dependent(state);
 
     Array* args = Array::create(state, stub->arg_count);
 
@@ -546,7 +546,7 @@ namespace rubinius {
       break;
     }
 
-    state->vm()->shared.gc_independent(state);
+    state->shared().gc_independent(state);
   }
 
 
@@ -899,109 +899,109 @@ namespace rubinius {
     // a GC might move this and there ffi_data will
     // point at the wrong place in memory
     FFIData* ffi_data_local = ffi_data;
-    state->vm()->shared.gc_independent(state);
+    state->shared().gc_independent(state);
 
     switch(ffi_data_local->ret_type) {
     case RBX_FFI_TYPE_CHAR: {
       ffi_arg result;
       ffi_call(&ffi_data_local->cif, FFI_FN(ffi_data_local->ep), &result, values);
-      state->vm()->shared.gc_dependent(state);
+      state->shared().gc_dependent(state);
       ret = Fixnum::from((native_int)result);
       break;
     }
     case RBX_FFI_TYPE_UCHAR: {
       ffi_arg result;
       ffi_call(&ffi_data_local->cif, FFI_FN(ffi_data_local->ep), &result, values);
-      state->vm()->shared.gc_dependent(state);
+      state->shared().gc_dependent(state);
       ret = Fixnum::from((native_int)result);
       break;
     }
     case RBX_FFI_TYPE_BOOL: {
       ffi_arg result;
       ffi_call(&ffi_data_local->cif, FFI_FN(ffi_data_local->ep), &result, values);
-      state->vm()->shared.gc_dependent(state);
+      state->shared().gc_dependent(state);
       ret = (result != 0) ? Qtrue : Qfalse;
       break;
     }
     case RBX_FFI_TYPE_SHORT: {
       ffi_arg result;
       ffi_call(&ffi_data_local->cif, FFI_FN(ffi_data_local->ep), &result, values);
-      state->vm()->shared.gc_dependent(state);
+      state->shared().gc_dependent(state);
       ret = Fixnum::from((native_int)result);
       break;
     }
     case RBX_FFI_TYPE_USHORT: {
       ffi_arg result;
       ffi_call(&ffi_data_local->cif, FFI_FN(ffi_data_local->ep), &result, values);
-      state->vm()->shared.gc_dependent(state);
+      state->shared().gc_dependent(state);
       ret = Fixnum::from((native_int)result);
       break;
     }
     case RBX_FFI_TYPE_INT: {
       ffi_arg result;
       ffi_call(&ffi_data_local->cif, FFI_FN(ffi_data_local->ep), &result, values);
-      state->vm()->shared.gc_dependent(state);
+      state->shared().gc_dependent(state);
       ret = Integer::from(state, (native_int)result);
       break;
     }
     case RBX_FFI_TYPE_UINT: {
       ffi_arg result;
       ffi_call(&ffi_data_local->cif, FFI_FN(ffi_data_local->ep), &result, values);
-      state->vm()->shared.gc_dependent(state);
+      state->shared().gc_dependent(state);
       ret = Integer::from(state, (unsigned int)result);
       break;
     }
     case RBX_FFI_TYPE_LONG: {
       long result;
       ffi_call(&ffi_data_local->cif, FFI_FN(ffi_data_local->ep), &result, values);
-      state->vm()->shared.gc_dependent(state);
+      state->shared().gc_dependent(state);
       ret = Integer::from(state, result);
       break;
     }
     case RBX_FFI_TYPE_ULONG: {
       unsigned long result;
       ffi_call(&ffi_data_local->cif, FFI_FN(ffi_data_local->ep), &result, values);
-      state->vm()->shared.gc_dependent(state);
+      state->shared().gc_dependent(state);
       ret = Integer::from(state, result);
       break;
     }
     case RBX_FFI_TYPE_FLOAT: {
       float result;
       ffi_call(&ffi_data_local->cif, FFI_FN(ffi_data_local->ep), &result, values);
-      state->vm()->shared.gc_dependent(state);
+      state->shared().gc_dependent(state);
       ret = Float::create(state, (double)result);
       break;
     }
     case RBX_FFI_TYPE_DOUBLE: {
       double result;
       ffi_call(&ffi_data_local->cif, FFI_FN(ffi_data_local->ep), &result, values);
-      state->vm()->shared.gc_dependent(state);
+      state->shared().gc_dependent(state);
       ret = Float::create(state, result);
       break;
     }
     case RBX_FFI_TYPE_LONG_LONG: {
       long long result;
       ffi_call(&ffi_data_local->cif, FFI_FN(ffi_data_local->ep), &result, values);
-      state->vm()->shared.gc_dependent(state);
+      state->shared().gc_dependent(state);
       ret = Integer::from(state, result);
       break;
     }
     case RBX_FFI_TYPE_ULONG_LONG: {
       unsigned long long result;
       ffi_call(&ffi_data_local->cif, FFI_FN(ffi_data_local->ep), &result, values);
-      state->vm()->shared.gc_dependent(state);
+      state->shared().gc_dependent(state);
       ret = Integer::from(state, result);
       break;
     }
     case RBX_FFI_TYPE_OBJECT: {
       ffi_call(&ffi_data_local->cif, FFI_FN(ffi_data_local->ep), &ret, values);
-      state->vm()->shared.gc_dependent(state);
+      state->shared().gc_dependent(state);
       break;
     }
     case RBX_FFI_TYPE_PTR: {
       void* result;
       ffi_call(&ffi_data_local->cif, FFI_FN(ffi_data_local->ep), &result, values);
-      state->vm()->shared.gc_dependent(state);
+      state->shared().gc_dependent(state);
       if(result == NULL) {
         ret = Qnil;
       } else {
@@ -1012,7 +1012,7 @@ namespace rubinius {
     case RBX_FFI_TYPE_STRING: {
       char* result;
       ffi_call(&ffi_data_local->cif, FFI_FN(ffi_data_local->ep), &result, values);
-      state->vm()->shared.gc_dependent(state);
+      state->shared().gc_dependent(state);
       if(result == NULL) {
         ret = Qnil;
       } else {
@@ -1027,7 +1027,7 @@ namespace rubinius {
       Object* p;
 
       ffi_call(&ffi_data_local->cif, FFI_FN(ffi_data_local->ep), &result, values);
-      state->vm()->shared.gc_dependent(state);
+      state->shared().gc_dependent(state);
 
       if(result == NULL) {
         s = p = Qnil;
@@ -1047,7 +1047,7 @@ namespace rubinius {
     case RBX_FFI_TYPE_VOID: {
       ffi_arg result;
       ffi_call(&ffi_data_local->cif, FFI_FN(ffi_data_local->ep), &result, values);
-      state->vm()->shared.gc_dependent(state);
+      state->shared().gc_dependent(state);
       ret = Qnil;
       break;
     }

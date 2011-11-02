@@ -228,8 +228,8 @@ Object* VMMethod::uncommon_interpreter(STATE,
 
   VMMethod* method_vmm = method_call_frame->cm->backend_method();
 
-  if(++method_vmm->uncommon_count > state->vm()->shared.config.jit_deoptimize_threshold) {
-    if(state->vm()->shared.config.jit_uncommon_print) {
+  if(++method_vmm->uncommon_count > state->shared().config.jit_deoptimize_threshold) {
+    if(state->shared().config.jit_uncommon_print) {
       std::cerr << "[[[ Deoptimizing uncommon method ]]]\n";
       call_frame->print_backtrace(state);
 

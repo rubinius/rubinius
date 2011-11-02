@@ -166,7 +166,7 @@ namespace rubinius {
   Object* CompiledMethod::default_executor(STATE, CallFrame* call_frame,
                           Executable* exec, Module* mod, Arguments& args)
   {
-    LockableScopedLock lg(state, &state->vm()->shared, __FILE__, __LINE__);
+    LockableScopedLock lg(state, &state->shared(), __FILE__, __LINE__);
 
     CompiledMethod* cm = as<CompiledMethod>(exec);
     if(cm->execute == default_executor) {

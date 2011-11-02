@@ -93,12 +93,12 @@ namespace rubinius {
 
   void Module::set_const(STATE, Object* sym, Object* val) {
     constants()->store(state, sym, val);
-    state->vm()->shared.inc_global_serial(state);
+    state->shared().inc_global_serial(state);
   }
 
   void Module::del_const(STATE, Symbol* sym) {
     constants()->remove(state, sym);
-    state->vm()->shared.inc_global_serial(state);
+    state->shared().inc_global_serial(state);
   }
 
   void Module::set_const(STATE, std::string name, Object* val) {

@@ -617,8 +617,8 @@ auth_error:
   }
 
   void QueryAgent::shutdown(STATE) {
-    if(!state->vm()->shared.agent()) return;
-    state->vm()->shared.agent()->shutdown_i();
+    if(!state->shared().agent()) return;
+    state->shared().agent()->shutdown_i();
   }
 
   void QueryAgent::shutdown_i() {

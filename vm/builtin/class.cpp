@@ -27,7 +27,7 @@ namespace rubinius {
   Class* Class::create(STATE, Class* super) {
     Class* cls = state->memory()->new_object_enduring<Class>(state, G(klass));
 
-    cls->init(state->vm()->shared.inc_class_count(state));
+    cls->init(state->shared().inc_class_count(state));
 
     cls->name(state, nil<Symbol>());
     cls->instance_type(state, super->instance_type());
@@ -50,7 +50,7 @@ namespace rubinius {
   Class* Class::s_allocate(STATE) {
     Class* cls = as<Class>(state->memory()->new_object_enduring<Class>(state, G(klass)));
 
-    cls->init(state->vm()->shared.inc_class_count(state));
+    cls->init(state->shared().inc_class_count(state));
     cls->setup(state);
 
     cls->set_type_info(state->memory()->type_info[ObjectType]);
@@ -66,7 +66,7 @@ namespace rubinius {
     Object* collect_and_allocate(STATE, GCToken gct, Class* self,
                                  CallFrame* calling_environment)
     {
-      state->vm()->shared.om->collect_young_now = true;
+      state->shared().om->collect_young_now = true;
 
       OnStack<1> os(state, self);
 
@@ -108,7 +108,7 @@ namespace rubinius {
       if(likely(obj)) {
         obj->init_header(self, YoungObjectZone, PackedObject::type);
       } else {
-        if(state->vm()->shared.om->refill_slab(state, state->local_slab())) {
+        if(state->shared().om->refill_slab(state, state->local_slab())) {
           obj = state->local_slab().allocate(size).as<PackedObject>();
 
           if(likely(obj)) {
@@ -218,7 +218,7 @@ namespace rubinius {
     LookupTable* lt = LookupTable::create(state);
 
     // If autopacking is enabled, figure out how many slots to use.
-    if(state->vm()->shared.config.gc_autopack) {
+    if(state->shared().config.gc_autopack) {
       Module* mod = self;
 
       int slot = 0;
@@ -272,7 +272,7 @@ namespace rubinius {
   SingletonClass* SingletonClass::attach(STATE, Object* obj, Class* sup) {
     SingletonClass *sc;
     sc = state->memory()->new_object_enduring<SingletonClass>(state, G(klass));
-    sc->init(state->vm()->shared.inc_class_count(state));
+    sc->init(state->shared().inc_class_count(state));
 
     sc->attached_instance(state, obj);
     sc->setup(state);

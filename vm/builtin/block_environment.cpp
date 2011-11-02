@@ -267,7 +267,7 @@ namespace rubinius {
 
 #ifdef ENABLE_LLVM
     if(vmm->call_count >= 0) {
-      if(vmm->call_count >= state->vm()->shared.config.jit_call_til_compile) {
+      if(vmm->call_count >= state->shared().config.jit_call_til_compile) {
         LLVMState* ls = LLVMState::get(state);
 
         ls->compile_soon(state, env->code(), env, true);

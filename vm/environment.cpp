@@ -529,16 +529,16 @@ namespace rubinius {
   }
 
   void Environment::halt() {
-    state->vm()->shared.tool_broker()->shutdown(state);
+    state->shared().tool_broker()->shutdown(state);
 
-    if(state->vm()->shared.config.ic_stats) {
-      state->vm()->shared.ic_registry()->print_stats(state);
+    if(state->shared().config.ic_stats) {
+      state->shared().ic_registry()->print_stats(state);
     }
 
     state->set_call_frame(0);
 
     // Handle an edge case where another thread is waiting to stop the world.
-    if(state->vm()->shared.should_stop()) {
+    if(state->shared().should_stop()) {
       state->checkpoint();
     }
 
@@ -649,8 +649,8 @@ namespace rubinius {
   }
 
   void Environment::load_tool() {
-    if(!state->vm()->shared.config.tool_to_load.set_p()) return;
-    std::string path = std::string(state->vm()->shared.config.tool_to_load.value) + ".";
+    if(!state->shared().config.tool_to_load.set_p()) return;
+    std::string path = std::string(state->shared().config.tool_to_load.value) + ".";
 
 #ifdef _WIN32
     path += "dll";

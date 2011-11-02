@@ -451,9 +451,9 @@ namespace rubinius {
       : thread::LockGuardTemplate<T>(in_lock, false)
       , state_(state)
     {
-      state_->vm()->shared.gc_independent(state_);
+      state_->shared().gc_independent(state_);
       this->lock();
-      state->vm()->shared.gc_dependent(state_);
+      state->shared().gc_dependent(state_);
     }
 
     ~GCIndependentLockGuard() {

@@ -544,7 +544,7 @@ namespace rubinius {
 
     kcode::table* kcode_tbl = 0;
     if(RTEST(respect_kcode)) {
-      kcode_tbl = state->vm()->shared.kcode_table();
+      kcode_tbl = state->shared().kcode_table();
     } else {
       kcode_tbl = kcode::null_table();
     }
@@ -1116,7 +1116,7 @@ return_value:
 
     String* output = 0;
 
-    kcode::table* tbl = state->vm()->shared.kcode_table();
+    kcode::table* tbl = state->shared().kcode_table();
     if(kcode::mbchar_p(tbl, *cur)) {
       native_int clen = kcode::mbclen(tbl, *cur);
       if(o + clen <= size()) {

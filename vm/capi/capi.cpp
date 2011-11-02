@@ -315,7 +315,7 @@ namespace rubinius {
     /** Make sure the name has the given prefix. */
     Symbol* prefixed_by(STATE, const char* prefix, size_t len, ID name) {
       Symbol* sym_obj = reinterpret_cast<Symbol*>(name);
-      std::string& sym = state->vm()->shared.symbols.lookup_cppstring(sym_obj);
+      std::string& sym = state->shared().symbols.lookup_cppstring(sym_obj);
 
       if(sym.compare(0UL, len, prefix) == 0) return sym_obj;
 
@@ -327,7 +327,7 @@ namespace rubinius {
 
     Symbol* prefixed_by(STATE, const char prefix, ID name) {
       Symbol* sym_obj = reinterpret_cast<Symbol*>(name);
-      std::string& sym = state->vm()->shared.symbols.lookup_cppstring(sym_obj);
+      std::string& sym = state->shared().symbols.lookup_cppstring(sym_obj);
 
       if(sym.c_str()[0] == prefix) return sym_obj;
 

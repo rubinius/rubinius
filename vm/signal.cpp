@@ -46,7 +46,7 @@ namespace rubinius {
 
     reopen_pipes();
 
-    self_ = state->vm()->shared.new_vm();
+    self_ = state->shared().new_vm();
 
     thread_.set(Thread::create(state, self_, G(thread), handle_tramp, false));
   }
@@ -70,7 +70,7 @@ namespace rubinius {
 
     if(full && self_) rubinius::bug("signal thread restart issue");
 
-    self_ = state->vm()->shared.new_vm();
+    self_ = state->shared().new_vm();
     thread_.set(Thread::create(state, self_, G(thread), handle_tramp, false));
 
     run(state);

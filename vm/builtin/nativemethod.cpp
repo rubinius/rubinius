@@ -75,7 +75,7 @@ namespace rubinius {
       handle = new capi::Handle(state, obj);
       ih->set_handle(handle);
 
-      state->vm()->shared.add_global_handle(state, handle);
+      state->shared().add_global_handle(state, handle);
 
       handles_.add_if_absent(handle);
     }
@@ -607,8 +607,8 @@ namespace rubinius {
     NativeMethodEnvironment* env = native_method_environment.get();
 
     // Optionally get the handles back to the proper state.
-    if(state->vm()->shared.config.capi_global_flush) {
-      capi::Handles* handles = state->vm()->shared.cached_handles();
+    if(state->shared().config.capi_global_flush) {
+      capi::Handles* handles = state->shared().cached_handles();
 
       if(handles->size() > 0) {
         for(capi::Handles::Iterator i(*handles); i.more(); i.advance()) {
@@ -642,7 +642,7 @@ namespace rubinius {
 
     // We've got things setup (they can be GC'd properly), so we need to
     // wait before entering the extension code.
-    state->vm()->shared.enter_capi(state);
+    state->shared().enter_capi(state);
 
     Object* ret;
     ExceptionPoint ep(env);
@@ -668,7 +668,7 @@ namespace rubinius {
     env->set_current_native_frame(nmf.previous());
     ep.pop(env);
 
-    state->vm()->shared.leave_capi(state);
+    state->shared().leave_capi(state);
 
     // Handle any signals that occurred while the native method
     // was running.

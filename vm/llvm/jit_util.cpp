@@ -947,13 +947,13 @@ extern "C" {
 
   int rbx_enter_unmanaged(STATE, CallFrame* call_frame) {
     state->set_call_frame(call_frame);
-    state->vm()->shared.gc_independent(state);
+    state->shared().gc_independent(state);
     return 0;
   }
 
   int rbx_exit_unmanaged(STATE, CallFrame* call_frame) {
     state->set_call_frame(call_frame);
-    state->vm()->shared.gc_dependent(state);
+    state->shared().gc_dependent(state);
     return 0;
   }
 

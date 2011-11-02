@@ -191,7 +191,7 @@ namespace rubinius {
     SignalHandler::shutdown();
     QueryAgent::shutdown(state);
 
-    state->vm()->shared.pre_exec();
+    state->shared().pre_exec();
 
     // TODO Need to stop and kill off any ruby threads!
     // We haven't run into this because exec is almost always called
@@ -452,8 +452,8 @@ namespace rubinius {
     if(result == 0) {
       /*  @todo any other re-initialisation needed? */
 
-      state->vm()->shared.reinit(state);
-      state->vm()->shared.om->on_fork(state);
+      state->shared().reinit(state);
+      state->shared().om->on_fork(state);
       SignalHandler::on_fork(state, false);
 
       // Re-initialize LLVM
@@ -483,7 +483,7 @@ namespace rubinius {
     // in File#ininitialize). If we decided to ignore some GC.start calls
     // by usercode trying to be clever, we can use force to know that we
     // should NOT ignore it.
-    if(RTEST(force) || state->vm()->shared.config.gc_honor_start) {
+    if(RTEST(force) || state->shared().config.gc_honor_start) {
       state->memory()->collect_young_now = true;
       state->memory()->collect_mature_now = true;
       state->vm()->interrupts.set_perform_gc();
@@ -492,7 +492,7 @@ namespace rubinius {
   }
 
   Object* System::vm_get_config_item(STATE, String* var) {
-    ConfigParser::Entry* ent = state->vm()->shared.user_variables.find(var->c_str(state));
+    ConfigParser::Entry* ent = state->shared().user_variables.find(var->c_str(state));
     if(!ent) return Qnil;
 
     if(ent->is_number()) {
@@ -507,7 +507,7 @@ namespace rubinius {
   Object* System::vm_get_config_section(STATE, String* section) {
     ConfigParser::EntryList* list;
 
-    list = state->vm()->shared.user_variables.get_section(
+    list = state->shared().user_variables.get_section(
         reinterpret_cast<char*>(section->byte_address()));
 
     Array* ary = Array::create(state, list->size());
@@ -527,7 +527,7 @@ namespace rubinius {
     // 1. clear the global cache
     state->vm()->global_cache()->clear(state, name);
 
-    state->vm()->shared.ic_registry()->clear(state, name);
+    state->shared().ic_registry()->clear(state, name);
     return name;
   }
 
@@ -566,7 +566,7 @@ namespace rubinius {
 
   Object* System::vm_tooling_available_p(STATE) {
 #ifdef RBX_PROFILER
-    return state->vm()->shared.tool_broker()->available(state) ? Qtrue : Qfalse;
+    return state->shared().tool_broker()->available(state) ? Qtrue : Qfalse;
 #else
     return Qfalse;
 #endif
@@ -577,12 +577,12 @@ namespace rubinius {
   }
 
   Object* System::vm_tooling_enable(STATE) {
-    state->vm()->shared.tool_broker()->enable(state);
+    state->shared().tool_broker()->enable(state);
     return Qtrue;
   }
 
   Object* System::vm_tooling_disable(STATE) {
-    return state->vm()->shared.tool_broker()->results(state);
+    return state->shared().tool_broker()->results(state);
   }
 
   Object* System::vm_load_tool(STATE, String* str) {
@@ -631,7 +631,7 @@ namespace rubinius {
   }
 
   Object* System::vm_jit_info(STATE) {
-    if(state->vm()->shared.config.jit_disabled) return Qnil;
+    if(state->shared().config.jit_disabled) return Qnil;
 
 #ifdef ENABLE_LLVM
     LLVMState* ls = LLVMState::get(state);
@@ -650,7 +650,7 @@ namespace rubinius {
   }
 
   Object* System::vm_watch_signal(STATE, Fixnum* sig, Object* ignored) {
-    SignalHandler* h = state->vm()->shared.signal_handler();
+    SignalHandler* h = state->shared().signal_handler();
     if(h) {
       native_int i = sig->to_native();
       if(i < 0) {
@@ -940,7 +940,7 @@ namespace rubinius {
   }
 
   Object* System::vm_inc_global_serial(STATE) {
-    return Fixnum::from(state->vm()->shared.inc_global_serial(state));
+    return Fixnum::from(state->shared().inc_global_serial(state));
   }
 
   Object* System::vm_jit_block(STATE, GCToken gct, BlockEnvironment* env,
@@ -1094,7 +1094,7 @@ namespace rubinius {
   }
 
   Symbol* System::vm_get_kcode(STATE) {
-    switch(state->vm()->shared.kcode_page()) {
+    switch(state->shared().kcode_page()) {
     case kcode::eEUC:
       return state->symbol("EUC");
     case kcode::eSJIS:
@@ -1249,7 +1249,7 @@ namespace rubinius {
   }
 
   IO* System::vm_agent_io(STATE) {
-    QueryAgent* agent = state->vm()->shared.autostart_agent(state);
+    QueryAgent* agent = state->shared().autostart_agent(state);
     int sock = agent->loopback_socket();
     if(sock < 0) {
       if(!agent->setup_local()) return nil<IO>();

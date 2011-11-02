@@ -63,6 +63,10 @@ namespace rubinius {
       return shared_.memory();
     }
 
+    SharedState& shared() {
+      return shared_;
+    }
+
     bool detect_stack_condition(void* end) {
       return vm_->detect_stack_condition(end);
     }

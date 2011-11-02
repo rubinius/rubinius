@@ -72,7 +72,7 @@ namespace rubinius {
   }
 
   static OnigEncoding current_encoding(STATE) {
-    switch(state->vm()->shared.kcode_page()) {
+    switch(state->shared().kcode_page()) {
     default:
     case kcode::eAscii:
       return ONIG_ENCODING_ASCII;
@@ -267,7 +267,7 @@ namespace rubinius {
       forced_encoding_ = true;
     }
 
-    thread::Mutex::LockGuard lg(state->vm()->shared.onig_lock());
+    thread::Mutex::LockGuard lg(state->shared().onig_lock());
 
     err = onig_new(&this->onig_data, pat, end, opts, enc, ONIG_SYNTAX_RUBY, &err_info);
 
@@ -383,7 +383,7 @@ namespace rubinius {
       Exception::argument_error(state, "Not properly initialized Regexp");
     }
 
-    // thread::Mutex::LockGuard lg(state->vm()->shared.onig_lock());
+    // thread::Mutex::LockGuard lg(state->shared().onig_lock());
 
     max = string->size();
     str = (UChar*)string->byte_address();
@@ -464,7 +464,7 @@ namespace rubinius {
       Exception::argument_error(state, "Not properly initialized Regexp");
     }
 
-    // thread::Mutex::LockGuard lg(state->vm()->shared.onig_lock());
+    // thread::Mutex::LockGuard lg(state->shared().onig_lock());
 
     max = string->size();
     native_int pos = start->to_native();

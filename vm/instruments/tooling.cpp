@@ -35,7 +35,7 @@ namespace tooling {
   void ToolBroker::enable(STATE) {
     if(!enable_func_) return;
 
-    state->vm()->shared.config.jit_disabled.set("true");
+    state->shared().config.jit_disabled.set("true");
     System::vm_deoptimize_all(state, Qtrue);
 
     enable_func_(state->vm()->tooling_env());
@@ -49,7 +49,7 @@ namespace tooling {
   Object* ToolBroker::results(STATE) {
     if(!results_func_) return Qnil;
 
-    state->vm()->shared.config.jit_disabled.set("false");
+    state->shared().config.jit_disabled.set("false");
 
     Object* res = rbxti::s(results_func_(state->vm()->tooling_env()));
 

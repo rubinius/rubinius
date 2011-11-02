@@ -101,7 +101,7 @@ namespace tooling {
   public:
     Entry(STATE)
       : state_(state)
-      , broker_(state->vm()->shared.tool_broker())
+      , broker_(state->shared().tool_broker())
     {}
   };
 

@@ -82,7 +82,7 @@ namespace rubinius {
   }
 
   Thread* Thread::allocate(STATE, Object* self) {
-    VM* vm = state->vm()->shared.new_vm();
+    VM* vm = state->shared().new_vm();
     Thread* thread = Thread::create(state, vm, self, send_run);
 
     return thread;
@@ -281,10 +281,10 @@ namespace rubinius {
 
     init_lock_.unlock();
 
-    state->vm()->shared.gc_independent(state);
+    state->shared().gc_independent(state);
     void* val;
     int err = pthread_join(id, &val);
-    state->vm()->shared.gc_dependent(state);
+    state->shared().gc_dependent(state);
 
     switch(err) {
     case 0:
@@ -306,10 +306,10 @@ namespace rubinius {
 
   Object* Thread::set_critical(STATE, Object* obj) {
     if(RTEST(obj)) {
-      state->vm()->shared.set_critical(state);
+      state->shared().set_critical(state);
       return Qtrue;
     } else {
-      state->vm()->shared.clear_critical(state);
+      state->shared().clear_critical(state);
       return Qfalse;
     }
   }

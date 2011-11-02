@@ -59,7 +59,7 @@ namespace rubinius {
     , caches(0)
     , execute_status_(eInterpret)
     , name_(meth->name())
-    , method_id_(state->vm()->shared.inc_method_count(state))
+    , method_id_(state->shared().inc_method_count(state))
     , debugging(false)
     , flags(0)
   {
@@ -84,8 +84,8 @@ namespace rubinius {
 
     // Disable JIT for large methods
     if(meth->primitive()->nil_p() &&
-        !state->vm()->shared.config.jit_disabled &&
-        total < (size_t)state->vm()->shared.config.jit_max_method_size) {
+        !state->shared().config.jit_disabled &&
+        total < (size_t)state->shared().config.jit_max_method_size) {
       call_count = 0;
     } else {
       call_count = -1;
@@ -100,7 +100,7 @@ namespace rubinius {
       specializations[i].jit_data = 0;
     }
 
-    state->vm()->shared.om->add_code_resource(this);
+    state->shared().om->add_code_resource(this);
   }
 
   VMMethod::~VMMethod() {
@@ -250,7 +250,7 @@ namespace rubinius {
           }
         }
 
-        state->vm()->shared.ic_registry()->add_cache(state, name, cache);
+        state->shared().ic_registry()->add_cache(state, name, cache);
 
         opcodes[ip + 1] = reinterpret_cast<intptr_t>(cache);
         update_addresses(ip, 1);
@@ -594,7 +594,7 @@ namespace rubinius {
       // A negative call_count means we've disabled usage based JIT
       // for this method.
       if(vmm->call_count >= 0) {
-        if(vmm->call_count >= state->vm()->shared.config.jit_call_til_compile) {
+        if(vmm->call_count >= state->shared().config.jit_call_til_compile) {
           LLVMState* ls = LLVMState::get(state);
           ls->compile_callframe(state, cm, frame);
         } else {
