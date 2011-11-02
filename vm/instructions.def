@@ -1582,15 +1582,7 @@ instruction check_interrupts() [ -- ]
   // This is used in loops, and allows loops to heat a method up.
   if(vmm->call_count >= 0) vmm->call_count++;
 
-  // The | here reduces the number of branches to check
-  if(unlikely(state->vm()->interrupts.check)) {
-    state->vm()->interrupts.checked();
-
-    if(state->vm()->interrupts.perform_gc) {
-      state->vm()->interrupts.perform_gc = false;
-      state->vm()->collect_maybe(gct, call_frame);
-    }
-  }
+  state->gc_checkpoint(gct, call_frame);
 
   if(!state->check_async(call_frame)) RUN_EXCEPTION();
 

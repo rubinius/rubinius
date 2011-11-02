@@ -486,7 +486,7 @@ namespace rubinius {
     if(RTEST(force) || state->shared().config.gc_honor_start) {
       state->memory()->collect_young_now = true;
       state->memory()->collect_mature_now = true;
-      state->vm()->interrupts.set_perform_gc();
+      state->shared().gc_soon();
     }
     return Qnil;
   }

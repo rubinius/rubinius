@@ -281,10 +281,10 @@ namespace rubinius {
 
     init_lock_.unlock();
 
-    state->shared().gc_independent(state);
+    state->gc_independent();
     void* val;
     int err = pthread_join(id, &val);
-    state->shared().gc_dependent(state);
+    state->gc_dependent();
 
     switch(err) {
     case 0:

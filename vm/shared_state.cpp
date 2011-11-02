@@ -37,6 +37,7 @@ namespace rubinius {
     , env_(env)
     , tool_broker_(new tooling::ToolBroker)
     , ruby_critical_set_(false)
+    , check_gc_(false)
 
     , om(0)
     , global_cache(new GlobalCache)
@@ -141,13 +142,6 @@ namespace rubinius {
     if(agent_) return agent_;
     agent_ = new QueryAgent(*this, state);
     return agent_;
-  }
-
-  /**
-   * Create the preemption thread and call scheduler_loop() in the new thread.
-   */
-  void SharedState::enable_preemption() {
-    interrupts.enable_preempt = true;
   }
 
   void SharedState::pre_exec() {

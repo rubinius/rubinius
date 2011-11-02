@@ -35,7 +35,7 @@ namespace rubinius {
     }
 
     Globals& globals() {
-      return vm_->shared.globals;
+      return shared_.globals;
     }
 
     Symbol* symbol(const char* str) {
@@ -99,23 +99,29 @@ namespace rubinius {
     }
 
     void stop_the_world() {
-      vm_->shared.stop_the_world(vm_);
+      shared_.stop_the_world(vm_);
     }
 
     void restart_world() {
-      vm_->shared.restart_world(vm_);
+      shared_.restart_world(vm_);
     }
 
     void gc_independent() {
-      vm_->shared.gc_independent(vm_);
+      shared_.gc_independent(vm_);
     }
 
     void gc_dependent() {
-      vm_->shared.gc_dependent(vm_);
+      shared_.gc_dependent(vm_);
     }
 
     void checkpoint() {
-      vm_->shared.checkpoint(vm_);
+      shared_.checkpoint(vm_);
+    }
+
+    void gc_checkpoint(GCToken gct, CallFrame* frame) {
+      if(unlikely(shared_.check_gc_p())) {
+        vm_->collect_maybe(gct, frame);
+      }
     }
 
   };

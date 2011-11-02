@@ -76,7 +76,6 @@ namespace rubinius {
     , custom_wakeup_(0)
     , custom_wakeup_data_(0)
     , om(shared.om)
-    , interrupts(shared.interrupts)
     , check_local_interrupts(false)
     , thread_state_(this)
     , thread(this, nil<Thread>())
@@ -330,7 +329,7 @@ namespace rubinius {
   void VM::run_gc_soon() {
     om->collect_young_now = true;
     om->collect_mature_now = true;
-    interrupts.set_perform_gc();
+    shared.gc_soon();
   }
 
   void VM::collect(GCToken gct, CallFrame* call_frame) {

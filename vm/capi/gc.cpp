@@ -37,7 +37,7 @@ extern "C" {
     if(getenv("RBX_RESPECT_RB_GC")) {
       env->state()->vm()->om->collect_young_now = true;
       env->state()->vm()->om->collect_mature_now = true;
-      env->state()->vm()->interrupts.set_perform_gc();
+      env->state()->shared().gc_soon();
     }
   }
 

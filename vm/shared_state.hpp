@@ -45,28 +45,6 @@ namespace rubinius {
   class QueryAgent;
   class Environment;
 
-  struct Interrupts {
-    bool check;
-    bool perform_gc;
-    bool enable_preempt;
-
-    Interrupts()
-      : check(false)
-      , perform_gc(false)
-      , enable_preempt(false)
-    {}
-
-    void checked() {
-      check = false;
-    }
-
-    void set_perform_gc() {
-      perform_gc = true;
-      check = true;
-    }
-  };
-
-
   /**
    * SharedState represents the global shared state that needs to be shared
    * across all VM instances.
@@ -113,13 +91,14 @@ namespace rubinius {
 
     Mutex capi_lock_;
 
+    bool check_gc_;
+
   public:
     Globals globals;
     ObjectMemory* om;
     GlobalCache* global_cache;
     Configuration& config;
     ConfigParser& user_variables;
-    Interrupts interrupts;
     SymbolTable symbols;
     LLVMState* llvm_state;
     Stats stats;
@@ -258,8 +237,17 @@ namespace rubinius {
       return om;
     }
 
+    bool check_gc_p() {
+      bool c = check_gc_;
+      check_gc_ = false;
+      return c;
+    }
+
+    void gc_soon() {
+      check_gc_ = true;
+    }
+
     void scheduler_loop();
-    void enable_preemption();
 
     void pre_exec();
     void reinit(STATE);

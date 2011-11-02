@@ -911,14 +911,7 @@ extern "C" {
 
     if(!state->check_interrupts(gct, call_frame, &state)) return NULL;
 
-    if(!state->vm()->interrupts.check) return Qtrue;
-
-    state->vm()->interrupts.checked();
-
-    if(state->vm()->interrupts.perform_gc) {
-      state->vm()->interrupts.perform_gc = false;
-      state->vm()->collect_maybe(gct, call_frame);
-    }
+    state->gc_checkpoint(gct, call_frame);
 
     state->set_call_frame(call_frame);
     state->checkpoint();
@@ -929,14 +922,7 @@ extern "C" {
   Object* rbx_check_interrupts(STATE, CallFrame* call_frame) {
     GCTokenImpl gct;
 
-    if(unlikely(state->vm()->interrupts.check)) {
-      state->vm()->interrupts.checked();
-
-      if(state->vm()->interrupts.perform_gc) {
-        state->vm()->interrupts.perform_gc = true;
-        state->vm()->collect_maybe(gct, call_frame);
-      }
-    }
+    state->gc_checkpoint(gct, call_frame);
 
     if(!state->check_async(call_frame)) return NULL;
 
@@ -947,13 +933,13 @@ extern "C" {
 
   int rbx_enter_unmanaged(STATE, CallFrame* call_frame) {
     state->set_call_frame(call_frame);
-    state->shared().gc_independent(state);
+    state->gc_independent();
     return 0;
   }
 
   int rbx_exit_unmanaged(STATE, CallFrame* call_frame) {
     state->set_call_frame(call_frame);
-    state->shared().gc_dependent(state);
+    state->gc_dependent();
     return 0;
   }
 

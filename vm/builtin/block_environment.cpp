@@ -322,13 +322,7 @@ namespace rubinius {
       if(!state->check_interrupts(gct, frame, frame)) return NULL;
     }
 
-    if(unlikely(state->vm()->interrupts.check)) {
-      state->vm()->interrupts.checked();
-      if(state->vm()->interrupts.perform_gc) {
-        state->vm()->interrupts.perform_gc = false;
-        state->vm()->collect_maybe(gct, frame);
-      }
-    }
+    state->gc_checkpoint(gct, frame);
 
     state->set_call_frame(frame);
     state->checkpoint();

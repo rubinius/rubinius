@@ -56,7 +56,6 @@ namespace rubinius {
   struct CallFrame;
   class Object;
   class Configuration;
-  struct Interrupts;
   class VMManager;
   class LookupTable;
   class SymbolTable;
@@ -108,7 +107,6 @@ namespace rubinius {
     void* custom_wakeup_data_;
 
     ObjectMemory* om;
-    Interrupts& interrupts;
 
     bool check_local_interrupts;
 

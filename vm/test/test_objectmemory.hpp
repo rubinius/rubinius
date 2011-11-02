@@ -424,14 +424,16 @@ public:
 
   void test_xmalloc_causes_gc() {
     // Knows that the threshold is 10M
-    state->vm()->interrupts.check = false;
+    state->shared().check_gc_p();
+
     int bytes = 1024 * 1024;
     int total = 110 * bytes;
     while(total >= 0) {
       XFREE(XMALLOC(bytes));
       total -= bytes;
     }
-    TS_ASSERT_EQUALS(state->vm()->interrupts.check, true);
+
+    TS_ASSERT_EQUALS(state->shared().check_gc_p(), true);
   }
 
 };
