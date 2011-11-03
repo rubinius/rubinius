@@ -37,6 +37,7 @@ end
 # The complex number class.
 #
 class Complex < Numeric
+  undef_method :%
   undef_method :step
   undef_method :div
   undef_method :divmod
@@ -227,35 +228,6 @@ class Complex < Numeric
       x**y
     end
   end
-
-  #
-  # Remainder after division by a real or complex number.
-  #
-  def % (other)
-    if other.kind_of?(Complex)
-      Complex(@real % other.real, @imag % other.imag)
-    elsif Complex.generic?(other)
-      Complex(@real % other, @imag % other)
-    else
-      x , y = other.coerce(self)
-      x % y
-    end
-  end
-
-#--
-#    def divmod(other)
-#      if other.kind_of?(Complex)
-#        rdiv, rmod = @real.divmod(other.real)
-#        idiv, imod = @imag.divmod(other.imag)
-#        return Complex(rdiv, idiv), Complex(rmod, rmod)
-#      elsif Complex.generic?(other)
-#        Complex(@real.divmod(other), @imag.divmod(other))
-#      else
-#        x , y = other.coerce(self)
-#        x.divmod(y)
-#      end
-#    end
-#++
 
   #
   # Absolute value (aka modulus): distance from the zero point on the complex
