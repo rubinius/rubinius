@@ -2,10 +2,13 @@
 #include "builtin/class.hpp"
 #include "builtin/staticscope.hpp"
 
+#include "ontology.hpp"
+
 namespace rubinius {
   void GlobalCacheEntry::init(STATE) {
     GO(global_cache_entry).set(
-        state->vm()->new_class("GlobalCacheEntry", G(object), G(rubinius)));
+        ontology::new_class(state, "GlobalCacheEntry",
+          G(object), G(rubinius)));
   }
 
   GlobalCacheEntry* GlobalCacheEntry::create(STATE, Object *value,

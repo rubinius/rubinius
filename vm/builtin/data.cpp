@@ -7,10 +7,12 @@
 
 #include "capi/capi.hpp"
 
+#include "ontology.hpp"
+
 namespace rubinius {
 
   void Data::init(STATE) {
-    GO(data).set(state->vm()->new_class("Data", G(object)));
+    GO(data).set(ontology::new_class(state, "Data", G(object)));
     G(data)->set_object_type(state, DataType);
   }
 

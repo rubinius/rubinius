@@ -9,6 +9,8 @@
 #include "vm/object_utils.hpp"
 #include "objectmemory.hpp"
 
+#include "ontology.hpp"
+
 #include <iostream>
 
 #define StartSize 16
@@ -16,7 +18,7 @@
 
 namespace rubinius {
   void Symbol::init(STATE) {
-    GO(symbol).set(state->vm()->new_class("Symbol"));
+    GO(symbol).set(ontology::new_class(state, "Symbol"));
     G(symbol)->set_object_type(state, Symbol::type);
   }
 

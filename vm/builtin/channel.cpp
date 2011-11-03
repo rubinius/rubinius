@@ -19,12 +19,15 @@
 
 #include "on_stack.hpp"
 
+#include "ontology.hpp"
+
 #include <sys/time.h>
 
 namespace rubinius {
 
   void Channel::init(STATE) {
-    GO(channel).set(state->vm()->new_class("Channel", G(object), G(rubinius)));
+    GO(channel).set(ontology::new_class(state, "Channel",
+                      G(object), G(rubinius)));
     G(channel)->set_object_type(state, Channel::type);
     G(channel)->name(state, state->symbol("Rubinius::Channel"));
   }

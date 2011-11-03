@@ -10,6 +10,8 @@
 #include "primitives.hpp"
 #include "configuration.hpp"
 
+#include "ontology.hpp"
+
 #include <gdtoa.h>
 
 #include <string.h>
@@ -22,7 +24,7 @@
 namespace rubinius {
 
   void Float::init(STATE) {
-    GO(floatpoint).set(state->vm()->new_class("Float", G(numeric)));
+    GO(floatpoint).set(ontology::new_class(state, "Float", G(numeric)));
     G(floatpoint)->set_object_type(state, FloatType);
 
     G(floatpoint)->set_const(state, "RADIX",      Fixnum::from(FLT_RADIX));

@@ -312,24 +312,6 @@ namespace rubinius {
     /// Create a Tuple in the young GC space, return NULL if not possible.
     Tuple* new_young_tuple_dirty(size_t fields);
 
-    /// Create an uninitialized Class object
-    Class* new_basic_class(Class* sup);
-
-    /// Create a Class of name +name+ as an Object subclass
-    Class* new_class(const char* name);
-
-    /// Create a Class of name +name+ as a subclass of +super_class+
-    Class* new_class(const char* name, Class* super_class);
-
-    /// Create a Class of name +name+ as a subclass of +sup+
-    /// under Module +under+
-    Class* new_class(const char* name, Class* sup, Module* under);
-
-    /// Create a Class of name +name+ under +under+
-    Class* new_class_under(const char* name, Module* under);
-
-    Module* new_module(const char* name, Module* under = NULL);
-
     Symbol* symbol(const char* str);
     Symbol* symbol(std::string str);
     Symbol* symbol(String* str);

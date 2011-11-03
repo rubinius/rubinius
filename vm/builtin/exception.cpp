@@ -20,11 +20,13 @@
 
 #include "configuration.hpp"
 
+#include "ontology.hpp"
+
 #include <iostream>
 
 namespace rubinius {
   void Exception::init(STATE) {
-    GO(exception).set(state->vm()->new_class("Exception", G(object)));
+    GO(exception).set(ontology::new_class(state, "Exception", G(object)));
     G(exception)->set_object_type(state, ExceptionType);
   }
 

@@ -22,6 +22,8 @@
 
 #include "on_stack.hpp"
 
+#include "ontology.hpp"
+
 #include "windows_compat.h"
 
 #include <sys/time.h>
@@ -50,7 +52,7 @@ static intptr_t thread_debug_id(pthread_t thr) {
 namespace rubinius {
 
   void Thread::init(STATE) {
-    GO(thread).set(state->vm()->new_class("Thread", G(object)));
+    GO(thread).set(ontology::new_class(state, "Thread", G(object)));
     G(thread)->set_object_type(state, Thread::type);
   }
 

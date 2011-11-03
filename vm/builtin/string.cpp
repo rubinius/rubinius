@@ -18,6 +18,8 @@
 
 #include "windows_compat.h"
 
+#include "ontology.hpp"
+
 #include <gdtoa.h>
 
 #include <unistd.h>
@@ -29,7 +31,7 @@
 namespace rubinius {
 
   void String::init(STATE) {
-    GO(string).set(state->vm()->new_class("String", G(object)));
+    GO(string).set(ontology::new_class(state, "String", G(object)));
     G(string)->set_object_type(state, StringType);
   }
 

@@ -38,14 +38,17 @@
 
 #include "capi/handle.hpp"
 
+#include "ontology.hpp"
+
 #include "windows_compat.h"
 
 namespace rubinius {
   void IO::init(STATE) {
-    GO(io).set(state->vm()->new_class("IO", G(object)));
+    GO(io).set(ontology::new_class(state, "IO", G(object)));
     G(io)->set_object_type(state, IOType);
 
-    GO(iobuffer).set(state->vm()->new_class("InternalBuffer", G(object), G(io)));
+    GO(iobuffer).set(ontology::new_class(state, "InternalBuffer",
+          G(object), G(io)));
     G(iobuffer)->set_object_type(state, IOBufferType);
   }
 

@@ -31,6 +31,8 @@
 #include "builtin/location.hpp"
 #include "builtin/nativemethod.hpp"
 
+#include "ontology.hpp"
+
 #include "ffi_util.hpp"
 #include "arguments.hpp"
 #include "dispatch.hpp"
@@ -42,9 +44,8 @@
 namespace rubinius {
 
   void NativeFunction::init(STATE) {
-    GO(native_function).set(state->vm()->new_class("NativeFunction",
-                            G(executable),
-                            G(rubinius)));
+    GO(native_function).set(ontology::new_class(state,
+          "NativeFunction", G(executable), G(rubinius)));
     G(native_function)->set_object_type(state, NativeFunctionType);
   }
 

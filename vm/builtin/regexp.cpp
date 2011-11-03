@@ -21,6 +21,8 @@
 
 #include "util/atomic.hpp"
 
+#include "ontology.hpp"
+
 #define OPTION_IGNORECASE         ONIG_OPTION_IGNORECASE
 #define OPTION_EXTENDED           ONIG_OPTION_EXTEND
 #define OPTION_MULTILINE          ONIG_OPTION_MULTILINE
@@ -39,10 +41,10 @@ namespace rubinius {
 
   void Regexp::init(STATE) {
     onig_init();
-    GO(regexp).set(state->vm()->new_class("Regexp", G(object), 0));
+    GO(regexp).set(ontology::new_class(state, "Regexp", G(object), 0));
     G(regexp)->set_object_type(state, RegexpType);
 
-    GO(matchdata).set(state->vm()->new_class("MatchData", G(object), 0));
+    GO(matchdata).set(ontology::new_class(state, "MatchData", G(object), 0));
     G(matchdata)->set_object_type(state, MatchDataType);
   }
 

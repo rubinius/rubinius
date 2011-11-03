@@ -14,10 +14,13 @@
 
 #include "object_utils.hpp"
 
+#include "ontology.hpp"
+
 namespace rubinius {
 
   void CharArray::init(STATE) {
-    GO(chararray).set(state->vm()->new_class_under("CharArray", G(rubinius)));
+    GO(chararray).set(ontology::new_class_under(state, 
+                        "CharArray", G(rubinius)));
     G(chararray)->set_object_type(state, CharArrayType);
     G(chararray)->name(state, state->symbol("Rubinius::CharArray"));
   }

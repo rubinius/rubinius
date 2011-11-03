@@ -10,12 +10,14 @@
 
 #include "object_utils.hpp"
 
+#include "ontology.hpp"
+
 #include <sys/types.h>
 #include <dirent.h>
 
 namespace rubinius {
   void Dir::init(STATE) {
-    GO(dir).set(state->vm()->new_class("Dir", G(object)));
+    GO(dir).set(ontology::new_class(state, "Dir", G(object)));
     G(dir)->set_object_type(state, DirType);
   }
 

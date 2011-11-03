@@ -12,11 +12,14 @@
 #include "dispatch.hpp"
 #include "arguments.hpp"
 
+#include "ontology.hpp"
+
 namespace rubinius {
 
   void AccessVariable::init(STATE) {
     // HACK test superclass of AccessVariable
-    GO(access_variable).set(state->vm()->new_class("AccessVariable", G(executable), G(rubinius)));
+    GO(access_variable).set(ontology::new_class(state, 
+          "AccessVariable", G(executable), G(rubinius)));
     G(access_variable)->set_object_type(state, AccessVariableType);
     G(access_variable)->name(state, state->symbol("Rubinius::AccessVariable"));
   }

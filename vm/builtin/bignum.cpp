@@ -18,6 +18,8 @@
 #include "builtin/bytearray.hpp"
 #include "configuration.hpp"
 
+#include "ontology.hpp"
+
 #include "missing/math.h"
 
 #define BASIC_CLASS(blah) G(blah)
@@ -193,7 +195,7 @@ namespace rubinius {
   }
 
   void Bignum::init(STATE) {
-    GO(bignum).set(state->vm()->new_class("Bignum", G(integer)));
+    GO(bignum).set(ontology::new_class(state, "Bignum", G(integer)));
     G(bignum)->set_object_type(state, BignumType);
   }
 

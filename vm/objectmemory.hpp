@@ -184,6 +184,8 @@ namespace rubinius {
 
     TypedRoot<Thread*> finalizer_thread_;
 
+    SharedState& shared_;
+
   public:
     /// Flag indicating whether a young collection should be performed soon
     bool collect_young_now;

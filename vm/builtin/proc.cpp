@@ -17,10 +17,12 @@
 #include "call_frame.hpp"
 #include "configuration.hpp"
 
+#include "ontology.hpp"
+
 namespace rubinius {
 
   void Proc::init(STATE) {
-    GO(proc).set(state->vm()->new_class("Proc", G(object)));
+    GO(proc).set(ontology::new_class(state, "Proc", G(object)));
     G(proc)->set_object_type(state, ProcType);
   }
 

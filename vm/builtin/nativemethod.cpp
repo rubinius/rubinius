@@ -24,6 +24,8 @@
 
 #include "instruments/tooling.hpp"
 
+#include "ontology.hpp"
+
 #include "capi/capi.hpp"
 #include "capi/handle.hpp"
 
@@ -181,7 +183,8 @@ namespace rubinius {
   }
 
   void NativeMethod::init(STATE) {
-    GO(nmethod).set(state->vm()->new_class("NativeMethod", G(executable), G(rubinius)));
+    GO(nmethod).set(ontology::new_class(state, "NativeMethod",
+          G(executable), G(rubinius)));
     G(nmethod)->set_object_type(state, NativeMethodType);
 
     init_thread(state);

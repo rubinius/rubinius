@@ -30,13 +30,15 @@
 #include "arguments.hpp"
 #include "dispatch.hpp"
 
+#include "ontology.hpp"
+
 #include "windows_compat.h"
 
 namespace rubinius {
 
   void Pointer::init(STATE) {
     Module* ffi = as<Module>(G(object)->get_const(state, "FFI"));
-    GO(ffi_pointer).set(state->vm()->new_class_under("Pointer", ffi));
+    GO(ffi_pointer).set(ontology::new_class_under(state, "Pointer", ffi));
     G(ffi_pointer)->set_object_type(state, PointerType);
 
     G(ffi_pointer)->set_const(state, "CURRENT_PROCESS",

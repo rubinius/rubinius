@@ -230,55 +230,6 @@ namespace rubinius {
     return new_object_typed(cls, ti->instance_size, ti->type);
   }
 
-  Class* VM::new_basic_class(Class* sup) {
-    State state(this);
-
-    Class *cls = om->new_object_enduring<Class>(&state, G(klass));
-    cls->init(shared.inc_class_count(&state));
-
-    if(sup->nil_p()) {
-      cls->instance_type(this, Fixnum::from(ObjectType));
-      cls->set_type_info(find_type(ObjectType));
-    } else {
-      cls->instance_type(this, sup->instance_type()); // HACK test that this is always true
-      cls->set_type_info(sup->type_info());
-    }
-    cls->superclass(this, sup);
-
-    return cls;
-  }
-
-  Class* VM::new_class(const char* name) {
-    return new_class(name, G(object), G(object));
-  }
-
-  Class* VM::new_class(const char* name, Class* super_class) {
-    return new_class(name, super_class, G(object));
-  }
-
-  Class* VM::new_class(const char* name, Class* sup, Module* under) {
-    State state(this);
-
-    Class* cls = new_basic_class(sup);
-    cls->setup(&state, name, under);
-
-    // HACK test that we've got the MOP setup properly
-    SingletonClass::attach(&state, cls, sup->singleton_class(&state));
-    return cls;
-  }
-
-  Class* VM::new_class_under(const char* name, Module* under) {
-    return new_class(name, G(object), under);
-  }
-
-  Module* VM::new_module(const char* name, Module* under) {
-    State state(this);
-
-    Module *mod = new_object<Module>(G(module));
-    mod->setup(&state, name, under);
-    return mod;
-  }
-
   Symbol* VM::symbol(const char* str) {
     return shared.symbols.lookup(str, strlen(str));
   }

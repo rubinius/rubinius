@@ -56,6 +56,7 @@ namespace rubinius {
     , running_finalizers_(false)
     , added_finalizers_(false)
     , finalizer_thread_(state, nil<Thread>())
+    , shared_(state->shared)
 
     , collect_young_now(false)
     , collect_mature_now(false)
@@ -416,7 +417,7 @@ step1:
     if(Object* obj = young_->raw_allocate(bytes, &collect_young_now)) {
       gc_stats.young_object_allocated(bytes);
 
-      if(collect_young_now) root_state_->shared.gc_soon();
+      if(collect_young_now) shared_.gc_soon();
       obj->init_header(cls, YoungObjectZone, type);
       return obj;
     } else {
@@ -876,15 +877,13 @@ step1:
 
       gc_stats.mature_object_allocated(bytes);
 
-      if(collect_mature_now) {
-        root_state_->shared.gc_soon();
-      }
+      if(collect_mature_now) shared_.gc_soon();
 
     } else {
       obj = young_->allocate(bytes, &collect_young_now);
       if(unlikely(obj == NULL)) {
         collect_young_now = true;
-        root_state_->shared.gc_soon();
+        shared_.gc_soon();
 
         obj = immix_->allocate(bytes);
 
@@ -894,9 +893,7 @@ step1:
 
         gc_stats.mature_object_allocated(bytes);
 
-        if(collect_mature_now) {
-          root_state_->shared.gc_soon();
-        }
+        if(collect_mature_now) shared_.gc_soon();
       } else {
         gc_stats.young_object_allocated(bytes);
       }
@@ -929,9 +926,7 @@ step1:
       gc_stats.mature_object_allocated(bytes);
     }
 
-    if(collect_mature_now) {
-      root_state_->shared.gc_soon();
-    }
+    if(collect_mature_now) shared_.gc_soon();
 
 #ifdef ENABLE_OBJECT_WATCH
     if(watched_p(obj)) {
@@ -988,9 +983,7 @@ step1:
     Object* obj = mark_sweep_->allocate(bytes, &collect_mature_now);
     gc_stats.mature_object_allocated(bytes);
 
-    if(collect_mature_now) {
-      root_state_->shared.gc_soon();
-    }
+    if(collect_mature_now) shared_.gc_soon();
 
 #ifdef ENABLE_OBJECT_WATCH
     if(watched_p(obj)) {
@@ -1398,7 +1391,7 @@ step1:
   };
 
   void ObjectMemory::find_referers(Object* target, ObjectArray& result) {
-    ObjectMemory::GCInhibit inhibitor(root_state_->om);
+    ObjectMemory::GCInhibit inhibitor(this);
 
     ObjectWalker walker(root_state_->om);
     GCData gc_data(root_state_);

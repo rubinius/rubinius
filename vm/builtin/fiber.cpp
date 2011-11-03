@@ -16,6 +16,8 @@
 #include "call_frame.hpp"
 #include "arguments.hpp"
 
+#include "ontology.hpp"
+
 #include "on_stack.hpp"
 
 #ifdef FIBER_NATIVE
@@ -122,7 +124,7 @@ struct fiber_context_t {
 namespace rubinius {
 
   void Fiber::init(STATE) {
-    GO(fiber).set(state->vm()->new_class("Fiber", G(object), G(rubinius)));
+    GO(fiber).set(ontology::new_class(state, "Fiber", G(object), G(rubinius)));
     G(fiber)->set_object_type(state, FiberType);
 
 #ifdef FIBER_ENABLED

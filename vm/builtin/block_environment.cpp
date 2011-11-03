@@ -27,6 +27,8 @@
 #include "configuration.hpp"
 #include "on_stack.hpp"
 
+#include "ontology.hpp"
+
 #ifdef RBX_WINDOWS
 #include <malloc.h>
 #endif
@@ -40,7 +42,7 @@
 namespace rubinius {
 
   void BlockEnvironment::init(STATE) {
-    GO(blokenv).set(state->vm()->new_class("BlockEnvironment", G(object),
+    GO(blokenv).set(ontology::new_class(state, "BlockEnvironment", G(object),
                                      G(rubinius)));
     G(blokenv)->set_object_type(state, BlockEnvironmentType);
     G(blokenv)->name(state, state->symbol("Rubinius::BlockEnvironment"));

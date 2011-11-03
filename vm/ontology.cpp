@@ -44,15 +44,63 @@
 #include "builtin/fiber.hpp"
 #include "builtin/alias.hpp"
 #include "builtin/randomizer.hpp"
+#include "builtin/module.hpp"
+#include "builtin/class.hpp"
 
 #include "configuration.hpp"
 #include "config.h"
 #include "revision.h"
 
+#include "ontology.hpp"
+
 #define SPECIAL_CLASS_MASK 0x1f
 #define SPECIAL_CLASS_SIZE 32
 
 namespace rubinius {
+  namespace ontology {
+    Class* new_basic_class(STATE, Class* sup) {
+      Class *cls = state->memory()->new_object_enduring<Class>(state, G(klass));
+      cls->init(state->shared().inc_class_count(state));
+
+      if(sup->nil_p()) {
+        cls->instance_type(state, Fixnum::from(ObjectType));
+        cls->set_type_info(state->vm()->find_type(ObjectType));
+      } else {
+        cls->instance_type(state, sup->instance_type());
+        cls->set_type_info(sup->type_info());
+      }
+      cls->superclass(state, sup);
+
+      return cls;
+    }
+
+    Class* new_class(STATE, const char* name) {
+      return new_class(state, name, G(object), G(object));
+    }
+
+    Class* new_class(STATE, const char* name, Class* sup,
+                     Module* under)
+    {
+      if(!under) under = G(object);
+
+      Class* cls = new_basic_class(state, sup);
+      cls->setup(state, name, under);
+
+      // HACK test that we've got the MOP setup properly
+      SingletonClass::attach(state, cls, sup->singleton_class(state));
+      return cls;
+    }
+
+    Class* new_class_under(STATE, const char* name, Module* under) {
+      return new_class(state, name, G(object), under);
+    }
+
+    Module* new_module(STATE, const char* name, Module* under) {
+      Module *mod = state->new_object<Module>(G(module));
+      mod->setup(state, name, under);
+      return mod;
+    }
+  }
 
   // Reset macros since we're inside state
 #undef G
@@ -76,7 +124,7 @@ namespace rubinius {
     cls->set_obj_type(ClassType);
 
     cls->set_object_type(state, ClassType);
-    cls->set_class_id(shared.inc_class_count(state));
+    cls->set_class_id(state->shared().inc_class_count(state));
     cls->set_packed_size(0);
 
     // Set Class into the globals
@@ -86,43 +134,43 @@ namespace rubinius {
     Class* basicobject = 0;
     Class* object;
     if(!LANGUAGE_18_ENABLED(state)) {
-      basicobject = new_basic_class(force_as<Class>(Qnil));
+      basicobject = ontology::new_basic_class(state, force_as<Class>(Qnil));
       GO(basicobject).set(basicobject);
       basicobject->set_object_type(state, BasicObjectType);
 
-      object = new_basic_class(basicobject);
+      object = ontology::new_basic_class(state, basicobject);
     } else {
-      object = new_basic_class(nil<Class>());
+      object = ontology::new_basic_class(state, nil<Class>());
     }
 
     GO(object).set(object);
     object->set_object_type(state, ObjectType);
 
     // Now Module
-    GO(module).set(new_basic_class(object));
+    GO(module).set(ontology::new_basic_class(state, object));
     G(module)->set_object_type(state, ModuleType);
 
     // Fixup Class's superclass to be Module
     cls->superclass(state, G(module));
 
     // Create Tuple
-    GO(tuple).set(new_basic_class(object));
+    GO(tuple).set(ontology::new_basic_class(state, object));
     G(tuple)->set_object_type(state, TupleType);
 
     // Create LookupTable
-    GO(lookuptable).set(new_basic_class(object));
+    GO(lookuptable).set(ontology::new_basic_class(state, object));
     G(lookuptable)->set_object_type(state, LookupTableType);
 
     // Create LookupTableBucket
-    GO(lookuptablebucket).set(new_basic_class(object));
+    GO(lookuptablebucket).set(ontology::new_basic_class(state, object));
     G(lookuptablebucket)->set_object_type(state, LookupTableBucketType);
 
     // Create MethodTable
-    GO(methtbl).set(new_basic_class(object));
+    GO(methtbl).set(ontology::new_basic_class(state, object));
     G(methtbl)->set_object_type(state, MethodTableType);
 
     // Create MethodTableBucket
-    GO(methtblbucket).set(new_basic_class(object));
+    GO(methtblbucket).set(ontology::new_basic_class(state, object));
     G(methtblbucket)->set_object_type(state, MethodTableBucketType);
 
     /* Now, we have:
@@ -188,7 +236,7 @@ namespace rubinius {
     G(module)->setup(state, "Module");
 
     // Create the namespace for various implementation classes
-    GO(rubinius).set(new_module("Rubinius"));
+    GO(rubinius).set(ontology::new_module(state, "Rubinius"));
 
     // Finish initializing the rest of the special 8
     G(tuple)->setup(state, "Tuple", G(rubinius));
@@ -207,21 +255,21 @@ namespace rubinius {
 
   void VM::initialize_builtin_classes(STATE) {
     // Create the immediate classes.
-    GO(nil_class).set(new_class("NilClass"));
+    GO(nil_class).set(ontology::new_class(state, "NilClass"));
     G(nil_class)->set_object_type(state, NilType);
     GO(nil_class)->type_info()->allow_user_allocate = false;
 
-    GO(true_class).set(new_class("TrueClass"));
+    GO(true_class).set(ontology::new_class(state, "TrueClass"));
     G(true_class)->set_object_type(state, TrueType);
     GO(true_class)->type_info()->allow_user_allocate = false;
 
-    GO(false_class).set(new_class("FalseClass"));
+    GO(false_class).set(ontology::new_class(state, "FalseClass"));
     G(false_class)->set_object_type(state, FalseType);
     GO(false_class)->type_info()->allow_user_allocate = false;
 
-    Class* numeric = new_class("Numeric");
+    Class* numeric = ontology::new_class(state, "Numeric");
     GO(numeric).set(numeric);
-    Class* integer = new_class("Integer", numeric);
+    Class* integer = ontology::new_class(state, "Integer", numeric);
     GO(integer).set(integer);
     Fixnum::init(state);
     Symbol::init(state);
@@ -243,7 +291,8 @@ namespace rubinius {
     globals().special_classes[(uintptr_t)Qtrue ] = GO(true_class);
 
     /* Create IncludedModule */
-    GO(included_module).set(new_class("IncludedModule", G(module), G(rubinius)));
+    GO(included_module).set(ontology::new_class(state, 
+          "IncludedModule", G(module), G(rubinius)));
     G(included_module)->set_object_type(state, IncludedModuleType);
     G(included_module)->name(state, symbol("Rubinius::IncludedModule"));
 
@@ -327,10 +376,10 @@ namespace rubinius {
     Object* undef = new_object<Object>(G(object));
     GO(undefined).set(undef);
 
-    GO(vm).set(new_class_under("VM", G(rubinius)));
+    GO(vm).set(ontology::new_class_under(state, "VM", G(rubinius)));
     G(vm)->name(state, state->symbol("Rubinius::VM"));
 
-    GO(type).set(new_module("Type", G(rubinius)));
+    GO(type).set(ontology::new_module(state, "Type", G(rubinius)));
     G(type)->name(state, state->symbol("Rubinius::Type"));
 
     System::bootstrap_methods(state);
@@ -458,7 +507,7 @@ namespace rubinius {
     if(found) {
       ern->set_const(state, symbol(name), current);
     } else {
-      Class* cls = state->vm()->new_class(name, sce, ern);
+      Class* cls = ontology::new_class(state, name, sce, ern);
 
       // new_class has simply name setting logic that doesn't take into account
       // being not under Object. So we set it again using the smart method.
@@ -474,7 +523,7 @@ namespace rubinius {
     Class *exc, *scp, *std, *arg, *nam, *loe, *rex, *stk, *sxp, *sce, *type, *lje, *vme;
     Class *rng, *rte;
 
-#define dexc(name, sup) new_class(#name, sup)
+#define dexc(name, sup) ontology::new_class(state, #name, sup)
 
     exc = G(exception);
     scp = dexc(ScriptError, exc);
@@ -498,14 +547,16 @@ namespace rubinius {
 
     GO(jump_error).set(lje);
 
-    GO(exc_vm_internal).set(new_class("Internal", exc, G(rubinius)));
+    GO(exc_vm_internal).set(ontology::new_class(state,
+          "Internal", exc, G(rubinius)));
     GO(exc_vm_bad_bytecode).set(
-        new_class("InvalidBytecode", G(exc_vm_internal), G(rubinius)));
+        ontology::new_class(state, "InvalidBytecode",
+          G(exc_vm_internal), G(rubinius)));
 
     // Some special exceptions scoped under the Rubinius module
-    vme = new_class("VMException", exc, G(rubinius));
-    new_class("AssertionError", vme, G(rubinius));
-    new_class("ObjectBoundsExceededError", vme, G(rubinius));
+    vme = ontology::new_class(state, "VMException", exc, G(rubinius));
+    ontology::new_class(state, "AssertionError", vme, G(rubinius));
+    ontology::new_class(state, "ObjectBoundsExceededError", vme, G(rubinius));
 
     // Create the stack error object now, since we probably wont be
     // able to later.
@@ -522,7 +573,7 @@ namespace rubinius {
 
     GO(exc_segfault).set(dexc(MemorySegmentionError, exc));
 
-    Module* ern = new_module("Errno");
+    Module* ern = ontology::new_module(state, "Errno");
 
     GO(errno_mapping).set(LookupTable::create(state));
 

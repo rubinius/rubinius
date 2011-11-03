@@ -14,10 +14,13 @@
 
 #include "object_utils.hpp"
 
+#include "ontology.hpp"
+
 namespace rubinius {
 
   void ByteArray::init(STATE) {
-    GO(bytearray).set(state->vm()->new_class_under("ByteArray", G(rubinius)));
+    GO(bytearray).set(ontology::new_class_under(state,
+                        "ByteArray", G(rubinius)));
     G(bytearray)->set_object_type(state, ByteArrayType);
     G(bytearray)->name(state, state->symbol("Rubinius::ByteArray"));
   }
