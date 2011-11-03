@@ -4,6 +4,11 @@ class Numeric
     self.__slash__(other).floor
   end
 
+  def modulo(other)
+    self - other * self.div(other)
+  end
+  alias_method :%, :modulo
+
   def i
     Complex(0, self)
   end
