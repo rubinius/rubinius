@@ -302,10 +302,12 @@ class Complex < Numeric
   # Attempts to coerce +other+ to a Complex number.
   #
   def coerce(other)
-    if Complex.generic?(other)
-      return Complex.new(other), self
+    if other.kind_of?(Numeric) && other.real?
+      [Complex(other), self]
+    elsif other.kind_of?(Complex)
+      [other, self]
     else
-      super
+      raise TypeError, "#{other.class} can't be coerced into Complex"
     end
   end
 
