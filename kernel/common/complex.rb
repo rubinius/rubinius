@@ -38,13 +38,22 @@ end
 #
 class Complex < Numeric
   undef_method :%
-  undef_method :step
+  undef_method :<
+  undef_method :<=
+  undef_method :<=>
+  undef_method :>
+  undef_method :>=
+  undef_method :between?
   undef_method :div
   undef_method :divmod
   undef_method :floor
-  undef_method :truncate
   undef_method :ceil
+  undef_method :modulo
+  undef_method :remainder
   undef_method :round
+  undef_method :step
+  undef_method :truncate
+  undef_method :i
 
   def self.convert(real, imag = undefined)
     if real.equal?(nil) || imag.equal?(nil)
