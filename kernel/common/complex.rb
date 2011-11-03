@@ -343,12 +343,19 @@ class Complex < Numeric
 
   alias_method :rectangular, :rect
 
-  def to_r
-    unless @imag.equal? 0
-      raise RangeError, "cannot convert #{inspect} into Rational"
-    end
+  def to_f
+    raise RangeError, "can't convert #{self} into Float" unless !imag.kind_of?(Float) && imag == 0
+    real.to_f
+  end
 
-    Rational(@real)
+  def to_i
+    raise RangeError, "can't convert #{self} into Integer" unless !imag.kind_of?(Float) && imag == 0
+    real.to_i
+  end
+
+  def to_r
+    raise RangeError, "can't' convert #{self} into Rational" unless !imag.kind_of?(Float) && imag == 0
+    real.to_r
   end
 
   #
