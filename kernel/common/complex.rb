@@ -288,11 +288,11 @@ class Complex < Numeric
   #
   # Test for numerical equality (<tt>a == a + 0<i>i</i></tt>).
   #
-  def == (other)
+  def ==(other)
     if other.kind_of?(Complex)
-      @real == other.real and @imag == other.imag
-    elsif Complex.generic?(other)
-      @real == other and @imag == 0
+      real == other.real && imag == other.imag
+    elsif other.kind_of?(Numeric) && other.real?
+      real == other && imag == 0
     else
       other == self
     end
