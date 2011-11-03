@@ -39,6 +39,10 @@
 #include <mach-o/dyld.h>
 #endif
 
+#ifdef __FreeBSD__
+#include <sys/sysctl.h>
+#endif
+
 namespace rubinius {
   QueryAgent::QueryAgent(SharedState& shared, STATE)
     : Thread()
@@ -674,6 +678,22 @@ auth_error:
 #ifdef __APPLE__
       uint32_t size = PATH_MAX;
       if(_NSGetExecutablePath(buf, &size) == 0) {
+        stream << buf << "\n";
+      } else if(realpath(argv[0], buf)) {
+        stream << buf << "\n";
+      } else {
+        stream << argv[0] << "\n";
+      }
+#elif defined(__FreeBSD__)
+      int oid[4];
+      size_t len;
+
+      oid[0] = CTL_KERN;
+      oid[1] = KERN_PROC;
+      oid[2] = KERN_PROC_PATHNAME;
+      oid[3] = getpid();
+      len = PATH_MAX;
+      if(sysctl(oid, 4, buf, &len, 0, 0) == 0) {
         stream << buf << "\n";
       } else if(realpath(argv[0], buf)) {
         stream << buf << "\n";
