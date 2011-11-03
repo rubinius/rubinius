@@ -324,10 +324,7 @@ namespace rubinius {
       if(!state->check_interrupts(gct, frame, frame)) return NULL;
     }
 
-    state->gc_checkpoint(gct, frame);
-
-    state->set_call_frame(frame);
-    state->checkpoint();
+    state->checkpoint(gct, frame);
 
 #ifdef RBX_PROFILER
     if(unlikely(state->vm()->tooling())) {

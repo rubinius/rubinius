@@ -535,11 +535,11 @@ namespace rubinius {
       state->shared().ic_registry()->print_stats(state);
     }
 
-    state->set_call_frame(0);
+    GCTokenImpl gct;
 
     // Handle an edge case where another thread is waiting to stop the world.
     if(state->shared().should_stop()) {
-      state->checkpoint();
+      state->checkpoint(gct, 0);
     }
 
     NativeMethod::cleanup_thread(state);

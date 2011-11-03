@@ -114,7 +114,9 @@ namespace rubinius {
       shared_.gc_dependent(vm_);
     }
 
-    void checkpoint() {
+    void checkpoint(GCToken gct, CallFrame* call_frame) {
+      vm_->set_call_frame(call_frame);
+      gc_checkpoint(gct, call_frame);
       shared_.checkpoint(vm_);
     }
 

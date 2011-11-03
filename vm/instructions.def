@@ -1582,12 +1582,9 @@ instruction check_interrupts() [ -- ]
   // This is used in loops, and allows loops to heat a method up.
   if(vmm->call_count >= 0) vmm->call_count++;
 
-  state->gc_checkpoint(gct, call_frame);
-
   if(!state->check_async(call_frame)) RUN_EXCEPTION();
 
-  state->set_call_frame(call_frame);
-  state->checkpoint();
+  state->checkpoint(gct, call_frame);
 end
 
 # [Description]

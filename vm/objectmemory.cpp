@@ -499,7 +499,7 @@ step1:
     // If we were checkpointed, then someone else ran the GC, just return.
     if(state->shared().should_stop()) {
       UNSYNC;
-      state->checkpoint();
+      state->checkpoint(gct, call_frame);
       return;
     }
 
@@ -550,7 +550,7 @@ step1:
     // If we were checkpointed, then someone else ran the GC, just return.
     if(state->shared().should_stop()) {
       UNSYNC;
-      state->checkpoint();
+      state->checkpoint(gct, call_frame);
       return;
     }
 
@@ -1156,8 +1156,9 @@ step1:
       fi->status = FinalizeObject::eFinalized;
     }
 
-    state->set_call_frame(0);
-    state->checkpoint();
+    GCTokenImpl gct;
+
+    state->checkpoint(gct, 0);
   }
 
   void ObjectMemory::run_finalizers(STATE, CallFrame* call_frame) {

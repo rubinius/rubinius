@@ -911,10 +911,7 @@ extern "C" {
 
     if(!state->check_interrupts(gct, call_frame, &state)) return NULL;
 
-    state->gc_checkpoint(gct, call_frame);
-
-    state->set_call_frame(call_frame);
-    state->checkpoint();
+    state->checkpoint(gct, call_frame);
 
     return Qtrue;
   }
@@ -922,12 +919,9 @@ extern "C" {
   Object* rbx_check_interrupts(STATE, CallFrame* call_frame) {
     GCTokenImpl gct;
 
-    state->gc_checkpoint(gct, call_frame);
-
     if(!state->check_async(call_frame)) return NULL;
 
-    state->set_call_frame(call_frame);
-    state->checkpoint();
+    state->checkpoint(gct, call_frame);
     return Qtrue;
   }
 
