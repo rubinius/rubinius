@@ -1,4 +1,4 @@
-require 'ext/readline/readline'
+require 'readline/ext/readline'
 
 module Readline
   def self.readline(prompt="", add_hist=true)
