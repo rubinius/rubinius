@@ -304,20 +304,14 @@ class Complex < Numeric
     end
   end
 
-  #
-  # FIXME
-  #
   def denominator
     @real.denominator.lcm(@imag.denominator)
   end
 
-  #
-  # FIXME
-  #
   def numerator
     cd = denominator
     Complex(@real.numerator*(cd/@real.denominator),
-	    @imag.numerator*(cd/@imag.denominator))
+            @imag.numerator*(cd/@imag.denominator))
   end
 
   def rationalize(eps = nil)
