@@ -77,6 +77,11 @@ A VBScript implementation.
 
 An implementation of ANSI Smalltalk.
 
+### Sparta
+[github.com/josevalim/sparta](https://github.com/josevalim/sparta)
+
+An implementation of Javascript
+
 ### Syme
 [github.com/brixen/syme](https://github.com/brixen/syme)
 
