@@ -267,7 +267,7 @@ class Complex < Numeric
   # Returns the absolute value _and_ the argument.
   #
   def polar
-    return abs, arg
+    [abs, arg]
   end
 
   #
@@ -331,7 +331,7 @@ class Complex < Numeric
   end
 
   def rect
-    return @real, @imag
+    [@real, @imag]
   end
 
   alias_method :rectangular, :rect
