@@ -393,6 +393,34 @@ class IO
     nil
   end
 
+  def set_encoding(external, internal=nil)
+    unless external.kind_of? Encoding or external.kind_of? String
+      external = StringValue(external) if external
+    end
+
+    unless internal.kind_of? Encoding or internal.kind_of? String
+      internal = StringValue(internal) if internal
+    end
+
+    if external.kind_of? String
+      external, internal = external.split(':') unless internal
+    end
+
+    external = Encoding.find external if external.kind_of? String
+    internal = Encoding.find internal if internal.kind_of? String
+
+    @external = external
+    @internal = internal
+  end
+
+  def external_encoding
+    @external
+  end
+
+  def internal_encoding
+    @internal
+  end
+
   ##
   # Runs the specified command string as a subprocess;
   # the subprocess‘s standard input and output will be
