@@ -12,6 +12,10 @@ class IO
     end
   end
 
+  def self.for_fd(fd, mode=undefined, options=undefined)
+    new fd, mode, options
+  end
+
   def self.read(name, length_or_options=undefined, offset=0, options=nil)
     offset = 0 if offset.nil?
     name = Rubinius::Type.coerce_to_path name

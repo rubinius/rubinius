@@ -203,10 +203,6 @@ class IO
   attr_accessor :descriptor
   attr_accessor :mode
 
-  def self.for_fd(fd, mode = nil)
-    new fd, mode
-  end
-
   def self.foreach(name, sep_string = $/)
     return to_enum(:foreach, name, sep_string) unless block_given?
 

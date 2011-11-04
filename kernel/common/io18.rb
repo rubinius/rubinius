@@ -1,4 +1,8 @@
 class IO
+  def self.for_fd(fd, mode = nil)
+    new fd, mode
+  end
+
   ##
   # Opens the file, optionally seeks to the given offset,
   # then returns length bytes (defaulting to the rest of

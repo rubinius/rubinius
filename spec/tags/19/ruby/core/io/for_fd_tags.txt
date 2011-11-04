@@ -1,9 +1,0 @@
-fails:IO.for_fd uses the external encoding specified in the mode argument
-fails:IO.for_fd uses the external and the internal encoding specified in the mode argument
-fails:IO.for_fd uses the external encoding specified via the :external_encoding option
-fails:IO.for_fd uses the internal encoding specified via the :internal_encoding option
-fails:IO.for_fd uses the colon-separated encodings specified via the :encoding option
-fails:IO.for_fd ingores the :encoding option when the :external_encoding option is present
-fails:IO.for_fd ingores the :encoding option when the :internal_encoding option is present
-fails:IO.for_fd uses the encoding specified via the :mode option hash
-fails:IO.for_fd ignores the :internal_encoding option when the same as the external encoding
