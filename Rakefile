@@ -99,7 +99,7 @@ def run_specs(flags=nil)
 
   ENV.delete("RUBYOPT")
 
-  sh "bin/mspec ci #{ENV['CI_MODE_FLAG'] || flags} --background --agent"
+  sh "bin/mspec ci #{ENV['CI_MODE_FLAG'] || flags} -d --background --agent"
 end
 
 task :default => :spec
