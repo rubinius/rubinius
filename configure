@@ -855,11 +855,20 @@ int main() { return tgetnum(""); }
     end
 
     if @features["C-readline"] and
-       has_function("readline", ["stdio.h", "stdlib.h", "readline/readline.h"])
-      @defines << "HAS_READLINE"
+      if has_function("readline", ["stdio.h", "stdlib.h", "readline/readline.h"])
+        @defines << "HAS_READLINE"
+      elsif has_function("readline", ["stdio.h", "stdlib.h", "editline/readline.h"])
+        @defines << "HAS_EDITLINE"
+      end
+
+      if has_function("readline", ["stdio.h", "stdlib.h", "readline/history.h"])
+        @defines << "HAS_READLINE_HISTORY"
+      end
     end
 
-    if @features["ruby-readline"] or !@defines.include?("HAS_READLINE")
+    if @features["ruby-readline"] or
+        !@defines.include?("HAS_READLINE")
+        !@defines.include?("HAS_EDITLINE")
       @rb_readline = true
     end
 
@@ -1124,6 +1133,16 @@ end
 #define NORETURN(x) __attribute__ ((noreturn)) x
 #endif
       EOC
+
+      if @defines.include?("HAS_READLINE")
+        f.puts "#define HAVE_READLINE_READLINE_H  1"
+      elsif @defines.include?("HAS_EDITLINE")
+        f.puts "#define HAVE_READLINE_EDITLINE_H  1"
+      end
+
+      if @defines.include?("HAS_READLINE_HISTORY")
+        f.puts "#define HAVE_READLINE_HISTORY_H  1"
+      end
 
       if @windows
         f.puts "#define RBX_WINDOWS 1"

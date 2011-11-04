@@ -399,6 +399,7 @@ typedef struct RIO rb_io_t;
 // Fake it out, just make the ptr be the val
 // MRI checks also that it's not closed...
 #define GetOpenFile(val, ptr) (ptr) = (capi_rio_struct(val))
+#define rb_stdin              rb_const_get(rb_cObject, rb_intern("STDIN"))
 
 #define GetReadFile(ptr)  (ptr->f)
 #define GetWriteFile(ptr) (ptr->f)
@@ -1226,6 +1227,8 @@ VALUE rb_uint2big(unsigned long number);
   void    rb_io_check_readable(rb_io_t* io);
   void    rb_io_check_writable(rb_io_t* io);
 
+  FILE *  rb_io_stdio_file(rb_io_t *fptr);
+
   void    rb_thread_wait_fd(int fd);
   void    rb_thread_fd_writable(int fd);
   void    rb_thread_wait_for(struct timeval time);
@@ -1748,6 +1751,8 @@ VALUE rb_uint2big(unsigned long number);
   NORETURN(void rb_fatal(const char *fmt, ...));
 
   NORETURN(void rb_notimplement());
+
+  NORETURN(void rb_f_notimplement());
 
   /** Raises an ArgumentError exception. */
   NORETURN(void rb_invalid_str(const char *str, const char *type));

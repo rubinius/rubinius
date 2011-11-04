@@ -175,6 +175,13 @@ extern "C" {
     rb_fatal("not implemented");
   }
 
+  // TODO: Since in 1.9 #respond_to? returns false if the MRI version of this
+  // method is in a method table, we'll probably need to get the Rubinius
+  // special version of this method and call it rather than just raising here.
+  void rb_f_notimplement() {
+    rb_fatal("not implemented");
+  }
+
   /* rb_warn and rb_warning don't factor out creating the string for the
    * message because it is just as much work preparing the va_list to
    * pass to another variadic function.
