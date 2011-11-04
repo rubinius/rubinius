@@ -28,12 +28,51 @@ describe :complex_to_s, :shared => true do
     conflicts_with :Prime do
       Complex(1, 0).to_s.should == "1+0i"
       Complex(1, -0).to_s.should == "1+0i"
+    end
+  end
 
-      ruby_version_is ""..."1.9" do
-        # This is a bit weird, but it's what MRI does
-        Complex(1, 0.0).to_s.should == "1+0.0i"
-        Complex(1, -0.0).to_s.should == "1+0.0i"
-      end
+  ruby_version_is ""..."1.9" do
+    it "returns 1+0.0i for Complex(1, 0.0)" do
+      Complex(1, 0.0).to_s.should == "1+0.0i"
+    end
+
+    it "returns 1+0.0i for Complex(1, -0.0)" do
+      # This is a bit weird, but it's what MRI does
+      Complex(1, -0.0).to_s.should == "1+0.0i"
+    end
+
+    it "returns 1+Infinityi for Complex(1, Infinity)" do
+      Complex(1, infinity_value).to_s.should == "1+Infinityi"
+    end
+
+    it "returns 1-Infinityi for Complex(1, -Infinity)" do
+      Complex(1, -infinity_value).to_s.should == "1-Infinityi"
+    end
+
+    it "returns 1-NaNi for Complex(1, NaN)" do
+      Complex(1, nan_value).to_s.should == "1-NaNi"
+    end
+  end
+
+  ruby_version_is "1.9" do
+    it "returns 1+0.0i for Complex(1, 0.0)" do
+      Complex(1, 0.0).to_s.should == "1+0.0i"
+    end
+
+    it "returns 1-0.0i for Complex(1, -0.0)" do
+      Complex(1, -0.0).to_s.should == "1-0.0i"
+    end
+
+    it "returns 1+Infinity*i for Complex(1, Infinity)" do
+      Complex(1, infinity_value).to_s.should == "1+Infinity*i"
+    end
+
+    it "returns 1-Infinity*i for Complex(1, -Infinity)" do
+      Complex(1, -infinity_value).to_s.should == "1-Infinity*i"
+    end
+
+    it "returns 1+NaN*i for Complex(1, NaN)" do
+      Complex(1, nan_value).to_s.should == "1+NaN*i"
     end
   end
 end
