@@ -503,19 +503,6 @@ class IO
     io.sync     ||= STDERR.fileno == fd if STDERR.respond_to?(:fileno)
   end
 
-  #
-  # Create a new IO associated with the given fd.
-  #
-  def initialize(fd, mode=nil)
-    if block_given?
-      warn 'IO::new() does not take block; use IO::open() instead'
-    end
-
-    IO.setup self, Rubinius::Type.coerce_to(fd, Integer, :to_int), mode
-  end
-
-  private :initialize
-
   ##
   # Obtains a new duplicate descriptor for the current one.
   def initialize_copy(original) # :nodoc:
