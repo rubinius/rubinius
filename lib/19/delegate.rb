@@ -370,11 +370,14 @@ def DelegateClass(superclass)
       define_method(method, Delegator.delegating_block(method))
     end
   end
-  klass.define_singleton_method :public_instance_methods do |all=true|
-    super(all) - superclass.protected_instance_methods
-  end
-  klass.define_singleton_method :protected_instance_methods do |all=true|
-    super(all) | superclass.protected_instance_methods
+  class << klass
+    def public_instance_methods(all=true)
+      super(all) - superclass.protected_instance_methods
+    end
+
+    def protected_instance_methods(all=true)
+      super(all) | superclass.protected_instance_methods
+    end
   end
   return klass
 end
