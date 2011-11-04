@@ -5,5 +5,5 @@ test/test_instructions.hpp
 
 capi/18/include/config.h
 capi/18/include/rbx_config.h
-capi/19/include/config.h
+capi/19/include/ruby/config.h
 capi/19/include/rbx_config.h

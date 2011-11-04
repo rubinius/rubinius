@@ -1130,7 +1130,7 @@ end
       end
     end
 
-    FileUtils.cp config_h, "vm/capi/19/include/config.h"
+    FileUtils.cp config_h, "vm/capi/19/include/ruby/config.h"
 
     # Write a require file depending on which Readline library we use.
     File.open "lib/readline.rb", "wb" do |f|

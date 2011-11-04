@@ -122,6 +122,7 @@ compile_ext "nkf"
 
 if BUILD_CONFIG[:defines].include? "HAS_READLINE"
   compile_ext "readline", :dir => "lib/18/readline/ext"
+  compile_ext "readline", :dir => "lib/19/readline/ext"
 end
 
 # rbx must be able to run to build these because they use
