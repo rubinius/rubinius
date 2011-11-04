@@ -119,10 +119,6 @@ class Complex < Numeric
   private_class_method :check_real?
 
   def initialize(a, b = 0)
-    raise TypeError, "non numeric 1st arg `#{a.inspect}'" if !a.kind_of? Numeric
-    raise TypeError, "`#{a.inspect}' for 1st arg" if a.kind_of? Complex
-    raise TypeError, "non numeric 2nd arg `#{b.inspect}'" if !b.kind_of? Numeric
-    raise TypeError, "`#{b.inspect}' for 2nd arg" if b.kind_of? Complex
     @real = a
     @imag = b
   end
