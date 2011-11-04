@@ -166,7 +166,7 @@ calculate the correct length when it needs to. The dynamic nature of Ruby is
 one of its cherished features but it is also truly a double-edged sword in
 some respects.</p>
 
-<p>In the standard library the &lsquo;mathn&rsquo; library redefines Fixnum#/ in an unsafe
+<p>In the standard library the ‘mathn’ library redefines Fixnum#/ in an unsafe
 and incompatible manner. The library aliases Fixnum#/ to Fixnum#quo, which
 returns a Float by default.</p>
 
@@ -176,7 +176,7 @@ instead of #/. The numeric classes Fixnum, Bignum, Float, and Numeric all
 define this method.</p>
 
 <p>The safe math transform is enabled during the compilation of the Core
-libraries to enable the plugin. During regular &lsquo;user code&rsquo; compilation, the
+libraries to enable the plugin. During regular ‘user code’ compilation, the
 plugin is not enabled. This enables us to support mathn without breaking the
 core libraries or forcing inconvenient practices.</p>
 

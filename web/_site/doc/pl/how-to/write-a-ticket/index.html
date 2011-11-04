@@ -154,7 +154,7 @@ invoke it.</li>
 the spec runs before and after applying the patch.</li>
 </ol>
 
-<p>If your issue doesn&rsquo;t fit into one of the categories, it is not invalid. It is
+<p>If your issue doesn’t fit into one of the categories, it is not invalid. It is
 simply not appropriate for a ticket.</p>
 
 <ol>
@@ -173,7 +173,7 @@ ticket.</li>
     <p>Double-check.</p>
 
     <ol>
-      <li>Do a full rebuild (&lsquo;rake clean; rake&rsquo;) after a &lsquo;git pull&rsquo; or fresh clone.</li>
+      <li>Do a full rebuild (‘rake clean; rake’) after a ‘git pull’ or fresh clone.</li>
       <li>Read <a href="/doc/pl/getting-started/troubleshooting">Troubleshooting</a>
 to see if something there resolves the issue.</li>
       <li>Read <a href="/doc/pl/specs/">Spec</a>.</li>
@@ -192,7 +192,7 @@ to see if something there resolves the issue.</li>
       <li>The command line for invoking the program</li>
       <li>The backtrace or result from the program versus expected result.</li>
       <li>Your machine information. <code>uname -a</code> is usually good (if there are any
-&ldquo;unknown&rdquo; fields in it, please elaborate on those.)</li>
+“unknown” fields in it, please elaborate on those.)</li>
     </ul>
   </li>
 </ol>
@@ -202,16 +202,16 @@ to see if something there resolves the issue.</li>
 <ul>
   <li>Can be just a set of specs.</li>
   <li>Patches must be accompanied by specs unless the specs already exist.</li>
-  <li>Relevant part of spec output and the exact &lsquo;bin/mspec&rsquo; invocation from the
+  <li>Relevant part of spec output and the exact ‘bin/mspec’ invocation from the
 existing or added spec <em>before the fix</em>.</li>
-  <li>The spec output and the exact &lsquo;bin/mspec&rsquo; invocation  showing success
+  <li>The spec output and the exact ‘bin/mspec’ invocation  showing success
 <em>after</em> the fix.</li>
   <li>Additional description of your patch and how it fixes the problem. In
 particular with new functionality please indicate if it was already
 discussed on #rubinius or ruby-dev.</li>
 </ul>
 
-<p>Unless for some reason impossible, please use &lsquo;git-format-patch&rsquo; to create the
+<p>Unless for some reason impossible, please use ‘git-format-patch’ to create the
 patchset. It is much easier to apply and it preserves the correct attribution.
 Otherwise, a unified diff.</p>
 
@@ -230,17 +230,17 @@ end
   <li>
     <p>Ticket Title:</p>
 
-    <p>&ldquo;[PATCH] No method &lsquo;format&rsquo; on Kernel (Module)&rdquo;</p>
+    <p>“[PATCH] No method ‘format’ on Kernel (Module)”</p>
   </li>
   <li>
     <p>Tags:</p>
 
-    <p>&ldquo;patch core spec&rdquo;</p>
+    <p>“patch core spec”</p>
   </li>
   <li>
     <p>Ticket Message:</p>
 
-    <p>The method &lsquo;format&rsquo; is not available as a module function of Kernel.</p>
+    <p>The method ‘format’ is not available as a module function of Kernel.</p>
 
     <pre><code>$ bin/mspec spec/ruby/core/kernel/format_spec.rb
 Started
@@ -251,7 +251,7 @@ Kernel.format is accessible as a module function ERROR
 No method 'format' on Kernel (Module):
 </code></pre>
 
-    <p>The method &lsquo;format&rsquo; already exists but has not been set as a module
+    <p>The method ‘format’ already exists but has not been set as a module
 function.  This patch does so.</p>
 
     <p>After the patch is applied:</p>

@@ -165,17 +165,17 @@ collection, Just-In-Time compilation, and compatibility with existing C APIs.</p
 <ul>
   <li>47c3b17 Move prototypes to util to mitigate nokogiri bug. Fixes #1061</li>
   <li>45e0601 Add HAVE_ macros for blocking region stuff. Fixes #977</li>
-  <li>f6567b8 Don&rsquo;t use Kernel#sleep to know how much time has past. Fixes #986</li>
+  <li>f6567b8 Don’t use Kernel#sleep to know how much time has past. Fixes #986</li>
   <li>ee2bdc2 Make sure that a local addrinfo side is found. Fixes #989</li>
   <li>3fa02ec Fix CompiledMethod#locate_line. Fixes #1040</li>
-  <li>f6ac3c8 Include stdint.h where it&rsquo;s needed. Fixes #1036</li>
+  <li>f6ac3c8 Include stdint.h where it’s needed. Fixes #1036</li>
   <li>ecadf56 Fix []= with splats and all that jazz. Fixes #1021</li>
   <li>57b1181 Fix Method#parameters for non-CompiledMethods. Fixes #925</li>
   <li>6e3be13 Fix Thread.new, .start, and .fork. Fixes #945</li>
   <li>5637a52 Guard all NME operations that need an NMF. Fixes #935</li>
   <li>aeced68 Add rb_check_to_integer, Fixes #933</li>
   <li>38a5f97 Add support for -s on the cli. Fixes #879</li>
-  <li>52532b0 Don&rsquo;t count a space leader request against the total width. Fixes #893</li>
+  <li>52532b0 Don’t count a space leader request against the total width. Fixes #893</li>
   <li>bef7f50 Handle certain operator symbol values specially. Fixes #895</li>
   <li>06da168 Handle STDIN being closed by default. Fixes #916</li>
   <li>a81a80d Only check frozen if there is modification in Array#delete. Fixes #913</li>
@@ -192,10 +192,10 @@ collection, Just-In-Time compilation, and compatibility with existing C APIs.</p
   <li>c401af1 Add Rubinius.current_file. Fixes #841</li>
   <li>944a6d1 Fix build on FreeBSD - Fixes #844</li>
   <li>9c72fba Conditional SSLv2 usage. Fixes #818</li>
-  <li>f079e72 Handle Marshal&rsquo;ing a Mutex and Channel better. Fixes #821</li>
+  <li>f079e72 Handle Marshal’ing a Mutex and Channel better. Fixes #821</li>
   <li>9f3d790 Add rb_cMethod. Fixes #816</li>
   <li>f1c6d65 Remove duplicate local names from #local_variables. Fixes #772</li>
-  <li>9693227 Don&rsquo;t screw with vcall new. Fixes #777</li>
+  <li>9693227 Don’t screw with vcall new. Fixes #777</li>
   <li>e70c097 Disable fibers on &gt;= 10.7. Fixes #815</li>
   <li>29e5f49 Apply StringScanner speedup patch. Fixes #716</li>
   <li>0640ece Apply patch for todo. Fixes #810</li>
@@ -234,7 +234,7 @@ collection, Just-In-Time compilation, and compatibility with existing C APIs.</p
 
 <h5 id="platform-fixes">Platform Fixes</h5>
 <ul>
-  <li>Add a bunch of errno&rsquo;s from FreeBSD</li>
+  <li>Add a bunch of errno’s from FreeBSD</li>
 </ul>
 
 <h5 id="performance-fixes">Performance Fixes</h5>
@@ -272,7 +272,7 @@ collection, Just-In-Time compilation, and compatibility with existing C APIs.</p
   <li>Add rb_ary_to_ary to CAPI</li>
   <li><strong>BIG</strong> improvement for Time#&lt;=&gt;, credit should go to meadow</li>
   <li>Add tool for rendering call graph as HTML</li>
-  <li>Add @avibryant&rsquo;s protobuf decoding benchmark</li>
+  <li>Add @avibryant’s protobuf decoding benchmark</li>
   <li>Update to latest OpenSSL extension from 1.8.7</li>
   <li>Add ability to disable inlining a method preemptively</li>
 </ul>
@@ -290,7 +290,7 @@ collection, Just-In-Time compilation, and compatibility with existing C APIs.</p
   <li>Add spec for File.owned? and fix a bug</li>
   <li>Fixed memory leak, memory allocated by new[] was freed by delete instead of delete[]</li>
   <li>Removed characters accessor from String.</li>
-  <li>Add &lsquo;more correct&rsquo; -S flag for running gem commands in README</li>
+  <li>Add ‘more correct’ -S flag for running gem commands in README</li>
   <li>Add support for -i CLI option</li>
   <li>Pick the proper local address to bind with</li>
   <li>Stop currently running methods to fix profiler results</li>
@@ -299,14 +299,14 @@ collection, Just-In-Time compilation, and compatibility with existing C APIs.</p
   <li>Fixed rb_num2long, rb_num2ulong.</li>
   <li>Reenter managed mode BEFORE creating an FFI result object</li>
   <li>Honor Time subclasses in the right places</li>
-  <li><strong>rbx report</strong> should not fail silently when Gist submission didn&rsquo;t work</li>
-  <li>Add bounds checking to to_chars and make sure it&rsquo;s 0 terminated</li>
+  <li><strong>rbx report</strong> should not fail silently when Gist submission didn’t work</li>
+  <li>Add bounds checking to to_chars and make sure it’s 0 terminated</li>
   <li>Add dummy P rules for pack/unpack</li>
   <li>Have libc include a version number to deal with gentoo</li>
   <li>Fixed File.directory?.</li>
   <li>Allow rbx_meta_to_s to raise an exception</li>
   <li>Make Module#const_get the proper arity (rails fix)</li>
-  <li>Fix Kernel#binding and it&rsquo;s self(ish) rules</li>
+  <li>Fix Kernel#binding and it’s self(ish) rules</li>
   <li>Freeze strings returned by ENV.[].</li>
   <li>Fix &lt;=, ==, &gt;= comparisons to avoid trivial object identity comparisons.</li>
   <li>Bounds check and avoid c_str() in Regexp prims</li>
@@ -314,7 +314,7 @@ collection, Just-In-Time compilation, and compatibility with existing C APIs.</p
   <li>Add workaround for setting ruby_verbose / ruby_debug in C extensions</li>
   <li>Fix render_profile, scripts, and thread runtimes</li>
   <li>Use Type.object_kind_of? instead of Class.===.</li>
-  <li>Use object&rsquo;s #respond_to? in Type.try_convert.</li>
+  <li>Use object’s #respond_to? in Type.try_convert.</li>
   <li>Add additional safety checks to using the data of a String in the vm</li>
   <li>Correct mistaken usage of $stdin instead of $stdout in putc</li>
   <li>Fix #source_location for methods defined using define_method.</li>

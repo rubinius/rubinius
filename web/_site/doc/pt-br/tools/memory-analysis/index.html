@@ -212,7 +212,7 @@ puts "mean latency: %.3f [us]" % latency
 puts "received #{messages.size} messages in #{elapsed_usecs / 1_000_000} seconds"
 </code></pre>
 
-<p>Wow, this program leaks like a sieve. Let&rsquo;s figure out why.</p>
+<p>Wow, this program leaks like a sieve. Let’s figure out why.</p>
 
 <h2 id="saving-a-heap-dump">Saving A Heap Dump</h2>
 
@@ -257,7 +257,7 @@ from the Rubinius project.</p>
 <p>Find the heap_dump tool at <a href="https://github.com/evanphx/heap_dump">its project home page</a>.</p>
 
 <p>This tool reads the heap dump file and outputs some useful information in 3 columns
-corresponding to the number of objects visible in the heap, the object&rsquo;s class, and
+corresponding to the number of objects visible in the heap, the object’s class, and
 the total number of bytes consumed by all instances of this object.</p>
 
 <p>Running the tool against a heap dump captured from our <code>leak.rb</code> program, it gives us
@@ -287,7 +287,7 @@ a small hint as to where the leak resides. The output is edited for length.</p>
     <p>The largest footprint is consumed by <code>Rubinius::CompactLookupTable</code> which is a 
 class that the example code never directly instantiates and weighs in at about 20MB. 
 So, some internal Rubinius structures are reported by the heap dump. It is 
-interesting but doesn&rsquo;t help pinpoint our particular leak.</p>
+interesting but doesn’t help pinpoint our particular leak.</p>
   </li>
   <li>
     <p>The <code>ZMQ::Message</code> class listed on line 3 is the first class shown that the example
@@ -327,7 +327,7 @@ the memory leak.</p>
 
 <p>After modifying the Ruby code to use a simple counter and let the garbage collector
 handle all of the <code>ZMQ::Message</code> instances, the program is still leaking like mad.
-Taking two snapshots and analyzing them doesn&rsquo;t give any clue as to the source
+Taking two snapshots and analyzing them doesn’t give any clue as to the source
 though.</p>
 
 <pre><code>$ rbx -I /path/to/heap_dump/lib /path/to/heap_dump/bin/histo.rb heap3.dump heap4.dump
@@ -385,7 +385,7 @@ Leak: 0x101bb2400  size=1536  zone: DefaultMallocZone_0x100dea000
 
 <p>The output shows that at the time of the snapshot we had nearly 172k leaked objects.
 The call stack output shows that the leak occurs during the call to <code>zmq_msg_init_size</code>
-which doesn&rsquo;t mean anything unless we dig into the implementation of <code>ZMQ::Message</code>`.
+which doesn’t mean anything unless we dig into the implementation of <code>ZMQ::Message</code>`.
 This is where knowledge of the underlying system is critical; without knowing where
 this particular call is made, it would be much more difficult to track down the
 problem.</p>

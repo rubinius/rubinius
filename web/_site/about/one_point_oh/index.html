@@ -73,20 +73,20 @@ support.</p>
 version 1.0. This is a reference to the great defender of Rome. This name was
 given to Rubinius by <a href="http://peepcode.com/">Geoffrey Grosenbach</a>, who secured
 naming rights to version 1.0 many years ago by being the very first person to
-provide some financial backing for the project. I can&rsquo;t thank him enough.</p>
+provide some financial backing for the project. I can’t thank him enough.</p>
 
-<p>Tom Mornini and Engine Yard deserve the lion&rsquo;s share of the thanks. Back in
+<p>Tom Mornini and Engine Yard deserve the lion’s share of the thanks. Back in
 2007 when Tom asked me to come work on Rubinius at Engine Yard, it was a dream
-come true. They&rsquo;ve tirelessly supported the project over the years, even when
+come true. They’ve tirelessly supported the project over the years, even when
 project momentum waned.</p>
 
 <p>And lastly, thanks to everyone who has contributed to the project. Over the
-years, there have been over 200 contributers who&rsquo;ve given up their free time
+years, there have been over 200 contributers who’ve given up their free time
 to help make Rubinius great.</p>
 
 <p><em>- Evan Phoenix</em></p>
 
-<h4 id="whats-new-since-10rc5">What&rsquo;s New Since 1.0rc5</h4>
+<h4 id="whats-new-since-10rc5">What’s New Since 1.0rc5</h4>
 
 <ul>
   <li>Updated README.</li>
@@ -99,7 +99,7 @@ to help make Rubinius great.</p>
   <li>Include RUBY_EXTCONF_H. Fixes #281.</li>
   <li>Use _exit() rather than exit() to avoid C++ finalization races</li>
   <li>Catch and handle a redo passing through a rescue properly (unicorn)</li>
-  <li>Don&rsquo;t use Class#ancestors internally</li>
+  <li>Don’t use Class#ancestors internally</li>
   <li>
     <p>Clean up test directory</p>
   </li>
@@ -128,13 +128,13 @@ to help make Rubinius great.</p>
 <h4 id="known-issues">Known Issues</h4>
 
 <ul>
-  <li>String#unpack and Array#pack are currently pretty slow. We&rsquo;re working
+  <li>String#unpack and Array#pack are currently pretty slow. We’re working
 on this issue and will release a fix in the near future.</li>
   <li>A number of String methods are a bit slower than in 1.8. Most of these are
 known and being addressed.</li>
-  <li>We&rsquo;ve added much of the MRI C-API for running Ruby extensions, but
-there are some extensions that don&rsquo;t work yet. Typically, this is because
-the extension uses RBASIC(), RHASH(), or RREGEXP(). These depend on MRI&rsquo;s
+  <li>We’ve added much of the MRI C-API for running Ruby extensions, but
+there are some extensions that don’t work yet. Typically, this is because
+the extension uses RBASIC(), RHASH(), or RREGEXP(). These depend on MRI’s
 internal object memory layout. In most cases, there are regular functions
 available to use that do not depend on MRI internals. We will help C
 extension authors to make their code portable.  Additionally, extensions

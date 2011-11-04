@@ -121,8 +121,8 @@ collection, Just-In-Time compilation, and compatibility with existing C APIs.</p
   <li>Make Readline library configurable.</li>
   <li>Imported pure Ruby Readline (rb-readline at e591463)</li>
   <li>Add Array#select via aliasing</li>
-  <li>Handle next&rsquo;ing out of rescue handlers. Fixes #556</li>
-  <li>Fix Bignum#&raquo; to respect 2s complement properly</li>
+  <li>Handle next’ing out of rescue handlers. Fixes #556</li>
+  <li>Fix Bignum#» to respect 2s complement properly</li>
   <li>Follow the weird self-in-eval behavior</li>
   <li>Add enough delegation to support Method#parameters. Fixes #557</li>
   <li>Wipe out CDPATH when building. Fixes #555</li>
@@ -137,9 +137,9 @@ collection, Just-In-Time compilation, and compatibility with existing C APIs.</p
   <li>Specify the version for FFI::Library::LIBC like ffi-ruby gem. Closes #546.</li>
   <li>Create gem cache dir with mkdir_p. Closes #541 again.</li>
   <li>Fixed function declarations. Closes #543.</li>
-  <li>Backport add &ndash;cxx to configure from multiverse (6596ed7). Closes #542.</li>
+  <li>Backport add –cxx to configure from multiverse (6596ed7). Closes #542.</li>
   <li>Add rb_struct_new and rb_ary_freeze. Fixes #540</li>
-  <li>Make sure the user&rsquo;s gem cache directory exists. Fixes #541</li>
+  <li>Make sure the user’s gem cache directory exists. Fixes #541</li>
   <li>Incorporate rubygems loadtime speedup patch</li>
   <li>Speed up rubygems gemspec loading via caching</li>
   <li>Remove CompiledMethod#compile</li>
@@ -155,7 +155,7 @@ collection, Just-In-Time compilation, and compatibility with existing C APIs.</p
   <li>Implement rb_exec_recursive (mostly cripped from 1.8.7)</li>
   <li>Make rb_gc_force_recycle a noop</li>
   <li>Add rb_cmpint, rb_cmperr, and rb_equal</li>
-  <li>Don&rsquo;t cache on autoload failure. Fixes #529</li>
+  <li>Don’t cache on autoload failure. Fixes #529</li>
   <li>Write out a newline for an empty string too. Fixes #525</li>
   <li>Add Regexp#search_from. Fixes #524</li>
   <li>Use string coersion for filename in class_eval / module_eval</li>
@@ -163,11 +163,11 @@ collection, Just-In-Time compilation, and compatibility with existing C APIs.</p
   <li>Add missing return value used in Errno.handle checks</li>
   <li>Allow for subclassing Thread, fixes #526</li>
   <li>Thread#new throws an exception when not given a block</li>
-  <li>Propagate &ndash;cc configure setting to CC, CXX env vars. Closes #520.</li>
-  <li>Removed -D from &lsquo;rbx compile&rsquo; options. Closes #523.</li>
+  <li>Propagate –cc configure setting to CC, CXX env vars. Closes #520.</li>
+  <li>Removed -D from ‘rbx compile’ options. Closes #523.</li>
   <li>Better docs on installing gems with rbx.</li>
   <li>Fixed String#casecmp. Closes #518.</li>
-  <li>Fixed &ndash;help output.</li>
+  <li>Fixed –help output.</li>
   <li>See README for build, install directions. Closes #521.</li>
   <li>taking care of rb_ary_to_s for issue 517</li>
   <li>new capi method rb_obj_dup</li>
@@ -186,11 +186,11 @@ collection, Just-In-Time compilation, and compatibility with existing C APIs.</p
   <li>Remove illegal casts. Fixes #509.</li>
   <li>Refuse to configure, build if RUBYLIB is set.</li>
   <li>Fix OpenBSD complaints about strcpy, sprintf.</li>
-  <li>Don&rsquo;t enable execinfo by default on OpenBSD.</li>
-  <li>Add -D__STDC_LIMIT_MACROS to CFLAGS if it&rsquo;s not there.</li>
+  <li>Don’t enable execinfo by default on OpenBSD.</li>
+  <li>Add -D__STDC_LIMIT_MACROS to CFLAGS if it’s not there.</li>
   <li>Speed up rb_yield using some type checking tricks</li>
   <li>Fixed pack to taint output for tainted directives string.</li>
-  <li>Added configure option to specify &lsquo;rake&rsquo; command.</li>
+  <li>Added configure option to specify ‘rake’ command.</li>
   <li>Fix for missing pthread functions on OpenBSD.</li>
   <li>Fix String#split edge case. Fixes #505</li>
   <li>Set __STDC_LIMIT_MACROS for proper C99 compat. Fixes #507</li>
@@ -200,15 +200,15 @@ collection, Just-In-Time compilation, and compatibility with existing C APIs.</p
   <li>Set the scope of masgn locals early. Fixes #502.</li>
   <li>Use same wording/quoting as MRI. Fixes #503</li>
   <li>subclassing IO works properly for pipe/popen</li>
-  <li>Enable running docs site with bootstrap Ruby using &lsquo;rake docs&rsquo;.</li>
+  <li>Enable running docs site with bootstrap Ruby using ‘rake docs’.</li>
   <li>Reorganize how the MRI backtrace is rendered. Fixes #501.</li>
   <li>Add missing pop to fix stack effect. Fixes #490</li>
-  <li>Return the user&rsquo;s object, not the coerced one. Fixes #499.</li>
+  <li>Return the user’s object, not the coerced one. Fixes #499.</li>
   <li>Add Socket#connect_nonblock. Fixes #498.</li>
   <li>Add rb_io_close</li>
   <li>Add rb_memerror as a fatal condition. Fixes #496</li>
   <li>Add -fPIC to rbconfig CCDLFLAGS like MRI. Closes #492.</li>
-  <li>Don&rsquo;t allow meta classes to be allocated</li>
+  <li>Don’t allow meta classes to be allocated</li>
   <li>Preserve zero length captures. Fixes #495</li>
 </ul>
 

@@ -83,7 +83,7 @@ your first Rubinius commit.</p>
 
 <p>Before diving into the Rubinius code, I want to emphasize that there are many
 ways that you can contribute to Rubinius. One of the most valuable for us is
-trying your own library or application on Rubinius. We&rsquo;ve worked super hard to
+trying your own library or application on Rubinius. We’ve worked super hard to
 make using Rubinius in place of MRI as simple as possible. For example, with a
 typical Rails application, here is all you should need to do to get set up:</p>
 
@@ -92,7 +92,7 @@ rvm use rbx
 gem install bundler
 </code></pre>
 
-<p>Once you&rsquo;ve got Rubinius and Bundler installed, running your application
+<p>Once you’ve got Rubinius and Bundler installed, running your application
 should be this simple:</p>
 
 <pre><code>cd &lt;my_application&gt;
@@ -114,8 +114,8 @@ Github</a>.</p>
 <p>Another way to contribute to Rubinius is talking about the project. If you
 tried your application and your 50 gems installed without problems, consider
 <a href="https://twitter.com/rubinius">tweeting at us</a> or writing up a quick blog post
-about your experiences. If you&rsquo;ve done something
-<a href="http://fancy-lang.org/">fancy</a> that you&rsquo;d like to share with us, we&rsquo;re always
+about your experiences. If you’ve done something
+<a href="http://fancy-lang.org/">fancy</a> that you’d like to share with us, we’re always
 happy to have <a href="http://rubini.us/2011/02/23/introduction-to-fancy/">guest blog
 posts</a>, too. We even have
 documentation on <a href="http://rubini.us/doc/en/how-to/write-a-blog-post/">how to write a blog
@@ -138,11 +138,11 @@ install it. We provide symlinks for common commands like <code>gem</code>, <code
 
 <p>If you run into any trouble with these steps, see the <a href="http://rubini.us/doc/en/getting-started/">Getting
 Started</a> page for more information.
-You may need to install libraries required to build Rubinius. If you don&rsquo;t
-find answers there, visit the <code>#rubinius</code> channel on freenode.net and we&rsquo;ll
+You may need to install libraries required to build Rubinius. If you don’t
+find answers there, visit the <code>#rubinius</code> channel on freenode.net and we’ll
 help you out.</p>
 
-<p>While the build is running, let&rsquo;s get a quick overview of how Rubinius is
+<p>While the build is running, let’s get a quick overview of how Rubinius is
 organized.</p>
 
 <h3 id="code-tour">Code Tour</h3>
@@ -157,7 +157,7 @@ debugger are written mostly or all in Ruby.</p>
 <p>The Ruby core library is found in the <code>kernel/</code> directory. The kernel is
 divided into subdirectories that are loaded in order when Rubinius boots. The
 divisions were made to help share the Ruby core library with other
-implementations. I&rsquo;ll cover those basic divisions here. For more details about
+implementations. I’ll cover those basic divisions here. For more details about
 how the loading process works, see the
 <a href="http://rubini.us/doc/en/bootstrapping/">Bootstrapping</a> documentation.</p>
 
@@ -189,7 +189,7 @@ the JIT compiler (<code>vm/llvm/</code>). The <code>main()</code> function is in
 <p>One of the important parts of Rubinius are the low-level operations that
 cannot be defined in Ruby. These are things like adding two Fixnums together.
 These operations are called primitives and the code for them is in
-<code>vm/builtin</code>. Since you will likely encounter these in the core library, we&rsquo;ll
+<code>vm/builtin</code>. Since you will likely encounter these in the core library, we’ll
 delve into them a bit.</p>
 
 <h4 id="primitives">Primitives</h4>
@@ -197,15 +197,10 @@ delve into them a bit.</p>
 <p>All methods that can be called in Ruby are exposed as, well, Ruby methods. If
 you open <code>kernel/bootstrap/fixnum.rb</code>, you should see the following code:</p>
 
-<div class="highlight"><pre><code class="ruby"><span class="lineno">1</span> <span class="k">def</span> <span class="nf">to_f</span>
-<span class="lineno">2</span>   <span class="no">Rubinius</span><span class="o">.</span><span class="n">primitive</span> <span class="ss">:fixnum_to_f</span>
-<span class="lineno">3</span>   <span class="k">raise</span> <span class="no">PrimitiveFailure</span><span class="p">,</span> <span class="s2">&quot;Fixnum#to_f primitive failed&quot;</span>
-<span class="lineno">4</span> <span class="k">end</span>
-</code></pre>
-</div>
+<p>Liquid error: undefined method `join’ for #<String:0x00000002286fc0 /></p>
 
 <p>The <code>Rubinius.primitive :fixnum_to_f</code> code looks like a normal Ruby method
-call but it is not. It&rsquo;s actually a compiler directive to tag this Ruby method
+call but it is not. It’s actually a compiler directive to tag this Ruby method
 as having an associated primitive operation. The name of the primitive is
 <code>fixnum_to_f</code>. This naming convention is standard, being composed of the class
 name and the method name. Methods in Ruby that are characters, like <code>+</code>, are
@@ -220,10 +215,7 @@ operation is appropriate, the method should raise an exception.</p>
 <p>To see how the Ruby method relates to the primitive code, open
 <code>vm/builtin/fixnum.hpp</code>:</p>
 
-<div class="highlight"><pre><code class="cpp"><span class="lineno">1</span> <span class="c1">// Rubinius.primitive :fixnum_to_f</span>
-<span class="lineno">2</span> <span class="n">Float</span><span class="o">*</span> <span class="n">to_f</span><span class="p">(</span><span class="n">STATE</span><span class="p">);</span>
-</code></pre>
-</div>
+<p>Liquid error: undefined method `join’ for “\n// Rubinius.primitive :fixnum_to_f\nFloat* to_f(STATE);\n”:String</p>
 
 <p>The <code>vm/builtin/*.hpp</code> files are processed by the Rubinius build system to
 automatically generate C++ code to resolve and bind these primitive
@@ -233,11 +225,7 @@ method.</p>
 <p>Finally, the actual implementation of this primitive is found in
 <code>vm/builtin/fixnum.cpp</code>:</p>
 
-<div class="highlight"><pre><code class="cpp"><span class="lineno">1</span> <span class="n">Float</span><span class="o">*</span> <span class="n">Fixnum</span><span class="o">::</span><span class="n">to_f</span><span class="p">(</span><span class="n">STATE</span><span class="p">)</span> <span class="p">{</span>
-<span class="lineno">2</span>   <span class="k">return</span> <span class="n">Float</span><span class="o">::</span><span class="n">create</span><span class="p">(</span><span class="n">state</span><span class="p">,</span> <span class="p">(</span><span class="kt">double</span><span class="p">)</span><span class="n">to_native</span><span class="p">());</span>
-<span class="lineno">3</span> <span class="p">}</span>
-</code></pre>
-</div>
+<p>Liquid error: undefined method `join’ for #<String:0x00000002286610 /></p>
 
 <p>Here you can see that a new Float object is being created from the value of
 the Fixnum. Rubinius names the C++ classes that implement the Ruby primitive
@@ -245,7 +233,7 @@ operations the same as their Ruby counterparts. One of the goals of Rubinius
 is to build an elegant, easily comprehensible system, and we feel that this
 consistency has been a great benefit toward that goal.</p>
 
-<p>Now that we have a basic idea of the structure of Rubinius, let&rsquo;s look at some
+<p>Now that we have a basic idea of the structure of Rubinius, let’s look at some
 aspects of its runtime behavior, in particular, supporting different Ruby
 language modes.</p>
 
@@ -267,7 +255,7 @@ bin/rbx -X19 -v
 </code></pre>
 
 <p>The default language mode is 1.8, so if you invoke <code>rbx</code> with no other
-options, you&rsquo;ll be running in 1.8 mode. You can change the default mode with a
+options, you’ll be running in 1.8 mode. You can change the default mode with a
 configure time option as follows:</p>
 
 <pre><code>./configure --default-version=1.9
@@ -276,8 +264,8 @@ configure time option as follows:</p>
 <p>If you configure Rubinius to have a default language mode of 1.9, you can
 access 1.8 mode with the <code>-X18</code> runtime option as discussed above.</p>
 
-<p>Ok, we&rsquo;ve got the code, we understand something about how it is organized,
-we&rsquo;ve got the runtime behavior down, now let&rsquo;s look at actually implementing
+<p>Ok, we’ve got the code, we understand something about how it is organized,
+we’ve got the runtime behavior down, now let’s look at actually implementing
 Ruby. To do that, we need to know how Ruby behaves, and that is what RubySpec
 is all about.</p>
 
@@ -287,7 +275,7 @@ is all about.</p>
 implementing Ruby behavior, and we are constantly contributing more to it.
 Basically, Rubinius does it by the spec. So, any commit to the Ruby core
 library in Rubinius must either have new specs or make existing specs pass. To
-effectively contribute to Rubinius, you&rsquo;ll need to understand some basics
+effectively contribute to Rubinius, you’ll need to understand some basics
 about RubySpec. I recommend that you have a read through the documentation at
 <a href="http://rubyspec.org/">rubyspec.org</a>.</p>
 
@@ -332,10 +320,10 @@ path or the shortened version <code>core/array</code> above.</p>
 <p>One goal of MSpec is to make it as easy as possible to run the specs for the
 parts of Ruby that have been implemented. It takes a long time to implement
 all of Ruby correctly, but we want to know that the parts we have implemented
-don&rsquo;t get broken while working on other parts. That is the role of continuous
+don’t get broken while working on other parts. That is the role of continuous
 integration. To use CI effectively, we need to partition the specs into those
-that we expect to pass and those we know we don&rsquo;t pass yet. MSpec provides a
-facility for this, called tagging, that we&rsquo;ll look at shortly. For now, we&rsquo;ll
+that we expect to pass and those we know we don’t pass yet. MSpec provides a
+facility for this, called tagging, that we’ll look at shortly. For now, we’ll
 just look at running the specs in CI mode.</p>
 
 <p>To run all the Rubinius specs in CI mode under the default language version,
@@ -350,7 +338,7 @@ use the following command:</p>
 </code></pre>
 
 <p>The <code>bin/mspec ci</code> command runs the <code>mspec-ci</code> script. You should be familiar
-with this mechanism from working with Git. It&rsquo;s the same idea. The <code>mspec</code>
+with this mechanism from working with Git. It’s the same idea. The <code>mspec</code>
 script itself is just a utility to invoke the various specific MSpec scripts.
 To see the options for <code>mspec</code>, run the following command</p>
 
@@ -373,33 +361,33 @@ second command runs <code>mspec-run</code> with <code>core/array</code> and <cod
 mspec core/array ci
 </code></pre>
 
-<p>Now that we&rsquo;ve got the basics of MSpec down, let&rsquo;s look at how we find specs
-that fail on Rubinius. To do this, we&rsquo;ll use the <code>mspec tag</code> command.</p>
+<p>Now that we’ve got the basics of MSpec down, let’s look at how we find specs
+that fail on Rubinius. To do this, we’ll use the <code>mspec tag</code> command.</p>
 
 <h4 id="tagged-specs">Tagged Specs</h4>
 
 <p>Since Rubinius uses the tagging mechanism to create the set of CI specs to
-run, the best way to discover what parts of RubySpec that Rubinius isn&rsquo;t
-passing yet is to list the specs that are tagged. There&rsquo;s a command for that:</p>
+run, the best way to discover what parts of RubySpec that Rubinius isn’t
+passing yet is to list the specs that are tagged. There’s a command for that:</p>
 
 <pre><code>bin/mspec tag --list fails -tx19 :ci_files
 </code></pre>
 
-<p>This command lists all the specs that are tagged as failing. There&rsquo;s some new
+<p>This command lists all the specs that are tagged as failing. There’s some new
 syntax here, namely <code>:ci_files</code>. MSpec has the concept of pseudo-directories.
 Basically, they are lists of files. The reason for this is that running all
 the core or standard library specs in RubySpec is not as simple as just
-running all the files under <code>spec/ruby/core</code> or <code>spec/ruby/library</code>. It&rsquo;s more
+running all the files under <code>spec/ruby/core</code> or <code>spec/ruby/library</code>. It’s more
 complicated than that because there are 1.8- and 1.9-specific libraries.
 Rather than wrapping everything in <code>ruby_version_is</code> guards, MSpec adds
 version-specific lists and names them, for example, <code>:core</code> and <code>:library</code>.</p>
 
-<p>In this case, we&rsquo;re using the list of files specified by <code>:ci_files</code>. This
+<p>In this case, we’re using the list of files specified by <code>:ci_files</code>. This
 list excludes some files that are known to cause problems if they are run.</p>
 
 <p>The list of specs that are currently marked as failing is pretty long. We can
 reduce the number of tags we are looking at by giving a smaller set of specs
-to run.  For example, let&rsquo;s just run the File specs:</p>
+to run.  For example, let’s just run the File specs:</p>
 
 <pre><code>bin/mspec tag --list fails -tx19 core/file
 </code></pre>
@@ -411,7 +399,7 @@ writing this post) that there are several failures in the
 <pre><code>bin/mspec tag --list fails -tx19 core/file/world_writable
 </code></pre>
 
-<p>If we look into the documentation for <code>File.world_writable?</code>, we&rsquo;ll find that
+<p>If we look into the documentation for <code>File.world_writable?</code>, we’ll find that
 it is a new method introduced in 1.9. Excellent, this gives us an opportunity
 to talk about language-specific changes in Rubinius.</p>
 
@@ -423,7 +411,7 @@ and <code>load_order19.txt</code> files. These files are used during the build p
 create separate runtime kernels for Rubinius. You can see these in the
 <code>runtime/18</code> and <code>runtime/19</code> directories after building.</p>
 
-<p>Here&rsquo;s how language-specific features are handled in the Rubinius kernel.</p>
+<p>Here’s how language-specific features are handled in the Rubinius kernel.</p>
 
 <ol>
   <li>If there are no language-specific methods, the name of the file in
@@ -451,7 +439,7 @@ command to do that:</p>
 <pre><code>bin/mspec -tx19 core/file/world_writable
 </code></pre>
 
-<p>If all the specs pass, then you&rsquo;re ready to remove the CI tags. To do so, run
+<p>If all the specs pass, then you’re ready to remove the CI tags. To do so, run
 the following command:</p>
 
 <pre><code>bin/mspec tag --del fails -tx19 core/file/world_writable
@@ -463,8 +451,8 @@ pass. To run all the CI specs in both 1.8 and 1.9 modes, simply do:</p>
 <pre><code>rake
 </code></pre>
 
-<p>If everything passes, you&rsquo;re ready to submit a pull request. All in all, that
-wasn&rsquo;t too bad, right?</p>
+<p>If everything passes, you’re ready to submit a pull request. All in all, that
+wasn’t too bad, right?</p>
 
 <p>One final note, if you are making changes to RubySpec, make separate commits
 in your pull request for changes to <code>spec/ruby/**/*_specs.rb</code> and another
@@ -474,10 +462,10 @@ with the other Rubinius changes.</p>
 <h3 id="wrapping-presents">Wrapping Presents</h3>
 
 <p>The information here should give you everything you need to get your feet wet
-in Rubinius. By the way, today is Evan&rsquo;s birthday. If you&rsquo;re not taking him to
-dinner, why don&rsquo;t you show your appreciation for this fantastic project he
+in Rubinius. By the way, today is Evan’s birthday. If you’re not taking him to
+dinner, why don’t you show your appreciation for this fantastic project he
 created by grabbing Rubinius and hacking on some Ruby code. Be safe and have
-fun! We can&rsquo;t wait to hear from you.</p>
+fun! We can’t wait to hear from you.</p>
 
 
   <div id="disqus_thread"></div>

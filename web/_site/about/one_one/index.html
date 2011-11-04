@@ -102,14 +102,14 @@ features, performance improvements, compatibility adjustements, and bugfixes.</p
   <li>Implement a new GIL algorithm to prevent starvation</li>
   <li>Add Debugger APIs and reference CLI debugger</li>
   <li>Overhaul finalizers, support for resurecting finalizers</li>
-  <li>Basic &lsquo;rbx docs&rsquo; command support.</li>
-  <li>Add &lsquo;rbx report&rsquo; and support for VM and ruby crashes</li>
+  <li>Basic ‘rbx docs’ command support.</li>
+  <li>Add ‘rbx report’ and support for VM and ruby crashes</li>
   <li>Add CM::Script#eval_source</li>
   <li>Rewrote Array#pack and String#unpack</li>
   <li>Add code to detect bad extensions. Recompile your extensions.</li>
   <li>Add dbm, sdbm, and gdbm extensions</li>
   <li>Implement support for -n, -p, and -a. Fixes #353.</li>
-  <li>Add and use &ndash;agent when running the specs</li>
+  <li>Add and use –agent when running the specs</li>
   <li>Add String#secure_compare @x-api</li>
   <li>Add heapdump capability for memory debugging</li>
   <li>Add automatic object ivar packing (improves memory usage)</li>
@@ -129,7 +129,7 @@ features, performance improvements, compatibility adjustements, and bugfixes.</p
   <li>Support rb_sys_fail being passed NULL</li>
   <li>Verify that the ruby to build with is the one it was configured with</li>
   <li>Fixed Module#define_method to return a lambda Proc</li>
-  <li>Add Kernel#type even though it&rsquo;s deprecated. Fixes #469.</li>
+  <li>Add Kernel#type even though it’s deprecated. Fixes #469.</li>
   <li>Move Etc::Passwd and Etc::Group to Struct</li>
   <li>Add no-op rubysig.h to make extensions happy</li>
   <li>Add unblock support to rb_thread_blocking_region. Credit: kudo. Fixes #461.</li>
@@ -167,10 +167,10 @@ features, performance improvements, compatibility adjustements, and bugfixes.</p
   <li>Speed up Kernel#` by using a specialized primitive</li>
   <li>Use same function signature as MRI for rb_reg_new</li>
   <li>Check for and run #to_ary when passed to yield with 2+ args. Fixes #374.</li>
-  <li>Don&rsquo;t expand -I paths. Fixes #434.</li>
+  <li>Don’t expand -I paths. Fixes #434.</li>
   <li>Remove old, stale minitest</li>
   <li>Slight cleanup of Socket and adding Socket.getnameinfo</li>
-  <li>Add support for rb_gv_get(&ldquo;$~&rdquo;)</li>
+  <li>Add support for rb_gv_get(“$~”)</li>
   <li>Initial version.h for C-API.</li>
   <li>Add the C API rb_reg_nth_match method</li>
   <li>Add C API function rb_reg_new</li>
@@ -190,17 +190,17 @@ features, performance improvements, compatibility adjustements, and bugfixes.</p
   <li>Enhance Rubinius::Fiber</li>
   <li>Module#class_variable_set now raises a TypeError when self is frozen</li>
   <li>Fix IO.foreach with a nil separator, it should yield the entire contents at once</li>
-  <li>Remove Ar since it&rsquo;s not used anymore</li>
+  <li>Remove Ar since it’s not used anymore</li>
   <li>Allow splat arguments in define_method. Fixes #419.</li>
   <li>Preserve path seperators in Dir.glob. Fixes #420.</li>
   <li>add rb_need_block() to rbx capi</li>
   <li>Kernel.extend now raises a TypeError, when called on a frozen object</li>
   <li>Fix profiler graph output and handling of blocks</li>
   <li>Cleanup of Bignum#%, significant performance improvement</li>
-  <li>Don&rsquo;t allow initializing a class twice</li>
+  <li>Don’t allow initializing a class twice</li>
   <li>Move Hash#setup to Hash#__setup__ to allow overriding</li>
   <li>Cleanup IO.popen and IO::BidirectionalPipe</li>
-  <li>Only run -&gt;dfree if -&gt;data isn&rsquo;t NULL</li>
+  <li>Only run -&gt;dfree if -&gt;data isn’t NULL</li>
   <li>Fix Module#remove_const to not call Module#const_missing</li>
   <li>Temporarily disable running finalizers at exit.</li>
   <li>Test the proper scope when determining if long return is possible</li>
@@ -209,9 +209,9 @@ features, performance improvements, compatibility adjustements, and bugfixes.</p
   <li>Handle block arguments to a lambda specially. Fixes #398.</li>
   <li>File#truncate now raises an IOError if file is not opened for writing</li>
   <li>Fix R::CompiledMethod#add_metadata to allow multiple keys</li>
-  <li>Don&rsquo;t use self in a block that might be instance_evald. Fixes #399.</li>
+  <li>Don’t use self in a block that might be instance_evald. Fixes #399.</li>
   <li>Expose the SystemExit to at_exit handlers. Fixes #395.</li>
-  <li>Minor performanece fix, don&rsquo;t initialize an object body twice</li>
+  <li>Minor performanece fix, don’t initialize an object body twice</li>
   <li>Have Proc#inspect use the exact same format as MRI</li>
   <li>Support -1 as the free function</li>
   <li>Add Rubinius specific #__finalize__ API for resurrectable finalizers</li>
@@ -239,7 +239,7 @@ features, performance improvements, compatibility adjustements, and bugfixes.</p
   <li>Added rb_set_kcode.</li>
   <li>Fix warnings compiling Melbourne ext in 1.9.</li>
   <li>Generalize building with MRI 1.8/1.9 or rbx.</li>
-  <li>Add &ndash;cc to configure Script, so you can do &lsquo;rvm install rbx -C &ndash;cc=clang&rsquo;, as with MRI and REE.</li>
+  <li>Add –cc to configure Script, so you can do ‘rvm install rbx -C –cc=clang’, as with MRI and REE.</li>
   <li>Fix building with gcc 4.4.1.</li>
   <li>Run at_exit blocks and finalizers before exiting a fork. Fixes #372.</li>
   <li>Add -Xgc.honor_start to control if GC.start is honored</li>
@@ -261,7 +261,7 @@ features, performance improvements, compatibility adjustements, and bugfixes.</p
   <li>Dir#new should call #to_str under 1.8 and #to_path under 1.9</li>
   <li>Fixed Dir.open to call StringValue. Closes #362.</li>
   <li>Dir should be calling to_str on non-String arguments in Ruby 1.8</li>
-  <li>kronos&rsquo; fix for Bignum#&lt;&lt;. Closes #350.</li>
+  <li>kronos’ fix for Bignum#&lt;&lt;. Closes #350.</li>
   <li>Use correct module namespacing in Numeric specs.</li>
   <li>Further conform Numeric to MRI. Closes #349.</li>
   <li>More specs for Numeric#&lt;=&gt;.</li>

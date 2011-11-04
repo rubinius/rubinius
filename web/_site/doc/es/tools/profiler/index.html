@@ -214,7 +214,7 @@ end
 
 <p>El método #profile inicia el analizador, hace la llamada a yield, detiene el
 analizador e imprime por defecto los datos del análisis. Puede pasar la opción
-&lsquo;false&rsquo; al método #profile para que no se impriman los datos. De cualquier
+‘false’ al método #profile para que no se impriman los datos. De cualquier
 manera, los datos son el valor retornado por la llamada a #profile.</p>
 
 <h2 id="cmo-leer-la-salida-del-analizador">Cómo Leer la Salida del Analizador</h2>
@@ -229,7 +229,7 @@ al tiempo de ejecución de todos los métodos.</p>
 <h3 id="cumulative-seconds">cumulative seconds</h3>
 
 <p>Si se considera este método como la raíz de un árbol, el resultado de
-&lsquo;cumulative seconds&rsquo; sería el tiempo acumulado de ejecución de este
+‘cumulative seconds’ sería el tiempo acumulado de ejecución de este
 método y de todos los métodos que el mismo ha llamado (hojas del árbol).</p>
 
 <h3 id="self-seconds">self seconds</h3>
@@ -243,7 +243,7 @@ todos los métodos que fueron llamados por este.</p>
 
 <h3 id="self-mscall">self ms/call</h3>
 
-<p>El tiempo definido en &lsquo;self seconds&rsquo; dividido por el número total de llamadas.</p>
+<p>El tiempo definido en ‘self seconds’ dividido por el número total de llamadas.</p>
 
 <h3 id="total-mscall">total ms/call</h3>
 
@@ -276,7 +276,7 @@ p.profile {
 }
 </code></pre>
 
-<p>Al ejecutar el script con &lsquo;bin/rbx script.rb&rsquo; se obtiene una salida como:</p>
+<p>Al ejecutar el script con ‘bin/rbx script.rb’ se obtiene una salida como:</p>
 
 <pre><code>  %   cumulative   self                self     total
  time   seconds   seconds      calls  ms/call  ms/call  name
@@ -346,7 +346,7 @@ método principal.</p>
 <h3 id="self-1">self</h3>
 
 <p>El tiempo total empleado en este método menos el tiempo total invertido en
-todo esto método que el mismo llama. Igual a &lsquo;self seconds&rsquo; en la salida plana.</p>
+todo esto método que el mismo llama. Igual a ‘self seconds’ en la salida plana.</p>
 
 <h3 id="children-1">children</h3>
 
@@ -354,7 +354,7 @@ todo esto método que el mismo llama. Igual a &lsquo;self seconds&rsquo; en la s
 
 <h3 id="called-1">called</h3>
 
-<p>El campo &lsquo;called&rsquo; tiene dos partes separadas por una barra diagonal. El número
+<p>El campo ‘called’ tiene dos partes separadas por una barra diagonal. El número
 a la izquierda es el número de veces que este método llamó al método primario.
 El número a la derecha es el número total de llamadas que este método realizó.
 En otras palabras, estos números representan la relación entre el número de
@@ -371,8 +371,8 @@ principal llamó. Los campos de los métodos llamados son los siguientes:</p>
 <h3 id="self-2">self</h3>
 
 <p>El tiempo total empleado en este método menos el tiempo total invertido en
-todos los métodos que este método llamó. Este valor es equivalente a &lsquo;self
-seconds&rsquo; en la salida plana.</p>
+todos los métodos que este método llamó. Este valor es equivalente a ‘self
+seconds’ en la salida plana.</p>
 
 <h3 id="children-2">children</h3>
 <p>Este es un estimado del tempo que los métodos llamados por este método se
@@ -382,7 +382,7 @@ por el método primario vs. el tiempo total utilizado en el método.</p>
 
 <h3 id="called-2">called</h3>
 
-<p>El campo &ldquo;called&rdquo; tiene dos partes separadas por una barra diagonal. La izquierda
+<p>El campo “called” tiene dos partes separadas por una barra diagonal. La izquierda
 es el número de veces que este método fue llamado por el método principal. La
 derecha es el número total de veces en que este método fue llamado.</p>
 
@@ -390,7 +390,7 @@ derecha es el número total de veces en que este método fue llamado.</p>
 
 <p>El nombre del método llamado seguido de su número de índice [N]. Si no hay
 un índice presente, no hay ninguna entrada principal para el método en el
-gráfico. Utilice el opción &ndash;Xprofiler.full_report para imprimir el gráfico
+gráfico. Utilice el opción –Xprofiler.full_report para imprimir el gráfico
 completo si es necesario ver la entrada.</p>
 
 <pre><code>index  % time     self  children         called       name

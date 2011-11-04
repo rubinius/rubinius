@@ -139,16 +139,16 @@
 
   
 
-    <p>Le gestionnaire de ticket Rubinius se trouve à l&rsquo;adresse <a href="http://github.com/rubinius/rubinius/issues">http://github.com/rubinius/rubinius/issues</a>.</p>
+    <p>Le gestionnaire de ticket Rubinius se trouve à l’adresse <a href="http://github.com/rubinius/rubinius/issues">http://github.com/rubinius/rubinius/issues</a>.</p>
 
-<p>Pour être utile, un ticket doit être concis, précis et permettre d&rsquo;agir.
-S&rsquo;il ne l&rsquo;est pas, le ticket va engendrer des aller-tours, des
-discussions, et n&rsquo;avancera pas. De la même manière, les tickets doivent
+<p>Pour être utile, un ticket doit être concis, précis et permettre d’agir.
+S’il ne l’est pas, le ticket va engendrer des aller-tours, des
+discussions, et n’avancera pas. De la même manière, les tickets doivent
 appartir aux catégories ci-dessous:</p>
 
 <ol>
   <li>Un historique précis de ligne de commande montrant comment
-installer, invoquer le programme et afficher une trace d&rsquo;exécution
+installer, invoquer le programme et afficher une trace d’exécution
 pour une exception.</li>
   <li>Un bref bout de code illustrant le problème et la ligne de commande
 pour le provoquer.</li>
@@ -156,15 +156,15 @@ pour le provoquer.</li>
 sont toujours valides.</li>
 </ol>
 
-<p>Si votre problème ne rentrent pas dans une des catégories, il n&rsquo;est pas
-invalide. Pour autant créer un ticket n&rsquo;est pas approprié.</p>
+<p>Si votre problème ne rentrent pas dans une des catégories, il n’est pas
+invalide. Pour autant créer un ticket n’est pas approprié.</p>
 
 <ol>
-  <li>S&rsquo;il s&rsquo;agit d&rsquo;une fonctionnalité, venez en discuter sur la
+  <li>S’il s’agit d’une fonctionnalité, venez en discuter sur la
 mailing-list. De plus, vous pourriez également en commencer
-l&rsquo;implémentation afin de démontrer que votre fonctionnalité est utile.</li>
-  <li>S&rsquo;il s&rsquo;agit d&rsquo;une librairie ou d&rsquo;un gem non fonctionnel, prenez le
-temps d&rsquo;investiguer pour tenter de reproduire le bug et donc, de
+l’implémentation afin de démontrer que votre fonctionnalité est utile.</li>
+  <li>S’il s’agit d’une librairie ou d’un gem non fonctionnel, prenez le
+temps d’investiguer pour tenter de reproduire le bug et donc, de
 créer un ticket.</li>
 </ol>
 
@@ -175,7 +175,7 @@ créer un ticket.</li>
     <p>Vérifiez et revérifiez.</p>
 
     <ol>
-      <li>Recompiler entièrement (&lsquo;rake clean; rake&rsquo;) après &lsquo;git pull&rsquo;, ou après avoir clôné.</li>
+      <li>Recompiler entièrement (‘rake clean; rake’) après ‘git pull’, ou après avoir clôné.</li>
       <li>Lisez la section <a href="/doc/fr/getting-started/troubleshooting">Dépannage</a> pour vérifier si vous trouvez une solution au problème.</li>
       <li>Lisez <a href="/doc/fr/specs/">Tests</a>.</li>
     </ol>
@@ -191,9 +191,9 @@ créer un ticket.</li>
 
     <ul>
       <li>La ligne de commande qui invoque le programme</li>
-      <li>La trace d&rsquo;exécution ou la différence entre le résultat attendu et le résultat actuel.</li>
+      <li>La trace d’exécution ou la différence entre le résultat attendu et le résultat actuel.</li>
       <li>Des informations sur votre machine. <code>uname -a</code> suffit en général
-(si toutefois il y a des champs marqués &ldquo;unknown&rdquo; dans le
+(si toutefois il y a des champs marqués “unknown” dans le
  résultat de cette commande, merci de nous décrire pourquoi).</li>
     </ul>
   </li>
@@ -205,24 +205,24 @@ créer un ticket.</li>
 <h2 id="instructions-additionelle-pour-les-tickets-avec-patchs">Instructions additionelle pour les tickets avec patchs</h2>
 
 <ul>
-  <li>Ils peuvent n&rsquo;être que des suites de tests.</li>
+  <li>Ils peuvent n’être que des suites de tests.</li>
   <li>Les patchs doivent être accompagnés de tests sauf si ces tests existent déjà.</li>
   <li>Les parties intéressantes des résultats de test et les invocations
-exactes des &lsquo;bin/mspec&rsquo; à lancer, cela vaut pour les tests
+exactes des ‘bin/mspec’ à lancer, cela vaut pour les tests
 existants comme pour les nouveaux tests.</li>
   <li>Des descriptions additionnelles sur votre patch et de comment il corrige le problème.
 Veuillez indiquer également, en particulier pour les nouvelles
 fonctionnalités, si le sujet a déjà été discuté sur #rubinius ou ruby-dev.</li>
 </ul>
 
-<p>Sauf si réellement impossible, veuillez utiliser &lsquo;git-format-patch&rsquo; pour
+<p>Sauf si réellement impossible, veuillez utiliser ‘git-format-patch’ pour
 créer vos ensembles de patchs. Cela les rend plus facile à appliquer et
 préserve les attributions.
 Sinon, fournissez un diff.</p>
 
 <h2 id="exemple-de-soumission-de-patch">Exemple de soumission de patch</h2>
 
-<p>Supposons que la suite de test suivante existe et qu&rsquo;elle soit en échec:</p>
+<p>Supposons que la suite de test suivante existe et qu’elle soit en échec:</p>
 
 <pre><code>describe "Kernel.format" do
   it "is accessible as a module function" do
@@ -235,17 +235,17 @@ end
   <li>
     <p>Titre du ticket:</p>
 
-    <p>&ldquo;[PATCH] No method &lsquo;format&rsquo; on Kernel (Module)&rdquo;</p>
+    <p>“[PATCH] No method ‘format’ on Kernel (Module)”</p>
   </li>
   <li>
     <p>Etiquettes / Tags:</p>
 
-    <p>&ldquo;patch core spec&rdquo;</p>
+    <p>“patch core spec”</p>
   </li>
   <li>
     <p>Corps du ticket:</p>
 
-    <p>The method &lsquo;format&rsquo; is not available as a module function of Kernel.</p>
+    <p>The method ‘format’ is not available as a module function of Kernel.</p>
 
     <pre><code>$ bin/mspec spec/ruby/core/kernel/format_spec.rb
 Started
@@ -256,7 +256,7 @@ Kernel.format is accessible as a module function ERROR
 No method 'format' on Kernel (Module):
 </code></pre>
 
-    <p>The method &lsquo;format&rsquo; already exists but has not been set as a module
+    <p>The method ‘format’ already exists but has not been set as a module
 function.  This patch does so.</p>
 
     <p>After the patch is applied:</p>
