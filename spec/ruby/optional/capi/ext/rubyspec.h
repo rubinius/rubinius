@@ -304,6 +304,7 @@
 #define HAVE_RB_STR_INTERN                 1
 #define HAVE_RB_STR_LEN                    1
 #define HAVE_RB_STR_NEW                    1
+#define HAVE_RB_STR_NEW_CSTR               1
 #define HAVE_RB_STR_NEW2                   1
 #define HAVE_RB_STR_NEW3                   1
 #define HAVE_RB_STR_NEW4                   1

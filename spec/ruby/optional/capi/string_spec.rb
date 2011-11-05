@@ -2,6 +2,19 @@ require File.expand_path('../spec_helper', __FILE__)
 
 load_extension('string')
 
+describe :rb_str_new2, :shared => true do
+  it "returns a new string object calling strlen on the passed C string" do
+    # Hardcoded to pass const char * = "hello\0invisible"
+    @s.send(@method, "hello\0not used").should == "hello"
+  end
+
+  ruby_version_is ""..."1.9" do
+    it "raises an ArgumentError if passed NULL" do
+      lambda { @s.send(@method, nil) }.should raise_error(ArgumentError)
+    end
+  end
+end
+
 describe "C-API String function" do
   before :each do
     @s = CApiStringSpecs.new
@@ -109,15 +122,12 @@ describe "C-API String function" do
   end
 
   describe "rb_str_new2" do
-    it "returns a new string object calling strlen on the passed C string" do
-      # Hardcoded to pass const char * = "hello\0invisible"
-      @s.rb_str_new2.should == "hello"
-    end
+    it_behaves_like :rb_str_new2, :rb_str_new2
+  end
 
-    ruby_version_is ""..."1.9" do
-      it "rb_str_new2 should raise ArgumentError if passed NULL" do
-        lambda { @s.rb_str_new2_with_null }.should raise_error(ArgumentError)
-      end
+  ruby_version_is "1.9" do
+    describe "rb_str_new_cstr" do
+      it_behaves_like :rb_str_new2, :rb_str_new_cstr
     end
   end
 

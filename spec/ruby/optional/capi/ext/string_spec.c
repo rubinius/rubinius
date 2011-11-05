@@ -139,12 +139,22 @@ VALUE string_spec_rb_str_new(VALUE self, VALUE str, VALUE len) {
 #endif
 
 #ifdef HAVE_RB_STR_NEW2
-VALUE string_spec_rb_str_new2(VALUE self) {
-  return rb_str_new2("hello\0invisible");
+VALUE string_spec_rb_str_new2(VALUE self, VALUE str) {
+  if(NIL_P(str)) {
+    return rb_str_new2(NULL);
+  } else {
+    return rb_str_new2(RSTRING_PTR(str));
+  }
 }
+#endif
 
-VALUE string_spec_rb_str_new2_with_null(VALUE self) {
-  return rb_str_new2(NULL);
+#ifdef HAVE_RB_STR_NEW_CSTR
+VALUE string_spec_rb_str_new_cstr(VALUE self, VALUE str) {
+  if(NIL_P(str)) {
+    return rb_str_new_cstr(NULL);
+  } else {
+    return rb_str_new_cstr(RSTRING_PTR(str));
+  }
 }
 #endif
 
@@ -463,8 +473,11 @@ void Init_string_spec() {
 #endif
 
 #ifdef HAVE_RB_STR_NEW2
-  rb_define_method(cls, "rb_str_new2", string_spec_rb_str_new2, 0);
-  rb_define_method(cls, "rb_str_new2_with_null", string_spec_rb_str_new2_with_null, 0);
+  rb_define_method(cls, "rb_str_new2", string_spec_rb_str_new2, 1);
+#endif
+
+#ifdef HAVE_RB_STR_NEW_CSTR
+  rb_define_method(cls, "rb_str_new_cstr", string_spec_rb_str_new_cstr, 1);
 #endif
 
 #ifdef HAVE_RB_STR_NEW3
