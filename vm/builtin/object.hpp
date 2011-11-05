@@ -260,6 +260,9 @@ namespace rubinius {
     /** Indicates if this object has been assigned an object id. */
     bool has_id(STATE);
 
+    /** Reset the object id */
+    void reset_id(STATE);
+
     /**
      * Taints other if this is tainted.
      */

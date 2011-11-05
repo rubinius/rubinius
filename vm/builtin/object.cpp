@@ -101,7 +101,7 @@ namespace rubinius {
     write_barrier(state, ivars());
 
     // Don't inherit the object_id from the original.
-    set_object_id(state, state->memory(), 0);
+    reset_id(state);
 
     /* C extensions use Data objects for various purposes. The object
      * usually is made an instance of some extension class. So, we
@@ -419,6 +419,16 @@ namespace rubinius {
 #else
     return get_ivar(state, G(sym_object_id)) != Qnil;
 #endif
+  }
+
+  void Object::reset_id(STATE) {
+    if(reference_p()) {
+#ifdef RBX_OBJECT_ID_IN_HEADER
+      set_object_id(state, state->memory(), 0);
+#else
+      del_ivar(state, G(sym_object_id));
+#endif
+    }
   }
 
   void Object::infect(STATE, Object* other) {
