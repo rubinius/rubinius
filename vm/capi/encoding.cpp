@@ -132,14 +132,10 @@ extern "C" {
   }
 
   int rb_tolower(int c) {
-    return tolower(c);
-    // TODO: fix link error for OnigEncAsciiToLowerCaseTable
-    // return rb_isascii(c) ? ONIGENC_ASCII_CODE_TO_LOWER_CASE(c) : c;
+    return rb_isascii(c) ? ONIGENC_ASCII_CODE_TO_LOWER_CASE(c) : c;
   }
 
   int rb_toupper(int c) {
-    return toupper(c);
-    // TODO: fix link error for OnigEncAsciiToLowerCaseTable
-    // return rb_isascii(c) ? ONIGENC_ASCII_CODE_TO_UPPER_CASE(c) : c;
+    return rb_isascii(c) ? ONIGENC_ASCII_CODE_TO_UPPER_CASE(c) : c;
   }
 }
