@@ -41,11 +41,15 @@ rb_encoding *rb_ascii8bit_encoding(void);
 
 rb_encoding* rb_enc_get(VALUE obj);
 rb_encoding* rb_enc_compatible(VALUE str1, VALUE str2);
+rb_encoding* rb_locale_encoding(void);
+
 int rb_enc_dummy_p(rb_encoding *enc);
 VALUE rb_enc_associate(VALUE, rb_encoding*);
 
 VALUE rb_enc_str_new(const char*, long, rb_encoding*);
 int rb_enc_str_coderange(VALUE);
+
+VALUE rb_str_conv_enc(VALUE str, rb_encoding *from, rb_encoding *to);
 
 #ifdef __cplusplus
 }

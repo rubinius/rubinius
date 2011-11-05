@@ -1297,7 +1297,10 @@ hist_each(VALUE self)
     HIST_ENTRY *entry;
     int i;
 
-    RETURN_ENUMERATOR(self, 0, 0);
+    /* TODO: turn a C-API function into an enumerator.
+     *
+     * RETURN_ENUMERATOR(self, 0, 0);
+     */
 
     rb_secure(4);
     for (i = 0; i < history_length; i++) {
@@ -1414,7 +1417,7 @@ Init_readline()
     completion_case_fold = rb_intern(COMPLETION_CASE_FOLD);
 
     mReadline = rb_define_module("Readline");
-    rb_define_module_function(mReadline, "readline",
+    rb_define_module_function(mReadline, "perform_readline",
 			      readline_readline, -1);
     rb_define_singleton_method(mReadline, "input=",
 			       readline_s_set_input, 1);
