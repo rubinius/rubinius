@@ -14,7 +14,7 @@ ruby_version_is "1.9" do
       [1, 2].drop(2).should == []
     end
 
-    it "returns empty if more elements than exist are dropped" do
+    it "returns an empty array if more elements than exist are dropped" do
       [1, 2].drop(3).should == []
     end
   end
