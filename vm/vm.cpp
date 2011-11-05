@@ -226,10 +226,6 @@ namespace rubinius {
     return om->new_object_typed_mature(&state, cls, bytes, type);
   }
 
-  Object* VM::new_object_from_type(Class* cls, TypeInfo* ti) {
-    return new_object_typed(cls, ti->instance_size, ti->type);
-  }
-
   Symbol* VM::symbol(const char* str) {
     return shared.symbols.lookup(str, strlen(str));
   }

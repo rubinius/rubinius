@@ -277,7 +277,6 @@ namespace rubinius {
 
     Object* new_object_typed(Class* cls, size_t bytes, object_type type);
     Object* new_object_typed_mature(Class* cls, size_t bytes, object_type type);
-    Object* new_object_from_type(Class* cls, TypeInfo* ti);
 
     template <class T>
       T* new_object(Class *cls) {
