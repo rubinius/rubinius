@@ -1,10 +1,23 @@
 require File.expand_path('../../../spec_helper', __FILE__)
 
 describe :complex_exponent, :shared => true do
-  describe "when given 0" do
+  describe "with Fixnum 0" do
     it "returns Complex(1)" do
       (Complex(3, 4) ** 0).should eql(Complex(1))
-      (Complex(10, 20) ** 0.0).should eql(Complex(1.0, 0.0))
+    end
+  end
+
+  describe "with Float 0.0" do
+    ruby_version_is "".."1.9" do
+      it "returns Complex(1)" do
+        (Complex(3, 4) ** 0.0).should eql(Complex(1))
+      end
+    end
+
+    ruby_version_is "1.9" do
+      it "returns Complex(1.0, 0.0)" do
+        (Complex(3, 4) ** 0.0).should eql(Complex(1.0, 0.0))
+      end
     end
   end
 
