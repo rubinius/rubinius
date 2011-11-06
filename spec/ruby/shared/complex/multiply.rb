@@ -24,4 +24,28 @@ describe :complex_multiply, :shared => true do
       (value * obj).should == 2 * 5
     end
   end
+
+  ruby_version_is "1.9" do
+    describe "with a Numeric which responds to #real? with true" do
+      it "multiples both parts of self by other" do
+        other = mock_numeric('other')
+        real = mock_numeric('real')
+        imag = mock_numeric('imag')
+        other.should_receive(:real?).and_return(true)
+        real.should_receive(:*).with(other).and_return(1)
+        imag.should_receive(:*).with(other).and_return(2)
+        (Complex(real, imag) * other).should == Complex(1, 2)
+      end
+    end
+
+    describe "with a Numeric which responds to #real? with false" do
+      it "coerces the passed argument to Complex and multiplies the resulting elements" do
+        complex = Complex(3, 0)
+        other = mock_numeric('other')
+        other.should_receive(:real?).any_number_of_times.and_return(false)
+        other.should_receive(:coerce).with(complex).and_return([5, 2])
+        (complex * other).should == 10
+      end
+    end
+  end
 end
