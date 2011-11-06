@@ -126,7 +126,7 @@ readline_getc(FILE *input)
     VALUE c;
     if (!readline_instream) return rl_getc(input);
     GetOpenFile(readline_instream, ifp);
-    if (rl_instream != ifp->stdio_file) return rl_getc(input);
+    if (rl_instream != rb_io_stdio_file(ifp)) return rl_getc(input);
     c = rb_funcall(readline_instream, id_getbyte, 0, 0);
     if (NIL_P(c)) return EOF;
     return NUM2CHR(c);
@@ -1167,11 +1167,13 @@ hist_to_s(VALUE self)
     return rb_str_new_cstr("HISTORY");
 }
 
+#ifdef HAVE_READLINE_HISTORY_H
 static int
 history_get_offset_history_base(int offset)
 {
     return history_base + offset;
 }
+#endif
 
 static int
 history_get_offset_0(int offset)

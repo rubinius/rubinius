@@ -51,6 +51,8 @@ def build_extconf(name, opts)
     ENV["CFLAGS"]      = "-I#{include18_dir} -I#{include19_dir}"
   end
 
+  ENV["RBXOPT"] = opts[:env] if opts.key? :env
+
   unless opts[:deps] and opts[:deps].all? { |n| File.exists? n }
     sh("#{rbx_build} extconf.rb #{redirect}", &fail_block)
   end
@@ -122,7 +124,9 @@ compile_ext "nkf"
 
 if BUILD_CONFIG[:defines].include? "HAS_READLINE"
   compile_ext "readline", :dir => "lib/18/readline/ext"
-  compile_ext "readline", :dir => "lib/19/readline/ext"
+  compile_ext "readline", :dir => "lib/19/readline/ext",
+                          :deps => ["Makefile", "extconf.rb"],
+                          :env => "-X19"
 end
 
 # rbx must be able to run to build these because they use
