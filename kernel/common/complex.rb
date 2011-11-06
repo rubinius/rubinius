@@ -172,22 +172,18 @@ class Complex < Numeric
   #
   # Division by real or complex number.
   #
-  def divide (other)
+  def divide(other)
     if other.kind_of?(Complex)
-      self*other.conjugate/other.abs2
-    elsif Complex.generic?(other)
-      Complex(@real/other, @imag/other)
+      self * other.conjugate / other.abs2
+    elsif other.kind_of?(Numeric) && other.real?
+      Complex(real.quo(other), imag.quo(other))
     else
-      x, y = other.coerce(self)
-      x/y
+      redo_coerced(:quo, other)
     end
   end
 
   alias_method :/, :divide
-
-  def quo(other)
-    Complex(@real.quo(1), @imag.quo(1)) / other
-  end
+  alias_method :quo, :divide
 
   #
   # Raise this complex number to the given (real or complex) power.
