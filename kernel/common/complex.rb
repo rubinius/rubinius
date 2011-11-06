@@ -156,16 +156,14 @@ class Complex < Numeric
   #
   # Multiplication with real or complex number.
   #
-  def * (other)
+  def *(other)
     if other.kind_of?(Complex)
-      re = @real*other.real - @imag*other.imag
-      im = @real*other.imag + @imag*other.real
-      Complex(re, im)
-    elsif Complex.generic?(other)
-      Complex(@real * other, @imag * other)
+      Complex(real * other.real - imag * other.imag,
+              real * other.imag + imag * other.real)
+    elsif other.kind_of?(Numeric) && other.real?
+      Complex(real * other, imag * other)
     else
-      x , y = other.coerce(self)
-      x * y
+      redo_coerced(:*, other)
     end
   end
 
