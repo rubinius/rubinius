@@ -58,6 +58,8 @@ def build_extconf(name, opts)
   end
 
   sh("make #{redirect}", &fail_block)
+
+  ENV.delete("RBXOPT")
 end
 
 def compile_ext(name, opts={})
