@@ -187,7 +187,7 @@ class Complex < Numeric
   # Raise this complex number to the given (real or complex) power.
   #
   def ** (other)
-    if other == 0
+    if !other.kind_of?(Float) && other == 0
       return Complex(1)
     end
     if other.kind_of?(Complex)
