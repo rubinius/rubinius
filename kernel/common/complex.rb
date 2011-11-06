@@ -281,6 +281,13 @@ class Complex < Numeric
     end
   end
 
+  def eql?(other)
+    other.kind_of?(Complex) and
+    imag.class == other.imag.class and
+    real.class == other.real.class and
+    self == other
+  end
+
   #
   # Attempts to coerce +other+ to a Complex number.
   #
