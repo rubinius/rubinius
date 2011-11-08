@@ -124,9 +124,7 @@ readline_getc(FILE *input)
 {
     rb_io_t *ifp = 0;
     VALUE c;
-    if (!readline_instream) return rl_getc(input);
     GetOpenFile(readline_instream, ifp);
-    if (rl_instream != rb_io_stdio_file(ifp)) return rl_getc(input);
     c = rb_funcall(readline_instream, id_getbyte, 0, 0);
     if (NIL_P(c)) return EOF;
     return NUM2CHR(c);
@@ -1554,7 +1552,7 @@ Init_readline()
     rl_attempted_completion_function = readline_attempted_completion_function;
 #if defined HAVE_RL_GETC_FUNCTION
     rl_getc_function = readline_getc;
-    id_getbyte = rb_intern_const("getbyte");
+    id_getbyte = rb_intern("getbyte");
 #elif defined HAVE_RL_EVENT_HOOK
     rl_event_hook = readline_event;
 #endif

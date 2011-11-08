@@ -114,7 +114,7 @@ class Configure
     @libversion = "2.0"
     @version = "#{@libversion}.0dev"
     @release_date = "yyyy-mm-dd"
-    @config_version = 139
+    @config_version = 140
 
     # TODO: add conditionals for platforms
     if RbConfig::CONFIG["build_os"] =~ /darwin/
@@ -996,6 +996,7 @@ module Rubinius
     :version_list   => #{@version_list.inspect},
     :default_version => "#{@default_version}",
     :vendor_zlib    => #{@vendor_zlib},
+    :readline       => :#{@rb_readline ? :rb_readline : :c_readline}
   }
 end
       EOC

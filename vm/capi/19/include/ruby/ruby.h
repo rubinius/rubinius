@@ -1522,6 +1522,9 @@ VALUE rb_uint2big(unsigned long number);
   /** Returns a String in locale encoding. */
   VALUE rb_locale_str_new_cstr(const char* string);
 
+  /** Returns a String in locale encoding. */
+  VALUE rb_locale_str_new(const char* string, long len);
+
   /** Returns a pointer to a persistent char [] that contains the same data as
    * that contained in the Ruby string. The buffer is flushed to the string
    * when control returns to Ruby code. The buffer is updated with the string

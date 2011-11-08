@@ -36,6 +36,11 @@ extern "C" {
     return rb_str_new2(ptr);
   }
 
+  VALUE rb_locale_str_new(const char* ptr, long len) {
+    // TODO
+    return rb_str_new(ptr, len);
+  }
+
   VALUE rb_str_conv_enc(VALUE str, rb_encoding *from, rb_encoding *to) {
     // TODO
     return str;

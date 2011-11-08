@@ -124,7 +124,7 @@ compile_ext "melbourne", :task => "rbx", :doc => "for Rubinius"
 compile_ext "melbourne", :task => "build", :doc => "for bootstrapping"
 compile_ext "nkf"
 
-if BUILD_CONFIG[:defines].include? "HAS_READLINE"
+if BUILD_CONFIG[:readline] == :c_readline
   compile_ext "readline", :dir => "lib/18/readline/ext"
   compile_ext "readline", :dir => "lib/19/readline/ext",
                           :deps => ["Makefile", "extconf.rb"],
