@@ -821,6 +821,15 @@ module Enumerable
     ary
   end
 
+
+  #
+  # call-seq:
+  #    enum.reverse_each { |obj| block }  => enum
+  #
+  # Calls <i>block</i> once for each element in +enum+ in reverse order,
+  # passing that element as a parameter, converting multiple values to an
+  # array.
+
   def reverse_each(&block)
     return to_enum(:reverse_each) unless block_given?
 
