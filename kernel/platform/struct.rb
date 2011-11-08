@@ -226,6 +226,10 @@ module FFI
       @pointer.free
     end
 
+    def ==(other)
+      @pointer == other.pointer
+    end
+
     def initialize_copy(ptr)
       @pointer = ptr.pointer.dup
     end

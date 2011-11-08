@@ -40,6 +40,9 @@ end
 
 module Etc
 
+  const_set(:Passwd, Struct::Passwd)
+  const_set(:Group, Struct::Group)
+
   def self.getlogin
     getpwuid.name
   end
