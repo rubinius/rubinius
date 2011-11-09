@@ -131,6 +131,10 @@ if BUILD_CONFIG[:readline] == :c_readline
                           :env => "-X19"
 end
 
+if BUILD_CONFIG[:libyaml]
+  compile_ext "psych", :deps => ["Makefile"], :dir => "lib/19/psych/ext"
+end
+
 # rbx must be able to run to build these because they use
 # extconf.rb, so they must be after melbourne for Rubinius.
 compile_ext "openssl", :deps => ["Makefile", "extconf.h"]

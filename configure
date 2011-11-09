@@ -109,12 +109,13 @@ class Configure
     # Library configuration
     @rb_readline = false
     @vendor_zlib = false
+    @libyaml = false
 
     # Essential settings (modify these for creating releases)
     @libversion = "2.0"
     @version = "#{@libversion}.0dev"
     @release_date = "yyyy-mm-dd"
-    @config_version = 140
+    @config_version = 141
 
     # TODO: add conditionals for platforms
     if RbConfig::CONFIG["build_os"] =~ /darwin/
@@ -862,6 +863,10 @@ int main() { return tgetnum(""); }
       @rb_readline = true
     end
 
+    if has_function("yaml_parser_initialize", ["yaml.h"])
+      @libyaml = true
+    end
+
     @vendor_zlib = true if @features["vendor-zlib"]
   end
 
@@ -996,7 +1001,8 @@ module Rubinius
     :version_list   => #{@version_list.inspect},
     :default_version => "#{@default_version}",
     :vendor_zlib    => #{@vendor_zlib},
-    :readline       => :#{@rb_readline ? :rb_readline : :c_readline}
+    :readline       => :#{@rb_readline ? :rb_readline : :c_readline},
+    :libyaml        => #{@libyaml}
   }
 end
       EOC
