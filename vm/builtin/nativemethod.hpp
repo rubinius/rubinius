@@ -355,7 +355,7 @@ namespace rubinius {
      *  entered.
      */
     // Rubinius.primitive :nativemethod_load_extension_entry_point
-    static NativeMethod* load_extension_entry_point(STATE, String* library, Pointer* ptr);
+    static NativeMethod* load_extension_entry_point(STATE, String* library, Symbol* name, Pointer* ptr);
 
 
   public:   /* Instance methods */
