@@ -45,8 +45,8 @@ namespace rubinius {
     GCTokenImpl* gc_token_;
 
   public:
-    GCData(STATE, GCToken gct);
-    GCData(STATE);
+    GCData(VM*, GCToken gct);
+    GCData(VM*);
 
     GCData(Roots& r,
            capi::Handles* handles = NULL, capi::Handles* cached_handles = NULL,

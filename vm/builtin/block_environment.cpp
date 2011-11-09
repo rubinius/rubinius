@@ -27,6 +27,8 @@
 #include "configuration.hpp"
 #include "on_stack.hpp"
 
+#include "ontology.hpp"
+
 #ifdef RBX_WINDOWS
 #include <malloc.h>
 #endif
@@ -40,7 +42,7 @@
 namespace rubinius {
 
   void BlockEnvironment::init(STATE) {
-    GO(blokenv).set(state->new_class("BlockEnvironment", G(object),
+    GO(blokenv).set(ontology::new_class(state, "BlockEnvironment", G(object),
                                      G(rubinius)));
     G(blokenv)->set_object_type(state, BlockEnvironmentType);
     G(blokenv)->name(state, state->symbol("Rubinius::BlockEnvironment"));
@@ -267,7 +269,7 @@ namespace rubinius {
 
 #ifdef ENABLE_LLVM
     if(vmm->call_count >= 0) {
-      if(vmm->call_count >= state->shared.config.jit_call_til_compile) {
+      if(vmm->call_count >= state->shared().config.jit_call_til_compile) {
         LLVMState* ls = LLVMState::get(state);
 
         ls->compile_soon(state, env->code(), env, true);
@@ -322,19 +324,10 @@ namespace rubinius {
       if(!state->check_interrupts(gct, frame, frame)) return NULL;
     }
 
-    if(unlikely(state->interrupts.check)) {
-      state->interrupts.checked();
-      if(state->interrupts.perform_gc) {
-        state->interrupts.perform_gc = false;
-        state->collect_maybe(gct, frame);
-      }
-    }
-
-    state->set_call_frame(frame);
-    state->shared.checkpoint(state);
+    state->checkpoint(gct, frame);
 
 #ifdef RBX_PROFILER
-    if(unlikely(state->tooling())) {
+    if(unlikely(state->vm()->tooling())) {
       Module* mod = scope->module();
       if(SingletonClass* sc = try_as<SingletonClass>(mod)) {
         if(Module* ma = try_as<Module>(sc->attached_instance())) {
@@ -374,7 +367,7 @@ namespace rubinius {
         Exception::make_argument_error(state, 1, args.total(),
                                        state->symbol("__block__"));
       exc->locations(state, Location::from_call_stack(state, call_frame));
-      state->thread_state()->raise_exception(exc);
+      state->raise_exception(exc);
       return NULL;
     }
 
@@ -393,7 +386,7 @@ namespace rubinius {
         Exception::make_argument_error(state, 2, args.total(),
                                        state->symbol("__block__"));
       exc->locations(state, Location::from_call_stack(state, call_frame));
-      state->thread_state()->raise_exception(exc);
+      state->raise_exception(exc);
       return NULL;
     }
 

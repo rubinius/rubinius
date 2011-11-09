@@ -114,7 +114,7 @@ class Configure
     @libversion = "2.0"
     @version = "#{@libversion}.0dev"
     @release_date = "yyyy-mm-dd"
-    @config_version = 139
+    @config_version = 140
 
     # TODO: add conditionals for platforms
     if RbConfig::CONFIG["build_os"] =~ /darwin/
@@ -855,11 +855,10 @@ int main() { return tgetnum(""); }
     end
 
     if @features["C-readline"] and
-       has_function("readline", ["stdio.h", "stdlib.h", "readline/readline.h"])
-      @defines << "HAS_READLINE"
-    end
-
-    if @features["ruby-readline"] or !@defines.include?("HAS_READLINE")
+        (has_function("readline", ["stdio.h", "stdlib.h", "readline/readline.h"]) or
+         has_function("readline", ["stdio.h", "stdlib.h", "editline/readline.h"]))
+      @rb_readline = false
+    elsif @features["ruby-readline"]
       @rb_readline = true
     end
 
@@ -997,6 +996,7 @@ module Rubinius
     :version_list   => #{@version_list.inspect},
     :default_version => "#{@default_version}",
     :vendor_zlib    => #{@vendor_zlib},
+    :readline       => :#{@rb_readline ? :rb_readline : :c_readline}
   }
 end
       EOC
@@ -1130,7 +1130,7 @@ end
       end
     end
 
-    FileUtils.cp config_h, "vm/capi/19/include/config.h"
+    FileUtils.cp config_h, "vm/capi/19/include/ruby/config.h"
 
     # Write a require file depending on which Readline library we use.
     File.open "lib/readline.rb", "wb" do |f|

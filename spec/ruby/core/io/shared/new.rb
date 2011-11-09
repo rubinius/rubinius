@@ -74,6 +74,12 @@ describe :io_new, :shared => true do
       @io.external_encoding.to_s.should == 'UTF-8'
       @io.internal_encoding.to_s.should == ''
     end
+
+    it "sets internal encoding to nil when passed '-'" do
+      @io = IO.send(@method, @fd, 'w', {:external_encoding => 'utf-8', :internal_encoding => '-'})
+      @io.external_encoding.to_s.should == 'UTF-8'
+      @io.internal_encoding.to_s.should == ''
+    end
   end
 end
 

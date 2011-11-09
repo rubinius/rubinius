@@ -8,11 +8,13 @@
 #include "builtin/lookuptable.hpp"
 #include "builtin/symbol.hpp"
 
+#include "ontology.hpp"
+
 #include <iostream>
 
 namespace rubinius {
   void CompactLookupTable::init(STATE) {
-    GO(compactlookuptable).set(state->new_class("CompactLookupTable",
+    GO(compactlookuptable).set(ontology::new_class(state, "CompactLookupTable",
           G(tuple), G(rubinius)));
     G(compactlookuptable)->set_object_type(state, CompactLookupTableType);
     G(compactlookuptable)->name(state, state->symbol("Rubinius::CompactLookupTable"));
@@ -20,7 +22,7 @@ namespace rubinius {
 
   CompactLookupTable* CompactLookupTable::create(STATE) {
     size_t bytes;
-    CompactLookupTable* tbl = state->new_object_variable<CompactLookupTable>
+    CompactLookupTable* tbl = state->vm()->new_object_variable<CompactLookupTable>
       (G(compactlookuptable), COMPACTLOOKUPTABLE_SIZE, bytes);
     tbl->full_size_ = bytes;
     return tbl;

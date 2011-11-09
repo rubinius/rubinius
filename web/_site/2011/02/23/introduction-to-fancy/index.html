@@ -75,14 +75,14 @@
 Rubinius VM.</p>
 
 <p>This blog post will give a short introduction to the language, what
-kind of problems it&rsquo;s trying to solve and why I chose Rubinius as the
+kind of problems it’s trying to solve and why I chose Rubinius as the
 VM to run Fancy on.</p>
 
 <h3 id="what-is-fancy">What is Fancy?</h3>
 
 <p>Fancy is a new general-purpose, dynamic, pure object-oriented
 programming language heavily inspired by Ruby, Smalltalk and Erlang
-that runs on the Rubinius VM. It&rsquo;s the first fully bootstrapped
+that runs on the Rubinius VM. It’s the first fully bootstrapped
 language, aside from Ruby, running on Rubinius. This means that the
 compiler that generates bytecode for Rubinius is written in Fancy
 itself.</p>
@@ -118,34 +118,34 @@ than in traditional systems.</p>
 certain things out of the box. Especially when it comes to things like
 asynchronous and concurrent programming, having proper semantics built
 into the language can often help developers more than a library can.
-Very often it&rsquo;s not just about the functionality itself but also about
+Very often it’s not just about the functionality itself but also about
 the semantics you want that functionality to have. This can cause
-problems particularly if the language&rsquo;s semantics differ from what
+problems particularly if the language’s semantics differ from what
 your library is trying to solve. A good example is the callback-based
 approach to asynchronous progamming which leads to code that differs
 both in semantics as well as how code is structured, compared to
-synchronous code. Ideally you&rsquo;d still want to write code in a
+synchronous code. Ideally you’d still want to write code in a
 synchronous fashion, where exceptions pop up naturally while still
 being highly asynchronous.</p>
 
-<p>In that sense Fancy is more flexible than Ruby as there&rsquo;s not many
-special case semantics built in to the core language. Everything&rsquo;s
+<p>In that sense Fancy is more flexible than Ruby as there’s not many
+special case semantics built in to the core language. Everything’s
 done via message passing, which fits nicely the actor model approach
-to concurrency. Fancy&rsquo;s syntax is a lot simpler, too.</p>
+to concurrency. Fancy’s syntax is a lot simpler, too.</p>
 
 <p>Since all the core control structures are just implemented in Fancy
 itself and adhere to the message passing protocol, you can easily
 override them for your personal needs. This is especially interesting
 when implementing domain specific languages.
-Say, you&rsquo;d want to add some logging to conditional or looping
-constructs - it&rsquo;s as easy as overriding a method in your DSL&rsquo;s
+Say, you’d want to add some logging to conditional or looping
+constructs - it’s as easy as overriding a method in your DSL’s
 classes. Fancy also has class-based mixins, so it makes it easy to
 share functionality across class hierarchy boundaries.</p>
 
 <p>Finally, I created Fancy because I wanted a language implementation
 that was well documented, easy to understand and very flexible to
 extend. Ruby is a nice language, but it has some inconsistencies and
-there&rsquo;s only so much you can do when you&rsquo;re bound by backwards
+there’s only so much you can do when you’re bound by backwards
 compatibility. By starting fresh, Fancy has a clean, simple and easy
 to extend core which allows further exploration of features and
 abstractions.</p>
@@ -157,130 +157,98 @@ in C++, similar to how Ruby 1.8 (MRI) works. It was a simple AST
 walker. After moving to Rubinius and writing an initial bootstrap
 compiler in Ruby, the codebase shrank to about 20% of the original
 implementation while actually being more performant. This of course is
-mostly due to Rubinius&rsquo; architecture and JIT compiler but it was a
+mostly due to Rubinius’ architecture and JIT compiler but it was a
 great experience nontheless.</p>
 
 <p>The nice part about having a common virtual machine and runtime is
-that you&rsquo;re not forced to a completely different platform to get the
+that you’re not forced to a completely different platform to get the
 job done. Fancy and Ruby can coexist in the same application nicely
 and calling code from one another is dead simple. In fact, as of now,
-Rubinius doesn&rsquo;t know anything about Fancy. And it shouldn&rsquo;t. As long
+Rubinius doesn’t know anything about Fancy. And it shouldn’t. As long
 as all languages running on top of it adhere to the same interface
 (in this case the bytecode), it should just work fine.</p>
 
-<p>Choosing Rubinius as a successor platform for Fancy was easy. It&rsquo;s
-built for Ruby, a language that&rsquo;s closely related to Fancy. Rubinius,
+<p>Choosing Rubinius as a successor platform for Fancy was easy. It’s
+built for Ruby, a language that’s closely related to Fancy. Rubinius,
 while having been developed as a VM for running Ruby code, is very
-flexible and there are many features that abstract over Ruby&rsquo;s
+flexible and there are many features that abstract over Ruby’s
 external semantics. It was just a natural choice given the fact that
-Rubinius&rsquo; architecture and design was heavily influenced by Smalltalk
-VMs. Also, it&rsquo;s a very nice dynamic bytecode virtual machine. The
+Rubinius’ architecture and design was heavily influenced by Smalltalk
+VMs. Also, it’s a very nice dynamic bytecode virtual machine. The
 community is very responsive and helpful. Bugs get fixed instantly,
-there&rsquo;s always someone to help out and overall it&rsquo;s been a great
+there’s always someone to help out and overall it’s been a great
 experience.</p>
 
-<h3 id="lets-look-at-some-code">Let&rsquo;s look at some code!</h3>
+<h3 id="lets-look-at-some-code">Let’s look at some code!</h3>
 
-<p>OK, enough talking. Let&rsquo;s have a look on how to get some Fancy code up
+<p>OK, enough talking. Let’s have a look on how to get some Fancy code up
 and running. Our little sample application will be a simple IRC bot
-that connects to Fancy&rsquo;s irc channel on Freenode and says hello to
-everyone that greets it. To make life easier, there&rsquo;s already a Fancy
+that connects to Fancy’s irc channel on Freenode and says hello to
+everyone that greets it. To make life easier, there’s already a Fancy
 package out there that helps with exactly this task:
 <a href="https://github.com/bakkdoor/fancy_irc">FancyIRC</a>.</p>
 
-<p>FancyIRC is a simple IRC client library inspired by Ruby&rsquo;s IRC bot
-framework <a href="https://github.com/cinchrb/cinch">Cinch</a>. It&rsquo;s much simpler
+<p>FancyIRC is a simple IRC client library inspired by Ruby’s IRC bot
+framework <a href="https://github.com/cinchrb/cinch">Cinch</a>. It’s much simpler
 and the code is fairly easy to read, but it gives you a similar
 interface for writing IRC clients or bots.</p>
 
-<p>So let&rsquo;s get going by installing Fancy. You can either use the Fancy
+<p>So let’s get going by installing Fancy. You can either use the Fancy
 Rubygem and install it with Rubinius or get the code from GitHub and
-run <code>rake</code> in the directory. You&rsquo;ll also then have to add the <code>bin</code>
+run <code>rake</code> in the directory. You’ll also then have to add the <code>bin</code>
 directory to your <code>$PATH</code>. If you want the latest and greatest version
 of Fancy I recommend building directly from source, as the Gem might
-not be up to date all the time. For demonstration purposes, let&rsquo;s
+not be up to date all the time. For demonstration purposes, let’s
 install the Rubygem.</p>
 
 <pre><code>$ rbx -S gem install fancy
 </code></pre>
 
-<p>To get the FancyIRC package we use Fancy&rsquo;s built-in package manager,
+<p>To get the FancyIRC package we use Fancy’s built-in package manager,
 which knows how to find the code on GitHub and install it locally:</p>
 
 <pre><code>$ fancy install bakkdoor/fancy_irc
 </code></pre>
 
 <h4 id="writing-the-code">Writing the code</h4>
-
-<div class="highlight"><pre><code class="fancy"><span class="lineno"> 1</span> <span class="nf">require:</span> <span class="s">&quot;fancy_irc&quot;</span>
-<span class="lineno"> 2</span> 
-<span class="lineno"> 3</span> <span class="n">greeter_bot</span> <span class="o">=</span> <span class="no">FancyIRC</span> <span class="no">Client</span> <span class="nf">new:</span> <span class="p">{</span>
-<span class="lineno"> 4</span>   <span class="nf">configuration:</span> <span class="p">{</span>
-<span class="lineno"> 5</span>     <span class="nf">nickname:</span> <span class="s">&quot;greeter_bot&quot;</span>
-<span class="lineno"> 6</span>     <span class="nf">server:</span> <span class="s">&quot;irc.freenode.net&quot;</span>
-<span class="lineno"> 7</span>     <span class="nf">port:</span> <span class="mi">6667</span>
-<span class="lineno"> 8</span>     <span class="nf">channels:</span> <span class="o">[</span><span class="s">&quot;#fancy&quot;</span><span class="o">]</span>
-<span class="lineno"> 9</span>   <span class="p">}</span>
-<span class="lineno">10</span> 
-<span class="lineno">11</span>   <span class="c1"># greet person back</span>
-<span class="lineno">12</span>   <span class="nf">on:</span> <span class="ss">&#39;channel</span> <span class="nf">pattern:</span> <span class="sr">/^[hH]ello greeter_bot/</span> <span class="nf">do:</span> <span class="p">|</span><span class="n">msg</span><span class="p">|</span> <span class="p">{</span>
-<span class="lineno">13</span>     <span class="n">msg</span> <span class="nf">reply:</span> <span class="s">&quot;Hello to you too, #{msg author}!&quot;</span>
-<span class="lineno">14</span>   <span class="p">}</span>
-<span class="lineno">15</span> 
-<span class="lineno">16</span>   <span class="c1"># &quot;echo&quot; command</span>
-<span class="lineno">17</span>   <span class="c1"># invoke with: !echo &lt;text&gt;</span>
-<span class="lineno">18</span>   <span class="nf">on:</span> <span class="ss">&#39;channel</span> <span class="nf">pattern:</span> <span class="sr">/^!echo (.*)$/</span> <span class="nf">do:</span> <span class="p">|</span><span class="n">msg</span><span class="p">,</span> <span class="n">text</span><span class="p">|</span> <span class="p">{</span>
-<span class="lineno">19</span>     <span class="n">msg</span> <span class="nf">reply:</span> <span class="s">&quot;#{msg author} said: #{text}&quot;</span>
-<span class="lineno">20</span>   <span class="p">}</span>
-<span class="lineno">21</span> 
-<span class="lineno">22</span>   <span class="c1"># tell bot to shutdown via !shutdown command</span>
-<span class="lineno">23</span>   <span class="nf">on:</span> <span class="ss">&#39;channel</span> <span class="nf">pattern:</span> <span class="sr">/^!shutdown/</span> <span class="nf">do:</span> <span class="p">|</span><span class="n">msg</span><span class="p">|</span> <span class="p">{</span>
-<span class="lineno">24</span>     <span class="n">msg</span> <span class="nf">reply:</span> <span class="s">&quot;OK, shutting down&quot;</span>
-<span class="lineno">25</span>     <span class="no">System</span> <span class="n">exit</span>
-<span class="lineno">26</span>   <span class="p">}</span>
-<span class="lineno">27</span> <span class="p">}</span>
-<span class="lineno">28</span> 
-<span class="lineno">29</span> <span class="n">greeter_bot</span> <span class="n">connect</span>
-<span class="lineno">30</span> <span class="n">greeter_bot</span> <span class="n">run</span>
-</code></pre>
-</div>
+<p>Liquid error: undefined method `join’ for #<String:0x000000013dc948 /></p>
 
 <p>I think the code is pretty straight forward. This should give you a
 feeling for what Fancy looks and feels like. There is of course lots
 more to Fancy than what was shown here. It would not fit into a single
 blog post.</p>
 
-<p>A quick list of what&rsquo;s currently being worked on:</p>
+<p>A quick list of what’s currently being worked on:</p>
 
 <ul>
   <li>New pattern matching system: Message passing based pattern matching
 that preserves encapsulation and is very extensible including
 pattern literals that allow custom pattern types to be defined by
-anyone. There&rsquo;s an experimental branch for that. I&rsquo;m happy
+anyone. There’s an experimental branch for that. I’m happy
 to answer questions.</li>
   <li>Async support using coroutines (Fibers) - Write async code in a more
-natural way where exceptions propagate naturally and you don&rsquo;t have
+natural way where exceptions propagate naturally and you don’t have
 to think about callbacks all the time.</li>
   <li>First-class support for actors - Asynchronous message sends, Futures
 and multi-vm messaging built-in.</li>
-  <li>And much more&hellip;</li>
+  <li>And much more…</li>
 </ul>
 
 <h3 id="interested">Interested?</h3>
 
 <p>If you got interested in Fancy and want to know where to go next,
-here&rsquo;s a short list of things to check out:</p>
+here’s a short list of things to check out:</p>
 
 <ul>
-  <li><a href="https://github.com/bakkdoor/fancy">Fancy&rsquo;s GitHub repository</a>.
+  <li><a href="https://github.com/bakkdoor/fancy">Fancy’s GitHub repository</a>.
 The standard library is completely written in Fancy and most classes
 and methods have docstrings. It should be fairly easy to understand.</li>
   <li><a href="https://github.com/fancy-lang/infancy">Programming InFancy</a>
 An open source tutorial on learning Fancy. Work in progress.</li>
   <li><a href="http://api.fancy-lang.org">http://api.fancy-lang.org</a>
-A work in progress page containing Fancy&rsquo;s standard library class
+A work in progress page containing Fancy’s standard library class
 and method documentation.</li>
-  <li><a href="https://groups.google.com/forum/#!forum/fancy-lang">Fancy&rsquo;s Google Group mailinglist</a></li>
+  <li><a href="https://groups.google.com/forum/#!forum/fancy-lang">Fancy’s Google Group mailinglist</a></li>
   <li>IRC Channel: #fancy @ irc.freenode.net</li>
   <li>Website: <a href="http://www.fancy-lang.org">http://www.fancy-lang.org</a></li>
 </ul>

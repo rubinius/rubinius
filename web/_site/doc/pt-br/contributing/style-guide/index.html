@@ -170,10 +170,10 @@ conditional</p>
   </li>
   <li>
     <p>Alternate versions of functions should be named why they are different
-from the primary.  If there is a function &lsquo;person()&rsquo; and you want a
+from the primary.  If there is a function ‘person()’ and you want a
 version that takes the name of the person, it should be
-&lsquo;person_with_name(char *name)&rsquo; or &lsquo;person_with_details(char *name, &hellip;)&rsquo;.
-NOT &lsquo;person1(char *name)&rsquo;.</p>
+‘person_with_name(char *name)’ or ‘person_with_details(char *name, …)’.
+NOT ‘person1(char *name)’.</p>
   </li>
 </ul>
 
@@ -181,16 +181,16 @@ NOT &lsquo;person1(char *name)&rsquo;.</p>
 
 <ul>
   <li>
-    <p>Methods: Try to keep your methods short&ndash;one screenful and try to adhere
+    <p>Methods: Try to keep your methods short–one screenful and try to adhere
 to DRY within reason. Generally common functionality should be abstracted
-to helper methods (which you can make &lsquo;private&rsquo;) but in some cases,
+to helper methods (which you can make ‘private’) but in some cases,
 particularly working with Core, sometimes trying to DRY things up is just
 an obstacle if you have to maneuver around several different error
 conditions, for example.</p>
   </li>
   <li>
     <p>Method names: should be clear, expressive and meaningful. Avoid using
-underscores to &lsquo;protect&rsquo; the method (&lsquo;__send__&rsquo;) with some exceptions.</p>
+underscores to ‘protect’ the method (‘__send__’) with some exceptions.</p>
   </li>
   <li>
     <p>Smalltalk-style method names are OK, meaning that you could have a method
@@ -201,8 +201,8 @@ reading.</p>
   </li>
   <li>
     <p>Variable names: make them clear and meaningful (with some well-known
-exceptions like using &lsquo;i&rsquo; for a counter.) Try to avoid shadowing method
-names, for example within Array use &lsquo;idx&rsquo; in favour of &lsquo;index&rsquo; because the
+exceptions like using ‘i’ for a counter.) Try to avoid shadowing method
+names, for example within Array use ‘idx’ in favour of ‘index’ because the
 latter is also a method name.</p>
   </li>
   <li>

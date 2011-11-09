@@ -33,7 +33,7 @@ end
 require config_rb
 BUILD_CONFIG = Rubinius::BUILD_CONFIG
 
-unless BUILD_CONFIG[:config_version] == 139
+unless BUILD_CONFIG[:config_version] == 140
   STDERR.puts "Your configuration is outdated, please run ./configure first"
   exit 1
 end
@@ -99,7 +99,7 @@ def run_specs(flags=nil)
 
   ENV.delete("RUBYOPT")
 
-  sh "bin/mspec ci #{ENV['CI_MODE_FLAG'] || flags} --background --agent"
+  sh "bin/mspec ci #{ENV['CI_MODE_FLAG'] || flags} -d --background --agent"
 end
 
 task :default => :spec

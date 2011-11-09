@@ -183,8 +183,8 @@ und beschreibe daraufhin die Reproduktion in einem neuen Ticket.</p>
     <p>Doppelte Überprüfung.</p>
 
     <ol>
-      <li>Kompiliere Rubinius komplett neu (&lsquo;rake clean; rake&rsquo;) nachdem du 
-&lsquo;git pull&rsquo; ausgeführt hast oder einen frischen Klon des Repositories 
+      <li>Kompiliere Rubinius komplett neu (‘rake clean; rake’) nachdem du 
+‘git pull’ ausgeführt hast oder einen frischen Klon des Repositories 
 erstellt hast.</li>
       <li>Lies <a href="/doc/de/getting-started/troubleshooting">Problemlösungen</a>,
 um zu sehen, ob eine der dortigen Anleitungen das Problem beheben kann.</li>
@@ -204,7 +204,7 @@ um zu sehen, ob eine der dortigen Anleitungen das Problem beheben kann.</li>
       <li>Der Kommandozeilenbefehl, um das Programm auszuführen.</li>
       <li>Der Backtrace oder das Ergebnis entgegen dem erwarteten Ergebnis.</li>
       <li>Informationen über deinen Rechner und System. <code>uname -a</code> ist
-normalerweise gut (falls es irgengwelche &ldquo;unknown&rdquo; Felder
+normalerweise gut (falls es irgengwelche “unknown” Felder
 gibt, erkläre/beschreibe diese bitte.)</li>
     </ul>
   </li>
@@ -216,9 +216,9 @@ gibt, erkläre/beschreibe diese bitte.)</li>
   <li>Einfach nur ein paar Specs.</li>
   <li>Patches müssen zusätzlich mit Specs versehen sein, es sei denn die Specs 
 existieren bereits.</li>
-  <li>Relevante Teile der Spec Ausgabe und der exakte &lsquo;bin/mspec&rsquo; Aufruf von dem
+  <li>Relevante Teile der Spec Ausgabe und der exakte ‘bin/mspec’ Aufruf von dem
 existierenden oder hinzugefügten Spec <em>vor</em> der Veränderung.</li>
-  <li>Die Spec Ausgabe und der exakte &lsquo;bin/mspec&rsquo; Aufruf, bei dem ein 
+  <li>Die Spec Ausgabe und der exakte ‘bin/mspec’ Aufruf, bei dem ein 
 erfolgreicher Durchlauf <em>nach</em> der Veränderung zu sehen ist.</li>
   <li>Zusätzliche Beschreibungen/Kommentare deines Patches und wie er das 
 Problem löst. Insbesondere dann, wenn neue Features hinzugefügt wurden, 
@@ -227,9 +227,9 @@ sollte darauf verwiesen werden, ob der Inhalt des Tickets bereits in
 </ul>
 
 <p>Abgesehen von Fällen, bei denen es aus irgendwelchen Gründen unmöglich ist, 
-sollte &lsquo;git-format-patch&rsquo; benutzt werden, um den Patch zu erstellen. Das macht
+sollte ‘git-format-patch’ benutzt werden, um den Patch zu erstellen. Das macht
 das Einbringen des Patches wesentlich einfacher und er erhält die korrekte 
-Zuordnung. Ansonsten sollte ein &lsquo;unified diff&rsquo; verwendet werden.</p>
+Zuordnung. Ansonsten sollte ein ‘unified diff’ verwendet werden.</p>
 
 <h2 id="beispiel-fr-das-einreichen-eines-patches">Beispiel für das Einreichen eines Patches</h2>
 
@@ -246,17 +246,17 @@ end
   <li>
     <p>Ticket Titel:</p>
 
-    <p>&ldquo;[PATCH] No method &lsquo;format&rsquo; on Kernel (Module)&rdquo;</p>
+    <p>“[PATCH] No method ‘format’ on Kernel (Module)”</p>
   </li>
   <li>
     <p>Tags:</p>
 
-    <p>&ldquo;patch core spec&rdquo;</p>
+    <p>“patch core spec”</p>
   </li>
   <li>
     <p>Ticket Nachricht (<i>natürlich auf Englisch</i>)</p>
 
-    <p>The method &lsquo;format&rsquo; is not available as a module function of Kernel.</p>
+    <p>The method ‘format’ is not available as a module function of Kernel.</p>
 
     <pre><code>$ bin/mspec spec/ruby/core/kernel/format_spec.rb
 Started
@@ -267,7 +267,7 @@ Kernel.format is accessible as a module function ERROR
 No method 'format' on Kernel (Module):
 </code></pre>
 
-    <p>The method &lsquo;format&rsquo; already exists but has not been set as a module
+    <p>The method ‘format’ already exists but has not been set as a module
 function.  This patch does so.</p>
 
     <p>After the patch is applied:</p>

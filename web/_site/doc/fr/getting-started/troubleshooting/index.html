@@ -140,10 +140,10 @@
   
 
     <p>Cette section rassemble les erreurs que vous pouvez rencontrer lors de la compilation,
-de l&rsquo;installation ou de l&rsquo;exécution de Rubinius, avec des suggestions de solutions.</p>
+de l’installation ou de l’exécution de Rubinius, avec des suggestions de solutions.</p>
 
-<p>Pour chaque erreur, la première étape est de s&rsquo;assurer que vous avez une copie de travail
-à jour et propre de Rubinius. Avant d&rsquo;aller plus loin, pensez à exécuter les étapes suivantes :</p>
+<p>Pour chaque erreur, la première étape est de s’assurer que vous avez une copie de travail
+à jour et propre de Rubinius. Avant d’aller plus loin, pensez à exécuter les étapes suivantes :</p>
 
 <pre><code>$ git co master
 $ git reset --hard
@@ -154,8 +154,8 @@ $ rake
 
 <h3 id="rubinius-ne-trouve-pas-le-rpertoire-de-runtime">Rubinius ne trouve pas le répertoire de <code>runtime</code></h3>
 
-<p>Après la compilation ou l&rsquo;installation, l&rsquo;erreur suivant apparaît lors d&rsquo;une
-  tentative d&rsquo;exécution de Rubinius :</p>
+<p>Après la compilation ou l’installation, l’erreur suivant apparaît lors d’une
+  tentative d’exécution de Rubinius :</p>
 
 <pre><code>ERROR: unable to find runtime directory
 
@@ -177,17 +177,17 @@ directory but you have not run 'rake install' yet.
 <p>Si vous avez configuré Rubinius avec un <code>--prefix</code>, exécutez <code>rake install</code>.</p>
 
 <p>Si vous avez configuré Rubinius avec un <code>--prefix</code> et renommé le répertoire
-  d&rsquo;installation après avoir installé Rubinius, reconfigurez Rubinius et réinstallez-le.</p>
+  d’installation après avoir installé Rubinius, reconfigurez Rubinius et réinstallez-le.</p>
 
 <p>Si vous avez renommé le répertoir des sources après avoir compilé Rubinius, reconfigurez
   et recompilez-le.</p>
 
-<p>De manière générale, ne renommez pas le répertoire de compilation ou d&rsquo;installation après
+<p>De manière générale, ne renommez pas le répertoire de compilation ou d’installation après
   avoir compilé ou installé Rubinius.</p>
 
 <h3 id="rubinius-provoque-une-erreur-de-segmentation-sur-freebsd">Rubinius provoque une erreur de segmentation sur FreeBSD</h3>
 
-<p>Sur FreeBSD, jusqu&rsquo;à la version 8.1 stable incluse, existe un problème avec execinfo qui
+<p>Sur FreeBSD, jusqu’à la version 8.1 stable incluse, existe un problème avec execinfo qui
   provoque une erreur de segmentation lorsque Rubinius se charge.</p>
 
 <h4 id="solution-1">Solution:</h4>

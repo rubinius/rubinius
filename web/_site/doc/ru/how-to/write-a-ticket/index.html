@@ -174,7 +174,7 @@
     <p>Проверьте несколько раз.</p>
 
     <ol>
-      <li>Полностью пересоберите Rubinius (&lsquo;rake clean; rake&rsquo;) после &lsquo;git pull&rsquo;
+      <li>Полностью пересоберите Rubinius (‘rake clean; rake’) после ‘git pull’
 или нового git clone.</li>
       <li>Прочтите <a href="/doc/ru/getting-started/troubleshooting">Разрешение проблем</a>,
 возможно это поможет решить вашу проблему.</li>
@@ -194,7 +194,7 @@
       <li>Команду в терминале, с помощью которой можно вызвать программу</li>
       <li>Стектрейс или результат программы вместе с ожидаемым результатом.</li>
       <li>Информацию о вашей машине. <code>uname -a</code> обычно достаточно (если в ней
-присутствуют &ldquo;unknown&rdquo; поля, пожалуйста, дополните их.)</li>
+присутствуют “unknown” поля, пожалуйста, дополните их.)</li>
     </ul>
   </li>
 </ol>
@@ -204,17 +204,17 @@
 <ul>
   <li>Тикеты могут состоять просто из набора спецификаций.</li>
   <li>Патчи должны быть снабжены спецификациями в случае их отсутствия.</li>
-  <li>Релевантную часть вывода спецификации и точный вывод &lsquo;bin/mspec&rsquo;,
+  <li>Релевантную часть вывода спецификации и точный вывод ‘bin/mspec’,
 вызванной с существующей или добавленной спецификацией <em>перед
 исправлением</em>.</li>
-  <li>Вывод спецификации и вывод &lsquo;bin/mspec&rsquo; показывающий успех <em>после</em>
+  <li>Вывод спецификации и вывод ‘bin/mspec’ показывающий успех <em>после</em>
 исправления.</li>
   <li>Дополнительное описание вашего патча и того, как он исправляет проблему.
 В частности, что касается новой функциональности, пожалуйста, указывайте
 обсуждалось ли это уже на #rubinius или ruby-dev.</li>
 </ul>
 
-<p>Если возможно, пожалуйста, используйте &lsquo;git-format-path&rsquo; для создания набора
+<p>Если возможно, пожалуйста, используйте ‘git-format-path’ для создания набора
 патчей. Это и упрощает применение патча и сохраняет его атрибуты. В противном
 случае используйте унифицированный diff.</p>
 
@@ -233,17 +233,17 @@ end
   <li>
     <p>Заголовок тикета:</p>
 
-    <p>&ldquo;[PATCH] No method &lsquo;format&rsquo; on Kernel (Module)&rdquo;</p>
+    <p>“[PATCH] No method ‘format’ on Kernel (Module)”</p>
   </li>
   <li>
     <p>Теги:</p>
 
-    <p>&ldquo;patch core spec&rdquo;</p>
+    <p>“patch core spec”</p>
   </li>
   <li>
     <p>Текст в тикете:</p>
 
-    <p>The method &lsquo;format&rsquo; is not available as a module function of Kernel.</p>
+    <p>The method ‘format’ is not available as a module function of Kernel.</p>
 
     <pre><code>$ bin/mspec spec/ruby/core/kernel/format_spec.rb
 Started
@@ -254,7 +254,7 @@ Kernel.format is accessible as a module function ERROR
 No method 'format' on Kernel (Module):
 </code></pre>
 
-    <p>The method &lsquo;format&rsquo; already exists but has not been set as a module
+    <p>The method ‘format’ already exists but has not been set as a module
 function.  This patch does so.</p>
 
     <p>After the patch is applied:</p>

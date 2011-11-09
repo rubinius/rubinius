@@ -30,13 +30,15 @@
 #include "arguments.hpp"
 #include "dispatch.hpp"
 
+#include "ontology.hpp"
+
 #include "windows_compat.h"
 
 namespace rubinius {
 
   void Pointer::init(STATE) {
     Module* ffi = as<Module>(G(object)->get_const(state, "FFI"));
-    GO(ffi_pointer).set(state->new_class_under("Pointer", ffi));
+    GO(ffi_pointer).set(ontology::new_class_under(state, "Pointer", ffi));
     G(ffi_pointer)->set_object_type(state, PointerType);
 
     G(ffi_pointer)->set_const(state, "CURRENT_PROCESS",
@@ -83,7 +85,7 @@ namespace rubinius {
   }
 
   Pointer* Pointer::create(STATE, void* ptr) {
-    Pointer* obj = state->new_struct<Pointer>(G(ffi_pointer));
+    Pointer* obj = state->vm()->new_struct<Pointer>(G(ffi_pointer));
     obj->pointer = ptr;
     obj->autorelease = false;
     obj->set_finalizer = false;
@@ -91,7 +93,7 @@ namespace rubinius {
   }
 
   Pointer* Pointer::allocate(STATE, Object* self) {
-    Pointer* obj = state->new_struct<Pointer>(as<Class>(self));
+    Pointer* obj = state->vm()->new_struct<Pointer>(as<Class>(self));
     obj->pointer = 0;
     obj->autorelease = false;
     obj->set_finalizer = false;
@@ -99,7 +101,7 @@ namespace rubinius {
   }
 
   Pointer* Pointer::allocate_memory(STATE, Object* self, Fixnum* size) {
-    Pointer* obj = state->new_struct<Pointer>(as<Class>(self));
+    Pointer* obj = state->vm()->new_struct<Pointer>(as<Class>(self));
     obj->pointer = malloc(size->to_native());;
     obj->autorelease = false;
     obj->set_finalizer = false;
@@ -123,7 +125,7 @@ namespace rubinius {
     autorelease = val->true_p() ? true : false;
 
     if(autorelease && !set_finalizer) {
-      state->om->needs_finalization(this,
+      state->memory()->needs_finalization(this,
           (FinalizerFunction)&Pointer::finalize);
       set_finalizer = true;
     }

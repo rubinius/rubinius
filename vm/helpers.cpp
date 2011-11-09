@@ -192,7 +192,7 @@ namespace rubinius {
         Exception* exc =
           Exception::make_type_error(state, Class::type, super, message.str().c_str());
         exc->locations(state, Location::from_call_stack(state, call_frame));
-        state->thread_state()->raise_exception(exc);
+        state->raise_exception(exc);
         return NULL;
       }
 
@@ -282,7 +282,7 @@ namespace rubinius {
 
       // If we're hitting here, clear any chance that step would be used
       // without being explicitly requested.
-      state->clear_thread_step();
+      state->vm()->clear_thread_step();
 
       state->set_call_frame(call_frame);
 
@@ -313,8 +313,8 @@ namespace rubinius {
 
       // Process a few commands...
       if(ret == state->symbol("step")) {
-        state->get_attention();
-        state->set_thread_step();
+        state->vm()->get_attention();
+        state->vm()->set_thread_step();
       }
 
       // All done!

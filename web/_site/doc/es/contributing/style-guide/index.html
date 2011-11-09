@@ -2,7 +2,7 @@
 <html dir="ltr" lang="es">
 
   <head>
-    <title>Gúia de estilo - Rubinius</title>
+    <title>Guía de estilo - Rubinius</title>
   	<meta charset="UTF-8">
   	<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
 
@@ -133,7 +133,7 @@
 
 
 <div class="container documentation">
-  <h2>Gúia de estilo</h2>
+  <h2>Guía de estilo</h2>
 
   
 
@@ -173,10 +173,10 @@ razonable)</p>
   </li>
   <li>
     <p>Versiones alternativas de las funciones deben ser nombradas por qué son
-diferentes de la primera. Si hay una función &lsquo;person()&rsquo; y quiere una
+diferentes de la primera. Si hay una función ‘person()’ y quiere una
 versión que tome el nombre de la persona, esta debría de ser
-&lsquo;person_with_name(char *name)&rsquo; o &lsquo;person_with_details(char *name, &hellip;)&rsquo;.
-NO &lsquo;person1(char *name)&rsquo;.</p>
+‘person_with_name(char *name)’ o ‘person_with_details(char *name, …)’.
+NO ‘person1(char *name)’.</p>
   </li>
 </ul>
 
@@ -188,7 +188,7 @@ NO &lsquo;person1(char *name)&rsquo;.</p>
 visualizar en una sola pantalla y trate de
 cumplir el principio DRY dentro de lo razonable. En general, la funcionalidad común
 debe ser extraída a métodos auxiliares (que usted puede hacer
-&ldquo;privados&rdquo;),
+“privados”),
 pero, en algunos casos, en particular cuando se trabaja con el
 núcleo de Ruby, a
 veces tratar de hacer las cosas en un estilo DRY puede ser sólo un
@@ -198,7 +198,7 @@ maniobrar entre de diferentes condiciones de error.</p>
   <li>
     <p>Los nombres de método: deben ser claros, expresivos y
 significativos. Evite el
-uso de guines bajos para &ldquo;proteger&rdquo; el método (&lsquo;\ __send__&rsquo;) con algunas
+uso de guines bajos para “proteger” el método (‘\ __send__’) con algunas
 excepciones.</p>
   </li>
   <li>
@@ -210,9 +210,9 @@ convierte en una lectura más natural.</p>
   </li>
   <li>
     <p>Los nombres de variables: que sean claros y significativos (con algunas
-conocidas excepciones como la utilización de &lsquo;i&rsquo; de un contador.) Trate de
+conocidas excepciones como la utilización de ‘i’ de un contador.) Trate de
 evitar las enmacascar los nombres de métodos, por ejemplo dentro
-Array utilice &lsquo;idx&rsquo; en vez de &lsquo;index&rsquo; porque el último es también
+Array utilice ‘idx’ en vez de ‘index’ porque el último es también
 un nombre de método.</p>
   </li>
   <li>

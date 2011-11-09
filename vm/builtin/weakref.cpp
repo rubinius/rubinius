@@ -4,9 +4,11 @@
 #include "object_utils.hpp"
 #include "gc/gc.hpp"
 
+#include "ontology.hpp"
+
 namespace rubinius {
   void WeakRef::init(STATE) {
-    GO(cls_weakref).set(state->new_class("WeakRef", G(object)));
+    GO(cls_weakref).set(ontology::new_class(state, "WeakRef", G(object)));
      G(cls_weakref)->set_object_type(state, WeakRefType);
   }
 

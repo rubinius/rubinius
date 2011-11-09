@@ -5,10 +5,11 @@
 extern "C" {
 #endif
 
+#include "ruby.h"
+
 #ifdef HAVE_RUBY_ENCODING_H
 #include "ruby/encoding.h"
 #else
-#include "ruby.h"
 
 #include <ctype.h>
 
@@ -23,29 +24,32 @@ typedef struct {
 
 #define MBCLEN_CHARFOUND_P(ret)             1
 
-#define rb_enc_isalnum(c, enc)              isalnum((int)c)
-#define rb_enc_isascii(c, enc)              isascii((int)c)
-#define rb_enc_isspace(c, enc)              isspace((int)c)
-#define rb_enc_ispunct(c, enc)              ispunct((int)c)
-#define rb_enc_isupper(c, enc)              isupper((int)c)
-
-#define rb_enc_precise_mbclen(a, b, enc)    1
-#define rb_enc_codelen(c, enc)              1
-#define rb_enc_mbcput(c, l, enc)            (0)
-#define rb_enc_mbclen(c, l, enc)            1
-#define rb_enc_str_new(c, l, enc)           rb_str_new(c, l)
-#define rb_enc_get(obj)                     rb_usascii_encoding()
-#define rb_enc_name(enc)                    (enc)->name
-#define rb_enc_compatible(s1, s2)           rb_enc_get(s1)
-#define rb_enc_asciicompat(enc)             true
-#define rb_enc_str_coderange(str)           ENC_CODERANGE_7BIT
-#define rb_enc_associate(str, enc)          (0)
-
-rb_encoding* rb_utf8_encoding();
-rb_encoding* rb_usascii_encoding();
-rb_encoding* rb_ascii8bit_encoding();
-
 #endif
+
+int parser_enc_isalnum(int c, rb_encoding* enc);
+int parser_enc_isascii(int c, rb_encoding* enc);
+int parser_enc_isspace(int c, rb_encoding* enc);
+int parser_enc_ispunct(int c, rb_encoding* enc);
+int parser_enc_isupper(int c, rb_encoding* enc);
+
+int parser_enc_precise_mbclen(const char* p, const char* e, rb_encoding* enc);
+int parser_enc_codelen(int c, rb_encoding* enc);
+int parser_enc_mbclen(const char* p, const char* e, rb_encoding* enc);
+int parser_enc_asciicompat(rb_encoding* enc);
+int parser_enc_str_coderange(VALUE str);
+
+void parser_enc_mbcput(int c, const char* ptr, rb_encoding* enc);
+
+const char* parser_enc_name(rb_encoding* enc);
+
+VALUE parser_enc_str_new(const char* ptr, long len, rb_encoding* enc);
+VALUE parser_enc_associate(VALUE obj, rb_encoding* enc);
+
+rb_encoding* parser_enc_get(VALUE obj);
+rb_encoding* parser_enc_compatible(VALUE str1, VALUE str2);
+rb_encoding* parser_utf8_encoding();
+rb_encoding* parser_usascii_encoding();
+rb_encoding* parser_ascii8bit_encoding();
 
 #ifdef __cplusplus
 }  /* extern "C" { */

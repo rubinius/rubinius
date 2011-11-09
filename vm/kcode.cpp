@@ -104,22 +104,22 @@ namespace kcode {
   };
 
   void init(STATE) {
-    state->shared.set_kcode_table(mbctab_ascii, kcode::eAscii);
+    state->shared().set_kcode_table(mbctab_ascii, kcode::eAscii);
   }
 
   void set(STATE, CodePage page) {
     switch(page) {
     case eAscii:
-      state->shared.set_kcode_table(mbctab_ascii, kcode::eAscii);
+      state->shared().set_kcode_table(mbctab_ascii, kcode::eAscii);
       break;
     case eEUC:
-      state->shared.set_kcode_table(mbctab_euc, kcode::eEUC);
+      state->shared().set_kcode_table(mbctab_euc, kcode::eEUC);
       break;
     case eSJIS:
-      state->shared.set_kcode_table(mbctab_sjis, kcode::eSJIS);
+      state->shared().set_kcode_table(mbctab_sjis, kcode::eSJIS);
       break;
     case eUTF8:
-      state->shared.set_kcode_table(mbctab_utf8, kcode::eUTF8);
+      state->shared().set_kcode_table(mbctab_utf8, kcode::eUTF8);
       break;
     }
   }

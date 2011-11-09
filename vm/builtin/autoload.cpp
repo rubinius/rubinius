@@ -3,13 +3,15 @@
 #include "builtin/class.hpp"
 #include "builtin/autoload.hpp"
 
+#include "ontology.hpp"
+
 namespace rubinius {
   Autoload* Autoload::create(STATE) {
     return state->new_object<Autoload>(G(autoload));
   }
 
   void Autoload::init(STATE) {
-    GO(autoload).set(state->new_class("Autoload"));
+    GO(autoload).set(ontology::new_class(state, "Autoload"));
     G(autoload)->set_object_type(state, AutoloadType);
   }
 

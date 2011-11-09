@@ -39,11 +39,15 @@
 #include <mach-o/dyld.h>
 #endif
 
+#ifdef __FreeBSD__
+#include <sys/sysctl.h>
+#endif
+
 namespace rubinius {
-  QueryAgent::QueryAgent(SharedState& shared, VM* state)
+  QueryAgent::QueryAgent(SharedState& shared, STATE)
     : Thread()
     , shared_(shared)
-    , state_(state)
+    , state_(shared.new_vm())
     , running_(false)
     , port_(0)
     , server_fd_(-1)
@@ -55,7 +59,8 @@ namespace rubinius {
     , tmp_key_(0)
   {
     FD_ZERO(&fds_);
-    vars_ = new agent::VariableAccess(state, shared);
+
+    vars_ = new agent::VariableAccess(this->state(), shared);
 
     if(pipe(control_) != 0) {
       perror("pipe");
@@ -81,14 +86,14 @@ namespace rubinius {
 
     // This class is always created with the GIL locked, so it's ok
     // to access ruby stuff here.
-    IO* from = IO::create(state_, a2r_ruby());
+    IO* from = IO::create(state, a2r_ruby());
     from->sync(state, Qtrue);
 
-    IO* to = IO::create(state_, r2a_ruby());
+    IO* to = IO::create(state, r2a_ruby());
     to->sync(state, Qtrue);
 
-    shared_.globals.rubinius.get()->set_const(state_, "FROM_AGENT", from);
-    shared_.globals.rubinius.get()->set_const(state_, "TO_AGENT", to);
+    shared_.globals.rubinius.get()->set_const(state, "FROM_AGENT", from);
+    shared_.globals.rubinius.get()->set_const(state, "TO_AGENT", to);
 
     if(shared_.config.agent_password.set_p()) {
       local_only_ = false;
@@ -98,6 +103,7 @@ namespace rubinius {
   }
 
   QueryAgent::~QueryAgent() {
+    VM::discard(&state_, state_.vm());
     delete vars_;
   }
 
@@ -450,9 +456,11 @@ auth_error:
   void QueryAgent::perform() {
     running_ = true;
 
+    State state_obj(state_), *state = &state_obj;
+
     // It's possible we call code that wants this to thread
     // to be setup as a fully managed thread, so lets just make it one.
-    NativeMethod::init_thread(state_);
+    NativeMethod::init_thread(state);
     set_delete_on_exit();
 
     while(1) {
@@ -589,7 +597,7 @@ auth_error:
       }
     }
 
-    NativeMethod::cleanup_thread(state_);
+    NativeMethod::cleanup_thread(state);
   }
 
   static char tmp_path[PATH_MAX];
@@ -609,8 +617,8 @@ auth_error:
   }
 
   void QueryAgent::shutdown(STATE) {
-    if(!state->shared.agent()) return;
-    state->shared.agent()->shutdown_i();
+    if(!state->shared().agent()) return;
+    state->shared().agent()->shutdown_i();
   }
 
   void QueryAgent::shutdown_i() {
@@ -670,6 +678,22 @@ auth_error:
 #ifdef __APPLE__
       uint32_t size = PATH_MAX;
       if(_NSGetExecutablePath(buf, &size) == 0) {
+        stream << buf << "\n";
+      } else if(realpath(argv[0], buf)) {
+        stream << buf << "\n";
+      } else {
+        stream << argv[0] << "\n";
+      }
+#elif defined(__FreeBSD__)
+      int oid[4];
+      size_t len;
+
+      oid[0] = CTL_KERN;
+      oid[1] = KERN_PROC;
+      oid[2] = KERN_PROC_PATHNAME;
+      oid[3] = getpid();
+      len = PATH_MAX;
+      if(sysctl(oid, 4, buf, &len, 0, 0) == 0) {
         stream << buf << "\n";
       } else if(realpath(argv[0], buf)) {
         stream << buf << "\n";

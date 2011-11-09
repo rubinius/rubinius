@@ -177,10 +177,16 @@ module Enumerable
   # If you specify a symbol instead, then each element in the collection
   # will be passed to the named method of memo. In either case,
   # the result becomes the new value for memo. At the end of the
-  # iteration, the final value of memo is the return value fo the method.
+  # iteration, the final value of memo is the return value of the method.
   #
   # If you do not explicitly specify an initial value for memo,
-  # then uses the first element of collection is used as the initial value of memo.
+  # then uses the first element of collection is used as the initial value,
+  # of memo, and iteration begins with the second element.
+  #
+  # (1..5).reduce(10,:*)    #=> 1200
+  # (1..5).reduce(:*)       #=> 120
+  # (1..5).inject(10) { |memo, obj| memo * obj }    #=> 1200
+  # (1..5).inject { |memo, obj| memo * obj }        #=> 120
 
   def inject(initial=undefined, sym=undefined, &block)
     if !block or !sym.equal?(undefined)
@@ -726,9 +732,9 @@ module Enumerable
   # block is not given, none? will return true only if any of the collection
   # members is true.
   #
-  #    %w{ant bear cat}.none? { |word| word.length == 4}   #=> true
-  #    %w{ant bear cat}.none? { |word| word.length >= 4}   #=> false
-  #    [ nil, true, 99 ].none?                             #=> true
+  #    %w{ant bear cat}.none? { |word| word.length == 4}   #=> false
+  #    %w{ant bear cat}.none? { |word| word.length >= 5}   #=> true
+  #    [ nil, true, 99 ].none?                             #=> false
 
   def none?
     if block_given?
@@ -751,8 +757,8 @@ module Enumerable
   # are true.
   #
   #   %w[ant bear cat].one? { |word| word.length == 4}   #=> true
-  #   %w[ant bear cat].one? { |word| word.length >= 4}   #=> false
-  #   [ nil, true, 99 ].one?                             #=> true
+  #   %w[ant bear cat].one? { |word| word.length >= 5}   #=> false
+  #   [ nil, true, 99 ].one?                             #=> false
 
   def one?
     found_one = false
@@ -814,6 +820,15 @@ module Enumerable
 
     ary
   end
+
+
+  #
+  # call-seq:
+  #    enum.reverse_each { |obj| block }  => enum
+  #
+  # Calls <i>block</i> once for each element in +enum+ in reverse order,
+  # passing that element as a parameter, converting multiple values to an
+  # array.
 
   def reverse_each(&block)
     return to_enum(:reverse_each) unless block_given?

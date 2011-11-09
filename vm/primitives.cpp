@@ -33,8 +33,8 @@ namespace rubinius {
 
   static inline void check_counter(STATE, CallFrame* call_frame, int which) {
 #ifdef ENABLE_LLVM
-    int& hits = state->shared.primitive_hits(which);
-    if(hits >= 0 && ++hits >= state->shared.config.jit_call_til_compile) {
+    int& hits = state->shared().primitive_hits(which);
+    if(hits >= 0 && ++hits >= state->shared().config.jit_call_til_compile) {
       hits = -1;
       Primitives::queue_for_jit(state, call_frame, which);
     }

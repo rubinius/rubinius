@@ -133,6 +133,27 @@ namespace rubinius {
       }
     }
 
+    void stop_threads_externally() {
+      thread::Mutex::LockGuard guard(mutex_);
+      should_stop_ = true;
+
+      if(cDebugThreading) {
+        std::cerr << "[WORLD stopping all threads (as external event)]\n";
+      }
+
+      while(pending_threads_ > 0) {
+        if(cDebugThreading) {
+          std::cerr << "[" << VM::current() << " WORLD waiting on condvar: "
+                    << pending_threads_ << "]\n";
+        }
+        waiting_to_stop_.wait(mutex_);
+      }
+
+      if(cDebugThreading) {
+        std::cerr << "[" << VM::current() << " WORLD o/~ I think we're alone now.. o/~]\n";
+      }
+    }
+
     void wake_all_waiters(THREAD) {
       thread::Mutex::LockGuard guard(mutex_);
       should_stop_ = false;
@@ -151,6 +172,17 @@ namespace rubinius {
       waiting_to_run_.broadcast();
 
       state->run_state_ = ManagedThread::eRunning;
+    }
+
+    void restart_threads_externally() {
+      thread::Mutex::LockGuard guard(mutex_);
+      should_stop_ = false;
+
+      if(cDebugThreading) {
+        std::cerr << "[" << VM::current() << " WORLD waking all threads (externally)]\n";
+      }
+
+      waiting_to_run_.broadcast();
     }
 
     bool should_stop() {

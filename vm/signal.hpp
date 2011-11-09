@@ -9,6 +9,7 @@
 
 namespace rubinius {
   class VM;
+  class State;
   struct CallFrame;
   class Thread;
 
@@ -32,25 +33,25 @@ namespace rubinius {
       eCustom
     };
 
-    SignalHandler(VM* vm);
+    SignalHandler(STATE);
 
-    void perform(VM*);
+    void perform(State*);
 
-    void add_signal(VM*, int sig, HandlerType type = eCustom);
+    void add_signal(State*, int sig, HandlerType type = eCustom);
     void handle_signal(int sig);
     static void signal_tramp(int sig);
 
-    bool deliver_signals(VM*, CallFrame* call_frame);
+    bool deliver_signals(STATE, CallFrame* call_frame);
 
     void reopen_pipes();
 
-    static void on_fork(VM*, bool full=true);
-    void on_fork_i(VM*, bool full);
+    static void on_fork(STATE, bool full=true);
+    void on_fork_i(STATE, bool full);
 
     static void shutdown();
     void shutdown_i();
 
-    void run(VM*);
+    void run(State*);
   };
 }
 

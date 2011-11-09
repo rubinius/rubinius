@@ -150,16 +150,16 @@
 
     <p>Eine Auflistung von Begriffsdefinitionen und Phrasen die in der
 Programmiersprache Ruby und dieser Implementierung verwendet
-werden. Siehe auch &ldquo;The Ruby Programming Language&rdquo; von Flanagan und
-Matsumoto [O&rsquo;Reilly 2008] und &ldquo;Programming Ruby: The Pragmatic
-Programmer&rsquo;s Guide&rdquo; 2. oder 3. Auflage von Thomas et al [The Pragmatic Programmers
+werden. Siehe auch “The Ruby Programming Language” von Flanagan und
+Matsumoto [O’Reilly 2008] und “Programming Ruby: The Pragmatic
+Programmer’s Guide” 2. oder 3. Auflage von Thomas et al [The Pragmatic Programmers
 2005-2008]</p>
 
 <ul>
   <li>
     <p><em>method lookup oder method resolution</em></p>
 
-    <p>Es ist ganz einfach: Nimm das Objekt im &lsquo;class slot&rsquo; des Objekts
+    <p>Es ist ganz einfach: Nimm das Objekt im ‘class slot’ des Objekts
 (welches nicht immer dem Rückgabewert von Object#class sein muss;
 wenn das Objekt eines hat, ist es die Metaklasse) und beginne die
 Suche.</p>
@@ -223,7 +223,7 @@ end
 
     <ol>
       <li>
-        <p>Finde Methode &lsquo;wanker&rsquo; &ndash; Durchsuche Methodentabellen in:</p>
+        <p>Finde Methode ‘wanker’ – Durchsuche Methodentabellen in:</p>
 
         <ol>
           <li>SingletonClass(F)</li>
@@ -252,7 +252,7 @@ LookupTable.</p>
   <li>
     <p><em>MRI</em></p>
 
-    <p>Matz&rsquo;s Ruby Interpreter oder Matz&rsquo;s Ruby Implementation. Eine
+    <p>Matz’s Ruby Interpreter oder Matz’s Ruby Implementation. Eine
 Abkürzung mit der die offizielle Implementierung von Ruby gemeint
 ist. Siehe <a href="http://ruby-lang.org">http://ruby-lang.org</a>.</p>
   </li>
@@ -307,7 +307,7 @@ end
 </code></pre>
 
     <p>Da alle Klassen in Ruby ebenfalls Objekte sind, können diese auch
-Metaklassen besitzen. &ldquo;Klassenmethoden&rdquo; sind somit lediglich
+Metaklassen besitzen. “Klassenmethoden” sind somit lediglich
 Methoden, die in der Metaklasse einer Klasse definiert (d.h. in der
 Methodentabelle der Metaklasse eingetragen) sind. Die Methode +honk+
 existiert in der Metaklasse der Klasse +Car+.</p>
@@ -321,7 +321,7 @@ end
     <p>In Rubinius sind Metaklassen Instanzen der Klasse +SingletonClass+. Die
 Metaklasse eines Objektes kann durch den Aufruf der +metaclass+ Methode
 erhalten werden. Insgesamt wird die Anordnung der dabei beteiligten Konzepte
-als &ldquo;Meta-Object Protocol&rdquo; oder +MOP+ bezeichnet.</p>
+als “Meta-Object Protocol” oder +MOP+ bezeichnet.</p>
   </li>
   <li>
     <p><em>superclass (Superklasse)</em></p>

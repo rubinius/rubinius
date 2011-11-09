@@ -139,15 +139,13 @@
 
   
 
-    <p>Los siguientes son errores que usted podría encontrar durante la
-construcción, instalación o ejecución de Rubinius junto con propuestas de
-solución.</p>
+    <p>Los siguientes son errores que usted podría encontrar durante la construcción, 
+instalación o ejecución de Rubinius junto con propuestas de solución.</p>
 
-<p>Para cualquier error, un primer paso es asegurarse de que tiene una
-copia actual, limpia de Rubinius. Antes de seguir adelante, considere ejecutar los
-siguientes pasos:</p>
+<p>Para cualquier error, un primer paso es asegurarse de que tiene una copia actual, limpia
+de Rubinius. Antes de seguir adelante, considere ejecutar los siguientes pasos:</p>
 
-<pre><code>$ git co master
+<pre><code>$ git checkout master
 $ git reset --hard
 $ git pull
 $ rake distclean
@@ -156,8 +154,8 @@ $ rake
 
 <h3 id="rubinius-no-puede-encontrar-el-directorio-runtime">Rubinius no puede encontrar el directorio <code>runtime</code></h3>
 
-<p>Despues de construir o instalar Rubinius, ocurre el siguiente error al
-intentar ejecutar Rubinius:</p>
+<p>Después de construir o instalar Rubinius, ocurre el siguiente error al
+  intentar ejecutar Rubinius:</p>
 
 <pre><code>ERROR: unable to find runtime directory
 
@@ -176,9 +174,9 @@ directory but you have not run 'rake install' yet.
 
 <h4 id="solucin">Solución</h4>
 
-<p>Si ha configurado Rubinius con &ndash;prefix, ejecute <code>rake install</code>.</p>
+<p>Si ha configurado Rubinius con –prefix, ejecute <code>rake install</code>.</p>
 
-<p>Si ha configurado Rubinius con &ndash;prefix y cambió el nombre del directorio de
+<p>Si ha configurado Rubinius con –prefix y cambió el nombre del directorio de
   instalación después de instalar Rubinius, vuelva a configurar Rubinius y
   vuelva a instalarlo.</p>
 
@@ -186,13 +184,13 @@ directory but you have not run 'rake install' yet.
   construcción de Rubinius, vuelva a configurar y a construir.</p>
 
 <p>En general, no cambie el nombre del directorio de instalación
-  despues de la instalación de Rubinius o el nombre del directorio
+  después de la instalación de Rubinius o el nombre del directorio
   fuente de si realizo una construcción para desarrollador.</p>
 
 <h3 id="la-construccin-de-rubinius-termina-en-error-de-segmentacin-en-freebsd">La construcción de Rubinius termina en error de segmentación en FreeBSD</h3>
 
-<p>En FreeBSD, incluyendo hasta la version 8.1 estable, existe un
-problema con <em>execinfo</em> que cause un error al iniciar Rubinius.</p>
+<p>En FreeBSD, incluyendo hasta la versión 8.1 estable, existe un problema con
+  <em>execinfo</em> que cause un error al iniciar Rubinius.</p>
 
 <h4 id="solucin-1">Solución</h4>
 

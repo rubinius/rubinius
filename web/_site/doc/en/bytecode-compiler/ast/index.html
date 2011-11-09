@@ -201,7 +201,7 @@ Script
           @line: 1
 </code></pre>
 
-<p>Similarily it&rsquo;s possible to get a representation of the syntax tree as
+<p>Similarily it’s possible to get a representation of the syntax tree as
 s-expressions:</p>
 
 <pre><code>irb(main):002:0&gt; "a = 1".to_sexp
@@ -219,7 +219,7 @@ example the <code>hello</code> method defined above is composed of a <code>Scrip
 containing <code>Define</code> in its <code>@body</code> which in turns contains
 <code>FormalArguments</code> in its <code>@arguments</code>  and <code>Block</code> in its <code>@body</code>. The
 <code>Block</code> node contains only the <code>NilLiteral</code> in its <code>@array</code>. The
-<code>NilLiteral</code> node is a leaf node, it doesn&rsquo;t contain other nodes.</p>
+<code>NilLiteral</code> node is a leaf node, it doesn’t contain other nodes.</p>
 
 <p>Note that the following <code>if</code> expression:</p>
 
@@ -233,9 +233,9 @@ containing <code>Define</code> in its <code>@body</code> which in turns contains
 [:script, [:if, [:lit, :bar], [:lit, :foo], nil]]
 </code></pre>
 
-<p>produce exactly the same syntax tree. Because the tree doesn&rsquo;t
+<p>produce exactly the same syntax tree. Because the tree doesn’t
 represent every detail that appears in the real syntax it is called
-&ldquo;abstract&rdquo;.</p>
+“abstract”.</p>
 
 <h2 id="files-referenced">Files Referenced</h2>
 

@@ -219,7 +219,7 @@ end
 </code></pre>
 
 <p>#profileはメソッドは、プロファイラを、利回り起動し、プロファイラを停止し、出力
-デフォルトではプロファイルデータ。パスは、&rsquo;false&rsquo;にデータを印刷しないように#profileする。
+デフォルトではプロファイルデータ。パスは、’false’にデータを印刷しないように#profileする。
 どちらにしても、プロファイルデータ自体は#profileによって返されます。</p>
 
 <h2 id="how-to-read-the-flat-profiler-output">How to Read the Flat Profiler Output</h2>
@@ -242,7 +242,7 @@ method.</p>
 <h3 id="self-seconds">self seconds</h3>
 
 <p>The total time spent in this method less the total time spent in all this
-method&rsquo;s callees.</p>
+method’s callees.</p>
 
 <h3 id="calls">calls</h3>
 
@@ -281,7 +281,7 @@ p.profile {
 }
 </code></pre>
 
-<p>Running the script with &lsquo;bin/rbx script.rb&rsquo; should give the following flat
+<p>Running the script with ‘bin/rbx script.rb’ should give the following flat
 output.</p>
 
 <pre><code>  %   cumulative   self                self     total
@@ -308,7 +308,7 @@ output.</p>
 <pre><code>-Xprofiler.graph
 </code></pre>
 
-<p>Given the same script above, the graph output is shown below. Each &ldquo;entry&rdquo; in
+<p>Given the same script above, the graph output is shown below. Each “entry” in
 the graph has three sections: 1) the method for the entry, called the
 <em>primary</em> line; 2) the callers of the primary method; and 3) the methods that
 the primary method called. The fields have different meanings based on the
@@ -329,7 +329,7 @@ spent in all methods. This is the same as the flat output.</p>
 <h3 id="self">self</h3>
 
 <p>The total time spent in this method less the total time spent in all this
-method&rsquo;s callees. This is the same as self seconds in the flat output.</p>
+method’s callees. This is the same as self seconds in the flat output.</p>
 
 <h3 id="children">children</h3>
 
@@ -344,16 +344,16 @@ method&rsquo;s callees. This is the same as self seconds in the flat output.</p>
 <p>The name of the method followed by the index number.</p>
 
 <p>The lines above the primary line are methods that call the primary method. The
-callers&rsquo; fields have the following interpretation:</p>
+callers’ fields have the following interpretation:</p>
 
 <h3 id="self-1">self</h3>
 
 <p>The total time spent in this method less the total time spent in all this
-method&rsquo;s callees. This is the same as self seconds in the flat output.</p>
+method’s callees. This is the same as self seconds in the flat output.</p>
 
 <h3 id="children-1">children</h3>
 
-<p>The time spent in the method&rsquo;s call to the primary method.</p>
+<p>The time spent in the method’s call to the primary method.</p>
 
 <h3 id="called-1">called</h3>
 
@@ -374,11 +374,11 @@ The fields for the called methods are as follows:</p>
 <h3 id="self-2">self</h3>
 
 <p>The total time spent in this method less the total time spent in all this
-method&rsquo;s callees. This is the same as self seconds in the flat output.</p>
+method’s callees. This is the same as self seconds in the flat output.</p>
 
 <h3 id="children-2">children</h3>
 
-<p>This is an estimate of the amount of time this method&rsquo;s callees spent when
+<p>This is an estimate of the amount of time this method’s callees spent when
 this method was called by the primary method. The estimate is based on the
 ration of the time this method spent when called by the primary method to the
 total time spent in this method.</p>

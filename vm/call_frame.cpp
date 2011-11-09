@@ -183,7 +183,9 @@ namespace rubinius {
   }
 
   void CallFrame::dump() {
-    VM* state = VM::current();
+    VM* vm = VM::current();
+    State state_obj(vm), *state = &state_obj;
+
     std::cout << "<CallFrame:" << (void*)this << " ";
 
     if(native_method_p()) {
@@ -227,7 +229,8 @@ namespace rubinius {
   /* For debugging. */
   extern "C" {
     void __printbt__(CallFrame* call_frame) {
-      call_frame->print_backtrace(VM::current());
+      State state(VM::current());
+      call_frame->print_backtrace(&state);
     }
   }
 }

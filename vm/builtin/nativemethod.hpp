@@ -32,8 +32,9 @@ namespace rubinius {
    * Thread-local info about native method calls. @see NativeMethodFrame.
    */
   class NativeMethodEnvironment {
-    /** VM in which executing. */
-    VM*                 state_;
+    State state_obj_;
+    State* state_;
+
     /** Current callframe in Ruby-land. */
     CallFrame*          current_call_frame_;
     /** Current native callframe. */
@@ -44,7 +45,8 @@ namespace rubinius {
 
   public:   /* Class Interface */
     NativeMethodEnvironment(STATE)
-      : state_(state)
+      : state_obj_(state->vm())
+      , state_(&state_obj_)
       , current_call_frame_(0)
       , current_native_frame_(0)
       , current_ep_(0)
@@ -105,11 +107,7 @@ namespace rubinius {
 
     Object* block();
 
-    void set_state(VM* vm) {
-      state_ = vm;
-    }
-
-    VM* state() {
+    State* state() {
       return state_;
     }
 
@@ -192,7 +190,7 @@ namespace rubinius {
     }
 
     /** Create or retrieve a VALUE for the Object. */
-    VALUE get_handle(VM*, Object* obj);
+    VALUE get_handle(STATE, Object* obj);
 
     void check_tracked_handle(capi::Handle* hdl, bool need_update=true);
 
@@ -316,14 +314,14 @@ namespace rubinius {
     const static object_type type = NativeMethodType;
 
     /** Set class up in the VM. @see vm/ontology.cpp. */
-    static void init(VM* state);
+    static void init(State* state);
 
     // Called when starting a new native thread, initializes any thread
     // local data.
-    static void init_thread(VM* state);
+    static void init_thread(State* state);
 
     // Called when a thread is exiting, to cleanup the thread local data.
-    static void cleanup_thread(VM* state);
+    static void cleanup_thread(State* state);
 
 
   public:   /* Ctors */
@@ -334,7 +332,7 @@ namespace rubinius {
      *  Takes a function to call in the form of a void*. +arity+ is used
      *  to figure out how to call the function properly.
      */
-    static NativeMethod* create(VM* state, String* file_name,
+    static NativeMethod* create(State* state, String* file_name,
                                 Module* module, Symbol* method_name,
                                 void* func, Fixnum* arity);
 

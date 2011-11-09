@@ -436,14 +436,14 @@ section "Manipulate exceptions"
 #     end
 
 instruction push_current_exception() [ -- exception ]
-  stack_push(state->thread_state()->current_exception());
+  stack_push(state->vm()->thread_state()->current_exception());
 end
 
 # [Description]
 #   Clears any exceptions from the current thread.
 
 instruction clear_exception() [ -- ]
-  state->thread_state()->clear_raise();
+  state->vm()->thread_state()->clear_raise();
 end
 
 # [Description]
@@ -452,7 +452,7 @@ end
 #   For instance, when handling an ensure while an exception is being raised
 
 instruction push_exception_state() [ -- exc_state ]
-  stack_push(state->thread_state()->state_as_object(state));
+  stack_push(state->vm()->thread_state()->state_as_object(state));
 end
 
 # [Description]
@@ -465,9 +465,9 @@ end
 instruction restore_exception_state() [ exception -- ]
     Object* top = stack_pop();
     if(top->nil_p()) {
-      state->thread_state()->clear();
+      state->vm()->thread_state()->clear();
     } else {
-      state->thread_state()->set_state(state, top);
+      state->vm()->thread_state()->set_state(state, top);
     }
 end
 
@@ -480,7 +480,7 @@ end
 instruction raise_exc() [ value -- ] => raise
   flush_ip();
   Object* t1 = stack_pop();
-  state->thread_state()->raise_exception(as<Exception>(t1));
+  state->raise_exception(as<Exception>(t1));
   RUN_EXCEPTION();
 end
 
@@ -541,12 +541,12 @@ instruction raise_return() [ value -- value ] => raise
      !call_frame->scope_still_valid(call_frame->top_scope(state))) {
     Exception* exc = Exception::make_exception(state, G(jump_error), "unexpected return");
     exc->locations(state, Location::from_call_stack(state, call_frame));
-    state->thread_state()->raise_exception(exc);
+    state->raise_exception(exc);
   } else {
     if(call_frame->flags & CallFrame::cIsLambda) {
-      state->thread_state()->raise_return(stack_top(), call_frame->promote_scope(state));
+      state->vm()->thread_state()->raise_return(stack_top(), call_frame->promote_scope(state));
     } else {
-      state->thread_state()->raise_return(stack_top(), call_frame->top_scope(state));
+      state->vm()->thread_state()->raise_return(stack_top(), call_frame->top_scope(state));
     }
   }
   RUN_EXCEPTION();
@@ -564,7 +564,7 @@ end
 
 instruction ensure_return() [ value -- value ] => raise
   flush_ip();
-  state->thread_state()->raise_return(stack_top(), call_frame->promote_scope(state));
+  state->vm()->thread_state()->raise_return(stack_top(), call_frame->promote_scope(state));
   RUN_EXCEPTION();
 end
 
@@ -577,11 +577,11 @@ instruction raise_break() [ value -- value ] => raise
   if(call_frame->flags & CallFrame::cIsLambda) {
     return stack_top();
   } else if(call_frame->scope_still_valid(call_frame->scope->parent())) {
-    state->thread_state()->raise_break(stack_top(), call_frame->scope->parent());
+    state->vm()->thread_state()->raise_break(stack_top(), call_frame->scope->parent());
   } else {
     Exception* exc = Exception::make_exception(state, G(jump_error), "attempted to break to exited method");
     exc->locations(state, Location::from_call_stack(state, call_frame));
-    state->thread_state()->raise_exception(exc);
+    state->raise_exception(exc);
   }
   RUN_EXCEPTION();
 end
@@ -591,7 +591,7 @@ end
 #   is a current exception, then begin the unwinding process again.
 
 instruction reraise() [ -- ] => raise
-  interp_assert(state->thread_state()->raise_reason() != cNone);
+  interp_assert(state->vm()->thread_state()->raise_reason() != cNone);
   RUN_EXCEPTION();
 end
 
@@ -1366,7 +1366,7 @@ instruction yield_stack(count) [ +count -- value ] => yield
   } else if(Proc* proc = try_as<Proc>(t1)) {
     ret = proc->yield(state, call_frame, args);
   } else if(t1->nil_p()) {
-    state->thread_state()->raise_exception(Exception::make_lje(state, call_frame));
+    state->raise_exception(Exception::make_lje(state, call_frame));
     ret = NULL;
   } else {
     Dispatch dis(G(sym_call));
@@ -1411,7 +1411,7 @@ instruction yield_splat(count) [ array +count -- value ] => yield
   } else if(Proc* proc = try_as<Proc>(t1)) {
     ret = proc->yield(state, call_frame, args);
   } else if(t1->nil_p()) {
-    state->thread_state()->raise_exception(Exception::make_lje(state, call_frame));
+    state->raise_exception(Exception::make_lje(state, call_frame));
     ret = NULL;
   } else {
     Dispatch dis(G(sym_call));
@@ -1582,20 +1582,9 @@ instruction check_interrupts() [ -- ]
   // This is used in loops, and allows loops to heat a method up.
   if(vmm->call_count >= 0) vmm->call_count++;
 
-  // The | here reduces the number of branches to check
-  if(unlikely(state->interrupts.check)) {
-    state->interrupts.checked();
-
-    if(state->interrupts.perform_gc) {
-      state->interrupts.perform_gc = false;
-      state->collect_maybe(gct, call_frame);
-    }
-  }
-
   if(!state->check_async(call_frame)) RUN_EXCEPTION();
 
-  state->set_call_frame(call_frame);
-  state->shared.checkpoint(state);
+  state->checkpoint(gct, call_frame);
 end
 
 # [Description]

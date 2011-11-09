@@ -1,9 +1,9 @@
 ---
 layout: doc_es
-title: How-To - Translate Documentation
-previous: Write Documentation
+title: Cómo - traducir documentación
+previous: Escribir documentación
 previous_url: how-to/write-documentation
-next: Appendix A - Glossary
+next: Apéndice A - Glosario
 next_url: appendix-a-glossary
 ---
 
@@ -17,7 +17,8 @@ Comience por leer [Cómo Escribir Documentación](/doc/es/how-to/write-documenta
 
 ### Actualizar una Traducción Existente
 
-Para actualizar una traducción existente, abra el archivo de tema en `web/doc/LANG` y edite el texto existente o agregue texto recién traducido.
+Para actualizar una traducción existente, abra el archivo de tema en
+`web/doc/LANG` y edite el texto existente o agregue texto recién traducido.
 
 
 ### Creación de una Nueva Traducción

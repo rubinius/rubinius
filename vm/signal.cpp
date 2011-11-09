@@ -1,6 +1,6 @@
 #include "config.h"
-#include "signal.hpp"
 #include "vm.hpp"
+#include "signal.hpp"
 
 #include "builtin/module.hpp"
 #include "builtin/array.hpp"
@@ -31,11 +31,11 @@ namespace rubinius {
     return Qnil;
   }
 
-  SignalHandler::SignalHandler(VM* vm)
-    : target_(vm)
+  SignalHandler::SignalHandler(STATE)
+    : target_(state->vm())
     , queued_signals_(0)
     , exit_(false)
-    , thread_(vm)
+    , thread_(state)
   {
     handler_ = this;
     main_thread = pthread_self();
@@ -46,10 +46,9 @@ namespace rubinius {
 
     reopen_pipes();
 
-    self_ = vm->shared.new_vm();
+    self_ = state->shared().new_vm();
 
-    thread_.set(Thread::create(vm, self_, vm->shared.globals.thread.get(),
-                               handle_tramp, false));
+    thread_.set(Thread::create(state, self_, G(thread), handle_tramp, false));
   }
 
   void SignalHandler::reopen_pipes() {
@@ -71,9 +70,8 @@ namespace rubinius {
 
     if(full && self_) rubinius::bug("signal thread restart issue");
 
-    self_ = state->shared.new_vm();
-    thread_.set(Thread::create(state, self_, state->shared.globals.thread.get(),
-                               handle_tramp, false));
+    self_ = state->shared().new_vm();
+    thread_.set(Thread::create(state, self_, G(thread), handle_tramp, false));
 
     run(state);
   }

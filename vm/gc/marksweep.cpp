@@ -201,7 +201,7 @@ namespace rubinius {
     {}
   };
 
-  void MarkSweepGC::profile() {
+  void MarkSweepGC::profile(STATE) {
 
     std::map<Class*, PerClass> stats;
 
@@ -209,7 +209,7 @@ namespace rubinius {
         i != entries.end();
         ++i) {
       Object* obj = *i;
-      Class* cls = obj->class_object(object_memory_->state());
+      Class* cls = obj->class_object(state);
 
       std::map<Class*,PerClass>::iterator j = stats.find(cls);
       if(j == stats.end()) {
@@ -229,7 +229,7 @@ namespace rubinius {
     for(std::map<Class*,PerClass>::iterator i = stats.begin();
         i != stats.end();
         ++i) {
-      std::cout << i->first->name()->debug_str(object_memory_->state()) << "\n"
+      std::cout << i->first->name()->debug_str(state) << "\n"
                 << "  objects: " << i->second.objects << "\n"
                 << "    bytes: " << i->second.bytes << "\n";
     }

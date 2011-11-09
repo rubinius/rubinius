@@ -6,6 +6,8 @@
 
 #include "ffi_util.hpp"
 
+#include "ontology.hpp"
+
 class TestArray : public CxxTest::TestSuite, public VMTest {
   public:
 
@@ -18,7 +20,7 @@ class TestArray : public CxxTest::TestSuite, public VMTest {
   }
 
   void test_allocate() {
-    Class* sub = state->new_class("ArraySub", G(array), 0);
+    Class* sub = ontology::new_class(state, "ArraySub", G(array), 0);
     Array* ary = Array::allocate(state, sub);
 
     TS_ASSERT_EQUALS(ary->klass(), sub);

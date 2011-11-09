@@ -264,6 +264,10 @@ extern "C" {
     return rb_str_new(string, strlen(string));
   }
 
+  VALUE rb_str_new_cstr(const char* string) {
+    return rb_str_new2(string);
+  }
+
   VALUE rb_str_new3(VALUE string) {
     return rb_str_dup(string);
   }

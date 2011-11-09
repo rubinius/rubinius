@@ -41,7 +41,7 @@ namespace rubinius {
     int in_use_;
 
   public:
-    InflatedHeaders(STATE)
+    InflatedHeaders(VM* state)
       : state_(state)
       , free_list_(0)
       , allocations_(0)

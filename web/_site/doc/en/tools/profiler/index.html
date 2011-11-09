@@ -154,7 +154,7 @@ VMs to Profilers and generates the composite results of all the Profilers.</p>
 <p>The Profiler lives and dies in its own world. The profiler is passed a VM
 instance when it is created because the profiler needs access to it while it
 is gathering info. The STATE argument could be passed into all the profiler
-methods, but it&rsquo;s simple enough to pass it in when the profiler is created.
+methods, but it’s simple enough to pass it in when the profiler is created.
 The profiler never manipulates the VM instance. It is important to maintain
 this separation.</p>
 
@@ -210,7 +210,7 @@ end
 </code></pre>
 
 <p>The #profile method starts the profiler, yields, stops the profiler and prints
-the profile data by default. Pass &lsquo;false&rsquo; to #profile to not print the data.
+the profile data by default. Pass ‘false’ to #profile to not print the data.
 Either way, the profile data itself is returned by #profile.</p>
 
 <h2 id="how-to-read-the-flat-profiler-output">How to Read the Flat Profiler Output</h2>
@@ -233,7 +233,7 @@ method.</p>
 <h3 id="self-seconds">self seconds</h3>
 
 <p>The total time spent in this method less the total time spent in all this
-method&rsquo;s callees.</p>
+method’s callees.</p>
 
 <h3 id="calls">calls</h3>
 
@@ -272,7 +272,7 @@ p.profile {
 }
 </code></pre>
 
-<p>Running the script with &lsquo;bin/rbx script.rb&rsquo; should give the following flat
+<p>Running the script with ‘bin/rbx script.rb’ should give the following flat
 output:</p>
 
 <pre><code>  %   cumulative   self                self     total
@@ -299,7 +299,7 @@ output:</p>
 <pre><code>-Xprofiler.graph
 </code></pre>
 
-<p>Given the same script above, the graph output is shown below. Each &ldquo;entry&rdquo; in
+<p>Given the same script above, the graph output is shown below. Each “entry” in
 the graph has three sections: 1) the method for the entry, called the
 <em>primary</em> line; 2) the callers of the primary method; and 3) the methods that
 the primary method called. The fields have different meanings based on the
@@ -320,7 +320,7 @@ spent in all methods. This is the same as the flat output.</p>
 <h3 id="self">self</h3>
 
 <p>The total time spent in this method less the total time spent in all this
-method&rsquo;s callees. This is the same as self seconds in the flat output.</p>
+method’s callees. This is the same as self seconds in the flat output.</p>
 
 <h3 id="children">children</h3>
 
@@ -335,16 +335,16 @@ method&rsquo;s callees. This is the same as self seconds in the flat output.</p>
 <p>The name of the method followed by the index number.</p>
 
 <p>The lines above the primary line are methods that call the primary method. The
-callers&rsquo; fields have the following interpretation:</p>
+callers’ fields have the following interpretation:</p>
 
 <h3 id="self-1">self</h3>
 
 <p>The total time spent in this method less the total time spent in all this
-method&rsquo;s callees. This is the same as self seconds in the flat output.</p>
+method’s callees. This is the same as self seconds in the flat output.</p>
 
 <h3 id="children-1">children</h3>
 
-<p>The time spent in the method&rsquo;s call to the primary method.</p>
+<p>The time spent in the method’s call to the primary method.</p>
 
 <h3 id="called-1">called</h3>
 
@@ -365,11 +365,11 @@ The fields for the called methods are as follows:</p>
 <h3 id="self-2">self</h3>
 
 <p>The total time spent in this method less the total time spent in all this
-method&rsquo;s callees. This is the same as self seconds in the flat output.</p>
+method’s callees. This is the same as self seconds in the flat output.</p>
 
 <h3 id="children-2">children</h3>
 
-<p>This is an estimate of the amount of time this method&rsquo;s callees spent when
+<p>This is an estimate of the amount of time this method’s callees spent when
 this method was called by the primary method. The estimate is based on the
 ration of the time this method spent when called by the primary method to the
 total time spent in this method.</p>
@@ -384,7 +384,7 @@ total number of times this method was called.</p>
 
 <p>The name of the called method followed by its index number [N]. If there is no
 index present, there is no primary entry for the method in the graph. Use the
-&lsquo;-Xprofiler.full_report&rsquo; option to print the entire graph if you need to view
+‘-Xprofiler.full_report’ option to print the entire graph if you need to view
 the entry:</p>
 
 <pre><code>index  % time     self  children         called       name

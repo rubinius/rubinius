@@ -65,36 +65,36 @@ using namespace llvm;
 namespace rubinius {
 
   LLVMState* LLVMState::get(STATE) {
-    if(!state->shared.llvm_state) {
-      state->shared.llvm_state = new LLVMState(state);
+    if(!state->shared().llvm_state) {
+      state->shared().llvm_state = new LLVMState(state);
     }
 
-    return state->shared.llvm_state;
+    return state->shared().llvm_state;
   }
 
   void LLVMState::shutdown(STATE) {
-    if(!state->shared.llvm_state) return;
-    state->shared.llvm_state->shutdown_i();
+    if(!state->shared().llvm_state) return;
+    state->shared().llvm_state->shutdown_i();
   }
 
   void LLVMState::start(STATE) {
-    if(!state->shared.llvm_state) return;
-    state->shared.llvm_state->start_i();
+    if(!state->shared().llvm_state) return;
+    state->shared().llvm_state->start_i();
   }
 
   void LLVMState::on_fork(STATE) {
-    if(!state->shared.llvm_state) return;
-    state->shared.llvm_state->on_fork_i();
+    if(!state->shared().llvm_state) return;
+    state->shared().llvm_state->on_fork_i();
   }
 
   void LLVMState::pause(STATE) {
-    if(!state->shared.llvm_state) return;
-    state->shared.llvm_state->pause_i();
+    if(!state->shared().llvm_state) return;
+    state->shared().llvm_state->pause_i();
   }
 
   void LLVMState::unpause(STATE) {
-    if(!state->shared.llvm_state) return;
-    state->shared.llvm_state->unpause_i();
+    if(!state->shared().llvm_state) return;
+    state->shared().llvm_state->unpause_i();
   }
 
   const llvm::Type* LLVMState::ptr_type(std::string name) {
@@ -484,31 +484,31 @@ namespace rubinius {
   static const bool debug_search = false;
 
   LLVMState::LLVMState(STATE)
-    : ManagedThread(state->shared.new_thread_id(state),
-                    state->shared, ManagedThread::eSystem)
+    : ManagedThread(state->shared().new_thread_id(state->vm()),
+                    state->shared(), ManagedThread::eSystem)
     , ctx_(llvm::getGlobalContext())
-    , config_(state->shared.config)
-    , symbols_(state->shared.symbols)
+    , config_(state->shared().config)
+    , symbols_(state->shared().symbols)
     , jitted_methods_(0)
     , queued_methods_(0)
     , accessors_inlined_(0)
     , uncommons_taken_(0)
-    , shared_(state->shared)
-    , include_profiling_(state->shared.config.jit_profile)
+    , shared_(state->shared())
+    , include_profiling_(state->shared().config.jit_profile)
     , code_bytes_(0)
     , log_(0)
     , time_spent(0)
   {
 
     set_name("Background Compiler");
-    state->shared.add_managed_thread(this);
-    state->shared.om->add_aux_barrier(state, &write_barrier_);
+    state->shared().add_managed_thread(this);
+    state->shared().om->add_aux_barrier(state, &write_barrier_);
 
-    if(state->shared.config.jit_log.value.size() == 0) {
+    if(state->shared().config.jit_log.value.size() == 0) {
       log_ = &std::cerr;
     } else {
       std::ofstream* s = new std::ofstream(
-          state->shared.config.jit_log.value.c_str(), std::ios::out);
+          state->shared().config.jit_log.value.c_str(), std::ios::out);
 
       if(s->fail()) {
         delete s;
@@ -621,7 +621,7 @@ namespace rubinius {
     symbol_class_id_ = G(symbol)->class_id();
     string_class_id_ = G(string)->class_id();
 
-    type_optz_ = state->shared.config.jit_type_optz;
+    type_optz_ = state->shared().config.jit_type_optz;
 
     background_thread_ = new BackgroundCompilerThread(this);
     background_thread_->run();
@@ -629,7 +629,7 @@ namespace rubinius {
 
   LLVMState::~LLVMState() {
     shared_.remove_managed_thread(this);
-    shared_.om->del_aux_barrier(0, &write_barrier_);
+    shared_.om->del_aux_barrier(&write_barrier_);
     delete passes_;
     delete module_;
     delete background_thread_;
@@ -735,7 +735,7 @@ namespace rubinius {
     } else {
       background_thread_->add(req);
 
-      if(state->shared.config.jit_show_compiling) {
+      if(state->shared().config.jit_show_compiling) {
         llvm::outs() << "[[[ JIT Queued"
           << (is_block ? " block " : " method ")
           << queued_methods() << "/"

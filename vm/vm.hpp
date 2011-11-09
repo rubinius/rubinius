@@ -56,7 +56,6 @@ namespace rubinius {
   struct CallFrame;
   class Object;
   class Configuration;
-  struct Interrupts;
   class VMManager;
   class LookupTable;
   class SymbolTable;
@@ -78,6 +77,8 @@ namespace rubinius {
    */
 
   class VM : public ManagedThread {
+    friend class State;
+
   private:
     CallFrame* saved_call_frame_;
     uintptr_t stack_start_;
@@ -106,7 +107,6 @@ namespace rubinius {
     void* custom_wakeup_data_;
 
     ObjectMemory* om;
-    Interrupts& interrupts;
 
     bool check_local_interrupts;
 
@@ -197,18 +197,6 @@ namespace rubinius {
       return reinterpret_cast<uintptr_t>(end) < stack_limit_;
     }
 
-    bool check_stack(CallFrame* call_frame, void* end) {
-      // @TODO assumes stack growth direction
-      if(unlikely(reinterpret_cast<uintptr_t>(end) < stack_limit_)) {
-        raise_stack_error(call_frame);
-        return false;
-      }
-
-      return true;
-    }
-
-    bool check_interrupts(GCToken gct, CallFrame* call_frame, void* end);
-
     MethodMissingReason method_missing_reason() {
       return method_missing_reason_;
     }
@@ -270,20 +258,18 @@ namespace rubinius {
     /* Prototypes */
     VM(uint32_t id, SharedState& shared);
 
-    void check_exception(CallFrame* call_frame);
-
     void initialize_as_root();
 
-    void bootstrap_class();
-    void bootstrap_ontology();
-    void bootstrap_symbol();
+    void bootstrap_class(STATE);
+    void bootstrap_ontology(STATE);
+    void bootstrap_symbol(STATE);
     void initialize_config();
 
-    void setup_errno(int num, const char* name, Class* sce, Module* ern);
-    void bootstrap_exceptions();
-    void initialize_fundamental_constants();
-    void initialize_builtin_classes();
-    void initialize_platform_data();
+    void setup_errno(STATE, int num, const char* name, Class* sce, Module* ern);
+    void bootstrap_exceptions(STATE);
+    void initialize_fundamental_constants(STATE);
+    void initialize_builtin_classes(STATE);
+    void initialize_platform_data(STATE);
 
     void set_current_fiber(Fiber* fib);
 
@@ -291,7 +277,6 @@ namespace rubinius {
 
     Object* new_object_typed(Class* cls, size_t bytes, object_type type);
     Object* new_object_typed_mature(Class* cls, size_t bytes, object_type type);
-    Object* new_object_from_type(Class* cls, TypeInfo* ti);
 
     template <class T>
       T* new_object(Class *cls) {
@@ -326,31 +311,13 @@ namespace rubinius {
     /// Create a Tuple in the young GC space, return NULL if not possible.
     Tuple* new_young_tuple_dirty(size_t fields);
 
-    /// Create an uninitialized Class object
-    Class* new_basic_class(Class* sup);
-
-    /// Create a Class of name +name+ as an Object subclass
-    Class* new_class(const char* name);
-
-    /// Create a Class of name +name+ as a subclass of +super_class+
-    Class* new_class(const char* name, Class* super_class);
-
-    /// Create a Class of name +name+ as a subclass of +sup+
-    /// under Module +under+
-    Class* new_class(const char* name, Class* sup, Module* under);
-
-    /// Create a Class of name +name+ under +under+
-    Class* new_class_under(const char* name, Module* under);
-
-    Module* new_module(const char* name, Module* under = NULL);
-
     Symbol* symbol(const char* str);
     Symbol* symbol(std::string str);
     Symbol* symbol(String* str);
 
     TypeInfo* find_type(int type);
 
-    void init_ffi();
+    void init_ffi(STATE);
     void init_native_libraries();
 
     Thread* current_thread();
@@ -397,18 +364,15 @@ namespace rubinius {
 
     void register_raise(STATE, Exception* exc);
 
-    bool process_async(CallFrame* call_frame);
-
-    bool check_async(CallFrame* call_frame) {
-      if(check_local_interrupts) {
-        return process_async(call_frame);
-      }
-      return true;
-    }
-
     // For thread-local roots
     static std::list<Roots*>* roots;
   };
+
+}
+
+#include "state.hpp"
+
+namespace rubinius {
 
 
   /**
@@ -418,57 +382,57 @@ namespace rubinius {
    */
 
   class StopTheWorld {
-    VM* vm_;
+    State* state_;
 
   public:
     StopTheWorld(STATE) :
-      vm_(state)
+      state_(state)
     {
-      vm_->shared.stop_the_world(vm_);
+      state->stop_the_world();
     }
 
     ~StopTheWorld() {
-      vm_->shared.restart_world(vm_);
+      state_->restart_world();
     }
   };
 
   class NativeMethodEnvironment;
 
   class GCIndependent {
-    VM* vm_;
+    State* state_;
 
   public:
     GCIndependent(STATE, CallFrame* call_frame)
-      : vm_(state)
+      : state_(state)
     {
-      vm_->set_call_frame(call_frame);
-      vm_->shared.gc_independent(vm_);
+      state_->set_call_frame(call_frame);
+      state_->gc_independent();
     }
 
     GCIndependent(STATE)
-      : vm_(state)
+      : state_(state)
     {
-      vm_->shared.gc_independent(vm_);
+      state_->gc_independent();
     }
-
+    
     GCIndependent(NativeMethodEnvironment* env);
 
     ~GCIndependent() {
-      vm_->shared.gc_dependent(vm_);
+      state_->gc_dependent();
     }
   };
 
   template <class T>
   class GCIndependentLockGuard : public thread::LockGuardTemplate<T> {
-    VM* vm_;
+    State* state_;
   public:
     GCIndependentLockGuard(STATE, GCToken gct, T& in_lock)
       : thread::LockGuardTemplate<T>(in_lock, false)
-      , vm_(state)
+      , state_(state)
     {
-      vm_->shared.gc_independent(vm_);
+      state_->shared().gc_independent(state_);
       this->lock();
-      vm_->shared.gc_dependent(vm_);
+      state->shared().gc_dependent(state_);
     }
 
     ~GCIndependentLockGuard() {

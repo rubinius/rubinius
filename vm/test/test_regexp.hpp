@@ -2,6 +2,8 @@
 
 #include "builtin/regexp.hpp"
 
+#include "ontology.hpp"
+
 class TestRegexp : public CxxTest::TestSuite, public VMTest {
 public:
 
@@ -35,7 +37,7 @@ public:
   }
 
   void test_allocate() {
-    Class* sub = state->new_class("RegexpSub", G(regexp), 0);
+    Class* sub = ontology::new_class(state, "RegexpSub", G(regexp), 0);
     Regexp* re = Regexp::allocate(state, sub);
 
     TS_ASSERT_EQUALS(re->klass(), sub);

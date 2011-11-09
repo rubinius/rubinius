@@ -149,7 +149,7 @@ namespace rubinius {
       Object* recv = env->get_object(receiver);
 
       // Unlock, we're leaving extension code.
-      env->state()->shared.leave_capi(env->state());
+      env->state()->vm()->shared.leave_capi(env->state());
 
       Object* ret = recv->send(env->state(), env->current_call_frame(),
           reinterpret_cast<Symbol*>(method_name), args, blk);
@@ -160,7 +160,7 @@ namespace rubinius {
       if(ret) ret_handle = env->get_handle(ret);
 
       // Re-entering extension code
-      env->state()->shared.enter_capi(env->state());
+      env->state()->vm()->shared.enter_capi(env->state());
 
       env->update_cached_data();
 
@@ -184,7 +184,7 @@ namespace rubinius {
       env->flush_cached_data();
 
       // Unlock, we're leaving extension code.
-      env->state()->shared.leave_capi(env->state());
+      env->state()->vm()->shared.leave_capi(env->state());
 
       LookupData lookup(recv, recv->lookup_begin(env->state()), true);
       Arguments args_o(method, recv, block, arg_count, args);
@@ -199,7 +199,7 @@ namespace rubinius {
       if(ret) ret_handle = env->get_handle(ret);
 
       // Re-entering extension code
-      env->state()->shared.enter_capi(env->state());
+      env->state()->vm()->shared.enter_capi(env->state());
 
       env->update_cached_data();
 
@@ -221,7 +221,7 @@ namespace rubinius {
       env->flush_cached_data();
 
       // Unlock, we're leaving extension code.
-      env->state()->shared.leave_capi(env->state());
+      env->state()->vm()->shared.leave_capi(env->state());
 
       Object* ret = RBX_Qnil;
       STATE = env->state();
@@ -234,8 +234,7 @@ namespace rubinius {
       } else if(Proc* proc = try_as<Proc>(blk)) {
         ret = proc->yield(state, call_frame, args);
       } else if(blk->nil_p()) {
-        state->thread_state()->raise_exception(
-            Exception::make_lje(state, call_frame));
+        state->raise_exception(Exception::make_lje(state, call_frame));
         ret = NULL;
       } else {
         Dispatch dis(G(sym_call));
@@ -248,7 +247,7 @@ namespace rubinius {
       if(ret) ret_handle = env->get_handle(ret);
 
       // Re-entering extension code
-      env->state()->shared.enter_capi(env->state());
+      env->state()->vm()->shared.enter_capi(env->state());
 
       env->update_cached_data();
 
@@ -275,7 +274,7 @@ namespace rubinius {
       Symbol* name = c_as<NativeMethod>(env->get_object(frame->method()))->name();
 
       // Unlock, we're leaving extension code.
-      env->state()->shared.leave_capi(env->state());
+      env->state()->vm()->shared.leave_capi(env->state());
 
       LookupData lookup(recv, mod->superclass(), true);
       Arguments args_o(name, recv, arg_count, args);
@@ -290,7 +289,7 @@ namespace rubinius {
       if(ret) ret_handle = env->get_handle(ret);
 
       // Re-entering extension code
-      env->state()->shared.enter_capi(env->state());
+      env->state()->vm()->shared.enter_capi(env->state());
 
       env->update_cached_data();
 
@@ -316,7 +315,7 @@ namespace rubinius {
     /** Make sure the name has the given prefix. */
     Symbol* prefixed_by(STATE, const char* prefix, size_t len, ID name) {
       Symbol* sym_obj = reinterpret_cast<Symbol*>(name);
-      std::string& sym = state->shared.symbols.lookup_cppstring(sym_obj);
+      std::string& sym = state->shared().symbols.lookup_cppstring(sym_obj);
 
       if(sym.compare(0UL, len, prefix) == 0) return sym_obj;
 
@@ -328,7 +327,7 @@ namespace rubinius {
 
     Symbol* prefixed_by(STATE, const char prefix, ID name) {
       Symbol* sym_obj = reinterpret_cast<Symbol*>(name);
-      std::string& sym = state->shared.symbols.lookup_cppstring(sym_obj);
+      std::string& sym = state->shared().symbols.lookup_cppstring(sym_obj);
 
       if(sym.c_str()[0] == prefix) return sym_obj;
 
@@ -345,8 +344,8 @@ namespace rubinius {
     void capi_raise_type_error(object_type type, Object* object) {
       NativeMethodEnvironment* env = NativeMethodEnvironment::get();
 
-      TypeInfo* expected = env->state()->find_type(type);
-      TypeInfo* actual = env->state()->find_type(object->get_type());
+      TypeInfo* expected = env->state()->vm()->find_type(type);
+      TypeInfo* actual = env->state()->vm()->find_type(object->get_type());
 
       rb_raise(rb_eTypeError, "wrong argument type %s (expected %s)",
           actual->type_name.c_str(), expected->type_name.c_str());
@@ -356,7 +355,7 @@ namespace rubinius {
       NativeMethodEnvironment* env = NativeMethodEnvironment::get();
       exception->locations(env->state(), Location::from_call_stack(env->state(),
                            env->current_call_frame()));
-      env->state()->thread_state()->raise_exception(exception);
+      env->state()->raise_exception(exception);
 
       env->current_ep()->return_to(env);
     }
@@ -365,14 +364,14 @@ namespace rubinius {
     Proc* wrap_c_function(void* cb, VALUE cb_data, int arity) {
       NativeMethodEnvironment* env = NativeMethodEnvironment::get();
       NativeMethod* nm = NativeMethod::create(env->state(),
-                          nil<String>(), env->state()->shared.globals.rubinius.get(),
+                          nil<String>(), env->state()->vm()->shared.globals.rubinius.get(),
                           env->state()->symbol("call"), cb,
                           Fixnum::from(arity));
 
       nm->set_ivar(env->state(), env->state()->symbol("cb_data"),
                    env->get_object(cb_data));
 
-      Proc* prc = Proc::create(env->state(), env->state()->shared.globals.proc.get());
+      Proc* prc = Proc::create(env->state(), env->state()->vm()->shared.globals.proc.get());
       prc->bound_method(env->state(), nm);
 
       return prc;
@@ -560,7 +559,7 @@ extern "C" {
     Object* obj = env->get_object(recv);
 
     // Unlock, we're leaving extension code.
-    env->state()->shared.leave_capi(env->state());
+    env->state()->vm()->shared.leave_capi(env->state());
 
     Object* ret = obj->send(env->state(), env->current_call_frame(),
         reinterpret_cast<Symbol*>(mid), ary, RBX_Qnil);
@@ -571,7 +570,7 @@ extern "C" {
     if(ret) ret_handle = env->get_handle(ret);
 
     // Re-entering extension code
-    env->state()->shared.enter_capi(env->state());
+    env->state()->vm()->shared.enter_capi(env->state());
 
     env->update_cached_data();
 
@@ -617,7 +616,7 @@ extern "C" {
   {
     NativeMethodEnvironment* env = NativeMethodEnvironment::get();
 
-    VM* state = env->state();
+    State* state = env->state();
     Symbol* method_name = state->symbol(name);
 
     Module* module = NULL;

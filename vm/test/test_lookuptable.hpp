@@ -1,5 +1,7 @@
 #include "vm/test/test.hpp"
 
+#include "ontology.hpp"
+
 class TestLookupTable : public CxxTest::TestSuite, public VMTest {
 public:
 
@@ -20,7 +22,7 @@ public:
   }
 
   void test_allocate() {
-    Class* sub = state->new_class("LookupTableSub", G(lookuptable), 0);
+    Class* sub = ontology::new_class(state, "LookupTableSub", G(lookuptable), 0);
     LookupTable* tbl = LookupTable::allocate(state, sub);
 
     TS_ASSERT_EQUALS(tbl->klass(), sub);

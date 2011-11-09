@@ -86,11 +86,6 @@ class Numeric
     to_i
   end
 
-  # Delegate #modulo to #% in subclasses
-  def modulo(other)
-    self % other
-  end
-
   def integer?
     false
   end

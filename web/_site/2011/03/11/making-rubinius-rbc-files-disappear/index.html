@@ -92,7 +92,7 @@ $ ls hello.*
 hello.rb	hello.rbc
 </code></pre>
 
-<p>That doesn&rsquo;t look too crazy, but it can get more complicated:</p>
+<p>That doesn’t look too crazy, but it can get more complicated:</p>
 
 <pre><code>$ mv hello.rb hello
 $ rbx hello
@@ -115,16 +115,16 @@ cache file with the source and not clash with other names.</li>
 </ol>
 
 <p>Again, the advantage of the cache file is that you do not have to wait for
-Rubinius to recompile the file if you have not changed the source. Let&rsquo;s see
+Rubinius to recompile the file if you have not changed the source. Let’s see
 if we can get all the advantages with none of the disadvantages. That old
 saying comes to mind, <em>Having your cake and eating it, too</em>, so we may not
 be successful, but it is worth a shot.</p>
 
-<p>First, let&rsquo;s take a step back. This issue is not unique to Rubinius. Python
+<p>First, let’s take a step back. This issue is not unique to Rubinius. Python
 has <code>.pyc</code> and <code>.pyo</code> files. Java has <code>.class</code> files. C/C++ has <code>.o</code> files.
 Lots of things need a place to store a compiled or cached representation of
 some data. Every SCM worth mention has some mechanism to ignore the files you
-don&rsquo;t want to track. The same is generally true of editors. So in some sense,
+don’t want to track. The same is generally true of editors. So in some sense,
 this is a solved problem. However, we have always received complaints about
 the <code>.rbc</code> files, so we thought we would try to make other, hopefully better,
 solutions available.</p>
@@ -142,7 +142,7 @@ $ ls hello.*
 hello.rb
 </code></pre>
 
-<p>Win! Not one lousy <code>.rbc</code> file in sight. Although, that&rsquo;s quite the option to
+<p>Win! Not one lousy <code>.rbc</code> file in sight. Although, that’s quite the option to
 type. Never fear, we have a solution to that below.</p>
 
 <p>Here is our scorecard for solution 1:</p>
@@ -162,7 +162,7 @@ couple years ago so it may not be an issue for you.</p>
 <p>What if we could put all the compilation data in a single cache location,
 something like a database? We have an option for that.</p>
 
-<p>This option is a little more complex, so let&rsquo;s take it in two steps.</p>
+<p>This option is a little more complex, so let’s take it in two steps.</p>
 
 <pre><code>$ ls hello.*
 hello.rb
@@ -177,7 +177,7 @@ $ ls -R .rbx
 60c091c3ed34c1b93ffbb33d82d810772902d3f9
 </code></pre>
 
-<p>Success! No <code>.rbc</code> files here. But what&rsquo;s with all the numbers in the <code>.rbx</code>
+<p>Success! No <code>.rbc</code> files here. But what’s with all the numbers in the <code>.rbx</code>
 directory and how did that directory get there?</p>
 
 <p>The <code>-Xrbc.db</code> option without any argument will store the compilation cache in
@@ -231,7 +231,7 @@ directory. However, you can easily specify where to put that directory.</p>
 <h3 id="using-rbxopt-for-options">Using RBXOPT for Options</h3>
 
 <p>As mentioned above, the <code>-X</code> options can get a little long and you certainly
-don&rsquo;t want to retype them constantly. We have added support for the <code>RBXOPT</code>
+don’t want to retype them constantly. We have added support for the <code>RBXOPT</code>
 environment variable, which is an analog of the <code>RUBYOPT</code> environment variable
 that we already support.</p>
 
@@ -254,17 +254,17 @@ time and resources recompiling source that has not changed. However, we need
 some place to store the cache. Rubinius provides options for omitting the
 cache altogether or for storing it in a directory of your choosing. Note that
 the format of the compilation cache is an implementation detail and we reserve
-the right to change it at any time, so please don&rsquo;t rely on it being in any
+the right to change it at any time, so please don’t rely on it being in any
 particular format.</p>
 
-<p>We have not turned on <code>-Xrbc.db</code> by default yet because we don&rsquo;t know what a
+<p>We have not turned on <code>-Xrbc.db</code> by default yet because we don’t know what a
 good default is. So give us feedback on your use cases and what you would find
 most useful.</p>
 
 <p>Finally, whenever we discuss the compilation cache we are inevitably asked if
 you can run directly from the cache and not use the Ruby source at all after
-it has been compiled. The short answer is &ldquo;Yes&rdquo;, the long answer is &ldquo;It
-depends&rdquo;. I will be writing a post exploring this question in detail shortly.
+it has been compiled. The short answer is “Yes”, the long answer is “It
+depends”. I will be writing a post exploring this question in detail shortly.
 For now, get out there and write more Ruby code!</p>
 
 

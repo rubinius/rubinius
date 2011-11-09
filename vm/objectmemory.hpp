@@ -184,6 +184,8 @@ namespace rubinius {
 
     TypedRoot<Thread*> finalizer_thread_;
 
+    SharedState& shared_;
+
   public:
     /// Flag indicating whether a young collection should be performed soon
     bool collect_young_now;
@@ -254,6 +256,10 @@ namespace rubinius {
       aux_barriers_.remove(wb);
     }
 
+    void del_aux_barrier(gc::WriteBarrier* wb) {
+      aux_barriers_.remove(wb);
+    }
+
     std::list<gc::WriteBarrier*>& aux_barriers() {
       return aux_barriers_;
     }
@@ -263,7 +269,7 @@ namespace rubinius {
     }
 
   public:
-    ObjectMemory(STATE, Configuration& config);
+    ObjectMemory(VM* state, Configuration& config);
     ~ObjectMemory();
 
     void on_fork(STATE);
@@ -343,13 +349,13 @@ namespace rubinius {
     void add_to_finalize(FinalizeObject* fi);
 
     void find_referers(Object* obj, ObjectArray& result);
-    void print_references(Object* obj);
 
     void* young_start();
     void* yound_end();
 
-    void snapshot();
-    void print_new_since_snapshot();
+    void print_references(STATE, Object* obj);
+    void snapshot(STATE);
+    void print_new_since_snapshot(STATE);
 
     size_t& loe_usage();
     size_t& immix_usage();

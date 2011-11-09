@@ -126,13 +126,13 @@ continue_to_run:
       Exception::make_type_error(state, e.type, e.object, e.reason);
     exc->locations(state, Location::from_call_stack(state, call_frame));
 
-    state->thread_state()->raise_exception(exc);
+    state->raise_exception(exc);
     call_frame->scope->flush_to_heap(state);
     return NULL;
   } catch(const RubyException& exc) {
     exc.exception->locations(state,
           Location::from_call_stack(state, call_frame));
-    state->thread_state()->raise_exception(exc.exception);
+    state->raise_exception(exc.exception);
     return NULL;
   }
 
@@ -142,7 +142,7 @@ continue_to_run:
 
   // If control finds it's way down here, there is an exception.
 exception:
-  ThreadState* th = state->thread_state();
+  ThreadState* th = state->vm()->thread_state();
   //
   switch(th->raise_reason()) {
   case cException:
@@ -228,8 +228,8 @@ Object* VMMethod::uncommon_interpreter(STATE,
 
   VMMethod* method_vmm = method_call_frame->cm->backend_method();
 
-  if(++method_vmm->uncommon_count > state->shared.config.jit_deoptimize_threshold) {
-    if(state->shared.config.jit_uncommon_print) {
+  if(++method_vmm->uncommon_count > state->shared().config.jit_deoptimize_threshold) {
+    if(state->shared().config.jit_uncommon_print) {
       std::cerr << "[[[ Deoptimizing uncommon method ]]]\n";
       call_frame->print_backtrace(state);
 
@@ -281,13 +281,13 @@ continue_to_run:
       Exception::make_type_error(state, e.type, e.object, e.reason);
     exc->locations(state, Location::from_call_stack(state, call_frame));
 
-    state->thread_state()->raise_exception(exc);
+    state->raise_exception(exc);
     call_frame->scope->flush_to_heap(state);
     return NULL;
   } catch(const RubyException& exc) {
     exc.exception->locations(state,
           Location::from_call_stack(state, call_frame));
-    state->thread_state()->raise_exception(exc.exception);
+    state->raise_exception(exc.exception);
     return NULL;
   }
 
@@ -295,7 +295,7 @@ continue_to_run:
   rubinius::bug("Control flow error in interpreter");
 
 exception:
-  ThreadState* th = state->thread_state();
+  ThreadState* th = state->vm()->thread_state();
   //
   switch(th->raise_reason()) {
   case cException:
@@ -426,13 +426,13 @@ continue_to_run:
       Exception::make_type_error(state, e.type, e.object, e.reason);
     exc->locations(state, Location::from_call_stack(state, call_frame));
 
-    state->thread_state()->raise_exception(exc);
+    state->raise_exception(exc);
     call_frame->scope->flush_to_heap(state);
     return NULL;
   } catch(const RubyException& exc) {
     exc.exception->locations(state,
           Location::from_call_stack(state, call_frame));
-    state->thread_state()->raise_exception(exc.exception);
+    state->raise_exception(exc.exception);
     return NULL;
   }
 
@@ -441,7 +441,7 @@ continue_to_run:
 
   // If control finds it's way down here, there is an exception.
 exception:
-  ThreadState* th = state->thread_state();
+  ThreadState* th = state->vm()->thread_state();
   //
   switch(th->raise_reason()) {
   case cException:
@@ -558,13 +558,13 @@ continue_to_run:
       Exception::make_type_error(state, e.type, e.object, e.reason);
     exc->locations(state, Location::from_call_stack(state, call_frame));
 
-    state->thread_state()->raise_exception(exc);
+    state->raise_exception(exc);
     call_frame->scope->flush_to_heap(state);
     return NULL;
   } catch(const RubyException& exc) {
     exc.exception->locations(state,
           Location::from_call_stack(state, call_frame));
-    state->thread_state()->raise_exception(exc.exception);
+    state->raise_exception(exc.exception);
     return NULL;
   }
 
@@ -572,7 +572,7 @@ continue_to_run:
   rubinius::bug("Control flow error in interpreter");
 
 exception:
-  ThreadState* th = state->thread_state();
+  ThreadState* th = state->vm()->thread_state();
   //
   switch(th->raise_reason()) {
   case cException:

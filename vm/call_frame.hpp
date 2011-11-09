@@ -242,6 +242,7 @@ namespace rubinius {
 
     void print_backtrace(STATE, int count=0);
     void print_backtrace(STATE, std::ostream& stream, int count=0);
+
     int line(STATE);
 
     bool scope_still_valid(VariableScope* scope);

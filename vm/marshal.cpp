@@ -35,7 +35,7 @@ namespace rubinius {
     stream.read(data, count + 1);
     data[count] = 0; // clamp
 
-    return state->path2class(data);
+    return state->vm()->path2class(data);
   }
 
   Object* UnMarshaller::get_int() {

@@ -113,7 +113,7 @@ collection, Just-In-Time compilation, and compatibility with existing C APIs.</p
 <ul>
   <li>678ac9d Use Type.obj_kind_of? to a mocked #kind_of? Fixes #762</li>
   <li>acfa7b7 Module#include should return the target include is called on, Fixes #756</li>
-  <li>a6fa69b Revert &ldquo;Use empty binding to eval gemspecs for caching. Fixes #725&rdquo;</li>
+  <li>a6fa69b Revert “Use empty binding to eval gemspecs for caching. Fixes #725”</li>
   <li>ee0c62a Use empty binding to eval gemspecs for caching. Fixes #725</li>
   <li>dda607b Handle last_match in an inline block properly. Fixes #720</li>
   <li>f92ec4e Bound the C-API cache for a String when first creating it. Fixes #702</li>
@@ -154,7 +154,7 @@ collection, Just-In-Time compilation, and compatibility with existing C APIs.</p
 <h5 id="platform">Platform</h5>
 
 <ul>
-  <li>FreeBSD doesn&rsquo;t need -ldl and OpenBSD already explicitly has it</li>
+  <li>FreeBSD doesn’t need -ldl and OpenBSD already explicitly has it</li>
   <li>Store the make to use in a variable and default to gmake on BSD platforms</li>
   <li>Modify configuration and VM to support both LLVM 2.8 and 2.9 (rc)</li>
 </ul>
@@ -164,14 +164,14 @@ collection, Just-In-Time compilation, and compatibility with existing C APIs.</p
 <ul>
   <li><em>(CRASH)</em> Handle break and return in various scopes properly</li>
   <li><em>(CRASH)</em> Fix reading the number of slots a tuple has</li>
-  <li><em>(CRASH)</em> Ensure VM doesn&rsquo;t improperly unwind into a process exit.</li>
+  <li><em>(CRASH)</em> Ensure VM doesn’t improperly unwind into a process exit.</li>
   <li>JIT: Fix returning from a lambda closure</li>
   <li>JIT: Be sure to sign extend the result of an FFI call</li>
   <li>Remove bad $~ assignment code</li>
   <li>Use correct constness for strings returned from the C API</li>
   <li>Update the -v build rev hash every build.</li>
   <li>Fix Hash marshal dump</li>
-  <li>Fix YARD bug, don&rsquo;t use the custom classes #initialize</li>
+  <li>Fix YARD bug, don’t use the custom classes #initialize</li>
   <li>Fixed Kernel#abort to coerce non-String arguments.</li>
   <li>JIT: Handle raise_return in all contexts properly (fancy)</li>
   <li>Clarify language/break specs for non-compliant rbx behavior.</li>
@@ -179,13 +179,13 @@ collection, Just-In-Time compilation, and compatibility with existing C APIs.</p
   <li>Fix for Exception#backtrace returning nil when @locations are missing.</li>
   <li>Fix URI() to return the argument if it is a URI object</li>
   <li>Remove old references to Rubinius::Scheduler</li>
-  <li>Run IO finalizers after we&rsquo;ve shut down all other threads</li>
+  <li>Run IO finalizers after we’ve shut down all other threads</li>
   <li>Eval the gemspec cache in an empty binding.</li>
   <li>Fix how and where eval locals are created</li>
   <li>Fixing Hash[] method when passing an array</li>
   <li>Properly detect a constant directory in Dir::Glob</li>
   <li>Permit inspecting a Method having NativeMethod.</li>
-  <li>Reset allocations_ so we don&rsquo;t keep recontributing them</li>
+  <li>Reset allocations_ so we don’t keep recontributing them</li>
   <li>JIT: Use the custom static scope in a block (dbussink)</li>
   <li>Fixed Kernel#singleton_methods to return a unique list.</li>
   <li>Added Module#define_method with block specs for arity checking.</li>

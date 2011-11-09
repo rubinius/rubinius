@@ -18,6 +18,8 @@
 
 #include "windows_compat.h"
 
+#include "ontology.hpp"
+
 #include <gdtoa.h>
 
 #include <unistd.h>
@@ -29,7 +31,7 @@
 namespace rubinius {
 
   void String::init(STATE) {
-    GO(string).set(state->new_class("String", G(object)));
+    GO(string).set(ontology::new_class(state, "String", G(object)));
     G(string)->set_object_type(state, StringType);
   }
 
@@ -544,7 +546,7 @@ namespace rubinius {
 
     kcode::table* kcode_tbl = 0;
     if(RTEST(respect_kcode)) {
-      kcode_tbl = state->shared.kcode_table();
+      kcode_tbl = state->shared().kcode_table();
     } else {
       kcode_tbl = kcode::null_table();
     }
@@ -1116,7 +1118,7 @@ return_value:
 
     String* output = 0;
 
-    kcode::table* tbl = state->shared.kcode_table();
+    kcode::table* tbl = state->shared().kcode_table();
     if(kcode::mbchar_p(tbl, *cur)) {
       native_int clen = kcode::mbclen(tbl, *cur);
       if(o + clen <= size()) {

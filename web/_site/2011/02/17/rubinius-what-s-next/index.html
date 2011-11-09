@@ -78,8 +78,8 @@ commits and 21 tickets closed in the 56 calendar days since the release of
 us test it.</p>
 
 <p>While we were working on 1.2.1, we were also working on a Top Secret project
-that we&rsquo;ve craftily <a href="https://github.com/evanphx/rubinius/tree/hydra">hidden in plain
-sight</a>. I&rsquo;d like to introduce
+that we’ve craftily <a href="https://github.com/evanphx/rubinius/tree/hydra">hidden in plain
+sight</a>. I’d like to introduce
 the work we are doing on the hydra branch and the features you can expect to
 see in Rubinius soon.</p>
 
@@ -130,7 +130,7 @@ global warming.</li>
   <li>With a multi-core system, builds can be done faster if they are done in
 parallel. If the build system can accurately determine dependencies, it can
 execute build sub-steps in parallel. Of course, this can cut into YouTube
-and Twitter browsing time, but that&rsquo;s a risk we are willing to take.</li>
+and Twitter browsing time, but that’s a risk we are willing to take.</li>
   <li>While parallel sub-processes during the build are excellent, the supervising
 process benefits from running as a single process from start to finish.
 Otherwise, configuration data needs to be re-parsed. To support a single
@@ -141,7 +141,7 @@ simply impossible in Rake.</li>
   <li>Use-aware configuration values know that the user has set the value and can
 intelligently merge with newer configuration variables that we create
 without requiring the user to reconfigure. Ultimately, we are aiming for a
-<em>single</em> command build. Just run &lsquo;daedalus&rsquo; and done. There is no step 2.</li>
+<em>single</em> command build. Just run ‘daedalus’ and done. There is no step 2.</li>
 </ul>
 
 <h3 id="full-on-concurrency">Full-on Concurrency</h3>
@@ -156,7 +156,7 @@ both), the apparent concurrency will still be executing serially. Since there
 are so many multi-core CPUs around these days, our programs should be getting
 stuff done in parallel.</p>
 
-<p>Unfortunately, there&rsquo;s a twist. Even with native threads on a multi-core CPU,
+<p>Unfortunately, there’s a twist. Even with native threads on a multi-core CPU,
 the amount of parallelism you get depends on how well you manage locks around
 shared data and resources. Sometimes managing these locks is complex and you
 opt for one big lock, essentially only allowing one thread at a time to run.
@@ -192,7 +192,7 @@ involve core libraries that are implemented in C in MRI. There are three main
 fronts on which we are attacking performance issues: 1) improving the
 algorithms in the Ruby code that implements the core library; 2) continuing to
 tune the VM and garbage collector; and 3) improving the JIT compiler. Which
-leads me to one of the most exciting things we are working on&hellip;</p>
+leads me to one of the most exciting things we are working on…</p>
 
 <h3 id="jit-intermediate-representation-ir">JIT Intermediate Representation (IR)</h3>
 
@@ -201,25 +201,7 @@ biggest challenges with a dynamic language like Ruby is knowing what method is
 actually being invoked when a message is sent to an object. Consider the
 following code:</p>
 
-<div class="highlight"><pre><code class="ruby"><span class="lineno"> 1</span> <span class="k">class</span> <span class="nc">A</span>
-<span class="lineno"> 2</span>   <span class="k">def</span> <span class="nf">m</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
-<span class="lineno"> 3</span>     <span class="o">.</span><span class="n">.</span><span class="o">.</span>
-<span class="lineno"> 4</span>   <span class="k">end</span>
-<span class="lineno"> 5</span> <span class="k">end</span>
-<span class="lineno"> 6</span> 
-<span class="lineno"> 7</span> <span class="k">class</span> <span class="nc">B</span>
-<span class="lineno"> 8</span>   <span class="k">def</span> <span class="nf">m</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
-<span class="lineno"> 9</span>     <span class="o">.</span><span class="n">.</span><span class="o">.</span>
-<span class="lineno">10</span>   <span class="k">end</span>
-<span class="lineno">11</span> <span class="k">end</span>
-<span class="lineno">12</span> 
-<span class="lineno">13</span> <span class="k">class</span> <span class="nc">C</span>
-<span class="lineno">14</span>   <span class="k">def</span> <span class="nf">work</span><span class="p">(</span><span class="n">obj</span><span class="p">)</span>
-<span class="lineno">15</span>     <span class="n">obj</span><span class="o">.</span><span class="n">m</span><span class="p">(</span><span class="n">y</span><span class="p">)</span>
-<span class="lineno">16</span>   <span class="k">end</span>
-<span class="lineno">17</span> <span class="k">end</span>
-</code></pre>
-</div>
+<p>Liquid error: undefined method `join’ for #<String:0x00000001fc5980 /></p>
 
 <p>What method is being invoked by <code>obj.m(y)</code>? There is no way to definitively
 know this by looking at the source code. However, when the program is actually
@@ -238,8 +220,8 @@ intermediate representation. So Evan has started work on a new JIT IR.</p>
 <p>This new IR will help us to express Ruby semantics in a way that enables many
 powerful optimizations and will ultimately allow LLVM to generate even better
 machine code. Put another way, <em>Rubinius loves Ruby code!</em> Right down to the
-metal. There&rsquo;s no fighting a foreign type system or the semantics of a
-language at odds with Ruby&rsquo;s rosy view of the world.</p>
+metal. There’s no fighting a foreign type system or the semantics of a
+language at odds with Ruby’s rosy view of the world.</p>
 
 <h3 id="ruby-19">Ruby 1.9</h3>
 
@@ -267,7 +249,7 @@ manually instrumenting our code.</p>
 
 <p>Presently, Rubinius has a built-in debugger, precise method profiler, memory
 analysis tool, and Agent interface that permits querying a running Rubinius
-VM&ndash;even one running on a remote machine&ndash;for a variety of information.</p>
+VM–even one running on a remote machine–for a variety of information.</p>
 
 <p>We will be adding the ability to track the location where objects are
 allocated to assist finding object leaks or code that is creating unusually
@@ -284,11 +266,11 @@ ID before running each spec and the Agent monitor would request the ID when
 gathering VM data. Later the two data sets could easily be merged.</p>
 
 <p>When you find yourself manually instrumenting some code, consider what data
-you are trying to get your hands on and let us know the scenario.  We&rsquo;ll
+you are trying to get your hands on and let us know the scenario.  We’ll
 likely be able to build a tool that will open up new vistas into the behavior
 of your Ruby programs.</p>
 
-<h3 id="windowssupregsup">Windows<sup>&reg;</sup></h3>
+<h3 id="windowssupregsup">Windows<sup>®</sup></h3>
 
 <p>However one may feel about Windows as an operating system, it is undeniable
 that the vast majority of people in the world use Windows. We believe those
@@ -320,18 +302,7 @@ bytecode, and decoupling method dispatch from Ruby semantics.</p>
 <p>Hopefully, Evan will introduce us to all this in a future blog post, but
 here is a taste of what you can do:</p>
 
-<div class="highlight"><pre><code class="ruby"><span class="lineno"> 1</span> <span class="k">class</span> <span class="nc">Hello</span>
-<span class="lineno"> 2</span>   <span class="n">dynamic_method</span> <span class="ss">:world</span> <span class="k">do</span> <span class="o">|</span><span class="n">g</span><span class="o">|</span>
-<span class="lineno"> 3</span>     <span class="n">g</span><span class="o">.</span><span class="n">push</span> <span class="ss">:self</span>
-<span class="lineno"> 4</span>     <span class="n">g</span><span class="o">.</span><span class="n">push_literal</span> <span class="s2">&quot;Hello, world&quot;</span>
-<span class="lineno"> 5</span>     <span class="n">g</span><span class="o">.</span><span class="n">send</span> <span class="ss">:puts</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="kp">true</span>
-<span class="lineno"> 6</span>     <span class="n">g</span><span class="o">.</span><span class="n">ret</span>
-<span class="lineno"> 7</span>   <span class="k">end</span>
-<span class="lineno"> 8</span> <span class="k">end</span>
-<span class="lineno"> 9</span> 
-<span class="lineno">10</span> <span class="no">Hello</span><span class="o">.</span><span class="n">new</span><span class="o">.</span><span class="n">world</span>
-</code></pre>
-</div>
+<p>Liquid error: undefined method `join’ for #<String:0x00000001fc54d0 /></p>
 
 <p>Of course, that is much more concisely written in Ruby, but combine this
 ability with a built-in PEG parser and you can be experimenting with your own
@@ -344,14 +315,14 @@ the Fancy compiler is now written in Fancy) on Rubinius.</p>
 
 <h3 id="documentation">Documentation</h3>
 
-<p>One the one hand, Rubinius just runs Ruby code, and you shouldn&rsquo;t need any
+<p>One the one hand, Rubinius just runs Ruby code, and you shouldn’t need any
 special knowledge to run your application on Rubinius. On the other hand, as
-I&rsquo;ve discussed above, there are some specific Rubinius features that may be
+I’ve discussed above, there are some specific Rubinius features that may be
 very helpful to you. However, they can only be as helpful as the documentation
 we have for them.</p>
 
 <p>Before we released 1.2.0 in December last year, I spent quite a bit of time
-getting a new documentation system in place. Since then, we&rsquo;ve had
+getting a new documentation system in place. Since then, we’ve had
 contributors help with translations to Russian, Polish, Spanish, and German.
 Adam Gardiner started documenting the garbage collector algorithms. Yehuda
 Katz (you may have heard the name) has contributed documentation for <a href="http://rubini.us/doc/en/bytecode-compiler/">the
@@ -377,7 +348,7 @@ most important thing you can do is try running your Ruby code. Give us
 feedback. Let us know what features or tools would make your life easier. Help
 us to build them.</p>
 
-<p>Rubinius adopts Ruby&rsquo;s rosy view of the world. We want to empower you to solve
+<p>Rubinius adopts Ruby’s rosy view of the world. We want to empower you to solve
 your hardest problems with Ruby, and have fun doing it.</p>
 
 

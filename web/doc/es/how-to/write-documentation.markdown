@@ -86,7 +86,7 @@ Para agregar documentación para la cuál no existe un tema:
 1. Crea un nuevo archivo con extensión .markdown bajo `web/doc/LANG`.
 1. Edita los atributos para enlazar el nuevo archivo en los archivos ya
    existentes. Esto requerirá editar los atributos _previous_ y _next_ de los
-   archivos ya existentes para insertar el nuevo archivo, así como también 
+   archivos ya existentes para insertar el nuevo archivo, así como también
    agregar una entrada en `index.markdown`.
 1. Para ver tus modificaciones mientras trabajas en ellas, ejecuta
    `rbx -S jekyll --server --auto`

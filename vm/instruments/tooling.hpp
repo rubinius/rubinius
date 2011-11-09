@@ -50,19 +50,19 @@ namespace tooling {
     }
 
   public:
-    void* enter_method(VM* state, Executable* exec, Module* mod, Arguments& args, CompiledMethod* cm);
-    void  leave_method(VM* state, void* tag);
+    void* enter_method(STATE, Executable* exec, Module* mod, Arguments& args, CompiledMethod* cm);
+    void  leave_method(STATE, void* tag);
 
-    void* enter_block(VM* state, BlockEnvironment* env, Module* mod);
-    void  leave_block(VM* state, void* tag);
+    void* enter_block(STATE, BlockEnvironment* env, Module* mod);
+    void  leave_block(STATE, void* tag);
 
-    void* enter_gc(VM* state, int level);
-    void  leave_gc(VM* state, void* tag);
+    void* enter_gc(STATE, int level);
+    void  leave_gc(STATE, void* tag);
 
-    void* enter_script(VM* state, CompiledMethod* cm);
-    void  leave_script(VM* state, void* tag);
+    void* enter_script(STATE, CompiledMethod* cm);
+    void  leave_script(STATE, void* tag);
 
-    void shutdown(VM* state);
+    void shutdown(STATE);
 
     void thread_start(STATE);
     void thread_stop(STATE);
@@ -94,14 +94,14 @@ namespace tooling {
 
   class Entry {
   protected:
-    VM* state_;
+    State* state_;
     ToolBroker* broker_;
     void* tag_;
 
   public:
     Entry(STATE)
       : state_(state)
-      , broker_(state->shared.tool_broker())
+      , broker_(state->shared().tool_broker())
     {}
   };
 

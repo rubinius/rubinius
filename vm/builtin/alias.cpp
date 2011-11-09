@@ -2,9 +2,12 @@
 #include "builtin/class.hpp"
 #include "builtin/exception.hpp"
 
+#include "ontology.hpp"
+
 namespace rubinius {
   void Alias::init(STATE) {
-    GO(alias).set(state->new_class("Alias", G(executable), G(rubinius)));
+    GO(alias).set(ontology::new_class(state, "Alias",
+                    G(executable), G(rubinius)));
     G(alias)->set_object_type(state, AliasType);
   }
 

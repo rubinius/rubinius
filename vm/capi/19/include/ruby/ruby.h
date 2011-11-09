@@ -13,6 +13,10 @@
  *
  */
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 #include <stddef.h>
 #include <stdlib.h>
 #include <stdint.h>
@@ -121,19 +125,36 @@ void* XCALLOC(size_t items, size_t bytes);
 #define ruby_xrealloc  xrealloc
 #define ruby_xfree     xfree
 
-/* need to include <ctype.h> to use these macros */
+#define rb_isascii(c) ((unsigned long)(c) < 128)
+int rb_isalnum(int c);
+int rb_isalpha(int c);
+int rb_isblank(int c);
+int rb_iscntrl(int c);
+int rb_isdigit(int c);
+int rb_isgraph(int c);
+int rb_islower(int c);
+int rb_isprint(int c);
+int rb_ispunct(int c);
+int rb_isspace(int c);
+int rb_isupper(int c);
+int rb_isxdigit(int c);
+int rb_tolower(int c);
+int rb_toupper(int c);
+
 #ifndef ISPRINT
-#define ISASCII(c) isascii((int)(unsigned char)(c))
+#define ISASCII(c) rb_isascii((unsigned char)(c))
 #undef ISPRINT
-#define ISPRINT(c) (ISASCII(c) && isprint((int)(unsigned char)(c)))
-#define ISSPACE(c) (ISASCII(c) && isspace((int)(unsigned char)(c)))
-#define ISUPPER(c) (ISASCII(c) && isupper((int)(unsigned char)(c)))
-#define ISLOWER(c) (ISASCII(c) && islower((int)(unsigned char)(c)))
-#define ISALNUM(c) (ISASCII(c) && isalnum((int)(unsigned char)(c)))
-#define ISALPHA(c) (ISASCII(c) && isalpha((int)(unsigned char)(c)))
-#define ISDIGIT(c) (ISASCII(c) && isdigit((int)(unsigned char)(c)))
-#define ISXDIGIT(c) (ISASCII(c) && isxdigit((int)(unsigned char)(c)))
+#define ISPRINT(c) rb_isprint((unsigned char)(c))
+#define ISSPACE(c) rb_isspace((unsigned char)(c))
+#define ISUPPER(c) rb_isupper((unsigned char)(c))
+#define ISLOWER(c) rb_islower((unsigned char)(c))
+#define ISALNUM(c) rb_isalnum((unsigned char)(c))
+#define ISALPHA(c) rb_isalpha((unsigned char)(c))
+#define ISDIGIT(c) rb_isdigit((unsigned char)(c))
+#define ISXDIGIT(c) rb_isxdigit((unsigned char)(c))
 #endif
+#define TOUPPER(c) rb_toupper((unsigned char)(c))
+#define TOLOWER(c) rb_tolower((unsigned char)(c))
 
 /**
  *  In MRI, VALUE represents an object.
@@ -191,9 +212,6 @@ typedef void (*RUBY_DATA_FUNC)(void*);
 #define RUBY_METHOD_FUNC(func) ((VALUE (*)(ANYARGS))func)
 
 /** Global class/object etc. types. */
-#ifdef __cplusplus
-extern "C" {
-#endif
 
 #ifndef RBX_WINDOWS
   extern int __X_rubinius_version __attribute__((weak));
@@ -399,6 +417,7 @@ typedef struct RIO rb_io_t;
 // Fake it out, just make the ptr be the val
 // MRI checks also that it's not closed...
 #define GetOpenFile(val, ptr) (ptr) = (capi_rio_struct(val))
+#define rb_stdin              rb_const_get(rb_cObject, rb_intern("STDIN"))
 
 #define GetReadFile(ptr)  (ptr->f)
 #define GetWriteFile(ptr) (ptr->f)
@@ -1226,6 +1245,8 @@ VALUE rb_uint2big(unsigned long number);
   void    rb_io_check_readable(rb_io_t* io);
   void    rb_io_check_writable(rb_io_t* io);
 
+  FILE *  rb_io_stdio_file(rb_io_t *fptr);
+
   void    rb_thread_wait_fd(int fd);
   void    rb_thread_fd_writable(int fd);
   void    rb_thread_wait_for(struct timeval time);
@@ -1498,6 +1519,12 @@ VALUE rb_uint2big(unsigned long number);
   /** Sets the $KCODE variable. */
   void    rb_set_kcode(const char *code);
 
+  /** Returns a String in locale encoding. */
+  VALUE rb_locale_str_new_cstr(const char* string);
+
+  /** Returns a String in locale encoding. */
+  VALUE rb_locale_str_new(const char* string, long len);
+
   /** Returns a pointer to a persistent char [] that contains the same data as
    * that contained in the Ruby string. The buffer is flushed to the string
    * when control returns to Ruby code. The buffer is updated with the string
@@ -1583,6 +1610,9 @@ VALUE rb_uint2big(unsigned long number);
   /* length is a long because MRI has it as a long, and it also has
    * to check that length is greater than 0 properly */
   VALUE   rb_str_new(const char* string, long length);
+
+  /** Create a String from a C string. Alias of rb_str_new2. */
+  VALUE rb_str_new_cstr(const char* string);
 
   /** Create a String from a C string. */
   VALUE   rb_str_new2(const char* string);
@@ -1748,6 +1778,8 @@ VALUE rb_uint2big(unsigned long number);
   NORETURN(void rb_fatal(const char *fmt, ...));
 
   NORETURN(void rb_notimplement());
+
+  NORETURN(void rb_f_notimplement());
 
   /** Raises an ArgumentError exception. */
   NORETURN(void rb_invalid_str(const char *str, const char *type));

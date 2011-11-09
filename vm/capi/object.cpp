@@ -15,8 +15,7 @@ using namespace rubinius::capi;
 extern "C" {
 
   void rb_error_frozen(const char* what) {
-    NativeMethodEnvironment *env = NativeMethodEnvironment::get();
-    if(LANGUAGE_18_ENABLED(env->state())){
+    if(LANGUAGE_18_ENABLED(NativeMethodEnvironment::get()->state())){
       rb_raise(rb_eTypeError, "can't modify frozen %s", what);
     } else {
       rb_raise(rb_eRuntimeError, "can't modify frozen %s", what);

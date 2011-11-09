@@ -13,6 +13,8 @@
 
 #include "object_utils.hpp"
 
+#include "ontology.hpp"
+
 /*
  * For gen_seed:
  */
@@ -233,7 +235,8 @@ namespace rubinius {
 
 
   void Randomizer::init(STATE) {
-    GO(randomizer).set(state->new_class("Randomizer", G(object), G(rubinius)));
+    GO(randomizer).set(ontology::new_class(state,
+          "Randomizer", G(object), G(rubinius)));
     G(randomizer)->set_object_type(state, RandomizerType);
   }
 

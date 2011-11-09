@@ -35,9 +35,9 @@ extern "C" {
 
     // Normally ignore this. It's almost always a hack.
     if(getenv("RBX_RESPECT_RB_GC")) {
-      env->state()->om->collect_young_now = true;
-      env->state()->om->collect_mature_now = true;
-      env->state()->interrupts.set_perform_gc();
+      env->state()->vm()->om->collect_young_now = true;
+      env->state()->vm()->om->collect_mature_now = true;
+      env->state()->shared().gc_soon();
     }
   }
 

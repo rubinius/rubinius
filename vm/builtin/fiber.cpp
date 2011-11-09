@@ -16,6 +16,8 @@
 #include "call_frame.hpp"
 #include "arguments.hpp"
 
+#include "ontology.hpp"
+
 #include "on_stack.hpp"
 
 #ifdef FIBER_NATIVE
@@ -122,7 +124,7 @@ struct fiber_context_t {
 namespace rubinius {
 
   void Fiber::init(STATE) {
-    GO(fiber).set(state->new_class("Fiber", G(object), G(rubinius)));
+    GO(fiber).set(ontology::new_class(state, "Fiber", G(object), G(rubinius)));
     G(fiber)->set_object_type(state, FiberType);
 
 #ifdef FIBER_ENABLED
@@ -134,21 +136,21 @@ namespace rubinius {
 
   Fiber* Fiber::current(STATE) {
 #ifdef FIBER_ENABLED
-    Fiber* fib = state->current_fiber.get();
+    Fiber* fib = state->vm()->current_fiber.get();
 
     // Lazily allocate a root fiber.
     if(fib->nil_p()) {
       fib = state->new_object<Fiber>(G(fiber));
       if(fib->zone() != YoungObjectZone) {
-        state->om->remember_object(fib);
+        state->memory()->remember_object(fib);
       }
       fib->prev_ = nil<Fiber>();
       fib->top_ = 0;
       fib->root_ = true;
       fib->status_ = Fiber::eRunning;
-      fib->state_ = state;
-      fib->stack_size_ = state->stack_size();
-      fib->stack_ = state->stack_start();
+      fib->vm_ = state->vm();
+      fib->stack_size_ = state->vm()->stack_size();
+      fib->stack_ = state->vm()->stack_start();
 
 #ifdef FIBER_NATIVE
       fib->context_ = new fiber_context_t;
@@ -156,10 +158,10 @@ namespace rubinius {
       fib->context_ = new ucontext_t;
 #endif
 
-      state->om->needs_finalization(fib, (FinalizerFunction)&Fiber::finalize);
+      state->memory()->needs_finalization(fib, (FinalizerFunction)&Fiber::finalize);
 
-      state->current_fiber.set(fib);
-      state->root_fiber.set(fib);
+      state->vm()->current_fiber.set(fib);
+      state->vm()->root_fiber.set(fib);
     }
 
     return fib;
@@ -170,23 +172,24 @@ namespace rubinius {
 
   void Fiber::start_on_stack() {
 #ifdef FIBER_ENABLED
-    VM* state = VM::current();
+    VM* vm = VM::current();
+    State state(vm);
 
-    Fiber* fib = Fiber::current(state);
+    Fiber* fib = Fiber::current(&state);
 
-    OnStack<1> os(state, fib);
+    OnStack<1> os(&state, fib);
 
     // Affix this fiber to this thread now.
-    fib->state_ = state;
+    fib->vm_ = vm;
 
     Array* result = nil<Array>();
-    Object* obj = fib->starter()->send(state, NULL, G(sym_call), fib->value(), Qnil, false);
+    Object* obj = fib->starter()->send(&state, NULL, state.globals().sym_call.get(), fib->value(), Qnil, false);
     // GC has run! Don't use stack vars!
 
-    fib = Fiber::current(state);
+    fib = Fiber::current(&state);
     fib->top_ = 0;
     fib->status_ = Fiber::eDead;
-    fib->set_ivar(state, state->symbol("@dead"), Qtrue);
+    fib->set_ivar(&state, state.symbol("@dead"), Qtrue);
 
     Fiber* dest = fib->prev();
     assert(!dest->nil_p());
@@ -195,17 +198,17 @@ namespace rubinius {
     // of returning, so we can deal with it in the same way
     // as *args from #yield, #resume, and #transfer
     if(obj) {
-      result = Array::create(state, 1);
-      result->set(state, 0, obj);
+      result = Array::create(&state, 1);
+      result->set(&state, 0, obj);
     } else {
-      if(state->thread_state()->raise_reason() == cException) {
-        dest->exception(state, state->thread_state()->current_exception());
+      if(state.vm()->thread_state()->raise_reason() == cException) {
+        dest->exception(&state, state.vm()->thread_state()->current_exception());
       }
     }
 
     dest->run();
-    dest->value(state, result);
-    state->set_current_fiber(dest);
+    dest->value(&state, result);
+    state.vm()->set_current_fiber(dest);
 
 #ifdef FIBER_NATIVE
     fiber_context_t dummy;
@@ -231,18 +234,18 @@ namespace rubinius {
 
     Fiber* fib = state->new_object<Fiber>(G(fiber));
     if(fib->zone() != YoungObjectZone) {
-      state->om->remember_object(fib);
+      state->memory()->remember_object(fib);
     }
     fib->starter(state, callable);
     fib->prev(state, nil<Fiber>());
     fib->top_ = 0;
     fib->root_ = false;
-    fib->state_ = 0;
+    fib->vm_ = 0;
     fib->status_ = Fiber::eSleeping;
     fib->stack_size_ = stack_size;
     fib->stack_ = malloc(stack_size);
 
-    state->om->needs_finalization(fib, (FinalizerFunction)&Fiber::finalize);
+    state->memory()->needs_finalization(fib, (FinalizerFunction)&Fiber::finalize);
 
 #ifdef FIBER_NATIVE
     fib->context_ = new fiber_context_t;
@@ -287,7 +290,7 @@ namespace rubinius {
     cur->sleep(calling_environment);
 
     run();
-    state->set_current_fiber(this);
+    state->vm()->set_current_fiber(this);
 
 #ifdef FIBER_NATIVE
     fiber_switch(cur->ucontext(), context_);
@@ -303,7 +306,7 @@ namespace rubinius {
     cur = Fiber::current(state);
 
     if(!cur->exception()->nil_p()) {
-      state->thread_state()->raise_exception(cur->exception());
+      state->raise_exception(cur->exception());
       cur->exception(state, nil<Exception>());
       return 0;
     }
@@ -332,7 +335,7 @@ namespace rubinius {
     value(state, val);
 
     Fiber* cur = Fiber::current(state);
-    Fiber* root = state->root_fiber.get();
+    Fiber* root = state->vm()->root_fiber.get();
     assert(root);
 
     prev(state, root);
@@ -340,7 +343,7 @@ namespace rubinius {
     cur->sleep(calling_environment);
 
     run();
-    state->set_current_fiber(this);
+    state->vm()->set_current_fiber(this);
 
 #ifdef FIBER_NATIVE
     fiber_switch(cur->ucontext(), context_);
@@ -356,7 +359,7 @@ namespace rubinius {
     cur = Fiber::current(state);
 
     if(!cur->exception()->nil_p()) {
-      state->thread_state()->raise_exception(cur->exception());
+      state->raise_exception(cur->exception());
       cur->exception(state, nil<Exception>());
       return 0;
     }
@@ -394,7 +397,7 @@ namespace rubinius {
     cur->sleep(calling_environment);
 
     dest_fib->run();
-    state->set_current_fiber(dest_fib);
+    state->vm()->set_current_fiber(dest_fib);
 
 #ifdef FIBER_NATIVE
     fiber_switch(cur->ucontext(), dest_fib->ucontext());

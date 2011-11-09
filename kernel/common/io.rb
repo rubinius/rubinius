@@ -203,10 +203,6 @@ class IO
   attr_accessor :descriptor
   attr_accessor :mode
 
-  def self.for_fd(fd, mode = nil)
-    new fd, mode
-  end
-
   def self.foreach(name, sep_string = $/)
     return to_enum(:foreach, name, sep_string) unless block_given?
 
@@ -456,6 +452,19 @@ class IO
     IO.select_primitive(readables, writables, errorables, timeout)
   end
 
+  ##
+  # Opens the given path, returning the underlying file descriptor as a Fixnum.
+  #  IO.sysopen("testfile")   #=> 3
+  def self.sysopen(path, mode = "r", perm = 0666)
+    path = Rubinius::Type.coerce_to_path path
+
+    unless mode.kind_of? Integer
+      mode = parse_mode StringValue(mode)
+    end
+
+    open_with_mode path, mode, perm
+  end
+
   #
   # Internally associate +io+ with the given descriptor.
   #
@@ -489,19 +498,6 @@ class IO
     io.sync     ||= STDOUT.fileno == fd if STDOUT.respond_to?(:fileno)
     io.sync     ||= STDERR.fileno == fd if STDERR.respond_to?(:fileno)
   end
-
-  #
-  # Create a new IO associated with the given fd.
-  #
-  def initialize(fd, mode=nil)
-    if block_given?
-      warn 'IO::new() does not take block; use IO::open() instead'
-    end
-
-    IO.setup self, Rubinius::Type.coerce_to(fd, Integer, :to_int), mode
-  end
-
-  private :initialize
 
   ##
   # Obtains a new duplicate descriptor for the current one.

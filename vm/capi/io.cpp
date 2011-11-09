@@ -131,13 +131,13 @@ extern "C" {
 
     long ret;
 
-    env->state()->shared.leave_capi(env->state());
+    env->state()->vm()->shared.leave_capi(env->state());
     {
       GCIndependent guard(env);
       ret = fread(ptr, 1, len, f);
     }
 
-    env->state()->shared.enter_capi(env->state());
+    env->state()->vm()->shared.enter_capi(env->state());
 
     return ret;
   }
@@ -173,7 +173,7 @@ extern "C" {
 
     NativeMethodEnvironment* env = NativeMethodEnvironment::get();
 
-    env->state()->shared.leave_capi(env->state());
+    env->state()->vm()->shared.leave_capi(env->state());
     {
       GCIndependent guard(env);
 
@@ -183,7 +183,7 @@ extern "C" {
       }
     }
 
-    env->state()->shared.enter_capi(env->state());
+    env->state()->vm()->shared.enter_capi(env->state());
 
     return Qtrue;
   }
@@ -218,7 +218,7 @@ extern "C" {
     int ready = 0;
 
     NativeMethodEnvironment* env = NativeMethodEnvironment::get();
-    env->state()->shared.leave_capi(env->state());
+    env->state()->vm()->shared.leave_capi(env->state());
     {
       GCIndependent guard(env->state());
 
@@ -228,7 +228,7 @@ extern "C" {
       }
     }
 
-    env->state()->shared.enter_capi(env->state());
+    env->state()->vm()->shared.enter_capi(env->state());
 
     return Qtrue;
   }
@@ -246,7 +246,7 @@ extern "C" {
     int ready = 0;
 
     NativeMethodEnvironment* env = NativeMethodEnvironment::get();
-    env->state()->shared.leave_capi(env->state());
+    env->state()->vm()->shared.leave_capi(env->state());
     {
       GCIndependent guard(env);
 
@@ -277,7 +277,7 @@ extern "C" {
       }
     }
 
-    env->state()->shared.enter_capi(env->state());
+    env->state()->vm()->shared.enter_capi(env->state());
   }
 
   void rb_io_set_nonblock(rb_io_t* iot) {

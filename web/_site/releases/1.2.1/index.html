@@ -116,12 +116,12 @@ collection, Just-In-Time compilation, and compatibility with existing C APIs.</p
   <li>103e254 FFI: Check for libs by prepending lib too. Fixes #663</li>
   <li>837ec63 Make set_superclass private to declare intent. Fixes #659</li>
   <li>ab13e56 Return nil for no ip instead of -1, -1 means definition line. Fixes #668</li>
-  <li>c3119da Don&rsquo;t allow nils, so use num2long. Fixes #668</li>
+  <li>c3119da Don’t allow nils, so use num2long. Fixes #668</li>
   <li>a42f403 Avoid long DelegatedMethod chains. Fixes #679</li>
   <li>ee5f6b6 Flush data in IO finalizers, run on process exit. Fixes #674</li>
   <li>f276455 Fix lexical scoping issue in eval methods. Fixes #672. Fixes #671</li>
   <li>e473089 Set the proper bytecode position of a when. Fixes #661</li>
-  <li>2758a31 Doesn&rsquo;t dup &amp; freeze already frozen keys in Hash#[]=. Fixes #665</li>
+  <li>2758a31 Doesn’t dup &amp; freeze already frozen keys in Hash#[]=. Fixes #665</li>
   <li>9222e56 msg_controllen should be initialized with CMSG_SPACE, fixes a spec failure on FreeBSD</li>
   <li>dc98d19 Add io/wait. Fixes #648</li>
   <li>a792da8 Remove bunk macro guards. Fixes #655</li>
@@ -129,8 +129,8 @@ collection, Just-In-Time compilation, and compatibility with existing C APIs.</p
   <li>3feeacc Support Proc subclasses properly. Fixes #645. Fixes #646.</li>
   <li>38cfb72 Time.now creates an instance of subclasses if needed. Fixes #644.</li>
   <li>68f7f11 Use StringValue coercion in String#casecmp. Fixes #626</li>
-  <li>c1b4674 Don&rsquo;t accidently add a nil finalizer. Fixes #643</li>
-  <li>f33f88c Descending ranges in String#tr&rsquo;s to_str aren&rsquo;t empty. Fixes #620.</li>
+  <li>c1b4674 Don’t accidently add a nil finalizer. Fixes #643</li>
+  <li>f33f88c Descending ranges in String#tr’s to_str aren’t empty. Fixes #620.</li>
   <li>047a8f4 Added subcommand docs to loader help. Closes #662.</li>
   <li>c3a27b1 String#strip should only remove consecutive null bytes. Closes #625</li>
   <li>ef4166d Use _p in predicates like everywhere else. Closes #658.</li>
@@ -150,11 +150,11 @@ collection, Just-In-Time compilation, and compatibility with existing C APIs.</p
   <li>Fix Array#rindex. It returns an Enumerator when passed no block or argument.</li>
   <li>Fix Array#flatten to ignore nil return from #to_ary.</li>
   <li>Fix Array#product to check the result size first.</li>
-  <li>Fix &lsquo;ruby -S gem&rsquo; by checking for a gem wrapper before searching PATH.</li>
+  <li>Fix ‘ruby -S gem’ by checking for a gem wrapper before searching PATH.</li>
   <li>Fix Array#[]= from incorrectly changing @start.</li>
   <li>Fix a very broken Array#each_index.</li>
   <li>Ensure Array#shift adjusts indices properly.</li>
-  <li>Fix Fixnum#&raquo; bit width boundary.</li>
+  <li>Fix Fixnum#» bit width boundary.</li>
   <li>Create full-named generator methods from insns and aliases for short names.</li>
   <li>Workaround for tr1/unordered_map including <cmath> on OSX 10.5 GCC 4.0.1.</cmath></li>
   <li>Write Agent discovery file to /tmp if possible when TMPDIR not set.</li>
@@ -168,8 +168,8 @@ collection, Just-In-Time compilation, and compatibility with existing C APIs.</p
   <li>Add Marshal.restore as an alias for Marshal.load.</li>
   <li>Add UNIXSocket#send_io/recv_io.</li>
   <li>Rename Process.spawn to Process.replace to avoid naming conflict.</li>
-  <li>Allow &lsquo;@@&rsquo; and &lsquo;@&rsquo; to be a valid argument for instance_variable_set.</li>
-  <li>Properly mark a thread as dying when it&rsquo;s killed</li>
+  <li>Allow ‘@@’ and ‘@’ to be a valid argument for instance_variable_set.</li>
+  <li>Properly mark a thread as dying when it’s killed</li>
 </ul>
 
 <h5 id="minor-additions">Minor additions</h5>
@@ -186,7 +186,7 @@ collection, Just-In-Time compilation, and compatibility with existing C APIs.</p
 <ul>
   <li>Fixed melbourne perf regression due to C-API caching.</li>
   <li>Handle String#splice! requests better</li>
-  <li>Improve perf of String#[]= &lsquo;&rsquo;</li>
+  <li>Improve perf of String#[]= ‘’</li>
 </ul>
 
 <h5 id="system">System</h5>

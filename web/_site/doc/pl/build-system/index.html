@@ -177,7 +177,7 @@ rename your source directory, you will need to rebuild. Likewise, if you build a
 install executable and rename the install directory, the executable will <em>not</em>
 function, <em>even if the executable is in the directory</em>. The executable checks a
 single, hard-coded path. If this ends up being very painful for some reason,
-we&rsquo;ll revise it.</p>
+we’ll revise it.</p>
 
 <h2 id="installing-rubinius">Installing Rubinius</h2>
 
@@ -186,11 +186,11 @@ we&rsquo;ll revise it.</p>
 <pre><code>./configure --prefix=/path/to/install/dir
 </code></pre>
 
-<p>The configure process creates a &lsquo;config.rb&rsquo; file that specifies the key file
-paths that Rubinius uses. Once configured, run &lsquo;rake install&rsquo; to build and
+<p>The configure process creates a ‘config.rb’ file that specifies the key file
+paths that Rubinius uses. Once configured, run ‘rake install’ to build and
 install. The install procedure builds all the files, including compiling the
 Ruby standard library files in the lib/ directory, then copies them into the
-install location using the &lsquo;install&rsquo; program. The install tasks are located in
+install location using the ‘install’ program. The install tasks are located in
 rakelib/install.rake.</p>
 
 

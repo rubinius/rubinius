@@ -47,7 +47,7 @@ namespace rubinius {
     Exception* exception_; // slot
     CallFrame* top_;
     Status status_;
-    VM* state_;
+    VM* vm_;
 
     bool root_;
     void* stack_;
@@ -78,8 +78,8 @@ namespace rubinius {
       return context_;
     }
 
-    VM* state() {
-      return state_;
+    VM* vm() {
+      return vm_;
     }
 
     void* stack() {

@@ -38,6 +38,11 @@ class String
     end
   end
 
+  def prepend(other)
+    self[0,0] = other
+    self
+  end
+
   def upto(stop, exclusive=false)
     return to_enum :upto, stop, exclusive unless block_given?
     stop = StringValue(stop)

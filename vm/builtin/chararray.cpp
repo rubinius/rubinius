@@ -14,10 +14,13 @@
 
 #include "object_utils.hpp"
 
+#include "ontology.hpp"
+
 namespace rubinius {
 
   void CharArray::init(STATE) {
-    GO(chararray).set(state->new_class_under("CharArray", G(rubinius)));
+    GO(chararray).set(ontology::new_class_under(state, 
+                        "CharArray", G(rubinius)));
     G(chararray)->set_object_type(state, CharArrayType);
     G(chararray)->name(state, state->symbol("Rubinius::CharArray"));
   }
@@ -26,7 +29,7 @@ namespace rubinius {
     assert(bytes >= 0 && bytes < INT32_MAX);
 
     size_t body = bytes;
-    CharArray* ba = state->new_object_bytes<CharArray>(G(chararray), body);
+    CharArray* ba = state->vm()->new_object_bytes<CharArray>(G(chararray), body);
     if(unlikely(!ba)) {
       Exception::memory_error(state);
     }
@@ -39,7 +42,7 @@ namespace rubinius {
     assert(bytes >= 0 && bytes < INT32_MAX);
 
     size_t body = bytes;
-    CharArray* ba = state->om->new_object_bytes_mature<CharArray>(state, G(chararray), body);
+    CharArray* ba = state->memory()->new_object_bytes_mature<CharArray>(state, G(chararray), body);
     if(unlikely(!ba)) {
       Exception::memory_error(state);
     }

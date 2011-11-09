@@ -37,6 +37,7 @@ namespace rubinius {
     , env_(env)
     , tool_broker_(new tooling::ToolBroker)
     , ruby_critical_set_(false)
+    , check_gc_(false)
 
     , om(0)
     , global_cache(new GlobalCache)
@@ -75,12 +76,12 @@ namespace rubinius {
   }
 
   void SharedState::add_managed_thread(ManagedThread* thr) {
-    SYNC(0);
+    SYNC_TL;
     threads_.push_back(thr);
   }
 
   void SharedState::remove_managed_thread(ManagedThread* thr) {
-    SYNC(0);
+    SYNC_TL;
     threads_.remove(thr);
   }
 
@@ -102,7 +103,7 @@ namespace rubinius {
   VM* SharedState::new_vm() {
     uint32_t id = new_thread_id(0);
 
-    SYNC(0);
+    SYNC_TL;
 
     // TODO calculate the thread id by finding holes in the
     // field of ids, so we reuse ids.
@@ -118,7 +119,7 @@ namespace rubinius {
   }
 
   void SharedState::remove_vm(VM* vm) {
-    SYNC(0);
+    SYNC_TL;
     this->deref();
 
     // Don't delete ourself here, it's too problematic.
@@ -139,19 +140,12 @@ namespace rubinius {
   QueryAgent* SharedState::autostart_agent(STATE) {
     SYNC(state);
     if(agent_) return agent_;
-    agent_ = new QueryAgent(*this, root_vm_);
+    agent_ = new QueryAgent(*this, state);
     return agent_;
   }
 
-  /**
-   * Create the preemption thread and call scheduler_loop() in the new thread.
-   */
-  void SharedState::enable_preemption() {
-    interrupts.enable_preempt = true;
-  }
-
   void SharedState::pre_exec() {
-    SYNC(0);
+    SYNC_TL;
     if(agent_) agent_->cleanup();
   }
 
@@ -163,12 +157,12 @@ namespace rubinius {
 
     env_->state = state;
     threads_.clear();
-    threads_.push_back(state);
+    threads_.push_back(state->vm());
 
     // Reinit the locks for this object
-    lock_init(state);
-    global_cache->lock_init(state);
-    ic_registry_->lock_init(state);
+    lock_init(state->vm());
+    global_cache->lock_init(state->vm());
+    ic_registry_->lock_init(state->vm());
     onig_lock_.init();
     ruby_critical_lock_.init();
     capi_lock_.init();
@@ -215,12 +209,28 @@ namespace rubinius {
     }
   }
 
+  void SharedState::stop_threads_externally() {
+    world_->stop_threads_externally();
+  }
+
   void SharedState::restart_world(THREAD) {
     world_->wake_all_waiters(state);
   }
 
+  void SharedState::restart_threads_externally() {
+    world_->restart_threads_externally();
+  }
+
   bool SharedState::checkpoint(THREAD) {
     return world_->checkpoint(state);
+  }
+
+  void SharedState::gc_dependent(STATE) {
+    world_->become_dependent(state->vm());
+  }
+
+  void SharedState::gc_independent(STATE) {
+    world_->become_independent(state->vm());
   }
 
   void SharedState::gc_dependent(THREAD) {
@@ -257,10 +267,10 @@ namespace rubinius {
   }
 
   void SharedState::enter_capi(STATE) {
-    capi_lock_.lock(state);
+    capi_lock_.lock(state->vm());
   }
 
   void SharedState::leave_capi(STATE) {
-    capi_lock_.unlock(state);
+    capi_lock_.unlock(state->vm());
   }
 }

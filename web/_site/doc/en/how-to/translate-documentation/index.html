@@ -172,10 +172,10 @@ This needs to be investigated.)</li>
   <li>Add a corresponding value to <code>TRANS</code> array in <code>rakelib/web.rake</code>(see below).</li>
 </ol>
 
-<h3 id="translators-tool">Translator&rsquo;s Tool</h3>
+<h3 id="translators-tool">Translator’s Tool</h3>
 
-<p>We&rsquo;ve made some tiny tools to aid translators. Technically, there&rsquo;s only one
-such tool yet. It&rsquo;s <strong>Translator Consistency Checker</strong>.</p>
+<p>We’ve made some tiny tools to aid translators. Technically, there’s only one
+such tool yet. It’s <strong>Translator Consistency Checker</strong>.</p>
 
 <h4 id="short-synopsis">Short Synopsis</h4>
 
@@ -215,8 +215,8 @@ NB:
 
 <h4 id="explanation">Explanation</h4>
 
-<p><code>web:translations:check</code> rake task recursively checks &ldquo;Leader&rdquo; docs version (which is
-now <code>web/doc/en</code> subtree) against the list of translated &ldquo;followers&rdquo;. Both
+<p><code>web:translations:check</code> rake task recursively checks “Leader” docs version (which is
+now <code>web/doc/en</code> subtree) against the list of translated “followers”. Both
 leader and translations list are defined in <code>rakelib/web.rake</code>:</p>
 
 <pre><code># This is the 'leader' version: all is translated from here.
@@ -235,16 +235,16 @@ TRANS  = [
 </code></pre>
 
 <p>For each Leader file the script checks whether the corresponding translation
-file exist and has <code>mtime</code> younger (less) than the Leader&rsquo;s. If translation is
-older than the original Leader file or doesn&rsquo;t exist you&rsquo;ll see that very nice
-annoying message as shown in the example. If all files are OK you&rsquo;ll see and recognize
+file exist and has <code>mtime</code> younger (less) than the Leader’s. If translation is
+older than the original Leader file or doesn’t exist you’ll see that very nice
+annoying message as shown in the example. If all files are OK you’ll see and recognize
 that.</p>
 
 <h4 id="conclusion">Conclusion</h4>
 
 <p>This mega duper tiny stupid tool was written to help the translator to
-understand which files might obviously need alteration. No more. There&rsquo;s no
-intellectual analysis like translation validity check, etc. &mdash; at all. If you
+understand which files might obviously need alteration. No more. There’s no
+intellectual analysis like translation validity check, etc. — at all. If you
 are the smartest Rubinius contributor ever you are welcome to expand this tool
 thus helping the society and saving the world!</p>
 

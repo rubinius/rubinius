@@ -230,7 +230,7 @@ namespace rubinius {
 
   static Layout* find_layout(STATE, Object* obj, Layout* root, Array* ary, SymbolList& syms) {
     // Collect all the ivar names that we want to pull out
-    TypeInfo* ti = state->om->type_info[obj->type_id()];
+    TypeInfo* ti = state->memory()->type_info[obj->type_id()];
     for(TypeInfo::Slots::iterator i = ti->slots.begin();
         i != ti->slots.end();
         ++i) {
@@ -319,7 +319,7 @@ namespace rubinius {
 
       enc.start_object(id);
 
-      enc.write4(obj->size_in_bytes(state));
+      enc.write4(obj->size_in_bytes(state->vm()));
 
       enc.write4(layout->id());
 
@@ -388,8 +388,8 @@ namespace rubinius {
   };
 
   Object* System::vm_dump_heap(STATE, String* path) {
-    ObjectWalker walker(state->om);
-    GCData gc_data(state);
+    ObjectWalker walker(state->memory());
+    GCData gc_data(state->vm());
 
     // Seed it with the root objects.
     walker.seed(gc_data);

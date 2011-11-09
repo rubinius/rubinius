@@ -213,7 +213,7 @@ end
 </code></pre>
 
 <p>Die #profile-Methode startet den Profiler, macht ein yield, hält den Profiler an
-und druckt die Profiler-Daten aus. Wird &lsquo;false&rsquo; als Argument an #profile
+und druckt die Profiler-Daten aus. Wird ‘false’ als Argument an #profile
 weitergegeben, dann druckt es die Daten nicht aus. Nichtsdestotrotz werden die
 Profiler-Daten als Rückgabewert von #profile zurückgegeben.</p>
 
@@ -277,7 +277,7 @@ p.profile {
 }
 </code></pre>
 
-<p>Führt man das Skript mit &lsquo;bin/rbx script.rb&rsquo; aus, sollte folgende Tabelle
+<p>Führt man das Skript mit ‘bin/rbx script.rb’ aus, sollte folgende Tabelle
 ausgegeben werden:</p>
 
 <pre><code>  %   cumulative   self                self     total
@@ -305,7 +305,7 @@ ausgegeben werden:</p>
 </code></pre>
 
 <p>Mit dem vorhin genannten Skript wird der unten angegebene Graph ausgegeben.
-Jeder &ldquo;Eintrag&rdquo; im Graphen hat drei Abschnitte: 1) Die Methode für den Eintrag,
+Jeder “Eintrag” im Graphen hat drei Abschnitte: 1) Die Methode für den Eintrag,
 genannt Primärzeile; 2) die Aufrufer der Primärmethode; und 3) die Methoden,
 die die Primärmethode selber aufrief. Die Felder haben unterschiedliche
 Bedeutungen in Bezug auf den Ort ihres Eintrags.</p>
@@ -396,7 +396,7 @@ rechts steht die Gesamtzahl der Aufrufe, die an diese Methode gemacht wurden.</p
 
 <p>Der Name der aufgerufenen Methode gefolgt von ihrem Index [N]. Ist kein Index
 vorhanden, dann gibt es für diese Methode auch keinen Primäreintrag im Graphen.
-Um auch solche Methoden anzeigen zu lassen, wird die &lsquo;-Xprofiler.full_report&rsquo;
+Um auch solche Methoden anzeigen zu lassen, wird die ‘-Xprofiler.full_report’
 Option verwendet, die den vollständigen Graphen generiert.</p>
 
 <pre><code>index  % time     self  children         called       name

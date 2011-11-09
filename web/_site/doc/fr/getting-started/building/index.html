@@ -140,23 +140,23 @@
   
 
     <p>Vous pouvez compiler et exécuter Rubinius à partir du répertoire des sources.
-Vous n&rsquo;avez pas besoin d&rsquo;installer Rubinius pour l&rsquo;exécuter.
+Vous n’avez pas besoin d’installer Rubinius pour l’exécuter.
 Les instructions ci-dessous détaillent ces deux points, installer Rubinius
-et l&rsquo;exécuter à partir du répertoire des sources.</p>
+et l’exécuter à partir du répertoire des sources.</p>
 
-<p>Rubinius utilise LLVM dans son compilateur JIT. Rubinius dépend d&rsquo;une version
+<p>Rubinius utilise LLVM dans son compilateur JIT. Rubinius dépend d’une version
 particulière de LLVM, et LLVM doit être compilé avec les options de RTTI C++
-(&ldquo;run-time type information&rdquo;) activées.
+(“run-time type information”) activées.
 Le script <code>configure</code> vérifiera automatiquement ces pré-requis en cherchant une
 version installée de LLVM.
-Si LLVM n&rsquo;est pas installé ou que Rubinius échoue à l&rsquo;édition de liens pour une
+Si LLVM n’est pas installé ou que Rubinius échoue à l’édition de liens pour une
 raison quelconque, passez <code>--skip-system</code> au script <code>configure</code> dans les
 instructions suivantes.</p>
 
 <h3 id="rcuprer-les-sources">Récupérer les sources</h3>
 
-<p>Le code source de Rubinius est disponible sous la forme d&rsquo;une archive et d&rsquo;un projet sur Github.
-Vous pouvez <a href="http://rubini.us/download/latest">télécharger l&rsquo;archive ici</a>.</p>
+<p>Le code source de Rubinius est disponible sous la forme d’une archive et d’un projet sur Github.
+Vous pouvez <a href="http://rubini.us/download/latest">télécharger l’archive ici</a>.</p>
 
 <p>Pour utiliser Git :</p>
 
@@ -167,12 +167,12 @@ Vous pouvez <a href="http://rubini.us/download/latest">télécharger l&rsquo;arc
 
 <h3 id="installer-rubinius">Installer Rubinius</h3>
 
-<p>Si vous prévoyez d&rsquo;utiliser Rubinius pour exécuter votre application, c&rsquo;est
+<p>Si vous prévoyez d’utiliser Rubinius pour exécuter votre application, c’est
 une bonne solution. Cependant, vous pouvez aussi exécuter Rubinius directement
 à partir du répertoire des sources. Consultez la section suivante pour plus
 de détails sur ce sujet.</p>
 
-<p>Nous recommandons d&rsquo;installer Rubinius à un emplacement qui ne nécessite pas <code>sudo</code> ou
+<p>Nous recommandons d’installer Rubinius à un emplacement qui ne nécessite pas <code>sudo</code> ou
 des privilèges super-utilisateur. Pour installer Rubinius :</p>
 
 <ol>
@@ -195,8 +195,8 @@ le répertoire <em>bin</em> de Rubinius à votre <code>PATH</code>.</p>
 
 <p>Cependant, si vous développez Rubinius, vous ne devriez PAS ajouter le répertoire <em>bin</em>
 à votre PATH car le système de construction de Rubinius va utiliser les liens
-<code>ruby</code> et <code>rake</code> qui pointent vers l&rsquo;exécutable Rubinius.
-Rubinius nécessite un exécutable Ruby séparé pour s&rsquo;amorcer lors de la phase de
+<code>ruby</code> et <code>rake</code> qui pointent vers l’exécutable Rubinius.
+Rubinius nécessite un exécutable Ruby séparé pour s’amorcer lors de la phase de
 compilation.</p>
 
 

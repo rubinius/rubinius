@@ -265,7 +265,7 @@
 <p>Unlike other literals such as strings and numbers, creating a Regexp
    literal (i.e. via the /regex/ syntax) is a two step process to create the
    literal slot for the Regexp, create a literal for the string between the
-   &lsquo;/&rsquo; delimiters and create a new Regexp object passing it the string.  Only
+   ‘/’ delimiters and create a new Regexp object passing it the string.  Only
    then can the literal value be set, using the set_literal opcode.</p>
 
 <h3><a class="instruction" name="push_literal">push_literal(literal)</a></h3>
@@ -763,7 +763,7 @@
 
 <p>Remove the next unused unwind registration from the current invocation.
    This instruction is paired with <code>setup_unwind</code> to remove registrations
-   when control exits a section of code that registered a handler but didn&rsquo;t
+   when control exits a section of code that registered a handler but didn’t
    use it. For example, exiting a begin that had a rescue expression.</p>
 
 <table class="stack_effect">
@@ -1360,7 +1360,7 @@ tuple data.</li>
    the arg is an array.</p>
 
 <p>If the Proc invoked from was in lambda mode, and one argument is passed:
-     * and it&rsquo;s an Array, push it.
+     * and it’s an Array, push it.
      * and it responds to <code>#to_ary</code>, try and convert it and push it.
      * otherwise wrap it in a one element Array and push it.</p>
 
@@ -1646,7 +1646,7 @@ tuple data.</li>
    runtime to determine which code path is executed.</p>
 
 <p>For example, a method such as <code>Fixnum#times</code> can be optimised at compile
-   time, but we can&rsquo;t know until runtime whether or not the <code>Fixnum#times</code>
+   time, but we can’t know until runtime whether or not the <code>Fixnum#times</code>
    method has been overridden. The serial number check is used to determine
    each time the code is executed, whether or not the standard <code>Fixnum#times</code>
    has been overridden. It leverages the serial number field on a
@@ -1655,7 +1655,7 @@ tuple data.</li>
 
 <h3><a class="instruction" name="check_serial_private">check_serial_private(literal, serial)</a></h3>
 
-<p>Checks if the specified method&rsquo;s serial number matches an expected value.
+<p>Checks if the specified method’s serial number matches an expected value.
    Considers <code>private</code> methods too.</p>
 
 <table class="stack_effect">
@@ -1943,7 +1943,7 @@ tuple data.</li>
 </table>
 
 <h4 id="notes-24">Notes</h4>
-<p>Exactly like equal, except calls <code>#===</code> if it can&rsquo;t handle it directly.</p>
+<p>Exactly like equal, except calls <code>#===</code> if it can’t handle it directly.</p>
 
 <h3><a class="instruction" name="meta_send_call">meta_send_call(literal, count)</a></h3>
 
@@ -2234,7 +2234,7 @@ tuple data.</li>
 </table>
 <h3><a class="instruction" name="meta_to_s">meta_to_s(literal)</a></h3>
 
-<p>Pop a value off the stack and if it&rsquo;s not a <code>String</code>, call a method
+<p>Pop a value off the stack and if it’s not a <code>String</code>, call a method
    indicated by <em>literal</em> on it.  Push the resulting object back on the
    stack.</p>
 

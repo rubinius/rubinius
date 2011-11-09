@@ -10,12 +10,14 @@
 #include "vm/object_utils.hpp"
 #include "vm/configuration.hpp"
 
+#include "ontology.hpp"
+
 #include <iostream>
 
 namespace rubinius {
 
   void Fixnum::init(STATE) {
-    GO(fixnum_class).set(state->new_class("Fixnum", G(integer)));
+    GO(fixnum_class).set(ontology::new_class(state, "Fixnum", G(integer)));
     G(fixnum_class)->set_object_type(state, FixnumType);
 
     G(fixnum_class)->set_const(state, "MIN", Fixnum::from(FIXNUM_MIN));

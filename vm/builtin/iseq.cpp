@@ -2,11 +2,14 @@
 #include "builtin/iseq.hpp"
 #include "builtin/tuple.hpp"
 
+#include "ontology.hpp"
+
 #include "vm.hpp"
 
 namespace rubinius {
   void InstructionSequence::init(STATE) {
-    GO(iseq).set(state->new_class("InstructionSequence", G(object), G(rubinius)));
+    GO(iseq).set(ontology::new_class(state, 
+          "InstructionSequence", G(object), G(rubinius)));
     G(iseq)->set_object_type(state, InstructionSequenceType);
   }
 

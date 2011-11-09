@@ -56,7 +56,7 @@ int main(int argc, char** argv) {
     e->print_backtrace();
 
     std::cout << std::endl << "Ruby backtrace:" << std::endl;
-    env.state->print_backtrace();
+    env.state->vm()->print_backtrace();
     delete e;
     return 1;
   } catch(RubyException &e) {
@@ -75,12 +75,12 @@ int main(int argc, char** argv) {
      * an array was expected.
      */
     std::cout << "Type Error detected:" << std::endl;
-    TypeInfo* wanted = env.state->find_type(e.type);
+    TypeInfo* wanted = env.state->vm()->find_type(e.type);
 
     if(!e.object->reference_p()) {
       std::cout << "  Tried to use non-reference value " << e.object;
     } else {
-      TypeInfo* was = env.state->find_type(e.object->type_id());
+      TypeInfo* was = env.state->vm()->find_type(e.object->type_id());
       std::cout << "  Tried to use object of type " <<
         was->type_name << " (" << was->type << ")";
     }
@@ -91,7 +91,7 @@ int main(int argc, char** argv) {
     e.print_backtrace();
 
     std::cout << "Ruby backtrace:" << std::endl;
-    env.state->print_backtrace();
+    env.state->vm()->print_backtrace();
     return 1;
   } catch(BadKernelFile& e) {
     std::cout << "ERROR: Unable to load: " << e.what() << std::endl << std::endl;

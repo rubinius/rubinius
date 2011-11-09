@@ -29,7 +29,7 @@ your first Rubinius commit.&lt;/p&gt;
 
 &lt;p&gt;Before diving into the Rubinius code, I want to emphasize that there are many
 ways that you can contribute to Rubinius. One of the most valuable for us is
-trying your own library or application on Rubinius. We&amp;rsquo;ve worked super hard to
+trying your own library or application on Rubinius. We’ve worked super hard to
 make using Rubinius in place of MRI as simple as possible. For example, with a
 typical Rails application, here is all you should need to do to get set up:&lt;/p&gt;
 
@@ -38,7 +38,7 @@ rvm use rbx
 gem install bundler
 &lt;/code&gt;&lt;/pre&gt;
 
-&lt;p&gt;Once you&amp;rsquo;ve got Rubinius and Bundler installed, running your application
+&lt;p&gt;Once you’ve got Rubinius and Bundler installed, running your application
 should be this simple:&lt;/p&gt;
 
 &lt;pre&gt;&lt;code&gt;cd &amp;lt;my_application&amp;gt;
@@ -60,8 +60,8 @@ Github&lt;/a&gt;.&lt;/p&gt;
 &lt;p&gt;Another way to contribute to Rubinius is talking about the project. If you
 tried your application and your 50 gems installed without problems, consider
 &lt;a href=&quot;https://twitter.com/rubinius&quot;&gt;tweeting at us&lt;/a&gt; or writing up a quick blog post
-about your experiences. If you&amp;rsquo;ve done something
-&lt;a href=&quot;http://fancy-lang.org/&quot;&gt;fancy&lt;/a&gt; that you&amp;rsquo;d like to share with us, we&amp;rsquo;re always
+about your experiences. If you’ve done something
+&lt;a href=&quot;http://fancy-lang.org/&quot;&gt;fancy&lt;/a&gt; that you’d like to share with us, we’re always
 happy to have &lt;a href=&quot;http://rubini.us/2011/02/23/introduction-to-fancy/&quot;&gt;guest blog
 posts&lt;/a&gt;, too. We even have
 documentation on &lt;a href=&quot;http://rubini.us/doc/en/how-to/write-a-blog-post/&quot;&gt;how to write a blog
@@ -84,11 +84,11 @@ install it. We provide symlinks for common commands like &lt;code&gt;gem&lt;/cod
 
 &lt;p&gt;If you run into any trouble with these steps, see the &lt;a href=&quot;http://rubini.us/doc/en/getting-started/&quot;&gt;Getting
 Started&lt;/a&gt; page for more information.
-You may need to install libraries required to build Rubinius. If you don&amp;rsquo;t
-find answers there, visit the &lt;code&gt;#rubinius&lt;/code&gt; channel on freenode.net and we&amp;rsquo;ll
+You may need to install libraries required to build Rubinius. If you don’t
+find answers there, visit the &lt;code&gt;#rubinius&lt;/code&gt; channel on freenode.net and we’ll
 help you out.&lt;/p&gt;
 
-&lt;p&gt;While the build is running, let&amp;rsquo;s get a quick overview of how Rubinius is
+&lt;p&gt;While the build is running, let’s get a quick overview of how Rubinius is
 organized.&lt;/p&gt;
 
 &lt;h3 id=&quot;code-tour&quot;&gt;Code Tour&lt;/h3&gt;
@@ -103,7 +103,7 @@ debugger are written mostly or all in Ruby.&lt;/p&gt;
 &lt;p&gt;The Ruby core library is found in the &lt;code&gt;kernel/&lt;/code&gt; directory. The kernel is
 divided into subdirectories that are loaded in order when Rubinius boots. The
 divisions were made to help share the Ruby core library with other
-implementations. I&amp;rsquo;ll cover those basic divisions here. For more details about
+implementations. I’ll cover those basic divisions here. For more details about
 how the loading process works, see the
 &lt;a href=&quot;http://rubini.us/doc/en/bootstrapping/&quot;&gt;Bootstrapping&lt;/a&gt; documentation.&lt;/p&gt;
 
@@ -135,7 +135,7 @@ the JIT compiler (&lt;code&gt;vm/llvm/&lt;/code&gt;). The &lt;code&gt;main()&lt;
 &lt;p&gt;One of the important parts of Rubinius are the low-level operations that
 cannot be defined in Ruby. These are things like adding two Fixnums together.
 These operations are called primitives and the code for them is in
-&lt;code&gt;vm/builtin&lt;/code&gt;. Since you will likely encounter these in the core library, we&amp;rsquo;ll
+&lt;code&gt;vm/builtin&lt;/code&gt;. Since you will likely encounter these in the core library, we’ll
 delve into them a bit.&lt;/p&gt;
 
 &lt;h4 id=&quot;primitives&quot;&gt;Primitives&lt;/h4&gt;
@@ -143,15 +143,10 @@ delve into them a bit.&lt;/p&gt;
 &lt;p&gt;All methods that can be called in Ruby are exposed as, well, Ruby methods. If
 you open &lt;code&gt;kernel/bootstrap/fixnum.rb&lt;/code&gt;, you should see the following code:&lt;/p&gt;
 
-&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;ruby&quot;&gt;&lt;span class=&quot;lineno&quot;&gt;1&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;def&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;to_f&lt;/span&gt;
-&lt;span class=&quot;lineno&quot;&gt;2&lt;/span&gt;   &lt;span class=&quot;no&quot;&gt;Rubinius&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;primitive&lt;/span&gt; &lt;span class=&quot;ss&quot;&gt;:fixnum_to_f&lt;/span&gt;
-&lt;span class=&quot;lineno&quot;&gt;3&lt;/span&gt;   &lt;span class=&quot;k&quot;&gt;raise&lt;/span&gt; &lt;span class=&quot;no&quot;&gt;PrimitiveFailure&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&amp;quot;Fixnum#to_f primitive failed&amp;quot;&lt;/span&gt;
-&lt;span class=&quot;lineno&quot;&gt;4&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;end&lt;/span&gt;
-&lt;/code&gt;&lt;/pre&gt;
-&lt;/div&gt;
+&lt;p&gt;Liquid error: undefined method `join’ for #&lt;String:0x00000002286fc0 /&gt;&lt;/p&gt;
 
 &lt;p&gt;The &lt;code&gt;Rubinius.primitive :fixnum_to_f&lt;/code&gt; code looks like a normal Ruby method
-call but it is not. It&amp;rsquo;s actually a compiler directive to tag this Ruby method
+call but it is not. It’s actually a compiler directive to tag this Ruby method
 as having an associated primitive operation. The name of the primitive is
 &lt;code&gt;fixnum_to_f&lt;/code&gt;. This naming convention is standard, being composed of the class
 name and the method name. Methods in Ruby that are characters, like &lt;code&gt;+&lt;/code&gt;, are
@@ -166,10 +161,7 @@ operation is appropriate, the method should raise an exception.&lt;/p&gt;
 &lt;p&gt;To see how the Ruby method relates to the primitive code, open
 &lt;code&gt;vm/builtin/fixnum.hpp&lt;/code&gt;:&lt;/p&gt;
 
-&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;cpp&quot;&gt;&lt;span class=&quot;lineno&quot;&gt;1&lt;/span&gt; &lt;span class=&quot;c1&quot;&gt;// Rubinius.primitive :fixnum_to_f&lt;/span&gt;
-&lt;span class=&quot;lineno&quot;&gt;2&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;Float&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;*&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;to_f&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;STATE&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;);&lt;/span&gt;
-&lt;/code&gt;&lt;/pre&gt;
-&lt;/div&gt;
+&lt;p&gt;Liquid error: undefined method `join’ for “\n// Rubinius.primitive :fixnum_to_f\nFloat* to_f(STATE);\n”:String&lt;/p&gt;
 
 &lt;p&gt;The &lt;code&gt;vm/builtin/*.hpp&lt;/code&gt; files are processed by the Rubinius build system to
 automatically generate C++ code to resolve and bind these primitive
@@ -179,11 +171,7 @@ method.&lt;/p&gt;
 &lt;p&gt;Finally, the actual implementation of this primitive is found in
 &lt;code&gt;vm/builtin/fixnum.cpp&lt;/code&gt;:&lt;/p&gt;
 
-&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;cpp&quot;&gt;&lt;span class=&quot;lineno&quot;&gt;1&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;Float&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;*&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;Fixnum&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;::&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;to_f&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;STATE&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
-&lt;span class=&quot;lineno&quot;&gt;2&lt;/span&gt;   &lt;span class=&quot;k&quot;&gt;return&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;Float&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;::&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;create&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;state&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;kt&quot;&gt;double&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;to_native&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;());&lt;/span&gt;
-&lt;span class=&quot;lineno&quot;&gt;3&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
-&lt;/code&gt;&lt;/pre&gt;
-&lt;/div&gt;
+&lt;p&gt;Liquid error: undefined method `join’ for #&lt;String:0x00000002286610 /&gt;&lt;/p&gt;
 
 &lt;p&gt;Here you can see that a new Float object is being created from the value of
 the Fixnum. Rubinius names the C++ classes that implement the Ruby primitive
@@ -191,7 +179,7 @@ operations the same as their Ruby counterparts. One of the goals of Rubinius
 is to build an elegant, easily comprehensible system, and we feel that this
 consistency has been a great benefit toward that goal.&lt;/p&gt;
 
-&lt;p&gt;Now that we have a basic idea of the structure of Rubinius, let&amp;rsquo;s look at some
+&lt;p&gt;Now that we have a basic idea of the structure of Rubinius, let’s look at some
 aspects of its runtime behavior, in particular, supporting different Ruby
 language modes.&lt;/p&gt;
 
@@ -213,7 +201,7 @@ bin/rbx -X19 -v
 &lt;/code&gt;&lt;/pre&gt;
 
 &lt;p&gt;The default language mode is 1.8, so if you invoke &lt;code&gt;rbx&lt;/code&gt; with no other
-options, you&amp;rsquo;ll be running in 1.8 mode. You can change the default mode with a
+options, you’ll be running in 1.8 mode. You can change the default mode with a
 configure time option as follows:&lt;/p&gt;
 
 &lt;pre&gt;&lt;code&gt;./configure --default-version=1.9
@@ -222,8 +210,8 @@ configure time option as follows:&lt;/p&gt;
 &lt;p&gt;If you configure Rubinius to have a default language mode of 1.9, you can
 access 1.8 mode with the &lt;code&gt;-X18&lt;/code&gt; runtime option as discussed above.&lt;/p&gt;
 
-&lt;p&gt;Ok, we&amp;rsquo;ve got the code, we understand something about how it is organized,
-we&amp;rsquo;ve got the runtime behavior down, now let&amp;rsquo;s look at actually implementing
+&lt;p&gt;Ok, we’ve got the code, we understand something about how it is organized,
+we’ve got the runtime behavior down, now let’s look at actually implementing
 Ruby. To do that, we need to know how Ruby behaves, and that is what RubySpec
 is all about.&lt;/p&gt;
 
@@ -233,7 +221,7 @@ is all about.&lt;/p&gt;
 implementing Ruby behavior, and we are constantly contributing more to it.
 Basically, Rubinius does it by the spec. So, any commit to the Ruby core
 library in Rubinius must either have new specs or make existing specs pass. To
-effectively contribute to Rubinius, you&amp;rsquo;ll need to understand some basics
+effectively contribute to Rubinius, you’ll need to understand some basics
 about RubySpec. I recommend that you have a read through the documentation at
 &lt;a href=&quot;http://rubyspec.org/&quot;&gt;rubyspec.org&lt;/a&gt;.&lt;/p&gt;
 
@@ -278,10 +266,10 @@ path or the shortened version &lt;code&gt;core/array&lt;/code&gt; above.&lt;/p&g
 &lt;p&gt;One goal of MSpec is to make it as easy as possible to run the specs for the
 parts of Ruby that have been implemented. It takes a long time to implement
 all of Ruby correctly, but we want to know that the parts we have implemented
-don&amp;rsquo;t get broken while working on other parts. That is the role of continuous
+don’t get broken while working on other parts. That is the role of continuous
 integration. To use CI effectively, we need to partition the specs into those
-that we expect to pass and those we know we don&amp;rsquo;t pass yet. MSpec provides a
-facility for this, called tagging, that we&amp;rsquo;ll look at shortly. For now, we&amp;rsquo;ll
+that we expect to pass and those we know we don’t pass yet. MSpec provides a
+facility for this, called tagging, that we’ll look at shortly. For now, we’ll
 just look at running the specs in CI mode.&lt;/p&gt;
 
 &lt;p&gt;To run all the Rubinius specs in CI mode under the default language version,
@@ -296,7 +284,7 @@ use the following command:&lt;/p&gt;
 &lt;/code&gt;&lt;/pre&gt;
 
 &lt;p&gt;The &lt;code&gt;bin/mspec ci&lt;/code&gt; command runs the &lt;code&gt;mspec-ci&lt;/code&gt; script. You should be familiar
-with this mechanism from working with Git. It&amp;rsquo;s the same idea. The &lt;code&gt;mspec&lt;/code&gt;
+with this mechanism from working with Git. It’s the same idea. The &lt;code&gt;mspec&lt;/code&gt;
 script itself is just a utility to invoke the various specific MSpec scripts.
 To see the options for &lt;code&gt;mspec&lt;/code&gt;, run the following command&lt;/p&gt;
 
@@ -319,33 +307,33 @@ second command runs &lt;code&gt;mspec-run&lt;/code&gt; with &lt;code&gt;core/arr
 mspec core/array ci
 &lt;/code&gt;&lt;/pre&gt;
 
-&lt;p&gt;Now that we&amp;rsquo;ve got the basics of MSpec down, let&amp;rsquo;s look at how we find specs
-that fail on Rubinius. To do this, we&amp;rsquo;ll use the &lt;code&gt;mspec tag&lt;/code&gt; command.&lt;/p&gt;
+&lt;p&gt;Now that we’ve got the basics of MSpec down, let’s look at how we find specs
+that fail on Rubinius. To do this, we’ll use the &lt;code&gt;mspec tag&lt;/code&gt; command.&lt;/p&gt;
 
 &lt;h4 id=&quot;tagged-specs&quot;&gt;Tagged Specs&lt;/h4&gt;
 
 &lt;p&gt;Since Rubinius uses the tagging mechanism to create the set of CI specs to
-run, the best way to discover what parts of RubySpec that Rubinius isn&amp;rsquo;t
-passing yet is to list the specs that are tagged. There&amp;rsquo;s a command for that:&lt;/p&gt;
+run, the best way to discover what parts of RubySpec that Rubinius isn’t
+passing yet is to list the specs that are tagged. There’s a command for that:&lt;/p&gt;
 
 &lt;pre&gt;&lt;code&gt;bin/mspec tag --list fails -tx19 :ci_files
 &lt;/code&gt;&lt;/pre&gt;
 
-&lt;p&gt;This command lists all the specs that are tagged as failing. There&amp;rsquo;s some new
+&lt;p&gt;This command lists all the specs that are tagged as failing. There’s some new
 syntax here, namely &lt;code&gt;:ci_files&lt;/code&gt;. MSpec has the concept of pseudo-directories.
 Basically, they are lists of files. The reason for this is that running all
 the core or standard library specs in RubySpec is not as simple as just
-running all the files under &lt;code&gt;spec/ruby/core&lt;/code&gt; or &lt;code&gt;spec/ruby/library&lt;/code&gt;. It&amp;rsquo;s more
+running all the files under &lt;code&gt;spec/ruby/core&lt;/code&gt; or &lt;code&gt;spec/ruby/library&lt;/code&gt;. It’s more
 complicated than that because there are 1.8- and 1.9-specific libraries.
 Rather than wrapping everything in &lt;code&gt;ruby_version_is&lt;/code&gt; guards, MSpec adds
 version-specific lists and names them, for example, &lt;code&gt;:core&lt;/code&gt; and &lt;code&gt;:library&lt;/code&gt;.&lt;/p&gt;
 
-&lt;p&gt;In this case, we&amp;rsquo;re using the list of files specified by &lt;code&gt;:ci_files&lt;/code&gt;. This
+&lt;p&gt;In this case, we’re using the list of files specified by &lt;code&gt;:ci_files&lt;/code&gt;. This
 list excludes some files that are known to cause problems if they are run.&lt;/p&gt;
 
 &lt;p&gt;The list of specs that are currently marked as failing is pretty long. We can
 reduce the number of tags we are looking at by giving a smaller set of specs
-to run.  For example, let&amp;rsquo;s just run the File specs:&lt;/p&gt;
+to run.  For example, let’s just run the File specs:&lt;/p&gt;
 
 &lt;pre&gt;&lt;code&gt;bin/mspec tag --list fails -tx19 core/file
 &lt;/code&gt;&lt;/pre&gt;
@@ -357,7 +345,7 @@ writing this post) that there are several failures in the
 &lt;pre&gt;&lt;code&gt;bin/mspec tag --list fails -tx19 core/file/world_writable
 &lt;/code&gt;&lt;/pre&gt;
 
-&lt;p&gt;If we look into the documentation for &lt;code&gt;File.world_writable?&lt;/code&gt;, we&amp;rsquo;ll find that
+&lt;p&gt;If we look into the documentation for &lt;code&gt;File.world_writable?&lt;/code&gt;, we’ll find that
 it is a new method introduced in 1.9. Excellent, this gives us an opportunity
 to talk about language-specific changes in Rubinius.&lt;/p&gt;
 
@@ -369,7 +357,7 @@ and &lt;code&gt;load_order19.txt&lt;/code&gt; files. These files are used during
 create separate runtime kernels for Rubinius. You can see these in the
 &lt;code&gt;runtime/18&lt;/code&gt; and &lt;code&gt;runtime/19&lt;/code&gt; directories after building.&lt;/p&gt;
 
-&lt;p&gt;Here&amp;rsquo;s how language-specific features are handled in the Rubinius kernel.&lt;/p&gt;
+&lt;p&gt;Here’s how language-specific features are handled in the Rubinius kernel.&lt;/p&gt;
 
 &lt;ol&gt;
   &lt;li&gt;If there are no language-specific methods, the name of the file in
@@ -397,7 +385,7 @@ command to do that:&lt;/p&gt;
 &lt;pre&gt;&lt;code&gt;bin/mspec -tx19 core/file/world_writable
 &lt;/code&gt;&lt;/pre&gt;
 
-&lt;p&gt;If all the specs pass, then you&amp;rsquo;re ready to remove the CI tags. To do so, run
+&lt;p&gt;If all the specs pass, then you’re ready to remove the CI tags. To do so, run
 the following command:&lt;/p&gt;
 
 &lt;pre&gt;&lt;code&gt;bin/mspec tag --del fails -tx19 core/file/world_writable
@@ -409,8 +397,8 @@ pass. To run all the CI specs in both 1.8 and 1.9 modes, simply do:&lt;/p&gt;
 &lt;pre&gt;&lt;code&gt;rake
 &lt;/code&gt;&lt;/pre&gt;
 
-&lt;p&gt;If everything passes, you&amp;rsquo;re ready to submit a pull request. All in all, that
-wasn&amp;rsquo;t too bad, right?&lt;/p&gt;
+&lt;p&gt;If everything passes, you’re ready to submit a pull request. All in all, that
+wasn’t too bad, right?&lt;/p&gt;
 
 &lt;p&gt;One final note, if you are making changes to RubySpec, make separate commits
 in your pull request for changes to &lt;code&gt;spec/ruby/**/*_specs.rb&lt;/code&gt; and another
@@ -420,10 +408,10 @@ with the other Rubinius changes.&lt;/p&gt;
 &lt;h3 id=&quot;wrapping-presents&quot;&gt;Wrapping Presents&lt;/h3&gt;
 
 &lt;p&gt;The information here should give you everything you need to get your feet wet
-in Rubinius. By the way, today is Evan&amp;rsquo;s birthday. If you&amp;rsquo;re not taking him to
-dinner, why don&amp;rsquo;t you show your appreciation for this fantastic project he
+in Rubinius. By the way, today is Evan’s birthday. If you’re not taking him to
+dinner, why don’t you show your appreciation for this fantastic project he
 created by grabbing Rubinius and hacking on some Ruby code. Be safe and have
-fun! We can&amp;rsquo;t wait to hear from you.&lt;/p&gt;
+fun! We can’t wait to hear from you.&lt;/p&gt;
 </content>
   </entry>
   
@@ -455,7 +443,7 @@ fun! We can&amp;rsquo;t wait to hear from you.&lt;/p&gt;
       <name>Shane Becker</name>
     </author>
     
-    <content type="html">&lt;p&gt;Steve Klabnik &lt;a href=&quot;https://github.com/rubinius/rubinius/pull/1184&quot;&gt;added support for &lt;code&gt;require_relative&lt;/code&gt; to Rubinius&lt;/a&gt;. He documents his process and &lt;a href=&quot;http://blog.steveklabnik.com/2011/10/04/rubinius-is-awesome.html&quot; title=&quot;Rubinius Is Awesome - Literate Programming&quot;&gt;how much fun he had&lt;/a&gt;. We&amp;rsquo;re glad to hear that Steve thinks Rubinius is awesome. Making Rubinius awesome for rubyists has always been one of our core tenets.&lt;/p&gt;
+    <content type="html">&lt;p&gt;Steve Klabnik &lt;a href=&quot;https://github.com/rubinius/rubinius/pull/1184&quot;&gt;added support for &lt;code&gt;require_relative&lt;/code&gt; to Rubinius&lt;/a&gt;. He documents his process and &lt;a href=&quot;http://blog.steveklabnik.com/2011/10/04/rubinius-is-awesome.html&quot; title=&quot;Rubinius Is Awesome - Literate Programming&quot;&gt;how much fun he had&lt;/a&gt;. We’re glad to hear that Steve thinks Rubinius is awesome. Making Rubinius awesome for rubyists has always been one of our core tenets.&lt;/p&gt;
 
 &lt;blockquote&gt;
   &lt;p&gt;Even if I didn’t have some code to look at, because Rubinius is just Ruby,
@@ -503,21 +491,21 @@ Installer.&lt;/p&gt;
     
     <content type="html">&lt;h3 id=&quot;bad-news-first&quot;&gt;Bad News First&lt;/h3&gt;
 
-&lt;p&gt;The &lt;a href=&quot;http://www.flickr.com/photos/veganstraightedge/5709097384&quot; title=&quot;Rubinius &amp;quot;Use Ruby™&amp;quot; TShirts at the Farmhouse in Hollywood, CA&quot;&gt;General Availability shirts&lt;/a&gt; are retired. We gave out about 1,000 to people all over the world. That&amp;rsquo;s very awesome. We&amp;rsquo;re really happy with the excitement about Rubinius from you all. Thank you, again. But it&amp;rsquo;s time to move on from these shirts. If you&amp;rsquo;ve already got one, good on you. If you haven&amp;rsquo;t yet, sorry. There will be other chances in the future, though.&lt;/p&gt;
+&lt;p&gt;The &lt;a href=&quot;http://www.flickr.com/photos/veganstraightedge/5709097384&quot; title=&quot;Rubinius &amp;quot;Use Ruby™&amp;quot; TShirts at the Farmhouse in Hollywood, CA&quot;&gt;General Availability shirts&lt;/a&gt; are retired. We gave out about 1,000 to people all over the world. That’s very awesome. We’re really happy with the excitement about Rubinius from you all. Thank you, again. But it’s time to move on from these shirts. If you’ve already got one, good on you. If you haven’t yet, sorry. There will be other chances in the future, though.&lt;/p&gt;
 
 &lt;p&gt;Likewise, the &lt;a href=&quot;http://asset.rubini.us/web/images/blog/rubinius_square_sticker.png&quot;&gt;Square&lt;/a&gt; and &lt;a href=&quot;http://asset.rubini.us/web/images/blog/rubinius_bumper_sticker.png&quot;&gt;Bumper Stickers&lt;/a&gt; have been retired, too.&lt;/p&gt;
 
 &lt;h3 id=&quot;good-news-next&quot;&gt;Good News Next&lt;/h3&gt;
 
-&lt;p&gt;The &lt;a href=&quot;http://asset.rubini.us/web/images/blog/rubinius_diecut_sticker.png&quot;&gt;Diecut R stickers&lt;/a&gt; are still available. Just email us at &lt;a href=&quot;&amp;#109;&amp;#097;&amp;#105;&amp;#108;&amp;#116;&amp;#111;:&amp;#099;&amp;#111;&amp;#109;&amp;#109;&amp;#117;&amp;#110;&amp;#105;&amp;#116;&amp;#121;&amp;#064;&amp;#114;&amp;#117;&amp;#098;&amp;#105;&amp;#110;&amp;#105;&amp;#046;&amp;#117;&amp;#115;&quot;&gt;&amp;#099;&amp;#111;&amp;#109;&amp;#109;&amp;#117;&amp;#110;&amp;#105;&amp;#116;&amp;#121;&amp;#064;&amp;#114;&amp;#117;&amp;#098;&amp;#105;&amp;#110;&amp;#105;&amp;#046;&amp;#117;&amp;#115;&lt;/a&gt; if you want one. &lt;a href=&quot;http://asset.rubini.us/web/images/blog/rubinius_alumni_sticker.png&quot;&gt;Committers stickers&lt;/a&gt; are still available too. If you committed to Rubinius before May 16, 2011 and haven&amp;rsquo;t received one of these, &lt;a href=&quot;&amp;#109;&amp;#097;&amp;#105;&amp;#108;&amp;#116;&amp;#111;:&amp;#099;&amp;#111;&amp;#109;&amp;#109;&amp;#117;&amp;#110;&amp;#105;&amp;#116;&amp;#121;&amp;#064;&amp;#114;&amp;#117;&amp;#098;&amp;#105;&amp;#110;&amp;#105;&amp;#046;&amp;#117;&amp;#115;&quot;&gt;&amp;#101;&amp;#109;&amp;#097;&amp;#105;&amp;#108;&amp;#032;&amp;#117;&amp;#115;&lt;/a&gt; to get yours. The 2011 Q2 committers stickers are also available.&lt;/p&gt;
+&lt;p&gt;The &lt;a href=&quot;http://asset.rubini.us/web/images/blog/rubinius_diecut_sticker.png&quot;&gt;Diecut R stickers&lt;/a&gt; are still available. Just email us at &lt;a href=&quot;&amp;#109;&amp;#097;&amp;#105;&amp;#108;&amp;#116;&amp;#111;:&amp;#099;&amp;#111;&amp;#109;&amp;#109;&amp;#117;&amp;#110;&amp;#105;&amp;#116;&amp;#121;&amp;#064;&amp;#114;&amp;#117;&amp;#098;&amp;#105;&amp;#110;&amp;#105;&amp;#046;&amp;#117;&amp;#115;&quot;&gt;&amp;#099;&amp;#111;&amp;#109;&amp;#109;&amp;#117;&amp;#110;&amp;#105;&amp;#116;&amp;#121;&amp;#064;&amp;#114;&amp;#117;&amp;#098;&amp;#105;&amp;#110;&amp;#105;&amp;#046;&amp;#117;&amp;#115;&lt;/a&gt; if you want one. &lt;a href=&quot;http://asset.rubini.us/web/images/blog/rubinius_alumni_sticker.png&quot;&gt;Committers stickers&lt;/a&gt; are still available too. If you committed to Rubinius before May 16, 2011 and haven’t received one of these, &lt;a href=&quot;&amp;#109;&amp;#097;&amp;#105;&amp;#108;&amp;#116;&amp;#111;:&amp;#099;&amp;#111;&amp;#109;&amp;#109;&amp;#117;&amp;#110;&amp;#105;&amp;#116;&amp;#121;&amp;#064;&amp;#114;&amp;#117;&amp;#098;&amp;#105;&amp;#110;&amp;#105;&amp;#046;&amp;#117;&amp;#115;&quot;&gt;&amp;#101;&amp;#109;&amp;#097;&amp;#105;&amp;#108;&amp;#032;&amp;#117;&amp;#115;&lt;/a&gt; to get yours. The 2011 Q2 committers stickers are also available.&lt;/p&gt;
 
-&lt;p&gt;As &lt;a href=&quot;http://rubini.us/2011/05/26/rubinius-rewards/#tenth-commit-shirt&quot; title=&quot;Announcing Rubinius Rewards - Rubinius&quot;&gt;promised&lt;/a&gt;, we have made a special t-shirt for people who have committed 10 or more times. They&amp;rsquo;re at the printer right now, so no pictures yet. Here&amp;rsquo;s a hint though: black on black.&lt;/p&gt;
+&lt;p&gt;As &lt;a href=&quot;http://rubini.us/2011/05/26/rubinius-rewards/#tenth-commit-shirt&quot; title=&quot;Announcing Rubinius Rewards - Rubinius&quot;&gt;promised&lt;/a&gt;, we have made a special t-shirt for people who have committed 10 or more times. They’re at the printer right now, so no pictures yet. Here’s a hint though: black on black.&lt;/p&gt;
 
-&lt;p&gt;We&amp;rsquo;ll continue to do free stuff in the future, but it will always be changing. Keep an eye on this blog for updates to what&amp;rsquo;s available.&lt;/p&gt;
+&lt;p&gt;We’ll continue to do free stuff in the future, but it will always be changing. Keep an eye on this blog for updates to what’s available.&lt;/p&gt;
 
 &lt;h3 id=&quot;one-more-thing&quot;&gt;One More Thing&lt;/h3&gt;
 
-&lt;p&gt;Rubinius friend of the family, &lt;a href=&quot;http://hrrrthrrr.com&quot; title=&quot;hrrrthrrr&quot;&gt;Heather Peterson&lt;/a&gt; (&lt;a href=&quot;http://twitter.com/hrrrthrrr&quot;&gt;@hrrrthrrr&lt;/a&gt;) drew up some Rubinius sketches for us to use on upcoming t-shirts and stickers. As a little thing, we&amp;rsquo;re giving away her original artwork as prize.&lt;/p&gt;
+&lt;p&gt;Rubinius friend of the family, &lt;a href=&quot;http://hrrrthrrr.com&quot; title=&quot;hrrrthrrr&quot;&gt;Heather Peterson&lt;/a&gt; (&lt;a href=&quot;http://twitter.com/hrrrthrrr&quot;&gt;@hrrrthrrr&lt;/a&gt;) drew up some Rubinius sketches for us to use on upcoming t-shirts and stickers. As a little thing, we’re giving away her original artwork as prize.&lt;/p&gt;
 
 &lt;p&gt;&lt;a href=&quot;http://flickr.com/veganstraightedge/6106800183&quot; title=&quot;Rubinius sketch by Heather Peterson (@hrrrthrrr)&quot;&gt;&lt;img src=&quot;http://farm7.static.flickr.com/6186/6106800183_f6bd6918f4_z.jpg&quot; alt=&quot;Rubinius sketch by Heather Peterson (@hrrrthrrr) on Flickr&quot; /&gt;&lt;/a&gt;
 &lt;a href=&quot;http://flickr.com/veganstraightedge/6106803145&quot; title=&quot;Rubinius sketch by Heather Peterson (@hrrrthrrr)&quot;&gt;&lt;img src=&quot;http://farm7.static.flickr.com/6072/6106803145_f565d6738e_z.jpg&quot; alt=&quot;Rubinius sketch by Heather Peterson (@hrrrthrrr) on Flickr&quot; /&gt;&lt;/a&gt;&lt;/p&gt;
@@ -526,7 +514,7 @@ Installer.&lt;/p&gt;
 
 &lt;p&gt;Get blogging.&lt;/p&gt;
 
-&lt;p&gt;&lt;em&gt;&amp;mdash; XOXO RBX&lt;/em&gt;&lt;/p&gt;
+&lt;p&gt;&lt;em&gt;— XOXO RBX&lt;/em&gt;&lt;/p&gt;
 </content>
   </entry>
   
@@ -541,18 +529,18 @@ Installer.&lt;/p&gt;
     
     <content type="html">&lt;p&gt;A long time ago, &lt;a href=&quot;http://twitter.com/bookis&quot; title=&quot;@bookis on Twitter&quot;&gt;Bookis Smuin&lt;/a&gt; crafted up a 3-dimensional representation of the little Rubinius &lt;em&gt;r&lt;/em&gt; logo. It was used on the Rubinius website and as the avatar for the &lt;a href=&quot;http://twitter.com/#!/rubinius&quot; title=&quot;@Rubinius on Twitter&quot;&gt;@Rubinius&lt;/a&gt; account. And for awhile, things were good.&lt;/p&gt;
 
-&lt;p&gt;Somewhere along the way, the original files were lost. That left us with only PNG that was 239px wide. That&amp;rsquo;s no good. To the Twitters!&lt;/p&gt;
+&lt;p&gt;Somewhere along the way, the original files were lost. That left us with only PNG that was 239px wide. That’s no good. To the Twitters!&lt;/p&gt;
 
 &lt;p&gt;I &lt;a href=&quot;http://twitter.com/#!/veganstraightedge/status/101149379880157184&quot; title=&quot;Plea for 3D Help on Twitter&quot;&gt;lazy tweeted&lt;/a&gt; asking for help re-building the logo in 3D based on the work that Bookis did. Lo and behold, I asked and the internet delivered.&lt;/p&gt;
 
-&lt;p&gt;The very smart and good looking Roger Bacardit (&lt;a href=&quot;http://twitter.com/ruxii&quot; title=&quot;@ruxii on Twitter&quot;&gt;@ruxii&lt;/a&gt;) from &lt;a href=&quot;http://codegram.com&quot; title=&quot;Codegram - Smart Web Apps&quot;&gt;Codegram&lt;/a&gt; in Barcelona, Espa&amp;ntilde;a stepped up to tackle the task. Lickity split, he cranked out two versions (white on black and black on white) at super mega huge resolution (~4000px square).&lt;/p&gt;
+&lt;p&gt;The very smart and good looking Roger Bacardit (&lt;a href=&quot;http://twitter.com/ruxii&quot; title=&quot;@ruxii on Twitter&quot;&gt;@ruxii&lt;/a&gt;) from &lt;a href=&quot;http://codegram.com&quot; title=&quot;Codegram - Smart Web Apps&quot;&gt;Codegram&lt;/a&gt; in Barcelona, España stepped up to tackle the task. Lickity split, he cranked out two versions (white on black and black on white) at super mega huge resolution (~4000px square).&lt;/p&gt;
 
 &lt;p&gt;Like everything else we do, &lt;a href=&quot;https://github.com/rubinius/collateral/tree/master/logos/3D&quot;&gt;these logo files&lt;/a&gt; are &lt;a href=&quot;https://github.com/rubinius/collateral/blob/master/README.md&quot;&gt;very liberally licensed&lt;/a&gt; and available for download and reuse in the &lt;a href=&quot;https://github.com/rubinius/collateral&quot;&gt;Rubinius Collateral repo&lt;/a&gt; over on GitHub.&lt;/p&gt;
 
 &lt;p&gt;Thank you, Bookis, for the original.
 Thank you, Roger, for the rebuild.&lt;/p&gt;
 
-&lt;p&gt;&lt;em&gt;&amp;mdash; XOXO RBX&lt;/em&gt;&lt;/p&gt;
+&lt;p&gt;&lt;em&gt;— XOXO RBX&lt;/em&gt;&lt;/p&gt;
 </content>
   </entry>
   
@@ -568,12 +556,12 @@ Thank you, Roger, for the rebuild.&lt;/p&gt;
     <content type="html">&lt;p&gt;With just a few hours left in the first &lt;a href=&quot;http://rbxday.rubini.us&quot;&gt;#rbxday&lt;/a&gt;,
 I wanted to share a few blog posts that people have written for today.
 It seems like lots of people are having lots of fun all while using Rubinius.
-That&amp;rsquo;s what really matters.&lt;/p&gt;
+That’s what really matters.&lt;/p&gt;
 
 &lt;p&gt;And I think &lt;a href=&quot;http://twitter.com/andrewwk&quot;&gt;Andrew W. K.&lt;/a&gt;
 would probably be proud of that.&lt;/p&gt;
 
-&lt;p&gt;Onto the blog posts&amp;hellip;&lt;/p&gt;
+&lt;p&gt;Onto the blog posts…&lt;/p&gt;
 
 &lt;p&gt;Nathan Engdahl on the
 &lt;a href=&quot;http://bluebox.net/news/2011/08/rubinius-day&quot; title=&quot;Rubinius Day&quot;&gt;Blue Box Group blog&lt;/a&gt;
@@ -591,18 +579,18 @@ at peak efficiency.&lt;/p&gt;
 from MRI, JRuby and Rubinius:&lt;/p&gt;
 
 &lt;blockquote&gt;
-  &lt;p&gt;Many developers don&amp;rsquo;t think too much about what&amp;rsquo;s going on behind the
-scenes when they run their Ruby code. That&amp;rsquo;s the beauty of it, easy to
-write code that&amp;rsquo;s given to Ruby and run for the developer. At some point
-the developer may wonder, what&amp;rsquo;s REALLY going on behind the scenes. How is
+  &lt;p&gt;Many developers don’t think too much about what’s going on behind the
+scenes when they run their Ruby code. That’s the beauty of it, easy to
+write code that’s given to Ruby and run for the developer. At some point
+the developer may wonder, what’s REALLY going on behind the scenes. How is
 it that something meant to run Ruby can host &lt;a href=&quot;http://rubini.us/projects&amp;quot;&quot;&gt;so many other languages&lt;/a&gt;?
-The answer lies in what&amp;rsquo;s known as a VM, or Virtual Machine.&lt;/p&gt;
+The answer lies in what’s known as a VM, or Virtual Machine.&lt;/p&gt;
 &lt;/blockquote&gt;
 
-&lt;p&gt;Finally, there&amp;rsquo;s the
+&lt;p&gt;Finally, there’s the
 &lt;a href=&quot;http://rubysfera.pl/2011/08/kod-zrodlowy-rubiego-w-rubym/&quot; title=&quot;Kod źródłowy Rubiego w Rubym&quot;&gt;Rubysfera blog&lt;/a&gt;
-that&amp;rsquo;s not written in a language that I can read. So, I&amp;rsquo;ll just assume that
-they&amp;rsquo;re talking about Chocolate Rubinius Cake and how to bake it. ;)&lt;/p&gt;
+that’s not written in a language that I can read. So, I’ll just assume that
+they’re talking about Chocolate Rubinius Cake and how to bake it. ;)&lt;/p&gt;
 
 &lt;blockquote&gt;
   &lt;p&gt;Rubiniusa (implementacji Rubiego, napisanej w Rubym) nikomu chyba
@@ -615,14 +603,14 @@ zajrzenia do implementacji języka w Rubym.&lt;/p&gt;
 &lt;p&gt;&lt;em&gt;Seriously though, I have no idea what that post says.
 If you do, please let me know.&lt;/em&gt;&lt;/p&gt;
 
-&lt;p&gt;There&amp;rsquo;s still time. Go test your app running on Rubinius. Tweet about it.
+&lt;p&gt;There’s still time. Go test your app running on Rubinius. Tweet about it.
 Use the hashtag &lt;a href=&quot;https://twitter.com/#!/search/%23rbxday&quot;&gt;#rbxday&lt;/a&gt;, so we
 notice you and re-share your tweet. If there are bugs, please
 &lt;a href=&quot;https://github.com/rubinius/rubinius/issues&quot;&gt;create an issue&lt;/a&gt; on Github.
 Give us any other feedback you want on the
 &lt;a href=&quot;http://rbxday.rubini.us/feedback&quot;&gt;rbxday.rubini.us&lt;/a&gt; website.&lt;/p&gt;
 
-&lt;p&gt;&lt;em&gt;&amp;mdash; XOXO RBX&lt;/em&gt;&lt;/p&gt;
+&lt;p&gt;&lt;em&gt;— XOXO RBX&lt;/em&gt;&lt;/p&gt;
 </content>
   </entry>
   
@@ -648,10 +636,10 @@ updates.&lt;/p&gt;
 &lt;p&gt;Originally, the idea for &lt;a href=&quot;https://twitter.com/#!/search/%23rbxday&quot;&gt;#rbxday&lt;/a&gt;
 was a day that people all around the world could have fun experimenting with
 Ruby and Rubinius. Try your application or pet Ruby project on Rubinius, or
-pull out that idea you&amp;rsquo;ve been wanting to explore, code it up, and run it on
+pull out that idea you’ve been wanting to explore, code it up, and run it on
 Rubinius. We are not asking anyone to contribute to Rubinius, but we would be
-most flattered if you wanted to dig into the Rubinius code to see what&amp;rsquo;s going
-on under the hood. To sum up, the motto of the day is &amp;ldquo;Ruby, Rubinius, Fun Fun Fun Fun&amp;rdquo;.&lt;/p&gt;
+most flattered if you wanted to dig into the Rubinius code to see what’s going
+on under the hood. To sum up, the motto of the day is “Ruby, Rubinius, Fun Fun Fun Fun”.&lt;/p&gt;
 
 &lt;p&gt;Of course, a great way to multiply fun is to share it with others. Several
 people have taken the initiative of organizing meetups on
@@ -695,8 +683,8 @@ co-founder of &lt;a href=&quot;http://twitter.com/wyeworks&quot;&gt;@wyeworks&lt
 &lt;/ul&gt;
 
 &lt;p&gt;A huge thanks to everyone who has organized one of these events. They did so
-on their own initiative and show the true power of a community. If you&amp;rsquo;re near
-one of the events, please do attend. If not, &lt;em&gt;there&amp;rsquo;s still time to organize
+on their own initiative and show the true power of a community. If you’re near
+one of the events, please do attend. If not, &lt;em&gt;there’s still time to organize
 one near you.&lt;/em&gt;&lt;/p&gt;
 
 &lt;p&gt;If you are joining &lt;a href=&quot;http://twitter.com/#!/search/%23rbxday&quot;&gt;#rbxday&lt;/a&gt; from the
@@ -704,9 +692,9 @@ comfort of your own home, tweet about it, include pictures, and join us in
 the &lt;a href=&quot;irc://irc.freenode.net#rubinius&quot;&gt;#rubinius&lt;/a&gt; IRC channel on freenode.net.
 We would love to hear from you.&lt;/p&gt;
 
-&lt;p&gt;A final thought about all the ways you can help Rubinius. You don&amp;rsquo;t have to
+&lt;p&gt;A final thought about all the ways you can help Rubinius. You don’t have to
 contribute code directly to help. Each of these activities is just as
-valuable, and if you think of any I didn&amp;rsquo;t include, please let me know:&lt;/p&gt;
+valuable, and if you think of any I didn’t include, please let me know:&lt;/p&gt;
 
 &lt;ul&gt;
   &lt;li&gt;Wearing your &lt;a href=&quot;http://rubini.us/2011/05/26/rubinius-rewards&quot;&gt;Rubinius shirt&lt;/a&gt;&lt;/li&gt;
@@ -720,7 +708,7 @@ to improve those pain points&lt;/li&gt;
   &lt;li&gt;Testing your code on Rubinius and submitting bug/performance reports&lt;/li&gt;
 &lt;/ul&gt;
 
-&lt;p&gt;Above all, please do have fun. That&amp;rsquo;s no gimmick. The world needs more fun.&lt;/p&gt;
+&lt;p&gt;Above all, please do have fun. That’s no gimmick. The world needs more fun.&lt;/p&gt;
 
 &lt;p&gt;Put a tag on it &lt;a href=&quot;http://twitter.com/#!/search/%23rbxday&quot;&gt;#rbxday&lt;/a&gt;.&lt;/p&gt;
 </content>
@@ -735,23 +723,23 @@ to improve those pain points&lt;/li&gt;
       <name>Dirkjan Bussink</name>
     </author>
     
-    <content type="html">&lt;p&gt;Not only in the US is &lt;a href=&quot;http://rbxday.rubini.us/&quot;&gt;&amp;#35;rbxday&lt;/a&gt; celebrated, but
-we have also something in Amsterdam next Friday. It&amp;rsquo;s really becoming the
+    <content type="html">&lt;p&gt;Not only in the US is &lt;a href=&quot;http://rbxday.rubini.us/&quot;&gt;#rbxday&lt;/a&gt; celebrated, but
+we have also something in Amsterdam next Friday. It’s really becoming the
 International Rubinius Day that it was set out to be.&lt;/p&gt;
 
 &lt;p&gt;The guys are &lt;a href=&quot;http://www.80beans.com/&quot;&gt;80beans&lt;/a&gt; are sponsoring the event and
 have graciously offered their office as the place to hang out and are
 providing refreshments. The office is located on the &lt;a href=&quot;http://maps.google.com/maps/place?q=80beans,+Amsterdam,+The+Netherlands&amp;amp;hl=en&amp;amp;cid=15251096961071716406&quot;&gt;Vijzelstraat 72&lt;/a&gt; in
-Amsterdam and we&amp;rsquo;re starting at 3pm.&lt;/p&gt;
+Amsterdam and we’re starting at 3pm.&lt;/p&gt;
 
-&lt;p&gt;If you&amp;rsquo;re living in the neighborhood, please come and join us. As long
+&lt;p&gt;If you’re living in the neighborhood, please come and join us. As long
 term Rubinius contributor Dirkjan Bussink is coming over from the other side of
-the country, so don&amp;rsquo;t feel held back when you&amp;rsquo;re not living in Amsterdam
+the country, so don’t feel held back when you’re not living in Amsterdam
 itself.&lt;/p&gt;
 
 &lt;p&gt;So be prepared for an afternoon of very interesting hacking. We really want
 to make it a fun afternoon of experimenting with Rubinius, so anything
-goes! Please leave a message on the &lt;a href=&quot;http://www.80beans.com/en/blog&quot;&gt;80beans blog&lt;/a&gt; if you&amp;rsquo;re planning to come over:&lt;/p&gt;
+goes! Please leave a message on the &lt;a href=&quot;http://www.80beans.com/en/blog&quot;&gt;80beans blog&lt;/a&gt; if you’re planning to come over:&lt;/p&gt;
 
 &lt;p&gt;&lt;a href=&quot;http://www.80beans.com/en/blog/2011/07/29/rbxday-at-the-80beans-office&quot;&gt;http://www.80beans.com/en/blog/2011/07/29/rbxday-at-the-80beans-office&lt;/a&gt;&lt;/p&gt;
 
@@ -772,21 +760,21 @@ goes! Please leave a message on the &lt;a href=&quot;http://www.80beans.com/en/b
     <content type="html">&lt;p&gt;Hey Ruby bytecode fans! The first ever &lt;strong&gt;International Rubinius Day&lt;/strong&gt; is next
 Friday, August 5th. Around the world people will be trying their code on
 Rubinius and generally having a fun time. Follow the activities on Twitter
-under the &lt;em&gt;#rbxday&lt;/em&gt; tag and use that to let folks know what you&amp;rsquo;re up to. Stay
+under the &lt;em&gt;#rbxday&lt;/em&gt; tag and use that to let folks know what you’re up to. Stay
 tuned to the &lt;a href=&quot;http://rbxday.rubini.us/&quot;&gt;rbxday website&lt;/a&gt; for details as the day
 unfolds.&lt;/p&gt;
 
 &lt;p&gt;If you are located in, around, or within traveling distance of beautiful
 Mountain View, CA, the terrific folks at &lt;a href=&quot;http://outright.com&quot;&gt;Outright.com&lt;/a&gt;
 are sponsoring a real live &lt;em&gt;#rbxday&lt;/em&gt; event! Come hang out with a bunch of
-hardcore Ruby nerds, including Brian Ford (that&amp;rsquo;s me) from the Rubinius team.
+hardcore Ruby nerds, including Brian Ford (that’s me) from the Rubinius team.
 Plan to be inspired by all the great stuff people are working on. There will
 be mountains of top-shelf Rubinius schwag, as well as &lt;em&gt;free beer and pizza&lt;/em&gt;.
-(Just don&amp;rsquo;t get too trashed as there will also be lightning talks and an IR
+(Just don’t get too trashed as there will also be lightning talks and an IR
 helicopter obstacle course.)&lt;/p&gt;
 
 &lt;p&gt;The &lt;a href=&quot;http://rbxday.eventbrite.com/&quot;&gt;party&lt;/a&gt; will be from 1:00 pm to 8:00 pm on
-Friday August 5th at Outright&amp;rsquo;s offices in downtown Mountain View. (They have
+Friday August 5th at Outright’s offices in downtown Mountain View. (They have
 an application that does some seriously awesome stuff with small business
 accounting.) There are plenty of desks, monitors and whiteboards available, so
 bring your laptop and be ready to jam.&lt;/p&gt;
@@ -809,25 +797,25 @@ now&lt;/a&gt;!&lt;/p&gt;
       <name>Shane Becker</name>
     </author>
     
-    <content type="html">&lt;h3 id=&quot;wersquore-having-a-party-and-yoursquore-invited&quot;&gt;We&amp;rsquo;re having a party and you&amp;rsquo;re invited!&lt;/h3&gt;
+    <content type="html">&lt;h3 id=&quot;wersquore-having-a-party-and-yoursquore-invited&quot;&gt;We’re having a party and you’re invited!&lt;/h3&gt;
 
 &lt;h3 id=&quot;rbxdayrubiniushttprbxdayrubinius&quot;&gt;&lt;a href=&quot;http://rbxday.rubini.us&quot;&gt;rbxday.rubini.us&lt;/a&gt;&lt;/h3&gt;
 
 &lt;h4 id=&quot;friday-august-5-2011-is-rbxdayhttprbxdayrubinius&quot;&gt;Friday, August 5, 2011 is &lt;a href=&quot;http://rbxday.rubini.us&quot;&gt;#rbxday&lt;/a&gt;&lt;/h4&gt;
 
-&lt;p&gt;The Rubinius 2.0 Preview Release is still cranking along. We&amp;rsquo;re feeling good about how things are going. As always, thank you everyone for all of your contributions. The &lt;a href=&quot;http://rubini.us/releases/1.2.4/#authors&quot; title=&quot;Rubinius : Use Ruby&amp;#8482;&quot;&gt;list of authors on the 1.2.4 release&lt;/a&gt; is just fantastic.&lt;/p&gt;
+&lt;p&gt;The Rubinius 2.0 Preview Release is still cranking along. We’re feeling good about how things are going. As always, thank you everyone for all of your contributions. The &lt;a href=&quot;http://rubini.us/releases/1.2.4/#authors&quot; title=&quot;Rubinius : Use Ruby&amp;#8482;&quot;&gt;list of authors on the 1.2.4 release&lt;/a&gt; is just fantastic.&lt;/p&gt;
 
-&lt;p&gt;Moving forward to the 2.0 official release, we need more feedback from you about your code running on Rubinius. Not just what doesn&amp;rsquo;t work and not just bugs (although both of those are important too), but how is your code performing, where are the bottlenecks, etc.&lt;/p&gt;
+&lt;p&gt;Moving forward to the 2.0 official release, we need more feedback from you about your code running on Rubinius. Not just what doesn’t work and not just bugs (although both of those are important too), but how is your code performing, where are the bottlenecks, etc.&lt;/p&gt;
 
-&lt;p&gt;This is what we&amp;rsquo;re going to do about that. Everyone&amp;hellip; everyone all around the world that uses or cares about Rubinius and its progress, all of us on one day are going to run our code, collect performance data / bug reports and send them up to the Rubinius project.&lt;/p&gt;
+&lt;p&gt;This is what we’re going to do about that. Everyone… everyone all around the world that uses or cares about Rubinius and its progress, all of us on one day are going to run our code, collect performance data / bug reports and send them up to the Rubinius project.&lt;/p&gt;
 
-&lt;p&gt;&lt;a href=&quot;https://twitter.com/#!/search/%23rbxday&quot;&gt;#rbxday&lt;/a&gt; is a party! Take pictures of you and your buddies on the day of. If you&amp;rsquo;ve got a Rubinius t-shirt or sticker, get them in there. Tweet about it, now and on the day. Get excited. Tell your friends. Get them excited. Use the hashtag #rbxday in your tweets, blog posts and posts. We&amp;rsquo;ll repost them all on the &lt;a href=&quot;http://rbxday.rubini.us&quot;&gt;#rbxday&lt;/a&gt; site.&lt;/p&gt;
+&lt;p&gt;&lt;a href=&quot;https://twitter.com/#!/search/%23rbxday&quot;&gt;#rbxday&lt;/a&gt; is a party! Take pictures of you and your buddies on the day of. If you’ve got a Rubinius t-shirt or sticker, get them in there. Tweet about it, now and on the day. Get excited. Tell your friends. Get them excited. Use the hashtag #rbxday in your tweets, blog posts and posts. We’ll repost them all on the &lt;a href=&quot;http://rbxday.rubini.us&quot;&gt;#rbxday&lt;/a&gt; site.&lt;/p&gt;
 
-&lt;p&gt;Make sure you&amp;rsquo;re looking your best in your photos because we&amp;rsquo;ll be picking a winner for our favorite &lt;a href=&quot;http://twitter.com/#!/search/%23rbxday&quot; title=&quot;#rbxday search on Twitter&quot;&gt;#rbxday&lt;/a&gt; glamourshot. Tweet them using the hashtag &lt;a href=&quot;http://twitter.com/#!/search/%23rbxday&quot; title=&quot;#rbxday search on Twitter&quot;&gt;#rbxday&lt;/a&gt; and we&amp;rsquo;ll announce the winning photo Monday, August 8, 2011 on the &lt;a href=&quot;http://facebook.com/engineyard&quot;&gt;Engine Yard Facebook page&lt;/a&gt;. We&amp;rsquo;ll have a nifty prize for the winner too, so make sure your pic is goofy, sultry, or otherwise impressive. Bonus points for creativity.&lt;/p&gt;
+&lt;p&gt;Make sure you’re looking your best in your photos because we’ll be picking a winner for our favorite &lt;a href=&quot;http://twitter.com/#!/search/%23rbxday&quot; title=&quot;#rbxday search on Twitter&quot;&gt;#rbxday&lt;/a&gt; glamourshot. Tweet them using the hashtag &lt;a href=&quot;http://twitter.com/#!/search/%23rbxday&quot; title=&quot;#rbxday search on Twitter&quot;&gt;#rbxday&lt;/a&gt; and we’ll announce the winning photo Monday, August 8, 2011 on the &lt;a href=&quot;http://facebook.com/engineyard&quot;&gt;Engine Yard Facebook page&lt;/a&gt;. We’ll have a nifty prize for the winner too, so make sure your pic is goofy, sultry, or otherwise impressive. Bonus points for creativity.&lt;/p&gt;
 
 &lt;p&gt;Get your party hats on!&lt;/p&gt;
 
-&lt;p&gt;&amp;mdash;XOXO RBX&lt;/p&gt;
+&lt;p&gt;—XOXO RBX&lt;/p&gt;
 </content>
   </entry>
   
@@ -840,38 +828,38 @@ now&lt;/a&gt;!&lt;/p&gt;
       <name>Shane Becker</name>
     </author>
     
-    <content type="html">&lt;p&gt;I&amp;rsquo;m pretty sure it started like this.&lt;/p&gt;
+    <content type="html">&lt;p&gt;I’m pretty sure it started like this.&lt;/p&gt;
 
 &lt;blockquote&gt;
-  &lt;p&gt;&amp;ldquo;Hello, Evan dear.&amp;rdquo; &amp;mdash; &lt;em&gt;Evan&amp;rsquo;s Grandma Betty&lt;/em&gt;&lt;/p&gt;
+  &lt;p&gt;“Hello, Evan dear.” — &lt;em&gt;Evan’s Grandma Betty&lt;/em&gt;&lt;/p&gt;
 &lt;/blockquote&gt;
 
 &lt;blockquote&gt;
-  &lt;p&gt;&amp;ldquo;Grandma Betty!&amp;rdquo; &amp;mdash; &lt;em&gt;Evan&lt;/em&gt;&lt;/p&gt;
+  &lt;p&gt;“Grandma Betty!” — &lt;em&gt;Evan&lt;/em&gt;&lt;/p&gt;
 &lt;/blockquote&gt;
 
 &lt;blockquote&gt;
-  &lt;p&gt;&amp;ldquo;You know, I was thinking about your little Rubinius thingy while I was gardening today. How&amp;rsquo;s it doing?&amp;rdquo; &amp;mdash; &lt;em&gt;Evan&amp;rsquo;s Grandma Betty&lt;/em&gt;&lt;/p&gt;
+  &lt;p&gt;“You know, I was thinking about your little Rubinius thingy while I was gardening today. How’s it doing?” — &lt;em&gt;Evan’s Grandma Betty&lt;/em&gt;&lt;/p&gt;
 &lt;/blockquote&gt;
 
 &lt;blockquote&gt;
-  &lt;p&gt;&amp;ldquo;Oh, Grandma Betty, that&amp;rsquo;s so sweet of you to think of me and it. It&amp;rsquo;s coming along still, of course.&amp;rdquo; &amp;mdash; &lt;em&gt;Evan&lt;/em&gt;&lt;/p&gt;
+  &lt;p&gt;“Oh, Grandma Betty, that’s so sweet of you to think of me and it. It’s coming along still, of course.” — &lt;em&gt;Evan&lt;/em&gt;&lt;/p&gt;
 &lt;/blockquote&gt;
 
 &lt;blockquote&gt;
-  &lt;p&gt;&amp;ldquo;That&amp;rsquo;s good to hear. I was specifically wondering how the 1.9 support is looking.&amp;rdquo; &amp;mdash; &lt;em&gt;Evan&amp;rsquo;s Grandma Betty&lt;/em&gt;&lt;/p&gt;
+  &lt;p&gt;“That’s good to hear. I was specifically wondering how the 1.9 support is looking.” — &lt;em&gt;Evan’s Grandma Betty&lt;/em&gt;&lt;/p&gt;
 &lt;/blockquote&gt;
 
 &lt;blockquote&gt;
-  &lt;p&gt;&amp;ldquo;Grandma Betty! You do always love the Latest and Greatest&amp;trade;, don&amp;rsquo;t you? Well, let&amp;rsquo;s see. I&amp;rsquo;d say that &lt;em&gt;1.9 support&lt;/em&gt; comes down to 7 main areas: Encoding, String, Regex, Symbol, IO, Argument Processing, Windows Support. Each has varying degrees of progress.&amp;rdquo; &amp;mdash; &lt;em&gt;Evan&lt;/em&gt;&lt;/p&gt;
+  &lt;p&gt;“Grandma Betty! You do always love the Latest and Greatest™, don’t you? Well, let’s see. I’d say that &lt;em&gt;1.9 support&lt;/em&gt; comes down to 7 main areas: Encoding, String, Regex, Symbol, IO, Argument Processing, Windows Support. Each has varying degrees of progress.” — &lt;em&gt;Evan&lt;/em&gt;&lt;/p&gt;
 &lt;/blockquote&gt;
 
 &lt;blockquote&gt;
-  &lt;p&gt;&amp;ldquo;OK. I wish that there was some way for me to keep more up to date on these happenings without needing to calling you. When I call you, I want to hear about that wife and baby of yours.&amp;rdquo; &amp;mdash; &lt;em&gt;Evan&amp;rsquo;s Grandma Betty&lt;/em&gt;&lt;/p&gt;
+  &lt;p&gt;“OK. I wish that there was some way for me to keep more up to date on these happenings without needing to calling you. When I call you, I want to hear about that wife and baby of yours.” — &lt;em&gt;Evan’s Grandma Betty&lt;/em&gt;&lt;/p&gt;
 &lt;/blockquote&gt;
 
 &lt;blockquote&gt;
-  &lt;p&gt;&amp;ldquo;You got it, Grandma Betty. I&amp;rsquo;ll get my Top Nerds&amp;trade; on the case.&amp;rdquo; &amp;mdash; &lt;em&gt;Evan&lt;/em&gt;&lt;/p&gt;
+  &lt;p&gt;“You got it, Grandma Betty. I’ll get my Top Nerds™ on the case.” — &lt;em&gt;Evan&lt;/em&gt;&lt;/p&gt;
 &lt;/blockquote&gt;
 
 &lt;blockquote&gt;
@@ -879,10 +867,10 @@ now&lt;/a&gt;!&lt;/p&gt;
 &lt;/blockquote&gt;
 
 &lt;blockquote&gt;
-  &lt;p&gt;&amp;ldquo;Alright, Grandma Betty. We made the Rubinius Status Board&amp;trade; especially just for you. It&amp;rsquo;s &lt;a href=&quot;http://status.rubini.us&quot;&gt;status.rubini.us&lt;/a&gt;&amp;rdquo; &amp;mdash; &lt;em&gt;Evan&lt;/em&gt;&lt;/p&gt;
+  &lt;p&gt;“Alright, Grandma Betty. We made the Rubinius Status Board™ especially just for you. It’s &lt;a href=&quot;http://status.rubini.us&quot;&gt;status.rubini.us&lt;/a&gt;” — &lt;em&gt;Evan&lt;/em&gt;&lt;/p&gt;
 &lt;/blockquote&gt;
 
-&lt;p&gt;That conversation may or may not be &lt;strong&gt;completely fictionalized&lt;/strong&gt;. There is one thing that is most emphatically true: Rubinius has a Status Board&amp;trade; now. If you are ever curious how progress is going on things, go check out &lt;a href=&quot;http://status.rubini.us&quot;&gt;status.rubini.us&lt;/a&gt;. Tell your friends.&lt;/p&gt;
+&lt;p&gt;That conversation may or may not be &lt;strong&gt;completely fictionalized&lt;/strong&gt;. There is one thing that is most emphatically true: Rubinius has a Status Board™ now. If you are ever curious how progress is going on things, go check out &lt;a href=&quot;http://status.rubini.us&quot;&gt;status.rubini.us&lt;/a&gt;. Tell your friends.&lt;/p&gt;
 
 &lt;p&gt;XOXO RBX.&lt;/p&gt;
 </content>
@@ -897,9 +885,9 @@ now&lt;/a&gt;!&lt;/p&gt;
       <name>Shane Becker</name>
     </author>
     
-    <content type="html">&lt;p&gt;As a result of the &lt;a href=&quot;http://rubini.us/2011/05/26/rubinius-rewards/&quot; title=&quot;Announcing Rubinius Rewards - Rubinius&quot;&gt;Rubinius Rewards&lt;/a&gt;, people from all over the world have requested Rubinius stickers and t-shirts. That just warms our little hearts and humbles us everyday. Thank you so much. It means the world to us. Keep using Rubinius with passion and excitement. Keep spreading the good word to your friends and anyone who&amp;rsquo;ll listen and care. And keep telling us how Rubinius is working for you. However good or bad, we want to know.&lt;/p&gt;
+    <content type="html">&lt;p&gt;As a result of the &lt;a href=&quot;http://rubini.us/2011/05/26/rubinius-rewards/&quot; title=&quot;Announcing Rubinius Rewards - Rubinius&quot;&gt;Rubinius Rewards&lt;/a&gt;, people from all over the world have requested Rubinius stickers and t-shirts. That just warms our little hearts and humbles us everyday. Thank you so much. It means the world to us. Keep using Rubinius with passion and excitement. Keep spreading the good word to your friends and anyone who’ll listen and care. And keep telling us how Rubinius is working for you. However good or bad, we want to know.&lt;/p&gt;
 
-&lt;p&gt;Here&amp;rsquo;s a map of all the places where we&amp;rsquo;ve sent stickers and/or t-shirts. You can also view it on
+&lt;p&gt;Here’s a map of all the places where we’ve sent stickers and/or t-shirts. You can also view it on
 &lt;a href=&quot;http://maps.google.com/maps/ms?msa=0&amp;amp;msid=204706765448868864026.0004a732bcb9b5816e407&amp;amp;ie=UTF8&amp;amp;ll=19.311143,-0.351562&amp;amp;spn=111.602296,333.632812&amp;amp;z=2&amp;amp;source=embed&quot; title=&quot;Rubinius Around the World - Google Maps&quot;&gt;a larger map&lt;/a&gt;. Wow.&lt;/p&gt;
 
 &lt;iframe width=&quot;950&quot; height=&quot;400&quot; frameborder=&quot;0&quot; scrolling=&quot;no&quot; marginheight=&quot;0&quot; marginwidth=&quot;0&quot; src=&quot;http://maps.google.com/maps/ms?msa=0&amp;amp;msid=204706765448868864026.0004a732bcb9b5816e407&amp;amp;ie=UTF8&amp;amp;ll=19.311143,-0.351562&amp;amp;spn=111.602296,333.632812&amp;amp;z=2&amp;amp;output=embed&quot;&gt;&lt;/iframe&gt;
@@ -921,19 +909,19 @@ now&lt;/a&gt;!&lt;/p&gt;
       <name>Shane Becker</name>
     </author>
     
-    <content type="html">&lt;p&gt;Once a month Evan Phoenix, Brian Ford and I (Shane Beccker) get together for a few days in-person face-time. Usually we meet up in San Francisco at the &lt;a href=&quot;http://engineyard.com&quot;&gt;Engine Yard&lt;/a&gt; HQ and spend time with our dear and lovely boss, &lt;a href=&quot;http://twitter.com/drnic&quot;&gt;Dr Nic&lt;/a&gt;. We like to call these little get togethers Rubinius Summits. For the June 2011 Rubinius Summit, Brian came down to LA where both Evan and I live. We spent the week working together at &lt;a href=&quot;http://farmhouse.la&quot;&gt;The Farmhouse&lt;/a&gt; on moving the ball forward toward the 2.0 release. Here&amp;rsquo;s a few pictures of some of the things that went down.&lt;/p&gt;
+    <content type="html">&lt;p&gt;Once a month Evan Phoenix, Brian Ford and I (Shane Beccker) get together for a few days in-person face-time. Usually we meet up in San Francisco at the &lt;a href=&quot;http://engineyard.com&quot;&gt;Engine Yard&lt;/a&gt; HQ and spend time with our dear and lovely boss, &lt;a href=&quot;http://twitter.com/drnic&quot;&gt;Dr Nic&lt;/a&gt;. We like to call these little get togethers Rubinius Summits. For the June 2011 Rubinius Summit, Brian came down to LA where both Evan and I live. We spent the week working together at &lt;a href=&quot;http://farmhouse.la&quot;&gt;The Farmhouse&lt;/a&gt; on moving the ball forward toward the 2.0 release. Here’s a few pictures of some of the things that went down.&lt;/p&gt;
 
 &lt;h3 id=&quot;i-used-rubinius-at-railsconf-2011-stickers&quot;&gt;I Used Rubinius at RailsConf 2011 stickers&lt;/h3&gt;
 
 &lt;p&gt;&lt;a href=&quot;http://flickr.com/photos/veganstraightedge/5885836117&quot;&gt;&lt;img src=&quot;http://farm7.static.flickr.com/6052/5885836117_ba60ba6408_z.jpg&quot; alt=&quot;&amp;quot;I Used Rubinius at RailsConf 2011&amp;quot; stickers at The Farmhouse in Hollywood, CA&quot; title=&quot;&amp;quot;I Used Rubinius at RailsConf 2011&amp;quot; stickers at The Farmhouse in Hollywood, CA                     &quot; /&gt;&lt;/a&gt;&lt;/p&gt;
 
-&lt;p&gt;These stickers arrived and are ready to be shipped out. If you DMed your address to &lt;a href=&quot;http://twitter.com/rubinius&quot;&gt;us on Twitter&lt;/a&gt;, we&amp;rsquo;ve got you. If you never contacted us, but used Rubinius while at RailsConf 2011 in Baltimore, email us at &lt;a href=&quot;&amp;#109;&amp;#097;&amp;#105;&amp;#108;&amp;#116;&amp;#111;:&amp;#099;&amp;#111;&amp;#109;&amp;#109;&amp;#117;&amp;#110;&amp;#105;&amp;#116;&amp;#121;&amp;#064;&amp;#114;&amp;#117;&amp;#098;&amp;#105;&amp;#110;&amp;#105;&amp;#046;&amp;#117;&amp;#115;&quot;&gt;&amp;#099;&amp;#111;&amp;#109;&amp;#109;&amp;#117;&amp;#110;&amp;#105;&amp;#116;&amp;#121;&amp;#064;&amp;#114;&amp;#117;&amp;#098;&amp;#105;&amp;#110;&amp;#105;&amp;#046;&amp;#117;&amp;#115;&lt;/a&gt; to get your sticker.&lt;/p&gt;
+&lt;p&gt;These stickers arrived and are ready to be shipped out. If you DMed your address to &lt;a href=&quot;http://twitter.com/rubinius&quot;&gt;us on Twitter&lt;/a&gt;, we’ve got you. If you never contacted us, but used Rubinius while at RailsConf 2011 in Baltimore, email us at &lt;a href=&quot;&amp;#109;&amp;#097;&amp;#105;&amp;#108;&amp;#116;&amp;#111;:&amp;#099;&amp;#111;&amp;#109;&amp;#109;&amp;#117;&amp;#110;&amp;#105;&amp;#116;&amp;#121;&amp;#064;&amp;#114;&amp;#117;&amp;#098;&amp;#105;&amp;#110;&amp;#105;&amp;#046;&amp;#117;&amp;#115;&quot;&gt;&amp;#099;&amp;#111;&amp;#109;&amp;#109;&amp;#117;&amp;#110;&amp;#105;&amp;#116;&amp;#121;&amp;#064;&amp;#114;&amp;#117;&amp;#098;&amp;#105;&amp;#110;&amp;#105;&amp;#046;&amp;#117;&amp;#115;&lt;/a&gt; to get your sticker.&lt;/p&gt;
 
 &lt;h3 id=&quot;t-shirts&quot;&gt;T-Shirts!&lt;/h3&gt;
 
 &lt;p&gt;&lt;a href=&quot;http://flickr.com/photos/veganstraightedge/5889084175&quot;&gt;&lt;img src=&quot;http://farm7.static.flickr.com/6019/5889084175_6414a83e97_z.jpg&quot; alt=&quot;Nearly 600 more @Rubinius shirts just arrived at the @farmhouse in Hollywood, CA&quot; title=&quot;Nearly 600 more @Rubinius shirts just arrived at the @farmhouse in Hollywood, CA                             &quot; /&gt;&lt;/a&gt;&lt;/p&gt;
 
-&lt;p&gt;This is what nearly 600 shirts looks like. We&amp;rsquo;ve got a huge back log of people all over the world who responded to our offer of free Rubinius t-shirts. Those will all get shipped out over the next week or so.&lt;/p&gt;
+&lt;p&gt;This is what nearly 600 shirts looks like. We’ve got a huge back log of people all over the world who responded to our offer of free Rubinius t-shirts. Those will all get shipped out over the next week or so.&lt;/p&gt;
 
 &lt;h3 id=&quot;progress-on-19-support&quot;&gt;Progress on 1.9 Support&lt;/h3&gt;
 &lt;p&gt;&lt;a href=&quot;http://flickr.com/photos/veganstraightedge/5888809669&quot;&gt;&lt;img src=&quot;http://farm6.static.flickr.com/5076/5888809669_134b0d6e23_z.jpg&quot; alt=&quot;Serious @rubinius big brain nerdery happening between @brixen and @evanphx at the @farmhouse in Hollywood, CA&quot; title=&quot;Serious @rubinius big brain nerdery happening between @brixen and @evanphx at the @farmhouse in Hollywood, CA&quot; /&gt;&lt;/a&gt;&lt;/p&gt;
@@ -947,7 +935,7 @@ now&lt;/a&gt;!&lt;/p&gt;
 
 &lt;h3 id=&quot;one-more-thing&quot;&gt;One More Thing&lt;/h3&gt;
 
-&lt;p&gt;We came up with an idea this week for how to better communicate outwardly and be more transparent. We built it up real quick and are launching it &amp;hellip;&lt;em&gt;really soon&lt;/em&gt;. Here&amp;rsquo;s a little teaser.&lt;/p&gt;
+&lt;p&gt;We came up with an idea this week for how to better communicate outwardly and be more transparent. We built it up real quick and are launching it …&lt;em&gt;really soon&lt;/em&gt;. Here’s a little teaser.&lt;/p&gt;
 
 &lt;p&gt;&lt;a href=&quot;http://drbl.in/bxbg&quot;&gt;&lt;img src=&quot;http://dribbble.com/system/users/1288/screenshots/202858/rubinius_...thing_2.png&quot; alt=&quot;Rubinius teaser 1&quot; title=&quot;Rubinius teaser 1&quot; /&gt;&lt;/a&gt;
 &lt;a href=&quot;http://drbl.in/bxbf&quot;&gt;&lt;img src=&quot;http://dribbble.com/system/users/1288/screenshots/202857/rubinius_...thing_1.png&quot; alt=&quot;Rubinius teaser 2&quot; title=&quot;Rubinius teaser 2&quot; /&gt;&lt;/a&gt;&lt;/p&gt;
@@ -985,7 +973,7 @@ contains the beginnings of Ruby 1.9 and Microsoft Windows support.&lt;/p&gt;
 
 &lt;p&gt;We are seeking developers interested in running their Ruby and Rails projects
 on Rubinius to help us iron out issues as we work toward the final 2.0
-release. Let&amp;rsquo;s look at the details of the 2.0 developer preview.&lt;/p&gt;
+release. Let’s look at the details of the 2.0 developer preview.&lt;/p&gt;
 
 &lt;p&gt;One of the central features of Rubinius 2.0 is a fundamental change in the
 threading architecture. In Rubinius 2.0, Ruby threads will run with true
@@ -1024,7 +1012,7 @@ rvm reload
 
 &lt;p&gt;If you are interested in helping develop Rubinius, we suggest you clone the
 repository directly and build. Rubinius runs fine from the source directory so
-you don&amp;rsquo;t need to install it. For more details about building from a clone,
+you don’t need to install it. For more details about building from a clone,
 see &lt;a href=&quot;http://rubini.us/doc/en/getting-started/&quot;&gt;Getting Started&lt;/a&gt;.&lt;/p&gt;
 
 &lt;h3 id=&quot;configuration&quot;&gt;Configuration&lt;/h3&gt;
@@ -1081,7 +1069,7 @@ compiler to build a native application. There remains a lot of work to do for
 Windows support but the Rubinius VM is currently compiling on Windows 7.&lt;/p&gt;
 
 &lt;p&gt;If you are a bleeding-edge Windows developer interested in diving into
-Rubinius, here&amp;rsquo;s how to get started:&lt;/p&gt;
+Rubinius, here’s how to get started:&lt;/p&gt;
 
 &lt;ol&gt;
   &lt;li&gt;Install &lt;em&gt;MRI 1.9&lt;/em&gt; using &lt;a href=&quot;http://rubyinstaller.org/&quot;&gt;RubyInstaller&lt;/a&gt;.&lt;/li&gt;
@@ -1096,7 +1084,7 @@ Rubinius, here&amp;rsquo;s how to get started:&lt;/p&gt;
 
 &lt;p&gt;In the near future, we will release another version of Rubinius from the
 current master branch. We hope to merge 2.0.0pre into master as soon as
-possible and continue working toward the 2.0 final release. We&amp;rsquo;ll make that
+possible and continue working toward the 2.0 final release. We’ll make that
 decision based on your reports about how the 2.0.0pre branch is working with
 existing 1.8.7 applications.&lt;/p&gt;
 
@@ -1125,7 +1113,7 @@ Yard will support Rubinius 2.0.0 after it’s officially released.&lt;/p&gt;
     
     <content type="html">&lt;h3 id=&quot;update&quot;&gt;Update&lt;/h3&gt;
 
-&lt;p&gt;See &lt;a href=&quot;http://rubini.us/2011/09/02/retiring-some-rubinius-rewards/&quot; title=&quot;Retiring (Some) Rubinius Rewards - Rubinius&quot;&gt;this post&lt;/a&gt; about retired shirts/stickers and to see what&amp;rsquo;s still available.&lt;/p&gt;
+&lt;p&gt;See &lt;a href=&quot;http://rubini.us/2011/09/02/retiring-some-rubinius-rewards/&quot; title=&quot;Retiring (Some) Rubinius Rewards - Rubinius&quot;&gt;this post&lt;/a&gt; about retired shirts/stickers and to see what’s still available.&lt;/p&gt;
 
 &lt;h2 id=&quot;tldr&quot;&gt;tl;dr&lt;/h2&gt;
 
@@ -1141,14 +1129,14 @@ hotcakes. It turns out that there was a lot of pent up demand for Rubinius
 swag.&lt;/p&gt;
 
 &lt;p&gt;Not everyone could be at RailsConf to get the goods, of course. Even some
-people who were there didn&amp;rsquo;t get their shirts/stickers. If you didn&amp;rsquo;t get one
-and want one, we&amp;rsquo;re very sorry, but don&amp;rsquo;t you worry. We&amp;rsquo;ve got you covered.&lt;/p&gt;
+people who were there didn’t get their shirts/stickers. If you didn’t get one
+and want one, we’re very sorry, but don’t you worry. We’ve got you covered.&lt;/p&gt;
 
 &lt;h2 id=&quot;general-availability-stickers&quot;&gt;General Availability Stickers&lt;/h2&gt;
 
 &lt;p&gt;&lt;a href=&quot;http://www.flickr.com/photos/veganstraightedge/5742057726&quot;&gt;&lt;img src=&quot;http://farm3.static.flickr.com/2458/5742057726_48c42d5462_z.jpg&quot; alt=&quot;A box of Rubinius stickers&quot; title=&quot;A box of Rubinius stickers by veganstraightedge, on Flickr&quot; /&gt;&lt;/a&gt;&lt;/p&gt;
 
-&lt;p&gt;We&amp;rsquo;ve got a box of stickers in three designs:
+&lt;p&gt;We’ve got a box of stickers in three designs:
 &lt;a href=&quot;http://asset.rubini.us/web/images/blog/rubinius_square_sticker.png&quot;&gt;square&lt;/a&gt;,
 &lt;a href=&quot;http://asset.rubini.us/web/images/blog/rubinius_bumper_sticker.png&quot;&gt;bumper&lt;/a&gt;
 and
@@ -1158,8 +1146,8 @@ and
 
 &lt;h2 id=&quot;general-availability-t-shirt&quot;&gt;General Availability T-Shirt&lt;/h2&gt;
 
-&lt;p&gt;We&amp;rsquo;re printing 500 more grey Rubinius t-shirts in the two different designs
-and in a a handful of sizes (women&amp;rsquo;s small and medium, unisex small &amp;ndash;
+&lt;p&gt;We’re printing 500 more grey Rubinius t-shirts in the two different designs
+and in a a handful of sizes (women’s small and medium, unisex small –
 xx-large).&lt;/p&gt;
 
 &lt;p&gt;&lt;a href=&quot;&amp;#109;&amp;#097;&amp;#105;&amp;#108;&amp;#116;&amp;#111;:&amp;#099;&amp;#111;&amp;#109;&amp;#109;&amp;#117;&amp;#110;&amp;#105;&amp;#116;&amp;#121;&amp;#064;&amp;#114;&amp;#117;&amp;#098;&amp;#105;&amp;#110;&amp;#105;&amp;#046;&amp;#117;&amp;#115;&quot;&gt;&amp;#069;&amp;#109;&amp;#097;&amp;#105;&amp;#108;&amp;#032;&amp;#117;&amp;#115;&lt;/a&gt; and tell us which design / size you want:
@@ -1167,7 +1155,7 @@ xx-large).&lt;/p&gt;
 or
 &lt;a href=&quot;http://asset.rubini.us/web/images/blog/rubinius_use_ruby_horizontal_shirt.jpg&quot;&gt;horizontal&lt;/a&gt;
 in
-women&amp;rsquo;s small, women&amp;rsquo;s medium, unisex small, unisex medium, unisex large,
+women’s small, women’s medium, unisex small, unisex medium, unisex large,
 unisex x-large or unisex xx-large.&lt;/p&gt;
 
 &lt;p&gt;&lt;a href=&quot;http://www.flickr.com/photos/veganstraightedge/5709097384&quot;&gt;&lt;img src=&quot;http://farm4.static.flickr.com/3469/5709097384_0bde99e1d3_z.jpg&quot; alt=&quot;Rubinius &amp;quot;Use Ruby&amp;trade;&amp;quot; T-Shirts at the Farmhouse in Hollywood, CA&quot; title=&quot;Rubinius &amp;quot;Use Ruby&amp;trade;&amp;quot; T-Shirts at the Farmhouse in Hollywood, CA, on Flickr&quot; /&gt;&lt;/a&gt;&lt;/p&gt;
@@ -1178,49 +1166,49 @@ unisex x-large or unisex xx-large.&lt;/p&gt;
 &lt;h2 id=&quot;first-commit-sticker&quot;&gt;First Commit Sticker&lt;/h2&gt;
 
 &lt;p&gt;Going forward, we want to reward everyone who makes a contribution to
-Rubinius. As a very small token of our gratitude, we&amp;rsquo;re mailing a Rubinius
+Rubinius. As a very small token of our gratitude, we’re mailing a Rubinius
 sticker (and a handwritten thank you note from one of us) to everyone after
-their first commit. So, if you&amp;rsquo;ve ever thought about dipping your toe into
-Rubinius (or diving headlong into the deep end), now&amp;rsquo;s the best time ever.
-Help us make Rubinius better (in big and small ways) and we&amp;rsquo;ll send you stuff.&lt;/p&gt;
+their first commit. So, if you’ve ever thought about dipping your toe into
+Rubinius (or diving headlong into the deep end), now’s the best time ever.
+Help us make Rubinius better (in big and small ways) and we’ll send you stuff.&lt;/p&gt;
 
 &lt;h2 id=&quot;tenth-commit-shirt&quot;&gt;Tenth Commit Shirt&lt;/h2&gt;
 
 &lt;p&gt;We want you to stick around and keep helping Rubinius to get better and better.
-If you make 10 commits to Rubinius, we&amp;rsquo;ll send you a special shirt only
-available to committers. That design is still a secret for now, but it&amp;rsquo;s just
+If you make 10 commits to Rubinius, we’ll send you a special shirt only
+available to committers. That design is still a secret for now, but it’s just
 for 10+ committers.&lt;/p&gt;
 
-&lt;p&gt;&lt;em&gt;Please, don&amp;rsquo;t try to game the system by intentionally breaking stuff up into
-smaller commits just to bump up your count. Let&amp;rsquo;s keep it honest.&lt;/em&gt;&lt;/p&gt;
+&lt;p&gt;&lt;em&gt;Please, don’t try to game the system by intentionally breaking stuff up into
+smaller commits just to bump up your count. Let’s keep it honest.&lt;/em&gt;&lt;/p&gt;
 
 &lt;h2 id=&quot;quarterly-committer-merit-badge-stickers&quot;&gt;Quarterly Committer Merit Badge Stickers&lt;/h2&gt;
 
 &lt;p&gt;In addition to getting a generally available sticker after your first commit,
-at the end of each calendar quarter (every three months) we&amp;rsquo;re sending a
+at the end of each calendar quarter (every three months) we’re sending a
 sticker to everyone who committed to Rubinius &lt;strong&gt;during&lt;/strong&gt; that quarter.&lt;/p&gt;
 
-&lt;p&gt;E.g. after July 1, 2011, we&amp;rsquo;ll print and ship a sticker to everyone who
-committed between April 1 and June 30. Each quarter&amp;rsquo;s sticker has the year /
-quarter in the corner. Keep committing every quarter and you&amp;rsquo;ll keep
+&lt;p&gt;E.g. after July 1, 2011, we’ll print and ship a sticker to everyone who
+committed between April 1 and June 30. Each quarter’s sticker has the year /
+quarter in the corner. Keep committing every quarter and you’ll keep
 collecting the merit badge stickers.&lt;/p&gt;
 
-&lt;h2 id=&quot;one-more-thing-mdash-im-committed-sticker&quot;&gt;One More Thing &amp;mdash; I&amp;rsquo;m Committed* Sticker&lt;/h2&gt;
+&lt;h2 id=&quot;one-more-thing-mdash-im-committed-sticker&quot;&gt;One More Thing — I’m Committed* Sticker&lt;/h2&gt;
 
 &lt;p&gt;Rubinius is obviously older than the new Rubinius Rewards program. To backfill
 for all the contributions people have made over the years up until, we have a
-&lt;em&gt;super duper limited edition never to be made again&lt;/em&gt; sticker&amp;hellip; the asterisk.&lt;/p&gt;
+&lt;em&gt;super duper limited edition never to be made again&lt;/em&gt; sticker… the asterisk.&lt;/p&gt;
 
 &lt;p&gt;&lt;a href=&quot;http://www.flickr.com/photos/veganstraightedge/5742135762&quot;&gt;&lt;img src=&quot;http://farm4.static.flickr.com/3187/5742135762_521146bdf9_z.jpg&quot; alt=&quot;Rubinius stickers on my laptop&quot; title=&quot;The new @Rubinius stickers on my @EngineYard laptop, on Flickr&quot; /&gt;&lt;/a&gt;&lt;/p&gt;
 
 &lt;h2 id=&quot;get-in-touch&quot;&gt;Get in Touch&lt;/h2&gt;
 
-&lt;p&gt;If you&amp;rsquo;re a past committer, &lt;a href=&quot;&amp;#109;&amp;#097;&amp;#105;&amp;#108;&amp;#116;&amp;#111;:&amp;#099;&amp;#111;&amp;#109;&amp;#109;&amp;#117;&amp;#110;&amp;#105;&amp;#116;&amp;#121;&amp;#064;&amp;#114;&amp;#117;&amp;#098;&amp;#105;&amp;#110;&amp;#105;&amp;#046;&amp;#117;&amp;#115;&quot;&gt;&amp;#101;&amp;#109;&amp;#097;&amp;#105;&amp;#108;&amp;#032;&amp;#117;&amp;#115;&lt;/a&gt; your
-mailing address get your special merit sticker. If you&amp;rsquo;re a new committer,
-we&amp;rsquo;ll try to take note and reach out to you. If you don&amp;rsquo;t hear from us,
-don&amp;rsquo;t be afraid to contact us with your mailing address.&lt;/p&gt;
+&lt;p&gt;If you’re a past committer, &lt;a href=&quot;&amp;#109;&amp;#097;&amp;#105;&amp;#108;&amp;#116;&amp;#111;:&amp;#099;&amp;#111;&amp;#109;&amp;#109;&amp;#117;&amp;#110;&amp;#105;&amp;#116;&amp;#121;&amp;#064;&amp;#114;&amp;#117;&amp;#098;&amp;#105;&amp;#110;&amp;#105;&amp;#046;&amp;#117;&amp;#115;&quot;&gt;&amp;#101;&amp;#109;&amp;#097;&amp;#105;&amp;#108;&amp;#032;&amp;#117;&amp;#115;&lt;/a&gt; your
+mailing address get your special merit sticker. If you’re a new committer,
+we’ll try to take note and reach out to you. If you don’t hear from us,
+don’t be afraid to contact us with your mailing address.&lt;/p&gt;
 
-&lt;h3 id=&quot;up-next&quot;&gt;Up Next&amp;hellip;&lt;/h3&gt;
+&lt;h3 id=&quot;up-next&quot;&gt;Up Next…&lt;/h3&gt;
 
 &lt;p&gt;Rubinius International Outposts.&lt;/p&gt;
 </content>
@@ -1241,14 +1229,14 @@ don&amp;rsquo;t be afraid to contact us with your mailing address.&lt;/p&gt;
   &lt;p&gt; One of the really cool things about the &lt;a href=&quot;http://en.wikipedia.org/wiki/Rubinius&quot;&gt;Rubinius&lt;/a&gt; implementation of Ruby is that it exposes, by requirement, a level of internals which you can&amp;rsquo;t find in &lt;abbr title=&quot;Matz' Ruby Interpreter&quot;&gt;MRI&lt;/abbr&gt;, including some internals with scopes. Because these internals are exposed in Ruby itself, you can &lt;a href=&quot;http://yehudakatz.com/2011/02/18/getting-comfortable-with-rubinius-pure-ruby-internals/&quot;&gt;play around with scopes as objects&lt;/a&gt;, using &lt;code&gt;VariableScope&lt;/code&gt;, including getting access to the available local variables within that scope, with &lt;code&gt;VariableScope.current.locals&lt;/code&gt;. &lt;/p&gt;
 &lt;/blockquote&gt;
 
-&lt;p&gt;How are &lt;strong&gt;you&lt;/strong&gt; using Rubinius? What are you doing with it that you couldn&amp;rsquo;t do before? What is it missing for you to really dive in? Let us know. We&amp;rsquo;re listening.&lt;/p&gt;
+&lt;p&gt;How are &lt;strong&gt;you&lt;/strong&gt; using Rubinius? What are you doing with it that you couldn’t do before? What is it missing for you to really dive in? Let us know. We’re listening.&lt;/p&gt;
 
 &lt;ul&gt;
   &lt;li&gt;&lt;a href=&quot;community@rubini.us&quot;&gt;community@rubini.us&lt;/a&gt;&lt;/li&gt;
   &lt;li&gt;&lt;a href=&quot;http://twitter.com/rubinius&quot; title=&quot;@rubinius on twitter&quot;&gt;@rubinius&lt;/a&gt;&lt;/li&gt;
 &lt;/ul&gt;
 
-&lt;p&gt;&amp;mdash; Use Ruby&amp;trade;&lt;/p&gt;
+&lt;p&gt;— Use Ruby™&lt;/p&gt;
 </content>
   </entry>
   
@@ -1263,15 +1251,15 @@ don&amp;rsquo;t be afraid to contact us with your mailing address.&lt;/p&gt;
     
     <content type="html">&lt;h3 id=&quot;allow-myself-to-introduce-myself&quot;&gt;Allow Myself to Introduce Myself&lt;/h3&gt;
 
-&lt;p&gt;Hi. I&amp;rsquo;m Shane (&lt;a href=&quot;http://twitter.com/veganstraightedge&quot;&gt;@veganstraightedge&lt;/a&gt;
-/ &lt;a href=&quot;http://iamshane.com&quot;&gt;iamshane.com&lt;/a&gt;). I&amp;rsquo;ll be helping out around here now.
+&lt;p&gt;Hi. I’m Shane (&lt;a href=&quot;http://twitter.com/veganstraightedge&quot;&gt;@veganstraightedge&lt;/a&gt;
+/ &lt;a href=&quot;http://iamshane.com&quot;&gt;iamshane.com&lt;/a&gt;). I’ll be helping out around here now.
 I was recently hired by &lt;a href=&quot;http://engineyard.com&quot;&gt;Engine Yard&lt;/a&gt; to be their Open
 Source Cheerleader. (Yes, there will be costumes at some point.) My
 primary focus is &lt;strong&gt;Rubinius! Rubinius! Rubinius!&lt;/strong&gt;&lt;/p&gt;
 
 &lt;p&gt;I have lots of big plans for helping get Rubinius used by more people
 in more places and how to have a better conversation with people who are using
-it. For now though, I tell you about just the first thing that I&amp;rsquo;ve done.&lt;/p&gt;
+it. For now though, I tell you about just the first thing that I’ve done.&lt;/p&gt;
 
 &lt;h3 id=&quot;t-shirts&quot;&gt;T-Shirts&lt;/h3&gt;
 
@@ -1281,12 +1269,12 @@ it. For now though, I tell you about just the first thing that I&amp;rsquo;ve do
 &lt;p&gt;A long time ago (2007) in a city far, far away (Seattle, WA), Evan and I made
 the first batch of Rubinius t-shirts. There were about two dozen made and
 given to the handful of contributors at the time. This was at RailsConf in
-Portland, OR. Since then there hasn&amp;rsquo;t been &lt;em&gt;anything&lt;/em&gt; made with the Rubinius
+Portland, OR. Since then there hasn’t been &lt;em&gt;anything&lt;/em&gt; made with the Rubinius
 logo on it.&lt;/p&gt;
 
-&lt;p&gt;Now is the time to rectify that. We&amp;rsquo;ve made two different t-shirts. Same
+&lt;p&gt;Now is the time to rectify that. We’ve made two different t-shirts. Same
 messaging, slightly different design orientation. Both are the same colors:
-white on asphalt. They are available in an assortment of sizes from women&amp;rsquo;s
+white on asphalt. They are available in an assortment of sizes from women’s
 small to unisex xx-large.&lt;/p&gt;
 
 &lt;h4 id=&quot;use-ruby-rubinius-t-shirts-from-railsconf-2011&quot;&gt;Use Ruby™ Rubinius T-Shirts from RailsConf 2011&lt;/h4&gt;
@@ -1294,16 +1282,16 @@ small to unisex xx-large.&lt;/p&gt;
 
 &lt;p&gt;&lt;img src=&quot;http://asset.rubini.us/web/images/blog/rubinius_use_ruby_horizontal_shirt.jpg&quot; alt=&quot;Use Ruby™ Horizontal Ruby T-Shirt from RailsConf 2011&quot; /&gt;&lt;/p&gt;
 
-&lt;p&gt;If you&amp;rsquo;re going to RailsConf 2011 in Baltimore, MD, stop by the Engine Yard booth
-to pick up a free Rubinius t-shirt. After RailsConf we&amp;rsquo;ll have ways to get one
+&lt;p&gt;If you’re going to RailsConf 2011 in Baltimore, MD, stop by the Engine Yard booth
+to pick up a free Rubinius t-shirt. After RailsConf we’ll have ways to get one
 from us directly.&lt;/p&gt;
 
 &lt;h3 id=&quot;stickers&quot;&gt;Stickers&lt;/h3&gt;
 
-&lt;p&gt;To go along with the t-shirts, we&amp;rsquo;re making a whole grip of Rubinius stickers.
+&lt;p&gt;To go along with the t-shirts, we’re making a whole grip of Rubinius stickers.
 Most of which will also be available for free from the Engine Yard booth at
-RailsConf in Baltimore. Again, after RailsConf you&amp;rsquo;ll be able to get them
-directly from us. More on that later. Here&amp;rsquo;s what we have in store.&lt;/p&gt;
+RailsConf in Baltimore. Again, after RailsConf you’ll be able to get them
+directly from us. More on that later. Here’s what we have in store.&lt;/p&gt;
 
 &lt;h4 id=&quot;wide-screen-7in-x-375in&quot;&gt;Wide Screen (7in x 3.75in)&lt;/h4&gt;
 
@@ -1317,14 +1305,14 @@ directly from us. More on that later. Here&amp;rsquo;s what we have in store.&lt
 
 &lt;p&gt;&lt;img src=&quot;http://asset.rubini.us/web/images/blog/rubinius_diecut_sticker.png&quot; alt=&quot;Rubinius : r logo diecut sticker&quot; /&gt;&lt;/p&gt;
 
-&lt;h4 id=&quot;im-committed-merit-sticker&quot;&gt;I&amp;rsquo;m Committed Merit Sticker&lt;/h4&gt;
+&lt;h4 id=&quot;im-committed-merit-sticker&quot;&gt;I’m Committed Merit Sticker&lt;/h4&gt;
 
-&lt;p&gt;This one you have to earn. At the end of each quarter, we&amp;rsquo;ll send out a little
+&lt;p&gt;This one you have to earn. At the end of each quarter, we’ll send out a little
 one inch square sticker with a year/quarter combination in its corner to
 everyone who committed something to Rubinius during that calendar quarter. For
-all of the incredible folks who&amp;rsquo;ve contributed something (however big or small)
-already, you&amp;rsquo;ll get a special sticker. Instead of a date, there&amp;rsquo;s an asterisk.
-Only those of you that&amp;rsquo;ve committed so far will get that one.&lt;/p&gt;
+all of the incredible folks who’ve contributed something (however big or small)
+already, you’ll get a special sticker. Instead of a date, there’s an asterisk.
+Only those of you that’ve committed so far will get that one.&lt;/p&gt;
 
 &lt;p&gt;&lt;img src=&quot;http://asset.rubini.us/web/images/blog/rubinius_alumni_sticker.png&quot; alt=&quot;Rubinius : I'm committed past committers sticker&quot; /&gt;&lt;/p&gt;
 
@@ -1332,7 +1320,7 @@ Only those of you that&amp;rsquo;ve committed so far will get that one.&lt;/p&gt
 &lt;a href=&quot;http://rubini.us/blog&quot;&gt;the Rubinius blog&lt;/a&gt; and to the Twitter account :
 &lt;a href=&quot;http://twitter.com/rubinius&quot;&gt;@rubinius&lt;/a&gt;. We have lots more in store.&lt;/p&gt;
 
-&lt;p&gt;&amp;mdash; Use Ruby&amp;trade;&lt;/p&gt;
+&lt;p&gt;— Use Ruby™&lt;/p&gt;
 </content>
   </entry>
   
@@ -1345,7 +1333,7 @@ Only those of you that&amp;rsquo;ve committed so far will get that one.&lt;/p&gt
       <name>Brian Ford</name>
     </author>
     
-    <content type="html">&lt;p&gt;Humans have come a long way since our cave-dwelling days. No, that&amp;rsquo;s not a
+    <content type="html">&lt;p&gt;Humans have come a long way since our cave-dwelling days. No, that’s not a
 metaphor for primitive software. I mean literally since we lived in caves. One
 of the big inventions is the lock. There are birds that bury food and will
 move it later if they notice they were watched burying it. But they have no
@@ -1378,7 +1366,7 @@ white and there may be valid security concerns in the source code.&lt;/li&gt;
 
 &lt;p&gt;The process that separates the source code from the executable program is
 typically a compilation step. However, Ruby code is not typically associated
-with any sort of compilation. That&amp;rsquo;s one of the great things about Ruby,
+with any sort of compilation. That’s one of the great things about Ruby,
 right? There is no &lt;em&gt;edit-compile-link-load&lt;/em&gt; cycle to wait on. Just edit and run. But
 if there is no compilation step, how do we separate the source code from the
 executable code?&lt;/p&gt;
@@ -1389,13 +1377,13 @@ Rubinius does compile Ruby code to a bytecode format that the virtual machine
 executes. I also promised to explain how you could run the bytecode directly.&lt;/p&gt;
 
 &lt;p&gt;But first, let me very clearly state that there are a number of caveats. In
-fact, I&amp;rsquo;ve included a whole section on them below. Please read them. We will
+fact, I’ve included a whole section on them below. Please read them. We will
 assume that you have and that you understand them. If you have any questions,
 please ask.&lt;/p&gt;
 
 &lt;h3 id=&quot;application-distribution-scenario&quot;&gt;Application Distribution Scenario&lt;/h3&gt;
 
-&lt;p&gt;Let&amp;rsquo;s review what we would like to accomplish. We&amp;rsquo;ll assume affable Abe is a
+&lt;p&gt;Let’s review what we would like to accomplish. We’ll assume affable Abe is a
 developer writing an application for customer Cain.&lt;/p&gt;
 
 &lt;ol&gt;
@@ -1407,13 +1395,13 @@ developer writing an application for customer Cain.&lt;/p&gt;
   &lt;li&gt;Cain runs the application.&lt;/li&gt;
 &lt;/ol&gt;
 
-&lt;p&gt;In this scenario, I&amp;rsquo;m assuming a very vague definition of application. In
+&lt;p&gt;In this scenario, I’m assuming a very vague definition of application. In
 other words, the process below will fit in with a broad spectrum of bundling
 and distribution schemes.&lt;/p&gt;
 
 &lt;h3 id=&quot;application-layout&quot;&gt;Application Layout&lt;/h3&gt;
 
-&lt;p&gt;Let&amp;rsquo;s assume that you have the following application layout. This mirrors what
+&lt;p&gt;Let’s assume that you have the following application layout. This mirrors what
 you would expect to see in a gem. You could also consider this as a subtree in
 your larger project.&lt;/p&gt;
 
@@ -1426,27 +1414,13 @@ your larger project.&lt;/p&gt;
    \- green.rb
 &lt;/code&gt;&lt;/pre&gt;
 
-&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;ruby&quot;&gt;&lt;span class=&quot;lineno&quot;&gt;1&lt;/span&gt; &lt;span class=&quot;c1&quot;&gt;# widget.rb&lt;/span&gt;
-&lt;span class=&quot;lineno&quot;&gt;2&lt;/span&gt; &lt;span class=&quot;nb&quot;&gt;require&lt;/span&gt; &lt;span class=&quot;s1&quot;&gt;&amp;#39;widget/red&amp;#39;&lt;/span&gt;
-&lt;span class=&quot;lineno&quot;&gt;3&lt;/span&gt; &lt;span class=&quot;nb&quot;&gt;require&lt;/span&gt; &lt;span class=&quot;s1&quot;&gt;&amp;#39;widget/blue&amp;#39;&lt;/span&gt;
-&lt;span class=&quot;lineno&quot;&gt;4&lt;/span&gt; &lt;span class=&quot;nb&quot;&gt;require&lt;/span&gt; &lt;span class=&quot;s1&quot;&gt;&amp;#39;widget/green&amp;#39;&lt;/span&gt;
-&lt;/code&gt;&lt;/pre&gt;
-&lt;/div&gt;
+&lt;p&gt;Liquid error: undefined method `join’ for #&lt;String:0x00000001eac198 /&gt;&lt;/p&gt;
 
-&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;ruby&quot;&gt;&lt;span class=&quot;lineno&quot;&gt;1&lt;/span&gt; &lt;span class=&quot;c1&quot;&gt;# widget/red.rb&lt;/span&gt;
-&lt;span class=&quot;lineno&quot;&gt;2&lt;/span&gt; &lt;span class=&quot;nb&quot;&gt;puts&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&amp;quot;I am red&amp;quot;&lt;/span&gt;
-&lt;/code&gt;&lt;/pre&gt;
-&lt;/div&gt;
+&lt;p&gt;Liquid error: undefined method `join’ for “\n# widget/red.rb\nputs &quot;I am red&quot;\n”:String&lt;/p&gt;
 
-&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;ruby&quot;&gt;&lt;span class=&quot;lineno&quot;&gt;1&lt;/span&gt; &lt;span class=&quot;c1&quot;&gt;# widget/blue.rb&lt;/span&gt;
-&lt;span class=&quot;lineno&quot;&gt;2&lt;/span&gt; &lt;span class=&quot;nb&quot;&gt;puts&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&amp;quot;I am blue&amp;quot;&lt;/span&gt;
-&lt;/code&gt;&lt;/pre&gt;
-&lt;/div&gt;
+&lt;p&gt;Liquid error: undefined method `join’ for “\n# widget/blue.rb\nputs &quot;I am blue&quot;\n”:String&lt;/p&gt;
 
-&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;ruby&quot;&gt;&lt;span class=&quot;lineno&quot;&gt;1&lt;/span&gt; &lt;span class=&quot;c1&quot;&gt;# widget/green.rb&lt;/span&gt;
-&lt;span class=&quot;lineno&quot;&gt;2&lt;/span&gt; &lt;span class=&quot;nb&quot;&gt;puts&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&amp;quot;I am green&amp;quot;&lt;/span&gt;
-&lt;/code&gt;&lt;/pre&gt;
-&lt;/div&gt;
+&lt;p&gt;Liquid error: undefined method `join’ for “\n# widget/green.rb\nputs &quot;I am green&quot;\n”:String&lt;/p&gt;
 
 &lt;h3 id=&quot;compiling-ruby-files&quot;&gt;Compiling Ruby Files&lt;/h3&gt;
 
@@ -1458,7 +1432,7 @@ every Ruby source file in our source tree.&lt;/p&gt;
 &lt;pre&gt;&lt;code&gt;rbx compile -s '^widget:widget-compiled' widget/
 &lt;/code&gt;&lt;/pre&gt;
 
-&lt;p&gt;Let&amp;rsquo;s dissect this command. The &lt;code&gt;-s&lt;/code&gt; option defines a transformation to apply
+&lt;p&gt;Let’s dissect this command. The &lt;code&gt;-s&lt;/code&gt; option defines a transformation to apply
 to every filename. The transformation has the form &lt;code&gt;&amp;lt;source&amp;gt;:&amp;lt;destination&amp;gt;&lt;/code&gt;
 where &lt;code&gt;&amp;lt;source&amp;gt;&lt;/code&gt; can be a Regexp. In our case, we would like to change any
 path starting with &lt;code&gt;widget&lt;/code&gt; to start with &lt;code&gt;widget-compiled&lt;/code&gt;. This way, we
@@ -1482,7 +1456,7 @@ files.&lt;/p&gt;
 &lt;h3 id=&quot;loading-pre-compiled-files&quot;&gt;Loading Pre-compiled Files&lt;/h3&gt;
 
 &lt;p&gt;Now that we have a separate tree of only compiled files, how do we load them?
-Well, first, let&amp;rsquo;s load our source files so we know what to expect. Note that
+Well, first, let’s load our source files so we know what to expect. Note that
 the technique used in this post should not substitute for a robust test suite.&lt;/p&gt;
 
 &lt;pre&gt;&lt;code&gt;$ rbx -Iwidget/lib -e &quot;require 'widget/lib/widget'&quot;
@@ -1501,9 +1475,9 @@ I am green
 
 &lt;p&gt;&lt;em&gt;The crowed erupts with applause and hooting&lt;/em&gt;.&lt;/p&gt;
 
-&lt;p&gt;Golly gee, you guys&amp;hellip; &lt;em&gt;Blush&lt;/em&gt;&lt;/p&gt;
+&lt;p&gt;Golly gee, you guys… &lt;em&gt;Blush&lt;/em&gt;&lt;/p&gt;
 
-&lt;p&gt;Let&amp;rsquo;s review. Our goal is to take a tree of Ruby source files and create a
+&lt;p&gt;Let’s review. Our goal is to take a tree of Ruby source files and create a
 tree of compiled files that can be sent to a customer and loaded to perform
 exactly as the Ruby source would if loaded directly. The most direct and
 simple way to accomplish this is to use the Rubinius compiler command-line
@@ -1528,7 +1502,7 @@ change the format of the compiled output.&lt;/li&gt;
   &lt;li&gt;We have created this facility to meet a need we had in Rubinius. Since our
 compiler is written in Ruby, we have to run Ruby to run the compiler. But
 since we need to compile Ruby to run it, we need to compile the compiler.
-But since&amp;hellip; To handle this, we build the compiler using a bootstrapping
+But since… To handle this, we build the compiler using a bootstrapping
 version of Ruby.  Then we load the pre-compiled compiler files as shown
 above. The approach is quite general, as demonstrated. However, a better
 approach may be appropriate for a particular application. In that case,
@@ -1542,7 +1516,7 @@ changed. The compiled format is simple. We reserve the right to provide
 disassemblers for our compiled code. We are happy to assist you with
 direction for implementing a more secure system for your needs.&lt;/li&gt;
   &lt;li&gt;There is no mechanism that is completely safe from cracking when it comes
-to software access control. Witness how often Microsoft&amp;rsquo;s products have
+to software access control. Witness how often Microsoft’s products have
 their security features defeated. Also witness how often attempts at DRM
 are circumvented. The most secure system I have seen uses a special
 compiler and a hardware dongle. The compiler takes critical parts of the
@@ -1600,7 +1574,7 @@ $ ls hello.*
 hello.rb	hello.rbc
 &lt;/code&gt;&lt;/pre&gt;
 
-&lt;p&gt;That doesn&amp;rsquo;t look too crazy, but it can get more complicated:&lt;/p&gt;
+&lt;p&gt;That doesn’t look too crazy, but it can get more complicated:&lt;/p&gt;
 
 &lt;pre&gt;&lt;code&gt;$ mv hello.rb hello
 $ rbx hello
@@ -1623,16 +1597,16 @@ cache file with the source and not clash with other names.&lt;/li&gt;
 &lt;/ol&gt;
 
 &lt;p&gt;Again, the advantage of the cache file is that you do not have to wait for
-Rubinius to recompile the file if you have not changed the source. Let&amp;rsquo;s see
+Rubinius to recompile the file if you have not changed the source. Let’s see
 if we can get all the advantages with none of the disadvantages. That old
 saying comes to mind, &lt;em&gt;Having your cake and eating it, too&lt;/em&gt;, so we may not
 be successful, but it is worth a shot.&lt;/p&gt;
 
-&lt;p&gt;First, let&amp;rsquo;s take a step back. This issue is not unique to Rubinius. Python
+&lt;p&gt;First, let’s take a step back. This issue is not unique to Rubinius. Python
 has &lt;code&gt;.pyc&lt;/code&gt; and &lt;code&gt;.pyo&lt;/code&gt; files. Java has &lt;code&gt;.class&lt;/code&gt; files. C/C++ has &lt;code&gt;.o&lt;/code&gt; files.
 Lots of things need a place to store a compiled or cached representation of
 some data. Every SCM worth mention has some mechanism to ignore the files you
-don&amp;rsquo;t want to track. The same is generally true of editors. So in some sense,
+don’t want to track. The same is generally true of editors. So in some sense,
 this is a solved problem. However, we have always received complaints about
 the &lt;code&gt;.rbc&lt;/code&gt; files, so we thought we would try to make other, hopefully better,
 solutions available.&lt;/p&gt;
@@ -1650,7 +1624,7 @@ $ ls hello.*
 hello.rb
 &lt;/code&gt;&lt;/pre&gt;
 
-&lt;p&gt;Win! Not one lousy &lt;code&gt;.rbc&lt;/code&gt; file in sight. Although, that&amp;rsquo;s quite the option to
+&lt;p&gt;Win! Not one lousy &lt;code&gt;.rbc&lt;/code&gt; file in sight. Although, that’s quite the option to
 type. Never fear, we have a solution to that below.&lt;/p&gt;
 
 &lt;p&gt;Here is our scorecard for solution 1:&lt;/p&gt;
@@ -1670,7 +1644,7 @@ couple years ago so it may not be an issue for you.&lt;/p&gt;
 &lt;p&gt;What if we could put all the compilation data in a single cache location,
 something like a database? We have an option for that.&lt;/p&gt;
 
-&lt;p&gt;This option is a little more complex, so let&amp;rsquo;s take it in two steps.&lt;/p&gt;
+&lt;p&gt;This option is a little more complex, so let’s take it in two steps.&lt;/p&gt;
 
 &lt;pre&gt;&lt;code&gt;$ ls hello.*
 hello.rb
@@ -1685,7 +1659,7 @@ $ ls -R .rbx
 60c091c3ed34c1b93ffbb33d82d810772902d3f9
 &lt;/code&gt;&lt;/pre&gt;
 
-&lt;p&gt;Success! No &lt;code&gt;.rbc&lt;/code&gt; files here. But what&amp;rsquo;s with all the numbers in the &lt;code&gt;.rbx&lt;/code&gt;
+&lt;p&gt;Success! No &lt;code&gt;.rbc&lt;/code&gt; files here. But what’s with all the numbers in the &lt;code&gt;.rbx&lt;/code&gt;
 directory and how did that directory get there?&lt;/p&gt;
 
 &lt;p&gt;The &lt;code&gt;-Xrbc.db&lt;/code&gt; option without any argument will store the compilation cache in
@@ -1739,7 +1713,7 @@ directory. However, you can easily specify where to put that directory.&lt;/p&gt
 &lt;h3 id=&quot;using-rbxopt-for-options&quot;&gt;Using RBXOPT for Options&lt;/h3&gt;
 
 &lt;p&gt;As mentioned above, the &lt;code&gt;-X&lt;/code&gt; options can get a little long and you certainly
-don&amp;rsquo;t want to retype them constantly. We have added support for the &lt;code&gt;RBXOPT&lt;/code&gt;
+don’t want to retype them constantly. We have added support for the &lt;code&gt;RBXOPT&lt;/code&gt;
 environment variable, which is an analog of the &lt;code&gt;RUBYOPT&lt;/code&gt; environment variable
 that we already support.&lt;/p&gt;
 
@@ -1762,17 +1736,17 @@ time and resources recompiling source that has not changed. However, we need
 some place to store the cache. Rubinius provides options for omitting the
 cache altogether or for storing it in a directory of your choosing. Note that
 the format of the compilation cache is an implementation detail and we reserve
-the right to change it at any time, so please don&amp;rsquo;t rely on it being in any
+the right to change it at any time, so please don’t rely on it being in any
 particular format.&lt;/p&gt;
 
-&lt;p&gt;We have not turned on &lt;code&gt;-Xrbc.db&lt;/code&gt; by default yet because we don&amp;rsquo;t know what a
+&lt;p&gt;We have not turned on &lt;code&gt;-Xrbc.db&lt;/code&gt; by default yet because we don’t know what a
 good default is. So give us feedback on your use cases and what you would find
 most useful.&lt;/p&gt;
 
 &lt;p&gt;Finally, whenever we discuss the compilation cache we are inevitably asked if
 you can run directly from the cache and not use the Ruby source at all after
-it has been compiled. The short answer is &amp;ldquo;Yes&amp;rdquo;, the long answer is &amp;ldquo;It
-depends&amp;rdquo;. I will be writing a post exploring this question in detail shortly.
+it has been compiled. The short answer is “Yes”, the long answer is “It
+depends”. I will be writing a post exploring this question in detail shortly.
 For now, get out there and write more Ruby code!&lt;/p&gt;
 </content>
   </entry>
@@ -1788,20 +1762,20 @@ For now, get out there and write more Ruby code!&lt;/p&gt;
     
     <content type="html">&lt;p&gt;&lt;em&gt;Why should I use Rubinius?&lt;/em&gt; We have been asked that question many, many times
 over the past four years. It is a great question. It is an important question.
-It&amp;rsquo;s a &lt;em&gt;hard&lt;/em&gt; question. I&amp;rsquo;m not holding out on you. I want to give you an
+It’s a &lt;em&gt;hard&lt;/em&gt; question. I’m not holding out on you. I want to give you an
 answer that sates your curiosity, helps you make informed decisions, and
-empowers you to speak eloquently when &lt;em&gt;you&lt;/em&gt; are inevitably asked, &amp;ldquo;Why do you
-use Rubinius?&amp;rdquo;&lt;/p&gt;
+empowers you to speak eloquently when &lt;em&gt;you&lt;/em&gt; are inevitably asked, “Why do you
+use Rubinius?”&lt;/p&gt;
 
 &lt;p&gt;The trouble is, there are many different situations in which people use Ruby
 and there is simply no answer, however comprehensive, that really speaks to
-everyone&amp;rsquo;s concerns. So rather that boring you at length, I thought a &lt;em&gt;Choose
+everyone’s concerns. So rather that boring you at length, I thought a &lt;em&gt;Choose
 your own adventure&lt;/em&gt; style would be a better approach.&lt;/p&gt;
 
-&lt;p&gt;From the list below, select the persona that best describes you. Don&amp;rsquo;t worry,
-if the one you select doesn&amp;rsquo;t sound right, you can easily backtrack here. Read
+&lt;p&gt;From the list below, select the persona that best describes you. Don’t worry,
+if the one you select doesn’t sound right, you can easily backtrack here. Read
 as many as interest you. After all, none of us fit easily into any one box.
-When you are done exploring all the fascinating reasons to use Rubinius, let&amp;rsquo;s
+When you are done exploring all the fascinating reasons to use Rubinius, let’s
 meet up at the &lt;a href=&quot;#wur-conclusion&quot;&gt;Conclusion&lt;/a&gt; for some parting
 words.&lt;/p&gt;
 
@@ -1829,26 +1803,26 @@ watched a screencast and made a website. You are curious and enthusiastic.&lt;/p
 
 &lt;p&gt;You are the empty teacup of the Zen proverb. You are a fresh-faced flower
 glistening with the morning dew. The sun smiles on you and you smile back.
-You seem to like this Ruby language that makes programmers happy and you&amp;rsquo;ve
-come to lend your cheery spirit&amp;hellip;&lt;/p&gt;
+You seem to like this Ruby language that makes programmers happy and you’ve
+come to lend your cheery spirit…&lt;/p&gt;
 
 &lt;p&gt;Welcome!&lt;/p&gt;
 
 &lt;p&gt;So, you have heard of this thing called Rubinius or rbx or whatever and some
 folks you respect or admire seem to like it and naturally you want to know
-what the big deal is and you&amp;rsquo;re like, &amp;ldquo;Yo, why would I use Rubinius?&amp;rdquo;.&lt;/p&gt;
+what the big deal is and you’re like, “Yo, why would I use Rubinius?”.&lt;/p&gt;
 
 &lt;p&gt;Cool.&lt;/p&gt;
 
 &lt;p&gt;Well, you should use Rubinius because I said so. Try your code on it. Tell us
-what worked for you. Tell us if something didn&amp;rsquo;t work by opening an
+what worked for you. Tell us if something didn’t work by opening an
 &lt;a href=&quot;https://github.com/rubinius/rubinius/issues/&quot;&gt;issue&lt;/a&gt;.
 Set your imagination loose and tell us what tool you would use if you could.&lt;/p&gt;
 
 &lt;p&gt;Spend some time reading the Rubinius source code. Start at the &lt;code&gt;kernel/&lt;/code&gt;
-directory. It&amp;rsquo;s full of Ruby code! As you read through how Ruby is
+directory. It’s full of Ruby code! As you read through how Ruby is
 implemented, how it actually works, it will give you a level of understanding
-of your code that many programmers don&amp;rsquo;t have in &lt;em&gt;any&lt;/em&gt; language.&lt;/p&gt;
+of your code that many programmers don’t have in &lt;em&gt;any&lt;/em&gt; language.&lt;/p&gt;
 
 &lt;p&gt;Most of all, hang on to your curiosity and enthusiasm. Those were vital to the
 creation of the Rubinius project in the beginning and have sustained us
@@ -1876,7 +1850,7 @@ himself&lt;/em&gt;&lt;/li&gt;
 &lt;p&gt;(Apple's dashboard dictionary widget.)&lt;/p&gt;
 &lt;/blockquote&gt;
 
-&lt;p&gt;Ruby respects creativity. It has an &lt;em&gt;aesthetic&lt;/em&gt;. You don&amp;rsquo;t just write Ruby
+&lt;p&gt;Ruby respects creativity. It has an &lt;em&gt;aesthetic&lt;/em&gt;. You don’t just write Ruby
 code, you write &lt;em&gt;beautiful&lt;/em&gt; Ruby code.  It would be unthinkable to do
 otherwise. Sure, there is more than one way to do many things. This is not
 some sterile laboratory. We are not automatons; we are people. Of course,
@@ -1884,7 +1858,7 @@ being utilitarian is not bad. But other languages have that angle pretty
 well covered. There is probably only one right way to implement Python.&lt;/p&gt;
 
 &lt;p&gt;Rubinius has an aesthetic, too: excellence, utility, simplicity, beauty, joy.
-Mostly in that order. Useful code that isn&amp;rsquo;t of very good quality is a drag.
+Mostly in that order. Useful code that isn’t of very good quality is a drag.
 It slows you down. It gives you a headache. It drives you away. We strive to
 keep it out of Rubinius. On the other hand, we are not just writing sonnets
 here. This is Serious Business™. We have some hard-core problems to solve. So
@@ -1896,13 +1870,13 @@ perspective on making the implementation of this beautiful object-oriented
 language more beautiful and object-oriented.&lt;/p&gt;
 
 &lt;p&gt;We welcome your artistic perspective. Help us improve the dialog between
-Rubinius and the person using it. The command line doesn&amp;rsquo;t have to be a
+Rubinius and the person using it. The command line doesn’t have to be a
 desolate place of obscure, condescending error messages. Web interfaces to the
 diagnostic tools deserve a good dose of user-experience and interaction
 design. You know that feeling you get when looking at an Enterprise web
 application? That weird plastic-masquerading-as-quality-material feeling?
 The too much 1996-Enterprise-faux-rounded-corner-wanabe-2006-hip gloss?
-Gives me the willies whenever I have to use an app like that. Yeah, we don&amp;rsquo;t
+Gives me the willies whenever I have to use an app like that. Yeah, we don’t
 want that.&lt;/p&gt;
 
 &lt;p&gt;We want to create tools that are powerful, graceful, easy to use, and
@@ -1956,16 +1930,16 @@ to let us know.&lt;/p&gt;
 
 &lt;p&gt;If everything goes well with the tests, you start running some of the
 benchmarks that you have accumulated while doing performance tuning. Of
-course, no sensible person asks for benchmark results from &lt;em&gt;other&lt;/em&gt; people&amp;rsquo;s
-code. That defies logic. It&amp;rsquo;s like asking if your program will run because
-your Aunt Mabeline likes decaf coffee. It&amp;rsquo;s contrary to the very point of
+course, no sensible person asks for benchmark results from &lt;em&gt;other&lt;/em&gt; people’s
+code. That defies logic. It’s like asking if your program will run because
+your Aunt Mabeline likes decaf coffee. It’s contrary to the very point of
 benchmarking, where you are trying to correlate two values that are connected.&lt;/p&gt;
 
 &lt;p&gt;Again, if you note an significant issues, please let us know. Sometimes
 Rubinius exposes issues in existing code. Performance characteristics of real
 applications are vital to making Rubinius faster. Also, if you have
 suggestions for tools you would like to use, tell us. If you just want to
-chat about the technology, that&amp;rsquo;s fine, too. We&amp;rsquo;re hanging out in the
+chat about the technology, that’s fine, too. We’re hanging out in the
 #rubinius channel on freenode.net.&lt;/p&gt;
 
 &lt;p&gt;&lt;a href=&quot;#wur-personas&quot;&gt;&lt;strong&gt;Back to personas&lt;/strong&gt;&lt;/a&gt;&lt;/p&gt;
@@ -1973,13 +1947,13 @@ chat about the technology, that&amp;rsquo;s fine, too. We&amp;rsquo;re hanging o
 &lt;h4&gt;&lt;a class=&quot;anchor_title&quot; name=&quot;wur-seasoned&quot;&gt;Seasoned programmer&lt;/a&gt;&lt;/h4&gt;
 
 &lt;p&gt;Well, I am being kind by saying &lt;em&gt;seasoned&lt;/em&gt;. You know when you look in the
-mirror that &lt;em&gt;jaded&lt;/em&gt; and &lt;em&gt;cynical&lt;/em&gt; are much more apt. You&amp;rsquo;ve seen it all and it
-has worn you down. You&amp;rsquo;ve been fighting the good fight, carefully guarding
+mirror that &lt;em&gt;jaded&lt;/em&gt; and &lt;em&gt;cynical&lt;/em&gt; are much more apt. You’ve seen it all and it
+has worn you down. You’ve been fighting the good fight, carefully guarding
 that last flicker of optimism that burns in the secret place deep in your
-heart. You&amp;rsquo;ve programmed Java/.NET/C++ professionally. You&amp;rsquo;ve even sucked it
+heart. You’ve programmed Java/.NET/C++ professionally. You’ve even sucked it
 up and written some PHP and Python when asked; you are a professional, they
-ask and you deliver. You&amp;rsquo;ve seen attacked servers on fire off the shoulder of
-Rackspace&amp;hellip;&lt;/p&gt;
+ask and you deliver. You’ve seen attacked servers on fire off the shoulder of
+Rackspace…&lt;/p&gt;
 
 &lt;p&gt;Rubinius has a lot to offer you. Remember that little flicker of optimism?  It
 is only the idealists that get ground down by the complete indifference to
@@ -1989,7 +1963,7 @@ and you will find plenty to refresh you here.&lt;/p&gt;
 &lt;p&gt;Rubinius aims to be the best possible implementation of Ruby by putting Ruby
 itself front and center. We are using modern technology and always improving.
 We change when there is a better way to do things. We judiciously rewrite and
-are not too attached to any code or algorithm. The legacy Enterprise isn&amp;rsquo;t on
+are not too attached to any code or algorithm. The legacy Enterprise isn’t on
 the steering committee. Our work will be done when you can use Ruby, just
 Ruby, to solve your thorny problems.&lt;/p&gt;
 
@@ -2003,14 +1977,14 @@ all that hard-earned wisdom you have gained to use for the betterment of Ruby.&l
 
 &lt;h4&gt;&lt;a class=&quot;anchor_title&quot; name=&quot;wur-academic&quot;&gt;Academic Researcher&lt;/a&gt;&lt;/h4&gt;
 
-&lt;p&gt;Forgive me for staring, I know it is impolite. I&amp;rsquo;m just&amp;hellip; intrigued. Of
+&lt;p&gt;Forgive me for staring, I know it is impolite. I’m just… intrigued. Of
 course, you know Ruby is a late bound language, every message sent could
 conceivably fail to find a target, potentially resulting in an uncaught
-exception and program termination. There&amp;rsquo;s shared state, wild orgies of
+exception and program termination. There’s shared state, wild orgies of
 mutation that disallow any reasonable attempt at automated parallelization.
-Program proof is as oxymoronic a concept as military intelligence. It&amp;rsquo;s a very
+Program proof is as oxymoronic a concept as military intelligence. It’s a very
 messy affair of programming and meta-programming and meta-meta-programming,
-which, for the love of Lisp, could be done so simply with macros. There&amp;rsquo;s all
+which, for the love of Lisp, could be done so simply with macros. There’s all
 this eager evaluation and complete disregard for purity. Despite vast odds,
 somehow programs are written that actually run. You have noted all this with
 great objectivity but you are nonetheless interested.&lt;/p&gt;
@@ -2051,19 +2025,19 @@ is an great project to consider. We look forward to hearing from you.&lt;/p&gt;
 
 &lt;h4&gt;&lt;a class=&quot;anchor_title&quot; name=&quot;wur-uber&quot;&gt;Über programmer&lt;/a&gt;&lt;/h4&gt;
 
-&lt;p&gt;You learned the untyped lambda calculus sitting on your mother&amp;rsquo;s knee while
+&lt;p&gt;You learned the untyped lambda calculus sitting on your mother’s knee while
 she worked on her doctorate in computer science. You were substituting terms
-before you even uttered the word, &amp;ldquo;dada&amp;rdquo;. You wrote three different Lisp
+before you even uttered the word, “dada”. You wrote three different Lisp
 implementations in Commodore Basic before you were seven. You can write
 multi-threaded web servers in one pass with no tests and never hit a deadlock
 or critical data race. You write parsers and compilers for odd languages on a
 Friday night for the heck of it while waiting for the pizza to arrive before a
 night out at the karaoke bar where you give an inspiring performance of Laga
-Gaga&amp;rsquo;s &lt;em&gt;Poker Face&lt;/em&gt;.&lt;/p&gt;
+Gaga’s &lt;em&gt;Poker Face&lt;/em&gt;.&lt;/p&gt;
 
-&lt;p&gt;(&lt;em&gt;Loooong pause&lt;/em&gt;. You&amp;rsquo;re not reading this. You&amp;rsquo;ve already written one or a few
+&lt;p&gt;(&lt;em&gt;Loooong pause&lt;/em&gt;. You’re not reading this. You’ve already written one or a few
 languages on Rubinius and posted them to our
-&lt;a href=&quot;http://rubini.us/projects/&quot;&gt;Projects&lt;/a&gt; page. But anyway, I&amp;rsquo;ll continue&amp;hellip;)&lt;/p&gt;
+&lt;a href=&quot;http://rubini.us/projects/&quot;&gt;Projects&lt;/a&gt; page. But anyway, I’ll continue…)&lt;/p&gt;
 
 &lt;p&gt;You are the Luke Skywalker of Ruby; Yoda has nothing more to teach you. Only
 your fate confronts you now. Use the Source Luke and save the Federation of
@@ -2078,7 +2052,7 @@ applications are going to be in Javascript on the client is not valid. A variety
 of hybrid client-server architectures will continue to be the norm. We need
 software that enables application authors to build a suitable solution to
 their particular problems rather than trying to stuff their apps into
-someone else&amp;rsquo;s solution with layers of wrapping.&lt;/li&gt;
+someone else’s solution with layers of wrapping.&lt;/li&gt;
   &lt;li&gt;&lt;strong&gt;Concurrency&lt;/strong&gt;: multi-core is here to stay but it is not only functional
 programming that is suitable for high-concurrency applications.&lt;/li&gt;
   &lt;li&gt;&lt;strong&gt;Graphical user interface&lt;/strong&gt;: the web browser is also here to stay but it is
@@ -2115,7 +2089,7 @@ your cup of tea, Rubinius offers an excellent platform for experimentation.&lt;/
 &lt;p&gt;Like your persona description, you tend to be long winded. You find most
 descriptions too brief, almost dismissive. There are words and words should be
 used to delve into the minutiae of minutiae. You, more than anyone, want to
-know &amp;ldquo;Why?&amp;rdquo; with every fiber of your being. You will continue asking long
+know “Why?” with every fiber of your being. You will continue asking long
 after the supply of hallucinogens has been exhausted and everyone else is
 drooling in their sleep.&lt;/p&gt;
 
@@ -2126,21 +2100,21 @@ we already have MRI, why build Rubinius?&lt;/p&gt;
 simply this: &lt;em&gt;Ruby should be a first class language&lt;/em&gt;. What does that mean?
 Simply that it should be possible to solve problems writing Ruby code.&lt;/p&gt;
 
-&lt;p&gt;Let&amp;rsquo;s consider libraries: Being first class means not having to wrap a Java
+&lt;p&gt;Let’s consider libraries: Being first class means not having to wrap a Java
 library or build a C extension. If wrapping the library were the end of the
-story, it wouldn&amp;rsquo;t be so bad. But that is &lt;em&gt;never&lt;/em&gt; the case. Libraries have
+story, it wouldn’t be so bad. But that is &lt;em&gt;never&lt;/em&gt; the case. Libraries have
 bugs, weird APIs, incompatibility with other libraries, threading issues, and
 disappearing maintainers. They may even be incompatible with newer versions of
 the language in which they are written.&lt;/p&gt;
 
 &lt;p&gt;This list goes on. To address any one of these issues requires delving into a
 different language with weird and incompatible semantics. If the library is
-your core competency, that&amp;rsquo;s not such a big deal. But I will wager that it is
+your core competency, that’s not such a big deal. But I will wager that it is
 not, which is why you are using the library in the first place. Also, the
 language in which you are wrapping the library (Ruby here) is not likely the
-core competency of the library author, or you probably wouldn&amp;rsquo;t need to be
+core competency of the library author, or you probably wouldn’t need to be
 wrapping it. So Ruby wrapping one of these libraries will always be a
-second-class citizen. Decisions will be made about the library&amp;rsquo;s API that do
+second-class citizen. Decisions will be made about the library’s API that do
 not give one thought to the Ruby programs using it. Furthermore, the code
 written in that foreign language does nothing to support the ecosystem of
 Ruby. The knowledge gained in writing the library and the improved skills of
@@ -2155,14 +2129,14 @@ problems more effectively in Ruby itself.&lt;/p&gt;
 
 &lt;p&gt;The philosophy of Rubinius is to make Ruby a first-class citizen. Ruby plays
 second fiddle to no one. There is no other language whose history, semantics,
-or vested interests compete with Ruby&amp;rsquo;s. It is true that there are difficult
+or vested interests compete with Ruby’s. It is true that there are difficult
 problems to solve in making Ruby fast. But much of the technology already
 exists and we will build what does not. Evan often quips that if we can get
 Rubinius caught up to the dynamic language technology of ten years ago, Ruby
 will be light-years ahead.  That may be overstating how far behind Ruby is,
 but it illustrates the focus of Rubinius.&lt;/p&gt;
 
-&lt;p&gt;There&amp;rsquo;s the saying, &lt;em&gt;In theory, there is no difference between theory and
+&lt;p&gt;There’s the saying, &lt;em&gt;In theory, there is no difference between theory and
 practice. In practice, there is&lt;/em&gt;. In Rubinius, theory and practice are
 merging. We are motivated by the desire for Ruby to be a first-class language.
 But we are also showing real progress in making that a reality. The Rubinius
@@ -2179,7 +2153,7 @@ and speed is constantly improving.&lt;/p&gt;
 &lt;p&gt;No, it did not cross my mind to describe this persona as Pointy-haired Boss.
 Not only would that be unfair to Dilbert, but that persona would be reading an
 article on Web Scale. No, you are someone who has fought hard battles in the
-trenches and learned valuable lessons: it&amp;rsquo;s about execution and execution
+trenches and learned valuable lessons: it’s about execution and execution
 depends on good technology.&lt;/p&gt;
 
 &lt;p&gt;Rubinius is building solid technology. We started the RubySpec project and
@@ -2187,7 +2161,7 @@ have contributed tens of thousands of lines of code to it. With the support of
 Rubyspec, in just over four years as a public project, we have basically
 caught up with MRI 1.8.7 in compatibility and performance. For some code, our
 performance is much better, for other code, it is not as good. However,
-Rubinius is built on solid, modern technology and the project&amp;rsquo;s trajectory and
+Rubinius is built on solid, modern technology and the project’s trajectory and
 velocity are outstanding.&lt;/p&gt;
 
 &lt;p&gt;Rubinius is a completely new implementation of core Ruby. Rubinius did not
@@ -2210,19 +2184,19 @@ the feedback and look forward to solving challenging engineering problems.&lt;/p
 
 &lt;h4&gt;&lt;a class=&quot;anchor_title&quot; name=&quot;wur-knowledge&quot;&gt;Knowledge Seeker&lt;/a&gt;&lt;/h4&gt;
 
-&lt;p&gt;You thirst for Knowledge. You follow it wherever it leads you. You&amp;rsquo;ll happily
-walk Haskell&amp;rsquo;s hallowed halls of pure laziness or sit at the feet of the
-meta-program gazing raptly at class transmorgrification. You don&amp;rsquo;t judge. You
+&lt;p&gt;You thirst for Knowledge. You follow it wherever it leads you. You’ll happily
+walk Haskell’s hallowed halls of pure laziness or sit at the feet of the
+meta-program gazing raptly at class transmorgrification. You don’t judge. You
 have more than enough knowledge to be dangerous, enough to know that the
 universe is amoral and knowledge is the only Truth there is. Nor does any mere
-mortal language bind you. All languages are finite. You&amp;rsquo;ll be here today and
+mortal language bind you. All languages are finite. You’ll be here today and
 gone tomorrow; there is no permanence for the knowledge seeker.&lt;/p&gt;
 
 &lt;p&gt;Rubinius is merely a step along the path you journey. Take what you want, it
 is all free. As a Ruby implementation, it has much to offer your quest for
 knowledge. The Ruby code in the core library is accessible and easy to follow.
 The interface between Ruby and the C++ primitives is consistent. The C++ code
-itself is restrained. You won&amp;rsquo;t need a PhD in Turing-complete template
+itself is restrained. You won’t need a PhD in Turing-complete template
 languages to understand it.&lt;/p&gt;
 
 &lt;p&gt;Rubinius offers extensive opportunities to learn about programming languages
@@ -2238,12 +2212,12 @@ looping and iteration, recursion, references and values, etc.&lt;/li&gt;
 lambdas, etc. Even with fundamental programming knowledge, a particular
 language can be confusing. When I was learning C, a friend was also
 studying it. One day he walked over and threw &lt;em&gt;The C Programming Language&lt;/em&gt;
-book down on my desk and said, &amp;ldquo;This &lt;code&gt;for&lt;/code&gt; loop makes no sense!&amp;rdquo; He was
-quite upset. &amp;ldquo;Look,&amp;rdquo; he said, &amp;ldquo;in this example &lt;code&gt;for (i=0; i &amp;lt; n; i++)&lt;/code&gt; how
-can &lt;code&gt;i &amp;lt; n&lt;/code&gt; get executed &lt;em&gt;after&lt;/em&gt; the code in the body?!&amp;rdquo; It&amp;rsquo;s easy to laugh
+book down on my desk and said, “This &lt;code&gt;for&lt;/code&gt; loop makes no sense!” He was
+quite upset. “Look,” he said, “in this example &lt;code&gt;for (i=0; i &amp;lt; n; i++)&lt;/code&gt; how
+can &lt;code&gt;i &amp;lt; n&lt;/code&gt; get executed &lt;em&gt;after&lt;/em&gt; the code in the body?!” It’s easy to laugh
 at that confusion, but coming from BASIC, that really threw him. Deepening
 our understanding to this second level requires confronting some
-&amp;ldquo;counter-intuitive&amp;rdquo; notions.&lt;/li&gt;
+“counter-intuitive” notions.&lt;/li&gt;
   &lt;li&gt;&lt;strong&gt;Hypothetical implementation&lt;/strong&gt;: knowing how Ruby works, how might one
 implement it. I think this is an important layer of understanding and it is
 easy to miss or gloss over it. By pausing at this layer and thinking how
@@ -2258,7 +2232,7 @@ bring the beauty of Ruby as an object-oriented language deep into the core
 of Ruby itself.&lt;/li&gt;
 &lt;/ol&gt;
 
-&lt;p&gt;While the Rubinius code itself offers many opportunities for learning, don&amp;rsquo;t
+&lt;p&gt;While the Rubinius code itself offers many opportunities for learning, don’t
 hesitate to drop by the #rubinius channel on freenode.net and ask us
 questions. Perhaps you already know a lot about another language and are
 interested in how Rubinius implements some feature. Or you may be relatively
@@ -2280,8 +2254,8 @@ what you learn about Rubinius. Or, help us &lt;a href=&quot;http://rubini.us/doc
 &lt;h4&gt;&lt;a class=&quot;anchor_title&quot; name=&quot;wur-enthusiast&quot;&gt;Language Enthusiast&lt;/a&gt;&lt;/h4&gt;
 
 &lt;p&gt;You like languages for their intrinsic value. Of course the world comes in
-many shapes and sizes. You wouldn&amp;rsquo;t have it any other way. That&amp;rsquo;s the fun and
-spice, joie de vivre, raison d&amp;rsquo;etre, supermarché&amp;hellip; Sometimes you get carried
+many shapes and sizes. You wouldn’t have it any other way. That’s the fun and
+spice, joie de vivre, raison d’etre, supermarché… Sometimes you get carried
 away writing a program in another language just because you like how the
 letters arrange down the screen. Ruby is definitely one of the impressive
 languages and sometimes you almost notice a tiny bit of favoritism in your
@@ -2294,7 +2268,7 @@ fascinating subjects. We can merely suggest a path; your experiences along the
 way will tell you whether or not Rubinius has value to you.&lt;/p&gt;
 
 &lt;p&gt;If you are most interested in languages themselves, the syntax and arrangement
-of features, Rubinius offers you immediate gratification. Look for Evan&amp;rsquo;s
+of features, Rubinius offers you immediate gratification. Look for Evan’s
 upcoming post on his Language Toolkit or check out the code to
 &lt;a href=&quot;https://github.com/evanphx/prattle&quot;&gt;prattle&lt;/a&gt;, a Smalltalk dialect used to
 illustrate the ease of building a language on Rubinius. Also look at some of
@@ -2316,18 +2290,18 @@ adding content is easy.&lt;/p&gt;
 
 &lt;ul&gt;
   &lt;li&gt;&lt;a href=&quot;http://www.engineyard.com/blog/2010/rubinius-wants-to-help-you-make-ruby-better/&quot;&gt;Rubinius wants to help YOU make Ruby better&lt;/a&gt;&lt;/li&gt;
-  &lt;li&gt;&lt;a href=&quot;http://www.engineyard.com/blog/2009/5-things-youll-love-about-rubinius/&quot;&gt;5 Things You&amp;rsquo;ll Love About Rubinius&lt;/a&gt;&lt;/li&gt;
+  &lt;li&gt;&lt;a href=&quot;http://www.engineyard.com/blog/2009/5-things-youll-love-about-rubinius/&quot;&gt;5 Things You’ll Love About Rubinius&lt;/a&gt;&lt;/li&gt;
   &lt;li&gt;&lt;a href=&quot;http://www.engineyard.com/blog/2009/rubinius-the-book-tour/&quot;&gt;Rubinius: The Book Tour&lt;/a&gt;&lt;/li&gt;
 &lt;/ul&gt;
 
 &lt;p&gt;Most of all, experiment. Rubinius is easy to hack on. Are you curious about a
 particular feature needed in your language? Try adding it to Rubinius. Think
 Lua is all the rage because it uses a register VM? You could probably write a
-register-based bytecode interpreter for Rubinius in an afternoon. That&amp;rsquo;s just
+register-based bytecode interpreter for Rubinius in an afternoon. That’s just
 an example, of course. The point is to play around with your ideas and have
-fun doing it. I think you&amp;rsquo;ll find Rubinius to be an adventuresome companion.&lt;/p&gt;
+fun doing it. I think you’ll find Rubinius to be an adventuresome companion.&lt;/p&gt;
 
-&lt;p&gt;Be sure to let us know what you&amp;rsquo;re working on. We like to be inspired, too!
+&lt;p&gt;Be sure to let us know what you’re working on. We like to be inspired, too!
 Consider writing a blog post about things that you find interesing, like this
 &lt;a href=&quot;http://yehudakatz.com/2011/02/18/getting-comfortable-with-rubinius-pure-ruby-internals/&quot;&gt;recent post&lt;/a&gt; by Yehuda Katz.&lt;/p&gt;
 
@@ -2340,8 +2314,8 @@ many different reasons to use Rubinius. Not all those reasons make sense to
 everyone. We believe, however, that Rubinius has something to offer to just
 about everyone interested in Ruby. Most importantly, try it!&lt;/p&gt;
 
-&lt;p&gt;If we didn&amp;rsquo;t answer your question here, leave us a comment. If you have a
-reason for using Rubinius that we didn&amp;rsquo;t mention, let us know. As always, we
+&lt;p&gt;If we didn’t answer your question here, leave us a comment. If you have a
+reason for using Rubinius that we didn’t mention, let us know. As always, we
 appreciate your feedback. Chat with us in the #rubinius channel on
 freenode.net, &lt;a href=&quot;https://github.com/rubinius/rubinius&quot;&gt;watch our Github project&lt;/a&gt;,
 and &lt;a href=&quot;http://twitter.com/rubinius&quot;&gt;follow us on Twitter&lt;/a&gt;.&lt;/p&gt;
@@ -2364,14 +2338,14 @@ Enthusiast personas, I always forget those!&lt;/p&gt;
 Rubinius VM.&lt;/p&gt;
 
 &lt;p&gt;This blog post will give a short introduction to the language, what
-kind of problems it&amp;rsquo;s trying to solve and why I chose Rubinius as the
+kind of problems it’s trying to solve and why I chose Rubinius as the
 VM to run Fancy on.&lt;/p&gt;
 
 &lt;h3 id=&quot;what-is-fancy&quot;&gt;What is Fancy?&lt;/h3&gt;
 
 &lt;p&gt;Fancy is a new general-purpose, dynamic, pure object-oriented
 programming language heavily inspired by Ruby, Smalltalk and Erlang
-that runs on the Rubinius VM. It&amp;rsquo;s the first fully bootstrapped
+that runs on the Rubinius VM. It’s the first fully bootstrapped
 language, aside from Ruby, running on Rubinius. This means that the
 compiler that generates bytecode for Rubinius is written in Fancy
 itself.&lt;/p&gt;
@@ -2407,34 +2381,34 @@ than in traditional systems.&lt;/p&gt;
 certain things out of the box. Especially when it comes to things like
 asynchronous and concurrent programming, having proper semantics built
 into the language can often help developers more than a library can.
-Very often it&amp;rsquo;s not just about the functionality itself but also about
+Very often it’s not just about the functionality itself but also about
 the semantics you want that functionality to have. This can cause
-problems particularly if the language&amp;rsquo;s semantics differ from what
+problems particularly if the language’s semantics differ from what
 your library is trying to solve. A good example is the callback-based
 approach to asynchronous progamming which leads to code that differs
 both in semantics as well as how code is structured, compared to
-synchronous code. Ideally you&amp;rsquo;d still want to write code in a
+synchronous code. Ideally you’d still want to write code in a
 synchronous fashion, where exceptions pop up naturally while still
 being highly asynchronous.&lt;/p&gt;
 
-&lt;p&gt;In that sense Fancy is more flexible than Ruby as there&amp;rsquo;s not many
-special case semantics built in to the core language. Everything&amp;rsquo;s
+&lt;p&gt;In that sense Fancy is more flexible than Ruby as there’s not many
+special case semantics built in to the core language. Everything’s
 done via message passing, which fits nicely the actor model approach
-to concurrency. Fancy&amp;rsquo;s syntax is a lot simpler, too.&lt;/p&gt;
+to concurrency. Fancy’s syntax is a lot simpler, too.&lt;/p&gt;
 
 &lt;p&gt;Since all the core control structures are just implemented in Fancy
 itself and adhere to the message passing protocol, you can easily
 override them for your personal needs. This is especially interesting
 when implementing domain specific languages.
-Say, you&amp;rsquo;d want to add some logging to conditional or looping
-constructs - it&amp;rsquo;s as easy as overriding a method in your DSL&amp;rsquo;s
+Say, you’d want to add some logging to conditional or looping
+constructs - it’s as easy as overriding a method in your DSL’s
 classes. Fancy also has class-based mixins, so it makes it easy to
 share functionality across class hierarchy boundaries.&lt;/p&gt;
 
 &lt;p&gt;Finally, I created Fancy because I wanted a language implementation
 that was well documented, easy to understand and very flexible to
 extend. Ruby is a nice language, but it has some inconsistencies and
-there&amp;rsquo;s only so much you can do when you&amp;rsquo;re bound by backwards
+there’s only so much you can do when you’re bound by backwards
 compatibility. By starting fresh, Fancy has a clean, simple and easy
 to extend core which allows further exploration of features and
 abstractions.&lt;/p&gt;
@@ -2446,130 +2420,98 @@ in C++, similar to how Ruby 1.8 (MRI) works. It was a simple AST
 walker. After moving to Rubinius and writing an initial bootstrap
 compiler in Ruby, the codebase shrank to about 20% of the original
 implementation while actually being more performant. This of course is
-mostly due to Rubinius&amp;rsquo; architecture and JIT compiler but it was a
+mostly due to Rubinius’ architecture and JIT compiler but it was a
 great experience nontheless.&lt;/p&gt;
 
 &lt;p&gt;The nice part about having a common virtual machine and runtime is
-that you&amp;rsquo;re not forced to a completely different platform to get the
+that you’re not forced to a completely different platform to get the
 job done. Fancy and Ruby can coexist in the same application nicely
 and calling code from one another is dead simple. In fact, as of now,
-Rubinius doesn&amp;rsquo;t know anything about Fancy. And it shouldn&amp;rsquo;t. As long
+Rubinius doesn’t know anything about Fancy. And it shouldn’t. As long
 as all languages running on top of it adhere to the same interface
 (in this case the bytecode), it should just work fine.&lt;/p&gt;
 
-&lt;p&gt;Choosing Rubinius as a successor platform for Fancy was easy. It&amp;rsquo;s
-built for Ruby, a language that&amp;rsquo;s closely related to Fancy. Rubinius,
+&lt;p&gt;Choosing Rubinius as a successor platform for Fancy was easy. It’s
+built for Ruby, a language that’s closely related to Fancy. Rubinius,
 while having been developed as a VM for running Ruby code, is very
-flexible and there are many features that abstract over Ruby&amp;rsquo;s
+flexible and there are many features that abstract over Ruby’s
 external semantics. It was just a natural choice given the fact that
-Rubinius&amp;rsquo; architecture and design was heavily influenced by Smalltalk
-VMs. Also, it&amp;rsquo;s a very nice dynamic bytecode virtual machine. The
+Rubinius’ architecture and design was heavily influenced by Smalltalk
+VMs. Also, it’s a very nice dynamic bytecode virtual machine. The
 community is very responsive and helpful. Bugs get fixed instantly,
-there&amp;rsquo;s always someone to help out and overall it&amp;rsquo;s been a great
+there’s always someone to help out and overall it’s been a great
 experience.&lt;/p&gt;
 
-&lt;h3 id=&quot;lets-look-at-some-code&quot;&gt;Let&amp;rsquo;s look at some code!&lt;/h3&gt;
+&lt;h3 id=&quot;lets-look-at-some-code&quot;&gt;Let’s look at some code!&lt;/h3&gt;
 
-&lt;p&gt;OK, enough talking. Let&amp;rsquo;s have a look on how to get some Fancy code up
+&lt;p&gt;OK, enough talking. Let’s have a look on how to get some Fancy code up
 and running. Our little sample application will be a simple IRC bot
-that connects to Fancy&amp;rsquo;s irc channel on Freenode and says hello to
-everyone that greets it. To make life easier, there&amp;rsquo;s already a Fancy
+that connects to Fancy’s irc channel on Freenode and says hello to
+everyone that greets it. To make life easier, there’s already a Fancy
 package out there that helps with exactly this task:
 &lt;a href=&quot;https://github.com/bakkdoor/fancy_irc&quot;&gt;FancyIRC&lt;/a&gt;.&lt;/p&gt;
 
-&lt;p&gt;FancyIRC is a simple IRC client library inspired by Ruby&amp;rsquo;s IRC bot
-framework &lt;a href=&quot;https://github.com/cinchrb/cinch&quot;&gt;Cinch&lt;/a&gt;. It&amp;rsquo;s much simpler
+&lt;p&gt;FancyIRC is a simple IRC client library inspired by Ruby’s IRC bot
+framework &lt;a href=&quot;https://github.com/cinchrb/cinch&quot;&gt;Cinch&lt;/a&gt;. It’s much simpler
 and the code is fairly easy to read, but it gives you a similar
 interface for writing IRC clients or bots.&lt;/p&gt;
 
-&lt;p&gt;So let&amp;rsquo;s get going by installing Fancy. You can either use the Fancy
+&lt;p&gt;So let’s get going by installing Fancy. You can either use the Fancy
 Rubygem and install it with Rubinius or get the code from GitHub and
-run &lt;code&gt;rake&lt;/code&gt; in the directory. You&amp;rsquo;ll also then have to add the &lt;code&gt;bin&lt;/code&gt;
+run &lt;code&gt;rake&lt;/code&gt; in the directory. You’ll also then have to add the &lt;code&gt;bin&lt;/code&gt;
 directory to your &lt;code&gt;$PATH&lt;/code&gt;. If you want the latest and greatest version
 of Fancy I recommend building directly from source, as the Gem might
-not be up to date all the time. For demonstration purposes, let&amp;rsquo;s
+not be up to date all the time. For demonstration purposes, let’s
 install the Rubygem.&lt;/p&gt;
 
 &lt;pre&gt;&lt;code&gt;$ rbx -S gem install fancy
 &lt;/code&gt;&lt;/pre&gt;
 
-&lt;p&gt;To get the FancyIRC package we use Fancy&amp;rsquo;s built-in package manager,
+&lt;p&gt;To get the FancyIRC package we use Fancy’s built-in package manager,
 which knows how to find the code on GitHub and install it locally:&lt;/p&gt;
 
 &lt;pre&gt;&lt;code&gt;$ fancy install bakkdoor/fancy_irc
 &lt;/code&gt;&lt;/pre&gt;
 
 &lt;h4 id=&quot;writing-the-code&quot;&gt;Writing the code&lt;/h4&gt;
-
-&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;fancy&quot;&gt;&lt;span class=&quot;lineno&quot;&gt; 1&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;require:&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;&amp;quot;fancy_irc&amp;quot;&lt;/span&gt;
-&lt;span class=&quot;lineno&quot;&gt; 2&lt;/span&gt; 
-&lt;span class=&quot;lineno&quot;&gt; 3&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;greeter_bot&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;no&quot;&gt;FancyIRC&lt;/span&gt; &lt;span class=&quot;no&quot;&gt;Client&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;new:&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
-&lt;span class=&quot;lineno&quot;&gt; 4&lt;/span&gt;   &lt;span class=&quot;nf&quot;&gt;configuration:&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
-&lt;span class=&quot;lineno&quot;&gt; 5&lt;/span&gt;     &lt;span class=&quot;nf&quot;&gt;nickname:&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;&amp;quot;greeter_bot&amp;quot;&lt;/span&gt;
-&lt;span class=&quot;lineno&quot;&gt; 6&lt;/span&gt;     &lt;span class=&quot;nf&quot;&gt;server:&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;&amp;quot;irc.freenode.net&amp;quot;&lt;/span&gt;
-&lt;span class=&quot;lineno&quot;&gt; 7&lt;/span&gt;     &lt;span class=&quot;nf&quot;&gt;port:&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;6667&lt;/span&gt;
-&lt;span class=&quot;lineno&quot;&gt; 8&lt;/span&gt;     &lt;span class=&quot;nf&quot;&gt;channels:&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&amp;quot;#fancy&amp;quot;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;]&lt;/span&gt;
-&lt;span class=&quot;lineno&quot;&gt; 9&lt;/span&gt;   &lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
-&lt;span class=&quot;lineno&quot;&gt;10&lt;/span&gt; 
-&lt;span class=&quot;lineno&quot;&gt;11&lt;/span&gt;   &lt;span class=&quot;c1&quot;&gt;# greet person back&lt;/span&gt;
-&lt;span class=&quot;lineno&quot;&gt;12&lt;/span&gt;   &lt;span class=&quot;nf&quot;&gt;on:&lt;/span&gt; &lt;span class=&quot;ss&quot;&gt;&amp;#39;channel&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;pattern:&lt;/span&gt; &lt;span class=&quot;sr&quot;&gt;/^[hH]ello greeter_bot/&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;do:&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;|&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;msg&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;|&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
-&lt;span class=&quot;lineno&quot;&gt;13&lt;/span&gt;     &lt;span class=&quot;n&quot;&gt;msg&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;reply:&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;&amp;quot;Hello to you too, #{msg author}!&amp;quot;&lt;/span&gt;
-&lt;span class=&quot;lineno&quot;&gt;14&lt;/span&gt;   &lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
-&lt;span class=&quot;lineno&quot;&gt;15&lt;/span&gt; 
-&lt;span class=&quot;lineno&quot;&gt;16&lt;/span&gt;   &lt;span class=&quot;c1&quot;&gt;# &amp;quot;echo&amp;quot; command&lt;/span&gt;
-&lt;span class=&quot;lineno&quot;&gt;17&lt;/span&gt;   &lt;span class=&quot;c1&quot;&gt;# invoke with: !echo &amp;lt;text&amp;gt;&lt;/span&gt;
-&lt;span class=&quot;lineno&quot;&gt;18&lt;/span&gt;   &lt;span class=&quot;nf&quot;&gt;on:&lt;/span&gt; &lt;span class=&quot;ss&quot;&gt;&amp;#39;channel&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;pattern:&lt;/span&gt; &lt;span class=&quot;sr&quot;&gt;/^!echo (.*)$/&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;do:&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;|&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;msg&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;text&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;|&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
-&lt;span class=&quot;lineno&quot;&gt;19&lt;/span&gt;     &lt;span class=&quot;n&quot;&gt;msg&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;reply:&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;&amp;quot;#{msg author} said: #{text}&amp;quot;&lt;/span&gt;
-&lt;span class=&quot;lineno&quot;&gt;20&lt;/span&gt;   &lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
-&lt;span class=&quot;lineno&quot;&gt;21&lt;/span&gt; 
-&lt;span class=&quot;lineno&quot;&gt;22&lt;/span&gt;   &lt;span class=&quot;c1&quot;&gt;# tell bot to shutdown via !shutdown command&lt;/span&gt;
-&lt;span class=&quot;lineno&quot;&gt;23&lt;/span&gt;   &lt;span class=&quot;nf&quot;&gt;on:&lt;/span&gt; &lt;span class=&quot;ss&quot;&gt;&amp;#39;channel&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;pattern:&lt;/span&gt; &lt;span class=&quot;sr&quot;&gt;/^!shutdown/&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;do:&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;|&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;msg&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;|&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
-&lt;span class=&quot;lineno&quot;&gt;24&lt;/span&gt;     &lt;span class=&quot;n&quot;&gt;msg&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;reply:&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;&amp;quot;OK, shutting down&amp;quot;&lt;/span&gt;
-&lt;span class=&quot;lineno&quot;&gt;25&lt;/span&gt;     &lt;span class=&quot;no&quot;&gt;System&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;exit&lt;/span&gt;
-&lt;span class=&quot;lineno&quot;&gt;26&lt;/span&gt;   &lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
-&lt;span class=&quot;lineno&quot;&gt;27&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
-&lt;span class=&quot;lineno&quot;&gt;28&lt;/span&gt; 
-&lt;span class=&quot;lineno&quot;&gt;29&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;greeter_bot&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;connect&lt;/span&gt;
-&lt;span class=&quot;lineno&quot;&gt;30&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;greeter_bot&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;run&lt;/span&gt;
-&lt;/code&gt;&lt;/pre&gt;
-&lt;/div&gt;
+&lt;p&gt;Liquid error: undefined method `join’ for #&lt;String:0x000000013dc948 /&gt;&lt;/p&gt;
 
 &lt;p&gt;I think the code is pretty straight forward. This should give you a
 feeling for what Fancy looks and feels like. There is of course lots
 more to Fancy than what was shown here. It would not fit into a single
 blog post.&lt;/p&gt;
 
-&lt;p&gt;A quick list of what&amp;rsquo;s currently being worked on:&lt;/p&gt;
+&lt;p&gt;A quick list of what’s currently being worked on:&lt;/p&gt;
 
 &lt;ul&gt;
   &lt;li&gt;New pattern matching system: Message passing based pattern matching
 that preserves encapsulation and is very extensible including
 pattern literals that allow custom pattern types to be defined by
-anyone. There&amp;rsquo;s an experimental branch for that. I&amp;rsquo;m happy
+anyone. There’s an experimental branch for that. I’m happy
 to answer questions.&lt;/li&gt;
   &lt;li&gt;Async support using coroutines (Fibers) - Write async code in a more
-natural way where exceptions propagate naturally and you don&amp;rsquo;t have
+natural way where exceptions propagate naturally and you don’t have
 to think about callbacks all the time.&lt;/li&gt;
   &lt;li&gt;First-class support for actors - Asynchronous message sends, Futures
 and multi-vm messaging built-in.&lt;/li&gt;
-  &lt;li&gt;And much more&amp;hellip;&lt;/li&gt;
+  &lt;li&gt;And much more…&lt;/li&gt;
 &lt;/ul&gt;
 
 &lt;h3 id=&quot;interested&quot;&gt;Interested?&lt;/h3&gt;
 
 &lt;p&gt;If you got interested in Fancy and want to know where to go next,
-here&amp;rsquo;s a short list of things to check out:&lt;/p&gt;
+here’s a short list of things to check out:&lt;/p&gt;
 
 &lt;ul&gt;
-  &lt;li&gt;&lt;a href=&quot;https://github.com/bakkdoor/fancy&quot;&gt;Fancy&amp;rsquo;s GitHub repository&lt;/a&gt;.
+  &lt;li&gt;&lt;a href=&quot;https://github.com/bakkdoor/fancy&quot;&gt;Fancy’s GitHub repository&lt;/a&gt;.
 The standard library is completely written in Fancy and most classes
 and methods have docstrings. It should be fairly easy to understand.&lt;/li&gt;
   &lt;li&gt;&lt;a href=&quot;https://github.com/fancy-lang/infancy&quot;&gt;Programming InFancy&lt;/a&gt;
 An open source tutorial on learning Fancy. Work in progress.&lt;/li&gt;
   &lt;li&gt;&lt;a href=&quot;http://api.fancy-lang.org&quot;&gt;http://api.fancy-lang.org&lt;/a&gt;
-A work in progress page containing Fancy&amp;rsquo;s standard library class
+A work in progress page containing Fancy’s standard library class
 and method documentation.&lt;/li&gt;
-  &lt;li&gt;&lt;a href=&quot;https://groups.google.com/forum/#!forum/fancy-lang&quot;&gt;Fancy&amp;rsquo;s Google Group mailinglist&lt;/a&gt;&lt;/li&gt;
+  &lt;li&gt;&lt;a href=&quot;https://groups.google.com/forum/#!forum/fancy-lang&quot;&gt;Fancy’s Google Group mailinglist&lt;/a&gt;&lt;/li&gt;
   &lt;li&gt;IRC Channel: #fancy @ irc.freenode.net&lt;/li&gt;
   &lt;li&gt;Website: &lt;a href=&quot;http://www.fancy-lang.org&quot;&gt;http://www.fancy-lang.org&lt;/a&gt;&lt;/li&gt;
 &lt;/ul&gt;
@@ -2601,11 +2543,11 @@ example,&lt;/p&gt;
 &lt;pre&gt;&lt;code&gt;rvm install rbx
 &lt;/code&gt;&lt;/pre&gt;
 
-&lt;p&gt;What is not widely known (yet) is that there is a &amp;ldquo;Named Rubies&amp;rdquo; feature
+&lt;p&gt;What is not widely known (yet) is that there is a “Named Rubies” feature
 that allows you to install altered versions of the same Ruby
 installation along side the original.&lt;/p&gt;
 
-&lt;p&gt;In the case of Rubinius there is this facinating branch called &amp;lsquo;hydra&amp;rsquo;.
+&lt;p&gt;In the case of Rubinius there is this facinating branch called ‘hydra’.
 So let us see how we can have the Rubinius master branch installed as
 the main rbx with the hydra branch installed along side as well.&lt;/p&gt;
 
@@ -2623,7 +2565,7 @@ version so&lt;/p&gt;
 &lt;p&gt;After we have the mainline head Rubinus branch installed, we now want to
 use the named rubies feature. This is done using the -n specifier in the
 Ruby identifier string. So for example to install our hydra branch as an
-RVM ruby with the name &amp;lsquo;hydra&amp;rsquo; in it we do the following:&lt;/p&gt;
+RVM ruby with the name ‘hydra’ in it we do the following:&lt;/p&gt;
 
 &lt;pre&gt;&lt;code&gt;rvm install --branch hydra rbx-nhydra
 &lt;/code&gt;&lt;/pre&gt;
@@ -2687,8 +2629,8 @@ commits and 21 tickets closed in the 56 calendar days since the release of
 us test it.&lt;/p&gt;
 
 &lt;p&gt;While we were working on 1.2.1, we were also working on a Top Secret project
-that we&amp;rsquo;ve craftily &lt;a href=&quot;https://github.com/evanphx/rubinius/tree/hydra&quot;&gt;hidden in plain
-sight&lt;/a&gt;. I&amp;rsquo;d like to introduce
+that we’ve craftily &lt;a href=&quot;https://github.com/evanphx/rubinius/tree/hydra&quot;&gt;hidden in plain
+sight&lt;/a&gt;. I’d like to introduce
 the work we are doing on the hydra branch and the features you can expect to
 see in Rubinius soon.&lt;/p&gt;
 
@@ -2739,7 +2681,7 @@ global warming.&lt;/li&gt;
   &lt;li&gt;With a multi-core system, builds can be done faster if they are done in
 parallel. If the build system can accurately determine dependencies, it can
 execute build sub-steps in parallel. Of course, this can cut into YouTube
-and Twitter browsing time, but that&amp;rsquo;s a risk we are willing to take.&lt;/li&gt;
+and Twitter browsing time, but that’s a risk we are willing to take.&lt;/li&gt;
   &lt;li&gt;While parallel sub-processes during the build are excellent, the supervising
 process benefits from running as a single process from start to finish.
 Otherwise, configuration data needs to be re-parsed. To support a single
@@ -2750,7 +2692,7 @@ simply impossible in Rake.&lt;/li&gt;
   &lt;li&gt;Use-aware configuration values know that the user has set the value and can
 intelligently merge with newer configuration variables that we create
 without requiring the user to reconfigure. Ultimately, we are aiming for a
-&lt;em&gt;single&lt;/em&gt; command build. Just run &amp;lsquo;daedalus&amp;rsquo; and done. There is no step 2.&lt;/li&gt;
+&lt;em&gt;single&lt;/em&gt; command build. Just run ‘daedalus’ and done. There is no step 2.&lt;/li&gt;
 &lt;/ul&gt;
 
 &lt;h3 id=&quot;full-on-concurrency&quot;&gt;Full-on Concurrency&lt;/h3&gt;
@@ -2765,7 +2707,7 @@ both), the apparent concurrency will still be executing serially. Since there
 are so many multi-core CPUs around these days, our programs should be getting
 stuff done in parallel.&lt;/p&gt;
 
-&lt;p&gt;Unfortunately, there&amp;rsquo;s a twist. Even with native threads on a multi-core CPU,
+&lt;p&gt;Unfortunately, there’s a twist. Even with native threads on a multi-core CPU,
 the amount of parallelism you get depends on how well you manage locks around
 shared data and resources. Sometimes managing these locks is complex and you
 opt for one big lock, essentially only allowing one thread at a time to run.
@@ -2801,7 +2743,7 @@ involve core libraries that are implemented in C in MRI. There are three main
 fronts on which we are attacking performance issues: 1) improving the
 algorithms in the Ruby code that implements the core library; 2) continuing to
 tune the VM and garbage collector; and 3) improving the JIT compiler. Which
-leads me to one of the most exciting things we are working on&amp;hellip;&lt;/p&gt;
+leads me to one of the most exciting things we are working on…&lt;/p&gt;
 
 &lt;h3 id=&quot;jit-intermediate-representation-ir&quot;&gt;JIT Intermediate Representation (IR)&lt;/h3&gt;
 
@@ -2810,25 +2752,7 @@ biggest challenges with a dynamic language like Ruby is knowing what method is
 actually being invoked when a message is sent to an object. Consider the
 following code:&lt;/p&gt;
 
-&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;ruby&quot;&gt;&lt;span class=&quot;lineno&quot;&gt; 1&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;class&lt;/span&gt; &lt;span class=&quot;nc&quot;&gt;A&lt;/span&gt;
-&lt;span class=&quot;lineno&quot;&gt; 2&lt;/span&gt;   &lt;span class=&quot;k&quot;&gt;def&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;m&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;x&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-&lt;span class=&quot;lineno&quot;&gt; 3&lt;/span&gt;     &lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;
-&lt;span class=&quot;lineno&quot;&gt; 4&lt;/span&gt;   &lt;span class=&quot;k&quot;&gt;end&lt;/span&gt;
-&lt;span class=&quot;lineno&quot;&gt; 5&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;end&lt;/span&gt;
-&lt;span class=&quot;lineno&quot;&gt; 6&lt;/span&gt; 
-&lt;span class=&quot;lineno&quot;&gt; 7&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;class&lt;/span&gt; &lt;span class=&quot;nc&quot;&gt;B&lt;/span&gt;
-&lt;span class=&quot;lineno&quot;&gt; 8&lt;/span&gt;   &lt;span class=&quot;k&quot;&gt;def&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;m&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;x&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-&lt;span class=&quot;lineno&quot;&gt; 9&lt;/span&gt;     &lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;
-&lt;span class=&quot;lineno&quot;&gt;10&lt;/span&gt;   &lt;span class=&quot;k&quot;&gt;end&lt;/span&gt;
-&lt;span class=&quot;lineno&quot;&gt;11&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;end&lt;/span&gt;
-&lt;span class=&quot;lineno&quot;&gt;12&lt;/span&gt; 
-&lt;span class=&quot;lineno&quot;&gt;13&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;class&lt;/span&gt; &lt;span class=&quot;nc&quot;&gt;C&lt;/span&gt;
-&lt;span class=&quot;lineno&quot;&gt;14&lt;/span&gt;   &lt;span class=&quot;k&quot;&gt;def&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;work&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;obj&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-&lt;span class=&quot;lineno&quot;&gt;15&lt;/span&gt;     &lt;span class=&quot;n&quot;&gt;obj&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;m&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;y&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-&lt;span class=&quot;lineno&quot;&gt;16&lt;/span&gt;   &lt;span class=&quot;k&quot;&gt;end&lt;/span&gt;
-&lt;span class=&quot;lineno&quot;&gt;17&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;end&lt;/span&gt;
-&lt;/code&gt;&lt;/pre&gt;
-&lt;/div&gt;
+&lt;p&gt;Liquid error: undefined method `join’ for #&lt;String:0x00000001fc5980 /&gt;&lt;/p&gt;
 
 &lt;p&gt;What method is being invoked by &lt;code&gt;obj.m(y)&lt;/code&gt;? There is no way to definitively
 know this by looking at the source code. However, when the program is actually
@@ -2847,8 +2771,8 @@ intermediate representation. So Evan has started work on a new JIT IR.&lt;/p&gt;
 &lt;p&gt;This new IR will help us to express Ruby semantics in a way that enables many
 powerful optimizations and will ultimately allow LLVM to generate even better
 machine code. Put another way, &lt;em&gt;Rubinius loves Ruby code!&lt;/em&gt; Right down to the
-metal. There&amp;rsquo;s no fighting a foreign type system or the semantics of a
-language at odds with Ruby&amp;rsquo;s rosy view of the world.&lt;/p&gt;
+metal. There’s no fighting a foreign type system or the semantics of a
+language at odds with Ruby’s rosy view of the world.&lt;/p&gt;
 
 &lt;h3 id=&quot;ruby-19&quot;&gt;Ruby 1.9&lt;/h3&gt;
 
@@ -2876,7 +2800,7 @@ manually instrumenting our code.&lt;/p&gt;
 
 &lt;p&gt;Presently, Rubinius has a built-in debugger, precise method profiler, memory
 analysis tool, and Agent interface that permits querying a running Rubinius
-VM&amp;ndash;even one running on a remote machine&amp;ndash;for a variety of information.&lt;/p&gt;
+VM–even one running on a remote machine–for a variety of information.&lt;/p&gt;
 
 &lt;p&gt;We will be adding the ability to track the location where objects are
 allocated to assist finding object leaks or code that is creating unusually
@@ -2893,11 +2817,11 @@ ID before running each spec and the Agent monitor would request the ID when
 gathering VM data. Later the two data sets could easily be merged.&lt;/p&gt;
 
 &lt;p&gt;When you find yourself manually instrumenting some code, consider what data
-you are trying to get your hands on and let us know the scenario.  We&amp;rsquo;ll
+you are trying to get your hands on and let us know the scenario.  We’ll
 likely be able to build a tool that will open up new vistas into the behavior
 of your Ruby programs.&lt;/p&gt;
 
-&lt;h3 id=&quot;windowssupregsup&quot;&gt;Windows&lt;sup&gt;&amp;reg;&lt;/sup&gt;&lt;/h3&gt;
+&lt;h3 id=&quot;windowssupregsup&quot;&gt;Windows&lt;sup&gt;®&lt;/sup&gt;&lt;/h3&gt;
 
 &lt;p&gt;However one may feel about Windows as an operating system, it is undeniable
 that the vast majority of people in the world use Windows. We believe those
@@ -2929,18 +2853,7 @@ bytecode, and decoupling method dispatch from Ruby semantics.&lt;/p&gt;
 &lt;p&gt;Hopefully, Evan will introduce us to all this in a future blog post, but
 here is a taste of what you can do:&lt;/p&gt;
 
-&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;ruby&quot;&gt;&lt;span class=&quot;lineno&quot;&gt; 1&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;class&lt;/span&gt; &lt;span class=&quot;nc&quot;&gt;Hello&lt;/span&gt;
-&lt;span class=&quot;lineno&quot;&gt; 2&lt;/span&gt;   &lt;span class=&quot;n&quot;&gt;dynamic_method&lt;/span&gt; &lt;span class=&quot;ss&quot;&gt;:world&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;do&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;|&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;g&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;|&lt;/span&gt;
-&lt;span class=&quot;lineno&quot;&gt; 3&lt;/span&gt;     &lt;span class=&quot;n&quot;&gt;g&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;push&lt;/span&gt; &lt;span class=&quot;ss&quot;&gt;:self&lt;/span&gt;
-&lt;span class=&quot;lineno&quot;&gt; 4&lt;/span&gt;     &lt;span class=&quot;n&quot;&gt;g&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;push_literal&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&amp;quot;Hello, world&amp;quot;&lt;/span&gt;
-&lt;span class=&quot;lineno&quot;&gt; 5&lt;/span&gt;     &lt;span class=&quot;n&quot;&gt;g&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;send&lt;/span&gt; &lt;span class=&quot;ss&quot;&gt;:puts&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;1&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;kp&quot;&gt;true&lt;/span&gt;
-&lt;span class=&quot;lineno&quot;&gt; 6&lt;/span&gt;     &lt;span class=&quot;n&quot;&gt;g&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;ret&lt;/span&gt;
-&lt;span class=&quot;lineno&quot;&gt; 7&lt;/span&gt;   &lt;span class=&quot;k&quot;&gt;end&lt;/span&gt;
-&lt;span class=&quot;lineno&quot;&gt; 8&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;end&lt;/span&gt;
-&lt;span class=&quot;lineno&quot;&gt; 9&lt;/span&gt; 
-&lt;span class=&quot;lineno&quot;&gt;10&lt;/span&gt; &lt;span class=&quot;no&quot;&gt;Hello&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;new&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;world&lt;/span&gt;
-&lt;/code&gt;&lt;/pre&gt;
-&lt;/div&gt;
+&lt;p&gt;Liquid error: undefined method `join’ for #&lt;String:0x00000001fc54d0 /&gt;&lt;/p&gt;
 
 &lt;p&gt;Of course, that is much more concisely written in Ruby, but combine this
 ability with a built-in PEG parser and you can be experimenting with your own
@@ -2953,14 +2866,14 @@ the Fancy compiler is now written in Fancy) on Rubinius.&lt;/p&gt;
 
 &lt;h3 id=&quot;documentation&quot;&gt;Documentation&lt;/h3&gt;
 
-&lt;p&gt;One the one hand, Rubinius just runs Ruby code, and you shouldn&amp;rsquo;t need any
+&lt;p&gt;One the one hand, Rubinius just runs Ruby code, and you shouldn’t need any
 special knowledge to run your application on Rubinius. On the other hand, as
-I&amp;rsquo;ve discussed above, there are some specific Rubinius features that may be
+I’ve discussed above, there are some specific Rubinius features that may be
 very helpful to you. However, they can only be as helpful as the documentation
 we have for them.&lt;/p&gt;
 
 &lt;p&gt;Before we released 1.2.0 in December last year, I spent quite a bit of time
-getting a new documentation system in place. Since then, we&amp;rsquo;ve had
+getting a new documentation system in place. Since then, we’ve had
 contributors help with translations to Russian, Polish, Spanish, and German.
 Adam Gardiner started documenting the garbage collector algorithms. Yehuda
 Katz (you may have heard the name) has contributed documentation for &lt;a href=&quot;http://rubini.us/doc/en/bytecode-compiler/&quot;&gt;the
@@ -2986,7 +2899,7 @@ most important thing you can do is try running your Ruby code. Give us
 feedback. Let us know what features or tools would make your life easier. Help
 us to build them.&lt;/p&gt;
 
-&lt;p&gt;Rubinius adopts Ruby&amp;rsquo;s rosy view of the world. We want to empower you to solve
+&lt;p&gt;Rubinius adopts Ruby’s rosy view of the world. We want to empower you to solve
 your hardest problems with Ruby, and have fun doing it.&lt;/p&gt;
 </content>
   </entry>
@@ -3000,24 +2913,24 @@ your hardest problems with Ruby, and have fun doing it.&lt;/p&gt;
       <name>Brian Ford</name>
     </author>
     
-    <content type="html">&lt;p&gt;Many thought the day would never come, but Rubinius finally has a blog. That&amp;rsquo;s
+    <content type="html">&lt;p&gt;Many thought the day would never come, but Rubinius finally has a blog. That’s
 not all, though: We have integrated the website, blog, and documentation using
 Jekyll. The source code for it all is in the main &lt;a href=&quot;http://github.com/rubinius/rubinius&quot;&gt;Rubinius
 repository&lt;/a&gt;.&lt;/p&gt;
 
 &lt;p&gt;People have often requested that we write more about the &lt;em&gt;awesome&lt;/em&gt; features in
-Rubinius. We hear you and we&amp;rsquo;d love to do this. However, there is always a
+Rubinius. We hear you and we’d love to do this. However, there is always a
 trade-off between working on those awesome features and writing about them.
-Until now, it&amp;rsquo;s been rather painful to write docs or blog posts because we did
-not have good infrastructure in place. Now, I think we do. I&amp;rsquo;m sure there are
+Until now, it’s been rather painful to write docs or blog posts because we did
+not have good infrastructure in place. Now, I think we do. I’m sure there are
 still a lot of improvements we can make, but we have a good place to start.
-I&amp;rsquo;d like to give a brief tour of our new system.&lt;/p&gt;
+I’d like to give a brief tour of our new system.&lt;/p&gt;
 
 &lt;p&gt;The primary goal was to improve collaboration and reduce friction for writing
-new documentation and blog posts. That&amp;rsquo;s right, improve collaboration. There
+new documentation and blog posts. That’s right, improve collaboration. There
 are many people who have experience developing Rubinius and running their
 applications on it. We love how people have collaborated with source code
-commits. Now anyone has the ability to write a blog post as well. I&amp;rsquo;ve written
+commits. Now anyone has the ability to write a blog post as well. I’ve written
 a basic &lt;a href=&quot;/doc/en/how-to/write-a-blog-post/&quot;&gt;How-To - Write a Blog Post&lt;/a&gt;
 document. If you have an idea for a blog post, just let us know. We will
 exercise a bit of editorial control just to ensure the topics are appropriate
@@ -3037,13 +2950,13 @@ are not native English speakers. Alas, I only have a fair ability to write in
 Spanish, so we are again depending on your help. I started the translation
 effort by passing the existing English docs through Google translate. We have
 a beginning guide for &lt;a href=&quot;/doc/en/how-to/translate-documentation&quot;&gt;How-To - Translate
-Documentation&lt;/a&gt;. I&amp;rsquo;ve been told by
-&lt;em&gt;kronos_vano&lt;/em&gt; in our #rubinius IRC channel that he&amp;rsquo;s already working on a
+Documentation&lt;/a&gt;. I’ve been told by
+&lt;em&gt;kronos_vano&lt;/em&gt; in our #rubinius IRC channel that he’s already working on a
 Russian translation. I personally would love to see Japanese and Chinese
 translations.&lt;/p&gt;
 
-&lt;p&gt;So that&amp;rsquo;s a brief introduction to our new infrastructure for documenting and
-explaining Rubinius. It&amp;rsquo;s been such a joy to see so many people contribute to
+&lt;p&gt;So that’s a brief introduction to our new infrastructure for documenting and
+explaining Rubinius. It’s been such a joy to see so many people contribute to
 the Rubinius source code over the years. We hope that the blog, documentation,
 and translations will further empower people to contribute and benefit from
 the value that Rubinius has to offer the Ruby community.&lt;/p&gt;

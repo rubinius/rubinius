@@ -12,6 +12,8 @@
 #include "arguments.hpp"
 #include "dispatch.hpp"
 
+#include "ontology.hpp"
+
 #include <iostream>
 #include <math.h>
 
@@ -23,7 +25,7 @@
 namespace rubinius {
 
   void Array::init(STATE) {
-    GO(array).set(state->new_class("Array", G(object)));
+    GO(array).set(ontology::new_class(state, "Array", G(object)));
     G(array)->set_object_type(state, ArrayType);
   }
 

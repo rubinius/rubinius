@@ -53,8 +53,8 @@ namespace rubinius {
   Object* Object::duplicate(STATE) {
     if(!reference_p()) return this;
 
-    Object* other = state->new_object_typed(
-        class_object(state), this->total_size(state), type_id());
+    Object* other = state->vm()->new_object_typed(
+        class_object(state), this->total_size(state->vm()), type_id());
     return other->copy_object(state, this);
   }
 
@@ -87,7 +87,7 @@ namespace rubinius {
       Exception* exc =
         Exception::make_type_error(state, type_id(), other);
       exc->locations(state, Location::from_call_stack(state, call_frame));
-      state->thread_state()->raise_exception(exc);
+      state->raise_exception(exc);
       return NULL;
     }
 
@@ -95,13 +95,13 @@ namespace rubinius {
   }
 
   Object* Object::copy_object(STATE, Object* other) {
-    initialize_copy(state->om, other, age());
+    initialize_copy(state->memory(), other, age());
 
     write_barrier(state, klass());
     write_barrier(state, ivars());
 
     // Don't inherit the object_id from the original.
-    set_object_id(state, state->om, 0);
+    reset_id(state);
 
     /* C extensions use Data objects for various purposes. The object
      * usually is made an instance of some extension class. So, we
@@ -109,7 +109,7 @@ namespace rubinius {
      * data caried in the new instance.
      */
     if(type_id() != DataType) {
-      copy_body(state, other);
+      copy_body(state->vm(), other);
     }
 
     // Ensure that the singleton class is not shared
@@ -122,7 +122,7 @@ namespace rubinius {
     // this is that other is rarely mature, and the remember_set is
     // flushed on each collection anyway.
     if(zone() == MatureObjectZone) {
-      state->om->remember_object(this);
+      state->memory()->remember_object(this);
     }
 
     // Copy ivars.
@@ -246,7 +246,7 @@ namespace rubinius {
 
     // We might be trying to access a slot, so try that first.
 
-    TypeInfo* ti = state->om->find_type_info(this);
+    TypeInfo* ti = state->memory()->find_type_info(this);
     if(ti) {
       TypeInfo::Slots::iterator it = ti->slots.find(sym->index());
       if(it != ti->slots.end()) {
@@ -387,7 +387,7 @@ namespace rubinius {
     if(reference_p()) {
 #ifdef RBX_OBJECT_ID_IN_HEADER
       if(object_id() == 0) {
-        state->om->assign_object_id(state, this);
+        state->memory()->assign_object_id(state, this);
       }
 
       // Shift it up so we don't waste the numeric range in the actual
@@ -400,7 +400,7 @@ namespace rubinius {
 
       /* Lazy allocate object's ids, since most don't need them. */
       if(id->nil_p()) {
-        id = state->om->assign_object_id_ivar(state, this);
+        id = state->memory()->assign_object_id_ivar(state, this);
       }
 
       return as<Integer>(id);
@@ -419,6 +419,16 @@ namespace rubinius {
 #else
     return get_ivar(state, G(sym_object_id)) != Qnil;
 #endif
+  }
+
+  void Object::reset_id(STATE) {
+    if(reference_p()) {
+#ifdef RBX_OBJECT_ID_IN_HEADER
+      set_object_id(state, state->memory(), 0);
+#else
+      del_ivar(state, G(sym_object_id));
+#endif
+    }
   }
 
   void Object::infect(STATE, Object* other) {
@@ -585,7 +595,7 @@ namespace rubinius {
     }
 
     /* We might be trying to access a field, so check there first. */
-    TypeInfo* ti = state->om->find_type_info(this);
+    TypeInfo* ti = state->memory()->find_type_info(this);
     if(ti) {
       TypeInfo::Slots::iterator it = ti->slots.find(sym->index());
       if(it != ti->slots.end()) {
@@ -622,7 +632,7 @@ namespace rubinius {
     }
 
     /* We might be trying to access a field, so check there first. */
-    TypeInfo* ti = state->om->find_type_info(this);
+    TypeInfo* ti = state->memory()->find_type_info(this);
     if(ti) {
       TypeInfo::Slots::iterator it = ti->slots.find(sym->index());
       // Can't remove a slot, so just bail.
@@ -703,7 +713,7 @@ namespace rubinius {
   }
 
   Object* Object::show(STATE, int level) {
-    if(reference_p() && !state->om->valid_object_p(this)) rubinius::warn("bad object in show");
+    if(reference_p() && !state->memory()->valid_object_p(this)) rubinius::warn("bad object in show");
     type_info(state)->show(state, this, level);
     return Qnil;
   }
@@ -749,7 +759,7 @@ namespace rubinius {
   }
 
   TypeInfo* Object::type_info(STATE) const {
-    return state->om->type_info[get_type()];
+    return state->memory()->type_info[get_type()];
   }
 
   Object* Object::untaint(STATE) {
@@ -806,7 +816,13 @@ namespace rubinius {
    */
   void Object::inline_write_barrier_passed(STATE, void* obj) {
     if(!remembered_p()) {
-      state->om->remember_object(this);
+      state->memory()->remember_object(this);
+    }
+  }
+
+  void Object::inline_write_barrier_passed(VM* vm, void* obj) {
+    if(!remembered_p()) {
+      vm->om->remember_object(this);
     }
   }
 
@@ -817,7 +833,8 @@ namespace rubinius {
 }
 
 extern "C" long __id__(rubinius::Object* obj) {
-  long id = obj->id(rubinius::VM::current())->to_native();
+  rubinius::State state(rubinius::VM::current());
+  long id = obj->id(&state)->to_native();
   printf("Object: %p, id: %ld\n", obj, id);
   return id;
 }

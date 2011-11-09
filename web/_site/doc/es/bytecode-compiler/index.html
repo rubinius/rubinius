@@ -148,15 +148,33 @@
 
   
 
-    <p>El compilador a bytecode de Rubinius convierte el código fuente a
-bytecode (n. t. instrucciones básicas) que la máquina virtual puede ejecutar.</p>
+    <p>El compilador a bytecode de Rubinius convierte el código fuente a bytecode que
+la máquina virtual pueda ejecutar. Su uso es trata de una serie de etapas
+secuenciales de transformación y que la máquina virtual la entienda.</p>
+
+<p>Cada una de estas etapas desacoplan el resto del proceso, sólo se espera una
+forma de entrada particular y se envía su salida a la siguiente. Como
+resultado, el proceso de compilación es muy configurable, y puede instrumentar
+simplemente cualquiera de las etapas.</p>
+
+<p>Cada etapa del proceso recibe una entrada, se ejecuta el escenario, y pasa a
+la salida de la siguiente etapa del proceso. Las etapas por defecto, así
+como sus entradas y salidas, se ilustra a continuación.</p>
+
+<div style="text-align: center; width: 100%">
+  <img src="/images/compilation_process.png" alt="Compilation process" />
+</div>
 
 <ol>
   <li><a href="/doc/es/bytecode-compiler/parser/">Parser</a></li>
   <li><a href="/doc/es/bytecode-compiler/ast/">AST</a></li>
-  <li><a href="/doc/es/bytecode-compiler/compiler/">Compilador</a></li>
-  <li><a href="/doc/es/bytecode-compiler/transformations/">Transformaciones</a></li>
   <li><a href="/doc/es/bytecode-compiler/generator/">Generador</a></li>
+  <li><a href="/doc/es/bytecode-compiler/encoder/">Encoder Stage</a></li>
+  <li><a href="/doc/es/bytecode-compiler/packager/">Packager Stage</a></li>
+  <li><a href="/doc/es/bytecode-compiler/writer/">Writer Stage</a></li>
+  <li>Printers</li>
+  <li><a href="/doc/es/bytecode-compiler/transformations/">Transformaciones</a></li>
+  <li><a href="/doc/es/bytecode-compiler/customization/">Customizing the Pipeline</a></li>
 </ol>
 
 

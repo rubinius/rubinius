@@ -62,6 +62,13 @@ describe :object_dup_clone, :shared => true do
     o3.tainted?.should == true
   end
 
+  it "does not preserve the object_id" do
+    o1 = ObjectSpecDupInitCopy.new
+    old_object_id = o1.object_id
+    o2 = o1.send(@method)
+    o2.object_id.should_not == old_object_id
+  end
+
   ruby_version_is "1.9" do
     it "preserves untrusted state from the original" do
       o = ObjectSpecDupInitCopy.new

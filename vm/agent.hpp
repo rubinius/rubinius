@@ -50,7 +50,7 @@ namespace rubinius {
 
   private:
     SharedState& shared_;
-    VM* state_;
+    State state_;
     bool running_;
     int port_;
     int server_fd_;
@@ -77,7 +77,7 @@ namespace rubinius {
     const static int cBackLog = 10;
 
   public:
-    QueryAgent(SharedState& shared, VM* state);
+    QueryAgent(SharedState& shared, STATE);
     ~QueryAgent();
 
     void set_verbose() {
@@ -90,6 +90,10 @@ namespace rubinius {
 
     int port() {
       return port_;
+    }
+
+    State* state() {
+      return &state_;
     }
 
     void add_fd(int fd) {

@@ -38,14 +38,17 @@
 
 #include "capi/handle.hpp"
 
+#include "ontology.hpp"
+
 #include "windows_compat.h"
 
 namespace rubinius {
   void IO::init(STATE) {
-    GO(io).set(state->new_class("IO", G(object)));
+    GO(io).set(ontology::new_class(state, "IO", G(object)));
     G(io)->set_object_type(state, IOType);
 
-    GO(iobuffer).set(state->new_class("InternalBuffer", G(object), G(io)));
+    GO(iobuffer).set(ontology::new_class(state, "InternalBuffer",
+          G(object), G(io)));
     G(iobuffer)->set_object_type(state, IOBufferType);
   }
 
@@ -75,7 +78,7 @@ namespace rubinius {
 
     // Don't bother to add finalization for stdio
     if(fd >= 3) {
-      state->om->needs_finalization(io, (FinalizerFunction)&IO::finalize);
+      state->memory()->needs_finalization(io, (FinalizerFunction)&IO::finalize);
     }
 
     return io;
@@ -92,7 +95,7 @@ namespace rubinius {
     // Ensure the instance's class is set (i.e. for subclasses of IO)
     io->klass(state, as<Class>(self));
 
-    state->om->needs_finalization(io, (FinalizerFunction)&IO::finalize);
+    state->memory()->needs_finalization(io, (FinalizerFunction)&IO::finalize);
 
     return io;
   }
@@ -105,7 +108,7 @@ namespace rubinius {
 
   namespace {
     /** Utility function used by IO::select, returns highest descriptor. */
-    static inline native_int fd_set_from_array(VM* state,
+    static inline native_int fd_set_from_array(State* state,
                                Object* maybe_descriptors, fd_set* set)
     {
       if(NULL == set) {
@@ -137,7 +140,7 @@ namespace rubinius {
     }
 
     /** Utility function used by IO::select, returns Array of IOs that were set. */
-    static inline Array* reject_unset_fds(VM* state,
+    static inline Array* reject_unset_fds(State* state,
                            Object* maybe_originals, fd_set* set)
     {
       if(NULL == set) return Array::create(state, 0);
@@ -224,8 +227,8 @@ namespace rubinius {
 
     /* And the main event, pun intended */
     retry:
-    state->interrupt_with_signal();
-    state->thread->sleep(state, Qtrue);
+    state->vm()->interrupt_with_signal();
+    state->vm()->thread->sleep(state, Qtrue);
 
     {
       GCIndependent guard(state, calling_environment);
@@ -235,8 +238,8 @@ namespace rubinius {
                                                   maybe_limit);
     }
 
-    state->thread->sleep(state, Qfalse);
-    state->clear_waiter();
+    state->vm()->thread->sleep(state, Qfalse);
+    state->vm()->clear_waiter();
 
     if(events == -1) {
       if(errno == EAGAIN || errno == EINTR) {
@@ -547,16 +550,16 @@ namespace rubinius {
     OnStack<1> variables(state, buffer);
 
   retry:
-    state->interrupt_with_signal();
-    state->thread->sleep(state, Qtrue);
+    state->vm()->interrupt_with_signal();
+    state->vm()->thread->sleep(state, Qtrue);
 
     {
       GCIndependent guard(state, calling_environment);
       bytes_read = ::read(fd, buffer->byte_address(), count);
     }
 
-    state->thread->sleep(state, Qfalse);
-    state->clear_waiter();
+    state->vm()->thread->sleep(state, Qfalse);
+    state->vm()->clear_waiter();
 
     if(bytes_read == -1) {
       if(errno == EINTR) {
@@ -790,8 +793,8 @@ namespace rubinius {
     native_int t = type->to_native();
 
   retry:
-    state->interrupt_with_signal();
-    state->thread->sleep(state, Qtrue);
+    state->vm()->interrupt_with_signal();
+    state->vm()->thread->sleep(state, Qtrue);
 
     {
       GCIndependent guard(state, calling_environment);
@@ -801,8 +804,8 @@ namespace rubinius {
                             (struct sockaddr*)buf, &alen);
     }
 
-    state->thread->sleep(state, Qfalse);
-    state->clear_waiter();
+    state->vm()->thread->sleep(state, Qfalse);
+    state->vm()->clear_waiter();
 
     buffer->unpin();
 
@@ -1062,8 +1065,8 @@ failed: /* try next '*' position */
     socklen_t sock_len = sizeof(socka);
 
   retry:
-    state->interrupt_with_signal();
-    state->thread->sleep(state, Qtrue);
+    state->vm()->interrupt_with_signal();
+    state->vm()->thread->sleep(state, Qtrue);
 
     {
       GCIndependent guard(state, calling_environment);
@@ -1071,8 +1074,8 @@ failed: /* try next '*' position */
       set = true;
     }
 
-    state->thread->sleep(state, Qfalse);
-    state->clear_waiter();
+    state->vm()->thread->sleep(state, Qfalse);
+    state->vm()->clear_waiter();
 
     if(new_fd == -1) {
       if(errno == EAGAIN || errno == EINTR) {
@@ -1174,16 +1177,16 @@ failed: /* try next '*' position */
     int code = -1;
 
     retry:
-    state->interrupt_with_signal();
-    state->thread->sleep(state, Qtrue);
+    state->vm()->interrupt_with_signal();
+    state->vm()->thread->sleep(state, Qtrue);
 
     {
       GCIndependent guard(state);
       code = recvmsg(read_fd, &msg, 0);
     }
 
-    state->thread->sleep(state, Qfalse);
-    state->clear_waiter();
+    state->vm()->thread->sleep(state, Qfalse);
+    state->vm()->clear_waiter();
 
     if(code == -1) {
       if(errno == EAGAIN || errno == EINTR) {
@@ -1273,16 +1276,16 @@ failed: /* try next '*' position */
     if(self->left() < count) count = self->left();
 
   retry:
-    state->interrupt_with_signal();
-    state->thread->sleep(state, Qtrue);
+    state->vm()->interrupt_with_signal();
+    state->vm()->thread->sleep(state, Qtrue);
 
     {
       GCIndependent guard(state, calling_environment);
       bytes_read = read(fd, temp_buffer, count);
     }
 
-    state->thread->sleep(state, Qfalse);
-    state->clear_waiter();
+    state->vm()->thread->sleep(state, Qfalse);
+    state->vm()->clear_waiter();
 
     if(bytes_read == -1) {
       switch(errno) {

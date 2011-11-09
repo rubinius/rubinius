@@ -3,83 +3,76 @@ layout: doc_es
 title: How-To - Write a Ticket
 previous: How-To
 previous_url: how-to
-next: Write a Ruby Spec
+next: Como escribir una especificación en Ruby
 next_url: how-to/write-a-ruby-spec
-translated: true
 ---
 
-The Rubinius issue tracker is <http://github.com/rubinius/rubinius/issues>.
+El issue tracker de Rubinius es <http://github.com/rubinius/rubinius/issues>.
 
-Para ser útiles, los boletos deben ser concisas, específicas y acciones
-concretas. Si no, el boleto languidecen y se convierten en el desorden. En
-consecuencia, los boletos deben caer en uno (o más) de las siguientes
+Para ser útiles, los tickets deben ser concisos, específicos y acciones
+concretas. Si no, el ticket va a languidecer y convertirce en desorden. En
+consecuencia, los tickets deben caer en uno (o más) de las siguientes
 categorías:
 
-   1. Una historia de línea de comandos precisos para demostrar cómo instalar
-      e invocar el programa y que muestra el seguimiento hacia atrás de una
-      excepción.
+   1. Una historia precisa de la línea de comandos para demostrar cómo instalar
+      e invocar el programa y que muestra el backtrace de una excepción.
    2. Un pequeño fragmento de código que ilustra el problema y la línea de
-      comandos lo invocan.
-   3. Un parche, **incluyendo especificaciones técnicas, si no existen**, y
-      mostrando la especificación de funcionamiento antes y después de aplicar
-      el parche.
+      comandos que lo invoca.
+   3. Un parche, **incluyendo specs, si no existen**, y
+      mostrando la spec funcionando antes y después de aplicar el parche.
 
-Si el problema no se ajusta a una de las categorías, no es válido. Es
-simplemente no es apropiado para un boleto.
+Si el problema no se ajusta a una de las categorías, no es
+válido. Simplemente no es apropiado para un ticket.
 
-   1. Si se trata de una función, consideran que trata sobre la lista de
-      correo. Además, podría tomar una grieta en su aplicación y demostrar
-      cómo su función es útil.
-   2. Si se trata de una biblioteca o joya que no está funcionando, tómese un
-      tiempo para cavar en y ver si se puede crear una reproducción de un tema
-      y después de que, como Venta de entradas.
+   1. Si se trata de una característica, considere discutirla en la lista de
+      correo. Además, podría intentar implementarla y demostrar
+      cómo su característica es útil.
+   2. Si se trata de una biblioteca o gema que no está funcionando, tómese un
+      tiempo para investigar y ver si se puede reproducir
+      y envíe eso como ticket.
 
 
-## Procedimiento general para la presentación de un billete
+## Procedimiento general para enviar un ticket
 
-1. Vuelva a comprobar.
+1. Verifique dos veces.
 
       1. Hacer una reconstrucción completa ('rake clean; rake') después de un
-         'git pull' o clonar fresco.
+         'git pull' o un clone fresco.
       2. Leer [Troubleshooting](/doc/es/getting-started/troubleshooting/)
-         ver si algo se resuelve el problema.
+         ver si algo resuelve el problema.
       3. Leer [Specs](/doc/es/specs/).
 
-   2. Dé su billete un título específico, preferentemente corto.
+   2. Dé a su ticket un título específico, preferentemente corto.
 
-   3. Dé a sus etiquetas apropiadas billete.
+   3. Etiquete correctamente su ticket.
 
    4. Dar suficientes detalles sobre el tema.
 
       * La línea de comandos para invocar el programa
-      * El seguimiento hacia atrás o resultado del programa en comparación con
+      * El backtrace o resultado del programa en comparación con
         resultado esperado.
-      * La información de su máquina. `uname-a` es generalmente bueno (si hay alguna
-         "desconocido" en campos que, por favor, más detalles sobre ellos.)
+      * La información de su máquina. `uname -a` está generalmente bien (si hay
+        algun "unkown" en cualquiera de los campos, por favor, dar más
+        detalles sobre ellos.)
 
 
-## Instrucciones adicionales para las entradas con parches
+## Instrucciones adicionales para tickets con parches
 
-   * Puede ser sólo un conjunto de especificaciones técnicas.
-   * Los parches deben ir acompañadas de especificaciones técnicas a menos que
-     las especificaciones técnicas ya existentes.
-   * La parte pertinente de la producción de especificaciones y la exacta
-     `bin/mspec` la invocación de la existentes o agregar especificaciones
-     *antes de la corrección*.
-   * La salida de especificaciones y `bin/mspec` exactamente la invocación
-     que muestra el éxito *después* de la revisión.
-   * Descripción adicional de su parche y cómo se soluciona el problema. En
-     particular, con nuevas funcionalidades por favor, indique si ya estaba
-     discutido en #rubinius o rubinius-dev.
+   * Puede ser sólo un conjunto de specs.
+   * Los parches deben ir acompañadas de specs a menos que
+     las specs ya existan.
+   * La parte relevante de la salida de las specs y la exacta invocación de
+     `bin/mspec` de la spec agregada o existente *antes de la corrección*.
+   * La salida de las specs y la invocación exacta de `bin/mspec` que muestra el éxito *después* del arreglo.
+   * Una descripción adicional de su parche y cómo este soluciona el problema. En
+     particular, con nuevas funcionalidades, por favor, indique si ya se ha discutido en #rubinius o rubinius-dev.
 
-A menos que por alguna razón imposible, por favor use `git-format-patch` para
-crear la patchset. Es mucho más fácil de aplicar y que conserva la atribución
-correcta.  De lo contrario, un diff unificado.
+A menos que por alguna razón sea imposible, por favor use `git-format-patch` para crear el patchset. Es mucho más fácil de aplicar y conserva la atribución correcta.  De lo contrario, un diff unificado.
 
 
 ## Ejemplo de la presentación de un parche
 
-Supongamos que la especificación siguiente existe y no es:
+Supongamos que la siguiente spec existe y está fallando:
 
     describe "Kernel.format" do
       it "is accessible as a module function" do
@@ -87,7 +80,7 @@ Supongamos que la especificación siguiente existe y no es:
       end
     end
 
-1. Ticket Title:
+1. Título del ticket:
 
    "[PATCH] No method 'format' on Kernel (Module)"
 
@@ -95,7 +88,7 @@ Supongamos que la especificación siguiente existe y no es:
 
    "patch core spec"
 
-3. Ticket Message:
+3. Mensaje del ticket:
 
    The method 'format' is not available as a module function of Kernel.
 
@@ -122,8 +115,8 @@ Supongamos que la especificación siguiente existe y no es:
 
 4. Attachment:
 
-Por último, poner el parche en una esencia y añadir el enlace a la esencia de
-su problema.  A continuación se reproduce el parche en línea para la integridad:
+Por último, ponga el parche en un gist y agregue el enlace al gist
+de su issue.  A continuación se reproduce el parche en una línea opor una cuestión de integridad:
 
 
     From c61cecce6442347ebbdf1ded7a5c0832c97582c1 Mon Sep 17 00:00:00 2001

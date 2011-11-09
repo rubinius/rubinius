@@ -12,6 +12,8 @@
 #include "builtin/string.hpp"
 #include "builtin/time.hpp"
 
+#include "ontology.hpp"
+
 #include "util/time.h"
 
 #include <sys/time.h>
@@ -21,7 +23,7 @@
 
 namespace rubinius {
   void Time::init(STATE) {
-    GO(time_class).set(state->new_class("Time", G(object)));
+    GO(time_class).set(ontology::new_class(state, "Time", G(object)));
     G(time_class)->set_object_type(state, TimeType);
   }
 

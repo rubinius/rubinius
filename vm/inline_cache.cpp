@@ -24,7 +24,7 @@ namespace rubinius {
 
     // Check the global cache first!
     GlobalCache::cache_entry* global_entry =
-      state->global_cache()->lookup(state, module, name);
+      state->vm()->global_cache()->lookup(state, module, name);
 
     if(global_entry &&
          global_entry->is_public &&
@@ -107,7 +107,7 @@ namespace rubinius {
 
             if(!vis_entry) vis_entry = entry;
 
-            state->global_cache()->retain(state, klass, name, mce->stored_module(),
+            state->vm()->global_cache()->retain(state, klass, name, mce->stored_module(),
                   mce->method(), false,
                   !vis_entry->public_p(state));
 
@@ -136,7 +136,7 @@ namespace rubinius {
 
     // Check the global cache first!
     GlobalCache::cache_entry* global_entry =
-      state->global_cache()->lookup(state, module, name);
+      state->vm()->global_cache()->lookup(state, module, name);
 
     if(global_entry && !global_entry->method_missing) {
       mce = MethodCacheEntry::create(state, klass, global_entry->module,
@@ -174,7 +174,7 @@ namespace rubinius {
 
           if(!vis_entry) vis_entry = entry;
 
-          state->global_cache()->retain(state, start, name, mce->stored_module(),
+          state->vm()->global_cache()->retain(state, start, name, mce->stored_module(),
                 mce->method(), false,
                 !vis_entry->public_p(state));
 
@@ -346,7 +346,7 @@ namespace rubinius {
                          recv_class, mce);
 
     if(reason != eNone) {
-      state->set_method_missing_reason(reason);
+      state->vm()->set_method_missing_reason(reason);
 
       if(!cache->fill_method_missing(state, recv_class, mce)) {
         Exception::internal_error(state, call_frame, "no method_missing");
@@ -393,7 +393,7 @@ namespace rubinius {
     MethodCacheEntry* mce = 0;
 
     if(!cache->fill_private(state, cache->name, recv_class, recv_class, mce)) {
-      state->set_method_missing_reason(eNormal);
+      state->vm()->set_method_missing_reason(eNormal);
 
       if(!cache->fill_method_missing(state, recv_class, mce)) {
         Exception::internal_error(state, call_frame, "no method_missing");
@@ -432,7 +432,7 @@ namespace rubinius {
     MethodCacheEntry* mce = 0;
 
     if(!cache->fill_private(state, cache->name, recv_class, recv_class, mce)) {
-      state->set_method_missing_reason(eVCall);
+      state->vm()->set_method_missing_reason(eVCall);
 
       if(!cache->fill_method_missing(state, recv_class, mce)) {
         Exception::internal_error(state, call_frame, "no method_missing");
@@ -473,7 +473,7 @@ namespace rubinius {
     Module* const start = call_frame->module()->superclass();
 
     if(start->nil_p() || !cache->fill_private(state, cache->name, start, recv_class, mce)) {
-      state->set_method_missing_reason(eSuper);
+      state->vm()->set_method_missing_reason(eSuper);
 
       // Don't use start when looking up method_missing!
       // Always completely redispatch for method_missing.

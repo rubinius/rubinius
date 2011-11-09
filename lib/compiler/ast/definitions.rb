@@ -485,7 +485,7 @@ module Rubinius
       end
 
       def map_arguments(scope)
-        @required.each.with_index do |arg, index|
+        @required.each_with_index do |arg, index|
           case arg
           when PatternArguments
             arg.map_arguments scope

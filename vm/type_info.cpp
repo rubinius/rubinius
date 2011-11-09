@@ -18,6 +18,9 @@ namespace rubinius {
     auto_init(om);
   }
 
+  void TypeInfo::set_state(STATE) {
+    state_ = state->vm();
+  }
 
   TypeInfo::TypeInfo(object_type type)
     : state_(NULL)
@@ -109,6 +112,8 @@ namespace rubinius {
   extern "C" {
     /* A wrapper because gdb can't do virtual dispatch. */
     void __show__(Object* obj) {
+      rubinius::State state(rubinius::VM::current());
+
       if(obj->reference_p()) {
         ObjectPosition pos = rubinius::VM::current()->om->validate_object(obj);
         if(pos == cUnknown) {
@@ -116,15 +121,17 @@ namespace rubinius {
         } else if(pos == cInWrongYoungHalf) {
           std::cout << "<ERROR! Object reference points to old young half!>\n";
         } else {
-          obj->show(VM::current());
+          obj->show(&state);
         }
       } else {
-        obj->show(VM::current());
+        obj->show(&state);
       }
     }
 
     /* Similar to __show__ but only outputs #<SomeClass:0x2428999> */
     void __show_simple__(Object* obj) {
+      rubinius::State state(rubinius::VM::current());
+
       if(obj->reference_p()) {
         ObjectPosition pos = rubinius::VM::current()->om->validate_object(obj);
         if(pos == cUnknown) {
@@ -132,10 +139,10 @@ namespace rubinius {
         } else if(pos == cInWrongYoungHalf) {
           std::cout << "<ERROR! Object reference points to old young half!>\n";
         } else {
-          obj->show_simple(VM::current());
+          obj->show_simple(&state);
         }
       } else {
-        obj->show_simple(VM::current());
+        obj->show_simple(&state);
       }
     }
   }

@@ -25,15 +25,15 @@
 namespace rubinius {
 
   Class* Class::create(STATE, Class* super) {
-    Class* cls = state->om->new_object_enduring<Class>(state, G(klass));
+    Class* cls = state->memory()->new_object_enduring<Class>(state, G(klass));
 
-    cls->init(state->shared.inc_class_count(state));
+    cls->init(state->shared().inc_class_count(state));
 
     cls->name(state, nil<Symbol>());
     cls->instance_type(state, super->instance_type());
 
     if(super->type_info()->type == PackedObject::type) {
-      cls->set_type_info(state->om->type_info[ObjectType]);
+      cls->set_type_info(state->memory()->type_info[ObjectType]);
     } else {
       cls->set_type_info(super->type_info());
     }
@@ -48,12 +48,12 @@ namespace rubinius {
   }
 
   Class* Class::s_allocate(STATE) {
-    Class* cls = as<Class>(state->om->new_object_enduring<Class>(state, G(klass)));
+    Class* cls = as<Class>(state->memory()->new_object_enduring<Class>(state, G(klass)));
 
-    cls->init(state->shared.inc_class_count(state));
+    cls->init(state->shared().inc_class_count(state));
     cls->setup(state);
 
-    cls->set_type_info(state->om->type_info[ObjectType]);
+    cls->set_type_info(state->memory()->type_info[ObjectType]);
     return cls;
   }
 
@@ -66,11 +66,11 @@ namespace rubinius {
     Object* collect_and_allocate(STATE, GCToken gct, Class* self,
                                  CallFrame* calling_environment)
     {
-      state->shared.om->collect_young_now = true;
+      state->shared().om->collect_young_now = true;
 
       OnStack<1> os(state, self);
 
-      state->collect_maybe(gct, calling_environment);
+      state->vm()->collect_maybe(gct, calling_environment);
 
       // Don't use 'this' after here! it's been moved! use 'self'!
 
@@ -81,7 +81,7 @@ namespace rubinius {
         obj->init_header(self, YoungObjectZone, PackedObject::type);
       } else {
         obj = reinterpret_cast<PackedObject*>(
-            state->om->new_object_fast(state, self, size, PackedObject::type));
+            state->memory()->new_object_fast(state, self, size, PackedObject::type));
       }
 
       // Don't use 'this' !!! The above code might have GC'd
@@ -108,14 +108,14 @@ namespace rubinius {
       if(likely(obj)) {
         obj->init_header(self, YoungObjectZone, PackedObject::type);
       } else {
-        if(state->shared.om->refill_slab(state, state->local_slab())) {
+        if(state->shared().om->refill_slab(state, state->local_slab())) {
           obj = state->local_slab().allocate(size).as<PackedObject>();
 
           if(likely(obj)) {
             obj->init_header(self, YoungObjectZone, PackedObject::type);
           } else {
             obj = reinterpret_cast<PackedObject*>(
-                state->om->new_object_fast(state, self, size, PackedObject::type));
+                state->memory()->new_object_fast(state, self, size, PackedObject::type));
           }
         } else {
           return collect_and_allocate(state, gct, self, calling_environment);
@@ -149,7 +149,7 @@ namespace rubinius {
     } else {
       // type_info_->type is neither PackedObject nor Object, so use the
       // generic path.
-      return state->new_object_typed(this,
+      return state->vm()->new_object_typed(this,
           type_info_->instance_size, type_info_->type);
     }
   }
@@ -183,7 +183,7 @@ namespace rubinius {
 
     instance_type(state, sup->instance_type());
     if(sup->type_info()->type == PackedObject::type) {
-      set_type_info(state->om->type_info[ObjectType]);
+      set_type_info(state->memory()->type_info[ObjectType]);
     } else {
       set_type_info(sup->type_info());
     }
@@ -195,7 +195,7 @@ namespace rubinius {
 
   void Class::set_object_type(STATE, size_t type) {
     instance_type(state, Fixnum::from(type));
-    type_info_ = state->om->type_info[type];
+    type_info_ = state->memory()->type_info[type];
   }
 
   /* Look at this class and it's superclass contents (which includes
@@ -218,7 +218,7 @@ namespace rubinius {
     LookupTable* lt = LookupTable::create(state);
 
     // If autopacking is enabled, figure out how many slots to use.
-    if(state->shared.config.gc_autopack) {
+    if(state->shared().config.gc_autopack) {
       Module* mod = self;
 
       int slot = 0;
@@ -271,14 +271,14 @@ namespace rubinius {
 
   SingletonClass* SingletonClass::attach(STATE, Object* obj, Class* sup) {
     SingletonClass *sc;
-    sc = state->om->new_object_enduring<SingletonClass>(state, G(klass));
-    sc->init(state->shared.inc_class_count(state));
+    sc = state->memory()->new_object_enduring<SingletonClass>(state, G(klass));
+    sc->init(state->shared().inc_class_count(state));
 
     sc->attached_instance(state, obj);
     sc->setup(state);
 
     if(kind_of<PackedObject>(obj)) {
-      sc->set_type_info(state->om->type_info[Object::type]);
+      sc->set_type_info(state->memory()->type_info[Object::type]);
     } else {
       sc->set_type_info(obj->klass()->type_info());
     }

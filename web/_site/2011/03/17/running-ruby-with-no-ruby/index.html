@@ -71,7 +71,7 @@
   </p>
 </div>
 
-  <p>Humans have come a long way since our cave-dwelling days. No, that&rsquo;s not a
+  <p>Humans have come a long way since our cave-dwelling days. No, that’s not a
 metaphor for primitive software. I mean literally since we lived in caves. One
 of the big inventions is the lock. There are birds that bury food and will
 move it later if they notice they were watched burying it. But they have no
@@ -104,7 +104,7 @@ white and there may be valid security concerns in the source code.</li>
 
 <p>The process that separates the source code from the executable program is
 typically a compilation step. However, Ruby code is not typically associated
-with any sort of compilation. That&rsquo;s one of the great things about Ruby,
+with any sort of compilation. That’s one of the great things about Ruby,
 right? There is no <em>edit-compile-link-load</em> cycle to wait on. Just edit and run. But
 if there is no compilation step, how do we separate the source code from the
 executable code?</p>
@@ -115,13 +115,13 @@ Rubinius does compile Ruby code to a bytecode format that the virtual machine
 executes. I also promised to explain how you could run the bytecode directly.</p>
 
 <p>But first, let me very clearly state that there are a number of caveats. In
-fact, I&rsquo;ve included a whole section on them below. Please read them. We will
+fact, I’ve included a whole section on them below. Please read them. We will
 assume that you have and that you understand them. If you have any questions,
 please ask.</p>
 
 <h3 id="application-distribution-scenario">Application Distribution Scenario</h3>
 
-<p>Let&rsquo;s review what we would like to accomplish. We&rsquo;ll assume affable Abe is a
+<p>Let’s review what we would like to accomplish. We’ll assume affable Abe is a
 developer writing an application for customer Cain.</p>
 
 <ol>
@@ -133,13 +133,13 @@ developer writing an application for customer Cain.</p>
   <li>Cain runs the application.</li>
 </ol>
 
-<p>In this scenario, I&rsquo;m assuming a very vague definition of application. In
+<p>In this scenario, I’m assuming a very vague definition of application. In
 other words, the process below will fit in with a broad spectrum of bundling
 and distribution schemes.</p>
 
 <h3 id="application-layout">Application Layout</h3>
 
-<p>Let&rsquo;s assume that you have the following application layout. This mirrors what
+<p>Let’s assume that you have the following application layout. This mirrors what
 you would expect to see in a gem. You could also consider this as a subtree in
 your larger project.</p>
 
@@ -152,27 +152,13 @@ your larger project.</p>
    \- green.rb
 </code></pre>
 
-<div class="highlight"><pre><code class="ruby"><span class="lineno">1</span> <span class="c1"># widget.rb</span>
-<span class="lineno">2</span> <span class="nb">require</span> <span class="s1">&#39;widget/red&#39;</span>
-<span class="lineno">3</span> <span class="nb">require</span> <span class="s1">&#39;widget/blue&#39;</span>
-<span class="lineno">4</span> <span class="nb">require</span> <span class="s1">&#39;widget/green&#39;</span>
-</code></pre>
-</div>
+<p>Liquid error: undefined method `join’ for #<String:0x00000001eac198 /></p>
 
-<div class="highlight"><pre><code class="ruby"><span class="lineno">1</span> <span class="c1"># widget/red.rb</span>
-<span class="lineno">2</span> <span class="nb">puts</span> <span class="s2">&quot;I am red&quot;</span>
-</code></pre>
-</div>
+<p>Liquid error: undefined method `join’ for “\n# widget/red.rb\nputs "I am red"\n”:String</p>
 
-<div class="highlight"><pre><code class="ruby"><span class="lineno">1</span> <span class="c1"># widget/blue.rb</span>
-<span class="lineno">2</span> <span class="nb">puts</span> <span class="s2">&quot;I am blue&quot;</span>
-</code></pre>
-</div>
+<p>Liquid error: undefined method `join’ for “\n# widget/blue.rb\nputs "I am blue"\n”:String</p>
 
-<div class="highlight"><pre><code class="ruby"><span class="lineno">1</span> <span class="c1"># widget/green.rb</span>
-<span class="lineno">2</span> <span class="nb">puts</span> <span class="s2">&quot;I am green&quot;</span>
-</code></pre>
-</div>
+<p>Liquid error: undefined method `join’ for “\n# widget/green.rb\nputs "I am green"\n”:String</p>
 
 <h3 id="compiling-ruby-files">Compiling Ruby Files</h3>
 
@@ -184,7 +170,7 @@ every Ruby source file in our source tree.</p>
 <pre><code>rbx compile -s '^widget:widget-compiled' widget/
 </code></pre>
 
-<p>Let&rsquo;s dissect this command. The <code>-s</code> option defines a transformation to apply
+<p>Let’s dissect this command. The <code>-s</code> option defines a transformation to apply
 to every filename. The transformation has the form <code>&lt;source&gt;:&lt;destination&gt;</code>
 where <code>&lt;source&gt;</code> can be a Regexp. In our case, we would like to change any
 path starting with <code>widget</code> to start with <code>widget-compiled</code>. This way, we
@@ -208,7 +194,7 @@ files.</p>
 <h3 id="loading-pre-compiled-files">Loading Pre-compiled Files</h3>
 
 <p>Now that we have a separate tree of only compiled files, how do we load them?
-Well, first, let&rsquo;s load our source files so we know what to expect. Note that
+Well, first, let’s load our source files so we know what to expect. Note that
 the technique used in this post should not substitute for a robust test suite.</p>
 
 <pre><code>$ rbx -Iwidget/lib -e "require 'widget/lib/widget'"
@@ -227,9 +213,9 @@ I am green
 
 <p><em>The crowed erupts with applause and hooting</em>.</p>
 
-<p>Golly gee, you guys&hellip; <em>Blush</em></p>
+<p>Golly gee, you guys… <em>Blush</em></p>
 
-<p>Let&rsquo;s review. Our goal is to take a tree of Ruby source files and create a
+<p>Let’s review. Our goal is to take a tree of Ruby source files and create a
 tree of compiled files that can be sent to a customer and loaded to perform
 exactly as the Ruby source would if loaded directly. The most direct and
 simple way to accomplish this is to use the Rubinius compiler command-line
@@ -254,7 +240,7 @@ change the format of the compiled output.</li>
   <li>We have created this facility to meet a need we had in Rubinius. Since our
 compiler is written in Ruby, we have to run Ruby to run the compiler. But
 since we need to compile Ruby to run it, we need to compile the compiler.
-But since&hellip; To handle this, we build the compiler using a bootstrapping
+But since… To handle this, we build the compiler using a bootstrapping
 version of Ruby.  Then we load the pre-compiled compiler files as shown
 above. The approach is quite general, as demonstrated. However, a better
 approach may be appropriate for a particular application. In that case,
@@ -268,7 +254,7 @@ changed. The compiled format is simple. We reserve the right to provide
 disassemblers for our compiled code. We are happy to assist you with
 direction for implementing a more secure system for your needs.</li>
   <li>There is no mechanism that is completely safe from cracking when it comes
-to software access control. Witness how often Microsoft&rsquo;s products have
+to software access control. Witness how often Microsoft’s products have
 their security features defeated. Also witness how often attempts at DRM
 are circumvented. The most secure system I have seen uses a special
 compiler and a hardware dongle. The compiler takes critical parts of the

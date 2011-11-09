@@ -220,7 +220,6 @@ class StringIO
   def print(*args)
     raise IOError, "not opened for writing" unless @writable
     args << $_ if args.empty?
-    args.map! { |x| x.nil? ? "nil" : x }
     write((args << $\).flatten.join)
     nil
   end

@@ -1,4 +1,8 @@
 class IO
+  def self.for_fd(fd, mode = nil)
+    new fd, mode
+  end
+
   ##
   # Opens the file, optionally seeks to the given offset,
   # then returns length bytes (defaulting to the rest of
@@ -50,16 +54,18 @@ class IO
     return str
   end
 
-  ##
-  # Opens the given path, returning the underlying file descriptor as a Fixnum.
-  #  IO.sysopen("testfile")   #=> 3
-  def self.sysopen(path, mode = "r", perm = 0666)
-    unless mode.kind_of? Integer
-      mode = parse_mode StringValue(mode)
+  #
+  # Create a new IO associated with the given fd.
+  #
+  def initialize(fd, mode=nil)
+    if block_given?
+      warn 'IO::new() does not take block; use IO::open() instead'
     end
 
-    open_with_mode path, mode, perm
+    IO.setup self, Rubinius::Type.coerce_to(fd, Integer, :to_int), mode
   end
+
+  private :initialize
 
   ##
   # Chains together buckets of input from the buffer until

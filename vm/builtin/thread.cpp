@@ -22,6 +22,8 @@
 
 #include "on_stack.hpp"
 
+#include "ontology.hpp"
+
 #include "windows_compat.h"
 
 #include <sys/time.h>
@@ -50,7 +52,7 @@ static intptr_t thread_debug_id(pthread_t thr) {
 namespace rubinius {
 
   void Thread::init(STATE) {
-    GO(thread).set(state->new_class("Thread", G(object)));
+    GO(thread).set(ontology::new_class(state, "Thread", G(object)));
     G(thread)->set_object_type(state, Thread::type);
   }
 
@@ -78,18 +80,18 @@ namespace rubinius {
   }
 
   Object* send_run(STATE) {
-    return state->thread.get()->send(state, NULL, state->symbol("__run__"));
+    return state->vm()->thread.get()->send(state, NULL, state->symbol("__run__"));
   }
 
   Thread* Thread::allocate(STATE, Object* self) {
-    VM* vm = state->shared.new_vm();
+    VM* vm = state->shared().new_vm();
     Thread* thread = Thread::create(state, vm, self, send_run);
 
     return thread;
   }
 
   Thread* Thread::current(STATE) {
-    return state->thread.get();
+    return state->vm()->thread.get();
   }
 
   Object* Thread::unlock_locks(STATE, GCToken gct) {
@@ -97,7 +99,7 @@ namespace rubinius {
     for(std::list<ObjectHeader*>::iterator i = los.begin();
         i != los.end();
         i++) {
-      (*i)->unlock_for_terminate(vm_, gct);
+      (*i)->unlock_for_terminate(state, gct);
     }
     los.clear();
     return Qnil;
@@ -106,12 +108,14 @@ namespace rubinius {
   void* Thread::in_new_thread(void* ptr) {
     VM* vm = reinterpret_cast<VM*>(ptr);
 
+    State state_obj(vm), *state = &state_obj;
+
     int calculate_stack = 0;
-    NativeMethod::init_thread(vm);
+    NativeMethod::init_thread(state);
     VM::set_current(vm);
 
-    vm->set_call_frame(0);
-    vm->shared.gc_dependent(vm);
+    state->set_call_frame(0);
+    vm->shared.gc_dependent(state);
 
     if(cDebugThreading) {
       std::cerr << "[THREAD " << vm->thread_id()
@@ -122,9 +126,9 @@ namespace rubinius {
 
     vm->thread->init_lock_.unlock();
 
-    vm->shared.tool_broker()->thread_start(vm);
-    Object* ret = vm->thread->runner_(vm);
-    vm->shared.tool_broker()->thread_stop(vm);
+    vm->shared.tool_broker()->thread_start(state);
+    Object* ret = vm->thread->runner_(state);
+    vm->shared.tool_broker()->thread_stop(state);
 
     if(!ret) {
       if(vm->thread_state()->raise_reason() == cExit) {
@@ -140,10 +144,10 @@ namespace rubinius {
     for(std::list<ObjectHeader*>::iterator i = los.begin();
         i != los.end();
         i++) {
-      (*i)->unlock_for_terminate(vm, gct);
+      (*i)->unlock_for_terminate(state, gct);
     }
 
-    NativeMethod::cleanup_thread(vm);
+    NativeMethod::cleanup_thread(state);
 
     vm->thread->cleanup();
     vm->thread->init_lock_.unlock();
@@ -153,10 +157,10 @@ namespace rubinius {
     // Clear the call_frame, so that if we wait for GC going independent,
     // the GC doesn't see pointers into now-unallocated CallFrames
     vm->set_call_frame(0);
-    vm->shared.gc_independent(vm);
-    vm->shared.clear_critical(vm);
+    vm->shared.gc_independent(state);
+    vm->shared.clear_critical(state);
 
-    VM::discard(vm, vm);
+    VM::discard(state, vm);
 
     if(cDebugThreading) {
       std::cerr << "[LOCK thread " << vm->thread_id() << " exited]\n";
@@ -279,10 +283,10 @@ namespace rubinius {
 
     init_lock_.unlock();
 
-    state->shared.gc_independent(state);
+    state->gc_independent();
     void* val;
     int err = pthread_join(id, &val);
-    state->shared.gc_dependent(state);
+    state->gc_dependent();
 
     switch(err) {
     case 0:
@@ -304,10 +308,10 @@ namespace rubinius {
 
   Object* Thread::set_critical(STATE, Object* obj) {
     if(RTEST(obj)) {
-      state->shared.set_critical(state);
+      state->shared().set_critical(state);
       return Qtrue;
     } else {
-      state->shared.clear_critical(state);
+      state->shared().clear_critical(state);
       return Qfalse;
     }
   }

@@ -63,7 +63,7 @@ namespace rubinius {
     assert(fields >= 0 && fields < INT32_MAX);
 
     // Fast path using GC optimized tuple creation
-    Tuple* tup = state->new_young_tuple_dirty(fields);
+    Tuple* tup = state->vm()->new_young_tuple_dirty(fields);
 
     if(likely(tup)) {
       for(native_int i = 0; i < fields; i++) {
@@ -77,7 +77,7 @@ namespace rubinius {
 
     size_t bytes;
 
-    tup = state->new_object_variable<Tuple>(G(tuple), fields, bytes);
+    tup = state->vm()->new_object_variable<Tuple>(G(tuple), fields, bytes);
     if(unlikely(!tup)) {
       Exception::memory_error(state);
     }
@@ -302,7 +302,7 @@ namespace rubinius {
   Tuple* Tuple::tuple_dup(STATE) {
     native_int fields = num_fields();
 
-    Tuple* tup = state->new_young_tuple_dirty(fields);
+    Tuple* tup = state->vm()->new_young_tuple_dirty(fields);
 
     if(likely(tup)) {
       for(native_int i = 0; i < fields; i++) {

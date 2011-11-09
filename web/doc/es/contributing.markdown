@@ -7,22 +7,20 @@ next: Comunicación
 next_url: contributing/communication
 ---
 
-El proyecto Rubinius acepta sus aportaciones. Hay muchas cosas que
-hacer en las que puede ayudar. Lo más importante es que usted debe hacer algo que le
-interesa. Esa es la mejor manera de tener el entusiasmo y la energía para su
-trabajo.
+El proyecto Rubinius acepta sus aportaciones. Hay muchas cosas que hacer en las que
+puede ayudar. Lo más importante es que usted debe hacer algo que le interesa.
+Esa es la mejor manera de tener el entusiasmo y la energía para su trabajo.
 
 Si usted tiene preguntas sobre Rubinius, la mejor forma de obtener respuestas
 es platicar con nosotros en el canal de IRC #rubinius en irc.freenode.net.
 
 A continuación se presentan varias ideas sobre qué hacer en Rubinius.
 
+
 ## Ejecutar su propio código
 
-Su código es a menudo una prueba más rigorosa que las
-especificaciones. Ejecute su proyecto favorito en Rubinius y reporte
-cualquier anomalía que se presente. Vea [Cómo escribir un reporte de
-fallos](/doc/es/how-to/write-a-ticket).
+Su código es a menudo una prueba más rigorosa que las especificaciones. Ejecute su proyecto favorito
+en Rubinius y reporte cualquier anomalía que se presente. Vea [Cómo escribir un reporte de fallos](/doc/es/how-to/write-a-ticket).
 
 
 ## Pida Ayuda
@@ -36,6 +34,7 @@ prioridad a los reportes que incluyen pasos para reproducir el problema.
 Incluso mejor son aquellos que incluyen RubySpecs que demuestran el error y un
 parche que lo corrige.
 
+
 ## Escribir Especificaciones
 
   1. Ejecute `bin/mspec tag --list incomplete <dir>` para mostrar las
@@ -44,7 +43,7 @@ parche que lo corrige.
      hacer falta especificaciones para alguna clase en particular.
 
      NOTA: Se puede especificar el pseudo-directorio ':files' para
-     \<dir\>, lo que mostrara las etiquetas para todas las especificaciones
+     \<dir\>, lo que mostrará las etiquetas para todas las especificaciones
      que deben ejecutarse en Rubinius. O puede especificar cualquier
      subdirectorio de spec/ para listar las etiquetas de las especificaciones
      en ese subdirectorio.
@@ -64,13 +63,18 @@ parche que lo corrige.
      en ese subdirectorio.
 
   2. Elija una especificación que se vea interesante y vea si puede escribir
-     un parche que la haga funcionar exitosamente.
+     un parche que la haga funcionar correctamente.
 
 ## Escribir Documentación
 
 Estudio cómo funciona Rubinius leyendo el código fuente, y escriba
 documentación de alto nivel que ayudará a otros a aprender sobre los
 detalles de implementación.
+
+## Mantenga el código limpio
+
+Revise la [Guía de estilo](/doc/es/contributing/style-guide/) para las directrices
+de programación.
 
 ## Mantenimiento a los reportes de error
 

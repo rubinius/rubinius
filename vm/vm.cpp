@@ -76,7 +76,6 @@ namespace rubinius {
     , custom_wakeup_(0)
     , custom_wakeup_data_(0)
     , om(shared.om)
-    , interrupts(shared.interrupts)
     , check_local_interrupts(false)
     , thread_state_(this)
     , thread(this, nil<Thread>())
@@ -88,7 +87,7 @@ namespace rubinius {
     if(shared.om) {
       young_start_ = shared.om->young_start();
       young_end_ = shared.om->yound_end();
-      shared.om->refill_slab(this, local_slab_);
+      local_slab_.refill(0, 0);
     }
 
     tooling_env_ = rbxti::create_env(this);
@@ -110,44 +109,48 @@ namespace rubinius {
     young_start_ = shared.om->young_start();
     young_end_ = shared.om->yound_end();
 
-    om->refill_slab(this, local_slab_);
+    local_slab_.refill(0, 0);
 
     shared.set_initialized();
 
     shared.gc_dependent(this);
 
-    TypeInfo::auto_learn_fields(this);
+    State state(this);
 
-    bootstrap_ontology();
+    TypeInfo::auto_learn_fields(&state);
 
-    VMMethod::init(this);
+    bootstrap_ontology(&state);
+
+    VMMethod::init(&state);
 
     // Setup the main Thread, which is wrapper of the main native thread
     // when the VM boots.
-    thread.set(Thread::create(this, this, G(thread), 0, true), &globals().roots);
-    thread->sleep(this, Qfalse);
+    thread.set(Thread::create(&state, this, G(thread), 0, true), &globals().roots);
+    thread->sleep(&state, Qfalse);
 
     VM::set_current(this);
   }
 
   void VM::initialize_config() {
+    State state(this);
+
 #ifdef ENABLE_LLVM
     if(!shared.config.jit_disabled) {
-      Array* ary = Array::create(this, 3);
-      ary->append(this, symbol("usage"));
+      Array* ary = Array::create(&state, 3);
+      ary->append(&state, symbol("usage"));
       if(shared.config.jit_inline_generic) {
-        ary->append(this, symbol("inline_generic"));
+        ary->append(&state, symbol("inline_generic"));
       }
 
       if(shared.config.jit_inline_blocks) {
-        ary->append(this, symbol("inline_blocks"));
+        ary->append(&state, symbol("inline_blocks"));
       }
-      G(rubinius)->set_const(this, "JIT", ary);
+      G(rubinius)->set_const(&state, "JIT", ary);
     } else {
-      G(rubinius)->set_const(this, "JIT", Qfalse);
+      G(rubinius)->set_const(&state, "JIT", Qfalse);
     }
 #else
-    G(rubinius)->set_const(this, "JIT", Qnil);
+    G(rubinius)->set_const(&state, "JIT", Qnil);
 #endif
   }
 
@@ -166,22 +169,23 @@ namespace rubinius {
   }
 
   Object* VM::new_object_typed(Class* cls, size_t size, object_type type) {
+    State state(this);
 
     if(unlikely(size > om->large_object_threshold)) {
-      return om->new_object_typed_enduring(this, cls, size, type);
+      return om->new_object_typed_enduring(&state, cls, size, type);
     }
 
     Object* obj = local_slab().allocate(size).as<Object>();
 
     if(unlikely(!obj)) {
-      if(shared.om->refill_slab(this, local_slab())) {
+      if(shared.om->refill_slab(&state, local_slab())) {
         obj = local_slab().allocate(size).as<Object>();
       }
 
       // If refill_slab fails, obj will still be NULL.
 
       if(!obj) {
-        return om->new_object_typed(this, cls, size, type);
+        return om->new_object_typed(&state, cls, size, type);
       }
     }
 
@@ -201,7 +205,9 @@ namespace rubinius {
     Tuple* tup = local_slab().allocate(bytes).as<Tuple>();
 
     if(unlikely(!tup)) {
-      if(shared.om->refill_slab(this, local_slab())) {
+      State state(this);
+
+      if(shared.om->refill_slab(&state, local_slab())) {
         tup = local_slab().allocate(bytes).as<Tuple>();
       }
 
@@ -215,54 +221,9 @@ namespace rubinius {
   }
 
   Object* VM::new_object_typed_mature(Class* cls, size_t bytes, object_type type) {
-    return om->new_object_typed_mature(this, cls, bytes, type);
-  }
+    State state(this);
 
-  Object* VM::new_object_from_type(Class* cls, TypeInfo* ti) {
-    return new_object_typed(cls, ti->instance_size, ti->type);
-  }
-
-  Class* VM::new_basic_class(Class* sup) {
-    Class *cls = om->new_object_enduring<Class>(this, G(klass));
-    cls->init(shared.inc_class_count(this));
-
-    if(sup->nil_p()) {
-      cls->instance_type(this, Fixnum::from(ObjectType));
-      cls->set_type_info(find_type(ObjectType));
-    } else {
-      cls->instance_type(this, sup->instance_type()); // HACK test that this is always true
-      cls->set_type_info(sup->type_info());
-    }
-    cls->superclass(this, sup);
-
-    return cls;
-  }
-
-  Class* VM::new_class(const char* name) {
-    return new_class(name, G(object), G(object));
-  }
-
-  Class* VM::new_class(const char* name, Class* super_class) {
-    return new_class(name, super_class, G(object));
-  }
-
-  Class* VM::new_class(const char* name, Class* sup, Module* under) {
-    Class* cls = new_basic_class(sup);
-    cls->setup(this, name, under);
-
-    // HACK test that we've got the MOP setup properly
-    SingletonClass::attach(this, cls, sup->singleton_class(this));
-    return cls;
-  }
-
-  Class* VM::new_class_under(const char* name, Module* under) {
-    return new_class(name, G(object), under);
-  }
-
-  Module* VM::new_module(const char* name, Module* under) {
-    Module *mod = new_object<Module>(G(module));
-    mod->setup(this, name, under);
-    return mod;
+    return om->new_object_typed_mature(&state, cls, bytes, type);
   }
 
   Symbol* VM::symbol(const char* str) {
@@ -270,11 +231,13 @@ namespace rubinius {
   }
 
   Symbol* VM::symbol(std::string str) {
-    return shared.symbols.lookup(this, str);
+    State state(this);
+    return shared.symbols.lookup(&state, str);
   }
 
   Symbol* VM::symbol(String* str) {
-    return shared.symbols.lookup(this, str);
+    State state(this);
+    return shared.symbols.lookup(&state, str);
   }
 
   void type_assert(STATE, Object* obj, object_type type, const char* reason) {
@@ -282,11 +245,6 @@ namespace rubinius {
         || (type == FixnumType && !obj->fixnum_p())) {
       Exception::type_error(state, type, obj, reason);
     }
-  }
-
-  void VM::raise_stack_error(CallFrame* call_frame) {
-    G(stack_error)->locations(this, Location::from_call_stack(this, call_frame));
-    thread_state()->raise_exception(G(stack_error));
   }
 
   void VM::init_stack_size() {
@@ -318,28 +276,33 @@ namespace rubinius {
   void VM::run_gc_soon() {
     om->collect_young_now = true;
     om->collect_mature_now = true;
-    interrupts.set_perform_gc();
+    shared.gc_soon();
   }
 
   void VM::collect(GCToken gct, CallFrame* call_frame) {
+    State state(this);
     this->set_call_frame(call_frame);
-    om->collect(this, gct, call_frame);
+    om->collect(&state, gct, call_frame);
   }
 
   void VM::collect_maybe(GCToken gct, CallFrame* call_frame) {
+    State state(this);
     this->set_call_frame(call_frame);
-    om->collect_maybe(this, gct, call_frame);
+    om->collect_maybe(&state, gct, call_frame);
   }
 
   void VM::set_const(const char* name, Object* val) {
-    globals().object->set_const(this, (char*)name, val);
+    State state(this);
+    globals().object->set_const(&state, (char*)name, val);
   }
 
   void VM::set_const(Module* mod, const char* name, Object* val) {
-    mod->set_const(this, (char*)name, val);
+    State state(this);
+    mod->set_const(&state, (char*)name, val);
   }
 
   Object* VM::path2class(const char* path) {
+    State state(this);
     Module* mod = shared.globals.object.get();
 
     char* copy = strdup(path);
@@ -349,7 +312,7 @@ namespace rubinius {
       char* pos = strstr(cur, "::");
       if(pos) *pos = 0;
 
-      Object* obj = mod->get_const(this, symbol(cur));
+      Object* obj = mod->get_const(&state, symbol(cur));
 
       if(pos) {
         if(Module* m = try_as<Module>(obj)) {
@@ -414,7 +377,7 @@ namespace rubinius {
   }
 
   void VM::clear_waiter() {
-    SYNC(0);
+    SYNC_TL;
     interrupt_with_signal_ = false;
     waiting_channel_.set((Channel*)Qnil);
     waiting_header_ = 0;
@@ -423,18 +386,18 @@ namespace rubinius {
   }
 
   void VM::wait_on_channel(Channel* chan) {
-    SYNC(0);
+    SYNC_TL;
     thread->sleep(this, Qtrue);
     waiting_channel_.set(chan);
   }
 
   void VM::wait_on_inflated_lock(InflatedHeader* ih) {
-    SYNC(0);
+    SYNC_TL;
     waiting_header_ = ih;
   }
 
   void VM::wait_on_custom_function(void (*func)(void*), void* data) {
-    SYNC(0);
+    SYNC_TL;
     custom_wakeup_ = func;
     custom_wakeup_data_ = data;
   }
@@ -451,71 +414,11 @@ namespace rubinius {
     thread->sleep(this, Qfalse);
   }
 
-  bool VM::process_async(CallFrame* call_frame) {
-    check_local_interrupts = false;
-
-    if(run_signals_) {
-      if(!shared.signal_handler()->deliver_signals(this, call_frame)) {
-        return false;
-      }
-    }
-
-    Exception* exc = interrupted_exception_.get();
-    if(!exc->nil_p()) {
-      interrupted_exception_.set((Exception*)Qnil);
-
-      // Only write the locations if there are none.
-      if(exc->locations()->nil_p() || exc->locations()->size() == 0) {
-        exc->locations(this, Location::from_call_stack(this, call_frame));
-      }
-
-      thread_state_.raise_exception(exc);
-      return false;
-    }
-
-    return true;
-  }
-
   void VM::register_raise(STATE, Exception* exc) {
     SYNC(state);
     interrupted_exception_.set(exc);
     check_local_interrupts = true;
     get_attention();
-  }
-
-  void VM::check_exception(CallFrame* call_frame) {
-    if(thread_state()->raise_reason() == cNone) {
-      std::cout << "Exception propagating, but none registered!\n";
-      call_frame->print_backtrace(this);
-      rubinius::abort();
-    }
-  }
-
-  bool VM::check_interrupts(GCToken gct, CallFrame* call_frame, void* end) {
-    // First, we might be here because someone reset the stack_limit_ so that
-    // we'd fall into here to check interrupts even if the stack is fine,
-    //
-    // So fix up the stack_limit_ if thats the case first.
-
-    // If this is true, stack_limit_ was just changed to get our attention, reset
-    // it now.
-    if(stack_limit_ == stack_start_) {
-      reset_stack_limit();
-    } else {
-      if(!check_stack(call_frame, end)) return false;
-    }
-
-    if(unlikely(check_local_interrupts)) {
-      if(!process_async(call_frame)) return false;
-    }
-
-    // If the current thread is trying to step, debugger wise, then assist!
-    if(thread_step()) {
-      clear_thread_step();
-      if(!Helpers::yield_debugger(this, gct, call_frame, Qnil)) return false;
-    }
-
-    return true;
   }
 
   void VM::set_current_fiber(Fiber* fib) {
@@ -525,9 +428,10 @@ namespace rubinius {
   }
 
   GCIndependent::GCIndependent(NativeMethodEnvironment* env)
-    : vm_(env->state())
+    : state_(env->state())
   {
-    vm_->set_call_frame(env->current_call_frame());
-    vm_->shared.gc_independent(vm_);
+    state_->set_call_frame(env->current_call_frame());
+    state_->gc_independent();
   };
+  
 };

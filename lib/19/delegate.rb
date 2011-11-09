@@ -117,9 +117,7 @@
 class Delegator < BasicObject
   kernel = ::Kernel.dup
   kernel.class_eval do
-    # TODO: Fix when 1.9 parser is working.
-    # [:to_s,:inspect,:=~,:!~,:===,:<=>,:eql?,:hash].each do |m|
-    [:to_s,:inspect,:=~,:===,:eql?,:hash].each do |m|
+    [:to_s,:inspect,:=~,:!~,:===,:<=>,:eql?,:hash].each do |m|
       undef_method m
     end
   end
@@ -201,16 +199,12 @@ class Delegator < BasicObject
   #
   # Returns true if two objects are not considered of equal value.
   #
-  # TODO: Fix when 1.9 parser is working.
-  #def !=(obj)
-  define_method(:"!=") do |obj|
+  def !=(obj)
     return false if obj.equal?(self)
     __getobj__ != obj
   end
 
-  #def !
-  # TODO: Fix when 1.9 parser is working.
-  define_method(:"!") do
+  def !
     !__getobj__
   end
 
@@ -363,9 +357,7 @@ def DelegateClass(superclass)
   klass = Class.new(Delegator)
   methods = superclass.instance_methods
   methods -= ::Delegator.public_api
-  # TODO: Fix when 1.9 parser is working.
-  # methods -= [:to_s,:inspect,:=~,:!~,:===]
-  methods -= [:to_s,:inspect,:=~,:===]
+  methods -= [:to_s,:inspect,:=~,:!~,:===]
   klass.module_eval do
     def __getobj__  # :nodoc:
       @delegate_dc_obj
@@ -378,15 +370,14 @@ def DelegateClass(superclass)
       define_method(method, Delegator.delegating_block(method))
     end
   end
-  # TODO: Fix when 1.9 parser is working.
-  klass.define_singleton_method :public_instance_methods do |all|
-    all ||= true
-    super(all) - superclass.protected_instance_methods
-  end
-  # TODO: Fix when 1.9 parser is working.
-  klass.define_singleton_method :protected_instance_methods do |all|
-    all ||= true
-    super(all) | superclass.protected_instance_methods
+  class << klass
+    def public_instance_methods(all=true)
+      super(all) - superclass.protected_instance_methods
+    end
+
+    def protected_instance_methods(all=true)
+      super(all) | superclass.protected_instance_methods
+    end
   end
   return klass
 end
