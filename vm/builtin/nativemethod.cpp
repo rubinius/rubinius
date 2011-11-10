@@ -680,11 +680,12 @@ namespace rubinius {
     return ret;
   }
 
-  NativeMethod* NativeMethod::load_extension_entry_point(STATE, Pointer* ptr) {
+  NativeMethod* NativeMethod::load_extension_entry_point(STATE,
+      String* library, Symbol* name, Pointer* ptr) {
     void* func = ptr->pointer;
 
-    return NativeMethod::create(state, nil<String>(), G(rubinius),
-                                state->symbol("__init__"), func,
+    return NativeMethod::create(state, library, G(rubinius),
+                                name, func,
                                 Fixnum::from(INIT_FUNCTION));
   }
 

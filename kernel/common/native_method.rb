@@ -38,7 +38,7 @@ module Rubinius
         raise LoadError::InvalidExtensionError, "Missing Init_ function (#{name})"
       end
 
-      entry_point = load_entry_point(sym)
+      entry_point = load_entry_point(library, name.to_sym, sym)
 
       entry_point.invoke(:init, Rubinius, self, [], nil)
 
@@ -50,9 +50,9 @@ module Rubinius
     #
     # +ptr+ is an FFI::Pointer to a C function.
     #
-    def self.load_entry_point(ptr)
+    def self.load_entry_point(library, name, ptr)
       Rubinius.primitive :nativemethod_load_extension_entry_point
-      raise PrimitiveFailure, "Unable to load #{library_path}"
+      raise PrimitiveFailure, "Unable to load #{library}"
     end
 
     def lines

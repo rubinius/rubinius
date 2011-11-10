@@ -146,8 +146,17 @@ extern "C" {
     Symbol* constant = env->state()->symbol(name);
 
     bool created = false;
-    VALUE klass = env->get_handle(rubinius::Helpers::open_class(env->state(),
-        env->current_call_frame(), module, superclass, constant, &created));
+
+    env->state()->vm()->shared.leave_capi(env->state());
+    Class* opened_class = rubinius::Helpers::open_class(env->state(),
+        env->current_call_frame(), module, superclass, constant, &created);
+
+    // We need to grab the handle before entering back into C-API
+    // code. The problem otherwise can be that the GC runs and
+    // the opened_class is GC'ed.
+
+    VALUE klass = env->get_handle(opened_class);
+    env->state()->vm()->shared.enter_capi(env->state());
 
     if(super) rb_funcall(super, rb_intern("inherited"), 1, klass);
 
