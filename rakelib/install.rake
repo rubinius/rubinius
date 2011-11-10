@@ -132,6 +132,11 @@ namespace :install do
         install_file name, %r[^lib/ext], BUILD_CONFIG[:ext_path]
       end
 
+      # New C extensions
+      FileList["lib/{18,19}/readline/ext/*.#{$dlext}"].each do |name|
+        install_file name, /^lib/, BUILD_CONFIG[:lib_path]
+      end
+
       # Install pre-installed gems
       gems_dest = "#{BUILD_CONFIG[:gemsdir]}/rubinius/preinstalled"
       FileList["preinstalled-gems/data/**/*"].each do |name|
