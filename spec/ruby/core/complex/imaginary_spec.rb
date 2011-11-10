@@ -1,7 +1,7 @@
-require File.expand_path('../../../spec_helper', __FILE__)
+require File.expand_path('../../../shared/complex/image', __FILE__)
 
 ruby_version_is "1.9" do
   describe "Complex#imaginary" do
-    it "needs to be reviewed for spec completeness"
+    it_behaves_like :complex_image, :imaginary
   end
 end
