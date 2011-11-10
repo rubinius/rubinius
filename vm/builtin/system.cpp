@@ -375,9 +375,11 @@ namespace rubinius {
       options |= WNOHANG;
     }
 
-    sig_t hup_func;
-    sig_t quit_func;
-    sig_t int_func;
+    typedef void (*rbx_sighandler_t)(int);
+
+    rbx_sighandler_t hup_func;
+    rbx_sighandler_t quit_func;
+    rbx_sighandler_t int_func;
 
   retry:
 
