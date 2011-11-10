@@ -174,8 +174,10 @@ extern "C" {
     Module* parent = c_as<Module>(env->get_object(parent_handle));
     Symbol* constant = env->state()->symbol(name);
 
+    env->state()->vm()->shared.leave_capi(env->state());
     Module* module = rubinius::Helpers::open_module(env->state(),
         env->current_call_frame(), parent, constant);
+    env->state()->vm()->shared.enter_capi(env->state());
 
     return env->get_handle(module);
   }
