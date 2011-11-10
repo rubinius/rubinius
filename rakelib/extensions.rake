@@ -119,9 +119,11 @@ compile_ext "digest:rmd160"
 compile_ext "digest:sha1"
 compile_ext "digest:sha2"
 compile_ext "digest:bubblebabble"
-compile_ext "syck", :dir => "lib/18/syck/ext"
+
 compile_ext "melbourne", :task => "rbx", :doc => "for Rubinius"
 compile_ext "melbourne", :task => "build", :doc => "for bootstrapping"
+
+compile_ext "syck", :dir => "lib/18/syck/ext"
 compile_ext "nkf"
 
 if BUILD_CONFIG[:readline] == :c_readline
@@ -133,6 +135,8 @@ end
 
 if BUILD_CONFIG[:libyaml]
   compile_ext "psych", :deps => ["Makefile"], :dir => "lib/19/psych/ext"
+else
+  compile_ext "syck", :deps => ["Makefile"], :dir => "lib/19/syck/ext", :env => "-X19"
 end
 
 # rbx must be able to run to build these because they use
