@@ -177,9 +177,12 @@ extern "C" {
     env->state()->vm()->shared.leave_capi(env->state());
     Module* module = rubinius::Helpers::open_module(env->state(),
         env->current_call_frame(), parent, constant);
+    // Grab the module handle before grabbing the lock
+    // so the Module isn't accidentally GC'ed.
+    VALUE module_handle = env->get_handle(module);
     env->state()->vm()->shared.enter_capi(env->state());
 
-    return env->get_handle(module);
+    return module_handle;
   }
 
   void rb_include_module(VALUE includer_handle, VALUE includee_handle) {
