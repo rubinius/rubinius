@@ -1110,7 +1110,7 @@ class Date
 
   # Get the minute of this date.
   def min() time[1] end
-  
+
   # Get the second of this date.
   def sec() time[2] end
 
@@ -1687,5 +1687,79 @@ class DateTime < Date
 
   private_class_method :today
   public_class_method  :now
+
+end
+
+class Date
+
+  class << self
+
+    def deprecated_class_method_alias(old, new) # :nodoc:
+      module_eval <<-"end;"
+        class << self
+          def #{old}(*args, &block)
+            if $VERBOSE
+              warn("\#{caller.shift.sub(/:in .*/, '')}: " \
+                   "warning: \#{self}::#{old} is deprecated; " \
+                   "use \#{self}::#{new}")
+            end
+            #{new}(*args, &block)
+          end
+        end
+      end;
+    end
+
+    private :deprecated_class_method_alias
+
+    def deprecated_alias(old, new) # :nodoc:
+      module_eval <<-"end;"
+        def #{old}(*args, &block)
+          if $VERBOSE
+            warn("\#{caller.shift.sub(/:in .*/, '')}: " \
+                 "warning: \#{self.class}\##{old} is deprecated; " \
+                 "use \#{self.class}\##{new}")
+          end
+          #{new}(*args, &block)
+        end
+      end;
+    end
+
+    private :deprecated_alias
+
+  end
+
+  [ %w(os?      julian?),
+    %w(ns?      gregorian?),
+    %w(exist1?  valid_jd?),
+    %w(exist2?  valid_ordinal?),
+    %w(exist3?  valid_date?),
+    %w(exist?   valid_date?),
+    %w(existw?  valid_commercial?),
+    %w(new0     new!),
+    %w(new1     jd),
+    %w(new2     ordinal),
+    %w(new3     new),
+    %w(neww     commercial)
+  ].each do |old, new|
+    deprecated_class_method_alias(old, new)
+  end
+
+  [ %w(os?      julian?),
+    %w(ns?      gregorian?),
+    %w(sg       start),
+    %w(newsg    new_start),
+    %w(of       offset),
+    %w(newof    new_offset)
+  ].each do |old, new|
+    deprecated_alias(old, new)
+  end
+
+  private :of, :newof
+
+end
+
+class DateTime < Date
+
+  public :of, :newof
 
 end
