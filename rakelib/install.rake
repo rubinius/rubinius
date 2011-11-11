@@ -133,8 +133,16 @@ namespace :install do
       end
 
       # New C extensions
-      FileList["lib/{18,19}/readline/ext/*.#{$dlext}"].each do |name|
-        install_file name, /^lib/, BUILD_CONFIG[:lib_path]
+      ["readline", "syck"].each do |lib|
+        FileList["lib/18/#{lib}/ext/*.#{$dlext}"].each do |name|
+          install_file name, /^lib/, BUILD_CONFIG[:lib_path]
+        end
+      end
+
+      ["psych", "readline", "syck"].each do |lib|
+        FileList["lib/19/#{lib}/ext/*.#{$dlext}"].each do |name|
+          install_file name, /^lib/, BUILD_CONFIG[:lib_path]
+        end
       end
 
       # Install pre-installed gems
