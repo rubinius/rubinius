@@ -8,32 +8,25 @@ next_url: how-to/write-a-blog-post
 translated: true
 ---
 
-Make sure you have read:
+Asegúrese de haber leido:
 
   *  [Getting Started](/doc/es/getting-started/)
   *  [Specs](/doc/es/specs/)
 
-Then, follow these steps to fix a failing spec:
+Luego, siga estos pasos para arreglar una spec que falla:
 
-  1.  Run `rake` to ensure that all CI specs are passing.
-  2.  Run `bin/mspec spec/some/spec_file.rb` to confirm the spec fails.
-  3.  Edit a file somewhere in Rubinius (probably under the kernel directory).
-  4.  Run `rake build` to build your change.
-  5.  Run `bin/mspec spec/some/spec_file.rb` to see if your change makes the
-      spec pass.
-  6.  Repeat until your spec passes.
-  7.  Run `rake` to ensure there are no regressions.
-  8.  Change directory to Rubinius root if not already there.
-  9.  Run `git status, git add, git commit`, etc. Any changes made to the spec
-      files under the spec/ruby directory must be in a different commit from
-      changes made to other Rubinius source code files.
-  10. Run `git format-patch origin`, which will extract commits that the current
-      branch accumulated since the last pull from origin, or `git format-patch
-      -N', where N is the number (1, 2, etc.) of commits for which you want to
-      generate patches.
-  11. Create a gist with your patch and link to it in a ticket on the issue
-      tracker at http://github.com/rubinius/rubinius/issues. You can add multiple
-      patches to one ticket.
+  1.  Ejecute `rake` para asegurarse que todas las specs de CI están pasando.
+  2.  Ejecute `bin/mspec spec/some/spec_file.rb` para confirmar que la spec falla.
+  3.  Edite un archivo en algún lugar en Rubinius (probablemente en el directorio kernel).
+  4.  Ejecute `rake build` para construir su cambio.
+  5.  Ejecute `bin/mspec spec/some/spec_file.rb` para ver que su cambio hace que las spec pasen.
+  6.  Repita hasta que su spec pase.
+  7.  Ejecute `rake` para asegurarse que no hay regresiones.
+  8.  Cambie al directorio raíz de Rubinius si todavía no está en él.
+  9.  Ejecute `git status, git add, git commit`, etc. Cualquier cambio hecho a los archivos de spec en el directorio spec/ruby debe estar en un commit diferente al de los cambios hechos en los demás archivos del código de Rubinius.
+  10. Ejecute `git format-patch origin`, el cual extraerá los commits del branch actual acumulados desde el último pull desde origin, o `git format-patch
+      -N', donde N es el número (1, 2, etc.) de commits con los que ud. quiere generar los parches.
+  11. Cree un gist con su patch y linkeelo en el ticket del issue tracker en http://github.com/rubinius/rubinius/issues. Puede agregar múltiples parches a un ticket.
 
-When your patch is accepted by the Rubinius project, you'll get a commit bit
-for the Rubinius repository. Let Evan know what your Github username is.
+Cuando su parche es aceptado en el project Rubinius, va a obtener commit bit
+para el repositorio de Rubinius. Hágale saber a Evan cual es su usuario de Github.
