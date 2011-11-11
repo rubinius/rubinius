@@ -134,10 +134,10 @@ if BUILD_CONFIG[:readline] == :c_readline
 end
 
 if BUILD_CONFIG[:libyaml]
-  compile_ext "psych", :deps => ["Makefile"], :dir => "lib/19/psych/ext"
-else
-  compile_ext "syck", :deps => ["Makefile"], :dir => "lib/19/syck/ext", :env => "-X19"
+  compile_ext "psych", :deps => ["Makefile"], :dir => "lib/19/psych/ext", :env => "-X19"
 end
+
+compile_ext "syck", :deps => ["Makefile"], :dir => "lib/19/syck/ext", :env => "-X19"
 
 # rbx must be able to run to build these because they use
 # extconf.rb, so they must be after melbourne for Rubinius.
