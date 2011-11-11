@@ -10,7 +10,7 @@ desc "Build extensions from lib/ext"
 task :extensions
 
 def clean_extension(name)
-  rm_f FileList["lib/ext/#{name}/*.{o,#{$dlext}}"], :verbose => $verbose
+  rm_f FileList["lib/**/ext/#{name}/*.{o,#{$dlext}}"], :verbose => $verbose
 end
 
 namespace :extensions do
