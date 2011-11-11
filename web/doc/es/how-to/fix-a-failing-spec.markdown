@@ -5,7 +5,6 @@ previous: Write a Ruby Spec
 previous_url: how-to/write-a-ruby-spec
 next: Write a Blog Post
 next_url: how-to/write-a-blog-post
-translated: true
 ---
 
 Asegúrese de haber leido:
