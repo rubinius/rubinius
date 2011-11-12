@@ -1,1 +1,1 @@
-require "ext/dbm/dbm"
+require "dbm/ext/dbm"

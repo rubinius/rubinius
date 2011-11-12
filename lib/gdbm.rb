@@ -1,1 +1,1 @@
-require 'ext/gdbm/gdbm'
+require 'gdbm/ext/gdbm'
