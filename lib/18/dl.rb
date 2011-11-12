@@ -1,1 +1,1 @@
-require 'ext/dl/dl'
+require 'dl/ext/dl'
