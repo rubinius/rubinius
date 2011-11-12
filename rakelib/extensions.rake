@@ -124,7 +124,7 @@ compile_ext "melbourne", :task => "rbx", :doc => "for Rubinius"
 compile_ext "melbourne", :task => "build", :doc => "for bootstrapping"
 
 compile_ext "syck", :dir => "lib/18/syck/ext"
-compile_ext "nkf"
+compile_ext "nkf", :dir => "lib/18/nkf/ext", :env => "-X18"
 
 if BUILD_CONFIG[:readline] == :c_readline
   compile_ext "readline", :dir => "lib/18/readline/ext"
