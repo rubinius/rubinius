@@ -112,7 +112,7 @@ File.open(build_ruby, "wb") do |f|
   f.puts build_version
 end
 
-compile_ext "bigdecimal"
+compile_ext "bigdecimal", :dir => "lib/18/bigdecimal/ext", :env => "-X18"
 compile_ext "digest", :dir => "lib/digest/ext"
 compile_ext "digest:md5", :dir => "lib/digest/ext/md5"
 compile_ext "digest:rmd160", :dir => "lib/digest/ext/rmd160"
