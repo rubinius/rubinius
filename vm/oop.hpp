@@ -5,6 +5,7 @@
 #include <ctype.h>
 #include <stdint.h>
 #include <assert.h>
+#include <alloca.h>
 
 #include "config.h"
 #include "object_types.hpp"

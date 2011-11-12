@@ -57,7 +57,7 @@ namespace rubinius {
 
   // Used by the segfault reporter. Calculated up front to avoid
   // crashing inside the crash handler.
-  static utsname machine_info;
+  static struct utsname machine_info;
   static char report_path[1024];
   static const char* report_file_name = ".rubinius_last_error";
 

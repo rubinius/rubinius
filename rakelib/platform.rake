@@ -559,7 +559,7 @@ file 'runtime/platform.conf' => deps do |task|
     end.write_constants(f)
 
     FFI::Generators::Constants.new 'rbx.platform.zlib' do |cg|
-      cg.include_dir 'vendor/zlib'
+      cg.include_dir 'vendor/zlib' if BUILD_CONFIG[:vendor_zlib]
       cg.include 'zlib.h'
 
       zlib_constants = %w[ZLIB_VERSION]

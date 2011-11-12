@@ -167,6 +167,7 @@ when /mswin/, /mingw/, /bccwin32/
 
 when /solaris/
   add_define "OS_SOLARIS8"
+  add_flag "-fPIC"
 
   if $CC == "cc" and `cc -flags 2>&1` =~ /Sun/ # detect SUNWspro compiler
     # SUN CHAIN
@@ -176,7 +177,7 @@ when /solaris/
   else
     # GNU CHAIN
     # on Unix we need a g++ link, not gcc.
-    $LDSHARED = "#{$CXX} -shared"
+    $LDSHARED = "#{$CXX} -shared -G -fPIC"
   end
 
 when /openbsd/
