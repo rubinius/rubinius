@@ -31,6 +31,7 @@
 #include <unistd.h>
 #include <fcntl.h>
 #include <errno.h>
+#include <alloca.h>
 
 #include "intern.h"
 #include "defines.h"
