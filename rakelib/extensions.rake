@@ -141,7 +141,7 @@ compile_ext "syck", :deps => ["Makefile"], :dir => "lib/19/syck/ext", :env => "-
 
 # rbx must be able to run to build these because they use
 # extconf.rb, so they must be after melbourne for Rubinius.
-compile_ext "openssl", :deps => ["Makefile", "extconf.h"]
+compile_ext "openssl", :deps => ["Makefile", "extconf.h"], :dir => "lib/openssl/ext"
 compile_ext "dl", :deps => ["Makefile", "dlconfig.h"],
                   :dir => "lib/18/dl/ext", :env => "-X18"
 compile_ext "dbm", :ignore_fail => true, :deps => ["Makefile"], :dir => "lib/dbm/ext"
