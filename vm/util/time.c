@@ -415,10 +415,6 @@ out_of_range:
 
 #include "vm/config.h"
 
-#ifndef RBX_WINDOWS
-#define HAVE_TM_ZONE    1
-#endif
-
 /* defaults: season to taste */
 #define SYSV_EXT	1	/* stuff in System V ascftime routine */
 #define SUNOS_EXT	1	/* stuff in SunOS strftime routine */
@@ -817,10 +813,10 @@ strftime_extended(char *s, size_t maxsize, const char *format, const struct tm *
 				 * Systems with tm_zone probably have tm_gmtoff as
 				 * secs east of GMT.  Convert to mins east of GMT.
 				 */
-#ifdef RBX_WINDOWS
-        off = _timezone / 60;
+#ifdef HAVE_TM_GMTOFF
+        off = timeptr->tm_gmtoff / 60;
 #else
-				off = timeptr->tm_gmtoff / 60;
+        off = _timezone / 60;
 #endif
 #else /* !HAVE_TM_ZONE */
 #if HAVE_VAR_TIMEZONE
