@@ -1,4 +1,4 @@
-require 'ext/digest/digest'
+require 'digest/ext/digest'
 
 module Digest
   def self.const_missing(name)
