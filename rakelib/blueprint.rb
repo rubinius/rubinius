@@ -73,7 +73,7 @@ Daedalus.blueprint do |i|
     gcc.ldflags << "-lws2_32"
   when /solaris/
     gcc.cflags << "-fPIC"
-    gcc.ldflags << "-lsocket" << "-lnsl" << "-fPIC" << "-G"
+    gcc.ldflags << "-lsocket" << "-lnsl" << "-fPIC"
     make = "gmake"
   else
     gcc.ldflags << "-ldl" << "-lpthread"
