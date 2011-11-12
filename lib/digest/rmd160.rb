@@ -1,1 +1,1 @@
-require 'ext/digest/rmd160/rmd160'
+require 'digest/ext/rmd160/rmd160'

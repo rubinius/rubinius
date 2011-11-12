@@ -113,12 +113,12 @@ File.open(build_ruby, "wb") do |f|
 end
 
 compile_ext "bigdecimal"
-compile_ext "digest"
-compile_ext "digest:md5"
-compile_ext "digest:rmd160"
-compile_ext "digest:sha1"
-compile_ext "digest:sha2"
-compile_ext "digest:bubblebabble"
+compile_ext "digest", :dir => "lib/digest/ext"
+compile_ext "digest:md5", :dir => "lib/digest/ext/md5"
+compile_ext "digest:rmd160", :dir => "lib/digest/ext/rmd160"
+compile_ext "digest:sha1", :dir => "lib/digest/ext/sha1"
+compile_ext "digest:sha2", :dir => "lib/digest/ext/sha2"
+compile_ext "digest:bubblebabble", :dir => "lib/digest/ext/bubblebabble"
 
 compile_ext "melbourne", :task => "rbx", :doc => "for Rubinius"
 compile_ext "melbourne", :task => "build", :doc => "for bootstrapping"
