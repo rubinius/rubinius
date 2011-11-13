@@ -139,8 +139,9 @@ module Daedalus
   end
 
   class Compiler
-    def initialize(path, logger, blueprint)
-      @path = path
+    def initialize(compiler, linker, logger, blueprint)
+      @compiler = compiler
+      @linker = linker
       @cflags = []
       @ldflags = []
       @libraries = []
@@ -207,12 +208,12 @@ module Daedalus
 
     def compile(source, object)
       @log.show "CC" , source
-      @log.command "#{@path} #{@cflags.join(' ')} -c -o #{object} #{source}"
+      @log.command "#{@compiler} #{@cflags.join(' ')} -c -o #{object} #{source}"
     end
 
     def link(path, files)
       @log.show "LD", path
-      @log.command "#{@path} -o #{path} #{files.join(' ')} #{@libraries.join(' ')} #{@ldflags.join(' ')}"
+      @log.command "#{@linker} -o #{path} #{files.join(' ')} #{@libraries.join(' ')} #{@ldflags.join(' ')}"
     end
 
     def calculate_deps(path)
@@ -733,7 +734,9 @@ module Daedalus
     end
 
     def gcc!
-      @compiler = Compiler.new(ENV['CC'] || "gcc", Logger.new, self)
+      @compiler = Compiler.new(ENV['CC'] || "gcc",
+                               ENV['CXX'] || "g++",
+                               Logger.new, self)
     end
 
     def source_files(*patterns)
