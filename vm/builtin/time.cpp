@@ -179,7 +179,7 @@ namespace rubinius {
     ary->set(state, 7, Integer::from(state, tm.tm_yday + 1));
     ary->set(state, 8, tm.tm_isdst ? Qtrue : Qfalse);
 
-#ifdef HAVE_STRUCT_TM_TM_ZONE
+#ifdef HAVE_TM_ZONE
     ary->set(state, 9, String::create(state, tm.tm_zone));
 #else
     ary->set(state, 9, Qnil);
