@@ -30,7 +30,7 @@ void ffi_set_errno(int n) {
   errno = n;
 }
 
-#ifdef timezone
+#ifdef HAVE_TIMEZONE
 time_t ffi_timezone() {
   return timezone;
 }

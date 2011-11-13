@@ -100,6 +100,16 @@ typedef unsigned long unsigned_time_t;
 // lifted from MRI's configure on OS X, probably right on most unix platforms?
 #define NEGATIVE_TIME_T 1
 
+const char* timezone_extended(struct tm* tptr) {
+#ifdef HAVE_TM_ZONE
+  return tptr->tm_zone;
+#elif HAVE_TZNAME && HAVE_DAYLIGHT
+  return tzname[daylight && tptr->tm_isdst];
+#else
+  return NULL;
+#endif
+}
+
 time_t
 mktime_extended(struct tm* tptr, int utc_p, int* err) {
     time_t guess, guess_lo, guess_hi;
