@@ -1309,6 +1309,9 @@ VALUE rb_uint2big(unsigned long number);
   VALUE rb_num_coerce_cmp(VALUE x, VALUE y, ID func);
 #define RB_NUM_COERCE_FUNCS_NEED_OPID 1
 
+  /** Coerce x and y; perform 'x relop y' if coerce succeeds, else return Qnil. */
+  VALUE rb_num_coerce_relop(VALUE x, VALUE y, ID func);
+
   /** Call #initialize on the object with given arguments. */
   void    rb_obj_call_init(VALUE object, int arg_count, VALUE* args);
 
@@ -1779,6 +1782,10 @@ VALUE rb_uint2big(unsigned long number);
   VALUE   rb_Float(VALUE object);
 
   VALUE   rb_Integer(VALUE object);
+
+  VALUE   rb_Rational(VALUE num, VALUE den);
+#define rb_Rational1(x)   rb_Rational(x, INT2FIX(1))
+#define rb_Rational2(x,y) rb_Rational(x, y)
 
   NORETURN(void rb_num_zerodiv(void));
 
