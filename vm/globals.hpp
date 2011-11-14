@@ -46,15 +46,15 @@ namespace rubinius {
      * the constructor for Globals, again, at the END of the list. */
 
     /* classes for the core 'types' */
-    TypedRoot<Class*> blokctx, cmethod, tuple, module, basicobject, object, array;
-    TypedRoot<Class*> klass, methtbl, bytearray, chararray, methctx, blank;
+    TypedRoot<Class*> cmethod, tuple, module, basicobject, object, array;
+    TypedRoot<Class*> klass, methtbl, bytearray, chararray;
     TypedRoot<Class*> blokenv, bignum, regexp, matchdata;
     TypedRoot<Class*> string, symbol, io;
     TypedRoot<Class*> nil_class, true_class, false_class, fixnum_class, undef_class;
-    TypedRoot<Class*> floatpoint, fastctx, nmc, task, list, list_node;
-    TypedRoot<Class*> channel, thread, staticscope, send_site, selector, lookuptable;
+    TypedRoot<Class*> floatpoint, nmc, list, list_node;
+    TypedRoot<Class*> channel, thread, staticscope, lookuptable;
     TypedRoot<Class*> iseq, executable, native_function, iobuffer;
-    TypedRoot<Class*> cmethod_vis, included_module;
+    TypedRoot<Class*> included_module;
 
     /* the primary symbol table */
     TypedRoot<Symbol*> sym_method_missing;
@@ -67,20 +67,15 @@ namespace rubinius {
     TypedRoot<Class*> exception;
     TypedRoot<Class*> exc_arg, exc_segfault;
     TypedRoot<Class*> exc_loe, exc_type, exc_rex, exc_rte;
-    TypedRoot<Class*> exc_stack_explosion;
     TypedRoot<Class*> exc_primitive_failure;
 
     TypedRoot<LookupTable*> external_ivars;
     TypedRoot<LookupTable*> errno_mapping;
-    TypedRoot<LookupTable*> selectors;
     TypedRoot<Object*> config;
     TypedRoot<Symbol*> sym_send;
     TypedRoot<Symbol*> sym_public, sym_private, sym_protected, sym_const_missing;
     TypedRoot<Symbol*> sym_object_id, sym_call, sym_undef;
-    TypedRoot<Object*> top_scope, on_gc_channel;
 
-    TypedRoot<Module*> vm;
-    TypedRoot<Thread*> current_thread;
     TypedRoot<Object*> main, undefined;
     TypedRoot<Class*> dir;
     TypedRoot<Class*> compactlookuptable;
@@ -114,6 +109,7 @@ namespace rubinius {
     TypedRoot<Class*> alias;
     TypedRoot<Class*> encoding;
     TypedRoot<Module*> type;
+    TypedRoot<Class*> vm_class;
 
     /* Add new globals above this line. */
 
@@ -121,7 +117,6 @@ namespace rubinius {
     TypedRoot<Class*> special_classes[SPECIAL_CLASS_SIZE];
 
     Globals() :
-      blokctx(&roots),
       cmethod(&roots),
       tuple(&roots),
       module(&roots),
@@ -132,8 +127,6 @@ namespace rubinius {
       methtbl(&roots),
       bytearray(&roots),
       chararray(&roots),
-      methctx(&roots),
-      blank(&roots),
       blokenv(&roots),
       bignum(&roots),
       regexp(&roots),
@@ -147,21 +140,17 @@ namespace rubinius {
       fixnum_class(&roots),
       undef_class(&roots),
       floatpoint(&roots),
-      fastctx(&roots),
       nmc(&roots),
       list(&roots),
       list_node(&roots),
       channel(&roots),
       thread(&roots),
       staticscope(&roots),
-      send_site(&roots),
-      selector(&roots),
       lookuptable(&roots),
       iseq(&roots),
       executable(&roots),
       native_function(&roots),
       iobuffer(&roots),
-      cmethod_vis(&roots),
       included_module(&roots),
       sym_method_missing(&roots),
       sym_inherited(&roots),
@@ -185,11 +174,9 @@ namespace rubinius {
       exc_type(&roots),
       exc_rex(&roots),
       exc_rte(&roots),
-      exc_stack_explosion(&roots),
       exc_primitive_failure(&roots),
       external_ivars(&roots),
       errno_mapping(&roots),
-      selectors(&roots),
       config(&roots),
       sym_send(&roots),
       sym_public(&roots),
@@ -199,10 +186,6 @@ namespace rubinius {
       sym_object_id(&roots),
       sym_call(&roots),
       sym_undef(&roots),
-      top_scope(&roots),
-      on_gc_channel(&roots),
-      vm(&roots),
-      current_thread(&roots),
       main(&roots),
       undefined(&roots),
       dir(&roots),
@@ -234,7 +217,8 @@ namespace rubinius {
       fiber(&roots),
       alias(&roots),
       encoding(&roots),
-      type(&roots)
+      type(&roots),
+      vm_class(&roots)
 
       /* Add initialize of globals above this line. */
     { }

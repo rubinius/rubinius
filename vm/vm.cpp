@@ -269,10 +269,6 @@ namespace rubinius {
     return om->type_info[type];
   }
 
-  Thread *VM::current_thread() {
-    return globals().current_thread.get();
-  }
-
   void VM::run_gc_soon() {
     om->collect_young_now = true;
     om->collect_mature_now = true;

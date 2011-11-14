@@ -376,8 +376,8 @@ namespace rubinius {
     Object* undef = new_object<Object>(G(object));
     GO(undefined).set(undef);
 
-    GO(vm).set(ontology::new_class_under(state, "VM", G(rubinius)));
-    G(vm)->name(state, state->symbol("Rubinius::VM"));
+    GO(vm_class).set(ontology::new_class_under(state, "VM", G(rubinius)));
+    G(vm_class)->name(state, state->symbol("Rubinius::VM"));
 
     GO(type).set(ontology::new_module(state, "Type", G(rubinius)));
     G(type)->name(state, state->symbol("Rubinius::Type"));
@@ -520,7 +520,7 @@ namespace rubinius {
   }
 
   void VM::bootstrap_exceptions(STATE) {
-    Class *exc, *scp, *std, *arg, *nam, *loe, *rex, *stk, *sxp, *sce, *type, *lje, *vme;
+    Class *exc, *scp, *std, *arg, *nam, *loe, *rex, *stk, *sce, *type, *lje, *vme;
     Class *rng, *rte;
 
 #define dexc(name, sup) ontology::new_class(state, #name, sup)
@@ -538,7 +538,6 @@ namespace rubinius {
     rte = dexc(RuntimeError, std);
     sce = dexc(SystemCallError, std);
     stk = dexc(StackError, exc);
-    sxp = dexc(StackExploded, stk);
     lje = dexc(LocalJumpError, std);
     rng = dexc(RangeError, std);
     dexc(FloatDomainError, rng);
@@ -568,7 +567,6 @@ namespace rubinius {
     GO(exc_rex).set(rex);
     GO(exc_rte).set(rte);
 
-    GO(exc_stack_explosion).set(sxp);
     GO(exc_primitive_failure).set(dexc(PrimitiveFailure, exc));
 
     GO(exc_segfault).set(dexc(MemorySegmentionError, exc));

@@ -50,23 +50,6 @@ class TestChannel : public CxxTest::TestSuite, public VMTest {
     TS_ASSERT_EQUALS(lst->size(), 0U);
   }
 
-  void test_receive_with_frozen_stack() {
-    /*
-    Task* task = Task::create(state, 10);
-    state->globals.current_task.set(task);
-
-    Thread* thread = Thread::create(state);
-    state->globals.current_thread.set(thread);
-    thread->frozen_stack(state, Qtrue);
-
-    task->push(Qfalse);
-    chan->send(state, Qtrue);
-    chan->receive(state);
-    TS_ASSERT_EQUALS(task->calculate_sp(), 0);
-    TS_ASSERT_EQUALS(task->stack_top(), Qfalse);
-    */
-  }
-
   void compare_interval_in_range(struct timeval start, struct timeval finish, 
 				 suseconds_t tmin, suseconds_t tmax) {
     time_t sec = finish.tv_sec - start.tv_sec;
@@ -75,48 +58,4 @@ class TestChannel : public CxxTest::TestSuite, public VMTest {
     TS_ASSERT_LESS_THAN(actual,tmax);
   }
 
-  void test_send_in_microseconds() {
-    /*
-    struct timeval start, finish;
-
-    Thread* orig = G(current_thread);
-    Symbol* done = state->symbol("done");
-    gettimeofday(&start, NULL);
-
-    Object** stack = G(current_task)->current_stack();
-
-    Object* ret = Channel::send_in_microseconds(state, chan, Fixnum::from(100000), done);
-    usleep(200000);
-    chan->receive(state);
-
-    gettimeofday(&finish, NULL);
-    TS_ASSERT(ret->nil_p());
-    TS_ASSERT_EQUALS(G(current_thread), orig);
-    TS_ASSERT_EQUALS(done, stack[0]);
-    compare_interval_in_range(start,finish,200000U,250000U);
-    */
-  }
-
-  void test_send_in_seconds() {
-    /*
-    Float* point_one = Float::create(state, 0.1);
-    struct timeval start, finish;
-
-    Thread* orig = G(current_thread);
-    Symbol* done = state->symbol("done");
-    gettimeofday(&start, NULL);
-
-    Object** stack = G(current_task)->current_stack();
-
-    Object* ret = Channel::send_in_seconds(state, chan, point_one, done);
-    usleep(201000);
-    chan->receive(state);
-
-    gettimeofday(&finish, NULL);
-    TS_ASSERT(ret->nil_p());
-    TS_ASSERT_EQUALS(G(current_thread), orig);
-    TS_ASSERT_EQUALS(done, stack[0]);
-    compare_interval_in_range(start, finish, 201000U, 251000U);
-    */
-  }
 };
