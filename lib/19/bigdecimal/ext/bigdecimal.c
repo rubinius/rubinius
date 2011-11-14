@@ -27,6 +27,9 @@
 #include <ieeefp.h>
 #endif
 
+// Use RSTRING_PTR without caching on Rubinius
+#define RSTRING_NOT_MODIFIED 1
+
 /* #define ENABLE_NUMERIC_STRING */
 
 VALUE rb_cBigDecimal;
@@ -34,9 +37,9 @@ VALUE rb_cBigDecimal;
 #include "bigdecimal.h"
 
 /* MACRO's to guard objects from GC by keeping them in stack */
-#define ENTER(n) volatile VALUE vStack[n];int iStack=0
-#define PUSH(x)  vStack[iStack++] = (unsigned long)(x);
-#define SAVE(p)  PUSH(p->obj);
+#define ENTER(n) // volatile VALUE vStack[n];int iStack=0
+#define PUSH(x)  // vStack[iStack++] = (unsigned long)(x);
+#define SAVE(p)  // PUSH(p->obj);
 #define GUARD_OBJ(p,y) {p=y;SAVE(p);}
 
 #ifndef BASE_FIG
@@ -103,11 +106,6 @@ BigDecimal_memsize(const void *ptr)
     return pv ? (sizeof(*pv) + pv->MaxPrec * sizeof(U_LONG)) : 0;
 }
 
-static const rb_data_type_t BigDecimal_data_type = {
-    "BigDecimal",
-    0, BigDecimal_delete, BigDecimal_memsize,
-};
-
 static VALUE
 ToValue(Real *p)
 {
@@ -146,8 +144,8 @@ again:
         goto SomeOneMayDoIt;
 
     case T_DATA:
-        if(rb_typeddata_is_kind_of(v, &BigDecimal_data_type)) {
-            pv = DATA_PTR(v);
+        if(RDATA(v)->dfree ==(void *) BigDecimal_delete) {
+            Data_Get_Struct(v, Real, pv);
             return pv;
         } else {
             goto SomeOneMayDoIt;
@@ -418,7 +416,7 @@ VP_EXPORT Real *
 VpNewRbClass(U_LONG mx, char *str, VALUE klass)
 {
     Real *pv = VpAlloc(mx,str);
-    pv->obj = TypedData_Wrap_Struct(klass, &BigDecimal_data_type, pv);
+    pv->obj = (VALUE)Data_Wrap_Struct(klass, 0, BigDecimal_delete, pv);
     return pv;
 }
 
@@ -426,7 +424,7 @@ VP_EXPORT Real *
 VpCreateRbObject(U_LONG mx, const char *str)
 {
     Real *pv = VpAlloc(mx,str);
-    pv->obj = TypedData_Wrap_Struct(rb_cBigDecimal, &BigDecimal_data_type, pv);
+    pv->obj = (VALUE)Data_Wrap_Struct(rb_cBigDecimal, 0, BigDecimal_delete, pv);
     return pv;
 }
 
@@ -503,14 +501,14 @@ BigDecimal_to_i(VALUE self)
 	S_LONG dpower = e - RSTRING_LEN(digits);
 
 	if (VpGetSign(p) < 0) {
-	    numerator = rb_funcall(numerator, '*', 1, INT2FIX(-1));
+	    numerator = rb_funcall(numerator, rb_intern("*"), 1, INT2FIX(-1));
 	}
 	if (dpower < 0) {
 	    return rb_funcall(numerator, rb_intern("div"), 1,
 			      rb_funcall(INT2FIX(10), rb_intern("**"), 1,
 					 INT2FIX(-dpower)));
 	}
-        return rb_funcall(numerator, '*', 1,
+        return rb_funcall(numerator, rb_intern("*"), 1,
 			  rb_funcall(INT2FIX(10), rb_intern("**"), 1,
 				     INT2FIX(dpower)));
     }
@@ -568,7 +566,7 @@ BigDecimal_to_r(VALUE self)
     numerator = rb_funcall(digits, rb_intern("to_i"), 0);
 
     if (sign < 0) {
-	numerator = rb_funcall(numerator, '*', 1, INT2FIX(-1));
+	numerator = rb_funcall(numerator, rb_intern("*"), 1, INT2FIX(-1));
     }
     if (denomi_power < 0) {
 	return rb_Rational(numerator,
@@ -576,7 +574,7 @@ BigDecimal_to_r(VALUE self)
 				      INT2FIX(-denomi_power)));
     }
     else {
-        return rb_Rational1(rb_funcall(numerator, '*', 1,
+        return rb_Rational1(rb_funcall(numerator, rb_intern("*"), 1,
 				       rb_funcall(INT2FIX(10), rb_intern("**"), 1,
 						  INT2FIX(denomi_power))));
     }
@@ -636,7 +634,7 @@ BigDecimal_add(VALUE self, VALUE r)
     U_LONG mx;
     GUARD_OBJ(a,GetVpValue(self,1));
     b = GetVpValue(r,0);
-    if(!b) return DoSomeOne(self,r,'+');
+    if(!b) return DoSomeOne(self,r,rb_intern("+"));
     SAVE(b);
     if(VpIsNaN(b)) return b->obj;
     if(VpIsNaN(a)) return a->obj;
@@ -675,7 +673,7 @@ BigDecimal_sub(VALUE self, VALUE r)
 
     GUARD_OBJ(a,GetVpValue(self,1));
     b = GetVpValue(r,0);
-    if(!b) return DoSomeOne(self,r,'-');
+    if(!b) return DoSomeOne(self,r,rb_intern("-"));
     SAVE(b);
 
     if(VpIsNaN(b)) return b->obj;
@@ -705,17 +703,18 @@ BigDecimalCmp(VALUE self, VALUE r,char op)
     GUARD_OBJ(a,GetVpValue(self,1));
     b = GetVpValue(r,0);
     if(!b) {
-	ID f = 0;
+        ID f = 0;
 
-	switch(op)
-	{
-	  case '*': return rb_num_coerce_cmp(self,r,rb_intern("<=>"));
-	  case '=': return RTEST(rb_num_coerce_cmp(self,r,rb_intern("=="))) ? Qtrue : Qfalse;
-	  case 'G': f = rb_intern(">="); break;
-	  case 'L': f = rb_intern("<="); break;
-	  case '>': case '<': f = (ID)op; break;
-	}
-	return rb_num_coerce_relop(self,r,f);
+        switch(op)
+        {
+        case '*': return rb_num_coerce_cmp(self,r,rb_intern("<=>"));
+        case '=': return RTEST(rb_num_coerce_cmp(self,r,rb_intern("=="))) ? Qtrue : Qfalse;
+        case 'G': f = rb_intern(">="); break;
+        case 'L': f = rb_intern("<="); break;
+        case '>': f = rb_intern(">"); break;
+        case '<': f = rb_intern("<"); break;
+        }
+        return rb_num_coerce_relop(self,r,f);
     }
     SAVE(b);
     e = VpComp(a, b);
@@ -852,7 +851,7 @@ BigDecimal_mult(VALUE self, VALUE r)
 
     GUARD_OBJ(a,GetVpValue(self,1));
     b = GetVpValue(r,0);
-    if(!b) return DoSomeOne(self,r,'*');
+    if(!b) return DoSomeOne(self,r,rb_intern("*"));
     SAVE(b);
 
     mx = a->Prec + b->Prec;
@@ -871,7 +870,7 @@ BigDecimal_divide(Real **c, Real **res, Real **div, VALUE self, VALUE r)
 
     GUARD_OBJ(a,GetVpValue(self,1));
     b = GetVpValue(r,0);
-    if(!b) return DoSomeOne(self,r,'/');
+    if(!b) return DoSomeOne(self,r,rb_intern("/"));
     SAVE(b);
     *div = b;
     mx = a->Prec+abs(a->exponent);
@@ -1011,7 +1010,7 @@ BigDecimal_mod(VALUE self, VALUE r) /* %: a%b = a - (a.to_f/b).floor * b */
 	SAVE(div); SAVE(mod);
 	return ToValue(mod);
     }
-    return DoSomeOne(self,r,'%');
+    return DoSomeOne(self,r,rb_intern("%"));
 }
 
 static VALUE
@@ -2621,7 +2620,7 @@ VpAlloc(U_LONG mx, const char *szVal)
 
     /* Skip all '_' after digit: 2006-6-30 */
     ni = 0;
-    buf = rb_str_tmp_new(strlen(szVal)+1);
+    buf = rb_str_new(0, strlen(szVal)+1);
     psz = RSTRING_PTR(buf);
     i   = 0;
     ipn = 0;
