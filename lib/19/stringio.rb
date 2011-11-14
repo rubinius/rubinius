@@ -314,7 +314,9 @@ class StringIO
     getc
   end
 
-  alias_method :readbyte, :readchar
+  def readbyte
+    readchar.getbyte(0)
+  end
 
   def readline(sep = $/)
     raise IO::EOFError, "end of file reached" if eof?
