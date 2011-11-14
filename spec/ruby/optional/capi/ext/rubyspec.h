@@ -274,6 +274,11 @@
 /* Range */
 #define HAVE_RB_RANGE_NEW                  1
 
+/* Rational */
+#define HAVE_RB_RATIONAL                   1
+#define HAVE_RB_RATIONAL1                  1
+#define HAVE_RB_RATIONAL2                  1
+
 /* Regexp */
 #define HAVE_RB_BACKREF_GET                1
 #define HAVE_RB_REG_MATCH                  1
