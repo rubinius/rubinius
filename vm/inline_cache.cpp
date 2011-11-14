@@ -512,7 +512,8 @@ namespace rubinius {
     MethodCacheEntry* mce = cache->cache_;
 
     args.set_name(cache->name);
-    if(likely(mce && args.recv()->fixnum_p())) {
+    if(likely(mce && mce->receiver_class() == G(fixnum_class)
+                  && args.recv()->fixnum_p())) {
 
       Executable* meth = mce->method();
       Module* mod = mce->stored_module();
@@ -529,7 +530,8 @@ namespace rubinius {
     MethodCacheEntry* mce = cache->cache_;
 
     args.set_name(cache->name);
-    if(likely(mce && args.recv()->symbol_p())) {
+    if(likely(mce && mce->receiver_class() == G(symbol)
+                  && args.recv()->symbol_p())) {
 
       Executable* meth = mce->method();
       Module* mod = mce->stored_module();
