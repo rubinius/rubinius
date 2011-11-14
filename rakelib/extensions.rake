@@ -112,7 +112,9 @@ File.open(build_ruby, "wb") do |f|
   f.puts build_version
 end
 
-compile_ext "bigdecimal", :dir => "lib/18/bigdecimal/ext", :env => "-X18"
+compile_ext "melbourne", :task => "rbx", :doc => "for Rubinius"
+compile_ext "melbourne", :task => "build", :doc => "for bootstrapping"
+
 compile_ext "digest", :dir => "lib/digest/ext"
 compile_ext "digest:md5", :dir => "lib/digest/ext/md5"
 compile_ext "digest:rmd160", :dir => "lib/digest/ext/rmd160"
@@ -120,8 +122,8 @@ compile_ext "digest:sha1", :dir => "lib/digest/ext/sha1"
 compile_ext "digest:sha2", :dir => "lib/digest/ext/sha2"
 compile_ext "digest:bubblebabble", :dir => "lib/digest/ext/bubblebabble"
 
-compile_ext "melbourne", :task => "rbx", :doc => "for Rubinius"
-compile_ext "melbourne", :task => "build", :doc => "for bootstrapping"
+compile_ext "bigdecimal", :dir => "lib/18/bigdecimal/ext", :env => "-X18"
+compile_ext "bigdecimal", :dir => "lib/19/bigdecimal/ext", :env => "-X19"
 
 compile_ext "syck", :dir => "lib/18/syck/ext"
 compile_ext "nkf", :dir => "lib/18/nkf/ext", :env => "-X18"
