@@ -224,6 +224,9 @@
 #define HAVE_RB_NUM2DBL                    1
 #define HAVE_RB_NUM2LONG                   1
 #define HAVE_RB_NUM2ULONG                  1
+#define HAVE_RB_NUM_COERCE_BIN             1
+#define HAVE_RB_NUM_COERCE_CMP             1
+#define HAVE_RB_NUM_COERCE_RELOP           1
 #define HAVE_RB_NUM_ZERODIV                1
 
 /* Object */
