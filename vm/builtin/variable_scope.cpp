@@ -77,6 +77,17 @@ namespace rubinius {
     return tup;
   }
 
+  Object* VariableScope::set_local_prim(STATE, Fixnum* number, Object* object) {
+    int num = number->to_int();
+
+    if (number_of_locals_ > num && num >= 0) {
+      set_local(state, number->to_int(), object);
+      return Qnil;
+    } else {
+      return Primitives::failure();
+    }
+  }
+
   // bootstrap method, replaced with an attr_accessor in kernel.
   Object* VariableScope::method_visibility(STATE) {
     return Qnil;

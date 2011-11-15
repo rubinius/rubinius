@@ -15,6 +15,11 @@ module Rubinius
       raise PrimitiveFailure, "Unable to create a new VariableScope object"
     end
 
+    def set_local(slot, obj)
+      Rubinius.primitive :variable_scope_set_local
+      raise PrimitiveFailure, "Unable to set VariableScope locals"
+    end
+
     def locals
       Rubinius.primitive :variable_scope_locals
       raise PrimitiveFailure, "Unable to get VariableScope locals"
