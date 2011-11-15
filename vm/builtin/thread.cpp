@@ -132,7 +132,7 @@ namespace rubinius {
 
     if(!ret) {
       if(vm->thread_state()->raise_reason() == cExit) {
-        vm->shared.env()->halt();
+        vm->shared.env()->halt_and_exit(state);
       }
     }
 
