@@ -1,14 +1,16 @@
+#include "vm.hpp"
+#include "global_cache.hpp"
+#include "object_position.hpp"
+#include "objectmemory.hpp"
 #include "lookup_data.hpp"
 #include "dispatch.hpp"
 
-#include "vm.hpp"
-#include "vm/global_cache.hpp"
-#include "vm/object_position.hpp"
-#include "vm/objectmemory.hpp"
-#include "vm/builtin/module.hpp"
-#include "vm/builtin/object.hpp"
-#include "vm/builtin/methodtable.hpp"
+#include "builtin/class.hpp"
+#include "builtin/module.hpp"
+#include "builtin/object.hpp"
+#include "builtin/methodtable.hpp"
 #include "builtin/alias.hpp"
+#include "builtin/cache.hpp"
 
 namespace rubinius {
   static bool hierarchy_resolve(STATE, Symbol* name, Dispatch& msg, LookupData& lookup,
@@ -82,12 +84,49 @@ keep_looking:
 
     return true;
   }
-  bool GlobalCache::resolve(STATE, Symbol* name, Dispatch& msg, LookupData& lookup) {
-    struct GlobalCache::cache_entry* entry;
 
+  MethodCacheEntry* GlobalCache::lookup_public(STATE, Module* mod, Class* cls, Symbol* name) {
+    SYNC(state);
+
+    CacheEntry* entry = entries + CPU_CACHE_HASH(mod, name);
+    if(entry->name == name &&
+         entry->klass == mod &&
+         entry->is_public &&
+        !entry->method_missing) {
+
+      return MethodCacheEntry::create(state, cls, entry->module,
+                                      entry->method);
+    }
+
+    return NULL;
+  }
+
+  MethodCacheEntry* GlobalCache::lookup_private(STATE, Module* mod, Class* cls, Symbol* name) {
+    SYNC(state);
+
+    CacheEntry* entry = entries + CPU_CACHE_HASH(mod, name);
+    if(entry->name == name &&
+         entry->klass == mod &&
+        !entry->method_missing) {
+
+      return MethodCacheEntry::create(state, cls, entry->module,
+                                      entry->method);
+    }
+
+    return NULL;
+  }
+
+  bool GlobalCache::resolve(STATE, Symbol* name, Dispatch& msg, LookupData& lookup) {
+    return state->vm()->global_cache()->resolve_i(state, name, msg, lookup);
+  }
+
+  bool GlobalCache::resolve_i(STATE, Symbol* name, Dispatch& msg, LookupData& lookup) {
     Module* klass = lookup.from;
 
-    entry = state->vm()->global_cache()->lookup(state, klass, name);
+    SYNC(state);
+
+    CacheEntry* entry = this->lookup(state, klass, name);
+
     if(entry) {
       if(lookup.priv || entry->is_public) {
         msg.method = entry->method;
@@ -100,7 +139,7 @@ keep_looking:
 
     bool was_private = false;
     if(hierarchy_resolve(state, name, msg, lookup, &was_private)) {
-      state->vm()->global_cache()->retain(state, lookup.from, name,
+      retain(state, lookup.from, name,
           msg.module, msg.method, msg.method_missing, was_private);
       return true;
     }
@@ -109,7 +148,8 @@ keep_looking:
   }
 
   void GlobalCache::prune_young() {
-    cache_entry* entry;
+    CacheEntry* entry;
+
     for(size_t i = 0; i < CPU_CACHE_SIZE; i++) {
       entry = &entries[i];
       bool clear = false;
@@ -155,7 +195,8 @@ keep_looking:
   }
 
   void GlobalCache::prune_unmarked(int mark) {
-    cache_entry* entry;
+    CacheEntry* entry;
+
     for(size_t i = 0; i < CPU_CACHE_SIZE; i++) {
       entry = &entries[i];
       Object* klass = reinterpret_cast<Object*>(entry->klass);
