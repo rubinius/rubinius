@@ -166,7 +166,7 @@ extern "C" {
   }
 
   VALUE rb_num_coerce_relop(VALUE x, VALUE y, ID func) {
-    return rb_funcall(rb_mCAPI, rb_intern("rb_num_coerce_cmp"), 3, x, y, ID2SYM(func));
+    return rb_funcall(rb_mCAPI, rb_intern("rb_num_coerce_relop"), 3, x, y, ID2SYM(func));
   }
 
   double rb_num2dbl(VALUE val) {
@@ -254,7 +254,7 @@ extern "C" {
     }
     return d;
   }
-  
+
   VALUE rb_Integer(VALUE object_handle) {
     NativeMethodEnvironment* env = NativeMethodEnvironment::get();
 
