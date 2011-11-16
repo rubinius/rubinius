@@ -7,19 +7,19 @@ using namespace rubinius::capi;
 extern "C" {
 
   VALUE rb_hash_new() {
-    return rb_funcall(rb_cHash, rb_intern("new"), 0);
+    return capi_fast_call(rb_cHash, rb_intern("new"), 0);
   }
 
   VALUE rb_hash_aref(VALUE self, VALUE key) {
-    return rb_funcall(self, rb_intern("[]"), 1, key);
+    return capi_fast_call(self, rb_intern("[]"), 1, key);
   }
 
   VALUE rb_hash_aset(VALUE self, VALUE key, VALUE value) {
-    return rb_funcall(self, rb_intern("[]="), 2, key, value);
+    return capi_fast_call(self, rb_intern("[]="), 2, key, value);
   }
 
   VALUE rb_hash_delete(VALUE self, VALUE key) {
-    return rb_funcall(self, rb_intern("delete"), 1, key);
+    return capi_fast_call(self, rb_intern("delete"), 1, key);
   }
 
   VALUE rb_hash_delete_if(VALUE self) {
@@ -31,13 +31,13 @@ extern "C" {
   }
 
   VALUE rb_hash_size(VALUE self) {
-    return rb_funcall(self, rb_intern("size"), 0);
+    return capi_fast_call(self, rb_intern("size"), 0);
   }
 
   VALUE rb_hash_lookup(VALUE self, VALUE key) {
-    VALUE entry = rb_funcall(self, rb_intern("find_item"), 1, key);
+    VALUE entry = capi_fast_call(self, rb_intern("find_item"), 1, key);
     if(entry != Qnil) {
-      return rb_funcall(entry, rb_intern("value"), 0);
+      return capi_fast_call(entry, rb_intern("value"), 0);
     } else {
       return Qnil;
     }
@@ -47,13 +47,13 @@ extern "C" {
                        int (*func)(ANYARGS),
                        VALUE farg)
   {
-    VALUE iter = rb_funcall(self, rb_intern("to_iter"), 0);
+    VALUE iter = capi_fast_call(self, rb_intern("to_iter"), 0);
     VALUE entry = Qnil;
     VALUE to_delete = rb_ary_new();
 
-    while(RTEST(entry = rb_funcall(iter, rb_intern("next"), 1, entry))) {
-      VALUE key = rb_funcall(entry, rb_intern("key"), 0);
-      VALUE val = rb_funcall(entry, rb_intern("value"), 0);
+    while(RTEST(entry = capi_fast_call(iter, rb_intern("next"), 1, entry))) {
+      VALUE key = capi_fast_call(entry, rb_intern("key"), 0);
+      VALUE val = capi_fast_call(entry, rb_intern("value"), 0);
 
       int ret = (*func)(key, val, farg);
       switch(ret) {
@@ -71,7 +71,7 @@ extern "C" {
 
     if (rb_ary_size(to_delete) > 0) {
       for (size_t i = 0; i < rb_ary_size(to_delete); i++) {
-        rb_funcall(self, rb_intern("delete"), 1, rb_ary_entry(to_delete, i));
+        capi_fast_call(self, rb_intern("delete"), 1, rb_ary_entry(to_delete, i));
       }
     }
   }

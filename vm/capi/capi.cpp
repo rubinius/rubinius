@@ -209,6 +209,48 @@ namespace rubinius {
       return ret_handle;
     }
 
+    VALUE capi_fast_call(VALUE receiver, ID method_name, int arg_count, ...) {
+      NativeMethodEnvironment* env = NativeMethodEnvironment::get();
+
+      va_list varargs;
+      va_start(varargs, arg_count);
+
+      Object** args = reinterpret_cast<Object**>(
+                        alloca(sizeof(Object*) * arg_count));
+
+      for(int i = 0; i < arg_count; i++) {
+        args[i] = env->get_object(va_arg(varargs, VALUE));
+      }
+
+      va_end(varargs);
+
+      // Unlock, we're leaving extension code.
+      env->state()->vm()->shared.leave_capi(env->state());
+
+      Object* recv = env->get_object(receiver);
+      Symbol* method = (Symbol*)method_name;
+
+      LookupData lookup(recv, recv->lookup_begin(env->state()), true);
+      Arguments args_o(method, recv, RBX_Qnil, arg_count, args);
+      Dispatch dis(method);
+
+      Object* ret = dis.send(env->state(), env->current_call_frame(),
+                             lookup, args_o);
+
+      // We need to get the handle for the return value before getting
+      // the GEL so that ret isn't accidentally GCd while we wait.
+      VALUE ret_handle = 0;
+      if(ret) ret_handle = env->get_handle(ret);
+
+      // Re-entering extension code
+      env->state()->vm()->shared.enter_capi(env->state());
+
+      // An exception occurred
+      if(!ret) env->current_ep()->return_to(env);
+
+      return ret_handle;
+    }
+
     VALUE capi_yield_backend(NativeMethodEnvironment* env,
                               Object* blk,
                               size_t arg_count, Object** arg_vals)
