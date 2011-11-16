@@ -27,7 +27,7 @@ namespace rubinius {
 
     /// Storage for InflatedHeader references is allocated in chunks.
     static const size_t cChunkSize = 1024;
-    static const size_t cChunkLimit = 16;
+    static const size_t cChunkLimit = 32;
 
   private:
     VM* state_;
