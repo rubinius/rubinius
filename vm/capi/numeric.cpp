@@ -3,6 +3,8 @@
 #include "builtin/float.hpp"
 #include "builtin/object.hpp"
 
+#include "object_utils.hpp"
+
 #include "capi/capi.hpp"
 #include "capi/18/include/ruby.h"
 
@@ -242,6 +244,21 @@ extern "C" {
   }
   
   VALUE rb_Integer(VALUE object_handle) {
+    NativeMethodEnvironment* env = NativeMethodEnvironment::get();
+
+    Object* object = env->get_object(object_handle);
+
+    if(kind_of<Fixnum>(object) || kind_of<Bignum>(object)) {
+      return object_handle;
+    } else if(String* str = try_as<String>(object)) {
+      Object* ret = str->to_i(env->state(), Fixnum::from(0), RBX_Qtrue);
+      if(ret->nil_p()) {
+        rb_raise(rb_eArgError, "invalid value for Integer");
+      }
+
+      return env->get_handle(ret);
+    }
+
     return rb_convert_type(object_handle, 0, "Integer", "to_i");
   }
 
