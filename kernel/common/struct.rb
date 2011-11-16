@@ -76,7 +76,7 @@ class Struct
       end
 
       const_set :STRUCT_ATTRS, attrs
-      specialize_initialize
+      _specialize attrs
     end
 
     Struct.const_set klass_name, klass if klass_name
@@ -88,7 +88,7 @@ class Struct
 
   # Don't specialize any thing created in the kernel. We hook up
   # better form of this in delta.
-  def self.specialize_initialize
+  def self._specialize(attrs)
   end
 
   def self.make_struct(name, attrs)
