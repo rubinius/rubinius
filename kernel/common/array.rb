@@ -1130,17 +1130,9 @@ class Array
     return self unless @total > 1
 
     if (@total - @start) < 13
-      if block
-        isort_block! @start, (@start + @total) - 1, block
-      else
-        isort! @start, (@start + @total) - 1
-      end
+      isort! @start, (@start + @total) - 1, block
     else
-      if block
-        qsort_block! block
-      else
-        qsort!
-      end
+      qsort! block
     end
 
     self
@@ -1305,8 +1297,8 @@ class Array
 
   private :recursively_flatten
 
-  # In-place non-recursive sort between the given indexes.
-  def qsort!
+  # In-place non-recursive sort between the given indexes using a block if given.
+  def qsort!(block = nil)
     stack = [[@start, @start + @total - 1]]
 
     until stack.empty?
@@ -1323,7 +1315,13 @@ class Array
 
         i = left
         while i < right
-          cmp = (@tuple.at(i) <=> pivot)
+          cmp = if block
+                  block_result = block.call(@tuple.at(i), pivot)
+                  raise ArgumentError, 'block returned nil' if block_result.nil?
+                  Comparable.compare_int block_result
+                else
+                  (@tuple.at(i) <=> pivot)
+                end
           if cmp < 0
             @tuple.swap(i, store)
             store += 1
@@ -1346,94 +1344,26 @@ class Array
   end
   private :qsort!
 
-  # In-place non-recursive sort between the given indexes using a block.
-  def qsort_block!(block)
-    stack = [[@start, @start + @total - 1]]
+  # Insertion sort in-place between the given indexes using a block if given.
+  def isort!(left, right, block = nil)
+    i = left + 1
 
-    until stack.empty?
-      left, right = stack.pop
+    while i <= right
+      j = i
 
-      if right > left
-        pivotindex = left + ((right - left) / 2)
-        # pi_new = qsort_partition(left, right, pi)
-        # inline pivot routine
-
-        pivot = @tuple.at(pivotindex)
-
-        @tuple.swap(pivotindex, right)
-        store = left
-
-        i = left
-        while i < right
-          block_result = block.call(@tuple.at(i), pivot)
-          raise ArgumentError, 'block returned nil' if block_result.nil?
-          cmp = Comparable.compare_int block_result
-          if cmp < 0
-            @tuple.swap(i, store)
-            store += 1
+      while j > @start
+        cmp = if block
+                block_result = block.call(@tuple.at(j - 1), @tuple.at(j))
+              else
+                (@tuple.at(j - 1) <=> @tuple.at(j))
+              end
+        if cmp.nil?
+          if block
+            raise ArgumentError, 'block returnd nil'
+          else
+            raise ArgumentError, "comparison of #{@tuple.at(j - 1).inspect} with #{@tuple.at(j).inspect} failed (#{j})"
           end
-
-          i += 1
-        end
-
-        @tuple.swap(store, right)
-
-        pi_new = store
-
-        # end pivot
-        stack.push [left, pi_new - 1]
-        stack.push [pi_new + 1, right]
-      end
-    end
-
-    self
-  end
-  private :qsort_block!
-
-  # Insertion sort in-place between the given indexes.
-  def isort!(left, right)
-    i = left + 1
-
-    tup = @tuple
-
-    while i <= right
-      j = i
-
-      while j > @start
-        jp = j - 1
-        el1 = tup.at(jp)
-        el2 = tup.at(j)
-
-        unless cmp = (el1 <=> el2)
-          raise ArgumentError, "comparison of #{el1.inspect} with #{el2.inspect} failed (#{j})"
-        end
-
-        break unless cmp > 0
-
-        tup.put(j, el1)
-        tup.put(jp, el2)
-
-        j = jp
-      end
-
-      i += 1
-    end
-  end
-  private :isort!
-
-  # Insertion sort in-place between the given indexes using a block.
-  def isort_block!(left, right, block)
-    i = left + 1
-
-    while i <= right
-      j = i
-
-      while j > @start
-        block_result = block.call(@tuple.at(j - 1), @tuple.at(j))
-
-        if block_result.nil?
-          raise ArgumentError, 'block returnd nil'
-        elsif block_result > 0
+        elsif cmp > 0
           @tuple.swap(j, (j - 1))
           j -= 1
         else
@@ -1444,7 +1374,7 @@ class Array
       i += 1
     end
   end
-  private :isort_block!
+  private :isort!
 
   # Move to compiler runtime
   def __rescue_match__(exception)
