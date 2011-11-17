@@ -289,12 +289,19 @@ namespace rubinius {
       }
     }
 
+    // Because we're going to look at other threads CallFrame chains, we have
+    // to stop them first.
+    state->stop_the_world();
+
     state->set_call_frame(calling_environment);
     ObjectWalker walker(state->memory());
     GCData gc_data(state->vm());
 
     // Seed it with the root objects.
     walker.seed(gc_data);
+
+    // We've touched other threads now, so we can restart everyone.
+    state->restart_world();
 
     Object* obj = walker.next();
 
