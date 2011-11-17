@@ -2,6 +2,7 @@
 #include "builtin/fixnum.hpp"
 #include "builtin/float.hpp"
 #include "builtin/object.hpp"
+#include "builtin/integer.hpp"
 
 #include "object_utils.hpp"
 
@@ -131,12 +132,19 @@ extern "C" {
   }
 
   VALUE rb_cstr2inum(const char* string, int base) {
-    return rb_str2inum(rb_str_new2(string), base);
+    NativeMethodEnvironment* env = NativeMethodEnvironment::get();
+    Integer* i = Integer::from_cstr(env->state(), string, base, Qfalse);
+    return env->get_handle(i);
   }
 
   VALUE rb_cstr_to_inum(const char* str, int base, int badcheck) {
-    // TODO don't ignore badcheck
-    return rb_cstr2inum(str, base);
+    NativeMethodEnvironment* env = NativeMethodEnvironment::get();
+    Integer* i = Integer::from_cstr(env->state(), str, base,
+                                    badcheck ? RBX_Qtrue : RBX_Qfalse);
+    if(i->nil_p()) {
+      rb_raise(rb_eArgError, "invalid string for Integer");
+    }
+    return env->get_handle(i);
   }
 
   VALUE rb_ll2inum(long long val) {
