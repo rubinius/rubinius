@@ -15,8 +15,11 @@ module Kernel
         end
       end
 
-      # the names of dynamic locals is now handled by the compiler
-      # and thusly local_names has them.
+      if dyn = scope.dynamic_locals
+        dyn.keys.each do |name|
+          locals << name.to_s unless locals.include?(name.to_s)
+        end
+      end
 
       scope = scope.parent
     end
