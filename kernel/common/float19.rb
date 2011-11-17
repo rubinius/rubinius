@@ -50,8 +50,13 @@ class Float
   end
 
   def arg
-    return self if nan?
-    super
+    if nan?
+      self
+    elsif FFI::Platform::Math.signbit(self) != 0
+      Math::PI
+    else
+      0
+    end
   end
   alias_method :angle, :arg
   alias_method :phase, :arg
