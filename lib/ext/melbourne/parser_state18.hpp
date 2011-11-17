@@ -108,8 +108,8 @@ typedef VALUE stack_type;
       std::list<StartPosition>* start_lines;
 
       // Tracks quarks
-      quark_map quark_indexes;
-      quark_vector quarks;
+      quark_map* quark_indexes;
+      quark_vector* quarks;
     } rb_parser_state;
 
 
