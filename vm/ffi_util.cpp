@@ -14,6 +14,7 @@
 #include <sys/stat.h>
 #include <errno.h>
 #include <time.h>
+#include <math.h>
 
 #include "windows_compat.h"
 #include "ffi_util.hpp"
@@ -157,5 +158,9 @@ int ffi_lstat(const char *path, struct stat *buf) {
   return lstat(path, buf);
 }
 #endif
+
+int ffi_signbit(double x) {
+  return signbit(x);
+}
 
 }
