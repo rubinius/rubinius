@@ -114,7 +114,7 @@ extern "C" {
   // THAR BE DRAGONS.
   //
   // When venturing through the valleys of the unmanaged, our hero must
-  // remain vigilant and disiplined! If she should ever find a VALUE for
+  // remain vigilant and disciplined! If she should ever find a VALUE for
   // a reference in her travels: Look away! For these VALUEs are pure
   // death! Our hero must steel herself and continue on her quest, returning
   // as soon as possible to the castle of the managed.
