@@ -242,8 +242,10 @@ module Kernel
       File.exist? file1
     when ?f
       File.file? file1
+    when ?l
+      File.symlink? file1
     else
-      false
+      raise NotImplementedError, "command ?#{cmd.chr} not implemented"
     end
   end
   module_function :test
