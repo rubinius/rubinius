@@ -1,7 +1,7 @@
-require File.expand_path('../../../spec_helper', __FILE__)
+require File.expand_path('../../../shared/complex/float/arg', __FILE__)
 
 ruby_version_is "1.9" do
   describe "Float#phase" do
-    it "needs to be reviewed for spec completeness"
+    it_behaves_like :float_arg, :phase
   end
 end
