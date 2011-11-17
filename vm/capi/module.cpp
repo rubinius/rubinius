@@ -1,6 +1,7 @@
 #include "builtin/object.hpp"
 #include "builtin/module.hpp"
 #include "builtin/symbol.hpp"
+#include "builtin/autoload.hpp"
 
 #include "helpers.hpp"
 #include "call_frame.hpp"
@@ -50,9 +51,14 @@ extern "C" {
 
     bool found = false;
     Object* val = module->get_const(env->state(), name, &found);
-    if(found) return env->get_handle(val);
 
-    return const_missing(module_handle, id_name);
+    if(!found) return const_missing(module_handle, id_name);
+
+    if(Autoload* autoload = try_as<Autoload>(val)) {
+      return capi_fast_call(env->get_handle(autoload), rb_intern("call"), 0);
+    }
+
+    return env->get_handle(val);
   }
 
   VALUE rb_const_get_from(VALUE module_handle, ID id_name) {
@@ -64,7 +70,13 @@ extern "C" {
     bool found = false;
     while(!module->nil_p()) {
       Object* val = module->get_const(env->state(), name, &found);
-      if(found) return env->get_handle(val);
+      if(found) {
+        if(Autoload* autoload = try_as<Autoload>(val)) {
+          return capi_fast_call(env->get_handle(autoload), rb_intern("call"), 0);
+        }
+
+        return env->get_handle(val);
+      }
 
       module = module->superclass();
     }
@@ -81,7 +93,13 @@ extern "C" {
     bool found = false;
     while(!module->nil_p()) {
       Object* val = module->get_const(env->state(), name, &found);
-      if(found) return env->get_handle(val);
+      if(found) {
+        if(Autoload* autoload = try_as<Autoload>(val)) {
+          return capi_fast_call(env->get_handle(autoload), rb_intern("call"), 0);
+        }
+
+        return env->get_handle(val);
+      }
 
       module = module->superclass();
     }
@@ -91,7 +109,13 @@ extern "C" {
 
     while(!module->nil_p()) {
       Object* val = module->get_const(env->state(), name, &found);
-      if(found) return env->get_handle(val);
+      if(found) {
+        if(Autoload* autoload = try_as<Autoload>(val)) {
+          return capi_fast_call(env->get_handle(autoload), rb_intern("call"), 0);
+        }
+
+        return env->get_handle(val);
+      }
 
       module = module->superclass();
     }
