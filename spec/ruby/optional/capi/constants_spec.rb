@@ -165,6 +165,12 @@ describe "C-API exception constant" do
     @s.rb_eLocalJumpError.should == LocalJumpError
   end
 
+  ruby_version_is "1.9" do
+    specify "rb_eMathDomainError references the Math::DomainError class" do
+      @s.rb_eMathDomainError.should == Math::DomainError
+    end
+  end
+
   specify "rb_eNameError references the NameError class" do
     @s.rb_eNameError.should == NameError
   end
