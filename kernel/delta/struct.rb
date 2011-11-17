@@ -13,7 +13,7 @@ class Struct
     end
   end
 
-  def self.specialize_initialize
+  def self._specialize(attrs)
     # Because people are crazy, they subclass Struct directly, ie.
     #  class Craptastic < Struct
     #
@@ -29,9 +29,7 @@ class Struct
     # the specialize if we're trying new Struct's directly from Struct itself,
     # not a craptastic Struct subclass.
 
-    return unless self.equal? Struct
-
-    attrs = self::STRUCT_ATTRS
+    return unless superclass.equal? Struct
 
     args = []
     0.upto(attrs.size-1) do |i|
@@ -43,10 +41,36 @@ class Struct
       assigns << "@#{attrs[i]} = a#{i}"
     end
 
+    hashes = []
+    vars = []
+
+    0.upto(attrs.size-1) do |i|
+      hashes << "@#{attrs[i]}.hash"
+      vars << "@#{attrs[i]}"
+    end
+
     code = <<-CODE
       def initialize(#{args.join(", ")})
         #{assigns.join(';')}
         self
+      end
+
+      def hash
+        hash = #{hashes.size}
+
+        return hash if Thread.detect_outermost_recursion(self) do
+          hash = hash ^ #{hashes.join(' ^ ')}
+        end
+
+        hash
+      end
+
+      def to_a
+        [#{vars.join(', ')}]
+      end
+
+      def length
+        #{vars.size}
       end
     CODE
 

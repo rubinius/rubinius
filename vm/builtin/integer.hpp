@@ -28,6 +28,8 @@ namespace rubinius {
     static Integer* from(STATE, long long i);
     static Integer* from(STATE, unsigned long long i);
 
+    static Integer* from_cstr(STATE, const char* str, int base, Object* strict);
+
     long                to_long();
     unsigned long       to_ulong();
     long long           to_long_long();

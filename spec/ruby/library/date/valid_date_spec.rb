@@ -2,5 +2,5 @@ require File.expand_path('../../../spec_helper', __FILE__)
 require 'date'
 
 describe "Date.valid_date?" do
-  it "needs to be reviewed for spec completeness"
+  it_behaves_like :date_valid_civil?, :valid_date?
 end

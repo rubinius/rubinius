@@ -47,7 +47,7 @@ describe :date_civil, :shared => true do
 
   end
 
-  it "creats a Date for different calendar reform dates" do
+  it "creates a Date for different calendar reform dates" do
     d1 = Date.send(@method, 1582, 10, 4)
     d1.succ.day.should == 15
 
@@ -56,7 +56,7 @@ describe :date_civil, :shared => true do
   end
 
   ruby_version_is ""..."1.9.3" do
-    it "choose an arbitrary reform date" do
+    it "chooses an arbitrary reform date" do
       r  = Date.send(@method, 2000, 2, 3)
 
       d3 = Date.send(@method, 2000, 2, 3, r.jd)

@@ -222,8 +222,8 @@ class Socket < BasicSocket
     attach_function :gethostname,   [:pointer, :size_t], :int
     attach_function :getservbyname, [:pointer, :pointer], :pointer
 
-    attach_function :htons,         [:u_int16_t], :u_int16_t
-    attach_function :ntohs,         [:u_int16_t], :u_int16_t
+    attach_function :htons,         [:uint16_t], :uint16_t
+    attach_function :ntohs,         [:uint16_t], :uint16_t
 
     attach_function :_getnameinfo,
                     "getnameinfo", [:pointer, :socklen_t, :pointer, :socklen_t,

@@ -100,6 +100,16 @@ typedef unsigned long unsigned_time_t;
 // lifted from MRI's configure on OS X, probably right on most unix platforms?
 #define NEGATIVE_TIME_T 1
 
+const char* timezone_extended(struct tm* tptr) {
+#ifdef HAVE_TM_ZONE
+  return tptr->tm_zone;
+#elif HAVE_TZNAME && HAVE_DAYLIGHT
+  return tzname[daylight && tptr->tm_isdst];
+#else
+  return NULL;
+#endif
+}
+
 time_t
 mktime_extended(struct tm* tptr, int utc_p, int* err) {
     time_t guess, guess_lo, guess_hi;
@@ -414,10 +424,6 @@ out_of_range:
 #include <math.h>
 
 #include "vm/config.h"
-
-#ifndef RBX_WINDOWS
-#define HAVE_TM_ZONE    1
-#endif
 
 /* defaults: season to taste */
 #define SYSV_EXT	1	/* stuff in System V ascftime routine */
@@ -817,10 +823,10 @@ strftime_extended(char *s, size_t maxsize, const char *format, const struct tm *
 				 * Systems with tm_zone probably have tm_gmtoff as
 				 * secs east of GMT.  Convert to mins east of GMT.
 				 */
-#ifdef RBX_WINDOWS
-        off = _timezone / 60;
+#ifdef HAVE_TM_GMTOFF
+        off = timeptr->tm_gmtoff / 60;
 #else
-				off = timeptr->tm_gmtoff / 60;
+        off = _timezone / 60;
 #endif
 #else /* !HAVE_TM_ZONE */
 #if HAVE_VAR_TIMEZONE

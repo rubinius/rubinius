@@ -970,7 +970,7 @@ module Marshal
 
     ms.construct
   rescue NameError => e
-    raise ArgumentError, e.message
+    raise ArgumentError, e.message, e
   end
 
   class << self

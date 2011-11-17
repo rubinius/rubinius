@@ -61,6 +61,9 @@ namespace rubinius {
     /** Wrap a C function in a Proc */
     Proc* wrap_c_function(void* func, VALUE cb, int arity);
 
+    /** Call a ruby method and ignore cached handles, etc */
+    VALUE capi_fast_call(VALUE receiver, ID method_name, int arg_count, ...);
+
     /** Converts a native type (int, uint, long) to a suitable Integer. */
     template<typename NativeType>
       VALUE capi_native2num(NativeType number) {

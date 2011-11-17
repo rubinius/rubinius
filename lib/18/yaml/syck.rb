@@ -2,7 +2,7 @@
 # YAML::Syck module
 # .. glues syck and yaml.rb together ..
 #
-require 'ext/syck/syck'
+require 'syck/ext/syck'
 require 'yaml/basenode'
 
 module YAML

@@ -57,7 +57,7 @@ namespace rubinius {
 
   // Used by the segfault reporter. Calculated up front to avoid
   // crashing inside the crash handler.
-  static utsname machine_info;
+  static struct utsname machine_info;
   static char report_path[1024];
   static const char* report_file_name = ".rubinius_last_error";
 
@@ -528,7 +528,12 @@ namespace rubinius {
     delete cf;
   }
 
-  void Environment::halt() {
+  void Environment::halt_and_exit(STATE) {
+    halt(state);
+    exit(exit_code(state));
+  }
+
+  void Environment::halt(STATE) {
     state->shared().tool_broker()->shutdown(state);
 
     if(state->shared().config.ic_stats) {
@@ -561,7 +566,7 @@ namespace rubinius {
   /**
    * Returns the exit code to use when exiting the rbx process.
    */
-  int Environment::exit_code() {
+  int Environment::exit_code(STATE) {
 
 #ifdef ENABLE_LLVM
     if(LLVMState* ls = shared->llvm_state) {

@@ -1012,7 +1012,7 @@ namespace rubinius {
         std::cout << " ; " << addr;
         if(ud.mnemonic == UD_Icall) {
           Dl_info info;
-          if(dladdr(addr, &info)) {
+          if(dladdr((void*)addr, &info)) {
             int status = 0;
             char* cpp_name = abi::__cxa_demangle(info.dli_sname, 0, 0, &status);
             if(status >= 0) {

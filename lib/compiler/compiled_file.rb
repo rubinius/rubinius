@@ -211,7 +211,7 @@ module Rubinius
       # Returns the next string in _@data_ including the trailing
       # "\n" character.
       def next_string
-        count = @data.locate "\n", @start
+        count = @data.locate "\n", @start, @size
         count = @size unless count
         str = String.from_chararray @data, @start, count - @start
         @start = count

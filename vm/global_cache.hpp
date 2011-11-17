@@ -16,7 +16,7 @@ namespace rubinius {
 
   class GlobalCache : public Lockable {
   public:
-    struct cache_entry {
+    struct CacheEntry {
       Module* klass;
       Symbol* name;
       Module* module;
@@ -25,28 +25,19 @@ namespace rubinius {
       bool method_missing;
     };
 
-    struct cache_entry entries[CPU_CACHE_SIZE];
+    CacheEntry entries[CPU_CACHE_SIZE];
 
   public:
 
     static bool resolve(STATE, Symbol* name, Dispatch& msg, LookupData& lookup);
+    bool resolve_i(STATE, Symbol* name, Dispatch& msg, LookupData& lookup);
 
     GlobalCache() {
       clear();
     }
 
-    /** @todo This does NOT handle null? --rue */
-    struct cache_entry* lookup(STATE, Module* cls, Symbol* name) {
-      struct cache_entry* entry;
-
-      SYNC(state);
-      entry = entries + CPU_CACHE_HASH(cls, name);
-      if(entry->name == name && entry->klass == cls) {
-        return entry;
-      }
-
-      return NULL;
-    }
+    MethodCacheEntry* lookup_public(STATE, Module* mod, Class* cls, Symbol* name);
+    MethodCacheEntry* lookup_private(STATE, Module* mod, Class* cls, Symbol* name);
 
     void clear(STATE, Symbol* name) {
       SYNC(state);
@@ -62,7 +53,7 @@ namespace rubinius {
     }
 
     void clear(STATE, Module* cls, Symbol* name) {
-      struct cache_entry* entry;
+      CacheEntry* entry;
       SYNC(state);
       entry = entries + CPU_CACHE_HASH(cls, name);
       if(entry->name == name && entry->klass == cls) {
@@ -81,7 +72,7 @@ namespace rubinius {
     void retain(STATE, Module* cls, Symbol* name, Module* mod, Executable* meth,
                 bool missing, bool was_private = false) {
       SYNC(state);
-      struct cache_entry* entry;
+      CacheEntry* entry;
 
       entry = entries + CPU_CACHE_HASH(cls, name);
       entry->klass = cls;
@@ -104,6 +95,16 @@ namespace rubinius {
         entries[i].is_public = true;
         entries[i].method_missing = false;
       }
+    }
+
+    // Must be called with the lock held on +this+
+    CacheEntry* lookup(STATE, Module* cls, Symbol* name) {
+      CacheEntry* entry = entries + CPU_CACHE_HASH(cls, name);
+      if(entry->name == name && entry->klass == cls) {
+        return entry;
+      }
+
+      return NULL;
     }
 
   };

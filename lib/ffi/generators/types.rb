@@ -49,6 +49,7 @@ module FFI
       end
 
       def source(io)
+        io.puts "#include <stdint.h>"
         io.puts "#include <sys/types.h>"
         unless @platform.windows?
           io.puts "#include <sys/socket.h>"

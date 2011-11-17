@@ -5,7 +5,6 @@ previous: Escribir un ticket
 previous_url: how-to/write-a-ticket
 next: Fix a Failing Spec
 next_url: how-to/fix-a-failing-spec
-translated: true
 ---
 
 Asegúrese de haber leído:

@@ -11,7 +11,7 @@ def expand(path)
 end
 
 def make(args = nil)
-  if RUBY_PLATFORM =~ /bsd/
+  if RUBY_PLATFORM =~ /bsd/ || RUBY_PLATFORM =~ /solaris/
     gmake = 'gmake'
   else
     gmake = 'make'

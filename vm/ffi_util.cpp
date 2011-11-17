@@ -1,8 +1,3 @@
-// HACK constants so that we use the 64bit version of stat
-#define _DARWIN_USE_64_BIT_INODE 1
-#define _LARGEFILE_SOURCE 1
-#define _FILE_OFFSET_BITS 64
-
 #include "config.h"
 
 #include <stdint.h>
@@ -35,11 +30,12 @@ void ffi_set_errno(int n) {
   errno = n;
 }
 
-#ifdef timezone
+#ifdef HAVE_TIMEZONE
 time_t ffi_timezone() {
   return timezone;
 }
 #else
+#ifdef HAVE_TM_GMTOFF
 // try FreeBSD extensions to struct tm
 time_t ffi_timezone() {
   struct tm *lt;
@@ -50,6 +46,7 @@ time_t ffi_timezone() {
 
   return lt->tm_gmtoff;
 }
+#endif
 #endif
 
 char* ffi_tzname(int dst) {

@@ -157,7 +157,7 @@ public:
 
     Array* input = Array::create(state, 2);
     input->set(state, 0, Qnil);
-    input->set(state, 1, Fixnum::from(0));
+    input->set(state, 1, Fixnum::from(255));
 
     Arguments args_obj(state->symbol("blah"), input);
 

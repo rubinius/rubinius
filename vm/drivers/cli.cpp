@@ -110,8 +110,8 @@ int main(int argc, char** argv) {
     return 1;
   }
 
-  env.halt();
-  return env.exit_code();
+  env.halt(env.state);
+  return env.exit_code(env.state);
 }
 
 static void check_directory(std::string runtime) {

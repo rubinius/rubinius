@@ -110,8 +110,10 @@ namespace rubinius {
     }
 
     tm.tm_wday = -1;
-#ifndef RBX_WINDOWS
+#ifdef HAVE_TM_GMTOFF
     tm.tm_gmtoff = 0;
+#endif
+#ifdef HAVE_TM_ZONE
     tm.tm_zone = 0;
 #endif
     tm.tm_year = year->to_native() - 1900;
@@ -177,11 +179,12 @@ namespace rubinius {
     ary->set(state, 7, Integer::from(state, tm.tm_yday + 1));
     ary->set(state, 8, tm.tm_isdst ? Qtrue : Qfalse);
 
-#ifdef HAVE_STRUCT_TM_TM_ZONE
-    ary->set(state, 9, String::create(state, tm.tm_zone));
-#else
-    ary->set(state, 9, Qnil);
-#endif
+    const char* tmzone = timezone_extended(&tm);
+    if(tmzone) {
+      ary->set(state, 9, String::create(state, tmzone));
+    } else {
+      ary->set(state, 9, Qnil);
+    }
 
     // Cache it.
     decomposed(state, ary);

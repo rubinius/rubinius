@@ -1,0 +1,9 @@
+fails:StringIO#gets when passed [separator] and [limit] returns the data read until the limit is consumed or the separator is met
+fails:StringIO#gets when passed [separator] and [limit] sets $_ to the read content
+fails:StringIO#gets when passed [separator] and [limit] updates self's lineno by one
+fails:StringIO#gets when passed [separator] and [limit] tries to convert the passed separator to a String using #to_str
+fails:StringIO#gets when passed [separator] and [limit] tries to convert the passed limit to an Integer using #to_int
+fails:StringIO#gets when passed [limit] returns the data read until the limit is met
+fails:StringIO#gets when passed [limit] sets $_ to the read content
+fails:StringIO#gets when passed [limit] updates self's lineno by one
+fails:StringIO#gets when passed [limit] tries to convert the passed limit to an Integer using #to_int

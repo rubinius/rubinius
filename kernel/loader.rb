@@ -20,6 +20,8 @@ module Rubinius
       @simple_options = false
       @early_option_stop = false
 
+      @enable_gems = Rubinius.ruby19?
+
       @gem_bin = File.join Rubinius::GEMS_PATH, "bin"
     end
 
@@ -283,6 +285,12 @@ containing the Rubinius standard library files.
 
       options.on "-d", "Enable debugging output and set $DEBUG to true" do
         $DEBUG = true
+      end
+
+      if Rubinius.ruby19?
+        options.on "--disable-gems", "Do not automatically load rubygems on startup" do
+          @enable_gems = false
+        end
       end
 
       options.on "-e", "CODE", "Compile and execute CODE" do |code|
@@ -569,7 +577,7 @@ to rebuild the compiler.
     def rubygems
       @stage = "loading Rubygems"
 
-      require "rubygems" if Rubinius.ruby19?
+      require "rubygems" if @enable_gems
     end
 
     # Require any -r arguments

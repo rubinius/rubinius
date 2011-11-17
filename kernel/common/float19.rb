@@ -33,4 +33,11 @@ class Float
 
     (f * (RADIX ** e)).to_r
   end
+
+  def arg
+    return self if nan?
+    super
+  end
+  alias_method :angle, :arg
+  alias_method :phase, :arg
 end

@@ -79,8 +79,10 @@ namespace rubinius {
     void run_from_filesystem(std::string root);
     void boot_vm();
 
-    void halt();
-    int exit_code();
+    void halt(STATE);
+    void halt_and_exit(STATE);
+    int exit_code(STATE);
+
     void start_signals();
     void start_agent(int port);
   };

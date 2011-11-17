@@ -23,18 +23,9 @@ namespace rubinius {
     Module* module = klass;
 
     // Check the global cache first!
-    GlobalCache::cache_entry* global_entry =
-      state->vm()->global_cache()->lookup(state, module, name);
+    mce = state->vm()->global_cache()->lookup_public(state, module, klass, name);
 
-    if(global_entry &&
-         global_entry->is_public &&
-        !global_entry->method_missing) {
-
-      mce = MethodCacheEntry::create(state, klass, global_entry->module,
-                                     global_entry->method);
-
-      return eNone;
-    }
+    if(mce) return eNone;
 
     bool skip_vis_check = false;
 
@@ -135,14 +126,8 @@ namespace rubinius {
     Module* module = start;
 
     // Check the global cache first!
-    GlobalCache::cache_entry* global_entry =
-      state->vm()->global_cache()->lookup(state, module, name);
-
-    if(global_entry && !global_entry->method_missing) {
-      mce = MethodCacheEntry::create(state, klass, global_entry->module,
-                                     global_entry->method);
-      return true;
-    }
+    mce = state->vm()->global_cache()->lookup_private(state, start, klass, name);
+    if(mce) return true;
 
     MethodTableBucket* vis_entry = 0;
 
@@ -512,7 +497,8 @@ namespace rubinius {
     MethodCacheEntry* mce = cache->cache_;
 
     args.set_name(cache->name);
-    if(likely(mce && args.recv()->fixnum_p())) {
+    if(likely(mce && mce->receiver_class() == G(fixnum_class)
+                  && args.recv()->fixnum_p())) {
 
       Executable* meth = mce->method();
       Module* mod = mce->stored_module();
@@ -529,7 +515,8 @@ namespace rubinius {
     MethodCacheEntry* mce = cache->cache_;
 
     args.set_name(cache->name);
-    if(likely(mce && args.recv()->symbol_p())) {
+    if(likely(mce && mce->receiver_class() == G(symbol)
+                  && args.recv()->symbol_p())) {
 
       Executable* meth = mce->method();
       Module* mod = mce->stored_module();

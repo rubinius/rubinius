@@ -88,6 +88,10 @@ class BasicObject
     raise LocalJumpError, "Missing block" unless block_given?
     env = prc.block
 
+    if prc.kind_of? Proc::Method
+      return prc.bound_method.call(*args)
+    end
+
     static_scope = env.static_scope
     if ImmediateValue === self
       static_scope = static_scope.using_disabled_scope

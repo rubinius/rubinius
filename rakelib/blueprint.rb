@@ -6,6 +6,8 @@ Daedalus.blueprint do |i|
   gcc.cflags << "-ggdb3 -Werror"
   gcc.cflags << "-DRBX_PROFILER"
   gcc.cflags << "-D__STDC_LIMIT_MACROS -D__STDC_CONSTANT_MACROS"
+  gcc.cflags << "-D_LARGEFILE_SOURCE"
+  gcc.cflags << "-D_FILE_OFFSET_BITS=64"
 
   gcc.cflags << Rubinius::BUILD_CONFIG[:user_cflags]
 
@@ -30,6 +32,8 @@ Daedalus.blueprint do |i|
   end
 
   if RUBY_PLATFORM =~ /darwin/i
+    gcc.cflags << "-D_DARWIN_USE_64_BIT_INODE"
+
     if `sw_vers` =~ /10\.4/
       gcc.cflags << "-DHAVE_STRLCAT -DHAVE_STRLCPY"
     end
@@ -67,6 +71,10 @@ Daedalus.blueprint do |i|
     make = "gmake"
   when /mingw|win32/i
     gcc.ldflags << "-lws2_32"
+  when /solaris/
+    gcc.cflags << "-fPIC"
+    gcc.ldflags << "-lsocket" << "-lnsl" << "-fPIC"
+    make = "gmake"
   else
     gcc.ldflags << "-ldl" << "-lpthread"
   end

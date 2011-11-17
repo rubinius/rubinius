@@ -251,7 +251,8 @@ class Complex < Numeric
   def arg
     Math.atan2(@imag, @real)
   end
-  alias angle arg
+  alias_method :angle, :arg
+  alias_method :phase, :arg
 
   #
   # Returns the absolute value _and_ the argument.

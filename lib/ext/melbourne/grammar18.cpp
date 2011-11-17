@@ -489,8 +489,8 @@ rb_parser_state *parser_alloc_state() {
   magic_comments = new std::vector<bstring>;
   start_lines = new std::list<StartPosition>;
 
-  quark_indexes = quark_map();
-  quarks = quark_vector();
+  quark_indexes = new quark_map();
+  quarks = new quark_vector();
 
   return parser_state;
 }
@@ -543,12 +543,12 @@ void pt_free(rb_parser_state *parser_state) {
   delete magic_comments;
   delete start_lines;
 
-  if(!memory_pools) return;
-
-  for(i = 0; i <= current_pool; i++) {
-    free(memory_pools[i]);
+  if(memory_pools) {
+    for(i = 0; i <= current_pool; i++) {
+      free(memory_pools[i]);
+    }
+    free(memory_pools);
   }
-  free(memory_pools);
 
   quark_cleanup(parser_state);
 

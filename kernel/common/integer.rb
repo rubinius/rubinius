@@ -65,36 +65,6 @@ class Integer < Numeric
     true
   end
 
-  ##
-  # Returns the minimum number of bits required for integer in (signed int)
-  # binary format
-  #--
-  # NOTE: rshift would probably be slightly more efficient but since i'm
-  # probably going to use this to simplify the complex behavior of
-  # ruby's << and >> it would defeat the purpose by creating a circular
-  # dependency.
-  #
-  # TODO: convert algorithm to primitive so no circular dependency?
-  #++
-
-  def bits(int = self)
-    num_bits = 1 # sign bit storage
-
-    if int < 0
-      int = ~int
-
-      num_bits += 1
-      int /= 2 # could use >> in primitive
-    end
-
-    while int != 0
-      num_bits += 1
-      int /= 2 # could use >> in primitive
-    end
-
-    num_bits
-  end
-
   # Returns true if int is an even number.
   def even?
     self & 1 == 0

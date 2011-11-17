@@ -320,7 +320,6 @@ namespace rubinius {
     void init_ffi(STATE);
     void init_native_libraries();
 
-    Thread* current_thread();
     void collect(GCToken gct, CallFrame* call_frame);
 
     /// Check the GC flags in ObjectMemory and collect if we need to.
