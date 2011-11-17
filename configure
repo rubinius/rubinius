@@ -25,7 +25,6 @@ class Configure
     /([^-]+)-([^-]+)-(.*)/ =~ @host
     @cpu, @vendor, @os = $1, $2, $3
     @little_endian = false
-    @sizeof_long = 0
 
     # TODO: For better cross-compiling support, it may be necessary to
     # use the feature facility to check for a define in the compiler.
@@ -115,7 +114,7 @@ class Configure
     @libversion = "2.0"
     @version = "#{@libversion}.0dev"
     @release_date = "yyyy-mm-dd"
-    @config_version = 144
+    @config_version = 145
 
     # TODO: add conditionals for platforms
     if RbConfig::CONFIG["build_os"] =~ /darwin/
@@ -725,16 +724,37 @@ Unsupported language version requested: #{ver}. Options are #{@supported_version
     end
   end
 
-  def detect_sizeof_long
-    @log.print "Checking sizeof(long): "
+  def sizeof_typename(type)
+    if type =~ /(\*+)$/
+      name = "#{type[0...-$1.size]}#{"p" * $1.size}"
+    else
+      name = type
+    end
+    name.gsub(/\W/, "_")
+  end
 
-    @sizeof_long = check_program do |f|
-      src = "int main() { return sizeof(long); }"
+  def sizeof(type)
+    size = instance_variable_get "@sizeof_#{sizeof_typename(type)}"
+    fail unless size
+    size
+  end
+
+  def detect_sizeof(type)
+    @log.print "Checking sizeof(#{type}): "
+
+    size = check_program do |f|
+      src = <<-EOP
+#include <stddef.h>
+
+int main() { return sizeof(#{type}); }
+      EOP
       f.puts src
       @log.log src
     end
 
-    @log.write "#{@sizeof_long} bytes"
+    instance_variable_set "@sizeof_#{sizeof_typename(type)}", size
+
+    @log.write "#{size} bytes"
   end
 
   def detect_endian
@@ -775,7 +795,7 @@ int main() { X x; return 0; }
 
     @x86_32 = false
 
-    if @sizeof_long == 4
+    if sizeof("long") == 4
       status = check_program do |f|
         src = <<-EOP
 int main() {
@@ -958,7 +978,13 @@ int main() { return tgetnum(""); }
 
     @log.write ""
 
-    detect_sizeof_long
+    detect_sizeof("short")
+    detect_sizeof("int")
+    detect_sizeof("void*")
+    detect_sizeof("size_t")
+    detect_sizeof("long")
+    detect_sizeof("long long")
+
     detect_endian
     detect_tr1_hash
     detect_x86_32bit
@@ -1052,7 +1078,7 @@ module Rubinius
     :vendor         => "#{@vendor}",
     :os             => "#{@os}",
     :little_endian  => #{@little_endian},
-    :sizeof_long    => #{@sizeof_long},
+    :sizeof_long    => #{sizeof("long")},
     :x86_32         => #{@x86_32},
     :bindir         => "#{@bindir}",
     :libdir         => "#{@libdir}",
@@ -1113,7 +1139,7 @@ end
 #define RBX_LIB_VERSION   "#{@libversion}"
 #define RBX_LDSHARED      "#{@ldshared}"
 #define RBX_RELEASE_DATE  "#{@release_date}"
-#define RBX_SIZEOF_LONG   #{@sizeof_long}
+#define RBX_SIZEOF_LONG   #{sizeof("long")}
 #define RBX_LLVM_API_VER  #{@llvm_api_version}
       EOC
 
@@ -1168,7 +1194,7 @@ end
 #define RBX_LIB_VERSION   "#{@libversion}"
 #define RBX_LDSHARED      "#{@ldshared}"
 #define RBX_RELEASE_DATE  "#{@release_date}"
-#define RBX_SIZEOF_LONG   #{@sizeof_long}
+#define RBX_SIZEOF_LONG   #{sizeof("long")}
 #define RBX_LLVM_API_VER  #{@llvm_api_version}
 
       EOC
@@ -1207,6 +1233,13 @@ end
 #ifndef NORETURN
 #define NORETURN(x) __attribute__ ((noreturn)) x
 #endif
+
+#define SIZEOF_SHORT        #{sizeof("short")}
+#define SIZEOF_INT          #{sizeof("int")}
+#define SIZEOF_VOIDP        #{sizeof("void*")}
+#define SIZEOF_LONG         #{sizeof("long")}
+#define SIZEOF_LONG_LONG    #{sizeof("long long")}
+
       EOC
 
       if @windows
