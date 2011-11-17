@@ -95,6 +95,7 @@
 #define HAVE_RB_EIOERROR                   1
 #define HAVE_RB_ELOADERROR                 1
 #define HAVE_RB_ELOCALJUMPERROR            1
+#define HAVE_RB_EMATHDOMAINERROR           1
 #define HAVE_RB_ENAMEERROR                 1
 #define HAVE_RB_ENOMEMERROR                1
 #define HAVE_RB_ENOMETHODERROR             1
