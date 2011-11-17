@@ -21,6 +21,10 @@ class Float < Numeric
     raise PrimitiveFailure, "Float#-@ primitive failed"
   end
 
+  def abs
+    FFI::Platform::Math.fabs(self)
+  end
+
   def +(other)
     Rubinius.primitive :float_add
     b, a = math_coerce other
