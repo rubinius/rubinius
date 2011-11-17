@@ -7,7 +7,7 @@ begin
   task :default => :spec
 rescue LoadError
   task :default do
-    STDERR.puts "Please install RSpec 1.6.x to run MSpec specs"
+    STDERR.puts "Please install RSpec 1.3.x to run MSpec specs"
   end
 end
 
