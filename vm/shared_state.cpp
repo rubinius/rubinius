@@ -176,16 +176,13 @@ namespace rubinius {
     }
   }
 
-  void SharedState::ask_for_stopage() {
-    world_->ask_for_stopage();
-  }
-
   bool SharedState::should_stop() {
     return world_->should_stop();
   }
 
-  void SharedState::stop_the_world(THREAD) {
-    world_->wait_til_alone(state);
+  bool SharedState::stop_the_world(THREAD) {
+    bool stopped = world_->wait_til_alone(state);
+    if(!stopped) return stopped;
 
     // Verify that everyone is stopped and we're alone.
     for(std::list<ManagedThread*>::iterator i = threads_.begin();
@@ -207,6 +204,8 @@ namespace rubinius {
         break;
       }
     }
+
+    return true;
   }
 
   void SharedState::stop_threads_externally() {

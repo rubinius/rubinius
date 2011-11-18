@@ -92,17 +92,17 @@ namespace rubinius {
       }
     }
 
-    void ask_for_stopage() {
+    bool wait_til_alone(THREAD) {
       thread::Mutex::LockGuard guard(mutex_);
-      should_stop_ = true;
 
-      if(cDebugThreading) {
-        std::cerr << "[" << VM::current() << " WORLD requested stopage: " << pending_threads_ << "]\n";
+      if(should_stop_) {
+        if(cDebugThreading) {
+          std::cerr << "[" << VM::current()
+                    << " WORLD detected concurrent stop request, returning false]\n";
+        }
+        return false;
       }
-    }
 
-    void wait_til_alone(THREAD) {
-      thread::Mutex::LockGuard guard(mutex_);
       should_stop_ = true;
 
       if(cDebugThreading) {
@@ -131,6 +131,8 @@ namespace rubinius {
       if(cDebugThreading) {
         std::cerr << "[" << VM::current() << " WORLD o/~ I think we're alone now.. o/~]\n";
       }
+
+      return true;
     }
 
     void stop_threads_externally() {

@@ -258,7 +258,7 @@ namespace rubinius {
     static Object* vm_extended_modules(STATE, Object* obj);
 
     // Rubinius.primitive :vm_find_object
-    static Object* vm_find_object(STATE, Array* arg, Object* callable, CallFrame* calling_environment);
+    static Object* vm_find_object(STATE, GCToken gct, Array* arg, Object* callable, CallFrame* calling_environment);
 
     // Rubinius.primitive :vm_set_kcode
     static Object* vm_set_kcode(STATE, String* what);
