@@ -270,6 +270,8 @@ extern "C" {
     cCApiRational,
     cCApiComplex,
 
+    cCApiMathDomainError,
+
     // MUST be last
     cCApiMaxConstant
   } CApiConstant;
@@ -377,6 +379,7 @@ struct RFloat {
 };
 
 #define RFLOAT(d)       capi_rfloat_struct(d)
+#define RFLOAT_VALUE(d) RFLOAT(d)->value
 
 // Do not define these messages as strings. We want a syntax error.
 #define RHASH(obj)      ({ C_API_RHASH_is_not_supported_in_Rubinius })
@@ -905,6 +908,8 @@ VALUE rb_uint2big(unsigned long number);
 
   int rb_big_sign(VALUE obj);
 #define RBIGNUM_SIGN(obj) rb_big_sign(obj)
+#define RBIGNUM_POSITIVE_P(b) RBIGNUM_SIGN(b)
+#define RBIGNUM_NEGATIVE_P(b) (!RBIGNUM_SIGN(b))
 
   // fake out, used with RBIGNUM_LEN anyway, which provides
   // the full answer
