@@ -48,6 +48,7 @@
 #include "builtin/float.hpp"
 #include "builtin/methodtable.hpp"
 #include "builtin/io.hpp"
+#include "builtin/thread.hpp"
 
 #include "builtin/staticscope.hpp"
 #include "builtin/block_environment.hpp"
@@ -454,6 +455,7 @@ namespace rubinius {
     if(result == 0) {
       /*  @todo any other re-initialisation needed? */
 
+      state->vm()->thread->init_lock();
       state->shared().reinit(state);
       state->shared().om->on_fork(state);
       SignalHandler::on_fork(state, false);

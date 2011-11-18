@@ -509,6 +509,10 @@ namespace thread {
       : native_(0)
     {}
 
+    void init() {
+      native_ = 0;
+    }
+
     void lock() {
       OSSpinLockLock(&native_);
     }
@@ -543,23 +547,27 @@ namespace thread {
     typedef StackUnlockGuard<SpinLock> UnlockGuard;
 
   private:
-    int lock_;
+    atomic::atomic_int_t lock_;
 
   public:
     SpinLock()
-      : lock_(1)
+      : lock_(0)
     {}
 
+    void init() {
+      lock_ = 0;
+    }
+
     void lock() {
-      while(!atomic::compare_and_swap(&lock_, 1, 0));
+      while(atomic::test_and_set(&lock_));
     }
 
     void unlock() {
-      lock_ = 1;
+      atomic::test_and_clear(&lock_);
     }
 
     Code try_lock() {
-      if(atomic::compare_and_swap(&lock_, 1, 0)) {
+      if(!atomic::test_and_set(&lock_)) {
         return cLocked;
       }
 

@@ -465,7 +465,6 @@ namespace rubinius {
       // github#157
       if(!cache->fill_method_missing(state, recv_class, mce)) {
         Exception::internal_error(state, call_frame, "no method_missing");
-        cache->private_lock_ = 0;
         return 0;
       }
 
@@ -604,13 +603,13 @@ namespace rubinius {
       // potentially room for registering another class,
       // so we should lock it here before we're allowed to write it.
 
-      while(!atomic::compare_and_swap(&private_lock_, 0, 1));
+      private_lock_.lock();
 
       for(int i = 0; i < cTrackedICHits; i++) {
         if(!seen_classes_[i].klass()) {
           // An empty space, record it.
           seen_classes_[i].assign(mce->receiver_class());
-          private_lock_ = 0;
+          private_lock_.unlock();
           return;
         }
       }
@@ -619,7 +618,7 @@ namespace rubinius {
     // Hmmm, what do we do when this is full? Just ignore them?
     // For now, just keep track of how many times we overflow.
     seen_classes_overflow_++;
-    private_lock_ = 0;
+    private_lock_.unlock();
   }
 
   void InlineCache::print_location(STATE, std::ostream& stream) {
