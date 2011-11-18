@@ -69,10 +69,9 @@ namespace rubinius {
     thr->vm_ = target;
     thr->klass(state, as<Class>(self));
     thr->runner_ = runner;
+    thr->init_lock_.init();
 
     target->thread.set(thr);
-
-    new(&thr->init_lock_) thread::SpinLock();
 
     if(!main_thread) thr->init_lock_.lock();
 
@@ -261,6 +260,10 @@ namespace rubinius {
 
   void Thread::cleanup() {
     vm_ = NULL;
+  }
+
+  void Thread::init_lock() {
+    init_lock_.init();
   }
 
   Object* Thread::join(STATE, CallFrame* calling_environment) {

@@ -126,7 +126,7 @@ namespace rubinius {
 
     o_reg->onig_data = NULL;
     o_reg->forced_encoding_ = false;
-    o_reg->lock_ = 0;
+    o_reg->lock_.init();
 
     return o_reg;
   }
@@ -398,7 +398,7 @@ namespace rubinius {
       return Qnil;
     }
 
-    while(!atomic::compare_and_swap(&lock_, 0, 1));
+    lock_.lock();
 
     maybe_recompile(state);
 
@@ -444,7 +444,7 @@ namespace rubinius {
       write_barrier(state, ba);
     }
 
-    lock_ = 0;
+    lock_.unlock();
 
     if(beg == ONIG_MISMATCH) {
       onig_region_free(&region, 0);
@@ -478,7 +478,7 @@ namespace rubinius {
     if(pos > max) return Qnil;
     str += pos;
 
-    while(!atomic::compare_and_swap(&lock_, 0, 1));
+    lock_.lock();
 
     maybe_recompile(state);
 
@@ -515,7 +515,7 @@ namespace rubinius {
       write_barrier(state, ba);
     }
 
-    lock_ = 0;
+    lock_.unlock();
 
     if(beg != ONIG_MISMATCH) {
       md = get_match_data(state, &region, string, this, pos);
@@ -535,7 +535,7 @@ namespace rubinius {
       Exception::argument_error(state, "Not properly initialized Regexp");
     }
 
-    while(!atomic::compare_and_swap(&lock_, 0, 1));
+    lock_.lock();
 
     maybe_recompile(state);
 
@@ -580,7 +580,7 @@ namespace rubinius {
       write_barrier(state, ba);
     }
 
-    lock_ = 0;
+    lock_.unlock();
 
     if(beg != ONIG_MISMATCH) {
       md = get_match_data(state, &region, string, this, pos);

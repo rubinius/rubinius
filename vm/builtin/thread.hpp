@@ -176,6 +176,7 @@ namespace rubinius {
     // Rubinius.primitive :thread_unlock_locks
     Object* unlock_locks(STATE, GCToken gct);
 
+    void init_lock();
     void cleanup();
 
     /**
