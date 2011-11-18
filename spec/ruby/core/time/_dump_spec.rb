@@ -49,5 +49,15 @@ describe "Time#_dump" do
 
     t._dump.should == "\364\001\031\200\313\000\020\004"
   end
+
+  it "raises ArgumentError when year < 1900" do
+    t = Time.local(1899)
+    lambda { t._dump }.should raise_error(ArgumentError)
+  end
+
+  it "raises ArgumentError when year" do
+    t = Time.local(1900+0xffff)
+    lambda { t._dump }.should raise_error(ArgumentError)
+  end
 end
 
