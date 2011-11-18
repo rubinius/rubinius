@@ -59,6 +59,10 @@ describe "Kernel#eval" do
     a.should == 2
   end
 
+  it "finds locals in a nested eval" do
+    eval('test = 10; eval("test")').should == 10
+  end
+
   ruby_version_is ""..."1.9" do
     it "updates a local at script scope" do
       code = fixture __FILE__, "eval_locals.rb"

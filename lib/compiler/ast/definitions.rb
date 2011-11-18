@@ -951,7 +951,7 @@ module Rubinius
         depth = 1
         scope = @variable_scope
         while scope
-          if slot = scope.method.local_slot(name)
+          if !scope.method.for_eval? and slot = scope.method.local_slot(name)
             return Compiler::NestedLocalVariable.new(depth, slot)
           elsif scope.eval_local_defined?(name, false)
             return Compiler::EvalLocalVariable.new(name)

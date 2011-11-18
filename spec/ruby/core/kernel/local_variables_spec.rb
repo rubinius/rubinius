@@ -23,6 +23,11 @@ describe "Kernel.local_variables" do
       res = eval("local_variables",foo_binding)
       res.should include("a", "b")
     end
+
+    it "can see locals introduced by a previous eval" do
+      eval "foo = 5"
+      eval("local_variables").should == ["foo"]
+    end
   end
 
   ruby_version_is "1.9" do

@@ -1,31 +1,57 @@
 ---
 layout: doc_es
-title: Cómo - escribir un post en el Blog
+title: Cómo - Escribir un post en el Blog
 previous: Fix a Failing Spec
 previous_url: how-to/fix-a-failing-spec
 next: Write Documentation
 next_url: how-to/write-documentation
-translated: true
 ---
 
-El blog Rubinius utiliza Jekyll y está integrado con el sitio web y
-documentación. Animamos y apreciar los mensajes de evaluación sobre su blog
+El [blog de Rubinius][1] utiliza [Jekyll][2] y está integrado con el sitio web y
+la documentación. Animamos y apreciamos los posts de evaluación de las
 experiencias en el uso o el desarrollo de Rubinius.
+
+El formato preferido para los posts en el blog es Markdown. Sin embargo, si usted
+tiene alguna necesidad especial en el formato, el post puede ser escrito en HTML
+directamente.
+
+Clone el repositorio Rubinius, que es dónde está el website y los posts del blog.
+
+    git clone https://github.com/rubinius/rubinius.git
 
 Para empezar, asegúrese de tener las gemas `kramdown` y `jekyll` instaladas.
 
      rbx gem install kramdown jekyll
 
-El formato preferido para los post en el blog es Markdown. Sin embargo, si usted
-tiene especial necesidades del formato, el mensaje puede estar escrito en HTML
-directamente.
+Ahora vaya al directorio de los posts
 
-1. Cree un archivo en `web/_posts/` con el formato
-    `YYYY-MM-DD-perma-link.markdown` para el nombre del archivo.
-1. Escriba el mensaje.
-1. En el `web/`, ejecute `rbx -S jekyll`.
-1. Crear un commit de todos los cambios en el `web/` de la guía.
-1. Enviar un parche, o si usted tiene los derechos de comprometerse, impulsar
-   el compromiso de dominar.
-1. Nos dicen que hay una nueva entrada de blog. Es posible que haya alguna
-   información para usted antes de publicar.
+    cd rubinius/web/_posts
+
+Cree un archivo desde la consola usando el siguiente formato
+de nombre de archivo `YYYY-MM-DD-perma-link.markdown`.
+
+    touch "%(date +"%Y-%m-%d")-perma-link-title.markdown"
+
+Escriba un post brillante.
+
+    cat /dev/random > <<the file post>> # :-p
+
+Ejecute jekyll para compilar su website, inlcuyendo su post.
+
+    cd ../web/
+    rbx -S jekyll
+
+Cree un commit para todos los cambios en el directorio `web/`.
+
+    cd ../
+    git add web/
+    git commit -m "Wrote a blog post on ....."
+
+Envie un patch, pull request, o si ud. tiene derecho de commit, pushee
+el commit a la rama master.
+
+Díganos que ahí hay un nuevo post. Quizá tengamos un poco de feedback
+para ud. antes de publicarlo.
+
+[1]: /blog "Rubinius' Blog"
+[2]: https://github.com/mojombo/jekyll "Mojombo's Jekyll"

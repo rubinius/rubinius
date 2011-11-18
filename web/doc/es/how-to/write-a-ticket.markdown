@@ -1,6 +1,6 @@
 ---
 layout: doc_es
-title: How-To - Write a Ticket
+title: Como - Escribir un ticket
 previous: How-To
 previous_url: how-to
 next: Como escribir una especificación en Ruby
@@ -11,7 +11,7 @@ El issue tracker de Rubinius es <http://github.com/rubinius/rubinius/issues>.
 
 Para ser útiles, los tickets deben ser concisos, específicos y acciones
 concretas. Si no, el ticket va a languidecer y convertirce en desorden. En
-consecuencia, los tickets deben caer en uno (o más) de las siguientes
+consecuencia, los tickets deben caer en una (o más) de las siguientes
 categorías:
 
    1. Una historia precisa de la línea de comandos para demostrar cómo instalar
@@ -116,7 +116,7 @@ Supongamos que la siguiente spec existe y está fallando:
 4. Attachment:
 
 Por último, ponga el parche en un gist y agregue el enlace al gist
-de su issue.  A continuación se reproduce el parche en una línea opor una cuestión de integridad:
+de su issue.  A continuación se reproduce el parche en una línea por una cuestión de integridad:
 
 
     From c61cecce6442347ebbdf1ded7a5c0832c97582c1 Mon Sep 17 00:00:00 2001

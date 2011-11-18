@@ -1,6 +1,6 @@
 ---
 layout: doc_es
-title: How-To - Fix a Failing Spec
+title: Como - Arreglar una spec que falla
 previous: Write a Ruby Spec
 previous_url: how-to/write-a-ruby-spec
 next: Write a Blog Post
