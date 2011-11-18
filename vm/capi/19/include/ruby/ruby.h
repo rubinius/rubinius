@@ -17,6 +17,8 @@
 extern "C" {
 #endif
 
+#include "config.h"
+
 #include <stddef.h>
 #include <stdlib.h>
 #include <stdint.h>
@@ -78,10 +80,6 @@ extern "C" {
 #define ANYARGS
 #endif
 
-#ifndef NORETURN
-#define NORETURN(x) x
-#endif
-
 #ifdef __STDC__
 # include <limits.h>
 #else
@@ -101,7 +99,22 @@ extern "C" {
 # endif
 #endif
 
-#define LONG_LONG long long
+#if SIZEOF_LONG_LONG > 0
+# define LONG_LONG long long
+#endif
+
+#if SIZEOF_LONG == SIZEOF_VOIDP
+# define SIGNED_VALUE long
+# define SIZEOF_VALUE SIZEOF_LONG
+# define PRI_VALUE_PREFIX "l"
+#elif SIZEOF_LONG_LONG == SIZEOF_VOIDP
+# define SIGNED_VALUE LONG_LONG
+# define LONG_LONG_VALUE 1
+# define SIZEOF_VALUE SIZEOF_LONG_LONG
+# define PRI_VALUE_PREFIX "ll"
+#else
+# error ---->> ruby requires sizeof(void*) == sizeof(long) to be compiled. <<----
+#endif
 
 #ifndef RUBY_EXTERN
 #define RUBY_EXTERN extern
@@ -295,6 +308,8 @@ typedef void (*RUBY_DATA_FUNC)(void*);
     cCApiRational,
     cCApiComplex,
 
+    cCApiMathDomainError,
+
     // MUST be last
     cCApiMaxConstant
   } CApiConstant;
@@ -402,6 +417,7 @@ struct RFloat {
 };
 
 #define RFLOAT(d)       capi_rfloat_struct(d)
+#define RFLOAT_VALUE(d) RFLOAT(d)->value
 
 // Do not define these messages as strings. We want a syntax error.
 #define RHASH(obj)      ({ C_API_RHASH_is_not_supported_in_Rubinius })
@@ -530,6 +546,7 @@ typedef struct RIO rb_io_t;
 #define rb_eTypeError         (capi_get_constant(cCApiTypeError))
 #define rb_eThreadError       (capi_get_constant(cCApiThreadError))
 #define rb_eZeroDivError      (capi_get_constant(cCApiZeroDivisionError))
+#define rb_eMathDomainError   (capi_get_constant(cCApiMathDomainError))
 
 
 /* Interface macros */
@@ -619,6 +636,26 @@ unsigned long long rb_num2ull(VALUE);
 #define NUM2OFFT(x) ((off_t)NUM2LL(x))
 
 #define OFFT2NUM(x) LL2NUM((long long)x)
+
+#if SIZEOF_SIZE_T > SIZEOF_LONG
+# define NUM2SIZET(x) ((size_t)NUM2ULL(x))
+# define NUM2SSIZET(x) ((size_t)NUM2LL(x))
+#else
+# define NUM2SIZET(x) NUM2ULONG(x)
+# define NUM2SSIZET(x) NUM2LONG(x)
+#endif
+
+#if SIZEOF_SIZE_T > SIZEOF_LONG
+# define SIZET2NUM(v) ULL2NUM(v)
+# define SSIZET2NUM(v) LL2NUM(v)
+#elif SIZEOF_SIZE_T == SIZEOF_LONG
+# define SIZET2NUM(v) ULONG2NUM(v)
+# define SSIZET2NUM(v) LONG2NUM(v)
+#else
+# define SIZET2NUM(v) UINT2NUM(v)
+# define SSIZET2NUM(v) INT2NUM(v)
+#endif
+
 
 /** Convert from a Float to a double */
 double rb_num2dbl(VALUE);
@@ -931,11 +968,30 @@ VALUE rb_uint2big(unsigned long number);
 
   int rb_big_sign(VALUE obj);
 #define RBIGNUM_SIGN(obj) rb_big_sign(obj)
+#define RBIGNUM_POSITIVE_P(b) RBIGNUM_SIGN(b)
+#define RBIGNUM_NEGATIVE_P(b) (!RBIGNUM_SIGN(b))
 
-  // fake out, used with RBIGNUM_LEN anyway, which provides
-  // the full answer
-#define SIZEOF_BDIGITS 1
-
+#if SIZEOF_INT*2 <= SIZEOF_LONG_LONG
+# define BDIGIT unsigned int
+# define SIZEOF_BDIGITS SIZEOF_INT
+# define BDIGIT_DBL unsigned LONG_LONG
+# define BDIGIT_DBL_SIGNED LONG_LONG
+#elif SIZEOF_INT*2 <= SIZEOF_LONG
+# define BDIGIT unsigned int
+# define SIZEOF_BDIGITS SIZEOF_INT
+# define BDIGIT_DBL unsigned long
+# define BDIGIT_DBL_SIGNED long
+#elif SIZEOF_SHORT*2 <= SIZEOF_LONG
+# define BDIGIT unsigned short
+# define SIZEOF_BDIGITS SIZEOF_SHORT
+# define BDIGIT_DBL unsigned long
+# define BDIGIT_DBL_SIGNED long
+#else
+# define BDIGIT unsigned short
+# define SIZEOF_BDIGITS (SIZEOF_LONG/2)
+# define BDIGIT_DBL unsigned long
+# define BDIGIT_DBL_SIGNED long
+#endif
 
   /** Calls this method in a superclass. */
   VALUE rb_call_super(int argc, const VALUE *argv);
