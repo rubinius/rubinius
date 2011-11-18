@@ -19,4 +19,4 @@ A continuación, siga estos pasos para escribir una spec para un método Ruby:
   3. Repita hasta que la spec pase en MatzRuby
   4. Comitee sus cambios
   7. Use `git format-patch`
-  8. Cree un gist con su parche y agregue  el enlace a este en un ticket en el issue tracker en en http://github.com/rubinius/rubinius/issues.
+  8. Cree un gist con su parche y agregue  el enlace a este en un ticket en el issue tracker en http://github.com/rubinius/rubinius/issues.
