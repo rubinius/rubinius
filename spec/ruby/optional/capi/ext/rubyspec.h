@@ -36,6 +36,8 @@
 #define HAVE_RB_MEM_CLEAR                  1
 
 /* Bignum */
+#define HAVE_RBIGNUM_NEGATIVE_P            1
+#define HAVE_RBIGNUM_POSITIVE_P            1
 #define HAVE_RBIGNUM_SIGN                  1
 #define HAVE_RB_BIG2DBL                    1
 #define HAVE_RB_BIG2LL                     1
