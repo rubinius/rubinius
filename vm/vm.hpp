@@ -384,10 +384,12 @@ namespace rubinius {
     State* state_;
 
   public:
-    StopTheWorld(STATE) :
+    StopTheWorld(STATE, GCToken gct, CallFrame* cf) :
       state_(state)
     {
-      state->stop_the_world();
+      while(!state->stop_the_world()) {
+        state->checkpoint(gct, cf);
+      }
     }
 
     ~StopTheWorld() {

@@ -98,9 +98,9 @@ namespace rubinius {
       return vm_->local_slab();
     }
 
-    void stop_the_world() {
-      shared_.stop_the_world(vm_);
-    }
+    bool stop_the_world() WARN_UNUSED {
+      return shared_.stop_the_world(vm_);
+    };
 
     void restart_world() {
       shared_.restart_world(vm_);

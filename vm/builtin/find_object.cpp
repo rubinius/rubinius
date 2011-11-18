@@ -18,6 +18,8 @@
 
 #include "builtin/system.hpp"
 
+#include "on_stack.hpp"
+
 #include "object_utils.hpp"
 
 namespace rubinius {
@@ -254,7 +256,8 @@ namespace rubinius {
     return 0;
   }
 
-  Object* System::vm_find_object(STATE, Array* arg, Object* callable,
+  Object* System::vm_find_object(STATE, GCToken gct,
+                                 Array* arg, Object* callable,
                                  CallFrame* calling_environment)
   {
     ObjectMemory::GCInhibit inhibitor(state->memory());
@@ -262,6 +265,7 @@ namespace rubinius {
     // Support an aux mode, where callable is an array and we just append
     // objects to it rather than #call it.
     Array* ary = try_as<Array>(callable);
+    if(!ary) ary = nil<Array>();
 
     Array* args = Array::create(state, 1);
 
@@ -275,7 +279,7 @@ namespace rubinius {
     // Special case for looking for an object_id of an immediate
     if(ObjectIdCondition* oic = dynamic_cast<ObjectIdCondition*>(condition)) {
       if(Object* obj = oic->immediate()) {
-        if(ary) {
+        if(!ary->nil_p()) {
           ary->append(state, obj);
         } else {
           args->set(state, 0, obj);
@@ -289,19 +293,17 @@ namespace rubinius {
       }
     }
 
-    // Because we're going to look at other threads CallFrame chains, we have
-    // to stop them first.
-    state->stop_the_world();
+    OnStack<2> os(state, ary, args);
 
     state->set_call_frame(calling_environment);
     ObjectWalker walker(state->memory());
     GCData gc_data(state->vm());
 
-    // Seed it with the root objects.
-    walker.seed(gc_data);
-
-    // We've touched other threads now, so we can restart everyone.
-    state->restart_world();
+    {
+      StopTheWorld stw(state, gct, calling_environment);
+      // Seed it with the root objects.
+      walker.seed(gc_data);
+    }
 
     Object* obj = walker.next();
 
@@ -309,7 +311,7 @@ namespace rubinius {
       if(condition->perform(state, obj)) {
         total++;
 
-        if(ary) {
+        if(!ary->nil_p()) {
           ary->append(state, obj);
         } else {
           args->set(state, 0, obj);

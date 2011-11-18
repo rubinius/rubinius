@@ -494,32 +494,21 @@ step1:
     // Don't go any further unless we're allowed to GC.
     if(!can_gc()) return;
 
+    while(!state->stop_the_world()) {
+      state->checkpoint(gct, call_frame);
+
+      // Someone else got to the GC before we did! No problem, all done!
+      if(!collect_young_now && !collect_mature_now) return;
+    }
+
+    // Ok, everyone in stopped! LET'S GC!
+
     SYNC(state);
 
-    // If we were checkpointed, then someone else ran the GC, just return.
-    if(state->shared().should_stop()) {
-      UNSYNC;
-      state->checkpoint(gct, call_frame);
-      return;
-    }
-
     if(cDebugThreading) {
-      std::cerr << std::endl << "[ " << state << " WORLD beginning GC.]" << std::endl;
+      std::cerr << std::endl << "[ " << state
+                << " WORLD beginning GC.]" << std::endl;
     }
-
-    // Stops all other threads, so we're only here by ourselves.
-    //
-    // First, ask them to stop.
-    state->shared().ask_for_stopage();
-
-    // Now unlock ObjectMemory so that they can spin to any checkpoints.
-    UNSYNC;
-
-    // Wait for them all to check in.
-    state->stop_the_world();
-
-    // Now we're alone, but we lock again just to safe.
-    RESYNC;
 
     GCData gc_data(state->vm(), gct);
 
@@ -545,32 +534,21 @@ step1:
     // Don't go any further unless we're allowed to GC.
     if(!can_gc()) return;
 
+    while(!state->stop_the_world()) {
+      state->checkpoint(gct, call_frame);
+
+      // Someone else got to the GC before we did! No problem, all done!
+      if(!collect_young_now && !collect_mature_now) return;
+    }
+
+    // Ok, everyone in stopped! LET'S GC!
+
     SYNC(state);
 
-    // If we were checkpointed, then someone else ran the GC, just return.
-    if(state->shared().should_stop()) {
-      UNSYNC;
-      state->checkpoint(gct, call_frame);
-      return;
-    }
-
     if(cDebugThreading) {
-      std::cerr << std::endl << "[" << state << " WORLD beginning GC.]" << std::endl;
+      std::cerr << std::endl << "[" << state
+                << " WORLD beginning GC.]" << std::endl;
     }
-
-    // Stops all other threads, so we're only here by ourselves.
-    //
-    // First, ask them to stop.
-    state->shared().ask_for_stopage();
-
-    // Now unlock ObjectMemory so that they can spin to any checkpoints.
-    UNSYNC;
-
-    // Wait for them all to check in.
-    state->stop_the_world();
-
-    // Now we're alone, but we lock again just to safe.
-    RESYNC;
 
     GCData gc_data(state->vm(), gct);
 
