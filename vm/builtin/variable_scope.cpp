@@ -80,12 +80,14 @@ namespace rubinius {
   Object* VariableScope::set_local_prim(STATE, Fixnum* number, Object* object) {
     int num = number->to_int();
 
-    if (number_of_locals_ > num && num >= 0) {
-      set_local(state, number->to_int(), object);
-      return Qnil;
-    } else {
-      return Primitives::failure();
+    if(num < 0) {
+      Exception::argument_error(state, "negative local index");
+    } else if (num >= number_of_locals_) {
+      Exception::argument_error(state, "index larger than number of locals");
     }
+
+    set_local(state, num, object);
+    return Qnil;
   }
 
   // bootstrap method, replaced with an attr_accessor in kernel.
