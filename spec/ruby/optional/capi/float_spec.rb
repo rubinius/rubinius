@@ -32,6 +32,12 @@ describe "CApiFloatSpecs" do
     end
   end
 
+  describe "RFLOAT_VALUE" do
+    it "returns the C double value of the Float" do
+      @f.RFLOAT_VALUE(2.3).should == 2.3
+    end
+  end
+
   describe "rb_Float" do
     it "creates a new Float from a String" do
       f = @f.rb_Float("101.99")

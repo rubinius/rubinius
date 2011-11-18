@@ -36,6 +36,12 @@ static VALUE float_spec_RFLOAT_value(VALUE self, VALUE float_h) {
 }
 #endif
 
+#ifdef HAVE_RFLOAT_VALUE
+static VALUE float_spec_RFLOAT_VALUE(VALUE self, VALUE float_h) {
+  return rb_float_new(RFLOAT_VALUE(float_h));
+}
+#endif
+
 void Init_float_spec() {
   VALUE cls;
   cls = rb_define_class("CApiFloatSpecs", rb_cObject);
@@ -52,6 +58,10 @@ void Init_float_spec() {
 #ifdef HAVE_RFLOAT
   rb_define_method(cls, "RFLOAT_value", float_spec_RFLOAT_value, 1);
   rb_define_method(cls, "RFLOAT_value_set", float_spec_RFLOAT_value_set, 2);
+#endif
+
+#ifdef HAVE_RFLOAT_VALUE
+  rb_define_method(cls, "RFLOAT_VALUE", float_spec_RFLOAT_VALUE, 1);
 #endif
 }
 
