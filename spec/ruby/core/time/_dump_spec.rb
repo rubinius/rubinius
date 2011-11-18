@@ -55,7 +55,7 @@ describe "Time#_dump" do
     lambda { t._dump }.should raise_error(ArgumentError)
   end
 
-  it "raises ArgumentError when year" do
+  it "raises ArgumentError when year >= 1900+0xffff" do
     t = Time.local(1900+0xffff)
     lambda { t._dump }.should raise_error(ArgumentError)
   end
