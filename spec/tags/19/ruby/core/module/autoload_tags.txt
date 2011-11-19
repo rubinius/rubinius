@@ -1,1 +1,2 @@
 fails:Module#autoload does not load the file when refering to the constant in defined?
+fails:Module#autoload return 'constant' on refering the constant with defined?()
