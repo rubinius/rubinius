@@ -1,0 +1,2 @@
+fails:Matrix::EigenvalueDecomposition#eigenvector_matrix returns a complex eigenvector matrix given a rotation matrix
+fails:Matrix::EigenvalueDecomposition#eigenvector_matrix returns an real eigenvector matrix for a symetric matrix

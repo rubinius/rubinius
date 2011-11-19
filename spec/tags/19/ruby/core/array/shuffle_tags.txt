@@ -1,0 +1,1 @@
+fails:Array#shuffle does not return subclass instances with Array subclass

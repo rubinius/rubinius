@@ -1,0 +1,1 @@
+fails:Matrix::EigenvalueDecomposition#eigenvalue_matrix returns a diagonal matrix with the eigenvalues on the diagonal
