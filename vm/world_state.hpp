@@ -137,6 +137,20 @@ namespace rubinius {
 
     void stop_threads_externally() {
       thread::Mutex::LockGuard guard(mutex_);
+      if(should_stop_) {
+        if(cDebugThreading) {
+          std::cerr << "[WORLD waiting to stopping all threads (as external event)]\n";
+        }
+
+        // Wait around on the run condition variable until whoever is currently
+        // working independently is done and sets should_stop_ to false.
+        while(should_stop_) {
+          waiting_to_run_.wait(mutex_);
+        }
+
+        // Ok, now we can stop all the threads for ourself.
+      }
+
       should_stop_ = true;
 
       if(cDebugThreading) {
