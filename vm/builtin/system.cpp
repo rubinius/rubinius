@@ -433,7 +433,7 @@ namespace rubinius {
     return NULL;
   }
 
-  Fixnum* System::vm_fork(STATE, CallFrame* calling_environment)
+  Fixnum* System::vm_fork(STATE, GCToken gct, CallFrame* calling_environment)
   {
 #ifdef RBX_WINDOWS
     // TODO: Windows
@@ -447,6 +447,13 @@ namespace rubinius {
       LLVMState::pause(state);
     }
 #endif
+
+    /*
+     * We have to bring all the threads to a safe point before we can
+     * fork the process so any internal locks are unlocked before we fork
+     */
+
+    StopTheWorld stw(state, gct, calling_environment);
 
     // ok, now fork!
     result = ::fork();

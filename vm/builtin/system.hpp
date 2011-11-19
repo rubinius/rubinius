@@ -73,7 +73,7 @@ namespace rubinius {
      *  System fork()
      */
     // Rubinius.primitive :vm_fork
-    static Fixnum*  vm_fork(STATE, CallFrame* calling_environment);
+    static Fixnum*  vm_fork(STATE, GCToken gct, CallFrame* calling_environment);
 
     /**
      *  Force garbage collection as soon as possible.

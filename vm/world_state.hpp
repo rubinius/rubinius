@@ -31,7 +31,7 @@ namespace rubinius {
       mutex_.init();
       waiting_to_stop_.init();
       waiting_to_run_.init();
-      pending_threads_ = 1;
+      pending_threads_ = 0;
       should_stop_ = false;
     }
 
