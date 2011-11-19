@@ -113,6 +113,7 @@ namespace rubinius {
 
     void        write_barrier(gc::WriteBarrier* wb, void* obj);
 
+    void        setup_allocation_site(STATE, CallFrame* call_frame = NULL);
 
   public:   /* Type information, field access, copy support &c. */
 

@@ -322,6 +322,7 @@ class Configure
     feature "C-readline", true
     feature "ruby-readline", false
     feature "vendor-zlib", !!@windows
+    feature "alloc-tracking", false
 
     o.doc "\n Help!"
 
@@ -933,6 +934,10 @@ int main() { return tgetnum(""); }
   def detect_features
     if @features["execinfo"] and has_function("backtrace", ["execinfo.h"])
       @defines << "HAS_EXECINFO"
+    end
+
+    if @features["alloc-tracking"]
+      @defines << "RBX_ALLOC_TRACKING"
     end
 
     if @features["C-readline"] and

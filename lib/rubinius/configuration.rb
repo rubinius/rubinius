@@ -127,6 +127,9 @@ Rubinius::ConfigurationVariables.define do |c|
   c.vm_variable "ic.stats", false,
     "Print out stats about the InlineCaches before exiting"
 
+  c.vm_variable "allocation_tracking", false,
+    "Enable allocation tracking for new objects"
+
   c.vm_variable "profile", false,
     "Configure the system to profile ruby code"
 

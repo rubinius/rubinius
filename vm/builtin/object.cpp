@@ -830,6 +830,11 @@ namespace rubinius {
     wb->write_barrier(this, reinterpret_cast<Object*>(obj));
   }
 
+  void Object::setup_allocation_site(STATE, CallFrame* call_frame) {
+    this->set_ivar(state, G(sym_allocation_site),
+                   Location::create(state, call_frame));
+  }
+
 }
 
 extern "C" long __id__(rubinius::Object* obj) {

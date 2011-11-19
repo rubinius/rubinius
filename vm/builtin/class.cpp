@@ -17,6 +17,7 @@
 #include "builtin/packed_object.hpp"
 #include "builtin/array.hpp"
 #include "builtin/exception.hpp"
+#include "builtin/location.hpp"
 
 #include "builtin/executable.hpp"
 
@@ -135,7 +136,13 @@ namespace rubinius {
 
   Object* Class::allocate(STATE, GCToken gct, CallFrame* calling_environment) {
     if(type_info_->type == PackedObject::type) {
-      return allocate_packed(state, gct, this, calling_environment);
+      Object* new_obj = allocate_packed(state, gct, this, calling_environment);
+#ifdef RBX_ALLOC_TRACKING
+      if(unlikely(state->vm()->allocation_tracking())) {
+        new_obj->setup_allocation_site(state, calling_environment);
+      }
+#endif
+      return new_obj;
     } else if(!type_info_->allow_user_allocate || kind_of<SingletonClass>(this)) {
       Exception::type_error(state, "direct allocation disabled");
       return Qnil;
@@ -145,12 +152,24 @@ namespace rubinius {
       OnStack<1> os(state, self);
 
       auto_pack(state, gct);
-      return allocate_packed(state, gct, self, calling_environment);
+      Object* new_obj = allocate_packed(state, gct, this, calling_environment);
+#ifdef RBX_ALLOC_TRACKING
+      if(unlikely(state->vm()->allocation_tracking())) {
+        new_obj->setup_allocation_site(state, calling_environment);
+      }
+#endif
+      return new_obj;
     } else {
       // type_info_->type is neither PackedObject nor Object, so use the
       // generic path.
-      return state->vm()->new_object_typed(this,
+      Object* new_obj = state->vm()->new_object_typed(this,
           type_info_->instance_size, type_info_->type);
+#ifdef RBX_ALLOC_TRACKING
+      if(unlikely(state->vm()->allocation_tracking())) {
+        new_obj->setup_allocation_site(state, calling_environment);
+      }
+#endif
+      return new_obj;
     }
   }
 

@@ -93,6 +93,7 @@ namespace rubinius {
 
     rbxti::Env* tooling_env_;
     bool tooling_;
+    bool allocation_tracking_;
 
   public:
     /* Data members */
@@ -243,6 +244,18 @@ namespace rubinius {
 
     void disable_tooling() {
       tooling_ = false;
+    }
+
+    bool allocation_tracking() {
+      return allocation_tracking_;
+    }
+
+    void enable_allocation_tracking() {
+      allocation_tracking_ = true;
+    }
+
+    void disable_allocation_tracking() {
+      allocation_tracking_ = false;
     }
 
   public:

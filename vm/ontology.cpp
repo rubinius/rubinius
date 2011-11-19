@@ -495,6 +495,7 @@ namespace rubinius {
     GO(sym_tequal).set(symbol("==="));
     GO(sym_lt).set(symbol("<"));
     GO(sym_gt).set(symbol(">"));
+    GO(sym_allocation_site).set(symbol("@__allocation_site__"));
   }
 
   void VM::setup_errno(STATE, int num, const char* name, Class* sce, Module* ern) {
