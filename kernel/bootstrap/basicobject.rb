@@ -1,4 +1,9 @@
 class BasicObject
+  def initialize
+    # do nothing
+  end
+  private :initialize
+
   def equal?(other)
     Rubinius.primitive :object_equal
     raise PrimitiveFailure, "BasicObject#equal? primitive failed"
