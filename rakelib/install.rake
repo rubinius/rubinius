@@ -134,7 +134,7 @@ namespace :install do
 
       # New C extensions
       ["digest", "openssl", "dbm", "gdbm", "sbdm", ].each do |lib|
-        FileList["lib/#{lib}/ext/*.#{$dlext}"].each do |name|
+        FileList["lib/#{lib}/ext/**/*.#{$dlext}"].each do |name|
           install_file name, /^lib/, BUILD_CONFIG[:lib_path]
         end
       end
