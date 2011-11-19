@@ -133,6 +133,12 @@ namespace :install do
       end
 
       # New C extensions
+      ["digest", "openssl", "dbm", "gdbm", "sbdm", ].each do |lib|
+        FileList["lib/#{lib}/ext/*.#{$dlext}"].each do |name|
+          install_file name, /^lib/, BUILD_CONFIG[:lib_path]
+        end
+      end
+
       ["readline", "syck"].each do |lib|
         FileList["lib/18/#{lib}/ext/*.#{$dlext}"].each do |name|
           install_file name, /^lib/, BUILD_CONFIG[:lib_path]
