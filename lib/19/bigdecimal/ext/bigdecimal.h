@@ -54,10 +54,7 @@ llabs(LONG_LONG const x)
 
 extern VALUE rb_cBigDecimal;
 
-#if 0 || SIZEOF_BDIGITS >= 16
-# define RMPD_COMPONENT_FIGURES 38
-# define RMPD_BASE ((BDIGIT)100000000000000000000000000000000000000U)
-#elif SIZEOF_BDIGITS >= 8
+#if SIZEOF_BDIGITS >= 8
 # define RMPD_COMPONENT_FIGURES 19
 # define RMPD_BASE ((BDIGIT)10000000000000000000U)
 #elif SIZEOF_BDIGITS >= 4
@@ -70,7 +67,6 @@ extern VALUE rb_cBigDecimal;
 # define RMPD_COMPONENT_FIGURES 2
 # define RMPD_BASE ((BDIGIT)100U)
 #endif
-
 
 /*
  *  NaN & Infinity
