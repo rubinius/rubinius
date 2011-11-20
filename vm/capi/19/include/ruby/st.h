@@ -12,6 +12,8 @@ extern "C" {
 #endif
 #endif
 
+#include "ruby.h"
+
 #if defined __GNUC__ && __GNUC__ >= 4
 #pragma GCC visibility push(default)
 #endif
