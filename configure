@@ -95,7 +95,6 @@ class Configure
     @runtime      = @libdir + "/runtime"
     @kernel_path  = @libdir + "/kernel"
     @lib_path     = @libdir + "/lib"
-    @ext_path     = @libdir + "/lib/ext"
     @mandir       = root + "/man"
     @gemsdir      = root + "/gems"
 
@@ -114,7 +113,7 @@ class Configure
     @libversion = "2.0"
     @version = "#{@libversion}.0dev"
     @release_date = "yyyy-mm-dd"
-    @config_version = 145
+    @config_version = 146
 
     # TODO: add conditionals for platforms
     if RbConfig::CONFIG["build_os"] =~ /darwin/
@@ -262,7 +261,6 @@ class Configure
       @runtime      = @libdir + "/runtime"
       @kernel_path  = @libdir + "/kernel"
       @lib_path     = @libdir + "/lib"
-      @ext_path     = @libdir + "/lib/ext"
       @mandir       = dir + "/man"
       @gemsdir      = dir + "/gems"
 
@@ -289,7 +287,6 @@ class Configure
       @runtime      = @libdir + "/runtime"
       @kernel_path  = @libdir + "/kernel"
       @lib_path     = @libdir + "/lib"
-      @ext_path     = @libdir + "/lib/ext"
 
       @sitedir      = @libdir + "/site"
       @vendordir    = @libdir + "/vendor"
@@ -1085,7 +1082,6 @@ module Rubinius
     :runtime        => "#{@runtime}",
     :kernel_path    => "#{@kernel_path}",
     :lib_path       => "#{@lib_path}",
-    :ext_path       => "#{@ext_path}",
     :include18dir   => "#{@include18dir}",
     :include19dir   => "#{@include19dir}",
     :include20dir   => "#{@include20dir}",
@@ -1129,7 +1125,6 @@ end
 #define RBX_RUNTIME       "#{@runtime}"
 #define RBX_KERNEL_PATH   "#{@kernel_path}"
 #define RBX_LIB_PATH      "#{@lib_path}"
-#define RBX_EXT_PATH      "#{@ext_path}"
 #define RBX_HDR18_PATH    "#{@include18dir}"
 #define RBX_HDR19_PATH    "#{@include19dir}"
 #define RBX_HDR20_PATH    "#{@include20dir}"
@@ -1184,7 +1179,6 @@ end
 #define RBX_RUNTIME       "#{@runtime}"
 #define RBX_KERNEL_PATH   "#{@kernel_path}"
 #define RBX_LIB_PATH      "#{@lib_path}"
-#define RBX_EXT_PATH      "#{@ext_path}"
 #define RBX_HDR18_PATH    "#{@include18dir}"
 #define RBX_HDR19_PATH    "#{@include19dir}"
 #define RBX_HDR20_PATH    "#{@include20dir}"
