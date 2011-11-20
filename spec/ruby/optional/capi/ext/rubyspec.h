@@ -366,6 +366,14 @@
 #define HAVE_RUBY_SETENV                   1
 #define HAVE_RUBY_STRDUP                   1
 
+/* st.h */
+#define HAVE_ST_INIT_STRTABLE              1
+#define HAVE_ST_INSERT                     1
+#define HAVE_ST_LOOKUP                     1
+#define HAVE_ST_DELETE                     1
+#define HAVE_ST_FOREACH                    1
+
+
 /* Define convenience macros similar to the RubySpec guards to assist
  * with version incompatibilities.
  */
