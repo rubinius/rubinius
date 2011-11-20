@@ -11,5 +11,11 @@ describe "Thread#kill!" do
 end
 
 describe "Thread.kill" do
-  it "needs to be reviewed for spec completeness"
+  it "causes the given thread to exit" do
+    thread = Thread.new { sleep }
+    Thread.pass while thread.status and thread.status != "sleep"
+    Thread.kill(thread)
+    thread.join
+    thread.status.should be_false
+  end
 end
