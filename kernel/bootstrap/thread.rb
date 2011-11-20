@@ -390,6 +390,10 @@ class Thread
     Thread.current.group.list
   end
 
+  def self.exit
+    Thread.current.kill
+  end
+
   alias_method :run, :wakeup
 
 end
