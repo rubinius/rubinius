@@ -394,6 +394,10 @@ class Thread
     Thread.current.kill
   end
 
+  def self.kill(thread)
+    thread.kill
+  end
+
   alias_method :run, :wakeup
 
 end
