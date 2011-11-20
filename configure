@@ -25,6 +25,7 @@ class Configure
     /([^-]+)-([^-]+)-(.*)/ =~ @host
     @cpu, @vendor, @os = $1, $2, $3
     @little_endian = false
+    @sizeof = {}
 
     # TODO: For better cross-compiling support, it may be necessary to
     # use the feature facility to check for a define in the compiler.
@@ -113,7 +114,7 @@ class Configure
     @libversion = "2.0"
     @version = "#{@libversion}.0dev"
     @release_date = "yyyy-mm-dd"
-    @config_version = 146
+    @config_version = 147
 
     # TODO: add conditionals for platforms
     if RbConfig::CONFIG["build_os"] =~ /darwin/
@@ -178,14 +179,12 @@ class Configure
     o.on "--default-version", "VERSION", "Enable Ruby VERSION as the default" do |v|
       version = normalize_versions v
       if version.size > 1
-        @log.error "Only one version can be default, given: #{version.inspect}"
-        failure
+        failure "Only one version can be default, given: #{version.inspect}."
       end
       @default_version = version.first
 
       unless @version_list.include? @default_version
-        @log.error "Requested default version #{@default_version} is not enabled."
-        failure
+        failure "Requested default version #{@default_version} is not enabled."
       end
     end
 
@@ -361,10 +360,9 @@ class Configure
     versions = str.gsub(/[^\d,]/, "").split(',')
     versions.each do |ver|
       unless @supported_versions.include? ver
-        @log.error <<-EOM
+        failure <<-EOM
 Unsupported language version requested: #{ver}. Options are #{@supported_versions.join(", ")}
         EOM
-        failure
       end
     end
     versions
@@ -576,8 +574,7 @@ Unsupported language version requested: #{ver}. Options are #{@supported_version
 
   def remove_default
     if File.exists?(File.join(@llvm_default, "Makefile.common"))
-      @log.error "ABORT: Unwilling to override custom LLVM tree, please update it manually"
-      failure
+      failure "ABORT: Unwilling to override custom LLVM tree, please update it manually."
     else
       @log.write "    Removing outdated tree..."
       FileUtils.rm_rf(@llvm_default)
@@ -614,8 +611,7 @@ Unsupported language version requested: #{ver}. Options are #{@supported_version
     # If they explicitly said where LLVM is, use that and fail hard.
     if @llvm_path
       unless setup_path
-        @log.error "ABORT: Path '#{@llvm_path}' not a proper LLVM path"
-        failure
+        failure "ABORT: Path '#{@llvm_path}' not a proper LLVM path."
       end
 
       return
@@ -689,8 +685,11 @@ Unsupported language version requested: #{ver}. Options are #{@supported_version
     libs
   end
 
-  def failure
-    puts "\n'configure' has failed. Please check configure.log for more details."
+  def failure(message=nil)
+    message ||= "'configure' has failed."
+    @log.error message
+
+    STDERR.puts "\n#{message} Please check configure.log for more details."
     exit 1
   end
 
@@ -710,8 +709,7 @@ Unsupported language version requested: #{ver}. Options are #{@supported_version
       return $?.exitstatus unless run
 
       unless $?.exitstatus == 0
-        @log.error "compiling configure test program failed"
-        failure
+        failure "Compiling configure test program failed."
       end
 
       system expand("./#{basename}")
@@ -721,26 +719,33 @@ Unsupported language version requested: #{ver}. Options are #{@supported_version
     end
   end
 
+  def write_have_defines(f)
+    @sizeof.keys.sort.each { |k| f.puts "#define HAVE_#{k}".ljust(30) + "1" }
+  end
+
+  def write_sizeof_defines(f)
+    @sizeof.keys.sort.each { |k| f.puts "#define SIZEOF_#{k}".ljust(30) + @sizeof[k].to_s }
+  end
+
   def sizeof_typename(type)
     if type =~ /(\*+)$/
       name = "#{type[0...-$1.size]}#{"p" * $1.size}"
     else
       name = type
     end
-    name.gsub(/\W/, "_")
+    name.gsub(/\W/, "_").upcase
   end
 
   def sizeof(type)
-    size = instance_variable_get "@sizeof_#{sizeof_typename(type)}"
-    fail unless size
-    size
+    @sizeof[sizeof_typename(type)] or failure("Unknown type: '#{type}'.")
   end
 
-  def detect_sizeof(type)
+  def detect_sizeof(type, includes=[])
     @log.print "Checking sizeof(#{type}): "
 
     size = check_program do |f|
-      src = <<-EOP
+      src = includes.map { |include| "#include <#{include}>" }.join("\n")
+      src += <<-EOP
 #include <stddef.h>
 
 int main() { return sizeof(#{type}); }
@@ -749,7 +754,7 @@ int main() { return sizeof(#{type}); }
       @log.log src
     end
 
-    instance_variable_set "@sizeof_#{sizeof_typename(type)}", size
+    @sizeof[sizeof_typename(type)] = size
 
     @log.write "#{size} bytes"
   end
@@ -981,6 +986,10 @@ int main() { return tgetnum(""); }
     detect_sizeof("size_t")
     detect_sizeof("long")
     detect_sizeof("long long")
+    detect_sizeof("float")
+    detect_sizeof("double")
+    detect_sizeof("off_t", ["unistd.h"])
+    detect_sizeof("time_t", ["time.h"])
 
     detect_endian
     detect_tr1_hash
@@ -1034,14 +1043,11 @@ int main() { return tgetnum(""); }
     if $?.exitstatus == 0
       v = output.scan(regexp)[0].map(&:to_i)
       unless (v <=> version) >= 0
-        msg = " Expected #{tool_name} version >= #{version.join('.')}, found #{v.join('.')}"
-        @log.error msg
-        failure
+        failure " Expected #{tool_name} version >= #{version.join('.')}, found #{v.join('.')}"
       end
       @log.write " found"
     else
-      @log.error " not found"
-      failure
+      failure "#{tool_name} not found."
     end
   end
 
@@ -1228,13 +1234,11 @@ end
 #define NORETURN(x) __attribute__ ((noreturn)) x
 #endif
 
-#define SIZEOF_SHORT        #{sizeof("short")}
-#define SIZEOF_INT          #{sizeof("int")}
-#define SIZEOF_VOIDP        #{sizeof("void*")}
-#define SIZEOF_LONG         #{sizeof("long")}
-#define SIZEOF_LONG_LONG    #{sizeof("long long")}
-
       EOC
+
+      write_have_defines f
+      f.puts
+      write_sizeof_defines f
 
       if @windows
         f.puts "#define RBX_WINDOWS 1"
@@ -1279,8 +1283,7 @@ end
 
   def run
     unless which_ruby == :ruby or which_ruby == :rbx
-      @log.error "Sorry, building Rubinius requires MRI or Rubinius"
-      failure
+      failure "Sorry, building Rubinius requires MRI or Rubinius."
     end
 
     if File.exists? @config
@@ -1298,9 +1301,8 @@ end
       if ENV['PATH'] =~ /#{@bindir}/
         @log.error "  * Remove '#{@bindir}' from your PATH."
       end
-      @log.error "  * Use a Ruby executable other than '#{build_ruby}' to build."
 
-      failure
+      failure "  * Use a Ruby executable other than '#{build_ruby}' to build."
     end
 
     process
