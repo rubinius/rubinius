@@ -9,7 +9,7 @@
 # some methods in String classes are added to allow easy conversion.
 #
 
-require 'ext/nkf/nkf'
+require 'nkf/ext/nkf'
 
 #
 # Kanji Converter for Ruby.
