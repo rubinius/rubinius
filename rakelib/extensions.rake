@@ -123,10 +123,15 @@ compile_ext "digest:sha2", :dir => "lib/digest/ext/sha2"
 compile_ext "digest:bubblebabble", :dir => "lib/digest/ext/bubblebabble"
 
 compile_ext "bigdecimal", :dir => "lib/18/bigdecimal/ext", :env => "-X18"
-compile_ext "bigdecimal", :dir => "lib/19/bigdecimal/ext", :env => "-X19"
+compile_ext "bigdecimal", :dir => "lib/19/bigdecimal/ext",
+                          :deps => ["Makefile", "extconf.rb"],
+                          :env => "-X19"
 
 compile_ext "syck", :dir => "lib/18/syck/ext"
 compile_ext "nkf", :dir => "lib/18/nkf/ext", :env => "-X18"
+compile_ext "nkf", :dir => "lib/19/nkf/ext",
+                   :deps => ["Makefile", "extconf.rb"],
+                   :env => "-X19"
 
 if BUILD_CONFIG[:readline] == :c_readline
   compile_ext "readline", :dir => "lib/18/readline/ext"
