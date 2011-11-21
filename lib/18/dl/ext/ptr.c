@@ -22,7 +22,6 @@ static st_table* st_memory_table;
 static void
 rb_dlmem_delete(void *ptr)
 {
-  rb_secure(4);
   st_delete(st_memory_table, (st_data_t*)&ptr, NULL);
 }
 
