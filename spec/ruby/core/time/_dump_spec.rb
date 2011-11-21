@@ -44,6 +44,16 @@ describe "Time#_dump" do
     low.should == @s.unpack("VV").last
   end
 
+  it "raises ArgumentError when year < 1900" do
+    t = Time.local(1899)
+    lambda { t._dump }.should raise_error(ArgumentError)
+  end
+
+  it "raises ArgumentError when year >= 1900+0xffff" do
+    t = Time.local(1900+0xffff)
+    lambda { t._dump }.should raise_error(ArgumentError)
+  end
+
   it "dumps like MRI's marshaled time format" do
     t = Time.utc(2000, 1, 15, 20, 1, 1, 203).localtime
 
