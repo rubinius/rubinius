@@ -957,7 +957,7 @@ class Array
   # invoked on subclasses. See #reject!
   def reject(&block)
     return to_enum(:reject) unless block_given?
-    dup.reject!(&block) || self
+    dup.reject!(&block) || dup
   end
 
   # Equivalent to #delete_if except that returns nil if
