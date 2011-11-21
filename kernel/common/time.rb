@@ -72,7 +72,7 @@ class Time
   def _dump(limit = nil)
     tm = decomposed(true)
 
-    if (year & 0xffff) != year then
+    if (year & 0xffff) != year || year < 1900 then
       raise ArgumentError, "year too big to marshal: #{year}"
     end
 
