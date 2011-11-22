@@ -1065,6 +1065,9 @@ VALUE rb_uint2big(unsigned long number);
   /** Return the module referred to by qualified path (e.g. A::B::C) */
   VALUE   rb_path2class(const char*);
 
+  /** Return the module referred to by qualified path (e.g. A::B::C) */
+  VALUE   rb_path_to_class(VALUE str);
+
   /** Print the value to $stdout */
   void    rb_p(VALUE);
 
@@ -1123,6 +1126,7 @@ VALUE rb_uint2big(unsigned long number);
 
   /** Set module's named class variable to given value. Returns the value. @@ is optional. */
   VALUE   rb_cvar_set(VALUE module, ID name, VALUE value, int unused);
+#define rb_cvar_set   rb_cvar_set_internal
 
   /** Set module's named class variable to given value. */
   void rb_define_class_variable(VALUE klass, const char* name, VALUE val);

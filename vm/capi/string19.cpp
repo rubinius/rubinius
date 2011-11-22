@@ -5,7 +5,7 @@
 #include "builtin/object.hpp"
 #include "builtin/string.hpp"
 
-#include "capi/19/include/ruby.h"
+#include "capi/19/include/ruby/ruby.h"
 #include "capi/19/include/ruby/encoding.h"
 
 #include <string.h>
@@ -44,5 +44,10 @@ extern "C" {
   VALUE rb_str_conv_enc(VALUE str, rb_encoding *from, rb_encoding *to) {
     // TODO
     return str;
+  }
+
+  VALUE rb_str_export_to_enc(VALUE str, rb_encoding *enc) {
+    // TODO
+    return rb_str_conv_enc(str, rb_enc_get(str), enc);
   }
 }

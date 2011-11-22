@@ -6,7 +6,7 @@
 #include "builtin/encoding.hpp"
 #include "builtin/nativemethod.hpp"
 
-#include "capi/19/include/ruby.h"
+#include "capi/19/include/ruby/ruby.h"
 #include "capi/19/include/ruby/encoding.h"
 
 using namespace rubinius;
@@ -38,6 +38,11 @@ extern "C" {
     return rb_usascii_encoding();
   }
 
+  rb_encoding *rb_default_internal_encoding(void) {
+    // TODO
+    return rb_usascii_encoding();
+  }
+
   rb_encoding* rb_enc_get(VALUE obj) {
     // TODO
     return rb_usascii_encoding();
@@ -54,6 +59,11 @@ extern "C" {
   }
 
   VALUE rb_enc_associate(VALUE obj, rb_encoding *enc) {
+    // TODO
+    return obj;
+  }
+
+  VALUE rb_enc_associate_index(VALUE obj, int index) {
     // TODO
     return obj;
   }

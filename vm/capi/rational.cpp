@@ -1,5 +1,5 @@
 #include "capi/capi.hpp"
-#include "capi/19/include/ruby.h"
+#include "capi/19/include/ruby/ruby.h"
 
 using namespace rubinius;
 using namespace rubinius::capi;
