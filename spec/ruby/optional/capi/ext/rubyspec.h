@@ -61,6 +61,7 @@
 #define HAVE_RB_DEFINE_CLASS_VARIABLE      1
 #define HAVE_RB_INCLUDE_MODULE             1
 #define HAVE_RB_PATH2CLASS                 1
+#define HAVE_RB_PATH_TO_CLASS              1
 
 /* Constants */
 #define HAVE_RB_CARRAY                     1

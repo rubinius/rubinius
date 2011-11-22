@@ -7,6 +7,7 @@
 
 #ifdef RUBY_VERSION_IS_1_8_EX_1_9
 #undef HAVE_RB_EMATHDOMAINERROR
+#undef HAVE_RB_PATH_TO_CLASS
 #endif
 
 #endif
