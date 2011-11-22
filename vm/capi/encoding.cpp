@@ -58,6 +58,28 @@ extern "C" {
     return obj;
   }
 
+  int rb_define_dummy_encoding(const char *) {
+    // TODO
+    return 1;
+  }
+
+  int rb_enc_find_index(const char *name) {
+    // TODO
+    return 1;
+  }
+
+  rb_encoding* rb_enc_from_index(int idx) {
+    // TODO
+    return rb_usascii_encoding();
+  }
+
+  VALUE rb_enc_from_encoding(rb_encoding *enc) {
+    NativeMethodEnvironment* env = NativeMethodEnvironment::get();
+
+    // TODO
+    return env->get_handle(Encoding::ascii_encoding(env->state()));
+  }
+
   int rb_enc_precise_mbclen(const char* p, const char* e, rb_encoding *enc) {
     int n;
     if(e <= p) {
