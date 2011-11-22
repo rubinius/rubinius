@@ -3,7 +3,7 @@
 #
 # Copyright (c) 2003 GOTOU Yuuzou All rights reserved.
 #
-# $Id: ssl.rb 26334 2010-01-17 05:31:52Z nobu $
+# $Id: ssl.rb 28803 2010-07-30 23:26:53Z nahi $
 
 require 'webrick'
 require 'openssl'
@@ -50,8 +50,8 @@ module WEBrick
         end
       }
       cert = OpenSSL::X509::Certificate.new
-      cert.version = 3
-      cert.serial = 0
+      cert.version = 2
+      cert.serial = 1
       name = OpenSSL::X509::Name.new(cn)
       cert.subject = name
       cert.issuer = name
