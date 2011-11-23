@@ -1,1 +1,0 @@
-fails:CApiMarshalSpecs rb_marshal_dump unmarshals an object

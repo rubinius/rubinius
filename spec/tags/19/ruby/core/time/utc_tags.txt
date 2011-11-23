@@ -1,3 +1,1 @@
-fails:Time.utc creates a time based on given values, interpreted as UTC (GMT)
-fails:Time.utc creates a time based on given C-style gmtime arguments, interpreted as UTC (GMT)
 unstable(fails on 32-bit linux):Time.utc accepts various year ranges

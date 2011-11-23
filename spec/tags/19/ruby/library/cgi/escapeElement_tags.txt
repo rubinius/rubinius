@@ -1,2 +1,0 @@
-fails:CGI.escapeElement when passed String, elements, ... escapes only the tags of the passed elements in the passed String
-fails:CGI.escapeElement when passed String, elements, ... is case-insensitive
