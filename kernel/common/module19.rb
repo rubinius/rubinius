@@ -74,4 +74,33 @@ class Module
     Rubinius.inc_global_serial
     return nil
   end
+
+  def constants(all=nil)
+    tbl = Rubinius::LookupTable.new
+
+    @constant_table.each do |name, val|
+      tbl[name] = true
+    end
+
+    if all || all.nil?
+      current = self.direct_superclass
+
+      while current and current != Object
+        current.constant_table.each do |name, val|
+          tbl[name] = true unless tbl.has_key? name
+        end
+
+        current = current.direct_superclass
+      end
+    end
+
+    # special case: Module.constants returns Object's constants
+    if self.equal?(Module) && all.nil?
+      Object.constant_table.each do |name, val|
+        tbl[name] = true unless tbl.has_key? name
+      end
+    end
+
+    Rubinius.convert_to_names tbl.keys
+  end
 end
