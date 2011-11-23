@@ -57,17 +57,6 @@ namespace rubinius {
     return ba;
   }
 
-  size_t CharArray::Info::object_size(const ObjectHeader* obj) {
-    const CharArray *ba = reinterpret_cast<const CharArray*>(obj);
-    assert(ba);
-
-    return ba->full_size_;
-  }
-
-  void CharArray::Info::mark(Object* t, ObjectMark& mark) {
-    // @todo implement
-  }
-
   char* CharArray::to_chars(STATE, Fixnum* size) {
     native_int sz = size->to_native();
     native_int ba_sz = this->size(state)->to_native();
@@ -317,5 +306,12 @@ namespace rubinius {
     if(res == -1) return Primitives::failure();
 
     return Tuple::from(state, 2, Integer::from(state, res), Fixnum::from(len));
+  }
+
+  size_t CharArray::Info::object_size(const ObjectHeader* obj) {
+    const CharArray *ca = reinterpret_cast<const CharArray*>(obj);
+    assert(ca);
+
+    return ca->full_size_;
   }
 }
