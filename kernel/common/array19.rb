@@ -540,6 +540,14 @@ class Array
 
   private :compile_repeated_combinations
 
+  # Returns a new Array by removing items from self for
+  # which block is true. An Array is also returned when
+  # invoked on subclasses. See #reject!
+  def reject(&block)
+    return to_enum(:reject) unless block_given?
+    Array.new(self).delete_if(&block)
+  end
+
   #  call-seq:
   #     ary.repeated_permutation(n) { |p| block } -> ary
   #     ary.repeated_permutation(n)               -> an_enumerator

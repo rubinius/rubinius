@@ -475,6 +475,14 @@ class Array
     concat args
   end
 
+  # Returns a new Array by removing items from self for
+  # which block is true. An Array is also returned when
+  # invoked on subclasses. See #reject!
+  def reject(&block)
+    return to_enum(:reject) unless block_given?
+    dup.delete_if(&block)
+  end
+
   # Replaces contents of self with contents of other,
   # adjusting size as needed.
   def replace(other)
