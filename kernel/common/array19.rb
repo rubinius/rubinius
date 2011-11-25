@@ -527,6 +527,15 @@ class Array
     return self
   end
 
+  # Returns a copy of self with all nil elements removed
+  def compact
+    out = dup
+    out.untaint if out.tainted?
+    out.trust if out.untrusted?
+
+    out.compact! || out
+  end
+
   def compile_repeated_combinations(combination_size, place, index, depth, &block)
     if depth > 0
       (length - index).times do |i|

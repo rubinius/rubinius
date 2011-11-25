@@ -364,12 +364,6 @@ class Array
     end
   end
 
-  # Returns a copy of self with all nil elements removed
-  def compact
-    out = dup
-    out.compact! || out
-  end
-
   # Removes all nil elements from self, returns nil if no changes
   def compact!
     Rubinius.check_frozen
