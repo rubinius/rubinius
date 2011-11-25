@@ -309,6 +309,7 @@ class Range
       fin += 1 unless @excl
 
       size = fin - @begin
+      return [] if size <= 0
 
       ary = Array.new(size)
       i = 0
