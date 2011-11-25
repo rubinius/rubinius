@@ -41,6 +41,18 @@ static VALUE bignum_spec_RBIGNUM_SIGN(VALUE self, VALUE num) {
 }
 #endif
 
+#ifdef HAVE_RBIGNUM_POSITIVE_P
+static VALUE bignum_spec_RBIGNUM_POSITIVE_P(VALUE self, VALUE num) {
+  return RBIGNUM_POSITIVE_P(num) ? Qtrue : Qfalse;
+}
+#endif
+
+#ifdef HAVE_RBIGNUM_NEGATIVE_P
+static VALUE bignum_spec_RBIGNUM_NEGATIVE_P(VALUE self, VALUE num) {
+  return RBIGNUM_NEGATIVE_P(num) ? Qtrue : Qfalse;
+}
+#endif
+
 void Init_bignum_spec() {
   VALUE cls;
   cls = rb_define_class("CApiBignumSpecs", rb_cObject);
@@ -67,6 +79,14 @@ void Init_bignum_spec() {
 
 #ifdef HAVE_RBIGNUM_SIGN
   rb_define_method(cls, "RBIGNUM_SIGN", bignum_spec_RBIGNUM_SIGN, 1);
+#endif
+
+#ifdef HAVE_RBIGNUM_POSITIVE_P
+  rb_define_method(cls, "RBIGNUM_POSITIVE_P", bignum_spec_RBIGNUM_POSITIVE_P, 1);
+#endif
+
+#ifdef HAVE_RBIGNUM_NEGATIVE_P
+  rb_define_method(cls, "RBIGNUM_NEGATIVE_P", bignum_spec_RBIGNUM_NEGATIVE_P, 1);
 #endif
 }
 

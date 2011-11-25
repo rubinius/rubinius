@@ -128,21 +128,8 @@ namespace :install do
       end
 
       # Install the C extensions for the standard library.
-      FileList["lib/ext/**/*.#{$dlext}"].each do |name|
-        install_file name, %r[^lib/ext], BUILD_CONFIG[:ext_path]
-      end
-
-      # New C extensions
-      ["readline", "syck"].each do |lib|
-        FileList["lib/18/#{lib}/ext/*.#{$dlext}"].each do |name|
-          install_file name, /^lib/, BUILD_CONFIG[:lib_path]
-        end
-      end
-
-      ["psych", "readline", "syck"].each do |lib|
-        FileList["lib/19/#{lib}/ext/*.#{$dlext}"].each do |name|
-          install_file name, /^lib/, BUILD_CONFIG[:lib_path]
-        end
+      FileList["lib/**/ext/**/*.#{$dlext}"].each do |name|
+        install_file name, /^lib/, BUILD_CONFIG[:lib_path]
       end
 
       # Install pre-installed gems

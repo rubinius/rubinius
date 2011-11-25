@@ -4,6 +4,7 @@
 module FFI::Platform::Math
   extend FFI::Library
 
+  attach_function :fabs,  [:double], :double
   attach_function :atan2, [:double, :double], :double
   attach_function :cos,   [:double], :double
   attach_function :sin,   [:double], :double

@@ -1,1 +1,0 @@
-fails:C-API String function rb_str_intern returns a symbol even if the passed string contains NULL characters

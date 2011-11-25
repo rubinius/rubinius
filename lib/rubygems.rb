@@ -1223,16 +1223,20 @@ end
 
 require 'rubygems/exceptions'
 
-gem_preluded = Gem::GEM_PRELUDE_SUCKAGE and defined? Gem
-unless gem_preluded then # TODO: remove guard after 1.9.2 dropped
-  begin
-    ##
-    # Defaults the operating system (or packager) wants to provide for RubyGems.
+# The 'rubygems/defaults/operating_system' does not exist and we waste time
+# raising an exception because of it every time we start Rubinius in 1.9 mode,
+# like when running the specs.
 
-    require 'rubygems/defaults/operating_system'
-  rescue LoadError
-  end
-end
+# gem_preluded = Gem::GEM_PRELUDE_SUCKAGE and defined? Gem
+# unless gem_preluded then # TODO: remove guard after 1.9.2 dropped
+#   begin
+#     ##
+#     # Defaults the operating system (or packager) wants to provide for RubyGems.
+# 
+#     require 'rubygems/defaults/operating_system'
+#   rescue LoadError
+#   end
+# end
 
 if defined?(RUBY_ENGINE) then
   begin

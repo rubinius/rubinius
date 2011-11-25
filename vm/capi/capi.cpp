@@ -14,6 +14,7 @@
 #include "builtin/block_environment.hpp"
 #include "builtin/proc.hpp"
 
+#include "configuration.hpp"
 #include "lookup_data.hpp"
 #include "dispatch.hpp"
 #include "arguments.hpp"
@@ -47,6 +48,8 @@ namespace rubinius {
      */
     std::string& capi_get_constant_name(int type) {
       static CApiConstantNameMap map;
+
+      NativeMethodEnvironment* env = NativeMethodEnvironment::get();
 
       if(map.empty()) {
         map.resize(cCApiMaxConstant + 1);
@@ -83,6 +86,8 @@ namespace rubinius {
         map[cCApiGC]         = "GC";
         map[cCApiCAPI]       = "Rubinius::CAPI";
         map[cCApiMethod]     = "Method";
+        map[cCApiRational]   = "Rational";
+        map[cCApiComplex]    = "Complex";
 
         map[cCApiArgumentError]       = "ArgumentError";
         map[cCApiEOFError]            = "EOFError";
@@ -113,10 +118,13 @@ namespace rubinius {
         map[cCApiTypeError]           = "TypeError";
         map[cCApiThreadError]         = "ThreadError";
         map[cCApiZeroDivisionError]   = "ZeroDivisionError";
+
+        if(!LANGUAGE_18_ENABLED(env->state())) {
+          map[cCApiMathDomainError]     = "Math::DomainError";
+        }
       }
 
       if(type < 0 || type >= cCApiMaxConstant) {
-        NativeMethodEnvironment* env = NativeMethodEnvironment::get();
         rb_raise(env->get_handle(env->state()->globals().exception.get()),
               "C-API: invalid constant index");
       }

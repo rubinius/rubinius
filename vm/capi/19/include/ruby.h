@@ -1,8 +1,6 @@
 #ifndef RBX_CAPI_RUBY_H
 #define RBX_CAPI_RUBY_H
 
-#include "config.h"
-
 #define HAVE_RUBY_DEFINES_H     1
 #define HAVE_RUBY_ENCODING_H    1
 #define HAVE_RUBY_INTERN_H      1

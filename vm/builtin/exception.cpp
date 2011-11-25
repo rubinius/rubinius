@@ -283,6 +283,27 @@ namespace rubinius {
     RubyException::raise(exc);
   }
 
+  void Exception::errno_eagain_error(STATE, const char* reason) {
+    Exception* exc;
+    Class* exc_class;
+
+    if(LANGUAGE_18_ENABLED(state)) {
+      exc_class = get_errno_error(state, Fixnum::from(EAGAIN));
+    } else {
+      exc_class = as<Class>(G(io)->get_const(state, "WaitReadable"));
+    }
+
+    String* message = nil<String>();
+
+    if(reason) {
+      message = String::create(state, reason);
+    }
+
+    exc = make_errno_exception(state, exc_class, message);
+
+    RubyException::raise(exc);
+  }
+
   void Exception::io_error(STATE, const char* reason) {
     RubyException::raise(make_exception(state, get_io_error(state), reason));
   }

@@ -595,7 +595,7 @@ namespace rubinius {
     int res = ::select(fd+1, &set, 0, 0, &tv);
 
     if(res == 0) {
-      Exception::errno_error(state, "no data ready", EAGAIN);
+      Exception::errno_eagain_error(state, "no data ready");
       return 0;
     } else if(res <= 0) {
       Exception::errno_error(state, "read(2) failed");

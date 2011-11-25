@@ -2,6 +2,11 @@ class IO
   attr_accessor :external
   attr_accessor :internal
 
+  # In MRI, these are modules that are used to extend the exception every time
+  # an exception is raised.
+  class WaitReadable < Errno::EAGAIN; end
+  class WaitWritable < Errno::EAGAIN; end
+
   def self.binread(file, *arg)
     unless arg.size < 3
       raise ArgumentError, "wrong number of arguments (#{1+arg.size} for 1..3)"

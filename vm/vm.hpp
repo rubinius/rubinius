@@ -93,6 +93,7 @@ namespace rubinius {
 
     rbxti::Env* tooling_env_;
     bool tooling_;
+    bool allocation_tracking_;
 
   public:
     /* Data members */
@@ -245,6 +246,18 @@ namespace rubinius {
       tooling_ = false;
     }
 
+    bool allocation_tracking() {
+      return allocation_tracking_;
+    }
+
+    void enable_allocation_tracking() {
+      allocation_tracking_ = true;
+    }
+
+    void disable_allocation_tracking() {
+      allocation_tracking_ = false;
+    }
+
   public:
     static void init_stack_size();
 
@@ -384,10 +397,12 @@ namespace rubinius {
     State* state_;
 
   public:
-    StopTheWorld(STATE) :
+    StopTheWorld(STATE, GCToken gct, CallFrame* cf) :
       state_(state)
     {
-      state->stop_the_world();
+      while(!state->stop_the_world()) {
+        state->checkpoint(gct, cf);
+      }
     }
 
     ~StopTheWorld() {

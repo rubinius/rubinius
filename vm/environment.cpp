@@ -556,7 +556,7 @@ namespace rubinius {
     SignalHandler::shutdown();
 
     // Hold everyone.
-    state->stop_the_world();
+    while(!state->stop_the_world());
     shared->om->run_all_io_finalizers(state);
 
     // TODO: temporarily disable to sort out finalizing Pointer objects

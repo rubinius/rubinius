@@ -10,7 +10,7 @@
 #   $Id: sha2.rb 11708 2007-02-12 23:01:19Z shyouhei $
 
 require 'digest'
-require 'ext/digest/sha2/sha2'
+require 'digest/ext/sha2/sha2'
 
 module Digest
   #

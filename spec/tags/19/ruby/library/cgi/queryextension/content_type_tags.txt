@@ -1,1 +1,0 @@
-fails:CGI::QueryExtension#content_type returns ENV['CONTENT_TYPE']

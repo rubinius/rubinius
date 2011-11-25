@@ -1,4 +1,2 @@
-fails:Date#commercial creates a Date for Julian Day Number day 0 by default
-fails:Date#commercial Creates a Date for the monday in the year and week given
 fails:Date#valid_commercial? should be able to determine if the date is a valid commercial date
 fails:Date#valid_commercial? should be able to handle negative week and day numbers

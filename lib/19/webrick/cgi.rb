@@ -5,7 +5,7 @@
 # Copyright (c) 2003 Internet Programming with Ruby writers. All rights
 # reserved.
 #
-# $Id: cgi.rb 25189 2009-10-02 12:04:37Z akr $
+# $Id: cgi.rb 29726 2010-11-08 20:59:01Z marcandre $
 
 require "webrick/httprequest"
 require "webrick/httpresponse"
@@ -143,7 +143,7 @@ module WEBrick
           setup_header
           @header_part << CRLF
           @header_part.rewind
-        rescue Exception => ex
+        rescue Exception
           raise CGIError, "invalid CGI environment"
         end
       end

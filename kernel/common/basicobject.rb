@@ -12,7 +12,4 @@ class BasicObject
 
   def singleton_method_undefined(name) end
   private :singleton_method_undefined
-
-  def initialize(*args) end
-  private :initialize
 end

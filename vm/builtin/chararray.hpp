@@ -7,17 +7,22 @@
 #include <ctype.h>
 
 namespace rubinius {
+  class Encoding;
+
   class CharArray : public Object {
   public:
     const static object_type type = CharArrayType;
 
   private:
+    Encoding* encoding_;    // slot
     native_int full_size_;
 
     // Body access
     uint8_t bytes[0];
 
   public:
+    attr_accessor(encoding, Encoding);
+
     static void init(STATE);
     static CharArray* create(STATE, native_int bytes);
     static CharArray* create_pinned(STATE, native_int bytes);
@@ -80,9 +85,12 @@ namespace rubinius {
         allow_user_allocate = false;
       }
 
-      virtual void mark(Object* t, ObjectMark& mark);
-      virtual void auto_mark(Object* obj, ObjectMark& mark) {}
+      virtual void auto_mark(Object* obj, ObjectMark& mark);
+      virtual void auto_visit(Object* obj, ObjectVisitor& visit);
       virtual size_t object_size(const ObjectHeader* object);
+      virtual void set_field(STATE, Object* target, size_t index, Object* val);
+      virtual Object* get_field(STATE, Object* target, size_t index);
+      virtual void populate_slot_locations();
     };
 
     friend class Info;

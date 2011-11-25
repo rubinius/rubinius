@@ -7,6 +7,8 @@
 #include "capi/capi.hpp"
 #include "capi/18/include/ruby.h"
 
+#include <string.h>
+
 using namespace rubinius;
 using namespace rubinius::capi;
 
@@ -56,39 +58,38 @@ extern "C" {
     return env->get_handle(klass);
   }
 
-  VALUE rb_path2class(const char* name) {
+  VALUE rb_path2class(const char* path) {
     NativeMethodEnvironment* env = NativeMethodEnvironment::get();
 
     Module* mod = env->state()->vm()->shared.globals.object.get();
+    Object* val = 0;
 
-    char* base = strdup(name);
-    char* str = base;
-    char* pos = strstr(str, "::");
+    char* pathd = strdup(path);
+    char* ptr = pathd;
+    char* context;
+    char* name;
 
-    while(pos) {
-      pos[0] = 0;
+    bool found = false;
 
-      mod = try_as<Module>(mod->get_const(env->state(), str));
-      if(!mod) {
-        free(base);
-        capi_raise_type_error(Module::type, mod);
-        return Qnil;
+    while((name = strtok_r(ptr, ":", &context))) {
+      ptr = NULL;
+
+      val = mod->get_const(env->state(), env->state()->symbol(name), &found);
+
+      if(!found) {
+        free(pathd);
+        rb_raise(rb_eArgError, "undefined class or module %s", path);
       }
 
-      str = pos+2;
-      pos = strstr(str, "::");
+      if(!(mod = try_as<Module>(val))) {
+        free(pathd);
+        capi_raise_type_error(Module::type, val);
+      }
     }
 
-    Object* val = mod->get_const(env->state(), str);
+    free(pathd);
 
-    free(base);
-
-    // Make sure val is a module.
-    if(!kind_of<Module>(val)) {
-      capi_raise_type_error(Module::type, val);
-    }
-
-    return env->get_handle(val);
+    return env->get_handle(mod);
   }
 
   VALUE rb_cv_get(VALUE module_handle, const char* name) {
@@ -119,7 +120,7 @@ extern "C" {
                       env->get_handle(prefixed_by(env->state(), "@@", 2, name)));
   }
 
-  VALUE rb_cvar_set(VALUE module_handle, ID name, VALUE value, int unused) {
+  VALUE rb_cvar_set_internal(VALUE module_handle, ID name, VALUE value) {
     NativeMethodEnvironment* env = NativeMethodEnvironment::get();
 
     return rb_funcall(module_handle, rb_intern("class_variable_set"),

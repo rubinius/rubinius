@@ -1,78 +1,23 @@
 require File.expand_path('../spec_helper', __FILE__)
+require File.expand_path('../fixtures/class', __FILE__)
 
 load_extension("class")
 
-class CApiClassSpecs
-  module M
-    def included?
-      true
-    end
+describe :rb_path_to_class, :shared => true do
+  it "returns a class or module from a scoped String" do
+    @s.send(@method, "CApiClassSpecs::A::B").should equal(CApiClassSpecs::A::B)
   end
 
-  class IncludesM
+  it "raises an ArgumentError if a constant in the path does not exist" do
+    lambda { @s.send(@method, "CApiClassSpecs::X::B") }.should raise_error(ArgumentError)
   end
 
-  class Alloc
-    attr_reader :initialized
-    attr_reader :arguments
-
-    def initialize(*args)
-      @initialized = true
-      @arguments   = args
-    end
+  it "raises an ArgumentError if the final constant does not exist" do
+    lambda { @s.send(@method, "CApiClassSpecs::X") }.should raise_error(ArgumentError)
   end
 
-  class Attr
-    def initialize
-      @foo, @bar, @baz = 1, 2, 3
-    end
-  end
-
-  class CVars
-    @@cvar  = :cvar
-    @c_ivar = :c_ivar
-
-    def new_cv
-      @@new_cv if defined? @@new_cv
-    end
-
-    def new_cvar
-      @@new_cvar if defined? @@new_cvar
-    end
-
-    def rbdcv_cvar
-      @@rbdcv_cvar if defined? @@rbdcv_cvar
-    end
-  end
-
-  class Inherited
-    def self.inherited(klass)
-      klass
-    end
-  end
-
-  class NewClass
-    def self.inherited(klass)
-      raise "#{name}.inherited called"
-    end
-  end
-
-  class Super
-    def call_super_method
-      :super_method
-    end
-  end
-
-  class Sub < Super
-    def call_super_method
-      :subclass_method
-    end
-  end
-
-  class SubSub < Sub
-    def call_super_method
-      :subclass_method
-    end
+  it "raises a TypeError if the constant is not a class or module" do
+    lambda { @s.send(@method, "CApiClassSpecs::A::C") }.should raise_error(TypeError)
   end
 end
 
@@ -157,8 +102,12 @@ describe "C-API Class function" do
   end
 
   describe "rb_path2class" do
-    it "returns the class" do
-      @s.rb_path2class("CApiClassSpecs::Sub").should == CApiClassSpecs::Sub
+    it_behaves_like :rb_path_to_class, :rb_path2class
+  end
+
+  ruby_version_is "1.9" do
+    describe "rb_path_to_class" do
+      it_behaves_like :rb_path_to_class, :rb_path_to_class
     end
   end
 

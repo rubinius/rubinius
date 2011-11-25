@@ -99,7 +99,6 @@ class MSpecScript
     '^spec/ruby/library/uri',
     '^spec/ruby/library/zlib',
 
-    '^spec/ruby/optional/capi/class',
     '^spec/ruby/optional/capi/io',
     '^spec/ruby/optional/capi/time',
 

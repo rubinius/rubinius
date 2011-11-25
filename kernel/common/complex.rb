@@ -312,12 +312,6 @@ class Complex < Numeric
             @imag.numerator*(cd/@imag.denominator))
   end
 
-  def rationalize(eps = nil)
-    raise RangeError, "non-zero imaginary part" unless @imag.zero?
-
-    Rational(@real, 1)
-  end
-
   def real?
     false
   end
@@ -341,6 +335,11 @@ class Complex < Numeric
   def to_r
     raise RangeError, "can't' convert #{self} into Rational" unless !imag.kind_of?(Float) && imag == 0
     real.to_r
+  end
+
+  def rationalize(eps = nil)
+    raise RangeError, "can't' convert #{self} into Rational" unless !imag.kind_of?(Float) && imag == 0
+    real.rationalize(eps)
   end
 
   #

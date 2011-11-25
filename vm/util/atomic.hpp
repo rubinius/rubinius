@@ -48,6 +48,8 @@
 
 namespace atomic {
 
+  typedef volatile int atomic_int_t;
+
   inline void memory_barrier() {
 #if defined(GCC_BARRIER)
     __sync_synchronize();
@@ -171,6 +173,34 @@ namespace atomic {
     return val;
 #endif
   }
+
+  template <typename intish>
+  inline intish test_and_set(intish *ptr) {
+#if defined(GCC_SYNC)
+    return __sync_lock_test_and_set(ptr, 1);
+#elif defined(APPLE_SYNC)
+    return OSAtomicTestAndSetBarrier(0, (volatile void*)ptr);
+#elif defined(X86_SYNC)
+    return !compare_and_swap((uint32_t*)ptr, 0, 1);
+#else
+#error "no sync primitive found"
+#endif
+  }
+
+  template <typename intish>
+  inline void test_and_clear(intish *ptr) {
+#if defined(GCC_SYNC)
+    __sync_lock_release(ptr);
+#elif defined(APPLE_SYNC)
+    OSAtomicTestAndClearBarrier(0, (volatile void*)ptr);
+#elif defined(X86_SYNC)
+    memory_barrier();
+    *ptr = 0;
+#else
+#error "no sync primitive found"
+#endif
+  }
+
 }
 
 #include "util/atomic_types.hpp"

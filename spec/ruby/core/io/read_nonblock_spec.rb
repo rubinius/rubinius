@@ -15,6 +15,12 @@ describe "IO#read_nonblock" do
     lambda { @read.read_nonblock(5) }.should raise_error(Errno::EAGAIN)
   end
 
+  ruby_version_is "1.9" do
+    it "raises IO::WaitReadable when there is no data" do
+      lambda { @read.read_nonblock(5) }.should raise_error(IO::WaitReadable)
+    end
+  end
+
   it "returns at most the number of bytes requested" do
     @write << "hello"
     @read.read_nonblock(4).should == "hell"

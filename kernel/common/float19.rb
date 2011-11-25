@@ -2,6 +2,8 @@ class Float
   INFINITY = 1.0 / 0.0
   NAN = 0.0 / 0.0
 
+  alias_method :magnitude, :abs
+
   def imaginary
     0
   end

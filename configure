@@ -25,7 +25,7 @@ class Configure
     /([^-]+)-([^-]+)-(.*)/ =~ @host
     @cpu, @vendor, @os = $1, $2, $3
     @little_endian = false
-    @sizeof_long = 0
+    @sizeof = {}
 
     # TODO: For better cross-compiling support, it may be necessary to
     # use the feature facility to check for a define in the compiler.
@@ -96,7 +96,6 @@ class Configure
     @runtime      = @libdir + "/runtime"
     @kernel_path  = @libdir + "/kernel"
     @lib_path     = @libdir + "/lib"
-    @ext_path     = @libdir + "/lib/ext"
     @mandir       = root + "/man"
     @gemsdir      = root + "/gems"
 
@@ -115,7 +114,7 @@ class Configure
     @libversion = "2.0"
     @version = "#{@libversion}.0dev"
     @release_date = "yyyy-mm-dd"
-    @config_version = 144
+    @config_version = 147
 
     # TODO: add conditionals for platforms
     if RbConfig::CONFIG["build_os"] =~ /darwin/
@@ -180,14 +179,12 @@ class Configure
     o.on "--default-version", "VERSION", "Enable Ruby VERSION as the default" do |v|
       version = normalize_versions v
       if version.size > 1
-        @log.error "Only one version can be default, given: #{version.inspect}"
-        failure
+        failure "Only one version can be default, given: #{version.inspect}."
       end
       @default_version = version.first
 
       unless @version_list.include? @default_version
-        @log.error "Requested default version #{@default_version} is not enabled."
-        failure
+        failure "Requested default version #{@default_version} is not enabled."
       end
     end
 
@@ -263,7 +260,6 @@ class Configure
       @runtime      = @libdir + "/runtime"
       @kernel_path  = @libdir + "/kernel"
       @lib_path     = @libdir + "/lib"
-      @ext_path     = @libdir + "/lib/ext"
       @mandir       = dir + "/man"
       @gemsdir      = dir + "/gems"
 
@@ -290,7 +286,6 @@ class Configure
       @runtime      = @libdir + "/runtime"
       @kernel_path  = @libdir + "/kernel"
       @lib_path     = @libdir + "/lib"
-      @ext_path     = @libdir + "/lib/ext"
 
       @sitedir      = @libdir + "/site"
       @vendordir    = @libdir + "/vendor"
@@ -327,6 +322,7 @@ class Configure
     feature "C-readline", true
     feature "ruby-readline", false
     feature "vendor-zlib", !!@windows
+    feature "alloc-tracking", false
 
     o.doc "\n Help!"
 
@@ -365,10 +361,9 @@ class Configure
     versions = str.gsub(/[^\d,]/, "").split(',')
     versions.each do |ver|
       unless @supported_versions.include? ver
-        @log.error <<-EOM
+        failure <<-EOM
 Unsupported language version requested: #{ver}. Options are #{@supported_versions.join(", ")}
         EOM
-        failure
       end
     end
     versions
@@ -580,8 +575,7 @@ Unsupported language version requested: #{ver}. Options are #{@supported_version
 
   def remove_default
     if File.exists?(File.join(@llvm_default, "Makefile.common"))
-      @log.error "ABORT: Unwilling to override custom LLVM tree, please update it manually"
-      failure
+      failure "ABORT: Unwilling to override custom LLVM tree, please update it manually."
     else
       @log.write "    Removing outdated tree..."
       FileUtils.rm_rf(@llvm_default)
@@ -618,8 +612,7 @@ Unsupported language version requested: #{ver}. Options are #{@supported_version
     # If they explicitly said where LLVM is, use that and fail hard.
     if @llvm_path
       unless setup_path
-        @log.error "ABORT: Path '#{@llvm_path}' not a proper LLVM path"
-        failure
+        failure "ABORT: Path '#{@llvm_path}' not a proper LLVM path."
       end
 
       return
@@ -693,8 +686,11 @@ Unsupported language version requested: #{ver}. Options are #{@supported_version
     libs
   end
 
-  def failure
-    puts "\n'configure' has failed. Please check configure.log for more details."
+  def failure(message=nil)
+    message ||= "'configure' has failed."
+    @log.error message
+
+    STDERR.puts "\n#{message} Please check configure.log for more details."
     exit 1
   end
 
@@ -714,8 +710,7 @@ Unsupported language version requested: #{ver}. Options are #{@supported_version
       return $?.exitstatus unless run
 
       unless $?.exitstatus == 0
-        @log.error "compiling configure test program failed"
-        failure
+        failure "Compiling configure test program failed."
       end
 
       system expand("./#{basename}")
@@ -725,16 +720,44 @@ Unsupported language version requested: #{ver}. Options are #{@supported_version
     end
   end
 
-  def detect_sizeof_long
-    @log.print "Checking sizeof(long): "
+  def write_have_defines(f)
+    @sizeof.keys.sort.each { |k| f.puts "#define HAVE_#{k}".ljust(30) + "1" }
+  end
 
-    @sizeof_long = check_program do |f|
-      src = "int main() { return sizeof(long); }"
+  def write_sizeof_defines(f)
+    @sizeof.keys.sort.each { |k| f.puts "#define SIZEOF_#{k}".ljust(30) + @sizeof[k].to_s }
+  end
+
+  def sizeof_typename(type)
+    if type =~ /(\*+)$/
+      name = "#{type[0...-$1.size]}#{"p" * $1.size}"
+    else
+      name = type
+    end
+    name.gsub(/\W/, "_").upcase
+  end
+
+  def sizeof(type)
+    @sizeof[sizeof_typename(type)] or failure("Unknown type: '#{type}'.")
+  end
+
+  def detect_sizeof(type, includes=[])
+    @log.print "Checking sizeof(#{type}): "
+
+    size = check_program do |f|
+      src = includes.map { |include| "#include <#{include}>" }.join("\n")
+      src += <<-EOP
+#include <stddef.h>
+
+int main() { return sizeof(#{type}); }
+      EOP
       f.puts src
       @log.log src
     end
 
-    @log.write "#{@sizeof_long} bytes"
+    @sizeof[sizeof_typename(type)] = size
+
+    @log.write "#{size} bytes"
   end
 
   def detect_endian
@@ -775,7 +798,7 @@ int main() { X x; return 0; }
 
     @x86_32 = false
 
-    if @sizeof_long == 4
+    if sizeof("long") == 4
       status = check_program do |f|
         src = <<-EOP
 int main() {
@@ -913,6 +936,10 @@ int main() { return tgetnum(""); }
       @defines << "HAS_EXECINFO"
     end
 
+    if @features["alloc-tracking"]
+      @defines << "RBX_ALLOC_TRACKING"
+    end
+
     if @features["C-readline"] and
         (has_function("readline", ["stdio.h", "stdlib.h", "readline/readline.h"]) or
          has_function("readline", ["stdio.h", "stdlib.h", "editline/readline.h"]))
@@ -958,7 +985,17 @@ int main() { return tgetnum(""); }
 
     @log.write ""
 
-    detect_sizeof_long
+    detect_sizeof("short")
+    detect_sizeof("int")
+    detect_sizeof("void*")
+    detect_sizeof("size_t")
+    detect_sizeof("long")
+    detect_sizeof("long long")
+    detect_sizeof("float")
+    detect_sizeof("double")
+    detect_sizeof("off_t", ["unistd.h"])
+    detect_sizeof("time_t", ["time.h"])
+
     detect_endian
     detect_tr1_hash
     detect_x86_32bit
@@ -1011,14 +1048,11 @@ int main() { return tgetnum(""); }
     if $?.exitstatus == 0
       v = output.scan(regexp)[0].map(&:to_i)
       unless (v <=> version) >= 0
-        msg = " Expected #{tool_name} version >= #{version.join('.')}, found #{v.join('.')}"
-        @log.error msg
-        failure
+        failure " Expected #{tool_name} version >= #{version.join('.')}, found #{v.join('.')}"
       end
       @log.write " found"
     else
-      @log.error " not found"
-      failure
+      failure "#{tool_name} not found."
     end
   end
 
@@ -1052,14 +1086,13 @@ module Rubinius
     :vendor         => "#{@vendor}",
     :os             => "#{@os}",
     :little_endian  => #{@little_endian},
-    :sizeof_long    => #{@sizeof_long},
+    :sizeof_long    => #{sizeof("long")},
     :x86_32         => #{@x86_32},
     :bindir         => "#{@bindir}",
     :libdir         => "#{@libdir}",
     :runtime        => "#{@runtime}",
     :kernel_path    => "#{@kernel_path}",
     :lib_path       => "#{@lib_path}",
-    :ext_path       => "#{@ext_path}",
     :include18dir   => "#{@include18dir}",
     :include19dir   => "#{@include19dir}",
     :include20dir   => "#{@include20dir}",
@@ -1103,7 +1136,6 @@ end
 #define RBX_RUNTIME       "#{@runtime}"
 #define RBX_KERNEL_PATH   "#{@kernel_path}"
 #define RBX_LIB_PATH      "#{@lib_path}"
-#define RBX_EXT_PATH      "#{@ext_path}"
 #define RBX_HDR18_PATH    "#{@include18dir}"
 #define RBX_HDR19_PATH    "#{@include19dir}"
 #define RBX_HDR20_PATH    "#{@include20dir}"
@@ -1113,7 +1145,7 @@ end
 #define RBX_LIB_VERSION   "#{@libversion}"
 #define RBX_LDSHARED      "#{@ldshared}"
 #define RBX_RELEASE_DATE  "#{@release_date}"
-#define RBX_SIZEOF_LONG   #{@sizeof_long}
+#define RBX_SIZEOF_LONG   #{sizeof("long")}
 #define RBX_LLVM_API_VER  #{@llvm_api_version}
       EOC
 
@@ -1158,7 +1190,6 @@ end
 #define RBX_RUNTIME       "#{@runtime}"
 #define RBX_KERNEL_PATH   "#{@kernel_path}"
 #define RBX_LIB_PATH      "#{@lib_path}"
-#define RBX_EXT_PATH      "#{@ext_path}"
 #define RBX_HDR18_PATH    "#{@include18dir}"
 #define RBX_HDR19_PATH    "#{@include19dir}"
 #define RBX_HDR20_PATH    "#{@include20dir}"
@@ -1168,7 +1199,7 @@ end
 #define RBX_LIB_VERSION   "#{@libversion}"
 #define RBX_LDSHARED      "#{@ldshared}"
 #define RBX_RELEASE_DATE  "#{@release_date}"
-#define RBX_SIZEOF_LONG   #{@sizeof_long}
+#define RBX_SIZEOF_LONG   #{sizeof("long")}
 #define RBX_LLVM_API_VER  #{@llvm_api_version}
 
       EOC
@@ -1207,7 +1238,12 @@ end
 #ifndef NORETURN
 #define NORETURN(x) __attribute__ ((noreturn)) x
 #endif
+
       EOC
+
+      write_have_defines f
+      f.puts
+      write_sizeof_defines f
 
       if @windows
         f.puts "#define RBX_WINDOWS 1"
@@ -1252,8 +1288,7 @@ end
 
   def run
     unless which_ruby == :ruby or which_ruby == :rbx
-      @log.error "Sorry, building Rubinius requires MRI or Rubinius"
-      failure
+      failure "Sorry, building Rubinius requires MRI or Rubinius."
     end
 
     if File.exists? @config
@@ -1271,9 +1306,8 @@ end
       if ENV['PATH'] =~ /#{@bindir}/
         @log.error "  * Remove '#{@bindir}' from your PATH."
       end
-      @log.error "  * Use a Ruby executable other than '#{build_ruby}' to build."
 
-      failure
+      failure "  * Use a Ruby executable other than '#{build_ruby}' to build."
     end
 
     process

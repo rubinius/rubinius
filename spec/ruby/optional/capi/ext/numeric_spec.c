@@ -59,6 +59,24 @@ static VALUE numeric_spec_rb_cmpint(VALUE self, VALUE val, VALUE b) {
 }
 #endif
 
+#ifdef HAVE_RB_NUM_COERCE_BIN
+static VALUE numeric_spec_rb_num_coerce_bin(VALUE self, VALUE x, VALUE y, VALUE op) {
+  return rb_num_coerce_bin(x, y, SYM2ID(op));
+}
+#endif
+
+#ifdef HAVE_RB_NUM_COERCE_CMP
+static VALUE numeric_spec_rb_num_coerce_cmp(VALUE self, VALUE x, VALUE y, VALUE op) {
+  return rb_num_coerce_cmp(x, y, SYM2ID(op));
+}
+#endif
+
+#ifdef HAVE_RB_NUM_COERCE_RELOP
+static VALUE numeric_spec_rb_num_coerce_relop(VALUE self, VALUE x, VALUE y, VALUE op) {
+  return rb_num_coerce_relop(x, y, SYM2ID(op));
+}
+#endif
+
 void Init_numeric_spec() {
   VALUE cls;
   cls = rb_define_class("CApiNumericSpecs", rb_cObject);
@@ -97,6 +115,18 @@ void Init_numeric_spec() {
 
 #ifdef HAVE_RB_CMPINT
   rb_define_method(cls, "rb_cmpint", numeric_spec_rb_cmpint, 2);
+#endif
+
+#ifdef HAVE_RB_NUM_COERCE_BIN
+  rb_define_method(cls, "rb_num_coerce_bin", numeric_spec_rb_num_coerce_bin, 3);
+#endif
+
+#ifdef HAVE_RB_NUM_COERCE_CMP
+  rb_define_method(cls, "rb_num_coerce_cmp", numeric_spec_rb_num_coerce_cmp, 3);
+#endif
+
+#ifdef HAVE_RB_NUM_COERCE_RELOP
+  rb_define_method(cls, "rb_num_coerce_relop", numeric_spec_rb_num_coerce_relop, 3);
 #endif
 }
 

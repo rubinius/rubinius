@@ -341,6 +341,12 @@ static VALUE constants_spec_rb_eZeroDivError(VALUE self) {
 }
 #endif
 
+#ifdef HAVE_RB_EMATHDOMAINERROR
+static VALUE constants_spec_rb_eMathDomainError(VALUE self) {
+  return rb_eMathDomainError;
+}
+#endif
+
 void Init_constants_spec() {
   VALUE cls;
   cls = rb_define_class("CApiConstantsSpecs", rb_cObject);
@@ -568,6 +574,10 @@ void Init_constants_spec() {
 
 #ifdef HAVE_RB_EZERODIVERROR
   rb_define_method(cls, "rb_eZeroDivError", constants_spec_rb_eZeroDivError, 0);
+#endif
+
+#ifdef HAVE_RB_EMATHDOMAINERROR
+  rb_define_method(cls, "rb_eMathDomainError", constants_spec_rb_eMathDomainError, 0);
 #endif
 }
 

@@ -1,2 +1,2 @@
 fails:Date.valid_jd? returns true if passed any value other than false and nil
-fails:Date.valid_jd? returns false if passed nil or false
+fails:Date.valid_jd? returns true if passed false

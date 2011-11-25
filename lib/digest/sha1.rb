@@ -3,7 +3,7 @@
 # $RoughId: sha1.rb,v 1.4 2001/07/13 15:38:27 knu Exp $
 # $Id: sha1.rb 12008 2007-03-06 10:12:12Z knu $
 
-require 'ext/digest/sha1/sha1'
+require 'digest/ext/sha1/sha1'
 
 class SHA1 < Digest::SHA1
   class << self

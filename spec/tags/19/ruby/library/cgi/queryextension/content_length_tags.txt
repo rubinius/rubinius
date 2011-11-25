@@ -1,1 +1,0 @@
-fails:CGI::QueryExtension#content_length returns ENV['CONTENT_LENGTH'] as Integer

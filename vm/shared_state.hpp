@@ -252,10 +252,9 @@ namespace rubinius {
     void pre_exec();
     void reinit(STATE);
 
-    void ask_for_stopage();
     bool should_stop();
 
-    void stop_the_world(THREAD);
+    bool stop_the_world(THREAD) WARN_UNUSED;
     void restart_world(THREAD);
 
     void stop_threads_externally();

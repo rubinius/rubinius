@@ -92,6 +92,8 @@ namespace rubinius {
 
     tooling_env_ = rbxti::create_env(this);
     tooling_ = false;
+
+    allocation_tracking_ = shared.config.allocation_tracking;
   }
 
   void VM::discard(STATE, VM* vm) {
@@ -105,6 +107,8 @@ namespace rubinius {
   void VM::initialize_as_root() {
     om = new ObjectMemory(this, shared.config);
     shared.om = om;
+
+    allocation_tracking_ = shared.config.allocation_tracking;
 
     young_start_ = shared.om->young_start();
     young_end_ = shared.om->yound_end();

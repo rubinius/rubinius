@@ -267,6 +267,11 @@ extern "C" {
 
     cCApiMethod,
 
+    cCApiRational,
+    cCApiComplex,
+
+    cCApiMathDomainError,
+
     // MUST be last
     cCApiMaxConstant
   } CApiConstant;
@@ -309,6 +314,9 @@ extern "C" {
 #define T_NODE   0x18
 
 #define T_MASK   0x19
+
+#define T_RATIONAL 0x20
+#define T_COMPLEX  0x21
 
   /**
    *  Method variants that can be defined.
@@ -371,6 +379,7 @@ struct RFloat {
 };
 
 #define RFLOAT(d)       capi_rfloat_struct(d)
+#define RFLOAT_VALUE(d) RFLOAT(d)->value
 
 // Do not define these messages as strings. We want a syntax error.
 #define RHASH(obj)      ({ C_API_RHASH_is_not_supported_in_Rubinius })
@@ -454,6 +463,8 @@ typedef struct RIO rb_io_t;
 #define rb_cTrueClass         (capi_get_constant(cCApiTrue))
 #define rb_cProc              (capi_get_constant(cCApiProc))
 #define rb_cMethod            (capi_get_constant(cCApiMethod))
+#define rb_cRational          (capi_get_constant(cCApiRational))
+#define rb_cComplex           (capi_get_constant(cCApiComplex))
 
 /* Global Module objects. */
 
@@ -897,6 +908,8 @@ VALUE rb_uint2big(unsigned long number);
 
   int rb_big_sign(VALUE obj);
 #define RBIGNUM_SIGN(obj) rb_big_sign(obj)
+#define RBIGNUM_POSITIVE_P(b) RBIGNUM_SIGN(b)
+#define RBIGNUM_NEGATIVE_P(b) (!RBIGNUM_SIGN(b))
 
   // fake out, used with RBIGNUM_LEN anyway, which provides
   // the full answer
@@ -1032,7 +1045,8 @@ VALUE rb_uint2big(unsigned long number);
   VALUE   rb_cvar_get(VALUE module, ID name);
 
   /** Set module's named class variable to given value. Returns the value. @@ is optional. */
-  VALUE   rb_cvar_set(VALUE module, ID name, VALUE value, int unused);
+  VALUE   rb_cvar_set_internal(VALUE module, ID name, VALUE value);
+#define rb_cvar_set(m, n, v, u)   rb_cvar_set_internal(m, n, v)
 
   /** Set module's named class variable to given value. */
   void rb_define_class_variable(VALUE klass, const char* name, VALUE val);

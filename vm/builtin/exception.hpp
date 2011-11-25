@@ -87,6 +87,7 @@ namespace rubinius {
 
     static void errno_error(STATE, const char* reason = NULL, int ern = 0,
                             const char* entity = 0);
+    static void errno_eagain_error(STATE, const char* reason);
 
     /**
      * Convenience predicates for checking the class of an

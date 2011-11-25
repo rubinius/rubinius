@@ -73,7 +73,7 @@ namespace rubinius {
      *  System fork()
      */
     // Rubinius.primitive :vm_fork
-    static Fixnum*  vm_fork(STATE, CallFrame* calling_environment);
+    static Fixnum*  vm_fork(STATE, GCToken gct, CallFrame* calling_environment);
 
     /**
      *  Force garbage collection as soon as possible.
@@ -258,7 +258,7 @@ namespace rubinius {
     static Object* vm_extended_modules(STATE, Object* obj);
 
     // Rubinius.primitive :vm_find_object
-    static Object* vm_find_object(STATE, Array* arg, Object* callable, CallFrame* calling_environment);
+    static Object* vm_find_object(STATE, GCToken gct, Array* arg, Object* callable, CallFrame* calling_environment);
 
     // Rubinius.primitive :vm_set_kcode
     static Object* vm_set_kcode(STATE, String* what);

@@ -72,6 +72,8 @@ extern "C" {
     {T_SCOPE,   "Scope"},     /* internal use: variable scope */
     {T_NODE,    "Node"},      /* internal use: syntax tree node */
     {T_UNDEF,   "undef"},     /* internal use: #undef; should not happen */
+    {T_RATIONAL, "Rational" },
+    {T_COMPLEX,  "Complex" },
     {-1,  0}
   };
 
@@ -204,6 +206,10 @@ extern "C" {
       if(rb_obj_is_kind_of(obj, rb_cStruct)) return T_STRUCT;
       if(rb_obj_is_kind_of(obj, rb_cIO)) return T_FILE;
       if(rb_obj_is_kind_of(obj, rb_cMatch)) return T_MATCH;
+      if(!LANGUAGE_18_ENABLED(env->state())) {
+        if(rb_obj_is_kind_of(obj, rb_cRational)) return T_RATIONAL;
+        if(rb_obj_is_kind_of(obj, rb_cComplex)) return T_COMPLEX;
+      }
     }
 
     return T_OBJECT;

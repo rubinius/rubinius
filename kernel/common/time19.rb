@@ -8,6 +8,12 @@ class Time
     end
   end
 
-  alias_method :to_s,       :inspect
+  alias_method :to_s, :inspect
 
+  # TODO: MRI uses struct timespec in 1.9
+  def nsec
+    0
+  end
+
+  alias_method :tv_nsec, :nsec
 end

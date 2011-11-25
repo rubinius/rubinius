@@ -44,6 +44,20 @@ describe "Time#_dump" do
     low.should == @s.unpack("VV").last
   end
 
+  # It's unknown what platforms support a mktime(2) for years
+  # before 1900, but we know at least darwin does.
+  platform_is :darwin do
+    it "raises ArgumentError when year < 1900" do
+      t = Time.local(1899)
+      lambda { t._dump }.should raise_error(ArgumentError)
+    end
+
+    it "raises ArgumentError when year >= 1900+0xffff" do
+      t = Time.local(1900+0xffff)
+      lambda { t._dump }.should raise_error(ArgumentError)
+    end
+  end
+
   it "dumps like MRI's marshaled time format" do
     t = Time.utc(2000, 1, 15, 20, 1, 1, 203).localtime
 

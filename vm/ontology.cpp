@@ -430,7 +430,6 @@ namespace rubinius {
     G(rubinius)->set_const(state, "BIN_PATH", String::create(state, RBX_BIN_PATH));
     G(rubinius)->set_const(state, "KERNEL_PATH", String::create(state, RBX_KERNEL_PATH));
     G(rubinius)->set_const(state, "LIB_PATH", String::create(state, RBX_LIB_PATH));
-    G(rubinius)->set_const(state, "EXT_PATH", String::create(state, RBX_EXT_PATH));
     G(rubinius)->set_const(state, "HDR18_PATH", String::create(state, RBX_HDR18_PATH));
     G(rubinius)->set_const(state, "HDR19_PATH", String::create(state, RBX_HDR19_PATH));
     G(rubinius)->set_const(state, "HDR20_PATH", String::create(state, RBX_HDR20_PATH));
@@ -496,6 +495,7 @@ namespace rubinius {
     GO(sym_tequal).set(symbol("==="));
     GO(sym_lt).set(symbol("<"));
     GO(sym_gt).set(symbol(">"));
+    GO(sym_allocation_site).set(symbol("@__allocation_site__"));
   }
 
   void VM::setup_errno(STATE, int num, const char* name, Class* sce, Module* ern) {

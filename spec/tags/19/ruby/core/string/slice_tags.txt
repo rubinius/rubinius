@@ -1,4 +1,3 @@
 fails:String#slice with Regexp, group returns the last capture for duplicate names
 fails:String#slice with Regexp, group returns the innermost capture for nested duplicate names
 fails:String#slice with Regexp, group raises an IndexError if there is no capture for the given name
-fails:String#slice with Regexp, group raises an IndexError when given the empty String as a group name

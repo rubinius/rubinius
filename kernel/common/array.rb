@@ -492,7 +492,7 @@ class Array
 
     @total = pos - @start
 
-    return self
+    self
   end
 
   # Passes each index of the Array to the given block
@@ -957,7 +957,7 @@ class Array
   # invoked on subclasses. See #reject!
   def reject(&block)
     return to_enum(:reject) unless block_given?
-    dup.reject!(&block) || self
+    dup.delete_if(&block)
   end
 
   # Equivalent to #delete_if except that returns nil if

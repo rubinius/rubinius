@@ -36,6 +36,8 @@
 #define HAVE_RB_MEM_CLEAR                  1
 
 /* Bignum */
+#define HAVE_RBIGNUM_NEGATIVE_P            1
+#define HAVE_RBIGNUM_POSITIVE_P            1
 #define HAVE_RBIGNUM_SIGN                  1
 #define HAVE_RB_BIG2DBL                    1
 #define HAVE_RB_BIG2LL                     1
@@ -59,6 +61,7 @@
 #define HAVE_RB_DEFINE_CLASS_VARIABLE      1
 #define HAVE_RB_INCLUDE_MODULE             1
 #define HAVE_RB_PATH2CLASS                 1
+#define HAVE_RB_PATH_TO_CLASS              1
 
 /* Constants */
 #define HAVE_RB_CARRAY                     1
@@ -95,6 +98,7 @@
 #define HAVE_RB_EIOERROR                   1
 #define HAVE_RB_ELOADERROR                 1
 #define HAVE_RB_ELOCALJUMPERROR            1
+#define HAVE_RB_EMATHDOMAINERROR           1
 #define HAVE_RB_ENAMEERROR                 1
 #define HAVE_RB_ENOMEMERROR                1
 #define HAVE_RB_ENOMETHODERROR             1
@@ -136,6 +140,7 @@
 #define HAVE_RB_FLOAT_NEW                  1
 #define HAVE_RB_RFLOAT                     1
 #define HAVE_RFLOAT                        1
+#define HAVE_RFLOAT_VALUE                  1
 
 /* Globals */
 #define HAVE_RB_DEFINE_HOOKED_VARIABLE     1
@@ -224,6 +229,9 @@
 #define HAVE_RB_NUM2DBL                    1
 #define HAVE_RB_NUM2LONG                   1
 #define HAVE_RB_NUM2ULONG                  1
+#define HAVE_RB_NUM_COERCE_BIN             1
+#define HAVE_RB_NUM_COERCE_CMP             1
+#define HAVE_RB_NUM_COERCE_RELOP           1
 #define HAVE_RB_NUM_ZERODIV                1
 
 /* Object */
@@ -273,6 +281,11 @@
 
 /* Range */
 #define HAVE_RB_RANGE_NEW                  1
+
+/* Rational */
+#define HAVE_RB_RATIONAL                   1
+#define HAVE_RB_RATIONAL1                  1
+#define HAVE_RB_RATIONAL2                  1
 
 /* Regexp */
 #define HAVE_RB_BACKREF_GET                1

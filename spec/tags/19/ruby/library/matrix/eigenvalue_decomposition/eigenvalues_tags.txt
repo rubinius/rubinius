@@ -1,0 +1,3 @@
+fails:Matrix::EigenvalueDecomposition#eigenvalues returns an array of complex eigenvalues for a rotation matrix
+fails:Matrix::EigenvalueDecomposition#eigenvalues returns an array of real eigenvalues for a symetric matrix
+fails:Matrix::EigenvalueDecomposition#eigenvalues returns an array of real eigenvalues for a matrix

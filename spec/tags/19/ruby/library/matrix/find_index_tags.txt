@@ -1,0 +1,2 @@
+fails:Matrix#find_index without any argument returns an Enumerator when called without a block
+fails:Matrix#find_index with a subselection argument and no generic argument yields the rights elements

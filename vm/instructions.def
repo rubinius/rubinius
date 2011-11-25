@@ -617,6 +617,11 @@ section "Manipulate arrays"
 instruction make_array(count) [ +count -- array ]
   Object* t2;
   Array* ary = Array::create(state, count);
+#ifdef RBX_ALLOC_TRACKING
+  if(unlikely(state->vm()->allocation_tracking())) {
+    ary->setup_allocation_site(state, call_frame);
+  }
+#endif
   int j = count - 1;
   for(; j >= 0; j--) {
     t2 = stack_pop();
@@ -1500,6 +1505,12 @@ instruction string_build(count) [ +count -- string ]
   }
 
   String* str = String::create(state, 0, size);
+#ifdef RBX_ALLOC_TRACKING
+  if(unlikely(state->vm()->allocation_tracking())) {
+    str->setup_allocation_site(state, call_frame);
+  }
+#endif
+
   uint8_t* pos = str->byte_address();
 
   for(int i = count - 1; i >= 0; i--) {
@@ -1530,7 +1541,13 @@ end
 instruction string_dup() [ string -- string ]
   flush_ip();
   String *s1 = as<String>(stack_pop());
-  stack_push(s1->string_dup(state));
+  String *dup = s1->string_dup(state);
+#ifdef RBX_ALLOC_TRACKING
+  if(unlikely(state->vm()->allocation_tracking())) {
+    dup->setup_allocation_site(state, call_frame);
+  }
+#endif
+  stack_push(dup);
 end
 
 section "Manipulate scope"

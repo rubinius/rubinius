@@ -69,7 +69,7 @@ namespace rubinius {
 
     int seen_classes_overflow_;
     InlineCacheHit seen_classes_[cTrackedICHits];
-    int private_lock_;
+    thread::SpinLock private_lock_;
 
   public:
 
@@ -131,7 +131,6 @@ namespace rubinius {
       , initial_backend_(empty_cache)
       , execute_backend_(empty_cache)
       , seen_classes_overflow_(0)
-      , private_lock_(0)
     {}
 
 #ifdef TRACK_IC_LOCATION

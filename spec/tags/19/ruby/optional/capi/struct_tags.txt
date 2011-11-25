@@ -1,2 +1,0 @@
-fails:C-API Struct function rb_struct_define returns the member names as Symbols
-fails:C-API Struct function rb_struct_define for an anonymous struct returns the member names as Symbols

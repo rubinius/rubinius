@@ -2,7 +2,7 @@
 #include "vm/object_utils.hpp"
 
 #include "capi/capi.hpp"
-#include "capi/19/include/ruby.h"
+#include "capi/19/include/ruby/ruby.h"
 
 #include <stdio.h>
 

@@ -1,11 +1,3 @@
-fails:CGI#initialize when passed no arguments extends self with CGI::QueryExtension
-fails:CGI#initialize when passed no arguments does not extend self with CGI::HtmlExtension
-fails:CGI#initialize when passed no arguments does not extend self with any of the other HTML modules
 fails:CGI#initialize when passed no arguments sets #cookies based on ENV['HTTP_COOKIE']
 fails:CGI#initialize when passed no arguments sets #params based on ENV['QUERY_STRING'] when ENV['REQUEST_METHOD'] is GET
 fails:CGI#initialize when passed no arguments sets #params based on ENV['QUERY_STRING'] when ENV['REQUEST_METHOD'] is HEAD
-fails:CGI#initialize when passed type extends self with CGI::QueryExtension
-fails:CGI#initialize when passed type extends self with CGI::QueryExtension, CGI::Html3 and CGI::HtmlExtension when the passed type is 'html3'
-fails:CGI#initialize when passed type extends self with CGI::QueryExtension, CGI::Html4 and CGI::HtmlExtension when the passed type is 'html4'
-fails:CGI#initialize when passed type extends self with CGI::QueryExtension, CGI::Html4Tr and CGI::HtmlExtension when the passed type is 'html4Tr'
-fails:CGI#initialize when passed type extends self with CGI::QueryExtension, CGI::Html4Tr, CGI::Html4Fr and CGI::HtmlExtension when the passed type is 'html4Fr'

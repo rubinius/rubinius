@@ -34,7 +34,6 @@ fails:Regexp with character classes matches Unicode title-case characters with [
 fails:Regexp with character classes matches Unicode decimal digits with [[:word:]]
 fails:Regexp with character classes matches Unicode marks with [[:word:]]
 fails:Regexp with character classes match Unicode Nl characters with [[:word:]]
-fails:Regexp with character classes doesn't match non-ASCII characters with [[:ascii:]]
 fails:Regexp with character classes doesn't matches Unicode marks with [[:alnum:]]
 fails:Regexp with character classes doesn't match Unicode digits with [[:alpha:]]
 fails:Regexp with character classes doesn't matches Unicode marks with [[:alpha:]]

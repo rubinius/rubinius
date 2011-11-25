@@ -14,7 +14,7 @@
   $Id: openssl.rb 12496 2007-06-08 15:02:04Z technorama $
 =end
 
-require 'ext/openssl/openssl.so'
+require 'openssl/ext/openssl'
 
 require 'openssl/bn'
 require 'openssl/cipher'

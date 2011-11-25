@@ -255,6 +255,10 @@ module Rubinius
     Compiler.compile name
   end
 
+  def self.allocation_site(obj)
+    obj.instance_variable_get("@__allocation_site__")
+  end
+
   ##
   # API Status: official
   #
