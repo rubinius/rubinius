@@ -660,6 +660,12 @@ class Array
     replace ary unless size == ary.size
   end
 
+  # Returns a new array with elements of this array shuffled.
+  def shuffle
+    return dup.shuffle! if instance_of? Array
+    Array.new(self).shuffle!
+  end
+
   # Deletes the element(s) given by an index (optionally with a length)
   # or by a range. Returns the deleted object, subarray, or nil if the
   # index is out of range. Equivalent to:
