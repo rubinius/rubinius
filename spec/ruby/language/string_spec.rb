@@ -222,5 +222,31 @@ HERE
       # Meta-Control-Z
       ?\M-\C-z.should == "\x9A"
     end
+
+    describe "Unicode escaping" do
+      it 'can be done with \u and four hex digits' do
+        "\u0000".ord.should == 0x0000
+        "\u2020".ord.should == 0x2020
+      end
+
+      it 'can be done with \u{} and one to six hex digits' do
+        "\u{a}".ord.should == 0xa
+        "\u{ab}".ord.should == 0xab
+        "\u{abc}".ord.should == 0xabc
+        "\u{1abc}".ord.should == 0x1abc
+        "\u{12abc}".ord.should == 0x12abc
+        "\u{100000}".ord.should == 0x100000
+      end
+
+      it "produces an ASCII string when escaping ASCII characters" do
+        "\u0000".encoding.should == Encoding::US_ASCII
+        "\u{0000}".encoding.should == Encoding::US_ASCII
+      end
+
+      it "produces a UTF-8-encoded string when escaping non-ASCII characters" do
+        "\u1234".encoding.should == Encoding::UTF_8
+        "\u{1234}".encoding.should == Encoding::UTF_8
+      end
+    end
   end
 end
