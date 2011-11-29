@@ -357,6 +357,10 @@ containing the Rubinius standard library files.
         options.stop_parsing
         @run_irb = false
 
+        # Load a gemfile now if we need to so that -S can see binstubs
+        # internal to the Gemfile
+        gemfile
+
         # First, check if any existing gem wrappers match.
         unless file = find_gem_wrapper(script)
           # Then, check if any Rubinius subcommands match.
@@ -591,6 +595,7 @@ to rebuild the compiler.
       if @load_gemfile
         require 'rubygems' unless @enable_gems
         require 'bundler/setup'
+        @load_gemfile = false
       end
     end
 
