@@ -46,6 +46,7 @@
 #include "builtin/randomizer.hpp"
 #include "builtin/module.hpp"
 #include "builtin/class.hpp"
+#include "builtin/atomic.hpp"
 
 #include "configuration.hpp"
 #include "config.h"
@@ -338,6 +339,7 @@ namespace rubinius {
     Fiber::init(state);
     Alias::init(state);
     Randomizer::init(state);
+    AtomicReference::init(state);
   }
 
   // @todo document all the sections of bootstrap_ontology

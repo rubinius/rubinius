@@ -111,6 +111,7 @@ namespace rubinius {
     TypedRoot<Class*> encoding;
     TypedRoot<Module*> type;
     TypedRoot<Class*> vm_class;
+    TypedRoot<Class*> atomic_ref;
 
     /* Add new globals above this line. */
 
@@ -220,7 +221,8 @@ namespace rubinius {
       alias(&roots),
       encoding(&roots),
       type(&roots),
-      vm_class(&roots)
+      vm_class(&roots),
+      atomic_ref(&roots)
 
       /* Add initialize of globals above this line. */
     { }
