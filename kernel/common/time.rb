@@ -143,39 +143,6 @@ class Time
     Process.times
   end
 
-  def +(arg)
-    raise TypeError, 'time + time?' if arg.kind_of?(Time)
-
-    if arg.kind_of?(Integer)
-      other_sec = arg
-      other_usec = 0
-    else
-      other_sec, usec_frac = FloatValue(arg).divmod(1)
-      other_usec = (usec_frac * 1_000_000 + 0.5).to_i
-    end
-
-    # Don't use self.class, MRI doesn't honor subclasses here
-    Time.specific(seconds + other_sec, usec + other_usec, @is_gmt)
-  end
-
-  def -(other)
-    case other
-    when Time
-      (seconds - other.seconds) + ((usec - other.usec) * 0.000001)
-    when Integer
-      # Don't use self.class, MRI doesn't honor subclasses here
-      Time.specific(seconds - other, usec, @is_gmt)
-    else
-      other = FloatValue(other)
-
-      other_sec, usec_frac = FloatValue(other).divmod(1)
-      other_usec = (usec_frac * 1_000_000 + 0.5).to_i
-
-      # Don't use self.class, MRI doesn't honor subclasses here
-      Time.specific(seconds - other_sec, usec - other_usec, @is_gmt)
-    end
-  end
-
   def succ
     self + 1
   end

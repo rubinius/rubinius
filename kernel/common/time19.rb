@@ -123,4 +123,47 @@ class Time
     alias_method :mktime, :local
   end
 
+  def +(arg)
+    raise TypeError, 'time + time?' if arg.kind_of?(Time)
+
+    case arg
+    when NilClass
+      raise TypeError, "can't convert nil into an exact number"
+    when String
+      raise TypeError, "can't convert String into an exact number"
+    when Integer
+      other_sec = arg
+      other_usec = 0
+    else
+      arg = Rubinius::Type.coerce_to arg, Rational, :to_r
+      other_sec, usec_frac = arg.divmod(1)
+      other_usec = (usec_frac * 1_000_000).to_i
+    end
+
+    # Don't use self.class, MRI doesn't honor subclasses here
+    Time.specific(seconds + other_sec, usec + other_usec, @is_gmt)
+  end
+
+  def -(other)
+    case other
+    when NilClass
+      raise TypeError, "can't convert nil into an exact number"
+    when String
+      raise TypeError, "can't convert String into an exact number"
+    when Time
+      (seconds - other.seconds) + ((usec - other.usec) * 0.000001)
+    when Integer
+      # Don't use self.class, MRI doesn't honor subclasses here
+      Time.specific(seconds - other, usec, @is_gmt)
+    else
+      other = Rubinius::Type.coerce_to other, Rational, :to_r
+
+      other_sec, usec_frac = other.divmod(1)
+      other_usec = (usec_frac * 1_000_000 + 0.5).to_i
+
+      # Don't use self.class, MRI doesn't honor subclasses here
+      Time.specific(seconds - other_sec, usec - other_usec, @is_gmt)
+    end
+  end
+
 end
