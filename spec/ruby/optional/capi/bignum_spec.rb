@@ -53,7 +53,13 @@ describe "CApiBignumSpecs" do
 
     it "raises RangeError if passed Bignum overflow long" do
       lambda { @s.rb_big2ulong(ensure_bignum(@max_ulong + 1)) }.should raise_error(RangeError)
-      lambda { @s.rb_big2ulong(ensure_bignum(@min_long)) }.should raise_error(RangeError)
+      lambda { @s.rb_big2ulong(ensure_bignum(@min_long - 1)) }.should raise_error(RangeError)
+    end
+
+    ruby_bug "#", "1.9.3" do
+      it "wraps around if passed a negative bignum" do
+        @s.rb_big2ulong(ensure_bignum(@min_long)).should == -(@min_long)
+      end
     end
   end
 

@@ -17,6 +17,12 @@ ruby_version_is "1.8.8" do
       str = "a"
       str.setbyte(0,98)
       str.should == 'b'
+      
+      # copy-on-write case
+      str1, str2 = "fooXbar".split("X")
+      str2.setbyte(0, 50)
+      str2.should == "2ar"
+      str1.should == "foo"
     end
 
     it "allows changing bytes in multi-byte characters" do
@@ -36,6 +42,12 @@ ruby_version_is "1.8.8" do
       str = "hedgehog"
       str.setbyte(-3, 108)
       str.should == "hedgelog"
+
+      # copy-on-write case
+      str1, str2 = "fooXbar".split("X")
+      str2.setbyte(-1, 50)
+      str2.should == "ba2"
+      str1.should == "foo"
     end
 
     it "raises an IndexError unless the index is inside the String" do

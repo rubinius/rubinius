@@ -155,7 +155,7 @@ describe "Numeric#step" do
       it "is careful about not yielding a value greater than limit" do
         # As 9*1.3+1.0 == 12.700000000000001 > 12.7, we test:
         1.0.step(12.7, 1.3, &@prc)
-        ScratchPad.recorded.should eql [1.0, 2.3, 3.6, 4.9, 6.2, 7.5, 8.8, 10.1, 11.4]
+        ScratchPad.recorded.should eql [1.0, 2.3, 3.6, 4.9, 6.2, 7.5, 8.8, 10.1, 11.4, 12.7]
       end
     end
   end
@@ -180,7 +180,7 @@ describe "Numeric#step" do
       it "is careful about not yielding a value smaller than limit" do
         # As -9*1.3-1.0 == -12.700000000000001 < -12.7, we test:
         -1.0.step(-12.7, -1.3, &@prc)
-        ScratchPad.recorded.should eql [-1.0, -2.3, -3.6, -4.9, -6.2, -7.5, -8.8, -10.1, -11.4]
+        ScratchPad.recorded.should eql [-1.0, -2.3, -3.6, -4.9, -6.2, -7.5, -8.8, -10.1, -11.4, -12.7]
       end
     end
   end
