@@ -791,6 +791,16 @@ describe "The -f, --format FORMAT option" do
       end
     end
   end
+
+  it "sets the JUnitFormatter with FORMAT 'j' or 'junit'" do
+    ["-f", "--format"].each do |opt|
+      ["j", "junit"].each do |f|
+        @config[:formatter] = nil
+        @options.parse [opt, f]
+        @config[:formatter].should == JUnitFormatter
+      end
+    end
+  end
 end
 
 describe "The -o, --output FILE option" do

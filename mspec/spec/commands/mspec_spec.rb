@@ -301,11 +301,11 @@ describe "The -A, --valgrind option" do
     @script.options
   end
 
-  it "sets flags to --valgrind" do
+  it "sets :use_valgrind config option to true" do
     ["-A", "--valgrind"].each do |opt|
-      @config[:flags] = []
+      @config[:use_valgrind] = false
       @script.options [opt]
-      @config[:flags].should include("--valgrind")
+      @config[:use_valgrind].should be_true
     end
   end
 end

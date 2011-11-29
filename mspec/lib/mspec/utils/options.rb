@@ -280,6 +280,8 @@ class MSpecOptions
         config[:formatter] = YamlFormatter
       when 'p', 'profile'
         config[:formatter] = ProfileFormatter
+      when 'j', 'junit'
+        config[:formatter] = JUnitFormatter
       else
         puts "Unknown format: #{o}"
         puts @parser
@@ -296,7 +298,8 @@ class MSpecOptions
     doc "       m, summary               SummaryFormatter"
     doc "       a, *, spin               SpinnerFormatter"
     doc "       t, method                MethodFormatter"
-    doc "       y, yaml                  YamlFormatter\n"
+    doc "       y, yaml                  YamlFormatter"
+    doc "       j, junit                 JUnitFormatter\n"
 
     on("-o", "--output", "FILE",
        "Write formatter output to FILE") do |f|
