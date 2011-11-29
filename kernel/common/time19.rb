@@ -44,4 +44,9 @@ class Time
   def saturday?
     wday == 6
   end
+
+  def to_r
+    to_f.to_r
+  end
+
 end
