@@ -1,1 +1,2 @@
 fails:BigDecimal#divmod raises ZeroDivisionError if the divisor is zero
+unstable(This spec takes many seconds to run):BigDecimal#divmod Can be reversed with * and +
