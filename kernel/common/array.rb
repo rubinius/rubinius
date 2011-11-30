@@ -1090,11 +1090,6 @@ class Array
     new_range n, new_size
   end
 
-  # Returns a new array with elements of this array shuffled.
-  def shuffle
-    dup.shuffle!
-  end
-
   # Shuffles elements in self in place.
   def shuffle!
     Rubinius.check_frozen

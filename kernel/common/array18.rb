@@ -491,6 +491,11 @@ class Array
   alias_method :initialize_copy, :replace
   private :initialize_copy
 
+  # Returns a new array with elements of this array shuffled.
+  def shuffle
+    dup.shuffle!
+  end
+
   # Deletes the element(s) given by an index (optionally with a length)
   # or by a range. Returns the deleted object, subarray, or nil if the
   # index is out of range. Equivalent to:
