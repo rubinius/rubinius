@@ -1,13 +1,22 @@
 module Rubinius
   class AtomicReference
     def initialize(val=nil)
-      @value = val
+      set(val) if val
     end
 
-    attr_accessor :value
+    def get
+      Rubinius.primitive :atomic_get
+      raise PrimitiveFailure, "get failed"
+    end
 
-    alias_method :get, :value
-    alias_method :set, :value=
+    alias_method :value, :get
+
+    def set(val)
+      Rubinius.primitive :atomic_set
+      raise PrimitiveFailure, "set failed"
+    end
+
+    alias_method :value=, :set
 
     def compare_and_set(old, new)
       Rubinius.primitive :atomic_compare_and_set

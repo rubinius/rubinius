@@ -3,6 +3,7 @@
 
 #include "vm.hpp"
 #include "builtin/object.hpp"
+#include "util/atomic.hpp"
 
 namespace rubinius {
 
@@ -20,6 +21,19 @@ namespace rubinius {
     static void init(STATE);
 
     static AtomicReference* allocate(STATE);
+
+    // Rubinius.primitive :atomic_get
+    Object* get(STATE) {
+      atomic::memory_barrier();
+      return value_;
+    }
+
+    // Rubinius.primitive :atomic_set
+    Object* set(STATE, Object* val) {
+      value(state, val);
+      atomic::memory_barrier();
+      return val;
+    }
 
     // Rubinius.primitive :atomic_compare_and_set
     Object* compare_and_set(STATE, Object* old, Object* new_value);
