@@ -15,9 +15,10 @@ module Rubinius
     end
 
     def get_and_set(new)
-      val = @value
-      @value = new
-      val
+      while true
+        val = get
+        return val if compare_and_set(val, new)
+      end
     end
   end
 end
