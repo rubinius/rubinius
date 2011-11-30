@@ -225,6 +225,12 @@ class Array
     at Kernel.rand(size)
   end
 
+  # Returns a copy of self with all nil elements removed
+  def compact
+    out = dup
+    out.compact! || out
+  end
+
   # Appends the elements in the other Array to self
   def concat(other)
     Rubinius.primitive :array_concat
