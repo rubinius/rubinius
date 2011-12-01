@@ -49,4 +49,10 @@ describe :kernel___method__, :shared => true do
     send(@method).should == nil
   end
 
+  it "returns the caller when sent as a string" do
+    def h
+      send(@method.to_s)
+    end
+    h.should == :h
+  end
 end
