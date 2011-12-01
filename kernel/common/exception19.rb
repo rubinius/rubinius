@@ -1,6 +1,6 @@
 class Exception
   def ==(other)
-    other.kind_of?(Exception) &&
+    other.is_a?(self.class) &&
       message == other.message &&
       backtrace == other.backtrace
   end
