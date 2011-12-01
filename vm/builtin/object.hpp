@@ -183,13 +183,20 @@ namespace rubinius {
         Object* block = cNil, bool allow_private = true);
     Object* send(STATE, CallFrame* caller, Symbol* name, bool allow_private = true);
 
+    Object* send_prim(STATE, CallFrame* call_frame, Executable* exec, Module* mod, Arguments& args,
+        bool allow_private);
+
     /**
-     *  Perform a send from Ruby.
-     *
-     *  Uses Task::send_message_slowly().
+     *  Ruby #send/#__send__
      */
     // Rubinius.primitive? :object_send
-    Object* send_prim(STATE, CallFrame* call_frame, Executable* exec, Module* mod, Arguments& args);
+    Object* private_send_prim(STATE, CallFrame* call_frame, Executable* exec, Module* mod, Arguments& args);
+
+    /**
+     *  Ruby #public_send
+     */
+    // Rubinius.primitive? :object_public_send
+    Object* public_send_prim(STATE, CallFrame* call_frame, Executable* exec, Module* mod, Arguments& args);
 
 
   public:   /* Ruby interface */

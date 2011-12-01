@@ -102,6 +102,11 @@ module Kernel
     raise PrimitiveFailure, "#send primitive failed"
   end
 
+  def public_send(message, *args)
+    Rubinius.primitive :object_public_send
+    raise PrimitiveFailure, "#public_send primitive failed"
+  end
+
   def proc(&prc)
     raise ArgumentError, "block required" unless prc
     return prc
