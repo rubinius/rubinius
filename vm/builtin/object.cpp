@@ -498,7 +498,7 @@ namespace rubinius {
   }
 
   Object* Object::send_prim(STATE, CallFrame* call_frame, Executable* exec, Module* mod,
-                            Arguments& args) {
+                            Arguments& args, bool allow_private) {
     if(args.total() < 1) return Primitives::failure();
 
     // Don't shift the argument because we might fail and we need Arguments
@@ -526,9 +526,17 @@ namespace rubinius {
     args.set_name(sym);
 
     Dispatch dis(sym);
-    LookupData lookup(this, this->lookup_begin(state), true);
+    LookupData lookup(this, this->lookup_begin(state), allow_private);
 
     return dis.send(state, call_frame, lookup, args);
+  }
+
+  Object* Object::private_send_prim(STATE, CallFrame* call_frame, Executable* exec, Module* mod, Arguments& args) {
+    return send_prim(state, call_frame, exec, mod, args, true);
+  }
+
+  Object* Object::public_send_prim(STATE, CallFrame* call_frame, Executable* exec, Module* mod, Arguments& args) {
+    return send_prim(state, call_frame, exec, mod, args, false);
   }
 
   void Object::set_field(STATE, size_t index, Object* val) {
