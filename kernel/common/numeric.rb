@@ -53,11 +53,24 @@ class Numeric
       if step.infinite?
         yield value if step > 0 ? value <= limit : value >= limit
       else
+        err = (value.abs + limit.abs + (limit - value).abs) / step.abs * Float::EPSILON
+        err = 0.5 if err > 0.5
+        n = ((limit - value) / step + err).floor
         i = 0
-        while ((step > 0) && (i * step + value <= limit)) ||
-            ((step < 0) && (i * step + value >= limit))
-          yield i * step + value
-          i += 1
+        if step > 0
+          while i <= n
+            d = i * step + value
+            d = limit if limit < d
+            yield d
+            i += 1
+          end
+        else
+          while i <= n
+            d = i * step + value
+            d = limit if limit > d
+            yield d
+            i += 1
+          end
         end
       end
     else
