@@ -24,6 +24,16 @@ describe "Kernel#respond_to?" do
     @a.respond_to?("pub_method").should == true
   end
 
+  it "returns true if obj responds to the given protected method" do
+    @a.respond_to?(:protected_method).should == true
+    @a.respond_to?("protected_method").should == true
+  end
+
+  it "returns false if obj responds to the given private method" do
+    @a.respond_to?(:private_method).should == false
+    @a.respond_to?("private_method").should == false
+  end
+
   it "returns true if obj responds to the given protected method (include_private = true)" do
     @a.respond_to?(:protected_method, true).should == true
     @a.respond_to?("protected_method", true).should == true
