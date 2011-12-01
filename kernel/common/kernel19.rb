@@ -77,20 +77,7 @@ module Kernel
   #
   def send(message, *args)
     Rubinius.primitive :object_send
-
-    # MRI checks for Fixnum explicitly and raises ArgumentError
-    # instead of TypeError. Seems silly, so we don't bother.
-    #
-    case message
-    when String
-      message = Rubinius::Type.coerce_to message, Symbol, :to_sym
-    when Symbol
-      # nothing!
-    else
-      raise TypeError, "#{message.inspect} is not a symbol"
-    end
-
-    __send__ message, *args
+    raise PrimitiveFailure, "#send primitive failed"
   end
 
   def proc(&prc)

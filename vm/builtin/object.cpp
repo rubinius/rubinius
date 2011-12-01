@@ -515,11 +515,18 @@ namespace rubinius {
     Object* meth = args.get_argument(0);
     Symbol* sym = try_as<Symbol>(meth);
 
+    // All coercion must be done here. Coercing Ruby-side and then
+    // re-calling #send/#__send__ would produce incorrect results when
+    // sending messages that are sensitive to the call stack like
+    // send("__callee__") and the regex globals following send("gsub").
+    //
+    // MRI checks for Fixnum explicitly and raises ArgumentError
+    // instead of TypeError. Seems silly, so we don't bother.
     if(!sym) {
       if(String* str = try_as<String>(meth)) {
         sym = str->to_sym(state);
       } else {
-        return Primitives::failure();
+        TypeError::raise(Symbol::type, meth);
       }
     }
 
