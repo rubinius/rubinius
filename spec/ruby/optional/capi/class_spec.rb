@@ -9,15 +9,21 @@ describe :rb_path_to_class, :shared => true do
   end
 
   it "raises an ArgumentError if a constant in the path does not exist" do
-    lambda { @s.send(@method, "CApiClassSpecs::X::B") }.should raise_error(ArgumentError)
+    lambda { @s.send(@method, "CApiClassSpecs::NotDefined::B") }.should raise_error(ArgumentError)
   end
 
   it "raises an ArgumentError if the final constant does not exist" do
-    lambda { @s.send(@method, "CApiClassSpecs::X") }.should raise_error(ArgumentError)
+    lambda { @s.send(@method, "CApiClassSpecs::NotDefined") }.should raise_error(ArgumentError)
   end
 
   it "raises a TypeError if the constant is not a class or module" do
     lambda { @s.send(@method, "CApiClassSpecs::A::C") }.should raise_error(TypeError)
+  end
+
+  ruby_bug '#5691', '1.9.3' do
+    it "raises an ArgumentError even if a constant in the path exists on toplevel" do
+      lambda { @s.send(@method, "CApiClassSpecs::Object") }.should raise_error(ArgumentError)
+    end
   end
 end
 

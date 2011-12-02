@@ -622,7 +622,9 @@ describe "Processing RUBYOPT" do
 
   it "sets $DEBUG to true for '-d'" do
     ENV["RUBYOPT"] = '-d'
-    ruby_exe("puts $DEBUG", :escape => true).chomp.should == "true"
+    command = %[puts "value of $DEBUG is \#{$DEBUG}"]
+    result = ruby_exe(command, :escape => true, :args => "2>&1")
+    result.should =~ /value of \$DEBUG is true/
   end
 
   ruby_version_is "1.9" do

@@ -22,6 +22,7 @@ ruby_version_is "1.8.7" do
     it "returns nil when the start point is greater than the endpoint" do
       (100..10).min.should be_nil
       ('z'..'l').min.should be_nil
+      (7...7).min.should be_nil
     end
 
     ruby_version_is "1.9" do
@@ -56,6 +57,12 @@ ruby_version_is "1.8.7" do
 
     it "returns the element the block determines to be the minimum" do
       (1..3).min {|a,b| -3 }.should == 3
+    end
+
+    it "returns nil when the start point is greater than the endpoint" do
+      (100..10).min {|x,y| x <=> y}.should be_nil
+      ('z'..'l').min {|x,y| x <=> y}.should be_nil
+      (7...7).min {|x,y| x <=> y}.should be_nil
     end
   end
 end

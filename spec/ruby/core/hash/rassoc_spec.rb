@@ -29,11 +29,16 @@ ruby_version_is "1.9" do
     it "uses #== to compare the argument to the values" do
       @h[:key] = 1.0
       1.should == 1.0
-      @h.rassoc(1).should == [:key, 1.0]
+      @h.rassoc(1).should eql [:key, 1.0]
     end
 
     it "returns nil if the argument is not a value of the Hash" do
       @h.rassoc(:banana).should be_nil
+    end
+
+    it "returns nil if the argument is not a value of the Hash even when there is a default" do
+      Hash.new(42).merge!( :foo => :bar ).rassoc(42).should be_nil
+      Hash.new{|h, k| h[k] = 42}.merge!( :foo => :bar ).rassoc(42).should be_nil
     end
   end
 end

@@ -192,36 +192,3 @@ describe "class provides hooks" do
     ClassSpecs::H.track_inherited.should == [ClassSpecs::K]
   end
 end
-
-describe "An anonymous class" do
-  it "takes on the name of the first constant it is assigned to" do
-    c1 = Class.new
-    c1.inspect.should =~ /#<Class/
-    ClassSpecs::AnonymousClasses::C1 = c1
-    c1.inspect.should == "ClassSpecs::AnonymousClasses::C1"
-    
-    c2 = Class.new
-    ClassSpecs::AnonymousClasses.const_set :C2, c2
-    c2.inspect.should == "ClassSpecs::AnonymousClasses::C2"
-  end
-  
-  it "forces named nested classes to be anonymous" do
-    c3 = Class.new
-    c3.const_set :C4, Class.new
-    
-    c3::C4.inspect.should =~ /#<Class/
-    
-    ClassSpecs::AnonymousClasses::C3 = c3
-    c3::C4.inspect.should == "ClassSpecs::AnonymousClasses::C3::C4"
-  end
-  
-  it "never recalculates full name once no longer anonymous" do
-    c6 = Class.new
-    c6.const_set :C7, Class.new    
-    ClassSpecs::AnonymousClasses::C6 = c6
-    c6::C7.inspect.should == "ClassSpecs::AnonymousClasses::C6::C7"
-    
-    ClassSpecs::AnonymousClasses::C8 = c6::C7
-    ClassSpecs::AnonymousClasses::C8.inspect.should == "ClassSpecs::AnonymousClasses::C6::C7"
-  end
-end

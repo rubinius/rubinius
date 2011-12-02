@@ -159,8 +159,15 @@ module NetFTPSpecs
     def port(arg)
       nums = arg.split(",")
 
-      port = nums[4].to_i * 256 + nums[5].to_i
-      host = nums[0..3].join(".")
+      if nums[0] == "::1"
+        # IPv6
+        port = nums[1].to_i * 256 + nums[2].to_i
+        host = nums[0]
+      else
+        # IPv4
+        port = nums[4].to_i * 256 + nums[5].to_i
+        host = nums[0..3].join(".")
+      end
 
       @datasocket = TCPSocket.new(host, port)
       self.response("200 port opened")

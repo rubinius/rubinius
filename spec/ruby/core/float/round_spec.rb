@@ -23,7 +23,6 @@ describe "Float#round" do
       -123456.78.round(-2).should eql(-123500)
       12.345678.round(3.999).should == 12.346
       0.8346268.round(-2.0**30).should eql(0)
-      0.42.round(2.0**30).should == 0.42
     end
 
     it "raises a TypeError when its argument can not be converted to an Integer" do
@@ -50,6 +49,12 @@ describe "Float#round" do
       it "works for corner cases" do
         42.0.round(308).should eql(42.0)
         1.0e307.round(2).should eql(1.0e307)
+      end
+    end
+
+    ruby_bug "redmine:5271",  "1.9.3.0" do
+      it "returns rounded values for big argument" do
+        0.42.round(2.0**30).should == 0.42
       end
     end
 

@@ -71,6 +71,18 @@ describe "Module#const_get" do
     it "searches into the receiver superclasses if the inherit flag is true" do
       ConstantSpecs::ContainerA::ChildA.const_get(:CS_CONST4, true).should == :const4
     end
+    
+    it "raises a NameError when the receiver is a Module, the constant is defined at toplevel and the inherit flag is false" do
+      lambda do
+        ConstantSpecs::ModuleA.const_get(:CS_CONST1, false)
+      end.should raise_error(NameError)
+    end
+
+    it "raises a NameError when the receiver is a Class, the constant is defined at toplevel and the inherit flag is false" do
+      lambda do
+        ConstantSpecs::ContainerA::ChildA.const_get(:CS_CONST1, false)
+      end.should raise_error(NameError)
+    end
   end
 
   describe "with statically assigned constants" do

@@ -80,6 +80,26 @@ describe :io_new, :shared => true do
       @io.external_encoding.to_s.should == 'UTF-8'
       @io.internal_encoding.to_s.should == ''
     end
+
+    it "sets binmode from mode string" do
+      @io = IO.send(@method, @fd, 'wb')
+      @io.binmode?.should == true
+    end
+
+    it "does not set binmode without being asked" do
+      @io = IO.send(@method, @fd, 'w')
+      @io.binmode?.should == false
+    end
+
+    it "sets binmode from :binmode option" do
+      @io = IO.send(@method, @fd, 'w', {:binmode => true})
+      @io.binmode?.should == true
+    end
+
+    it "does not set binmode from false :binmode" do
+      @io = IO.send(@method, @fd, 'w', {:binmode => false})
+      @io.binmode?.should == false
+    end
   end
 end
 

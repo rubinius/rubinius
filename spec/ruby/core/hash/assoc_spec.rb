@@ -39,5 +39,10 @@ ruby_version_is "1.9" do
     it "returns nil if the argument is not a key of the Hash" do
       @h.assoc(:green).should be_nil
     end
+
+    it "returns nil if the argument is not a key of the Hash even when there is a default" do
+      Hash.new(42).merge!( :foo => :bar ).assoc(42).should be_nil
+      Hash.new{|h, k| h[k] = 42}.merge!( :foo => :bar ).assoc(42).should be_nil
+    end
   end
 end

@@ -1,17 +1,17 @@
 require File.expand_path('../../../spec_helper', __FILE__)
 
-describe "Array#count" do
-  it 'returns count of elements' do
-    [1, :two, 'three'].count.should == 3
-  end
+ruby_version_is "1.8.7" do
+  describe "Array#count" do
+    it "returns the number of elements" do
+      [:a, :b, :c].count.should == 3
+    end
 
-  it 'returns count of elements that equals given object' do
-    [1, 'some text', 'other text', 2, 1].count(1).should == 2
-  end
+    it "returns the number of elements that equal the argument" do
+      [:a, :b, :b, :c].count(:b).should == 2
+    end
 
-  it 'returns count of element yielding a true value of block' do
-    (1..20).to_a.count do |el|
-      el % 2 == 0
-    end.should == 10
+    it "returns the number of element for which the block evaluates to true" do
+      [:a, :b, :c].count { |s| s != :b }.should == 2
+    end
   end
 end

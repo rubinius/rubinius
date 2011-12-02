@@ -6,15 +6,23 @@ ruby_version_is "1.9" do
       [1, 2, 3, 4, 5].drop(2).should == [3, 4, 5]
     end
 
-    it "raises an exception if the number of elements specified is negative" do
+    it "raises an ArgumentError if the number of elements specified is negative" do
      lambda { [1, 2].drop(-3) }.should raise_error(ArgumentError)
     end
 
-    it "returns an empty array if all elements are dropped" do
+    it "returns an empty Array if all elements are dropped" do
       [1, 2].drop(2).should == []
     end
 
-    it "returns an empty array if more elements than exist are dropped" do
+    it "returns an empty Array when called on an empty Array" do
+      [].drop(0).should == []
+    end
+
+    it "does not remove any elements when passed zero" do
+      [1, 2].drop(0).should == [1, 2]
+    end
+
+    it "returns an empty Array if more elements than exist are dropped" do
       [1, 2].drop(3).should == []
     end
   end
