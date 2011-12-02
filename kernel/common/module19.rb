@@ -12,6 +12,14 @@ class Module
       end
     end
 
+    if search_parents
+      current = self.direct_superclass
+      while current and current != Object
+        return true if current.constant_table.has_key? name
+        current = current.direct_superclass
+      end
+    end
+
     return false
   end
 
