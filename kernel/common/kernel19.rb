@@ -14,6 +14,19 @@ module Kernel
     end
   end
 
+  def public_method(name)
+    name = Rubinius::Type.coerce_to_symbol name
+    cm = Rubinius.find_public_method(self, name)
+
+    if cm
+      Method.new(self, cm[1], cm[0], name)
+    elsif respond_to_missing?(name, false)
+      Method.new(self, self.class, Rubinius::MissingMethod.new(self,  name), name)
+    else
+      raise NameError, "undefined method `#{name}' for #{self.inspect}"
+    end
+  end
+
   alias_method :__callee__, :__method__
   module_function :__callee__
 
