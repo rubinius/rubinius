@@ -27,7 +27,7 @@ class Hash
 
       class << self
         def match?(this_key, this_hash, other_key, other_hash)
-          other_key.equal? this_key
+          Rubinius::Type.object_equal other_key, this_key
         end
       end
 
