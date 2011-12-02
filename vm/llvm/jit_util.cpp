@@ -112,7 +112,7 @@ extern "C" {
                                   int count, Object** args) {
     Object* recv = args[0];
     Arguments out_args(name, recv, count, args+1);
-    LookupData lookup(recv, recv->lookup_begin(state), true);
+    LookupData lookup(recv, recv->lookup_begin(state), G(sym_private));
     Dispatch dis(name);
 
     return dis.send(state, call_frame, lookup, out_args);
@@ -135,7 +135,7 @@ extern "C" {
                                   int count, Object** args) {
     Object* recv = args[0];
     Arguments out_args(name, recv, args[count+2], count, args+1);
-    LookupData lookup(recv, recv->lookup_begin(state), true);
+    LookupData lookup(recv, recv->lookup_begin(state), G(sym_private));
     Dispatch dis(name);
 
     if(Array* ary = try_as<Array>(args[count+1])) {
@@ -149,7 +149,7 @@ extern "C" {
                           int count, Object** args) {
     Object* recv = call_frame->self();
     Arguments out_args(name, recv, args[count], count, args);
-    LookupData lookup(recv, call_frame->module()->superclass(), true);
+    LookupData lookup(recv, call_frame->module()->superclass(), G(sym_private));
     Dispatch dis(name);
 
     return dis.send(state, call_frame, lookup, out_args);
@@ -159,7 +159,7 @@ extern "C" {
                           int count, Object** args) {
     Object* recv = call_frame->self();
     Arguments out_args(name, recv, args[count+1], count, args);
-    LookupData lookup(recv, call_frame->module()->superclass(), true);
+    LookupData lookup(recv, call_frame->module()->superclass(), G(sym_private));
     Dispatch dis(name);
 
     if(Array* ary = try_as<Array>(args[count])) {
@@ -207,7 +207,7 @@ extern "C" {
     Arguments out_args(name, recv, block, arg_count, 0);
     out_args.use_tuple(tup, arg_count);
 
-    LookupData lookup(recv, call_frame->module()->superclass(), true);
+    LookupData lookup(recv, call_frame->module()->superclass(), G(sym_private));
     Dispatch dis(name);
 
     return dis.send(state, call_frame, lookup, out_args, eSuper);

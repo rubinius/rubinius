@@ -12,7 +12,7 @@ namespace rubinius {
   Object* Dispatch::send(STATE, CallFrame* call_frame, Arguments& args,
                          MethodMissingReason reason)
   {
-    LookupData lookup(args.recv(), args.recv()->lookup_begin(state));
+    LookupData lookup(args.recv(), args.recv()->lookup_begin(state), G(sym_protected));
 
     return send(state, call_frame, lookup, args, reason);
   }
@@ -26,7 +26,7 @@ namespace rubinius {
       state->vm()->set_method_missing_reason(reason);
 
       method_missing = true;
-      lookup.priv = true;
+      lookup.min_visibility = G(sym_private);
       if(!GlobalCache::resolve(state, G(sym_method_missing), *this, lookup)) {
         Exception::internal_error(state, call_frame, "no method_missing");
         return 0;
