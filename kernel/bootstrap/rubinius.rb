@@ -11,6 +11,11 @@ module Rubinius
     raise PrimitiveFailure, "Rubinius.find_method failed"
   end
 
+  def self.find_public_method(obj, name)
+    Rubinius.primitive :vm_find_public_method
+    raise PrimitiveFailure, "Rubinius.find_public_method failed"
+  end
+
   def self.extended_modules(obj)
     Rubinius.primitive :vm_extended_modules
     raise PrimitiveFailure, "Rubinius.extended_modules failed"
