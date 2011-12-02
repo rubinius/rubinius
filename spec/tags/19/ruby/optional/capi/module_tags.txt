@@ -1,0 +1,1 @@
+fails:CApiModule rb_const_defined_at does not search in ancestors for the constant
