@@ -66,6 +66,27 @@ class File
   end
 
   alias_method :to_path, :path
+
+  def self.realpath(path, basedir = nil)
+    path = expand_path(path, basedir || Dir.pwd)
+    real = ''
+    while !path.empty?
+      pos = path.index(SEPARATOR, 1)
+
+      if pos
+        name = path[0...pos]
+        path = path[pos..-1]
+      else
+        name = path
+        path = ''
+      end
+
+      real = join(real, name)
+      real = realpath(readlink(real)) if symlink?(real)
+    end
+
+    real
+  end
 end
 
 class File::Stat
