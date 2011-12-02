@@ -23,6 +23,15 @@ namespace rubinius {
       Executable* method;
       bool is_public;
       bool method_missing;
+
+      void clear() {
+        klass = NULL;
+        name = NULL;
+        module = NULL;
+        method = NULL;
+        is_public = true;
+        method_missing = false;
+      }
     };
 
     CacheEntry entries[CPU_CACHE_SIZE];
@@ -45,11 +54,7 @@ namespace rubinius {
       thread::SpinLock::LockGuard guard(lock_);
       for(size_t i = 0; i < CPU_CACHE_SIZE; i++) {
         if(entries[i].name == name) {
-          entries[i].klass = NULL;
-          entries[i].name = NULL;
-          entries[i].module = NULL;
-          entries[i].method = NULL;
-          entries[i].method_missing = false;
+          entries[i].clear();
         }
       }
     }
@@ -59,11 +64,7 @@ namespace rubinius {
       thread::SpinLock::LockGuard guard(lock_);
       entry = entries + CPU_CACHE_HASH(cls, name);
       if(entry->name == name && entry->klass == cls) {
-        entry->klass = NULL;
-        entry->name = NULL;
-        entry->module = NULL;
-        entry->method = NULL;
-        entry->method_missing = false;
+        entry->clear();
       }
     }
 
@@ -95,12 +96,7 @@ namespace rubinius {
 
     void clear() {
       for(size_t i = 0; i < CPU_CACHE_SIZE; i++) {
-        entries[i].klass = 0;
-        entries[i].name  = 0;
-        entries[i].module = 0;
-        entries[i].method = 0;
-        entries[i].is_public = true;
-        entries[i].method_missing = false;
+        entries[i].clear();
       }
     }
 

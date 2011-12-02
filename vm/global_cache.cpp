@@ -184,11 +184,7 @@ keep_looking:
       }
 
       if(clear) {
-        entry->klass = 0;
-        entry->name = 0;
-        entry->module = 0;
-        entry->is_public = true;
-        entry->method_missing = false;
+        entry->clear();
       }
     }
   }
@@ -205,11 +201,7 @@ keep_looking:
       Object* exec = reinterpret_cast<Object*>(entry->method);
 
       if(!klass->marked_p(mark) || !mod->marked_p(mark) || !exec->marked_p(mark)) {
-        entry->klass = 0;
-        entry->name = 0;
-        entry->module = 0;
-        entry->is_public = true;
-        entry->method_missing = false;
+        entry->clear();
       }
     }
   }
