@@ -1,1 +1,0 @@
-fails:Kernel#instance_variable_get when passed Fixnum raises a TypeError
