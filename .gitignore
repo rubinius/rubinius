@@ -33,7 +33,7 @@ TAGS
 autom4te.cache
 code-cache
 coverage
-config.rb
+/config.rb
 cscope.files
 cscope.out
 configure.log
