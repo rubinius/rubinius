@@ -8,12 +8,12 @@ namespace rubinius {
   struct LookupData {
     Object* recv;
     Module* from;
-    bool priv;
+    Symbol* min_visibility;
 
-    LookupData(Object* recv, Module* mod, bool priv = false)
+    LookupData(Object* recv, Module* mod, Symbol* min_vis)
       : recv(recv)
       , from(mod)
-      , priv(priv)
+      , min_visibility(min_vis)
     {}
   };
 }

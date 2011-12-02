@@ -865,8 +865,7 @@ namespace rubinius {
   }
 
   Tuple* System::vm_find_method(STATE, Object* recv, Symbol* name) {
-    LookupData lookup(recv, recv->lookup_begin(state));
-    lookup.priv = true;
+    LookupData lookup(recv, recv->lookup_begin(state), G(sym_private));
 
     Dispatch dis(name);
 
@@ -1076,7 +1075,7 @@ namespace rubinius {
   Object* System::vm_catch(STATE, Object* dest, Object* obj,
                            CallFrame* call_frame)
   {
-    LookupData lookup(obj, obj->lookup_begin(state), false);
+    LookupData lookup(obj, obj->lookup_begin(state), G(sym_protected));
     Dispatch dis(state->symbol("call"));
     Arguments args(state->symbol("call"), 1, &dest);
     args.set_recv(obj);

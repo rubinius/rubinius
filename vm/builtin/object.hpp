@@ -6,6 +6,7 @@
 #include "vm.hpp"
 #include "vm/oop.hpp"
 #include "vm/type_info.hpp"
+#include "vm/lookup_data.hpp"
 
 #include "executor.hpp"
 
@@ -184,7 +185,7 @@ namespace rubinius {
     Object* send(STATE, CallFrame* caller, Symbol* name, bool allow_private = true);
 
     Object* send_prim(STATE, CallFrame* call_frame, Executable* exec, Module* mod, Arguments& args,
-        bool allow_private);
+        Symbol* min_visibility);
 
     /**
      *  Ruby #send/#__send__

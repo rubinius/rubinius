@@ -471,7 +471,7 @@ namespace rubinius {
 
   Object* Object::send(STATE, CallFrame* caller, Symbol* name, Array* ary,
       Object* block, bool allow_private) {
-    LookupData lookup(this, this->lookup_begin(state), allow_private);
+    LookupData lookup(this, this->lookup_begin(state), allow_private ? G(sym_private) : G(sym_protected));
     Dispatch dis(name);
 
     Arguments args(name, ary);
@@ -482,7 +482,7 @@ namespace rubinius {
   }
 
   Object* Object::send(STATE, CallFrame* caller, Symbol* name, bool allow_private) {
-    LookupData lookup(this, this->lookup_begin(state), allow_private);
+    LookupData lookup(this, this->lookup_begin(state), allow_private ? G(sym_private) : G(sym_protected));
     Dispatch dis(name);
 
     Arguments args(name);
@@ -493,7 +493,7 @@ namespace rubinius {
   }
 
   Object* Object::send_prim(STATE, CallFrame* call_frame, Executable* exec, Module* mod,
-                            Arguments& args, bool allow_private) {
+                            Arguments& args, Symbol* min_visibility) {
     if(args.total() < 1) return Primitives::failure();
 
     // Don't shift the argument because we might fail and we need Arguments
@@ -521,17 +521,17 @@ namespace rubinius {
     args.set_name(sym);
 
     Dispatch dis(sym);
-    LookupData lookup(this, this->lookup_begin(state), allow_private);
+    LookupData lookup(this, this->lookup_begin(state), min_visibility);
 
     return dis.send(state, call_frame, lookup, args);
   }
 
   Object* Object::private_send_prim(STATE, CallFrame* call_frame, Executable* exec, Module* mod, Arguments& args) {
-    return send_prim(state, call_frame, exec, mod, args, true);
+    return send_prim(state, call_frame, exec, mod, args, G(sym_private));
   }
 
   Object* Object::public_send_prim(STATE, CallFrame* call_frame, Executable* exec, Module* mod, Arguments& args) {
-    return send_prim(state, call_frame, exec, mod, args, false);
+    return send_prim(state, call_frame, exec, mod, args, G(sym_public));
   }
 
   void Object::set_field(STATE, size_t index, Object* val) {
@@ -771,8 +771,7 @@ namespace rubinius {
   }
 
   Object* Object::respond_to(STATE, Symbol* name, Object* priv) {
-    LookupData lookup(this, lookup_begin(state));
-    lookup.priv = CBOOL(priv);
+    LookupData lookup(this, lookup_begin(state), CBOOL(priv) ? G(sym_private) : G(sym_protected));
 
     Dispatch dis(name);
 
@@ -794,9 +793,7 @@ namespace rubinius {
       return Primitives::failure();
     }
 
-    LookupData lookup(this, lookup_begin(state));
-    lookup.priv = false;
-
+    LookupData lookup(this, lookup_begin(state), G(sym_protected));
     Dispatch dis(name);
 
     if(!GlobalCache::resolve(state, name, dis, lookup)) {
