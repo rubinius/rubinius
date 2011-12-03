@@ -70,6 +70,8 @@ class File
   def self.realpath(path, basedir = nil)
     path = expand_path(path, basedir || Dir.pwd)
     real = ''
+    symlinks = {}
+
     while !path.empty?
       pos = path.index(SEPARATOR, 1)
 
@@ -82,7 +84,16 @@ class File
       end
 
       real = join(real, name)
-      real = realpath(readlink(real)) if symlink?(real)
+      if symlink?(real)
+        raise Errno::ELOOP if symlinks[real]
+        symlinks[real] = true
+        if path.empty?
+          path = readlink(real)
+        else
+          path = File.join(readlink(real), path)
+        end
+        real = ''
+      end
     end
 
     real
