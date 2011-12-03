@@ -7,6 +7,4 @@ class Numeric
   def modulo(other)
     self % other
   end
-
-  alias_method :fdiv, :quo
 end

@@ -67,8 +67,4 @@ class Numeric
   def real?
     true
   end
-
-  def fdiv(other)
-    Rubinius::Type.coerce_to_float(self).__slash__(other)
-  end
 end
