@@ -25,7 +25,7 @@ class Module
   end
 
   private :attr
-  
+
   alias_method :class_variable_set, :__class_variable_set__
 
   # Install a new Autoload object into the constants table
@@ -57,5 +57,32 @@ class Module
     constant_table[name] = Autoload.new(name, self, path)
     Rubinius.inc_global_serial
     return nil
+  end
+
+  def constants
+    tbl = Rubinius::LookupTable.new
+
+    @constant_table.each do |name, val|
+      tbl[name] = true
+    end
+
+    current = self.direct_superclass
+
+    while current and current != Object
+      current.constant_table.each do |name, val|
+        tbl[name] = true unless tbl.has_key? name
+      end
+
+      current = current.direct_superclass
+    end
+
+    # special case: Module.constants returns Object's constants
+    if self.equal? Module
+      Object.constant_table.each do |name, val|
+        tbl[name] = true unless tbl.has_key? name
+      end
+    end
+
+    Rubinius.convert_to_names tbl.keys
   end
 end

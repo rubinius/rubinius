@@ -48,7 +48,7 @@ class Module
   end
 
   private :attr
-  
+
   def class_variable_set(key, value)
     raise RuntimeError, "can't modify frozen #{self.class}" if frozen?
     __class_variable_set__(key, value)
@@ -81,5 +81,34 @@ class Module
     constant_table[name] = Autoload.new(name, self, path)
     Rubinius.inc_global_serial
     return nil
+  end
+
+  def constants(all=undefined)
+    tbl = Rubinius::LookupTable.new
+
+    @constant_table.each do |name, val|
+      tbl[name] = true
+    end
+
+    if all
+      current = self.direct_superclass
+
+      while current and current != Object
+        current.constant_table.each do |name, val|
+          tbl[name] = true unless tbl.has_key? name
+        end
+
+        current = current.direct_superclass
+      end
+    end
+
+    # special case: Module.constants returns Object's constants
+    if self.equal?(Module) && all.equal?(undefined)
+      Object.constant_table.each do |name, val|
+        tbl[name] = true unless tbl.has_key? name
+      end
+    end
+
+    Rubinius.convert_to_names tbl.keys
   end
 end
