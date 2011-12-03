@@ -38,5 +38,11 @@ ruby_version_is "1.9" do
         File.realpath(File.basename(@link)).should == @file
       end
     end
+
+    it "raises a Errno::ELOOP if symlink points itself" do
+      File.unlink @link
+      File.symlink(@link, @link)
+      lambda { File.realpath(@link) }.should raise_error(Errno::ELOOP)
+    end
   end
 end
