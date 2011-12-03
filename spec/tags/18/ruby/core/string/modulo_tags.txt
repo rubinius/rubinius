@@ -1,0 +1,1 @@
+fails:String#% supports float formats using %g

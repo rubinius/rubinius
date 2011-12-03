@@ -1,0 +1,4 @@
+fails:IO.for_fd sets binmode from mode string
+fails:IO.for_fd does not set binmode without being asked
+fails:IO.for_fd sets binmode from :binmode option
+fails:IO.for_fd does not set binmode from false :binmode

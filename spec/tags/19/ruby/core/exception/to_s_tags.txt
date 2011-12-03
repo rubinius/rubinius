@@ -1,0 +1,1 @@
+fails:Exception#to_s calls #to_s on the message
