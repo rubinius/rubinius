@@ -2,7 +2,7 @@ require File.expand_path('../../../spec_helper', __FILE__)
 
 ruby_version_is "1.9" do
   describe "File.realpath" do
-    before do
+    before :each do
       @real_dir = tmp('dir_realpath_real')
       @link_dir = tmp('dir_realpath_link')
 
@@ -16,13 +16,12 @@ ruby_version_is "1.9" do
       File.symlink(@file, @link)
     end
 
-    after do
-      File.unlink @link
-      File.unlink @link_dir
+    after :each do
+      File.unlink @link, @link_dir
       rm_r @file, @real_dir
     end
 
-    it "returns root for root" do
+    it "returns '/' when passed '/'" do
       File.realpath('/').should == '/'
     end
 
@@ -35,12 +34,8 @@ ruby_version_is "1.9" do
     end
 
     it "uses current directory for interpreting relative pathname" do
-      old_dir = Dir.pwd
-      begin
-        Dir.chdir @link_dir
+      Dir.chdir @link_dir do
         File.realpath(File.basename(@link)).should == @file
-      ensure
-        Dir.chdir old_dir
       end
     end
   end
