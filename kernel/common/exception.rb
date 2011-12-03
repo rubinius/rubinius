@@ -101,10 +101,6 @@ class Exception
     end
   end
 
-  def to_s
-    @reason_message || self.class.to_s
-  end
-
   # This is important, because I subclass can just override #to_s and calling
   # #message will call it. Using an alias doesn't achieve that.
   def message
