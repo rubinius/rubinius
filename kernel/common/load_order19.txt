@@ -97,6 +97,7 @@ struct.rbc
 struct19.rbc
 process.rbc
 random.rbc
+random19.rbc
 regexp.rbc
 regexp19.rbc
 signal.rbc

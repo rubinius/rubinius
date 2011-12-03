@@ -151,20 +151,6 @@ module Kernel
   end
   module_function :srand
 
-  def rand(limit=0)
-    limit = Integer(limit).abs
-
-    case limit
-    when 0
-      Rubinius::Randomizer.instance.random_float
-    when Integer
-      Rubinius::Randomizer.instance.random_integer(limit - 1)
-    else
-      raise TypeError, "Integer() returned a non-integer"
-    end
-  end
-  module_function :rand
-
   def block_given?
     Rubinius::VariableScope.of_sender.block != nil
   end

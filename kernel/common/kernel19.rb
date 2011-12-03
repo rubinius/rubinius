@@ -19,6 +19,24 @@ module Kernel
   end
   module_function :loop
 
+  def rand(limit=0)
+    if limit.kind_of?(Range)
+      Rubinius::Randomizer.instance.random_range(limit)
+    else
+      limit = Integer(limit).abs
+
+      case limit
+      when 0
+        Rubinius::Randomizer.instance.random_float
+      when Integer
+        Rubinius::Randomizer.instance.random_integer(limit - 1)
+      else
+        raise TypeError, "Integer() returned a non-integer"
+      end
+    end
+  end
+  module_function :rand
+
   def Integer(obj, base=nil)
     if obj.kind_of? String
       if obj.empty?
@@ -113,7 +131,7 @@ module Kernel
     return str
   end
   module_function :String
-  
+
   def Array(obj)
     ary = Rubinius::Type.check_convert_type obj, Array, :to_ary
 
@@ -130,7 +148,7 @@ module Kernel
   def =~(other)
     nil
   end
-  
+
   def Float(obj)
     raise TypeError, "can't convert nil into Float" if obj.nil?
 
