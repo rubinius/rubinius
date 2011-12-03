@@ -593,4 +593,14 @@ class IO
       pipe.close unless pipe.closed?
     end
   end
+
+  ##
+  # Return a string describing this IO object.
+  def inspect
+    if @descriptor != -1
+      "#<#{self.class}:fd #{@descriptor}>"
+    else
+      "#<#{self.class}:(closed)"
+    end
+  end
 end

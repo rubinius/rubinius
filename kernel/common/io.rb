@@ -819,12 +819,6 @@ class IO
   end
 
   ##
-  # Return a string describing this IO object.
-  def inspect
-    "#<#{self.class}:0x#{object_id.to_s(16)}>"
-  end
-
-  ##
   # Returns the current line number in ios. The
   # stream must be opened for reading. lineno
   # counts the number of times gets is called,
