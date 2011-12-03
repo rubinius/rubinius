@@ -4,7 +4,7 @@ next: Começando
 next_url: getting-started
 ---
 
-## O que é Rubinius
+## O que é o Rubinius
 
 Rubinius é uma implementação da [linguagem de programação
 Ruby](http://ruby-lang.org).
@@ -18,7 +18,7 @@ Rubinius implementa atualmente a versão 1.8.7 do Ruby.
 
 ## Licença
 
-Rubinius usa a licença BDS. Veja o arquivo LICENSE no código-fonte.
+Rubinius usa a licença BSD. Veja o arquivo LICENSE no código-fonte.
 
 
 ## Instalação
