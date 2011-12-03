@@ -1,4 +1,31 @@
 class Module
+  def constants
+    tbl = Rubinius::LookupTable.new
+
+    @constant_table.each do |name, val|
+      tbl[name] = true
+    end
+
+    current = self.direct_superclass
+
+    while current and current != Object
+      current.constant_table.each do |name, val|
+        tbl[name] = true unless tbl.has_key? name
+      end
+
+      current = current.direct_superclass
+    end
+
+    # special case: Module.constants returns Object's constants
+    if self.equal? Module
+      Object.constant_table.each do |name, val|
+        tbl[name] = true unless tbl.has_key? name
+      end
+    end
+
+    Rubinius.convert_to_names tbl.keys
+  end
+
   def const_defined?(name)
     name = normalize_const_name(name)
     return true if @constant_table.has_key? name
