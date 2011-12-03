@@ -71,7 +71,16 @@ describe "Module#constants" do
       ConstantSpecs::ContainerA.constants.sort.should == [
         :CS_CONST10, :CS_CONST23, :CS_CONST24, :CS_CONST5, :ChildA
       ]
+    end
+
+    it "returns all constants including inherited when passed true" do
       ConstantSpecs::ContainerA.constants(true).sort.should == [
+        :CS_CONST10, :CS_CONST23, :CS_CONST24, :CS_CONST5, :ChildA
+      ]
+    end
+
+    it "returns all constants including inherited when passed some object" do
+      ConstantSpecs::ContainerA.constants(Object.new).sort.should == [
         :CS_CONST10, :CS_CONST23, :CS_CONST24, :CS_CONST5, :ChildA
       ]
     end
@@ -83,6 +92,12 @@ describe "Module#constants" do
 
     it "doesn't returns inherited constants when passed false" do
       ConstantSpecs::ContainerA.constants(false).sort.should == [
+        :CS_CONST10, :CS_CONST23, :CS_CONST5, :ChildA
+      ]
+    end
+
+    it "doesn't returns inherited constants when passed nil" do
+      ConstantSpecs::ContainerA.constants(nil).sort.should == [
         :CS_CONST10, :CS_CONST23, :CS_CONST5, :ChildA
       ]
     end
