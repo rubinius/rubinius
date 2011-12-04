@@ -8,18 +8,18 @@ next_url: bytecode-compiler/parser
 review: true
 ---
 
-The Rubinius bytecode compiler converts Ruby source code to bytecode that the
-virtual machine can execute. It uses a series of sequential stages to
-transform the input into a form that the virtual machine can understand.
+O compilador do Rubinius converte código fonte Ruby em bytecodes que podem
+ser interpretados pela máquina virtual. A máquina virtual usa uma série de
+estágios sequenciais para transformar a entrada algo que ela possa entender.
 
-Each of these stages is decoupled from the rest of the process,
-expecting only a particular input form and sending its output to the
-next stage. As a result, the compilation process is quite configurable,
-and you can instrument any of the stages simply.
+Cada um dos estágios é desacoplado do resto do processo, esperando apenas
+uma forma particular de entrada e enviando sua saída para o próximo estágio.
+Como resultado, o processo de compilação tem bons níveis de configuração e
+os estágios pode ser instrumentados de maneira simples.
 
-Each stage of the process receives an input, runs the stage, and passes
-the output from the stage to the next stage of the process. The default
-stages, as well as their inputs and outputs, are illustrated below.
+Cada estágio do processo recebe uma entrada, executa, e passa a saída para
+o estágio sequinte. Os estágios padrão, assim como suas entradas e saídas
+são ilustrados abaixo.
 
 <div style="text-align: center; width: 100%">
   <img src="/images/compilation_process.png" alt="Compilation process" />
