@@ -69,7 +69,7 @@ class StringIO
     if $KCODE == "UTF8"
       lookup = 7.downto(4)
       while c = read(1) do
-        n = c[0]
+        n = c[0].ord
         leftmost_zero_bit = lookup.find{|i| n[i].zero? }
         case leftmost_zero_bit
         when 7 # ASCII
@@ -192,7 +192,11 @@ class StringIO
     @pos += 1 unless eof?
     char
   end
-  alias_method :getbyte, :getc
+
+  def getbyte
+    char = getc
+    char && char.ord
+  end
 
   def gets(sep = $/)
     $_ = getline(sep)
@@ -404,7 +408,10 @@ class StringIO
 
   def sysread(length = nil, buffer = "")
     str = read(length, buffer)
-    raise IO::EOFError, "end of file reached" if str.nil?
+    if str.nil?
+      buffer.clear
+      raise IO::EOFError, "end of file reached"
+    end
     str
   end
 
