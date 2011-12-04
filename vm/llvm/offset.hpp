@@ -42,13 +42,6 @@ namespace offset {
   const static int blockinv_static_scope = 2;
   const static int blockinv_module = 3;
 
-  const static int blockenv_scope = 1;
-  const static int blockenv_top_scope = 2;
-  const static int blockenv_code = 3;
-  const static int blockenv_module = 4;
-  const static int blockenv_vmm = 5;
-  const static int blockenv_execute = 6;
-
   const static int runtime_data_method = 0;
   const static int runtime_data_name = 1;
   const static int runtime_data_module = 2;

@@ -7,7 +7,6 @@
 #include <llvm/CallingConv.h>
 #include <llvm/Support/CFG.h>
 #include <llvm/Analysis/Passes.h>
-#include <llvm/Target/TargetSelect.h>
 
 #include <llvm/Target/TargetOptions.h>
 #include <llvm/Module.h>

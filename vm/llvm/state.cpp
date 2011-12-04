@@ -34,7 +34,7 @@
 #include <llvm/CallingConv.h>
 #include <llvm/Support/CFG.h>
 #include <llvm/Analysis/Passes.h>
-#include <llvm/Target/TargetSelect.h>
+#include <llvm/Support/TargetSelect.h>
 
 #include <llvm/Target/TargetOptions.h>
 
@@ -125,13 +125,13 @@ namespace rubinius {
     state->shared().llvm_state->unpause_i();
   }
 
-  const llvm::Type* LLVMState::ptr_type(std::string name) {
+  llvm::Type* LLVMState::ptr_type(std::string name) {
     std::string full_name = std::string("struct.rubinius::") + name;
     return llvm::PointerType::getUnqual(
         module_->getTypeByName(full_name.c_str()));
   }
 
-  const llvm::Type* LLVMState::type(std::string name) {
+  llvm::Type* LLVMState::type(std::string name) {
     std::string full_name = std::string("struct.rubinius::") + name;
     return module_->getTypeByName(full_name.c_str());
   }

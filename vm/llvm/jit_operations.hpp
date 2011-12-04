@@ -86,14 +86,14 @@ namespace rubinius {
     llvm::Value* valid_flag_;
 
   public:
-    const llvm::Type* NativeIntTy;
-    const llvm::Type* FixnumTy;
-    const llvm::Type* ObjType;
-    const llvm::Type* ObjArrayTy;
+    llvm::Type* NativeIntTy;
+    llvm::Type* FixnumTy;
+    llvm::Type* ObjType;
+    llvm::Type* ObjArrayTy;
 
     // Frequently used types
-    const llvm::Type* VMTy;
-    const llvm::Type* CallFrameTy;
+    llvm::Type* VMTy;
+    llvm::Type* CallFrameTy;
 
     // Commonly used constants
     llvm::Value* Zero;
@@ -256,13 +256,13 @@ namespace rubinius {
 
     // Type resolution and manipulation
     //
-    const llvm::Type* ptr_type(std::string name) {
+    llvm::Type* ptr_type(std::string name) {
       std::string full_name = std::string("struct.rubinius::") + name;
       return llvm::PointerType::getUnqual(
           module_->getTypeByName(full_name.c_str()));
     }
 
-    const llvm::Type* type(std::string name) {
+    llvm::Type* type(std::string name) {
       std::string full_name = std::string("struct.rubinius::") + name;
       return module_->getTypeByName(full_name.c_str());
     }
@@ -272,7 +272,7 @@ namespace rubinius {
     }
 
     Value* upcast(Value* rec, const char* name) {
-      const Type* type = ptr_type(name);
+      Type* type = ptr_type(name);
 
       return b().CreateBitCast(rec, type, "upcast");
     }
@@ -735,7 +735,7 @@ namespace rubinius {
           ObjType, "const_obj");
     }
 
-    Value* constant(void* obj, const Type* type) {
+    Value* constant(void* obj, Type* type) {
       return b().CreateIntToPtr(
           ConstantInt::get(ls_->IntPtrTy, (intptr_t)obj),
           type, "const_of_type");
@@ -765,7 +765,7 @@ namespace rubinius {
 
     // Fixnum manipulations
     //
-    Value* tag_strip(Value* obj, const Type* type = NULL) {
+    Value* tag_strip(Value* obj, Type* type = NULL) {
       if(!type) type = FixnumTy;
 
       Value* i = b().CreatePtrToInt(
@@ -904,7 +904,7 @@ namespace rubinius {
     //
     GetElementPtrInst* create_gep(Value* rec, Value** idx, int count,
                                   const char* name) {
-      return cast<GetElementPtrInst>(b().CreateGEP(rec, idx, idx+count, name));
+      return cast<GetElementPtrInst>(b().CreateGEP(rec, ArrayRef<Value*>(idx, count), name));
     }
 
     LoadInst* create_load(Value* ptr, const char* name = "") {
@@ -976,7 +976,7 @@ namespace rubinius {
       sig.call("rbx_jit_debug_spot", call_args, 1, "", b());
     }
 
-    Value* gc_literal(Object* obj, const Type* type) {
+    Value* gc_literal(Object* obj, Type* type) {
       jit::GCLiteral* lit = method_info_.runtime_data()->new_literal(obj);
       Value* ptr = constant(lit->address_of_object(), llvm::PointerType::getUnqual(type));
       return b().CreateLoad(ptr, "gc_literal");
