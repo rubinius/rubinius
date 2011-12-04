@@ -29,7 +29,6 @@ class Integer < Numeric
   end
 
   alias_method :to_int, :to_i
-  alias_method :round, :to_i
   alias_method :truncate, :to_i
   alias_method :ceil, :to_i
   alias_method :floor, :to_i

@@ -1,4 +1,33 @@
 class Integer
+  def round(ndigits=undefined)
+    return self if ndigits.equal? undefined
+
+    ndigits = Rubinius::Type.coerce_to(ndigits, Integer, :to_int)
+    if ndigits > 0
+      to_f
+    elsif ndigits == 0
+      self
+    else
+      ndigits = -ndigits
+
+      # We want to return 0 if 10 ** ndigits / 2 > self.abs, or, taking
+      # log_256 of both sides, if log_256(10 ** ndigits / 2) > self.size.
+      # We have log_256(10) > 0.415241 and log_256(2) = 0.125, so:
+      return 0 if 0.415241 * ndigits - 0.125 > size
+
+      f = 10 ** ndigits
+      h = f / 2
+      r = self % f
+      n = self - r
+
+      unless self < 0 ? r <= h : r < h
+        n = n + f
+      end
+
+      n
+    end
+  end
+
   alias_method :magnitude, :abs
 
   #

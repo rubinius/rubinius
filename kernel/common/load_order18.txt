@@ -34,6 +34,7 @@ numeric18.rbc
 ctype.rbc
 precision.rbc
 integer.rbc
+integer18.rbc
 bignum.rbc
 block_environment.rbc
 bytearray.rbc
