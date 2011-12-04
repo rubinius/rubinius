@@ -982,16 +982,27 @@ namespace rubinius {
       Exception::argument_error(state, "base must be between 2 and 36");
     }
 
-    int sz;
+    int sz = 1024;
+    char *buf = ALLOC_N(char, sz);
+    String* obj;
+    int k;
+
+    mp_toradix_nd(XST, mp_val(), buf, b, sz, &k);
+    if(k < sz - 2) {
+      obj = String::create(state, buf);
+      FREE(buf);
+      return obj;
+    }
+
     mp_radix_size(XST, mp_val(), b, &sz);
     if(sz == 0) {
       Exception::runtime_error(state, "couldn't convert bignum to string");
     }
 
-    char *buf = ALLOC_N(char, sz);
+    REALLOC_N(buf, char, sz);
     mp_toradix_n(XST, mp_val(), buf, b, sz);
 
-    String* obj = String::create(state, buf);
+    obj = String::create(state, buf);
     FREE(buf);
     return obj;
   }
