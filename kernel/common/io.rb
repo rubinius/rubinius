@@ -858,10 +858,6 @@ class IO
     @lineno = Integer(line_number)
   end
 
-  def lines(*args)
-    to_enum :each_line, *args
-  end
-
   ##
   # FIXME
   # Returns the process ID of a child process

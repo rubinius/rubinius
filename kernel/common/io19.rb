@@ -603,4 +603,12 @@ class IO
       "#<#{self.class}:(closed)"
     end
   end
+
+  def lines(*args, &block)
+    if block_given?
+      each_line(*args, &block)
+    else
+      to_enum :each_line, *args
+    end
+  end
 end

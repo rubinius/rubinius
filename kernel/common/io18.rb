@@ -340,4 +340,8 @@ class IO
   def inspect
     "#<#{self.class}:0x#{object_id.to_s(16)}>"
   end
+
+  def lines(*args)
+    to_enum :each_line, *args
+  end
 end
