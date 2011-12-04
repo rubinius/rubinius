@@ -977,28 +977,23 @@ namespace rubinius {
   }
 
   String* Bignum::to_s(STATE, Fixnum* base) {
-    char *buf;
-    int sz = 1024;
-    int k;
-    native_int b;
-    String* obj;
-
-    b = base->to_native();
+    native_int b = base->to_native();
     if(b < 2 || b > 36) {
       Exception::argument_error(state, "base must be between 2 and 36");
     }
 
-    for(;;) {
-      buf = ALLOC_N(char, sz);
-      mp_toradix_nd(XST, mp_val(), buf, b, sz, &k);
-      if(k < sz - 2) {
-        obj = String::create(state, buf);
-        FREE(buf);
-        return obj;
-      }
-      FREE(buf);
-      sz += 1024;
+    int sz;
+    mp_radix_size(XST, mp_val(), b, &sz);
+    if(sz == 0) {
+      Exception::runtime_error(state, "couldn't convert bignum to string");
     }
+
+    char *buf = ALLOC_N(char, sz);
+    mp_toradix_n(XST, mp_val(), buf, b, sz);
+
+    String* obj = String::create(state, buf);
+    FREE(buf);
+    return obj;
   }
 
   Integer* Bignum::from_string_detect(STATE, const char *str) {
