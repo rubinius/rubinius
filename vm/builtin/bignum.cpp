@@ -362,6 +362,10 @@ namespace rubinius {
     return mp_val()->sign != MP_NEG;
   }
 
+  bool Bignum::even_p() {
+    return mp_iseven(mp_val()) == MP_YES;
+  }
+
   Integer* Bignum::normalize(STATE, Bignum* b) {
     mp_clamp(b->mp_val());
 

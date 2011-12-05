@@ -40,6 +40,7 @@ namespace rubinius {
     unsigned long long to_ulong_long();
 
     bool positive_p();
+    bool even_p();
 
     static Integer* normalize(STATE, Bignum* obj);
     static Integer* from_string_detect(STATE, const char* str);

@@ -226,6 +226,7 @@ namespace rubinius {
   Object* Fixnum::pow(STATE, Bignum* exponent) {
     native_int i = to_native();
     if(i == 0 || i == 1) return this;
+    if(i == -1) return Fixnum::from(exponent->even_p() ? 1 : -1);
     return Bignum::from(state, to_native())->pow(state, exponent);
   }
 
