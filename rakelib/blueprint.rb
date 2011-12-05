@@ -145,8 +145,8 @@ Daedalus.blueprint do |i|
     end
   end
 
-  onig = i.external_lib "vendor/onig" do |l|
-    l.cflags = ["-Ivendor/onig"]
+  oniguruma = i.external_lib "vendor/oniguruma" do |l|
+    l.cflags = ["-Ivendor/oniguruma"]
     l.objects = [l.file(".libs/libonig.a")]
     l.to_build do |x|
       x.command "sh -c ./configure" unless File.exists?("Makefile")
@@ -204,7 +204,7 @@ Daedalus.blueprint do |i|
   gcc.add_library udis
   gcc.add_library ffi
   gcc.add_library gdtoa
-  gcc.add_library onig
+  gcc.add_library oniguruma
   gcc.add_library ltm
 
   %w[ /usr/local/include /opt/local/include ].each do |path|
@@ -230,7 +230,7 @@ Daedalus.blueprint do |i|
   files << udis
   files << ffi
   files << gdtoa
-  files << onig
+  files << oniguruma
   files << ltm
 
   cli = files.dup

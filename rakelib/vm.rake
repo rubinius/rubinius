@@ -189,7 +189,7 @@ files TYPE_GEN, field_extract_headers + %w[vm/codegen/field_extract.rb] + [:run_
 end
 
 file encoding_database => 'vm/codegen/encoding_extract.rb' do |t|
-  dir = File.expand_path "../vendor/onig"
+  dir = File.expand_path "../vendor/oniguruma"
   ruby 'vm/codegen/encoding_extract.rb', dir, t.name
 end
 

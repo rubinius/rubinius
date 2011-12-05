@@ -5,7 +5,7 @@
 #include "type_info.hpp"
 
 // HACK gross.
-// Forward declare ONLY if we haven't already included onig.h
+// Forward declare ONLY if we haven't already included oniguruma.h
 // We do this because onigurama seems to have regex_t be a weird
 // typedef. It's easier to just not bother with trying to duplicate
 // what it does and do this.
