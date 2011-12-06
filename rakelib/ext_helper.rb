@@ -141,7 +141,7 @@ def add_rbx_capi
     add_cxxflag "-O2"
   end
 
-  if RUBY_VERSION =~ /^1\.8/
+  if ENV['BUILD_VERSION'] == "18"
     add_include_dir include18_dir
   else
     add_include_dir include19_dir

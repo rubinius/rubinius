@@ -48,10 +48,14 @@ def build_extconf(name, opts)
   include19_dir = File.expand_path("../../vm/capi/19/include", __FILE__)
 
   unless File.directory? BUILD_CONFIG[:runtime]
-    ENV["CFLAGS"]      = "-I#{include18_dir} -I#{include19_dir}"
+    if opts[:env] == "-X18"
+      ENV["CFLAGS"] = "-I#{include18_dir}"
+    else
+      ENV["CFLAGS"] = "-I#{include19_dir}"
+    end
   end
 
-  ENV["RBXOPT"] = opts[:env] if opts.key? :env
+  ENV["RBXOPT"] = opts[:env]
 
   unless opts[:deps] and opts[:deps].all? { |n| File.exists? n }
     sh("#{rbx_build} extconf.rb #{redirect}", &fail_block)
@@ -74,6 +78,8 @@ def compile_ext(name, opts={})
     ext_task_name = "build"
   end
 
+  opts[:env] ||= "-X18"
+
   task_name = names.join "_"
 
   namespace :extensions do
@@ -84,6 +90,8 @@ def compile_ext(name, opts={})
       build_config = File.expand_path "../../config.rb", __FILE__
       Dir.chdir ext_dir do
         if File.exists? "Rakefile"
+          ENV["BUILD_VERSION"] = opts[:env][-2..-1]
+
           sh "#{BUILD_CONFIG[:build_ruby]} -S #{BUILD_CONFIG[:build_rake]} #{'-t' if $verbose} -r #{build_config} -r #{ext_helper} -r #{dep_grapher} #{ext_task_name}"
         else
           build_extconf name, opts
@@ -112,8 +120,13 @@ File.open(build_ruby, "wb") do |f|
   f.puts build_version
 end
 
-compile_ext "melbourne", :task => "rbx", :doc => "for Rubinius"
-compile_ext "melbourne", :task => "build", :doc => "for bootstrapping"
+compile_ext "melbourne", :task => "build",
+                         :doc => "for bootstrapping"
+
+melbourne_env = BUILD_CONFIG[:version_list].include?("19") ? "-X19" : "-X18"
+compile_ext "melbourne", :task => "rbx",
+                         :env => melbourne_env,
+                         :doc => "for Rubinius"
 
 compile_ext "digest", :dir => "lib/digest/ext"
 compile_ext "digest:md5", :dir => "lib/digest/ext/md5"
