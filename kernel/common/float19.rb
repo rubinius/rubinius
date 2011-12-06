@@ -42,4 +42,16 @@ class Float
   end
   alias_method :angle, :arg
   alias_method :phase, :arg
+
+  def rationalize(eps=undefined)
+    if eps.equal?(undefined)
+      f, n = Math.frexp self
+      f = Math.ldexp(f, Float::MANT_DIG).to_i
+      n -= Float::MANT_DIG
+
+      Rational(2 * f, 1 << (1 - n)).rationalize(Rational(1, 1 << (1 - n)))
+    else
+      to_r.rationalize(eps)
+    end
+  end
 end
