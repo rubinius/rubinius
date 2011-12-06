@@ -90,6 +90,16 @@ extern "C" {
     return env->get_handle(Encoding::ascii_encoding(env->state()));
   }
 
+  int rb_enc_mbclen(const char *p, const char *e, rb_encoding *enc) {
+    int n = ONIGENC_PRECISE_MBC_ENC_LEN(enc, (UChar*)p, (UChar*)e);
+    if (ONIGENC_MBCLEN_CHARFOUND_P(n) && ONIGENC_MBCLEN_CHARFOUND_LEN(n) <= e-p)
+      return ONIGENC_MBCLEN_CHARFOUND_LEN(n);
+    else {
+      int min = rb_enc_mbminlen(enc);
+      return min <= e-p ? min : (int)(e-p);
+    }
+  }
+
   int rb_enc_precise_mbclen(const char* p, const char* e, rb_encoding *enc) {
     int n;
     if(e <= p) {
