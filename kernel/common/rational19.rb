@@ -12,8 +12,8 @@ class Rational
       q0 = 1
       q1 = 0
 
-      while
-          c = a.ceil
+      while true
+        c = a.ceil
         break if c < b
         k = c - 1
         p2 = k * p1 + p0
