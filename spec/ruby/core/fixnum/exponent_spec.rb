@@ -41,6 +41,11 @@ describe "Fixnum#**" do
     (1 ** big).should == 1
   end
 
+  it "can raise -1 to a Bignum safely" do
+    ((-1) ** bignum_value(0)).should eql(1)
+    ((-1) ** bignum_value(1)).should eql(-1)
+  end
+
   it "switches to a Float when the number is too big" do
     big = bignum_value(4611686018427387904)
     flt = (2 ** big)
