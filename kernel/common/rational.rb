@@ -247,7 +247,7 @@ class Rational < Numeric
         raise ZeroDivisionError, "divided by 0"
       end
       Float(self) ** other
-    elsif other.kind_of?(Integer)
+    elsif other.kind_of?(Fixnum)
       if self == 0 && other < 0
         raise ZeroDivisionError, "divided by 0"
       end
@@ -262,7 +262,7 @@ class Rational < Numeric
         den = 1
       end
       Rational(num, den)
-    elsif other.kind_of?(Float)
+    elsif other.kind_of?(Bignum) || other.kind_of?(Float)
       Float(self) ** other
     else
       x, y = other.coerce(self)
