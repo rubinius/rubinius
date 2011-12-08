@@ -507,8 +507,6 @@ class Rational < Numeric
 end
 
 class Fixnum
-  alias rdiv quo
-
   # Returns a Rational number if the result is in fact rational (i.e. +other+ < 0).
   def rpower (other)
     if other >= 0
@@ -520,8 +518,6 @@ class Fixnum
 end
 
 class Bignum
-  alias rdiv quo
-
   # Returns a Rational number if the result is in fact rational (i.e. +other+ < 0).
   def rpower (other)
     if other >= 0
