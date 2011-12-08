@@ -81,6 +81,78 @@ describe :rational_exponent, :shared => true do
     end
   end
 
+  describe "when passed Bignum" do
+    ruby_version_is ""..."1.9" do
+      it "returns Rational(0) when self is Rational(0) and the exponent is positive" do
+        (Rational(0) ** bignum_value).should eql(Rational(0))
+      end
+
+      it "returns Rational(1, 0) when self is Rational(0) and the exponent is negative" do
+        result = (Rational(0) ** -bignum_value)
+        result.numerator.should eql(1)
+        result.denominator.should eql(0)
+      end
+
+      it "returns Rational(1) when self is Rational(1)" do
+        (Rational(1) ** bignum_value).should eql(Rational(1))
+      end
+
+      it "returns Rational(1) when self is Rational(-1) and the exponent is even" do
+        (Rational(-1) ** bignum_value(0)).should eql(Rational(1))
+      end
+
+      it "returns Rational(-1) when self is Rational(-1) and the exponent is odd" do
+        (Rational(-1) ** bignum_value(1)).should eql(Rational(-1))
+      end
+
+      it "raises FloatDomainError when self is > 1 or < -1" do
+        lambda { Rational(2) ** bignum_value           }.should raise_error(FloatDomainError)
+        lambda { Rational(-2) ** bignum_value          }.should raise_error(FloatDomainError)
+        lambda { Rational(fixnum_max) ** bignum_value  }.should raise_error(FloatDomainError)
+        lambda { Rational(fixnum_min) ** bignum_value  }.should raise_error(FloatDomainError)
+
+        lambda { Rational(2) ** -bignum_value          }.should raise_error(FloatDomainError)
+        lambda { Rational(-2) ** -bignum_value         }.should raise_error(FloatDomainError)
+        lambda { Rational(fixnum_max) ** -bignum_value }.should raise_error(FloatDomainError)
+        lambda { Rational(fixnum_min) ** -bignum_value }.should raise_error(FloatDomainError)
+      end
+    end
+
+    ruby_version_is "1.9" do
+      it "returns 0.0 when self is Rational(0) and the exponent is positive" do
+        (Rational(0) ** bignum_value).should eql(0.0)
+      end
+
+      it "returns Infinity when self is Rational(0) and the exponent is negative" do
+        (Rational(0) ** -bignum_value).infinite?.should == 1
+      end
+
+      it "returns 1.0 when self is Rational(1)" do
+        (Rational(1) ** bignum_value).should eql(1.0)
+      end
+
+      it "returns 1.0 when self is Rational(-1), regardless of exponent parity" do
+        (Rational(-1) ** bignum_value(0)).should eql(1.0)
+        (Rational(-1) ** bignum_value(1)).should eql(1.0)
+      end
+
+      it "returns Infinity (always positive) when self is > 1 or < -1" do
+        (Rational(2) ** bignum_value).infinite?.should == 1
+        (Rational(-2) ** bignum_value).infinite?.should == 1
+        (Rational(-2) ** (bignum_value + 1)).infinite?.should == 1
+        (Rational(fixnum_max) ** bignum_value).infinite?.should == 1
+        (Rational(fixnum_min) ** bignum_value).infinite?.should == 1
+      end
+
+      it "returns 0.0 when self is > 1 or < -1 and the exponent is negative" do
+        (Rational(2) ** -bignum_value).should eql(0.0)
+        (Rational(-2) ** -bignum_value).should eql(0.0)
+        (Rational(fixnum_max) ** -bignum_value).should eql(0.0)
+        (Rational(fixnum_min) ** -bignum_value).should eql(0.0)
+      end
+    end
+  end
+
   describe "when passed Float" do
     it "returns self converted to Float and raised to the passed argument" do
       (Rational(3, 1) ** 3.0).should eql(27.0)
