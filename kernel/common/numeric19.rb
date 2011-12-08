@@ -5,7 +5,7 @@ class Numeric
   end
 
   def fdiv(other)
-    self.__slash__(other)
+    self.to_f / other
   end
 
   def quo(other)

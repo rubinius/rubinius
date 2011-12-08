@@ -372,7 +372,7 @@ class Complex < Numeric
     raise TypeError, "#{other.class} can't be coerced into Complex" unless other.is_a?(Numeric)
 
     # FIXME
-    super
+    self / other
   end
 
   #
