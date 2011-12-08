@@ -120,7 +120,7 @@ class Float < Numeric
 
   def eql?(other)
     Rubinius.primitive :float_eql
-    raise PrimitiveFailure, "Float#eql? primitive failed"
+    false
   end
 
   def nan?
