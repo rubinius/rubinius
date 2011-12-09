@@ -1,5 +1,2 @@
 fails:Rational#** when passed Rational returns a complex number when self is negative and the passed argument is not 0
 fails:Rational#** when passed Float returns a complex number if self is negative and the passed argument is not 0
-fails:Rational#** when passed Bignum returns 1.0 when self is Rational(-1), regardless of exponent parity
-fails:Rational#** when passed Bignum returns Infinity (always positive) when self is > 1 or < -1
-fails:Rational#** when passed Bignum returns 0.0 when self is > 1 or < -1 and the exponent is negative
