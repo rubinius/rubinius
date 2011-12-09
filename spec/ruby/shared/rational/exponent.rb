@@ -131,24 +131,33 @@ describe :rational_exponent, :shared => true do
         (Rational(1) ** bignum_value).should eql(1.0)
       end
 
-      it "returns 1.0 when self is Rational(-1), regardless of exponent parity" do
-        (Rational(-1) ** bignum_value(0)).should eql(1.0)
-        (Rational(-1) ** bignum_value(1)).should eql(1.0)
-      end
-
-      it "returns Infinity (always positive) when self is > 1 or < -1" do
+      it "returns positive Infinity when self is > 1" do
         (Rational(2) ** bignum_value).infinite?.should == 1
-        (Rational(-2) ** bignum_value).infinite?.should == 1
-        (Rational(-2) ** (bignum_value + 1)).infinite?.should == 1
         (Rational(fixnum_max) ** bignum_value).infinite?.should == 1
-        (Rational(fixnum_min) ** bignum_value).infinite?.should == 1
       end
 
-      it "returns 0.0 when self is > 1 or < -1 and the exponent is negative" do
+      it "returns 0.0 when self is > 1 and the exponent is negative" do
         (Rational(2) ** -bignum_value).should eql(0.0)
-        (Rational(-2) ** -bignum_value).should eql(0.0)
         (Rational(fixnum_max) ** -bignum_value).should eql(0.0)
-        (Rational(fixnum_min) ** -bignum_value).should eql(0.0)
+      end
+
+      # Fails on linux due to pow() bugs in glibc: http://sources.redhat.com/bugzilla/show_bug.cgi?id=3866
+      platform_is_not :linux do
+        it "returns 1.0 when self is Rational(-1), regardless of exponent parity" do
+          (Rational(-1) ** bignum_value(0)).should eql(1.0)
+          (Rational(-1) ** bignum_value(1)).should eql(1.0)
+        end
+
+        it "returns positive Infinity when self < -1" do
+          (Rational(-2) ** bignum_value).infinite?.should == 1
+          (Rational(-2) ** (bignum_value + 1)).infinite?.should == 1
+          (Rational(fixnum_min) ** bignum_value).infinite?.should == 1
+        end
+
+        it "returns 0.0 when self is < -1 and the exponent is negative" do
+          (Rational(-2) ** -bignum_value).should eql(0.0)
+          (Rational(fixnum_min) ** -bignum_value).should eql(0.0)
+        end
       end
     end
   end
