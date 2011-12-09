@@ -23,20 +23,24 @@ describe :rational_exponent, :shared => true do
       end
 
       ruby_version_is "1.9" do
-        it "returns self raised to the argument as a Rational if possible" do
-
-          (Rational(3, 4) ** Rational(0, 3)).should == Rational(1, 1)
-          (Rational(-3, 4) ** Rational(0, 3)).should == Rational(1, 1)
-          (Rational(3, -4) ** Rational(0, 3)).should == Rational(1, 1)
-          (Rational(3, 4) ** Rational(0, -3)).should == Rational(1, 1)
-
-          (Rational(bignum_value, 4) ** Rational(0, 3)).should == Rational(1, 1)
-          (Rational(3, -bignum_value) ** Rational(0, 3)).should == Rational(1, 1)
-          (Rational(3, 4) ** Rational(0, bignum_value)).should == Rational(1, 1)
-          (Rational(3, 4) ** Rational(0, -bignum_value)).should == Rational(1, 1)
+        it "returns Rational(1) if the exponent is Rational(0)" do
+          (Rational(0) ** Rational(0)).should eql(Rational(1))
+          (Rational(1) ** Rational(0)).should eql(Rational(1))
+          (Rational(3, 4) ** Rational(0)).should eql(Rational(1))
+          (Rational(-1) ** Rational(0)).should eql(Rational(1))
+          (Rational(-3, 4) ** Rational(0)).should eql(Rational(1))
+          (Rational(bignum_value) ** Rational(0)).should eql(Rational(1))
+          (Rational(-bignum_value) ** Rational(0)).should eql(Rational(1))
         end
 
-        it "returns self raised to the argument as a Float if necessary" do
+        it "returns self raised to the argument as a Rational if the exponent's denominator is 1" do
+          (Rational(3, 4) ** Rational(1, 1)).should eql(Rational(3, 4))
+          (Rational(3, 4) ** Rational(2, 1)).should eql(Rational(9, 16))
+          (Rational(3, 4) ** Rational(-1, 1)).should eql(Rational(4, 3))
+          (Rational(3, 4) ** Rational(-2, 1)).should eql(Rational(16, 9))
+        end
+
+        it "returns self raised to the argument as a Float if the exponent's denominator is not 1" do
           (Rational(3, 4) ** Rational(4, 3)).should be_close(0.681420222312052, TOLERANCE)
           (Rational(3, 4) ** Rational(-4, 3)).should be_close(1.46752322173095, TOLERANCE)
           (Rational(3, 4) ** Rational(4, -3)).should be_close(1.46752322173095, TOLERANCE)
