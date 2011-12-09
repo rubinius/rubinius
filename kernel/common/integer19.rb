@@ -52,6 +52,10 @@ class Integer
     max
   end
 
+  def rationalize(eps = nil)
+    Rational(self, 1)
+  end
+
   #
   # In an integer, the value _is_ the numerator of its rational equivalent.
   # Therefore, this method returns +self+.

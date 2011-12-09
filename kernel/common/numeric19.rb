@@ -49,10 +49,6 @@ class Numeric
   end
   alias_method :conj, :conjugate
 
-  def rationalize(eps = nil)
-    Rational(self, 1)
-  end
-
   def rect
     [self, 0]
   end
