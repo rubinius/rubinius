@@ -119,16 +119,29 @@ describe :rational_exponent, :shared => true do
     end
 
     ruby_version_is "1.9" do
-      it "returns 0.0 when self is Rational(0) and the exponent is positive" do
-        (Rational(0) ** bignum_value).should eql(0.0)
-      end
+      ruby_bug "#5713", "2.0" do
+        it "returns Rational(0) when self is Rational(0) and the exponent is positive" do
+          (Rational(0) ** bignum_value).should eql(Rational(0))
+        end
 
-      it "returns Infinity when self is Rational(0) and the exponent is negative" do
-        (Rational(0) ** -bignum_value).infinite?.should == 1
-      end
+        it "raises ZeroDivisionError when self is Rational(0) and the exponent is negative" do
+          lambda { Rational(0) ** -bignum_value }.should raise_error(ZeroDivisionError)
+        end
 
-      it "returns 1.0 when self is Rational(1)" do
-        (Rational(1) ** bignum_value).should eql(1.0)
+        it "returns Rational(1) when self is Rational(1)" do
+          (Rational(1) **  bignum_value).should eql(Rational(1))
+          (Rational(1) ** -bignum_value).should eql(Rational(1))
+        end
+
+        it "returns Rational(1) when self is Rational(-1) and the exponent is positive and even" do
+          (Rational(-1) ** bignum_value(0)).should eql(Rational(1))
+          (Rational(-1) ** bignum_value(2)).should eql(Rational(1))
+        end
+
+        it "returns Rational(-1) when self is Rational(-1) and the exponent is positive and odd" do
+          (Rational(-1) ** bignum_value(1)).should eql(Rational(-1))
+          (Rational(-1) ** bignum_value(3)).should eql(Rational(-1))
+        end
       end
 
       it "returns positive Infinity when self is > 1" do
@@ -143,11 +156,6 @@ describe :rational_exponent, :shared => true do
 
       # Fails on linux due to pow() bugs in glibc: http://sources.redhat.com/bugzilla/show_bug.cgi?id=3866
       platform_is_not :linux do
-        it "returns 1.0 when self is Rational(-1), regardless of exponent parity" do
-          (Rational(-1) ** bignum_value(0)).should eql(1.0)
-          (Rational(-1) ** bignum_value(1)).should eql(1.0)
-        end
-
         it "returns positive Infinity when self < -1" do
           (Rational(-2) ** bignum_value).infinite?.should == 1
           (Rational(-2) ** (bignum_value + 1)).infinite?.should == 1
