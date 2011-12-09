@@ -262,7 +262,20 @@ class Rational < Numeric
         den = 1
       end
       Rational(num, den)
-    elsif other.kind_of?(Bignum) || other.kind_of?(Float)
+    elsif other.kind_of?(Bignum)
+      if self == 0
+        if other < 0
+          raise ZeroDivisionError, "divided by 0"
+        elsif other > 0
+          return Rational(0)
+        end
+      elsif self == 1
+        return Rational(1)
+      elsif self == -1
+        return Rational(other.even? ? 1 : -1)
+      end
+      Float(self) ** other
+    elsif other.kind_of?(Float)
       Float(self) ** other
     else
       x, y = other.coerce(self)
@@ -507,8 +520,10 @@ class Rational < Numeric
 end
 
 class Fixnum
+  alias_method :power!, :"**"
+
   # Returns a Rational number if the result is in fact rational (i.e. +other+ < 0).
-  def rpower (other)
+  def **(other)
     if other >= 0
       self.power!(other)
     else
@@ -518,24 +533,14 @@ class Fixnum
 end
 
 class Bignum
+  alias_method :power!, :"**"
+
   # Returns a Rational number if the result is in fact rational (i.e. +other+ < 0).
-  def rpower (other)
+  def **(other)
     if other >= 0
       self.power!(other)
     else
       Rational(self, 1)**other
     end
-  end
-end
-
-unless 1.respond_to?(:power!)
-  class Fixnum
-    alias_method :power!, :"**"
-    alias_method :"**", :rpower
-  end
-
-  class Bignum
-    alias_method :power!, :"**"
-    alias_method :"**", :rpower
   end
 end
