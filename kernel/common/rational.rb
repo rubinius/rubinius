@@ -242,12 +242,11 @@ class Rational < Numeric
   #   r ** Rational(1,2)   # -> 0.866025403784439
   #
   def ** (other)
-    if other.kind_of?(Rational)
-      if self == 0 && other < 0 && other.denominator == 1
-        raise ZeroDivisionError, "divided by 0"
-      end
-      Float(self) ** other
-    elsif other.kind_of?(Fixnum)
+    if other.kind_of?(Rational) && other.denominator == 1
+      other = other.numerator
+    end
+
+    if other.kind_of?(Fixnum)
       if self == 0 && other < 0
         raise ZeroDivisionError, "divided by 0"
       end
@@ -275,7 +274,7 @@ class Rational < Numeric
         return Rational(other.even? ? 1 : -1)
       end
       Float(self) ** other
-    elsif other.kind_of?(Float)
+    elsif other.kind_of?(Float) || other.kind_of?(Rational)
       Float(self) ** other
     else
       x, y = other.coerce(self)
