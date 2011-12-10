@@ -165,11 +165,6 @@ class Float < Numeric
     raise PrimitiveFailure, "float_to_packed failed"
   end
 
-  def round
-    Rubinius.primitive :float_round
-    raise PrimitiveFailure, "float_round failed"
-  end
-
   def ceil
     int = to_i()
 

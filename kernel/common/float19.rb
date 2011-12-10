@@ -65,4 +65,15 @@ class Float
       to_r.rationalize(eps)
     end
   end
+
+  def round(precision=0)
+    precision = Rubinius::Type.coerce_to(precision, Integer, :to_int)
+
+    raise FloatDomainError if precision < 1 && infinite?
+    raise RangeError if precision < 1 && nan?
+    return self if precision > 0 && (infinite? || nan?)
+
+    Rubinius.primitive :float_round
+    raise PrimitiveFailure, "float_round failed"
+  end
 end
