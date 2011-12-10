@@ -230,7 +230,10 @@ namespace rubinius {
 
     // If another thread did this work while we were waiting on the lock,
     // don't redo it.
-    if(self->type_info_->type == PackedObject::type) return;
+    if(self->type_info_->type == PackedObject::type) {
+      hard_unlock(state, gct);
+      return;
+    }
 
     size_t slots = 0;
 
