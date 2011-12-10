@@ -382,8 +382,6 @@ step1:
         }
 
         ih = inflated_headers_->allocate(obj);
-        ih->flags().meaning = eAuxWordEmpty;
-        ih->flags().aux_word = 0;
         break;
       case eAuxWordInflated:
         if(cDebugThreading) {

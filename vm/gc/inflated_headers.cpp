@@ -26,6 +26,8 @@ namespace rubinius {
     InflatedHeader* header = free_list_;
     free_list_ = header->next();
 
+    header->clear();
+
     in_use_++;
     header->set_object(obj);
 

@@ -594,6 +594,9 @@ step2:
   void InflatedHeader::set_object(ObjectHeader* obj) {
     flags_ = obj->flags();
     object_ = obj;
+
+    flags_.meaning = eAuxWordEmpty;
+    flags_.aux_word = 0;
   }
 
   void InflatedHeader::initialize_mutex(int thread_id, int count) {
@@ -650,7 +653,7 @@ step2:
       GCIndependent gc_guard(state);
 
       if(cDebugThreading) {
-        std::cerr << "[LOCK " << state->vm()->thread_id() << " locking native mutex]\n";
+        std::cerr << "[LOCK " << state->vm()->thread_id() << " locking native mutex: " << this << "]\n";
       }
 
       state->vm()->set_sleeping();
@@ -699,7 +702,7 @@ step2:
     state->vm()->add_locked_object(object_);
 
     if(cDebugThreading) {
-      std::cerr << "[LOCK " << state->vm()->thread_id() << " locked inflated header]\n";
+      std::cerr << "[LOCK " << state->vm()->thread_id() << " locked inflated header: " << this << "]\n";
     }
 
     return eLocked;
@@ -777,7 +780,7 @@ step2:
 
       owner_id_ = 0;
       if(cDebugThreading) {
-        std::cerr << "[LOCK " << state->vm()->thread_id() << " unlocked native]\n";
+        std::cerr << "[LOCK " << state->vm()->thread_id() << " unlocked native: " << this << "]\n";
       }
     } else {
       rec_lock_count_--;
