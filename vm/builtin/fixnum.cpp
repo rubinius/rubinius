@@ -178,6 +178,10 @@ namespace rubinius {
     native_int base = to_native();
     native_int exp = exponent->to_native();
 
+    if(!LANGUAGE_18_ENABLED(state) && exp < 0) {
+      return Primitives::failure();
+    }
+
     if(exp == 0) return Fixnum::from(1);
     if(base == 1) return this;
 
@@ -224,6 +228,10 @@ namespace rubinius {
   }
 
   Object* Fixnum::pow(STATE, Bignum* exponent) {
+    if(!LANGUAGE_18_ENABLED(state) && RTEST(exponent->lt(state, Fixnum::from(0)))) {
+      return Primitives::failure();
+    }
+
     native_int i = to_native();
     if(i == 0 || i == 1) return this;
     if(i == -1) return Fixnum::from(exponent->even_p() ? 1 : -1);

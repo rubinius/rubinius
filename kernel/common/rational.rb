@@ -517,29 +517,3 @@ class Rational < Numeric
     end
   end
 end
-
-class Fixnum
-  alias_method :power!, :"**"
-
-  # Returns a Rational number if the result is in fact rational (i.e. +other+ < 0).
-  def **(other)
-    if other >= 0
-      self.power!(other)
-    else
-      Rational(self, 1)**other
-    end
-  end
-end
-
-class Bignum
-  alias_method :power!, :"**"
-
-  # Returns a Rational number if the result is in fact rational (i.e. +other+ < 0).
-  def **(other)
-    if other >= 0
-      self.power!(other)
-    else
-      Rational(self, 1)**other
-    end
-  end
-end

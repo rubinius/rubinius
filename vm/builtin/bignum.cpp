@@ -730,6 +730,11 @@ namespace rubinius {
     NMP;
 
     native_int exp = exponent->to_native();
+
+    if(!LANGUAGE_18_ENABLED(state) && exp < 0) {
+      return Primitives::failure();
+    }
+
     if(exp < 0) {
       return this->to_float(state)->fpow(state, exponent);
     }
@@ -740,6 +745,10 @@ namespace rubinius {
   }
 
   Object* Bignum::pow(STATE, Bignum *exponent) {
+    if(!LANGUAGE_18_ENABLED(state) && RTEST(exponent->lt(state, Fixnum::from(0)))) {
+      return Primitives::failure();
+    }
+
     return this->to_float(state)->fpow(state, exponent);
   }
 
