@@ -68,6 +68,7 @@ io18.rbc
 file.rbc
 filetest.rbc
 float.rbc
+float18.rbc
 immediate.rbc
 location.rbc
 lookuptable.rbc

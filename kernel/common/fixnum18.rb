@@ -7,4 +7,9 @@ class Fixnum < Integer
   end
 
   alias_method :quo, :fdiv
+
+  def **(o)
+    Rubinius.primitive :fixnum_pow
+    redo_coerced :**, o
+  end
 end

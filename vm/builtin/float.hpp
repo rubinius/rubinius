@@ -47,7 +47,7 @@ namespace rubinius {
     Float* mul(STATE, Integer* other);
 
     // Rubinius.primitive! :float_pow
-    Float* fpow(STATE, Float* other);
+    Object* fpow(STATE, Float* other);
     // Rubinius.primitive! :float_pow
     Float* fpow(STATE, Integer* other);
 

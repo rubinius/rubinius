@@ -100,11 +100,6 @@ class Fixnum < Integer
     self >> other
   end
 
-  def **(o)
-    Rubinius.primitive :fixnum_pow
-    redo_coerced :**, o
-  end
-
   # comparison operators
 
   def ==(o)

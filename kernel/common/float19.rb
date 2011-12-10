@@ -2,6 +2,17 @@ class Float
   INFINITY = 1.0 / 0.0
   NAN = 0.0 / 0.0
 
+  def **(other)
+    Rubinius.primitive :float_pow
+
+    if other.is_a?(Float) && self < 0 && other != other.round
+      return Complex(self) ** other
+    end
+
+    b, a = math_coerce other
+    a ** b
+  end
+
   alias_method :magnitude, :abs
 
   def imaginary

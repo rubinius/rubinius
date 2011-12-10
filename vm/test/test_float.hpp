@@ -84,7 +84,7 @@ public:
 
   void test_pow() {
     Float* f = Float::create(state, 0.2);
-    Float* a = f->fpow(state, Float::create(state, 0.4));
+    Float* a = as<Float>(f->fpow(state, Float::create(state, 0.4)));
     check_float(a, Float::create(state, 0.525305560880753));
 
     f = Float::create(state, 1.2);

@@ -94,11 +94,6 @@ class Bignum < Integer
     self >> other
   end
 
-  def **(o)
-    Rubinius.primitive :bignum_pow
-    redo_coerced :**, o
-  end
-
   # comparison operators
 
   def <(other)

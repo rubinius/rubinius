@@ -230,7 +230,7 @@ namespace rubinius {
     return Bignum::from(state, to_native())->pow(state, exponent);
   }
 
-  Float* Fixnum::pow(STATE, Float* exponent) {
+  Object* Fixnum::pow(STATE, Float* exponent) {
     return this->to_f(state)->fpow(state, exponent);
   }
 

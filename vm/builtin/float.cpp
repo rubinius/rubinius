@@ -91,7 +91,10 @@ namespace rubinius {
     return Float::create(state, this->val * Float::coerce(state, other)->val);
   }
 
-  Float* Float::fpow(STATE, Float* other) {
+  Object* Float::fpow(STATE, Float* other) {
+    if(!LANGUAGE_18_ENABLED(state) && this->val < 0 && other->val != round(other->val)) {
+      return Primitives::failure();
+    }
     return Float::create(state, pow(this->val, other->val));
   }
 

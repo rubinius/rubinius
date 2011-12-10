@@ -63,12 +63,6 @@ class Float < Numeric
     a.divmod b
   end
 
-  def **(other)
-    Rubinius.primitive :float_pow
-    b, a = math_coerce other
-    a ** b
-  end
-
   def %(other)
     return 0 / 0.to_f if other == 0
     Rubinius.primitive :float_mod

@@ -114,7 +114,7 @@ namespace rubinius {
     Object* pow(STATE, Bignum *exponent);
 
     // Rubinius.primitive! :fixnum_pow
-    Float* pow(STATE, Float *exponent);
+    Object* pow(STATE, Float *exponent);
 
     // Rubinius.primitive! :fixnum_equal
     Object* equal(STATE, Fixnum* other);

@@ -145,7 +145,7 @@ namespace rubinius {
     // Rubinius.primitive! :bignum_pow
     Object* pow(STATE, Bignum* exponent);
     // Rubinius.primitive! :bignum_pow
-    Float*  pow(STATE, Float *exponent);
+    Object* pow(STATE, Float *exponent);
 
     // Rubinius.primitive! :bignum_gt
     Object* gt(STATE, Fixnum* b);

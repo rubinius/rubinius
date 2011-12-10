@@ -742,7 +742,7 @@ namespace rubinius {
     return this->to_float(state)->fpow(state, exponent);
   }
 
-  Float* Bignum::pow(STATE, Float *exponent) {
+  Object* Bignum::pow(STATE, Float *exponent) {
     return this->to_float(state)->fpow(state, exponent);
   }
 
