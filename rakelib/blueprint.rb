@@ -147,9 +147,11 @@ Daedalus.blueprint do |i|
 
   oniguruma = i.external_lib "vendor/oniguruma" do |l|
     l.cflags = ["-Ivendor/oniguruma"]
-    l.objects = [l.file(".libs/libonig.a")]
+    l.objects = [l.file("libonig.a")]
     l.to_build do |x|
-      x.command "sh -c ./configure" unless File.exists?("Makefile")
+      unless File.exists?("Makefile") and File.mtime("Makefile") > File.mtime("configure")
+        x.command "sh -c ./configure"
+      end
       x.command make
     end
   end
