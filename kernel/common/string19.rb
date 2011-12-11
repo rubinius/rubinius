@@ -17,6 +17,16 @@ class String
     self
   end
 
+  def ascii_only?
+    each_char do |c|
+      if c.ord > 127
+        return false
+      end
+    end
+
+    true
+  end
+
   def hex
     return 0 if self.chars.first == "_"
     to_inum(16, false)
