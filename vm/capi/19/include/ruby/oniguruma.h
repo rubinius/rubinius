@@ -586,6 +586,7 @@ struct re_registers {
   int* end;
   /* extended */
   OnigCaptureTreeNode* history_root;  /* capture history tree root */
+  int malloced;
 };
 
 /* capture tree traverse */

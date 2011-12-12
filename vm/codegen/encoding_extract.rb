@@ -21,18 +21,17 @@ File.open definitions, "wb" do |f|
     define(state, "ISO-8859-15", ONIG_ENCODING_ISO_8859_15);
     define(state, "ISO-8859-16", ONIG_ENCODING_ISO_8859_16);
     // This is really a place holder
-    define(state, "UTF-7", ONIG_ENCODING_UTF8);
-    define(state, "UTF-16BE", ONIG_ENCODING_UTF16_BE);
-    define(state, "UTF-16LE", ONIG_ENCODING_UTF16_LE);
-    define(state, "UTF-32BE", ONIG_ENCODING_UTF32_BE);
-    define(state, "UTF-32LE", ONIG_ENCODING_UTF32_LE);
+    define(state, "UTF-7", ONIG_ENCODING_UTF_8);
+    define(state, "UTF-16BE", ONIG_ENCODING_UTF_16BE);
+    define(state, "UTF-16LE", ONIG_ENCODING_UTF_16LE);
+    define(state, "UTF-32BE", ONIG_ENCODING_UTF_32BE);
+    define(state, "UTF-32LE", ONIG_ENCODING_UTF_32LE);
     define(state, "EUC-JP", ONIG_ENCODING_EUC_JP);
     define(state, "EUC-TW", ONIG_ENCODING_EUC_TW);
     define(state, "EUC-KR", ONIG_ENCODING_EUC_KR);
-    define(state, "EUC-CN", ONIG_ENCODING_EUC_CN);
-    define(state, "Shift_JIS", ONIG_ENCODING_SJIS);
+    define(state, "Shift_JIS", ONIG_ENCODING_Shift_JIS);
     define(state, "KOI8-R", ONIG_ENCODING_KOI8_R);
-    define(state, "CP1251", ONIG_ENCODING_CP1251);
+    define(state, "CP1251", ONIG_ENCODING_Windows_1251);
     define(state, "Big5", ONIG_ENCODING_BIG5);
     define(state, "GB18030", ONIG_ENCODING_GB18030);
   EOD

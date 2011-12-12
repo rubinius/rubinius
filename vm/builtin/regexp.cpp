@@ -64,10 +64,10 @@ namespace rubinius {
         r = ONIG_ENCODING_EUC_JP;
         break;
       case KCODE_SJIS:
-        r = ONIG_ENCODING_SJIS;
+        r = ONIG_ENCODING_Shift_JIS;
         break;
       case KCODE_UTF8:
-        r = ONIG_ENCODING_UTF8;
+        r = ONIG_ENCODING_UTF_8;
         break;
     }
     return r;
@@ -81,9 +81,9 @@ namespace rubinius {
     case kcode::eEUC:
       return ONIG_ENCODING_EUC_JP;
     case kcode::eSJIS:
-      return ONIG_ENCODING_SJIS;
+      return ONIG_ENCODING_Shift_JIS;
     case kcode::eUTF8:
-      return ONIG_ENCODING_UTF8;
+      return ONIG_ENCODING_UTF_8;
     }
   }
 
@@ -91,10 +91,10 @@ namespace rubinius {
     int r;
 
     r = KCODE_ASCII;
-    if (enc == ONIG_ENCODING_ASCII)  r = KCODE_NONE;
-    if (enc == ONIG_ENCODING_EUC_JP) r = KCODE_EUC;
-    if (enc == ONIG_ENCODING_SJIS)   r = KCODE_SJIS;
-    if (enc == ONIG_ENCODING_UTF8)   r = KCODE_UTF8;
+    if (enc == ONIG_ENCODING_ASCII)       r = KCODE_NONE;
+    if (enc == ONIG_ENCODING_EUC_JP)      r = KCODE_EUC;
+    if (enc == ONIG_ENCODING_Shift_JIS)   r = KCODE_SJIS;
+    if (enc == ONIG_ENCODING_UTF_8)       r = KCODE_UTF8;
     return r;
   }
 

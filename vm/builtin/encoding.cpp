@@ -12,9 +12,6 @@
 
 #include <ctype.h>
 
-extern OnigEncodingType OnigEncodingASCII;
-extern OnigEncodingType OnigEncodingUTF8;
-
 namespace rubinius {
   void Encoding::init(STATE) {
     onig_init();  // in regexp.cpp too, but idempotent.
@@ -29,8 +26,8 @@ namespace rubinius {
     enc->set_const(state, "SymbolMap", LookupTable::create(state));
     enc->set_const(state, "IndexMap", LookupTable::create(state));
 
-    Encoding* ascii = create_bootstrap(state, "US-ASCII", eAscii, &OnigEncodingASCII);
-    Encoding* utf8 = create_bootstrap(state, "UTF-8", eUtf8, &OnigEncodingUTF8);
+    Encoding* ascii = create_bootstrap(state, "US-ASCII", eAscii, ONIG_ENCODING_ASCII);
+    Encoding* utf8 = create_bootstrap(state, "UTF-8", eUtf8, ONIG_ENCODING_UTF_8);
 
     ascii->name(state, String::create(state, "US-ASCII"));
     utf8->name(state, String::create(state, "UTF-8"));
