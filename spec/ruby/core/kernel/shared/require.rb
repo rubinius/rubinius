@@ -524,4 +524,163 @@ describe :kernel_require, :shared => true do
       end
     end
   end
+
+  with_feature :require_19 do
+    describe "(concurrently)" do
+      before :each do
+        ScratchPad.record []
+        @path = File.expand_path "concurrent.rb", CODE_LOADING_DIR
+        @path2 = File.expand_path "concurrent2.rb", CODE_LOADING_DIR
+        @path3 = File.expand_path "concurrent3.rb", CODE_LOADING_DIR
+        $con1_raise = false
+      end
+
+      after :each do
+        ScratchPad.clear
+        $LOADED_FEATURES.delete @path
+        $LOADED_FEATURES.delete @path2
+        $LOADED_FEATURES.delete @path3
+      end
+
+      it "blocks a second thread from returning while the 1st is still requiring" do
+        start = false
+        fin = false
+
+        $con1_ready = false
+
+        t1_res = nil
+        t2_res = nil
+
+        t1 = Thread.new do
+          t1_res = @object.require(@path)
+          Thread.pass until fin
+          ScratchPad.recorded << :t1_post
+        end
+
+        t2 = Thread.new do
+          Thread.pass until $con1_ready
+          begin
+            t2_res = @object.require(@path)
+            ScratchPad.recorded << :t2_post
+          ensure
+            fin = true
+          end
+        end
+
+        t1.join
+        t2.join
+
+        t1_res.should be_true
+        t2_res.should be_false
+
+        ScratchPad.recorded.should == [:con_pre, :con_post, :t2_post, :t1_post]
+      end
+
+      it "blocks based on the path" do
+        start = false
+
+        t1 = Thread.new do
+          Thread.pass until start
+          @object.require(@path2).should be_true
+          ScratchPad.recorded << :t1_post
+        end
+
+        t2 = Thread.new do
+          start = true
+          @object.require(@path3).should be_true
+          ScratchPad.recorded << :t2_post
+        end
+
+        t1.join
+        t2.join
+
+        ScratchPad.recorded.should == [:con3_post, :t2_post, :con2_post, :t1_post]
+
+      end
+
+      it "allows a 2nd require if the 1st raised an exception" do
+        start = false
+        fin = false
+
+        $con1_ready = false
+        $con1_raise = true
+
+        t2_res = nil
+
+        t1 = Thread.new do
+          lambda {
+            @object.require(@path)
+          }.should raise_error(RuntimeError)
+
+          Thread.pass until fin
+          ScratchPad.recorded << :t1_post
+        end
+
+        t2 = Thread.new do
+          Thread.pass until $con1_ready
+          begin
+            t2_res = @object.require(@path)
+            ScratchPad.recorded << :t2_post
+          ensure
+            fin = true
+          end
+        end
+
+        t1.join
+        t2.join
+
+        t2_res.should be_true
+
+        ScratchPad.recorded.should == [:con_pre, :con_pre, :con_post, :t2_post, :t1_post]
+      end
+
+      ruby_bug "redmine #5754", "1.9.3" do
+        it "blocks a 3rd require if the 1st raises an exception and the 2nd is still running" do
+          start = false
+          fin = false
+
+          $con1_ready = false
+          $con1_raise = true
+
+          t1_res = nil
+          t2_res = nil
+
+          t1 = Thread.new do
+            lambda {
+              @object.require(@path)
+            }.should raise_error(RuntimeError)
+
+            # This hits the bug. Because MRI removes it's internal lock from a table
+            # when the exception is raised, this #require doesn't see that t2 is
+            # in the middle of requiring the file, so this #require runs when it should
+            # not.
+            #
+            # Sometimes this raises a ThreadError also, but I'm not sure why.
+            t1_res = @object.require(@path)
+
+            Thread.pass until fin
+            ScratchPad.recorded << :t1_post
+          end
+
+          t2 = Thread.new do
+            Thread.pass until $con1_ready
+            begin
+              t2_res = @object.require(@path)
+              ScratchPad.recorded << :t2_post
+            ensure
+              fin = true
+            end
+          end
+
+          t1.join
+          t2.join
+
+          t1_res.should be_false
+          t2_res.should be_true
+
+          ScratchPad.recorded.should == [:con_pre, :con_pre, :con_post, :t2_post, :t1_post]
+        end
+      end
+    end
+  end
 end
