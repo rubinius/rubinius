@@ -25,7 +25,7 @@ module Gem
   end
 
   def self.default_exec_format
-    exec_format = ConfigMap[:ruby_install_name].sub('rbx', '%s') rescue '%s'
+    exec_format = ConfigMap[:ruby_install_name].sub(/rbx|ruby/, '%s') rescue '%s'
 
     unless exec_format =~ /%s/ then
       raise Gem::Exception,
