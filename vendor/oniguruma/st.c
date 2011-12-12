@@ -36,14 +36,14 @@ struct st_table_entry {
      */
 
 static int numcmp(long, long);
-static int numhash(long);
+static st_index_t numhash(long);
 static struct st_hash_type type_numhash = {
     numcmp,
     numhash,
 };
 
 /* extern int strcmp(const char *, const char *); */
-static int strhash(const char *);
+static st_index_t strhash(const char *);
 static struct st_hash_type type_strhash = {
     strcmp,
     strhash,
@@ -140,7 +140,7 @@ stat_col()
 
 st_table*
 st_init_table_with_size(type, size)
-    struct st_hash_type *type;
+    const struct st_hash_type *type;
     int size;
 {
     st_table *tbl;
@@ -524,7 +524,7 @@ st_foreach(table, func, arg)
     return 0;
 }
 
-static int
+static st_index_t
 strhash(string)
     register const char *string;
 {
@@ -570,7 +570,7 @@ numcmp(x, y)
     return x != y;
 }
 
-static int
+static st_index_t
 numhash(n)
     long n;
 {

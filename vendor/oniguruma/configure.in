@@ -38,12 +38,10 @@ fi
 
 dnl Checks for programs.
 AC_PROG_CC
-AM_PROG_LIBTOOL
-LTVERSION="2:0:0"
-AC_SUBST(LTVERSION)
 
 AC_PROG_INSTALL
 AC_PROG_MAKE_SET
+AC_PROG_RANLIB
 
 dnl Checks for libraries.
 
@@ -89,4 +87,5 @@ if test "$cv_stdarg" = yes; then
 fi
 
 
-AC_OUTPUT([Makefile onig-config sample/Makefile], [chmod +x onig-config])
+dnl AC_OUTPUT([Makefile onig-config sample/Makefile], [chmod +x onig-config])
+AC_OUTPUT([Makefile onig-config], [chmod +x onig-config])
