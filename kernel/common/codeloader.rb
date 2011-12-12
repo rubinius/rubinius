@@ -27,17 +27,95 @@ module Rubinius
       @type = nil
     end
 
+    Lock = Object.new
+
+    class RequireRequest
+      def initialize(type, map, key)
+        @type = type
+        @map = map
+        @key = key
+        @for = nil
+        @loaded = false
+        @remove = true
+      end
+
+      attr_reader :type
+
+      def take!
+        lock
+        @for = Thread.current
+      end
+
+      def current_thread?
+        @for == Thread.current
+      end
+
+      def lock
+        Rubinius.lock(self)
+      end
+
+      def unlock
+        Rubinius.unlock(self)
+      end
+
+      def wait
+        Rubinius.synchronize(Lock) do
+          @remove = false
+        end
+
+        take!
+
+        Rubinius.synchronize(Lock) do
+          if @loaded
+            @map.delete @key
+          end
+        end
+
+        return @loaded
+      end
+
+      def passed!
+        @loaded = true
+      end
+
+      def remove!
+        Rubinius.synchronize(Lock) do
+          if @loaded or @remove
+            @map.delete @key
+          end
+        end
+
+        unlock
+      end
+    end
+
     # Searches for and loads Ruby source files and shared library extension
     # files. See CodeLoader.require for the rest of Kernel#require
     # functionality.
     def require
-      Rubinius.synchronize(self) do
-        return false unless resolve_require_path
-        return false if CodeLoader.loading? @load_path
+      wait = false
+      req = nil
 
-        if @type == :ruby
-          CodeLoader.loading @load_path
+      reqs = CodeLoader.load_map
+
+      Rubinius.synchronize(Lock) do
+        return unless resolve_require_path
+
+        if req = reqs[@load_path]
+          return if req.current_thread?
+          wait = true
+        else
+          req = RequireRequest.new(@type, reqs, @load_path)
+          reqs[@load_path] = req
+          req.take!
         end
+      end
+
+      if wait
+        return if req.wait
+
+        # The other thread doing the lock raised an exception
+        # through the require, so we try and load it again here.
       end
 
       if @type == :ruby
@@ -46,7 +124,7 @@ module Rubinius
         load_library
       end
 
-      return @type
+      return req
     end
 
     # Searches for and loads Ruby source files only. The files may have any
@@ -61,12 +139,6 @@ module Rubinius
     # autoloads use this, Kernel#load does not.
     def add_feature
       $LOADED_FEATURES << @feature
-    end
-
-    # Finalize the loading process by removing the lock to prevent concurrent
-    # loading of the same file.
-    def finished
-      CodeLoader.loaded @load_path
     end
 
     # Hook support. This allows code to be told when a file was just compiled,
@@ -89,27 +161,6 @@ module Rubinius
       # loaded.
       def load_map
         @load_map ||= {}
-      end
-
-      # Add +path+ to the map of files that are being loaded.
-      def loading(path)
-        load_map[path] = Thread.current unless load_map.key? path
-      end
-
-      # Removes +path+ from the map of files that are in the process of being
-      # loaded.
-      def loaded(path)
-        load_map.delete path
-      end
-
-      # Returns true if +path+ is in process of being loaded by any thread.
-      def loading?(path)
-        while thread = load_map[path]
-          return true if thread == Thread.current
-          thread.join
-        end
-
-        return false
       end
 
       # Returns true if +name+ includes a recognized extension (e.g. .rb or
@@ -145,13 +196,17 @@ module Rubinius
       def require(name)
         loader = new name
 
-        case loader.require
+        req = loader.require
+        return false unless req
+
+        case req.type
         when :ruby
           begin
-
             Rubinius.run_script loader.cm
+          else
+            req.passed!
           ensure
-            loader.finished
+            req.remove!
           end
         when :library
         when false

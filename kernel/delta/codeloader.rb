@@ -32,7 +32,7 @@ module Rubinius
       CodeLoader.check_version = check_version
       CodeLoader.source_extension = ".rbc"
 
-      self.require
+      req = self.require
 
       Rubinius.run_script self.cm
 
@@ -41,7 +41,7 @@ module Rubinius
       return true
     ensure
       add_feature
-      finished
+      req.remove!
 
       CodeLoader.check_version = saved_check
       CodeLoader.source_extension = saved_extension
