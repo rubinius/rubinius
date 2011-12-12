@@ -197,6 +197,7 @@ namespace rubinius {
     // Rubinius.primitive :bignum_size
     Integer* size(STATE);
     hashval hash_bignum(STATE);
+    size_t managed_memory_size(STATE);
 
     void verify_size(STATE, size_t size);
 

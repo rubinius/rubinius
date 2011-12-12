@@ -1015,6 +1015,9 @@ namespace rubinius {
   Fixnum* System::vm_memory_size(STATE, Object* obj) {
     if(obj->reference_p()) {
       size_t bytes = obj->size_in_bytes(state->vm());
+      if(Bignum* b = try_as<Bignum>(obj)) {
+        bytes += b->managed_memory_size(state);
+      }
       Object* iv = obj->ivars();
       if(LookupTable* lt = try_as<LookupTable>(iv)) {
         bytes += iv->size_in_bytes(state->vm());

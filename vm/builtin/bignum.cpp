@@ -55,16 +55,25 @@ namespace rubinius {
 
     mp_zero(a);
 
-    while(b > MP_DIGIT_MAX) {
-      a->dp[0] |= b >> DIGIT_BIT;
+    int digits = 0;
+    unsigned long tmp = b;
+    do {
+      ++digits;
+    } while((tmp >>= DIGIT_BIT) > MP_DIGIT_MAX);
+
+    for(; digits > 0; --digits) {
+      int digit_bits = DIGIT_BIT * digits;
+
+      a->dp[0] |= (b >> digit_bits);
       a->used += 1;
       if((err = mp_mul_2d(MPST, a, DIGIT_BIT, a)) != MP_OKAY) {
         return err;
       }
-      b &= MP_MASK;
+
+      b &= (1UL << digit_bits) - 1;
     }
 
-    a->dp[0] |= b;
+    a->dp[0] |= (b & MP_MASK);
     a->used += 1;
 
     mp_clamp(a);
@@ -118,12 +127,14 @@ namespace rubinius {
     if(y->sign == MP_NEG) {
       mp_copy(MPST, y, &b);
       twos_complement(MPST, &b);
+      b.used = y->used;
       y = &b;
     }
 
     if(x->sign == MP_NEG) {
       mp_copy(MPST, x, &a);
       twos_complement(MPST, &a);
+      a.used = x->used;
       x = &a;
     }
 
@@ -488,7 +499,7 @@ namespace rubinius {
   }
 
   Integer* Bignum::divide(STATE, Bignum* b, Integer** remainder) {
-    if(mp_cmp_d(b->mp_val(), 0) == MP_EQ) {
+    if(mp_iszero(b->mp_val())) {
       Exception::zero_division_error(state, "divided by 0");
     }
 
@@ -496,7 +507,7 @@ namespace rubinius {
     MMP;
 
     mp_div(XST, mp_val(), b->mp_val(), n, m);
-    if(mp_val()->sign != b->mp_val()->sign && mp_cmp_d(m, 0) != MP_EQ) {
+    if(mp_val()->sign != b->mp_val()->sign && !mp_iszero(m)) {
       mp_sub_d(XST, n, 1, n);
       mp_mul(XST, b->mp_val(), n, m);
       mp_sub(XST, mp_val(), m, m);
@@ -616,18 +627,9 @@ namespace rubinius {
   Integer* Bignum::invert(STATE) {
     NMP;
 
-    mp_int a;
-    mp_int b;
-
-    mp_init(&a);
-    mp_init_set_int(XST, &b, 1);
-
     /* inversion by -(a)-1 */
-    mp_neg(XST, mp_val(), &a);
-    mp_sub(XST, &a, &b, n);
-
-    mp_clear(&a);
-    mp_clear(&b);
+    mp_neg(XST, mp_val(), n);
+    mp_sub_d(XST, n, 1, n);
 
     return Bignum::normalize(state, n_obj);
   }
@@ -727,13 +729,12 @@ namespace rubinius {
   Object* Bignum::pow(STATE, Fixnum *exponent) {
     NMP;
 
-    int exp = exponent->to_native();
+    native_int exp = exponent->to_native();
     if(exp < 0) {
       return this->to_float(state)->fpow(state, exponent);
     }
 
-    mp_int* a = mp_val();
-    mp_expt_d(XST, a, exp, n);
+    mp_expt_d(XST, mp_val(), exp, n);
 
     return Bignum::normalize(state, n_obj);
   }
@@ -1267,6 +1268,13 @@ namespace rubinius {
        are leaving cruft in those unused bits.  However, since Bignums
        are immutable, this shouldn't happen to us. */
     return String::hash_str((unsigned char *)a->dp, a->used * sizeof(mp_digit));
+  }
+
+  size_t Bignum::managed_memory_size(STATE) {
+    mp_int* n = this->mp_val();
+    assert(MANAGED(n));
+    Object* m = static_cast<Object*>(n->managed);
+    return m->size_in_bytes(state->vm());
   }
 
   extern "C" void* MANAGED_REALLOC_MPINT(void* s, mp_int* a, size_t bytes) {
