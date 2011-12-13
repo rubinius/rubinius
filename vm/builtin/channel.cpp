@@ -164,9 +164,21 @@ namespace rubinius {
       ts.tv_nsec  = nano % NANOSECONDS;
     }
 
-    self->waiters_++;
+    // We lock to manipulate the wait condition on the VM* so that
+    // we can sync up properly with another thread trying to wake us
+    // up right as we're trying to go to sleep.
+    state->lock();
+
+    if(!state->check_async(call_frame)) {
+      state->unlock();
+      return NULL;
+    }
 
     state->vm()->wait_on_channel(self);
+
+    state->unlock();
+
+    self->waiters_++;
 
     for(;;) {
       {

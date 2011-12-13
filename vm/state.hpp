@@ -126,6 +126,14 @@ namespace rubinius {
       }
     }
 
+    void lock() {
+      vm_->lock(vm_);
+    }
+
+    void unlock() {
+      vm_->unlock(vm_);
+    }
+
   };
 }
 
