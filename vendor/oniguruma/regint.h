@@ -29,6 +29,8 @@
  * SUCH DAMAGE.
  */
 
+#include "config.h"
+
 /* for debug */
 /* #define ONIG_DEBUG_PARSE_TREE */
 /* #define ONIG_DEBUG_COMPILE */

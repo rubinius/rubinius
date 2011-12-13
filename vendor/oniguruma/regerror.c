@@ -27,16 +27,12 @@
  * SUCH DAMAGE.
  */
 
+#include "oniguruma.h"
 #include "regint.h"
-#include <stdio.h> /* for vsnprintf() */
 
-#ifdef HAVE_STDARG_PROTOTYPES
+#include <stdio.h> /* for vsnprintf() */
+#include <string.h>
 #include <stdarg.h>
-#define va_init_list(a,b) va_start(a,b)
-#else
-#include <varargs.h>
-#define va_init_list(a,b) va_start(a)
-#endif
 
 extern UChar*
 onig_error_code_to_format(int code)
@@ -245,14 +241,7 @@ static int to_ascii(OnigEncoding enc, UChar *s, UChar *end,
 #define MAX_ERROR_PAR_LEN   30
 
 extern int
-#ifdef HAVE_STDARG_PROTOTYPES
 onig_error_code_to_str(UChar* s, int code, ...)
-#else
-onig_error_code_to_str(s, code, va_alist)
-  UChar* s;
-  int code;
-  va_dcl
-#endif
 {
   UChar *p, *q;
   OnigErrorInfo* einfo;
@@ -261,7 +250,7 @@ onig_error_code_to_str(s, code, va_alist)
   UChar parbuf[MAX_ERROR_PAR_LEN];
   va_list vargs;
 
-  va_init_list(vargs, code);
+  va_start(vargs, code);
 
   switch (code) {
   case ONIGERR_UNDEFINED_NAME_REFERENCE:
@@ -374,22 +363,11 @@ onig_vsnprintf_with_pattern(UChar buf[], int bufsize, OnigEncoding enc,
 }
 
 void
-#ifdef HAVE_STDARG_PROTOTYPES
 onig_snprintf_with_pattern(UChar buf[], int bufsize, OnigEncoding enc,
                            UChar* pat, UChar* pat_end, const UChar *fmt, ...)
-#else
-onig_snprintf_with_pattern(buf, bufsize, enc, pat, pat_end, fmt, va_alist)
-    UChar buf[];
-    int bufsize;
-    OnigEncoding enc;
-    UChar* pat;
-    UChar* pat_end;
-    const UChar *fmt;
-    va_dcl
-#endif
 {
   va_list args;
-  va_init_list(args, fmt);
+  va_start(args, fmt);
   onig_vsnprintf_with_pattern(buf, bufsize, enc,
 	  pat, pat_end, fmt, args);
   va_end(args);
