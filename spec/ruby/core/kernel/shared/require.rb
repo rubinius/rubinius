@@ -532,7 +532,6 @@ describe :kernel_require, :shared => true do
         @path = File.expand_path "concurrent.rb", CODE_LOADING_DIR
         @path2 = File.expand_path "concurrent2.rb", CODE_LOADING_DIR
         @path3 = File.expand_path "concurrent3.rb", CODE_LOADING_DIR
-        $con1_raise = false
       end
 
       after :each do
@@ -542,11 +541,29 @@ describe :kernel_require, :shared => true do
         $LOADED_FEATURES.delete @path3
       end
 
+      # Quick note about these specs:
+      #
+      # You'll notice in concurrent.rb that there are some sleep calls. This seems
+      # like a bad form for specs testing concurrency since using sleep to force
+      # thread progression is a mega hack, there is currently no other way to spec
+      # the behavior. Here is why:
+      #
+      # The behavior we're spec'ing requires that t2 enter #require, see t1 is
+      # loading @path, grab a lock, and wait on it.
+      #
+      # We do make sure that t2 starts the require once t1 is in the middle
+      # of concurrent.rb, but we then need to get t2 to get far enough into #require
+      # to see t1's lock and try to lock it.
+      #
+      # Because #require is completely opapque, there is no other way to hold t1 until
+      # t2 has progress that far other than just having t1 sleep for a little bit
+      # and hope that t2 has progressed and is now holding the lock for @path.
+      #
+      # Sucks? Yep. But we haven't come up with a better solution.
+      #
       it "blocks a second thread from returning while the 1st is still requiring" do
         start = false
         fin = false
-
-        $con1_ready = false
 
         t1_res = nil
         t2_res = nil
@@ -558,7 +575,7 @@ describe :kernel_require, :shared => true do
         end
 
         t2 = Thread.new do
-          Thread.pass until $con1_ready
+          Thread.pass until t1 && t1[:in_concurrent_rb]
           begin
             t2_res = @object.require(@path)
             ScratchPad.recorded << :t2_post
@@ -595,19 +612,17 @@ describe :kernel_require, :shared => true do
         t2.join
 
         ScratchPad.recorded.should == [:con3_post, :t2_post, :con2_post, :t1_post]
-
       end
 
       it "allows a 2nd require if the 1st raised an exception" do
         start = false
         fin = false
 
-        $con1_ready = false
-        $con1_raise = true
-
         t2_res = nil
 
         t1 = Thread.new do
+          Thread.current[:con_raise] = true
+
           lambda {
             @object.require(@path)
           }.should raise_error(RuntimeError)
@@ -617,7 +632,7 @@ describe :kernel_require, :shared => true do
         end
 
         t2 = Thread.new do
-          Thread.pass until $con1_ready
+          Thread.pass until t1 && t1[:in_concurrent_rb]
           begin
             t2_res = @object.require(@path)
             ScratchPad.recorded << :t2_post
@@ -639,9 +654,6 @@ describe :kernel_require, :shared => true do
           start = false
           fin = false
 
-          $con1_ready = false
-          $con1_raise = true
-
           t1_res = nil
           t2_res = nil
           
@@ -651,6 +663,7 @@ describe :kernel_require, :shared => true do
           t2 = nil
 
           t1 = Thread.new do
+            Thread.current[:con_raise] = true
             t1_running = true
             
             lambda {
