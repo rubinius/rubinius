@@ -100,7 +100,7 @@ namespace rubinius {
   }
 
   static void twos_complement MPA(mp_int* a) {
-    long i = a->used;
+    int i = a->used;
 
     while(i--) {
       DIGIT(a,i) = (~DIGIT(a,i)) & (DIGIT_RADIX-1);
