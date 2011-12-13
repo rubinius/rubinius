@@ -27,6 +27,8 @@
  * SUCH DAMAGE.
  */
 
+#include <stdlib.h>
+
 #include "regparse.h"
 
 OnigCaseFoldType OnigDefaultCaseFoldFlag = ONIGENC_CASE_FOLD_MIN;

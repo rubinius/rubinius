@@ -83,13 +83,7 @@
 
 /* */
 /* escape other system UChar definition */
-#ifndef RUBY_DEFINES_H
-#include "ruby/ruby.h"
-#undef xmalloc
-#undef xrealloc
-#undef xcalloc
-#undef xfree
-#endif
+
 #ifdef ONIG_ESCAPE_UCHAR_COLLISION
 #undef ONIG_ESCAPE_UCHAR_COLLISION
 #endif
@@ -106,12 +100,16 @@
 #define THREAD_ATOMIC_START     /* depend on thread system */
 #define THREAD_ATOMIC_END       /* depend on thread system */
 #define THREAD_PASS             /* depend on thread system */
-#ifndef xmalloc
+
+#undef xmalloc
+#undef xrealloc
+#undef xcalloc
+#undef xfree
+
 #define xmalloc     malloc
 #define xrealloc    realloc
 #define xcalloc     calloc
 #define xfree       free
-#endif
 
 #define onig_st_init_table                  st_init_table
 #define onig_st_init_table_with_size        st_init_table_with_size
@@ -197,11 +195,16 @@
 # include <stdio.h>
 #endif
 
+#include <stdint.h>
+
 #include "regenc.h"
 
 #if defined __GNUC__ && __GNUC__ >= 4
 #pragma GCC visibility push(default)
 #endif
+
+#undef ALLOCA_N
+#define ALLOCA_N(type,n)  (type*)alloca(sizeof(type)*(n))
 
 #ifdef MIN
 #undef MIN
@@ -283,7 +286,7 @@ typedef unsigned int  BitStatusType;
 } while (0)
 
 
-#define INT_MAX_LIMIT           ((1UL << (SIZEOF_INT * 8 - 1)) - 1)
+#define INT_MAX_LIMIT           ((1UL << (sizeof(int) * 8 - 1)) - 1)
 
 #define DIGITVAL(code)    ((code) - '0')
 #define ODIGITVAL(code)   DIGITVAL(code)

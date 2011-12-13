@@ -27,6 +27,7 @@
  * SUCH DAMAGE.
  */
 
+#include <stdlib.h>
 #include <strings.h>
 
 #include "regint.h"

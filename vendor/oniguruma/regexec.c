@@ -27,6 +27,9 @@
  * SUCH DAMAGE.
  */
 
+#include <stdio.h>
+#include <stdlib.h>
+
 #include "regint.h"
 
 /* #define USE_MATCH_RANGE_MUST_BE_INSIDE_OF_SPECIFIED_RANGE */
