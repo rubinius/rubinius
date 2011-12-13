@@ -172,6 +172,9 @@
 #define HAVE_RB_IO_WAIT_WRITABLE           1
 #define HAVE_RB_IO_WRITE                   1
 
+#define HAVE_RB_THREAD_FD_WRITABLE         1
+#define HAVE_RB_THREAD_WAIT_FD             1
+
 /* Kernel */
 #define HAVE_RB_BLOCK_GIVEN_P              1
 #define HAVE_RB_BLOCK_PROC                 1
