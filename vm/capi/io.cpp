@@ -169,7 +169,7 @@ extern "C" {
     FD_ZERO(&fds);
     FD_SET((int_fd_t)fd, &fds);
 
-    int ready = 0;
+    int count = 0;
 
     NativeMethodEnvironment* env = NativeMethodEnvironment::get();
 
@@ -177,8 +177,9 @@ extern "C" {
     {
       GCIndependent guard(env);
 
-      while(!ready) {
-        ready = select(fd+1, &fds, 0, 0, 0);
+      while(count == 0) {
+        count = select(fd+1, &fds, 0, 0, 0);
+        if(!retry) break;
       }
     }
 
@@ -210,7 +211,24 @@ extern "C" {
       return Qfalse;
     }
 
-    rb_thread_fd_writable(fd);
+    fd_set fds;
+
+    FD_ZERO(&fds);
+    FD_SET((int_fd_t)fd, &fds);
+
+    int count = 0;
+
+    NativeMethodEnvironment* env = NativeMethodEnvironment::get();
+    env->state()->vm()->shared.leave_capi(env->state());
+    {
+      GCIndependent guard(env);
+
+      while(count == 0) {
+        count = select(fd+1, &fds, 0, 0, 0);
+        if(!retry) break;
+      }
+    }
+    env->state()->vm()->shared.enter_capi(env->state());
     return Qtrue;
   }
 
@@ -224,15 +242,15 @@ extern "C" {
     FD_ZERO(&fds);
     FD_SET((int_fd_t)fd, &fds);
 
-    int ready = 0;
+    int count = 0;
 
     NativeMethodEnvironment* env = NativeMethodEnvironment::get();
     env->state()->vm()->shared.leave_capi(env->state());
     {
       GCIndependent guard(env);
 
-      while(!ready) {
-        ready = select(fd+1, &fds, 0, 0, 0);
+      while(count == 0) {
+        count = select(fd+1, &fds, 0, 0, 0);
       }
     }
     env->state()->vm()->shared.enter_capi(env->state());
