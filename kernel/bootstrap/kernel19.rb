@@ -11,7 +11,9 @@ module Kernel
   alias_method :===,  :equal?
 
   def !~(other)
-    self =~ other ? false : true
+    res = self =~ other ? false : true
+    Regexp.last_match = Regexp.last_match
+    res
   end
 
   def trust
