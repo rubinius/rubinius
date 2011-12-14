@@ -199,6 +199,7 @@ OnigEncodingDefine(windows_1251, Windows_1251) = {
   onigenc_always_true_is_allowed_reverse_match,
   0
 };
+ENC_DEFINE("Windows-1251", Windows_1251)
 /*
  * Name: windows-1251
  * MIBenum: 2251

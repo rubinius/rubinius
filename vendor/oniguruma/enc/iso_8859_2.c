@@ -240,6 +240,7 @@ OnigEncodingDefine(iso_8859_2, ISO_8859_2) = {
   onigenc_always_true_is_allowed_reverse_match,
   0
 };
+ENC_DEFINE("ISO-8859-2", ISO_8859_2)
 ENC_ALIAS("ISO8859-2", "ISO-8859-2")
 
 /*

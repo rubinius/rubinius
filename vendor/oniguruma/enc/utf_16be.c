@@ -255,4 +255,5 @@ OnigEncodingDefine(utf_16be, UTF_16BE) = {
   onigenc_always_false_is_allowed_reverse_match,
   0
 };
+ENC_DEFINE("UTF-16BE", UTF_16BE)
 ENC_ALIAS("UCS-2BE", "UTF-16BE")

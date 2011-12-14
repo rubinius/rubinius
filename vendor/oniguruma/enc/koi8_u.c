@@ -220,3 +220,4 @@ OnigEncodingDefine(koi8_u, KOI8_U) = {
   onigenc_always_true_is_allowed_reverse_match,
   0
 };
+ENC_DEFINE("KOI8-U", KOI8_U)

@@ -216,5 +216,6 @@ OnigEncodingDefine(koi8_r, KOI8_R) = {
   onigenc_always_true_is_allowed_reverse_match,
   0
 };
+ENC_DEFINE("KOI8-R", KOI8_R)
 ENC_ALIAS("CP878", "KOI8-R")
 

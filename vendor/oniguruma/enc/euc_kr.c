@@ -190,4 +190,5 @@ OnigEncodingDefine(euc_kr, EUC_KR) = {
   euckr_is_allowed_reverse_match,
   0
 };
+ENC_DEFINE("EUC-KR", EUC_KR)
 ENC_ALIAS("eucKR", "EUC-KR")

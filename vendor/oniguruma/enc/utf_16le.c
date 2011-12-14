@@ -248,3 +248,4 @@ OnigEncodingDefine(utf_16le, UTF_16LE) = {
   onigenc_always_false_is_allowed_reverse_match,
   0
 };
+ENC_DEFINE("UTF-16LE", UTF_16LE)

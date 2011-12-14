@@ -66,17 +66,17 @@ am_libonig_a_OBJECTS = regcomp.$(OBJEXT) regenc.$(OBJEXT) \
 	regsyntax.$(OBJEXT) regtrav.$(OBJEXT) regversion.$(OBJEXT) \
 	st.$(OBJEXT) ascii.$(OBJEXT) big5.$(OBJEXT) cp949.$(OBJEXT) \
 	emacs_mule.$(OBJEXT) euc_jp.$(OBJEXT) euc_kr.$(OBJEXT) \
-	euc_tw.$(OBJEXT) gb18030.$(OBJEXT) gb2312.$(OBJEXT) \
-	gbk.$(OBJEXT) iso_8859_1.$(OBJEXT) iso_8859_2.$(OBJEXT) \
-	iso_8859_3.$(OBJEXT) iso_8859_4.$(OBJEXT) iso_8859_5.$(OBJEXT) \
-	iso_8859_6.$(OBJEXT) iso_8859_7.$(OBJEXT) iso_8859_8.$(OBJEXT) \
-	iso_8859_9.$(OBJEXT) iso_8859_10.$(OBJEXT) \
-	iso_8859_11.$(OBJEXT) iso_8859_13.$(OBJEXT) \
-	iso_8859_14.$(OBJEXT) iso_8859_15.$(OBJEXT) \
-	iso_8859_16.$(OBJEXT) koi8_r.$(OBJEXT) koi8_u.$(OBJEXT) \
-	shift_jis.$(OBJEXT) unicode.$(OBJEXT) us_ascii.$(OBJEXT) \
-	utf_16be.$(OBJEXT) utf_16le.$(OBJEXT) utf_32be.$(OBJEXT) \
-	utf_32le.$(OBJEXT) utf_8.$(OBJEXT) windows_1251.$(OBJEXT)
+	euc_tw.$(OBJEXT) gb18030.$(OBJEXT) gbk.$(OBJEXT) \
+	iso_8859_1.$(OBJEXT) iso_8859_2.$(OBJEXT) iso_8859_3.$(OBJEXT) \
+	iso_8859_4.$(OBJEXT) iso_8859_5.$(OBJEXT) iso_8859_6.$(OBJEXT) \
+	iso_8859_7.$(OBJEXT) iso_8859_8.$(OBJEXT) iso_8859_9.$(OBJEXT) \
+	iso_8859_10.$(OBJEXT) iso_8859_11.$(OBJEXT) \
+	iso_8859_13.$(OBJEXT) iso_8859_14.$(OBJEXT) \
+	iso_8859_15.$(OBJEXT) iso_8859_16.$(OBJEXT) koi8_r.$(OBJEXT) \
+	koi8_u.$(OBJEXT) shift_jis.$(OBJEXT) unicode.$(OBJEXT) \
+	us_ascii.$(OBJEXT) utf_16be.$(OBJEXT) utf_16le.$(OBJEXT) \
+	utf_32be.$(OBJEXT) utf_32le.$(OBJEXT) utf_8.$(OBJEXT) \
+	windows_1251.$(OBJEXT)
 libonig_a_OBJECTS = $(am_libonig_a_OBJECTS)
 binSCRIPT_INSTALL = $(INSTALL_SCRIPT)
 SCRIPTS = $(bin_SCRIPTS)
@@ -218,7 +218,7 @@ libonig_a_SOURCES = regint.h regparse.h regenc.h st.h \
 	$(encdir)/ascii.c $(encdir)/big5.c $(encdir)/cp949.c \
 	$(encdir)/emacs_mule.c \
 	$(encdir)/euc_jp.c $(encdir)/euc_kr.c $(encdir)/euc_tw.c \
-	$(encdir)/gb18030.c $(encdir)/gb2312.c $(encdir)/gbk.c \
+	$(encdir)/gb18030.c $(encdir)/gbk.c \
 	$(encdir)/iso_8859_1.c $(encdir)/iso_8859_2.c \
 	$(encdir)/iso_8859_3.c $(encdir)/iso_8859_4.c \
 	$(encdir)/iso_8859_5.c $(encdir)/iso_8859_6.c \
@@ -369,7 +369,6 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/euc_kr.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/euc_tw.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/gb18030.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/gb2312.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/gbk.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/iso_8859_1.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/iso_8859_10.Po@am__quote@
@@ -532,20 +531,6 @@ gb18030.obj: $(encdir)/gb18030.c
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	source='$(encdir)/gb18030.c' object='gb18030.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o gb18030.obj `if test -f '$(encdir)/gb18030.c'; then $(CYGPATH_W) '$(encdir)/gb18030.c'; else $(CYGPATH_W) '$(srcdir)/$(encdir)/gb18030.c'; fi`
-
-gb2312.o: $(encdir)/gb2312.c
-@am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT gb2312.o -MD -MP -MF $(DEPDIR)/gb2312.Tpo -c -o gb2312.o `test -f '$(encdir)/gb2312.c' || echo '$(srcdir)/'`$(encdir)/gb2312.c
-@am__fastdepCC_TRUE@	mv -f $(DEPDIR)/gb2312.Tpo $(DEPDIR)/gb2312.Po
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='$(encdir)/gb2312.c' object='gb2312.o' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o gb2312.o `test -f '$(encdir)/gb2312.c' || echo '$(srcdir)/'`$(encdir)/gb2312.c
-
-gb2312.obj: $(encdir)/gb2312.c
-@am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT gb2312.obj -MD -MP -MF $(DEPDIR)/gb2312.Tpo -c -o gb2312.obj `if test -f '$(encdir)/gb2312.c'; then $(CYGPATH_W) '$(encdir)/gb2312.c'; else $(CYGPATH_W) '$(srcdir)/$(encdir)/gb2312.c'; fi`
-@am__fastdepCC_TRUE@	mv -f $(DEPDIR)/gb2312.Tpo $(DEPDIR)/gb2312.Po
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='$(encdir)/gb2312.c' object='gb2312.obj' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o gb2312.obj `if test -f '$(encdir)/gb2312.c'; then $(CYGPATH_W) '$(encdir)/gb2312.c'; else $(CYGPATH_W) '$(srcdir)/$(encdir)/gb2312.c'; fi`
 
 gbk.o: $(encdir)/gbk.c
 @am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT gbk.o -MD -MP -MF $(DEPDIR)/gbk.Tpo -c -o gbk.o `test -f '$(encdir)/gbk.c' || echo '$(srcdir)/'`$(encdir)/gbk.c

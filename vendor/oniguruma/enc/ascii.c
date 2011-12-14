@@ -48,6 +48,7 @@ OnigEncodingDefine(ascii, ASCII) = {
   onigenc_always_true_is_allowed_reverse_match,
   0
 };
+ENC_DEFINE("ASCII-8BIT", ASCII)
 ENC_ALIAS("BINARY", "ASCII-8BIT")
 ENC_REPLICATE("IBM437", "ASCII-8BIT")
 ENC_ALIAS("CP437", "IBM437")

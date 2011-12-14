@@ -19,7 +19,7 @@ libonig_a_SOURCES = regint.h regparse.h regenc.h st.h \
 	$(encdir)/ascii.c $(encdir)/big5.c $(encdir)/cp949.c \
 	$(encdir)/emacs_mule.c \
 	$(encdir)/euc_jp.c $(encdir)/euc_kr.c $(encdir)/euc_tw.c \
-	$(encdir)/gb18030.c $(encdir)/gb2312.c $(encdir)/gbk.c \
+	$(encdir)/gb18030.c $(encdir)/gbk.c \
 	$(encdir)/iso_8859_1.c $(encdir)/iso_8859_2.c \
 	$(encdir)/iso_8859_3.c $(encdir)/iso_8859_4.c \
 	$(encdir)/iso_8859_5.c $(encdir)/iso_8859_6.c \
