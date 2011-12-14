@@ -153,6 +153,14 @@ end
 add_include_dir "."
 add_link_dir "."
 
+Rubinius::BUILD_CONFIG[:include_dirs].each do |i|
+  add_include_dir i
+end
+
+Rubinius::BUILD_CONFIG[:lib_dirs].each do |l|
+  add_include_dir l
+end
+
 # Setup platform-specific values
 #
 # (Adapted from EventMachine. Thank you EventMachine and tmm1 !)

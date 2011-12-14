@@ -87,6 +87,9 @@ class Configure
     @llvm_prebuilt_path     = File.join(@llvm_parent_path, "prebuilt")
     @llvm_include_path      = File.join(@llvm_default, "include")
 
+    @include_dirs = ["/usr/local/include", "/opt/local/include"]
+    @lib_dirs     = ["/usr/local/lib", "/opt/local/include"]
+
     # File system paths
     @bindir       = root + "/bin"
     @include18dir = root + "/vm/capi/18/include"
@@ -114,7 +117,7 @@ class Configure
     @libversion = "2.0"
     @version = "#{@libversion}.0dev"
     @release_date = "yyyy-mm-dd"
-    @config_version = 148
+    @config_version = 149
 
     # TODO: add conditionals for platforms
     if RbConfig::CONFIG["build_os"] =~ /darwin/
@@ -238,6 +241,14 @@ class Configure
 
     o.on "--update-prebuilt", "Update prebuilt LLVM packages from the internet" do
       update_prebuilt @llvm_generic_prebuilt, true
+    end
+
+    o.on "--with-include-dir", "PATH", "Add path the default include search paths" do |path|
+      @include_dirs << path
+    end
+
+    o.on "--with-lib-dir", "PATH", "Add path the default library search paths" do |path|
+      @lib_dirs << path
     end
 
     o.doc "\n File system paths for installing Rubinius"
@@ -662,16 +673,9 @@ Unsupported language version requested: #{ver}. Options are #{@supported_version
   end
 
   def c_includes
-    str = []
-    if File.exists? "/usr/local/include"
-      str << "-I/usr/local/include"
-    end
-
-    if File.exists? "/opt/local/include"
-      str << "-I/opt/local/include"
-    end
-
-    return str.join(" ")
+    @include_dirs.map do |d|
+      "-I#{d}"
+    end.join(" ")
   end
 
   def env(which)
@@ -844,6 +848,14 @@ int main() { return tgetnum(""); }
     @log.write @curses ? @curses : "not found"
   end
 
+  def detect_include_dirs
+    @include_dirs = @include_dirs.select {|p| File.exists? p }
+  end
+
+  def detect_lib_dirs
+    @lib_dirs = @lib_dirs.select {|p| File.exists? p }
+  end
+
   def has_struct_member(struct, member, includes = [])
     @log.print "Checking whether struct #{struct} has member #{member}: "
     tf = Tempfile.new("rbx-test")
@@ -985,6 +997,9 @@ int main() { return tgetnum(""); }
 
     @log.write ""
 
+    detect_include_dirs
+    detect_lib_dirs
+
     detect_sizeof("short")
     detect_sizeof("int")
     detect_sizeof("void*")
@@ -1001,7 +1016,7 @@ int main() { return tgetnum(""); }
     detect_x86_32bit
     detect_features
     detect_curses
-  end
+ end
 
   def which_ruby
     if Object.const_defined?(:RUBY_ENGINE)
@@ -1079,6 +1094,8 @@ module Rubinius
     :user_cflags    => "#{@user_cflags}",
     :user_cppflags  => "#{@user_cppflags}",
     :user_ldflags   => "#{@user_ldflags}",
+    :include_dirs   => #{@include_dirs.inspect},
+    :lib_dirs       => #{@lib_dirs.inspect},
     :defines        => #{@defines.inspect},
     :curses         => #{@curses.inspect},
     :host           => "#{@host}",

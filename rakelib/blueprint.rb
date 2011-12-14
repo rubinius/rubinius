@@ -48,7 +48,7 @@ Daedalus.blueprint do |i|
 
   gcc.ldflags << "-lstdc++" << "-lm"
 
-  %w[ /usr/local/lib /opt/local/lib ].each do |path|
+  Rubinius::BUILD_CONFIG[:lib_dirs].each do |path|
     gcc.ldflags << "-L#{path}" if File.exists? path
   end
 
@@ -209,7 +209,7 @@ Daedalus.blueprint do |i|
   gcc.add_library oniguruma
   gcc.add_library ltm
 
-  %w[ /usr/local/include /opt/local/include ].each do |path|
+  Rubinius::BUILD_CONFIG[:include_dirs].each do |path|
     gcc.cflags << "-I#{path} " if File.exists? path
   end
 
