@@ -18,6 +18,8 @@
 #include "builtin/block_environment.hpp"
 #include "capi/handle.hpp"
 
+#include "instruments/tooling.hpp"
+
 #include "arguments.hpp"
 
 #include "object_watch.hpp"
@@ -238,6 +240,10 @@ namespace rubinius {
       if(CallFrame* cf = vm->saved_call_frame()) {
         walk_call_frame(cf);
       }
+
+      State ls(vm);
+
+      vm->shared.tool_broker()->at_gc(&ls);
     }
 
     std::list<ObjectHeader*>& los = thr->locked_objects();

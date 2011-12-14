@@ -32,6 +32,8 @@ namespace tooling {
     rbxti::thread_start_func thread_start_func_;
     rbxti::thread_stop_func thread_stop_func_;
 
+    rbxti::at_gc_func at_gc_func_;
+
     rbxti::shutdown_func shutdown_func_;
 
   public:
@@ -67,6 +69,8 @@ namespace tooling {
     void thread_start(STATE);
     void thread_stop(STATE);
 
+    void at_gc(STATE);
+
     void set_tool_enter_method(rbxti::enter_method func);
     void set_tool_leave_method(rbxti::leave_func func);
 
@@ -86,6 +90,8 @@ namespace tooling {
 
     void set_tool_thread_start(rbxti::thread_start_func func);
     void set_tool_thread_stop(rbxti::thread_stop_func func);
+
+    void set_tool_at_gc(rbxti::at_gc_func func);
 
     Object* results(STATE);
     void enable(STATE);

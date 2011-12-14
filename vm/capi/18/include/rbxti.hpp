@@ -46,6 +46,8 @@ namespace rbxti {
   typedef void  (*thread_start_func)(Env* env);
   typedef void  (*thread_stop_func)(Env* env);
 
+  typedef void  (*at_gc_func)(Env* env);
+
   class Env {
   public:
     EnvPrivate* private_;
@@ -128,6 +130,8 @@ namespace rbxti {
 
     void set_tool_thread_start(thread_start_func func);
     void set_tool_thread_stop(thread_stop_func func);
+
+    void set_tool_at_gc(at_gc_func func);
   };
 }
 
