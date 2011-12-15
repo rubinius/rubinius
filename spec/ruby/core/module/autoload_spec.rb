@@ -367,10 +367,13 @@ describe "Module#autoload" do
       t1_val = nil
       t2_val = nil
 
+      fin = false
+
       t1 = Thread.new do
         Thread.pass until start
         t1_val = ModuleSpecs::Autoload::Concur
         ScratchPad.recorded << :t1_post
+        fin = true
       end
 
       t2_exc = nil
@@ -380,9 +383,9 @@ describe "Module#autoload" do
         begin
           t2_val = ModuleSpecs::Autoload::Concur
         rescue Exception => e
-          ScratchPad.recorded << :t2_exc
           t2_exc = e
         else
+          Thread.pass until fin
           ScratchPad.recorded << :t2_post
         end
       end
