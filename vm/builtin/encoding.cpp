@@ -1,5 +1,6 @@
 #include "oniguruma.h" // Must be first.
 
+#include "builtin/array.hpp"
 #include "builtin/class.hpp"
 #include "builtin/encoding.hpp"
 #include "builtin/lookuptable.hpp"
@@ -12,6 +13,11 @@
 
 #include <ctype.h>
 
+#define ENC_DEFINE(name, data)      define(state, name, ONIG_ENCODING_##data);
+#define ENC_REPLICATE(name, orig)   replicate(state, name, orig);
+#define ENC_ALIAS(name, orig)       alias(state, name, orig);
+#define ENC_DUMMY(name)             set_dummy(state, name);
+
 namespace rubinius {
   void Encoding::init(STATE) {
     onig_init();  // in regexp.cpp too, but idempotent.
@@ -23,13 +29,15 @@ namespace rubinius {
     G(encoding)->set_object_type(state, EncodingType);
     G(encoding)->name(state, state->symbol("Encoding"));
 
-    enc->set_const(state, "SymbolMap", LookupTable::create(state));
-    enc->set_const(state, "IndexMap", LookupTable::create(state));
+    enc->set_const(state, "EncodingMap", LookupTable::create(state));
+    enc->set_const(state, "EncodingList", Array::create(state, 3));
 
-    Encoding* ascii = create_bootstrap(state, "US-ASCII", eAscii, ONIG_ENCODING_ASCII);
+    Encoding* ascii = create_bootstrap(state, "US-ASCII", eAscii, ONIG_ENCODING_US_ASCII);
+    Encoding* binary = create_bootstrap(state, "ASCII-8BIT", eBinary, ONIG_ENCODING_ASCII);
     Encoding* utf8 = create_bootstrap(state, "UTF-8", eUtf8, ONIG_ENCODING_UTF_8);
 
     ascii->name(state, String::create(state, "US-ASCII"));
+    binary->name(state, String::create(state, "ASCII-8BIT"));
     utf8->name(state, String::create(state, "UTF-8"));
 
 #include "vm/gen/encoding_database.cpp"
@@ -48,8 +56,8 @@ namespace rubinius {
                                        Index index, OnigEncodingType* enc)
   {
     Encoding* e = create(state, enc);
-    symbol_map(state)->store(state, state->symbol(name), e);
-    index_map(state)->store(state, Fixnum::from(index), e);
+    encoding_map(state)->store(state, state->symbol(name), Fixnum::from(index));
+    encoding_list(state)->set(state, index, e);
     add_constant(state, name, e);
 
     return e;
@@ -62,25 +70,43 @@ namespace rubinius {
 
     e->name(state, String::create(state, name));
 
-    symbol_map(state)->store(state, state->symbol(name), e);
+    Array* list = encoding_list(state);
+    size_t index = list->size();
+
+    encoding_map(state)->store(state, state->symbol(name), Fixnum::from(index));
+    list->set(state, index, e);
     add_constant(state, name, e);
 
     return e;
   }
 
-  Encoding* Encoding::alias(STATE, const char* name, Encoding* enc) {
-    symbol_map(state)->store(state, state->symbol(name), enc);
-    add_constant(state, name, enc);
+  Encoding* Encoding::alias(STATE, const char* name, const char* original) {
+    int index = find_index(state, original);
+    if(index < 0) return nil<Encoding>();
 
+    encoding_map(state)->store(state, state->symbol(name), Fixnum::from(index));
+
+    return as<Encoding>(encoding_list(state)->get(state, index));
+  }
+
+  Encoding* Encoding::set_dummy(STATE, const char* name) {
+    Encoding* enc = find(state, name);
+    if(enc->nil_p()) return nil<Encoding>();
+
+    enc->dummy(state, Qtrue);
     return enc;
   }
 
   Encoding* Encoding::ascii_encoding(STATE) {
-    return as<Encoding>(index_map(state)->fetch(state, Fixnum::from(eAscii)));
+    return as<Encoding>(encoding_list(state)->get(state, eAscii));
   }
 
   Encoding* Encoding::utf8_encoding(STATE) {
-    return as<Encoding>(index_map(state)->fetch(state, Fixnum::from(eUtf8)));
+    return as<Encoding>(encoding_list(state)->get(state, eUtf8));
+  }
+
+  Encoding* Encoding::binary_encoding(STATE) {
+    return as<Encoding>(encoding_list(state)->get(state, eBinary));
   }
 
 #define ENCODING_NAMELEN_MAX 63
@@ -139,18 +165,36 @@ namespace rubinius {
     return as<Class>(G(rubinius)->get_const(state, state->symbol("Encoding")));
   }
 
-  LookupTable* Encoding::symbol_map(STATE) {
+  LookupTable* Encoding::encoding_map(STATE) {
     return as<LookupTable>(internal_class(state)->get_const(
-              state, state->symbol("SymbolMap")));
+              state, state->symbol("EncodingMap")));
   }
 
-  LookupTable* Encoding::index_map(STATE) {
-    return as<LookupTable>(internal_class(state)->get_const(
-              state, state->symbol("IndexMap")));
+  Array* Encoding::encoding_list(STATE) {
+    return as<Array>(internal_class(state)->get_const(
+              state, state->symbol("EncodingList")));
   }
 
-  Encoding* Encoding::find(STATE, Symbol* name) {
-    return as<Encoding>(symbol_map(state)->fetch(state, name));
+  int Encoding::find_index(STATE, const char* name) {
+    Object* obj = encoding_map(state)->fetch(state, state->symbol(name));
+    if(Fixnum* index = try_as<Fixnum>(obj)) {
+      return index->to_native();
+    } else {
+      return -1;
+    }
+  }
+
+  Encoding* Encoding::find(STATE, const char* name) {
+    int index = find_index(state, name);
+    if(index < 0) return nil<Encoding>();
+    return as<Encoding>(encoding_list(state)->get(state, index));
+  }
+
+  Encoding* Encoding::replicate(STATE, const char* name, const char* original) {
+    Encoding* enc = find(state, original);
+    if(enc->nil_p()) return nil<Encoding>();
+
+    return define(state, name, enc->get_encoding(), enc->dummy());
   }
 
   Encoding* Encoding::replicate(STATE, String* name) {

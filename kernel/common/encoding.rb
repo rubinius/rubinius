@@ -5,6 +5,9 @@ class Encoding
   class UndefinedConversionError < EncodingError
   end
 
+  EncodingMap  = Rubinius::Encoding::EncodingMap
+  EncodingList = Rubinius::Encoding::EncodingList
+
   class Converter
     def initialize(from, to, options={})
     end
@@ -15,8 +18,9 @@ class Encoding
 
   def self.aliases
     aliases = {}
-    Rubinius::Encoding::SymbolMap.each do |n, e|
-      aliases[n] = e.name unless n.to_s == e.name
+    EncodingMap.each do |n, i|
+      e = EncodingList[i]
+      aliases[n.to_s] = e.name unless n.to_s == e.name
     end
 
     aliases
@@ -41,28 +45,22 @@ class Encoding
   def self.find(name)
     key = StringValue(name).upcase
 
-
-    Rubinius::Encoding::SymbolMap.each do |n, e|
-      return e if n.to_s.upcase == key
+    EncodingMap.each do |n, i|
+      return EncodingList[i] if n.to_s.upcase == key
     end
 
     raise ArgumentError, "unknown encoding name - #{name}"
   end
 
   def self.list
-    list = []
-    Rubinius::Encoding::SymbolMap.each do |n, e|
-      list << e if n.to_s == e.name
-    end
-
-    list
+    EncodingList
   end
 
   def self.locale_charmap
   end
 
   def self.name_list
-    Rubinius::Encoding::SymbolMap.keys.map { |name| name.to_s }
+    EncodingList.map { |e| e.to_s }
   end
 
   def inspect
