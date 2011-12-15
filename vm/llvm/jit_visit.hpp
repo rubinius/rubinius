@@ -1952,7 +1952,18 @@ use_send:
       }
 
       InlineCache* cache = reinterpret_cast<InlineCache*>(which);
-      Value* ret = super_send(cache->name, args);
+
+      b().CreateStore(get_self(), out_args_recv_);
+      b().CreateStore(stack_top(), out_args_block_);
+      b().CreateStore(cint(args), out_args_total_);
+      b().CreateStore(Constant::getNullValue(ptr_type("Tuple")),
+                      out_args_container_);
+
+      if(args > 0) {
+        b().CreateStore(stack_objects(args + 1), out_args_arguments_);
+      }
+
+      Value* ret = invoke_inline_cache(cache);
       stack_remove(args + 1);
       check_for_return(ret);
 

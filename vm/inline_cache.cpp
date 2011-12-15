@@ -449,6 +449,11 @@ namespace rubinius {
   Object* InlineCache::empty_cache_super(STATE, InlineCache* cache, CallFrame* call_frame,
                                    Arguments& args)
   {
+    Symbol* original_name = call_frame->original_name();
+    if(cache->name != original_name) {
+      cache->name = original_name;
+    }
+
     args.set_name(cache->name);
     Object* const recv = args.recv();
     Class* const recv_class = recv->lookup_begin(state);
@@ -469,9 +474,9 @@ namespace rubinius {
       }
 
       args.unshift(state, cache->name);
-      cache->execute_backend_ = check_cache_mm;
+      cache->execute_backend_ = check_cache_super_mm;
     } else {
-      cache->execute_backend_ = check_cache;
+      cache->execute_backend_ = check_cache_super;
     }
 
     // Make sure we sync here, so the MethodCacheEntry mce is
@@ -582,6 +587,52 @@ namespace rubinius {
 
       return meth->execute(state, call_frame, meth, mod, args);
     }
+
+    return cache->initialize(state, call_frame, args);
+  }
+
+  Object* InlineCache::check_cache_super(STATE, InlineCache* cache, CallFrame* call_frame,
+                                   Arguments& args)
+  {
+    MethodCacheEntry* mce = cache->cache_;
+    Symbol* current_name = call_frame->original_name();
+
+    args.set_name(cache->name);
+
+    if(likely(mce && mce->receiver_class() == args.recv()->lookup_begin(state)
+                  && current_name == cache->name))
+    {
+      Executable* meth = mce->method();
+      Module* mod = mce->stored_module();
+
+      return meth->execute(state, call_frame, meth, mod, args);
+    }
+
+    cache->name = current_name;
+
+    return cache->initialize(state, call_frame, args);
+  }
+
+  Object* InlineCache::check_cache_super_mm(STATE, InlineCache* cache, CallFrame* call_frame,
+                                   Arguments& args)
+  {
+    MethodCacheEntry* mce = cache->cache_;
+    Symbol* current_name = call_frame->original_name();
+
+    args.set_name(cache->name);
+
+    if(likely(mce && mce->receiver_class() == args.recv()->lookup_begin(state)
+                  && current_name == cache->name))
+    {
+      args.unshift(state, cache->name);
+
+      Executable* meth = mce->method();
+      Module* mod = mce->stored_module();
+
+      return meth->execute(state, call_frame, meth, mod, args);
+    }
+
+    cache->name = current_name;
 
     return cache->initialize(state, call_frame, args);
   }
