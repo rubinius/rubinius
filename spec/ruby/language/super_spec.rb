@@ -84,6 +84,14 @@ describe "The super keyword" do
     Super::S7.new.here.should == :good
   end
 
+  it "can call through a define_method multiple times (caching check)" do
+    obj = Super::S7.new
+
+    2.times do
+      obj.here.should == :good
+    end
+  end
+
   it "supers up appropriate name even if used for multiple method names" do
     sup = Class.new do
       def a; "a"; end
