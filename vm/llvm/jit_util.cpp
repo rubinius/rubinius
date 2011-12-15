@@ -744,44 +744,35 @@ extern "C" {
 
   Object* rbx_push_const_fast(STATE, CallFrame* call_frame, Symbol* sym,
                               int association_index) {
-    bool found;
     Object* res = 0;
 
     Object* val = call_frame->cm->literals()->at(state, association_index);
-    StaticScope* sc = call_frame->static_scope();
 
     // See if the cache is present, if so, validate it and use the value
     GlobalCacheEntry* cache;
     if((cache = try_as<GlobalCacheEntry>(val)) != NULL) {
-      if(cache->valid_p(state, sc)) {
+      if(cache->valid_p(state, call_frame->static_scope())) {
         res = cache->value();
-      } else {
-        res = Helpers::const_get(state, call_frame, sym, &found);
-        if(found) cache->update(state, res, sc);
       }
     } else {
-      res = Helpers::const_get(state, call_frame, sym, &found);
-      if(found) {
-        cache = GlobalCacheEntry::create(state, res, sc);
-        call_frame->cm->literals()->put(state, association_index, cache);
-      } else {
-        res = Helpers::const_missing(state, sym, call_frame);
-      }
+      cache = GlobalCacheEntry::empty(state);
+      call_frame->cm->literals()->put(state, association_index, cache);
     }
 
-    if(!res) return NULL;
+    if(!res) {
+      bool found = false;
+      res = Helpers::const_get(state, call_frame, sym, &found);
 
-    if(Autoload* autoload = try_as<Autoload>(res)) {
-      res = autoload->resolve(state, call_frame);
-      if(cache && res) {
-        // Past a GC point, reload values.
-        val = call_frame->cm->literals()->at(state, association_index);
-        sc = call_frame->static_scope();
-        cache = try_as<GlobalCacheEntry>(val);
-
-        if(cache) {
-          cache->update(state, res, sc);
+      if(found) {
+        if(Autoload* autoload = try_as<Autoload>(res)) {
+          res = autoload->resolve(state, call_frame);
         }
+
+        if(res) {
+          cache->update(state, res, call_frame->static_scope());
+        }
+      } else {
+        res = Helpers::const_missing(state, sym, call_frame);
       }
     }
 

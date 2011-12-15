@@ -2050,7 +2050,9 @@ use_send:
       Value* cached_value = 0;
       BasicBlock* cached_block = 0;
 
-      GlobalCacheEntry* entry = try_as<GlobalCacheEntry>(current_literal(cache));
+      Object* lit = literal(cache);
+
+      GlobalCacheEntry* entry = try_as<GlobalCacheEntry>(lit);
       if(entry) {
         assert(entry->pin());
 

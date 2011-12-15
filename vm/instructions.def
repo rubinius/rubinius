@@ -836,42 +836,37 @@ end
 #     engine = RUBY_ENGINE # RUBY_ENGINE is a constant defined by Rubinius
 
 instruction push_const_fast(literal association) [ -- constant ]
-  bool found;
   Object* res = 0;
 
   Object* val = call_frame->cm->literals()->at(state, association);
-  StaticScope* sc = call_frame->static_scope();
 
   // See if the cache is present, if so, validate it and use the value
   GlobalCacheEntry* cache;
+
   if((cache = try_as<GlobalCacheEntry>(val)) != NULL) {
-    if(cache->valid_p(state, sc)) {
+    if(cache->valid_p(state, call_frame->static_scope())) {
       res = cache->value();
-    } else {
-      Symbol* sym = as<Symbol>(call_frame->cm->literals()->at(state, literal));
-      flush_ip();
-      res = Helpers::const_get(state, call_frame, sym, &found);
-      if(found) {
-        cache->update(state, res, sc);
-      }
     }
   } else {
+    cache = GlobalCacheEntry::empty(state);
+    call_frame->cm->literals()->put(state, association, cache);
+  }
+
+  if(!res) {
+    bool found = false;
     flush_ip();
+
     Symbol* sym = as<Symbol>(call_frame->cm->literals()->at(state, literal));
     res = Helpers::const_get(state, call_frame, sym, &found);
+
     if(found) {
       if(Autoload* autoload = try_as<Autoload>(res)) {
         flush_ip();
         res = autoload->resolve(state, call_frame);
-        if(res) {
-          // resolve might run the GC, refetch static_scope
-          sc = call_frame->static_scope();
-          cache = GlobalCacheEntry::create(state, res, sc);
-          call_frame->cm->literals()->put(state, association, cache);
-        }
-      } else {
-        cache = GlobalCacheEntry::create(state, res, sc);
-        call_frame->cm->literals()->put(state, association, cache);
+      }
+
+      if(res) {
+        cache->update(state, res, call_frame->static_scope());
       }
     } else {
       res = Helpers::const_missing(state, sym, call_frame);

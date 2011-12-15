@@ -21,6 +21,14 @@ namespace rubinius {
     return entry;
   }
 
+  GlobalCacheEntry* GlobalCacheEntry::empty(STATE) {
+    GlobalCacheEntry *entry =
+      state->vm()->new_object_mature<GlobalCacheEntry>(G(global_cache_entry));
+
+    entry->serial_ = -1;
+    return entry;
+  }
+
   bool GlobalCacheEntry::valid_p(STATE, StaticScope* scope) {
     return serial_ == state->shared().global_serial() &&
            scope_ == scope;

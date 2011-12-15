@@ -32,6 +32,7 @@ namespace rubinius {
 
     static void init(STATE);
     static GlobalCacheEntry* create(STATE, Object* value, StaticScope* scope);
+    static GlobalCacheEntry* empty(STATE);
 
     void update(STATE, Object* value, StaticScope* scope);
     bool valid_p(STATE, StaticScope* scope);
