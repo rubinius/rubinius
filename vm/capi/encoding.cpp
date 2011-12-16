@@ -73,13 +73,15 @@ extern "C" {
   }
 
   int rb_enc_find_index(const char *name) {
-    // TODO
-    return 1;
+    NativeMethodEnvironment* env = NativeMethodEnvironment::get();
+
+    return Encoding::find_index(env->state(), name);
   }
 
-  rb_encoding* rb_enc_from_index(int idx) {
-    // TODO
-    return rb_usascii_encoding();
+  rb_encoding* rb_enc_from_index(int index) {
+    NativeMethodEnvironment* env = NativeMethodEnvironment::get();
+
+    return Encoding::from_index(env->state(), index);
   }
 
   VALUE rb_enc_from_encoding(rb_encoding *enc) {

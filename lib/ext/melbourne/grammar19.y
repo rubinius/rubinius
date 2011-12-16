@@ -19,6 +19,7 @@
 #include <errno.h>
 #include <ctype.h>
 #include <string.h>
+#include <strings.h>
 #include <stdbool.h>
 #include <stdint.h>
 #include <assert.h>
@@ -4202,17 +4203,244 @@ parser_lvar_defined(rb_parser_state* parser_state, ID id) {
   return local_id(id);
 }
 
-static char*
-parse_comment(rb_parser_state* parser_state) {
-  ssize_t len = lex_pend - lex_p;
+static long
+parser_encode_length(rb_parser_state* parser_state, const char *name, long len)
+{
+  long nlen;
 
-  char* str = lex_p;
-  while(len-- > 0 && ISSPACE(str[0])) str++;
-  if(len <= 2) return NULL;
+  if(len > 5 && name[nlen = len - 5] == '-') {
+    if(strncasecmp(name + nlen + 1, "unix", 4) == 0)
+      return nlen;
+  }
+  if(len > 4 && name[nlen = len - 4] == '-') {
+    if(strncasecmp(name + nlen + 1, "dos", 3) == 0)
+      return nlen;
+    if(strncasecmp(name + nlen + 1, "mac", 3) == 0 &&
+        !(len == 8 && strncasecmp(name, "utf8-mac", len) == 0))
+      /* exclude UTF8-MAC because the encoding named "UTF8" doesn't exist in Ruby */
+      return nlen;
+  }
+  return len;
+}
 
-  if(str[0] == '-' && str[1] == '*' && str[2] == '-') return str;
+static void
+parser_set_encode(rb_parser_state* parser_state, const char *name)
+{
+  int idx = parser_enc_find_index(name);
+  rb_encoding *enc;
 
-  return NULL;
+  if(idx < 0) {
+    // TODO: handle this in a way that doesn't leak parser state
+    // rb_raise(rb_eArgError, "unknown encoding name: %s", name);
+    return;
+  }
+
+  enc = parser_enc_from_index(idx);
+  if(!parser_enc_asciicompat(enc)) {
+    // TODO: handle this in a way that doesn't leak parser state
+    // rb_raise(rb_eArgError, "%s is not ASCII compatible", parser_enc_name(enc));
+    return;
+  }
+
+  parser_state->enc = enc;
+}
+
+static int
+comment_at_top(rb_parser_state* parser_state)
+{
+  const char *p = lex_pbeg, *pend = lex_p - 1;
+  if(line_count != (has_shebang ? 2 : 1)) return FALSE;
+  while(p < pend) {
+    if (!ISSPACE(*p)) return FALSE;
+    p++;
+  }
+  return TRUE;
+}
+
+typedef long (*rb_magic_comment_length_t)(rb_parser_state* parser_state, const char *name, long len);
+typedef void (*rb_magic_comment_setter_t)(rb_parser_state* parser_state, const char *name, const char *val);
+
+static void
+magic_comment_encoding(rb_parser_state* parser_state, const char *name, const char *val)
+{
+  if(!comment_at_top(parser_state)) {
+    return;
+  }
+  parser_set_encode(parser_state, val);
+}
+
+struct magic_comment {
+    const char *name;
+    rb_magic_comment_setter_t func;
+    rb_magic_comment_length_t length;
+};
+
+static const struct magic_comment magic_comments[] = {
+    {"coding", magic_comment_encoding, parser_encode_length},
+    {"encoding", magic_comment_encoding, parser_encode_length},
+};
+
+static const char *
+magic_comment_marker(const char *str, long len)
+{
+  long i = 2;
+
+  while(i < len) {
+    switch(str[i]) {
+    case '-':
+      if(str[i-1] == '*' && str[i-2] == '-') {
+        return str + i + 1;
+      }
+      i += 2;
+      break;
+    case '*':
+      if(i + 1 >= len) return 0;
+      if(str[i+1] != '-') {
+        i += 4;
+      } else if(str[i-1] != '-') {
+        i += 2;
+      } else {
+        return str + i + 2;
+      }
+      break;
+    default:
+      i += 3;
+      break;
+    }
+  }
+  return 0;
+}
+
+static int
+parser_magic_comment(rb_parser_state* parser_state, const char *str, long len)
+{
+  VALUE name = 0, val = 0;
+  const char *beg, *end, *vbeg, *vend;
+
+#define str_copy(_s, _p, _n) ((_s) \
+    ? (void)(rb_str_resize((_s), (_n)), \
+    MEMCPY(RSTRING_PTR(_s), (_p), char, (_n)), (_s)) \
+    : (void)((_s) = STR_NEW((_p), (_n))))
+
+  if(len <= 7) return FALSE;
+  if(!(beg = magic_comment_marker(str, len))) return FALSE;
+  if(!(end = magic_comment_marker(beg, str + len - beg))) return FALSE;
+  str = beg;
+  len = end - beg - 3;
+
+  /* %r"([^\\s\'\":;]+)\\s*:\\s*(\"(?:\\\\.|[^\"])*\"|[^\"\\s;]+)[\\s;]*" */
+  while(len > 0) {
+    const struct magic_comment *p = magic_comments;
+    char *s;
+    int i;
+    long n = 0;
+
+    for(; len > 0 && *str; str++, --len) {
+      switch(*str) {
+      case '\'': case '"': case ':': case ';':
+        continue;
+      }
+      if(!ISSPACE(*str)) break;
+    }
+    for(beg = str; len > 0; str++, --len) {
+      switch(*str) {
+      case '\'': case '"': case ':': case ';':
+        break;
+      default:
+        if(ISSPACE(*str)) break;
+        continue;
+      }
+      break;
+    }
+    for(end = str; len > 0 && ISSPACE(*str); str++, --len);
+    if(!len) break;
+    if(*str != ':') continue;
+
+    do str++; while(--len > 0 && ISSPACE(*str));
+    if(!len) break;
+    if(*str == '"') {
+      for(vbeg = ++str; --len > 0 && *str != '"'; str++) {
+        if(*str == '\\') {
+          --len;
+          ++str;
+        }
+      }
+      vend = str;
+      if(len) {
+        --len;
+        ++str;
+      }
+    } else {
+      for(vbeg = str; len > 0 && *str != '"' && *str != ';' && !ISSPACE(*str); --len, str++);
+      vend = str;
+    }
+    while(len > 0 && (*str == ';' || ISSPACE(*str))) --len, str++;
+
+    n = end - beg;
+    str_copy(name, beg, n);
+    s = RSTRING_PTR(name);
+    for(i = 0; i < n; ++i) {
+      if(s[i] == '-') s[i] = '_';
+    }
+    do {
+      if(strncasecmp(p->name, s, n) == 0) {
+        n = vend - vbeg;
+        if(p->length) {
+          n = (*p->length)(parser_state, vbeg, n);
+        }
+        str_copy(val, vbeg, n);
+        (*p->func)(parser_state, s, RSTRING_PTR(val));
+        break;
+      }
+    } while(++p < magic_comments + numberof(magic_comments));
+  }
+
+  return TRUE;
+}
+
+static void
+set_file_encoding(rb_parser_state* parser_state, const char *str, const char *send)
+{
+  int sep = 0;
+  const char *beg = str;
+  VALUE s;
+
+  for(;;) {
+    if(send - str <= 6) return;
+    switch(str[6]) {
+    case 'C': case 'c': str += 6; continue;
+    case 'O': case 'o': str += 5; continue;
+    case 'D': case 'd': str += 4; continue;
+    case 'I': case 'i': str += 3; continue;
+    case 'N': case 'n': str += 2; continue;
+    case 'G': case 'g': str += 1; continue;
+    case '=': case ':':
+      sep = 1;
+      str += 6;
+      break;
+    default:
+      str += 6;
+      if(ISSPACE(*str)) break;
+      continue;
+    }
+    if(strncasecmp(str-6, "coding", 6) == 0) break;
+  }
+
+  for(;;) {
+    do {
+      if(++str >= send) return;
+    } while(ISSPACE(*str));
+    if(sep) break;
+    if(*str != '=' && *str != ':') return;
+    sep = 1;
+    str++;
+  }
+
+  beg = str;
+  while((*str == '-' || *str == '_' || ISALNUM(*str)) && ++str < send);
+  s = rb_str_new(beg, parser_encode_length(parser_state, beg, str - beg));
+  parser_set_encode(parser_state, RSTRING_PTR(s));
+  rb_str_resize(s, 0);
 }
 
 static void
@@ -4221,7 +4449,7 @@ parser_prepare(rb_parser_state* parser_state)
   int c = nextc();
   switch(c) {
   case '#':
-    if(peek('!')) parser_state->has_shebang = 1;
+    if(peek('!')) has_shebang = 1;
     break;
   case 0xef:		/* UTF-8 BOM marker */
     if(lex_pend - lex_p >= 2 &&
@@ -4307,10 +4535,13 @@ retry:
     goto retry;
 
   case '#':         /* it's a comment */
-    // TODO: encoding magic comments
-    if(char* str = parse_comment(parser_state)) {
-        ssize_t len = lex_pend - str - 1; // - 1 for the \n
+    /* no magic_comment in shebang line */
+    if(!parser_magic_comment(parser_state, lex_p, lex_pend - lex_p)) {
+      if(comment_at_top(parser_state)) {
+        set_file_encoding(parser_state, lex_p, lex_pend);
+      }
     }
+
     lex_p = lex_pend;
     /* fall through */
   case '\n':
@@ -4409,7 +4640,7 @@ retry:
     if(was_bol()) {
       /* skip embedded rd document */
       if(strncmp(lex_p, "begin", 5) == 0 && ISSPACE(lex_p[5])) {
-        for (;;) {
+        for(;;) {
           lex_goto_eol(parser_state);
           c = nextc();
           if(c == -1) {
@@ -5571,7 +5802,7 @@ rb_compile_warn(const char *file, int line, const char *fmt, ...)
   char buf[BUFSIZ];
   va_list args;
 
-  if (NIL_P(ruby_verbose)) return;
+  if(NIL_P(ruby_verbose)) return;
 
   snprintf(buf, BUFSIZ, "warning: %s", fmt);
 
@@ -6740,12 +6971,12 @@ parser_intern3(const char* name, long len, rb_encoding* enc)
   ID id = (SYM2ID(sym) << ID_SCOPE_SHIFT) & ~ID_INTERNAL;
 
   last = len-1;
-  switch (*m) {
+  switch(*m) {
   case '$':
     id |= ID_GLOBAL;
     break;
   case '@':
-    if (m[1] == '@') {
+    if(m[1] == '@') {
       m++;
       id |= ID_CLASS;
     } else {
@@ -6755,18 +6986,18 @@ parser_intern3(const char* name, long len, rb_encoding* enc)
     break;
   default:
     c = m[0];
-    if (len > 1 && c != '_' && parser_enc_isascii(c, enc) && parser_enc_ispunct(c, enc)) {
+    if(len > 1 && c != '_' && parser_enc_isascii(c, enc) && parser_enc_ispunct(c, enc)) {
       /* operators */
-      for (int i = 0; i < op_tbl_count; i++) {
-        if (*op_tbl[i].name == *m && strcmp(op_tbl[i].name, m) == 0) {
+      for(int i = 0; i < op_tbl_count; i++) {
+        if(*op_tbl[i].name == *m && strcmp(op_tbl[i].name, m) == 0) {
           return id;
         }
       }
     }
 
-    if (m[last] == '=') {
+    if(m[last] == '=') {
       id |= ID_ATTRSET;
-    } else if (parser_enc_isupper(m[0], enc)) {
+    } else if(parser_enc_isupper(m[0], enc)) {
       id |= ID_CONST;
     } else {
       id |= ID_LOCAL;

@@ -37,6 +37,7 @@ int parser_enc_codelen(int c, rb_encoding* enc);
 int parser_enc_mbclen(const char* p, const char* e, rb_encoding* enc);
 int parser_enc_asciicompat(rb_encoding* enc);
 int parser_enc_str_coderange(VALUE str);
+int parser_enc_find_index(const char* name);
 
 void parser_enc_mbcput(int c, const char* ptr, rb_encoding* enc);
 
@@ -47,6 +48,7 @@ VALUE parser_enc_associate(VALUE obj, rb_encoding* enc);
 
 rb_encoding* parser_enc_get(VALUE obj);
 rb_encoding* parser_enc_compatible(VALUE str1, VALUE str2);
+rb_encoding* parser_enc_from_index(int index);
 rb_encoding* parser_utf8_encoding();
 rb_encoding* parser_usascii_encoding();
 rb_encoding* parser_ascii8bit_encoding();

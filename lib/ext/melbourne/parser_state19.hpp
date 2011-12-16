@@ -154,6 +154,7 @@ typedef VALUE stack_type;
 #define lex_gets            PARSER_VAR(lex_gets)
 #define line_buffer         PARSER_VAR(line_buffer)
 #define line_count          PARSER_VAR(line_count)
+#define has_shebang         PARSER_VAR(has_shebang)
 #define lex_io              PARSER_VAR(lex_io)
 #define lex_io_buf          PARSER_VAR(lex_io_buf)
 #define lex_io_index        PARSER_VAR(lex_io_index)

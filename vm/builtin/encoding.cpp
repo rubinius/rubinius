@@ -175,8 +175,24 @@ namespace rubinius {
               state, state->symbol("EncodingList")));
   }
 
+  OnigEncodingType* Encoding::from_index(STATE, int index) {
+    if(Encoding* enc = try_as<Encoding>(encoding_list(state)->get(state, index))) {
+      return enc->get_encoding();
+    } else {
+      return 0;
+    }
+  }
+
   int Encoding::find_index(STATE, const char* name) {
-    Object* obj = encoding_map(state)->fetch(state, state->symbol(name));
+    char* upper = strdup(name);
+    if(!upper) return -1;
+    for(char *p = upper; *p; p++) {
+      *p = toupper((int)*p);
+    }
+
+    Object* obj = encoding_map(state)->fetch(state, state->symbol(upper));
+    free(upper);
+
     if(Fixnum* index = try_as<Fixnum>(obj)) {
       return index->to_native();
     } else {

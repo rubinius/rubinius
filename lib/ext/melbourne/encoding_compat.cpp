@@ -44,6 +44,10 @@ extern "C" {
     return rb_enc_str_coderange(str);
   }
 
+  int parser_enc_find_index(const char* name) {
+    return rb_enc_find_index(name);
+  }
+
   void parser_enc_mbcput(int c, const char* ptr, rb_encoding* enc) {
     rb_enc_mbcput(c, ptr, enc);
   }
@@ -66,6 +70,10 @@ extern "C" {
 
   rb_encoding* parser_enc_compatible(VALUE str1, VALUE str2) {
     return rb_enc_compatible(str1, str2);
+  }
+
+  rb_encoding* parser_enc_from_index(int index) {
+    return rb_enc_from_index(index);
   }
 
   rb_encoding* parser_utf8_encoding() {
@@ -122,6 +130,10 @@ extern "C" {
     return ENC_CODERANGE_7BIT;
   }
 
+  int parser_enc_find_index(const char* name) {
+    return 1;
+  }
+
   void parser_enc_mbcput(int c, const char* ptr, rb_encoding* enc) {
     // Do nothing
   }
@@ -144,6 +156,10 @@ extern "C" {
 
   rb_encoding* parser_enc_compatible(VALUE str1, VALUE str2) {
     return parser_enc_get(str1);
+  }
+
+  rb_encoding* parser_enc_from_index(int index) {
+    return parser_usascii_encoding();
   }
 
   rb_encoding* parser_utf8_encoding() {
