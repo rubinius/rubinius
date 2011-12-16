@@ -22,6 +22,10 @@ class Regexp
       false
     end
   end
+
+  def encoding
+    source.encoding
+  end
 end
 
 class MatchData
