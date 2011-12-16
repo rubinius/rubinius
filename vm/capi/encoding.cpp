@@ -22,14 +22,13 @@ extern "C" {
   rb_encoding* rb_usascii_encoding() {
     NativeMethodEnvironment* env = NativeMethodEnvironment::get();
 
-    return Encoding::ascii_encoding(env->state())->get_encoding();
+    return Encoding::usascii_encoding(env->state())->get_encoding();
   }
 
   rb_encoding* rb_ascii8bit_encoding() {
     NativeMethodEnvironment* env = NativeMethodEnvironment::get();
 
-    // TODO
-    return Encoding::ascii_encoding(env->state())->get_encoding();
+    return Encoding::ascii8bit_encoding(env->state())->get_encoding();
   }
 
   rb_encoding* rb_locale_encoding(void)
@@ -87,7 +86,7 @@ extern "C" {
     NativeMethodEnvironment* env = NativeMethodEnvironment::get();
 
     // TODO
-    return env->get_handle(Encoding::ascii_encoding(env->state()));
+    return env->get_handle(Encoding::usascii_encoding(env->state()));
   }
 
   int rb_enc_mbclen(const char *p, const char *e, rb_encoding *enc) {

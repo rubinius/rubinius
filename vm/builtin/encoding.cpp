@@ -97,7 +97,7 @@ namespace rubinius {
     return enc;
   }
 
-  Encoding* Encoding::ascii_encoding(STATE) {
+  Encoding* Encoding::usascii_encoding(STATE) {
     return as<Encoding>(encoding_list(state)->get(state, eAscii));
   }
 
@@ -105,7 +105,7 @@ namespace rubinius {
     return as<Encoding>(encoding_list(state)->get(state, eUtf8));
   }
 
-  Encoding* Encoding::binary_encoding(STATE) {
+  Encoding* Encoding::ascii8bit_encoding(STATE) {
     return as<Encoding>(encoding_list(state)->get(state, eBinary));
   }
 

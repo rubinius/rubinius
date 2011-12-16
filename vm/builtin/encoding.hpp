@@ -42,9 +42,9 @@ namespace rubinius {
     static Array* encoding_list(STATE);
     static void add_constant(STATE, const char* name, Encoding* enc);
 
-    static Encoding* ascii_encoding(STATE);
+    static Encoding* usascii_encoding(STATE);
     static Encoding* utf8_encoding(STATE);
-    static Encoding* binary_encoding(STATE);
+    static Encoding* ascii8bit_encoding(STATE);
 
     static Encoding* create_bootstrap(STATE, const char* name,
                                       Index index, OnigEncodingType* enc);
