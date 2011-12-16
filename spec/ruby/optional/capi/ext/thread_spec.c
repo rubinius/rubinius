@@ -20,7 +20,7 @@ static VALUE thread_spec_rb_thread_alone() {
 static VALUE blocking_func(void* data) {
   int rfd = (int)(size_t)data;
   char dummy;
-  int rv;
+  ssize_t rv;
 
   do {
     rv = read(rfd, &dummy, 1);
@@ -32,7 +32,7 @@ static VALUE blocking_func(void* data) {
 static void unblock_func(void *data) {
   int wfd = (int)(size_t)data;
   char dummy = 0;
-  int rv;
+  ssize_t rv;
 
   do {
     rv = write(wfd, &dummy, 1);
