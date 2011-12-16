@@ -981,7 +981,8 @@ module Zlib
     # If the gzip file header is incorrect, raises an Zlib::GzipFile::Error
     # exception.
 
-    def initialize(io)
+    # TODO: handle options hash
+    def initialize(io, options=nil)
       @io = io
 
       @zstream = Zlib::Inflate.new -Zlib::MAX_WBITS
