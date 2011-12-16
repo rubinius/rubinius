@@ -45,6 +45,12 @@ ruby_version_is "1.9" do
       /#{str}/.encoding.should == Encoding::EUC_JP
     end
 
+    it "ignores the encoding and uses US-ASCII if the string has only ASCII characters" do
+      str = "abc".encode('euc-jp')
+      str.encoding.should == Encoding::EUC_JP
+      /#{str}/.encoding.should == Encoding::US_ASCII
+    end
+
     it "ignores the default_internal encoding" do
       old_internal = Encoding.default_internal
       Encoding.default_internal = Encoding::EUC_JP
