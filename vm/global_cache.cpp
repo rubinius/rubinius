@@ -86,7 +86,7 @@ keep_looking:
   }
 
   MethodCacheEntry* GlobalCache::lookup_public(STATE, Module* mod, Class* cls, Symbol* name) {
-    SYNC(state);
+    thread::SpinLock::LockGuard guard(lock_);
 
     CacheEntry* entry = entries + CPU_CACHE_HASH(mod, name);
     if(entry->name == name &&
@@ -102,7 +102,7 @@ keep_looking:
   }
 
   MethodCacheEntry* GlobalCache::lookup_private(STATE, Module* mod, Class* cls, Symbol* name) {
-    SYNC(state);
+    thread::SpinLock::LockGuard guard(lock_);
 
     CacheEntry* entry = entries + CPU_CACHE_HASH(mod, name);
     if(entry->name == name &&
@@ -121,10 +121,8 @@ keep_looking:
   }
 
   bool GlobalCache::resolve_i(STATE, Symbol* name, Dispatch& msg, LookupData& lookup) {
+
     Module* klass = lookup.from;
-
-    SYNC(state);
-
     CacheEntry* entry = this->lookup(state, klass, name);
 
     if(entry) {
