@@ -1,0 +1,7 @@
+gem 'rake'
+gem 'rspec', '~> 2.6.0'
+gem 'cucumber', '~> 0.10.6'
+
+unless RUBY_PLATFORM =~ /java/
+  gem 'rcov', '~> 0.9.9'
+end

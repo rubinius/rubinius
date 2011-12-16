@@ -1,0 +1,234 @@
+=== 0.7.9 / 2011-06-08
+
+* Enhancements:
+  * Consistently use RubyGems features available since version 1.3.2 and avoid
+    deprecation warnings with Rake > 0.8.7.
+
+* Bugfixes:
+  * Use correct platform in fake.rb. Pull #39 [kou]
+  * Workaround Gem::Specification and Gem::PackageTask limitations. Closes #43
+
+=== 0.7.8 / 2011-04-26
+
+* Enhancements:
+  * Bump default cross-ruby version to 1.8.7-p334.
+  * ExtensionTask now support config_includes to load additional directories.
+    [jfinkhaeuser]
+
+    Rake::ExtensionTask.new("myext", GEM_SPEC) do |ext|
+      ext.config_includes << File.expand_path("my", "custom", "dir")
+    end
+
+* Bugfixes:
+  * Warn if compiled files exists in extension's source directory. Closes GH-35
+  * Workaround issue with WINE using proper build option. Closes GH-37
+  * Use FileUtils#install instead of cp. Closes GH-33 [Eric Wong]
+  * Update README instructions for OSX. Closes GH-29 [tmm1]
+
+=== 0.7.7 / 2011-04-04
+
+* Bugfixes:
+  * Use Winsock2 as default to match Ruby 1.9.2 library linking.
+
+=== 0.7.6 / 2011-02-04
+
+* Bugfixes:
+  * Prefer Psych over Syck for YAML parsing on Ruby 1.9.2. [tenderlove]
+
+=== 0.7.5 / 2010-11-25
+
+* Enhancements:
+  * Promoted stable version for cross-compilation to 1.8.6-p398. Closes GH-19
+
+* Bugfixes:
+  * Generate a fake.rb compatible with Ruby 1.9.2. Closes GH-25
+  * fake.rb will not try to mimic Ruby's own fake to the letter. Closes GH-28
+  * Expand symlinks for tmp_dir. Closes GH-24
+  * Silence make output during rake-compiler invocation.
+  * Usage of Gem.ruby instead of RbConfig ruby_install_name
+    This solve issues with ruby vs. ruby.exe and jruby.exe
+
+* Experimental:
+  * Allow setting of HOST during cross-compilation. This enable usage
+    of mingw-w64 compiler and not the first one found in the PATH.
+
+      rake-compiler cross-ruby VERSION=1.9.2-p0 HOST=i686-w64-mingw32
+      rake-compiler cross-ruby HOST=i386-mingw32 (OSX mingw32 port)
+      rake-compiler cross-ruby HOST=i586-pc-mingw32 (Debian/Ubuntu mingw32)
+
+=== 0.7.1 / 2010-08-07
+
+* Bugfixes:
+  * Update gem files to make "gem install -t" works. Closes GH-14
+  * Update mocks to work under 1.8.7. Closes GH-15 [luisparravicini]
+  * Do not allow cross-ruby be executed under Windows. Closes GH-22
+
+* Experimental:
+  * Allow JRuby to compile C extensions [timfel].
+    It is now possible compile C extensions using latest JRuby. Offered
+    in experimental mode since JRuby cext hasn't been officially released.
+
+=== 0.7.0 / 2009-12-08
+
+* Enhancements
+  * Allow generation of JRuby extensions. Thanks to Alex Coles (myabc) for the
+    contribution.
+    This will allow, with proper JDK tools, cross compilation of JRuby gems
+    from MRI.
+
+      Rake::JavaExtensionTask.new('my_java_extension', GEM_SPEC) do |ext|
+        # most of ExtensionTask options can be used
+        # plus, java_compiling:
+        ext.java_compiling do |gem_spec|
+          gem_spec.post_install_message = "This is a native JRuby gem!"
+        end
+      end
+
+    Please note that cross-compiling JRuby gems requires either JRUBY_HOME or
+    JRUBY_PARENT_CLASSPATH environment variables being properly set.
+
+  * Allow alteration of the Gem Specification when cross compiling. Closes GH-3
+    This is useful to indicate a custom requirement message, like DLLs
+    installation or similar.
+
+      Rake::ExtensionTask.new('my_extension', GEM_SPEC) do |ext|
+        ext.cross_compile = true
+        # ...
+        ext.cross_compiling do |gem_spec|
+          gem_spec.post_install_message = "You've installed a binary version of this gem"
+        end
+      end
+
+* Bugfixes
+  * Detect GNU make independently of distribution based naming.
+    Thanks to flori for patches.
+  * Usage of #dup to duplicate gemspec instead of YAML dumping.
+  * No longer support Ruby older than 1.8.6
+  * No longer support RubyGems older than 1.3.5
+  * Force definition of binary directory and executables. Closes GH-11
+  * Workaround path with spaces issues using relative paths. Closes GH-6
+  * Removed gemspec, GitHub gems no more
+
+* Known issues
+  * Usage of rake-compiler under projects with Jeweler requires some tweaks
+    Please read issue GH-73 for Jeweler:
+    http://github.com/technicalpickles/jeweler/issues#issue/73
+
+    For a workaround, look here:
+    http://gist.github.com/251663
+
+=== 0.6.0 / 2009-07-25
+
+* Enhancements
+  * Implemented 'fat-binaries' generation for cross compiling
+    (for now). Thanks to Aaron Patterson for the suggestion and
+    original idea.
+
+      rake cross native gem RUBY_CC_VERSION=1.8.6:1.9.1
+
+    Will package extensions for 1.8 and 1.9 versions of Ruby.
+  * Can now cross compile extensions for 1.9 using 1.8.x as base.
+    Be warned: works from 1.8 to 1.9, but not if your default ruby is 1.9
+
+      rake cross compile RUBY_CC_VERSION=1.9.1
+
+  * Allow simultaneous versions of Ruby to compile extensions.
+    This change allow 1.8.x compiles co-exist with 1.9.x ones
+    and don't override each other.
+
+    Please perform <tt>rake clobber</tt> prior compiling again.
+  * Allow optional source file URL for cross-compile tasks.
+    (Thanks to deepj for the patches)
+
+      rake-compiler cross-ruby VERSION=1.9.1-p0 SOURCE=http://ftp.ruby-lang.org/pub/ruby/1.9/ruby-1.9.1-p0.tar.bz2
+
+* Bugfixes
+  * Removed strict versioning for gems since it clash with fat binaries.
+    From now on, if your gem only targets a specific version of Ruby, please
+    indicate it in the Gem::Specification (<tt>required_ruby_version</tt>)
+
+=== 0.5.0 / 2009-04-25
+
+* Enhancements
+  * Allow generation of multiple gems for Windows (EXPERIMENTAL)
+    This allows build gems for both VC6 and MinGW builts of Ruby
+    (Thanks to Jonathan Stott for the suggestion)
+
+      Rake::ExtensionTask.new('my_extension', GEM_SPEC) do |ext|
+        ext.cross_compile = true
+        ext.cross_platform = ['i386-mswin32', 'i386-mingw32']
+      end
+
+=== 0.4.1 / 2009-04-09
+
+* Enhancements
+  * Target specific versions of Ruby when generating binaries.
+    This avoids installing a 1.8.x binary gem in 1.9.x and viceversa.
+    (Thanks to Aaron Patterson for the patches)
+
+* Bugfixes
+  * No longer raises error if rake-compiler configuration is missing.
+    Not all users of a project would have it installed.
+    (Thanks to Aaron Patterson for the patch)
+
+=== 0.4.0 / 2009-04-03
+
+* Enhancements
+  * Bended the convention for extension folder.
+    Defining <tt>ext_dir</tt> for custom extension location.
+
+      Rake::ExtensionTask.new('my_extension') do |ext|
+        ext.ext_dir = 'custom/location'         # look into custom/location
+      end                                       # instead of ext/my_extension
+
+  * Better detection of mingw target across Linux/OSX.
+    Exposed it as Rake::ExtensionCompiler
+  * Display list of available tasks when calling rake-compiler script
+  * Track Ruby full versioning (x.y.z).
+    This will help the compilation of extensions targetting 1.8.6/7 and 1.9.1
+
+* Bugfixes
+  * Better output of Rake development tasks (Thanks to Luis Parravicini).
+  * Proper usage of Gem::Platform for native gems (Thanks to Dirkjan Bussink).
+  * Don't use autoload for YAML (present problems with Ruby 1.9.1).
+
+=== 0.3.1 / 2009-01-09
+
+* Enhancements
+  * Download cross-ruby source code using HTTP instead of FTP.
+  * Disabled Tcl/Tk extension building on cross-ruby (helps with 1.9).
+
+* Bugfixes
+  * Workaround bug introduced by lack of Gem::Specification cloning. Fixes DM LH #757.
+  * Use proper binary extension on OSX (reported by Dirkjan Bussink).
+  * Ensure lib/binary task is defined prior clear of requisites.
+
+=== 0.3.0 / 2008-12-07
+
+* New features
+  * Let you specify the Ruby version used for cross compilation instead
+    of default one.
+
+      rake cross compile RUBY_CC_VERSION=1.8
+
+* Enhancements
+  * Properly update rake-compiler configuration when new version is installed.
+  * Automated release process to RubyForge, yay!
+
+* Bugfixes
+  * Corrected documentation to reflect the available options
+
+=== 0.2.1 / 2008-11-30
+
+* New features
+
+  * Allow cross compilation (cross compile) using mingw32 on Linux or OSX.
+  * Allow packaging of gems for Windows on Linux or OSX.
+
+* Enhancements
+
+  * Made generation of extensions safe and target folders per-platform
+
+* Bugfixes
+
+  * Ensure binaries for the specific platform are copied before packaging.
