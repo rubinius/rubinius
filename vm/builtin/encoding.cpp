@@ -6,6 +6,7 @@
 #include "builtin/lookuptable.hpp"
 #include "builtin/string.hpp"
 #include "builtin/symbol.hpp"
+#include "builtin/tuple.hpp"
 
 #include "object_utils.hpp"
 
@@ -16,7 +17,7 @@
 #define ENC_DEFINE(name, data)      define(state, name, ONIG_ENCODING_##data);
 #define ENC_REPLICATE(name, orig)   replicate(state, name, orig);
 #define ENC_ALIAS(name, orig)       alias(state, name, orig);
-#define ENC_DUMMY(name)             set_dummy(state, name);
+#define ENC_DUMMY(name)             define_dummy(state, name);
 
 namespace rubinius {
   void Encoding::init(STATE) {
@@ -43,6 +44,33 @@ namespace rubinius {
 #include "vm/gen/encoding_database.cpp"
   }
 
+  static Symbol* encoding_symbol(STATE, const char* name) {
+    char* upper = strdup(name);
+    if(!upper) return nil<Symbol>();
+
+    for(char *p = upper; *p; p++) {
+      *p = toupper((int)*p);
+    }
+
+    Symbol* sym = state->symbol(upper);
+    free(upper);
+
+    return sym;
+  }
+
+  static Tuple* encoding_reference(STATE, int index, const char* alias_name = 0) {
+    Tuple* pair = Tuple::create(state, 2);
+    if(!alias_name) {
+      pair->put(state, 0, Qnil);
+    } else {
+      pair->put(state, 0, String::create(state, alias_name));
+    }
+
+    pair->put(state, 1, Fixnum::from(index));
+
+    return pair;
+  }
+
   Encoding* Encoding::create(STATE, OnigEncodingType* enc, Object* dummy) {
     Encoding* e = state->new_object<Encoding>(G(encoding));
 
@@ -56,7 +84,8 @@ namespace rubinius {
                                        Index index, OnigEncodingType* enc)
   {
     Encoding* e = create(state, enc);
-    encoding_map(state)->store(state, state->symbol(name), Fixnum::from(index));
+    Tuple* ref = encoding_reference(state, index);
+    encoding_map(state)->store(state, encoding_symbol(state, name), ref);
     encoding_list(state)->set(state, index, e);
     add_constant(state, name, e);
 
@@ -73,28 +102,33 @@ namespace rubinius {
     Array* list = encoding_list(state);
     size_t index = list->size();
 
-    encoding_map(state)->store(state, state->symbol(name), Fixnum::from(index));
+    Tuple* ref = encoding_reference(state, index);
+    encoding_map(state)->store(state, encoding_symbol(state, name), ref);
     list->set(state, index, e);
     add_constant(state, name, e);
 
     return e;
   }
 
+  Encoding* Encoding::define_dummy(STATE, const char* name) {
+    return define(state, name, ONIG_ENCODING_ASCII, Qtrue);
+  }
+
+  Encoding* Encoding::replicate(STATE, const char* name, const char* original) {
+    Encoding* enc = find(state, original);
+    if(enc->nil_p()) return nil<Encoding>();
+
+    return define(state, name, enc->get_encoding(), enc->dummy());
+  }
+
   Encoding* Encoding::alias(STATE, const char* name, const char* original) {
     int index = find_index(state, original);
     if(index < 0) return nil<Encoding>();
 
-    encoding_map(state)->store(state, state->symbol(name), Fixnum::from(index));
+    Tuple* ref = encoding_reference(state, index, name);
+    encoding_map(state)->store(state, encoding_symbol(state, name), ref);
 
     return as<Encoding>(encoding_list(state)->get(state, index));
-  }
-
-  Encoding* Encoding::set_dummy(STATE, const char* name) {
-    Encoding* enc = find(state, name);
-    if(enc->nil_p()) return nil<Encoding>();
-
-    enc->dummy(state, Qtrue);
-    return enc;
   }
 
   Encoding* Encoding::usascii_encoding(STATE) {
@@ -184,17 +218,10 @@ namespace rubinius {
   }
 
   int Encoding::find_index(STATE, const char* name) {
-    char* upper = strdup(name);
-    if(!upper) return -1;
-    for(char *p = upper; *p; p++) {
-      *p = toupper((int)*p);
-    }
+    Object* obj = encoding_map(state)->fetch(state, encoding_symbol(state, name));
 
-    Object* obj = encoding_map(state)->fetch(state, state->symbol(upper));
-    free(upper);
-
-    if(Fixnum* index = try_as<Fixnum>(obj)) {
-      return index->to_native();
+    if(Tuple* ref = try_as<Tuple>(obj)) {
+      return as<Fixnum>(ref->at(1))->to_native();
     } else {
       return -1;
     }
@@ -206,13 +233,7 @@ namespace rubinius {
     return as<Encoding>(encoding_list(state)->get(state, index));
   }
 
-  Encoding* Encoding::replicate(STATE, const char* name, const char* original) {
-    Encoding* enc = find(state, original);
-    if(enc->nil_p()) return nil<Encoding>();
-
-    return define(state, name, enc->get_encoding(), enc->dummy());
-  }
-
+  // Encoding#replicate primitive
   Encoding* Encoding::replicate(STATE, String* name) {
     return Encoding::define(state, name->c_str(state), encoding_);
   }

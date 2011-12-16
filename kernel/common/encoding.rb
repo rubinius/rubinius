@@ -18,8 +18,8 @@ class Encoding
 
   def self.aliases
     aliases = {}
-    EncodingMap.each do |n, i|
-      e = EncodingList[i]
+    EncodingMap.each do |n, r|
+      e = EncodingList[r.last]
       aliases[n.to_s] = e.name unless n.to_s == e.name
     end
 
@@ -45,8 +45,8 @@ class Encoding
   def self.find(name)
     key = StringValue(name).upcase
 
-    EncodingMap.each do |n, i|
-      return EncodingList[i] if n.to_s.upcase == key
+    EncodingMap.each do |n, r|
+      return EncodingList[r.last] if n.to_s.upcase == key
     end
 
     raise ArgumentError, "unknown encoding name - #{name}"
@@ -60,11 +60,13 @@ class Encoding
   end
 
   def self.name_list
-    EncodingList.map { |e| e.to_s }
+    EncodingMap.map do |n, r|
+      r.first or EncodingList[r.last].name
+    end
   end
 
   def inspect
-    "#<Encoding:#{name}>"
+    "#<Encoding:#{name}#{" (dummy)" if dummy?}>"
   end
 
   def names

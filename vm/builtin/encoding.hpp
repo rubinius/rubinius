@@ -52,9 +52,9 @@ namespace rubinius {
 
     static Encoding* define(STATE, const char* name, OnigEncodingType* enc,
                             Object* dummy = Qfalse);
+    static Encoding* define_dummy(STATE, const char* name);
     static Encoding* replicate(STATE, const char* name, const char* original);
     static Encoding* alias(STATE, const char* name, const char* original);
-    static Encoding* set_dummy(STATE, const char* name);
 
     static OnigEncodingType* from_index(STATE, int index);
     static int find_index(STATE, const char* name);
