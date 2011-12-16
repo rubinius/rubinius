@@ -1,6 +1,29 @@
 #ifndef RUBYSPEC_H
 #define RUBYSPEC_H
-/* First define all function flags */
+
+/* Define convenience macros similar to the RubySpec guards to assist
+ * with version incompatibilities.
+ */
+
+#include "rubyspec_version.h"
+
+#if RUBY_VERSION_MAJOR == 1 && RUBY_VERSION_MINOR == 8
+#define RUBY_VERSION_IS_1_8_EX_1_9
+#endif
+
+#if RUBY_VERSION_MAJOR == 1 && RUBY_VERSION_MINOR >= 8
+#define RUBY_VERSION_IS_1_8
+#endif
+
+#if RUBY_VERSION_MAJOR == 1 && RUBY_VERSION_MINOR == 8 && RUBY_VERSION_TEENY < 7
+#define RUBY_VERSION_IS_1_8_EX_1_8_7
+#endif
+
+#if (RUBY_VERSION_MAJOR == 1 && RUBY_VERSION_MINOR == 9) || (RUBY_VERSION_MAJOR == 2)
+#define RUBY_VERSION_IS_1_9
+#endif
+
+/* Define all function flags */
 
 /* Array */
 #define HAVE_RARRAY                        1
@@ -125,6 +148,13 @@
 /* Data */
 #define HAVE_DATA_WRAP_STRUCT              1
 #define HAVE_RDATA                         1
+
+/* Encoding */
+#ifdef RUBY_VERSION_IS_1_9
+#define HAVE_RB_USASCII_ENCODING           1
+#define HAVE_RB_ASCII8BIT_ENCODING         1
+#define HAVE_RB_UTF8_ENCODING              1
+#endif
 
 /* Exception */
 #define HAVE_RB_EXC_NEW                    1
@@ -369,28 +399,6 @@
 #define HAVE_RB_SCAN_ARGS                  1
 #define HAVE_RUBY_SETENV                   1
 #define HAVE_RUBY_STRDUP                   1
-
-/* Define convenience macros similar to the RubySpec guards to assist
- * with version incompatibilities.
- */
-
-#include "rubyspec_version.h"
-
-#if RUBY_VERSION_MAJOR == 1 && RUBY_VERSION_MINOR == 8
-#define RUBY_VERSION_IS_1_8_EX_1_9
-#endif
-
-#if RUBY_VERSION_MAJOR == 1 && RUBY_VERSION_MINOR >= 8
-#define RUBY_VERSION_IS_1_8
-#endif
-
-#if RUBY_VERSION_MAJOR == 1 && RUBY_VERSION_MINOR == 8 && RUBY_VERSION_TEENY < 7
-#define RUBY_VERSION_IS_1_8_EX_1_8_7
-#endif
-
-#if (RUBY_VERSION_MAJOR == 1 && RUBY_VERSION_MINOR == 9) || (RUBY_VERSION_MAJOR == 2)
-#define RUBY_VERSION_IS_1_9
-#endif
 
 /* Now, create the differential set. The format of the preprocessor directives
  * is significant. The alternative implementations should define RUBY because
