@@ -8,6 +8,22 @@ ruby_version_is "1.9" do
       @s = CApiEncodingSpecs.new
     end
 
+    describe "rb_enc_find_index" do
+      it "returns the index of an Encoding" do
+        @s.rb_enc_find_index("UTF-8").should >= 0
+      end
+
+      it "returns the index of an Encoding specified with lower case" do
+        @s.rb_enc_find_index("utf-8").should >= 0
+      end
+    end
+
+    describe "rb_enc_from_index" do
+      it "returns an Encoding" do
+        @s.rb_enc_from_index(0).should be_an_instance_of(String)
+      end
+    end
+
     describe "rb_usascii_encoding" do
       it "returns the encoding for Encoding::US_ASCII" do
         @s.rb_usascii_encoding.should == "US-ASCII"

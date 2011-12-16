@@ -25,6 +25,18 @@ static VALUE encoding_spec_rb_utf8_encoding(VALUE self) {
 }
 #endif
 
+#ifdef HAVE_RB_ENC_FIND_INDEX
+static VALUE encoding_spec_rb_enc_find_index(VALUE self, VALUE name) {
+  return INT2NUM(rb_enc_find_index(RSTRING_PTR(name)));
+}
+#endif
+
+#ifdef HAVE_RB_ENC_FROM_INDEX
+static VALUE encoding_spec_rb_enc_from_index(VALUE self, VALUE index) {
+  return rb_str_new2(rb_enc_from_index(NUM2INT(index))->name);
+}
+#endif
+
 void Init_encoding_spec() {
   VALUE cls;
   cls = rb_define_class("CApiEncodingSpecs", rb_cObject);
@@ -41,6 +53,13 @@ void Init_encoding_spec() {
   rb_define_method(cls, "rb_utf8_encoding", encoding_spec_rb_utf8_encoding, 0);
 #endif
 
+#ifdef HAVE_RB_ENC_FIND_INDEX
+  rb_define_method(cls, "rb_enc_find_index", encoding_spec_rb_enc_find_index, 1);
+#endif
+
+#ifdef HAVE_RB_ENC_FROM_INDEX
+  rb_define_method(cls, "rb_enc_from_index", encoding_spec_rb_enc_from_index, 1);
+#endif
 }
 
 #ifdef __cplusplus
