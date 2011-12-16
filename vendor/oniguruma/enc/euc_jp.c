@@ -368,7 +368,7 @@ OnigEncodingDefine(euc_jp, EUC_JP) = {
   is_allowed_reverse_match,
   0
 };
-ENC_DEFINE("EUC_JP", EUC_JP)
+ENC_DEFINE("EUC-JP", EUC_JP)
 
 /*
  * Name: EUC-JP
