@@ -121,6 +121,7 @@ keep_looking:
   }
 
   bool GlobalCache::resolve_i(STATE, Symbol* name, Dispatch& msg, LookupData& lookup) {
+    thread::SpinLock::LockGuard guard(lock_);
 
     Module* klass = lookup.from;
     CacheEntry* entry = this->lookup(state, klass, name);
@@ -137,7 +138,7 @@ keep_looking:
 
     bool was_private = false;
     if(hierarchy_resolve(state, name, msg, lookup, &was_private)) {
-      retain(state, lookup.from, name,
+      retain_i(state, lookup.from, name,
           msg.module, msg.method, msg.method_missing, was_private);
       return true;
     }

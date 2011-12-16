@@ -74,6 +74,13 @@ namespace rubinius {
     void retain(STATE, Module* cls, Symbol* name, Module* mod, Executable* meth,
                 bool missing, bool was_private = false) {
       thread::SpinLock::LockGuard guard(lock_);
+      retain_i(state, cls, name, mod, meth, missing, was_private);
+    }
+
+    private:
+
+    void retain_i(STATE, Module* cls, Symbol* name, Module* mod, Executable* meth,
+                bool missing, bool was_private = false) {
       CacheEntry* entry;
 
       entry = entries + CPU_CACHE_HASH(cls, name);
@@ -85,8 +92,6 @@ namespace rubinius {
       entry->method = meth;
       entry->is_public = !was_private;
     }
-
-    private:
 
     void clear() {
       for(size_t i = 0; i < CPU_CACHE_SIZE; i++) {
