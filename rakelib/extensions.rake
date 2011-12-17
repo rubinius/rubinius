@@ -20,7 +20,7 @@ namespace :extensions do
     rm_f FileList["lib/tooling/**/*.{o,#{$dlext}}"], :verbose => $verbose
     # TODO: implement per extension cleaning. This hack is for
     # openssl and dl, which use extconf.rb and create Makefile.
-    rm_f FileList["lib/ext/**/Makefile"], :verbose => $verbose
+    rm_f FileList["lib/**/ext/**/Makefile"], :verbose => $verbose
     rm_f FileList["lib/tooling/**/Makefile"], :verbose => $verbose
     rm_f FileList["lib/ext/dl/*.func"], :verbose => $verbose
   end
@@ -158,6 +158,13 @@ if BUILD_CONFIG[:libyaml]
 end
 
 compile_ext "syck", :deps => ["Makefile"], :dir => "lib/19/syck/ext", :env => "-X19"
+
+compile_ext "json/parser", :deps => ["Makefile", "extconf.rb"],
+                           :dir => "lib/19/json/ext/parser",
+                           :env => "-X19"
+compile_ext "json/generator", :deps => ["Makefile", "extconf.rb"],
+                              :dir => "lib/19/json/ext/generator",
+                              :env => "-X19"
 
 # rbx must be able to run to build these because they use
 # extconf.rb, so they must be after melbourne for Rubinius.
