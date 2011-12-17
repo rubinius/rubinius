@@ -127,6 +127,7 @@ namespace rubinius {
 
     Tuple* ref = encoding_reference(state, index, name);
     encoding_map(state)->store(state, encoding_symbol(state, name), ref);
+    add_constant(state, name, from_index(state, index));
 
     return as<Encoding>(encoding_list(state)->get(state, index));
   }
@@ -209,11 +210,11 @@ namespace rubinius {
               state, state->symbol("EncodingList")));
   }
 
-  OnigEncodingType* Encoding::from_index(STATE, int index) {
+  Encoding* Encoding::from_index(STATE, int index) {
     if(Encoding* enc = try_as<Encoding>(encoding_list(state)->get(state, index))) {
-      return enc->get_encoding();
+      return enc;
     } else {
-      return 0;
+      return nil<Encoding>();
     }
   }
 

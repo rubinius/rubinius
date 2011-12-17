@@ -56,7 +56,7 @@ namespace rubinius {
     static Encoding* replicate(STATE, const char* name, const char* original);
     static Encoding* alias(STATE, const char* name, const char* original);
 
-    static OnigEncodingType* from_index(STATE, int index);
+    static Encoding* from_index(STATE, int index);
     static int find_index(STATE, const char* name);
     static Encoding* find(STATE, const char* name);
 

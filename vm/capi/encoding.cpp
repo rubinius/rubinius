@@ -72,6 +72,14 @@ extern "C" {
     return 1;
   }
 
+  rb_encoding* rb_enc_find(const char* name) {
+    NativeMethodEnvironment* env = NativeMethodEnvironment::get();
+
+    Encoding* enc = Encoding::find(env->state(), name);
+    if(enc->nil_p()) return 0;
+    return enc->get_encoding();
+  }
+
   int rb_enc_find_index(const char *name) {
     NativeMethodEnvironment* env = NativeMethodEnvironment::get();
 
@@ -81,14 +89,15 @@ extern "C" {
   rb_encoding* rb_enc_from_index(int index) {
     NativeMethodEnvironment* env = NativeMethodEnvironment::get();
 
-    return Encoding::from_index(env->state(), index);
+    Encoding* enc = Encoding::from_index(env->state(), index);
+    if(enc->nil_p()) return 0;
+    return enc->get_encoding();
   }
 
   VALUE rb_enc_from_encoding(rb_encoding *enc) {
     NativeMethodEnvironment* env = NativeMethodEnvironment::get();
 
-    // TODO
-    return env->get_handle(Encoding::usascii_encoding(env->state()));
+    return env->get_handle(Encoding::find(env->state(), enc->name));
   }
 
   int rb_enc_mbclen(const char *p, const char *e, rb_encoding *enc) {
