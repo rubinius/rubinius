@@ -347,6 +347,12 @@ static VALUE constants_spec_rb_eMathDomainError(VALUE self) {
 }
 #endif
 
+#ifdef HAVE_RB_EENCCOMPATERROR
+static VALUE constants_spec_rb_eEncCompatError(VALUE self) {
+  return rb_eEncCompatError;
+}
+#endif
+
 void Init_constants_spec() {
   VALUE cls;
   cls = rb_define_class("CApiConstantsSpecs", rb_cObject);
@@ -578,6 +584,10 @@ void Init_constants_spec() {
 
 #ifdef HAVE_RB_EMATHDOMAINERROR
   rb_define_method(cls, "rb_eMathDomainError", constants_spec_rb_eMathDomainError, 0);
+#endif
+
+#ifdef HAVE_RB_EENCCOMPATERROR
+  rb_define_method(cls, "rb_eEncCompatError", constants_spec_rb_eEncCompatError, 0);
 #endif
 }
 

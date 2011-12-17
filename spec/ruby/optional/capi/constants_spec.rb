@@ -169,6 +169,10 @@ describe "C-API exception constant" do
     specify "rb_eMathDomainError references the Math::DomainError class" do
       @s.rb_eMathDomainError.should == Math::DomainError
     end
+
+    specify "rb_eEncCompatError references the Encoding::CompatibilityError" do
+      @s.rb_eEncCompatError.should == Encoding::CompatibilityError
+    end
   end
 
   specify "rb_eNameError references the NameError class" do
