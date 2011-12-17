@@ -5,6 +5,9 @@ class Encoding
   class UndefinedConversionError < EncodingError
   end
 
+  class CompatibilityError < EncodingError
+  end
+
   EncodingMap  = Rubinius::Encoding::EncodingMap
   EncodingList = Rubinius::Encoding::EncodingList
 

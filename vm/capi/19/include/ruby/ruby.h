@@ -307,6 +307,7 @@ typedef void (*RUBY_DATA_FUNC)(void*);
     cCApiComplex,
     cCApiMathDomainError,
     cCApiEncoding,
+    cCApiEncCompatError,
 
     // MUST be last
     cCApiMaxConstant
@@ -548,6 +549,7 @@ typedef struct RIO rb_io_t;
 #define rb_eThreadError       (capi_get_constant(cCApiThreadError))
 #define rb_eZeroDivError      (capi_get_constant(cCApiZeroDivisionError))
 #define rb_eMathDomainError   (capi_get_constant(cCApiMathDomainError))
+#define rb_eEncCompatError    (capi_get_constant(cCApiEncCompatError))
 
 
 /* Interface macros */

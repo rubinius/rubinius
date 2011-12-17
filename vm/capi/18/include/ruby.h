@@ -269,6 +269,7 @@ extern "C" {
     cCApiComplex,
     cCApiMathDomainError,
     cCApiEncoding,
+    cCApiEncCompatError,
 
     // MUST be last
     cCApiMaxConstant

@@ -122,6 +122,7 @@ namespace rubinius {
         if(!LANGUAGE_18_ENABLED(env->state())) {
           map[cCApiMathDomainError]     = "Math::DomainError";
           map[cCApiEncoding]            = "Encoding";
+          map[cCApiEncCompatError]      = "Encoding::CompatibilityError";
         }
       }
 
