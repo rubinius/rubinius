@@ -45,7 +45,8 @@ rb_encoding* rb_enc_get(VALUE obj);
 rb_encoding* rb_enc_compatible(VALUE str1, VALUE str2);
 rb_encoding* rb_enc_from_index(int idx);
 rb_encoding* rb_locale_encoding(void);
-rb_encoding *rb_default_internal_encoding(void);
+rb_encoding* rb_default_internal_encoding(void);
+rb_encoding* rb_to_encoding(VALUE obj);
 
 VALUE rb_enc_from_encoding(rb_encoding *enc);
 

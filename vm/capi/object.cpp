@@ -209,6 +209,7 @@ extern "C" {
       if(!LANGUAGE_18_ENABLED(env->state())) {
         if(rb_obj_is_kind_of(obj, rb_cRational)) return T_RATIONAL;
         if(rb_obj_is_kind_of(obj, rb_cComplex)) return T_COMPLEX;
+        if(rb_obj_is_kind_of(obj, rb_cEncoding)) return T_ENCODING;
       }
     }
 

@@ -6,6 +6,8 @@
 #include "builtin/encoding.hpp"
 #include "builtin/nativemethod.hpp"
 
+#include "capi/capi.hpp"
+
 #include "capi/19/include/ruby/ruby.h"
 #include "capi/19/include/ruby/encoding.h"
 
@@ -50,6 +52,26 @@ extern "C" {
   rb_encoding* rb_enc_compatible(VALUE str1, VALUE str2) {
     // TODO
     return rb_enc_get(str1);
+  }
+
+  rb_encoding* rb_to_encoding(VALUE obj) {
+    NativeMethodEnvironment* env = NativeMethodEnvironment::get();
+    Encoding* enc = nil<Encoding>();
+
+    switch(TYPE(obj)) {
+    case T_ENCODING:
+      enc = c_as<Encoding>(env->get_object(obj));
+      break;
+    case T_STRING:
+      enc = Encoding::find(env->state(), RSTRING_PTR(obj));
+      break;
+    default:
+      obj = rb_funcall(obj, rb_intern("to_str"), 0);
+      enc = Encoding::find(env->state(), RSTRING_PTR(obj));
+    }
+
+    if(enc->nil_p()) return 0;
+    return enc->get_encoding();
   }
 
   int rb_enc_dummy_p(rb_encoding *enc) {

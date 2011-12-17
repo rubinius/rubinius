@@ -302,13 +302,11 @@ typedef void (*RUBY_DATA_FUNC)(void*);
     cCApiTypeError,
     cCApiThreadError,
     cCApiZeroDivisionError,
-
     cCApiMethod,
-
     cCApiRational,
     cCApiComplex,
-
     cCApiMathDomainError,
+    cCApiEncoding,
 
     // MUST be last
     cCApiMaxConstant
@@ -355,6 +353,8 @@ typedef void (*RUBY_DATA_FUNC)(void*);
 
 #define T_RATIONAL 0x20
 #define T_COMPLEX  0x21
+
+#define T_ENCODING 0x22
 
   /**
    *  Method variants that can be defined.
@@ -504,6 +504,7 @@ typedef struct RIO rb_io_t;
 #define rb_cMethod            (capi_get_constant(cCApiMethod))
 #define rb_cRational          (capi_get_constant(cCApiRational))
 #define rb_cComplex           (capi_get_constant(cCApiComplex))
+#define rb_cEncoding          (capi_get_constant(cCApiEncoding))
 
 /* Global Module objects. */
 
