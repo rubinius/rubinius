@@ -37,6 +37,12 @@ static VALUE encoding_spec_rb_enc_from_index(VALUE self, VALUE index) {
 }
 #endif
 
+#ifdef HAVE_RB_ENC_FROM_ENCODING
+static VALUE encoding_spec_rb_enc_from_encoding(VALUE self, VALUE name) {
+  return rb_enc_from_encoding(rb_enc_find(RSTRING_PTR(name)));
+}
+#endif
+
 void Init_encoding_spec() {
   VALUE cls;
   cls = rb_define_class("CApiEncodingSpecs", rb_cObject);
@@ -59,6 +65,10 @@ void Init_encoding_spec() {
 
 #ifdef HAVE_RB_ENC_FROM_INDEX
   rb_define_method(cls, "rb_enc_from_index", encoding_spec_rb_enc_from_index, 1);
+#endif
+
+#ifdef HAVE_RB_ENC_FROM_ENCODING
+  rb_define_method(cls, "rb_enc_from_encoding", encoding_spec_rb_enc_from_encoding, 1);
 #endif
 }
 

@@ -41,5 +41,11 @@ ruby_version_is "1.9" do
         @s.rb_utf8_encoding.should == "UTF-8"
       end
     end
+
+    describe "rb_enc_from_encoding" do
+      it "returns an Encoding instance from an encoding data structure" do
+        @s.rb_enc_from_encoding("UTF-8").should == Encoding::UTF_8
+      end
+    end
   end
 end
