@@ -9,6 +9,8 @@ extern "C" {
 
 typedef OnigEncodingType rb_encoding;
 
+#define ENCODING_INLINE_MAX 1023
+
 #define ENC_CODERANGE_UNKNOWN	      0
 #define ENC_CODERANGE_7BIT	        1
 
