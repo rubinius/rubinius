@@ -43,6 +43,12 @@ static VALUE encoding_spec_rb_enc_from_encoding(VALUE self, VALUE name) {
 }
 #endif
 
+#ifdef HAVE_RB_TO_ENCODING
+static VALUE encoding_spec_rb_to_encoding(VALUE self, VALUE obj) {
+  return rb_str_new2(rb_to_encoding(obj)->name);
+}
+#endif
+
 void Init_encoding_spec() {
   VALUE cls;
   cls = rb_define_class("CApiEncodingSpecs", rb_cObject);
@@ -69,6 +75,10 @@ void Init_encoding_spec() {
 
 #ifdef HAVE_RB_ENC_FROM_ENCODING
   rb_define_method(cls, "rb_enc_from_encoding", encoding_spec_rb_enc_from_encoding, 1);
+#endif
+
+#ifdef HAVE_RB_TO_ENCODING
+  rb_define_method(cls, "rb_to_encoding", encoding_spec_rb_to_encoding, 1);
 #endif
 }
 

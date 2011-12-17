@@ -47,5 +47,22 @@ ruby_version_is "1.9" do
         @s.rb_enc_from_encoding("UTF-8").should == Encoding::UTF_8
       end
     end
+
+    describe "rb_to_encoding" do
+      it "returns the encoding for the Encoding instance passed" do
+        @s.rb_to_encoding(Encoding::BINARY).should == "ASCII-8BIT"
+      end
+
+      it "returns the encoding when passed a String" do
+        @s.rb_to_encoding("ASCII").should == "US-ASCII"
+      end
+
+      it "calls #to_str to convert the object to a String" do
+        obj = mock("rb_to_encoding Encoding name")
+        obj.should_receive(:to_str).and_return("utf-8")
+
+        @s.rb_to_encoding(obj).should == "UTF-8"
+      end
+    end
   end
 end
