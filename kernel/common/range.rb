@@ -267,10 +267,20 @@ class Range
     first = @begin
     last = @end
 
-    if first.kind_of? Float
-      step_size = Float(step_size)
-    else
-      step_size = Integer(step_size)
+    if step_size.kind_of? Float or first.kind_of? Float or last.kind_of? Float
+      # if any are floats they all must be
+      begin
+        step_size = Float(from = step_size)
+        first     = Float(from = first)
+        last      = Float(from = last)
+      rescue ArgumentError
+        raise TypeError, "no implicit conversion to float from #{from.class}"
+      end
+    else # if first.kind_of? Integer
+      step_size = Integer(from = step_size)
+      if ! step_size.kind_of? Integer
+        raise TypeError, "can't convert #{from.class} to Integer (#{from.class}#to_int gives #{step_size.class})"
+      end
     end
 
     if step_size <= 0
