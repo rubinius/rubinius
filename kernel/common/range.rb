@@ -276,7 +276,7 @@ class Range
       rescue ArgumentError
         raise TypeError, "no implicit conversion to float from #{from.class}"
       end
-    else # if first.kind_of? Integer
+    else
       step_size = Integer(from = step_size)
       if ! step_size.kind_of? Integer
         raise TypeError, "can't convert #{from.class} to Integer (#{from.class}#to_int gives #{step_size.class})"
@@ -288,12 +288,28 @@ class Range
       raise ArgumentError, "step can't be 0"
     end
 
-    if first.kind_of?(Numeric)
+    if first.kind_of?(Float)
+      err = (first.abs + last.abs + (last - first).abs) / step_size.abs * Float::EPSILON
+      err = 0.5 if err > 0.5
+      if @excl
+        n = ((last - first) / step_size - err).floor
+        n += 1 if n * step_size + first < last
+      else
+        n = ((last - first) / step_size + err).floor + 1
+      end
+
       i = 0
-      while (@excl && (step_size * i + first < last)) ||
-          (!@excl && (step_size * i + first <= last))
-        yield step_size * i + first
+      while i < n
+        d = i * step_size + first
+        d = last if last < d
+        yield d
         i += 1
+      end
+    elsif first.kind_of?(Numeric)
+      d = first
+      while @excl ? d < last : d <= last
+        yield d
+        d += step_size
       end
     else
       counter = 0
