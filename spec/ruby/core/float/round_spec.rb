@@ -35,6 +35,9 @@ describe "Float#round" do
       lambda { Float::INFINITY.round(-2) }.should raise_error(FloatDomainError)
       lambda { (-Float::INFINITY).round( 0) }.should raise_error(FloatDomainError)
       lambda { (-Float::INFINITY).round(-2) }.should raise_error(FloatDomainError)
+    end
+
+    it "raises RangeError for NAN when passed a non-positive precision" do
       lambda { Float::NAN.round(0) }.should raise_error(RangeError)
       lambda { Float::NAN.round(-2) }.should raise_error(RangeError)
     end
