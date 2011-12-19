@@ -69,9 +69,6 @@ class Float
   def round(ndigits=0)
     ndigits = Rubinius::Type.coerce_to(ndigits, Integer, :to_int)
 
-    #raise FloatDomainError if infinite? or (nan? and ndigits == 0)
-    #raise RangeError if ndigits < 1 and nan?
-
     if ndigits == 0
       return Rubinius.invoke_primitive :float_round, self
     elsif ndigits < 0
