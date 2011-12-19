@@ -27,5 +27,6 @@ end
 describe "Enumerator#each_with_index" do
   it "should return the correct value if chained with itself" do
     [:a].each_with_index.each_with_index.to_a.should == [[[:a,0],0]]
+    [:a].each.with_index.with_index.to_a.should == [[[:a,0],0]]
   end
 end
