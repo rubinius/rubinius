@@ -1,4 +1,0 @@
-fails:Float#round rounds self to an optionally given precision
-fails:Float#round works for corner cases
-fails:Float#round returns rounded values for big values
-fails:Float#round returns rounded values for big argument
