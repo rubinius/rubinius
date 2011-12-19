@@ -66,14 +66,31 @@ class Float
     end
   end
 
-  def round(precision=0)
-    precision = Rubinius::Type.coerce_to(precision, Integer, :to_int)
+  def round(ndigits=0)
+    ndigits = Rubinius::Type.coerce_to(ndigits, Integer, :to_int)
 
-    raise FloatDomainError if precision < 1 && infinite?
-    raise RangeError if precision < 1 && nan?
-    return self if precision > 0 && (infinite? || nan?)
+    #raise FloatDomainError if infinite? or (nan? and ndigits == 0)
+    #raise RangeError if ndigits < 1 and nan?
 
-    Rubinius.primitive :float_round
-    raise PrimitiveFailure, "float_round failed"
+    if ndigits == 0
+      return Rubinius.invoke_primitive :float_round, self
+    elsif ndigits < 0
+      return truncate.round ndigits
+    end
+
+    return self if infinite? or nan?
+
+    _, exp = Math.frexp(self)
+
+    if ndigits >= (Float::DIG + 2) - (exp > 0 ? exp / 4 : exp / 3 - 1)
+      return self
+    end
+
+    if ndigits < (exp > 0 ? exp / 3 + 1 : exp / 4)
+      return 0.0
+    end
+      
+    f = 10**ndigits
+    Rubinius.invoke_primitive(:float_round, self * f) / f.to_f
   end
 end
