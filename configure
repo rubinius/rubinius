@@ -117,7 +117,7 @@ class Configure
     @libversion = "2.0"
     @version = "#{@libversion}.0dev"
     @release_date = "yyyy-mm-dd"
-    @config_version = 149
+    @config_version = 150
 
     # TODO: add conditionals for platforms
     if RbConfig::CONFIG["build_os"] =~ /darwin/
@@ -984,6 +984,10 @@ int main() { return tgetnum(""); }
       @defines << "HAVE_DAYLIGHT"
     end
 
+    if has_function("nl_langinfo", ["langinfo.h"])
+      @defines << "HAVE_NL_LANGINFO"
+    end
+
     @vendor_zlib = true if @features["vendor-zlib"]
   end
 
@@ -1142,107 +1146,66 @@ end
     # Write the config file used to build the C++ VM.
     Dir.mkdir "vm/gen" unless File.directory? "vm/gen"
 
-    File.open "vm/gen/config.h", "wb" do |f|
+    vm_config_h = "vm/gen/config.h"
+    File.open vm_config_h, "wb" do |f|
       f.puts <<-EOC
-#define RBX_HOST          "#{@host}"
-#define RBX_CPU           "#{@cpu}"
-#define RBX_VENDOR        "#{@vendor}"
-#define RBX_OS            "#{@os}"
-#define RBX_BIN_PATH      "#{@bindir}"
-#define RBX_GEMS_PATH     "#{@gemsdir}"
-#define RBX_RUNTIME       "#{@runtime}"
-#define RBX_KERNEL_PATH   "#{@kernel_path}"
-#define RBX_LIB_PATH      "#{@lib_path}"
-#define RBX_HDR18_PATH    "#{@include18dir}"
-#define RBX_HDR19_PATH    "#{@include19dir}"
-#define RBX_HDR20_PATH    "#{@include20dir}"
-#define RBX_SITE_PATH     "#{@sitedir}"
-#define RBX_VENDOR_PATH   "#{@vendordir}"
-#define RBX_VERSION       "#{@version}"
-#define RBX_LIB_VERSION   "#{@libversion}"
-#define RBX_LDSHARED      "#{@ldshared}"
-#define RBX_RELEASE_DATE  "#{@release_date}"
-#define RBX_SIZEOF_LONG   #{sizeof("long")}
-#define RBX_LLVM_API_VER  #{@llvm_api_version}
+#define RBX_HOST             "#{@host}"
+#define RBX_CPU              "#{@cpu}"
+#define RBX_VENDOR           "#{@vendor}"
+#define RBX_OS               "#{@os}"
+#define RBX_BIN_PATH         "#{@bindir}"
+#define RBX_GEMS_PATH        "#{@gemsdir}"
+#define RBX_RUNTIME          "#{@runtime}"
+#define RBX_KERNEL_PATH      "#{@kernel_path}"
+#define RBX_LIB_PATH         "#{@lib_path}"
+#define RBX_HDR18_PATH       "#{@include18dir}"
+#define RBX_HDR19_PATH       "#{@include19dir}"
+#define RBX_HDR20_PATH       "#{@include20dir}"
+#define RBX_SITE_PATH        "#{@sitedir}"
+#define RBX_VENDOR_PATH      "#{@vendordir}"
+#define RBX_VERSION          "#{@version}"
+#define RBX_LIB_VERSION      "#{@libversion}"
+#define RBX_LDSHARED         "#{@ldshared}"
+#define RBX_RELEASE_DATE     "#{@release_date}"
+#define RBX_SIZEOF_LONG      #{sizeof("long")}
+#define RBX_LLVM_API_VER     #{@llvm_api_version}
       EOC
 
       if @vendor_zlib
-        f.puts %[#define RBX_ZLIB_PATH     "#{@lib_path}/zlib/"]
+        f.puts %[#define RBX_ZLIB_PATH        "#{@lib_path}/zlib/"]
       else
-        f.puts %[#define RBX_ZLIB_PATH     ""]
+        f.puts %[#define RBX_ZLIB_PATH        ""]
       end
 
       @supported_versions.each do |ver|
-        f.puts "#define RBX_DEFAULT_#{ver}    #{ver == @default_version}"
+        f.puts "#define RBX_DEFAULT_#{ver}       #{ver == @default_version}"
       end
 
       @version_list.each do |ver|
-        f.puts "#define RBX_ENABLED_#{ver}    1"
+        f.puts "#define RBX_ENABLED_#{ver}       1"
       end
 
       if @little_endian
-        f.puts "#define RBX_LITTLE_ENDIAN 1"
+        f.puts "#define RBX_LITTLE_ENDIAN    1"
       end
 
       if @tr1_hash
-        f.puts "#define RBX_HAVE_TR1_HASH 1"
+        f.puts "#define RBX_HAVE_TR1_HASH    1"
       end
 
       [:windows, :darwin, :bsd, :linux].each do |platform|
         if instance_variable_get(:"@#{platform}")
-          f.puts "#define RBX_#{platform.to_s.upcase} 1"
+          f.puts "#define RBX_#{platform.to_s.upcase}           1"
         end
+      end
+
+      @defines.each do |d|
+        f.puts "#define #{d.ljust(20)} 1"
       end
     end
 
-    rbx_config_h = "vm/capi/18/include/rbx_config.h"
-    File.open rbx_config_h, "w" do |f|
-      f.puts <<-EOC
-#define RBX_HOST          "#{@host}"
-#define RBX_CPU           "#{@cpu}"
-#define RBX_VENDOR        "#{@vendor}"
-#define RBX_OS            "#{@os}"
-#define RBX_BIN_PATH      "#{@bindir}"
-#define RBX_GEMS_PATH     "#{@gemsdir}"
-#define RBX_RUNTIME       "#{@runtime}"
-#define RBX_KERNEL_PATH   "#{@kernel_path}"
-#define RBX_LIB_PATH      "#{@lib_path}"
-#define RBX_HDR18_PATH    "#{@include18dir}"
-#define RBX_HDR19_PATH    "#{@include19dir}"
-#define RBX_HDR20_PATH    "#{@include20dir}"
-#define RBX_SITE_PATH     "#{@sitedir}"
-#define RBX_VENDOR_PATH   "#{@vendordir}"
-#define RBX_VERSION       "#{@version}"
-#define RBX_LIB_VERSION   "#{@libversion}"
-#define RBX_LDSHARED      "#{@ldshared}"
-#define RBX_RELEASE_DATE  "#{@release_date}"
-#define RBX_SIZEOF_LONG   #{sizeof("long")}
-#define RBX_LLVM_API_VER  #{@llvm_api_version}
-
-      EOC
-
-      if @vendor_zlib
-        f.puts %[#define RBX_ZLIB_PATH     "#{@lib_path}/zlib/"]
-      else
-        f.puts %[#define RBX_ZLIB_PATH     ""]
-      end
-
-      if @little_endian
-        f.puts "#define RBX_LITTLE_ENDIAN 1"
-      end
-
-      if @tr1_hash
-        f.puts "#define RBX_HAVE_TR1_HASH 1"
-      end
-
-      [:windows, :darwin, :bsd, :linux].each do |platform|
-        if instance_variable_get(:"@#{platform}")
-          f.puts "#define RBX_#{platform.to_s.upcase} 1"
-        end
-      end
-    end
-
-    FileUtils.cp rbx_config_h, "vm/capi/19/include/rbx_config.h"
+    FileUtils.cp vm_config_h, "vm/capi/18/include/rbx_config.h"
+    FileUtils.cp vm_config_h, "vm/capi/19/include/rbx_config.h"
 
     # Write the config file used in the C-API.
     config_h = "vm/capi/18/include/config.h"
