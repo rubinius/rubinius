@@ -3,6 +3,7 @@ describe :file_identical, :shared => true do
     @file1 = tmp('file_identical.txt')
     @file2 = tmp('file_identical2.txt')
     @link  = tmp('file_identical.lnk')
+    @non_exist = 'non_exist'
 
     touch(@file1) { |f| f.puts "file1" }
     touch(@file2) { |f| f.puts "file2" }
@@ -17,6 +18,12 @@ describe :file_identical, :shared => true do
 
   it "returns true for a file and its link" do
     @object.send(@method, @file1, @link).should == true
+  end
+
+  it "returns false if any of the files doesn't exist" do
+    @object.send(@method, @file1, @non_exist).should be_false
+    @object.send(@method, @non_exist, @file1).should be_false
+    @object.send(@method, @non_exist, @non_exist).should be_false
   end
 
   ruby_version_is "1.9" do
