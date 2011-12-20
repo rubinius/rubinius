@@ -1,6 +1,7 @@
 class Proc
 
   alias_method :===, :call
+  alias_method :eql?, :==
 
   #
   #  call-seq:
