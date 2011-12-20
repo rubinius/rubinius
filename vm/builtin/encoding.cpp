@@ -51,12 +51,18 @@ namespace rubinius {
 #include "vm/gen/encoding_database.cpp"
 
     int index = -1;
+    char* locale_charmap;
 
 #ifdef HAVE_NL_LANGINFO
     setlocale(LC_CTYPE, "");
-    index = find_index(state, nl_langinfo(CODESET));
+    locale_charmap = nl_langinfo(CODESET);
+#else
+    locale_charmap = "US-ASCII";
 #endif
 
+    enc->set_const(state, "LocaleCharmap", String::create(state, locale_charmap));
+
+    index = find_index(state, locale_charmap);
     if(index < 0) index = find_index(state, "US-ASCII");
 
     create_internal(state, "locale", index);

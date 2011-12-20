@@ -8,8 +8,9 @@ class Encoding
   class CompatibilityError < EncodingError
   end
 
-  EncodingMap  = Rubinius::Encoding::EncodingMap
-  EncodingList = Rubinius::Encoding::EncodingList
+  EncodingMap   = Rubinius::Encoding::EncodingMap
+  EncodingList  = Rubinius::Encoding::EncodingList
+  LocaleCharmap = Rubinius::Encoding::LocaleCharmap
 
   class Converter
     def initialize(from, to, options={})
@@ -94,7 +95,7 @@ class Encoding
   end
 
   def self.locale_charmap
-    find("locale").name
+    LocaleCharmap
   end
 
   def self.name_list
