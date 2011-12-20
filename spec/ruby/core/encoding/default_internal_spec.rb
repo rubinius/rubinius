@@ -64,19 +64,28 @@ with_feature :encoding do
       Encoding.default_internal.should == Encoding::SHIFT_JIS
     end
 
-    it "calls #to_s on arguments that are neither Strings nor Encodings" do
-      string = mock('string')
-      string.should_receive(:to_str).twice.and_return('ascii')
-      Encoding.default_internal = string
+    it "calls #to_str to convert an object to a String" do
+      obj = mock('string')
+      obj.should_receive(:to_str).at_least(1).times.and_return('ascii')
+
+      Encoding.default_internal = obj
       Encoding.default_internal.should == Encoding::ASCII
     end
 
-    it "raises a TypeError unless the argument is an Encoding or convertible to a String" do
-      lambda { Encoding.default_internal = [] }.should raise_error(TypeError)
+    it "raises a TypeError if #to_str does not return a String" do
+      obj = mock('string')
+      obj.should_receive(:to_str).at_least(1).times.and_return(1)
+
+      lambda { Encoding.default_internal = obj }.should raise_error(TypeError)
+    end
+
+    it "raises a TypeError when passed an object not providing #to_str" do
+      lambda { Encoding.default_internal = mock("encoding") }.should raise_error(TypeError)
     end
 
     it "accepts an argument of nil to unset the default internal encoding" do
-      lambda { Encoding.default_internal = nil }.should_not raise_error
+      Encoding.default_internal = nil
+      Encoding.default_internal.should be_nil
     end
   end
 end
