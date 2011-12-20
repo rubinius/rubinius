@@ -109,6 +109,13 @@ class Encoding
   end
 
   def names
+    entry = EncodingMap[name.upcase.to_sym]
+    names = [name]
+    EncodingMap.each do |k, r|
+      aname = r.first
+      names << aname if aname and r.last == entry.last
+    end
+    names
   end
 end
 
