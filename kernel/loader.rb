@@ -320,18 +320,30 @@ containing the Rubinius standard library files.
         @load_paths << dir
       end
 
-      options.on "-K", "[code]", "Set $KCODE" do |k|
-        case k
-        when 'a', 'A', 'n', 'N', nil
-          $KCODE = "NONE"
-        when 'e', 'E'
-          $KCODE = "EUC"
-        when 's', 'S'
-          $KCODE = "SJIS"
-        when 'u', 'U'
-          $KCODE = "UTF8"
-        else
-          $KCODE = "NONE"
+      if Rubinius.ruby18?
+        options.on "-K", "[code]", "Set $KCODE" do |k|
+          case k
+          when 'a', 'A', 'n', 'N', nil
+            $KCODE = "NONE"
+          when 'e', 'E'
+            $KCODE = "EUC"
+          when 's', 'S'
+            $KCODE = "SJIS"
+          when 'u', 'U'
+            $KCODE = "UTF8"
+          else
+            $KCODE = "NONE"
+          end
+        end
+      else
+        options.on "-U", "Set Encoding.default_internal to UTF-8" do
+          ::Encoding.default_internal = "UTF-8"
+        end
+
+        options.on "-E", "ENC", "Set external:internal character encoding to ENC" do |enc|
+          ext, int = enc.split(":")
+          ::Encoding.default_external = ext if ext and !ext.empty?
+          ::Encoding.default_internal = int if int and !int.empty?
         end
       end
 
