@@ -56,12 +56,16 @@ namespace rubinius {
         rubinius::bug("Trying to make a suspended thread independent");
         break;
       case ManagedThread::eRunning:
-        // If someone is waiting on us to stop, stop now.
-        if(should_stop_) wait_to_run(state);
-
         // We're now independent.
         state->run_state_ = ManagedThread::eIndependent;
         pending_threads_--;
+
+        // If someone is waiting on us to stop, signal them
+        // because we have gone independent and they don't have to wait
+        // for us.
+        if(should_stop_) {
+          waiting_to_stop_.signal();
+        }
         break;
       }
     }
