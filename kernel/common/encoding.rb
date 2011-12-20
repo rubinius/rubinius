@@ -22,8 +22,11 @@ class Encoding
   def self.aliases
     aliases = {}
     EncodingMap.each do |n, r|
-      e = EncodingList[r.last]
-      aliases[n.to_s] = e.name unless n.to_s == e.name
+      index = r.last
+      next unless index
+
+      aname = r.first
+      aliases[aname] = EncodingList[index].name if aname
     end
 
     aliases
