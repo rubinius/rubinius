@@ -12,7 +12,14 @@
 
 #include "ontology.hpp"
 
+#include "vm/config.h"
+
 #include <ctype.h>
+
+#ifdef HAVE_NL_LANGINFO
+#include <locale.h>
+#include <langinfo.h>
+#endif
 
 #define ENC_DEFINE(name, data)      define(state, name, ONIG_ENCODING_##data);
 #define ENC_REPLICATE(name, orig)   replicate(state, name, orig);
@@ -42,6 +49,20 @@ namespace rubinius {
     utf8->name(state, String::create(state, "UTF-8"));
 
 #include "vm/gen/encoding_database.cpp"
+
+    int index = -1;
+
+#ifdef HAVE_NL_LANGINFO
+    setlocale(LC_CTYPE, "");
+    index = find_index(state, nl_langinfo(CODESET));
+#endif
+
+    if(index < 0) index = find_index(state, "US-ASCII");
+
+    create_internal(state, "locale", index);
+    create_internal(state, "external", index);
+    create_internal(state, "filesystem", index);
+    create_internal(state, "internal", -1);
   }
 
   static Symbol* encoding_symbol(STATE, const char* name) {
@@ -66,7 +87,11 @@ namespace rubinius {
       pair->put(state, 0, String::create(state, alias_name));
     }
 
-    pair->put(state, 1, Fixnum::from(index));
+    if(index < 0) {
+      pair->put(state, 1, Qnil);
+    } else {
+      pair->put(state, 1, Fixnum::from(index));
+    }
 
     return pair;
   }
@@ -90,6 +115,11 @@ namespace rubinius {
     add_constant(state, name, e);
 
     return e;
+  }
+
+  void Encoding::create_internal(STATE, const char* name, int index) {
+    Tuple* ref = encoding_reference(state, index, name);
+    encoding_map(state)->store(state, encoding_symbol(state, name), ref);
   }
 
   Encoding* Encoding::define(STATE, const char* name,

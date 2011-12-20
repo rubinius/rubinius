@@ -48,6 +48,7 @@ namespace rubinius {
 
     static Encoding* create_bootstrap(STATE, const char* name,
                                       Index index, OnigEncodingType* enc);
+    static void create_internal(STATE, const char* name, int index);
     static Encoding* create(STATE, OnigEncodingType* enc, Object* dummy = Qfalse);
 
     static Encoding* define(STATE, const char* name, OnigEncodingType* enc,
