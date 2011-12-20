@@ -528,11 +528,11 @@ class File < IO
   # similar to shell filename globbing. It may contain the
   # following metacharacters:
   #
-  # *:	Matches any file. Can be restricted by other values in the glob. * will match all files; c* will match all files beginning with c; *c will match all files ending with c; and c will match all files that have c in them (including at the beginning or end). Equivalent to / .* /x in regexp.
-  # **:	Matches directories recursively or files expansively.
-  # ?:	Matches any one character. Equivalent to /.{1}/ in regexp.
-  # [set]:	Matches any one character in set. Behaves exactly like character sets in Regexp, including set negation ([^a-z]).
-  # <code></code>:	Escapes the next metacharacter.
+  # *:  Matches any file. Can be restricted by other values in the glob. * will match all files; c* will match all files beginning with c; *c will match all files ending with c; and c will match all files that have c in them (including at the beginning or end). Equivalent to / .* /x in regexp.
+  # **:  Matches directories recursively or files expansively.
+  # ?:  Matches any one character. Equivalent to /.{1}/ in regexp.
+  # [set]:  Matches any one character in set. Behaves exactly like character sets in Regexp, including set negation ([^a-z]).
+  # <code></code>:  Escapes the next metacharacter.
   # flags is a bitwise OR of the FNM_xxx parameters. The same glob pattern and flags are used by Dir::glob.
   #
   #  File.fnmatch('cat',       'cat')        #=> true  : match entire string
@@ -626,8 +626,9 @@ class File < IO
   #   open("d", "w") {}
   #   p File.identical?("a", "d")      #=> false
   def self.identical?(orig, copy)
-    st_o = stat(Rubinius::Type.coerce_to_path(orig))
-    st_c = stat(Rubinius::Type.coerce_to_path(copy))
+    st_o = File::Stat.stat(Rubinius::Type.coerce_to_path(orig))
+    st_c = File::Stat.stat(Rubinius::Type.coerce_to_path(copy))
+    return false if st_o.nil? || st_c.nil?
 
     return false unless st_o.ino == st_c.ino
     return false unless st_o.ftype == st_c.ftype
