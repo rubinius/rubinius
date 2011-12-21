@@ -25,6 +25,13 @@ static VALUE encoding_spec_rb_utf8_encoding(VALUE self) {
 }
 #endif
 
+#ifdef HAVE_RB_ENC_COPY
+static VALUE encoding_spec_rb_enc_copy(VALUE self, VALUE dest, VALUE src) {
+  rb_enc_copy(dest, src);
+  return dest;
+}
+#endif
+
 #ifdef HAVE_RB_ENC_FIND_INDEX
 static VALUE encoding_spec_rb_enc_find_index(VALUE self, VALUE name) {
   return INT2NUM(rb_enc_find_index(RSTRING_PTR(name)));
@@ -63,6 +70,10 @@ void Init_encoding_spec() {
 
 #ifdef HAVE_RB_UTF8_ENCODING
   rb_define_method(cls, "rb_utf8_encoding", encoding_spec_rb_utf8_encoding, 0);
+#endif
+
+#ifdef HAVE_RB_ENC_COPY
+  rb_define_method(cls, "rb_enc_copy", encoding_spec_rb_enc_copy, 2);
 #endif
 
 #ifdef HAVE_RB_ENC_FIND_INDEX

@@ -64,5 +64,23 @@ ruby_version_is "1.9" do
         @s.rb_to_encoding(obj).should == "UTF-8"
       end
     end
+
+    describe "rb_enc_copy" do
+      before :each do
+        @obj = "rb_enc_copy".encode(Encoding::US_ASCII)
+      end
+
+      it "sets the encoding of a String to that of the second argument" do
+        @s.rb_enc_copy("string", @obj).encoding.should == Encoding::US_ASCII
+      end
+
+      it "sets the encoding of a Regexp to that of the second argument" do
+        @s.rb_enc_copy(/string/, @obj).encoding.should == Encoding::US_ASCII
+      end
+
+      it "sets the encoding of a Symbol to that of the second argument" do
+        @s.rb_enc_copy(:string, @obj).encoding.should == Encoding::US_ASCII
+      end
+    end
   end
 end
