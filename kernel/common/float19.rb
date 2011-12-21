@@ -83,7 +83,7 @@ class Float
       return self
     end
 
-    if ndigits < (exp > 0 ? exp / 3 + 1 : exp / 4)
+    if ndigits < -(exp > 0 ? exp / 3 + 1 : exp / 4)
       return 0.0
     end
       
