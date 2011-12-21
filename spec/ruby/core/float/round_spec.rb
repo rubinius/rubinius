@@ -18,6 +18,7 @@ describe "Float#round" do
   ruby_version_is "1.9" do
     it "rounds self to an optionally given precision" do
       5.5.round(0).should eql(6)
+      5.7.round(1).should eql(5.7)
       1.2345678.round(2).should == 1.23
       123456.78.round(-2).should eql(123500) # rounded up
       -123456.78.round(-2).should eql(-123500)
