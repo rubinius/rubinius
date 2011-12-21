@@ -121,16 +121,15 @@ class IO
 
       @from.seek @offset, IO::SEEK_CUR if @offset
 
-      size = rest = @length ? @length : 16384
+      size = @length ? @length : 16384
       bytes = 0
 
       begin
         while data = @from.send(@method, size, "")
           @to.write data
           bytes += data.size
-          rest -= data.size
 
-          break unless rest > 0
+          break if @length && bytes >= @length
         end
       rescue EOFError
         # done reading
