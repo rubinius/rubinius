@@ -180,7 +180,7 @@ namespace rubinius {
     unsigned char* cstr = (unsigned char*) str.data();
     size_t size = str.size();
     for(size_t i = 0; i < size; ++i) {
-      if(isprint(cstr[i])) {
+      if(isprint(cstr[i]) && isascii(cstr[i])) {
         os << cstr[i];
       } else {
         os << "\\x" << std::setw(2) << std::setfill('0') << std::hex << (unsigned int)cstr[i];
