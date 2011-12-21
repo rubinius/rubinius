@@ -96,7 +96,7 @@ describe "Range#step" do
       end
 
       ruby_version_is "1.8.7" do
-        it "yeilds Float values incremented by a Float step" do
+        it "yields Float values incremented by a Float step" do
           (-2..2).step(1.5) { |x| ScratchPad << x }
           ScratchPad.recorded.should eql([-2.0, -0.5, 1.0])
         end
