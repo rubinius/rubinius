@@ -164,6 +164,7 @@
 #define HAVE_RB_ENC_FIND_INDEX             1
 #define HAVE_RB_ENC_FROM_ENCODING          1
 #define HAVE_RB_ENC_FROM_INDEX             1
+#define HAVE_RB_ENC_GET                    1
 
 #define HAVE_RB_TO_ENCODING                1
 

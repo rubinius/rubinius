@@ -58,6 +58,13 @@ ruby_version_is "1.9" do
       end
     end
 
+    describe "rb_enc_get" do
+      it "returns the encoding ossociated with an object" do
+        str = "abc".encode Encoding::ASCII_8BIT
+        @s.rb_enc_get(str).should == "ASCII-8BIT"
+      end
+    end
+
     describe "rb_to_encoding" do
       it "returns the encoding for the Encoding instance passed" do
         @s.rb_to_encoding(Encoding::BINARY).should == "ASCII-8BIT"

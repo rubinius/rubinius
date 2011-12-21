@@ -76,6 +76,12 @@ static VALUE encoding_spec_rb_enc_from_encoding(VALUE self, VALUE name) {
 }
 #endif
 
+#ifdef HAVE_RB_ENC_GET
+static VALUE encoding_spec_rb_enc_get(VALUE self, VALUE obj) {
+  return rb_str_new2(rb_enc_get(obj)->name);
+}
+#endif
+
 #ifdef HAVE_RB_TO_ENCODING
 static VALUE encoding_spec_rb_to_encoding(VALUE self, VALUE obj) {
   return rb_str_new2(rb_to_encoding(obj)->name);
@@ -129,6 +135,10 @@ void Init_encoding_spec() {
 
 #ifdef HAVE_RB_ENC_FROM_ENCODING
   rb_define_method(cls, "rb_enc_from_encoding", encoding_spec_rb_enc_from_encoding, 1);
+#endif
+
+#ifdef HAVE_RB_ENC_GET
+  rb_define_method(cls, "rb_enc_get", encoding_spec_rb_enc_get, 1);
 #endif
 
 #ifdef HAVE_RB_TO_ENCODING
