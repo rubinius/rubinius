@@ -33,10 +33,28 @@ static VALUE encoding_spec_rb_default_internal_encoding(VALUE self) {
 }
 #endif
 
+#if defined(HAVE_RB_ENC_ASSOCIATE) && defined(HAVE_RB_ENC_FIND)
+static VALUE encoding_spec_rb_enc_associate(VALUE self, VALUE obj, VALUE enc) {
+  return rb_enc_associate(obj, rb_enc_find(RSTRING_PTR(enc)));
+}
+#endif
+
+#if defined(HAVE_RB_ENC_ASSOCIATE_INDEX) && defined(HAVE_RB_ENC_FIND_INDEX)
+static VALUE encoding_spec_rb_enc_associate_index(VALUE self, VALUE obj, VALUE enc) {
+  return rb_enc_associate_index(obj, rb_enc_find_index(RSTRING_PTR(enc)));
+}
+#endif
+
 #ifdef HAVE_RB_ENC_COPY
 static VALUE encoding_spec_rb_enc_copy(VALUE self, VALUE dest, VALUE src) {
   rb_enc_copy(dest, src);
   return dest;
+}
+#endif
+
+#ifdef HAVE_RB_ENC_FIND
+static VALUE encoding_spec_rb_enc_find(VALUE self, VALUE name) {
+  return rb_str_new2(rb_enc_find(RSTRING_PTR(name))->name);
 }
 #endif
 
@@ -85,8 +103,20 @@ void Init_encoding_spec() {
                    encoding_spec_rb_default_internal_encoding, 0);
 #endif
 
+#ifdef HAVE_RB_ENC_ASSOCIATE
+  rb_define_method(cls, "rb_enc_associate", encoding_spec_rb_enc_associate, 2);
+#endif
+
+#ifdef HAVE_RB_ENC_ASSOCIATE_INDEX
+  rb_define_method(cls, "rb_enc_associate_index", encoding_spec_rb_enc_associate_index, 2);
+#endif
+
 #ifdef HAVE_RB_ENC_COPY
   rb_define_method(cls, "rb_enc_copy", encoding_spec_rb_enc_copy, 2);
+#endif
+
+#ifdef HAVE_RB_ENC_FIND
+  rb_define_method(cls, "rb_enc_find", encoding_spec_rb_enc_find, 1);
 #endif
 
 #ifdef HAVE_RB_ENC_FIND_INDEX

@@ -8,6 +8,16 @@ ruby_version_is "1.9" do
       @s = CApiEncodingSpecs.new
     end
 
+    describe "rb_enc_find" do
+      it "returns the encoding of an Encoding" do
+        @s.rb_enc_find("UTF-8").should == "UTF-8"
+      end
+
+      it "returns the encoding of an Encoding specified with lower case" do
+        @s.rb_enc_find("utf-8").should == "UTF-8"
+      end
+    end
+
     describe "rb_enc_find_index" do
       it "returns the index of an Encoding" do
         @s.rb_enc_find_index("UTF-8").should >= 0
@@ -75,11 +85,11 @@ ruby_version_is "1.9" do
       end
 
       it "sets the encoding of a Regexp to that of the second argument" do
-        @s.rb_enc_copy(/string/, @obj).encoding.should == Encoding::US_ASCII
+        @s.rb_enc_copy(/regexp/, @obj).encoding.should == Encoding::US_ASCII
       end
 
       it "sets the encoding of a Symbol to that of the second argument" do
-        @s.rb_enc_copy(:string, @obj).encoding.should == Encoding::US_ASCII
+        @s.rb_enc_copy(:symbol, @obj).encoding.should == Encoding::US_ASCII
       end
     end
 
@@ -91,6 +101,37 @@ ruby_version_is "1.9" do
       it "returns the encoding for Encoding.default_internal" do
         Encoding.default_internal = "US-ASCII"
         @s.rb_default_internal_encoding.should == "US-ASCII"
+      end
+    end
+
+    describe "rb_enc_associate" do
+      it "sets the encoding of a String to the encoding" do
+        @s.rb_enc_associate("string", "ASCII-8BIT").encoding.should == Encoding::ASCII_8BIT
+      end
+
+      it "sets the encoding of a Regexp to the encoding" do
+        @s.rb_enc_associate(/regexp/, "ASCII-8BIT").encoding.should == Encoding::ASCII_8BIT
+      end
+
+      it "sets the encoding of a Symbol to the encoding" do
+        @s.rb_enc_associate(:symbol, "US-ASCII").encoding.should == Encoding::US_ASCII
+      end
+    end
+
+    describe "rb_enc_associate_index" do
+      it "sets the encoding of a String to the encoding" do
+        enc = @s.rb_enc_associate_index("string", "ASCII-8BIT").encoding
+        enc.should == Encoding::ASCII_8BIT
+      end
+
+      it "sets the encoding of a Regexp to the encoding" do
+        enc = @s.rb_enc_associate_index(/regexp/, "ASCII-8BIT").encoding
+        enc.should == Encoding::ASCII_8BIT
+      end
+
+      it "sets the encoding of a Symbol to the encoding" do
+        enc = @s.rb_enc_associate(:symbol, "US-ASCII").encoding
+        enc.should == Encoding::US_ASCII
       end
     end
   end
