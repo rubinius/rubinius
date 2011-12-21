@@ -155,6 +155,8 @@
 #define HAVE_RB_USASCII_ENCODING           1
 #define HAVE_RB_UTF8_ENCODING              1
 
+#define HAVE_RB_DEFAULT_INTERNAL_ENCODING  1
+
 #define HAVE_RB_ENC_COPY                   1
 #define HAVE_RB_ENC_FIND_INDEX             1
 #define HAVE_RB_ENC_FROM_ENCODING          1

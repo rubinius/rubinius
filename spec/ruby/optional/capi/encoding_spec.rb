@@ -82,5 +82,16 @@ ruby_version_is "1.9" do
         @s.rb_enc_copy(:string, @obj).encoding.should == Encoding::US_ASCII
       end
     end
+
+    describe "rb_default_internal_encoding" do
+      it "returns 0 if Encoding.default_internal is nil" do
+        Encoding.default_internal = nil
+        @s.rb_default_internal_encoding.should be_nil
+      end
+      it "returns the encoding for Encoding.default_internal" do
+        Encoding.default_internal = "US-ASCII"
+        @s.rb_default_internal_encoding.should == "US-ASCII"
+      end
+    end
   end
 end

@@ -25,6 +25,14 @@ static VALUE encoding_spec_rb_utf8_encoding(VALUE self) {
 }
 #endif
 
+#ifdef HAVE_RB_DEFAULT_INTERNAL_ENCODING
+static VALUE encoding_spec_rb_default_internal_encoding(VALUE self) {
+  rb_encoding* enc = rb_default_internal_encoding();
+  if(enc == 0) return Qnil;
+  return rb_str_new2(enc->name);
+}
+#endif
+
 #ifdef HAVE_RB_ENC_COPY
 static VALUE encoding_spec_rb_enc_copy(VALUE self, VALUE dest, VALUE src) {
   rb_enc_copy(dest, src);
@@ -70,6 +78,11 @@ void Init_encoding_spec() {
 
 #ifdef HAVE_RB_UTF8_ENCODING
   rb_define_method(cls, "rb_utf8_encoding", encoding_spec_rb_utf8_encoding, 0);
+#endif
+
+#ifdef HAVE_RB_DEFAULT_INTERNAL_ENCODING
+  rb_define_method(cls, "rb_default_internal_encoding",
+                   encoding_spec_rb_default_internal_encoding, 0);
 #endif
 
 #ifdef HAVE_RB_ENC_COPY
