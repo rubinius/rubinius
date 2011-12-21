@@ -6,10 +6,13 @@ ruby_version_is "1.9" do
     it "copies the entire IO contents to the file" do
       IO.copy_stream(@object.from, @to_name)
       @to_name.should have_data(@content)
+      IO.copy_stream(@from_bigfile, @to_name)
+      @to_name.should have_data(@content_bigfile)
     end
 
     it "returns the number of bytes copied" do
       IO.copy_stream(@object.from, @to_name).should == @size
+      IO.copy_stream(@from_bigfile, @to_name).should == @size_bigfile
     end
 
     it "copies only length bytes when specified" do
@@ -42,10 +45,13 @@ ruby_version_is "1.9" do
     it "copies the entire IO contents to the IO" do
       IO.copy_stream(@object.from, @to_io)
       @to_name.should have_data(@content)
+      IO.copy_stream(@from_bigfile, @to_io)
+      @to_io.should have_data(@content + @content_bigfile)
     end
 
     it "returns the number of bytes copied" do
       IO.copy_stream(@object.from, @to_io).should == @size
+      IO.copy_stream(@from_bigfile, @to_io).should == @size_bigfile
     end
 
     it "starts writing at the destination IO's current position" do
@@ -88,10 +94,15 @@ ruby_version_is "1.9" do
 
       @content = IO.read(@from_name)
       @size = @content.size
+
+      @from_bigfile = tmp("io_copy_stream_bigfile")
+      @content_bigfile = "A" * 17_000
+      touch(@from_bigfile){|f| f.print @content_bigfile }
+      @size_bigfile =  @content_bigfile.size
     end
 
     after :each do
-      rm_r @to_name
+      rm_r @to_name, @from_bigfile
     end
 
     describe "from an IO" do
