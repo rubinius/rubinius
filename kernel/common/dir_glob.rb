@@ -95,7 +95,12 @@ class Dir
 
         until stack.empty?
           path = stack.pop
-          dir = Dir.new(path)
+          begin
+            dir = Dir.new(path)
+          rescue Errno::ENOTDIR
+            next
+          end
+
           while ent = dir.read
             next if ent == "." || ent == ".."
             full = path_join(path, ent)
