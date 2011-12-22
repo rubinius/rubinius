@@ -55,6 +55,18 @@ static VALUE encoding_spec_rb_locale_encindex(VALUE self) {
 }
 #endif
 
+#ifdef HAVE_RB_FILESYSTEM_ENCODING
+static VALUE encoding_spec_rb_filesystem_encoding(VALUE self) {
+  return rb_str_new2(rb_filesystem_encoding()->name);
+}
+#endif
+
+#ifdef HAVE_RB_FILESYSTEM_ENCINDEX
+static VALUE encoding_spec_rb_filesystem_encindex(VALUE self) {
+  return INT2NUM(rb_filesystem_encindex());
+}
+#endif
+
 #ifdef HAVE_RB_DEFAULT_INTERNAL_ENCODING
 static VALUE encoding_spec_rb_default_internal_encoding(VALUE self) {
   rb_encoding* enc = rb_default_internal_encoding();
@@ -153,6 +165,14 @@ void Init_encoding_spec() {
 
 #ifdef HAVE_RB_LOCALE_ENCINDEX
   rb_define_method(cls, "rb_locale_encindex", encoding_spec_rb_locale_encindex, 0);
+#endif
+
+#ifdef HAVE_RB_FILESYSTEM_ENCODING
+  rb_define_method(cls, "rb_filesystem_encoding", encoding_spec_rb_filesystem_encoding, 0);
+#endif
+
+#ifdef HAVE_RB_FILESYSTEM_ENCINDEX
+  rb_define_method(cls, "rb_filesystem_encindex", encoding_spec_rb_filesystem_encindex, 0);
 #endif
 
 #ifdef HAVE_RB_DEFAULT_INTERNAL_ENCODING

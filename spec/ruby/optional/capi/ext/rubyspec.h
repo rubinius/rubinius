@@ -159,6 +159,8 @@
 #define HAVE_RB_UTF8_ENCINDEX              1
 #define HAVE_RB_LOCALE_ENCODING            1
 #define HAVE_RB_LOCALE_ENCINDEX            1
+#define HAVE_RB_FILESYSTEM_ENCODING        1
+#define HAVE_RB_FILESYSTEM_ENCINDEX        1
 
 #define HAVE_RB_DEFAULT_INTERNAL_ENCODING  1
 
