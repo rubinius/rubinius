@@ -108,6 +108,8 @@ ruby_version_is "1.9" do
       it "returns the encoding for Encoding.default_internal" do
         Encoding.default_internal = "US-ASCII"
         @s.rb_default_internal_encoding.should == "US-ASCII"
+        Encoding.default_internal = "UTF-8"
+        @s.rb_default_internal_encoding.should == "UTF-8"
       end
     end
 
