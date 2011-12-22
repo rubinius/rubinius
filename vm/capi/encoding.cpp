@@ -125,6 +125,18 @@ extern "C" {
 
   rb_encoding* rb_to_encoding(VALUE obj) {
     NativeMethodEnvironment* env = NativeMethodEnvironment::get();
+
+    int index = rb_to_encoding_index(obj);
+    if(index < 0) return 0;
+
+    Encoding* enc = as<Encoding>(
+        Encoding::encoding_list(env->state())->get(env->state(), index));
+
+    return enc->get_encoding();
+  }
+
+  int rb_to_encoding_index(VALUE obj) {
+    NativeMethodEnvironment* env = NativeMethodEnvironment::get();
     Encoding* enc = nil<Encoding>();
 
     switch(TYPE(obj)) {
@@ -139,8 +151,9 @@ extern "C" {
       enc = Encoding::find(env->state(), RSTRING_PTR(obj));
     }
 
-    if(enc->nil_p()) return 0;
-    return enc->get_encoding();
+    if(enc->nil_p()) return -1;
+
+    return Encoding::find_index(env->state(), enc->get_encoding()->name);
   }
 
   int rb_enc_dummy_p(rb_encoding *enc) {
