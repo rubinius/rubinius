@@ -88,19 +88,34 @@ extern "C" {
   rb_encoding* rb_enc_get(VALUE obj) {
     NativeMethodEnvironment* env = NativeMethodEnvironment::get();
 
+    int index = rb_enc_get_index(obj);
+    if(index < 0) return 0;
+
+    Encoding* enc = as<Encoding>(
+        Encoding::encoding_list(env->state())->get(env->state(), index));
+
+    return enc->get_encoding();
+  }
+
+  int rb_enc_get_index(VALUE obj) {
+    NativeMethodEnvironment* env = NativeMethodEnvironment::get();
+
     Object* val = env->get_object(obj);
+    Encoding* enc;
 
     if(String* str = try_as<String>(val)) {
-      return str->encoding(env->state())->get_encoding();
+      enc = str->encoding(env->state());
     } else if(Regexp* reg = try_as<Regexp>(val)) {
-      return reg->encoding(env->state())->get_encoding();
+      enc = reg->encoding(env->state());
     } else if(Symbol* sym = try_as<Symbol>(val)) {
-      return sym->encoding(env->state())->get_encoding();
+      enc = sym->encoding(env->state());
     } else {
       rb_raise(rb_eArgError, "object does not have an associated Encoding");
     }
 
-    return 0;
+    if(enc->nil_p()) return -1;
+
+    return Encoding::find_index(env->state(), enc->get_encoding()->name);
   }
 
   rb_encoding* rb_enc_compatible(VALUE str1, VALUE str2) {

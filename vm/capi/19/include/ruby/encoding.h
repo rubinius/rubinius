@@ -49,6 +49,7 @@ int rb_usascii_encindex(void);
 int rb_ascii8bit_encindex(void);
 int rb_locale_encindex(void);
 int rb_filesystem_encindex(void);
+int rb_enc_get_index(VALUE obj);
 
 rb_encoding* rb_enc_find(const char* name);
 rb_encoding* rb_enc_get(VALUE obj);
