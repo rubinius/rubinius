@@ -102,7 +102,7 @@ describe "Dir.glob" do
   end
 
   it "ignores non-dirs when traversing recursively" do
-    File.open("spec", 'w') { }
+    touch "spec"
     Dir.glob("spec/**/*.rb").should == []
   end
 
