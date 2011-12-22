@@ -277,7 +277,12 @@ namespace rubinius {
     Object* obj = encoding_map(state)->fetch(state, encoding_symbol(state, name));
 
     if(Tuple* ref = try_as<Tuple>(obj)) {
-      return as<Fixnum>(ref->at(1))->to_native();
+      Fixnum* index = try_as<Fixnum>(ref->at(1));
+      if(index) {
+        return index->to_native();
+      } else {
+        return -1;
+      }
     } else {
       return -1;
     }

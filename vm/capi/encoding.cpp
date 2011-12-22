@@ -54,8 +54,13 @@ extern "C" {
   }
 
   rb_encoding *rb_default_internal_encoding(void) {
-    // TODO
-    return rb_usascii_encoding();
+    NativeMethodEnvironment* env = NativeMethodEnvironment::get();
+    Encoding* enc = Encoding::find(env->state(), "internal");
+    if(enc->nil_p()) {
+      return 0;
+    } else {
+      return enc->get_encoding();
+    }
   }
 
   rb_encoding* rb_enc_get(VALUE obj) {
