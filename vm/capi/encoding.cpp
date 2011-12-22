@@ -61,6 +61,20 @@ extern "C" {
     return rb_enc_find_index(rb_locale_encoding()->name);
   }
 
+  rb_encoding* rb_filesystem_encoding(void) {
+    NativeMethodEnvironment* env = NativeMethodEnvironment::get();
+    Encoding* enc = Encoding::find(env->state(), "filesystem");
+    if(enc->nil_p()) {
+      return rb_ascii8bit_encoding();
+    } else {
+      return enc->get_encoding();
+    }
+  }
+
+  int rb_filesystem_encindex(void) {
+    return rb_enc_find_index(rb_filesystem_encoding()->name);
+  }
+
   rb_encoding *rb_default_internal_encoding(void) {
     NativeMethodEnvironment* env = NativeMethodEnvironment::get();
     Encoding* enc = Encoding::find(env->state(), "internal");
