@@ -1,4 +1,5 @@
 #include "oniguruma.h" // Must be first.
+#include "regenc.h"
 
 #include "builtin/array.hpp"
 #include "builtin/class.hpp"
@@ -20,6 +21,11 @@
 #include <locale.h>
 #include <langinfo.h>
 #endif
+
+#undef  ENC_DEFINE
+#undef  ENC_REPLICATE
+#undef  ENC_ALIAS
+#undef  ENC_DUMMY
 
 #define ENC_DEFINE(name, data)      define(state, name, ONIG_ENCODING_##data);
 #define ENC_REPLICATE(name, orig)   replicate(state, name, orig);
@@ -183,53 +189,66 @@ namespace rubinius {
 #define ENCODING_NAMELEN_MAX 63
 
   void Encoding::add_constant(STATE, const char* name, Encoding* enc) {
-    if(ISDIGIT(*name) || !ISALNUM(*name)) return;
+    if(ISDIGIT(*name)) return;
 
     char* s = const_cast<char*>(name);
     bool has_lower = false;
+    bool has_upper = false;
+    bool valid = false;
 
     if(ISUPPER(*s)) {
+      has_upper = true;
       while(*++s && (ISALNUM(*s) || *s == '_')) {
         if(ISLOWER(*s)) has_lower = true;
       }
     }
 
-    if(!*s && !has_lower) {
+    if(!*s) {
       if(s - name > ENCODING_NAMELEN_MAX) return;
 
+      valid = true;
       G(encoding)->set_const(state, state->symbol(name), enc);
-      return;
     }
 
-    char* p = s = strdup(name);
-    if(!s) return;
+    if(!valid || has_lower) {
+      size_t len = s - name;
+      if(len > ENCODING_NAMELEN_MAX) return;
 
-    if(ISUPPER(*s)) {
-      while(*++s) {
-        if(!ISALNUM(*s)) *s = '_';
-        if(ISLOWER(*s)) has_lower = true;
+      if(!has_lower || !has_upper) {
+        do {
+          if(ISLOWER(*s)) has_lower = true;
+          if(ISUPPER(*s)) has_upper = true;
+        } while(*++s && (!has_lower || !has_upper));
+        len = s - name;
       }
 
-      if(s - p > ENCODING_NAMELEN_MAX) {
-        free(s);
-        return;
+      len += strlen(s);
+      if(len++ > ENCODING_NAMELEN_MAX) return;
+
+      char* p = s = strdup(name);
+      if(!s) return;
+      name = s;
+
+      if(!valid) {
+        if(ISLOWER(*s)) *s = ONIGENC_ASCII_CODE_TO_UPPER_CASE((int)*s);
+        for(; *s; ++s) {
+          if(!ISALNUM(*s)) *s = '_';
+        }
+        if(has_upper) {
+          G(encoding)->set_const(state, state->symbol(name), enc);
+        }
       }
-      G(encoding)->set_const(state, state->symbol(p), enc);
-    } else {
-      has_lower = true;
+
+      if(has_lower) {
+        for(s = (char *)name; *s; ++s) {
+          if(ISLOWER(*s)) *s = ONIGENC_ASCII_CODE_TO_UPPER_CASE((int)*s);
+        }
+        G(encoding)->set_const(state, state->symbol(name), enc);
+      }
+
+      free(p);
     }
 
-    if(has_lower) {
-      s = p;
-      while(*s) {
-        if(!ISALNUM(*s)) *s = '_';
-        if(ISLOWER(*s)) *s = toupper((int)*s);
-        ++s;
-      }
-      G(encoding)->set_const(state, state->symbol(p), enc);
-    }
-
-    free(p);
   }
 
   Class* Encoding::internal_class(STATE) {
