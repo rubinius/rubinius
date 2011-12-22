@@ -137,6 +137,12 @@ static VALUE encoding_spec_rb_to_encoding(VALUE self, VALUE obj) {
 }
 #endif
 
+#ifdef HAVE_RB_TO_ENCODING_INDEX
+static VALUE encoding_spec_rb_to_encoding_index(VALUE self, VALUE obj) {
+  return INT2NUM(rb_to_encoding_index(obj));
+}
+#endif
+
 void Init_encoding_spec() {
   VALUE cls;
   cls = rb_define_class("CApiEncodingSpecs", rb_cObject);
@@ -226,6 +232,10 @@ void Init_encoding_spec() {
 
 #ifdef HAVE_RB_TO_ENCODING
   rb_define_method(cls, "rb_to_encoding", encoding_spec_rb_to_encoding, 1);
+#endif
+
+#ifdef HAVE_RB_TO_ENCODING_INDEX
+  rb_define_method(cls, "rb_to_encoding_index", encoding_spec_rb_to_encoding_index, 1);
 #endif
 }
 

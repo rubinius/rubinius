@@ -100,11 +100,28 @@ ruby_version_is "1.9" do
         @s.rb_to_encoding("ASCII").should == "US-ASCII"
       end
 
-      it "calls #to_str to convert the object to a String" do
+      it "calls #to_str to convert the argument to a String" do
         obj = mock("rb_to_encoding Encoding name")
         obj.should_receive(:to_str).and_return("utf-8")
 
         @s.rb_to_encoding(obj).should == "UTF-8"
+      end
+    end
+
+    describe "rb_to_encoding_index" do
+      it "returns the index of the encoding for the Encoding instance passed" do
+        @s.rb_to_encoding_index(Encoding::BINARY).should >= 0
+      end
+
+      it "returns the index of the encoding when passed a String" do
+        @s.rb_to_encoding_index("ASCII").should >= 0
+      end
+
+      it "calls #to_str to convert the argument to a String" do
+        obj = mock("rb_to_encoding Encoding name")
+        obj.should_receive(:to_str).and_return("utf-8")
+
+        @s.rb_to_encoding_index(obj).should >= 0
       end
     end
 
