@@ -58,6 +58,7 @@ int rb_enc_find_index(const char *name);
 int rb_enc_dummy_p(rb_encoding *enc);
 VALUE rb_enc_associate(VALUE, rb_encoding*);
 VALUE rb_enc_associate_index(VALUE, int);
+void rb_enc_copy(VALUE dest, VALUE src);
 
 VALUE rb_enc_str_new(const char*, long, rb_encoding*);
 int rb_enc_str_coderange(VALUE);

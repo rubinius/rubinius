@@ -3,8 +3,10 @@
 #include "capi/19/include/ruby/oniguruma.h"
 #include "capi/19/include/ruby/regenc.h"
 
+#include "builtin/array.hpp"
 #include "builtin/encoding.hpp"
 #include "builtin/nativemethod.hpp"
+#include "builtin/regexp.hpp"
 
 #include "capi/capi.hpp"
 
@@ -45,8 +47,21 @@ extern "C" {
   }
 
   rb_encoding* rb_enc_get(VALUE obj) {
-    // TODO
-    return rb_usascii_encoding();
+    NativeMethodEnvironment* env = NativeMethodEnvironment::get();
+
+    Object* val = env->get_object(obj);
+
+    if(String* str = try_as<String>(val)) {
+      return str->encoding(env->state())->get_encoding();
+    } else if(Regexp* reg = try_as<Regexp>(val)) {
+      return reg->encoding(env->state())->get_encoding();
+    } else if(Symbol* sym = try_as<Symbol>(val)) {
+      return sym->encoding(env->state())->get_encoding();
+    } else {
+      rb_raise(rb_eArgError, "object does not have an associated Encoding");
+    }
+
+    return 0;
   }
 
   rb_encoding* rb_enc_compatible(VALUE str1, VALUE str2) {
@@ -80,13 +95,32 @@ extern "C" {
   }
 
   VALUE rb_enc_associate(VALUE obj, rb_encoding *enc) {
-    // TODO
-    return obj;
+    return rb_enc_associate_index(obj, rb_enc_find_index(rb_enc_name(enc)));
   }
 
   VALUE rb_enc_associate_index(VALUE obj, int index) {
-    // TODO
+    NativeMethodEnvironment* env = NativeMethodEnvironment::get();
+
+    Encoding* enc = as<Encoding>(
+        Encoding::encoding_list(env->state())->get(env->state(), index));
+
+    Object* val = env->get_object(obj);
+
+    if(String* str = try_as<String>(val)) {
+      str->encoding(env->state(), enc);
+    } else if(Regexp* reg = try_as<Regexp>(val)) {
+      reg->encoding(env->state(), enc);
+    } else if(Symbol* sym = try_as<Symbol>(val)) {
+      sym->encoding(env->state(), enc);
+    } else {
+      rb_raise(rb_eArgError, "object does not have an associated Encoding");
+    }
+
     return obj;
+  }
+
+  void rb_enc_copy(VALUE dest, VALUE src) {
+    rb_enc_associate(dest, rb_enc_get(src));
   }
 
   int rb_define_dummy_encoding(const char *) {
