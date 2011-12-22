@@ -113,6 +113,12 @@ ruby_version_is "1.9" do
       end
     end
 
+    describe "rb_locale_encoding" do
+      it "returns the encoding for the current locale" do
+        @s.rb_locale_encoding.should == Encoding.find('locale').name
+      end
+    end
+
     describe "rb_enc_associate" do
       it "sets the encoding of a String to the encoding" do
         @s.rb_enc_associate("string", "ASCII-8BIT").encoding.should == Encoding::ASCII_8BIT
@@ -159,6 +165,12 @@ ruby_version_is "1.9" do
     describe "rb_usascii_encindex" do
       it "returns an index for the US-ASCII encoding" do
         @s.rb_usascii_encindex().should >= 0
+      end
+    end
+
+    describe "rb_locale_encindex" do
+      it "returns an index for the locale encoding" do
+        @s.rb_locale_encindex().should >= 0
       end
     end
   end

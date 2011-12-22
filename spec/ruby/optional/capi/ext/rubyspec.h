@@ -157,6 +157,8 @@
 #define HAVE_RB_USASCII_ENCINDEX           1
 #define HAVE_RB_UTF8_ENCODING              1
 #define HAVE_RB_UTF8_ENCINDEX              1
+#define HAVE_RB_LOCALE_ENCODING            1
+#define HAVE_RB_LOCALE_ENCINDEX            1
 
 #define HAVE_RB_DEFAULT_INTERNAL_ENCODING  1
 

@@ -43,6 +43,18 @@ static VALUE encoding_spec_rb_utf8_encindex(VALUE self) {
 }
 #endif
 
+#ifdef HAVE_RB_LOCALE_ENCODING
+static VALUE encoding_spec_rb_locale_encoding(VALUE self) {
+  return rb_str_new2(rb_locale_encoding()->name);
+}
+#endif
+
+#ifdef HAVE_RB_LOCALE_ENCINDEX
+static VALUE encoding_spec_rb_locale_encindex(VALUE self) {
+  return INT2NUM(rb_locale_encindex());
+}
+#endif
+
 #ifdef HAVE_RB_DEFAULT_INTERNAL_ENCODING
 static VALUE encoding_spec_rb_default_internal_encoding(VALUE self) {
   rb_encoding* enc = rb_default_internal_encoding();
@@ -50,6 +62,7 @@ static VALUE encoding_spec_rb_default_internal_encoding(VALUE self) {
   return rb_str_new2(enc->name);
 }
 #endif
+
 
 #if defined(HAVE_RB_ENC_ASSOCIATE) && defined(HAVE_RB_ENC_FIND)
 static VALUE encoding_spec_rb_enc_associate(VALUE self, VALUE obj, VALUE enc) {
@@ -134,10 +147,20 @@ void Init_encoding_spec() {
   rb_define_method(cls, "rb_utf8_encindex", encoding_spec_rb_utf8_encindex, 0);
 #endif
 
+#ifdef HAVE_RB_LOCALE_ENCODING
+  rb_define_method(cls, "rb_locale_encoding", encoding_spec_rb_locale_encoding, 0);
+#endif
+
+#ifdef HAVE_RB_LOCALE_ENCINDEX
+  rb_define_method(cls, "rb_locale_encindex", encoding_spec_rb_locale_encindex, 0);
+#endif
+
 #ifdef HAVE_RB_DEFAULT_INTERNAL_ENCODING
   rb_define_method(cls, "rb_default_internal_encoding",
                    encoding_spec_rb_default_internal_encoding, 0);
 #endif
+
+
 
 #ifdef HAVE_RB_ENC_ASSOCIATE
   rb_define_method(cls, "rb_enc_associate", encoding_spec_rb_enc_associate, 2);
