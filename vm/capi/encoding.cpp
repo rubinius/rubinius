@@ -23,10 +23,18 @@ extern "C" {
     return Encoding::utf8_encoding(env->state())->get_encoding();
   }
 
+  int rb_utf8_encindex(void) {
+    return Encoding::eUtf8;
+  }
+
   rb_encoding* rb_usascii_encoding() {
     NativeMethodEnvironment* env = NativeMethodEnvironment::get();
 
     return Encoding::usascii_encoding(env->state())->get_encoding();
+  }
+
+  int rb_usascii_encindex(void) {
+    return Encoding::eAscii;
   }
 
   rb_encoding* rb_ascii8bit_encoding() {
