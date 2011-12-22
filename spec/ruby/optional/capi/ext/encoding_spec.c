@@ -125,6 +125,12 @@ static VALUE encoding_spec_rb_enc_get(VALUE self, VALUE obj) {
 }
 #endif
 
+#ifdef HAVE_RB_ENC_GET_INDEX
+static VALUE encoding_spec_rb_enc_get_index(VALUE self, VALUE obj) {
+  return INT2NUM(rb_enc_get_index(obj));
+}
+#endif
+
 #ifdef HAVE_RB_TO_ENCODING
 static VALUE encoding_spec_rb_to_encoding(VALUE self, VALUE obj) {
   return rb_str_new2(rb_to_encoding(obj)->name);
@@ -212,6 +218,10 @@ void Init_encoding_spec() {
 
 #ifdef HAVE_RB_ENC_GET
   rb_define_method(cls, "rb_enc_get", encoding_spec_rb_enc_get, 1);
+#endif
+
+#ifdef HAVE_RB_ENC_GET_INDEX
+  rb_define_method(cls, "rb_enc_get_index", encoding_spec_rb_enc_get_index, 1);
 #endif
 
 #ifdef HAVE_RB_TO_ENCODING

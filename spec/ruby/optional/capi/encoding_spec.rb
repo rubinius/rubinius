@@ -77,6 +77,20 @@ ruby_version_is "1.9" do
       end
     end
 
+    describe "rb_enc_get_index" do
+      it "returns the index of the encoding of a String" do
+        @s.rb_enc_get_index("string").should >= 0
+      end
+
+      it "returns the index of the encoding of a Regexp" do
+        @s.rb_enc_get_index(/regexp/).should >= 0
+      end
+
+      it "returns the index of the encoding of a Symbol" do
+        @s.rb_enc_get_index(:symbol).should >= 0
+      end
+    end
+
     describe "rb_to_encoding" do
       it "returns the encoding for the Encoding instance passed" do
         @s.rb_to_encoding(Encoding::BINARY).should == "ASCII-8BIT"
@@ -117,6 +131,7 @@ ruby_version_is "1.9" do
         Encoding.default_internal = nil
         @s.rb_default_internal_encoding.should be_nil
       end
+
       it "returns the encoding for Encoding.default_internal" do
         Encoding.default_internal = "US-ASCII"
         @s.rb_default_internal_encoding.should == "US-ASCII"
