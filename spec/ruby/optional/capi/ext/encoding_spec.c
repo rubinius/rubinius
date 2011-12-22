@@ -13,6 +13,12 @@ static VALUE encoding_spec_rb_usascii_encoding(VALUE self) {
 }
 #endif
 
+#ifdef HAVE_RB_USASCII_ENCINDEX
+static VALUE encoding_spec_rb_usascii_encindex(VALUE self) {
+  return INT2NUM(rb_usascii_encindex());
+}
+#endif
+
 #ifdef HAVE_RB_ASCII8BIT_ENCODING
 static VALUE encoding_spec_rb_ascii8bit_encoding(VALUE self) {
   return rb_str_new2(rb_ascii8bit_encoding()->name);
@@ -28,6 +34,12 @@ static VALUE encoding_spec_rb_ascii8bit_encindex(VALUE self) {
 #ifdef HAVE_RB_UTF8_ENCODING
 static VALUE encoding_spec_rb_utf8_encoding(VALUE self) {
   return rb_str_new2(rb_utf8_encoding()->name);
+}
+#endif
+
+#ifdef HAVE_RB_UTF8_ENCINDEX
+static VALUE encoding_spec_rb_utf8_encindex(VALUE self) {
+  return INT2NUM(rb_utf8_encindex());
 }
 #endif
 
@@ -102,6 +114,10 @@ void Init_encoding_spec() {
   rb_define_method(cls, "rb_usascii_encoding", encoding_spec_rb_usascii_encoding, 0);
 #endif
 
+#ifdef HAVE_RB_USASCII_ENCINDEX
+  rb_define_method(cls, "rb_usascii_encindex", encoding_spec_rb_usascii_encindex, 0);
+#endif
+
 #ifdef HAVE_RB_ASCII8BIT_ENCODING
   rb_define_method(cls, "rb_ascii8bit_encoding", encoding_spec_rb_ascii8bit_encoding, 0);
 #endif
@@ -112,6 +128,10 @@ void Init_encoding_spec() {
 
 #ifdef HAVE_RB_UTF8_ENCODING
   rb_define_method(cls, "rb_utf8_encoding", encoding_spec_rb_utf8_encoding, 0);
+#endif
+
+#ifdef HAVE_RB_UTF8_ENCINDEX
+  rb_define_method(cls, "rb_utf8_encindex", encoding_spec_rb_utf8_encindex, 0);
 #endif
 
 #ifdef HAVE_RB_DEFAULT_INTERNAL_ENCODING
