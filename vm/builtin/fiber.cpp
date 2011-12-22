@@ -224,7 +224,7 @@ namespace rubinius {
 #endif
   }
 
-  Fiber* Fiber::create(STATE, Integer* i_stack_size, Object* callable) {
+  Fiber* Fiber::create(STATE, Object* self, Integer* i_stack_size, Object* callable) {
 #ifdef FIBER_ENABLED
     int stack_size = i_stack_size->to_native();
 
@@ -232,7 +232,7 @@ namespace rubinius {
       stack_size = 1024 * 1024;
     }
 
-    Fiber* fib = state->new_object<Fiber>(G(fiber));
+    Fiber* fib = state->new_object<Fiber>(as<Class>(self));
     if(fib->zone() != YoungObjectZone) {
       state->memory()->remember_object(fib);
     }

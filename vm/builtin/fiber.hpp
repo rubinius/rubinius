@@ -94,7 +94,7 @@ namespace rubinius {
     static void init(STATE);
 
     // Rubinius.primitive :fiber_new
-    static Fiber* create(STATE, Integer* stack_size, Object* callable);
+    static Fiber* create(STATE, Object* self, Integer* stack_size, Object* callable);
     static void start_on_stack();
 
     // Rubinius.primitive :fiber_s_current
