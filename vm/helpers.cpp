@@ -245,6 +245,9 @@ namespace rubinius {
           obj = autoload->resolve(state, call_frame);
         }
 
+        // Check if an exception occurred
+        if(!obj) return NULL;
+
         return as<Module>(obj);
       }
 

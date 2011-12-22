@@ -5,6 +5,7 @@
 
 #include "helpers.hpp"
 #include "call_frame.hpp"
+#include "exception_point.hpp"
 
 #include "capi/capi.hpp"
 #include "capi/18/include/ruby.h"
@@ -201,6 +202,11 @@ extern "C" {
     env->state()->vm()->shared.leave_capi(env->state());
     Module* module = rubinius::Helpers::open_module(env->state(),
         env->current_call_frame(), parent, constant);
+
+    // The call above could have triggered an Autoload resolve, which may
+    // raise an exception, so we have to check the value returned.
+    if(!module) env->current_ep()->return_to(env);
+
     // Grab the module handle before grabbing the lock
     // so the Module isn't accidentally GC'ed.
     VALUE module_handle = env->get_handle(module);
