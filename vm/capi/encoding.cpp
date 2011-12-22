@@ -47,10 +47,18 @@ extern "C" {
     return Encoding::eBinary;
   }
 
-  rb_encoding* rb_locale_encoding(void)
-  {
-    // TODO
-    return rb_usascii_encoding();
+  rb_encoding* rb_locale_encoding(void) {
+    NativeMethodEnvironment* env = NativeMethodEnvironment::get();
+    Encoding* enc = Encoding::find(env->state(), "locale");
+    if(enc->nil_p()) {
+      return rb_usascii_encoding();
+    } else {
+      return enc->get_encoding();
+    }
+  }
+
+  int rb_locale_encindex(void) {
+    return rb_enc_find_index(rb_locale_encoding()->name);
   }
 
   rb_encoding *rb_default_internal_encoding(void) {
