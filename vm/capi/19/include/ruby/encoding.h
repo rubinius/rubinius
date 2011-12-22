@@ -42,6 +42,8 @@ rb_encoding *rb_utf8_encoding(void);
 rb_encoding *rb_usascii_encoding(void);
 rb_encoding *rb_ascii8bit_encoding(void);
 
+int rb_ascii8bit_encindex(void);
+
 rb_encoding* rb_enc_find(const char* name);
 rb_encoding* rb_enc_get(VALUE obj);
 rb_encoding* rb_enc_compatible(VALUE str1, VALUE str2);

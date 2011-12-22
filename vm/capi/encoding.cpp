@@ -35,6 +35,10 @@ extern "C" {
     return Encoding::ascii8bit_encoding(env->state())->get_encoding();
   }
 
+  int rb_ascii8bit_encindex(void) {
+    return Encoding::eBinary;
+  }
+
   rb_encoding* rb_locale_encoding(void)
   {
     // TODO
