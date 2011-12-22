@@ -141,5 +141,11 @@ ruby_version_is "1.9" do
         enc.should == Encoding::US_ASCII
       end
     end
+
+    describe "rb_ascii8bit_encindex" do
+      it "returns an index for the ASCII-8BIT encoding" do
+        @s.rb_ascii8bit_encindex().should >= 0
+      end
+    end
   end
 end

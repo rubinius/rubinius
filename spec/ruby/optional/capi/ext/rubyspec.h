@@ -152,6 +152,7 @@
 /* Encoding */
 #ifdef RUBY_VERSION_IS_1_9
 #define HAVE_RB_ASCII8BIT_ENCODING         1
+#define HAVE_RB_ASCII8BIT_ENCINDEX         1
 #define HAVE_RB_USASCII_ENCODING           1
 #define HAVE_RB_UTF8_ENCODING              1
 
