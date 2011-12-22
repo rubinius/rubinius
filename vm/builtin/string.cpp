@@ -44,7 +44,6 @@ namespace rubinius {
     so = state->new_object<String>(G(string));
 
     so->num_bytes(state, size);
-    so->encoding(state, Qnil);
     so->hash_value(state, nil<Fixnum>());
     so->shared(state, Qfalse);
 
@@ -63,7 +62,6 @@ namespace rubinius {
     so = state->new_object<String>(G(string));
 
     so->num_bytes(state, Fixnum::from(0));
-    so->encoding(state, Qnil);
     so->hash_value(state, nil<Fixnum>());
     so->shared(state, Qfalse);
 
@@ -86,7 +84,6 @@ namespace rubinius {
     so = state->new_object<String>(G(string));
 
     so->num_bytes(state, size);
-    so->encoding(state, Qnil);
     so->hash_value(state, nil<Fixnum>());
     so->shared(state, Qfalse);
 
@@ -127,7 +124,6 @@ namespace rubinius {
     String* s = state->new_object<String>(G(string));
 
     s->num_bytes(state, count);
-    s->encoding(state, Qnil);
     s->hash_value(state, nil<Fixnum>());
     s->shared(state, Qfalse);
 
@@ -135,6 +131,15 @@ namespace rubinius {
     s->data(state, ca->fetch_bytes(state, start, count));
 
     return s;
+  }
+
+  Encoding* String::encoding(STATE) {
+    return data_->encoding(state);
+  }
+
+  Encoding* String::encoding(STATE, Encoding* enc) {
+    data_->encoding(state, enc);
+    return enc;
   }
 
   hashval String::hash_string(STATE) {
@@ -265,7 +270,6 @@ namespace rubinius {
     so->set_tainted(is_tainted_p());
 
     so->num_bytes(state, num_bytes());
-    so->encoding(state, encoding());
     so->data(state, data());
     so->hash_value(state, hash_value());
 

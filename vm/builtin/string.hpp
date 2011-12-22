@@ -27,6 +27,7 @@
 
 namespace rubinius {
   class CharArray;
+  class Encoding;
   class Float;
 
   class String : public Object {
@@ -35,7 +36,6 @@ namespace rubinius {
 
   private:
     Fixnum* num_bytes_;  // slot
-    Object* encoding_;   // slot
     CharArray* data_;    // slot
     Fixnum* hash_value_; // slot
     Object* shared_;     // slot
@@ -44,7 +44,6 @@ namespace rubinius {
     /* accessors */
 
     attr_accessor(num_bytes, Fixnum);
-    attr_accessor(encoding, Object);
     attr_accessor(data, CharArray);
     attr_accessor(hash_value, Fixnum);
     attr_accessor(shared, Object);
@@ -191,6 +190,11 @@ namespace rubinius {
 
     // Rubinius.primitive :string_resize_capacity
     String* resize_capacity(STATE, Fixnum* count);
+
+    // Rubinius.primitive :string_encoding
+    Encoding* encoding(STATE);
+
+    Encoding* encoding(STATE, Encoding* enc);
 
     class Info : public TypeInfo {
     public:

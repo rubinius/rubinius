@@ -14,6 +14,7 @@ struct regex_t;
 #endif
 
 namespace rubinius {
+  class Encoding;
   class String;
   class Tuple;
   class LookupTable;
@@ -77,6 +78,11 @@ namespace rubinius {
 
     // Rubinius.primitive :regexp_set_block_last_match
     static Object* set_block_last_match(STATE, CallFrame* calling_environment);
+
+    // Rubinius.primitive :regexp_encoding
+    Encoding* encoding(STATE);
+
+    Encoding* encoding(STATE, Encoding* enc);
 
     void make_managed(STATE);
 

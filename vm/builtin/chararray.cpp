@@ -5,8 +5,10 @@
 #include "vm.hpp"
 #include "objectmemory.hpp"
 #include "primitives.hpp"
+
 #include "builtin/chararray.hpp"
 #include "builtin/class.hpp"
+#include "builtin/encoding.hpp"
 #include "builtin/exception.hpp"
 #include "builtin/fixnum.hpp"
 #include "builtin/string.hpp"
@@ -55,6 +57,11 @@ namespace rubinius {
     memset(ba->bytes, 0, bytes);
 
     return ba;
+  }
+
+  Encoding* CharArray::encoding(STATE) {
+    if(encoding_->nil_p()) encoding_ = Encoding::usascii_encoding(state);
+    return encoding_;
   }
 
   char* CharArray::to_chars(STATE, Fixnum* size) {

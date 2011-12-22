@@ -1,15 +1,16 @@
 #include "oniguruma.h" // Must be first.
 
 #include "builtin/regexp.hpp"
+#include "builtin/block_environment.hpp"
+#include "builtin/bytearray.hpp"
 #include "builtin/class.hpp"
+#include "builtin/encoding.hpp"
 #include "builtin/integer.hpp"
 #include "builtin/lookuptable.hpp"
+#include "builtin/proc.hpp"
 #include "builtin/string.hpp"
 #include "builtin/symbol.hpp"
 #include "builtin/tuple.hpp"
-#include "builtin/bytearray.hpp"
-#include "builtin/block_environment.hpp"
-#include "builtin/proc.hpp"
 
 #include "vm.hpp"
 #include "vm/object_utils.hpp"
@@ -50,6 +51,15 @@ namespace rubinius {
 
   char *Regexp::version(STATE) {
     return (char*)onig_version();
+  }
+
+  Encoding* Regexp::encoding(STATE) {
+    return source_->encoding(state);
+  }
+
+  Encoding* Regexp::encoding(STATE, Encoding* enc) {
+    source_->encoding(state, enc);
+    return enc;
   }
 
   static OnigEncoding get_enc_from_kcode(int kcode) {

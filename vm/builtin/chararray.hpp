@@ -75,6 +75,10 @@ namespace rubinius {
     // Rubinius.primitive :chararray_reverse
     CharArray* reverse(STATE, Fixnum* start, Fixnum* total);
 
+    // This accessor should be used by objects that compose CharArray and
+    // delegate their encoding attribute to CharArray (eg String).
+    Encoding* encoding(STATE);
+
     char* to_chars(STATE, Fixnum* size);
 
     class Info : public TypeInfo {

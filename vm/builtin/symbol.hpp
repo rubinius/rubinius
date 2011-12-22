@@ -5,8 +5,8 @@
 #include "type_info.hpp"
 
 namespace rubinius {
+  class Encoding;
   class String;
-  class Hash;
   class Tuple;
 
   /* Symbols are immediate types, but instances of a Symbol are created
@@ -55,6 +55,11 @@ namespace rubinius {
 
     // Rubinius.primitive :symbol_is_constant
     Object* is_constant_p(STATE);
+
+    // Rubinius.primitive :symbol_encoding
+    Encoding* encoding(STATE);
+
+    Encoding* encoding(STATE, Encoding* enc);
 
     class Info : public TypeInfo {
     public:
