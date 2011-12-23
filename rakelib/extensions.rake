@@ -168,7 +168,10 @@ compile_ext "json/generator", :deps => ["Makefile", "extconf.rb"],
 
 # rbx must be able to run to build these because they use
 # extconf.rb, so they must be after melbourne for Rubinius.
-compile_ext "openssl", :deps => ["Makefile", "extconf.h"], :dir => "lib/openssl/ext"
+compile_ext "openssl", :deps => ["Makefile", "extconf.h"],
+                       :dir => "lib/18/openssl/ext",
+                       :env => "-X18"
+
 compile_ext "dl", :deps => ["Makefile", "dlconfig.h"],
                   :dir => "lib/18/dl/ext", :env => "-X18"
 compile_ext "dbm", :ignore_fail => true, :deps => ["Makefile"], :dir => "lib/dbm/ext"
