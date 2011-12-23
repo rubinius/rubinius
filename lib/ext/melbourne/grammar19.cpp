@@ -661,7 +661,7 @@ static int scan_hex(const char *start, size_t len, size_t *retlen);
                                 (parser_state->utf8 = parser_utf8_encoding()))
 #define STR_NEW(p,n)          parser_enc_str_new((p), (n), parser_state->enc)
 #define STR_NEW0()            parser_enc_str_new(0, 0, parser_state->enc)
-#define STR_NEW3(p,n,e,func)  parser_str_new((p), (n), (e), (func), parser_state->enc)
+#define STR_NEW3(p,n,e,func)  parser_str_new(parser_state, (p), (n), (e), (func), parser_state->enc)
 #define ENC_SINGLE(cr)        ((cr)==ENC_CODERANGE_7BIT)
 #define TOK_INTERN(mb)        parser_intern3(tok(), toklen(), parser_state->enc)
 
@@ -8626,11 +8626,12 @@ enum string_type {
 };
 
 static VALUE
-parser_str_new(const char *p, long n, rb_encoding *enc, int func, rb_encoding *enc0)
+parser_str_new(rb_parser_state* parser_state, const char *p, long n,
+               rb_encoding *enc, int func, rb_encoding *enc0)
 {
   VALUE str;
 
-  str = parser_enc_str_new(p, n, enc);
+  str = REF(parser_enc_str_new(p, n, enc));
   if(!(func & STR_FUNC_REGEXP) && parser_enc_asciicompat(enc)) {
     if(parser_enc_str_coderange(str) == ENC_CODERANGE_7BIT) {
       // Do nothing.
