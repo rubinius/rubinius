@@ -131,6 +131,14 @@ VALUE class_spec_define_attr(VALUE self, VALUE klass, VALUE sym, VALUE read, VAL
 }
 #endif
 
+#ifdef HAVE_RB_DEFINE_CLASS_UNDER
+static VALUE class_spec_rb_define_class_under(VALUE self, VALUE outer,
+                                                 VALUE name, VALUE super) {
+  if(NIL_P(super)) super = 0;
+  return rb_define_class_under(outer, RSTRING_PTR(name), super);
+}
+#endif
+
 #ifdef HAVE_RB_DEFINE_CLASS_VARIABLE
 static VALUE class_spec_define_class_variable(VALUE self, VALUE klass, VALUE name, VALUE val) {
   rb_define_class_variable(klass, StringValuePtr(name), val);
@@ -203,6 +211,10 @@ void Init_class_spec() {
 
 #ifdef HAVE_RB_DEFINE_ATTR
   rb_define_method(cls, "rb_define_attr", class_spec_define_attr, 4);
+#endif
+
+#ifdef HAVE_RB_DEFINE_CLASS_UNDER
+  rb_define_method(cls, "rb_define_class_under", class_spec_rb_define_class_under, 3);
 #endif
 
 #ifdef HAVE_RB_DEFINE_CLASS_VARIABLE
