@@ -15,7 +15,14 @@ namespace rubinius {
     G(autoload)->set_object_type(state, AutoloadType);
   }
 
-  Object* Autoload::resolve(STATE, CallFrame* call_frame) {
-    return send(state, call_frame, G(sym_call));
+  Object* Autoload::resolve(STATE, CallFrame* call_frame, bool honor_require) {
+    if(honor_require) {
+      Array* args = Array::create(state, 1);
+      args->set(state, 0, Qtrue);
+
+      return send(state, call_frame, G(sym_call), args);
+    } else {
+      return send(state, call_frame, G(sym_call));
+    }
   }
 }

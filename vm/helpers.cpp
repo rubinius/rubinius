@@ -209,13 +209,17 @@ namespace rubinius {
         TypedRoot<Object*> sup(state, super);
 
         if(Autoload* autoload = try_as<Autoload>(obj)) {
-          obj = autoload->resolve(state, call_frame);
+          obj = autoload->resolve(state, call_frame, true);
 
           // Check if an exception occurred
           if(!obj) return NULL;
         }
 
-        return check_superclass(state, call_frame, as<Class>(obj), sup.get());
+        // Autoload::resolve will return nil if code loading failed, in which
+        // case we ignore the autoload.
+        if(!obj->nil_p()) {
+          return check_superclass(state, call_frame, as<Class>(obj), sup.get());
+        }
       }
 
       *created = true;
@@ -242,13 +246,17 @@ namespace rubinius {
 
       if(found) {
         if(Autoload* autoload = try_as<Autoload>(obj)) {
-          obj = autoload->resolve(state, call_frame);
+          obj = autoload->resolve(state, call_frame, true);
         }
 
         // Check if an exception occurred
         if(!obj) return NULL;
 
-        return as<Module>(obj);
+        // Autoload::resolve will return nil if code loading failed, in which
+        // case we ignore the autoload.
+        if(!obj->nil_p()) {
+          return as<Module>(obj);
+        }
       }
 
       module = Module::create(state);
