@@ -701,7 +701,8 @@ VALUE rb_uint2big(unsigned long number);
 #define RREGEXP_OPTIONS(reg) rb_reg_options(reg)
 
 /** The length of string str. */
-#define RSTRING_LEN(str)  rb_str_len(str)
+#define RSTRING_LEN(str)    rb_str_len(str)
+#define RSTRING_LENINT(str) rb_str_len(str)
 
 /** The pointer to the string str's data. */
 #ifdef RUBY_READONLY_STRING
