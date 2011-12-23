@@ -35,7 +35,8 @@ module Enumerable
 
       idx = 0
 
-      each do |o|
+      each do
+        o = Rubinius.single_block_arg        
         val = yield(o, idx)
         idx += 1
         val
