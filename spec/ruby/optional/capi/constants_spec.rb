@@ -243,6 +243,16 @@ describe "C-API exception constant" do
     @s.rb_eThreadError.should == ThreadError
   end
 
+  ruby_version_is "1.9" do
+    specify "rb_mWaitReadable references the IO::WaitReadable module" do
+      @s.rb_mWaitReadable.should == IO::WaitReadable
+    end
+
+    specify "rb_mWaitWritable references the IO::WaitWritable module" do
+      @s.rb_mWaitWritable.should == IO::WaitWritable
+    end
+  end
+
   specify "rb_eZeroDivError references the ZeroDivisionError class" do
     @s.rb_eZeroDivError.should == ZeroDivisionError
   end

@@ -178,6 +178,9 @@
 #define HAVE_RB_TO_ENCODING_INDEX          1
 
 #define HAVE_RB_EENCCOMPATERROR            1
+
+#define HAVE_RB_MWAITREADABLE              1
+#define HAVE_RB_MWAITWRITABLE              1
 #endif
 
 /* Exception */
