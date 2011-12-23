@@ -60,7 +60,9 @@ namespace rubinius {
   }
 
   Encoding* CharArray::encoding(STATE) {
-    if(encoding_->nil_p()) encoding_ = Encoding::usascii_encoding(state);
+    if(encoding_->nil_p()) {
+      encoding(state, Encoding::usascii_encoding(state));
+    }
     return encoding_;
   }
 
