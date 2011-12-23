@@ -199,7 +199,8 @@ module Enumerable
 
       sym = sym.to_sym
 
-      each do |o|
+      each do 
+        o = Rubinius.single_block_arg
         if initial.equal? undefined
           initial = o
         else
@@ -209,7 +210,8 @@ module Enumerable
 
       # Block version
     else
-      each do |o|
+      each do
+        o = Rubinius.single_block_arg        
         if initial.equal? undefined
           initial = o
         else
