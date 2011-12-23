@@ -67,10 +67,6 @@ namespace rubinius {
       block_as_method_ = (val ? 1 : 0);
     }
 
-    void update_parent(VariableScope* vs) {
-      parent_ = vs;
-    }
-
     void set_local(STATE, int pos, Object* val) {
       if(isolated_) {
         heap_locals_->put(state, pos, val);
