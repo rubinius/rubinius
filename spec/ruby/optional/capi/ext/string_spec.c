@@ -344,6 +344,12 @@ VALUE string_spec_RSTRING_LEN(VALUE self, VALUE str) {
 }
 #endif
 
+#ifdef HAVE_RSTRING_LENINT
+VALUE string_spec_RSTRING_LENINT(VALUE self, VALUE str) {
+  return INT2FIX(RSTRING_LENINT(str));
+}
+#endif
+
 #ifdef HAVE_RSTRING_PTR
 VALUE string_spec_RSTRING_PTR_iterate(VALUE self, VALUE str) {
   int i;
@@ -545,6 +551,10 @@ void Init_string_spec() {
 
 #ifdef HAVE_RSTRING_LEN
   rb_define_method(cls, "RSTRING_LEN", string_spec_RSTRING_LEN, 1);
+#endif
+
+#ifdef HAVE_RSTRING_LENINT
+  rb_define_method(cls, "RSTRING_LENINT", string_spec_RSTRING_LENINT, 1);
 #endif
 
 #ifdef HAVE_RSTRING_PTR

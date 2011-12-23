@@ -330,6 +330,14 @@ describe "C-API String function" do
     end
   end
 
+  ruby_version_is "1.9" do
+    describe "RSTRING_LENINT" do
+      it "returns the size of a string" do
+        @s.RSTRING_LENINT("silly").should == 5
+      end
+    end
+  end
+
   describe "StringValue" do
     it "does not call #to_str on a String" do
       str = "genuine"
