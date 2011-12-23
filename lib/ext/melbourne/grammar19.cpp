@@ -9626,7 +9626,7 @@ parser_magic_comment(rb_parser_state* parser_state, const char *str, long len)
 #define str_copy(_s, _p, _n) ((_s) \
     ? (void)(rb_str_resize((_s), (_n)), \
     MEMCPY(RSTRING_PTR(_s), (_p), char, (_n)), (_s)) \
-    : (void)((_s) = STR_NEW((_p), (_n))))
+    : (void)((_s) = REF(STR_NEW((_p), (_n)))))
 
   if(len <= 7) return FALSE;
   if(!(beg = magic_comment_marker(str, len))) return FALSE;
@@ -9744,7 +9744,7 @@ set_file_encoding(rb_parser_state* parser_state, const char *str, const char *se
 
   beg = str;
   while((*str == '-' || *str == '_' || ISALNUM(*str)) && ++str < send);
-  s = rb_str_new(beg, parser_encode_length(parser_state, beg, str - beg));
+  s = REF(rb_str_new(beg, parser_encode_length(parser_state, beg, str - beg)));
   parser_set_encode(parser_state, RSTRING_PTR(s));
   rb_str_resize(s, 0);
 }
