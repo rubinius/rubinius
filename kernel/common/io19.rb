@@ -2,10 +2,16 @@ class IO
   attr_accessor :external
   attr_accessor :internal
 
-  # In MRI, these are modules that are used to extend the exception every time
-  # an exception is raised.
-  class WaitReadable < Errno::EAGAIN; end
-  class WaitWritable < Errno::EAGAIN; end
+  module WaitReadable; end
+  module WaitWritable; end
+
+  class EAGAINWaitReadable < Errno::EAGAIN
+    include ::IO::WaitReadable
+  end
+
+  class EAGAINWaitWritable < Errno::EAGAIN
+    include ::IO::WaitWritable
+  end
 
   def self.binread(file, *arg)
     unless arg.size < 3

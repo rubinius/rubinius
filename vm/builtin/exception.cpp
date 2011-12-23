@@ -290,7 +290,7 @@ namespace rubinius {
     if(LANGUAGE_18_ENABLED(state)) {
       exc_class = get_errno_error(state, Fixnum::from(EAGAIN));
     } else {
-      exc_class = as<Class>(G(io)->get_const(state, "WaitReadable"));
+      exc_class = as<Class>(G(io)->get_const(state, "EAGAINWaitReadable"));
     }
 
     String* message = nil<String>();

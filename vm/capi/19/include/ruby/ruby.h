@@ -308,6 +308,8 @@ typedef void (*RUBY_DATA_FUNC)(void*);
     cCApiMathDomainError,
     cCApiEncoding,
     cCApiEncCompatError,
+    cCApiWaitReadable,
+    cCApiWaitWritable,
 
     // MUST be last
     cCApiMaxConstant
@@ -513,6 +515,8 @@ typedef struct RIO rb_io_t;
 #define rb_mEnumerable        (capi_get_constant(cCApiEnumerable))
 #define rb_mKernel            (capi_get_constant(cCApiKernel))
 #define rb_mGC                (capi_get_constant(cCApiGC))
+#define rb_mWaitReadable      (capi_get_constant(cCApiWaitReadable))
+#define rb_mWaitWritable      (capi_get_constant(cCApiWaitWritable))
 
 /* Utility modules */
 #define rb_mCAPI              (capi_get_constant(cCApiCAPI))
