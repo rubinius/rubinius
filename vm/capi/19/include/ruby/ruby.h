@@ -761,6 +761,14 @@ VALUE rb_uint2big(unsigned long number);
   VALUE rb_ll2inum(long long val);
   VALUE rb_ull2inum(unsigned long long val);
 
+#if SIZEOF_TIME_T == 8
+#define TIMET2NUM(v)   LL2NUM(v)
+#define NUM2TIMET(v)   NUM2LL(v)
+#else
+#define TIMET2NUM(v)   LONG2NUM(v)
+#define NUM2TIMET(v)   NUM2LONG(v)
+#endif
+
 
 /* Secret extra stuff */
 
