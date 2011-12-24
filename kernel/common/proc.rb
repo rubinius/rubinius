@@ -116,13 +116,6 @@ class Proc
   class Method < Proc
     attr_accessor :bound_method
 
-    def self.__from_method__(meth)
-      obj = allocate()
-      obj.bound_method = meth
-
-      return obj
-    end
-
     def __yield__(*args, &block)
       # do a block style unwrap..
       if args.size == 1 and args.first.kind_of? Array

@@ -2,6 +2,7 @@ class.rbc
 class18.rbc
 binding.rbc
 proc.rbc
+proc18.rbc
 autoload.rbc
 autoload18.rbc
 module.rbc
