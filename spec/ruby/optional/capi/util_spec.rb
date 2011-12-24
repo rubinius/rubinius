@@ -75,10 +75,10 @@ describe "C-API Util function" do
         it "raises a RangeError if the value is outside the range of a C int" do
           lambda { @o.rb_long2int(0xffff_ffff_ffff) }.should raise_error(RangeError)
         end
+      end
 
-        it "returns the C int value" do
-          @o.rb_long2int(1234).should == 1234
-        end
+      it "returns the C int value" do
+        @o.rb_long2int(1234).should == 1234
       end
     end
   end
