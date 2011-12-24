@@ -100,7 +100,6 @@ class MSpecScript
     '^spec/ruby/library/zlib',
 
     '^spec/ruby/optional/capi/io',
-    '^spec/ruby/optional/capi/time',
 
     # Excluded because the specs are extremely system dependent.
     '^spec/ruby/library/syslog',

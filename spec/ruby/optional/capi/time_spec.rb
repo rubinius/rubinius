@@ -13,4 +13,12 @@ describe "CApiTimeSpecs" do
       @s.rb_time_new(1232141421, usec).should == Time.at(1232141421, usec)
     end
   end
+
+  ruby_version_is "1.9" do
+    describe "TIMET2NUM" do
+      it "returns an Integer" do
+        @s.TIMET2NUM.should be_kind_of(Integer)
+      end
+    end
+  end
 end

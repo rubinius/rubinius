@@ -183,6 +183,7 @@
 #define HAVE_RB_MWAITWRITABLE              1
 
 #define HAVE_RSTRING_LENINT                1
+#define HAVE_TIMET2NUM                     1
 #endif
 
 /* Exception */
