@@ -64,7 +64,25 @@ class Symbol
   alias_method :next, :succ
 
   def [](index, other = undefined)
-    to_s[index, other]
+    if index.kind_of?(Regexp) && !other.equal?(undefined)
+      match, str = to_s.send(:subpattern, index, other)
+      Regexp.last_match = match
+      return str
+    end
+
+    case index
+      when Regexp
+        str = to_s
+        match_data = index.search_region(str, 0, str.num_bytes, true)
+        Regexp.last_match = match_data
+        if match_data
+          result = match_data.to_s
+          result.taint if index.tainted?
+          return result
+        end
+    else
+      to_s[index, other]
+    end
   end
 
   alias_method :slice, :[]
