@@ -1,1 +1,4 @@
 fails:Kernel#open calls #to_open on argument
+fails:Kernel#open returns the value from #to_open
+fails:Kernel#open passes its arguments onto #to_open
+fails:Kernel#open passes the return value from #to_open to a block

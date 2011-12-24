@@ -57,12 +57,43 @@ describe "Kernel#open" do
   end
 
   ruby_version_is "1.9" do
-    it "calls #to_open on argument" do
-      obj = mock('fileish')
-      @file = File.open(@name)
-      obj.should_receive(:to_open).and_return(@file)
-      @file = open(obj)
-      @file.should be_kind_of(File)
+    describe "when given an object that responds to to_open" do
+      before :each do
+        ScratchPad.clear
+      end
+
+      it "calls #to_open on argument" do
+        obj = mock('fileish')
+        @file = File.open(@name)
+        obj.should_receive(:to_open).and_return(@file)
+        @file = open(obj)
+        @file.should be_kind_of(File)
+      end
+
+      it "returns the value from #to_open" do
+        obj = mock('to_open')
+        obj.should_receive(:to_open).and_return(:value)
+
+        open(obj).should == :value
+      end
+
+      it "passes its arguments onto #to_open" do
+        obj = mock('to_open')
+        obj.should_receive(:to_open).with(1,2,3)
+        
+        open(obj, 1, 2, 3)
+      end
+
+      it "passes the return value from #to_open to a block" do
+        obj = mock('to_open') 
+        obj.should_receive(:to_open).and_return(:value)
+
+        open(obj) do |mock|
+          ScratchPad.record(mock)
+        end
+
+        ScratchPad.recorded.should == :value
+      end
     end
 
     it "raises a TypeError if passed a non-String that does not respond to #to_open" do
