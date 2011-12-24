@@ -19,6 +19,7 @@ module Rubinius
       @input_loop_split = false
       @simple_options = false
       @early_option_stop = false
+      @check_syntax = false
 
       @enable_gems = Rubinius.ruby19?
       @load_gemfile = false
@@ -255,34 +256,8 @@ containing the Rubinius standard library files.
         @input_loop_split = true
       end
 
-      options.on "-c", "FILE", "Check the syntax of FILE" do |file|
-        if File.exists?(file)
-          case
-          when Rubinius.ruby18?
-            parser = Rubinius::Melbourne
-          when Rubinius.ruby19?
-            parser = Rubinius::Melbourne19
-          when Rubinius.ruby20?
-            parser = Rubinius::Melbourne20
-          else
-            raise "no parser available for this ruby version"
-          end
-
-          mel = parser.new file, 1, []
-
-          begin
-            mel.parse_file
-          rescue SyntaxError => e
-            show_syntax_errors(mel.syntax_errors)
-            exit 1
-          end
-
-          puts "Syntax OK"
-          exit 0
-        else
-          puts "rbx: Unable to find file -- #{file} (LoadError)"
-          exit 1
-        end
+      options.on "-c", "Only check the syntax" do
+        @check_syntax = true
       end
 
       options.on "-C", "DIR", "Change directory to DIR before running scripts" do |dir|
@@ -518,6 +493,10 @@ VM Options
       if @profile
         require 'profile'
       end
+
+      if @check_syntax
+        check_syntax
+      end
     end
 
     RUBYOPT_VALID_OPTIONS = "IdvwWrKT"
@@ -668,6 +647,55 @@ to rebuild the compiler.
 
       $0 = @script
       CodeLoader.load_script @script, @debugging
+    end
+
+    #Check Ruby syntax of source
+    def check_syntax
+      syntax_ok = false
+
+      case
+      when Rubinius.ruby18?
+        parser = Rubinius::Melbourne
+      when Rubinius.ruby19?
+        parser = Rubinius::Melbourne19
+      when Rubinius.ruby20?
+        parser = Rubinius::Melbourne20
+      else
+        raise "no parser available for this ruby version"
+      end
+
+      if @script
+        if File.exists?(@script)
+          mel = parser.new @script, 1, []
+
+          begin
+            mel.parse_file
+          rescue SyntaxError => e
+            show_syntax_errors(mel.syntax_errors)
+            exit 1
+          end
+        else
+          puts "rbx: Unable to find file -- #{@script} (LoadError)"
+          exit 1
+        end
+      elsif not @evals.empty?
+        begin
+          mel = parser.parse_string @evals.join("\n")
+        rescue SyntaxError => e
+          show_syntax_errors(mel.syntax_errors)
+          exit 1
+        end
+      else
+        begin
+          mel = parser.parse_string STDIN.read
+        rescue SyntaxError => e
+          show_syntax_errors(mel.syntax_errors)
+          exit 1
+        end
+      end
+
+      puts "Syntax OK"
+      exit 0
     end
 
     # Run IRB unless we were passed -e, -S arguments or a script to run.
