@@ -178,7 +178,7 @@ extern "C" {
   // TODO: Since in 1.9 #respond_to? returns false if the MRI version of this
   // method is in a method table, we'll probably need to get the Rubinius
   // special version of this method and call it rather than just raising here.
-  void rb_f_notimplement() {
+  VALUE rb_f_notimplement(int argc, VALUE *argv, VALUE obj) {
     rb_fatal("not implemented");
   }
 

@@ -14,4 +14,8 @@ extern "C" {
 
     return rb_path2class(string->c_str(env->state()));
   }
+
+  VALUE rb_class_superclass(VALUE klass) {
+    return rb_funcall(klass, rb_intern("superclass"), 0);
+  }
 }
