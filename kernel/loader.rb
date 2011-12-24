@@ -23,7 +23,10 @@ module Rubinius
       @enable_gems = Rubinius.ruby19?
       @load_gemfile = false
 
-      @gem_bin = File.join Rubinius::GEMS_PATH, "bin"
+      version = RUBY_VERSION.split(".").first(2).join(".")
+      @gem_bins = ["#{version}/bin", "bin"].map do |dir|
+        File.join Rubinius::GEMS_PATH, dir
+      end
     end
 
     def self.debugger
@@ -165,8 +168,10 @@ containing the Rubinius standard library files.
     # Checks if a gem wrapper named +base+ exists. Returns the full path to
     # the gem wrapper if it does; otherwise, returns nil.
     def find_gem_wrapper(base)
-      wrapper = File.join @gem_bin, base
-      return wrapper if File.exists? wrapper
+      @gem_bins.each do |dir|
+        wrapper = File.join dir, base
+        return wrapper if File.exists? wrapper
+      end
       return nil
     end
 
