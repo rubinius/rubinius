@@ -1,5 +1,5 @@
 /*
- * $Id$
+ * $Id: ossl_x509name.c 28367 2010-06-21 09:18:59Z shyouhei $
  * 'OpenSSL for Ruby' project
  * Copyright (C) 2001 Michal Rokos <m.rokos@sh.cvut.cz>
  * All rights reserved.
@@ -135,7 +135,7 @@ ossl_x509name_initialize(int argc, VALUE *argv, VALUE self)
 	    rb_block_call(tmp, rb_intern("each"), 0, 0, ossl_x509name_init_i, args);
 	}
 	else{
-	    unsigned const char *p;
+	    const unsigned char *p;
 	    VALUE str = ossl_to_der_if_possible(arg);
 	    X509_NAME *x;
 	    StringValue(str);
@@ -382,7 +382,7 @@ Init_ossl_x509name()
     ia5str = INT2NUM(V_ASN1_IA5STRING);
     rb_define_const(cX509Name, "DEFAULT_OBJECT_TYPE", utf8str);
     hash = rb_hash_new();
-    // RHASH(hash)->ifnone = utf8str;
+    rb_funcall(hash, rb_intern("default="), 1, utf8str);
     rb_hash_aset(hash, rb_str_new2("C"), ptrstr);
     rb_hash_aset(hash, rb_str_new2("countryName"), ptrstr);
     rb_hash_aset(hash, rb_str_new2("serialNumber"), ptrstr);

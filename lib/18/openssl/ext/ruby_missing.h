@@ -1,5 +1,5 @@
 /*
- * $Id$
+ * $Id: ruby_missing.h 12496 2007-06-08 15:02:04Z technorama $
  * 'OpenSSL for Ruby' project
  * Copyright (C) 2001-2003  Michal Rokos <m.rokos@sh.cvut.cz>
  * All rights reserved.

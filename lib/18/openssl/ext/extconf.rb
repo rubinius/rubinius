@@ -11,7 +11,7 @@
   (See the file 'LICENCE'.)
 
 = Version
-  $Id$
+  $Id: extconf.rb 32234 2011-06-26 08:58:06Z shyouhei $
 =end
 
 require "mkmf"
@@ -33,14 +33,9 @@ if with_config("debug") or enable_config("debug")
   end
 end
 
-$CPPFLAGS += " -DOPENSSL_NO_STATIC_ENGINE" if RUBY_PLATFORM =~ /openbsd/i
-
 message "=== Checking for system dependent stuff... ===\n"
 have_library("nsl", "t_open")
 have_library("socket", "socket")
-have_header("assert.h")
-have_header("sys/time.h")
-have_header("unistd.h")
 have_header("assert.h")
 
 message "=== Checking for required stuff... ===\n"
@@ -105,6 +100,12 @@ have_func("OPENSSL_cleanse")
 if try_compile("#define FOO(...) foo(__VA_ARGS__)\n int x(){FOO(1);FOO(1,2);FOO(1,2,3);}\n")
   $defs.push("-DHAVE_VA_ARGS_MACRO")
 end
+have_func("SSLv2_method")
+have_func("SSLv2_server_method")
+have_func("SSLv2_client_method")
+unless have_func("SSL_set_tlsext_host_name", ['openssl/ssl.h'])
+  have_macro("SSL_set_tlsext_host_name", ['openssl/ssl.h']) && $defs.push("-DHAVE_SSL_SET_TLSEXT_HOST_NAME")
+end
 if have_header("openssl/engine.h")
   have_func("ENGINE_add")
   have_func("ENGINE_load_builtin_engines")
@@ -132,14 +133,6 @@ end
 have_struct_member("EVP_CIPHER_CTX", "flags", "openssl/evp.h")
 have_struct_member("EVP_CIPHER_CTX", "engine", "openssl/evp.h")
 have_struct_member("X509_ATTRIBUTE", "single", "openssl/x509.h")
-
-# Check for SSLv2 stuff because openssl sometimes omits it.
-have_func("SSLv2_method")
-have_func("SSLv2_server_method")
-have_func("SSLv2_client_method")
-have_func("SSLv23_method")
-have_func("SSLv23_server_method")
-have_func("SSLv23_client_method")
 
 message "=== Checking done. ===\n"
 

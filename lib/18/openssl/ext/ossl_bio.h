@@ -1,5 +1,5 @@
 /*
- * $Id$
+ * $Id: ossl_bio.h 11708 2007-02-12 23:01:19Z shyouhei $
  * 'OpenSSL for Ruby' team members
  * Copyright (C) 2003
  * All rights reserved.

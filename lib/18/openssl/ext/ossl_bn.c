@@ -1,5 +1,5 @@
 /*
- * $Id$
+ * $Id: ossl_bn.c 31657 2011-05-20 22:25:35Z shyouhei $
  * 'OpenSSL for Ruby' project
  * Copyright (C) 2001-2002  Technorama team <oss-ruby@technorama.net>
  * All rights reserved.
@@ -669,7 +669,7 @@ ossl_bn_is_prime(int argc, VALUE *argv, VALUE self)
     VALUE vchecks;
     int checks = BN_prime_checks;
 
-    if (rb_scan_args(argc, argv, "01", &vchecks) == 0) {
+    if (rb_scan_args(argc, argv, "01", &vchecks) == 1) {
 	checks = NUM2INT(vchecks);
     }
     GetBN(self, bn);

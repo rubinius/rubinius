@@ -1,5 +1,5 @@
 /*
- * $Id$
+ * $Id: ossl_ssl.c 32234 2011-06-26 08:58:06Z shyouhei $
  * 'OpenSSL for Ruby' project
  * Copyright (C) 2000-2002  GOTOU Yuuzou <gotoyuzo@notwork.org>
  * Copyright (C) 2001-2002  Michal Rokos <m.rokos@sh.cvut.cz>
@@ -11,13 +11,8 @@
  * (See the file 'LICENCE'.)
  */
 #include "ossl.h"
-
-#ifdef HAVE_RUBY_IO_H
-#include "ruby/io.h"
-#else
-#include "rubysig.h"
-#include "rubyio.h"
-#endif
+#include <rubysig.h>
+#include <rubyio.h>
 
 #if defined(HAVE_UNISTD_H)
 #  include <unistd.h> /* for read(), and write() */
@@ -106,28 +101,18 @@ struct {
     OSSL_SSL_METHOD_ENTRY(TLSv1),
     OSSL_SSL_METHOD_ENTRY(TLSv1_server),
     OSSL_SSL_METHOD_ENTRY(TLSv1_client),
-
-#ifdef HAVE_SSLV2_METHOD
+#if defined(HAVE_SSLV2_METHOD) && defined(HAVE_SSLV2_SERVER_METHOD) && \
+        defined(HAVE_SSLV2_CLIENT_METHOD)	
     OSSL_SSL_METHOD_ENTRY(SSLv2),
-#endif
-#ifdef HAVE_SSLV2_SERVER_METHOD
     OSSL_SSL_METHOD_ENTRY(SSLv2_server),
-#endif
-#ifdef HAVE_SSLV2_CLIENT_METHOD
     OSSL_SSL_METHOD_ENTRY(SSLv2_client),
 #endif
     OSSL_SSL_METHOD_ENTRY(SSLv3),
     OSSL_SSL_METHOD_ENTRY(SSLv3_server),
     OSSL_SSL_METHOD_ENTRY(SSLv3_client),
-#ifdef HAVE_SSLV23_METHOD
     OSSL_SSL_METHOD_ENTRY(SSLv23),
-#endif
-#ifdef HAVE_SSLV23_SERVER_METHOD
     OSSL_SSL_METHOD_ENTRY(SSLv23_server),
-#endif
-#ifdef HAVE_SSLV23_CLIENT_METHOD
     OSSL_SSL_METHOD_ENTRY(SSLv23_client),
-#endif
 #undef OSSL_SSL_METHOD_ENTRY
 };
 

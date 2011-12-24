@@ -1,5 +1,5 @@
 /*
- * $Id$
+ * $Id: ossl_x509store.c 16691 2008-05-29 17:45:47Z knu $
  * 'OpenSSL for Ruby' project
  * Copyright (C) 2001-2002  Michal Rokos <m.rokos@sh.cvut.cz>
  * All rights reserved.
@@ -9,10 +9,7 @@
  * (See the file 'LICENCE'.)
  */
 #include "ossl.h"
-
-#ifndef HAVE_RUBY_IO_H
-#include "rubysig.h"
-#endif
+#include <rubysig.h>
 
 #define WrapX509Store(klass, obj, st) do { \
     if (!st) { \

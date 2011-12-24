@@ -1,5 +1,5 @@
 /*
- * $Id$
+ * $Id: ossl.h 28367 2010-06-21 09:18:59Z shyouhei $
  * 'OpenSSL for Ruby' project
  * Copyright (C) 2001-2002  Michal Rokos <m.rokos@sh.cvut.cz>
  * All rights reserved.
@@ -28,14 +28,8 @@ extern "C" {
 #if defined(RFILE) /*&& !defined(OSSL_DEBUG)*/
 #  undef RFILE
 #endif
-
-#include "ruby.h"
-
-#ifdef HAVE_RUBY_IO_H
-#include "ruby/io.h"
-#else
-#include "rubyio.h"
-#endif
+#include <ruby.h>
+#include <rubyio.h>
 
 /*
  * Check the OpenSSL version
