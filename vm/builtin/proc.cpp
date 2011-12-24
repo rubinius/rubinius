@@ -49,7 +49,7 @@ namespace rubinius {
     int flags = 0;
 
     // Check the arity in lambda mode
-    if(lambda_style) {
+    if(lambda_style && !block_->nil_p()) {
       flags = CallFrame::cIsLambda;
       int total = block_->code()->total_args()->to_native();
       int required = block_->code()->required_args()->to_native();
