@@ -72,7 +72,12 @@ static VALUE class_spec_rb_class_new_instance(VALUE self,
 
   return rb_class_new_instance(c_nargs, c_args, klass);
 }
+#endif
 
+#ifdef HAVE_RB_CLASS_SUPERCLASS
+static VALUE class_spec_rb_class_superclass(VALUE self, VALUE klass) {
+  return rb_class_superclass(klass);
+}
 #endif
 
 #ifdef HAVE_RB_CVAR_DEFINED
@@ -187,6 +192,10 @@ void Init_class_spec() {
 
 #ifdef HAVE_RB_CLASS_NEW_INSTANCE
   rb_define_method(cls, "rb_class_new_instance", class_spec_rb_class_new_instance, 3);
+#endif
+
+#ifdef HAVE_RB_CLASS_SUPERCLASS
+  rb_define_method(cls, "rb_class_superclass", class_spec_rb_class_superclass, 1);
 #endif
 
 #ifdef HAVE_RB_CVAR_DEFINED

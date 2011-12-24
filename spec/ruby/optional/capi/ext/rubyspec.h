@@ -184,6 +184,8 @@
 
 #define HAVE_RSTRING_LENINT                1
 #define HAVE_TIMET2NUM                     1
+
+#define HAVE_RB_CLASS_SUPERCLASS           1
 #endif
 
 /* Exception */

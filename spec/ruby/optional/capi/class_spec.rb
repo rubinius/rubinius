@@ -249,4 +249,17 @@ describe "C-API Class function" do
       lambda { @s.rb_class_new(metaclass) }.should raise_error(TypeError)
     end
   end
+
+  ruby_version_is "1.9" do
+    describe "rb_class_superclass" do
+      it "returns the superclass of a class" do
+        cls = @s.rb_class_superclass(CApiClassSpecs::Sub)
+        cls.should == CApiClassSpecs::Super
+      end
+
+      it "returns nil if the class has no superclass" do
+        @s.rb_class_superclass(BasicObject).should be_nil
+      end
+    end
+  end
 end
