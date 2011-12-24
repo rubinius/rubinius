@@ -663,6 +663,12 @@ unsigned long long rb_num2ull(VALUE);
 # define SSIZET2NUM(v) INT2NUM(v)
 #endif
 
+#if SIZEOF_INT < SIZEOF_LONG
+int rb_long2int(long n);
+#else
+#define rb_long2int(n)  ((int)(n))
+#endif
+
 
 /** Convert from a Float to a double */
 double rb_num2dbl(VALUE);

@@ -140,4 +140,12 @@ extern "C" {
 
     return tmp;
   }
+
+#if SIZEOF_INT < SIZEOF_LONG
+  int rb_long2int(long n) {
+    int i = (int)n;
+    if((long)i != n) rb_raise(rb_eRangeError, "long value is outside of range of int");
+    return i;
+  }
+#endif
 }
