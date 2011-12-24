@@ -102,9 +102,29 @@ module Kernel
     raise ArgumentError, "block required" unless prc
     return prc
   end
-
   module_function :proc
 
+  def open(obj, *rest, &block)
+    if obj.respond_to?(:to_open) 
+      obj = obj.to_open(*rest)
+      
+      if block_given?
+        return yield(obj)
+      else
+        return obj
+      end
+    end
+
+    path = StringValue(obj)
+
+    if path.kind_of? String and path.prefix? '|'
+      return IO.popen(path[1..-1], *rest, &block)
+    end
+
+    File.open(path, *rest, &block)
+  end
+  module_function :open
+  
   # Attempt to load the given file, returning true if successful. Works just
   # like Kernel#require, except that it searches relative to the current
   # directory.

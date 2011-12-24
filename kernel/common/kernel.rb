@@ -130,17 +130,6 @@ module Kernel
   end
   module_function :print
 
-  def open(path, *rest, &block)
-    path = StringValue(path)
-
-    if path.kind_of? String and path.prefix? '|'
-      return IO.popen(path[1..-1], *rest, &block)
-    end
-
-    File.open(path, *rest, &block)
-  end
-  module_function :open
-
   def srand(seed=undefined)
     if seed.equal? undefined
       seed = Rubinius::Randomizer.instance.generate_seed

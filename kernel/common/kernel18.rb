@@ -66,6 +66,17 @@ module Kernel
   end
   module_function :Integer
 
+  def open(path, *rest, &block)
+    path = StringValue(path)
+
+    if path.kind_of? String and path.prefix? '|'
+      return IO.popen(path[1..-1], *rest, &block)
+    end
+
+    File.open(path, *rest, &block)
+  end
+  module_function :open
+  
   alias_method :proc, :lambda
   module_function :proc
 
