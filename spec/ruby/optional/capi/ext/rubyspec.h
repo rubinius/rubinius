@@ -186,6 +186,7 @@
 #define HAVE_TIMET2NUM                     1
 
 #define HAVE_RB_CLASS_SUPERCLASS           1
+#define HAVE_RB_LONG2INT                   1
 #endif
 
 /* Exception */

@@ -37,11 +37,21 @@ VALUE util_spec_rb_scan_args(VALUE self, VALUE argv, VALUE fmt, VALUE expected, 
 }
 #endif
 
+#ifdef HAVE_RB_LONG2INT
+static VALUE util_spec_rb_long2int(VALUE self, VALUE n) {
+  return INT2NUM(rb_long2int(NUM2LONG(n)));
+}
+#endif
+
 void Init_util_spec() {
   VALUE cls = rb_define_class("CApiUtilSpecs", rb_cObject);
 
 #ifdef HAVE_RB_SCAN_ARGS
   rb_define_method(cls, "rb_scan_args", util_spec_rb_scan_args, 4);
+#endif
+
+#ifdef HAVE_RB_LONG2INT
+  rb_define_method(cls, "rb_long2int", util_spec_rb_long2int, 1);
 #endif
 }
 
