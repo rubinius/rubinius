@@ -1,3 +1,2 @@
-fails:String#ord ignores subsequent characters
 fails:String#ord understands multibyte characters
 fails:String#ord is equivalent to #codepoints.first
