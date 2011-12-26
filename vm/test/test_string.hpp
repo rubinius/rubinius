@@ -94,7 +94,7 @@ public:
 
     const char* ptr = str->c_str(state);
     // Sizes are aligned so they end up as 16 bytes used
-    TS_ASSERT_EQUALS(str->data()->size(), 16);
+    TS_ASSERT(str->data()->size() > 8);
     TS_ASSERT(!memcmp("zzzzzzzz\0", ptr, 9));
     TS_ASSERT(!memcmp("zzzzzzzz\0", str->byte_address(), 9));
   }
