@@ -1949,7 +1949,10 @@ class String
     else
       # Resize if necessary
       new_size = @num_bytes - count + rsize
-      resize_capacity new_size if new_size > @data.size
+      # We use >= here and not > so we don't use every byte for
+      # @data. We always want to have at least 1 character room
+      # in a ByteArray for creating a \0 terminated string.
+      resize_capacity new_size if new_size >= @data.size
 
       # easy, fits right in.
       if count == rsize
