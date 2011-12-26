@@ -204,6 +204,19 @@ namespace rubinius {
   const char* String::c_str(STATE) {
     char* c_string = (char*)byte_address();
 
+    /*
+     * Oh Oh... String's don't need to be \0 terminated..
+     * The problem here is that that means we can't just
+     * set \0 on the c_string[size()] element since that means
+     * we might write outside the ByteArray storage allocated for this!
+     *
+     * Therefore we need to guard this case just in case so we don't
+     * put the VM in a state with corrupted memory.
+     */
+    if(size() >= as<CharArray>(data_)->size()) {
+      Exception::object_bounds_exceeded_error(state, "can't safely create a null terminated string");
+    }
+
     if(c_string[size()] != 0) {
       unshare(state);
       // Read it again because unshare might change it.
