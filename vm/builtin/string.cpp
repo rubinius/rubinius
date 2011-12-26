@@ -203,6 +203,7 @@ namespace rubinius {
 
   const char* String::c_str(STATE) {
     char* c_string = (char*)byte_address();
+    native_int current_size = size();
 
     /*
      * Oh Oh... String's don't need to be \0 terminated..
@@ -213,15 +214,21 @@ namespace rubinius {
      * Therefore we need to guard this case just in case so we don't
      * put the VM in a state with corrupted memory.
      */
-    if(size() >= as<CharArray>(data_)->size()) {
-      Exception::object_bounds_exceeded_error(state, "can't safely create a null terminated string");
+    if(current_size >= as<CharArray>(data_)->size()) {
+      CharArray* ba = CharArray::create(state, current_size + 1);
+      memcpy(ba->raw_bytes(), byte_address(), current_size);
+      data(state, ba);
+      if(shared_ == Qtrue) shared(state, Qfalse);
+      // We need to read it again since we have a new CharArray
+      c_string = (char*)byte_address();
+      c_string[current_size] = 0;
     }
 
-    if(c_string[size()] != 0) {
+    if(c_string[current_size] != 0) {
       unshare(state);
       // Read it again because unshare might change it.
       c_string = (char*)byte_address();
-      c_string[size()] = 0;
+      c_string[current_size] = 0;
     }
 
     return c_string;

@@ -80,6 +80,25 @@ public:
     TS_ASSERT_EQUALS(std::string("blah"), str->c_str(state));
   }
 
+  void test_cstr() {
+    // We need to setup a string that uses a CharArray
+    // to full capacity in order to test c_str() resizing
+    str = String::create(state, "zzzzzzz");
+    str->num_bytes(state, Fixnum::from(8));
+    str->byte_address()[7] = 'z';
+
+    // We should still have a data backend of 8 bytes
+    // which are completely filled by all 'z' characters
+    TS_ASSERT_EQUALS(str->data()->size(), 8);
+    TS_ASSERT(!memcmp("zzzzzzzz", str->byte_address(), 8));
+
+    const char* ptr = str->c_str(state);
+    // Sizes are aligned so they end up as 16 bytes used
+    TS_ASSERT_EQUALS(str->data()->size(), 16);
+    TS_ASSERT(!memcmp("zzzzzzzz\0", ptr, 9));
+    TS_ASSERT(!memcmp("zzzzzzzz\0", str->byte_address(), 9));
+  }
+
   void test_append() {
     String* s1 = String::create(state, "omote ");
 
