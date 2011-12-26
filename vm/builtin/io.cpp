@@ -688,7 +688,8 @@ namespace rubinius {
       buf_size = data_size;
     }
 
-    int n = ::write(descriptor_->to_native(), buf->c_str(state), buf_size);
+    // We can use byte_address() here since we use an explicit size
+    int n = ::write(descriptor_->to_native(), buf->byte_address(), buf_size);
     if(n == -1) Exception::errno_error(state, "write_nonblock");
     return Fixnum::from(n);
   }
