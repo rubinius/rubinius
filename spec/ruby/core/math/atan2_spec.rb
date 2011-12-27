@@ -51,7 +51,7 @@ describe "Math.atan2" do
     Math.atan2(0.0, -0.0).should == Math::PI
   end
 
-  it "returns -Pi when passed -0.0, 0.0" do
+  it "returns -Pi when passed -0.0, -0.0" do
     Math.atan2(-0.0, -0.0).should == -Math::PI
   end
 end
