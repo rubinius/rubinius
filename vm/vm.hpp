@@ -286,8 +286,6 @@ namespace rubinius {
 
     void set_current_fiber(Fiber* fib);
 
-    void raise_stack_error(CallFrame* call_frame);
-
     Object* new_object_typed(Class* cls, size_t bytes, object_type type);
     Object* new_object_typed_mature(Class* cls, size_t bytes, object_type type);
 

@@ -206,9 +206,6 @@ end
 class SecurityError < StandardError
 end
 
-class SystemStackError < StandardError
-end
-
 class ThreadError < StandardError
 end
 
