@@ -100,7 +100,7 @@ namespace rubinius {
     TypedRoot<Class*> proc; /**< Proc class */
     TypedRoot<Class*> variable_scope;
     TypedRoot<Class*> location;
-    TypedRoot<Exception*> stack_error;
+    TypedRoot<Class*> stack_error;
     TypedRoot<Class*> jump_error;
     TypedRoot<Class*> exc_vm_internal;
     TypedRoot<Class*> exc_vm_bad_bytecode;

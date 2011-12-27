@@ -9,9 +9,10 @@
 
 namespace rubinius {
   void State::raise_stack_error(CallFrame* call_frame) {
-    Exception* se = globals().stack_error.get();
-    se->locations(this, Location::from_call_stack(this, call_frame));
-    vm_->thread_state()->raise_exception(se);
+    Class* stack_error = globals().stack_error.get();
+    Exception* exc = new_object<Exception>(stack_error);
+    exc->locations(this, Location::from_call_stack(this, call_frame));
+    vm_->thread_state()->raise_exception(exc);
   }
 
   bool State::process_async(CallFrame* call_frame) {

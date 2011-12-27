@@ -54,7 +54,7 @@ namespace rubinius {
       T* new_object(Class *cls) {
         return reinterpret_cast<T*>(vm_->new_object_typed(cls, sizeof(T), T::type));
       }
-    
+
     ThreadState* thread_state() {
       return vm_->thread_state();
     }

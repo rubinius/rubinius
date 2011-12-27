@@ -564,9 +564,9 @@ namespace rubinius {
     ontology::new_class(state, "AssertionError", vme, G(rubinius));
     ontology::new_class(state, "ObjectBoundsExceededError", vme, G(rubinius));
 
-    // Create the stack error object now, since we probably wont be
-    // able to later.
-    GO(stack_error).set(new_object<Exception>(stk));
+    // The stack_error mechanisms assume that there will be enough
+    // space left over to allocate the actual exception.
+    GO(stack_error).set(stk);
 
     GO(exc_type).set(type);
     GO(exc_arg).set(arg);
