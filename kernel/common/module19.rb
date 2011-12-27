@@ -1,4 +1,36 @@
 class Module
+
+
+  def const_get(name, inherit = true)
+    name = normalize_const_name(name)
+
+    current, constant = self, undefined
+
+    while current
+      constant = current.constant_table.fetch name, undefined
+      unless constant.equal?(undefined)
+        constant = constant.call if constant.kind_of?(Autoload)
+        return constant
+      end
+
+      unless inherit
+        raise NameError, "uninitialized constant #{current}::#{name}"
+      end
+
+      current = current.direct_superclass
+    end
+
+    if instance_of?(Module)
+      constant = Object.constant_table.fetch name, undefined
+      unless constant.equal?(undefined)
+        constant = constant.call if constant.kind_of?(Autoload)
+        return constant
+      end
+    end
+
+    const_missing(name)
+  end
+
   def const_defined?(name, search_parents=true)
     name = normalize_const_name(name)
     return true if @constant_table.has_key? name
