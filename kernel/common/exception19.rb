@@ -13,6 +13,3 @@ class Exception
     end
   end
 end
-
-class SystemStackError < Exception
-end

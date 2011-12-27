@@ -5,7 +5,3 @@ class Exception
     @reason_message || self.class.to_s
   end
 end
-
-class SystemStackError < StandardError
-end
-
