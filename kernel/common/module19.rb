@@ -14,7 +14,7 @@ class Module
       end
 
       unless inherit
-        raise NameError, "uninitialized constant #{current}::#{name}"
+        const_missing(name)
       end
 
       current = current.direct_superclass
