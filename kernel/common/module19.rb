@@ -14,7 +14,7 @@ class Module
       end
 
       unless inherit
-        const_missing(name)
+        return const_missing(name)
       end
 
       current = current.direct_superclass
