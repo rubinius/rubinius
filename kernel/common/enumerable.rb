@@ -199,7 +199,7 @@ module Enumerable
 
       sym = sym.to_sym
 
-      each do 
+      each do
         o = Rubinius.single_block_arg
         if initial.equal? undefined
           initial = o
@@ -211,7 +211,7 @@ module Enumerable
       # Block version
     else
       each do
-        o = Rubinius.single_block_arg        
+        o = Rubinius.single_block_arg
         if initial.equal? undefined
           initial = o
         else
@@ -319,7 +319,8 @@ module Enumerable
     end
 
     cache = []
-    each do |elem|
+    each do
+      elem = Rubinius.single_block_arg
       cache << elem
       yield elem
     end
@@ -369,7 +370,8 @@ module Enumerable
 
     ary = []
     dropping = true
-    each do |obj|
+    each do
+      obj = Rubinius.single_block_arg
       ary << obj unless dropping &&= yield(obj)
     end
 
@@ -383,7 +385,8 @@ module Enumerable
     raise ArgumentError, "invalid size: #{n}" if n <= 0
 
     array = []
-    each do |element|
+    each do
+      element = Rubinius.single_block_arg
       array << element
       array.shift if array.size > n
       yield array.dup if array.size == n
@@ -398,7 +401,8 @@ module Enumerable
     raise ArgumentError, "invalid slice size: #{n}" if n <= 0
 
     a = []
-    each do |element|
+    each do
+      element = Rubinius.single_block_arg
       a << element
       if a.length == n
         yield a

@@ -198,7 +198,10 @@ module Enumerable
 
   def each_with_object(memo)
     return to_enum :each_with_object, memo unless block_given?
-    each { |obj| yield obj, memo }
+    each do
+      obj = Rubinius.single_block_arg
+      yield obj, memo
+    end
     memo
   end
 
