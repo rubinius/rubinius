@@ -1,4 +1,6 @@
 /* The simple CharArray class, used to implement encoding-aware String. */
+#include "oniguruma.h" // Must be first.
+#include "regenc.h"
 
 #include <stdint.h>
 
@@ -21,8 +23,7 @@
 namespace rubinius {
 
   void CharArray::init(STATE) {
-    GO(chararray).set(ontology::new_class_under(state, 
-                        "CharArray", G(rubinius)));
+    GO(chararray).set(ontology::new_class_under(state, "CharArray", G(rubinius)));
     G(chararray)->set_object_type(state, CharArrayType);
     G(chararray)->name(state, state->symbol("Rubinius::CharArray"));
   }
@@ -245,6 +246,78 @@ namespace rubinius {
     }
 
     return Qnil;
+  }
+
+  const uint8_t* find_non_ascii(const uint8_t* data, int num) {
+    for(int i = 0; i < num; i++) {
+      if(!ISASCII(data[i])) {
+        return data + i;
+      }
+    }
+    return 0;
+  }
+
+  int precise_mbclen(const uint8_t* p, const uint8_t* e, OnigEncodingType* enc) {
+    int n;
+
+    if (e <= p) {
+      return ONIGENC_CONSTRUCT_MBCLEN_NEEDMORE(1);
+    }
+
+    n = ONIGENC_PRECISE_MBC_ENC_LEN(enc, (UChar*)p, (UChar*)e);
+    if (e-p < n) {
+      return ONIGENC_CONSTRUCT_MBCLEN_NEEDMORE(n-(int)(e-p));
+    }
+
+    return n;
+  }
+
+  Object* CharArray::ascii_only(STATE, Fixnum* num) {
+    if(ascii_->nil_p()) {
+      native_int n = num->to_native() > size() ? size() : num->to_native();
+
+      if(n == 0) {
+        ascii(state, encoding(state)->ascii_compatible_p(state));
+      } else {
+        if(find_non_ascii(bytes, n)) {
+          ascii(state, Qfalse);
+        } else {
+          ascii(state, Qtrue);
+        }
+      }
+    }
+
+    return ascii_;
+  }
+
+  Object* CharArray::valid_encoding(STATE, Fixnum* num) {
+    if(valid_->nil_p()) {
+      if(encoding(state) == Encoding::from_index(state, Encoding::eBinary)) {
+        valid(state, Qtrue);
+        return valid_;
+      }
+
+      OnigEncodingType* enc = encoding(state)->get_encoding();
+
+      native_int s = num->to_native() > size() ? size() : num->to_native();
+      uint8_t* p = bytes;
+      uint8_t* e = p + s;
+
+      while(p < e) {
+        int n = precise_mbclen(p, e, enc);
+
+        if(!ONIGENC_MBCLEN_CHARFOUND_P(n)) {
+          valid(state, Qfalse);
+          return valid_;
+        }
+
+        p += n;
+      }
+
+      valid(state, Qtrue);
+    }
+
+    return valid_;
   }
 
   // Ripped from 1.8.7 and cleaned up

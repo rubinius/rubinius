@@ -299,4 +299,8 @@ namespace rubinius {
     return Encoding::define(state, name->c_str(state), encoding_);
   }
 
+  Object* Encoding::ascii_compatible_p(STATE) {
+    bool v = encoding_->min_enc_len == 1 && dummy_ == Qfalse;
+    return v ? Qtrue : Qfalse;
+  }
 }

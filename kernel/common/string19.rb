@@ -12,6 +12,10 @@ class String
 
   private :initialize
 
+  def ascii_only?
+    @data.ascii_only? @num_bytes
+  end
+
   def encode(to=undefined, from=undefined, options=nil)
     # TODO
     self
@@ -76,11 +80,11 @@ class String
   end
 
   def encoding
-    # TODO: temporary until encoding is set on create.
-    @encoding ||= Encoding.find("us-ascii")
+    @data.encoding
   end
 
-  def force_encoding(name)
+  def force_encoding(enc)
+    @data.force_encoding enc
     self
   end
 
@@ -1007,5 +1011,9 @@ class String
 
     replace(ret)
     return self
+  end
+
+  def valid_encoding?
+    @data.valid_encoding? @num_bytes
   end
 end

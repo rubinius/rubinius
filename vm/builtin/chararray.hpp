@@ -15,6 +15,8 @@ namespace rubinius {
 
   private:
     Encoding* encoding_;    // slot
+    Object* ascii_;         // slot
+    Object* valid_;         // slot
     native_int full_size_;
 
     // Body access
@@ -22,6 +24,8 @@ namespace rubinius {
 
   public:
     attr_accessor(encoding, Encoding);
+    attr_accessor(ascii, Object);
+    attr_accessor(valid, Object);
 
     static void init(STATE);
     static CharArray* create(STATE, native_int bytes);
@@ -75,8 +79,16 @@ namespace rubinius {
     // Rubinius.primitive :chararray_reverse
     CharArray* reverse(STATE, Fixnum* start, Fixnum* total);
 
+    // Rubinius.primitive :chararray_ascii_only_p
+    Object* ascii_only(STATE, Fixnum* num);
+
+    // Rubinius.primitive :chararray_valid_encoding_p
+    Object* valid_encoding(STATE, Fixnum* num);
+
     // This accessor should be used by objects that compose CharArray and
     // delegate their encoding attribute to CharArray (eg String).
+    //
+    // Rubinius.primitive :chararray_encoding
     Encoding* encoding(STATE);
 
     char* to_chars(STATE, Fixnum* size);

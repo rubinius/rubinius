@@ -14,4 +14,9 @@ class Encoding
     Rubinius.primitive :encoding_replicate
     raise PrimitiveFailure, "Encoding#replicate primitive failed"
   end
+
+  def ascii_compatible?
+    Rubinius.primitive :encoding_ascii_compatible_p
+    raise PrimitiveFailure, "Encoding#ascii_compatible? primitive failed"
+  end
 end
