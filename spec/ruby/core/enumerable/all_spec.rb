@@ -98,5 +98,20 @@ describe "Enumerable#all?" do
         @enum.all? { raise "from block" }
       }.should raise_error(RuntimeError)
     end
+
+    ruby_version_is "" ... "1.9" do
+      it "gathers whole arrays as elements when each yields multiple" do
+        multi = EnumerableSpecs::YieldsMulti.new
+        multi.all? {|e| Array === e}.should be_true
+      end
+    end
+
+    ruby_version_is "1.9" do
+      it "gathers initial args as elements when each yields multiple" do
+        multi = EnumerableSpecs::YieldsMulti.new
+        multi.all? {|e| !(Array === e) }.should be_true
+      end
+    end
+
   end
 end
