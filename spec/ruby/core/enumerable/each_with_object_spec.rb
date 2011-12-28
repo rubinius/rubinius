@@ -29,5 +29,13 @@ describe "Enumerable#each_with_object" do
       end.should equal(@initial)
       acc.should == @values
     end
+
+    it "gathers whole arrays as elements when each yields multiple" do
+      multi = EnumerableSpecs::YieldsMulti.new
+      array = []
+      multi.each_with_object(array) { |elem, obj| obj << elem }
+      array.should == [[1, 2], [3, 4, 5], [6, 7, 8, 9]]
+    end
+
   end
 end
