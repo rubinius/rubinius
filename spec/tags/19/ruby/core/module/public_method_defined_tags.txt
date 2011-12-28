@@ -1,1 +1,0 @@
-fails:Module#public_method_defined? raises a TypeError if not passed a Symbol
