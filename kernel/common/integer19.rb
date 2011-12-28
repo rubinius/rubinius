@@ -2,7 +2,16 @@ class Integer
   def round(ndigits=undefined)
     return self if ndigits.equal? undefined
 
+    if Rubinius::Type.object_kind_of?(ndigits, Numeric)
+      begin
+        Rubinius::Type.coerce_to(ndigits, Fixnum, :to_int)
+      rescue TypeError => e
+        raise RangeError, e.message
+      end
+    end
+
     ndigits = Rubinius::Type.coerce_to(ndigits, Integer, :to_int)
+
     if ndigits > 0
       to_f
     elsif ndigits == 0
