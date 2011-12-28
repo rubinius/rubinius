@@ -47,6 +47,11 @@ describe :enumerable_take, :shared => true do
     lambda { @enum.send(@method, obj) }.should raise_error(TypeError)
   end
 
+  it "gathers whole arrays as elements when each yields multiple" do
+    multi = EnumerableSpecs::YieldsMulti.new
+    multi.send(@method, 1).should == [[1, 2]]
+  end
+
   ruby_bug "#1554", "1.9.1" do
     it "consumes only what is needed" do
       thrower = EnumerableSpecs::ThrowingEach.new
