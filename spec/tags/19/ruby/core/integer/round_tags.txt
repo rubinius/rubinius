@@ -1,1 +1,0 @@
-fails:Integer#round raises a RangeError when its argument can not be converted to a Fixnum
