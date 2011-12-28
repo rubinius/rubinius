@@ -68,4 +68,9 @@ describe :enumerable_find, :shared => true do
     @numerous.send(@method, fail_proc).each {|e| false }.should == "cheeseburgers"
   end
 
+  it "gathers whole arrays as elements when each yields multiple" do
+    multi = EnumerableSpecs::YieldsMulti.new
+    multi.send(@method) {|e| e == [1, 2] }.should == [1, 2]
+  end
+
 end
