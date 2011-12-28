@@ -857,7 +857,8 @@ module Enumerable
     array = []
 
     unless n <= 0
-      each do |elem|
+      each do
+        elem = Rubinius.single_block_arg
         array << elem
         break if array.size >= n
       end
