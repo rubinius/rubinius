@@ -36,15 +36,32 @@ describe "Integer#round" do
       end
     end
 
-    it "raises a RangeError when its argument can not be converted to a Fixnum" do
+    it 'raises a RangeError when passed Float::INFINITY' do
       lambda { 42.round(Float::INFINITY) }.should raise_error(RangeError)
-      lambda { 42.round(-2**100) }.should raise_error(RangeError)
     end
 
-    it "raises a TypeError when its argument can not be converted to an Integer" do
+    it 'raises a RangeError when passed a Bignum' do
+      lambda { 42.round(fixnum_max + 1) }.should raise_error(RangeError)
+    end
+
+    it 'raises a TypeError when passed a String' do
       lambda { 42.round("4") }.should raise_error(TypeError)
+    end
+
+    it 'raises a TypeError when its argument cannot be converted to an Integer' do
       lambda { 42.round(nil) }.should raise_error(TypeError)
     end
 
+    it 'calls #to_int on the argument to convert it to an Integer' do
+      obj = mock("Object")
+      obj.should_receive(:to_int).and_return(0)
+      42.round(obj)
+    end
+
+    it 'raise a TypeError when #to_int does not return an Integer' do
+      obj = mock("Object")
+      obj.stub!(:to_int).and_return([])
+      lambda { 42.round(obj) }.should raise_error(TypeError)
+    end
   end
 end
