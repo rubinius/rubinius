@@ -18,12 +18,12 @@ describe "Syslog.mask" do
     end
 
     it "returns the log priority mask" do
-      Syslog.open("rubyspec")
-      Syslog.mask.should == 255
-      Syslog.mask = 3
-      Syslog.mask.should == 3
-      Syslog.mask = 255
-      Syslog.close
+      Syslog.open("rubyspec") do
+        Syslog.mask.should == 255
+        Syslog.mask = 3
+        Syslog.mask.should == 3
+        Syslog.mask = 255
+      end
     end
 
     it "defaults to 255" do
@@ -42,13 +42,13 @@ describe "Syslog.mask" do
       Syslog.mask.should == 255
       Syslog.mask = 64
 
-      Syslog.reopen("rubyspec")
-      Syslog.mask.should == 64
-      Syslog.close
+      Syslog.reopen("rubyspec") do
+        Syslog.mask.should == 64
+      end
 
-      Syslog.open
-      Syslog.mask.should == 64
-      Syslog.close
+      Syslog.open do
+        Syslog.mask.should == 64
+      end
     end
   end
 end
@@ -70,10 +70,10 @@ describe "Syslog.mask=" do
     end
 
     it "sets the log priority mask" do
-      Syslog.open
-      Syslog.mask = 64
-      Syslog.mask.should == 64
-      Syslog.close
+      Syslog.open do
+        Syslog.mask = 64
+        Syslog.mask.should == 64
+      end
     end
 
     it "raises an error if the log is closed" do
@@ -81,18 +81,18 @@ describe "Syslog.mask=" do
     end
 
     it "only accepts numbers" do
-      Syslog.open
+      Syslog.open do
 
-      Syslog.mask = 1337
-      Syslog.mask.should == 1337
+        Syslog.mask = 1337
+        Syslog.mask.should == 1337
 
-      Syslog.mask = 3.1416
-      Syslog.mask.should == 3
+        Syslog.mask = 3.1416
+        Syslog.mask.should == 3
 
-      lambda { Syslog.mask = "oh hai" }.should raise_error(TypeError)
-      lambda { Syslog.mask = "43" }.should raise_error(TypeError)
+        lambda { Syslog.mask = "oh hai" }.should raise_error(TypeError)
+        lambda { Syslog.mask = "43" }.should raise_error(TypeError)
 
-      Syslog.close
+      end
     end
   end
 end
