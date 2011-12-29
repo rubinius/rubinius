@@ -94,8 +94,6 @@ class MSpecScript
     '^spec/ruby/library/uri',
     '^spec/ruby/library/zlib',
 
-    '^spec/ruby/optional/capi/io',
-
     # Excluded because the specs are extremely system dependent.
     '^spec/ruby/library/syslog',
   ] + get(:obsolete_library) + get(:unsupported_library)
