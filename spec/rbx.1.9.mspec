@@ -83,7 +83,6 @@ class MSpecScript
     'spec/build',
 
     # Excluded while building out basic 1.9 infrastructure
-    '^spec/ruby/core/encoding/default_internal',
     '^spec/ruby/core/io/open',
     '^spec/ruby/core/module/name',
     '^spec/ruby/core/proc/arity',
