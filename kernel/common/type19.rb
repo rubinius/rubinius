@@ -2,14 +2,14 @@ module Rubinius
   module Type
     def self.coerce_to_encoding(obj)
       case obj
-      when ::Encoding
+      when Encoding
         return obj
       when String
-        return ::Encoding.find obj
+        return Encoding.find obj
       when nil
         # TODO: temporary until __ENCODING__ is fixed
       else
-        return ::Encoding.find StringValue(obj)
+        return Encoding.find StringValue(obj)
       end
     end
 

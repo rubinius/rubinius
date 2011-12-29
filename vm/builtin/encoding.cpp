@@ -36,8 +36,8 @@ namespace rubinius {
   void Encoding::init(STATE) {
     onig_init();  // in regexp.cpp too, but idempotent.
 
-    Class* enc = ontology::new_class_under(state, "Encoding", G(rubinius));
-    enc->name(state, state->symbol("Rubinius::Encoding"));
+    Class* enc = ontology::new_class_under(state, "EncodingClass", G(rubinius));
+    enc->name(state, state->symbol("Rubinius::EncodingClass"));
 
     GO(encoding).set(ontology::new_class_under(state, "Encoding", enc));
     G(encoding)->set_object_type(state, EncodingType);

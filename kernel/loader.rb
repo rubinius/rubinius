@@ -317,13 +317,13 @@ containing the Rubinius standard library files.
         end
       else
         options.on "-U", "Set Encoding.default_internal to UTF-8" do
-          ::Encoding.default_internal = "UTF-8"
+          Encoding.default_internal = "UTF-8"
         end
 
         options.on "-E", "ENC", "Set external:internal character encoding to ENC" do |enc|
           ext, int = enc.split(":")
-          ::Encoding.default_external = ext if ext and !ext.empty?
-          ::Encoding.default_internal = int if int and !int.empty?
+          Encoding.default_external = ext if ext and !ext.empty?
+          Encoding.default_internal = int if int and !int.empty?
         end
       end
 
