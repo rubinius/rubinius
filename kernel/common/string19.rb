@@ -279,6 +279,10 @@ class String
   alias_method :next, :succ
   alias_method :next!, :succ!
 
+  def to_c
+    Complexifier.new(self).convert
+  end
+
   def to_r
     Rationalizer.new(self).convert
   end
