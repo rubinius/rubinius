@@ -93,11 +93,10 @@ class StringIO
 
   alias_method :chars, :each_char
 
-  def each(sep = $/)
-    return to_enum :each, sep unless block_given?
+  def each(*args)
+    return to_enum :each, *args unless block_given?
     raise IOError, "not opened for reading" unless @readable
-    sep = StringValue(sep) unless sep.nil?
-    while line = getline(sep)
+    while line = getline(*args)
       yield line
     end
     self
@@ -198,8 +197,8 @@ class StringIO
     char && char.ord
   end
 
-  def gets(sep = $/)
-    $_ = getline(sep)
+  def gets(*args)
+    $_ = getline(*args)
   end
 
   def isatty
@@ -322,15 +321,15 @@ class StringIO
     readchar.getbyte(0)
   end
 
-  def readline(sep = $/)
+  def readline(*args)
     raise IO::EOFError, "end of file reached" if eof?
-    $_ = getline(sep)
+    $_ = getline(*args)
   end
 
-  def readlines(sep = $/)
+  def readlines(*args)
     raise IOError, "not opened for reading" unless @readable
     ary = []
-    while line = getline(sep)
+    while line = getline(*args)
       ary << line
     end
     ary
@@ -510,16 +509,39 @@ class StringIO
       @string.replace("") if (mode & IO::TRUNC) != 0
     end
 
-    def getline(sep = $/)
+    def getline(*args)
       raise IOError unless @readable
+
+      sep = nil
+      limit = nil
+
+      case args.size
+      when 0
+        sep = $/
+      when 1
+        if args[0]
+          if limit = Rubinius::Type.check_convert_type(args[0], Integer, :to_int)
+            return '' if limit == 0
+          else
+            sep = Rubinius::Type.coerce_to(args[0], String, :to_str)
+          end
+        end
+      when 2
+        sep = Rubinius::Type.coerce_to(args[0], String, :to_str)
+        limit = Rubinius::Type.coerce_to(args[1], Integer, :to_int)
+      end
 
       sep = StringValue(sep) unless sep.nil?
 
       return nil if eof?
 
       if sep.nil?
-        line = @string[@pos .. -1]
-        @pos = @string.size
+        if limit
+          line = @string[@pos ... @pos + limit]
+        else
+          line = @string[@pos .. -1]
+        end
+        @pos += line.size
       elsif sep.empty?
         if stop = @string.index("\n\n", @pos)
           stop += 2
@@ -534,12 +556,20 @@ class StringIO
         end
       else
         if stop = @string.index(sep, @pos)
-          stop += sep.length
+          if limit && stop - @pos >= limit
+            stop = @pos + limit
+          else
+            stop += sep.length
+          end
           line = @string[@pos ... stop]
           @pos = stop
         else
-          line = @string[@pos .. -1]
-          @pos = @string.size
+          if limit
+            line = @string[@pos ... @pos + limit]
+          else
+            line = @string[@pos .. -1]
+          end
+          @pos += line.size
         end
       end
 
