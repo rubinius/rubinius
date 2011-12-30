@@ -80,6 +80,7 @@ field_extract_headers = %w[
   vm/builtin/randomizer.hpp
   vm/builtin/regexp.hpp
   vm/builtin/staticscope.hpp
+  vm/builtin/encoding.hpp
   vm/builtin/string.hpp
   vm/builtin/symbol.hpp
   vm/builtin/thread.hpp
@@ -100,7 +101,6 @@ field_extract_headers = %w[
   vm/builtin/call_unit.hpp
   vm/builtin/call_unit_adapter.hpp
   vm/builtin/cache.hpp
-  vm/builtin/encoding.hpp
   vm/builtin/atomic.hpp
 ]
 

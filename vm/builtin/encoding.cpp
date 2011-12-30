@@ -252,7 +252,7 @@ namespace rubinius {
   }
 
   Class* Encoding::internal_class(STATE) {
-    return as<Class>(G(rubinius)->get_const(state, state->symbol("Encoding")));
+    return as<Class>(G(rubinius)->get_const(state, state->symbol("EncodingClass")));
   }
 
   LookupTable* Encoding::encoding_map(STATE) {

@@ -1,14 +1,18 @@
+#include "oniguruma.h" // Must be first.
+#include "regenc.h"
+
 #include "builtin/string.hpp"
-#include "builtin/bytearray.hpp"
+#include "builtin/array.hpp"
+#include "builtin/chararray.hpp"
 #include "builtin/class.hpp"
+#include "builtin/encoding.hpp"
 #include "builtin/exception.hpp"
 #include "builtin/fixnum.hpp"
-#include "builtin/symbol.hpp"
 #include "builtin/float.hpp"
 #include "builtin/integer.hpp"
-#include "builtin/tuple.hpp"
-#include "builtin/array.hpp"
 #include "builtin/regexp.hpp"
+#include "builtin/symbol.hpp"
+#include "builtin/tuple.hpp"
 
 #include "configuration.hpp"
 #include "vm.hpp"
@@ -27,6 +31,8 @@
 #include <iostream>
 #include <ctype.h>
 #include <stdint.h>
+
+#include <sstream>
 
 namespace rubinius {
 
@@ -782,6 +788,36 @@ namespace rubinius {
     } else {
       Exception::argument_error(state, "pattern must be a Fixnum or String");
     }
+
+    return s;
+  }
+
+  static void invalid_codepoint_error(STATE, unsigned int c) {
+    std::ostringstream msg;
+    msg << "invalid codepoint: " << c;
+    Exception::range_error(state, msg.str().c_str());
+  }
+
+  String* String::from_codepoint(STATE, Object* self, Integer* code, Encoding* enc) {
+    String* s = state->new_object<String>(G(string));
+
+    unsigned int c = code->to_uint();
+    int n = ONIGENC_CODE_TO_MBCLEN(enc->get_encoding(), c);
+
+    if(n <= 0) invalid_codepoint_error(state, c);
+
+    // TODO: fix String to use num_chars
+    s->num_bytes(state, Fixnum::from(n));
+    s->hash_value(state, nil<Fixnum>());
+    s->shared(state, Qfalse);
+
+    CharArray* ca = CharArray::create(state, n);
+    ca->encoding(state, enc);
+
+    n = ONIGENC_CODE_TO_MBC(enc->get_encoding(), c ,(UChar*)ca->raw_bytes());
+    if(n <= 0) invalid_codepoint_error(state, c);
+
+    s->data(state, ca);
 
     return s;
   }

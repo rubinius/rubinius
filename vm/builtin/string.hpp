@@ -164,6 +164,9 @@ namespace rubinius {
     // Rubinius.primitive :string_pattern
     static String* pattern(STATE, Object* self, Fixnum* size, Object* pattern);
 
+    // Rubinius.primitive :string_from_codepoint
+    static String* from_codepoint(STATE, Object* self, Integer* code, Encoding* enc);
+
     // Rubinius.primitive :string_substring
     String* substring(STATE, Fixnum* start, Fixnum* count);
 

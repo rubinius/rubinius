@@ -17,6 +17,14 @@ namespace rubinius {
     return as<Bignum>(this)->to_native();
   }
 
+  unsigned int Integer::to_uint() {
+    if(fixnum_p()) {
+      return (force_as<Fixnum>(this))->to_uint();
+    }
+
+    return as<Bignum>(this)->to_uint();
+  }
+
   long Integer::to_long() {
     if(fixnum_p()) {
       return (force_as<Fixnum>(this))->to_long();

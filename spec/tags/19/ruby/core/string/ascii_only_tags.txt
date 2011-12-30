@@ -1,1 +1,0 @@
-fails:String#ascii_only? returns false for the first non-US-ASCII single-character String

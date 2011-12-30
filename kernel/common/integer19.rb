@@ -1,4 +1,27 @@
 class Integer
+  def chr(enc=undefined)
+    if self < 0 || (self & 0xffff_ffff) != self
+      raise RangeError, "#{self} is outside of the valid character range"
+    end
+
+    if enc.equal? undefined
+      if 0xff < self
+        enc = Encoding.default_internal
+        if enc.nil?
+          raise RangeError, "#{self} is outside of the valid character range"
+        end
+      elsif self < 0x80
+        return String.pattern(1, self)
+      else
+        enc = Encoding::ASCII_8BIT
+      end
+    else
+      enc = Rubinius::Type.coerce_to_encoding enc
+    end
+
+    String.from_codepoint self, enc
+  end
+
   def round(ndigits=undefined)
     return self if ndigits.equal? undefined
 

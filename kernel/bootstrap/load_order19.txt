@@ -35,6 +35,7 @@ rubinius.rbc
 rubinius19.rbc
 static_scope.rbc
 string.rbc
+string19.rbc
 symbol.rbc
 symbol19.rbc
 thread.rbc
