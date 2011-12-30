@@ -897,6 +897,7 @@ module Enumerable
     each(*arg) do
       o = Rubinius.single_block_arg
       ary << o
+      nil
     end
     ary
   end
