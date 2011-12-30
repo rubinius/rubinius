@@ -90,8 +90,6 @@ class MSpecScript
     '^spec/ruby/core/string/getbyte',
 
     '^spec/ruby/library/delegate',
-    '^spec/ruby/library/net',
-    '^spec/ruby/library/uri',
     '^spec/ruby/library/zlib',
 
     # Excluded because the specs are extremely system dependent.
