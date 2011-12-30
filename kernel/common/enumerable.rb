@@ -240,9 +240,9 @@ module Enumerable
 
   def all?
     if block_given?
-      each { |e| return false unless yield(e) }
+      each { |*e| return false unless yield(*e) }
     else
-      each { |e| return false unless e }
+      each { return false unless Rubinius.single_block_arg }
     end
     true
   end
@@ -263,9 +263,9 @@ module Enumerable
 
   def any?
     if block_given?
-      each { |o| return true if yield(o) }
+      each { |*o| return true if yield(*o) }
     else
-      each { |o| return true if o }
+      each { return true if Rubinius.single_block_arg }
     end
     false
   end
@@ -518,8 +518,8 @@ module Enumerable
     return to_enum(:group_by) unless block_given?
 
     h = {}
-    i = 0
-    each do |o|
+    each do
+      o = Rubinius.single_block_arg
       key = yield(o)
       if h.key?(key)
         h[key] << o
@@ -545,7 +545,8 @@ module Enumerable
 
   def min
     min = undefined
-    each do |o|
+    each do
+      o = Rubinius.single_block_arg
       if min.equal? undefined
         min = o
       else
@@ -578,7 +579,8 @@ module Enumerable
 
   def max
     max = undefined
-    each do |o|
+    each do
+      o = Rubinius.single_block_arg
       if max.equal? undefined
         max = o
       else
@@ -615,7 +617,8 @@ module Enumerable
     max_object = nil
     max_result = undefined
 
-    each do |object|
+    each do
+      object = Rubinius.single_block_arg
       result = yield object
 
       if max_result.equal? undefined or \
@@ -647,7 +650,8 @@ module Enumerable
     min_object = nil
     min_result = undefined
 
-    each do |object|
+    each do
+      object = Rubinius.single_block_arg
       result = yield object
 
       if min_result.equal? undefined or \
@@ -677,7 +681,8 @@ module Enumerable
     first_time = true
     min, max = nil
 
-    each do |object|
+    each do
+      object = Rubinius.single_block_arg
       if first_time
         min = max = object
         first_time = false
@@ -709,7 +714,8 @@ module Enumerable
     max_object = nil
     max_result = undefined
 
-    each do |object|
+    each do
+      object = Rubinius.single_block_arg
       result = yield object
 
       if min_result.equal? undefined or \
@@ -744,9 +750,9 @@ module Enumerable
 
   def none?
     if block_given?
-      each { |o| return false if yield(o) }
+      each { |*o| return false if yield(*o) }
     else
-      each { |o| return false if o }
+      each { return false if Rubinius.single_block_arg }
     end
 
     return true
@@ -770,15 +776,15 @@ module Enumerable
     found_one = false
 
     if block_given?
-      each do |o|
-        if yield(o)
+      each do |*o|
+        if yield(*o)
           return false if found_one
           found_one = true
         end
       end
     else
-      each do |o|
-        if o
+      each do
+        if Rubinius.single_block_arg
           return false if found_one
           found_one = true
         end
@@ -802,7 +808,10 @@ module Enumerable
 
     left = []
     right = []
-    each { |o| yield(o) ? left.push(o) : right.push(o) }
+    each do
+      o = Rubinius.single_block_arg
+      yield(o) ? left.push(o) : right.push(o)
+    end
 
     return [left, right]
   end
@@ -820,7 +829,8 @@ module Enumerable
     return to_enum(:reject) unless block_given?
 
     ary = []
-    each do |o|
+    each do
+      o = Rubinius.single_block_arg
       ary << o unless yield(o)
     end
 
@@ -904,7 +914,7 @@ module Enumerable
   #   IO.constants.include? "SEEK_NO_FURTHER"   #=> false
 
   def include?(obj)
-    each { |o| return true if o == obj }
+    each { return true if Rubinius.single_block_arg == obj }
     false
   end
 
