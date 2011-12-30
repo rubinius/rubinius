@@ -1,2 +1,0 @@
-fails:Matrix.hermitian? returns true for a hermitian Matrix
-fails:Matrix.hermitian? returns false for an assymetric Matrix
