@@ -12,12 +12,20 @@ class String
 
   private :initialize
 
-  def ascii_only?
-    @data.ascii_only? @num_bytes
+  def encode!(to=undefined, from=undefined, options=nil)
+    # TODO
+    to = Rubinius::Type.coerce_to_encoding to
+    @encoding = to
+    self
   end
 
   def encode(to=undefined, from=undefined, options=nil)
-    # TODO
+    dup.encode!(to, from, options)
+  end
+
+  def force_encoding(enc)
+    @ascii_only = @valid_encoding = nil
+    @encoding = Rubinius::Type.coerce_to_encoding enc
     self
   end
 
@@ -77,15 +85,6 @@ class String
   def ord
     raise ArgumentError, 'empty string' if empty?
     @data[0]
-  end
-
-  def encoding
-    @data.encoding
-  end
-
-  def force_encoding(enc)
-    @data.force_encoding enc
-    self
   end
 
   # Reverses <i>self</i> in place.
@@ -1011,9 +1010,5 @@ class String
 
     replace(ret)
     return self
-  end
-
-  def valid_encoding?
-    @data.valid_encoding? @num_bytes
   end
 end

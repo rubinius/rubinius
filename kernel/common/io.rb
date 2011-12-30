@@ -84,7 +84,7 @@ class IO
       return 0 if @write_synced or empty?
       @write_synced = true
 
-      io.prim_write(String.from_chararray(@storage, @start, size))
+      io.prim_write(String.from_bytearray(@storage, @start, size))
       reset!
 
       return size
@@ -152,7 +152,7 @@ class IO
         total = size
         total = count if count and count < total
 
-        str = String.from_chararray @storage, @start, total
+        str = String.from_bytearray @storage, @start, total
         @start += total
 
         str

@@ -47,7 +47,7 @@ namespace rubinius {
 
     /* classes for the core 'types' */
     TypedRoot<Class*> cmethod, tuple, module, basicobject, object, array;
-    TypedRoot<Class*> klass, methtbl, bytearray, chararray;
+    TypedRoot<Class*> klass, methtbl, bytearray;
     TypedRoot<Class*> blokenv, bignum, regexp, matchdata;
     TypedRoot<Class*> string, symbol, io;
     TypedRoot<Class*> nil_class, true_class, false_class, fixnum_class, undef_class;
@@ -128,7 +128,6 @@ namespace rubinius {
       klass(&roots),
       methtbl(&roots),
       bytearray(&roots),
-      chararray(&roots),
       blokenv(&roots),
       bignum(&roots),
       regexp(&roots),

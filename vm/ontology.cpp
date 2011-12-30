@@ -8,7 +8,6 @@
 #include "builtin/basicobject.hpp"
 #include "builtin/block_environment.hpp"
 #include "builtin/bytearray.hpp"
-#include "builtin/chararray.hpp"
 #include "builtin/class.hpp"
 #include "builtin/compactlookuptable.hpp"
 #include "builtin/compiledmethod.hpp"
@@ -301,7 +300,6 @@ namespace rubinius {
     // typically means creating a Ruby class.
     Array::init(state);
     ByteArray::init(state);
-    CharArray::init(state);
     String::init(state);
     Encoding::init(state);
     kcode::init(state);

@@ -13,7 +13,7 @@ class String
 
   def self.allocate
     str = super()
-    str.__data__ = Rubinius::CharArray.new(1)
+    str.__data__ = Rubinius::ByteArray.new(1)
     str.num_bytes = 0
     str
   end
@@ -21,9 +21,9 @@ class String
   ##
   # Creates a new string from copying _count_ bytes from the
   # _start_ of _ca_.
-  def self.from_chararray(ca, start, count)
-    Rubinius.primitive :string_from_chararray
-    raise PrimitiveFailure, "String.from_chararray primitive failed"
+  def self.from_bytearray(ca, start, count)
+    Rubinius.primitive :string_from_bytearray
+    raise PrimitiveFailure, "String.from_bytearray primitive failed"
   end
 
   class << self

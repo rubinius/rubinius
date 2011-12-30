@@ -6,8 +6,6 @@ atomic.rbc
 bignum.rbc
 block_environment.rbc
 bytearray.rbc
-chararray.rbc
-chararray19.rbc
 channel.rbc
 class.rbc
 compactlookuptable.rbc

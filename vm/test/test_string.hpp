@@ -81,7 +81,7 @@ public:
   }
 
   void test_cstr() {
-    // We need to setup a string that uses a CharArray
+    // We need to setup a string that uses a ByteArray
     // to full capacity in order to test c_str() resizing
     str = String::create(state, "zzzzzzz");
     str->num_bytes(state, Fixnum::from(8));
@@ -568,10 +568,10 @@ public:
 
   }
 
-  void test_from_chararray() {
-    CharArray* ca = String::create(state, "partial to ruby")->data();
+  void test_from_bytearray() {
+    ByteArray* ba = String::create(state, "partial to ruby")->data();
     Fixnum* six = Fixnum::from(6);
-    String* s = String::from_chararray(state, ca, six, six);
+    String* s = String::from_bytearray(state, ba, six, six);
     TS_ASSERT_EQUALS(six, s->num_bytes());
     TS_ASSERT_SAME_DATA("l to r", s->c_str(state), 6);
   }

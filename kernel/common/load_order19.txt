@@ -42,8 +42,7 @@ bignum.rbc
 bignum19.rbc
 block_environment.rbc
 bytearray.rbc
-chararray.rbc
-chararray19.rbc
+bytearray19.rbc
 channel.rbc
 executable.rbc
 static_scope.rbc

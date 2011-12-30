@@ -2,8 +2,8 @@
 #define RBX_STRING_HPP
 
 #include "builtin/object.hpp"
+#include "builtin/bytearray.hpp"
 #include "builtin/fixnum.hpp"
-#include "builtin/chararray.hpp"
 
 #include "type_info.hpp"
 #include <ctype.h> // For isdigit and friends
@@ -26,7 +26,7 @@
 
 
 namespace rubinius {
-  class CharArray;
+  class ByteArray;
   class Encoding;
   class Float;
 
@@ -35,18 +35,24 @@ namespace rubinius {
     const static object_type type = StringType;
 
   private:
-    Fixnum* num_bytes_;  // slot
-    CharArray* data_;    // slot
-    Fixnum* hash_value_; // slot
-    Object* shared_;     // slot
+    Fixnum* num_bytes_;       // slot
+    ByteArray* data_;         // slot
+    Fixnum* hash_value_;      // slot
+    Object* shared_;          // slot
+    Encoding* encoding_;      // slot
+    Object* ascii_only_;      // slot
+    Object* valid_encoding_;  // slot
 
   public:
     /* accessors */
 
     attr_accessor(num_bytes, Fixnum);
-    attr_accessor(data, CharArray);
+    attr_accessor(data, ByteArray);
     attr_accessor(hash_value, Fixnum);
     attr_accessor(shared, Object);
+    attr_accessor(encoding, Encoding);
+    attr_accessor(ascii_only, Object);
+    attr_accessor(valid_encoding, Object);
 
     /* interface */
 
@@ -54,8 +60,8 @@ namespace rubinius {
 
     static String* create(STATE, Fixnum* size);
 
-    // Rubinius.primitive :string_from_chararray
-    static String* from_chararray(STATE, CharArray* ca, Fixnum* start, Fixnum* count);
+    // Rubinius.primitive :string_from_bytearray
+    static String* from_bytearray(STATE, ByteArray* ba, Fixnum* start, Fixnum* count);
     static String* create(STATE, const char* str);
     static String* create(STATE, const char* str, native_int bytes);
     static String* create_pinned(STATE, Fixnum* size);
@@ -197,7 +203,11 @@ namespace rubinius {
     // Rubinius.primitive :string_encoding
     Encoding* encoding(STATE);
 
-    Encoding* encoding(STATE, Encoding* enc);
+    // Rubinius.primitive :string_ascii_only_p
+    Object* ascii_only_p(STATE);
+
+    // Rubinius.primitive :string_valid_encoding_p
+    Object* valid_encoding_p(STATE);
 
     class Info : public TypeInfo {
     public:

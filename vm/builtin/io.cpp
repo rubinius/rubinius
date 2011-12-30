@@ -628,7 +628,7 @@ namespace rubinius {
 
   Object* IO::write(STATE, String* buf, CallFrame* call_frame) {
     native_int left = buf->size();
-    native_int data_size = as<CharArray>(buf->data())->size();
+    native_int data_size = as<ByteArray>(buf->data())->size();
     if(unlikely(left > data_size)) {
       left = data_size;
     }
@@ -683,7 +683,7 @@ namespace rubinius {
     set_nonblock(state);
 
     native_int buf_size = buf->size();
-    native_int data_size = as<CharArray>(buf->data())->size();
+    native_int data_size = as<ByteArray>(buf->data())->size();
     if(unlikely(buf_size > data_size)) {
       buf_size = data_size;
     }
@@ -1228,7 +1228,7 @@ failed: /* try next '*' position */
 /* IOBuffer methods */
   IOBuffer* IOBuffer::create(STATE, size_t bytes) {
     IOBuffer* buf = state->new_object<IOBuffer>(G(iobuffer));
-    buf->storage(state, CharArray::create(state, bytes));
+    buf->storage(state, ByteArray::create(state, bytes));
     buf->channel(state, Channel::create_primed(state));
     buf->total(state, Fixnum::from(bytes));
     buf->used(state, Fixnum::from(0));
@@ -1246,7 +1246,7 @@ failed: /* try next '*' position */
     write_synced(state, Qfalse);
     native_int start_pos_native = start_pos->to_native();
     native_int str_size = str->size();
-    native_int data_size = as<CharArray>(str->data())->size();
+    native_int data_size = as<ByteArray>(str->data())->size();
     if(unlikely(str_size > data_size)) {
       str_size = data_size;
     }
