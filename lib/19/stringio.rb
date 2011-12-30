@@ -416,6 +416,7 @@ class StringIO
   end
 
   alias_method :readpartial, :sysread
+  alias_method :read_nonblock, :sysread
 
   def tell
     @pos
