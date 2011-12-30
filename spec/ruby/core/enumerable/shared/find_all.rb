@@ -22,9 +22,12 @@ describe :enumerable_find_all, :shared => true do
     end
   end
 
-  ruby_version_is "1.8.7" do
-    it "returns an enumerator when no block given" do
-      @numerous.send(@method).should be_an_instance_of(enumerator_class)
-    end
+  it "returns an enumerator when no block given" do
+    @numerous.send(@method).should be_an_instance_of(enumerator_class)
+  end
+
+  it "gathers whole arrays as elements when each yields multiple" do
+    multi = EnumerableSpecs::YieldsMulti.new
+    multi.send(@method) {|e| e == [3, 4, 5] }.should == [[3, 4, 5]]
   end
 end

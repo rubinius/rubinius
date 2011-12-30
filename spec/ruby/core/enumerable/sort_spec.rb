@@ -52,4 +52,10 @@ describe "Enumerable#sort" do
     a=EnumerableSpecs::Numerous.new(EnumerableSpecs::Uncomparable.new, EnumerableSpecs::Uncomparable.new)
     lambda {a.sort}.should raise_error(ArgumentError)
   end
+
+  it "gathers whole arrays as elements when each yields multiple" do
+    multi = EnumerableSpecs::YieldsMulti.new
+    multi.sort {|a, b| a.first <=> b.first}.should == [[1, 2], [3, 4, 5], [6, 7, 8, 9]]
+  end
+
 end

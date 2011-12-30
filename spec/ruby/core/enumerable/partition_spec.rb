@@ -17,4 +17,10 @@ describe "Enumerable#partition" do
       EnumerableSpecs::Numerous.new.partition.should be_an_instance_of(enumerator_class)
     end
   end
+
+  it "gathers whole arrays as elements when each yields multiple" do
+    multi = EnumerableSpecs::YieldsMulti.new
+    multi.partition {|e| e == [3, 4, 5] }.should == [[[3, 4, 5]], [[1, 2], [6, 7, 8, 9]]]
+  end
+
 end

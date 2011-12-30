@@ -12,18 +12,9 @@ describe "Enumerable#none?" do
     e.none?.should be_false
   end
 
-  ruby_version_is "" ... "1.9" do
-    it "gathers whole arrays as elements when each yields multiple" do
-      multi = EnumerableSpecs::YieldsMulti.new
-      multi.none? {|e| e == 1 }.should be_true
-    end
-  end
-
-  ruby_version_is "1.9" do
-    it "gathers initial args as elements when each yields multiple" do
-      multi = EnumerableSpecs::YieldsMulti.new
-      multi.none? {|e| e == [1, 2] }.should be_true
-    end
+  it "gathers whole arrays as elements when each yields multiple" do
+    multi = EnumerableSpecs::YieldsMultiWithFalse.new
+    multi.none?.should be_false
   end
 end
 
@@ -50,5 +41,26 @@ describe "Enumerable#none? with a block" do
 
   it "returns false if the block ever returns true" do
     @e.none? {|e| e == 3 ? true : false }.should be_false
+  end
+
+  ruby_version_is "" ... "1.9" do
+    it "gathers whole arrays as elements when each yields multiple" do
+      multi = EnumerableSpecs::YieldsMulti.new
+      multi.none? {|e| e == 1 }.should be_true
+    end
+  end
+
+  ruby_version_is "1.9" do
+    it "gathers initial args as elements when each yields multiple" do
+      multi = EnumerableSpecs::YieldsMulti.new
+      multi.none? {|e| e == [1, 2] }.should be_true
+    end
+  end
+
+  it "yields multiple arguments when each yields multiple" do
+    multi = EnumerableSpecs::YieldsMulti.new
+    yielded = []
+    multi.none? {|e, i| yielded << [e, i] }
+    yielded.should == [[1, 2]]
   end
 end

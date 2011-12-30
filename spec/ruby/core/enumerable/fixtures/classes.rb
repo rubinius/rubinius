@@ -153,6 +153,24 @@ module EnumerableSpecs
     end
   end
 
+  class YieldsMultiWithFalse
+    include Enumerable
+    def each
+      yield false,2
+      yield false,4,5
+      yield false,7,8,9
+    end
+  end
+
+  class YieldsMultiWithSingleTrue
+    include Enumerable
+    def each
+      yield false,2
+      yield true,4,5
+      yield false,7,8,9
+    end
+  end
+
   class YieldsMixed
     include Enumerable
     def each

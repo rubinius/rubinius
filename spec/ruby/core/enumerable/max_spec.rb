@@ -87,4 +87,10 @@ describe "Enumerable#max" do
       x <=> y
     }.should == nil
   end
+
+  it "gathers whole arrays as elements when each yields multiple" do
+    multi = EnumerableSpecs::YieldsMulti.new
+    multi.max.should == [6, 7, 8, 9]
+  end
+
 end

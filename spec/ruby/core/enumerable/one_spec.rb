@@ -28,6 +28,14 @@ describe "Enumerable#one?" do
         multi.one? {|e| e == 1 }.should be_true
       end
     end
+
+    it "yields multiple arguments when each yields multiple" do
+      multi = EnumerableSpecs::YieldsMulti.new
+      yielded = []
+      multi.one? {|e, i| yielded << [e, i] }
+      yielded.should == [[1, 2], [3, 4]]
+    end
+
   end
 
   describe "when not passed a block" do
@@ -42,5 +50,11 @@ describe "Enumerable#one?" do
     it "returns false if all elements evaluate to false" do
       [false, nil, false].one?.should be_false
     end
+
+    it "gathers whole arrays as elements when each yields multiple" do
+      multi = EnumerableSpecs::YieldsMultiWithSingleTrue.new
+      multi.one?.should be_false
+    end
+
   end
 end
