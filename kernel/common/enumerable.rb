@@ -240,7 +240,7 @@ module Enumerable
 
   def all?
     if block_given?
-      each { |e| return false unless yield(e) }
+      each { |*args| return false unless yield(*args) }
     else
       each { |e| return false unless e }
     end
