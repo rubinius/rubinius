@@ -1,3 +1,0 @@
-fails:CGI#initialize when passed no arguments sets #cookies based on ENV['HTTP_COOKIE']
-fails:CGI#initialize when passed no arguments sets #params based on ENV['QUERY_STRING'] when ENV['REQUEST_METHOD'] is GET
-fails:CGI#initialize when passed no arguments sets #params based on ENV['QUERY_STRING'] when ENV['REQUEST_METHOD'] is HEAD

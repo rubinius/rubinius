@@ -1,1 +1,0 @@
-fails:CGI::QueryExtension#request_method returns ENV['REQUEST_METHOD']
