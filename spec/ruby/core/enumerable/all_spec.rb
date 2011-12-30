@@ -70,6 +70,10 @@ describe "Enumerable#all?" do
       EnumerableSpecs::Numerous.new.all? { |i| i == 3 ? nil : true }.should == false
     end
 
+    it "should not lose indices passed in by each_with_index" do
+      [2].each_with_index.all? { |e, i| i == nil }.should be_false
+    end
+
     it "stops iterating once the return value is determined" do
       yielded = []
       EnumerableSpecs::Numerous.new(:one, :two, :three).all? do |e|
