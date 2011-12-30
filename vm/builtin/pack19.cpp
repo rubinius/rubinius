@@ -19,6 +19,7 @@
 
 #include "builtin/array.hpp"
 #include "builtin/bytearray.hpp"
+#include "builtin/encoding.hpp"
 #include "builtin/exception.hpp"
 #include "builtin/float.hpp"
 #include "builtin/module.hpp"
@@ -631,6 +632,9 @@ namespace rubinius {
     bool platform = false;
     bool tainted = false;
     bool untrusted = false;
+    bool ascii_encoding = false;
+    bool utf8_encoding = false;
+    bool string_encoding = false;
 
     String* string_value = 0;
     std::string str("");
@@ -8777,6 +8781,7 @@ f51:
     }
   }
 	{
+    utf8_encoding = true;
     pack_utf8
   }
 	{
@@ -9110,6 +9115,7 @@ f110:
     }
   }
 	{
+    utf8_encoding = true;
     pack_utf8
   }
 	{
@@ -9420,6 +9426,7 @@ f37:
     if(!string_value) return 0;
   }
 	{
+    ascii_encoding = true;
     if(rest || count < 2) count = 72;
     pack19::quotable_printable(string_value, str, count);
   }
@@ -9548,6 +9555,7 @@ f118:
     if(!string_value) return 0;
   }
 	{
+    ascii_encoding = true;
     if(rest || count < 2) count = 72;
     pack19::quotable_printable(string_value, str, count);
   }
@@ -9582,6 +9590,7 @@ f7:
     }
   }
 	{
+    string_encoding = true;
     if(count > 0) str.append(count, ' ');
   }
 	{
@@ -9615,6 +9624,7 @@ f59:
     }
   }
 	{
+    string_encoding = true;
     if(count > 0) str.append(count, '\0');
   }
 	{
@@ -9648,6 +9658,7 @@ f57:
     }
   }
 	{
+    string_encoding = true;
     if(rest) {
       if(count == 0) str.append(1, '\0');
     } else {
@@ -9680,6 +9691,7 @@ f69:
     if(!string_value) return 0;
   }
 	{
+    ascii_encoding = true;
     pack19::b64_uu_encode(string_value, str, count, count_flag, pack19::b64_table, '=', false);
   }
 	{
@@ -9708,6 +9720,7 @@ f73:
     if(!string_value) return 0;
   }
 	{
+    ascii_encoding = true;
     pack19::b64_uu_encode(string_value, str, count, count_flag, pack19::uu_table, '`', true);
   }
 	{
@@ -9744,6 +9757,7 @@ f134:
     }
   }
 	{
+    string_encoding = true;
     if(count > 0) str.append(count, ' ');
   }
 	{
@@ -9780,6 +9794,7 @@ f102:
     }
   }
 	{
+    string_encoding = true;
     if(count > 0) str.append(count, '\0');
   }
 	{
@@ -9816,6 +9831,7 @@ f104:
     }
   }
 	{
+    string_encoding = true;
     if(rest) {
       if(count == 0) str.append(1, '\0');
     } else {
@@ -9851,6 +9867,7 @@ f92:
     if(!string_value) return 0;
   }
 	{
+    ascii_encoding = true;
     pack19::b64_uu_encode(string_value, str, count, count_flag, pack19::b64_table, '=', false);
   }
 	{
@@ -9882,6 +9899,7 @@ f88:
     if(!string_value) return 0;
   }
 	{
+    ascii_encoding = true;
     pack19::b64_uu_encode(string_value, str, count, count_flag, pack19::uu_table, '`', true);
   }
 	{
@@ -9903,14 +9921,27 @@ _again:
 	case 1:
 	{
     String* result = String::create(state, str.c_str(), str.size());
+
+    if(str.size() > 0) {
+      if(utf8_encoding) {
+        result->encoding(state, Encoding::utf8_encoding(state));
+      } else if(string_encoding) {
+        // TODO
+      } else if(!ascii_encoding) {
+        result->encoding(state, Encoding::ascii8bit_encoding(state));
+      }
+    }
+
     if(tainted) {
       result->taint(state);
       tainted = false;
     }
+
     if(untrusted) {
       result->untrust(state);
       untrusted = false;
     }
+
     return result;
   }
 	break;
@@ -9928,14 +9959,27 @@ _again:
   }
 	{
     String* result = String::create(state, str.c_str(), str.size());
+
+    if(str.size() > 0) {
+      if(utf8_encoding) {
+        result->encoding(state, Encoding::utf8_encoding(state));
+      } else if(string_encoding) {
+        // TODO
+      } else if(!ascii_encoding) {
+        result->encoding(state, Encoding::ascii8bit_encoding(state));
+      }
+    }
+
     if(tainted) {
       result->taint(state);
       tainted = false;
     }
+
     if(untrusted) {
       result->untrust(state);
       untrusted = false;
     }
+
     return result;
   }
 	break;
@@ -9947,14 +9991,27 @@ _again:
   }
 	{
     String* result = String::create(state, str.c_str(), str.size());
+
+    if(str.size() > 0) {
+      if(utf8_encoding) {
+        result->encoding(state, Encoding::utf8_encoding(state));
+      } else if(string_encoding) {
+        // TODO
+      } else if(!ascii_encoding) {
+        result->encoding(state, Encoding::ascii8bit_encoding(state));
+      }
+    }
+
     if(tainted) {
       result->taint(state);
       tainted = false;
     }
+
     if(untrusted) {
       result->untrust(state);
       untrusted = false;
     }
+
     return result;
   }
 	break;
@@ -9970,14 +10027,27 @@ _again:
   }
 	{
     String* result = String::create(state, str.c_str(), str.size());
+
+    if(str.size() > 0) {
+      if(utf8_encoding) {
+        result->encoding(state, Encoding::utf8_encoding(state));
+      } else if(string_encoding) {
+        // TODO
+      } else if(!ascii_encoding) {
+        result->encoding(state, Encoding::ascii8bit_encoding(state));
+      }
+    }
+
     if(tainted) {
       result->taint(state);
       tainted = false;
     }
+
     if(untrusted) {
       result->untrust(state);
       untrusted = false;
     }
+
     return result;
   }
 	break;
@@ -9998,14 +10068,27 @@ _again:
   }
 	{
     String* result = String::create(state, str.c_str(), str.size());
+
+    if(str.size() > 0) {
+      if(utf8_encoding) {
+        result->encoding(state, Encoding::utf8_encoding(state));
+      } else if(string_encoding) {
+        // TODO
+      } else if(!ascii_encoding) {
+        result->encoding(state, Encoding::ascii8bit_encoding(state));
+      }
+    }
+
     if(tainted) {
       result->taint(state);
       tainted = false;
     }
+
     if(untrusted) {
       result->untrust(state);
       untrusted = false;
     }
+
     return result;
   }
 	break;
@@ -10020,14 +10103,27 @@ _again:
   }
 	{
     String* result = String::create(state, str.c_str(), str.size());
+
+    if(str.size() > 0) {
+      if(utf8_encoding) {
+        result->encoding(state, Encoding::utf8_encoding(state));
+      } else if(string_encoding) {
+        // TODO
+      } else if(!ascii_encoding) {
+        result->encoding(state, Encoding::ascii8bit_encoding(state));
+      }
+    }
+
     if(tainted) {
       result->taint(state);
       tainted = false;
     }
+
     if(untrusted) {
       result->untrust(state);
       untrusted = false;
     }
+
     return result;
   }
 	break;
@@ -10046,14 +10142,27 @@ _again:
   }
 	{
     String* result = String::create(state, str.c_str(), str.size());
+
+    if(str.size() > 0) {
+      if(utf8_encoding) {
+        result->encoding(state, Encoding::utf8_encoding(state));
+      } else if(string_encoding) {
+        // TODO
+      } else if(!ascii_encoding) {
+        result->encoding(state, Encoding::ascii8bit_encoding(state));
+      }
+    }
+
     if(tainted) {
       result->taint(state);
       tainted = false;
     }
+
     if(untrusted) {
       result->untrust(state);
       untrusted = false;
     }
+
     return result;
   }
 	break;
@@ -10069,14 +10178,27 @@ _again:
   }
 	{
     String* result = String::create(state, str.c_str(), str.size());
+
+    if(str.size() > 0) {
+      if(utf8_encoding) {
+        result->encoding(state, Encoding::utf8_encoding(state));
+      } else if(string_encoding) {
+        // TODO
+      } else if(!ascii_encoding) {
+        result->encoding(state, Encoding::ascii8bit_encoding(state));
+      }
+    }
+
     if(tainted) {
       result->taint(state);
       tainted = false;
     }
+
     if(untrusted) {
       result->untrust(state);
       untrusted = false;
     }
+
     return result;
   }
 	break;
@@ -10092,14 +10214,27 @@ _again:
   }
 	{
     String* result = String::create(state, str.c_str(), str.size());
+
+    if(str.size() > 0) {
+      if(utf8_encoding) {
+        result->encoding(state, Encoding::utf8_encoding(state));
+      } else if(string_encoding) {
+        // TODO
+      } else if(!ascii_encoding) {
+        result->encoding(state, Encoding::ascii8bit_encoding(state));
+      }
+    }
+
     if(tainted) {
       result->taint(state);
       tainted = false;
     }
+
     if(untrusted) {
       result->untrust(state);
       untrusted = false;
     }
+
     return result;
   }
 	break;
@@ -10115,14 +10250,27 @@ _again:
   }
 	{
     String* result = String::create(state, str.c_str(), str.size());
+
+    if(str.size() > 0) {
+      if(utf8_encoding) {
+        result->encoding(state, Encoding::utf8_encoding(state));
+      } else if(string_encoding) {
+        // TODO
+      } else if(!ascii_encoding) {
+        result->encoding(state, Encoding::ascii8bit_encoding(state));
+      }
+    }
+
     if(tainted) {
       result->taint(state);
       tainted = false;
     }
+
     if(untrusted) {
       result->untrust(state);
       untrusted = false;
     }
+
     return result;
   }
 	break;
@@ -10146,14 +10294,27 @@ _again:
   }
 	{
     String* result = String::create(state, str.c_str(), str.size());
+
+    if(str.size() > 0) {
+      if(utf8_encoding) {
+        result->encoding(state, Encoding::utf8_encoding(state));
+      } else if(string_encoding) {
+        // TODO
+      } else if(!ascii_encoding) {
+        result->encoding(state, Encoding::ascii8bit_encoding(state));
+      }
+    }
+
     if(tainted) {
       result->taint(state);
       tainted = false;
     }
+
     if(untrusted) {
       result->untrust(state);
       untrusted = false;
     }
+
     return result;
   }
 	break;
@@ -10169,14 +10330,27 @@ _again:
   }
 	{
     String* result = String::create(state, str.c_str(), str.size());
+
+    if(str.size() > 0) {
+      if(utf8_encoding) {
+        result->encoding(state, Encoding::utf8_encoding(state));
+      } else if(string_encoding) {
+        // TODO
+      } else if(!ascii_encoding) {
+        result->encoding(state, Encoding::ascii8bit_encoding(state));
+      }
+    }
+
     if(tainted) {
       result->taint(state);
       tainted = false;
     }
+
     if(untrusted) {
       result->untrust(state);
       untrusted = false;
     }
+
     return result;
   }
 	break;
@@ -10192,14 +10366,27 @@ _again:
   }
 	{
     String* result = String::create(state, str.c_str(), str.size());
+
+    if(str.size() > 0) {
+      if(utf8_encoding) {
+        result->encoding(state, Encoding::utf8_encoding(state));
+      } else if(string_encoding) {
+        // TODO
+      } else if(!ascii_encoding) {
+        result->encoding(state, Encoding::ascii8bit_encoding(state));
+      }
+    }
+
     if(tainted) {
       result->taint(state);
       tainted = false;
     }
+
     if(untrusted) {
       result->untrust(state);
       untrusted = false;
     }
+
     return result;
   }
 	break;
@@ -10215,14 +10402,27 @@ _again:
   }
 	{
     String* result = String::create(state, str.c_str(), str.size());
+
+    if(str.size() > 0) {
+      if(utf8_encoding) {
+        result->encoding(state, Encoding::utf8_encoding(state));
+      } else if(string_encoding) {
+        // TODO
+      } else if(!ascii_encoding) {
+        result->encoding(state, Encoding::ascii8bit_encoding(state));
+      }
+    }
+
     if(tainted) {
       result->taint(state);
       tainted = false;
     }
+
     if(untrusted) {
       result->untrust(state);
       untrusted = false;
     }
+
     return result;
   }
 	break;
@@ -10238,14 +10438,27 @@ _again:
   }
 	{
     String* result = String::create(state, str.c_str(), str.size());
+
+    if(str.size() > 0) {
+      if(utf8_encoding) {
+        result->encoding(state, Encoding::utf8_encoding(state));
+      } else if(string_encoding) {
+        // TODO
+      } else if(!ascii_encoding) {
+        result->encoding(state, Encoding::ascii8bit_encoding(state));
+      }
+    }
+
     if(tainted) {
       result->taint(state);
       tainted = false;
     }
+
     if(untrusted) {
       result->untrust(state);
       untrusted = false;
     }
+
     return result;
   }
 	break;
@@ -10261,14 +10474,27 @@ _again:
   }
 	{
     String* result = String::create(state, str.c_str(), str.size());
+
+    if(str.size() > 0) {
+      if(utf8_encoding) {
+        result->encoding(state, Encoding::utf8_encoding(state));
+      } else if(string_encoding) {
+        // TODO
+      } else if(!ascii_encoding) {
+        result->encoding(state, Encoding::ascii8bit_encoding(state));
+      }
+    }
+
     if(tainted) {
       result->taint(state);
       tainted = false;
     }
+
     if(untrusted) {
       result->untrust(state);
       untrusted = false;
     }
+
     return result;
   }
 	break;
@@ -10288,14 +10514,27 @@ _again:
   }
 	{
     String* result = String::create(state, str.c_str(), str.size());
+
+    if(str.size() > 0) {
+      if(utf8_encoding) {
+        result->encoding(state, Encoding::utf8_encoding(state));
+      } else if(string_encoding) {
+        // TODO
+      } else if(!ascii_encoding) {
+        result->encoding(state, Encoding::ascii8bit_encoding(state));
+      }
+    }
+
     if(tainted) {
       result->taint(state);
       tainted = false;
     }
+
     if(untrusted) {
       result->untrust(state);
       untrusted = false;
     }
+
     return result;
   }
 	break;
@@ -10307,18 +10546,32 @@ _again:
     }
   }
 	{
+    utf8_encoding = true;
     pack_utf8
   }
 	{
     String* result = String::create(state, str.c_str(), str.size());
+
+    if(str.size() > 0) {
+      if(utf8_encoding) {
+        result->encoding(state, Encoding::utf8_encoding(state));
+      } else if(string_encoding) {
+        // TODO
+      } else if(!ascii_encoding) {
+        result->encoding(state, Encoding::ascii8bit_encoding(state));
+      }
+    }
+
     if(tainted) {
       result->taint(state);
       tainted = false;
     }
+
     if(untrusted) {
       result->untrust(state);
       untrusted = false;
     }
+
     return result;
   }
 	break;
@@ -10334,14 +10587,27 @@ _again:
   }
 	{
     String* result = String::create(state, str.c_str(), str.size());
+
+    if(str.size() > 0) {
+      if(utf8_encoding) {
+        result->encoding(state, Encoding::utf8_encoding(state));
+      } else if(string_encoding) {
+        // TODO
+      } else if(!ascii_encoding) {
+        result->encoding(state, Encoding::ascii8bit_encoding(state));
+      }
+    }
+
     if(tainted) {
       result->taint(state);
       tainted = false;
     }
+
     if(untrusted) {
       result->untrust(state);
       untrusted = false;
     }
+
     return result;
   }
 	break;
@@ -10357,14 +10623,27 @@ _again:
   }
 	{
     String* result = String::create(state, str.c_str(), str.size());
+
+    if(str.size() > 0) {
+      if(utf8_encoding) {
+        result->encoding(state, Encoding::utf8_encoding(state));
+      } else if(string_encoding) {
+        // TODO
+      } else if(!ascii_encoding) {
+        result->encoding(state, Encoding::ascii8bit_encoding(state));
+      }
+    }
+
     if(tainted) {
       result->taint(state);
       tainted = false;
     }
+
     if(untrusted) {
       result->untrust(state);
       untrusted = false;
     }
+
     return result;
   }
 	break;
@@ -10380,14 +10659,27 @@ _again:
   }
 	{
     String* result = String::create(state, str.c_str(), str.size());
+
+    if(str.size() > 0) {
+      if(utf8_encoding) {
+        result->encoding(state, Encoding::utf8_encoding(state));
+      } else if(string_encoding) {
+        // TODO
+      } else if(!ascii_encoding) {
+        result->encoding(state, Encoding::ascii8bit_encoding(state));
+      }
+    }
+
     if(tainted) {
       result->taint(state);
       tainted = false;
     }
+
     if(untrusted) {
       result->untrust(state);
       untrusted = false;
     }
+
     return result;
   }
 	break;
@@ -10403,14 +10695,27 @@ _again:
   }
 	{
     String* result = String::create(state, str.c_str(), str.size());
+
+    if(str.size() > 0) {
+      if(utf8_encoding) {
+        result->encoding(state, Encoding::utf8_encoding(state));
+      } else if(string_encoding) {
+        // TODO
+      } else if(!ascii_encoding) {
+        result->encoding(state, Encoding::ascii8bit_encoding(state));
+      }
+    }
+
     if(tainted) {
       result->taint(state);
       tainted = false;
     }
+
     if(untrusted) {
       result->untrust(state);
       untrusted = false;
     }
+
     return result;
   }
 	break;
@@ -10426,14 +10731,27 @@ _again:
   }
 	{
     String* result = String::create(state, str.c_str(), str.size());
+
+    if(str.size() > 0) {
+      if(utf8_encoding) {
+        result->encoding(state, Encoding::utf8_encoding(state));
+      } else if(string_encoding) {
+        // TODO
+      } else if(!ascii_encoding) {
+        result->encoding(state, Encoding::ascii8bit_encoding(state));
+      }
+    }
+
     if(tainted) {
       result->taint(state);
       tainted = false;
     }
+
     if(untrusted) {
       result->untrust(state);
       untrusted = false;
     }
+
     return result;
   }
 	break;
@@ -10449,14 +10767,27 @@ _again:
   }
 	{
     String* result = String::create(state, str.c_str(), str.size());
+
+    if(str.size() > 0) {
+      if(utf8_encoding) {
+        result->encoding(state, Encoding::utf8_encoding(state));
+      } else if(string_encoding) {
+        // TODO
+      } else if(!ascii_encoding) {
+        result->encoding(state, Encoding::ascii8bit_encoding(state));
+      }
+    }
+
     if(tainted) {
       result->taint(state);
       tainted = false;
     }
+
     if(untrusted) {
       result->untrust(state);
       untrusted = false;
     }
+
     return result;
   }
 	break;
@@ -10472,14 +10803,27 @@ _again:
   }
 	{
     String* result = String::create(state, str.c_str(), str.size());
+
+    if(str.size() > 0) {
+      if(utf8_encoding) {
+        result->encoding(state, Encoding::utf8_encoding(state));
+      } else if(string_encoding) {
+        // TODO
+      } else if(!ascii_encoding) {
+        result->encoding(state, Encoding::ascii8bit_encoding(state));
+      }
+    }
+
     if(tainted) {
       result->taint(state);
       tainted = false;
     }
+
     if(untrusted) {
       result->untrust(state);
       untrusted = false;
     }
+
     return result;
   }
 	break;
@@ -10498,14 +10842,27 @@ _again:
   }
 	{
     String* result = String::create(state, str.c_str(), str.size());
+
+    if(str.size() > 0) {
+      if(utf8_encoding) {
+        result->encoding(state, Encoding::utf8_encoding(state));
+      } else if(string_encoding) {
+        // TODO
+      } else if(!ascii_encoding) {
+        result->encoding(state, Encoding::ascii8bit_encoding(state));
+      }
+    }
+
     if(tainted) {
       result->taint(state);
       tainted = false;
     }
+
     if(untrusted) {
       result->untrust(state);
       untrusted = false;
     }
+
     return result;
   }
 	break;
@@ -10524,14 +10881,27 @@ _again:
   }
 	{
     String* result = String::create(state, str.c_str(), str.size());
+
+    if(str.size() > 0) {
+      if(utf8_encoding) {
+        result->encoding(state, Encoding::utf8_encoding(state));
+      } else if(string_encoding) {
+        // TODO
+      } else if(!ascii_encoding) {
+        result->encoding(state, Encoding::ascii8bit_encoding(state));
+      }
+    }
+
     if(tainted) {
       result->taint(state);
       tainted = false;
     }
+
     if(untrusted) {
       result->untrust(state);
       untrusted = false;
     }
+
     return result;
   }
 	break;
@@ -10550,14 +10920,27 @@ _again:
   }
 	{
     String* result = String::create(state, str.c_str(), str.size());
+
+    if(str.size() > 0) {
+      if(utf8_encoding) {
+        result->encoding(state, Encoding::utf8_encoding(state));
+      } else if(string_encoding) {
+        // TODO
+      } else if(!ascii_encoding) {
+        result->encoding(state, Encoding::ascii8bit_encoding(state));
+      }
+    }
+
     if(tainted) {
       result->taint(state);
       tainted = false;
     }
+
     if(untrusted) {
       result->untrust(state);
       untrusted = false;
     }
+
     return result;
   }
 	break;
@@ -10584,14 +10967,27 @@ _again:
   }
 	{
     String* result = String::create(state, str.c_str(), str.size());
+
+    if(str.size() > 0) {
+      if(utf8_encoding) {
+        result->encoding(state, Encoding::utf8_encoding(state));
+      } else if(string_encoding) {
+        // TODO
+      } else if(!ascii_encoding) {
+        result->encoding(state, Encoding::ascii8bit_encoding(state));
+      }
+    }
+
     if(tainted) {
       result->taint(state);
       tainted = false;
     }
+
     if(untrusted) {
       result->untrust(state);
       untrusted = false;
     }
+
     return result;
   }
 	break;
@@ -10610,14 +11006,27 @@ _again:
   }
 	{
     String* result = String::create(state, str.c_str(), str.size());
+
+    if(str.size() > 0) {
+      if(utf8_encoding) {
+        result->encoding(state, Encoding::utf8_encoding(state));
+      } else if(string_encoding) {
+        // TODO
+      } else if(!ascii_encoding) {
+        result->encoding(state, Encoding::ascii8bit_encoding(state));
+      }
+    }
+
     if(tainted) {
       result->taint(state);
       tainted = false;
     }
+
     if(untrusted) {
       result->untrust(state);
       untrusted = false;
     }
+
     return result;
   }
 	break;
@@ -10636,14 +11045,27 @@ _again:
   }
 	{
     String* result = String::create(state, str.c_str(), str.size());
+
+    if(str.size() > 0) {
+      if(utf8_encoding) {
+        result->encoding(state, Encoding::utf8_encoding(state));
+      } else if(string_encoding) {
+        // TODO
+      } else if(!ascii_encoding) {
+        result->encoding(state, Encoding::ascii8bit_encoding(state));
+      }
+    }
+
     if(tainted) {
       result->taint(state);
       tainted = false;
     }
+
     if(untrusted) {
       result->untrust(state);
       untrusted = false;
     }
+
     return result;
   }
 	break;
@@ -10662,14 +11084,27 @@ _again:
   }
 	{
     String* result = String::create(state, str.c_str(), str.size());
+
+    if(str.size() > 0) {
+      if(utf8_encoding) {
+        result->encoding(state, Encoding::utf8_encoding(state));
+      } else if(string_encoding) {
+        // TODO
+      } else if(!ascii_encoding) {
+        result->encoding(state, Encoding::ascii8bit_encoding(state));
+      }
+    }
+
     if(tainted) {
       result->taint(state);
       tainted = false;
     }
+
     if(untrusted) {
       result->untrust(state);
       untrusted = false;
     }
+
     return result;
   }
 	break;
@@ -10688,14 +11123,27 @@ _again:
   }
 	{
     String* result = String::create(state, str.c_str(), str.size());
+
+    if(str.size() > 0) {
+      if(utf8_encoding) {
+        result->encoding(state, Encoding::utf8_encoding(state));
+      } else if(string_encoding) {
+        // TODO
+      } else if(!ascii_encoding) {
+        result->encoding(state, Encoding::ascii8bit_encoding(state));
+      }
+    }
+
     if(tainted) {
       result->taint(state);
       tainted = false;
     }
+
     if(untrusted) {
       result->untrust(state);
       untrusted = false;
     }
+
     return result;
   }
 	break;
@@ -10714,14 +11162,27 @@ _again:
   }
 	{
     String* result = String::create(state, str.c_str(), str.size());
+
+    if(str.size() > 0) {
+      if(utf8_encoding) {
+        result->encoding(state, Encoding::utf8_encoding(state));
+      } else if(string_encoding) {
+        // TODO
+      } else if(!ascii_encoding) {
+        result->encoding(state, Encoding::ascii8bit_encoding(state));
+      }
+    }
+
     if(tainted) {
       result->taint(state);
       tainted = false;
     }
+
     if(untrusted) {
       result->untrust(state);
       untrusted = false;
     }
+
     return result;
   }
 	break;
@@ -10744,14 +11205,27 @@ _again:
   }
 	{
     String* result = String::create(state, str.c_str(), str.size());
+
+    if(str.size() > 0) {
+      if(utf8_encoding) {
+        result->encoding(state, Encoding::utf8_encoding(state));
+      } else if(string_encoding) {
+        // TODO
+      } else if(!ascii_encoding) {
+        result->encoding(state, Encoding::ascii8bit_encoding(state));
+      }
+    }
+
     if(tainted) {
       result->taint(state);
       tainted = false;
     }
+
     if(untrusted) {
       result->untrust(state);
       untrusted = false;
     }
+
     return result;
   }
 	break;
@@ -10766,18 +11240,32 @@ _again:
     }
   }
 	{
+    utf8_encoding = true;
     pack_utf8
   }
 	{
     String* result = String::create(state, str.c_str(), str.size());
+
+    if(str.size() > 0) {
+      if(utf8_encoding) {
+        result->encoding(state, Encoding::utf8_encoding(state));
+      } else if(string_encoding) {
+        // TODO
+      } else if(!ascii_encoding) {
+        result->encoding(state, Encoding::ascii8bit_encoding(state));
+      }
+    }
+
     if(tainted) {
       result->taint(state);
       tainted = false;
     }
+
     if(untrusted) {
       result->untrust(state);
       untrusted = false;
     }
+
     return result;
   }
 	break;
@@ -10796,14 +11284,27 @@ _again:
   }
 	{
     String* result = String::create(state, str.c_str(), str.size());
+
+    if(str.size() > 0) {
+      if(utf8_encoding) {
+        result->encoding(state, Encoding::utf8_encoding(state));
+      } else if(string_encoding) {
+        // TODO
+      } else if(!ascii_encoding) {
+        result->encoding(state, Encoding::ascii8bit_encoding(state));
+      }
+    }
+
     if(tainted) {
       result->taint(state);
       tainted = false;
     }
+
     if(untrusted) {
       result->untrust(state);
       untrusted = false;
     }
+
     return result;
   }
 	break;
@@ -10822,14 +11323,27 @@ _again:
   }
 	{
     String* result = String::create(state, str.c_str(), str.size());
+
+    if(str.size() > 0) {
+      if(utf8_encoding) {
+        result->encoding(state, Encoding::utf8_encoding(state));
+      } else if(string_encoding) {
+        // TODO
+      } else if(!ascii_encoding) {
+        result->encoding(state, Encoding::ascii8bit_encoding(state));
+      }
+    }
+
     if(tainted) {
       result->taint(state);
       tainted = false;
     }
+
     if(untrusted) {
       result->untrust(state);
       untrusted = false;
     }
+
     return result;
   }
 	break;
@@ -10848,14 +11362,27 @@ _again:
   }
 	{
     String* result = String::create(state, str.c_str(), str.size());
+
+    if(str.size() > 0) {
+      if(utf8_encoding) {
+        result->encoding(state, Encoding::utf8_encoding(state));
+      } else if(string_encoding) {
+        // TODO
+      } else if(!ascii_encoding) {
+        result->encoding(state, Encoding::ascii8bit_encoding(state));
+      }
+    }
+
     if(tainted) {
       result->taint(state);
       tainted = false;
     }
+
     if(untrusted) {
       result->untrust(state);
       untrusted = false;
     }
+
     return result;
   }
 	break;
@@ -10874,14 +11401,27 @@ _again:
   }
 	{
     String* result = String::create(state, str.c_str(), str.size());
+
+    if(str.size() > 0) {
+      if(utf8_encoding) {
+        result->encoding(state, Encoding::utf8_encoding(state));
+      } else if(string_encoding) {
+        // TODO
+      } else if(!ascii_encoding) {
+        result->encoding(state, Encoding::ascii8bit_encoding(state));
+      }
+    }
+
     if(tainted) {
       result->taint(state);
       tainted = false;
     }
+
     if(untrusted) {
       result->untrust(state);
       untrusted = false;
     }
+
     return result;
   }
 	break;
@@ -10900,14 +11440,27 @@ _again:
   }
 	{
     String* result = String::create(state, str.c_str(), str.size());
+
+    if(str.size() > 0) {
+      if(utf8_encoding) {
+        result->encoding(state, Encoding::utf8_encoding(state));
+      } else if(string_encoding) {
+        // TODO
+      } else if(!ascii_encoding) {
+        result->encoding(state, Encoding::ascii8bit_encoding(state));
+      }
+    }
+
     if(tainted) {
       result->taint(state);
       tainted = false;
     }
+
     if(untrusted) {
       result->untrust(state);
       untrusted = false;
     }
+
     return result;
   }
 	break;
@@ -10926,14 +11479,27 @@ _again:
   }
 	{
     String* result = String::create(state, str.c_str(), str.size());
+
+    if(str.size() > 0) {
+      if(utf8_encoding) {
+        result->encoding(state, Encoding::utf8_encoding(state));
+      } else if(string_encoding) {
+        // TODO
+      } else if(!ascii_encoding) {
+        result->encoding(state, Encoding::ascii8bit_encoding(state));
+      }
+    }
+
     if(tainted) {
       result->taint(state);
       tainted = false;
     }
+
     if(untrusted) {
       result->untrust(state);
       untrusted = false;
     }
+
     return result;
   }
 	break;
@@ -10952,14 +11518,27 @@ _again:
   }
 	{
     String* result = String::create(state, str.c_str(), str.size());
+
+    if(str.size() > 0) {
+      if(utf8_encoding) {
+        result->encoding(state, Encoding::utf8_encoding(state));
+      } else if(string_encoding) {
+        // TODO
+      } else if(!ascii_encoding) {
+        result->encoding(state, Encoding::ascii8bit_encoding(state));
+      }
+    }
+
     if(tainted) {
       result->taint(state);
       tainted = false;
     }
+
     if(untrusted) {
       result->untrust(state);
       untrusted = false;
     }
+
     return result;
   }
 	break;
@@ -10978,14 +11557,27 @@ _again:
   }
 	{
     String* result = String::create(state, str.c_str(), str.size());
+
+    if(str.size() > 0) {
+      if(utf8_encoding) {
+        result->encoding(state, Encoding::utf8_encoding(state));
+      } else if(string_encoding) {
+        // TODO
+      } else if(!ascii_encoding) {
+        result->encoding(state, Encoding::ascii8bit_encoding(state));
+      }
+    }
+
     if(tainted) {
       result->taint(state);
       tainted = false;
     }
+
     if(untrusted) {
       result->untrust(state);
       untrusted = false;
     }
+
     return result;
   }
 	break;
@@ -11004,14 +11596,27 @@ _again:
   }
 	{
     String* result = String::create(state, str.c_str(), str.size());
+
+    if(str.size() > 0) {
+      if(utf8_encoding) {
+        result->encoding(state, Encoding::utf8_encoding(state));
+      } else if(string_encoding) {
+        // TODO
+      } else if(!ascii_encoding) {
+        result->encoding(state, Encoding::ascii8bit_encoding(state));
+      }
+    }
+
     if(tainted) {
       result->taint(state);
       tainted = false;
     }
+
     if(untrusted) {
       result->untrust(state);
       untrusted = false;
     }
+
     return result;
   }
 	break;
@@ -11038,14 +11643,27 @@ _again:
   }
 	{
     String* result = String::create(state, str.c_str(), str.size());
+
+    if(str.size() > 0) {
+      if(utf8_encoding) {
+        result->encoding(state, Encoding::utf8_encoding(state));
+      } else if(string_encoding) {
+        // TODO
+      } else if(!ascii_encoding) {
+        result->encoding(state, Encoding::ascii8bit_encoding(state));
+      }
+    }
+
     if(tainted) {
       result->taint(state);
       tainted = false;
     }
+
     if(untrusted) {
       result->untrust(state);
       untrusted = false;
     }
+
     return result;
   }
 	break;
@@ -11068,14 +11686,27 @@ _again:
   }
 	{
     String* result = String::create(state, str.c_str(), str.size());
+
+    if(str.size() > 0) {
+      if(utf8_encoding) {
+        result->encoding(state, Encoding::utf8_encoding(state));
+      } else if(string_encoding) {
+        // TODO
+      } else if(!ascii_encoding) {
+        result->encoding(state, Encoding::ascii8bit_encoding(state));
+      }
+    }
+
     if(tainted) {
       result->taint(state);
       tainted = false;
     }
+
     if(untrusted) {
       result->untrust(state);
       untrusted = false;
     }
+
     return result;
   }
 	break;
@@ -11098,14 +11729,27 @@ _again:
   }
 	{
     String* result = String::create(state, str.c_str(), str.size());
+
+    if(str.size() > 0) {
+      if(utf8_encoding) {
+        result->encoding(state, Encoding::utf8_encoding(state));
+      } else if(string_encoding) {
+        // TODO
+      } else if(!ascii_encoding) {
+        result->encoding(state, Encoding::ascii8bit_encoding(state));
+      }
+    }
+
     if(tainted) {
       result->taint(state);
       tainted = false;
     }
+
     if(untrusted) {
       result->untrust(state);
       untrusted = false;
     }
+
     return result;
   }
 	break;
@@ -11128,14 +11772,27 @@ _again:
   }
 	{
     String* result = String::create(state, str.c_str(), str.size());
+
+    if(str.size() > 0) {
+      if(utf8_encoding) {
+        result->encoding(state, Encoding::utf8_encoding(state));
+      } else if(string_encoding) {
+        // TODO
+      } else if(!ascii_encoding) {
+        result->encoding(state, Encoding::ascii8bit_encoding(state));
+      }
+    }
+
     if(tainted) {
       result->taint(state);
       tainted = false;
     }
+
     if(untrusted) {
       result->untrust(state);
       untrusted = false;
     }
+
     return result;
   }
 	break;
@@ -11158,14 +11815,27 @@ _again:
   }
 	{
     String* result = String::create(state, str.c_str(), str.size());
+
+    if(str.size() > 0) {
+      if(utf8_encoding) {
+        result->encoding(state, Encoding::utf8_encoding(state));
+      } else if(string_encoding) {
+        // TODO
+      } else if(!ascii_encoding) {
+        result->encoding(state, Encoding::ascii8bit_encoding(state));
+      }
+    }
+
     if(tainted) {
       result->taint(state);
       tainted = false;
     }
+
     if(untrusted) {
       result->untrust(state);
       untrusted = false;
     }
+
     return result;
   }
 	break;
@@ -11181,19 +11851,33 @@ _again:
     if(!string_value) return 0;
   }
 	{
+    ascii_encoding = true;
     if(rest || count < 2) count = 72;
     pack19::quotable_printable(string_value, str, count);
   }
 	{
     String* result = String::create(state, str.c_str(), str.size());
+
+    if(str.size() > 0) {
+      if(utf8_encoding) {
+        result->encoding(state, Encoding::utf8_encoding(state));
+      } else if(string_encoding) {
+        // TODO
+      } else if(!ascii_encoding) {
+        result->encoding(state, Encoding::ascii8bit_encoding(state));
+      }
+    }
+
     if(tainted) {
       result->taint(state);
       tainted = false;
     }
+
     if(untrusted) {
       result->untrust(state);
       untrusted = false;
     }
+
     return result;
   }
 	break;
@@ -11219,14 +11903,27 @@ _again:
   }
 	{
     String* result = String::create(state, str.c_str(), str.size());
+
+    if(str.size() > 0) {
+      if(utf8_encoding) {
+        result->encoding(state, Encoding::utf8_encoding(state));
+      } else if(string_encoding) {
+        // TODO
+      } else if(!ascii_encoding) {
+        result->encoding(state, Encoding::ascii8bit_encoding(state));
+      }
+    }
+
     if(tainted) {
       result->taint(state);
       tainted = false;
     }
+
     if(untrusted) {
       result->untrust(state);
       untrusted = false;
     }
+
     return result;
   }
 	break;
@@ -11252,14 +11949,27 @@ _again:
   }
 	{
     String* result = String::create(state, str.c_str(), str.size());
+
+    if(str.size() > 0) {
+      if(utf8_encoding) {
+        result->encoding(state, Encoding::utf8_encoding(state));
+      } else if(string_encoding) {
+        // TODO
+      } else if(!ascii_encoding) {
+        result->encoding(state, Encoding::ascii8bit_encoding(state));
+      }
+    }
+
     if(tainted) {
       result->taint(state);
       tainted = false;
     }
+
     if(untrusted) {
       result->untrust(state);
       untrusted = false;
     }
+
     return result;
   }
 	break;
@@ -11285,14 +11995,27 @@ _again:
   }
 	{
     String* result = String::create(state, str.c_str(), str.size());
+
+    if(str.size() > 0) {
+      if(utf8_encoding) {
+        result->encoding(state, Encoding::utf8_encoding(state));
+      } else if(string_encoding) {
+        // TODO
+      } else if(!ascii_encoding) {
+        result->encoding(state, Encoding::ascii8bit_encoding(state));
+      }
+    }
+
     if(tainted) {
       result->taint(state);
       tainted = false;
     }
+
     if(untrusted) {
       result->untrust(state);
       untrusted = false;
     }
+
     return result;
   }
 	break;
@@ -11318,14 +12041,27 @@ _again:
   }
 	{
     String* result = String::create(state, str.c_str(), str.size());
+
+    if(str.size() > 0) {
+      if(utf8_encoding) {
+        result->encoding(state, Encoding::utf8_encoding(state));
+      } else if(string_encoding) {
+        // TODO
+      } else if(!ascii_encoding) {
+        result->encoding(state, Encoding::ascii8bit_encoding(state));
+      }
+    }
+
     if(tainted) {
       result->taint(state);
       tainted = false;
     }
+
     if(untrusted) {
       result->untrust(state);
       untrusted = false;
     }
+
     return result;
   }
 	break;
@@ -11344,19 +12080,33 @@ _again:
     if(!string_value) return 0;
   }
 	{
+    ascii_encoding = true;
     if(rest || count < 2) count = 72;
     pack19::quotable_printable(string_value, str, count);
   }
 	{
     String* result = String::create(state, str.c_str(), str.size());
+
+    if(str.size() > 0) {
+      if(utf8_encoding) {
+        result->encoding(state, Encoding::utf8_encoding(state));
+      } else if(string_encoding) {
+        // TODO
+      } else if(!ascii_encoding) {
+        result->encoding(state, Encoding::ascii8bit_encoding(state));
+      }
+    }
+
     if(tainted) {
       result->taint(state);
       tainted = false;
     }
+
     if(untrusted) {
       result->untrust(state);
       untrusted = false;
     }
+
     return result;
   }
 	break;
@@ -11385,18 +12135,32 @@ _again:
     }
   }
 	{
+    string_encoding = true;
     if(count > 0) str.append(count, ' ');
   }
 	{
     String* result = String::create(state, str.c_str(), str.size());
+
+    if(str.size() > 0) {
+      if(utf8_encoding) {
+        result->encoding(state, Encoding::utf8_encoding(state));
+      } else if(string_encoding) {
+        // TODO
+      } else if(!ascii_encoding) {
+        result->encoding(state, Encoding::ascii8bit_encoding(state));
+      }
+    }
+
     if(tainted) {
       result->taint(state);
       tainted = false;
     }
+
     if(untrusted) {
       result->untrust(state);
       untrusted = false;
     }
+
     return result;
   }
 	break;
@@ -11425,18 +12189,32 @@ _again:
     }
   }
 	{
+    string_encoding = true;
     if(count > 0) str.append(count, '\0');
   }
 	{
     String* result = String::create(state, str.c_str(), str.size());
+
+    if(str.size() > 0) {
+      if(utf8_encoding) {
+        result->encoding(state, Encoding::utf8_encoding(state));
+      } else if(string_encoding) {
+        // TODO
+      } else if(!ascii_encoding) {
+        result->encoding(state, Encoding::ascii8bit_encoding(state));
+      }
+    }
+
     if(tainted) {
       result->taint(state);
       tainted = false;
     }
+
     if(untrusted) {
       result->untrust(state);
       untrusted = false;
     }
+
     return result;
   }
 	break;
@@ -11465,6 +12243,7 @@ _again:
     }
   }
 	{
+    string_encoding = true;
     if(rest) {
       if(count == 0) str.append(1, '\0');
     } else {
@@ -11473,14 +12252,27 @@ _again:
   }
 	{
     String* result = String::create(state, str.c_str(), str.size());
+
+    if(str.size() > 0) {
+      if(utf8_encoding) {
+        result->encoding(state, Encoding::utf8_encoding(state));
+      } else if(string_encoding) {
+        // TODO
+      } else if(!ascii_encoding) {
+        result->encoding(state, Encoding::ascii8bit_encoding(state));
+      }
+    }
+
     if(tainted) {
       result->taint(state);
       tainted = false;
     }
+
     if(untrusted) {
       result->untrust(state);
       untrusted = false;
     }
+
     return result;
   }
 	break;
@@ -11504,18 +12296,32 @@ _again:
     if(!string_value) return 0;
   }
 	{
+    ascii_encoding = true;
     pack19::b64_uu_encode(string_value, str, count, count_flag, pack19::b64_table, '=', false);
   }
 	{
     String* result = String::create(state, str.c_str(), str.size());
+
+    if(str.size() > 0) {
+      if(utf8_encoding) {
+        result->encoding(state, Encoding::utf8_encoding(state));
+      } else if(string_encoding) {
+        // TODO
+      } else if(!ascii_encoding) {
+        result->encoding(state, Encoding::ascii8bit_encoding(state));
+      }
+    }
+
     if(tainted) {
       result->taint(state);
       tainted = false;
     }
+
     if(untrusted) {
       result->untrust(state);
       untrusted = false;
     }
+
     return result;
   }
 	break;
@@ -11539,18 +12345,32 @@ _again:
     if(!string_value) return 0;
   }
 	{
+    ascii_encoding = true;
     pack19::b64_uu_encode(string_value, str, count, count_flag, pack19::uu_table, '`', true);
   }
 	{
     String* result = String::create(state, str.c_str(), str.size());
+
+    if(str.size() > 0) {
+      if(utf8_encoding) {
+        result->encoding(state, Encoding::utf8_encoding(state));
+      } else if(string_encoding) {
+        // TODO
+      } else if(!ascii_encoding) {
+        result->encoding(state, Encoding::ascii8bit_encoding(state));
+      }
+    }
+
     if(tainted) {
       result->taint(state);
       tainted = false;
     }
+
     if(untrusted) {
       result->untrust(state);
       untrusted = false;
     }
+
     return result;
   }
 	break;
@@ -11582,18 +12402,32 @@ _again:
     }
   }
 	{
+    string_encoding = true;
     if(count > 0) str.append(count, ' ');
   }
 	{
     String* result = String::create(state, str.c_str(), str.size());
+
+    if(str.size() > 0) {
+      if(utf8_encoding) {
+        result->encoding(state, Encoding::utf8_encoding(state));
+      } else if(string_encoding) {
+        // TODO
+      } else if(!ascii_encoding) {
+        result->encoding(state, Encoding::ascii8bit_encoding(state));
+      }
+    }
+
     if(tainted) {
       result->taint(state);
       tainted = false;
     }
+
     if(untrusted) {
       result->untrust(state);
       untrusted = false;
     }
+
     return result;
   }
 	break;
@@ -11625,18 +12459,32 @@ _again:
     }
   }
 	{
+    string_encoding = true;
     if(count > 0) str.append(count, '\0');
   }
 	{
     String* result = String::create(state, str.c_str(), str.size());
+
+    if(str.size() > 0) {
+      if(utf8_encoding) {
+        result->encoding(state, Encoding::utf8_encoding(state));
+      } else if(string_encoding) {
+        // TODO
+      } else if(!ascii_encoding) {
+        result->encoding(state, Encoding::ascii8bit_encoding(state));
+      }
+    }
+
     if(tainted) {
       result->taint(state);
       tainted = false;
     }
+
     if(untrusted) {
       result->untrust(state);
       untrusted = false;
     }
+
     return result;
   }
 	break;
@@ -11668,6 +12516,7 @@ _again:
     }
   }
 	{
+    string_encoding = true;
     if(rest) {
       if(count == 0) str.append(1, '\0');
     } else {
@@ -11676,14 +12525,27 @@ _again:
   }
 	{
     String* result = String::create(state, str.c_str(), str.size());
+
+    if(str.size() > 0) {
+      if(utf8_encoding) {
+        result->encoding(state, Encoding::utf8_encoding(state));
+      } else if(string_encoding) {
+        // TODO
+      } else if(!ascii_encoding) {
+        result->encoding(state, Encoding::ascii8bit_encoding(state));
+      }
+    }
+
     if(tainted) {
       result->taint(state);
       tainted = false;
     }
+
     if(untrusted) {
       result->untrust(state);
       untrusted = false;
     }
+
     return result;
   }
 	break;
@@ -11710,18 +12572,32 @@ _again:
     if(!string_value) return 0;
   }
 	{
+    ascii_encoding = true;
     pack19::b64_uu_encode(string_value, str, count, count_flag, pack19::b64_table, '=', false);
   }
 	{
     String* result = String::create(state, str.c_str(), str.size());
+
+    if(str.size() > 0) {
+      if(utf8_encoding) {
+        result->encoding(state, Encoding::utf8_encoding(state));
+      } else if(string_encoding) {
+        // TODO
+      } else if(!ascii_encoding) {
+        result->encoding(state, Encoding::ascii8bit_encoding(state));
+      }
+    }
+
     if(tainted) {
       result->taint(state);
       tainted = false;
     }
+
     if(untrusted) {
       result->untrust(state);
       untrusted = false;
     }
+
     return result;
   }
 	break;
@@ -11748,18 +12624,32 @@ _again:
     if(!string_value) return 0;
   }
 	{
+    ascii_encoding = true;
     pack19::b64_uu_encode(string_value, str, count, count_flag, pack19::uu_table, '`', true);
   }
 	{
     String* result = String::create(state, str.c_str(), str.size());
+
+    if(str.size() > 0) {
+      if(utf8_encoding) {
+        result->encoding(state, Encoding::utf8_encoding(state));
+      } else if(string_encoding) {
+        // TODO
+      } else if(!ascii_encoding) {
+        result->encoding(state, Encoding::ascii8bit_encoding(state));
+      }
+    }
+
     if(tainted) {
       result->taint(state);
       tainted = false;
     }
+
     if(untrusted) {
       result->untrust(state);
       untrusted = false;
     }
+
     return result;
   }
 	break;
