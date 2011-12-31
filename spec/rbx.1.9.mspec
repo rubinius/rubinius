@@ -87,7 +87,6 @@ class MSpecScript
     '^spec/ruby/core/module/name',
     '^spec/ruby/core/proc/arity',
     '^spec/ruby/core/process/spawn',
-    '^spec/ruby/core/string/getbyte',
 
     '^spec/ruby/library/delegate',
     '^spec/ruby/library/zlib',
