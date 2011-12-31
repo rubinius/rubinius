@@ -2,8 +2,8 @@ require File.expand_path('../../../spec_helper', __FILE__)
 require File.expand_path('../fixtures/classes', __FILE__)
 require File.expand_path('../shared/take', __FILE__)
 
-describe "Enumerable#take" do
-  ruby_version_is '1.8.7' do
+ruby_version_is "1.8.7" do
+  describe "Enumerable#take" do
     it "requires an argument" do
       lambda{ EnumerableSpecs::Numerous.new.take}.should raise_error(ArgumentError)
     end
