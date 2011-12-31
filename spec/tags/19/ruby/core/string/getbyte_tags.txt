@@ -1,4 +1,3 @@
-fails:String#getbyte returns an Integer between 0 and 255
 fails:String#getbyte interprets bytes relative to the String's encoding
 fails:String#getbyte returns nil for out-of-bound indexes
 fails:String#getbyte regards the empty String as containing no bytes
