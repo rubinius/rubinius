@@ -1,6 +1,7 @@
 #include "vm/test/test.hpp"
 
 #include "marshal.hpp"
+#include "builtin/encoding.hpp"
 
 #include <iostream>
 #include <sstream>
@@ -88,13 +89,24 @@ public:
     TS_ASSERT_EQUALS(as<Integer>(obj)->to_ulong_long(), 709490156681136604ULL);
   }
 
-  void test_string() {
-    mar->sstream.str(std::string("s\n4\nblah\n"));
+  void test_string_with_encoding() {
+    mar->sstream.str(std::string("s\nE\n10\nASCII-8BIT\n4\nblah\n"));
     Object* obj = mar->unmarshal();
 
     TS_ASSERT(kind_of<String>(obj));
     String *str = as<String>(obj);
     TS_ASSERT_EQUALS(std::string(str->c_str(state)), "blah");
+    TS_ASSERT_EQUALS(std::string(str->encoding()->name()->c_str(state)), "ASCII-8BIT");
+  }
+
+  void test_string_no_encoding() {
+    mar->sstream.str(std::string("s\nE\n0\n\n4\nblah\n"));
+    Object* obj = mar->unmarshal();
+
+    TS_ASSERT(kind_of<String>(obj));
+    String *str = as<String>(obj);
+    TS_ASSERT_EQUALS(std::string(str->c_str(state)), "blah");
+    TS_ASSERT_EQUALS(str->encoding(), Qnil);
   }
 
   void test_symbol() {

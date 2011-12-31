@@ -13,6 +13,7 @@
 
 #include "builtin/array.hpp"
 #include "builtin/compiledmethod.hpp"
+#include "builtin/encoding.hpp"
 #include "builtin/fixnum.hpp"
 #include "builtin/float.hpp"
 #include "builtin/iseq.hpp"
@@ -38,6 +39,22 @@ namespace rubinius {
     return state->vm()->path2class(data);
   }
 
+  Object* UnMarshaller::get_encoding() {
+    char data[1024];
+    size_t count;
+
+    stream >> count;
+    stream.get();
+    stream.read(data, count + 1);
+    data[count] = 0; // clamp
+
+    if(count > 0) {
+      return Encoding::find(state, data);
+    } else {
+      return Qnil;
+    }
+  }
+
   Object* UnMarshaller::get_int() {
     char data[1024];
 
@@ -50,6 +67,8 @@ namespace rubinius {
   String* UnMarshaller::get_string() {
     size_t count;
 
+    Encoding* enc = try_as<Encoding>(unmarshal());
+
     stream >> count;
     // String::create adds room for a trailing null on its own
     // using pinned here allows later stages to optimize these literal
@@ -59,6 +78,8 @@ namespace rubinius {
     stream.get(); // read off newline
     stream.read(reinterpret_cast<char*>(str->byte_address()), count);
     stream.get(); // read off newline
+
+    if(enc) str->encoding(state, enc);
 
     return str;
   }
@@ -206,6 +227,8 @@ namespace rubinius {
       return get_cmethod();
     case 'c':
       return get_constant();
+    case 'E':
+      return get_encoding();
     default:
       std::string str = "unknown marshal code: ";
       str.append( 1, code );

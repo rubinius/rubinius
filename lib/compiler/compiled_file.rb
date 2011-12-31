@@ -132,8 +132,10 @@ module Rubinius
             end
           end
         when ?s
+          enc = unmarshal_data
           count = next_string.to_i
           str = next_bytes count
+          str.force_encoding enc if enc and defined?(Encoding)
           discard # remove the \n
           return str
         when ?x
@@ -164,6 +166,10 @@ module Rubinius
             i += 1
           end
           return seq
+        when ?E
+          count = next_string.to_i
+          name = next_bytes count
+          return Encoding.find name if defined?(Encoding)
         when ?M
           version = next_string.to_i
           if version != 1
@@ -262,7 +268,16 @@ module Rubinius
         when Fixnum, Bignum
           "I\n#{val.to_s(16)}\n"
         when String
-          "s\n#{val.size}\n#{val}\n"
+          if defined?(Encoding)
+            # We manually construct the Encoding data to avoid recursion
+            # marshaling an Encoding name as a String.
+            name = val.encoding.name
+            enc_name = "E\n#{name.size}\n#{name}\n"
+          end
+
+          enc_name ||= "E\n0\n\n"
+
+          "s\n#{enc_name}#{val.size}\n#{val}\n"
         when Symbol
           s = val.to_s
           "x\n#{s.size}\n#{s}\n"
