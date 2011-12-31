@@ -6,3 +6,5 @@ fails:Regexp#encoding returns Windows-31J if the 's' modifier is supplied
 fails:Regexp#encoding returns EUC_JP if the 'e' modifier is supplied
 fails:Regexp#encoding upgrades the encoding to that of an embedded String
 fails:Regexp#encoding ignores the encoding and uses US-ASCII if the string has only ASCII characters
+fails:Regexp#encoding defaults to US-ASCII if the Regexp contains only US-ASCII character
+fails:Regexp#encoding returns US_ASCII if the 'n' modifier is supplied and only US-ASCII characters are present
