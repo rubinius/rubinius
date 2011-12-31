@@ -11,7 +11,7 @@ else
 end
 
 File.open definitions, "wb" do |f|
-  Dir["#{dir}/enc/*.[hc]"].each do |name|
+  Dir["#{dir}/enc/*.[hc]"].sort.each do |name|
     f.puts "    // #{name}"
 
     readlines(name).each do |line|
