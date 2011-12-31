@@ -297,6 +297,10 @@ namespace rubinius {
     so->data(state, data());
     so->hash_value(state, hash_value());
 
+    so->encoding(state, encoding());
+    so->valid_encoding(state, valid_encoding());
+    so->ascii_only(state, ascii_only());
+
     so->shared(state, Qtrue);
     shared(state, Qtrue);
 

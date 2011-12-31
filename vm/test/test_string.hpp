@@ -1,5 +1,6 @@
 #include "vm/test/test.hpp"
 
+#include "builtin/encoding.hpp"
 #include "builtin/string.hpp"
 
 class TestString : public CxxTest::TestSuite, public VMTest {
@@ -61,13 +62,22 @@ public:
   }
 
   void test_string_dup() {
+    Encoding* enc = Encoding::ascii8bit_encoding(state);
     str = String::create(state, "blah");
+    str->encoding(state, enc);
+    str->valid_encoding(state, Qtrue);
+    str->ascii_only(state, Qfalse);
+
     String* str2 = str->string_dup(state);
 
     TS_ASSERT_EQUALS(str->shared(), Qtrue);
     TS_ASSERT_EQUALS(str2->shared(), Qtrue);
 
     TS_ASSERT_EQUALS(str->data(), str2->data());
+
+    TS_ASSERT_EQUALS(enc, str2->encoding());
+    TS_ASSERT_EQUALS(Qfalse, str2->ascii_only());
+    TS_ASSERT_EQUALS(Qtrue, str2->valid_encoding());
   }
 
   void test_unshare() {

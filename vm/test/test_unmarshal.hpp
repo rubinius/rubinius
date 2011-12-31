@@ -1,7 +1,6 @@
 #include "vm/test/test.hpp"
 
 #include "marshal.hpp"
-#include "builtin/encoding.hpp"
 
 #include <iostream>
 #include <sstream>
