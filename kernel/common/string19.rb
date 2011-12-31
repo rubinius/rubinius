@@ -12,6 +12,37 @@ class String
 
   private :initialize
 
+  def byteslice(start_or_range, length=undefined)
+    if start_or_range.kind_of? Range
+      start = Rubinius::Type.coerce_to start_or_range.begin, Fixnum, :to_int
+      start += @num_bytes if start < 0
+      return if start < 0 or start > @num_bytes
+
+      finish = Rubinius::Type.coerce_to start_or_range.end, Fixnum, :to_int
+      finish += @num_bytes if finish < 0
+
+      finish += 1 unless start_or_range.exclude_end?
+      length = finish - start
+
+      return substring 0, 0 if length < 0
+    else
+      start = Rubinius::Type.coerce_to start_or_range, Fixnum, :to_int
+      start += @num_bytes if start < 0
+
+      if length.equal? undefined
+        return if start == @num_bytes
+        length = 1
+      else
+        length = Rubinius::Type.coerce_to length, Fixnum, :to_int
+        return if length < 0
+      end
+
+      return if start < 0 or start > @num_bytes
+    end
+
+    substring start, length
+  end
+
   def encode!(to=undefined, from=undefined, options=nil)
     # TODO
     to = Rubinius::Type.coerce_to_encoding to
