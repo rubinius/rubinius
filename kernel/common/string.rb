@@ -1882,6 +1882,7 @@ class String
       @shared = nil
     end
 
+    @ascii_only = @valid_encoding = nil
     @hash_value = nil # reset the hash value
   end
 
