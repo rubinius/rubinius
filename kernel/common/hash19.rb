@@ -35,7 +35,7 @@ class Hash
     end
 
     def match?(this_key, this_hash, other_key, other_hash)
-      other_hash == this_hash and other_key.eql? this_key
+      other_hash == this_hash and (Rubinius::Type::object_equal(other_key, this_key) or other_key.eql?(this_key))
     end
   end
 

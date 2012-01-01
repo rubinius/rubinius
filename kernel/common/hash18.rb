@@ -25,7 +25,7 @@ class Hash
         return key.equal?(@key)
       end
 
-      @key_hash == key_hash and key.eql? @key
+      @key_hash == key_hash and (Rubinius::Type::object_equal(key, @key) or key.eql?(@key))
     end
   end
 
