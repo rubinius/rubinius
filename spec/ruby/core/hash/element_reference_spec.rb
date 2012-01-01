@@ -104,6 +104,14 @@ describe "Hash#[]" do
 
     new_hash(y => 1)[x].should == 1
   end
+
+  it "finds a value via an identical key even when its #eql? isn't reflexive" do
+    x = mock('x')
+    x.stub!(:eql?).and_return(false)
+    x.stub!(:hash).and_return(42)
+
+    new_hash(x => :x)[x].should == :x
+  end
 end
 
 describe "Hash.[]" do
