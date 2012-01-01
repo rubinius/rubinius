@@ -66,6 +66,14 @@ describe "Array#-" do
     ([obj1] - [obj2]).should == [obj1]
   end
 
+  it "removes an identical item even when its #eql? isn't reflexive" do
+    x = mock('x')
+    x.stub!(:eql?).and_return(false)
+    x.stub!(:hash).and_return(42)
+
+    ([x] - [x]).should == []
+  end
+
   it "is not destructive" do
     a = [1, 2, 3]
     a - []
