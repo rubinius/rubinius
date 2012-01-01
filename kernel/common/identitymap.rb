@@ -258,11 +258,13 @@ module Rubinius
     private :load
 
     def match?(table, index, item, item_hash, &block)
+      return false unless table[index] == item_hash
+      other = table[index+1]
       if block_given?
-        table[index] == item_hash and yield(item).eql? yield(table[index+1])
-      else
-        table[index] == item_hash and item.eql? table[index+1]
+        item = yield item
+        other = yield other
       end
+      Rubinius::Type.object_equal(item, other) or item.eql?(other)
     end
     private :match?
 
