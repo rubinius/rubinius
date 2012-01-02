@@ -5,7 +5,7 @@ class Class
 
   def superclass
     cls = direct_superclass
-    return nil unless cls
+    raise TypeError, "uninitialized class" unless cls
 
     while cls and cls.kind_of? Rubinius::IncludedModule
       cls = cls.direct_superclass
