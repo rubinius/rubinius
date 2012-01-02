@@ -88,7 +88,7 @@ class Configure
     @llvm_include_path      = File.join(@llvm_default, "include")
 
     @include_dirs = ["/usr/local/include", "/opt/local/include"]
-    @lib_dirs     = ["/usr/local/lib", "/opt/local/include"]
+    @lib_dirs     = ["/usr/local/lib", "/opt/local/lib"]
 
     # File system paths
     @bindir       = root + "/bin"
