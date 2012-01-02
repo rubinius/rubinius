@@ -137,13 +137,11 @@ class Hash
   def self.[](*args)
     if args.size == 1
       obj = args.first
-      if obj.kind_of? Hash
-        return new.replace(obj)
-      elsif obj.respond_to? :to_hash
-        return new.replace(Rubinius::Type.coerce_to(obj, Hash, :to_hash))
-      elsif obj.is_a?(Array) # See redmine # 1385
+      if hash = Rubinius::Type.check_convert_type(obj, Hash, :to_hash)
+        return new.replace(hash)
+      elsif array = Rubinius::Type.check_convert_type(obj, Array, :to_ary)
         h = new
-        args.first.each do |arr|
+        array.each do |arr|
           next unless arr.respond_to? :to_ary
           arr = arr.to_ary
           next unless (1..2).include? arr.size
