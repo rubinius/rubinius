@@ -48,17 +48,17 @@ class MatchData
         return @source.substring(x, y-x)
       end
     when String
-      if @regexp.name_table && num = @regexp.name_table[idx.to_sym]
-        return self[num.last]
-      else
-        raise IndexError, "Unknown named group '#{idx}'"
+      if @regexp.name_table
+        num = @regexp.name_table[idx.to_sym]
+        return self[num.last] if num
       end
+      raise IndexError, "Unknown named group '#{idx}'"
     when Symbol
-      if @regexp.name_table && num = @regexp.name_table[idx]
-        return self[num.last]
-      else
-        raise IndexError, "Unknown named group '#{idx}'"
+      if @regexp.name_table
+        num = @regexp.name_table[idx]
+        return self[num.last] if num
       end
+      raise IndexError, "Unknown named group '#{idx}'"
     end
 
     return to_a[idx]
