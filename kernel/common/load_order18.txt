@@ -99,6 +99,7 @@ symbol18.rbc
 thread.rbc
 thread_group.rbc
 throw_catch.rbc
+throw_catch18.rbc
 time.rbc
 time18.rbc
 true.rbc

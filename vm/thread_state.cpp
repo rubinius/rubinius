@@ -93,7 +93,7 @@ namespace rubinius {
     destination_scope_.set(Qnil);
   }
 
-  void ThreadState::raise_throw(Symbol* dest, Object* value) {
+  void ThreadState::raise_throw(Object* dest, Object* value) {
     raise_reason_ = cCatchThrow;
     raise_value_.set(value);
     throw_dest_.set(dest);

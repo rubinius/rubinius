@@ -243,10 +243,10 @@ namespace rubinius {
     static Object* vm_raise_exception(STATE, Exception* exc);
 
     // Rubinius.primitive :vm_throw
-    static Object* vm_throw(STATE, Symbol* dest, Object* value);
+    static Object* vm_throw(STATE, Object* dest, Object* value);
 
     // Rubinius.primitive :vm_catch
-    static Object* vm_catch(STATE, Symbol* dest, Object* obj, CallFrame* calling_environment);
+    static Object* vm_catch(STATE, Object* dest, Object* obj, CallFrame* calling_environment);
 
     // Rubinius.primitive :vm_set_class
     static Object* vm_set_class(STATE, Object* obj, Class* cls);
