@@ -1042,8 +1042,8 @@ namespace rubinius {
   {
     LookupData lookup(obj, obj->lookup_begin(state), false);
     Dispatch dis(state->symbol("call"));
-
-    Arguments args(state->symbol("call"));
+    Object* name = dest;
+    Arguments args(state->symbol("call"), 1, &name);
     args.set_recv(obj);
 
     Object* ret = dis.send(state, call_frame, lookup, args);
