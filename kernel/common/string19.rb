@@ -65,22 +65,6 @@ class String
     to_inum(16, false)
   end
 
-  def partition(pattern)
-    unless pattern.is_a? Regexp
-      pattern = Rubinius::Type.coerce_to(pattern, String, :to_str)
-    end
-    i = index(pattern)
-    return [self, "", ""] unless i
-
-    if pattern.is_a? Regexp
-      match = Regexp.last_match
-      [match.pre_match, match[0], match.post_match]
-    else
-      last = i+pattern.length
-      [self[0...i], self[i...last], self[last...length]]
-    end
-  end
-
   def prepend(other)
     self[0,0] = other
     self

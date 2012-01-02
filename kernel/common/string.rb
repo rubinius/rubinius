@@ -1028,6 +1028,7 @@ class String
 
     if pattern.kind_of? Regexp
       if m = pattern.match(self)
+        Regexp.last_match = m
         return [m.pre_match, m.to_s, m.post_match]
       end
     else
