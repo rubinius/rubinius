@@ -107,8 +107,8 @@ describe "Hash#[]" do
 
   it "finds a value via an identical key even when its #eql? isn't reflexive" do
     x = mock('x')
-    x.stub!(:eql?).and_return(false)
-    x.stub!(:hash).and_return(42)
+    x.should_receive(:hash).any_number_of_times.and_return(42)
+    x.stub!(:eql?).and_return(false) # Stubbed for clarity and latitude in implementation; not actually sent by MRI.
 
     new_hash(x => :x)[x].should == :x
   end
