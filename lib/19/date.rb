@@ -698,7 +698,7 @@ class Date
     # next larger unit (e.g. a +min+ of -2 is treated as 58).  No
     # wraparound is performed.
     def _valid_time? (h, min, s) # :nodoc:
-      return unless (h.is_a?(Integer) && min.is_a?(Integer))
+      return unless h.is_a?(Integer) && min.is_a?(Integer)
       h   += 24 if h   < 0
       min += 60 if min < 0
       s   += 60 if s   < 0
