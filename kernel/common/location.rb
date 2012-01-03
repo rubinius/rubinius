@@ -8,6 +8,11 @@ module Rubinius
     attr_reader :variables
     attr_reader :static_scope
 
+    def self.of_sender
+      # skip two levels to get back to the sender of the sender.
+      Rubinius::VM.backtrace(2).first
+    end
+
     def is_block
       @flags & 1 == 1
     end

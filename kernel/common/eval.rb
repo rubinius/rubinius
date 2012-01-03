@@ -35,7 +35,9 @@ module Kernel
       Rubinius::VariableScope.of_sender,
       Rubinius::CompiledMethod.of_sender,
       Rubinius::StaticScope.of_sender,
-      self)
+      self,
+      Rubinius::Location.of_sender
+    )
   end
   module_function :binding
 
