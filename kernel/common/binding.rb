@@ -35,7 +35,7 @@ class Binding
   attr_accessor :static_scope
   attr_accessor :proc_environment
   attr_accessor :self
-  attr_accessor :location
+  attr_accessor :line_number
 
   def from_proc?
     @proc_environment
@@ -59,7 +59,7 @@ class Binding
     bind.variables = variables
     bind.code = code
     bind.static_scope = static_scope
-    bind.location = location
+    bind.line_number = location ? location.line : 1
 
     return bind
   end
@@ -68,7 +68,7 @@ class Binding
   # If the optional filename and lineno parameters are present,
   # they will be used when reporting syntax errors.
   def eval(expr, filename=nil, lineno=nil)
-    lineno ||= (self.location && !filename) ? self.location.line : 1
+    lineno ||= filename ? 1 : self.line_number
 
     Kernel.eval(expr, self, filename, lineno)
   end
