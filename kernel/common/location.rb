@@ -8,9 +8,9 @@ module Rubinius
     attr_reader :variables
     attr_reader :static_scope
 
-    def self.of_sender
-      Rubinius.primitive :location_of_sender
-      raise PrimitiveFailure, "Location.of_sender primitive failed"
+    def self.of_closest_ruby_method
+      Rubinius.primitive :location_of_closest_ruby_method
+      raise PrimitiveFailure, "Location.of_closest_ruby_method primitive failed"
     end
 
     def is_block

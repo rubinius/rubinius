@@ -60,7 +60,7 @@ namespace rubinius {
     return loc;
   }
 
-  Location* Location::of_sender(STATE, CallFrame* calling_environment) {
+  Location* Location::of_closest_ruby_method(STATE, CallFrame* calling_environment) {
     CallFrame* dest = static_cast<CallFrame*>(calling_environment->previous);
     // Skip any frames for native methods
     while(dest->native_method_p()) { dest = dest->previous; }

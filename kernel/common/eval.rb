@@ -36,7 +36,7 @@ module Kernel
       Rubinius::CompiledMethod.of_sender,
       Rubinius::StaticScope.of_sender,
       self,
-      Rubinius::Location.of_sender
+      Rubinius::Location.of_closest_ruby_method
     )
   end
   module_function :binding

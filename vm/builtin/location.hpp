@@ -48,8 +48,8 @@ namespace rubinius {
     static Location* create(STATE, CallFrame* call_frame,
                             bool include_variables=false);
 
-    // Rubinius.primitive :location_of_sender
-    static Location* of_sender(STATE, CallFrame* calling_environment);
+    // Rubinius.primitive :location_of_closest_ruby_method
+    static Location* of_closest_ruby_method(STATE, CallFrame* calling_environment);
 
     static Array* from_call_stack(STATE, CallFrame* call_frame,
                                   bool include_vars=false, bool on_ip=false);
