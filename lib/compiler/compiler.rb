@@ -281,7 +281,7 @@ module Rubinius
     def self.compile_eval(string, variable_scope, file="(eval)", line=1)
       if ec = @eval_cache
         layout = variable_scope.local_layout
-        if cm = ec.retrieve([string, layout])
+        if cm = ec.retrieve([string, layout, line])
           return cm
         end
       end
@@ -300,7 +300,7 @@ module Rubinius
       cm.add_metadata :for_eval, true
 
       if ec and parser.should_cache?
-        ec.set([string.dup, layout], cm)
+        ec.set([string.dup, layout, line], cm)
       end
 
       return cm
