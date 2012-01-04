@@ -33,6 +33,10 @@ namespace rubinius {
     return total_->to_native();
   }
 
+  size_t Array::offset() {
+    return start_->to_native();
+  }
+
   Array* Array::create(STATE, size_t idx) {
     Array* ary;
     ary = state->new_object<Array>(G(array));

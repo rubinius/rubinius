@@ -111,13 +111,17 @@ namespace rubinius {
     }
 
     void use_array(Array* ary) {
-      use_tuple(ary->tuple(), ary->size());
+      use_tuple(ary->tuple(), ary->size(), ary->offset());
     }
 
-    void use_tuple(Tuple* tup, int size) {
+    void use_tuple(Tuple* tup, uint32_t size, uint32_t offset) {
       total_ = size;
-      arguments_ = tup->field;
+      arguments_ = tup->field + offset;
       argument_container_ = tup;
+    }
+
+    void use_tuple(Tuple* tup, uint32_t size) {
+      use_tuple(tup, size, 0);
     }
 
     Tuple*& argument_container_location() {
