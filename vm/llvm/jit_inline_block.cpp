@@ -94,22 +94,44 @@ namespace jit {
       // We don't support splat in an block method!
       assert(vmm_->splat_position < 0);
 
-      // block logic has no arity checking, so we process
-      // up to the minimum of stack_args.size and vmm_->total_args;
-      size_t limit = MIN((int)stack_args.size(), (int)vmm_->total_args);
+      if(stack_args.size() == 1 && vmm_->total_args > 1) {
+        Signature sig(ls_, "Object");
+        sig << "VM";
+        sig << "CallFrame";
+        sig << "Object";
+        sig << vars->getType();
+        sig << ls_->Int32Ty;
 
-      for(size_t i = 0; i < limit; i++) {
-        Value* int_pos = cint(i);
+        Value* call_args[] = { info_.vm(), info_.call_frame(),
+                               stack_args.at(0), vars, cint(vmm_->total_args) };
 
-        Value* idx2[] = {
-          cint(0),
-          cint(offset::vars_tuple),
-          int_pos
-        };
+        Value* val = sig.call("rbx_destructure_inline_args", call_args, 5, "", b());
+        Value* null = Constant::getNullValue(val->getType());
+        Value* is_null = b().CreateICmpEQ(val, null);
 
-        Value* pos = b().CreateGEP(vars, idx2, idx2+3, "local_pos");
+        info_.add_return_value(null, b().GetInsertBlock());
 
-        b().CreateStore(stack_args.at(i), pos);
+        BasicBlock* cont = info_.new_block("continue");
+        b().CreateCondBr(is_null, info_.return_pad(), cont);
+        b().SetInsertPoint(cont);
+      } else {
+        // block logic has no arity checking, so we process
+        // up to the minimum of stack_args.size and vmm_->total_args;
+        size_t limit = MIN((int)stack_args.size(), (int)vmm_->total_args);
+
+        for(size_t i = 0; i < limit; i++) {
+          Value* int_pos = cint(i);
+
+          Value* idx2[] = {
+            cint(0),
+            cint(offset::vars_tuple),
+            int_pos
+          };
+
+          Value* pos = b().CreateGEP(vars, idx2, idx2+3, "local_pos");
+
+          b().CreateStore(stack_args.at(i), pos);
+        }
       }
     } else {
       // No argument handling, there are bytecodes in the body that

@@ -345,6 +345,35 @@ extern "C" {
     return Qnil;
   }
 
+  Object* rbx_destructure_inline_args(STATE, CallFrame* call_frame, Object* obj,
+                                      StackVariables* vars, int size)
+  {
+    Array* ary = try_as<Array>(obj);
+
+    if(!ary && RTEST(obj->respond_to(state, state->symbol("to_ary"), Qfalse))) {
+      obj = obj->send(state, call_frame, state->symbol("to_ary"));
+      if(Array* ary2 = try_as<Array>(obj)) {
+        ary = ary2;
+      } else {
+        Exception::type_error(state, "to_ary must return an Array", call_frame);
+        return 0;
+      }
+    }
+
+    if(ary) {
+      size_t limit = MIN((int)ary->size(), size);
+
+      for(size_t i = 0; i < limit; i++) {
+        vars->set_local(i, ary->get(state, i));
+      }
+    } else {
+      assert(size > 0);
+      vars->set_local(0, obj);
+    }
+
+    return Qnil;
+  }
+
   Object* rbx_cast_multi_value(STATE, CallFrame* call_frame, Object* top) {
     if(kind_of<Array>(top)) return top;
     return Array::to_ary(state, top, call_frame);
