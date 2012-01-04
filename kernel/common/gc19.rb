@@ -9,11 +9,13 @@ module GC
       :gc => {
         :young => {
           :count => @agent.get('system.gc.young.count')[1],
-          :total_wallclock => @agent.get('system.gc.young.total_wallclock')[1]
+          :total_wallclock => @agent.get('system.gc.young.total_wallclock')[1],
+          :last_wallclock => @agent.get('system.gc.young.last_wallclock')[1]
         },
         :full => {
           :count => @agent.get('system.gc.full.count')[1],
-          :total_wallclock => @agent.get('system.gc.full.total_wallclock')[1]
+          :total_wallclock => @agent.get('system.gc.full.total_wallclock')[1],
+          :last_wallclock => @agent.get('system.gc.full.last_wallclock')[1]
         }
       },
       :memory => {
