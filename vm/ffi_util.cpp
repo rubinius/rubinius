@@ -30,39 +30,6 @@ void ffi_set_errno(int n) {
   errno = n;
 }
 
-#ifdef HAVE_TIMEZONE
-time_t ffi_timezone() {
-  return timezone;
-}
-#else
-#ifdef HAVE_TM_GMTOFF
-// try FreeBSD extensions to struct tm
-time_t ffi_timezone() {
-  struct tm *lt;
-  time_t t;
-
-  t = time(NULL);
-  lt = localtime(&t);
-
-  return lt->tm_gmtoff;
-}
-#endif
-#endif
-
-char* ffi_tzname(int dst) {
-  if(dst) {
-    return tzname[1];
-  } else {
-    return tzname[0];
-  }
-}
-
-/*
-int ffi_daylight() {
-  return daylight;
-}
-*/
-
 uintptr_t ffi_address(void *ptr) {
   return (uintptr_t)ptr;
 }
