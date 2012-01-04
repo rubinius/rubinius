@@ -44,6 +44,8 @@ class String
   end
 
   def encode!(to=undefined, from=undefined, options=nil)
+    Rubinius.check_frozen
+
     # TODO
     to = Rubinius::Type.coerce_to_encoding to
     @encoding = to
