@@ -22,7 +22,7 @@ module GC
         :counter => {
           :young_objects => @agent.get("system.memory.counter.young_objects")[1],
           :young_bytes => @agent.get("system.memory.counter.young_bytes")[1],
-          :promoted_bytes => @agent.get("system.memory.counter.promoted_objects")[1],
+          :promoted_objects => @agent.get("system.memory.counter.promoted_objects")[1],
           :promoted_bytes => @agent.get("system.memory.counter.promoted_bytes")[1],
           :mature_objects => @agent.get("system.memory.counter.mature_objects")[1],
           :mature_bytes => @agent.get("system.memory.counter.mature_bytes")[1],
