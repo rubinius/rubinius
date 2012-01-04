@@ -272,15 +272,15 @@ module Rubinius
             # We manually construct the Encoding data to avoid recursion
             # marshaling an Encoding name as a String.
             name = val.encoding.name
-            enc_name = "E\n#{name.size}\n#{name}\n"
+            enc_name = "E\n#{name.bytesize}\n#{name}\n"
           end
 
           enc_name ||= "E\n0\n\n"
 
-          "s\n#{enc_name}#{val.size}\n#{val}\n"
+          "s\n#{enc_name}#{val.bytesize}\n#{val}\n"
         when Symbol
           s = val.to_s
-          "x\n#{s.size}\n#{s}\n"
+          "x\n#{s.bytesize}\n#{s}\n"
         when Tuple
           str = "p\n#{val.size}\n"
           val.each do |ele|

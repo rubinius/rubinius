@@ -94,8 +94,8 @@ public:
 
     d->control(state, Fixnum::from(0), pos);
     String* second = as<String>(d->read(state));
-    TS_ASSERT_EQUALS(first->size(), second->size());
-    TS_ASSERT_SAME_DATA(first, second, first->size());
+    TS_ASSERT_EQUALS(first->byte_size(), second->byte_size());
+    TS_ASSERT_SAME_DATA(first, second, first->byte_size());
     remove_directory(dir);
   }
 };

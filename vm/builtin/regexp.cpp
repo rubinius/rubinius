@@ -222,7 +222,7 @@ namespace rubinius {
     if(enc == onig_data->enc) return;
 
     pat = (UChar*)source()->byte_address();
-    end = pat + source()->size();
+    end = pat + source()->byte_size();
 
     int options = onig_data->options;
     OnigEncoding orig_enc = onig_data->enc;
@@ -263,7 +263,7 @@ namespace rubinius {
     int err, num_names, kcode;
 
     pat = (UChar*)pattern->byte_address();
-    end = pat + pattern->size();
+    end = pat + pattern->byte_size();
 
     opts  = options->to_native();
     kcode = opts & KCODE_MASK;
@@ -396,7 +396,7 @@ namespace rubinius {
 
     // thread::Mutex::LockGuard lg(state->shared().onig_lock());
 
-    max = string->size();
+    max = string->byte_size();
     str = (UChar*)string->byte_address();
 
     native_int i_start = start->to_native();
@@ -477,7 +477,7 @@ namespace rubinius {
 
     // thread::Mutex::LockGuard lg(state->shared().onig_lock());
 
-    max = string->size();
+    max = string->byte_size();
     native_int pos = start->to_native();
 
     str = (UChar*)string->byte_address();
@@ -548,7 +548,7 @@ namespace rubinius {
 
     maybe_recompile(state);
 
-    max = string->size();
+    max = string->byte_size();
     native_int pos = start->to_native();
 
     str = (UChar*)string->byte_address();
@@ -603,7 +603,7 @@ namespace rubinius {
     Fixnum* beg = try_as<Fixnum>(full_->at(state, 0));
     Fixnum* fin = try_as<Fixnum>(full_->at(state, 1));
 
-    native_int max = source_->size();
+    native_int max = source_->byte_size();
     native_int f = fin->to_native();
     native_int b = beg->to_native();
 
@@ -621,7 +621,7 @@ namespace rubinius {
   String* MatchData::pre_matched(STATE) {
     Fixnum* beg = try_as<Fixnum>(full_->at(state, 0));
 
-    native_int max = source_->size();
+    native_int max = source_->byte_size();
     native_int sz = beg->to_native();
 
     if(!beg || sz <= 0) {
@@ -639,7 +639,7 @@ namespace rubinius {
     Fixnum* fin = try_as<Fixnum>(full_->at(state, 1));
 
     native_int f = fin->to_native();
-    native_int max = source_->size();
+    native_int max = source_->byte_size();
 
     if(!fin || f >= max) {
       return String::create(state, 0, 0);
@@ -664,7 +664,7 @@ namespace rubinius {
 
     native_int b = beg->to_native();
     native_int f = fin->to_native();
-    native_int max = source_->size();
+    native_int max = source_->byte_size();
 
     if(!beg || !fin ||
         f > max ||

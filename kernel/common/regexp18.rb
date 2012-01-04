@@ -34,7 +34,7 @@ class MatchData
         return nil if x == -1
 
         y = tup.at(1)
-        return @source.substring(x, y-x)
+        return @source.byteslice(x, y-x)
       end
     when Symbol
       num = @regexp.name_table[idx]

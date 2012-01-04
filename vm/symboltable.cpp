@@ -147,7 +147,7 @@ namespace rubinius {
     // Since we also explicitly use the size, we can safely
     // use byte_address() here.
     const char* bytes = (const char*) str->byte_address();
-    size_t size = str->size();
+    size_t size = str->byte_size();
 
     if(LANGUAGE_18_ENABLED(state)) {
       for(size_t i = 0; i < size; i++) {

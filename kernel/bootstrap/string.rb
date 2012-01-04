@@ -1,4 +1,7 @@
 class String
+  attr_reader :num_bytes
+  attr_reader_specific :num_bytes, :bytesize
+
   def self.pattern(size, str)
     Rubinius.primitive :string_pattern
     raise PrimitiveFailure, "String.pattern primitive failed"
@@ -21,6 +24,39 @@ class String
     raise TypeError, "String#append primitive only accepts Strings"
   end
 
+  def byteslice(index_or_range, length=undefined)
+    Rubinius.primitive :string_byte_substring
+
+    if index_or_range.kind_of? Range
+      index = Rubinius::Type.coerce_to index_or_range.begin, Fixnum, :to_int
+      index += @num_bytes if index < 0
+      return if index < 0 or index > @num_bytes
+
+      finish = Rubinius::Type.coerce_to index_or_range.end, Fixnum, :to_int
+      finish += @num_bytes if finish < 0
+
+      finish += 1 unless index_or_range.exclude_end?
+      length = finish - index
+
+      return byteslice 0, 0 if length < 0
+    else
+      index = Rubinius::Type.coerce_to index_or_range, Fixnum, :to_int
+      index += @num_bytes if index < 0
+
+      if length.equal? undefined
+        return if index == @num_bytes
+        length = 1
+      else
+        length = Rubinius::Type.coerce_to length, Fixnum, :to_int
+        return if length < 0
+      end
+
+      return if index < 0 or index > @num_bytes
+    end
+
+    byteslice index, length
+  end
+
   def dup
     Rubinius.primitive :string_dup
     raise PrimitiveFailure, "String#dup primitive failed"
@@ -33,24 +69,7 @@ class String
 
   def substring(start, count)
     Rubinius.primitive :string_substring
-
-    return nil if count < 0
-
-    if start < 0
-      start += @num_bytes
-      return nil if start < 0
-    else
-      return nil if start > @num_bytes
-    end
-
-    count = @num_bytes - start if start + count > @num_bytes
-    count = 0 if count < 0
-
-    str = self.class.pattern count, 0
-    str.copy_from self, start, count, 0
-    str.taint if self.tainted?
-
-    return str
+    raise PrimitiveFailure, "String#substring primitive failed"
   end
 
   def find_string(pattern, start)
@@ -78,13 +97,26 @@ class String
     end
   end
 
-  # Returns the length of <i>self</i>.
-  attr_reader_specific :num_bytes, :length
-  alias_method :size, :length
-
   def find_character(offset)
     Rubinius.primitive :string_find_character
     raise PrimitiveFailure, "String#find_character failed"
+  end
+
+  def size
+    Rubinius.primitive :string_size
+    raise PrimitiveFailure, "String#size primitive failed"
+  end
+
+  alias_method :length, :size
+
+  # This is a work-in-progress. String is entirely coded around the idea of
+  # bytes, but we have to convert to the idea of characters, even for 1.8
+  # mode, where UTF-8, EUC, and SJIS will be represented properly as encoded
+  # strings rather than some ad hoc internal state. However, the byte
+  # characteristic of String is still important. More work remains.
+  def num_bytes=(bytes)
+    @num_chars = nil
+    @num_bytes = bytes
   end
 
   # In time, the JIT should be able to handle this as a ruby method.
@@ -97,5 +129,4 @@ class String
     Rubinius.primitive :string_resize_capacity
     raise PrimitiveFailure, "String#resize_capacity failed"
   end
-
 end

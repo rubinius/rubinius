@@ -129,7 +129,7 @@ class Iconv
 
     if str
       str = StringValue(str)
-      str_size = str.size
+      str_size = str.bytesize
 
       # To deal with people passing in nil's
       start  = 0        unless start

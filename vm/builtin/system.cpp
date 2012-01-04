@@ -1120,7 +1120,7 @@ namespace rubinius {
   }
 
   Object* System::vm_set_kcode(STATE, String* what) {
-    if(what->size() < 1) {
+    if(what->byte_size() < 1) {
       kcode::set(state, kcode::eAscii);
     } else {
       const char* str = what->c_str(state);
@@ -1421,7 +1421,7 @@ namespace rubinius {
   String* System::sha1_hash(STATE, String* str) {
     XSHA1_CTX ctx;
     XSHA1_Init(&ctx);
-    XSHA1_Update(&ctx, str->byte_address(), str->size());
+    XSHA1_Update(&ctx, str->byte_address(), str->byte_size());
 
     uint8_t digest[20];
     XSHA1_Finish(&ctx, digest);

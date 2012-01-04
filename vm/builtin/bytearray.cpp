@@ -155,10 +155,10 @@ namespace rubinius {
   }
 
   ByteArray* ByteArray::prepend(STATE, String* str) {
-    ByteArray* ba = ByteArray::create(state, size() + str->size());
+    ByteArray* ba = ByteArray::create(state, size() + str->byte_size());
 
-    memcpy(ba->bytes, str->data()->bytes, str->size());
-    memcpy(ba->bytes + str->size(), bytes, size());
+    memcpy(ba->bytes, str->data()->bytes, str->byte_size());
+    memcpy(ba->bytes + str->byte_size(), bytes, size());
 
     return ba;
   }
@@ -220,7 +220,7 @@ namespace rubinius {
 
   Object* ByteArray::locate(STATE, String* pattern, Fixnum* start, Fixnum* max_o) {
     const uint8_t* pat = pattern->byte_address();
-    native_int len = pattern->size();
+    native_int len = pattern->byte_size();
     native_int max = max_o->to_native();
 
     if(len == 0) return start;

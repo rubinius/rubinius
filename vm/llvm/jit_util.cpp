@@ -1094,7 +1094,7 @@ extern "C" {
       String* str = try_as<String>(obj);
 
       if(str) {
-        size += str->size();
+        size += str->byte_size();
       } else {
         // This isn't how MRI does this. If sub isn't a String, it converts
         // the original object via any_to_s, not the bad value returned from #to_s.
@@ -1102,7 +1102,7 @@ extern "C" {
         // this way instead.
 
         str = obj->to_s(state, false);
-        size += str->size();
+        size += str->byte_size();
 
         parts[i] = str;
       }
@@ -1114,8 +1114,8 @@ extern "C" {
     for(int i = 0; i < count; i++) {
       // We can force here because we've typed check them above.
       String* sub = force_as<String>(parts[i]);
-      memcpy(pos, sub->byte_address(), sub->size());
-      pos += sub->size();
+      memcpy(pos, sub->byte_address(), sub->byte_size());
+      pos += sub->byte_size();
     }
 
     return str;

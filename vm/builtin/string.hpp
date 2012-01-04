@@ -36,6 +36,7 @@ namespace rubinius {
 
   private:
     Fixnum* num_bytes_;       // slot
+    Fixnum* num_chars_;       // slot
     ByteArray* data_;         // slot
     Fixnum* hash_value_;      // slot
     Object* shared_;          // slot
@@ -47,6 +48,7 @@ namespace rubinius {
     /* accessors */
 
     attr_accessor(num_bytes, Fixnum);
+    attr_accessor(num_chars, Fixnum);
     attr_accessor(data, ByteArray);
     attr_accessor(hash_value, Fixnum);
     attr_accessor(shared, Object);
@@ -89,12 +91,17 @@ namespace rubinius {
     Object* secure_compare(STATE, String* other);
 
     // Returns the number of bytes this String contains
-    native_int size() {
+    native_int byte_size() {
       return num_bytes_->to_native();
     }
 
+    native_int char_size(STATE);
+
+    // Rubinius.primitive :string_size
+    Fixnum* size(STATE);
+
     // Access the String as a char* directly. WARNING: doesn't necessarily
-    // return a null terminated char*, so be sure to use size() with it.
+    // return a null terminated char*, so be sure to use byte_size() with it.
     //
     // NOTE: do not free() or realloc() this buffer.
     uint8_t* byte_address() {
@@ -173,8 +180,19 @@ namespace rubinius {
     // Rubinius.primitive :string_from_codepoint
     static String* from_codepoint(STATE, Object* self, Integer* code, Encoding* enc);
 
+    // Rubinius.primitive :string_aref
+    Object* aref(STATE, Fixnum* index);
+
     // Rubinius.primitive :string_substring
-    String* substring(STATE, Fixnum* start, Fixnum* count);
+    String* substring(STATE, Fixnum* index, Fixnum* length);
+
+    // Rubinius.primitive :string_byte_substring
+    String* byte_substring(STATE, Fixnum* index, Fixnum* length);
+
+    String* byte_substring(STATE, native_int index, native_int length);
+    String* char_substring(STATE, native_int index, native_int length);
+
+    native_int find_character_byte_index(STATE, native_int index, native_int start = 0);
 
     // Rubinius.primitive :string_index
     Fixnum* index(STATE, String* pattern, Fixnum* start);

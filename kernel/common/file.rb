@@ -131,7 +131,7 @@ class File < IO
         found = false
         pos.downto(0) do |i|
           if data[i] != 47  # ?/
-            path = path.substring(0, i+1)
+            path = path.byteslice(0, i+1)
             found = true
             break
           end
@@ -148,7 +148,7 @@ class File < IO
         end
       end
 
-      path = path.substring(pos + 1, path.size - pos) if pos
+      path = path.byteslice(pos + 1, path.size - pos) if pos
     end
 
     return path if ext_not_present
@@ -159,12 +159,12 @@ class File < IO
 
     if ext == ".*"
       if pos = path.rindex(?.)
-        return path.substring(0, pos)
+        return path.byteslice(0, pos)
       end
     elsif pos = path.rindex(ext)
       # Check that ext is the last thing in the string
       if pos == path.size - ext.size
-        return path.substring(0, pos)
+        return path.byteslice(0, pos)
       end
     end
 
@@ -357,7 +357,7 @@ class File < IO
     if pos = path.find_string_reverse(slash, chunk_size)
       return "/" if pos == 0
 
-      path = path.substring(0, pos)
+      path = path.byteslice(0, pos)
 
       return "/" if path == "/"
 
@@ -369,7 +369,7 @@ class File < IO
       # edge case, only /'s, return /
       return "/" unless idx
 
-      return path.substring(0, idx - 1)
+      return path.byteslice(0, idx - 1)
     end
 
     return "."
@@ -420,7 +420,7 @@ class File < IO
     if first == ?~
       case path[1]
       when ?/
-        path = ENV["HOME"] + path.substring(1, path.size - 1)
+        path = ENV["HOME"] + path.byteslice(1, path.size - 1)
       when nil
         unless home = ENV["HOME"]
           raise ArgumentError, "couldn't find HOME environment variable when expanding '~'"
@@ -436,12 +436,12 @@ class File < IO
           length = path.size
         end
 
-        name = path.substring 1, length - 1
+        name = path.byteslice 1, length - 1
         unless dir = Rubinius.get_user_home(name)
           raise ArgumentError, "user #{name} does not exist"
         end
 
-        path = dir + path.substring(length, path.size - length)
+        path = dir + path.byteslice(length, path.size - length)
       end
     elsif first != ?/
       if dir
@@ -461,7 +461,7 @@ class File < IO
       length = index - start
 
       if length > 0
-        item = path.substring start, length
+        item = path.byteslice start, length
 
         if item == ".."
           items.pop
@@ -512,7 +512,7 @@ class File < IO
     # last component ends with a .
     return "" if dot_idx == path_size - 1
 
-    return path.substring(dot_idx, path_size - dot_idx)
+    return path.byteslice(dot_idx, path_size - dot_idx)
   end
 
   ##

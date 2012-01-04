@@ -816,7 +816,7 @@ namespace rubinius {
           if(!mp) {
             if(String* so = try_as<String>(obj)) {
               int size;
-              size = so->size();
+              size = so->byte_size();
 
               char* data = ALLOCA_N(char, size + 1);
               memcpy(data, so->c_str(state), size);
@@ -866,7 +866,7 @@ namespace rubinius {
           String* so;
 
           so = as<String>(obj);
-          size = so->size();
+          size = so->byte_size();
 
           char* data = (char *)malloc(sizeof(char) * (size + 1));
 

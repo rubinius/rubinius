@@ -54,7 +54,7 @@ namespace rubinius {
 
       ptr[byte_size-1] = 0;
       rstring->dmwmb = rstring->ptr = ptr;
-      rstring->len = string->size();
+      rstring->len = string->byte_size();
       rstring->aux.capa = byte_size;
       rstring->aux.shared = Qfalse;
     }
@@ -133,7 +133,7 @@ namespace rubinius {
        * been a cache created for a string, however, we must set put a null
        * byte in the cache based on the String size.
        */
-      if(unset) as_.rstring->ptr[string->size()] = 0;
+      if(unset) as_.rstring->ptr[string->byte_size()] = 0;
 
       return as_.rstring;
     }
@@ -354,7 +354,7 @@ extern "C" {
     VALUE str = rb_string_value(object_variable);
     String* string = capi_get_string(env, str);
 
-    if(string->size() != (native_int)strlen(string->c_str(env->state()))) {
+    if(string->byte_size() != (native_int)strlen(string->c_str(env->state()))) {
       rb_raise(rb_eArgError, "string contains NULL byte");
     }
 
@@ -385,7 +385,7 @@ extern "C" {
     String* str = capi_get_string(env, string);
     char *ptr = RSTRING_PTR(string);
     if(len) {
-      *len = str->size();
+      *len = str->byte_size();
     }
     return ptr;
   }
@@ -404,9 +404,9 @@ extern "C" {
 
     String* str = c_as<String>(env->get_object(self));
 
-    char* data = (char*)malloc(sizeof(char) * str->size() + 1);
-    memcpy(data, str->c_str(env->state()), str->size());
-    data[str->size()] = 0;
+    char* data = (char*)malloc(sizeof(char) * str->byte_size() + 1);
+    memcpy(data, str->c_str(env->state()), str->byte_size());
+    data[str->byte_size()] = 0;
 
     return data;
   }
@@ -432,7 +432,7 @@ extern "C" {
     NativeMethodEnvironment* env = NativeMethodEnvironment::get();
 
     String* string = capi_get_string(env, self);
-    return string->size();
+    return string->byte_size();
   }
 
   void rb_str_set_len(VALUE self, size_t len) {

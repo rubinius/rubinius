@@ -477,7 +477,7 @@ namespace rubinius {
     ByteArray* prepare_directives(STATE, String* directives,
                                   const char** p, const char** pe)
     {
-      native_int size = directives->size();
+      native_int size = directives->byte_size();
       ByteArray* ba = ByteArray::create_pinned(state, size);
       char* b = reinterpret_cast<char*>(ba->raw_bytes());
       char* d = reinterpret_cast<char*>(directives->byte_address());
@@ -611,7 +611,7 @@ namespace rubinius {
     const char* bytes = 0;
     const char* bytes_end = 0;
 
-    native_int bytes_size = self->size();
+    native_int bytes_size = self->byte_size();
     native_int index = 0;
     native_int stop = 0;
     native_int width = 0;

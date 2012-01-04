@@ -267,8 +267,8 @@ class Dir
 
       while match = %r!/+!.match_from(str, start)
         cur_start, cur_end = match.full
-        ret << str.substring(start, cur_start - start)
-        ret << str.substring(cur_start, cur_end - cur_start)
+        ret << str.byteslice(start, cur_start - start)
+        ret << str.byteslice(cur_start, cur_end - cur_start)
 
         start = cur_end
 

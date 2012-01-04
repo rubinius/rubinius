@@ -627,7 +627,7 @@ namespace rubinius {
   }
 
   Object* IO::write(STATE, String* buf, CallFrame* call_frame) {
-    native_int left = buf->size();
+    native_int left = buf->byte_size();
     native_int data_size = as<ByteArray>(buf->data())->size();
     if(unlikely(left > data_size)) {
       left = data_size;
@@ -676,13 +676,13 @@ namespace rubinius {
       return NULL;
     }
 
-    return Integer::from(state, buf->size() - left);
+    return Integer::from(state, buf->byte_size() - left);
   }
 
   Object* IO::write_nonblock(STATE, String* buf) {
     set_nonblock(state);
 
-    native_int buf_size = buf->size();
+    native_int buf_size = buf->byte_size();
     native_int data_size = as<ByteArray>(buf->data())->size();
     if(unlikely(buf_size > data_size)) {
       buf_size = data_size;
@@ -1245,7 +1245,7 @@ failed: /* try next '*' position */
   Object* IOBuffer::unshift(STATE, String* str, Fixnum* start_pos) {
     write_synced(state, Qfalse);
     native_int start_pos_native = start_pos->to_native();
-    native_int str_size = str->size();
+    native_int str_size = str->byte_size();
     native_int data_size = as<ByteArray>(str->data())->size();
     if(unlikely(str_size > data_size)) {
       str_size = data_size;

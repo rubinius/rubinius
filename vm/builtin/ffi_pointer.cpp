@@ -154,7 +154,7 @@ namespace rubinius {
 
   Pointer* Pointer::write_string(STATE, String* str, Fixnum* len) {
     native_int n = len->to_native();
-    if(str->size() < n) n = str->size();
+    if(str->byte_size() < n) n = str->byte_size();
     memcpy(pointer, (void*)str->byte_address(), n);
     return this;
   }

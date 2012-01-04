@@ -57,7 +57,7 @@ class StringIO
     return to_enum :each_byte unless block_given?
     raise IOError, "not opened for reading" unless @readable
     if @pos < @string.length
-      @string[@pos..-1].each_byte { |b| @pos += 1; yield b}
+      @string.byteslice(@pos..-1).each_byte { |b| @pos += 1; yield b}
     end
     self
   end
@@ -123,10 +123,10 @@ class StringIO
     if @append || @pos == @string.length
       @string << str
       @pos = @string.length
-    elsif @pos > @string.size
-      @string[@string.size .. @pos] = "\000" * (@pos - @string.size)
+    elsif @pos > @string.bytesize
+      @string[@string.bytesize .. @pos] = "\000" * (@pos - @string.bytesize)
       @string << str
-      @pos = @string.size
+      @pos = @string.bytesize
     else
       @string[@pos, str.length] = str
       @pos += str.length
@@ -165,7 +165,7 @@ class StringIO
   end
 
   def eof?
-    @pos >= @string.size
+    @pos >= @string.bytesize
   end
   alias_method :eof, :eof?
 
@@ -301,12 +301,12 @@ class StringIO
       return nil if eof?
       length = Rubinius::Type.coerce_to length, Integer, :to_int
       raise ArgumentError if length < 0
-      buffer.replace(@string[@pos, length])
+      buffer.replace @string.byteslice(@pos, length)
       @pos += buffer.length
     else
       return "" if eof?
-      buffer.replace(@string[@pos..-1])
-      @pos = @string.size
+      buffer.replace @string.byteslice(@pos..-1)
+      @pos = @string.bytesize
     end
 
     return buffer
@@ -378,7 +378,7 @@ class StringIO
     when IO::SEEK_CUR
       to += @pos
     when IO::SEEK_END
-      to += @string.size
+      to += @string.bytesize
     when IO::SEEK_SET, nil
     else
       raise Errno::EINVAL, "invalid whence"
@@ -425,10 +425,10 @@ class StringIO
     raise IOError, "not opened for writing" unless @writable
     len = Rubinius::Type.coerce_to length, Integer, :to_int
     raise Errno::EINVAL, "negative length" if len < 0
-    if len < @string.size
-      @string[len .. @string.size] = ""
+    if len < @string.bytesize
+      @string[len .. @string.bytesize] = ""
     else
-      @string << "\000" * (len - @string.size)
+      @string << "\000" * (len - @string.bytesize)
     end
     return length
   end
@@ -441,8 +441,8 @@ class StringIO
       char = Rubinius::Type.coerce_to char, String, :to_str
     end
 
-    if @pos > @string.size
-      @string[@string.size .. @pos] = "\000" * (@pos - @string.size)
+    if @pos > @string.bytesize
+      @string[@string.bytesize .. @pos] = "\000" * (@pos - @string.bytesize)
       @pos -= 1
       @string[@pos] = char
     elsif @pos > 0
@@ -537,22 +537,22 @@ class StringIO
 
       if sep.nil?
         if limit
-          line = @string[@pos ... @pos + limit]
+          line = @string.byteslice(@pos...@pos + limit)
         else
-          line = @string[@pos .. -1]
+          line = @string.byteslice(@pos..-1)
         end
-        @pos += line.size
+        @pos += line.bytesize
       elsif sep.empty?
         if stop = @string.index("\n\n", @pos)
           stop += 2
-          line = @string[@pos ... stop]
+          line = @string.byteslice(@pos...stop)
           while @string[stop] == ?\n
             stop += 1
           end
           @pos = stop
         else
-          line = @string[@pos .. -1]
-          @pos = @string.size
+          line = @string.byteslice(@pos .. -1)
+          @pos = @string.bytesize
         end
       else
         if stop = @string.index(sep, @pos)
@@ -561,15 +561,15 @@ class StringIO
           else
             stop += sep.length
           end
-          line = @string[@pos ... stop]
+          line = @string.byteslice(@pos...stop)
           @pos = stop
         else
           if limit
-            line = @string[@pos ... @pos + limit]
+            line = @string.byteslice(@pos...@pos + limit)
           else
-            line = @string[@pos .. -1]
+            line = @string.byteslice(@pos..-1)
           end
-          @pos += line.size
+          @pos += line.bytesize
         end
       end
 
