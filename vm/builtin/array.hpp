@@ -27,6 +27,7 @@ namespace rubinius {
     /* interface */
 
     size_t size();
+    size_t offset();
     static void init(STATE);
     static Array* create(STATE, size_t size);
     static Array* from_tuple(STATE, Tuple* tup);

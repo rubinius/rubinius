@@ -207,4 +207,18 @@ public:
     TS_ASSERT_EQUALS(ary->get(state, 0), three);
 
   }
+
+  void test_use_array_with_shifted_array() {
+    Arguments args(state->symbol("blah"), 1, static_args);
+
+    Array *ary = Array::create(state, 3);
+    ary->set(state, 0, Fixnum::from(1));
+    ary->set(state, 1, Fixnum::from(2));
+    ary->set(state, 2, Fixnum::from(3));
+    ary->shift(state);
+
+    args.use_array(ary);
+    TS_ASSERT_EQUALS(args.get_argument(0), Fixnum::from(2));
+    TS_ASSERT_EQUALS(args.get_argument(1), Fixnum::from(3));
+  }
 };
