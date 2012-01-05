@@ -9,12 +9,6 @@ describe :array_inspect, :shared => true do
     [].send(@method).should == "[]"
   end
 
-  ruby_version_is "1.9" do
-    it "returns a US-ASCII string for an empty Array" do
-      [].send(@method).encoding.should == Encoding::US_ASCII
-    end
-  end
-
   it "calls inspect on its elements and joins the results with commas" do
     items = Array.new(3) do |i|
       obj = mock(i.to_s)
@@ -57,68 +51,41 @@ describe :array_inspect, :shared => true do
   end
 
   ruby_version_is "1.9" do
-    before :each do
-      @default_internal = Encoding.default_internal
+    it "returns a US-ASCII string for an empty Array" do
+      [].send(@method).encoding.should == Encoding::US_ASCII
     end
-    
-    after :each do
-      Encoding.default_internal = @default_internal
+
+    it "copies the ASCII-compatible encoding of the result of inspecting the first element" do
+      euc_jp = mock("euc_jp")
+      euc_jp.should_receive(:inspect).and_return("euc_jp".encode!(Encoding::EUC_JP))
+
+      utf_8 = mock("utf_8")
+      utf_8.should_receive(:inspect).and_return("utf_8".encode!(Encoding::UTF_8))
+
+      result = [euc_jp, utf_8].send(@method)
+      result.encoding.should == Encoding::EUC_JP
+      result.should == "[euc_jp, utf_8]".encode(Encoding::EUC_JP)
     end
-    
-    it "uses default internal encoding regardless of strings' encodings or content" do
-      Encoding.default_internal = Encoding::UTF_8
-      
-      ary_7bit_utf8_usascii = ArraySpecs.array_with_7bit_utf8_and_usascii_strings
-      ary_usascii_7bit_utf8 = ArraySpecs.array_with_usascii_and_7bit_utf8_strings
-      ary_utf8_usascii      = ArraySpecs.array_with_utf8_and_usascii_strings
-      ary_utf8_ok_ascii8bit = ArraySpecs.array_with_utf8_and_7bit_ascii8bit_strings
-      ary_utf8_bad_ascii8bit = ArraySpecs.array_with_utf8_and_ascii8bit_strings
-      ary_usascii_ok_ascii8bit = ArraySpecs.array_with_usascii_and_7bit_ascii8bit_strings
-      ary_usascii_bad_ascii8bit = ArraySpecs.array_with_usascii_and_ascii8bit_strings
-      
-      ary_7bit_utf8_usascii.send(@method).encoding.should == Encoding::UTF_8
-      ary_usascii_7bit_utf8.send(@method).encoding.should == Encoding::UTF_8
-      ary_utf8_usascii.send(@method).encoding.should == Encoding::UTF_8
-      ary_utf8_ok_ascii8bit.send(@method).encoding.should == Encoding::UTF_8
-      ary_utf8_bad_ascii8bit.send(@method).encoding.should == Encoding::UTF_8
-      ary_usascii_ok_ascii8bit.send(@method).encoding.should == Encoding::UTF_8
-      ary_usascii_bad_ascii8bit.send(@method).encoding.should == Encoding::UTF_8
-      
-      Encoding.default_internal = Encoding::US_ASCII
-      
-      ary_7bit_utf8_usascii = ArraySpecs.array_with_7bit_utf8_and_usascii_strings
-      ary_usascii_7bit_utf8 = ArraySpecs.array_with_usascii_and_7bit_utf8_strings
-      ary_utf8_usascii      = ArraySpecs.array_with_utf8_and_usascii_strings
-      ary_utf8_ok_ascii8bit = ArraySpecs.array_with_utf8_and_7bit_ascii8bit_strings
-      ary_utf8_bad_ascii8bit = ArraySpecs.array_with_utf8_and_ascii8bit_strings
-      ary_usascii_ok_ascii8bit = ArraySpecs.array_with_usascii_and_7bit_ascii8bit_strings
-      ary_usascii_bad_ascii8bit = ArraySpecs.array_with_usascii_and_ascii8bit_strings
-      
-      ary_7bit_utf8_usascii.send(@method).encoding.should == Encoding::US_ASCII
-      ary_usascii_7bit_utf8.send(@method).encoding.should == Encoding::US_ASCII
-      ary_utf8_usascii.send(@method).encoding.should == Encoding::US_ASCII
-      ary_utf8_ok_ascii8bit.send(@method).encoding.should == Encoding::US_ASCII
-      ary_utf8_bad_ascii8bit.send(@method).encoding.should == Encoding::US_ASCII
-      ary_usascii_ok_ascii8bit.send(@method).encoding.should == Encoding::US_ASCII
-      ary_usascii_bad_ascii8bit.send(@method).encoding.should == Encoding::US_ASCII
-      
-      Encoding.default_internal = Encoding::ASCII_8BIT
-      
-      ary_7bit_utf8_usascii = ArraySpecs.array_with_7bit_utf8_and_usascii_strings
-      ary_usascii_7bit_utf8 = ArraySpecs.array_with_usascii_and_7bit_utf8_strings
-      ary_utf8_usascii      = ArraySpecs.array_with_utf8_and_usascii_strings
-      ary_utf8_ok_ascii8bit = ArraySpecs.array_with_utf8_and_7bit_ascii8bit_strings
-      ary_utf8_bad_ascii8bit = ArraySpecs.array_with_utf8_and_ascii8bit_strings
-      ary_usascii_ok_ascii8bit = ArraySpecs.array_with_usascii_and_7bit_ascii8bit_strings
-      ary_usascii_bad_ascii8bit = ArraySpecs.array_with_usascii_and_ascii8bit_strings
-      
-      ary_7bit_utf8_usascii.send(@method).encoding.should == Encoding::ASCII_8BIT
-      ary_usascii_7bit_utf8.send(@method).encoding.should == Encoding::ASCII_8BIT
-      ary_utf8_usascii.send(@method).encoding.should == Encoding::ASCII_8BIT
-      ary_utf8_ok_ascii8bit.send(@method).encoding.should == Encoding::ASCII_8BIT
-      ary_utf8_bad_ascii8bit.send(@method).encoding.should == Encoding::ASCII_8BIT
-      ary_usascii_ok_ascii8bit.send(@method).encoding.should == Encoding::ASCII_8BIT
-      ary_usascii_bad_ascii8bit.send(@method).encoding.should == Encoding::ASCII_8BIT
+
+    ruby_bug "5848", "2.0" do
+      it "copies the ASCII-incompatible encoding of the result of inspecting the first element" do
+        utf_16be = mock("utf_16be")
+        utf_16be.should_receive(:inspect).and_return("utf_16be".encode!(Encoding::UTF_16BE))
+
+        result = [utf_16be].send(@method)
+        result.encoding.should == Encoding::UTF_16BE
+        result.should == "[utf_16be]".encode(Encoding::UTF_16BE)
+      end
+    end
+
+    it "raises if inspecting two elements produces incompatible encodings" do
+      utf_8 = mock("utf_8")
+      utf_8.should_receive(:inspect).and_return("utf_8".encode!(Encoding::UTF_8))
+
+      utf_16be = mock("utf_16be")
+      utf_16be.should_receive(:inspect).and_return("utf_16be".encode!(Encoding::UTF_16BE))
+
+      lambda { [utf_8, utf_16be].send(@method) }.should raise_error(Encoding::CompatibilityError)
     end
   end
 end
