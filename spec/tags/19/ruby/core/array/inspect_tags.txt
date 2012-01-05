@@ -1,1 +1,3 @@
-fails:Array#inspect uses default internal encoding regardless of strings' encodings or content
+fails:Array#inspect copies the ASCII-compatible encoding of the result of inspecting the first element
+fails:Array#inspect copies the ASCII-incompatible encoding of the result of inspecting the first element
+fails:Array#inspect raises if inspecting two elements produces incompatible encodings
