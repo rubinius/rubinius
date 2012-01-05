@@ -988,6 +988,10 @@ int main() { return tgetnum(""); }
       @defines << "HAVE_NL_LANGINFO"
     end
 
+    if has_function("alloca", ["alloca.h"])
+      @defines << "HAVE_HEADER_ALLOCA_H"
+    end
+
     @vendor_zlib = true if @features["vendor-zlib"]
   end
 

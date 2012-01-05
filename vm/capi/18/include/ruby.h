@@ -31,7 +31,9 @@
 #include <unistd.h>
 #include <fcntl.h>
 #include <errno.h>
+#ifdef HAVE_HEADER_ALLOCA_H
 #include <alloca.h>
+#endif
 
 #include "intern.h"
 #include "defines.h"
