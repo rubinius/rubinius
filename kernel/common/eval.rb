@@ -41,44 +41,6 @@ module Kernel
   end
   module_function :binding
 
-  # Evaluate and execute code given in the String.
-  #
-  def eval(string, binding=nil, filename=nil, lineno=1)
-    filename = StringValue(filename) if filename
-    lineno = Type.coerce_to lineno, Fixnum, :to_i
-
-    if binding
-      if binding.kind_of? Proc
-        binding = binding.binding
-      elsif binding.respond_to? :to_binding
-        binding = binding.to_binding
-      end
-
-      unless binding.kind_of? Binding
-        raise ArgumentError, "unknown type of binding"
-      end
-
-      filename ||= binding.static_scope.active_path
-    else
-      binding = Binding.setup(Rubinius::VariableScope.of_sender,
-                              Rubinius::CompiledMethod.of_sender,
-                              Rubinius::StaticScope.of_sender,
-                              self)
-
-      filename ||= "(eval)"
-    end
-
-    binding.static_scope = binding.static_scope.dup
-
-    be = Rubinius::Compiler.construct_block string, binding,
-                                            filename, lineno
-
-    be.set_eval_binding binding
-
-    be.call_on_instance(binding.self)
-  end
-  module_function :eval
-  private :eval
 end
 
 class Module
