@@ -645,7 +645,7 @@ class String
       end
     end
 
-    taint if other.tainted?
+    Rubinius::Type.infect(self, other)
     append(other)
   end
   alias_method :concat, :<<
