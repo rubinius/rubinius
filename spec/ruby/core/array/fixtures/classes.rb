@@ -163,15 +163,6 @@ module ArraySpecs
     end
   end
 
-  # Useful for shared specs where you pass in an object as the third argument.
-  # @object.new(a,b,c) creates an Array-like object with elements a, b, and c.
-  # This class allows a similar constructor for Array
-  class NewArray
-    def self.new(*args)
-      args
-    end
-  end
-
   def self.universal_pack_object
     obj = mock("string float int")
     obj.stub!(:to_int).and_return(1)
