@@ -1,1 +1,2 @@
 fails:Array#inspect uses default internal encoding regardless of strings' encodings or content
+fails:Array#inspect untrusts the result if an element is untrusted
