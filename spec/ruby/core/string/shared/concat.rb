@@ -54,11 +54,15 @@ describe :string_concat, :shared => true do
   end
 
   it "taints self if other is tainted" do
-    x = "x"
-    x.send(@method, "".taint).tainted?.should == true
+    "x".send(@method, "".taint).tainted?.should == true
+    "x".send(@method, "y".taint).tainted?.should == true
+  end
 
-    x = "x"
-    x.send(@method, "y".taint).tainted?.should == true
+  ruby_version_is "1.9" do
+    it "untrusts self if other is untrusted" do
+      "x".send(@method, "".untrust).untrusted?.should == true
+      "x".send(@method, "y".untrust).untrusted?.should == true
+    end
   end
 end
 
