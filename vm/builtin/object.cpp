@@ -432,8 +432,12 @@ namespace rubinius {
   }
 
   void Object::infect(STATE, Object* other) {
-    if(this->tainted_p(state) == Qtrue) {
+    if(is_tainted_p()) {
       other->taint(state);
+    }
+
+    if(is_untrusted_p()) {
+      other->untrust(state);
     }
   }
 

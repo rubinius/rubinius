@@ -573,7 +573,7 @@ typedef struct RIO rb_io_t;
 /** Get a handle for the Symbol object represented by ID. */
 #define ID2SYM(id)        (id)
 
-/** Infect o2 if o1 is tainted */
+/** Taint o1 if o2 is tainted. */
 #define OBJ_INFECT(o1, o2) capi_infect((o1), (o2))
 
 /** Taints the object */

@@ -635,13 +635,13 @@ extern "C" {
   }
 
 
-  void capi_infect(VALUE obj1, VALUE obj2) {
+  void capi_infect(VALUE h, VALUE s) {
     NativeMethodEnvironment* env = NativeMethodEnvironment::get();
 
-    Object* object1 = env->get_object(obj1);
-    Object* object2 = env->get_object(obj2);
+    Object* host   = env->get_object(h);
+    Object* source = env->get_object(s);
 
-    object1->infect(env->state(), object2);
+    source->infect(env->state(), host);
   }
 
   int capi_nil_p(VALUE expression_result) {
