@@ -57,5 +57,12 @@ module Rubinius
 
       raise NameError, "`#{name}' is not allowed as an instance variable name"
     end
+
+    # Taint host if source is tainted.
+    # Untrust host if source is untrusted.
+    def self.infect(host, source)
+      host.taint if source.tainted?
+      host.untrust if source.untrusted?
+    end
   end
 end
