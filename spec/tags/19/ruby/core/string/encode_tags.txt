@@ -18,6 +18,4 @@ fails:String#encode! replaces invalid characters
 fails:String#encode! replaces undefined characters
 fails:String#encode! replaces xml characters
 fails:String#encode! replaces xml characters and quotes the result
-fails:String#encode! raises a RuntimeError when called on a frozen String
-fails:String#encode! raises a RuntimeError when called on a frozen String when it's a no-op
 fails:String#encode replaces undefined characters
