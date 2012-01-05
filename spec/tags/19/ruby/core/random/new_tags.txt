@@ -1,1 +1,0 @@
-fails:Random.new raises a RangeError if passed a Complex (with imaginary part) seed value as an argument

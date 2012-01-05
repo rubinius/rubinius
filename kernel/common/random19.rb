@@ -49,8 +49,7 @@ class Random
   def initialize(seed=undefined)
     @randomizer = Rubinius::Randomizer.new
     if !seed.equal?(undefined)
-      seed = Rubinius::Type.coerce_to seed, Integer, :to_int
-      @randomizer.swap_seed seed
+      @randomizer.swap_seed seed.to_int
     end
   end
 
