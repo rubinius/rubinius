@@ -118,6 +118,14 @@ class Encoding
     end
     names
   end
+
+  def _dump(depth)
+    name
+  end
+
+  def self._load(name)
+    find name
+  end
 end
 
 # TODO: This psuedo variable should represent a scripts encoding.
