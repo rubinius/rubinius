@@ -26,7 +26,9 @@
 #include <stdlib.h>
 #include <unistd.h>
 #include <sys/types.h>
+#ifdef HAVE_HEADER_ALLOCA_H
 #include <alloca.h>
+#endif
 
 #include "ruby.h"
 

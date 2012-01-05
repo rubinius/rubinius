@@ -914,6 +914,31 @@ int main() { return tgetnum(""); }
     return status
   end
 
+  def has_header(name)
+    @log.print "Checking for header '#{name}': "
+    tf = Tempfile.new("rbx-test")
+
+    src = <<-EOP
+#include <#{name}>
+int main() {return 0;}
+    EOP
+    tf.puts src
+    @log.log src
+
+    tf.close
+    system "#{@cxx} -S -o - -x c #{c_includes} #{env('CFLAGS')} #{tf.path} >>#{@log.path} 2>&1"
+    status = ($?.exitstatus == 0)
+    tf.unlink
+
+    if status
+      @log.write "found!"
+    else
+      @log.write "not found"
+    end
+
+    status
+  end
+
   def has_function(name, includes=[])
     @log.print "Checking for function '#{name}': "
     tf = Tempfile.new("rbx-test")
@@ -986,6 +1011,10 @@ int main() { return tgetnum(""); }
 
     if has_function("nl_langinfo", ["langinfo.h"])
       @defines << "HAVE_NL_LANGINFO"
+    end
+
+    if has_header("alloca.h")
+      @defines << "HAVE_HEADER_ALLOCA_H"
     end
 
     @vendor_zlib = true if @features["vendor-zlib"]
