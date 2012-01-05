@@ -36,9 +36,9 @@ to fix that, please let us know!
 
 ### Download
 
-You can find the video on Dropbox:
+You can find the video on Vimeo:
 
-[Download video](https://dl.dropbox.com/s/epu0csqjyqd2035/debugging_memory_corruption.mov?dl=1)
+[Watch on Vimeo](http://vimeo.com/34622441)
 
 It's probably best to download the video and play it locally on your
 machine. It's 453 MB so it might take a while.
