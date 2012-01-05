@@ -413,26 +413,7 @@ containing the Rubinius standard library files.
         puts Rubinius.version
       end
 
-
-      # TODO: convert all these to -X options
-      options.doc "\nRubinius options"
-
       @profile = Rubinius::Config['profile'] || Rubinius::Config['jit.profile']
-
-      options.on "--vv", "Display version and extra info" do
-        @run_irb = false
-
-        $VERBOSE = true
-        puts Rubinius.version
-        puts "Options:"
-        puts "  Interpreter type: #{INTERPRETER}"
-        if jit = JIT
-          puts "  JIT enabled: #{jit.join(', ')}"
-        else
-          puts "  JIT disabled"
-        end
-        puts
-      end
 
       options.doc <<-DOC
 \nRubinius subcommands
