@@ -6,6 +6,8 @@ describe "Ruby character strings" do
 
   before(:each) do
     @ip = 'xxx' # used for interpolation
+    $ip = 'xxx'
+    @@ip = 'xxx'
   end
 
   it "don't get interpolated when put in single quotes" do
@@ -21,12 +23,10 @@ describe "Ruby character strings" do
   end
 
   it "interpolate global variables just with the # character" do
-    $ip = 'xxx'
     "#$ip".should == 'xxx'
   end
 
   it "interpolate class variables just with the # character" do
-    @@ip = 'xxx'
     "#@@ip".should == 'xxx'
   end
 
@@ -43,6 +43,34 @@ describe "Ruby character strings" do
     "#@ip?".should == 'xxx?'
     "#@ip!".should == 'xxx!'
     "#@ip#@ip".should == 'xxxxxx'
+  end
+
+  it "taints the result of interpolation when an interpolated value is tainted" do
+    "#{"".taint}".tainted?.should be_true
+
+    @ip.taint
+    "#@ip".tainted?.should be_true
+
+    @@ip.taint
+    "#@@ip".tainted?.should be_true
+
+    $ip.taint
+    "#$ip".tainted?.should be_true
+  end
+
+  ruby_version_is "1.9" do
+    it "untrusts the result of interpolation when an interpolated value is untrusted" do
+      "#{"".untrust}".untrusted?.should be_true
+
+      @ip.untrust
+      "#@ip".untrusted?.should be_true
+
+      @@ip.untrust
+      "#@@ip".untrusted?.should be_true
+
+      $ip.untrust
+      "#$ip".untrusted?.should be_true
+    end
   end
 
   it "allow using non-alnum characters as string delimiters" do
