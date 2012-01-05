@@ -413,8 +413,6 @@ containing the Rubinius standard library files.
         puts Rubinius.version
       end
 
-      @profile = Rubinius::Config['profile'] || Rubinius::Config['jit.profile']
-
       options.doc <<-DOC
 \nRubinius subcommands
 
@@ -471,7 +469,7 @@ VM Options
         end
       end
 
-      if @profile
+      if Rubinius::Config['profile'] || Rubinius::Config['jit.profile']
         require 'profile'
       end
 
