@@ -731,7 +731,8 @@ class Date
   class << self; alias_method :new!, :new end
 
   def self.valid_jd? (jd, sg=ITALY)
-    !!_valid_jd?(jd, sg)
+    return false if jd.nil?
+    true
   end
 
   def self.valid_ordinal? (y, d, sg=ITALY)
