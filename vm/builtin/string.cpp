@@ -683,7 +683,7 @@ namespace rubinius {
                                     out_p - output);
     free(output);
 
-    if(tainted_p(state)) result->taint(state);
+    infect(state, result);
     return result;
   }
 
