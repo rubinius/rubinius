@@ -22,6 +22,9 @@
 #include <stdbool.h>
 #include <stdint.h>
 #include <assert.h>
+#ifdef HAVE_HEADER_ALLOCA_H
+#include <alloca.h>
+#endif
 
 #include "ruby.h"
 
