@@ -289,6 +289,46 @@ describe "CApiObject" do
     end
   end
 
+  describe "OBJ_INFECT" do
+    it "does not taint the first argument if the second argument is not tainted" do
+      host   = mock("host")
+      source = mock("source")
+      @o.OBJ_INFECT(host, source)
+      host.tainted?.should be_false
+    end
+
+    it "taints the first argument if the second argument is tainted" do
+      host   = mock("host")
+      source = mock("source").taint
+      @o.OBJ_INFECT(host, source)
+      host.tainted?.should be_true
+    end
+
+    ruby_version_is "1.9" do
+      it "does not untrust the first argument if the second argument is trusted" do
+        host   = mock("host")
+        source = mock("source")
+        @o.OBJ_INFECT(host, source)
+        host.untrusted?.should be_false
+      end
+
+      it "untrusts the first argument if the second argument is untrusted" do
+        host   = mock("host")
+        source = mock("source").untrust
+        @o.OBJ_INFECT(host, source)
+        host.untrusted?.should be_true
+      end
+
+      it "propagates both taint and distrust" do
+        host   = mock("host")
+        source = mock("source").taint.untrust
+        @o.OBJ_INFECT(host, source)
+        host.tainted?.should be_true
+        host.untrusted?.should be_true
+      end
+    end
+  end
+
   describe "rb_obj_freeze" do
     it "freezes the object passed to it" do
       obj = ""
