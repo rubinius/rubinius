@@ -36,7 +36,9 @@ extern "C" {
 #include <unistd.h>
 #include <fcntl.h>
 #include <errno.h>
+#ifdef __sun__
 #include <alloca.h>
+#endif
 
 #include "intern.h"
 #include "defines.h"

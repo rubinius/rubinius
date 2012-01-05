@@ -307,7 +307,9 @@
 #include <stdlib.h>
 #include <unistd.h>
 #include <sys/types.h>
+#ifdef __sun__
 #include <alloca.h>
+#endif
 
 #include "ruby.h"
 

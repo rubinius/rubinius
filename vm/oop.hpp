@@ -5,7 +5,9 @@
 #include <ctype.h>
 #include <stdint.h>
 #include <assert.h>
+#ifdef __sun__
 #include <alloca.h>
+#endif
 
 #include "config.h"
 #include "object_types.hpp"
