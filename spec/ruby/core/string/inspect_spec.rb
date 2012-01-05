@@ -19,6 +19,13 @@ describe "String#inspect" do
     "foo\n".taint.inspect.tainted?.should == true
   end
 
+  ruby_version_is "1.9" do
+    it "untrusts the result if self is untrusted" do
+      "foo".untrust.inspect.untrusted?.should == true
+      "foo\n".untrust.inspect.untrusted?.should == true
+    end
+  end
+
   it "does not return subclass instances" do
     str = StringSpecs::MyString.new
     str << "test"
