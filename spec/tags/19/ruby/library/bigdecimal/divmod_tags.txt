@@ -1,1 +1,0 @@
-unstable(This spec takes many seconds to run):BigDecimal#divmod Can be reversed with * and +
