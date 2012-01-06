@@ -46,9 +46,8 @@ module Rubinius
       end
 
       @file_path = path
-      path = File.expand_path path
-      @feature = path
-      @load_path = path
+      @feature = File.expand_path path
+      @load_path = @feature
 
       return true
     end
