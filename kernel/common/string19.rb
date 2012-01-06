@@ -597,7 +597,7 @@ class String
 
     if other.kind_of? Integer
       other = other.chr(encoding)
-    elsif !other.kind_of? String
+    else
       other = StringValue(other)
     end
 
