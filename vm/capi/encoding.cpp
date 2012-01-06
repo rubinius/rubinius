@@ -118,7 +118,9 @@ extern "C" {
     } else if(Symbol* sym = try_as<Symbol>(val)) {
       enc = sym->encoding(env->state());
     } else {
-      rb_raise(rb_eArgError, "object does not have an associated Encoding");
+      // MRI permits associating an Encoding with anything.
+      Object* e = val->get_ivar(env->state(), env->state()->symbol("__encoding__"));
+      if(!(enc = try_as<Encoding>(e))) enc = nil<Encoding>();
     }
 
     if(enc->nil_p()) return -1;
@@ -139,7 +141,8 @@ extern "C" {
     } else if(Symbol* sym = try_as<Symbol>(val)) {
       sym->encoding(env->state(), enc);
     } else {
-      rb_raise(rb_eArgError, "object cannot have an associated Encoding");
+      // MRI permits associating an Encoding with anything.
+      val->set_ivar(env->state(), env->state()->symbol("__encoding__"), enc);
     }
   }
 
