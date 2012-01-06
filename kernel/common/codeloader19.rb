@@ -42,12 +42,11 @@ module Rubinius
         return false unless loadable? path
       else
         return false unless path = search_load_path(path, loading)
-        path = "./#{path}" unless qualified_path? path
       end
 
-      @file_path = path
       @feature = File.expand_path path
       @load_path = @feature
+      @file_path = @feature
 
       return true
     end
@@ -64,11 +63,7 @@ module Rubinius
       @type = type
       @feature = path
       @load_path = path
-      if qualified_path? path
-        @file_path = path
-      else
-        @file_path = "./#{path}"
-      end
+      @file_path = path
 
       return true
     end
