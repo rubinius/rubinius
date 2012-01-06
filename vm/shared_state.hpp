@@ -270,7 +270,7 @@ namespace rubinius {
     void set_critical(STATE);
     void clear_critical(STATE);
 
-    void enter_capi(STATE);
+    void enter_capi(STATE, const char* file, int line);
     void leave_capi(STATE);
   };
 }

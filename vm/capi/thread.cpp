@@ -45,7 +45,7 @@ extern "C" {
     }
 
     for(;;) {
-      env->state()->shared().leave_capi(env->state());
+      LEAVE_CAPI(env->state());
       {
         GCIndependent guard(env);
         ret = select(max, read, write, except, tvp);
@@ -53,7 +53,7 @@ extern "C" {
 
       bool ok = env->state()->check_async(env->current_call_frame());
 
-      env->state()->shared().enter_capi(env->state());
+      ENTER_CAPI(env->state());
 
       if(!ok) {
         // Ok, there was an exception raised by an async event. We need
@@ -129,12 +129,12 @@ extern "C" {
     } else {
       state->vm()->wait_on_custom_function(ubf, ubf_data);
     }
-    env->state()->shared().leave_capi(env->state());
+    LEAVE_CAPI(env->state());
     {
       GCIndependent guard(env);
       ret = (*func)(data);
     }
-    env->state()->shared().enter_capi(env->state());
+    ENTER_CAPI(env->state());
     state->vm()->clear_waiter();
 
     return ret;
@@ -146,13 +146,13 @@ extern "C" {
   void* rb_thread_call_with_gvl(void* (*func)(void*), void* data) {
     NativeMethodEnvironment* env = NativeMethodEnvironment::get();
 
-    env->state()->shared().enter_capi(env->state());
+    ENTER_CAPI(env->state());
     env->state()->gc_dependent();
 
     void* ret = (*func)(data);
 
     env->state()->gc_independent();
-    env->state()->shared().leave_capi(env->state());
+    LEAVE_CAPI(env->state());
 
     return ret;
   }

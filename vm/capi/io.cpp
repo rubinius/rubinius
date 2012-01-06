@@ -131,13 +131,13 @@ extern "C" {
 
     long ret;
 
-    env->state()->vm()->shared.leave_capi(env->state());
+    LEAVE_CAPI(env->state());
     {
       GCIndependent guard(env);
       ret = fread(ptr, 1, len, f);
     }
 
-    env->state()->vm()->shared.enter_capi(env->state());
+    ENTER_CAPI(env->state());
 
     return ret;
   }
@@ -173,7 +173,7 @@ extern "C" {
 
     NativeMethodEnvironment* env = NativeMethodEnvironment::get();
 
-    env->state()->vm()->shared.leave_capi(env->state());
+    LEAVE_CAPI(env->state());
     {
       GCIndependent guard(env);
 
@@ -183,7 +183,7 @@ extern "C" {
       }
     }
 
-    env->state()->vm()->shared.enter_capi(env->state());
+    ENTER_CAPI(env->state());
 
     return Qtrue;
   }
@@ -219,7 +219,7 @@ extern "C" {
     int count = 0;
 
     NativeMethodEnvironment* env = NativeMethodEnvironment::get();
-    env->state()->vm()->shared.leave_capi(env->state());
+    LEAVE_CAPI(env->state());
     {
       GCIndependent guard(env);
 
@@ -228,7 +228,7 @@ extern "C" {
         if(!retry) break;
       }
     }
-    env->state()->vm()->shared.enter_capi(env->state());
+    ENTER_CAPI(env->state());
     return Qtrue;
   }
 
@@ -245,7 +245,7 @@ extern "C" {
     int count = 0;
 
     NativeMethodEnvironment* env = NativeMethodEnvironment::get();
-    env->state()->vm()->shared.leave_capi(env->state());
+    LEAVE_CAPI(env->state());
     {
       GCIndependent guard(env);
 
@@ -253,7 +253,7 @@ extern "C" {
         count = select(fd+1, &fds, 0, 0, 0);
       }
     }
-    env->state()->vm()->shared.enter_capi(env->state());
+    ENTER_CAPI(env->state());
   }
 
   /*
@@ -269,7 +269,7 @@ extern "C" {
     int ready = 0;
 
     NativeMethodEnvironment* env = NativeMethodEnvironment::get();
-    env->state()->vm()->shared.leave_capi(env->state());
+    LEAVE_CAPI(env->state());
     {
       GCIndependent guard(env);
 
@@ -278,7 +278,7 @@ extern "C" {
       }
     }
 
-    env->state()->vm()->shared.enter_capi(env->state());
+    ENTER_CAPI(env->state());
   }
 
   void rb_io_set_nonblock(rb_io_t* iot) {

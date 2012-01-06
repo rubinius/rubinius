@@ -645,7 +645,7 @@ namespace rubinius {
 
     // We've got things setup (they can be GC'd properly), so we need to
     // wait before entering the extension code.
-    state->shared().enter_capi(state);
+    ENTER_CAPI(state);
 
     Object* ret;
     ExceptionPoint ep(env);
@@ -671,7 +671,7 @@ namespace rubinius {
     env->set_current_native_frame(nmf.previous());
     ep.pop(env);
 
-    state->shared().leave_capi(state);
+    LEAVE_CAPI(state);
 
     // Handle any signals that occurred while the native method
     // was running.

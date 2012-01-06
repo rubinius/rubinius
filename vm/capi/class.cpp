@@ -149,7 +149,7 @@ extern "C" {
 
     bool created = false;
 
-    env->state()->vm()->shared.leave_capi(env->state());
+    LEAVE_CAPI(env->state());
     Class* opened_class = rubinius::Helpers::open_class(env->state(),
         env->current_call_frame(), module, superclass, constant, &created);
 
@@ -162,7 +162,7 @@ extern "C" {
     // the opened_class is GC'ed.
 
     VALUE klass = env->get_handle(opened_class);
-    env->state()->vm()->shared.enter_capi(env->state());
+    ENTER_CAPI(env->state());
 
     if(super) rb_funcall(super, rb_intern("inherited"), 1, klass);
 

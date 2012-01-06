@@ -161,7 +161,7 @@ namespace rubinius {
       Object* recv = env->get_object(receiver);
 
       // Unlock, we're leaving extension code.
-      env->state()->vm()->shared.leave_capi(env->state());
+      LEAVE_CAPI(env->state());
 
       Object* ret = recv->send(env->state(), env->current_call_frame(),
           reinterpret_cast<Symbol*>(method_name), args, blk);
@@ -172,7 +172,7 @@ namespace rubinius {
       if(ret) ret_handle = env->get_handle(ret);
 
       // Re-entering extension code
-      env->state()->vm()->shared.enter_capi(env->state());
+      ENTER_CAPI(env->state());
 
       env->update_cached_data();
 
@@ -196,7 +196,7 @@ namespace rubinius {
       env->flush_cached_data();
 
       // Unlock, we're leaving extension code.
-      env->state()->vm()->shared.leave_capi(env->state());
+      LEAVE_CAPI(env->state());
 
       LookupData lookup(recv, recv->lookup_begin(env->state()), true);
       Arguments args_o(method, recv, block, arg_count, args);
@@ -211,7 +211,7 @@ namespace rubinius {
       if(ret) ret_handle = env->get_handle(ret);
 
       // Re-entering extension code
-      env->state()->vm()->shared.enter_capi(env->state());
+      ENTER_CAPI(env->state());
 
       env->update_cached_data();
 
@@ -237,7 +237,7 @@ namespace rubinius {
       va_end(varargs);
 
       // Unlock, we're leaving extension code.
-      env->state()->vm()->shared.leave_capi(env->state());
+      LEAVE_CAPI(env->state());
 
       Object* recv = env->get_object(receiver);
       Symbol* method = (Symbol*)method_name;
@@ -255,7 +255,7 @@ namespace rubinius {
       if(ret) ret_handle = env->get_handle(ret);
 
       // Re-entering extension code
-      env->state()->vm()->shared.enter_capi(env->state());
+      ENTER_CAPI(env->state());
 
       // An exception occurred
       if(!ret) env->current_ep()->return_to(env);
@@ -275,7 +275,7 @@ namespace rubinius {
       env->flush_cached_data();
 
       // Unlock, we're leaving extension code.
-      env->state()->vm()->shared.leave_capi(env->state());
+      LEAVE_CAPI(env->state());
 
       Object* ret = RBX_Qnil;
       STATE = env->state();
@@ -301,7 +301,7 @@ namespace rubinius {
       if(ret) ret_handle = env->get_handle(ret);
 
       // Re-entering extension code
-      env->state()->vm()->shared.enter_capi(env->state());
+      ENTER_CAPI(env->state());
 
       env->update_cached_data();
 
@@ -328,7 +328,7 @@ namespace rubinius {
       Symbol* name = c_as<NativeMethod>(env->get_object(frame->method()))->name();
 
       // Unlock, we're leaving extension code.
-      env->state()->vm()->shared.leave_capi(env->state());
+      LEAVE_CAPI(env->state());
 
       LookupData lookup(recv, mod->superclass(), true);
       Arguments args_o(name, recv, arg_count, args);
@@ -343,7 +343,7 @@ namespace rubinius {
       if(ret) ret_handle = env->get_handle(ret);
 
       // Re-entering extension code
-      env->state()->vm()->shared.enter_capi(env->state());
+      ENTER_CAPI(env->state());
 
       env->update_cached_data();
 
@@ -613,7 +613,7 @@ extern "C" {
     Object* obj = env->get_object(recv);
 
     // Unlock, we're leaving extension code.
-    env->state()->vm()->shared.leave_capi(env->state());
+    LEAVE_CAPI(env->state());
 
     Object* ret = obj->send(env->state(), env->current_call_frame(),
         reinterpret_cast<Symbol*>(mid), ary, RBX_Qnil);
@@ -624,7 +624,7 @@ extern "C" {
     if(ret) ret_handle = env->get_handle(ret);
 
     // Re-entering extension code
-    env->state()->vm()->shared.enter_capi(env->state());
+    ENTER_CAPI(env->state());
 
     env->update_cached_data();
 

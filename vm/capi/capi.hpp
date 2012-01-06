@@ -14,6 +14,9 @@
 
 #include "capi/tag.hpp"
 
+#define ENTER_CAPI(state) (state->vm()->shared.enter_capi(state, __FILE__, __LINE__))
+#define LEAVE_CAPI(state) (state->vm()->shared.leave_capi(state))
+
 namespace rubinius {
   class Integer;
   class Object;
