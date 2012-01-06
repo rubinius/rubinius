@@ -857,115 +857,57 @@ int main() { return tgetnum(""); }
   end
 
   def has_struct_member(struct, member, includes = [])
-    @log.print "Checking whether struct #{struct} has member #{member}: "
-    tf = Tempfile.new("rbx-test")
-    includes.each do |i|
-      src = "#include <#{i}>"
-      tf.puts src
-      @log.log src
+    compile_check "struct #{struct} has member #{member}" do |src|
+      includes.each do |i|
+        src << "#include <#{i}>"
+      end
+
+      src << "int main() { struct #{struct} st; st.#{member}; }"
     end
-
-    src = "int main() { struct #{struct} st; st.#{member}; }"
-    tf.puts src
-    @log.log src
-
-    tf.close
-
-    system "#{@cxx} -S -o - -x c #{c_includes} #{env('CFLAGS')} #{tf.path} >>#{@log.path} 2>&1"
-    status = ($?.exitstatus == 0)
-
-    tf.unlink
-
-    if status
-      @log.write "found!"
-    else
-      @log.write "not found."
-    end
-
-    return status
   end
 
   def has_global(name, includes=[])
-    @log.print "Checking for global '#{name}': "
-    tf = Tempfile.new("rbx-test")
-    includes.each do |i|
-      src = "#include <#{i}>"
-      tf.puts src
-      @log.log src
+    compile_check "global '#{name}'" do |src|
+      includes.each do |i|
+        src << "#include <#{i}>"
+      end
+      src << "int main() { #{name}; }"
     end
-
-    src = "int main() { #{name}; }"
-    tf.puts src
-    @log.log src
-
-    tf.close
-
-    system "#{@cxx} -S -o - -x c #{c_includes} #{env('CFLAGS')} #{tf.path} >>#{@log.path} 2>&1"
-    status = ($?.exitstatus == 0)
-
-    tf.unlink
-
-    if status
-      @log.write "found!"
-    else
-      @log.write "not found."
-    end
-
-    return status
   end
 
   def has_header(name)
-    @log.print "Checking for header '#{name}': "
-    tf = Tempfile.new("rbx-test")
-
-    src = <<-EOP
-#include <#{name}>
-int main() {return 0;}
-    EOP
-    tf.puts src
-    @log.log src
-
-    tf.close
-    system "#{@cxx} -S -o - -x c #{c_includes} #{env('CFLAGS')} #{tf.path} >>#{@log.path} 2>&1"
-    status = ($?.exitstatus == 0)
-    tf.unlink
-
-    if status
-      @log.write "found!"
-    else
-      @log.write "not found"
+    compile_check "header '#{name}'" do |src|
+      src << "#include <#{name}>"
+      src << "int main() {return 0;}"
     end
-
-    status
   end
 
   def has_function(name, includes=[])
-    @log.print "Checking for function '#{name}': "
-    tf = Tempfile.new("rbx-test")
-    includes.each do |i|
-      src = "#include <#{i}>"
-      tf.puts src
-      @log.log src
+    compile_check "function '#{name}'" do |src|
+      includes.each do |i|
+        src << "#include <#{i}>"
+      end
+      src << "int main() { void* ptr = &#{name}; }"
     end
+  end
 
-    src = "int main() { void* ptr = &#{name}; }"
-    tf.puts src
-    @log.log src
+  def compile_check(logpart, &block)
+    @log.print "Checking for #{logpart}: "
 
+    src = []
+    tf = Tempfile.new("rbx-test")
+    block.call(src)
+    tf.puts src.join("\n")
+    @log.log src.join("\n")
     tf.close
 
     system "#{@cxx} -S -o - -x c #{c_includes} #{env('CFLAGS')} #{tf.path} >>#{@log.path} 2>&1"
-    status = ($?.exitstatus == 0)
 
+    status = ($?.exitstatus == 0)
     tf.unlink
 
-    if status
-      @log.write "found!"
-    else
-      @log.write "not found."
-    end
-
-    return status
+    @log.write (status ? "found!" : "not found")
+    status
   end
 
   def detect_features
