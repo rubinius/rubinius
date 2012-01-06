@@ -191,6 +191,8 @@ rb_parser_state *parser_alloc_state() {
   processor = 0;
   references = rb_ary_new();
 
+  parser_state->enc = parser_usascii_encoding();
+
   return parser_state;
 }
 
@@ -3248,7 +3250,8 @@ static VALUE parse_io_gets(rb_parser_state* parser_state, VALUE s) {
         ssize_t len = i - lex_io_index + 1;
 
         if(str == Qnil) {
-          str = REF(rb_str_new(lex_io_buf + lex_io_index, len));
+          str = REF(parser_enc_str_new(lex_io_buf + lex_io_index,
+                                       len, parser_state->enc));
         } else {
           rb_str_cat(str, lex_io_buf + lex_io_index, len);
         }
@@ -3264,7 +3267,9 @@ static VALUE parse_io_gets(rb_parser_state* parser_state, VALUE s) {
       }
     }
 
-    str = REF(rb_str_new(lex_io_buf + lex_io_index, lex_io_total - lex_io_index));
+    str = REF(parser_enc_str_new(lex_io_buf + lex_io_index,
+                                 lex_io_total - lex_io_index,
+                                 parser_state->enc));
     lex_io_total = 0;
   }
 
@@ -3326,7 +3331,6 @@ parser_str_new(rb_parser_state* parser_state, const char *p, long n,
                rb_encoding *enc, int func, rb_encoding *enc0)
 {
   VALUE str;
-
   str = REF(parser_enc_str_new(p, n, enc));
   if(!(func & STR_FUNC_REGEXP) && parser_enc_asciicompat(enc)) {
     if(parser_enc_str_coderange(str) == ENC_CODERANGE_7BIT) {
@@ -4355,7 +4359,9 @@ parser_magic_comment(rb_parser_state* parser_state, const char *str, long len)
       }
       break;
     }
-    for(end = str; len > 0 && ISSPACE(*str); str++, --len);
+    for(end = str; len > 0 && ISSPACE(*str); str++, --len) {
+      // nothing
+    }
     if(!len) break;
     if(*str != ':') continue;
 
@@ -4374,7 +4380,11 @@ parser_magic_comment(rb_parser_state* parser_state, const char *str, long len)
         ++str;
       }
     } else {
-      for(vbeg = str; len > 0 && *str != '"' && *str != ';' && !ISSPACE(*str); --len, str++);
+      for(vbeg = str;
+          len > 0 && *str != '"' && *str != ';' && !ISSPACE(*str);
+          --len, str++) {
+        // nothing
+      }
       vend = str;
     }
     while(len > 0 && (*str == ';' || ISSPACE(*str))) --len, str++;
@@ -4440,7 +4450,9 @@ set_file_encoding(rb_parser_state* parser_state, const char *str, const char *se
   }
 
   beg = str;
-  while((*str == '-' || *str == '_' || ISALNUM(*str)) && ++str < send);
+  while((*str == '-' || *str == '_' || ISALNUM(*str)) && ++str < send) {
+    // nothing
+  }
   s = REF(rb_str_new(beg, parser_encode_length(parser_state, beg, str - beg)));
   parser_set_encode(parser_state, RSTRING_PTR(s));
   rb_str_resize(s, 0);
