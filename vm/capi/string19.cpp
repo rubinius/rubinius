@@ -26,6 +26,10 @@ extern "C" {
     return str;
   }
 
+  VALUE rb_usascii_str_new_cstr(const char* ptr) {
+    return rb_enc_str_new(ptr, strlen(ptr), rb_usascii_encoding());
+  }
+
   int rb_enc_str_coderange(VALUE string) {
     // TODO
     return ENC_CODERANGE_7BIT;

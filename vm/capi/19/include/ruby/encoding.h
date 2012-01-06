@@ -75,6 +75,7 @@ VALUE rb_enc_associate_index(VALUE, int);
 void rb_enc_copy(VALUE dest, VALUE src);
 
 VALUE rb_enc_str_new(const char*, long, rb_encoding*);
+VALUE rb_usascii_str_new_cstr(const char* ptr);
 int rb_enc_str_coderange(VALUE);
 
 VALUE rb_str_export_to_enc(VALUE, rb_encoding *);
