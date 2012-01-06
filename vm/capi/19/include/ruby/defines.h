@@ -24,4 +24,6 @@
 
 #define HAVE_RUBY_ENCODING_H               1
 
+#define HAVE_RB_ENCDB_ALIAS                1
+
 #endif

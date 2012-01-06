@@ -139,6 +139,20 @@ static VALUE encoding_spec_rb_enc_get_index(VALUE self, VALUE obj) {
 }
 #endif
 
+#if defined(HAVE_RB_ENC_SET_INDEX) \
+      && defined(HAVE_RB_ENC_FIND_INDEX) \
+      && defined(HAVE_RB_ENC_FIND_INDEX)
+static VALUE encoding_spec_rb_enc_set_index(VALUE self, VALUE obj, VALUE index) {
+  int i = NUM2INT(index);
+
+  rb_encoding* enc = rb_enc_from_index(i);
+  rb_enc_set_index(obj, i);
+
+  return rb_ary_new3(2, rb_str_new2(rb_enc_name(enc)),
+                     rb_str_new2(rb_enc_name(rb_enc_get(obj))));
+}
+#endif
+
 #ifdef HAVE_RB_TO_ENCODING
 static VALUE encoding_spec_rb_to_encoding(VALUE self, VALUE obj) {
   return rb_str_new2(rb_to_encoding(obj)->name);
@@ -238,6 +252,12 @@ void Init_encoding_spec() {
 
 #ifdef HAVE_RB_ENC_GET_INDEX
   rb_define_method(cls, "rb_enc_get_index", encoding_spec_rb_enc_get_index, 1);
+#endif
+
+#if defined(HAVE_RB_ENC_SET_INDEX) \
+      && defined(HAVE_RB_ENC_FIND_INDEX) \
+      && defined(HAVE_RB_ENC_FIND_INDEX)
+  rb_define_method(cls, "rb_enc_set_index", encoding_spec_rb_enc_set_index, 2);
 #endif
 
 #ifdef HAVE_RB_TO_ENCODING
