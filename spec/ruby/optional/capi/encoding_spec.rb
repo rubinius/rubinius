@@ -10,7 +10,7 @@ ruby_version_is "1.9" do
 
     describe "rb_encdb_alias" do
       it "creates an alias for an existing Encoding" do
-        @s.rb_encdb_alias("ZOMGWTFBBQ", "UTF-8").should be_an_instance_of(Fixnum)
+        @s.rb_encdb_alias("ZOMGWTFBBQ", "UTF-8").should >= 0
         Encoding.find("ZOMGWTFBBQ").name.should == "UTF-8"
       end
     end
@@ -234,6 +234,16 @@ ruby_version_is "1.9" do
         # dependent. So a pair is returned:
         #   [rb_enc_find_index()->name, rb_enc_get(obj)->name]
         result.first.should == result.last
+      end
+    end
+
+    describe "rb_enc_to_index" do
+      it "returns an index for the encoding" do
+        @s.rb_enc_to_index("UTF-8").should >= 0
+      end
+
+      it "returns 0 if the encoding is not defined" do
+        @s.rb_enc_to_index("FTU-81").should == 0
       end
     end
   end

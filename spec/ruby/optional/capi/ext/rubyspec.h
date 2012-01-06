@@ -175,6 +175,7 @@
 #define HAVE_RB_ENC_GET                    1
 #define HAVE_RB_ENC_GET_INDEX              1
 #define HAVE_RB_ENC_SET_INDEX              1
+#define HAVE_RB_ENC_TO_INDEX               1
 
 #define HAVE_RB_TO_ENCODING                1
 #define HAVE_RB_TO_ENCODING_INDEX          1
