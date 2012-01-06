@@ -1,3 +1,4 @@
+# -*- encoding: utf-8 -*-
 require File.expand_path('../../../spec_helper', __FILE__)
 
 ruby_version_is "1.8.8" do
@@ -50,8 +51,19 @@ ruby_version_is "1.8.8" do
       str1.should == "foo"
     end
 
-    it "raises an IndexError unless the index is inside the String" do
-      lambda { "?".setbyte(1,97) }.should raise_error(IndexError)
+    it "raises an IndexError if the index is greater than the String bytesize" do
+      lambda { "?".setbyte(1, 97) }.should raise_error(IndexError)
+    end
+
+    it "raises an IndexError if the nexgative index is greater magnitude than the String bytesize" do
+      lambda { "???".setbyte(-5, 97) }.should raise_error(IndexError)
+    end
+
+    it "sets a byte at an index greater than String size" do
+      chr = "\u{998}"
+      chr.bytesize.should == 3
+      chr.setbyte(2, 150)
+      chr.should == "\xe0\xa6\x96"
     end
 
     it "raises a RuntimeError if self is frozen" do
