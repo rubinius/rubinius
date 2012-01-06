@@ -658,7 +658,11 @@ class String
   # This method is specifically part of 1.9 but we enable it in 1.8 also
   # because we need it internally.
   def getbyte(index)
-    index = size + index if index < 0
+    index = Rubinius::Type.coerce_to index, Fixnum, :to_int
+
+    index += bytesize if index < 0
+    return if index < 0 or index >= bytesize
+
     @data[index]
   end
 
@@ -1056,13 +1060,17 @@ class String
   # This method is specifically part of 1.9 but we enable it in 1.8 also
   # because we need it internally.
   def setbyte(index, byte)
-    unless byte.instance_of?(Fixnum)
-      raise TypeError, "can't convert #{byte.class} into Integer"
-    end
-
     Rubinius.check_frozen
 
-    index = size + index if index < 0
+    index = Rubinius::Type.coerce_to index, Fixnum, :to_int
+    byte = Rubinius::Type.coerce_to byte, Fixnum, :to_int
+
+    index += bytesize if index < 0
+    if index < 0 or index >= bytesize
+      raise IndexError, "byte index #{index} is outside bounds of String"
+    end
+
+    @ascii_only = @valid_encoding = nil
     @data[index] = byte
   end
 

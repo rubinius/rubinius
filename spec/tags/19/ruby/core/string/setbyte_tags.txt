@@ -1,2 +1,0 @@
-fails:String#setbyte can invalidate a String's encoding
-fails:String#setbyte raises an IndexError unless the index is inside the String
