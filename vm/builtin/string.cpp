@@ -1305,6 +1305,26 @@ namespace rubinius {
     return valid_encoding_;
   }
 
+  Fixnum* String::codepoint(STATE) {
+    if(char_size(state) == 0) return force_as<Fixnum>(Primitives::failure());
+
+    if(byte_compatible_p(encoding_)) {
+      return Fixnum::from(byte_address()[0]);
+    } else {
+      OnigEncodingType* enc = encoding_->get_encoding();
+      uint8_t* p = byte_address();
+      uint8_t* e = p + byte_size();
+
+      int n = precise_mbclen(p, e, enc);
+
+      if(ONIGENC_MBCLEN_CHARFOUND_P(n)) {
+        return Fixnum::from(ONIGENC_MBC_TO_CODE(enc, (UChar*)p, (UChar*)e));
+      }
+    }
+
+    return force_as<Fixnum>(Primitives::failure());
+  }
+
   void String::Info::show(STATE, Object* self, int level) {
     String* str = as<String>(self);
     std::cout << "\"" << str->c_str(state) << "\"" << std::endl;

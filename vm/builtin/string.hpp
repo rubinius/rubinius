@@ -227,6 +227,9 @@ namespace rubinius {
     // Rubinius.primitive :string_valid_encoding_p
     Object* valid_encoding_p(STATE);
 
+    // Rubinius.primitive :string_codepoint
+    Fixnum* codepoint(STATE);
+
     class Info : public TypeInfo {
     public:
       BASIC_TYPEINFO(TypeInfo)

@@ -12,6 +12,15 @@ class String
 
   private :initialize
 
+  def codepoints
+    return to_enum :codepoints unless block_given?
+
+    chars { |c| yield c.ord }
+    self
+  end
+
+  alias_method :each_codepoint, :codepoints
+
   def encode!(to=undefined, from=undefined, options=nil)
     Rubinius.check_frozen
 
@@ -66,11 +75,6 @@ class String
       end
     end
     self
-  end
-
-  def ord
-    raise ArgumentError, 'empty string' if empty?
-    @data[0]
   end
 
   # Reverses <i>self</i> in place.
