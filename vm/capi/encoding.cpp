@@ -17,6 +17,14 @@ using namespace rubinius;
 using namespace rubinius::capi;
 
 extern "C" {
+  int rb_encdb_alias(const char *alias, const char *orig) {
+    NativeMethodEnvironment* env = NativeMethodEnvironment::get();
+
+    Encoding::alias(env->state(), alias, orig);
+
+    return Encoding::find_index(env->state(), alias);
+  }
+
   rb_encoding* rb_utf8_encoding() {
     NativeMethodEnvironment* env = NativeMethodEnvironment::get();
 

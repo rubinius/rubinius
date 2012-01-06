@@ -35,6 +35,8 @@ typedef OnigEncodingType rb_encoding;
 #define rb_enc_mbminlen(enc)        (enc)->min_enc_len
 #define rb_enc_mbmaxlen(enc)        (enc)->max_enc_len
 
+int rb_encdb_alias(const char *alias, const char *orig);
+
 int rb_enc_mbclen(const char *p, const char *e, rb_encoding *enc);
 int rb_enc_precise_mbclen(const char *p, const char *e, rb_encoding *enc);
 int rb_enc_codelen(int code, rb_encoding *enc);
