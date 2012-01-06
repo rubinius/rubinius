@@ -75,6 +75,14 @@ static VALUE encoding_spec_rb_default_internal_encoding(VALUE self) {
 }
 #endif
 
+#ifdef HAVE_RB_ENCDB_ALIAS
+/* Not exposed by MRI C-API encoding.h but used in the pg gem. */
+extern int rb_encdb_alias(const char* alias, const char* orig);
+
+static VALUE encoding_spec_rb_encdb_alias(VALUE self, VALUE alias, VALUE orig) {
+  return INT2NUM(rb_encdb_alias(RSTRING_PTR(alias), RSTRING_PTR(orig)));
+}
+#endif
 
 #if defined(HAVE_RB_ENC_ASSOCIATE) && defined(HAVE_RB_ENC_FIND)
 static VALUE encoding_spec_rb_enc_associate(VALUE self, VALUE obj, VALUE enc) {
@@ -192,7 +200,9 @@ void Init_encoding_spec() {
                    encoding_spec_rb_default_internal_encoding, 0);
 #endif
 
-
+#ifdef HAVE_RB_ENCDB_ALIAS
+  rb_define_method(cls, "rb_encdb_alias", encoding_spec_rb_encdb_alias, 2);
+#endif
 
 #ifdef HAVE_RB_ENC_ASSOCIATE
   rb_define_method(cls, "rb_enc_associate", encoding_spec_rb_enc_associate, 2);

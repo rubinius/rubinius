@@ -8,6 +8,13 @@ ruby_version_is "1.9" do
       @s = CApiEncodingSpecs.new
     end
 
+    describe "rb_encdb_alias" do
+      it "creates an alias for an existing Encoding" do
+        @s.rb_encdb_alias("ZOMGWTFBBQ", "UTF-8").should be_an_instance_of(Fixnum)
+        Encoding.find("ZOMGWTFBBQ").name.should == "UTF-8"
+      end
+    end
+
     describe "rb_enc_find" do
       it "returns the encoding of an Encoding" do
         @s.rb_enc_find("UTF-8").should == "UTF-8"

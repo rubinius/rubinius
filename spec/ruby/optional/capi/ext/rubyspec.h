@@ -164,6 +164,7 @@
 
 #define HAVE_RB_DEFAULT_INTERNAL_ENCODING  1
 
+#define HAVE_RB_ENCDB_ALIAS                1
 #define HAVE_RB_ENC_ASSOCIATE              1
 #define HAVE_RB_ENC_ASSOCIATE_INDEX        1
 #define HAVE_RB_ENC_COPY                   1
