@@ -242,6 +242,14 @@ extern "C" {
     return enc->get_encoding();
   }
 
+  int rb_enc_to_index(rb_encoding* enc) {
+    if(enc) {
+      return rb_enc_find_index(rb_enc_name(enc));
+    } else {
+      return 0;
+    }
+  }
+
   VALUE rb_enc_from_encoding(rb_encoding *enc) {
     NativeMethodEnvironment* env = NativeMethodEnvironment::get();
 
