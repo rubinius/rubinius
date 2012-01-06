@@ -126,6 +126,23 @@ extern "C" {
     return Encoding::find_index(env->state(), enc->get_encoding()->name);
   }
 
+  void rb_enc_set_index(VALUE obj, int index) {
+    NativeMethodEnvironment* env = NativeMethodEnvironment::get();
+
+    Encoding* enc = Encoding::from_index(env->state(), index);
+    Object* val = env->get_object(obj);
+
+    if(String* str = try_as<String>(val)) {
+      str->encoding(env->state(), enc);
+    } else if(Regexp* reg = try_as<Regexp>(val)) {
+      reg->encoding(env->state(), enc);
+    } else if(Symbol* sym = try_as<Symbol>(val)) {
+      sym->encoding(env->state(), enc);
+    } else {
+      rb_raise(rb_eArgError, "object cannot have an associated Encoding");
+    }
+  }
+
   rb_encoding* rb_enc_compatible(VALUE str1, VALUE str2) {
     // TODO
     return rb_enc_get(str1);
