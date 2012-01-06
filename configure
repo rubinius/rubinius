@@ -977,12 +977,16 @@ int main() {return 0;}
       @defines << "RBX_ALLOC_TRACKING"
     end
 
-    if @features["C-readline"] and
-        (has_function("readline", ["stdio.h", "stdlib.h", "readline/readline.h"]) or
-         has_function("readline", ["stdio.h", "stdlib.h", "editline/readline.h"]))
-      @rb_readline = false
-    elsif @features["ruby-readline"]
+    if @features["ruby-readline"]
       @rb_readline = true
+    else
+      if @features["C-readline"] and
+          (has_function("readline", ["stdio.h", "stdlib.h", "readline/readline.h"]) or
+           has_function("readline", ["stdio.h", "stdlib.h", "editline/readline.h"]))
+        @rb_readline = false
+      else
+        @rb_readline = true
+      end
     end
 
     if has_function("yaml_parser_initialize", ["yaml.h"])
