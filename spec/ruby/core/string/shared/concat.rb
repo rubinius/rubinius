@@ -13,8 +13,8 @@ describe :string_concat, :shared => true do
   end
 
   it "raises a TypeError if the given argument can't be converted to a String" do
-    lambda { a = 'hello '.send(@method, [])        }.should raise_error(TypeError)
-    lambda { a = 'hello '.send(@method, mock('x')) }.should raise_error(TypeError)
+    lambda { 'hello '.send(@method, [])        }.should raise_error(TypeError)
+    lambda { 'hello '.send(@method, mock('x')) }.should raise_error(TypeError)
   end
 
   ruby_version_is ""..."1.9" do
@@ -35,16 +35,6 @@ describe :string_concat, :shared => true do
       lambda { a.send(@method, "")     }.should raise_error(RuntimeError)
       lambda { a.send(@method, "test") }.should raise_error(RuntimeError)
     end
-
-    it "raises RangeError for negative length argument" do
-      lambda do
-        'glark'.force_encoding('UTF-8').send(@method, -200)
-      end.should raise_error(RangeError)
-
-      lambda do
-        'glark'.force_encoding('UTF-8').send(@method, -2**64)
-      end.should raise_error(RangeError)
-    end
   end
 
   it "works when given a subclass instance" do
@@ -64,48 +54,69 @@ describe :string_concat, :shared => true do
       "x".send(@method, "y".untrust).untrusted?.should == true
     end
   end
-end
 
-describe :string_concat_fixnum, :shared => true do
-  it "converts the given Fixnum to a char before concatenating" do
-    b = 'hello '.send(@method, 'world').send(@method, 33)
-    b.should == "hello world!"
-    b.send(@method, 0)
-    b.should == "hello world!\x00"
-  end
+  describe "with Integer" do
+    ruby_version_is ""..."1.9" do
+      it "concatencates the argument interpreted as an ASCII character" do
+        b = 'hello '.send(@method, 'world').send(@method, 33)
+        b.should == "hello world!"
+        b.send(@method, 0)
+        b.should == "hello world!\x00"
+      end
 
-  ruby_version_is ""..."1.9" do
-    it "raises a TypeError when the given Fixnum is not between 0 and 255" do
-      lambda { "hello world" << 333 }.should raise_error(TypeError)
-      lambda { "".send(@method, (256 * 3 + 64)) }.should raise_error(TypeError)
-      lambda { "".send(@method, -200)           }.should raise_error(TypeError)
+      it "raises a TypeError when the argument is not between 0 and 255" do
+        lambda { "".send(@method, -200)         }.should raise_error(TypeError)
+        lambda { "".send(@method, 256)          }.should raise_error(TypeError)
+        lambda { "".send(@method, bignum_value) }.should raise_error(TypeError)
+      end
     end
-  end
 
-  it "doesn't call to_int on its argument" do
-    x = mock('x')
-    x.should_not_receive(:to_int)
+    ruby_version_is "1.9" do
+      it "concatencates the argument interpreted as a codepoint" do
+        b = "".send(@method, 33)
+        b.should == "!"
 
-    lambda { "".send(@method, x) }.should raise_error(TypeError)
-  end
+        b.encode!(Encoding::UTF_8)
+        b.send(@method, 0x203D)
+        b.should == "!\u203D"
+      end
 
-  ruby_version_is ""..."1.9" do
-    it "raises a TypeError when self is frozen" do
-      a = "hello"
-      a.freeze
+      it "raises RangeError if the argument is an invalid codepoint for self's encoding" do
+        lambda { "".encode(Encoding::US_ASCII) << 256 }.should raise_error(RangeError)
+        lambda { "".encode(Encoding::EUC_JP) << 0x81  }.should raise_error(RangeError)
+      end
 
-      lambda { a.send(@method, 0)  }.should raise_error(TypeError)
-      lambda { a.send(@method, 33) }.should raise_error(TypeError)
+      it "raises RangeError if the argument is negative" do
+        lambda { "".send(@method, -200)          }.should raise_error(RangeError)
+        lambda { "".send(@method, -bignum_value) }.should raise_error(RangeError)
+      end
     end
-  end
 
-  ruby_version_is "1.9" do
-    it "raises a RuntimeError when self is frozen" do
-      a = "hello"
-      a.freeze
+    it "doesn't call to_int on its argument" do
+      x = mock('x')
+      x.should_not_receive(:to_int)
 
-      lambda { a.send(@method, 0)  }.should raise_error(RuntimeError)
-      lambda { a.send(@method, 33) }.should raise_error(RuntimeError)
+      lambda { "".send(@method, x) }.should raise_error(TypeError)
+    end
+
+    ruby_version_is ""..."1.9" do
+      it "raises a TypeError when self is frozen" do
+        a = "hello"
+        a.freeze
+
+        lambda { a.send(@method, 0)  }.should raise_error(TypeError)
+        lambda { a.send(@method, 33) }.should raise_error(TypeError)
+      end
+    end
+
+    ruby_version_is "1.9" do
+      it "raises a RuntimeError when self is frozen" do
+        a = "hello"
+        a.freeze
+
+        lambda { a.send(@method, 0)  }.should raise_error(RuntimeError)
+        lambda { a.send(@method, 33) }.should raise_error(RuntimeError)
+      end
     end
   end
 end
