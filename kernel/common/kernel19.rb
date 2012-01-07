@@ -107,9 +107,9 @@ module Kernel
   module_function :proc
 
   def open(obj, *rest, &block)
-    if obj.respond_to?(:to_open) 
+    if obj.respond_to?(:to_open)
       obj = obj.to_open(*rest)
-      
+
       if block_given?
         return yield(obj)
       else
@@ -117,7 +117,7 @@ module Kernel
       end
     end
 
-    path = StringValue(obj)
+    path = Rubinius::Type.coerce_to_path obj
 
     if path.kind_of? String and path.prefix? '|'
       return IO.popen(path[1..-1], *rest, &block)
@@ -126,7 +126,7 @@ module Kernel
     File.open(path, *rest, &block)
   end
   module_function :open
-  
+
   # Attempt to load the given file, returning true if successful. Works just
   # like Kernel#require, except that it searches relative to the current
   # directory.
