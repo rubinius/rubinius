@@ -48,7 +48,7 @@ namespace rubinius {
      */
     void flush_cached_rarray(NativeMethodEnvironment* env, Handle* handle) {
       if(handle->is_rarray()) {
-        Array* array = as<Array>(handle->object());
+        Array* array = c_as<Array>(handle->object());
         Tuple* tuple = array->tuple();
         RArray* rarray = handle->as_rarray(env);
 

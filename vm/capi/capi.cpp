@@ -414,6 +414,18 @@ namespace rubinius {
       env->current_ep()->return_to(env);
     }
 
+    void capi_raise_backend(VALUE exception) {
+      NativeMethodEnvironment* env = NativeMethodEnvironment::get();
+      Exception *exc = capi::c_as<Exception>(env->get_object(exception));
+      capi_raise_backend(exc);
+    }
+
+    void capi_raise_backend(VALUE klass, const char* reason) {
+      NativeMethodEnvironment* env = NativeMethodEnvironment::get();
+      Class* cls = c_as<Class>(env->get_object(klass));
+      Exception* exc = Exception::make_exception(env->state(), cls, reason);
+      capi_raise_backend(exc);
+    }
 
     Proc* wrap_c_function(void* cb, VALUE cb_data, int arity) {
       NativeMethodEnvironment* env = NativeMethodEnvironment::get();

@@ -1,5 +1,5 @@
+#include "builtin/class.hpp"
 #include "builtin/exception.hpp"
-#include "builtin/array.hpp"
 #include "builtin/proc.hpp"
 
 #include "exception_point.hpp"
@@ -20,10 +20,7 @@ extern "C" {
     vsnprintf(reason, RB_EXC_BUFSIZE, format_string, args);
     va_end(args);
 
-    NativeMethodEnvironment* env = NativeMethodEnvironment::get();
-    Exception* exc = Exception::make_exception(
-          env->state(), as<Class>(env->get_object(error_handle)), reason);
-    capi::capi_raise_backend(exc);
+    capi::capi_raise_backend(error_handle, reason);
 
     rubinius::bug("rb_raise failed");
     exit(1);  // compiler snack.

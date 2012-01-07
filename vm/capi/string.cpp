@@ -74,7 +74,7 @@ namespace rubinius {
               "changing the value of RSTRING(obj)->ptr is not supported");
         }
 
-        if(rstring->len > as<ByteArray>(string->data())->size()) {
+        if(rstring->len > c_as<ByteArray>(string->data())->size()) {
           rb_raise(rb_eRuntimeError,
               "RSTRING(obj)->len must be <= capacity of the String");
         } else if(rstring->len != string->num_bytes()->to_native()) {
@@ -290,7 +290,7 @@ extern "C" {
 
     String* string = capi_get_string(env, self);
 
-    size_t size = as<ByteArray>(string->data())->size();
+    size_t size = c_as<ByteArray>(string->data())->size();
     if(size != len) {
       if(size < len) {
         ByteArray* ba = ByteArray::create_pinned(env->state(), len+1);
@@ -440,7 +440,7 @@ extern "C" {
 
     String* string = capi_get_string(env, self);
 
-    size_t byte_size = as<ByteArray>(string->data())->size();
+    size_t byte_size = c_as<ByteArray>(string->data())->size();
     if(len > byte_size) len = byte_size - 1;
 
     string->byte_address()[len] = 0;

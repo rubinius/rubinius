@@ -43,6 +43,10 @@ namespace rubinius {
     /** Raise backend */
     void capi_raise_backend(Exception* exception);
 
+    void capi_raise_backend(VALUE exception);
+
+    void capi_raise_backend(VALUE klass, const char* reason);
+
     /** Get an Array object for a handle ensuring that any RARRAY data has
      * been flushed. */
     Array* capi_get_array(NativeMethodEnvironment* env, VALUE ary_handle);
