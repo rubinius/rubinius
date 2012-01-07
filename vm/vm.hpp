@@ -19,6 +19,8 @@
 
 #include "shared_state.hpp"
 
+#include "fiber_stack.hpp"
+
 #include <vector>
 #include <setjmp.h>
 
@@ -94,6 +96,7 @@ namespace rubinius {
     rbxti::Env* tooling_env_;
     bool tooling_;
     bool allocation_tracking_;
+    FiberStacks fiber_stacks_;
 
   public:
     /* Data members */
@@ -256,6 +259,10 @@ namespace rubinius {
 
     void disable_allocation_tracking() {
       allocation_tracking_ = false;
+    }
+
+    FiberStack* allocate_fiber_stack() {
+      return fiber_stacks_.allocate();
     }
 
   public:

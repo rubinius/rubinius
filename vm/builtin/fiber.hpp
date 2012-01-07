@@ -1,35 +1,14 @@
 #ifndef RBX_BUILTIN_FIBER
 #define RBX_BUILTIN_FIBER
 
-#include "vm/config.h"
-
-#if defined(IS_X86)
-#define FIBER_ENABLED
-#define FIBER_NATIVE
-#define FIBER_ASM_X8632
-struct fiber_context_t;
-
-#elif defined(IS_X8664)
-#define FIBER_ENABLED
-#define FIBER_NATIVE
-#define FIBER_ASM_X8664
-struct fiber_context_t;
-
-#elif defined(HAS_UCONTEXT)
-#define FIBER_ENABLED
-#include <ucontext.h>
-typedef ucontext_t fiber_context_t;
-
-#else
-struct fiber_context_t;
-#endif
-
-
 #include <signal.h>
 #include <stdio.h>
 #include <stdlib.h>
 
+#include "prelude.hpp"
 #include "builtin/object.hpp"
+
+#include "fiber_data.hpp"
 
 namespace rubinius {
   class Fiber : public Object {
@@ -50,10 +29,8 @@ namespace rubinius {
     VM* vm_;
 
     bool root_;
-    void* stack_;
-    int stack_size_;
-    fiber_context_t* context_;
 
+    FiberData* data_;
   public:
     attr_accessor(starter, Object);
     attr_accessor(value, Array);
@@ -75,7 +52,7 @@ namespace rubinius {
     }
 
     fiber_context_t* ucontext() {
-      return context_;
+      return data_->machine();
     }
 
     VM* vm() {
@@ -83,11 +60,11 @@ namespace rubinius {
     }
 
     void* stack() {
-      return stack_;
+      return data_->stack_address();
     }
 
     int stack_size() {
-      return stack_size_;
+      return data_->stack_size();
     }
 
   public:

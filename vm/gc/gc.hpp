@@ -124,7 +124,7 @@ namespace rubinius {
     // Scans the specified Object for references to other Objects.
     void scan_object(Object* obj);
     void delete_object(Object* obj);
-    void walk_call_frame(CallFrame* top_call_frame);
+    void walk_call_frame(CallFrame* top_call_frame, intptr_t offset=0);
     void saw_variable_scope(CallFrame* call_frame, StackVariables* scope);
 
     /**

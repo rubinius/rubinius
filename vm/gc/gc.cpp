@@ -148,13 +148,22 @@ namespace rubinius {
     }
   }
 
+  template <typename T>
+    T displace(T ptr, intptr_t by) {
+      return (T)((char*)ptr + by);
+    }
 
   /**
    * Walks the chain of objects accessible from the specified CallFrame.
    */
-  void GarbageCollector::walk_call_frame(CallFrame* top_call_frame) {
+  void GarbageCollector::walk_call_frame(CallFrame* top_call_frame,
+                                         intptr_t offset)
+  {
     CallFrame* call_frame = top_call_frame;
+
     while(call_frame) {
+      call_frame = displace(call_frame, offset);
+
       // Skip synthetic, non CompiledMethod frames
       if(!call_frame->cm) {
         call_frame = call_frame->previous;
@@ -182,8 +191,7 @@ namespace rubinius {
         }
       }
 
-      if(call_frame->multiple_scopes_p() &&
-          call_frame->top_scope_) {
+      if(call_frame->multiple_scopes_p() && call_frame->top_scope_) {
         call_frame->top_scope_ = (VariableScope*)mark_object(call_frame->top_scope_);
       }
 
@@ -222,7 +230,7 @@ namespace rubinius {
       }
 #endif
 
-      saw_variable_scope(call_frame, call_frame->scope);
+      saw_variable_scope(call_frame, displace(call_frame->scope, offset));
 
       call_frame = static_cast<CallFrame*>(call_frame->previous);
     }

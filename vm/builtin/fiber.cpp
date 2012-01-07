@@ -20,20 +20,11 @@
 
 #include "on_stack.hpp"
 
-#ifdef FIBER_NATIVE
+namespace rubinius {
+
+#ifdef FIBER_ENABLED
 
 #if defined(FIBER_ASM_X8664)
-
-struct fiber_context_t {
-  void* rip;
-  void* rsp;
-  void* rbp;
-  void* rbx;
-  void* r12;
-  void* r13;
-  void* r14;
-  void* r15;
-};
 
 static void fiber_wrap_main(void) {
   __asm__ __volatile__ ("\tmovq %r13, %rdi\n\tjmpq *%r12\n");
@@ -76,13 +67,6 @@ static void fiber_makectx(fiber_context_t* ctx, void* func, void** stack_bottom,
 
 #elif defined(FIBER_ASM_X8632)
 
-struct fiber_context_t {
-  void* eip;
-  void* esp;
-  void* ebp;
-  void* ebx;
-};
-
 static inline void fiber_switch(fiber_context_t* from, fiber_context_t* to) {
   __asm__ __volatile__ (
     "call 1f\n" "1:\tpopl %%eax\n\t" "addl $(2f-1b),%%eax\n\t"
@@ -111,15 +95,9 @@ static void fiber_makectx(fiber_context_t* ctx, void* func, void** stack_bottom,
 }
 #endif
 
-#else // FIBER_NATIVE
+#endif
 
-#ifndef FIBER_ENABLED
-struct fiber_context_t {
-  int dummy;
 }
-#endif
-
-#endif
 
 namespace rubinius {
 
@@ -149,14 +127,8 @@ namespace rubinius {
       fib->root_ = true;
       fib->status_ = Fiber::eRunning;
       fib->vm_ = state->vm();
-      fib->stack_size_ = state->vm()->stack_size();
-      fib->stack_ = state->vm()->stack_start();
 
-#ifdef FIBER_NATIVE
-      fib->context_ = new fiber_context_t;
-#else
-      fib->context_ = new ucontext_t;
-#endif
+      fib->data_ = new FiberData;
 
       state->memory()->needs_finalization(fib, (FinalizerFunction)&Fiber::finalize);
 
@@ -206,17 +178,14 @@ namespace rubinius {
       }
     }
 
+    fib->data_->orphan(&state);
+
     dest->run();
     dest->value(&state, result);
     state.vm()->set_current_fiber(dest);
 
-#ifdef FIBER_NATIVE
     fiber_context_t dummy;
     fiber_switch(&dummy, dest->ucontext());
-#else
-    if(setcontext(dest->ucontext()) != 0)
-      assert(0 && "fatal swapcontext() error");
-#endif
 
     assert(0 && "fatal start_on_stack error");
 #else
@@ -242,28 +211,10 @@ namespace rubinius {
     fib->root_ = false;
     fib->vm_ = 0;
     fib->status_ = Fiber::eSleeping;
-    fib->stack_size_ = stack_size;
-    fib->stack_ = malloc(stack_size);
+
+    fib->data_ = new FiberData;
 
     state->memory()->needs_finalization(fib, (FinalizerFunction)&Fiber::finalize);
-
-#ifdef FIBER_NATIVE
-    fib->context_ = new fiber_context_t;
-    fiber_makectx(fib->ucontext(), (void*)start_on_stack, (void**)fib->stack_,
-                  stack_size);
-#else
-    fib->context_ = new ucontext_t;
-    ucontext_t* ctx = fib->ucontext();
-
-    if(getcontext(ctx) != 0) assert(0 && "fatal getcontext() error");
-
-    ctx->uc_link = 0;
-    ctx->uc_stack.ss_sp = (char *) fib->stack_;
-    ctx->uc_stack.ss_size = stack_size;
-    ctx->uc_stack.ss_flags = 0;
-
-    makecontext(ctx, start_on_stack, 0);
-#endif
 
     return fib;
 #else
@@ -287,17 +238,24 @@ namespace rubinius {
     Fiber* cur = Fiber::current(state);
     prev(state, cur);
 
+    if(data_->uninitialized_p()) {
+      FiberStack* stack = data_->allocate_stack(state);
+
+      data_->take_stack(state);
+
+      fiber_makectx(ucontext(), (void*)start_on_stack,
+                    (void**)stack->address(),
+                    stack->size());
+    } else {
+      data_->take_stack(state);
+    }
+
     cur->sleep(calling_environment);
 
     run();
     state->vm()->set_current_fiber(this);
 
-#ifdef FIBER_NATIVE
-    fiber_switch(cur->ucontext(), context_);
-#else
-    if(swapcontext(cur->ucontext(), context_) != 0)
-      assert(0 && "fatal swapcontext() error");
-#endif
+    fiber_switch(cur->ucontext(), ucontext());
 
     // Back here when someone yields back to us!
     // Beware here, because the GC has probably run so GC pointers on the C++ stack
@@ -345,12 +303,7 @@ namespace rubinius {
     run();
     state->vm()->set_current_fiber(this);
 
-#ifdef FIBER_NATIVE
-    fiber_switch(cur->ucontext(), context_);
-#else
-    if(swapcontext(cur->ucontext(), context_) != 0)
-      assert(0 && "fatal swapcontext() error");
-#endif
+    fiber_switch(cur->ucontext(), ucontext());
 
     // Back here when someone transfers back to us!
     // Beware here, because the GC has probably run so GC pointers on the C++ stack
@@ -399,12 +352,7 @@ namespace rubinius {
     dest_fib->run();
     state->vm()->set_current_fiber(dest_fib);
 
-#ifdef FIBER_NATIVE
     fiber_switch(cur->ucontext(), dest_fib->ucontext());
-#else
-    if(swapcontext(cur->ucontext(), dest_fib->ucontext()) != 0)
-      assert(0 && "fatal swapcontext() error");
-#endif
 
     // Back here when someone yields back to us!
     // Beware here, because the GC has probably run so GC pointers on the C++ stack
@@ -429,8 +377,8 @@ namespace rubinius {
 
   void Fiber::finalize(STATE, Fiber* fib) {
 #ifdef FIBER_ENABLED
-    delete fib->context_;
-    if(fib->stack_ && !fib->root_) free(fib->stack_);
+    delete fib->data_;
+    // if(fib->stack_ && !fib->root_) free(fib->stack_);
 #endif
   }
 
@@ -441,7 +389,7 @@ namespace rubinius {
 
     Fiber* fib = (Fiber*)obj;
     if(CallFrame* cf = fib->call_frame()) {
-      mark.gc->walk_call_frame(cf);
+      mark.gc->walk_call_frame(cf, fib->data_->data_offset());
     }
   }
 }
