@@ -66,5 +66,21 @@ module Rubinius
       host.taint if source.tainted?
       host.untrust if source.untrusted?
     end
+
+    def self.coerce_to_binding(obj)
+      if obj.kind_of? Proc
+        raise TypeError, 'wrong argument type Proc (expected Binding)'
+      elsif obj.respond_to? :to_binding
+        binding = obj.to_binding
+      else
+        binding = obj
+      end
+
+      unless binding.kind_of? Binding
+        raise ArgumentError, "unknown type of binding"
+      end
+
+      binding
+    end
   end
 end

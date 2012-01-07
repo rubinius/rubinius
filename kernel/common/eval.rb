@@ -45,23 +45,10 @@ module Kernel
   #
   def eval(string, binding=nil, filename=nil, lineno=1)
     filename = StringValue(filename) if filename
-    lineno = Type.coerce_to lineno, Fixnum, :to_i
+    lineno = Rubinius::Type.coerce_to lineno, Fixnum, :to_i
 
     if binding
-      if binding.kind_of? Proc
-        if Rubinius.ruby19?
-          raise TypeError, 'wrong argument type Proc (expected Binding)'
-        else
-          binding = binding.binding
-        end
-      elsif binding.respond_to? :to_binding
-        binding = binding.to_binding
-      end
-
-      unless binding.kind_of? Binding
-        raise ArgumentError, "unknown type of binding"
-      end
-
+      binding = Rubinius::Type.coerce_to_binding binding
       filename ||= binding.static_scope.active_path
     else
       binding = Binding.setup(Rubinius::VariableScope.of_sender,
