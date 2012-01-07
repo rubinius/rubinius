@@ -1,3 +1,5 @@
+# -*- encoding: us-ascii -*-
+
 class Numeric
   def div(other)
     raise ZeroDivisionError, "divided by 0" if other == 0

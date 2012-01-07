@@ -1,3 +1,5 @@
+# -*- encoding: us-ascii -*-
+
 class Array
   # Try to convert obj into an array, using to_ary method.
   # Returns converted array or nil if obj cannot be converted

@@ -1,3 +1,5 @@
+# -*- encoding: us-ascii -*-
+
 class Proc
 
   def self.__from_block__(env)

@@ -1,3 +1,5 @@
+# -*- encoding: us-ascii -*-
+
 class IO
   attr_accessor :external
   attr_accessor :internal

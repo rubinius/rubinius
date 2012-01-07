@@ -1,3 +1,5 @@
+# -*- encoding: us-ascii -*-
+
 class Module
 
   def const_get(name)

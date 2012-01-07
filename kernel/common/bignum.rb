@@ -1,3 +1,5 @@
+# -*- encoding: us-ascii -*-
+
 ##
 # Bignum objects hold integers outside the range of Fixnum. Bignum objects are
 # created automatically when integer calculations would otherwise overflow a

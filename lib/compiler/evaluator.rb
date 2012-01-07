@@ -1,3 +1,5 @@
+# -*- encoding: us-ascii -*-
+
 ##
 # Used for the Rubinius::asm Compiler hook.
 

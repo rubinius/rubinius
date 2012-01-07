@@ -1,3 +1,5 @@
+# -*- encoding: us-ascii -*-
+
 class Method
   def name
     @name.to_s

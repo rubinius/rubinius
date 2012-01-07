@@ -1,3 +1,5 @@
+# -*- encoding: us-ascii -*-
+
 class Class
   ##
   # Returns the Class object that this Class inherits from. Included Modules

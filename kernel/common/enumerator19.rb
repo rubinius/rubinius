@@ -1,3 +1,5 @@
+# -*- encoding: us-ascii -*-
+
 Enumerator = Enumerable::Enumerator
 
 module Enumerable

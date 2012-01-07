@@ -1,3 +1,5 @@
+# -*- encoding: us-ascii -*-
+
 class Float
   INFINITY = 1.0 / 0.0
   NAN = 0.0 / 0.0

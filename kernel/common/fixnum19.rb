@@ -1,3 +1,5 @@
+# -*- encoding: us-ascii -*-
+
 class Fixnum < Integer
   def imaginary
     0

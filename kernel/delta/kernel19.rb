@@ -1,3 +1,5 @@
+# -*- encoding: us-ascii -*-
+
 module Kernel
   get = proc do
     warn "$KCODE is unused in Ruby 1.9"

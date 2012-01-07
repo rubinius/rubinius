@@ -1,3 +1,5 @@
+# -*- encoding: us-ascii -*-
+
 module Rubinius
 
   # LoadedFeatures is a custom class for $LOADED_FEATURES. It presents an

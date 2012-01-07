@@ -1,3 +1,5 @@
+# -*- encoding: us-ascii -*-
+
 ##
 # Arrays are ordered, integer-indexed collections of any object.  Array
 # indexing starts at 0, as in C or Java.  A negative index is assumed to be

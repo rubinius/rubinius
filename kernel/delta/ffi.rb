@@ -1,3 +1,5 @@
+# -*- encoding: us-ascii -*-
+
 module FFI::Library
   # Once the kernel is loaded, we want to raise an error if attempting to
   # attach to a non-existent function.

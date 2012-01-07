@@ -1,3 +1,5 @@
+# -*- encoding: us-ascii -*-
+
 ##
 # Parent class of everything that can live in a MethodTable.
 #

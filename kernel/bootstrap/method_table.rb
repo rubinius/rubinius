@@ -1,3 +1,5 @@
+# -*- encoding: us-ascii -*-
+
 
 ##
 # Method table associates symbols (names) with methods (executables). Each

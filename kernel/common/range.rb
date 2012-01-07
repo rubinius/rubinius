@@ -1,3 +1,5 @@
+# -*- encoding: us-ascii -*-
+
 ##
 # A Range represents an interval, a set of values with a start and an end.
 #

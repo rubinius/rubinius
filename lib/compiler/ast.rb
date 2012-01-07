@@ -1,3 +1,5 @@
+# -*- encoding: us-ascii -*-
+
 base = File.expand_path "../", __FILE__
 
 require base + "/ast/node"

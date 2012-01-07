@@ -1,3 +1,5 @@
+# -*- encoding: us-ascii -*-
+
 module Rubinius
 
   # IdentityMap is customized for uniquely storing elements from an Array to

@@ -1,3 +1,5 @@
+# -*- encoding: us-ascii -*-
+
 module Math
   def log(x)
     x = Rubinius::Type.coerce_to_float(x)

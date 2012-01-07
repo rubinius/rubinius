@@ -1,3 +1,5 @@
+# -*- encoding: us-ascii -*-
+
 module Signal
   Names = {
     "EXIT" => 0

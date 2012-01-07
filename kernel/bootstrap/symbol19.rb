@@ -1,3 +1,5 @@
+# -*- encoding: us-ascii -*-
+
 class Symbol
   def encoding
     Rubinius.primitive :symbol_encoding

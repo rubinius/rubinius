@@ -1,3 +1,5 @@
+# -*- encoding: us-ascii -*-
+
 # Implementation-specific behavior for Kernel#require and Kernel#load.
 #
 # In particular, this file implements #load_file for loading a Ruby source

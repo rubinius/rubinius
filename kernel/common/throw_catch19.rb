@@ -1,3 +1,5 @@
+# -*- encoding: us-ascii -*-
+
 module Kernel
   def catch(obj = Object.new, &block)
     raise LocalJumpError unless block_given?

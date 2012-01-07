@@ -1,3 +1,5 @@
+# -*- encoding: us-ascii -*-
+
 class File
   def self.path(obj)
     return obj.to_path if obj.respond_to? :to_path

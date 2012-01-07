@@ -1,3 +1,5 @@
+# -*- encoding: us-ascii -*-
+
 class Object
   def __fixnum__
     Rubinius.primitive :object_is_fixnum

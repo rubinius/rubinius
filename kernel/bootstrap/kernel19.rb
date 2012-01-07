@@ -1,3 +1,5 @@
+# -*- encoding: us-ascii -*-
+
 # TODO: Temporary! Object should find these methods in BasicObject
 # but we fake that until method lookup is fixed for 1.9.
 module Kernel

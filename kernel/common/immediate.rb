@@ -1,3 +1,5 @@
+# -*- encoding: us-ascii -*-
+
 ##
 # Mixin used to identify classes which have no memory storage.
 

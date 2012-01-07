@@ -1,3 +1,5 @@
+# -*- encoding: us-ascii -*-
+
 ##
 # An array of bytes, used as a low-level data store for implementing various
 # other classes.

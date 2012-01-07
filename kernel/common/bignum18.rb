@@ -1,3 +1,5 @@
+# -*- encoding: us-ascii -*-
+
 class Bignum < Integer
   alias_method :quo, :fdiv
 

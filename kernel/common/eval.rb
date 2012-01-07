@@ -1,3 +1,5 @@
+# -*- encoding: us-ascii -*-
+
 module Kernel
 
   # Names of local variables at point of call (including evaled)

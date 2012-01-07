@@ -1,3 +1,5 @@
+# -*- encoding: us-ascii -*-
+
 module GC
   def self.stat
     @agent ||= begin

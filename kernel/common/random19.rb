@@ -1,3 +1,5 @@
+# -*- encoding: us-ascii -*-
+
 class Rubinius::Randomizer
   def random_range(limit)
     min, max = limit.max.coerce(limit.min)

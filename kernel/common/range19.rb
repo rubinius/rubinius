@@ -1,3 +1,5 @@
+# -*- encoding: us-ascii -*-
+
 class Range
   alias_method :cover?, :===
 

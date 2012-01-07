@@ -1,3 +1,5 @@
+# -*- encoding: us-ascii -*-
+
 class Class
   def __marshal__(ms)
     if Rubinius::Type.singleton_class_object(self)

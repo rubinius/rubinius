@@ -1,3 +1,5 @@
+# -*- encoding: us-ascii -*-
+
 class Float
   def **(other)
     Rubinius.primitive :float_pow

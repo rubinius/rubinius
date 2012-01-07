@@ -1,3 +1,5 @@
+# -*- encoding: us-ascii -*-
+
 module Math
   FactorialTable = [
     1.0,

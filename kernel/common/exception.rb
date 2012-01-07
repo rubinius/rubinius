@@ -1,3 +1,5 @@
+# -*- encoding: us-ascii -*-
+
 class Exception
 
   attr_accessor :locations

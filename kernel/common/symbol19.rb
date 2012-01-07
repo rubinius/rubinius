@@ -1,3 +1,5 @@
+# -*- encoding: us-ascii -*-
+
 class Symbol
   def <=>(other)
     return unless other.kind_of? Symbol

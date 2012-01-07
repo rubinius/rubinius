@@ -1,3 +1,5 @@
+# -*- encoding: us-ascii -*-
+
 module Rubinius
   module Compiler::Runtime
     def unwrap_block_arg(arg)

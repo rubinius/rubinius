@@ -1,3 +1,5 @@
+# -*- encoding: us-ascii -*-
+
 module Rubinius
   def self.pack_to_int(obj)
     Rubinius::Type.coerce_to obj, Integer, :to_int

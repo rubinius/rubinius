@@ -1,3 +1,5 @@
+# -*- encoding: us-ascii -*-
+
 class Regexp
   ValidKcode    = [110, 101, 115, 117]  # [?n,?e,?s,?u]
   KcodeValue    = [16, 32, 48, 64]

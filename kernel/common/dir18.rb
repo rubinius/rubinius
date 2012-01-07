@@ -1,3 +1,5 @@
+# -*- encoding: us-ascii -*-
+
 class Dir
   def self.open(path)
     dir = new path

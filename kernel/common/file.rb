@@ -1,3 +1,5 @@
+# -*- encoding: us-ascii -*-
+
 module FFI::Platform::POSIX
   #--
   # Internal class for accessing timevals

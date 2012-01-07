@@ -1,3 +1,5 @@
+# -*- encoding: us-ascii -*-
+
 module FileTest
   module_function :blockdev?,
                   :chardev?,

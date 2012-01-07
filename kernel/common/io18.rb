@@ -1,3 +1,5 @@
+# -*- encoding: us-ascii -*-
+
 class IO
   def self.for_fd(fd, mode = nil)
     new fd, mode

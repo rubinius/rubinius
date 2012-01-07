@@ -1,3 +1,5 @@
+# -*- encoding: us-ascii -*-
+
 class Integer
   def chr(enc=undefined)
     if self < 0 || (self & 0xffff_ffff) != self

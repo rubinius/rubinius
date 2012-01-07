@@ -1,3 +1,5 @@
+# -*- encoding: us-ascii -*-
+
 # The Type module provides facilities for accessing various "type" related
 # data about an object, as well as providing type coercion methods. These
 # facilities are independent of the object and thus are more robust in the

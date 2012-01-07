@@ -1,3 +1,5 @@
+# -*- encoding: us-ascii -*-
+
 class EncodingError < StandardError
 end
 

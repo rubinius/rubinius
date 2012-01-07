@@ -1,3 +1,5 @@
+# -*- encoding: us-ascii -*-
+
 class Proc::Method < Proc
   def self.__from_method__(meth)
     obj = allocate()

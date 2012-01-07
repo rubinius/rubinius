@@ -1,3 +1,5 @@
+# -*- encoding: us-ascii -*-
+
 ##
 # A LookupTable is similar to a Hash in that keys are used to set and
 # reference values. However, unlike Hash, whether a key matches an

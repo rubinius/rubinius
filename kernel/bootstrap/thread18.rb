@@ -1,3 +1,5 @@
+# -*- encoding: us-ascii -*-
+
 class Thread
   def self.start(*args)
     thr = Rubinius.invoke_primitive :thread_allocate, self

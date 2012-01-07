@@ -1,3 +1,5 @@
+# -*- encoding: us-ascii -*-
+
 ##
 # Method objects are essentially detached, freely passed-around methods. The
 # Method is a copy of the method on the object at the time of extraction, so

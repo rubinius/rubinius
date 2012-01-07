@@ -1,3 +1,5 @@
+# -*- encoding: us-ascii -*-
+
 ##
 # Defines all the bytecode instructions used by the VM.
 

@@ -1,3 +1,5 @@
+# -*- encoding: us-ascii -*-
+
 TOPLEVEL_BINDING = binding()
 
 # Default kcode

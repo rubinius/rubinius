@@ -1,3 +1,5 @@
+# -*- encoding: us-ascii -*-
+
 class Struct
   def self.members
     return self::STRUCT_ATTRS.map { |member| member.to_sym }

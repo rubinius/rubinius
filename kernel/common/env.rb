@@ -1,3 +1,5 @@
+# -*- encoding: us-ascii -*-
+
 ##
 # Interface to process environment variables.
 

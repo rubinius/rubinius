@@ -1,3 +1,5 @@
+# -*- encoding: us-ascii -*-
+
 module Kernel
   # Proper kcode support
   get = proc { |key| Rubinius.kcode.to_s }

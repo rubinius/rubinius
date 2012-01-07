@@ -1,3 +1,5 @@
+# -*- encoding: us-ascii -*-
+
 class Module
   def alias_method(new_name, current_name)
     new_name = Rubinius::Type.coerce_to_symbol(new_name)

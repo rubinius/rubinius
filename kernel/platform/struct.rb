@@ -1,3 +1,5 @@
+# -*- encoding: us-ascii -*-
+
 module FFI
   ##
   # Represents a C struct as ruby class.

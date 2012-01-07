@@ -1,3 +1,5 @@
+# -*- encoding: us-ascii -*-
+
 ##
 # Namespace for various POSIX functions.
 

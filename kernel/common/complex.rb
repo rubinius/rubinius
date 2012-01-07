@@ -1,3 +1,5 @@
+# -*- encoding: us-ascii -*-
+
 #
 #   complex.rb -
 #   	$Release Version: 0.5 $

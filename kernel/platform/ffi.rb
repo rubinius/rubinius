@@ -1,3 +1,5 @@
+# -*- encoding: us-ascii -*-
+
 ##
 # A Foreign Function Interface used to bind C libraries to ruby.
 

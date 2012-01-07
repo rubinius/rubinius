@@ -1,3 +1,5 @@
+# -*- encoding: us-ascii -*-
+
 class Class
   def self.allocate
     Rubinius.primitive :class_s_allocate

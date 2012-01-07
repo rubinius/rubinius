@@ -1,3 +1,5 @@
+# -*- encoding: us-ascii -*-
+
 class Fixnum < Integer
   # Must be it's own method, so that super calls the correct method
   # on Numeric

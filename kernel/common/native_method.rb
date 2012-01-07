@@ -1,3 +1,5 @@
+# -*- encoding: us-ascii -*-
+
 ##
 # A wrapper for a calling a function in a shared library that has been
 # attached via rb_define_method().

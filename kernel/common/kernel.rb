@@ -1,3 +1,5 @@
+# -*- encoding: us-ascii -*-
+
 module Kernel
   def __method__
     scope = Rubinius::VariableScope.of_sender

@@ -1,3 +1,5 @@
+# -*- encoding: us-ascii -*-
+
 class << MAIN
   def include(*mods)
     Object.include(*mods)

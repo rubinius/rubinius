@@ -1,3 +1,5 @@
+# -*- encoding: us-ascii -*-
+
 # A class which provides a method `each' to be used as an Enumerable
 # object.
 

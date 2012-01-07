@@ -1,3 +1,5 @@
+# -*- encoding: us-ascii -*-
+
 class Float < Numeric
 
   include Precision

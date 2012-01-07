@@ -1,3 +1,5 @@
+# -*- encoding: us-ascii -*-
+
 class Proc
 
   alias_method :===, :call

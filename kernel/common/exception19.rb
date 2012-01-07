@@ -1,3 +1,5 @@
+# -*- encoding: us-ascii -*-
+
 class Exception
   def ==(other)
     other.kind_of?(Exception) &&

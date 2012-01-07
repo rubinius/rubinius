@@ -1,3 +1,5 @@
+# -*- encoding: us-ascii -*-
+
 module Precision
   def prec(klass)
     klass.induced_from(self)

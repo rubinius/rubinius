@@ -1,3 +1,5 @@
+# -*- encoding: us-ascii -*-
+
 module ObjectSpace
 
   def self._id2ref(id)

@@ -1,3 +1,5 @@
+# -*- encoding: us-ascii -*-
+
 class Integer
   alias_method :round, :to_i
 

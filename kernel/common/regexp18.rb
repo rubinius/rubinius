@@ -1,3 +1,5 @@
+# -*- encoding: us-ascii -*-
+
 class Regexp
   def ===(other)
     unless other.kind_of?(String)

@@ -1,3 +1,5 @@
+# -*- encoding: us-ascii -*-
+
 module Kernel
   def catch(sym, &block)
     raise LocalJumpError unless block_given?

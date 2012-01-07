@@ -1,3 +1,5 @@
+# -*- encoding: us-ascii -*-
+
 class Array
   def set_index(index, ent, fin=undefined)
     Rubinius.primitive :array_aset

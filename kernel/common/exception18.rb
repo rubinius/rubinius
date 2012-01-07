@@ -1,3 +1,5 @@
+# -*- encoding: us-ascii -*-
+
 class Exception
   alias_method :to_str, :message
 

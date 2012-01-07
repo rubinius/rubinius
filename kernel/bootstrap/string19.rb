@@ -1,3 +1,5 @@
+# -*- encoding: us-ascii -*-
+
 class String
   attr_writer :encoding
   attr_writer :ascii_only

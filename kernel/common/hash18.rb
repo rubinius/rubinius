@@ -1,3 +1,5 @@
+# -*- encoding: us-ascii -*-
+
 class Hash
 
   include Enumerable

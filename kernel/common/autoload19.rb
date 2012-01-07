@@ -1,3 +1,5 @@
+# -*- encoding: us-ascii -*-
+
 class Autoload
   ##
   # When any code that finds a constant sees an instance of Autoload as its match,

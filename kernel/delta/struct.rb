@@ -1,3 +1,5 @@
+# -*- encoding: us-ascii -*-
+
 class Struct
   Struct.new 'Tms', :utime, :stime, :cutime, :cstime, :tutime, :tstime
 
