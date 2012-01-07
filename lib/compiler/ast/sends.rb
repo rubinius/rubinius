@@ -18,7 +18,7 @@ module Rubinius
 
       def check_local_reference(g)
         if @receiver.kind_of? Self and (@check_for_local or g.state.eval?)
-          reference = g.state.scope.search_local(@name)
+          g.state.scope.search_local(@name)
         end
       end
 
@@ -563,7 +563,6 @@ module Rubinius
         @block = nil
         @prelude = nil
 
-        array = []
         case arguments
         when Fixnum
           @splat_index = nil

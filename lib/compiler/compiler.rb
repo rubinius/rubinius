@@ -23,7 +23,7 @@ module Rubinius
         hash = Rubinius.invoke_primitive :sha1_hash, full
         dir = hash[0,2]
 
-        path = "#{RBC_DB}/#{dir}/#{hash}"
+        "#{RBC_DB}/#{dir}/#{hash}"
       end
     else
       def self.compiled_cache_writable?(db, dir)
@@ -58,7 +58,7 @@ module Rubinius
         full = "#{name}#{Rubinius::RUBY_LIB_VERSION}"
         hash = Rubinius.invoke_primitive :sha1_hash, full
 
-        path = "#{db}/#{hash[0, 2]}/#{hash}"
+        "#{db}/#{hash[0, 2]}/#{hash}"
       end
     end
 
