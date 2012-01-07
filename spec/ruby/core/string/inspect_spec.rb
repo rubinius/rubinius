@@ -15,11 +15,8 @@ describe "String#inspect" do
     end
   end
 
-  it "does not return subclass instances" do
-    str = StringSpecs::MyString.new
-    str << "test"
-    str.should == "test"
-    str.inspect.should be_an_instance_of(String)
+  it "does not return a subclass instance" do
+    StringSpecs::MyString.new.inspect.should be_an_instance_of(String)
   end
 
   it "returns a string with special characters replaced with \\<char> notation" do
@@ -513,7 +510,7 @@ describe "String#inspect" do
       ].should be_computed_by(:inspect)
     end
 
-    it "returns a string with non-printing, characters replaced by \\u notation for Unicode strings" do
+    it "returns a string with non-printing characters replaced by \\u notation for Unicode strings" do
       [ [0000.chr('utf-8'), '"\u0000"'],
         [0001.chr('utf-8'), '"\u0001"'],
         [0002.chr('utf-8'), '"\u0002"'],
