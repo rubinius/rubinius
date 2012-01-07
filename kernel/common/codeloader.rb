@@ -245,10 +245,47 @@ module Rubinius
       path[0] == ?/ or path.prefix?("./") or path.prefix?("../")
     end
 
+    # Main logic for converting a name to an actual file to load. Used by
+    # #load and by #require when the file extension is provided.
+    #
+    # Expands any #home_path? to an absolute path. Then either checks whether
+    # an absolute path is #loadable? or searches for a loadable file matching
+    # name in $LOAD_PATH.
+    #
+    # Returns true if a loadable file is found, otherwise returns false.
+    def verify_load_path(path, loading=false)
+      path = File.expand_path path if home_path? path
+
+      if qualified_path? path
+        return false unless loadable? path
+      else
+        return false unless path = search_load_path(path, loading)
+      end
+
+      update_paths(path, path)
+
+      return true
+    end
+
     # Called directly by #load. Either resolves the path passed to Kernel#load
     # to a specific file or raises a LoadError.
     def resolve_load_path
       load_error unless verify_load_path @path, true
+    end
+
+    # Combines +directory+, +name+, and +extension+ to check if the result is
+    # #loadable?. If it is, sets +@type+, +@feature+, +@load_path+, and
+    # +@file_path+ and returns true. See #intialize for a description of the
+    # instance variables.
+    def check_path(directory, name, extension, type)
+      file = "#{name}#{extension}"
+      path = "#{directory}/#{file}"
+      return false unless loadable? path
+
+      @type = type
+      update_paths(file, path)
+
+      return true
     end
 
     # Searches $LOAD_PATH for a file named +name+, appending ".rb" and the
@@ -272,9 +309,7 @@ module Rubinius
       return false unless loadable? file
 
       @type = type
-      @feature = file
-      @file_path = file
-      @load_path = file
+      update_paths(file, file)
 
       return true
     end
@@ -300,8 +335,6 @@ module Rubinius
         return false unless search_require_path(name)
       end
 
-      @load_path = File.expand_path @load_path
-
       return true
     end
 
@@ -322,8 +355,11 @@ module Rubinius
       end
 
       if @type
-        if verify_load_path @path
-          return false if CodeLoader.feature_provided?(@path) or CodeLoader.feature_provided?(@feature)
+        if verify_load_path(@path)
+          if CodeLoader.feature_provided?(@path) or
+             CodeLoader.feature_provided?(@feature)
+            return false
+          end
           return true
         end
       else
