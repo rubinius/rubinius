@@ -537,6 +537,7 @@ describe "String#%" do
     ("% G" % 10).should == " 10"
     ("%1$G" % 10).should == "10"
     ("%#G" % 10).should == "10.0000"
+    ("%#.3G" % 10).should == "10.0"
     ("%+G" % 10).should == "+10"
     ("%-7G" % 10).should == "10     "
     ("%05G" % 10).should == "00010"
