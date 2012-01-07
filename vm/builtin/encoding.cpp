@@ -303,4 +303,13 @@ namespace rubinius {
     bool v = encoding_->min_enc_len == 1 && dummy_ == Qfalse;
     return v ? Qtrue : Qfalse;
   }
+
+  void Encoding::Info::show(STATE, Object* self, int level) {
+    Encoding* enc = as<Encoding>(self);
+
+    class_header(state, self);
+    indent_attribute(++level, "name"); enc->name()->show_simple(state, level);
+    indent_attribute(level, "dummy?"); enc->dummy()->show_simple(state, level);
+    close_body(level);
+  }
 }

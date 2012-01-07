@@ -84,6 +84,7 @@ namespace rubinius {
       virtual void set_field(STATE, Object* target, size_t index, Object* val);
       virtual Object* get_field(STATE, Object* target, size_t index);
       virtual void populate_slot_locations();
+      virtual void show(STATE, Object* self, int level);
     };
   };
 }
