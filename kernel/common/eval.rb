@@ -49,7 +49,11 @@ module Kernel
 
     if binding
       if binding.kind_of? Proc
-        binding = binding.binding
+        if Rubinius.ruby19?
+          raise TypeError, 'wrong argument type Proc (expected Binding)'
+        else
+          binding = binding.binding
+        end
       elsif binding.respond_to? :to_binding
         binding = binding.to_binding
       end
