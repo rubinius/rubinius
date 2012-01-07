@@ -1889,9 +1889,7 @@ class String
   end
 
   def dump
-    str = self.class.new %{"#{transform(Rubinius::CType::Printed, false)}"}
-    str.taint if tainted?
-    str
+    self.class.new %{"#{transform(Rubinius::CType::Printed, false)}"}
   end
 
   def shared!
