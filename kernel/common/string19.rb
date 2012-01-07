@@ -818,7 +818,7 @@ class String
 
       if ma_start == ma_end
         if char = find_character(offset)
-          offset += char.size
+          offset += char.bytesize
         else
           offset += 1
         end
@@ -951,7 +951,7 @@ class String
 
       if ma_start == ma_end
         if char = find_character(offset)
-          offset += char.size
+          offset += char.bytesize
         else
           offset += 1
         end
