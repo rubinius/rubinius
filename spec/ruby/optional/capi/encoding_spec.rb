@@ -34,6 +34,10 @@ ruby_version_is "1.9" do
       it "returns the index of an Encoding specified with lower case" do
         @s.rb_enc_find_index("utf-8").should >= 0
       end
+
+      it "returns -1 for an non existing encoding" do
+        @s.rb_enc_find_index("non-existant-encoding").should == -1
+      end
     end
 
     describe "rb_enc_from_index" do
@@ -102,6 +106,11 @@ ruby_version_is "1.9" do
         obj = mock("rb_enc_set_index")
         @s.rb_enc_set_index(obj, 1)
         @s.rb_enc_get_index(obj).should == 1
+      end
+
+      it "returns 0 for an object without an encoding" do
+        obj = mock("rb_enc_set_index")
+        @s.rb_enc_get_index(obj).should == 0
       end
     end
 
