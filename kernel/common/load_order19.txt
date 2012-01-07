@@ -60,6 +60,7 @@ lrucache.rbc
 dir_glob.rbc
 encoding.rbc
 env.rbc
+env19.rbc
 errno.rbc
 eval.rbc
 eval19.rbc

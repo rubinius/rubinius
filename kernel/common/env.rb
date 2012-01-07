@@ -9,7 +9,9 @@ module Rubinius
     include Rubinius::EnvironmentAccess
 
     def [](key)
-      getenv(StringValue(key)).freeze
+      value = getenv(StringValue(key))
+      set_encoding value
+      value.freeze
     end
 
     def []=(key, value)
@@ -52,6 +54,9 @@ module Rubinius
         key, value = entry.split '=', 2
         value.taint if value
         key.taint if key
+
+        set_encoding key
+        set_encoding value
 
         yield key, value
 
@@ -205,7 +210,6 @@ module Rubinius
       to_hash.select(&blk)
     end
 
-
     def shift
       env = environ()
       ptr_size = FFI.type_size FFI.find_type(:pointer)
@@ -224,6 +228,9 @@ module Rubinius
       value.taint if value
 
       delete key
+
+      set_encoding key
+      set_encoding value
 
       return [key, value]
     end

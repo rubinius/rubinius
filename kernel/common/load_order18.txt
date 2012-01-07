@@ -58,6 +58,7 @@ dir18.rbc
 lrucache.rbc
 dir_glob.rbc
 env.rbc
+env18.rbc
 errno.rbc
 eval.rbc
 eval18.rbc
