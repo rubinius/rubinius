@@ -99,8 +99,10 @@ extern "C" {
     int index = rb_enc_get_index(obj);
     if(index < 0) return 0;
 
-    Encoding* enc = as<Encoding>(
+    Encoding* enc = try_as<Encoding>(
         Encoding::encoding_list(env->state())->get(env->state(), index));
+
+    if(!enc) return 0;
 
     return enc->get_encoding();
   }
@@ -123,7 +125,7 @@ extern "C" {
       if(!(enc = try_as<Encoding>(e))) enc = nil<Encoding>();
     }
 
-    if(enc->nil_p()) return -1;
+    if(enc->nil_p()) return 0;
 
     return Encoding::find_index(env->state(), enc->get_encoding()->name);
   }
@@ -157,9 +159,10 @@ extern "C" {
     int index = rb_to_encoding_index(obj);
     if(index < 0) return 0;
 
-    Encoding* enc = as<Encoding>(
+    Encoding* enc = try_as<Encoding>(
         Encoding::encoding_list(env->state())->get(env->state(), index));
 
+    if(!enc) return 0;
     return enc->get_encoding();
   }
 
@@ -196,8 +199,10 @@ extern "C" {
   VALUE rb_enc_associate_index(VALUE obj, int index) {
     NativeMethodEnvironment* env = NativeMethodEnvironment::get();
 
-    Encoding* enc = as<Encoding>(
+    Encoding* enc = try_as<Encoding>(
         Encoding::encoding_list(env->state())->get(env->state(), index));
+
+    if(!enc) return obj;
 
     Object* val = env->get_object(obj);
 
