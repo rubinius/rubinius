@@ -22,7 +22,7 @@ with_feature :encoding do
     describe "with command line options" do
       before :each do
         @lc_all = ENV["LC_ALL"]
-        ENV["LC_ALL"] = "EUC_JP"
+        ENV["LC_ALL"] = "C"
 
         @rbxopt = ENV["RBXOPT"]
         ENV["RBXOPT"] = (@rbxopt || "") + " -X19"
