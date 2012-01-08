@@ -384,7 +384,9 @@ static int scan_hex(const char *start, size_t len, size_t *retlen);
                                 (parser_state->utf8 = parser_utf8_encoding()))
 #define STR_NEW(p,n)          parser_enc_str_new((p), (n), parser_state->enc)
 #define STR_NEW0()            parser_enc_str_new(0, 0, parser_state->enc)
-#define STR_NEW3(p,n,e,func)  parser_str_new(parser_state, (p), (n), (e), (func), parser_state->enc)
+#define STR_NEW2(p)           parser_enc_str_new((p), strlen(p), parser_state->enc)
+#define STR_NEW3(p,n,e,func)  parser_str_new(parser_state, (p), (n), (e), \
+                                            (func), parser_state->enc)
 #define ENC_SINGLE(cr)        ((cr)==ENC_CODERANGE_7BIT)
 #define TOK_INTERN(mb)        parser_intern3(tok(), toklen(), parser_state->enc)
 
@@ -6156,7 +6158,7 @@ parser_gettable(rb_parser_state* parser_state, ID id)
   } else if(id == keyword__LINE__) {
     return NEW_NUMBER(INT2FIX(ruby_sourceline));
   } else if(id == keyword__ENCODING__) {
-    return NEW_NIL(); // HACK this is a stub, replace this
+    return NEW_ENCODING(STR_NEW2(parser_enc_name(parser_state->enc)));
   } else if(is_local_id(id)) {
     if((in_block() && bv_defined(id)) || local_id(id)) {
       return NEW_LVAR(id);

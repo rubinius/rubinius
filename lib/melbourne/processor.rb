@@ -508,6 +508,10 @@ module Rubinius
       AST::BlockPass19.new line, arguments, body
     end
 
+    def process_encoding(line, name)
+      AST::Encoding.new line, name
+    end
+
     def process_postarg(line, into, rest)
       AST::PostArg.new line, into, rest
     end

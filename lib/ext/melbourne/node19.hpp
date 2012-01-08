@@ -251,6 +251,7 @@ namespace melbourne {
 #define NEW_FILE()              NEW_NODE(NODE_FILE,0,0,0)
 #define NEW_NUMBER(l)           NEW_NODE(NODE_NUMBER,REF(l),0,0)
 #define NEW_FLOAT(l)            NEW_NODE(NODE_FLOAT,REF(l),0,0)
+#define NEW_ENCODING(n)         NEW_NODE(NODE_ENCODING,REF(n),0,0)
 
 #define NOEX_PUBLIC             0x00,
 #define NOEX_NOSUPER            0x01,

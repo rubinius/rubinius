@@ -41,6 +41,7 @@ namespace melbourne {
   ID rb_sDStr;
   ID rb_sDSym;
   ID rb_sDXStr;
+  ID rb_sEncoding;
   ID rb_sEnsure;
   ID rb_sEvStr;
   ID rb_sFalse;
@@ -151,6 +152,7 @@ namespace melbourne {
     rb_sDStr        = rb_intern("process_dstr");
     rb_sDSym        = rb_intern("process_dsym");
     rb_sDXStr       = rb_intern("process_dxstr");
+    rb_sEncoding    = rb_intern("process_encoding");
     rb_sEnsure      = rb_intern("process_ensure");
     rb_sEvStr       = rb_intern("process_evstr");
     rb_sFalse       = rb_intern("process_false");

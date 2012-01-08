@@ -893,6 +893,10 @@ namespace melbourne {
       tree = rb_funcall(ptp, rb_sFile, 1, line);
       break;
 
+    case NODE_ENCODING:
+      tree = rb_funcall(ptp, rb_sEncoding, 2, line, node->nd_lit);
+      break;
+
     case NODE_SPLAT: {
       VALUE expr = process_parse_tree(parser_state, ptp, node->nd_head, locals);
       tree = rb_funcall(ptp, rb_sSplat, 2, line, expr);
