@@ -2,16 +2,11 @@
  * so we let the C-API know this so it will not penalize
  * us with unnecessary caching.
  */
-#define RSTRING_NOT_MODIFIED 1
 
-#include "ruby.h"
+#include "melbourne.hpp"
 #include "grammar18.hpp"
 #include "grammar19.hpp"
 #include "symbols.hpp"
-
-#include <unistd.h>
-#include <fcntl.h>
-#include <errno.h>
 
 #ifdef __cplusplus
 extern "C" {

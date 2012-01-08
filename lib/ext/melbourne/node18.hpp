@@ -13,9 +13,8 @@
 #ifndef MEL_NODE18_HPP
 #define MEL_NODE18_HPP
 
-#include "ruby.h"
-
 #include "bstrlib.h"
+#include "melbourne.hpp"
 #include "quark.hpp"
 
 namespace melbourne {

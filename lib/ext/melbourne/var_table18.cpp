@@ -2,7 +2,7 @@
 #include <stdlib.h>
 #include <assert.h>
 
-#include "ruby.h"
+#include "melbourne.hpp"
 #include "var_table18.hpp"
 
 namespace melbourne {

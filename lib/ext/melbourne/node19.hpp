@@ -13,7 +13,7 @@
 #ifndef MEL_NODE19_HPP
 #define MEL_NODE19_HPP
 
-#include "ruby.h"
+#include "melbourne.hpp"
 
 namespace melbourne {
   namespace grammar19 {

@@ -4,14 +4,11 @@
 #ifdef __cplusplus
 extern "C" {
 #endif
-
-#include "ruby.h"
+#include "melbourne.hpp"
 
 #ifdef HAVE_RUBY_ENCODING_H
 #include "ruby/encoding.h"
 #else
-
-#include <ctype.h>
 
 #define ENCODING_NAMELEN_MAX 63
 

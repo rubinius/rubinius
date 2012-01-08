@@ -1,8 +1,6 @@
 #include <sstream>
-#include <stdint.h>
 
-#include "ruby.h"
-
+#include "melbourne.hpp"
 #include "parser_state19.hpp"
 #include "visitor19.hpp"
 #include "symbols.hpp"
@@ -19,7 +17,7 @@ namespace melbourne {
       if(start_lines->size() > 0) {
         StartPosition& pos = start_lines->back();
 
-        std::stringstream ss;
+        std::ostringstream ss;
         ss << "missing 'end' for '"
            << pos.kind
            << "' started on line "

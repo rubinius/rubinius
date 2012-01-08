@@ -15,19 +15,7 @@
 #define YYDEBUG 1
 #define YYERROR_VERBOSE 1
 
-#include <stdio.h>
-#include <errno.h>
-#include <ctype.h>
-#include <string.h>
-#include <stdbool.h>
-#include <stdint.h>
-#include <assert.h>
-#ifdef HAVE_HEADER_ALLOCA_H
-#include <alloca.h>
-#endif
-
-#include "ruby.h"
-
+#include "melbourne.hpp"
 #include "grammar18.hpp"
 #include "parser_state18.hpp"
 #include "visitor18.hpp"

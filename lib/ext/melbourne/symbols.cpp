@@ -1,5 +1,4 @@
-#include "ruby.h"
-
+#include "melbourne.hpp"
 #include "symbols.hpp"
 
 #ifdef __cplusplus
