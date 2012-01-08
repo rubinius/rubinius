@@ -20,6 +20,7 @@
 #include <time.h>
 
 #include "windows_compat.h"
+#include "configuration.hpp"
 
 namespace rubinius {
   void Time::init(STATE) {
@@ -38,7 +39,7 @@ namespace rubinius {
     Time* tm = state->new_object<Time>(as<Class>(self));
 
     tm->seconds_ = tv.tv_sec;
-    tm->microseconds_ = tv.tv_usec;
+    tm->nanoseconds_ = tv.tv_usec * 1000;
 
     tm->is_gmt(state, Qfalse);
 
@@ -49,28 +50,32 @@ namespace rubinius {
 #define NDIV(x,y) (-(-((x)+1)/(y))-1)
 #define NMOD(x,y) ((y)-(-((x)+1)%(y))-1)
 
-  Time* Time::specific(STATE, Object* self, Integer* sec, Integer* usec,
+  Time* Time::specific(STATE, Object* self, Integer* sec, Integer* nsec,
                        Object* gmt)
   {
     Time* tm = state->new_object<Time>(as<Class>(self));
 
     if(sizeof(time_t) == sizeof(long long)) {
       tm->seconds_ = sec->to_long_long();
-      tm->microseconds_ = usec->to_long_long();
+      tm->nanoseconds_ = nsec->to_long_long();
     } else {
       tm->seconds_ = sec->to_native();
-      tm->microseconds_ = usec->to_native();
+      tm->nanoseconds_ = nsec->to_native();
     }
 
     // Do a little overflow cleanup.
-    if(tm->microseconds_ >= 1000000) {
-      tm->seconds_ += tm->microseconds_ / 1000000;
-      tm->microseconds_ %= 1000000;
+    if(tm->nanoseconds_ >= 1000000000) {
+      tm->seconds_ += tm->nanoseconds_ / 1000000000;
+      tm->nanoseconds_ %= 1000000000;
     }
 
-    if(tm->microseconds_ < 0) {
-      tm->seconds_ += NDIV(tm->microseconds_,1000000);
-      tm->microseconds_ = NMOD(tm->microseconds_, 1000000);
+    if(tm->nanoseconds_ < 0) {
+      tm->seconds_ += NDIV(tm->nanoseconds_, 1000000000);
+      tm->nanoseconds_ = NMOD(tm->nanoseconds_, 1000000000);
+    }
+
+    if(LANGUAGE_18_ENABLED(state)) {
+      tm->nanoseconds_ -= (tm->nanoseconds_ % 1000);
     }
 
     tm->is_gmt(state, RTEST(gmt) ? Qtrue : Qfalse);
@@ -140,7 +145,7 @@ namespace rubinius {
 
     Time* obj = state->new_object<Time>(as<Class>(self));
     obj->seconds_ = seconds;
-    obj->microseconds_ = usec->to_native();
+    obj->nanoseconds_ = usec->to_native() * 1000;
     obj->is_gmt(state, RTEST(from_gmt) ? Qtrue : Qfalse);
 
     return obj;
@@ -149,7 +154,7 @@ namespace rubinius {
   Time* Time::dup(STATE) {
     Time* tm = state->new_object<Time>(class_object(state));
     tm->seconds_ = seconds_;
-    tm->microseconds_ = microseconds_;
+    tm->nanoseconds_ = nanoseconds_;
     tm->is_gmt(state, is_gmt_);
     return tm;
   }

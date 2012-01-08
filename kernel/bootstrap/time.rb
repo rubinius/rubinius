@@ -6,7 +6,7 @@ class Time
     raise PrimitiveFailure, "Time.now primitive failed"
   end
 
-  def self.specific(sec, usec, from_gmt)
+  def self.specific(sec, nsec, from_gmt)
     Rubinius.primitive :time_s_specific
     raise ArgumentError, "descriptors reference invalid time"
   end

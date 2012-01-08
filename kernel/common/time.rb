@@ -9,32 +9,6 @@ class Time
     'JUL' => 7, 'AUG' => 8, 'SEP' => 9, 'OCT' =>10, 'NOV' =>11, 'DEC' =>12
   }
 
-  def self.at(sec, usec=nil)
-    if sec.kind_of? Time
-      return specific(sec.to_i, sec.usec, sec.gmt?)
-    end
-
-    if sec.kind_of?(Integer) || usec
-      sec  = Rubinius::Type.coerce_to sec, Integer, :to_i
-      usec = usec ? usec.to_i : 0
-
-      sec  = sec + (usec / 1000000)
-      usec = usec % 1000000
-    else
-      float = FloatValue(sec)
-      sec       = float.to_i
-      usec_frac = float % 1.0
-
-      if float < 0 && usec_frac > 0
-        sec -= 1
-      end
-
-      usec = (usec_frac * 1_000_000 + 0.5).to_i
-    end
-
-    return specific(sec, usec, false)
-  end
-
   #--
   # TODO: doesn't load ivars
   #++

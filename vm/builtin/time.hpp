@@ -19,7 +19,7 @@ namespace rubinius {
 
   private:
     time_t seconds_;
-    time_t microseconds_;
+    time_t nanoseconds_;
 
     Array* decomposed_; // slot
     Object* is_gmt_;  // slot
@@ -34,7 +34,7 @@ namespace rubinius {
     static void init(STATE);
 
     // Rubinius.primitive :time_s_specific
-    static Time* specific(STATE, Object* self, Integer* sec, Integer* usec, Object* gmt);
+    static Time* specific(STATE, Object* self, Integer* sec, Integer* nsec, Object* gmt);
 
     // Rubinius.primitive :time_s_now
     static Time* now(STATE, Object* self);
@@ -52,7 +52,12 @@ namespace rubinius {
 
     // Rubinius.primitive :time_useconds
     Integer* useconds(STATE) {
-      return Integer::from(state, microseconds_);
+      return Integer::from(state, nanoseconds_ / 1000);
+    }
+
+    // Rubinius.primitive :time_nseconds
+    Integer* nseconds(STATE) {
+      return Integer::from(state, nanoseconds_);
     }
 
     // Rubinius.primitive :time_decompose
