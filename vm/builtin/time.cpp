@@ -29,6 +29,16 @@ namespace rubinius {
   }
 
   Time* Time::now(STATE, Object* self) {
+    Time* tm = state->new_object<Time>(as<Class>(self));
+
+#ifdef HAVE_CLOCK_GETTIME
+    struct timespec ts;
+
+    ::clock_gettime(CLOCK_REALTIME, &ts);
+
+    tm->seconds_ = ts.tv_sec;
+    tm->nanoseconds_ = ts.tv_nsec;
+#else
     struct timeval tv;
 
     /* don't fill in the 2nd argument here. getting the timezone here
@@ -36,10 +46,9 @@ namespace rubinius {
      */
     ::gettimeofday(&tv, NULL);
 
-    Time* tm = state->new_object<Time>(as<Class>(self));
-
     tm->seconds_ = tv.tv_sec;
     tm->nanoseconds_ = tv.tv_usec * 1000;
+#endif
 
     tm->is_gmt(state, Qfalse);
 

@@ -963,6 +963,10 @@ int main() { return tgetnum(""); }
       @defines << "HAVE_DAYLIGHT"
     end
 
+    if has_function("clock_gettime", ["time.h"])
+      @defines << "HAVE_CLOCK_GETTIME"
+    end
+
     if has_function("nl_langinfo", ["langinfo.h"])
       @defines << "HAVE_NL_LANGINFO"
     end
