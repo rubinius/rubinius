@@ -8,6 +8,7 @@ end
 require 'rbconfig'
 require 'tempfile'
 require 'fileutils'
+require 'stringio'
 
 root = File.expand_path File.dirname(__FILE__)
 
@@ -857,115 +858,61 @@ int main() { return tgetnum(""); }
   end
 
   def has_struct_member(struct, member, includes = [])
-    @log.print "Checking whether struct #{struct} has member #{member}: "
-    tf = Tempfile.new("rbx-test")
-    includes.each do |i|
-      src = "#include <#{i}>"
-      tf.puts src
-      @log.log src
+    compile_check "struct #{struct} has member #{member}" do |src|
+      includes.each do |i|
+        src << "#include <#{i}>"
+      end
+
+      src << "int main() { struct #{struct} st; st.#{member}; }"
     end
-
-    src = "int main() { struct #{struct} st; st.#{member}; }"
-    tf.puts src
-    @log.log src
-
-    tf.close
-
-    system "#{@cxx} -S -o - -x c #{c_includes} #{env('CFLAGS')} #{tf.path} >>#{@log.path} 2>&1"
-    status = ($?.exitstatus == 0)
-
-    tf.unlink
-
-    if status
-      @log.write "found!"
-    else
-      @log.write "not found."
-    end
-
-    return status
   end
 
   def has_global(name, includes=[])
-    @log.print "Checking for global '#{name}': "
-    tf = Tempfile.new("rbx-test")
-    includes.each do |i|
-      src = "#include <#{i}>"
-      tf.puts src
-      @log.log src
+    compile_check "global '#{name}'" do |src|
+      includes.each do |i|
+        src << "#include <#{i}>"
+      end
+      src << "int main() { #{name}; }"
     end
-
-    src = "int main() { #{name}; }"
-    tf.puts src
-    @log.log src
-
-    tf.close
-
-    system "#{@cxx} -S -o - -x c #{c_includes} #{env('CFLAGS')} #{tf.path} >>#{@log.path} 2>&1"
-    status = ($?.exitstatus == 0)
-
-    tf.unlink
-
-    if status
-      @log.write "found!"
-    else
-      @log.write "not found."
-    end
-
-    return status
   end
 
   def has_header(name)
-    @log.print "Checking for header '#{name}': "
-    tf = Tempfile.new("rbx-test")
-
-    src = <<-EOP
-#include <#{name}>
-int main() {return 0;}
-    EOP
-    tf.puts src
-    @log.log src
-
-    tf.close
-    system "#{@cxx} -S -o - -x c #{c_includes} #{env('CFLAGS')} #{tf.path} >>#{@log.path} 2>&1"
-    status = ($?.exitstatus == 0)
-    tf.unlink
-
-    if status
-      @log.write "found!"
-    else
-      @log.write "not found"
+    compile_check "header '#{name}'" do |src|
+      src << "#include <#{name}>"
+      src << "int main() {return 0;}"
     end
-
-    status
   end
 
   def has_function(name, includes=[])
-    @log.print "Checking for function '#{name}': "
-    tf = Tempfile.new("rbx-test")
-    includes.each do |i|
-      src = "#include <#{i}>"
-      tf.puts src
-      @log.log src
+    compile_check "function '#{name}'" do |src|
+      includes.each do |i|
+        src << "#include <#{i}>"
+      end
+      src << "int main() { void* ptr = &#{name}; }"
     end
+  end
 
-    src = "int main() { void* ptr = &#{name}; }"
-    tf.puts src
-    @log.log src
+  def compile_check(logpart, &block)
+    @log.print "Checking for #{logpart}: "
+
+    src = StringIO.new
+    yield src
+    tf = Tempfile.new("rbx-test")
+
+    src.rewind
+    tf.puts src.read
+
+    src.rewind
+    @log.log src.read
 
     tf.close
-
     system "#{@cxx} -S -o - -x c #{c_includes} #{env('CFLAGS')} #{tf.path} >>#{@log.path} 2>&1"
-    status = ($?.exitstatus == 0)
 
+    status = ($?.exitstatus == 0)
     tf.unlink
 
-    if status
-      @log.write "found!"
-    else
-      @log.write "not found."
-    end
-
-    return status
+    @log.write (status ? "found!" : "not found")
+    status
   end
 
   def detect_features
@@ -1048,6 +995,8 @@ int main() {return 0;}
     detect_sizeof("off_t", ["unistd.h"])
     detect_sizeof("time_t", ["time.h"])
 
+    detect_libc_name
+
     detect_endian
     detect_tr1_hash
     detect_x86_32bit
@@ -1106,6 +1055,25 @@ int main() {return 0;}
     else
       failure "#{tool_name} not found."
     end
+  end
+
+  def detect_libc_name
+    @log.print "Checking for libc version: "
+
+    case
+    when @windows
+      @libc = "msvcrt.dll"
+    when @darwin
+      @libc = "libc.dylib"
+    else
+      ldd_output = `ldd #{build_ruby}`
+      @libc = ldd_output[/libc\.so\.[0-9]+/]
+      if @libc.nil?
+        failure "libc not found."
+      end
+    end
+
+    @log.write "#{@libc} found!"
   end
 
   def write_config
@@ -1202,6 +1170,7 @@ end
 #define RBX_RELEASE_DATE     "#{@release_date}"
 #define RBX_SIZEOF_LONG      #{sizeof("long")}
 #define RBX_LLVM_API_VER     #{@llvm_api_version}
+#define RBX_LIBC             "#{@libc}"
       EOC
 
       if @vendor_zlib
