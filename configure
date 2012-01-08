@@ -986,6 +986,8 @@ int main() { return tgetnum(""); }
     detect_sizeof("off_t", ["unistd.h"])
     detect_sizeof("time_t", ["time.h"])
 
+    detect_libc_name
+
     detect_endian
     detect_tr1_hash
     detect_x86_32bit
@@ -1044,6 +1046,25 @@ int main() { return tgetnum(""); }
     else
       failure "#{tool_name} not found."
     end
+  end
+
+  def detect_libc_name
+    @log.print "Checking for libc version: "
+
+    case
+    when @windows
+      @libc = "msvcrt.dll"
+    when @darwin
+      @libc = "libc.dylib"
+    else
+      ldd_output = `ldd #{build_ruby}`
+      @libc = ldd_output[/libc\.so\.[0-9]+/]
+      if @libc.nil?
+        failure "libc not found."
+      end
+    end
+
+    @log.write "#{@libc} found!"
   end
 
   def write_config
@@ -1140,6 +1161,7 @@ end
 #define RBX_RELEASE_DATE     "#{@release_date}"
 #define RBX_SIZEOF_LONG      #{sizeof("long")}
 #define RBX_LLVM_API_VER     #{@llvm_api_version}
+#define RBX_LIBC             "#{@libc}"
       EOC
 
       if @vendor_zlib
