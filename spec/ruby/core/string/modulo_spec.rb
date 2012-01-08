@@ -529,6 +529,7 @@ describe "String#%" do
     ("%+g" % 10).should == "+10"
     ("%-7g" % 10).should == "10     "
     ("%05g" % 10).should == "00010"
+    ("%g" % 10**10).should == "1e+10"
     ("%*g" % [10, 9]).should == "         9"
   end
 
@@ -537,9 +538,11 @@ describe "String#%" do
     ("% G" % 10).should == " 10"
     ("%1$G" % 10).should == "10"
     ("%#G" % 10).should == "10.0000"
+    ("%#.3G" % 10).should == "10.0"
     ("%+G" % 10).should == "+10"
     ("%-7G" % 10).should == "10     "
     ("%05G" % 10).should == "00010"
+    ("%G" % 10**10).should == "1E+10"
     ("%*G" % [10, 9]).should == "         9"
   end
 
