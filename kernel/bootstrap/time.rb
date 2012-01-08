@@ -16,11 +16,6 @@ class Time
     raise ArgumentError, "descriptors reference invalid time"
   end
 
-  def self.from_array(sec, min, hour, mday, month, year, usec, is_dst, from_gmt)
-    Rubinius.primitive :time_s_from_array
-    raise ArgumentError, "descriptors reference invalid time"
-  end
-
   def dup
     self.class.duplicate(self)
   end
