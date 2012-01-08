@@ -860,56 +860,59 @@ int main() { return tgetnum(""); }
   def has_struct_member(struct, member, includes = [])
     compile_check "struct #{struct} has member #{member}" do |src|
       includes.each do |i|
-        src << "#include <#{i}>"
+        src.puts "#include <#{i}>"
       end
 
-      src << "int main() { struct #{struct} st; st.#{member}; }"
+      src.puts "int main() { struct #{struct} st; st.#{member}; }"
     end
   end
 
   def has_global(name, includes=[])
     compile_check "global '#{name}'" do |src|
       includes.each do |i|
-        src << "#include <#{i}>"
+        src.puts "#include <#{i}>"
       end
-      src << "int main() { #{name}; }"
+      src.puts "int main() { #{name}; }"
     end
   end
 
   def has_header(name)
     compile_check "header '#{name}'" do |src|
-      src << "#include <#{name}>"
-      src << "int main() {return 0;}"
+      src.puts "#include <#{name}>"
+      src.puts "int main() {return 0;}"
     end
   end
 
   def has_function(name, includes=[])
     compile_check "function '#{name}'" do |src|
       includes.each do |i|
-        src << "#include <#{i}>"
+        src.puts "#include <#{i}>"
       end
-      src << "int main() { void* ptr = &#{name}; }"
+      src.puts "int main() { void* ptr = &#{name}; }"
     end
   end
 
   def compile_check(logpart, &block)
     @log.print "Checking for #{logpart}: "
 
-    src = StringIO.new
-    yield src
-    tf = Tempfile.new("rbx-test")
+    source = StringIO.new
+    yield source
+    file = Tempfile.new("rbx-test")
 
-    src.rewind
-    tf.puts src.read
+    source.rewind
+    string = source.read
 
-    src.rewind
-    @log.log src.read
+    file.puts string
+    file.close
 
-    tf.close
-    system "#{@cxx} -S -o - -x c #{c_includes} #{env('CFLAGS')} #{tf.path} >>#{@log.path} 2>&1"
+    @log.log string
+
+    cmd = "#{@cxx} -S -o - -x c #{c_includes} #{env('CFLAGS')} #{file.path} >>#{@log.path} 2>&1"
+    @log.log cmd
+    system cmd
 
     status = ($?.exitstatus == 0)
-    tf.unlink
+    file.unlink
 
     @log.write(status ? "found!" : "not found")
     status
