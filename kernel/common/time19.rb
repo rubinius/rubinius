@@ -44,6 +44,14 @@ class Time
 
   alias_method :tv_nsec, :nsec
 
+  def subsec
+    if nsec == 0
+      0
+    else
+      Rational(nsec, 1_000_000_000)
+    end
+  end
+
   def sunday?
     wday == 0
   end
