@@ -99,7 +99,7 @@ class Time
       day =    args[2].kind_of?(String) ? args[2].to_i : Rubinius::Type.num2long(args[2])
       month =  args[3].kind_of?(String) ? args[3].to_i : Rubinius::Type.num2long(args[3])
       year =   args[4].kind_of?(String) ? args[4].to_i : Rubinius::Type.num2long(args[4])
-      usec =   0
+      nsec =   0
       isdst =  args[7] ? 1 : 0
     else
       # resolve month names to numbers
@@ -125,6 +125,13 @@ class Time
 
       sec  = args[4] || 0
       usec = args[5]
+      nsec = nil
+
+      if usec.kind_of?(String)
+        nsec = usec.to_i * 1000
+      elsif usec
+        nsec = (usec * 1000).to_i
+      end
 
       isdst =  -1
     end
@@ -140,7 +147,7 @@ class Time
       end
     end
 
-    from_array(sec, minute, hour, day, month, year, usec, isdst, false)
+    from_array(sec, minute, hour, day, month, year, nsec, isdst, false)
   end
 
   def self.gm(first, *args)
@@ -151,7 +158,7 @@ class Time
       day =    args[2].kind_of?(String) ? args[2].to_i : Rubinius::Type.num2long(args[2])
       month =  args[3].kind_of?(String) ? args[3].to_i : Rubinius::Type.num2long(args[3])
       year =   args[4].kind_of?(String) ? args[4].to_i : Rubinius::Type.num2long(args[4])
-      usec =   0
+      nsec =   0
     else
       # resolve month names to numbers
       month = args[0]
@@ -176,6 +183,13 @@ class Time
 
       second = args[4] || 0
       usec   = args[5]
+      nsec   = nil
+
+      if usec.kind_of?(String)
+        nsec = usec.to_i * 1000
+      elsif usec
+        nsec = (usec * 1000).to_i
+      end
     end
 
     # This logic is taken from MRI, on how to deal with 2 digit dates.
@@ -189,7 +203,7 @@ class Time
       end
     end
 
-    from_array(second, minute, hour, day, month, year, usec, -1, true)
+    from_array(second, minute, hour, day, month, year, nsec, -1, true)
   end
 
   def self.times

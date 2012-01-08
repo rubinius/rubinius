@@ -94,7 +94,7 @@ namespace rubinius {
 
   Time* Time::from_array(STATE, Object* self, 
                       Fixnum* sec, Fixnum* min, Fixnum* hour,
-                      Fixnum* mday, Fixnum* mon, Fixnum* year, Fixnum* usec,
+                      Fixnum* mday, Fixnum* mon, Fixnum* year, Fixnum* nsec,
                       Fixnum* isdst, Object* from_gmt) {
     struct tm tm;
 
@@ -154,7 +154,7 @@ namespace rubinius {
 
     Time* obj = state->new_object<Time>(as<Class>(self));
     obj->seconds_ = seconds;
-    obj->nanoseconds_ = usec->to_native() * 1000;
+    obj->nanoseconds_ = nsec->to_native();
     obj->is_gmt(state, RTEST(from_gmt) ? Qtrue : Qfalse);
 
     return obj;

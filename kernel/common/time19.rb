@@ -1,28 +1,28 @@
 # -*- encoding: us-ascii -*-
 
 class Time
-  def self.from_array(sec, min, hour, mday, month, year, usec, is_dst, from_gmt)
+  def self.from_array(sec, min, hour, mday, month, year, nsec, is_dst, from_gmt)
     Rubinius.primitive :time_s_from_array
 
-    if sec.kind_of?(Integer) || usec
+    if sec.kind_of?(Integer) || nsec
       sec  = Rubinius::Type.coerce_to sec, Integer, :to_i
-      usec = usec ? usec.to_i : 0
+      nsec ||= 0
 
-      sec  = sec + (usec / 1000000)
-      usec = usec % 1000000
+      sec  = sec + (nsec / 1000000000)
+      nsec = nsec % 1000000000
     else
       float = FloatValue(sec)
       sec       = float.to_i
-      usec_frac = float % 1.0
+      nsec_frac = float % 1.0
 
-      if float < 0 && usec_frac > 0
+      if float < 0 && nsec_frac > 0
         sec -= 1
       end
 
-      usec = (usec_frac * 1_000_000 + 0.5).to_i
+      nsec = (nsec_frac * 1_000_000_000 + 0.5).to_i
     end
 
-    from_array(sec, min, hour, mday, month, year, usec, is_dst, from_gmt)
+    from_array(sec, min, hour, mday, month, year, nsec, is_dst, from_gmt)
   end
 
   def inspect
