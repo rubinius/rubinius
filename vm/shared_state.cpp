@@ -95,13 +95,13 @@ namespace rubinius {
     if(ss->deref()) delete ss;
   }
 
-  uint32_t SharedState::new_thread_id(THREAD) {
-    SYNC(state);
+  uint32_t SharedState::new_thread_id() {
+    SYNC_TL;
     return ++thread_ids_;
   }
 
   VM* SharedState::new_vm() {
-    uint32_t id = new_thread_id(0);
+    uint32_t id = new_thread_id();
 
     SYNC_TL;
 

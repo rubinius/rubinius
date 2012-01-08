@@ -166,7 +166,7 @@ namespace rubinius {
       return ++global_serial_;
     }
 
-    uint32_t new_thread_id(THREAD);
+    uint32_t new_thread_id();
 
     int* global_serial_address() {
       return &global_serial_;

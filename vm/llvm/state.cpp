@@ -484,7 +484,7 @@ namespace rubinius {
   static const bool debug_search = false;
 
   LLVMState::LLVMState(STATE)
-    : ManagedThread(state->shared().new_thread_id(state->vm()),
+    : ManagedThread(state->shared().new_thread_id(),
                     state->shared(), ManagedThread::eSystem)
     , ctx_(llvm::getGlobalContext())
     , config_(state->shared().config)
