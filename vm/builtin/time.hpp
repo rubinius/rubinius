@@ -42,8 +42,8 @@ namespace rubinius {
     // Rubinius.primitive :time_s_from_array
     static Time* from_array(STATE, Object* self, Fixnum* sec, Fixnum* min, Fixnum* hour, Fixnum* mday, Fixnum* mon, Fixnum* year, Fixnum* usec, Fixnum* isdst, Object* from_gmt);
 
-    // Rubinius.primitive :time_dup
-    Time* dup(STATE);
+    // Rubinius.primitive :time_s_dup
+    static Time* dup(STATE, Object* self, Time* other);
 
     // Rubinius.primitive :time_seconds
     Integer* seconds(STATE) {

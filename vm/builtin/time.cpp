@@ -160,11 +160,11 @@ namespace rubinius {
     return obj;
   }
 
-  Time* Time::dup(STATE) {
-    Time* tm = state->new_object<Time>(class_object(state));
-    tm->seconds_ = seconds_;
-    tm->nanoseconds_ = nanoseconds_;
-    tm->is_gmt(state, is_gmt_);
+  Time* Time::dup(STATE, Object* self, Time* other) {
+    Time* tm = state->new_object<Time>(as<Class>(self));
+    tm->seconds_ = other->seconds_;
+    tm->nanoseconds_ = other->nanoseconds_;
+    tm->is_gmt(state, other->is_gmt_);
     return tm;
   }
 

@@ -6,6 +6,11 @@ class Time
     raise PrimitiveFailure, "Time.now primitive failed"
   end
 
+  def self.duplicate(other)
+    Rubinius.primitive :time_s_dup
+    raise ArgumentError, "descriptors reference invalid time"
+  end
+
   def self.specific(sec, nsec, from_gmt)
     Rubinius.primitive :time_s_specific
     raise ArgumentError, "descriptors reference invalid time"
@@ -17,8 +22,7 @@ class Time
   end
 
   def dup
-    Rubinius.primitive :time_dup
-    raise PrimitiveFailure, "Time#dup failed"
+    self.class.duplicate(self)
   end
 
   def seconds

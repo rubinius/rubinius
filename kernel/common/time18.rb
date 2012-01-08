@@ -1,32 +1,6 @@
 # -*- encoding: us-ascii -*-
 
 class Time
-  def self.at(sec, usec=nil)
-    if sec.kind_of? Time
-      return specific(sec.to_i, sec.usec * 1000, sec.gmt?)
-    end
-
-    if sec.kind_of?(Integer) || usec
-      sec  = Rubinius::Type.coerce_to sec, Integer, :to_i
-      usec = usec ? usec.to_i : 0
-
-      sec  = sec + (usec / 1000000)
-      usec = usec % 1000000
-    else
-      float = FloatValue(sec)
-      sec       = float.to_i
-      usec_frac = float % 1.0
-
-      if float < 0 && usec_frac > 0
-        sec -= 1
-      end
-
-      usec = (usec_frac * 1_000_000 + 0.5).to_i
-    end
-
-    return specific(sec, usec * 1000, false)
-  end
-
   def inspect
     if @is_gmt
       strftime("%a %b %d %H:%M:%S UTC %Y")
