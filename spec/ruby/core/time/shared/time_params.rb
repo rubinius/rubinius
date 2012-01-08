@@ -36,6 +36,64 @@ describe :time_params, :shared => true do
       Time.send(@method, 1, 15, 20, 1, 1, 2000, :ignored, :ignored, :ignored, :ignored)
   end
 
+  it "handles microseconds" do
+    t = Time.send(@method, 2000, 1, 1, 20, 15, 1, 123)
+    t.usec.should == 123
+  end
+
+  ruby_version_is "".."1.9" do
+    it "ignores fractional seconds as a Float" do
+      t = Time.send(@method, 2000, 1, 1, 20, 15, 1.75)
+      t.sec.should == 1
+      t.usec.should == 0
+    end
+
+    it "ignores fractional microseconds as a Float" do
+      t = Time.send(@method, 2000, 1, 1, 20, 15, 1, 1.75)
+      t.usec.should == 1
+    end
+  end
+
+  ruby_version_is "1.9" do
+    it "handles fractional seconds as a Float" do
+      t = Time.send(@method, 2000, 1, 1, 20, 15, 1.75)
+      t.sec.should == 1
+      t.usec.should == 750000
+    end
+
+    it "handles fractional seconds as a Rational" do
+      t = Time.send(@method, 2000, 1, 1, 20, 15, Rational(99, 10))
+      t.sec.should == 9
+      t.usec.should == 900000
+    end
+
+    it "handles fractional microseconds as a Float" do
+      t = Time.send(@method, 2000, 1, 1, 20, 15, 1, 1.75)
+      t.usec.should == 1
+      t.nsec.should == 1750
+    end
+
+    it "handles fractional microseconds as a Rational" do
+      t = Time.send(@method, 2000, 1, 1, 20, 15, 1, Rational(99, 10))
+      t.usec.should == 9
+      t.nsec.should == 9900
+    end
+
+    it "ignores fractional seconds if a passed whole number of microseconds" do
+      t = Time.send(@method, 2000, 1, 1, 20, 15, 1.75, 2)
+      t.sec.should == 1
+      t.usec.should == 2
+      t.nsec.should == 2000
+    end
+
+    it "ignores fractional seconds if a passed fractional number of microseconds" do
+      t = Time.send(@method, 2000, 1, 1, 20, 15, 1.75, Rational(99, 10))
+      t.sec.should == 1
+      t.usec.should == 9
+      t.nsec.should == 9900
+    end
+  end
+
   ruby_version_is ""..."1.9.1" do
     it "accepts various year ranges" do
       Time.send(@method, 1901, 12, 31, 23, 59, 59, 0).wday.should == 2
