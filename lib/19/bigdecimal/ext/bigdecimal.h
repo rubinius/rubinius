@@ -16,6 +16,9 @@
 #ifndef  RUBY_BIG_DECIMAL_H
 #define  RUBY_BIG_DECIMAL_H 1
 
+// Use RSTRING_PTR without caching on Rubinius
+#define RSTRING_NOT_MODIFIED 1
+
 #include "ruby/ruby.h"
 #include <float.h>
 

@@ -13,6 +13,8 @@
  *
  */
 
+#define RSTRING_NOT_MODIFIED 1
+
 #include "ruby.h"
 #include <ctype.h>
 #include <stdio.h>
