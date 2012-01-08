@@ -4,7 +4,7 @@
 #include "builtin/nativemethod.hpp"
 #include "builtin/object.hpp"
 #include "builtin/string.hpp"
-
+#include "capi/capi.hpp"
 #include "capi/19/include/ruby/ruby.h"
 #include "capi/19/include/ruby/encoding.h"
 
