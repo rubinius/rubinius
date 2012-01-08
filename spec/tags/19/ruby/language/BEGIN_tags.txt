@@ -1,2 +1,0 @@
-fails:The BEGIN keyword runs multiple begins in FIFO order
-fails:The BEGIN keyword runs multiple begins in FIFO order

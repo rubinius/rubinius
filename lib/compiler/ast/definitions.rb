@@ -941,7 +941,7 @@ module Rubinius
         g.file = @file.to_sym
 
         push_state(g)
-        @pre_exe.pre_bytecode(g) if @pre_exe
+        @pre_exe.each { |pe| pe.pre_bytecode(g) }
 
         yield if block_given?
         pop_state(g)
@@ -952,7 +952,7 @@ module Rubinius
 
       def to_sexp
         sexp = [sexp_name]
-        sexp << @pre_exe.pre_sexp if @pre_exe
+        @pre_exe.each { |pe| sexp << pe.pre_sexp }
         sexp << @body.to_sexp
         sexp
       end

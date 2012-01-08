@@ -255,18 +255,10 @@ module Rubinius
         @line = line
       end
 
-      def push_state(g)
-        g.push_state ClosedScope.new(@line)
-      end
-
-      def pop_state(g)
-        g.pop_state
-      end
-
       def pre_bytecode(g)
         pos(g)
 
-        push_state(g)
+        g.push_state ClosedScope.new(@line)
         g.state.push_name :BEGIN
 
         g.push_literal Rubinius::Compiler::Runtime
@@ -274,7 +266,7 @@ module Rubinius
         g.send_with_block :pre_exe, 0, false
 
         g.state.pop_name
-        pop_state(g)
+        g.pop_state
       end
 
       def to_sexp
@@ -286,10 +278,10 @@ module Rubinius
     end
 
     class PreExe19 < PreExe
-      def push_state(g)
-      end
+      def pre_bytecode(g)
+        pos(g)
 
-      def pop_state(g)
+        @block.body.bytecode(g)
       end
     end
 
