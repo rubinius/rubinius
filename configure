@@ -8,6 +8,7 @@ end
 require 'rbconfig'
 require 'tempfile'
 require 'fileutils'
+require 'stringio'
 
 root = File.expand_path File.dirname(__FILE__)
 
@@ -894,13 +895,17 @@ int main() { return tgetnum(""); }
   def compile_check(logpart, &block)
     @log.print "Checking for #{logpart}: "
 
-    src = []
+    src = StringIO.new
+    yield src
     tf = Tempfile.new("rbx-test")
-    block.call(src)
-    tf.puts src.join("\n")
-    @log.log src.join("\n")
-    tf.close
 
+    src.rewind
+    tf.puts src.read
+
+    src.rewind
+    @log.log src.read
+
+    tf.close
     system "#{@cxx} -S -o - -x c #{c_includes} #{env('CFLAGS')} #{tf.path} >>#{@log.path} 2>&1"
 
     status = ($?.exitstatus == 0)
