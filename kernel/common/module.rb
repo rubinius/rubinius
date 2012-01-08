@@ -85,6 +85,7 @@ class Module
   end
 
   def name
+    update_name_if_necessary
     @module_name ? @module_name.to_s : ""
   end
 
@@ -527,14 +528,33 @@ class Module
     raise PrimitiveFailure, "Module#=== primitive failed"
   end
 
+  def update_name_if_necessary
+    if @anonymous_parent
+      path = @anonymous_parent.__path__
+      if path.kind_of? Symbol
+        set_name(@base_name, path)
+        @anonymous_parent = @base_name = nil
+      end
+    end
+  end
+
   def set_name_if_necessary(name, mod)
-    return if @module_name
+    return if @module_name and not @anonymous_parent
 
     if mod == Object
       @module_name = name.to_sym
     else
-      @module_name = "#{mod.__path__}::#{name}".to_sym
+      path = mod.__path__
+      unless path.kind_of? Symbol
+        @anonymous_parent = mod
+        @base_name = name
+      end
+      set_name(name, path)
     end
+  end
+
+  def set_name(name, path)
+    @module_name = "#{path}::#{name}".to_sym
   end
 
   # Is an autoload trigger defined for the given path?

@@ -58,6 +58,7 @@ class Module
   end
 
   def name
+    update_name_if_necessary
     @module_name ? @module_name.to_s : nil
   end
 
