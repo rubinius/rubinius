@@ -66,6 +66,10 @@ module Rubinius
         name
       end
     end
+
+    def self.pre_exe
+      yield
+    end
   end
 end
 

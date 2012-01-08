@@ -112,6 +112,7 @@ node_types18 = %w[
   negate
   last
   file
+  preexe
 ]
 
 node_types19 = %w[
@@ -225,6 +226,7 @@ node_types19 = %w[
   number
   float
   encoding
+  preexe
 ]
 
 def write_node_types(list, version)

@@ -926,6 +926,11 @@ namespace melbourne {
       tree = rb_funcall(ptp, rb_sEvStr, 2, line, value);
       break;
     }
+    case NODE_PREEXE: {           /* BEGIN { ... } */
+      VALUE scope = process_parse_tree(parser_state, ptp, node->nd_2nd, locals);
+      tree = rb_funcall(ptp, rb_sPreExe, 2, line, scope);
+      break;
+    }
     case NODE_POSTEXE: {          /* END { ... } */
       VALUE scope = process_parse_tree(parser_state, ptp, node->nd_2nd, locals);
       tree = rb_funcall(ptp, rb_sPostExe, 2, line, scope);

@@ -383,6 +383,10 @@ module Rubinius
       AST::Send.new line, AST::Self.new(line), :at_exit, true
     end
 
+    def process_preexe(line)
+      @pre_exe = AST::PreExe.new line
+    end
+
     def process_redo(line)
       AST::Redo.new line
     end
@@ -587,6 +591,12 @@ module Rubinius
       node = AST::Send.new line, AST::Self.new(line), :at_exit, true
       node.block = AST::Iter.new line, nil, body
       node
+    end
+
+    def process_preexe(line, body)
+      @pre_exe = AST::PreExe19.new line
+      @pre_exe.block = AST::Iter19.new line, nil, body
+      @pre_exe
     end
 
     def process_scope(line, arguments, body, locals)

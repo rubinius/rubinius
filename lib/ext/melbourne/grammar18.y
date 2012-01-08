@@ -669,12 +669,8 @@ stmt            : kALIAS fitem {lex_state = EXPR_FNAME;} fitem
                     }
                   '{' compstmt '}'
                     {
-                        /*
-                        ruby_eval_tree_begin = block_append(ruby_eval_tree_begin,
-                                                            NEW_PREEXE($4));
-                        */
                         local_pop();
-                        $$ = 0;
+                        $$ = NEW_ITER(0, NEW_PREEXE(), $4);
                     }
                 | klEND '{' compstmt '}'
                     {

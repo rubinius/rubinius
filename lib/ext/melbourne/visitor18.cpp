@@ -944,6 +944,10 @@ namespace melbourne {
       tree = rb_funcall(ptp, rb_sNegate, 2, line, expr);
       break;
     }
+    case NODE_PREEXE: {           /* BEGIN { ... } */
+      tree = rb_funcall(ptp, rb_sPreExe, 1, line);
+      break;
+    }
     case NODE_POSTEXE:            /* END { ... } */
       tree = rb_funcall(ptp, rb_sPostExe, 1, line);
       break;

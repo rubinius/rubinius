@@ -613,10 +613,7 @@ top_stmt        : stmt
                   }
                   '{' top_compstmt '}'
                   {
-                    /* TODO
-                    block_append( , $4);
-                    */
-                    $$ = NEW_BEGIN(0);
+                    $$ = NEW_PREEXE($4);
                   }
                 ;
 

@@ -114,7 +114,8 @@ namespace melbourne {
       NODE_REGEX,
       NODE_NUMBER,
       NODE_FLOAT,
-      NODE_ENCODING
+      NODE_ENCODING,
+      NODE_PREEXE
     };
 
     const char *get_node_type_string(enum node_type nt);
