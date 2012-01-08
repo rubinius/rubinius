@@ -1,2 +1,0 @@
-fails:An anonymous module forces named nested modules to be anonymous
-fails:An anonymous module never recalculates full name once no longer anonymous
