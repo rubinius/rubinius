@@ -456,6 +456,7 @@ namespace rubinius {
     } else {
       G(rubinius)->set_const(state, "RUBY_LIB_VERSION", Fixnum::from(18));
     }
+    G(rubinius)->set_const(state, "LIBC", String::create(state, RBX_LIBC));
 
 #ifdef RBX_LITTLE_ENDIAN
     G(rubinius)->set_const(state, "ENDIAN", symbol("little"));
