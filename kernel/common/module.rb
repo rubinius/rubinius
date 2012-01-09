@@ -454,7 +454,7 @@ class Module
       value.set_name_if_necessary(name, self)
     end
 
-    name = normalize_const_name(name)
+    name = Rubinius::Type.coerce_to_constant_name(name)
     @constant_table[name] = value
     Rubinius.inc_global_serial
 
@@ -599,18 +599,6 @@ class Module
   end
 
   private :method_added
-
-  def normalize_const_name(name)
-    name = Rubinius::Type.coerce_to_symbol(name)
-
-    unless name.is_constant?
-      raise NameError, "wrong constant name #{name}"
-    end
-
-    name
-  end
-
-  private :normalize_const_name
 
   def initialize_copy(other)
     @method_table = other.method_table.dup
