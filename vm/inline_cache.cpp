@@ -708,29 +708,20 @@ namespace rubinius {
   void InlineCacheRegistry::add_cache(STATE, Symbol* sym, InlineCache* cache) {
     SYNC(state);
     // TODO make sure cache isn't already known?
-    caches_[sym->index()].push_back(cache);
+    CacheSet& set = caches_[sym->index()];
+    set.insert(cache);
   }
 
   void InlineCacheRegistry::remove_cache(STATE, Symbol* sym, InlineCache* cache) {
     SYNC(state);
-    CacheVector& vec = caches_[sym->index()];
-    for(CacheVector::iterator i = vec.begin();
-        i != vec.end();
-        ++i) {
-      if(*i == cache) {
-        vec.erase(i);
-        return;
-      }
-    }
+    CacheSet& set = caches_[sym->index()];
+    set.erase(cache);
   }
 
   void InlineCacheRegistry::clear(STATE, Symbol* sym) {
     SYNC(state);
-    CacheVector& vec = caches_[sym->index()];
-
-    for(CacheVector::iterator i = vec.begin();
-        i != vec.end();
-        ++i) {
+    CacheSet& set = caches_[sym->index()];
+    for(CacheSet::iterator i = set.begin(); i != set.end(); ++i) {
       (*i)->clear();
     }
   }
@@ -749,7 +740,7 @@ namespace rubinius {
     for(CacheHash::iterator hi = caches_.begin();
         hi != caches_.end();
         ++hi) {
-      for(CacheVector::iterator vi = hi->second.begin();
+      for(CacheSet::iterator vi = hi->second.begin();
           vi != hi->second.end();
           ++vi) {
         InlineCache* ic = *vi;
@@ -779,7 +770,7 @@ namespace rubinius {
     for(CacheHash::iterator hi = caches_.begin();
         hi != caches_.end();
         ++hi) {
-      for(CacheVector::iterator vi = hi->second.begin();
+      for(CacheSet::iterator vi = hi->second.begin();
           vi != hi->second.end();
           ++vi) {
         InlineCache* ic = *vi;

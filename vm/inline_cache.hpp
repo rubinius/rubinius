@@ -9,8 +9,8 @@
 #include "lock.hpp"
 #include "object_utils.hpp"
 
-#include <vector>
 #include <tr1/unordered_map>
+#include <tr1/unordered_set>
 
 // #define TRACK_IC_LOCATION
 
@@ -280,8 +280,8 @@ namespace rubinius {
 
   // Registry, used to clear ICs by method name
   class InlineCacheRegistry : public Lockable {
-    typedef std::list<InlineCache*> CacheVector;
-    typedef std::tr1::unordered_map<native_int, CacheVector> CacheHash;
+    typedef std::tr1::unordered_set<InlineCache*> CacheSet;
+    typedef std::tr1::unordered_map<native_int, CacheSet> CacheHash;
 
     CacheHash caches_;
 
