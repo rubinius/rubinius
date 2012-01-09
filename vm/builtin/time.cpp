@@ -150,7 +150,7 @@ namespace rubinius {
       seconds = mktime_extended(&tm, utc_p, &err);
     }
 
-    if(err) return (Time*)Primitives::failure();
+    if(err) Exception::argument_error(state, "time out of range");
 
     Time* obj = state->new_object<Time>(as<Class>(self));
     obj->seconds_ = seconds;
