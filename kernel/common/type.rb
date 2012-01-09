@@ -111,5 +111,15 @@ module Rubinius
 
       name
     end
+
+    def self.module_name(mod, base_name, path=nil)
+      if path
+        name = "#{path}::#{base_name}"
+      else
+        name = base_name
+      end
+
+      mod.module_name = name.to_sym
+    end
   end
 end
