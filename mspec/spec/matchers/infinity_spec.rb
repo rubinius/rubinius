@@ -1,6 +1,8 @@
-require File.dirname(__FILE__) + '/../spec_helper'
+require 'spec_helper'
 require 'mspec/expectations/expectations'
-require 'mspec/matchers/infinity'
+require 'mspec/guards'
+require 'mspec/helpers'
+require 'mspec/matchers'
 
 describe InfinityMatcher do
   it "matches when actual is infinite and has the correct sign" do

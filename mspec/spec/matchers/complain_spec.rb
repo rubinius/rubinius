@@ -1,6 +1,6 @@
-require File.dirname(__FILE__) + '/../spec_helper'
+require 'spec_helper'
 require 'mspec/expectations/expectations'
-require 'mspec/matchers/complain'
+require 'mspec/matchers'
 
 describe ComplainMatcher do
   it "matches when executing the proc results in output to $stderr" do

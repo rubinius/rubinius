@@ -10,8 +10,7 @@ class BeComputedByMatcher
       @value = line.pop
       @arguments = line
       @arguments += @args
-      @actual = @receiver.send(@method, *@arguments)
-      return false unless @actual == @value
+      return false unless @receiver.send(@method, *@arguments) == @value
     end
 
     return true
@@ -26,7 +25,7 @@ class BeComputedByMatcher
   end
 
   def failure_message
-    ["Expected #{@value.inspect}", "to be computed by #{method_call} (computed #{@actual.inspect} instead)"]
+    ["Expected #{@value.inspect}", "to be computed by #{method_call}"]
   end
 end
 

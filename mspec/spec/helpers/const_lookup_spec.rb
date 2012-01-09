@@ -1,5 +1,6 @@
-require File.dirname(__FILE__) + '/../spec_helper'
-require 'mspec/helpers/const_lookup'
+require 'spec_helper'
+require 'mspec/guards'
+require 'mspec/helpers'
 
 CONST = 2
 

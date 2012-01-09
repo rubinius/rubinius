@@ -1,33 +1,38 @@
-Gem::Specification.new do |s|
-  s.name                      = %q{mspec}
-  s.version                   = "1.5.12"
+# -*- encoding: utf-8 -*-
+$:.unshift File.expand_path('../lib', __FILE__)
+require 'mspec/version'
 
-  s.specification_version     = 2 if s.respond_to? :specification_version=
+Gem::Specification.new do |gem|
+  gem.name          = "mspec"
+  gem.version       = MSpec::VERSION.to_s
+  gem.authors       = ["Brian Ford"]
+  gem.email         = ["bford@engineyard.com"]
+  gem.homepage      = "http://rubyspec.org"
 
-  s.required_rubygems_version = Gem::Requirement.new(">= 0") if s.respond_to? :required_rubygems_version=
-  s.authors                   = ["Brian Ford"]
-  s.date                      = %q{2009-6-8}
-  s.email                     = %q{bford@engineyard.com}
-  s.has_rdoc                  = true
-  s.extra_rdoc_files          = %w[ README LICENSE ]
-  s.executables               = ["mkspec", "mspec", "mspec-ci", "mspec-run", "mspec-tag"]
-  s.files                     = FileList[ '{bin,lib,spec}/**/*.{yaml,txt,rb}', 'Rakefile', *s.extra_rdoc_files ]
-  s.homepage                  = %q{http://rubyspec.org}
-  s.rubyforge_project         = 'http://rubyforge.org/projects/mspec'
-  s.require_paths             = ["lib"]
-  s.rubygems_version          = %q{1.1.1}
-  s.summary                   = <<EOS
-MSpec is a specialized framework that is syntax-compatible
-with RSpec for basic things like describe, it blocks and
-before, after actions.
+  gem.executables   = `git ls-files -- bin/*`.split("\n").map{ |f| File.basename(f) unless File.extname(f) == ".bat" }.compact
+  gem.files         = `git ls-files`.split("\n")
+  gem.test_files    = `git ls-files -- {test,spec,features}/*`.split("\n")
+  gem.require_paths = ["lib"]
+  gem.summary       = <<-EOS
+                      MSpec is a specialized framework that is syntax-compatible
+                      with RSpec for basic things like describe, it blocks and
+                      before, after actions.
 
-MSpec contains additional features that assist in writing
-the RubySpecs used by multiple Ruby implementations. Also,
-MSpec attempts to use the simplest Ruby language features
-so that beginning Ruby implementations can run it.
-EOS
+                      MSpec contains additional features that assist in writing
+                      the RubySpecs used by multiple Ruby implementations. Also,
+                      MSpec attempts to use the simplest Ruby language features
+                      so that beginning Ruby implementations can run it.
+                      EOS
+  gem.has_rdoc                  = true
+  gem.extra_rdoc_files          = %w[ README LICENSE ]
+  gem.rubygems_version  = %q{1.3.5}
+  gem.rubyforge_project         = 'http://rubyforge.org/projects/mspec'
 
-  s.rdoc_options << '--title' << 'MSpec Gem' <<
-                   '--main' << 'README' <<
-                   '--line-numbers'
+  gem.rdoc_options  << '--title' << 'MSpec Gem' <<
+                    '--main' << 'README' <<
+                    '--line-numbers'
+
+  gem.add_development_dependency "rake",   "~> 0.9"
+  gem.add_development_dependency "rspec",  "~> 2.8"
+  gem.add_development_dependency "ruby-debug", "~> 0.10"
 end

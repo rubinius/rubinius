@@ -1,5 +1,6 @@
-require File.dirname(__FILE__) + '/../spec_helper'
-require 'mspec/helpers/ducktype'
+require 'spec_helper'
+require 'mspec/guards'
+require 'mspec/helpers'
 
 describe Object, "#responds_to" do
   it "returns true for specified symbols" do

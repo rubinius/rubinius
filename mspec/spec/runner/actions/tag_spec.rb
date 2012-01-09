@@ -6,7 +6,7 @@ require 'mspec/runner/tag'
 
 describe TagAction, ".new" do
   it "creates an MatchFilter with its tag and desc arguments" do
-    filter = mock('action filter', :null_object => true)
+    filter = mock('action filter').as_null_object
     MatchFilter.should_receive(:new).with(nil, "some", "thing").and_return(filter)
     TagAction.new :add, :all, nil, nil, ["tag", "key"], ["some", "thing"]
   end

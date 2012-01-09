@@ -1,9 +1,3 @@
-dir_path = File.dirname(__FILE__)
-lib_path = File.expand_path(dir_path + '/../lib')
-bin_path = File.expand_path(dir_path + '/..')
-$:.unshift lib_path unless $:.include? lib_path
-$:.unshift bin_path unless $:.include? bin_path
-
 require 'pp'
 require 'mspec/helpers/io'
 require 'mspec/helpers/scratch'
@@ -41,4 +35,3 @@ end
 # Just to have an exception name output not be "Exception"
 class MSpecExampleError < Exception
 end
-

@@ -1,5 +1,5 @@
-require File.dirname(__FILE__) + '/../spec_helper'
-require 'mspec/guards/tty'
+require 'spec_helper'
+require 'mspec/guards'
 
 describe Object, "#with_tty" do
   before :each do

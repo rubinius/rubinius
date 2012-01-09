@@ -1,4 +1,6 @@
-require File.dirname(__FILE__) + '/../spec_helper'
+require 'spec_helper'
+require 'mspec/guards'
+require 'mspec/helpers'
 
 describe ScratchPad do
   it "records an object and returns a previously recorded object" do

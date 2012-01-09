@@ -1,6 +1,6 @@
-require File.dirname(__FILE__) + '/../spec_helper'
+require 'spec_helper'
 require 'mspec/expectations/expectations'
-require 'mspec/matchers/equal_element'
+require 'mspec/matchers'
 
 describe EqualElementMatcher do
   it "matches if it finds an element with the passed name, no matter what attributes/content" do

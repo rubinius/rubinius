@@ -1,6 +1,6 @@
-require File.dirname(__FILE__) + '/../spec_helper'
+require 'spec_helper'
 require 'mspec/expectations/expectations'
-require 'mspec/matchers/have_singleton_method'
+require 'mspec/matchers'
 
 class HSMMSpecs
   def self.singleton_method

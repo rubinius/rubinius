@@ -1,6 +1,5 @@
-require File.dirname(__FILE__) + '/../spec_helper'
-require 'mspec/utils/ruby_name'
-require 'mspec/guards/bug'
+require 'spec_helper'
+require 'mspec/guards'
 
 describe BugGuard, "#match? when #implementation? is 'ruby'" do
   before :all do

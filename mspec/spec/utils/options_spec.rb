@@ -1,4 +1,4 @@
-require File.dirname(__FILE__) + '/../spec_helper'
+require 'spec_helper'
 require 'mspec/utils/options'
 require 'mspec/version'
 require 'mspec/guards/guard'

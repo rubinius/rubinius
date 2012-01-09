@@ -2,7 +2,7 @@
 # opposites are true (for example a failure when the specified
 # arguments are NOT provided) is to simply alter the particular
 # spec to a failure condition.
-require File.dirname(__FILE__) + '/../spec_helper'
+require 'spec_helper'
 require 'mspec/runner/mspec'
 require 'mspec/mocks/mock'
 require 'mspec/mocks/proxy'
@@ -39,7 +39,7 @@ describe Mock, ".replaced?" do
   before :each do
     @mock = mock('install_method')
     MSpec.stub!(:actions)
-    MSpec.stub!(:current).and_return(mock("spec state", :null_object => true))
+    MSpec.stub!(:current).and_return(mock("spec state").as_null_object)
   end
 
   it "returns true if a method has been stubbed on an object" do
@@ -72,7 +72,7 @@ describe Mock, ".install_method for mocks" do
   before :each do
     @mock = mock('install_method')
     MSpec.stub!(:actions)
-    MSpec.stub!(:current).and_return(mock("spec state", :null_object => true))
+    MSpec.stub!(:current).and_return(mock("spec state").as_null_object)
   end
 
   after :each do
@@ -123,7 +123,7 @@ describe Mock, ".install_method for mocks" do
   end
 
   it "adds to the expectation tally" do
-    state = mock("run state", :null_object => true)
+    state = mock("run state").as_null_object
     state.stub!(:state).and_return(mock("spec state"))
     MSpec.should_receive(:current).and_return(state)
     MSpec.should_receive(:actions).with(:expectation, state.state)
@@ -132,7 +132,7 @@ describe Mock, ".install_method for mocks" do
   end
 
   it "registers that an expectation has been encountered" do
-    state = mock("run state", :null_object => true)
+    state = mock("run state").as_null_object
     state.stub!(:state).and_return(mock("spec state"))
     MSpec.should_receive(:expectation)
     Mock.install_method(@mock, :method_call).and_return(1)
@@ -144,7 +144,7 @@ describe Mock, ".install_method for stubs" do
   before :each do
     @mock = mock('install_method')
     MSpec.stub!(:actions)
-    MSpec.stub!(:current).and_return(mock("spec state", :null_object => true))
+    MSpec.stub!(:current).and_return(mock("spec state").as_null_object)
   end
 
   after :each do
@@ -175,7 +175,7 @@ describe Mock, ".install_method for stubs" do
   end
 
   it "does not add to the expectation tally" do
-    state = mock("run state", :null_object => true)
+    state = mock("run state").as_null_object
     state.stub!(:state).and_return(mock("spec state"))
     MSpec.should_not_receive(:actions)
     Mock.install_method(@mock, :method_call, :stub).and_return(1)
@@ -187,7 +187,7 @@ describe Mock, ".install_method" do
   before :each do
     @mock = mock('install_method')
     MSpec.stub!(:actions)
-    MSpec.stub!(:current).and_return(mock("spec state", :null_object => true))
+    MSpec.stub!(:current).and_return(mock("spec state").as_null_object)
   end
 
   after :each do
@@ -212,7 +212,7 @@ class MockAndRaiseError < Exception; end
 describe Mock, ".verify_call" do
   before :each do
     MSpec.stub!(:actions)
-    MSpec.stub!(:current).and_return(mock("spec state", :null_object => true))
+    MSpec.stub!(:current).and_return(mock("spec state").as_null_object)
 
     @mock = mock('verify_call')
     @proxy = Mock.install_method @mock, :method_call
@@ -318,7 +318,7 @@ end
 describe Mock, ".verify_count" do
   before :each do
     MSpec.stub!(:actions)
-    MSpec.stub!(:current).and_return(mock("spec state", :null_object => true))
+    MSpec.stub!(:current).and_return(mock("spec state").as_null_object)
 
     @mock = mock('verify_count')
     @proxy = Mock.install_method @mock, :method_call
@@ -381,7 +381,7 @@ end
 describe Mock, ".verify_count mixing mocks and stubs" do
   before :each do
     MSpec.stub!(:actions)
-    MSpec.stub!(:current).and_return(mock("spec state", :null_object => true))
+    MSpec.stub!(:current).and_return(mock("spec state").as_null_object)
 
     @mock = mock('verify_count')
   end
@@ -413,7 +413,7 @@ end
 describe Mock, ".cleanup" do
   before :each do
     MSpec.stub!(:actions)
-    MSpec.stub!(:current).and_return(mock("spec state", :null_object => true))
+    MSpec.stub!(:current).and_return(mock("spec state").as_null_object)
 
     @mock = mock('cleanup')
     @proxy = Mock.install_method @mock, :method_call

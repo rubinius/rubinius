@@ -1,4 +1,4 @@
-require File.dirname(__FILE__) + '/../spec_helper'
+require 'spec_helper'
 require 'yaml'
 require 'mspec/commands/mspec'
 
@@ -108,9 +108,9 @@ describe MSpecMain, "#report" do
   before :each do
     @stdout, $stdout = $stdout, IOStub.new
 
-    @timer = mock("timer", :null_object => true)
+    @timer = mock("timer").as_null_object
     @timer.stub!(:format).and_return("Finished in 42 seconds")
-    @file = mock("file", :null_object => true)
+    @file = mock("file").as_null_object
 
     File.stub!(:delete)
     YAML.stub!(:load)

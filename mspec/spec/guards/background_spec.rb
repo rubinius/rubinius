@@ -1,5 +1,5 @@
-require File.dirname(__FILE__) + '/../spec_helper'
-require 'mspec/guards/background'
+require 'spec_helper'
+require 'mspec/guards'
 
 describe Object, "#process_is_foreground" do
   before :each do

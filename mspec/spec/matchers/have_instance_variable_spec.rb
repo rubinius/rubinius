@@ -1,6 +1,6 @@
-require File.dirname(__FILE__) + '/../spec_helper'
+require 'spec_helper'
 require 'mspec/expectations/expectations'
-require 'mspec/matchers/have_instance_variable'
+require 'mspec/matchers'
 
 shared_examples_for "have_instance_variable, on all Ruby versions" do
   after :all do

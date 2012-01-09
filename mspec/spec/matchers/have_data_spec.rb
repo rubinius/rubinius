@@ -1,8 +1,8 @@
-require File.dirname(__FILE__) + '/../spec_helper'
+require 'spec_helper'
 require 'mspec/expectations/expectations'
-require 'mspec/matchers/have_data'
-require 'mspec/helpers/tmp'
-require 'mspec/helpers/fs'
+require 'mspec/guards'
+require 'mspec/helpers'
+require 'mspec/matchers'
 
 describe HaveDataMatcher do
   before :each do

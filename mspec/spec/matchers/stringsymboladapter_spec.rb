@@ -1,6 +1,6 @@
-require File.dirname(__FILE__) + '/../spec_helper'
+require 'spec_helper'
 require 'mspec/expectations/expectations'
-require 'mspec/matchers/stringsymboladapter'
+require 'mspec/matchers'
 
 describe StringSymbolAdapter, "#convert_name" do
   include StringSymbolAdapter

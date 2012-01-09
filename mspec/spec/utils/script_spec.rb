@@ -1,4 +1,4 @@
-require File.dirname(__FILE__) + '/../spec_helper'
+require 'spec_helper'
 require 'mspec/utils/script'
 require 'mspec/runner/mspec'
 require 'mspec/runner/filters'
@@ -81,7 +81,7 @@ end
 
 describe MSpecScript, ".main" do
   before :each do
-    @script = mock("MSpecScript", :null_object => true)
+    @script = mock("MSpecScript").as_null_object
     MSpecScript.stub!(:new).and_return(@script)
   end
 
@@ -213,7 +213,7 @@ describe MSpecScript, "#register" do
   before :each do
     @script = MSpecScript.new
 
-    @formatter = mock("formatter", :null_object => true)
+    @formatter = mock("formatter").as_null_object
     @script.config[:formatter] = @formatter
   end
 
@@ -250,7 +250,7 @@ describe MSpecScript, "#register" do
   before :each do
     @script = MSpecScript.new
 
-    @formatter = mock("formatter", :null_object => true)
+    @formatter = mock("formatter").as_null_object
     @script.config[:formatter] = @formatter
 
     @filter = mock("filter")

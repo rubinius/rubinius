@@ -1,6 +1,8 @@
-require File.dirname(__FILE__) + '/../spec_helper'
+require 'spec_helper'
 require 'mspec/expectations/expectations'
-require 'mspec/matchers/be_nan'
+require 'mspec/guards'
+require 'mspec/helpers'
+require 'mspec/matchers'
 
 describe BeNaNMatcher do
   it "matches when actual is NaN" do

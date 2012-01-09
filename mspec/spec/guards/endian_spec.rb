@@ -1,5 +1,5 @@
-require File.dirname(__FILE__) + '/../spec_helper'
-require 'mspec/guards/endian'
+require 'spec_helper'
+require 'mspec/guards'
 
 describe Object, "#big_endian" do
   before :each do

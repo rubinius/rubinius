@@ -1,6 +1,6 @@
-require File.dirname(__FILE__) + '/../spec_helper'
+require 'spec_helper'
 require 'mspec/expectations/expectations'
-require 'mspec/matchers/be_kind_of'
+require 'mspec/matchers'
 
 describe BeKindOfMatcher do
   it "matches when actual is a kind_of? expected" do

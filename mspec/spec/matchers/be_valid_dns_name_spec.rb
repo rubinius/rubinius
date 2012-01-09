@@ -1,6 +1,6 @@
-require File.dirname(__FILE__) + '/../spec_helper'
+require 'spec_helper'
 require 'mspec/expectations/expectations'
-require 'mspec/matchers/be_valid_dns_name'
+require 'mspec/matchers'
 
 describe BeValidDNSName do
   it "matches when actual is 'localhost'" do

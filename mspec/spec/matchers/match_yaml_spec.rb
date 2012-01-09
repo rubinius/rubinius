@@ -1,6 +1,6 @@
-require File.dirname(__FILE__) + '/../spec_helper'
+require 'spec_helper'
 require 'mspec/expectations/expectations'
-require 'mspec/matchers/match_yaml'
+require 'mspec/matchers'
 
 describe MatchYAMLMatcher do
   before :each do
@@ -13,7 +13,7 @@ describe MatchYAMLMatcher do
 
   it "compares YAML documents and does not match if they're not equivalent" do
       @matcher.matches?("--- \nbar: foo\n").should == false
-      @matcher.matches?("--- \nfoo: \nbar\n").should == false  
+      @matcher.matches?("--- \nfoo: \nbar\n").should == false
   end
 
   it "also receives objects that respond_to to_yaml" do

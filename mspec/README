@@ -1,197 +1,77 @@
-= Overview
+1. Overview
 
 MSpec is a specialized framework that is syntax-compatible with RSpec for
-basic things like +describe+, +it+ blocks and +before+, +after+ actions. MSpec
+basic things like 'describe', 'it' blocks and 'before', 'after' actions. MSpec
 contains additional features that assist in writing the RubySpecs used by
 multiple Ruby implementations.
 
 MSpec attempts to use the simplest Ruby language features so that beginning
-Ruby implementations can run the Ruby specs. So, for example, there is not
-great concern given to constant clashes. Namespacing (or module scoping) is
-not used because implementing this correctly took a significant amount of work
-in Rubinius and it is likely that other implementations would also face
-difficulties.
+Ruby implementations can run the Ruby specs.
 
 MSpec is not intended as a replacement for RSpec. MSpec attempts to provide a
 subset of RSpec's features in some cases and a superset in others. It does not
-provide all the matchers, for instance. However, MSpec provides several
-extensions to facilitate writing the Ruby specs in a manner compatible with
-multiple Ruby implementations.
+provide all the matchers, for instance.
 
-First, MSpec offers a set of guards to control execution of the specs. These
-guards not only enable or disable execution but also annotate the specs with
-additional information about why they are run or not run. Second, MSpec
-provides a different shared spec implementation specifically designed to ease
-writing specs for the numerous aliased methods in Ruby. The MSpec shared spec
-implementation should not conflict with RSpec's own shared behavior facility.
-Third, MSpec provides various helper methods to simplify some specs, for
-example, creating temporary file names. Finally, MSpec has several specialized
-runner scripts that includes a configuration facility with a default project
-file and user-specific overrides.
+However, MSpec provides several extensions to facilitate writing the Ruby
+specs in a manner compatible with multiple Ruby implementations.
 
-Caveats:
+  1. MSpec offers a set of guards to control execution of the specs. These
+     guards not only enable or disable execution but also annotate the specs
+     with additional information about why they are run or not run.
 
-* Use RSpec to run the MSpec specs. There are no plans currently to make
-  the MSpec specs runnable by MSpec.
-* Don't mock the #hash method as MSpec's Mock implementation uses Hash
-  internally. This can be replaced if necessary, but at this point there is no
-  compelling need to do so.
+  2. MSpec provides a different shared spec implementation specifically
+     designed to ease writing specs for the numerous aliased methods in Ruby.
+     The MSpec shared spec implementation should not conflict with RSpec's own
+     shared behavior facility.
+
+  3. MSpec provides various helper methods to simplify some specs, for
+     example, creating temporary file names.
+
+  4. MSpec has several specialized runner scripts that includes a
+     configuration facility with a default project file and user-specific
+     overrides.
 
 
-== Architecture
+2. Bundler
+
+A Gemfile and Gemfile.lock is provide. Use Bundler to install gem
+dependencies. To install Bundler, run the following:
+
+  $ gem install bundler
+
+To install the gem dependencies with Bundler, run the following:
+
+  $ RUBYLIB=lib ruby -S bundle install
 
 
-== Matchers
+3. Running Specs
 
-Matchers are additional aids for the verification process. The default
-is of course to #should or #should_not using the #== operator and its
-friends but the matchers add a new set of 'operators' to help in the
-task. They reside in `mspec/matchers/`. There are two broad categories,
-those that apply to an individual object and those that apply to a
-block:
+Use RSpec to run the MSpec specs. There are no plans currently to make the
+MSpec specs runnable by MSpec.
 
-=== Object
+After installing the gem dependencies, the specs can be run as follows:
 
-- `base` implements the standard #==, #< #<= #>= #> and #=~ with their
-  normal semantics for the objects that you invoke them on.
+  $ ruby -S rspec
 
-- `be_ancestor_of` is equivalent to checking `obj.ancestors.include?`.
+Or
 
-- `be_close` is a "delta" for floating-point math. Due to the very
-  nature of it, floating-point comparisons should never be treated as
-  exact. By default the tolerance is 0.00003 but it can be altered if
-  so desired. So `0.23154.should be_close(0.23157)` would succeed
-  (which is usually close enough for floating point unless you are
-  doing some scientific computing.)
+  $ ruby -S rake
 
-- `be_empty` checks `obj.empty?`
+To run an individual spec file, use the following example:
 
-- `be_kind_of` is equivalent to `obj.kind_of?`
-
-- `include` is `obj.include?`
-
-=== Block
-
-All of these should be applied to a block created with `lambda` or `proc`:
-
-- `complain` is probably clearer stated as `lambda {...}.should complain`;
-  it checks that the block issues a warning. The message can be checked
-  against either a String or a Regexp.
-
-- `output` checks that the block produces the given output (stdout as well
-  as stderr, in that order) matched either to a String or a Regexp. This one
-  uses overrides so if that is a problem (for e.g. speccing Readline or
-  something) see below.
-
-- `output_to_fd` is a lower-level version and actually verifies that output
-  to a certain file descriptor is correct whether from an in-/output stream
-  or an actual file. Also can check with either a String or a Regexp.
-
-- `raise_error` verifies the exception type (if any) raised by the block it
-  is associated with. The exception class can be given for finer-grained
-  control (inheritance works normally so Exception would catch everything.)
-
-== Nested 'describe' blocks
-
-MSpec supports nesting one 'describe' block inside another. The examples in
-the nested block are evaluated with all the before/after blocks of all the
-containing 'describe' blocks. The following example illustrates this:
-
-describe "Some#method" do
-  before :each do
-    @obj = 1
-  end
-
-  describe "when passed String" do
-    before :each do
-      @meth = :to_s
-    end
-
-    it "returns false" do
-      # when this example is evaluated, @obj = 1 and @meth = :to_s
-    end
-  end
-end
-
-The output when using the SpecdocFormatter (selected with -fs to the runners)
-will be as follows:
-
-Some#method when passed String
-- returns false
+  $ ruby -S rspec spec/helpers/ruby_exe_spec.rb
 
 
-== Shared 'describe' blocks
+4. Documentation
 
-MSpec supports RSpec-style shared 'describe' blocks. MSpec also provides a
-convenience method to assist in writing specs for the numerous aliased methods
-that Ruby provides. The following example illustrates shared blocks:
-
-describe :someclass_some_method, :shared => true do
-  it "does something" do
-  end
-end
-
-describe "SomeClass#some_method" do
-  it_should_behave_like "someclass_some_method"
-end
-
-The first argument to 'describe' for a shared block is an object that
-duck-types as a String. The representation of the object must be unique. This
-example uses a symbol. This was the convention for the previous facility that
-MSpec provided for aliased method (#it_behaves_like). However, this convention
-is not set in stone (but the uniqueness requirement is). Note that the
-argument to the #it_should_behave_like is a String because at this time RSpec
-will not find the shared block by the symbol.
-
-MSpec continues to support the #it_behaves_like convenience method for
-specifying aliased methods. The syntax is as follows:
-
-it_behaves_like :symbol_matching_shared_describe, :method [, :object]
-
-describe :someclass_some_method, :shared => true do
-  it "returns true" do
-    obj.send(@method).should be_true
-  end
-
-  it "returns something else" do
-    @object.send(@method).should be_something_else
-  end
-end
-
-# example #1
-describe "SomeClass#some_method" do
-  it_behaves_like :someclass_some_method, :other_method
-end
-
-# example #2
-describe "SomeOtherClass#some_method" do
-  it_behaves_like :someclass_some_method, :some_method, OtherClass
-end
-
-The first form above (#1) is used for typical aliases. That is, methods with
-different names on the same class that behave identically. The
-#it_behaves_like helper creates a before(:all) block that sets @method to
-:other_method. The form of the first example block in the shared block
-illustrates the typical form of a spec for an aliased method.
-
-The second form above (#2) is used for methods on different classes that are
-essentially aliases, even though Ruby does not provide a syntax for specifying
-such methods as aliases. Examples are the methods on File, FileTest, and
-File::Stat. In this case, the #it_behaves_like helper sets both @method and
-@object in the before(:all) block (@method = :some_method, @object =
-OtherClass in this example).
-
-For shared specs that fall outside of either of these two narrow categories,
-use nested or shared 'describe' blocks as appropriate and use the
-#it_should_behave_like method directly.
-
-== Guards
-
-Since Ruby is not completely isolated from its platform or execution environment, the spec files may contain guards: conditions placed around a spec or a set of specs to enable or disable them. 
-
-You can find an overview of the current guards and their usage in: http://rubyspec.org/wiki/mspec/Guards .
-
-== Helpers
+See http://rubyspec.org
 
 
-== Runners
+5. Source Code
+
+See https://github.com/rubyspec/mspec
+
+
+6. License
+
+See the LICENSE in the source code.

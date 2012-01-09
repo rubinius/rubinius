@@ -1,5 +1,5 @@
-require File.dirname(__FILE__) + '/../spec_helper'
-require 'mspec/guards/support'
+require 'spec_helper'
+require 'mspec/guards'
 
 describe Object, "#not_supported_on" do
   before :all do

@@ -1,6 +1,6 @@
-require File.dirname(__FILE__) + '/../spec_helper'
+require 'spec_helper'
 require 'mspec/expectations/expectations'
-require 'mspec/matchers/equal_utf16'
+require 'mspec/matchers'
 
 describe EqualUtf16Matcher do
   before :all do
