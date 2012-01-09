@@ -348,9 +348,23 @@ class Complex < Numeric
   # Standard string representation of the complex number.
   #
   def to_s
-    signal = "+" unless @imag < 0
+    result = real.to_s
 
-    "#{@real}#{signal}#{@imag}i"
+    if imag.kind_of?(Float) ? !imag.nan? && FFI::Platform::Math.signbit(imag) != 0 : imag < 0
+      result << "-"
+    else
+      result << "+"
+    end
+
+    imag_s = imag.abs.to_s
+    result << imag_s
+
+    unless imag_s[-1] =~ /\d/
+      result << "*"
+    end
+
+    result << "i"
+    result
   end
 
   #
