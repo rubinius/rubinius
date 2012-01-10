@@ -140,6 +140,10 @@ class Object
         `#{cmd.compact.join(' ')}`
       ensure
         saved_env.each { |key, value| ENV[key] = value }
+        env.keys.each do |key|
+          key = key.to_s
+          ENV.delete key unless saved_env.key? key
+        end
       end
     end
   end
