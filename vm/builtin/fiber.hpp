@@ -31,11 +31,16 @@ namespace rubinius {
     bool root_;
 
     FiberData* data_;
+
   public:
     attr_accessor(starter, Object);
     attr_accessor(value, Array);
     attr_accessor(prev, Fiber);
-    attr_accessor(exception, Exception)
+    attr_accessor(exception, Exception);
+
+    bool root_p() {
+      return root_;
+    }
 
     CallFrame* call_frame() {
       return top_;
@@ -59,12 +64,20 @@ namespace rubinius {
       return vm_;
     }
 
+    FiberData* data() {
+      return data_;
+    }
+
     void* stack() {
       return data_->stack_address();
     }
 
     int stack_size() {
       return data_->stack_size();
+    }
+
+    VariableRootBuffers& variable_root_buffers() {
+      return data_->variable_root_buffers();
     }
 
   public:

@@ -22,85 +22,6 @@
 
 namespace rubinius {
 
-#ifdef FIBER_ENABLED
-
-#if defined(FIBER_ASM_X8664)
-
-static void fiber_wrap_main(void) {
-  __asm__ __volatile__ ("\tmovq %r13, %rdi\n\tjmpq *%r12\n");
-}
-
-static inline void fiber_switch(fiber_context_t* from, fiber_context_t* to) {
-  __asm__ __volatile__ (
-    "leaq 1f(%%rip), %%rax\n\t"
-    "movq %%rax, (%0)\n\t" "movq %%rsp, 8(%0)\n\t" "movq %%rbp, 16(%0)\n\t"
-    "movq %%rbx, 24(%0)\n\t" "movq %%r12, 32(%0)\n\t" "movq %%r13, 40(%0)\n\t"
-    "movq %%r14, 48(%0)\n\t" "movq %%r15, 56(%0)\n\t"
-    "movq 56(%1), %%r15\n\t" "movq 48(%1), %%r14\n\t" "movq 40(%1), %%r13\n\t"
-    "movq 32(%1), %%r12\n\t" "movq 24(%1), %%rbx\n\t" "movq 16(%1), %%rbp\n\t"
-    "movq 8(%1), %%rsp\n\t" "jmpq *(%1)\n" "1:\n"
-    : "+S" (from), "+D" (to) :
-    : "rax", "rcx", "rdx", "r8", "r9", "r10", "r11", "memory", "cc");
-}
-
-static void fiber_makectx(fiber_context_t* ctx, void* func, void** stack_bottom,
-                          int stack_size)
-{
-  // Get a pointer to the highest address as stack that is properly aligned
-  // with room for the fake return value.
-  uintptr_t s = ((uintptr_t)stack_bottom) + stack_size;
-  uintptr_t diff = s % 16;
-
-  void** stack = (void**)(s - diff) - 1;
-
-  *--stack = (void*)0xdeadcafedeadcafe;  /* Dummy return address. */
-  ctx->rip = (void*)fiber_wrap_main;
-  ctx->rsp = stack;
-  ctx->rbp = 0;
-  ctx->rbx = 0;
-  ctx->r12 = func;
-  ctx->r13 = 0;
-  ctx->r14 = 0;
-  ctx->r15 = 0;
-
-}
-
-#elif defined(FIBER_ASM_X8632)
-
-static inline void fiber_switch(fiber_context_t* from, fiber_context_t* to) {
-  __asm__ __volatile__ (
-    "call 1f\n" "1:\tpopl %%eax\n\t" "addl $(2f-1b),%%eax\n\t"
-    "movl %%eax, (%0)\n\t" "movl %%esp, 4(%0)\n\t"
-    "movl %%ebp, 8(%0)\n\t" "movl %%ebx, 12(%0)\n\t"
-    "movl 12(%1), %%ebx\n\t" "movl 8(%1), %%ebp\n\t"
-    "movl 4(%1), %%esp\n\t" "jmp *(%1)\n" "2:\n"
-    : "+S" (from), "+D" (to) : : "eax", "ecx", "edx", "memory", "cc");
-}
-
-static void fiber_makectx(fiber_context_t* ctx, void* func, void** stack_bottom,
-                          int stack_size)
-{
-  // Get a pointer to the highest address as stack that is properly aligned
-  // with room for the fake return value.
-  uintptr_t s = ((uintptr_t)stack_bottom) + stack_size;
-  uintptr_t diff = s % 16;
-
-  void** stack = (void**)(s - diff) - 1;
-
-  *--stack = (void*)0xdeadcafe;
-
-  ctx->eip = func;
-  ctx->esp = stack;
-  ctx->ebp = 0;
-}
-#endif
-
-#endif
-
-}
-
-namespace rubinius {
-
   void Fiber::init(STATE) {
     GO(fiber).set(ontology::new_class(state, "Fiber", G(object), G(rubinius)));
     G(fiber)->set_object_type(state, FiberType);
@@ -128,7 +49,7 @@ namespace rubinius {
       fib->status_ = Fiber::eRunning;
       fib->vm_ = state->vm();
 
-      fib->data_ = new FiberData;
+      fib->data_ = new FiberData(true);
 
       state->memory()->needs_finalization(fib, (FinalizerFunction)&Fiber::finalize);
 
@@ -178,14 +99,11 @@ namespace rubinius {
       }
     }
 
-    fib->data_->orphan(&state);
-
     dest->run();
     dest->value(&state, result);
     state.vm()->set_current_fiber(dest);
 
-    fiber_context_t dummy;
-    fiber_switch(&dummy, dest->ucontext());
+    dest->data_->switch_and_orphan(&state, fib->data_);
 
     assert(0 && "fatal start_on_stack error");
 #else
@@ -238,24 +156,12 @@ namespace rubinius {
     Fiber* cur = Fiber::current(state);
     prev(state, cur);
 
-    if(data_->uninitialized_p()) {
-      FiberStack* stack = data_->allocate_stack(state);
-
-      data_->take_stack(state);
-
-      fiber_makectx(ucontext(), (void*)start_on_stack,
-                    (void**)stack->address(),
-                    stack->size());
-    } else {
-      data_->take_stack(state);
-    }
-
     cur->sleep(calling_environment);
 
     run();
     state->vm()->set_current_fiber(this);
 
-    fiber_switch(cur->ucontext(), ucontext());
+    data_->switch_to(state, cur->data_);
 
     // Back here when someone yields back to us!
     // Beware here, because the GC has probably run so GC pointers on the C++ stack
@@ -303,7 +209,7 @@ namespace rubinius {
     run();
     state->vm()->set_current_fiber(this);
 
-    fiber_switch(cur->ucontext(), ucontext());
+    data_->switch_to(state, cur->data_);
 
     // Back here when someone transfers back to us!
     // Beware here, because the GC has probably run so GC pointers on the C++ stack
@@ -352,7 +258,7 @@ namespace rubinius {
     dest_fib->run();
     state->vm()->set_current_fiber(dest_fib);
 
-    fiber_switch(cur->ucontext(), dest_fib->ucontext());
+    dest_fib->data_->switch_to(state, cur->data_);
 
     // Back here when someone yields back to us!
     // Beware here, because the GC has probably run so GC pointers on the C++ stack
@@ -377,8 +283,8 @@ namespace rubinius {
 
   void Fiber::finalize(STATE, Fiber* fib) {
 #ifdef FIBER_ENABLED
+    fib->data_->orphan(state);
     delete fib->data_;
-    // if(fib->stack_ && !fib->root_) free(fib->stack_);
 #endif
   }
 
@@ -388,9 +294,16 @@ namespace rubinius {
     mark.remember_object(obj);
 
     Fiber* fib = (Fiber*)obj;
+
+    AddressDisplacement dis(fib->data_->data_offset(),
+                            fib->data_->data_lower_bound(),
+                            fib->data_->data_upper_bound());
+
     if(CallFrame* cf = fib->call_frame()) {
-      mark.gc->walk_call_frame(cf, fib->data_->data_offset());
+      mark.gc->walk_call_frame(cf, &dis);
     }
+
+    mark.gc->scan(fib->data_->variable_root_buffers(), false, &dis);
   }
 }
 

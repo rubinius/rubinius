@@ -4,6 +4,8 @@
 #include "vm/config.h"
 #include "prelude.hpp"
 
+#include "gc/variable_buffer.hpp"
+
 namespace rubinius {
 
 #if defined(IS_X86)
@@ -55,18 +57,24 @@ namespace rubinius {
     size_t heap_size_;
     size_t heap_capacity_;
 
+    VariableRootBuffers variable_root_buffers_;
+
   public:
 
-    FiberData()
-      : status_(eInitial)
+    FiberData(bool root=false)
+      : status_(root ? eOnStack : eInitial)
       , stack_(0)
       , heap_(0)
       , heap_size_(0)
       , heap_capacity_(0)
     {}
 
+    VariableRootBuffers& variable_root_buffers() {
+      return variable_root_buffers_;
+    }
+
     bool uninitialized_p() {
-      return stack_ == 0;
+      return status_ == eInitial && stack_ == 0;
     }
 
     fiber_context_t* machine() {
@@ -96,12 +104,29 @@ namespace rubinius {
       return (intptr_t)heap_ - (intptr_t)stack_bottom();
     }
 
+    intptr_t data_lower_bound() {
+      if(status_ != eOnHeap) return 0;
+      return (intptr_t)stack_->address();
+    }
+
+    intptr_t data_upper_bound() {
+      if(status_ != eOnHeap) return 0;
+      return (intptr_t)stack_->address() + stack_->size();
+    }
+
+    bool currently_on_stack_p(FiberData* cur) {
+      return stack_ && stack_->user() == cur;
+    }
+
     FiberStack* allocate_stack(STATE);
     void take_stack(STATE);
     void copy_stack(STATE, void* addr, size_t size);
     void copy_to_heap(STATE);
 
     void orphan(STATE);
+
+    void switch_to(STATE, FiberData* from);
+    void switch_and_orphan(STATE, FiberData* from);
   };
 
 }

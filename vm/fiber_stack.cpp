@@ -34,7 +34,10 @@ namespace rubinius {
   }
 
   void FiberStack::orphan(STATE, FiberData* user) {
-    assert(user_ == user);
+    if(user == user_) {
+      user_ = 0;
+    }
+
     dec_ref();
   }
 
@@ -72,5 +75,13 @@ namespace rubinius {
     stack->inc_ref();
 
     return stack;
+  }
+
+  void* FiberStacks::trampoline() {
+    if(trampoline_ == 0) {
+      trampoline_ = malloc(cTrampolineSize);
+    }
+
+    return trampoline_;
   }
 }

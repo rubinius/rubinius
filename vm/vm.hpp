@@ -265,6 +265,12 @@ namespace rubinius {
       return fiber_stacks_.allocate();
     }
 
+    void* fiber_trampoline() {
+      return fiber_stacks_.trampoline();
+    }
+
+    VariableRootBuffers& current_root_buffers();
+
   public:
     static void init_stack_size();
 

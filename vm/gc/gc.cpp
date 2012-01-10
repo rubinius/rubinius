@@ -149,15 +149,16 @@ namespace rubinius {
   }
 
   template <typename T>
-    T displace(T ptr, intptr_t by) {
-      return (T)((char*)ptr + by);
+    T displace(T ptr, AddressDisplacement* dis) {
+      if(!dis) return ptr;
+      return dis->displace(ptr);
     }
 
   /**
    * Walks the chain of objects accessible from the specified CallFrame.
    */
   void GarbageCollector::walk_call_frame(CallFrame* top_call_frame,
-                                         intptr_t offset)
+                                         AddressDisplacement* offset)
   {
     CallFrame* call_frame = top_call_frame;
 
@@ -199,7 +200,8 @@ namespace rubinius {
         call_frame->set_block_env((BlockEnvironment*)mark_object(env));
       }
 
-      Arguments* args = call_frame->arguments;
+      Arguments* args = displace(call_frame->arguments, offset);
+
       if(!call_frame->inline_method_p() && args) {
         args->set_recv(mark_object(args->recv()));
         args->set_block(mark_object(args->block()));
@@ -207,7 +209,7 @@ namespace rubinius {
         if(Tuple* tup = args->argument_container()) {
           args->update_argument_container((Tuple*)mark_object(tup));
         } else {
-          Object** ary = args->arguments();
+          Object** ary = displace(args->arguments(), offset);
           for(uint32_t i = 0; i < args->total(); i++) {
             ary[i] = mark_object(ary[i]);
           }
@@ -262,14 +264,16 @@ namespace rubinius {
     }
   }
 
-  void GarbageCollector::scan(VariableRootBuffers& buffers, bool young_only) {
+  void GarbageCollector::scan(VariableRootBuffers& buffers,
+                              bool young_only, AddressDisplacement* offset)
+  {
     for(VariableRootBuffers::Iterator vi(buffers);
         vi.more();
         vi.advance())
     {
-      Object*** buffer = vi->buffer();
+      Object*** buffer = displace(vi->buffer(), offset);
       for(int idx = 0; idx < vi->size(); idx++) {
-        Object** var = buffer[idx];
+        Object** var = displace(buffer[idx], offset);
         Object* tmp = *var;
 
         if(tmp->reference_p() && (!young_only || tmp->young_object_p())) {

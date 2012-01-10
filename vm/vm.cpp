@@ -427,6 +427,14 @@ namespace rubinius {
     current_fiber.set(fib);
   }
 
+  VariableRootBuffers& VM::current_root_buffers() {
+    if(current_fiber->nil_p() || current_fiber->root_p()) {
+      return variable_root_buffers();
+    }
+
+    return current_fiber->variable_root_buffers();
+  }
+
   GCIndependent::GCIndependent(NativeMethodEnvironment* env)
     : state_(env->state())
   {

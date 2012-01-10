@@ -45,6 +45,10 @@ namespace rubinius {
       return user_ && refs_ > 1;
     }
 
+    FiberData* user() {
+      return user_;
+    }
+
     void set_user(FiberData* d) {
       user_ = d;
     }
@@ -59,11 +63,19 @@ namespace rubinius {
     typedef std::list<FiberStack> Stacks;
     const static size_t cStackSize = 128 * 1024;
     const static size_t cMaxStacks = 1;
+    const static size_t cTrampolineSize = 4096;
 
     Stacks stacks_;
+    void* trampoline_;
 
   public:
+    FiberStacks()
+      : trampoline_(0)
+    {}
+
     FiberStack* allocate();
+
+    void* trampoline();
   };
 }
 
