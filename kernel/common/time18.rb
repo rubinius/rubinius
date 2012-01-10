@@ -41,7 +41,7 @@ class Time
       (seconds - other.seconds) + ((usec - other.usec) * 0.000001)
     when Integer
       # Don't use self.class, MRI doesn't honor subclasses here
-      Time.specific(seconds - other, usec, @is_gmt)
+      Time.specific(seconds - other, usec * 1000, @is_gmt)
     else
       other = FloatValue(other)
 
