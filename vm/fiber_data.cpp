@@ -1,3 +1,5 @@
+#include <string.h>
+
 #include "vm/vm.hpp"
 #include "vm/fiber_data.hpp"
 #include "builtin/fiber.hpp"
