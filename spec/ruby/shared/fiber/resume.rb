@@ -16,12 +16,14 @@ describe :fiber_resume, :shared => :true do
     fiber.send(@method).should be_true
   end
 
-  it "runs until the end of the block or Fiber.yield on first invocation" do
+  it "runs until the end of the block" do
     obj = mock('obj')
     obj.should_receive(:do).once
     fiber = Fiber.new { 1 + 2; a = "glark"; obj.do }
     fiber.send(@method)
+  end
 
+  it "runs until Fiber.yield" do
     obj = mock('obj')
     obj.should_not_receive(:do)
     fiber = Fiber.new { 1 + 2; Fiber.yield; obj.do }
