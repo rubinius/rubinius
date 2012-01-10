@@ -97,6 +97,7 @@ static void fiber_makectx(fiber_context_t* ctx, void* func, void** stack_bottom,
 namespace rubinius {
 
   FiberData::~FiberData() {
+    if(heap_) free(heap_);
     if(!thread_) return;
     thread_->remove_fiber_data(this);
   }
