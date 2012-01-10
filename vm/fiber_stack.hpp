@@ -60,18 +60,20 @@ namespace rubinius {
   };
 
   class FiberStacks {
-    typedef std::list<FiberStack> Stacks;
-    const static size_t cStackSize = 128 * 1024;
-    const static size_t cMaxStacks = 1;
+  public:
     const static size_t cTrampolineSize = 4096;
+
+  private:
+    typedef std::list<FiberStack> Stacks;
+
+    size_t max_stacks_;
+    size_t stack_size_;
 
     Stacks stacks_;
     void* trampoline_;
 
   public:
-    FiberStacks()
-      : trampoline_(0)
-    {}
+    FiberStacks(SharedState& shared);
 
     FiberStack* allocate();
 

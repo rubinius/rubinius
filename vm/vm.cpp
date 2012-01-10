@@ -67,6 +67,7 @@ namespace rubinius {
     , stack_start_(0)
     , run_signals_(false)
     , thread_step_(false)
+    , fiber_stacks_(shared)
 
     , shared(shared)
     , waiting_channel_(this, (Channel*)Qnil)

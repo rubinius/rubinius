@@ -2,6 +2,8 @@
 #include "fiber_stack.hpp"
 #include "fiber_data.hpp"
 
+#include "configuration.hpp"
+
 #include "bug.hpp"
 
 #include <stdlib.h>
@@ -41,6 +43,12 @@ namespace rubinius {
     dec_ref();
   }
 
+  FiberStacks::FiberStacks(SharedState& shared)
+    : max_stacks_(shared.config.fiber_stacks)
+    , stack_size_(shared.config.fiber_stack_size)
+    , trampoline_(0)
+  {}
+
   FiberStack* FiberStacks::allocate() {
     for(Stacks::iterator i = stacks_.begin();
         i != stacks_.end();
@@ -54,8 +62,8 @@ namespace rubinius {
 
     FiberStack* stack = 0;
 
-    if(stacks_.size() < cMaxStacks) {
-      stacks_.push_back(FiberStack(cStackSize));
+    if(stacks_.size() < max_stacks_) {
+      stacks_.push_back(FiberStack(stack_size_));
       stack = &stacks_.back();
 
       stack->allocate();

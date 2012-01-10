@@ -168,7 +168,7 @@ namespace rubinius {
 
       fiber_makectx(&dest, (void*)save_and_switch,
                     (void**)state->vm()->fiber_trampoline(),
-                    4096);
+                    FiberStacks::cTrampolineSize);
 
       fiber_switch(from->machine(), &dest);
     } else {
@@ -187,7 +187,7 @@ namespace rubinius {
 
       fiber_makectx(&dest, (void*)save_and_switch,
                     (void**)state->vm()->fiber_trampoline(),
-                    4096);
+                    FiberStacks::cTrampolineSize);
 
       fiber_switch(&dummy, &dest);
     } else {

@@ -109,6 +109,14 @@ Rubinius::ConfigurationVariables.define do |c|
       "The password required to connect to the agent"
   end
 
+  c.section "fiber" do |s|
+    s.vm_variable "stacks", 10,
+      "The number of stacks in each Threads stack pool"
+
+    s.vm_variable "stack_size", 128 * 1024,
+      "The size of each stack"
+  end
+
   c.vm_variable "tool", :string,
     :as => "tool_to_load",
     :description => "Load a VM tool from a shared library"
