@@ -296,6 +296,8 @@ namespace rubinius {
 #ifdef FIBER_ENABLED
     if(!fib->data_) return;
     fib->data_->orphan(state);
+
+    if(fib->root_) fib->data_->die();
     delete fib->data_;
 #endif
   }
