@@ -67,6 +67,7 @@ namespace rubinius {
     , stack_start_(0)
     , run_signals_(false)
     , thread_step_(false)
+    , fiber_stacks_(this, shared)
 
     , shared(shared)
     , waiting_channel_(this, (Channel*)Qnil)
@@ -425,6 +426,14 @@ namespace rubinius {
     set_stack_start(fib->stack());
     set_stack_size(fib->stack_size());
     current_fiber.set(fib);
+  }
+
+  VariableRootBuffers& VM::current_root_buffers() {
+    if(current_fiber->nil_p() || current_fiber->root_p()) {
+      return variable_root_buffers();
+    }
+
+    return current_fiber->variable_root_buffers();
   }
 
   GCIndependent::GCIndependent(NativeMethodEnvironment* env)
