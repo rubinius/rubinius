@@ -269,6 +269,14 @@ namespace rubinius {
       return fiber_stacks_.trampoline();
     }
 
+    FiberData* new_fiber_data() {
+      return fiber_stacks_.new_data();
+    }
+
+    void remove_fiber_data(FiberData* data) {
+      fiber_stacks_.remove_data(data);
+    }
+
     VariableRootBuffers& current_root_buffers();
 
   public:

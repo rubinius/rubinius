@@ -65,17 +65,27 @@ namespace rubinius {
 
   private:
     typedef std::list<FiberStack> Stacks;
+    typedef std::list<FiberData*> Datas;
 
     size_t max_stacks_;
     size_t stack_size_;
 
+    VM* thread_;
     Stacks stacks_;
+    Datas datas_;
     void* trampoline_;
 
   public:
-    FiberStacks(SharedState& shared);
+    FiberStacks(VM* thread, SharedState& shared);
+    ~FiberStacks();
 
     FiberStack* allocate();
+
+    void remove_data(FiberData* data) {
+      datas_.remove(data);
+    }
+
+    FiberData* new_data();
 
     void* trampoline();
   };

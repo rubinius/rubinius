@@ -93,6 +93,12 @@ static void fiber_makectx(fiber_context_t* ctx, void* func, void** stack_bottom,
 }
 
 namespace rubinius {
+
+  FiberData::~FiberData() {
+    if(!thread_) return;
+    thread_->remove_fiber_data(this);
+  }
+
   void FiberData::take_stack(STATE) {
     assert(stack_);
 
@@ -195,5 +201,10 @@ namespace rubinius {
       take_stack(state);
       fiber_switch(&dummy, machine());
     }
+  }
+
+  void FiberData::die() {
+    status_ = eDead;
+    stack_ = 0;
   }
 }

@@ -43,11 +43,35 @@ namespace rubinius {
     dec_ref();
   }
 
-  FiberStacks::FiberStacks(SharedState& shared)
+  FiberStacks::FiberStacks(VM* thread, SharedState& shared)
     : max_stacks_(shared.config.fiber_stacks)
     , stack_size_(shared.config.fiber_stack_size)
+    , thread_(thread)
     , trampoline_(0)
   {}
+
+  FiberStacks::~FiberStacks() {
+    for(Datas::iterator i = datas_.begin();
+        i != datas_.end();
+        ++i)
+    {
+      (*i)->die();
+    }
+
+    for(Stacks::iterator i = stacks_.begin();
+        i != stacks_.end();
+        ++i)
+    {
+      i->free();
+    }
+  }
+
+  FiberData* FiberStacks::new_data() {
+    FiberData* data = new FiberData(thread_);
+    datas_.push_back(data);
+
+    return data;
+  }
 
   FiberStack* FiberStacks::allocate() {
     for(Stacks::iterator i = stacks_.begin();

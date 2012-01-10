@@ -47,9 +47,8 @@ namespace rubinius {
       fib->top_ = 0;
       fib->root_ = true;
       fib->status_ = Fiber::eRunning;
-      fib->vm_ = state->vm();
 
-      fib->data_ = new FiberData(true);
+      fib->data_ = new FiberData(state->vm(), true);
 
       state->memory()->needs_finalization(fib, (FinalizerFunction)&Fiber::finalize);
 
@@ -71,9 +70,6 @@ namespace rubinius {
     Fiber* fib = Fiber::current(&state);
 
     OnStack<1> os(&state, fib);
-
-    // Affix this fiber to this thread now.
-    fib->vm_ = vm;
 
     Array* result = nil<Array>();
     Object* obj = fib->starter()->send(&state, NULL, state.globals().sym_call.get(), fib->value(), Qnil, false);
@@ -127,10 +123,9 @@ namespace rubinius {
     fib->prev(state, nil<Fiber>());
     fib->top_ = 0;
     fib->root_ = false;
-    fib->vm_ = 0;
     fib->status_ = Fiber::eSleeping;
 
-    fib->data_ = new FiberData;
+    fib->data_ = 0;
 
     state->memory()->needs_finalization(fib, (FinalizerFunction)&Fiber::finalize);
 
@@ -142,12 +137,20 @@ namespace rubinius {
 
   Object* Fiber::resume(STATE, Arguments& args, CallFrame* calling_environment) {
 #ifdef FIBER_ENABLED
-    if(status_ == Fiber::eDead) {
+    if(!data_) {
+      data_ = state->vm()->new_fiber_data();
+    }
+
+    if(status_ == Fiber::eDead || data_->dead_p()) {
       Exception::fiber_error(state, "dead fiber called");
     }
 
     if(!prev_->nil_p()) {
       Exception::fiber_error(state, "double resume");
+    }
+
+    if(data_->thread() && data_->thread() != state->vm()) {
+      Exception::fiber_error(state, "cross thread fiber resuming is illegal");
     }
 
     Array* val = args.as_array(state);
@@ -191,8 +194,16 @@ namespace rubinius {
 
   Object* Fiber::transfer(STATE, Arguments& args, CallFrame* calling_environment) {
 #ifdef FIBER_ENABLED
-    if(status_ == Fiber::eDead) {
+    if(!data_) {
+      data_ = state->vm()->new_fiber_data();
+    }
+
+    if(status_ == Fiber::eDead || data_->dead_p()) {
       Exception::fiber_error(state, "dead fiber called");
+    }
+
+    if(data_->thread() && data_->thread() != state->vm()) {
+      Exception::fiber_error(state, "cross thread fiber resuming is illegal");
     }
 
     Array* val = args.as_array(state);
@@ -283,6 +294,7 @@ namespace rubinius {
 
   void Fiber::finalize(STATE, Fiber* fib) {
 #ifdef FIBER_ENABLED
+    if(!fib->data_) return;
     fib->data_->orphan(state);
     delete fib->data_;
 #endif
@@ -294,6 +306,8 @@ namespace rubinius {
     mark.remember_object(obj);
 
     Fiber* fib = (Fiber*)obj;
+
+    if(!fib->data_) return;
 
     AddressDisplacement dis(fib->data_->data_offset(),
                             fib->data_->data_lower_bound(),

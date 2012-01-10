@@ -26,7 +26,6 @@ namespace rubinius {
     Exception* exception_; // slot
     CallFrame* top_;
     Status status_;
-    VM* vm_;
 
     bool root_;
 
@@ -58,10 +57,6 @@ namespace rubinius {
 
     fiber_context_t* ucontext() {
       return data_->machine();
-    }
-
-    VM* vm() {
-      return vm_;
     }
 
     FiberData* data() {

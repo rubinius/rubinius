@@ -51,6 +51,7 @@ namespace rubinius {
       eDead
     } status_;
 
+    VM* thread_;
     FiberStack* stack_;
 
     void* heap_;
@@ -61,13 +62,24 @@ namespace rubinius {
 
   public:
 
-    FiberData(bool root=false)
+    FiberData(VM* thread, bool root=false)
       : status_(root ? eOnStack : eInitial)
+      , thread_(thread)
       , stack_(0)
       , heap_(0)
       , heap_size_(0)
       , heap_capacity_(0)
     {}
+
+    ~FiberData();
+
+    bool dead_p() {
+      return status_ == eDead;
+    }
+
+    VM* thread() {
+      return thread_;
+    }
 
     VariableRootBuffers& variable_root_buffers() {
       return variable_root_buffers_;
@@ -127,6 +139,8 @@ namespace rubinius {
 
     void switch_to(STATE, FiberData* from);
     void switch_and_orphan(STATE, FiberData* from);
+
+    void die();
   };
 
 }
