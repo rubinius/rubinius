@@ -112,14 +112,28 @@ module Rubinius
       name
     end
 
-    def self.module_name(mod, base_name, path=nil)
-      if path
-        name = "#{path}::#{base_name}"
+    def self.module_name(mod, name=nil, parent=nil)
+      if name and parent
+        return if mod.module_name and not mod.anonymous_parent
       else
-        name = base_name
+        return if not mod.anonymous_parent
+        parent = mod.anonymous_parent
+        name = mod.base_name
       end
 
-      mod.module_name = name.to_sym
+      if parent == Object
+        mod.module_name = name.to_sym
+      else
+        path = parent.__path__
+        if path.kind_of? Symbol
+          mod.anonymous_parent = nil
+          mod.base_name = nil
+        else
+          mod.anonymous_parent = parent
+          mod.base_name = name
+        end
+        mod.module_name = "#{path}::#{name}".to_sym
+      end
     end
   end
 end

@@ -85,7 +85,7 @@ class Module
   end
 
   def name
-    update_name_if_necessary
+    Rubinius::Type.module_name(self)
     @module_name ? @module_name.to_s : ""
   end
 
@@ -451,7 +451,7 @@ class Module
 
   def const_set(name, value)
     if Rubinius::Type.object_kind_of?(value, Module)
-      value.set_name_if_necessary(name, self)
+      Rubinius::Type.module_name(value, name, self)
     end
 
     name = Rubinius::Type.coerce_to_constant_name(name)
@@ -528,34 +528,16 @@ class Module
     raise PrimitiveFailure, "Module#=== primitive failed"
   end
 
+  def module_name
+    @module_name
+  end
+
   def module_name=(name)
     @module_name = name
   end
 
-  def update_name_if_necessary
-    if @anonymous_parent
-      path = @anonymous_parent.__path__
-      if path.kind_of? Symbol
-        Rubinius::Type.module_name(self, @base_name, path)
-        @anonymous_parent = @base_name = nil
-      end
-    end
-  end
-
-  def set_name_if_necessary(name, mod)
-    return if @module_name and not @anonymous_parent
-
-    if mod == Object
-      Rubinius::Type.module_name(self, name)
-    else
-      path = mod.__path__
-      unless path.kind_of? Symbol
-        @anonymous_parent = mod
-        @base_name = name
-      end
-      Rubinius::Type.module_name(self, name, path)
-    end
-  end
+  attr_accessor :anonymous_parent
+  attr_accessor :base_name
 
   # Is an autoload trigger defined for the given path?
   def autoload?(name)

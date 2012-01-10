@@ -58,7 +58,7 @@ class Module
   end
 
   def name
-    update_name_if_necessary
+    Rubinius::Type.module_name(self)
     @module_name ? @module_name.to_s : nil
   end
 
