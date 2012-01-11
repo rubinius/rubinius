@@ -926,6 +926,7 @@ module Rubinius
 
       def initialize(body)
         @body = body || NilLiteral.new(1)
+        @pre_exe = []
       end
 
       def push_state(g)
