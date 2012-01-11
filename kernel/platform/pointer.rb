@@ -314,6 +314,13 @@ module FFI
       raise PrimitiveFailure, "Pointer.malloc failed"
     end
 
+    def self.from_string(str)
+      ptr = new str.bytesize + 1
+      ptr.write_string str + "\0"
+
+      ptr
+    end
+
     def copy
       other = malloc total
       other.total = total
