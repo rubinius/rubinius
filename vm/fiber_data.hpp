@@ -60,6 +60,8 @@ namespace rubinius {
 
     VariableRootBuffers variable_root_buffers_;
 
+    CallFrame* call_frame_;
+
   public:
 
     FiberData(VM* thread, bool root=false)
@@ -69,12 +71,21 @@ namespace rubinius {
       , heap_(0)
       , heap_size_(0)
       , heap_capacity_(0)
+      , call_frame_(0)
     {}
 
     ~FiberData();
 
     bool dead_p() {
       return status_ == eDead;
+    }
+
+    CallFrame* call_frame() {
+      return call_frame_;
+    }
+
+    void set_call_frame(CallFrame* cf) {
+      call_frame_ = cf;
     }
 
     VM* thread() {

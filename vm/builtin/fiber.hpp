@@ -24,7 +24,6 @@ namespace rubinius {
     Array* value_; // slot
     Fiber* prev_; // slot
     Exception* exception_; // slot
-    CallFrame* top_;
     Status status_;
 
     bool root_;
@@ -42,16 +41,17 @@ namespace rubinius {
     }
 
     CallFrame* call_frame() {
-      return top_;
+      if(!data_) return 0;
+      return data_->call_frame();
     }
 
     void sleep(CallFrame* cf) {
-      top_ = cf;
+      if(data_) data_->set_call_frame(cf);
       status_ = eSleeping;
     }
 
     void run() {
-      top_ = 0;
+      if(data_) data_->set_call_frame(0);
       status_ = eRunning;
     }
 

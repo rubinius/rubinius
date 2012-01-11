@@ -44,7 +44,6 @@ namespace rubinius {
         state->memory()->remember_object(fib);
       }
       fib->prev_ = nil<Fiber>();
-      fib->top_ = 0;
       fib->root_ = true;
       fib->status_ = Fiber::eRunning;
 
@@ -76,7 +75,6 @@ namespace rubinius {
     // GC has run! Don't use stack vars!
 
     fib = Fiber::current(&state);
-    fib->top_ = 0;
     fib->status_ = Fiber::eDead;
     fib->set_ivar(&state, state.symbol("@dead"), Qtrue);
 
@@ -121,7 +119,6 @@ namespace rubinius {
     }
     fib->starter(state, callable);
     fib->prev(state, nil<Fiber>());
-    fib->top_ = 0;
     fib->root_ = false;
     fib->status_ = Fiber::eSleeping;
 
@@ -309,17 +306,21 @@ namespace rubinius {
 
     Fiber* fib = (Fiber*)obj;
 
-    if(!fib->data_) return;
+    FiberData* data = fib->data_;
 
-    AddressDisplacement dis(fib->data_->data_offset(),
-                            fib->data_->data_lower_bound(),
-                            fib->data_->data_upper_bound());
+    if(!data) return;
 
-    if(CallFrame* cf = fib->call_frame()) {
+    if(data->dead_p()) return;
+
+    AddressDisplacement dis(data->data_offset(),
+                            data->data_lower_bound(),
+                            data->data_upper_bound());
+
+    if(CallFrame* cf = data->call_frame()) {
       mark.gc->walk_call_frame(cf, &dis);
     }
 
-    mark.gc->scan(fib->data_->variable_root_buffers(), false, &dis);
+    mark.gc->scan(data->variable_root_buffers(), false, &dis);
   }
 }
 

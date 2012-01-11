@@ -145,6 +145,7 @@ namespace rubinius {
 
   void FiberData::orphan(STATE) {
     status_ = eDead;
+    call_frame_ = 0;
 
     if(!stack_) return;
 
@@ -209,6 +210,7 @@ namespace rubinius {
 
   void FiberData::die() {
     status_ = eDead;
+    call_frame_ = 0;
     thread_ = 0;
     stack_ = 0;
   }
