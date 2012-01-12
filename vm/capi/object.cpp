@@ -113,11 +113,13 @@ extern "C" {
   }
 
   VALUE rb_check_array_type(VALUE object_handle) {
-    return rb_check_convert_type(object_handle, 0, "Array", "to_ary");
+    NativeMethodEnvironment* env = NativeMethodEnvironment::get();
+    return rb_funcall(env->get_handle(env->state()->globals().type.get()), rb_intern("try_convert"), 3, object_handle, rb_cArray, rb_intern("to_ary"));
   }
 
   VALUE rb_check_string_type(VALUE object_handle) {
-    return rb_check_convert_type(object_handle, 0, "String", "to_str");
+    NativeMethodEnvironment* env = NativeMethodEnvironment::get();
+    return rb_funcall(env->get_handle(env->state()->globals().type.get()), rb_intern("try_convert"), 3, object_handle, rb_cString, rb_intern("to_str"));
   }
 
   VALUE rb_check_convert_type(VALUE object_handle, int /*type*/,
