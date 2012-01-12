@@ -1,32 +1,52 @@
 require File.expand_path('../../../spec_helper', __FILE__)
+require File.expand_path('../fixtures/classes', __FILE__)
 
-ruby_version_is "1.8.8" do
+ruby_version_is "1.9" do
   describe "Hash.try_convert" do
-    it "returns the argument if passed a Hash" do
-      h = {:foo => :glark}
-      Hash.try_convert(h).should == h
+    it "returns the argument if it's a Hash" do
+      x = Hash.new
+      Hash.try_convert(x).should equal(x)
     end
 
-    it "returns nil if the argument can't be coerced into a Hash" do
+    it "returns the argument if it's a kind of Hash" do
+      x = HashSpecs::MyHash.new
+      Hash.try_convert(x).should equal(x)
+    end
+
+    it "returns nil when the argument does not respond to #to_hash" do
       Hash.try_convert(Object.new).should be_nil
     end
 
+    it "sends #to_hash to the argument and returns the result if it's nil" do
+      obj = mock("to_hash")
+      obj.should_receive(:to_hash).and_return(nil)
+      Hash.try_convert(obj).should be_nil
+    end
+
+    it "sends #to_hash to the argument and returns the result if it's a Hash" do
+      x = Hash.new
+      obj = mock("to_hash")
+      obj.should_receive(:to_hash).and_return(x)
+      Hash.try_convert(obj).should equal(x)
+    end
+
+    it "sends #to_hash to the argument and returns the result if it's a kind of Hash" do
+      x = HashSpecs::MyHash.new
+      obj = mock("to_hash")
+      obj.should_receive(:to_hash).and_return(x)
+      Hash.try_convert(obj).should equal(x)
+    end
+
+    it "sends #to_hash to the argument and raises TypeError if it's not a kind of Hash" do
+      obj = mock("to_hash")
+      obj.should_receive(:to_hash).and_return(Object.new)
+      lambda { Hash.try_convert obj }.should raise_error(TypeError)
+    end
+
     it "does not rescue exceptions raised by #to_hash" do
-      obj = mock("to_hash raises")
+      obj = mock("to_hash")
       obj.should_receive(:to_hash).and_raise(RuntimeError)
       lambda { Hash.try_convert obj }.should raise_error(RuntimeError)
-    end
-
-    it "coerces the argument with #to_hash" do
-      obj = mock('to_hash')
-      obj.should_receive(:to_hash).and_return({:foo => :bar})
-      Hash.try_convert(obj).should == {:foo => :bar}
-    end
-
-    it "raises a TypeError if #to_hash does not return a Hash" do
-      obj = mock("to_hash invalid")
-      obj.should_receive(:to_hash).and_return(:invalid_to_hash)
-      lambda { Hash.try_convert obj }.should raise_error(TypeError)
     end
   end
 end

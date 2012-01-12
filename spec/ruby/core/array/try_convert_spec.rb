@@ -1,33 +1,52 @@
 require File.expand_path('../../../spec_helper', __FILE__)
 require File.expand_path('../fixtures/classes', __FILE__)
 
-describe "Array.try_convert" do
-  ruby_version_is "1.8.8" do
-    it "returns self for arrays" do
-      x = [1,2,3]
+ruby_version_is "1.9" do
+  describe "Array.try_convert" do
+    it "returns the argument if it's an Array" do
+      x = Array.new
       Array.try_convert(x).should equal(x)
     end
 
-    it "converts using :to_ary" do
-      arr = ArraySpecs::ArrayConvertable.new(1,2,3)
-      Array.try_convert(arr).should == [1,2,3]
-      arr.called.should == :to_ary
+    it "returns the argument if it's a kind of Array" do
+      x = ArraySpecs::MyArray[]
+      Array.try_convert(x).should equal(x)
     end
 
-    it "returns nil when there is no :to_ary" do
-      Array.try_convert(-1).should be_nil
+    it "returns nil when the argument does not respond to #to_ary" do
+      Array.try_convert(Object.new).should be_nil
     end
 
-    it "does not rescue exceptions" do
-      obj = mock("to_ary raises")
+    it "sends #to_ary to the argument and returns the result if it's nil" do
+      obj = mock("to_ary")
+      obj.should_receive(:to_ary).and_return(nil)
+      Array.try_convert(obj).should be_nil
+    end
+
+    it "sends #to_ary to the argument and returns the result if it's an Array" do
+      x = Array.new
+      obj = mock("to_ary")
+      obj.should_receive(:to_ary).and_return(x)
+      Array.try_convert(obj).should equal(x)
+    end
+
+    it "sends #to_ary to the argument and returns the result if it's a kind of Array" do
+      x = ArraySpecs::MyArray[]
+      obj = mock("to_ary")
+      obj.should_receive(:to_ary).and_return(x)
+      Array.try_convert(obj).should equal(x)
+    end
+
+    it "sends #to_ary to the argument and raises TypeError if it's not a kind of Array" do
+      obj = mock("to_ary")
+      obj.should_receive(:to_ary).and_return(Object.new)
+      lambda { Array.try_convert obj }.should raise_error(TypeError)
+    end
+
+    it "does not rescue exceptions raised by #to_ary" do
+      obj = mock("to_ary")
       obj.should_receive(:to_ary).and_raise(RuntimeError)
-      lambda{ Array.try_convert obj }.should raise_error(RuntimeError)
-    end
-
-    it "checks the result of the conversion" do
-      obj = mock('to_ary invalid')
-      obj.should_receive(:to_ary).and_return(:invalid_to_ary)
-      lambda{ Array.try_convert obj }.should raise_error(TypeError)
+      lambda { Array.try_convert obj }.should raise_error(RuntimeError)
     end
   end
 end
