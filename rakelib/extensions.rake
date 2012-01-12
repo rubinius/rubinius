@@ -177,6 +177,11 @@ compile_ext "19/openssl", :deps => ["Makefile", "extconf.h"],
 
 compile_ext "18/dl", :deps => ["Makefile", "dlconfig.h"],
                      :dir => "lib/18/dl/ext", :env => "-X18"
+
+compile_ext "18/pty", :deps => ["Makefile", "extconf.h"],
+                      :dir => "lib/18/pty/ext",
+                      :env => "-X18"
+
 compile_ext "dbm", :ignore_fail => true, :deps => ["Makefile"], :dir => "lib/dbm/ext"
 compile_ext "gdbm", :ignore_fail => true, :deps => ["Makefile"], :dir => "lib/gdbm/ext"
 compile_ext "sdbm", :deps => ["Makefile"], :dir => "lib/sdbm/ext"
