@@ -129,17 +129,6 @@ describe "CApiObject" do
     end
   end
 
-  describe "rb_check_array_type" do
-    it "tries to coerce to array, otherwise returns nil" do
-      ac = AryChild.new
-      ao = Array.new
-      h = Hash.new
-      @o.rb_check_array_type(ac).should == []
-      @o.rb_check_array_type(ao).should == []
-      @o.rb_check_array_type(h).should == nil
-    end
-  end
-
   describe "rb_check_convert_type" do
     it "tries to coerce to a type, otherwise returns nil" do
       ac = AryChild.new
@@ -152,14 +141,99 @@ describe "CApiObject" do
     end
   end
 
+  describe "rb_check_array_type" do
+    it "returns the argument if it's an Array" do
+      x = Array.new
+      @o.rb_check_array_type(x).should equal(x)
+    end
+
+    it "returns the argument if it's a kind of Array" do
+      x = AryChild.new
+      @o.rb_check_array_type(x).should equal(x)
+    end
+
+    it "returns nil when the argument does not respond to #to_ary" do
+      @o.rb_check_array_type(Object.new).should be_nil
+    end
+
+    it "sends #to_ary to the argument and returns the result if it's nil" do
+      obj = mock("to_ary")
+      obj.should_receive(:to_ary).and_return(nil)
+      @o.rb_check_array_type(obj).should be_nil
+    end
+
+    it "sends #to_ary to the argument and returns the result if it's an Array" do
+      x = Array.new
+      obj = mock("to_ary")
+      obj.should_receive(:to_ary).and_return(x)
+      @o.rb_check_array_type(obj).should equal(x)
+    end
+
+    it "sends #to_ary to the argument and returns the result if it's a kind of Array" do
+      x = AryChild.new
+      obj = mock("to_ary")
+      obj.should_receive(:to_ary).and_return(x)
+      @o.rb_check_array_type(obj).should equal(x)
+    end
+
+    it "sends #to_ary to the argument and raises TypeError if it's not a kind of Array" do
+      obj = mock("to_ary")
+      obj.should_receive(:to_ary).and_return(Object.new)
+      lambda { @o.rb_check_array_type obj }.should raise_error(TypeError)
+    end
+
+    it "does not rescue exceptions raised by #to_ary" do
+      obj = mock("to_ary")
+      obj.should_receive(:to_ary).and_raise(RuntimeError)
+      lambda { @o.rb_check_array_type obj }.should raise_error(RuntimeError)
+    end
+  end
+
   describe "rb_check_string_type" do
-    it "tries to coerce to a string, otherwise returns nil" do
-      sc = "Hello"
-      so = StrChild.new("Hello")
-      h = {:hello => :goodbye}
-      @o.rb_check_string_type(sc).should == "Hello"
-      @o.rb_check_string_type(so).should == "Hello"
-      @o.rb_check_string_type(h).should == nil
+    it "returns the argument if it's a String" do
+      x = String.new
+      @o.rb_check_string_type(x).should equal(x)
+    end
+
+    it "returns the argument if it's a kind of String" do
+      x = StrChild.new
+      @o.rb_check_string_type(x).should equal(x)
+    end
+
+    it "returns nil when the argument does not respond to #to_str" do
+      @o.rb_check_string_type(Object.new).should be_nil
+    end
+
+    it "sends #to_str to the argument and returns the result if it's nil" do
+      obj = mock("to_str")
+      obj.should_receive(:to_str).and_return(nil)
+      @o.rb_check_string_type(obj).should be_nil
+    end
+
+    it "sends #to_str to the argument and returns the result if it's a String" do
+      x = String.new
+      obj = mock("to_str")
+      obj.should_receive(:to_str).and_return(x)
+      @o.rb_check_string_type(obj).should equal(x)
+    end
+
+    it "sends #to_str to the argument and returns the result if it's a kind of String" do
+      x = StrChild.new
+      obj = mock("to_str")
+      obj.should_receive(:to_str).and_return(x)
+      @o.rb_check_string_type(obj).should equal(x)
+    end
+
+    it "sends #to_str to the argument and raises TypeError if it's not a kind of String" do
+      obj = mock("to_str")
+      obj.should_receive(:to_str).and_return(Object.new)
+      lambda { @o.rb_check_string_type obj }.should raise_error(TypeError)
+    end
+
+    it "does not rescue exceptions raised by #to_str" do
+      obj = mock("to_str")
+      obj.should_receive(:to_str).and_raise(RuntimeError)
+      lambda { @o.rb_check_string_type obj }.should raise_error(RuntimeError)
     end
   end
 
