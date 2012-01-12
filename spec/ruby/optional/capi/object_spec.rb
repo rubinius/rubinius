@@ -44,7 +44,7 @@ describe "CApiObject" do
   end
 
   describe "rb_obj_alloc" do
-    it "should allocate a new uninitialized object" do
+    it "allocates a new uninitialized object" do
       o = @o.rb_obj_alloc(CApiObjectSpecs::Alloc)
       o.class.should == CApiObjectSpecs::Alloc
       o.initialized.should be_nil
@@ -52,7 +52,7 @@ describe "CApiObject" do
   end
 
   describe "rb_obj_dup" do
-    it "should duplicate an object" do
+    it "duplicates an object" do
       obj1 = ObjectTest.new
       obj2 = @o.rb_obj_dup(obj1)
 
