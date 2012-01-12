@@ -299,17 +299,12 @@ class Array
         raise ArgumentError, "recursive array join"
       end
 
-      case x
-      when String
-        out.append x
-      when Array
-        out.append x.join(sep)
+      if str = String.try_convert(x)
+        out.append str
+      elsif ary = Array.try_convert(x)
+        out.append ary.join(sep)
       else
-        begin
-          out.append x.to_str
-        rescue NoMethodError
-          out.append x.to_s
-        end
+        out.append x.to_s
       end
 
       out.taint if x.tainted?
@@ -327,17 +322,12 @@ class Array
           raise ArgumentError, "recursive array join"
         end
 
-        case x
-        when String
-          out.append x
-        when Array
-          out.append x.join(sep)
+        if str = String.try_convert(x)
+          out.append str
+        elsif ary = Array.try_convert(x)
+          out.append ary.join(sep)
         else
-          begin
-            out.append x.to_str
-          rescue NoMethodError
-            out.append x.to_s
-          end
+          out.append x.to_s
         end
 
         out.taint if x.tainted?
