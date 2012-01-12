@@ -134,14 +134,14 @@ describe :hash_eql_additional, :shared => true do
   end
 
   it "does not call to_hash on hash subclasses" do
-    new_hash(5 => 6).send(@method, ToHashHash[5 => 6]).should be_true
+    new_hash(5 => 6).send(@method, HashSpecs::ToHashHash[5 => 6]).should be_true
   end
 
   it "ignores hash class differences" do
     h = new_hash(1 => 2, 3 => 4)
-    MyHash[h].send(@method, h).should be_true
-    MyHash[h].send(@method, MyHash[h]).should be_true
-    h.send(@method, MyHash[h]).should be_true
+    HashSpecs::MyHash[h].send(@method, h).should be_true
+    HashSpecs::MyHash[h].send(@method, HashSpecs::MyHash[h]).should be_true
+    h.send(@method, HashSpecs::MyHash[h]).should be_true
   end
 
   # Why isn't this true of eql? too ?

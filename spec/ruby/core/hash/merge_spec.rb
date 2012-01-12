@@ -33,15 +33,15 @@ describe "Hash#merge" do
   end
 
   it "does not call to_hash on hash subclasses" do
-    new_hash(3 => 4).merge(ToHashHash[1 => 2]).should == new_hash(1 => 2, 3 => 4)
+    new_hash(3 => 4).merge(HashSpecs::ToHashHash[1 => 2]).should == new_hash(1 => 2, 3 => 4)
   end
 
   it "returns subclass instance for subclasses" do
-    MyHash[1 => 2, 3 => 4].merge(new_hash(1 => 2)).should be_kind_of(MyHash)
-    MyHash[].merge(new_hash(1 => 2)).should be_kind_of(MyHash)
+    HashSpecs::MyHash[1 => 2, 3 => 4].merge(new_hash(1 => 2)).should be_kind_of(HashSpecs::MyHash)
+    HashSpecs::MyHash[].merge(new_hash(1 => 2)).should be_kind_of(HashSpecs::MyHash)
 
-    new_hash(1 => 2, 3 => 4).merge(MyHash[1 => 2]).class.should == hash_class
-    new_hash.merge(MyHash[1 => 2]).class.should == hash_class
+    new_hash(1 => 2, 3 => 4).merge(HashSpecs::MyHash[1 => 2]).class.should == hash_class
+    new_hash.merge(HashSpecs::MyHash[1 => 2]).class.should == hash_class
   end
 
   it "processes entries with same order as each()" do

@@ -25,7 +25,7 @@ describe "Hash#[]" do
   end
 
   it "calls subclass implementations of default" do
-    h = DefaultHash.new
+    h = HashSpecs::DefaultHash.new
     h[:nothing].should == 100
   end
 
@@ -173,6 +173,6 @@ describe "Hash.[]" do
   end
 
   it "returns instances of subclasses" do
-    MyHash[].should be_an_instance_of(MyHash)
+    HashSpecs::MyHash[].should be_an_instance_of(HashSpecs::MyHash)
   end
 end

@@ -22,7 +22,7 @@ describe :hash_update, :shared => true do
   end
 
   it "does not call to_hash on hash subclasses" do
-    new_hash(3 => 4).send(@method, ToHashHash[1 => 2]).should == new_hash(1 => 2, 3 => 4)
+    new_hash(3 => 4).send(@method, HashSpecs::ToHashHash[1 => 2]).should == new_hash(1 => 2, 3 => 4)
   end
 
   it "processes entries with same order as merge()" do

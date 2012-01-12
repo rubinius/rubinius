@@ -15,8 +15,8 @@ describe "Hash#initialize" do
   end
 
   it "receives the arguments passed to Hash#new" do
-    NewHash.new(:one, :two)[0].should == :one
-    NewHash.new(:one, :two)[1].should == :two
+    HashSpecs::NewHash.new(:one, :two)[0].should == :one
+    HashSpecs::NewHash.new(:one, :two)[1].should == :two
   end
 
   it "returns self" do
