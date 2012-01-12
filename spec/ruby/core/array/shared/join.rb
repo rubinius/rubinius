@@ -20,28 +20,52 @@ describe :array_join_with_default_separator, :shared => true do
     end
   end
 
+  it "returns a string formed by concatenating each String element separated by $," do
+    $, = " | "
+    ["1", "2", "3"].send(@method).should == "1 | 2 | 3"
+  end
+
   ruby_version_is ""..."1.9" do
-    it "returns a string formed by concatenating each element.to_s separated by $," do
-      $, = " | "
+    it "coerces non-String elements via #to_s" do
       obj = mock('foo')
       obj.should_receive(:to_s).and_return("foo")
-      [1, 2, 3, 4, obj].send(@method).should == '1 | 2 | 3 | 4 | foo'
+      [obj].send(@method).should == "foo"
+    end
+
+    it "raises a NoMethodError if an element does not respond to #to_s" do
+      obj = mock('o')
+      class << obj; undef :to_s; end
+      lambda { [obj].send(@method) }.should raise_error(NoMethodError)
     end
   end
 
   ruby_version_is "1.9" do
-    it "returns a string formed by concatenating each element.to_str separated by $," do
-      $, = " | "
+    it "attempts coercion via #to_str first" do
       obj = mock('foo')
-      obj.should_receive(:to_str).and_return("foo")
-      [1, 2, 3, 4, obj].send(@method).should == '1 | 2 | 3 | 4 | foo'
+      obj.should_receive(:to_str).any_number_of_times.and_return("foo")
+      [obj].send(@method).should == "foo"
     end
-  end
 
-  it "raises a NoMethodError if an element does not respond to #to_s" do
-    obj = mock('o')
-    class << obj; undef :to_s; end
-    lambda { [1, obj].send(@method) }.should raise_error(NoMethodError)
+    it "attempts coercion via #to_ary second" do
+      obj = mock('foo')
+      obj.should_receive(:to_str).any_number_of_times.and_return(nil)
+      obj.should_receive(:to_ary).any_number_of_times.and_return(["foo"])
+      [obj].send(@method).should == "foo"
+    end
+
+    it "attempts coercion via #to_s third" do
+      obj = mock('foo')
+      obj.should_receive(:to_str).any_number_of_times.and_return(nil)
+      obj.should_receive(:to_ary).any_number_of_times.and_return(nil)
+      obj.should_receive(:to_s).any_number_of_times.and_return("foo")
+      [obj].send(@method).should == "foo"
+    end
+
+    it "raises a NoMethodError if an element does not respond to #to_str, #to_ary, or #to_s" do
+      obj = mock('o')
+      class << obj; undef :to_s; end
+      lambda { [1, obj].send(@method) }.should raise_error(NoMethodError)
+    end
   end
 
   ruby_version_is "".."1.9" do
