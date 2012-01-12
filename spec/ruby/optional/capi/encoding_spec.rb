@@ -191,6 +191,14 @@ ruby_version_is "1.9" do
     end
 
     describe "rb_default_internal_encoding" do
+      before :each do
+        @default = Encoding.default_internal
+      end
+
+      after :each do
+        Encoding.default_internal = @default
+      end
+
       it "returns 0 if Encoding.default_internal is nil" do
         Encoding.default_internal = nil
         @s.rb_default_internal_encoding.should be_nil
@@ -201,6 +209,21 @@ ruby_version_is "1.9" do
         @s.rb_default_internal_encoding.should == "US-ASCII"
         Encoding.default_internal = "UTF-8"
         @s.rb_default_internal_encoding.should == "UTF-8"
+      end
+    end
+
+    describe "rb_default_external_encoding" do
+      before :each do
+        @default = Encoding.default_external
+      end
+
+      after :each do
+        Encoding.default_external = @default
+      end
+
+      it "returns the encoding for Encoding.default_external" do
+        Encoding.default_external = "BINARY"
+        @s.rb_default_external_encoding.should == "ASCII-8BIT"
       end
     end
 
