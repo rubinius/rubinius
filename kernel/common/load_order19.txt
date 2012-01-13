@@ -107,6 +107,7 @@ symbol.rbc
 symbol19.rbc
 thread.rbc
 thread_group.rbc
+mutex.rbc
 throw_catch.rbc
 throw_catch19.rbc
 time.rbc
