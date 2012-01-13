@@ -50,7 +50,7 @@ namespace rubinius {
     // in ruby.
     if(parent_) {
       VariableScope* scope = parent_;
-      while(RTEST(scope->parent())) {
+      while(CBOOL(scope->parent())) {
         scope = scope->parent();
       }
 
@@ -73,7 +73,7 @@ namespace rubinius {
     // last_match.
     if(parent_) {
       VariableScope* scope = parent_;
-      while(RTEST(scope->parent())) {
+      while(CBOOL(scope->parent())) {
         scope = scope->parent();
       }
 

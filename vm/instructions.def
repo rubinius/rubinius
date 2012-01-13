@@ -112,7 +112,7 @@ end
 
 instruction goto_if_false(location) [ value -- ] => branch
   Object* t1 = stack_pop();
-  if(!RTEST(t1)) {
+  if(!CBOOL(t1)) {
     call_frame->set_ip(location);
     cache_ip(location);
     DISPATCH;
@@ -128,7 +128,7 @@ end
 
 instruction goto_if_true(location) [ value -- ] => branch
   Object* t1 = stack_pop();
-  if(RTEST(t1)) {
+  if(CBOOL(t1)) {
     call_frame->set_ip(location);
     cache_ip(location);
     DISPATCH;
@@ -720,7 +720,7 @@ section "Manipulate instance variables"
 #   value popped off the stack is then pushed back on again.
 
 instruction set_ivar(index) [ value -- value ]
-  if(RTEST(call_frame->self()->frozen_p(state))) {
+  if(CBOOL(call_frame->self()->frozen_p(state))) {
     Exception::frozen_error(state, call_frame);
     RUN_EXCEPTION();
   }
@@ -1272,7 +1272,7 @@ instruction cast_for_multi_block_arg() [ -- array ]
     Object* obj = call_frame->arguments->get_argument(0);
     if(kind_of<Array>(obj)) {
       stack_push(obj);
-    } else if(RTEST(obj->respond_to(state, state->symbol("to_ary"), Qfalse))) {
+    } else if(CBOOL(obj->respond_to(state, state->symbol("to_ary"), Qfalse))) {
       obj = obj->send(state, call_frame, state->symbol("to_ary"));
       if(kind_of<Array>(obj)) {
         stack_push(obj);
@@ -1314,7 +1314,7 @@ instruction cast_for_splat_block_arg() [ -- arguments ]
        * to be called and its return value ignored. Ultimately, the original
        * object itself is wrapped in an Array and passed to the block.
        */
-      if(RTEST(obj->respond_to(state, state->symbol("to_ary"), Qfalse))) {
+      if(CBOOL(obj->respond_to(state, state->symbol("to_ary"), Qfalse))) {
         Object* ignored = obj->send(state, call_frame, state->symbol("to_ary"));
         if(!kind_of<Array>(ignored)) {
           Exception::type_error(state, "to_ary must return an Array", call_frame);
@@ -2115,7 +2115,7 @@ end
 #   Used to implement `block_given?` without having to directly expose
 #   the block object itself. This simplifies JIT inlining.
 instruction push_has_block() [ -- value ]
-  stack_push(RTEST(call_frame->scope->block()) ? Qtrue : Qfalse);
+  stack_push(CBOOL(call_frame->scope->block()) ? Qtrue : Qfalse);
 end
 
 # [Description]
@@ -2134,7 +2134,7 @@ instruction push_proc() [ -- value ]
   }
 
   Object* obj = call_frame->arguments->block();
-  if(RTEST(obj)) {
+  if(CBOOL(obj)) {
     Object* prc = Proc::from_env(state, G(proc), obj);
     if(prc == Primitives::failure()) {
       Exception::internal_error(state, call_frame, "invalid block type");

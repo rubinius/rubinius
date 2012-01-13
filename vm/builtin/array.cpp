@@ -101,7 +101,7 @@ namespace rubinius {
   Array* Array::to_ary(STATE, Object* value, CallFrame* call_frame) {
     if(Tuple* tup = try_as<Tuple>(value)) {
       return Array::from_tuple(state, tup);
-    } else if(RTEST(value->respond_to(state, state->symbol("to_ary"), Qtrue))) {
+    } else if(CBOOL(value->respond_to(state, state->symbol("to_ary"), Qtrue))) {
       Arguments args(state->symbol("to_ary"), value, 0, 0);
       Dispatch dis(args.name());
 

@@ -497,7 +497,7 @@ namespace rubinius {
       }
       break;
     case RBX_FFI_TYPE_BOOL:
-      if(RTEST(obj)) {
+      if(CBOOL(obj)) {
         *((ffi_arg*)retval) = 1;
       } else {
         *((ffi_arg*)retval) = 0;
@@ -685,7 +685,7 @@ namespace rubinius {
       case RBX_FFI_TYPE_BOOL: {
         unsigned char* tmp = ALLOCA(unsigned char);
         obj = args.get_argument(i);
-        *tmp = (unsigned char)RTEST(obj);
+        *tmp = (unsigned char)CBOOL(obj);
         values[i] = tmp;
         break;
       }
@@ -822,7 +822,7 @@ namespace rubinius {
               memcpy(data, so->c_str(state), size);
               data[size] = 0;
               *tmp = data;
-            } else if(RTEST(obj->respond_to(state, state->symbol("to_ptr"), Qtrue))) {
+            } else if(CBOOL(obj->respond_to(state, state->symbol("to_ptr"), Qtrue))) {
               Object* o2 = obj->send(state, call_frame, state->symbol("to_ptr"));
               type_assert(state, o2, PointerType, "converting to pointer");
               mp = as<Pointer>(o2);

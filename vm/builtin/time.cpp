@@ -87,7 +87,7 @@ namespace rubinius {
       tm->nanoseconds_ -= (tm->nanoseconds_ % 1000);
     }
 
-    tm->is_gmt(state, RTEST(gmt) ? Qtrue : Qfalse);
+    tm->is_gmt(state, CBOOL(gmt) ? Qtrue : Qfalse);
 
     return tm;
   }
@@ -136,7 +136,7 @@ namespace rubinius {
 
     time_t seconds = -1;
 
-    if(RTEST(from_gmt)) {
+    if(CBOOL(from_gmt)) {
       seconds = ::timegm(&tm);
     } else {
       tzset();
@@ -155,7 +155,7 @@ namespace rubinius {
     Time* obj = state->new_object<Time>(as<Class>(self));
     obj->seconds_ = seconds;
     obj->nanoseconds_ = nsec->to_native();
-    obj->is_gmt(state, RTEST(from_gmt) ? Qtrue : Qfalse);
+    obj->is_gmt(state, CBOOL(from_gmt) ? Qtrue : Qfalse);
 
     return obj;
   }
@@ -174,7 +174,7 @@ namespace rubinius {
     time_t seconds = seconds_;
     struct tm tm = {0};
 
-    if(RTEST(use_gmt)) {
+    if(CBOOL(use_gmt)) {
       gmtime_r(&seconds, &tm);
     } else {
       tzset();
@@ -214,7 +214,7 @@ namespace rubinius {
 
     time_t seconds = seconds_;
 
-    if(RTEST(is_gmt_)) {
+    if(CBOOL(is_gmt_)) {
       is_gmt = 1;
       gmtime_r(&seconds, &tm);
     } else {

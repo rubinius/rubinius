@@ -426,7 +426,7 @@ namespace rubinius {
 
     int* back_match = onig_data->int_map_backward;
 
-    if(!RTEST(forward)) {
+    if(!CBOOL(forward)) {
       beg = onig_search(onig_data, str, str + max,
                         str + i_end,
                         str + i_start,
@@ -739,7 +739,7 @@ namespace rubinius {
 
   Object* Regexp::propagate_last_match(STATE, CallFrame* call_frame) {
     Object* obj = call_frame->last_match(state);
-    if(RTEST(obj)) {
+    if(CBOOL(obj)) {
       Regexp::set_last_match(state, obj, call_frame);
     }
     return obj;

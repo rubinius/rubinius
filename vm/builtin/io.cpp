@@ -493,7 +493,7 @@ namespace rubinius {
 
     // Flush the buffer to disk if it's not write sync'd
     if(IOBuffer* buf = try_as<IOBuffer>(io->ibuffer())) {
-      if(!RTEST(buf->write_synced())) {
+      if(!CBOOL(buf->write_synced())) {
         native_int start = buf->start()->to_native();
         native_int used = buf->used()->to_native();
         native_int bytes = used - start;

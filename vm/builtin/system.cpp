@@ -494,7 +494,7 @@ namespace rubinius {
     // in File#ininitialize). If we decided to ignore some GC.start calls
     // by usercode trying to be clever, we can use force to know that we
     // should NOT ignore it.
-    if(RTEST(force) || state->shared().config.gc_honor_start) {
+    if(CBOOL(force) || state->shared().config.gc_honor_start) {
       state->memory()->collect_young_now = true;
       state->memory()->collect_mature_now = true;
       state->shared().gc_soon();
@@ -549,7 +549,7 @@ namespace rubinius {
                               CallFrame* calling_environment) {
     CallFrame* call_frame = calling_environment;
 
-    bool include_vars = RTEST(inc_vars);
+    bool include_vars = CBOOL(inc_vars);
 
     for(native_int i = skip->to_native(); call_frame && i > 0; --i) {
       call_frame = static_cast<CallFrame*>(call_frame->previous);
@@ -888,7 +888,7 @@ namespace rubinius {
       Tuple* lits = method->literals();
       for(native_int i = 0; i < lits->num_fields(); i++) {
         if(Symbol* sym = try_as<Symbol>(lits->at(state, i))) {
-          if(RTEST(sym->is_ivar_p(state))) {
+          if(CBOOL(sym->is_ivar_p(state))) {
             if(!ary->includes_p(state, sym)) ary->append(state, sym);
           }
         }
@@ -991,7 +991,7 @@ namespace rubinius {
 
     int total = 0;
 
-    bool disable = RTEST(o_disable);
+    bool disable = CBOOL(o_disable);
 
     while(obj) {
       if(CompiledMethod* cm = try_as<CompiledMethod>(obj)) {

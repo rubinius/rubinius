@@ -632,7 +632,7 @@ namespace rubinius {
     // Use information we have to reduce repeated allocation.
     str.reserve(array_size * 4);
 
-    if(RTEST(directives->tainted_p(state))) tainted = true;
+    if(CBOOL(directives->tainted_p(state))) tainted = true;
 
 static const short _eof_actions[] = {
 	0, 1, 3, 3, 7, 7, 9, 9, 
@@ -9562,7 +9562,7 @@ f7:
     if(!string_value) return 0;
   }
 	{
-    if(RTEST(string_value->tainted_p(state))) tainted = true;
+    if(CBOOL(string_value->tainted_p(state))) tainted = true;
     native_int size = string_value->byte_size();
     if(rest) count = size;
     if(count <= size) {
@@ -9594,7 +9594,7 @@ f59:
     if(!string_value) return 0;
   }
 	{
-    if(RTEST(string_value->tainted_p(state))) tainted = true;
+    if(CBOOL(string_value->tainted_p(state))) tainted = true;
     native_int size = string_value->byte_size();
     if(rest) count = size;
     if(count <= size) {
@@ -9626,7 +9626,7 @@ f57:
     if(!string_value) return 0;
   }
 	{
-    if(RTEST(string_value->tainted_p(state))) tainted = true;
+    if(CBOOL(string_value->tainted_p(state))) tainted = true;
     native_int size = string_value->byte_size();
     if(rest) count = size;
     if(count <= size) {
@@ -9719,7 +9719,7 @@ f134:
     if(!string_value) return 0;
   }
 	{
-    if(RTEST(string_value->tainted_p(state))) tainted = true;
+    if(CBOOL(string_value->tainted_p(state))) tainted = true;
     native_int size = string_value->byte_size();
     if(rest) count = size;
     if(count <= size) {
@@ -9754,7 +9754,7 @@ f102:
     if(!string_value) return 0;
   }
 	{
-    if(RTEST(string_value->tainted_p(state))) tainted = true;
+    if(CBOOL(string_value->tainted_p(state))) tainted = true;
     native_int size = string_value->byte_size();
     if(rest) count = size;
     if(count <= size) {
@@ -9789,7 +9789,7 @@ f104:
     if(!string_value) return 0;
   }
 	{
-    if(RTEST(string_value->tainted_p(state))) tainted = true;
+    if(CBOOL(string_value->tainted_p(state))) tainted = true;
     native_int size = string_value->byte_size();
     if(rest) count = size;
     if(count <= size) {
@@ -11131,7 +11131,7 @@ _again:
     if(!string_value) return 0;
   }
 	{
-    if(RTEST(string_value->tainted_p(state))) tainted = true;
+    if(CBOOL(string_value->tainted_p(state))) tainted = true;
     native_int size = string_value->byte_size();
     if(rest) count = size;
     if(count <= size) {
@@ -11166,7 +11166,7 @@ _again:
     if(!string_value) return 0;
   }
 	{
-    if(RTEST(string_value->tainted_p(state))) tainted = true;
+    if(CBOOL(string_value->tainted_p(state))) tainted = true;
     native_int size = string_value->byte_size();
     if(rest) count = size;
     if(count <= size) {
@@ -11201,7 +11201,7 @@ _again:
     if(!string_value) return 0;
   }
 	{
-    if(RTEST(string_value->tainted_p(state))) tainted = true;
+    if(CBOOL(string_value->tainted_p(state))) tainted = true;
     native_int size = string_value->byte_size();
     if(rest) count = size;
     if(count <= size) {
@@ -11303,7 +11303,7 @@ _again:
     if(!string_value) return 0;
   }
 	{
-    if(RTEST(string_value->tainted_p(state))) tainted = true;
+    if(CBOOL(string_value->tainted_p(state))) tainted = true;
     native_int size = string_value->byte_size();
     if(rest) count = size;
     if(count <= size) {
@@ -11341,7 +11341,7 @@ _again:
     if(!string_value) return 0;
   }
 	{
-    if(RTEST(string_value->tainted_p(state))) tainted = true;
+    if(CBOOL(string_value->tainted_p(state))) tainted = true;
     native_int size = string_value->byte_size();
     if(rest) count = size;
     if(count <= size) {
@@ -11379,7 +11379,7 @@ _again:
     if(!string_value) return 0;
   }
 	{
-    if(RTEST(string_value->tainted_p(state))) tainted = true;
+    if(CBOOL(string_value->tainted_p(state))) tainted = true;
     native_int size = string_value->byte_size();
     if(rest) count = size;
     if(count <= size) {

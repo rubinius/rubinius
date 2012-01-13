@@ -331,7 +331,7 @@ extern "C" {
       Object* obj = args.get_argument(0);
       if(Array* ary = try_as<Array>(obj)) {
         args.use_array(ary);
-      } else if(RTEST(obj->respond_to(state, state->symbol("to_ary"), Qfalse))) {
+      } else if(CBOOL(obj->respond_to(state, state->symbol("to_ary"), Qfalse))) {
         obj = obj->send(state, call_frame, state->symbol("to_ary"));
         if(Array* ary2 = try_as<Array>(obj)) {
           args.use_array(ary2);
@@ -350,7 +350,7 @@ extern "C" {
   {
     Array* ary = try_as<Array>(obj);
 
-    if(!ary && RTEST(obj->respond_to(state, state->symbol("to_ary"), Qfalse))) {
+    if(!ary && CBOOL(obj->respond_to(state, state->symbol("to_ary"), Qfalse))) {
       obj = obj->send(state, call_frame, state->symbol("to_ary"));
       if(Array* ary2 = try_as<Array>(obj)) {
         ary = ary2;
@@ -404,7 +404,7 @@ extern "C" {
          * to be called and its return value ignored. Ultimately, the original
          * object itself is wrapped in an Array and passed to the block.
          */
-        if(RTEST(obj->respond_to(state, state->symbol("to_ary"), Qfalse))) {
+        if(CBOOL(obj->respond_to(state, state->symbol("to_ary"), Qfalse))) {
           Object* ignored = obj->send(state, call_frame, state->symbol("to_ary"));
           if(!kind_of<Array>(ignored)) {
             Exception::type_error(state, "to_ary must return an Array", call_frame);
@@ -432,7 +432,7 @@ extern "C" {
       Object* obj = args.get_argument(0);
       if(kind_of<Array>(obj)) {
         return obj;
-      } else if(RTEST(obj->respond_to(state, state->symbol("to_ary"), Qfalse))) {
+      } else if(CBOOL(obj->respond_to(state, state->symbol("to_ary"), Qfalse))) {
         obj = obj->send(state, call_frame, state->symbol("to_ary"));
         if(kind_of<Array>(obj)) {
           return obj;
@@ -475,7 +475,7 @@ extern "C" {
          * to be called and its return value ignored. Ultimately, the original
          * object itself is wrapped in an Array and passed to the block.
          */
-        if(RTEST(obj->respond_to(state, state->symbol("to_ary"), Qfalse))) {
+        if(CBOOL(obj->respond_to(state, state->symbol("to_ary"), Qfalse))) {
           Object* ignored = obj->send(state, call_frame, state->symbol("to_ary"));
           if(!kind_of<Array>(ignored)) {
             Exception::type_error(state, "to_ary must return an Array", call_frame);
@@ -516,7 +516,7 @@ extern "C" {
 
       if(kind_of<Array>(obj)) {
         // Nothing! it's good.
-      } else if(RTEST(obj->respond_to(state, state->symbol("to_ary"), Qfalse))) {
+      } else if(CBOOL(obj->respond_to(state, state->symbol("to_ary"), Qfalse))) {
         obj = obj->send(state, call_frame, state->symbol("to_ary"));
         if(!kind_of<Array>(obj)) {
           Exception::type_error(state, "to_ary must return an Array", call_frame);
@@ -1420,7 +1420,7 @@ extern "C" {
 
   Object* rbx_make_proc(STATE, CallFrame* call_frame) {
     Object* obj = call_frame->scope->block();
-    if(RTEST(obj)) {
+    if(CBOOL(obj)) {
       Object* prc = Proc::from_env(state, G(proc), obj);
       if(prc == Primitives::failure()) {
         Exception::internal_error(state, call_frame, "invalid block type");

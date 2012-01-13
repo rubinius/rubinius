@@ -342,7 +342,7 @@ namespace agent {
 
           output.e().write_tuple(3);
           output.e().write_atom("user");
-          output.e().write_atom(RTEST(vm->thread->sleep()) ? "sleep" : "run");
+          output.e().write_atom(CBOOL(vm->thread->sleep()) ? "sleep" : "run");
           output.e().write_binary(ss.str().c_str());
         } else {
           output.e().write_tuple(2);
@@ -393,7 +393,7 @@ namespace agent {
       if(val->string_p()) {
         output.ok("value");
         String* path = String::create(state_, val->string());
-        if(RTEST(System::vm_dump_heap(state_, path))) {
+        if(CBOOL(System::vm_dump_heap(state_, path))) {
           output.e().write_atom("ok");
         } else {
           output.e().write_atom("error");

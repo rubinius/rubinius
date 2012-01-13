@@ -310,7 +310,7 @@ namespace rubinius {
   }
 
   Object* Thread::set_critical(STATE, Object* obj) {
-    if(RTEST(obj)) {
+    if(CBOOL(obj)) {
       state->shared().set_critical(state);
       return Qtrue;
     } else {

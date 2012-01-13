@@ -745,7 +745,7 @@ namespace rubinius {
   }
 
   Object* Bignum::pow(STATE, Bignum *exponent) {
-    if(!LANGUAGE_18_ENABLED(state) && RTEST(exponent->lt(state, Fixnum::from(0)))) {
+    if(!LANGUAGE_18_ENABLED(state) && CBOOL(exponent->lt(state, Fixnum::from(0)))) {
       return Primitives::failure();
     }
 

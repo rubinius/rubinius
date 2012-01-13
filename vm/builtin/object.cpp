@@ -780,7 +780,7 @@ namespace rubinius {
 
   Object* Object::respond_to(STATE, Symbol* name, Object* priv) {
     LookupData lookup(this, lookup_begin(state));
-    lookup.priv = RTEST(priv);
+    lookup.priv = CBOOL(priv);
 
     Dispatch dis(name);
 

@@ -622,7 +622,7 @@ namespace rubinius {
         continue;
       } else if(seq == '-') {
         native_int max = ++i < bytes ? str[i] : -1;
-        if(max >= 0 && chr > max && RTEST(invalid_as_empty)) {
+        if(max >= 0 && chr > max && CBOOL(invalid_as_empty)) {
           i++;
         } else if(max >= 0) {
           do {
@@ -669,7 +669,7 @@ namespace rubinius {
     Object** tbl_ptr = tbl->field;
 
     kcode::table* kcode_tbl = 0;
-    if(RTEST(respect_kcode)) {
+    if(CBOOL(respect_kcode)) {
       kcode_tbl = state->shared().kcode_table();
     } else {
       kcode_tbl = kcode::null_table();
@@ -1197,7 +1197,7 @@ namespace rubinius {
     }
 
     output->klass(state, class_object(state));
-    if(RTEST(tainted_p(state))) output->taint(state);
+    if(CBOOL(tainted_p(state))) output->taint(state);
 
     return output;
   }

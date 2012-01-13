@@ -104,7 +104,11 @@ const int cUndef = 0x22L;
 #define TRUE_P(v)  (((Object*)(v)) == Qtrue)
 #define NIL_P(v)   (((Object*)(v)) == Qnil)
 #define UNDEF_P(v) ((Object*)(v) == Qundef)
-#define RTEST(v)   (((uintptr_t)(v) & FALSE_MASK) != (uintptr_t)Qfalse)
+
+/* Use of cFalse is necessary to avoid the C-API Qfalse definition from being
+ * picked up when CBOOL is used together with C-API definitions in ruby.h.
+ */
+#define CBOOL(v)   (((uintptr_t)(v) & FALSE_MASK) != (uintptr_t)cFalse)
 
 #define SIZE_OF_OBJECT ((size_t)(sizeof(ObjectHeader*)))
 

@@ -79,7 +79,7 @@ namespace rubinius {
     Object* ret = unit->test_condition()->execute(
              state, call_frame, unit->test_condition(), exec, mod, args);
     if(!ret) return ret;
-    if(RTEST(ret)) {
+    if(CBOOL(ret)) {
       return unit->test_then()->execute(state, call_frame, unit->test_then(), exec, mod, args);
     } else {
       return unit->test_else()->execute(state, call_frame, unit->test_else(), exec, mod, args);

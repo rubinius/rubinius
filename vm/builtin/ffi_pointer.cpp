@@ -166,7 +166,7 @@ namespace rubinius {
   }
 
   Integer* Pointer::read_char(STATE, Object* sign) {
-    if(RTEST(sign)) {
+    if(CBOOL(sign)) {
       return Integer::from(state, *(char*)pointer);
     } else {
       return Integer::from(state, *(unsigned char*)pointer);
@@ -180,7 +180,7 @@ namespace rubinius {
   }
 
   Integer* Pointer::read_short(STATE, Object* sign) {
-    if(RTEST(sign)) {
+    if(CBOOL(sign)) {
       return Integer::from(state, *(short*)pointer);
     } else {
       return Integer::from(state, *(unsigned short*)pointer);
@@ -193,7 +193,7 @@ namespace rubinius {
   }
 
   Integer* Pointer::read_int(STATE, Object* sign) {
-    if(RTEST(sign)) {
+    if(CBOOL(sign)) {
       return Integer::from(state, *(int*)pointer);
     } else {
       return Integer::from(state, *(unsigned int*)pointer);
@@ -206,7 +206,7 @@ namespace rubinius {
   }
 
   Integer* Pointer::read_long(STATE, Object* sign) {
-    if(RTEST(sign)) {
+    if(CBOOL(sign)) {
       return Integer::from(state, *(long*)pointer);
     } else {
       return Integer::from(state, *(unsigned long*)pointer);
@@ -219,7 +219,7 @@ namespace rubinius {
   }
 
   Integer* Pointer::read_long_long(STATE, Object* sign) {
-    if(RTEST(sign)) {
+    if(CBOOL(sign)) {
       return Integer::from(state, *(long long*)pointer);
     } else {
       return Integer::from(state, *(unsigned long long*)pointer);
@@ -396,7 +396,7 @@ namespace rubinius {
       WRITE(unsigned char, as<Fixnum>(val)->to_native());
       break;
     case RBX_FFI_TYPE_BOOL:
-      WRITE(unsigned char, RTEST(val) ? 1 : 0);
+      WRITE(unsigned char, CBOOL(val) ? 1 : 0);
       break;
     case RBX_FFI_TYPE_SHORT:
       type_assert(state, val, FixnumType, "converting to short");
