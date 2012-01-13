@@ -598,6 +598,10 @@ class String
     modify!
 
     if other.kind_of? Integer
+      if encoding == Encoding::US_ASCII and other >= 128 and other < 256
+        force_encoding(Encoding::ASCII_8BIT)
+      end
+
       other = other.chr(encoding)
     else
       other = StringValue(other)
