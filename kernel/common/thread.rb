@@ -117,4 +117,15 @@ class Thread
     end
   end
 
+  def backtrace
+    mri_backtrace.map do |tup|
+      cm = tup[0]
+      line = tup[1]
+      is_block = tup[2]
+      name = tup[3]
+
+      "#{cm.active_path}:#{line}:in `#{name}'"
+    end
+  end
+
 end
