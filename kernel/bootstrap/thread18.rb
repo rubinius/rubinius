@@ -1,6 +1,11 @@
 # -*- encoding: us-ascii -*-
 
 class Thread
+  def self.set_critical(obj)
+    Rubinius.primitive :thread_set_critical
+    Kernel.raise PrimitiveFailure, "Thread.set_critical failed"
+  end
+
   def self.start(*args)
     thr = Rubinius.invoke_primitive :thread_allocate, self
 
@@ -24,5 +29,22 @@ class Thread
 
   class << self
     alias_method :fork, :start
+  end
+
+  def self.stop
+    # Make sure that if we're stopping the current Thread,
+    # others can run, so reset critical.
+    Thread.critical = false
+    sleep
+    nil
+  end
+
+  def self.critical
+    @critical
+  end
+
+  def self.critical=(value)
+    set_critical value
+    @critical = !!value
   end
 end
