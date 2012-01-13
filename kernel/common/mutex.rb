@@ -62,4 +62,13 @@ class Mutex
       unlock
     end
   end
+
+  def sleep(duration=undefined)
+    unlock
+    begin
+      Kernel.sleep(duration)
+    ensure
+      lock
+    end
+  end
 end
