@@ -158,6 +158,18 @@ VALUE string_spec_rb_str_new_cstr(VALUE self, VALUE str) {
 }
 #endif
 
+#ifdef HAVE_RB_EXTERNAL_STR_NEW
+VALUE string_spec_rb_external_str_new(VALUE self, VALUE str) {
+  return rb_external_str_new(RSTRING_PTR(str), RSTRING_LEN(str));
+}
+#endif
+
+#ifdef HAVE_RB_EXTERNAL_STR_NEW_CSTR
+VALUE string_spec_rb_external_str_new_cstr(VALUE self, VALUE str) {
+  return rb_external_str_new_cstr(RSTRING_PTR(str));
+}
+#endif
+
 #ifdef HAVE_RB_STR_NEW3
 VALUE string_spec_rb_str_new3(VALUE self, VALUE str) {
   return rb_str_new3(str);
@@ -490,6 +502,15 @@ void Init_string_spec() {
 
 #ifdef HAVE_RB_STR_NEW_CSTR
   rb_define_method(cls, "rb_str_new_cstr", string_spec_rb_str_new_cstr, 1);
+#endif
+
+#ifdef HAVE_RB_EXTERNAL_STR_NEW
+  rb_define_method(cls, "rb_external_str_new", string_spec_rb_external_str_new, 1);
+#endif
+
+#ifdef HAVE_RB_EXTERNAL_STR_NEW_CSTR
+  rb_define_method(cls, "rb_external_str_new_cstr",
+                   string_spec_rb_external_str_new_cstr, 1);
 #endif
 
 #ifdef HAVE_RB_STR_NEW3

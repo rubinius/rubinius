@@ -512,3 +512,40 @@ describe "C-API String function" do
     end
   end
 end
+
+ruby_version_is "1.9" do
+  describe :rb_external_str_new, :shared => true do
+    it "returns a String in the default external encoding" do
+      Encoding.default_external = "IBM857"
+      @s.send(@method, "abc").encoding.should == Encoding::IBM857
+    end
+
+    it "returns an ASCII-8BIT encoded string if any non-ascii bytes are present and default external is US-ASCII" do
+      Encoding.default_external = "US-ASCII"
+      @s.send(@method, "\x80abc").encoding.should == Encoding::ASCII_8BIT
+    end
+
+    it "returns a tainted String" do
+      @s.send(@method, "abc").tainted?.should be_true
+    end
+  end
+
+  describe "C-API String function" do
+    before :each do
+      @s = CApiStringSpecs.new
+      @encoding = Encoding.default_external
+    end
+
+    after :each do
+      Encoding.default_external = @encoding
+    end
+
+    describe "rb_external_str_new" do
+      it_behaves_like :rb_external_str_new, :rb_external_str_new
+    end
+
+    describe "rb_external_str_new_cstr" do
+      it_behaves_like :rb_external_str_new, :rb_external_str_new_cstr
+    end
+  end
+end
