@@ -8,6 +8,8 @@
 #include "capi/19/include/ruby/ruby.h"
 #include "capi/19/include/ruby/encoding.h"
 
+#include "builtin/encoding.hpp"
+
 #include <string.h>
 
 using namespace rubinius;
@@ -28,6 +30,28 @@ extern "C" {
 
   VALUE rb_usascii_str_new_cstr(const char* ptr) {
     return rb_enc_str_new(ptr, strlen(ptr), rb_usascii_encoding());
+  }
+
+  VALUE rb_external_str_new(const char* string, long size) {
+    NativeMethodEnvironment* env = NativeMethodEnvironment::get();
+
+    String* str = String::create(env->state(), string, size);
+    str->taint(env->state());
+
+    Encoding* enc = Encoding::default_external(env->state());
+    if(enc == Encoding::usascii_encoding(env->state())
+       && !CBOOL(str->ascii_only_p(env->state()))) {
+      str->encoding(env->state(), Encoding::ascii8bit_encoding(env->state()));
+    } else {
+      str->encoding(env->state(), enc);
+    }
+
+    // TODO: handle transcoding if necessary
+    return env->get_handle(str);
+  }
+
+  VALUE rb_external_str_new_cstr(const char* string) {
+    return rb_external_str_new(string, strlen(string));
   }
 
   int rb_enc_str_coderange(VALUE string) {

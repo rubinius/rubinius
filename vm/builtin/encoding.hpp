@@ -45,6 +45,8 @@ namespace rubinius {
     static Encoding* usascii_encoding(STATE);
     static Encoding* utf8_encoding(STATE);
     static Encoding* ascii8bit_encoding(STATE);
+    static Encoding* default_external(STATE);
+    static Encoding* default_internal(STATE);
 
     static Encoding* create_bootstrap(STATE, const char* name,
                                       Index index, OnigEncodingType* enc);

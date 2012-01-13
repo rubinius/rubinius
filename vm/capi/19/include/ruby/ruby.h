@@ -1722,6 +1722,12 @@ VALUE rb_uint2big(unsigned long number);
   /** Create a frozen String from an existing string. */
   VALUE   rb_str_new4(VALUE string);
 
+  /** Creates a new String in the external encoding from a pointer and length. */
+  VALUE rb_external_str_new(const char* string, long size);
+
+  /** Creates a new String in the external encoding from a pointer. */
+  VALUE rb_external_str_new_cstr(const char* string);
+
   void    rb_str_modify(VALUE str);
 
   /** Deprecated alias for rb_obj_freeze */

@@ -186,6 +186,14 @@ namespace rubinius {
     return as<Encoding>(encoding_list(state)->get(state, eBinary));
   }
 
+  Encoding* Encoding::default_external(STATE) {
+    return Encoding::find(state, "external");
+  }
+
+  Encoding* Encoding::default_internal(STATE) {
+    return Encoding::find(state, "internal");
+  }
+
 #define ENCODING_NAMELEN_MAX 63
 
   void Encoding::add_constant(STATE, const char* name, Encoding* enc) {
