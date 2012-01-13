@@ -67,6 +67,14 @@ module Rubinius
       self
     end
 
+    def pop(*v)
+      Rubinius.synchronize(self) do
+        ret = super
+        identity_map
+        ret
+      end
+    end
+
     def replace(other)
       Rubinius.synchronize(self) do
         super
