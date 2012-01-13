@@ -376,6 +376,7 @@
 
 /* String */
 #define HAVE_RB_CSTR2INUM                  1
+#define HAVE_RB_CSTR_TO_INUM               1
 #define HAVE_RB_STR2CSTR                   1
 #define HAVE_RB_STR2INUM                   1
 #define HAVE_RB_STR_APPEND                 1

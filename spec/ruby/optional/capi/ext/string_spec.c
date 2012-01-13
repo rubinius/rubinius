@@ -14,6 +14,13 @@ VALUE string_spec_rb_cstr2inum(VALUE self, VALUE str, VALUE inum) {
 }
 #endif
 
+#ifdef HAVE_RB_CSTR_TO_INUM
+static VALUE string_spec_rb_cstr_to_inum(VALUE self, VALUE str, VALUE inum, VALUE badcheck) {
+  int num = FIX2INT(inum);
+  return rb_cstr_to_inum(RSTRING_PTR(str), num, RTEST(badcheck));
+}
+#endif
+
 #ifdef HAVE_RB_STR2CSTR
 VALUE string_spec_rb_str2cstr(VALUE self, VALUE str, VALUE return_length) {
   if(return_length == Qtrue) {
@@ -434,6 +441,10 @@ void Init_string_spec() {
 
 #ifdef HAVE_RB_CSTR2INUM
   rb_define_method(cls, "rb_cstr2inum", string_spec_rb_cstr2inum, 2);
+#endif
+
+#ifdef HAVE_RB_CSTR_TO_INUM
+  rb_define_method(cls, "rb_cstr_to_inum", string_spec_rb_cstr_to_inum, 3);
 #endif
 
 #ifdef HAVE_RB_STR2CSTR

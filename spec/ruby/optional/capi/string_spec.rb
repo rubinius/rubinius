@@ -244,9 +244,23 @@ describe "C-API String function" do
   end
 
   describe "rb_cstr2inum" do
-    it "converts a C string to a number given a base" do
+    it "converts a C string to a Fixnum given a base" do
       @s.rb_cstr2inum("10", 10).should == 10
       @s.rb_cstr2inum("10", 16).should == 16
+    end
+
+    it "converts a C string to a Bignum given a base" do
+      @s.rb_cstr2inum(bignum_value.to_s, 10).should == bignum_value
+    end
+  end
+
+  describe "rb_cstr_to_inum" do
+    it "converts a C string to a Fixnum given a base" do
+      @s.rb_cstr_to_inum("1234", 10, true).should == 1234
+    end
+
+    it "converts a C string to a Bignum given a base" do
+      @s.rb_cstr_to_inum(bignum_value.to_s, 10, true).should == bignum_value
     end
   end
 
