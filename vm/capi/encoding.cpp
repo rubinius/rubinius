@@ -93,6 +93,16 @@ extern "C" {
     }
   }
 
+  rb_encoding *rb_default_external_encoding(void) {
+    NativeMethodEnvironment* env = NativeMethodEnvironment::get();
+    Encoding* enc = Encoding::find(env->state(), "external");
+    if(enc->nil_p()) {
+      return 0;
+    } else {
+      return enc->get_encoding();
+    }
+  }
+
   rb_encoding* rb_enc_get(VALUE obj) {
     NativeMethodEnvironment* env = NativeMethodEnvironment::get();
 
