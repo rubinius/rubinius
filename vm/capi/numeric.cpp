@@ -131,10 +131,8 @@ extern "C" {
     return capi_native2num<unsigned long>(number);
   }
 
-  VALUE rb_cstr2inum(const char* string, int base) {
-    NativeMethodEnvironment* env = NativeMethodEnvironment::get();
-    Integer* i = Integer::from_cstr(env->state(), string, base, Qfalse);
-    return env->get_handle(i);
+  VALUE rb_cstr2inum(const char* str, int base) {
+    return rb_cstr_to_inum(str, base, base == 0);
   }
 
   VALUE rb_cstr_to_inum(const char* str, int base, int badcheck) {
