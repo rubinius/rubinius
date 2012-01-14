@@ -275,7 +275,7 @@ describe "C-API String function" do
       @s.rb_cstr_to_inum("1234a", 10, false).should == 1234
     end
 
-    it "returns nil if strict conversion fails" do
+    it "converts a C string to a Fixnum strictly" do
       lambda { @s.rb_cstr_to_inum("1234a", 10, true) }.should raise_error(ArgumentError)
     end
   end
