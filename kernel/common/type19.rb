@@ -65,6 +65,7 @@ module Rubinius
     def self.infect(host, source)
       host.taint if source.tainted?
       host.untrust if source.untrusted?
+      host
     end
 
     def self.coerce_to_binding(obj)

@@ -546,9 +546,7 @@ module Kernel
   end
 
   def to_s
-    str = "#<#{self.class}:0x#{self.__id__.to_s(16)}>"
-    str.taint if tainted?
-    return str
+    Rubinius::Type.infect("#<#{self.class}:0x#{self.__id__.to_s(16)}>", self)
   end
 
   ##
