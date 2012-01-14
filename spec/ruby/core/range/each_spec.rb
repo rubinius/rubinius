@@ -53,4 +53,12 @@ describe "Range#each" do
     end
   end
 
+  ruby_version_is '1.9' do
+    it "raises a TypeError if the first element is a Time object" do
+      t = Time.now
+      lambda { (t..t+1).each { |i| i } }.should raise_error(TypeError)
+    end
+  end
+
 end
+
