@@ -136,4 +136,13 @@ module Kernel
   end
   module_function :Float
 
+  def id
+    Kernel.warn "Object#id IS deprecated; use Object#object_id OR ELSE."
+    __id__
+  end
+
+  def type
+    Kernel.warn "Object#type IS fully deprecated; use Object#class OR ELSE."
+    self.class
+  end
 end
