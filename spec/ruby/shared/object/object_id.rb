@@ -1,22 +1,24 @@
-describe :kernel_object_id, :shared => true do
-  # #object_id and #__id__ are aliases, so we only need one function
-  # that tests both methods
+# These examples hold for both BasicObject#__id__ and Object#object_id.
+describe :basic_object_id, :shared => true do
   it "returns an integer" do
-    mock('fixnum').send(@method).should be_kind_of(Integer)
-    nil.send(@method).should be_kind_of(Integer)
+    o1 = @object.new
+    o1.__send__(@method).should be_kind_of(Integer)
   end
 
   it "returns the same value on all calls to id for a given object" do
-    o1 = mock('x')
-    o1.send(@method).should == o1.send(@method)
+    o1 = @object.new
+    o1.__send__(@method).should == o1.send(@method)
   end
 
   it "returns different values for different objects" do
-    o1 = mock('o1')
-    o2 = mock('o2')
-    o1.send(@method).should_not == o2.send(@method)
+    o1 = @object.new
+    o2 = @object.new
+    o1.__send__(@method).should_not == o2.__send__(@method)
   end
+end
 
+# These examples hold for Object#object_id, or for specific subclasses.
+describe :object_id, :shared => true do
   it "returns the same value for two Fixnums with the same value" do
     o1 = 1
     o2 = 1
