@@ -181,6 +181,9 @@ compile_ext "18/dl", :deps => ["Makefile", "dlconfig.h"],
 compile_ext "18/pty", :deps => ["Makefile"],
                       :dir => "lib/18/pty/ext",
                       :env => "-X18"
+compile_ext "19/pty", :deps => ["Makefile"],
+                      :dir => "lib/19/pty/ext",
+                      :env => "-X19"
 
 compile_ext "dbm", :ignore_fail => true, :deps => ["Makefile"], :dir => "lib/dbm/ext"
 compile_ext "gdbm", :ignore_fail => true, :deps => ["Makefile"], :dir => "lib/gdbm/ext"

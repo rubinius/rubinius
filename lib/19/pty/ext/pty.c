@@ -1,4 +1,8 @@
-#include	"config.h"
+#include	"ruby/config.h"
+#ifdef RUBY_EXTCONF_H
+#include RUBY_EXTCONF_H
+#endif
+#include	<stdlib.h>
 #include	<stdio.h>
 #include	<sys/types.h>
 #include	<sys/stat.h>
@@ -12,19 +16,24 @@
 #ifdef HAVE_LIBUTIL_H
 #include	<libutil.h>
 #endif
+#ifdef HAVE_UTIL_H
+#include	<util.h>
+#endif
 #ifdef HAVE_PTY_H
 #include	<pty.h>
 #endif
 #ifdef HAVE_SYS_WAIT_H
 #include <sys/wait.h>
 #else
+#ifndef WIFSTOPPED
 #define WIFSTOPPED(status)    (((status) & 0xff) == 0x7f)
+#endif
 #endif
 #include <ctype.h>
 
-#include "ruby.h"
-#include "rubyio.h"
-#include "util.h"
+#include "ruby/ruby.h"
+#include "ruby/io.h"
+#include "ruby/util.h"
 
 #include <signal.h>
 #ifdef HAVE_SYS_STROPTS_H
@@ -40,9 +49,9 @@
 #if !defined(HAVE_OPENPTY)
 #if defined(__hpux)
 static const
-char	MasterDevice[] = "/dev/ptym/pty%s",
-	SlaveDevice[] =  "/dev/pty/tty%s",
-	*const deviceNo[] = {
+char  MasterDevice[] = "/dev/ptym/pty%s",
+      SlaveDevice[] =  "/dev/pty/tty%s",
+      *const deviceNo[] = {
 		"p0","p1","p2","p3","p4","p5","p6","p7",
 		"p8","p9","pa","pb","pc","pd","pe","pf",
 		"q0","q1","q2","q3","q4","q5","q6","q7",
@@ -63,9 +72,9 @@ char	MasterDevice[] = "/dev/ptym/pty%s",
 	};
 #elif defined(_IBMESA)  /* AIX/ESA */
 static const
-char	MasterDevice[] = "/dev/ptyp%s",
-  	SlaveDevice[] = "/dev/ttyp%s",
-	*const deviceNo[] = {
+char  MasterDevice[] = "/dev/ptyp%s",
+      SlaveDevice[] = "/dev/ttyp%s",
+      *const deviceNo[] = {
 "00","01","02","03","04","05","06","07","08","09","0a","0b","0c","0d","0e","0f",
 "10","11","12","13","14","15","16","17","18","19","1a","1b","1c","1d","1e","1f",
 "20","21","22","23","24","25","26","27","28","29","2a","2b","2c","2d","2e","2f",
@@ -85,9 +94,9 @@ char	MasterDevice[] = "/dev/ptyp%s",
 		};
 #elif !defined(HAVE_PTSNAME)
 static const
-char	MasterDevice[] = "/dev/pty%s",
-	SlaveDevice[] = "/dev/tty%s",
-	*const deviceNo[] = {
+char  MasterDevice[] = "/dev/pty%s",
+      SlaveDevice[] = "/dev/tty%s",
+      *const deviceNo[] = {
 		"p0","p1","p2","p3","p4","p5","p6","p7",
 		"p8","p9","pa","pb","pc","pd","pe","pf",
 		"q0","q1","q2","q3","q4","q5","q6","q7",
@@ -115,9 +124,11 @@ char	MasterDevice[] = "/dev/pty%s",
 
 static VALUE eChildExited;
 
+/* Returns the exit status of the child for which PTY#check
+ * raised this exception
+ */
 static VALUE
-echild_status(self)
-    VALUE self;
+echild_status(VALUE self)
 {
   return rb_ivar_get(self, rb_intern("status"));
 }
@@ -127,50 +138,6 @@ struct pty_info {
   int child_pid;
   VALUE thread;
 };
-
-static void
-raise_from_wait(state, info)
-    struct pty_info *info;
-    char *state;
-{
-  VALUE last_status = rb_gv_get("$?");
-  char buf[1024];
-  VALUE exc;
-
-  snprintf(buf, sizeof(buf), "pty - %s: %ld", state, (long)info->child_pid);
-  exc = rb_exc_new2(eChildExited, buf);
-  rb_iv_set(exc, "status", last_status);
-  rb_funcall(info->thread, rb_intern("raise"), 1, exc);
-}
-
-static VALUE
-pty_syswait(info)
-    struct pty_info *info;
-{
-  int cpid, status;
-
-  for (;;) {
-    cpid = rb_waitpid(info->child_pid, &status, WUNTRACED);
-    if (cpid == -1) return Qnil;
-
-#if defined(WIFSTOPPED)
-#elif defined(IF_STOPPED)
-#define WIFSTOPPED(status) IF_STOPPED(status)
-#else
-    ---->> Either IF_STOPPED or WIFSTOPPED is needed <<----
-#endif /* WIFSTOPPED | IF_STOPPED */
-      if (WIFSTOPPED(status)) { /* suspend */
-        raise_from_wait("stopped", info);
-      }
-      else if (kill(info->child_pid, 0) == 0) {
-        raise_from_wait("changed", info);
-      }
-      else {
-        raise_from_wait("exited", info);
-        return Qnil;
-      }
-  }
-}
 
 static void getDevice _((int*, int*, char [DEVICELEN]));
 
@@ -191,11 +158,8 @@ pty_exec(v)
 }
 
 static void
-establishShell(argc, argv, info, SlaveName)
-    int argc;
-    VALUE *argv;
-    struct pty_info *info;
-    char SlaveName[DEVICELEN];
+establishShell(int argc, VALUE *argv, struct pty_info *info,
+	       char SlaveName[DEVICELEN])
 {
   int i, master, slave;
   char *p, tmp, *getenv();
@@ -297,115 +261,202 @@ establishShell(argc, argv, info, SlaveName)
 }
 
 static int
-get_device_once(master, slave, SlaveName, fail)
-    int *master, *slave, fail;
-    char SlaveName[DEVICELEN];
+no_mesg(char *slavedevice, int nomesg)
 {
-#if defined HAVE_OPENPTY
-  /*
-   * Use openpty(3) of 4.3BSD Reno and later,
-   * or the same interface function.
-   */
+  if (nomesg) {
+    return chmod(slavedevice, 0600);
+  } else {
+    return 0;
+  }
+}
+
+static int
+get_device_once(int *master, int *slave, char SlaveName[DEVICELEN], int nomesg, int fail)
+{
+#if defined(HAVE_POSIX_OPENPT)
+  int masterfd = -1, slavefd = -1;
+  char *slavedevice;
+  struct sigaction dfl, old;
+
+  dfl.sa_handler = SIG_DFL;
+  dfl.sa_flags = 0;
+  sigemptyset(&dfl.sa_mask);
+
+  if ((masterfd = posix_openpt(O_RDWR|O_NOCTTY)) == -1) goto error;
+  if (sigaction(SIGCHLD, &dfl, &old) == -1) goto error;
+  if (grantpt(masterfd) == -1) goto grantpt_error;
+  if (sigaction(SIGCHLD, &old, NULL) == -1) goto error;
+  if (unlockpt(masterfd) == -1) goto error;
+  if ((slavedevice = ptsname(masterfd)) == NULL) goto error;
+  if (no_mesg(slavedevice, nomesg) == -1) goto error;
+  if ((slavefd = open(slavedevice, O_RDWR|O_NOCTTY, 0)) == -1) goto error;
+
+#if defined I_PUSH && !defined linux
+  if (ioctl(slavefd, I_PUSH, "ptem") == -1) goto error;
+  if (ioctl(slavefd, I_PUSH, "ldterm") == -1) goto error;
+  if (ioctl(slavefd, I_PUSH, "ttcompat") == -1) goto error;
+#endif
+
+  *master = masterfd;
+  *slave = slavefd;
+  strlcpy(SlaveName, slavedevice, DEVICELEN);
+  return 0;
+
+grantpt_error:
+  sigaction(SIGCHLD, &old, NULL);
+error:
+  if (slavefd != -1) close(slavefd);
+  if (masterfd != -1) close(masterfd);
+  if (fail) {
+    rb_raise(rb_eRuntimeError, "can't get Master/Slave device");
+  }
+  return -1;
+#elif defined HAVE_OPENPTY
+/*
+ * Use openpty(3) of 4.3BSD Reno and later,
+ * or the same interface function.
+ */
   if (openpty(master, slave, SlaveName,
-        (struct termios *)0, (struct winsize *)0) == -1) {
+     (struct termios *)0, (struct winsize *)0) == -1) {
     if (!fail) return -1;
-    rb_raise(rb_eRuntimeError, "openpty() failed");
+      rb_raise(rb_eRuntimeError, "openpty() failed");
+  }
+  if (no_mesg(SlaveName, nomesg) == -1) {
+    if (!fail) return -1;
+    rb_raise(rb_eRuntimeError, "can't chmod slave pty");
   }
 
   return 0;
+
 #elif defined HAVE__GETPTY
   char *name;
+  mode_t mode = nomesg ? 0600 : 0622;
 
-  if (!(name = _getpty(master, O_RDWR, 0622, 0))) {
+  if (!(name = _getpty(master, O_RDWR, mode, 0))) {
     if (!fail) return -1;
     rb_raise(rb_eRuntimeError, "_getpty() failed");
   }
 
   *slave = open(name, O_RDWR);
-  strncpy(SlaveName, name, sizeof SlaveName);
+  /* error check? */
+  strlcpy(SlaveName, name, DEVICELEN);
 
   return 0;
-#else /* HAVE__GETPTY */
-  int	 i,j;
-
-#ifdef HAVE_PTSNAME
-  char *pn;
+#elif defined(HAVE_PTSNAME)
+  int	 masterfd = -1, slavefd = -1;
+  char *slavedevice;
   void (*s)();
 
   extern char *ptsname(int);
   extern int unlockpt(int);
   extern int grantpt(int);
 
-  if((i = open("/dev/ptmx", O_RDWR, 0)) != -1) {
-    s = signal(SIGCHLD, SIG_DFL);
-    if(grantpt(i) != -1) {
-      signal(SIGCHLD, s);
-      if(unlockpt(i) != -1) {
-        if((pn = ptsname(i)) != NULL) {
-          if((j = open(pn, O_RDWR, 0)) != -1) {
+  if((masterfd = open("/dev/ptmx", O_RDWR, 0)) == -1) goto error;
+  s = signal(SIGCHLD, SIG_DFL);
+  if(grantpt(masterfd) == -1) goto error;
+  signal(SIGCHLD, s);
+  if(unlockpt(masterfd) == -1) goto error;
+  if((slavedevice = ptsname(masterfd)) == NULL) goto error;
+  if (no_mesg(slavedevice, nomesg) == -1) goto error;
+  if((slavefd = open(slavedevice, O_RDWR, 0)) == -1) goto error;
 #if defined I_PUSH && !defined linux
-            if(ioctl(j, I_PUSH, "ptem") != -1) {
-              if(ioctl(j, I_PUSH, "ldterm") != -1) {
-                ioctl(j, I_PUSH, "ttcompat");
+  if(ioctl(slavefd, I_PUSH, "ptem") == -1) goto error;
+  if(ioctl(slavefd, I_PUSH, "ldterm") == -1) goto error;
+  ioctl(slavefd, I_PUSH, "ttcompat");
 #endif
-                *master = i;
-                *slave = j;
-                strncpy(SlaveName, pn, sizeof SlaveName);
-                return 0;
-#if defined I_PUSH && !defined linux
-              }
-            }
-#endif
-          }
-        }
-      }
-    }
-    close(i);
-  }
-  if (!fail) rb_raise(rb_eRuntimeError, "can't get Master/Slave device");
+  *master = masterfd;
+  *slave = slavefd;
+  strlcpy(SlaveName, slavedevice, DEVICELEN);
+  return 0;
+
+error:
+  if (slavefd != -1) close(slavefd);
+  if (masterfd != -1) close(masterfd);
+  if (fail) rb_raise(rb_eRuntimeError, "can't get Master/Slave device");
   return -1;
 #else
-  char **p;
+  int	 masterfd = -1, slavefd = -1;
+  const char *const *p;
   char MasterName[DEVICELEN];
 
   for (p = deviceNo; *p != NULL; p++) {
     snprintf(MasterName, sizeof MasterName, MasterDevice, *p);
-    if ((i = open(MasterName,O_RDWR,0)) >= 0) {
-      *master = i;
-      snprintf(SlaveName, sizeof SlaveName, SlaveDevice, *p);
-      if ((j = open(SlaveName,O_RDWR,0)) >= 0) {
-        *slave = j;
-        chown(SlaveName, getuid(), getgid());
-        chmod(SlaveName, 0622);
+    if ((masterfd = open(MasterName,O_RDWR,0)) >= 0) {
+      *master = masterfd;
+      snprintf(SlaveName, DEVICELEN, SlaveDevice, *p);
+      if ((slavefd = open(SlaveName,O_RDWR,0)) >= 0) {
+        *slave = slavefd;
+        if (chown(SlaveName, getuid(), getgid()) != 0) goto error;
+        if (chmod(SlaveName, nomesg ? 0600 : 0622) != 0) goto error;
         return 0;
       }
-      close(i);
+      close(masterfd);
     }
   }
+error:
+  if (slavefd != -1) close(slavefd);
+  if (masterfd != -1) close(masterfd);
   if (fail) rb_raise(rb_eRuntimeError, "can't get %s", SlaveName);
   return -1;
-#endif
 #endif
 }
 
 static void
-getDevice(master, slave, slavename)
-    int *master, *slave;
-    char slavename[DEVICELEN];
+getDevice(int *master, int *slave, char SlaveName[DEVICELEN], int nomesg)
 {
-  if (get_device_once(master, slave, slavename, 0)) {
-    rb_gc();
-    get_device_once(master, slave, slavename, 1);
+  if (get_device_once(master, slave, SlaveName, nomesg, 0)) {
+    get_device_once(master, slave, SlaveName, nomesg, 1);
   }
 }
 
-/* ruby function: getpty */
 static VALUE
-pty_getpty(argc, argv, self)
-    int argc;
-    VALUE *argv;
-    VALUE self;
+pty_get_device(VALUE klass)
 {
+  int master_fd, slave_fd;
+  char slavename[DEVICELEN];
+  VALUE ary;
+
+  getDevice(&master_fd, &slave_fd, slavename, 1);
+  ary = rb_ary_new3(3, INT2NUM(master_fd), INT2NUM(slave_fd),
+                    rb_str_new_cstr(slavename));
+  return ary;
+}
+
+/*
+ * call-seq:
+ *   PTY.spawn(command_line)  { |r, w, pid| ... }
+ *   PTY.spawn(command_line)  => [r, w, pid]
+ *   PTY.spawn(command, args, ...)  { |r, w, pid| ... }
+ *   PTY.spawn(command, args, ...)  => [r, w, pid]
+ *   PTY.getpty(command_line)  { |r, w, pid| ... }
+ *   PTY.getpty(command_line)  => [r, w, pid]
+ *   PTY.getpty(command, args, ...)  { |r, w, pid| ... }
+ *   PTY.getpty(command, args, ...)  => [r, w, pid]
+ *
+ * Spawns the specified command on a newly allocated pty.
+ *
+ * The command's controlling tty is set to the slave device of the pty
+ * and its standard input/output/error is redirected to the slave device.
+ *
+ * <tt>command_line</tt>:: The full command line to run
+ * <tt>command</tt>:: The command to run, as a String.
+ * <tt>args</tt>:: Zero or more arguments, as Strings, representing
+ *                 the arguments to +command+
+ *
+ * In the non-block form this returns an array of size three,
+ * <tt>[r, w, pid]</tt>.  In the block form the block will be called with
+ * these as arguments, <tt>|r,w,pid|</tt>:
+ *
+ * +r+:: An IO that can be read from that contains the command's
+ *       standard output and standard error
+ * +w+:: An IO that can be written to that is the command's
+ *       standard input
+ * +pid+:: The process identifier for the command.
+ */
+static VALUE
+pty_getpty(int argc, VALUE *argv, VALUE self)
+{
+
   VALUE res, rport, wport;
   struct pty_info info;
   struct pty_info thinfo;
@@ -425,10 +476,7 @@ pty_getpty(argc, argv, self)
   rb_ivar_set(wport, rb_intern("@path"), rb_str_new2(SlaveName));
   rb_funcall(wport, rb_intern("sync="), 1, Qtrue);
 
-  res = rb_ary_new2(3);
-  rb_ary_store(res,0,(VALUE)rport);
-  rb_ary_store(res,1,(VALUE)wport);
-  rb_ary_store(res,2,INT2FIX(info.child_pid));
+  res = rb_ary_new3(3, (VALUE)rport, (VALUE)wport, INT2FIX(info.child_pid));
 
   if (rb_block_given_p()) {
     rb_yield(res);
@@ -437,34 +485,28 @@ pty_getpty(argc, argv, self)
   return res;
 }
 
-/* ruby function: protect_signal - obsolete */
-static VALUE
-pty_protect(self)
-    VALUE self;
-{
-  rb_warn("PTY::protect_signal is no longer needed");
-  rb_yield(Qnil);
-  return self;
-}
+/*
+ * Document-class: PTY::ChildExited
+ *
+ * Thrown when PTY#check is called for a pid that represents a process that
+ * has exited.
+ */
 
-/* ruby function: reset_signal - obsolete */
-static VALUE
-pty_reset_signal(self)
-    VALUE self;
-{
-  rb_warn("PTY::reset_signal is no longer needed");
-  return self;
-}
+/*
+ * Document-class: PTY
+ *
+ * Creates and managed pseudo terminals (PTYs).  See also
+ * http://en.wikipedia.org/wiki/Pseudo_terminal
+ */
 
 void
 Init_pty()
 {
   VALUE cPTY = rb_define_module("PTY");
-  rb_define_module_function(cPTY,"getpty",pty_getpty,-1);
-  rb_define_module_function(cPTY,"spawn",pty_getpty,-1);
-  rb_define_module_function(cPTY,"protect_signal",pty_protect,0);
-  rb_define_module_function(cPTY,"reset_signal",pty_reset_signal,0);
+  rb_define_module_function(cPTY, "getpty", pty_getpty, -1);
+  rb_define_module_function(cPTY, "spawn", pty_getpty, -1);
+  rb_define_singleton_method(cPTY, "__get_device__", pty_get_device, 0);
 
-  eChildExited = rb_define_class_under(cPTY,"ChildExited",rb_eRuntimeError);
-  rb_define_method(eChildExited,"status",echild_status,0);
+  eChildExited = rb_define_class_under(cPTY, "ChildExited", rb_eRuntimeError);
+  rb_define_method(eChildExited, "status", echild_status, 0);
 }
