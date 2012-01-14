@@ -178,7 +178,7 @@ compile_ext "19/openssl", :deps => ["Makefile", "extconf.h"],
 compile_ext "18/dl", :deps => ["Makefile", "dlconfig.h"],
                      :dir => "lib/18/dl/ext", :env => "-X18"
 
-compile_ext "18/pty", :deps => ["Makefile", "extconf.h"],
+compile_ext "18/pty", :deps => ["Makefile"],
                       :dir => "lib/18/pty/ext",
                       :env => "-X18"
 
