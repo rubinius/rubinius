@@ -18,7 +18,7 @@ public:
     if(!LANGUAGE_18_ENABLED(state)) {
       TS_ASSERT_EQUALS(G(object)->superclass(), G(basicobject));
     } else {
-      TS_ASSERT_EQUALS(G(object)->superclass(), Qnil);
+      TS_ASSERT_EQUALS(G(object)->superclass(), cNil);
     }
     check_const(object, "Object");
   }

@@ -51,7 +51,7 @@ namespace rubinius {
 
     so->num_bytes(state, size);
     so->hash_value(state, nil<Fixnum>());
-    so->shared(state, Qfalse);
+    so->shared(state, cFalse);
 
     native_int bytes = size->to_native() + 1;
     ByteArray* ba = ByteArray::create(state, bytes);
@@ -69,7 +69,7 @@ namespace rubinius {
 
     so->num_bytes(state, Fixnum::from(0));
     so->hash_value(state, nil<Fixnum>());
-    so->shared(state, Qfalse);
+    so->shared(state, cFalse);
 
     ByteArray* ba = ByteArray::create(state, bytes+1);
     ba->raw_bytes()[bytes] = 0;
@@ -91,7 +91,7 @@ namespace rubinius {
 
     so->num_bytes(state, size);
     so->hash_value(state, nil<Fixnum>());
-    so->shared(state, Qfalse);
+    so->shared(state, cFalse);
 
     native_int bytes = size->to_native() + 1;
     ByteArray* ba = ByteArray::create_pinned(state, bytes);
@@ -131,7 +131,7 @@ namespace rubinius {
 
     s->num_bytes(state, count);
     s->hash_value(state, nil<Fixnum>());
-    s->shared(state, Qfalse);
+    s->shared(state, cFalse);
 
     // fetch_bytes NULL terminates
     s->data(state, ba->fetch_bytes(state, start, count));
@@ -311,7 +311,7 @@ namespace rubinius {
       ByteArray* ba = ByteArray::create(state, current_size + 1);
       memcpy(ba->raw_bytes(), byte_address(), current_size);
       data(state, ba);
-      if(shared_ == Qtrue) shared(state, Qfalse);
+      if(shared_ == cTrue) shared(state, cFalse);
       // We need to read it again since we have a new ByteArray
       c_string = (char*)byte_address();
       c_string[current_size] = 0;
@@ -361,7 +361,7 @@ namespace rubinius {
       sum |= (b1 ^ b2);
     }
 
-    return (sum == 0) ? Qtrue : Qfalse;
+    return (sum == 0) ? cTrue : cFalse;
   }
 
   String* String::string_dup(STATE) {
@@ -390,18 +390,18 @@ namespace rubinius {
     so->valid_encoding(state, valid_encoding());
     so->ascii_only(state, ascii_only());
 
-    so->shared(state, Qtrue);
-    shared(state, Qtrue);
+    so->shared(state, cTrue);
+    shared(state, cTrue);
 
     return so;
   }
 
   void String::unshare(STATE) {
-    if(shared_ == Qtrue) {
+    if(shared_ == cTrue) {
       if(data_->reference_p()) {
         data(state, as<ByteArray>(data_->duplicate(state)));
       }
-      shared(state, Qfalse);
+      shared(state, cFalse);
     }
   }
 
@@ -442,13 +442,13 @@ namespace rubinius {
 
       // No need to call unshare and duplicate a ByteArray
       // just to throw it away.
-      if(shared_ == Qtrue) shared(state, Qfalse);
+      if(shared_ == cTrue) shared(state, cFalse);
 
       ByteArray* ba = ByteArray::create(state, capacity);
       memcpy(ba->raw_bytes(), byte_address(), current_size);
       data(state, ba);
     } else {
-      if(shared_ == Qtrue) unshare(state);
+      if(shared_ == cTrue) unshare(state);
     }
 
     // Append on top of the null byte at the end of s1, not after it
@@ -486,7 +486,7 @@ namespace rubinius {
     memcpy(ba->raw_bytes(), byte_address(), copy_size);
 
     // We've unshared
-    shared(state, Qfalse);
+    shared(state, cFalse);
     data(state, ba);
     hash_value(state, nil<Fixnum>());
 
@@ -647,7 +647,7 @@ namespace rubinius {
       ByteArray* ba = ByteArray::create(state, tr_data->last + 1);
 
       data(state, ba);
-      shared(state, Qfalse);
+      shared(state, cFalse);
     }
 
     memcpy(byte_address(), tr_data->tr, tr_data->last);
@@ -902,7 +902,7 @@ namespace rubinius {
 
     s->num_bytes(state, Fixnum::from(n));
     s->hash_value(state, nil<Fixnum>());
-    s->shared(state, Qfalse);
+    s->shared(state, cFalse);
     s->encoding(state, enc);
 
     ByteArray* ba = ByteArray::create(state, n);
@@ -923,7 +923,7 @@ namespace rubinius {
     const char* str = c_str(state);
     int base = fix_base->to_native();
 
-    if(strict == Qtrue) {
+    if(strict == cTrue) {
       // In strict mode the string can't have null bytes.
       if(byte_size() > (native_int)strlen(str)) return nil<Integer>();
     }
@@ -942,7 +942,7 @@ namespace rubinius {
     native_int i = index->to_native();
 
     if(i < 0) i += byte_size();
-    if(i >= byte_size() || i < 0) return Qnil;
+    if(i >= byte_size() || i < 0) return cNil;
 
     if(LANGUAGE_18_ENABLED(state)) {
       return Fixnum::from(byte_address()[i]);
@@ -954,7 +954,7 @@ namespace rubinius {
       // Assumptions above about size are possibly invalid, recalculate.
       i = index->to_native();
       if(i < 0) i += char_size(state);
-      if(i >= char_size(state) || i < 0) return Qnil;
+      if(i >= char_size(state) || i < 0) return cNil;
 
       return char_substring(state, i, 1);
     }
@@ -1266,9 +1266,9 @@ namespace rubinius {
         ascii_only(state, encoding(state)->ascii_compatible_p(state));
       } else {
         if(find_non_ascii(byte_address(), byte_size())) {
-          ascii_only(state, Qfalse);
+          ascii_only(state, cFalse);
         } else {
-          ascii_only(state, Qtrue);
+          ascii_only(state, cTrue);
         }
       }
     }
@@ -1279,7 +1279,7 @@ namespace rubinius {
   Object* String::valid_encoding_p(STATE) {
     if(valid_encoding_->nil_p()) {
       if(encoding(state) == Encoding::from_index(state, Encoding::eBinary)) {
-        valid_encoding(state, Qtrue);
+        valid_encoding(state, cTrue);
         return valid_encoding_;
       }
 
@@ -1292,14 +1292,14 @@ namespace rubinius {
         int n = precise_mbclen(p, e, enc);
 
         if(!ONIGENC_MBCLEN_CHARFOUND_P(n)) {
-          valid_encoding(state, Qfalse);
+          valid_encoding(state, cFalse);
           return valid_encoding_;
         }
 
         p += n;
       }
 
-      valid_encoding(state, Qtrue);
+      valid_encoding(state, cTrue);
     }
 
     return valid_encoding_;

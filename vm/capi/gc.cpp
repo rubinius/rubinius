@@ -47,7 +47,7 @@ extern "C" {
 
   void rb_gc_mark(VALUE ptr) {
     Handle* handle = Handle::from(ptr);
-    if(CAPI_REFERENCE_P(handle) && handle->object()->reference_p()) {
+    if(REFERENCE_P(handle) && handle->object()->reference_p()) {
       Object* res = capi::current_mark()->call(handle->object());
       if(res) {
         handle->set_object(res);

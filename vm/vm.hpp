@@ -230,7 +230,7 @@ namespace rubinius {
     }
 
     void clear_interrupted_exception() {
-      interrupted_exception_.set(Qnil);
+      interrupted_exception_.set(cNil);
     }
 
     rbxti::Env* tooling_env() {

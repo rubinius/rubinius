@@ -86,9 +86,9 @@ namespace jit {
     // scope
     b().CreateStore(vars, get_field(call_frame, offset::CallFrame::scope));
 
-    nil_stack(vmm_->stack_size, constant(Qnil, obj_type));
+    nil_stack(vmm_->stack_size, constant(cNil, obj_type));
 
-    setup_inline_scope(self, constant(Qnil, obj_type), mod);
+    setup_inline_scope(self, constant(cNil, obj_type), mod);
 
     if(ls_->config().version >= 19) {
       // We don't support splat in an block method!

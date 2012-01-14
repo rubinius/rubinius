@@ -62,8 +62,8 @@ namespace rubinius {
     Thread* thr = state->new_object<Thread>(G(thread));
 
     thr->thread_id(state, Fixnum::from(target->thread_id()));
-    thr->alive(state, Qtrue);
-    thr->sleep(state, Qfalse);
+    thr->alive(state, cTrue);
+    thr->sleep(state, cFalse);
     thr->control_channel(state, nil<Channel>());
     thr->recursive_objects(state, LookupTable::create(state));
     thr->vm_ = target;
@@ -101,7 +101,7 @@ namespace rubinius {
       (*i)->unlock_for_terminate(state, gct);
     }
     los.clear();
-    return Qnil;
+    return cNil;
   }
 
   void* Thread::in_new_thread(void* ptr) {
@@ -179,7 +179,7 @@ namespace rubinius {
     if(error) {
       Exception::thread_error(state, strerror(error));
     }
-    return Qnil;
+    return cNil;
   }
 
   int Thread::fork_attached(STATE) {
@@ -193,7 +193,7 @@ namespace rubinius {
   Object* Thread::pass(STATE, CallFrame* calling_environment) {
     struct timespec ts = {0, 0};
     nanosleep(&ts, NULL);
-    return Qnil;
+    return cNil;
   }
 
   Object* Thread::priority(STATE) {
@@ -206,7 +206,7 @@ namespace rubinius {
       return Fixnum::from(params.sched_priority);
     }
 
-    return Qnil;
+    return cNil;
   }
 
   Object* Thread::raise(STATE, GCToken gct, Exception* exc) {
@@ -215,7 +215,7 @@ namespace rubinius {
     thread::SpinLock::LockGuard lg(init_lock_);
 
     VM* vm = vm_;
-    if(!vm) return Qnil;
+    if(!vm) return cNil;
 
     vm->register_raise(state, exc);
 
@@ -230,7 +230,7 @@ namespace rubinius {
   Thread* Thread::wakeup(STATE, GCToken gct) {
     thread::SpinLock::LockGuard lg(init_lock_);
 
-    if(alive() == Qfalse || !vm_) {
+    if(alive() == cFalse || !vm_) {
       return reinterpret_cast<Thread*>(kPrimitiveFailed);
     }
 
@@ -275,7 +275,7 @@ namespace rubinius {
 
     if(!vm) {
       init_lock_.unlock();
-      return Qtrue;
+      return cTrue;
     }
 
     pthread_t id = vm->os_thread();
@@ -306,16 +306,16 @@ namespace rubinius {
       break;
     }
 
-    return Qtrue;
+    return cTrue;
   }
 
   Object* Thread::set_critical(STATE, Object* obj) {
     if(CBOOL(obj)) {
       state->shared().set_critical(state);
-      return Qtrue;
+      return cTrue;
     } else {
       state->shared().clear_critical(state);
-      return Qfalse;
+      return cFalse;
     }
   }
 }

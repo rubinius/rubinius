@@ -232,7 +232,7 @@ extern "C" {
   {
     if(kind_of<String>(obj)) return obj;
 
-    Arguments args(cache->name, obj, Qnil, 0, 0);
+    Arguments args(cache->name, obj, cNil, 0, 0);
     Object* ret = cache->execute(state, call_frame, args);
     if(!ret) return 0;
 
@@ -331,7 +331,7 @@ extern "C" {
       Object* obj = args.get_argument(0);
       if(Array* ary = try_as<Array>(obj)) {
         args.use_array(ary);
-      } else if(CBOOL(obj->respond_to(state, state->symbol("to_ary"), Qfalse))) {
+      } else if(CBOOL(obj->respond_to(state, state->symbol("to_ary"), cFalse))) {
         obj = obj->send(state, call_frame, state->symbol("to_ary"));
         if(Array* ary2 = try_as<Array>(obj)) {
           args.use_array(ary2);
@@ -342,7 +342,7 @@ extern "C" {
       }
     }
 
-    return Qnil;
+    return cNil;
   }
 
   Object* rbx_destructure_inline_args(STATE, CallFrame* call_frame, Object* obj,
@@ -350,7 +350,7 @@ extern "C" {
   {
     Array* ary = try_as<Array>(obj);
 
-    if(!ary && CBOOL(obj->respond_to(state, state->symbol("to_ary"), Qfalse))) {
+    if(!ary && CBOOL(obj->respond_to(state, state->symbol("to_ary"), cFalse))) {
       obj = obj->send(state, call_frame, state->symbol("to_ary"));
       if(Array* ary2 = try_as<Array>(obj)) {
         ary = ary2;
@@ -371,7 +371,7 @@ extern "C" {
       vars->set_local(0, obj);
     }
 
-    return Qnil;
+    return cNil;
   }
 
   Object* rbx_cast_multi_value(STATE, CallFrame* call_frame, Object* top) {
@@ -389,7 +389,7 @@ extern "C" {
     call_frame->cm->scope(state, scope);
     // call_frame->static_scope_ = scope;
 
-    return Qnil;
+    return cNil;
 
     CPP_CATCH
   }
@@ -404,7 +404,7 @@ extern "C" {
          * to be called and its return value ignored. Ultimately, the original
          * object itself is wrapped in an Array and passed to the block.
          */
-        if(CBOOL(obj->respond_to(state, state->symbol("to_ary"), Qfalse))) {
+        if(CBOOL(obj->respond_to(state, state->symbol("to_ary"), cFalse))) {
           Object* ignored = obj->send(state, call_frame, state->symbol("to_ary"));
           if(!kind_of<Array>(ignored)) {
             Exception::type_error(state, "to_ary must return an Array", call_frame);
@@ -432,7 +432,7 @@ extern "C" {
       Object* obj = args.get_argument(0);
       if(kind_of<Array>(obj)) {
         return obj;
-      } else if(CBOOL(obj->respond_to(state, state->symbol("to_ary"), Qfalse))) {
+      } else if(CBOOL(obj->respond_to(state, state->symbol("to_ary"), cFalse))) {
         obj = obj->send(state, call_frame, state->symbol("to_ary"));
         if(kind_of<Array>(obj)) {
           return obj;
@@ -475,7 +475,7 @@ extern "C" {
          * to be called and its return value ignored. Ultimately, the original
          * object itself is wrapped in an Array and passed to the block.
          */
-        if(CBOOL(obj->respond_to(state, state->symbol("to_ary"), Qfalse))) {
+        if(CBOOL(obj->respond_to(state, state->symbol("to_ary"), cFalse))) {
           Object* ignored = obj->send(state, call_frame, state->symbol("to_ary"));
           if(!kind_of<Array>(ignored)) {
             Exception::type_error(state, "to_ary must return an Array", call_frame);
@@ -516,7 +516,7 @@ extern "C" {
 
       if(kind_of<Array>(obj)) {
         // Nothing! it's good.
-      } else if(CBOOL(obj->respond_to(state, state->symbol("to_ary"), Qfalse))) {
+      } else if(CBOOL(obj->respond_to(state, state->symbol("to_ary"), cFalse))) {
         obj = obj->send(state, call_frame, state->symbol("to_ary"));
         if(!kind_of<Array>(obj)) {
           Exception::type_error(state, "to_ary must return an Array", call_frame);
@@ -546,7 +546,7 @@ extern "C" {
   Object* rbx_cast_for_single_block_arg(STATE, Arguments& args) {
     int k = args.total();
     if(k == 0) {
-      return Qnil;
+      return cNil;
     } else if(k == 1) {
       return args.get_argument(0);
     }
@@ -565,10 +565,10 @@ extern "C" {
     if(cache->update_and_validate(state, call_frame, recv)) {
       MethodCacheEntry* mce = cache->cache();
 
-      if(mce && mce->method()->serial()->to_native() == serial) return Qtrue;
+      if(mce && mce->method()->serial()->to_native() == serial) return cTrue;
     }
 
-    return Qfalse;
+    return cFalse;
   }
 
   Object* rbx_check_serial_private(STATE, CallFrame* call_frame, InlineCache* cache,
@@ -577,10 +577,10 @@ extern "C" {
     if(cache->update_and_validate_private(state, call_frame, recv)) {
       MethodCacheEntry* mce = cache->cache();
 
-      if(mce && mce->method()->serial()->to_native() == serial) return Qtrue;
+      if(mce && mce->method()->serial()->to_native() == serial) return cTrue;
     }
 
-    return Qfalse;
+    return cFalse;
   }
 
   Object* rbx_find_const(STATE, CallFrame* call_frame, int index, Object* top) {
@@ -606,14 +606,14 @@ extern "C" {
     CPP_TRY
 
     Class* cls = as<Class>(b1);
-    if(top->class_object(state) == cls) return Qtrue;
-    return Qfalse;
+    if(top->class_object(state) == cls) return cTrue;
+    return cFalse;
 
     CPP_CATCH
   }
 
   Object* rbx_kind_of(STATE, Object* top, Object* b1) {
-    return top->kind_of_p(state, b1) ? Qtrue : Qfalse;
+    return top->kind_of_p(state, b1) ? cTrue : cFalse;
   }
 
   Object* rbx_make_array(STATE, int count, Object** args) {
@@ -644,7 +644,7 @@ extern "C" {
   Object* rbx_meta_send_call(STATE, CallFrame* call_frame, int count, Object** args) {
     Object* t1 = args[0];
 
-    Arguments out_args(G(sym_call), Qnil, count, args+1);
+    Arguments out_args(G(sym_call), cNil, count, args+1);
 
     if(BlockEnvironment *env = try_as<BlockEnvironment>(t1)) {
       return env->call(state, call_frame, out_args);
@@ -706,7 +706,7 @@ extern "C" {
     if(both_fixnum_p(t1, t2)) {
       native_int j = as<Integer>(t1)->to_native();
       native_int k = as<Integer>(t2)->to_native();
-      return (j > k) ? Qtrue : Qfalse;
+      return (j > k) ? cTrue : cFalse;
     }
 
     return rbx_simple_send(state, call_frame, G(sym_gt), 1, stk);
@@ -732,7 +732,7 @@ extern "C" {
     Object* t2 = stk[1];
     /* If both are not references, compare them directly. */
     if(!t1->reference_p() && !t2->reference_p()) {
-      return (t1 == t2) ? Qfalse : Qtrue;
+      return (t1 == t2) ? cFalse : cTrue;
     }
 
     return rbx_simple_send(state, call_frame, G(sym_nequal), 1, stk);
@@ -743,19 +743,19 @@ extern "C" {
     Object* t2 = stk[1];
     /* If both are fixnums, or both are symbols, compare the ops directly. */
     if((t1->fixnum_p() && t2->fixnum_p()) || (t1->symbol_p() && t2->symbol_p())) {
-      return (t1 == t2) ? Qfalse : Qtrue;
+      return (t1 == t2) ? cFalse : cTrue;
     }
 
     return rbx_simple_send(state, call_frame, G(sym_tequal), 1, stk);
   }
 
   Object* rbx_passed_arg(STATE, Arguments& args, int index) {
-    return (index < (int)args.total()) ? Qtrue : Qfalse;
+    return (index < (int)args.total()) ? cTrue : cFalse;
   }
 
   // TODO remove this and use passed_arg
   Object* rbx_passed_blockarg(STATE, Arguments& args, int index) {
-    return (index == (int)args.total()) ? Qtrue : Qfalse;
+    return (index == (int)args.total()) ? cTrue : cFalse;
   }
 
   Object* rbx_push_const(STATE, CallFrame* call_frame, Symbol* sym) {
@@ -933,7 +933,7 @@ extern "C" {
 
     state->checkpoint(gct, call_frame);
 
-    return Qtrue;
+    return cTrue;
   }
 
   Object* rbx_check_interrupts(STATE, CallFrame* call_frame) {
@@ -942,7 +942,7 @@ extern "C" {
     if(!state->check_async(call_frame)) return NULL;
 
     state->checkpoint(gct, call_frame);
-    return Qtrue;
+    return cTrue;
   }
 
   int rbx_enter_unmanaged(STATE, CallFrame* call_frame) {
@@ -987,7 +987,7 @@ extern "C" {
 
   Object* rbx_clear_exception(STATE) {
     state->vm()->thread_state()->clear_raise();
-    return Qnil;
+    return cNil;
   }
 
   Object* rbx_push_exception_state(STATE) {
@@ -1001,7 +1001,7 @@ extern "C" {
       state->vm()->thread_state()->set_state(state, top);
     }
 
-    return Qnil;
+    return cNil;
   }
 
   Object* rbx_push_system_object(STATE, int which) {
@@ -1013,7 +1013,7 @@ extern "C" {
     case 2:
       return G(type);
     default:
-      return Qnil;
+      return cNil;
     }
   }
 
@@ -1052,7 +1052,7 @@ extern "C" {
 
   Object* rbx_set_literal(STATE, CallFrame* call_frame, int which, Object* val) {
     call_frame->cm->literals()->put(state, which, val);
-    return Qnil;
+    return cNil;
   }
 
   Object* rbx_shift_array(STATE, CallFrame* call_frame, Object** loc) {
@@ -1061,7 +1061,7 @@ extern "C" {
     Array* array = as<Array>(*loc);
     size_t size = (size_t)array->size();
 
-    if(size == 0) return Qnil;
+    if(size == 0) return cNil;
 
     size_t j = size - 1;
     Object* shifted_value = array->get(state, 0);
@@ -1135,12 +1135,12 @@ extern "C" {
       }
     }
 
-    return Qnil;
+    return cNil;
   }
 
   Object* rbx_ensure_return(STATE, CallFrame* call_frame, Object* top) {
     state->vm()->thread_state()->raise_return(top, call_frame->promote_scope(state));
-    return Qnil;
+    return cNil;
   }
 
   Object* rbx_raise_break(STATE, CallFrame* call_frame, Object* top) {
@@ -1156,7 +1156,7 @@ extern "C" {
       exc->locations(state, Location::from_call_stack(state, call_frame));
       state->raise_exception(exc);
     }
-    return Qnil;
+    return cNil;
   }
 
   bool rbx_check_class(STATE, Object* obj, int id) {
@@ -1272,7 +1272,7 @@ extern "C" {
 
   Object* rbx_flush_scope(STATE, StackVariables* vars) {
     vars->flush_to_heap(state);
-    return Qnil;
+    return cNil;
   }
 
   // FFI helpers
@@ -1380,12 +1380,12 @@ extern "C" {
   }
 
   Object* rbx_ffi_from_ptr(STATE, void* ptr) {
-    if(!ptr) return Qnil;
+    if(!ptr) return cNil;
     return Pointer::create(state, ptr);
   }
 
   Object* rbx_ffi_from_string(STATE, char* ptr) {
-    if(!ptr) return Qnil;
+    if(!ptr) return cNil;
     String* str = String::create(state, ptr);
     str->taint(state);
     return str;
@@ -1400,7 +1400,7 @@ extern "C" {
       s->taint(state);
       p = Pointer::create(state, ptr);
     } else {
-      s = p = Qnil;
+      s = p = cNil;
     }
 
     Array* ary = Array::create(state, 2);
@@ -1429,7 +1429,7 @@ extern "C" {
 
       return prc;
     } else {
-      return Qnil;
+      return cNil;
     }
   }
 

@@ -65,19 +65,19 @@ public:
     Encoding* enc = Encoding::ascii8bit_encoding(state);
     str = String::create(state, "blah");
     str->encoding(state, enc);
-    str->valid_encoding(state, Qtrue);
-    str->ascii_only(state, Qfalse);
+    str->valid_encoding(state, cTrue);
+    str->ascii_only(state, cFalse);
 
     String* str2 = str->string_dup(state);
 
-    TS_ASSERT_EQUALS(str->shared(), Qtrue);
-    TS_ASSERT_EQUALS(str2->shared(), Qtrue);
+    TS_ASSERT_EQUALS(str->shared(), cTrue);
+    TS_ASSERT_EQUALS(str2->shared(), cTrue);
 
     TS_ASSERT_EQUALS(str->data(), str2->data());
 
     TS_ASSERT_EQUALS(enc, str2->encoding());
-    TS_ASSERT_EQUALS(Qfalse, str2->ascii_only());
-    TS_ASSERT_EQUALS(Qtrue, str2->valid_encoding());
+    TS_ASSERT_EQUALS(cFalse, str2->ascii_only());
+    TS_ASSERT_EQUALS(cTrue, str2->valid_encoding());
   }
 
   void test_unshare() {
@@ -137,7 +137,7 @@ public:
     TS_ASSERT(!s1->hash_value()->nil_p());
 
     s1->append(state, s2);
-    TS_ASSERT_EQUALS(s1->hash_value(), Qnil);
+    TS_ASSERT_EQUALS(s1->hash_value(), cNil);
 
     TS_ASSERT_EQUALS(10, s1->byte_size());
     TS_ASSERT(s1->byte_size() < s1->data()->size());
@@ -165,8 +165,8 @@ public:
     String* str2 = String::create(state, "a_string");
     String* str3 = String::create(state, "another_string");
 
-    TS_ASSERT_EQUALS(str1->equal(state, str2), Qtrue);
-    TS_ASSERT_EQUALS(str1->equal(state, str3), Qfalse);
+    TS_ASSERT_EQUALS(str1->equal(state, str2), cTrue);
+    TS_ASSERT_EQUALS(str1->equal(state, str3), cFalse);
   }
 
   void test_to_double() {
@@ -190,7 +190,7 @@ public:
     TS_ASSERT_EQUALS(as<Fixnum>(val)->to_native(), 0);
 
     str = String::create(state, "0");
-    val = str->to_i(state, Fixnum::from(10), Qfalse);
+    val = str->to_i(state, Fixnum::from(10), cFalse);
     TS_ASSERT(kind_of<Fixnum>(val));
     TS_ASSERT_EQUALS(as<Fixnum>(val)->to_native(), 0);
 
@@ -210,27 +210,27 @@ public:
     TS_ASSERT_EQUALS(as<Fixnum>(val)->to_native(), -3);
 
     str = String::create(state, "   +3");
-    val = str->to_i(state, Fixnum::from(10), Qfalse);
+    val = str->to_i(state, Fixnum::from(10), cFalse);
     TS_ASSERT(kind_of<Fixnum>(val));
     TS_ASSERT_EQUALS(as<Fixnum>(val)->to_native(), 3);
-    val = str->to_i(state, Fixnum::from(0), Qtrue);
+    val = str->to_i(state, Fixnum::from(0), cTrue);
     TS_ASSERT(kind_of<Fixnum>(val));
     TS_ASSERT_EQUALS(as<Fixnum>(val)->to_native(), 3);
 
     str = String::create(state, " 3F ");
     val = str->to_i(state);
-    TS_ASSERT_EQUALS(val, Qnil);
+    TS_ASSERT_EQUALS(val, cNil);
 
     str = String::create(state, " F ");
     val = str->to_i(state);
-    TS_ASSERT_EQUALS(val, Qnil);
+    TS_ASSERT_EQUALS(val, cNil);
 
     str = String::create(state, "garbage");
     val = str->to_i(state);
-    TS_ASSERT_EQUALS(val, Qnil);
+    TS_ASSERT_EQUALS(val, cNil);
 
     str = String::create(state, "garbage");
-    val = str->to_i(state, Fixnum::from(0), Qfalse);
+    val = str->to_i(state, Fixnum::from(0), cFalse);
     TS_ASSERT(kind_of<Fixnum>(val));
     TS_ASSERT_EQUALS(as<Fixnum>(val)->to_native(), 0);
 
@@ -241,7 +241,7 @@ public:
 
     str = String::create(state, "0xaq");
     val = str->to_i(state);
-    TS_ASSERT_EQUALS(val, Qnil);
+    TS_ASSERT_EQUALS(val, cNil);
 
     str = String::create(state, "0b101");
     val = str->to_i(state);
@@ -254,18 +254,18 @@ public:
     TS_ASSERT_EQUALS(as<Fixnum>(val)->to_native(), 511);
 
     str = String::create(state, "08");
-    val = str->to_i(state, Fixnum::from(0), Qfalse);
+    val = str->to_i(state, Fixnum::from(0), cFalse);
     TS_ASSERT(kind_of<Fixnum>(val));
     TS_ASSERT_EQUALS(as<Fixnum>(val)->to_native(), 0);
 
-    val = str->to_i(state, Fixnum::from(0), Qtrue);
-    TS_ASSERT_EQUALS(val, Qnil);
+    val = str->to_i(state, Fixnum::from(0), cTrue);
+    TS_ASSERT_EQUALS(val, cNil);
 
-    val = str->to_i(state, Fixnum::from(10), Qfalse);
+    val = str->to_i(state, Fixnum::from(10), cFalse);
     TS_ASSERT(kind_of<Fixnum>(val));
     TS_ASSERT_EQUALS(as<Fixnum>(val)->to_native(), 8)
 
-    val = str->to_i(state, Fixnum::from(10), Qfalse);
+    val = str->to_i(state, Fixnum::from(10), cFalse);
     TS_ASSERT(kind_of<Fixnum>(val));
     TS_ASSERT_EQUALS(as<Fixnum>(val)->to_native(), 8)
 
@@ -285,68 +285,68 @@ public:
     TS_ASSERT(as<Bignum>(val)->equal(state, big));
 
     str = String::create(state, "0b11");
-    val = str->to_i(state, Fixnum::from(10), Qfalse);
+    val = str->to_i(state, Fixnum::from(10), cFalse);
     TS_ASSERT(kind_of<Fixnum>(val));
     TS_ASSERT_EQUALS(as<Fixnum>(val)->to_native(), 0);
 
     str = String::create(state, "0b11");
-    val = str->to_i(state, Fixnum::from(2), Qfalse);
+    val = str->to_i(state, Fixnum::from(2), cFalse);
     TS_ASSERT(kind_of<Fixnum>(val));
     TS_ASSERT_EQUALS(as<Fixnum>(val)->to_native(), 3);
 
     str = String::create(state, "0b11");
-    val = str->to_i(state, Fixnum::from(2), Qfalse);
+    val = str->to_i(state, Fixnum::from(2), cFalse);
     TS_ASSERT(kind_of<Fixnum>(val));
     TS_ASSERT_EQUALS(as<Fixnum>(val)->to_native(), 3);
 
     str = String::create(state, "0b11");
-    val = str->to_i(state, Fixnum::from(10), Qfalse);
+    val = str->to_i(state, Fixnum::from(10), cFalse);
     TS_ASSERT(kind_of<Fixnum>(val));
     TS_ASSERT_EQUALS(as<Fixnum>(val)->to_native(), 0);
 
     str = String::create(state, "0 1");
-    val = str->to_i(state, Fixnum::from(2), Qfalse);
+    val = str->to_i(state, Fixnum::from(2), cFalse);
     TS_ASSERT(kind_of<Fixnum>(val));
     TS_ASSERT_EQUALS(as<Fixnum>(val)->to_native(), 0);
 
     str = String::create(state, "0_1");
-    val = str->to_i(state, Fixnum::from(2), Qfalse);
+    val = str->to_i(state, Fixnum::from(2), cFalse);
     TS_ASSERT(kind_of<Fixnum>(val));
     TS_ASSERT_EQUALS(as<Fixnum>(val)->to_native(), 1);
 
     str = String::create(state, "1_1");
-    val = str->to_i(state, Fixnum::from(10), Qfalse);
+    val = str->to_i(state, Fixnum::from(10), cFalse);
     TS_ASSERT(kind_of<Fixnum>(val));
     TS_ASSERT_EQUALS(as<Fixnum>(val)->to_native(), 11);
 
     str = String::create(state, "1_2");
-    val = str->to_i(state, Fixnum::from(10), Qfalse);
+    val = str->to_i(state, Fixnum::from(10), cFalse);
     TS_ASSERT(kind_of<Fixnum>(val));
     TS_ASSERT_EQUALS(as<Fixnum>(val)->to_native(), 12);
 
     str = String::create(state, "1_");
-    val = str->to_i(state, Fixnum::from(10), Qfalse);
+    val = str->to_i(state, Fixnum::from(10), cFalse);
     TS_ASSERT(kind_of<Fixnum>(val));
     TS_ASSERT_EQUALS(as<Fixnum>(val)->to_native(), 1);
 
     // Make sure we support up to base 36
     str = String::create(state, "a8q8a");
-    val = str->to_i(state, Fixnum::from(36), Qfalse);
+    val = str->to_i(state, Fixnum::from(36), cFalse);
     TS_ASSERT(kind_of<Fixnum>(val));
     TS_ASSERT_EQUALS(as<Fixnum>(val)->to_native(), 17203402);
 
     // Boundry conditions
     str = String::create(state, "a8q8a");
-    val = str->to_i(state, Fixnum::from(37), Qfalse);
-    TS_ASSERT_EQUALS(val, Qnil);
+    val = str->to_i(state, Fixnum::from(37), cFalse);
+    TS_ASSERT_EQUALS(val, cNil);
 
     str = String::create(state, "_12");
-    val = str->to_i(state, Fixnum::from(10), Qfalse);
+    val = str->to_i(state, Fixnum::from(10), cFalse);
     TS_ASSERT(kind_of<Fixnum>(val));
     TS_ASSERT_EQUALS(as<Fixnum>(val)->to_native(), 12);
 
     str = String::create(state, "-45q");
-    val = str->to_i(state, Fixnum::from(10), Qfalse);
+    val = str->to_i(state, Fixnum::from(10), cFalse);
     TS_ASSERT(kind_of<Fixnum>(val));
     TS_ASSERT_EQUALS(as<Fixnum>(val)->to_native(), -45);
 
@@ -368,51 +368,51 @@ public:
 
   void test_tr_expand() {
     String* s = String::create(state, "a-g");
-    TS_ASSERT_EQUALS(s->tr_expand(state, Qnil, Qtrue), Fixnum::from(7));
+    TS_ASSERT_EQUALS(s->tr_expand(state, cNil, cTrue), Fixnum::from(7));
     TS_ASSERT_SAME_DATA(s->byte_address(), "abcdefg", 7);
   }
 
   void test_tr_expand_range() {
     String* s = String::create(state, "abc-egh");
-    TS_ASSERT_EQUALS(s->tr_expand(state, Qnil, Qtrue), Fixnum::from(7));
+    TS_ASSERT_EQUALS(s->tr_expand(state, cNil, cTrue), Fixnum::from(7));
     TS_ASSERT_SAME_DATA(s->byte_address(), "abcdegh", 7);
   }
 
   void test_tr_expand_duplicate_chars_last_position() {
     String* s = String::create(state, "a-cabdage");
-    TS_ASSERT_EQUALS(s->tr_expand(state, Qnil, Qtrue), Fixnum::from(9));
+    TS_ASSERT_EQUALS(s->tr_expand(state, cNil, cTrue), Fixnum::from(9));
     TS_ASSERT_SAME_DATA(s->byte_address(), "cbdage", 6);
   }
 
   void test_tr_expand_leading_carat() {
     String* s = String::create(state, "^");
-    TS_ASSERT_EQUALS(s->tr_expand(state, Qnil, Qtrue), Fixnum::from(1));
+    TS_ASSERT_EQUALS(s->tr_expand(state, cNil, cTrue), Fixnum::from(1));
     TS_ASSERT_SAME_DATA(s->byte_address(), "^", 1);
 
     s = String::create(state, "^a-c");
-    TS_ASSERT_EQUALS(s->tr_expand(state, Qnil, Qtrue), Fixnum::from(3));
+    TS_ASSERT_EQUALS(s->tr_expand(state, cNil, cTrue), Fixnum::from(3));
     TS_ASSERT_SAME_DATA(s->byte_address(), "abc", 3);
   }
 
   void test_tr_expand_limit_processing() {
     String* s = String::create(state, "a-h");
     Fixnum* five = Fixnum::from(5);
-    TS_ASSERT_EQUALS(s->tr_expand(state, five, Qtrue), five);
+    TS_ASSERT_EQUALS(s->tr_expand(state, five, cTrue), five);
     TS_ASSERT_SAME_DATA(s->byte_address(), "abcde", 5);
 
     s = String::create(state, "abc-ga-i");
     Fixnum* ten = Fixnum::from(10);
-    TS_ASSERT_EQUALS(s->tr_expand(state, ten, Qtrue), ten);
+    TS_ASSERT_EQUALS(s->tr_expand(state, ten, cTrue), ten);
     TS_ASSERT_SAME_DATA(s->byte_address(), "defgabc", 7);
 
     s = String::create(state, "abc-ga-i");
     Fixnum* three = Fixnum::from(3);
-    TS_ASSERT_EQUALS(s->tr_expand(state, three, Qtrue), three);
+    TS_ASSERT_EQUALS(s->tr_expand(state, three, cTrue), three);
     TS_ASSERT_SAME_DATA(s->byte_address(), "abc", 3);
 
     s = String::create(state, "^abcde");
     Fixnum* four = Fixnum::from(4);
-    TS_ASSERT_EQUALS(s->tr_expand(state, four, Qtrue), four);
+    TS_ASSERT_EQUALS(s->tr_expand(state, four, cTrue), four);
     TS_ASSERT_SAME_DATA(s->byte_address(), "abcd", 4);
   }
 
@@ -430,7 +430,7 @@ public:
       "\365\366\367\370\371\372\373\374\375\376\377";
 
     String* s = String::create(state, "\x00-\xFF", 3);
-    TS_ASSERT_EQUALS(Fixnum::from(256), s->tr_expand(state, Qnil, Qtrue));
+    TS_ASSERT_EQUALS(Fixnum::from(256), s->tr_expand(state, cNil, cTrue));
     TS_ASSERT_SAME_DATA(expected, s->byte_address(), 256);
   }
 

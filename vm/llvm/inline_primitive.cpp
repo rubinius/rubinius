@@ -199,13 +199,13 @@ namespace rubinius {
         log("static_fixnum_s_eqq: true");
 
         i.exception_safe();
-        i.set_result(ops.constant(Qtrue));
+        i.set_result(ops.constant(cTrue));
         return true;
       } else if(!kt.unknown_p()) {
         log("static_fixnum_s_eqq: false");
 
         i.exception_safe();
-        i.set_result(ops.constant(Qfalse));
+        i.set_result(ops.constant(cFalse));
         return true;
       }
 
@@ -219,7 +219,7 @@ namespace rubinius {
       Value* cmp = ops.check_if_fixnum(i.arg(0));
 
       Value* imm_value = ops.b().CreateSelect(cmp,
-          ops.constant(Qtrue), ops.constant(Qfalse), "is_fixnum");
+          ops.constant(cTrue), ops.constant(cFalse), "is_fixnum");
 
       i.exception_safe();
       i.set_result(imm_value);
@@ -234,13 +234,13 @@ namespace rubinius {
         log("static_symbol_s_eqq: true");
 
         i.exception_safe();
-        i.set_result(ops.constant(Qtrue));
+        i.set_result(ops.constant(cTrue));
         return true;
       } else if(!kt.unknown_p()) {
         log("static_symbol_s_eqq: false");
 
         i.exception_safe();
-        i.set_result(ops.constant(Qfalse));
+        i.set_result(ops.constant(cFalse));
         return true;
       }
 
@@ -260,7 +260,7 @@ namespace rubinius {
       Value* cmp = ops.b().CreateICmpEQ(masked, sym_tag, "is_symbol");
 
       Value* imm_value = ops.b().CreateSelect(cmp,
-          ops.constant(Qtrue), ops.constant(Qfalse), "is_symbol");
+          ops.constant(cTrue), ops.constant(cFalse), "is_symbol");
 
       i.exception_safe();
       i.set_result(imm_value);
@@ -403,8 +403,8 @@ namespace rubinius {
 
       Value* le = ops.b().CreateSelect(
           performed,
-          ops.constant(Qtrue),
-          ops.constant(Qfalse));
+          ops.constant(cTrue),
+          ops.constant(cFalse));
 
       i.use_send_for_failure();
       i.exception_safe();
@@ -576,7 +576,7 @@ namespace rubinius {
       }
 
       Value* imm_value = ops.b().CreateSelect(performed,
-          ops.constant(Qtrue), ops.constant(Qfalse), "select_bool");
+          ops.constant(cTrue), ops.constant(cFalse), "select_bool");
 
       i.exception_safe();
       i.set_result(imm_value);
@@ -590,8 +590,8 @@ namespace rubinius {
       i.check_recv(klass);
 
       Value* cmp = ops.create_equal(i.recv(), i.arg(0), "identity_equal");
-      Value* imm_value = SelectInst::Create(cmp, ops.constant(Qtrue),
-          ops.constant(Qfalse), "select_bool", ops.current_block());
+      Value* imm_value = SelectInst::Create(cmp, ops.constant(cTrue),
+          ops.constant(cFalse), "select_bool", ops.current_block());
 
       i.exception_safe();
       i.set_result(imm_value);
@@ -624,8 +624,8 @@ namespace rubinius {
       log("type_object_equal");
 
       Value* cmp = ops.create_equal(i.arg(0), i.arg(1), "identity_equal");
-      Value* imm_value = SelectInst::Create(cmp, ops.constant(Qtrue),
-          ops.constant(Qfalse), "select_bool", ops.current_block());
+      Value* imm_value = SelectInst::Create(cmp, ops.constant(cTrue),
+          ops.constant(cFalse), "select_bool", ops.current_block());
 
       i.exception_safe();
       i.set_result(imm_value);
@@ -805,7 +805,7 @@ namespace rubinius {
 
           Value* as_i = ops_.ptrtoint(res);
           Value* icmp = ops_.b().CreateICmpEQ(as_i,
-              ConstantInt::get(ops_.state()->IntPtrTy, reinterpret_cast<intptr_t>(Qundef)));
+              ConstantInt::get(ops_.state()->IntPtrTy, reinterpret_cast<intptr_t>(cUndef)));
 
           use_send_for_failure();
 

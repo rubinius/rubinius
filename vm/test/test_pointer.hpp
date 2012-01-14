@@ -39,9 +39,9 @@ public:
 
   void test_set_autorelease() {
     Pointer* ptr = Pointer::create(state, NULL);
-    TS_ASSERT_EQUALS(Qfalse, ptr->set_autorelease(state, Qfalse));
+    TS_ASSERT_EQUALS(cFalse, ptr->set_autorelease(state, cFalse));
     TS_ASSERT_EQUALS(false, ptr->autorelease);
-    TS_ASSERT_EQUALS(Qtrue, ptr->set_autorelease(state, Qtrue));
+    TS_ASSERT_EQUALS(cTrue, ptr->set_autorelease(state, cTrue));
     TS_ASSERT_EQUALS(true, ptr->autorelease);
   }
 
@@ -71,7 +71,7 @@ public:
     int one = 1;
     void *addr = &one;
     Pointer* ptr = Pointer::create(state, addr);
-    TS_ASSERT(Integer::from(state, 1)->equal(state, ptr->read_int(state, Qtrue)));
+    TS_ASSERT(Integer::from(state, 1)->equal(state, ptr->read_int(state, cTrue)));
   }
 
   void test_write_int() {
@@ -79,14 +79,14 @@ public:
     void *addr = &one;
     Pointer* ptr = Pointer::create(state, addr);
     ptr->write_int(state, Integer::from(state, 0xfffffffa));
-    TS_ASSERT(Integer::from(state, 0xfffffffa)->equal(state, ptr->read_int(state, Qtrue)));
+    TS_ASSERT(Integer::from(state, 0xfffffffa)->equal(state, ptr->read_int(state, cTrue)));
   }
 
   void test_read_long() {
     long one = 1;
     void *addr = &one;
     Pointer* ptr = Pointer::create(state, addr);
-    TS_ASSERT(Integer::from(state, 1)->equal(state, ptr->read_long(state, Qtrue)));
+    TS_ASSERT(Integer::from(state, 1)->equal(state, ptr->read_long(state, cTrue)));
   }
 
   void test_write_long() {
@@ -94,7 +94,7 @@ public:
     void *addr = &one;
     Pointer* ptr = Pointer::create(state, addr);
     ptr->write_long(state, Integer::from(state, 0xfffffffa));
-    TS_ASSERT(Integer::from(state, 0xfffffffa)->equal(state, ptr->read_long(state, Qtrue)));
+    TS_ASSERT(Integer::from(state, 0xfffffffa)->equal(state, ptr->read_long(state, cTrue)));
   }
 
   void test_read_float() {
@@ -560,7 +560,7 @@ public:
     Object* buffer[1024];
     Object* one = Fixnum::from(1);
 
-    buffer[0] = Qnil;
+    buffer[0] = cNil;
 
     Pointer* ptr = Pointer::create(state, buffer);
     ptr->set_field(state, 0, RBX_FFI_TYPE_OBJECT, one);
@@ -586,7 +586,7 @@ public:
     buffer[0] = &val;
 
     Pointer* ptr = Pointer::create(state, buffer);
-    ptr->set_field(state, 0, RBX_FFI_TYPE_PTR, Qnil);
+    ptr->set_field(state, 0, RBX_FFI_TYPE_PTR, cNil);
     TS_ASSERT_EQUALS(*buffer, (void*)NULL);
   }
 
@@ -604,7 +604,7 @@ public:
     char* buffer[1024];
 
     Pointer* ptr = Pointer::create(state, buffer);
-    ptr->set_field(state, 0, RBX_FFI_TYPE_STRING, Qnil);
+    ptr->set_field(state, 0, RBX_FFI_TYPE_STRING, cNil);
     TS_ASSERT_EQUALS(*buffer, (char*)NULL);
   }
 

@@ -418,7 +418,7 @@ extern "C" {
       return (*func)(h_obj, h_arg);
     }
 
-    rectbl->store(state, id, RBX_Qtrue);
+    rectbl->store(state, id, cTrue);
 
     VALUE ret = Qnil;
 

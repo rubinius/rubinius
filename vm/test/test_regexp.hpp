@@ -33,7 +33,7 @@ public:
     re->initialize(state, pat, Fixnum::from(0));
 
     TS_ASSERT_EQUALS(re->source(), pat);
-    TS_ASSERT_EQUALS(re->names(),  Qnil);
+    TS_ASSERT_EQUALS(re->names(),  cNil);
   }
 
   void test_allocate() {
@@ -79,7 +79,7 @@ public:
 
     Fixnum* start = Fixnum::from(0);
     Fixnum* end =   Fixnum::from(3);
-    Object* forward = Qtrue;
+    Object* forward = cTrue;
 
     MatchData* matches = (MatchData*)re->match_region(state, input, start, end, forward);
     TS_ASSERT(!matches->nil_p());
@@ -97,7 +97,7 @@ public:
 
     Fixnum* start = Fixnum::from(0);
     Fixnum* end =   Fixnum::from(3);
-    Object* forward = Qtrue;
+    Object* forward = cTrue;
 
     MatchData* matches = (MatchData*)re->match_region(state, input, start, end, forward);
     TS_ASSERT(matches->nil_p());
@@ -112,7 +112,7 @@ public:
 
     Fixnum* start = Fixnum::from(0);
     Fixnum* end =   Fixnum::from(3);
-    Object* forward = Qtrue;
+    Object* forward = cTrue;
 
     MatchData* matches = (MatchData*)re->match_region(state, input, start, end, forward);
     TS_ASSERT(!matches->nil_p());
@@ -133,7 +133,7 @@ public:
 
     Fixnum* start = Fixnum::from(0);
     Fixnum* end =   Fixnum::from(3);
-    Object* forward = Qfalse;
+    Object* forward = cFalse;
 
     MatchData* matches = (MatchData*)re->match_region(state, input, start, end, forward);
     TS_ASSERT(!matches->nil_p());

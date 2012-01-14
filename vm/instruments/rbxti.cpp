@@ -209,7 +209,7 @@ namespace rbxti {
   }
 
   robject Env::nil() {
-    return s(Qnil);
+    return s(cNil);
   }
 
   rsymbol Env::method_file(rmethod cm) {

@@ -57,7 +57,7 @@ namespace rubinius {
     }
 
     scope->heap_locals(state, locals);
-    scope->last_match(state, Qnil);
+    scope->last_match(state, cNil);
 
     scope->self(state, self);
     scope->number_of_locals_ = locals->num_fields();
@@ -87,12 +87,12 @@ namespace rubinius {
     }
 
     set_local(state, num, object);
-    return Qnil;
+    return cNil;
   }
 
   // bootstrap method, replaced with an attr_accessor in kernel.
   Object* VariableScope::method_visibility(STATE) {
-    return Qnil;
+    return cNil;
   }
 
   void VariableScope::Info::mark(Object* obj, ObjectMark& mark) {

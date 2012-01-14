@@ -24,7 +24,7 @@ extern "C" {
 
   VALUE rb_obj_frozen_p(VALUE obj) {
     NativeMethodEnvironment* env = NativeMethodEnvironment::get();
-    if(env->get_object(obj)->frozen_p(env->state()) == RBX_Qtrue) {
+    if(CBOOL(env->get_object(obj)->frozen_p(env->state()))) {
       return Qtrue;
     }
 
@@ -155,9 +155,9 @@ extern "C" {
 
     if(NIL_P(return_handle)) {
       rb_raise(rb_eTypeError, "can't convert %s into %s",
-               RBX_NIL_P(object_handle) ? "nil" :
-                RBX_TRUE_P(object_handle) ? "true" :
-                  RBX_FALSE_P(object_handle) ? "false" :
+               NIL_P(object_handle) ? "nil" :
+                TRUE_P(object_handle) ? "true" :
+                  FALSE_P(object_handle) ? "false" :
                     rb_obj_classname(object_handle),
                type_name);
     }

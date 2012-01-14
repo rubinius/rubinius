@@ -61,7 +61,7 @@ public:
 
   void test_ensure_open() {
     TS_ASSERT(io->ensure_open(state)->nil_p());
-    io->descriptor(state, (Fixnum*)Qnil);
+    io->descriptor(state, (Fixnum*)cNil);
     TS_ASSERT_THROWS_ASSERT(io->ensure_open(state), const RubyException &e,
         TS_ASSERT(Exception::io_error_p(state, e.exception)));
     io->descriptor(state, Fixnum::from(-1));
@@ -70,7 +70,7 @@ public:
   }
 
   void test_set_mode() {
-    io->mode(state, (Fixnum*)Qnil);
+    io->mode(state, (Fixnum*)cNil);
     TS_ASSERT(io->mode()->nil_p());
     io->set_mode(state);
     int acc_mode = fcntl(io->to_fd(), F_GETFL);
@@ -123,7 +123,7 @@ public:
   }
 
   void test_query() {
-    TS_ASSERT_EQUALS(Qnil, io->query(state, state->symbol("unknown")));
+    TS_ASSERT_EQUALS(cNil, io->query(state, state->symbol("unknown")));
 
     io->descriptor(state, Fixnum::from(-1));
     TS_ASSERT_THROWS_ASSERT(io->query(state, state->symbol("tty?")),
@@ -133,7 +133,7 @@ public:
 
   void test_query_tty() {
     Symbol* tty_p = state->symbol("tty?");
-    TS_ASSERT_EQUALS(Qfalse, io->query(state, tty_p));
+    TS_ASSERT_EQUALS(cFalse, io->query(state, tty_p));
   }
 
   void test_query_ttyname() {
@@ -153,6 +153,6 @@ public:
     TS_ASSERT_EQUALS(Fixnum::from(10), buf->total());
     TS_ASSERT_EQUALS(10U, buf->left());
     TS_ASSERT(kind_of<Channel>(buf->channel()));
-    TS_ASSERT_EQUALS(Qfalse, buf->eof());
+    TS_ASSERT_EQUALS(cFalse, buf->eof());
   }
 };

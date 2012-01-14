@@ -70,8 +70,8 @@ namespace rubinius {
     , fiber_stacks_(this, shared)
 
     , shared(shared)
-    , waiting_channel_(this, (Channel*)Qnil)
-    , interrupted_exception_(this, (Exception*)Qnil)
+    , waiting_channel_(this, (Channel*)cNil)
+    , interrupted_exception_(this, (Exception*)cNil)
     , interrupt_with_signal_(false)
     , waiting_header_(0)
     , custom_wakeup_(0)
@@ -131,7 +131,7 @@ namespace rubinius {
     // Setup the main Thread, which is wrapper of the main native thread
     // when the VM boots.
     thread.set(Thread::create(&state, this, G(thread), 0, true), &globals().roots);
-    thread->sleep(&state, Qfalse);
+    thread->sleep(&state, cFalse);
 
     VM::set_current(this);
   }
@@ -152,10 +152,10 @@ namespace rubinius {
       }
       G(rubinius)->set_const(&state, "JIT", ary);
     } else {
-      G(rubinius)->set_const(&state, "JIT", Qfalse);
+      G(rubinius)->set_const(&state, "JIT", cFalse);
     }
 #else
-    G(rubinius)->set_const(&state, "JIT", Qnil);
+    G(rubinius)->set_const(&state, "JIT", cNil);
 #endif
   }
 
@@ -320,7 +320,7 @@ namespace rubinius {
           mod = m;
         } else {
           free(copy);
-          return Qnil;
+          return cNil;
         }
       } else {
         free(copy);
@@ -365,7 +365,7 @@ namespace rubinius {
 
       if(!chan->nil_p()) {
         UNSYNC;
-        chan->send(state, gct, Qnil);
+        chan->send(state, gct, cNil);
         return true;
       } else if(custom_wakeup_) {
         UNSYNC;
@@ -380,7 +380,7 @@ namespace rubinius {
   void VM::clear_waiter() {
     SYNC_TL;
     interrupt_with_signal_ = false;
-    waiting_channel_.set((Channel*)Qnil);
+    waiting_channel_.set((Channel*)cNil);
     waiting_header_ = 0;
     custom_wakeup_ = 0;
     custom_wakeup_data_ = 0;
@@ -388,7 +388,7 @@ namespace rubinius {
 
   void VM::wait_on_channel(Channel* chan) {
     SYNC_TL;
-    thread->sleep(this, Qtrue);
+    thread->sleep(this, cTrue);
     waiting_channel_.set(chan);
   }
 
@@ -408,11 +408,11 @@ namespace rubinius {
   }
 
   void VM::set_sleeping() {
-    thread->sleep(this, Qtrue);
+    thread->sleep(this, cTrue);
   }
 
   void VM::clear_sleeping() {
-    thread->sleep(this, Qfalse);
+    thread->sleep(this, cFalse);
   }
 
   void VM::register_raise(STATE, Exception* exc) {

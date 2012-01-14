@@ -152,28 +152,28 @@ namespace rubinius {
 
   Object* Float::equal(STATE, Float* other) {
     if(this->val == other->val) {
-      return Qtrue;
+      return cTrue;
     }
-    return Qfalse;
+    return cFalse;
   }
 
   Object* Float::equal(STATE, Integer* other) {
     Float* o = Float::coerce(state, other);
     if(this->val == o->val) {
-      return Qtrue;
+      return cTrue;
     }
-    return Qfalse;
+    return cFalse;
   }
 
   Object* Float::eql(STATE, Float* other) {
     if(this->val == other->val) {
-      return Qtrue;
+      return cTrue;
     }
-    return Qfalse;
+    return cFalse;
   }
 
   Object* Float::eql(STATE, Integer* other) {
-    return Qfalse;
+    return cFalse;
   }
 
   Object* Float::compare(STATE, Float* other) {
@@ -184,7 +184,7 @@ namespace rubinius {
     } else if(this->val < other->val){
       return Fixnum::from(-1);
     } else {
-      return Qnil;
+      return cNil;
     }
   }
 
@@ -204,52 +204,52 @@ namespace rubinius {
     } else if(this->val < o->val){
       return Fixnum::from(-1);
     } else {
-      return Qnil;
+      return cNil;
     }
   }
 
   Object* Float::gt(STATE, Float* other) {
-    return this->val > other->val ? Qtrue : Qfalse;
+    return this->val > other->val ? cTrue : cFalse;
   }
 
   Object* Float::gt(STATE, Integer* other) {
-    return this->val > Float::coerce(state, other)->val ? Qtrue : Qfalse;
+    return this->val > Float::coerce(state, other)->val ? cTrue : cFalse;
   }
 
   Object* Float::ge(STATE, Float* other) {
-    return this->val >= other->val ? Qtrue : Qfalse;
+    return this->val >= other->val ? cTrue : cFalse;
   }
 
   Object* Float::ge(STATE, Integer* other) {
-    return this->val >= Float::coerce(state, other)->val ? Qtrue : Qfalse;
+    return this->val >= Float::coerce(state, other)->val ? cTrue : cFalse;
   }
 
   Object* Float::lt(STATE, Float* other) {
-    return this->val < other->val ? Qtrue : Qfalse;
+    return this->val < other->val ? cTrue : cFalse;
   }
 
   Object* Float::lt(STATE, Integer* other) {
-    return this->val < Float::coerce(state, other)->val ? Qtrue : Qfalse;
+    return this->val < Float::coerce(state, other)->val ? cTrue : cFalse;
   }
 
   Object* Float::le(STATE, Float* other) {
-    return this->val <= other->val ? Qtrue : Qfalse;
+    return this->val <= other->val ? cTrue : cFalse;
   }
 
   Object* Float::le(STATE, Integer* other) {
-    return this->val <= Float::coerce(state, other)->val ? Qtrue : Qfalse;
+    return this->val <= Float::coerce(state, other)->val ? cTrue : cFalse;
   }
 
   Object* Float::fisinf(STATE) {
     if(isinf(this->val) != 0) {
       return this->val < 0 ? Fixnum::from(-1) : Fixnum::from(1);
     } else {
-      return Qnil;
+      return cNil;
     }
   }
 
   Object* Float::fisnan(STATE) {
-    return isnan(this->val) == 1 ? Qtrue : Qfalse;
+    return isnan(this->val) == 1 ? cTrue : cFalse;
   }
 
   Integer* Float::fround(STATE) {
@@ -311,7 +311,7 @@ namespace rubinius {
     char str[sizeof(double)];
     int sz;
 
-    if (want_double == Qtrue) {
+    if (want_double == cTrue) {
       double* p = (double *)str;
       *p = this->val;
       sz = 8;

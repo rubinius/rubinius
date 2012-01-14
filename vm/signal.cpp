@@ -28,7 +28,7 @@ namespace rubinius {
 
   Object* handle_tramp(STATE) {
     handler_->perform(state);
-    return Qnil;
+    return cNil;
   }
 
   SignalHandler::SignalHandler(STATE)
@@ -215,7 +215,7 @@ namespace rubinius {
         // Check whether the send raised an exception and
         // stop running the handlers if that happens
         if(!G(rubinius)->send(state, call_frame,
-               state->symbol("received_signal"), args, Qnil)) {
+               state->symbol("received_signal"), args, cNil)) {
           if(state->thread_state()->raise_reason() == cException ||
              state->thread_state()->raise_reason() == cExit) {
             return false;

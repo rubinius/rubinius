@@ -29,6 +29,9 @@ namespace rubinius {
  *  00 == rest is an object reference
  * 010 == rest is a boolean literal
  * 110 == rest is a symbol
+ *
+ * NOTE: If these definitions change, the definitions for the C-API must be
+ * updated in the configure script.
 */
 
 #define TAG_REF          0x0
@@ -51,9 +54,13 @@ namespace rubinius {
 #define APPLY_SYMBOL_TAG(v) ((Object*)(((intptr_t)(v) << TAG_SYMBOL_SHIFT) | TAG_SYMBOL))
 #define STRIP_SYMBOL_TAG(v) (((intptr_t)v) >> TAG_SYMBOL_SHIFT)
 
-#define REFERENCE_P(v) (((intptr_t)(v) & TAG_REF_MASK) == TAG_REF)
-#define FIXNUM_P(v)    (((intptr_t)(v) & TAG_FIXNUM_MASK) == TAG_FIXNUM)
-#define SYMBOL_P(v)    (((intptr_t)(v) & TAG_SYMBOL_MASK) == TAG_SYMBOL)
+/* Do not use these macros in code. They define the bit patterns for the
+ * various object types and are used to define predicates. Use the predicates
+ * (ie reference_p(), fixnum_p(), symbol_p()) directly.
+ */
+#define __REFERENCE_P__(v) (((intptr_t)(v) & TAG_REF_MASK) == TAG_REF)
+#define __FIXNUM_P__(v)    (((intptr_t)(v) & TAG_FIXNUM_MASK) == TAG_FIXNUM)
+#define __SYMBOL_P__(v)    (((intptr_t)(v) & TAG_SYMBOL_MASK) == TAG_SYMBOL)
 
 /* How many bits of data are available in fixnum, not including the sign. */
 #define FIXNUM_WIDTH ((8 * sizeof(native_int)) - TAG_FIXNUM_SHIFT - 1)
@@ -81,43 +88,28 @@ namespace rubinius {
  * to be a simple test for that bit pattern.
  */
 
-/* NOTE if these change, be sure to update vm/capi/include/ruby.h, it contains
- * a private copy of these constants */
-
 /* NOTE ALSO! the special class array uses this bit pattern, so
  * if you change this, be sure to update the special class array! */
-const int cFalse = 0x0aL;
-#define Qfalse ((Object*)0x0aL)
-const int cNil   = 0x1aL;
-#define Qnil   ((Object*)0x1aL)
-const int cTrue  = 0x12L;
-#define Qtrue  ((Object*)0x12L)
-const int cUndef = 0x22L;
-#define Qundef ((Object*)0x22L)
-
+Object* const cFalse = reinterpret_cast<Object*>(0x0aL);
+Object* const cNil   = reinterpret_cast<Object*>(0x1aL);
+Object* const cTrue  = reinterpret_cast<Object*>(0x12L);
+Object* const cUndef = reinterpret_cast<Object*>(0x22L);
 
 // Indicates the mask to use to check if a value is ruby false.
 // This mask matches both false and nil ONLY.
 #define FALSE_MASK 0xf
 
-#define FALSE_P(v) (((Object*)(v)) == Qfalse)
-#define TRUE_P(v)  (((Object*)(v)) == Qtrue)
-#define NIL_P(v)   (((Object*)(v)) == Qnil)
-#define UNDEF_P(v) ((Object*)(v) == Qundef)
+#define CBOOL(v)                    (((uintptr_t)(v) & FALSE_MASK) != (uintptr_t)cFalse)
+#define RBOOL(v)                    ((v) ? cTrue : cFalse)
 
-/* Use of cFalse is necessary to avoid the C-API Qfalse definition from being
- * picked up when CBOOL is used together with C-API definitions in ruby.h.
- */
-#define CBOOL(v)   (((uintptr_t)(v) & FALSE_MASK) != (uintptr_t)cFalse)
+#define SIZE_OF_OBJECT              ((size_t)(sizeof(ObjectHeader*)))
 
-#define SIZE_OF_OBJECT ((size_t)(sizeof(ObjectHeader*)))
-
-#define NUM_FIELDS(obj)                 ((obj)->num_fields())
-#define SIZE_IN_BYTES_FIELDS(fel)       ((size_t)(sizeof(ObjectHeader) + \
-      ((fel)*SIZE_OF_OBJECT)))
-#define SIZE_IN_WORDS_FIELDS(fel)       (sizeof(ObjectHeader)/SIZE_OF_OBJECT + (fel))
-#define SIZE_IN_BYTES(obj)              SIZE_IN_BYTES_FIELDS(obj->num_fields())
-#define SIZE_OF_BODY(obj)               (obj->num_fields() * SIZE_OF_OBJECT)
+#define NUM_FIELDS(obj)             ((obj)->num_fields())
+#define SIZE_IN_BYTES_FIELDS(fel)   ((size_t)(sizeof(ObjectHeader) + \
+                                        ((fel)*SIZE_OF_OBJECT)))
+#define SIZE_IN_WORDS_FIELDS(fel)   (sizeof(ObjectHeader)/SIZE_OF_OBJECT + (fel))
+#define SIZE_IN_BYTES(obj)          SIZE_IN_BYTES_FIELDS(obj->num_fields())
+#define SIZE_OF_BODY(obj)           (obj->num_fields() * SIZE_OF_OBJECT)
 
 // Some configuration flags
 //
@@ -417,7 +409,7 @@ const int cUndef = 0x22L;
     /* Used to make an exact state copy of +this+ into +other* */
     void initialize_full_state(VM* vm, Object* other, unsigned int age);
 
-    /* Clear the body of the object, by setting each field to Qnil */
+    /* Clear the body of the object, by setting each field to cNil */
     void clear_fields(size_t bytes);
 
     /* Clear the body of the object, setting it to all 0s */
@@ -437,7 +429,7 @@ const int cUndef = 0x22L;
       set_zone(loc);
 
       klass_ = cls;
-      ivars_ = Qnil;
+      ivars_ = cNil;
     }
 
     // Can only be used when the caller is sure that the object doesn't
@@ -449,7 +441,7 @@ const int cUndef = 0x22L;
       header.f.zone = loc;
 
       klass_ = cls;
-      ivars_ = Qnil;
+      ivars_ = cNil;
     }
 
     void** pointer_to_body() {
@@ -479,7 +471,7 @@ const int cUndef = 0x22L;
     }
 
     bool reference_p() const {
-      return REFERENCE_P(this);
+      return __REFERENCE_P__(this);
     }
 
     bool young_object_p() const {
@@ -643,15 +635,15 @@ const int cUndef = 0x22L;
     void wait(STATE);
 
     bool nil_p() const {
-      return this == reinterpret_cast<ObjectHeader*>(Qnil);
+      return this == reinterpret_cast<ObjectHeader*>(cNil);
     }
 
     bool true_p() const {
-      return this == reinterpret_cast<ObjectHeader*>(Qtrue);
+      return this == reinterpret_cast<ObjectHeader*>(cTrue);
     }
 
     bool false_p() const {
-      return this == reinterpret_cast<ObjectHeader*>(Qfalse);
+      return this == reinterpret_cast<ObjectHeader*>(cFalse);
     }
 
     object_type type_id() const {

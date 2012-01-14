@@ -81,7 +81,7 @@ public:
     obj = util_new_object(om);
     obj->set_zone(MatureObjectZone);
 
-    obj2 = Qnil;
+    obj2 = cNil;
 
     om.write_barrier(obj, obj2);
     TS_ASSERT_EQUALS(obj->remembered_p(), 0U);
@@ -125,7 +125,7 @@ public:
     obj2 = (Tuple*)util_new_object(om);
 
     obj->field[0] = obj2;
-    obj2->field[0] = Qtrue;
+    obj2->field[0] = cTrue;
 
     om.write_barrier(obj, obj2);
 
@@ -144,7 +144,7 @@ public:
     obj3 = (Tuple*)obj->field[0];
     TS_ASSERT(obj2 != obj3);
 
-    TS_ASSERT_EQUALS(obj2->field[0], Qtrue);
+    TS_ASSERT_EQUALS(obj2->field[0], cTrue);
   }
 
   /* Could crash on failure */
@@ -210,7 +210,7 @@ public:
     mature = (Tuple*)util_new_object(om,20);
     TS_ASSERT_EQUALS(mature->zone(), MatureObjectZone);
 
-    young->field[0] = Qtrue;
+    young->field[0] = cTrue;
     mature->field[0] = young;
 
     om.write_barrier(mature, young);
@@ -219,7 +219,7 @@ public:
     om.collect_young(*gc_data);
 
     TS_ASSERT(mature->field[0] != young);
-    TS_ASSERT_EQUALS(((Tuple*)mature->field[0])->field[0], Qtrue);
+    TS_ASSERT_EQUALS(((Tuple*)mature->field[0])->field[0], cTrue);
   }
 
   void test_collect_young_promotes_objects() {
@@ -377,7 +377,7 @@ public:
     obj =  (Tuple*)util_new_object(om);
     obj2 = (Tuple*)util_new_object(om);
 
-    obj2->field[1] = Qtrue;
+    obj2->field[1] = cTrue;
     obj->field[0] = obj2;
     obj2->field[0] = obj;
 
@@ -392,7 +392,7 @@ public:
     obj2 = (Tuple*)obj->field[0];
 
     TS_ASSERT_EQUALS(obj2->field[0], obj);
-    TS_ASSERT_EQUALS(obj2->field[1], Qtrue);
+    TS_ASSERT_EQUALS(obj2->field[1], cTrue);
   }
 
   void test_valid_object_p() {

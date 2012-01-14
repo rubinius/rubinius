@@ -307,8 +307,8 @@ namespace rubinius {
   Object* MethodTable::has_name(STATE, Symbol* name) {
     MethodTableBucket* entry = find_entry(state, name);
 
-    if(!entry) return Qfalse;
-    return Qtrue;
+    if(!entry) return cFalse;
+    return cTrue;
   }
 
   void MethodTable::Info::show(STATE, Object* self, int level) {

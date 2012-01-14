@@ -159,7 +159,7 @@ namespace rubinius {
 
     // TODO fix me to raise an exception
     assert(0);
-    return Qnil;
+    return cNil;
   }
 
   void CompiledMethod::specialize(STATE, TypeInfo* ti) {
@@ -346,20 +346,20 @@ namespace rubinius {
       }
     }
 
-    return removed ? Qtrue : Qfalse;
+    return removed ? cTrue : cFalse;
   }
 
   Object* CompiledMethod::is_breakpoint(STATE, Fixnum* ip) {
     int i = ip->to_native();
-    if(backend_method_ == NULL) return Qfalse;
+    if(backend_method_ == NULL) return cFalse;
     if(!backend_method_->validate_ip(state, i)) return Primitives::failure();
-    if(breakpoints_->nil_p()) return Qfalse;
+    if(breakpoints_->nil_p()) return cFalse;
 
     bool found = false;
     breakpoints_->fetch(state, ip, &found);
 
-    if(found) return Qtrue;
-    return Qfalse;
+    if(found) return cTrue;
+    return cFalse;
   }
 
   CompiledMethod* CompiledMethod::of_sender(STATE, CallFrame* calling_environment) {

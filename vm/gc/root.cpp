@@ -24,13 +24,13 @@ namespace rubinius {
   Root::Root(STATE)
     : LinkedList::Node()
     , roots_(&state->globals().roots)
-    , object_(Qundef)
+    , object_(cUndef)
   {}
 
   Root::Root(STATE, Object* obj)
     : LinkedList::Node()
     , roots_(NULL)
-    , object_(Qundef)
+    , object_(cUndef)
   {
     set(obj, &state->globals().roots);
   }
@@ -38,13 +38,13 @@ namespace rubinius {
   Root::Root(VM* vm)
     : LinkedList::Node()
     , roots_(&vm->globals().roots)
-    , object_(Qundef)
+    , object_(cUndef)
   {}
 
   Root::Root(VM* vm, Object* obj)
     : LinkedList::Node()
     , roots_(NULL)
-    , object_(Qundef)
+    , object_(cUndef)
   {
     set(obj, &vm->globals().roots);
   }
@@ -55,17 +55,17 @@ namespace rubinius {
     if(roots_ == r) {
 
       // We don't add the root until it's got an object.
-      if(object_ == Qundef && obj && obj != Qundef) roots_->add(this);
+      if(object_ == cUndef && obj && obj != cUndef) roots_->add(this);
       object_ = obj;
 
     // Moving to a new set. Remove ourselves from
     // the current set if we added ourself (we have an
     // object)
     } else {
-      if(object_ != Qundef) roots_->remove(this);
+      if(object_ != cUndef) roots_->remove(this);
       object_ = obj;
       roots_ = r;
-      if(object_ != Qundef) roots_->add(this);
+      if(object_ != cUndef) roots_->add(this);
     }
   }
 }

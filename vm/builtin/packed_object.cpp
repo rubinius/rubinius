@@ -22,7 +22,7 @@ namespace rubinius {
     }
 
     Object* obj = body_as_array()[which->to_native()];
-    if(obj == Qundef) return Qnil;
+    if(obj == cUndef) return cNil;
     return obj;
   }
 
@@ -36,8 +36,8 @@ namespace rubinius {
     }
 
     Object* obj = body_as_array()[which->to_native()];
-    if(obj == Qundef) return Qfalse;
-    return Qtrue;
+    if(obj == cUndef) return cFalse;
+    return cTrue;
   }
 
   Object* PackedObject::set_packed_ivar(STATE, Symbol* sym, Object* val) {
@@ -66,7 +66,7 @@ namespace rubinius {
     if(removed) *removed = true;
 
     Object* val = body_as_array()[which->to_native()];
-    body_as_array()[which->to_native()] = Qundef;
+    body_as_array()[which->to_native()] = cUndef;
 
     return val;
   }
@@ -79,7 +79,7 @@ namespace rubinius {
     while(i.advance()) {
       Object* key = i.key();
       if(Fixnum* which = try_as<Fixnum>(tbl->fetch(state, key))) {
-        if(body_as_array()[which->to_native()] != Qundef) {
+        if(body_as_array()[which->to_native()] != cUndef) {
           ary->append(state, key);
         }
       }

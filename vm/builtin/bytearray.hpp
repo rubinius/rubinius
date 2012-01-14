@@ -62,7 +62,7 @@ namespace rubinius {
 
     /* ::locate searches for +pattern+ in the ByteArray. Returns the
      * number of characters from the front of the ByteArray to the end
-     * of the pattern if a match is found. Returns Qnil if a match is
+     * of the pattern if a match is found. Returns cNil if a match is
      * not found. Starts searching at index +start+.
      */
 

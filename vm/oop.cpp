@@ -566,9 +566,9 @@ step2:
     memcpy(dst, src, other->body_in_bytes(state));
   }
 
-  /* Clear the body of the object, by setting each field to Qnil */
+  /* Clear the body of the object, by setting each field to cNil */
   void ObjectHeader::clear_fields(size_t bytes) {
-    ivars_ = Qnil;
+    ivars_ = cNil;
 
     /* HACK: this case seems like a reasonable exception
      * to using accessor functions
@@ -577,7 +577,7 @@ step2:
     size_t field_count = bytes_to_fields(bytes);
 
     for(register size_t counter = 0; counter < field_count; ++counter) {
-      dst[counter] = Qnil;
+      dst[counter] = cNil;
     }
   }
 

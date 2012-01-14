@@ -51,7 +51,7 @@ namespace rubinius {
     if(count > 0) {
       return Encoding::find(state, data);
     } else {
-      return Qnil;
+      return cNil;
     }
   }
 
@@ -206,11 +206,11 @@ namespace rubinius {
 
     switch(code) {
     case 'n':
-      return Qnil;
+      return cNil;
     case 't':
-      return Qtrue;
+      return cTrue;
     case 'f':
-      return Qfalse;
+      return cFalse;
     case 'I':
       return get_int();
     case 's':
@@ -233,7 +233,7 @@ namespace rubinius {
       std::string str = "unknown marshal code: ";
       str.append( 1, code );
       Exception::type_error(state, str.c_str());
-      return Qnil;    // make compiler happy
+      return cNil;    // make compiler happy
     }
   }
 }

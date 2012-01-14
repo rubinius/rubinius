@@ -665,7 +665,7 @@ namespace rubinius {
   }
 
   std::string LLVMState::symbol_debug_str(const Symbol* sym) {
-    if(sym == reinterpret_cast<const Symbol*>(Qnil)) return "<nil>";
+    if(sym == reinterpret_cast<const Symbol*>(cNil)) return "<nil>";
     return symbols_.lookup_debug_string(sym);
   }
 
@@ -806,7 +806,7 @@ namespace rubinius {
       if(candidate->cm->can_specialize_p()) {
         compile_soon(state, candidate->cm, candidate->self()->class_object(state));
       } else {
-        compile_soon(state, candidate->cm, Qnil);
+        compile_soon(state, candidate->cm, cNil);
       }
     }
   }

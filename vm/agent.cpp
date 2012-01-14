@@ -87,10 +87,10 @@ namespace rubinius {
     // This class is always created with the GIL locked, so it's ok
     // to access ruby stuff here.
     IO* from = IO::create(state, a2r_ruby());
-    from->sync(state, Qtrue);
+    from->sync(state, cTrue);
 
     IO* to = IO::create(state, r2a_ruby());
-    to->sync(state, Qtrue);
+    to->sync(state, cTrue);
 
     shared_.globals.rubinius.get()->set_const(state, "FROM_AGENT", from);
     shared_.globals.rubinius.get()->set_const(state, "TO_AGENT", to);

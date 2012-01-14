@@ -37,7 +37,7 @@ namespace tooling {
     if(!enable_func_) return;
 
     state->shared().config.jit_disabled.set("true");
-    System::vm_deoptimize_all(state, Qtrue);
+    System::vm_deoptimize_all(state, cTrue);
 
     enable_func_(state->vm()->tooling_env());
   }
@@ -48,7 +48,7 @@ namespace tooling {
   }
 
   Object* ToolBroker::results(STATE) {
-    if(!results_func_) return Qnil;
+    if(!results_func_) return cNil;
 
     state->shared().config.jit_disabled.set("false");
 
@@ -56,7 +56,7 @@ namespace tooling {
 
     // This finds all the methods again and this time makes them available
     // for JIT.
-    System::vm_deoptimize_all(state, Qfalse);
+    System::vm_deoptimize_all(state, cFalse);
 
     return res;
   }

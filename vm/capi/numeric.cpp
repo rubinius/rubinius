@@ -138,7 +138,7 @@ extern "C" {
   VALUE rb_cstr_to_inum(const char* str, int base, int badcheck) {
     NativeMethodEnvironment* env = NativeMethodEnvironment::get();
     Integer* i = Integer::from_cstr(env->state(), str, base,
-                                    badcheck ? RBX_Qtrue : RBX_Qfalse);
+                                    badcheck ? cTrue : cFalse);
     if(i->nil_p()) {
       rb_raise(rb_eArgError, "invalid string for Integer");
     }
@@ -261,7 +261,7 @@ extern "C" {
     if(kind_of<Fixnum>(object) || kind_of<Bignum>(object)) {
       return object_handle;
     } else if(String* str = try_as<String>(object)) {
-      Object* ret = str->to_i(env->state(), Fixnum::from(0), RBX_Qtrue);
+      Object* ret = str->to_i(env->state(), Fixnum::from(0), cTrue);
       if(ret->nil_p()) {
         rb_raise(rb_eArgError, "invalid value for Integer");
       }

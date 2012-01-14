@@ -26,7 +26,7 @@ namespace rubinius {
 
     Exception* exc = vm_->interrupted_exception_.get();
     if(!exc->nil_p()) {
-      vm_->interrupted_exception_.set((Exception*)Qnil);
+      vm_->interrupted_exception_.set((Exception*)cNil);
 
       // Only write the locations if there are none.
       if(exc->locations()->nil_p() || exc->locations()->size() == 0) {
@@ -69,7 +69,7 @@ namespace rubinius {
     // If the current thread is trying to step, debugger wise, then assist!
     if(vm_->thread_step()) {
       vm_->clear_thread_step();
-      if(!Helpers::yield_debugger(this, gct, call_frame, Qnil)) return false;
+      if(!Helpers::yield_debugger(this, gct, call_frame, cNil)) return false;
     }
 
     return true;

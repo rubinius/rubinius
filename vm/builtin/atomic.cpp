@@ -18,6 +18,6 @@ namespace rubinius {
 
   Object* AtomicReference::compare_and_set(STATE, Object* old, Object* new_) {
     Object** pp = &value_;
-    return atomic::compare_and_swap((void**)pp, old, new_) ? Qtrue : Qfalse;
+    return atomic::compare_and_swap((void**)pp, old, new_) ? cTrue : cFalse;
   }
 }

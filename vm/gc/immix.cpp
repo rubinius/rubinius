@@ -188,7 +188,7 @@ namespace rubinius {
           ++i) {
         capi::Handle** loc = *i;
         if(capi::Handle* hdl = *loc) {
-          if(!CAPI_REFERENCE_P(hdl)) continue;
+          if(!REFERENCE_P(hdl)) continue;
           if(hdl->valid_p()) {
             Object* obj = hdl->object();
             if(obj && obj->reference_p()) {

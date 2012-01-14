@@ -151,7 +151,7 @@ namespace rubinius {
         args->set(env->state(), i, env->get_object(arg_array[i]));
       }
 
-      Object* blk = RBX_Qnil;
+      Object* blk = cNil;
 
       if(VALUE blk_handle = env->outgoing_block()) {
         blk = env->get_object(blk_handle);
@@ -243,7 +243,7 @@ namespace rubinius {
       Symbol* method = (Symbol*)method_name;
 
       LookupData lookup(recv, recv->lookup_begin(env->state()), true);
-      Arguments args_o(method, recv, RBX_Qnil, arg_count, args);
+      Arguments args_o(method, recv, cNil, arg_count, args);
       Dispatch dis(method);
 
       Object* ret = dis.send(env->state(), env->current_call_frame(),
@@ -277,7 +277,7 @@ namespace rubinius {
       // Unlock, we're leaving extension code.
       LEAVE_CAPI(env->state());
 
-      Object* ret = RBX_Qnil;
+      Object* ret = cNil;
       STATE = env->state();
 
       CallFrame* call_frame = env->current_call_frame();
@@ -489,7 +489,7 @@ extern "C" {
 
     va_end(varargs);
 
-    Object* blk = RBX_Qnil;
+    Object* blk = cNil;
 
     if(VALUE blk_handle = env->outgoing_block()) {
       blk = env->get_object(blk_handle);
@@ -511,7 +511,7 @@ extern "C" {
       args[i] = env->get_object(v_args[i]);
     }
 
-    Object* blk = RBX_Qnil;
+    Object* blk = cNil;
 
     if(VALUE blk_handle = env->outgoing_block()) {
       blk = env->get_object(blk_handle);
@@ -546,7 +546,7 @@ extern "C" {
 
     Object* blk = env->block();
 
-    if(!RBX_RTEST(blk)) {
+    if(!CBOOL(blk)) {
       rb_raise(rb_eLocalJumpError, "no block given", 0);
     }
 
@@ -560,7 +560,7 @@ extern "C" {
 
     Object* blk = env->block();
 
-    if(!RBX_RTEST(blk)) {
+    if(!CBOOL(blk)) {
       rb_raise(rb_eLocalJumpError, "no block given", 0);
     }
 
@@ -587,7 +587,7 @@ extern "C" {
 
     Object* blk = env->block();
 
-    if(!RBX_RTEST(blk)) {
+    if(!CBOOL(blk)) {
       rb_raise(rb_eLocalJumpError, "no block given", 0);
     }
 
@@ -607,7 +607,7 @@ extern "C" {
 
   int rb_block_given_p() {
     NativeMethodEnvironment* env = NativeMethodEnvironment::get();
-    return RBX_RTEST(env->block());
+    return CBOOL(env->block());
   }
 
   void rb_need_block() {
@@ -628,7 +628,7 @@ extern "C" {
     LEAVE_CAPI(env->state());
 
     Object* ret = obj->send(env->state(), env->current_call_frame(),
-        reinterpret_cast<Symbol*>(mid), ary, RBX_Qnil);
+        reinterpret_cast<Symbol*>(mid), ary, cNil);
 
     // We need to get the handle for the return value before getting
     // the GEL so that ret isn't accidentally GCd while we wait.
@@ -659,7 +659,7 @@ extern "C" {
   int capi_nil_p(VALUE expression_result) {
     NativeMethodEnvironment* env = NativeMethodEnvironment::get();
 
-    return RBX_NIL_P(env->get_object(expression_result));
+    return env->get_object(expression_result)->nil_p();
   }
 
   void capi_taint(VALUE obj) {

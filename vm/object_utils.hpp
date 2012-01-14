@@ -37,7 +37,7 @@ namespace rubinius {
    */
   template <class T>
     static inline bool kind_of(const Object* obj) {
-      if(REFERENCE_P(obj)) {
+      if(obj->reference_p()) {
         return obj->type_id() == T::type;
       }
       return false;
@@ -60,7 +60,7 @@ namespace rubinius {
    */
   template <class T>
     static inline bool instance_of(const Object* obj) {
-      if(REFERENCE_P(obj)) {
+      if(obj->reference_p()) {
         return obj->type_id() == T::type;
       }
       return false;
@@ -77,7 +77,7 @@ namespace rubinius {
   /*
    *  There is NO reason why as() or try_as() should be getting
    *  NULL arguments. That means something has not been properly
-   *  initialised (to Qnil if nothing else.)
+   *  initialised (to cNil if nothing else.)
    */
 
   /**
@@ -233,13 +233,13 @@ namespace rubinius {
     }
 
   /**
-   *  Returns Qnil cast to another type of rubinius::Object. Useful in
-   *  cases where e.g. a String* would be returned but Qnil is returned
+   *  Returns cNil cast to another type of rubinius::Object. Useful in
+   *  cases where e.g. a String* would be returned but cNil is returned
    *  as an exceptional value.
    *
    */
   template <class T>
-    static inline T* nil() { return static_cast<T*>(Qnil); }
+    static inline T* nil() { return static_cast<T*>(cNil); }
 
   /**
    *  Converts one type into another without a type check. This is

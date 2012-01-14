@@ -66,7 +66,7 @@ namespace rubinius {
 
   public: // Inline Functions
     Object* at(native_int index) {
-      if(index < 0 || num_fields() <= index) return Qnil;
+      if(index < 0 || num_fields() <= index) return cNil;
       return field[index];
     }
 

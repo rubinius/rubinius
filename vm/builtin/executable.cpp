@@ -70,14 +70,14 @@ namespace rubinius {
   }
 
   void Executable::add_inliner(ObjectMemory* om, CompiledMethod* cm) {
-    if(!inliners_ || inliners_ == (Inliners*)Qnil) inliners_ = new Inliners;
+    if(!inliners_ || inliners_ == (Inliners*)cNil) inliners_ = new Inliners;
     inliners_->inliners().push_back(cm);
 
     om->write_barrier(this, cm);
   }
 
   void Executable::clear_inliners(STATE) {
-    if(!inliners_ || inliners_ == (Inliners*)Qnil) return;
+    if(!inliners_ || inliners_ == (Inliners*)cNil) return;
     for(std::list<CompiledMethod*>::const_iterator i = inliners_->inliners().begin();
         i != inliners_->inliners().end();
         ++i) {
@@ -94,7 +94,7 @@ namespace rubinius {
 
   void Executable::Info::mark_inliners(Object* obj, ObjectMark& mark) {
     Executable* exc = (Executable*)obj;
-    if(!exc->inliners_ || exc->inliners_ == (Inliners*)Qnil) return;
+    if(!exc->inliners_ || exc->inliners_ == (Inliners*)cNil) return;
 
     if(exc->inliners_) {
       Inliners* inl = exc->inliners_;
@@ -123,7 +123,7 @@ namespace rubinius {
 
   void Executable::Info::visit_inliners(Object* obj, ObjectVisitor& visit) {
     Executable* exc = (Executable*)obj;
-    if(!exc->inliners_ || exc->inliners_ == (Inliners*)Qnil) return;
+    if(!exc->inliners_ || exc->inliners_ == (Inliners*)cNil) return;
 
     if(exc->inliners_) {
       for(std::list<CompiledMethod*>::iterator i = exc->inliners_->inliners().begin();

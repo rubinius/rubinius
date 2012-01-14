@@ -249,7 +249,7 @@ namespace rubinius {
   /* exception_errno_error primitive */
   Object* Exception::errno_error(STATE, Object* reason, Fixnum* ern) {
     Class* exc_class = get_errno_error(state, ern);
-    if(exc_class->nil_p()) return Qnil;
+    if(exc_class->nil_p()) return cNil;
 
     return make_errno_exception(state, exc_class, reason);
   }

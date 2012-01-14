@@ -101,7 +101,7 @@ namespace rubinius {
   Array* Array::to_ary(STATE, Object* value, CallFrame* call_frame) {
     if(Tuple* tup = try_as<Tuple>(value)) {
       return Array::from_tuple(state, tup);
-    } else if(CBOOL(value->respond_to(state, state->symbol("to_ary"), Qtrue))) {
+    } else if(CBOOL(value->respond_to(state, state->symbol("to_ary"), cTrue))) {
       Arguments args(state->symbol("to_ary"), value, 0, 0);
       Dispatch dis(args.name());
 
@@ -145,7 +145,7 @@ namespace rubinius {
     }
 
     // Off either end, return nil
-    if(index >= total || index < start) return Qnil;
+    if(index >= total || index < start) return cNil;
 
     return tuple_->at(state, index);
   }
@@ -194,7 +194,7 @@ namespace rubinius {
 
   Object* Array::get(STATE, size_t idx) {
     if(idx >= (size_t)total_->to_native()) {
-      return Qnil;
+      return cNil;
     }
 
     idx += start_->to_native();
@@ -256,9 +256,9 @@ namespace rubinius {
   Object* Array::shift(STATE) {
     size_t cnt = total_->to_native();
 
-    if(cnt == 0) return Qnil;
+    if(cnt == 0) return cNil;
     Object* obj = get(state, 0);
-    set(state, 0, Qnil);
+    set(state, 0, cNil);
     start(state, Fixnum::from(start_->to_native() + 1));
     total(state, Fixnum::from(cnt - 1));
     return obj;
@@ -282,9 +282,9 @@ namespace rubinius {
   Object* Array::pop(STATE) {
     size_t cnt = total_->to_native();
 
-    if(cnt == 0) return Qnil;
+    if(cnt == 0) return cNil;
     Object *obj = get(state, cnt - 1);
-    set(state, cnt-1, Qnil);
+    set(state, cnt-1, cNil);
     total(state, Fixnum::from(cnt - 1));
     return obj;
   }

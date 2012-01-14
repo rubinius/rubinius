@@ -279,7 +279,7 @@ namespace rubinius {
     }
 
     Object* ret = G(rubinius)->send(state, call_frame, state->symbol("bind_call"),
-                                    ary, Qnil, true);
+                                    ary, cNil, true);
 
     if(!ret) return 0;
 

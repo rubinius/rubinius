@@ -143,7 +143,7 @@ namespace rubinius {
       };
     }
 
-    if(!LANGUAGE_18_ENABLED(state) && other->untrusted_p(state) == Qtrue) {
+    if(!LANGUAGE_18_ENABLED(state) && other->untrusted_p(state) == cTrue) {
       untrust(state);
     }
 
@@ -151,7 +151,7 @@ namespace rubinius {
   }
 
   Object* Object::equal(STATE, Object* other) {
-    return this == other ? Qtrue : Qfalse;
+    return this == other ? cTrue : cFalse;
   }
 
   Object* Object::freeze(STATE) {
@@ -160,12 +160,12 @@ namespace rubinius {
   }
 
   Object* Object::frozen_p(STATE) {
-    if(reference_p() && is_frozen_p()) return Qtrue;
-    return Qfalse;
+    if(reference_p() && is_frozen_p()) return cTrue;
+    return cFalse;
   }
   
   void Object::check_frozen(STATE) {
-    if(frozen_p(state) == Qtrue) {
+    if(frozen_p(state) == cTrue) {
       Exception::runtime_error(state, "can't modify frozen object");
     }
   }
@@ -181,7 +181,7 @@ namespace rubinius {
       return tbl->fetch(state, sym);
     }
 
-    return Qnil;
+    return cNil;
   }
 
   Object* Object::table_ivar_defined(STATE, Symbol* sym) {
@@ -192,8 +192,8 @@ namespace rubinius {
       tbl->fetch(state, sym, &found);
     }
 
-    if(found) return Qtrue;
-    return Qfalse;
+    if(found) return cTrue;
+    return cFalse;
   }
 
   Object* Object::get_ivar_prim(STATE, Symbol* sym) {
@@ -211,7 +211,7 @@ namespace rubinius {
       LookupTable* tbl = try_as<LookupTable>(G(external_ivars)->fetch(state, this));
 
       if(tbl) return tbl->fetch(state, sym);
-      return Qnil;
+      return cNil;
     }
 
     switch(type_id()) {
@@ -230,7 +230,7 @@ namespace rubinius {
 
         Object** baa = reinterpret_cast<Object**>(pointer_to_body());
         Object* obj = baa[which->to_native()];
-        if(obj == Qundef) return Qnil;
+        if(obj == cUndef) return cNil;
         return obj;
       }
     default:
@@ -274,10 +274,10 @@ namespace rubinius {
       if(tbl) {
         bool found = false;
         tbl->fetch(state, sym, &found);
-        if(found) return Qtrue;
+        if(found) return cTrue;
       }
 
-      return Qfalse;
+      return cFalse;
     }
 
     // Handle packed objects in a unique way.
@@ -417,7 +417,7 @@ namespace rubinius {
 #ifdef RBX_OBJECT_ID_IN_HEADER
     return object_id() > 0;
 #else
-    return get_ivar(state, G(sym_object_id)) != Qnil;
+    return get_ivar(state, G(sym_object_id)) != cNil;
 #endif
   }
 
@@ -464,11 +464,11 @@ namespace rubinius {
   }
 
   Object* Object::kind_of_prim(STATE, Module* klass) {
-    return kind_of_p(state, klass) ? Qtrue : Qfalse;
+    return kind_of_p(state, klass) ? cTrue : cFalse;
   }
 
   Object* Object::instance_of_prim(STATE, Module* klass) {
-    return class_object(state) == klass ? Qtrue : Qfalse;
+    return class_object(state) == klass ? cTrue : cFalse;
   }
 
   Class* Object::singleton_class(STATE) {
@@ -504,7 +504,7 @@ namespace rubinius {
     Dispatch dis(name);
 
     Arguments args(name);
-    args.set_block(Qnil);
+    args.set_block(cNil);
     args.set_recv(this);
 
     return dis.send(state, caller, lookup, args);
@@ -558,7 +558,7 @@ namespace rubinius {
     }
 
     if(CompactLookupTable* tbl = try_as<CompactLookupTable>(ivars())) {
-      if(tbl->store(state, sym, val) == Qtrue) {
+      if(tbl->store(state, sym, val) == cTrue) {
         return val;
       }
 
@@ -647,7 +647,7 @@ namespace rubinius {
     if(ti) {
       TypeInfo::Slots::iterator it = ti->slots.find(sym->index());
       // Can't remove a slot, so just bail.
-      if(it != ti->slots.end()) return Qnil;
+      if(it != ti->slots.end()) return cNil;
     }
 
     Object* val = del_table_ivar(state, sym, &removed);
@@ -657,14 +657,14 @@ namespace rubinius {
 
   Object* Object::del_table_ivar(STATE, Symbol* sym, bool* removed) {
     /* No ivars, we're done! */
-    if(ivars()->nil_p()) return Qnil;
+    if(ivars()->nil_p()) return cNil;
 
     if(CompactLookupTable* tbl = try_as<CompactLookupTable>(ivars())) {
       return tbl->remove(state, sym, removed);
     } else if(LookupTable* tbl = try_as<LookupTable>(ivars())) {
       return tbl->remove(state, sym, removed);
     }
-    return Qnil;
+    return cNil;
   }
 
   String* Object::to_s(STATE, bool address) {
@@ -726,7 +726,7 @@ namespace rubinius {
   Object* Object::show(STATE, int level) {
     if(reference_p() && !state->memory()->valid_object_p(this)) rubinius::warn("bad object in show");
     type_info(state)->show(state, this, level);
-    return Qnil;
+    return cNil;
   }
 
   Object* Object::show_simple(STATE) {
@@ -735,7 +735,7 @@ namespace rubinius {
 
   Object* Object::show_simple(STATE, int level) {
     type_info(state)->show_simple(state, this, level);
-    return Qnil;
+    return cNil;
   }
 
   Object* Object::taint(STATE) {
@@ -744,12 +744,12 @@ namespace rubinius {
   }
 
   Object* Object::tainted_p(STATE) {
-    if(reference_p() && is_tainted_p()) return Qtrue;
-    return Qfalse;
+    if(reference_p() && is_tainted_p()) return cTrue;
+    return cFalse;
   }
 
   Object* Object::trust(STATE) {
-    if(untrusted_p(state) == Qtrue) {
+    if(untrusted_p(state) == cTrue) {
       check_frozen(state);
       if(reference_p()) set_untrusted(0);
     }
@@ -757,7 +757,7 @@ namespace rubinius {
   }
 
   Object* Object::untrust(STATE) {
-    if(untrusted_p(state) == Qfalse) {
+    if(untrusted_p(state) == cFalse) {
       check_frozen(state);
       if(reference_p()) set_untrusted();
     }
@@ -765,8 +765,8 @@ namespace rubinius {
   }
 
   Object* Object::untrusted_p(STATE) {
-    if(reference_p() && is_untrusted_p()) return Qtrue;
-    return Qfalse;
+    if(reference_p() && is_untrusted_p()) return cTrue;
+    return cFalse;
   }
 
   TypeInfo* Object::type_info(STATE) const {
@@ -785,10 +785,10 @@ namespace rubinius {
     Dispatch dis(name);
 
     if(!GlobalCache::resolve(state, name, dis, lookup)) {
-      return Qfalse;
+      return cFalse;
     }
 
-    return Qtrue;
+    return cTrue;
   }
 
   Object* Object::respond_to_public(STATE, Object* obj) {
@@ -808,10 +808,10 @@ namespace rubinius {
     Dispatch dis(name);
 
     if(!GlobalCache::resolve(state, name, dis, lookup)) {
-      return Qfalse;
+      return cFalse;
     }
 
-    return Qtrue;
+    return cTrue;
   }
 
   /**

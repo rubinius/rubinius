@@ -91,7 +91,7 @@ namespace rubinius {
       for(size_t i = 0; i < size - sizeof(ObjectHeader);
           i += sizeof(Object*)) {
         Object** pos = reinterpret_cast<Object**>(body + i);
-        *pos = Qundef;
+        *pos = cUndef;
       }
 
       return obj;
@@ -127,7 +127,7 @@ namespace rubinius {
       for(size_t i = 0; i < size - sizeof(ObjectHeader);
           i += sizeof(Object*)) {
         Object** pos = reinterpret_cast<Object**>(body + i);
-        *pos = Qundef;
+        *pos = cUndef;
       }
 
       return obj;
@@ -145,7 +145,7 @@ namespace rubinius {
       return new_obj;
     } else if(!type_info_->allow_user_allocate || kind_of<SingletonClass>(this)) {
       Exception::type_error(state, "direct allocation disabled");
-      return Qnil;
+      return cNil;
     } else if(type_info_->type == Object::type) {
       // transition all normal object classes to PackedObject
       Class* self = this;
@@ -186,7 +186,7 @@ namespace rubinius {
   Object* Class::set_superclass(STATE, Object* obj) {
     if(obj->nil_p()) {
       superclass(state, nil<Class>());
-      return Qnil;
+      return cNil;
     }
 
     Class* sup;
@@ -209,7 +209,7 @@ namespace rubinius {
 
     SingletonClass::attach(state, this, sup->singleton_class(state));
 
-    return Qnil;
+    return cNil;
   }
 
   void Class::set_object_type(STATE, size_t type) {

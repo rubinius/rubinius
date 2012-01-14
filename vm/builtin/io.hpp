@@ -79,7 +79,7 @@ namespace rubinius {
     /**
      *  Directly read up to number of bytes from descriptor.
      *
-     *  Returns Qnil at EOF.
+     *  Returns cNil at EOF.
      */
     // Rubinius.primitive :io_sysread
     Object* sysread(STATE, Fixnum* number_of_bytes, CallFrame* calling_environment);

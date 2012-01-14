@@ -224,7 +224,7 @@ namespace rubinius {
     native_int max = max_o->to_native();
 
     if(len == 0) return start;
-    if(max == 0) return Qnil;
+    if(max == 0) return cNil;
 
     if(max > size()) max = size();
     max -= (len - 1);
@@ -243,7 +243,7 @@ namespace rubinius {
       }
     }
 
-    return Qnil;
+    return cNil;
   }
 
   // Ripped from 1.8.7 and cleaned up

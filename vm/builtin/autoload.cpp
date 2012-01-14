@@ -18,7 +18,7 @@ namespace rubinius {
   Object* Autoload::resolve(STATE, CallFrame* call_frame, bool honor_require) {
     if(honor_require) {
       Array* args = Array::create(state, 1);
-      args->set(state, 0, Qtrue);
+      args->set(state, 0, cTrue);
 
       return send(state, call_frame, G(sym_call), args);
     } else {

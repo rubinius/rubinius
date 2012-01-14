@@ -77,13 +77,13 @@ namespace rubinius {
 
     // Rubinius.primitive :string_equal
     Object* equal(STATE, String* other) {
-      if(this->num_bytes() != other->num_bytes()) return Qfalse;
+      if(this->num_bytes() != other->num_bytes()) return cFalse;
       int comp = memcmp(
           this->byte_address(),
           other->byte_address(),
           this->num_bytes()->to_native());
 
-      return comp == 0 ? Qtrue : Qfalse;
+      return comp == 0 ? cTrue : cFalse;
     }
 
 
@@ -153,7 +153,7 @@ namespace rubinius {
     Float* to_f(STATE);
     double to_double(STATE);
 
-    Integer* to_i(STATE, Fixnum* base = Fixnum::from(0), Object* strict = Qtrue);
+    Integer* to_i(STATE, Fixnum* base = Fixnum::from(0), Object* strict = cTrue);
 
     // Rubinius.primitive :string_to_inum
     Integer* to_inum_prim(STATE, Fixnum* base, Object* strict);

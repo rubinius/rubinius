@@ -65,7 +65,7 @@ namespace rubinius {
 
     this->path(state, path);
 
-    return Qtrue;
+    return cTrue;
   }
 
   Object* Dir::close(STATE) {
@@ -76,11 +76,11 @@ namespace rubinius {
       os_ = 0;
     }
 
-    return Qnil;
+    return cNil;
   }
 
   Object* Dir::closed_p(STATE) {
-    return os_ ? Qfalse : Qtrue;
+    return os_ ? cFalse : cTrue;
   }
 
   Object* Dir::read(STATE) {
@@ -88,7 +88,7 @@ namespace rubinius {
 
     struct dirent *ent = readdir(os_);
 
-    if(!ent) return Qnil;
+    if(!ent) return cNil;
 
     return String::create(state, ent->d_name);
   }
@@ -99,13 +99,13 @@ namespace rubinius {
     switch(kind->to_native()) {
     case 0:
       seekdir(os_, pos->to_native());
-      return Qtrue;
+      return cTrue;
     case 1:
       rewinddir(os_);
-      return Qtrue;
+      return cTrue;
     case 2:
       return Integer::from(state, telldir(os_));
     }
-    return Qnil;
+    return cNil;
   }
 }

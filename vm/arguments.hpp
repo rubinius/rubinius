@@ -32,7 +32,7 @@ namespace rubinius {
     Arguments(Symbol* name, Object* recv, uint32_t total, Object** buffer)
       : name_(name)
       , recv_(recv)
-      , block_(Qnil)
+      , block_(cNil)
       , total_(total)
       , arguments_(buffer)
       , argument_container_(0)
@@ -40,8 +40,8 @@ namespace rubinius {
 
     Arguments(Symbol* name, uint32_t total, Object** buffer)
       : name_(name)
-      , recv_(Qnil)
-      , block_(Qnil)
+      , recv_(cNil)
+      , block_(cNil)
       , total_(total)
       , arguments_(buffer)
       , argument_container_(0)
@@ -49,8 +49,8 @@ namespace rubinius {
 
     Arguments(Symbol* name)
       : name_(name)
-      , recv_(Qnil)
-      , block_(Qnil)
+      , recv_(cNil)
+      , block_(cNil)
       , total_(0)
       , arguments_(0)
       , argument_container_(0)
@@ -58,8 +58,8 @@ namespace rubinius {
 
     Arguments(Symbol* name, Array* ary)
       : name_(name)
-      , recv_(Qnil)
-      , block_(Qnil)
+      , recv_(cNil)
+      , block_(cNil)
     {
       use_array(ary);
     }

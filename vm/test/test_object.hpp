@@ -33,24 +33,24 @@ public:
     Symbol* t1 = state->symbol("@test1");
     Symbol* t2 = state->symbol("@test2");
 
-    obj->set_ivar(state, t1, Qtrue);
-    obj->set_ivar(state, t2, Qtrue);
+    obj->set_ivar(state, t1, cTrue);
+    obj->set_ivar(state, t2, cTrue);
 
-    TS_ASSERT_EQUALS(Qtrue, as<CompactLookupTable>(obj->ivars())->fetch(state, t1));
-    TS_ASSERT_EQUALS(Qtrue, as<CompactLookupTable>(obj->ivars())->fetch(state, t2));
+    TS_ASSERT_EQUALS(cTrue, as<CompactLookupTable>(obj->ivars())->fetch(state, t1));
+    TS_ASSERT_EQUALS(cTrue, as<CompactLookupTable>(obj->ivars())->fetch(state, t2));
   }
 
   void test_instance_variables_none() {
     Object* obj = util_new_object();
 
-    TS_ASSERT_EQUALS(Qnil, obj->ivars());
+    TS_ASSERT_EQUALS(cNil, obj->ivars());
   }
 
   void test_as() {
     Object* obj = util_new_object();
     Fixnum* fix = Fixnum::from(1);
 
-    Object* nil = Qnil;
+    Object* nil = cNil;
 
     // OK
     TS_ASSERT_EQUALS(as<Object>(obj), obj);
@@ -69,7 +69,7 @@ public:
     Object* obj = util_new_object();
     Fixnum* fix = Fixnum::from(1);
 
-    Object* nil = Qnil;
+    Object* nil = cNil;
 
     // OK
     TS_ASSERT_EQUALS(try_as<Object>(obj), obj);
@@ -83,13 +83,13 @@ public:
 
   void test_duplicate() {
     Tuple* tup = Tuple::create(state, 1);
-    tup->put(state, 0, Qtrue);
+    tup->put(state, 0, cTrue);
 
     tup->set_ivar(state, state->symbol("@name"), state->symbol("foo"));
 
     Tuple* tup2 = as<Tuple>(tup->duplicate(state));
 
-    TS_ASSERT_EQUALS(tup2->at(state, 0), Qtrue);
+    TS_ASSERT_EQUALS(tup2->at(state, 0), cTrue);
     TS_ASSERT_DIFFERS(tup->id(state), tup2->id(state));
 
     TS_ASSERT(tup->ivars_ != tup2->ivars_);
@@ -107,7 +107,7 @@ public:
 
   void test_dup_ignores_singleton_class() {
     Tuple* tup = Tuple::create(state, 1);
-    tup->put(state, 0, Qtrue);
+    tup->put(state, 0, cTrue);
 
     // Force it to exist.
     tup->singleton_class(state);
@@ -139,19 +139,19 @@ public:
   void test_kind_of_prim() {
     String* str = String::create(state, "thingy");
 
-    TS_ASSERT_EQUALS(Qtrue, str->kind_of_prim(state, G(string)));
-    TS_ASSERT_EQUALS(Qfalse, str->kind_of_prim(state, G(tuple)));
+    TS_ASSERT_EQUALS(cTrue, str->kind_of_prim(state, G(string)));
+    TS_ASSERT_EQUALS(cFalse, str->kind_of_prim(state, G(tuple)));
   }
 
   void test_hash() {
-    TS_ASSERT_EQUALS(Qnil->hash(state), Qnil->hash(state));
-    TS_ASSERT(Qnil->hash(state) > 0);
+    TS_ASSERT_EQUALS(cNil->hash(state), cNil->hash(state));
+    TS_ASSERT(cNil->hash(state) > 0);
 
-    TS_ASSERT_EQUALS(Qtrue->hash(state), Qtrue->hash(state));
-    TS_ASSERT(Qtrue->hash(state) > 0);
+    TS_ASSERT_EQUALS(cTrue->hash(state), cTrue->hash(state));
+    TS_ASSERT(cTrue->hash(state) > 0);
 
-    TS_ASSERT_EQUALS(Qfalse->hash(state), Qfalse->hash(state));
-    TS_ASSERT(Qfalse->hash(state) > 0);
+    TS_ASSERT_EQUALS(cFalse->hash(state), cFalse->hash(state));
+    TS_ASSERT(cFalse->hash(state) > 0);
 
     TS_ASSERT_DIFFERS(Fixnum::from(1)->hash(state), Fixnum::from(2)->hash(state));
     TS_ASSERT_DIFFERS(Fixnum::from(-1)->hash(state), Fixnum::from(1)->hash(state));
@@ -173,9 +173,9 @@ public:
 
   void test_singleton_class() {
     TS_ASSERT(kind_of<SingletonClass>(G(object)->singleton_class(state)));
-    TS_ASSERT_EQUALS(Qnil->singleton_class(state), G(nil_class));
-    TS_ASSERT_EQUALS(Qtrue->singleton_class(state), G(true_class));
-    TS_ASSERT_EQUALS(Qfalse->singleton_class(state), G(false_class));
+    TS_ASSERT_EQUALS(cNil->singleton_class(state), G(nil_class));
+    TS_ASSERT_EQUALS(cTrue->singleton_class(state), G(true_class));
+    TS_ASSERT_EQUALS(cFalse->singleton_class(state), G(false_class));
 
     Tuple *tup = Tuple::create(state, 1);
     TS_ASSERT(!kind_of<SingletonClass>(tup->klass()));
@@ -188,8 +188,8 @@ public:
     String* s1 = String::create(state, "whatever");
     String* s2 = String::create(state, "whatever");
 
-    TS_ASSERT_EQUALS(as<Object>(s1)->equal(state, as<Object>(s2)), Qfalse);
-    TS_ASSERT_EQUALS(as<Object>(Fixnum::from(0))->equal(state, as<Object>(Fixnum::from(0))), Qtrue);
+    TS_ASSERT_EQUALS(as<Object>(s1)->equal(state, as<Object>(s2)), cFalse);
+    TS_ASSERT_EQUALS(as<Object>(Fixnum::from(0))->equal(state, as<Object>(Fixnum::from(0))), cTrue);
   }
 
   void test_set_ivar() {
@@ -229,8 +229,8 @@ public:
     Object* val = Fixnum::from(33);
     Object* obj = util_new_object();
 
-    TS_ASSERT_EQUALS(Qnil, obj->get_ivar(state, state->symbol("@non_existent")));
-    TS_ASSERT_EQUALS(Qnil, obj->get_ivar(state, sym));
+    TS_ASSERT_EQUALS(cNil, obj->get_ivar(state, state->symbol("@non_existent")));
+    TS_ASSERT_EQUALS(cNil, obj->get_ivar(state, sym));
 
     obj->set_ivar(state, sym, val);
 
@@ -242,8 +242,8 @@ public:
     Object* val = Fixnum::from(33);
     Object* obj = Fixnum::from(-10);
 
-    TS_ASSERT_EQUALS(Qnil, obj->get_ivar(state, state->symbol("@non_existent")));
-    TS_ASSERT_EQUALS(Qnil, obj->get_ivar(state, sym));
+    TS_ASSERT_EQUALS(cNil, obj->get_ivar(state, state->symbol("@non_existent")));
+    TS_ASSERT_EQUALS(cNil, obj->get_ivar(state, sym));
 
     obj->set_ivar(state, sym, val);
 
@@ -296,17 +296,17 @@ public:
     Object* obj1 = util_new_object();
     Object* obj2 = util_new_object();
 
-    TS_ASSERT_EQUALS(obj1->tainted_p(state), Qfalse);
-    TS_ASSERT_EQUALS(obj2->tainted_p(state), Qfalse);
+    TS_ASSERT_EQUALS(obj1->tainted_p(state), cFalse);
+    TS_ASSERT_EQUALS(obj2->tainted_p(state), cFalse);
 
     obj1->infect(state, obj2);
 
-    TS_ASSERT_EQUALS(obj2->tainted_p(state), Qfalse);
+    TS_ASSERT_EQUALS(obj2->tainted_p(state), cFalse);
 
     obj1->taint(state);
     obj1->infect(state, obj2);
 
-    TS_ASSERT_EQUALS(obj2->tainted_p(state), Qtrue);
+    TS_ASSERT_EQUALS(obj2->tainted_p(state), cTrue);
   }
 
   void test_infect_non_reference() {
@@ -315,73 +315,73 @@ public:
 
     obj1->infect(state, obj2);
 
-    TS_ASSERT_EQUALS(obj2->tainted_p(state), Qfalse);
+    TS_ASSERT_EQUALS(obj2->tainted_p(state), cFalse);
 
     obj1->taint(state);
     obj1->infect(state, obj2);
 
-    TS_ASSERT_EQUALS(obj2->tainted_p(state), Qfalse);
+    TS_ASSERT_EQUALS(obj2->tainted_p(state), cFalse);
   }
 
   void test_tainted_p() {
     Object* obj = util_new_object();
 
-    TS_ASSERT_EQUALS(obj->tainted_p(state), Qfalse);
+    TS_ASSERT_EQUALS(obj->tainted_p(state), cFalse);
     obj->taint(state);
-    TS_ASSERT_EQUALS(obj->tainted_p(state), Qtrue);
+    TS_ASSERT_EQUALS(obj->tainted_p(state), cTrue);
   }
 
   void test_tainted_p_non_reference() {
     Object* obj = Integer::from(state, 5);
 
-    TS_ASSERT_EQUALS(obj->tainted_p(state), Qfalse);
+    TS_ASSERT_EQUALS(obj->tainted_p(state), cFalse);
     obj->taint(state);
-    TS_ASSERT_EQUALS(obj->tainted_p(state), Qfalse);
+    TS_ASSERT_EQUALS(obj->tainted_p(state), cFalse);
   }
 
   void test_taint() {
     Object* obj = util_new_object();
 
-    TS_ASSERT(obj->tainted_p(state) == Qfalse);
+    TS_ASSERT(obj->tainted_p(state) == cFalse);
     obj->taint(state);
-    TS_ASSERT(obj->tainted_p(state) == Qtrue);
+    TS_ASSERT(obj->tainted_p(state) == cTrue);
   }
 
   void test_untaint() {
     Object* obj = util_new_object();
 
     obj->taint(state);
-    TS_ASSERT(obj->tainted_p(state) == Qtrue);
+    TS_ASSERT(obj->tainted_p(state) == cTrue);
     obj->untaint(state);
-    TS_ASSERT(obj->tainted_p(state) == Qfalse);
+    TS_ASSERT(obj->tainted_p(state) == cFalse);
   }
 
   void test_frozen_p() {
     Object* obj = util_new_object();
 
-    TS_ASSERT_EQUALS(obj->frozen_p(state), Qfalse);
+    TS_ASSERT_EQUALS(obj->frozen_p(state), cFalse);
     obj->freeze(state);
-    TS_ASSERT_EQUALS(obj->frozen_p(state), Qtrue);
+    TS_ASSERT_EQUALS(obj->frozen_p(state), cTrue);
   }
 
   void test_freeze() {
     Object* obj = util_new_object();
 
-    TS_ASSERT(obj->frozen_p(state) == Qfalse);
+    TS_ASSERT(obj->frozen_p(state) == cFalse);
     obj->freeze(state);
     TS_ASSERT(obj->frozen_p(state));
   }
 
   void test_nil_class() {
-    TS_ASSERT_EQUALS(Qnil->class_object(state), G(nil_class));
+    TS_ASSERT_EQUALS(cNil->class_object(state), G(nil_class));
   }
 
   void test_true_class() {
-    TS_ASSERT_EQUALS(Qtrue->class_object(state), G(true_class));
+    TS_ASSERT_EQUALS(cTrue->class_object(state), G(true_class));
   }
 
   void test_false_class() {
-    TS_ASSERT_EQUALS(Qfalse->class_object(state), G(false_class));
+    TS_ASSERT_EQUALS(cFalse->class_object(state), G(false_class));
   }
 
   void test_fixnum_class() {
@@ -430,30 +430,30 @@ public:
   }
 
   void test_nil_p() {
-    TS_ASSERT(Qnil->nil_p());
-    TS_ASSERT(!Qundef->nil_p());
-    TS_ASSERT(!Qtrue->nil_p());
-    TS_ASSERT(!Qfalse->nil_p());
+    TS_ASSERT(cNil->nil_p());
+    TS_ASSERT(!cUndef->nil_p());
+    TS_ASSERT(!cTrue->nil_p());
+    TS_ASSERT(!cFalse->nil_p());
   }
 
   void test_true_p() {
-    TS_ASSERT(!Qnil->true_p());
-    TS_ASSERT(!Qundef->true_p());
-    TS_ASSERT(Qtrue->true_p());
-    TS_ASSERT(!Qfalse->true_p());
+    TS_ASSERT(!cNil->true_p());
+    TS_ASSERT(!cUndef->true_p());
+    TS_ASSERT(cTrue->true_p());
+    TS_ASSERT(!cFalse->true_p());
   }
 
   void test_false_p() {
-    TS_ASSERT(!Qnil->false_p());
-    TS_ASSERT(!Qundef->false_p());
-    TS_ASSERT(!Qtrue->false_p());
-    TS_ASSERT(Qfalse->false_p());
+    TS_ASSERT(!cNil->false_p());
+    TS_ASSERT(!cUndef->false_p());
+    TS_ASSERT(!cTrue->false_p());
+    TS_ASSERT(cFalse->false_p());
   }
 
   void test_get_type() {
-    TS_ASSERT_EQUALS(Qnil->get_type(), NilType);
-    TS_ASSERT_EQUALS(Qtrue->get_type(), TrueType);
-    TS_ASSERT_EQUALS(Qfalse->get_type(), FalseType);
+    TS_ASSERT_EQUALS(cNil->get_type(), NilType);
+    TS_ASSERT_EQUALS(cTrue->get_type(), TrueType);
+    TS_ASSERT_EQUALS(cFalse->get_type(), FalseType);
     TS_ASSERT_EQUALS(state->symbol("blah")->get_type(), SymbolType);
     Object* obj = util_new_object();
     Bignum* big = Bignum::from(state, (native_int)13);

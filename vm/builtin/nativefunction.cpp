@@ -384,7 +384,7 @@ namespace rubinius {
         args->set(state, i, Fixnum::from(*(uint8_t*)parameters[i]));
         break;
       case RBX_FFI_TYPE_BOOL:
-        args->set(state, i, (*(uint8_t*)parameters[i]) ? Qtrue : Qfalse);
+        args->set(state, i, (*(uint8_t*)parameters[i]) ? cTrue : cFalse);
         break;
       case RBX_FFI_TYPE_SHORT:
         args->set(state, i, Fixnum::from(*(int16_t*)parameters[i]));
@@ -422,12 +422,12 @@ namespace rubinius {
       case RBX_FFI_TYPE_PTR: {
         void* ptr = *(void**)parameters[i];
         args->set(state, i, Pointer::create(state,
-              ptr ? Pointer::create(state, ptr) : Qnil));
+              ptr ? Pointer::create(state, ptr) : cNil));
         break;
       }
       case RBX_FFI_TYPE_STRING: {
         char* ptr = *(char**)parameters[i];
-        Object* obj = Qnil;
+        Object* obj = cNil;
         if(ptr) {
           obj = String::create(state, ptr);
           obj->taint(state);
@@ -442,7 +442,7 @@ namespace rubinius {
         Object* p;
 
         if(result == NULL) {
-          s = p = Qnil;
+          s = p = cNil;
         } else {
           s = String::create(state, result);
           s->taint(state);
@@ -458,21 +458,21 @@ namespace rubinius {
       }
       default:
       case RBX_FFI_TYPE_VOID:
-        args->set(state, i, Qnil);
+        args->set(state, i, cNil);
         break;
       }
     }
 
     Object* obj = stub->callable->send(state, env->current_call_frame(),
                                        state->symbol("call"),
-                                       args, Qnil, true);
+                                       args, cNil, true);
 
     // Ug. An exception is being raised...
     if(!obj) {
       // For now, print out a warning to stderr and just eat it.
       std::cerr << "[WARNING] Exception raised by callback, ignoring.\n";
       state->vm()->thread_state()->clear();
-      obj = Qnil;
+      obj = cNil;
     }
 
     switch(stub->ret_type) {
@@ -708,7 +708,7 @@ namespace rubinius {
       case RBX_FFI_TYPE_INT: {
         int* tmp = ALLOCA(int);
         obj = args.get_argument(i);
-        if(FIXNUM_P(obj)) {
+        if(obj->fixnum_p()) {
           *tmp = as<Fixnum>(obj)->to_int();
         } else {
           type_assert(state, obj, BignumType, "converting to int");
@@ -720,7 +720,7 @@ namespace rubinius {
       case RBX_FFI_TYPE_UINT: {
         unsigned int* tmp = ALLOCA(unsigned int);
         obj = args.get_argument(i);
-        if(FIXNUM_P(obj)) {
+        if(obj->fixnum_p()) {
           *tmp = as<Fixnum>(obj)->to_uint();
         } else {
           type_assert(state, obj, BignumType, "converting to unsigned int");
@@ -732,7 +732,7 @@ namespace rubinius {
       case RBX_FFI_TYPE_LONG: {
         long* tmp = ALLOCA(long);
         obj = args.get_argument(i);
-        if(FIXNUM_P(obj)) {
+        if(obj->fixnum_p()) {
           *tmp = as<Fixnum>(obj)->to_long();
         } else {
           type_assert(state, obj, BignumType, "converting to long");
@@ -744,7 +744,7 @@ namespace rubinius {
       case RBX_FFI_TYPE_ULONG: {
         unsigned long* tmp = ALLOCA(unsigned long);
         obj = args.get_argument(i);
-        if(FIXNUM_P(obj)) {
+        if(obj->fixnum_p()) {
           *tmp = as<Fixnum>(obj)->to_ulong();
         } else {
           type_assert(state, obj, BignumType, "converting to unsigned long");
@@ -772,7 +772,7 @@ namespace rubinius {
       case RBX_FFI_TYPE_LONG_LONG: {
         long long* tmp = ALLOCA(long long);
         obj = args.get_argument(i);
-        if(FIXNUM_P(obj)) {
+        if(obj->fixnum_p()) {
           *tmp = as<Fixnum>(obj)->to_long_long();
         } else {
           type_assert(state, obj, BignumType, "converting to long long");
@@ -784,7 +784,7 @@ namespace rubinius {
       case RBX_FFI_TYPE_ULONG_LONG: {
         unsigned long long* tmp = ALLOCA(unsigned long long);
         obj = args.get_argument(i);
-        if(FIXNUM_P(obj)) {
+        if(obj->fixnum_p()) {
           *tmp = as<Fixnum>(obj)->to_ulong_long();
         } else {
           type_assert(state, obj, BignumType, "converting to unsigned long long");
@@ -809,7 +809,7 @@ namespace rubinius {
       case RBX_FFI_TYPE_PTR: {
         void** tmp = ALLOCA(void*);
         obj = args.get_argument(i);
-        if(NIL_P(obj)) {
+        if(obj->nil_p()) {
           *tmp = NULL;
         } else {
           Pointer* mp = try_as<Pointer>(obj);
@@ -822,7 +822,7 @@ namespace rubinius {
               memcpy(data, so->c_str(state), size);
               data[size] = 0;
               *tmp = data;
-            } else if(CBOOL(obj->respond_to(state, state->symbol("to_ptr"), Qtrue))) {
+            } else if(CBOOL(obj->respond_to(state, state->symbol("to_ptr"), cTrue))) {
               Object* o2 = obj->send(state, call_frame, state->symbol("to_ptr"));
               type_assert(state, o2, PointerType, "converting to pointer");
               mp = as<Pointer>(o2);
@@ -859,7 +859,7 @@ namespace rubinius {
         char** tmp = ALLOCA(char*);
         obj = args.get_argument(i);
 
-        if(NIL_P(obj)) {
+        if(obj->nil_p()) {
           *tmp = NULL;
         } else {
           int size;
@@ -921,7 +921,7 @@ namespace rubinius {
       ffi_arg result;
       ffi_call(&ffi_data_local->cif, FFI_FN(ffi_data_local->ep), &result, values);
       state->gc_dependent();
-      ret = (result != 0) ? Qtrue : Qfalse;
+      ret = (result != 0) ? cTrue : cFalse;
       break;
     }
     case RBX_FFI_TYPE_SHORT: {
@@ -1004,7 +1004,7 @@ namespace rubinius {
       ffi_call(&ffi_data_local->cif, FFI_FN(ffi_data_local->ep), &result, values);
       state->gc_dependent();
       if(result == NULL) {
-        ret = Qnil;
+        ret = cNil;
       } else {
         ret = Pointer::create(state, result);
       }
@@ -1015,7 +1015,7 @@ namespace rubinius {
       ffi_call(&ffi_data_local->cif, FFI_FN(ffi_data_local->ep), &result, values);
       state->gc_dependent();
       if(result == NULL) {
-        ret = Qnil;
+        ret = cNil;
       } else {
         ret = String::create(state, result);
         ret->taint(state);
@@ -1031,7 +1031,7 @@ namespace rubinius {
       state->gc_dependent();
 
       if(result == NULL) {
-        s = p = Qnil;
+        s = p = cNil;
       } else {
         s = String::create(state, result);
         s->taint(state);
@@ -1049,7 +1049,7 @@ namespace rubinius {
       ffi_arg result;
       ffi_call(&ffi_data_local->cif, FFI_FN(ffi_data_local->ep), &result, values);
       state->gc_dependent();
-      ret = Qnil;
+      ret = cNil;
       break;
     }
     }

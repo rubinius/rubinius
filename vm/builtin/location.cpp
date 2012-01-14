@@ -145,11 +145,11 @@ namespace rubinius {
       // Ignore synthetic frames
       if(call_frame->cm && !kernel_method(state, call_frame->cm)) {
         Symbol* name;
-        Object* block = Qfalse;
+        Object* block = cFalse;
         Fixnum* line = Fixnum::from(call_frame->line(state));
 
         if(call_frame->block_p()) {
-          block = Qtrue;
+          block = cTrue;
           name = call_frame->top_scope(state)->method()->name();
         } else {
           Symbol* current_name = call_frame->name();

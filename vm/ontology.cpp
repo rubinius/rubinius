@@ -120,7 +120,7 @@ namespace rubinius {
 
     // Class's klass is Class
     cls->klass(state, cls);
-    cls->ivars(state, Qnil);
+    cls->ivars(state, cNil);
     cls->set_obj_type(ClassType);
 
     cls->set_object_type(state, ClassType);
@@ -134,7 +134,7 @@ namespace rubinius {
     Class* basicobject = 0;
     Class* object;
     if(!LANGUAGE_18_ENABLED(state)) {
-      basicobject = ontology::new_basic_class(state, force_as<Class>(Qnil));
+      basicobject = ontology::new_basic_class(state, force_as<Class>(cNil));
       GO(basicobject).set(basicobject);
       basicobject->set_object_type(state, BasicObjectType);
 
@@ -206,10 +206,10 @@ namespace rubinius {
 
     // See?
     if(!LANGUAGE_18_ENABLED(state)) {
-      assert(basicobject->superclass() == Qnil);
+      assert(basicobject->superclass() == cNil);
       assert(object->superclass() == basicobject);
     } else {
-      assert(object->superclass() == Qnil);
+      assert(object->superclass() == cNil);
       assert(object->klass()->superclass() == cls);
     }
 
@@ -286,9 +286,9 @@ namespace rubinius {
       }
     }
 
-    globals().special_classes[(uintptr_t)Qfalse] = GO(false_class);
-    globals().special_classes[(uintptr_t)Qnil  ] = GO(nil_class);
-    globals().special_classes[(uintptr_t)Qtrue ] = GO(true_class);
+    globals().special_classes[(uintptr_t)cFalse] = GO(false_class);
+    globals().special_classes[(uintptr_t)cNil  ] = GO(nil_class);
+    globals().special_classes[(uintptr_t)cTrue ] = GO(true_class);
 
     /* Create IncludedModule */
     GO(included_module).set(ontology::new_class(state, 
@@ -398,9 +398,9 @@ namespace rubinius {
 
   void VM::initialize_fundamental_constants(STATE) {
     if(sizeof(int) == sizeof(long)) {
-      G(rubinius)->set_const(state, "L64", Qfalse);
+      G(rubinius)->set_const(state, "L64", cFalse);
     } else {
-      G(rubinius)->set_const(state, "L64", Qtrue);
+      G(rubinius)->set_const(state, "L64", cTrue);
     }
 
     G(rubinius)->set_const(state, "WORDSIZE", Fixnum::from(sizeof(void*) * 8));
@@ -412,8 +412,8 @@ namespace rubinius {
     IO* out_io = IO::create(state, STDOUT_FILENO);
     IO* err_io = IO::create(state, STDERR_FILENO);
 
-    out_io->sync(state, Qtrue);
-    err_io->sync(state, Qtrue);
+    out_io->sync(state, cTrue);
+    err_io->sync(state, cTrue);
 
     in_io->force_read_only(state);
     out_io->force_write_only(state);

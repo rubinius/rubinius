@@ -404,7 +404,7 @@ namespace rubinius {
 
     // Bounds check.
     if(i_start < 0 || i_end < 0 || i_start > max || i_end > max) {
-      return Qnil;
+      return cNil;
     }
 
     lock_.lock();
@@ -457,7 +457,7 @@ namespace rubinius {
 
     if(beg == ONIG_MISMATCH) {
       onig_region_free(&region, 0);
-      return Qnil;
+      return cNil;
     }
 
     md = get_match_data(state, &region, string, this, 0);
@@ -469,7 +469,7 @@ namespace rubinius {
     int beg, max;
     const UChar *str;
     const UChar *fin;
-    Object* md = Qnil;
+    Object* md = cNil;
 
     if(unlikely(!onig_data)) {
       Exception::argument_error(state, "Not properly initialized Regexp");
@@ -484,7 +484,7 @@ namespace rubinius {
     fin = str + max;
 
     // Bounds check.
-    if(pos > max) return Qnil;
+    if(pos > max) return cNil;
     str += pos;
 
     lock_.lock();
@@ -538,7 +538,7 @@ namespace rubinius {
     int beg, max;
     const UChar *str;
     const UChar *fin;
-    Object* md = Qnil;
+    Object* md = cNil;
 
     if(unlikely(!onig_data)) {
       Exception::argument_error(state, "Not properly initialized Regexp");
@@ -654,10 +654,10 @@ namespace rubinius {
   }
 
   Object* MatchData::nth_capture(STATE, native_int which) {
-    if(region_->num_fields() <= which) return Qnil;
+    if(region_->num_fields() <= which) return cNil;
 
     Tuple* sub = try_as<Tuple>(region_->at(state, which));
-    if(!sub) return Qnil;
+    if(!sub) return cNil;
 
     Fixnum* beg = try_as<Fixnum>(sub->at(state, 0));
     Fixnum* fin = try_as<Fixnum>(sub->at(state, 1));
@@ -669,7 +669,7 @@ namespace rubinius {
     if(!beg || !fin ||
         f > max ||
         b < 0) {
-      return Qnil;
+      return cNil;
     }
 
     const char* str = (char*)source_->byte_address();
@@ -681,7 +681,7 @@ namespace rubinius {
   }
 
   Object* MatchData::last_capture(STATE) {
-    if(region_->num_fields() == 0) return Qnil;
+    if(region_->num_fields() == 0) return cNil;
     return nth_capture(state, region_->num_fields() - 1);
   }
 
@@ -706,12 +706,12 @@ namespace rubinius {
         return match->nth_capture(state, which->to_native());
       }
     }
-    return Qnil;
+    return cNil;
   }
 
   Object* Regexp::last_match(STATE, Arguments& args, CallFrame* call_frame) {
     MatchData* match = try_as<MatchData>(call_frame->last_match(state));
-    if(!match) return Qnil;
+    if(!match) return cNil;
 
     if(args.total() == 0) return match;
     if(args.total() > 1) return Primitives::failure();
@@ -748,7 +748,7 @@ namespace rubinius {
   Object* Regexp::set_block_last_match(STATE, CallFrame* call_frame) {
     Object* blk = call_frame->scope->block();
     MatchData* match = try_as<MatchData>(call_frame->last_match(state));
-    if(!match) return Qnil;
+    if(!match) return cNil;
 
     if(BlockEnvironment* env = try_as<BlockEnvironment>(blk)) {
       env->top_scope()->last_match(state, match);

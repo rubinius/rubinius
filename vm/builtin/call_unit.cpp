@@ -97,13 +97,13 @@ namespace rubinius {
     } else if(unit->which_ < (int)args.total()) {
       obj = args.get_argument(unit->which_);
     } else {
-      return Qfalse;
+      return cFalse;
     }
 
     if(Module* mod = try_as<Module>(unit->value())) {
-      return obj->kind_of_p(state, mod) ? Qtrue : Qfalse;
+      return obj->kind_of_p(state, mod) ? cTrue : cFalse;
     } else {
-      return Qfalse;
+      return cFalse;
     }
   }
 }

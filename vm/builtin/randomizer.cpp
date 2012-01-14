@@ -321,7 +321,7 @@ namespace rubinius {
 
       if(s <= 0xffffffffUL) {
         init_genrand((uint32_t)s);
-        return Qnil;
+        return cNil;
       }
 
       longs = sizeof(native_uint) / 4;
@@ -341,7 +341,7 @@ namespace rubinius {
       init_by_array(data, longs);
     }
 
-    return Qnil;
+    return cNil;
   }
 
   Integer* Randomizer::rand_int(STATE, Integer* max) {

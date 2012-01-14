@@ -7,8 +7,6 @@
 #include "capi/capi.hpp"
 #include "capi/18/include/ruby.h"
 
-#include "capi_reset.h"
-
 using namespace rubinius;
 using namespace rubinius::capi;
 

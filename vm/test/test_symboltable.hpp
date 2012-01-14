@@ -39,7 +39,7 @@ public:
     } else {
       Symbol* sym = symbols->lookup(state, str);
       String* str2 = symbols->lookup_string(state, sym);
-      TS_ASSERT_EQUALS(Qtrue, str->equal(state, str2));
+      TS_ASSERT_EQUALS(cTrue, str->equal(state, str2));
     }
 
   }
@@ -62,8 +62,8 @@ public:
       String* str3 = symbols->lookup_string(state, sym1);
       String* str4 = symbols->lookup_string(state, sym2);
 
-      TS_ASSERT_EQUALS(Qtrue, str1->equal(state, str3));
-      TS_ASSERT_EQUALS(Qtrue, str2->equal(state, str4));
+      TS_ASSERT_EQUALS(cTrue, str1->equal(state, str3));
+      TS_ASSERT_EQUALS(cTrue, str2->equal(state, str4));
       TS_ASSERT_EQUALS(symbols->size(), 2U);
     }
   }
@@ -106,13 +106,13 @@ public:
   }
 
   void test_lookup_nil() {
-    TS_ASSERT_THROWS_ASSERT(symbols->lookup(state, reinterpret_cast<String*>(Qnil)),
+    TS_ASSERT_THROWS_ASSERT(symbols->lookup(state, reinterpret_cast<String*>(cNil)),
                             const RubyException &e,
                             TS_ASSERT(Exception::argument_error_p(state, e.exception)));
   }
 
   void test_lookup_string_nil() {
-    TS_ASSERT_THROWS_ASSERT(symbols->lookup_string(state, reinterpret_cast<Symbol*>(Qnil)),
+    TS_ASSERT_THROWS_ASSERT(symbols->lookup_string(state, reinterpret_cast<Symbol*>(cNil)),
                             const RubyException &e,
                             TS_ASSERT(Exception::argument_error_p(state, e.exception)));
   }

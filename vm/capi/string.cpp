@@ -81,7 +81,7 @@ namespace rubinius {
           // TODO: encoding support will need to define whether ->len
           // means bytes or characters.
           string->num_bytes(env->state(), Fixnum::from(rstring->len));
-          string->hash_value(env->state(), reinterpret_cast<Fixnum*>(RBX_Qnil));
+          string->hash_value(env->state(), nil<Fixnum>());
         }
       }
     }
@@ -300,7 +300,7 @@ extern "C" {
 
       string->byte_address()[len] = 0;
       string->num_bytes(env->state(), Fixnum::from(len));
-      string->hash_value(env->state(), reinterpret_cast<Fixnum*>(RBX_Qnil));
+      string->hash_value(env->state(), nil<Fixnum>());
     }
     capi_update_string(env, self);
 

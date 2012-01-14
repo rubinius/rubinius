@@ -314,13 +314,13 @@ namespace rubinius {
       if(check_forwards) {
         if(obj->young_object_p()) {
           if(!obj->forwarded_p()) {
-            ref->set_object(object_memory_, Qnil);
+            ref->set_object(object_memory_, cNil);
           } else {
             ref->set_object(object_memory_, obj->forward());
           }
         }
       } else if(!obj->marked_p(object_memory_->mark())) {
-        ref->set_object(object_memory_, Qnil);
+        ref->set_object(object_memory_, cNil);
       }
     }
 

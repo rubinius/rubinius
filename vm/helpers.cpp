@@ -44,7 +44,7 @@ namespace rubinius {
         mod = mod->superclass();
       }
 
-      return Qnil;
+      return cNil;
     }
 
     Object* const_get(STATE, CallFrame* call_frame, Symbol* name, bool* found) {
@@ -112,7 +112,7 @@ namespace rubinius {
       result = G(object)->get_const(state, name, found, true);
       if(*found) return result;
 
-      return Qnil;
+      return cNil;
     }
 
     Object* const_missing_under(STATE, Module* under, Symbol* sym, CallFrame* call_frame) {
@@ -141,7 +141,7 @@ namespace rubinius {
     /** @todo Remove redundancy between this and sends. --rue */
     Tuple* locate_method_on(STATE, CallFrame* call_frame, Object* recv, Symbol* name, Object* priv) {
       LookupData lookup(recv, recv->lookup_begin(state));
-      lookup.priv = (priv == Qtrue);
+      lookup.priv = (priv == cTrue);
 
       Dispatch dis(name);
 

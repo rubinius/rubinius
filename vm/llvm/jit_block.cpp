@@ -57,7 +57,7 @@ namespace jit {
 
     initialize_frame(vmm_->stack_size);
 
-    nil_stack(vmm_->stack_size, constant(Qnil, obj_type));
+    nil_stack(vmm_->stack_size, constant(cNil, obj_type));
 
     setup_block_scope();
 
@@ -140,7 +140,7 @@ namespace jit {
         "env.scope");
 
     b().CreateStore(be_scope, get_field(vars, offset::vars_parent));
-    b().CreateStore(constant(Qnil, obj_type), get_field(vars, offset::vars_last_match));
+    b().CreateStore(constant(cNil, obj_type), get_field(vars, offset::vars_last_match));
 
     nil_locals();
   }

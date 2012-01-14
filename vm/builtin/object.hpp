@@ -181,7 +181,7 @@ namespace rubinius {
      *  Object, passing the given number of arguments through varargs.
      */
     Object* send(STATE, CallFrame* caller, Symbol* name, Array* args,
-        Object* block = Qnil, bool allow_private = true);
+        Object* block = cNil, bool allow_private = true);
     Object* send(STATE, CallFrame* caller, Symbol* name, bool allow_private = true);
 
     /**
@@ -361,7 +361,7 @@ namespace rubinius {
 
     /**
      *
-     * Returns Qtrue if this responds to method +meth+
+     * Returns cTrue if this responds to method +meth+
      */
     // Rubinius.primitive :object_respond_to
     Object* respond_to(STATE, Symbol* name, Object* priv);
@@ -371,7 +371,7 @@ namespace rubinius {
 
     // Rubinius.primitive :object_is_fixnum
     Object* is_fixnum() {
-      return FIXNUM_P(this) ? Qtrue : Qfalse;
+      return fixnum_p() ? cTrue : cFalse;
     }
 
   public:   /* accessors */
@@ -411,7 +411,7 @@ namespace rubinius {
 /* Object inlines -- Alphabetic, unlike class definition. */
 
   inline bool Object::fixnum_p() const {
-    return FIXNUM_P(this);
+    return __FIXNUM_P__(this);
   }
 
   inline Class* Object::lookup_begin(STATE) {
@@ -423,7 +423,7 @@ namespace rubinius {
   }
 
   inline bool Object::symbol_p() const {
-    return SYMBOL_P(this);
+    return __SYMBOL_P__(this);
   }
 
   inline void Object::write_barrier(STATE, Fixnum* obj) {
@@ -436,7 +436,7 @@ namespace rubinius {
 
   inline void Object::write_barrier(STATE, void* ptr) {
     Object* obj = reinterpret_cast<Object*>(ptr);
-    if(!REFERENCE_P(obj) ||
+    if(!obj->reference_p() ||
         state->vm()->young_object_p(this) ||
         !state->vm()->young_object_p(obj)) return;
 
@@ -445,7 +445,7 @@ namespace rubinius {
 
   inline void Object::write_barrier(VM* vm, void* ptr) {
     Object* obj = reinterpret_cast<Object*>(ptr);
-    if(!REFERENCE_P(obj) ||
+    if(!obj->reference_p() ||
          vm->young_object_p(this) ||
         !vm->young_object_p(obj)) return;
 

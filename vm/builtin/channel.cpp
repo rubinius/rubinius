@@ -77,7 +77,7 @@ namespace rubinius {
     } else {
       if(self->semaphore_count_ > 0) {
         for(int i = 0; i < self->semaphore_count_; i++) {
-          self->value_->append(state, Qnil);
+          self->value_->append(state, cNil);
         }
         self->semaphore_count_ = 0;
       }
@@ -89,7 +89,7 @@ namespace rubinius {
       self->condition_.signal();
     }
 
-    return Qnil;
+    return cNil;
   }
 
   Object* Channel::try_receive(STATE, GCToken gct) {
@@ -100,15 +100,15 @@ namespace rubinius {
 
     if(self->semaphore_count_ > 0) {
       self->semaphore_count_--;
-      return Qnil;
+      return cNil;
     }
 
-    if(self->value_->empty_p()) return Qnil;
+    if(self->value_->empty_p()) return cNil;
     return self->value_->shift(state);
   }
 
   Object* Channel::receive(STATE, GCToken gct, CallFrame* call_frame) {
-    return receive_timeout(state, gct, Qnil, call_frame);
+    return receive_timeout(state, gct, cNil, call_frame);
   }
 
 #define NANOSECONDS 1000000000
@@ -129,7 +129,7 @@ namespace rubinius {
 
     if(self->semaphore_count_ > 0) {
       self->semaphore_count_--;
-      return Qnil;
+      return cNil;
     }
 
     if(!self->value_->empty_p()) return self->value_->shift(state);
@@ -196,7 +196,7 @@ namespace rubinius {
     }
 
     state->vm()->clear_waiter();
-    state->vm()->thread->sleep(state, Qfalse);
+    state->vm()->thread->sleep(state, cFalse);
 
     self->unpin();
     self->waiters_--;
@@ -205,11 +205,11 @@ namespace rubinius {
 
     if(self->semaphore_count_ > 0) {
       self->semaphore_count_--;
-      return Qnil;
+      return cNil;
     }
 
     // We were awoken, but there is no value to use. Return false.
-    if(self->value()->empty_p()) return Qfalse;
+    if(self->value()->empty_p()) return cFalse;
 
     return self->value()->shift(state);
   }

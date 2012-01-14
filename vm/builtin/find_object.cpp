@@ -105,7 +105,7 @@ namespace rubinius {
         Object* obj = reinterpret_cast<Object*>(id >> 1);
 
         // Be sure to not leak a bad reference leak out here.
-        if(obj->reference_p()) return Qnil;
+        if(obj->reference_p()) return cNil;
         return obj;
       }
 
@@ -139,7 +139,7 @@ namespace rubinius {
     {}
 
     virtual bool perform(STATE, Object* obj) {
-      return obj->respond_to(state, name_, Qtrue)->true_p();
+      return obj->respond_to(state, name_, cTrue)->true_p();
     }
   };
 
@@ -274,7 +274,7 @@ namespace rubinius {
     QueryCondition* condition = create_condition(state, arg);
     if(!condition) return Fixnum::from(0);
 
-    Object* ret = Qnil;
+    Object* ret = cNil;
 
     // Special case for looking for an object_id of an immediate
     if(ObjectIdCondition* oic = dynamic_cast<ObjectIdCondition*>(condition)) {
@@ -284,7 +284,7 @@ namespace rubinius {
         } else {
           args->set(state, 0, obj);
           ret = callable->send(state, calling_environment, G(sym_call),
-                               args, Qnil, false);
+                               args, cNil, false);
         }
 
         delete condition;
@@ -316,7 +316,7 @@ namespace rubinius {
         } else {
           args->set(state, 0, obj);
           ret = callable->send(state, calling_environment, G(sym_call),
-                               args, Qnil, false);
+                               args, cNil, false);
           if(!ret) break;
         }
       }

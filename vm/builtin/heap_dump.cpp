@@ -387,7 +387,7 @@ namespace rubinius {
     walker.seed(gc_data);
 
     int fd = open(path->c_str(state), O_CREAT | O_TRUNC | O_WRONLY, 0666);
-    if(fd < 0) return Qnil;
+    if(fd < 0) return cNil;
 
     HeapDump dump(fd);
 
@@ -405,6 +405,6 @@ namespace rubinius {
     std::cout << "Heap dumped to " << path->c_str(state) << "\n";
     close(fd);
 
-    return Qnil;
+    return cNil;
   }
 }

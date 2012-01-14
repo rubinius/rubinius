@@ -51,10 +51,10 @@ namespace rubinius {
     static Encoding* create_bootstrap(STATE, const char* name,
                                       Index index, OnigEncodingType* enc);
     static void create_internal(STATE, const char* name, int index);
-    static Encoding* create(STATE, OnigEncodingType* enc, Object* dummy = Qfalse);
+    static Encoding* create(STATE, OnigEncodingType* enc, Object* dummy = cFalse);
 
     static Encoding* define(STATE, const char* name, OnigEncodingType* enc,
-                            Object* dummy = Qfalse);
+                            Object* dummy = cFalse);
     static Encoding* define_dummy(STATE, const char* name);
     static Encoding* replicate(STATE, const char* name, const char* original);
     static Encoding* alias(STATE, const char* name, const char* original);

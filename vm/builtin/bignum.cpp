@@ -777,16 +777,16 @@ namespace rubinius {
     }
 
     if(r == MP_EQ) {
-      return Qtrue;
+      return cTrue;
     }
-    return Qfalse;
+    return cFalse;
   }
 
   Object* Bignum::equal(STATE, Bignum* b) {
     if(mp_cmp(mp_val(), b->mp_val()) == MP_EQ) {
-      return Qtrue;
+      return cTrue;
     }
-    return Qfalse;
+    return cFalse;
   }
 
   Object* Bignum::equal(STATE, Float* b) {
@@ -858,22 +858,22 @@ namespace rubinius {
       mp_clear(&n);
 
       if(r == MP_LT) {
-        return Qtrue;
+        return cTrue;
       }
-      return Qfalse;
+      return cFalse;
     } else {
       if(mp_cmp_d(a, bi) == MP_GT) {
-        return Qtrue;
+        return cTrue;
       }
-      return Qfalse;
+      return cFalse;
     }
   }
 
   Object* Bignum::gt(STATE, Bignum* b) {
     if(mp_cmp(mp_val(), b->mp_val()) == MP_GT) {
-      return Qtrue;
+      return cTrue;
     }
-    return Qfalse;
+    return cFalse;
   }
 
   Object* Bignum::gt(STATE, Float* b) {
@@ -891,15 +891,15 @@ namespace rubinius {
       int r = mp_cmp_d(&n, -bi);
       mp_clear(&n);
       if(r == MP_EQ || r == MP_LT) {
-        return Qtrue;
+        return cTrue;
       }
-      return Qfalse;
+      return cFalse;
     } else {
       int r = mp_cmp_d(a, bi);
       if(r == MP_EQ || r == MP_GT) {
-        return Qtrue;
+        return cTrue;
       }
-      return Qfalse;
+      return cFalse;
     }
   }
 
@@ -910,9 +910,9 @@ namespace rubinius {
   Object* Bignum::ge(STATE, Bignum* b) {
     int r = mp_cmp(mp_val(), b->mp_val());
     if(r == MP_GT || r == MP_EQ) {
-      return Qtrue;
+      return cTrue;
     }
-    return Qfalse;
+    return cFalse;
   }
 
   Object* Bignum::lt(STATE, Fixnum* b) {
@@ -929,22 +929,22 @@ namespace rubinius {
       mp_clear(&n);
 
       if(r == MP_GT) {
-        return Qtrue;
+        return cTrue;
       }
-      return Qfalse;
+      return cFalse;
     } else {
       if(mp_cmp_d(a, bi) == MP_LT) {
-        return Qtrue;
+        return cTrue;
       }
-      return Qfalse;
+      return cFalse;
     }
   }
 
   Object* Bignum::lt(STATE, Bignum* b) {
     if(mp_cmp(mp_val(), b->mp_val()) == MP_LT) {
-      return Qtrue;
+      return cTrue;
     }
-    return Qfalse;
+    return cFalse;
   }
 
   Object* Bignum::lt(STATE, Float* b) {
@@ -962,24 +962,24 @@ namespace rubinius {
       int r = mp_cmp_d(&n, -bi);
       mp_clear(&n);
       if(r == MP_EQ || r == MP_GT) {
-        return Qtrue;
+        return cTrue;
       }
-      return Qfalse;
+      return cFalse;
     } else {
       int r = mp_cmp_d(a, bi);
       if(r == MP_EQ || r == MP_LT) {
-        return Qtrue;
+        return cTrue;
       }
-      return Qfalse;
+      return cFalse;
     }
   }
 
   Object* Bignum::le(STATE, Bignum* b) {
     int r = mp_cmp(mp_val(), b->mp_val());
     if(r == MP_LT || r == MP_EQ) {
-      return Qtrue;
+      return cTrue;
     }
-    return Qfalse;
+    return cFalse;
   }
 
   Object* Bignum::le(STATE, Float* b) {

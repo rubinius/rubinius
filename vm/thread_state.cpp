@@ -9,14 +9,14 @@
 namespace rubinius {
   ThreadState::ThreadState(VM* state)
     : current_exception_(state, nil<Exception>())
-    , raise_value_(state, Qnil)
-    , throw_dest_(state, Qnil)
+    , raise_value_(state, cNil)
+    , throw_dest_(state, cNil)
     , raise_reason_(cNone)
     , destination_scope_(state, nil<VariableScope>())
   {}
 
   Object* ThreadState::state_as_object(STATE) {
-    if(raise_reason_ == cNone && current_exception_.get()->nil_p()) return Qnil;
+    if(raise_reason_ == cNone && current_exception_.get()->nil_p()) return cNil;
 
     Exception* exc = Exception::create(state);
     exc->klass(state, G(exc_vm_internal));
@@ -40,23 +40,23 @@ namespace rubinius {
 
     Object* vs = try_as<VariableScope>(
         obj->get_ivar(state, state->symbol("destination")));
-    destination_scope_.set(vs ? vs : Qnil);
+    destination_scope_.set(vs ? vs : cNil);
     throw_dest_.set(obj->get_ivar(state, state->symbol("throw_dest")));
   }
 
   void ThreadState::clear() {
-    raise_value_.set(Qnil);
+    raise_value_.set(cNil);
     raise_reason_ = cNone;
-    destination_scope_.set(Qnil);
-    throw_dest_.set(Qnil);
-    current_exception_.set(Qnil);
+    destination_scope_.set(cNil);
+    throw_dest_.set(cNil);
+    current_exception_.set(cNil);
   }
 
   void ThreadState::clear_break() {
     raise_reason_ = cNone;
-    raise_value_.set(Qnil);
-    destination_scope_.set(Qnil);
-    throw_dest_.set(Qnil);
+    raise_value_.set(cNil);
+    destination_scope_.set(cNil);
+    throw_dest_.set(cNil);
   }
 
   void ThreadState::clear_return() {
@@ -66,13 +66,13 @@ namespace rubinius {
 
   void ThreadState::clear_raise() {
     clear_return();
-    current_exception_.set(Qnil);
+    current_exception_.set(cNil);
   }
 
   void ThreadState::raise_exception(Exception* exc) {
     raise_reason_ = cException;
     current_exception_.set(exc);
-    destination_scope_.set(Qnil);
+    destination_scope_.set(cNil);
   }
 
   void ThreadState::raise_return(Object* value, VariableScope* dest) {
@@ -90,7 +90,7 @@ namespace rubinius {
   void ThreadState::raise_exit(Object* code) {
     raise_reason_ = cExit;
     raise_value_.set(code);
-    destination_scope_.set(Qnil);
+    destination_scope_.set(cNil);
   }
 
   void ThreadState::raise_throw(Object* dest, Object* value) {

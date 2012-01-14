@@ -33,7 +33,7 @@ extern "C" {
 
   void rb_free_global(VALUE global_handle) {
     capi::Handle* handle = capi::Handle::from(global_handle);
-    if(CAPI_REFERENCE_P(handle) && handle->object()->reference_p()) {
+    if(REFERENCE_P(handle) && handle->object()->reference_p()) {
       handle->deref();
     }
   }

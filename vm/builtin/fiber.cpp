@@ -27,9 +27,9 @@ namespace rubinius {
     G(fiber)->set_object_type(state, FiberType);
 
 #ifdef FIBER_ENABLED
-    G(fiber)->set_const(state, "ENABLED", Qtrue);
+    G(fiber)->set_const(state, "ENABLED", cTrue);
 #else
-    G(fiber)->set_const(state, "ENABLED", Qfalse);
+    G(fiber)->set_const(state, "ENABLED", cFalse);
 #endif
   }
 
@@ -71,12 +71,12 @@ namespace rubinius {
     OnStack<1> os(&state, fib);
 
     Array* result = nil<Array>();
-    Object* obj = fib->starter()->send(&state, NULL, state.globals().sym_call.get(), fib->value(), Qnil, false);
+    Object* obj = fib->starter()->send(&state, NULL, state.globals().sym_call.get(), fib->value(), cNil, false);
     // GC has run! Don't use stack vars!
 
     fib = Fiber::current(&state);
     fib->status_ = Fiber::eDead;
-    fib->set_ivar(&state, state.symbol("@dead"), Qtrue);
+    fib->set_ivar(&state, state.symbol("@dead"), cTrue);
 
     Fiber* dest = fib->prev();
     assert(!dest->nil_p());
@@ -177,10 +177,10 @@ namespace rubinius {
 
     Array* ret = cur->value();
 
-    if(ret->nil_p()) return Qnil;
+    if(ret->nil_p()) return cNil;
 
     switch(ret->size()) {
-    case 0:  return Qnil;
+    case 0:  return cNil;
     case 1:  return ret->get(state, 0);
     default: return ret;
     }
@@ -233,10 +233,10 @@ namespace rubinius {
 
     Array* ret = cur->value();
 
-    if(ret->nil_p()) return Qnil;
+    if(ret->nil_p()) return cNil;
 
     switch(ret->size()) {
-    case 0:  return Qnil;
+    case 0:  return cNil;
     case 1:  return ret->get(state, 0);
     default: return ret;
     }
@@ -276,10 +276,10 @@ namespace rubinius {
 
     Array* ret = cur->value();
 
-    if(ret->nil_p()) return Qnil;
+    if(ret->nil_p()) return cNil;
 
     switch(ret->size()) {
-    case 0:  return Qnil;
+    case 0:  return cNil;
     case 1:  return ret->get(state, 0);
     default: return ret;
     }

@@ -151,21 +151,21 @@ namespace rubinius {
   /** Same as fetch(state, key). */
   Object* LookupTable::aref(STATE, Object* key) {
     LookupTableBucket* entry = find_entry(state, key);
-    if(entry == Qnil) return Qnil;
+    if(entry == cNil) return cNil;
     return entry->value();
   }
 
   /** Same as aref(state, key). */
   Object* LookupTable::fetch(STATE, Object* key) {
     LookupTableBucket* entry = find_entry(state, key);
-    if(entry == Qnil) return Qnil;
+    if(entry == cNil) return cNil;
     return entry->value();
   }
 
   Object* LookupTable::fetch(STATE, Object* key, Object* return_on_failure) {
     LookupTableBucket* entry = find_entry(state, key);
 
-    if(entry == Qnil) {
+    if(entry == cNil) {
       return return_on_failure;
     }
 
@@ -174,24 +174,24 @@ namespace rubinius {
 
   Object* LookupTable::fetch(STATE, Object* key, bool* found) {
     LookupTableBucket* entry = find_entry(state, key);
-    if(entry == Qnil) {
+    if(entry == cNil) {
       *found = false;
-      return Qnil;
+      return cNil;
     }
 
     *found = true;
     return entry->value();
   }
 
-  /* lookuptable_find returns Qundef if there is not entry
+  /* lookuptable_find returns cUndef if there is not entry
    * referenced by 'key' in the LookupTable. This is useful
    * to distinguish x = {} from x = {:a => nil} and is used
    * in cpu.c in e.g. cpu_const_get_in_context.
    */
   Object* LookupTable::find(STATE, Object* key) {
     LookupTableBucket* entry = find_entry(state, key);
-    if(entry == Qnil) {
-      return Qundef;
+    if(entry == cNil) {
+      return cUndef;
     }
     return entry->value();
   }
@@ -229,14 +229,14 @@ namespace rubinius {
       entry = try_as<LookupTableBucket>(entry->next());
     }
 
-    return Qnil;
+    return cNil;
   }
 
   Object* LookupTable::has_key(STATE, Object* key) {
     LookupTableBucket* entry = find_entry(state, key);
 
-    if(entry == Qnil) return Qfalse;
-    return Qtrue;
+    if(entry == cNil) return cFalse;
+    return cTrue;
   }
 
   Array* LookupTable::collect(STATE, LookupTable* tbl, CollectAction& action, Array* ary)

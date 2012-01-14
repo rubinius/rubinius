@@ -94,13 +94,13 @@ namespace rubinius {
   static Tuple* encoding_reference(STATE, int index, const char* alias_name = 0) {
     Tuple* pair = Tuple::create(state, 2);
     if(!alias_name) {
-      pair->put(state, 0, Qnil);
+      pair->put(state, 0, cNil);
     } else {
       pair->put(state, 0, String::create(state, alias_name));
     }
 
     if(index < 0) {
-      pair->put(state, 1, Qnil);
+      pair->put(state, 1, cNil);
     } else {
       pair->put(state, 1, Fixnum::from(index));
     }
@@ -153,7 +153,7 @@ namespace rubinius {
   }
 
   Encoding* Encoding::define_dummy(STATE, const char* name) {
-    return define(state, name, ONIG_ENCODING_ASCII, Qtrue);
+    return define(state, name, ONIG_ENCODING_ASCII, cTrue);
   }
 
   Encoding* Encoding::replicate(STATE, const char* name, const char* original) {
@@ -308,8 +308,8 @@ namespace rubinius {
   }
 
   Object* Encoding::ascii_compatible_p(STATE) {
-    bool v = encoding_->min_enc_len == 1 && dummy_ == Qfalse;
-    return v ? Qtrue : Qfalse;
+    bool v = encoding_->min_enc_len == 1 && dummy_ == cFalse;
+    return v ? cTrue : cFalse;
   }
 
   void Encoding::Info::show(STATE, Object* self, int level) {
