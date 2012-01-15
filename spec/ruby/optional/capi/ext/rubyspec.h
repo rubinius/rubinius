@@ -181,6 +181,7 @@
 #define HAVE_RB_USASCII_STR_NEW_CSTR       1
 #define HAVE_RB_EXTERNAL_STR_NEW           1
 #define HAVE_RB_EXTERNAL_STR_NEW_CSTR      1
+#define HAVE_RB_EXTERNAL_STR_NEW_WITH_ENC  1
 
 #define HAVE_RB_TO_ENCODING                1
 #define HAVE_RB_TO_ENCODING_INDEX          1

@@ -546,8 +546,8 @@ end
 ruby_version_is "1.9" do
   describe :rb_external_str_new, :shared => true do
     it "returns a String in the default external encoding" do
-      Encoding.default_external = "IBM857"
-      @s.send(@method, "abc").encoding.should == Encoding::IBM857
+      Encoding.default_external = "UTF-8"
+      @s.send(@method, "abc").encoding.should == Encoding::UTF_8
     end
 
     it "returns an ASCII-8BIT encoded string if any non-ascii bytes are present and default external is US-ASCII" do
@@ -576,6 +576,23 @@ ruby_version_is "1.9" do
 
     describe "rb_external_str_new_cstr" do
       it_behaves_like :rb_external_str_new, :rb_external_str_new_cstr
+    end
+
+    describe "rb_external_str_new_with_enc" do
+      it "returns a String in the specified encoding" do
+        s = @s.rb_external_str_new_with_enc("abc", 3, Encoding::UTF_8)
+        s.encoding.should == Encoding::UTF_8
+      end
+
+      it "returns an ASCII-8BIT encoded String if any non-ascii bytes are present and the specified encoding is US-ASCII" do
+        s = @s.rb_external_str_new_with_enc("\x80abc", 4, Encoding::US_ASCII)
+        s.encoding.should == Encoding::ASCII_8BIT
+      end
+
+      it "returns a tainted String" do
+        s = @s.rb_external_str_new_with_enc("abc", 3, Encoding::US_ASCII)
+        s.tainted?.should be_true
+      end
     end
   end
 end

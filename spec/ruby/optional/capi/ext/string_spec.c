@@ -3,6 +3,10 @@
 #include "ruby.h"
 #include "rubyspec.h"
 
+#ifdef HAVE_RUBY_ENCODING_H
+#include "ruby/encoding.h"
+#endif
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -174,6 +178,12 @@ VALUE string_spec_rb_external_str_new(VALUE self, VALUE str) {
 #ifdef HAVE_RB_EXTERNAL_STR_NEW_CSTR
 VALUE string_spec_rb_external_str_new_cstr(VALUE self, VALUE str) {
   return rb_external_str_new_cstr(RSTRING_PTR(str));
+}
+#endif
+
+#ifdef HAVE_RB_EXTERNAL_STR_NEW_WITH_ENC
+VALUE string_spec_rb_external_str_new_with_enc(VALUE self, VALUE str, VALUE len, VALUE encoding) {
+  return rb_external_str_new_with_enc(RSTRING_PTR(str), FIX2LONG(len), rb_to_encoding(encoding));
 }
 #endif
 
@@ -522,6 +532,10 @@ void Init_string_spec() {
 #ifdef HAVE_RB_EXTERNAL_STR_NEW_CSTR
   rb_define_method(cls, "rb_external_str_new_cstr",
                    string_spec_rb_external_str_new_cstr, 1);
+#endif
+
+#ifdef HAVE_RB_EXTERNAL_STR_NEW_WITH_ENC
+  rb_define_method(cls, "rb_external_str_new_with_enc", string_spec_rb_external_str_new_with_enc, 3);
 #endif
 
 #ifdef HAVE_RB_STR_NEW3
