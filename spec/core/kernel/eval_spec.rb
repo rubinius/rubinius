@@ -16,8 +16,10 @@ describe "Kernel#eval" do
     KernelSpecs.run_cache(@cache).should == "Object:Object"
   end
 
-  it "should not use the cache if the line-number differs" do
-    eval("__LINE__", binding, "(file)", 1).should == 1
-    eval("__LINE__", binding, "(file)", 2).should == 2
+  describe "when line-number differs" do
+    it "does not use the cache" do
+      eval("__LINE__", binding, "(file)", 1).should == 1
+      eval("__LINE__", binding, "(file)", 2).should == 2
+    end
   end
 end
