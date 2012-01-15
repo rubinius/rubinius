@@ -2,6 +2,7 @@ require 'mkmf'
 
 if /mswin32|mingw|bccwin32/ !~ RUBY_PLATFORM
   have_header("sys/stropts.h")
+  have_header("sys/wait.h")
   have_func("setresuid")
   have_header("libutil.h")
   have_header("pty.h")
