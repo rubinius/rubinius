@@ -145,4 +145,10 @@ class Module
 
     Rubinius.convert_to_names tbl.keys
   end
+
+  def private_constant(*names)
+  end
+
+  def public_constant(*names)
+  end
 end
