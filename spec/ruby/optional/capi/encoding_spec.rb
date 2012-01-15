@@ -143,6 +143,10 @@ ruby_version_is "1.9" do
         @s.rb_to_encoding(Encoding::BINARY).should == "ASCII-8BIT"
       end
 
+      it "returns the correct encoding for a replicated encoding" do
+        @s.rb_to_encoding(Encoding::IBM857).should == "IBM857"
+      end
+
       it "returns the encoding when passed a String" do
         @s.rb_to_encoding("ASCII").should == "US-ASCII"
       end
