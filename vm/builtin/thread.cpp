@@ -239,7 +239,7 @@ namespace rubinius {
     self->init_lock_.lock();
 
     VM* vm = self->vm_;
-    if(alive() == Qfalse || vm) {
+    if(alive() == Qfalse || !vm) {
       self->init_lock_.unlock();
       return reinterpret_cast<Thread*>(kPrimitiveFailed);
     }
