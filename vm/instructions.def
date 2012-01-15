@@ -1264,7 +1264,7 @@ instruction cast_for_multi_block_arg() [ -- array ]
     Object* obj = call_frame->arguments->get_argument(0);
     if(kind_of<Array>(obj)) {
       stack_push(obj);
-    } else if(CBOOL(obj->respond_to(state, state->symbol("to_ary"), Qfalse))) {
+    } else if(CBOOL(obj->respond_to(state, state->symbol("to_ary"), cFalse))) {
       obj = obj->send(state, call_frame, state->symbol("to_ary"));
       if(kind_of<Array>(obj)) {
         stack_push(obj);
@@ -1306,7 +1306,7 @@ instruction cast_for_splat_block_arg() [ -- arguments ]
        * to be called and its return value ignored. Ultimately, the original
        * object itself is wrapped in an Array and passed to the block.
        */
-      if(CBOOL(obj->respond_to(state, state->symbol("to_ary"), Qfalse))) {
+      if(CBOOL(obj->respond_to(state, state->symbol("to_ary"), cFalse))) {
         Object* ignored = obj->send(state, call_frame, state->symbol("to_ary"));
         if(!kind_of<Array>(ignored)) {
           Exception::type_error(state, "to_ary must return an Array", call_frame);
