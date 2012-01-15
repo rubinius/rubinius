@@ -210,16 +210,21 @@ namespace rubinius {
   }
 
   Object* Thread::raise(STATE, GCToken gct, Exception* exc) {
-    OnStack<1> os(state, exc);
+    Thread* self = this;
+    OnStack<2> os(state, self, exc);
 
-    thread::SpinLock::LockGuard lg(init_lock_);
+    self->init_lock_.lock();
 
-    VM* vm = vm_;
-    if(!vm) return cNil;
+    VM* vm = self->vm_;
+    if(!vm) {
+      self->init_lock_.unlock();
+      return cNil;
+    }
 
     vm->register_raise(state, exc);
 
     vm->wakeup(state, gct);
+    self->init_lock_.unlock();
     return exc;
   }
 
@@ -228,20 +233,20 @@ namespace rubinius {
   }
 
   Thread* Thread::wakeup(STATE, GCToken gct) {
-    thread::SpinLock::LockGuard lg(init_lock_);
-
-    if(alive() == cFalse || !vm_) {
-      return reinterpret_cast<Thread*>(kPrimitiveFailed);
-    }
-
-    VM* vm = vm_;
     Thread* self = this;
     OnStack<1> os(state, self);
 
-    if(!vm) return self;
+    self->init_lock_.lock();
+
+    VM* vm = self->vm_;
+    if(alive() == Qfalse || vm) {
+      self->init_lock_.unlock();
+      return reinterpret_cast<Thread*>(kPrimitiveFailed);
+    }
 
     vm->wakeup(state, gct);
 
+    self->init_lock_.unlock();
     return self;
   }
 
