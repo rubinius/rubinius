@@ -72,6 +72,8 @@ namespace rubinius {
     void unlock(ManagedThread* th) {
       locking_thread_ = 0;
       thread::Mutex::unlock();
+      lock_file_ = "";
+      lock_line_ = 0;
     }
   };
 
@@ -97,7 +99,9 @@ namespace rubinius {
 
     void unlock(ManagedThread* th) {
       locking_thread_ = 0;
-      thread::SpinLock::lock();
+      thread::SpinLock::unlock();
+      lock_file_ = "";
+      lock_line_ = 0;
     }
   };
 
