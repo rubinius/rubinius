@@ -40,6 +40,12 @@ describe "String#match" do
     'hello'.match(/(.)\1/)[0].should == 'll'
   end
 
+  ruby_version_is "1.9" do
+    it "matches the pattern against self starting at an optional index" do
+      "hello".match(/(.+)/,2)[0].should == 'llo'
+    end
+  end
+
   it "tries to convert pattern to a string via to_str" do
     obj = mock('.')
     def obj.to_str() "." end

@@ -213,5 +213,13 @@ describe "Time#strftime" do
         time.strftime(format).should == expected[format]
       end
     end
+
+    it "supports the '-' modifier to drop leading zeros" do
+      time = Time.local(2001,1,1,14,01,42)
+      time.strftime("%-m/%-d/%-y %-I:%-M %p").should == "1/1/1 2:1 PM"
+
+      time = Time.local(2010,10,10,12,10,42)
+      time.strftime("%-m/%-d/%-y %-I:%-M %p").should == "10/10/10 12:10 PM"
+    end
   end
 end

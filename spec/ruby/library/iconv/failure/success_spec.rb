@@ -5,7 +5,7 @@ describe "Iconv::Failure#success" do
   it "for Iconv#iconv and Iconv.conv returns the substring of the original string passed which was translated successfully until the exception ocurred" do
     lambda {
       begin
-        Iconv.open "us-ascii", "us-ascii" do |conv|
+        Iconv.open "utf-8", "utf-8" do |conv|
           conv.iconv "test \xff test \xff"
         end
       rescue Iconv::Failure => e
@@ -29,7 +29,7 @@ describe "Iconv::Failure#success" do
   it "for Iconv.iconv returns an array containing all the strings that were translated successfully until the exception ocurred, in order" do
     lambda {
       begin
-        Iconv.iconv("us-ascii", "us-ascii", "\xfferror")
+        Iconv.iconv("utf-8", "utf-8", "\xfferror")
       rescue Iconv::Failure => e
         @ex = e
         raise e
@@ -39,7 +39,7 @@ describe "Iconv::Failure#success" do
 
     lambda {
       begin
-        Iconv.iconv("us-ascii", "us-ascii", "test", "testing", "until\xfferror")
+        Iconv.iconv("utf-8", "utf-8", "test", "testing", "until\xfferror")
       rescue Iconv::Failure => e
         @ex = e
         raise e

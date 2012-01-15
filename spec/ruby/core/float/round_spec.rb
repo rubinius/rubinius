@@ -23,7 +23,10 @@ describe "Float#round" do
       123456.78.round(-2).should eql(123500) # rounded up
       -123456.78.round(-2).should eql(-123500)
       12.345678.round(3.999).should == 12.346
-      0.8346268.round(-fixnum_max).should eql(0)
+    end
+
+    it "returns zero when passed a negative argument with magitude greater the magitude of the whole number portion of the Float" do
+      0.8346268.round(-1).should eql(0)
     end
 
     it "raises a TypeError when its argument can not be converted to an Integer" do

@@ -102,4 +102,12 @@ describe "Module#constants" do
       ]
     end
   end
+
+  ruby_version_is "1.9.3" do
+    require File.expand_path('../fixtures/classes19', __FILE__)
+
+    it "returns only public constants" do
+      ModuleSpecs::PrivConstModule.constants.should == [:Nested]
+    end
+  end
 end

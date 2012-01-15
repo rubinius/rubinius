@@ -3,6 +3,28 @@ require File.expand_path('../../fixtures/classes', __FILE__)
 require File.expand_path('../shared/basic', __FILE__)
 require File.expand_path('../shared/integer', __FILE__)
 
+ruby_version_is "1.9.3" do
+  describe "String#unpack with format 'S<'" do
+    it_behaves_like :string_unpack_16bit_le, 'S<'
+    it_behaves_like :string_unpack_16bit_le_unsigned, 'S<'
+  end
+
+  describe "String#unpack with format 's<'" do
+    it_behaves_like :string_unpack_16bit_le, 's<'
+    it_behaves_like :string_unpack_16bit_le_signed, 's<'
+  end
+
+  describe "String#unpack with format 'S>'" do
+    it_behaves_like :string_unpack_16bit_be, 'S>'
+    it_behaves_like :string_unpack_16bit_be_unsigned, 'S>'
+  end
+
+  describe "String#unpack with format 's>'" do
+    it_behaves_like :string_unpack_16bit_be, 's>'
+    it_behaves_like :string_unpack_16bit_be_signed, 's>'
+  end
+end
+
 little_endian do
   describe "String#unpack with format 'S'" do
     it_behaves_like :string_unpack_basic, 'S'

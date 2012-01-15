@@ -35,19 +35,6 @@ with_feature :fiber do
       o.f.should == 2
     end
 
-    it "escapes an inner ensure block" do
-      f = Fiber.new do
-        begin
-          :begin
-        rescue
-          :rescue
-        ensure
-          :ensure
-        end
-      end
-      f.resume.should == :begin
-    end
-
     it "raises a SyntaxError when the block contains a retry statement" do
       lambda { eval 'Fiber.new { retry; }' }.should raise_error(SyntaxError)
     end

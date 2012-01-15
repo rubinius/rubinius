@@ -519,6 +519,10 @@ describe "File.open" do
       File.open(@file, 'wb+') {|f| f.external_encoding.should == Encoding::ASCII_8BIT}
     end
   end
+
+  ruby_version_is "1.9" do
+    it "needs to be completed for hash argument"
+  end
 end
 
 describe "File.open" do

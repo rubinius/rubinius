@@ -26,6 +26,42 @@ describe :io_new, :shared => true do
   end
 
   ruby_version_is "1.9" do
+    it "accepts a :mode option" do
+      @io = IO.send(@method, @fd, :mode => "w")
+      @io.write("foo").should == 3
+    end
+
+    it "accepts a mode argument set to nil with a valid :mode option" do
+      @io = IO.send(@method, @fd, nil, :mode => "w")
+      @io.write("foo").should == 3
+    end
+
+    it "accepts a mode argument with a :mode option set to nil" do
+      @io = IO.send(@method, @fd, "w", :mode => nil)
+      @io.write("foo").should == 3
+    end
+
+    it "raises an error when trying to set both binmode and textmode" do
+      lambda {
+        @io = IO.send(@method, @fd, "wb", :textmode => true)
+      }.should raise_error(ArgumentError)
+      lambda {
+        @io = IO.send(@method, @fd, "wt", :binmode => true)
+      }.should raise_error(ArgumentError)
+      lambda {
+        @io = IO.send(@method, @fd, "w", :textmode => true, :binmode => true)
+      }.should raise_error(ArgumentError)
+      lambda {
+        @io = IO.send(@method, @fd, File::Constants::WRONLY, :textmode => true, :binmode => true)
+      }.should raise_error(ArgumentError)
+    end
+
+    it "raises an error if passed modes two ways" do
+      lambda {
+        IO.send(@method, @fd, "w", :mode => "w")
+      }.should raise_error(ArgumentError)
+    end
+
     it "uses the external encoding specified in the mode argument" do
       @io = IO.send(@method, @fd, 'w:utf-8')
       @io.external_encoding.to_s.should == 'UTF-8'
@@ -99,6 +135,18 @@ describe :io_new, :shared => true do
     it "does not set binmode from false :binmode" do
       @io = IO.send(@method, @fd, 'w', {:binmode => false})
       @io.binmode?.should == false
+    end
+  end
+
+  ruby_version_is "1.9.2" do
+    it "accepts an :autoclose option" do
+      @io = IO.send(@method, @fd, 'w', :autoclose => false)
+      @io.autoclose?.should == false
+    end
+
+    it "accepts any truthy option :autoclose" do
+      @io = IO.send(@method, @fd, 'w', :autoclose => 42)
+      @io.autoclose?.should == true
     end
   end
 end

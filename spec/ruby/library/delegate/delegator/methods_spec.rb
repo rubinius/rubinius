@@ -41,7 +41,7 @@ describe "Delegator#methods" do
   ruby_version_is "1.9" do
     ruby_bug "4882", "1.9.3" do
       it "returns singleton methods when passed false" do
-        @delegate.methods(false).should include("singleton_method")
+        @delegate.methods(false).should include(:singleton_method)
       end
     end
 

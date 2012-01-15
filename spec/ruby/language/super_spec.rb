@@ -112,7 +112,7 @@ describe "The super keyword" do
   end
 
   ruby_version_is ""..."1.9" do
-    it "can be used with implicit arguments from a method defined with define_method" do
+    it "can be used with zero implicit arguments from a method defined with define_method" do
       sup = Class.new do
         def a; "a"; end
       end
@@ -124,6 +124,97 @@ describe "The super keyword" do
       end
 
       sub.new.a.should == "a"
+    end
+
+    it "can be used with non-zero implicit arguments from a method defined with define_method" do
+      sup = Class.new do
+        def a(n1, n2); n1 + n2; end
+      end
+
+      sub = Class.new(sup) do
+        define_method :a do |*args|
+          super
+        end
+      end
+
+      sub.new.a(30,12).should == 42
+    end
+
+    it "passes along optional args in all cases" do
+      sup = Class.new do
+        def a(n1, n2); n1 + n2; end
+      end
+
+      sub = Class.new(sup) do
+        def a(n1, n2=2)
+          super
+        end
+      end
+
+      sub.new.a(39, 3).should == 42
+      sub.new.a(40).should == 42
+    end
+
+    describe "passes along unnamed rest args" do
+      before(:each) do
+        @sup = Class.new do
+          def a(n1, *n2); return n1 + n2[0]; end
+        end
+      end
+
+      it "" do
+        sub = Class.new(@sup) do
+          def a(n, *)
+            super
+          end
+        end
+
+        sub.new.a(30, 12).should == 42
+      end
+
+      it "even when nested within a block" do
+        sub = Class.new(@sup) do
+          def yieldit; yield; end
+
+          def a(n, *)
+            yieldit { super }
+          end
+        end
+
+        sub.new.a(30, 12).should == 42
+      end
+    end
+
+    describe "passes along the incoming block to the super method" do
+      before(:each) do
+        @sup = Class.new do
+          def a(*n); yield n; end
+        end
+      end
+
+      it "" do
+        sub = Class.new(@sup) do
+          def a(*n); super; end
+        end
+
+        sub.new.a { 42 }.should == 42
+      end
+
+      it "even when the method has args" do
+        sub = Class.new(@sup) do
+          def a(*n); super; end
+        end
+
+        sub.new.a(42) {|i| i}.should == [42]
+      end
+
+      it "even when incoming args are explicitly passed in" do
+        sub = Class.new(@sup) do
+          def a(*n); super(*n); end
+        end
+
+        sub.new.a(42) {|i| i}.should == [42]
+      end
     end
   end
 

@@ -20,6 +20,28 @@ describe "Array#pack with format 'i'" do
   it_behaves_like :array_pack_integer, 'i'
 end
 
+ruby_version_is "1.9.3" do
+  describe "Array#pack with modifier '>'" do
+    describe "with format 'I'" do
+      it_behaves_like :array_pack_32bit_be, 'I>'
+    end
+
+    describe "with format 'i'" do
+      it_behaves_like :array_pack_32bit_be, 'i>'
+    end
+  end
+
+  describe "Array#pack with modifier '<'" do
+    describe "with format 'I'" do
+      it_behaves_like :array_pack_32bit_le, 'I<'
+    end
+
+    describe "with format 'i'" do
+      it_behaves_like :array_pack_32bit_le, 'i<'
+    end
+  end
+end
+
 little_endian do
   describe "Array#pack with format 'I'" do
     it_behaves_like :array_pack_32bit_le, 'I'

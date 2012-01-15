@@ -545,4 +545,20 @@ describe "Marshal::load" do
     end
   end
 
+  describe "unmarshalling an object that was a user-defined subclass of a type other than Object" do
+    after :each do
+      MarshalSpec.reset_swapped_class
+    end
+    
+    it "raises ArgumentError if the current class is not the same structure" do
+      MarshalSpec.set_swapped_class(Class.new(Hash))
+      data = Marshal.dump(MarshalSpec::SwappedClass.new)
+      
+      MarshalSpec.set_swapped_class(Class.new(Array))
+      lambda { Marshal.load data }.should raise_error(ArgumentError)
+      
+      MarshalSpec.set_swapped_class(Class.new)
+      lambda { Marshal.load data }.should raise_error(ArgumentError)
+    end
+  end
 end

@@ -5,7 +5,7 @@ describe "Iconv::Failure#failed" do
   it "returns a substring of the original string passed to Iconv that starts at the character which caused the exception" do
     lambda {
       begin
-        Iconv.open "us-ascii", "us-ascii" do |conv|
+        Iconv.open "utf-8", "utf-8" do |conv|
           conv.iconv "test \xff test \xff"
         end
       rescue Iconv::Failure => e
@@ -31,7 +31,7 @@ describe "Iconv::Failure#failed" do
   it "for Iconv.iconv and Iconv.conv returns an array containing a single element when instantiated" do
     lambda {
       begin
-        Iconv.iconv("us-ascii", "us-ascii", "test \xff test")
+        Iconv.iconv("utf-8", "utf-8", "test \xff test")
       rescue Iconv::Failure => e
         @ex = e
         raise e
@@ -41,7 +41,7 @@ describe "Iconv::Failure#failed" do
 
     lambda {
       begin
-        Iconv.conv("us-ascii", "us-ascii", "test \xff test")
+        Iconv.conv("utf-8", "utf-8", "test \xff test")
       rescue Iconv::Failure => e
         @ex = e
         raise e

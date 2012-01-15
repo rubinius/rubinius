@@ -81,9 +81,15 @@ describe "Iconv#iconv" do
     end
   end
 
-  it "raises Iconv::IllegalSequence when a character cannot be represented on the target encoding" do
-    Iconv.open "us-ascii", "utf-8" do |conv|
-      lambda { conv.iconv("euro \xe2\x82\xac") }.should raise_error(Iconv::IllegalSequence)
+  platform_is :linux, :darwin, :freebsd do
+    # glibc iconv and GNU libiconv wrongly raises EILSEQ.
+    # Linux, Darwin, and FreeBSD usually use them.
+    # NetBSD's libc iconv, Citrus iconv, correctly behaves as POSIX,
+    # but on NetBSD users may install GNU libiconv and use it.
+    it "raises Iconv::IllegalSequence when a character cannot be represented on the target encoding" do
+      Iconv.open "us-ascii", "utf-8" do |conv|
+        lambda { conv.iconv("euro \xe2\x82\xac") }.should raise_error(Iconv::IllegalSequence)
+      end
     end
   end
 
@@ -129,15 +135,18 @@ describe "Iconv.iconv" do
 
   it_behaves_like :iconv_initialize_exceptions, :iconv, "test"
 
-  describe "using the ignore option" do
-    # This spec exists because some implementions of libiconv return
-    # an error for this sequence even though they consume all of the
-    # input and write the proper output. We want to be sure that those
-    # platforms ignore the error and give us the data back.
-    #
-    it "causes unknown bytes to be ignored" do
-      str = "f\303\266\303\266 bar" # this is foo bar, with umlate o's
-      Iconv.iconv('ascii//ignore', 'utf-8', str)[0].should == "f bar"
+  platform_is :linux, :darwin, :freebsd do
+    # //ignore is glibc iconv and GNU libiconv specific behavior, not POSIX
+    describe "using the ignore option" do
+      # This spec exists because some implementions of libiconv return
+      # an error for this sequence even though they consume all of the
+      # input and write the proper output. We want to be sure that those
+      # platforms ignore the error and give us the data back.
+      #
+      it "causes unknown bytes to be ignored" do
+        str = "f\303\266\303\266 bar" # this is foo bar, with umlate o's
+        Iconv.iconv('ascii//ignore', 'utf-8', str)[0].should == "f bar"
+      end
     end
   end
 end
