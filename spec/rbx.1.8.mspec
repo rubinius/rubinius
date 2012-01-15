@@ -34,6 +34,10 @@ class MSpecScript
     '^library/rubygems',
   ]
 
+  set :capi, [
+    '^spec/ruby/optional/capi/encoding',
+  ]
+
   # An ordered list of the directories containing specs to run
   set :files, get(:language) + get(:core) + get(:library) +
               get(:capi) + get(:compiler) + get(:build) + get(:command_line)
@@ -88,6 +92,7 @@ class MSpecScript
     '^spec/ruby/library/ripper',
     '^spec/ruby/library/rake',
     '^spec/ruby/library/rubygems',
+    '^spec/ruby/optional/capi/encoding',
   ]
 
 
