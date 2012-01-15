@@ -29,6 +29,7 @@ namespace rubinius {
     String* name_;    // slot
     Object* dummy_;   // slot
 
+    bool managed_;
     OnigEncodingType* encoding_;
 
   public:
@@ -56,6 +57,7 @@ namespace rubinius {
     static Encoding* define(STATE, const char* name, OnigEncodingType* enc,
                             Object* dummy = cFalse);
     static Encoding* define_dummy(STATE, const char* name);
+    static Encoding* replicate(STATE, const char* name, Encoding* enc);
     static Encoding* replicate(STATE, const char* name, const char* original);
     static Encoding* alias(STATE, const char* name, const char* original);
 
@@ -65,6 +67,20 @@ namespace rubinius {
 
     OnigEncodingType* get_encoding() {
       return encoding_;
+    }
+
+    void set_encoding(OnigEncodingType* enc) {
+      encoding_ = enc;
+    }
+
+    void make_managed(STATE, const char* name, OnigEncodingType* enc);
+
+    bool get_managed() {
+      return managed_;
+    }
+
+    void set_managed() {
+      managed_ = true;
     }
 
     // Rubinius.primitive :encoding_replicate
@@ -81,6 +97,8 @@ namespace rubinius {
         allow_user_allocate = false;
       }
 
+      virtual void mark(Object* obj, ObjectMark& mark);
+      virtual void visit(Object* obj, ObjectVisitor& visit);
       virtual void auto_mark(Object* obj, ObjectMark& mark);
       virtual void auto_visit(Object* obj, ObjectVisitor& visit);
       virtual void set_field(STATE, Object* target, size_t index, Object* val);

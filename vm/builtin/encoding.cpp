@@ -2,6 +2,7 @@
 #include "regenc.h"
 
 #include "builtin/array.hpp"
+#include "builtin/bytearray.hpp"
 #include "builtin/class.hpp"
 #include "builtin/encoding.hpp"
 #include "builtin/lookuptable.hpp"
@@ -14,6 +15,8 @@
 #include "ontology.hpp"
 
 #include "vm/config.h"
+
+#include "gc/gc.hpp"
 
 #include <ctype.h>
 
@@ -113,6 +116,7 @@ namespace rubinius {
 
     e->dummy(state, dummy);
     e->encoding_ = enc;
+    e->managed_ = false;
 
     return e;
   }
@@ -156,11 +160,18 @@ namespace rubinius {
     return define(state, name, ONIG_ENCODING_ASCII, cTrue);
   }
 
+  Encoding* Encoding::replicate(STATE, const char* name, Encoding* enc) {
+    Encoding* repl = define(state, name, enc->get_encoding(), enc->dummy());
+    repl->make_managed(state, name, enc->get_encoding());
+
+    return repl;
+  }
+
   Encoding* Encoding::replicate(STATE, const char* name, const char* original) {
     Encoding* enc = find(state, original);
     if(enc->nil_p()) return nil<Encoding>();
 
-    return define(state, name, enc->get_encoding(), enc->dummy());
+    return replicate(state, name, enc);
   }
 
   Encoding* Encoding::alias(STATE, const char* name, const char* original) {
@@ -304,12 +315,75 @@ namespace rubinius {
 
   // Encoding#replicate primitive
   Encoding* Encoding::replicate(STATE, String* name) {
-    return Encoding::define(state, name->c_str(state), encoding_);
+    return Encoding::replicate(state, name->c_str(state), this);
   }
 
   Object* Encoding::ascii_compatible_p(STATE) {
     bool v = encoding_->min_enc_len == 1 && dummy_ == cFalse;
     return v ? cTrue : cFalse;
+  }
+
+  void Encoding::make_managed(STATE, const char* name, OnigEncodingType* enc) {
+    ByteArray* enc_ba = ByteArray::create(state, sizeof(OnigEncodingType));
+    memcpy(enc_ba->raw_bytes(), enc, sizeof(OnigEncodingType));
+
+    encoding_ = reinterpret_cast<OnigEncodingType*>(enc_ba->raw_bytes());
+    write_barrier(state, enc_ba);
+
+    int size = strlen(name);
+    if(size >= ENCODING_NAMELEN_MAX) size = ENCODING_NAMELEN_MAX-1;
+
+    ByteArray* name_ba = ByteArray::create(state, size);
+    memcpy(name_ba->raw_bytes(), name, size);
+    name_ba->raw_bytes()[size] = 0;
+    encoding_->name = reinterpret_cast<const char*>(name_ba->raw_bytes());
+    write_barrier(state, name_ba);
+
+    managed_ = true;
+  }
+
+  void Encoding::Info::mark(Object* obj, ObjectMark& mark) {
+    auto_mark(obj, mark);
+
+    Encoding* enc_o = force_as<Encoding>(obj);
+    if(!enc_o->get_managed()) return;
+
+    OnigEncodingType* enc = enc_o->get_encoding();
+    if(!enc) return;
+
+    ByteArray* enc_ba = ByteArray::from_body(enc);
+    if(ByteArray* tmp = force_as<ByteArray>(mark.call(enc_ba))) {
+      enc_o->set_encoding(reinterpret_cast<OnigEncodingType*>(tmp->raw_bytes()));
+      mark.just_set(obj, tmp);
+
+      enc = enc_o->get_encoding();
+    }
+
+    if(enc->name) {
+      ByteArray* ba = ByteArray::from_body(const_cast<char*>(enc->name));
+      if(ByteArray* tmp = force_as<ByteArray>(mark.call(ba))) {
+        enc->name = reinterpret_cast<const char*>(tmp->raw_bytes());
+        mark.just_set(obj, tmp);
+      }
+    }
+  }
+
+  void Encoding::Info::visit(Object* obj, ObjectVisitor& visit) {
+    auto_visit(obj, visit);
+
+    Encoding* enc_o = force_as<Encoding>(obj);
+    if(!enc_o->get_managed()) return;
+
+    OnigEncodingType* enc = enc_o->get_encoding();
+    if(!enc) return;
+
+    ByteArray* enc_ba = ByteArray::from_body(enc);
+    visit.call(enc_ba);
+
+    if(enc->name) {
+      ByteArray* name_ba = ByteArray::from_body(const_cast<char*>(enc->name));
+      visit.call(name_ba);
+    }
   }
 
   void Encoding::Info::show(STATE, Object* self, int level) {

@@ -1,1 +1,0 @@
-fails:C-API Encoding function rb_to_encoding returns the correct encoding for a replicated encoding
