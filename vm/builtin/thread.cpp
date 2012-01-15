@@ -148,6 +148,7 @@ namespace rubinius {
 
     NativeMethod::cleanup_thread(state);
 
+    vm->thread->alive(state, cFalse);
     vm->thread->cleanup();
     vm->thread->init_lock_.unlock();
 
@@ -210,10 +211,9 @@ namespace rubinius {
   }
 
   Object* Thread::raise(STATE, GCToken gct, Exception* exc) {
+    init_lock_.lock();
     Thread* self = this;
     OnStack<2> os(state, self, exc);
-
-    self->init_lock_.lock();
 
     VM* vm = self->vm_;
     if(!vm) {
@@ -233,10 +233,9 @@ namespace rubinius {
   }
 
   Thread* Thread::wakeup(STATE, GCToken gct) {
+    init_lock_.lock();
     Thread* self = this;
     OnStack<1> os(state, self);
-
-    self->init_lock_.lock();
 
     VM* vm = self->vm_;
     if(alive() == Qfalse || !vm) {
