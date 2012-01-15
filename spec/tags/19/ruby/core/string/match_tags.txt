@@ -1,0 +1,1 @@
+fails:String#match matches the pattern against self starting at an optional index

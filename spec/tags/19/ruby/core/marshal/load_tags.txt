@@ -6,3 +6,4 @@ fails:Marshal::load loads an Array with proc
 fails:Marshal::load returns an untrusted object if source is untrusted
 fails:Marshal::load loads a Random
 fails:Marshal::load for a wrapped C pointer raises ArgumentError when the local class is a regular object
+fails:Marshal::load unmarshalling an object that was a user-defined subclass of a type other than Object raises ArgumentError if the current class is not the same structure

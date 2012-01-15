@@ -2,3 +2,7 @@ fails:IO.open sets binmode from mode string
 fails:IO.open does not set binmode without being asked
 fails:IO.open sets binmode from :binmode option
 fails:IO.open does not set binmode from false :binmode
+fails:IO.open raises an error when trying to set both binmode and textmode
+fails:IO.open raises an error if passed modes two ways
+fails:IO.open accepts an :autoclose option
+fails:IO.open accepts any truthy option :autoclose

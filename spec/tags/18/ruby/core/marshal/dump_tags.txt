@@ -1,1 +1,0 @@
-fails:Marshal.dump raises a TypeError if an instance has a singleton class

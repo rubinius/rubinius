@@ -2,3 +2,7 @@ fails:IO.for_fd sets binmode from mode string
 fails:IO.for_fd does not set binmode without being asked
 fails:IO.for_fd sets binmode from :binmode option
 fails:IO.for_fd does not set binmode from false :binmode
+fails:IO.for_fd raises an error when trying to set both binmode and textmode
+fails:IO.for_fd raises an error if passed modes two ways
+fails:IO.for_fd accepts an :autoclose option
+fails:IO.for_fd accepts any truthy option :autoclose

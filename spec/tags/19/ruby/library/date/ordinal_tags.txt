@@ -1,3 +1,0 @@
-fails:Date#ordinal should be able to construct a Date object from an ordinal date
-fails:Date#valid_ordinal? should be able to determine if the date is a valid ordinal date
-fails:Date#valid_ordinal? should be able to handle negative day numbers
