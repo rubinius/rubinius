@@ -127,7 +127,9 @@ namespace rubinius {
     }
 
     void lock() {
+      gc_independent();
       vm_->lock(vm_);
+      gc_dependent();
     }
 
     void unlock() {
