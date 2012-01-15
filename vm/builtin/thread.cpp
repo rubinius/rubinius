@@ -238,7 +238,7 @@ namespace rubinius {
     OnStack<1> os(state, self);
 
     VM* vm = self->vm_;
-    if(alive() == Qfalse || !vm) {
+    if(alive() == cFalse || !vm) {
       self->init_lock_.unlock();
       return reinterpret_cast<Thread*>(kPrimitiveFailed);
     }
