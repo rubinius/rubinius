@@ -2,12 +2,12 @@ require File.expand_path('../../../../spec_helper', __FILE__)
 require 'stringio'
 require 'zlib'
 
-describe 'Zlib::GzipFile#orig_name' do
+describe "Zlib::GzipFile#orig_name" do
   before :each do
     @io = StringIO.new
   end
 
-  it 'returns the name' do
+  it "returns the name" do
     Zlib::GzipWriter.wrap @io do |gzio|
       gzio.orig_name = 'name'
 
@@ -15,7 +15,7 @@ describe 'Zlib::GzipFile#orig_name' do
     end
   end
 
-  it 'raises an error on a closed stream' do
+  it "raises an error on a closed stream" do
     Zlib::GzipWriter.wrap @io do |gzio|
       gzio.close
 

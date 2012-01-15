@@ -6,7 +6,7 @@ describe "Resolv#getaddress" do
     require 'resolv'
   end
 
-  it 'resolves localhost' do
+  it "resolves localhost" do
     res = Resolv.new([Resolv::Hosts.new])
 
     lambda {
@@ -14,7 +14,7 @@ describe "Resolv#getaddress" do
     }.should_not raise_error(Resolv::ResolvError)
   end
 
-  it 'raises ResolvError if the name can not be looked up' do
+  it "raises ResolvError if the name can not be looked up" do
     res = Resolv.new([])
     lambda {
       address = res.getaddress("should.raise.error.")

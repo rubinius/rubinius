@@ -1,18 +1,18 @@
 require File.expand_path('../spec_helper', __FILE__)
 
 describe "Managed Struct" do
-  it "should raise an error if release() is not defined" do
+  it "raises an error if release() is not defined" do
     lambda {
       FFISpecs::NoRelease.new(FFISpecs::LibTest.ptr_from_address(0x12345678))
     }.should raise_error(NoMethodError)
   end
 
-  it "should be the right class" do
+  it "is the right class" do
     ptr = FFISpecs::WhatClassAmI.new(FFISpecs::LibTest.ptr_from_address(0x12345678))
     ptr.should be_kind_of(FFISpecs::WhatClassAmI)
   end
 
-  it "should release memory properly" do
+  it "releases memory properly" do
     loop_count = 30
     wiggle_room = 2
 

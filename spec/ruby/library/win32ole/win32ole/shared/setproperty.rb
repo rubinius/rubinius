@@ -6,11 +6,11 @@ platform_is :windows do
       @ie = WIN32OLE.new("InternetExplorer.application")
     end
 
-    it 'raises ArgumentError if no argument is given' do
+    it "raises ArgumentError if no argument is given" do
       lambda { @ie.send(@method) }.should raise_error ArgumentError
     end
 
-    it 'sets height to 500 and returns nil' do
+    it "sets height to 500 and returns nil" do
       height = 500
       result = @ie.send(@method, 'Height', height)
       result.should == nil

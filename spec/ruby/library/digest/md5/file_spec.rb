@@ -14,11 +14,11 @@ describe "Digest::MD5.file" do
       rm_r @file
     end
 
-    it 'returns a Digest::MD5 object' do
+    it "returns a Digest::MD5 object" do
       Digest::MD5.file(@file).should be_kind_of(Digest::MD5)
     end
 
-    it 'returns a Digest::MD5 object with the correct digest' do
+    it "returns a Digest::MD5 object with the correct digest" do
       Digest::MD5.file(@file).digest.should == MD5Constants::Digest
     end
 
@@ -33,11 +33,11 @@ describe "Digest::MD5.file" do
 
   it_behaves_like :file_read_directory, :file, Digest::MD5
 
-  it 'raises a Errno::ENOENT when passed a path that does not exist' do
+  it "raises a Errno::ENOENT when passed a path that does not exist" do
     lambda { Digest::MD5.file("") }.should raise_error(Errno::ENOENT)
   end
 
-  it 'raises a TypeError when passed nil' do
+  it "raises a TypeError when passed nil" do
     lambda { Digest::MD5.file(nil) }.should raise_error(TypeError)
   end
 end

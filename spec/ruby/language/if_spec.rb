@@ -247,25 +247,25 @@ describe "The if expression" do
       ScratchPad.recorded.should == [4, 5, 7, 8]
     end
 
-    it "should evaluate the first conditions lazyly with inclusive-end range" do
+    it "evaluates the first conditions lazily with inclusive-end range" do
       collector = proc { |i| ScratchPad << i }
       10.times { |i| i if collector[i]...false }
       ScratchPad.recorded.should == [0]
     end
 
-    it "should evaluate the first conditions lazyly with exclusive-end range" do
+    it "evaluates the first conditions lazily with exclusive-end range" do
       collector = proc { |i| ScratchPad << i }
       10.times { |i| i if collector[i]..false }
       ScratchPad.recorded.should == [0]
     end
 
-    it "should evaluate the second conditions lazyly with inclusive-end range" do
+    it "evaluates the second conditions lazily with inclusive-end range" do
       collector = proc { |i| ScratchPad << i }
       10.times { |i| i if (i == 4)...collector[i] }
       ScratchPad.recorded.should == [5]
     end
 
-    it "should evaluate the second conditions lazyly with exclusive-end range" do
+    it "evaluates the second conditions lazily with exclusive-end range" do
       collector = proc { |i| ScratchPad << i }
       10.times { |i| i if (i == 4)..collector[i] }
       ScratchPad.recorded.should == [4]
@@ -281,7 +281,7 @@ describe "The if expression" do
       ScratchPad.recorded.should == [4, 1, 7]
     end
 
-    it 'keeps flip-flops from interfering' do
+    it "keeps flip-flops from interfering" do
       a = proc { |i| ScratchPad << i if (i == 4)..(i == 7) }
       b = proc { |i| ScratchPad << i if (i == 4)..(i == 7) }
       6.times(&a)

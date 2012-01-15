@@ -1,9 +1,9 @@
 require File.expand_path('../../../spec_helper', __FILE__)
 require 'ipaddr'
 
-describe 'IPAddr#hton' do
+describe "IPAddr#hton" do
 
-  it 'converts IPAddr to network byte order' do
+  it "converts IPAddr to network byte order" do
     addr = ''
     IPAddr.new("1234:5678:9abc:def0:1234:5678:9abc:def0").hton.each_byte do |c|
       addr += sprintf("%02x", c)
@@ -18,7 +18,7 @@ describe 'IPAddr#hton' do
 
 end
 
-describe 'IPAddr#new_ntoh' do
+describe "IPAddr#new_ntoh" do
 
   it "creates a new IPAddr using hton notation" do
     a = IPAddr.new("3ffe:505:2::")

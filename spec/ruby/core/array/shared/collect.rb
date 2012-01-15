@@ -29,7 +29,7 @@ describe :array_collect, :shared => true do
   end
 
   ruby_version_is '' ... '1.9' do
-    it 'returns a copy of self if no block given' do
+    it "returns a copy of self if no block given" do
       a = [1, 2, 3]
 
       copy = a.send(@method)
@@ -86,7 +86,7 @@ describe :array_collect_b, :shared => true do
   end
 
   ruby_version_is '' ... '1.8.7' do
-    it 'raises LocalJumpError if no block given' do
+    it "raises LocalJumpError if no block given" do
       a = [1, 2, 3]
       lambda { a.send(@method) }.should raise_error(LocalJumpError)
     end

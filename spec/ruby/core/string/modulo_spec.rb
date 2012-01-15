@@ -799,21 +799,21 @@ describe "String#%" do
   end
 
   ruby_version_is "1.9" do
-    it 'formats zero without prefix using %#x' do
+    it "formats zero without prefix using %#x" do
       ("%#x" % 0).should == "0"
     end
 
-    it 'formats zero without prefix using %#X' do
+    it "formats zero without prefix using %#X" do
       ("%#X" % 0).should == "0"
     end
   end
 
   ruby_version_is "" ... "1.9" do
-    it 'formats zero with prefix using %#x' do
+    it "formats zero with prefix using %#x" do
       ("%#x" % 0).should == "0x0"
     end
 
-    it 'formats zero without prefix using %#X' do
+    it "formats zero without prefix using %#X" do
       ("%#X" % 0).should == "0X0"
     end
   end

@@ -36,13 +36,13 @@ describe "Dir#each" do
   end
 
   ruby_version_is '' ... '1.8.7' do
-    it 'raises a LocalJumpError if no block given' do
+    it "raises a LocalJumpError if no block given" do
       lambda{ @dir.each }.should raise_error(LocalJumpError)
     end
   end
 
   ruby_version_is '1.8.7' do
-    it 'returns an Enumerator if no block given' do
+    it "returns an Enumerator if no block given" do
       @dir.each.should be_an_instance_of(enumerator_class)
       @dir.each.to_a.sort.should == DirSpecs.expected_paths
     end

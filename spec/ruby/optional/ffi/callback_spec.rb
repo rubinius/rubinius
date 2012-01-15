@@ -220,19 +220,19 @@ describe "Callback" do
   end
 
   describe "When the callback is considered optional by the underlying library" do
-    it "should handle receiving 'nil' in place of the closure" do
+    it "handles receiving 'nil' in place of the closure" do
       lambda { FFISpecs::LibTest.testOptionalCallbackCrV(nil, 13) }.should_not raise_error
     end
   end
 
-  describe 'when inlined' do
-    it 'could be anonymous' do
+  describe "when inlined" do
+    it "could be anonymous" do
       FFISpecs::LibTest.testCallbackVrS8 { 0 }.should == 0
     end
   end
 
   describe "as return value" do
-    it "should not blow up when a callback is defined that returns a callback" do
+    it "does not blow up when a callback is defined that returns a callback" do
       lambda {
         FFISpecs::LibTest.module_eval do
           callback :cb_return_type_1, [ :short ], :short
@@ -242,7 +242,7 @@ describe "Callback" do
       }.should_not raise_error
     end
 
-    it "should return a callback" do
+    it "returns a callback" do
       lookup_proc_called = false
       return_proc_called = false
 
@@ -261,7 +261,7 @@ describe "Callback" do
       return_proc_called.should be_true
     end
 
-    it 'should not blow up when a callback takes a callback as argument' do
+    it "does not blow up when a callback takes a callback as argument" do
       lambda {
         FFISpecs::LibTest.module_eval do
           callback :cb_argument, [ :int ], :int
@@ -271,7 +271,7 @@ describe "Callback" do
       }.should_not raise_error
     end
 
-    it 'should be able to use the callback argument' do
+    it "uses callback argument" do
       # TODO: Moving this to fixtures/classes.rb breaks
       module FFISpecs::LibTest
         callback :cb_argument, [ :int ], :int
@@ -298,7 +298,7 @@ describe "Callback" do
       callback_with_callback_arg_called.should be_true
     end
 
-    it 'function returns callable object' do
+    it "function returns callable object" do
       f = FFISpecs::LibTest.testReturnsFunctionPointer
       f.call(3).should == 6
     end

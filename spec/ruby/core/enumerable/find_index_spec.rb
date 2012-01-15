@@ -43,7 +43,7 @@ ruby_version_is "1.8.7" do
       @numerous.find_index(-1) {|e| true }.should == nil
     end
 
-    it 'returns an Enumerator if no block given' do
+    it "returns an Enumerator if no block given" do
       @numerous.find_index.should be_an_instance_of(enumerator_class)
     end
 

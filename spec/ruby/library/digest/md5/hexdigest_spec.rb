@@ -3,7 +3,7 @@ require File.expand_path('../shared/constants', __FILE__)
 
 describe "Digest::MD5#hexdigest" do
 
-  it 'returns a hexdigest' do
+  it "returns a hexdigest" do
     cur_digest = Digest::MD5.new
     cur_digest.hexdigest.should == MD5Constants::BlankHexdigest
 
@@ -22,7 +22,7 @@ end
 
 describe "Digest::MD5.hexdigest" do
 
-  it 'returns a hexdigest' do
+  it "returns a hexdigest" do
     Digest::MD5.hexdigest(MD5Constants::Contents).should == MD5Constants::Hexdigest
     # second invocation is intentional, to make sure there are no side-effects
     Digest::MD5.hexdigest(MD5Constants::Contents).should == MD5Constants::Hexdigest

@@ -42,7 +42,7 @@ describe "IO#binmode" do
       end
     end
 
-    it 'doesn\'t modify \r\n in binmode' do
+    it "doesn't modify \r\n in binmode" do
       @file.binmode
       @file.read.should == "PNG\r\n\032\n"
     end

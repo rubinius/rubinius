@@ -14,7 +14,7 @@ platform_is :windows do
   end
 
 
-  describe 'WIN32OLE_EVENT#on_event with no argument' do
+  describe "WIN32OLE_EVENT#on_event with no argument" do
     before :each do
       @ole    = WIN32OLE.new('InternetExplorer.Application')
       @ev     = WIN32OLE_EVENT.new(@ole, 'DWebBrowserEvents')
@@ -27,21 +27,21 @@ platform_is :windows do
       @ole = nil
     end
 
-    it 'sets event handler properly, and the handler is invoked by event loop' do
+    it "sets event handler properly, and the handler is invoked by event loop" do
       @ev.on_event { |*args| default_handler(*args) }
       @ole.StatusText='hello'
       WIN32OLE_EVENT.message_loop
       @event.should =~ /StatusTextChange/
     end
 
-    it 'accepts a String argument, sets event handler properly, and the handler is invoked by event loop' do
+    it "accepts a String argument, sets event handler properly, and the handler is invoked by event loop" do
       @ev.on_event("StatusTextChange") { |*args| @event = 'foo' }
       @ole.StatusText='hello'
       WIN32OLE_EVENT.message_loop
       @event.should =~ /foo/
     end
 
-    it 'registers multiple event handlers for the same event' do
+    it "registers multiple event handlers for the same event" do
       @ev.on_event("StatusTextChange") { |*args| default_handler(*args) }
       @ev.on_event("StatusTextChange") { |*args| alternate_handler(*args) }
       @ole.StatusText= 'hello'
@@ -51,7 +51,7 @@ platform_is :windows do
 
     ruby_version_is "1.9" do
 
-      it 'accepts a Symbol argument, sets event handler properly, and the handler is invoked by event loop' do
+      it "accepts a Symbol argument, sets event handler properly, and the handler is invoked by event loop" do
         @ev.on_event(:StatusTextChange) { |*args| @event = 'foo' }
         @ole.StatusText='hello'
         WIN32OLE_EVENT.message_loop

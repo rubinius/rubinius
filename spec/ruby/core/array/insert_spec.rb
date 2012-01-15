@@ -63,7 +63,7 @@ describe "Array#insert" do
     [].insert(obj, 'x').should == [nil, nil, 'x']
   end
 
-  it 'raises an ArgumentError if no argument passed' do
+  it "raises an ArgumentError if no argument passed" do
     lambda { [].insert() }.should raise_error(ArgumentError)
   end
 

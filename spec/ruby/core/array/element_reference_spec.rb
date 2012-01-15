@@ -24,13 +24,13 @@ describe "Array.[]" do
   end
 
   ruby_version_is '1.9' do
-    it 'can unpack 2 or more nested referenced array' do
+    it "can unpack 2 or more nested referenced array" do
       splatted_array = Array[3, 4, 5]
       splatted_array2 = Array[6, 7, 8]
       eval("Array[1, 2, *splatted_array, *splatted_array2]").should == [1, 2, 3, 4, 5, 6, 7, 8]
     end
 
-    it 'constructs a nested Hash for tailing key-value pairs' do
+    it "constructs a nested Hash for tailing key-value pairs" do
       eval(<<-EOS).should == [1, 2, { 3=> 4, 5 => 6 }]
         Array[1, 2, 3 => 4, 5 => 6]
       EOS

@@ -1,9 +1,9 @@
 require File.expand_path('../../../../spec_helper', __FILE__)
 require 'zlib'
 
-describe 'Zlib::Deflate#params' do
+describe "Zlib::Deflate#params" do
   ruby_bug '239', '1.9.0' do
-  it 'changes the deflate parameters' do
+  it "changes the deflate parameters" do
     data = 'abcdefghijklm'
 
     d = Zlib::Deflate.new Zlib::NO_COMPRESSION, Zlib::MAX_WBITS,

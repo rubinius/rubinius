@@ -11,7 +11,7 @@ describe :env_store, :shared => true do
     ENV.delete "foo"
   end
 
-  it 'deletes key if value is nil' do
+  it "deletes key if value is nil" do
     ENV.send(@method, 'foo', 'bar')
     ENV.has_key?('foo').should be_true
     ENV.send(@method, 'foo', nil)

@@ -15,7 +15,7 @@ describe "Syslog::Constants" do
                     LOG_DEBUG)
     end
 
-    it 'includes the Syslog constants' do
+    it "includes the Syslog constants" do
       @constants.each do |c|
         Syslog::Constants.should have_constant(c)
       end

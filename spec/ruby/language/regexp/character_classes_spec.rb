@@ -2,7 +2,7 @@ require File.expand_path('../../../spec_helper', __FILE__)
 require File.expand_path('../../fixtures/classes', __FILE__)
 
 describe "Regexp with character classes" do
-  it 'supports \w (word character)' do
+  it "supports \w (word character)" do
     /\w/.match("a").to_a.should == ["a"]
     /\w/.match("1").to_a.should == ["1"]
     /\w/.match("_").to_a.should == ["_"]
@@ -13,7 +13,7 @@ describe "Regexp with character classes" do
     /\w/.match("\0").should be_nil
   end
 
-  it 'supports \W (non-word character)' do
+  it "supports \W (non-word character)" do
     /\W+/.match(LanguageSpecs.white_spaces).to_a.should == [LanguageSpecs.white_spaces]
     /\W+/.match(LanguageSpecs.non_alphanum_non_space).to_a.should == [LanguageSpecs.non_alphanum_non_space]
     /\W/.match("\0").to_a.should == ["\0"]
@@ -24,7 +24,7 @@ describe "Regexp with character classes" do
     /\W/.match("_").should be_nil
   end
 
-  it 'supports \s (space character)' do
+  it "supports \s (space character)" do
     /\s+/.match(LanguageSpecs.white_spaces).to_a.should == [LanguageSpecs.white_spaces]
 
     # Non-matches
@@ -34,7 +34,7 @@ describe "Regexp with character classes" do
     /\s/.match("\0").should be_nil
   end
 
-  it 'supports \S (non-space character)' do
+  it "supports \S (non-space character)" do
     /\S/.match("a").to_a.should == ["a"]
     /\S/.match("1").to_a.should == ["1"]
     /\S+/.match(LanguageSpecs.non_alphanum_non_space).to_a.should == [LanguageSpecs.non_alphanum_non_space]
@@ -44,7 +44,7 @@ describe "Regexp with character classes" do
     /\S/.match(LanguageSpecs.white_spaces).should be_nil
   end
 
-  it 'supports \d (numeric digit)' do
+  it "supports \d (numeric digit)" do
     /\d/.match("1").to_a.should == ["1"]
 
     # Non-matches
@@ -54,7 +54,7 @@ describe "Regexp with character classes" do
     /\d/.match("\0").should be_nil
   end
 
-  it 'supports \D (non-digit)' do
+  it "supports \D (non-digit)" do
     /\D/.match("a").to_a.should == ["a"]
     /\D+/.match(LanguageSpecs.white_spaces).to_a.should == [LanguageSpecs.white_spaces]
     /\D+/.match(LanguageSpecs.non_alphanum_non_space).to_a.should == [LanguageSpecs.non_alphanum_non_space]
@@ -64,12 +64,12 @@ describe "Regexp with character classes" do
     /\D/.match("1").should be_nil
   end
 
-  it 'supports [] (character class)' do
+  it "supports [] (character class)" do
     /[a-z]+/.match("fooBAR").to_a.should == ["foo"]
     /[\b]/.match("\b").to_a.should == ["\b"] # \b inside character class is backspace
   end
 
-  it 'supports [[:alpha:][:digit:][:etc:]] (predefined character classes)' do
+  it "supports [[:alpha:][:digit:][:etc:]] (predefined character classes)" do
     /[[:alnum:]]+/.match("a1").to_a.should == ["a1"]
     /[[:alpha:]]+/.match("Aa1").to_a.should == ["Aa"]
     /[[:blank:]]+/.match(LanguageSpecs.white_spaces).to_a.should == [LanguageSpecs.blanks]

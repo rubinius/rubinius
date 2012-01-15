@@ -3,7 +3,7 @@ require File.expand_path('../../../shared/enumerator/each', __FILE__)
 describe "Enumerator#inject" do
   it_behaves_like(:enum_each, :each)
   
-  it "should work when chained against each_with_index" do
+  it "works when chained against each_with_index" do
     passed_values = []
     [:a].each_with_index.inject(0) do |accumulator,value|
       passed_values << value

@@ -6,12 +6,12 @@ require File.expand_path('../shared/constants', __FILE__)
 
 describe "Digest::MD5#to_s" do
 
-  it 'returns a hexdigest' do
+  it "returns a hexdigest" do
     cur_digest = Digest::MD5.new
     cur_digest.to_s.should == MD5Constants::BlankHexdigest
   end
 
-  it 'does not change the internal state' do
+  it "does not change the internal state" do
     cur_digest = Digest::MD5.new
     cur_digest.to_s.should == MD5Constants::BlankHexdigest
     cur_digest.to_s.should == MD5Constants::BlankHexdigest
