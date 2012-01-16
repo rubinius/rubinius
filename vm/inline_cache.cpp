@@ -242,6 +242,13 @@ namespace rubinius {
       fill_public(state, call_frame->self(), name, recv_class, mce);
     if(reason != eNone) return 0;
 
+    // Make sure we sync here, so the MethodCacheEntry mce is
+    // guaranteed completely initialized. Otherwise another thread
+    // might see an incompletely initialized MethodCacheEntry.
+    atomic::memory_barrier();
+
+    cache_ = mce;
+
     update_seen_classes(mce);
     call_frame->cm->write_barrier(state, mce);
 
@@ -256,6 +263,13 @@ namespace rubinius {
     if(likely(mce && mce->receiver_class() == recv_class)) return mce;
 
     if(!fill_private(state, name, recv_class, recv_class, mce)) return 0;
+
+    // Make sure we sync here, so the MethodCacheEntry mce is
+    // guaranteed completely initialized. Otherwise another thread
+    // might see an incompletely initialized MethodCacheEntry.
+    atomic::memory_barrier();
+
+    cache_ = mce;
 
     update_seen_classes(mce);
     call_frame->cm->write_barrier(state, mce);
