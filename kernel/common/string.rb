@@ -91,9 +91,7 @@ class String
   #
   #   "Hello from " + self.to_s   #=> "Hello from main"
   def +(other)
-    r = "#{self}#{StringValue(other)}"
-    r.taint if tainted? or other.tainted?
-    r
+    String.new(self) << StringValue(other)
   end
 
   # call-seq:
