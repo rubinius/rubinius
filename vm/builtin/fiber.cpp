@@ -40,9 +40,6 @@ namespace rubinius {
     // Lazily allocate a root fiber.
     if(fib->nil_p()) {
       fib = state->new_object<Fiber>(G(fiber));
-      if(fib->zone() != YoungObjectZone) {
-        state->memory()->remember_object(fib);
-      }
       fib->prev_ = nil<Fiber>();
       fib->root_ = true;
       fib->status_ = Fiber::eRunning;
@@ -114,9 +111,6 @@ namespace rubinius {
     }
 
     Fiber* fib = state->new_object<Fiber>(as<Class>(self));
-    if(fib->zone() != YoungObjectZone) {
-      state->memory()->remember_object(fib);
-    }
     fib->starter(state, callable);
     fib->prev(state, nil<Fiber>());
     fib->root_ = false;
@@ -301,26 +295,6 @@ namespace rubinius {
 
   void Fiber::Info::mark(Object* obj, ObjectMark& mark) {
     auto_mark(obj, mark);
-
-    mark.remember_object(obj);
-
-    Fiber* fib = (Fiber*)obj;
-
-    FiberData* data = fib->data_;
-
-    if(!data) return;
-
-    if(data->dead_p()) return;
-
-    AddressDisplacement dis(data->data_offset(),
-                            data->data_lower_bound(),
-                            data->data_upper_bound());
-
-    if(CallFrame* cf = data->call_frame()) {
-      mark.gc->walk_call_frame(cf, &dis);
-    }
-
-    mark.gc->scan(data->variable_root_buffers(), false, &dis);
   }
 }
 

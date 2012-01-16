@@ -3,6 +3,7 @@
 
 namespace rubinius {
   class FiberData;
+  class GarbageCollector;
 
   class FiberStack {
     void* address_;
@@ -88,6 +89,8 @@ namespace rubinius {
     FiberData* new_data();
 
     void* trampoline();
+
+    void gc_scan(GarbageCollector* gc);
   };
 }
 

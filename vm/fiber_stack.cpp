@@ -6,6 +6,8 @@
 
 #include "bug.hpp"
 
+#include "gc/gc.hpp"
+
 #include <stdlib.h>
 
 namespace rubinius {
@@ -63,6 +65,26 @@ namespace rubinius {
         ++i)
     {
       i->free();
+    }
+  }
+
+  void FiberStacks::gc_scan(GarbageCollector* gc) {
+    for(Datas::iterator i = datas_.begin();
+        i != datas_.end();
+        ++i)
+    {
+      FiberData* data = *i;
+      if(data->dead_p()) continue;
+
+      AddressDisplacement dis(data->data_offset(),
+                              data->data_lower_bound(),
+                              data->data_upper_bound());
+
+      if(CallFrame* cf = data->call_frame()) {
+        gc->walk_call_frame(cf, &dis);
+      }
+
+      gc->scan(data->variable_root_buffers(), false, &dis);
     }
   }
 

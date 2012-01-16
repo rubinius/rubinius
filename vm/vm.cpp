@@ -436,6 +436,18 @@ namespace rubinius {
     return current_fiber->variable_root_buffers();
   }
 
+  void VM::gc_scan(GarbageCollector* gc) {
+    if(CallFrame* cf = saved_call_frame()) {
+      gc->walk_call_frame(cf);
+    }
+
+    State ls(this);
+
+    shared.tool_broker()->at_gc(&ls);
+
+    fiber_stacks_.gc_scan(gc);
+  }
+
   GCIndependent::GCIndependent(NativeMethodEnvironment* env)
     : state_(env->state())
   {

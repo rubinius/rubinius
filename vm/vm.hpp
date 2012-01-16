@@ -63,6 +63,7 @@ namespace rubinius {
   class SymbolTable;
   class SharedState;
   class Fiber;
+  class GarbageCollector;
 
   enum MethodMissingReason {
     eNone, ePrivate, eProtected, eSuper, eVCall, eNormal
@@ -394,6 +395,8 @@ namespace rubinius {
     }
 
     void register_raise(STATE, Exception* exc);
+
+    void gc_scan(GarbageCollector* gc);
 
     // For thread-local roots
     static std::list<Roots*>* roots;
