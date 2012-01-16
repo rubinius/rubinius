@@ -80,7 +80,7 @@ class Generator
 
     @done = false
 
-    @fiber = Rubinius::Fiber.new(0) do
+    @fiber = Rubinius::Fiber.new do
       @block.call(self)
       @done = true
       @fiber = nil

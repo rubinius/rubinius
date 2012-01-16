@@ -102,14 +102,8 @@ namespace rubinius {
 #endif
   }
 
-  Fiber* Fiber::create(STATE, Object* self, Integer* i_stack_size, Object* callable) {
+  Fiber* Fiber::create(STATE, Object* self, Object* callable) {
 #ifdef FIBER_ENABLED
-    int stack_size = i_stack_size->to_native();
-
-    if(stack_size < 1024 * 1024) {
-      stack_size = 1024 * 1024;
-    }
-
     Fiber* fib = state->new_object<Fiber>(as<Class>(self));
     fib->starter(state, callable);
     fib->prev(state, nil<Fiber>());
