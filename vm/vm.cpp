@@ -451,8 +451,9 @@ namespace rubinius {
   GCIndependent::GCIndependent(NativeMethodEnvironment* env)
     : state_(env->state())
   {
+    GCTokenImpl gct;
     state_->set_call_frame(env->current_call_frame());
-    state_->gc_independent();
+    state_->gc_independent(gct);
   };
-  
+
 };

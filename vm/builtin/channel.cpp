@@ -167,7 +167,7 @@ namespace rubinius {
     // We lock to manipulate the wait condition on the VM* so that
     // we can sync up properly with another thread trying to wake us
     // up right as we're trying to go to sleep.
-    state->lock();
+    state->lock(gct);
 
     if(!state->check_async(call_frame)) {
       state->unlock();

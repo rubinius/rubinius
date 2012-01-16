@@ -369,6 +369,7 @@ namespace rubinius {
     FFIData* stub =
       reinterpret_cast<FFIData*>(user_data);
 
+    GCTokenImpl gct;
     State* state = env->state();
 
     state->gc_dependent();
@@ -547,7 +548,7 @@ namespace rubinius {
       break;
     }
 
-    state->gc_independent();
+    state->gc_independent(gct);
   }
 
 
@@ -636,6 +637,7 @@ namespace rubinius {
   {
     Object* ret;
     Object* obj;
+    GCTokenImpl gct;
 
     bool use_cb_block = false;
 
@@ -900,7 +902,7 @@ namespace rubinius {
     // a GC might move this and there ffi_data will
     // point at the wrong place in memory
     FFIData* ffi_data_local = ffi_data;
-    state->gc_independent();
+    state->gc_independent(gct);
 
     switch(ffi_data_local->ret_type) {
     case RBX_FFI_TYPE_CHAR: {

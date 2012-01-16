@@ -270,7 +270,7 @@ namespace rubinius {
     init_lock_.init();
   }
 
-  Object* Thread::join(STATE, CallFrame* calling_environment) {
+  Object* Thread::join(STATE, GCToken gct, CallFrame* calling_environment) {
     state->set_call_frame(calling_environment);
 
     init_lock_.lock();
@@ -290,7 +290,7 @@ namespace rubinius {
 
     init_lock_.unlock();
 
-    state->gc_independent();
+    state->gc_independent(gct);
     void* val;
     int err = pthread_join(id, &val);
     state->gc_dependent();

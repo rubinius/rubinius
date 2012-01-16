@@ -146,12 +146,13 @@ extern "C" {
   void* rb_thread_call_with_gvl(void* (*func)(void*), void* data) {
     NativeMethodEnvironment* env = NativeMethodEnvironment::get();
 
+    GCTokenImpl gct;
     ENTER_CAPI(env->state());
     env->state()->gc_dependent();
 
     void* ret = (*func)(data);
 
-    env->state()->gc_independent();
+    env->state()->gc_independent(gct);
     LEAVE_CAPI(env->state());
 
     return ret;
