@@ -320,9 +320,6 @@ class Array
     return "[...]" if Thread.detect_recursion self do
       sep = sep ? StringValue(sep) : $,
 
-      Rubinius::Type.infect(out, self)
-      Rubinius::Type.infect(out, sep)
-
       # We've manually unwound the first loop entry for performance
       # reasons.
       x = @tuple[@start]
@@ -336,14 +333,12 @@ class Array
         x = x.to_s
       end
 
-      out.append x
-      Rubinius::Type.infect(out, x)
-
+      out << x
       total = @start + size()
       i = @start + 1
 
       while i < total
-        out.append sep
+        out << sep
 
         x = @tuple[i]
 
@@ -356,14 +351,12 @@ class Array
           x = x.to_s
         end
 
-        out.append x
-        Rubinius::Type.infect(out, x)
-
+        out << x
         i += 1
       end
     end
 
-    out
+    Rubinius::Type.infect(out, self)
   end
 
   ##
