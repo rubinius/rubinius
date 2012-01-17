@@ -1,14 +1,16 @@
+#include "vm/vm.hpp"
+
+#include "capi/19/include/ruby/ruby.h"
+#include "capi/19/include/ruby/encoding.h"
+
 #include "builtin/bytearray.hpp"
+#include "builtin/encoding.hpp"
 #include "builtin/fixnum.hpp"
 #include "builtin/integer.hpp"
 #include "builtin/nativemethod.hpp"
 #include "builtin/object.hpp"
 #include "builtin/string.hpp"
 #include "capi/capi.hpp"
-#include "capi/19/include/ruby/ruby.h"
-#include "capi/19/include/ruby/encoding.h"
-
-#include "builtin/encoding.hpp"
 
 #include <string.h>
 
