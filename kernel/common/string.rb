@@ -35,6 +35,13 @@ class String
     alias_method :dup, :clone
   end
 
+  def initialize(arg = undefined)
+    replace StringValue(arg) unless arg.equal?(undefined)
+    self
+  end
+
+  private :initialize
+
   # call-seq:
   #   str % arg   => new_str
   #
