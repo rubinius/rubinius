@@ -326,15 +326,17 @@ class Array
       # We've manually unwound the first loop entry for performance
       # reasons.
       x = @tuple[@start]
+
       case x
       when String
-        out.append x
+        # Nothing
       when Array
-        out.append x.join(sep)
+        x = x.join(sep)
       else
-        out.append x.to_s
+        x = x.to_s
       end
 
+      out.append x
       Rubinius::Type.infect(out, x)
 
       total = @start + size()
@@ -347,13 +349,14 @@ class Array
 
         case x
         when String
-          out.append x
+          # Nothing
         when Array
-          out.append x.join(sep)
+          x = x.join(sep)
         else
-          out.append x.to_s
+          x = x.to_s
         end
 
+        out.append x
         Rubinius::Type.infect(out, x)
 
         i += 1

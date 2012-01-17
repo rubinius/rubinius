@@ -301,13 +301,14 @@ class Array
       end
 
       if str = String.try_convert(x)
-        out.append str
+        x = str
       elsif ary = Array.try_convert(x)
-        out.append ary.join(sep)
+        x = ary.join(sep)
       else
-        out.append x.to_s
+        x = x.to_s
       end
 
+      out.append x
       Rubinius::Type.infect(out, x)
 
       total = @start + size()
@@ -323,13 +324,14 @@ class Array
         end
 
         if str = String.try_convert(x)
-          out.append str
+          x = str
         elsif ary = Array.try_convert(x)
-          out.append ary.join(sep)
+          x = ary.join(sep)
         else
-          out.append x.to_s
+          x = x.to_s
         end
 
+        out.append x
         Rubinius::Type.infect(out, x)
 
         i += 1
