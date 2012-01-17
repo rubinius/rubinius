@@ -319,7 +319,9 @@ class Array
     out = ""
     return "[...]" if Thread.detect_recursion self do
       sep = sep ? StringValue(sep) : $,
-      out.taint if sep.tainted? || tainted?
+
+      Rubinius::Type.infect(out, self)
+      Rubinius::Type.infect(out, sep)
 
       # We've manually unwound the first loop entry for performance
       # reasons.
@@ -333,7 +335,7 @@ class Array
         out.append x.to_s
       end
 
-      out.taint if x.tainted?
+      Rubinius::Type.infect(out, x)
 
       total = @start + size()
       i = @start + 1
@@ -352,7 +354,7 @@ class Array
           out.append x.to_s
         end
 
-        out.taint if x.tainted?
+        Rubinius::Type.infect(out, x)
 
         i += 1
       end
