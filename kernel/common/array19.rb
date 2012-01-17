@@ -286,16 +286,12 @@ class Array
     return "" if @total == 0
 
     out = ""
-    return "[...]" if Thread.detect_recursion self do
+    raise ArgumentError, "recursive array join" if Thread.detect_recursion self do
       sep = sep ? StringValue(sep) : $,
 
       # We've manually unwound the first loop entry for performance
       # reasons.
       x = @tuple[@start]
-
-      if x == self
-        raise ArgumentError, "recursive array join"
-      end
 
       if str = String.try_convert(x)
         x = str
@@ -313,10 +309,6 @@ class Array
         out << sep
 
         x = @tuple[i]
-
-        if x == self
-          raise ArgumentError, "recursive array join"
-        end
 
         if str = String.try_convert(x)
           x = str
