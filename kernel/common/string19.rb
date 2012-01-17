@@ -577,10 +577,9 @@ class String
     @data = other.__data__
     self.num_bytes = other.num_bytes
     @hash_value = nil
+    force_encoding(other.encoding)
 
-    taint if other.tainted?
-
-    self
+    Rubinius::Type.infect(self, other)
   end
   alias_method :initialize_copy, :replace
   # private :initialize_copy

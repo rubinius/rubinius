@@ -528,9 +528,7 @@ class String
     self.num_bytes = other.num_bytes
     @hash_value = nil
 
-    taint if other.tainted?
-
-    self
+    Rubinius::Type.infect(self, other)
   end
   alias_method :initialize_copy, :replace
   # private :initialize_copy
