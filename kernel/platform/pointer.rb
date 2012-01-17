@@ -174,7 +174,7 @@ module FFI
     end
 
     # Primitive methods
-    def primitive_read_char(signed=true)
+    def primitive_read_char(signed)
       Rubinius.primitive :pointer_read_char
       raise PrimitiveFailure, "Unable to read char"
     end
@@ -184,7 +184,7 @@ module FFI
       raise PrimitiveFailure, "Unable to write char"
     end
 
-    def primitive_read_short(signed=true)
+    def primitive_read_short(signed)
       Rubinius.primitive :pointer_read_short
       raise PrimitiveFailure, "Unable to read short"
     end
@@ -194,7 +194,7 @@ module FFI
       raise PrimitiveFailure, "Unable to write short"
     end
 
-    def primitive_read_int(signed=true)
+    def primitive_read_int(signed)
       Rubinius.primitive :pointer_read_int
       raise PrimitiveFailure, "Unable to read int"
     end
@@ -204,7 +204,7 @@ module FFI
       raise PrimitiveFailure, "Unable to write int"
     end
 
-    def primitive_read_long(signed=true)
+    def primitive_read_long(signed)
       Rubinius.primitive :pointer_read_long
       raise PrimitiveFailure, "Unable to read long"
     end
@@ -214,7 +214,7 @@ module FFI
       raise PrimitiveFailure, "Unable to write long"
     end
 
-    def primitive_read_long_long(signed=true)
+    def primitive_read_long_long(signed)
       Rubinius.primitive :pointer_read_long_long
       raise PrimitiveFailure, "Unable to read long"
     end
