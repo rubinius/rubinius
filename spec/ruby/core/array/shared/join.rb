@@ -167,21 +167,45 @@ describe :array_join_with_string_separator, :shared => true do
     [1, [2, ArraySpecs::MyArray[3, 4], 5], 6].send(@method, ":").should == "1:2:3:4:5:6"
   end
 
-  it "taints the result if the separator is tainted and the array is non-empty" do
-    [1, 2].send(@method, ":".taint).tainted?.should be_true
-  end
-
-  it "does not taint the result if the separator is tainted but the array is empty" do
-    [].send(@method, ":".taint).tainted?.should be_false
-  end
-
-  ruby_version_is '1.9' do
-    it "untrusts the result if the separator is untrusted and the array is non-empty" do
-      [1, 2].send(@method, ":".untrust).untrusted?.should be_true
+  describe "with a tainted separator" do
+    before :each do
+      @sep = ":".taint
     end
 
-    it "does not untrust the result if the separator is untrusted but the array is empty" do
-      [].send(@method, ":".untrust).untrusted?.should be_false
+    it "does not taint the result if the array is empty" do
+      [].send(@method, @sep).tainted?.should be_false
+    end
+
+    ruby_bug "5902", "2.0" do
+      it "does not taint the result if the array has only one element" do
+        [1].send(@method, @sep).tainted?.should be_false
+      end
+    end
+
+    it "taints the result if the array has two or more elements" do
+      [1, 2].send(@method, @sep).tainted?.should be_true
+    end
+  end
+
+  ruby_version_is "1.9" do
+    describe "with an untrusted separator" do
+      before :each do
+        @sep = ":".untrust
+      end
+
+      it "does not untrust the result if the array is empty" do
+        [].send(@method, @sep).untrusted?.should be_false
+      end
+
+      ruby_bug "5902", "2.0" do
+        it "does not untrust the result if the array has only one element" do
+          [1].send(@method, @sep).untrusted?.should be_false
+        end
+      end
+
+      it "untrusts the result if the array has two or more elements" do
+        [1, 2].send(@method, @sep).untrusted?.should be_true
+      end
     end
   end
 end
