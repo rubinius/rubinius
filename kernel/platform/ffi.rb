@@ -209,4 +209,7 @@ module FFI::Platform
   else
     LIBSUFFIX = "so"
   end
+
+  # wrong, but ruby-ffi compatible
+  LONG_SIZE = Rubinius::WORDSIZE
 end
