@@ -1,3 +1,0 @@
-fails:Array#join uses the first encoding when other strings are compatible
-fails:Array#join uses the widest common encoding when other strings are incompatible
-fails:Array#join fails for arrays with incompatibly-encoded strings

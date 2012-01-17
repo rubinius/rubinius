@@ -301,7 +301,9 @@ class Array
         x = x.to_s
       end
 
+      out.force_encoding(x.encoding)
       out << x
+
       total = @start + size()
       i = @start + 1
 
