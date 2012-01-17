@@ -98,6 +98,7 @@ static NODE *list_concat(NODE*,NODE*);
 static NODE *parser_arg_append(rb_parser_state*, NODE*, NODE*);
 static NODE *parser_arg_concat(rb_parser_state*, NODE*, NODE*);
 static NODE *parser_literal_concat(rb_parser_state*, NODE*, NODE*);
+static int parser_literal_concat0(rb_parser_state*, VALUE, VALUE);
 static NODE *parser_new_evstr(rb_parser_state*, NODE*);
 static NODE *parser_evstr2dstr(rb_parser_state*, NODE*);
 static NODE *parser_call_bin_op(rb_parser_state*, NODE*, ID, NODE*);
@@ -308,6 +309,7 @@ static int scan_hex(const char *start, size_t len, size_t *retlen);
 #define new_yield(n)              parser_new_yield(parser_state, n)
 #define evstr2dstr(n)             parser_evstr2dstr(parser_state, n)
 #define literal_concat(a, b)      parser_literal_concat(parser_state, a, b)
+#define literal_concat0(a, b)     parser_literal_concat0(parser_state, a, b)
 #define new_evstr(n)              parser_new_evstr(parser_state, n)
 
 #define value_expr(n)             parser_value_expr(parser_state, n)
@@ -2450,9 +2452,10 @@ xstring         : tXSTRING_BEG xstring_contents tSTRING_END
 
 regexp          : tREGEXP_BEG regexp_contents tREGEXP_END
                   {
-                    // TODO
                     intptr_t options = $3;
                     NODE *node = $2;
+                    NODE *list, *prev;
+
                     if(!node) {
                       node = NEW_REGEX(STR_NEW0(), options & ~RE_OPTION_ONCE);
                     } else {
@@ -2472,6 +2475,34 @@ regexp          : tREGEXP_BEG regexp_contents tREGEXP_END
                           nd_set_type(node, NODE_DREGX);
                         }
                         node->nd_cflag = options & ~RE_OPTION_ONCE;
+                        for(list = (prev = node)->nd_next; list; list = list->nd_next) {
+                          if(nd_type(list->nd_head) == NODE_STR) {
+                            VALUE tail = list->nd_head->nd_lit;
+                            if(prev && !NIL_P(prev->nd_lit)) {
+                              VALUE lit;
+                              if(prev == node) {
+                                lit = prev->nd_lit;
+                              } else {
+                                lit = prev->nd_head->nd_lit;
+                              }
+                              if(!literal_concat0(lit, tail)) {
+                                node = 0;
+                                break;
+                              }
+                              rb_str_resize(tail, 0);
+                              prev->nd_next = list->nd_next;
+                              list = prev;
+                            } else {
+                              prev = list;
+                            }
+                          } else {
+                            prev = 0;
+                          }
+                        }
+                        if(!node->nd_next) {
+                          nd_set_type(node, NODE_REGEX);
+                          node->nd_cnt = options & ~RE_OPTION_ONCE;
+                        }
                         break;
                       }
                     }
@@ -3327,6 +3358,7 @@ parser_str_new(rb_parser_state* parser_state, const char *p, long n,
 }
 
 #define lex_goto_eol(parser_state)  (lex_p = lex_pend)
+#define lex_eol_p() (lex_p >= lex_pend)
 #define peek(c) (lex_p < lex_pend && (c) == *lex_p)
 
 static inline int
@@ -3701,6 +3733,7 @@ parser_regx_options(rb_parser_state* parser_state)
     int options = 0;
     int c;
 
+    /* TODO */
     newtok();
     while(c = nextc(), ISALPHA(c)) {
       switch(c) {
@@ -4819,6 +4852,9 @@ retry:
         } else {
           tokadd(c);
         }
+      } else if(!lex_eol_p() && !(c = *lex_p, ISASCII(c))) {
+        nextc();
+        if(tokadd_mbchar(c) == -1) return 0;
       } else {
         c = read_escape(0, &enc);
         tokadd(c);
@@ -5936,7 +5972,7 @@ list_concat(NODE *head, NODE *tail)
 }
 
 static int
-literal_concat0(rb_parser_state* parser_state, VALUE head, VALUE tail)
+parser_literal_concat0(rb_parser_state* parser_state, VALUE head, VALUE tail)
 {
   if(NIL_P(tail)) return 1;
   if(!parser_enc_compatible(head, tail)) {
@@ -5968,7 +6004,7 @@ parser_literal_concat(rb_parser_state* parser_state, NODE *head, NODE *tail)
   switch(nd_type(tail)) {
   case NODE_STR:
     if(htype == NODE_STR) {
-      if(!literal_concat0(parser_state, head->nd_lit, tail->nd_lit)) {
+      if(!literal_concat0(head->nd_lit, tail->nd_lit)) {
       error:
         return 0;
       }
@@ -5979,7 +6015,7 @@ parser_literal_concat(rb_parser_state* parser_state, NODE *head, NODE *tail)
 
   case NODE_DSTR:
     if(htype == NODE_STR) {
-      if(!literal_concat0(parser_state, head->nd_lit, tail->nd_lit))
+      if(!literal_concat0(head->nd_lit, tail->nd_lit))
         goto error;
       tail->nd_lit = head->nd_lit;
       head = tail;

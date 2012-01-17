@@ -124,6 +124,17 @@ namespace rubinius {
     return so;
   }
 
+  String* String::from_bytearray(STATE, ByteArray* ba, native_int size) {
+    String* s = state->new_object<String>(G(string));
+
+    s->num_bytes(state, Fixnum::from(size));
+    s->hash_value(state, nil<Fixnum>());
+    s->shared(state, cFalse);
+    s->data(state, ba);
+
+    return s;
+  }
+
   String* String::from_bytearray(STATE, ByteArray* ba, Fixnum* start,
                                  Fixnum* count)
   {
@@ -184,6 +195,401 @@ namespace rubinius {
     }
 
     return n;
+  }
+
+  static void invalid_codepoint_error(STATE, unsigned int c) {
+    std::ostringstream msg;
+    msg << "invalid codepoint: " << c;
+    Exception::range_error(state, msg.str().c_str());
+  }
+
+  struct convert_escaped_state {
+#define CONVERT_BUFSIZE 6
+
+    STATE;
+    String* str;
+    OnigEncodingType* enc;
+    bool ascii;
+    bool utf8;
+    ByteArray* ba;
+    uint8_t* bp;
+    uint8_t* be;
+    uint8_t* p;
+    uint8_t* e;
+    uint8_t* lp;
+    uint8_t buf[CONVERT_BUFSIZE];
+
+    void update_index(int delta=0) {
+      lp = p + delta;
+    }
+
+    void new_bytes(int len) {
+      ba = ByteArray::create(state, len);
+      bp = ba->raw_bytes();
+      be = bp + ba->size();
+    }
+
+    void expand_bytes(int len) {
+      ByteArray* old_ba = ba;
+      uint8_t* old_bp = bp;
+
+      new_bytes(old_ba->size() + len);
+      memcpy(ba->raw_bytes(), old_ba->raw_bytes(), old_ba->size());
+      bp = ba->raw_bytes() + (old_bp - old_ba->raw_bytes());
+    }
+
+    void copy_bytes(int delta=0) {
+      if(!ba) new_bytes(str->byte_size());
+
+      int len = (p + delta) - lp;
+      if(len > 0) {
+        if(len > be - bp) {
+          expand_bytes(len);
+        }
+        memcpy(bp, lp, len);
+        bp += len;
+      }
+
+      update_index(delta);
+    }
+
+    void append_bytes(uint8_t* ptr, int len) {
+      if(len > be - bp) {
+        expand_bytes(len);
+      }
+      memcpy(bp, ptr, len);
+      bp += len;
+    }
+
+    void append_utf8(int value) {
+      if(value < 128) {
+        int n = snprintf(reinterpret_cast<char*>(buf),
+                         CONVERT_BUFSIZE, "\\x%02X", value);
+        append_bytes(buf, n);
+      } else {
+        if(!utf8) {
+          ascii = false;
+          utf8 = true;
+          enc = Encoding::utf8_encoding(state)->get_encoding();
+        }
+
+        int n = ONIGENC_CODE_TO_MBCLEN(enc, value);
+        if(n <= 0) invalid_codepoint_error(state, value);
+
+        n = ONIGENC_CODE_TO_MBC(enc, value, (UChar*)bp);
+        if(n <= 0) invalid_codepoint_error(state, value);
+        bp += n;
+      }
+    }
+
+    int convert_ctrl(bool ctrl=false, bool meta=false) {
+      if(ctrl) raise_error("duplicate control escape");
+      if(p == e) raise_error("control escape is too short");
+
+      if((*p & 0x80) == 0) {
+        int value = *p++;
+
+        if(value == '\\') {
+          value = convert_byte(true, meta);
+        }
+
+        return value &= 0x1f;
+      }
+
+      raise_error("invalid control escape");
+
+      // not reached
+      return 0;
+    }
+
+    int convert_meta(bool ctrl=false, bool meta=false) {
+      if(meta) raise_error("duplicate meta escape");
+      if(p == e) raise_error("meta escape is too short");
+
+      if((*p & 0x80) == 0) {
+        int value = *p++;
+
+        if(value == '\\') {
+          value = convert_byte(true, meta);
+        }
+
+        return value |= 0x80;
+      }
+
+      raise_error("invalid meta escape");
+
+      // not reached
+      return 0;
+    }
+
+    int convert_byte(bool ctrl=false, bool meta=false) {
+      if(p == e || *p++ != '\\') {
+        raise_error("escape multibyte character is too short");
+      }
+
+      switch(*p++) {
+        case '\\': return '\\';
+        case 'n': return '\n';
+        case 't': return '\t';
+        case 'r': return '\r';
+        case 'f': return '\f';
+        case 'v': return '\013';
+        case 'a': return '\007';
+        case 'e': return '\033';
+
+        /* \OOO */
+        case '0': case '1': case '2': case '3':
+        case '4': case '5': case '6': case '7':
+          p--;
+          return convert_octal();
+
+        case 'x': /* \xHH */
+          return convert_hex(1, 2);
+
+        case 'M': /* \M-X, \M-\C-X, \M-\cX */
+          if(p == e || *p++ != '-') {
+            raise_error("meta escape is too short");
+          }
+          return convert_meta(ctrl);
+
+        case 'C': /* \C-X, \C-\M-X */
+          if (p == e || *p++ != '-') {
+              raise_error("control escape is too short");
+          }
+          // fall through
+        case 'c': /* \cX, \c\M-X */
+          return convert_ctrl(meta);
+
+      default:
+        raise_error("unexpected escape sequence");
+      }
+
+      // not reached
+      return 0;
+    }
+
+    void convert_nonascii() {
+      int maxlen = ONIGENC_MBC_MAXLEN(enc);
+      int i = 0;
+      int n = 0;
+
+      do {
+        buf[i++] = convert_byte();
+        n = precise_mbclen(buf, buf + i, enc);
+      } while(p < e && i < maxlen && ONIGENC_MBCLEN_NEEDMORE_P(n));
+
+      n = precise_mbclen(buf, buf + i, enc);
+      if(ONIGENC_MBCLEN_INVALID_P(n)) {
+        raise_error("invalid multibyte escape");
+      } else if(i > 1 || (*buf & 0x80)) {
+        if(i == 1 && utf8) {
+          raise_error("escaped non-ASCII character in UTF-8 Regexp");
+        }
+        ascii = false;
+
+        append_bytes(buf, n);
+
+      } else {
+        int n = snprintf(reinterpret_cast<char*>(buf),
+                         CONVERT_BUFSIZE, "\\x%02X", *buf);
+        append_bytes(buf, n);
+      }
+    }
+
+    int convert_octal() {
+      int value = 0;
+
+      for(int i = 0;
+          p < e && i < 3 && *p >= '0' && *p <= '7';
+          i++, p++) {
+        value <<= 3;
+        value |= *p - '0';
+      }
+
+      return value;
+    }
+
+    int convert_hex(int min, int max) {
+      int value = 0;
+      int i = 0;
+
+      for(uint8_t d = *p; p < e && i < max; d = *++p, i++) {
+        if(d >= '0' && d <= '9') {
+          d -= '0';
+        } else if(d >= 'A' && d <= 'F') {
+          d -= 'A';
+          d += 10;
+        } else if(d >= 'a' && d <= 'f') {
+          d -= 'a';
+          d += 10;
+        } else {
+          break;
+        }
+
+        value <<= 4;
+        value += d;
+      }
+
+      if(i < min) {
+        raise_error("hexadecimal number is too short");
+      }
+
+      return value;
+    }
+
+    void raise_error(const char* reason) {
+      std::ostringstream msg;
+      msg << reason << ": byte: " << p - str->byte_address()
+          << ": " << str->c_str(state);
+      Exception::regexp_error(state, msg.str().c_str());
+    }
+
+    String* finalize(Encoding* source_enc, bool fixed) {
+      if(ba) {
+        copy_bytes();
+        str = String::from_bytearray(state, ba, bp - ba->raw_bytes());
+      } else {
+        str = str->string_dup(state);
+      }
+
+      if(fixed) {
+        str->encoding(state, source_enc);
+      } else if(utf8) {
+        str->encoding(state, Encoding::utf8_encoding(state));
+      } else if(ascii) {
+        str->encoding(state, Encoding::usascii_encoding(state));
+      } else {
+        str->encoding(state, source_enc);
+      }
+
+      return str;
+    }
+  };
+
+  String* String::convert_escaped(STATE, Encoding* enc, bool fixed) {
+    struct convert_escaped_state ces;
+
+    ces.state = state;
+    ces.ascii = true;
+    ces.utf8 = false;
+    ces.str = this;
+    ces.ba = 0;
+    ces.bp = 0;
+
+    ces.p = byte_address();
+    ces.e = ces.p + byte_size();
+    ces.lp = ces.p;
+
+    // TODO determine encoding
+    if(!fixed && !enc) {
+      if(CBOOL(ascii_only_p(state))) {
+        enc = encoding(state);
+      } else {
+        enc = Encoding::ascii8bit_encoding(state);
+      }
+    } else if(enc == Encoding::utf8_encoding(state)) {
+      ces.utf8 = true;
+    }
+    ces.enc = enc->get_encoding();
+
+    while(ces.p < ces.e) {
+      int n = precise_mbclen(ces.p, ces.e, ces.enc);
+      if(!ONIGENC_MBCLEN_CHARFOUND_P(n)) {
+        ces.raise_error("invalid multibyte character");
+      }
+
+      n = ONIGENC_MBCLEN_CHARFOUND_LEN(n);
+      if(n > 1 || (*ces.p & 0x80)) {
+        if(n == 1 && ces.utf8) {
+          ces.raise_error("non-ASCII character in UTF-8 Regexp");
+        }
+
+        ces.ascii = false;
+        ces.p += n;
+        continue;
+      }
+
+      if(*ces.p++ == '\\') {
+        if(ces.p == ces.e) {
+          ces.raise_error("escape sequence is too short");
+        }
+
+        switch(*ces.p++) {
+        case '1': case '2': case '3':
+        case '4': case '5': case '6':
+        case '7': { // \O, \OO, \OOO or backref
+          uint8_t* sp = ces.p--;
+
+          if(ces.convert_octal() < 128) {
+            continue;
+          } else {
+            ces.p = sp;
+          }
+          // fall through
+        }
+
+        case '0': // \0, \0O, \0OO
+        case 'x': // \xHH
+        case 'C': // \C-X, \C-\M-X
+        case 'c': // \cX, \c\M-X
+        case 'M': // \M-X, \M-\C-X, \M-\cX
+          ces.p -= 2;
+          ces.copy_bytes();
+          ces.convert_nonascii();
+          ces.update_index();
+          break;
+
+        case 'u':
+          if (ces.p == ces.e) {
+            ces.raise_error("escape sequence is too short");
+          }
+
+          ces.copy_bytes(-2);
+
+          if (*ces.p == '{') {  // \u{H HH HHH HHHH HHHHH HHHHHH ...}
+            ces.p++;
+
+            int value = -1;
+            while(ces.p < ces.e) {
+              if(ISSPACE(*ces.p)) continue;
+
+              value = ces.convert_hex(1, 6);
+
+              if(*ces.p != '}' && !ISSPACE(*ces.p)) {
+                ces.raise_error("invalid Unicode list");
+              }
+
+              ces.append_utf8(value);
+
+              if(*ces.p == '}') break;
+            }
+
+            if(ces.p == ces.e || *ces.p++ != '}' || value < 0) {
+              ces.raise_error("invalid Unicode list");
+            }
+          } else {  // \uHHHH
+            ces.append_utf8(ces.convert_hex(4, 4));
+          }
+
+          ces.update_index();
+          break;
+
+        case 'p': /* \p{Hiragana} */
+        case 'P':
+          /* TODO
+          if (!*encp) {
+            *has_property = 1;
+          }
+          */
+          break;
+
+        default: // \n, \\, \d, \9, etc.
+          break;
+        }
+      }
+    }
+
+    return ces.finalize(enc, fixed);
   }
 
   native_int String::char_size(STATE) {
@@ -886,12 +1292,6 @@ namespace rubinius {
     return s;
   }
 
-  static void invalid_codepoint_error(STATE, unsigned int c) {
-    std::ostringstream msg;
-    msg << "invalid codepoint: " << c;
-    Exception::range_error(state, msg.str().c_str());
-  }
-
   String* String::from_codepoint(STATE, Object* self, Integer* code, Encoding* enc) {
     String* s = state->new_object<String>(G(string));
 
@@ -907,7 +1307,7 @@ namespace rubinius {
 
     ByteArray* ba = ByteArray::create(state, n);
 
-    n = ONIGENC_CODE_TO_MBC(enc->get_encoding(), c ,(UChar*)ba->raw_bytes());
+    n = ONIGENC_CODE_TO_MBC(enc->get_encoding(), c, (UChar*)ba->raw_bytes());
     if(n <= 0) invalid_codepoint_error(state, c);
 
     s->data(state, ba);

@@ -9,6 +9,11 @@
 #include <ctype.h> // For isdigit and friends
 #include <errno.h> // For ERANGE
 
+// See comment in regexp.hpp
+#ifndef ONIGURUMA_H
+struct OnigEncodingType;
+#endif
+
 // copied from ruby 1.8.x source, ruby.h
 /* need to include <ctype.h> to use these macros */
 #ifndef ISPRINT
@@ -64,6 +69,7 @@ namespace rubinius {
 
     // Rubinius.primitive :string_from_bytearray
     static String* from_bytearray(STATE, ByteArray* ba, Fixnum* start, Fixnum* count);
+    static String* from_bytearray(STATE, ByteArray* ba, native_int size);
     static String* create(STATE, const char* str);
     static String* create(STATE, const char* str, native_int bytes);
     static String* create_pinned(STATE, Fixnum* size);
@@ -115,6 +121,8 @@ namespace rubinius {
     //
     // NOTE: do not free() or realloc() this buffer.
     const char* c_str(STATE);
+
+    String* convert_escaped(STATE, Encoding* enc, bool fixed);
 
     void unshare(STATE);
     hashval hash_string(STATE);

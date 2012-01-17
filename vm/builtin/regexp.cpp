@@ -18,6 +18,8 @@
 #include "call_frame.hpp"
 #include "arguments.hpp"
 
+#include "configuration.hpp"
+
 #include "gc/gc.hpp"
 
 #include "util/atomic.hpp"
@@ -81,6 +83,23 @@ namespace rubinius {
         break;
     }
     return r;
+  }
+
+  static Encoding* options_encoding(STATE, int options, Encoding* enc) {
+    switch(options & KCODE_MASK) {
+    case KCODE_NONE:
+      return 0;
+    case KCODE_EUC:
+      return Encoding::find(state, "EUC-JP");
+    case KCODE_SJIS:
+      return Encoding::find(state, "Windows-31J");
+    case KCODE_UTF8:
+      return Encoding::utf8_encoding(state);
+    case KCODE_ASCII:
+    default:
+      return enc;
+      break;
+    }
   }
 
   static OnigEncoding current_encoding(STATE) {
@@ -262,20 +281,32 @@ namespace rubinius {
     OnigEncoding enc;
     int err, num_names, kcode;
 
-    pat = (UChar*)pattern->byte_address();
-    end = pat + pattern->byte_size();
-
     opts  = options->to_native();
     kcode = opts & KCODE_MASK;
     opts &= OPTION_MASK;
 
-    if(kcode == 0) {
-      enc = current_encoding(state);
+    if(LANGUAGE_18_ENABLED(state)) {
+      pat = (UChar*)pattern->byte_address();
+      end = pat + pattern->byte_size();
+
+      if(kcode == 0) {
+          enc = current_encoding(state);
+      } else {
+        // Don't attempt to fix the encoding later, it's been specified by the
+        // user.
+        enc = get_enc_from_kcode(kcode);
+        forced_encoding_ = true;
+      }
     } else {
-      // Don't attempt to fix the encoding later, it's been specified by the
-      // user.
-      enc = get_enc_from_kcode(kcode);
-      forced_encoding_ = true;
+      Encoding* source_enc = pattern->encoding(state);
+      Encoding* options_enc = options_encoding(state, opts, source_enc);
+
+      bool fixed = kcode && kcode != KCODE_NONE;
+      String* converted = pattern->convert_escaped(state, options_enc, fixed);
+
+      pat = (UChar*)converted->byte_address();
+      end = pat + converted->byte_size();
+      enc = converted->encoding(state)->get_encoding();
     }
 
     thread::Mutex::LockGuard lg(state->shared().onig_lock());
@@ -393,8 +424,6 @@ namespace rubinius {
     if(unlikely(!onig_data)) {
       Exception::argument_error(state, "Not properly initialized Regexp");
     }
-
-    // thread::Mutex::LockGuard lg(state->shared().onig_lock());
 
     max = string->byte_size();
     str = (UChar*)string->byte_address();
