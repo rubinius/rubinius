@@ -10,11 +10,41 @@ describe :string_replace, :shared => true do
     a.should == "another string"
   end
 
-  it "replaces the taint status of self with that of other" do
-    a = "an untainted string"
-    b = "a tainted string".taint
+  it "taints self if other is tainted" do
+    a = ""
+    b = "".taint
     a.send(@method, b)
     a.tainted?.should == true
+  end
+
+  it "does not untaint self if other is untainted" do
+    a = "".taint
+    b = ""
+    a.send(@method, b)
+    a.tainted?.should == true
+  end
+
+  ruby_version_is "1.9" do
+    it "untrusts self if other is untrusted" do
+      a = ""
+      b = "".untrust
+      a.send(@method, b)
+      a.untrusted?.should == true
+    end
+
+    it "does not trust self if other is trusted" do
+      a = "".untrust
+      b = ""
+      a.send(@method, b)
+      a.untrusted?.should == true
+    end
+
+    it "replaces the encoding of self with that of other" do
+      a = "".encode("UTF-16LE")
+      b = "".encode("UTF-8")
+      a.send(@method, b)
+      a.encoding.should == Encoding::UTF_8
+    end
   end
 
   it "tries to convert other to string using to_str" do
