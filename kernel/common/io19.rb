@@ -170,6 +170,17 @@ class IO
       if mode.kind_of? Hash
         options = mode
         mode = options[:mode]
+      elsif mode.kind_of?(String) && options.kind_of?(Hash)
+        raise ArgumentError, "mode specified twice" if options[:mode]
+
+        if (mode[1] === ?b && options[:textmode]) ||
+           (mode[1] === ?t && options[:binmode])
+          raise ArgumentError, "both textmode and binmode specified"
+        end
+      end
+
+      if options.kind_of?(Hash) && options[:textmode] && options[:binmode]
+        raise ArgumentError, "both textmode and binmode specified"
       end
     end
 
