@@ -240,6 +240,15 @@ $stdout          IO              The current standard output. Assignment to $std
                                  $stdout.reopen instead.
 =end
 
+describe "Predefined global $," do
+  it "defaults to nil" do
+    $,.should be_nil
+  end
+
+  it "raises TypeError if assigned a non-String" do
+    lambda { $, = Object.new }.should raise_error(TypeError)
+  end
+end
 
 describe "Predefined global $_" do
   it "is set to the last line read by e.g. StringIO#gets" do
