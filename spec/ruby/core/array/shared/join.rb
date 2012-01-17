@@ -94,8 +94,10 @@ describe :array_join_with_default_separator, :shared => true do
     [].taint.send(@method).tainted?.should be_false
   end
 
-  it "taints the result if an element is tainted" do
-    ["str".taint].send(@method).tainted?.should be_true
+  it "taints the result if the result of coercing an element is tainted" do
+    s = mock("taint")
+    s.should_receive(:to_s).and_return("str".taint)
+    [s].send(@method).tainted?.should be_true
   end
 
   ruby_version_is "1.9" do
@@ -107,8 +109,10 @@ describe :array_join_with_default_separator, :shared => true do
       [].untrust.send(@method).untrusted?.should be_false
     end
 
-    it "untrusts the result if an element is untrusted" do
-      ["str".untrust].send(@method).untrusted?.should be_true
+    it "untrusts the result if the result of coercing an element is untrusted" do
+      s = mock("untrust")
+      s.should_receive(:to_s).and_return("str".untrust)
+      [s].send(@method).untrusted?.should be_true
     end
   end
 
