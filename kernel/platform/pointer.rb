@@ -248,6 +248,11 @@ module FFI
       Rubinius.primitive :pointer_read_pointer
       raise PrimitiveFailure, "Unable to read pointer"
     end
+
+    def primitive_write_pointer(obj)
+      Rubinius.primitive :pointer_write_pointer
+      raise PrimitiveFailure, "Unable to write pointer"
+    end
   end
 
   class MemoryPointer < Pointer

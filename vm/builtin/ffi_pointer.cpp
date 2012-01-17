@@ -244,6 +244,11 @@ namespace rubinius {
     return Float::create(state, *(double*)pointer);
   }
 
+  Pointer* Pointer::write_pointer(STATE, Pointer* ptr) {
+    *(void**)pointer = ptr->pointer;
+    return ptr;
+  }
+
   Pointer* Pointer::read_pointer(STATE) {
     return Pointer::create(state, *(void**)pointer);
   }
