@@ -302,6 +302,7 @@ class StringIO
       length = Rubinius::Type.coerce_to length, Integer, :to_int
       raise ArgumentError if length < 0
       buffer.replace @string.byteslice(@pos, length)
+      buffer.force_encoding Encoding::ASCII_8BIT
       @pos += buffer.length
     else
       return "" if eof?
