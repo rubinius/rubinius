@@ -109,7 +109,7 @@ namespace rubinius {
   }
 
   Integer* Pointer::get_address(STATE) {
-    return Integer::from(state, (intptr_t)pointer);
+    return Integer::from(state, (uintptr_t)pointer);
   }
 
   Integer* Pointer::set_address(STATE, Integer* ptr) {
