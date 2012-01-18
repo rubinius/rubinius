@@ -253,6 +253,8 @@ module FFI
       Rubinius.primitive :pointer_write_pointer
       raise PrimitiveFailure, "Unable to write pointer"
     end
+
+    NULL = Pointer.new(0x0)
   end
 
   class MemoryPointer < Pointer
