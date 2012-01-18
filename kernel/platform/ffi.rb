@@ -77,6 +77,10 @@ module FFI
       vals
     end
 
+    def errno
+      FFI::Platform::POSIX.errno
+    end
+
   end
 
   # Converts a Rubinius Object
