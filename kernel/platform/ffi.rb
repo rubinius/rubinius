@@ -211,5 +211,5 @@ module FFI::Platform
   end
 
   # wrong, but ruby-ffi compatible
-  LONG_SIZE = Rubinius::WORDSIZE
+  LONG_SIZE = Rubinius::SIZEOF_LONG * 8
 end
