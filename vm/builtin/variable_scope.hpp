@@ -11,6 +11,7 @@ namespace rubinius {
   class CompiledMethod;
   class Module;
   struct CallFrame;
+  class Fiber;
 
   /**
    *  Variable information.
@@ -29,6 +30,9 @@ namespace rubinius {
     Tuple*          heap_locals_; // slot
     Object*         last_match_; // slot
 
+    // The Fiber that the scope was created on
+    Fiber*          fiber_; // slot
+
   public:
     Object* self_;    // slot
 
@@ -45,6 +49,7 @@ namespace rubinius {
     attr_accessor(self, Object);
     attr_accessor(heap_locals, Tuple);
     attr_accessor(last_match, Object);
+    attr_accessor(fiber, Fiber);
 
     static void init(STATE);
     static void bootstrap_methods(STATE);

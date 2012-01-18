@@ -9,6 +9,9 @@
 #include "builtin/system.hpp"
 #include "builtin/tuple.hpp"
 
+#include "builtin/fiber.hpp"
+#include "fiber_data.hpp"
+
 #include "ontology.hpp"
 
 namespace rubinius {
@@ -104,6 +107,17 @@ namespace rubinius {
 
     if(!vs->isolated()) {
       Object** ary = vs->stack_locals();
+
+      if(Fiber* fib = try_as<Fiber>(vs->fiber())) {
+        FiberData* data = fib->data();
+
+        AddressDisplacement dis(data->data_offset(),
+                                data->data_lower_bound(),
+                                data->data_upper_bound());
+
+        ary = dis.displace(ary);
+      }
+
       size_t locals = vs->number_of_locals();
 
       for(size_t i = 0; i < locals; i++) {
@@ -120,6 +134,17 @@ namespace rubinius {
 
     if(!vs->isolated()) {
       Object** ary = vs->stack_locals();
+
+      if(Fiber* fib = try_as<Fiber>(vs->fiber())) {
+        FiberData* data = fib->data();
+
+        AddressDisplacement dis(data->data_offset(),
+                                data->data_lower_bound(),
+                                data->data_upper_bound());
+
+        ary = dis.displace(ary);
+      }
+
       size_t locals = vs->number_of_locals();
 
       for(size_t i = 0; i < locals; i++) {
