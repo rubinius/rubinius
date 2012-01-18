@@ -280,12 +280,6 @@ namespace rubinius {
     shared.gc_soon();
   }
 
-  void VM::collect(GCToken gct, CallFrame* call_frame) {
-    State state(this);
-    this->set_call_frame(call_frame);
-    om->collect(&state, gct, call_frame);
-  }
-
   void VM::collect_maybe(GCToken gct, CallFrame* call_frame) {
     State state(this);
     this->set_call_frame(call_frame);

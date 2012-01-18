@@ -488,46 +488,6 @@ step1:
     return copy;
   }
 
-  void ObjectMemory::collect(STATE, GCToken gct, CallFrame* call_frame) {
-    // Don't go any further unless we're allowed to GC.
-    if(!can_gc()) return;
-
-    while(!state->stop_the_world()) {
-      state->checkpoint(gct, call_frame);
-
-      // Someone else got to the GC before we did! No problem, all done!
-      if(!collect_young_now && !collect_mature_now) return;
-    }
-
-    // Ok, everyone in stopped! LET'S GC!
-
-    SYNC(state);
-
-    if(cDebugThreading) {
-      std::cerr << std::endl << "[ " << state
-                << " WORLD beginning GC.]" << std::endl;
-    }
-
-    GCData gc_data(state->vm(), gct);
-
-    collect_young(gc_data);
-    collect_mature(gc_data);
-
-    // Ok, we're good. Get everyone going again.
-    state->restart_world();
-    bool added = added_finalizers_;
-    added_finalizers_ = false;
-
-    UNSYNC;
-
-    if(added) {
-      if(finalizer_thread_.get() == cNil) {
-        start_finalizer_thread(state);
-      }
-      finalizer_var_.signal();
-    }
-  }
-
   void ObjectMemory::collect_maybe(STATE, GCToken gct, CallFrame* call_frame) {
     // Don't go any further unless we're allowed to GC.
     if(!can_gc()) return;
