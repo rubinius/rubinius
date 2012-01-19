@@ -6,9 +6,9 @@ describe "Regexp.new" do
 end
 
 describe "Regexp.new given a String" do
-  it_behaves_like :regexp_new_string, :compile
+  it_behaves_like :regexp_new_string, :new
 end
 
 describe "Regexp.new given a Regexp" do
-  it_behaves_like :regexp_new_regexp, :compile
+  it_behaves_like :regexp_new_regexp, :new
 end
