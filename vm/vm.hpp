@@ -87,6 +87,10 @@ namespace rubinius {
     uintptr_t stack_start_;
     uintptr_t stack_limit_;
     int stack_size_;
+
+    uintptr_t root_stack_start_;
+    uintptr_t root_stack_size_;
+
     bool run_signals_;
 
     MethodMissingReason method_missing_reason_;
@@ -180,17 +184,21 @@ namespace rubinius {
     }
 
     void set_stack_bounds(uintptr_t start, int length) {
+      if(start == 0) {
+        start  = root_stack_start_;
+        length = root_stack_size_;
+      }
+
       stack_start_ = start;
       stack_size_ = length;
       reset_stack_limit();
     }
 
-    void set_stack_start(void* s) {
-      set_stack_bounds(reinterpret_cast<uintptr_t>(s), stack_size_);
-    }
+    void set_root_stack(uintptr_t start, int length) {
+      root_stack_start_ = start;
+      root_stack_size_ = length;
 
-    void set_stack_size(int s) {
-      set_stack_bounds(stack_start_, s);
+      set_stack_bounds(root_stack_start_, root_stack_size_);
     }
 
     void get_attention() {

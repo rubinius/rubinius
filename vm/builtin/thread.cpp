@@ -121,7 +121,7 @@ namespace rubinius {
                 << " (" << (unsigned int)thread_debug_self() << ") started thread]\n";
     }
 
-    vm->set_stack_bounds(reinterpret_cast<uintptr_t>(&calculate_stack), 4194304);
+    vm->set_root_stack(reinterpret_cast<uintptr_t>(&calculate_stack), 4194304);
 
     vm->thread->init_lock_.unlock();
 

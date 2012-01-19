@@ -63,8 +63,16 @@ namespace rubinius {
       return data_;
     }
 
-    void* stack() {
+    void* stack_region() {
       return data_->stack_address();
+    }
+
+    void* stack_end() {
+      return data_->stack_address();
+    }
+
+    void* stack_start() {
+      return (void*)((uintptr_t)stack_region() + stack_size());
     }
 
     int stack_size() {

@@ -700,7 +700,8 @@ namespace rubinius {
    */
   void Environment::run_from_filesystem(std::string root) {
     int i = 0;
-    state->vm()->set_stack_start(&i);
+    state->vm()->set_root_stack(reinterpret_cast<uintptr_t>(&i),
+                                VM::cStackDepthMax);
 
     load_platform_conf(root);
     load_vm_options(argc_, argv_);

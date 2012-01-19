@@ -83,8 +83,6 @@ namespace rubinius {
     , current_fiber(this, nil<Fiber>())
     , root_fiber(this, nil<Fiber>())
   {
-    set_stack_size(cStackDepthMax);
-
     if(shared.om) {
       young_start_ = shared.om->young_start();
       young_end_ = shared.om->yound_end();
@@ -417,9 +415,7 @@ namespace rubinius {
   }
 
   void VM::set_current_fiber(Fiber* fib) {
-    uintptr_t top = (uintptr_t)fib->stack() + fib->stack_size();
-    set_stack_start((void*)top);
-    set_stack_size(fib->stack_size());
+    set_stack_bounds((uintptr_t)fib->stack_start(), fib->stack_size());
     current_fiber.set(fib);
   }
 
