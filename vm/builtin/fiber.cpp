@@ -65,6 +65,10 @@ namespace rubinius {
 
     Fiber* fib = Fiber::current(&state);
 
+    // Reset the current fiber again to reset the stack limits so
+    // we can properly detect stack overflows
+    vm->set_current_fiber(fib);
+
     OnStack<1> os(&state, fib);
 
     Array* result = nil<Array>();

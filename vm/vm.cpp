@@ -417,7 +417,8 @@ namespace rubinius {
   }
 
   void VM::set_current_fiber(Fiber* fib) {
-    set_stack_start(fib->stack());
+    uintptr_t top = (uintptr_t)fib->stack() + fib->stack_size();
+    set_stack_start((void*)top);
     set_stack_size(fib->stack_size());
     current_fiber.set(fib);
   }
