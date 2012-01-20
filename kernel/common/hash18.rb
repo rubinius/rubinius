@@ -565,37 +565,17 @@ class Hash
     hsh
   end
 
-  def reject!
+  def reject!(&block)
     Rubinius.check_frozen
 
     return to_enum(:reject!) unless block_given?
 
-    capacity = @capacity
-    entries = @entries
-    change = 0
-
-    i = -1
-    while (i += 1) < capacity
-      prev_item = nil
-      item = entries[i]
-      while item
-        if yield(item.key, item.value)
-          change += 1
-          if !prev_item
-            entries[i] = item.link
-          else
-            prev_item.link = item.link
-            prev_item = item.link
-          end
-        end
-        item = item.link
-      end
+    unless empty?
+      size = @size
+      delete_if(&block)
+      return self if size != @size
     end
 
-    if change > 0
-      @size -= change
-      return self
-    end
     nil
   end
 
