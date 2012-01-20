@@ -270,6 +270,30 @@ describe "IO#read" do
   end
 end
 
+platform_is :windows do
+  describe "IO#read on Windows" do
+    before :each do
+      @fname = tmp("io_read.txt")
+      touch(@fname, "wb") { |f| f.write "a\r\nb\r\nc" }
+    end
+
+    after :each do
+      rm_r @fname
+      @io.close if @io and !@io.closed?
+    end
+
+    it "normalizes line endings in text mode" do
+      @io = new_io(@fname, "r")
+      @io.read.should == "a\nb\nc"
+    end
+
+    it "does not normalize line endings in binary mode" do
+      @io = new_io(@fname, "rb")
+      @io.read.should == "a\r\nb\r\nc"
+    end
+  end
+end
+
 describe "IO#read with encodings" do
   before :each do
     @kcode, $KCODE = $KCODE, "utf-8"

@@ -68,3 +68,30 @@ end
 describe "IO#write" do
   it_behaves_like :io_write, :write
 end
+
+platform_is :windows do
+  describe "IO#write on Windows" do
+    before :each do
+      @fname = tmp("io_write.txt")
+    end
+
+    after :each do
+      rm_r @fname
+      @io.close if @io and !@io.closed?
+    end
+
+    it "normalizes line endings in text mode" do
+      @io = new_io(@fname, "w")
+      @io.write "a\r\nb\r\nc"
+      @io.close
+      @fname.should have_data("a\nb\nc")
+    end
+
+    it "does not normalize line endings in binary mode" do
+      @io = new_io(@fname, "wb")
+      @io.write "a\r\nb\r\nc"
+      @io.close
+      @fname.should have_data("a\r\nb\r\nc")
+    end
+  end
+end
