@@ -44,5 +44,11 @@ module CoreClassSpecs
     class B < A; end
     class B < A; end # reopen
     class C < B; end
+
+    class D
+      def self.inherited(subclass)
+        ScratchPad << self
+      end
+    end
   end
 end
