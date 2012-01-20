@@ -7,6 +7,29 @@ describe "IO#binmode" do
       lambda { IOSpecs.closed_io.binmode }.should raise_error(IOError)
     end
   end
+
+  ruby_version_is "1.9" do
+    before :each do
+      @name = tmp("io_new.txt")
+    end
+
+    after :each do
+      @io.close if @io and !@io.closed?
+      rm_r @name
+    end
+
+    it "sets external encoding to binary" do
+      @io = new_io(@name, "w:utf-8")
+      @io.binmode
+      @io.external_encoding.should == Encoding::BINARY
+    end
+
+    it "sets internal encoding to nil" do
+      @io = new_io(@name, "w:utf-8:ISO-8859-1")
+      @io.binmode
+      @io.internal_encoding.should == nil
+    end
+  end
 end
 
 ruby_version_is "1.9" do
