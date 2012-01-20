@@ -148,4 +148,8 @@ module Kernel
   Rubinius::Globals.read_only :$", :$LOADED_FEATURES
   Rubinius::Globals.read_only :$<
   Rubinius::Globals.read_only :$?
+
+  Rubinius::Globals.add_alias :$DEBUG,   :$-d
+  Rubinius::Globals.add_alias :$VERBOSE, :$-v
+  Rubinius::Globals.add_alias :$VERBOSE, :$-w
 end
