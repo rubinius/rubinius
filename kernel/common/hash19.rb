@@ -379,7 +379,7 @@ class Hash
 
     return to_enum(:delete_if) unless block_given?
 
-    each_item { |e| delete e.key if yield(e.key, e.value) }
+    select(&block).each { |k, v| delete k }
     self
   end
 
