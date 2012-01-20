@@ -29,6 +29,20 @@ class Regexp
     source.encoding
   end
 
+  def self.escape(str)
+    escaped = StringValue(str).transform(ESCAPE_TABLE, true)
+    if escaped.ascii_only?
+      escaped.force_encoding Encoding::US_ASCII
+    elsif str.valid_encoding?
+      escaped.force_encoding str.encoding
+    else
+      escaped.force_encoding Encoding::ASCII_8BIT
+    end
+  end
+
+  class << self
+    alias_method :quote, :escape
+  end
 end
 
 class MatchData

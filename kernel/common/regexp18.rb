@@ -18,6 +18,14 @@ class Regexp
       false
     end
   end
+
+  def self.escape(str)
+    StringValue(str).transform(ESCAPE_TABLE, true)
+  end
+
+  class << self
+    alias_method :quote, :escape
+  end
 end
 
 class MatchData

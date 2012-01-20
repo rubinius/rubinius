@@ -97,13 +97,8 @@ class Regexp
     compile pattern, opts
   end
 
-  def self.escape(str)
-    StringValue(str).transform(ESCAPE_TABLE, true)
-  end
-
   class << self
     alias_method :compile, :new
-    alias_method :quote, :escape
   end
 
   def initialize_copy(other)
