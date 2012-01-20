@@ -52,25 +52,6 @@
 
 class Class
 
-  def initialize(sclass=Object, name=nil, under=nil)
-    raise TypeError, "already initialized class" if @instance_type
-
-    set_superclass sclass
-
-    super()
-
-    # Things (rails) depend on the fact that a normal class is in the constant
-    # table and have a name BEFORE inherited is run.
-    set_name_if_necessary name, under if name and under
-    under.const_set name, self if under
-
-    if sclass
-      Rubinius.privately do
-        sclass.inherited self
-      end
-    end
-  end
-
   ##
   # Specialized initialize_copy because Class needs additional protection
   def initialize_copy(other)
