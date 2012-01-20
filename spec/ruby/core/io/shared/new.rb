@@ -148,6 +148,18 @@ describe :io_new, :shared => true do
       @io = IO.send(@method, @fd, 'w', {:binmode => false})
       @io.binmode?.should == false
     end
+
+    it "sets external encoding to binary with binmode in mode string" do
+      @io = IO.send(@method, @fd, 'wb')
+      @io.external_encoding.to_s.should == 'ASCII-8BIT'
+    end
+
+    ruby_bug "#5917", "2.0" do
+      it "sets external encoding to binary with :binmode option" do
+        @io = IO.send(@method, @fd, 'w', {:binmode => true})
+        @io.external_encoding.to_s.should == 'ASCII-8BIT'
+      end
+    end
   end
 
   ruby_version_is "1.9.2" do
