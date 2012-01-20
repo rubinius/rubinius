@@ -459,6 +459,48 @@ describe "Global variable $-p" do
   end
 end
 
+describe "Global variable $-d" do
+  before :each do
+    @debug = $DEBUG
+  end
+
+  after :each do
+    $DEBUG = @debug
+  end
+
+  it "is an alias of $DEBUG" do
+    $DEBUG = true
+    $-d.should be_true
+    $-d = false
+    $DEBUG.should be_false
+  end
+end
+
+describe :verbose_global_alias, :shared => true do
+  before :each do
+    @verbose = $VERBOSE
+  end
+
+  after :each do
+    $VERBOSE = @verbose
+  end
+
+  it "is an alias of $VERBOSE" do
+    $VERBOSE = true
+    eval(@method).should be_true
+    eval("#{@method} = false")
+    $VERBOSE.should be_false
+  end
+end
+
+describe "Global variable $-v" do
+  it_behaves_like :verbose_global_alias, '$-v'
+end
+
+describe "Global variable $-w" do
+  it_behaves_like :verbose_global_alias, '$-w'
+end
+
 =begin
 Standard Objects
 ---------------------------------------------------------------------------------------------------
