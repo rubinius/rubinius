@@ -2,6 +2,20 @@ require File.expand_path('../../../spec_helper', __FILE__)
 require File.expand_path('../fixtures/classes', __FILE__)
 
 describe "IO#binmode" do
+  before :each do
+    @name = tmp("io_binmode.txt")
+  end
+
+  after :each do
+    @io.close if @io and !@io.closed?
+    rm_r @name
+  end
+
+  it "returns self" do
+    @io = new_io(@name)
+    @io.binmode.should equal(@io)
+  end
+
   ruby_bug "#2046", "1.8.7.174" do
     it "raises an IOError on closed stream" do
       lambda { IOSpecs.closed_io.binmode }.should raise_error(IOError)
@@ -9,15 +23,6 @@ describe "IO#binmode" do
   end
 
   ruby_version_is "1.9" do
-    before :each do
-      @name = tmp("io_new.txt")
-    end
-
-    after :each do
-      @io.close if @io and !@io.closed?
-      rm_r @name
-    end
-
     it "sets external encoding to binary" do
       @io = new_io(@name, "w:utf-8")
       @io.binmode
