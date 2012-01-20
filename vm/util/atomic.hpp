@@ -201,6 +201,16 @@ namespace atomic {
 #endif
   }
 
+  template <typename T> inline T read(T *ptr) {
+    memory_barrier();
+    return *ptr;
+  }
+
+  template <typename T> inline void write(T *ptr, T val) {
+    memory_barrier();
+    *ptr = val;
+  }
+
 }
 
 #include "util/atomic_types.hpp"

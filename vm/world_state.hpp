@@ -5,17 +5,16 @@
 namespace rubinius {
   class WorldState {
     thread::Mutex mutex_;
-    thread::Condition waiting_to_stop_;
     thread::Condition waiting_to_run_;
     int pending_threads_;
-    bool should_stop_;
+    int should_stop_;
 
     atomic::integer time_waiting_;
 
   public:
     WorldState()
       : pending_threads_(0)
-      , should_stop_(false)
+      , should_stop_(0)
       , time_waiting_(0)
     {}
 
@@ -28,11 +27,14 @@ namespace rubinius {
      * everything back in the proper order.
      */
     void reinit() {
-      mutex_.init();
-      waiting_to_stop_.init();
-      waiting_to_run_.init();
+      // When we're reinitting the world state, we're stopped
+      // so we have to initialize pending_threads_ to 0 and
+      // should_stop to 1 so we start off in the proper state
+      // and can continue after a fork.
       pending_threads_ = 0;
-      should_stop_ = false;
+      should_stop_ = 1;
+      mutex_.init();
+      waiting_to_run_.init();
     }
 
 
@@ -41,8 +43,6 @@ namespace rubinius {
      * OK to continue. Always decrements pending_threads_ at the end.
      */
     void become_independent(THREAD) {
-      thread::Mutex::LockGuard guard(mutex_);
-
       switch(state->run_state()) {
       case ManagedThread::eAlone:
         // Running alone, ignore.
@@ -58,21 +58,12 @@ namespace rubinius {
       case ManagedThread::eRunning:
         // We're now independent.
         state->run_state_ = ManagedThread::eIndependent;
-        pending_threads_--;
-
-        // If someone is waiting on us to stop, signal them
-        // because we have gone independent and they don't have to wait
-        // for us.
-        if(should_stop_) {
-          waiting_to_stop_.signal();
-        }
+        atomic::fetch_and_sub(&pending_threads_, 1);
         break;
       }
     }
 
     void become_dependent(THREAD) {
-      thread::Mutex::LockGuard guard(mutex_);
-
       switch(state->run_state()) {
       case ManagedThread::eAlone:
         // Running alone, ignore.
@@ -86,28 +77,29 @@ namespace rubinius {
         break;
       case ManagedThread::eIndependent:
         // If the GC is running, wait here...
-        while(should_stop_) {
-          waiting_to_run_.wait(mutex_);
+        if(should_stop_) {
+          thread::Mutex::LockGuard guard(mutex_);
+          // We need to grab the mutex because we might want
+          // to wait here.
+          while(should_stop_) {
+            waiting_to_run_.wait(mutex_);
+          }
         }
 
         // Ok, we're running again.
         state->run_state_ = ManagedThread::eRunning;
-        pending_threads_++;
+        atomic::fetch_and_add(&pending_threads_, 1);
       }
     }
 
     bool wait_til_alone(THREAD) {
-      thread::Mutex::LockGuard guard(mutex_);
-
-      if(should_stop_) {
+      if(!atomic::compare_and_swap(&should_stop_, 0, 1)) {
         if(cDebugThreading) {
           std::cerr << "[" << VM::current()
                     << " WORLD detected concurrent stop request, returning false]\n";
         }
         return false;
       }
-
-      should_stop_ = true;
 
       if(cDebugThreading) {
         std::cerr << "[" << VM::current() << " WORLD waiting until alone]\n";
@@ -117,20 +109,25 @@ namespace rubinius {
         rubinius::bug("A non-running thread is trying to wait till alone");
       }
 
+      state->run_state_ = ManagedThread::eAlone;
       // For ourself..
-      pending_threads_--;
+      atomic::fetch_and_sub(&pending_threads_, 1);
 
       timer::Running<> timer(time_waiting_);
 
-      while(pending_threads_ > 0) {
+      while(atomic::read(&pending_threads_) > 0) {
         if(cDebugThreading) {
           std::cerr << "[" << VM::current() << " WORLD waiting on condvar: "
                     << pending_threads_ << "]\n";
         }
-        waiting_to_stop_.wait(mutex_);
+        // We want to make sure memory writes are written and flushed
+        // so we setup a barrier before we do the next check of
+        // pending_threads_. This also prevents a compiler from
+        // trying to be smart and optimizing this in such a way that
+        // we never see the updates to pending_threads_ from other threads.
+        struct timespec ts = {0, 0};
+        nanosleep(&ts, NULL);
       }
-
-      state->run_state_ = ManagedThread::eAlone;
 
       if(cDebugThreading) {
         std::cerr << "[" << VM::current() << " WORLD o/~ I think we're alone now.. o/~]\n";
@@ -140,33 +137,37 @@ namespace rubinius {
     }
 
     void stop_threads_externally() {
-      thread::Mutex::LockGuard guard(mutex_);
-      if(should_stop_) {
+      while(!atomic::compare_and_swap(&should_stop_, 0, 1)) {
         if(cDebugThreading) {
           std::cerr << "[WORLD waiting to stopping all threads (as external event)]\n";
         }
-
         // Wait around on the run condition variable until whoever is currently
         // working independently is done and sets should_stop_ to false.
+        thread::Mutex::LockGuard guard(mutex_);
         while(should_stop_) {
           waiting_to_run_.wait(mutex_);
         }
-
-        // Ok, now we can stop all the threads for ourself.
+        // We will now redo the loop to check if we can stop properly this time
       }
-
-      should_stop_ = true;
 
       if(cDebugThreading) {
         std::cerr << "[WORLD stopping all threads (as external event)]\n";
       }
 
-      while(pending_threads_ > 0) {
+      // We need a write barrier so we're sure we're seeing an up to
+      // date version of pending_threads_
+      while(atomic::read(&pending_threads_) > 0) {
         if(cDebugThreading) {
           std::cerr << "[" << VM::current() << " WORLD waiting on condvar: "
                     << pending_threads_ << "]\n";
         }
-        waiting_to_stop_.wait(mutex_);
+        // We want to make sure memory writes are written and flushed
+        // so we setup a barrier before we do the next check of
+        // pending_threads_. This also prevents a compiler from
+        // trying to be smart and optimizing this in such a way that
+        // we never see the updates to pending_threads_ from other threads.
+        struct timespec ts = {0, 0};
+        nanosleep(&ts, NULL);
       }
 
       if(cDebugThreading) {
@@ -176,7 +177,12 @@ namespace rubinius {
 
     void wake_all_waiters(THREAD) {
       thread::Mutex::LockGuard guard(mutex_);
-      should_stop_ = false;
+
+      if(!atomic::compare_and_swap(&should_stop_, 1, 0)) {
+        // Ok, someone else has already restarted so we don't
+        // have anything to do here anymore
+        return;
+      }
 
       if(cDebugThreading) {
         std::cerr << "[" << VM::current() << " WORLD waking all threads]\n";
@@ -187,7 +193,7 @@ namespace rubinius {
       }
 
       // For ourself..
-      pending_threads_++;
+      atomic::fetch_and_add(&pending_threads_, 1);
 
       waiting_to_run_.broadcast();
 
@@ -196,7 +202,11 @@ namespace rubinius {
 
     void restart_threads_externally() {
       thread::Mutex::LockGuard guard(mutex_);
-      should_stop_ = false;
+      if(!atomic::compare_and_swap(&should_stop_, 1, 0)) {
+        // Ok, someone else has already restarted so we don't
+        // have anything to do here anymore
+        return;
+      }
 
       if(cDebugThreading) {
         std::cerr << "[" << VM::current() << " WORLD waking all threads (externally)]\n";
@@ -206,17 +216,15 @@ namespace rubinius {
     }
 
     bool should_stop() {
-      thread::Mutex::LockGuard guard(mutex_);
       return should_stop_;
     }
 
     bool checkpoint(THREAD) {
       // Test should_stop_ without the lock, because we do this a lot.
       if(should_stop_) {
-        thread::Mutex::LockGuard guard(mutex_);
         // If the thread is set to alone, then ignore checkpointing
         if(state->run_state() == ManagedThread::eAlone) return false;
-        if(should_stop_) wait_to_run(state);
+        wait_to_run(state);
         return true;
       }
 
@@ -234,14 +242,16 @@ namespace rubinius {
       }
 
       state->run_state_ = ManagedThread::eSuspended;
-      pending_threads_--;
-      waiting_to_stop_.signal();
+      atomic::fetch_and_sub(&pending_threads_, 1);
 
+      thread::Mutex::LockGuard guard(mutex_);
+      // Ok, since we have just locked that implies a barrier
+      // so we don't have to add an explicit barrier here.
       while(should_stop_) {
         waiting_to_run_.wait(mutex_);
       }
 
-      pending_threads_++;
+      atomic::fetch_and_add(&pending_threads_, 1);
       state->run_state_ = ManagedThread::eRunning;
 
       if(cDebugThreading) {

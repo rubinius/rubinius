@@ -181,31 +181,7 @@ namespace rubinius {
   }
 
   bool SharedState::stop_the_world(THREAD) {
-    bool stopped = world_->wait_til_alone(state);
-    if(!stopped) return stopped;
-
-    // Verify that everyone is stopped and we're alone.
-    for(std::list<ManagedThread*>::iterator i = threads_.begin();
-        i != threads_.end();
-        i++) {
-      ManagedThread *th = *i;
-      switch(th->run_state()) {
-      case ManagedThread::eAlone:
-        if(th != state) {
-          rubinius::bug("Tried to stop but someone else is alone!");
-        }
-        break;
-      case ManagedThread::eRunning:
-        rubinius::bug("Tried to stop but threads still running!");
-        break;
-      case ManagedThread::eSuspended:
-      case ManagedThread::eIndependent:
-        // Ok, this is fine.
-        break;
-      }
-    }
-
-    return true;
+    return world_->wait_til_alone(state);
   }
 
   void SharedState::stop_threads_externally() {
