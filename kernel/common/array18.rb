@@ -338,7 +338,7 @@ class Array
       i = @start + 1
 
       while i < total
-        out << sep
+        out << sep if sep
 
         x = @tuple[i]
 

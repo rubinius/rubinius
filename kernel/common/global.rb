@@ -22,7 +22,7 @@ module Rubinius
       @internal[:$:] = load_path
       @internal[:$-I] = load_path
       @internal[:$"] = loaded_features
-      @internal[:$,] = ''               # Output field separator
+      @internal[:$,] = nil              # Output field separator
       @internal[:$.] = 0
       @internal[:$_] = nil
       @internal[:$?] = nil              # Process status. nil until set

@@ -152,4 +152,11 @@ module Kernel
   Rubinius::Globals.add_alias :$DEBUG,   :$-d
   Rubinius::Globals.add_alias :$VERBOSE, :$-v
   Rubinius::Globals.add_alias :$VERBOSE, :$-w
+
+  set = proc do |key, sep|
+    raise ::TypeError, "value of $, must be String" unless sep.nil? or sep.kind_of?(String)
+    sep
+  end
+
+  Rubinius::Globals.set_filter :$,, set
 end
