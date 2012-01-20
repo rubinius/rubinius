@@ -519,16 +519,6 @@ class IO
     return self
   end
 
-  ##
-  # Puts ios into binary mode. This is useful only in
-  # MS-DOS/Windows environments. Once a stream is in
-  # binary mode, it cannot be reset to nonbinary mode.
-  def binmode
-    ensure_open
-    # HACK what to do?
-    return self
-  end
-
   def bytes
     to_enum :each_byte
   end

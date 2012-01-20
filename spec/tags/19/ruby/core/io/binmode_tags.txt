@@ -1,2 +1,0 @@
-fails:IO#binmode? is true after a call to IO#binmode
-fails:IO#binmode? propagates to dup'ed IO objects

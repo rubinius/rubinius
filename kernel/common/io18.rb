@@ -221,6 +221,12 @@ class IO
     nil
   end
 
+  def binmode
+    ensure_open
+    # HACK what to do?
+    self
+  end
+
   ##
   # Runs the specified command string as a subprocess;
   # the subprocess‘s standard input and output will be

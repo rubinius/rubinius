@@ -1,6 +1,4 @@
 fails:IO.new sets binmode from mode string
-fails:IO.new does not set binmode without being asked
 fails:IO.new sets binmode from :binmode option
-fails:IO.new does not set binmode from false :binmode
 fails:IO.new accepts an :autoclose option
 fails:IO.new accepts any truthy option :autoclose

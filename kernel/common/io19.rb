@@ -487,6 +487,21 @@ class IO
     @internal
   end
 
+  def binmode
+    ensure_open
+
+    @binmode = true
+    @external = Encoding::BINARY
+    @internal = nil
+
+    # HACK what to do?
+    self
+  end
+
+  def binmode?
+    !@binmode.nil?
+  end
+
   ##
   # Runs the specified command string as a subprocess;
   # the subprocess‘s standard input and output will be
