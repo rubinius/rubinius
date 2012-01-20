@@ -61,7 +61,7 @@ class Class
 
     # Things (rails) depend on the fact that a normal class is in the constant
     # table and have a name BEFORE inherited is run.
-    set_name_if_necessary name, under if name and under
+    Rubinius::Type.module_name self, name, under if name and under
     under.const_set name, self if under
 
     if sclass

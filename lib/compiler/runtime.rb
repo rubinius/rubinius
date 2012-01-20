@@ -14,7 +14,7 @@ module Rubinius
     module_function :unwrap_block_arg
 
     def find_constant_for_op_asign_or(name, scope)
-      name = normalize_const_name(name)
+      name = Type.coerce_to_constant_name(name)
 
       current, constant = scope.module, undefined
 

@@ -101,5 +101,39 @@ module Rubinius
         sup = sup.direct_superclass()
       end
     end
+
+    def self.coerce_to_constant_name(name)
+      name = Rubinius::Type.coerce_to_symbol(name)
+
+      unless name.is_constant?
+        raise NameError, "wrong constant name #{name}"
+      end
+
+      name
+    end
+
+    def self.module_name(mod, name=nil, parent=nil)
+      if name and parent
+        return if mod.module_name and not mod.anonymous_parent
+      else
+        return if not mod.anonymous_parent
+        parent = mod.anonymous_parent
+        name = mod.base_name
+      end
+
+      if parent == Object
+        mod.module_name = name.to_sym
+      else
+        path = parent.__path__
+        if path.kind_of? Symbol
+          mod.anonymous_parent = nil
+          mod.base_name = nil
+        else
+          mod.anonymous_parent = parent
+          mod.base_name = name
+        end
+        mod.module_name = "#{path}::#{name}".to_sym
+      end
+    end
   end
 end

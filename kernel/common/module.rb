@@ -85,6 +85,7 @@ class Module
   end
 
   def name
+    Rubinius::Type.module_name(self)
     @module_name ? @module_name.to_s : ""
   end
 
@@ -450,10 +451,10 @@ class Module
 
   def const_set(name, value)
     if Rubinius::Type.object_kind_of?(value, Module)
-      value.set_name_if_necessary(name, self)
+      Rubinius::Type.module_name(value, name, self)
     end
 
-    name = normalize_const_name(name)
+    name = Rubinius::Type.coerce_to_constant_name(name)
     @constant_table[name] = value
     Rubinius.inc_global_serial
 
@@ -527,15 +528,16 @@ class Module
     raise PrimitiveFailure, "Module#=== primitive failed"
   end
 
-  def set_name_if_necessary(name, mod)
-    return if @module_name
-
-    if mod == Object
-      @module_name = name.to_sym
-    else
-      @module_name = "#{mod.__path__}::#{name}".to_sym
-    end
+  def module_name
+    @module_name
   end
+
+  def module_name=(name)
+    @module_name = name
+  end
+
+  attr_accessor :anonymous_parent
+  attr_accessor :base_name
 
   # Is an autoload trigger defined for the given path?
   def autoload?(name)
@@ -579,18 +581,6 @@ class Module
   end
 
   private :method_added
-
-  def normalize_const_name(name)
-    name = Rubinius::Type.coerce_to_symbol(name)
-
-    unless name.is_constant?
-      raise NameError, "wrong constant name #{name}"
-    end
-
-    name
-  end
-
-  private :normalize_const_name
 
   def initialize_copy(other)
     @method_table = other.method_table.dup
