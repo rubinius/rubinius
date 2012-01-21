@@ -169,6 +169,26 @@ describe :io_new, :shared => true do
       end
     end
 
+    it "does not use binary encoding when mode encoding is specified" do
+      @io = IO.send(@method, @fd, 'wb:iso-8859-1')
+      @io.external_encoding.to_s.should == 'ISO-8859-1'
+    end
+
+    it "does not use binary encoding when :encoding option is specified" do
+      @io = IO.send(@method, @fd, 'wb', :encoding => "iso-8859-1")
+      @io.external_encoding.to_s.should == 'ISO-8859-1'
+    end
+
+    it "does not use binary encoding when :external_encoding option is specified" do
+      @io = IO.send(@method, @fd, 'wb', :external_encoding => "iso-8859-1")
+      @io.external_encoding.to_s.should == 'ISO-8859-1'
+    end
+
+    it "does not use binary encoding when :internal_encoding option is specified" do
+      @io = IO.send(@method, @fd, 'wb', :internal_encoding => "iso-8859-1")
+      @io.internal_encoding.to_s.should == 'ISO-8859-1'
+    end
+
     it "accepts nil options" do
       @io = IO.send(@method, @fd, 'w', nil)
       @io.write("foo").should == 3
