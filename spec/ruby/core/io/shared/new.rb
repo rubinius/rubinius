@@ -41,21 +41,6 @@ describe :io_new, :shared => true do
       @io.write("foo").should == 3
     end
 
-    it "raises an error when trying to set both binmode and textmode" do
-      lambda {
-        @io = IO.send(@method, @fd, "wb", :textmode => true)
-      }.should raise_error(ArgumentError)
-      lambda {
-        @io = IO.send(@method, @fd, "wt", :binmode => true)
-      }.should raise_error(ArgumentError)
-      lambda {
-        @io = IO.send(@method, @fd, "w", :textmode => true, :binmode => true)
-      }.should raise_error(ArgumentError)
-      lambda {
-        @io = IO.send(@method, @fd, File::Constants::WRONLY, :textmode => true, :binmode => true)
-      }.should raise_error(ArgumentError)
-    end
-
     it "raises an error if passed modes two ways" do
       lambda {
         IO.send(@method, @fd, "w", :mode => "w")
@@ -147,6 +132,57 @@ describe :io_new, :shared => true do
     it "does not set binmode from false :binmode" do
       @io = IO.send(@method, @fd, 'w', {:binmode => false})
       @io.binmode?.should == false
+    end
+
+    it "sets binary mode with 'b' mode string and :binmode => true" do
+      @io = IO.send(@method, @fd, "wb", :binmode => true)
+      @io.binmode?.should be_true
+    end
+
+    it "sets binary mode with 'b' mode string and :binmode => false" do
+      @io = IO.send(@method, @fd, "wb", :binmode => false)
+      @io.binmode?.should be_true
+    end
+
+    it "raises an error with 'b' mode string and :textmode => true" do
+      lambda {
+        @io = IO.send(@method, @fd, "wb", :textmode => true)
+      }.should raise_error(ArgumentError)
+    end
+
+    it "sets binary mode with 'b' mode string and :textmode => false" do
+      @io = IO.send(@method, @fd, "wb", :textmode => false)
+      @io.binmode?.should be_true
+    end
+
+    it "raises an error with 't' mode string and :binmode => true" do
+      lambda {
+        IO.send(@method, @fd, "wt", :binmode => true)
+      }.should raise_error(ArgumentError)
+    end
+
+    it "sets text mode with 't' mode string and :binmode => false" do
+      @io = IO.send(@method, @fd, "wt", :binmode => false)
+      @io.binmode?.should be_false
+    end
+
+    it "sets text mode with 't' mode string and :textmode => true" do
+      @io = IO.send(@method, @fd, "wt", :textmode => true)
+      @io.binmode?.should be_false
+    end
+
+    it "sets text mode with 't' mode string and :textmode => false" do
+      @io = IO.send(@method, @fd, "wt", :textmode => false)
+      @io.binmode?.should be_false
+    end
+
+    it "raises an error when trying to set both binmode and textmode" do
+      lambda {
+        @io = IO.send(@method, @fd, "w", :textmode => true, :binmode => true)
+      }.should raise_error(ArgumentError)
+      lambda {
+        @io = IO.send(@method, @fd, File::Constants::WRONLY, :textmode => true, :binmode => true)
+      }.should raise_error(ArgumentError)
     end
 
     it "sets external encoding to binary with binmode in mode string" do
