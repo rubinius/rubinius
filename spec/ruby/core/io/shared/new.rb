@@ -168,6 +168,83 @@ describe :io_new, :shared => true do
         @io.external_encoding.to_s.should == 'ASCII-8BIT'
       end
     end
+
+    it "accepts nil options" do
+      @io = IO.send(@method, @fd, 'w', nil)
+      @io.write("foo").should == 3
+    end
+
+    it "coerces mode with #to_str" do
+      mode = mock("mode")
+      mode.should_receive(:to_str).any_number_of_times.and_return('w')
+      @io = IO.send(@method, @fd, mode)
+    end
+
+    it "coerces mode with #to_int" do
+      mode = mock("mode")
+      mode.should_receive(:to_int).any_number_of_times.and_return(File::WRONLY)
+      @io = IO.send(@method, @fd, mode)
+    end
+
+    it "coerces mode with #to_str when passed in options" do
+      mode = mock("mode")
+      mode.should_receive(:to_str).any_number_of_times.and_return('w')
+      @io = IO.send(@method, @fd, :mode => mode)
+    end
+
+    it "coerces mode with #to_int when passed in options" do
+      mode = mock("mode")
+      mode.should_receive(:to_int).any_number_of_times.and_return(File::WRONLY)
+      @io = IO.send(@method, @fd, :mode => mode)
+    end
+
+    it "coerces :encoding option with #to_str" do
+      encoding = mock("encoding")
+      encoding.should_receive(:to_str).any_number_of_times.and_return('utf-8')
+      @io = IO.send(@method, @fd, 'w', :encoding => encoding)
+    end
+
+    it "coerces :external_encoding option with #to_str" do
+      encoding = mock("encoding")
+      encoding.should_receive(:to_str).any_number_of_times.and_return('utf-8')
+      @io = IO.send(@method, @fd, 'w', :external_encoding => encoding)
+    end
+
+    it "coerces :internal_encoding option with #to_str" do
+      encoding = mock("encoding")
+      encoding.should_receive(:to_str).any_number_of_times.and_return('utf-8')
+      @io = IO.send(@method, @fd, 'w', :internal_encoding => encoding)
+    end
+
+    it "coerces options as third argument with #to_hash" do
+      options = mock("options")
+      options.should_receive(:to_hash).any_number_of_times.and_return({})
+      @io = IO.send(@method, @fd, 'w', options)
+    end
+
+    it "coerces options as second argument with #to_hash" do
+      options = mock("options")
+      options.should_receive(:to_hash).any_number_of_times.and_return({})
+      @io = IO.send(@method, @fd, options)
+    end
+
+    it "raises ArgumentError if not passed a hash or nil for options" do
+      lambda {
+        @io = IO.send(@method, @fd, 'w', false)
+      }.should raise_error(ArgumentError)
+      lambda {
+        @io = IO.send(@method, @fd, false, false)
+      }.should raise_error(ArgumentError)
+      lambda {
+        @io = IO.send(@method, @fd, nil, false)
+      }.should raise_error(ArgumentError)
+    end
+
+    it "raises TypeError if passed a hash for mode and nil for options" do
+      lambda {
+        @io = IO.send(@method, @fd, {:mode => 'w'}, nil)
+      }.should raise_error(TypeError)
+    end
   end
 
   ruby_version_is "1.9.2" do
