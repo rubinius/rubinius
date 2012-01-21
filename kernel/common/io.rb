@@ -263,6 +263,10 @@ class IO
   end
 
   def self.parse_mode(mode)
+    return mode if Rubinius::Type.object_kind_of? mode, Integer
+
+    mode = StringValue(mode)
+
     ret = 0
 
     case mode[0]
@@ -459,10 +463,7 @@ class IO
   #  IO.sysopen("testfile")   #=> 3
   def self.sysopen(path, mode = "r", perm = 0666)
     path = Rubinius::Type.coerce_to_path path
-
-    unless mode.kind_of? Integer
-      mode = parse_mode StringValue(mode)
-    end
+    mode = parse_mode mode
 
     open_with_mode path, mode, perm
   end
@@ -482,15 +483,11 @@ class IO
     cur_mode &= ACCMODE
 
     if mode
-      unless Rubinius::Type.object_kind_of? mode, Integer
-        str_mode = StringValue mode
-        mode = IO.parse_mode(str_mode)
-      end
-
+      mode = parse_mode(mode)
       mode &= ACCMODE
 
       if (cur_mode == RDONLY or cur_mode == WRONLY) and mode != cur_mode
-        raise Errno::EINVAL, "Invalid new mode '#{str_mode}' for existing descriptor #{fd}"
+        raise Errno::EINVAL, "Invalid new mode for existing descriptor #{fd}"
       end
     end
 
