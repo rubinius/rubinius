@@ -160,50 +160,84 @@ class IO
     StreamCopier.new(from, to, max_length, offset).run
   end
 
+  def self.normalize_options(mode, options)
+    mode = nil if mode.equal?(undefined)
+
+    if options.equal?(undefined)
+      options = Rubinius::Type.try_convert(mode, Hash, :to_hash)
+      mode = nil if options
+    elsif !options.nil?
+      options = Rubinius::Type.try_convert(options, Hash, :to_hash)
+      raise ArgumentError, "wrong number of arguments (3 for 1..2)" unless options
+    end
+
+    if mode
+      mode = (Rubinius::Type.try_convert(mode, Integer, :to_int) or
+              Rubinius::Type.coerce_to(mode, String, :to_str))
+    end
+
+    if options
+      if optmode = options[:mode]
+        optmode = (Rubinius::Type.try_convert(optmode, Integer, :to_int) or
+                   Rubinius::Type.coerce_to(optmode, String, :to_str))
+      end
+
+      if mode
+        raise ArgumentError, "mode specified twice" if optmode
+      else
+        mode = optmode
+      end
+    end
+
+    if mode.kind_of?(String)
+      mode, external, internal = mode.split(":")
+      binary = true  if mode[1] === ?b
+      binary = false if mode[1] === ?t
+    elsif mode
+      binary = true  if (mode & BINARY) != 0
+    end
+
+    if options
+      if options[:textmode] and options[:binmode]
+        raise ArgumentError, "both textmode and binmode specified"
+      end
+
+      if binary.nil?
+        binary = options[:binmode]
+      elsif options.key?(:textmode) or options.key?(:binmode)
+        raise ArgumentError, "text/binary mode specified twice"
+      end
+
+      if !external and !internal
+        external = options[:external_encoding]
+        internal = options[:internal_encoding]
+      elsif options[:external_encoding] or options[:internal_encoding] or options[:encoding]
+        raise ArgumentError, "encoding specified twice"
+      end
+
+      if !external and !internal
+        encoding = options[:encoding]
+        external, internal = encoding.split(':') if encoding.kind_of? String
+      end
+    end
+
+    [mode, binary, external, internal]
+  end
+
   #
   # Create a new IO associated with the given fd.
   #
   def initialize(fd, mode=undefined, options=undefined)
-    if mode.equal? undefined
-      mode = nil
-    else
-      if mode.kind_of? Hash
-        options = mode
-        mode = options[:mode]
-      elsif mode.kind_of?(String) && options.kind_of?(Hash)
-        raise ArgumentError, "mode specified twice" if options[:mode]
-
-        if (mode[1] === ?b && options[:textmode]) ||
-           (mode[1] === ?t && options[:binmode])
-          raise ArgumentError, "both textmode and binmode specified"
-        end
-      end
-
-      if options.kind_of?(Hash) && options[:textmode] && options[:binmode]
-        raise ArgumentError, "both textmode and binmode specified"
-      end
-    end
-
-    mode, external, internal = mode.split(":") if mode.kind_of? String
-
     if block_given?
       warn 'IO::new() does not take block; use IO::open() instead'
     end
 
+    mode, binary, external, internal = IO.normalize_options(mode, options)
+
     IO.setup self, Rubinius::Type.coerce_to(fd, Integer, :to_int), mode
 
-    if external or internal
-      set_encoding external, internal
-    elsif !options.equal? undefined
-      external = options[:external_encoding]
-      internal = options[:internal_encoding]
-
-      if external or internal
-        set_encoding external, internal
-      elsif encoding = options[:encoding]
-        set_encoding encoding
-      end
-    end
+    binmode                          if binary
+    set_encoding(external, internal) if external or internal
   end
 
   private :initialize
