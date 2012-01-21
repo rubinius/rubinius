@@ -67,6 +67,12 @@ describe "IO.popen" do
     @io.should be_an_instance_of(IOSpecs::SubIO)
   end
 
+  it "coerces mode argument with #to_str" do
+    mode = mock("mode")
+    mode.should_receive(:to_str).and_return("r")
+    @io = IO.popen("true", mode)
+  end
+
   describe "with a block" do
     it "yields an open IO to the block" do
       @io = IO.popen("yes", "r") do |io|
