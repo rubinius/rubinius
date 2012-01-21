@@ -121,19 +121,7 @@ extern "C" {
     NativeMethodEnvironment* env = NativeMethodEnvironment::get();
 
     Object* val = env->get_object(obj);
-    Encoding* enc;
-
-    if(String* str = try_as<String>(val)) {
-      enc = str->encoding(env->state());
-    } else if(Regexp* reg = try_as<Regexp>(val)) {
-      enc = reg->encoding(env->state());
-    } else if(Symbol* sym = try_as<Symbol>(val)) {
-      enc = sym->encoding(env->state());
-    } else {
-      // MRI permits associating an Encoding with anything.
-      Object* e = val->get_ivar(env->state(), env->state()->symbol("__encoding__"));
-      if(!(enc = try_as<Encoding>(e))) enc = nil<Encoding>();
-    }
+    Encoding* enc = Encoding::get_object_encoding(env->state(), val);
 
     if(enc->nil_p()) return 0;
 
@@ -146,16 +134,7 @@ extern "C" {
     Encoding* enc = Encoding::from_index(env->state(), index);
     Object* val = env->get_object(obj);
 
-    if(String* str = try_as<String>(val)) {
-      str->encoding(env->state(), enc);
-    } else if(Regexp* reg = try_as<Regexp>(val)) {
-      reg->encoding(env->state(), enc);
-    } else if(Symbol* sym = try_as<Symbol>(val)) {
-      sym->encoding(env->state(), enc);
-    } else {
-      // MRI permits associating an Encoding with anything.
-      val->set_ivar(env->state(), env->state()->symbol("__encoding__"), enc);
-    }
+    Encoding::set_object_encoding(env->state(), val, enc);
   }
 
   rb_encoding* rb_enc_compatible(VALUE str1, VALUE str2) {

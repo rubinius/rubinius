@@ -65,6 +65,9 @@ namespace rubinius {
     static int find_index(STATE, const char* name);
     static Encoding* find(STATE, const char* name);
 
+    static Encoding* get_object_encoding(STATE, Object* obj);
+    static void set_object_encoding(STATE, Object* obj, Encoding* enc);
+
     OnigEncodingType* get_encoding() {
       return encoding_;
     }
@@ -82,6 +85,9 @@ namespace rubinius {
     void set_managed() {
       managed_ = true;
     }
+
+    // Rubinius.primitive :encoding_compatible_p
+    static Encoding* compatible_p(STATE, Object* a, Object* b);
 
     // Rubinius.primitive :encoding_replicate
     Encoding* replicate(STATE, String* name);

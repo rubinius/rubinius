@@ -35,10 +35,6 @@ class Encoding
     aliases
   end
 
-  def self.compatible?(str1, str2)
-    false
-  end
-
   def self.set_alias_index(name, obj)
     key = name.upcase.to_sym
 

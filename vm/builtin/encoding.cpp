@@ -4,8 +4,11 @@
 #include "builtin/array.hpp"
 #include "builtin/bytearray.hpp"
 #include "builtin/class.hpp"
+#include "builtin/data.hpp"
 #include "builtin/encoding.hpp"
+#include "builtin/io.hpp"
 #include "builtin/lookuptable.hpp"
+#include "builtin/regexp.hpp"
 #include "builtin/string.hpp"
 #include "builtin/symbol.hpp"
 #include "builtin/tuple.hpp"
@@ -203,6 +206,96 @@ namespace rubinius {
 
   Encoding* Encoding::default_internal(STATE) {
     return Encoding::find(state, "internal");
+  }
+
+  Encoding* Encoding::get_object_encoding(STATE, Object* obj) {
+    if(String* str = try_as<String>(obj)) {
+      return str->encoding(state);
+    } else if(Symbol* sym = try_as<Symbol>(obj)) {
+      return sym->encoding(state);
+    } else if(Regexp* reg = try_as<Regexp>(obj)) {
+      return reg->encoding(state);
+    } else if(Encoding* enc = try_as<Encoding>(obj)) {
+      return enc;
+    } else if(try_as<IO>(obj)) {
+      // TODO
+      return nil<Encoding>();
+    } else {
+      // MRI permits associating an Encoding with anything.
+      Object* e = obj->get_ivar(state, state->symbol("__encoding__"));
+      if(Encoding* enc = try_as<Encoding>(e)) return enc;
+    }
+
+    return nil<Encoding>();
+  }
+
+  void Encoding::set_object_encoding(STATE, Object* obj, Encoding* enc) {
+    if(String* str = try_as<String>(obj)) {
+      str->encoding(state, enc);
+    } else if(Regexp* reg = try_as<Regexp>(obj)) {
+      reg->encoding(state, enc);
+    } else if(Symbol* sym = try_as<Symbol>(obj)) {
+      sym->encoding(state, enc);
+    } else if(try_as<IO>(obj)) {
+      // TODO
+    } else {
+      // MRI permits associating an Encoding with anything.
+      obj->set_ivar(state, state->symbol("__encoding__"), enc);
+    }
+  }
+
+  Encoding* Encoding::compatible_p(STATE, Object* a, Object* b) {
+    Encoding* enc_a = get_object_encoding(state, a);
+    if(enc_a->nil_p()) return nil<Encoding>();
+
+    Encoding* enc_b = get_object_encoding(state, b);
+    if(enc_b->nil_p()) return nil<Encoding>();
+
+    if(enc_a == enc_b) return enc_a;
+
+    String* str_a = try_as<String>(a);
+    String* str_b = try_as<String>(b);
+
+    if(str_b && str_b->byte_size() == 0) return enc_a;
+    if(str_a && str_a->byte_size() == 0) {
+      if(CBOOL(enc_a->ascii_compatible_p(state))
+          && CBOOL(str_b->ascii_only_p(state))) {
+        return enc_a;
+      } else {
+        return enc_b;
+      }
+    }
+
+    if(!CBOOL(enc_a->ascii_compatible_p(state))
+        || !CBOOL(enc_b->ascii_compatible_p(state))) {
+      return nil<Encoding>();
+    }
+
+    Encoding* ascii = Encoding::usascii_encoding(state);
+
+    if(!str_b && enc_b == ascii) return enc_a;
+    if(!str_a && enc_a == ascii) return enc_b;
+
+    if(!str_a && !str_b) return nil<Encoding>();
+
+    if(str_a && str_b) {
+      bool ascii_a = CBOOL(str_a->ascii_only_p(state));
+      bool ascii_b = CBOOL(str_b->ascii_only_p(state));
+
+      if(ascii_a != ascii_b) {
+        if(ascii_a) return enc_b;
+        if(ascii_b) return enc_a;
+      }
+
+      if(ascii_b) {
+        if(enc_a == ascii) return enc_a;
+        return enc_b;
+      }
+    } else if(!str_b) {
+      if(CBOOL(str_a->ascii_only_p(state))) return enc_b;
+    }
+
+    return nil<Encoding>();
   }
 
 #define ENCODING_NAMELEN_MAX 63
