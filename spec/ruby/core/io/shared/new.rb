@@ -134,46 +134,18 @@ describe :io_new, :shared => true do
       @io.binmode?.should == false
     end
 
-    it "sets binary mode with 'b' mode string and :binmode => true" do
-      @io = IO.send(@method, @fd, "wb", :binmode => true)
-      @io.binmode?.should be_true
-    end
-
-    it "sets binary mode with 'b' mode string and :binmode => false" do
-      @io = IO.send(@method, @fd, "wb", :binmode => false)
-      @io.binmode?.should be_true
-    end
-
-    it "raises an error with 'b' mode string and :textmode => true" do
-      lambda {
-        @io = IO.send(@method, @fd, "wb", :textmode => true)
-      }.should raise_error(ArgumentError)
-    end
-
-    it "sets binary mode with 'b' mode string and :textmode => false" do
-      @io = IO.send(@method, @fd, "wb", :textmode => false)
-      @io.binmode?.should be_true
-    end
-
-    it "raises an error with 't' mode string and :binmode => true" do
-      lambda {
-        IO.send(@method, @fd, "wt", :binmode => true)
-      }.should raise_error(ArgumentError)
-    end
-
-    it "sets text mode with 't' mode string and :binmode => false" do
-      @io = IO.send(@method, @fd, "wt", :binmode => false)
-      @io.binmode?.should be_false
-    end
-
-    it "sets text mode with 't' mode string and :textmode => true" do
-      @io = IO.send(@method, @fd, "wt", :textmode => true)
-      @io.binmode?.should be_false
-    end
-
-    it "sets text mode with 't' mode string and :textmode => false" do
-      @io = IO.send(@method, @fd, "wt", :textmode => false)
-      @io.binmode?.should be_false
+    ruby_bug "#5918", "2.0" do
+      it "raises an error if passed binary/text mode two ways" do
+        ["wb", "wt"].each do |mode|
+          [:binmode, :textmode].each do |key|
+            [true, false].each do |value|
+              lambda {
+                @io = IO.send(@method, @fd, mode, key => value)
+              }.should raise_error(ArgumentError)
+            end
+          end
+        end
+      end
     end
 
     it "raises an error when trying to set both binmode and textmode" do
