@@ -6,6 +6,7 @@
 #include "vm.hpp"
 #include "objectmemory.hpp"
 #include "call_frame.hpp"
+
 #include "builtin/object.hpp"
 #include "builtin/symbol.hpp"
 #include "builtin/system.hpp"
@@ -22,6 +23,7 @@
 #include "builtin/float.hpp"
 #include "builtin/location.hpp"
 #include "builtin/cache.hpp"
+#include "builtin/encoding.hpp"
 
 #include "instruments/tooling.hpp"
 
@@ -32,6 +34,7 @@
 #include "lookup_data.hpp"
 #include "inline_cache.hpp"
 #include "vmmethod.hpp"
+#include "configuration.hpp"
 
 #include <stdarg.h>
 
@@ -1089,13 +1092,29 @@ extern "C" {
   Object* rbx_string_build(STATE, CallFrame* call_frame, int count, Object** parts) {
     size_t size = 0;
 
+    bool tainted = false;
+    bool untrusted = false;
+
+    bool check_encoding = false;
+    Encoding* enc = nil<Encoding>();
+
     // Figure out the total size
     for(int i = 0; i < count; i++) {
       Object* obj = parts[i];
       String* str = try_as<String>(obj);
 
+      if(obj->reference_p()) {
+        tainted |= obj->is_tainted_p();
+        untrusted |= obj->is_untrusted_p();
+      }
+
       if(str) {
-        size += str->byte_size();
+        native_int cur_size = str->byte_size();
+        native_int data_size = as<ByteArray>(str->data())->size();
+        if(unlikely(cur_size > data_size)) {
+          cur_size = data_size;
+        }
+        size += cur_size;
       } else {
         // This isn't how MRI does this. If sub isn't a String, it converts
         // the original object via any_to_s, not the bad value returned from #to_s.
@@ -1103,21 +1122,87 @@ extern "C" {
         // this way instead.
 
         str = obj->to_s(state, false);
-        size += str->byte_size();
+
+        tainted |= str->is_tainted_p();
+        untrusted |= str->is_untrusted_p();
+        native_int cur_size = str->byte_size();
+        native_int data_size = as<ByteArray>(str->data())->size();
+        if(unlikely(cur_size > data_size)) {
+          cur_size = data_size;
+        }
+        size += cur_size;
 
         parts[i] = str;
+      }
+
+      if(!LANGUAGE_18_ENABLED(state)) {
+        /* The String::encoding() accessor (without state) returns the raw
+         * Encoding attribute. If it is only ever cNil or all values are the
+         * same, we don't need to check Encoding compatibility later.
+         *
+         * TODO: Consider the case when -K is set (not implemented yet).
+         */
+        if(!check_encoding) {
+          Encoding* str_enc = str->encoding();
+          if(!str_enc->nil_p()) {
+            if(enc->nil_p()) {
+              enc = str_enc;
+            } else if(str_enc != enc) {
+              check_encoding = true;
+              enc = nil<Encoding>();
+            }
+          }
+        }
       }
     }
 
     String* str = String::create(state, 0, size);
     uint8_t* pos = str->byte_address();
+    native_int str_size = 0;
 
     for(int i = 0; i < count; i++) {
       // We can force here because we've typed check them above.
       String* sub = force_as<String>(parts[i]);
-      memcpy(pos, sub->byte_address(), sub->byte_size());
-      pos += sub->byte_size();
+
+      native_int sub_size = sub->byte_size();
+      native_int data_size = as<ByteArray>(sub->data())->size();
+      if(unlikely(sub_size > data_size)) {
+        sub_size = data_size;
+      }
+
+      if(!LANGUAGE_18_ENABLED(state)) {
+        if(check_encoding) {
+          if(i < count - 1) {
+            str->num_bytes(state, Fixnum::from(str_size));
+
+            Encoding* enc = Encoding::compatible_p(state, str, sub);
+
+            if(enc->nil_p()) {
+              Exception::encoding_compatibility_error(state, str, sub);
+              return 0;
+            } else {
+              str->encoding(state, enc);
+            }
+          } else {
+            str->encoding(state, sub->encoding());
+          }
+        }
+      }
+
+      memcpy(pos + str_size, sub->byte_address(), sub_size);
+      str_size += sub_size;
     }
+
+    if(!LANGUAGE_18_ENABLED(state)) {
+      /* We had to set the size of the result String before every Encoding check
+       * so we have to set it to the final size here.
+       */
+      if(check_encoding) str->num_bytes(state, Fixnum::from(size));
+      if(!enc->nil_p()) str->encoding(state, enc);
+    }
+
+    if(tainted) str->set_tainted();
+    if(untrusted) str->set_untrusted();
 
     return str;
   }
