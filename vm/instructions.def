@@ -1448,6 +1448,9 @@ instruction string_build(count) [ +count -- string ]
   bool tainted = false;
   bool untrusted = false;
 
+  bool check_encoding = false;
+  Encoding* enc = nil<Encoding>();
+
   // Figure out the total size
   for(int i = 0; i < count; i++) {
     Object* obj = stack_back(i);
@@ -1486,6 +1489,26 @@ instruction string_build(count) [ +count -- string ]
       // TRICKY! Reuse the stack to store our new String value.
       stack_back(i) = str;
     }
+
+    if(!LANGUAGE_18_ENABLED(state)) {
+      /* The String::encoding() accessor (without state) returns the raw
+       * Encoding attribute. If it is only ever cNil or all values are the
+       * same, we don't need to check Encoding compatibility later.
+       *
+       * TODO: Consider the case when -K is set (not implemented yet).
+       */
+      if(!check_encoding) {
+        Encoding* str_enc = str->encoding();
+        if(!str_enc->nil_p()) {
+          if(enc->nil_p()) {
+            enc = str_enc;
+          } else if(str_enc != enc) {
+            check_encoding = true;
+            enc = nil<Encoding>();
+          }
+        }
+      }
+    }
   }
 
   String* str = String::create(state, 0, size);
@@ -1496,19 +1519,49 @@ instruction string_build(count) [ +count -- string ]
 #endif
 
   uint8_t* pos = str->byte_address();
+  native_int str_size = 0;
 
   for(int i = count - 1; i >= 0; i--) {
     Object* obj = stack_back(i);
-    String* sub = as<String>(obj);
+
+    // We can force here because we've typed check them above.
+    String* sub = force_as<String>(obj);
+
     native_int sub_size = sub->byte_size();
     native_int data_size = as<ByteArray>(sub->data())->size();
     if(unlikely(sub_size > data_size)) {
       sub_size = data_size;
     }
 
+    if(!LANGUAGE_18_ENABLED(state)) {
+      if(check_encoding) {
+        if(i < count - 1) {
+          str->num_bytes(state, Fixnum::from(str_size));
 
-    memcpy(pos, sub->byte_address(), sub_size);
-    pos += sub_size;
+          Encoding* enc = Encoding::compatible_p(state, str, sub);
+
+          if(enc->nil_p()) {
+            Exception::encoding_compatibility_error(state, str, sub);
+            RUN_EXCEPTION();
+          } else {
+            str->encoding(state, enc);
+          }
+        } else {
+          str->encoding(state, sub->encoding());
+        }
+      }
+    }
+
+    memcpy(pos + str_size, sub->byte_address(), sub_size);
+    str_size += sub_size;
+  }
+
+  if(!LANGUAGE_18_ENABLED(state)) {
+    /* We had to set the size of the result String before every Encoding check
+     * so we have to set it to the final size here.
+     */
+    if(check_encoding) str->num_bytes(state, Fixnum::from(size));
+    if(!enc->nil_p()) str->encoding(state, enc);
   }
 
   if(tainted) str->set_tainted();

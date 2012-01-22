@@ -1,6 +1,7 @@
 #include <sstream>
 
 #include "builtin/class.hpp"
+#include "builtin/encoding.hpp"
 #include "builtin/exception.hpp"
 #include "builtin/lookuptable.hpp"
 #include "builtin/fixnum.hpp"
@@ -92,7 +93,7 @@ namespace rubinius {
     state->raise_exception(exc);
   }
 
-  void Exception::bytecode_error(STATE, CallFrame* call_frame, 
+  void Exception::bytecode_error(STATE, CallFrame* call_frame,
                                  CompiledMethod* cm, int ip, const char* reason)
   {
     Exception* exc = Exception::make_exception(state, G(exc_vm_bad_bytecode), reason);
@@ -114,6 +115,25 @@ namespace rubinius {
                         "unable to modify frozen object");
     exc->locations(state, Location::from_call_stack(state, call_frame));
     state->raise_exception(exc);
+  }
+
+  void Exception::encoding_compatibility_error(STATE, Object* a, Object* b) {
+    Encoding* enc_a = Encoding::get_object_encoding(state, a);
+    Encoding* enc_b = Encoding::get_object_encoding(state, b);
+
+    std::ostringstream msg;
+    msg << "undefined conversion ";
+
+    if(String* str = try_as<String>(a)) {
+      msg << " for '" << str->c_str(state) << "' ";
+    }
+
+    msg << "from " << enc_a->name()->c_str(state);
+    msg << " to " << enc_b->name()->c_str(state);
+
+    RubyException::raise(make_exception(state,
+                         get_encoding_compatibility_error(state),
+                         msg.str().c_str()));
   }
 
   void Exception::argument_error(STATE, int expected, int given) {
@@ -398,6 +418,10 @@ namespace rubinius {
 
   Class* Exception::get_runtime_error(STATE) {
     return as<Class>(G(object)->get_const(state, "RuntimeError"));
+  }
+
+  Class* Exception::get_encoding_compatibility_error(STATE) {
+    return as<Class>(G(encoding)->get_const(state, "CompatibilityError"));
   }
 
   Class* Exception::get_errno_error(STATE, Fixnum* ern) {

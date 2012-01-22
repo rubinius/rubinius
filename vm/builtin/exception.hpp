@@ -82,6 +82,8 @@ namespace rubinius {
                                int ip, const char* reason);
     static void frozen_error(STATE, CallFrame* frame);
 
+    static void encoding_compatibility_error(STATE, Object* a, Object* b);
+
     // Rubinius.primitive :exception_errno_error
     static Object* errno_error(STATE, Object* reason, Fixnum* ern);
 
@@ -120,6 +122,7 @@ namespace rubinius {
     static Class* get_fiber_error(STATE);
     static Class* get_errno_error(STATE, Fixnum* ern);
     static Class* get_runtime_error(STATE);
+    static Class* get_encoding_compatibility_error(STATE);
 
     class Info : public TypeInfo {
     public:
