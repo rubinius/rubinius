@@ -159,8 +159,19 @@ describe :regexp_new_string, :shared => true do
       Regexp.send(@method, "\x420").should == /#{"\x420"}/
     end
 
-    it "raises a RegexpError if \\x is not followed by any hexadecimal digits" do
-      lambda { Regexp.send(@method, "\\" + "xn") }.should raise_error(RegexpError)
+    ruby_version_is ""..."1.9" do
+      # TODO: Add version argument to compliance guards
+      not_supported_on :rubinius do
+        it "raises a RegexpError if \\x is not followed by any hexadecimal digits" do
+          lambda { Regexp.send(@method, "\\" + "xn") }.should raise_error(RegexpError)
+        end
+      end
+    end
+
+    ruby_version_is "1.9" do
+      it "raises a RegexpError if \\x is not followed by any hexadecimal digits" do
+        lambda { Regexp.send(@method, "\\" + "xn") }.should raise_error(RegexpError)
+      end
     end
 
     it "accepts an escaped string interpolation" do
