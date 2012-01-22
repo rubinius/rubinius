@@ -1670,7 +1670,9 @@ namespace rubinius {
       if(byte_size() == 0) {
         ascii_only(state, encoding(state)->ascii_compatible_p(state));
       } else {
-        if(find_non_ascii(byte_address(), byte_size())) {
+        if(!CBOOL(encoding(state)->ascii_compatible_p(state))) {
+          ascii_only(state, cFalse);
+        } else if(find_non_ascii(byte_address(), byte_size())) {
           ascii_only(state, cFalse);
         } else {
           ascii_only(state, cTrue);
