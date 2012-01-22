@@ -29,6 +29,7 @@ object.rbc
 proc.rbc
 process.rbc
 regexp.rbc
+regexp19.rbc
 rubinius.rbc
 rubinius19.rbc
 static_scope.rbc

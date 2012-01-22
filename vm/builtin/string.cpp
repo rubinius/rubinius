@@ -219,6 +219,22 @@ namespace rubinius {
     uint8_t* lp;
     uint8_t buf[CONVERT_BUFSIZE];
 
+    convert_escaped_state(STATE, String* str)
+      : state(state)
+      , str(str)
+      , enc(0)
+      , ascii(true)
+      , utf8(false)
+      , ba(0)
+      , bp(0)
+      , be(0)
+    {
+      p = str->byte_address();
+      e = p + str->byte_size();
+      lp = p;
+      buf[0] = 0;
+    }
+
     void update_index(int delta=0) {
       lp = p + delta;
     }
@@ -444,51 +460,25 @@ namespace rubinius {
       Exception::regexp_error(state, msg.str().c_str());
     }
 
-    String* finalize(Encoding* source_enc, bool fixed) {
+    String* finalize() {
       if(ba) {
         copy_bytes();
         str = String::from_bytearray(state, ba, bp - ba->raw_bytes());
-      } else {
-        str = str->string_dup(state);
-      }
-
-      if(fixed) {
-        str->encoding(state, source_enc);
-      } else if(utf8) {
-        str->encoding(state, Encoding::utf8_encoding(state));
-      } else if(ascii) {
-        str->encoding(state, Encoding::usascii_encoding(state));
-      } else {
-        str->encoding(state, source_enc);
       }
 
       return str;
     }
   };
 
-  String* String::convert_escaped(STATE, Encoding* enc, bool fixed) {
-    struct convert_escaped_state ces;
+  String* String::convert_escaped(STATE, Encoding*& enc, bool& fixed_encoding) {
+    struct convert_escaped_state ces(state, this);
 
-    ces.state = state;
-    ces.ascii = true;
-    ces.utf8 = false;
-    ces.str = this;
-    ces.ba = 0;
-    ces.bp = 0;
-
-    ces.p = byte_address();
-    ces.e = ces.p + byte_size();
-    ces.lp = ces.p;
-
-    // TODO determine encoding
-    if(!fixed && !enc) {
-      if(CBOOL(ascii_only_p(state))) {
-        enc = encoding(state);
-      } else {
-        enc = Encoding::ascii8bit_encoding(state);
-      }
+    if(!fixed_encoding && !enc) {
+      enc = Encoding::ascii8bit_encoding(state);
     } else if(enc == Encoding::utf8_encoding(state)) {
       ces.utf8 = true;
+    } else if(enc == Encoding::usascii_encoding(state)) {
+      enc = Encoding::ascii8bit_encoding(state);
     }
     ces.enc = enc->get_encoding();
 
@@ -589,7 +579,22 @@ namespace rubinius {
       }
     }
 
-    return ces.finalize(enc, fixed);
+    String* str = ces.finalize();
+
+    if(!fixed_encoding) {
+      if(ces.utf8) {
+        if(CBOOL(str->ascii_only_p(state))) {
+          enc = Encoding::usascii_encoding(state);
+        } else {
+          enc = Encoding::utf8_encoding(state);
+          fixed_encoding = true;
+        }
+      } else if(ces.ascii || CBOOL(str->ascii_only_p(state))) {
+        enc = Encoding::usascii_encoding(state);
+      }
+    }
+
+    return str;
   }
 
   native_int String::char_size(STATE) {

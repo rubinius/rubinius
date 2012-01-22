@@ -122,7 +122,7 @@ namespace rubinius {
     // NOTE: do not free() or realloc() this buffer.
     const char* c_str(STATE);
 
-    String* convert_escaped(STATE, Encoding* enc, bool fixed);
+    String* convert_escaped(STATE, Encoding*& enc, bool& fixed_encoding);
 
     void unshare(STATE);
     hashval hash_string(STATE);

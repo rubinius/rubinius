@@ -27,7 +27,7 @@ namespace rubinius {
     String* source_;     // slot
     LookupTable* names_; // slot
     regex_t* onig_data;
-    bool forced_encoding_;
+    bool fixed_encoding_;
     thread::SpinLock lock_;
 
   public:
@@ -51,6 +51,9 @@ namespace rubinius {
 
     // Rubinius.primitive :regexp_options
     Fixnum* options(STATE);
+
+    // Rubinius.primitive :regexp_fixed_encoding_p
+    Object* fixed_encoding_p(STATE);
 
     // Rubinius.primitive :regexp_search_region
     Object* match_region(STATE, String* string, Fixnum* start, Fixnum* end, Object* forward);
