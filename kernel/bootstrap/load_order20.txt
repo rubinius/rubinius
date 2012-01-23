@@ -44,6 +44,7 @@ time.rbc
 true.rbc
 tuple.rbc
 type.rbc
+type19.rbc
 variable_scope.rbc
 vm.rbc
 weakref.rbc

@@ -597,21 +597,8 @@ class String
       other = StringValue(other)
     end
 
-    if encoding != other.encoding
-      if !encoding.ascii_compatible? or !other.encoding.ascii_compatible?
-        if empty? and !other.empty?
-          force_encoding(other.encoding)
-        elsif !other.empty?
-          raise Encoding::CompatibilityError,
-                "incompatible character encodings: #{encoding.name} and #{other.encoding.name}"
-        end
-      elsif ascii_only? and !other.ascii_only?
-        force_encoding(other.encoding)
-      elsif !other.ascii_only?
-        raise Encoding::CompatibilityError,
-              "incompatible character encodings: #{encoding.name} and #{other.encoding.name}"
-      end
-    end
+    enc = Rubinius::Type.compatible_encoding self, other
+    force_encoding enc
 
     Rubinius::Type.infect(self, other)
     append(other)

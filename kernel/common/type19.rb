@@ -15,6 +15,22 @@ module Rubinius
       end
     end
 
+    def self.compatible_encoding(a, b)
+      enc = Encoding.compatible? a, b
+
+      unless enc
+        enc_a = object_encoding a
+        enc_b = object_encoding b
+        message = "undefined conversion "
+        message << "for '#{a}' " if object_kind_of?(a, String)
+        message << "from #{enc_a} to #{enc_b}"
+
+        raise Encoding::CompatibilityError, message
+      end
+
+      enc
+    end
+
     def self.coerce_to_path(obj)
       if object_kind_of?(obj, String)
         obj

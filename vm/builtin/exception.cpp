@@ -125,7 +125,7 @@ namespace rubinius {
     msg << "undefined conversion ";
 
     if(String* str = try_as<String>(a)) {
-      msg << " for '" << str->c_str(state) << "' ";
+      msg << "for '" << str->c_str(state) << "' ";
     }
 
     msg << "from " << enc_a->name()->c_str(state);

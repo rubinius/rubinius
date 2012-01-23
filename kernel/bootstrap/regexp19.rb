@@ -1,3 +1,5 @@
+# -*- encoding: us-ascii -*-
+
 class Regexp
   def fixed_encoding?
     Rubinius.primitive :regexp_fixed_encoding_p
