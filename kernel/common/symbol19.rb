@@ -45,8 +45,19 @@ class Symbol
   alias_method :intern, :to_sym
   alias_method :id2name, :to_s
 
-  def match(other)
-    to_s =~ other
+  def match(pattern)
+    str = to_s
+
+    case pattern
+    when Regexp
+      match_data = pattern.search_region(str, 0, str.bytesize, true)
+      Regexp.last_match = match_data
+      return match_data.full[0] if match_data
+    when String
+      raise TypeError, "type mismatch: String given"
+    else
+      pattern =~ str
+    end
   end
 
   alias_method :=~, :match
