@@ -32,6 +32,21 @@ with_feature :encoding do
       end
     end
 
+    describe "when the first's Encoding is ASCII compatible and ASCII only" do
+      it "return's the first's Encoding if the second is ASCII compatible" do
+        a = "abc".force_encoding("UTF-8")
+        b = "123".force_encoding("Shift_JIS")
+        Encoding.compatible?(a, b).should == Encoding::UTF_8
+        Encoding.compatible?(b, a).should == Encoding::Shift_JIS
+      end
+
+      it "returns nil if the second's Encoding is not ASCII compatible" do
+        a = "abc".force_encoding("UTF-8")
+        b = "123".force_encoding("UTF-16LE")
+        Encoding.compatible?(a, b).should be_nil
+      end
+    end
+
     describe "when the first's Encoding is ASCII compatible but not ASCII only" do
       it "returns the first's Encoding if the second's is valid US-ASCII" do
         Encoding.compatible?("\xff", "def".encode("us-ascii")).should == Encoding::ASCII_8BIT
