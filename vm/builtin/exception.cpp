@@ -117,7 +117,7 @@ namespace rubinius {
     state->raise_exception(exc);
   }
 
-  void Exception::encoding_compatibility_error(STATE, Object* a, Object* b) {
+  Exception* Exception::make_encoding_compatibility_error(STATE, Object* a, Object* b) {
     Encoding* enc_a = Encoding::get_object_encoding(state, a);
     Encoding* enc_b = Encoding::get_object_encoding(state, b);
 
@@ -131,9 +131,20 @@ namespace rubinius {
     msg << "from " << enc_a->name()->c_str(state);
     msg << " to " << enc_b->name()->c_str(state);
 
-    RubyException::raise(make_exception(state,
-                         get_encoding_compatibility_error(state),
-                         msg.str().c_str()));
+    return make_exception(state, get_encoding_compatibility_error(state),
+                          msg.str().c_str());
+  }
+
+  void Exception::encoding_compatibility_error(STATE, Object* a, Object* b,
+                                               CallFrame* call_frame)
+  {
+    Exception* exc = Exception::make_encoding_compatibility_error(state, a, b);
+    exc->locations(state, Location::from_call_stack(state, call_frame));
+    state->raise_exception(exc);
+  }
+
+  void Exception::encoding_compatibility_error(STATE, Object* a, Object* b) {
+    RubyException::raise(make_encoding_compatibility_error(state, a, b));
   }
 
   void Exception::argument_error(STATE, int expected, int given) {

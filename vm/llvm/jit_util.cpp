@@ -1178,7 +1178,7 @@ extern "C" {
             Encoding* enc = Encoding::compatible_p(state, str, sub);
 
             if(enc->nil_p()) {
-              Exception::encoding_compatibility_error(state, str, sub);
+              Exception::encoding_compatibility_error(state, str, sub, call_frame);
               return 0;
             } else {
               str->encoding(state, enc);

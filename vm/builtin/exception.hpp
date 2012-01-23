@@ -50,6 +50,7 @@ namespace rubinius {
     static Exception* make_errno_exception(STATE, Class* exc_class, Object* reason);
 
     static Exception* make_argument_error(STATE, int expected, int given, Symbol* name=0);
+    static Exception* make_encoding_compatibility_error(STATE, Object* a, Object* b);
     static void argument_error(STATE, int expected, int given);
     static void argument_error(STATE, const char* reason);
     static void regexp_error(STATE, const char* reason);
@@ -83,6 +84,8 @@ namespace rubinius {
     static void frozen_error(STATE, CallFrame* frame);
 
     static void encoding_compatibility_error(STATE, Object* a, Object* b);
+    static void encoding_compatibility_error(STATE, Object* a, Object* b,
+                                             CallFrame* frame);
 
     // Rubinius.primitive :exception_errno_error
     static Object* errno_error(STATE, Object* reason, Fixnum* ern);
