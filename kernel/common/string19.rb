@@ -18,8 +18,13 @@ class String
     Rubinius.check_frozen
 
     # TODO
-    to = Rubinius::Type.coerce_to_encoding to
-    @encoding = to
+    if to.equal? undefined
+      to = Encoding.default_internal
+    else
+      to = Rubinius::Type.coerce_to_encoding to
+    end
+
+    force_encoding to
     self
   end
 
