@@ -8,6 +8,11 @@ describe :symbol_match, :shared => true do
   it "returns nil if there is no match" do
     :a.send(@method, /b/).should be_nil
   end
+
+  it "sets the last match pseudo-variables" do
+    :a.send(@method, /(.)/).should == 0
+    $1.should == "a"
+  end
 end
 
 ruby_version_is "1.9" do
