@@ -37,6 +37,17 @@ describe "GzipReader#read" do
     gz = Zlib::GzipReader.new @io
     gz.read(0).should == ""
   end
+  
+  ruby_version_is "1.9" do
+    it "respects :external_encoding option" do
+      gz = Zlib::GzipReader.new(@io, :external_encoding => 'UTF-8')
+      gz.read.encoding.should == Encoding::UTF_8
+      
+      @io.rewind
+      gz = Zlib::GzipReader.new(@io, :external_encoding => 'UTF-16LE')
+      gz.read.encoding.should == Encoding::UTF_16LE
+    end
+  end
 
   describe "at the end of data" do
     it "returns empty string if length prameter is not specified or 0" do

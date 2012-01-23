@@ -65,6 +65,15 @@ describe "Marshal.dump" do
   it "dumps an extended_object" do
     Marshal.dump(Object.new.extend(Meths)).should == "#{mv+nv}e:\x0AMethso:\x0BObject\x00"
   end
+  
+  it "dumps an object that has had an ivar added and removed as though the ivar never was set" do
+    obj = Object.new
+    initial = Marshal.dump(obj)
+    obj.instance_variable_set(:@ivar, 1)
+    Marshal.dump(obj).should == "\004\bo:\vObject\006:\n@ivari\006"
+    obj.send :remove_instance_variable, :@ivar
+    Marshal.dump(obj).should == initial
+  end
 
   ruby_version_is ""..."1.9" do
     it "dumps an object having ivar" do

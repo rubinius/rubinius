@@ -28,9 +28,13 @@ __ENCODING__
 EOS
     end
 
-    it "must be at the first of line" do
+    it "must be the first token of the line" do
       eval(<<EOS.force_encoding("US-ASCII")).should == Encoding::US_ASCII
 1+1 # coding: ASCII-8BIT
+__ENCODING__
+EOS
+      eval(<<EOS.force_encoding("US-ASCII")).should == Encoding::ASCII_8BIT
+    # coding: ASCII-8BIT
 __ENCODING__
 EOS
     end

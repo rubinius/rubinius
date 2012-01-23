@@ -32,7 +32,7 @@ describe "Integer#round" do
 
     ruby_bug "redmine #5271", "1.9.3" do
       it "returns 0 if passed a big negative value" do
-        42.round(-fixnum_max).should eql(0)
+        42.round(-2**30).should eql(0)
       end
     end
 
@@ -40,8 +40,8 @@ describe "Integer#round" do
       lambda { 42.round(Float::INFINITY) }.should raise_error(RangeError)
     end
 
-    it "raises a RangeError when passed a Bignum" do
-      lambda { 42.round(fixnum_max + 1) }.should raise_error(RangeError)
+    it "raises a RangeError when passed a beyond signed int" do
+      lambda { 42.round(1<<31) }.should raise_error(RangeError)
     end
 
     it "raises a TypeError when passed a String" do
