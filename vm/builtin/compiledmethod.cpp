@@ -142,8 +142,7 @@ namespace rubinius {
       // be sure that vmm is completely initialized before it's set.
       // Otherwise another thread might see a partially initialized
       // VMMethod.
-      atomic::memory_barrier();
-      backend_method_ = vmm;
+      atomic::write(&backend_method_, vmm);
     }
 
     self->hard_unlock(state, gct);

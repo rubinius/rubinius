@@ -245,9 +245,7 @@ namespace rubinius {
     // Make sure we sync here, so the MethodCacheEntry mce is
     // guaranteed completely initialized. Otherwise another thread
     // might see an incompletely initialized MethodCacheEntry.
-    atomic::memory_barrier();
-
-    cache_ = mce;
+    atomic::write(&cache_, mce);
 
     update_seen_classes(mce);
     call_frame->cm->write_barrier(state, mce);
@@ -267,9 +265,7 @@ namespace rubinius {
     // Make sure we sync here, so the MethodCacheEntry mce is
     // guaranteed completely initialized. Otherwise another thread
     // might see an incompletely initialized MethodCacheEntry.
-    atomic::memory_barrier();
-
-    cache_ = mce;
+    atomic::write(&cache_, mce);
 
     update_seen_classes(mce);
     call_frame->cm->write_barrier(state, mce);
@@ -302,9 +298,8 @@ namespace rubinius {
 
       mce = MethodCacheEntry::create(state, recv_class, cu->module(), cu->executable());
 
-      atomic::memory_barrier();
+      atomic::write(&cache->cache_, mce);
 
-      cache->cache_ = mce;
       call_frame->cm->write_barrier(state, mce);
 
       cache->call_unit_ = cu;
@@ -369,9 +364,8 @@ namespace rubinius {
     // Make sure we sync here, so the MethodCacheEntry mce is
     // guaranteed completely initialized. Otherwise another thread
     // might see an incompletely initialized MethodCacheEntry.
-    atomic::memory_barrier();
+    atomic::write(&cache->cache_, mce);
 
-    cache->cache_ = mce;
     cache->update_seen_classes(mce);
 
     call_frame->cm->write_barrier(state, mce);
@@ -408,9 +402,8 @@ namespace rubinius {
     // Make sure we sync here, so the MethodCacheEntry mce is
     // guaranteed completely initialized. Otherwise another thread
     // might see an incompletely initialized MethodCacheEntry.
-    atomic::memory_barrier();
+    atomic::write(&cache->cache_, mce);
 
-    cache->cache_ = mce;
     cache->update_seen_classes(mce);
 
     call_frame->cm->write_barrier(state, mce);
@@ -447,9 +440,8 @@ namespace rubinius {
     // Make sure we sync here, so the MethodCacheEntry mce is
     // guaranteed completely initialized. Otherwise another thread
     // might see an incompletely initialized MethodCacheEntry.
-    atomic::memory_barrier();
+    atomic::write(&cache->cache_, mce);
 
-    cache->cache_ = mce;
     cache->update_seen_classes(mce);
 
     call_frame->cm->write_barrier(state, mce);
@@ -496,9 +488,8 @@ namespace rubinius {
     // Make sure we sync here, so the MethodCacheEntry mce is
     // guaranteed completely initialized. Otherwise another thread
     // might see an incompletely initialized MethodCacheEntry.
-    atomic::memory_barrier();
+    atomic::write(&cache->cache_, mce);
 
-    cache->cache_ = mce;
     cache->update_seen_classes(mce);
 
     call_frame->cm->write_barrier(state, mce);
