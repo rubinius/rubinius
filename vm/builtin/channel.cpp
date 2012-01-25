@@ -185,9 +185,9 @@ namespace rubinius {
         GCIndependent gc_guard(state, call_frame);
 
         if(use_timed_wait) {
-          if(self->condition_.wait_until(mutex_, &ts) == thread::cTimedOut) break;
+          if(self->condition_.wait_until(self->mutex_, &ts) == thread::cTimedOut) break;
         } else {
-          self->condition_.wait(mutex_);
+          self->condition_.wait(self->mutex_);
         }
       }
 
