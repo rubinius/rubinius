@@ -1034,6 +1034,11 @@ module Zlib
       end
       data = @buffer
 
+      if length and data.size >= length
+        @buffer = data.slice! length..-1
+        return data
+      end
+
       while chunk = @io.read(CHUNK) do
         inflated = @zstream.inflate(chunk)
         @crc = Zlib.crc32 inflated, @crc
