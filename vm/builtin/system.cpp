@@ -50,6 +50,8 @@
 #include "builtin/io.hpp"
 #include "builtin/thread.hpp"
 
+#include "builtin/channel.hpp"
+
 #include "builtin/staticscope.hpp"
 #include "builtin/block_environment.hpp"
 
@@ -678,6 +680,33 @@ namespace rubinius {
 
   Object* System::vm_time(STATE) {
     return Integer::from(state, time(0));
+  }
+
+  Object* System::vm_sleep(STATE, GCToken gct, Object* duration,
+                           CallFrame* calling_environment)
+  {
+    if(duration == G(undefined)) {
+      duration = cNil;
+    } else if(kind_of<Fixnum>(duration) || kind_of<Float>(duration)) {
+      // nothing, accept these.
+    } else {
+      return Primitives::failure();
+    }
+
+    time_t start = time(0);
+
+    Object* val = state->vm()->thread->park()->receive_timeout(state, gct,
+                     duration, calling_environment);
+
+    if(!val) {
+      // We have to clear the park channel so the next usage doesn't see
+      // a value injected to interrupt the timeout.
+      state->vm()->thread->park()->try_receive(state, gct);
+
+      return 0;
+    }
+
+    return Fixnum::from(time(0) - start);
   }
 
   static inline double tv_to_dbl(struct timeval* tv) {

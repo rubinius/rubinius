@@ -166,6 +166,9 @@ namespace rubinius {
     // Rubinius.primitive :vm_time
     static Object*  vm_time(STATE);
 
+    // Rubinius.primitive :vm_sleep
+    static Object*  vm_sleep(STATE, GCToken gct, Object* duration, CallFrame* calling_environment);
+
     // Rubinius.primitive :vm_times
     static Array*   vm_times(STATE);
 

@@ -180,17 +180,17 @@ module Kernel
   # Sleeps the current thread for +duration+ seconds.
   #
   def sleep(duration=undefined)
+    Rubinius.primitive :vm_sleep
+
+    # The primitive will fail on arg count if sleep is called
+    # without an argument, so we call it again passing undefined
+    # to mean "sleep forever"
+    #
     if duration.equal? undefined
-      duration = nil
-    elsif !duration.kind_of?(Numeric)
-      raise TypeError, 'time interval must be a numeric value'
+      return sleep(undefined)
     end
 
-    chan = Rubinius::Channel.new
-
-    start = Process.time
-    chan.receive_timeout duration
-    Process.time - start
+    raise TypeError, 'time interval must be a numeric value'
   end
   module_function :sleep
 
