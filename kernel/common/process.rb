@@ -144,7 +144,7 @@ module Process
 
   def self.abort(msg=nil)
     $stderr.puts(msg) if msg
-    raise SystemExit.new(1)
+    raise SystemExit.new(1, msg)
   end
 
   def self.getpgid(pid)
