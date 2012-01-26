@@ -44,6 +44,7 @@ end
 
 class String
   alias_method :append, :<<
+  alias_method :bytesize, :size
 end
 
 class SyntaxError

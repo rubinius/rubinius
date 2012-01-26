@@ -171,7 +171,7 @@ module Rubinius
         when ?E
           count = next_string.to_i
           name = next_bytes count
-          return Encoding.find name if defined?(Encoding)
+          return Encoding.find(name) if defined?(Encoding)
         when ?M
           version = next_string.to_i
           if version != 1
