@@ -115,16 +115,17 @@ namespace rubinius {
 
       timer::Running<> timer(time_waiting_);
 
+      // We need a write barrier so we're sure we're seeing an up to
+      // date version of pending_threads_ in each loop.
       while(atomic::read(&pending_threads_) > 0) {
         if(cDebugThreading) {
           std::cerr << "[" << VM::current() << " WORLD waiting on condvar: "
                     << pending_threads_ << "]\n";
         }
-        // We want to make sure memory writes are written and flushed
-        // so we setup a barrier before we do the next check of
-        // pending_threads_. This also prevents a compiler from
-        // trying to be smart and optimizing this in such a way that
-        // we never see the updates to pending_threads_ from other threads.
+        // We yield here so other threads are scheduled and can be run.
+        // We've benchmarked this and this turned out to cause the least
+        // cpu burn compared to not doing anything at all here or sleeping
+        // for 1 nanosecond with {0, 1}.
         struct timespec ts = {0, 0};
         nanosleep(&ts, NULL);
       }
@@ -155,17 +156,16 @@ namespace rubinius {
       }
 
       // We need a write barrier so we're sure we're seeing an up to
-      // date version of pending_threads_
+      // date version of pending_threads_ in each loop.
       while(atomic::read(&pending_threads_) > 0) {
         if(cDebugThreading) {
           std::cerr << "[" << VM::current() << " WORLD waiting on condvar: "
                     << pending_threads_ << "]\n";
         }
-        // We want to make sure memory writes are written and flushed
-        // so we setup a barrier before we do the next check of
-        // pending_threads_. This also prevents a compiler from
-        // trying to be smart and optimizing this in such a way that
-        // we never see the updates to pending_threads_ from other threads.
+        // We yield here so other threads are scheduled and can be run.
+        // We've benchmarked this and this turned out to cause the least
+        // cpu burn compared to not doing anything at all here or sleeping
+        // for 1 nanosecond with {0, 1}.
         struct timespec ts = {0, 0};
         nanosleep(&ts, NULL);
       }
