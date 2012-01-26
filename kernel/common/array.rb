@@ -1084,7 +1084,7 @@ class Array
 
     size.times do |i|
       r = i + Kernel.rand(size - i)
-      @tuple.swap(i, r)
+      @tuple.swap(@start + i, @start + r)
     end
     self
   end
