@@ -136,6 +136,9 @@ namespace rubinius {
       vm_->unlock(vm_);
     }
 
+    void park(GCToken gct, CallFrame* call_frame);
+
+    void park_timed(GCToken gct, CallFrame* call_frame, struct timespec* ts);
   };
 }
 

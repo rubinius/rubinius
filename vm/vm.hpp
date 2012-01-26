@@ -64,6 +64,7 @@ namespace rubinius {
   class SharedState;
   class Fiber;
   class GarbageCollector;
+  class Park;
 
   enum MethodMissingReason {
     eNone, ePrivate, eProtected, eSuper, eVCall, eNormal
@@ -102,6 +103,7 @@ namespace rubinius {
     bool tooling_;
     bool allocation_tracking_;
     FiberStacks fiber_stacks_;
+    Park* park_;
 
   public:
     /* Data members */
@@ -300,6 +302,7 @@ namespace rubinius {
 
     /* Prototypes */
     VM(uint32_t id, SharedState& shared);
+    ~VM();
 
     void initialize_as_root();
 
@@ -391,6 +394,9 @@ namespace rubinius {
     void clear_waiter();
     bool wakeup(STATE, GCToken gct);
     bool waiting_p();
+
+    void set_parked();
+    void set_unparked();
 
     void set_sleeping();
     void clear_sleeping();

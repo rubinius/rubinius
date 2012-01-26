@@ -7,6 +7,8 @@
 #include "call_frame.hpp"
 #include "helpers.hpp"
 
+#include "park.hpp"
+
 namespace rubinius {
   void State::raise_stack_error(CallFrame* call_frame) {
     Class* stack_error = globals().stack_error.get();
@@ -76,4 +78,11 @@ namespace rubinius {
   }
 
 
+  void State::park(GCToken gct, CallFrame* call_frame) {
+    vm_->park_->park(this, call_frame);
+  }
+
+  void State::park_timed(GCToken gct, CallFrame* call_frame, struct timespec* ts) {
+    vm_->park_->park_timed(this, call_frame, ts);
+  }
 }

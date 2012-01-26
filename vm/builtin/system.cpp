@@ -682,29 +682,41 @@ namespace rubinius {
     return Integer::from(state, time(0));
   }
 
+#define NANOSECONDS 1000000000
   Object* System::vm_sleep(STATE, GCToken gct, Object* duration,
                            CallFrame* calling_environment)
   {
-    if(duration == G(undefined)) {
-      duration = cNil;
-    } else if(kind_of<Fixnum>(duration) || kind_of<Float>(duration)) {
-      // nothing, accept these.
+    struct timespec ts = {0,0};
+    bool use_timed_wait = true;
+
+    if(Fixnum* fix = try_as<Fixnum>(duration)) {
+      ts.tv_sec = fix->to_native();
+    } else if(Float* flt = try_as<Float>(duration)) {
+      uint64_t nano = (uint64_t)(flt->val * NANOSECONDS);
+      ts.tv_sec  =  (time_t)(nano / NANOSECONDS);
+      ts.tv_nsec =    (long)(nano % NANOSECONDS);
+    } else if(duration == G(undefined)) {
+      use_timed_wait = false;
     } else {
       return Primitives::failure();
     }
 
     time_t start = time(0);
 
-    Object* val = state->vm()->thread->park()->receive_timeout(state, gct,
-                     duration, calling_environment);
+    if(use_timed_wait) {
+      struct timeval tv = {0,0};
+      gettimeofday(&tv, 0);
 
-    if(!val) {
-      // We have to clear the park channel so the next usage doesn't see
-      // a value injected to interrupt the timeout.
-      state->vm()->thread->park()->try_receive(state, gct);
+      uint64_t nano = ts.tv_nsec + tv.tv_usec * 1000;
+      ts.tv_sec  += tv.tv_sec + nano / NANOSECONDS;
+      ts.tv_nsec  = nano % NANOSECONDS;
 
-      return 0;
+      state->park_timed(gct, calling_environment, &ts);
+    } else {
+      state->park(gct, calling_environment);
     }
+
+    if(!state->check_async(calling_environment)) return NULL;
 
     return Fixnum::from(time(0) - start);
   }
