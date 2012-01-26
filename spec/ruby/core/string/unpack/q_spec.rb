@@ -4,24 +4,28 @@ require File.expand_path('../shared/basic', __FILE__)
 require File.expand_path('../shared/integer', __FILE__)
 
 ruby_version_is "1.9.3" do
-  describe "String#unpack with format 'Q<'" do
-    it_behaves_like :string_unpack_64bit_le, 'Q<'
-    it_behaves_like :string_unpack_64bit_le_unsigned, 'Q<'
+  describe "String#unpack with format 'Q'" do
+    describe "with modifier '<'" do
+      it_behaves_like :string_unpack_64bit_le, 'Q<'
+      it_behaves_like :string_unpack_64bit_le_unsigned, 'Q<'
+    end
+
+    describe "with modifier '>'" do
+      it_behaves_like :string_unpack_64bit_be, 'Q>'
+      it_behaves_like :string_unpack_64bit_be_unsigned, 'Q>'
+    end
   end
 
-  describe "String#unpack with format 'q<'" do
-    it_behaves_like :string_unpack_64bit_le, 'q<'
-    it_behaves_like :string_unpack_64bit_le_signed, 'q<'
-  end
+  describe "String#unpack with format 'q'" do
+    describe "with modifier '<'" do
+      it_behaves_like :string_unpack_64bit_le, 'q<'
+      it_behaves_like :string_unpack_64bit_le_signed, 'q<'
+    end
 
-  describe "String#unpack with format 'Q>'" do
-    it_behaves_like :string_unpack_64bit_be, 'Q>'
-    it_behaves_like :string_unpack_64bit_be_unsigned, 'Q>'
-  end
-
-  describe "String#unpack with format 'q>'" do
-    it_behaves_like :string_unpack_64bit_be, 'q>'
-    it_behaves_like :string_unpack_64bit_be_signed, 'q>'
+    describe "with modifier '>'" do
+      it_behaves_like :string_unpack_64bit_be, 'q>'
+      it_behaves_like :string_unpack_64bit_be_signed, 'q>'
+    end
   end
 end
 
