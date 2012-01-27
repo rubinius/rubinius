@@ -73,8 +73,8 @@ namespace rubinius {
     , park_(new Park)
 
     , shared(shared)
-    , waiting_channel_(this, (Channel*)cNil)
-    , interrupted_exception_(this, (Exception*)cNil)
+    , waiting_channel_(this, nil<Channel>())
+    , interrupted_exception_(this, nil<Exception>())
     , interrupt_with_signal_(false)
     , waiting_header_(0)
     , custom_wakeup_(0)
@@ -382,7 +382,7 @@ namespace rubinius {
   void VM::clear_waiter() {
     SYNC_TL;
     interrupt_with_signal_ = false;
-    waiting_channel_.set((Channel*)cNil);
+    waiting_channel_.set(nil<Channel>());
     waiting_header_ = 0;
     custom_wakeup_ = 0;
     custom_wakeup_data_ = 0;
