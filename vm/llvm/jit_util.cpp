@@ -409,7 +409,7 @@ extern "C" {
          */
         if(CBOOL(obj->respond_to(state, state->symbol("to_ary"), cFalse))) {
           Object* ignored = obj->send(state, call_frame, state->symbol("to_ary"));
-          if(!kind_of<Array>(ignored)) {
+          if(!ignored->nil_p() && !kind_of<Array>(ignored)) {
             Exception::type_error(state, "to_ary must return an Array", call_frame);
             return 0;
           }
