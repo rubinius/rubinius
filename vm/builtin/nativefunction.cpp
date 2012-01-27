@@ -288,7 +288,7 @@ namespace rubinius {
 
     if(status != FFI_OK) {
       XFREE(out_arg_types);
-      sassert(status == FFI_OK);
+      if(status != FFI_OK) rubinius::bug("ffi_prep_cif failed");
     }
 
     state->shared().om->add_code_resource(data);

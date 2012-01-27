@@ -499,7 +499,7 @@ namespace rubinius {
       break;
     }
     default:
-      sassert(0);
+      rubinius::bug("Unknown FFI type");
     }
   }
 
