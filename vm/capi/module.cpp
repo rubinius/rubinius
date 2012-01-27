@@ -3,6 +3,8 @@
 #include "builtin/symbol.hpp"
 #include "builtin/autoload.hpp"
 
+#include "vm/configuration.hpp"
+
 #include "helpers.hpp"
 #include "call_frame.hpp"
 #include "exception_point.hpp"
@@ -28,8 +30,15 @@ extern "C" {
   }
 
   int rb_const_defined_at(VALUE module_handle, ID const_id) {
-    return rb_funcall(module_handle,
-        rb_intern("const_defined?"), 1, ID2SYM(const_id));
+    NativeMethodEnvironment* env = NativeMethodEnvironment::get();
+
+    if(LANGUAGE_18_ENABLED(env->state())) {
+      return rb_funcall(module_handle,
+          rb_intern("const_defined?"), 1, ID2SYM(const_id));
+    } else {
+      return rb_funcall(module_handle,
+          rb_intern("const_defined?"), 2, ID2SYM(const_id), Qfalse);
+    }
   }
 
   ID rb_frame_last_func() {
