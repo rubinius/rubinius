@@ -35,8 +35,6 @@ namespace rubinius {
 
     Fixnum* thread_id_; // slot
 
-    Channel* park_; // slot
-
     thread::SpinLock init_lock_;
 
     /// The VM state for this thread and this thread alone
@@ -63,8 +61,6 @@ namespace rubinius {
     attr_accessor(debugger_thread, Thread);
 
     attr_accessor(thread_id, Fixnum);
-
-    attr_accessor(park, Channel);
 
     VM* vm() {
       return vm_;

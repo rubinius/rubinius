@@ -66,7 +66,6 @@ namespace rubinius {
     thr->sleep(state, cFalse);
     thr->control_channel(state, nil<Channel>());
     thr->recursive_objects(state, LookupTable::create(state));
-    thr->park(state, Channel::create(state));
 
     thr->vm_ = target;
     thr->klass(state, as<Class>(self));
