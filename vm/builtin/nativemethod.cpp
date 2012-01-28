@@ -726,6 +726,7 @@ namespace rubinius {
 
     nmethod->primitive(state, state->symbol("nativemethod_call"));
     nmethod->serial(state, Fixnum::from(0));
+    nmethod->inliners_ = 0;
 
     return nmethod;
   }

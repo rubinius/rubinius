@@ -164,6 +164,7 @@ namespace rubinius {
     nf->file(state, state->symbol("<system>"));
 
     nf->set_executor(NativeFunction::execute);
+    nf->inliners_ = 0;
     nf->ffi_data = 0;
 
     return nf;
