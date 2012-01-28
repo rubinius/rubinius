@@ -1069,6 +1069,7 @@ namespace rubinius {
 
   void NativeFunction::Info::mark(Object* obj, ObjectMark& mark) {
     auto_mark(obj, mark);
+    mark_inliners(obj, mark);
 
     NativeFunction* func = force_as<NativeFunction>(obj);
 
