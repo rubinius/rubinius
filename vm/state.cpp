@@ -28,7 +28,7 @@ namespace rubinius {
 
     Exception* exc = vm_->interrupted_exception_.get();
     if(!exc->nil_p()) {
-      vm_->interrupted_exception_.set((Exception*)cNil);
+      vm_->interrupted_exception_.set(nil<Exception>());
 
       // Only write the locations if there are none.
       if(exc->locations()->nil_p() || exc->locations()->size() == 0) {

@@ -61,7 +61,7 @@ public:
 
   void test_ensure_open() {
     TS_ASSERT(io->ensure_open(state)->nil_p());
-    io->descriptor(state, (Fixnum*)cNil);
+    io->descriptor(state, nil<Fixnum>());
     TS_ASSERT_THROWS_ASSERT(io->ensure_open(state), const RubyException &e,
         TS_ASSERT(Exception::io_error_p(state, e.exception)));
     io->descriptor(state, Fixnum::from(-1));
@@ -70,7 +70,7 @@ public:
   }
 
   void test_set_mode() {
-    io->mode(state, (Fixnum*)cNil);
+    io->mode(state, nil<Fixnum>());
     TS_ASSERT(io->mode()->nil_p());
     io->set_mode(state);
     int acc_mode = fcntl(io->to_fd(), F_GETFL);
