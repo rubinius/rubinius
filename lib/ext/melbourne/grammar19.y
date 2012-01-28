@@ -3241,50 +3241,51 @@ string_to_ast(VALUE ptp, VALUE name, VALUE source, VALUE line)
   return ret;
 }
 
-#define LEX_IO_BUFLEN  1024
+#define LEX_IO_BUFLEN  5120
 
 static VALUE parse_io_gets(rb_parser_state* parser_state, VALUE s) {
   VALUE str = Qnil;
+  char* p;
+  ssize_t n;
 
   while(true) {
-    if(lex_io_total == 0) {
+    if(lex_io_total == 0 || lex_io_index == lex_io_total) {
       lex_io_total = read(lex_io, lex_io_buf, LEX_IO_BUFLEN);
 
-      if(lex_io_total < 1) {
+      if(lex_io_total == 0) {
         lex_io_total = 0;
+        return str;
+      } else if(lex_io_total < 0) {
+        // TODO raise exception
         return str;
       } else {
         lex_io_index = 0;
       }
     }
 
-    // TODO: encoding aware.
-    for(ssize_t i = lex_io_index; i < lex_io_total; i++) {
-      if(lex_io_buf[i] == '\n') {
-        ssize_t len = i - lex_io_index + 1;
-
-        if(str == Qnil) {
-          str = REF(parser_enc_str_new(lex_io_buf + lex_io_index,
-                                       len, parser_state->enc));
-        } else {
-          rb_str_cat(str, lex_io_buf + lex_io_index, len);
-        }
-
-        lex_io_count += len;
-        if(i == lex_io_total - 1) {
-          lex_io_total = 0;
-        } else {
-          lex_io_index = i + 1;
-        }
-
-        return str;
-      }
+    p = (char*)memchr(lex_io_buf + lex_io_index,
+                      '\n', lex_io_total - lex_io_index);
+    if(p) {
+      n = p - lex_io_buf - lex_io_index + 1;
+    } else {
+      n = lex_io_total - lex_io_index;
     }
 
-    str = REF(parser_enc_str_new(lex_io_buf + lex_io_index,
-                                 lex_io_total - lex_io_index,
-                                 parser_state->enc));
-    lex_io_total = 0;
+    if(str == Qnil) {
+      str = REF(parser_enc_str_new(lex_io_buf + lex_io_index,
+                                   n, parser_state->enc));
+    } else {
+      rb_str_cat(str, lex_io_buf + lex_io_index, n);
+    }
+
+    if(p) {
+      lex_io_index += n;
+      lex_io_count += n;
+      return str;
+    } else {
+      lex_io_total = 0;
+      lex_io_index = 0;
+    }
   }
 
   return Qnil;
