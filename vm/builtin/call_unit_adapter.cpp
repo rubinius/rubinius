@@ -13,7 +13,7 @@ namespace rubinius {
   CallUnitAdapter* CallUnitAdapter::create(STATE, Object* self, CallUnit* unit) {
     CallUnitAdapter* pe = state->new_object<CallUnitAdapter>(as<Class>(self));
     pe->unit(state, unit);
-
+    pe->inliners_ = 0;
     pe->execute = adapter_executor;
     return pe;
   }

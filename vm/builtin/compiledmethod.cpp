@@ -51,7 +51,7 @@ namespace rubinius {
     cm->local_count(state, Fixnum::from(0));
     cm->set_executor(CompiledMethod::default_executor);
     cm->backend_method_ = NULL;
-    cm->inliners_ = NULL;
+    cm->inliners_ = 0;
     cm->prim_index_ = -1;
 
 #ifdef ENABLE_LLVM
