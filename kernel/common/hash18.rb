@@ -87,9 +87,9 @@ class Hash
     if args.size == 1
       obj = args.first
       if obj.kind_of? Hash
-        return new.replace(obj)
+        return allocate.replace(obj)
       elsif obj.respond_to? :to_hash
-        return new.replace(Rubinius::Type.coerce_to(obj, Hash, :to_hash))
+        return allocate.replace(Rubinius::Type.coerce_to(obj, Hash, :to_hash))
       elsif obj.is_a?(Array) # See redmine # 1385
         h = new
         args.first.each do |arr|

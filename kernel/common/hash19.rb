@@ -140,7 +140,7 @@ class Hash
     if args.size == 1
       obj = args.first
       if hash = Rubinius::Type.check_convert_type(obj, Hash, :to_hash)
-        return new.replace(hash)
+        return allocate.replace(hash)
       elsif array = Rubinius::Type.check_convert_type(obj, Array, :to_ary)
         h = new
         array.each do |arr|
