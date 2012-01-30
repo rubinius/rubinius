@@ -385,7 +385,6 @@ namespace rubinius {
 
   Integer* Object::id(STATE) {
     if(reference_p()) {
-#ifdef RBX_OBJECT_ID_IN_HEADER
       if(object_id() == 0) {
         state->memory()->assign_object_id(state, this);
       }
@@ -395,16 +394,6 @@ namespace rubinius {
       // collide with the immediates, since immediates never have a tag
       // ending in 00.
       return Integer::from(state, object_id() << TAG_REF_WIDTH);
-#else
-      Object* id = get_ivar(state, G(sym_object_id));
-
-      /* Lazy allocate object's ids, since most don't need them. */
-      if(id->nil_p()) {
-        id = state->memory()->assign_object_id_ivar(state, this);
-      }
-
-      return as<Integer>(id);
-#endif
     } else {
       /* All non-references have the pointer directly as the object id */
       return Integer::from(state, (uintptr_t)this);
@@ -413,21 +402,12 @@ namespace rubinius {
 
   bool Object::has_id(STATE) {
     if(!reference_p()) return true;
-
-#ifdef RBX_OBJECT_ID_IN_HEADER
     return object_id() > 0;
-#else
-    return get_ivar(state, G(sym_object_id)) != cNil;
-#endif
   }
 
   void Object::reset_id(STATE) {
     if(reference_p()) {
-#ifdef RBX_OBJECT_ID_IN_HEADER
       set_object_id(state, state->memory(), 0);
-#else
-      del_ivar(state, G(sym_object_id));
-#endif
     }
   }
 

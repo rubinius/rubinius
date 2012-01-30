@@ -112,11 +112,6 @@ Object* const cUndef = reinterpret_cast<Object*>(0x22L);
 #define SIZE_OF_BODY(obj)           (obj->num_fields() * SIZE_OF_OBJECT)
 
 // Some configuration flags
-//
-// Store the object id in the header on 64 bit platforms
-#ifdef IS_X8664
-#define RBX_OBJECT_ID_IN_HEADER
-#endif
 
   /* rubinius_object gc zone, takes up two bits */
   typedef enum
