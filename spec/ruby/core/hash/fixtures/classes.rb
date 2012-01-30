@@ -1,6 +1,14 @@
 module HashSpecs
   class MyHash < hash_class; end
 
+  class MyInitializerHash < hash_class
+
+    def initialize
+      raise "Constructor called"
+    end
+
+  end
+
   class NewHash < hash_class
     def initialize(*args)
       args.each_with_index do |val, index|
