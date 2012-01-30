@@ -468,14 +468,7 @@ class Socket < BasicSocket
 
       fcntl(Fcntl::F_SETFL, Fcntl::O_NONBLOCK)
 
-      fd = nil
-      sockaddr = nil
-
-      FFI::MemoryPointer.new 1024 do |sockaddr_p| # HACK from MRI
-        FFI::MemoryPointer.new :int do |size_p|
-          fd = Socket::Foreign.accept descriptor, sockaddr_p, size_p
-        end
-      end
+      fd = Socket::Foreign.accept descriptor, nil, nil
 
       Errno.handle 'accept(2)' if fd < 0
 
