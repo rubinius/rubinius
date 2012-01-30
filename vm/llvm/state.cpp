@@ -695,10 +695,10 @@ namespace rubinius {
     if(debug_search) {
       if(is_block) {
         std::cout << "JIT: queueing block inside: "
-          << enclosure_name(cm) << "#" << symbol_debug_str(cm->name()) << "\n";
+          << enclosure_name(cm) << "#" << symbol_debug_str(cm->name()) << std::endl;
       } else {
         std::cout << "JIT: queueing method: "
-          << enclosure_name(cm) << "#" << symbol_debug_str(cm->name()) << "\n";
+          << enclosure_name(cm) << "#" << symbol_debug_str(cm->name()) << std::endl;
       }
     }
 
@@ -762,9 +762,9 @@ namespace rubinius {
                                     int primitive) {
 
     if(debug_search) {
-      std::cout << "\nJIT:       triggered: "
+      std::cout << std::endl << "JIT:       triggered: "
             << enclosure_name(start) << "#"
-            << symbol_debug_str(start->name()) << "\n";
+            << symbol_debug_str(start->name()) << std::endl;
     }
 
     // if(config().jit_inline_debug) {
@@ -779,7 +779,7 @@ namespace rubinius {
     CallFrame* candidate = find_candidate(state, start, call_frame);
     if(!candidate || candidate->jitted_p() || candidate->inline_method_p()) {
       if(debug_search) {
-        std::cout << "JIT: invalid candidate returned\n";
+        std::cout << "JIT: invalid candidate returned" << std::endl;
       }
 
       return;
@@ -811,8 +811,6 @@ namespace rubinius {
     }
   }
 
-#define SMALL_METHOD_SIZE 50
-
   CallFrame* LLVMState::find_candidate(STATE, CompiledMethod* start, CallFrame* call_frame) {
     if(!config_.jit_inline_generic) {
       return call_frame;
@@ -833,17 +831,17 @@ namespace rubinius {
       std::cout << "> call_count: " << call_frame->cm->backend_method()->call_count
             << " size: " << call_frame->cm->backend_method()->total
             << " sends: " << call_frame->cm->backend_method()->inline_cache_count()
-            << "\n";
+            << std::endl;
 
       call_frame->print_backtrace(state, 1);
     }
 
-    if(start->backend_method()->total > SMALL_METHOD_SIZE) {
+    if(start->backend_method()->total > (size_t)config_.jit_max_method_inline_size) {
       if(debug_search) {
         std::cout << "JIT: STOP. reason: trigger method isn't small: "
               << start->backend_method()->total << " > "
-              << SMALL_METHOD_SIZE
-              << "\n";
+              << config_.jit_max_method_inline_size
+              << std::endl;
       }
 
       return call_frame;
@@ -853,7 +851,7 @@ namespace rubinius {
 
     if(vmm->required_args != vmm->total_args) {
       if(debug_search) {
-        std::cout << "JIT: STOP. reason: trigger method req_args != total_args\n";
+        std::cout << "JIT: STOP. reason: trigger method req_args != total_args" << std::endl;
       }
 
       return call_frame;
@@ -861,7 +859,7 @@ namespace rubinius {
 
     if(vmm->no_inline_p()) {
       if(debug_search) {
-        std::cout << "JIT: STOP. reason: trigger method no_inline_p() = true\n";
+        std::cout << "JIT: STOP. reason: trigger method no_inline_p() = true" << std::endl;
       }
 
       return call_frame;
@@ -879,7 +877,7 @@ namespace rubinius {
 
       if(!cur) {
         if(debug_search) {
-          std::cout << "JIT: STOP. reason: synthetic CallFrame hit\n";
+          std::cout << "JIT: STOP. reason: synthetic CallFrame hit" << std::endl;
         }
         return callee;
       }
@@ -890,7 +888,7 @@ namespace rubinius {
         std::cout << "> call_count: " << vmm->call_count
               << " size: " << vmm->total
               << " sends: " << vmm->inline_cache_count()
-              << "\n";
+              << std::endl;
 
         call_frame->print_backtrace(state, 1);
       }
@@ -907,15 +905,16 @@ namespace rubinius {
 
       if(vmm->required_args != vmm->total_args) {
         if(debug_search) {
-          std::cout << "JIT: STOP. reason: req_args != total_args\n";
+          std::cout << "JIT: STOP. reason: req_args != total_args" << std::endl;
         }
         return callee;
       }
 
-      if(vmm->call_count < 200) {
+      if(vmm->call_count < config_.jit_call_inline_threshold) {
         if(debug_search) {
           std::cout << "JIT: STOP. reason: call_count too small: "
-                << vmm->call_count << " < 200\n";
+                << vmm->call_count << " < "
+                << config_.jit_call_inline_threshold << std::endl;
         }
 
         return callee;
@@ -923,7 +922,7 @@ namespace rubinius {
 
       if(vmm->jitted()) {
         if(debug_search) {
-          std::cout << "JIT: STOP. reason: already jitted\n";
+          std::cout << "JIT: STOP. reason: already jitted" << std::endl;
         }
 
         return callee;
@@ -931,7 +930,7 @@ namespace rubinius {
 
       if(vmm->no_inline_p()) {
         if(debug_search) {
-          std::cout << "JIT: STOP. reason: no_inline_p() = true\n";
+          std::cout << "JIT: STOP. reason: no_inline_p() = true" << std::endl;
         }
 
         return callee;
@@ -939,7 +938,7 @@ namespace rubinius {
 
       if(vmm->inline_cache_count() > eMaxInlineSendCount) {
         if(debug_search) {
-          std::cout << "JIT: STOP. reason: high send count\n";
+          std::cout << "JIT: STOP. reason: high send count" << std::endl;
         }
 
         return call_frame;
@@ -955,7 +954,7 @@ namespace rubinius {
 
       if(!prev) {
         if(debug_search) {
-          std::cout << "JIT: STOP. reason: toplevel method\n";
+          std::cout << "JIT: STOP. reason: toplevel method" << std::endl;
         }
         return call_frame;
       }
