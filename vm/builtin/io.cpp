@@ -540,14 +540,25 @@ namespace rubinius {
     }
   }
 
-  Object* IO::sysread(STATE, Fixnum* number_of_bytes, CallFrame* calling_environment) {
-    std::size_t count = number_of_bytes->to_ulong();
-    String* buffer = String::create_pinned(state, number_of_bytes);
+#define STACK_BUF_SZ 8096
+
+  Object* IO::sysread(STATE, Fixnum* number_of_bytes,
+                             CallFrame* calling_environment)
+  {
+    char stack_buf[STACK_BUF_SZ];
+    char* malloc_buf = 0;
+
+    char* buf = stack_buf;
+
+    size_t count = number_of_bytes->to_ulong();
+
+    if(count > STACK_BUF_SZ) {
+      malloc_buf = (char*)malloc(count);
+      buf = malloc_buf;
+    }
 
     ssize_t bytes_read;
     native_int fd = descriptor()->to_native();
-
-    OnStack<1> variables(state, buffer);
 
   retry:
     state->vm()->interrupt_with_signal();
@@ -555,7 +566,7 @@ namespace rubinius {
 
     {
       GCIndependent guard(state, calling_environment);
-      bytes_read = ::read(fd, buffer->byte_address(), count);
+      bytes_read = ::read(fd, buf, count);
     }
 
     state->vm()->thread->sleep(state, cFalse);
@@ -569,19 +580,16 @@ namespace rubinius {
         Exception::errno_error(state, "read(2) failed");
       }
 
-      buffer->unpin();
-
+      if(malloc_buf) free(malloc_buf);
       return NULL;
     }
 
-    buffer->unpin();
+    if(bytes_read == 0) return cNil;
 
-    if(bytes_read == 0) {
-      return cNil;
-    }
+    String* str = String::create(state, buf, bytes_read);
+    if(malloc_buf) free(malloc_buf);
 
-    buffer->num_bytes(state, Fixnum::from(bytes_read));
-    return buffer;
+    return str;
   }
 
   Object* IO::read_if_available(STATE, Fixnum* number_of_bytes) {
@@ -1229,7 +1237,6 @@ failed: /* try next '*' position */
   IOBuffer* IOBuffer::create(STATE, size_t bytes) {
     IOBuffer* buf = state->new_object<IOBuffer>(G(iobuffer));
     buf->storage(state, ByteArray::create(state, bytes));
-    buf->channel(state, Channel::create_primed(state));
     buf->total(state, Fixnum::from(bytes));
     buf->used(state, Fixnum::from(0));
     buf->reset(state);

@@ -6,7 +6,6 @@
 
 namespace rubinius {
   class ByteArray;
-  class Channel;
   class String;
   class Encoding;
 
@@ -151,7 +150,6 @@ namespace rubinius {
 
   private:
     ByteArray* storage_;   // slot
-    Channel* channel_;     // slot
     Integer* total_;       // slot
     Integer* used_;        // slot
     Integer* start_;       // slot
@@ -162,7 +160,6 @@ namespace rubinius {
     /* accessors */
 
     attr_accessor(storage, ByteArray);
-    attr_accessor(channel, Channel);
     attr_accessor(total, Integer);
     attr_accessor(used, Integer);
     attr_accessor(start, Integer);

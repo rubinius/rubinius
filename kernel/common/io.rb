@@ -61,7 +61,7 @@ class IO
     #
     # Returns the number of bytes in the buffer.
     def fill_from(io, skip = nil)
-      @channel.as_lock do
+      Rubinius.synchronize(self) do
         empty_to io
         discard skip if skip
 
@@ -138,7 +138,7 @@ class IO
     end
 
     def unseek!(io)
-      @channel.as_lock do
+      Rubinius.synchronize(self) do
         # Unseek the still buffered amount
         return unless write_synced?
         io.prim_seek @start - @used, IO::SEEK_CUR unless empty?
@@ -150,7 +150,7 @@ class IO
     # Returns +count+ bytes from the +start+ of the buffer as a new String.
     # If +count+ is +nil+, returns all available bytes in the buffer.
     def shift(count=nil)
-      @channel.as_lock do
+      Rubinius.synchronize(self) do
         total = size
         total = count if count and count < total
 
@@ -164,7 +164,7 @@ class IO
     ##
     # Returns one Fixnum as the start byte, used for #getc
     def get_first
-      @channel.as_lock do
+      Rubinius.synchronize(self) do
         byte = @storage[@start]
         @start += 1
         byte
