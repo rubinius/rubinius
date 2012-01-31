@@ -501,10 +501,10 @@ remember:
           int offset = sizeof(Object) + (sizeof(Object*) * index);
           Value* slot_val = ops_.get_object_slot(self, offset);
 
-          Value* cmp = ops_.b().CreateICmpEQ(slot_val, ops_.constant(Qundef), "prune_undef");
+          Value* cmp = ops_.b().CreateICmpEQ(slot_val, ops_.constant(cUndef), "prune_undef");
 
           ivar = ops_.b().CreateSelect(cmp,
-                                       ops_.constant(Qnil), slot_val,
+                                       ops_.constant(cNil), slot_val,
                                        "select ivar");
 
           if(ops_.state()->config().jit_inline_debug) {
@@ -580,7 +580,7 @@ remember:
         args.push_back(ops_.stack_back(i));
       }
     } else {
-      blk = ops_.constant(Qnil);
+      blk = ops_.constant(cNil);
       for(int i = count_ - 1; i >= 0; i--) {
         args.push_back(ops_.stack_back(i));
       }
@@ -639,7 +639,7 @@ remember:
     if(ib->code()->call_count >= 0) ib->code()->call_count /= 2;
 
     BasicBlock* entry = work.setup_inline_block(self,
-        ops_.constant(Qnil, ops_.state()->ptr_type("Module")), args);
+        ops_.constant(cNil, ops_.state()->ptr_type("Module")), args);
 
     if(!work.generate_body()) {
       rubinius::bug("LLVM failed to compile a function");
@@ -996,7 +996,7 @@ remember:
     }
 
     case RBX_FFI_TYPE_VOID:
-      result = ops_.constant(Qnil);
+      result = ops_.constant(cNil);
       break;
 
     default:

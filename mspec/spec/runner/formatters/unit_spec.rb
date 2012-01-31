@@ -5,9 +5,9 @@ require 'mspec/utils/script'
 
 describe UnitdiffFormatter, "#finish" do
   before :each do
-    @tally = mock("tally", :null_object => true)
+    @tally = mock("tally").as_null_object
     TallyAction.stub!(:new).and_return(@tally)
-    @timer = mock("timer", :null_object => true)
+    @timer = mock("timer").as_null_object
     TimerAction.stub!(:new).and_return(@timer)
 
     $stdout = @out = IOStub.new

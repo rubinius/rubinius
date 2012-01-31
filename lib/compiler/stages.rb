@@ -1,3 +1,5 @@
+# -*- encoding: us-ascii -*-
+
 module Rubinius
   class Compiler
     Stages = { }
@@ -214,6 +216,7 @@ module Rubinius
       def run
         @output = @root.new parse
         @output.file = @file
+        @output.pre_exe = @parser.pre_exe
         run_next
       end
     end

@@ -400,6 +400,12 @@ describe "Marshal::load" do
     it "loads a object" do
       Marshal.load("\004\bo:\vObject\000").should be_kind_of(Object)
     end
+    
+    it "raises ArgumentError if the object from an 'o' stream is not dumpable as 'o' type user class" do
+      lambda do
+        Marshal.load("\x04\bo:\tFile\001\001:\001\005@path\"\x10/etc/passwd")
+      end.should raise_error(ArgumentError)
+    end
 
     it "loads an extended Object" do
       obj = Object.new.extend(Meths)
@@ -409,6 +415,23 @@ describe "Marshal::load" do
       new_obj.class.should == obj.class
       new_obj_metaclass_ancestors = class << new_obj; ancestors; end
       new_obj_metaclass_ancestors.first(2).should == [Meths, Object]
+    end
+    
+    describe "that extends a core type other than Object or BasicObject" do
+      after :each do
+        MarshalSpec.reset_swapped_class
+      end
+      
+      it "raises ArgumentError if the resulting class does not extend the same type" do
+        MarshalSpec.set_swapped_class(Class.new(Hash))
+        data = Marshal.dump(MarshalSpec::SwappedClass.new)
+        
+        MarshalSpec.set_swapped_class(Class.new(Array))
+        lambda { Marshal.load data }.should raise_error(ArgumentError)
+        
+        MarshalSpec.set_swapped_class(Class.new)
+        lambda { Marshal.load data }.should raise_error(ArgumentError)
+      end
     end
 
     it "loads a object having ivar" do
@@ -544,5 +567,4 @@ describe "Marshal::load" do
       lambda { Marshal.load data }.should raise_error(ArgumentError)
     end
   end
-
 end

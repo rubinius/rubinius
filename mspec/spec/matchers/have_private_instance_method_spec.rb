@@ -1,6 +1,6 @@
-require File.dirname(__FILE__) + '/../spec_helper'
+require 'spec_helper'
 require 'mspec/expectations/expectations'
-require 'mspec/matchers/have_private_instance_method'
+require 'mspec/matchers'
 
 class HPIMMSpecs
   private

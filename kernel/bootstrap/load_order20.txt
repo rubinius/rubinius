@@ -2,10 +2,10 @@ basicobject.rbc
 alias.rbc
 array.rbc
 array19.rbc
+atomic.rbc
 bignum.rbc
 block_environment.rbc
 bytearray.rbc
-chararray.rbc
 channel.rbc
 class.rbc
 compactlookuptable.rbc
@@ -29,11 +29,14 @@ object.rbc
 proc.rbc
 process.rbc
 regexp.rbc
+regexp19.rbc
 rubinius.rbc
 rubinius19.rbc
 static_scope.rbc
 string.rbc
+string19.rbc
 symbol.rbc
+symbol19.rbc
 thread.rbc
 thread19.rbc
 thunk.rbc
@@ -41,6 +44,7 @@ time.rbc
 true.rbc
 tuple.rbc
 type.rbc
+type19.rbc
 variable_scope.rbc
 vm.rbc
 weakref.rbc

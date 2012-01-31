@@ -1,8 +1,8 @@
 require File.expand_path('../../../spec_helper', __FILE__)
 require File.expand_path('../fixtures/classes', __FILE__)
 
-describe "Enumerable#find_index" do
-  ruby_version_is "1.8.7" do
+ruby_version_is "1.8.7" do
+  describe "Enumerable#find_index" do
     before :each do
       @elements = [2, 4, 6, 8, 10]
       @numerous = EnumerableSpecs::Numerous.new(*@elements)
@@ -43,12 +43,22 @@ describe "Enumerable#find_index" do
       @numerous.find_index(-1) {|e| true }.should == nil
     end
 
-    ruby_version_is '1.8.7' do
-      it 'returns an Enumerator if no block given' do
-        @numerous.find_index.should be_an_instance_of(enumerator_class)
+    it "returns an Enumerator if no block given" do
+      @numerous.find_index.should be_an_instance_of(enumerator_class)
+    end
+
+    ruby_version_is ""..."1.9" do
+      it "gathers whole arrays as elements when each yields multiple" do
+        multi = EnumerableSpecs::YieldsMulti.new
+        multi.find_index {|e| e == [1, 2] }.should == 0
       end
     end
 
+    ruby_version_is "1.9" do
+      it "gathers initial args as elements when each yields multiple" do
+        multi = EnumerableSpecs::YieldsMulti.new
+        multi.find_index {|e| e == 1 }.should == 0
+      end
+    end
   end
-
 end

@@ -13,7 +13,6 @@
 #include "builtin/object.hpp"
 #include "builtin/array.hpp"
 #include "builtin/bytearray.hpp"
-#include "builtin/chararray.hpp"
 #include "builtin/symbol.hpp"
 #include "builtin/module.hpp"
 #include "builtin/string.hpp"
@@ -353,13 +352,6 @@ namespace rubinius {
         enc.write1(cBytesCode);
         enc.write4(ba->size());
         enc.write_raw((const char*)ba->raw_bytes(), ba->size());
-      } else if(CharArray* ca = try_as<CharArray>(obj)) {
-        enc.write2(syms.size() + 1);
-        dump_ivars(state, obj, syms);
-
-        enc.write1(cCharsCode);
-        enc.write4(ca->size());
-        enc.write_raw((const char*)ca->raw_bytes(), ca->size());
       } else {
         enc.write2(syms.size());
         dump_ivars(state, obj, syms);
@@ -395,7 +387,7 @@ namespace rubinius {
     walker.seed(gc_data);
 
     int fd = open(path->c_str(state), O_CREAT | O_TRUNC | O_WRONLY, 0666);
-    if(fd < 0) return Qnil;
+    if(fd < 0) return cNil;
 
     HeapDump dump(fd);
 
@@ -413,6 +405,6 @@ namespace rubinius {
     std::cout << "Heap dumped to " << path->c_str(state) << "\n";
     close(fd);
 
-    return Qnil;
+    return cNil;
   }
 }

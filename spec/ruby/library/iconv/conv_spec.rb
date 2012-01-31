@@ -21,7 +21,7 @@ describe "Iconv.conv" do
     Iconv.conv("utf-16", "utf-8", "").should == ""
 
     lambda do
-      Iconv.conv("us-ascii", "us-ascii", "test\xa9")
+      Iconv.conv("utf-8", "utf-8", "test\xff")
     end.should raise_error(Iconv::IllegalSequence)
 
     lambda do

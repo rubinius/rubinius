@@ -46,14 +46,20 @@ Rubinius::ConfigurationVariables.define do |c|
     s.vm_variable "dump_code", 0,
       "1 == show simple IR, 2 == show optimized IR, 4 == show machine code"
 
-    s.vm_variable "call_til_compile", 4000,
+    s.vm_variable "call_til_compile", 32000,
       "How many times a method is called before the JIT is run on it"
+
+    s.vm_variable "call_inline_threshold", 8000,
+      "How many times a method is called to be considered part of the inline path"
 
     s.vm_variable "deoptimize_threshold", 500,
       "How many times an uncommon method is called before a method is deoptimized"
 
     s.vm_variable "max_method_size", 2048,
       "The max size of a method that will be JIT"
+
+    s.vm_variable "max_method_inline_size", 64,
+      "The max size of a method to be considered for inlining"
 
     s.vm_variable "show", false,
       :as => "jit_show_compiling",
@@ -107,6 +113,14 @@ Rubinius::ConfigurationVariables.define do |c|
 
     s.vm_variable "password", :string,
       "The password required to connect to the agent"
+  end
+
+  c.section "fiber" do |s|
+    s.vm_variable "stacks", 10,
+      "The number of stacks in each Threads stack pool"
+
+    s.vm_variable "stack_size", 128 * 1024,
+      "The size of each stack"
   end
 
   c.vm_variable "tool", :string,

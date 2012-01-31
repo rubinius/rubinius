@@ -3,7 +3,7 @@ require 'ipaddr'
 
 describe "IPAddr#to_s" do
 
-  it 'displays IPAddr using short notation' do
+  it "displays IPAddr using short notation" do
     IPAddr.new("0:0:0:1::").to_s.should == "0:0:0:1::"
     IPAddr.new("2001:200:300::/48").to_s.should == "2001:200:300::"
     IPAddr.new("[2001:200:300::]/48").to_s.should == "2001:200:300::"

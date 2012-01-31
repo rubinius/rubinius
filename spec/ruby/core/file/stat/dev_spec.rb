@@ -1,6 +1,6 @@
 require File.expand_path('../../../../spec_helper', __FILE__)
 
-describe 'File::Stat#dev' do
+describe "File::Stat#dev" do
   before :each do
     @name = tmp("file.txt")
     touch(@name)

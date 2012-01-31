@@ -1,2 +1,0 @@
-fails:Matrix.symmetric? returns true for a symmetric Matrix
-fails:Matrix.symmetric? returns false for an assymetric Matrix

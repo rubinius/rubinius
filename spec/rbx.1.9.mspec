@@ -83,24 +83,12 @@ class MSpecScript
     'spec/build',
 
     # Excluded while building out basic 1.9 infrastructure
-    '^spec/ruby/core/encoding/default_internal',
-    '^spec/ruby/core/io/open',
     '^spec/ruby/core/module/name',
-    '^spec/ruby/core/numeric/to_c',
     '^spec/ruby/core/proc/arity',
     '^spec/ruby/core/process/spawn',
-    '^spec/ruby/core/process/status',
-    '^spec/ruby/core/string/getbyte',
 
-    '^spec/ruby/library/csv/generate',
     '^spec/ruby/library/delegate',
-    '^spec/ruby/library/logger',
-    '^spec/ruby/library/net',
-    '^spec/ruby/library/uri',
     '^spec/ruby/library/zlib',
-
-    '^spec/ruby/optional/capi/io',
-    '^spec/ruby/optional/capi/time',
 
     # Excluded because the specs are extremely system dependent.
     '^spec/ruby/library/syslog',

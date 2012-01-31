@@ -20,7 +20,7 @@ namespace :extensions do
     rm_f FileList["lib/tooling/**/*.{o,#{$dlext}}"], :verbose => $verbose
     # TODO: implement per extension cleaning. This hack is for
     # openssl and dl, which use extconf.rb and create Makefile.
-    rm_f FileList["lib/ext/**/Makefile"], :verbose => $verbose
+    rm_f FileList["lib/**/ext/**/Makefile"], :verbose => $verbose
     rm_f FileList["lib/tooling/**/Makefile"], :verbose => $verbose
     rm_f FileList["lib/ext/dl/*.func"], :verbose => $verbose
   end
@@ -48,10 +48,14 @@ def build_extconf(name, opts)
   include19_dir = File.expand_path("../../vm/capi/19/include", __FILE__)
 
   unless File.directory? BUILD_CONFIG[:runtime]
-    ENV["CFLAGS"]      = "-I#{include18_dir} -I#{include19_dir}"
+    if opts[:env] == "-X18"
+      ENV["CFLAGS"] = "-I#{include18_dir}"
+    else
+      ENV["CFLAGS"] = "-I#{include19_dir}"
+    end
   end
 
-  ENV["RBXOPT"] = opts[:env] if opts.key? :env
+  ENV["RBXOPT"] = opts[:env]
 
   unless opts[:deps] and opts[:deps].all? { |n| File.exists? n }
     sh("#{rbx_build} extconf.rb #{redirect}", &fail_block)
@@ -74,6 +78,8 @@ def compile_ext(name, opts={})
     ext_task_name = "build"
   end
 
+  opts[:env] ||= "-X18"
+
   task_name = names.join "_"
 
   namespace :extensions do
@@ -84,6 +90,8 @@ def compile_ext(name, opts={})
       build_config = File.expand_path "../../config.rb", __FILE__
       Dir.chdir ext_dir do
         if File.exists? "Rakefile"
+          ENV["BUILD_VERSION"] = opts[:env][-2..-1]
+
           sh "#{BUILD_CONFIG[:build_ruby]} -S #{BUILD_CONFIG[:build_rake]} #{'-t' if $verbose} -r #{build_config} -r #{ext_helper} -r #{dep_grapher} #{ext_task_name}"
         else
           build_extconf name, opts
@@ -112,8 +120,16 @@ File.open(build_ruby, "wb") do |f|
   f.puts build_version
 end
 
-compile_ext "melbourne", :task => "rbx", :doc => "for Rubinius"
-compile_ext "melbourne", :task => "build", :doc => "for bootstrapping"
+enabled_18 = BUILD_CONFIG[:version_list].include?("18")
+enabled_19 = BUILD_CONFIG[:version_list].include?("19")
+
+compile_ext "melbourne", :task => "build",
+                         :doc => "for bootstrapping"
+
+melbourne_env = enabled_19 ? "-X19" : "-X18"
+compile_ext "melbourne", :task => "rbx",
+                         :env => melbourne_env,
+                         :doc => "for Rubinius"
 
 compile_ext "digest", :dir => "lib/digest/ext"
 compile_ext "digest:md5", :dir => "lib/digest/ext/md5"
@@ -122,35 +138,64 @@ compile_ext "digest:sha1", :dir => "lib/digest/ext/sha1"
 compile_ext "digest:sha2", :dir => "lib/digest/ext/sha2"
 compile_ext "digest:bubblebabble", :dir => "lib/digest/ext/bubblebabble"
 
-compile_ext "bigdecimal", :dir => "lib/18/bigdecimal/ext", :env => "-X18"
-compile_ext "bigdecimal", :dir => "lib/19/bigdecimal/ext",
-                          :deps => ["Makefile", "extconf.rb"],
-                          :env => "-X19"
+if enabled_18
+  compile_ext "18/bigdecimal", :dir => "lib/18/bigdecimal/ext", :env => "-X18"
 
-compile_ext "syck", :dir => "lib/18/syck/ext"
-compile_ext "nkf", :dir => "lib/18/nkf/ext", :env => "-X18"
-compile_ext "nkf", :dir => "lib/19/nkf/ext",
-                   :deps => ["Makefile", "extconf.rb"],
-                   :env => "-X19"
+  compile_ext "18/syck", :dir => "lib/18/syck/ext"
+  compile_ext "18/nkf", :dir => "lib/18/nkf/ext", :env => "-X18"
 
-if BUILD_CONFIG[:readline] == :c_readline
-  compile_ext "readline", :dir => "lib/18/readline/ext"
-  compile_ext "readline", :dir => "lib/19/readline/ext",
-                          :deps => ["Makefile", "extconf.rb"],
-                          :env => "-X19"
+  if BUILD_CONFIG[:readline] == :c_readline
+    compile_ext "18/readline", :dir => "lib/18/readline/ext"
+  end
+
+  # rbx must be able to run to build these because they use
+  # extconf.rb, so they must be after melbourne for Rubinius.
+  compile_ext "18/openssl", :deps => ["Makefile", "extconf.h"],
+                            :dir => "lib/18/openssl/ext",
+                            :env => "-X18"
+
+  compile_ext "18/dl", :deps => ["Makefile", "dlconfig.h"],
+                       :dir => "lib/18/dl/ext", :env => "-X18"
+
+  compile_ext "18/pty", :deps => ["Makefile"],
+                        :dir => "lib/18/pty/ext",
+                        :env => "-X18"
 end
 
-if BUILD_CONFIG[:libyaml]
-  compile_ext "psych", :deps => ["Makefile"], :dir => "lib/19/psych/ext", :env => "-X19"
+if enabled_19
+  compile_ext "19/bigdecimal", :dir => "lib/19/bigdecimal/ext",
+                               :deps => ["Makefile", "extconf.rb"],
+                               :env => "-X19"
+  compile_ext "19/nkf", :dir => "lib/19/nkf/ext",
+                        :deps => ["Makefile", "extconf.rb"],
+                        :env => "-X19"
+  if BUILD_CONFIG[:readline] == :c_readline
+    compile_ext "19/readline", :dir => "lib/19/readline/ext",
+                               :deps => ["Makefile", "extconf.rb"],
+                               :env => "-X19"
+  end
+
+  if BUILD_CONFIG[:libyaml]
+    compile_ext "19/psych", :deps => ["Makefile"], :dir => "lib/19/psych/ext", :env => "-X19"
+  end
+
+  compile_ext "19/syck", :deps => ["Makefile"], :dir => "lib/19/syck/ext", :env => "-X19"
+
+  compile_ext "json/parser", :deps => ["Makefile", "extconf.rb"],
+                             :dir => "lib/19/json/ext/parser",
+                             :env => "-X19"
+  compile_ext "json/generator", :deps => ["Makefile", "extconf.rb"],
+                                :dir => "lib/19/json/ext/generator",
+                                :env => "-X19"
+
+  compile_ext "19/openssl", :deps => ["Makefile", "extconf.h"],
+                            :dir => "lib/19/openssl/ext",
+                            :env => "-X19"
+  compile_ext "19/pty", :deps => ["Makefile"],
+                        :dir => "lib/19/pty/ext",
+                        :env => "-X19"
 end
 
-compile_ext "syck", :deps => ["Makefile"], :dir => "lib/19/syck/ext", :env => "-X19"
-
-# rbx must be able to run to build these because they use
-# extconf.rb, so they must be after melbourne for Rubinius.
-compile_ext "openssl", :deps => ["Makefile", "extconf.h"], :dir => "lib/openssl/ext"
-compile_ext "dl", :deps => ["Makefile", "dlconfig.h"],
-                  :dir => "lib/18/dl/ext", :env => "-X18"
 compile_ext "dbm", :ignore_fail => true, :deps => ["Makefile"], :dir => "lib/dbm/ext"
 compile_ext "gdbm", :ignore_fail => true, :deps => ["Makefile"], :dir => "lib/gdbm/ext"
 compile_ext "sdbm", :deps => ["Makefile"], :dir => "lib/sdbm/ext"

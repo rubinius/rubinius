@@ -1,3 +1,5 @@
+# -*- encoding: us-ascii -*-
+
 module Kernel
   alias_method :__callee__, :__method__
 
@@ -18,6 +20,24 @@ module Kernel
     end
   end
   module_function :loop
+
+  def rand(limit=0)
+    if limit.kind_of?(Range)
+      Rubinius::Randomizer.instance.random_range(limit)
+    else
+      limit = Integer(limit).abs
+
+      case limit
+      when 0
+        Rubinius::Randomizer.instance.random_float
+      when Integer
+        Rubinius::Randomizer.instance.random_integer(limit - 1)
+      else
+        raise TypeError, "Integer() returned a non-integer"
+      end
+    end
+  end
+  module_function :rand
 
   def Integer(obj, base=nil)
     if obj.kind_of? String
@@ -77,28 +97,35 @@ module Kernel
   #
   def send(message, *args)
     Rubinius.primitive :object_send
-
-    # MRI checks for Fixnum explicitly and raises ArgumentError
-    # instead of TypeError. Seems silly, so we don't bother.
-    #
-    case message
-    when String
-      message = Rubinius::Type.coerce_to message, Symbol, :to_sym
-    when Symbol
-      # nothing!
-    else
-      raise TypeError, "#{message.inspect} is not a symbol"
-    end
-
-    __send__ message, *args
+    raise PrimitiveFailure, "#send primitive failed"
   end
 
   def proc(&prc)
     raise ArgumentError, "block required" unless prc
     return prc
   end
-
   module_function :proc
+
+  def open(obj, *rest, &block)
+    if obj.respond_to?(:to_open)
+      obj = obj.to_open(*rest)
+
+      if block_given?
+        return yield(obj)
+      else
+        return obj
+      end
+    end
+
+    path = Rubinius::Type.coerce_to_path obj
+
+    if path.kind_of? String and path.prefix? '|'
+      return IO.popen(path[1..-1], *rest, &block)
+    end
+
+    File.open(path, *rest, &block)
+  end
+  module_function :open
 
   # Attempt to load the given file, returning true if successful. Works just
   # like Kernel#require, except that it searches relative to the current
@@ -126,7 +153,7 @@ module Kernel
     return str
   end
   module_function :String
-  
+
   def Array(obj)
     ary = Rubinius::Type.check_convert_type obj, Array, :to_ary
 
@@ -143,7 +170,7 @@ module Kernel
   def =~(other)
     nil
   end
-  
+
   def Float(obj)
     raise TypeError, "can't convert nil into Float" if obj.nil?
 

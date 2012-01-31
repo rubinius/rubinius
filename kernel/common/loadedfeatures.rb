@@ -1,3 +1,5 @@
+# -*- encoding: us-ascii -*-
+
 module Rubinius
 
   # LoadedFeatures is a custom class for $LOADED_FEATURES. It presents an
@@ -18,42 +20,66 @@ module Rubinius
     private :identity_map
 
     def <<(obj)
-      # Someone changed something behind our back
-      identity_map if size > @identity_map.size
+      Rubinius.synchronize(self) do
+        # Someone changed something behind our back
+        identity_map if size > @identity_map.size
 
-      @identity_map.insert obj
-      super
+        @identity_map.insert obj
+        super
+      end
     end
 
     def clear
-      super
-      identity_map
+      Rubinius.synchronize(self) do
+        super
+        identity_map
+      end
     end
 
     def delete(obj)
-      @identity_map.delete obj
-      super
+      Rubinius.synchronize(self) do
+        @identity_map.delete obj
+        super
+      end
     end
 
     def delete_if
-      super
-      identity_map
+      Rubinius.synchronize(self) do
+        super
+        identity_map
+      end
+
       self
     end
 
     def include?(obj)
-      @identity_map.include? obj
+      Rubinius.synchronize(self) do
+        @identity_map.include? obj
+      end
     end
 
     def unshift(*values)
-      super
-      identity_map
+      Rubinius.synchronize(self) do
+        super
+        identity_map
+      end
+
       self
     end
 
+    def pop(*v)
+      Rubinius.synchronize(self) do
+        ret = super
+        identity_map
+        ret
+      end
+    end
+
     def replace(other)
-      super
-      identity_map
+      Rubinius.synchronize(self) do
+        super
+        identity_map
+      end
       self
     end
   end

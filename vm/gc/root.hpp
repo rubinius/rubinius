@@ -58,13 +58,13 @@ namespace rubinius {
     Root()
       : LinkedList::Node()
       , roots_(NULL)
-      , object_(Qundef)
+      , object_(cUndef)
     {}
 
     Root(Roots* roots)
       : LinkedList::Node()
       , roots_(roots)
-      , object_(Qundef)
+      , object_(cUndef)
     {}
 
     Root(Roots* roots, Object* obj)
@@ -85,7 +85,7 @@ namespace rubinius {
     Root(const Root& other)
       : LinkedList::Node()
       , roots_(NULL)
-      , object_(Qundef)
+      , object_(cUndef)
     {
       set(other.object_, other.roots_);
     }

@@ -337,7 +337,6 @@ namespace rubinius {
 
     size_t mature_bytes_allocated();
 
-    void collect(STATE, GCToken gct, CallFrame* call_frame);
     void collect_maybe(STATE, GCToken gct, CallFrame* call_frame);
 
     void needs_finalization(Object* obj, FinalizerFunction func);

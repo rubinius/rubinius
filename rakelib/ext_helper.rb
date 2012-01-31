@@ -140,14 +140,26 @@ def add_rbx_capi
     add_cflag "-O2"
     add_cxxflag "-O2"
   end
-  add_include_dir include18_dir
-  add_include_dir include19_dir
+
+  if ENV['BUILD_VERSION'] == "18"
+    add_include_dir include18_dir
+  else
+    add_include_dir include19_dir
+  end
 end
 
 # Setup some initial computed values
 #
 add_include_dir "."
 add_link_dir "."
+
+Rubinius::BUILD_CONFIG[:include_dirs].each do |i|
+  add_include_dir i
+end
+
+Rubinius::BUILD_CONFIG[:lib_dirs].each do |l|
+  add_include_dir l
+end
 
 # Setup platform-specific values
 #

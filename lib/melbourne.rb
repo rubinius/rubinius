@@ -26,6 +26,7 @@ module Rubinius
     attr_accessor :transforms
     attr_accessor :magic_handler
     attr_accessor :references
+    attr_reader   :pre_exe
 
     def self.parse_string(string, name="(eval)", line=1)
       new(name, line).parse_string string
@@ -41,12 +42,17 @@ module Rubinius
       @transforms = transforms
       @magic_handler = nil
       @data_offset = nil
+      @pre_exe = []
 
       # There can be multiple reported, we need to track them all.
       @syntax_errors = []
     end
 
     attr_reader :syntax_errors
+
+    def add_pre_exe(node)
+      @pre_exe << node if node
+    end
 
     def add_magic_comment(str)
       if @magic_handler

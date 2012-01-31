@@ -73,7 +73,7 @@ namespace rubinius {
     }
 
     io->ibuffer(state, IOBuffer::create(state));
-    io->eof(state, Qfalse);
+    io->eof(state, cFalse);
     io->lineno(state, Fixnum::from(0));
 
     // Don't bother to add finalization for stdio
@@ -89,7 +89,7 @@ namespace rubinius {
     io->descriptor(state, nil<Fixnum>());
     io->mode(state, nil<Fixnum>());
     io->ibuffer(state, IOBuffer::create(state));
-    io->eof(state, Qfalse);
+    io->eof(state, cFalse);
     io->lineno(state, Fixnum::from(0));
 
     // Ensure the instance's class is set (i.e. for subclasses of IO)
@@ -228,7 +228,7 @@ namespace rubinius {
     /* And the main event, pun intended */
     retry:
     state->vm()->interrupt_with_signal();
-    state->vm()->thread->sleep(state, Qtrue);
+    state->vm()->thread->sleep(state, cTrue);
 
     {
       GCIndependent guard(state, calling_environment);
@@ -238,7 +238,7 @@ namespace rubinius {
                                                   maybe_limit);
     }
 
-    state->vm()->thread->sleep(state, Qfalse);
+    state->vm()->thread->sleep(state, cFalse);
     state->vm()->clear_waiter();
 
     if(events == -1) {
@@ -260,7 +260,7 @@ namespace rubinius {
     }
 
     /* Timeout expired */
-    if(events == 0) return Qnil;
+    if(events == 0) return cNil;
 
     /* Build the results. */
     Array* output = Array::create(state, 3);
@@ -290,7 +290,7 @@ namespace rubinius {
       ibuf->reset(state);
     }
 
-    return Qtrue;
+    return cTrue;
   }
 
   Object* IO::reopen_path(STATE, String* path, Fixnum* mode) {
@@ -317,7 +317,7 @@ namespace rubinius {
       ibuf->reset(state);
     }
 
-    return Qtrue;
+    return cTrue;
   }
 
   Object* IO::ensure_open(STATE) {
@@ -331,7 +331,7 @@ namespace rubinius {
       Exception::io_error(state, "shutdown stream");
     }
 
-    return Qnil;
+    return cNil;
   }
 
   Object* IO::connect_pipe(STATE, IO* lhs, IO* rhs) {
@@ -345,7 +345,7 @@ namespace rubinius {
 
     lhs->mode(state, Fixnum::from(O_RDONLY));
     rhs->mode(state, Fixnum::from(O_WRONLY));
-    return Qtrue;
+    return cTrue;
   }
 
   Integer* IO::seek(STATE, Integer* amount, Fixnum* whence) {
@@ -376,7 +376,7 @@ namespace rubinius {
 
     // Already closed, ignore.
     if(desc == -1) {
-      return Qnil;
+      return cNil;
     }
 
     // Invalid descriptor no matter what.
@@ -392,7 +392,7 @@ namespace rubinius {
         if(!hdl->rio_close()) {
           Exception::errno_error(state);
         }
-        return Qnil;
+        return cNil;
       }
     }
 
@@ -410,7 +410,7 @@ namespace rubinius {
       Exception::system_call_error(state, message.str());
     }
 
-    return Qnil;
+    return cNil;
   }
 
   /**
@@ -493,7 +493,7 @@ namespace rubinius {
 
     // Flush the buffer to disk if it's not write sync'd
     if(IOBuffer* buf = try_as<IOBuffer>(io->ibuffer())) {
-      if(!RTEST(buf->write_synced())) {
+      if(!CBOOL(buf->write_synced())) {
         native_int start = buf->start()->to_native();
         native_int used = buf->used()->to_native();
         native_int bytes = used - start;
@@ -551,14 +551,14 @@ namespace rubinius {
 
   retry:
     state->vm()->interrupt_with_signal();
-    state->vm()->thread->sleep(state, Qtrue);
+    state->vm()->thread->sleep(state, cTrue);
 
     {
       GCIndependent guard(state, calling_environment);
       bytes_read = ::read(fd, buffer->byte_address(), count);
     }
 
-    state->vm()->thread->sleep(state, Qfalse);
+    state->vm()->thread->sleep(state, cFalse);
     state->vm()->clear_waiter();
 
     if(bytes_read == -1) {
@@ -577,7 +577,7 @@ namespace rubinius {
     buffer->unpin();
 
     if(bytes_read == 0) {
-      return Qnil;
+      return cNil;
     }
 
     buffer->num_bytes(state, Fixnum::from(bytes_read));
@@ -620,15 +620,15 @@ namespace rubinius {
       Exception::errno_error(state, "read(2) failed");
     }
 
-    if(bytes_read == 0) return Qnil;
+    if(bytes_read == 0) return cNil;
 
     buffer->num_bytes(state, Fixnum::from(bytes_read));
     return buffer;
   }
 
   Object* IO::write(STATE, String* buf, CallFrame* call_frame) {
-    native_int left = buf->size();
-    native_int data_size = as<CharArray>(buf->data())->size();
+    native_int left = buf->byte_size();
+    native_int data_size = as<ByteArray>(buf->data())->size();
     if(unlikely(left > data_size)) {
       left = data_size;
     }
@@ -676,19 +676,20 @@ namespace rubinius {
       return NULL;
     }
 
-    return Integer::from(state, buf->size() - left);
+    return Integer::from(state, buf->byte_size() - left);
   }
 
   Object* IO::write_nonblock(STATE, String* buf) {
     set_nonblock(state);
 
-    native_int buf_size = buf->size();
-    native_int data_size = as<CharArray>(buf->data())->size();
+    native_int buf_size = buf->byte_size();
+    native_int data_size = as<ByteArray>(buf->data())->size();
     if(unlikely(buf_size > data_size)) {
       buf_size = data_size;
     }
 
-    int n = ::write(descriptor_->to_native(), buf->c_str(state), buf_size);
+    // We can use byte_address() here since we use an explicit size
+    int n = ::write(descriptor_->to_native(), buf->byte_address(), buf_size);
     if(n == -1) Exception::errno_error(state, "write_nonblock");
     return Fixnum::from(n);
   }
@@ -700,7 +701,7 @@ namespace rubinius {
     if(cnt == -1) {
       Exception::errno_error(state);
     } else if(cnt == 0) {
-      return Qnil;
+      return cNil;
     }
 
     str->num_bytes(state, Fixnum::from(cnt));
@@ -794,7 +795,7 @@ namespace rubinius {
 
   retry:
     state->vm()->interrupt_with_signal();
-    state->vm()->thread->sleep(state, Qtrue);
+    state->vm()->thread->sleep(state, cTrue);
 
     {
       GCIndependent guard(state, calling_environment);
@@ -804,7 +805,7 @@ namespace rubinius {
                             (struct sockaddr*)buf, &alen);
     }
 
-    state->vm()->thread->sleep(state, Qfalse);
+    state->vm()->thread->sleep(state, cFalse);
     state->vm()->clear_waiter();
 
     buffer->unpin();
@@ -833,7 +834,7 @@ namespace rubinius {
       if(alen && alen != sizeof(buf)) {
         ary->set(state, 1, ipaddr(state, (struct sockaddr*)buf, alen));
       } else {
-        ary->set(state, 1, Qnil);
+        ary->set(state, 1, cNil);
       }
       break;
 #ifndef RBX_WINDOWS
@@ -854,14 +855,14 @@ namespace rubinius {
     native_int fd = to_fd();
 
     if(op == state->symbol("tty?")) {
-      return isatty(fd) ? Qtrue : Qfalse;
+      return isatty(fd) ? cTrue : cFalse;
 #ifndef RBX_WINDOWS
     } else if(op == state->symbol("ttyname")) {
       return String::create(state, ttyname(fd));
 #endif
     }
 
-    return Qnil;
+    return cNil;
   }
 
   // Stole/ported from 1.8.7. The system fnmatch doesn't support
@@ -1048,10 +1049,10 @@ failed: /* try next '*' position */
 
   Object* IO::fnmatch(STATE, String* pattern, String* path, Fixnum* flags) {
     if(mri_fnmatch(pattern->c_str(state), path->c_str(state), flags->to_native())) {
-      return Qtrue;
+      return cTrue;
     }
 
-    return Qfalse;
+    return cFalse;
   }
 
 
@@ -1066,7 +1067,7 @@ failed: /* try next '*' position */
 
   retry:
     state->vm()->interrupt_with_signal();
-    state->vm()->thread->sleep(state, Qtrue);
+    state->vm()->thread->sleep(state, cTrue);
 
     {
       GCIndependent guard(state, calling_environment);
@@ -1074,7 +1075,7 @@ failed: /* try next '*' position */
       set = true;
     }
 
-    state->vm()->thread->sleep(state, Qfalse);
+    state->vm()->thread->sleep(state, cFalse);
     state->vm()->clear_waiter();
 
     if(new_fd == -1) {
@@ -1087,7 +1088,7 @@ failed: /* try next '*' position */
       return NULL;
     }
 
-    if(!set) return Qnil;
+    if(!set) return cNil;
     return Fixnum::from(new_fd);
   }
 
@@ -1133,7 +1134,7 @@ failed: /* try next '*' position */
       return Primitives::failure();
     }
 
-    return Qnil;
+    return cNil;
 #endif
   }
 
@@ -1178,14 +1179,14 @@ failed: /* try next '*' position */
 
     retry:
     state->vm()->interrupt_with_signal();
-    state->vm()->thread->sleep(state, Qtrue);
+    state->vm()->thread->sleep(state, cTrue);
 
     {
       GCIndependent guard(state);
       code = recvmsg(read_fd, &msg, 0);
     }
 
-    state->vm()->thread->sleep(state, Qfalse);
+    state->vm()->thread->sleep(state, cFalse);
     state->vm()->clear_waiter();
 
     if(code == -1) {
@@ -1227,12 +1228,12 @@ failed: /* try next '*' position */
 /* IOBuffer methods */
   IOBuffer* IOBuffer::create(STATE, size_t bytes) {
     IOBuffer* buf = state->new_object<IOBuffer>(G(iobuffer));
-    buf->storage(state, CharArray::create(state, bytes));
+    buf->storage(state, ByteArray::create(state, bytes));
     buf->channel(state, Channel::create_primed(state));
     buf->total(state, Fixnum::from(bytes));
     buf->used(state, Fixnum::from(0));
     buf->reset(state);
-    buf->write_synced(state, Qtrue);
+    buf->write_synced(state, cTrue);
 
     return buf;
   }
@@ -1242,10 +1243,10 @@ failed: /* try next '*' position */
   }
 
   Object* IOBuffer::unshift(STATE, String* str, Fixnum* start_pos) {
-    write_synced(state, Qfalse);
+    write_synced(state, cFalse);
     native_int start_pos_native = start_pos->to_native();
-    native_int str_size = str->size();
-    native_int data_size = as<CharArray>(str->data())->size();
+    native_int str_size = str->byte_size();
+    native_int data_size = as<ByteArray>(str->data())->size();
     if(unlikely(str_size > data_size)) {
       str_size = data_size;
     }
@@ -1277,14 +1278,14 @@ failed: /* try next '*' position */
 
   retry:
     state->vm()->interrupt_with_signal();
-    state->vm()->thread->sleep(state, Qtrue);
+    state->vm()->thread->sleep(state, cTrue);
 
     {
       GCIndependent guard(state, calling_environment);
       bytes_read = read(fd, temp_buffer, count);
     }
 
-    state->vm()->thread->sleep(state, Qfalse);
+    state->vm()->thread->sleep(state, cFalse);
     state->vm()->clear_waiter();
 
     if(bytes_read == -1) {
@@ -1321,7 +1322,7 @@ failed: /* try next '*' position */
   void IOBuffer::reset(STATE) {
     used(state, Fixnum::from(0));
     start(state, Fixnum::from(0));
-    eof(state, Qfalse);
+    eof(state, cFalse);
   }
 
   void IOBuffer::read_bytes(STATE, size_t bytes) {

@@ -1,3 +1,5 @@
+# -*- encoding: us-ascii -*-
+
 class Dir
   def self.allocate
     Rubinius.primitive :dir_allocate

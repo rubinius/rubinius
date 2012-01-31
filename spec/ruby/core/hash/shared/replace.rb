@@ -16,7 +16,7 @@ describe :hash_replace, :shared => true do
 
   it "calls to_hash on hash subclasses" do
     h = new_hash
-    h.send(@method, ToHashHash[1 => 2])
+    h.send(@method, HashSpecs::ToHashHash[1 => 2])
     h.should == new_hash(1 => 2)
   end
 

@@ -1,3 +1,5 @@
+# -*- encoding: us-ascii -*-
+
 ##
 # Describes the environment a block was created in.  BlockEnvironment is used
 # to create a BlockContext.

@@ -1,3 +1,5 @@
+# -*- encoding: us-ascii -*-
+
 class Time
   include Comparable
 
@@ -8,29 +10,27 @@ class Time
   }
 
   def self.at(sec, usec=nil)
-    if sec.kind_of? Time
-      return specific(sec.to_i, sec.usec, sec.gmt?)
-    end
+    return duplicate(sec) if sec.kind_of? Time
 
     if sec.kind_of?(Integer) || usec
-      sec  = Rubinius::Type.coerce_to sec, Integer, :to_i
-      usec = usec ? usec.to_i : 0
+      sec = Rubinius::Type.coerce_to sec, Integer, :to_i
+      nsec = usec ? (usec * 1000).to_i : 0
 
-      sec  = sec + (usec / 1000000)
-      usec = usec % 1000000
+      sec = sec + (nsec / 1000000000)
+      nsec = nsec % 1000000000
     else
       float = FloatValue(sec)
       sec       = float.to_i
-      usec_frac = float % 1.0
+      nsec_frac = float % 1.0
 
-      if float < 0 && usec_frac > 0
+      if float < 0 && nsec_frac > 0
         sec -= 1
       end
 
-      usec = (usec_frac * 1_000_000 + 0.5).to_i
+      nsec = (nsec_frac * 1_000_000_000 + 0.5).to_i
     end
 
-    return specific(sec, usec, false)
+    return specific(sec, nsec, false)
   end
 
   #--
@@ -93,13 +93,13 @@ class Time
 
   def self.local(first, *args)
     if args.size == 9
-      second = second.kind_of?(String)  ? first.to_i   : Rubinius::Type.num2long(first)
+      sec    = first.kind_of?(String)   ? first.to_i   : Rubinius::Type.num2long(first)
       minute = args[0].kind_of?(String) ? args[0].to_i : Rubinius::Type.num2long(args[0])
       hour =   args[1].kind_of?(String) ? args[1].to_i : Rubinius::Type.num2long(args[1])
       day =    args[2].kind_of?(String) ? args[2].to_i : Rubinius::Type.num2long(args[2])
       month =  args[3].kind_of?(String) ? args[3].to_i : Rubinius::Type.num2long(args[3])
       year =   args[4].kind_of?(String) ? args[4].to_i : Rubinius::Type.num2long(args[4])
-      usec =   0
+      nsec =   0
       isdst =  args[7] ? 1 : 0
     else
       # resolve month names to numbers
@@ -122,8 +122,17 @@ class Time
       day =    args[1].kind_of?(String) ? args[1].to_i : Rubinius::Type.num2long(args[1] || 1)
       hour =   args[2].kind_of?(String) ? args[2].to_i : Rubinius::Type.num2long(args[2] || 0)
       minute = args[3].kind_of?(String) ? args[3].to_i : Rubinius::Type.num2long(args[3] || 0)
-      second = args[4].kind_of?(String) ? args[4].to_i : Rubinius::Type.num2long(args[4] || 0)
-      usec =   args[5].kind_of?(String) ? args[5].to_i : Rubinius::Type.num2long(args[5] || 0)
+
+      sec  = args[4] || 0
+      usec = args[5]
+      nsec = nil
+
+      if usec.kind_of?(String)
+        nsec = usec.to_i * 1000
+      elsif usec
+        nsec = (usec * 1000).to_i
+      end
+
       isdst =  -1
     end
 
@@ -138,7 +147,7 @@ class Time
       end
     end
 
-    from_array(second, minute, hour, day, month, year, usec, isdst, false)
+    from_array(sec, minute, hour, day, month, year, nsec, isdst, false)
   end
 
   def self.gm(first, *args)
@@ -149,7 +158,7 @@ class Time
       day =    args[2].kind_of?(String) ? args[2].to_i : Rubinius::Type.num2long(args[2])
       month =  args[3].kind_of?(String) ? args[3].to_i : Rubinius::Type.num2long(args[3])
       year =   args[4].kind_of?(String) ? args[4].to_i : Rubinius::Type.num2long(args[4])
-      usec =   0
+      nsec =   0
     else
       # resolve month names to numbers
       month = args[0]
@@ -171,8 +180,16 @@ class Time
       day =    args[1].kind_of?(String) ? args[1].to_i : Rubinius::Type.num2long(args[1] || 1)
       hour =   args[2].kind_of?(String) ? args[2].to_i : Rubinius::Type.num2long(args[2] || 0)
       minute = args[3].kind_of?(String) ? args[3].to_i : Rubinius::Type.num2long(args[3] || 0)
-      second = args[4].kind_of?(String) ? args[4].to_i : Rubinius::Type.num2long(args[4] || 0)
-      usec =   args[5].kind_of?(String) ? args[5].to_i : Rubinius::Type.num2long(args[5] || 0)
+
+      second = args[4] || 0
+      usec   = args[5]
+      nsec   = nil
+
+      if usec.kind_of?(String)
+        nsec = usec.to_i * 1000
+      elsif usec
+        nsec = (usec * 1000).to_i
+      end
     end
 
     # This logic is taken from MRI, on how to deal with 2 digit dates.
@@ -186,44 +203,11 @@ class Time
       end
     end
 
-    from_array(second, minute, hour, day, month, year, usec, -1, true)
+    from_array(second, minute, hour, day, month, year, nsec, -1, true)
   end
 
   def self.times
     Process.times
-  end
-
-  def +(arg)
-    raise TypeError, 'time + time?' if arg.kind_of?(Time)
-
-    if arg.kind_of?(Integer)
-      other_sec = arg
-      other_usec = 0
-    else
-      other_sec, usec_frac = FloatValue(arg).divmod(1)
-      other_usec = (usec_frac * 1_000_000 + 0.5).to_i
-    end
-
-    # Don't use self.class, MRI doesn't honor subclasses here
-    Time.specific(seconds + other_sec, usec + other_usec, @is_gmt)
-  end
-
-  def -(other)
-    case other
-    when Time
-      (seconds - other.seconds) + ((usec - other.usec) * 0.000001)
-    when Integer
-      # Don't use self.class, MRI doesn't honor subclasses here
-      Time.specific(seconds - other, usec, @is_gmt)
-    else
-      other = FloatValue(other)
-
-      other_sec, usec_frac = FloatValue(other).divmod(1)
-      other_usec = (usec_frac * 1_000_000 + 0.5).to_i
-
-      # Don't use self.class, MRI doesn't honor subclasses here
-      Time.specific(seconds - other_sec, usec - other_usec, @is_gmt)
-    end
   end
 
   def succ

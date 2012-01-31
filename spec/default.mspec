@@ -26,6 +26,12 @@ class MSpecScript
   # Enable language features
   MSpec.enable_feature :fork
 
+  rbx = defined?(RUBY_ENGINE) and RUBY_ENGINE == "rbx"
+
+  if RUBY_VERSION >= "1.9" or rbx
+    MSpec.enable_feature :require_19
+  end
+
   if Object.const_defined?(:Rubinius) && Rubinius.const_get(:Fiber)
     if Rubinius::Fiber::ENABLED
       ::Fiber = Rubinius::Fiber

@@ -1,13 +1,13 @@
 require 'zlib'
 require File.expand_path('../../../../spec_helper', __FILE__)
 
-describe 'Zlib::Inflate#inflate' do
+describe "Zlib::Inflate#inflate" do
 
   before :each do
     @inflator = Zlib::Inflate.new
   end
 
-  it 'inflates some data' do
+  it "inflates some data" do
     data = "x\234c`\200\001\000\000\n\000\001"
 
     unzipped = @inflator.inflate data
@@ -16,7 +16,7 @@ describe 'Zlib::Inflate#inflate' do
     unzipped.should == "\000" * 10
   end
 
-  it 'inflates lots of data' do
+  it "inflates lots of data" do
     data = "x\234\355\301\001\001\000\000\000\200\220\376\257\356\b\n#{"\000" * 31}\030\200\000\000\001"
 
     unzipped = @inflator.inflate data
@@ -25,7 +25,7 @@ describe 'Zlib::Inflate#inflate' do
     unzipped.should == "\000" * 32 * 1024
   end
 
-  it 'works in pass-through mode, once finished' do
+  it "works in pass-through mode, once finished" do
     data = "x\234c`\200\001\000\000\n\000\001"
 
     unzipped = @inflator.inflate data
@@ -41,9 +41,9 @@ describe 'Zlib::Inflate#inflate' do
 
 end
 
-describe 'Zlib::Inflate::inflate' do
+describe "Zlib::Inflate::inflate" do
 
-  it 'inflates some data' do
+  it "inflates some data" do
     data = "x\234c`\200\001\000\000\n\000\001"
 
     unzipped = Zlib::Inflate.inflate data
@@ -51,7 +51,7 @@ describe 'Zlib::Inflate::inflate' do
     unzipped.should == "\000" * 10
   end
 
-  it 'inflates lots of data' do
+  it "inflates lots of data" do
     data = "x\234\355\301\001\001\000\000\000\200\220\376\257\356\b\n#{"\000" * 31}\030\200\000\000\001"
 
     zipped = Zlib::Inflate.inflate data
@@ -59,7 +59,7 @@ describe 'Zlib::Inflate::inflate' do
     zipped.should == "\000" * 32 * 1024
   end
 
-  it 'properly handles data in chunks' do
+  it "properly handles data in chunks" do
     data =  "x\234K\313\317\a\000\002\202\001E"
     z = Zlib::Inflate.new
     # add bytes, one by one
@@ -69,7 +69,7 @@ describe 'Zlib::Inflate::inflate' do
     result.should == "foo"
   end
 
-  it 'properly handles incomplete data' do
+  it "properly handles incomplete data" do
     data =  "x\234K\313\317\a\000\002\202\001E"[0,5]
     z = Zlib::Inflate.new
     # add bytes, one by one, but not all
@@ -78,7 +78,7 @@ describe 'Zlib::Inflate::inflate' do
     lambda { result << z.finish }.should raise_error(Zlib::BufError)
   end
 
-  it 'properly handles excessive data, byte-by-byte' do
+  it "properly handles excessive data, byte-by-byte" do
     main_data = "x\234K\313\317\a\000\002\202\001E"
     data =  main_data * 2
     result = ""
@@ -93,7 +93,7 @@ describe 'Zlib::Inflate::inflate' do
     result.should == "foo" + main_data
   end
 
-  it 'properly handles excessive data, in one go' do
+  it "properly handles excessive data, in one go" do
     main_data = "x\234K\313\317\a\000\002\202\001E"
     data =  main_data * 2
     result = ""

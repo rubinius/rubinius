@@ -1,2 +1,0 @@
-fails:Array#pack with format 'B' returns an ASCII-8BIT string
-fails:Array#pack with format 'b' returns an ASCII-8BIT string

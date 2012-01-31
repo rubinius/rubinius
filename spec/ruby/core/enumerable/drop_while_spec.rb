@@ -1,13 +1,13 @@
 require File.expand_path('../../../spec_helper', __FILE__)
 require File.expand_path('../fixtures/classes', __FILE__)
 
-describe "Enumerable#drop_while" do
-  ruby_version_is '1.8.7' do
+ruby_version_is "1.8.7" do
+  describe "Enumerable#drop_while" do
     before :each do
       @enum = EnumerableSpecs::Numerous.new(3, 2, 1, :go)
     end
 
-    it 'returns an Enumerator if no block given' do
+    it "returns an Enumerator if no block given" do
       @enum.drop_while.should be_an_instance_of(enumerator_class)
     end
 
@@ -39,6 +39,11 @@ describe "Enumerable#drop_while" do
     it "doesn't return self when it could" do
       a = [1,2,3]
       a.drop_while{false}.should_not equal(a)
+    end
+
+    it "gathers whole arrays as elements when each yields multiple" do
+      multi = EnumerableSpecs::YieldsMulti.new
+      multi.drop_while {|e| e != [6, 7, 8, 9] }.should == [[6, 7, 8, 9]]
     end
   end
 end

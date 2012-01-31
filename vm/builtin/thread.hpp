@@ -168,7 +168,7 @@ namespace rubinius {
     Tuple* context(STATE);
 
     // Rubinius.primitive :thread_join
-    Object* join(STATE, CallFrame* calling_environment);
+    Object* join(STATE, GCToken gct, CallFrame* calling_environment);
 
     // Rubinius.primitive :thread_set_critical
     static Object* set_critical(STATE, Object* obj);

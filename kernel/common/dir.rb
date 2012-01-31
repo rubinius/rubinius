@@ -1,3 +1,5 @@
+# -*- encoding: us-ascii -*-
+
 class Dir
   include Enumerable
 

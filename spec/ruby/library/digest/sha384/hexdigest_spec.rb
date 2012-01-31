@@ -3,7 +3,7 @@ require File.expand_path('../shared/constants', __FILE__)
 
 describe "Digest::SHA384#hexdigest" do
 
-  it 'returns a hexdigest' do
+  it "returns a hexdigest" do
     cur_digest = Digest::SHA384.new
     cur_digest.hexdigest.should == SHA384Constants::BlankHexdigest
 
@@ -22,7 +22,7 @@ end
 
 describe "Digest::SHA384.hexdigest" do
 
-  it 'returns a hexdigest' do
+  it "returns a hexdigest" do
     Digest::SHA384.hexdigest(SHA384Constants::Contents).should == SHA384Constants::Hexdigest
     # second invocation is intentional, to make sure there are no side-effects
     Digest::SHA384.hexdigest(SHA384Constants::Contents).should == SHA384Constants::Hexdigest

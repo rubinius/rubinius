@@ -1,6 +1,19 @@
+# -*- encoding: us-ascii -*-
+
 class Float
   INFINITY = 1.0 / 0.0
   NAN = 0.0 / 0.0
+
+  def **(other)
+    Rubinius.primitive :float_pow
+
+    if other.is_a?(Float) && self < 0 && other != other.round
+      return Complex(self) ** other
+    end
+
+    b, a = math_coerce other
+    a ** b
+  end
 
   alias_method :magnitude, :abs
 
@@ -37,9 +50,51 @@ class Float
   end
 
   def arg
-    return self if nan?
-    super
+    if nan?
+      self
+    elsif FFI::Platform::Math.signbit(self) != 0
+      Math::PI
+    else
+      0
+    end
   end
   alias_method :angle, :arg
   alias_method :phase, :arg
+
+  def rationalize(eps=undefined)
+    if eps.equal?(undefined)
+      f, n = Math.frexp self
+      f = Math.ldexp(f, Float::MANT_DIG).to_i
+      n -= Float::MANT_DIG
+
+      Rational(2 * f, 1 << (1 - n)).rationalize(Rational(1, 1 << (1 - n)))
+    else
+      to_r.rationalize(eps)
+    end
+  end
+
+  def round(ndigits=0)
+    ndigits = Rubinius::Type.coerce_to(ndigits, Integer, :to_int)
+
+    if ndigits == 0
+      return Rubinius.invoke_primitive :float_round, self
+    elsif ndigits < 0
+      return truncate.round ndigits
+    end
+
+    return self if infinite? or nan?
+
+    _, exp = Math.frexp(self)
+
+    if ndigits >= (Float::DIG + 2) - (exp > 0 ? exp / 4 : exp / 3 - 1)
+      return self
+    end
+
+    if ndigits < -(exp > 0 ? exp / 3 + 1 : exp / 4)
+      return 0.0
+    end
+      
+    f = 10**ndigits
+    Rubinius.invoke_primitive(:float_round, self * f) / f.to_f
+  end
 end

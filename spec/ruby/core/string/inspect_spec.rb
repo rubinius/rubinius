@@ -3,27 +3,20 @@ require File.expand_path('../../../spec_helper', __FILE__)
 require File.expand_path('../fixtures/classes.rb', __FILE__)
 
 describe "String#inspect" do
-  ruby_version_is "1.9" do
-    before :each do
-      Encoding.default_external = Encoding::UTF_8
-      @orig_exteenc = Encoding.default_external
-    end
-
-    after :each do
-      Encoding.default_external = @orig_exteenc
-    end
-  end
-
   it "taints the result if self is tainted" do
     "foo".taint.inspect.tainted?.should == true
     "foo\n".taint.inspect.tainted?.should == true
   end
 
-  it "does not return subclass instances" do
-    str = StringSpecs::MyString.new
-    str << "test"
-    str.should == "test"
-    str.inspect.should be_an_instance_of(String)
+  ruby_version_is "1.9" do
+    it "untrusts the result if self is untrusted" do
+      "foo".untrust.inspect.untrusted?.should == true
+      "foo\n".untrust.inspect.untrusted?.should == true
+    end
+  end
+
+  it "does not return a subclass instance" do
+    StringSpecs::MyString.new.inspect.should be_an_instance_of(String)
   end
 
   it "returns a string with special characters replaced with \\<char> notation" do
@@ -517,7 +510,7 @@ describe "String#inspect" do
       ].should be_computed_by(:inspect)
     end
 
-    it "returns a string with non-printing, characters replaced by \\u notation for Unicode strings" do
+    it "returns a string with non-printing characters replaced by \\u notation for Unicode strings" do
       [ [0000.chr('utf-8'), '"\u0000"'],
         [0001.chr('utf-8'), '"\u0001"'],
         [0002.chr('utf-8'), '"\u0002"'],
@@ -675,19 +668,6 @@ describe "String#inspect" do
         [0376.chr('utf-8'), '"þ"'],
         [0377.chr('utf-8'), '"ÿ"']
       ].should be_computed_by(:inspect)
-    end
-
-    # TODO: these specs need to be fixed, they are testing the result of
-    # #force_encoding being called *after* #inspect.
-    it "produces different output based on #force_encoding" do
-      "äöü".inspect.force_encoding('UTF-8').should == "\"\xC3\xA4\xC3\xB6\xC3\xBC\""
-      "äöü".inspect.force_encoding('ASCII').should == "\"äöü\"".force_encoding('ASCII')
-    end
-
-    it "can handle malformed UTF-8 string for #force_encoding('UTF-8')" do
-      # malformed UTF-8 sequence
-      "\007äöüz\303".inspect.force_encoding('UTF-8').should ==
-        "\"\\aäöüz\\xC3\"".force_encoding('UTF-8')
     end
   end
 end

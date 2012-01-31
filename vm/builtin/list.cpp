@@ -67,20 +67,20 @@ namespace rubinius {
     ListNode* cur = first_;
 
     while(index > 0) {
-      if(cur->nil_p()) return Qnil;
+      if(cur->nil_p()) return cNil;
 
       cur = cur->next();
       index--;
     }
 
-    if(cur->nil_p()) return Qnil;
+    if(cur->nil_p()) return cNil;
     return cur->object();
   }
 
   /* Return the first element in the list and remove it, moving all
    * other elements forward. */
   Object* List::shift(STATE) {
-    if(empty_p()) return Qnil;
+    if(empty_p()) return cNil;
 
     count(state, Integer::from(state, count_->to_native() - 1));
     ListNode* n = first_;

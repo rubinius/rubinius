@@ -1,35 +1,14 @@
 #ifndef RBX_BUILTIN_FIBER
 #define RBX_BUILTIN_FIBER
 
-#include "vm/config.h"
-
-#if defined(IS_X86)
-#define FIBER_ENABLED
-#define FIBER_NATIVE
-#define FIBER_ASM_X8632
-struct fiber_context_t;
-
-#elif defined(IS_X8664)
-#define FIBER_ENABLED
-#define FIBER_NATIVE
-#define FIBER_ASM_X8664
-struct fiber_context_t;
-
-#elif defined(HAS_UCONTEXT)
-#define FIBER_ENABLED
-#include <ucontext.h>
-typedef ucontext_t fiber_context_t;
-
-#else
-struct fiber_context_t;
-#endif
-
-
 #include <signal.h>
 #include <stdio.h>
 #include <stdlib.h>
 
+#include "prelude.hpp"
 #include "builtin/object.hpp"
+
+#include "fiber_data.hpp"
 
 namespace rubinius {
   class Fiber : public Object {
@@ -45,56 +24,70 @@ namespace rubinius {
     Array* value_; // slot
     Fiber* prev_; // slot
     Exception* exception_; // slot
-    CallFrame* top_;
     Status status_;
-    VM* vm_;
 
     bool root_;
-    void* stack_;
-    int stack_size_;
-    fiber_context_t* context_;
+
+    FiberData* data_;
 
   public:
     attr_accessor(starter, Object);
     attr_accessor(value, Array);
     attr_accessor(prev, Fiber);
-    attr_accessor(exception, Exception)
+    attr_accessor(exception, Exception);
+
+    bool root_p() {
+      return root_;
+    }
 
     CallFrame* call_frame() {
-      return top_;
+      if(!data_) return 0;
+      return data_->call_frame();
     }
 
     void sleep(CallFrame* cf) {
-      top_ = cf;
+      if(data_) data_->set_call_frame(cf);
       status_ = eSleeping;
     }
 
     void run() {
-      top_ = 0;
+      if(data_) data_->set_call_frame(0);
       status_ = eRunning;
     }
 
     fiber_context_t* ucontext() {
-      return context_;
+      return data_->machine();
     }
 
-    VM* vm() {
-      return vm_;
+    FiberData* data() {
+      return data_;
     }
 
-    void* stack() {
-      return stack_;
+    void* stack_region() {
+      return data_->stack_address();
+    }
+
+    void* stack_end() {
+      return data_->stack_address();
+    }
+
+    void* stack_start() {
+      return (void*)((uintptr_t)stack_region() + stack_size());
     }
 
     int stack_size() {
-      return stack_size_;
+      return data_->stack_size();
+    }
+
+    VariableRootBuffers& variable_root_buffers() {
+      return data_->variable_root_buffers();
     }
 
   public:
     static void init(STATE);
 
     // Rubinius.primitive :fiber_new
-    static Fiber* create(STATE, Integer* stack_size, Object* callable);
+    static Fiber* create(STATE, Object* self, Object* callable);
     static void start_on_stack();
 
     // Rubinius.primitive :fiber_s_current

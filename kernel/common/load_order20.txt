@@ -37,8 +37,7 @@ integer19.rbc
 bignum.rbc
 block_environment.rbc
 bytearray.rbc
-chararray.rbc
-chararray19.rbc
+bytearray19.rbc
 channel.rbc
 executable.rbc
 static_scope.rbc
@@ -57,6 +56,7 @@ lrucache.rbc
 dir_glob.rbc
 encoding.rbc
 env.rbc
+env19.rbc
 errno.rbc
 eval.rbc
 eval19.rbc
@@ -91,6 +91,7 @@ range19.rbc
 struct.rbc
 process.rbc
 random.rbc
+random19.rbc
 regexp.rbc
 regexp19.rbc
 signal.rbc

@@ -7,7 +7,7 @@ describe "Enumerable#take_while" do
       @enum = EnumerableSpecs::Numerous.new(3, 2, 1, :go)
     end
 
-    it 'returns an Enumerator if no block given' do
+    it "returns an Enumerator if no block given" do
       @enum.take_while.should be_an_instance_of(enumerator_class)
     end
 

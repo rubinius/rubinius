@@ -1,4 +1,5 @@
 #include <rbxti.hpp>
+#include <rbxti/atomic.hpp>
 #include <rbx_config.h>
 
 #include <stdint.h>
@@ -341,10 +342,20 @@ namespace profiler {
     int       id_;
     bool      attached_;
 
+    rbxti::SpinLock  lock_;
+
   public:
     Profiler(Env* env);
 
     ~Profiler();
+
+    void lock() {
+      lock_.lock();
+    }
+
+    void unlock() {
+      lock_.unlock();
+    }
 
     MethodEntry* current_me() {
       return current_me_;
@@ -370,13 +381,17 @@ namespace profiler {
       return end_time_ - start_time_;
     }
 
-    void detach(Env* env, uint64_t end_time) {
-      if(attached_) {
+    void finish(Env* env, uint64_t end_time) {
+      if(end_time_ == 0) {
         end_time_ = end_time;
-        attached_ = false;
 
         current_me_->stop_all(this, env, end_time);
       }
+    }
+
+    void detach(Env* env, uint64_t end_time) {
+      finish(env, end_time);
+      attached_ = false;
     }
 
     bool attached_p() {
@@ -783,9 +798,13 @@ namespace profiler {
       Profiler* profiler = (Profiler*)env->thread_tool_data(cProfileToolID);
       if(!profiler) return 0;
 
+      profiler->lock();
+
       Method* method = profiler->enter_method(env, recv, name, mod, cm);
       MethodEntry* me = new MethodEntry(method);
       me->start(profiler, env);
+
+      profiler->unlock();
 
       return me;
     }
@@ -796,7 +815,12 @@ namespace profiler {
       Profiler* profiler = (Profiler*)env->thread_tool_data(cProfileToolID);
       if(!profiler) return;
 
+      profiler->lock();
+
       me->stop(profiler, env);
+
+      profiler->unlock();
+
       delete me;
     }
 
@@ -804,9 +828,13 @@ namespace profiler {
       Profiler* profiler = (Profiler*)env->thread_tool_data(cProfileToolID);
       if(!profiler) return 0;
 
+      profiler->lock();
+
       Method* method = profiler->enter_block(env, name, module, cm);
       MethodEntry* me = new MethodEntry(method);
       me->start(profiler, env);
+
+      profiler->unlock();
 
       return me;
     }
@@ -839,9 +867,13 @@ namespace profiler {
         break;
       }
 
+      profiler->lock();
+
       Method* method = profiler->get_method(env, NULL, name, container, kind);
       MethodEntry* me = new MethodEntry(method);
       me->start(profiler, env);
+
+      profiler->unlock();
 
       return me;
     }
@@ -850,6 +882,8 @@ namespace profiler {
       Profiler* profiler = (Profiler*)env->thread_tool_data(cProfileToolID);
       if(!profiler) return 0;
 
+      profiler->lock();
+
       Kind kind = kScript;
       rsymbol container = env->symbol("unknown");
       rsymbol name = container;
@@ -857,6 +891,8 @@ namespace profiler {
       Method* method = profiler->get_method(env, cm, name, container, kind);
       MethodEntry* me = new MethodEntry(method);
       me->start(profiler, env);
+
+      profiler->unlock();
 
       return me;
     }
@@ -885,21 +921,46 @@ namespace profiler {
       if(!st) return;
 
       Profiler* profiler = new Profiler(env);
+      profiler->lock();
+
       st->add(profiler);
 
       env->thread_tool_set_data(cProfileToolID, profiler);
 
       env->enable_thread_tooling();
+
+      profiler->unlock();
     }
 
     void tool_stop_thread(Env* env) {
       Profiler* profiler = (Profiler*)env->thread_tool_data(cProfileToolID);
       if(!profiler) return;
 
+      profiler->lock();
+
       env->thread_tool_set_data(cProfileToolID, 0);
       profiler->detach(env, env->time_current_ns());
 
       env->disable_thread_tooling();
+
+      profiler->unlock();
+    }
+
+    void tool_at_gc(Env* env) {
+      Profiler* profiler = (Profiler*)env->thread_tool_data(cProfileToolID);
+      if(!profiler) return;
+
+      profiler->lock();
+
+      // The main thread finished profiling, so we've already stopped
+      // doing our work, so we can safely bail.
+      if(profiler->end_time() > 0) {
+        env->thread_tool_set_data(cProfileToolID, 0);
+        delete profiler;
+        return;
+      }
+
+      profiler->unlock();
     }
 
     robject tool_results(Env* env) {
@@ -928,6 +989,10 @@ namespace profiler {
 
         Profiler* prof = *i;
 
+        prof->lock();
+
+        prof->finish(env, fin);
+
         rtable thread = env->table_new();
 
         env->table_store(profile, env->integer_new(prof->id()), thread);
@@ -943,6 +1008,8 @@ namespace profiler {
 
         KeyMap keys;
         prof->results(env, thread, nodes, methods, keys, runtime);
+
+        prof->unlock();
       }
 
       tool_shutdown(env);

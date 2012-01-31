@@ -1,3 +1,5 @@
+# -*- encoding: us-ascii -*-
+
 ##
 # A linked list that details the static, lexical scope the method was created
 # in.

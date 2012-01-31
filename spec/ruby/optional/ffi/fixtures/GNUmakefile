@@ -42,7 +42,9 @@ ifeq ($(OS), win32)
 	LDFLAGS += -mno-cygwin -Wl,--add-stdcall-alias
 endif
 ifeq ($(OS), darwin)
-  ARCHFLAGS = -arch ppc
+  ifeq ($(CPU),powerpc)
+    ARCHFLAGS = -arch ppc
+  endif
   ifeq ($(CPU),i386)
     ARCHFLAGS += -arch i386 -arch x86_64
   endif

@@ -166,6 +166,9 @@ namespace rubinius {
     // Rubinius.primitive :vm_time
     static Object*  vm_time(STATE);
 
+    // Rubinius.primitive :vm_sleep
+    static Object*  vm_sleep(STATE, GCToken gct, Object* duration, CallFrame* calling_environment);
+
     // Rubinius.primitive :vm_times
     static Array*   vm_times(STATE);
 
@@ -243,10 +246,10 @@ namespace rubinius {
     static Object* vm_raise_exception(STATE, Exception* exc);
 
     // Rubinius.primitive :vm_throw
-    static Object* vm_throw(STATE, Symbol* dest, Object* value);
+    static Object* vm_throw(STATE, Object* dest, Object* value);
 
     // Rubinius.primitive :vm_catch
-    static Object* vm_catch(STATE, Symbol* dest, Object* obj, CallFrame* calling_environment);
+    static Object* vm_catch(STATE, Object* dest, Object* obj, CallFrame* calling_environment);
 
     // Rubinius.primitive :vm_set_class
     static Object* vm_set_class(STATE, Object* obj, Class* cls);

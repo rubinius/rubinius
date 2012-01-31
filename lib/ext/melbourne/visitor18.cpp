@@ -1,10 +1,6 @@
-#include <string.h>
-
 #include <sstream>
-#include <stdint.h>
 
-#include "ruby.h"
-
+#include "melbourne.hpp"
 #include "parser_state18.hpp"
 #include "visitor18.hpp"
 #include "symbols.hpp"
@@ -30,7 +26,7 @@ namespace melbourne {
       if(start_lines->size() > 0) {
         StartPosition& pos = start_lines->back();
 
-        std::stringstream ss;
+        std::ostringstream ss;
         ss << "missing 'end' for '"
            << pos.kind
            << "' started on line "
@@ -942,6 +938,10 @@ namespace melbourne {
     case NODE_NEGATE: {
       VALUE expr = process_parse_tree(parser_state, ptp, node->nd_head, locals);
       tree = rb_funcall(ptp, rb_sNegate, 2, line, expr);
+      break;
+    }
+    case NODE_PREEXE: {           /* BEGIN { ... } */
+      tree = rb_funcall(ptp, rb_sPreExe, 1, line);
       break;
     }
     case NODE_POSTEXE:            /* END { ... } */

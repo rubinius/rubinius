@@ -42,7 +42,7 @@ public:
     stream.str("!RBIX\n1\n42\nt");
 
     CompiledFile* cf = CompiledFile::load(stream);
-    TS_ASSERT_EQUALS(cf->body(state), Qtrue);
+    TS_ASSERT_EQUALS(cf->body(state), cTrue);
   }
 
   void test_load_file() {

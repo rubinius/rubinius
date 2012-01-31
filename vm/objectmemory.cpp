@@ -321,7 +321,7 @@ step1:
       initial_count = orig.f.aux_word & cAuxLockRecCountMask;
     }
 
-    ih->initialize_mutex(state->vm()->thread_id(), initial_count + 1);
+    ih->initialize_mutex(state->vm()->thread_id(), initial_count);
 
     tmp.all_flags = ih;
     tmp.f.meaning = eAuxWordInflated;
@@ -382,8 +382,6 @@ step1:
         }
 
         ih = inflated_headers_->allocate(obj);
-        ih->flags().meaning = eAuxWordEmpty;
-        ih->flags().aux_word = 0;
         break;
       case eAuxWordInflated:
         if(cDebugThreading) {
@@ -490,46 +488,6 @@ step1:
     return copy;
   }
 
-  void ObjectMemory::collect(STATE, GCToken gct, CallFrame* call_frame) {
-    // Don't go any further unless we're allowed to GC.
-    if(!can_gc()) return;
-
-    while(!state->stop_the_world()) {
-      state->checkpoint(gct, call_frame);
-
-      // Someone else got to the GC before we did! No problem, all done!
-      if(!collect_young_now && !collect_mature_now) return;
-    }
-
-    // Ok, everyone in stopped! LET'S GC!
-
-    SYNC(state);
-
-    if(cDebugThreading) {
-      std::cerr << std::endl << "[ " << state
-                << " WORLD beginning GC.]" << std::endl;
-    }
-
-    GCData gc_data(state->vm(), gct);
-
-    collect_young(gc_data);
-    collect_mature(gc_data);
-
-    // Ok, we're good. Get everyone going again.
-    state->restart_world();
-    bool added = added_finalizers_;
-    added_finalizers_ = false;
-
-    UNSYNC;
-
-    if(added) {
-      if(finalizer_thread_.get() == Qnil) {
-        start_finalizer_thread(state);
-      }
-      finalizer_var_.signal();
-    }
-  }
-
   void ObjectMemory::collect_maybe(STATE, GCToken gct, CallFrame* call_frame) {
     // Don't go any further unless we're allowed to GC.
     if(!can_gc()) return;
@@ -616,7 +574,7 @@ step1:
     UNSYNC;
 
     if(added) {
-      if(finalizer_thread_.get() == Qnil) {
+      if(finalizer_thread_.get() == cNil) {
         start_finalizer_thread(state);
       }
       finalizer_var_.signal();
@@ -1055,10 +1013,10 @@ step1:
     fi.status = FinalizeObject::eLive;
 
     // Rubinius specific API. If the finalizer is the object, we're going to send
-    // the object __finalize__. We mark that the user wants this by putting Qtrue
+    // the object __finalize__. We mark that the user wants this by putting cTrue
     // as the ruby_finalizer.
     if(obj == fin) {
-      fi.ruby_finalizer = Qtrue;
+      fi.ruby_finalizer = cTrue;
     } else {
       fi.ruby_finalizer = fin;
     }
@@ -1114,9 +1072,9 @@ step1:
           unremember_object(fi->object);
         }
       } else if(fi->ruby_finalizer) {
-        // Rubinius specific code. If the finalizer is Qtrue, then
+        // Rubinius specific code. If the finalizer is cTrue, then
         // send the object the finalize message
-        if(fi->ruby_finalizer == Qtrue) {
+        if(fi->ruby_finalizer == cTrue) {
           fi->object->send(state, call_frame, state->symbol("__finalize__"), true);
         } else {
           Array* ary = Array::create(state, 1);
@@ -1124,7 +1082,7 @@ step1:
 
           OnStack<1> os(state, ary);
 
-          fi->ruby_finalizer->send(state, call_frame, state->symbol("call"), ary, Qnil, true);
+          fi->ruby_finalizer->send(state, call_frame, state->symbol("call"), ary, cNil, true);
         }
       } else {
         std::cerr << "Unsupported object to be finalized: "
@@ -1168,9 +1126,9 @@ step1:
           unremember_object(fi->object);
         }
       } else if(fi->ruby_finalizer) {
-        // Rubinius specific code. If the finalizer is Qtrue, then
+        // Rubinius specific code. If the finalizer is cTrue, then
         // send the object the finalize message
-        if(fi->ruby_finalizer == Qtrue) {
+        if(fi->ruby_finalizer == cTrue) {
           fi->object->send(state, call_frame, state->symbol("__finalize__"), true);
         } else {
           Array* ary = Array::create(state, 1);
@@ -1178,7 +1136,7 @@ step1:
 
           OnStack<1> os(state, ary);
 
-          fi->ruby_finalizer->send(state, call_frame, state->symbol("call"), ary, Qnil, true);
+          fi->ruby_finalizer->send(state, call_frame, state->symbol("call"), ary, cNil, true);
         }
       } else {
         std::cerr << "Unsupported object to be finalized: "
@@ -1210,9 +1168,9 @@ step1:
         if(fi.finalizer) {
           (*fi.finalizer)(state, fi.object);
         } else if(fi.ruby_finalizer) {
-          // Rubinius specific code. If the finalizer is Qtrue, then
+          // Rubinius specific code. If the finalizer is cTrue, then
           // send the object the finalize message
-          if(fi.ruby_finalizer == Qtrue) {
+          if(fi.ruby_finalizer == cTrue) {
             fi.object->send(state, 0, state->symbol("__finalize__"), true);
           } else {
             Array* ary = Array::create(state, 1);
@@ -1220,7 +1178,7 @@ step1:
 
             OnStack<1> os(state, ary);
 
-            fi.ruby_finalizer->send(state, 0, state->symbol("call"), ary, Qnil, true);
+            fi.ruby_finalizer->send(state, 0, state->symbol("call"), ary, cNil, true);
           }
         } else {
           std::cerr << "During shutdown, unsupported object to be finalized: "
@@ -1255,9 +1213,9 @@ step1:
         if(fi.finalizer) {
           (*fi.finalizer)(state, fi.object);
         } else if(fi.ruby_finalizer) {
-          // Rubinius specific code. If the finalizer is Qtrue, then
+          // Rubinius specific code. If the finalizer is cTrue, then
           // send the object the finalize message
-          if(fi.ruby_finalizer == Qtrue) {
+          if(fi.ruby_finalizer == cTrue) {
             fi.object->send(state, 0, state->symbol("__finalize__"), true);
           } else {
             Array* ary = Array::create(state, 1);
@@ -1265,7 +1223,7 @@ step1:
 
             OnStack<1> os(state, ary);
 
-            fi.ruby_finalizer->send(state, 0, state->symbol("call"), ary, Qnil, true);
+            fi.ruby_finalizer->send(state, 0, state->symbol("call"), ary, cNil, true);
           }
         } else {
           std::cerr << "During shutdown, unsupported object to be finalized: "
@@ -1283,7 +1241,7 @@ step1:
 
   Object* in_finalizer(STATE) {
     state->shared().om->in_finalizer_thread(state);
-    return Qnil;
+    return cNil;
   }
 
   void ObjectMemory::start_finalizer_thread(STATE) {

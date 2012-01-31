@@ -1,7 +1,7 @@
 require File.expand_path('../spec_helper', __FILE__)
 
 describe FFI::Struct, ' with inline callback functions' do
-  it 'should be able to define inline callback field' do
+  it "defines inline callback field" do
     lambda {
       Module.new do
         extend FFI::Library

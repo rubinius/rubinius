@@ -1,6 +1,6 @@
-require File.dirname(__FILE__) + '/../spec_helper'
+require 'spec_helper'
 require 'mspec/expectations/expectations'
-require 'mspec/matchers/be_ancestor_of'
+require 'mspec/matchers'
 
 class Parent; end
 class Child < Parent; end

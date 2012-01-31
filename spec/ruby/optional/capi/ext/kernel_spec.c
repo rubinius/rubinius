@@ -188,7 +188,7 @@ static VALUE kernel_spec_rb_set_end_proc(VALUE self, VALUE io) {
 
 #ifdef HAVE_RB_F_SPRINTF
 static VALUE kernel_spec_rb_f_sprintf(VALUE self, VALUE ary) {
-  return rb_f_sprintf(RARRAY_LEN(ary), RARRAY_PTR(ary));
+  return rb_f_sprintf((int)RARRAY_LEN(ary), RARRAY_PTR(ary));
 }
 #endif
 

@@ -877,7 +877,7 @@ strftime_extended(char *s, size_t maxsize, const char *format, const struct tm *
 				tp = "UTC";
 				break;
 			}
-#ifdef HAVE_TZNAME
+#if defined(HAVE_TZNAME) && defined(HAVE_DAYLIGHT)
 			i = (daylight && timeptr->tm_isdst > 0); /* 0 or 1 */
 			tp = tzname[i];
 #else

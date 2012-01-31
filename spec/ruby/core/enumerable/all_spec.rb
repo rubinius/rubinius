@@ -52,6 +52,12 @@ describe "Enumerable#all?" do
       EnumerableSpecs::Numerous.new(0, "x", false, true).all?.should == false
       @enum2.all?.should == false
     end
+
+    it "gathers whole arrays as elements when each yields multiple" do
+      multi = EnumerableSpecs::YieldsMultiWithFalse.new
+      multi.all?.should be_true
+    end
+
   end
 
   describe "with block" do
@@ -98,5 +104,27 @@ describe "Enumerable#all?" do
         @enum.all? { raise "from block" }
       }.should raise_error(RuntimeError)
     end
+
+    ruby_version_is "" ... "1.9" do
+      it "gathers whole arrays as elements when each yields multiple" do
+        multi = EnumerableSpecs::YieldsMulti.new
+        multi.all? {|e| Array === e}.should be_true
+      end
+    end
+
+    ruby_version_is "1.9" do
+      it "gathers initial args as elements when each yields multiple" do
+        multi = EnumerableSpecs::YieldsMulti.new
+        multi.all? {|e| !(Array === e) }.should be_true
+      end
+    end
+
+    it "yields multiple arguments when each yields multiple" do
+      multi = EnumerableSpecs::YieldsMulti.new
+      yielded = []
+      multi.all? {|e, i| yielded << [e, i] }
+      yielded.should == [[1, 2], [3, 4], [6, 7]]
+    end
+
   end
 end

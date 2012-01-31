@@ -25,6 +25,7 @@ namespace rubinius {
     scope->method(state, call_frame->cm);
     scope->heap_locals(state, Tuple::create(state, vmm->number_of_locals));
     scope->last_match(state, last_match_);
+    scope->fiber(state, state->vm()->current_fiber.get());
 
     scope->number_of_locals_ = vmm->number_of_locals;
 
@@ -50,7 +51,7 @@ namespace rubinius {
     // in ruby.
     if(parent_) {
       VariableScope* scope = parent_;
-      while(RTEST(scope->parent())) {
+      while(CBOOL(scope->parent())) {
         scope = scope->parent();
       }
 
@@ -73,7 +74,7 @@ namespace rubinius {
     // last_match.
     if(parent_) {
       VariableScope* scope = parent_;
-      while(RTEST(scope->parent())) {
+      while(CBOOL(scope->parent())) {
         scope = scope->parent();
       }
 

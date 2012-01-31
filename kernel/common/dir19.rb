@@ -1,3 +1,5 @@
+# -*- encoding: us-ascii -*-
+
 class Dir
 
   # This seems silly, I know. But we do this to make Dir more resistent to people

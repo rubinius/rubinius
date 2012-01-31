@@ -209,7 +209,7 @@ namespace rbxti {
   }
 
   robject Env::nil() {
-    return s(Qnil);
+    return s(cNil);
   }
 
   rsymbol Env::method_file(rmethod cm) {
@@ -334,6 +334,10 @@ namespace rbxti {
 
   void Env::set_tool_thread_stop(thread_stop_func func) {
     private_->global()->set_tool_thread_stop(func);
+  }
+
+  void Env::set_tool_at_gc(at_gc_func func) {
+    private_->global()->set_tool_at_gc(func);
   }
 
   Env* create_env(VM* state) {

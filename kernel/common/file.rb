@@ -1,3 +1,5 @@
+# -*- encoding: us-ascii -*-
+
 module FFI::Platform::POSIX
   #--
   # Internal class for accessing timevals
@@ -131,7 +133,7 @@ class File < IO
         found = false
         pos.downto(0) do |i|
           if data[i] != 47  # ?/
-            path = path.substring(0, i+1)
+            path = path.byteslice(0, i+1)
             found = true
             break
           end
@@ -148,7 +150,7 @@ class File < IO
         end
       end
 
-      path = path.substring(pos + 1, path.size - pos) if pos
+      path = path.byteslice(pos + 1, path.size - pos) if pos
     end
 
     return path if ext_not_present
@@ -159,12 +161,12 @@ class File < IO
 
     if ext == ".*"
       if pos = path.rindex(?.)
-        return path.substring(0, pos)
+        return path.byteslice(0, pos)
       end
     elsif pos = path.rindex(ext)
       # Check that ext is the last thing in the string
       if pos == path.size - ext.size
-        return path.substring(0, pos)
+        return path.byteslice(0, pos)
       end
     end
 
@@ -357,7 +359,7 @@ class File < IO
     if pos = path.find_string_reverse(slash, chunk_size)
       return "/" if pos == 0
 
-      path = path.substring(0, pos)
+      path = path.byteslice(0, pos)
 
       return "/" if path == "/"
 
@@ -369,7 +371,7 @@ class File < IO
       # edge case, only /'s, return /
       return "/" unless idx
 
-      return path.substring(0, idx - 1)
+      return path.byteslice(0, idx - 1)
     end
 
     return "."
@@ -420,7 +422,7 @@ class File < IO
     if first == ?~
       case path[1]
       when ?/
-        path = ENV["HOME"] + path.substring(1, path.size - 1)
+        path = ENV["HOME"] + path.byteslice(1, path.size - 1)
       when nil
         unless home = ENV["HOME"]
           raise ArgumentError, "couldn't find HOME environment variable when expanding '~'"
@@ -436,12 +438,12 @@ class File < IO
           length = path.size
         end
 
-        name = path.substring 1, length - 1
+        name = path.byteslice 1, length - 1
         unless dir = Rubinius.get_user_home(name)
           raise ArgumentError, "user #{name} does not exist"
         end
 
-        path = dir + path.substring(length, path.size - length)
+        path = dir + path.byteslice(length, path.size - length)
       end
     elsif first != ?/
       if dir
@@ -461,7 +463,7 @@ class File < IO
       length = index - start
 
       if length > 0
-        item = path.substring start, length
+        item = path.byteslice start, length
 
         if item == ".."
           items.pop
@@ -512,7 +514,7 @@ class File < IO
     # last component ends with a .
     return "" if dot_idx == path_size - 1
 
-    return path.substring(dot_idx, path_size - dot_idx)
+    return path.byteslice(dot_idx, path_size - dot_idx)
   end
 
   ##
@@ -528,11 +530,11 @@ class File < IO
   # similar to shell filename globbing. It may contain the
   # following metacharacters:
   #
-  # *:	Matches any file. Can be restricted by other values in the glob. * will match all files; c* will match all files beginning with c; *c will match all files ending with c; and c will match all files that have c in them (including at the beginning or end). Equivalent to / .* /x in regexp.
-  # **:	Matches directories recursively or files expansively.
-  # ?:	Matches any one character. Equivalent to /.{1}/ in regexp.
-  # [set]:	Matches any one character in set. Behaves exactly like character sets in Regexp, including set negation ([^a-z]).
-  # <code></code>:	Escapes the next metacharacter.
+  # *:  Matches any file. Can be restricted by other values in the glob. * will match all files; c* will match all files beginning with c; *c will match all files ending with c; and c will match all files that have c in them (including at the beginning or end). Equivalent to / .* /x in regexp.
+  # **:  Matches directories recursively or files expansively.
+  # ?:  Matches any one character. Equivalent to /.{1}/ in regexp.
+  # [set]:  Matches any one character in set. Behaves exactly like character sets in Regexp, including set negation ([^a-z]).
+  # <code></code>:  Escapes the next metacharacter.
   # flags is a bitwise OR of the FNM_xxx parameters. The same glob pattern and flags are used by Dir::glob.
   #
   #  File.fnmatch('cat',       'cat')        #=> true  : match entire string
@@ -626,8 +628,9 @@ class File < IO
   #   open("d", "w") {}
   #   p File.identical?("a", "d")      #=> false
   def self.identical?(orig, copy)
-    st_o = stat(Rubinius::Type.coerce_to_path(orig))
-    st_c = stat(Rubinius::Type.coerce_to_path(copy))
+    st_o = File::Stat.stat(Rubinius::Type.coerce_to_path(orig))
+    st_c = File::Stat.stat(Rubinius::Type.coerce_to_path(copy))
+    return false if st_o.nil? || st_c.nil?
 
     return false unless st_o.ino == st_c.ino
     return false unless st_o.ftype == st_c.ftype

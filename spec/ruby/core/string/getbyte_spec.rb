@@ -9,10 +9,18 @@ ruby_version_is "1.8.8" do
 
     it "starts indexing at 0" do
       "b".getbyte(0).should == 98
+      
+      # copy-on-write case
+      str1, str2 = "fooXbar".split("X")
+      str2.getbyte(0).should == 98
     end
 
     it "counts from the end of the String if given a negative argument" do
       "glark".getbyte(-1).should == "glark".getbyte(4)
+      
+      # copy-on-write case
+      str1, str2 = "fooXbar".split("X")
+      str2.getbyte(-1).should == 114
     end
 
     it "returns an Integer between 0 and 255" do

@@ -22,34 +22,32 @@ spec
  |-- library
  |-- parser
  |-- ruby
- |    +-- 1.8
- |          +-- core
- |                + -- array
- |                + -- bignum
- |                + -- binding
- |                + -- class
- |                + -- ...
- |                + -- time
- |                + -- true
- |                + -- unboundmethod
- |          +-- fixtures
- |          +-- language
- |          +-- library
- |                + -- enumerator
- |                + -- ...
- |                + -- time
- |                + -- yaml
+ |    +-- command_line
+ |    +-- core
+ |          + -- array
+ |          + -- bignum
+ |          + -- binding
+ |          + -- class
+ |          + -- ...
+ |          + -- time
+ |          + -- true
+ |          + -- unboundmethod
+ |    +-- fixtures
+ |    +-- language
+ |    +-- library
+ |          + -- enumerator
+ |          + -- ...
+ |          + -- time
+ |          + -- yaml
+ |    +-- ...
  |-- capi
  |     +-- ext
  +-- tags
 
 The specs for the reference implementation of the Ruby language (MRI) are
-under @spec/ruby@. Presently, these are mostly focused on version 1.8.x and
-there is only the 1.8 subdirectory. However, as specs are written for version
-1.9, those specs will be placed in a parallel tree under the 1.9 subdirectory.
-In the spec files under @spec/ruby@, there are also specs for other Ruby
-implementations where these implementations comply with or deviate from MRI
-(again, the reference implementation for Ruby).
+under @spec/ruby@.  In the spec files under @spec/ruby@, there are also specs
+for other Ruby implementations where these implementations comply with or
+deviate from MRI (again, the reference implementation for Ruby).
 
 All the spec directories except for spec/ruby are for Rubinius specific code.
 Under spec/core, spec/language, and spec/libraries, there are specs for how

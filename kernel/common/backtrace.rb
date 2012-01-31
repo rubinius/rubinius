@@ -1,3 +1,5 @@
+# -*- encoding: us-ascii -*-
+
 ##
 # Contains all logic for gathering and displaying backtraces.
 

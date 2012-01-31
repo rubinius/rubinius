@@ -981,7 +981,8 @@ module Zlib
     # If the gzip file header is incorrect, raises an Zlib::GzipFile::Error
     # exception.
 
-    def initialize(io)
+    # TODO: handle options hash
+    def initialize(io, options=nil)
       @io = io
 
       @zstream = Zlib::Inflate.new -Zlib::MAX_WBITS
@@ -1032,6 +1033,11 @@ module Zlib
         raise ArgumentError, "Negative length #{length} given"
       end
       data = @buffer
+
+      if length and data.size >= length
+        @buffer = data.slice! length..-1
+        return data
+      end
 
       while chunk = @io.read(CHUNK) do
         inflated = @zstream.inflate(chunk)

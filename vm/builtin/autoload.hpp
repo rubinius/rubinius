@@ -17,7 +17,7 @@ namespace rubinius {
     // Rubinius.primitive :autoload_allocate
     static Autoload* create(STATE);
 
-    Object* resolve(STATE, CallFrame* call_frame);
+    Object* resolve(STATE, CallFrame* call_frame, bool honor_require = false);
 
   public:   /* TypeInfo */
 

@@ -3,6 +3,10 @@
 #include "ruby.h"
 #include "rubyspec.h"
 
+#ifdef HAVE_RUBY_ENCODING_H
+#include "ruby/encoding.h"
+#endif
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -11,6 +15,13 @@ extern "C" {
 VALUE string_spec_rb_cstr2inum(VALUE self, VALUE str, VALUE inum) {
   int num = FIX2INT(inum);
   return rb_cstr2inum(RSTRING_PTR(str), num);
+}
+#endif
+
+#ifdef HAVE_RB_CSTR_TO_INUM
+static VALUE string_spec_rb_cstr_to_inum(VALUE self, VALUE str, VALUE inum, VALUE badcheck) {
+  int num = FIX2INT(inum);
+  return rb_cstr_to_inum(RSTRING_PTR(str), num, RTEST(badcheck));
 }
 #endif
 
@@ -155,6 +166,24 @@ VALUE string_spec_rb_str_new_cstr(VALUE self, VALUE str) {
   } else {
     return rb_str_new_cstr(RSTRING_PTR(str));
   }
+}
+#endif
+
+#ifdef HAVE_RB_EXTERNAL_STR_NEW
+VALUE string_spec_rb_external_str_new(VALUE self, VALUE str) {
+  return rb_external_str_new(RSTRING_PTR(str), RSTRING_LEN(str));
+}
+#endif
+
+#ifdef HAVE_RB_EXTERNAL_STR_NEW_CSTR
+VALUE string_spec_rb_external_str_new_cstr(VALUE self, VALUE str) {
+  return rb_external_str_new_cstr(RSTRING_PTR(str));
+}
+#endif
+
+#ifdef HAVE_RB_EXTERNAL_STR_NEW_WITH_ENC
+VALUE string_spec_rb_external_str_new_with_enc(VALUE self, VALUE str, VALUE len, VALUE encoding) {
+  return rb_external_str_new_with_enc(RSTRING_PTR(str), FIX2LONG(len), rb_to_encoding(encoding));
 }
 #endif
 
@@ -344,6 +373,12 @@ VALUE string_spec_RSTRING_LEN(VALUE self, VALUE str) {
 }
 #endif
 
+#ifdef HAVE_RSTRING_LENINT
+VALUE string_spec_RSTRING_LENINT(VALUE self, VALUE str) {
+  return INT2FIX(RSTRING_LENINT(str));
+}
+#endif
+
 #ifdef HAVE_RSTRING_PTR
 VALUE string_spec_RSTRING_PTR_iterate(VALUE self, VALUE str) {
   int i;
@@ -404,12 +439,22 @@ static VALUE string_spec_rb_str_hash(VALUE self, VALUE str) {
 }
 #endif
 
+#ifdef HAVE_RB_USASCII_STR_NEW_CSTR
+static VALUE string_spec_rb_usascii_str_new_cstr(VALUE self, VALUE str) {
+  return rb_usascii_str_new_cstr(RSTRING_PTR(str));
+}
+#endif
+
 void Init_string_spec() {
   VALUE cls;
   cls = rb_define_class("CApiStringSpecs", rb_cObject);
 
 #ifdef HAVE_RB_CSTR2INUM
   rb_define_method(cls, "rb_cstr2inum", string_spec_rb_cstr2inum, 2);
+#endif
+
+#ifdef HAVE_RB_CSTR_TO_INUM
+  rb_define_method(cls, "rb_cstr_to_inum", string_spec_rb_cstr_to_inum, 3);
 #endif
 
 #ifdef HAVE_RB_STR2CSTR
@@ -480,6 +525,19 @@ void Init_string_spec() {
   rb_define_method(cls, "rb_str_new_cstr", string_spec_rb_str_new_cstr, 1);
 #endif
 
+#ifdef HAVE_RB_EXTERNAL_STR_NEW
+  rb_define_method(cls, "rb_external_str_new", string_spec_rb_external_str_new, 1);
+#endif
+
+#ifdef HAVE_RB_EXTERNAL_STR_NEW_CSTR
+  rb_define_method(cls, "rb_external_str_new_cstr",
+                   string_spec_rb_external_str_new_cstr, 1);
+#endif
+
+#ifdef HAVE_RB_EXTERNAL_STR_NEW_WITH_ENC
+  rb_define_method(cls, "rb_external_str_new_with_enc", string_spec_rb_external_str_new_with_enc, 3);
+#endif
+
 #ifdef HAVE_RB_STR_NEW3
   rb_define_method(cls, "rb_str_new3", string_spec_rb_str_new3, 1);
 #endif
@@ -547,6 +605,10 @@ void Init_string_spec() {
   rb_define_method(cls, "RSTRING_LEN", string_spec_RSTRING_LEN, 1);
 #endif
 
+#ifdef HAVE_RSTRING_LENINT
+  rb_define_method(cls, "RSTRING_LENINT", string_spec_RSTRING_LENINT, 1);
+#endif
+
 #ifdef HAVE_RSTRING_PTR
   rb_define_method(cls, "RSTRING_PTR_iterate", string_spec_RSTRING_PTR_iterate, 1);
   rb_define_method(cls, "RSTRING_PTR_assign", string_spec_RSTRING_PTR_assign, 2);
@@ -565,6 +627,10 @@ void Init_string_spec() {
 
 #ifdef HAVE_RB_STR_HASH
   rb_define_method(cls, "rb_str_hash", string_spec_rb_str_hash, 1);
+#endif
+
+#ifdef HAVE_RB_USASCII_STR_NEW_CSTR
+  rb_define_method(cls, "rb_usascii_str_new_cstr", string_spec_rb_usascii_str_new_cstr, 1);
 #endif
 }
 

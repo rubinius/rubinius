@@ -1,3 +1,5 @@
+# -*- encoding: us-ascii -*-
+
 class Rubinius::Randomizer
   def self.allocate
     Rubinius.primitive :randomizer_allocate

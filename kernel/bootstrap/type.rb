@@ -1,3 +1,5 @@
+# -*- encoding: us-ascii -*-
+
 # The Type module provides facilities for accessing various "type" related
 # data about an object, as well as providing type coercion methods. These
 # facilities are independent of the object and thus are more robust in the
@@ -8,7 +10,7 @@ module Rubinius
     # overrides.
     def self.object_kind_of?(obj, cls)
       Rubinius.primitive :vm_object_kind_of
-      raise PrimitiveFailure, "Rubinius::Type.kind_of failed"
+      raise PrimitiveFailure, "Rubinius::Type.object_kind_of? failed"
     end
 
     def self.object_class(obj)

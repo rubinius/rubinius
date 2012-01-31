@@ -22,5 +22,11 @@ describe "Enumerable#reject" do
       EnumerableSpecs::Numerous.new.reject.should be_an_instance_of(enumerator_class)
     end
   end
+
+  it "gathers whole arrays as elements when each yields multiple" do
+    multi = EnumerableSpecs::YieldsMulti.new
+    multi.reject {|e| e == [3, 4, 5] }.should == [[1, 2], [6, 7, 8, 9]]
+  end
+
 end
 

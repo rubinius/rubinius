@@ -1,6 +1,8 @@
 require File.expand_path('../../../spec_helper', __FILE__)
 require File.expand_path('../fixtures/classes', __FILE__)
 
+language_version __FILE__, "define_method"
+
 class DefineMethodSpecClass
 end
 
@@ -277,10 +279,14 @@ describe "Module#define_method" do
     end
 
     it "returns the value computed by the block when passed one argument" do
-      @klass.new.m(1, 2).should == [1, [2]]
+      @klass.new.m(1).should == [1, []]
     end
 
     it "returns the value computed by the block when passed two arguments" do
+      @klass.new.m(1, 2).should == [1, [2]]
+    end
+
+    it "returns the value computed by the block when passed three arguments" do
       @klass.new.m(1, 2, 3).should == [1, [2, 3]]
     end
   end

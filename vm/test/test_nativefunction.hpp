@@ -156,7 +156,7 @@ public:
     TS_ASSERT(!func->nil_p());
 
     Array* input = Array::create(state, 2);
-    input->set(state, 0, Qnil);
+    input->set(state, 0, cNil);
     input->set(state, 1, Fixnum::from(255));
 
     Arguments args_obj(state->symbol("blah"), input);
@@ -480,7 +480,7 @@ public:
 
     Object* out = func->call(state, args_obj, NULL);
 
-    TS_ASSERT_EQUALS(out, Qnil);
+    TS_ASSERT_EQUALS(out, cNil);
   }
 
   void test_bind_with_ptr() {
@@ -510,13 +510,13 @@ public:
     TS_ASSERT_EQUALS(as<Pointer>(out)->pointer, ptr->pointer);
 
     input = Array::create(state, 1);
-    input->set(state, 0, Qnil);
+    input->set(state, 0, cNil);
 
     Arguments args_obj2(state->symbol("blah"), input);
 
     out = func->call(state, args_obj2, NULL);
 
-    TS_ASSERT_EQUALS(out, Qnil);
+    TS_ASSERT_EQUALS(out, cNil);
   }
 
   void test_bind_with_float() {
@@ -589,13 +589,13 @@ public:
     TS_ASSERT_EQUALS(as<String>(out)->c_str(state), std::string("whatever"));
 
     input = Array::create(state, 1);
-    input->set(state, 0, Qnil);
+    input->set(state, 0, cNil);
 
     Arguments args_obj2(state->symbol("blah"), input);
 
     out = func->call(state, args_obj2, NULL);
 
-    TS_ASSERT_EQUALS(out, Qnil);
+    TS_ASSERT_EQUALS(out, cNil);
   }
 
   void test_bind_with_string_and_ptr() {
@@ -641,8 +641,8 @@ public:
 
     TS_ASSERT(kind_of<Array>(out));
 
-    TS_ASSERT_EQUALS(out->get(state, 0), Qnil);
-    TS_ASSERT_EQUALS(out->get(state, 1), Qnil);
+    TS_ASSERT_EQUALS(out->get(state, 0), cNil);
+    TS_ASSERT_EQUALS(out->get(state, 1), cNil);
   }
 
   void test_bind_with_object() {
@@ -669,13 +669,13 @@ public:
     TS_ASSERT_EQUALS(out, obj);
 
     input = Array::create(state, 1);
-    input->set(state, 0, Qnil);
+    input->set(state, 0, cNil);
 
     Arguments args_obj2(state->symbol("blah"), input);
 
     out = func->call(state, args_obj2, NULL);
 
-    TS_ASSERT_EQUALS(out, Qnil);
+    TS_ASSERT_EQUALS(out, cNil);
   }
 
 };

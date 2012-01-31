@@ -59,7 +59,6 @@ field_extract_headers = %w[
   vm/builtin/block_environment.hpp
   vm/builtin/block_as_method.hpp
   vm/builtin/bytearray.hpp
-  vm/builtin/chararray.hpp
   vm/builtin/io.hpp
   vm/builtin/channel.hpp
   vm/builtin/module.hpp
@@ -80,6 +79,7 @@ field_extract_headers = %w[
   vm/builtin/randomizer.hpp
   vm/builtin/regexp.hpp
   vm/builtin/staticscope.hpp
+  vm/builtin/encoding.hpp
   vm/builtin/string.hpp
   vm/builtin/symbol.hpp
   vm/builtin/thread.hpp
@@ -100,7 +100,7 @@ field_extract_headers = %w[
   vm/builtin/call_unit.hpp
   vm/builtin/call_unit_adapter.hpp
   vm/builtin/cache.hpp
-  vm/builtin/encoding.hpp
+  vm/builtin/atomic.hpp
 ]
 
 ############################################################
@@ -188,7 +188,7 @@ files TYPE_GEN, field_extract_headers + %w[vm/codegen/field_extract.rb] + [:run_
 end
 
 file encoding_database => 'vm/codegen/encoding_extract.rb' do |t|
-  dir = File.expand_path "../vendor/onig"
+  dir = File.expand_path "../../vendor/oniguruma", __FILE__
   ruby 'vm/codegen/encoding_extract.rb', dir, t.name
 end
 

@@ -168,7 +168,7 @@ namespace rubinius {
       char buf[QUOTABLE_PRINTABLE_BUFSIZE];
 
       uint8_t* b = s->byte_address();
-      uint8_t* e = b + s->size();
+      uint8_t* e = b + s->byte_size();
       int i = 0, n = 0, prev = -1;
 
       for(; b < e; b++) {
@@ -229,7 +229,7 @@ namespace rubinius {
                               const char* table, int padding, bool encode_size)
     {
       char *buf = ALLOCA_N(char, count * 4 / 3 + 6);
-      native_int i, chars, line, total = s->size();
+      native_int i, chars, line, total = s->byte_size();
       uint8_t* b = s->byte_address();
 
       for(i = 0; total > 0; i = 0, total -= line) {
@@ -349,9 +349,9 @@ namespace rubinius {
       native_int extra = 0;
 
       if(rest) {
-        count = s->size();
+        count = s->byte_size();
       } else {
-        native_int size = s->size();
+        native_int size = s->byte_size();
         if(count > size) {
           extra = (count - size + 1) / 2;
           count = size;
@@ -407,9 +407,9 @@ namespace rubinius {
       native_int extra = 0;
 
       if(rest) {
-        count = s->size();
+        count = s->byte_size();
       } else {
-        native_int size = s->size();
+        native_int size = s->byte_size();
         if(count > size) {
           extra = (count + 1) / 2 - (size + 1) / 2;
           count = size;
@@ -470,7 +470,7 @@ namespace rubinius {
     ByteArray* prepare_directives(STATE, String* directives,
                                   const char** p, const char** pe)
     {
-      native_int size = directives->size();
+      native_int size = directives->byte_size();
       ByteArray* ba = ByteArray::create_pinned(state, size);
       char* b = reinterpret_cast<char*>(ba->raw_bytes());
       char* d = reinterpret_cast<char*>(directives->byte_address());
@@ -632,7 +632,7 @@ namespace rubinius {
     // Use information we have to reduce repeated allocation.
     str.reserve(array_size * 4);
 
-    if(RTEST(directives->tainted_p(state))) tainted = true;
+    if(CBOOL(directives->tainted_p(state))) tainted = true;
 
 static const short _eof_actions[] = {
 	0, 1, 3, 3, 7, 7, 9, 9, 
@@ -9562,8 +9562,8 @@ f7:
     if(!string_value) return 0;
   }
 	{
-    if(RTEST(string_value->tainted_p(state))) tainted = true;
-    native_int size = string_value->size();
+    if(CBOOL(string_value->tainted_p(state))) tainted = true;
+    native_int size = string_value->byte_size();
     if(rest) count = size;
     if(count <= size) {
       str.append((const char*)string_value->byte_address(), count);
@@ -9594,8 +9594,8 @@ f59:
     if(!string_value) return 0;
   }
 	{
-    if(RTEST(string_value->tainted_p(state))) tainted = true;
-    native_int size = string_value->size();
+    if(CBOOL(string_value->tainted_p(state))) tainted = true;
+    native_int size = string_value->byte_size();
     if(rest) count = size;
     if(count <= size) {
       str.append((const char*)string_value->byte_address(), count);
@@ -9626,8 +9626,8 @@ f57:
     if(!string_value) return 0;
   }
 	{
-    if(RTEST(string_value->tainted_p(state))) tainted = true;
-    native_int size = string_value->size();
+    if(CBOOL(string_value->tainted_p(state))) tainted = true;
+    native_int size = string_value->byte_size();
     if(rest) count = size;
     if(count <= size) {
       str.append((const char*)string_value->byte_address(), count);
@@ -9719,8 +9719,8 @@ f134:
     if(!string_value) return 0;
   }
 	{
-    if(RTEST(string_value->tainted_p(state))) tainted = true;
-    native_int size = string_value->size();
+    if(CBOOL(string_value->tainted_p(state))) tainted = true;
+    native_int size = string_value->byte_size();
     if(rest) count = size;
     if(count <= size) {
       str.append((const char*)string_value->byte_address(), count);
@@ -9754,8 +9754,8 @@ f102:
     if(!string_value) return 0;
   }
 	{
-    if(RTEST(string_value->tainted_p(state))) tainted = true;
-    native_int size = string_value->size();
+    if(CBOOL(string_value->tainted_p(state))) tainted = true;
+    native_int size = string_value->byte_size();
     if(rest) count = size;
     if(count <= size) {
       str.append((const char*)string_value->byte_address(), count);
@@ -9789,8 +9789,8 @@ f104:
     if(!string_value) return 0;
   }
 	{
-    if(RTEST(string_value->tainted_p(state))) tainted = true;
-    native_int size = string_value->size();
+    if(CBOOL(string_value->tainted_p(state))) tainted = true;
+    native_int size = string_value->byte_size();
     if(rest) count = size;
     if(count <= size) {
       str.append((const char*)string_value->byte_address(), count);
@@ -11131,8 +11131,8 @@ _again:
     if(!string_value) return 0;
   }
 	{
-    if(RTEST(string_value->tainted_p(state))) tainted = true;
-    native_int size = string_value->size();
+    if(CBOOL(string_value->tainted_p(state))) tainted = true;
+    native_int size = string_value->byte_size();
     if(rest) count = size;
     if(count <= size) {
       str.append((const char*)string_value->byte_address(), count);
@@ -11166,8 +11166,8 @@ _again:
     if(!string_value) return 0;
   }
 	{
-    if(RTEST(string_value->tainted_p(state))) tainted = true;
-    native_int size = string_value->size();
+    if(CBOOL(string_value->tainted_p(state))) tainted = true;
+    native_int size = string_value->byte_size();
     if(rest) count = size;
     if(count <= size) {
       str.append((const char*)string_value->byte_address(), count);
@@ -11201,8 +11201,8 @@ _again:
     if(!string_value) return 0;
   }
 	{
-    if(RTEST(string_value->tainted_p(state))) tainted = true;
-    native_int size = string_value->size();
+    if(CBOOL(string_value->tainted_p(state))) tainted = true;
+    native_int size = string_value->byte_size();
     if(rest) count = size;
     if(count <= size) {
       str.append((const char*)string_value->byte_address(), count);
@@ -11303,8 +11303,8 @@ _again:
     if(!string_value) return 0;
   }
 	{
-    if(RTEST(string_value->tainted_p(state))) tainted = true;
-    native_int size = string_value->size();
+    if(CBOOL(string_value->tainted_p(state))) tainted = true;
+    native_int size = string_value->byte_size();
     if(rest) count = size;
     if(count <= size) {
       str.append((const char*)string_value->byte_address(), count);
@@ -11341,8 +11341,8 @@ _again:
     if(!string_value) return 0;
   }
 	{
-    if(RTEST(string_value->tainted_p(state))) tainted = true;
-    native_int size = string_value->size();
+    if(CBOOL(string_value->tainted_p(state))) tainted = true;
+    native_int size = string_value->byte_size();
     if(rest) count = size;
     if(count <= size) {
       str.append((const char*)string_value->byte_address(), count);
@@ -11379,8 +11379,8 @@ _again:
     if(!string_value) return 0;
   }
 	{
-    if(RTEST(string_value->tainted_p(state))) tainted = true;
-    native_int size = string_value->size();
+    if(CBOOL(string_value->tainted_p(state))) tainted = true;
+    native_int size = string_value->byte_size();
     if(rest) count = size;
     if(count <= size) {
       str.append((const char*)string_value->byte_address(), count);

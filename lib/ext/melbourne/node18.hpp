@@ -13,9 +13,8 @@
 #ifndef MEL_NODE18_HPP
 #define MEL_NODE18_HPP
 
-#include "ruby.h"
-
 #include "bstrlib.h"
+#include "melbourne.hpp"
 #include "quark.hpp"
 
 namespace melbourne {
@@ -235,7 +234,7 @@ namespace melbourne {
 #define NEW_FALSE()             NEW_NODE(NODE_FALSE,0,0,0)
 #define NEW_DEFINED(e)          NEW_NODE(NODE_DEFINED,e,0,0)
 #define NEW_NEWLINE(n)          NEW_NODE(NODE_NEWLINE,0,0,n)
-#define NEW_PREEXE(b)           NEW_SCOPE(b)
+#define NEW_PREEXE(b)           NEW_NODE(NODE_PREEXE,0,0,0)
 #define NEW_POSTEXE()           NEW_NODE(NODE_POSTEXE,0,0,0)
 #define NEW_DMETHOD(b)          NEW_NODE(NODE_DMETHOD,0,0,b)
 #define NEW_BMETHOD(b)          NEW_NODE(NODE_BMETHOD,0,0,b)

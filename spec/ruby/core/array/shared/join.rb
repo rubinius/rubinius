@@ -1,159 +1,211 @@
-describe :array_join, :shared => true do
+require File.expand_path('../../fixtures/classes', __FILE__)
+require File.expand_path('../../fixtures/encoded_strings', __FILE__)
+
+describe :array_join_with_default_separator, :shared => true do
+  before do
+    @separator = $,
+  end
+
+  after do
+    $, = @separator
+  end
+
   it "returns an empty string if the Array is empty" do
-    a = @object.new
-    a.send(@method, ':').should == ''
+    [].send(@method).should == ''
+  end
+
+  ruby_version_is "1.9" do
+    it "returns a US-ASCII string for an empty Array" do
+      [].send(@method).encoding.should == Encoding::US_ASCII
+    end
+  end
+
+  it "returns a string formed by concatenating each String element separated by $," do
+    $, = " | "
+    ["1", "2", "3"].send(@method).should == "1 | 2 | 3"
   end
 
   ruby_version_is ""..."1.9" do
-    it "returns a string formed by concatenating each element.to_s separated by separator without trailing separator" do
+    it "coerces non-String elements via #to_s" do
       obj = mock('foo')
-      def obj.to_s() 'foo' end
-      @object.new(1, 2, 3, 4, obj).send(@method, ' | ').should == '1 | 2 | 3 | 4 | foo'
+      obj.should_receive(:to_s).and_return("foo")
+      [obj].send(@method).should == "foo"
+    end
 
+    it "raises a NoMethodError if an element does not respond to #to_s" do
       obj = mock('o')
       class << obj; undef :to_s; end
-      obj.should_receive(:method_missing).with(:to_s).and_return("o")
-      @object.new(1, obj).send(@method, ":").should == "1:o"
+      lambda { [obj].send(@method) }.should raise_error(NoMethodError)
     end
   end
 
   ruby_version_is "1.9" do
-    it "returns a string formed by concatenating each element.to_str separated by separator without trailing separator" do
+    it "attempts coercion via #to_str first" do
       obj = mock('foo')
-      def obj.to_s() 'foo' end
-      @object.new(1, 2, 3, 4, obj).send(@method, ' | ').should == '1 | 2 | 3 | 4 | foo'
+      obj.should_receive(:to_str).any_number_of_times.and_return("foo")
+      [obj].send(@method).should == "foo"
+    end
 
+    it "attempts coercion via #to_ary second" do
+      obj = mock('foo')
+      obj.should_receive(:to_str).any_number_of_times.and_return(nil)
+      obj.should_receive(:to_ary).any_number_of_times.and_return(["foo"])
+      [obj].send(@method).should == "foo"
+    end
+
+    it "attempts coercion via #to_s third" do
+      obj = mock('foo')
+      obj.should_receive(:to_str).any_number_of_times.and_return(nil)
+      obj.should_receive(:to_ary).any_number_of_times.and_return(nil)
+      obj.should_receive(:to_s).any_number_of_times.and_return("foo")
+      [obj].send(@method).should == "foo"
+    end
+
+    it "raises a NoMethodError if an element does not respond to #to_str, #to_ary, or #to_s" do
       obj = mock('o')
-      obj.should_receive(:method_missing).with(:to_str).and_return("o")
-      @object.new(1, obj).send(@method, ":").should == "1:o"
+      class << obj; undef :to_s; end
+      lambda { [1, obj].send(@method) }.should raise_error(NoMethodError)
     end
   end
 
-  it "raises a NoMethodError if an element does not respond to #to_s" do
-    obj = mock('o')
-    class << obj; undef :to_s; end
-    lambda{ @object.new(1,obj).send(@method, ':') }.should raise_error(NoMethodError)
-  end
-
-  it "uses the same separator with nested arrays" do
-    @object.new(1, @object.new(2, @object.new(3, 4), 5), 6).send(@method, ":").should == "1:2:3:4:5:6"
-    @object.new(1, @object.new(2, ArraySpecs::MyArray[3, 4], 5), 6).send(@method, ":").should == "1:2:3:4:5:6"
-  end
-
-  it "tries to convert the passed separator to a String using #to_str" do
-    obj = mock('::')
-    obj.should_receive(:to_str).and_return("::")
-    @object.new(1, 2, 3, 4).send(@method, obj).should == '1::2::3::4'
-  end
-
-  ruby_version_is ""..."1.9" do
-    # Detail of joining recursive arrays is implementation dependent: [ruby-dev:37021]
-    it "handles recursive arrays" do
-      x = @object.new
-      x << x
-      x.send(@method, ':').should be_kind_of(String)
-
-      x = @object.new("one", "two")
-      x << x
-      str = x.send(@method, '/')
-      str.should include("one/two")
-
-      x << "three"
-      x << "four"
-      str = x.send(@method, '/')
-      str.should include("one/two")
-      str.should include("three/four")
-
-      # nested and recursive
-      x = @object.new(@object.new("one", "two"), @object.new("three", "four"))
-      x << x
-      str = x.send(@method, '/')
-      str.should include("one/two")
-      str.should include("three/four")
-
-      x = @object.new
-      y = @object.new
-      y << 9 << x << 8 << y << 7
-      x << 1 << x << 2 << y << 3
-      # representations when recursing from x
-      # these are here to make it easier to understand what is happening
-      str = x.send(@method, ':')
-      str.should include('1')
-      str.should include('2')
-      str.should include('3')
+  ruby_version_is "".."1.9" do
+    ruby_bug "[ruby-dev:37019]", "1.8.6.319" do
+      it "represents a recursive element with '[...]'" do
+        ArraySpecs.recursive_array.send(@method).should == "1two3.0[...][...][...][...][...]"
+        ArraySpecs.head_recursive_array.send(@method).should == "[...][...][...][...][...]1two3.0"
+        ArraySpecs.empty_recursive_array.send(@method).should == "[...]"
+      end
     end
   end
 
   ruby_version_is "1.9" do
     it "raises an ArgumentError when the Array is recursive" do
-      x = @object.new
-      x << x
-      lambda { x.send(@method, ':') }.should raise_error(ArgumentError)
-
-      x = @object.new("one", "two")
-      x << x
-      lambda { x.send(@method, '/') }.should raise_error(ArgumentError)
-
-      # nested and recursive
-      x = @object.new(@object.new("one", "two"), @object.new("three", "four"))
-      x << x
-      lambda { x.send(@method, '/') }.should raise_error(ArgumentError)
+      lambda { ArraySpecs.recursive_array.send(@method) }.should raise_error(ArgumentError)
+      lambda { ArraySpecs.head_recursive_array.send(@method) }.should raise_error(ArgumentError)
+      lambda { ArraySpecs.empty_recursive_array.send(@method) }.should raise_error(ArgumentError)
     end
   end
 
-  it "does not consider taint of either the array or the separator when the array is empty" do
-    @object.new.send(@method, ":").tainted?.should == false
-    @object.new.taint.send(@method, ":").tainted?.should == false
-    @object.new.send(@method, ":".taint).tainted?.should == false
-    @object.new.taint.send(@method, ":".taint).tainted?.should == false
+  it "taints the result if the Array is tainted and non-empty" do
+    [1, 2].taint.send(@method).tainted?.should be_true
   end
 
-   # This doesn't work for Enumerable#join on 1.9. See bug #1732
-  it "returns a string which would be infected with taint of the array, its elements or the separator when the array is not empty" do
-    @object.new("a", "b").send(@method, ":").tainted?.should == false
-    @object.new("a", "b").send(@method, ":".taint).tainted?.should == true
-    @object.new("a", "b").taint.send(@method, ":").tainted?.should == true
-    @object.new("a", "b").taint.send(@method, ":".taint).tainted?.should == true
-    @object.new("a", "b".taint).send(@method, ":").tainted?.should == true
-    @object.new("a", "b".taint).send(@method, ":".taint).tainted?.should == true
-    @object.new("a", "b".taint).taint.send(@method, ":").tainted?.should == true
-    @object.new("a", "b".taint).taint.send(@method, ":".taint).tainted?.should == true
-    @object.new("a".taint, "b").send(@method, ":").tainted?.should == true
-    @object.new("a".taint, "b").send(@method, ":".taint).tainted?.should == true
-    @object.new("a".taint, "b").taint.send(@method, ":").tainted?.should == true
-    @object.new("a".taint, "b").taint.send(@method, ":".taint).tainted?.should == true
-    @object.new("a".taint, "b".taint).send(@method, ":").tainted?.should == true
-    @object.new("a".taint, "b".taint).send(@method, ":".taint).tainted?.should == true
-    @object.new("a".taint, "b".taint).taint.send(@method, ":").tainted?.should == true
-    @object.new("a".taint, "b".taint).taint.send(@method, ":".taint).tainted?.should == true
+  it "does not taint the result if the Array is tainted but empty" do
+    [].taint.send(@method).tainted?.should be_false
   end
 
-  ruby_version_is '1.9' do
-    it "does not consider untrustworthiness of either the array or the separator when the array is empty" do
-      @object.new.send(@method, ":").untrusted?.should == false
-      @object.new.untrust.send(@method, ":").untrusted?.should == false
-      @object.new.send(@method, ":".untrust).untrusted?.should == false
-      @object.new.untrust.send(@method, ":".untrust).untrusted?.should == false
+  it "taints the result if the result of coercing an element is tainted" do
+    s = mock("taint")
+    s.should_receive(:to_s).and_return("str".taint)
+    [s].send(@method).tainted?.should be_true
+  end
+
+  ruby_version_is "1.9" do
+    it "untrusts the result if the Array is untrusted and non-empty" do
+      [1, 2].untrust.send(@method).untrusted?.should be_true
     end
 
-    # This doesn't work for Enumerable#join on 1.9. See bug #1732
-    it "returns a string which would be infected with untrustworthiness of the array, its elements or the separator when the array is not empty" do
-      @object.new("a", "b").send(@method, ":").untrusted?.should == false
-      @object.new("a", "b").send(@method, ":".untrust).untrusted?.should == true
-      @object.new("a", "b").untrust.send(@method, ":").untrusted?.should == true
-      @object.new("a", "b").untrust.send(@method, ":".untrust).untrusted?.should == true
-      @object.new("a", "b".untrust).send(@method, ":").untrusted?.should == true
-      @object.new("a", "b".untrust).send(@method, ":".untrust).untrusted?.should == true
-      @object.new("a", "b".untrust).untrust.send(@method, ":").untrusted?.should == true
-      @object.new("a", "b".untrust).untrust.send(@method, ":".untrust).untrusted?.should == true
-      @object.new("a".untrust, "b").send(@method, ":").untrusted?.should == true
-      @object.new("a".untrust, "b").send(@method, ":".untrust).untrusted?.should == true
-      @object.new("a".untrust, "b").untrust.send(@method, ":").untrusted?.should == true
-      @object.new("a".untrust, "b").untrust.send(@method, ":".untrust).untrusted?.should == true
-      @object.new("a".untrust, "b".untrust).send(@method, ":").untrusted?.should == true
-      @object.new("a".untrust, "b".untrust).send(@method, ":".untrust).untrusted?.should == true
-      @object.new("a".untrust, "b".untrust).untrust.send(@method, ":").untrusted?.should == true
-      @object.new("a".untrust, "b".untrust).untrust.send(@method, ":".untrust).untrusted?.should == true
+    it "does not untrust the result if the Array is untrusted but empty" do
+      [].untrust.send(@method).untrusted?.should be_false
+    end
+
+    it "untrusts the result if the result of coercing an element is untrusted" do
+      s = mock("untrust")
+      s.should_receive(:to_s).and_return("str".untrust)
+      [s].send(@method).untrusted?.should be_true
+    end
+  end
+
+  ruby_version_is "1.9" do
+    it "uses the first encoding when other strings are compatible" do
+      ary1 = ArraySpecs.array_with_7bit_utf8_and_usascii_strings
+      ary2 = ArraySpecs.array_with_usascii_and_7bit_utf8_strings
+      ary3 = ArraySpecs.array_with_utf8_and_7bit_ascii8bit_strings
+      ary4 = ArraySpecs.array_with_usascii_and_7bit_ascii8bit_strings
+
+      ary1.send(@method).encoding.should == Encoding::UTF_8
+      ary2.send(@method).encoding.should == Encoding::US_ASCII
+      ary3.send(@method).encoding.should == Encoding::UTF_8
+      ary4.send(@method).encoding.should == Encoding::US_ASCII
+    end
+
+    it "uses the widest common encoding when other strings are incompatible" do
+      ary1 = ArraySpecs.array_with_utf8_and_usascii_strings
+      ary2 = ArraySpecs.array_with_usascii_and_utf8_strings
+
+      ary1.send(@method).encoding.should == Encoding::UTF_8
+      ary2.send(@method).encoding.should == Encoding::UTF_8
+    end
+
+    it "fails for arrays with incompatibly-encoded strings" do
+      ary_utf8_bad_ascii8bit = ArraySpecs.array_with_utf8_and_ascii8bit_strings
+
+      lambda { ary_utf8_bad_ascii8bit.send(@method) }.should raise_error(EncodingError)
+    end
+  end
+end
+
+describe :array_join_with_string_separator, :shared => true do
+  ruby_version_is ""..."1.9" do
+    it "returns a string formed by concatenating each element.to_s separated by separator" do
+      obj = mock('foo')
+      obj.should_receive(:to_s).and_return("foo")
+      [1, 2, 3, 4, obj].send(@method, ' | ').should == '1 | 2 | 3 | 4 | foo'
+    end
+  end
+
+  ruby_version_is "1.9" do
+    it "returns a string formed by concatenating each element.to_str separated by separator" do
+      obj = mock('foo')
+      obj.should_receive(:to_str).and_return("foo")
+      [1, 2, 3, 4, obj].send(@method, ' | ').should == '1 | 2 | 3 | 4 | foo'
+    end
+  end
+
+  it "uses the same separator with nested arrays" do
+    [1, [2, [3, 4], 5], 6].send(@method, ":").should == "1:2:3:4:5:6"
+    [1, [2, ArraySpecs::MyArray[3, 4], 5], 6].send(@method, ":").should == "1:2:3:4:5:6"
+  end
+
+  describe "with a tainted separator" do
+    before :each do
+      @sep = ":".taint
+    end
+
+    it "does not taint the result if the array is empty" do
+      [].send(@method, @sep).tainted?.should be_false
+    end
+
+    ruby_bug "5902", "2.0" do
+      it "does not taint the result if the array has only one element" do
+        [1].send(@method, @sep).tainted?.should be_false
+      end
+    end
+
+    it "taints the result if the array has two or more elements" do
+      [1, 2].send(@method, @sep).tainted?.should be_true
+    end
+  end
+
+  ruby_version_is "1.9" do
+    describe "with an untrusted separator" do
+      before :each do
+        @sep = ":".untrust
+      end
+
+      it "does not untrust the result if the array is empty" do
+        [].send(@method, @sep).untrusted?.should be_false
+      end
+
+      ruby_bug "5902", "2.0" do
+        it "does not untrust the result if the array has only one element" do
+          [1].send(@method, @sep).untrusted?.should be_false
+        end
+      end
+
+      it "untrusts the result if the array has two or more elements" do
+        [1, 2].send(@method, @sep).untrusted?.should be_true
+      end
     end
   end
 end

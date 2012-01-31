@@ -7,6 +7,18 @@ ruby_version_is "1.9" do
       script = fixture __FILE__, "remove_method_missing.rb"
       ruby_exe(script).chomp.should == "NoMethodError"
     end
+
+    it "raises NameError when referencing built-in constants" do
+      lambda { class BasicObjectSpecs::BOSubclass; Kernel; end }.should raise_error(NameError)
+    end
+
+    it "does not define built-in constants (according to const_defined?)" do
+      BasicObject.const_defined?(:Kernel).should be_false
+    end
+
+    it "does not define built-in constants (according to defined?)" do
+      BasicObjectSpecs::BOSubclass.kernel_defined?.should be_nil
+    end
   end
 
   describe "BasicObject metaclass" do

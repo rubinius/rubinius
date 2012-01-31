@@ -47,6 +47,10 @@ namespace rubinius {
     static Location* create(STATE, NativeMethodFrame* nmf);
     static Location* create(STATE, CallFrame* call_frame,
                             bool include_variables=false);
+
+    // Rubinius.primitive :location_of_closest_ruby_method
+    static Location* of_closest_ruby_method(STATE, CallFrame* calling_environment);
+
     static Array* from_call_stack(STATE, CallFrame* call_frame,
                                   bool include_vars=false, bool on_ip=false);
     static Array* mri_backtrace(STATE, CallFrame* call_frame);

@@ -1,3 +1,5 @@
+# -*- encoding: us-ascii -*-
+
 class FalseClass
   def &(other)
     false

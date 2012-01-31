@@ -15,16 +15,19 @@ namespace rubinius {
 
   class VMMethod;
   class CompiledMethod;
+  class ObjectMemory;
 
   class Inliners : public CodeResource {
     std::list<CompiledMethod*> inliners_;
 
   public:
+    Inliners(ObjectMemory* om);
+
     std::list<CompiledMethod*>& inliners() {
       return inliners_;
     }
 
-    void cleanup(State* state, CodeManager* cm) { }
+    void cleanup(State* state, CodeManager* cm);
   };
 
   class Executable : public Object {

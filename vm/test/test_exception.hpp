@@ -97,7 +97,7 @@ public:
   }
 
   void test_get_errno_error_invalid_errno() {
-    TS_ASSERT_EQUALS(Qnil, Exception::get_errno_error(state, Fixnum::from(-1)));
+    TS_ASSERT_EQUALS(cNil, Exception::get_errno_error(state, Fixnum::from(-1)));
   }
 
   void test_ruby_exception_io_error() {

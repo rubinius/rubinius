@@ -2,26 +2,26 @@ require File.expand_path('../../../spec_helper', __FILE__)
 require File.expand_path('../../fixtures/classes', __FILE__)
 
 describe "Regexps with modifers" do
-  it 'supports /i (case-insensitive)' do
+  it "supports /i (case-insensitive)" do
     /foo/i.match("FOO").to_a.should == ["FOO"]
   end
 
-  it 'supports /m (multiline)' do
+  it "supports /m (multiline)" do
     /foo.bar/m.match("foo\nbar").to_a.should == ["foo\nbar"]
     /foo.bar/.match("foo\nbar").should be_nil
   end
 
-  it 'supports /x (extended syntax)' do
+  it "supports /x (extended syntax)" do
     /\d +/x.match("abc123").to_a.should == ["123"] # Quantifiers can be separated from the expression they apply to
   end
 
-  it 'supports /o (once)' do
+  it "supports /o (once)" do
     2.times do |i|
       /#{i}/o.should == /0/
     end
   end
 
-  it 'invokes substitutions for /o only once' do
+  it "invokes substitutions for /o only once" do
     ScratchPad.record []
     to_s_callback = Proc.new do
       ScratchPad << :to_s_callback
@@ -33,7 +33,7 @@ describe "Regexps with modifers" do
   end
 
   ruby_version_is "" ... "1.9" do
-    it 'does not do thread synchronization for /o' do
+    it "does not do thread synchronization for /o" do
       ScratchPad.record []
 
       to_s_callback2 = Proc.new do
@@ -58,14 +58,14 @@ describe "Regexps with modifers" do
     end
   end
 
-  it 'supports modifier combinations' do
+  it "supports modifier combinations" do
     /foo/imox.match("foo").to_a.should == ["foo"]
     /foo/imoximox.match("foo").to_a.should == ["foo"]
 
     lambda { eval('/foo/a') }.should raise_error(SyntaxError)
   end
 
-  it 'supports (?imx-imx) (inline modifiers)' do
+  it "supports (?imx-imx) (inline modifiers)" do
     /(?i)foo/.match("FOO").to_a.should == ["FOO"]
     /foo(?i)/.match("FOO").should be_nil
     # Interaction with /i
@@ -101,7 +101,7 @@ describe "Regexps with modifers" do
     lambda { eval('/(?o)/') }.should raise_error(SyntaxError)
   end
 
-  it 'supports (?imx-imx:expr) (scoped inline modifiers)' do
+  it "supports (?imx-imx:expr) (scoped inline modifiers)" do
     /foo (?i:bar) baz/.match("foo BAR baz").to_a.should == ["foo BAR baz"]
     /foo (?i:bar) baz/.match("foo BAR BAZ").should be_nil
     /foo (?-i:bar) baz/i.match("foo BAR BAZ").should be_nil
@@ -122,7 +122,7 @@ describe "Regexps with modifers" do
     lambda { eval('/(?o:)/') }.should raise_error(SyntaxError)
   end
 
-  it 'supports . with /m' do
+  it "supports . with /m" do
     # Basic matching
     /./m.match("\n").to_a.should == ["\n"]
   end

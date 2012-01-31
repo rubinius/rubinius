@@ -124,6 +124,20 @@ VALUE io_spec_rb_io_wait_writable(VALUE self, VALUE io) {
 }
 #endif
 
+#ifdef HAVE_RB_THREAD_WAIT_FD
+VALUE io_spec_rb_thread_wait_fd(VALUE self, VALUE io) {
+  rb_thread_wait_fd(io_spec_get_fd(io));
+  return Qnil;
+}
+#endif
+
+#ifdef HAVE_RB_THREAD_FD_WRITABLE
+VALUE io_spec_rb_thread_fd_writable(VALUE self, VALUE io) {
+  rb_thread_fd_writable(io_spec_get_fd(io));
+  return Qnil;
+}
+#endif
+
 #ifdef HAVE_RB_IO_CLOSE
 VALUE io_spec_rb_io_close(VALUE self, VALUE io) {
   return rb_io_close(io);
@@ -163,6 +177,14 @@ void Init_io_spec() {
 
 #ifdef HAVE_RB_IO_WAIT_WRITABLE
   rb_define_method(cls, "rb_io_wait_writable", io_spec_rb_io_wait_writable, 1);
+#endif
+
+#ifdef HAVE_RB_THREAD_WAIT_FD
+  rb_define_method(cls, "rb_thread_wait_fd", io_spec_rb_thread_wait_fd, 1);
+#endif
+
+#ifdef HAVE_RB_THREAD_FD_WRITABLE
+  rb_define_method(cls, "rb_thread_fd_writable", io_spec_rb_thread_fd_writable, 1);
 #endif
 
 }

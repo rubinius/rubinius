@@ -1,5 +1,5 @@
-require File.dirname(__FILE__) + '/../spec_helper'
-require 'mspec/guards/user'
+require 'spec_helper'
+require 'mspec/guards'
 
 describe Object, "#as_user" do
   before :each do

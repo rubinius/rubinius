@@ -22,6 +22,28 @@ describe "Array#pack with format 'q'" do
   it_behaves_like :array_pack_no_platform, 'q'
 end
 
+ruby_version_is "1.9.3" do
+  describe "Array#pack with format 'Q'" do
+    describe "with modifier '<'" do
+      it_behaves_like :array_pack_64bit_le, 'Q<'
+    end
+
+    describe "with modifier '>'" do
+      it_behaves_like :array_pack_64bit_be, 'Q>'
+    end
+  end
+
+  describe "Array#pack with format 'q'" do
+    describe "with modifier '<'" do
+      it_behaves_like :array_pack_64bit_le, 'q<'
+    end
+
+    describe "with modifier '>'" do
+      it_behaves_like :array_pack_64bit_be, 'q>'
+    end
+  end
+end
+
 little_endian do
   describe "Array#pack with format 'Q'" do
     it_behaves_like :array_pack_64bit_le, 'Q'

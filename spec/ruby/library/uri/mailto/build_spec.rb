@@ -1,7 +1,7 @@
 require File.expand_path('../../../../spec_helper', __FILE__)
 require 'uri'
 
-describe 'URI::Mailto.build' do
+describe "URI::Mailto.build" do
   it "conforms to the MatzRuby tests" do
     ok = []
     bad = []

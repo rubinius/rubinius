@@ -1,0 +1,1 @@
+fails:String#<< with Integer raises a RangeError when the given Fixnum is negative

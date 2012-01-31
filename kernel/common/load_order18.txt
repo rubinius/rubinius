@@ -2,6 +2,7 @@ class.rbc
 class18.rbc
 binding.rbc
 proc.rbc
+proc18.rbc
 autoload.rbc
 autoload18.rbc
 module.rbc
@@ -34,11 +35,12 @@ numeric18.rbc
 ctype.rbc
 precision.rbc
 integer.rbc
+integer18.rbc
 bignum.rbc
+bignum18.rbc
 block_environment.rbc
 bytearray.rbc
-chararray.rbc
-chararray18.rbc
+bytearray18.rbc
 channel.rbc
 executable.rbc
 static_scope.rbc
@@ -56,6 +58,7 @@ dir18.rbc
 lrucache.rbc
 dir_glob.rbc
 env.rbc
+env18.rbc
 errno.rbc
 eval.rbc
 eval18.rbc
@@ -66,6 +69,7 @@ io18.rbc
 file.rbc
 filetest.rbc
 float.rbc
+float18.rbc
 immediate.rbc
 location.rbc
 lookuptable.rbc
@@ -96,6 +100,7 @@ symbol18.rbc
 thread.rbc
 thread_group.rbc
 throw_catch.rbc
+throw_catch18.rbc
 time.rbc
 time18.rbc
 true.rbc

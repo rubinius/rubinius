@@ -1,5 +1,6 @@
 require File.expand_path('../../../spec_helper', __FILE__)
-require File.expand_path('../fixtures/classes.rb', __FILE__)
+require File.expand_path('../fixtures/classes', __FILE__)
+require File.expand_path('../shared/concat', __FILE__)
 
 describe "String#+" do
   it "returns a new string containing the given string concatenated to self" do
@@ -41,4 +42,6 @@ describe "String#+" do
       end
     end
   end
+
+  it_behaves_like :string_concat_encoding, :+
 end

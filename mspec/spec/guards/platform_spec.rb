@@ -1,5 +1,5 @@
-require File.dirname(__FILE__) + '/../spec_helper'
-require 'mspec/guards/platform'
+require 'spec_helper'
+require 'mspec/guards'
 
 describe Object, "#platform_is" do
   before :each do

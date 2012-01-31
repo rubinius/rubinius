@@ -1,7 +1,7 @@
 require 'erb'
 require File.expand_path('../../../../spec_helper', __FILE__)
 
-describe 'ERB::DefMethod.def_erb_method' do
+describe "ERB::DefMethod.def_erb_method" do
 
 
   input = <<'END'

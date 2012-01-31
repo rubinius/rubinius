@@ -79,6 +79,9 @@ namespace rubinius {
     // Rubinius.primitive :pointer_read_double
     Float* read_double(STATE);
 
+    // Rubinius.primitive :pointer_write_pointer
+    Pointer* write_pointer(STATE, Pointer* ptr);
+
     // Rubinius.primitive :pointer_read_pointer
     Pointer* read_pointer(STATE);
 

@@ -1,3 +1,5 @@
+# -*- encoding: us-ascii -*-
+
 class Hash
 
   include Enumerable
@@ -25,7 +27,7 @@ class Hash
         return key.equal?(@key)
       end
 
-      @key_hash == key_hash and key.eql? @key
+      @key_hash == key_hash and (Rubinius::Type::object_equal(key, @key) or key.eql?(@key))
     end
   end
 
@@ -85,9 +87,9 @@ class Hash
     if args.size == 1
       obj = args.first
       if obj.kind_of? Hash
-        return new.replace(obj)
+        return allocate.replace(obj)
       elsif obj.respond_to? :to_hash
-        return new.replace(Rubinius::Type.coerce_to(obj, Hash, :to_hash))
+        return allocate.replace(Rubinius::Type.coerce_to(obj, Hash, :to_hash))
       elsif obj.is_a?(Array) # See redmine # 1385
         h = new
         args.first.each do |arr|
@@ -563,37 +565,17 @@ class Hash
     hsh
   end
 
-  def reject!
+  def reject!(&block)
     Rubinius.check_frozen
 
     return to_enum(:reject!) unless block_given?
 
-    capacity = @capacity
-    entries = @entries
-    change = 0
-
-    i = -1
-    while (i += 1) < capacity
-      prev_item = nil
-      item = entries[i]
-      while item
-        if yield(item.key, item.value)
-          change += 1
-          if !prev_item
-            entries[i] = item.link
-          else
-            prev_item.link = item.link
-            prev_item = item.link
-          end
-        end
-        item = item.link
-      end
+    unless empty?
+      size = @size
+      delete_if(&block)
+      return self if size != @size
     end
 
-    if change > 0
-      @size -= change
-      return self
-    end
     nil
   end
 

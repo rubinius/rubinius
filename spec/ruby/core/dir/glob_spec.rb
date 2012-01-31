@@ -101,6 +101,11 @@ describe "Dir.glob" do
     ary.should == %w!file_one.ext file_two.ext!
   end
 
+  it "ignores non-dirs when traversing recursively" do
+    touch "spec"
+    Dir.glob("spec/**/*.rb").should == []
+  end
+
   platform_is_not(:windows) do
     it "matches the literal character '\\' with option File::FNM_NOESCAPE" do
       Dir.mkdir 'foo?bar'

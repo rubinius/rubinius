@@ -2,6 +2,10 @@ require File.expand_path('../../spec_helper', __FILE__)
 
 module LangModuleSpec
   module Sub1; end
+
+  module AnonymousModules
+    # used as a container for anonymous module specs testing const assignment
+  end
 end
 
 module LangModuleSpecInObject
@@ -76,5 +80,42 @@ describe "An anonymous module" do
       m = Module.new
       m.name.should == nil
     end
+  end
+
+  it "takes on the name of the first constant it is assigned to" do
+    m1 = Module.new
+    m1.inspect.should =~ /#<Module/
+    LangModuleSpec::AnonymousModules::M1 = m1
+    m1.name.should == "LangModuleSpec::AnonymousModules::M1"
+
+    m2 = Module.new
+    LangModuleSpec::AnonymousModules.const_set :M2, m2
+    m2.name.should == "LangModuleSpec::AnonymousModules::M2"
+  end
+
+  it "forces named nested modules to be anonymous" do
+    m3 = Module.new
+    m3.const_set :M4, Module.new
+
+    m3::M4.inspect.should =~ /#<Module/
+
+    LangModuleSpec::AnonymousModules::M3 = m3
+    m3::M4.name.should == "LangModuleSpec::AnonymousModules::M3::M4"
+
+    m5 = Module.new
+    m5.const_set :M6, Module.new
+
+    LangModuleSpec::AnonymousModules.const_set :M5, m5
+    m5::M6.name.should == "LangModuleSpec::AnonymousModules::M5::M6"
+  end
+
+  it "never recalculates full name once no longer anonymous" do
+    m6 = Module.new
+    m6.const_set :M7, Module.new
+    LangModuleSpec::AnonymousModules::M6 = m6
+    m6::M7.name.should == "LangModuleSpec::AnonymousModules::M6::M7"
+
+    LangModuleSpec::AnonymousModules::M8 = m6::M7
+    LangModuleSpec::AnonymousModules::M8.name.should == "LangModuleSpec::AnonymousModules::M6::M7"
   end
 end

@@ -1,3 +1,5 @@
+# -*- encoding: us-ascii -*-
+
 ##
 # Platform specific behavior for Math in 1.9.
 

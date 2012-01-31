@@ -2,60 +2,43 @@ require File.expand_path('../../../spec_helper', __FILE__)
 
 with_feature :encoding do
   describe "String#force_encoding" do
-    it "requires exactly one argument" do
-      lambda {
-        "glark".force_encoding
-      }.should  raise_error(ArgumentError)
-
-      lambda {
-        "glark".force_encoding('h','d')
-      }.should raise_error(ArgumentError)
+    it "accepts a String as the name of an Encoding" do
+      "abc".force_encoding('shift_jis').encoding.should == Encoding::Shift_JIS
     end
 
-    it "accepts the encoding name as a String" do
-      lambda {
-        str.force_encoding('shift_jis')
-      }.should_not raise_error(ArgumentError)
+    it "accepts an Encoding instance" do
+      "abc".force_encoding(Encoding::SHIFT_JIS).encoding.should == Encoding::Shift_JIS
     end
 
-    it "accepts the encoding name as an Encoding object" do
-      lambda {
-        str.force_encoding(Encoding::SHIFT_JIS)
-      }.should_not raise_error(ArgumentError)
+    it "calls #to_str to convert an object to an encoding name" do
+      obj = mock("force_encoding")
+      obj.should_receive(:to_str).and_return("utf-8")
+
+      "abc".force_encoding(obj).encoding.should == Encoding::UTF_8
     end
 
-    it "tags the String with the given encoding" do
-      str = "a"
-      str.encoding.should == Encoding::US_ASCII
-      str.force_encoding(Encoding::SHIFT_JIS)
-      str.encoding.should == Encoding::SHIFT_JIS
+    it "raises a TypeError if #to_str does not return a String" do
+      obj = mock("force_encoding")
+      obj.should_receive(:to_str).and_return(1)
+
+      lambda { "abc".force_encoding(obj) }.should raise_error(TypeError)
     end
 
     it "returns self" do
-      str = "glark"
-      id = str.object_id
-      str.force_encoding('utf-8').object_id.should == id
+      str = "abc"
+      str.force_encoding('utf-8').should equal(str)
     end
 
-    it "does not care if self would be invalid in given encoding" do
+    it "sets the encoding even if the String contents are invalid in that encoding" do
       str = "\u{9765}"
       str.force_encoding('euc-jp')
       str.encoding.should == Encoding::EUC_JP
       str.valid_encoding?.should be_false
     end
 
-    it "does not care if self is already tagged with the given encoding" do
-      str = "\u{9765}"
-      str.encoding.should == Encoding::UTF_8
-      lambda {
-        str.force_encoding('utf-8')
-      }.should_not raise_error(ArgumentError)
-      str.encoding.should == Encoding::UTF_8
-    end
-
     it "does not transcode self" do
-      "\u{8612}".force_encoding('utf-16le').should_not ==
-        "\u{8612}".encode('utf-16le')
+      str = "\u{8612}"
+      str.dup.force_encoding('utf-16le').should_not == str.encode('utf-16le')
     end
   end
 end

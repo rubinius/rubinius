@@ -1,7 +1,7 @@
 platform_is :windows do
   require 'win32ole'
 
-  describe 'WIN32OLE_TYPE#typekind for Shell Controls' do
+  describe "WIN32OLE_TYPE#typekind for Shell Controls" do
     before :each do
       @ole_type = WIN32OLE_TYPE.new("Microsoft Shell Controls And Automation", "Shell")
     end
@@ -10,7 +10,7 @@ platform_is :windows do
       @ole_type = nil
     end
 
-    it 'returns an Integer' do
+    it "returns an Integer" do
       @ole_type.typekind.should be_kind_of Integer
     end
 

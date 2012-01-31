@@ -3,7 +3,7 @@ platform_is :windows do
 
   # TODO: need specs here
   ruby_version_is "1.9" do
-    describe 'WIN32OLE_EVENT#handler' do
+    describe "WIN32OLE_EVENT#handler" do
       before :each do
         @ole = WIN32OLE.new('InternetExplorer.Application')
         @event = ''
@@ -15,7 +15,7 @@ platform_is :windows do
 
     end
 
-    describe 'WIN32OLE_EVENT#handler=' do
+    describe "WIN32OLE_EVENT#handler=" do
       before :each do
         @ole = WIN32OLE.new('InternetExplorer.Application')
         @event = ''

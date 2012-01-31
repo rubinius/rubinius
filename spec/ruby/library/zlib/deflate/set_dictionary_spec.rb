@@ -1,8 +1,8 @@
 require File.expand_path('../../../../spec_helper', __FILE__)
 require 'zlib'
 
-describe 'Zlib::Deflate#set_dictionary' do
-  it 'sets the dictionary' do
+describe "Zlib::Deflate#set_dictionary" do
+  it "sets the dictionary" do
     d = Zlib::Deflate.new
     d.set_dictionary 'aaaaaaaaaa'
     d << 'abcdefghij'

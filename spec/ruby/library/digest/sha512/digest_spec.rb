@@ -3,7 +3,7 @@ require File.expand_path('../shared/constants', __FILE__)
 
 describe "Digest::SHA512#digest" do
 
-  it 'returns a digest' do
+  it "returns a digest" do
     cur_digest = Digest::SHA512.new
     cur_digest.digest().should == SHA512Constants::BlankDigest
 
@@ -22,7 +22,7 @@ end
 
 describe "Digest::SHA512.digest" do
 
-  it 'returns a digest' do
+  it "returns a digest" do
     Digest::SHA512.digest(SHA512Constants::Contents).should == SHA512Constants::Digest
     # second invocation is intentional, to make sure there are no side-effects
     Digest::SHA512.digest(SHA512Constants::Contents).should == SHA512Constants::Digest

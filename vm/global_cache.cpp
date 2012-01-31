@@ -86,7 +86,7 @@ keep_looking:
   }
 
   MethodCacheEntry* GlobalCache::lookup_public(STATE, Module* mod, Class* cls, Symbol* name) {
-    SYNC(state);
+    thread::SpinLock::LockGuard guard(lock_);
 
     CacheEntry* entry = entries + CPU_CACHE_HASH(mod, name);
     if(entry->name == name &&
@@ -102,7 +102,7 @@ keep_looking:
   }
 
   MethodCacheEntry* GlobalCache::lookup_private(STATE, Module* mod, Class* cls, Symbol* name) {
-    SYNC(state);
+    thread::SpinLock::LockGuard guard(lock_);
 
     CacheEntry* entry = entries + CPU_CACHE_HASH(mod, name);
     if(entry->name == name &&
@@ -121,10 +121,9 @@ keep_looking:
   }
 
   bool GlobalCache::resolve_i(STATE, Symbol* name, Dispatch& msg, LookupData& lookup) {
+    thread::SpinLock::LockGuard guard(lock_);
+
     Module* klass = lookup.from;
-
-    SYNC(state);
-
     CacheEntry* entry = this->lookup(state, klass, name);
 
     if(entry) {
@@ -139,7 +138,7 @@ keep_looking:
 
     bool was_private = false;
     if(hierarchy_resolve(state, name, msg, lookup, &was_private)) {
-      retain(state, lookup.from, name,
+      retain_i(state, lookup.from, name,
           msg.module, msg.method, msg.method_missing, was_private);
       return true;
     }

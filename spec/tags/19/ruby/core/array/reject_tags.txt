@@ -1,1 +1,0 @@
-fails:Array#reject does not retain instance variables

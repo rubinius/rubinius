@@ -57,7 +57,7 @@ class StringIO
     return to_enum :each_byte unless block_given?
     raise IOError, "not opened for reading" unless @readable
     if @pos < @string.length
-      @string[@pos..-1].each_byte { |b| @pos += 1; yield b}
+      @string.byteslice(@pos..-1).each_byte { |b| @pos += 1; yield b}
     end
     self
   end
@@ -69,7 +69,7 @@ class StringIO
     if $KCODE == "UTF8"
       lookup = 7.downto(4)
       while c = read(1) do
-        n = c[0]
+        n = c[0].ord
         leftmost_zero_bit = lookup.find{|i| n[i].zero? }
         case leftmost_zero_bit
         when 7 # ASCII
@@ -93,11 +93,10 @@ class StringIO
 
   alias_method :chars, :each_char
 
-  def each(sep = $/)
-    return to_enum :each, sep unless block_given?
+  def each(*args)
+    return to_enum :each, *args unless block_given?
     raise IOError, "not opened for reading" unless @readable
-    sep = StringValue(sep) unless sep.nil?
-    while line = getline(sep)
+    while line = getline(*args)
       yield line
     end
     self
@@ -124,10 +123,10 @@ class StringIO
     if @append || @pos == @string.length
       @string << str
       @pos = @string.length
-    elsif @pos > @string.size
-      @string[@string.size .. @pos] = "\000" * (@pos - @string.size)
+    elsif @pos > @string.bytesize
+      @string[@string.bytesize .. @pos] = "\000" * (@pos - @string.bytesize)
       @string << str
-      @pos = @string.size
+      @pos = @string.bytesize
     else
       @string[@pos, str.length] = str
       @pos += str.length
@@ -166,7 +165,7 @@ class StringIO
   end
 
   def eof?
-    @pos >= @string.size
+    @pos >= @string.bytesize
   end
   alias_method :eof, :eof?
 
@@ -192,10 +191,14 @@ class StringIO
     @pos += 1 unless eof?
     char
   end
-  alias_method :getbyte, :getc
 
-  def gets(sep = $/)
-    $_ = getline(sep)
+  def getbyte
+    char = getc
+    char && char.ord
+  end
+
+  def gets(*args)
+    $_ = getline(*args)
   end
 
   def isatty
@@ -298,12 +301,13 @@ class StringIO
       return nil if eof?
       length = Rubinius::Type.coerce_to length, Integer, :to_int
       raise ArgumentError if length < 0
-      buffer.replace(@string[@pos, length])
+      buffer.replace @string.byteslice(@pos, length)
+      buffer.force_encoding Encoding::ASCII_8BIT
       @pos += buffer.length
     else
       return "" if eof?
-      buffer.replace(@string[@pos..-1])
-      @pos = @string.size
+      buffer.replace @string.byteslice(@pos..-1)
+      @pos = @string.bytesize
     end
 
     return buffer
@@ -318,15 +322,15 @@ class StringIO
     readchar.getbyte(0)
   end
 
-  def readline(sep = $/)
+  def readline(*args)
     raise IO::EOFError, "end of file reached" if eof?
-    $_ = getline(sep)
+    $_ = getline(*args)
   end
 
-  def readlines(sep = $/)
+  def readlines(*args)
     raise IOError, "not opened for reading" unless @readable
     ary = []
-    while line = getline(sep)
+    while line = getline(*args)
       ary << line
     end
     ary
@@ -375,7 +379,7 @@ class StringIO
     when IO::SEEK_CUR
       to += @pos
     when IO::SEEK_END
-      to += @string.size
+      to += @string.bytesize
     when IO::SEEK_SET, nil
     else
       raise Errno::EINVAL, "invalid whence"
@@ -404,11 +408,15 @@ class StringIO
 
   def sysread(length = nil, buffer = "")
     str = read(length, buffer)
-    raise IO::EOFError, "end of file reached" if str.nil?
+    if str.nil?
+      buffer.clear
+      raise IO::EOFError, "end of file reached"
+    end
     str
   end
 
   alias_method :readpartial, :sysread
+  alias_method :read_nonblock, :sysread
 
   def tell
     @pos
@@ -418,10 +426,10 @@ class StringIO
     raise IOError, "not opened for writing" unless @writable
     len = Rubinius::Type.coerce_to length, Integer, :to_int
     raise Errno::EINVAL, "negative length" if len < 0
-    if len < @string.size
-      @string[len .. @string.size] = ""
+    if len < @string.bytesize
+      @string[len .. @string.bytesize] = ""
     else
-      @string << "\000" * (len - @string.size)
+      @string << "\000" * (len - @string.bytesize)
     end
     return length
   end
@@ -434,8 +442,8 @@ class StringIO
       char = Rubinius::Type.coerce_to char, String, :to_str
     end
 
-    if @pos > @string.size
-      @string[@string.size .. @pos] = "\000" * (@pos - @string.size)
+    if @pos > @string.bytesize
+      @string[@string.bytesize .. @pos] = "\000" * (@pos - @string.bytesize)
       @pos -= 1
       @string[@pos] = char
     elsif @pos > 0
@@ -502,36 +510,67 @@ class StringIO
       @string.replace("") if (mode & IO::TRUNC) != 0
     end
 
-    def getline(sep = $/)
+    def getline(*args)
       raise IOError unless @readable
+
+      sep = nil
+      limit = nil
+
+      case args.size
+      when 0
+        sep = $/
+      when 1
+        if args[0]
+          if limit = Rubinius::Type.check_convert_type(args[0], Integer, :to_int)
+            return '' if limit == 0
+          else
+            sep = Rubinius::Type.coerce_to(args[0], String, :to_str)
+          end
+        end
+      when 2
+        sep = Rubinius::Type.coerce_to(args[0], String, :to_str)
+        limit = Rubinius::Type.coerce_to(args[1], Integer, :to_int)
+      end
 
       sep = StringValue(sep) unless sep.nil?
 
       return nil if eof?
 
       if sep.nil?
-        line = @string[@pos .. -1]
-        @pos = @string.size
+        if limit
+          line = @string.byteslice(@pos...@pos + limit)
+        else
+          line = @string.byteslice(@pos..-1)
+        end
+        @pos += line.bytesize
       elsif sep.empty?
         if stop = @string.index("\n\n", @pos)
           stop += 2
-          line = @string[@pos ... stop]
+          line = @string.byteslice(@pos...stop)
           while @string[stop] == ?\n
             stop += 1
           end
           @pos = stop
         else
-          line = @string[@pos .. -1]
-          @pos = @string.size
+          line = @string.byteslice(@pos .. -1)
+          @pos = @string.bytesize
         end
       else
         if stop = @string.index(sep, @pos)
-          stop += sep.length
-          line = @string[@pos ... stop]
+          if limit && stop - @pos >= limit
+            stop = @pos + limit
+          else
+            stop += sep.length
+          end
+          line = @string.byteslice(@pos...stop)
           @pos = stop
         else
-          line = @string[@pos .. -1]
-          @pos = @string.size
+          if limit
+            line = @string.byteslice(@pos...@pos + limit)
+          else
+            line = @string.byteslice(@pos..-1)
+          end
+          @pos += line.bytesize
         end
       end
 

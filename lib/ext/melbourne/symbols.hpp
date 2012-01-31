@@ -40,6 +40,7 @@ namespace melbourne {
   extern ID rb_sDStr;
   extern ID rb_sDSym;
   extern ID rb_sDXStr;
+  extern ID rb_sEncoding;
   extern ID rb_sEnsure;
   extern ID rb_sEvStr;
   extern ID rb_sFalse;
@@ -80,6 +81,7 @@ namespace melbourne {
   extern ID rb_sOr;
   extern ID rb_sPostExe;
   extern ID rb_sPostArg;
+  extern ID rb_sPreExe;
   extern ID rb_sRedo;
   extern ID rb_sRegex;
   extern ID rb_sResbody;

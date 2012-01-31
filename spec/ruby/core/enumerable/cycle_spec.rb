@@ -1,9 +1,8 @@
 require File.expand_path('../../../spec_helper', __FILE__)
 require File.expand_path('../fixtures/classes', __FILE__)
 
-describe "Enumerable#cycle" do
-  ruby_version_is '1.8.7' do
-
+ruby_version_is "1.8.7" do
+  describe "Enumerable#cycle" do
     it "loops indefinitely if no argument or nil argument" do
       [[],[nil]].each do |args|
         bomb = 10
@@ -64,6 +63,11 @@ describe "Enumerable#cycle" do
       it "raises an ArgumentError if more arguments are passed" do
         enum = EnumerableSpecs::Numerous.new
         lambda{ enum.cycle(1, 2) {} }.should raise_error(ArgumentError)
+      end
+
+      it "gathers whole arrays as elements when each yields multiple" do
+        multi = EnumerableSpecs::YieldsMulti.new
+        multi.cycle(2).to_a.should == [[1, 2], [3, 4, 5], [6, 7, 8, 9], [1, 2], [3, 4, 5], [6, 7, 8, 9]]
       end
     end
   end

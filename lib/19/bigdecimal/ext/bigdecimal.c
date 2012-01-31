@@ -36,9 +36,6 @@
 #include <ieeefp.h>
 #endif
 
-// Use RSTRING_PTR without caching on Rubinius
-#define RSTRING_NOT_MODIFIED 1
-
 /* #define ENABLE_NUMERIC_STRING */
 
 VALUE rb_cBigDecimal;

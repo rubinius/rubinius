@@ -4,6 +4,8 @@ gen/*
 test/test_instructions.hpp
 
 capi/18/include/config.h
+capi/18/include/mri_oop.h
 capi/18/include/rbx_config.h
 capi/19/include/ruby/config.h
+capi/19/include/ruby/mri_oop.h
 capi/19/include/rbx_config.h

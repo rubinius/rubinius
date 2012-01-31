@@ -1,6 +1,6 @@
-require File.dirname(__FILE__) + '/../spec_helper'
+require 'spec_helper'
 require 'mspec/expectations/expectations'
-require 'mspec/matchers/output_to_fd'
+require 'mspec/matchers'
 
 describe OutputToFDMatcher do
   # Figure out how in the hell to achieve this

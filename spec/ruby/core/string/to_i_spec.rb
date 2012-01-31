@@ -4,27 +4,33 @@ require File.expand_path('../fixtures/classes.rb', __FILE__)
 describe "String#to_i" do
   # Ruby 1.9 doesn't allow underscores and spaces as part of a number
   ruby_version_is ""..."1.9" do
-    it "ignores leading whitespaces" do
-      [ " 123", "     123", "\r\n\r\n123", "\t\t123",
-        "\r\n\t\n123", " \t\n\r\t 123"].each do |str|
-        str.to_i.should == 123
-      end
-    end
-
     it "ignores leading underscores" do
       "_123".to_i.should == 123
       "__123".to_i.should == 123
       "___123".to_i.should == 123
     end
 
-    it "ignores underscores in between the digits" do
-      "1_2_3asdf".to_i.should == 123
-    end
-
     it "ignores a leading mix of whitespaces and underscores" do
       [ "_ _123", "_\t_123", "_\r\n_123" ].each do |str|
         str.to_i.should == 123
       end
+    end
+  end
+
+  ruby_version_is "1.9" do
+    it "returns 0 for strings with leading underscores" do
+      "_123".to_i.should == 0
+    end
+  end
+
+  it "ignores underscores in between the digits" do
+    "1_2_3asdf".to_i.should == 123
+  end
+
+  it "ignores leading whitespaces" do
+    [ " 123", "     123", "\r\n\r\n123", "\t\t123",
+      "\r\n\t\n123", " \t\n\r\t 123"].each do |str|
+      str.to_i.should == 123
     end
   end
 

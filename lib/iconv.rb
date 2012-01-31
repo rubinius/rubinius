@@ -48,6 +48,10 @@ class Iconv
     include Failure
   end
 
+  # iconv annoyingly returns (void*)-1 on error, so the
+  # unsigned value we get from FFI::Pointer#address is different
+  ERROR_ADDRESS = FFI::Pointer.new(-1).address
+
   def initialize(to, from)
     @to = StringValue(to)
     @from = StringValue(from)
@@ -55,7 +59,7 @@ class Iconv
     @handle = Iconv.create @to, @from
 
     begin
-      Errno.handle if @handle.address == -1
+      Errno.handle if @handle.address == ERROR_ADDRESS
     rescue Errno::EINVAL
       raise InvalidEncoding.new("invalid encoding (#{@to.inspect}, #{@from.inspect})",
                                 nil, [@to, @from])
@@ -129,7 +133,7 @@ class Iconv
 
     if str
       str = StringValue(str)
-      str_size = str.size
+      str_size = str.bytesize
 
       # To deal with people passing in nil's
       start  = 0        unless start

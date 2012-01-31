@@ -1,3 +1,5 @@
+# -*- encoding: us-ascii -*-
+
 ##
 # Stores global variables and global variable aliases.
 

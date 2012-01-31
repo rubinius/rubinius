@@ -169,8 +169,7 @@ module Syslog
     @open = true
 
     # Calling set_mask twice is the standard way to set the 'default' mask
-    @mask = Foreign.set_mask(0)
-    Foreign.set_mask(@mask)
+    self.mask = @mask_before_reopen || Foreign.set_mask(0)
 
     if block_given?
       begin
@@ -184,6 +183,7 @@ module Syslog
   end
 
   def self.reopen(*args, &block)
+    @mask_before_reopen = mask
     close
     open(*args, &block)
   end
@@ -206,7 +206,7 @@ module Syslog
 
     Foreign.close
     @ident = nil
-    @options = @facility = @mask = -1;
+    @options = @facility = @mask = nil;
     @open = false
   end
 

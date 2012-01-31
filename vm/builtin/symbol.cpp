@@ -1,5 +1,6 @@
 #include "builtin/array.hpp"
 #include "builtin/class.hpp"
+#include "builtin/encoding.hpp"
 #include "builtin/fixnum.hpp"
 #include "builtin/string.hpp"
 #include "builtin/symbol.hpp"
@@ -55,15 +56,25 @@ namespace rubinius {
   }
 
   Object* Symbol::is_ivar_p(STATE) {
-    return state->shared().symbols.kind(state, this) == SymbolTable::IVar ? Qtrue : Qfalse;
+    return state->shared().symbols.kind(state, this) == SymbolTable::IVar ? cTrue : cFalse;
   }
 
   Object* Symbol::is_cvar_p(STATE) {
-    return state->shared().symbols.kind(state, this) == SymbolTable::CVar ? Qtrue : Qfalse;
+    return state->shared().symbols.kind(state, this) == SymbolTable::CVar ? cTrue : cFalse;
   }
 
   Object* Symbol::is_constant_p(STATE) {
-    return state->shared().symbols.kind(state, this) == SymbolTable::Constant ? Qtrue : Qfalse;
+    return state->shared().symbols.kind(state, this) == SymbolTable::Constant ? cTrue : cFalse;
+  }
+
+  Encoding* Symbol::encoding(STATE) {
+    // TODO
+    return Encoding::usascii_encoding(state);
+  }
+
+  Encoding* Symbol::encoding(STATE, Encoding* enc) {
+    // TODO
+    return enc;
   }
 
   void Symbol::Info::show(STATE, Object* self, int level) {

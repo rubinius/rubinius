@@ -1,6 +1,6 @@
-require File.dirname(__FILE__) + '/../spec_helper'
-require 'mspec/helpers/enumerator_class'
+require 'spec_helper'
 require 'mspec/guards'
+require 'mspec/helpers'
 
 describe "#enumerator_class" do
 

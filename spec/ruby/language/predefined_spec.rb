@@ -240,6 +240,15 @@ $stdout          IO              The current standard output. Assignment to $std
                                  $stdout.reopen instead.
 =end
 
+describe "Predefined global $," do
+  it "defaults to nil" do
+    $,.should be_nil
+  end
+
+  it "raises TypeError if assigned a non-String" do
+    lambda { $, = Object.new }.should raise_error(TypeError)
+  end
+end
 
 describe "Predefined global $_" do
   it "is set to the last line read by e.g. StringIO#gets" do
@@ -450,6 +459,48 @@ describe "Global variable $-p" do
   end
 end
 
+describe "Global variable $-d" do
+  before :each do
+    @debug = $DEBUG
+  end
+
+  after :each do
+    $DEBUG = @debug
+  end
+
+  it "is an alias of $DEBUG" do
+    $DEBUG = true
+    $-d.should be_true
+    $-d = false
+    $DEBUG.should be_false
+  end
+end
+
+describe :verbose_global_alias, :shared => true do
+  before :each do
+    @verbose = $VERBOSE
+  end
+
+  after :each do
+    $VERBOSE = @verbose
+  end
+
+  it "is an alias of $VERBOSE" do
+    $VERBOSE = true
+    eval(@method).should be_true
+    eval("#{@method} = false")
+    $VERBOSE.should be_false
+  end
+end
+
+describe "Global variable $-v" do
+  it_behaves_like :verbose_global_alias, '$-v'
+end
+
+describe "Global variable $-w" do
+  it_behaves_like :verbose_global_alias, '$-w'
+end
+
 =begin
 Standard Objects
 ---------------------------------------------------------------------------------------------------
@@ -622,7 +673,9 @@ describe "Processing RUBYOPT" do
 
   it "sets $DEBUG to true for '-d'" do
     ENV["RUBYOPT"] = '-d'
-    ruby_exe("puts $DEBUG", :escape => true).chomp.should == "true"
+    command = %[puts "value of $DEBUG is \#{$DEBUG}"]
+    result = ruby_exe(command, :escape => true, :args => "2>&1")
+    result.should =~ /value of \$DEBUG is true/
   end
 
   ruby_version_is "1.9" do

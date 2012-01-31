@@ -1,6 +1,6 @@
-require File.dirname(__FILE__) + '/../spec_helper'
+require 'spec_helper'
 require 'mspec/expectations/expectations'
-require 'mspec/matchers/be_empty'
+require 'mspec/matchers'
 
 describe BeEmptyMatcher do
   it "matches when actual is empty" do

@@ -80,4 +80,24 @@ describe :object_dup_clone, :shared => true do
       o3.untrusted?.should == true
     end
   end
+
+  it "raises a TypeError for NilClass" do
+    lambda { nil.send(@method) }.should raise_error(TypeError)
+  end
+
+  it "raises a TypeError for TrueClass" do
+    lambda { true.send(@method) }.should raise_error(TypeError)
+  end
+
+  it "raises a TypeError for FalseClass" do
+    lambda { false.send(@method) }.should raise_error(TypeError)
+  end
+
+  it "raises a TypeError for Fixnum" do
+    lambda { 1.send(@method) }.should raise_error(TypeError)
+  end
+
+  it "raises a TypeError for Symbol" do
+    lambda { :my_symbol.send(@method) }.should raise_error(TypeError)
+  end
 end

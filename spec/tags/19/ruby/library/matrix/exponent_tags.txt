@@ -1,2 +1,0 @@
-fails:Matrix#** raises a ErrOperationNotImplemented exception for powers that aren't Integers
-fails:Matrix#** returns the power for non integer powers

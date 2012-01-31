@@ -75,6 +75,12 @@ describe :stringio_read_length, :shared => true do
   it "raises a TypeError when the passed length is negative" do
     lambda { @io.send(@method, -2) }.should raise_error(ArgumentError)
   end
+
+  ruby_version_is "1.9" do
+    it "returns a binary String" do
+      @io.send(@method, 4).encoding.should == Encoding::ASCII_8BIT
+    end
+  end
 end
 
 describe :stringio_read_no_arguments, :shared => true do

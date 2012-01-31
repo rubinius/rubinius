@@ -1,5 +1,6 @@
-require File.dirname(__FILE__) + '/../spec_helper'
-require 'mspec/helpers/encode'
+require 'spec_helper'
+require 'mspec/guards'
+require 'mspec/helpers'
 
 describe Object, "#encode" do
   it "raises an ArgumentError if the str parameter is not a String" do

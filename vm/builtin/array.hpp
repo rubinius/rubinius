@@ -16,7 +16,6 @@ namespace rubinius {
     Fixnum* total_; // slot
     Tuple* tuple_;  // slot
     Fixnum* start_; // slot
-    Object* shared_; // slot
 
   public:
     /* accessors */
@@ -24,11 +23,11 @@ namespace rubinius {
     attr_accessor(total, Fixnum);
     attr_accessor(tuple, Tuple);
     attr_accessor(start, Fixnum);
-    attr_accessor(shared, Object);
 
     /* interface */
 
     size_t size();
+    size_t offset();
     static void init(STATE);
     static Array* create(STATE, size_t size);
     static Array* from_tuple(STATE, Tuple* tup);

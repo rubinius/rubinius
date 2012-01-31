@@ -169,6 +169,10 @@ ruby_version_is "1.9" do
       obj.should_receive(:to_int).and_return(4)
       @io.gets(obj).should == "this"
     end
+
+    it "returns a blank string when passed a limit of 0" do
+      @io.gets(0).should == ""
+    end
   end
 
   describe "StringIO#gets when passed [separator] and [limit]" do

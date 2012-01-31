@@ -23,10 +23,10 @@ namespace rubinius {
       self_ = self;
       block_ = block;
       module_ = module;
-      last_match_ = Qnil;
+      last_match_ = cNil;
 
       for(int i = 0; i < locals; i++) {
-        locals_[i] = Qnil;
+        locals_[i] = cNil;
       }
     }
 

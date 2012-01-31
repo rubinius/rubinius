@@ -1,8 +1,8 @@
-require File.expand_path('../../../shared/rational/new', __FILE__)
-
 ruby_version_is ""..."1.9" do
   describe "Rational.new" do
-    it_behaves_like(:rational_new, :new)
+    it "is private" do
+      Rational.should have_private_method(:new)
+    end
   end
 
   describe "Rational.new!" do

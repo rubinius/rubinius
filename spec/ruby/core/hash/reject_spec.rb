@@ -3,6 +3,11 @@ require File.expand_path('../fixtures/classes', __FILE__)
 require File.expand_path('../shared/iteration', __FILE__)
 
 describe "Hash#reject" do
+  it "returns a new hash removing keys for which the block yields true" do
+    h = new_hash(1=>false, 2=>true, 3=>false, 4=>true)
+    h.reject { |k,v| v }.keys.sort.should == [1,3]
+  end
+
   it "is equivalent to hsh.dup.delete_if" do
     h = new_hash(:a => 'a', :b => 'b', :c => 'd')
     h.reject { |k,v| k == 'd' }.should == (h.dup.delete_if { |k, v| k == 'd' })
@@ -21,8 +26,8 @@ describe "Hash#reject" do
   end
 
   it "returns subclass instance for subclasses" do
-    MyHash[1 => 2, 3 => 4].reject { false }.should be_kind_of(MyHash)
-    MyHash[1 => 2, 3 => 4].reject { true }.should be_kind_of(MyHash)
+    HashSpecs::MyHash[1 => 2, 3 => 4].reject { false }.should be_kind_of(HashSpecs::MyHash)
+    HashSpecs::MyHash[1 => 2, 3 => 4].reject { true }.should be_kind_of(HashSpecs::MyHash)
   end
 
   it "taints the resulting hash" do
@@ -46,13 +51,18 @@ end
 
 describe "Hash#reject!" do
   before(:each) do
-    @hsh = new_hash(1 => 2, 3 => 4, 5 => 6)
+    @hsh = new_hash
+    (1 .. 10).each { |k| @hsh[k] = k.even? }
     @empty = new_hash
   end
 
+  it "removes keys from self for which the block yields true" do
+    @hsh.reject! { |k,v| v }
+    @hsh.keys.sort.should == [1,3,5,7,9]
+  end
+
   it "is equivalent to delete_if if changes are made" do
-    new_hash(:a => 2).reject! { |k,v| v > 1 }.should ==
-      new_hash(:a => 2).delete_if { |k, v| v > 1 }
+    @hsh.reject! { |k,v| v }.should == @hsh.delete_if { |k, v| v }
 
     h = new_hash(1 => 2, 3 => 4)
     all_args_reject = []

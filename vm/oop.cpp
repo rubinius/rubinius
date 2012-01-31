@@ -566,9 +566,9 @@ step2:
     memcpy(dst, src, other->body_in_bytes(state));
   }
 
-  /* Clear the body of the object, by setting each field to Qnil */
+  /* Clear the body of the object, by setting each field to cNil */
   void ObjectHeader::clear_fields(size_t bytes) {
-    ivars_ = Qnil;
+    ivars_ = cNil;
 
     /* HACK: this case seems like a reasonable exception
      * to using accessor functions
@@ -577,7 +577,7 @@ step2:
     size_t field_count = bytes_to_fields(bytes);
 
     for(register size_t counter = 0; counter < field_count; ++counter) {
-      dst[counter] = Qnil;
+      dst[counter] = cNil;
     }
   }
 
@@ -594,6 +594,9 @@ step2:
   void InflatedHeader::set_object(ObjectHeader* obj) {
     flags_ = obj->flags();
     object_ = obj;
+
+    flags_.meaning = eAuxWordEmpty;
+    flags_.aux_word = 0;
   }
 
   void InflatedHeader::initialize_mutex(int thread_id, int count) {
@@ -650,7 +653,7 @@ step2:
       GCIndependent gc_guard(state);
 
       if(cDebugThreading) {
-        std::cerr << "[LOCK " << state->vm()->thread_id() << " locking native mutex]\n";
+        std::cerr << "[LOCK " << state->vm()->thread_id() << " locking native mutex: " << this << "]\n";
       }
 
       state->vm()->set_sleeping();
@@ -699,7 +702,7 @@ step2:
     state->vm()->add_locked_object(object_);
 
     if(cDebugThreading) {
-      std::cerr << "[LOCK " << state->vm()->thread_id() << " locked inflated header]\n";
+      std::cerr << "[LOCK " << state->vm()->thread_id() << " locked inflated header: " << this << "]\n";
     }
 
     return eLocked;
@@ -777,7 +780,7 @@ step2:
 
       owner_id_ = 0;
       if(cDebugThreading) {
-        std::cerr << "[LOCK " << state->vm()->thread_id() << " unlocked native]\n";
+        std::cerr << "[LOCK " << state->vm()->thread_id() << " unlocked native: " << this << "]\n";
       }
     } else {
       rec_lock_count_--;

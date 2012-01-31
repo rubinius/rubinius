@@ -47,7 +47,7 @@ namespace rubinius {
 
     /* classes for the core 'types' */
     TypedRoot<Class*> cmethod, tuple, module, basicobject, object, array;
-    TypedRoot<Class*> klass, methtbl, bytearray, chararray;
+    TypedRoot<Class*> klass, methtbl, bytearray;
     TypedRoot<Class*> blokenv, bignum, regexp, matchdata;
     TypedRoot<Class*> string, symbol, io;
     TypedRoot<Class*> nil_class, true_class, false_class, fixnum_class, undef_class;
@@ -100,7 +100,7 @@ namespace rubinius {
     TypedRoot<Class*> proc; /**< Proc class */
     TypedRoot<Class*> variable_scope;
     TypedRoot<Class*> location;
-    TypedRoot<Exception*> stack_error;
+    TypedRoot<Class*> stack_error;
     TypedRoot<Class*> jump_error;
     TypedRoot<Class*> exc_vm_internal;
     TypedRoot<Class*> exc_vm_bad_bytecode;
@@ -111,6 +111,7 @@ namespace rubinius {
     TypedRoot<Class*> encoding;
     TypedRoot<Module*> type;
     TypedRoot<Class*> vm_class;
+    TypedRoot<Class*> atomic_ref;
 
     /* Add new globals above this line. */
 
@@ -127,7 +128,6 @@ namespace rubinius {
       klass(&roots),
       methtbl(&roots),
       bytearray(&roots),
-      chararray(&roots),
       blokenv(&roots),
       bignum(&roots),
       regexp(&roots),
@@ -220,7 +220,8 @@ namespace rubinius {
       alias(&roots),
       encoding(&roots),
       type(&roots),
-      vm_class(&roots)
+      vm_class(&roots),
+      atomic_ref(&roots)
 
       /* Add initialize of globals above this line. */
     { }

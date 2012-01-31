@@ -13,7 +13,7 @@ namespace rubinius {
   Thunk* Thunk::create(STATE, Object* self, Object* value) {
     Thunk* pe = state->new_object<Thunk>(as<Class>(self));
     pe->value(state, value);
-
+    pe->inliners_ = 0;
     pe->execute = thunk_executor;
     return pe;
   }

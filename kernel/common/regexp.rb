@@ -1,3 +1,5 @@
+# -*- encoding: us-ascii -*-
+
 class Regexp
   ValidKcode    = [110, 101, 115, 117]  # [?n,?e,?s,?u]
   KcodeValue    = [16, 32, 48, 64]
@@ -77,7 +79,7 @@ class Regexp
   def initialize(pattern, opts=nil, lang=nil)
     if pattern.kind_of?(Regexp)
       opts = pattern.options
-      pattern  = pattern.source
+      pattern = pattern.source
     elsif opts.kind_of?(Fixnum)
       opts = opts & (OPTION_MASK | KCODE_MASK) if opts > 0
     elsif opts
@@ -86,7 +88,7 @@ class Regexp
       opts = 0
     end
 
-    if opts and lang and lang.kind_of?(String)
+    if opts and lang.kind_of?(String)
       opts &= OPTION_MASK
       idx   = ValidKcode.index(lang.downcase[0])
       opts |= KcodeValue[idx] if idx
@@ -95,13 +97,8 @@ class Regexp
     compile pattern, opts
   end
 
-  def self.escape(str)
-    StringValue(str).transform(ESCAPE_TABLE, true)
-  end
-
   class << self
     alias_method :compile, :new
-    alias_method :quote, :escape
   end
 
   def initialize_copy(other)
@@ -258,12 +255,12 @@ class Regexp
 
     str = StringValue(str)
 
-    Regexp.last_match = search_region(str, 0, str.size, true)
+    Regexp.last_match = search_region(str, 0, str.bytesize, true)
   end
 
   def match_from(str, count)
     return nil unless str
-    search_region(str, count, str.size, true)
+    search_region(str, count, str.bytesize, true)
   end
 
   class SourceParser
@@ -368,12 +365,12 @@ class Regexp
 
     # TODO: audit specs for this method when specs are running
     def create_parts
-      return unless @index < @source.size
+      return unless @index < @source.bytesize
       char =  @source.getbyte(@index).chr
       case char
       when '('
         idx = @index + 1
-        if idx < @source.size and @source.getbyte(idx).chr == '?'
+        if idx < @source.bytesize and @source.getbyte(idx).chr == '?'
           process_group
         else
           push_current_character!
@@ -529,8 +526,8 @@ class Regexp
     hash = {}
 
     if @names
-      @names.each do |k, v|
-        hash[k.to_s] = [v + 1] # we only have one location currently for a key
+      @names.sort_by { |a,b| b.first }.each do |k, v| # LookupTable is unordered
+        hash[k.to_s] = v
       end
     end
 
@@ -554,16 +551,12 @@ class Regexp
   #
   def names
     if @names
-      ary = Array.new(@names.size)
-      @names.each do |k, v|
-        ary[v] = k.to_s
-      end
-
-      return ary
+      @names.sort_by { |a,b| b.first }.map { |x| x.first.to_s } # LookupTable is unordered
     else
       []
     end
   end
+
 end
 
 class MatchData
@@ -612,7 +605,7 @@ class MatchData
         val = nil
       else
         y = tup.at(1)
-        val = @source.substring(x, y-x)
+        val = @source.byteslice(x, y-x)
       end
 
       out[idx] = val
@@ -627,15 +620,15 @@ class MatchData
   end
 
   def pre_match
-    return @source.substring(0, 0) if @full.at(0) == 0
+    return @source.byteslice(0, 0) if @full.at(0) == 0
     nd = @full.at(0) - 1
-    @source.substring(0, nd+1)
+    @source.byteslice(0, nd+1)
   end
 
   def pre_match_from(idx)
-    return @source.substring(0, 0) if @full.at(0) == 0
+    return @source.byteslice(0, 0) if @full.at(0) == 0
     nd = @full.at(0) - 1
-    @source.substring(idx, nd-idx+1)
+    @source.byteslice(idx, nd-idx+1)
   end
 
   def collapsing?
@@ -643,9 +636,9 @@ class MatchData
   end
 
   def post_match
-    nd = @source.size - 1
+    nd = @source.bytesize - 1
     st = @full.at(1)
-    @source.substring(st, nd-st+1)
+    @source.byteslice(st, nd-st+1)
   end
 
   def inspect
@@ -691,7 +684,7 @@ class MatchData
   def matched_area
     x = @full.at(0)
     y = @full.at(1)
-    @source.substring(x, y-x)
+    @source.byteslice(x, y-x)
   end
 
   alias_method :to_s, :matched_area
@@ -701,7 +694,7 @@ class MatchData
     x, y = @region[num]
     return nil if !y or x == -1
 
-    return @source.substring(x, y-x)
+    return @source.byteslice(x, y-x)
   end
 
   private :get_capture
@@ -709,7 +702,7 @@ class MatchData
   def each_capture
     @region.each do |tup|
       x, y = *tup
-      yield @source.substring(x, y-x)
+      yield @source.byteslice(x, y-x)
     end
   end
 

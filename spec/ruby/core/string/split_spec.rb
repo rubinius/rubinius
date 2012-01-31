@@ -345,4 +345,14 @@ describe "String#split with Regexp" do
       end
     end
   end
+
+  ruby_version_is "1.9" do
+    it "returns an ArgumentError if an invalid UTF-8 string is supplied" do
+      broken_str = 'проверка' # in russian, means "test"
+      broken_str.force_encoding('binary')
+      broken_str.chop!
+      broken_str.force_encoding('utf-8')
+      lambda{ broken_str.split(/\r\n|\r|\n/) }.should raise_error(ArgumentError)
+    end
+  end
 end

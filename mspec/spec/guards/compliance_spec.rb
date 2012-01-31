@@ -1,5 +1,5 @@
-require File.dirname(__FILE__) + '/../spec_helper'
-require 'mspec/guards/compliance'
+require 'spec_helper'
+require 'mspec/guards'
 
 describe Object, "#compliant_on" do
   before :all do

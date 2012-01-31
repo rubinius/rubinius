@@ -1,5 +1,4 @@
-#include "ruby.h"
-
+#include "melbourne.hpp"
 #include "symbols.hpp"
 
 #ifdef __cplusplus
@@ -41,6 +40,7 @@ namespace melbourne {
   ID rb_sDStr;
   ID rb_sDSym;
   ID rb_sDXStr;
+  ID rb_sEncoding;
   ID rb_sEnsure;
   ID rb_sEvStr;
   ID rb_sFalse;
@@ -81,6 +81,7 @@ namespace melbourne {
   ID rb_sOr;
   ID rb_sPostExe;
   ID rb_sPostArg;
+  ID rb_sPreExe;
   ID rb_sRedo;
   ID rb_sRegex;
   ID rb_sResbody;
@@ -151,6 +152,7 @@ namespace melbourne {
     rb_sDStr        = rb_intern("process_dstr");
     rb_sDSym        = rb_intern("process_dsym");
     rb_sDXStr       = rb_intern("process_dxstr");
+    rb_sEncoding    = rb_intern("process_encoding");
     rb_sEnsure      = rb_intern("process_ensure");
     rb_sEvStr       = rb_intern("process_evstr");
     rb_sFalse       = rb_intern("process_false");
@@ -191,6 +193,7 @@ namespace melbourne {
     rb_sOr          = rb_intern("process_or");
     rb_sPostExe     = rb_intern("process_postexe");
     rb_sPostArg     = rb_intern("process_postarg");
+    rb_sPreExe      = rb_intern("process_preexe");
     rb_sRedo        = rb_intern("process_redo");
     rb_sRegex       = rb_intern("process_regex");
     rb_sResbody     = rb_intern("process_resbody");

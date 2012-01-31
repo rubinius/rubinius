@@ -54,7 +54,7 @@ namespace rubinius {
       T* new_object(Class *cls) {
         return reinterpret_cast<T*>(vm_->new_object_typed(cls, sizeof(T), T::type));
       }
-    
+
     ThreadState* thread_state() {
       return vm_->thread_state();
     }
@@ -106,7 +106,7 @@ namespace rubinius {
       shared_.restart_world(vm_);
     }
 
-    void gc_independent() {
+    void gc_independent(GCToken gct) {
       shared_.gc_independent(vm_);
     }
 
@@ -126,6 +126,19 @@ namespace rubinius {
       }
     }
 
+    void lock(GCToken gct) {
+      gc_independent(gct);
+      vm_->lock(vm_);
+      gc_dependent();
+    }
+
+    void unlock() {
+      vm_->unlock(vm_);
+    }
+
+    void park(GCToken gct, CallFrame* call_frame);
+
+    void park_timed(GCToken gct, CallFrame* call_frame, struct timespec* ts);
   };
 }
 

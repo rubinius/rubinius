@@ -1,5 +1,6 @@
-require File.dirname(__FILE__) + '/../spec_helper'
-require 'mspec/helpers/argv'
+require 'spec_helper'
+require 'mspec/guards'
+require 'mspec/helpers'
 
 describe Object, "#argv" do
   before :each do

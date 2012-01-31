@@ -1,5 +1,5 @@
-require File.dirname(__FILE__) + '/../spec_helper'
-require 'mspec/matchers/be_computed_by'
+require 'spec_helper'
+require 'mspec/matchers'
 
 describe BeComputedByMatcher do
   it "matches when all entries in the Array compute" do

@@ -1,3 +1,5 @@
+# -*- encoding: us-ascii -*-
+
 # TODO: Temporary! Object should find these methods in BasicObject
 # but we fake that until method lookup is fixed for 1.9.
 module Kernel
@@ -11,7 +13,9 @@ module Kernel
   alias_method :===,  :equal?
 
   def !~(other)
-    self =~ other ? false : true
+    res = self =~ other ? false : true
+    Regexp.last_match = Regexp.last_match
+    res
   end
 
   def trust

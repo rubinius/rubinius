@@ -1,3 +1,5 @@
+# -*- encoding: us-ascii -*-
+
 class Bignum < Integer
 
   # unary operators
@@ -92,11 +94,6 @@ class Bignum < Integer
     end
 
     self >> other
-  end
-
-  def **(o)
-    Rubinius.primitive :bignum_pow
-    redo_coerced :**, o
   end
 
   # comparison operators

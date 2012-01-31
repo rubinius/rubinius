@@ -1,3 +1,5 @@
+# -*- encoding: us-ascii -*-
+
 class Array
   # Creates a new Array from the return values of passing
   # each element in self to the supplied block.

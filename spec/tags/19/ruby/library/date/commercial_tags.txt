@@ -1,2 +1,0 @@
-fails:Date#valid_commercial? should be able to determine if the date is a valid commercial date
-fails:Date#valid_commercial? should be able to handle negative week and day numbers

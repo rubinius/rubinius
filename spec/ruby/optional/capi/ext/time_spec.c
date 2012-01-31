@@ -1,6 +1,8 @@
 #include "ruby.h"
 #include "rubyspec.h"
 
+#include <time.h>
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -19,12 +21,23 @@ static VALUE time_spec_rb_time_new(VALUE self, VALUE sec, VALUE usec) {
 # endif
 #endif
 
+#ifdef HAVE_TIMET2NUM
+static VALUE time_spec_TIMET2NUM(VALUE self) {
+  time_t t = 10;
+  return TIMET2NUM(t);
+}
+#endif
+
 void Init_time_spec() {
   VALUE cls;
   cls = rb_define_class("CApiTimeSpecs", rb_cObject);
 
 #ifdef HAVE_RB_TIME_NEW
   rb_define_method(cls, "rb_time_new", time_spec_rb_time_new, 2);
+#endif
+
+#ifdef HAVE_TIMET2NUM
+  rb_define_method(cls, "TIMET2NUM", time_spec_TIMET2NUM, 0);
 #endif
 }
 

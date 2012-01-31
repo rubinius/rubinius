@@ -1,5 +1,5 @@
-require File.dirname(__FILE__) + '/../spec_helper'
-require 'mspec/guards/conflict'
+require 'spec_helper'
+require 'mspec/guards'
 
 describe Object, "#conflicts_with" do
   before :each do

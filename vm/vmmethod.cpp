@@ -16,6 +16,8 @@
 #include "builtin/tuple.hpp"
 #include "builtin/class.hpp"
 #include "builtin/location.hpp"
+#include "builtin/global_cache_entry.hpp"
+
 #include "instructions.hpp"
 
 #include "instruments/tooling.hpp"
@@ -206,6 +208,9 @@ namespace rubinius {
       }
       case InstructionSequence::insn_allow_private:
         allow_private = true;
+        break;
+      case InstructionSequence::insn_push_const_fast:
+        original->literals()->put(state, opcodes[ip + 2], GlobalCacheEntry::empty(state));
         break;
       case InstructionSequence::insn_send_super_stack_with_block:
       case InstructionSequence::insn_send_super_stack_with_splat:
@@ -644,13 +649,13 @@ namespace rubinius {
     // look in the wrong place.
     //
     // Thus, we have to cache the value in the StackVariables.
-    scope->initialize(G(main), Qnil, G(object), vmm->number_of_locals);
+    scope->initialize(G(main), cNil, G(object), vmm->number_of_locals);
 
     InterpreterCallFrame* frame = ALLOCA_CALLFRAME(vmm->stack_size);
 
     frame->prepare(vmm->stack_size);
 
-    Arguments args(state->symbol("__script__"), G(main), Qnil, 0, 0);
+    Arguments args(state->symbol("__script__"), G(main), cNil, 0, 0);
 
     frame->previous = previous;
     frame->flags =    0;

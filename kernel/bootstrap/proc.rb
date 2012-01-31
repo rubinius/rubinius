@@ -1,3 +1,5 @@
+# -*- encoding: us-ascii -*-
+
 class Proc
   def self.allocate
     Rubinius.primitive :proc_allocate

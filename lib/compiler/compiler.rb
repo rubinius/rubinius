@@ -1,3 +1,5 @@
+# -*- encoding: us-ascii -*-
+
 module Rubinius
 
   class CompileError < RuntimeError
@@ -21,7 +23,7 @@ module Rubinius
         hash = Rubinius.invoke_primitive :sha1_hash, full
         dir = hash[0,2]
 
-        path = "#{RBC_DB}/#{dir}/#{hash}"
+        "#{RBC_DB}/#{dir}/#{hash}"
       end
     else
       def self.compiled_cache_writable?(db, dir)
@@ -56,7 +58,7 @@ module Rubinius
         full = "#{name}#{Rubinius::RUBY_LIB_VERSION}"
         hash = Rubinius.invoke_primitive :sha1_hash, full
 
-        path = "#{db}/#{hash[0, 2]}/#{hash}"
+        "#{db}/#{hash[0, 2]}/#{hash}"
       end
     end
 
@@ -281,7 +283,7 @@ module Rubinius
     def self.compile_eval(string, variable_scope, file="(eval)", line=1)
       if ec = @eval_cache
         layout = variable_scope.local_layout
-        if cm = ec.retrieve([string, layout])
+        if cm = ec.retrieve([string, layout, line])
           return cm
         end
       end
@@ -300,7 +302,7 @@ module Rubinius
       cm.add_metadata :for_eval, true
 
       if ec and parser.should_cache?
-        ec.set([string.dup, layout], cm)
+        ec.set([string.dup, layout, line], cm)
       end
 
       return cm

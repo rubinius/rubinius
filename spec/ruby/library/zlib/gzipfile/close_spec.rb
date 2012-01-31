@@ -3,8 +3,8 @@ require File.expand_path('../../../../spec_helper', __FILE__)
 require 'stringio'
 require 'zlib'
 
-describe 'Zlib::GzipFile#close' do
-  it 'finishes the stream and closes the io' do
+describe "Zlib::GzipFile#close" do
+  it "finishes the stream and closes the io" do
     io = StringIO.new ""
     Zlib::GzipWriter.wrap io do |gzio|
       gzio.close

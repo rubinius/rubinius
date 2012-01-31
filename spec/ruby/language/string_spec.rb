@@ -1,11 +1,15 @@
+# -*- encoding: us-ascii -*-
+
 require File.expand_path('../../spec_helper', __FILE__)
 
-# Thanks http://www.zenspider.com/Languages/Ruby/QuickRef.html
+# TODO: rewrite these horrid specs. it "are..." seriously?!
 
 describe "Ruby character strings" do
 
   before(:each) do
     @ip = 'xxx' # used for interpolation
+    $ip = 'xxx'
+    @@ip = 'xxx'
   end
 
   it "don't get interpolated when put in single quotes" do
@@ -21,12 +25,10 @@ describe "Ruby character strings" do
   end
 
   it "interpolate global variables just with the # character" do
-    $ip = 'xxx'
     "#$ip".should == 'xxx'
   end
 
   it "interpolate class variables just with the # character" do
-    @@ip = 'xxx'
     "#@@ip".should == 'xxx'
   end
 
@@ -43,6 +45,34 @@ describe "Ruby character strings" do
     "#@ip?".should == 'xxx?'
     "#@ip!".should == 'xxx!'
     "#@ip#@ip".should == 'xxxxxx'
+  end
+
+  it "taints the result of interpolation when an interpolated value is tainted" do
+    "#{"".taint}".tainted?.should be_true
+
+    @ip.taint
+    "#@ip".tainted?.should be_true
+
+    @@ip.taint
+    "#@@ip".tainted?.should be_true
+
+    $ip.taint
+    "#$ip".tainted?.should be_true
+  end
+
+  ruby_version_is "1.9" do
+    it "untrusts the result of interpolation when an interpolated value is untrusted" do
+      "#{"".untrust}".untrusted?.should be_true
+
+      @ip.untrust
+      "#@ip".untrusted?.should be_true
+
+      @@ip.untrust
+      "#@@ip".untrusted?.should be_true
+
+      $ip.untrust
+      "#$ip".untrusted?.should be_true
+    end
   end
 
   it "allow using non-alnum characters as string delimiters" do
@@ -193,6 +223,76 @@ HERE
 
       # Meta-Control-Z
       ?\M-\C-z.should == "\x9A"
+    end
+
+    describe "Unicode escaping" do
+      it "can be done with \\u and four hex digits" do
+        [ ["\u0000", 0x0000],
+          ["\u2020", 0x2020]
+        ].should be_computed_by(:ord)
+      end
+
+      it "can be done with \\u{} and one to six hex digits" do
+        [ ["\u{a}", 0xa],
+          ["\u{ab}", 0xab],
+          ["\u{abc}", 0xabc],
+          ["\u{1abc}", 0x1abc],
+          ["\u{12abc}", 0x12abc],
+          ["\u{100000}", 0x100000]
+        ].should be_computed_by(:ord)
+      end
+
+      # TODO: spec other source encodings
+      describe "with US-ASCII source encoding" do
+        it "produces an ASCII string when escaping ASCII characters via \\u" do
+          "\u0000".encoding.should == Encoding::US_ASCII
+        end
+
+        it "produces an ASCII string when escaping ASCII characters via \\u{}" do
+          "\u{0000}".encoding.should == Encoding::US_ASCII
+        end
+
+        it "produces a UTF-8-encoded string when escaping non-ASCII characters via \\u" do
+          "\u1234".encoding.should == Encoding::UTF_8
+        end
+
+        it "produces a UTF-8-encoded string when escaping non-ASCII characters via \\u{}" do
+          "\u{1234}".encoding.should == Encoding::UTF_8
+        end
+      end
+    end
+  end
+end
+
+# TODO: rewrite all specs above this
+
+with_feature :encoding do
+  describe "Ruby String interpolation" do
+    it "creates a String having an Encoding compatible with all components" do
+      a = "\u3042"
+      b = "abc".encode("ascii-8bit")
+
+      str = "#{a} x #{b}"
+
+      str.should == "\xe3\x81\x82\x20\x78\x20\x61\x62\x63".force_encoding("utf-8")
+      str.encoding.should == Encoding::UTF_8
+    end
+
+    it "creates a String having the Encoding of the components when all are the same Encoding" do
+      a = "abc".force_encoding("euc-jp")
+      b = "def".force_encoding("euc-jp")
+      str = '"#{a} x #{b}"'.force_encoding("euc-jp")
+
+      result = eval(str)
+      result.should == "\x61\x62\x63\x20\x78\x20\x64\x65\x66".force_encoding("euc-jp")
+      result.encoding.should == Encoding::EUC_JP
+    end
+
+    it "raises an Encoding::CompatibilityError if the Encodings are not compatible" do
+      a = "\u3042"
+      b = "\xff".force_encoding "ascii-8bit"
+
+      lambda { "#{a} #{b}" }.should raise_error(Encoding::CompatibilityError)
     end
   end
 end

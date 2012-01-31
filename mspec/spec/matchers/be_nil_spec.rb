@@ -1,6 +1,6 @@
-require File.dirname(__FILE__) + '/../spec_helper'
+require 'spec_helper'
 require 'mspec/expectations/expectations'
-require 'mspec/matchers/be_nil'
+require 'mspec/matchers'
 
 describe BeNilMatcher do
   it "matches when actual is nil" do

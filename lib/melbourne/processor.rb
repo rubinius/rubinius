@@ -383,6 +383,12 @@ module Rubinius
       AST::Send.new line, AST::Self.new(line), :at_exit, true
     end
 
+    def process_preexe(line)
+      node = AST::PreExe.new line
+      add_pre_exe node
+      node
+    end
+
     def process_redo(line)
       AST::Redo.new line
     end
@@ -508,6 +514,10 @@ module Rubinius
       AST::BlockPass19.new line, arguments, body
     end
 
+    def process_encoding(line, name)
+      AST::Encoding.new line, name
+    end
+
     def process_postarg(line, into, rest)
       AST::PostArg.new line, into, rest
     end
@@ -582,6 +592,13 @@ module Rubinius
     def process_postexe(line, body)
       node = AST::Send.new line, AST::Self.new(line), :at_exit, true
       node.block = AST::Iter.new line, nil, body
+      node
+    end
+
+    def process_preexe(line, body)
+      node = AST::PreExe19.new line
+      node.block = AST::Iter19.new line, nil, body
+      add_pre_exe node
       node
     end
 

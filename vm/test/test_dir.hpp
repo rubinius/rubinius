@@ -36,20 +36,20 @@ public:
 
   void test_open() {
     String* path = String::create(state, ".");
-    TS_ASSERT_EQUALS(d->open(state, path), Qtrue);
+    TS_ASSERT_EQUALS(d->open(state, path), cTrue);
   }
 
   void test_close() {
     String* path = String::create(state, ".");
     d->open(state, path);
-    TS_ASSERT_EQUALS(d->close(state), Qnil);
+    TS_ASSERT_EQUALS(d->close(state), cNil);
   }
 
   void test_closed_p() {
-    TS_ASSERT_EQUALS(d->closed_p(state), Qtrue);
+    TS_ASSERT_EQUALS(d->closed_p(state), cTrue);
     String* path = String::create(state, ".");
     d->open(state, path);
-    TS_ASSERT_EQUALS(d->closed_p(state), Qfalse);
+    TS_ASSERT_EQUALS(d->closed_p(state), cFalse);
   }
 
   void test_read() {
@@ -94,8 +94,8 @@ public:
 
     d->control(state, Fixnum::from(0), pos);
     String* second = as<String>(d->read(state));
-    TS_ASSERT_EQUALS(first->size(), second->size());
-    TS_ASSERT_SAME_DATA(first, second, first->size());
+    TS_ASSERT_EQUALS(first->byte_size(), second->byte_size());
+    TS_ASSERT_SAME_DATA(first, second, first->byte_size());
     remove_directory(dir);
   }
 };

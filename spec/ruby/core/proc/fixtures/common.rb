@@ -7,6 +7,10 @@ module ProcSpecs
     block
   end
 
+  def self.proc_for_1
+    proc { 1 }
+  end
+
   class ProcSubclass < Proc
   end
 

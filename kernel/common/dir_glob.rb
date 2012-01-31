@@ -1,3 +1,5 @@
+# -*- encoding: us-ascii -*-
+
 class Dir
   module Glob
     class Node
@@ -95,7 +97,12 @@ class Dir
 
         until stack.empty?
           path = stack.pop
-          dir = Dir.new(path)
+          begin
+            dir = Dir.new(path)
+          rescue Errno::ENOTDIR
+            next
+          end
+
           while ent = dir.read
             next if ent == "." || ent == ".."
             full = path_join(path, ent)
@@ -262,8 +269,8 @@ class Dir
 
       while match = %r!/+!.match_from(str, start)
         cur_start, cur_end = match.full
-        ret << str.substring(start, cur_start - start)
-        ret << str.substring(cur_start, cur_end - cur_start)
+        ret << str.byteslice(start, cur_start - start)
+        ret << str.byteslice(cur_start, cur_end - cur_start)
 
         start = cur_end
 

@@ -1,3 +1,5 @@
+# -*- encoding: us-ascii -*-
+
 Enumerator = Enumerable::Enumerator
 
 module Enumerable
@@ -25,7 +27,8 @@ module Enumerable
 
       return to_enum(:with_index, offset) unless block_given?
 
-      each do |o|
+      each do
+        o = Rubinius.single_block_arg
         val = yield(o, offset)
         offset += 1
         val

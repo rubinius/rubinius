@@ -15,6 +15,10 @@ describe "Shellwords#shellwords" do
     shellwords("a \"'b' c\" d").should == ['a', "'b' c", 'd']
   end
 
+  it "honors escaped spaces" do
+    shellwords('a b\ c d').should == ['a', 'b c', 'd']
+  end
+
   it "raises ArgumentError when double quoted strings are misquoted" do
     lambda { shellwords('a "b c d e') }.should raise_error(ArgumentError)
   end

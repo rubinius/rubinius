@@ -1,3 +1,5 @@
+# -*- encoding: us-ascii -*-
+
 module Rubinius
   ##
   # A decode for the .rbc file format.
@@ -132,8 +134,10 @@ module Rubinius
             end
           end
         when ?s
+          enc = unmarshal_data
           count = next_string.to_i
           str = next_bytes count
+          str.force_encoding enc if enc and defined?(Encoding)
           discard # remove the \n
           return str
         when ?x
@@ -164,6 +168,10 @@ module Rubinius
             i += 1
           end
           return seq
+        when ?E
+          count = next_string.to_i
+          name = next_bytes count
+          return Encoding.find(name) if defined?(Encoding)
         when ?M
           version = next_string.to_i
           if version != 1
@@ -213,7 +221,7 @@ module Rubinius
       def next_string
         count = @data.locate "\n", @start, @size
         count = @size unless count
-        str = String.from_chararray @data, @start, count - @start
+        str = String.from_bytearray @data, @start, count - @start
         @start = count
         str
       end
@@ -223,7 +231,7 @@ module Rubinius
       ##
       # Returns the next _count_ bytes in _@data_.
       def next_bytes(count)
-        str = String.from_chararray @data, @start, count
+        str = String.from_bytearray @data, @start, count
         @start += count
         str
       end
@@ -262,10 +270,19 @@ module Rubinius
         when Fixnum, Bignum
           "I\n#{val.to_s(16)}\n"
         when String
-          "s\n#{val.size}\n#{val}\n"
+          if defined?(Encoding)
+            # We manually construct the Encoding data to avoid recursion
+            # marshaling an Encoding name as a String.
+            name = val.encoding.name
+            enc_name = "E\n#{name.bytesize}\n#{name}\n"
+          end
+
+          enc_name ||= "E\n0\n\n"
+
+          "s\n#{enc_name}#{val.bytesize}\n#{val}\n"
         when Symbol
           s = val.to_s
-          "x\n#{s.size}\n#{s}\n"
+          "x\n#{s.bytesize}\n#{s}\n"
         when Tuple
           str = "p\n#{val.size}\n"
           val.each do |ele|

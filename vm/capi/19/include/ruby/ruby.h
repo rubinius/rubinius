@@ -36,8 +36,11 @@ extern "C" {
 #include <unistd.h>
 #include <fcntl.h>
 #include <errno.h>
+#ifdef HAVE_HEADER_ALLOCA_H
 #include <alloca.h>
+#endif
 
+#include "mri_oop.h"
 #include "intern.h"
 #include "defines.h"
 
@@ -171,57 +174,15 @@ int rb_toupper(int c);
 #define TOLOWER(c) rb_tolower((unsigned char)(c))
 
 /**
- *  In MRI, VALUE represents an object.
- *
- *  In rbx, this is a Handle.
- */
-#ifdef VALUE
-#undef VALUE
-#endif
-
-#define VALUE intptr_t
-
-/**
- *  In MRI, ID represents an interned string, i.e. a Symbol.
- *
- *  In rbx, this is a raw Symbol.
- */
-#define ID    intptr_t
-
-/**
  * In MRI, RUBY_DATA_FUNC is used for the mark and free functions in
  * Data_Wrap_Struct and Data_Make_Struct.
  */
 typedef void (*RUBY_DATA_FUNC)(void*);
 
-/* "Stash" the real versions. */
-#define RBX_Qfalse      (reinterpret_cast<Object*>(0x0aUL))
-#define RBX_Qnil        (reinterpret_cast<Object*>(0x1aUL))
-#define RBX_Qtrue       (reinterpret_cast<Object*>(0x12UL))
-#define RBX_Qundef      (reinterpret_cast<Object*>(0x22UL))
-
-#define RBX_FALSE_P(o)  (reinterpret_cast<Object*>((o)) == RBX_Qfalse)
-#define RBX_TRUE_P(o)   (reinterpret_cast<Object*>((o)) == RBX_Qtrue)
-#define RBX_NIL_P(o)    (reinterpret_cast<Object*>((o)) == RBX_Qnil)
-#define RBX_UNDEF_P(o)  (reinterpret_cast<Object*>((o)) == RBX_Qundef)
-
-#define RBX_RTEST(o)    ((reinterpret_cast<uintptr_t>(o) & 0xf) != 0xa)
-
-
-/* Reset relative to our VALUEs */
-#undef Qfalse
-#undef Qtrue
-#undef Qnil
-#undef Qundef
-
 #undef ALLOC
 #undef ALLOC_N
 #undef ALLOCA_N
 #undef REALLOC_N
-#undef FIXNUM_P
-#undef REFERENCE_P
-#undef NIL_P
-#undef RTEST
 
 #define RUBY_METHOD_FUNC(func) ((VALUE (*)(ANYARGS))func)
 
@@ -302,13 +263,14 @@ typedef void (*RUBY_DATA_FUNC)(void*);
     cCApiTypeError,
     cCApiThreadError,
     cCApiZeroDivisionError,
-
     cCApiMethod,
-
     cCApiRational,
     cCApiComplex,
-
     cCApiMathDomainError,
+    cCApiEncoding,
+    cCApiEncCompatError,
+    cCApiWaitReadable,
+    cCApiWaitWritable,
 
     // MUST be last
     cCApiMaxConstant
@@ -355,6 +317,8 @@ typedef void (*RUBY_DATA_FUNC)(void*);
 
 #define T_RATIONAL 0x20
 #define T_COMPLEX  0x21
+
+#define T_ENCODING 0x22
 
   /**
    *  Method variants that can be defined.
@@ -445,31 +409,6 @@ typedef struct RIO rb_io_t;
 #define GetReadFile(ptr)  (ptr->f)
 #define GetWriteFile(ptr) (ptr->f)
 
-/*
- * The immediates.
- */
-
-#define cCApiQfalse     (0x00)
-#define cCApiQtrue      (0x22)
-#define cCApiQnil       (0x42)
-#define cCApiQundef     (0x62)
-
-/** The false object.
- *
- * NOTE: This is defined to be 0 because it is 0 in MRI and
- * extensions written for MRI have (absolutely wrongly,
- * infuriatingly, but-what-can-you-do-now) relied on that
- * assumption in boolean contexts. Rather than fighting a
- * myriad subtle bugs, we just go along with it.
- */
-#define Qfalse ((VALUE)cCApiQfalse)
-/** The true object. */
-#define Qtrue  ((VALUE)cCApiQtrue)
-/** The nil object. */
-#define Qnil   ((VALUE)cCApiQnil)
-/** The undef object. NEVER EXPOSE THIS TO USER CODE. EVER. */
-#define Qundef ((VALUE)cCApiQundef)
-
 #define ruby_verbose (*(mri_global_verbose()))
 #define ruby_debug   (*(mri_global_debug()))
 
@@ -504,6 +443,7 @@ typedef struct RIO rb_io_t;
 #define rb_cMethod            (capi_get_constant(cCApiMethod))
 #define rb_cRational          (capi_get_constant(cCApiRational))
 #define rb_cComplex           (capi_get_constant(cCApiComplex))
+#define rb_cEncoding          (capi_get_constant(cCApiEncoding))
 
 /* Global Module objects. */
 
@@ -511,6 +451,8 @@ typedef struct RIO rb_io_t;
 #define rb_mEnumerable        (capi_get_constant(cCApiEnumerable))
 #define rb_mKernel            (capi_get_constant(cCApiKernel))
 #define rb_mGC                (capi_get_constant(cCApiGC))
+#define rb_mWaitReadable      (capi_get_constant(cCApiWaitReadable))
+#define rb_mWaitWritable      (capi_get_constant(cCApiWaitWritable))
 
 /* Utility modules */
 #define rb_mCAPI              (capi_get_constant(cCApiCAPI))
@@ -547,6 +489,7 @@ typedef struct RIO rb_io_t;
 #define rb_eThreadError       (capi_get_constant(cCApiThreadError))
 #define rb_eZeroDivError      (capi_get_constant(cCApiZeroDivisionError))
 #define rb_eMathDomainError   (capi_get_constant(cCApiMathDomainError))
+#define rb_eEncCompatError    (capi_get_constant(cCApiEncCompatError))
 
 
 /* Interface macros */
@@ -566,16 +509,9 @@ typedef struct RIO rb_io_t;
 /** Interrupt checking (no-op). */
 #define CHECK_INTS        /* No-op */
 
-#define FIXNUM_FLAG       0x1
-
-/** True if the value is a Fixnum. */
-#define FIXNUM_P(f)       (((long)(f))&FIXNUM_FLAG)
-#define FIXNUM_WIDTH ((8 * sizeof(native_int)) - TAG_FIXNUM_SHIFT - 1)
-#define FIXNUM_MAX   (((native_int)1 << FIXNUM_WIDTH) - 1)
-#define FIXNUM_MIN   (-(FIXNUM_MAX))
-#define POSFIXABLE(f) ((f) <= FIXNUM_MAX)
-#define NEGFIXABLE(f) ((f) >= FIXNUM_MIN)
-#define FIXABLE(f) (POSFIXABLE(f) && NEGFIXABLE(f))
+#define POSFIXABLE(f)     ((f) <= FIXNUM_MAX)
+#define NEGFIXABLE(f)     ((f) >= FIXNUM_MIN)
+#define FIXABLE(f)        (POSFIXABLE(f) && NEGFIXABLE(f))
 
 /** Convert a Fixnum to a long int. */
 #define FIX2LONG(x)       (((long)(x)) >> 1)
@@ -601,14 +537,10 @@ typedef struct RIO rb_io_t;
 /** Convert a Fixnum into an unsigned int. */
 #define FIX2UINT(x)       ((unsigned int)FIX2ULONG(x))
 
-#ifndef SYMBOL_P
-#define SYMBOL_P(obj)     (((unsigned int)(obj) & 7) == 6)
-#endif
-
 /** Get a handle for the Symbol object represented by ID. */
 #define ID2SYM(id)        (id)
 
-/** Infect o2 if o1 is tainted */
+/** Taint/untrust o1 if o2 is tainted/untrusted. */
 #define OBJ_INFECT(o1, o2) capi_infect((o1), (o2))
 
 /** Taints the object */
@@ -618,7 +550,7 @@ typedef struct RIO rb_io_t;
 #define OBJ_TAINTED(obj)  rb_obj_tainted((obj))
 
 /** Convert int to a Ruby Integer. */
-#define INT2FIX(i)        ((VALUE)(((long)(i))<<1 | FIXNUM_FLAG))
+#define INT2FIX(i)        CAPI_TAG_FIXNUM(i)
 
 /** Convert a char to a Ruby Integer. */
 #define CHR2FIX(x)        INT2FIX((long)((x)&0xff))
@@ -656,6 +588,12 @@ unsigned long long rb_num2ull(VALUE);
 # define SSIZET2NUM(v) INT2NUM(v)
 #endif
 
+#if SIZEOF_INT < SIZEOF_LONG
+int rb_long2int(long n);
+#else
+#define rb_long2int(n)  ((int)(n))
+#endif
+
 
 /** Convert from a Float to a double */
 double rb_num2dbl(VALUE);
@@ -678,9 +616,6 @@ VALUE rb_uint2big(unsigned long number);
 /** Compares n objects of type. */
 #define MEMCMP(p1,p2,type,n) memcmp((p1), (p2), sizeof(type)*(n))
 
-/** Whether object is nil. */
-#define NIL_P(v)          capi_nil_p((v))
-
 /** The length of the array. */
 #define RARRAY_LEN(ary)   rb_ary_size(ary)
 
@@ -694,7 +629,8 @@ VALUE rb_uint2big(unsigned long number);
 #define RREGEXP_OPTIONS(reg) rb_reg_options(reg)
 
 /** The length of string str. */
-#define RSTRING_LEN(str)  rb_str_len(str)
+#define RSTRING_LEN(str)    rb_str_len(str)
+#define RSTRING_LENINT(str) rb_str_len(str)
 
 /** The pointer to the string str's data. */
 #ifdef RUBY_READONLY_STRING
@@ -714,11 +650,6 @@ VALUE rb_uint2big(unsigned long number);
 
 /** Rubinius' SafeStringValue is the same as StringValue. */
 #define SafeStringValue   StringValue
-
-#define REFERENCE_TAG         0x0
-#define REFERENCE_MASK        0x3
-#define REFERENCE_P(x)        ({ VALUE __v = (VALUE)x; __v && (__v & REFERENCE_MASK) == REFERENCE_TAG; })
-#define IMMEDIATE_P(x)        (!REFERENCE_P(x))
 
 /** Return true if expression is an immediate, Qfalse or Qnil. */
 #define SPECIAL_CONST_P(x)    (IMMEDIATE_P(x) || !RTEST(x))
@@ -752,6 +683,14 @@ VALUE rb_uint2big(unsigned long number);
 
   VALUE rb_ll2inum(long long val);
   VALUE rb_ull2inum(unsigned long long val);
+
+#if SIZEOF_TIME_T == 8
+#define TIMET2NUM(v)   LL2NUM(v)
+#define NUM2TIMET(v)   NUM2LL(v)
+#else
+#define TIMET2NUM(v)   LONG2NUM(v)
+#define NUM2TIMET(v)   NUM2LONG(v)
+#endif
 
 
 /* Secret extra stuff */
@@ -1054,6 +993,9 @@ VALUE rb_uint2big(unsigned long number);
 
   /** Returns the Class object this object is an instance of. */
   VALUE   rb_class_of(VALUE object);
+
+  /** Returns the superclass of a class. */
+  VALUE   rb_class_superclass(VALUE klass);
 
   /** Returns the Class object contained in the klass field of object
    * (ie, a singleton class if it's there) */
@@ -1695,6 +1637,12 @@ VALUE rb_uint2big(unsigned long number);
   /** Create a frozen String from an existing string. */
   VALUE   rb_str_new4(VALUE string);
 
+  /** Creates a new String in the external encoding from a pointer and length. */
+  VALUE rb_external_str_new(const char* string, long size);
+
+  /** Creates a new String in the external encoding from a pointer. */
+  VALUE rb_external_str_new_cstr(const char* string);
+
   void    rb_str_modify(VALUE str);
 
   /** Deprecated alias for rb_obj_freeze */
@@ -1855,7 +1803,7 @@ VALUE rb_uint2big(unsigned long number);
 
   NORETURN(void rb_notimplement());
 
-  NORETURN(void rb_f_notimplement());
+  NORETURN(VALUE rb_f_notimplement(int argc, VALUE *argv, VALUE obj));
 
   /** Raises an ArgumentError exception. */
   NORETURN(void rb_invalid_str(const char *str, const char *type));
@@ -1887,10 +1835,6 @@ VALUE rb_uint2big(unsigned long number);
   // include an extconf.h if one is provided
 #ifdef RUBY_EXTCONF_H
 #include RUBY_EXTCONF_H
-#endif
-
-#ifdef HAVE_RUBY_ENCODING_H
-#include "encoding.h"
 #endif
 
 #ifdef __cplusplus

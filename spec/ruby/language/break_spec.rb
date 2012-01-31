@@ -305,6 +305,21 @@ describe "Executing break from within a block" do
     ScratchPad.recorded.should == [:two_ensure]
   end
 
+  it "runs ensures when breaking from a loop" do
+    ScratchPad.record []
+
+    while true
+      begin
+        ScratchPad << :begin
+        break if true
+      ensure
+        ScratchPad << :ensure
+      end
+    end
+
+    ScratchPad.recorded.should == [:begin, :ensure]
+  end
+
   it "doesn't run ensures in the destination method" do
     ScratchPad.record []
 

@@ -23,7 +23,7 @@ extern "C" {
     String* str;
     char chr;
 
-    if((str = try_as<String>(object)) && str->size() >= 1) {
+    if((str = try_as<String>(object)) && str->byte_size() >= 1) {
       chr = str->c_str(env->state())[0];
     } else {
       chr = (char)(NUM2INT(obj) & 0xff);
@@ -131,16 +131,14 @@ extern "C" {
     return capi_native2num<unsigned long>(number);
   }
 
-  VALUE rb_cstr2inum(const char* string, int base) {
-    NativeMethodEnvironment* env = NativeMethodEnvironment::get();
-    Integer* i = Integer::from_cstr(env->state(), string, base, Qfalse);
-    return env->get_handle(i);
+  VALUE rb_cstr2inum(const char* str, int base) {
+    return rb_cstr_to_inum(str, base, base == 0);
   }
 
   VALUE rb_cstr_to_inum(const char* str, int base, int badcheck) {
     NativeMethodEnvironment* env = NativeMethodEnvironment::get();
     Integer* i = Integer::from_cstr(env->state(), str, base,
-                                    badcheck ? RBX_Qtrue : RBX_Qfalse);
+                                    badcheck ? cTrue : cFalse);
     if(i->nil_p()) {
       rb_raise(rb_eArgError, "invalid string for Integer");
     }
@@ -263,7 +261,7 @@ extern "C" {
     if(kind_of<Fixnum>(object) || kind_of<Bignum>(object)) {
       return object_handle;
     } else if(String* str = try_as<String>(object)) {
-      Object* ret = str->to_i(env->state(), Fixnum::from(0), RBX_Qtrue);
+      Object* ret = str->to_i(env->state(), Fixnum::from(0), cTrue);
       if(ret->nil_p()) {
         rb_raise(rb_eArgError, "invalid value for Integer");
       }

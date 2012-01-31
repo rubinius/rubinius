@@ -30,25 +30,25 @@ public:
 
   void test_store_fetch() {
     TS_ASSERT_EQUALS(as<Integer>(tbl->entries())->to_native(), 0);
-    tbl->store(state, Qnil, Fixnum::from(47));
+    tbl->store(state, cNil, Fixnum::from(47));
     TS_ASSERT_EQUALS(as<Integer>(tbl->entries())->to_native(), 1);
 
-    Object* out = tbl->aref(state, Qnil);
+    Object* out = tbl->aref(state, cNil);
     TS_ASSERT_EQUALS(as<Integer>(out)->to_native(), 47);
   }
 
   void test_store_overwrites_previous() {
     TS_ASSERT_EQUALS(as<Integer>(tbl->entries())->to_native(), 0);
-    tbl->store(state, Qnil, Fixnum::from(47));
+    tbl->store(state, cNil, Fixnum::from(47));
     TS_ASSERT_EQUALS(as<Integer>(tbl->entries())->to_native(), 1);
 
-    Object* out = tbl->aref(state, Qnil);
+    Object* out = tbl->aref(state, cNil);
     TS_ASSERT_EQUALS(as<Integer>(out)->to_native(), 47);
 
-    tbl->store(state, Qnil, Fixnum::from(42));
+    tbl->store(state, cNil, Fixnum::from(42));
     TS_ASSERT_EQUALS(as<Integer>(tbl->entries())->to_native(), 1);
 
-    out = tbl->aref(state, Qnil);
+    out = tbl->aref(state, cNil);
     TS_ASSERT_EQUALS(as<Integer>(out)->to_native(), 42);
   }
 
@@ -56,9 +56,9 @@ public:
     Object* k1 = Fixnum::from((4 << 4)  | 15);
     Object* k2 = Fixnum::from((10 << 4) | 15);
     Object* k3 = Fixnum::from((11 << 4) | 15);
-    Object* v1 = Qtrue;
-    Object* v2 = Qfalse;
-    Object* v3 = Qtrue;
+    Object* v1 = cTrue;
+    Object* v2 = cFalse;
+    Object* v3 = cTrue;
 
     tbl->store(state, k1, v1);
     tbl->store(state, k2, v2);
@@ -66,13 +66,13 @@ public:
     TS_ASSERT_EQUALS(as<Integer>(tbl->entries())->to_native(), 3);
 
     LookupTableBucket* entry = tbl->find_entry(state, k1);
-    TS_ASSERT(entry != Qnil);
+    TS_ASSERT(entry != cNil);
 
-    TS_ASSERT(entry->next() != Qnil);
+    TS_ASSERT(entry->next() != cNil);
     TS_ASSERT_EQUALS(entry->next()->key(), k2);
 
     entry = tbl->find_entry(state, k3);
-    TS_ASSERT(entry != Qnil);
+    TS_ASSERT(entry != cNil);
     TS_ASSERT_EQUALS(entry->key(), k3);
   }
 
@@ -100,12 +100,12 @@ public:
     Object* k1 = Fixnum::from((4 << 5)  | 31);
     Object* k2 = Fixnum::from((10 << 5) | 31);
     Object* k3 = Fixnum::from((11 << 5) | 31);
-    tbl->store(state, k1, Qtrue);
-    tbl->store(state, k2, Qtrue);
-    tbl->store(state, k3, Qtrue);
+    tbl->store(state, k1, cTrue);
+    tbl->store(state, k2, cTrue);
+    tbl->store(state, k3, cTrue);
 
     for(i = 0; i < bins; i++) {
-      tbl->store(state, Fixnum::from(i), Qtrue);
+      tbl->store(state, Fixnum::from(i), cTrue);
     }
 
     TS_ASSERT((size_t)(tbl-> bins()->to_native()) > bins);
@@ -113,41 +113,41 @@ public:
 
   void test_find_entry() {
     Object* k = Fixnum::from(47);
-    tbl->store(state, k, Qtrue);
+    tbl->store(state, k, cTrue);
 
     LookupTableBucket* entry = tbl->find_entry(state, k);
-    TS_ASSERT(entry != Qnil);
+    TS_ASSERT(entry != cNil);
     TS_ASSERT_EQUALS(entry->key(),k);
-    TS_ASSERT_EQUALS(entry->value(),Qtrue);
+    TS_ASSERT_EQUALS(entry->value(),cTrue);
 
     entry = tbl->find_entry(state, Fixnum::from(40));
-    TS_ASSERT(entry == Qnil);
+    TS_ASSERT(entry == cNil);
   }
 
   void test_find() {
     Object* k = Fixnum::from(47);
-    tbl->store(state, k, Qtrue);
+    tbl->store(state, k, cTrue);
 
     Object* out = tbl->find(state, k);
-    TS_ASSERT_EQUALS(out, Qtrue);
+    TS_ASSERT_EQUALS(out, cTrue);
 
     out = tbl->find(state, Fixnum::from(40));
-    TS_ASSERT(out == Qundef);
+    TS_ASSERT(out == cUndef);
   }
 
   void test_remove() {
     Object* k = Fixnum::from(47);
-    tbl->store(state, k, Qtrue);
+    tbl->store(state, k, cTrue);
 
     Object* out = tbl->find(state, k);
-    TS_ASSERT_EQUALS(out, Qtrue);
+    TS_ASSERT_EQUALS(out, cTrue);
 
     out = tbl->remove(state, k);
-    TS_ASSERT_EQUALS(out, Qtrue);
+    TS_ASSERT_EQUALS(out, cTrue);
     TS_ASSERT_EQUALS(as<Integer>(tbl->entries())->to_native(), 0);
 
     out = tbl->fetch(state, k);
-    TS_ASSERT_EQUALS(out, Qnil);
+    TS_ASSERT_EQUALS(out, cNil);
   }
 
   void test_remove_redistributes() {
@@ -155,7 +155,7 @@ public:
     size_t bound = bins * 2;
 
     for(size_t i = 0; i < bound; i++) {
-      tbl->store(state, Fixnum::from(i), Qtrue);
+      tbl->store(state, Fixnum::from(i), cTrue);
     }
 
     TS_ASSERT(bins < (size_t)tbl-> bins()->to_native());
@@ -163,7 +163,7 @@ public:
     Object* out;
     for(size_t i = 0; i < bound; i++) {
       out = tbl->remove(state, Fixnum::from(i));
-      TS_ASSERT_EQUALS(out, Qtrue);
+      TS_ASSERT_EQUALS(out, cTrue);
     }
 
     TS_ASSERT_EQUALS(bins, static_cast<unsigned int>(tbl-> bins()->to_native()));
@@ -173,13 +173,13 @@ public:
     Object* k1 = Fixnum::from((4 << 5)  | 31);
     Object* k2 = Fixnum::from((10 << 5) | 31);
     Object* k3 = Fixnum::from((11 << 5) | 31);
-    tbl->store(state, k1, Qnil);
-    tbl->store(state, k2, Qtrue);
-    tbl->store(state, k3, Qfalse);
+    tbl->store(state, k1, cNil);
+    tbl->store(state, k2, cTrue);
+    tbl->store(state, k3, cFalse);
 
-    TS_ASSERT_EQUALS(tbl->remove(state, k3), Qfalse);
-    TS_ASSERT_EQUALS(tbl->remove(state, k2), Qtrue);
-    TS_ASSERT_EQUALS(tbl->remove(state, k1), Qnil);
+    TS_ASSERT_EQUALS(tbl->remove(state, k3), cFalse);
+    TS_ASSERT_EQUALS(tbl->remove(state, k2), cTrue);
+    TS_ASSERT_EQUALS(tbl->remove(state, k1), cNil);
 
     TS_ASSERT_EQUALS(0, as<Integer>(tbl->entries())->to_native());
   }
@@ -187,32 +187,32 @@ public:
   void test_remove_works_for_unknown_key() {
     Object* k1 = Fixnum::from(4);
 
-    TS_ASSERT_EQUALS(Qnil, tbl->remove(state, k1));
+    TS_ASSERT_EQUALS(cNil, tbl->remove(state, k1));
   }
 
   void test_has_key() {
     Object* k1 = Fixnum::from(4);
-    TS_ASSERT_EQUALS(Qfalse, tbl->has_key(state, k1));
+    TS_ASSERT_EQUALS(cFalse, tbl->has_key(state, k1));
 
-    tbl->store(state, k1, Qtrue);
+    tbl->store(state, k1, cTrue);
 
-    TS_ASSERT_EQUALS(Qtrue, tbl->has_key(state, k1));
+    TS_ASSERT_EQUALS(cTrue, tbl->has_key(state, k1));
   }
 
   void test_dup() {
     Object* k1 = Fixnum::from(4);
 
-    tbl->store(state, k1, Qtrue);
+    tbl->store(state, k1, cTrue);
 
     LookupTable* tbl2 = tbl->duplicate(state);
 
-    TS_ASSERT_EQUALS(tbl2->aref(state, k1), Qtrue);
+    TS_ASSERT_EQUALS(tbl2->aref(state, k1), cTrue);
   }
 
   void test_all_keys() {
     Object* k1 = Fixnum::from(4);
 
-    tbl->store(state, k1, Qtrue);
+    tbl->store(state, k1, cTrue);
     Array* ary = tbl->all_keys(state);
 
     TS_ASSERT_EQUALS(ary->total()->to_native(), 1);
@@ -222,29 +222,29 @@ public:
   void test_all_values() {
     Object* k1 = Fixnum::from(4);
 
-    tbl->store(state, k1, Qtrue);
+    tbl->store(state, k1, cTrue);
     Array* ary = tbl->all_values(state);
 
     TS_ASSERT_EQUALS(ary->total()->to_native(), 1);
-    TS_ASSERT_EQUALS(ary->get(state, 0), Qtrue);
+    TS_ASSERT_EQUALS(ary->get(state, 0), cTrue);
 
   }
 
   void test_fetch_returns_found() {
     TS_ASSERT_EQUALS(as<Integer>(tbl->entries())->to_native(), 0);
-    tbl->store(state, Qnil, Fixnum::from(47));
+    tbl->store(state, cNil, Fixnum::from(47));
     TS_ASSERT_EQUALS(as<Integer>(tbl->entries())->to_native(), 1);
 
-    Object* out = tbl->fetch(state, Qnil, Qundef);
+    Object* out = tbl->fetch(state, cNil, cUndef);
     TS_ASSERT_EQUALS(as<Integer>(out)->to_native(), 47);
   }
 
   void test_fetch_returns_given_when_not_found() {
     TS_ASSERT_EQUALS(as<Integer>(tbl->entries())->to_native(), 0);
-    tbl->store(state, Qnil, Fixnum::from(47));
+    tbl->store(state, cNil, Fixnum::from(47));
     TS_ASSERT_EQUALS(as<Integer>(tbl->entries())->to_native(), 1);
 
-    Object* out = tbl->fetch(state, Qtrue, Qundef);
-    TS_ASSERT_EQUALS(Qundef, out);
+    Object* out = tbl->fetch(state, cTrue, cUndef);
+    TS_ASSERT_EQUALS(cUndef, out);
   }
 };

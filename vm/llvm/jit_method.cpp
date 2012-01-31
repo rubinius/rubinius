@@ -63,7 +63,7 @@ namespace jit {
 
     initialize_frame(vmm_->stack_size);
 
-    nil_stack(vmm_->stack_size, constant(Qnil, obj_type));
+    nil_stack(vmm_->stack_size, constant(cNil, obj_type));
 
     import_args();
 
@@ -518,7 +518,7 @@ namespace jit {
     b().CreateStore(Constant::getNullValue(ls_->ptr_type("VariableScope")),
         get_field(vars, offset::vars_parent));
 
-    b().CreateStore(constant(Qnil, obj_type), get_field(vars, offset::vars_last_match));
+    b().CreateStore(constant(cNil, obj_type), get_field(vars, offset::vars_last_match));
 
     nil_locals();
   }

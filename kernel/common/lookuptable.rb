@@ -1,3 +1,5 @@
+# -*- encoding: us-ascii -*-
+
 ##
 # A simplified Hash that only works with symbols as keys.
 

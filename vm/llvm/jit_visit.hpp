@@ -456,11 +456,11 @@ namespace rubinius {
     }
 
     void visit_push_nil() {
-      stack_push(constant(Qnil), type::KnownType::nil());
+      stack_push(constant(cNil), type::KnownType::nil());
     }
 
     void visit_push_true() {
-      stack_push(constant(Qtrue), type::KnownType::true_());
+      stack_push(constant(cTrue), type::KnownType::true_());
     }
 
     void visit_push_undef() {
@@ -471,7 +471,7 @@ namespace rubinius {
     }
 
     void visit_push_false() {
-      stack_push(constant(Qfalse), type::KnownType::false_());
+      stack_push(constant(cFalse), type::KnownType::false_());
     }
 
     void visit_push_int(opcode arg) {
@@ -818,7 +818,7 @@ namespace rubinius {
 
       Value* cmp = b().CreateICmpEQ(recv, arg, "imm_cmp");
       Value* imm_value = b().CreateSelect(cmp,
-          constant(Qtrue), constant(Qfalse), "select_bool");
+          constant(cTrue), constant(cFalse), "select_bool");
 
       b().CreateBr(cont);
 
@@ -855,7 +855,7 @@ namespace rubinius {
 
       Value* cmp = b().CreateICmpEQ(recv, arg, "imm_cmp");
       Value* imm_value = b().CreateSelect(cmp,
-          constant(Qtrue), constant(Qfalse), "select_bool");
+          constant(cTrue), constant(cFalse), "select_bool");
 
       b().CreateBr(cont);
 
@@ -891,7 +891,7 @@ namespace rubinius {
 
       Value* cmp = b().CreateICmpSLT(recv, arg, "imm_cmp");
       Value* imm_value = b().CreateSelect(cmp,
-          constant(Qtrue), constant(Qfalse), "select_bool");
+          constant(cTrue), constant(cFalse), "select_bool");
 
       b().CreateBr(cont);
 
@@ -927,7 +927,7 @@ namespace rubinius {
 
       Value* cmp = b().CreateICmpSGT(recv, arg, "imm_cmp");
       Value* imm_value = b().CreateSelect(cmp,
-          constant(Qtrue), constant(Qfalse), "select_bool");
+          constant(cTrue), constant(cFalse), "select_bool");
 
       b().CreateBr(cont);
 
@@ -1682,7 +1682,7 @@ namespace rubinius {
         // Push a placeholder and register which literal we would
         // use for the block. The later send handles whether to actually
         // emit the call to create the block (replacing the placeholder)
-        stack_push(constant(Qnil));
+        stack_push(constant(cNil));
         current_block_ = (int)which;
       } else {
         current_block_ = -1;
@@ -1913,17 +1913,17 @@ use_send:
         JITInlineBlock* ib = info().inline_block();
 
         if(ib && ib->code()) {
-          stack_push(constant(Qtrue));
+          stack_push(constant(cTrue));
         } else {
-          stack_push(constant(Qfalse));
+          stack_push(constant(cFalse));
         }
 
         return;
       }
 
-      Value* cmp = b().CreateICmpNE(get_block(), constant(Qnil), "is_nil");
-      Value* imm_value = b().CreateSelect(cmp, constant(Qtrue),
-          constant(Qfalse), "select_bool");
+      Value* cmp = b().CreateICmpNE(get_block(), constant(cNil), "is_nil");
+      Value* imm_value = b().CreateSelect(cmp, constant(cTrue),
+          constant(cFalse), "select_bool");
       stack_push(imm_value);
     }
 
@@ -1952,7 +1952,18 @@ use_send:
       }
 
       InlineCache* cache = reinterpret_cast<InlineCache*>(which);
-      Value* ret = super_send(cache->name, args);
+
+      b().CreateStore(get_self(), out_args_recv_);
+      b().CreateStore(stack_top(), out_args_block_);
+      b().CreateStore(cint(args), out_args_total_);
+      b().CreateStore(Constant::getNullValue(ptr_type("Tuple")),
+                      out_args_container_);
+
+      if(args > 0) {
+        b().CreateStore(stack_objects(args + 1), out_args_arguments_);
+      }
+
+      Value* ret = invoke_inline_cache(cache);
       stack_remove(args + 1);
       check_for_return(ret);
 
@@ -2039,7 +2050,9 @@ use_send:
       Value* cached_value = 0;
       BasicBlock* cached_block = 0;
 
-      GlobalCacheEntry* entry = try_as<GlobalCacheEntry>(current_literal(cache));
+      Object* lit = literal(cache);
+
+      GlobalCacheEntry* entry = try_as<GlobalCacheEntry>(lit);
       if(entry) {
         assert(entry->pin());
 
@@ -2265,7 +2278,7 @@ use_send:
       if(inline_args) {
         switch(inline_args->size()) {
         case 0:
-          stack_push(constant(Qnil));
+          stack_push(constant(cNil));
           break;
         case 1:
           stack_push(inline_args->at(0));
@@ -2338,7 +2351,7 @@ use_send:
           check_for_exception(ary);
           stack_push(ary);
         } else {
-          stack_push(constant(Qundef)); // holder
+          stack_push(constant(cUndef)); // holder
           set_hint(cHintLazyBlockArgs);
         }
       } else {
@@ -2663,7 +2676,7 @@ use_send:
           clong(FALSE_MASK), "and");
 
       Value* cmp = b().CreateICmpNE(anded,
-          clong(cFalse), "is_true");
+          clong(reinterpret_cast<long>(cFalse)), "is_true");
 
       BasicBlock* cont = new_block("continue");
       BasicBlock* bb = block_map_[ip].block;
@@ -2682,7 +2695,7 @@ use_send:
           clong(FALSE_MASK), "and");
 
       Value* cmp = b().CreateICmpEQ(anded,
-          clong(cFalse), "is_true");
+          clong(reinterpret_cast<long>(cFalse)), "is_true");
 
       BasicBlock* cont = new_block("continue");
       BasicBlock* bb = block_map_[ip].block;
@@ -3177,9 +3190,9 @@ use_send:
 
     void visit_is_nil() {
       Value* cmp = b().CreateICmpEQ(stack_pop(),
-          constant(Qnil), "is_nil");
-      Value* imm_value = b().CreateSelect(cmp, constant(Qtrue),
-          constant(Qfalse), "select_bool");
+          constant(cNil), "is_nil");
+      Value* imm_value = b().CreateSelect(cmp, constant(cTrue),
+          constant(cFalse), "select_bool");
       stack_push(imm_value);
     }
 
@@ -3279,9 +3292,9 @@ use_send:
 
       if(called_args_ >= 0) {
         if((int)count < called_args_) {
-          stack_push(constant(Qtrue));
+          stack_push(constant(cTrue));
         } else {
-          stack_push(constant(Qfalse));
+          stack_push(constant(cFalse));
         }
       } else {
         Signature sig(ls_, ObjType);
@@ -3381,9 +3394,9 @@ use_send:
               int offset = sizeof(Object) + (sizeof(Object*) * index);
               Value* slot_val = get_object_slot(self, offset);
 
-              Value* cmp = b().CreateICmpEQ(slot_val, constant(Qundef), "prune_undef");
+              Value* cmp = b().CreateICmpEQ(slot_val, constant(cUndef), "prune_undef");
 
-              ivar = b().CreateSelect(cmp, constant(Qnil), slot_val, "select ivar");
+              ivar = b().CreateSelect(cmp, constant(cNil), slot_val, "select ivar");
 
               if(ls_->config().jit_inline_debug) {
                 ls_->log() << " (packed index: " << index << ", " << offset << ")";
@@ -3545,7 +3558,7 @@ use_send:
       JITStackArgs* inline_args = incoming_args();
       if(inline_args && current_hint() == cHintLazyBlockArgs) {
         if(inline_args->size() <= (size_t)block_arg_shift_) {
-          stack_push(constant(Qnil));
+          stack_push(constant(cNil));
         } else {
           stack_push(inline_args->at(block_arg_shift_));
           block_arg_shift_++;

@@ -1,3 +1,5 @@
+# -*- encoding: us-ascii -*-
+
 class Thread
   Thread.current.setup(true)
   Thread.initialize_main_thread(Thread.current)

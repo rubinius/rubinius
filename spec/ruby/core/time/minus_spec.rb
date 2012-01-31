@@ -38,8 +38,8 @@ ruby_version_is ""..."1.9" do
       time = Time.at(0.777777)
       time -= 0.654321
       time.usec.should == 123456
-      time -= 0.123456
-      time.usec.should == 0
+      time -= 1
+      time.usec.should == 123456
     end
 
     it "does not returns a subclass instance" do

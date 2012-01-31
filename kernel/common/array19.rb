@@ -1,3 +1,5 @@
+# -*- encoding: us-ascii -*-
+
 class Array
   # Try to convert obj into an array, using to_ary method.
   # Returns converted array or nil if obj cannot be converted
@@ -284,68 +286,46 @@ class Array
     return "" if @total == 0
 
     out = ""
-    return "[...]" if Thread.detect_recursion self do
+    raise ArgumentError, "recursive array join" if Thread.detect_recursion self do
       sep = sep ? StringValue(sep) : $,
-      out.taint if sep.tainted? || tainted?
-      out.untrust if sep.untrusted? || untrusted?
 
       # We've manually unwound the first loop entry for performance
       # reasons.
       x = @tuple[@start]
 
-      if x == self
-        raise ArgumentError, "recursive array join"
-      end
-
-      case x
-      when String
-        out.append x
-      when Array
-        out.append x.join(sep)
+      if str = String.try_convert(x)
+        x = str
+      elsif ary = Array.try_convert(x)
+        x = ary.join(sep)
       else
-        begin
-          out.append x.to_str
-        rescue NoMethodError
-          out.append x.to_s
-        end
+        x = x.to_s
       end
 
-      out.taint if x.tainted?
-      out.untrust if x.untrusted?
+      out.force_encoding(x.encoding)
+      out << x
 
       total = @start + size()
       i = @start + 1
 
       while i < total
-        out.append sep
+        out << sep
 
         x = @tuple[i]
 
-        if x == self
-          raise ArgumentError, "recursive array join"
-        end
-
-        case x
-        when String
-          out.append x
-        when Array
-          out.append x.join(sep)
+        if str = String.try_convert(x)
+          x = str
+        elsif ary = Array.try_convert(x)
+          x = ary.join(sep)
         else
-          begin
-            out.append x.to_str
-          rescue NoMethodError
-            out.append x.to_s
-          end
+          x = x.to_s
         end
 
-        out.taint if x.tainted?
-        out.untrust if x.untrusted?
-
+        out << x
         i += 1
       end
     end
 
-    out
+    Rubinius::Type.infect(out, self)
   end
 
   def keep_if(&block)
@@ -527,6 +507,15 @@ class Array
     return self
   end
 
+  # Returns a copy of self with all nil elements removed
+  def compact
+    out = dup
+    out.untaint if out.tainted?
+    out.trust if out.untrusted?
+
+    out.compact! || out
+  end
+
   def compile_repeated_combinations(combination_size, place, index, depth, &block)
     if depth > 0
       (length - index).times do |i|
@@ -539,6 +528,14 @@ class Array
   end
 
   private :compile_repeated_combinations
+
+  # Returns a new Array by removing items from self for
+  # which block is true. An Array is also returned when
+  # invoked on subclasses. See #reject!
+  def reject(&block)
+    return to_enum(:reject) unless block_given?
+    Array.new(self).delete_if(&block)
+  end
 
   #  call-seq:
   #     ary.repeated_permutation(n) { |p| block } -> ary
@@ -658,6 +655,12 @@ class Array
 
     ary = select(&block)
     replace ary unless size == ary.size
+  end
+
+  # Returns a new array with elements of this array shuffled.
+  def shuffle
+    return dup.shuffle! if instance_of? Array
+    Array.new(self).shuffle!
   end
 
   # Deletes the element(s) given by an index (optionally with a length)

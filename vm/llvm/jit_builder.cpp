@@ -72,7 +72,7 @@ namespace jit {
   }
 
   void Builder::nil_locals() {
-    Value* nil = constant(Qnil, obj_type);
+    Value* nil = constant(cNil, obj_type);
     int size = vmm_->number_of_locals;
 
     if(size == 0) return;

@@ -18,35 +18,35 @@ ruby_version_is "1.9" do
     end
 
     it "returns true if both exceptions have the same class, the same message, and no backtrace" do
-      TypeError.new(:message).should == TypeError.new(:message)
+      TypeError.new("message").should == TypeError.new("message")
     end
 
     it "returns true if both exceptions have the same class, the same message, and the same backtrace" do
-      one = TypeError.new(:message)
+      one = TypeError.new("message")
       one.set_backtrace [File.dirname(__FILE__)]
-      two = TypeError.new(:message)
+      two = TypeError.new("message")
       two.set_backtrace [File.dirname(__FILE__)]
       one.should == two
     end
 
-    ruby_version_is '1.9' ... '1.9.3' do
+    ruby_version_is ""..."2.0" do
       it "returns true if the two exceptions inherit from Exception but have different classes" do
-        one = RuntimeError.new(:message)
+        one = RuntimeError.new("message")
         one.set_backtrace [File.dirname(__FILE__)]
         one.should be_kind_of(Exception)
-        two = TypeError.new(:message)
+        two = TypeError.new("message")
         two.set_backtrace [File.dirname(__FILE__)]
         two.should be_kind_of(Exception)
         one.should == two
       end
     end
 
-    ruby_version_is '1.9.3' do
+    ruby_version_is "2.0" do
       it "returns false if the two exceptions inherit from Exception but have different classes" do
-        one = RuntimeError.new(:message)
+        one = RuntimeError.new("message")
         one.set_backtrace [File.dirname(__FILE__)]
         one.should be_kind_of(Exception)
-        two = TypeError.new(:message)
+        two = TypeError.new("message")
         two.set_backtrace [File.dirname(__FILE__)]
         two.should be_kind_of(Exception)
         one.should_not == two
@@ -66,17 +66,17 @@ ruby_version_is "1.9" do
     end
 
     it "returns false if the two exceptions differ only in their backtrace" do
-      one = RuntimeError.new(:message)
+      one = RuntimeError.new("message")
       one.set_backtrace [File.dirname(__FILE__)]
-      two = RuntimeError.new(:message)
+      two = RuntimeError.new("message")
       two.set_backtrace nil
       one.should_not == two
     end
 
     it "returns false if the two exceptions differ only in their message" do
-      one = RuntimeError.new(:message)
+      one = RuntimeError.new("message")
       one.set_backtrace [File.dirname(__FILE__)]
-      two = RuntimeError.new(:message2)
+      two = RuntimeError.new("message2")
       two.set_backtrace [File.dirname(__FILE__)]
       one.should_not == two
     end

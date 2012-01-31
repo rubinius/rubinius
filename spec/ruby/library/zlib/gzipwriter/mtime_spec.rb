@@ -2,12 +2,12 @@ require File.expand_path('../../../../spec_helper', __FILE__)
 require 'stringio'
 require 'zlib'
 
-describe 'Zlib::GzipWriter#mtime=' do
+describe "Zlib::GzipWriter#mtime=" do
   before :each do
     @io = StringIO.new
   end
 
-  it 'sets mtime using Integer' do
+  it "sets mtime using Integer" do
     Zlib::GzipWriter.wrap @io do |gzio|
       gzio.mtime = 1
 
@@ -18,7 +18,7 @@ describe 'Zlib::GzipWriter#mtime=' do
   end
 
   ruby_bug '253', '1.9.0' do
-  it 'sets mtime using Time' do
+  it "sets mtime using Time" do
     Zlib::GzipWriter.wrap @io do |gzio|
       gzio.mtime = Time.at 1
 
@@ -29,7 +29,7 @@ describe 'Zlib::GzipWriter#mtime=' do
   end
   end
 
-  it 'raises if the header was written' do
+  it "raises if the header was written" do
     Zlib::GzipWriter.wrap @io do |gzio|
       gzio.write ''
 

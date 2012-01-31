@@ -1,3 +1,5 @@
+# -*- encoding: us-ascii -*-
+
 class Thread
 
   def self.current
@@ -47,11 +49,6 @@ class Thread
   def native_join
     Rubinius.primitive :thread_join
     Kernel.raise PrimitiveFailure, "Thread#native_join failed"
-  end
-
-  def self.set_critical(obj)
-    Rubinius.primitive :thread_set_critical
-    Kernel.raise PrimitiveFailure, "Thread.set_critical failed"
   end
 
   def unlock_locks
@@ -228,23 +225,6 @@ class Thread
     end
   end
 
-  def self.stop
-    # Make sure that if we're stopping the current Thread,
-    # others can run, so reset critical.
-    Thread.critical = false
-    sleep
-    nil
-  end
-
-  def self.critical
-    @critical
-  end
-
-  def self.critical=(value)
-    set_critical value
-    @critical = !!value
-  end
-
   def join(timeout = undefined)
     join_inner(timeout) { @alive ? nil : self }
   end
@@ -388,6 +368,14 @@ class Thread
 
   def self.list
     Thread.current.group.list
+  end
+
+  def self.exit
+    Thread.current.kill
+  end
+
+  def self.kill(thread)
+    thread.kill
   end
 
   alias_method :run, :wakeup

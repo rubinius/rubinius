@@ -1,12 +1,13 @@
-require File.dirname(__FILE__) + '/../spec_helper'
+require 'spec_helper'
 require 'mspec/expectations/expectations'
-require 'mspec/helpers/flunk'
 require 'mspec/runner/mspec'
+require 'mspec/guards'
+require 'mspec/helpers'
 
 describe Object, "#flunk" do
   before :each do
     MSpec.stub!(:actions)
-    MSpec.stub!(:current).and_return(mock("spec state", :null_object => true))
+    MSpec.stub!(:current).and_return(mock("spec state").as_null_object)
   end
 
   it "raises an SpecExpectationNotMetError unconditionally" do

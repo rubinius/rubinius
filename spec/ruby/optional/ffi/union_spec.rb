@@ -1,16 +1,16 @@
 require File.expand_path('../spec_helper', __FILE__)
 
-describe 'Union' do
+describe "Union" do
   before do
     @u = FFISpecs::LibTest::TestUnion.new
   end
 
-  it 'should place all the fields at offset 0' do
+  it "places all the fields at offset 0" do
     FFISpecs::LibTest::TestUnion.members.all? { |m| FFISpecs::LibTest::TestUnion.offset_of(m) == 0 }.should be_true
   end
 
   FFISpecs::LibTest::Types.each do |k, type|
-    it "should correctly align/write a #{type[0]} value" do
+    it "correctly aligns/writes a #{type[0]} value" do
       @u[type[1]] = type[2]
       if k == 'f32' or k == 'f64'
         (@u[type[1]] - FFISpecs::LibTest.send("union_align_#{k}", @u.to_ptr)).abs.should < 0.00001
@@ -21,7 +21,7 @@ describe 'Union' do
   end
 
   FFISpecs::LibTest::Types.each do |k, type|
-    it "should read a #{type[0]} value from memory" do
+    it "reads a #{type[0]} value from memory" do
       @u = FFISpecs::LibTest::TestUnion.new(FFISpecs::LibTest.send("union_make_union_with_#{k}", type[2]))
       if k == 'f32' or k == 'f64'
         (@u[type[1]] - type[2]).abs.should < 0.00001
@@ -31,7 +31,7 @@ describe 'Union' do
     end
   end
 
-  it 'should return a size equals to the size of the biggest field' do
+  it "returns a size equals to the size of the biggest field" do
     FFISpecs::LibTest::TestUnion.size.should == FFISpecs::LibTest.union_size
   end
 end

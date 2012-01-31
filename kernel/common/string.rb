@@ -1,3 +1,5 @@
+# -*- encoding: us-ascii -*-
+
 # Default Ruby Record Separator
 # Used in this file and by various methods that need to ignore $/
 DEFAULT_RECORD_SEPARATOR = "\n"
@@ -6,24 +8,23 @@ class String
   include Comparable
 
   attr_accessor :data
-  attr_accessor :num_bytes
 
   alias_method :__data__, :data
   alias_method :__data__=, :data=
 
   def self.allocate
     str = super()
-    str.__data__ = Rubinius::CharArray.new(1)
+    str.__data__ = Rubinius::ByteArray.new(1)
     str.num_bytes = 0
     str
   end
 
   ##
   # Creates a new string from copying _count_ bytes from the
-  # _start_ of _ca_.
-  def self.from_chararray(ca, start, count)
-    Rubinius.primitive :string_from_chararray
-    raise PrimitiveFailure, "String.from_chararray primitive failed"
+  # _start_ of _bytes_.
+  def self.from_bytearray(bytes, start, count)
+    Rubinius.primitive :string_from_bytearray
+    raise PrimitiveFailure, "String.from_bytearray primitive failed"
   end
 
   class << self
@@ -33,6 +34,13 @@ class String
 
     alias_method :dup, :clone
   end
+
+  def initialize(arg = undefined)
+    replace StringValue(arg) unless arg.equal?(undefined)
+    self
+  end
+
+  private :initialize
 
   # call-seq:
   #   str % arg   => new_str
@@ -83,9 +91,7 @@ class String
   #
   #   "Hello from " + self.to_s   #=> "Hello from main"
   def +(other)
-    r = "#{self}#{StringValue(other)}"
-    r.taint if tainted? or other.tainted?
-    r
+    String.new(self) << StringValue(other)
   end
 
   # call-seq:
@@ -208,6 +214,8 @@ class String
   #    a["lo"]                #=> "lo"
   #    a["bye"]               #=> nil
   def [](index, other = undefined)
+    Rubinius.primitive :string_aref
+
     unless other.equal?(undefined)
       if index.kind_of? Regexp
         match, str = subpattern(index, other)
@@ -221,14 +229,6 @@ class String
     end
 
     case index
-    when Fixnum
-      # The same code as in else section.
-      # Copied here to improve performance because Fixnum index is
-      # often used to iterate through String object.
-      index = @num_bytes + index if index < 0
-
-      return if index < 0 || @num_bytes <= index
-      return @data.character_at_index(index)
     when Regexp
       match_data = index.search_region(self, 0, @num_bytes, true)
       Regexp.last_match = match_data
@@ -263,10 +263,7 @@ class String
       return nil
     else
       index = Rubinius::Type.coerce_to index, Fixnum, :to_int
-      index = @num_bytes + index if index < 0
-
-      return if index < 0 || @num_bytes <= index
-      return @data.character_at_index(index)
+      return self[index]
     end
   end
   alias_method :slice, :[]
@@ -370,8 +367,6 @@ class String
     end
     return replacement
   end
-
-  alias_method :bytesize, :length
 
   # Returns a copy of <i>self</i> with the first character converted to uppercase
   # and the remainder to lowercase.
@@ -562,7 +557,7 @@ class String
     end
 
     if (j += 1) < @num_bytes
-      @num_bytes = j
+      self.num_bytes = j
       self
     else
       nil
@@ -572,7 +567,7 @@ class String
   # Clears the contents of <i>self</i>, returning the empty string.
   def clear
     Rubinius.check_frozen
-    delete!(self)
+    self.num_bytes = 0
     self
   end
 
@@ -605,19 +600,22 @@ class String
     return self
   end
 
-  def each_char(&block)
-    return to_enum :each_char unless block_given?
-    return scan(/./u, &block) if Rubinius.kcode == :UTF8
+  def chars(&block)
+    return to_enum :chars unless block_given?
+    # TODO: Use Encodings for KCODE in 1.8 mode
+    return scan(/./u, &block) if Rubinius.kcode == :UTF8 and Rubinius.ruby18?
+
     i = 0
-    while i < @num_bytes do
-      yield @data.get_byte(i).chr
+    n = size
+    while i < n
+      yield substring(i, 1)
       i += 1
     end
 
     self
   end
 
-  alias_method :chars, :each_char
+  alias_method :each_char, :chars
 
   # Passes each byte in <i>self</i> to the given block.
   #
@@ -626,8 +624,8 @@ class String
   # <em>produces:</em>
   #
   #   104 101 108 108 111
-  def each_byte
-    return to_enum :each_byte unless block_given?
+  def bytes
+    return to_enum :bytes unless block_given?
     i = 0
     while i < @num_bytes do
       yield @data.get_byte(i)
@@ -636,116 +634,7 @@ class String
     self
   end
 
-  alias_method :bytes, :each_byte
-
-  # Splits <i>self</i> using the supplied parameter as the record separator
-  # (<code>$/</code> by default), passing each substring in turn to the supplied
-  # block. If a zero-length record separator is supplied, the string is split on
-  # <code>\n</code> characters, except that multiple successive newlines are
-  # appended together.
-  #
-  #   print "Example one\n"
-  #   "hello\nworld".each { |s| p s }
-  #   print "Example two\n"
-  #   "hello\nworld".each('l') { |s| p s }
-  #   print "Example three\n"
-  #   "hello\n\n\nworld".each('') { |s| p s }
-  #
-  # <em>produces:</em>
-  #
-  #   Example one
-  #   "hello\n"
-  #   "world"
-  #   Example two
-  #   "hel"
-  #   "l"
-  #   "o\nworl"
-  #   "d"
-  #   Example three
-  #   "hello\n\n\n"
-  #   "world"
-  def each_line(sep=$/)
-    return to_enum(:each_line, sep) unless block_given?
-
-    # weird edge case.
-    if sep.nil?
-      yield self
-      return self
-    end
-
-    sep = StringValue(sep)
-
-    pos = 0
-
-    size = @num_bytes
-    orig_data = @data
-
-    # If the separator is empty, we're actually in paragraph mode. This
-    # is used so infrequently, we'll handle it completely separately from
-    # normal line breaking.
-    if sep.empty?
-      sep = "\n\n"
-      pat_size = 2
-
-      while pos < size
-        nxt = find_string(sep, pos)
-        break unless nxt
-
-        while @data[nxt] == 10 and nxt < @num_bytes
-          nxt += 1
-        end
-
-        match_size = nxt - pos
-
-        # string ends with \n's
-        break if pos == @num_bytes
-
-        str = substring(pos, match_size)
-        yield str unless str.empty?
-
-        # detect mutation within the block
-        if !@data.equal?(orig_data) or @num_bytes != size
-          raise RuntimeError, "string modified while iterating"
-        end
-
-        pos = nxt
-      end
-
-      # No more separates, but we need to grab the last part still.
-      fin = substring(pos, @num_bytes - pos)
-      yield fin if fin and !fin.empty?
-
-    else
-
-      # This is the normal case.
-      pat_size = sep.size
-
-      while pos < size
-        nxt = find_string(sep, pos)
-        break unless nxt
-
-        match_size = nxt - pos
-        str = substring(pos, match_size + pat_size)
-        yield str unless str.empty?
-
-        # detect mutation within the block
-        if !@data.equal?(orig_data) or @num_bytes != size
-          raise RuntimeError, "string modified while iterating"
-        end
-
-        pos = nxt + pat_size
-      end
-
-      # No more separates, but we need to grab the last part still.
-      fin = substring(pos, @num_bytes - pos)
-      yield fin unless fin.empty?
-    end
-
-    self
-  end
-
-  alias_method :lines, :each_line
-
+  alias_method :each_byte, :bytes
 
   # Returns <code>true</code> if <i>self</i> has a length of zero.
   #
@@ -776,7 +665,11 @@ class String
   # This method is specifically part of 1.9 but we enable it in 1.8 also
   # because we need it internally.
   def getbyte(index)
-    index = size + index if index < 0
+    index = Rubinius::Type.coerce_to index, Fixnum, :to_int
+
+    index += bytesize if index < 0
+    return if index < 0 or index >= bytesize
+
     @data[index]
   end
 
@@ -879,7 +772,7 @@ class String
       str.copy_from self, index, @num_bytes - index, index + osize
     end
 
-    @num_bytes = size
+    self.num_bytes = size
     @data = str.__data__
     taint if other.tainted?
 
@@ -1028,6 +921,7 @@ class String
 
     if pattern.kind_of? Regexp
       if m = pattern.match(self)
+        Regexp.last_match = m
         return [m.pre_match, m.to_s, m.post_match]
       end
     else
@@ -1173,13 +1067,17 @@ class String
   # This method is specifically part of 1.9 but we enable it in 1.8 also
   # because we need it internally.
   def setbyte(index, byte)
-    unless byte.instance_of?(Fixnum)
-      raise TypeError, "can't convert #{byte.class} into Integer"
-    end
-
     Rubinius.check_frozen
 
-    index = size + index if index < 0
+    index = Rubinius::Type.coerce_to index, Fixnum, :to_int
+    byte = Rubinius::Type.coerce_to byte, Fixnum, :to_int
+
+    index += bytesize if index < 0
+    if index < 0 or index >= bytesize
+      raise IndexError, "byte index #{index} is outside bounds of String"
+    end
+
+    @ascii_only = @valid_encoding = nil
     @data[index] = byte
   end
 
@@ -1264,7 +1162,7 @@ class String
           pos = 0
 
           while pos < @num_bytes
-            ret << substring(pos, 1)
+            ret << byteslice(pos, 1)
             pos += 1
           end
 
@@ -1306,10 +1204,10 @@ class String
             start += c.size
           end
 
-          # Use #substring because it returns the right class and taints
+          # Use #byteslice because it returns the right class and taints
           # automatically. This is just appending a "", which is this
           # strange protocol if a negative limit is passed in
-          ret << substring(0,0) if tail_empty
+          ret << byteslice(0,0) if tail_empty
         end
       ensure
         $KCODE = kcode
@@ -1369,13 +1267,13 @@ class String
       break unless nxt
 
       match_size = nxt - pos
-      ret << substring(pos, match_size)
+      ret << byteslice(pos, match_size)
 
       pos = nxt + pat_size
     end
 
     # No more separators, but we need to grab the last part still.
-    ret << substring(pos, @num_bytes - pos)
+    ret << byteslice(pos, @num_bytes - pos)
 
     ret.pop while !ret.empty? and ret.last.empty?
 
@@ -1733,7 +1631,7 @@ class String
         end
       end
 
-      @num_bytes = j if (j += 1) < @num_bytes
+      self.num_bytes = j if (j += 1) < @num_bytes
     else
       i = 0
       while i < @num_bytes
@@ -1756,7 +1654,7 @@ class String
       while current < @num_bytes && @data[current] != 92  # ?\\
         current += 1
       end
-      result.append(substring(index, current - index))
+      result.append(byteslice(index, current - index))
       break if current == @num_bytes
 
       # found backslash escape, looking next
@@ -1882,6 +1780,7 @@ class String
       @shared = nil
     end
 
+    @ascii_only = @valid_encoding = nil
     @hash_value = nil # reset the hash value
   end
 
@@ -1945,11 +1844,14 @@ class String
       trailer_size =  @num_bytes - trailer_start
 
       copy_from self, trailer_start, trailer_size, start
-      @num_bytes -= count
+      self.num_bytes -= count
     else
       # Resize if necessary
       new_size = @num_bytes - count + rsize
-      resize_capacity new_size if new_size > @data.size
+      # We use >= here and not > so we don't use every byte for
+      # @data. We always want to have at least 1 character room
+      # in a ByteArray for creating a \0 terminated string.
+      resize_capacity new_size if new_size >= @data.size
 
       # easy, fits right in.
       if count == rsize
@@ -1964,7 +1866,7 @@ class String
         # Then put the replacement in
         copy_from replacement, 0, rsize, start
 
-        @num_bytes += (rsize - count)
+        self.num_bytes += (rsize - count)
       end
     end
 
@@ -1988,13 +1890,11 @@ class String
   def shorten!(size)
     self.modify!
     return if @num_bytes == 0
-    @num_bytes = @num_bytes - size
+    self.num_bytes -= size
   end
 
   def dump
-    str = self.class.new %{"#{transform(Rubinius::CType::Printed, false)}"}
-    str.taint if tainted?
-    str
+    self.class.new %{"#{transform(Rubinius::CType::Printed, false)}"}
   end
 
   def shared!

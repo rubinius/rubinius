@@ -14,7 +14,7 @@ describe TagListAction, "#===" do
   before :each do
     tag = SpecTag.new "fails:description"
     MSpec.stub!(:read_tags).and_return([tag])
-    @filter = mock("MatchFilter", :null_object => true)
+    @filter = mock("MatchFilter").as_null_object
     MatchFilter.stub!(:new).and_return(@filter)
     @action = TagListAction.new
     @action.load

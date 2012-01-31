@@ -1,2 +1,0 @@
-fails:Module#const_get raises a NameError if the constant is defined in the receiver's supperclass and the inherit flag is false
-fails:Module#const_get searches into the receiver superclasses if the inherit flag is true

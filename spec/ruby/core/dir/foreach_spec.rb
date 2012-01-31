@@ -37,13 +37,13 @@ describe "Dir.foreach" do
   end
 
   ruby_version_is '' ... '1.8.7' do
-    it 'raises a LocalJumpError if no block given' do
+    it "raises a LocalJumpError if no block given" do
       lambda{ Dir.foreach(DirSpecs.mock_dir) }.should raise_error(LocalJumpError)
     end
   end
 
   ruby_version_is '1.8.7' do
-    it 'returns an Enumerator if no block given' do
+    it "returns an Enumerator if no block given" do
       Dir.foreach(DirSpecs.mock_dir).should be_an_instance_of(enumerator_class)
       Dir.foreach(DirSpecs.mock_dir).to_a.sort.should == DirSpecs.expected_paths
     end

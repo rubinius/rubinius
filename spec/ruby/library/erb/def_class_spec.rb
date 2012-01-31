@@ -1,7 +1,7 @@
 require 'erb'
 require File.expand_path('../../../spec_helper', __FILE__)
 
-describe 'ERB#def_class' do
+describe "ERB#def_class" do
 
   it "return an unnamed class which has instance method to render eRuby script" do
     input = <<'END'

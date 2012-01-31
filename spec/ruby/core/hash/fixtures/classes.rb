@@ -1,26 +1,34 @@
-class MyHash < hash_class; end
+module HashSpecs
+  class MyHash < hash_class; end
 
-class NewHash < hash_class
-  def initialize(*args)
-    args.each_with_index do |val, index|
-      self[index] = val
+  class MyInitializerHash < hash_class
+
+    def initialize
+      raise "Constructor called"
+    end
+
+  end
+
+  class NewHash < hash_class
+    def initialize(*args)
+      args.each_with_index do |val, index|
+        self[index] = val
+      end
     end
   end
-end
 
-class DefaultHash < hash_class
-  def default(key)
-    100
+  class DefaultHash < hash_class
+    def default(key)
+      100
+    end
   end
-end
 
-class ToHashHash < hash_class
-  def to_hash
-    new_hash "to_hash" => "was", "called!" => "duh."
+  class ToHashHash < hash_class
+    def to_hash
+      new_hash "to_hash" => "was", "called!" => "duh."
+    end
   end
-end
 
-module HashSpecs
   def self.empty_frozen_hash
     @empty ||= new_hash
     @empty.freeze

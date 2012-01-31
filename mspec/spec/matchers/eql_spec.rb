@@ -1,6 +1,6 @@
-require File.dirname(__FILE__) + '/../spec_helper'
+require 'spec_helper'
 require 'mspec/expectations/expectations'
-require 'mspec/matchers/eql'
+require 'mspec/matchers'
 
 describe EqlMatcher do
   it "matches when actual is eql? to expected" do

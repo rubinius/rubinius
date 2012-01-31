@@ -1,3 +1,5 @@
+# -*- encoding: us-ascii -*-
+
 class File
   # these will be necessary when we run on Windows
   DOSISH = false # !!(RUBY_PLATFORM =~ /mswin/)

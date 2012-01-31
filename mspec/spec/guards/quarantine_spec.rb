@@ -1,5 +1,5 @@
-require File.dirname(__FILE__) + '/../spec_helper'
-require 'mspec/guards/quarantine'
+require 'spec_helper'
+require 'mspec/guards'
 
 describe QuarantineGuard, "#match?" do
   it "returns false" do

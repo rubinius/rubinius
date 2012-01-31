@@ -79,7 +79,7 @@ namespace rubinius {
     Object* ret = unit->test_condition()->execute(
              state, call_frame, unit->test_condition(), exec, mod, args);
     if(!ret) return ret;
-    if(RTEST(ret)) {
+    if(CBOOL(ret)) {
       return unit->test_then()->execute(state, call_frame, unit->test_then(), exec, mod, args);
     } else {
       return unit->test_else()->execute(state, call_frame, unit->test_else(), exec, mod, args);
@@ -97,13 +97,13 @@ namespace rubinius {
     } else if(unit->which_ < (int)args.total()) {
       obj = args.get_argument(unit->which_);
     } else {
-      return Qfalse;
+      return cFalse;
     }
 
     if(Module* mod = try_as<Module>(unit->value())) {
-      return obj->kind_of_p(state, mod) ? Qtrue : Qfalse;
+      return obj->kind_of_p(state, mod) ? cTrue : cFalse;
     } else {
-      return Qfalse;
+      return cFalse;
     }
   }
 }

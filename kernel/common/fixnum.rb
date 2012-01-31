@@ -1,3 +1,5 @@
+# -*- encoding: us-ascii -*-
+
 ##
 #--
 # NOTE do not define to_sym or id2name. It's been deprecated for 5 years and
@@ -37,8 +39,6 @@ class Fixnum < Integer
       redo_coerced :fdiv, n
     end
   end
-
-  alias_method :quo, :fdiv
 
   # taint and untaint are noops on Fixnum
   def taint

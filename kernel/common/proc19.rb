@@ -1,6 +1,9 @@
+# -*- encoding: us-ascii -*-
+
 class Proc
 
   alias_method :===, :call
+  alias_method :eql?, :==
 
   #
   #  call-seq:
@@ -113,4 +116,15 @@ class Proc
     l = " (lambda)" if lambda?
     "#<#{self.class}:0x#{self.object_id.to_s(16)}@#{@block.file}:#{@block.line}#{l}>"
   end
+
+  class Method < Proc 
+    def self.__from_method__(meth)
+      obj = allocate()
+      obj.bound_method = meth
+      obj.lambda_style!
+
+      return obj
+    end
+  end
+
 end

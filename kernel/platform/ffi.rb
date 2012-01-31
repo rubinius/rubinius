@@ -1,3 +1,5 @@
+# -*- encoding: us-ascii -*-
+
 ##
 # A Foreign Function Interface used to bind C libraries to ruby.
 
@@ -73,6 +75,10 @@ module FFI
         vals[key.substring(section.size, key.length)] = value
       end
       vals
+    end
+
+    def errno
+      FFI::Platform::POSIX.errno
     end
 
   end
@@ -207,4 +213,8 @@ module FFI::Platform
   else
     LIBSUFFIX = "so"
   end
+
+  # ruby-ffi compatible
+  LONG_SIZE = Rubinius::SIZEOF_LONG * 8
+  ADDRESS_SIZE = Rubinius::WORDSIZE
 end

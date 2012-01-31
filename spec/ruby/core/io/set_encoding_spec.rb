@@ -31,7 +31,7 @@ ruby_version_is "1.9" do
       @io.internal_encoding.should be_nil
     end
 
-    ruby_bug "http://redmine.ruby-lang.org/issues/5568", "1.9.3.0" do
+    ruby_bug "http://redmine.ruby-lang.org/issues/5568", "1.9.3" do
       it "ignores the internal encoding if the same as external when passed Encoding objects" do
         @io.set_encoding(Encoding::UTF_8, Encoding::UTF_8)
         @io.external_encoding.should == Encoding::UTF_8
@@ -55,7 +55,7 @@ ruby_version_is "1.9" do
       lambda { @io.set_encoding("utf-8:utf-16be", "us-ascii") }.should raise_error(ArgumentError)
     end
 
-    ruby_bug "http://redmine.ruby-lang.org/issues/5567", "1.9.3.0" do
+    ruby_bug "http://redmine.ruby-lang.org/issues/5567", "1.9.3" do
       it "raises an ArgumentError if passed the name of a nonexistent Encoding" do
         lambda { @io.set_encoding("nonexistent") }.should raise_error(ArgumentError)
       end

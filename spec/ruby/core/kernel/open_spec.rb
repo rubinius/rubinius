@@ -5,7 +5,8 @@ describe "Kernel#open" do
 
   before :each do
     @name = tmp("kernel_open.txt")
-    touch(@name) { |f| f.write "This is a test" }
+    @content = "This is a test"
+    touch(@name) { |f| f.write @content }
     @file = nil
   end
 
@@ -24,8 +25,7 @@ describe "Kernel#open" do
   end
 
   it "opens a file when called with a block" do
-    @output = open(@name, "r") { |f| f.gets }
-    @output.should == "This is a test"
+    open(@name, "r") { |f| f.gets }.should == @content
   end
 
   platform_is_not :windows do
@@ -57,12 +57,58 @@ describe "Kernel#open" do
   end
 
   ruby_version_is "1.9" do
-    it "calls #to_open on argument" do
-      obj = mock('fileish')
-      @file = File.open(@name)
-      obj.should_receive(:to_open).and_return(@file)
-      @file = open(obj)
-      @file.should be_kind_of(File)
+    describe "when given an object that responds to to_open" do
+      before :each do
+        ScratchPad.clear
+      end
+
+      it "calls #to_path to covert the argument to a String before calling #to_str" do
+        obj = mock("open to_path")
+        obj.should_receive(:to_path).at_least(1).times.and_return(@name)
+        obj.should_not_receive(:to_str)
+
+        open(obj, "r") { |f| f.gets }.should == @content
+      end
+
+      it "calls #to_str to convert the argument to a String" do
+        obj = mock("open to_str")
+        obj.should_receive(:to_str).at_least(1).times.and_return(@name)
+
+        open(obj, "r") { |f| f.gets }.should == @content
+      end
+
+      it "calls #to_open on argument" do
+        obj = mock('fileish')
+        @file = File.open(@name)
+        obj.should_receive(:to_open).and_return(@file)
+        @file = open(obj)
+        @file.should be_kind_of(File)
+      end
+
+      it "returns the value from #to_open" do
+        obj = mock('to_open')
+        obj.should_receive(:to_open).and_return(:value)
+
+        open(obj).should == :value
+      end
+
+      it "passes its arguments onto #to_open" do
+        obj = mock('to_open')
+        obj.should_receive(:to_open).with(1,2,3)
+
+        open(obj, 1, 2, 3)
+      end
+
+      it "passes the return value from #to_open to a block" do
+        obj = mock('to_open')
+        obj.should_receive(:to_open).and_return(:value)
+
+        open(obj) do |mock|
+          ScratchPad.record(mock)
+        end
+
+        ScratchPad.recorded.should == :value
+      end
     end
 
     it "raises a TypeError if passed a non-String that does not respond to #to_open" do

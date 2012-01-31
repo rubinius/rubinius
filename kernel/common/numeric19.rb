@@ -1,7 +1,17 @@
+# -*- encoding: us-ascii -*-
+
 class Numeric
   def div(other)
     raise ZeroDivisionError, "divided by 0" if other == 0
     self.__slash__(other).floor
+  end
+
+  def fdiv(other)
+    self.to_f / other
+  end
+
+  def quo(other)
+    Rational(self) / other
   end
 
   def modulo(other)
@@ -27,7 +37,11 @@ class Numeric
   alias_method :imaginary, :imag
 
   def arg
-    Math.atan2(0, self)
+    if self < 0
+      Math::PI
+    else
+      0
+    end
   end
   alias_method :angle, :arg
   alias_method :phase, :arg
@@ -40,10 +54,6 @@ class Numeric
     self
   end
   alias_method :conj, :conjugate
-
-  def rationalize(eps = nil)
-    Rational(self, 1)
-  end
 
   def rect
     [self, 0]

@@ -1,6 +1,6 @@
-require File.dirname(__FILE__) + '/../spec_helper'
+require 'spec_helper'
 require 'mspec/expectations/expectations'
-require 'mspec/matchers/base'
+require 'mspec/matchers'
 require 'time'
 
 describe SpecPositiveOperatorMatcher, "== operator" do

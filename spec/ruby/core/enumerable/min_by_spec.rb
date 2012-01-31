@@ -1,8 +1,8 @@
 require File.expand_path('../../../spec_helper', __FILE__)
 require File.expand_path('../fixtures/classes', __FILE__)
 
-describe "Enumerable#min_by" do
-  ruby_version_is '1.8.7' do
+ruby_version_is "1.8.7" do
+  describe "Enumerable#min_by" do
     it "returns an enumerator if no block" do
       EnumerableSpecs::Numerous.new(42).min_by.should be_an_instance_of(enumerator_class)
     end
@@ -33,6 +33,11 @@ describe "Enumerable#min_by" do
       enum = EnumerableSpecs::Numerous.new(nil, nil, true)
       enum.min_by {|o| o.nil? ? 0 : 1 }.should == nil
       enum.min_by {|o| o.nil? ? 1 : 0 }.should == true
+    end
+
+    it "gathers whole arrays as elements when each yields multiple" do
+      multi = EnumerableSpecs::YieldsMulti.new
+      multi.min_by {|e| e.size}.should == [1, 2]
     end
   end
 end

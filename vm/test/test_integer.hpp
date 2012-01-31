@@ -23,9 +23,9 @@ public:
     TS_ASSERT(kind_of<Numeric>(big));
     TS_ASSERT(kind_of<Numeric>(flt));
     TS_ASSERT(!kind_of<Numeric>(obj));
-    TS_ASSERT(!kind_of<Numeric>(Qtrue));
-    TS_ASSERT(!kind_of<Numeric>(Qfalse));
-    TS_ASSERT(!kind_of<Numeric>(Qnil));
+    TS_ASSERT(!kind_of<Numeric>(cTrue));
+    TS_ASSERT(!kind_of<Numeric>(cFalse));
+    TS_ASSERT(!kind_of<Numeric>(cNil));
   }
 
   void test_from_native_int() {

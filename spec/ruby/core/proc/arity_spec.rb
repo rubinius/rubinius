@@ -1,5 +1,6 @@
 require File.expand_path('../../../spec_helper', __FILE__)
 require File.expand_path('../fixtures/common', __FILE__)
+language_version __FILE__, "arity"
 
 describe "Proc#arity" do
   before :each do

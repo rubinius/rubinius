@@ -16,11 +16,20 @@ with_feature :encoding do
       end
     end
 
-    platform_is :bsd, :darwin do
+    platform_is :freebsd, :darwin do
       it "returns a value based on the LC_ALL environment variable" do
         old_lc_all = ENV['LC_ALL']
         ENV['LC_ALL'] = 'C'
         ruby_exe("print Encoding.locale_charmap").should == 'US-ASCII'
+        ENV['LC_ALL'] = old_lc_all
+      end
+    end
+
+    platform_is :netbsd, :openbsd do
+      it "returns a value based on the LC_ALL environment variable" do
+        old_lc_all = ENV['LC_ALL']
+        ENV['LC_ALL'] = 'C'
+        ruby_exe("print Encoding.locale_charmap").should == '646'
         ENV['LC_ALL'] = old_lc_all
       end
     end

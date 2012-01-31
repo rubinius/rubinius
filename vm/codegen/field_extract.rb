@@ -226,7 +226,7 @@ class CPPPrimitive < BasicPrimitive
 
     if !@safe or emit_fail
       str << "fail:\n"
-      str << "  return Qundef;\n"
+      str << "  return cUndef;\n"
     end
 
     if @safe and !emit_fail
@@ -405,7 +405,7 @@ class CPPStaticPrimitive < CPPPrimitive
 
     if !@safe or emit_fail
       str << "fail:\n"
-      str << "  return Qundef;\n"
+      str << "  return cUndef;\n"
     end
 
     if @safe and !emit_fail
@@ -727,7 +727,7 @@ Object* #{@name}::Info::get_field(STATE, Object* _t, size_t index) {
 
   Exception::assertion_error(state, error.str().c_str());
 
-  return Qnil; // never reached
+  return cNil; // never reached
 }
 
     EOF
@@ -805,17 +805,17 @@ void #{@name}::Info::auto_visit(Object* _t, ObjectVisitor& visit) {
   def kind_of_code(what)
     case @name
     when "Fixnum"
-      return "FIXNUM_P(#{what})"
+      return "__FIXNUM_P__(#{what})"
     when "Symbol"
-      return "SYMBOL_P(#{what})"
+      return "__SYMBOL_P__(#{what})"
     when "TrueClass"
-      return "#{what} == Qtrue"
+      return "#{what} == cTrue"
     when "FalseClass"
-      return "#{what} == Qfalse"
+      return "#{what} == cFalse"
     when "NilClass"
-      return "#{what} == Qnil"
+      return "#{what} == cNil"
     else
-      return "(REFERENCE_P(#{what}) && #{what}->type_id() == #{@name}Type)"
+      return "(__REFERENCE_P__(#{what}) && #{what}->type_id() == #{@name}Type)"
     end
   end
 

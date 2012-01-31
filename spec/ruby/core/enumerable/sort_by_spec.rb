@@ -22,4 +22,9 @@ describe "Enumerable#sort_by" do
       a.to_a.should == ["a", "b"]
     end
   end
+
+  it "gathers whole arrays as elements when each yields multiple" do
+    multi = EnumerableSpecs::YieldsMulti.new
+    multi.sort_by {|e| e.size}.should == [[1, 2], [3, 4, 5], [6, 7, 8, 9]]
+  end
 end

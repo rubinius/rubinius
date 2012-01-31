@@ -1,4 +1,4 @@
-require File.dirname(__FILE__) + '/../spec_helper'
+require 'spec_helper'
 require 'mspec/matchers/base'
 require 'mspec/runner/mspec'
 require 'mspec/mocks/mock'

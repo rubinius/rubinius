@@ -7,7 +7,7 @@ describe DescribeFormatter, "#finish" do
     MSpec.stub!(:register)
     MSpec.stub!(:unregister)
 
-    @timer = mock("timer", :null_object => true)
+    @timer = mock("timer").as_null_object
     TimerAction.stub!(:new).and_return(@timer)
     @timer.stub!(:format).and_return("Finished in 2.0 seconds")
 

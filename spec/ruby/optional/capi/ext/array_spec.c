@@ -87,7 +87,7 @@ static VALUE array_spec_RARRAY_LEN(VALUE self, VALUE array) {
 static VALUE array_spec_rb_ary_aref(int argc, VALUE *argv, VALUE self) {
   VALUE ary, args;
   rb_scan_args(argc, argv, "1*", &ary, &args);
-  return rb_ary_aref(RARRAY_LEN(args), RARRAY_PTR(args), ary);
+  return rb_ary_aref((int)RARRAY_LEN(args), RARRAY_PTR(args), ary);
 }
 #endif
 

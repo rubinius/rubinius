@@ -9,7 +9,7 @@ describe GdbAction do
   end
 
   it "creates an MatchFilter with its tag and desc arguments" do
-    filter = mock('action filter', :null_object => true)
+    filter = mock('action filter').as_null_object
     MatchFilter.should_receive(:new).with(nil, "some", "thing").and_return(filter)
     GdbAction.new ["tag", "key"], ["some", "thing"]
   end

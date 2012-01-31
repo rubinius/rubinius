@@ -92,4 +92,10 @@ describe "Enumerable#min" do
       x <=> y
     }.should == nil
   end
+
+  it "gathers whole arrays as elements when each yields multiple" do
+    multi = EnumerableSpecs::YieldsMulti.new
+    multi.min.should == [1, 2]
+  end
+
 end

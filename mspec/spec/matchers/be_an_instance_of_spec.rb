@@ -1,6 +1,6 @@
-require File.dirname(__FILE__) + '/../spec_helper'
+require 'spec_helper'
 require 'mspec/expectations/expectations'
-require 'mspec/matchers/be_an_instance_of'
+require 'mspec/matchers'
 
 module BeAnInOfSpecs
   class A

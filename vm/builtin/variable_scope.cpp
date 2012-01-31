@@ -9,6 +9,9 @@
 #include "builtin/system.hpp"
 #include "builtin/tuple.hpp"
 
+#include "builtin/fiber.hpp"
+#include "fiber_data.hpp"
+
 #include "ontology.hpp"
 
 namespace rubinius {
@@ -57,7 +60,7 @@ namespace rubinius {
     }
 
     scope->heap_locals(state, locals);
-    scope->last_match(state, Qnil);
+    scope->last_match(state, cNil);
 
     scope->self(state, self);
     scope->number_of_locals_ = locals->num_fields();
@@ -87,12 +90,12 @@ namespace rubinius {
     }
 
     set_local(state, num, object);
-    return Qnil;
+    return cNil;
   }
 
   // bootstrap method, replaced with an attr_accessor in kernel.
   Object* VariableScope::method_visibility(STATE) {
-    return Qnil;
+    return cNil;
   }
 
   void VariableScope::Info::mark(Object* obj, ObjectMark& mark) {
@@ -104,6 +107,17 @@ namespace rubinius {
 
     if(!vs->isolated()) {
       Object** ary = vs->stack_locals();
+
+      if(Fiber* fib = try_as<Fiber>(vs->fiber())) {
+        FiberData* data = fib->data();
+
+        AddressDisplacement dis(data->data_offset(),
+                                data->data_lower_bound(),
+                                data->data_upper_bound());
+
+        ary = dis.displace(ary);
+      }
+
       size_t locals = vs->number_of_locals();
 
       for(size_t i = 0; i < locals; i++) {
@@ -120,6 +134,17 @@ namespace rubinius {
 
     if(!vs->isolated()) {
       Object** ary = vs->stack_locals();
+
+      if(Fiber* fib = try_as<Fiber>(vs->fiber())) {
+        FiberData* data = fib->data();
+
+        AddressDisplacement dis(data->data_offset(),
+                                data->data_lower_bound(),
+                                data->data_upper_bound());
+
+        ary = dis.displace(ary);
+      }
+
       size_t locals = vs->number_of_locals();
 
       for(size_t i = 0; i < locals; i++) {

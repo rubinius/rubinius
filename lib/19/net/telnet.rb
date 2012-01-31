@@ -163,7 +163,7 @@ module Net
     CR   = "\015"
     LF   = "\012"
     EOL  = CR + LF
-    REVISION = '$Id: telnet.rb 30128 2010-12-08 08:08:59Z yugui $'
+    REVISION = '$Id: telnet.rb 31641 2011-05-19 00:07:25Z nobu $'
     # :startdoc:
 
     #
@@ -726,8 +726,8 @@ module Net
       if options.kind_of?(Hash)
         username = options["Name"]
         password = options["Password"]
-	login_prompt = options["LoginPrompt"] if options["LoginPrompt"]
-	password_prompt = options["PasswordPrompt"] if options["PasswordPrompt"]
+        login_prompt = options["LoginPrompt"] if options["LoginPrompt"]
+        password_prompt = options["PasswordPrompt"] if options["PasswordPrompt"]
       else
         username = options
       end
@@ -754,6 +754,7 @@ module Net
       line
     end
 
+    # Closes the connection
     def close
       @sock.close
     end

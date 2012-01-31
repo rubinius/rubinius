@@ -1,4 +1,4 @@
-require File.dirname(__FILE__) + '/../spec_helper'
+require 'spec_helper'
 require 'mspec/runner/mspec'
 require 'mspec/commands/mspec-tag'
 require 'mspec/runner/actions/tag'
@@ -264,7 +264,7 @@ describe MSpecTag, "#run" do
   before :each do
     MSpec.stub!(:process)
 
-    options = mock("MSpecOptions", :null_object => true)
+    options = mock("MSpecOptions").as_null_object
     options.stub!(:parse).and_return(["one", "two"])
     MSpecOptions.stub!(:new).and_return(options)
 
@@ -318,36 +318,42 @@ describe MSpecTag, "#register" do
     @tl.stub!(:register)
   end
 
-  it "creates a TagAction if config[:tagger] is :add" do
-    TagAction.should_receive(:new).with(:add, :fail, "fake", nil, [], []).and_return(@t)
-    @script.register
-  end
-
-  it "creates a TagAction if config[:tagger] is :del" do
-    @config[:tagger] = :del
-    @config[:outcome] = :pass
-    TagAction.should_receive(:new).with(:del, :pass, "fake", nil, [], []).and_return(@t)
-    @script.register
-  end
-
-  it "calls #register on the TagAction instance" do
-    TagAction.should_receive(:new).and_return(@t)
-    @t.should_receive(:register)
-    @script.register
-  end
-
   it "raises an ArgumentError if no recognized action is given" do
     @config[:tagger] = :totally_whack
     lambda { @script.register }.should raise_error(ArgumentError)
   end
 
+  describe "when config[:tagger] is the default (:add)" do
+    before :each do
+      @config[:formatter] = false
+    end
+
+    it "creates a TagAction" do
+      TagAction.should_receive(:new).and_return(@t)
+      @script.register
+    end
+
+    it "creates a TagAction if config[:tagger] is :del" do
+      @config[:tagger] = :del
+      @config[:outcome] = :pass
+      TagAction.should_receive(:new).with(:del, :pass, "fake", nil, [], []).and_return(@t)
+      @script.register
+    end
+
+    it "calls #register on the TagAction instance" do
+      TagAction.should_receive(:new).and_return(@t)
+      @t.should_receive(:register)
+      @script.register
+    end
+  end
+
   describe "when config[:tagger] is :list" do
     before :each do
+      TagListAction.should_receive(:new).with(@config[:ltags]).and_return(@tl)
       @config[:tagger] = :list
     end
 
     it "creates a TagListAction" do
-      TagListAction.should_receive(:new).with(@config[:ltags]).and_return(@tl)
       @tl.should_receive(:register)
       @script.register
     end
@@ -365,11 +371,11 @@ describe MSpecTag, "#register" do
 
   describe "when config[:tagger] is :list_all" do
     before :each do
+      TagListAction.should_receive(:new).with(nil).and_return(@tl)
       @config[:tagger] = :list_all
     end
 
     it "creates a TagListAction" do
-      TagListAction.should_receive(:new).with(nil).and_return(@tl)
       @tl.should_receive(:register)
       @script.register
     end
@@ -387,12 +393,12 @@ describe MSpecTag, "#register" do
 
   describe "when config[:tagger] is :purge" do
     before :each do
+      TagPurgeAction.should_receive(:new).and_return(@tl)
       MSpec.stub!(:register_mode)
       @config[:tagger] = :purge
     end
 
     it "creates a TagPurgeAction" do
-      TagPurgeAction.should_receive(:new).and_return(@tl)
       @tl.should_receive(:register)
       @script.register
     end

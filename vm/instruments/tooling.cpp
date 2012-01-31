@@ -29,6 +29,7 @@ namespace tooling {
     , leave_script_func_(0)
     , thread_start_func_(0)
     , thread_stop_func_(0)
+    , at_gc_func_(0)
     , shutdown_func_(0)
   {}
 
@@ -36,7 +37,7 @@ namespace tooling {
     if(!enable_func_) return;
 
     state->shared().config.jit_disabled.set("true");
-    System::vm_deoptimize_all(state, Qtrue);
+    System::vm_deoptimize_all(state, cTrue);
 
     enable_func_(state->vm()->tooling_env());
   }
@@ -47,7 +48,7 @@ namespace tooling {
   }
 
   Object* ToolBroker::results(STATE) {
-    if(!results_func_) return Qnil;
+    if(!results_func_) return cNil;
 
     state->shared().config.jit_disabled.set("false");
 
@@ -55,7 +56,7 @@ namespace tooling {
 
     // This finds all the methods again and this time makes them available
     // for JIT.
-    System::vm_deoptimize_all(state, Qfalse);
+    System::vm_deoptimize_all(state, cFalse);
 
     return res;
   }
@@ -139,6 +140,11 @@ namespace tooling {
     thread_stop_func_(state->vm()->tooling_env());
   }
 
+  void ToolBroker::at_gc(STATE) {
+    if(!at_gc_func_) return;
+    at_gc_func_(state->vm()->tooling_env());
+  }
+
   void ToolBroker::set_tool_results(rbxti::results_func func) {
     results_func_ = func;
   }
@@ -197,5 +203,8 @@ namespace tooling {
     thread_stop_func_ = func;
   }
 
+  void ToolBroker::set_tool_at_gc(rbxti::at_gc_func func) {
+    at_gc_func_ = func;
+  }
 }
 }

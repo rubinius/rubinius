@@ -1,3 +1,5 @@
+# -*- encoding: us-ascii -*-
+
 module Process
   def self.perform_fork
     Rubinius.primitive :vm_fork

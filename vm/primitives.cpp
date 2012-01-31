@@ -28,7 +28,7 @@ namespace rubinius {
 
     Exception::assertion_error(state, message.c_str());
 
-    return Qnil;
+    return cNil;
   }
 
   static inline void check_counter(STATE, CallFrame* call_frame, int which) {

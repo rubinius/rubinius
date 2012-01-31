@@ -1,6 +1,6 @@
 #include "builtin/nativemethod.hpp"
+#include "capi/capi.hpp"
 #include "capi/handle.hpp"
-
 #include "capi/18/include/ruby.h"
 
 namespace rubinius {

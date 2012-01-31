@@ -89,6 +89,28 @@ namespace rubinius {
     }
   };
 
+  class AddressDisplacement {
+    intptr_t offset_;
+    intptr_t lower_bound_;
+    intptr_t upper_bound_;
+
+  public:
+    AddressDisplacement(intptr_t o, intptr_t l, intptr_t u)
+      : offset_(o)
+      , lower_bound_(l)
+      , upper_bound_(u)
+    {}
+
+    template <typename T>
+      T displace(T ptr) {
+        intptr_t addr = (intptr_t)ptr;
+        if(addr < lower_bound_) return ptr;
+        if(addr >= upper_bound_) return ptr;
+
+        return (T)((char*)ptr + offset_);
+      }
+  };
+
 
   /**
    * Abstract base class for the various garbage collector implementations.
@@ -124,7 +146,7 @@ namespace rubinius {
     // Scans the specified Object for references to other Objects.
     void scan_object(Object* obj);
     void delete_object(Object* obj);
-    void walk_call_frame(CallFrame* top_call_frame);
+    void walk_call_frame(CallFrame* top_call_frame, AddressDisplacement* offset=0);
     void saw_variable_scope(CallFrame* call_frame, StackVariables* scope);
 
     /**
@@ -140,7 +162,7 @@ namespace rubinius {
     void clean_weakrefs(bool check_forwards=false);
     // Scans the thread for object references
     void scan(ManagedThread* thr, bool young_only);
-    void scan(VariableRootBuffers& buffers, bool young_only);
+    void scan(VariableRootBuffers& buffers, bool young_only, AddressDisplacement* offset=0);
     void scan(RootBuffers& rb, bool young_only);
 
     VM* state();

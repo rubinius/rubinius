@@ -15,16 +15,7 @@
 #define YYDEBUG 1
 #define YYERROR_VERBOSE 1
 
-#include <stdio.h>
-#include <errno.h>
-#include <ctype.h>
-#include <string.h>
-#include <stdbool.h>
-#include <stdint.h>
-#include <assert.h>
-
-#include "ruby.h"
-
+#include "melbourne.hpp"
 #include "grammar18.hpp"
 #include "parser_state18.hpp"
 #include "visitor18.hpp"
@@ -666,12 +657,8 @@ stmt            : kALIAS fitem {lex_state = EXPR_FNAME;} fitem
                     }
                   '{' compstmt '}'
                     {
-                        /*
-                        ruby_eval_tree_begin = block_append(ruby_eval_tree_begin,
-                                                            NEW_PREEXE($4));
-                        */
                         local_pop();
-                        $$ = 0;
+                        $$ = NEW_ITER(0, NEW_PREEXE(), $4);
                     }
                 | klEND '{' compstmt '}'
                     {

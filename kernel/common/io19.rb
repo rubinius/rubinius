@@ -1,11 +1,19 @@
+# -*- encoding: us-ascii -*-
+
 class IO
   attr_accessor :external
   attr_accessor :internal
 
-  # In MRI, these are modules that are used to extend the exception every time
-  # an exception is raised.
-  class WaitReadable < Errno::EAGAIN; end
-  class WaitWritable < Errno::EAGAIN; end
+  module WaitReadable; end
+  module WaitWritable; end
+
+  class EAGAINWaitReadable < Errno::EAGAIN
+    include ::IO::WaitReadable
+  end
+
+  class EAGAINWaitWritable < Errno::EAGAIN
+    include ::IO::WaitWritable
+  end
 
   def self.binread(file, *arg)
     unless arg.size < 3
@@ -121,16 +129,15 @@ class IO
 
       @from.seek @offset, IO::SEEK_CUR if @offset
 
-      size = rest = @length ? @length : 16384
+      size = @length ? @length : 16384
       bytes = 0
 
       begin
         while data = @from.send(@method, size, "")
           @to.write data
           bytes += data.size
-          rest -= data.size
 
-          break unless rest > 0
+          break if @length && bytes >= @length
         end
       rescue EOFError
         # done reading
@@ -153,39 +160,84 @@ class IO
     StreamCopier.new(from, to, max_length, offset).run
   end
 
+  def self.normalize_options(mode, options)
+    mode = nil if mode.equal?(undefined)
+
+    if options.equal?(undefined)
+      options = Rubinius::Type.try_convert(mode, Hash, :to_hash)
+      mode = nil if options
+    elsif !options.nil?
+      options = Rubinius::Type.try_convert(options, Hash, :to_hash)
+      raise ArgumentError, "wrong number of arguments (3 for 1..2)" unless options
+    end
+
+    if mode
+      mode = (Rubinius::Type.try_convert(mode, Integer, :to_int) or
+              Rubinius::Type.coerce_to(mode, String, :to_str))
+    end
+
+    if options
+      if optmode = options[:mode]
+        optmode = (Rubinius::Type.try_convert(optmode, Integer, :to_int) or
+                   Rubinius::Type.coerce_to(optmode, String, :to_str))
+      end
+
+      if mode
+        raise ArgumentError, "mode specified twice" if optmode
+      else
+        mode = optmode
+      end
+    end
+
+    if mode.kind_of?(String)
+      mode, external, internal = mode.split(":")
+      binary = true  if mode[1] === ?b
+      binary = false if mode[1] === ?t
+    elsif mode
+      binary = true  if (mode & BINARY) != 0
+    end
+
+    if options
+      if options[:textmode] and options[:binmode]
+        raise ArgumentError, "both textmode and binmode specified"
+      end
+
+      if binary.nil?
+        binary = options[:binmode]
+      elsif options.key?(:textmode) or options.key?(:binmode)
+        raise ArgumentError, "text/binary mode specified twice"
+      end
+
+      if !external and !internal
+        external = options[:external_encoding]
+        internal = options[:internal_encoding]
+      elsif options[:external_encoding] or options[:internal_encoding] or options[:encoding]
+        raise ArgumentError, "encoding specified twice"
+      end
+
+      if !external and !internal
+        encoding = options[:encoding]
+        external, internal = encoding.split(':') if encoding.kind_of? String
+      end
+    end
+
+    [mode, binary, external, internal]
+  end
+
   #
   # Create a new IO associated with the given fd.
   #
   def initialize(fd, mode=undefined, options=undefined)
-    if mode.equal? undefined
-      mode = nil
-    else
-      if mode.kind_of? Hash
-        options = mode
-        mode = options[:mode]
-      end
-    end
-
-    mode, external, internal = mode.split(":") if mode.kind_of? String
-
     if block_given?
       warn 'IO::new() does not take block; use IO::open() instead'
     end
 
+    mode, binary, external, internal = IO.normalize_options(mode, options)
+
     IO.setup self, Rubinius::Type.coerce_to(fd, Integer, :to_int), mode
 
-    if external or internal
-      set_encoding external, internal
-    elsif !options.equal? undefined
-      external = options[:external_encoding]
-      internal = options[:internal_encoding]
-
-      if external or internal
-        set_encoding external, internal
-      elsif encoding = options[:encoding]
-        set_encoding encoding
-      end
-    end
+    binmode                          if binary
+    set_encoding(external, internal) if external or internal
   end
 
   private :initialize
@@ -469,6 +521,21 @@ class IO
     @internal
   end
 
+  def binmode
+    ensure_open
+
+    @binmode = true
+    @external = Encoding::BINARY
+    @internal = nil
+
+    # HACK what to do?
+    self
+  end
+
+  def binmode?
+    !@binmode.nil?
+  end
+
   ##
   # Runs the specified command string as a subprocess;
   # the subprocess‘s standard input and output will be
@@ -591,6 +658,24 @@ class IO
       yield pipe
     ensure
       pipe.close unless pipe.closed?
+    end
+  end
+
+  ##
+  # Return a string describing this IO object.
+  def inspect
+    if @descriptor != -1
+      "#<#{self.class}:fd #{@descriptor}>"
+    else
+      "#<#{self.class}:(closed)"
+    end
+  end
+
+  def lines(*args, &block)
+    if block_given?
+      each_line(*args, &block)
+    else
+      to_enum :each_line, *args
     end
   end
 end

@@ -135,13 +135,13 @@ namespace rubinius {
     } else if(obj->fixnum_p() || obj->symbol_p()) {
       return reinterpret_cast<VALUE>(obj);
     } else if(obj->nil_p()) {
-      return cCApiHandleQnil;
+      return Qnil;
     } else if(obj->false_p()) {
-      return cCApiHandleQfalse;
+      return Qfalse;
     } else if(obj->true_p()) {
-      return cCApiHandleQtrue;
-    } else if(obj == Qundef) {
-      return cCApiHandleQundef;
+      return Qtrue;
+    } else if(obj == cUndef) {
+      return Qundef;
     }
 
     capi::capi_raise_runtime_error("NativeMethod handle requested for unknown object type");
@@ -153,7 +153,7 @@ namespace rubinius {
   }
 
   Object* NativeMethodEnvironment::block() {
-    if(!current_native_frame_) return Qnil;
+    if(!current_native_frame_) return cNil;
     return get_object(current_native_frame_->block());
   }
 
@@ -543,7 +543,7 @@ namespace rubinius {
       case INIT_FUNCTION: {
         nm->func_as<InitFunction>()();
 
-        return Qnil;
+        return cNil;
       }
 
         /* A C function being used as a block */
@@ -553,7 +553,7 @@ namespace rubinius {
 
         switch(args.total()) {
         case 0:
-          val = env->get_handle(Qnil);
+          val = env->get_handle(cNil);
           break;
         case 1:
           val = env->get_handle(args.get_argument(0));
@@ -579,12 +579,12 @@ namespace rubinius {
 
         nm->func()(cb);
 
-        return Qnil;
+        return cNil;
       }
 
       default:
         capi::capi_raise_runtime_error("unrecognized arity for NativeMethod call");
-        return Qnil;
+        return cNil;
       }
 
     }
@@ -645,7 +645,7 @@ namespace rubinius {
 
     // We've got things setup (they can be GC'd properly), so we need to
     // wait before entering the extension code.
-    state->shared().enter_capi(state);
+    ENTER_CAPI(state);
 
     Object* ret;
     ExceptionPoint ep(env);
@@ -671,7 +671,7 @@ namespace rubinius {
     env->set_current_native_frame(nmf.previous());
     ep.pop(env);
 
-    state->shared().leave_capi(state);
+    LEAVE_CAPI(state);
 
     // Handle any signals that occurred while the native method
     // was running.
@@ -726,6 +726,7 @@ namespace rubinius {
 
     nmethod->primitive(state, state->symbol("nativemethod_call"));
     nmethod->serial(state, Fixnum::from(0));
+    nmethod->inliners_ = 0;
 
     return nmethod;
   }

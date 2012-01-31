@@ -1,6 +1,6 @@
-require File.dirname(__FILE__) + '/../spec_helper'
+require 'spec_helper'
 require 'mspec/expectations/expectations'
-require 'mspec/matchers/have_class_variable'
+require 'mspec/matchers'
 
 class IVarModMock; end
 

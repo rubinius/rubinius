@@ -11,4 +11,12 @@ describe :to_s, :shared => true do
     ExceptionSpecs::Exceptional.new('!!').send(@method).should == '!!'
   end
 
+  ruby_version_is "1.9.3" do
+    it "calls #to_s on the message" do
+      message = mock("message")
+      message.should_receive(:to_s).and_return("message")
+      ExceptionSpecs::Exceptional.new(message).send(@method).should == "message"
+    end
+  end
+
 end

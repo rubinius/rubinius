@@ -1,3 +1,5 @@
+# -*- encoding: us-ascii -*-
+
 class IO
   def self.for_fd(fd, mode = nil)
     new fd, mode
@@ -219,6 +221,12 @@ class IO
     nil
   end
 
+  def binmode
+    ensure_open
+    # HACK what to do?
+    self
+  end
+
   ##
   # Runs the specified command string as a subprocess;
   # the subprocess‘s standard input and output will be
@@ -333,5 +341,15 @@ class IO
     ensure
       pipe.close unless pipe.closed?
     end
+  end
+
+  ##
+  # Return a string describing this IO object.
+  def inspect
+    "#<#{self.class}:0x#{object_id.to_s(16)}>"
+  end
+
+  def lines(*args)
+    to_enum :each_line, *args
   end
 end

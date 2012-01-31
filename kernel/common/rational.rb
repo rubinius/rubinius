@@ -1,3 +1,5 @@
+# -*- encoding: us-ascii -*-
+
 #
 #   rational.rb -
 #       $Release Version: 0.5 $
@@ -242,12 +244,11 @@ class Rational < Numeric
   #   r ** Rational(1,2)   # -> 0.866025403784439
   #
   def ** (other)
-    if other.kind_of?(Rational)
-      if self == 0 && other < 0 && other.denominator == 1
-        raise ZeroDivisionError, "divided by 0"
-      end
-      Float(self) ** other
-    elsif other.kind_of?(Integer)
+    if other.kind_of?(Rational) && other.denominator == 1
+      other = other.numerator
+    end
+
+    if other.kind_of?(Fixnum)
       if self == 0 && other < 0
         raise ZeroDivisionError, "divided by 0"
       end
@@ -262,7 +263,20 @@ class Rational < Numeric
         den = 1
       end
       Rational(num, den)
-    elsif other.kind_of?(Float)
+    elsif other.kind_of?(Bignum)
+      if self == 0
+        if other < 0
+          raise ZeroDivisionError, "divided by 0"
+        elsif other > 0
+          return Rational(0)
+        end
+      elsif self == 1
+        return Rational(1)
+      elsif self == -1
+        return Rational(other.even? ? 1 : -1)
+      end
+      Float(self) ** other
+    elsif other.kind_of?(Float) || other.kind_of?(Rational)
       Float(self) ** other
     else
       x, y = other.coerce(self)
@@ -460,54 +474,48 @@ class Rational < Numeric
   attr_reader :denominator
 
   private :initialize
-end
 
-class Fixnum
-  remove_method :quo
-
-  # If Rational is defined, returns a Rational number instead of a Fixnum.
-  def quo(other)
-    Rational(self, 1) / other
-  end
-  alias rdiv quo
-
-  # Returns a Rational number if the result is in fact rational (i.e. +other+ < 0).
-  def rpower (other)
-    if other >= 0
-      self.power!(other)
+  #
+  # Returns a simpler approximation of the value if an optional
+  # argument eps is given (rat-|eps| <= result <= rat+|eps|), self
+  # otherwise.
+  #
+  # For example:
+  #
+  #    r = Rational(5033165, 16777216)
+  #    r.rationalize                    #=> (5033165/16777216)
+  #    r.rationalize(Rational('0.01'))  #=> (3/10)
+  #    r.rationalize(Rational('0.1'))   #=> (1/3)
+  #
+  def rationalize(eps=undefined)
+    if eps.equal?(undefined)
+      self
     else
-      Rational(self, 1)**other
+      e = eps.abs
+      a = self - e
+      b = self + e
+
+      p0 = 0
+      p1 = 1
+      q0 = 1
+      q1 = 0
+
+      while true
+        c = a.ceil
+        break if c < b
+        k = c - 1
+        p2 = k * p1 + p0
+        q2 = k * q1 + q0
+        t = 1 / (b - k)
+        b = 1 / (a - k)
+        a = t
+        p0 = p1
+        q0 = q1
+        p1 = p2
+        q1 = q2
+      end
+
+      Rational(c * p1 + p0, c * q1 + q0)
     end
-  end
-end
-
-class Bignum
-  remove_method :quo
-
-  # If Rational is defined, returns a Rational number instead of a Float.
-  def quo(other)
-    Rational(self, 1) / other
-  end
-  alias rdiv quo
-
-  # Returns a Rational number if the result is in fact rational (i.e. +other+ < 0).
-  def rpower (other)
-    if other >= 0
-      self.power!(other)
-    else
-      Rational(self, 1)**other
-    end
-  end
-end
-
-unless 1.respond_to?(:power!)
-  class Fixnum
-    alias_method :power!, :"**"
-    alias_method :"**", :rpower
-  end
-
-  class Bignum
-    alias_method :power!, :"**"
-    alias_method :"**", :rpower
   end
 end

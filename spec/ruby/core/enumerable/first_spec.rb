@@ -2,8 +2,8 @@ require File.expand_path('../../../spec_helper', __FILE__)
 require File.expand_path('../fixtures/classes', __FILE__)
 require File.expand_path('../shared/take', __FILE__)
 
-describe "Enumerable#first" do
-  ruby_version_is '1.8.7' do
+ruby_version_is "1.8.7" do
+  describe "Enumerable#first" do
     it "returns the first element" do
       EnumerableSpecs::Numerous.new.first.should == 2
       EnumerableSpecs::Empty.new.first.should == nil

@@ -112,6 +112,7 @@ node_types18 = %w[
   negate
   last
   file
+  preexe
 ]
 
 node_types19 = %w[
@@ -224,6 +225,8 @@ node_types19 = %w[
   regex
   number
   float
+  encoding
+  preexe
 ]
 
 def write_node_types(list, version)
@@ -262,7 +265,7 @@ EOF
       } else {
 #define NODE_STRING_MESSAGE_LEN 20
         static char msg[NODE_STRING_MESSAGE_LEN];
-        snprintf(msg, NODE_STRING_MESSAGE_LEN, "unknown node type: %ld", node);
+        snprintf(msg, NODE_STRING_MESSAGE_LEN, "unknown node type: %d", node);
         return msg;
       }
     }

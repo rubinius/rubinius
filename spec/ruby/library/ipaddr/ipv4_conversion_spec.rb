@@ -1,9 +1,9 @@
 require File.expand_path('../../../spec_helper', __FILE__)
 require 'ipaddr'
 
-describe 'IPAddr#ipv4_compat' do
+describe "IPAddr#ipv4_compat" do
 
-  it 'should ipv4_compat?' do
+  it "should ipv4_compat?" do
     a = IPAddr.new("::192.168.1.2")
     a.to_s.should == "::192.168.1.2"
     a.to_string.should == "0000:0000:0000:0000:0000:0000:c0a8:0102"
@@ -22,9 +22,9 @@ describe 'IPAddr#ipv4_compat' do
 
 end
 
-describe 'IPAddr#ipv4_mapped' do
+describe "IPAddr#ipv4_mapped" do
 
-  it 'should ipv4_mapped' do
+  it "should ipv4_mapped" do
     a = IPAddr.new("::ffff:192.168.1.2")
     a.to_s.should == "::ffff:192.168.1.2"
     a.to_string.should == "0000:0000:0000:0000:0000:ffff:c0a8:0102"

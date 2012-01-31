@@ -14,6 +14,11 @@
 
 #include "capi/tag.hpp"
 
+#define ENTER_CAPI(state) (state->vm()->shared.enter_capi(state, __FILE__, __LINE__))
+#define LEAVE_CAPI(state) (state->vm()->shared.leave_capi(state))
+
+#define RSTRING_NOT_MODIFIED 1
+
 namespace rubinius {
   class Integer;
   class Object;
@@ -39,6 +44,10 @@ namespace rubinius {
 
     /** Raise backend */
     void capi_raise_backend(Exception* exception);
+
+    void capi_raise_backend(VALUE exception);
+
+    void capi_raise_backend(VALUE klass, const char* reason);
 
     /** Get an Array object for a handle ensuring that any RARRAY data has
      * been flushed. */

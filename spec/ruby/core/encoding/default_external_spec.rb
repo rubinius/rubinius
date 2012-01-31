@@ -18,6 +18,36 @@ with_feature :encoding do
       Encoding.default_external = Encoding::UTF_8
       Encoding.default_external.should == Encoding::UTF_8
     end
+
+    describe "with command line options" do
+      before :each do
+        @lc_all = ENV["LC_ALL"]
+        ENV["LC_ALL"] = "C"
+
+        @rbxopt = ENV["RBXOPT"]
+        ENV["RBXOPT"] = (@rbxopt || "") + " -X19"
+      end
+
+      after :each do
+        ENV["LC_ALL"] = @lc_all
+        ENV["RBXOPT"] = @rbxopt
+      end
+
+      it "is not changed by the -U option" do
+        result = ruby_exe("print Encoding.default_external", :options => '-U')
+        result.should == "US-ASCII"
+      end
+
+      it "returns the encoding specified by '-E external'" do
+        result = ruby_exe("print Encoding.default_external", :options => '-E euc-jp')
+        result.should == "EUC-JP"
+      end
+
+      it "returns the encoding specified by '-E external:'" do
+        result = ruby_exe("print Encoding.default_external", :options => '-E Shift_JIS:')
+        result.should == "Shift_JIS"
+      end
+    end
   end
 
   describe "Encoding.default_external=" do

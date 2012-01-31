@@ -1,3 +1,5 @@
+# -*- encoding: us-ascii -*-
+
 module Kernel
 
   # Names of local variables at point of call (including evaled)
@@ -35,7 +37,9 @@ module Kernel
       Rubinius::VariableScope.of_sender,
       Rubinius::CompiledMethod.of_sender,
       Rubinius::StaticScope.of_sender,
-      self)
+      self,
+      Rubinius::Location.of_closest_ruby_method
+    )
   end
   module_function :binding
 
@@ -43,19 +47,10 @@ module Kernel
   #
   def eval(string, binding=nil, filename=nil, lineno=1)
     filename = StringValue(filename) if filename
-    lineno = Type.coerce_to lineno, Fixnum, :to_i
+    lineno = Rubinius::Type.coerce_to lineno, Fixnum, :to_i
 
     if binding
-      if binding.kind_of? Proc
-        binding = binding.binding
-      elsif binding.respond_to? :to_binding
-        binding = binding.to_binding
-      end
-
-      unless binding.kind_of? Binding
-        raise ArgumentError, "unknown type of binding"
-      end
-
+      binding = Rubinius::Type.coerce_to_binding binding
       filename ||= binding.static_scope.active_path
     else
       binding = Binding.setup(Rubinius::VariableScope.of_sender,

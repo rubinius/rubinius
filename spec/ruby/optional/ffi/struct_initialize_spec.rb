@@ -1,7 +1,7 @@
 require File.expand_path('../spec_helper', __FILE__)
 
 describe FFI::Struct, ' with an initialize function' do
-  it "should call the initialize function" do
+  it "calls the initialize function" do
     struct_with_initialize = Class.new(FFI::Struct) do
       layout :string, :string
       attr_accessor :magic
@@ -16,7 +16,7 @@ describe FFI::Struct, ' with an initialize function' do
 end
 
 describe FFI::ManagedStruct, ' with an initialize function' do
-  it "should call the initialize function" do
+  it "calls the initialize function" do
     managed_struct_with_initialize = Class.new(FFI::ManagedStruct) do
       layout :string, :string
       attr_accessor :magic

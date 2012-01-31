@@ -1,3 +1,5 @@
+# -*- encoding: us-ascii -*-
+
 ##
 # Arrays are ordered, integer-indexed collections of any object.  Array
 # indexing starts at 0, as in C or Java.  A negative index is assumed to be
@@ -362,12 +364,6 @@ class Array
       new_index = picks[move] + 1
       picks[move...num] = (new_index...(new_index+num-move)).to_a
     end
-  end
-
-  # Returns a copy of self with all nil elements removed
-  def compact
-    out = dup
-    out.compact! || out
   end
 
   # Removes all nil elements from self, returns nil if no changes
@@ -952,14 +948,6 @@ class Array
     nil
   end
 
-  # Returns a new Array by removing items from self for
-  # which block is true. An Array is also returned when
-  # invoked on subclasses. See #reject!
-  def reject(&block)
-    return to_enum(:reject) unless block_given?
-    dup.delete_if(&block)
-  end
-
   # Equivalent to #delete_if except that returns nil if
   # no changes were made.
   def reject!(&block)
@@ -1090,18 +1078,13 @@ class Array
     new_range n, new_size
   end
 
-  # Returns a new array with elements of this array shuffled.
-  def shuffle
-    dup.shuffle!
-  end
-
   # Shuffles elements in self in place.
   def shuffle!
     Rubinius.check_frozen
 
     size.times do |i|
       r = i + Kernel.rand(size - i)
-      @tuple.swap(i, r)
+      @tuple.swap(@start + i, @start + r)
     end
     self
   end

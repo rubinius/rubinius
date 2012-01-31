@@ -41,12 +41,16 @@ describe "Hash.[]" do
     end
 
     it "returns an instance of a subclass when passed an Array" do
-      MyHash[[1,2,3,4]].should be_kind_of(MyHash)
+      HashSpecs::MyHash[[1,2,3,4]].should be_kind_of(HashSpecs::MyHash)
     end
   end
 
   it "returns an instance of the class it's called on" do
-    hash_class[MyHash[1, 2]].class.should == hash_class
-    MyHash[hash_class[1, 2]].should be_kind_of(MyHash)
+    hash_class[HashSpecs::MyHash[1, 2]].class.should == hash_class
+    HashSpecs::MyHash[hash_class[1, 2]].should be_kind_of(HashSpecs::MyHash)
+  end
+
+  it "does not call #initialize on the subclass instance" do
+    HashSpecs::MyInitializerHash[hash_class[1, 2]].should be_kind_of(HashSpecs::MyInitializerHash)
   end
 end

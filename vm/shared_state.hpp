@@ -166,7 +166,7 @@ namespace rubinius {
       return ++global_serial_;
     }
 
-    uint32_t new_thread_id(THREAD);
+    uint32_t new_thread_id();
 
     int* global_serial_address() {
       return &global_serial_;
@@ -270,7 +270,7 @@ namespace rubinius {
     void set_critical(STATE);
     void clear_critical(STATE);
 
-    void enter_capi(STATE);
+    void enter_capi(STATE, const char* file, int line);
     void leave_capi(STATE);
   };
 }

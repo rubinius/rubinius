@@ -3,7 +3,7 @@ require File.expand_path('../shared/constants', __FILE__)
 
 describe "Digest::SHA512#hexdigest!" do
 
-  it 'returns a hexdigest and resets the state' do
+  it "returns a hexdigest and resets the state" do
     cur_digest = Digest::SHA512.new
 
     cur_digest << SHA512Constants::Contents

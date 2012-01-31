@@ -1,3 +1,5 @@
+# -*- encoding: us-ascii -*-
+
 module Enumerable
   ##
   # :call-seq:
@@ -198,7 +200,10 @@ module Enumerable
 
   def each_with_object(memo)
     return to_enum :each_with_object, memo unless block_given?
-    each { |obj| yield obj, memo }
+    each do
+      obj = Rubinius.single_block_arg
+      yield obj, memo
+    end
     memo
   end
 
@@ -398,8 +403,9 @@ module Enumerable
     end
 
     results = []
-
-    each_with_index do |o, i|
+    i = 0
+    each do
+      o = Rubinius.single_block_arg
       entry = args.inject([o]) do |ary, a|
         case a
         when Array
@@ -412,6 +418,7 @@ module Enumerable
       yield entry if block_given?
 
       results << entry
+      i += 1
     end
 
     return nil if block_given?

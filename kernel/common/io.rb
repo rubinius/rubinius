@@ -1,3 +1,5 @@
+# -*- encoding: us-ascii -*-
+
 class IO
 
   include Enumerable
@@ -84,7 +86,7 @@ class IO
       return 0 if @write_synced or empty?
       @write_synced = true
 
-      io.prim_write(String.from_chararray(@storage, @start, size))
+      io.prim_write(String.from_bytearray(@storage, @start, size))
       reset!
 
       return size
@@ -152,7 +154,7 @@ class IO
         total = size
         total = count if count and count < total
 
-        str = String.from_chararray @storage, @start, total
+        str = String.from_bytearray @storage, @start, total
         @start += total
 
         str
@@ -517,16 +519,6 @@ class IO
     return self
   end
 
-  ##
-  # Puts ios into binary mode. This is useful only in
-  # MS-DOS/Windows environments. Once a stream is in
-  # binary mode, it cannot be reset to nonbinary mode.
-  def binmode
-    ensure_open
-    # HACK what to do?
-    return self
-  end
-
   def bytes
     to_enum :each_byte
   end
@@ -819,12 +811,6 @@ class IO
   end
 
   ##
-  # Return a string describing this IO object.
-  def inspect
-    "#<#{self.class}:0x#{object_id.to_s(16)}>"
-  end
-
-  ##
   # Returns the current line number in ios. The
   # stream must be opened for reading. lineno
   # counts the number of times gets is called,
@@ -862,10 +848,6 @@ class IO
     raise TypeError if line_number.nil?
 
     @lineno = Integer(line_number)
-  end
-
-  def lines(*args)
-    to_enum :each_line, *args
   end
 
   ##

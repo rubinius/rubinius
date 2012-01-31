@@ -44,7 +44,7 @@ namespace rubinius {
         mod = mod->superclass();
       }
 
-      return Qnil;
+      return cNil;
     }
 
     Object* const_get(STATE, CallFrame* call_frame, Symbol* name, bool* found) {
@@ -112,7 +112,7 @@ namespace rubinius {
       result = G(object)->get_const(state, name, found, true);
       if(*found) return result;
 
-      return Qnil;
+      return cNil;
     }
 
     Object* const_missing_under(STATE, Module* under, Symbol* sym, CallFrame* call_frame) {
@@ -141,7 +141,7 @@ namespace rubinius {
     /** @todo Remove redundancy between this and sends. --rue */
     Tuple* locate_method_on(STATE, CallFrame* call_frame, Object* recv, Symbol* name, Object* priv) {
       LookupData lookup(recv, recv->lookup_begin(state));
-      lookup.priv = (priv == Qtrue);
+      lookup.priv = (priv == cTrue);
 
       Dispatch dis(name);
 
@@ -209,13 +209,17 @@ namespace rubinius {
         TypedRoot<Object*> sup(state, super);
 
         if(Autoload* autoload = try_as<Autoload>(obj)) {
-          obj = autoload->resolve(state, call_frame);
+          obj = autoload->resolve(state, call_frame, true);
 
           // Check if an exception occurred
           if(!obj) return NULL;
         }
 
-        return check_superclass(state, call_frame, as<Class>(obj), sup.get());
+        // Autoload::resolve will return nil if code loading failed, in which
+        // case we ignore the autoload.
+        if(!obj->nil_p()) {
+          return check_superclass(state, call_frame, as<Class>(obj), sup.get());
+        }
       }
 
       *created = true;
@@ -242,10 +246,17 @@ namespace rubinius {
 
       if(found) {
         if(Autoload* autoload = try_as<Autoload>(obj)) {
-          obj = autoload->resolve(state, call_frame);
+          obj = autoload->resolve(state, call_frame, true);
         }
 
-        return as<Module>(obj);
+        // Check if an exception occurred
+        if(!obj) return NULL;
+
+        // Autoload::resolve will return nil if code loading failed, in which
+        // case we ignore the autoload.
+        if(!obj->nil_p()) {
+          return as<Module>(obj);
+        }
       }
 
       module = Module::create(state);

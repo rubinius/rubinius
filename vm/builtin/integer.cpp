@@ -17,6 +17,14 @@ namespace rubinius {
     return as<Bignum>(this)->to_native();
   }
 
+  unsigned int Integer::to_uint() {
+    if(fixnum_p()) {
+      return (force_as<Fixnum>(this))->to_uint();
+    }
+
+    return as<Bignum>(this)->to_uint();
+  }
+
   long Integer::to_long() {
     if(fixnum_p()) {
       return (force_as<Fixnum>(this))->to_long();
@@ -111,15 +119,11 @@ namespace rubinius {
     Integer* value = Fixnum::from(0);
 
     if(base == 1 || base > 36) return nil<Integer>();
-    // Strict mode can only be invoked from Ruby via Kernel#Integer()
-    // which does not allow bases other than 0.
-    if(base != 0 && strict == Qtrue && LANGUAGE_18_ENABLED(state))
-      return nil<Integer>();
 
     // Skip any combination of leading whitespace and underscores.
     // Leading whitespace is OK in strict mode, but underscores are not.
     while(isspace(*str) || *str == '_') {
-      if(*str == '_' && strict == Qtrue) {
+      if(*str == '_' && strict == cTrue) {
         return nil<Integer>();
       } else {
         str++;
@@ -219,7 +223,7 @@ namespace rubinius {
 
         // If there is more stuff after the spaces, get out of dodge.
         if(chr) {
-          if(strict == Qtrue) {
+          if(strict == cTrue) {
             return nil<Integer>();
           } else {
             goto return_value;
@@ -234,7 +238,7 @@ namespace rubinius {
       if(chr == '_') {
         if(underscore) {
           // Double underscore is forbidden in strict mode.
-          if(strict == Qtrue) {
+          if(strict == cTrue) {
             return nil<Integer>();
           } else {
             // Stop parse number after two underscores in a row
@@ -256,7 +260,7 @@ namespace rubinius {
         chr -= ('a' - 10);
       } else {
         //Invalid character, stopping right here.
-        if(strict == Qtrue) {
+        if(strict == cTrue) {
           return nil<Integer>();
         } else {
           break;
@@ -266,7 +270,7 @@ namespace rubinius {
       // Bail if the current chr is greater or equal to the base,
       // mean it's invalid.
       if(chr >= base) {
-        if(strict == Qtrue) {
+        if(strict == cTrue) {
           return nil<Integer>();
         } else {
           break;
@@ -289,7 +293,7 @@ namespace rubinius {
     }
 
     // If we last saw an underscore and we're strict, bail.
-    if(underscore && strict == Qtrue) {
+    if(underscore && strict == cTrue) {
       return nil<Integer>();
     }
 

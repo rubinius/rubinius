@@ -2,7 +2,7 @@ require File.expand_path('../../../spec_helper', __FILE__)
 
 describe Object, '=~' do
   ruby_version_is ""..."1.9" do
-    it 'returns false matching any object' do
+    it "returns false matching any object" do
       o = Object.new
 
       (o =~ /Object/).should == false
@@ -15,7 +15,7 @@ describe Object, '=~' do
   end
 
   ruby_version_is "1.9" do
-    it 'returns nil matching any object' do
+    it "returns nil matching any object" do
       o = Object.new
 
       (o =~ /Object/).should   be_nil

@@ -2,14 +2,14 @@ platform_is :windows do
   require 'win32ole'
 
   ruby_version_is "1.9" do
-    describe 'WIN32OLE.locale' do
-      it 'gets locale' do
+    describe "WIN32OLE.locale" do
+      it "gets locale" do
         WIN32OLE.locale.should == WIN32OLE::LOCALE_SYSTEM_DEFAULT
       end
     end
 
-    describe 'WIN32OLE.locale=' do
-      it 'sets locale to Japanese, if available' do
+    describe "WIN32OLE.locale=" do
+      it "sets locale to Japanese, if available" do
         begin
           begin
             WIN32OLE.locale = 1041

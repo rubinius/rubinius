@@ -7,11 +7,14 @@
 #include "call_frame.hpp"
 #include "helpers.hpp"
 
+#include "park.hpp"
+
 namespace rubinius {
   void State::raise_stack_error(CallFrame* call_frame) {
-    Exception* se = globals().stack_error.get();
-    se->locations(this, Location::from_call_stack(this, call_frame));
-    vm_->thread_state()->raise_exception(se);
+    Class* stack_error = globals().stack_error.get();
+    Exception* exc = new_object<Exception>(stack_error);
+    exc->locations(this, Location::from_call_stack(this, call_frame));
+    vm_->thread_state()->raise_exception(exc);
   }
 
   bool State::process_async(CallFrame* call_frame) {
@@ -25,7 +28,7 @@ namespace rubinius {
 
     Exception* exc = vm_->interrupted_exception_.get();
     if(!exc->nil_p()) {
-      vm_->interrupted_exception_.set((Exception*)Qnil);
+      vm_->interrupted_exception_.set(nil<Exception>());
 
       // Only write the locations if there are none.
       if(exc->locations()->nil_p() || exc->locations()->size() == 0) {
@@ -68,11 +71,18 @@ namespace rubinius {
     // If the current thread is trying to step, debugger wise, then assist!
     if(vm_->thread_step()) {
       vm_->clear_thread_step();
-      if(!Helpers::yield_debugger(this, gct, call_frame, Qnil)) return false;
+      if(!Helpers::yield_debugger(this, gct, call_frame, cNil)) return false;
     }
 
     return true;
   }
 
 
+  void State::park(GCToken gct, CallFrame* call_frame) {
+    vm_->park_->park(this, call_frame);
+  }
+
+  void State::park_timed(GCToken gct, CallFrame* call_frame, struct timespec* ts) {
+    vm_->park_->park_timed(this, call_frame, ts);
+  }
 }

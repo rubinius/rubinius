@@ -2,12 +2,17 @@
 #define RBX_STRING_HPP
 
 #include "builtin/object.hpp"
+#include "builtin/bytearray.hpp"
 #include "builtin/fixnum.hpp"
-#include "builtin/chararray.hpp"
 
 #include "type_info.hpp"
 #include <ctype.h> // For isdigit and friends
 #include <errno.h> // For ERANGE
+
+// See comment in regexp.hpp
+#ifndef ONIGURUMA_H
+struct OnigEncodingType;
+#endif
 
 // copied from ruby 1.8.x source, ruby.h
 /* need to include <ctype.h> to use these macros */
@@ -26,7 +31,8 @@
 
 
 namespace rubinius {
-  class CharArray;
+  class ByteArray;
+  class Encoding;
   class Float;
 
   class String : public Object {
@@ -34,20 +40,26 @@ namespace rubinius {
     const static object_type type = StringType;
 
   private:
-    Fixnum* num_bytes_;  // slot
-    Object* encoding_;   // slot
-    CharArray* data_;    // slot
-    Fixnum* hash_value_; // slot
-    Object* shared_;     // slot
+    Fixnum* num_bytes_;       // slot
+    Fixnum* num_chars_;       // slot
+    ByteArray* data_;         // slot
+    Fixnum* hash_value_;      // slot
+    Object* shared_;          // slot
+    Encoding* encoding_;      // slot
+    Object* ascii_only_;      // slot
+    Object* valid_encoding_;  // slot
 
   public:
     /* accessors */
 
     attr_accessor(num_bytes, Fixnum);
-    attr_accessor(encoding, Object);
-    attr_accessor(data, CharArray);
+    attr_accessor(num_chars, Fixnum);
+    attr_accessor(data, ByteArray);
     attr_accessor(hash_value, Fixnum);
     attr_accessor(shared, Object);
+    attr_accessor(encoding, Encoding);
+    attr_accessor(ascii_only, Object);
+    attr_accessor(valid_encoding, Object);
 
     /* interface */
 
@@ -55,8 +67,9 @@ namespace rubinius {
 
     static String* create(STATE, Fixnum* size);
 
-    // Rubinius.primitive :string_from_chararray
-    static String* from_chararray(STATE, CharArray* ca, Fixnum* start, Fixnum* count);
+    // Rubinius.primitive :string_from_bytearray
+    static String* from_bytearray(STATE, ByteArray* ba, Fixnum* start, Fixnum* count);
+    static String* from_bytearray(STATE, ByteArray* ba, native_int size);
     static String* create(STATE, const char* str);
     static String* create(STATE, const char* str, native_int bytes);
     static String* create_pinned(STATE, Fixnum* size);
@@ -70,13 +83,13 @@ namespace rubinius {
 
     // Rubinius.primitive :string_equal
     Object* equal(STATE, String* other) {
-      if(this->num_bytes() != other->num_bytes()) return Qfalse;
+      if(this->num_bytes() != other->num_bytes()) return cFalse;
       int comp = memcmp(
           this->byte_address(),
           other->byte_address(),
           this->num_bytes()->to_native());
 
-      return comp == 0 ? Qtrue : Qfalse;
+      return comp == 0 ? cTrue : cFalse;
     }
 
 
@@ -84,12 +97,17 @@ namespace rubinius {
     Object* secure_compare(STATE, String* other);
 
     // Returns the number of bytes this String contains
-    native_int size() {
+    native_int byte_size() {
       return num_bytes_->to_native();
     }
 
+    native_int char_size(STATE);
+
+    // Rubinius.primitive :string_size
+    Fixnum* size(STATE);
+
     // Access the String as a char* directly. WARNING: doesn't necessarily
-    // return a null terminated char*, so be sure to use size() with it.
+    // return a null terminated char*, so be sure to use byte_size() with it.
     //
     // NOTE: do not free() or realloc() this buffer.
     uint8_t* byte_address() {
@@ -103,6 +121,8 @@ namespace rubinius {
     //
     // NOTE: do not free() or realloc() this buffer.
     const char* c_str(STATE);
+
+    String* convert_escaped(STATE, Encoding*& enc, bool& fixed_encoding);
 
     void unshare(STATE);
     hashval hash_string(STATE);
@@ -141,7 +161,7 @@ namespace rubinius {
     Float* to_f(STATE);
     double to_double(STATE);
 
-    Integer* to_i(STATE, Fixnum* base = Fixnum::from(0), Object* strict = Qtrue);
+    Integer* to_i(STATE, Fixnum* base = Fixnum::from(0), Object* strict = cTrue);
 
     // Rubinius.primitive :string_to_inum
     Integer* to_inum_prim(STATE, Fixnum* base, Object* strict);
@@ -165,8 +185,22 @@ namespace rubinius {
     // Rubinius.primitive :string_pattern
     static String* pattern(STATE, Object* self, Fixnum* size, Object* pattern);
 
+    // Rubinius.primitive :string_from_codepoint
+    static String* from_codepoint(STATE, Object* self, Integer* code, Encoding* enc);
+
+    // Rubinius.primitive :string_aref
+    Object* aref(STATE, Fixnum* index);
+
     // Rubinius.primitive :string_substring
-    String* substring(STATE, Fixnum* start, Fixnum* count);
+    String* substring(STATE, Fixnum* index, Fixnum* length);
+
+    // Rubinius.primitive :string_byte_substring
+    String* byte_substring(STATE, Fixnum* index, Fixnum* length);
+
+    String* byte_substring(STATE, native_int index, native_int length);
+    String* char_substring(STATE, native_int index, native_int length);
+
+    native_int find_character_byte_index(STATE, native_int index, native_int start = 0);
 
     // Rubinius.primitive :string_index
     Fixnum* index(STATE, String* pattern, Fixnum* start);
@@ -191,6 +225,18 @@ namespace rubinius {
 
     // Rubinius.primitive :string_resize_capacity
     String* resize_capacity(STATE, Fixnum* count);
+
+    // Rubinius.primitive :string_encoding
+    Encoding* encoding(STATE);
+
+    // Rubinius.primitive :string_ascii_only_p
+    Object* ascii_only_p(STATE);
+
+    // Rubinius.primitive :string_valid_encoding_p
+    Object* valid_encoding_p(STATE);
+
+    // Rubinius.primitive :string_codepoint
+    Fixnum* codepoint(STATE);
 
     class Info : public TypeInfo {
     public:

@@ -67,12 +67,25 @@ describe "Module#public_method_defined?" do
       lambda {
         ModuleSpecs::CountsMixin.public_method_defined?(false)
       }.should raise_error(TypeError)
+    end
+  end
 
+  not_compliant_on :rubinius do
+    it "raises a TypeError if passed an object that defines #to_sym" do
       sym = mock('symbol')
       def sym.to_sym() :public_3 end
       lambda {
         ModuleSpecs::CountsMixin.public_method_defined?(sym)
       }.should raise_error(TypeError)
+    end
+  end
+
+  deviates_on :rubinius do
+    it "calls #to_sym to coerce the passed object to a Symbol" do
+      sym = mock('symbol')
+      def sym.to_sym() :public_3 end
+
+      ModuleSpecs::CountsMixin.public_method_defined?(sym).should be_true
     end
   end
 

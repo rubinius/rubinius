@@ -1,26 +1,9 @@
 require File.expand_path('../spec_helper', __FILE__)
+require File.expand_path('../fixtures/module', __FILE__)
 
 load_extension('module')
 
-class CApiModuleSpecs
-  class A
-    X = 1
-  end
-
-  class B < A
-    Y = 2
-  end
-
-  class C
-    Z = 3
-  end
-
-  module M
-  end
-
-  class Super
-  end
-end
+autoload :ModuleUnderAutoload, "#{extension_path}/module_under_autoload_spec"
 
 describe "CApiModule" do
 
@@ -48,32 +31,6 @@ describe "CApiModule" do
     end
   end
 
-  describe "rb_define_class_under" do
-    it "creates a subclass of the superclass contained in a module" do
-      cls = @m.rb_define_class_under(CApiModuleSpecs,
-                                     "ModuleSpecsClassUnder1",
-                                     CApiModuleSpecs::Super)
-      cls.should be_kind_of(Class)
-      CApiModuleSpecs::Super.should be_ancestor_of(CApiModuleSpecs::ModuleSpecsClassUnder1)
-    end
-
-    it "uses Object as the superclass if NULL is passed" do
-      @m.rb_define_class_under(CApiModuleSpecs, "ModuleSpecsClassUnder2", nil)
-      Object.should be_ancestor_of(CApiModuleSpecs::ModuleSpecsClassUnder2)
-    end
-
-    it "sets the class name" do
-      cls = @m.rb_define_class_under(CApiModuleSpecs, "ModuleSpecsClassUnder3", nil)
-      cls.name.should == "CApiModuleSpecs::ModuleSpecsClassUnder3"
-    end
-
-    it "call #inherited on the superclass" do
-      CApiModuleSpecs::Super.should_receive(:inherited)
-      cls = @m.rb_define_class_under(CApiModuleSpecs,
-                                     "ModuleSpecsClassUnder4", CApiModuleSpecs::Super)
-    end
-  end
-
   describe "rb_define_module_under" do
     it "creates a new module inside the inner class" do
       mod = @m.rb_define_module_under(CApiModuleSpecs, "ModuleSpecsModuleUnder1")
@@ -83,6 +40,12 @@ describe "CApiModule" do
     it "sets the module name" do
       mod = @m.rb_define_module_under(CApiModuleSpecs, "ModuleSpecsModuleUnder2")
       mod.name.should == "CApiModuleSpecs::ModuleSpecsModuleUnder2"
+    end
+
+    it "defines a module for an existing Autoload" do
+      compile_extension("module_under_autoload")
+
+      ModuleUnderAutoload.name.should == "ModuleUnderAutoload"
     end
   end
 

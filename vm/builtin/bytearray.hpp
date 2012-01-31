@@ -43,6 +43,8 @@ namespace rubinius {
       return bytes;
     }
 
+    char* to_chars(STATE, Fixnum* size);
+
     // Rubinius.primitive :bytearray_get_byte
     Fixnum* get_byte(STATE, Fixnum* index);
 
@@ -57,6 +59,24 @@ namespace rubinius {
 
     // Rubinius.primitive :bytearray_compare_bytes
     Fixnum* compare_bytes(STATE, ByteArray* other, Fixnum* a, Fixnum* b);
+
+    /* ::locate searches for +pattern+ in the ByteArray. Returns the
+     * number of characters from the front of the ByteArray to the end
+     * of the pattern if a match is found. Returns cNil if a match is
+     * not found. Starts searching at index +start+.
+     */
+
+    // Rubinius.primitive :bytearray_locate
+    Object* locate(STATE, String* pattern, Fixnum* start, Fixnum* max);
+
+    // Rubinius.primitive :bytearray_prepend
+    ByteArray* prepend(STATE, String* other);
+
+    // Rubinius.primitive :bytearray_get_utf8_char
+    Object* get_utf8_char(STATE, Fixnum* offset);
+
+    // Rubinius.primitive :bytearray_reverse
+    ByteArray* reverse(STATE, Fixnum* start, Fixnum* total);
 
     class Info : public TypeInfo {
     public:

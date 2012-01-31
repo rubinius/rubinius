@@ -346,7 +346,7 @@ describe "Struct tests" do
     s.values.should include(1, 2, 3)
   end
 
-  it 'should return an ordered field/offset pairs array' do
+  it "returns an ordered field/offset pairs array" do
     klass = Class.new(FFI::Struct)
     klass.layout :a, :int, :b, :int, :c, :int
 
@@ -370,25 +370,25 @@ describe FFI::Struct, ' with a nested struct field'  do
     @cs = FFISpecs::LibTest::ContainerStruct.new
   end
 
-  it 'should align correctly nested struct field' do
+  it "aligns correctly nested struct field" do
     @cs[:ns][:i] = 123
     FFISpecs::LibTest.struct_align_nested_struct(@cs.to_ptr).should == 123
   end
 
-  it 'should correctly calculate Container size (in bytes)' do
+  it "calculates Container size (in bytes)" do
     FFISpecs::LibTest::ContainerStruct.size.should == 8
   end
 
-  it 'should return a Struct object when the field is accessed' do
+  it "returns a Struct object when the field is accessed" do
     @cs[:ns].is_a?(FFI::Struct).should be_true
   end
 
-  it 'should read a value from memory' do
+  it "reads a value from memory" do
     @cs = FFISpecs::LibTest::ContainerStruct.new(FFISpecs::LibTest.struct_make_container_struct(123))
     @cs[:ns][:i].should == 123
   end
 
-  it 'should write a value to memory' do
+  it "writes a value to memory" do
     @cs = FFISpecs::LibTest::ContainerStruct.new(FFISpecs::LibTest.struct_make_container_struct(123))
     @cs[:ns][:i] = 456
     FFISpecs::LibTest.struct_align_nested_struct(@cs.to_ptr).should == 456
@@ -400,37 +400,37 @@ describe FFI::Struct, ' with an array field'  do
     @s = FFISpecs::LibTest::StructWithArray.new
   end
 
-  it 'should correctly calculate StructWithArray size (in bytes)' do
+  it "calculates StructWithArray size (in bytes)" do
     FFISpecs::LibTest::StructWithArray.size.should == 24
   end
 
-  it 'should read values from memory' do
+  it "reads values from memory" do
     @s = FFISpecs::LibTest::StructWithArray.new(FFISpecs::LibTest.struct_make_struct_with_array(0, 1, 2, 3, 4))
     @s[:a].to_a.should == [0, 1, 2, 3, 4]
   end
 
-  it 'should cache array object for successive calls' do
+  it "caches array object for successive calls" do
     @s[:a].object_id.should == @s[:a].object_id
   end
 
-  it 'should return the size of the array field in bytes' do
+  it "returns the size of the array field in bytes" do
     @s = FFISpecs::LibTest::StructWithArray.new(FFISpecs::LibTest.struct_make_struct_with_array(0, 1, 2, 3, 4))
     @s[:a].size.should == 20
   end
 
-  it 'should allow iteration through the array elements' do
+  it "iterates through the array elements" do
     @s = FFISpecs::LibTest::StructWithArray.new(FFISpecs::LibTest.struct_make_struct_with_array(0, 1, 2, 3, 4))
     @s[:a].each_with_index { |elem, i| elem.should == i }
   end
 
-  it 'should return the pointer to the array' do
+  it "returns the pointer to the array" do
     @s = FFISpecs::LibTest::StructWithArray.new(FFISpecs::LibTest.struct_make_struct_with_array(0, 1, 2, 3, 4))
     @s[:a].to_ptr.should == FFISpecs::LibTest::struct_field_array(@s.to_ptr)
   end
 end
 
-describe 'BuggedStruct' do
-  it 'should return its correct size' do
+describe "BuggedStruct" do
+  it "returns its correct size" do
     FFISpecs::LibTest::BuggedStruct.size.should == FFISpecs::LibTest.bugged_struct_size
   end
 
@@ -444,7 +444,7 @@ describe 'BuggedStruct' do
     FFISpecs::LibTest::BuggedStruct.offset_of(:size).should == 17
   end
 
-  it 'should return correct field/offset pairs' do
+  it "returns correct field/offset pairs" do
     FFISpecs::LibTest::BuggedStruct.offsets.sort do |a, b|
       a[1] <=> b[1]
     end.should == [[:visible, 0], [:x, 4], [:y, 8], [:rx, 12], [:ry, 14], [:order, 16], [:size, 17]]

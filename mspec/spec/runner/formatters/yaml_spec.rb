@@ -48,12 +48,12 @@ end
 
 describe YamlFormatter, "#finish" do
   before :each do
-    @tally = mock("tally", :null_object => true)
-    @counter = mock("counter", :null_object => true)
+    @tally = mock("tally").as_null_object
+    @counter = mock("counter").as_null_object
     @tally.stub!(:counter).and_return(@counter)
     TallyAction.stub!(:new).and_return(@tally)
 
-    @timer = mock("timer", :null_object => true)
+    @timer = mock("timer").as_null_object
     TimerAction.stub!(:new).and_return(@timer)
 
     $stdout = IOStub.new

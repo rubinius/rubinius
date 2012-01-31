@@ -1,5 +1,6 @@
-require File.dirname(__FILE__) + '/../spec_helper'
-require 'mspec/helpers/ruby_exe'
+require 'spec_helper'
+require 'mspec/guards'
+require 'mspec/helpers'
 require 'rbconfig'
 
 class RubyExeSpecs
@@ -174,5 +175,40 @@ describe Object, "#ruby_exe" do
   it "executes with options and arguments but without code or file" do
     @script.should_receive(:`).with("ruby_spec_exe -w -Q -c > file.txt")
     @script.ruby_exe nil, :options => "-c", :args => "> file.txt"
+  end
+
+  describe "with :env option" do
+    before :each do
+      @script.stub!(:`)
+    end
+
+    it "preserves the values of existing ENV keys" do
+      ENV["ABC"] = "123"
+      ENV.should_receive(:[]).with("RUBY_FLAGS")
+      ENV.should_receive(:[]).with("ABC")
+      @script.ruby_exe nil, :env => { :ABC => "xyz" }
+    end
+
+    it "adds the :env entries to ENV" do
+      ENV.should_receive(:[]=).with("ABC", "xyz")
+      @script.ruby_exe nil, :env => { :ABC => "xyz" }
+    end
+
+    it "deletes the :env entries in ENV when an exception is raised" do
+      ENV.should_receive(:delete).with("XYZ")
+      @script.ruby_exe nil, :env => { :XYZ => "xyz" }
+    end
+
+    it "resets the values of existing ENV keys when an exception is raised" do
+      ENV["ABC"] = "123"
+      ENV.should_receive(:[]=).with("ABC", "xyz")
+      ENV.should_receive(:[]=).with("ABC", "123")
+
+      @script.should_receive(:`).and_raise(Exception)
+      lambda do
+        @script.ruby_exe nil, :env => { :ABC => "xyz" }
+      end.should raise_error(Exception)
+    end
+
   end
 end

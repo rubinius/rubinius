@@ -1,1 +1,0 @@
-fails:BigDecimal#divmod raises ZeroDivisionError if the divisor is zero

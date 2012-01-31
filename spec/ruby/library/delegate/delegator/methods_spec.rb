@@ -4,11 +4,21 @@ require File.expand_path('../../fixtures/classes', __FILE__)
 describe "Delegator#methods" do
   before :all do
     @simple = DelegateSpecs::Simple.new
+    class << @simple
+      def singleton_method
+      end
+    end
+
     @delegate = DelegateSpecs::Delegator.new(@simple)
     @methods = @delegate.methods
   end
 
   ruby_version_is ""..."1.9" do
+    # See ruby_bug guarded spec below
+    it "returns singleton methods when passed false" do
+      @delegate.methods(false).should include("singleton_method")
+    end
+
     it "includes all public methods of the delegate object" do
       @methods.should include "pub"
     end
@@ -29,6 +39,12 @@ describe "Delegator#methods" do
   end
 
   ruby_version_is "1.9" do
+    ruby_bug "4882", "1.9.3" do
+      it "returns singleton methods when passed false" do
+        @delegate.methods(false).should include(:singleton_method)
+      end
+    end
+
     it "includes all public methods of the delegate object" do
       @methods.should include :pub
     end

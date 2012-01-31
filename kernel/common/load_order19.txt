@@ -39,10 +39,10 @@ precision.rbc
 integer.rbc
 integer19.rbc
 bignum.rbc
+bignum19.rbc
 block_environment.rbc
 bytearray.rbc
-chararray.rbc
-chararray19.rbc
+bytearray19.rbc
 channel.rbc
 executable.rbc
 static_scope.rbc
@@ -60,6 +60,7 @@ lrucache.rbc
 dir_glob.rbc
 encoding.rbc
 env.rbc
+env19.rbc
 errno.rbc
 eval.rbc
 eval19.rbc
@@ -97,6 +98,7 @@ struct.rbc
 struct19.rbc
 process.rbc
 random.rbc
+random19.rbc
 regexp.rbc
 regexp19.rbc
 signal.rbc
@@ -105,12 +107,17 @@ symbol.rbc
 symbol19.rbc
 thread.rbc
 thread_group.rbc
+mutex.rbc
+thread19.rbc
 throw_catch.rbc
+throw_catch19.rbc
 time.rbc
 time19.rbc
 true.rbc
 variable_scope.rbc
 capi.rbc
-complex.rbc
 rational.rbc
 rationalizer.rbc
+complex.rbc
+complexifier.rbc
+gc19.rbc

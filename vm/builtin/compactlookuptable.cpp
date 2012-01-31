@@ -41,7 +41,7 @@ namespace rubinius {
       }
     }
 
-    return Qnil;
+    return cNil;
   }
 
   Object* CompactLookupTable::remove(STATE, Object* key, bool* removed) {
@@ -49,14 +49,14 @@ namespace rubinius {
       if(at(state, i) == key) {
         Object* val = at(state, i + 1);
 
-        put(state, i, Qnil);
-        put(state, i + 1, Qnil);
+        put(state, i, cNil);
+        put(state, i + 1, cNil);
         if(removed) *removed = true;
         return val;
       }
     }
 
-    return Qnil;
+    return cNil;
   }
 
   Object* CompactLookupTable::store(STATE, Object* key, Object* val) {
@@ -65,19 +65,19 @@ namespace rubinius {
       if(tmp == key || tmp->nil_p()) {
         put(state, i, key);
         put(state, i + 1, val);
-        return Qtrue;
+        return cTrue;
       }
     }
 
-    return Qfalse;
+    return cFalse;
   }
 
   Object* CompactLookupTable::has_key(STATE, Object* key) {
     for(unsigned int i = 0; i < COMPACTLOOKUPTABLE_SIZE; i += 2) {
-      if(at(state, i) == key) return Qtrue;
+      if(at(state, i) == key) return cTrue;
     }
 
-    return Qfalse;
+    return cFalse;
   }
 
   Array* CompactLookupTable::keys(STATE) {

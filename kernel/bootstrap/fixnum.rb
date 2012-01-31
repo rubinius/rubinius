@@ -1,3 +1,5 @@
+# -*- encoding: us-ascii -*-
+
 class Fixnum < Integer
 
   def self.===(obj)
@@ -98,11 +100,6 @@ class Fixnum < Integer
     end
 
     self >> other
-  end
-
-  def **(o)
-    Rubinius.primitive :fixnum_pow
-    redo_coerced :**, o
   end
 
   # comparison operators

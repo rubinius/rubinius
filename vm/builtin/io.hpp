@@ -5,7 +5,7 @@
 #include "type_info.hpp"
 
 namespace rubinius {
-  class CharArray;
+  class ByteArray;
   class Channel;
   class String;
   class Encoding;
@@ -79,7 +79,7 @@ namespace rubinius {
     /**
      *  Directly read up to number of bytes from descriptor.
      *
-     *  Returns Qnil at EOF.
+     *  Returns cNil at EOF.
      */
     // Rubinius.primitive :io_sysread
     Object* sysread(STATE, Fixnum* number_of_bytes, CallFrame* calling_environment);
@@ -150,7 +150,7 @@ namespace rubinius {
     const static object_type type = IOBufferType;
 
   private:
-    CharArray* storage_;   // slot
+    ByteArray* storage_;   // slot
     Channel* channel_;     // slot
     Integer* total_;       // slot
     Integer* used_;        // slot
@@ -161,7 +161,7 @@ namespace rubinius {
   public:
     /* accessors */
 
-    attr_accessor(storage, CharArray);
+    attr_accessor(storage, ByteArray);
     attr_accessor(channel, Channel);
     attr_accessor(total, Integer);
     attr_accessor(used, Integer);

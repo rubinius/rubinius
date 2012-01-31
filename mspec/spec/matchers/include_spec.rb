@@ -1,6 +1,6 @@
-require File.dirname(__FILE__) + '/../spec_helper'
+require 'spec_helper'
 require 'mspec/expectations/expectations'
-require 'mspec/matchers/include'
+require 'mspec/matchers'
 
 describe IncludeMatcher do
   it "matches when actual includes expected" do

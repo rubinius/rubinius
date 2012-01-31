@@ -1,3 +1,5 @@
+# -*- encoding: us-ascii -*-
+
 class Fixnum < Integer
   def imaginary
     0
@@ -13,5 +15,17 @@ class Fixnum < Integer
     end
 
     redo_coerced :div, o
+  end
+
+  def **(o)
+    Rubinius.primitive :fixnum_pow
+
+    if o.is_a?(Float) && self < 0 && o != o.round
+      return Complex(self) ** o
+    elsif o.is_a?(Integer) && o < 0
+      return Rational(self) ** o
+    end
+
+    redo_coerced :**, o
   end
 end

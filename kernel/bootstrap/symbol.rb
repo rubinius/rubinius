@@ -1,3 +1,5 @@
+# -*- encoding: us-ascii -*-
+
 class Symbol
   def self.===(obj)
     Rubinius.primitive :symbol_s_eqq

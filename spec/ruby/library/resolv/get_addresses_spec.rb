@@ -6,7 +6,7 @@ describe "Resolv#getaddresses" do
     require 'resolv'
   end
 
-  it 'resolves localhost' do
+  it "resolves localhost" do
     res = Resolv.new([Resolv::Hosts.new])
 
     addresses = nil

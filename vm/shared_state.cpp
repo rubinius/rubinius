@@ -95,13 +95,13 @@ namespace rubinius {
     if(ss->deref()) delete ss;
   }
 
-  uint32_t SharedState::new_thread_id(THREAD) {
-    SYNC(state);
+  uint32_t SharedState::new_thread_id() {
+    SYNC_TL;
     return ++thread_ids_;
   }
 
   VM* SharedState::new_vm() {
-    uint32_t id = new_thread_id(0);
+    uint32_t id = new_thread_id();
 
     SYNC_TL;
 
@@ -181,31 +181,7 @@ namespace rubinius {
   }
 
   bool SharedState::stop_the_world(THREAD) {
-    bool stopped = world_->wait_til_alone(state);
-    if(!stopped) return stopped;
-
-    // Verify that everyone is stopped and we're alone.
-    for(std::list<ManagedThread*>::iterator i = threads_.begin();
-        i != threads_.end();
-        i++) {
-      ManagedThread *th = *i;
-      switch(th->run_state()) {
-      case ManagedThread::eAlone:
-        if(th != state) {
-          rubinius::bug("Tried to stop but someone else is alone!");
-        }
-        break;
-      case ManagedThread::eRunning:
-        rubinius::bug("Tried to stop but threads still running!");
-        break;
-      case ManagedThread::eSuspended:
-      case ManagedThread::eIndependent:
-        // Ok, this is fine.
-        break;
-      }
-    }
-
-    return true;
+    return world_->wait_til_alone(state);
   }
 
   void SharedState::stop_threads_externally() {
@@ -265,8 +241,8 @@ namespace rubinius {
     }
   }
 
-  void SharedState::enter_capi(STATE) {
-    capi_lock_.lock(state->vm());
+  void SharedState::enter_capi(STATE, const char* file, int line) {
+    capi_lock_.lock(state->vm(), file, line);
   }
 
   void SharedState::leave_capi(STATE) {

@@ -22,14 +22,18 @@ require 'mspec/guards/platform'
 #
 #   `#{RUBY_EXE} -e #{'puts "hello, world."'}`
 #
-# The ruby_exe helper also accepts an options hash with two
-# keys: :options and :args. For example:
+# The ruby_exe helper also accepts an options hash with three
+# keys: :options, :args and :env. For example:
 #
-#   ruby_exe('file.rb', :options => "-w", :args => "> file.txt")
+#   ruby_exe('file.rb', :options => "-w",
+#                       :args => "> file.txt",
+#                       :env => { :FOO => "bar" })
 #
 # will be executed as
 #
 #   `#{RUBY_EXE} -w #{'file.rb'} > file.txt`
+#
+# with access to ENV["FOO"] with value "bar".
 #
 # If +nil+ is passed for the first argument, the command line
 # will be built only from the options hash.
@@ -112,6 +116,7 @@ class Object
 
   def ruby_exe(code, opts = {})
     body = code
+    env = opts[:env] || {}
     working_dir = opts[:dir] || "."
     Dir.chdir(working_dir) do
       if code and not File.exists?(code)
@@ -122,8 +127,24 @@ class Object
         end
         body = "-e #{code}"
       end
-      cmd = [RUBY_EXE, ENV['RUBY_FLAGS'], opts[:options], body, opts[:args]]
-      `#{cmd.compact.join(' ')}`
+
+      saved_env = {}
+      env.each do |key, value|
+        key = key.to_s
+        saved_env[key] = ENV[key] if ENV.key? key
+        ENV[key] = value
+      end
+
+      begin
+        cmd = [RUBY_EXE, ENV['RUBY_FLAGS'], opts[:options], body, opts[:args]]
+        `#{cmd.compact.join(' ')}`
+      ensure
+        saved_env.each { |key, value| ENV[key] = value }
+        env.keys.each do |key|
+          key = key.to_s
+          ENV.delete key unless saved_env.key? key
+        end
+      end
     end
   end
 

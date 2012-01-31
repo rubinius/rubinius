@@ -127,7 +127,7 @@ namespace rubinius {
           Array* ary = 0;
 
           if(!(ary = try_as<Array>(obj))) {
-            if(RTEST(obj->respond_to(state, state->symbol("to_ary"), Qfalse))) {
+            if(CBOOL(obj->respond_to(state, state->symbol("to_ary"), cFalse))) {
               obj = obj->send(state, call_frame, state->symbol("to_ary"));
               if(!(ary = try_as<Array>(obj))) {
                 Exception::type_error(state, "to_ary must return an Array", call_frame);
@@ -444,7 +444,7 @@ namespace rubinius {
     // inlinable so that this works even with the JIT on.
 
     if(!target) {
-      return Qnil;
+      return cNil;
     }
 
     target->cm->backend_method()->set_no_inline();
@@ -453,7 +453,7 @@ namespace rubinius {
       return target->scope->block();
     }
 
-    return Qnil;
+    return cNil;
   }
 
   void BlockEnvironment::Info::show(STATE, Object* self, int level) {

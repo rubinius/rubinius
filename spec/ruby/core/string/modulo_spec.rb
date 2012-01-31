@@ -513,6 +513,7 @@ describe "String#%" do
     ("% f" % 10).should == " 10.000000"
     ("%1$f" % 10).should == "10.000000"
     ("%#f" % 10).should == "10.000000"
+    ("%#0.3f" % 10).should == "10.000"
     ("%+f" % 10).should == "+10.000000"
     ("%-7f" % 10).should == "10.000000"
     ("%05f" % 10).should == "10.000000"
@@ -524,9 +525,11 @@ describe "String#%" do
     ("% g" % 10).should == " 10"
     ("%1$g" % 10).should == "10"
     ("%#g" % 10).should == "10.0000"
+    ("%#.3g" % 10).should == "10.0"
     ("%+g" % 10).should == "+10"
     ("%-7g" % 10).should == "10     "
     ("%05g" % 10).should == "00010"
+    ("%g" % 10**10).should == "1e+10"
     ("%*g" % [10, 9]).should == "         9"
   end
 
@@ -535,9 +538,11 @@ describe "String#%" do
     ("% G" % 10).should == " 10"
     ("%1$G" % 10).should == "10"
     ("%#G" % 10).should == "10.0000"
+    ("%#.3G" % 10).should == "10.0"
     ("%+G" % 10).should == "+10"
     ("%-7G" % 10).should == "10     "
     ("%05G" % 10).should == "00010"
+    ("%G" % 10**10).should == "1E+10"
     ("%*G" % [10, 9]).should == "         9"
   end
 
@@ -794,21 +799,21 @@ describe "String#%" do
   end
 
   ruby_version_is "1.9" do
-    it 'formats zero without prefix using %#x' do
+    it "formats zero without prefix using %#x" do
       ("%#x" % 0).should == "0"
     end
 
-    it 'formats zero without prefix using %#X' do
+    it "formats zero without prefix using %#X" do
       ("%#X" % 0).should == "0"
     end
   end
 
   ruby_version_is "" ... "1.9" do
-    it 'formats zero with prefix using %#x' do
+    it "formats zero with prefix using %#x" do
       ("%#x" % 0).should == "0x0"
     end
 
-    it 'formats zero without prefix using %#X' do
+    it "formats zero without prefix using %#X" do
       ("%#X" % 0).should == "0X0"
     end
   end
@@ -911,6 +916,23 @@ describe "String#%" do
 
     it "doesn't taint the result for #{format} when argument is tainted" do
       (format % "5".taint).tainted?.should == false
+    end
+  end
+  
+  ruby_version_is "1.9.2" do
+    describe "when format string contains %{} sections" do
+    
+      it "replaces %{} sections with values from passed-in hash" do
+        ("%{foo}bar" % {:foo => 'oof'}).should == "oofbar"
+      end
+      
+      it "raises KeyError if key is missing from passed-in hash" do
+        lambda {"%{foo}" % {}}.should raise_error(KeyError)
+      end
+      
+      it "should raise ArgumentError if no hash given" do
+        lambda {"%{foo}" % []}.should raise_error(ArgumentError)
+      end
     end
   end
 end

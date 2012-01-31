@@ -1,6 +1,29 @@
 #ifndef RUBYSPEC_H
 #define RUBYSPEC_H
-/* First define all function flags */
+
+/* Define convenience macros similar to the RubySpec guards to assist
+ * with version incompatibilities.
+ */
+
+#include "rubyspec_version.h"
+
+#if RUBY_VERSION_MAJOR == 1 && RUBY_VERSION_MINOR == 8
+#define RUBY_VERSION_IS_1_8_EX_1_9
+#endif
+
+#if RUBY_VERSION_MAJOR == 1 && RUBY_VERSION_MINOR >= 8
+#define RUBY_VERSION_IS_1_8
+#endif
+
+#if RUBY_VERSION_MAJOR == 1 && RUBY_VERSION_MINOR == 8 && RUBY_VERSION_TEENY < 7
+#define RUBY_VERSION_IS_1_8_EX_1_8_7
+#endif
+
+#if (RUBY_VERSION_MAJOR == 1 && RUBY_VERSION_MINOR == 9) || (RUBY_VERSION_MAJOR == 2)
+#define RUBY_VERSION_IS_1_9
+#endif
+
+/* Define all function flags */
 
 /* Array */
 #define HAVE_RARRAY                        1
@@ -126,6 +149,55 @@
 #define HAVE_DATA_WRAP_STRUCT              1
 #define HAVE_RDATA                         1
 
+/* Encoding */
+#ifdef RUBY_VERSION_IS_1_9
+#define HAVE_RB_ASCII8BIT_ENCODING         1
+#define HAVE_RB_ASCII8BIT_ENCINDEX         1
+#define HAVE_RB_USASCII_ENCODING           1
+#define HAVE_RB_USASCII_ENCINDEX           1
+#define HAVE_RB_UTF8_ENCODING              1
+#define HAVE_RB_UTF8_ENCINDEX              1
+#define HAVE_RB_LOCALE_ENCODING            1
+#define HAVE_RB_LOCALE_ENCINDEX            1
+#define HAVE_RB_FILESYSTEM_ENCODING        1
+#define HAVE_RB_FILESYSTEM_ENCINDEX        1
+
+#define HAVE_RB_DEFAULT_INTERNAL_ENCODING  1
+#define HAVE_RB_DEFAULT_EXTERNAL_ENCODING  1
+
+#define HAVE_RB_ENCDB_ALIAS                1
+#define HAVE_RB_ENC_ASSOCIATE              1
+#define HAVE_RB_ENC_ASSOCIATE_INDEX        1
+#define HAVE_RB_ENC_COPY                   1
+#define HAVE_RB_ENC_FIND                   1
+#define HAVE_RB_ENC_FIND_INDEX             1
+#define HAVE_RB_ENC_FROM_ENCODING          1
+#define HAVE_RB_ENC_FROM_INDEX             1
+#define HAVE_RB_ENC_GET                    1
+#define HAVE_RB_ENC_GET_INDEX              1
+#define HAVE_RB_ENC_SET_INDEX              1
+#define HAVE_RB_ENC_TO_INDEX               1
+
+#define HAVE_RB_USASCII_STR_NEW_CSTR       1
+#define HAVE_RB_EXTERNAL_STR_NEW           1
+#define HAVE_RB_EXTERNAL_STR_NEW_CSTR      1
+#define HAVE_RB_EXTERNAL_STR_NEW_WITH_ENC  1
+
+#define HAVE_RB_TO_ENCODING                1
+#define HAVE_RB_TO_ENCODING_INDEX          1
+
+#define HAVE_RB_EENCCOMPATERROR            1
+
+#define HAVE_RB_MWAITREADABLE              1
+#define HAVE_RB_MWAITWRITABLE              1
+
+#define HAVE_RSTRING_LENINT                1
+#define HAVE_TIMET2NUM                     1
+
+#define HAVE_RB_CLASS_SUPERCLASS           1
+#define HAVE_RB_LONG2INT                   1
+#endif
+
 /* Exception */
 #define HAVE_RB_EXC_NEW                    1
 #define HAVE_RB_EXC_NEW2                   1
@@ -171,6 +243,9 @@
 #define HAVE_RB_IO_WAIT_READABLE           1
 #define HAVE_RB_IO_WAIT_WRITABLE           1
 #define HAVE_RB_IO_WRITE                   1
+
+#define HAVE_RB_THREAD_FD_WRITABLE         1
+#define HAVE_RB_THREAD_WAIT_FD             1
 
 /* Kernel */
 #define HAVE_RB_BLOCK_GIVEN_P              1
@@ -237,6 +312,7 @@
 /* Object */
 #define HAVE_OBJ_TAINT                     1
 #define HAVE_OBJ_TAINTED                   1
+#define HAVE_OBJ_INFECT                    1
 #define HAVE_RB_ANY_TO_S                   1
 #define HAVE_RB_ATTR_GET                   1
 #define HAVE_RB_CHECK_ARRAY_TYPE           1
@@ -301,6 +377,7 @@
 
 /* String */
 #define HAVE_RB_CSTR2INUM                  1
+#define HAVE_RB_CSTR_TO_INUM               1
 #define HAVE_RB_STR2CSTR                   1
 #define HAVE_RB_STR2INUM                   1
 #define HAVE_RB_STR_APPEND                 1
@@ -366,28 +443,6 @@
 #define HAVE_RB_SCAN_ARGS                  1
 #define HAVE_RUBY_SETENV                   1
 #define HAVE_RUBY_STRDUP                   1
-
-/* Define convenience macros similar to the RubySpec guards to assist
- * with version incompatibilities.
- */
-
-#include "rubyspec_version.h"
-
-#if RUBY_VERSION_MAJOR == 1 && RUBY_VERSION_MINOR == 8
-#define RUBY_VERSION_IS_1_8_EX_1_9
-#endif
-
-#if RUBY_VERSION_MAJOR == 1 && RUBY_VERSION_MINOR >= 8
-#define RUBY_VERSION_IS_1_8
-#endif
-
-#if RUBY_VERSION_MAJOR == 1 && RUBY_VERSION_MINOR == 8 && RUBY_VERSION_TEENY < 7
-#define RUBY_VERSION_IS_1_8_EX_1_8_7
-#endif
-
-#if (RUBY_VERSION_MAJOR == 1 && RUBY_VERSION_MINOR == 9) || (RUBY_VERSION_MAJOR == 2)
-#define RUBY_VERSION_IS_1_9
-#endif
 
 /* Now, create the differential set. The format of the preprocessor directives
  * is significant. The alternative implementations should define RUBY because

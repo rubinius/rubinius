@@ -47,21 +47,21 @@ public:
     mar->sstream.str(std::string("n\n"));
     Object* obj = mar->unmarshal();
 
-    TS_ASSERT_EQUALS(obj, Qnil);
+    TS_ASSERT_EQUALS(obj, cNil);
   }
 
   void test_true() {
     mar->sstream.str(std::string("t\n"));
     Object* obj = mar->unmarshal();
 
-    TS_ASSERT_EQUALS(obj, Qtrue);
+    TS_ASSERT_EQUALS(obj, cTrue);
   }
 
   void test_false() {
     mar->sstream.str(std::string("f\n"));
     Object* obj = mar->unmarshal();
 
-    TS_ASSERT_EQUALS(obj, Qfalse);
+    TS_ASSERT_EQUALS(obj, cFalse);
   }
 
   void test_int() {
@@ -88,13 +88,24 @@ public:
     TS_ASSERT_EQUALS(as<Integer>(obj)->to_ulong_long(), 709490156681136604ULL);
   }
 
-  void test_string() {
-    mar->sstream.str(std::string("s\n4\nblah\n"));
+  void test_string_with_encoding() {
+    mar->sstream.str(std::string("s\nE\n10\nASCII-8BIT\n4\nblah\n"));
     Object* obj = mar->unmarshal();
 
     TS_ASSERT(kind_of<String>(obj));
     String *str = as<String>(obj);
     TS_ASSERT_EQUALS(std::string(str->c_str(state)), "blah");
+    TS_ASSERT_EQUALS(std::string(str->encoding()->name()->c_str(state)), "ASCII-8BIT");
+  }
+
+  void test_string_no_encoding() {
+    mar->sstream.str(std::string("s\nE\n0\n\n4\nblah\n"));
+    Object* obj = mar->unmarshal();
+
+    TS_ASSERT(kind_of<String>(obj));
+    String *str = as<String>(obj);
+    TS_ASSERT_EQUALS(std::string(str->c_str(state)), "blah");
+    TS_ASSERT_EQUALS(str->encoding(), cNil);
   }
 
   void test_symbol() {
@@ -205,7 +216,7 @@ public:
 
     CompiledMethod* cm = as<CompiledMethod>(obj);
 
-    TS_ASSERT_EQUALS(cm->ivars(), Qnil);
+    TS_ASSERT_EQUALS(cm->ivars(), cNil);
     TS_ASSERT_EQUALS(cm->primitive(), state->symbol("object_equal"));
     TS_ASSERT_EQUALS(cm->name(), state->symbol("test"));
     TS_ASSERT(tuple_equals(cm->iseq()->opcodes(), Tuple::from(state, 1, Fixnum::from(0))));
@@ -214,7 +225,7 @@ public:
     TS_ASSERT_EQUALS(cm->required_args(), Fixnum::from(0));
     TS_ASSERT_EQUALS(cm->post_args(), Fixnum::from(0));
     TS_ASSERT_EQUALS(cm->total_args(), Fixnum::from(0));
-    TS_ASSERT_EQUALS(cm->splat(), Qnil);
+    TS_ASSERT_EQUALS(cm->splat(), cNil);
     TS_ASSERT(tuple_equals(cm->literals(), Tuple::from(state, 2, Fixnum::from(1), Fixnum::from(2))));
     TS_ASSERT(tuple_equals(cm->lines(), Tuple::from(state, 1,
           Tuple::from(state, 3, Fixnum::from(0), Fixnum::from(1), Fixnum::from(1)))));

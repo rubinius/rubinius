@@ -1,5 +1,5 @@
-require File.dirname(__FILE__) + '/../spec_helper'
-require 'mspec/guards/feature'
+require 'spec_helper'
+require 'mspec/guards'
 
 describe FeatureGuard, ".enabled?" do
   it "returns true if the feature is enabled" do

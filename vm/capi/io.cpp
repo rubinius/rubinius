@@ -131,13 +131,13 @@ extern "C" {
 
     long ret;
 
-    env->state()->vm()->shared.leave_capi(env->state());
+    LEAVE_CAPI(env->state());
     {
       GCIndependent guard(env);
       ret = fread(ptr, 1, len, f);
     }
 
-    env->state()->vm()->shared.enter_capi(env->state());
+    ENTER_CAPI(env->state());
 
     return ret;
   }
@@ -169,21 +169,21 @@ extern "C" {
     FD_ZERO(&fds);
     FD_SET((int_fd_t)fd, &fds);
 
-    int ready = 0;
+    int count = 0;
 
     NativeMethodEnvironment* env = NativeMethodEnvironment::get();
 
-    env->state()->vm()->shared.leave_capi(env->state());
+    LEAVE_CAPI(env->state());
     {
       GCIndependent guard(env);
 
-      while(!ready) {
-        ready = select(fd+1, &fds, 0, 0, 0);
+      while(count == 0) {
+        count = select(fd+1, &fds, 0, 0, 0);
         if(!retry) break;
       }
     }
 
-    env->state()->vm()->shared.enter_capi(env->state());
+    ENTER_CAPI(env->state());
 
     return Qtrue;
   }
@@ -212,24 +212,23 @@ extern "C" {
     }
 
     fd_set fds;
+
     FD_ZERO(&fds);
     FD_SET((int_fd_t)fd, &fds);
 
-    int ready = 0;
+    int count = 0;
 
     NativeMethodEnvironment* env = NativeMethodEnvironment::get();
-    env->state()->vm()->shared.leave_capi(env->state());
+    LEAVE_CAPI(env->state());
     {
-      GCIndependent guard(env->state());
+      GCIndependent guard(env);
 
-      while(!ready) {
-        ready = select(fd+1, 0, &fds, 0, 0);
+      while(count == 0) {
+        count = select(fd+1, &fds, 0, 0, 0);
         if(!retry) break;
       }
     }
-
-    env->state()->vm()->shared.enter_capi(env->state());
-
+    ENTER_CAPI(env->state());
     return Qtrue;
   }
 
@@ -243,17 +242,18 @@ extern "C" {
     FD_ZERO(&fds);
     FD_SET((int_fd_t)fd, &fds);
 
-    int ready = 0;
+    int count = 0;
 
     NativeMethodEnvironment* env = NativeMethodEnvironment::get();
-    env->state()->vm()->shared.leave_capi(env->state());
+    LEAVE_CAPI(env->state());
     {
       GCIndependent guard(env);
 
-      while(!ready) {
-        ready = select(fd+1, &fds, 0, 0, 0);
+      while(count == 0) {
+        count = select(fd+1, &fds, 0, 0, 0);
       }
     }
+    ENTER_CAPI(env->state());
   }
 
   /*
@@ -269,6 +269,7 @@ extern "C" {
     int ready = 0;
 
     NativeMethodEnvironment* env = NativeMethodEnvironment::get();
+    LEAVE_CAPI(env->state());
     {
       GCIndependent guard(env);
 
@@ -277,7 +278,7 @@ extern "C" {
       }
     }
 
-    env->state()->vm()->shared.enter_capi(env->state());
+    ENTER_CAPI(env->state());
   }
 
   void rb_io_set_nonblock(rb_io_t* iot) {

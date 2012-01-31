@@ -87,12 +87,12 @@ describe "Dir.chdir" do
     Dir.pwd.should == @original
   end
 
-  it "raises a SystemCallError if the directory does not exist" do
-    lambda { Dir.chdir DirSpecs.nonexistent }.should raise_error(SystemCallError)
-    lambda { Dir.chdir(DirSpecs.nonexistent) { } }.should raise_error(SystemCallError)
+  it "raises an Errno::ENOENT if the directory does not exist" do
+    lambda { Dir.chdir DirSpecs.nonexistent }.should raise_error(Errno::ENOENT)
+    lambda { Dir.chdir(DirSpecs.nonexistent) { } }.should raise_error(Errno::ENOENT)
   end
 
-  it "raises a SystemCallError if the original directory no longer exists" do
+  it "raises an Errno::ENOENT if the original directory no longer exists" do
     dir1 = tmp('/testdir1')
     dir2 = tmp('/testdir2')
     File.exist?(dir1).should == false
@@ -104,7 +104,7 @@ describe "Dir.chdir" do
         Dir.chdir dir1 do
           Dir.chdir(dir2) { Dir.unlink dir1 }
         end
-      }.should raise_error(SystemCallError)
+      }.should raise_error(Errno::ENOENT)
     ensure
       Dir.unlink dir1 if File.exist?(dir1)
       Dir.unlink dir2 if File.exist?(dir2)

@@ -16,7 +16,7 @@ describe "Kernel#method" do
     @obj.method(:private_method).should be_an_instance_of(Method)
   end
 
-  it "raises a NameError when called on a protected method" do
+  it "can be called on a protected method" do
     @obj.send(:protected_method).should == :protected_method
     @obj.method(:protected_method).should be_an_instance_of(Method)
   end

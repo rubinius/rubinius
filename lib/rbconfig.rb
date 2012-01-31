@@ -122,16 +122,29 @@ module RbConfig
   # used by mkmf to compile extensions, be sure PIC is in
   # there
   CONFIG["CFLAGS"]             = "-ggdb3 -fPIC"
+  CONFIG["LDFLAGS"]            = ""
   if ENV['DEV']
     CONFIG["CFLAGS"] << " -O0"
   else
     CONFIG["CFLAGS"] << " -O2"
   end
+
+  if include_dirs = Rubinius::BUILD_CONFIG[:include_dirs]
+    include_dirs.each do |include_dir|
+      CONFIG["CFLAGS"] << " -I#{include_dir}"
+    end
+  end
+
+  if lib_dirs = Rubinius::BUILD_CONFIG[:lib_dirs]
+    lib_dirs.each do |lib_dir|
+      CONFIG["LDFLAGS"] << " -L#{lib_dir}"
+    end
+  end
+
   if user = Rubinius::BUILD_CONFIG[:user_cflags]
     CONFIG["CFLAGS"] << " #{user}" unless user.empty?
   end
 
-  CONFIG["LDFLAGS"]            = ""
   if user = Rubinius::BUILD_CONFIG[:user_ldflags]
     CONFIG["LDFLAGS"] << " #{user}" unless user.empty?
   end

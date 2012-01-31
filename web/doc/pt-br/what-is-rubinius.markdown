@@ -4,21 +4,21 @@ next: Começando
 next_url: getting-started
 ---
 
-## O que é Rubinius
+## O que é o Rubinius
 
 Rubinius é uma implementação da [linguagem de programação
 Ruby](http://ruby-lang.org).
 
-Rubinius include uma máquina virtual de bytecode, um parser da sintaxe Ruby, um
-compilador de bytecode, um coletor de lixo de gerações, compilador de código de
-maquina nativo just-in-time (JIT) e as bibliotecas de núcleo e padrões do Ruby.
+Rubinius inclui uma máquina virtual de bytecode, um parser da sintaxe Ruby, um
+compilador de bytecode, um coletor de lixo baseado em gerações, compilador de código de
+maquina nativo just-in-time (JIT) e as bibliotecas padrão do Ruby.
 
 Rubinius implementa atualmente a versão 1.8.7 do Ruby.
 
 
 ## Licença
 
-Rubinius usa a licença BDS. Veja o arquivo LICENSE no código-fonte.
+Rubinius usa a licença BSD. Veja o arquivo LICENSE no código-fonte.
 
 
 ## Instalação

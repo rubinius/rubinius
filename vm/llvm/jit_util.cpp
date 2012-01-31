@@ -6,6 +6,7 @@
 #include "vm.hpp"
 #include "objectmemory.hpp"
 #include "call_frame.hpp"
+
 #include "builtin/object.hpp"
 #include "builtin/symbol.hpp"
 #include "builtin/system.hpp"
@@ -22,6 +23,7 @@
 #include "builtin/float.hpp"
 #include "builtin/location.hpp"
 #include "builtin/cache.hpp"
+#include "builtin/encoding.hpp"
 
 #include "instruments/tooling.hpp"
 
@@ -32,6 +34,7 @@
 #include "lookup_data.hpp"
 #include "inline_cache.hpp"
 #include "vmmethod.hpp"
+#include "configuration.hpp"
 
 #include <stdarg.h>
 
@@ -232,7 +235,7 @@ extern "C" {
   {
     if(kind_of<String>(obj)) return obj;
 
-    Arguments args(cache->name, obj, Qnil, 0, 0);
+    Arguments args(cache->name, obj, cNil, 0, 0);
     Object* ret = cache->execute(state, call_frame, args);
     if(!ret) return 0;
 
@@ -331,7 +334,7 @@ extern "C" {
       Object* obj = args.get_argument(0);
       if(Array* ary = try_as<Array>(obj)) {
         args.use_array(ary);
-      } else if(RTEST(obj->respond_to(state, state->symbol("to_ary"), Qfalse))) {
+      } else if(CBOOL(obj->respond_to(state, state->symbol("to_ary"), cFalse))) {
         obj = obj->send(state, call_frame, state->symbol("to_ary"));
         if(Array* ary2 = try_as<Array>(obj)) {
           args.use_array(ary2);
@@ -342,7 +345,36 @@ extern "C" {
       }
     }
 
-    return Qnil;
+    return cNil;
+  }
+
+  Object* rbx_destructure_inline_args(STATE, CallFrame* call_frame, Object* obj,
+                                      StackVariables* vars, int size)
+  {
+    Array* ary = try_as<Array>(obj);
+
+    if(!ary && CBOOL(obj->respond_to(state, state->symbol("to_ary"), cFalse))) {
+      obj = obj->send(state, call_frame, state->symbol("to_ary"));
+      if(Array* ary2 = try_as<Array>(obj)) {
+        ary = ary2;
+      } else {
+        Exception::type_error(state, "to_ary must return an Array", call_frame);
+        return 0;
+      }
+    }
+
+    if(ary) {
+      size_t limit = MIN((int)ary->size(), size);
+
+      for(size_t i = 0; i < limit; i++) {
+        vars->set_local(i, ary->get(state, i));
+      }
+    } else {
+      assert(size > 0);
+      vars->set_local(0, obj);
+    }
+
+    return cNil;
   }
 
   Object* rbx_cast_multi_value(STATE, CallFrame* call_frame, Object* top) {
@@ -360,7 +392,7 @@ extern "C" {
     call_frame->cm->scope(state, scope);
     // call_frame->static_scope_ = scope;
 
-    return Qnil;
+    return cNil;
 
     CPP_CATCH
   }
@@ -375,9 +407,9 @@ extern "C" {
          * to be called and its return value ignored. Ultimately, the original
          * object itself is wrapped in an Array and passed to the block.
          */
-        if(RTEST(obj->respond_to(state, state->symbol("to_ary"), Qfalse))) {
+        if(CBOOL(obj->respond_to(state, state->symbol("to_ary"), cFalse))) {
           Object* ignored = obj->send(state, call_frame, state->symbol("to_ary"));
-          if(!kind_of<Array>(ignored)) {
+          if(!ignored->nil_p() && !kind_of<Array>(ignored)) {
             Exception::type_error(state, "to_ary must return an Array", call_frame);
             return 0;
           }
@@ -403,7 +435,7 @@ extern "C" {
       Object* obj = args.get_argument(0);
       if(kind_of<Array>(obj)) {
         return obj;
-      } else if(RTEST(obj->respond_to(state, state->symbol("to_ary"), Qfalse))) {
+      } else if(CBOOL(obj->respond_to(state, state->symbol("to_ary"), cFalse))) {
         obj = obj->send(state, call_frame, state->symbol("to_ary"));
         if(kind_of<Array>(obj)) {
           return obj;
@@ -446,7 +478,7 @@ extern "C" {
          * to be called and its return value ignored. Ultimately, the original
          * object itself is wrapped in an Array and passed to the block.
          */
-        if(RTEST(obj->respond_to(state, state->symbol("to_ary"), Qfalse))) {
+        if(CBOOL(obj->respond_to(state, state->symbol("to_ary"), cFalse))) {
           Object* ignored = obj->send(state, call_frame, state->symbol("to_ary"));
           if(!kind_of<Array>(ignored)) {
             Exception::type_error(state, "to_ary must return an Array", call_frame);
@@ -487,7 +519,7 @@ extern "C" {
 
       if(kind_of<Array>(obj)) {
         // Nothing! it's good.
-      } else if(RTEST(obj->respond_to(state, state->symbol("to_ary"), Qfalse))) {
+      } else if(CBOOL(obj->respond_to(state, state->symbol("to_ary"), cFalse))) {
         obj = obj->send(state, call_frame, state->symbol("to_ary"));
         if(!kind_of<Array>(obj)) {
           Exception::type_error(state, "to_ary must return an Array", call_frame);
@@ -517,7 +549,7 @@ extern "C" {
   Object* rbx_cast_for_single_block_arg(STATE, Arguments& args) {
     int k = args.total();
     if(k == 0) {
-      return Qnil;
+      return cNil;
     } else if(k == 1) {
       return args.get_argument(0);
     }
@@ -536,10 +568,10 @@ extern "C" {
     if(cache->update_and_validate(state, call_frame, recv)) {
       MethodCacheEntry* mce = cache->cache();
 
-      if(mce && mce->method()->serial()->to_native() == serial) return Qtrue;
+      if(mce && mce->method()->serial()->to_native() == serial) return cTrue;
     }
 
-    return Qfalse;
+    return cFalse;
   }
 
   Object* rbx_check_serial_private(STATE, CallFrame* call_frame, InlineCache* cache,
@@ -548,10 +580,10 @@ extern "C" {
     if(cache->update_and_validate_private(state, call_frame, recv)) {
       MethodCacheEntry* mce = cache->cache();
 
-      if(mce && mce->method()->serial()->to_native() == serial) return Qtrue;
+      if(mce && mce->method()->serial()->to_native() == serial) return cTrue;
     }
 
-    return Qfalse;
+    return cFalse;
   }
 
   Object* rbx_find_const(STATE, CallFrame* call_frame, int index, Object* top) {
@@ -577,14 +609,14 @@ extern "C" {
     CPP_TRY
 
     Class* cls = as<Class>(b1);
-    if(top->class_object(state) == cls) return Qtrue;
-    return Qfalse;
+    if(top->class_object(state) == cls) return cTrue;
+    return cFalse;
 
     CPP_CATCH
   }
 
   Object* rbx_kind_of(STATE, Object* top, Object* b1) {
-    return top->kind_of_p(state, b1) ? Qtrue : Qfalse;
+    return top->kind_of_p(state, b1) ? cTrue : cFalse;
   }
 
   Object* rbx_make_array(STATE, int count, Object** args) {
@@ -615,7 +647,7 @@ extern "C" {
   Object* rbx_meta_send_call(STATE, CallFrame* call_frame, int count, Object** args) {
     Object* t1 = args[0];
 
-    Arguments out_args(G(sym_call), Qnil, count, args+1);
+    Arguments out_args(G(sym_call), cNil, count, args+1);
 
     if(BlockEnvironment *env = try_as<BlockEnvironment>(t1)) {
       return env->call(state, call_frame, out_args);
@@ -677,7 +709,7 @@ extern "C" {
     if(both_fixnum_p(t1, t2)) {
       native_int j = as<Integer>(t1)->to_native();
       native_int k = as<Integer>(t2)->to_native();
-      return (j > k) ? Qtrue : Qfalse;
+      return (j > k) ? cTrue : cFalse;
     }
 
     return rbx_simple_send(state, call_frame, G(sym_gt), 1, stk);
@@ -703,7 +735,7 @@ extern "C" {
     Object* t2 = stk[1];
     /* If both are not references, compare them directly. */
     if(!t1->reference_p() && !t2->reference_p()) {
-      return (t1 == t2) ? Qfalse : Qtrue;
+      return (t1 == t2) ? cFalse : cTrue;
     }
 
     return rbx_simple_send(state, call_frame, G(sym_nequal), 1, stk);
@@ -714,19 +746,19 @@ extern "C" {
     Object* t2 = stk[1];
     /* If both are fixnums, or both are symbols, compare the ops directly. */
     if((t1->fixnum_p() && t2->fixnum_p()) || (t1->symbol_p() && t2->symbol_p())) {
-      return (t1 == t2) ? Qfalse : Qtrue;
+      return (t1 == t2) ? cFalse : cTrue;
     }
 
     return rbx_simple_send(state, call_frame, G(sym_tequal), 1, stk);
   }
 
   Object* rbx_passed_arg(STATE, Arguments& args, int index) {
-    return (index < (int)args.total()) ? Qtrue : Qfalse;
+    return (index < (int)args.total()) ? cTrue : cFalse;
   }
 
   // TODO remove this and use passed_arg
   Object* rbx_passed_blockarg(STATE, Arguments& args, int index) {
-    return (index == (int)args.total()) ? Qtrue : Qfalse;
+    return (index == (int)args.total()) ? cTrue : cFalse;
   }
 
   Object* rbx_push_const(STATE, CallFrame* call_frame, Symbol* sym) {
@@ -744,44 +776,35 @@ extern "C" {
 
   Object* rbx_push_const_fast(STATE, CallFrame* call_frame, Symbol* sym,
                               int association_index) {
-    bool found;
     Object* res = 0;
 
     Object* val = call_frame->cm->literals()->at(state, association_index);
-    StaticScope* sc = call_frame->static_scope();
 
     // See if the cache is present, if so, validate it and use the value
     GlobalCacheEntry* cache;
     if((cache = try_as<GlobalCacheEntry>(val)) != NULL) {
-      if(cache->valid_p(state, sc)) {
+      if(cache->valid_p(state, call_frame->static_scope())) {
         res = cache->value();
-      } else {
-        res = Helpers::const_get(state, call_frame, sym, &found);
-        if(found) cache->update(state, res, sc);
       }
     } else {
-      res = Helpers::const_get(state, call_frame, sym, &found);
-      if(found) {
-        cache = GlobalCacheEntry::create(state, res, sc);
-        call_frame->cm->literals()->put(state, association_index, cache);
-      } else {
-        res = Helpers::const_missing(state, sym, call_frame);
-      }
+      cache = GlobalCacheEntry::empty(state);
+      call_frame->cm->literals()->put(state, association_index, cache);
     }
 
-    if(!res) return NULL;
+    if(!res) {
+      bool found = false;
+      res = Helpers::const_get(state, call_frame, sym, &found);
 
-    if(Autoload* autoload = try_as<Autoload>(res)) {
-      res = autoload->resolve(state, call_frame);
-      if(cache && res) {
-        // Past a GC point, reload values.
-        val = call_frame->cm->literals()->at(state, association_index);
-        sc = call_frame->static_scope();
-        cache = try_as<GlobalCacheEntry>(val);
-
-        if(cache) {
-          cache->update(state, res, sc);
+      if(found) {
+        if(Autoload* autoload = try_as<Autoload>(res)) {
+          res = autoload->resolve(state, call_frame);
         }
+
+        if(res) {
+          cache->update(state, res, call_frame->static_scope());
+        }
+      } else {
+        res = Helpers::const_missing(state, sym, call_frame);
       }
     }
 
@@ -913,7 +936,7 @@ extern "C" {
 
     state->checkpoint(gct, call_frame);
 
-    return Qtrue;
+    return cTrue;
   }
 
   Object* rbx_check_interrupts(STATE, CallFrame* call_frame) {
@@ -922,12 +945,13 @@ extern "C" {
     if(!state->check_async(call_frame)) return NULL;
 
     state->checkpoint(gct, call_frame);
-    return Qtrue;
+    return cTrue;
   }
 
   int rbx_enter_unmanaged(STATE, CallFrame* call_frame) {
+    GCTokenImpl gct;
     state->set_call_frame(call_frame);
-    state->gc_independent();
+    state->gc_independent(gct);
     return 0;
   }
 
@@ -967,7 +991,7 @@ extern "C" {
 
   Object* rbx_clear_exception(STATE) {
     state->vm()->thread_state()->clear_raise();
-    return Qnil;
+    return cNil;
   }
 
   Object* rbx_push_exception_state(STATE) {
@@ -981,7 +1005,7 @@ extern "C" {
       state->vm()->thread_state()->set_state(state, top);
     }
 
-    return Qnil;
+    return cNil;
   }
 
   Object* rbx_push_system_object(STATE, int which) {
@@ -993,7 +1017,7 @@ extern "C" {
     case 2:
       return G(type);
     default:
-      return Qnil;
+      return cNil;
     }
   }
 
@@ -1032,7 +1056,7 @@ extern "C" {
 
   Object* rbx_set_literal(STATE, CallFrame* call_frame, int which, Object* val) {
     call_frame->cm->literals()->put(state, which, val);
-    return Qnil;
+    return cNil;
   }
 
   Object* rbx_shift_array(STATE, CallFrame* call_frame, Object** loc) {
@@ -1041,7 +1065,7 @@ extern "C" {
     Array* array = as<Array>(*loc);
     size_t size = (size_t)array->size();
 
-    if(size == 0) return Qnil;
+    if(size == 0) return cNil;
 
     size_t j = size - 1;
     Object* shifted_value = array->get(state, 0);
@@ -1068,13 +1092,29 @@ extern "C" {
   Object* rbx_string_build(STATE, CallFrame* call_frame, int count, Object** parts) {
     size_t size = 0;
 
+    bool tainted = false;
+    bool untrusted = false;
+
+    bool check_encoding = false;
+    Encoding* enc = nil<Encoding>();
+
     // Figure out the total size
     for(int i = 0; i < count; i++) {
       Object* obj = parts[i];
       String* str = try_as<String>(obj);
 
+      if(obj->reference_p()) {
+        tainted |= obj->is_tainted_p();
+        untrusted |= obj->is_untrusted_p();
+      }
+
       if(str) {
-        size += str->size();
+        native_int cur_size = str->byte_size();
+        native_int data_size = as<ByteArray>(str->data())->size();
+        if(unlikely(cur_size > data_size)) {
+          cur_size = data_size;
+        }
+        size += cur_size;
       } else {
         // This isn't how MRI does this. If sub isn't a String, it converts
         // the original object via any_to_s, not the bad value returned from #to_s.
@@ -1082,21 +1122,87 @@ extern "C" {
         // this way instead.
 
         str = obj->to_s(state, false);
-        size += str->size();
+
+        tainted |= str->is_tainted_p();
+        untrusted |= str->is_untrusted_p();
+        native_int cur_size = str->byte_size();
+        native_int data_size = as<ByteArray>(str->data())->size();
+        if(unlikely(cur_size > data_size)) {
+          cur_size = data_size;
+        }
+        size += cur_size;
 
         parts[i] = str;
+      }
+
+      if(!LANGUAGE_18_ENABLED(state)) {
+        /* The String::encoding() accessor (without state) returns the raw
+         * Encoding attribute. If it is only ever cNil or all values are the
+         * same, we don't need to check Encoding compatibility later.
+         *
+         * TODO: Consider the case when -K is set (not implemented yet).
+         */
+        if(!check_encoding) {
+          Encoding* str_enc = str->encoding();
+          if(!str_enc->nil_p()) {
+            if(enc->nil_p()) {
+              enc = str_enc;
+            } else if(str_enc != enc) {
+              check_encoding = true;
+              enc = nil<Encoding>();
+            }
+          }
+        }
       }
     }
 
     String* str = String::create(state, 0, size);
     uint8_t* pos = str->byte_address();
+    native_int str_size = 0;
 
     for(int i = 0; i < count; i++) {
       // We can force here because we've typed check them above.
       String* sub = force_as<String>(parts[i]);
-      memcpy(pos, sub->byte_address(), sub->size());
-      pos += sub->size();
+
+      native_int sub_size = sub->byte_size();
+      native_int data_size = as<ByteArray>(sub->data())->size();
+      if(unlikely(sub_size > data_size)) {
+        sub_size = data_size;
+      }
+
+      if(!LANGUAGE_18_ENABLED(state)) {
+        if(check_encoding) {
+          if(i < count - 1) {
+            str->num_bytes(state, Fixnum::from(str_size));
+
+            Encoding* enc = Encoding::compatible_p(state, str, sub);
+
+            if(enc->nil_p()) {
+              Exception::encoding_compatibility_error(state, str, sub, call_frame);
+              return 0;
+            } else {
+              str->encoding(state, enc);
+            }
+          } else {
+            str->encoding(state, sub->encoding());
+          }
+        }
+      }
+
+      memcpy(pos + str_size, sub->byte_address(), sub_size);
+      str_size += sub_size;
     }
+
+    if(!LANGUAGE_18_ENABLED(state)) {
+      /* We had to set the size of the result String before every Encoding check
+       * so we have to set it to the final size here.
+       */
+      if(check_encoding) str->num_bytes(state, Fixnum::from(size));
+      if(!enc->nil_p()) str->encoding(state, enc);
+    }
+
+    if(tainted) str->set_tainted();
+    if(untrusted) str->set_untrusted();
 
     return str;
   }
@@ -1115,12 +1221,12 @@ extern "C" {
       }
     }
 
-    return Qnil;
+    return cNil;
   }
 
   Object* rbx_ensure_return(STATE, CallFrame* call_frame, Object* top) {
     state->vm()->thread_state()->raise_return(top, call_frame->promote_scope(state));
-    return Qnil;
+    return cNil;
   }
 
   Object* rbx_raise_break(STATE, CallFrame* call_frame, Object* top) {
@@ -1136,7 +1242,7 @@ extern "C" {
       exc->locations(state, Location::from_call_stack(state, call_frame));
       state->raise_exception(exc);
     }
-    return Qnil;
+    return cNil;
   }
 
   bool rbx_check_class(STATE, Object* obj, int id) {
@@ -1252,7 +1358,7 @@ extern "C" {
 
   Object* rbx_flush_scope(STATE, StackVariables* vars) {
     vars->flush_to_heap(state);
-    return Qnil;
+    return cNil;
   }
 
   // FFI helpers
@@ -1360,12 +1466,12 @@ extern "C" {
   }
 
   Object* rbx_ffi_from_ptr(STATE, void* ptr) {
-    if(!ptr) return Qnil;
+    if(!ptr) return cNil;
     return Pointer::create(state, ptr);
   }
 
   Object* rbx_ffi_from_string(STATE, char* ptr) {
-    if(!ptr) return Qnil;
+    if(!ptr) return cNil;
     String* str = String::create(state, ptr);
     str->taint(state);
     return str;
@@ -1380,7 +1486,7 @@ extern "C" {
       s->taint(state);
       p = Pointer::create(state, ptr);
     } else {
-      s = p = Qnil;
+      s = p = cNil;
     }
 
     Array* ary = Array::create(state, 2);
@@ -1400,7 +1506,7 @@ extern "C" {
 
   Object* rbx_make_proc(STATE, CallFrame* call_frame) {
     Object* obj = call_frame->scope->block();
-    if(RTEST(obj)) {
+    if(CBOOL(obj)) {
       Object* prc = Proc::from_env(state, G(proc), obj);
       if(prc == Primitives::failure()) {
         Exception::internal_error(state, call_frame, "invalid block type");
@@ -1409,7 +1515,7 @@ extern "C" {
 
       return prc;
     } else {
-      return Qnil;
+      return cNil;
     }
   }
 

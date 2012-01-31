@@ -14,11 +14,11 @@ describe "Digest::SHA256.file" do
       rm_r @file
     end
 
-    it 'returns a Digest::SHA256 object' do
+    it "returns a Digest::SHA256 object" do
       Digest::SHA256.file(@file).should be_kind_of(Digest::SHA256)
     end
 
-    it 'returns a Digest::SHA256 object with the correct digest' do
+    it "returns a Digest::SHA256 object with the correct digest" do
       Digest::SHA256.file(@file).digest.should == SHA256Constants::Digest
     end
 
@@ -33,11 +33,11 @@ describe "Digest::SHA256.file" do
 
   it_behaves_like :file_read_directory, :file, Digest::SHA256
 
-  it 'raises a Errno::ENOENT when passed a path that does not exist' do
+  it "raises a Errno::ENOENT when passed a path that does not exist" do
     lambda { Digest::SHA256.file("") }.should raise_error(Errno::ENOENT)
   end
 
-  it 'raises a TypeError when passed nil' do
+  it "raises a TypeError when passed nil" do
     lambda { Digest::SHA256.file(nil) }.should raise_error(TypeError)
   end
 end

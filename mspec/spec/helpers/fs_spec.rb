@@ -1,7 +1,6 @@
-require File.dirname(__FILE__) + '/../spec_helper'
+require 'spec_helper'
 require 'mspec/guards'
-require 'mspec/helpers/tmp'
-require 'mspec/helpers/fs'
+require 'mspec/helpers'
 
 describe Object, "#cp" do
   before :each do

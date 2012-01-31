@@ -32,7 +32,7 @@ namespace rubinius {
     Arguments(Symbol* name, Object* recv, uint32_t total, Object** buffer)
       : name_(name)
       , recv_(recv)
-      , block_(Qnil)
+      , block_(cNil)
       , total_(total)
       , arguments_(buffer)
       , argument_container_(0)
@@ -40,8 +40,8 @@ namespace rubinius {
 
     Arguments(Symbol* name, uint32_t total, Object** buffer)
       : name_(name)
-      , recv_(Qnil)
-      , block_(Qnil)
+      , recv_(cNil)
+      , block_(cNil)
       , total_(total)
       , arguments_(buffer)
       , argument_container_(0)
@@ -49,8 +49,8 @@ namespace rubinius {
 
     Arguments(Symbol* name)
       : name_(name)
-      , recv_(Qnil)
-      , block_(Qnil)
+      , recv_(cNil)
+      , block_(cNil)
       , total_(0)
       , arguments_(0)
       , argument_container_(0)
@@ -58,8 +58,8 @@ namespace rubinius {
 
     Arguments(Symbol* name, Array* ary)
       : name_(name)
-      , recv_(Qnil)
-      , block_(Qnil)
+      , recv_(cNil)
+      , block_(cNil)
     {
       use_array(ary);
     }
@@ -111,13 +111,17 @@ namespace rubinius {
     }
 
     void use_array(Array* ary) {
-      use_tuple(ary->tuple(), ary->size());
+      use_tuple(ary->tuple(), ary->size(), ary->offset());
     }
 
-    void use_tuple(Tuple* tup, int size) {
+    void use_tuple(Tuple* tup, uint32_t size, uint32_t offset) {
       total_ = size;
-      arguments_ = tup->field;
+      arguments_ = tup->field + offset;
       argument_container_ = tup;
+    }
+
+    void use_tuple(Tuple* tup, uint32_t size) {
+      use_tuple(tup, size, 0);
     }
 
     Tuple*& argument_container_location() {

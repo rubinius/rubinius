@@ -1,3 +1,5 @@
+# -*- encoding: us-ascii -*-
+
 module Rubinius
   class CodeLoader
 
@@ -12,6 +14,16 @@ module Rubinius
       end
 
       return nil
+    end
+
+    # Sets +@feature+, +@file_path+, +@load_path+ with the correct format.
+    # Used by #verify_load_path, #check_path and #check_file.
+    def update_paths(file, path)
+      path = "./#{path}" unless qualified_path? path
+
+      @feature = file
+      @file_path = path
+      @load_path = File.expand_path path
     end
   end
 end

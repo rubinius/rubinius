@@ -1,3 +1,5 @@
+# -*- encoding: us-ascii -*-
+
 class Rubinius::NativeFunction
   attr_accessor :return_type
   attr_accessor :argument_types
@@ -15,15 +17,7 @@ module FFI
   end
 
   module Library
-
-    case
-    when Rubinius.windows?
-      LIBC = "msvcrt.dll"
-    when Rubinius.darwin?
-      LIBC = "libc.dylib"
-    else
-      LIBC = "libc#{Rubinius::LIBSUFFIX}.6"
-    end
+    LIBC = Rubinius::LIBC
 
     # Set which library or libraries +attach_function+ should
     # look in. By default it only searches for the function in

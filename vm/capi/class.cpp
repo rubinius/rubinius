@@ -3,6 +3,7 @@
 #include "builtin/symbol.hpp"
 
 #include "helpers.hpp"
+#include "exception_point.hpp"
 
 #include "capi/capi.hpp"
 #include "capi/18/include/ruby.h"
@@ -148,16 +149,20 @@ extern "C" {
 
     bool created = false;
 
-    env->state()->vm()->shared.leave_capi(env->state());
+    LEAVE_CAPI(env->state());
     Class* opened_class = rubinius::Helpers::open_class(env->state(),
         env->current_call_frame(), module, superclass, constant, &created);
+
+    // The call above could have triggered an Autoload resolve, which may
+    // raise an exception, so we have to check the value returned.
+    if(!opened_class) env->current_ep()->return_to(env);
 
     // We need to grab the handle before entering back into C-API
     // code. The problem otherwise can be that the GC runs and
     // the opened_class is GC'ed.
 
     VALUE klass = env->get_handle(opened_class);
-    env->state()->vm()->shared.enter_capi(env->state());
+    ENTER_CAPI(env->state());
 
     if(super) rb_funcall(super, rb_intern("inherited"), 1, klass);
 

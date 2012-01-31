@@ -1,3 +1,5 @@
+# -*- encoding: us-ascii -*-
+
 class Rubinius::VM
 
   # Get an Array of Rubinius::Location objects representing the current

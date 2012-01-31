@@ -355,6 +355,54 @@ describe "Module#autoload" do
       lambda { ModuleSpecs::Autoload.autoload :Str, name }.should_not raise_error
     end
   end
+
+  describe "(concurrently)" do
+    it "blocks a second thread while a first is doing the autoload" do
+      ModuleSpecs::Autoload.autoload :Concur, fixture(__FILE__, "autoload_concur.rb")
+
+      start = false
+
+      ScratchPad.record []
+
+      t1_val = nil
+      t2_val = nil
+
+      fin = false
+
+      t1 = Thread.new do
+        Thread.pass until start
+        t1_val = ModuleSpecs::Autoload::Concur
+        ScratchPad.recorded << :t1_post
+        fin = true
+      end
+
+      t2_exc = nil
+
+      t2 = Thread.new do
+        Thread.pass until t1 and t1[:in_autoload_rb]
+        begin
+          t2_val = ModuleSpecs::Autoload::Concur
+        rescue Exception => e
+          t2_exc = e
+        else
+          Thread.pass until fin
+          ScratchPad.recorded << :t2_post
+        end
+      end
+
+      start = true
+
+      t1.join
+      t2.join
+
+      ScratchPad.recorded.should == [:con_pre, :con_post, :t1_post, :t2_post]
+
+      t1_val.should == 1
+      t2_val.should == t1_val
+
+      t2_exc.should be_nil
+    end
+  end
 end
 
 describe "Module#autoload" do

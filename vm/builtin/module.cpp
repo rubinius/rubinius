@@ -71,7 +71,7 @@ namespace rubinius {
   }
 
   Object* Module::case_compare(STATE, Object* obj) {
-    return obj->kind_of_p(state, this) ? Qtrue : Qfalse;
+    return obj->kind_of_p(state, this) ? cTrue : cFalse;
   }
 
   void Module::set_name(STATE, Module* under, Symbol* name) {
@@ -118,7 +118,7 @@ namespace rubinius {
       mod = mod->superclass();
     }
 
-    return Qnil;
+    return cNil;
   }
 
   Object* Module::get_const(STATE, Symbol* sym) {
@@ -214,12 +214,12 @@ namespace rubinius {
     while(!mod->nil_p()) {
       mod_to_query = get_module_to_query(mod);
 
-      if(mod_to_query->table_ivar_defined(state, name)->true_p()) return Qtrue;
+      if(mod_to_query->table_ivar_defined(state, name)->true_p()) return cTrue;
 
       mod = mod->superclass();
     }
 
-    return Qfalse;
+    return cFalse;
   }
 
   Object* Module::cvar_get(STATE, Symbol* name) {
@@ -268,7 +268,7 @@ namespace rubinius {
   Object* Module::cvar_set(STATE, Symbol* name, Object* value) {
     if(!name->is_cvar_p(state)->true_p()) return Primitives::failure();
 
-    if(RTEST(frozen_p(state))) {
+    if(CBOOL(frozen_p(state))) {
       Exception::type_error(state, "unable to change frozen object");
     }
 
@@ -334,7 +334,7 @@ namespace rubinius {
       mod = as<Module>(sc->attached_instance());
     }
 
-    if (this->cvar_defined(state, name) == Qtrue) {
+    if (this->cvar_defined(state, name) == cTrue) {
       ss << "cannot remove ";
       ss << name->debug_str(state);
       ss << " for ";

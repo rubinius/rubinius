@@ -1,3 +1,5 @@
+# -*- encoding: us-ascii -*-
+
 module Comparable
 
   # Compares two objects based on the receiver's <code><=></code>

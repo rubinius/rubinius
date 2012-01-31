@@ -67,7 +67,7 @@ namespace rubinius {
 
     if(likely(tup)) {
       for(native_int i = 0; i < fields; i++) {
-        tup->field[i] = Qnil;
+        tup->field[i] = cNil;
       }
 
       return tup;
@@ -217,7 +217,7 @@ namespace rubinius {
         // cleanup all the bins after
         i = j;
         while(i < rend) {
-          this->field[i] = Qnil;
+          this->field[i] = cNil;
           ++i;
         }
         return Fixnum::from(rend-j);
@@ -245,7 +245,7 @@ namespace rubinius {
       }
 
       while(i < size) {
-        this->field[i++] = Qnil;
+        this->field[i++] = cNil;
       }
     }
 

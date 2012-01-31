@@ -157,7 +157,7 @@ namespace rubinius {
 
     void setup_out_args(int args) {
       b().CreateStore(stack_back(args), out_args_recv_);
-      b().CreateStore(constant(Qnil), out_args_block_);
+      b().CreateStore(constant(cNil), out_args_block_);
       b().CreateStore(cint(args),
                     out_args_total_);
       b().CreateStore(Constant::getNullValue(ptr_type("Tuple")),
@@ -402,13 +402,13 @@ namespace rubinius {
         }
         return type::KnownType::fixnum();
       case NilType:
-        verify_guard(check_is_immediate(obj, Qnil), failure);
+        verify_guard(check_is_immediate(obj, cNil), failure);
         return type::KnownType::nil();
       case TrueType:
-        verify_guard(check_is_immediate(obj, Qtrue), failure);
+        verify_guard(check_is_immediate(obj, cTrue), failure);
         return type::KnownType::true_();
       case FalseType:
-        verify_guard(check_is_immediate(obj, Qfalse), failure);
+        verify_guard(check_is_immediate(obj, cFalse), failure);
         return type::KnownType::false_();
       default:
         {

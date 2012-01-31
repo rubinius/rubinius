@@ -1,4 +1,4 @@
-require File.dirname(__FILE__) + '/../spec_helper'
+require 'spec_helper'
 require 'yaml'
 require 'mspec/commands/mspec'
 
@@ -108,9 +108,9 @@ describe MSpecMain, "#report" do
   before :each do
     @stdout, $stdout = $stdout, IOStub.new
 
-    @timer = mock("timer", :null_object => true)
+    @timer = mock("timer").as_null_object
     @timer.stub!(:format).and_return("Finished in 42 seconds")
-    @file = mock("file", :null_object => true)
+    @file = mock("file").as_null_object
 
     File.stub!(:delete)
     YAML.stub!(:load)
@@ -301,11 +301,11 @@ describe "The -A, --valgrind option" do
     @script.options
   end
 
-  it "sets flags to --valgrind" do
+  it "sets :use_valgrind config option to true" do
     ["-A", "--valgrind"].each do |opt|
-      @config[:flags] = []
+      @config[:use_valgrind] = false
       @script.options [opt]
-      @config[:flags].should include("--valgrind")
+      @config[:use_valgrind].should be_true
     end
   end
 end

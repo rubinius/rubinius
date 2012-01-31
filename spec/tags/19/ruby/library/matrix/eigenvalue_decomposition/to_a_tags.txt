@@ -1,2 +1,0 @@
-fails:Matrix::EigenvalueDecomposition#to_a returns an array of with [V, D, V.inv]
-fails:Matrix::EigenvalueDecomposition#to_a returns a factorization

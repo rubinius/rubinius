@@ -1,12 +1,15 @@
 require File.expand_path('../../../spec_helper', __FILE__)
 
 describe "Process.fork" do
-  # As of 1.9 Process.respond_to?(:fork) returns false on platforms that do
-  # not implement it.
+
   ruby_version_is "1.9" do
     platform_is :windows do
-      it "is not implemented" do
+      it "returns false from #respond_to?" do
         Process.respond_to?(:fork).should be_false
+      end
+
+      it "raises a NotImplementedError when called" do
+        lambda { Process.fork }.should raise_error(NotImplementedError)
       end
     end
   end

@@ -179,6 +179,13 @@ describe "Time#strftime" do
       time.strftime('%P').should == 'am'
     end
   end
+  
+  ruby_version_is '1.9' do
+    it "returns the fractional seconds digits, default is 9 digits (nanosecond) with %N" do
+      time = Time.local(2009, 9, 18, 12, 0, 6, 123456)
+      time.strftime('%N').should == '123456000'
+    end
+  end
 
   ruby_version_is '1.9' do
     it "supports GNU modificators" do
@@ -205,6 +212,14 @@ describe "Time#strftime" do
       ["%10h","%^10h","%_10h","%_010h","%0_10h","%0_-10h","%0-_10h"].each do |format|
         time.strftime(format).should == expected[format]
       end
+    end
+
+    it "supports the '-' modifier to drop leading zeros" do
+      time = Time.local(2001,1,1,14,01,42)
+      time.strftime("%-m/%-d/%-y %-I:%-M %p").should == "1/1/1 2:1 PM"
+
+      time = Time.local(2010,10,10,12,10,42)
+      time.strftime("%-m/%-d/%-y %-I:%-M %p").should == "10/10/10 12:10 PM"
     end
   end
 end

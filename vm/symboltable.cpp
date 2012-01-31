@@ -144,8 +144,10 @@ namespace rubinius {
       return NULL;
     }
 
-    const char* bytes = str->c_str(state);
-    size_t size = str->size();
+    // Since we also explicitly use the size, we can safely
+    // use byte_address() here.
+    const char* bytes = (const char*) str->byte_address();
+    size_t size = str->byte_size();
 
     if(LANGUAGE_18_ENABLED(state)) {
       for(size_t i = 0; i < size; i++) {
@@ -180,7 +182,7 @@ namespace rubinius {
     unsigned char* cstr = (unsigned char*) str.data();
     size_t size = str.size();
     for(size_t i = 0; i < size; ++i) {
-      if(isprint(cstr[i])) {
+      if(isprint(cstr[i]) && isascii(cstr[i])) {
         os << cstr[i];
       } else {
         os << "\\x" << std::setw(2) << std::setfill('0') << std::hex << (unsigned int)cstr[i];

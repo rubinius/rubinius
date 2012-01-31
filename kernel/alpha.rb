@@ -1,3 +1,5 @@
+# -*- encoding: us-ascii -*-
+
 #
 # This is the beginning of loading Ruby code. At this point, the VM
 # is bootstrapped and the fundamental data structures, primitive

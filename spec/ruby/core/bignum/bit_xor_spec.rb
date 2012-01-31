@@ -23,6 +23,12 @@ describe "Bignum#^" do
     (-@bignum ^ -0x4000000000000000).should == 13835058055282163694
   end
 
+  it "returns self bitwise EXCLUSIVE OR other when all bits are 1 and other value is negative" do
+    (9903520314283042199192993791 ^ -1).should == -9903520314283042199192993792
+    (784637716923335095479473677900958302012794430558004314111 ^ -1).should ==
+      -784637716923335095479473677900958302012794430558004314112
+  end
+
   ruby_version_is ""..."1.9" do
     it "coerces Float arguments into Integers" do
       (@bignum ^ 14.5).should == 9223372036854775836

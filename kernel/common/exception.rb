@@ -1,3 +1,5 @@
+# -*- encoding: us-ascii -*-
+
 class Exception
 
   attr_accessor :locations
@@ -99,10 +101,6 @@ class Exception
     else
       set_backtrace(ctx)
     end
-  end
-
-  def to_s
-    @reason_message || self.class.to_s
   end
 
   # This is important, because I subclass can just override #to_s and calling
@@ -208,9 +206,6 @@ class RuntimeError < StandardError
 end
 
 class SecurityError < StandardError
-end
-
-class SystemStackError < StandardError
 end
 
 class ThreadError < StandardError

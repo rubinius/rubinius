@@ -97,6 +97,10 @@ extern "C" {
 #define ONIG_EXTERN   extern
 #endif
 
+#if defined __GNUC__ && __GNUC__ >= 4
+#pragma GCC visibility push(default)
+#endif
+
 /* PART: character encoding */
 
 #ifndef ONIG_ESCAPE_UCHAR_COLLISION
@@ -104,7 +108,7 @@ extern "C" {
 #endif
 
 typedef unsigned char  OnigUChar;
-typedef unsigned int  OnigCodePoint;
+typedef unsigned int   OnigCodePoint;
 typedef unsigned int   OnigCtype;
 typedef size_t         OnigDistance;
 
@@ -200,7 +204,7 @@ ONIG_EXTERN OnigEncodingType OnigEncodingASCII;
 #define ONIGENC_CTYPE_ALNUM    13  /* alpha || digit */
 #define ONIGENC_CTYPE_ASCII    14
 #define ONIGENC_MAX_STD_CTYPE  ONIGENC_CTYPE_ASCII
-#define ONIGENC_CTYPE_SPECIAL_MASK        128
+#define ONIGENC_CTYPE_SPECIAL_MASK        256
 #define ONIGENC_CTYPE_S            /* [\t\n\v\f\r\s] */ \
     ONIGENC_CTYPE_SPECIAL_MASK | ONIGENC_CTYPE_SPACE
 #define ONIGENC_CTYPE_D            /* [0-9] */ \
@@ -582,6 +586,7 @@ struct re_registers {
   int* end;
   /* extended */
   OnigCaptureTreeNode* history_root;  /* capture history tree root */
+  int malloced;
 };
 
 /* capture tree traverse */
@@ -788,6 +793,10 @@ ONIG_EXTERN
 const char* onig_version P_((void));
 ONIG_EXTERN
 const char* onig_copyright P_((void));
+
+#if defined __GNUC__ && __GNUC__ >= 4
+#pragma GCC visibility pop
+#endif
 
 #ifdef __cplusplus
 #if 0

@@ -1,4 +1,38 @@
+# -*- encoding: us-ascii -*-
+
 class Module
+
+
+  def const_get(name, inherit = true)
+    name = normalize_const_name(name)
+
+    current, constant = self, undefined
+
+    while current
+      constant = current.constant_table.fetch name, undefined
+      unless constant.equal?(undefined)
+        constant = constant.call if constant.kind_of?(Autoload)
+        return constant
+      end
+
+      unless inherit
+        return const_missing(name)
+      end
+
+      current = current.direct_superclass
+    end
+
+    if instance_of?(Module)
+      constant = Object.constant_table.fetch name, undefined
+      unless constant.equal?(undefined)
+        constant = constant.call if constant.kind_of?(Autoload)
+        return constant
+      end
+    end
+
+    const_missing(name)
+  end
+
   def const_defined?(name, search_parents=true)
     name = normalize_const_name(name)
     return true if @constant_table.has_key? name
@@ -9,6 +43,14 @@ class Module
       while mod.kind_of? Rubinius::IncludedModule
         return true if mod.constant_table.has_key? name
         mod = mod.direct_superclass
+      end
+    end
+
+    if search_parents
+      current = self.direct_superclass
+      while current and current != Object
+        return true if current.constant_table.has_key? name
+        current = current.direct_superclass
       end
     end
 
@@ -40,7 +82,7 @@ class Module
   end
 
   private :attr
-  
+
   def class_variable_set(key, value)
     raise RuntimeError, "can't modify frozen #{self.class}" if frozen?
     __class_variable_set__(key, value)
@@ -73,5 +115,40 @@ class Module
     constant_table[name] = Autoload.new(name, self, path)
     Rubinius.inc_global_serial
     return nil
+  end
+
+  def constants(all=undefined)
+    tbl = Rubinius::LookupTable.new
+
+    @constant_table.each do |name, val|
+      tbl[name] = true
+    end
+
+    if all
+      current = self.direct_superclass
+
+      while current and current != Object
+        current.constant_table.each do |name, val|
+          tbl[name] = true unless tbl.has_key? name
+        end
+
+        current = current.direct_superclass
+      end
+    end
+
+    # special case: Module.constants returns Object's constants
+    if self.equal?(Module) && all.equal?(undefined)
+      Object.constant_table.each do |name, val|
+        tbl[name] = true unless tbl.has_key? name
+      end
+    end
+
+    Rubinius.convert_to_names tbl.keys
+  end
+
+  def private_constant(*names)
+  end
+
+  def public_constant(*names)
   end
 end

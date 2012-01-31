@@ -1,6 +1,6 @@
 describe :date_valid_ordinal?, :shared => true do
   ruby_version_is "" ... "1.9" do
-    it "should be able to determine if the date is a valid ordinal date" do
+    it "determines if the date is a valid ordinal date" do
       # October 1582 (the Gregorian calendar, Ordinal Date in 1.8)
       #   S   M  Tu   W  Th   F   S
       #     274 275 276 277 278 279
@@ -15,7 +15,7 @@ describe :date_valid_ordinal?, :shared => true do
       Date.send(@method, 1582, 287, Date::ENGLAND).should == Date.civil(1582, 10, 14, Date::ENGLAND).jd
     end
 
-    it "should be able to handle negative day numbers" do
+    it "handles negative day numbers" do
       # October 1582 (the Gregorian calendar, Ordinal Date in 1.8)
       #   S   M  Tu   W  Th   F   S
       #     -92 -91 -90 -89 -78 -77
@@ -31,7 +31,7 @@ describe :date_valid_ordinal?, :shared => true do
   end
 
   ruby_version_is "1.9" do
-    it "should be able to determine if the date is a valid ordinal date" do
+    it "determines if the date is a valid ordinal date" do
       # October 1582 (the Gregorian calendar, Ordinal Date in 1.9)
       #   S   M  Tu   W  Th   F   S
       #     274 275 276 277 278 279
@@ -44,7 +44,7 @@ describe :date_valid_ordinal?, :shared => true do
       Date.send(@method, 1582, 288).should == true
     end
 
-    it "should be able to handle negative day numbers" do
+    it "handles negative day numbers" do
       # October 1582 (the Gregorian calendar, Ordinal Date in 1.9)
       #   S   M  Tu   W  Th   F   S
       #     -82 -81 -80 -79 -78 -77

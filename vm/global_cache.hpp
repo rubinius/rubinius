@@ -26,6 +26,7 @@ namespace rubinius {
     };
 
     CacheEntry entries[CPU_CACHE_SIZE];
+    thread::SpinLock lock_;
 
   public:
 
@@ -33,6 +34,7 @@ namespace rubinius {
     bool resolve_i(STATE, Symbol* name, Dispatch& msg, LookupData& lookup);
 
     GlobalCache() {
+      lock_.init();
       clear();
     }
 
@@ -40,7 +42,7 @@ namespace rubinius {
     MethodCacheEntry* lookup_private(STATE, Module* mod, Class* cls, Symbol* name);
 
     void clear(STATE, Symbol* name) {
-      SYNC(state);
+      thread::SpinLock::LockGuard guard(lock_);
       for(size_t i = 0; i < CPU_CACHE_SIZE; i++) {
         if(entries[i].name == name) {
           entries[i].klass = NULL;
@@ -54,7 +56,7 @@ namespace rubinius {
 
     void clear(STATE, Module* cls, Symbol* name) {
       CacheEntry* entry;
-      SYNC(state);
+      thread::SpinLock::LockGuard guard(lock_);
       entry = entries + CPU_CACHE_HASH(cls, name);
       if(entry->name == name && entry->klass == cls) {
         entry->klass = NULL;
@@ -71,7 +73,14 @@ namespace rubinius {
 
     void retain(STATE, Module* cls, Symbol* name, Module* mod, Executable* meth,
                 bool missing, bool was_private = false) {
-      SYNC(state);
+      thread::SpinLock::LockGuard guard(lock_);
+      retain_i(state, cls, name, mod, meth, missing, was_private);
+    }
+
+    private:
+
+    void retain_i(STATE, Module* cls, Symbol* name, Module* mod, Executable* meth,
+                bool missing, bool was_private = false) {
       CacheEntry* entry;
 
       entry = entries + CPU_CACHE_HASH(cls, name);
@@ -83,8 +92,6 @@ namespace rubinius {
       entry->method = meth;
       entry->is_public = !was_private;
     }
-
-    private:
 
     void clear() {
       for(size_t i = 0; i < CPU_CACHE_SIZE; i++) {

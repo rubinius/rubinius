@@ -1,3 +1,5 @@
+# -*- encoding: us-ascii -*-
+
 module Rubinius
   class CodeLoader
 
@@ -25,6 +27,16 @@ module Rubinius
       else
         raise LoadError.new "Something is wrong in trying to get relative path"
       end
+    end
+
+    # Sets +@feature+, +@file_path+, +@load_path+ with the correct format.
+    # Used by #verify_load_path, #check_path and #check_file.
+    def update_paths(file, path)
+      path = File.expand_path path
+
+      @feature = path
+      @file_path = path
+      @load_path = path
     end
   end
 end

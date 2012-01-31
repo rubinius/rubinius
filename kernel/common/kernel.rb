@@ -1,3 +1,5 @@
+# -*- encoding: us-ascii -*-
+
 module Kernel
   def __method__
     scope = Rubinius::VariableScope.of_sender
@@ -130,17 +132,6 @@ module Kernel
   end
   module_function :print
 
-  def open(path, *rest, &block)
-    path = StringValue(path)
-
-    if path.kind_of? String and path.prefix? '|'
-      return IO.popen(path[1..-1], *rest, &block)
-    end
-
-    File.open(path, *rest, &block)
-  end
-  module_function :open
-
   def srand(seed=undefined)
     if seed.equal? undefined
       seed = Rubinius::Randomizer.instance.generate_seed
@@ -150,20 +141,6 @@ module Kernel
     Rubinius::Randomizer.instance.swap_seed seed
   end
   module_function :srand
-
-  def rand(limit=0)
-    limit = Integer(limit).abs
-
-    case limit
-    when 0
-      Rubinius::Randomizer.instance.random_float
-    when Integer
-      Rubinius::Randomizer.instance.random_integer(limit - 1)
-    else
-      raise TypeError, "Integer() returned a non-integer"
-    end
-  end
-  module_function :rand
 
   def block_given?
     Rubinius::VariableScope.of_sender.block != nil
@@ -203,17 +180,17 @@ module Kernel
   # Sleeps the current thread for +duration+ seconds.
   #
   def sleep(duration=undefined)
+    Rubinius.primitive :vm_sleep
+
+    # The primitive will fail on arg count if sleep is called
+    # without an argument, so we call it again passing undefined
+    # to mean "sleep forever"
+    #
     if duration.equal? undefined
-      duration = nil
-    elsif !duration.kind_of?(Numeric)
-      raise TypeError, 'time interval must be a numeric value'
+      return sleep(undefined)
     end
 
-    chan = Rubinius::Channel.new
-
-    start = Process.time
-    chan.receive_timeout duration
-    Process.time - start
+    raise TypeError, 'time interval must be a numeric value'
   end
   module_function :sleep
 
@@ -261,16 +238,6 @@ module Kernel
   end
 
   alias_method :object_id, :__id__
-
-  def id
-    Kernel.warn "Object#id IS deprecated; use Object#object_id OR ELSE."
-    __id__
-  end
-
-  def type
-    Kernel.warn "Object#type IS fully deprecated; use Object#class OR ELSE."
-    self.class
-  end
 
   # The "sorta" operator, also known as the case equality operator.
   # Generally while #eql? and #== are stricter, #=== is often used
@@ -569,9 +536,7 @@ module Kernel
   end
 
   def to_s
-    str = "#<#{self.class}:0x#{self.__id__.to_s(16)}>"
-    str.taint if tainted?
-    return str
+    Rubinius::Type.infect("#<#{self.class}:0x#{self.__id__.to_s(16)}>", self)
   end
 
   ##

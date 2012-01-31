@@ -1,3 +1,5 @@
+# -*- encoding: us-ascii -*-
+
 class Regexp
   def self.try_convert(obj)
     Rubinius::Type.try_convert obj, Regexp, :to_regexp
@@ -22,6 +24,25 @@ class Regexp
       false
     end
   end
+
+  def encoding
+    source.encoding
+  end
+
+  def self.escape(str)
+    escaped = StringValue(str).transform(ESCAPE_TABLE, true)
+    if escaped.ascii_only?
+      escaped.force_encoding Encoding::US_ASCII
+    elsif str.valid_encoding?
+      escaped.force_encoding str.encoding
+    else
+      escaped.force_encoding Encoding::ASCII_8BIT
+    end
+  end
+
+  class << self
+    alias_method :quote, :escape
+  end
 end
 
 class MatchData
@@ -40,16 +61,20 @@ class MatchData
         return nil if x == -1
 
         y = tup.at(1)
-        return @source.substring(x, y-x)
+        return @source.byteslice(x, y-x)
       end
-    when Symbol
-      num = @regexp.name_table[idx]
-      raise IndexError, "Unknown named group '#{idx}'" unless num
-      return self[num + 1]
     when String
-      num = @regexp.name_table[idx.to_sym]
-      raise IndexError, "Unknown named group '#{idx}'" unless num
-      return self[num + 1]
+      if @regexp.name_table
+        num = @regexp.name_table[idx.to_sym]
+        return self[num.last] if num
+      end
+      raise IndexError, "Unknown named group '#{idx}'"
+    when Symbol
+      if @regexp.name_table
+        num = @regexp.name_table[idx]
+        return self[num.last] if num
+      end
+      raise IndexError, "Unknown named group '#{idx}'"
     end
 
     return to_a[idx]

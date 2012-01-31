@@ -23,3 +23,10 @@ ruby_version_is "1.8.7" do
     end
   end
 end
+
+describe "Enumerator#each_with_index" do
+  it "returns the correct value if chained with itself" do
+    [:a].each_with_index.each_with_index.to_a.should == [[[:a,0],0]]
+    [:a].each.with_index.with_index.to_a.should == [[[:a,0],0]]
+  end
+end

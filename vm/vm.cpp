@@ -35,6 +35,8 @@
 
 #include "util/thread.hpp"
 
+#include "park.hpp"
+
 #include <iostream>
 #include <iomanip>
 #include <signal.h>
@@ -67,10 +69,12 @@ namespace rubinius {
     , stack_start_(0)
     , run_signals_(false)
     , thread_step_(false)
+    , fiber_stacks_(this, shared)
+    , park_(new Park)
 
     , shared(shared)
-    , waiting_channel_(this, (Channel*)Qnil)
-    , interrupted_exception_(this, (Exception*)Qnil)
+    , waiting_channel_(this, nil<Channel>())
+    , interrupted_exception_(this, nil<Exception>())
     , interrupt_with_signal_(false)
     , waiting_header_(0)
     , custom_wakeup_(0)
@@ -82,8 +86,6 @@ namespace rubinius {
     , current_fiber(this, nil<Fiber>())
     , root_fiber(this, nil<Fiber>())
   {
-    set_stack_size(cStackDepthMax);
-
     if(shared.om) {
       young_start_ = shared.om->young_start();
       young_end_ = shared.om->yound_end();
@@ -94,6 +96,10 @@ namespace rubinius {
     tooling_ = false;
 
     allocation_tracking_ = shared.config.allocation_tracking;
+  }
+
+  VM::~VM() {
+    delete park_;
   }
 
   void VM::discard(STATE, VM* vm) {
@@ -130,7 +136,7 @@ namespace rubinius {
     // Setup the main Thread, which is wrapper of the main native thread
     // when the VM boots.
     thread.set(Thread::create(&state, this, G(thread), 0, true), &globals().roots);
-    thread->sleep(&state, Qfalse);
+    thread->sleep(&state, cFalse);
 
     VM::set_current(this);
   }
@@ -151,10 +157,10 @@ namespace rubinius {
       }
       G(rubinius)->set_const(&state, "JIT", ary);
     } else {
-      G(rubinius)->set_const(&state, "JIT", Qfalse);
+      G(rubinius)->set_const(&state, "JIT", cFalse);
     }
 #else
-    G(rubinius)->set_const(&state, "JIT", Qnil);
+    G(rubinius)->set_const(&state, "JIT", cNil);
 #endif
   }
 
@@ -279,12 +285,6 @@ namespace rubinius {
     shared.gc_soon();
   }
 
-  void VM::collect(GCToken gct, CallFrame* call_frame) {
-    State state(this);
-    this->set_call_frame(call_frame);
-    om->collect(&state, gct, call_frame);
-  }
-
   void VM::collect_maybe(GCToken gct, CallFrame* call_frame) {
     State state(this);
     this->set_call_frame(call_frame);
@@ -319,7 +319,7 @@ namespace rubinius {
           mod = m;
         } else {
           free(copy);
-          return Qnil;
+          return cNil;
         }
       } else {
         free(copy);
@@ -346,7 +346,10 @@ namespace rubinius {
     // Wakeup any locks hanging around with contention
     om->release_contention(state, gct);
 
-    if(interrupt_with_signal_) {
+    if(park_->parked_p()) {
+      park_->unpark();
+      return true;
+    } else if(interrupt_with_signal_) {
 #ifdef RBX_WINDOWS
       // TODO: wake up the thread
 #else
@@ -364,7 +367,7 @@ namespace rubinius {
 
       if(!chan->nil_p()) {
         UNSYNC;
-        chan->send(state, gct, Qnil);
+        chan->send(state, gct, cNil);
         return true;
       } else if(custom_wakeup_) {
         UNSYNC;
@@ -379,7 +382,7 @@ namespace rubinius {
   void VM::clear_waiter() {
     SYNC_TL;
     interrupt_with_signal_ = false;
-    waiting_channel_.set((Channel*)Qnil);
+    waiting_channel_.set(nil<Channel>());
     waiting_header_ = 0;
     custom_wakeup_ = 0;
     custom_wakeup_data_ = 0;
@@ -387,7 +390,7 @@ namespace rubinius {
 
   void VM::wait_on_channel(Channel* chan) {
     SYNC_TL;
-    thread->sleep(this, Qtrue);
+    thread->sleep(this, cTrue);
     waiting_channel_.set(chan);
   }
 
@@ -403,15 +406,15 @@ namespace rubinius {
   }
 
   bool VM::waiting_p() {
-    return interrupt_with_signal_ || !waiting_channel_->nil_p();
+    return park_->parked_p() || interrupt_with_signal_ || !waiting_channel_->nil_p();
   }
 
   void VM::set_sleeping() {
-    thread->sleep(this, Qtrue);
+    thread->sleep(this, cTrue);
   }
 
   void VM::clear_sleeping() {
-    thread->sleep(this, Qfalse);
+    thread->sleep(this, cFalse);
   }
 
   void VM::register_raise(STATE, Exception* exc) {
@@ -422,16 +425,36 @@ namespace rubinius {
   }
 
   void VM::set_current_fiber(Fiber* fib) {
-    set_stack_start(fib->stack());
-    set_stack_size(fib->stack_size());
+    set_stack_bounds((uintptr_t)fib->stack_start(), fib->stack_size());
     current_fiber.set(fib);
+  }
+
+  VariableRootBuffers& VM::current_root_buffers() {
+    if(current_fiber->nil_p() || current_fiber->root_p()) {
+      return variable_root_buffers();
+    }
+
+    return current_fiber->variable_root_buffers();
+  }
+
+  void VM::gc_scan(GarbageCollector* gc) {
+    if(CallFrame* cf = saved_call_frame()) {
+      gc->walk_call_frame(cf);
+    }
+
+    State ls(this);
+
+    shared.tool_broker()->at_gc(&ls);
+
+    fiber_stacks_.gc_scan(gc);
   }
 
   GCIndependent::GCIndependent(NativeMethodEnvironment* env)
     : state_(env->state())
   {
+    GCTokenImpl gct;
     state_->set_call_frame(env->current_call_frame());
-    state_->gc_independent();
+    state_->gc_independent(gct);
   };
-  
+
 };

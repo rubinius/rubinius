@@ -50,6 +50,8 @@
 #include "builtin/io.hpp"
 #include "builtin/thread.hpp"
 
+#include "builtin/channel.hpp"
+
 #include "builtin/staticscope.hpp"
 #include "builtin/block_environment.hpp"
 
@@ -134,7 +136,7 @@ namespace rubinius {
       tbl = mod->method_table();
     }
 
-    Executable* oc = Executable::allocate(state, Qnil);
+    Executable* oc = Executable::allocate(state, cNil);
     oc->primitive(state, prim);
     oc->resolve_primitive(state);
 
@@ -372,7 +374,7 @@ namespace rubinius {
     int status;
     pid_t pid;
 
-    if(no_hang == Qtrue) {
+    if(no_hang == cTrue) {
       options |= WNOHANG;
     }
 
@@ -398,23 +400,23 @@ namespace rubinius {
     signal(SIGINT, int_func);
 
     if(pid == -1) {
-      if(errno == ECHILD) return Qfalse;
+      if(errno == ECHILD) return cFalse;
       if(errno == EINTR) {
         if(!state->check_async(calling_environment)) return NULL;
         goto retry;
       }
 
       // TODO handle other errnos?
-      return Qfalse;
+      return cFalse;
     }
 
-    if(no_hang == Qtrue && pid == 0) {
-      return Qnil;
+    if(no_hang == cTrue && pid == 0) {
+      return cNil;
     }
 
-    Object* output  = Qnil;
-    Object* termsig = Qnil;
-    Object* stopsig = Qnil;
+    Object* output  = cNil;
+    Object* termsig = cNil;
+    Object* stopsig = cNil;
 
     if(WIFEXITED(status)) {
       output = Fixnum::from(WEXITSTATUS(status));
@@ -494,22 +496,22 @@ namespace rubinius {
     // in File#ininitialize). If we decided to ignore some GC.start calls
     // by usercode trying to be clever, we can use force to know that we
     // should NOT ignore it.
-    if(RTEST(force) || state->shared().config.gc_honor_start) {
+    if(CBOOL(force) || state->shared().config.gc_honor_start) {
       state->memory()->collect_young_now = true;
       state->memory()->collect_mature_now = true;
       state->shared().gc_soon();
     }
-    return Qnil;
+    return cNil;
   }
 
   Object* System::vm_get_config_item(STATE, String* var) {
     ConfigParser::Entry* ent = state->shared().user_variables.find(var->c_str(state));
-    if(!ent) return Qnil;
+    if(!ent) return cNil;
 
     if(ent->is_number()) {
       return Bignum::from_string(state, ent->value.c_str(), 10);
     } else if(ent->is_true()) {
-      return Qtrue;
+      return cTrue;
     }
 
     return String::create(state, ent->value.c_str());
@@ -549,7 +551,7 @@ namespace rubinius {
                               CallFrame* calling_environment) {
     CallFrame* call_frame = calling_environment;
 
-    bool include_vars = RTEST(inc_vars);
+    bool include_vars = CBOOL(inc_vars);
 
     for(native_int i = skip->to_native(); call_frame && i > 0; --i) {
       call_frame = static_cast<CallFrame*>(call_frame->previous);
@@ -572,24 +574,24 @@ namespace rubinius {
 
   Object* System::vm_show_backtrace(STATE, CallFrame* calling_environment) {
     calling_environment->print_backtrace(state);
-    return Qnil;
+    return cNil;
   }
 
   Object* System::vm_tooling_available_p(STATE) {
 #ifdef RBX_PROFILER
-    return state->shared().tool_broker()->available(state) ? Qtrue : Qfalse;
+    return state->shared().tool_broker()->available(state) ? cTrue : cFalse;
 #else
-    return Qfalse;
+    return cFalse;
 #endif
   }
 
   Object* System::vm_tooling_active_p(STATE) {
-    return state->vm()->tooling() ? Qtrue : Qfalse;
+    return state->vm()->tooling() ? cTrue : cFalse;
   }
 
   Object* System::vm_tooling_enable(STATE) {
     state->shared().tool_broker()->enable(state);
-    return Qtrue;
+    return cTrue;
   }
 
   Object* System::vm_tooling_disable(STATE) {
@@ -615,34 +617,34 @@ namespace rubinius {
 
       handle = dlopen(path.c_str(), RTLD_NOW);
       if(!handle) {
-        return Tuple::from(state, 2, Qfalse, String::create(state, dlerror()));
+        return Tuple::from(state, 2, cFalse, String::create(state, dlerror()));
       }
     }
 
     void* sym = dlsym(handle, "Tool_Init");
     if(!sym) {
       dlclose(handle);
-      return Tuple::from(state, 2, Qfalse, String::create(state, dlerror()));
+      return Tuple::from(state, 2, cFalse, String::create(state, dlerror()));
     } else {
       typedef int (*init_func)(rbxti::Env* env);
       init_func init = (init_func)sym;
 
       if(!init(state->vm()->tooling_env())) {
         dlclose(handle);
-        return Tuple::from(state, 2, Qfalse, String::create(state, path.c_str()));
+        return Tuple::from(state, 2, cFalse, String::create(state, path.c_str()));
       }
     }
     
-    return Tuple::from(state, 1, Qtrue);
+    return Tuple::from(state, 1, cTrue);
   }
 
   Object* System::vm_write_error(STATE, String* str) {
     std::cerr << str->c_str(state) << std::endl;
-    return Qnil;
+    return cNil;
   }
 
   Object* System::vm_jit_info(STATE) {
-    if(state->shared().config.jit_disabled) return Qnil;
+    if(state->shared().config.jit_disabled) return cNil;
 
 #ifdef ENABLE_LLVM
     LLVMState* ls = LLVMState::get(state);
@@ -656,7 +658,7 @@ namespace rubinius {
 
     return ary;
 #else
-    return Qnil;
+    return cNil;
 #endif
   }
 
@@ -667,17 +669,56 @@ namespace rubinius {
       if(i < 0) {
         h->add_signal(state, -i, SignalHandler::eDefault);
       } else {
-        h->add_signal(state, i, ignored == Qtrue ? SignalHandler::eIgnore : SignalHandler::eCustom);
+        h->add_signal(state, i, ignored == cTrue ? SignalHandler::eIgnore : SignalHandler::eCustom);
       }
 
-      return Qtrue;
+      return cTrue;
     } else {
-      return Qfalse;
+      return cFalse;
     }
   }
 
   Object* System::vm_time(STATE) {
     return Integer::from(state, time(0));
+  }
+
+#define NANOSECONDS 1000000000
+  Object* System::vm_sleep(STATE, GCToken gct, Object* duration,
+                           CallFrame* calling_environment)
+  {
+    struct timespec ts = {0,0};
+    bool use_timed_wait = true;
+
+    if(Fixnum* fix = try_as<Fixnum>(duration)) {
+      ts.tv_sec = fix->to_native();
+    } else if(Float* flt = try_as<Float>(duration)) {
+      uint64_t nano = (uint64_t)(flt->val * NANOSECONDS);
+      ts.tv_sec  =  (time_t)(nano / NANOSECONDS);
+      ts.tv_nsec =    (long)(nano % NANOSECONDS);
+    } else if(duration == G(undefined)) {
+      use_timed_wait = false;
+    } else {
+      return Primitives::failure();
+    }
+
+    time_t start = time(0);
+
+    if(use_timed_wait) {
+      struct timeval tv = {0,0};
+      gettimeofday(&tv, 0);
+
+      uint64_t nano = ts.tv_nsec + tv.tv_usec * 1000;
+      ts.tv_sec  += tv.tv_sec + nano / NANOSECONDS;
+      ts.tv_nsec  = nano % NANOSECONDS;
+
+      state->park_timed(gct, calling_environment, &ts);
+    } else {
+      state->park(gct, calling_environment);
+    }
+
+    if(!state->check_async(calling_environment)) return NULL;
+
+    return Fixnum::from(time(0) - start);
   }
 
   static inline double tv_to_dbl(struct timeval* tv) {
@@ -888,7 +929,7 @@ namespace rubinius {
       Tuple* lits = method->literals();
       for(native_int i = 0; i < lits->num_fields(); i++) {
         if(Symbol* sym = try_as<Symbol>(lits->at(state, i))) {
-          if(RTEST(sym->is_ivar_p(state))) {
+          if(CBOOL(sym->is_ivar_p(state))) {
             if(!ary->includes_p(state, sym)) ary->append(state, sym);
           }
         }
@@ -935,19 +976,19 @@ namespace rubinius {
       return sc->attached_instance();
     }
 
-    return Qnil;
+    return cNil;
   }
 
   Object* System::vm_object_respond_to(STATE, Object* obj, Symbol* name) {
-    return obj->respond_to(state, name, Qfalse);
+    return obj->respond_to(state, name, cFalse);
   }
 
   Object* System::vm_object_equal(STATE, Object* a, Object* b) {
-    return a == b ? Qtrue : Qfalse;
+    return a == b ? cTrue : cFalse;
   }
 
   Object* System::vm_object_kind_of(STATE, Object* obj, Module* mod) {
-    return obj->kind_of_p(state, mod) ? Qtrue : Qfalse;
+    return obj->kind_of_p(state, mod) ? cTrue : cFalse;
   }
 
   Object* System::vm_inc_global_serial(STATE) {
@@ -977,7 +1018,7 @@ namespace rubinius {
 
   Object* System::vm_deoptimize_inliners(STATE, Executable* exec) {
     exec->clear_inliners(state);
-    return Qtrue;
+    return cTrue;
   }
 
   Object* System::vm_deoptimize_all(STATE, Object* o_disable) {
@@ -991,7 +1032,7 @@ namespace rubinius {
 
     int total = 0;
 
-    bool disable = RTEST(o_disable);
+    bool disable = CBOOL(o_disable);
 
     while(obj) {
       if(CompiledMethod* cm = try_as<CompiledMethod>(obj)) {
@@ -1015,6 +1056,9 @@ namespace rubinius {
   Fixnum* System::vm_memory_size(STATE, Object* obj) {
     if(obj->reference_p()) {
       size_t bytes = obj->size_in_bytes(state->vm());
+      if(Bignum* b = try_as<Bignum>(obj)) {
+        bytes += b->managed_memory_size(state);
+      }
       Object* iv = obj->ivars();
       if(LookupTable* lt = try_as<LookupTable>(iv)) {
         bytes += iv->size_in_bytes(state->vm());
@@ -1029,18 +1073,17 @@ namespace rubinius {
     return Fixnum::from(0);
   }
 
-  Object* System::vm_throw(STATE, Symbol* dest, Object* value) {
+  Object* System::vm_throw(STATE, Object* dest, Object* value) {
     state->vm()->thread_state()->raise_throw(dest, value);
     return NULL;
   }
 
-  Object* System::vm_catch(STATE, Symbol* dest, Object* obj,
+  Object* System::vm_catch(STATE, Object* dest, Object* obj,
                            CallFrame* call_frame)
   {
     LookupData lookup(obj, obj->lookup_begin(state), false);
     Dispatch dis(state->symbol("call"));
-
-    Arguments args(state->symbol("call"));
+    Arguments args(state->symbol("call"), 1, &dest);
     args.set_recv(obj);
 
     Object* ret = dis.send(state, call_frame, lookup, args);
@@ -1101,7 +1144,7 @@ namespace rubinius {
       return ary;
     }
 
-    return Qnil;
+    return cNil;
   }
 
   Symbol* System::vm_get_kcode(STATE) {
@@ -1118,7 +1161,7 @@ namespace rubinius {
   }
 
   Object* System::vm_set_kcode(STATE, String* what) {
-    if(what->size() < 1) {
+    if(what->byte_size() < 1) {
       kcode::set(state, kcode::eAscii);
     } else {
       const char* str = what->c_str(state);
@@ -1190,11 +1233,11 @@ namespace rubinius {
       entry = mod->method_table()->find_entry(state, sym);
 
       if(entry) {
-        if(entry->undef_p(state)) return Qfalse;
+        if(entry->undef_p(state)) return cFalse;
         if(!skip_vis_check) {
-          if(entry->private_p(state)) return Qfalse;
+          if(entry->private_p(state)) return cFalse;
           if(entry->protected_p(state)) {
-            if(!self->kind_of_p(state, mod)) return Qfalse;
+            if(!self->kind_of_p(state, mod)) return cFalse;
           }
         }
 
@@ -1203,18 +1246,18 @@ namespace rubinius {
         if(entry->method()->nil_p()) {
           skip_vis_check = true;
         } else {
-          return Qtrue;
+          return cTrue;
         }
       }
 
       mod = mod->superclass();
     }
 
-    return Qfalse;
+    return cFalse;
   }
 
   Object* System::vm_check_super_callable(STATE, CallFrame* call_frame) {
-    if(call_frame->native_method_p()) return Qtrue;
+    if(call_frame->native_method_p()) return cTrue;
 
     Module* mod = call_frame->module()->superclass();
 
@@ -1225,19 +1268,19 @@ namespace rubinius {
       entry = mod->method_table()->find_entry(state, sym);
 
       if(entry) {
-        if(entry->undef_p(state)) return Qfalse;
+        if(entry->undef_p(state)) return cFalse;
 
         // It's callable, ok, but see if we should see if it's just a stub
         // to change the visibility of another method.
         if(!entry->method()->nil_p()) {
-          return Qtrue;
+          return cTrue;
         }
       }
 
       mod = mod->superclass();
     }
 
-    return Qfalse;
+    return cFalse;
   }
 
   String* System::vm_get_user_home(STATE, String* name) {
@@ -1278,9 +1321,9 @@ namespace rubinius {
   }
 
   Object* System::vm_set_finalizer(STATE, Object* obj, Object* fin) {
-    if(!obj->reference_p()) return Qfalse;
+    if(!obj->reference_p()) return cFalse;
     state->memory()->set_ruby_finalizer(obj, fin);
-    return Qtrue;
+    return cTrue;
   }
 
   Object* System::vm_object_lock(STATE, GCToken gct, Object* obj,
@@ -1291,7 +1334,7 @@ namespace rubinius {
 
     switch(obj->lock(state, gct)) {
     case eLocked:
-      return Qtrue;
+      return cTrue;
     case eLockTimeout:
     case eUnlocked:
     case eLockError:
@@ -1307,7 +1350,7 @@ namespace rubinius {
       }
     }
 
-    return Qnil;
+    return cNil;
   }
 
   Object* System::vm_object_lock_timed(STATE, GCToken gct, Object* obj, Integer* time,
@@ -1318,9 +1361,9 @@ namespace rubinius {
 
     switch(obj->lock(state, gct, time->to_native())) {
     case eLocked:
-      return Qtrue;
+      return cTrue;
     case eLockTimeout:
-      return Qfalse;
+      return cFalse;
     case eUnlocked:
     case eLockError:
       return Primitives::failure();
@@ -1336,7 +1379,7 @@ namespace rubinius {
       return 0;
     }
 
-    return Qnil;
+    return cNil;
   }
 
   Object* System::vm_object_trylock(STATE, GCToken gct, Object* obj,
@@ -1344,14 +1387,14 @@ namespace rubinius {
   {
     if(!obj->reference_p()) return Primitives::failure();
     state->set_call_frame(call_frame);
-    if(obj->try_lock(state, gct) == eLocked) return Qtrue;
-    return Qfalse;
+    if(obj->try_lock(state, gct) == eLocked) return cTrue;
+    return cFalse;
   }
 
   Object* System::vm_object_locked_p(STATE, GCToken gct, Object* obj) {
-    if(!obj->reference_p()) return Qfalse;
-    if(obj->locked_p(state, gct)) return Qtrue;
-    return Qfalse;
+    if(!obj->reference_p()) return cFalse;
+    if(obj->locked_p(state, gct)) return cTrue;
+    return cFalse;
   }
 
   Object* System::vm_object_unlock(STATE, GCToken gct, Object* obj,
@@ -1360,7 +1403,7 @@ namespace rubinius {
     if(!obj->reference_p()) return Primitives::failure();
     state->set_call_frame(call_frame);
 
-    if(obj->unlock(state, gct) == eUnlocked) return Qnil;
+    if(obj->unlock(state, gct) == eUnlocked) return cNil;
     if(cDebugThreading) {
       std::cerr << "[LOCK " << state->vm()->thread_id() << " unlock failed]" << std::endl;
     }
@@ -1369,57 +1412,57 @@ namespace rubinius {
 
   Object* System::vm_memory_barrier(STATE) {
     atomic::memory_barrier();
-    return Qnil;
+    return cNil;
   }
 
   Object* System::vm_ruby18_p(STATE) {
-    return LANGUAGE_18_ENABLED(state) ? Qtrue : Qfalse;
+    return LANGUAGE_18_ENABLED(state) ? cTrue : cFalse;
   }
 
   Object* System::vm_ruby19_p(STATE) {
-    return LANGUAGE_19_ENABLED(state) ? Qtrue : Qfalse;
+    return LANGUAGE_19_ENABLED(state) ? cTrue : cFalse;
   }
 
   Object* System::vm_ruby20_p(STATE) {
-    return LANGUAGE_20_ENABLED(state) ? Qtrue : Qfalse;
+    return LANGUAGE_20_ENABLED(state) ? cTrue : cFalse;
   }
 
   Object* System::vm_windows_p(STATE) {
 #ifdef RBX_WINDOWS
-    return Qtrue;
+    return cTrue;
 #else
-    return Qfalse;
+    return cFalse;
 #endif
   }
 
   Object* System::vm_darwin_p(STATE) {
 #ifdef RBX_DARWIN
-    return Qtrue;
+    return cTrue;
 #else
-    return Qfalse;
+    return cFalse;
 #endif
   }
 
   Object* System::vm_bsd_p(STATE) {
 #ifdef RBX_BSD
-    return Qtrue;
+    return cTrue;
 #else
-    return Qfalse;
+    return cFalse;
 #endif
   }
 
   Object* System::vm_linux_p(STATE) {
 #ifdef RBX_LINUX
-    return Qtrue;
+    return cTrue;
 #else
-    return Qfalse;
+    return cFalse;
 #endif
   }
 
   String* System::sha1_hash(STATE, String* str) {
     XSHA1_CTX ctx;
     XSHA1_Init(&ctx);
-    XSHA1_Update(&ctx, str->byte_address(), str->size());
+    XSHA1_Update(&ctx, str->byte_address(), str->byte_size());
 
     uint8_t digest[20];
     XSHA1_Finish(&ctx, digest);
@@ -1480,7 +1523,7 @@ namespace rubinius {
                                 CallFrame* calling_environment)
   {
     Dispatch msg(state->symbol("__script__"), G(object), cm);
-    Arguments args(state->symbol("__script__"), G(main), Qnil, 0, 0);
+    Arguments args(state->symbol("__script__"), G(main), cNil, 0, 0);
 
     OnStack<1> os(state, cm);
 

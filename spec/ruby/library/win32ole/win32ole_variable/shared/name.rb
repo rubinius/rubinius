@@ -9,7 +9,7 @@ platform_is :windows do
       @var = ole_type.variables[0]
     end
 
-    it 'returns a String' do
+    it "returns a String" do
       @var.send(@method).should be_kind_of String
     end
 

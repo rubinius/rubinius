@@ -1,3 +1,5 @@
+# -*- encoding: us-ascii -*-
+
 ##
 # Some terminology notes:
 #
@@ -444,61 +446,7 @@ class Module
     static_scope = env.repoint_scope self
     return env.call_under(self, static_scope, *args)
   end
-
   alias_method :class_exec, :module_exec
-
-  def constants
-    tbl = Rubinius::LookupTable.new
-
-    @constant_table.each do |name, val|
-      tbl[name] = true
-    end
-
-    current = self.direct_superclass
-
-    while current and current != Object
-      current.constant_table.each do |name, val|
-        tbl[name] = true unless tbl.has_key? name
-      end
-
-      current = current.direct_superclass
-    end
-
-    # special case: Module.constants returns Object's constants
-    if self.equal? Module
-      Object.constant_table.each do |name, val|
-        tbl[name] = true unless tbl.has_key? name
-      end
-    end
-
-    Rubinius.convert_to_names tbl.keys
-  end
-
-  def const_get(name)
-    name = normalize_const_name(name)
-
-    current, constant = self, undefined
-
-    while current
-      constant = current.constant_table.fetch name, undefined
-      unless constant.equal?(undefined)
-        constant = constant.call if constant.kind_of?(Autoload)
-        return constant
-      end
-
-      current = current.direct_superclass
-    end
-
-    if instance_of?(Module)
-      constant = Object.constant_table.fetch name, undefined
-      unless constant.equal?(undefined)
-        constant = constant.call if constant.kind_of?(Autoload)
-        return constant
-      end
-    end
-
-    const_missing(name)
-  end
 
   def const_set(name, value)
     if Rubinius::Type.object_kind_of?(value, Module)
@@ -694,7 +642,7 @@ class Module
     end
   end
 
-  def dynamic_method(name, file=:dynamic, line=1)
+  def dynamic_method(name, file="(dynamic)", line=1)
     g = Rubinius::Generator.new
     g.name = name.to_sym
     g.file = file.to_sym

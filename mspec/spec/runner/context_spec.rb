@@ -1,4 +1,4 @@
-require File.dirname(__FILE__) + '/../spec_helper'
+require 'spec_helper'
 require 'mspec/expectations/expectations'
 require 'mspec/matchers/base'
 require 'mspec/runner/mspec'
@@ -756,7 +756,7 @@ describe ContextState, "#process in pretend mode" do
   end
 
   after :all do
-    MSpec.register_mode nil
+    MSpec.clear_modes
   end
 
   before :each do
@@ -805,7 +805,7 @@ describe ContextState, "#process in pretend mode" do
   end
 
   after :all do
-    MSpec.register_mode nil
+    MSpec.clear_modes
   end
 
   before :each do
@@ -880,7 +880,7 @@ describe ContextState, "#process in pretend mode" do
   end
 
   after :all do
-    MSpec.register_mode nil
+    MSpec.clear_modes
   end
 
   before :each do

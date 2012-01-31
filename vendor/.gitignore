@@ -39,13 +39,13 @@ libffi/src/x86/.dirstamp
 libffi/testsuite/Makefile
 
 # oniguruma
-onig/Makefile
-onig/config.h
-onig/config.log
-onig/config.status
-onig/libtool
-onig/onig-config
-onig/sample/Makefile
+oniguruma/Makefile
+oniguruma/config.h
+oniguruma/config.log
+oniguruma/config.status
+oniguruma/libtool
+oniguruma/onig-config
+oniguruma/sample/Makefile
 
 # libudis
 udis86/Makefile

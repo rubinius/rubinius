@@ -1,4 +1,4 @@
-require File.dirname(__FILE__) + '/../spec_helper'
+require 'spec_helper'
 require 'mspec/utils/options'
 require 'mspec/version'
 require 'mspec/guards/guard'
@@ -788,6 +788,16 @@ describe "The -f, --format FORMAT option" do
         @config[:formatter] = nil
         @options.parse [opt, f]
         @config[:formatter].should == YamlFormatter
+      end
+    end
+  end
+
+  it "sets the JUnitFormatter with FORMAT 'j' or 'junit'" do
+    ["-f", "--format"].each do |opt|
+      ["j", "junit"].each do |f|
+        @config[:formatter] = nil
+        @options.parse [opt, f]
+        @config[:formatter].should == JUnitFormatter
       end
     end
   end

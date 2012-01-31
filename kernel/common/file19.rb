@@ -1,3 +1,5 @@
+# -*- encoding: us-ascii -*-
+
 class File
   def self.path(obj)
     return obj.to_path if obj.respond_to? :to_path
@@ -32,9 +34,11 @@ class File
   #   p File.identical?("a", "d")      #=> false
   def self.identical?(orig, copy)
     orig = Rubinius::Type.coerce_to_path(orig)
-    st_o = stat(orig)
+    st_o = File::Stat.stat(orig)
     copy = Rubinius::Type.coerce_to_path(copy)
-    st_c = stat(copy)
+    st_c = File::Stat.stat(copy)
+
+    return false if st_o.nil? || st_c.nil?
 
     return false unless st_o.ino == st_c.ino
     return false unless st_o.ftype == st_c.ftype
@@ -66,6 +70,38 @@ class File
   end
 
   alias_method :to_path, :path
+
+  def self.realpath(path, basedir = nil)
+    path = expand_path(path, basedir || Dir.pwd)
+    real = ''
+    symlinks = {}
+
+    while !path.empty?
+      pos = path.index(SEPARATOR, 1)
+
+      if pos
+        name = path[0...pos]
+        path = path[pos..-1]
+      else
+        name = path
+        path = ''
+      end
+
+      real = join(real, name)
+      if symlink?(real)
+        raise Errno::ELOOP if symlinks[real]
+        symlinks[real] = true
+        if path.empty?
+          path = expand_path(readlink(real))
+        else
+          path = expand_path(join(readlink(real), path))
+        end
+        real = ''
+      end
+    end
+
+    real
+  end
 end
 
 class File::Stat

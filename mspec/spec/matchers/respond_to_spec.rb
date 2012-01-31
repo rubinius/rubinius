@@ -1,6 +1,6 @@
-require File.dirname(__FILE__) + '/../spec_helper'
+require 'spec_helper'
 require 'mspec/expectations/expectations'
-require 'mspec/matchers/respond_to'
+require 'mspec/matchers'
 
 describe RespondToMatcher do
   it "matches when actual does respond_to? expected" do

@@ -27,8 +27,8 @@ namespace rubinius {
 
     Dispatch(Symbol* name)
       : name(name)
-      , module(reinterpret_cast<Module*>(Qnil))
-      , method(reinterpret_cast<Executable*>(Qnil))
+      , module(reinterpret_cast<Module*>(cNil))
+      , method(reinterpret_cast<Executable*>(cNil))
       , method_missing(false)
     {}
 

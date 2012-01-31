@@ -1,3 +1,5 @@
+# -*- encoding: us-ascii -*-
+
 module Rubinius
   def self.open_class_under(name, sup, mod)
     unless Type.object_kind_of? mod, Module

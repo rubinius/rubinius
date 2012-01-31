@@ -64,14 +64,6 @@ static VALUE module_specs_rb_alias(VALUE self, VALUE obj,
 }
 #endif
 
-#ifdef HAVE_RB_DEFINE_CLASS_UNDER
-static VALUE module_specs_rb_define_class_under(VALUE self, VALUE outer,
-                                                 VALUE name, VALUE super) {
-  if(NIL_P(super)) super = 0;
-  return rb_define_class_under(outer, RSTRING_PTR(name), super);
-}
-#endif
-
 #ifdef HAVE_RB_DEFINE_MODULE_UNDER
 static VALUE module_specs_rb_define_module_under(VALUE self, VALUE outer, VALUE name) {
   return rb_define_module_under(outer, RSTRING_PTR(name));
@@ -189,10 +181,6 @@ void Init_module_spec() {
 
 #ifdef HAVE_RB_ALIAS
   rb_define_method(cls, "rb_alias", module_specs_rb_alias, 3);
-#endif
-
-#ifdef HAVE_RB_DEFINE_CLASS_UNDER
-  rb_define_method(cls, "rb_define_class_under", module_specs_rb_define_class_under, 3);
 #endif
 
 #ifdef HAVE_RB_DEFINE_MODULE_UNDER

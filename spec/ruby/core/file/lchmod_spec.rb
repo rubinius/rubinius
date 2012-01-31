@@ -29,4 +29,17 @@ describe "File.lchmod" do
       File.stat(@lname).writable?.should   == true
     end
   end
+
+  ruby_version_is "1.9" do
+    platform_is :os => [:linux, :openbsd] do
+      it "returns false from #respond_to?" do
+        File.respond_to?(:lchmod).should be_false
+      end
+
+      it "raises a NotImplementedError when called" do
+        lambda { File.lchmod }.should raise_error(NotImplementedError)
+      end
+    end
+  end
+
 end

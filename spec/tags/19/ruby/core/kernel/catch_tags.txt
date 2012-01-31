@@ -1,6 +1,0 @@
-fails:Kernel.catch passes the given symbol to its block
-fails:Kernel.catch passes a symbol converted from the given string to its block
-fails:Kernel.catch raises an ArgumentError if a Symbol is thrown for a String catch value
-fails:Kernel.catch raises an ArgumentError if a String with different identity is thrown
-fails:Kernel.catch accepts an object as an argument
-fails:Kernel.catch yields an object when called without arguments

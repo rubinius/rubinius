@@ -6,11 +6,11 @@ platform_is :windows do
       @ie = WIN32OLE.new("InternetExplorer.application")
     end
 
-    it 'raises ArgumentError if no argument is given' do
+    it "raises ArgumentError if no argument is given" do
       lambda { @ie.send(@method) }.should raise_error ArgumentError
     end
 
-    it 'returns the WIN32OLE_METHOD "Quit" if given "Quit"' do
+    it "returns the WIN32OLE_METHOD 'Quit' if given 'Quit'" do
       result = @ie.send(@method, "Quit")
       result.kind_of?(WIN32OLE_METHOD).should be_true
       result.name.should == 'Quit'

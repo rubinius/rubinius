@@ -13,7 +13,7 @@
 #ifndef MEL_NODE19_HPP
 #define MEL_NODE19_HPP
 
-#include "ruby.h"
+#include "melbourne.hpp"
 
 namespace melbourne {
   namespace grammar19 {
@@ -241,7 +241,7 @@ namespace melbourne {
 #define NEW_FALSE()             NEW_NODE(NODE_FALSE,0,0,0)
 #define NEW_ERRINFO()           NEW_NODE(NODE_ERRINFO,0,0,0)
 #define NEW_DEFINED(e)          NEW_NODE(NODE_DEFINED,e,0,0)
-#define NEW_PREEXE(b)           NEW_SCOPE(b)
+#define NEW_PREEXE(b)           NEW_NODE(NODE_PREEXE,0,b,0)
 #define NEW_POSTEXE(b)          NEW_NODE(NODE_POSTEXE,0,b,0)
 #define NEW_BMETHOD(b)          NEW_NODE(NODE_BMETHOD,0,0,b)
 #define NEW_ATTRASGN(r,m,a)     NEW_NODE(NODE_ATTRASGN,r,m,a)
@@ -251,6 +251,7 @@ namespace melbourne {
 #define NEW_FILE()              NEW_NODE(NODE_FILE,0,0,0)
 #define NEW_NUMBER(l)           NEW_NODE(NODE_NUMBER,REF(l),0,0)
 #define NEW_FLOAT(l)            NEW_NODE(NODE_FLOAT,REF(l),0,0)
+#define NEW_ENCODING(n)         NEW_NODE(NODE_ENCODING,REF(n),0,0)
 
 #define NOEX_PUBLIC             0x00,
 #define NOEX_NOSUPER            0x01,

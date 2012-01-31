@@ -34,43 +34,135 @@ ruby_version_is "1.9" do
       82.chr.should_not equal(82.chr)
     end
 
-    it "returns a US-ASCII String if self is between 0 and 127 (inclusive)" do
-      0.chr.encoding.should == Encoding::US_ASCII
-      69.chr.encoding.should == Encoding::US_ASCII
-      127.chr.encoding.should == Encoding::US_ASCII
-      128.chr.encoding.should_not == Encoding::US_ASCII
-    end
-
-    it "returns an ASCII-8BIT String if self is between 128 and 255 (inclusive)" do
-      128.chr.encoding.should == Encoding::ASCII_8BIT
-      210.chr.encoding.should == Encoding::ASCII_8BIT
-      255.chr.encoding.should == Encoding::ASCII_8BIT
-    end
-
-    it "interprets self as a codepoint in the corresponding character set" do
-      80.chr.should == 'P'.force_encoding(Encoding::US_ASCII)
-      80.chr.codepoints.to_a.should == [80]
-
-      200.chr.should == "\xC8".force_encoding(Encoding::ASCII_8BIT)
-      200.chr.codepoints.to_a.should == [200]
-    end
-
-    it "raises a RangeError is self is greater than 255 and the internal encoding is nil" do
-      Encoding.default_internal.should be_nil
-      lambda { 256.chr }.should raise_error(RangeError)
-      lambda { bignum_value.chr }.should raise_error(RangeError)
-    end
-
-    it "infers the encoding from Encoding.default_internal" do
-      old_internal = Encoding.default_internal
-      Encoding.default_internal = Encoding::UTF_8
-      120818.chr.should == "\u{1d7f2}"
-      Encoding.default_internal = old_internal
-    end
-
     it "raises a RangeError is self is less than 0" do
       lambda { -1.chr }.should raise_error(RangeError)
       lambda { -bignum_value.chr }.should raise_error(RangeError)
+    end
+
+    describe "when Encoding.default_internal is nil" do
+      describe "and self is between 0 and 127 (inclusive)" do
+        it "returns a US-ASCII String" do
+          (0..127).each do |c|
+            c.chr.encoding.should == Encoding::US_ASCII
+          end
+        end
+
+        it "returns a String encoding self interpreted as a US-ASCII codepoint" do
+          (0..127).each do |c|
+            c.chr.bytes.to_a.should == [c]
+          end
+        end
+      end
+
+      describe "and self is between 128 and 255 (inclusive)" do
+        it "returns an ASCII-8BIT String" do
+          (128..255).each do |c|
+            c.chr.encoding.should == Encoding::ASCII_8BIT
+          end
+        end
+
+        it "returns a String containing self interpreted as a byte" do
+          (128..255).each do |c|
+            c.chr.bytes.to_a.should == [c]
+          end
+        end
+      end
+
+      it "raises a RangeError is self is greater than 255" do
+        lambda { 256.chr }.should raise_error(RangeError)
+        lambda { bignum_value.chr }.should raise_error(RangeError)
+      end
+    end
+
+    describe "when Encoding.default_internal is not nil" do
+      before do
+        @default_internal = Encoding.default_internal
+      end
+
+      after do
+        Encoding.default_internal = @default_internal
+      end
+
+      describe "and self is between 0 and 127 (inclusive)" do
+        it "returns a US-ASCII String" do
+          (0..127).each do |c|
+            Encoding.default_internal = Encoding::UTF_8
+            c.chr.encoding.should == Encoding::US_ASCII
+
+            Encoding.default_internal = Encoding::SHIFT_JIS
+            c.chr.encoding.should == Encoding::US_ASCII
+          end
+        end
+
+        it "returns a String encoding self interpreted as a US-ASCII codepoint" do
+          (0..127).each do |c|
+            Encoding.default_internal = Encoding::UTF_8
+            c.chr.bytes.to_a.should == [c]
+
+            Encoding.default_internal = Encoding::SHIFT_JIS
+            c.chr.bytes.to_a.should == [c]
+          end
+        end
+      end
+
+      describe "and self is between 128 and 255 (inclusive)" do
+        it "returns an ASCII-8BIT String" do
+          (128..255).each do |c|
+            Encoding.default_internal = Encoding::UTF_8
+            c.chr.encoding.should == Encoding::ASCII_8BIT
+
+            Encoding.default_internal = Encoding::SHIFT_JIS
+            c.chr.encoding.should == Encoding::ASCII_8BIT
+          end
+        end
+
+        it "returns a String containing self interpreted as a byte" do
+          (128..255).each do |c|
+            Encoding.default_internal = Encoding::UTF_8
+            c.chr.bytes.to_a.should == [c]
+
+            Encoding.default_internal = Encoding::SHIFT_JIS
+            c.chr.bytes.to_a.should == [c]
+          end
+        end
+      end
+
+      describe "and self is greater than 255" do
+        it "returns a String with the default internal encoding" do
+          Encoding.default_internal = Encoding::UTF_8
+          0x0100.chr.encoding.should == Encoding::UTF_8
+          0x3000.chr.encoding.should == Encoding::UTF_8
+
+          Encoding.default_internal = Encoding::SHIFT_JIS
+          0x8140.chr.encoding.should == Encoding::SHIFT_JIS
+          0xFC4B.chr.encoding.should == Encoding::SHIFT_JIS
+        end
+
+        it "returns a String encoding self interpreted as a codepoint in the default internal encoding" do
+          Encoding.default_internal = Encoding::UTF_8
+          0x0100.chr.bytes.to_a.should == [0xC4, 0x80]
+          0x3000.chr.bytes.to_a.should == [0xE3, 0x80, 0x80]
+
+          Encoding.default_internal = Encoding::SHIFT_JIS
+          0x8140.chr.bytes.to_a.should == [0x81, 0x40] # Smallest assigned CP932 codepoint greater than 255
+          0xFC4B.chr.bytes.to_a.should == [0xFC, 0x4B] # Largest assigned CP932 codepoint
+        end
+
+        ruby_bug "#5864", "2.0" do
+          it "raises RangeError if self is invalid as a codepoint in the default internal encoding" do
+            [ [0x0100, "US-ASCII"],
+              [0x0100, "ASCII-8BIT"],
+              [0x0100, "EUC-JP"],
+              [0xA1A0, "EUC-JP"],
+              [0x0100, "ISO-8859-9"],
+              [620,    "TIS-620"]
+            ].each do |integer, encoding_name|
+              Encoding.default_internal = Encoding.find(encoding_name)
+              lambda { integer.chr }.should raise_error(RangeError)
+            end
+          end
+        end
+      end
     end
   end
 
@@ -83,12 +175,8 @@ ruby_version_is "1.9" do
       8287.chr(Encoding::UTF_8).should_not equal(8287.chr(Encoding::UTF_8))
     end
 
-    it "accepts an Encoding object as an argument" do
-      lambda { 568.chr(Encoding::SHIFT_JIS) }.should_not raise_error
-    end
-
     it "accepts a String as an argument" do
-      lambda { 56.chr('euc-jp') }.should_not raise_error
+      lambda { 0xA4A2.chr('euc-jp') }.should_not raise_error
     end
 
     it "converts a String to an Encoding as Encoding.find does" do
@@ -97,49 +185,75 @@ ruby_version_is "1.9" do
       end
     end
 
-    it "returns characters in the specified encoding even if they exist in US-ASCII" do
-      97.chr.encoding.should == Encoding::US_ASCII
-      97.chr(Encoding::UTF_8).encoding.should == Encoding::UTF_8
-    end
-
-    it "behaves as called with no argument if encoding is specified as US-ASCII and self is less than 128" do
-      0.chr(Encoding::US_ASCII).should == 0.chr
-      69.chr(Encoding::US_ASCII).should == 69.chr
-      127.chr(Encoding::US_ASCII).should == 127.chr
-    end
-
-    it "behaves as called with no argument if encoding is specified as ASCII-8BIT and self is between 128 and 255" do
-      128.chr(Encoding::ASCII_8BIT).should == 128.chr
-      200.chr(Encoding::ASCII_8BIT).should == 200.chr
-      255.chr(Encoding::ASCII_8BIT).should == 255.chr
-      lambda { 256.chr(Encoding::ASCII_8BIT) }.should raise_error(RangeError)
-    end
-
-    it "interprets self as a codepoint in the corresponding character set" do
-      0x56CE.chr(Encoding::UTF_8).should == "\u{56CE}"
-      0x56CE.chr(Encoding::UTF_8).codepoints.to_a.should == [0x56CE]
-
-      41900.chr(Encoding::BIG5).should == "\xA3\xAC".\
-        force_encoding(Encoding::BIG5)
-      41900.chr(Encoding::BIG5).codepoints.to_a.should == [41900]
-
-      129.chr(Encoding::KOI8_R).should == "\x81".\
-        force_encoding(Encoding::KOI8_R)
-      129.chr(Encoding::KOI8_R).codepoints.to_a.should == [129]
-    end
-
-    it "raises a RangeError if self is an invalid codepoint for the given encoding" do
-      lambda { 0x81.chr(Encoding::EUC_JP)     }.should raise_error(RangeError)
-      lambda { 256.chr(Encoding::ISO_8859_9)  }.should raise_error(RangeError)
-      lambda { 620.chr(Encoding::TIS_620)     }.should raise_error(RangeError)
-    end
-
     ruby_bug "http://redmine.ruby-lang.org/issues/4869", "1.9.2.290" do
       it "raises a RangeError is self is less than 0" do
-        lambda { -1.chr(Encoding::UTF_8)             }.\
-          should raise_error(RangeError)
-        lambda { -bignum_value.chr(Encoding::EUC_JP) }.\
-          should raise_error(RangeError)
+        lambda { -1.chr(Encoding::UTF_8) }.should raise_error(RangeError)
+        lambda { -bignum_value.chr(Encoding::EUC_JP) }.should raise_error(RangeError)
+      end
+    end
+
+    it "returns a String with the specified encoding" do
+      0x0000.chr(Encoding::US_ASCII).encoding.should == Encoding::US_ASCII
+      0x007F.chr(Encoding::US_ASCII).encoding.should == Encoding::US_ASCII
+
+      0x0000.chr(Encoding::ASCII_8BIT).encoding.should == Encoding::ASCII_8BIT
+      0x007F.chr(Encoding::ASCII_8BIT).encoding.should == Encoding::ASCII_8BIT
+      0x0080.chr(Encoding::ASCII_8BIT).encoding.should == Encoding::ASCII_8BIT
+      0x00FF.chr(Encoding::ASCII_8BIT).encoding.should == Encoding::ASCII_8BIT
+
+      0x0000.chr(Encoding::UTF_8).encoding.should == Encoding::UTF_8
+      0x007F.chr(Encoding::UTF_8).encoding.should == Encoding::UTF_8
+      0x0080.chr(Encoding::UTF_8).encoding.should == Encoding::UTF_8
+      0x00FF.chr(Encoding::UTF_8).encoding.should == Encoding::UTF_8
+      0x0100.chr(Encoding::UTF_8).encoding.should == Encoding::UTF_8
+      0x3000.chr(Encoding::UTF_8).encoding.should == Encoding::UTF_8
+
+      0x0000.chr(Encoding::SHIFT_JIS).encoding.should == Encoding::SHIFT_JIS
+      0x007F.chr(Encoding::SHIFT_JIS).encoding.should == Encoding::SHIFT_JIS
+      0x00A1.chr(Encoding::SHIFT_JIS).encoding.should == Encoding::SHIFT_JIS
+      0x00DF.chr(Encoding::SHIFT_JIS).encoding.should == Encoding::SHIFT_JIS
+      0x8140.chr(Encoding::SHIFT_JIS).encoding.should == Encoding::SHIFT_JIS
+      0xFC4B.chr(Encoding::SHIFT_JIS).encoding.should == Encoding::SHIFT_JIS
+    end
+
+    it "returns a String encoding self interpreted as a codepoint in the specified encoding" do
+      0x0000.chr(Encoding::US_ASCII).bytes.to_a.should == [0x00]
+      0x007F.chr(Encoding::US_ASCII).bytes.to_a.should == [0x7F]
+
+      0x0000.chr(Encoding::ASCII_8BIT).bytes.to_a.should == [0x00]
+      0x007F.chr(Encoding::ASCII_8BIT).bytes.to_a.should == [0x7F]
+      0x0080.chr(Encoding::ASCII_8BIT).bytes.to_a.should == [0x80]
+      0x00FF.chr(Encoding::ASCII_8BIT).bytes.to_a.should == [0xFF]
+
+      0x0000.chr(Encoding::UTF_8).bytes.to_a.should == [0x00]
+      0x007F.chr(Encoding::UTF_8).bytes.to_a.should == [0x7F]
+      0x0080.chr(Encoding::UTF_8).bytes.to_a.should == [0xC2, 0x80]
+      0x00FF.chr(Encoding::UTF_8).bytes.to_a.should == [0xC3, 0xBF]
+      0x0100.chr(Encoding::UTF_8).bytes.to_a.should == [0xC4, 0x80]
+      0x3000.chr(Encoding::UTF_8).bytes.to_a.should == [0xE3, 0x80, 0x80]
+
+      0x0000.chr(Encoding::SHIFT_JIS).bytes.to_a.should == [0x00]
+      0x007F.chr(Encoding::SHIFT_JIS).bytes.to_a.should == [0x7F]
+      0x00A1.chr(Encoding::SHIFT_JIS).bytes.to_a.should == [0xA1]
+      0x00DF.chr(Encoding::SHIFT_JIS).bytes.to_a.should == [0xDF]
+      0x8140.chr(Encoding::SHIFT_JIS).bytes.to_a.should == [0x81, 0x40] # Smallest assigned CP932 codepoint greater than 255
+      0xFC4B.chr(Encoding::SHIFT_JIS).bytes.to_a.should == [0xFC, 0x4B] # Largest assigned CP932 codepoint
+    end
+
+    ruby_bug "#5864", "2.0" do
+      it "raises RangeError if self is invalid as a codepoint in the specified encoding" do
+        [ [0x80,   "US-ASCII"],
+          [0x0100, "ASCII-8BIT"],
+          [0x0100, "EUC-JP"],
+          [0xA1A0, "EUC-JP"],
+          [0xA1,   "EUC-JP"],
+          [0x80,   "SHIFT_JIS"],
+          [0xE0,   "SHIFT_JIS"],
+          [0x0100, "ISO_8859_9"],
+          [620,    "TIS_620"]
+        ].each do |integer, encoding_name|
+          lambda { integer.chr(encoding_name) }.should raise_error(RangeError)
+        end
       end
     end
   end

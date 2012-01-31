@@ -121,6 +121,10 @@ namespace rubinius {
 
         if(!LANGUAGE_18_ENABLED(env->state())) {
           map[cCApiMathDomainError]     = "Math::DomainError";
+          map[cCApiEncoding]            = "Encoding";
+          map[cCApiEncCompatError]      = "Encoding::CompatibilityError";
+          map[cCApiWaitReadable]        = "IO::WaitReadable";
+          map[cCApiWaitWritable]        = "IO::WaitWritable";
         }
       }
 
@@ -147,7 +151,7 @@ namespace rubinius {
         args->set(env->state(), i, env->get_object(arg_array[i]));
       }
 
-      Object* blk = RBX_Qnil;
+      Object* blk = cNil;
 
       if(VALUE blk_handle = env->outgoing_block()) {
         blk = env->get_object(blk_handle);
@@ -157,7 +161,7 @@ namespace rubinius {
       Object* recv = env->get_object(receiver);
 
       // Unlock, we're leaving extension code.
-      env->state()->vm()->shared.leave_capi(env->state());
+      LEAVE_CAPI(env->state());
 
       Object* ret = recv->send(env->state(), env->current_call_frame(),
           reinterpret_cast<Symbol*>(method_name), args, blk);
@@ -168,7 +172,7 @@ namespace rubinius {
       if(ret) ret_handle = env->get_handle(ret);
 
       // Re-entering extension code
-      env->state()->vm()->shared.enter_capi(env->state());
+      ENTER_CAPI(env->state());
 
       env->update_cached_data();
 
@@ -192,7 +196,7 @@ namespace rubinius {
       env->flush_cached_data();
 
       // Unlock, we're leaving extension code.
-      env->state()->vm()->shared.leave_capi(env->state());
+      LEAVE_CAPI(env->state());
 
       LookupData lookup(recv, recv->lookup_begin(env->state()), true);
       Arguments args_o(method, recv, block, arg_count, args);
@@ -207,7 +211,7 @@ namespace rubinius {
       if(ret) ret_handle = env->get_handle(ret);
 
       // Re-entering extension code
-      env->state()->vm()->shared.enter_capi(env->state());
+      ENTER_CAPI(env->state());
 
       env->update_cached_data();
 
@@ -233,13 +237,13 @@ namespace rubinius {
       va_end(varargs);
 
       // Unlock, we're leaving extension code.
-      env->state()->vm()->shared.leave_capi(env->state());
+      LEAVE_CAPI(env->state());
 
       Object* recv = env->get_object(receiver);
       Symbol* method = (Symbol*)method_name;
 
       LookupData lookup(recv, recv->lookup_begin(env->state()), true);
-      Arguments args_o(method, recv, RBX_Qnil, arg_count, args);
+      Arguments args_o(method, recv, cNil, arg_count, args);
       Dispatch dis(method);
 
       Object* ret = dis.send(env->state(), env->current_call_frame(),
@@ -251,7 +255,7 @@ namespace rubinius {
       if(ret) ret_handle = env->get_handle(ret);
 
       // Re-entering extension code
-      env->state()->vm()->shared.enter_capi(env->state());
+      ENTER_CAPI(env->state());
 
       // An exception occurred
       if(!ret) env->current_ep()->return_to(env);
@@ -271,9 +275,9 @@ namespace rubinius {
       env->flush_cached_data();
 
       // Unlock, we're leaving extension code.
-      env->state()->vm()->shared.leave_capi(env->state());
+      LEAVE_CAPI(env->state());
 
-      Object* ret = RBX_Qnil;
+      Object* ret = cNil;
       STATE = env->state();
 
       CallFrame* call_frame = env->current_call_frame();
@@ -297,7 +301,7 @@ namespace rubinius {
       if(ret) ret_handle = env->get_handle(ret);
 
       // Re-entering extension code
-      env->state()->vm()->shared.enter_capi(env->state());
+      ENTER_CAPI(env->state());
 
       env->update_cached_data();
 
@@ -324,7 +328,7 @@ namespace rubinius {
       Symbol* name = c_as<NativeMethod>(env->get_object(frame->method()))->name();
 
       // Unlock, we're leaving extension code.
-      env->state()->vm()->shared.leave_capi(env->state());
+      LEAVE_CAPI(env->state());
 
       LookupData lookup(recv, mod->superclass(), true);
       Arguments args_o(name, recv, arg_count, args);
@@ -339,7 +343,7 @@ namespace rubinius {
       if(ret) ret_handle = env->get_handle(ret);
 
       // Re-entering extension code
-      env->state()->vm()->shared.enter_capi(env->state());
+      ENTER_CAPI(env->state());
 
       env->update_cached_data();
 
@@ -410,6 +414,18 @@ namespace rubinius {
       env->current_ep()->return_to(env);
     }
 
+    void capi_raise_backend(VALUE exception) {
+      NativeMethodEnvironment* env = NativeMethodEnvironment::get();
+      Exception *exc = capi::c_as<Exception>(env->get_object(exception));
+      capi_raise_backend(exc);
+    }
+
+    void capi_raise_backend(VALUE klass, const char* reason) {
+      NativeMethodEnvironment* env = NativeMethodEnvironment::get();
+      Class* cls = c_as<Class>(env->get_object(klass));
+      Exception* exc = Exception::make_exception(env->state(), cls, reason);
+      capi_raise_backend(exc);
+    }
 
     Proc* wrap_c_function(void* cb, VALUE cb_data, int arity) {
       NativeMethodEnvironment* env = NativeMethodEnvironment::get();
@@ -473,7 +489,7 @@ extern "C" {
 
     va_end(varargs);
 
-    Object* blk = RBX_Qnil;
+    Object* blk = cNil;
 
     if(VALUE blk_handle = env->outgoing_block()) {
       blk = env->get_object(blk_handle);
@@ -495,7 +511,7 @@ extern "C" {
       args[i] = env->get_object(v_args[i]);
     }
 
-    Object* blk = RBX_Qnil;
+    Object* blk = cNil;
 
     if(VALUE blk_handle = env->outgoing_block()) {
       blk = env->get_object(blk_handle);
@@ -530,7 +546,7 @@ extern "C" {
 
     Object* blk = env->block();
 
-    if(!RBX_RTEST(blk)) {
+    if(!CBOOL(blk)) {
       rb_raise(rb_eLocalJumpError, "no block given", 0);
     }
 
@@ -544,7 +560,7 @@ extern "C" {
 
     Object* blk = env->block();
 
-    if(!RBX_RTEST(blk)) {
+    if(!CBOOL(blk)) {
       rb_raise(rb_eLocalJumpError, "no block given", 0);
     }
 
@@ -571,7 +587,7 @@ extern "C" {
 
     Object* blk = env->block();
 
-    if(!RBX_RTEST(blk)) {
+    if(!CBOOL(blk)) {
       rb_raise(rb_eLocalJumpError, "no block given", 0);
     }
 
@@ -591,7 +607,7 @@ extern "C" {
 
   int rb_block_given_p() {
     NativeMethodEnvironment* env = NativeMethodEnvironment::get();
-    return RBX_RTEST(env->block());
+    return CBOOL(env->block());
   }
 
   void rb_need_block() {
@@ -609,10 +625,10 @@ extern "C" {
     Object* obj = env->get_object(recv);
 
     // Unlock, we're leaving extension code.
-    env->state()->vm()->shared.leave_capi(env->state());
+    LEAVE_CAPI(env->state());
 
     Object* ret = obj->send(env->state(), env->current_call_frame(),
-        reinterpret_cast<Symbol*>(mid), ary, RBX_Qnil);
+        reinterpret_cast<Symbol*>(mid), ary, cNil);
 
     // We need to get the handle for the return value before getting
     // the GEL so that ret isn't accidentally GCd while we wait.
@@ -620,7 +636,7 @@ extern "C" {
     if(ret) ret_handle = env->get_handle(ret);
 
     // Re-entering extension code
-    env->state()->vm()->shared.enter_capi(env->state());
+    ENTER_CAPI(env->state());
 
     env->update_cached_data();
 
@@ -631,19 +647,19 @@ extern "C" {
   }
 
 
-  void capi_infect(VALUE obj1, VALUE obj2) {
+  void capi_infect(VALUE h, VALUE s) {
     NativeMethodEnvironment* env = NativeMethodEnvironment::get();
 
-    Object* object1 = env->get_object(obj1);
-    Object* object2 = env->get_object(obj2);
+    Object* host   = env->get_object(h);
+    Object* source = env->get_object(s);
 
-    object1->infect(env->state(), object2);
+    source->infect(env->state(), host);
   }
 
   int capi_nil_p(VALUE expression_result) {
     NativeMethodEnvironment* env = NativeMethodEnvironment::get();
 
-    return RBX_NIL_P(env->get_object(expression_result));
+    return env->get_object(expression_result)->nil_p();
   }
 
   void capi_taint(VALUE obj) {

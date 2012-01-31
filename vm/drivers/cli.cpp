@@ -71,7 +71,7 @@ int main(int argc, char** argv) {
      *
      * This has the same name as the RubyException TypeError (run `5 + "string"`
      * as an example), but these are NOT the same - this exception is raised
-     * internally when Qnil gets passed to an array method, for instance, when
+     * internally when cNil gets passed to an array method, for instance, when
      * an array was expected.
      */
     std::cout << "Type Error detected:" << std::endl;

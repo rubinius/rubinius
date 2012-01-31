@@ -8,7 +8,6 @@
 #include "builtin/basicobject.hpp"
 #include "builtin/block_environment.hpp"
 #include "builtin/bytearray.hpp"
-#include "builtin/chararray.hpp"
 #include "builtin/class.hpp"
 #include "builtin/compactlookuptable.hpp"
 #include "builtin/compiledmethod.hpp"
@@ -46,6 +45,7 @@
 #include "builtin/randomizer.hpp"
 #include "builtin/module.hpp"
 #include "builtin/class.hpp"
+#include "builtin/atomic.hpp"
 
 #include "configuration.hpp"
 #include "config.h"
@@ -120,7 +120,7 @@ namespace rubinius {
 
     // Class's klass is Class
     cls->klass(state, cls);
-    cls->ivars(state, Qnil);
+    cls->ivars(state, cNil);
     cls->set_obj_type(ClassType);
 
     cls->set_object_type(state, ClassType);
@@ -134,7 +134,7 @@ namespace rubinius {
     Class* basicobject = 0;
     Class* object;
     if(!LANGUAGE_18_ENABLED(state)) {
-      basicobject = ontology::new_basic_class(state, force_as<Class>(Qnil));
+      basicobject = ontology::new_basic_class(state, force_as<Class>(cNil));
       GO(basicobject).set(basicobject);
       basicobject->set_object_type(state, BasicObjectType);
 
@@ -206,10 +206,10 @@ namespace rubinius {
 
     // See?
     if(!LANGUAGE_18_ENABLED(state)) {
-      assert(basicobject->superclass() == Qnil);
+      assert(basicobject->superclass() == cNil);
       assert(object->superclass() == basicobject);
     } else {
-      assert(object->superclass() == Qnil);
+      assert(object->superclass() == cNil);
       assert(object->klass()->superclass() == cls);
     }
 
@@ -286,9 +286,9 @@ namespace rubinius {
       }
     }
 
-    globals().special_classes[(uintptr_t)Qfalse] = GO(false_class);
-    globals().special_classes[(uintptr_t)Qnil  ] = GO(nil_class);
-    globals().special_classes[(uintptr_t)Qtrue ] = GO(true_class);
+    globals().special_classes[(uintptr_t)cFalse] = GO(false_class);
+    globals().special_classes[(uintptr_t)cNil  ] = GO(nil_class);
+    globals().special_classes[(uintptr_t)cTrue ] = GO(true_class);
 
     /* Create IncludedModule */
     GO(included_module).set(ontology::new_class(state, 
@@ -300,7 +300,6 @@ namespace rubinius {
     // typically means creating a Ruby class.
     Array::init(state);
     ByteArray::init(state);
-    CharArray::init(state);
     String::init(state);
     Encoding::init(state);
     kcode::init(state);
@@ -338,6 +337,7 @@ namespace rubinius {
     Fiber::init(state);
     Alias::init(state);
     Randomizer::init(state);
+    AtomicReference::init(state);
   }
 
   // @todo document all the sections of bootstrap_ontology
@@ -398,9 +398,9 @@ namespace rubinius {
 
   void VM::initialize_fundamental_constants(STATE) {
     if(sizeof(int) == sizeof(long)) {
-      G(rubinius)->set_const(state, "L64", Qfalse);
+      G(rubinius)->set_const(state, "L64", cFalse);
     } else {
-      G(rubinius)->set_const(state, "L64", Qtrue);
+      G(rubinius)->set_const(state, "L64", cTrue);
     }
 
     G(rubinius)->set_const(state, "WORDSIZE", Fixnum::from(sizeof(void*) * 8));
@@ -412,8 +412,8 @@ namespace rubinius {
     IO* out_io = IO::create(state, STDOUT_FILENO);
     IO* err_io = IO::create(state, STDERR_FILENO);
 
-    out_io->sync(state, Qtrue);
-    err_io->sync(state, Qtrue);
+    out_io->sync(state, cTrue);
+    err_io->sync(state, cTrue);
 
     in_io->force_read_only(state);
     out_io->force_write_only(state);
@@ -456,6 +456,7 @@ namespace rubinius {
     } else {
       G(rubinius)->set_const(state, "RUBY_LIB_VERSION", Fixnum::from(18));
     }
+    G(rubinius)->set_const(state, "LIBC", String::create(state, RBX_LIBC));
 
 #ifdef RBX_LITTLE_ENDIAN
     G(rubinius)->set_const(state, "ENDIAN", symbol("little"));
@@ -537,7 +538,12 @@ namespace rubinius {
     loe = dexc(LoadError, scp);
     rte = dexc(RuntimeError, std);
     sce = dexc(SystemCallError, std);
-    stk = dexc(StackError, exc);
+    // SystemStackError has a different superclass in 1.9
+    if(LANGUAGE_18_ENABLED(state)) {
+      stk = dexc(SystemStackError, std);
+    } else {
+      stk = dexc(SystemStackError, exc);
+    }
     lje = dexc(LocalJumpError, std);
     rng = dexc(RangeError, std);
     dexc(FloatDomainError, rng);
@@ -557,9 +563,9 @@ namespace rubinius {
     ontology::new_class(state, "AssertionError", vme, G(rubinius));
     ontology::new_class(state, "ObjectBoundsExceededError", vme, G(rubinius));
 
-    // Create the stack error object now, since we probably wont be
-    // able to later.
-    GO(stack_error).set(new_object<Exception>(stk));
+    // The stack_error mechanisms assume that there will be enough
+    // space left over to allocate the actual exception.
+    GO(stack_error).set(stk);
 
     GO(exc_type).set(type);
     GO(exc_arg).set(arg);

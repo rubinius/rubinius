@@ -45,11 +45,11 @@ namespace rubinius {
   }
 
   Object* Proc::call(STATE, CallFrame* call_frame, Arguments& args) {
-    bool lambda_style = RTEST(lambda_);
+    bool lambda_style = CBOOL(lambda_);
     int flags = 0;
 
     // Check the arity in lambda mode
-    if(lambda_style) {
+    if(lambda_style && !block_->nil_p()) {
       flags = CallFrame::cIsLambda;
       int total = block_->code()->total_args()->to_native();
       int required = block_->code()->required_args()->to_native();
@@ -67,7 +67,7 @@ namespace rubinius {
             Object* obj = args.get_argument(0);
 
             if(!(ary = try_as<Array>(obj))) {
-              if(RTEST(obj->respond_to(state, state->symbol("to_ary"), Qfalse))) {
+              if(CBOOL(obj->respond_to(state, state->symbol("to_ary"), cFalse))) {
                 obj = obj->send(state, call_frame, state->symbol("to_ary"));
                 if(!(ary = try_as<Array>(obj))) {
                   Exception::type_error(state, "to_ary must return an Array", call_frame);

@@ -1,7 +1,7 @@
 platform_is :windows do
   require 'win32ole'
 
-  describe 'WIN32OLE_VARIABLE#visible?' do
+  describe "WIN32OLE_VARIABLE#visible?" do
     # not sure how WIN32OLE_VARIABLE objects are supposed to be generated
     # WIN32OLE_VARIABLE.new even seg faults in some cases
     before :each do
@@ -9,7 +9,7 @@ platform_is :windows do
       @var = ole_type.variables[0]
     end
 
-    it 'returns a String' do
+    it "returns a String" do
       @var.visible?.should be_true
     end
 

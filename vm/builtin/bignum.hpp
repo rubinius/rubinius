@@ -40,6 +40,7 @@ namespace rubinius {
     unsigned long long to_ulong_long();
 
     bool positive_p();
+    bool even_p();
 
     static Integer* normalize(STATE, Bignum* obj);
     static Integer* from_string_detect(STATE, const char* str);
@@ -144,7 +145,7 @@ namespace rubinius {
     // Rubinius.primitive! :bignum_pow
     Object* pow(STATE, Bignum* exponent);
     // Rubinius.primitive! :bignum_pow
-    Float*  pow(STATE, Float *exponent);
+    Object* pow(STATE, Float *exponent);
 
     // Rubinius.primitive! :bignum_gt
     Object* gt(STATE, Fixnum* b);
@@ -196,6 +197,7 @@ namespace rubinius {
     // Rubinius.primitive :bignum_size
     Integer* size(STATE);
     hashval hash_bignum(STATE);
+    size_t managed_memory_size(STATE);
 
     void verify_size(STATE, size_t size);
 

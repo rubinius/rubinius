@@ -5,7 +5,7 @@ require 'mspec/runner/filters/tag'
 
 describe TagFilter, "#load" do
   before :each do
-    @match = mock("match filter", :null_object => true)
+    @match = mock("match filter").as_null_object
     @filter = TagFilter.new :include, "tag", "key"
     @tag = SpecTag.new "tag(comment):description"
     MSpec.stub!(:read_tags).and_return([@tag])
@@ -50,7 +50,7 @@ describe TagFilter, "#unload" do
   end
 
   it "unregisters the MatchFilter if one was registered" do
-    match = mock("match filter", :null_object => true)
+    match = mock("match filter").as_null_object
     match.should_receive(:unregister)
     MatchFilter.stub!(:new).with(:include, "description").and_return(match)
     @filter.load

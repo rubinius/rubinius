@@ -1,0 +1,1 @@
+fails:String#split with Regexp returns an ArgumentError if an invalid UTF-8 string is supplied

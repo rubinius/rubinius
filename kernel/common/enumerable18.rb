@@ -1,3 +1,5 @@
+# -*- encoding: us-ascii -*-
+
 module Enumerable
   ##
   # :call-seq:
@@ -74,13 +76,15 @@ module Enumerable
     args.map! { |a| a.to_a }
 
     results = []
-
-    each_with_index do |o, i|
+    i = 0
+    each do
+      o = Rubinius.single_block_arg
       entry = args.inject([o]) { |ary, a| ary << a[i] }
 
       yield entry if block_given?
 
       results << entry
+      i += 1
     end
 
     return nil if block_given?

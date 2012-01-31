@@ -49,7 +49,7 @@ public:
     Arguments args(state->symbol("blah"), G(object), 1, ary);
 
     av->name(state, state->symbol("@module_name"));
-    av->write(state, Qtrue);
+    av->write(state, cTrue);
 
     Object* ret = av->access_execute(state, &cf, av, G(object), args);
     TS_ASSERT_EQUALS(ret, val);
@@ -82,7 +82,7 @@ public:
     Arguments args(state->symbol("blah"), G(object), 1, ary);
 
     av->name(state, state->symbol("@blah"));
-    av->write(state, Qtrue);
+    av->write(state, cTrue);
 
     Object* ret = av->execute(state, &cf, av, G(object), args);
     TS_ASSERT_EQUALS(ret, val);

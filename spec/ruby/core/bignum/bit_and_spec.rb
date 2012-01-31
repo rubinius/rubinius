@@ -29,6 +29,14 @@ describe "Bignum#&" do
     (-@bignum & -0x4000000000000000).should == -13835058055282163712
   end
 
+  it "returns self bitwise AND other when both are negative and a multiple in bitsize of Fixnum::MIN" do
+    val = - ((1 << 93) - 1)
+    (val & val).should == val
+
+    val = - ((1 << 126) - 1)
+    (val & val).should == val
+  end
+
   ruby_version_is ""..."1.9" do
     it "coerces Float arguments into Integers" do
       (@bignum & 3.4).should == 1

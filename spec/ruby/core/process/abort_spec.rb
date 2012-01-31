@@ -10,6 +10,16 @@ describe "Process.abort" do
     rm_r @name
   end
 
+  it "raises a SystemExit with the given message" do
+    lambda do
+      begin
+        abort "message"
+      rescue SystemExit => e
+        e.message.should == "message"
+      end
+    end.should complain(/message/)
+  end
+
   platform_is_not :windows do
     it "terminates execution immediately" do
       Process.fork do

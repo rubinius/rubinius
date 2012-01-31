@@ -296,20 +296,7 @@
 #define YYDEBUG 1
 #define YYERROR_VERBOSE 1
 
-#include <stdio.h>
-#include <errno.h>
-#include <ctype.h>
-#include <string.h>
-#include <stdbool.h>
-#include <stdint.h>
-#include <assert.h>
-#include <stdlib.h>
-#include <unistd.h>
-#include <sys/types.h>
-#include <alloca.h>
-
-#include "ruby.h"
-
+#include "melbourne.hpp"
 #include "grammar19.hpp"
 #include "parser_state19.hpp"
 #include "visitor19.hpp"
@@ -392,6 +379,7 @@ static NODE *list_concat(NODE*,NODE*);
 static NODE *parser_arg_append(rb_parser_state*, NODE*, NODE*);
 static NODE *parser_arg_concat(rb_parser_state*, NODE*, NODE*);
 static NODE *parser_literal_concat(rb_parser_state*, NODE*, NODE*);
+static int parser_literal_concat0(rb_parser_state*, VALUE, VALUE);
 static NODE *parser_new_evstr(rb_parser_state*, NODE*);
 static NODE *parser_evstr2dstr(rb_parser_state*, NODE*);
 static NODE *parser_call_bin_op(rb_parser_state*, NODE*, ID, NODE*);
@@ -468,6 +456,8 @@ rb_parser_state *parser_alloc_state() {
 
   processor = 0;
   references = rb_ary_new();
+
+  parser_state->enc = parser_usascii_encoding();
 
   return parser_state;
 }
@@ -600,6 +590,7 @@ static int scan_hex(const char *start, size_t len, size_t *retlen);
 #define new_yield(n)              parser_new_yield(parser_state, n)
 #define evstr2dstr(n)             parser_evstr2dstr(parser_state, n)
 #define literal_concat(a, b)      parser_literal_concat(parser_state, a, b)
+#define literal_concat0(a, b)     parser_literal_concat0(parser_state, a, b)
 #define new_evstr(n)              parser_new_evstr(parser_state, n)
 
 #define value_expr(n)             parser_value_expr(parser_state, n)
@@ -660,7 +651,9 @@ static int scan_hex(const char *start, size_t len, size_t *retlen);
                                 (parser_state->utf8 = parser_utf8_encoding()))
 #define STR_NEW(p,n)          parser_enc_str_new((p), (n), parser_state->enc)
 #define STR_NEW0()            parser_enc_str_new(0, 0, parser_state->enc)
-#define STR_NEW3(p,n,e,func)  parser_str_new((p), (n), (e), (func), parser_state->enc)
+#define STR_NEW2(p)           parser_enc_str_new((p), strlen(p), parser_state->enc)
+#define STR_NEW3(p,n,e,func)  parser_str_new(parser_state, (p), (n), (e), \
+                                            (func), parser_state->enc)
 #define ENC_SINGLE(cr)        ((cr)==ENC_CODERANGE_7BIT)
 #define TOK_INTERN(mb)        parser_intern3(tok(), toklen(), parser_state->enc)
 
@@ -697,7 +690,7 @@ static int scan_hex(const char *start, size_t len, size_t *retlen);
 
 #if ! defined YYSTYPE && ! defined YYSTYPE_IS_DECLARED
 typedef union YYSTYPE
-#line 401 "grammar19.y"
+#line 395 "grammar19.y"
 {
     VALUE val;
     NODE *node;
@@ -706,7 +699,7 @@ typedef union YYSTYPE
     const struct vtable* vars;
 }
 /* Line 193 of yacc.c.  */
-#line 709 "grammar19.cpp"
+#line 703 "grammar19.cpp"
 	YYSTYPE;
 # define yystype YYSTYPE /* obsolescent; will be withdrawn */
 # define YYSTYPE_IS_DECLARED 1
@@ -719,7 +712,7 @@ typedef union YYSTYPE
 
 
 /* Line 216 of yacc.c.  */
-#line 722 "grammar19.cpp"
+#line 716 "grammar19.cpp"
 
 #ifdef short
 # undef short
@@ -1241,63 +1234,63 @@ static const yytype_int16 yyrhs[] =
 /* YYRLINE[YYN] -- source line where rule number YYN was defined.  */
 static const yytype_uint16 yyrline[] =
 {
-       0,   549,   549,   549,   574,   581,   585,   589,   593,   599,
-     601,   600,   615,   638,   645,   649,   653,   657,   663,   663,
-     667,   671,   678,   683,   687,   692,   697,   705,   713,   718,
-     727,   732,   738,   760,   777,   790,   803,   808,   821,   826,
-     831,   836,   841,   844,   845,   849,   853,   857,   861,   864,
-     872,   873,   876,   877,   881,   888,   887,   902,   907,   914,
-     919,   926,   931,   938,   943,   948,   952,   956,   962,   963,
-     969,   970,   976,   980,   984,   988,   992,   996,  1000,  1004,
-    1008,  1012,  1018,  1019,  1025,  1029,  1035,  1039,  1045,  1049,
-    1053,  1057,  1061,  1065,  1071,  1077,  1084,  1089,  1093,  1097,
-    1101,  1105,  1111,  1117,  1124,  1128,  1131,  1135,  1139,  1145,
-    1146,  1147,  1148,  1153,  1160,  1161,  1164,  1168,  1171,  1175,
-    1175,  1181,  1182,  1183,  1184,  1185,  1186,  1187,  1188,  1189,
-    1190,  1191,  1192,  1193,  1194,  1195,  1196,  1197,  1198,  1199,
-    1200,  1201,  1202,  1203,  1204,  1205,  1206,  1207,  1208,  1209,
-    1212,  1212,  1212,  1213,  1213,  1214,  1214,  1214,  1215,  1215,
-    1215,  1215,  1216,  1216,  1216,  1216,  1217,  1217,  1217,  1218,
-    1218,  1218,  1218,  1219,  1219,  1219,  1219,  1220,  1220,  1220,
-    1220,  1221,  1221,  1221,  1221,  1222,  1222,  1222,  1222,  1223,
-    1223,  1226,  1231,  1237,  1259,  1282,  1303,  1316,  1329,  1342,
-    1347,  1352,  1357,  1363,  1369,  1373,  1377,  1381,  1385,  1389,
-    1393,  1397,  1401,  1405,  1409,  1413,  1417,  1421,  1425,  1429,
-    1433,  1437,  1441,  1445,  1449,  1453,  1463,  1467,  1471,  1475,
-    1479,  1483,  1487,  1491,  1491,  1496,  1502,  1508,  1516,  1517,
-    1521,  1525,  1531,  1537,  1538,  1541,  1542,  1545,  1550,  1554,
-    1559,  1564,  1567,  1567,  1579,  1585,  1589,  1593,  1599,  1603,
-    1607,  1616,  1627,  1636,  1645,  1651,  1652,  1653,  1654,  1655,
-    1656,  1657,  1658,  1659,  1664,  1663,  1680,  1680,  1685,  1689,
-    1693,  1697,  1705,  1709,  1713,  1717,  1721,  1725,  1725,  1730,
-    1734,  1738,  1744,  1745,  1752,  1756,  1764,  1772,  1772,  1772,
-    1779,  1779,  1779,  1786,  1793,  1798,  1800,  1797,  1817,  1816,
-    1833,  1838,  1832,  1855,  1854,  1871,  1870,  1888,  1889,  1888,
-    1904,  1908,  1912,  1916,  1922,  1930,  1936,  1942,  1948,  1954,
-    1960,  1966,  1972,  1978,  1984,  1991,  1997,  1998,  1999,  2002,
-    2003,  2006,  2007,  2016,  2017,  2023,  2024,  2027,  2031,  2037,
-    2041,  2047,  2051,  2056,  2061,  2065,  2069,  2074,  2079,  2083,
-    2089,  2093,  2097,  2101,  2105,  2109,  2113,  2117,  2121,  2125,
-    2129,  2133,  2137,  2141,  2145,  2151,  2152,  2158,  2162,  2166,
-    2176,  2180,  2186,  2190,  2196,  2201,  2207,  2210,  2207,  2224,
-    2228,  2234,  2238,  2245,  2244,  2259,  2270,  2274,  2280,  2285,
-    2290,  2295,  2299,  2304,  2309,  2313,  2317,  2329,  2328,  2341,
-    2340,  2354,  2362,  2363,  2366,  2378,  2381,  2385,  2389,  2392,
-    2396,  2399,  2403,  2406,  2407,  2411,  2414,  2426,  2427,  2428,
-    2434,  2440,  2462,  2493,  2497,  2504,  2507,  2513,  2514,  2520,
-    2524,  2531,  2534,  2541,  2544,  2551,  2554,  2561,  2564,  2587,
-    2589,  2588,  2600,  2606,  2599,  2622,  2623,  2624,  2625,  2628,
-    2635,  2636,  2637,  2638,  2641,  2666,  2667,  2668,  2672,  2678,
-    2679,  2680,  2681,  2682,  2683,  2684,  2685,  2686,  2687,  2688,
-    2689,  2692,  2700,  2706,  2707,  2710,  2715,  2714,  2722,  2729,
-    2735,  2741,  2745,  2749,  2753,  2757,  2761,  2765,  2769,  2773,
-    2777,  2781,  2785,  2789,  2793,  2798,  2803,  2808,  2813,  2818,
-    2825,  2826,  2833,  2838,  2848,  2849,  2857,  2865,  2873,  2877,
-    2888,  2892,  2903,  2904,  2907,  2915,  2922,  2923,  2926,  2937,
-    2941,  2947,  2953,  2953,  2977,  2978,  2984,  2985,  2991,  2995,
-    3001,  3002,  3003,  3006,  3007,  3008,  3009,  3012,  3013,  3014,
-    3017,  3018,  3021,  3022,  3025,  3026,  3029,  3032,  3035,  3036,
-    3037,  3040,  3041,  3044,  3045,  3048
+       0,   543,   543,   543,   568,   575,   579,   583,   587,   593,
+     595,   594,   606,   629,   636,   640,   644,   648,   654,   654,
+     658,   662,   669,   674,   678,   683,   688,   696,   704,   709,
+     718,   723,   729,   751,   768,   781,   794,   799,   812,   817,
+     822,   827,   832,   835,   836,   840,   844,   848,   852,   855,
+     863,   864,   867,   868,   872,   879,   878,   893,   898,   905,
+     910,   917,   922,   929,   934,   939,   943,   947,   953,   954,
+     960,   961,   967,   971,   975,   979,   983,   987,   991,   995,
+     999,  1003,  1009,  1010,  1016,  1020,  1026,  1030,  1036,  1040,
+    1044,  1048,  1052,  1056,  1062,  1068,  1075,  1080,  1084,  1088,
+    1092,  1096,  1102,  1108,  1115,  1119,  1122,  1126,  1130,  1136,
+    1137,  1138,  1139,  1144,  1151,  1152,  1155,  1159,  1162,  1166,
+    1166,  1172,  1173,  1174,  1175,  1176,  1177,  1178,  1179,  1180,
+    1181,  1182,  1183,  1184,  1185,  1186,  1187,  1188,  1189,  1190,
+    1191,  1192,  1193,  1194,  1195,  1196,  1197,  1198,  1199,  1200,
+    1203,  1203,  1203,  1204,  1204,  1205,  1205,  1205,  1206,  1206,
+    1206,  1206,  1207,  1207,  1207,  1207,  1208,  1208,  1208,  1209,
+    1209,  1209,  1209,  1210,  1210,  1210,  1210,  1211,  1211,  1211,
+    1211,  1212,  1212,  1212,  1212,  1213,  1213,  1213,  1213,  1214,
+    1214,  1217,  1222,  1228,  1250,  1273,  1294,  1307,  1320,  1333,
+    1338,  1343,  1348,  1354,  1360,  1364,  1368,  1372,  1376,  1380,
+    1384,  1388,  1392,  1396,  1400,  1404,  1408,  1412,  1416,  1420,
+    1424,  1428,  1432,  1436,  1440,  1444,  1454,  1458,  1462,  1466,
+    1470,  1474,  1478,  1482,  1482,  1487,  1493,  1499,  1507,  1508,
+    1512,  1516,  1522,  1528,  1529,  1532,  1533,  1536,  1541,  1545,
+    1550,  1555,  1558,  1558,  1570,  1576,  1580,  1584,  1590,  1594,
+    1598,  1607,  1618,  1627,  1636,  1642,  1643,  1644,  1645,  1646,
+    1647,  1648,  1649,  1650,  1655,  1654,  1671,  1671,  1676,  1680,
+    1684,  1688,  1696,  1700,  1704,  1708,  1712,  1716,  1716,  1721,
+    1725,  1729,  1735,  1736,  1743,  1747,  1755,  1763,  1763,  1763,
+    1770,  1770,  1770,  1777,  1784,  1789,  1791,  1788,  1808,  1807,
+    1824,  1829,  1823,  1846,  1845,  1862,  1861,  1879,  1880,  1879,
+    1895,  1899,  1903,  1907,  1913,  1921,  1927,  1933,  1939,  1945,
+    1951,  1957,  1963,  1969,  1975,  1982,  1988,  1989,  1990,  1993,
+    1994,  1997,  1998,  2007,  2008,  2014,  2015,  2018,  2022,  2028,
+    2032,  2038,  2042,  2047,  2052,  2056,  2060,  2065,  2070,  2074,
+    2080,  2084,  2088,  2092,  2096,  2100,  2104,  2108,  2112,  2116,
+    2120,  2124,  2128,  2132,  2136,  2142,  2143,  2149,  2153,  2157,
+    2167,  2171,  2177,  2181,  2187,  2192,  2198,  2201,  2198,  2215,
+    2219,  2225,  2229,  2236,  2235,  2250,  2261,  2265,  2271,  2276,
+    2281,  2286,  2290,  2295,  2300,  2304,  2308,  2320,  2319,  2332,
+    2331,  2345,  2353,  2354,  2357,  2369,  2372,  2376,  2380,  2383,
+    2387,  2390,  2394,  2397,  2398,  2402,  2405,  2417,  2418,  2419,
+    2425,  2431,  2453,  2513,  2517,  2524,  2527,  2533,  2534,  2540,
+    2544,  2551,  2554,  2561,  2564,  2571,  2574,  2581,  2584,  2607,
+    2609,  2608,  2620,  2626,  2619,  2642,  2643,  2644,  2645,  2648,
+    2655,  2656,  2657,  2658,  2661,  2686,  2687,  2688,  2692,  2698,
+    2699,  2700,  2701,  2702,  2703,  2704,  2705,  2706,  2707,  2708,
+    2709,  2712,  2720,  2726,  2727,  2730,  2735,  2734,  2742,  2749,
+    2755,  2761,  2765,  2769,  2773,  2777,  2781,  2785,  2789,  2793,
+    2797,  2801,  2805,  2809,  2813,  2818,  2823,  2828,  2833,  2838,
+    2845,  2846,  2853,  2858,  2868,  2869,  2877,  2885,  2893,  2897,
+    2908,  2912,  2923,  2924,  2927,  2935,  2942,  2943,  2946,  2957,
+    2961,  2967,  2973,  2973,  2997,  2998,  3004,  3005,  3011,  3015,
+    3021,  3022,  3023,  3026,  3027,  3028,  3029,  3032,  3033,  3034,
+    3037,  3038,  3041,  3042,  3045,  3046,  3049,  3052,  3055,  3056,
+    3057,  3060,  3061,  3064,  3065,  3068
 };
 #endif
 
@@ -4719,7 +4712,7 @@ yyreduce:
   switch (yyn)
     {
         case 2:
-#line 549 "grammar19.y"
+#line 543 "grammar19.y"
     {
                     lex_state = EXPR_BEG;
                     local_push(0);
@@ -4728,7 +4721,7 @@ yyreduce:
     break;
 
   case 3:
-#line 555 "grammar19.y"
+#line 549 "grammar19.y"
     {
                     if((yyvsp[(2) - (2)].node) && !compile_for_eval) {
                       /* last expression should not be void */
@@ -4749,7 +4742,7 @@ yyreduce:
     break;
 
   case 4:
-#line 575 "grammar19.y"
+#line 569 "grammar19.y"
     {
                     void_stmts((yyvsp[(1) - (2)].node));
                     (yyval.node) = (yyvsp[(1) - (2)].node);
@@ -4757,35 +4750,35 @@ yyreduce:
     break;
 
   case 5:
-#line 582 "grammar19.y"
+#line 576 "grammar19.y"
     {
                     (yyval.node) = NEW_BEGIN(0);
                   ;}
     break;
 
   case 6:
-#line 586 "grammar19.y"
+#line 580 "grammar19.y"
     {
                     (yyval.node) = newline_node((yyvsp[(1) - (1)].node));
                   ;}
     break;
 
   case 7:
-#line 590 "grammar19.y"
+#line 584 "grammar19.y"
     {
                     (yyval.node) = block_append((yyvsp[(1) - (3)].node), newline_node((yyvsp[(3) - (3)].node)));
                   ;}
     break;
 
   case 8:
-#line 594 "grammar19.y"
+#line 588 "grammar19.y"
     {
                     (yyval.node) = remove_begin((yyvsp[(2) - (2)].node));
                   ;}
     break;
 
   case 10:
-#line 601 "grammar19.y"
+#line 595 "grammar19.y"
     {
                     if(in_def || in_single) {
                       yy_error("BEGIN in method");
@@ -4794,17 +4787,14 @@ yyreduce:
     break;
 
   case 11:
-#line 607 "grammar19.y"
+#line 601 "grammar19.y"
     {
-                    /* TODO
-                    block_append( , $4);
-                    */
-                    (yyval.node) = NEW_BEGIN(0);
+                    (yyval.node) = NEW_PREEXE((yyvsp[(4) - (5)].node));
                   ;}
     break;
 
   case 12:
-#line 619 "grammar19.y"
+#line 610 "grammar19.y"
     {
                     (yyval.node) = (yyvsp[(1) - (4)].node);
                     if((yyvsp[(2) - (4)].node)) {
@@ -4825,7 +4815,7 @@ yyreduce:
     break;
 
   case 13:
-#line 639 "grammar19.y"
+#line 630 "grammar19.y"
     {
                     void_stmts((yyvsp[(1) - (2)].node));
                     (yyval.node) = (yyvsp[(1) - (2)].node);
@@ -4833,54 +4823,54 @@ yyreduce:
     break;
 
   case 14:
-#line 646 "grammar19.y"
+#line 637 "grammar19.y"
     {
                     (yyval.node) = NEW_BEGIN(0);
                   ;}
     break;
 
   case 15:
-#line 650 "grammar19.y"
+#line 641 "grammar19.y"
     {
                     (yyval.node) = newline_node((yyvsp[(1) - (1)].node));
                   ;}
     break;
 
   case 16:
-#line 654 "grammar19.y"
+#line 645 "grammar19.y"
     {
                     (yyval.node) = block_append((yyvsp[(1) - (3)].node), newline_node((yyvsp[(3) - (3)].node)));
                   ;}
     break;
 
   case 17:
-#line 658 "grammar19.y"
+#line 649 "grammar19.y"
     {
                     (yyval.node) = remove_begin((yyvsp[(2) - (2)].node));
                   ;}
     break;
 
   case 18:
-#line 663 "grammar19.y"
+#line 654 "grammar19.y"
     {lex_state = EXPR_FNAME;;}
     break;
 
   case 19:
-#line 664 "grammar19.y"
+#line 655 "grammar19.y"
     {
                     (yyval.node) = NEW_ALIAS((yyvsp[(2) - (4)].node), (yyvsp[(4) - (4)].node));
                   ;}
     break;
 
   case 20:
-#line 668 "grammar19.y"
+#line 659 "grammar19.y"
     {
                     (yyval.node) = NEW_VALIAS((yyvsp[(2) - (3)].id), (yyvsp[(3) - (3)].id));
                   ;}
     break;
 
   case 21:
-#line 672 "grammar19.y"
+#line 663 "grammar19.y"
     {
                     char buf[2];
                     buf[0] = '$';
@@ -4890,7 +4880,7 @@ yyreduce:
     break;
 
   case 22:
-#line 679 "grammar19.y"
+#line 670 "grammar19.y"
     {
                     yy_error("can't make alias for the number variables");
                     (yyval.node) = NEW_BEGIN(0);
@@ -4898,14 +4888,14 @@ yyreduce:
     break;
 
   case 23:
-#line 684 "grammar19.y"
+#line 675 "grammar19.y"
     {
                     (yyval.node) = (yyvsp[(2) - (2)].node);
                   ;}
     break;
 
   case 24:
-#line 688 "grammar19.y"
+#line 679 "grammar19.y"
     {
                     (yyval.node) = NEW_IF(cond((yyvsp[(3) - (3)].node)), remove_begin((yyvsp[(1) - (3)].node)), 0);
                     fixpos((yyval.node), (yyvsp[(3) - (3)].node));
@@ -4913,7 +4903,7 @@ yyreduce:
     break;
 
   case 25:
-#line 693 "grammar19.y"
+#line 684 "grammar19.y"
     {
                     (yyval.node) = NEW_UNLESS(cond((yyvsp[(3) - (3)].node)), remove_begin((yyvsp[(1) - (3)].node)), 0);
                     fixpos((yyval.node), (yyvsp[(3) - (3)].node));
@@ -4921,7 +4911,7 @@ yyreduce:
     break;
 
   case 26:
-#line 698 "grammar19.y"
+#line 689 "grammar19.y"
     {
                     if((yyvsp[(1) - (3)].node) && nd_type((yyvsp[(1) - (3)].node)) == NODE_BEGIN) {
                       (yyval.node) = NEW_WHILE(cond((yyvsp[(3) - (3)].node)), (yyvsp[(1) - (3)].node)->nd_body, 0);
@@ -4932,7 +4922,7 @@ yyreduce:
     break;
 
   case 27:
-#line 706 "grammar19.y"
+#line 697 "grammar19.y"
     {
                     if((yyvsp[(1) - (3)].node) && nd_type((yyvsp[(1) - (3)].node)) == NODE_BEGIN) {
                       (yyval.node) = NEW_UNTIL(cond((yyvsp[(3) - (3)].node)), (yyvsp[(1) - (3)].node)->nd_body, 0);
@@ -4943,7 +4933,7 @@ yyreduce:
     break;
 
   case 28:
-#line 714 "grammar19.y"
+#line 705 "grammar19.y"
     {
                     NODE *resq = NEW_RESBODY(0, remove_begin((yyvsp[(3) - (3)].node)), 0);
                     (yyval.node) = NEW_RESCUE(remove_begin((yyvsp[(1) - (3)].node)), resq, 0);
@@ -4951,7 +4941,7 @@ yyreduce:
     break;
 
   case 29:
-#line 719 "grammar19.y"
+#line 710 "grammar19.y"
     {
                     if(in_def || in_single) {
                       rb_warn("END in method; use at_exit");
@@ -4963,7 +4953,7 @@ yyreduce:
     break;
 
   case 30:
-#line 728 "grammar19.y"
+#line 719 "grammar19.y"
     {
                     value_expr((yyvsp[(3) - (3)].node));
                     (yyval.node) = node_assign((yyvsp[(1) - (3)].node), (yyvsp[(3) - (3)].node));
@@ -4971,7 +4961,7 @@ yyreduce:
     break;
 
   case 31:
-#line 733 "grammar19.y"
+#line 724 "grammar19.y"
     {
                     value_expr((yyvsp[(3) - (3)].node));
                     (yyvsp[(1) - (3)].node)->nd_value = ((yyvsp[(1) - (3)].node)->nd_head) ? NEW_TO_ARY((yyvsp[(3) - (3)].node)) : NEW_ARRAY((yyvsp[(3) - (3)].node));
@@ -4980,7 +4970,7 @@ yyreduce:
     break;
 
   case 32:
-#line 739 "grammar19.y"
+#line 730 "grammar19.y"
     {
                     value_expr((yyvsp[(3) - (3)].node));
                     if((yyvsp[(1) - (3)].node)) {
@@ -5005,7 +4995,7 @@ yyreduce:
     break;
 
   case 33:
-#line 761 "grammar19.y"
+#line 752 "grammar19.y"
     {
                     NODE *args;
 
@@ -5025,7 +5015,7 @@ yyreduce:
     break;
 
   case 34:
-#line 778 "grammar19.y"
+#line 769 "grammar19.y"
     {
                     value_expr((yyvsp[(5) - (5)].node));
                     if((yyvsp[(4) - (5)].id) == tOROP) {
@@ -5041,7 +5031,7 @@ yyreduce:
     break;
 
   case 35:
-#line 791 "grammar19.y"
+#line 782 "grammar19.y"
     {
                     value_expr((yyvsp[(5) - (5)].node));
                     if((yyvsp[(4) - (5)].id) == tOROP) {
@@ -5057,7 +5047,7 @@ yyreduce:
     break;
 
   case 36:
-#line 804 "grammar19.y"
+#line 795 "grammar19.y"
     {
                     yy_error("constant re-assignment");
                     (yyval.node) = 0;
@@ -5065,7 +5055,7 @@ yyreduce:
     break;
 
   case 37:
-#line 809 "grammar19.y"
+#line 800 "grammar19.y"
     {
                     value_expr((yyvsp[(5) - (5)].node));
                     if((yyvsp[(4) - (5)].id) == tOROP) {
@@ -5081,7 +5071,7 @@ yyreduce:
     break;
 
   case 38:
-#line 822 "grammar19.y"
+#line 813 "grammar19.y"
     {
                     rb_backref_error((yyvsp[(1) - (3)].node));
                     (yyval.node) = 0;
@@ -5089,7 +5079,7 @@ yyreduce:
     break;
 
   case 39:
-#line 827 "grammar19.y"
+#line 818 "grammar19.y"
     {
                     value_expr((yyvsp[(3) - (3)].node));
                     (yyval.node) = node_assign((yyvsp[(1) - (3)].node), (yyvsp[(3) - (3)].node));
@@ -5097,7 +5087,7 @@ yyreduce:
     break;
 
   case 40:
-#line 832 "grammar19.y"
+#line 823 "grammar19.y"
     {
                     (yyvsp[(1) - (3)].node)->nd_value = ((yyvsp[(1) - (3)].node)->nd_head) ? NEW_TO_ARY((yyvsp[(3) - (3)].node)) : NEW_ARRAY((yyvsp[(3) - (3)].node));
                     (yyval.node) = (yyvsp[(1) - (3)].node);
@@ -5105,7 +5095,7 @@ yyreduce:
     break;
 
   case 41:
-#line 837 "grammar19.y"
+#line 828 "grammar19.y"
     {
                     (yyvsp[(1) - (3)].node)->nd_value = (yyvsp[(3) - (3)].node);
                     (yyval.node) = (yyvsp[(1) - (3)].node);
@@ -5113,35 +5103,35 @@ yyreduce:
     break;
 
   case 44:
-#line 846 "grammar19.y"
+#line 837 "grammar19.y"
     {
                     (yyval.node) = logop(NODE_AND, (yyvsp[(1) - (3)].node), (yyvsp[(3) - (3)].node));
                   ;}
     break;
 
   case 45:
-#line 850 "grammar19.y"
+#line 841 "grammar19.y"
     {
                     (yyval.node) = logop(NODE_OR, (yyvsp[(1) - (3)].node), (yyvsp[(3) - (3)].node));
                   ;}
     break;
 
   case 46:
-#line 854 "grammar19.y"
+#line 845 "grammar19.y"
     {
                     (yyval.node) = call_uni_op(cond((yyvsp[(3) - (3)].node)), '!');
                   ;}
     break;
 
   case 47:
-#line 858 "grammar19.y"
+#line 849 "grammar19.y"
     {
                     (yyval.node) = call_uni_op(cond((yyvsp[(2) - (2)].node)), '!');
                   ;}
     break;
 
   case 49:
-#line 865 "grammar19.y"
+#line 856 "grammar19.y"
     {
                     value_expr((yyvsp[(1) - (1)].node));
                     (yyval.node) = (yyvsp[(1) - (1)].node);
@@ -5150,21 +5140,21 @@ yyreduce:
     break;
 
   case 53:
-#line 878 "grammar19.y"
+#line 869 "grammar19.y"
     {
                     (yyval.node) = NEW_CALL((yyvsp[(1) - (4)].node), (yyvsp[(3) - (4)].id), (yyvsp[(4) - (4)].node));
                   ;}
     break;
 
   case 54:
-#line 882 "grammar19.y"
+#line 873 "grammar19.y"
     {
                     (yyval.node) = NEW_CALL((yyvsp[(1) - (4)].node), (yyvsp[(3) - (4)].id), (yyvsp[(4) - (4)].node));
                   ;}
     break;
 
   case 55:
-#line 888 "grammar19.y"
+#line 879 "grammar19.y"
     {
                     (yyvsp[(1) - (1)].vars) = bv_push();
                     (yyval.num) = ruby_sourceline;
@@ -5172,7 +5162,7 @@ yyreduce:
     break;
 
   case 56:
-#line 895 "grammar19.y"
+#line 886 "grammar19.y"
     {
                     (yyval.node) = NEW_ITER((yyvsp[(3) - (5)].node), (yyvsp[(4) - (5)].node));
                     nd_set_line((yyval.node), (yyvsp[(2) - (5)].num));
@@ -5181,7 +5171,7 @@ yyreduce:
     break;
 
   case 57:
-#line 903 "grammar19.y"
+#line 894 "grammar19.y"
     {
                     (yyval.node) = NEW_FCALL((yyvsp[(1) - (2)].id), (yyvsp[(2) - (2)].node));
                     fixpos((yyval.node), (yyvsp[(2) - (2)].node));
@@ -5189,7 +5179,7 @@ yyreduce:
     break;
 
   case 58:
-#line 908 "grammar19.y"
+#line 899 "grammar19.y"
     {
                     block_dup_check((yyvsp[(2) - (3)].node), (yyvsp[(3) - (3)].node));
                     (yyvsp[(3) - (3)].node)->nd_iter = NEW_FCALL((yyvsp[(1) - (3)].id), (yyvsp[(2) - (3)].node));
@@ -5199,7 +5189,7 @@ yyreduce:
     break;
 
   case 59:
-#line 915 "grammar19.y"
+#line 906 "grammar19.y"
     {
                     (yyval.node) = NEW_CALL((yyvsp[(1) - (4)].node), (yyvsp[(3) - (4)].id), (yyvsp[(4) - (4)].node));
                     fixpos((yyval.node), (yyvsp[(1) - (4)].node));
@@ -5207,7 +5197,7 @@ yyreduce:
     break;
 
   case 60:
-#line 920 "grammar19.y"
+#line 911 "grammar19.y"
     {
                     block_dup_check((yyvsp[(4) - (5)].node), (yyvsp[(5) - (5)].node));
                     (yyvsp[(5) - (5)].node)->nd_iter = NEW_CALL((yyvsp[(1) - (5)].node), (yyvsp[(3) - (5)].id), (yyvsp[(4) - (5)].node));
@@ -5217,7 +5207,7 @@ yyreduce:
     break;
 
   case 61:
-#line 927 "grammar19.y"
+#line 918 "grammar19.y"
     {
                     (yyval.node) = NEW_CALL((yyvsp[(1) - (4)].node), (yyvsp[(3) - (4)].id), (yyvsp[(4) - (4)].node));
                     fixpos((yyval.node), (yyvsp[(1) - (4)].node));
@@ -5225,7 +5215,7 @@ yyreduce:
     break;
 
   case 62:
-#line 932 "grammar19.y"
+#line 923 "grammar19.y"
     {
                     block_dup_check((yyvsp[(4) - (5)].node), (yyvsp[(5) - (5)].node));
                     (yyvsp[(5) - (5)].node)->nd_iter = NEW_CALL((yyvsp[(1) - (5)].node), (yyvsp[(3) - (5)].id), (yyvsp[(4) - (5)].node));
@@ -5235,7 +5225,7 @@ yyreduce:
     break;
 
   case 63:
-#line 939 "grammar19.y"
+#line 930 "grammar19.y"
     {
                     (yyval.node) = NEW_SUPER((yyvsp[(2) - (2)].node));
                     fixpos((yyval.node), (yyvsp[(2) - (2)].node));
@@ -5243,7 +5233,7 @@ yyreduce:
     break;
 
   case 64:
-#line 944 "grammar19.y"
+#line 935 "grammar19.y"
     {
                     (yyval.node) = new_yield((yyvsp[(2) - (2)].node));
                     fixpos((yyval.node), (yyvsp[(2) - (2)].node));
@@ -5251,182 +5241,182 @@ yyreduce:
     break;
 
   case 65:
-#line 949 "grammar19.y"
+#line 940 "grammar19.y"
     {
                     (yyval.node) = NEW_RETURN(ret_args((yyvsp[(2) - (2)].node)));
                   ;}
     break;
 
   case 66:
-#line 953 "grammar19.y"
+#line 944 "grammar19.y"
     {
                     (yyval.node) = NEW_BREAK(ret_args((yyvsp[(2) - (2)].node)));
                   ;}
     break;
 
   case 67:
-#line 957 "grammar19.y"
+#line 948 "grammar19.y"
     {
                     (yyval.node) = NEW_NEXT(ret_args((yyvsp[(2) - (2)].node)));
                   ;}
     break;
 
   case 69:
-#line 964 "grammar19.y"
+#line 955 "grammar19.y"
     {
                     (yyval.node) = (yyvsp[(2) - (3)].node);
                   ;}
     break;
 
   case 71:
-#line 971 "grammar19.y"
+#line 962 "grammar19.y"
     {
                     (yyval.node) = NEW_MASGN(NEW_LIST((yyvsp[(2) - (3)].node)), 0);
                   ;}
     break;
 
   case 72:
-#line 977 "grammar19.y"
+#line 968 "grammar19.y"
     {
                     (yyval.node) = NEW_MASGN((yyvsp[(1) - (1)].node), 0);
                   ;}
     break;
 
   case 73:
-#line 981 "grammar19.y"
+#line 972 "grammar19.y"
     {
                     (yyval.node) = NEW_MASGN(list_append((yyvsp[(1) - (2)].node), (yyvsp[(2) - (2)].node)), 0);
                   ;}
     break;
 
   case 74:
-#line 985 "grammar19.y"
+#line 976 "grammar19.y"
     {
                     (yyval.node) = NEW_MASGN((yyvsp[(1) - (3)].node), (yyvsp[(3) - (3)].node));
                   ;}
     break;
 
   case 75:
-#line 989 "grammar19.y"
+#line 980 "grammar19.y"
     {
                     (yyval.node) = NEW_MASGN((yyvsp[(1) - (5)].node), NEW_POSTARG((yyvsp[(3) - (5)].node), (yyvsp[(5) - (5)].node)));
                   ;}
     break;
 
   case 76:
-#line 993 "grammar19.y"
+#line 984 "grammar19.y"
     {
                     (yyval.node) = NEW_MASGN((yyvsp[(1) - (2)].node), -1);
                   ;}
     break;
 
   case 77:
-#line 997 "grammar19.y"
+#line 988 "grammar19.y"
     {
                     (yyval.node) = NEW_MASGN((yyvsp[(1) - (4)].node), NEW_POSTARG(-1, (yyvsp[(4) - (4)].node)));
                   ;}
     break;
 
   case 78:
-#line 1001 "grammar19.y"
+#line 992 "grammar19.y"
     {
                     (yyval.node) = NEW_MASGN(0, (yyvsp[(2) - (2)].node));
                   ;}
     break;
 
   case 79:
-#line 1005 "grammar19.y"
+#line 996 "grammar19.y"
     {
                     (yyval.node) = NEW_MASGN(0, NEW_POSTARG((yyvsp[(2) - (4)].node), (yyvsp[(4) - (4)].node)));
                   ;}
     break;
 
   case 80:
-#line 1009 "grammar19.y"
+#line 1000 "grammar19.y"
     {
                     (yyval.node) = NEW_MASGN(0, -1);
                   ;}
     break;
 
   case 81:
-#line 1013 "grammar19.y"
+#line 1004 "grammar19.y"
     {
                     (yyval.node) = NEW_MASGN(0, NEW_POSTARG(-1, (yyvsp[(3) - (3)].node)));
                   ;}
     break;
 
   case 83:
-#line 1020 "grammar19.y"
+#line 1011 "grammar19.y"
     {
                     (yyval.node) = (yyvsp[(2) - (3)].node);
                   ;}
     break;
 
   case 84:
-#line 1026 "grammar19.y"
+#line 1017 "grammar19.y"
     {
                     (yyval.node) = NEW_LIST((yyvsp[(1) - (2)].node));
                   ;}
     break;
 
   case 85:
-#line 1030 "grammar19.y"
+#line 1021 "grammar19.y"
     {
                     (yyval.node) = list_append((yyvsp[(1) - (3)].node), (yyvsp[(2) - (3)].node));
                   ;}
     break;
 
   case 86:
-#line 1036 "grammar19.y"
+#line 1027 "grammar19.y"
     {
                     (yyval.node) = NEW_LIST((yyvsp[(1) - (1)].node));
                   ;}
     break;
 
   case 87:
-#line 1040 "grammar19.y"
+#line 1031 "grammar19.y"
     {
                     (yyval.node) = list_append((yyvsp[(1) - (3)].node), (yyvsp[(3) - (3)].node));
                   ;}
     break;
 
   case 88:
-#line 1046 "grammar19.y"
+#line 1037 "grammar19.y"
     {
                     (yyval.node) = assignable((yyvsp[(1) - (1)].id), 0);
                   ;}
     break;
 
   case 89:
-#line 1050 "grammar19.y"
+#line 1041 "grammar19.y"
     {
                     (yyval.node) = aryset((yyvsp[(1) - (4)].node), (yyvsp[(3) - (4)].node));
                   ;}
     break;
 
   case 90:
-#line 1054 "grammar19.y"
+#line 1045 "grammar19.y"
     {
                     (yyval.node) = attrset((yyvsp[(1) - (3)].node), (yyvsp[(3) - (3)].id));
                   ;}
     break;
 
   case 91:
-#line 1058 "grammar19.y"
+#line 1049 "grammar19.y"
     {
                     (yyval.node) = attrset((yyvsp[(1) - (3)].node), (yyvsp[(3) - (3)].id));
                   ;}
     break;
 
   case 92:
-#line 1062 "grammar19.y"
+#line 1053 "grammar19.y"
     {
                     (yyval.node) = attrset((yyvsp[(1) - (3)].node), (yyvsp[(3) - (3)].id));
                   ;}
     break;
 
   case 93:
-#line 1066 "grammar19.y"
+#line 1057 "grammar19.y"
     {
                     if(in_def || in_single)
                       yy_error("dynamic constant assignment");
@@ -5435,7 +5425,7 @@ yyreduce:
     break;
 
   case 94:
-#line 1072 "grammar19.y"
+#line 1063 "grammar19.y"
     {
                     if(in_def || in_single)
                       yy_error("dynamic constant assignment");
@@ -5444,7 +5434,7 @@ yyreduce:
     break;
 
   case 95:
-#line 1078 "grammar19.y"
+#line 1069 "grammar19.y"
     {
                     rb_backref_error((yyvsp[(1) - (1)].node));
                     (yyval.node) = NEW_BEGIN(0);
@@ -5452,7 +5442,7 @@ yyreduce:
     break;
 
   case 96:
-#line 1085 "grammar19.y"
+#line 1076 "grammar19.y"
     {
                     (yyval.node) = assignable((yyvsp[(1) - (1)].id), 0);
                     if(!(yyval.node)) (yyval.node) = NEW_BEGIN(0);
@@ -5460,35 +5450,35 @@ yyreduce:
     break;
 
   case 97:
-#line 1090 "grammar19.y"
+#line 1081 "grammar19.y"
     {
                     (yyval.node) = aryset((yyvsp[(1) - (4)].node), (yyvsp[(3) - (4)].node));
                   ;}
     break;
 
   case 98:
-#line 1094 "grammar19.y"
+#line 1085 "grammar19.y"
     {
                     (yyval.node) = attrset((yyvsp[(1) - (3)].node), (yyvsp[(3) - (3)].id));
                   ;}
     break;
 
   case 99:
-#line 1098 "grammar19.y"
+#line 1089 "grammar19.y"
     {
                     (yyval.node) = attrset((yyvsp[(1) - (3)].node), (yyvsp[(3) - (3)].id));
                   ;}
     break;
 
   case 100:
-#line 1102 "grammar19.y"
+#line 1093 "grammar19.y"
     {
                     (yyval.node) = attrset((yyvsp[(1) - (3)].node), (yyvsp[(3) - (3)].id));
                   ;}
     break;
 
   case 101:
-#line 1106 "grammar19.y"
+#line 1097 "grammar19.y"
     {
                     if(in_def || in_single)
                       yy_error("dynamic constant assignment");
@@ -5497,7 +5487,7 @@ yyreduce:
     break;
 
   case 102:
-#line 1112 "grammar19.y"
+#line 1103 "grammar19.y"
     {
                     if(in_def || in_single)
                       yy_error("dynamic constant assignment");
@@ -5506,7 +5496,7 @@ yyreduce:
     break;
 
   case 103:
-#line 1118 "grammar19.y"
+#line 1109 "grammar19.y"
     {
                     rb_backref_error((yyvsp[(1) - (1)].node));
                     (yyval.node) = NEW_BEGIN(0);
@@ -5514,35 +5504,35 @@ yyreduce:
     break;
 
   case 104:
-#line 1125 "grammar19.y"
+#line 1116 "grammar19.y"
     {
                     yy_error("class/module name must be CONSTANT");
                   ;}
     break;
 
   case 106:
-#line 1132 "grammar19.y"
+#line 1123 "grammar19.y"
     {
                     (yyval.node) = NEW_COLON3((yyvsp[(2) - (2)].id));
                   ;}
     break;
 
   case 107:
-#line 1136 "grammar19.y"
+#line 1127 "grammar19.y"
     {
                     (yyval.node) = NEW_COLON2(0, (yyval.node));
                   ;}
     break;
 
   case 108:
-#line 1140 "grammar19.y"
+#line 1131 "grammar19.y"
     {
                     (yyval.node) = NEW_COLON2((yyvsp[(1) - (3)].node), (yyvsp[(3) - (3)].id));
                   ;}
     break;
 
   case 112:
-#line 1149 "grammar19.y"
+#line 1140 "grammar19.y"
     {
                     lex_state = EXPR_ENDFN;
                     (yyval.id) = convert_op((yyvsp[(1) - (1)].id));
@@ -5550,7 +5540,7 @@ yyreduce:
     break;
 
   case 113:
-#line 1154 "grammar19.y"
+#line 1145 "grammar19.y"
     {
                     lex_state = EXPR_ENDFN;
                     (yyval.id) = (yyvsp[(1) - (1)].id);
@@ -5558,178 +5548,178 @@ yyreduce:
     break;
 
   case 116:
-#line 1165 "grammar19.y"
+#line 1156 "grammar19.y"
     {
                     (yyval.node) = NEW_LIT(ID2SYM((yyvsp[(1) - (1)].id)));
                   ;}
     break;
 
   case 118:
-#line 1172 "grammar19.y"
+#line 1163 "grammar19.y"
     {
                     (yyval.node) = NEW_UNDEF((yyvsp[(1) - (1)].node));
                   ;}
     break;
 
   case 119:
-#line 1175 "grammar19.y"
+#line 1166 "grammar19.y"
     {lex_state = EXPR_FNAME;;}
     break;
 
   case 120:
-#line 1176 "grammar19.y"
+#line 1167 "grammar19.y"
     {
                     (yyval.node) = block_append((yyvsp[(1) - (4)].node), NEW_UNDEF((yyvsp[(4) - (4)].node)));
                   ;}
     break;
 
   case 121:
-#line 1181 "grammar19.y"
+#line 1172 "grammar19.y"
     { (yyval.id) = '|'; ;}
     break;
 
   case 122:
-#line 1182 "grammar19.y"
+#line 1173 "grammar19.y"
     { (yyval.id) = '^'; ;}
     break;
 
   case 123:
-#line 1183 "grammar19.y"
+#line 1174 "grammar19.y"
     { (yyval.id) = '&'; ;}
     break;
 
   case 124:
-#line 1184 "grammar19.y"
+#line 1175 "grammar19.y"
     { (yyval.id) = tCMP; ;}
     break;
 
   case 125:
-#line 1185 "grammar19.y"
+#line 1176 "grammar19.y"
     { (yyval.id) = tEQ; ;}
     break;
 
   case 126:
-#line 1186 "grammar19.y"
+#line 1177 "grammar19.y"
     { (yyval.id) = tEQQ; ;}
     break;
 
   case 127:
-#line 1187 "grammar19.y"
+#line 1178 "grammar19.y"
     { (yyval.id) = tMATCH; ;}
     break;
 
   case 128:
-#line 1188 "grammar19.y"
+#line 1179 "grammar19.y"
     { (yyval.id) = tNMATCH; ;}
     break;
 
   case 129:
-#line 1189 "grammar19.y"
+#line 1180 "grammar19.y"
     { (yyval.id) = '>'; ;}
     break;
 
   case 130:
-#line 1190 "grammar19.y"
+#line 1181 "grammar19.y"
     { (yyval.id) = tGEQ; ;}
     break;
 
   case 131:
-#line 1191 "grammar19.y"
+#line 1182 "grammar19.y"
     { (yyval.id) = '<'; ;}
     break;
 
   case 132:
-#line 1192 "grammar19.y"
+#line 1183 "grammar19.y"
     { (yyval.id) = tLEQ; ;}
     break;
 
   case 133:
-#line 1193 "grammar19.y"
+#line 1184 "grammar19.y"
     { (yyval.id) = tNEQ; ;}
     break;
 
   case 134:
-#line 1194 "grammar19.y"
+#line 1185 "grammar19.y"
     { (yyval.id) = tLSHFT; ;}
     break;
 
   case 135:
-#line 1195 "grammar19.y"
+#line 1186 "grammar19.y"
     { (yyval.id) = tRSHFT; ;}
     break;
 
   case 136:
-#line 1196 "grammar19.y"
+#line 1187 "grammar19.y"
     { (yyval.id) = '+'; ;}
     break;
 
   case 137:
-#line 1197 "grammar19.y"
+#line 1188 "grammar19.y"
     { (yyval.id) = '-'; ;}
     break;
 
   case 138:
-#line 1198 "grammar19.y"
+#line 1189 "grammar19.y"
     { (yyval.id) = '*'; ;}
     break;
 
   case 139:
-#line 1199 "grammar19.y"
+#line 1190 "grammar19.y"
     { (yyval.id) = '*'; ;}
     break;
 
   case 140:
-#line 1200 "grammar19.y"
+#line 1191 "grammar19.y"
     { (yyval.id) = '/'; ;}
     break;
 
   case 141:
-#line 1201 "grammar19.y"
+#line 1192 "grammar19.y"
     { (yyval.id) = '%'; ;}
     break;
 
   case 142:
-#line 1202 "grammar19.y"
+#line 1193 "grammar19.y"
     { (yyval.id) = tPOW; ;}
     break;
 
   case 143:
-#line 1203 "grammar19.y"
+#line 1194 "grammar19.y"
     { (yyval.id) = '!'; ;}
     break;
 
   case 144:
-#line 1204 "grammar19.y"
+#line 1195 "grammar19.y"
     { (yyval.id) = '~'; ;}
     break;
 
   case 145:
-#line 1205 "grammar19.y"
+#line 1196 "grammar19.y"
     { (yyval.id) = tUPLUS; ;}
     break;
 
   case 146:
-#line 1206 "grammar19.y"
+#line 1197 "grammar19.y"
     { (yyval.id) = tUMINUS; ;}
     break;
 
   case 147:
-#line 1207 "grammar19.y"
+#line 1198 "grammar19.y"
     { (yyval.id) = tAREF; ;}
     break;
 
   case 148:
-#line 1208 "grammar19.y"
+#line 1199 "grammar19.y"
     { (yyval.id) = tASET; ;}
     break;
 
   case 149:
-#line 1209 "grammar19.y"
+#line 1200 "grammar19.y"
     { (yyval.id) = '`'; ;}
     break;
 
   case 191:
-#line 1227 "grammar19.y"
+#line 1218 "grammar19.y"
     {
                     value_expr((yyvsp[(3) - (3)].node));
                     (yyval.node) = node_assign((yyvsp[(1) - (3)].node), (yyvsp[(3) - (3)].node));
@@ -5737,7 +5727,7 @@ yyreduce:
     break;
 
   case 192:
-#line 1232 "grammar19.y"
+#line 1223 "grammar19.y"
     {
                     value_expr((yyvsp[(3) - (5)].node));
                     (yyvsp[(3) - (5)].node) = NEW_RESCUE((yyvsp[(3) - (5)].node), NEW_RESBODY(0, (yyvsp[(5) - (5)].node), 0), 0);
@@ -5746,7 +5736,7 @@ yyreduce:
     break;
 
   case 193:
-#line 1238 "grammar19.y"
+#line 1229 "grammar19.y"
     {
                     value_expr((yyvsp[(3) - (3)].node));
                     if((yyvsp[(1) - (3)].node)) {
@@ -5771,7 +5761,7 @@ yyreduce:
     break;
 
   case 194:
-#line 1260 "grammar19.y"
+#line 1251 "grammar19.y"
     {
                     value_expr((yyvsp[(3) - (5)].node));
                     (yyvsp[(3) - (5)].node) = NEW_RESCUE((yyvsp[(3) - (5)].node), NEW_RESBODY(0, (yyvsp[(5) - (5)].node), 0), 0);
@@ -5797,7 +5787,7 @@ yyreduce:
     break;
 
   case 195:
-#line 1283 "grammar19.y"
+#line 1274 "grammar19.y"
     {
                     NODE *args;
 
@@ -5821,7 +5811,7 @@ yyreduce:
     break;
 
   case 196:
-#line 1304 "grammar19.y"
+#line 1295 "grammar19.y"
     {
                     value_expr((yyvsp[(5) - (5)].node));
                     if((yyvsp[(4) - (5)].id) == tOROP) {
@@ -5837,7 +5827,7 @@ yyreduce:
     break;
 
   case 197:
-#line 1317 "grammar19.y"
+#line 1308 "grammar19.y"
     {
                     value_expr((yyvsp[(5) - (5)].node));
                     if((yyvsp[(4) - (5)].id) == tOROP) {
@@ -5853,7 +5843,7 @@ yyreduce:
     break;
 
   case 198:
-#line 1330 "grammar19.y"
+#line 1321 "grammar19.y"
     {
                     value_expr((yyvsp[(5) - (5)].node));
                     if((yyvsp[(4) - (5)].id) == tOROP) {
@@ -5869,7 +5859,7 @@ yyreduce:
     break;
 
   case 199:
-#line 1343 "grammar19.y"
+#line 1334 "grammar19.y"
     {
                     yy_error("constant re-assignment");
                     (yyval.node) = NEW_BEGIN(0);
@@ -5877,7 +5867,7 @@ yyreduce:
     break;
 
   case 200:
-#line 1348 "grammar19.y"
+#line 1339 "grammar19.y"
     {
                     yy_error("constant re-assignment");
                     (yyval.node) = NEW_BEGIN(0);
@@ -5885,7 +5875,7 @@ yyreduce:
     break;
 
   case 201:
-#line 1353 "grammar19.y"
+#line 1344 "grammar19.y"
     {
                     rb_backref_error((yyvsp[(1) - (3)].node));
                     (yyval.node) = NEW_BEGIN(0);
@@ -5893,7 +5883,7 @@ yyreduce:
     break;
 
   case 202:
-#line 1358 "grammar19.y"
+#line 1349 "grammar19.y"
     {
                     value_expr((yyvsp[(1) - (3)].node));
                     value_expr((yyvsp[(3) - (3)].node));
@@ -5902,7 +5892,7 @@ yyreduce:
     break;
 
   case 203:
-#line 1364 "grammar19.y"
+#line 1355 "grammar19.y"
     {
                     value_expr((yyvsp[(1) - (3)].node));
                     value_expr((yyvsp[(3) - (3)].node));
@@ -5911,154 +5901,154 @@ yyreduce:
     break;
 
   case 204:
-#line 1370 "grammar19.y"
+#line 1361 "grammar19.y"
     {
                     (yyval.node) = call_bin_op((yyvsp[(1) - (3)].node), '+', (yyvsp[(3) - (3)].node));
                   ;}
     break;
 
   case 205:
-#line 1374 "grammar19.y"
+#line 1365 "grammar19.y"
     {
                     (yyval.node) = call_bin_op((yyvsp[(1) - (3)].node), '-', (yyvsp[(3) - (3)].node));
                   ;}
     break;
 
   case 206:
-#line 1378 "grammar19.y"
+#line 1369 "grammar19.y"
     {
                     (yyval.node) = call_bin_op((yyvsp[(1) - (3)].node), '*', (yyvsp[(3) - (3)].node));
                   ;}
     break;
 
   case 207:
-#line 1382 "grammar19.y"
+#line 1373 "grammar19.y"
     {
                     (yyval.node) = call_bin_op((yyvsp[(1) - (3)].node), '/', (yyvsp[(3) - (3)].node));
                   ;}
     break;
 
   case 208:
-#line 1386 "grammar19.y"
+#line 1377 "grammar19.y"
     {
                     (yyval.node) = call_bin_op((yyvsp[(1) - (3)].node), '%', (yyvsp[(3) - (3)].node));
                   ;}
     break;
 
   case 209:
-#line 1390 "grammar19.y"
+#line 1381 "grammar19.y"
     {
                     (yyval.node) = call_bin_op((yyvsp[(1) - (3)].node), tPOW, (yyvsp[(3) - (3)].node));
                   ;}
     break;
 
   case 210:
-#line 1394 "grammar19.y"
+#line 1385 "grammar19.y"
     {
                     (yyval.node) = NEW_CALL(call_bin_op((yyvsp[(2) - (4)].node), tPOW, (yyvsp[(4) - (4)].node)), tUMINUS, 0);
                   ;}
     break;
 
   case 211:
-#line 1398 "grammar19.y"
+#line 1389 "grammar19.y"
     {
                     (yyval.node) = NEW_CALL(call_bin_op((yyvsp[(2) - (4)].node), tPOW, (yyvsp[(4) - (4)].node)), tUMINUS, 0);
                   ;}
     break;
 
   case 212:
-#line 1402 "grammar19.y"
+#line 1393 "grammar19.y"
     {
                     (yyval.node) = call_uni_op((yyvsp[(2) - (2)].node), tUPLUS);
                   ;}
     break;
 
   case 213:
-#line 1406 "grammar19.y"
+#line 1397 "grammar19.y"
     {
                     (yyval.node) = call_uni_op((yyvsp[(2) - (2)].node), tUMINUS);
                   ;}
     break;
 
   case 214:
-#line 1410 "grammar19.y"
+#line 1401 "grammar19.y"
     {
                     (yyval.node) = call_bin_op((yyvsp[(1) - (3)].node), '|', (yyvsp[(3) - (3)].node));
                   ;}
     break;
 
   case 215:
-#line 1414 "grammar19.y"
+#line 1405 "grammar19.y"
     {
                     (yyval.node) = call_bin_op((yyvsp[(1) - (3)].node), '^', (yyvsp[(3) - (3)].node));
                   ;}
     break;
 
   case 216:
-#line 1418 "grammar19.y"
+#line 1409 "grammar19.y"
     {
                     (yyval.node) = call_bin_op((yyvsp[(1) - (3)].node), '&', (yyvsp[(3) - (3)].node));
                   ;}
     break;
 
   case 217:
-#line 1422 "grammar19.y"
+#line 1413 "grammar19.y"
     {
                     (yyval.node) = call_bin_op((yyvsp[(1) - (3)].node), tCMP, (yyvsp[(3) - (3)].node));
                   ;}
     break;
 
   case 218:
-#line 1426 "grammar19.y"
+#line 1417 "grammar19.y"
     {
                     (yyval.node) = call_bin_op((yyvsp[(1) - (3)].node), '>', (yyvsp[(3) - (3)].node));
                   ;}
     break;
 
   case 219:
-#line 1430 "grammar19.y"
+#line 1421 "grammar19.y"
     {
                     (yyval.node) = call_bin_op((yyvsp[(1) - (3)].node), tGEQ, (yyvsp[(3) - (3)].node));
                   ;}
     break;
 
   case 220:
-#line 1434 "grammar19.y"
+#line 1425 "grammar19.y"
     {
                     (yyval.node) = call_bin_op((yyvsp[(1) - (3)].node), '<', (yyvsp[(3) - (3)].node));
                   ;}
     break;
 
   case 221:
-#line 1438 "grammar19.y"
+#line 1429 "grammar19.y"
     {
                     (yyval.node) = call_bin_op((yyvsp[(1) - (3)].node), tLEQ, (yyvsp[(3) - (3)].node));
                   ;}
     break;
 
   case 222:
-#line 1442 "grammar19.y"
+#line 1433 "grammar19.y"
     {
                     (yyval.node) = call_bin_op((yyvsp[(1) - (3)].node), tEQ, (yyvsp[(3) - (3)].node));
                   ;}
     break;
 
   case 223:
-#line 1446 "grammar19.y"
+#line 1437 "grammar19.y"
     {
                     (yyval.node) = call_bin_op((yyvsp[(1) - (3)].node), tEQQ, (yyvsp[(3) - (3)].node));
                   ;}
     break;
 
   case 224:
-#line 1450 "grammar19.y"
+#line 1441 "grammar19.y"
     {
                     (yyval.node) = call_bin_op((yyvsp[(1) - (3)].node), tNEQ, (yyvsp[(3) - (3)].node));
                   ;}
     break;
 
   case 225:
-#line 1454 "grammar19.y"
+#line 1445 "grammar19.y"
     {
                     /* TODO */
                     (yyval.node) = match_op((yyvsp[(1) - (3)].node), (yyvsp[(3) - (3)].node));
@@ -6071,61 +6061,61 @@ yyreduce:
     break;
 
   case 226:
-#line 1464 "grammar19.y"
+#line 1455 "grammar19.y"
     {
                     (yyval.node) = call_bin_op((yyvsp[(1) - (3)].node), tNMATCH, (yyvsp[(3) - (3)].node));
                   ;}
     break;
 
   case 227:
-#line 1468 "grammar19.y"
+#line 1459 "grammar19.y"
     {
                     (yyval.node) = call_uni_op(cond((yyvsp[(2) - (2)].node)), '!');
                   ;}
     break;
 
   case 228:
-#line 1472 "grammar19.y"
+#line 1463 "grammar19.y"
     {
                     (yyval.node) = call_uni_op((yyvsp[(2) - (2)].node), '~');
                   ;}
     break;
 
   case 229:
-#line 1476 "grammar19.y"
+#line 1467 "grammar19.y"
     {
                     (yyval.node) = call_bin_op((yyvsp[(1) - (3)].node), tLSHFT, (yyvsp[(3) - (3)].node));
                   ;}
     break;
 
   case 230:
-#line 1480 "grammar19.y"
+#line 1471 "grammar19.y"
     {
                     (yyval.node) = call_bin_op((yyvsp[(1) - (3)].node), tRSHFT, (yyvsp[(3) - (3)].node));
                   ;}
     break;
 
   case 231:
-#line 1484 "grammar19.y"
+#line 1475 "grammar19.y"
     {
                     (yyval.node) = logop(NODE_AND, (yyvsp[(1) - (3)].node), (yyvsp[(3) - (3)].node));
                   ;}
     break;
 
   case 232:
-#line 1488 "grammar19.y"
+#line 1479 "grammar19.y"
     {
                     (yyval.node) = logop(NODE_OR, (yyvsp[(1) - (3)].node), (yyvsp[(3) - (3)].node));
                   ;}
     break;
 
   case 233:
-#line 1491 "grammar19.y"
+#line 1482 "grammar19.y"
     {in_defined = 1;;}
     break;
 
   case 234:
-#line 1492 "grammar19.y"
+#line 1483 "grammar19.y"
     {
                     in_defined = 0;
                     (yyval.node) = NEW_DEFINED((yyvsp[(4) - (4)].node));
@@ -6133,7 +6123,7 @@ yyreduce:
     break;
 
   case 235:
-#line 1497 "grammar19.y"
+#line 1488 "grammar19.y"
     {
                     value_expr((yyvsp[(1) - (6)].node));
                     (yyval.node) = NEW_IF(cond((yyvsp[(1) - (6)].node)), (yyvsp[(3) - (6)].node), (yyvsp[(6) - (6)].node));
@@ -6142,14 +6132,14 @@ yyreduce:
     break;
 
   case 236:
-#line 1503 "grammar19.y"
+#line 1494 "grammar19.y"
     {
                     (yyval.node) = (yyvsp[(1) - (1)].node);
                   ;}
     break;
 
   case 237:
-#line 1509 "grammar19.y"
+#line 1500 "grammar19.y"
     {
                     value_expr((yyvsp[(1) - (1)].node));
                     (yyval.node) = (yyvsp[(1) - (1)].node);
@@ -6158,35 +6148,35 @@ yyreduce:
     break;
 
   case 239:
-#line 1518 "grammar19.y"
+#line 1509 "grammar19.y"
     {
                     (yyval.node) = (yyvsp[(1) - (2)].node);
                   ;}
     break;
 
   case 240:
-#line 1522 "grammar19.y"
+#line 1513 "grammar19.y"
     {
                     (yyval.node) = arg_append((yyvsp[(1) - (4)].node), NEW_HASH((yyvsp[(3) - (4)].node)));
                   ;}
     break;
 
   case 241:
-#line 1526 "grammar19.y"
+#line 1517 "grammar19.y"
     {
                     (yyval.node) = NEW_LIST(NEW_HASH((yyvsp[(1) - (2)].node)));
                   ;}
     break;
 
   case 242:
-#line 1532 "grammar19.y"
+#line 1523 "grammar19.y"
     {
                     (yyval.node) = (yyvsp[(2) - (3)].node);
                   ;}
     break;
 
   case 247:
-#line 1546 "grammar19.y"
+#line 1537 "grammar19.y"
     {
                     value_expr((yyvsp[(1) - (1)].node));
                     (yyval.node) = NEW_LIST((yyvsp[(1) - (1)].node));
@@ -6194,14 +6184,14 @@ yyreduce:
     break;
 
   case 248:
-#line 1551 "grammar19.y"
+#line 1542 "grammar19.y"
     {
                     (yyval.node) = arg_blk_pass((yyvsp[(1) - (2)].node), (yyvsp[(2) - (2)].node));
                   ;}
     break;
 
   case 249:
-#line 1555 "grammar19.y"
+#line 1546 "grammar19.y"
     {
                     (yyval.node) = NEW_LIST(NEW_HASH((yyvsp[(1) - (2)].node)));
                     (yyval.node) = arg_blk_pass((yyval.node), (yyvsp[(2) - (2)].node));
@@ -6209,7 +6199,7 @@ yyreduce:
     break;
 
   case 250:
-#line 1560 "grammar19.y"
+#line 1551 "grammar19.y"
     {
                     (yyval.node) = list_append((yyvsp[(1) - (4)].node), NEW_HASH((yyvsp[(3) - (4)].node)));
                     (yyval.node) = arg_blk_pass((yyval.node), (yyvsp[(4) - (4)].node));
@@ -6217,7 +6207,7 @@ yyreduce:
     break;
 
   case 252:
-#line 1567 "grammar19.y"
+#line 1558 "grammar19.y"
     {
                     (yyval.val) = cmdarg_stack;
                     CMDARG_PUSH(1);
@@ -6225,7 +6215,7 @@ yyreduce:
     break;
 
   case 253:
-#line 1572 "grammar19.y"
+#line 1563 "grammar19.y"
     {
                     /* CMDARG_POP() */
                     cmdarg_stack = (yyvsp[(1) - (2)].val);
@@ -6234,49 +6224,49 @@ yyreduce:
     break;
 
   case 254:
-#line 1580 "grammar19.y"
+#line 1571 "grammar19.y"
     {
                     (yyval.node) = NEW_BLOCK_PASS((yyvsp[(2) - (2)].node));
                   ;}
     break;
 
   case 255:
-#line 1586 "grammar19.y"
+#line 1577 "grammar19.y"
     {
                     (yyval.node) = (yyvsp[(2) - (2)].node);
                   ;}
     break;
 
   case 256:
-#line 1590 "grammar19.y"
+#line 1581 "grammar19.y"
     {
                     (yyval.node) = 0;
                   ;}
     break;
 
   case 257:
-#line 1594 "grammar19.y"
+#line 1585 "grammar19.y"
     {
                     (yyval.node) = 0;
                   ;}
     break;
 
   case 258:
-#line 1600 "grammar19.y"
+#line 1591 "grammar19.y"
     {
                     (yyval.node) = NEW_LIST((yyvsp[(1) - (1)].node));
                   ;}
     break;
 
   case 259:
-#line 1604 "grammar19.y"
+#line 1595 "grammar19.y"
     {
                     (yyval.node) = NEW_SPLAT((yyvsp[(2) - (2)].node));
                   ;}
     break;
 
   case 260:
-#line 1608 "grammar19.y"
+#line 1599 "grammar19.y"
     {
                     NODE *n1;
                     if((n1 = splat_array((yyvsp[(1) - (3)].node))) != 0) {
@@ -6288,7 +6278,7 @@ yyreduce:
     break;
 
   case 261:
-#line 1617 "grammar19.y"
+#line 1608 "grammar19.y"
     {
                     NODE *n1;
                     if((nd_type((yyvsp[(4) - (4)].node)) == NODE_ARRAY) && (n1 = splat_array((yyvsp[(1) - (4)].node))) != 0) {
@@ -6300,7 +6290,7 @@ yyreduce:
     break;
 
   case 262:
-#line 1628 "grammar19.y"
+#line 1619 "grammar19.y"
     {
                     NODE *n1;
                     if((n1 = splat_array((yyvsp[(1) - (3)].node))) != 0) {
@@ -6312,7 +6302,7 @@ yyreduce:
     break;
 
   case 263:
-#line 1637 "grammar19.y"
+#line 1628 "grammar19.y"
     {
                     NODE *n1;
                     if(nd_type((yyvsp[(4) - (4)].node)) == NODE_ARRAY && (n1 = splat_array((yyvsp[(1) - (4)].node))) != 0) {
@@ -6324,28 +6314,28 @@ yyreduce:
     break;
 
   case 264:
-#line 1646 "grammar19.y"
+#line 1637 "grammar19.y"
     {
                     (yyval.node) = NEW_SPLAT((yyvsp[(2) - (2)].node));
                   ;}
     break;
 
   case 273:
-#line 1660 "grammar19.y"
+#line 1651 "grammar19.y"
     {
                     (yyval.node) = NEW_FCALL((yyvsp[(1) - (1)].id), 0);
                   ;}
     break;
 
   case 274:
-#line 1664 "grammar19.y"
+#line 1655 "grammar19.y"
     {
                     (yyval.num) = ruby_sourceline;
                   ;}
     break;
 
   case 275:
-#line 1669 "grammar19.y"
+#line 1660 "grammar19.y"
     {
                     if((yyvsp[(3) - (4)].node) == NULL) {
                       (yyval.node) = NEW_NIL();
@@ -6360,12 +6350,12 @@ yyreduce:
     break;
 
   case 276:
-#line 1680 "grammar19.y"
+#line 1671 "grammar19.y"
     {lex_state = EXPR_ENDARG;;}
     break;
 
   case 277:
-#line 1681 "grammar19.y"
+#line 1672 "grammar19.y"
     {
                     rb_warning("(...) interpreted as grouped expression");
                     (yyval.node) = (yyvsp[(2) - (4)].node);
@@ -6373,28 +6363,28 @@ yyreduce:
     break;
 
   case 278:
-#line 1686 "grammar19.y"
+#line 1677 "grammar19.y"
     {
                     (yyval.node) = (yyvsp[(2) - (3)].node);
                   ;}
     break;
 
   case 279:
-#line 1690 "grammar19.y"
+#line 1681 "grammar19.y"
     {
                     (yyval.node) = NEW_COLON2((yyvsp[(1) - (3)].node), (yyvsp[(3) - (3)].id));
                   ;}
     break;
 
   case 280:
-#line 1694 "grammar19.y"
+#line 1685 "grammar19.y"
     {
                     (yyval.node) = NEW_COLON3((yyvsp[(2) - (2)].id));
                   ;}
     break;
 
   case 281:
-#line 1698 "grammar19.y"
+#line 1689 "grammar19.y"
     {
                     if((yyvsp[(2) - (3)].node) == 0) {
                       (yyval.node) = NEW_ZARRAY(); /* zero length array*/
@@ -6405,47 +6395,47 @@ yyreduce:
     break;
 
   case 282:
-#line 1706 "grammar19.y"
+#line 1697 "grammar19.y"
     {
                     (yyval.node) = NEW_HASH((yyvsp[(2) - (3)].node));
                   ;}
     break;
 
   case 283:
-#line 1710 "grammar19.y"
+#line 1701 "grammar19.y"
     {
                     (yyval.node) = NEW_RETURN(0);
                   ;}
     break;
 
   case 284:
-#line 1714 "grammar19.y"
+#line 1705 "grammar19.y"
     {
                     (yyval.node) = new_yield((yyvsp[(3) - (4)].node));
                   ;}
     break;
 
   case 285:
-#line 1718 "grammar19.y"
+#line 1709 "grammar19.y"
     {
                     (yyval.node) = NEW_YIELD(0, Qfalse);
                   ;}
     break;
 
   case 286:
-#line 1722 "grammar19.y"
+#line 1713 "grammar19.y"
     {
                     (yyval.node) = NEW_YIELD(0, Qfalse);
                   ;}
     break;
 
   case 287:
-#line 1725 "grammar19.y"
+#line 1716 "grammar19.y"
     {in_defined = 1;;}
     break;
 
   case 288:
-#line 1726 "grammar19.y"
+#line 1717 "grammar19.y"
     {
                     in_defined = 0;
                     (yyval.node) = NEW_DEFINED((yyvsp[(5) - (6)].node));
@@ -6453,21 +6443,21 @@ yyreduce:
     break;
 
   case 289:
-#line 1731 "grammar19.y"
+#line 1722 "grammar19.y"
     {
                     (yyval.node) = call_uni_op(cond((yyvsp[(3) - (4)].node)), '!');
                   ;}
     break;
 
   case 290:
-#line 1735 "grammar19.y"
+#line 1726 "grammar19.y"
     {
                     (yyval.node) = call_uni_op(cond(NEW_NIL()), '!');
                   ;}
     break;
 
   case 291:
-#line 1739 "grammar19.y"
+#line 1730 "grammar19.y"
     {
                     (yyvsp[(2) - (2)].node)->nd_iter = NEW_FCALL((yyvsp[(1) - (2)].id), 0);
                     (yyval.node) = (yyvsp[(2) - (2)].node);
@@ -6476,7 +6466,7 @@ yyreduce:
     break;
 
   case 293:
-#line 1746 "grammar19.y"
+#line 1737 "grammar19.y"
     {
                     block_dup_check((yyvsp[(1) - (2)].node)->nd_args, (yyvsp[(2) - (2)].node));
                     (yyvsp[(2) - (2)].node)->nd_iter = (yyvsp[(1) - (2)].node);
@@ -6486,14 +6476,14 @@ yyreduce:
     break;
 
   case 294:
-#line 1753 "grammar19.y"
+#line 1744 "grammar19.y"
     {
                     (yyval.node) = (yyvsp[(2) - (2)].node);
                   ;}
     break;
 
   case 295:
-#line 1760 "grammar19.y"
+#line 1751 "grammar19.y"
     {
                     (yyval.node) = NEW_IF(cond((yyvsp[(2) - (6)].node)), (yyvsp[(4) - (6)].node), (yyvsp[(5) - (6)].node));
                     fixpos((yyval.node), (yyvsp[(2) - (6)].node));
@@ -6501,7 +6491,7 @@ yyreduce:
     break;
 
   case 296:
-#line 1768 "grammar19.y"
+#line 1759 "grammar19.y"
     {
                     (yyval.node) = NEW_UNLESS(cond((yyvsp[(2) - (6)].node)), (yyvsp[(4) - (6)].node), (yyvsp[(5) - (6)].node));
                     fixpos((yyval.node), (yyvsp[(2) - (6)].node));
@@ -6509,17 +6499,17 @@ yyreduce:
     break;
 
   case 297:
-#line 1772 "grammar19.y"
+#line 1763 "grammar19.y"
     {COND_PUSH(1);;}
     break;
 
   case 298:
-#line 1772 "grammar19.y"
+#line 1763 "grammar19.y"
     {COND_POP();;}
     break;
 
   case 299:
-#line 1775 "grammar19.y"
+#line 1766 "grammar19.y"
     {
                     (yyval.node) = NEW_WHILE(cond((yyvsp[(3) - (7)].node)), (yyvsp[(6) - (7)].node), 1);
                     fixpos((yyval.node), (yyvsp[(3) - (7)].node));
@@ -6527,17 +6517,17 @@ yyreduce:
     break;
 
   case 300:
-#line 1779 "grammar19.y"
+#line 1770 "grammar19.y"
     {COND_PUSH(1);;}
     break;
 
   case 301:
-#line 1779 "grammar19.y"
+#line 1770 "grammar19.y"
     {COND_POP();;}
     break;
 
   case 302:
-#line 1782 "grammar19.y"
+#line 1773 "grammar19.y"
     {
                     (yyval.node) = NEW_UNTIL(cond((yyvsp[(3) - (7)].node)), (yyvsp[(6) - (7)].node), 1);
                     fixpos((yyval.node), (yyvsp[(3) - (7)].node));
@@ -6545,7 +6535,7 @@ yyreduce:
     break;
 
   case 303:
-#line 1789 "grammar19.y"
+#line 1780 "grammar19.y"
     {
                     (yyval.node) = NEW_CASE((yyvsp[(2) - (5)].node), (yyvsp[(4) - (5)].node));
                     fixpos((yyval.node), (yyvsp[(2) - (5)].node));
@@ -6553,24 +6543,24 @@ yyreduce:
     break;
 
   case 304:
-#line 1794 "grammar19.y"
+#line 1785 "grammar19.y"
     {
                     (yyval.node) = NEW_CASE(0, (yyvsp[(3) - (4)].node));
                   ;}
     break;
 
   case 305:
-#line 1798 "grammar19.y"
+#line 1789 "grammar19.y"
     {COND_PUSH(1);;}
     break;
 
   case 306:
-#line 1800 "grammar19.y"
+#line 1791 "grammar19.y"
     {COND_POP();;}
     break;
 
   case 307:
-#line 1803 "grammar19.y"
+#line 1794 "grammar19.y"
     {
                     /*
                      *  for a, b, c in e
@@ -6587,7 +6577,7 @@ yyreduce:
     break;
 
   case 308:
-#line 1817 "grammar19.y"
+#line 1808 "grammar19.y"
     {
                     if(in_def || in_single)
                       yy_error("class definition in method body");
@@ -6598,7 +6588,7 @@ yyreduce:
     break;
 
   case 309:
-#line 1826 "grammar19.y"
+#line 1817 "grammar19.y"
     {
                     (yyval.node) = NEW_CLASS((yyvsp[(2) - (6)].node), (yyvsp[(5) - (6)].node), (yyvsp[(3) - (6)].node));
                     nd_set_line((yyval.node), (yyvsp[(4) - (6)].num));
@@ -6608,7 +6598,7 @@ yyreduce:
     break;
 
   case 310:
-#line 1833 "grammar19.y"
+#line 1824 "grammar19.y"
     {
                     (yyval.num) = in_def;
                     in_def = 0;
@@ -6616,7 +6606,7 @@ yyreduce:
     break;
 
   case 311:
-#line 1838 "grammar19.y"
+#line 1829 "grammar19.y"
     {
                     (yyval.num) = in_single;
                     in_single = 0;
@@ -6626,7 +6616,7 @@ yyreduce:
     break;
 
   case 312:
-#line 1846 "grammar19.y"
+#line 1837 "grammar19.y"
     {
                     (yyval.node) = NEW_SCLASS((yyvsp[(3) - (8)].node), (yyvsp[(7) - (8)].node));
                     fixpos((yyval.node), (yyvsp[(3) - (8)].node));
@@ -6638,7 +6628,7 @@ yyreduce:
     break;
 
   case 313:
-#line 1855 "grammar19.y"
+#line 1846 "grammar19.y"
     {
                     if(in_def || in_single)
                       yy_error("module definition in method body");
@@ -6649,7 +6639,7 @@ yyreduce:
     break;
 
   case 314:
-#line 1864 "grammar19.y"
+#line 1855 "grammar19.y"
     {
                     (yyval.node) = NEW_MODULE((yyvsp[(2) - (5)].node), (yyvsp[(4) - (5)].node));
                     nd_set_line((yyval.node), (yyvsp[(3) - (5)].num));
@@ -6659,7 +6649,7 @@ yyreduce:
     break;
 
   case 315:
-#line 1871 "grammar19.y"
+#line 1862 "grammar19.y"
     {
                     (yyval.id) = cur_mid;
                     cur_mid = (yyvsp[(2) - (2)].id);
@@ -6669,7 +6659,7 @@ yyreduce:
     break;
 
   case 316:
-#line 1880 "grammar19.y"
+#line 1871 "grammar19.y"
     {
                     NODE* body = remove_begin((yyvsp[(5) - (6)].node));
                     (yyval.node) = NEW_DEFN((yyvsp[(2) - (6)].id), (yyvsp[(4) - (6)].node), body, NOEX_PRIVATE);
@@ -6681,12 +6671,12 @@ yyreduce:
     break;
 
   case 317:
-#line 1888 "grammar19.y"
+#line 1879 "grammar19.y"
     {lex_state = EXPR_FNAME;;}
     break;
 
   case 318:
-#line 1889 "grammar19.y"
+#line 1880 "grammar19.y"
     {
                     in_single++;
                     lex_state = EXPR_ENDFN; /* force for args */
@@ -6695,7 +6685,7 @@ yyreduce:
     break;
 
   case 319:
-#line 1897 "grammar19.y"
+#line 1888 "grammar19.y"
     {
                     NODE* body = remove_begin((yyvsp[(8) - (9)].node));
                     (yyval.node) = NEW_DEFS((yyvsp[(2) - (9)].node), (yyvsp[(5) - (9)].id), (yyvsp[(7) - (9)].node), body);
@@ -6706,35 +6696,35 @@ yyreduce:
     break;
 
   case 320:
-#line 1905 "grammar19.y"
+#line 1896 "grammar19.y"
     {
                     (yyval.node) = NEW_BREAK(0);
                   ;}
     break;
 
   case 321:
-#line 1909 "grammar19.y"
+#line 1900 "grammar19.y"
     {
                     (yyval.node) = NEW_NEXT(0);
                   ;}
     break;
 
   case 322:
-#line 1913 "grammar19.y"
+#line 1904 "grammar19.y"
     {
                     (yyval.node) = NEW_REDO();
                   ;}
     break;
 
   case 323:
-#line 1917 "grammar19.y"
+#line 1908 "grammar19.y"
     {
                     (yyval.node) = NEW_RETRY();
                   ;}
     break;
 
   case 324:
-#line 1923 "grammar19.y"
+#line 1914 "grammar19.y"
     {
                     value_expr((yyvsp[(1) - (1)].node));
                     (yyval.node) = (yyvsp[(1) - (1)].node);
@@ -6743,70 +6733,70 @@ yyreduce:
     break;
 
   case 325:
-#line 1931 "grammar19.y"
+#line 1922 "grammar19.y"
     {
                     token_info_push("begin");
                   ;}
     break;
 
   case 326:
-#line 1937 "grammar19.y"
+#line 1928 "grammar19.y"
     {
                     token_info_push("if");
                   ;}
     break;
 
   case 327:
-#line 1943 "grammar19.y"
+#line 1934 "grammar19.y"
     {
                     token_info_push("unless");
                   ;}
     break;
 
   case 328:
-#line 1949 "grammar19.y"
+#line 1940 "grammar19.y"
     {
                     token_info_push("while");
                   ;}
     break;
 
   case 329:
-#line 1955 "grammar19.y"
+#line 1946 "grammar19.y"
     {
                     token_info_push("until");
                   ;}
     break;
 
   case 330:
-#line 1961 "grammar19.y"
+#line 1952 "grammar19.y"
     {
                     token_info_push("case");
                   ;}
     break;
 
   case 331:
-#line 1967 "grammar19.y"
+#line 1958 "grammar19.y"
     {
                     token_info_push("for");
                   ;}
     break;
 
   case 332:
-#line 1973 "grammar19.y"
+#line 1964 "grammar19.y"
     {
                     token_info_push("class");
                   ;}
     break;
 
   case 333:
-#line 1979 "grammar19.y"
+#line 1970 "grammar19.y"
     {
                     token_info_push("module");
                   ;}
     break;
 
   case 334:
-#line 1985 "grammar19.y"
+#line 1976 "grammar19.y"
     {
                     token_info_push("def");
                     (yyval.num) = ruby_sourceline;
@@ -6814,14 +6804,14 @@ yyreduce:
     break;
 
   case 335:
-#line 1992 "grammar19.y"
+#line 1983 "grammar19.y"
     {
                     token_info_pop("end");
                   ;}
     break;
 
   case 342:
-#line 2010 "grammar19.y"
+#line 2001 "grammar19.y"
     {
                     (yyval.node) = NEW_IF(cond((yyvsp[(2) - (5)].node)), (yyvsp[(4) - (5)].node), (yyvsp[(5) - (5)].node));
                     fixpos((yyval.node), (yyvsp[(2) - (5)].node));
@@ -6829,49 +6819,49 @@ yyreduce:
     break;
 
   case 344:
-#line 2018 "grammar19.y"
+#line 2009 "grammar19.y"
     {
                     (yyval.node) = (yyvsp[(2) - (2)].node);
                   ;}
     break;
 
   case 347:
-#line 2028 "grammar19.y"
+#line 2019 "grammar19.y"
     {
                     (yyval.node) = assignable((yyvsp[(1) - (1)].id), 0);
                   ;}
     break;
 
   case 348:
-#line 2032 "grammar19.y"
+#line 2023 "grammar19.y"
     {
                     (yyval.node) = (yyvsp[(2) - (3)].node);
                   ;}
     break;
 
   case 349:
-#line 2038 "grammar19.y"
+#line 2029 "grammar19.y"
     {
                     (yyval.node) = NEW_LIST((yyvsp[(1) - (1)].node));
                   ;}
     break;
 
   case 350:
-#line 2042 "grammar19.y"
+#line 2033 "grammar19.y"
     {
                     (yyval.node) = list_append((yyvsp[(1) - (3)].node), (yyvsp[(3) - (3)].node));
                   ;}
     break;
 
   case 351:
-#line 2048 "grammar19.y"
+#line 2039 "grammar19.y"
     {
                     (yyval.node) = NEW_MASGN((yyvsp[(1) - (1)].node), 0);
                   ;}
     break;
 
   case 352:
-#line 2052 "grammar19.y"
+#line 2043 "grammar19.y"
     {
                     (yyval.node) = assignable((yyvsp[(4) - (4)].id), 0);
                     (yyval.node) = NEW_MASGN((yyvsp[(1) - (4)].node), (yyval.node));
@@ -6879,7 +6869,7 @@ yyreduce:
     break;
 
   case 353:
-#line 2057 "grammar19.y"
+#line 2048 "grammar19.y"
     {
                     (yyval.node) = assignable((yyvsp[(4) - (6)].id), 0);
                     (yyval.node) = NEW_MASGN((yyvsp[(1) - (6)].node), NEW_POSTARG((yyval.node), (yyvsp[(6) - (6)].node)));
@@ -6887,21 +6877,21 @@ yyreduce:
     break;
 
   case 354:
-#line 2062 "grammar19.y"
+#line 2053 "grammar19.y"
     {
                     (yyval.node) = NEW_MASGN((yyvsp[(1) - (3)].node), -1);
                   ;}
     break;
 
   case 355:
-#line 2066 "grammar19.y"
+#line 2057 "grammar19.y"
     {
                     (yyval.node) = NEW_MASGN((yyvsp[(1) - (5)].node), NEW_POSTARG(-1, (yyvsp[(5) - (5)].node)));
                   ;}
     break;
 
   case 356:
-#line 2070 "grammar19.y"
+#line 2061 "grammar19.y"
     {
                     (yyval.node) = assignable((yyvsp[(2) - (2)].id), 0);
                     (yyval.node) = NEW_MASGN(0, (yyval.node));
@@ -6909,7 +6899,7 @@ yyreduce:
     break;
 
   case 357:
-#line 2075 "grammar19.y"
+#line 2066 "grammar19.y"
     {
                     (yyval.node) = assignable((yyvsp[(2) - (4)].id), 0);
                     (yyval.node) = NEW_MASGN(0, NEW_POSTARG((yyval.node), (yyvsp[(4) - (4)].node)));
@@ -6917,147 +6907,147 @@ yyreduce:
     break;
 
   case 358:
-#line 2080 "grammar19.y"
+#line 2071 "grammar19.y"
     {
                     (yyval.node) = NEW_MASGN(0, -1);
                   ;}
     break;
 
   case 359:
-#line 2084 "grammar19.y"
+#line 2075 "grammar19.y"
     {
                     (yyval.node) = NEW_MASGN(0, NEW_POSTARG(-1, (yyvsp[(3) - (3)].node)));
                   ;}
     break;
 
   case 360:
-#line 2090 "grammar19.y"
+#line 2081 "grammar19.y"
     {
                     (yyval.node) = new_args((yyvsp[(1) - (6)].node), (yyvsp[(3) - (6)].node), (yyvsp[(5) - (6)].id), 0, (yyvsp[(6) - (6)].id));
                   ;}
     break;
 
   case 361:
-#line 2094 "grammar19.y"
+#line 2085 "grammar19.y"
     {
                     (yyval.node) = new_args((yyvsp[(1) - (8)].node), (yyvsp[(3) - (8)].node), (yyvsp[(5) - (8)].id), (yyvsp[(7) - (8)].node), (yyvsp[(8) - (8)].id));
                   ;}
     break;
 
   case 362:
-#line 2098 "grammar19.y"
+#line 2089 "grammar19.y"
     {
                     (yyval.node) = new_args((yyvsp[(1) - (4)].node), (yyvsp[(3) - (4)].node), 0, 0, (yyvsp[(4) - (4)].id));
                   ;}
     break;
 
   case 363:
-#line 2102 "grammar19.y"
+#line 2093 "grammar19.y"
     {
                     (yyval.node) = new_args((yyvsp[(1) - (6)].node), (yyvsp[(3) - (6)].node), 0, (yyvsp[(5) - (6)].node), (yyvsp[(6) - (6)].id));
                   ;}
     break;
 
   case 364:
-#line 2106 "grammar19.y"
+#line 2097 "grammar19.y"
     {
                     (yyval.node) = new_args((yyvsp[(1) - (4)].node), 0, (yyvsp[(3) - (4)].id), 0, (yyvsp[(4) - (4)].id));
                   ;}
     break;
 
   case 365:
-#line 2110 "grammar19.y"
+#line 2101 "grammar19.y"
     {
                     (yyval.node) = new_args((yyvsp[(1) - (2)].node), 0, 1, 0, 0);
                   ;}
     break;
 
   case 366:
-#line 2114 "grammar19.y"
+#line 2105 "grammar19.y"
     {
                     (yyval.node) = new_args((yyvsp[(1) - (6)].node), 0, (yyvsp[(3) - (6)].id), (yyvsp[(5) - (6)].node), (yyvsp[(6) - (6)].id));
                   ;}
     break;
 
   case 367:
-#line 2118 "grammar19.y"
+#line 2109 "grammar19.y"
     {
                     (yyval.node) = new_args((yyvsp[(1) - (2)].node), 0, 0, 0, (yyvsp[(2) - (2)].id));
                   ;}
     break;
 
   case 368:
-#line 2122 "grammar19.y"
+#line 2113 "grammar19.y"
     {
                     (yyval.node) = new_args(0, (yyvsp[(1) - (4)].node), (yyvsp[(3) - (4)].id), 0, (yyvsp[(4) - (4)].id));
                   ;}
     break;
 
   case 369:
-#line 2126 "grammar19.y"
+#line 2117 "grammar19.y"
     {
                     (yyval.node) = new_args(0, (yyvsp[(1) - (6)].node), (yyvsp[(3) - (6)].id), (yyvsp[(5) - (6)].node), (yyvsp[(6) - (6)].id));
                   ;}
     break;
 
   case 370:
-#line 2130 "grammar19.y"
+#line 2121 "grammar19.y"
     {
                     (yyval.node) = new_args(0, (yyvsp[(1) - (2)].node), 0, 0, (yyvsp[(2) - (2)].id));
                   ;}
     break;
 
   case 371:
-#line 2134 "grammar19.y"
+#line 2125 "grammar19.y"
     {
                     (yyval.node) = new_args(0, (yyvsp[(1) - (4)].node), 0, (yyvsp[(3) - (4)].node), (yyvsp[(4) - (4)].id));
                   ;}
     break;
 
   case 372:
-#line 2138 "grammar19.y"
+#line 2129 "grammar19.y"
     {
                     (yyval.node) = new_args(0, 0, (yyvsp[(1) - (2)].id), 0, (yyvsp[(2) - (2)].id));
                   ;}
     break;
 
   case 373:
-#line 2142 "grammar19.y"
+#line 2133 "grammar19.y"
     {
                     (yyval.node) = new_args(0, 0, (yyvsp[(1) - (4)].id), (yyvsp[(3) - (4)].node), (yyvsp[(4) - (4)].id));
                   ;}
     break;
 
   case 374:
-#line 2146 "grammar19.y"
+#line 2137 "grammar19.y"
     {
                     (yyval.node) = new_args(0, 0, 0, 0, (yyvsp[(1) - (1)].id));
                   ;}
     break;
 
   case 376:
-#line 2153 "grammar19.y"
+#line 2144 "grammar19.y"
     {
                     command_start = TRUE;
                   ;}
     break;
 
   case 377:
-#line 2159 "grammar19.y"
+#line 2150 "grammar19.y"
     {
                     (yyval.node) = (yyvsp[(2) - (3)].node) ? NEW_ARGS_AUX(0,(yyvsp[(2) - (3)].node)) : 0;
                   ;}
     break;
 
   case 378:
-#line 2163 "grammar19.y"
+#line 2154 "grammar19.y"
     {
                     (yyval.node) = 0;
                   ;}
     break;
 
   case 379:
-#line 2167 "grammar19.y"
+#line 2158 "grammar19.y"
     {
                     if((yyvsp[(3) - (4)].node)) {
                       (yyval.node) = NEW_ARGS_AUX((yyvsp[(2) - (4)].node), (yyvsp[(3) - (4)].node));
@@ -7068,35 +7058,35 @@ yyreduce:
     break;
 
   case 380:
-#line 2177 "grammar19.y"
+#line 2168 "grammar19.y"
     {
                     (yyval.node) = 0;
                   ;}
     break;
 
   case 381:
-#line 2181 "grammar19.y"
+#line 2172 "grammar19.y"
     {
                     (yyval.node) = (yyvsp[(2) - (2)].node);
                   ;}
     break;
 
   case 382:
-#line 2187 "grammar19.y"
+#line 2178 "grammar19.y"
     {
                     (yyval.node) = NEW_LIST((yyvsp[(1) - (1)].node));
                   ;}
     break;
 
   case 383:
-#line 2191 "grammar19.y"
+#line 2182 "grammar19.y"
     {
                     (yyval.node) = list_append((yyvsp[(1) - (3)].node), (yyvsp[(3) - (3)].node));
                   ;}
     break;
 
   case 384:
-#line 2197 "grammar19.y"
+#line 2188 "grammar19.y"
     {
                     new_bv(get_id((yyvsp[(1) - (1)].id)));
                     (yyval.node) = NEW_LIT(ID2SYM(get_id((yyvsp[(1) - (1)].id))));
@@ -7104,21 +7094,21 @@ yyreduce:
     break;
 
   case 385:
-#line 2202 "grammar19.y"
+#line 2193 "grammar19.y"
     {
                     (yyval.node) = 0;
                   ;}
     break;
 
   case 386:
-#line 2207 "grammar19.y"
+#line 2198 "grammar19.y"
     {
                     (yyval.vars) = bv_push();
                   ;}
     break;
 
   case 387:
-#line 2210 "grammar19.y"
+#line 2201 "grammar19.y"
     {
                     (yyval.num) = lpar_beg;
                     lpar_beg = ++paren_nest;
@@ -7126,7 +7116,7 @@ yyreduce:
     break;
 
   case 388:
-#line 2216 "grammar19.y"
+#line 2207 "grammar19.y"
     {
                     lpar_beg = (yyvsp[(2) - (4)].num);
                     (yyval.node) = (yyvsp[(3) - (4)].node);
@@ -7136,35 +7126,35 @@ yyreduce:
     break;
 
   case 389:
-#line 2225 "grammar19.y"
+#line 2216 "grammar19.y"
     {
                     (yyval.node) = NEW_LAMBDA((yyvsp[(2) - (4)].node));
                   ;}
     break;
 
   case 390:
-#line 2229 "grammar19.y"
+#line 2220 "grammar19.y"
     {
                     (yyval.node) = NEW_LAMBDA((yyvsp[(1) - (1)].node));
                   ;}
     break;
 
   case 391:
-#line 2235 "grammar19.y"
+#line 2226 "grammar19.y"
     {
                     (yyval.node) = (yyvsp[(2) - (3)].node);
                   ;}
     break;
 
   case 392:
-#line 2239 "grammar19.y"
+#line 2230 "grammar19.y"
     {
                     (yyval.node) = (yyvsp[(2) - (3)].node);
                   ;}
     break;
 
   case 393:
-#line 2245 "grammar19.y"
+#line 2236 "grammar19.y"
     {
                     (yyvsp[(1) - (1)].vars) = bv_push();
                     (yyval.num) = ruby_sourceline;
@@ -7172,7 +7162,7 @@ yyreduce:
     break;
 
   case 394:
-#line 2252 "grammar19.y"
+#line 2243 "grammar19.y"
     {
                     (yyval.node) = NEW_ITER((yyvsp[(3) - (5)].node), (yyvsp[(4) - (5)].node));
                     nd_set_line((yyval.node), (yyvsp[(2) - (5)].num));
@@ -7181,7 +7171,7 @@ yyreduce:
     break;
 
   case 395:
-#line 2260 "grammar19.y"
+#line 2251 "grammar19.y"
     {
                     if(nd_type((yyvsp[(1) - (2)].node)) == NODE_YIELD) {
                       compile_error("block given to yield");
@@ -7195,21 +7185,21 @@ yyreduce:
     break;
 
   case 396:
-#line 2271 "grammar19.y"
+#line 2262 "grammar19.y"
     {
                     (yyval.node) = NEW_CALL((yyvsp[(1) - (4)].node), (yyvsp[(3) - (4)].id), (yyvsp[(4) - (4)].node));
                   ;}
     break;
 
   case 397:
-#line 2275 "grammar19.y"
+#line 2266 "grammar19.y"
     {
                     (yyval.node) = NEW_CALL((yyvsp[(1) - (4)].node), (yyvsp[(3) - (4)].id), (yyvsp[(4) - (4)].node));
                   ;}
     break;
 
   case 398:
-#line 2281 "grammar19.y"
+#line 2272 "grammar19.y"
     {
                     (yyval.node) = NEW_FCALL((yyvsp[(1) - (2)].id), (yyvsp[(2) - (2)].node));
                     fixpos((yyval.node), (yyvsp[(2) - (2)].node));
@@ -7217,7 +7207,7 @@ yyreduce:
     break;
 
   case 399:
-#line 2286 "grammar19.y"
+#line 2277 "grammar19.y"
     {
                     (yyval.node) = NEW_CALL((yyvsp[(1) - (4)].node), (yyvsp[(3) - (4)].id), (yyvsp[(4) - (4)].node));
                     fixpos((yyval.node), (yyvsp[(1) - (4)].node));
@@ -7225,7 +7215,7 @@ yyreduce:
     break;
 
   case 400:
-#line 2291 "grammar19.y"
+#line 2282 "grammar19.y"
     {
                     (yyval.node) = NEW_CALL((yyvsp[(1) - (4)].node), (yyvsp[(3) - (4)].id), (yyvsp[(4) - (4)].node));
                     fixpos((yyval.node), (yyvsp[(1) - (4)].node));
@@ -7233,14 +7223,14 @@ yyreduce:
     break;
 
   case 401:
-#line 2296 "grammar19.y"
+#line 2287 "grammar19.y"
     {
                     (yyval.node) = NEW_CALL((yyvsp[(1) - (3)].node), (yyvsp[(3) - (3)].id), 0);
                   ;}
     break;
 
   case 402:
-#line 2300 "grammar19.y"
+#line 2291 "grammar19.y"
     {
                     (yyval.node) = NEW_CALL((yyvsp[(1) - (3)].node), parser_intern("call"), (yyvsp[(3) - (3)].node));
                     fixpos((yyval.node), (yyvsp[(1) - (3)].node));
@@ -7248,7 +7238,7 @@ yyreduce:
     break;
 
   case 403:
-#line 2305 "grammar19.y"
+#line 2296 "grammar19.y"
     {
                     (yyval.node) = NEW_CALL((yyvsp[(1) - (3)].node), parser_intern("call"), (yyvsp[(3) - (3)].node));
                     fixpos((yyval.node), (yyvsp[(1) - (3)].node));
@@ -7256,21 +7246,21 @@ yyreduce:
     break;
 
   case 404:
-#line 2310 "grammar19.y"
+#line 2301 "grammar19.y"
     {
                     (yyval.node) = NEW_SUPER((yyvsp[(2) - (2)].node));
                   ;}
     break;
 
   case 405:
-#line 2314 "grammar19.y"
+#line 2305 "grammar19.y"
     {
                     (yyval.node) = NEW_ZSUPER();
                   ;}
     break;
 
   case 406:
-#line 2318 "grammar19.y"
+#line 2309 "grammar19.y"
     {
                     if((yyvsp[(1) - (4)].node) && nd_type((yyvsp[(1) - (4)].node)) == NODE_SELF) {
                       (yyval.node) = NEW_FCALL(tAREF, (yyvsp[(3) - (4)].node));
@@ -7282,7 +7272,7 @@ yyreduce:
     break;
 
   case 407:
-#line 2329 "grammar19.y"
+#line 2320 "grammar19.y"
     {
                     (yyvsp[(1) - (1)].vars) = bv_push();
                     (yyval.num) = ruby_sourceline;
@@ -7290,7 +7280,7 @@ yyreduce:
     break;
 
   case 408:
-#line 2335 "grammar19.y"
+#line 2326 "grammar19.y"
     {
                     (yyval.node) = NEW_ITER((yyvsp[(3) - (5)].node), (yyvsp[(4) - (5)].node));
                     nd_set_line((yyval.node), (yyvsp[(2) - (5)].num));
@@ -7299,7 +7289,7 @@ yyreduce:
     break;
 
   case 409:
-#line 2341 "grammar19.y"
+#line 2332 "grammar19.y"
     {
                     (yyvsp[(1) - (1)].vars) = bv_push();
                     (yyval.num) = ruby_sourceline;
@@ -7307,7 +7297,7 @@ yyreduce:
     break;
 
   case 410:
-#line 2347 "grammar19.y"
+#line 2338 "grammar19.y"
     {
                     (yyval.node) = NEW_ITER((yyvsp[(3) - (5)].node), (yyvsp[(4) - (5)].node));
                     nd_set_line((yyval.node), (yyvsp[(2) - (5)].num));
@@ -7316,14 +7306,14 @@ yyreduce:
     break;
 
   case 411:
-#line 2357 "grammar19.y"
+#line 2348 "grammar19.y"
     {
                     (yyval.node) = NEW_WHEN((yyvsp[(2) - (5)].node), (yyvsp[(4) - (5)].node), (yyvsp[(5) - (5)].node));
                   ;}
     break;
 
   case 414:
-#line 2369 "grammar19.y"
+#line 2360 "grammar19.y"
     {
                     if((yyvsp[(3) - (6)].node)) {
                       /* TODO NEW_ERRINFO() */
@@ -7336,42 +7326,42 @@ yyreduce:
     break;
 
   case 416:
-#line 2382 "grammar19.y"
+#line 2373 "grammar19.y"
     {
                     (yyval.node) = NEW_LIST((yyvsp[(1) - (1)].node));
                   ;}
     break;
 
   case 417:
-#line 2386 "grammar19.y"
+#line 2377 "grammar19.y"
     {
                     if(!((yyval.node) = splat_array((yyvsp[(1) - (1)].node)))) (yyval.node) = (yyvsp[(1) - (1)].node);
                   ;}
     break;
 
   case 419:
-#line 2393 "grammar19.y"
+#line 2384 "grammar19.y"
     {
                     (yyval.node) = (yyvsp[(2) - (2)].node);
                   ;}
     break;
 
   case 421:
-#line 2400 "grammar19.y"
+#line 2391 "grammar19.y"
     {
                     (yyval.node) = (yyvsp[(2) - (2)].node);
                   ;}
     break;
 
   case 424:
-#line 2408 "grammar19.y"
+#line 2399 "grammar19.y"
     {
                     (yyval.node) = NEW_LIT(ID2SYM((yyvsp[(1) - (1)].id)));
                   ;}
     break;
 
   case 426:
-#line 2415 "grammar19.y"
+#line 2406 "grammar19.y"
     {
                     NODE *node = (yyvsp[(1) - (1)].node);
                     if(!node) {
@@ -7384,21 +7374,21 @@ yyreduce:
     break;
 
   case 429:
-#line 2429 "grammar19.y"
+#line 2420 "grammar19.y"
     {
                     (yyval.node) = literal_concat((yyvsp[(1) - (2)].node), (yyvsp[(2) - (2)].node));
                   ;}
     break;
 
   case 430:
-#line 2435 "grammar19.y"
+#line 2426 "grammar19.y"
     {
                     (yyval.node) = (yyvsp[(2) - (3)].node);
                   ;}
     break;
 
   case 431:
-#line 2441 "grammar19.y"
+#line 2432 "grammar19.y"
     {
                     NODE *node = (yyvsp[(2) - (3)].node);
                     if(!node) {
@@ -7421,11 +7411,12 @@ yyreduce:
     break;
 
   case 432:
-#line 2463 "grammar19.y"
+#line 2454 "grammar19.y"
     {
-                    // TODO
                     intptr_t options = (yyvsp[(3) - (3)].num);
                     NODE *node = (yyvsp[(2) - (3)].node);
+                    NODE *list, *prev;
+
                     if(!node) {
                       node = NEW_REGEX(STR_NEW0(), options & ~RE_OPTION_ONCE);
                     } else {
@@ -7445,6 +7436,34 @@ yyreduce:
                           nd_set_type(node, NODE_DREGX);
                         }
                         node->nd_cflag = options & ~RE_OPTION_ONCE;
+                        for(list = (prev = node)->nd_next; list; list = list->nd_next) {
+                          if(nd_type(list->nd_head) == NODE_STR) {
+                            VALUE tail = list->nd_head->nd_lit;
+                            if(prev && !NIL_P(prev->nd_lit)) {
+                              VALUE lit;
+                              if(prev == node) {
+                                lit = prev->nd_lit;
+                              } else {
+                                lit = prev->nd_head->nd_lit;
+                              }
+                              if(!literal_concat0(lit, tail)) {
+                                node = 0;
+                                break;
+                              }
+                              rb_str_resize(tail, 0);
+                              prev->nd_next = list->nd_next;
+                              list = prev;
+                            } else {
+                              prev = list;
+                            }
+                          } else {
+                            prev = 0;
+                          }
+                        }
+                        if(!node->nd_next) {
+                          nd_set_type(node, NODE_REGEX);
+                          node->nd_cnt = options & ~RE_OPTION_ONCE;
+                        }
                         break;
                       }
                     }
@@ -7453,105 +7472,105 @@ yyreduce:
     break;
 
   case 433:
-#line 2494 "grammar19.y"
+#line 2514 "grammar19.y"
     {
                     (yyval.node) = NEW_ZARRAY();
                   ;}
     break;
 
   case 434:
-#line 2498 "grammar19.y"
+#line 2518 "grammar19.y"
     {
                     (yyval.node) = (yyvsp[(2) - (3)].node);
                   ;}
     break;
 
   case 435:
-#line 2504 "grammar19.y"
+#line 2524 "grammar19.y"
     {
                     (yyval.node) = 0;
                   ;}
     break;
 
   case 436:
-#line 2508 "grammar19.y"
+#line 2528 "grammar19.y"
     {
                     (yyval.node) = list_append((yyvsp[(1) - (3)].node), evstr2dstr((yyvsp[(2) - (3)].node)));
                   ;}
     break;
 
   case 438:
-#line 2515 "grammar19.y"
+#line 2535 "grammar19.y"
     {
                     (yyval.node) = literal_concat((yyvsp[(1) - (2)].node), (yyvsp[(2) - (2)].node));
                   ;}
     break;
 
   case 439:
-#line 2521 "grammar19.y"
+#line 2541 "grammar19.y"
     {
                     (yyval.node) = NEW_ZARRAY();
                   ;}
     break;
 
   case 440:
-#line 2525 "grammar19.y"
+#line 2545 "grammar19.y"
     {
                     (yyval.node) = (yyvsp[(2) - (3)].node);
                   ;}
     break;
 
   case 441:
-#line 2531 "grammar19.y"
-    {
-                    (yyval.node) = 0;
-                  ;}
-    break;
-
-  case 442:
-#line 2535 "grammar19.y"
-    {
-                    (yyval.node) = list_append((yyvsp[(1) - (3)].node), (yyvsp[(2) - (3)].node));
-                  ;}
-    break;
-
-  case 443:
-#line 2541 "grammar19.y"
-    {
-                    (yyval.node) = 0;
-                  ;}
-    break;
-
-  case 444:
-#line 2545 "grammar19.y"
-    {
-                    (yyval.node) = literal_concat((yyvsp[(1) - (2)].node), (yyvsp[(2) - (2)].node));
-                  ;}
-    break;
-
-  case 445:
 #line 2551 "grammar19.y"
     {
                     (yyval.node) = 0;
                   ;}
     break;
 
-  case 446:
+  case 442:
 #line 2555 "grammar19.y"
     {
-                    (yyval.node) = literal_concat((yyvsp[(1) - (2)].node), (yyvsp[(2) - (2)].node));
+                    (yyval.node) = list_append((yyvsp[(1) - (3)].node), (yyvsp[(2) - (3)].node));
                   ;}
     break;
 
-  case 447:
+  case 443:
 #line 2561 "grammar19.y"
     {
                     (yyval.node) = 0;
                   ;}
     break;
 
-  case 448:
+  case 444:
 #line 2565 "grammar19.y"
+    {
+                    (yyval.node) = literal_concat((yyvsp[(1) - (2)].node), (yyvsp[(2) - (2)].node));
+                  ;}
+    break;
+
+  case 445:
+#line 2571 "grammar19.y"
+    {
+                    (yyval.node) = 0;
+                  ;}
+    break;
+
+  case 446:
+#line 2575 "grammar19.y"
+    {
+                    (yyval.node) = literal_concat((yyvsp[(1) - (2)].node), (yyvsp[(2) - (2)].node));
+                  ;}
+    break;
+
+  case 447:
+#line 2581 "grammar19.y"
+    {
+                    (yyval.node) = 0;
+                  ;}
+    break;
+
+  case 448:
+#line 2585 "grammar19.y"
     {
                     NODE *head = (yyvsp[(1) - (2)].node), *tail = (yyvsp[(2) - (2)].node);
                     if(!head) {
@@ -7575,7 +7594,7 @@ yyreduce:
     break;
 
   case 450:
-#line 2589 "grammar19.y"
+#line 2609 "grammar19.y"
     {
                     (yyval.node) = lex_strterm;
                     lex_strterm = 0;
@@ -7584,7 +7603,7 @@ yyreduce:
     break;
 
   case 451:
-#line 2595 "grammar19.y"
+#line 2615 "grammar19.y"
     {
                     lex_strterm = (yyvsp[(2) - (3)].node);
                     (yyval.node) = NEW_EVSTR((yyvsp[(3) - (3)].node));
@@ -7592,7 +7611,7 @@ yyreduce:
     break;
 
   case 452:
-#line 2600 "grammar19.y"
+#line 2620 "grammar19.y"
     {
                     (yyvsp[(1) - (1)].val) = cond_stack;
                     (yyval.val) = cmdarg_stack;
@@ -7602,7 +7621,7 @@ yyreduce:
     break;
 
   case 453:
-#line 2606 "grammar19.y"
+#line 2626 "grammar19.y"
     {
                     (yyval.node) = lex_strterm;
                     lex_strterm = 0;
@@ -7611,7 +7630,7 @@ yyreduce:
     break;
 
   case 454:
-#line 2612 "grammar19.y"
+#line 2632 "grammar19.y"
     {
                     cond_stack = (yyvsp[(1) - (5)].val);
                     cmdarg_stack = (yyvsp[(2) - (5)].val);
@@ -7623,22 +7642,22 @@ yyreduce:
     break;
 
   case 455:
-#line 2622 "grammar19.y"
+#line 2642 "grammar19.y"
     {(yyval.node) = NEW_GVAR((yyvsp[(1) - (1)].id));;}
     break;
 
   case 456:
-#line 2623 "grammar19.y"
+#line 2643 "grammar19.y"
     {(yyval.node) = NEW_IVAR((yyvsp[(1) - (1)].id));;}
     break;
 
   case 457:
-#line 2624 "grammar19.y"
+#line 2644 "grammar19.y"
     {(yyval.node) = NEW_CVAR((yyvsp[(1) - (1)].id));;}
     break;
 
   case 459:
-#line 2629 "grammar19.y"
+#line 2649 "grammar19.y"
     {
                     lex_state = EXPR_END;
                     (yyval.id) = (yyvsp[(2) - (2)].id);
@@ -7646,7 +7665,7 @@ yyreduce:
     break;
 
   case 464:
-#line 2642 "grammar19.y"
+#line 2662 "grammar19.y"
     {
                     lex_state = EXPR_END;
                     if(!((yyval.node) = (yyvsp[(2) - (3)].node))) {
@@ -7672,56 +7691,56 @@ yyreduce:
     break;
 
   case 467:
-#line 2669 "grammar19.y"
+#line 2689 "grammar19.y"
     {
                     (yyval.node) = negate_lit((yyvsp[(2) - (2)].node));
                   ;}
     break;
 
   case 468:
-#line 2673 "grammar19.y"
+#line 2693 "grammar19.y"
     {
                     (yyval.node) = negate_lit((yyvsp[(2) - (2)].node));
                   ;}
     break;
 
   case 474:
-#line 2683 "grammar19.y"
+#line 2703 "grammar19.y"
     {(yyval.id) = keyword_nil;;}
     break;
 
   case 475:
-#line 2684 "grammar19.y"
+#line 2704 "grammar19.y"
     {(yyval.id) = keyword_self;;}
     break;
 
   case 476:
-#line 2685 "grammar19.y"
+#line 2705 "grammar19.y"
     {(yyval.id) = keyword_true;;}
     break;
 
   case 477:
-#line 2686 "grammar19.y"
+#line 2706 "grammar19.y"
     {(yyval.id) = keyword_false;;}
     break;
 
   case 478:
-#line 2687 "grammar19.y"
+#line 2707 "grammar19.y"
     {(yyval.id) = keyword__FILE__;;}
     break;
 
   case 479:
-#line 2688 "grammar19.y"
+#line 2708 "grammar19.y"
     {(yyval.id) = keyword__LINE__;;}
     break;
 
   case 480:
-#line 2689 "grammar19.y"
+#line 2709 "grammar19.y"
     {(yyval.id) = keyword__ENCODING__;;}
     break;
 
   case 481:
-#line 2693 "grammar19.y"
+#line 2713 "grammar19.y"
     {
                     if(!((yyval.node) = gettable((yyvsp[(1) - (1)].id)))) {
                       (yyval.node) = NEW_BEGIN(0);
@@ -7730,35 +7749,35 @@ yyreduce:
     break;
 
   case 482:
-#line 2701 "grammar19.y"
+#line 2721 "grammar19.y"
     {
                     (yyval.node) = assignable((yyvsp[(1) - (1)].id), 0);
                   ;}
     break;
 
   case 485:
-#line 2711 "grammar19.y"
+#line 2731 "grammar19.y"
     {
                     (yyval.node) = 0;
                   ;}
     break;
 
   case 486:
-#line 2715 "grammar19.y"
+#line 2735 "grammar19.y"
     {
                     lex_state = EXPR_BEG;
                   ;}
     break;
 
   case 487:
-#line 2719 "grammar19.y"
+#line 2739 "grammar19.y"
     {
                     (yyval.node) = (yyvsp[(3) - (4)].node);
                   ;}
     break;
 
   case 488:
-#line 2723 "grammar19.y"
+#line 2743 "grammar19.y"
     {
                     yyerrok;
                     (yyval.node) = 0;
@@ -7766,7 +7785,7 @@ yyreduce:
     break;
 
   case 489:
-#line 2730 "grammar19.y"
+#line 2750 "grammar19.y"
     {
                     (yyval.node) = (yyvsp[(2) - (3)].node);
                     lex_state = EXPR_BEG;
@@ -7775,119 +7794,119 @@ yyreduce:
     break;
 
   case 490:
-#line 2736 "grammar19.y"
+#line 2756 "grammar19.y"
     {
                     (yyval.node) = (yyvsp[(1) - (2)].node);
                   ;}
     break;
 
   case 491:
-#line 2742 "grammar19.y"
+#line 2762 "grammar19.y"
     {
                     (yyval.node) = new_args((yyvsp[(1) - (6)].node), (yyvsp[(3) - (6)].node), (yyvsp[(5) - (6)].id), 0, (yyvsp[(6) - (6)].id));
                   ;}
     break;
 
   case 492:
-#line 2746 "grammar19.y"
+#line 2766 "grammar19.y"
     {
                     (yyval.node) = new_args((yyvsp[(1) - (8)].node), (yyvsp[(3) - (8)].node), (yyvsp[(5) - (8)].id), (yyvsp[(7) - (8)].node), (yyvsp[(8) - (8)].id));
                   ;}
     break;
 
   case 493:
-#line 2750 "grammar19.y"
+#line 2770 "grammar19.y"
     {
                     (yyval.node) = new_args((yyvsp[(1) - (4)].node), (yyvsp[(3) - (4)].node), 0, 0, (yyvsp[(4) - (4)].id));
                   ;}
     break;
 
   case 494:
-#line 2754 "grammar19.y"
+#line 2774 "grammar19.y"
     {
                     (yyval.node) = new_args((yyvsp[(1) - (6)].node), (yyvsp[(3) - (6)].node), 0, (yyvsp[(5) - (6)].node), (yyvsp[(6) - (6)].id));
                   ;}
     break;
 
   case 495:
-#line 2758 "grammar19.y"
+#line 2778 "grammar19.y"
     {
                     (yyval.node) = new_args((yyvsp[(1) - (4)].node), 0, (yyvsp[(3) - (4)].id), 0, (yyvsp[(4) - (4)].id));
                   ;}
     break;
 
   case 496:
-#line 2762 "grammar19.y"
+#line 2782 "grammar19.y"
     {
                     (yyval.node) = new_args((yyvsp[(1) - (6)].node), 0, (yyvsp[(3) - (6)].id), (yyvsp[(5) - (6)].node), (yyvsp[(6) - (6)].id));
                   ;}
     break;
 
   case 497:
-#line 2766 "grammar19.y"
+#line 2786 "grammar19.y"
     {
                     (yyval.node) = new_args((yyvsp[(1) - (2)].node), 0, 0, 0, (yyvsp[(2) - (2)].id));
                   ;}
     break;
 
   case 498:
-#line 2770 "grammar19.y"
+#line 2790 "grammar19.y"
     {
                     (yyval.node) = new_args(0, (yyvsp[(1) - (4)].node), (yyvsp[(3) - (4)].id), 0, (yyvsp[(4) - (4)].id));
                   ;}
     break;
 
   case 499:
-#line 2774 "grammar19.y"
+#line 2794 "grammar19.y"
     {
                     (yyval.node) = new_args(0, (yyvsp[(1) - (6)].node), (yyvsp[(3) - (6)].id), (yyvsp[(5) - (6)].node), (yyvsp[(6) - (6)].id));
                   ;}
     break;
 
   case 500:
-#line 2778 "grammar19.y"
+#line 2798 "grammar19.y"
     {
                     (yyval.node) = new_args(0, (yyvsp[(1) - (2)].node), 0, 0, (yyvsp[(2) - (2)].id));
                   ;}
     break;
 
   case 501:
-#line 2782 "grammar19.y"
+#line 2802 "grammar19.y"
     {
                     (yyval.node) = new_args(0, (yyvsp[(1) - (4)].node), 0, (yyvsp[(3) - (4)].node), (yyvsp[(4) - (4)].id));
                   ;}
     break;
 
   case 502:
-#line 2786 "grammar19.y"
+#line 2806 "grammar19.y"
     {
                     (yyval.node) = new_args(0, 0, (yyvsp[(1) - (2)].id), 0, (yyvsp[(2) - (2)].id));
                   ;}
     break;
 
   case 503:
-#line 2790 "grammar19.y"
+#line 2810 "grammar19.y"
     {
                     (yyval.node) = new_args(0, 0, (yyvsp[(1) - (4)].id), (yyvsp[(3) - (4)].node), (yyvsp[(4) - (4)].id));
                   ;}
     break;
 
   case 504:
-#line 2794 "grammar19.y"
+#line 2814 "grammar19.y"
     {
                     (yyval.node) = new_args(0, 0, 0, 0, (yyvsp[(1) - (1)].id));
                   ;}
     break;
 
   case 505:
-#line 2798 "grammar19.y"
+#line 2818 "grammar19.y"
     {
                     (yyval.node) = new_args(0, 0, 0, 0, 0);
                   ;}
     break;
 
   case 506:
-#line 2804 "grammar19.y"
+#line 2824 "grammar19.y"
     {
                     yy_error("formal argument cannot be a constant");
                     (yyval.id) = 0;
@@ -7895,7 +7914,7 @@ yyreduce:
     break;
 
   case 507:
-#line 2809 "grammar19.y"
+#line 2829 "grammar19.y"
     {
                     yy_error("formal argument cannot be an instance variable");
                     (yyval.id) = 0;
@@ -7903,7 +7922,7 @@ yyreduce:
     break;
 
   case 508:
-#line 2814 "grammar19.y"
+#line 2834 "grammar19.y"
     {
                     yy_error("formal argument cannot be a global variable");
                     (yyval.id) = 0;
@@ -7911,7 +7930,7 @@ yyreduce:
     break;
 
   case 509:
-#line 2819 "grammar19.y"
+#line 2839 "grammar19.y"
     {
                     yy_error("formal argument cannot be a class variable");
                     (yyval.id) = 0;
@@ -7919,7 +7938,7 @@ yyreduce:
     break;
 
   case 511:
-#line 2827 "grammar19.y"
+#line 2847 "grammar19.y"
     {
                     formal_argument(get_id((yyvsp[(1) - (1)].id)));
                     (yyval.id) = (yyvsp[(1) - (1)].id);
@@ -7927,7 +7946,7 @@ yyreduce:
     break;
 
   case 512:
-#line 2834 "grammar19.y"
+#line 2854 "grammar19.y"
     {
                     arg_var(get_id((yyvsp[(1) - (1)].id)));
                     (yyval.node) = NEW_ARGS_AUX((yyvsp[(1) - (1)].id), 1);
@@ -7935,7 +7954,7 @@ yyreduce:
     break;
 
   case 513:
-#line 2839 "grammar19.y"
+#line 2859 "grammar19.y"
     {
                     ID tid = internal_id();
                     arg_var(tid);
@@ -7946,7 +7965,7 @@ yyreduce:
     break;
 
   case 515:
-#line 2850 "grammar19.y"
+#line 2870 "grammar19.y"
     {
                     (yyval.node) = (yyvsp[(1) - (3)].node);
                     (yyval.node)->nd_plen++;
@@ -7955,7 +7974,7 @@ yyreduce:
     break;
 
   case 516:
-#line 2858 "grammar19.y"
+#line 2878 "grammar19.y"
     {
                     arg_var(formal_argument(get_id((yyvsp[(1) - (3)].id))));
                     (yyval.node) = assignable((yyvsp[(1) - (3)].id), (yyvsp[(3) - (3)].node));
@@ -7964,7 +7983,7 @@ yyreduce:
     break;
 
   case 517:
-#line 2866 "grammar19.y"
+#line 2886 "grammar19.y"
     {
                     arg_var(formal_argument(get_id((yyvsp[(1) - (3)].id))));
                     (yyval.node) = assignable((yyvsp[(1) - (3)].id), (yyvsp[(3) - (3)].node));
@@ -7973,14 +7992,14 @@ yyreduce:
     break;
 
   case 518:
-#line 2874 "grammar19.y"
+#line 2894 "grammar19.y"
     {
                     (yyval.node) = (yyvsp[(1) - (1)].node);
                   ;}
     break;
 
   case 519:
-#line 2878 "grammar19.y"
+#line 2898 "grammar19.y"
     {
                     NODE *opts = (yyvsp[(1) - (3)].node);
                     while(opts->nd_next) {
@@ -7992,14 +8011,14 @@ yyreduce:
     break;
 
   case 520:
-#line 2889 "grammar19.y"
+#line 2909 "grammar19.y"
     {
                     (yyval.node) = (yyvsp[(1) - (1)].node);
                   ;}
     break;
 
   case 521:
-#line 2893 "grammar19.y"
+#line 2913 "grammar19.y"
     {
                     NODE *opts = (yyvsp[(1) - (3)].node);
                     while(opts->nd_next) {
@@ -8011,7 +8030,7 @@ yyreduce:
     break;
 
   case 524:
-#line 2908 "grammar19.y"
+#line 2928 "grammar19.y"
     {
                     if(!is_local_id((yyvsp[(2) - (2)].id))) {
                       yy_error("rest argument must be local variable");
@@ -8022,7 +8041,7 @@ yyreduce:
     break;
 
   case 525:
-#line 2916 "grammar19.y"
+#line 2936 "grammar19.y"
     {
                     (yyval.id) = internal_id();
                     arg_var((yyval.id));
@@ -8030,7 +8049,7 @@ yyreduce:
     break;
 
   case 528:
-#line 2927 "grammar19.y"
+#line 2947 "grammar19.y"
     {
                     if(!is_local_id((yyvsp[(2) - (2)].id)))
                       yy_error("block argument must be local variable");
@@ -8042,21 +8061,21 @@ yyreduce:
     break;
 
   case 529:
-#line 2938 "grammar19.y"
+#line 2958 "grammar19.y"
     {
                     (yyval.id) = (yyvsp[(2) - (2)].id);
                   ;}
     break;
 
   case 530:
-#line 2942 "grammar19.y"
+#line 2962 "grammar19.y"
     {
                     (yyval.id) = 0;
                   ;}
     break;
 
   case 531:
-#line 2948 "grammar19.y"
+#line 2968 "grammar19.y"
     {
                     value_expr((yyvsp[(1) - (1)].node));
                     (yyval.node) = (yyvsp[(1) - (1)].node);
@@ -8065,12 +8084,12 @@ yyreduce:
     break;
 
   case 532:
-#line 2953 "grammar19.y"
+#line 2973 "grammar19.y"
     {lex_state = EXPR_BEG;;}
     break;
 
   case 533:
-#line 2954 "grammar19.y"
+#line 2974 "grammar19.y"
     {
                     if((yyvsp[(3) - (4)].node) == 0) {
                       yy_error("can't define singleton method for ().");
@@ -8095,51 +8114,51 @@ yyreduce:
     break;
 
   case 535:
-#line 2979 "grammar19.y"
+#line 2999 "grammar19.y"
     {
                     (yyval.node) = (yyvsp[(1) - (2)].node);
                   ;}
     break;
 
   case 537:
-#line 2986 "grammar19.y"
+#line 3006 "grammar19.y"
     {
                     (yyval.node) = list_concat((yyvsp[(1) - (3)].node), (yyvsp[(3) - (3)].node));
                   ;}
     break;
 
   case 538:
-#line 2992 "grammar19.y"
+#line 3012 "grammar19.y"
     {
                     (yyval.node) = list_append(NEW_LIST((yyvsp[(1) - (3)].node)), (yyvsp[(3) - (3)].node));
                   ;}
     break;
 
   case 539:
-#line 2996 "grammar19.y"
+#line 3016 "grammar19.y"
     {
                     (yyval.node) = list_append(NEW_LIST(NEW_LIT(ID2SYM((yyvsp[(1) - (2)].id)))), (yyvsp[(2) - (2)].node));
                   ;}
     break;
 
   case 561:
-#line 3040 "grammar19.y"
+#line 3060 "grammar19.y"
     {yyerrok;;}
     break;
 
   case 564:
-#line 3045 "grammar19.y"
+#line 3065 "grammar19.y"
     {yyerrok;;}
     break;
 
   case 565:
-#line 3048 "grammar19.y"
+#line 3068 "grammar19.y"
     {(yyval.node) = 0;;}
     break;
 
 
 /* Line 1267 of yacc.c.  */
-#line 8142 "grammar19.cpp"
+#line 8162 "grammar19.cpp"
       default: break;
     }
   YY_SYMBOL_PRINT ("-> $$ =", yyr1[yyn], &yyval, &yyloc);
@@ -8353,7 +8372,7 @@ yyreturn:
 }
 
 
-#line 3050 "grammar19.y"
+#line 3070 "grammar19.y"
 
 
 #undef parser
@@ -8528,47 +8547,51 @@ string_to_ast(VALUE ptp, VALUE name, VALUE source, VALUE line)
   return ret;
 }
 
-#define LEX_IO_BUFLEN  1024
+#define LEX_IO_BUFLEN  5120
 
 static VALUE parse_io_gets(rb_parser_state* parser_state, VALUE s) {
   VALUE str = Qnil;
+  char* p;
+  ssize_t n;
 
   while(true) {
-    if(lex_io_total == 0) {
+    if(lex_io_total == 0 || lex_io_index == lex_io_total) {
       lex_io_total = read(lex_io, lex_io_buf, LEX_IO_BUFLEN);
 
-      if(lex_io_total < 1) {
+      if(lex_io_total == 0) {
         lex_io_total = 0;
+        return str;
+      } else if(lex_io_total < 0) {
+        // TODO raise exception
         return str;
       } else {
         lex_io_index = 0;
       }
     }
 
-    // TODO: encoding aware.
-    for(ssize_t i = lex_io_index; i < lex_io_total; i++) {
-      if(lex_io_buf[i] == '\n') {
-        ssize_t len = i - lex_io_index + 1;
-
-        if(str == Qnil) {
-          str = REF(rb_str_new(lex_io_buf + lex_io_index, len));
-        } else {
-          rb_str_cat(str, lex_io_buf + lex_io_index, len);
-        }
-
-        lex_io_count += len;
-        if(i == lex_io_total - 1) {
-          lex_io_total = 0;
-        } else {
-          lex_io_index = i + 1;
-        }
-
-        return str;
-      }
+    p = (char*)memchr(lex_io_buf + lex_io_index,
+                      '\n', lex_io_total - lex_io_index);
+    if(p) {
+      n = p - lex_io_buf - lex_io_index + 1;
+    } else {
+      n = lex_io_total - lex_io_index;
     }
 
-    str = REF(rb_str_new(lex_io_buf + lex_io_index, lex_io_total - lex_io_index));
-    lex_io_total = 0;
+    if(str == Qnil) {
+      str = REF(parser_enc_str_new(lex_io_buf + lex_io_index,
+                                   n, parser_state->enc));
+    } else {
+      rb_str_cat(str, lex_io_buf + lex_io_index, n);
+    }
+
+    if(p) {
+      lex_io_index += n;
+      lex_io_count += n;
+      return str;
+    } else {
+      lex_io_total = 0;
+      lex_io_index = 0;
+    }
   }
 
   return Qnil;
@@ -8625,11 +8648,11 @@ enum string_type {
 };
 
 static VALUE
-parser_str_new(const char *p, long n, rb_encoding *enc, int func, rb_encoding *enc0)
+parser_str_new(rb_parser_state* parser_state, const char *p, long n,
+               rb_encoding *enc, int func, rb_encoding *enc0)
 {
   VALUE str;
-
-  str = parser_enc_str_new(p, n, enc);
+  str = REF(parser_enc_str_new(p, n, enc));
   if(!(func & STR_FUNC_REGEXP) && parser_enc_asciicompat(enc)) {
     if(parser_enc_str_coderange(str) == ENC_CODERANGE_7BIT) {
       // Do nothing.
@@ -8642,6 +8665,7 @@ parser_str_new(const char *p, long n, rb_encoding *enc, int func, rb_encoding *e
 }
 
 #define lex_goto_eol(parser_state)  (lex_p = lex_pend)
+#define lex_eol_p() (lex_p >= lex_pend)
 #define peek(c) (lex_p < lex_pend && (c) == *lex_p)
 
 static inline int
@@ -9016,6 +9040,7 @@ parser_regx_options(rb_parser_state* parser_state)
     int options = 0;
     int c;
 
+    /* TODO */
     newtok();
     while(c = nextc(), ISALPHA(c)) {
       switch(c) {
@@ -9508,17 +9533,252 @@ parser_lvar_defined(rb_parser_state* parser_state, ID id) {
   return local_id(id);
 }
 
-static char*
-parse_comment(rb_parser_state* parser_state) {
-  ssize_t len = lex_pend - lex_p;
+static long
+parser_encode_length(rb_parser_state* parser_state, const char *name, long len)
+{
+  long nlen;
 
-  char* str = lex_p;
-  while(len-- > 0 && ISSPACE(str[0])) str++;
-  if(len <= 2) return NULL;
+  if(len > 5 && name[nlen = len - 5] == '-') {
+    if(strncasecmp(name + nlen + 1, "unix", 4) == 0)
+      return nlen;
+  }
+  if(len > 4 && name[nlen = len - 4] == '-') {
+    if(strncasecmp(name + nlen + 1, "dos", 3) == 0)
+      return nlen;
+    if(strncasecmp(name + nlen + 1, "mac", 3) == 0 &&
+        !(len == 8 && strncasecmp(name, "utf8-mac", len) == 0))
+      /* exclude UTF8-MAC because the encoding named "UTF8" doesn't exist in Ruby */
+      return nlen;
+  }
+  return len;
+}
 
-  if(str[0] == '-' && str[1] == '*' && str[2] == '-') return str;
+static void
+parser_set_encode(rb_parser_state* parser_state, const char *name)
+{
+  int idx = parser_enc_find_index(name);
+  rb_encoding *enc;
 
-  return NULL;
+  if(idx < 0) {
+    // TODO: handle this in a way that doesn't leak parser state
+    // rb_raise(rb_eArgError, "unknown encoding name: %s", name);
+    return;
+  }
+
+  enc = parser_enc_from_index(idx);
+  if(!parser_enc_asciicompat(enc)) {
+    // TODO: handle this in a way that doesn't leak parser state
+    // rb_raise(rb_eArgError, "%s is not ASCII compatible", parser_enc_name(enc));
+    return;
+  }
+
+  parser_state->enc = enc;
+}
+
+static int
+comment_at_top(rb_parser_state* parser_state)
+{
+  const char *p = lex_pbeg, *pend = lex_p - 1;
+  if(line_count != (has_shebang ? 2 : 1)) return FALSE;
+  while(p < pend) {
+    if (!ISSPACE(*p)) return FALSE;
+    p++;
+  }
+  return TRUE;
+}
+
+typedef long (*rb_magic_comment_length_t)(rb_parser_state* parser_state, const char *name, long len);
+typedef void (*rb_magic_comment_setter_t)(rb_parser_state* parser_state, const char *name, const char *val);
+
+static void
+magic_comment_encoding(rb_parser_state* parser_state, const char *name, const char *val)
+{
+  if(!comment_at_top(parser_state)) {
+    return;
+  }
+  parser_set_encode(parser_state, val);
+}
+
+struct magic_comment {
+    const char *name;
+    rb_magic_comment_setter_t func;
+    rb_magic_comment_length_t length;
+};
+
+static const struct magic_comment magic_comments[] = {
+    {"coding", magic_comment_encoding, parser_encode_length},
+    {"encoding", magic_comment_encoding, parser_encode_length},
+};
+
+static const char *
+magic_comment_marker(const char *str, long len)
+{
+  long i = 2;
+
+  while(i < len) {
+    switch(str[i]) {
+    case '-':
+      if(str[i-1] == '*' && str[i-2] == '-') {
+        return str + i + 1;
+      }
+      i += 2;
+      break;
+    case '*':
+      if(i + 1 >= len) return 0;
+      if(str[i+1] != '-') {
+        i += 4;
+      } else if(str[i-1] != '-') {
+        i += 2;
+      } else {
+        return str + i + 2;
+      }
+      break;
+    default:
+      i += 3;
+      break;
+    }
+  }
+  return 0;
+}
+
+static int
+parser_magic_comment(rb_parser_state* parser_state, const char *str, long len)
+{
+  VALUE name = 0, val = 0;
+  const char *beg, *end, *vbeg, *vend;
+
+#define str_copy(_s, _p, _n) ((_s) \
+    ? (void)(rb_str_resize((_s), (_n)), \
+    MEMCPY(RSTRING_PTR(_s), (_p), char, (_n)), (_s)) \
+    : (void)((_s) = REF(STR_NEW((_p), (_n)))))
+
+  if(len <= 7) return FALSE;
+  if(!(beg = magic_comment_marker(str, len))) return FALSE;
+  if(!(end = magic_comment_marker(beg, str + len - beg))) return FALSE;
+  str = beg;
+  len = end - beg - 3;
+
+  /* %r"([^\\s\'\":;]+)\\s*:\\s*(\"(?:\\\\.|[^\"])*\"|[^\"\\s;]+)[\\s;]*" */
+  while(len > 0) {
+    const struct magic_comment *p = magic_comments;
+    char *s;
+    int i;
+    long n = 0;
+
+    for(; len > 0 && *str; str++, --len) {
+      switch(*str) {
+      case '\'': case '"': case ':': case ';':
+        continue;
+      }
+      if(!ISSPACE(*str)) break;
+    }
+    for(beg = str; len > 0; str++, --len) {
+      switch(*str) {
+      case '\'': case '"': case ':': case ';':
+        break;
+      default:
+        if(ISSPACE(*str)) break;
+        continue;
+      }
+      break;
+    }
+    for(end = str; len > 0 && ISSPACE(*str); str++, --len) {
+      // nothing
+    }
+    if(!len) break;
+    if(*str != ':') continue;
+
+    do str++; while(--len > 0 && ISSPACE(*str));
+    if(!len) break;
+    if(*str == '"') {
+      for(vbeg = ++str; --len > 0 && *str != '"'; str++) {
+        if(*str == '\\') {
+          --len;
+          ++str;
+        }
+      }
+      vend = str;
+      if(len) {
+        --len;
+        ++str;
+      }
+    } else {
+      for(vbeg = str;
+          len > 0 && *str != '"' && *str != ';' && !ISSPACE(*str);
+          --len, str++) {
+        // nothing
+      }
+      vend = str;
+    }
+    while(len > 0 && (*str == ';' || ISSPACE(*str))) --len, str++;
+
+    n = end - beg;
+    str_copy(name, beg, n);
+    s = RSTRING_PTR(name);
+    for(i = 0; i < n; ++i) {
+      if(s[i] == '-') s[i] = '_';
+    }
+    do {
+      if(strncasecmp(p->name, s, n) == 0) {
+        n = vend - vbeg;
+        if(p->length) {
+          n = (*p->length)(parser_state, vbeg, n);
+        }
+        str_copy(val, vbeg, n);
+        (*p->func)(parser_state, s, RSTRING_PTR(val));
+        break;
+      }
+    } while(++p < magic_comments + numberof(magic_comments));
+  }
+
+  return TRUE;
+}
+
+static void
+set_file_encoding(rb_parser_state* parser_state, const char *str, const char *send)
+{
+  int sep = 0;
+  const char *beg = str;
+  VALUE s;
+
+  for(;;) {
+    if(send - str <= 6) return;
+    switch(str[6]) {
+    case 'C': case 'c': str += 6; continue;
+    case 'O': case 'o': str += 5; continue;
+    case 'D': case 'd': str += 4; continue;
+    case 'I': case 'i': str += 3; continue;
+    case 'N': case 'n': str += 2; continue;
+    case 'G': case 'g': str += 1; continue;
+    case '=': case ':':
+      sep = 1;
+      str += 6;
+      break;
+    default:
+      str += 6;
+      if(ISSPACE(*str)) break;
+      continue;
+    }
+    if(strncasecmp(str-6, "coding", 6) == 0) break;
+  }
+
+  for(;;) {
+    do {
+      if(++str >= send) return;
+    } while(ISSPACE(*str));
+    if(sep) break;
+    if(*str != '=' && *str != ':') return;
+    sep = 1;
+    str++;
+  }
+
+  beg = str;
+  while((*str == '-' || *str == '_' || ISALNUM(*str)) && ++str < send) {
+    // nothing
+  }
+  s = REF(rb_str_new(beg, parser_encode_length(parser_state, beg, str - beg)));
+  parser_set_encode(parser_state, RSTRING_PTR(s));
+  rb_str_resize(s, 0);
 }
 
 static void
@@ -9527,7 +9787,7 @@ parser_prepare(rb_parser_state* parser_state)
   int c = nextc();
   switch(c) {
   case '#':
-    if(peek('!')) parser_state->has_shebang = 1;
+    if(peek('!')) has_shebang = 1;
     break;
   case 0xef:		/* UTF-8 BOM marker */
     if(lex_pend - lex_p >= 2 &&
@@ -9613,10 +9873,13 @@ retry:
     goto retry;
 
   case '#':         /* it's a comment */
-    // TODO: encoding magic comments
-    if(char* str = parse_comment(parser_state)) {
-        ssize_t len = lex_pend - str - 1; // - 1 for the \n
+    /* no magic_comment in shebang line */
+    if(!parser_magic_comment(parser_state, lex_p, lex_pend - lex_p)) {
+      if(comment_at_top(parser_state)) {
+        set_file_encoding(parser_state, lex_p, lex_pend);
+      }
     }
+
     lex_p = lex_pend;
     /* fall through */
   case '\n':
@@ -9715,7 +9978,7 @@ retry:
     if(was_bol()) {
       /* skip embedded rd document */
       if(strncmp(lex_p, "begin", 5) == 0 && ISSPACE(lex_p[5])) {
-        for (;;) {
+        for(;;) {
           lex_goto_eol(parser_state);
           c = nextc();
           if(c == -1) {
@@ -9896,6 +10159,9 @@ retry:
         } else {
           tokadd(c);
         }
+      } else if(!lex_eol_p() && !(c = *lex_p, ISASCII(c))) {
+        nextc();
+        if(tokadd_mbchar(c) == -1) return 0;
       } else {
         c = read_escape(0, &enc);
         tokadd(c);
@@ -10877,7 +11143,7 @@ rb_compile_warn(const char *file, int line, const char *fmt, ...)
   char buf[BUFSIZ];
   va_list args;
 
-  if (NIL_P(ruby_verbose)) return;
+  if(NIL_P(ruby_verbose)) return;
 
   snprintf(buf, BUFSIZ, "warning: %s", fmt);
 
@@ -11013,7 +11279,7 @@ list_concat(NODE *head, NODE *tail)
 }
 
 static int
-literal_concat0(rb_parser_state* parser_state, VALUE head, VALUE tail)
+parser_literal_concat0(rb_parser_state* parser_state, VALUE head, VALUE tail)
 {
   if(NIL_P(tail)) return 1;
   if(!parser_enc_compatible(head, tail)) {
@@ -11045,7 +11311,7 @@ parser_literal_concat(rb_parser_state* parser_state, NODE *head, NODE *tail)
   switch(nd_type(tail)) {
   case NODE_STR:
     if(htype == NODE_STR) {
-      if(!literal_concat0(parser_state, head->nd_lit, tail->nd_lit)) {
+      if(!literal_concat0(head->nd_lit, tail->nd_lit)) {
       error:
         return 0;
       }
@@ -11056,7 +11322,7 @@ parser_literal_concat(rb_parser_state* parser_state, NODE *head, NODE *tail)
 
   case NODE_DSTR:
     if(htype == NODE_STR) {
-      if(!literal_concat0(parser_state, head->nd_lit, tail->nd_lit))
+      if(!literal_concat0(head->nd_lit, tail->nd_lit))
         goto error;
       tail->nd_lit = head->nd_lit;
       head = tail;
@@ -11216,7 +11482,7 @@ parser_gettable(rb_parser_state* parser_state, ID id)
   } else if(id == keyword__LINE__) {
     return NEW_NUMBER(INT2FIX(ruby_sourceline));
   } else if(id == keyword__ENCODING__) {
-    return NEW_NIL(); // HACK this is a stub, replace this
+    return NEW_ENCODING(STR_NEW2(parser_enc_name(parser_state->enc)));
   } else if(is_local_id(id)) {
     if((in_block() && bv_defined(id)) || local_id(id)) {
       return NEW_LVAR(id);
@@ -12046,12 +12312,12 @@ parser_intern3(const char* name, long len, rb_encoding* enc)
   ID id = (SYM2ID(sym) << ID_SCOPE_SHIFT) & ~ID_INTERNAL;
 
   last = len-1;
-  switch (*m) {
+  switch(*m) {
   case '$':
     id |= ID_GLOBAL;
     break;
   case '@':
-    if (m[1] == '@') {
+    if(m[1] == '@') {
       m++;
       id |= ID_CLASS;
     } else {
@@ -12061,18 +12327,18 @@ parser_intern3(const char* name, long len, rb_encoding* enc)
     break;
   default:
     c = m[0];
-    if (len > 1 && c != '_' && parser_enc_isascii(c, enc) && parser_enc_ispunct(c, enc)) {
+    if(len > 1 && c != '_' && parser_enc_isascii(c, enc) && parser_enc_ispunct(c, enc)) {
       /* operators */
-      for (int i = 0; i < op_tbl_count; i++) {
-        if (*op_tbl[i].name == *m && strcmp(op_tbl[i].name, m) == 0) {
+      for(int i = 0; i < op_tbl_count; i++) {
+        if(*op_tbl[i].name == *m && strcmp(op_tbl[i].name, m) == 0) {
           return id;
         }
       }
     }
 
-    if (m[last] == '=') {
+    if(m[last] == '=') {
       id |= ID_ATTRSET;
-    } else if (parser_enc_isupper(m[0], enc)) {
+    } else if(parser_enc_isupper(m[0], enc)) {
       id |= ID_CONST;
     } else {
       id |= ID_LOCAL;

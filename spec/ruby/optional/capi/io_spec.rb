@@ -120,6 +120,12 @@ describe "C-API IO function" do
     end
   end
 
+  describe "rb_thread_fd_writable" do
+    it "waits til an fd is ready for writing" do
+      @o.rb_thread_fd_writable(@w_io).should be_nil
+    end
+  end
+
   describe "rb_io_wait_readable" do
     it "returns false if there is no error condition" do
       @o.rb_io_wait_readable(@r_io, false).should be_false
@@ -143,4 +149,20 @@ describe "C-API IO function" do
       @o.instance_variable_get(:@read_data).should == "rb_io_wait_re"
     end
   end
+
+  describe "rb_thread_wait_fd" do
+    it "waits til an fd is ready for reading" do
+      start = false
+      thr = Thread.new do
+        start = true
+        sleep 0.5
+        @w_io.write "rb_io_wait_readable"
+      end
+
+      Thread.pass until start
+
+      @o.rb_thread_wait_fd(@r_io).should be_nil
+    end
+  end
+
 end

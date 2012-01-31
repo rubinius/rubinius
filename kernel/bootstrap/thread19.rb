@@ -1,3 +1,5 @@
+# -*- encoding: us-ascii -*-
+
 class Thread
   def self.start(*args)
     raise ArgumentError.new("no block passed to Thread.start") unless block_given?
@@ -24,5 +26,10 @@ class Thread
 
   class << self
     alias_method :fork, :start
+  end
+
+  def self.stop
+    sleep
+    nil
   end
 end

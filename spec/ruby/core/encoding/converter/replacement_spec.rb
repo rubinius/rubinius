@@ -12,7 +12,7 @@ with_feature :encoding do
       ec.replacement.encoding.should == Encoding::US_ASCII
     end
 
-    it "returns \u{fffd} when the destination encoding is UTF-8" do
+    it "returns \\uFFFD when the destination encoding is UTF-8" do
       ec = Encoding::Converter.new("us-ascii", "utf-8")
       ec.replacement.should == "\u{fffd}".force_encoding('utf-8')
       ec.replacement.encoding.should == Encoding::UTF_8

@@ -1,3 +1,5 @@
+# -*- encoding: us-ascii -*-
+
 module Enumerable
   class Enumerator
     # Returns the next object in the enumerator

@@ -7,6 +7,13 @@ with_feature :fiber do
       fiber.should be_an_instance_of(Fiber)
     end
 
+    it "creates a fiber from a subclass" do
+      class MyFiber < Fiber
+      end
+      fiber = MyFiber.new {}
+      fiber.should be_an_instance_of(MyFiber)
+    end
+
     it "raises an ArgumentError if called without a block" do
       lambda { Fiber.new }.should raise_error(ArgumentError)
     end
@@ -26,19 +33,6 @@ with_feature :fiber do
         a
       end
       o.f.should == 2
-    end
-
-    it "escapes an inner ensure block" do
-      f = Fiber.new do
-        begin
-          :begin
-        rescue
-          :rescue
-        ensure
-          :ensure
-        end
-      end
-      f.resume.should == :begin
     end
 
     it "raises a SyntaxError when the block contains a retry statement" do

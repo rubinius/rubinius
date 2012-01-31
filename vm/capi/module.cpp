@@ -3,8 +3,11 @@
 #include "builtin/symbol.hpp"
 #include "builtin/autoload.hpp"
 
+#include "vm/configuration.hpp"
+
 #include "helpers.hpp"
 #include "call_frame.hpp"
+#include "exception_point.hpp"
 
 #include "capi/capi.hpp"
 #include "capi/18/include/ruby.h"
@@ -27,8 +30,15 @@ extern "C" {
   }
 
   int rb_const_defined_at(VALUE module_handle, ID const_id) {
-    return rb_funcall(module_handle,
-        rb_intern("const_defined?"), 1, ID2SYM(const_id));
+    NativeMethodEnvironment* env = NativeMethodEnvironment::get();
+
+    if(LANGUAGE_18_ENABLED(env->state())) {
+      return rb_funcall(module_handle,
+          rb_intern("const_defined?"), 1, ID2SYM(const_id));
+    } else {
+      return rb_funcall(module_handle,
+          rb_intern("const_defined?"), 2, ID2SYM(const_id), Qfalse);
+    }
   }
 
   ID rb_frame_last_func() {
@@ -198,13 +208,18 @@ extern "C" {
     Module* parent = c_as<Module>(env->get_object(parent_handle));
     Symbol* constant = env->state()->symbol(name);
 
-    env->state()->vm()->shared.leave_capi(env->state());
+    LEAVE_CAPI(env->state());
     Module* module = rubinius::Helpers::open_module(env->state(),
         env->current_call_frame(), parent, constant);
+
+    // The call above could have triggered an Autoload resolve, which may
+    // raise an exception, so we have to check the value returned.
+    if(!module) env->current_ep()->return_to(env);
+
     // Grab the module handle before grabbing the lock
     // so the Module isn't accidentally GC'ed.
     VALUE module_handle = env->get_handle(module);
-    env->state()->vm()->shared.enter_capi(env->state());
+    ENTER_CAPI(env->state());
 
     return module_handle;
   }

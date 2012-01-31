@@ -2,7 +2,7 @@ require File.expand_path('../../../spec_helper', __FILE__)
 require 'uri'
 
 #TODO: make this more BDD
-describe 'URI#select' do
+describe "URI#select" do
   it "conforms to the MatzRuby tests" do
     uri = URI.parse('http://foo:bar@baz')
     (uri.user = 'oof').should == 'oof'
