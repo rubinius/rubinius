@@ -702,21 +702,6 @@ namespace rubinius {
     return Fixnum::from(n);
   }
 
-  Object* IO::blocking_read(STATE, Fixnum* bytes) {
-    String* str = String::create(state, bytes);
-
-    ssize_t cnt = ::read(this->to_fd(), str->byte_address(), bytes->to_native());
-    if(cnt == -1) {
-      Exception::errno_error(state);
-    } else if(cnt == 0) {
-      return cNil;
-    }
-
-    str->num_bytes(state, Fixnum::from(cnt));
-
-    return str;
-  }
-
   Array* ipaddr(STATE, struct sockaddr* addr, socklen_t len) {
     String* family;
     char buf[NI_MAXHOST];

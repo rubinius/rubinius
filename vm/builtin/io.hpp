@@ -123,9 +123,6 @@ namespace rubinius {
     // Rubinius.primitive :io_shutdown
     Object* shutdown(STATE, Fixnum* how);
 
-    // Rubinius.primitive :io_blocking_read
-    Object* blocking_read(STATE, Fixnum* count);
-
     // Rubinius.primitive :io_query
     Object* query(STATE, Symbol* op);
 

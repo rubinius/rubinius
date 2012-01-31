@@ -70,11 +70,6 @@ class IO
     raise PrimitiveFailure, "IO#write failed. Might not have passed a string."
   end
 
-  def blocking_read(size)
-    Rubinius.primitive :io_blocking_read
-    raise PrimitiveFailure, "IO#blocking_read primitive failed"
-  end
-
   def read_if_available(size)
     Rubinius.primitive :io_read_if_available
     raise PrimitiveFailure, "IO#read_if_available primitive failed"
