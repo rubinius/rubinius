@@ -12,7 +12,8 @@ describe "A block" do
   end
 
   it "allows for a leading space before the arguments" do
-    @y.s (:a){ 1 }.should == 1
+    res = @y.s (:a){ 1 }
+    res.should == 1
   end
 
   ruby_version_is ""..."1.9" do
