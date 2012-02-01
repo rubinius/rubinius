@@ -886,7 +886,7 @@ cmd_brace_block : tLBRACE_ARG
                   {
                     $$ = NEW_ITER($3, $4);
                     nd_set_line($$, $<num>2);
-                    bv_pop($<vars>2);
+                    bv_pop($<vars>1);
                   }
                 ;
 
