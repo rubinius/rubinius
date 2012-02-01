@@ -11,6 +11,10 @@ describe "A block" do
     @y.z { var }.should == 1
   end
 
+  it "allows for a leading space before the arguments" do
+    @y.s (:a){ 1 }.should == 1
+  end
+
   ruby_version_is ""..."1.9" do
     it "overwrites a captured local when used as an argument" do
       var = 1
