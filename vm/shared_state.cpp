@@ -56,7 +56,7 @@ namespace rubinius {
     if(!initialized_) return;
 
     if(config.gc_show) {
-      std::cerr << "Time spenting waiting: " << world_->time_waiting() << "\n";
+      std::cerr << "Time spent waiting: " << world_->time_waiting() << "\n";
     }
 
 #ifdef ENABLE_LLVM
