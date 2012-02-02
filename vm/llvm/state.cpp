@@ -64,7 +64,11 @@ using namespace llvm;
 
 namespace rubinius {
 
+  static thread::Mutex lock_;
+
   LLVMState* LLVMState::get(STATE) {
+    thread::Mutex::LockGuard lg(lock_);
+
     if(!state->shared().llvm_state) {
       state->shared().llvm_state = new LLVMState(state);
     }
@@ -73,26 +77,36 @@ namespace rubinius {
   }
 
   void LLVMState::shutdown(STATE) {
+    thread::Mutex::LockGuard lg(lock_);
+
     if(!state->shared().llvm_state) return;
     state->shared().llvm_state->shutdown_i();
   }
 
   void LLVMState::start(STATE) {
+    thread::Mutex::LockGuard lg(lock_);
+
     if(!state->shared().llvm_state) return;
     state->shared().llvm_state->start_i();
   }
 
   void LLVMState::on_fork(STATE) {
+    thread::Mutex::LockGuard lg(lock_);
+
     if(!state->shared().llvm_state) return;
     state->shared().llvm_state->on_fork_i();
   }
 
   void LLVMState::pause(STATE) {
+    thread::Mutex::LockGuard lg(lock_);
+
     if(!state->shared().llvm_state) return;
     state->shared().llvm_state->pause_i();
   }
 
   void LLVMState::unpause(STATE) {
+    thread::Mutex::LockGuard lg(lock_);
+
     if(!state->shared().llvm_state) return;
     state->shared().llvm_state->unpause_i();
   }
