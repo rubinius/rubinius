@@ -55,7 +55,9 @@ namespace rubinius {
   SharedState::~SharedState() {
     if(!initialized_) return;
 
-    // std::cerr << "Time waiting: " << world_->time_waiting() << "\n";
+    if(config.gc_show) {
+      std::cerr << "Time spenting waiting: " << world_->time_waiting() << "\n";
+    }
 
 #ifdef ENABLE_LLVM
     if(llvm_state) {
