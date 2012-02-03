@@ -41,7 +41,7 @@ describe "DateTime#hour" do
 
   ruby_version_is "1.9.3" do
     it "raises an error for Float" do
-      lambda { new_datetime(:hour => 1.5).hour.should }.should raise_error(ArgumentError)
+      lambda { new_datetime(:hour => 1.5).hour }.should raise_error(ArgumentError)
     end
   end
 
