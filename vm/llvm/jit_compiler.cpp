@@ -58,6 +58,8 @@ namespace jit {
     if(!mci_) {
       if(!function_) return NULL;
 
+      std::string name = ls->symbol_debug_str(info()->method()->name());
+
       if(indy) ls->shared().gc_independent(ls);
       if(ls->jit_dump_code() & cSimple) {
         llvm::outs() << "[[[ LLVM Simple IR ]]]\n";
@@ -106,8 +108,7 @@ namespace jit {
       ls->passes()->run(*function_);
 
       if(ls->jit_dump_code() & cOptimized) {
-        llvm::outs() << "[[[ LLVM Optimized IR: "
-          << ls->symbol_debug_str(info()->method()->name()) << " ]]]\n";
+        llvm::outs() << "[[[ LLVM Optimized IR: " << name << " ]]]\n";
         llvm::outs() << *function_ << "\n";
       }
 
