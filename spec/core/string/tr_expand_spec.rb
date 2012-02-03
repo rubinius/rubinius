@@ -17,6 +17,17 @@ describe "String#tr_expand!" do
     s.should == "cbdage"
   end
 
+  it "handles 8-bit characters" do
+    s = "\200\275\200"
+    s.tr_expand!(nil, false).should == 3
+    s.should == "\275\200"
+  end
+
+  it "handles entire range of characters" do
+    s = "\x00-\xFF"
+    s.tr_expand!(nil, false).should == 256
+  end
+
   it "returns a string without leading '^' character if the string size is larger than 1" do
     s = "^"
     s.tr_expand!(nil, true).should == 1

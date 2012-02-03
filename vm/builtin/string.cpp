@@ -980,7 +980,7 @@ namespace rubinius {
   }
 
   struct tr_data {
-    char tr[256];
+    uint8_t tr[256];
     native_int set[256];
     native_int steps;
     native_int last;
@@ -996,7 +996,7 @@ namespace rubinius {
       } else {
         last--;
         for(j = i + 1; j <= last; j++) {
-          set[(native_int)tr[j]]--;
+          set[tr[j]]--;
           tr[j-1] = tr[j];
         }
         tr[last] = chr;
