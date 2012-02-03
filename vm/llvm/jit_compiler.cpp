@@ -54,9 +54,63 @@ namespace jit {
     LLVMState::show_machine_code(mci_->address(), mci_->size());
   }
 
-  void* Compiler::generate_function(LLVMState* ls) {
+  void* Compiler::generate_function(LLVMState* ls, bool indy) {
     if(!mci_) {
       if(!function_) return NULL;
+
+      if(indy) ls->shared().gc_independent(ls);
+      if(ls->jit_dump_code() & cSimple) {
+        llvm::outs() << "[[[ LLVM Simple IR ]]]\n";
+        llvm::outs() << *function_ << "\n";
+      }
+
+      std::vector<BasicBlock*> to_remove;
+      bool Broken = false;
+      for(Function::iterator I = function_->begin(),
+          E = function_->end();
+          I != E;
+          ++I)
+      {
+        if(I->empty()) {
+          BasicBlock& bb = *I;
+          // No one jumps to it....
+          if(llvm::pred_begin(&bb) == llvm::pred_end(&bb)) {
+            to_remove.push_back(&bb);
+          } else {
+            llvm::outs() << "Basic Block is empty and used!\n";
+          }
+        } else if(!I->back().isTerminator()) {
+          llvm::errs() << "Basic Block does not have terminator!\n";
+          llvm::errs() << *I << "\n";
+          llvm::errs() << "\n";
+          Broken = true;
+        }
+      }
+
+      for(std::vector<BasicBlock*>::iterator i = to_remove.begin();
+          i != to_remove.end();
+          ++i) {
+        (*i)->eraseFromParent();
+      }
+
+      if(Broken or llvm::verifyFunction(*function_, PrintMessageAction)) {
+        llvm::outs() << "ERROR: complication error detected.\n";
+        llvm::outs() << "ERROR: Please report the above message and the\n";
+        llvm::outs() << "       code below to http://github.com/rubinius/rubinius/issues\n";
+        llvm::outs() << *function_ << "\n";
+        function_ = NULL;
+        if(indy) ls->shared().gc_dependent(ls);
+        return NULL;
+      }
+
+      ls->passes()->run(*function_);
+
+      if(ls->jit_dump_code() & cOptimized) {
+        llvm::outs() << "[[[ LLVM Optimized IR: "
+          << ls->symbol_debug_str(info()->method()->name()) << " ]]]\n";
+        llvm::outs() << *function_ << "\n";
+      }
+
       mci_ = new llvm::MachineCodeInfo();
       ls->engine()->runJITOnFunction(function_, mci_);
       ls->add_code_bytes(mci_->size());
@@ -67,6 +121,16 @@ namespace jit {
       if(!ls->debug_p()) {
         function_->dropAllReferences();
       }
+
+      if(indy) ls->shared().gc_dependent(ls);
+
+      // Inject the RuntimeData objects used into the original CompiledMethod
+      // Do this way after we've validated the IR so things are consistent.
+      ctx_.runtime_data_holder()->set_function(function_,
+                                   mci_->address(), mci_->size());
+
+      // info.method()->set_jit_data(ctx.runtime_data_holder());
+      ls->shared().om->add_code_resource(ctx_.runtime_data_holder());
     }
 
     return mci_->address();
@@ -138,7 +202,7 @@ namespace jit {
   void Compiler::compile_builder(jit::Context& ctx, LLVMState* ls, JITMethodInfo& info,
                                      jit::Builder& work)
   {
-    llvm::Function* func = info.function();
+    function_ = info.function();
 
     if(!work.generate_body()) {
       function_ = NULL;
@@ -149,65 +213,6 @@ namespace jit {
 
     // Hook up the return pad and return phi.
     work.generate_hard_return();
-
-    if(ls->jit_dump_code() & cSimple) {
-      llvm::outs() << "[[[ LLVM Simple IR ]]]\n";
-      llvm::outs() << *func << "\n";
-    }
-
-    std::vector<BasicBlock*> to_remove;
-    bool Broken = false;
-    for(Function::iterator I = func->begin(), E = func->end(); I != E; ++I) {
-      if(I->empty()) {
-        BasicBlock& bb = *I;
-        // No one jumps to it....
-        if(llvm::pred_begin(&bb) == llvm::pred_end(&bb)) {
-          to_remove.push_back(&bb);
-        } else {
-          llvm::outs() << "Basic Block is empty and used!\n";
-        }
-      } else if(!I->back().isTerminator()) {
-        llvm::errs() << "Basic Block does not have terminator!\n";
-        llvm::errs() << *I << "\n";
-        llvm::errs() << "\n";
-        Broken = true;
-      }
-    }
-
-    for(std::vector<BasicBlock*>::iterator i = to_remove.begin();
-        i != to_remove.end();
-        ++i) {
-      (*i)->eraseFromParent();
-    }
-
-    if(Broken or llvm::verifyFunction(*func, PrintMessageAction)) {
-      llvm::outs() << "ERROR: complication error detected.\n";
-      llvm::outs() << "ERROR: Please report the above message and the\n";
-      llvm::outs() << "       code below to http://github.com/rubinius/rubinius/issues\n";
-      llvm::outs() << *func << "\n";
-      function_ = NULL;
-      return;
-    }
-
-    ls->passes()->run(*func);
-
-    if(ls->jit_dump_code() & cOptimized) {
-      llvm::outs() << "[[[ LLVM Optimized IR: "
-        << ls->symbol_debug_str(info.method()->name()) << " ]]]\n";
-      llvm::outs() << *func << "\n";
-    }
-
-    function_ = func;
-
-    generate_function(ls);
-
-    // Inject the RuntimeData objects used into the original CompiledMethod
-    // Do this way after we've validated the IR so things are consistent.
-    ctx.runtime_data_holder()->set_function(func, mci_->address(), mci_->size());
-
-    // info.method()->set_jit_data(ctx.runtime_data_holder());
-    ls->shared().om->add_code_resource(ctx.runtime_data_holder());
-
   }
 }
 }

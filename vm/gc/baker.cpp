@@ -16,6 +16,8 @@
 #include "capi/handle.hpp"
 #include "capi/tag.hpp"
 
+#include "llvm/state.hpp"
+
 namespace rubinius {
 
   /**
@@ -249,6 +251,8 @@ namespace rubinius {
         }
       }
     }
+
+    if(LLVMState* ls = data.llvm_state()) ls->gc_scan(this);
 
     // Handle all promotions to non-young space that occurred.
     handle_promotions();

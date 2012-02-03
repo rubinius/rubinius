@@ -14,6 +14,7 @@ namespace rubinius {
   class GlobalCache;
   class StackVariables;
   class ManagedThread;
+  class LLVMState;
 
   namespace capi {
     class Handles;
@@ -43,6 +44,7 @@ namespace rubinius {
     std::list<ManagedThread*>* threads_;
     std::list<capi::Handle**>* global_handle_locations_;
     GCTokenImpl* gc_token_;
+    LLVMState* llvm_state_;
 
   public:
     GCData(VM*, GCToken gct);
@@ -58,6 +60,7 @@ namespace rubinius {
       , global_cache_(cache)
       , threads_(ths)
       , global_handle_locations_(global_handle_locations)
+      , llvm_state_(0)
     {}
 
     Roots& roots() {
@@ -86,6 +89,10 @@ namespace rubinius {
 
     GCTokenImpl* gc_token() {
       return gc_token_;
+    }
+
+    LLVMState* llvm_state() {
+      return llvm_state_;
     }
   };
 

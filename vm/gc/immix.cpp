@@ -9,6 +9,8 @@
 
 #include "configuration.hpp"
 
+#include "llvm/state.hpp"
+
 namespace rubinius {
   void ImmixGC::ObjectDescriber::added_chunk(int count) {
 #ifdef IMMIX_DEBUG
@@ -201,6 +203,8 @@ namespace rubinius {
         }
       }
     }
+
+    if(LLVMState* ls = data.llvm_state()) ls->gc_scan(this);
 
     gc_.process_mark_stack(allocator_);
 
