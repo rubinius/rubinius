@@ -71,7 +71,6 @@
 #define USE_OP_PUSH_OR_JUMP_EXACT
 #define USE_QTFR_PEEK_NEXT
 #define USE_ST_LIBRARY
-#define USE_SHARED_CCLASS_TABLE
 
 #define INIT_MATCH_STACK_SIZE                     160
 #define DEFAULT_MATCH_STACK_LIMIT_SIZE              0 /* unlimited */
