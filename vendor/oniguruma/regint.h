@@ -68,7 +68,6 @@
 /* !!! moved to regenc.h. */ /* #define USE_CRNL_AS_LINE_TERMINATOR */
 
 /* internal config */
-#define USE_PARSE_TREE_NODE_RECYCLE
 #define USE_OP_PUSH_OR_JUMP_EXACT
 #define USE_QTFR_PEEK_NEXT
 #define USE_ST_LIBRARY
