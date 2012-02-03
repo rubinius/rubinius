@@ -574,8 +574,9 @@ class IO
   #  26169 is here, f is
   #  26166 is here, f is #<IO:0x401b3d44>
   #  #<Process::Status: pid=26166,exited(0)>
-  def self.popen(str, mode="r")
-    mode = parse_mode mode
+  def self.popen(str, mode=undefined, options=undefined)
+    mode, binary, external, internal = IO.normalize_options(mode, options)
+    mode = parse_mode(mode || 'r')
 
     readable = false
     writable = false
@@ -649,6 +650,9 @@ class IO
     else
       raise ArgumentError, "IO is neither readable nor writable"
     end
+
+    pipe.binmode                          if binary
+    pipe.set_encoding(external, internal) if external or internal
 
     pipe.pid = pid
 
