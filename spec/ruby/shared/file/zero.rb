@@ -40,12 +40,6 @@ describe :file_zero, :shared => true do
     end
   end
 
-  platform_is :solaris do
-    it "returns false for /dev/null" do
-      @object.send(@method, '/dev/null').should == false
-    end
-  end
-
   it "raises an ArgumentError if not passed one argument" do
     lambda { File.zero? }.should raise_error(ArgumentError)
   end
