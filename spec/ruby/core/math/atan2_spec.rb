@@ -43,17 +43,42 @@ describe "Math.atan2" do
     Math.atan2(0.0, 0.0).should be_positive_zero
   end
 
-  it "returns negative zero when passed -0.0, 0.0" do
-    Math.atan2(-0.0, 0.0).should be_negative_zero
+  platform_is_not :solaris do
+    it "returns negative zero when passed -0.0, 0.0" do
+      Math.atan2(-0.0, 0.0).should be_negative_zero
+    end
   end
 
-  it "returns Pi when passed 0.0, -0.0" do
-    Math.atan2(0.0, -0.0).should == Math::PI
+  platform_is :solaris do
+    it "returns positive zero when passed -0.0, 0.0" do
+      Math.atan2(-0.0, 0.0).should be_positive_zero
+    end
   end
 
-  it "returns -Pi when passed -0.0, -0.0" do
-    Math.atan2(-0.0, -0.0).should == -Math::PI
+  platform_is_not :solaris do
+    it "returns Pi when passed 0.0, -0.0" do
+      Math.atan2(0.0, -0.0).should == Math::PI
+    end
   end
+
+  platform_is :solaris do
+    it "returns positive zero when passed 0.0, -0.0" do
+      Math.atan2(0.0, -0.0).should be_positive_zero
+    end
+  end
+
+  platform_is_not :solaris do
+    it "returns -Pi when passed -0.0, -0.0" do
+      Math.atan2(-0.0, -0.0).should == -Math::PI
+    end
+  end
+
+  platform_is :solaris do
+    it "returns positive zero when passed -0.0, -0.0" do
+      Math.atan2(-0.0, -0.0).should be_positive_zero
+    end
+  end
+
 end
 
 describe "Math#atan2" do
