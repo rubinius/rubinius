@@ -392,6 +392,10 @@ describe "Marshal.dump" do
           Marshal.dump(object).should == marshal
         end
       end
+
+      it "#{description} returns a binary string" do
+        Marshal.dump(object).encoding.should == Encoding::BINARY
+      end
     end
   end
 
