@@ -72,7 +72,7 @@ Daedalus.blueprint do |i|
   when /mingw|win32/i
     gcc.ldflags << "-lws2_32"
   when /solaris/
-    gcc.cflags << "-fPIC"
+    gcc.cflags << "-fPIC -Wno-strict-aliasing"
     gcc.ldflags << "-lsocket" << "-lnsl" << "-fPIC"
     make = "gmake"
   else
