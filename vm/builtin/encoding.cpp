@@ -287,11 +287,7 @@ namespace rubinius {
         if(ascii_b) return enc_a;
       }
 
-      if(ascii_b) {
-        if(enc_a == Encoding::ascii8bit_encoding(state)) return enc_b;
-        return enc_a;
-      }
-
+      if(ascii_b) return enc_a;
       if(ascii_a) return enc_b;
     } else if(!str_b) {
       if(CBOOL(str_a->ascii_only_p(state))) return enc_b;
