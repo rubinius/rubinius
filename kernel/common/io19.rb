@@ -191,6 +191,8 @@ class IO
 
     if mode.kind_of?(String)
       mode, external, internal = mode.split(":")
+      raise ArgumentError, "invalid access mode" unless mode
+
       binary = true  if mode[1] === ?b
       binary = false if mode[1] === ?t
     elsif mode
