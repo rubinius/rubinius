@@ -192,5 +192,11 @@ describe :string_concat_encoding, :shared => true do
         lambda { "\u00E9".encode("UTF-8").send(@method, "\u00E9".encode("ISO-8859-1")) }.should raise_error(Encoding::CompatibilityError)
       end
     end
+
+    describe "when self is ASCII-8BIT and argument is US-ASCII" do
+      it "uses ASCII-8BIT encoding" do
+        "abc".encode("ASCII-8BIT").send(@method, "123".encode("US-ASCII")).encoding.should == Encoding::ASCII_8BIT
+      end
+    end
   end
 end
