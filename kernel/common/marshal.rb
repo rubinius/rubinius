@@ -4,8 +4,7 @@ class Object
   def __marshal__(ms, strip_ivars = false)
     out = ms.serialize_extended_object self
     out << "o"
-    name = self.__class__.__name__.to_sym
-    out << ms.serialize(name)
+    out << ms.serialize(self.__class__.__name__.to_sym)
     out << ms.serialize_instance_variables_suffix(self, true, strip_ivars)
   end
 end
@@ -18,31 +17,31 @@ end
 
 class NilClass
   def __marshal__(ms)
-    "0"
+    Rubinius.binary_string("0")
   end
 end
 
 class TrueClass
   def __marshal__(ms)
-    "T"
+    Rubinius.binary_string("T")
   end
 end
 
 class FalseClass
   def __marshal__(ms)
-    "F"
+    Rubinius.binary_string("F")
   end
 end
 
 class Symbol
   def __marshal__(ms)
     if idx = ms.find_symlink(self)
-      ";#{ms.serialize_integer(idx)}"
+      Rubinius.binary_string(";#{ms.serialize_integer(idx)}")
     else
       ms.add_symlink self
 
       str = to_s
-      ":#{ms.serialize_integer(str.length)}#{str}"
+      Rubinius.binary_string(":#{ms.serialize_integer(str.length)}#{str}")
     end
   end
 end
@@ -53,7 +52,8 @@ class String
     out << ms.serialize_extended_object(self)
     out << ms.serialize_user_class(self, String)
     out << '"'
-    out << ms.serialize_integer(self.length) << self
+    out << ms.serialize_integer(self.length)
+    out << self
     out << ms.serialize_instance_variables_suffix(self)
 
     out
@@ -169,7 +169,7 @@ class Float
           else
             ("%.*g" % [17, self]) + ms.serialize_mantissa(self)
           end
-    "f#{ms.serialize_integer(str.length)}#{str}"
+    Rubinius.binary_string("f#{ms.serialize_integer(str.length)}#{str}")
   end
 end
 
@@ -694,7 +694,7 @@ module Marshal
       @depth -= 1;
 
       if link = find_link(obj)
-        str = "@#{serialize_integer(link)}"
+        str = Rubinius.binary_string("@#{serialize_integer(link)}")
       else
         add_object obj
 
@@ -720,7 +720,7 @@ module Marshal
           str << "e#{serialize(mod.name.to_sym)}"
         end
       end
-      str
+      Rubinius.binary_string(str)
     end
 
     def serialize_mantissa(flt)
@@ -739,55 +739,43 @@ module Marshal
         end
         str.gsub!(/(\000)*\Z/, '')
       end
-      str
+      Rubinius.binary_string(str)
     end
 
     def serialize_instance_variables_prefix(obj, exclude_ivars = false)
       ivars = obj.__instance_variables__
-
       ivars -= exclude_ivars if exclude_ivars
-
-      if ivars.length > 0
-        "I"
-      else
-        ''
-      end
+      Rubinius.binary_string(ivars.length > 0 ? "I" : "")
     end
 
     def serialize_instance_variables_suffix(obj, force=false,
                                             strip_ivars=false,
                                             exclude_ivars=false)
       ivars = obj.__instance_variables__
-
       ivars -= exclude_ivars if exclude_ivars
 
-      if force or !ivars.empty?
-        str = serialize_integer(ivars.size)
-        ivars.each do |ivar|
-          sym = ivar.to_sym
-          val = obj.__instance_variable_get__(sym)
-          if strip_ivars
-            str << serialize(ivar.to_s[1..-1].to_sym)
-          else
-            str << serialize(sym)
-          end
-          str << serialize(val)
+      return Rubinius.binary_string("") unless force or !ivars.empty?
+
+      str = serialize_integer(ivars.size)
+      ivars.each do |ivar|
+        sym = ivar.to_sym
+        val = obj.__instance_variable_get__(sym)
+        if strip_ivars
+          str << serialize(ivar.to_s[1..-1].to_sym)
+        else
+          str << serialize(sym)
         end
-        str
-      else
-      ''
+        str << serialize(val)
       end
+
+      Rubinius.binary_string(str)
     end
 
     def serialize_integer(n, prefix = nil)
-      if !Rubinius::L64 && n.is_a?(Fixnum)
-        prefix.to_s + serialize_fixnum(n)
+      if (!Rubinius::L64 && n.is_a?(Fixnum)) || ((n >> 31) == 0 or (n >> 31) == -1)
+        Rubinius.binary_string(prefix.to_s + serialize_fixnum(n))
       else
-        if (n >> 31) == 0 or (n >> 31) == -1
-          prefix.to_s + serialize_fixnum(n)
-        else
-          serialize_bignum(n)
-        end
+        serialize_bignum(n)
       end
     end
 
@@ -809,7 +797,7 @@ module Marshal
         end
         s[0] = (n < 0 ? 256 - cnt : cnt).chr
       end
-      s
+      Rubinius.binary_string(s)
     end
 
     def serialize_bignum(n)
@@ -828,14 +816,14 @@ module Marshal
         cnt += 1
       end
 
-      str[0..1] + serialize_fixnum(cnt / 2) + str[2..-1]
+      Rubinius.binary_string(str[0..1] + serialize_fixnum(cnt / 2) + str[2..-1])
     end
 
     def serialize_user_class(obj, cls)
       if obj.class != cls
-        "C#{serialize(obj.class.name.to_sym)}"
+        Rubinius.binary_string("C#{serialize(obj.class.name.to_sym)}")
       else
-        ''
+        Rubinius.binary_string('')
       end
     end
 
@@ -847,7 +835,7 @@ module Marshal
       end
 
       out = serialize_instance_variables_prefix(str)
-      out << "u#{serialize(obj.class.name.to_sym)}"
+      out << Rubinius.binary_string("u#{serialize(obj.class.name.to_sym)}")
       out << serialize_integer(str.length) + str
       out << serialize_instance_variables_suffix(str)
 
@@ -859,7 +847,7 @@ module Marshal
 
       add_object val
 
-      "U#{serialize(obj.class.__name__.to_sym)}#{val.__marshal__(self)}"
+      Rubinius.binary_string("U#{serialize(obj.class.__name__.to_sym)}#{val.__marshal__(self)}")
     end
 
     def set_instance_variables(obj)
@@ -938,7 +926,7 @@ module Marshal
       raise TypeError, "output must respond to write"
     end
 
-    str = VERSION_STRING + ms.serialize(obj)
+    str = Rubinius.binary_string(VERSION_STRING) + ms.serialize(obj)
 
     if an_io
       an_io.write(str)

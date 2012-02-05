@@ -5,4 +5,8 @@ module Rubinius
   def self.convert_to_names(list)
     list.map { |x| x.to_s }
   end
+
+  def self.binary_string(string)
+    string
+  end
 end
