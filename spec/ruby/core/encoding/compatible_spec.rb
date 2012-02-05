@@ -33,11 +33,26 @@ with_feature :encoding do
     end
 
     describe "when the first's Encoding is ASCII compatible and ASCII only" do
-      it "return's the first's Encoding if the second is ASCII compatible" do
-        a = "abc".force_encoding("UTF-8")
-        b = "123".force_encoding("Shift_JIS")
-        Encoding.compatible?(a, b).should == Encoding::UTF_8
-        Encoding.compatible?(b, a).should == Encoding::Shift_JIS
+      it "returns the first's Encoding if the second is ASCII compatible and ASCII only" do
+        [ [Encoding, "abc".force_encoding("UTF-8"), "123".force_encoding("Shift_JIS"), Encoding::UTF_8],
+          [Encoding, "123".force_encoding("Shift_JIS"), "abc".force_encoding("UTF-8"), Encoding::Shift_JIS]
+        ].should be_computed_by(:compatible?)
+      end
+
+      ruby_bug "#5968", "2.0" do
+        it "returns the first's Encoding if the second is ASCII compatible and ASCII only" do
+          [ [Encoding, "abc".force_encoding("ASCII-8BIT"), "123".force_encoding("US-ASCII"), Encoding::ASCII_8BIT],
+            [Encoding, "123".force_encoding("US-ASCII"), "abc".force_encoding("ASCII-8BIT"), Encoding::US_ASCII]
+          ].should be_computed_by(:compatible?)
+        end
+      end
+
+      it "returns the second's Encoding if the second is ASCII compatible but not ASCII only" do
+        [ [Encoding, "abc".force_encoding("UTF-8"), "\xff".force_encoding("Shift_JIS"), Encoding::Shift_JIS],
+          [Encoding, "123".force_encoding("Shift_JIS"), "\xff".force_encoding("UTF-8"), Encoding::UTF_8],
+          [Encoding, "abc".force_encoding("ASCII-8BIT"), "\xff".force_encoding("US-ASCII"), Encoding::US_ASCII],
+          [Encoding, "123".force_encoding("US-ASCII"), "\xff".force_encoding("ASCII-8BIT"), Encoding::ASCII_8BIT],
+        ].should be_computed_by(:compatible?)
       end
 
       it "returns nil if the second's Encoding is not ASCII compatible" do
