@@ -304,4 +304,8 @@ describe :io_new_errors, :shared => true do
   it "raises an Errno::EINVAL if the new mode is not compatible with the descriptor's current mode" do
     lambda { IO.send(@method, @fd, "r") }.should raise_error(Errno::EINVAL)
   end
+
+  it "raises ArgumentError if passed an empty mode string" do
+    lambda { IO.send(@method, @fd, "") }.should raise_error(ArgumentError)
+  end
 end
