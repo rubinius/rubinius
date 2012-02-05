@@ -7,6 +7,43 @@ class File
     StringValue(obj)
   end
 
+  def initialize(path_or_fd, mode=undefined, perm=undefined, options=undefined)
+    if path_or_fd.kind_of? Integer
+      super(path_or_fd, mode, options)
+      @path = nil
+    else
+      path = Rubinius::Type.coerce_to_path path_or_fd
+
+      if options.equal?(undefined)
+        options = Rubinius::Type.try_convert(perm, Hash, :to_hash)
+        perm = undefined if options
+      end
+
+      nmode, binary, external, internal = IO.normalize_options(mode, options)
+      nmode ||= "r"
+
+      perm = 0666 if perm.equal? undefined
+
+      fd = IO.sysopen(path, nmode, perm)
+      if fd < 0
+        begin
+          Errno.handle path
+        rescue Errno::EMFILE
+          # true means force to run, don't ignore it.
+          GC.run(true)
+
+          fd = IO.sysopen(path, nmode, perm)
+          Errno.handle if fd < 0
+        end
+      end
+
+      @path = path
+      super(fd, mode, options)
+    end
+  end
+
+  private :initialize
+
   def size
     raise IOError, "closed stream" if closed?
     stat.size

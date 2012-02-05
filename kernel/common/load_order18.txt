@@ -67,6 +67,7 @@ fiber.rbc
 io.rbc
 io18.rbc
 file.rbc
+file18.rbc
 filetest.rbc
 float.rbc
 float18.rbc
