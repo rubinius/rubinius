@@ -1,29 +1,30 @@
 describe :mutex_try_lock, :shared => true do
-  it "locks the mutex if it can" do
-    m = Mutex.new
-    m.try_lock
-
-    m.locked?.should be_true
-    lambda { m.try_lock.should be_false }.should_not raise_error(ThreadError)
-  end
-
-  it "returns false if lock can not be aquired immediately" do
-    m1 = Mutex.new
-    m2 = Mutex.new
-
-    m2.lock
-    th = Thread.new do
-      m1.lock
-      m2.lock
+  describe "when unlocked" do
+    it "returns true" do
+      m = Mutex.new
+      m.try_lock.should be_true
     end
 
-    Thread.pass while th.status and th.status != "sleep"
+    it "locks the mutex" do
+      m = Mutex.new
+      m.try_lock
+      m.locked?.should be_true
+    end
+  end
 
-    # th owns m1 so try_lock should return false
-    m1.try_lock.should be_false
-    m2.unlock
-    th.join
-    # once th is finished m1 should be released
-    m1.try_lock.should be_true
+  describe "when locked by the current thread" do
+    it "returns false" do
+      m = Mutex.new
+      m.lock
+      m.try_lock.should be_false
+    end
+  end
+
+  describe "when locked by another thread" do
+    it "returns false" do
+      m = Mutex.new
+      m.lock
+      Thread.new { m.try_lock }.value.should be_false
+    end
   end
 end
