@@ -64,6 +64,5 @@ describe "Module#instance_method" do
 
   it "raises a NameError if the given method doesn't exist" do
     lambda { Object.instance_method(:missing) }.should raise_error(NameError)
-    lambda { Object.instance_method(:missing) }.should_not raise_error(NoMethodError)
   end
 end

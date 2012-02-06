@@ -37,8 +37,8 @@ with_feature :encoding do
     end
 
     it "only contains valid aliased encodings" do
-      Encoding.aliases.each do |enc_alias|
-        lambda { Encoding.find(enc_alias) }.should_not raise_error(ArgumentError)
+      Encoding.aliases.each do |aliased, original|
+        Encoding.find(aliased).should == Encoding.find(original)
       end
     end
   end
