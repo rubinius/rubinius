@@ -5,3 +5,4 @@ fails:Encoding::Converter#replacement= raises an UndefinedConversionError is the
 fails:Encoding::Converter#replacement= does not change the replacement character if the argument cannot be converted into the destination encoding
 fails:Encoding::Converter#replacement= accepts a String argument of arbitrary length
 fails:Encoding::Converter#replacement returns \uFFFD when the destination encoding is UTF-8
+fails:Encoding::Converter#replacement= accepts a String argument
