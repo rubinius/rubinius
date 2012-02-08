@@ -160,7 +160,7 @@ containing the Rubinius standard library files.
       end
     end
 
-    # Checks if a subcammand with basename +base+ exists. Returns the full
+    # Checks if a subcommand with basename +base+ exists. Returns the full
     # path to the subcommand if it does; otherwise, returns nil.
     def find_subcommand(base)
       command = File.join @main_lib_bin, "#{base}.rb"
