@@ -52,9 +52,26 @@ namespace rubinius {
   public:
     /* accessors */
 
-    attr_accessor(num_bytes, Fixnum);
+    attr_reader(num_bytes, Fixnum);
+    attr_reader(data, ByteArray);
+
+    void update_handle();
+
+    template <class T>
+      void num_bytes(T state, Fixnum* obj) {
+        num_bytes_ = obj;
+        update_handle();
+      }
+
+    template <class T>
+      void data(T state, ByteArray* obj) {
+        data_ = obj;
+        if(zone() == MatureObjectZone) this->write_barrier(state, obj);
+
+        update_handle();
+      }
+
     attr_accessor(num_chars, Fixnum);
-    attr_accessor(data, ByteArray);
     attr_accessor(hash_value, Fixnum);
     attr_accessor(shared, Object);
     attr_accessor(encoding, Encoding);
