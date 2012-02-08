@@ -472,10 +472,6 @@ namespace rubinius {
     mode(state, Fixnum::from(acc_mode));
   }
 
-  void IO::unsafe_set_descriptor(native_int fd) {
-    descriptor_ = Fixnum::from(fd);
-  }
-
   void IO::force_read_only(STATE) {
     int m = mode_->to_native();
     mode(state, Fixnum::from((m & ~O_ACCMODE) | O_RDONLY));
