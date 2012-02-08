@@ -40,7 +40,7 @@ namespace rubinius {
     // Lazily allocate a root fiber.
     if(fib->nil_p()) {
       fib = state->new_object<Fiber>(G(fiber));
-      fib->prev_ = nil<Fiber>();
+      fib->prev(state, nil<Fiber>());
       fib->root_ = true;
       fib->status_ = Fiber::eRunning;
 
