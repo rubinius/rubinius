@@ -108,6 +108,8 @@ namespace rubinius {
   }
 
   Environment::~Environment() {
+    delete sig_handler_;
+
     VM::discard(state, root_vm);
     SharedState::discard(shared);
     delete state;
@@ -274,9 +276,9 @@ namespace rubinius {
 #endif
 
     state->vm()->set_run_signals(true);
-    SignalHandler* handler = new SignalHandler(state);
-    shared->set_signal_handler(handler);
-    handler->run(state);
+    sig_handler_ = new SignalHandler(state);
+    shared->set_signal_handler(sig_handler_);
+    sig_handler_->run(state);
 
 #ifndef RBX_WINDOWS
     // Ignore sigpipe.

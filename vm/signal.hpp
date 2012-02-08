@@ -26,6 +26,8 @@ namespace rubinius {
 
     TypedRoot<Thread*> thread_;
 
+    std::list<int> watched_signals_;
+
   public:
     enum HandlerType {
       eDefault,
