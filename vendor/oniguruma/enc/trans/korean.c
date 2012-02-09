@@ -4,7 +4,7 @@
 /* src="euckr-tbl.rb", len=156134, checksum=29369 */
 /* src="cp949-tbl.rb", len=167830, checksum=37452 */
 
-#include "transcode_data.h"
+#include "transcoder.h"
 
 
 

@@ -3,7 +3,7 @@
 /* src="gbk.trans", len=312, checksum=24705 */
 /* src="gbk-tbl.rb", len=413888, checksum=52830 */
 
-#include "transcode_data.h"
+#include "transcoder.h"
 
 
 

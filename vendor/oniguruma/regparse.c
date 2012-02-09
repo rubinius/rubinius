@@ -1157,6 +1157,7 @@ node_new_cclass(void)
   return node;
 }
 
+#ifdef USE_SHARED_CCLASS_TABLE
 static Node*
 node_new_cclass_by_codepoint_range(int not, OnigCodePoint sb_out,
 				   const OnigCodePoint ranges[])
@@ -1206,6 +1207,7 @@ node_new_cclass_by_codepoint_range(int not, OnigCodePoint sb_out,
 
   return node;
 }
+#endif
 
 static Node*
 node_new_ctype(int type, int not)

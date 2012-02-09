@@ -52,7 +52,7 @@
 /* src="cp852-tbl.rb", len=2057, checksum=46787 */
 /* src="cp855-tbl.rb", len=2094, checksum=48066 */
 
-#include "transcode_data.h"
+#include "transcoder.h"
 
 
 

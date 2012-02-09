@@ -3,7 +3,7 @@
 /* src="utf8_mac.trans", len=5952, checksum=64339 */
 /* src="utf8_mac-tbl.rb", len=24587, checksum=65335 */
 
-#include "transcode_data.h"
+#include "transcoder.h"
 
 
 

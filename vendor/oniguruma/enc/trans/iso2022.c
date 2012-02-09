@@ -2,7 +2,7 @@
 /* src="transcode-tblgen.rb", len=28084, checksum=28219 */
 /* src="iso2022.trans", len=15906, checksum=38089 */
 
-#include "transcode_data.h"
+#include "transcoder.h"
 
 
 

@@ -3,7 +3,7 @@
 /* src="gb18030.trans", len=5694, checksum=54055 */
 /* src="gb18030-tbl.rb", len=1357449, checksum=30205 */
 
-#include "transcode_data.h"
+#include "transcoder.h"
 
 
 
