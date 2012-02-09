@@ -612,10 +612,10 @@ namespace rubinius {
   native_int String::char_size(STATE) {
     if(num_chars_->nil_p()) {
       if(LANGUAGE_18_ENABLED(state)) {
-        num_chars_ = num_bytes_;
+        num_chars(state, num_bytes_);
       } else {
         if(byte_compatible_p(encoding_)) {
-          num_chars_ = num_bytes_;
+          num_chars(state, num_bytes_);
         } else {
           OnigEncodingType* enc = encoding_->get_encoding();
           native_int chars;
@@ -639,7 +639,7 @@ namespace rubinius {
             }
           }
 
-          num_chars_ = Fixnum::from(chars);
+          num_chars(state, Fixnum::from(chars));
         }
       }
     }
