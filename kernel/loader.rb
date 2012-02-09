@@ -99,13 +99,14 @@ containing the Rubinius standard library files.
 
       # This conforms more closely to MRI. It is necessary to support
       # paths that mkmf adds when compiling and installing native exts.
-      additions = []
-      additions << Rubinius::SITE_PATH
-      additions << "#{Rubinius::SITE_PATH}/#{Rubinius::CPU}-#{Rubinius::OS}"
-      additions << Rubinius::VENDOR_PATH
-      additions << "#{Rubinius::VENDOR_PATH}/#{Rubinius::CPU}-#{Rubinius::OS}"
-      additions << "#{@main_lib}/#{Rubinius::RUBY_LIB_VERSION}"
-      additions << @main_lib
+      additions = [
+        Rubinius::SITE_PATH,
+        "#{Rubinius::SITE_PATH}/#{Rubinius::CPU}-#{Rubinius::OS}",
+        Rubinius::VENDOR_PATH,
+        "#{Rubinius::VENDOR_PATH}/#{Rubinius::CPU}-#{Rubinius::OS}",
+        "#{@main_lib}/#{Rubinius::RUBY_LIB_VERSION}",
+        @main_lib,
+      ]
       additions.uniq!
 
       $LOAD_PATH.unshift(*additions)
