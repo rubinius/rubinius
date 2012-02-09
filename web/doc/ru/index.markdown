@@ -58,7 +58,7 @@ next_url: what-is-rubinius
 1. [Инструменты](/doc/ru/tools/)
     1. [Отладчик](/doc/ru/tools/debugger/)
     1. [Профайлер](/doc/ru/tools/profiler/)
-    1. [Анализатор памяти](/doc/ru/tools/memory-analysis/)
+    1. [Анализ памяти](/doc/ru/tools/memory-analysis/)
 1. [How-To](/doc/ru/how-to/)
     1. [Создание тикета](/doc/ru/how-to/write-a-ticket/)
     1. [Написание Ruby спецификации](/doc/ru/how-to/write-a-ruby-spec/)
