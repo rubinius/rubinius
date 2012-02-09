@@ -37,4 +37,13 @@ class Object
       "/dev/null"
     end
   end
+
+  def hostname
+    commands = ['hostname', 'uname -n']
+    commands.each do |command|
+      name = `#{command}`
+      return name.strip if $?.success?
+    end
+    raise Exception, "hostname: unable to find a working command"
+  end
 end
