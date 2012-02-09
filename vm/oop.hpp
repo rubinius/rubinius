@@ -5,7 +5,7 @@
 #include <ctype.h>
 #include <stdint.h>
 #include <assert.h>
-#ifdef HAVE_HEADER_ALLOCA_H
+#ifdef HAVE_ALLOCA_H
 #include <alloca.h>
 #endif
 

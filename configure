@@ -972,7 +972,7 @@ int main() { return tgetnum(""); }
     end
 
     if has_header("alloca.h")
-      @defines << "HAVE_HEADER_ALLOCA_H"
+      @defines << "HAVE_ALLOCA_H"
     end
 
     @vendor_zlib = true if @features["vendor-zlib"]
