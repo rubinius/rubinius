@@ -145,15 +145,36 @@ Daedalus.blueprint do |i|
     end
   end
 
-  oniguruma = i.external_lib "vendor/oniguruma" do |l|
-    l.cflags = ["-Ivendor/oniguruma"]
-    l.objects = [l.file("libonig.a")]
-    l.to_build do |x|
-      unless File.exists?("Makefile") and File.mtime("Makefile") > File.mtime("configure")
-        x.command "sh -c ./configure"
-      end
-      x.command make
+  oniguruma = i.library_group "vendor/oniguruma" do |g|
+    g.depends_on "config.h", "configure"
+
+    gcc.cflags << "-Ivendor/oniguruma"
+    g.cflags = ["-DHAVE_CONFIG_H", "-I.", "-I../../vm/capi/19/include"]
+
+    g.static_library "libonig" do |l|
+      l.source_files "*.c", "enc/*.c"
     end
+
+    g.shared_library "enc/trans/big5"
+    g.shared_library "enc/trans/chinese"
+    g.shared_library "enc/trans/emoji"
+    g.shared_library "enc/trans/emoji_iso2022_kddi"
+    g.shared_library "enc/trans/emoji_sjis_docomo"
+    g.shared_library "enc/trans/emoji_sjis_kddi"
+    g.shared_library "enc/trans/emoji_sjis_softbank"
+    g.shared_library "enc/trans/escape"
+    g.shared_library "enc/trans/gb18030"
+    g.shared_library "enc/trans/gbk"
+    g.shared_library "enc/trans/iso2022"
+    g.shared_library "enc/trans/japanese"
+    g.shared_library "enc/trans/japanese_euc"
+    g.shared_library "enc/trans/japanese_sjis"
+    g.shared_library "enc/trans/korean"
+    g.shared_library "enc/trans/newline"
+    g.shared_library "enc/trans/single_byte"
+    g.shared_library "enc/trans/transdb"
+    g.shared_library "enc/trans/utf8_mac"
+    g.shared_library "enc/trans/utf_16_32"
   end
 
   gdtoa = i.external_lib "vendor/libgdtoa" do |l|
@@ -206,7 +227,6 @@ Daedalus.blueprint do |i|
   gcc.add_library udis
   gcc.add_library ffi
   gcc.add_library gdtoa
-  gcc.add_library oniguruma
   gcc.add_library ltm
 
   Rubinius::BUILD_CONFIG[:include_dirs].each do |path|
