@@ -176,7 +176,7 @@
 #include <stdlib.h>
 #endif
 
-#if defined(HAVE_ALLOCA_H) && (defined(_AIX) || !defined(__GNUC__))
+#ifdef HAVE_ALLOCA_H
 #include <alloca.h>
 #endif
 

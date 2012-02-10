@@ -16,6 +16,8 @@
 #pragma GCC visibility push(default)
 #endif
 
+#include "ruby/ruby.h"
+
 #define WORDINDEX_SHIFT_BITS 2
 #define WORDINDEX2INFO(widx)      ((widx) << WORDINDEX_SHIFT_BITS)
 #define INFO2WORDINDEX(info)      ((info) >> WORDINDEX_SHIFT_BITS)
