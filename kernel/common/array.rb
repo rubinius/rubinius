@@ -1415,7 +1415,7 @@ class Array
         block_result = block.call(@tuple.at(j - 1), @tuple.at(j))
 
         if block_result.nil?
-          raise ArgumentError, 'block returnd nil'
+          raise ArgumentError, 'block returned nil'
         elsif block_result > 0
           @tuple.swap(j, (j - 1))
           j -= 1
