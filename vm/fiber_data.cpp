@@ -6,7 +6,7 @@
 
 namespace rubinius {
 
-#ifdef FIBER_ENABLED
+#ifdef RBX_FIBER_ENABLED
 
 #if defined(FIBER_ASM_X8664)
 
@@ -89,6 +89,18 @@ static void fiber_makectx(fiber_context_t* ctx, void* func, void** stack_bottom,
   ctx->ebp = 0;
 }
 #endif
+
+#else
+
+static inline void fiber_switch(fiber_context_t* from, fiber_context_t* to) {
+  rubinius::bug("Fibers not supported on this platform");
+}
+
+static void fiber_makectx(fiber_context_t* ctx, void* func, void** stack_bottom,
+                          int stack_size)
+{
+  rubinius::bug("Fibers not supported on this platform");
+}
 
 #endif
 

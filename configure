@@ -88,6 +88,11 @@ class Configure
     @llvm_prebuilt_path     = File.join(@llvm_parent_path, "prebuilt")
     @llvm_include_path      = File.join(@llvm_default, "include")
 
+    # System settings
+    @libc         = nil
+    @x86_32       = false
+    @x86_64       = false
+    @fibers       = false
     @include_dirs = ["/usr/local/include", "/opt/local/include"]
     @lib_dirs     = ["/usr/local/lib", "/opt/local/lib"]
 
@@ -244,12 +249,18 @@ class Configure
       update_prebuilt @llvm_generic_prebuilt, true
     end
 
+    o.doc "\n System settings"
+
     o.on "--with-include-dir", "PATH", "Add path the default include search paths" do |path|
       @include_dirs << path
     end
 
     o.on "--with-lib-dir", "PATH", "Add path the default library search paths" do |path|
       @lib_dirs << path
+    end
+
+    o.on "--libc", "NAME", "Use NAME as the libc for FFI" do |name|
+      @libc = name
     end
 
     o.doc "\n File system paths for installing Rubinius"
@@ -335,6 +346,7 @@ class Configure
     feature "ruby-readline", false
     feature "vendor-zlib", !!@windows
     feature "alloc-tracking", false
+    feature "fibers", true
 
     o.doc "\n Help!"
 
@@ -805,10 +817,8 @@ int main() { X x; return 0; }
     @log.write @tr1_hash ? "found" : "not found"
   end
 
-  def detect_x86_32bit
+  def detect_x86
     print "Checking for x86_32: "
-
-    @x86_32 = false
 
     if sizeof("long") == 4
       status = check_program do |f|
@@ -829,6 +839,28 @@ int main() {
     end
 
     puts @x86_32 ? "yes" : "no"
+
+    return if @x86_32
+
+    print "Checking for x86_64: "
+
+    status = check_program do |f|
+      src = <<-EOP
+int main() {
+#if defined(__x86_64) || defined(__x86_64__)
+return 1;
+#else
+return 0;
+#endif
+}
+      EOP
+
+      f.puts src
+      @log.log src
+    end
+    @x86_64 = (status == 1)
+
+    puts @x86_64 ? "yes" : "no"
   end
 
   def detect_curses
@@ -946,10 +978,28 @@ int main() { return tgetnum(""); }
       end
     end
 
+   if @features["fibers"]
+     @fibers = true if @x86_32 or @x86_64
+   end
+
+    @vendor_zlib = true if @features["vendor-zlib"]
+  end
+
+  def detect_functions
     if has_function("yaml_parser_initialize", ["yaml.h"])
       @libyaml = true
     end
 
+    if has_function("clock_gettime", ["time.h"])
+      @defines << "HAVE_CLOCK_GETTIME"
+    end
+
+    if has_function("nl_langinfo", ["langinfo.h"])
+      @defines << "HAVE_NL_LANGINFO"
+    end
+  end
+
+  def detect_structures
     if has_struct_member("tm", "tm_gmtoff", ["time.h"])
       @defines << "HAVE_TM_GMTOFF"
     end
@@ -957,7 +1007,9 @@ int main() { return tgetnum(""); }
     if has_struct_member("tm", "tm_zone", ["time.h"])
       @defines << "HAVE_TM_ZONE"
     end
+  end
 
+  def detect_globals
     if has_global("timezone", ["time.h"])
       @defines << "HAVE_TIMEZONE"
     end
@@ -969,15 +1021,9 @@ int main() { return tgetnum(""); }
     if has_global("daylight", ["time.h"])
       @defines << "HAVE_DAYLIGHT"
     end
+  end
 
-    if has_function("clock_gettime", ["time.h"])
-      @defines << "HAVE_CLOCK_GETTIME"
-    end
-
-    if has_function("nl_langinfo", ["langinfo.h"])
-      @defines << "HAVE_NL_LANGINFO"
-    end
-
+  def detect_headers
     if has_header("alloca.h")
       @defines << "HAVE_ALLOCA_H"
     end
@@ -1002,7 +1048,9 @@ int main() { return tgetnum(""); }
       @defines << "HAVE_UNISTD_H"
     end
 
-    @vendor_zlib = true if @features["vendor-zlib"]
+    if has_header("stdarg.h")
+      @defines << "HAVE_STDARG_H"
+    end
   end
 
   def process
@@ -1033,8 +1081,12 @@ int main() { return tgetnum(""); }
 
     detect_endian
     detect_tr1_hash
-    detect_x86_32bit
+    detect_x86
     detect_features
+    detect_functions
+    detect_structures
+    detect_globals
+    detect_headers
     detect_curses
  end
 
@@ -1092,6 +1144,8 @@ int main() { return tgetnum(""); }
   end
 
   def detect_libc_name
+    return if @libc
+
     @log.print "Checking for libc version: "
 
     case
@@ -1100,10 +1154,16 @@ int main() { return tgetnum(""); }
     when @darwin
       @libc = "libc.dylib"
     else
-      ldd_output = `ldd #{build_ruby}`
-      @libc = ldd_output[/libc\.so\.[0-9]+/]
-      if @libc.nil?
-        failure "libc not found."
+      begin
+        ldd_output = `ldd #{build_ruby}`
+
+        @libc = ldd_output[/libc\.so\.[0-9]+/]
+      rescue
+        # Don't abort if the command is not found
+      end
+
+      unless $?.success? and @libc
+        failure "libc not found. Use the --libc configure option."
       end
     end
 
@@ -1144,6 +1204,8 @@ module Rubinius
     :little_endian  => #{@little_endian},
     :sizeof_long    => #{sizeof("long")},
     :x86_32         => #{@x86_32},
+    :x86_64         => #{@x86_64},
+    :fibers         => #{@fibers},
     :bindir         => "#{@bindir}",
     :libdir         => "#{@libdir}",
     :runtime        => "#{@runtime}",
@@ -1233,6 +1295,10 @@ end
         if instance_variable_get(:"@#{platform}")
           f.puts "#define RBX_#{platform.to_s.upcase}           1"
         end
+      end
+
+      if @fibers
+        f.puts "#define RBX_FIBER_ENABLED    1"
       end
 
       write_have_defines f

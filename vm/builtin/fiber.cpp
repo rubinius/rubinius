@@ -26,7 +26,7 @@ namespace rubinius {
     GO(fiber).set(ontology::new_class(state, "Fiber", G(object), G(rubinius)));
     G(fiber)->set_object_type(state, FiberType);
 
-#ifdef FIBER_ENABLED
+#ifdef RBX_FIBER_ENABLED
     G(fiber)->set_const(state, "ENABLED", cTrue);
 #else
     G(fiber)->set_const(state, "ENABLED", cFalse);
@@ -34,7 +34,7 @@ namespace rubinius {
   }
 
   Fiber* Fiber::current(STATE) {
-#ifdef FIBER_ENABLED
+#ifdef RBX_FIBER_ENABLED
     Fiber* fib = state->vm()->current_fiber.get();
 
     // Lazily allocate a root fiber.
@@ -59,7 +59,7 @@ namespace rubinius {
   }
 
   void Fiber::start_on_stack() {
-#ifdef FIBER_ENABLED
+#ifdef RBX_FIBER_ENABLED
     VM* vm = VM::current();
     State state(vm);
 
@@ -107,7 +107,7 @@ namespace rubinius {
   }
 
   Fiber* Fiber::create(STATE, Object* self, Object* callable) {
-#ifdef FIBER_ENABLED
+#ifdef RBX_FIBER_ENABLED
     Fiber* fib = state->new_object<Fiber>(as<Class>(self));
     fib->starter(state, callable);
     fib->prev(state, nil<Fiber>());
@@ -125,7 +125,7 @@ namespace rubinius {
   }
 
   Object* Fiber::resume(STATE, Arguments& args, CallFrame* calling_environment) {
-#ifdef FIBER_ENABLED
+#ifdef RBX_FIBER_ENABLED
     if(!data_) {
       data_ = state->vm()->new_fiber_data();
     }
@@ -182,7 +182,7 @@ namespace rubinius {
   }
 
   Object* Fiber::transfer(STATE, Arguments& args, CallFrame* calling_environment) {
-#ifdef FIBER_ENABLED
+#ifdef RBX_FIBER_ENABLED
     if(!data_) {
       data_ = state->vm()->new_fiber_data();
     }
@@ -238,7 +238,7 @@ namespace rubinius {
   }
 
   Object* Fiber::s_yield(STATE, Arguments& args, CallFrame* calling_environment) {
-#ifdef FIBER_ENABLED
+#ifdef RBX_FIBER_ENABLED
     Fiber* cur = Fiber::current(state);
     Fiber* dest_fib = cur->prev();
 
@@ -282,7 +282,7 @@ namespace rubinius {
 
 
   void Fiber::finalize(STATE, Fiber* fib) {
-#ifdef FIBER_ENABLED
+#ifdef RBX_FIBER_ENABLED
     if(!fib->data_) return;
     fib->data_->orphan(state);
 

@@ -2,6 +2,7 @@
 #define RBX_VM_FIBER_DATA_HPP
 
 #include "vm/config.h"
+#include "bug.hpp"
 #include "prelude.hpp"
 
 #include "gc/variable_buffer.hpp"
@@ -9,7 +10,6 @@
 namespace rubinius {
 
 #if defined(IS_X86)
-#define FIBER_ENABLED
 #define FIBER_ASM_X8632
   struct fiber_context_t {
     void* eip;
@@ -19,7 +19,6 @@ namespace rubinius {
   };
 
 #elif defined(IS_X8664)
-#define FIBER_ENABLED
 #define FIBER_ASM_X8664
   struct fiber_context_t {
     void* rip;
@@ -35,7 +34,7 @@ namespace rubinius {
 #else
   struct fiber_context_t {
     int dummy;
-  }
+  };
 #endif
 
   class FiberStack;
@@ -113,12 +112,15 @@ namespace rubinius {
     }
 
     void* stack_bottom() {
+#ifdef RBX_FIBER_ENABLED
 #if defined(FIBER_ASM_X8632)
       return machine_.esp;
 #elif defined(FIBER_ASM_X8664)
       return machine_.rsp;
+#endif
 #else
-#error "not supported, you shouldn't be here"
+      rubinius::bug("Fibers not supported on this platform");
+      return 0; // for the cute little dumb compiler
 #endif
     }
 
@@ -153,6 +155,6 @@ namespace rubinius {
 
     void die();
   };
-
 }
+
 #endif
