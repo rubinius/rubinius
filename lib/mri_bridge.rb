@@ -23,16 +23,8 @@ module Rubinius
     RUBY_VERSION =~ /^2\.0/
   end
 
-  class Channel
-    def receive
-    end
-
-    def <<(val)
-    end
-
-    def as_lock
-      yield
-    end
+  def synchronize(obj)
+    yield
   end
 end
 
