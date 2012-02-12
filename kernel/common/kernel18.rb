@@ -24,7 +24,9 @@ module Kernel
   module_function :loop
 
   def rand(limit=0)
-    limit = Integer(limit).abs
+    unless limit == 0
+      limit = Integer(limit).abs
+    end
 
     case limit
     when 0

@@ -25,7 +25,9 @@ module Kernel
     if limit.kind_of?(Range)
       Rubinius::Randomizer.instance.random_range(limit)
     else
-      limit = Integer(limit).abs
+      unless limit == 0
+        limit = Integer(limit).abs
+      end
 
       case limit
       when 0
