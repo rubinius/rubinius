@@ -158,13 +158,18 @@ namespace rubinius {
   InstructionSequence* UnMarshaller::get_iseq() {
     size_t count;
     long op;
+    char data[32];
     stream >> count;
+
+    // Read off newline
+    stream.get();
 
     InstructionSequence* iseq = InstructionSequence::create(state, count);
     Tuple* ops = iseq->opcodes();
 
     for(size_t i = 0; i < count; i++) {
-      stream >> op;
+      stream.getline(data, 32);
+      op = strtol(data, NULL, 10);
       ops->put(state, i, Fixnum::from(op));
     }
 
