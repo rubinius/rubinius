@@ -38,7 +38,13 @@ TYPE_GEN    = %w[ vm/gen/includes.hpp
                   vm/gen/object_types.hpp
                   vm/gen/typechecks.gen.cpp
                   vm/gen/primitives_declare.hpp
-                  vm/gen/primitives_glue.gen.cpp ]
+                  vm/gen/glue_functions.cpp
+                  vm/gen/jit_functions.cpp
+                  vm/gen/invoke_functions.cpp
+                  vm/gen/accessor_functions.cpp
+                  vm/gen/glue_resolver.cpp
+                  vm/gen/jit_resolver.cpp
+                  vm/gen/invoke_resolver.cpp ]
 
 GENERATED = %W[ vm/gen/revision.h
                 vm/gen/config_variables.h
@@ -267,7 +273,13 @@ end
 
 # Generate files for instructions and interpreters
 
-file 'vm/gen/primitives_glue.gen.cpp' => field_extract_headers
+file "gen/method_primitives.cpp" => field_extract_headers
+file "gen/jit_primitives.cpp" => field_extract_headers
+file "gen/invoke_primitives.cpp" => field_extract_headers
+file "gen/accessor_primitives.cpp" => field_extract_headers
+file "gen/method_resolver.cpp" => field_extract_headers
+file "gen/jit_resolver.cpp" => field_extract_headers
+file "gen/invoke_resolver.cpp" => field_extract_headers
 
 iparser = InstructionParser.new "vm/instructions.def"
 
