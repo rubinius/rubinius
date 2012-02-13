@@ -1114,15 +1114,15 @@ class Array
 
     if (@total - @start) < 13
       if block
-        isort_block! @start, (@start + @total) - 1, block
+        isort_block! @start, (@start + @total), block
       else
-        isort! @start, (@start + @total) - 1
+        isort! @start, (@start + @total)
       end
     else
       if block
-        qsort_block! block
+        mergesort_block! block
       else
-        qsort!
+        mergesort!
       end
     end
 
@@ -1288,90 +1288,110 @@ class Array
 
   private :recursively_flatten
 
-  # In-place non-recursive sort between the given indexes.
-  def qsort!
-    stack = [[@start, @start + @total - 1]]
+  ISORT_CEILING = 12
+  MERGESORT_WIDTH = 12
 
-    until stack.empty?
-      left, right = stack.pop
+  # Non-recursive sort using a temporary tuple for scratch storage.
+  def mergesort!
+    width = MERGESORT_WIDTH
+    @scratch = Rubinius::Tuple.new @total
 
-      if right > left
-        pivotindex = left + ((right - left) / 2)
-        # inline pivot routine
+    while width < @total
+      left = 0
 
-        pivot = @tuple.at(pivotindex)
+      while left < @total
+        right = left + width
+        right = right < @total ? right : @total
+        last = left + (2 * width)
+        last = last < @total ? last : @total
 
-        @tuple.swap(pivotindex, right)
-        store = left
-
-        i = left
-        while i < right
-          cmp = (@tuple.at(i) <=> pivot)
-          if cmp < 0
-            @tuple.swap(i, store)
-            store += 1
-          end
-
-          i += 1
+        if width <= ISORT_CEILING
+          isort!(left, right)
+          isort!(right, last)
         end
 
-        @tuple.swap(store, right)
-
-        pi_new = store
-
-        # end pivot
-        stack.push [left, pi_new - 1]
-        stack.push [pi_new + 1, right]
+        bottom_up_merge(left, right, last)
+        left += 2 * width
       end
+
+      @tuple, @scratch = @scratch, @tuple
+      width *= 2
     end
 
+    @scratch = nil
     self
   end
-  private :qsort!
+  private :mergesort!
 
-  # In-place non-recursive sort between the given indexes using a block.
-  def qsort_block!(block)
-    stack = [[@start, @start + @total - 1]]
+  def bottom_up_merge(left, right, last)
+    left_index = left
+    right_index = right
+    i = left
 
-    until stack.empty?
-      left, right = stack.pop
+    while i < last
+      if left_index < right && (right_index >= last || (@tuple.at(left_index) <=> @tuple.at(right_index)) <= 0)
+        @scratch[i] = @tuple.at(left_index)
+        left_index += 1
+      else
+        @scratch[i] = @tuple.at(right_index)
+        right_index += 1
+      end
 
-      if right > left
-        pivotindex = left + ((right - left) / 2)
-        # pi_new = qsort_partition(left, right, pi)
-        # inline pivot routine
+      i += 1
+    end
+  end
+  private :bottom_up_merge
 
-        pivot = @tuple.at(pivotindex)
+  def mergesort_block!(block)
+    width = MERGESORT_WIDTH
+    @scratch = Rubinius::Tuple.new @total
+    penultimate = @total - 1
 
-        @tuple.swap(pivotindex, right)
-        store = left
+    while width < @total
+      left = 0
 
-        i = left
-        while i < right
-          block_result = block.call(@tuple.at(i), pivot)
-          raise ArgumentError, 'block returned nil' if block_result.nil?
-          cmp = Comparable.compare_int block_result
-          if cmp < 0
-            @tuple.swap(i, store)
-            store += 1
-          end
+      while left < @total
+        right = left + width
+        right = right < @total ? right : @total
+        last = left + (2 * width)
+        last = last < @total ? last : @total
 
-          i += 1
+        if width <= ISORT_CEILING
+          isort_block!(left, right, block)
+          isort_block!(right, last, block)
         end
 
-        @tuple.swap(store, right)
-
-        pi_new = store
-
-        # end pivot
-        stack.push [left, pi_new - 1]
-        stack.push [pi_new + 1, right]
+        bottom_up_merge_block(left, right, last, block)
+        left += 2 * width
       end
+
+      @tuple, @scratch = @scratch, @tuple
+      width *= 2
     end
 
+    @scratch = nil
     self
   end
-  private :qsort_block!
+  private :mergesort_block!
+
+  def bottom_up_merge_block(left, right, last, block)
+    left_index = left
+    right_index = right
+    i = left
+
+    while i < last
+      if left_index < right && (right_index >= last || block.call(@tuple.at(left_index), @tuple.at(right_index)) <= 0)
+        @scratch[i] = @tuple.at(left_index)
+        left_index += 1
+      else
+        @scratch[i] = @tuple.at(right_index)
+        right_index += 1
+      end
+
+      i += 1
+    end
+  end
+  private :bottom_up_merge_block
 
   # Insertion sort in-place between the given indexes.
   def isort!(left, right)
@@ -1379,7 +1399,7 @@ class Array
 
     tup = @tuple
 
-    while i <= right
+    while i < right
       j = i
 
       while j > left
@@ -1408,7 +1428,7 @@ class Array
   def isort_block!(left, right, block)
     i = left + 1
 
-    while i <= right
+    while i < right
       j = i
 
       while j > left
