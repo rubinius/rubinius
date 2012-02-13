@@ -1382,7 +1382,7 @@ class Array
     while i <= right
       j = i
 
-      while j > @start
+      while j > left
         jp = j - 1
         el1 = tup.at(jp)
         el2 = tup.at(j)
@@ -1411,7 +1411,7 @@ class Array
     while i <= right
       j = i
 
-      while j > @start
+      while j > left
         block_result = block.call(@tuple.at(j - 1), @tuple.at(j))
 
         if block_result.nil?
