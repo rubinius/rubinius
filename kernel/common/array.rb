@@ -1288,27 +1288,43 @@ class Array
 
   private :recursively_flatten
 
-  ISORT_CEILING = 12
-  MERGESORT_WIDTH = 12
-
   # Non-recursive sort using a temporary tuple for scratch storage.
+  # This is a hybrid mergesort; it's hybrid because for short runs under
+  # 8 elements long we use insertion sort and then merge those sorted
+  # runs back together.
   def mergesort!
-    width = MERGESORT_WIDTH
+    width = 7
     @scratch = Rubinius::Tuple.new @total
-
+    ceiling = 8
+    
+    # do a pre-loop to create a bunch of sorted runs
     while width < @total
       left = 0
-
       while left < @total
         right = left + width
         right = right < @total ? right : @total
         last = left + (2 * width)
         last = last < @total ? last : @total
 
-        if width <= ISORT_CEILING
+        if right - left < ceiling
           isort!(left, right)
           isort!(right, last)
         end
+
+        left += 2 * width
+      end
+      width *= 2
+    end
+
+    # now just merge together those sorted lists from the prior loop
+    width = 7
+    while width < @total
+      left = 0
+      while left < @total
+        right = left + width
+        right = right < @total ? right : @total
+        last = left + (2 * width)
+        last = last < @total ? last : @total
 
         bottom_up_merge(left, right, last)
         left += 2 * width
@@ -1343,23 +1359,37 @@ class Array
   private :bottom_up_merge
 
   def mergesort_block!(block)
-    width = MERGESORT_WIDTH
+    width = 7
     @scratch = Rubinius::Tuple.new @total
-    penultimate = @total - 1
+    ceiling = 8
 
     while width < @total
       left = 0
-
       while left < @total
         right = left + width
         right = right < @total ? right : @total
         last = left + (2 * width)
         last = last < @total ? last : @total
 
-        if width <= ISORT_CEILING
+        if right - left < ceiling
           isort_block!(left, right, block)
           isort_block!(right, last, block)
         end
+
+        left += 2 * width
+      end
+
+      width *= 2
+    end
+
+    width = 7
+    while width < @total
+      left = 0
+      while left < @total
+        right = left + width
+        right = right < @total ? right : @total
+        last = left + (2 * width)
+        last = last < @total ? last : @total
 
         bottom_up_merge_block(left, right, last, block)
         left += 2 * width
