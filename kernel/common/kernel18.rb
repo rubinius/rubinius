@@ -30,9 +30,9 @@ module Kernel
 
     case limit
     when 0
-      Rubinius::Randomizer.instance.random_float
+      Thread.current.randomizer.random_float
     when Integer
-      Rubinius::Randomizer.instance.random_integer(limit - 1)
+      Thread.current.randomizer.random_integer(limit - 1)
     else
       raise TypeError, "Integer() returned a non-integer"
     end

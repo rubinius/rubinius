@@ -5,6 +5,7 @@
 #include "vm/type_info.hpp"
 
 #include "builtin/object.hpp"
+#include "builtin/randomizer.hpp"
 #include "executor.hpp"
 
 namespace rubinius {
@@ -35,6 +36,8 @@ namespace rubinius {
 
     Fixnum* thread_id_; // slot
 
+    Randomizer* randomizer_; // slot
+
     thread::SpinLock init_lock_;
 
     /// The VM state for this thread and this thread alone
@@ -61,6 +64,8 @@ namespace rubinius {
     attr_accessor(debugger_thread, Thread);
 
     attr_accessor(thread_id, Fixnum);
+
+    attr_accessor(randomizer, Randomizer);
 
     VM* vm() {
       return vm_;

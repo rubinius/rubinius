@@ -32,20 +32,20 @@ end
 
 class Random
   def self.new_seed
-    Rubinius::Randomizer.instance.generate_seed
+    Thread.current.randomizer.generate_seed
   end
 
   def self.srand(seed=undefined)
     if seed.equal? undefined
-      seed = Rubinius::Randomizer.instance.generate_seed
+      seed = Thread.current.randomizer.generate_seed
     end
 
     seed = Rubinius::Type.coerce_to seed, Integer, :to_int
-    Rubinius::Randomizer.instance.swap_seed seed
+    Thread.current.randomizer.swap_seed seed
   end
 
   def self.rand(limit=undefined)
-    Rubinius::Randomizer.instance.random(limit)
+    Thread.current.randomizer.random(limit)
   end
 
   def initialize(seed=undefined)
