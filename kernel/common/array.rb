@@ -1295,25 +1295,21 @@ class Array
   def mergesort!
     width = 7
     @scratch = Rubinius::Tuple.new @total
-    ceiling = 8
     
-    # do a pre-loop to create a bunch of sorted runs
-    while width < @total
-      left = 0
-      while left < @total
-        right = left + width
-        right = right < @total ? right : @total
-        last = left + (2 * width)
-        last = last < @total ? last : @total
+    # do a pre-loop to create a bunch of short sorted runs; isort on these
+    # 7-element sublists is more efficient than doing merge sort on 1-element
+    # sublists
+    left = 0
+    while left < @total
+      right = left + width
+      right = right < @total ? right : @total
+      last = left + (2 * width)
+      last = last < @total ? last : @total
 
-        if right - left < ceiling
-          isort!(left, right)
-          isort!(right, last)
-        end
+      isort!(left, right)
+      isort!(right, last)
 
-        left += 2 * width
-      end
-      width *= 2
+      left += 2 * width
     end
 
     # now just merge together those sorted lists from the prior loop
@@ -1361,25 +1357,18 @@ class Array
   def mergesort_block!(block)
     width = 7
     @scratch = Rubinius::Tuple.new @total
-    ceiling = 8
 
-    while width < @total
-      left = 0
-      while left < @total
-        right = left + width
-        right = right < @total ? right : @total
-        last = left + (2 * width)
-        last = last < @total ? last : @total
+    left = 0
+    while left < @total
+      right = left + width
+      right = right < @total ? right : @total
+      last = left + (2 * width)
+      last = last < @total ? last : @total
 
-        if right - left < ceiling
-          isort_block!(left, right, block)
-          isort_block!(right, last, block)
-        end
+      isort_block!(left, right, block)
+      isort_block!(right, last, block)
 
-        left += 2 * width
-      end
-
-      width *= 2
+      left += 2 * width
     end
 
     width = 7
