@@ -315,8 +315,12 @@ class TestFixnum : public CxxTest::TestSuite, public VMTest {
     TS_ASSERT_EQUALS(Fixnum::from(-1)->pow(state, Fixnum::from(1)), Fixnum::from(-1));
     TS_ASSERT_EQUALS(Fixnum::from(-1)->pow(state, Fixnum::from(2)), Fixnum::from(1));
     TS_ASSERT_EQUALS(Fixnum::from(7)->pow(state, Fixnum::from(5)), Fixnum::from(16807));
-    check_float(as<Float>(Fixnum::from(100)->pow(state, Fixnum::from(-1))),
-        Float::create(state,.01));
+    if(LANGUAGE_18_ENABLED(state)) {
+      check_float(as<Float>(Fixnum::from(100)->pow(state, Fixnum::from(-1))),
+          Float::create(state,.01));
+    } else {
+      TS_ASSERT_EQUALS(Fixnum::from(100)->pow(state, Fixnum::from(-1)), Primitives::failure());
+    }
   }
 
   void test_pow_overflows_to_bignum() {
