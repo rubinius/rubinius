@@ -21,6 +21,10 @@ public:
 
   void create() {
     config_parser = new ConfigParser;
+    const char *test_mode = getenv("TEST_MODE");
+    if (test_mode) {
+      config.version.set(test_mode);
+    }
     shared = new SharedState(0, config, *config_parser);
     VM* vm = shared->new_vm();
     vm->initialize_as_root();

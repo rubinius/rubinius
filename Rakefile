@@ -139,19 +139,19 @@ end
 # These tasks run the specs in the specified mode regardless of
 # the default mode with which Rubinius was configured.
 desc "Run CI in 1.8 mode"
-task :ci18 => %w[build vm:test] do
+task :ci18 => %w[build vm:test18] do
   ENV['CI_MODE_FLAG'] = "-T -X18"
   run_ci
 end
 
 desc "Run CI in 1.9 mode"
-task :ci19 => %w[build vm:test] do
+task :ci19 => %w[build vm:test19] do
   ENV['CI_MODE_FLAG'] = "-T -X19"
   run_ci
 end
 
 desc "Run CI in 2.0 mode"
-task :ci20 => %w[build vm:test] do
+task :ci20 => %w[build vm:test20] do
   ENV['CI_MODE_FLAG'] = "-T -X20"
   run_ci
 end
@@ -202,17 +202,17 @@ task :docs do
 end
 
 desc "Run the CI specs in 1.8 mode but do not rebuild on failure"
-task :spec18 => %w[build vm:test] do
+task :spec18 => %w[build vm:test18] do
   run_specs "-T -X18"
 end
 
 desc "Run the CI specs in 1.9 mode but do not rebuild on failure"
-task :spec19 => %w[build vm:test] do
+task :spec19 => %w[build vm:test19] do
   run_specs "-T -X19"
 end
 
 desc "Run the CI specs in 2.0 mode but do not rebuild on failure"
-task :spec20 => %w[build vm:test] do
+task :spec20 => %w[build vm:test20] do
   run_specs "-T -X20"
 end
 
