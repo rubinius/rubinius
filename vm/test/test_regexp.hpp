@@ -32,7 +32,7 @@ public:
     Regexp* re = Regexp::create(state);
     re->initialize(state, pat, Fixnum::from(0));
 
-    TS_ASSERT_EQUALS(re->source(), pat);
+    TS_ASSERT_EQUALS(re->source()->c_str(state), pat->c_str(state));
     TS_ASSERT_EQUALS(re->names(),  cNil);
   }
 
@@ -48,7 +48,7 @@ public:
     Regexp* re = Regexp::create(state);
     re->initialize(state, pat, Fixnum::from(0));
 
-    TS_ASSERT_EQUALS(re->source(), pat);
+    TS_ASSERT_EQUALS(re->source()->c_str(state), pat->c_str(state));
     TS_ASSERT(re->names()->kind_of_p(state, G(lookuptable)));
   }
 
