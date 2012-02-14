@@ -28,7 +28,7 @@ public:
   }
 
   void tearDown() {
-    delete static_args;
+    delete[] static_args;
     destroy();
   }
 
