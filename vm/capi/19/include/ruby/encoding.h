@@ -6,6 +6,7 @@ extern "C" {
 #endif
 
 #include "oniguruma.h"
+#include "transcoder.h"
 
 typedef OnigEncodingType rb_encoding;
 
@@ -82,6 +83,9 @@ int rb_enc_str_coderange(VALUE);
 VALUE rb_external_str_new_with_enc(const char *ptr, long len, rb_encoding *);
 VALUE rb_str_export_to_enc(VALUE, rb_encoding *);
 VALUE rb_str_conv_enc(VALUE str, rb_encoding *from, rb_encoding *to);
+
+void rb_declare_transcoder(const char* from, const char* to, const char* lib);
+void rb_register_transcoder(const rb_transcoder* trans);
 
 #ifdef __cplusplus
 }

@@ -1,4 +1,5 @@
 #include "oniguruma.h" // Must be first.
+#include "transcoder.h"
 #include "regenc.h"
 
 #include "builtin/string.hpp"

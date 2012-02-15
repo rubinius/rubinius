@@ -1,4 +1,5 @@
 #include "oniguruma.h" // Must be first.
+#include "transcoder.h"
 #include "regenc.h"
 
 #include "builtin/array.hpp"
@@ -37,6 +38,8 @@
 #define ENC_REPLICATE(name, orig)   replicate(state, name, orig);
 #define ENC_ALIAS(name, orig)       alias(state, name, orig);
 #define ENC_DUMMY(name)             define_dummy(state, name);
+
+#define TRANS_DECLARE(from, to, lib)  declare(state, from, to, lib);
 
 namespace rubinius {
   void Encoding::init(STATE) {
@@ -81,6 +84,9 @@ namespace rubinius {
     create_internal(state, "external", index);
     create_internal(state, "filesystem", index);
     create_internal(state, "internal", -1);
+
+    Transcoding::init(state);
+    Converter::init(state);
   }
 
   static Symbol* encoding_symbol(STATE, const char* name) {
@@ -365,6 +371,10 @@ namespace rubinius {
     return as<Class>(G(rubinius)->get_const(state, state->symbol("EncodingClass")));
   }
 
+  Class* Encoding::transcoding_class(STATE) {
+    return as<Class>(G(encoding)->get_const(state, state->symbol("Transcoding")));
+  }
+
   LookupTable* Encoding::encoding_map(STATE) {
     return as<LookupTable>(internal_class(state)->get_const(
               state, state->symbol("EncodingMap")));
@@ -373,6 +383,11 @@ namespace rubinius {
   Array* Encoding::encoding_list(STATE) {
     return as<Array>(internal_class(state)->get_const(
               state, state->symbol("EncodingList")));
+  }
+
+  LookupTable* Encoding::transcoding_map(STATE) {
+    return as<LookupTable>(internal_class(state)->get_const(
+              state, state->symbol("TranscodingMap")));
   }
 
   Encoding* Encoding::from_index(STATE, int index) {
@@ -484,5 +499,60 @@ namespace rubinius {
     indent_attribute(++level, "name"); enc->name()->show_simple(state, level);
     indent_attribute(level, "dummy?"); enc->dummy()->show_simple(state, level);
     close_body(level);
+  }
+
+  void Transcoding::init(STATE) {
+    ontology::new_class_under(state, "Transcoding", G(encoding));
+
+    Class* cls = Encoding::internal_class(state);
+    cls->set_const(state, "TranscodingMap", LookupTable::create(state));
+
+#include "vm/gen/transcoder_database.cpp"
+  }
+
+  Transcoding* Transcoding::create(STATE, OnigTranscodingType* tr) {
+    Class* cls = Encoding::transcoding_class(state);
+    Transcoding* t = state->new_object<Transcoding>(cls);
+
+    t->source(state, String::create(state, tr->src_encoding));
+    t->target(state, String::create(state, tr->dst_encoding));
+    t->transcoder_ = tr;
+
+    return t;
+  }
+
+  void Transcoding::declare(STATE, const char* from, const char* to, const char* lib) {
+    LookupTable* map = Encoding::transcoding_map(state);
+    Object* obj = map->fetch(state, encoding_symbol(state, from));
+    LookupTable* table;
+
+    if(obj->nil_p()) {
+      table = LookupTable::create(state);
+      map->store(state, encoding_symbol(state, from), table);
+    } else {
+      table = as<LookupTable>(obj);
+    }
+
+    table->store(state, encoding_symbol(state, to), String::create(state, lib));
+  }
+
+  void Transcoding::define(STATE, OnigTranscodingType* tr) {
+    LookupTable* map = Encoding::transcoding_map(state);
+    Object* obj = map->fetch(state, encoding_symbol(state, tr->src_encoding));
+    LookupTable* table;
+
+    if(obj->nil_p()) {
+      table = LookupTable::create(state);
+      map->store(state, encoding_symbol(state, tr->src_encoding), table);
+    } else {
+      table = as<LookupTable>(obj);
+    }
+
+    Transcoding* t = Transcoding::create(state, tr);
+    table->store(state, encoding_symbol(state, tr->dst_encoding), t);
+  }
+
+  void Converter::init(STATE) {
+    ontology::new_class_under(state, "Converter", G(encoding));
   }
 }
