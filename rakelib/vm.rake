@@ -348,11 +348,28 @@ file "web/_includes/instructions.markdown" => insn_deps do |t|
 end
 
 namespace :vm do
-  desc 'Run all VM tests.  Uses its argument as a filter of tests to run.'
-  task :test, :filter do |task, args|
+  def run_test(args)
     ENV['SUITE'] = args[:filter] if args[:filter]
+    ENV['TEST_MODE'] = args[:test_mode] if args[:test_mode]
     ENV['VERBOSE'] = '1' if $verbose
     sh 'vm/test/runner', :verbose => $verbose
+  end
+
+  desc 'Run all VM tests.  Uses its argument as a filter of tests to run.'
+  task :test, :filter do |task, args|
+    run_test(args)
+  end
+
+  task :test18, :filter do |task, args|
+    run_test({:test_mode => "18"}.merge(args))
+  end
+
+  task :test19, :filter do |task, args|
+    run_test({:test_mode => "19"}.merge(args))
+  end
+
+  task :test20, :filter do |task, args|
+    run_test({:test_mode => "20"}.merge(args))
   end
 
   task :test => %w[ vm/test/runner ]
