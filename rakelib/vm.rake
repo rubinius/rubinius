@@ -209,13 +209,18 @@ directory transcoders_lib_dir
 transcoders_extract = 'vm/codegen/transcoders_extract.rb'
 
 transcoders_src_dir = File.expand_path "../../vendor/oniguruma/enc/trans", __FILE__
-task :transcoders_copy => transcoders_lib_dir do
-  Dir["#{transcoders_src_dir}/*#{$dlext}"].each do |name|
-    cp name, transcoders_lib_dir
+
+TRANSCODING_LIBS = []
+
+Dir["#{transcoders_src_dir}/*#{$dlext}"].each do |name|
+  target = File.join transcoders_lib_dir, File.basename(name)
+  file target => name do |t|
+    cp t.prerequisites.first, t.name
   end
+  TRANSCODING_LIBS << target
 end
 
-file transcoders_database => [transcoders_extract, :transcoders_copy] do |t|
+file transcoders_database => [transcoders_extract] + TRANSCODING_LIBS do |t|
   ruby transcoders_extract, transcoders_src_dir, t.name
 end
 
