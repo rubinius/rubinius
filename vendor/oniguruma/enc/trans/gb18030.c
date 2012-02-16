@@ -4,7 +4,7 @@
 /* src="gb18030-tbl.rb", len=1357449, checksum=30205 */
 
 #include "transcoder.h"
-
+#include "ruby/ruby.h"
 
 
 static const unsigned char
@@ -21509,7 +21509,7 @@ fun_so_to_gb18030(void *statep, const unsigned char *s, size_t l, unsigned char 
 
 /* GB18030 2byte, UTF-8 3byte and GB18030 4byte, UTF-8 3byte*/
 static ssize_t
-fun_sio_from_gb18030(void *statep, const unsigned char *s, size_t l, VALUE info, unsigned char *o, size_t osize)
+fun_sio_from_gb18030(void *statep, const unsigned char *s, size_t l, unsigned int info, unsigned char *o, size_t osize)
 {
     unsigned int diff = (unsigned int)(info >> 8);
     unsigned int u;    /* Unicode Scalar Value */
@@ -21527,7 +21527,7 @@ fun_sio_from_gb18030(void *statep, const unsigned char *s, size_t l, VALUE info,
 
 /* GB18030 2byte, UTF-8 3byte and GB18030 4byte, UTF-8 3byte*/
 static ssize_t
-fun_sio_to_gb18030(void *statep, const unsigned char *s, size_t l, VALUE info, unsigned char *o, size_t osize)
+fun_sio_to_gb18030(void *statep, const unsigned char *s, size_t l, unsigned int info, unsigned char *o, size_t osize)
 {
     unsigned int diff = (unsigned int)(info >> 8);
     unsigned int u;    /* Unicode Scalar Value */

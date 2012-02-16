@@ -4,7 +4,7 @@
 /* src="utf8_mac-tbl.rb", len=24587, checksum=65335 */
 
 #include "transcoder.h"
-
+#include "ruby/ruby.h"
 
 
 static const unsigned char
@@ -10735,15 +10735,15 @@ buf_output_all(struct from_utf8_mac_status *sp, unsigned char *o)
     return n;
 }
 
-VALUE
-get_info(VALUE next_info, struct from_utf8_mac_status *sp) {
+unsigned int
+get_info(unsigned int next_info, struct from_utf8_mac_status *sp) {
     int pos = 0;
     while (pos < buf_bytesize(sp)) {
         unsigned char next_byte = buf_at(sp, pos++);
         if (next_byte < BL_MIN_BYTE || BL_MAX_BYTE < next_byte)
             next_info = INVALID;
         else {
-            next_info = (VALUE)BL_ACTION(next_byte);
+            next_info = (unsigned int)BL_ACTION(next_byte);
         }
         if ((next_info & 3) == 0) continue;
         break;
@@ -10755,7 +10755,7 @@ int
 buf_apply(int mode, struct from_utf8_mac_status *sp, unsigned char *o)
 {
     int n = 0;
-    VALUE next_info = mode == 3 ? from_utf8_mac_nfc3 : from_utf8_mac_nfc2;
+    unsigned int next_info = mode == 3 ? from_utf8_mac_nfc3 : from_utf8_mac_nfc2;
     next_info = get_info(next_info, sp);
     switch (next_info & 0x1F) {
       case THREEbt:

@@ -3,7 +3,7 @@
 /* src="emoji_sjis_kddi.trans", len=1292, checksum=10590 */
 
 #include "transcoder.h"
-
+#include "ruby/ruby.h"
 
 
 static const unsigned char

@@ -3,7 +3,7 @@
 /* src="emoji_iso2022_kddi.trans", len=6332, checksum=38881 */
 
 #include "transcoder.h"
-
+#include "ruby/ruby.h"
 
 
 static const unsigned char
@@ -15036,16 +15036,16 @@ iso2022jp_kddi_init(void *statep)
     return 0;
 }
 
-static VALUE
+static unsigned int
 fun_si_iso2022jp_kddi_decoder(void *statep, const unsigned char *s, size_t l)
 {
     unsigned char *sp = statep;
     if (*sp == G0_ASCII)
-        return (VALUE)NOMAP;
+        return NOMAP;
     else if (0x21 <= s[0] && s[0] <= 0x7e)
-        return (VALUE)iso2022jp_kddi_decoder_jisx0208_rest;
+        return (unsigned int)iso2022jp_kddi_decoder_jisx0208_rest;
     else
-        return (VALUE)INVALID;
+        return INVALID;
 }
 
 static ssize_t

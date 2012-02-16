@@ -3,7 +3,7 @@
 /* src="newline.trans", len=3162, checksum=42485 */
 
 #include "transcoder.h"
-
+#include "ruby/ruby.h"
 
 
 static const unsigned char

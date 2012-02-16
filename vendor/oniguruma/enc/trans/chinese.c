@@ -3,7 +3,7 @@
 /* src="chinese.trans", len=768, checksum=58884 */
 
 #include "transcoder.h"
-
+#include "ruby/ruby.h"
 
 
 static const unsigned char

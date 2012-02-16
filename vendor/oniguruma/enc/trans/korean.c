@@ -5,7 +5,7 @@
 /* src="cp949-tbl.rb", len=167830, checksum=37452 */
 
 #include "transcoder.h"
-
+#include "ruby/ruby.h"
 
 
 static const unsigned char

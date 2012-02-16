@@ -12,11 +12,15 @@
 #ifndef RUBY_TRANSCODE_DATA_H
 #define RUBY_TRANSCODE_DATA_H 1
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 #if defined __GNUC__ && __GNUC__ >= 4
 #pragma GCC visibility push(default)
 #endif
 
-#include "ruby/ruby.h"
+#include <unistd.h>
 
 #define WORDINDEX_SHIFT_BITS 2
 #define WORDINDEX2INFO(widx)      ((widx) << WORDINDEX_SHIFT_BITS)
@@ -78,8 +82,6 @@ typedef enum {
   /* ASCII-incompatible -> ASCII-incompatible is intentionally omitted. */
 } rb_transcoder_asciicompat_type_t;
 
-typedef struct rb_transcoder rb_transcoder;
-
 /* static structure, one per supported encoding pair */
 struct rb_transcoder {
     const char *src_encoding;
@@ -97,21 +99,28 @@ struct rb_transcoder {
     size_t state_size;
     int (*state_init_func)(void*); /* ret==0:success ret!=0:failure(errno) */
     int (*state_fini_func)(void*); /* ret==0:success ret!=0:failure(errno) */
-    VALUE (*func_ii)(void*, VALUE); /* info  -> info   */
-    VALUE (*func_si)(void*, const unsigned char*, size_t); /* start -> info   */
-    ssize_t (*func_io)(void*, VALUE, const unsigned char*, size_t); /* info  -> output */
+    unsigned int (*func_ii)(void*, unsigned int); /* info  -> info   */
+    unsigned int (*func_si)(void*, const unsigned char*, size_t); /* start -> info   */
+    ssize_t (*func_io)(void*, unsigned int, const unsigned char*, size_t); /* info  -> output */
     ssize_t (*func_so)(void*, const unsigned char*, size_t, unsigned char*, size_t); /* start -> output */
     ssize_t (*finish_func)(void*, unsigned char*, size_t); /* -> output */
     ssize_t (*resetsize_func)(void*); /* -> len */
     ssize_t (*resetstate_func)(void*, unsigned char*, size_t); /* -> output */
-    ssize_t (*func_sio)(void*, const unsigned char*, size_t, VALUE, unsigned char*, size_t); /* start -> output */
+    ssize_t (*func_sio)(void*, const unsigned char*, size_t, unsigned int, unsigned char*, size_t); /* start -> output */
 };
+
+typedef struct rb_transcoder rb_transcoder;
+typedef struct rb_transcoder OnigTranscodingType;
 
 void rb_declare_transcoder(const char *enc1, const char *enc2, const char *lib);
 void rb_register_transcoder(const rb_transcoder *);
 
 #if defined __GNUC__ && __GNUC__ >= 4
 #pragma GCC visibility pop
+#endif
+
+#ifdef __cplusplus
+}
 #endif
 
 #endif /* RUBY_TRANSCODE_DATA_H */

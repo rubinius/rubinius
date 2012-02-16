@@ -3,7 +3,7 @@
 /* src="utf_16_32.trans", len=15312, checksum=29120 */
 
 #include "transcoder.h"
-
+#include "ruby/ruby.h"
 
 
 static const unsigned char
@@ -565,7 +565,7 @@ state_init(void *statep)
     return 0;
 }
 
-static VALUE
+static unsigned int
 fun_si_from_utf_16(void *statep, const unsigned char *s, size_t l)
 {
     #define BE 1
@@ -584,22 +584,22 @@ fun_si_from_utf_16(void *statep, const unsigned char *s, size_t l)
         break;
     case BE:
         if (s[0] < 0xD8 || 0xDF < s[0]) {
-            return (VALUE)FUNso;
+            return (unsigned int)FUNso;
         }
         else if (s[0] <= 0xDB) {
-            return (VALUE)from_UTF_16BE_D8toDB_00toFF;
+            return (unsigned int)from_UTF_16BE_D8toDB_00toFF;
         }
         break;
     case LE:
         if (s[1] < 0xD8 || 0xDF < s[1]) {
-            return (VALUE)FUNso;
+            return (unsigned int)FUNso;
         }
         else if (s[1] <= 0xDB) {
-            return (VALUE)from_UTF_16LE_00toFF_D8toDB;
+            return (unsigned int)from_UTF_16LE_00toFF_D8toDB;
         }
         break;
     }
-    return (VALUE)INVALID;
+    return INVALID;
 }
 
 static ssize_t
@@ -615,7 +615,7 @@ fun_so_from_utf_16(void *statep, const unsigned char *s, size_t l, unsigned char
     return 0;
 }
 
-static VALUE
+static unsigned int
 fun_si_from_utf_32(void *statep, const unsigned char *s, size_t l)
 {
     unsigned char *sp = statep;
@@ -633,15 +633,15 @@ fun_si_from_utf_32(void *statep, const unsigned char *s, size_t l)
     case BE:
         if (s[0] == 0 && ((0 < s[1] && s[1] <= 0x10) ||
               (s[1] == 0 && (s[2] < 0xD8 || 0xDF < s[2]))))
-            return (VALUE)FUNso;
+            return (unsigned int)FUNso;
         break;
     case LE:
         if (s[3] == 0 && ((0 < s[2] && s[2] <= 0x10) ||
               (s[2] == 0 && (s[1] < 0xD8 || 0xDF < s[1]))))
-            return (VALUE)FUNso;
+            return (unsigned int)FUNso;
         break;
     }
-    return (VALUE)INVALID;
+    return INVALID;
 }
 
 static ssize_t

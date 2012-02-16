@@ -3,7 +3,7 @@
 /* src="japanese.trans", len=2261, checksum=31681 */
 
 #include "transcoder.h"
-
+#include "ruby/ruby.h"
 
 
 static const unsigned char

@@ -3,7 +3,7 @@
 /* src="iso2022.trans", len=15906, checksum=38089 */
 
 #include "transcoder.h"
-
+#include "ruby/ruby.h"
 
 
 static const unsigned char
@@ -254,16 +254,16 @@ iso2022jp_init(void *statep)
     return 0;
 }
 
-static VALUE
+static unsigned int
 fun_si_iso2022jp_decoder(void *statep, const unsigned char *s, size_t l)
 {
     unsigned char *sp = statep;
     if (*sp == G0_ASCII)
-        return (VALUE)NOMAP;
+        return NOMAP;
     else if (0x21 <= s[0] && s[0] <= 0x7e)
-        return (VALUE)iso2022jp_decoder_jisx0208_rest;
+        return (unsigned int)iso2022jp_decoder_jisx0208_rest;
     else
-        return (VALUE)INVALID;
+        return INVALID;
 }
 
 static ssize_t
@@ -440,7 +440,7 @@ rb_eucjp_to_stateless_iso2022jp = {
     NULL, NULL, NULL, fun_so_eucjp_to_stateless_iso2022jp,
 };
 
-static VALUE
+static unsigned int
 fun_si_cp50221_decoder(void *statep, const unsigned char *s, size_t l)
 {
     unsigned char *sp = statep;
@@ -448,16 +448,16 @@ fun_si_cp50221_decoder(void *statep, const unsigned char *s, size_t l)
     switch (*sp) {
       case G0_ASCII:
         if (0xA1 <= s[0] && s[0] <= 0xDF)
-            return (VALUE)FUNso;
-        return (VALUE)NOMAP;
+            return (unsigned int)FUNso;
+        return NOMAP;
       case G0_JISX0201_KATAKANA:
         c = s[0] & 0x7F;
         if (0x21 <= c && c <= 0x5f)
-            return (VALUE)FUNso;
+            return (unsigned int)FUNso;
         break;
       case G0_JISX0208_1978:
         if ((0x21 <= s[0] && s[0] <= 0x28) || (0x30 <= s[0] && s[0] <= 0x74))
-            return (VALUE)iso2022jp_decoder_jisx0208_rest;
+            return (unsigned int)iso2022jp_decoder_jisx0208_rest;
         break;
       case G0_JISX0208_1983:
         if ((0x21 <= s[0] && s[0] <= 0x28) ||
@@ -465,10 +465,10 @@ fun_si_cp50221_decoder(void *statep, const unsigned char *s, size_t l)
                 (0x30 <= s[0] && s[0] <= 0x74) ||
                 (0x79 <= s[0] && s[0] <= 0x7C))
                 /* 0x7F <= s[0] && s[0] <= 0x92) */
-            return (VALUE)iso2022jp_decoder_jisx0208_rest;
+            return (unsigned int)iso2022jp_decoder_jisx0208_rest;
         break;
     }
-    return (VALUE)INVALID;
+    return INVALID;
 }
 
 static ssize_t
