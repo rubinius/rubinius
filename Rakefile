@@ -217,7 +217,7 @@ task :spec20 => %w[build vm:test] do
 end
 
 desc "Run CI in default (configured) mode but do not rebuild on failure"
-task :spec => %w[spec18 spec19]
+task :spec => BUILD_CONFIG[:version_list].map { |v| "spec#{v}" }
 
 desc "Print list of items marked to-do in kernel/ (@todo|TODO)"
 task :todos do
