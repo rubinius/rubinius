@@ -220,7 +220,7 @@ Dir["#{transcoders_src_dir}/*#{$dlext}"].each do |name|
   TRANSCODING_LIBS << target
 end
 
-file transcoders_database => [transcoders_extract] + TRANSCODING_LIBS do |t|
+file transcoders_database => [transcoders_lib_dir, transcoders_extract] + TRANSCODING_LIBS do |t|
   ruby transcoders_extract, transcoders_src_dir, t.name
 end
 
