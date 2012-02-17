@@ -92,9 +92,9 @@ namespace rubinius {
 
     // Handle Tuple directly, because it's so common
     if(Tuple* tup = try_as<Tuple>(obj)) {
-      int size = tup->num_fields();
+      native_int size = tup->num_fields();
 
-      for(int i = 0; i < size; i++) {
+      for(native_int i = 0; i < size; i++) {
         slot = tup->field[i];
         if(slot->reference_p()) {
           slot = saw_object(slot);
