@@ -14,4 +14,10 @@ class Range
     return nil if @end < @begin || (@excl && @end == @begin)
     @begin
   end
+
+  protected
+
+  def can_iterate_from?(object)
+    first.respond_to?(:succ) && !object.kind_of?(Time)
+  end
 end
