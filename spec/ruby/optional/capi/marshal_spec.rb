@@ -31,7 +31,7 @@ describe "CApiMarshalSpecs" do
 
   end
 
-  describe "rb_marshal_dump" do
+  describe "rb_marshal_load" do
     before(:each) do
       @obj = "foo"
       @data = Marshal.dump(@obj)
