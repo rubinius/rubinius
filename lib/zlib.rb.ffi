@@ -1032,6 +1032,9 @@ module Zlib
       if length && length < 0
         raise ArgumentError, "Negative length #{length} given"
       end
+
+      return nil if length && length > 0 && eof?
+
       data = @buffer
 
       if length and data.size >= length
