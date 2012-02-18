@@ -1,20 +1,6 @@
 # -*- encoding: us-ascii -*-
 
 class Range
-  alias_method :cover?, :===
-
-  def max(&block)
-    return super(&block) if block_given?
-    return nil if @end < @begin || (@excl && @end == @begin)
-    @end
-  end
-
-  def min(&block)
-    return super(&block) if block_given?
-    return nil if @end < @begin || (@excl && @end == @begin)
-    @begin
-  end
-
   ##
   # :call-seq:
   #   rng.each { |i| block }  => rng
@@ -36,7 +22,7 @@ class Range
     return to_enum unless block_given?
     first, last = @begin, @end
 
-    raise TypeError, "can't iterate from #{first.class}" if !first.respond_to?(:succ) || first.kind_of?(Time)
+    raise TypeError, "can't iterate from #{first.class}" unless first.respond_to? :succ
 
     case first
     when Fixnum
