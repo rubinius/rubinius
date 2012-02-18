@@ -24,6 +24,7 @@ class Mutex
     # Locking implies a memory barrier, so we don't need to use
     # one explicitly.
     if Rubinius.try_lock(self)
+      return false if @owner == Thread.current
       @owner = Thread.current
       true
     else
