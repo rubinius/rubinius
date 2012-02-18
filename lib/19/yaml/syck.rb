@@ -45,7 +45,7 @@ module Syck
   def self.mktime(str)
     require "date"
     begin
-      DateTime.parse str
+      DateTime.parse(str).to_time
     rescue ArgumentError
       # nothing
     end
