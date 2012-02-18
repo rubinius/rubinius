@@ -158,7 +158,7 @@ namespace rubinius {
       const native_int O = DT - R;
 
       // HS is for has splat
-      const native_int HS = vmm->splat_position > 0 ? 1 : 0;
+      const native_int HS = vmm->splat_position >= 0 ? 1 : 0;
 
       // CT is for clamped total
       const native_int CT = HS ? T : MIN(T, DT);
@@ -169,6 +169,10 @@ namespace rubinius {
       // U is for the available # of optional args
       const native_int U = Z - P;
 
+      // PAO is for the post-args offset
+      // PLO is for the post-arg locals offset
+      const native_int PAO = CT - MIN(Z, P);
+      const native_int PLO = M + O + HS;
 
       /* There are 4 types of arguments, illustrated here:
        *    m(a, b=1, *c, d)
@@ -200,11 +204,9 @@ namespace rubinius {
       }
 
       // Phase 2, post args
-      for(native_int i = CT - MIN(Z, P), l = M + O + HS;
-          i < CT;
-          i++)
+      for(native_int i = 0; i < MIN(Z, P); i++)
       {
-        scope->set_local(l, args.get_argument(i));
+        scope->set_local(PLO + i, args.get_argument(PAO + i));
       }
 
       // Phase 3, optionals
