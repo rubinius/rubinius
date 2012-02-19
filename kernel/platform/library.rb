@@ -106,6 +106,36 @@ module FFI
       ffi_function_missing cname, mname, args, ret
     end
 
+    def attach_variable(mname, cname, type)
+      ffi_libraries.each do |lib|
+        if pointer = lib.find_symbol(cname.to_s)
+          container_class = Class.new(FFI::Struct)
+          container_class.layout :gvar, type
+          container = container_class.new(pointer)
+
+          define_gvar(mname, container)
+          
+          return pointer
+        end
+      end
+      raise FFI::NotFoundError, "Unable to find '#{cname}'"
+    end
+
+    def define_gvar(mname, container)
+      mixin = Module.new do
+        define_method(mname) do
+          container[:gvar]
+        end
+        
+        define_method("#{mname}=") do |value|
+          container[:gvar] = value
+        end
+      end
+      
+      extend mixin
+    end
+    private :define_gvar
+
     # Generic error method attached in place of missing foreign functions
     # during kernel loading. See kernel/delta/ffi.rb for a version that raises
     # immediately if the foreign function is unavaiblable.

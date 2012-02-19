@@ -1,0 +1,1 @@
+fails:FFI::Library#attach_variable should correctly operate with :ushort variable
