@@ -30,16 +30,6 @@ class Method
   attr_reader :executable
 
   ##
-  # Method objects are equal if they have the same body and are bound to the
-  # same object.
-
-  def ==(other)
-    other.class == Method and
-      @receiver.equal?(other.receiver) and
-      @executable == other.executable
-  end
-
-  ##
   # Indication of how many arguments this method takes. It is defined so that
   # a non-negative Integer means the method takes that fixed amount of
   # arguments (up to 1024 currently.) A negative Integer is used to indicate a

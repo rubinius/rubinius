@@ -1,2 +1,1 @@
-fails:Method#eql? returns true if a method was defined using the other one
 fails:Method#eql? returns true for the same method missing
