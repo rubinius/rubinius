@@ -50,6 +50,12 @@ ruby_version_is "1.9" do
       obj.respond_to?(:undefined_method).should be_false
     end
 
+    it "causes #respond_to? to return false if called and returning nil" do
+      obj = mock('object')
+      obj.should_receive(:respond_to_missing?).with(:undefined_method, false).and_return(nil)
+      obj.respond_to?(:undefined_method).should be_false
+    end
+
     it "isn't called when obj responds to the given public method" do
       @a.should_not_receive(:respond_to_missing?)
       @a.respond_to?(:pub_method).should be_true
