@@ -899,7 +899,7 @@ module Marshal
     end
 
     def consume_byte
-      raise ArgumentError, "marshal data too short" if @consumed > @byte_array.size
+      raise ArgumentError, "marshal data too short" if @consumed >= @stream.size
       data = @byte_array[@consumed]
       @consumed += 1
       return data
