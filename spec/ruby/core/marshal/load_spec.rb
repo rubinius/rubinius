@@ -554,6 +554,24 @@ describe "Marshal::load" do
     end
   end
 
+  describe "for nil" do
+    it "loads" do
+      Marshal.load("\x04\b0").should be_nil
+    end
+  end
+
+  describe "for true" do
+    it "loads" do
+      Marshal.load("\x04\bT").should be_true
+    end
+  end
+
+  describe "for false" do
+    it "loads" do
+      Marshal.load("\x04\bF").should be_false
+    end
+  end
+
   describe "for a Module" do
     it "loads a module" do
       Marshal.load("\x04\bm\vKernel").should == Kernel
