@@ -518,4 +518,20 @@ class Rational < Numeric
       Rational(c * p1 + p0, c * q1 + q0)
     end
   end
+
+  def marshal_dump
+    ary = [numerator, denominator]
+    instance_variables.each do |ivar|
+      ary.instance_variable_set(ivar, instance_variable_get(ivar))
+    end
+    ary
+  end
+
+  def marshal_load(ary)
+    @numerator, @denominator = ary
+    ary.instance_variables.each do |ivar|
+      instance_variable_set(ivar, ary.instance_variable_get(ivar))
+    end
+    self
+  end
 end
