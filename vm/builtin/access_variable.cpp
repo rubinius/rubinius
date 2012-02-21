@@ -92,7 +92,7 @@ namespace rubinius {
         return NULL;
       }
 
-      if(self->reference_p()) {
+      if(kind_of<Class>(mod) && self->reference_p()) {
         // Promote this to use a direct accessor
         if(TypeInfo* ti = state->memory()->find_type_info(self)) {
           TypeInfo::Slots::iterator it = ti->slots.find(access->name()->index());
@@ -118,7 +118,7 @@ namespace rubinius {
       return NULL;
     }
 
-    if(self->reference_p()) {
+    if(kind_of<Class>(mod) && self->reference_p()) {
       // Promote this to use a direct accessor
       if(TypeInfo* ti = state->memory()->find_type_info(self)) {
         TypeInfo::Slots::iterator it = ti->slots.find(access->name()->index());
