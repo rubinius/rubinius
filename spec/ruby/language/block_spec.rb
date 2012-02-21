@@ -468,6 +468,42 @@ describe "A block" do
       lambda { @y.s(obj) { |(a, b), c| } }.should raise_error(TypeError)
     end
   end
+
+  describe "taking nested |a, (b, (c, d))|" do
+    it "assigns nil to the arguments when yielded no values" do
+      @y.m { |a, (b, (c, d))| [a, b, c, d] }.should == [nil, nil, nil, nil]
+    end
+
+    it "destructures separate yielded values" do
+      @y.m(1, 2) { |a, (b, (c, d))| [a, b, c, d] }.should == [1, 2, nil, nil]
+    end
+
+    it "destructures a single multi-level Array value yielded" do
+      @y.m(1, [2, 3]) { |a, (b, (c, d))| [a, b, c, d] }.should == [1, 2, 3, nil]
+    end
+
+    it "destructures a single multi-level Array value yielded" do
+      @y.m(1, [2, [3, 4]]) { |a, (b, (c, d))| [a, b, c, d] }.should == [1, 2, 3, 4]
+    end
+  end
+
+  describe "taking nested |a, ((b, c), d)|" do
+    it "assigns nil to the arguments when yielded no values" do
+      @y.m { |a, ((b, c), d)| [a, b, c, d] }.should == [nil, nil, nil, nil]
+    end
+
+    it "destructures separate yielded values" do
+      @y.m(1, 2) { |a, ((b, c), d)| [a, b, c, d] }.should == [1, 2, nil, nil]
+    end
+
+    it "destructures a single multi-level Array value yielded" do
+      @y.m(1, [2, 3]) { |a, ((b, c), d)| [a, b, c, d] }.should == [1, 2, nil, 3]
+    end
+
+    it "destructures a single multi-level Array value yielded" do
+      @y.m(1, [[2, 3], 4]) { |a, ((b, c), d)| [a, b, c, d] }.should == [1, 2, 3, 4]
+    end
+  end
 end
 
 language_version __FILE__, "block"
