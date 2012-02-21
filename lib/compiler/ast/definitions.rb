@@ -559,7 +559,16 @@ module Rubinius
       end
 
       def bytecode(g)
-        @arguments.body.each { |arg| arg.bytecode(g) }
+        @arguments.body.each do |arg|
+          if arg.kind_of? PatternArguments
+            g.shift_array
+            g.cast_array
+            arg.bytecode(g)
+            g.pop
+          else
+            arg.bytecode(g)
+          end
+        end
       end
     end
 
