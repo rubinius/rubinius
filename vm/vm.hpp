@@ -280,8 +280,8 @@ namespace rubinius {
       return fiber_stacks_.trampoline();
     }
 
-    FiberData* new_fiber_data() {
-      return fiber_stacks_.new_data();
+    FiberData* new_fiber_data(bool root=false) {
+      return fiber_stacks_.new_data(root);
     }
 
     void remove_fiber_data(FiberData* data) {

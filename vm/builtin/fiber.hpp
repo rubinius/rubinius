@@ -46,7 +46,8 @@ namespace rubinius {
     }
 
     void sleep(CallFrame* cf) {
-      if(data_) data_->set_call_frame(cf);
+      if(cf && !data_) rubinius::bug("bad fiber");
+      data_->set_call_frame(cf);
       status_ = eSleeping;
     }
 

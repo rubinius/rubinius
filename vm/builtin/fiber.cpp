@@ -44,7 +44,7 @@ namespace rubinius {
       fib->root_ = true;
       fib->status_ = Fiber::eRunning;
 
-      fib->data_ = new FiberData(state->vm(), true);
+      fib->data_ = state->vm()->new_fiber_data(true);
 
       state->memory()->needs_finalization(fib, (FinalizerFunction)&Fiber::finalize);
 
