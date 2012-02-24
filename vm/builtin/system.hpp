@@ -80,7 +80,7 @@ namespace rubinius {
      *
      */
     // Rubinius.primitive :vm_gc_start
-    static Object*  vm_gc_start(STATE, Object* force);
+    static Object*  vm_gc_start(STATE, GCToken gct, Object* force, CallFrame* calling_environment);
 
     /**
      *  Retrieve a value from VM configuration.

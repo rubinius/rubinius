@@ -491,7 +491,7 @@ namespace rubinius {
 #endif
   }
 
-  Object* System::vm_gc_start(STATE, Object* force) {
+  Object* System::vm_gc_start(STATE, GCToken gct, Object* force, CallFrame* call_frame) {
     // force is set if this is being called by the kernel (for instance
     // in File#ininitialize). If we decided to ignore some GC.start calls
     // by usercode trying to be clever, we can use force to know that we
@@ -499,7 +499,7 @@ namespace rubinius {
     if(CBOOL(force) || state->shared().config.gc_honor_start) {
       state->memory()->collect_young_now = true;
       state->memory()->collect_mature_now = true;
-      state->shared().gc_soon();
+      state->vm()->collect_maybe(gct, call_frame);
     }
     return cNil;
   }
