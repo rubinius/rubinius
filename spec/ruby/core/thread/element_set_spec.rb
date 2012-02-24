@@ -14,5 +14,18 @@ describe "Thread#[]=" do
       lambda { Thread.current[nil] = true }.should raise_error(TypeError)
       lambda { Thread.current[5] = true }.should raise_error(TypeError)
     end
+
+    it "is not shared across fibers" do
+      fib = Fiber.new do
+        Thread.current[:value] = 1
+        Fiber.yield
+        Thread.current[:value].should == 1
+      end
+      fib.resume
+      Thread.current[:value].should be_nil
+      Thread.current[:value] = 2
+      fib.resume
+      Thread.current[:value] = 2
+    end
   end
 end
