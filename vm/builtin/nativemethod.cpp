@@ -549,6 +549,12 @@ namespace rubinius {
         /* A C function being used as a block */
       case ITERATE_BLOCK: {
         VALUE cb = env->get_handle(nm->get_ivar(state, state->symbol("cb_data")));
+
+        Object* ob = nm->get_ivar(state, state->symbol("original_block"));
+        if(!ob->nil_p()) {
+          env->current_native_frame()->set_block(env->get_handle(ob));
+        }
+
         VALUE val;
 
         switch(args.total()) {

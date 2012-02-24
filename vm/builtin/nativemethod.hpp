@@ -226,6 +226,10 @@ namespace rubinius {
       return block_;
     }
 
+    void set_block(VALUE blk) {
+      block_ = blk;
+    }
+
     VALUE receiver() {
       return receiver_;
     }
