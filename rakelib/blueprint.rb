@@ -172,7 +172,6 @@ Daedalus.blueprint do |i|
     g.shared_library "enc/trans/korean"
     g.shared_library "enc/trans/newline"
     g.shared_library "enc/trans/single_byte"
-    g.shared_library "enc/trans/transdb"
     g.shared_library "enc/trans/utf8_mac"
     g.shared_library "enc/trans/utf_16_32"
   end
