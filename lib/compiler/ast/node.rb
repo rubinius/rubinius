@@ -163,7 +163,7 @@ module Rubinius
       # The #visit implements a read-only traversal of the tree. To modify the
       # tree, see the #transform methed.
       def visit(visitor, parent=nil)
-        visitor.send self.node_name, self, parent
+        visitor.__send__ self.node_name, self, parent
         children { |c| c.visit visitor, self }
       end
 
