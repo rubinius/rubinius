@@ -131,6 +131,10 @@ namespace rubinius {
         }
 
         native_int descriptor = io->to_fd();
+
+        // 1024 is selec't limit. If we try to set a value higher, it corrupts
+        // memory. YAY FD_SET!
+        if(descriptor >= FD_SETSIZE) return -2;
         highest = descriptor > highest ? descriptor : highest;
 
         if(descriptor >= 0) FD_SET((int_fd_t)descriptor, set);
@@ -199,11 +203,14 @@ namespace rubinius {
 
     /* Build the sets, track the highest descriptor number. These handle NULLs */
     highest = fd_set_from_array(state, readables, maybe_read_set);
+    if(highest == -2) return Primitives::failure();
 
     candidate = fd_set_from_array(state, writables, maybe_write_set);
+    if(candidate == -2) return Primitives::failure();
     highest = candidate > highest ? candidate : highest;
 
     candidate = fd_set_from_array(state, errorables, maybe_error_set);
+    if(candidate == -2) return Primitives::failure();
     highest = candidate > highest ? candidate : highest;
 
     struct timeval future;
