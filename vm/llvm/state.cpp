@@ -746,7 +746,7 @@ namespace rubinius {
       return "ANONYMOUS";
     }
 
-    return symbol_debug_str(ss->module()->name());
+    return symbol_debug_str(ss->module()->module_name());
   }
 
   void LLVMState::compile_soon(STATE, CompiledMethod* cm, Object* placement,

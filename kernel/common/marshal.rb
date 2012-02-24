@@ -4,7 +4,9 @@ class Object
   def __marshal__(ms, strip_ivars = false)
     out = ms.serialize_extended_object self
     out << "o"
-    out << ms.serialize(self.__class__.__name__.to_sym)
+    cls = Rubinius::Type.object_class self
+    name = Rubinius::Type.module_inspect cls
+    out << ms.serialize(name.to_sym)
     out << ms.serialize_instance_variables_suffix(self, true, strip_ivars)
   end
 end
@@ -847,7 +849,9 @@ module Marshal
 
       add_object val
 
-      Rubinius.binary_string("U#{serialize(obj.class.__name__.to_sym)}#{val.__marshal__(self)}")
+      cls = Rubinius::Type.object_class obj
+      name = Rubinius::Type.module_inspect cls
+      Rubinius.binary_string("U#{serialize(name.to_sym)}#{val.__marshal__(self)}")
     end
 
     def set_instance_variables(obj)

@@ -18,7 +18,6 @@ namespace rubinius {
     GO(staticscope).set(ontology::new_class(state,
           "StaticScope", G(object), G(rubinius)));
     G(staticscope)->set_object_type(state, StaticScopeType);
-    G(staticscope)->name(state, state->symbol("Rubinius::StaticScope"));
   }
 
   void StaticScope::bootstrap_methods(STATE) {

@@ -104,32 +104,31 @@ namespace rubinius {
         stream << "__block__";
       } else {
         if(SingletonClass* sc = try_as<SingletonClass>(cf->module())) {
-          if(Module* mod = try_as<Module>(sc->attached_instance())) {
-            stream << mod->name()->debug_str(state) << ".";
+          Object* obj = sc->attached_instance();
+
+          if(Module* mod = try_as<Module>(obj)) {
+            stream << mod->debug_str(state) << ".";
           } else {
-            if(sc->attached_instance() == G(main)) {
+            if(obj == G(main)) {
               stream << "MAIN.";
             } else {
-              stream << "#<" <<
-                sc->attached_instance()->class_object(state)->name()->debug_str(state) <<
-                ":" << (void*)sc->attached_instance()->id(state)->to_native() << ">.";
+              stream << "#<" << obj->class_object(state)->debug_str(state) <<
+                        ":" << (void*)obj->id(state)->to_native() << ">.";
             }
           }
         } else if(IncludedModule* im = try_as<IncludedModule>(cf->module())) {
-          if(im->module()->name()->nil_p()) {
-            stream << "<anonymous module>#";
-          } else {
-            stream << im->module()->name()->debug_str(state) << "#";
-          }
+          stream <<  im->module()->debug_str(state) << "#";
         } else {
+          Symbol* name;
           std::string mod_name;
+
           if(cf->module()->nil_p()) {
-            mod_name = cf->cm->scope()->module()->name()->debug_str(state);
+            mod_name = cf->cm->scope()->module()->debug_str(state);
           } else {
-            if(Symbol* s = try_as<Symbol>(cf->module()->name())) {
-              mod_name = s->debug_str(state);
-            } else if(Symbol* s = try_as<Symbol>(cf->cm->scope()->module()->name())) {
-              mod_name = s->debug_str(state);
+            if((name = try_as<Symbol>(cf->module()->module_name()))) {
+              mod_name = name->debug_str(state);
+            } else if((name = try_as<Symbol>(cf->cm->scope()->module()->module_name()))) {
+              mod_name = name->debug_str(state);
             } else {
               mod_name = "<anonymous module>";
             }

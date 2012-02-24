@@ -102,6 +102,16 @@ module Rubinius
       end
     end
 
+    def self.coerce_to_constant_name(name)
+      name = Rubinius::Type.coerce_to_symbol(name)
+
+      unless name.is_constant?
+        raise NameError, "wrong constant name #{name}"
+      end
+
+      name
+    end
+
     # Taint host if source is tainted.
     def self.infect(host, source)
       Rubinius.primitive :object_infect

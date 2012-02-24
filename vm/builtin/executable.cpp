@@ -19,7 +19,6 @@ namespace rubinius {
   void Executable::init(STATE) {
     GO(executable).set(ontology::new_class(state, "Executable", G(object), G(rubinius)));
     G(executable)->set_object_type(state, ExecutableType);
-    G(executable)->name(state, state->symbol("Rubinius::Executable"));
   }
 
   Executable* Executable::allocate(STATE, Object* self) {

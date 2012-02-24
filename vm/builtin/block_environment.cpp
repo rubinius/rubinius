@@ -45,7 +45,6 @@ namespace rubinius {
     GO(blokenv).set(ontology::new_class(state, "BlockEnvironment", G(object),
                                      G(rubinius)));
     G(blokenv)->set_object_type(state, BlockEnvironmentType);
-    G(blokenv)->name(state, state->symbol("Rubinius::BlockEnvironment"));
   }
 
   BlockEnvironment* BlockEnvironment::allocate(STATE) {

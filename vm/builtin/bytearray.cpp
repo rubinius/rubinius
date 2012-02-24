@@ -22,7 +22,6 @@ namespace rubinius {
     GO(bytearray).set(ontology::new_class_under(state,
                         "ByteArray", G(rubinius)));
     G(bytearray)->set_object_type(state, ByteArrayType);
-    G(bytearray)->name(state, state->symbol("Rubinius::ByteArray"));
   }
 
   ByteArray* ByteArray::create(STATE, native_int bytes) {

@@ -40,10 +40,9 @@
 namespace rubinius {
 
   void CompiledMethod::init(STATE) {
-    GO(cmethod).set(ontology::new_class(state, 
+    GO(cmethod).set(ontology::new_class(state,
                       "CompiledMethod", G(executable), G(rubinius)));
     G(cmethod)->set_object_type(state, CompiledMethodType);
-    G(cmethod)->name(state, state->symbol("Rubinius::CompiledMethod"));
   }
 
   CompiledMethod* CompiledMethod::create(STATE) {

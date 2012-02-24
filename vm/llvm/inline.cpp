@@ -54,7 +54,7 @@ namespace rubinius {
               << ". Cache contains " << cache_->classes_seen() << " entries: ";
 
           for(int i = 0; i < cache_->classes_seen(); i++) {
-            log << ops_.state()->symbol_debug_str(cache_->tracked_class(i)->name())
+            log << ops_.state()->symbol_debug_str(cache_->tracked_class(i)->module_name())
                 << " ";
           }
           log << "\n";
@@ -237,9 +237,9 @@ namespace rubinius {
             << ops_.state()->symbol_debug_str(ops_.method_name());
 
           StaticScope* ss = cm->scope();
-          if(kind_of<StaticScope>(ss) && klass != ss->module() && !klass->name()->nil_p()) {
+          if(kind_of<StaticScope>(ss) && klass != ss->module() && !klass->module_name()->nil_p()) {
             ops_.state()->log() << " ("
-              << ops_.state()->symbol_debug_str(klass->name()) << ")";
+              << ops_.state()->symbol_debug_str(klass->module_name()) << ")";
           }
 
           if(inline_block_) {
@@ -275,7 +275,7 @@ namespace rubinius {
             << ops_.state()->symbol_debug_str(nf->name())
             << "() into "
             << ops_.state()->symbol_debug_str(ops_.method_name())
-            << " (" << ops_.state()->symbol_debug_str(klass->name()) << ")\n";
+            << " (" << ops_.state()->symbol_debug_str(klass->module_name()) << ")\n";
         }
       } else {
         return false;
@@ -283,7 +283,7 @@ namespace rubinius {
     } else {
       if(ops_.state()->config().jit_inline_debug) {
         context_.inline_log("NOT inlining")
-          << ops_.state()->symbol_debug_str(klass->name())
+          << ops_.state()->symbol_debug_str(klass->module_name())
           << "#"
           << ops_.state()->symbol_debug_str(cache_->name)
           << " into "
@@ -348,7 +348,7 @@ remember:
         << ops_.state()->symbol_debug_str(cm->name())
         << " into "
         << ops_.state()->symbol_debug_str(ops_.method_name())
-        << " (" << ops_.state()->symbol_debug_str(klass->name()) << ") trivial\n";
+        << " (" << ops_.state()->symbol_debug_str(klass->module_name()) << ") trivial\n";
     }
 
     VMMethod* vmm = cm->backend_method();
@@ -404,7 +404,7 @@ remember:
         << "writer to '"
         << ops_.state()->symbol_debug_str(acc->name())
         << "' on "
-        << ops_.state()->symbol_debug_str(klass->name())
+        << ops_.state()->symbol_debug_str(klass->module_name())
         << " in "
         << "#"
         << ops_.state()->symbol_debug_str(ops_.method_name())
@@ -463,7 +463,7 @@ remember:
         << "read to '"
         << ops_.state()->symbol_debug_str(acc->name())
         << "' on "
-        << ops_.state()->symbol_debug_str(klass->name())
+        << ops_.state()->symbol_debug_str(klass->module_name())
         << " in "
         << "#"
         << ops_.state()->symbol_debug_str(ops_.method_name());

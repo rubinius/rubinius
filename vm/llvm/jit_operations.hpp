@@ -424,7 +424,7 @@ namespace rubinius {
           } else if(kt.class_id() == klass->class_id()) {
             if(ls_->config().jit_inline_debug) {
               context().info_log("eliding redundant guard")
-                << "class " << ls_->symbol_debug_str(klass->name())
+                << "class " << ls_->symbol_debug_str(klass->module_name())
                 << " (" << klass->class_id() << ")\n";
             }
 

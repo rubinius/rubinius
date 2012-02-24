@@ -671,21 +671,23 @@ namespace rubinius {
     } else {
       name << "#<";
       if(Module* mod = try_as<Module>(this)) {
-        if(mod->name()->nil_p()) {
+        if(mod->module_name()->nil_p()) {
           name << "Class";
         } else {
-          name << mod->name()->debug_str(state);
+          name << mod->debug_str(state);
         }
+        name << "(";
         if(SingletonClass* sc = try_as<SingletonClass>(mod)) {
-          name << "(" << sc->true_superclass(state)->name()->debug_str(state) << ")";
+          name << sc->true_superclass(state)->debug_str(state);
         } else {
-          name << "(" << this->class_object(state)->name()->debug_str(state) << ")";
+          name << class_object(state)->debug_str(state);
         }
+        name << ")";
       } else {
-        if(this->class_object(state)->name()->nil_p()) {
+        if(this->class_object(state)->module_name()->nil_p()) {
           name << "Object";
         } else {
-          name << this->class_object(state)->name()->debug_str(state);
+          name << class_object(state)->debug_str(state);
         }
       }
     }

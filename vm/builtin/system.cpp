@@ -813,9 +813,9 @@ namespace rubinius {
       if(cls->true_superclass(state) != super) {
         std::ostringstream message;
         message << "Superclass mismatch: given "
-                << as<Module>(super)->name()->debug_str(state)
+                << as<Module>(super)->debug_str(state)
                 << " but previously set to "
-                << cls->true_superclass(state)->name()->debug_str(state);
+                << cls->true_superclass(state)->debug_str(state);
 
         Exception* exc =
           Exception::make_type_error(state, Class::type, super,
@@ -833,12 +833,7 @@ namespace rubinius {
     if(super->nil_p()) super = G(object);
     Class* cls = Class::create(state, as<Class>(super));
 
-    if(under == G(object)) {
-      cls->name(state, name);
-    } else {
-      cls->set_name(state, under, name);
-    }
-
+    cls->set_name(state, name, under);
     under->set_const(state, name, cls);
 
     return cls;
@@ -863,7 +858,7 @@ namespace rubinius {
 
     Module* module = Module::create(state);
 
-    module->set_name(state, under, name);
+    module->set_name(state, name, under);
     under->set_const(state, name, module);
 
     return module;
@@ -1619,5 +1614,18 @@ namespace rubinius {
     size_t b = hash_trie_bit(hash, level);
 
     return Integer::from(state, m & ~b);
+  }
+
+  String* System::vm_get_module_name(STATE, Module* mod) {
+    return mod->get_name(state);
+  }
+
+  Object* System::vm_set_module_name(STATE, Module* mod, Object* name, Object* under) {
+    if(name->nil_p()) return cNil;
+
+    if(under->nil_p()) under = G(object);
+    mod->set_name(state, as<Symbol>(name), as<Module>(under));
+
+    return cNil;
   }
 }

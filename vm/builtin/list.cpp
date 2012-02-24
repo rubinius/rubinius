@@ -27,7 +27,6 @@ namespace rubinius {
 
     GO(list).set(cls);
     cls->set_object_type(state, ListType);
-    G(list)->name(state, state->symbol("Rubinius::List"));
 
     GO(list_node).set(ontology::new_class_under(state,
           "Node", cls));

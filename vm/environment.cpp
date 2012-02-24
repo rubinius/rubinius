@@ -522,7 +522,7 @@ namespace rubinius {
             << ", expected "
             << as<Fixnum>(exc->get_ivar(state, state->symbol("@expected")))->to_native();
       }
-      msg << " (" << exc->klass()->name()->debug_str(state) << ")";
+      msg << " (" << exc->klass()->debug_str(state) << ")";
       std::cout << msg.str() << "\n";
       exc->print_locations(state);
       Assertion::raise(msg.str().c_str());
