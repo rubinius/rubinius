@@ -7,6 +7,7 @@
 
 #include "prelude.hpp"
 #include "builtin/object.hpp"
+#include "builtin/lookuptable.hpp"
 
 #include "fiber_data.hpp"
 
@@ -24,6 +25,7 @@ namespace rubinius {
     Array* value_; // slot
     Fiber* prev_; // slot
     Exception* exception_; // slot
+    LookupTable* locals_; // slot
     Status status_;
 
     bool root_;
@@ -35,6 +37,7 @@ namespace rubinius {
     attr_accessor(value, Array);
     attr_accessor(prev, Fiber);
     attr_accessor(exception, Exception);
+    attr_accessor(locals, LookupTable);
 
     bool root_p() {
       return root_;

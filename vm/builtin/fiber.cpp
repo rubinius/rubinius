@@ -41,6 +41,7 @@ namespace rubinius {
     if(fib->nil_p()) {
       fib = state->new_object<Fiber>(G(fiber));
       fib->prev(state, nil<Fiber>());
+      fib->locals(state, nil<LookupTable>());
       fib->root_ = true;
       fib->status_ = Fiber::eRunning;
 
@@ -111,6 +112,7 @@ namespace rubinius {
     Fiber* fib = state->new_object<Fiber>(as<Class>(self));
     fib->starter(state, callable);
     fib->prev(state, nil<Fiber>());
+    fib->locals(state, nil<LookupTable>());
     fib->root_ = false;
     fib->status_ = Fiber::eSleeping;
 

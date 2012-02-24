@@ -176,7 +176,6 @@ class Thread
     @exception = nil
     @critical = false
     @dying = false
-    @locals = Rubinius::LookupTable.new
     @lock = Rubinius::Channel.new
     @lock.send nil if prime_lock
     @joins = []
@@ -314,20 +313,39 @@ class Thread
   private :raise_prim
 
   def [](key)
-    @locals[Rubinius::Type.coerce_to_symbol(key)]
+    locals_aref(Rubinius::Type.coerce_to_symbol(key))
   end
+
+  def locals_aref(key)
+    Rubinius.primitive :thread_locals_aref
+    raise PrimitiveFailure, "Thread#locals_aref primitive failed"
+  end
+  private :locals_aref
 
   def []=(key, value)
-    @locals[Rubinius::Type.coerce_to_symbol(key)] = value
+    locals_store(Rubinius::Type.coerce_to_symbol(key), value)
   end
 
+  def locals_store(key, value)
+    Rubinius.primitive :thread_locals_store
+    raise PrimitiveFailure, "Thread#locals_store primitive failed"
+  end
+  private :locals_store
+
   def keys
-    @locals.keys
+    Rubinius.primitive :thread_locals_keys
+    raise PrimitiveFailure, "Thread#keys primitive failed"
   end
 
   def key?(key)
-    @locals.key?(Rubinius::Type.coerce_to_symbol(key))
+    locals_key?(Rubinius::Type.coerce_to_symbol(key))
   end
+
+  def locals_key?(key)
+    Rubinius.primitive :thread_locals_has_key
+    raise PrimitiveFailure, "Thread#locals_key? primitive failed"
+  end
+  private :locals_key?
 
   # Register another Thread object +thr+ as the Thread where the debugger
   # is running. When the current thread hits a breakpoint, it uses this
