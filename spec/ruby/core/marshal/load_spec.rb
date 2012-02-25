@@ -572,9 +572,27 @@ describe "Marshal::load" do
     end
   end
 
+  describe "for a Class" do
+    it "loads" do
+      Marshal.load("\x04\bc\vString").should == String
+    end
+
+    it "raises ArgumentError if given the name of a non-Module" do
+      lambda { Marshal.load("\x04\bc\vKernel") }.should raise_error(ArgumentError)
+    end
+
+    it "raises ArgumentError if given a nonexistent class" do
+      lambda { Marshal.load("\x04\bc\vStrung") }.should raise_error(ArgumentError)
+    end
+  end
+
   describe "for a Module" do
     it "loads a module" do
       Marshal.load("\x04\bm\vKernel").should == Kernel
+    end
+
+    it "raises ArgumentError if given the name of a non-Class" do
+      lambda { Marshal.load("\x04\bm\vString") }.should raise_error(ArgumentError)
     end
 
     it "loads an old module" do
