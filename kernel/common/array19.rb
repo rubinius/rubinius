@@ -287,7 +287,7 @@ class Array
 
     out = ""
     raise ArgumentError, "recursive array join" if Thread.detect_recursion self do
-      sep = sep ? StringValue(sep) : $,
+      sep = sep.nil? ? $, : StringValue(sep)
 
       # We've manually unwound the first loop entry for performance
       # reasons.
