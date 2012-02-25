@@ -26,4 +26,8 @@ describe "Array#join" do
     obj = mock("not a string")
     lambda { [1, 2].join(obj) }.should raise_error(TypeError)
   end
+
+  it "raises a TypeError if passed false as the separator" do
+    lambda { [1, 2].join(false) }.should raise_error(TypeError)
+  end
 end
