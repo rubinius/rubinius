@@ -260,11 +260,15 @@ module Marshal
       @call = true
     end
 
-    def const_lookup(name)
+    def const_lookup(name, type = nil)
       mod = Object
 
       parts = String(name).split '::'
       parts.each { |part| mod = mod.const_get(part) }
+
+      if type and not mod.instance_of? type
+        raise ArgumentError, "#{name} does not refer to a #{type}"
+      end
 
       mod
     end
@@ -296,15 +300,12 @@ module Marshal
               true
             when 70   # ?F
               false
-            when 99, 109, 77  # ?c, ?m, ?M
-              # Don't use construct_symbol, because we must not
-              # memoize this symbol.
-              name = get_byte_sequence.to_sym
-              obj = const_lookup name
-
-              store_unique_object obj
-
-              obj
+            when 99   # ?c
+              construct_class
+            when 109  # ?m
+              construct_module
+            when 77   # ?M
+              construct_old_module
             when 105  # ?i
               construct_integer
             when 108  # ?l
@@ -351,7 +352,7 @@ module Marshal
               @modules ||= []
 
               name = get_symbol
-              @modules << const_lookup(name)
+              @modules << const_lookup(name, Module)
 
               obj = construct nil, false
 
@@ -380,6 +381,24 @@ module Marshal
       call obj if @proc and call_proc
 
       @stream.tainted? ? obj.taint : obj
+    end
+
+    def construct_class
+      obj = const_lookup(get_byte_sequence.to_sym, Class)
+      store_unique_object obj
+      obj
+    end
+
+    def construct_module
+      obj = const_lookup(get_byte_sequence.to_sym, Module)
+      store_unique_object obj
+      obj
+    end
+
+    def construct_old_module
+      obj = const_lookup(get_byte_sequence.to_sym)
+      store_unique_object obj
+      obj
     end
 
     def construct_array
@@ -421,7 +440,7 @@ module Marshal
 
     def construct_data
       name = get_symbol
-      klass = const_lookup name
+      klass = const_lookup name, Class
       store_unique_object klass
 
       obj = klass.allocate
@@ -539,7 +558,7 @@ module Marshal
 
     def construct_object
       name = get_symbol
-      klass = const_lookup name
+      klass = const_lookup name, Class
       obj = klass.allocate
 
       raise TypeError, 'dump format error' unless Object === obj
@@ -575,7 +594,7 @@ module Marshal
       name = get_symbol
       store_unique_object name
 
-      klass = const_lookup name
+      klass = const_lookup name, Class
       members = klass.members
 
       obj = klass.allocate
@@ -603,7 +622,7 @@ module Marshal
 
     def construct_user_defined(ivar_index)
       name = get_symbol
-      klass = const_lookup name
+      klass = const_lookup name, Class
 
       data = get_byte_sequence
 
@@ -623,7 +642,7 @@ module Marshal
       name = get_symbol
       store_unique_object name
 
-      klass = const_lookup name
+      klass = const_lookup name, Class
       obj = klass.allocate
 
       extend_object obj if @modules
@@ -658,7 +677,7 @@ module Marshal
     end
 
     def get_user_class
-      cls = const_lookup @user_class
+      cls = const_lookup @user_class, Class
       @user_class = nil
       cls
     end
