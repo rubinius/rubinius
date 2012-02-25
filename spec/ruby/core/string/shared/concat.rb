@@ -104,10 +104,6 @@ describe :string_concat, :shared => true do
       end
     end
 
-    it "raises a RangeError when the given Fixnum is negative" do
-      lambda { "".send(@method, -200)           }.should raise_error(RangeError)
-    end
-
     it "doesn't call to_int on its argument" do
       x = mock('x')
       x.should_not_receive(:to_int)
