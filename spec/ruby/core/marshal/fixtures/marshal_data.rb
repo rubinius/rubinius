@@ -1,5 +1,4 @@
 class UserDefined
-
   class Nested
     def ==(other)
       other.kind_of? self.class
@@ -14,7 +13,7 @@ class UserDefined
   end
 
   def _dump(depth)
-    Marshal.dump [@a, @b]
+    Marshal.dump [:stuff, :stuff]
   end
 
   def self._load(data)
@@ -32,7 +31,6 @@ class UserDefined
     @a == other.a and
     @b == other.b
   end
-
 end
 
 class UserDefinedWithIvar
@@ -46,7 +44,7 @@ class UserDefinedWithIvar
   end
 
   def _dump(depth)
-    Marshal.dump [@a, @b, @c]
+    Marshal.dump [:stuff, :more, :more]
   end
 
   def self._load(data)
@@ -75,7 +73,7 @@ class UserMarshal
   def initialize
     @data = 'stuff'
   end
-  def marshal_dump() @data end
+  def marshal_dump() :data end
   def marshal_load(data) @data = data end
   def ==(other) self.class === other and @data == other.data end
 end
@@ -94,7 +92,7 @@ class UserMarshalWithIvar
   end
 
   def marshal_dump
-    [@data]
+    [:data]
   end
 
   def marshal_load(o)
@@ -156,10 +154,6 @@ Struct.new "Pyramid"
 Struct.new "Useful", :a, :b
 
 module MarshalSpec
-  class Bad_Dump
-    def _dump(depth); 10; end
-  end
-
   class BasicObjectSubWithRespondToFalse
     def respond_to?(a)
       false
