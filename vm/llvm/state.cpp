@@ -732,7 +732,7 @@ namespace rubinius {
   }
 
   Symbol* LLVMState::symbol(const std::string sym) {
-    return symbols_.lookup(sym);
+    return symbols_.lookup(&shared_, sym);
   }
 
   std::string LLVMState::symbol_debug_str(const Symbol* sym) {

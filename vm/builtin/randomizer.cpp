@@ -88,7 +88,7 @@ namespace rubinius {
     Randomizer* r = state->new_object<Randomizer>(G(randomizer));
     r->lock_ = RBX_SPINLOCK_INIT;
     r->rng_data(state, ByteArray::create(state, sizeof(struct random_state)));
-
+    random_init_single(r->rng_state(), 5489UL);
     return r;
   }
 
@@ -98,8 +98,6 @@ namespace rubinius {
     if(Class* cls = try_as<Class>(self)) {
       randomizer->klass(state, cls);
     }
-
-    random_init_single(randomizer->rng_state(), 5489UL);
 
     return randomizer;
   }
@@ -194,5 +192,19 @@ namespace rubinius {
   Float* Randomizer::rand_float(STATE) {
     return Float::create(state, rb_genrand_real());
   }
+
+  /*
+   * Return a random value without depending
+   * on anything externally so it can be used
+   * also outside the context of the VM
+   */
+  uint32_t Randomizer::random_uint32() {
+    uint32_t seed[] = { 0, 0, 0, 0 };
+    random_seed(seed, 4);
+    struct random_state rng;
+    random_init_array(&rng, seed, 4);
+    return random_gen_uint32(&rng);
+  }
+
 }
 

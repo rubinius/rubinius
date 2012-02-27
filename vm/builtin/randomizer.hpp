@@ -52,6 +52,8 @@ namespace rubinius {
     // Rubinius.primitive :randomizer_rand_float
     Float* rand_float(STATE);
 
+    static uint32_t random_uint32();
+
     class Info : public TypeInfo {
     public:
       BASIC_TYPEINFO(TypeInfo)

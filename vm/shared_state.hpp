@@ -102,6 +102,7 @@ namespace rubinius {
     SymbolTable symbols;
     LLVMState* llvm_state;
     Stats stats;
+    uint32_t hash_seed;
 
   public:
     SharedState(Environment* env, Configuration& config, ConfigParser& cp);

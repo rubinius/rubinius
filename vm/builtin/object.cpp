@@ -344,7 +344,7 @@ namespace rubinius {
   hashval Object::hash(STATE) {
     if(!reference_p()) {
 
-#ifdef _LP64
+#ifdef IS_X8664
       uintptr_t key = reinterpret_cast<uintptr_t>(this);
       key = (~key) + (key << 21); // key = (key << 21) - key - 1;
       key = key ^ (key >> 24);
@@ -372,7 +372,7 @@ namespace rubinius {
       } else if(Bignum* bignum = try_as<Bignum>(this)) {
         return bignum->hash_bignum(state);
       } else if(Float* flt = try_as<Float>(this)) {
-        return String::hash_str((unsigned char *)(&(flt->val)), sizeof(double));
+        return String::hash_str(state, (unsigned char *)(&(flt->val)), sizeof(double));
       } else {
         return id(state)->to_native();
       }

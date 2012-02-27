@@ -1276,7 +1276,7 @@ namespace rubinius {
        that unused memory.  This might only be a problem if calculations
        are leaving cruft in those unused bits.  However, since Bignums
        are immutable, this shouldn't happen to us. */
-    return String::hash_str((unsigned char *)a->dp, a->used * sizeof(mp_digit));
+    return String::hash_str(state, (unsigned char *)a->dp, a->used * sizeof(mp_digit));
   }
 
   size_t Bignum::managed_memory_size(STATE) {

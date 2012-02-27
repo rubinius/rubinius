@@ -62,7 +62,7 @@ namespace rubinius {
       return NULL;
     }
 
-    return lookup(str, length);
+    return lookup(str, length, state->hash_seed());
   }
 
   struct SpecialOperator {
@@ -96,15 +96,15 @@ namespace rubinius {
     return 0;
   }
 
-  Symbol* SymbolTable::lookup(std::string str) {
-    return lookup(str.data(), str.size());
+  Symbol* SymbolTable::lookup(SharedState* shared, std::string str) {
+    return lookup(str.data(), str.size(), shared->hash_seed);
   }
 
   Symbol* SymbolTable::lookup(STATE, std::string str) {
-    return lookup(str.data(), str.size());
+    return lookup(str.data(), str.size(), state->hash_seed());
   }
 
-  Symbol* SymbolTable::lookup(const char* str, size_t length) {
+  Symbol* SymbolTable::lookup(const char* str, size_t length, uint32_t seed) {
     size_t sym;
 
     if(const char* op = find_special(str, length)) {
@@ -112,7 +112,7 @@ namespace rubinius {
       length = strlen(str);
     }
 
-    hashval hash = String::hash_str((unsigned char*)str, length);
+    hashval hash = String::hash_str((unsigned char*)str, length, seed);
 
     // Symbols can be looked up by multiple threads at the same time.
     // This is fast operation, so we protect this with a spinlock.

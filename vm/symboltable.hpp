@@ -29,6 +29,7 @@ namespace rubinius {
   class Array;
   class String;
   class Symbol;
+  class SharedState;
 
   typedef std::vector<std::string> SymbolStrings;
   typedef std::vector<std::size_t> SymbolIds;
@@ -58,14 +59,15 @@ namespace rubinius {
     thread::SpinLock lock_;
     size_t bytes_used_;
 
+    Symbol* lookup(const char* str, size_t length, uint32_t seed);
+
   public:
     size_t& bytes_used() {
       return bytes_used_;
     }
 
-    Symbol* lookup(std::string str);
+    Symbol* lookup(SharedState* shared, std::string str);
     Symbol* lookup(STATE, std::string str);
-    Symbol* lookup(const char* str, size_t length);
     Symbol* lookup(STATE, const char* str, size_t length);
     Symbol* lookup(STATE, String* str);
     String* lookup_string(STATE, const Symbol* sym);

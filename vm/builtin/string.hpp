@@ -92,11 +92,12 @@ namespace rubinius {
     static String* create_pinned(STATE, Fixnum* size);
     static String* create_reserved(STATE, native_int bytes);
 
-    // Hash the NUL-terminated string _bp_.
-    static hashval hash_str(const char *bp);
-
     // Hash the byte array _bp_ which contains _sz_ bytes.
-    static hashval hash_str(const unsigned char *bp, unsigned int sz);
+    static hashval hash_str(const unsigned char *bp, unsigned int sz, uint32_t seed);
+
+    static hashval hash_str(STATE, const unsigned char *bp, unsigned int sz) {
+      return hash_str(bp, sz, state->hash_seed());
+    }
 
     // Rubinius.primitive :string_equal
     Object* equal(STATE, String* other) {
