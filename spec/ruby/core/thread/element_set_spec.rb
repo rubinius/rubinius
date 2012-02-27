@@ -27,5 +27,20 @@ describe "Thread#[]=" do
       fib.resume
       Thread.current[:value] = 2
     end
+
+    it "stores a local in another thread when in a fiber" do
+      fib = Fiber.new do
+        t = Thread.new do
+          sleep
+          Thread.current[:value].should == 1
+        end
+
+        Thread.pass while t.status and t.status != "sleep"
+        t[:value] = 1
+        t.wakeup
+        t.join
+      end
+      fib.resume
+    end
   end
 end

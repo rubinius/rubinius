@@ -27,6 +27,21 @@ describe "Thread#keys" do
       Thread.current.keys.should include(:val2)
       Thread.current.keys.should_not include(:val1)
     end
+
+    it "stores a local in another thread when in a fiber" do
+      fib = Fiber.new do
+        t = Thread.new do
+          sleep
+          Thread.current.keys.should include(:value)
+        end
+
+        Thread.pass while t.status and t.status != "sleep"
+        t[:value] = 1
+        t.wakeup
+        t.join
+      end
+      fib.resume
+    end
   end
 
 end

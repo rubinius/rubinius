@@ -45,5 +45,20 @@ describe "Thread#key?" do
       Thread.current.key?(:val1).should be_false
       Thread.current.key?(:val2).should be_true
     end
+
+    it "stores a local in another thread when in a fiber" do
+      fib = Fiber.new do
+        t = Thread.new do
+          sleep
+          Thread.current.key?(:value).should be_true
+        end
+
+        Thread.pass while t.status and t.status != "sleep"
+        t[:value] = 1
+        t.wakeup
+        t.join
+      end
+      fib.resume
+    end
   end
 end
