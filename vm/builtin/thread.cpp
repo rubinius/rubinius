@@ -108,6 +108,13 @@ namespace rubinius {
   }
 
   Object* Thread::locals_aref(STATE, Symbol* key) {
+    /*
+     * If we're not trying to set values on the current thread,
+     * we will set thread locals anyway and not use fiber locals.
+     */
+    if(state->vm() != vm()) {
+      return locals()->aref(state, key);
+    }
     Fiber* fib = state->vm()->current_fiber.get();
     if(fib->nil_p() || fib->root_p()) {
       return locals()->aref(state, key);
@@ -119,6 +126,13 @@ namespace rubinius {
   }
 
   Object* Thread::locals_store(STATE, Symbol* key, Object* value) {
+    /*
+     * If we're not trying to set values on the current thread,
+     * we will set thread locals anyway and not use fiber locals.
+     */
+    if(state->vm() != vm()) {
+      return locals()->store(state, key, value);
+    }
     Fiber* fib = state->vm()->current_fiber.get();
     if(fib->nil_p() || fib->root_p()) {
       return locals()->store(state, key, value);
@@ -130,6 +144,13 @@ namespace rubinius {
   }
 
   Array* Thread::locals_keys(STATE) {
+    /*
+     * If we're not trying to set values on the current thread,
+     * we will set thread locals anyway and not use fiber locals.
+     */
+    if(state->vm() != vm()) {
+      return locals()->all_keys(state);
+    }
     Fiber* fib = state->vm()->current_fiber.get();
     if(fib->nil_p() || fib->root_p()) {
       return locals()->all_keys(state);
@@ -141,6 +162,13 @@ namespace rubinius {
   }
 
   Object* Thread::locals_has_key(STATE, Symbol* key) {
+    /*
+     * If we're not trying to set values on the current thread,
+     * we will set thread locals anyway and not use fiber locals.
+     */
+    if(state->vm() != vm()) {
+      return locals()->has_key(state, key);
+    }
     Fiber* fib = state->vm()->current_fiber.get();
     if(fib->nil_p() || fib->root_p()) {
       return locals()->has_key(state, key);
