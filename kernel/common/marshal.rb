@@ -41,9 +41,7 @@ class Symbol
       Rubinius.binary_string(";#{ms.serialize_integer(idx)}")
     else
       ms.add_symlink self
-
-      str = to_s
-      Rubinius.binary_string(":#{ms.serialize_integer(str.length)}#{str}")
+      ms.serialize_symbol(self)
     end
   end
 end
@@ -53,11 +51,8 @@ class String
     out =  ms.serialize_instance_variables_prefix(self)
     out << ms.serialize_extended_object(self)
     out << ms.serialize_user_class(self, String)
-    out << '"'
-    out << ms.serialize_integer(self.length)
-    out << self
+    out << ms.serialize_string(self)
     out << ms.serialize_instance_variables_suffix(self)
-
     out
   end
 end
@@ -712,7 +707,7 @@ module Marshal
 
       @depth += 1
 
-      obj.tainted? ? str.taint : str
+      Rubinius::Type.infect(str, obj)
     end
 
     def serialize_extended_object(obj)
@@ -744,21 +739,35 @@ module Marshal
       Rubinius.binary_string(str)
     end
 
-    def serialize_instance_variables_prefix(obj, exclude_ivars = false)
+    def serializable_instance_variables(obj, exclude_ivars)
       ivars = obj.__instance_variables__
       ivars -= exclude_ivars if exclude_ivars
-      Rubinius.binary_string(ivars.length > 0 ? "I" : "")
+      ivars
+    end
+
+    def serialize_instance_variables_prefix(obj, exclude_ivars = false)
+      ivars = serializable_instance_variables(obj, exclude_ivars)
+      Rubinius.binary_string(!ivars.empty? || serialize_encoding?(obj) ? "I" : "")
     end
 
     def serialize_instance_variables_suffix(obj, force=false,
                                             strip_ivars=false,
                                             exclude_ivars=false)
-      ivars = obj.__instance_variables__
-      ivars -= exclude_ivars if exclude_ivars
+      ivars = serializable_instance_variables(obj, exclude_ivars)
 
-      return Rubinius.binary_string("") unless force or !ivars.empty?
+      unless force or !ivars.empty? or serialize_encoding?(obj)
+        return Rubinius.binary_string("")
+      end
 
-      str = serialize_integer(ivars.size)
+      count = ivars.size
+
+      if serialize_encoding?(obj)
+        str = serialize_integer(count + 1)
+        str << serialize_encoding(obj)
+      else
+        str = serialize_integer(count)
+      end
+
       ivars.each do |ivar|
         sym = ivar.to_sym
         val = obj.__instance_variable_get__(sym)
@@ -819,6 +828,15 @@ module Marshal
       end
 
       Rubinius.binary_string(str[0..1] + serialize_fixnum(cnt / 2) + str[2..-1])
+    end
+
+    def serialize_symbol(obj)
+      str = obj.to_s
+      Rubinius.binary_string(":#{serialize_integer(str.length)}#{str}")
+    end
+
+    def serialize_string(str)
+      Rubinius.binary_string("\"#{serialize_integer(str.length)}#{str}")
     end
 
     def serialize_user_class(obj, cls)
@@ -908,10 +926,7 @@ module Marshal
       @consumed += 1
       return data
     end
-
   end
-
-
 
   def self.dump(obj, an_io=nil, limit=nil)
     unless limit

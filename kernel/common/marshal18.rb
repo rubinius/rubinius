@@ -18,3 +18,11 @@ class Module
     "m#{ms.serialize_integer(name.length)}#{name}"
   end
 end
+
+module Marshal
+  class State
+    def serialize_encoding?(obj)
+      false
+    end
+  end
+end

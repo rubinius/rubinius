@@ -18,3 +18,23 @@ class Module
     "m#{ms.serialize_integer(name.length)}#{name}"
   end
 end
+
+module Marshal
+  class State
+    def serialize_encoding?(obj)
+      enc = Rubinius::Type.object_encoding(obj)
+      enc && enc != Encoding::BINARY
+    end
+
+    def serialize_encoding(obj)
+      case enc = Rubinius::Type.object_encoding(obj)
+        when Encoding::US_ASCII
+          serialize_symbol(:E) + false.__marshal__(self)
+        when Encoding::UTF_8
+          serialize_symbol(:E) + true.__marshal__(self)
+        else
+          serialize_symbol(:encoding) + serialize_string(enc.name)
+      end
+    end
+  end
+end
