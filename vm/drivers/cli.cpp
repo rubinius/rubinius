@@ -49,7 +49,6 @@ int main(int argc, char** argv) {
 
     check_directory(runtime);
     env.run_from_filesystem(runtime);
-
   } catch(Assertion *e) {
     std::cout << "VM Assertion:" << std::endl;
     std::cout << "  " << e->reason << std::endl << std::endl;
