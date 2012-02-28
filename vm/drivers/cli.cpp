@@ -3,7 +3,9 @@
 
 #include <sys/stat.h>
 
+#ifdef ENABLE_LLVM
 #include <llvm/Support/ManagedStatic.h>
+#endif
 
 #include "vm/environment.hpp"
 #include "vm/oop.hpp"
@@ -117,7 +119,9 @@ int main(int argc, char** argv) {
     exit_code = env.exit_code(env.state);
   }
 
+#ifdef ENABLE_LLVM
   llvm::llvm_shutdown();
+#endif
 
   return exit_code;
 }
