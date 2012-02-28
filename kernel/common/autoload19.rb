@@ -24,7 +24,12 @@ class Autoload
       constant = current.constant_table.fetch name, undefined
       unless constant.equal?(undefined)
         if constant.equal? self
-          return scope.const_missing(name)
+          constant = Object.constant_table.fetch name, undefined
+          unless constant.equal?(undefined)
+            return constant
+          else
+            return scope.const_missing(name)
+          end
         end
         return constant
       end
