@@ -40,9 +40,7 @@ class Autoload
       unless constant.equal?(undefined)
         if constant.equal? self
           constant = Object.constant_table.fetch name, undefined
-          unless constant.equal?(undefined)
-            return constant
-          else
+          if constant.equal?(undefined)
             @scope.constant_table.delete @name
             Rubinius.inc_global_serial
             return scope.const_missing(name)
