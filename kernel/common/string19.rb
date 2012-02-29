@@ -598,12 +598,15 @@ class String
       end
 
       other = other.chr(encoding)
-    else
+    end
+    unless other.kind_of? String
       other = StringValue(other)
     end
 
-    enc = Rubinius::Type.compatible_encoding self, other
-    force_encoding enc
+    unless other.encoding == encoding
+      enc = Rubinius::Type.compatible_encoding self, other
+      force_encoding enc
+    end
 
     Rubinius::Type.infect(self, other)
     append(other)
