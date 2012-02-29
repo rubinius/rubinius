@@ -36,6 +36,8 @@ static void check_directory(std::string root);
  */
 int main(int argc, char** argv) {
   int exit_code = 0;
+
+  {
   Environment env(argc, argv);
   env.setup_cpp_terminate();
 
@@ -117,6 +119,7 @@ int main(int argc, char** argv) {
   if(!exit_code) {
     env.halt(env.state);
     exit_code = env.exit_code(env.state);
+  }
   }
 
 #ifdef ENABLE_LLVM
