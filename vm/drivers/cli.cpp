@@ -37,6 +37,9 @@ static void check_directory(std::string root);
 int main(int argc, char** argv) {
   int exit_code = 0;
 
+  // Ensure to destruct an Environment before calling llvm_shutdown(), which
+  // follows this block. Because Environment's destructor uses LLVM API, it
+  // must precede llvm_shutdown().
   {
     Environment env(argc, argv);
     env.setup_cpp_terminate();
