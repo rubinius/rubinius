@@ -296,7 +296,7 @@ module Kernel
   def inspect
     # The protocol here seems odd, but it's to match MRI.
 
-    ivars = instance_variables
+    ivars = __instance_variables__
 
     # If this object has no ivars, then we call to_s and return that.
     # NOTE MRI has an additional check for when to call to_s. It also does:
@@ -316,7 +316,7 @@ module Kernel
 
     Thread.recursion_guard self do
       ivars.each do |var|
-        parts << "#{var}=#{instance_variable_get(var).inspect}"
+        parts << "#{var}=#{__instance_variable_get__(var).inspect}"
       end
     end
 
@@ -326,7 +326,7 @@ module Kernel
       str = "#{prefix} #{parts.join(' ')}>"
     end
 
-    str.taint if tainted?
+    Rubinius::Type.infect(str, self)
 
     return str
   end

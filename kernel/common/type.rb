@@ -101,5 +101,11 @@ module Rubinius
         sup = sup.direct_superclass()
       end
     end
+
+    # Taint host if source is tainted.
+    def self.infect(host, source)
+      Rubinius.primitive :object_infect
+      raise PrimitiveFailure, "Object.infect primitive failed"
+    end
   end
 end

@@ -416,8 +416,10 @@ namespace rubinius {
       other->taint(state);
     }
 
-    if(is_untrusted_p()) {
-      other->untrust(state);
+    if(!LANGUAGE_18_ENABLED(state)) {
+      if(is_untrusted_p()) {
+        other->untrust(state);
+      }
     }
   }
 
