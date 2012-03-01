@@ -22,6 +22,7 @@
 #elif RBX_LLVM_API_VER == 209
 #include <llvm/Support/Threading.h>
 #endif
+#include <llvm/Support/ManagedStatic.h>
 #endif
 
 #ifdef USE_EXECINFO
@@ -532,7 +533,11 @@ namespace rubinius {
 
   void Environment::halt_and_exit(STATE) {
     halt(state);
-    exit(exit_code(state));
+    int code = exit_code(state);
+#ifdef ENABLE_LLVM
+    llvm::llvm_shutdown();
+#endif
+    exit(code);
   }
 
   void Environment::halt(STATE) {
