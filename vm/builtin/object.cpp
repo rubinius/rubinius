@@ -412,12 +412,12 @@ namespace rubinius {
   }
 
   void Object::infect(STATE, Object* other) {
-    if(is_tainted_p()) {
+    if(tainted_p(state) == cTrue) {
       other->taint(state);
     }
 
     if(!LANGUAGE_18_ENABLED(state)) {
-      if(is_untrusted_p()) {
+      if(untrusted_p(state) == cTrue) {
         other->untrust(state);
       }
     }
