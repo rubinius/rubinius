@@ -412,12 +412,12 @@ namespace rubinius {
   }
 
   void Object::infect(STATE, Object* other) {
-    if(tainted_p(state) == cTrue) {
+    if(is_tainted_p()) {
       other->taint(state);
     }
 
     if(!LANGUAGE_18_ENABLED(state)) {
-      if(untrusted_p(state) == cTrue) {
+      if(is_untrusted_p()) {
         other->untrust(state);
       }
     }
@@ -726,20 +726,20 @@ namespace rubinius {
   }
 
   Object* Object::tainted_p(STATE) {
-    if(reference_p() && is_tainted_p()) return cTrue;
+    if(is_tainted_p()) return cTrue;
     return cFalse;
   }
 
   Object* Object::trust(STATE) {
-    if(untrusted_p(state) == cTrue) {
+    if(is_untrusted_p()) {
       check_frozen(state);
-      if(reference_p()) set_untrusted(0);
+      set_untrusted(0);
     }
     return this;
   }
 
   Object* Object::untrust(STATE) {
-    if(untrusted_p(state) == cFalse) {
+    if(!is_untrusted_p()) {
       check_frozen(state);
       if(reference_p()) set_untrusted();
     }
@@ -747,7 +747,7 @@ namespace rubinius {
   }
 
   Object* Object::untrusted_p(STATE) {
-    if(reference_p() && is_untrusted_p()) return cTrue;
+    if(is_untrusted_p()) return cTrue;
     return cFalse;
   }
 
