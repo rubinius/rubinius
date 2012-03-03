@@ -243,6 +243,15 @@ describe "Module#autoload" do
     ModuleSpecs::Autoload::U::V::X.should == :autoload_uvx
   end
 
+  it "loads the file that defines subclass XX::YY < YY and YY is a top level constant" do
+
+    module ModuleSpecs::Autoload::XX
+      autoload :YY, fixture(__FILE__, "autoload_subclass.rb")
+    end
+
+    ModuleSpecs::Autoload::XX::YY.superclass.should == YY
+  end
+
   ruby_version_is "1.9" do
     # [ruby-core:19127] [ruby-core:29941]
     it "does NOT raise a NameError when the autoload file did not define the constant and a module is opened with the same name" do
