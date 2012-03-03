@@ -118,15 +118,13 @@ describe "Kernel#instance_eval" do
     end
   end
 
-  ruby_version_is ""..."1.9" do
-    it "makes the receiver metaclass the scoped class when used with a string" do
-      obj = Object.new
-      klass = obj.instance_eval %{
-        class B; end
-        B
-      }
-      klass.name.should =~ /(.+)::B/
-    end
+  it "makes the receiver metaclass the scoped class when used with a string" do
+    obj = Object.new
+    klass = obj.instance_eval %{
+      class B; end
+      B
+    }
+    obj.singleton_class.const_get(:B).should be_an_instance_of(Class)
   end
 
   it "gets constants in the receiver if a string given" do

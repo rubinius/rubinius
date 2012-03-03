@@ -14,6 +14,12 @@ describe "Module#const_set" do
     ConstantSpecs.const_set(:CS_CONST403, :const403).should == :const403
   end
 
+  it "sets the name of an anonymous module" do
+    m = Module.new
+    ConstantSpecs.const_set(:CS_CONST1000, m)
+    m.name.should == "ConstantSpecs::CS_CONST1000"
+  end
+
   it "raises a NameError if the name does not start with a capital letter" do
     lambda { ConstantSpecs.const_set "name", 1 }.should raise_error(NameError)
   end
