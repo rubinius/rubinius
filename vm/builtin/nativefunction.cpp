@@ -312,6 +312,7 @@ namespace rubinius {
 
     int callbacks = 0;
 
+    NativeFunction* tmp_cb = 0;
     NativeFunction* cb = 0;
 
     if(tot > 0) {
@@ -319,13 +320,14 @@ namespace rubinius {
 
       for(i = 0; i < tot; i++) {
         type = args->get(state, i);
-        if((cb = try_as<NativeFunction>(type))) {
+        if((tmp_cb = try_as<NativeFunction>(type))) {
           callbacks++;
           // We only support one callback right now.
           if(callbacks > 1) {
             XFREE(arg_types);
             return (NativeFunction*)Primitives::failure();
           }
+          cb = tmp_cb;
           arg_types[i] = RBX_FFI_TYPE_CALLBACK;
         } else {
           if(!type->fixnum_p()) {
