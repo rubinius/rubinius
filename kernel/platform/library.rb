@@ -233,6 +233,14 @@ module FFI
             @handle = DynamicLibrary.open_library @name, flags
           end
 
+          # Try with a prefix
+          unless @handle
+            FFI::LIB_SUFFIXES.detect do |suffix|
+              @name = "lib#{name}"
+              @handle = DynamicLibrary.open_library @name, flags
+            end
+          end
+
           # Try with suffixes and a prefix
           unless @handle
             FFI::LIB_SUFFIXES.detect do |suffix|
