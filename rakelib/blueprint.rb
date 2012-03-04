@@ -101,6 +101,7 @@ Daedalus.blueprint do |i|
       flags = `#{perl} #{conf} --cflags`.strip.split(/\s+/)
       flags.delete_if { |x| x.index("-O") == 0 || x.index("-I") == 0 }
       flags.delete_if { |x| x =~ /-D__STDC/ }
+      flags.delete_if { |x| x == "-DNDEBUG" }
       flags << "-Ivendor/llvm/include" << "-DENABLE_LLVM"
       l.cflags = flags
 
@@ -127,6 +128,7 @@ Daedalus.blueprint do |i|
     flags = `#{perl} #{conf} --cflags`.strip.split(/\s+/)
     flags.delete_if { |x| x.index("-O") == 0 }
     flags.delete_if { |x| x =~ /-D__STDC/ }
+    flags.delete_if { |x| x == "-DNDEBUG" }
     flags << "-DENABLE_LLVM"
     gcc.cflags.concat flags
     gcc.ldflags.concat `#{perl} #{conf} --ldflags --libfiles`.strip.split(/\s+/)
