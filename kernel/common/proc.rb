@@ -92,17 +92,17 @@ class Proc
     p = o + code.post_args
     p += 1 if code.splat
 
-    symbol_for_named = self.lambda? ? :req : :opt
+    required_status = self.lambda? ? :req : :opt
 
     code.local_names.each_with_index.map do |name, i|
       if i < m
-        [symbol_for_named, name]
+        [required_status, name]
       elsif i < o
         [:opt, name]
       elsif code.splat == i
         [:rest, name]
       elsif i < p
-        [symbol_for_named, name]
+        [required_status, name]
       else
         [:block, name]
       end
