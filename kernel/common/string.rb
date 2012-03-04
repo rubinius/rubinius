@@ -1467,31 +1467,6 @@ class String
   # The +intern+ method is an alias of +to_sym+. See <code>Symbol#to_sym</code>.
   alias_method :intern, :to_sym
 
-  # Returns the result of interpreting leading characters in <i>self</i> as an
-  # integer base <i>base</i> (between 2 and 36). Extraneous characters past the
-  # end of a valid number are ignored. If there is not a valid number at the
-  # start of <i>self</i>, <code>0</code> is returned. This method never raises an
-  # exception.
-  #
-  #   "12345".to_i             #=> 12345
-  #   "99 red balloons".to_i   #=> 99
-  #   "0a".to_i                #=> 0
-  #   "0a".to_i(16)            #=> 10
-  #   "hello".to_i             #=> 0
-  #   "1100101".to_i(2)        #=> 101
-  #   "1100101".to_i(8)        #=> 294977
-  #   "1100101".to_i(10)       #=> 1100101
-  #   "1100101".to_i(16)       #=> 17826049
-  def to_i(base=10)
-    base = Rubinius::Type.coerce_to base, Integer, :to_int
-
-    if base < 0 || base == 1 || base > 36
-      raise ArgumentError, "illegal radix #{base}"
-    end
-
-    to_inum(base, false)
-  end
-
   # Returns self if self is an instance of String,
   # else returns self converted to a String instance.
   def to_s
