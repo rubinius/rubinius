@@ -109,8 +109,8 @@ namespace rubinius {
     case KCODE_ASCII:
     default:
       return enc;
-      break;
     }
+    return enc;
   }
 
   static OnigEncoding current_encoding(STATE) {
