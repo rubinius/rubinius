@@ -50,11 +50,11 @@ namespace rubinius {
   }
 
   FFIData* FFIData::create(NativeFunction* func, int count, int* types,
-                           int ret)
+                           int ret, NativeFunction* callback)
   {
     void* ep;
 
-    FFIData* data = new FFIData(func, count, types, ret);
+    FFIData* data = new FFIData(func, count, types, ret, callback);
     data->closure = reinterpret_cast<ffi_closure*>(
                       ffi_closure_alloc(sizeof(ffi_closure), &ep));
 
@@ -63,10 +63,11 @@ namespace rubinius {
     return data;
   }
 
-  FFIData::FFIData(NativeFunction* func,  int count, int* types, int ret)
+  FFIData::FFIData(NativeFunction* func,  int count, int* types, int ret, NativeFunction *callback)
     : closure(0)
     , callable(0)
     , function(func)
+    , callback(callback)
     , arg_count(count)
     , arg_types(types)
     , ret_type(ret)
@@ -171,7 +172,7 @@ namespace rubinius {
   }
 
   void NativeFunction::prep(STATE, int arg_count, int *arg_types,
-                            int ret_type) {
+                            int ret_type, NativeFunction* callback) {
 
     ffi_type** types;
     ffi_status status;
@@ -283,7 +284,7 @@ namespace rubinius {
     int* out_arg_types = ALLOC_N(int, arg_count);
     memcpy(out_arg_types, arg_types, sizeof(int) * arg_count);
 
-    FFIData* data = FFIData::create(this, arg_count, out_arg_types, ret_type);
+    FFIData* data = FFIData::create(this, arg_count, out_arg_types, ret_type, callback);
 
     status = ffi_prep_cif(&data->cif, FFI_DEFAULT_ABI, arg_count, rtype, types);
 
@@ -356,10 +357,8 @@ namespace rubinius {
     ret_type = as<Integer>(ret)->to_native();
 
     NativeFunction* func = NativeFunction::create(state, name, arg_count);
-    func->prep(state, tot, arg_types, ret_type);
+    func->prep(state, tot, arg_types, ret_type, cb);
     func->ffi_data->ep = ptr->pointer;
-
-    if(cb) func->callback_info(state, cb);
 
     if(arg_types) XFREE(arg_types);
 
@@ -589,7 +588,7 @@ namespace rubinius {
     ret_type = as<Integer>(ret)->to_native();
 
     NativeFunction* func = NativeFunction::create(state, name, tot);
-    func->prep(state, tot, arg_types, ret_type);
+    func->prep(state, tot, arg_types, ret_type, 0);
 
     func->ffi_data->callable = obj;
 
@@ -620,7 +619,7 @@ namespace rubinius {
                              orig->ffi_data->arg_count);
 
     func->prep(state, orig->ffi_data->arg_count, orig->ffi_data->arg_types,
-               orig->ffi_data->ret_type);
+               orig->ffi_data->ret_type, orig->ffi_data->callback);
 
     func->ffi_data->callable = obj;
 
@@ -851,7 +850,7 @@ namespace rubinius {
         }
 
         if(obj->reference_p()) {
-          Pointer* ptr = NativeFunction::adjust_tramp(state, obj, callback_info_);
+          Pointer* ptr = NativeFunction::adjust_tramp(state, obj, ffi_data->callback);
           *tmp = ptr->pointer;
         } else {
           *tmp = NULL;
@@ -1083,6 +1082,13 @@ namespace rubinius {
         Object* tmp = mark.call(func->ffi_data->callable);
         if(tmp) {
           func->ffi_data->callable = tmp;
+          mark.just_set(obj, tmp);
+        }
+      }
+      if(func->ffi_data->callback) {
+        Object* tmp = mark.call(func->ffi_data->callback);
+        if(tmp) {
+          func->ffi_data->callback = force_as<NativeFunction>(tmp);
           mark.just_set(obj, tmp);
         }
       }
