@@ -411,6 +411,12 @@ namespace rubinius {
      */
     void check_frozen(STATE);
 
+    // Define these as private and without implementation so we
+    // don't accidently let C++ create them.
+    Object();
+    ~Object();
+    Object(const Object&);
+    Object& operator= (const Object&);
   };
 
 
