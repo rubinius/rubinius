@@ -71,8 +71,8 @@ namespace gc {
     void write_barrier(Object* target, Object* val) {
       if(target->remembered_p()) return;
       if(!val->reference_p()) return;
-      if(target->zone() == YoungObjectZone) return;
-      if(val->zone() != YoungObjectZone) return;
+      if(target->young_object_p()) return;
+      if(!val->young_object_p()) return;
 
       remember_object(target);
     }

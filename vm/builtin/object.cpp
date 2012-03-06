@@ -121,7 +121,7 @@ namespace rubinius {
     // then remember other. The up side to just remembering it like
     // this is that other is rarely mature, and the remember_set is
     // flushed on each collection anyway.
-    if(zone() == MatureObjectZone) {
+    if(mature_object_p()) {
       state->memory()->remember_object(this);
     }
 

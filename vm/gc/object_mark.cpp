@@ -58,7 +58,7 @@ namespace rubinius {
   }
 
   void ObjectMark::remember_object(Object* target) {
-    if(target->zone() != YoungObjectZone && !target->remembered_p()) {
+    if(!target->young_object_p() && !target->remembered_p()) {
       state()->om->remember_object(target);
     }
   }
