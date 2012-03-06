@@ -66,7 +66,7 @@ namespace rubinius {
     template <class T>
       void data(T state, ByteArray* obj) {
         data_ = obj;
-        if(zone() == MatureObjectZone) this->write_barrier(state, obj);
+        if(mature_object_p()) this->write_barrier(state, obj);
 
         update_handle();
       }

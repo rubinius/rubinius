@@ -46,7 +46,7 @@ class TestVM : public CxxTest::TestSuite, public VMTest {
     Root* root = static_cast<Root*>(state->globals().roots.head());
     while(root) {
       Object* tmp = root->get();
-      if(tmp->reference_p() && tmp->zone() == YoungObjectZone) {
+      if(tmp->reference_p() && tmp->young_object_p()) {
         objs[index] = tmp;
       }
       index++;
