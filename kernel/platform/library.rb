@@ -247,6 +247,50 @@ module FFI
 
       FFI.find_type(name)
     end
+
+    def enum(*args)
+      @tagged_enums ||= Rubinius::LookupTable.new
+      @anon_enums ||= Array.new
+
+      tag, values = if args[0].kind_of?(Symbol) && args[1].kind_of?(Array)
+        [ args[0], args[1] ]
+      elsif args[0].kind_of?(Array)
+        [ nil, args[0] ]
+      else
+        [ nil, args ]
+      end
+
+      enum = FFI::Enum.new values, tag
+
+      if tag
+        typedef(:int, tag)
+        @tagged_enums[tag] = enum
+      else
+        @anon_enums << enum
+      end
+
+      return enum
+    end
+
+    def enum_type(tag)
+
+      if enum = @tagged_enums[tag]
+        enum
+      else
+        @anon_enums.detect { |enum| enum.symbols.include?(tag) }
+      end
+
+    end
+
+    def enum_value(value)
+
+      if enum = @anon_enums.detect { |enum| enum.symbols.include?(value) }
+        enum
+      else
+       @tagged_enums.detect { |tag,enum| enum.symbols.include?(value) }
+      end
+
+    end
   end
 
   class DynamicLibrary
