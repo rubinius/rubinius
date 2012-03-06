@@ -115,11 +115,11 @@ namespace rubinius {
   }
 
   void FiberData::take_stack(STATE) {
-    assert(stack_);
-
     assert(status_ != eDead);
 
     if(status_ == eOnStack || status_ == eRunning) return;
+
+    assert(stack_);
 
     if(stack_->shared_p()) stack_->flush(state);
     stack_->set_user(this);
