@@ -106,6 +106,63 @@ module FFI
       ffi_function_missing cname, mname, args, ret
     end
 
+    # Attach a C variable to this module. The arguments can have two forms:
+    #
+    #   attach_variable mod_name, type
+    #   attach_variable mod_name, c_name, type
+    #
+    # In the first form, +mod_name+ will also be used for the name of the C variable.
+    # In the second form, the C variable name is +c_name+.
+    #
+    # The +mod_name+ and +c_name+ can be given as Strings or Symbols.
+    #
+    # The final argument, +type+, is the type of the C variable
+    def attach_variable(mname, a1, a2=nil)
+      cname, type = a2 ? [ a1, a2 ] : [ mname.to_s, a1 ]
+      ptr = nil
+
+      ffi_libraries.each do |lib|
+        ptr = lib.find_symbol(cname.to_s)
+        break unless ptr.nil?
+      end
+
+      raise FFI::NotFoundError, "Unable to find '#{cname}'" if ptr.nil? || ptr.null?
+
+      if type.kind_of?(Class) and type.ancestors.include?(FFI::Struct)
+        c = type.new(ptr)
+
+        self.module_eval <<-code, __FILE__, __LINE__
+          @ffi_gvar_#{mname} = c
+          def self.#{mname}
+            @ffi_gvar_#{mname}
+          end
+        code
+
+      else
+        enclosing_module = self
+
+        cs = Class.new(FFI::Struct) do
+          @enclosing_module = enclosing_module
+        end
+
+        cs.layout :gvar, type
+        c = cs.new(ptr)
+
+        self.module_eval <<-code, __FILE__, __LINE__
+          @ffi_gvar_#{mname} = c
+          def self.#{mname}
+            @ffi_gvar_#{mname}[:gvar]
+          end
+          def self.#{mname}=(value)
+            @ffi_gvar_#{mname}[:gvar] = value
+          end
+        code
+
+      end
+
+      return ptr
+    end
+
     # Generic error method attached in place of missing foreign functions
     # during kernel loading. See kernel/delta/ffi.rb for a version that raises
     # immediately if the foreign function is unavaiblable.

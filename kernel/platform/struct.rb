@@ -88,7 +88,7 @@ module FFI
       return @layout if spec.size == 0
 
       # Pick up a enclosing FFI::Library
-      @enclosing_module = find_nested_parent
+      @enclosing_module ||= find_nested_parent
 
       cspec = Rubinius::LookupTable.new
       i = 0
