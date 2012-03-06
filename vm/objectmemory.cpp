@@ -68,7 +68,6 @@ namespace rubinius {
       std::cout << "Watching for " << object_watch << "\n";
     }
 
-    collect_mature_now = false;
     last_object_id = 0;
 
     large_object_threshold = config.gc_large_object;
