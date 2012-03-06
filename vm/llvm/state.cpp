@@ -371,7 +371,7 @@ namespace rubinius {
             req->method()->set_unspecialized(reinterpret_cast<executor>(func), rd);
           }
 
-          assert(req->method()->jit_data());
+          // assert(req->method()->jit_data());
 
           ls_->end_method_update();
 
