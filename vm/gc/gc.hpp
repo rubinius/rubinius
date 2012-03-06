@@ -44,7 +44,9 @@ namespace rubinius {
     std::list<ManagedThread*>* threads_;
     std::list<capi::Handle**>* global_handle_locations_;
     GCTokenImpl* gc_token_;
+#ifdef ENABLE_LLVM
     LLVMState* llvm_state_;
+#endif
 
   public:
     GCData(VM*, GCToken gct);
@@ -60,7 +62,9 @@ namespace rubinius {
       , global_cache_(cache)
       , threads_(ths)
       , global_handle_locations_(global_handle_locations)
+#ifdef ENABLE_LLVM
       , llvm_state_(0)
+#endif
     {}
 
     Roots& roots() {
@@ -91,9 +95,11 @@ namespace rubinius {
       return gc_token_;
     }
 
+#ifdef ENABLE_LLVM
     LLVMState* llvm_state() {
       return llvm_state_;
     }
+#endif
   };
 
   class AddressDisplacement {

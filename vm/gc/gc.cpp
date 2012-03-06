@@ -18,7 +18,9 @@
 #include "builtin/block_environment.hpp"
 #include "capi/handle.hpp"
 
+#ifdef ENABLE_LLVM
 #include "llvm/state.hpp"
+#endif
 
 #include "instruments/tooling.hpp"
 
@@ -36,7 +38,9 @@ namespace rubinius {
     , threads_(state->shared.threads())
     , global_handle_locations_(state->shared.global_handle_locations())
     , gc_token_(0)
+#ifdef ENABLE_LLVM
     , llvm_state_(LLVMState::get_if_set(state))
+#endif
   {}
 
   GCData::GCData(VM* state, GCToken gct)
@@ -47,7 +51,9 @@ namespace rubinius {
     , threads_(state->shared.threads())
     , global_handle_locations_(state->shared.global_handle_locations())
     , gc_token_(&gct)
+#ifdef ENABLE_LLVM
     , llvm_state_(LLVMState::get_if_set(state))
+#endif
   {}
 
   GarbageCollector::GarbageCollector(ObjectMemory *om)
