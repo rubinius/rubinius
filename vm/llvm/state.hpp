@@ -50,7 +50,7 @@ namespace rubinius {
     llvm::ExecutionEngine* engine_;
     llvm::FunctionPassManager* passes_;
 
-    const llvm::Type* object_;
+    llvm::Type* object_;
     Configuration& config_;
 
     BackgroundCompilerThread* background_thread_;
@@ -84,20 +84,20 @@ namespace rubinius {
 
     uint64_t time_spent;
 
-    const llvm::Type* VoidTy;
+    llvm::Type* VoidTy;
 
-    const llvm::Type* Int1Ty;
-    const llvm::Type* Int8Ty;
-    const llvm::Type* Int16Ty;
-    const llvm::Type* Int32Ty;
-    const llvm::Type* Int64Ty;
-    const llvm::Type* IntPtrTy;
-    const llvm::Type* VoidPtrTy;
+    llvm::Type* Int1Ty;
+    llvm::Type* Int8Ty;
+    llvm::Type* Int16Ty;
+    llvm::Type* Int32Ty;
+    llvm::Type* Int64Ty;
+    llvm::Type* IntPtrTy;
+    llvm::Type* VoidPtrTy;
 
-    const llvm::Type* FloatTy;
-    const llvm::Type* DoubleTy;
+    llvm::Type* FloatTy;
+    llvm::Type* DoubleTy;
 
-    const llvm::Type* Int8PtrTy;
+    llvm::Type* Int8PtrTy;
 
     llvm::Value* Zero;
     llvm::Value* One;
@@ -137,7 +137,7 @@ namespace rubinius {
     llvm::Module* module() { return module_; }
     llvm::ExecutionEngine* engine() { return engine_; }
     llvm::FunctionPassManager* passes() { return passes_; }
-    const llvm::Type* object() { return object_; }
+    llvm::Type* object() { return object_; }
 
     int jitted_methods() {
       return jitted_methods_;
@@ -226,8 +226,8 @@ namespace rubinius {
       method_update_lock_.unlock();
     }
 
-    const llvm::Type* ptr_type(std::string name);
-    const llvm::Type* type(std::string name);
+    llvm::Type* ptr_type(std::string name);
+    llvm::Type* type(std::string name);
 
     void compile_soon(STATE, CompiledMethod* cm, Object* extra, bool is_block=false);
     void remove(llvm::Function* func);
@@ -256,11 +256,11 @@ namespace rubinius {
   class Signature {
   protected:
     LLVMState* ls_;
-    std::vector<const llvm::Type*> types_;
-    const llvm::Type* ret_type_;
+    std::vector<llvm::Type*> types_;
+    llvm::Type* ret_type_;
 
   public:
-    Signature(LLVMState* ls, const llvm::Type* rt)
+    Signature(LLVMState* ls, llvm::Type* rt)
       : ls_(ls)
       , ret_type_(rt)
     {}
@@ -270,7 +270,7 @@ namespace rubinius {
       , ret_type_(ls->ptr_type(rt))
     {}
 
-    std::vector<const llvm::Type*>& types() {
+    std::vector<llvm::Type*>& types() {
       return types_;
     }
 
@@ -280,7 +280,7 @@ namespace rubinius {
       return *this;
     }
 
-    Signature& operator<<(const llvm::Type* type) {
+    Signature& operator<<(llvm::Type* type) {
       types_.push_back(type);
 
       return *this;
@@ -302,17 +302,17 @@ namespace rubinius {
 
     llvm::CallInst* call(const char* name, llvm::Value** start, int size,
                       const char* inst_name, llvm::BasicBlock* block) {
-      return llvm::CallInst::Create(function(name), start, start+size, inst_name, block);
+      return llvm::CallInst::Create(function(name), llvm::ArrayRef<llvm::Value*>(start, size), inst_name, block);
     }
 
     llvm::CallInst* call(const char* name, llvm::Value** start, int size,
                       const char* inst_name, llvm::IRBuilder<>& builder) {
-      return builder.CreateCall(function(name), start, start+size, inst_name);
+      return builder.CreateCall(function(name), llvm::ArrayRef<llvm::Value*>(start, size), inst_name);
     }
 
     llvm::CallInst* call(const char* name, std::vector<llvm::Value*> args,
                       const char* inst_name, llvm::IRBuilder<>& builder) {
-      return builder.CreateCall(function(name), args.begin(), args.end(), inst_name);
+      return builder.CreateCall(function(name), args, inst_name);
     }
 
   };

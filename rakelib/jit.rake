@@ -28,10 +28,12 @@ namespace :jit do
                  rubinius::Numeric
                  rubinius::Float
                  rubinius::jit::RuntimeData
+                 rubinius::jit::GCLiteral
                  rubinius::CallUnit
                  rubinius::MethodCacheEntry
-                 memory::Address
-                 jit_state!
+                 rubinius::RefCount
+                 atomic::integer
+                 memory::Address!
     require 'tempfile'
 
     files = %w!vm/call_frame.hpp
@@ -73,18 +75,18 @@ namespace :jit do
       end
     end
 
-    opaque = %w!VM TypeInfo VMMethod Fixnum Symbol Selector LookupTable MethodTable
+    opaque = %w!VM State TypeInfo VMMethod Fixnum Symbol Selector LookupTable MethodTable
                 jit::RuntimeDataHolder Inliners!
 
     File.open("vm/gen/types.ll","w+") do |f|
       opaque.each do |o|
-        f.puts "%\"struct.rubinius::#{o}\" = type opaque"
+        f.puts "%\"struct.rubinius::#{o}\" = type {}"
       end
       f.puts(*types)
     end
 
-    `vendor/llvm/Release/bin/llvm-as < vm/gen/types.ll > vm/gen/types.bc`
-    `vendor/llvm/Release/bin/llc -march=cpp -cppgen=contents -o vm/llvm/types.cpp.gen vm/gen/types.bc`
+    `llvm-as < vm/gen/types.ll > vm/gen/types.bc`
+    `llc -march=cpp -cppgen=contents -o vm/llvm/types.cpp.gen vm/gen/types.bc`
   end
 
   task :generate_header do

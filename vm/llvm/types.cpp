@@ -17,14 +17,14 @@ namespace type {
         ls->cint(source_id_)
       };
 
-      node = llvm::MDNode::get(ls->ctx(), impMD, 4);
+      node = llvm::MDNode::get(ls->ctx(), impMD);
     } else {
       llvm::Value *impMD[] = {
         ls->cint(kind_),
         ls->cint(value_)
       };
 
-      node = llvm::MDNode::get(ls->ctx(), impMD, 2);
+      node = llvm::MDNode::get(ls->ctx(), impMD);
     }
 
     I->setMetadata(ls->metadata_id(), node);
