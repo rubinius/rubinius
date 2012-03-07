@@ -71,6 +71,7 @@ class Configure
     @llvm_source_dir        = "llvm-3.0.src"
     @llvm_source_url        = "http://llvm.org/releases/3.0/llvm-3.0.tar.gz"
     @llvm_asset_path        = "http://asset.rubini.us/prebuilt"
+    @llvm_source_build      = false
 
 
     if @host == "i686-pc-linux-gnu" || @host == "x86_64-unknown-linux-gnu"
@@ -123,7 +124,7 @@ class Configure
     @libversion = "2.0"
     @version = "#{@libversion}.0dev"
     @release_date = "yyyy-mm-dd"
-    @config_version = 155
+    @config_version = 156
 
     # TODO: add conditionals for platforms
     if RbConfig::CONFIG["build_os"] =~ /darwin/
@@ -525,6 +526,7 @@ Unsupported language version requested: #{ver}. Options are #{@supported_version
 
       if verify_llvm_source
         @log.write "  Code appears to be a proper tree."
+        @llvm_source_build = true
         return true
       end
     end
@@ -1527,6 +1529,25 @@ end
     check_force_clean if verify_config
 
     print_debug if @verbose
+
+    if @llvm_source_build
+      files = prebuilt_files.map { |f| File.basename f, ".tar.bz2" }.join("\n  ")
+
+      @log.write <<-EOM
+
+------------------------------------------------------------------
+Unable to find an existing binary build of LLVM for your platform.
+
+Please notify the Rubinius team at the #rubinius channel on
+irc.freenode.net and provide the following system information:
+
+  prebuilts:
+
+  #{files}
+------------------------------------------------------------------
+      EOM
+    end
+
     if @install
       @log.write "\nConfigured. Run 'rake install' to install Rubinius."
     else
