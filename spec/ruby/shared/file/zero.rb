@@ -34,7 +34,7 @@ describe :file_zero, :shared => true do
     end
   end
 
-  platform_is_not :windows do
+  platform_is_not :windows, :solaris do
     it "returns true for /dev/null" do
       @object.send(@method, '/dev/null').should == true
     end

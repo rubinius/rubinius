@@ -318,7 +318,7 @@ class Array
 
     out = ""
     return "[...]" if Thread.detect_recursion self do
-      sep = sep ? StringValue(sep) : $,
+      sep = sep.nil? ? $, : StringValue(sep)
 
       # We've manually unwound the first loop entry for performance
       # reasons.
@@ -338,7 +338,7 @@ class Array
       i = @start + 1
 
       while i < total
-        out << sep
+        out << sep if sep
 
         x = @tuple[i]
 

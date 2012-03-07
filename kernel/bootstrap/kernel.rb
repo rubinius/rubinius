@@ -47,11 +47,6 @@ module Kernel
     raise PrimitiveFailure, "Kernel#object_id primitive failed"
   end
 
-  def respond_to?(meth, include_private=false)
-    Rubinius.primitive :object_respond_to_public
-    respond_to_all?(meth.to_sym, include_private);
-  end
-
   def respond_to_all?(meth, include)
     Rubinius.primitive :object_respond_to
     raise PrimitiveFailure, "Kernel#prim_respond_to? failed"

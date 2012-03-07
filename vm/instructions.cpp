@@ -96,11 +96,7 @@ Object* VMMethod::interpreter(STATE,
   InterpreterState is;
   GCTokenImpl gct;
 
-#ifdef X86_ESI_SPEEDUP
-  register void** ip_ptr asm ("esi") = vmm->addresses;
-#else
   register void** ip_ptr = vmm->addresses;
-#endif
 
   Object** stack_ptr = call_frame->stk - 1;
 

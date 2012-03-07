@@ -15,7 +15,7 @@ public:
 
   void test_create() {
     Module* m = Module::create(state);
-    TS_ASSERT_EQUALS(m->name(), cNil);
+    TS_ASSERT_EQUALS(m->module_name(), cNil);
     TS_ASSERT_EQUALS(m->superclass(), cNil);
     TS_ASSERT(kind_of<LookupTable>(m->constants()));
     TS_ASSERT(kind_of<MethodTable>(m->method_table()));

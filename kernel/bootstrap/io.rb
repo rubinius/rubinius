@@ -45,7 +45,7 @@ class IO
 
   def self.select_primitive(readables, writables, errorables, timeout)
     Rubinius.primitive :io_select
-    raise PrimitiveFailure, "IO#select_primitive primitive failed"
+    raise IOError, "Unable to select on IO set (descriptor too big?)"
   end
 
   def self.fnmatch(pattern, path, flags)
@@ -68,11 +68,6 @@ class IO
   def write(str)
     Rubinius.primitive :io_write
     raise PrimitiveFailure, "IO#write failed. Might not have passed a string."
-  end
-
-  def blocking_read(size)
-    Rubinius.primitive :io_blocking_read
-    raise PrimitiveFailure, "IO#blocking_read primitive failed"
   end
 
   def read_if_available(size)

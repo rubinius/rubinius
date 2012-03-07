@@ -6,10 +6,6 @@ class Rubinius::Randomizer
     raise PrimitiveFailure, "Randomizer.allocate primitive failed"
   end
 
-  def self.instance
-    @instance ||= new
-  end
-
   def initialize
     self.seed = generate_seed
   end

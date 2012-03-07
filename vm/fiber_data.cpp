@@ -6,7 +6,7 @@
 
 namespace rubinius {
 
-#ifdef FIBER_ENABLED
+#ifdef RBX_FIBER_ENABLED
 
 #if defined(FIBER_ASM_X8664)
 
@@ -90,6 +90,18 @@ static void fiber_makectx(fiber_context_t* ctx, void* func, void** stack_bottom,
 }
 #endif
 
+#else
+
+static inline void fiber_switch(fiber_context_t* from, fiber_context_t* to) {
+  rubinius::bug("Fibers not supported on this platform");
+}
+
+static void fiber_makectx(fiber_context_t* ctx, void* func, void** stack_bottom,
+                          int stack_size)
+{
+  rubinius::bug("Fibers not supported on this platform");
+}
+
 #endif
 
 }
@@ -103,11 +115,11 @@ namespace rubinius {
   }
 
   void FiberData::take_stack(STATE) {
-    assert(stack_);
-
     assert(status_ != eDead);
 
     if(status_ == eOnStack || status_ == eRunning) return;
+
+    assert(stack_);
 
     if(stack_->shared_p()) stack_->flush(state);
     stack_->set_user(this);

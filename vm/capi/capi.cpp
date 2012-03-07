@@ -437,6 +437,12 @@ namespace rubinius {
       nm->set_ivar(env->state(), env->state()->symbol("cb_data"),
                    env->get_object(cb_data));
 
+      Object* current_block = env->block();
+      if(!current_block->nil_p()) {
+        nm->set_ivar(env->state(), env->state()->symbol("original_block"),
+                     current_block);
+      }
+
       Proc* prc = Proc::create(env->state(), env->state()->vm()->shared.globals.proc.get());
       prc->bound_method(env->state(), nm);
 

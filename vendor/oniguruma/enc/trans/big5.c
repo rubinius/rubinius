@@ -4,8 +4,8 @@
 /* src="big5-hkscs-tbl.rb", len=712033, checksum=34107 */
 /* src="big5-uao-tbl.rb", len=375883, checksum=11045 */
 
-#include "transcode_data.h"
-
+#include "transcoder.h"
+#include "ruby/ruby.h"
 
 
 static const unsigned char

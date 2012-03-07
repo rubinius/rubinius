@@ -161,6 +161,8 @@ Rubinius::BUILD_CONFIG[:lib_dirs].each do |l|
   add_include_dir l
 end
 
+add_define *Rubinius::BUILD_CONFIG[:defines]
+
 # Setup platform-specific values
 #
 # (Adapted from EventMachine. Thank you EventMachine and tmm1 !)

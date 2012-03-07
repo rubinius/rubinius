@@ -1,2 +1,0 @@
-fails:C-API Proc function rb_proc_new calls the C function wrapped by the Proc instance when sent #call
-fails:C-API Proc function rb_proc_new calls the C function wrapped by the Proc instance when sent #[]

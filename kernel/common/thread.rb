@@ -117,4 +117,8 @@ class Thread
     end
   end
 
+  def randomizer
+    @randomizer ||= Rubinius::Randomizer.new
+  end
+
 end

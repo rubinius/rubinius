@@ -1,1 +1,0 @@
-fails:C-API Kernel function rb_throw raises an ArgumentError if there is no catch block for the symbol

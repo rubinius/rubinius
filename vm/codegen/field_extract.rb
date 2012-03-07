@@ -1205,89 +1205,145 @@ write_if_new "vm/gen/kind_of.hpp" do |f|
   end
 end
 
-write_if_new "vm/gen/primitives_glue.gen.cpp" do |f|
-  names = []
-  jit_stubs = []
-  invoke_stubs = []
+class PrimitiveCodeGenerator
+  def initialize(parser)
+    classes = parser.classes.sort_by { |n, | n }
 
-  parser.classes.sort_by { |name,| name }.each do |n, cpp|
-    cpp.primitives.sort_by { |name,| name }.each do |pn, prim|
-      names << pn
+    @indexes = {}
+    @jit_functions = []
+    @invoke_functions = []
 
-      f << prim.generate_glue
+    @names = []
+    @primitives = []
 
-      if prim.respond_to?(:generate_jit_stub) and jit = prim.generate_jit_stub
-        f << jit
-        jit_stubs << [prim, pn]
-      end
+    @files = classes.map do |n, file|
+      primitives = file.primitives.sort_by { |n, | n }
+      primitives.each { |n, p| @names << n }
 
-      if prim.respond_to?(:generate_invoke_stub) and is = prim.generate_invoke_stub
-        f << is
-        invoke_stubs << [prim, pn]
-      end
+      @names += file.access_primitives
 
+      @primitives += primitives
+
+      file
     end
 
-    f << cpp.generate_accessors
-    names += cpp.access_primitives
+    @names.sort!
   end
 
-  f.puts "executor Primitives::resolve_primitive(STATE, Symbol* name, int* index) {"
+  def generate
+    method_primitives
+    jit_primitives
+    invoke_primitives
+    accessor_primitives
+    method_resolver
+    jit_resolver
+    invoke_resolver
+  end
 
-  indexes = {}
+  def method_primitives
+    write_if_new "vm/gen/method_primitives.cpp" do |f|
+      @primitives.each { |_, p| f << p.generate_glue }
+    end
+  end
 
-  i = 0
-  names.sort.each do |name|
-    indexes[name] = i
+  def jit_primitives
+    write_if_new "vm/gen/jit_primitives.cpp" do |f|
+      @primitives.each do |n, p|
+        if p.respond_to? :generate_jit_stub
+          code = p.generate_jit_stub
+          if code
+            f << code
+            @jit_functions << [n, p]
+          end
+        end
+      end
+    end
+  end
 
-    f.puts <<-EOF
+  def invoke_primitives
+    write_if_new "vm/gen/invoke_primitives.cpp" do |f|
+      @primitives.each do |n, p|
+        if p.respond_to? :generate_invoke_stub
+          code = p.generate_invoke_stub
+          if code
+            f << code
+            @invoke_functions << [n, p]
+          end
+        end
+      end
+    end
+  end
+
+  def accessor_primitives
+    write_if_new "vm/gen/accessor_primitives.cpp" do |f|
+      @files.each { |file| f << file.generate_accessors }
+    end
+  end
+
+  def method_resolver
+    write_if_new "vm/gen/method_resolver.cpp" do |f|
+      f.puts "executor Primitives::resolve_primitive(STATE, Symbol* name, int* index) {"
+
+      @names.each_with_index do |name, index|
+        @indexes[name] = index
+
+        f.puts <<-EOC
   if(name == state->symbol("#{name}")) {
-    if(index) *index = #{i};
+    if(index) *index = #{index};
     return &Primitives::#{name};
   }
 
-    EOF
+        EOC
+      end
 
-    i += 1
-  end
-
-  f.puts <<-EOF
-//  if(!state->probe()->nil_p()) {
-//    state->probe()->missing_primitive(state, name->c_str(state));
-//  }
-return &Primitives::unknown_primitive;
-// commented out while we have soft primitive failures
-// throw std::runtime_error(msg.c_str());
+      f.puts <<-EOC
+  //  if(!state->probe()->nil_p()) {
+  //    state->probe()->missing_primitive(state, name->c_str(state));
+  //  }
+  return &Primitives::unknown_primitive;
+  // commented out while we have soft primitive failures
+  // throw std::runtime_error(msg.c_str());
 }
-  EOF
-
-  f.puts "bool Primitives::get_jit_stub(int index, JITStubResults& res) {"
-  f.puts "  switch(index) {"
-
-  jit_stubs.each do |prim, name|
-    f.puts "  case #{indexes[name]}: // #{name}"
-    f.puts "    res.set_arg_count(#{prim.arg_count});"
-    f.puts "    res.set_name(\"jit_stub_#{name}\");"
-    f.puts "    res.set_pass_callframe(false);" if prim.safe
-    f.puts "    res.set_can_fail(false);" if !prim.can_fail
-    f.puts "    return true;"
+      EOC
+    end
   end
 
-  f.puts "  }"
+  def jit_resolver
+    write_if_new "vm/gen/jit_resolver.cpp" do |f|
+      f.puts "bool Primitives::get_jit_stub(int index, JITStubResults& res) {"
+      f.puts "  switch(index) {"
 
-  f.puts "  return false;"
+      @jit_functions.each do |n, p|
+        f.puts "  case #{@indexes[n]}: // #{n}"
+        f.puts "    res.set_arg_count(#{p.arg_count});"
+        f.puts "    res.set_name(\"jit_stub_#{n}\");"
+        f.puts "    res.set_pass_callframe(false);" if p.safe
+        f.puts "    res.set_can_fail(false);" unless p.can_fail
+        f.puts "    return true;"
+      end
 
-  f.puts "}"
+      f.puts "  }"
+      f.puts "  return false;"
+      f.puts "}"
+    end
+  end
 
-  f.puts "InvokePrimitive Primitives::get_invoke_stub(STATE, Symbol* name) {"
-  invoke_stubs.each do |prim, name|
-    f.puts <<-EOF
-  if(name == state->symbol("#{name}")) {
-    return &invoke_#{name};
+  def invoke_resolver
+    write_if_new "vm/gen/invoke_resolver.cpp" do |f|
+      f.puts "InvokePrimitive Primitives::get_invoke_stub(STATE, Symbol* name) {"
+
+      @invoke_functions.each do |n, |
+        f.puts <<-EOC
+  if(name == state->symbol("#{n}")) {
+    return &invoke_#{n};
   }
-    EOF
-  end
+        EOC
+      end
 
-  f.puts "  return &invoke_unknown_primitive;"
-  f.puts "}"
+      f.puts "  return &invoke_unknown_primitive;"
+      f.puts "}"
+    end
+  end
 end
+
+PrimitiveCodeGenerator.new(parser).generate

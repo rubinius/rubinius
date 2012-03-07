@@ -13,36 +13,38 @@ namespace rubinius {
   class CompiledMethod;
 
   class BackgroundCompileRequest {
-    TypedRoot<CompiledMethod*> method_;
-    TypedRoot<Object*> extra_;
+    CompiledMethod* method_;
+    Object* extra_;
+
     bool is_block_;
     thread::Condition* waiter_;
 
   public:
     BackgroundCompileRequest(STATE, CompiledMethod* cm, Object* extra, bool is_block=false)
-      : method_(state)
-      , extra_(state)
+      : method_(cm)
+      , extra_(extra)
       , is_block_(is_block)
       , waiter_(0)
-    {
-      method_.set(cm);
-      extra_.set(extra);
-    }
+    {}
 
     VMMethod* vmmethod() {
       return method_->backend_method();
     }
 
     CompiledMethod* method() {
-      return method_.get();
+      return method_;
     }
 
     BlockEnvironment* block_env() {
-      return try_as<BlockEnvironment>(extra_.get());
+      return try_as<BlockEnvironment>(extra_);
     }
 
     Class* receiver_class() {
-      return try_as<Class>(extra_.get());
+      return try_as<Class>(extra_);
+    }
+
+    Object* extra() {
+      return extra_;
     }
 
     bool is_block() {
@@ -55,6 +57,14 @@ namespace rubinius {
 
     thread::Condition* waiter() {
       return waiter_;
+    }
+
+    void set_method(CompiledMethod* meth) {
+      method_ = meth;
+    }
+
+    void set_extra(Object* x) {
+      extra_ = x;
     }
   };
 

@@ -2,8 +2,8 @@
 /* src="transcode-tblgen.rb", len=28084, checksum=28219 */
 /* src="japanese_euc.trans", len=1697, checksum=58602 */
 
-#include "transcode_data.h"
-
+#include "transcoder.h"
+#include "ruby/ruby.h"
 
 
 static const unsigned char

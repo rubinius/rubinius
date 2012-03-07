@@ -356,6 +356,22 @@ describe "C-API Array function" do
 
       @s.rb_iterate_each_pair(h).sort.should == [1,2]
     end
+
+    it "calls a function which can yield into the original block" do
+      s2 = []
+
+      o = Object.new
+      def o.each
+        yield 1
+        yield 2
+        yield 3
+        yield 4
+      end
+
+      @s.rb_iterate_then_yield(o) { |x| s2 << x }
+
+      s2.should == [1,2,3,4]
+    end
   end
 
   describe "rb_ary_delete" do

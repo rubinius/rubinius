@@ -1,0 +1,1 @@
+fails:DelegateClass.public_instance_methods does not include the protected methods of the delegated class

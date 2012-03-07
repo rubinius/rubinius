@@ -119,7 +119,7 @@ Rubinius::ConfigurationVariables.define do |c|
     s.vm_variable "stacks", 10,
       "The number of stacks in each Threads stack pool"
 
-    s.vm_variable "stack_size", 128 * 1024,
+    s.vm_variable "stack_size", 256 * 1024,
       "The size of each stack"
   end
 

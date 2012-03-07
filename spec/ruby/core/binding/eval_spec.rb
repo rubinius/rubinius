@@ -14,6 +14,18 @@ describe "Binding#eval" do
       bind.eval("Inside.name").should == "BindingSpecs::Demo::Inside"
     end
 
+    describe "with a file given" do
+
+      it "does not store the filename permanently" do
+        obj = BindingSpecs::Demo.new(1)
+        bind = obj.get_binding
+
+        bind.eval("__FILE__", "test.rb").should == "test.rb"
+        bind.eval("__FILE__").should_not == "test.rb"
+      end
+
+    end
+
     it "needs to be completed"
   end
 end

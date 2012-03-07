@@ -155,7 +155,7 @@ class Range
     return to_enum unless block_given?
     first, last = @begin, @end
 
-    raise TypeError, "can't iterate from #{first.class}" unless first.respond_to? :succ
+    raise TypeError, "can't iterate from #{first.class}" unless can_iterate_from?(first)
 
     case first
     when Fixnum

@@ -72,7 +72,7 @@ namespace immix {
 
   /// The size of a Line; should be a multiple of the processor cache line size,
   /// and sufficient to hold several typical objects; we use 128 bytes.
-  /// @todo Check imapct of different line sizes
+  /// @todo Check impact of different line sizes
   const int cLineSize  = 1 << cLineBits;
 
   /// Line mask used to convert an objects Address to the Address of the start
@@ -333,17 +333,20 @@ namespace immix {
       mark_line(line);
 
       // Next, determine how many lines this object is occupying.
-      // The immix paper talks about doing conservative line marking
-      // here. We're going to do accurate for now.
-      // @todo Implement conservative marking, as the immix paper finds
-      // that accurate marking is considerably more expensive.
-      int line_offset = (addr & cLineMask).as_int();
-      int additional_lines = ((line_offset + size - 1) >> cLineBits);
+      // We're doing conservative marking here, according to the
+      // immix paper. This means that for small objects we always
+      // mark the current and the next page, only in case of a big
+      // object we exactly determine the number of lines it uses.
+      if(size <= cLineSize && line + 1 < cLineTableSize) {
+        mark_line(line + 1);
+      } else {
+        int line_offset = (addr & cLineMask).as_int();
+        int additional_lines = ((line_offset + size - 1) >> cLineBits);
 
-      for(int i = 1; i <= additional_lines; i++) {
-        mark_line(line + i);
+        for(int i = 1; i <= additional_lines; i++) {
+          mark_line(line + i);
+        }
       }
-
       // Track how many times this was called, ie, how many objects this
       // block contains.
       objects_++;

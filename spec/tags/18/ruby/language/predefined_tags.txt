@@ -3,5 +3,3 @@ fails:Global variable $-a is read-only
 fails:Global variable $-l is read-only
 fails:Global variable $-p is read-only
 fails:Predefined global $~ raises an error if assigned an object not nil or instanceof MatchData
-fails:Predefined global $, raises TypeError if assigned a non-String
-fails:Predefined global $, defaults to nil

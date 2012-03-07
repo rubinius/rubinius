@@ -23,45 +23,71 @@
 
 #include "detection.hpp"
 
+#define STACK_BUF_SZ 1024
+
 namespace rubinius {
 
   using std::endl;
 
   Object* UnMarshaller::get_constant() {
-    char data[1024];
+    char stack_data[STACK_BUF_SZ];
+    char *malloc_data = NULL;
+    char *data = stack_data;
+
     size_t count;
 
     stream >> count;
     stream.get();
+
+    if(count >= STACK_BUF_SZ) {
+      malloc_data = (char*)malloc(count + 1);
+      data = malloc_data;
+    }
+
     stream.read(data, count + 1);
     data[count] = 0; // clamp
 
-    return state->vm()->path2class(data);
+    Object* cls = state->vm()->path2class(data);
+
+    if(malloc_data) {
+      free(malloc_data);
+    }
+    return cls;
   }
 
   Object* UnMarshaller::get_encoding() {
-    char data[1024];
+    char stack_data[STACK_BUF_SZ];
+    char *malloc_data = NULL;
+    char *data = stack_data;
     size_t count;
 
     stream >> count;
     stream.get();
+
+    if(count >= STACK_BUF_SZ) {
+      malloc_data = (char*)malloc(count + 1);
+      data = malloc_data;
+    }
+
     stream.read(data, count + 1);
     data[count] = 0; // clamp
 
     if(count > 0) {
-      return Encoding::find(state, data);
+      Encoding* enc = Encoding::find(state, data);
+      if(malloc_data) {
+        free(malloc_data);
+      }
+      return enc;
     } else {
       return cNil;
     }
   }
 
   Object* UnMarshaller::get_int() {
-    char data[1024];
-
+    std::string data;
     stream >> data;
-    data[sizeof(data) - 1] = '\0';
 
-    return Bignum::from_string(state, data, 16);
+    return Bignum::from_string(state, data.c_str(), 16);
   }
 
   String* UnMarshaller::get_string() {
@@ -85,15 +111,29 @@ namespace rubinius {
   }
 
   Symbol* UnMarshaller::get_symbol() {
-    char data[1024];
+    char stack_data[STACK_BUF_SZ];
+    char *malloc_data = NULL;
+    char *data = stack_data;
     size_t count;
 
     stream >> count;
     stream.get();
+
+    if(count >= STACK_BUF_SZ) {
+      malloc_data = (char*)malloc(count + 1);
+      data = malloc_data;
+    }
+
     stream.read(data, count + 1);
     data[count] = 0; // clamp
 
-    return state->symbol(data);
+    Symbol* sym = state->symbol(data);
+
+    if(malloc_data) {
+      free(malloc_data);
+    }
+
+    return sym;
   }
 
   Tuple* UnMarshaller::get_tuple() {
@@ -112,16 +152,18 @@ namespace rubinius {
 #define FLOAT_EXP_OFFSET    58
 
   Float* UnMarshaller::get_float() {
-    char data[1024];
+    std::string line;
+    const char* data;
 
     // discard the delimiter
     stream.get();
 
-    stream.getline(data, 1024);
+    std::getline(stream, line);
     if(stream.fail()) {
       Exception::type_error(state, "Unable to unmarshal Float: failed to read value");
     }
 
+    data = line.c_str();
     if(data[0] == ' ') {
       double x;
       long   e;
@@ -158,13 +200,18 @@ namespace rubinius {
   InstructionSequence* UnMarshaller::get_iseq() {
     size_t count;
     long op;
+    char data[32];
     stream >> count;
+
+    // Read off newline
+    stream.get();
 
     InstructionSequence* iseq = InstructionSequence::create(state, count);
     Tuple* ops = iseq->opcodes();
 
     for(size_t i = 0; i < count; i++) {
-      stream >> op;
+      stream.getline(data, 32);
+      op = strtol(data, NULL, 10);
       ops->put(state, i, Fixnum::from(op));
     }
 

@@ -14,6 +14,15 @@ class Encoding
   EncodingList  = Rubinius::EncodingClass::EncodingList
   LocaleCharmap = Rubinius::EncodingClass::LocaleCharmap
 
+  class Transcoder
+    attr_accessor :source
+    attr_accessor :target
+
+    def inspect
+      "#<#{super} #{source} to #{target}"
+    end
+  end
+
   class Converter
     def initialize(from, to, options={})
     end

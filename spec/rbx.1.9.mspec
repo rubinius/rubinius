@@ -84,11 +84,7 @@ class MSpecScript
 
     # Excluded while building out basic 1.9 infrastructure
     '^spec/ruby/core/module/name',
-    '^spec/ruby/core/proc/arity',
     '^spec/ruby/core/process/spawn',
-
-    '^spec/ruby/library/delegate',
-    '^spec/ruby/library/zlib',
 
     # Excluded because the specs are extremely system dependent.
     '^spec/ruby/library/syslog',

@@ -468,14 +468,7 @@ class Socket < BasicSocket
 
       fcntl(Fcntl::F_SETFL, Fcntl::O_NONBLOCK)
 
-      fd = nil
-      sockaddr = nil
-
-      FFI::MemoryPointer.new 1024 do |sockaddr_p| # HACK from MRI
-        FFI::MemoryPointer.new :int do |size_p|
-          fd = Socket::Foreign.accept descriptor, sockaddr_p, size_p
-        end
-      end
+      fd = Socket::Foreign.accept descriptor, nil, nil
 
       Errno.handle 'accept(2)' if fd < 0
 
@@ -485,6 +478,22 @@ class Socket < BasicSocket
       socket
     end
 
+    def accept_nonblock2
+      return if closed?
+
+      fcntl(Fcntl::F_SETFL, Fcntl::O_NONBLOCK)
+
+      fd = Socket::Foreign.accept descriptor, nil, nil
+      if fd < 0
+        return nil if FFI::Platform::POSIX.errno == Errno::EAGAIN::Errno
+        Errno.handle 'accept(2)'
+      end
+
+      # TCPServer -> TCPSocket etc. *sigh*
+      socket = self.class.superclass.allocate
+      IO.setup socket, fd, nil, true
+      socket
+    end
   end
 
   include Socket::ListenAndAccept

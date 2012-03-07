@@ -491,7 +491,7 @@ namespace rubinius {
 #endif
   }
 
-  Object* System::vm_gc_start(STATE, Object* force) {
+  Object* System::vm_gc_start(STATE, GCToken gct, Object* force, CallFrame* call_frame) {
     // force is set if this is being called by the kernel (for instance
     // in File#ininitialize). If we decided to ignore some GC.start calls
     // by usercode trying to be clever, we can use force to know that we
@@ -499,7 +499,7 @@ namespace rubinius {
     if(CBOOL(force) || state->shared().config.gc_honor_start) {
       state->memory()->collect_young_now = true;
       state->memory()->collect_mature_now = true;
-      state->shared().gc_soon();
+      state->vm()->collect_maybe(gct, call_frame);
     }
     return cNil;
   }
@@ -813,9 +813,9 @@ namespace rubinius {
       if(cls->true_superclass(state) != super) {
         std::ostringstream message;
         message << "Superclass mismatch: given "
-                << as<Module>(super)->name()->debug_str(state)
+                << as<Module>(super)->debug_str(state)
                 << " but previously set to "
-                << cls->true_superclass(state)->name()->debug_str(state);
+                << cls->true_superclass(state)->debug_str(state);
 
         Exception* exc =
           Exception::make_type_error(state, Class::type, super,
@@ -833,12 +833,7 @@ namespace rubinius {
     if(super->nil_p()) super = G(object);
     Class* cls = Class::create(state, as<Class>(super));
 
-    if(under == G(object)) {
-      cls->name(state, name);
-    } else {
-      cls->set_name(state, under, name);
-    }
-
+    cls->set_name(state, name, under);
     under->set_const(state, name, cls);
 
     return cls;
@@ -863,7 +858,7 @@ namespace rubinius {
 
     Module* module = Module::create(state);
 
-    module->set_name(state, under, name);
+    module->set_name(state, name, under);
     under->set_const(state, name, module);
 
     return module;
@@ -1619,5 +1614,18 @@ namespace rubinius {
     size_t b = hash_trie_bit(hash, level);
 
     return Integer::from(state, m & ~b);
+  }
+
+  String* System::vm_get_module_name(STATE, Module* mod) {
+    return mod->get_name(state);
+  }
+
+  Object* System::vm_set_module_name(STATE, Module* mod, Object* name, Object* under) {
+    if(name->nil_p()) return cNil;
+
+    if(under->nil_p()) under = G(object);
+    mod->set_name(state, as<Symbol>(name), as<Module>(under));
+
+    return cNil;
   }
 }

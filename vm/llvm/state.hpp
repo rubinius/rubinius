@@ -28,6 +28,7 @@ namespace rubinius {
   typedef std::map<int, LocalInfo> LocalMap;
   class SymbolTable;
   class CompiledMethod;
+  class GarbageCollector;
 
   namespace jit {
     class Builder;
@@ -102,6 +103,8 @@ namespace rubinius {
     llvm::Value* One;
 
     static LLVMState* get(STATE);
+    static LLVMState* get_if_set(STATE);
+    static LLVMState* get_if_set(VM*);
     static void shutdown(STATE);
     static void start(STATE);
     static void on_fork(STATE);
@@ -243,6 +246,8 @@ namespace rubinius {
     void on_fork_i();
     void pause_i();
     void unpause_i();
+
+    void gc_scan(GarbageCollector* gc);
 
     static void show_machine_code(void* impl, size_t bytes);
   };

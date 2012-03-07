@@ -78,3 +78,89 @@ describe "Block-local variables" do
     end
   end
 end
+
+describe "Post-args" do
+  it "appear after a splat" do
+    proc do |*a, b|
+      [a, b]
+    end.call(1, 2, 3).should == [[1, 2], 3]
+
+    proc do |*a, b, c|
+      [a, b, c]
+    end.call(1, 2, 3).should == [[1], 2, 3]
+
+    proc do |*a, b, c, d|
+      [a, b, c, d]
+    end.call(1, 2, 3).should == [[], 1, 2, 3]
+  end
+
+  it "are required" do
+    lambda {
+      lambda do |*a, b|
+        [a, b]
+      end.call
+    }.should raise_error(ArgumentError)
+  end
+
+  describe "with required args" do
+
+    it "gathers remaining args in the splat" do
+      proc do |a, *b, c|
+        [a, b, c]
+      end.call(1, 2, 3).should == [1, [2], 3]
+    end
+
+    it "has an empty splat when there are no remaining args" do
+      proc do |a, b, *c, d|
+        [a, b, c, d]
+      end.call(1, 2, 3).should == [1, 2, [], 3]
+
+      proc do |a, *b, c, d|
+        [a, b, c, d]
+      end.call(1, 2, 3).should == [1, [], 2, 3]
+    end
+  end
+
+  describe "with optional args" do
+
+    it "gathers remaining args in the splat" do
+      proc do |a=5, *b, c|
+        [a, b, c]
+      end.call(1, 2, 3).should == [1, [2], 3]
+    end
+
+    it "overrides the optional arg before gathering in the splat" do
+      proc do |a=5, *b, c|
+        [a, b, c]
+      end.call(2, 3).should == [2, [], 3]
+
+      proc do |a=5, b=6, *c, d|
+        [a, b, c, d]
+      end.call(1, 2, 3).should == [1, 2, [], 3]
+
+      proc do |a=5, *b, c, d|
+        [a, b, c, d]
+      end.call(1, 2, 3).should == [1, [], 2, 3]
+    end
+
+    it "uses the required arg before the optional and the splat" do
+      proc do |a=5, *b, c|
+        [a, b, c]
+      end.call(3).should == [5, [], 3]
+
+      proc do |a=5, b=6, *c, d|
+        [a, b, c, d]
+      end.call(3).should == [5, 6, [], 3]
+
+      proc do |a=5, *b, c, d|
+        [a, b, c, d]
+      end.call(2, 3).should == [5, [], 2, 3]
+    end
+
+    it "overrides the optional args from left to right before gathering the splat" do
+      proc do |a=5, b=6, *c, d|
+        [a, b, c, d]
+      end.call(2, 3).should == [2, 6, [], 3]
+    end
+  end
+end

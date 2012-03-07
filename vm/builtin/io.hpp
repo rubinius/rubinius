@@ -6,7 +6,6 @@
 
 namespace rubinius {
   class ByteArray;
-  class Channel;
   class String;
   class Encoding;
 
@@ -44,7 +43,6 @@ namespace rubinius {
 
     native_int to_fd();
     void set_mode(STATE);
-    void unsafe_set_descriptor(native_int fd);
     void force_read_only(STATE);
     void force_write_only(STATE);
     static void finalize(STATE, IO* io);
@@ -124,9 +122,6 @@ namespace rubinius {
     // Rubinius.primitive :io_shutdown
     Object* shutdown(STATE, Fixnum* how);
 
-    // Rubinius.primitive :io_blocking_read
-    Object* blocking_read(STATE, Fixnum* count);
-
     // Rubinius.primitive :io_query
     Object* query(STATE, Symbol* op);
 
@@ -151,7 +146,6 @@ namespace rubinius {
 
   private:
     ByteArray* storage_;   // slot
-    Channel* channel_;     // slot
     Integer* total_;       // slot
     Integer* used_;        // slot
     Integer* start_;       // slot
@@ -162,7 +156,6 @@ namespace rubinius {
     /* accessors */
 
     attr_accessor(storage, ByteArray);
-    attr_accessor(channel, Channel);
     attr_accessor(total, Integer);
     attr_accessor(used, Integer);
     attr_accessor(start, Integer);

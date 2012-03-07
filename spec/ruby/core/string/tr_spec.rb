@@ -55,6 +55,10 @@ describe "String#tr" do
     "hello ^-^".tr("^---l-o", "x").should == "xxlloxx-x"
   end
 
+  it "supports non-injective replacements" do
+    "hello".tr("helo", "1212").should == "12112"
+  end
+
   it "tries to convert from_str and to_str to strings using to_str" do
     from_str = mock('ab')
     from_str.should_receive(:to_str).and_return("ab")

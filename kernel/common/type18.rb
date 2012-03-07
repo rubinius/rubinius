@@ -36,12 +36,6 @@ module Rubinius
       raise NameError, "`#{name}' is not allowed as an instance variable name"
     end
 
-    # Taint host if source is tainted.
-    def self.infect(host, source)
-      host.taint if source.tainted?
-      host
-    end
-
     def self.coerce_to_binding(obj)
       if obj.kind_of? Proc
         binding = obj.binding

@@ -5,6 +5,8 @@
 #include "vm/type_info.hpp"
 
 #include "builtin/object.hpp"
+#include "builtin/randomizer.hpp"
+#include "builtin/lookuptable.hpp"
 #include "executor.hpp"
 
 namespace rubinius {
@@ -35,6 +37,10 @@ namespace rubinius {
 
     Fixnum* thread_id_; // slot
 
+    Randomizer* randomizer_; // slot
+
+    LookupTable* locals_; // slot
+
     thread::SpinLock init_lock_;
 
     /// The VM state for this thread and this thread alone
@@ -61,6 +67,10 @@ namespace rubinius {
     attr_accessor(debugger_thread, Thread);
 
     attr_accessor(thread_id, Fixnum);
+
+    attr_accessor(randomizer, Randomizer);
+
+    attr_accessor(locals, LookupTable);
 
     VM* vm() {
       return vm_;
@@ -102,7 +112,6 @@ namespace rubinius {
      */
     // Rubinius.primitive :thread_pass
     static Object* pass(STATE, CallFrame* calling_environment);
-
 
   public:   /* Instance primitives */
 
@@ -175,6 +184,38 @@ namespace rubinius {
 
     // Rubinius.primitive :thread_unlock_locks
     Object* unlock_locks(STATE, GCToken gct);
+
+    /**
+     * Retrieve a value store in the thread locals.
+     * This is done in a primitive because it also has
+     * to consider any running fibers.
+     */
+    // Rubinius.primitive :thread_locals_aref
+    Object* locals_aref(STATE, Symbol* key);
+
+    /**
+     * Store a value in the thread locals.
+     * This is done in a primitive because it also has
+     * to consider any running fibers.
+     */
+    // Rubinius.primitive :thread_locals_store
+    Object* locals_store(STATE, Symbol* key, Object* value);
+
+    /**
+     * Retrieve the keys for all thread locals.
+     * This is done in a primitive because it also has
+     * to consider any running fibers.
+     */
+    // Rubinius.primitive :thread_locals_keys
+    Array* locals_keys(STATE);
+
+    /**
+     * Check whether a given key has a value store in the thread locals.
+     * This is done in a primitive because it also has
+     * to consider any running fibers.
+     */
+    // Rubinius.primitive :thread_locals_has_key
+    Object* locals_has_key(STATE, Symbol* key);
 
     void init_lock();
     void cleanup();

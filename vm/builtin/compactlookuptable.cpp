@@ -17,7 +17,6 @@ namespace rubinius {
     GO(compactlookuptable).set(ontology::new_class(state, "CompactLookupTable",
           G(tuple), G(rubinius)));
     G(compactlookuptable)->set_object_type(state, CompactLookupTableType);
-    G(compactlookuptable)->name(state, state->symbol("Rubinius::CompactLookupTable"));
   }
 
   CompactLookupTable* CompactLookupTable::create(STATE) {

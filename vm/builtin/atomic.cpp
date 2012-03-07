@@ -9,7 +9,6 @@ namespace rubinius {
           "AtomicReference", G(object), G(rubinius)));
 
     G(atomic_ref)->set_object_type(state, AtomicReferenceType);
-    G(atomic_ref)->name(state, state->symbol("Rubinius::AtomicReference"));
   }
 
   AtomicReference* AtomicReference::allocate(STATE) {

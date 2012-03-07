@@ -1,6 +1,7 @@
 // TODO: resolve after importing Oniguruma from MRI
 #include <stddef.h>
 #include "capi/19/include/ruby/oniguruma.h"
+#include "capi/19/include/ruby/transcoder.h"
 #include "capi/19/include/ruby/regenc.h"
 
 #include "builtin/array.hpp"
@@ -342,5 +343,17 @@ extern "C" {
 
   int rb_toupper(int c) {
     return rb_isascii(c) ? ONIGENC_ASCII_CODE_TO_UPPER_CASE(c) : c;
+  }
+
+  void rb_declare_transcoder(const char* from, const char* to, const char* lib) {
+    NativeMethodEnvironment* env = NativeMethodEnvironment::get();
+
+    Transcoding::declare(env->state(), from, to, lib);
+  }
+
+  void rb_register_transcoder(const rb_transcoder* trans) {
+    NativeMethodEnvironment* env = NativeMethodEnvironment::get();
+
+    Transcoding::define(env->state(), (OnigTranscodingType*)trans);
   }
 }

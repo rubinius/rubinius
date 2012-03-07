@@ -1114,15 +1114,15 @@ class Array
 
     if (@total - @start) < 13
       if block
-        isort_block! @start, (@start + @total) - 1, block
+        isort_block! @start, (@start + @total), block
       else
-        isort! @start, (@start + @total) - 1
+        isort! @start, (@start + @total)
       end
     else
       if block
-        qsort_block! block
+        mergesort_block! block
       else
-        qsort!
+        mergesort!
       end
     end
 
@@ -1288,90 +1288,129 @@ class Array
 
   private :recursively_flatten
 
-  # In-place non-recursive sort between the given indexes.
-  def qsort!
-    stack = [[@start, @start + @total - 1]]
+  # Non-recursive sort using a temporary tuple for scratch storage.
+  # This is a hybrid mergesort; it's hybrid because for short runs under
+  # 8 elements long we use insertion sort and then merge those sorted
+  # runs back together.
+  def mergesort!
+    width = 7
+    @scratch = Rubinius::Tuple.new @total
+    
+    # do a pre-loop to create a bunch of short sorted runs; isort on these
+    # 7-element sublists is more efficient than doing merge sort on 1-element
+    # sublists
+    left = 0
+    while left < @total
+      right = left + width
+      right = right < @total ? right : @total
+      last = left + (2 * width)
+      last = last < @total ? last : @total
 
-    until stack.empty?
-      left, right = stack.pop
+      isort!(left, right)
+      isort!(right, last)
 
-      if right > left
-        pivotindex = left + ((right - left) / 2)
-        # inline pivot routine
-
-        pivot = @tuple.at(pivotindex)
-
-        @tuple.swap(pivotindex, right)
-        store = left
-
-        i = left
-        while i < right
-          cmp = (@tuple.at(i) <=> pivot)
-          if cmp < 0
-            @tuple.swap(i, store)
-            store += 1
-          end
-
-          i += 1
-        end
-
-        @tuple.swap(store, right)
-
-        pi_new = store
-
-        # end pivot
-        stack.push [left, pi_new - 1]
-        stack.push [pi_new + 1, right]
-      end
+      left += 2 * width
     end
 
-    self
-  end
-  private :qsort!
+    # now just merge together those sorted lists from the prior loop
+    width = 7
+    while width < @total
+      left = 0
+      while left < @total
+        right = left + width
+        right = right < @total ? right : @total
+        last = left + (2 * width)
+        last = last < @total ? last : @total
 
-  # In-place non-recursive sort between the given indexes using a block.
-  def qsort_block!(block)
-    stack = [[@start, @start + @total - 1]]
-
-    until stack.empty?
-      left, right = stack.pop
-
-      if right > left
-        pivotindex = left + ((right - left) / 2)
-        # pi_new = qsort_partition(left, right, pi)
-        # inline pivot routine
-
-        pivot = @tuple.at(pivotindex)
-
-        @tuple.swap(pivotindex, right)
-        store = left
-
-        i = left
-        while i < right
-          block_result = block.call(@tuple.at(i), pivot)
-          raise ArgumentError, 'block returned nil' if block_result.nil?
-          cmp = Comparable.compare_int block_result
-          if cmp < 0
-            @tuple.swap(i, store)
-            store += 1
-          end
-
-          i += 1
-        end
-
-        @tuple.swap(store, right)
-
-        pi_new = store
-
-        # end pivot
-        stack.push [left, pi_new - 1]
-        stack.push [pi_new + 1, right]
+        bottom_up_merge(left, right, last)
+        left += 2 * width
       end
+
+      @tuple, @scratch = @scratch, @tuple
+      width *= 2
     end
 
+    @scratch = nil
     self
   end
-  private :qsort_block!
+  private :mergesort!
+
+  def bottom_up_merge(left, right, last)
+    left_index = left
+    right_index = right
+    i = left
+
+    while i < last
+      if left_index < right && (right_index >= last || (@tuple.at(left_index) <=> @tuple.at(right_index)) <= 0)
+        @scratch[i] = @tuple.at(left_index)
+        left_index += 1
+      else
+        @scratch[i] = @tuple.at(right_index)
+        right_index += 1
+      end
+
+      i += 1
+    end
+  end
+  private :bottom_up_merge
+
+  def mergesort_block!(block)
+    width = 7
+    @scratch = Rubinius::Tuple.new @total
+
+    left = 0
+    while left < @total
+      right = left + width
+      right = right < @total ? right : @total
+      last = left + (2 * width)
+      last = last < @total ? last : @total
+
+      isort_block!(left, right, block)
+      isort_block!(right, last, block)
+
+      left += 2 * width
+    end
+
+    width = 7
+    while width < @total
+      left = 0
+      while left < @total
+        right = left + width
+        right = right < @total ? right : @total
+        last = left + (2 * width)
+        last = last < @total ? last : @total
+
+        bottom_up_merge_block(left, right, last, block)
+        left += 2 * width
+      end
+
+      @tuple, @scratch = @scratch, @tuple
+      width *= 2
+    end
+
+    @scratch = nil
+    self
+  end
+  private :mergesort_block!
+
+  def bottom_up_merge_block(left, right, last, block)
+    left_index = left
+    right_index = right
+    i = left
+
+    while i < last
+      if left_index < right && (right_index >= last || block.call(@tuple.at(left_index), @tuple.at(right_index)) <= 0)
+        @scratch[i] = @tuple.at(left_index)
+        left_index += 1
+      else
+        @scratch[i] = @tuple.at(right_index)
+        right_index += 1
+      end
+
+      i += 1
+    end
+  end
+  private :bottom_up_merge_block
 
   # Insertion sort in-place between the given indexes.
   def isort!(left, right)
@@ -1379,10 +1418,10 @@ class Array
 
     tup = @tuple
 
-    while i <= right
+    while i < right
       j = i
 
-      while j > @start
+      while j > left
         jp = j - 1
         el1 = tup.at(jp)
         el2 = tup.at(j)
@@ -1408,14 +1447,14 @@ class Array
   def isort_block!(left, right, block)
     i = left + 1
 
-    while i <= right
+    while i < right
       j = i
 
-      while j > @start
+      while j > left
         block_result = block.call(@tuple.at(j - 1), @tuple.at(j))
 
         if block_result.nil?
-          raise ArgumentError, 'block returnd nil'
+          raise ArgumentError, 'block returned nil'
         elsif block_result > 0
           @tuple.swap(j, (j - 1))
           j -= 1

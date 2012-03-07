@@ -80,7 +80,7 @@ namespace rubinius {
      *
      */
     // Rubinius.primitive :vm_gc_start
-    static Object*  vm_gc_start(STATE, Object* force);
+    static Object*  vm_gc_start(STATE, GCToken gct, Object* force, CallFrame* calling_environment);
 
     /**
      *  Retrieve a value from VM configuration.
@@ -350,6 +350,11 @@ namespace rubinius {
     // Rubinius.primitive :vm_hash_trie_unset_bitmap
     static Integer* vm_hash_trie_unset_bitmap(STATE, Fixnum* hash, Fixnum* level, Integer* map);
 
+    // Rubinius.primitive :vm_get_module_name
+    static String* vm_get_module_name(STATE, Module* mod);
+
+    // Rubinius.primitive :vm_set_module_name
+    static Object* vm_set_module_name(STATE, Module* mod, Object* name, Object* under);
 
   public:   /* Type info */
 

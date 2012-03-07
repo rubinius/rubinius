@@ -1074,9 +1074,9 @@ namespace rubinius {
 
     NativeFunction* func = force_as<NativeFunction>(obj);
 
-    func->ffi_data->set_mark();
-
     if(func->ffi_data) {
+      func->ffi_data->set_mark();
+
       if(func->ffi_data->callable) {
         Object* tmp = mark.call(func->ffi_data->callable);
         if(tmp) {

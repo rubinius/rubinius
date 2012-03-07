@@ -138,6 +138,31 @@ ruby_version_is "1.9" do
       end
     end
 
+    describe "ENCODING_GET" do
+      it "returns the index of the encoding of a String" do
+        @s.rb_ENCODING_GET("string").should >= 0
+      end
+
+      it "returns the index of the encoding of a Regexp" do
+        @s.rb_ENCODING_GET(/regexp/).should >= 0
+      end
+
+      it "returns the index of the encoding of an Object" do
+        obj = mock("rb_enc_set_index")
+        @s.rb_enc_set_index(obj, 1)
+        @s.rb_ENCODING_GET(obj).should == 1
+      end
+
+      it "returns 0 for an object without an encoding" do
+        obj = mock("rb_enc_set_index")
+        @s.rb_ENCODING_GET(obj).should == 0
+      end
+    end
+
+    describe "ENCODING_SET" do
+
+    end
+
     describe "rb_to_encoding" do
       it "returns the encoding for the Encoding instance passed" do
         @s.rb_to_encoding(Encoding::BINARY).should == "ASCII-8BIT"

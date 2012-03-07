@@ -18,6 +18,10 @@
 #include "builtin/block_environment.hpp"
 #include "capi/handle.hpp"
 
+#ifdef ENABLE_LLVM
+#include "llvm/state.hpp"
+#endif
+
 #include "instruments/tooling.hpp"
 
 #include "arguments.hpp"
@@ -34,6 +38,9 @@ namespace rubinius {
     , threads_(state->shared.threads())
     , global_handle_locations_(state->shared.global_handle_locations())
     , gc_token_(0)
+#ifdef ENABLE_LLVM
+    , llvm_state_(LLVMState::get_if_set(state))
+#endif
   {}
 
   GCData::GCData(VM* state, GCToken gct)
@@ -44,7 +51,11 @@ namespace rubinius {
     , threads_(state->shared.threads())
     , global_handle_locations_(state->shared.global_handle_locations())
     , gc_token_(&gct)
+#ifdef ENABLE_LLVM
+    , llvm_state_(LLVMState::get_if_set(state))
+#endif
   {}
+
   GarbageCollector::GarbageCollector(ObjectMemory *om)
                    :object_memory_(om), weak_refs_(NULL) { }
 
@@ -87,9 +98,9 @@ namespace rubinius {
 
     // Handle Tuple directly, because it's so common
     if(Tuple* tup = try_as<Tuple>(obj)) {
-      int size = tup->num_fields();
+      native_int size = tup->num_fields();
 
-      for(int i = 0; i < size; i++) {
+      for(native_int i = 0; i < size; i++) {
         slot = tup->field[i];
         if(slot->reference_p()) {
           slot = saw_object(slot);

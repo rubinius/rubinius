@@ -51,6 +51,10 @@ namespace jit {
       return ctx_;
     }
 
+    JITMethodInfo* info() {
+      return ctx_.root();
+    }
+
     void initialize_call_frame(llvm::Function* func,
       llvm::BasicBlock* block, llvm::Value* call_frame,
       int stack_size, llvm::Value* stack, llvm::Value* vars);
@@ -61,7 +65,7 @@ namespace jit {
     void compile_builder(jit::Context& ctx, LLVMState*, JITMethodInfo&, rubinius::jit::Builder&);
 
     void* function_pointer();
-    void* generate_function(LLVMState* ls);
+    void* generate_function(LLVMState* ls, bool indy=true);
     void show_machine_code();
 
     void import_args(LLVMState* ls, llvm::Function* func,

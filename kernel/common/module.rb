@@ -85,18 +85,11 @@ class Module
   end
 
   def name
-    @module_name ? @module_name.to_s : ""
-  end
-
-  alias_method :__name__, :name
-
-  def __path__
-    return @module_name if @module_name
-    inspect
+    Rubinius::Type.module_name self
   end
 
   def to_s
-    @module_name ? @module_name.to_s : super
+    Rubinius::Type.module_inspect self
   end
 
   alias_method :inspect, :to_s
@@ -449,11 +442,12 @@ class Module
   alias_method :class_exec, :module_exec
 
   def const_set(name, value)
-    if Rubinius::Type.object_kind_of?(value, Module)
-      value.set_name_if_necessary(name, self)
+    name = Rubinius::Type.coerce_to_constant_name name
+
+    if Rubinius::Type.object_kind_of? value, Module
+      Rubinius::Type.set_module_name value, name, self
     end
 
-    name = normalize_const_name(name)
     @constant_table[name] = value
     Rubinius.inc_global_serial
 
@@ -469,7 +463,8 @@ class Module
   # with the name.
 
   def const_missing(name)
-    raise NameError, "Missing or uninitialized constant: #{self.__name__}::#{name}"
+    mod_name = Rubinius::Type.module_name self
+    raise NameError, "Missing or uninitialized constant: #{mod_name}::#{name}"
   end
 
   def <(other)
@@ -527,16 +522,6 @@ class Module
     raise PrimitiveFailure, "Module#=== primitive failed"
   end
 
-  def set_name_if_necessary(name, mod)
-    return if @module_name
-
-    if mod == Object
-      @module_name = name.to_sym
-    else
-      @module_name = "#{mod.__path__}::#{name}".to_sym
-    end
-  end
-
   # Is an autoload trigger defined for the given path?
   def autoload?(name)
     name = name.to_sym
@@ -557,7 +542,8 @@ class Module
 
     sym = name.to_sym
     unless constant_table.has_key?(sym)
-      raise NameError, "Missing or uninitialized constant: #{self.__name__}::#{name}"
+      mod_name = Rubinius::Type.module_name self
+      raise NameError, "Missing or uninitialized constant: #{mod_name}::#{name}"
     end
 
     val = constant_table.delete(sym)
@@ -579,18 +565,6 @@ class Module
   end
 
   private :method_added
-
-  def normalize_const_name(name)
-    name = Rubinius::Type.coerce_to_symbol(name)
-
-    unless name.is_constant?
-      raise NameError, "wrong constant name #{name}"
-    end
-
-    name
-  end
-
-  private :normalize_const_name
 
   def initialize_copy(other)
     @method_table = other.method_table.dup

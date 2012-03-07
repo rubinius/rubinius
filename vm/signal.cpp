@@ -77,10 +77,20 @@ namespace rubinius {
   }
 
   void SignalHandler::shutdown() {
-    if(handler_) handler_->shutdown_i();
+    if(handler_) {
+      handler_->shutdown_i();
+      handler_ = 0;
+    }
   }
 
   void SignalHandler::shutdown_i() {
+    for(std::list<int>::iterator i = watched_signals_.begin();
+        i != watched_signals_.end();
+        ++i)
+    {
+      signal(*i, SIG_DFL);
+    }
+
     pthread_t os = self_->os_thread();
 
     exit_ = true;
@@ -148,19 +158,14 @@ namespace rubinius {
   }
 
   void SignalHandler::handle_signal(int sig) {
+    if(exit_) return;
+
     queued_signals_ = 1;
     pending_signals_[sig] = 1;
 
-    // If the main thread is running, just tell it that
-    // there are local interrupts waiting.
-    if(!target_->waiting_p()) {
-      target_->check_local_interrupts = true;
-      return;
-    }
+    target_->check_local_interrupts = true;
 
     if(target_->should_interrupt_with_signal()) {
-      target_->check_local_interrupts = true;
-
       if(!pthread_equal(pthread_self(), main_thread)) {
 #ifdef RBX_WINDOWS
         // TODO: Windows
@@ -189,10 +194,13 @@ namespace rubinius {
 
     if(type == eDefault) {
       action.sa_handler = SIG_DFL;
+      watched_signals_.remove(sig);
     } else if(type == eIgnore) {
       action.sa_handler = SIG_IGN;
+      watched_signals_.push_back(sig);
     } else {
       action.sa_handler = signal_tramp;
+      watched_signals_.push_back(sig);
     }
 
     action.sa_flags = 0;

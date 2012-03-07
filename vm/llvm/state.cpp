@@ -40,6 +40,8 @@
 
 #include "windows_compat.h"
 
+#include "gc/gc.hpp"
+
 namespace autogen_types {
   void makeLLVMModuleContents(llvm::Module* module);
 }
@@ -64,7 +66,11 @@ using namespace llvm;
 
 namespace rubinius {
 
+  static thread::Mutex lock_;
+
   LLVMState* LLVMState::get(STATE) {
+    thread::Mutex::LockGuard lg(lock_);
+
     if(!state->shared().llvm_state) {
       state->shared().llvm_state = new LLVMState(state);
     }
@@ -72,27 +78,49 @@ namespace rubinius {
     return state->shared().llvm_state;
   }
 
+  LLVMState* LLVMState::get_if_set(STATE) {
+    thread::Mutex::LockGuard lg(lock_);
+
+    return state->shared().llvm_state;
+  }
+
+  LLVMState* LLVMState::get_if_set(VM* vm) {
+    thread::Mutex::LockGuard lg(lock_);
+
+    return vm->shared.llvm_state;
+  }
+
   void LLVMState::shutdown(STATE) {
+    thread::Mutex::LockGuard lg(lock_);
+
     if(!state->shared().llvm_state) return;
     state->shared().llvm_state->shutdown_i();
   }
 
   void LLVMState::start(STATE) {
+    thread::Mutex::LockGuard lg(lock_);
+
     if(!state->shared().llvm_state) return;
     state->shared().llvm_state->start_i();
   }
 
   void LLVMState::on_fork(STATE) {
+    thread::Mutex::LockGuard lg(lock_);
+
     if(!state->shared().llvm_state) return;
     state->shared().llvm_state->on_fork_i();
   }
 
   void LLVMState::pause(STATE) {
+    thread::Mutex::LockGuard lg(lock_);
+
     if(!state->shared().llvm_state) return;
     state->shared().llvm_state->pause_i();
   }
 
   void LLVMState::unpause(STATE) {
+    thread::Mutex::LockGuard lg(lock_);
+
     if(!state->shared().llvm_state) return;
     state->shared().llvm_state->unpause_i();
   }
@@ -125,6 +153,9 @@ namespace rubinius {
     LLVMState* ls_;
     bool show_machine_code_;
 
+    jit::Compiler* current_compiler_;
+    BackgroundCompileRequest* current_req_;
+
     State state;
     bool stop_;
     bool pause_;
@@ -134,6 +165,8 @@ namespace rubinius {
     BackgroundCompilerThread(LLVMState* ls)
       : Thread(0, false)
       , ls_(ls)
+      , current_compiler_(0)
+      , current_req_(0)
       , state(cUnknown)
       , stop_(false)
       , pause_(false)
@@ -263,7 +296,6 @@ namespace rubinius {
 
           // now locked again, shift a request
           req = pending_requests_.front();
-          pending_requests_.pop_front();
 
           state = cRunning;
         }
@@ -275,7 +307,10 @@ namespace rubinius {
         // mutex now unlock, allowing others to push more requests
         //
 
+        current_req_ = req;
+
         jit::Compiler jit(ls_);
+        current_compiler_ = &jit;
 
         int spec_id = 0;
         if(Class* cls = req->receiver_class()) {
@@ -302,6 +337,9 @@ namespace rubinius {
             cond->signal();
           }
 
+          current_req_ = 0;
+          current_compiler_ = 0;
+          pending_requests_.pop_front();
           delete req;
 
           // We don't depend on the GC here, so let it run independent
@@ -333,7 +371,7 @@ namespace rubinius {
             req->method()->set_unspecialized(reinterpret_cast<executor>(func), rd);
           }
 
-          assert(req->method()->jit_data());
+          // assert(req->method()->jit_data());
 
           ls_->end_method_update();
 
@@ -353,11 +391,40 @@ namespace rubinius {
           cond->signal();
         }
 
+        current_req_ = 0;
+        current_compiler_ = 0;
+        pending_requests_.pop_front();
         delete req;
 
         // We don't depend on the GC here, so let it run independent
         // of us.
         ls_->shared().gc_independent(ls_);
+      }
+    }
+
+    void gc_scan(GarbageCollector* gc) {
+      thread::Mutex::LockGuard guard(mutex_);
+
+      for(std::list<BackgroundCompileRequest*>::iterator i = pending_requests_.begin();
+          i != pending_requests_.end();
+          ++i)
+      {
+        BackgroundCompileRequest* req = *i;
+        if(Object* obj = gc->saw_object(req->method())) {
+          req->set_method(force_as<CompiledMethod>(obj));
+        }
+
+        if(Object* obj = gc->saw_object(req->extra())) {
+          req->set_extra(obj);
+        }
+      }
+
+      if(current_compiler_) {
+        jit::RuntimeDataHolder* rd = current_compiler_->context().runtime_data_holder();
+        rd->set_mark();
+
+        ObjectMark mark(gc);
+        rd->mark_all(current_req_->method(), mark);
       }
     }
   };
@@ -660,8 +727,12 @@ namespace rubinius {
     background_thread_->unpause();
   }
 
+  void LLVMState::gc_scan(GarbageCollector* gc) {
+    background_thread_->gc_scan(gc);
+  }
+
   Symbol* LLVMState::symbol(const std::string sym) {
-    return symbols_.lookup(sym);
+    return symbols_.lookup(&shared_, sym);
   }
 
   std::string LLVMState::symbol_debug_str(const Symbol* sym) {
@@ -675,7 +746,7 @@ namespace rubinius {
       return "ANONYMOUS";
     }
 
-    return symbol_debug_str(ss->module()->name());
+    return symbol_debug_str(ss->module()->module_name());
   }
 
   void LLVMState::compile_soon(STATE, CompiledMethod* cm, Object* placement,

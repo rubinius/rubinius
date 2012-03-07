@@ -16,10 +16,9 @@
 
 namespace rubinius {
   void VariableScope::init(STATE) {
-    GO(variable_scope).set(ontology::new_class(state, 
+    GO(variable_scope).set(ontology::new_class(state,
           "VariableScope", G(object), G(rubinius)));
     G(variable_scope)->set_object_type(state, VariableScopeType);
-    G(variable_scope)->name(state, state->symbol("Rubinius::VariableScope"));
   }
 
   void VariableScope::bootstrap_methods(STATE) {

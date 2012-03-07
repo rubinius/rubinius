@@ -61,7 +61,7 @@ class IO
     #
     # Returns the number of bytes in the buffer.
     def fill_from(io, skip = nil)
-      @channel.as_lock do
+      Rubinius.synchronize(self) do
         empty_to io
         discard skip if skip
 
@@ -138,7 +138,7 @@ class IO
     end
 
     def unseek!(io)
-      @channel.as_lock do
+      Rubinius.synchronize(self) do
         # Unseek the still buffered amount
         return unless write_synced?
         io.prim_seek @start - @used, IO::SEEK_CUR unless empty?
@@ -150,7 +150,7 @@ class IO
     # Returns +count+ bytes from the +start+ of the buffer as a new String.
     # If +count+ is +nil+, returns all available bytes in the buffer.
     def shift(count=nil)
-      @channel.as_lock do
+      Rubinius.synchronize(self) do
         total = size
         total = count if count and count < total
 
@@ -164,7 +164,7 @@ class IO
     ##
     # Returns one Fixnum as the start byte, used for #getc
     def get_first
-      @channel.as_lock do
+      Rubinius.synchronize(self) do
         byte = @storage[@start]
         @start += 1
         byte
@@ -263,6 +263,10 @@ class IO
   end
 
   def self.parse_mode(mode)
+    return mode if Rubinius::Type.object_kind_of? mode, Integer
+
+    mode = StringValue(mode)
+
     ret = 0
 
     case mode[0]
@@ -341,7 +345,14 @@ class IO
   def self.pipe
     lhs = allocate
     rhs = allocate
-    connect_pipe(lhs, rhs)
+
+    begin
+      connect_pipe(lhs, rhs)
+    rescue Errno::EMFILE
+      GC.run(true)
+      connect_pipe(lhs, rhs)
+    end
+
     lhs.sync = true
     rhs.sync = true
     return [lhs, rhs]
@@ -459,10 +470,7 @@ class IO
   #  IO.sysopen("testfile")   #=> 3
   def self.sysopen(path, mode = "r", perm = 0666)
     path = Rubinius::Type.coerce_to_path path
-
-    unless mode.kind_of? Integer
-      mode = parse_mode StringValue(mode)
-    end
+    mode = parse_mode mode
 
     open_with_mode path, mode, perm
   end
@@ -482,15 +490,11 @@ class IO
     cur_mode &= ACCMODE
 
     if mode
-      unless Rubinius::Type.object_kind_of? mode, Integer
-        str_mode = StringValue mode
-        mode = IO.parse_mode(str_mode)
-      end
-
+      mode = parse_mode(mode)
       mode &= ACCMODE
 
       if (cur_mode == RDONLY or cur_mode == WRONLY) and mode != cur_mode
-        raise Errno::EINVAL, "Invalid new mode '#{str_mode}' for existing descriptor #{fd}"
+        raise Errno::EINVAL, "Invalid new mode for existing descriptor #{fd}"
       end
     end
 

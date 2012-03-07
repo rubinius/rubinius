@@ -1,4 +1,5 @@
 #include "oniguruma.h" // Must be first.
+#include "transcoder.h"
 #include "regenc.h"
 
 #include "builtin/string.hpp"
@@ -14,6 +15,8 @@
 #include "builtin/symbol.hpp"
 #include "builtin/tuple.hpp"
 
+#include "util/murmur_hash3.hpp"
+
 #include "configuration.hpp"
 #include "vm.hpp"
 #include "object_utils.hpp"
@@ -23,6 +26,9 @@
 #include "windows_compat.h"
 
 #include "ontology.hpp"
+
+#include "capi/handle.hpp"
+#include "builtin/nativemethod.hpp"
 
 #include <gdtoa.h>
 
@@ -148,6 +154,15 @@ namespace rubinius {
     s->data(state, ba->fetch_bytes(state, start, count));
 
     return s;
+  }
+
+  void String::update_handle() {
+    if(!inflated_header_p()) return;
+
+    capi::Handle* handle = inflated_header()->handle();
+    if(!handle) return;
+
+    handle->update(NativeMethodEnvironment::get());
   }
 
   static bool byte_compatible_p(Encoding* enc) {
@@ -600,10 +615,10 @@ namespace rubinius {
   native_int String::char_size(STATE) {
     if(num_chars_->nil_p()) {
       if(LANGUAGE_18_ENABLED(state)) {
-        num_chars_ = num_bytes_;
+        num_chars(state, num_bytes_);
       } else {
         if(byte_compatible_p(encoding_)) {
-          num_chars_ = num_bytes_;
+          num_chars(state, num_bytes_);
         } else {
           OnigEncodingType* enc = encoding_->get_encoding();
           native_int chars;
@@ -627,7 +642,7 @@ namespace rubinius {
             }
           }
 
-          num_chars_ = Fixnum::from(chars);
+          num_chars(state, Fixnum::from(chars));
         }
       }
     }
@@ -653,52 +668,21 @@ namespace rubinius {
 
     unsigned char* bp = (unsigned char*)(byte_address());
 
-    hashval h = hash_str(bp, byte_size());
+    hashval h = hash_str(state, bp, byte_size());
     hash_value(state, Fixnum::from(h));
 
     return h;
   }
 
-  // see http://isthe.com/chongo/tech/comp/fnv/#FNV-param
-#ifdef _LP64
-  const static unsigned long FNVOffsetBasis = 14695981039346656037UL;
-  const static unsigned long FNVHashPrime = 1099511628211UL;
+  hashval String::hash_str(const unsigned char *bp, unsigned int sz, uint32_t seed) {
+#ifdef IS_X8664
+    hashval hv[2];
+    MurmurHash3_x64_128(bp, sz, seed, hv);
 #else
-  const static unsigned long FNVOffsetBasis = 2166136261UL;
-  const static unsigned long FNVHashPrime = 16777619UL;
+    hashval hv[1];
+    MurmurHash3_x86_32(bp, sz, seed, hv);
 #endif
-
-  static inline unsigned long update_hash(unsigned long hv,
-                                          unsigned char byte)
-  {
-    return (hv ^ byte) * FNVHashPrime;
-  }
-
-  static inline unsigned long finish_hash(unsigned long hv) {
-    return (hv>>FIXNUM_WIDTH) ^ (hv & FIXNUM_MAX);
-  }
-
-  hashval String::hash_str(const char *bp) {
-    hashval hv;
-
-    hv = FNVOffsetBasis;
-
-    while(*bp) {
-      hv = update_hash(hv, *bp++);
-    }
-
-    return finish_hash(hv);
-  }
-
-  hashval String::hash_str(const unsigned char *bp, unsigned int sz) {
-    unsigned char* be = (unsigned char*)bp + sz;
-    hashval hv = FNVOffsetBasis;
-
-    while(bp < be) {
-      hv = update_hash(hv, *bp++);
-    }
-
-    return finish_hash(hv);
+    return hv[0] & FIXNUM_MAX;
   }
 
   Symbol* String::to_sym(STATE) {
@@ -980,7 +964,7 @@ namespace rubinius {
   }
 
   struct tr_data {
-    char tr[256];
+    uint8_t tr[256];
     native_int set[256];
     native_int steps;
     native_int last;
@@ -996,7 +980,7 @@ namespace rubinius {
       } else {
         last--;
         for(j = i + 1; j <= last; j++) {
-          set[(native_int)tr[j]]--;
+          set[tr[j]]--;
           tr[j-1] = tr[j];
         }
         tr[last] = chr;

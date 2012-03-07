@@ -494,6 +494,11 @@ describe "Marshal::load" do
   end
 
   describe "for a Integer" do
+    it "loads 0" do
+      Marshal.load("\004\bi\000").should == 0
+      Marshal.load("\004\bi\005").should == 0
+    end
+
     it "loads an Integer 8" do
       Marshal.load("\004\bi\r" ).should == 8
     end
@@ -526,11 +531,44 @@ describe "Marshal::load" do
       Marshal.load("\004\bl-\n\377\377\377\377\377\377\377\377\177\000").should == -2361183241434822606847
     end
 
+    it "raises ArgumentError if the input is too short" do
+      ["\004\bi",
+       "\004\bi\001",
+       "\004\bi\002",
+       "\004\bi\002\0",
+       "\004\bi\003",
+       "\004\bi\003\0",
+       "\004\bi\003\0\0",
+       "\004\bi\004",
+       "\004\bi\004\0",
+       "\004\bi\004\0\0",
+       "\004\bi\004\0\0\0"].each do |invalid|
+        lambda { Marshal.load(invalid) }.should raise_error(ArgumentError)
+      end
+    end
 
     if 0.size == 8 # for platforms like x86_64
       it "roundtrips 4611686018427387903 from dump/load correctly" do
         Marshal.load(Marshal.dump(4611686018427387903)).should == 4611686018427387903
       end
+    end
+  end
+
+  describe "for nil" do
+    it "loads" do
+      Marshal.load("\x04\b0").should be_nil
+    end
+  end
+
+  describe "for true" do
+    it "loads" do
+      Marshal.load("\x04\bT").should be_true
+    end
+  end
+
+  describe "for false" do
+    it "loads" do
+      Marshal.load("\x04\bF").should be_false
     end
   end
 

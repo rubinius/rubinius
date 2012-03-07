@@ -1,3 +1,4 @@
 fails:String#tr can replace a 7-bit ASCII character with a multibyte one
 fails:String#tr raises a ArgumentError a descending range in the replacement as containing just the start character
 fails:String#tr raises a ArgumentError a descending range in the source as empty
+fails:String#tr supports non-injective replacements

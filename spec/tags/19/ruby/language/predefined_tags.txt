@@ -4,5 +4,3 @@ fails:Execution variable $: does not include '.' when the taint check level > 1
 fails:Global variable $-a is read-only
 fails:Global variable $-l is read-only
 fails:Global variable $-p is read-only
-fails:Predefined global $, raises TypeError if assigned a non-String
-fails:Predefined global $, defaults to nil

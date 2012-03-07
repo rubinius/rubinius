@@ -33,11 +33,6 @@ namespace rubinius {
       return constant_table();
     }
 
-    Symbol* name() { return module_name_; }
-    void name(STATE, Symbol* sym) {
-      module_name(state, sym);
-    }
-
     /* interface */
     static Module* create(STATE);
 
@@ -45,6 +40,11 @@ namespace rubinius {
 
     // Rubinius.primitive :module_allocate
     static Module* allocate(STATE, Object* self);
+
+    void set_name(STATE, Symbol* name, Module* under);
+    void set_name(STATE, std::string name, Module* under);
+
+    String* get_name(STATE);
 
     // Rubinius.primitive :module_case_compare
     Object* case_compare(STATE, Object* obj);
@@ -72,7 +72,6 @@ namespace rubinius {
 
     void setup(STATE);
     void setup(STATE, std::string name, Module* under = NULL);
-    void setup(STATE, Symbol* name, Module* under = NULL);
     void set_const(STATE, Object* sym, Object* val);
     void set_const(STATE, std::string name, Object* val);
     Object* get_const(STATE, Symbol* sym);
@@ -81,11 +80,11 @@ namespace rubinius {
 
     void del_const(STATE, Symbol* sym);
 
-    void set_name(STATE, Module* under, Symbol* name);
-
     void add_method(STATE, GCToken gct, Symbol* name, Executable* exec, Symbol* vis = 0);
 
     Executable* find_method(Symbol* name, Module** defined_in = 0);
+
+    std::string debug_str(STATE);
 
     class Info : public TypeInfo {
     public:

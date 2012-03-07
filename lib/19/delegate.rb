@@ -162,12 +162,32 @@ class Delegator < BasicObject
     r
   end
 
+  def method(name)
+    handle = nil
+
+    begin
+      if __getobj__.private_methods.include?(name)
+        warn "delegator does not forward private method #{name}"
+        raise NameError, "undefined method `#{name}' for #{self.inspect}"
+      else
+        handle = __getobj__.method(name)
+      end
+    rescue NameError
+    end
+
+    handle || super
+  end
+
   #
   # Returns the methods available to this delegate object as the union
   # of this object's and \_\_getobj\_\_ methods.
   #
-  def methods
-    __getobj__.methods | super
+  def methods(all=true)
+    if all
+      __getobj__.methods | super
+    else
+      __getobj__.singleton_methods | singleton_methods
+    end
   end
 
   #
@@ -228,7 +248,7 @@ class Delegator < BasicObject
   # Serialization support for the object returned by \_\_getobj\_\_.
   #
   def marshal_dump
-    ivars = instance_variables.reject {|var| /\A@delegate_/ =~ var}
+    ivars = instance_variables.reject {|var| /\A@delegate_/ =~ var.to_s}
     [
       :__v2__,
       ivars, ivars.map{|var| instance_variable_get(var)},

@@ -9,15 +9,5 @@ module Rubinius
     def inspect
       "#<Rubinius::Channel>"
     end
-
-    def as_lock(val=nil)
-      receive
-
-      begin
-        yield
-      ensure
-        self << val
-      end
-    end
   end
 end

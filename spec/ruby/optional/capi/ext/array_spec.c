@@ -239,6 +239,16 @@ static VALUE array_spec_rb_iterate_each_pair(VALUE self, VALUE obj) {
 
   return new_ary;
 }
+
+static VALUE iter_yield(VALUE el, VALUE ary) {
+  rb_yield(el);
+  return Qnil;
+}
+
+static VALUE array_spec_rb_iterate_then_yield(VALUE self, VALUE obj) {
+  rb_iterate(rb_each, obj, iter_yield, obj);
+  return Qnil;
+}
 #endif
 
 #if defined(HAVE_RB_MEM_CLEAR)
@@ -379,6 +389,7 @@ void Init_array_spec() {
 #if defined(HAVE_RB_ITERATE) && defined(HAVE_RB_EACH)
   rb_define_method(cls, "rb_iterate", array_spec_rb_iterate, 1);
   rb_define_method(cls, "rb_iterate_each_pair", array_spec_rb_iterate_each_pair, 1);
+  rb_define_method(cls, "rb_iterate_then_yield", array_spec_rb_iterate_then_yield, 1);
 #endif
 
 #if defined(HAVE_RB_MEM_CLEAR)

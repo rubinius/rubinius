@@ -8,6 +8,7 @@ rubinius18.rbc
 module.rbc
 filetest.rbc
 kernel.rbc
+kernel18.rbc
 math.rbc
 options.rbc
 stats.rbc

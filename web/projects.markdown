@@ -46,7 +46,8 @@ A Scheme.
 ### Fancy
 [github.com/bakkdoor/fancy](https://github.com/bakkdoor/fancy)
 
-The Fancy Programming Language - Fancy is a dynamic, object-oriented programming language heavily inspired by Smalltalk, Ruby and Erlang.
+The Fancy Programming Language - Fancy is a dynamic, object-oriented
+programming language heavily inspired by Smalltalk, Ruby and Erlang.
 
 
 ### Lupin
@@ -54,6 +55,14 @@ The Fancy Programming Language - Fancy is a dynamic, object-oriented programming
 
 An implementation of Lua.
 
+
+### Noscript
+[https://github.com/txus/noscript](https://github.com/txus/noscript)
+
+An object-oriented, prototype-based language inspired by "JavaScript,
+CoffeeScript, Self, IO and our beloved Ruby".
+
+See the [documentation](http://blog.txustice.me/noscript/)
 
 ### Pegarus
 [github.com/brixen/pegarus](https://github.com/brixen/pegarus)

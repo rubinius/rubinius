@@ -78,8 +78,9 @@ describe :kernel_load, :shared => true do
   it "sets the enclosing scope to an anonymous module if passed true for 'wrap'" do
     path = File.expand_path "wrap_fixture.rb", CODE_LOADING_DIR
     @object.load(path, true).should be_true
+
     Object.const_defined?(:LoadSpecWrap).should be_false
-    ScratchPad.recorded.first.should =~ /::LoadSpecWrap$/
+    ScratchPad.recorded.first.should be_an_instance_of(Class)
   end
 
   describe "(shell expansion)" do

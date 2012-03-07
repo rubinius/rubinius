@@ -86,7 +86,7 @@ namespace rubinius {
       datas_.remove(data);
     }
 
-    FiberData* new_data();
+    FiberData* new_data(bool root=false);
 
     void* trampoline();
 

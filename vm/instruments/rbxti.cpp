@@ -260,11 +260,18 @@ namespace rbxti {
 
   rsymbol Env::module_name(rmodule mod) {
     Module* module = i(mod);
+    Symbol* name;
 
     if(IncludedModule* im = try_as<IncludedModule>(module)) {
-      return o(im->module()->name());
+      name = im->module()->module_name();
     } else {
-      return o(module->name());
+      name = module->module_name();
+    }
+
+    if(name->nil_p()) {
+      return o(private_->state()->symbol("<anonymous module>"));
+    } else {
+      return o(name);
     }
   }
 

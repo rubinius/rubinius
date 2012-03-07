@@ -30,7 +30,7 @@ namespace rubinius {
 
     cls->init(state->shared().inc_class_count(state));
 
-    cls->name(state, nil<Symbol>());
+    cls->module_name(state, nil<Symbol>());
     cls->instance_type(state, super->instance_type());
 
     if(super->type_info()->type == PackedObject::type) {
@@ -347,12 +347,13 @@ namespace rubinius {
     std::string name;
 
     if(mod) {
-      name = mod->name()->nil_p() ? "<anonymous>" : mod->name()->debug_str(state);
+      name = mod->debug_str(state);
     } else {
       name = "<some object>";
     }
 
-    std::cout << "#<SingletonClass:" << self->class_object(state)->name()->debug_str(state) <<
+    std::cout << "#<SingletonClass:" <<
+      self->class_object(state)->debug_str(state) <<
       " " << name << ":" << (void*)self << ">" << std::endl;
   }
 }

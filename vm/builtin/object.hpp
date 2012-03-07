@@ -23,7 +23,7 @@ namespace rubinius {
   template <class T> \
   void name(T state, type* obj) { \
     name ## _ = obj; \
-    if(zone() == MatureObjectZone) this->write_barrier(state, obj); \
+    if(mature_object_p()) this->write_barrier(state, obj); \
   }
 
 /**
@@ -264,6 +264,12 @@ namespace rubinius {
     /** Reset the object id */
     void reset_id(STATE);
 
+    // Rubinius.primitive :object_infect
+    Object* infect_prim(STATE, Object* obj, Object* other) {
+      other->infect(state, obj);
+      return obj;
+    }
+
     /**
      * Taints other if this is tainted.
      */
@@ -405,6 +411,12 @@ namespace rubinius {
      */
     void check_frozen(STATE);
 
+    // Define these as private and without implementation so we
+    // don't accidently let C++ create them.
+    Object();
+    ~Object();
+    Object(const Object&);
+    Object& operator= (const Object&);
   };
 
 

@@ -68,11 +68,9 @@
 /* !!! moved to regenc.h. */ /* #define USE_CRNL_AS_LINE_TERMINATOR */
 
 /* internal config */
-#define USE_PARSE_TREE_NODE_RECYCLE
 #define USE_OP_PUSH_OR_JUMP_EXACT
 #define USE_QTFR_PEEK_NEXT
 #define USE_ST_LIBRARY
-#define USE_SHARED_CCLASS_TABLE
 
 #define INIT_MATCH_STACK_SIZE                     160
 #define DEFAULT_MATCH_STACK_LIMIT_SIZE              0 /* unlimited */
@@ -178,7 +176,7 @@
 #include <stdlib.h>
 #endif
 
-#if defined(HAVE_ALLOCA_H) && (defined(_AIX) || !defined(__GNUC__))
+#ifdef HAVE_ALLOCA_H
 #include <alloca.h>
 #endif
 

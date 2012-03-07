@@ -33,7 +33,7 @@ end
 require config_rb
 BUILD_CONFIG = Rubinius::BUILD_CONFIG
 
-unless BUILD_CONFIG[:config_version] == 154
+unless BUILD_CONFIG[:config_version] == 155
   STDERR.puts "Your configuration is outdated, please run ./configure first"
   exit 1
 end
@@ -217,7 +217,7 @@ task :spec20 => %w[build vm:test] do
 end
 
 desc "Run CI in default (configured) mode but do not rebuild on failure"
-task :spec => %w[spec18 spec19]
+task :spec => BUILD_CONFIG[:version_list].map { |v| "spec#{v}" }
 
 desc "Print list of items marked to-do in kernel/ (@todo|TODO)"
 task :todos do

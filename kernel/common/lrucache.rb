@@ -65,15 +65,13 @@ module Rubinius
       @tail.insert_after(@head)
 
       @misses = 0
-      @lock = Rubinius::Channel.new
-      @lock << nil # prime
     end
 
     attr_reader :current
     attr_reader :misses
 
     def clear!
-      @lock.as_lock do
+      Rubinius.synchronize(self) do
         @cache = {}
         @current = 0
 
@@ -99,7 +97,7 @@ module Rubinius
     end
 
     def retrieve(key)
-      @lock.as_lock do
+      Rubinius.synchronize(self) do
         if entry = @cache[key]
           entry.inc!
 
@@ -116,7 +114,7 @@ module Rubinius
     end
 
     def set(key, value)
-      @lock.as_lock do
+      Rubinius.synchronize(self) do
         if entry = @cache[key]
           entry.value = value
 

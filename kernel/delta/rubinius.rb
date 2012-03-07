@@ -50,7 +50,6 @@ module Rubinius
     if !found
       # Create the module
       obj = Module.new
-      obj.set_name_if_necessary name, mod
       mod.const_set name, obj
     else
       obj = tbl[name]
@@ -60,7 +59,6 @@ module Rubinius
         # See comment above about autoload returning nil
         unless obj
           obj = Module.new
-          obj.set_name_if_necessary name, mod
           mod.const_set name, obj
         end
       end

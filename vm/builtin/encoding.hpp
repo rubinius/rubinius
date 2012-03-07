@@ -7,6 +7,7 @@
 // See comment in regexp.hpp
 #ifndef ONIGURUMA_H
 struct OnigEncodingType;
+struct OnigTranscodingType;
 #endif
 
 namespace rubinius {
@@ -39,7 +40,9 @@ namespace rubinius {
     static void init(STATE);
 
     static Class* internal_class(STATE);
+    static Class* transcoding_class(STATE);
     static LookupTable* encoding_map(STATE);
+    static LookupTable* transcoding_map(STATE);
     static Array* encoding_list(STATE);
     static void add_constant(STATE, const char* name, Encoding* enc);
 
@@ -112,6 +115,50 @@ namespace rubinius {
       virtual Object* get_field(STATE, Object* target, size_t index);
       virtual void populate_slot_locations();
       virtual void show(STATE, Object* self, int level);
+    };
+  };
+
+  class Converter : public Object {
+  public:
+    const static object_type type = ConverterType;
+
+  private:
+    String* replacement_; // slot
+
+  public:
+    attr_accessor(replacement, String);
+
+    static void init(STATE);
+
+    class Info : public TypeInfo {
+    public:
+      BASIC_TYPEINFO(TypeInfo)
+    };
+  };
+
+  class Transcoding : public Object {
+  public:
+    const static object_type type = TranscodingType;
+
+  private:
+    String* source_;  // slot
+    String* target_;  // slot
+
+    OnigTranscodingType* transcoder_;
+
+  public:
+    attr_accessor(source, String);
+    attr_accessor(target, String);
+
+    static void init(STATE);
+
+    static Transcoding* create(STATE, OnigTranscodingType* tr);
+    static void declare(STATE, const char* from, const char* to, const char* lib);
+    static void define(STATE, OnigTranscodingType* tr);
+
+    class Info : public TypeInfo {
+    public:
+      BASIC_TYPEINFO(TypeInfo)
     };
   };
 }

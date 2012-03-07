@@ -29,10 +29,20 @@ describe :dir_delete, :shared => true do
     end
   end
 
-  it "raises an Errno::ENOTEMPTY when trying to remove a nonempty directory" do
-    lambda do
-      Dir.send @method, DirSpecs.mock_rmdir("nonempty")
-    end.should raise_error(Errno::ENOTEMPTY)
+  platform_is_not :solaris do
+    it "raises an Errno::ENOTEMPTY when trying to remove a nonempty directory" do
+      lambda do
+        Dir.send @method, DirSpecs.mock_rmdir("nonempty")
+      end.should raise_error(Errno::ENOTEMPTY)
+    end
+  end
+
+  platform_is :solaris do
+    it "raises an Errno::EEXIST when trying to remove a nonempty directory" do
+      lambda do
+        Dir.send @method, DirSpecs.mock_rmdir("nonempty")
+      end.should raise_error(Errno::EEXIST)
+    end
   end
 
   it "raises an Errno::ENOENT when trying to remove a non-existing directory" do

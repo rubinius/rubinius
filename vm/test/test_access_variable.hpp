@@ -54,7 +54,7 @@ public:
     Object* ret = av->access_execute(state, &cf, av, G(object), args);
     TS_ASSERT_EQUALS(ret, val);
 
-    TS_ASSERT_EQUALS(val, G(object)->name());
+    TS_ASSERT_EQUALS(val, G(object)->module_name());
   }
 
   void test_access_variable() {

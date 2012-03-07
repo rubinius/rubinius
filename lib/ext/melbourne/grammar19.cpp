@@ -5166,7 +5166,7 @@ yyreduce:
     {
                     (yyval.node) = NEW_ITER((yyvsp[(3) - (5)].node), (yyvsp[(4) - (5)].node));
                     nd_set_line((yyval.node), (yyvsp[(2) - (5)].num));
-                    bv_pop((yyvsp[(2) - (5)].vars));
+                    bv_pop((yyvsp[(1) - (5)].vars));
                   ;}
     break;
 

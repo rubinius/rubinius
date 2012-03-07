@@ -3,6 +3,7 @@
 
 #include "builtin/object.hpp"
 #include "type_info.hpp"
+#include "util/random.h"
 
 namespace rubinius {
   class ByteArray;
@@ -15,22 +16,19 @@ namespace rubinius {
 
   private:
     int lock_;
-    int next_;
-    int left_;
-    ByteArray *rng_state_; // slot
+    ByteArray *rng_data_; // slot
 
-    uint32_t* rng_data();
+    struct random_state* rng_state();
 
-    void init_genrand(uint32_t s);
+    void init_by_single(uint32_t s);
     void init_by_array(uint32_t init_key[], int key_length);
-    void next_state();
     uint32_t rb_genrand_int32();
-    native_uint limited_rand(native_uint limit);
     double rb_genrand_real();
+    native_uint limited_rand(native_uint limit);
 
   public:
 
-    attr_accessor(rng_state, ByteArray);
+    attr_accessor(rng_data, ByteArray);
 
     /* interface */
 
@@ -53,6 +51,8 @@ namespace rubinius {
 
     // Rubinius.primitive :randomizer_rand_float
     Float* rand_float(STATE);
+
+    static uint32_t random_uint32();
 
     class Info : public TypeInfo {
     public:

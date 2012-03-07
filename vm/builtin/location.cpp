@@ -19,7 +19,6 @@ namespace rubinius {
     GO(location).set(ontology::new_class(state, "Location",
           G(object), G(rubinius)));
     G(location)->set_object_type(state, LocationType);
-    G(location)->name(state, state->symbol("Rubinius::Location"));
   }
 
   Location* Location::create(STATE, CallFrame* call_frame,

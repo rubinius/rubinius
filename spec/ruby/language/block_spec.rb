@@ -11,6 +11,11 @@ describe "A block" do
     @y.z { var }.should == 1
   end
 
+  it "allows for a leading space before the arguments" do
+    res = @y.s (:a){ 1 }
+    res.should == 1
+  end
+
   ruby_version_is ""..."1.9" do
     it "overwrites a captured local when used as an argument" do
       var = 1
@@ -461,6 +466,42 @@ describe "A block" do
       obj.should_receive(:to_ary).and_return(1)
 
       lambda { @y.s(obj) { |(a, b), c| } }.should raise_error(TypeError)
+    end
+  end
+
+  describe "taking nested |a, (b, (c, d))|" do
+    it "assigns nil to the arguments when yielded no values" do
+      @y.m { |a, (b, (c, d))| [a, b, c, d] }.should == [nil, nil, nil, nil]
+    end
+
+    it "destructures separate yielded values" do
+      @y.m(1, 2) { |a, (b, (c, d))| [a, b, c, d] }.should == [1, 2, nil, nil]
+    end
+
+    it "destructures a single multi-level Array value yielded" do
+      @y.m(1, [2, 3]) { |a, (b, (c, d))| [a, b, c, d] }.should == [1, 2, 3, nil]
+    end
+
+    it "destructures a single multi-level Array value yielded" do
+      @y.m(1, [2, [3, 4]]) { |a, (b, (c, d))| [a, b, c, d] }.should == [1, 2, 3, 4]
+    end
+  end
+
+  describe "taking nested |a, ((b, c), d)|" do
+    it "assigns nil to the arguments when yielded no values" do
+      @y.m { |a, ((b, c), d)| [a, b, c, d] }.should == [nil, nil, nil, nil]
+    end
+
+    it "destructures separate yielded values" do
+      @y.m(1, 2) { |a, ((b, c), d)| [a, b, c, d] }.should == [1, 2, nil, nil]
+    end
+
+    it "destructures a single multi-level Array value yielded" do
+      @y.m(1, [2, 3]) { |a, ((b, c), d)| [a, b, c, d] }.should == [1, 2, nil, 3]
+    end
+
+    it "destructures a single multi-level Array value yielded" do
+      @y.m(1, [[2, 3], 4]) { |a, ((b, c), d)| [a, b, c, d] }.should == [1, 2, 3, 4]
     end
   end
 end

@@ -2,8 +2,8 @@
 /* src="transcode-tblgen.rb", len=28084, checksum=28219 */
 /* src="emoji_sjis_softbank.trans", len=1247, checksum=10137 */
 
-#include "transcode_data.h"
-
+#include "transcoder.h"
+#include "ruby/ruby.h"
 
 
 static const unsigned char

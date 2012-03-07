@@ -1032,6 +1032,9 @@ module Zlib
       if length && length < 0
         raise ArgumentError, "Negative length #{length} given"
       end
+
+      return nil if length && length > 0 && eof?
+
       data = @buffer
 
       if length and data.size >= length
@@ -1144,6 +1147,33 @@ module Zlib
       end
     end
 
+    def getbyte
+      char = read 1
+      return nil if char.nil?
+      char.bytes.to_a[0]
+    end
+
+    def each_byte
+      return to_enum(:each_byte) unless block_given?
+      yield getbyte until eof?
+    end
+
+    def rewind
+      @io.seek 0
+      @lineno = 0
+      @buffer = ''
+      @zstream.reset
+      return 0
+    end
+
+    def lineno
+      @lineno = 0
+    end
+
+    def getc
+      return nil if eof?
+      read 1
+    end
   end
 
   ##
