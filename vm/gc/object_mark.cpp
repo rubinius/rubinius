@@ -56,11 +56,5 @@ namespace rubinius {
       gc->object_memory_->write_barrier(target, val);
     }
   }
-
-  void ObjectMark::remember_object(Object* target) {
-    if(!target->young_object_p() && !target->remembered_p()) {
-      state()->om->remember_object(target);
-    }
-  }
 }
 
