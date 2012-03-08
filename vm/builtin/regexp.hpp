@@ -93,9 +93,7 @@ namespace rubinius {
     public:
       Info(object_type type) : TypeInfo(type) { }
       virtual void mark(Object* obj, ObjectMark& mark);
-      virtual void visit(Object* obj, ObjectVisitor& visit);
       virtual void auto_mark(Object* obj, ObjectMark& mark);
-      virtual void auto_visit(Object*, ObjectVisitor&);
       virtual void populate_slot_locations();
       virtual void set_field(STATE, Object*, size_t, Object*);
       virtual Object* get_field(STATE, Object*, size_t);

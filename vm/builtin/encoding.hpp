@@ -108,9 +108,7 @@ namespace rubinius {
       }
 
       virtual void mark(Object* obj, ObjectMark& mark);
-      virtual void visit(Object* obj, ObjectVisitor& visit);
       virtual void auto_mark(Object* obj, ObjectMark& mark);
-      virtual void auto_visit(Object* obj, ObjectVisitor& visit);
       virtual void set_field(STATE, Object* target, size_t index, Object* val);
       virtual Object* get_field(STATE, Object* target, size_t index);
       virtual void populate_slot_locations();

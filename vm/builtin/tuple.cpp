@@ -347,14 +347,6 @@ namespace rubinius {
     }
   }
 
-  void Tuple::Info::visit(Object* obj, ObjectVisitor& visit) {
-    Tuple* tup = as<Tuple>(obj);
-
-    for(native_int i = 0; i < tup->num_fields(); i++) {
-      visit.call(tup->field[i]);
-    }
-  }
-
   void Tuple::Info::show(STATE, Object* self, int level) {
     Tuple* tup = as<Tuple>(self);
     native_int size = tup->num_fields();

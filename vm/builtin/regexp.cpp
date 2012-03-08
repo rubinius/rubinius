@@ -880,41 +880,4 @@ namespace rubinius {
       }
     }
   }
-
-  void Regexp::Info::visit(Object* obj, ObjectVisitor& visit) {
-    auto_visit(obj, visit);
-
-    Regexp* reg_o = force_as<Regexp>(obj);
-    regex_t* reg = reg_o->onig_data;
-
-    if(!reg) return;
-
-    ByteArray* reg_ba = ByteArray::from_body(reg);
-    visit.call(reg_ba);
-
-    if(reg->p) {
-      ByteArray* ba = ByteArray::from_body(reg->p);
-      visit.call(ba);
-    }
-
-    if(reg->exact) {
-      ByteArray* ba = ByteArray::from_body(reg->exact);
-      visit.call(ba);
-    }
-
-    if(reg->int_map) {
-      ByteArray* ba = ByteArray::from_body(reg->int_map);
-      visit.call(ba);
-    }
-
-    if(reg->int_map_backward) {
-      ByteArray* ba = ByteArray::from_body(reg->int_map_backward);
-      visit.call(ba);
-    }
-
-    if(reg->repeat_range) {
-      ByteArray* ba = ByteArray::from_body(reg->repeat_range);
-      visit.call(ba);
-    }
-  }
 }

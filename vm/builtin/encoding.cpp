@@ -472,24 +472,6 @@ namespace rubinius {
     }
   }
 
-  void Encoding::Info::visit(Object* obj, ObjectVisitor& visit) {
-    auto_visit(obj, visit);
-
-    Encoding* enc_o = force_as<Encoding>(obj);
-    if(!enc_o->get_managed()) return;
-
-    OnigEncodingType* enc = enc_o->get_encoding();
-    if(!enc) return;
-
-    ByteArray* enc_ba = ByteArray::from_body(enc);
-    visit.call(enc_ba);
-
-    if(enc->name) {
-      ByteArray* name_ba = ByteArray::from_body(const_cast<char*>(enc->name));
-      visit.call(name_ba);
-    }
-  }
-
   void Encoding::Info::show(STATE, Object* self, int level) {
     Encoding* enc = as<Encoding>(self);
 

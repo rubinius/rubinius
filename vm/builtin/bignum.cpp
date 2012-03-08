@@ -1318,15 +1318,6 @@ namespace rubinius {
     }
   }
 
-  void Bignum::Info::visit(Object* obj, ObjectVisitor& visit) {
-    Bignum* big = force_as<Bignum>(obj);
-
-    mp_int* n = big->mp_val();
-    assert(MANAGED(n));
-
-    visit.call(static_cast<Object*>(n->managed));
-  }
-
   void Bignum::Info::show(STATE, Object* self, int level) {
     Bignum* b = as<Bignum>(self);
     std::cout << b->to_s(state, Fixnum::from(10))->c_str(state) << std::endl;

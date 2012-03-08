@@ -125,30 +125,4 @@ namespace rubinius {
       }
     }
   }
-
-  void VariableScope::Info::visit(Object* obj, ObjectVisitor& visit) {
-    auto_visit(obj, visit);
-
-    VariableScope* vs = as<VariableScope>(obj);
-
-    if(!vs->isolated()) {
-      Object** ary = vs->stack_locals();
-
-      if(Fiber* fib = try_as<Fiber>(vs->fiber())) {
-        FiberData* data = fib->data();
-
-        AddressDisplacement dis(data->data_offset(),
-                                data->data_lower_bound(),
-                                data->data_upper_bound());
-
-        ary = dis.displace(ary);
-      }
-
-      size_t locals = vs->number_of_locals();
-
-      for(size_t i = 0; i < locals; i++) {
-        visit.call(ary[i]);
-      }
-    }
-  }
 }
