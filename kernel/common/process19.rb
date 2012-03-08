@@ -3,7 +3,7 @@ module Process
     err = 0
 
     p1 = Process.fork
-    unless p1.nil? && pid < 0
+    unless p1.nil? || p1 >= 0
       raise "Call to Process.daemon failed on first fork (#{p1.inspect})."
       return p1
     end
@@ -13,7 +13,7 @@ module Process
     Process.setsid
 
     p2 = Process.fork
-    unless p2.nil? && p2 < 0
+    unless p2.nil? || p2 >= 0
       raise "Call to Process.daemon failed on second fork (#{p2.inspect})."
       return p2
     end
