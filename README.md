@@ -77,7 +77,7 @@ at any time.
 
 Please file tickets for bugs or problems. The issue tracker is:
 
-    http://github.com/rubinius/rubinius/issues
+[http://github.com/rubinius/rubinius/issues](http://github.com/rubinius/rubinius/issues)
 
 
 #Contributing
