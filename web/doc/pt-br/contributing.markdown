@@ -1,76 +1,79 @@
 ---
 layout: doc_pt_br
-title: Contributing
-previous: Troubleshooting
+title: Contribuindo
+previous: Solução de Problemas
 previous_url: getting-started/troubleshooting
-next: Communication
+next: Comunicação
 next_url: contributing/communication
 ---
 
-The Rubinius project welcomes your contributions. There are many things to do
-to help out. Most importantly, you should do something that interests you.
-That is the best way to have enthusiasm and energy for your work.
+Contribuidores para o projeto Rubinius são bem vindos. Existem diversas coisas que 
+você pode ajudar. O mais imporante, você deve fazer alguma coisa que te interesse. Essa
+é a melhor maneira de se manter entusiasmado.
 
-If you have questions about Rubinius, the best way to get answers is to chat
-with us in the #rubinius IRC channel on irc.freenode.net.
+Se você tiver perguntas sobre o Rubinius, a melhor maneira de conversar com a gente é 
+no canal do IRC #rubinius no irc.freenode.net.
 
-Below are several ideas for things to do on Rubinius.
-
-
-## Run Your Code
-
-Your code is often more vicious than the specs. Run your pet project under
-Rubinius and report issues. See [How To Write a Ticket](/doc/pt-br/how-to/write-a-ticket).
+Abaixo são algumas ideias de coisas que você pode fazer para contribuir para o
+Rubinius.
 
 
-## Ask For Help
+## Execute seu código
 
-Anything that we can do to help, we will. Make sure to do your own research
-too, if possible. Rubinius attempts to be a project that you can easily study,
-learn from, and hopefully extend.
-
-We will certainly accept and appreciate simple bug reports, but we can give
-priority to tickets that include simple steps to reproduce the issue. Even
-better are tickets that include RubySpecs that demonstrate the bug and a patch
-that fixes it.
+O seu código é normalmente mais agressivo que apenas nossos testes (specs). Execute 
+seus projetos com o Rubinius e reporte problemas encontrados. Veja [Como Reportar uma
+Falha](/doc/pt-br/how-to/write-a-ticket).
 
 
-## Write Specs
+## Procure ajuda
 
-  1. Run `bin/mspec tag --list incomplete <dir>` to show specs that have been
-     tagged as incomplete. These specs may simply need review, or there could
-     be specs missing for a particular class.
+Qualquer coisa que possamos fazer para te ajudar, nos iremos fazer. Certifique-se de 
+fazer a sua própria pesquisa também, se possível. O Rubinius procura se um projeto que 
+você pode facilmente estudar, aprender, e possivelmente ajudar.
 
-     NOTE: You can specify the pseudo-directory ':files' for \<dir\>, which will
-     show tags for all the specs that should run on Rubinius. Or you can
-     specify any subdirectory of the spec/ directory to list tags for specs in
-     that subdirectory.
-
-  2. Find unspecified behaviors. See [How To Write a Ruby
-     Spec](/doc/pt-br/how-to/write-a-ruby-spec).
+Nos aceitamos e agredecemos que você reporte falhas, mas nos podemos dar mais 
+prioridade aos reportes que incluem passo-a-passos simples que nos permite reproduzir 
+o problema. Melhor ainda são reportes que incluem RubySpecs que demonstram o bug e 
+códigos de correção (_patch_) que corrigem o erro.
 
 
-## Fix Failing Specs
+## Escreva Specs
 
-  1. Run `bin/mspec tag --list fails <dir>` to show specs tagged as failing.
+  1. Execute `bin/mspec tag --list incomplete <dir>` para exibir os specs que foram
+     marcados como incompletos. Esses specs podemos simplesmente precisar de revisão,
+     ou pode não existir nenhum spec para uma determinada classe.
 
-     NOTE: You can specify the pseudo-directory ':files' for \<dir\>, which will
-     show tags for all the specs that should run on Rubinius. Or you can
-     specify any subdirectory of the spec/ directory to list tags for specs in
-     that subdirectory.
+     NOTA: Você pode especificar o pseudo-diretório ':file' para \<dir\>, o qual irá 
+     exibir tag para todos os specs que devem executar no Rubinius. Ou você pode
+     especificar qualquer subdiretório do diretório spec/ para listar as tags dos specs
+     naquele subdiretório.
 
-  2. Pick a spec that looks interesting and see if you can write a patch that
-     will make it pass.
-
-
-## Write Docs
-
-Study how Rubinius works and write highlevel documentation that will help
-others learn about the implementation details.
+  2. Encontre comportamentos não especificados. Veja [Como Escrever um RubySpec](/doc/pt-br/how-to/write-a-ruby-spec).
 
 
-## Triage Tickets
+## Corrigir Specs que estão falhando
 
-  * Revive or close old tickets.
-  * Build minimal test cases that reproduce the bugs. Then see if there are
-    already RubySpecs for the issue. If not, consider writing some.
+  1. Execute `bin/mspec tag --list fails <dir>` para exibir os specs que estão 
+  	 falhando.
+
+     NOTA: Você pode especificar o pseudo-diretório ':file' para \<dir\>, o qual irá 
+     exibir tag para todos os specs que devem executar no Rubinius. Ou você pode
+     especificar qualquer subdiretório do diretório spec/ para listar as tags dos specs
+     naquele subdiretório.
+
+  2. Escolha um spec que seja interessante e veja se você consegue escrever um código
+     de correção (_patch_) que faça o teste passar.
+
+
+## Escreva Documentação
+
+Estude como o Rubinius funciona e escreva documentação de alto nível que irá ajudar 
+outros a aprender sobre os detalhes de implementação do Rubinius.
+
+
+## Triagem de Reportes de Erros (tickets)
+
+  * Reviva ou feche tickets antigos.
+  * Construa casos de testes pequenos que reproduza os erros apresentados. E veja se
+  	já não existe um RubySpec para aquele problema. Se não, considere escrever um (ou
+  	mais de um, caso seja necessário).
