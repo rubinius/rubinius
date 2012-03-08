@@ -1136,7 +1136,7 @@ int main() { return tgetnum(""); }
     output = `#{tool_name} #{opts}`
 
     if $?.exitstatus == 0
-      v = output.scan(regexp)[0].map(&:to_i)
+      v = output.scan(regexp)[0].map { |x| x.to_i }
       unless (v <=> version) >= 0
         failure " Expected #{tool_name} version >= #{version.join('.')}, found #{v.join('.')}"
       end
