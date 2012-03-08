@@ -129,6 +129,10 @@ describe "String#[]= with String" do
       str = ""
       str[0] = "bam"
       str.should == "bam"
+
+      str = ""
+      str[0.0] = "bam"
+      str.should == "bam"
     end
   end
 
