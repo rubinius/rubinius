@@ -12,7 +12,7 @@ next_url: what-is-rubinius
     1. [Instalando Rubinius](/doc/pt-br/getting-started/building/)
     1. [Executando Rubinius](/doc/pt-br/getting-started/running-rubinius/)
     1. [Solução de Problemas](/doc/pt-br/getting-started/troubleshooting/)
-1. [Contribuir](/doc/pt-br/contributing/)
+1. [Contribuindo](/doc/pt-br/contributing/)
     1. [Comunicação](/doc/pt-br/contributing/communication/)
     1. [Guia de Estilo](/doc/pt-br/contributing/style-guide)
 1. [Ruby](/doc/pt-br/ruby/)
