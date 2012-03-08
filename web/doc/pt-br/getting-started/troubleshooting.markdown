@@ -1,17 +1,18 @@
 ---
 layout: doc_pt_br
-title: Troubleshooting
-previous: Running Rubinius
+title: Solução de Problemas
+previous: Executando Rubinius
 previous_url: getting-started/running-rubinius
-next: Contributing
+next: Contribuindo
 next_url: contributing
 ---
 
-The following are errors that you may encounter while building, installing, or
-running Rubinius along with suggested solutions.
+Abaixo são alguns erros que você pode encontrar enquanto estiver compilando, 
+instalando, ou executando o Rubinius e suas referentes sugestões de solução.
 
-For any error, a first step is to ensure you have a current, clean checkout of
-Rubinius. Before going further, consider running the following steps:
+Para qualquer um dos erros, o primeiro passo é certificar que você possui a versão 
+mais atualizada e sem alterações do repositório do Rubinius. Antes de seguir, 
+considere executar os seguintes passos:
 
     $ git co master
     $ git reset --hard
@@ -20,10 +21,10 @@ Rubinius. Before going further, consider running the following steps:
     $ rake
 
 
-### Rubinius is unable to find the `runtime` directory
+### O Rubinius não consegue encontrar o diretório `runtime` 
 
-  After building or installing, the following error occurs when attempting to
-  run Rubinius:
+  Após compilar ou instalar, os seguintes erros aparecem quando tentas executar o 
+  Rubinius:
 
     ERROR: unable to find runtime directory
 
@@ -39,27 +40,27 @@ Rubinius. Before going further, consider running the following steps:
     You may have configured Rubinius for a different install
     directory but you have not run 'rake install' yet.
 
-#### Solution:
+#### Solução:
 
-  If you configured Rubinius with a `--prefix`, run rake install.
+  Se você configurou o Rubinius com `--prefix`, execute `rake install`.
+	
+  Se você configurou o Rubinus com `--prefix` e renomeou o diretório de instalação após 
+  instalar o Rubinius, configure-o novamente e reinstale-o.
+  
+  Se você renomeou o diretório do código fonte após compilar o Rubinius, configure-o 
+  novamente e recompile-o.
 
-  If you configured Rubinius with a `--prefix` and renamed the install
-  directory after installing Rubinius, re-configure Rubinius and reinstall it.
-
-  If you renamed the source directory after building Rubinius, re-configure
-  and rebuild it.
-
-  In general, do not rename the build or install directory after building or
-  installing Rubinius.
+  Em geral, não renomei a pasta onde o Rubiniu foi compilado nem sua pasta de 
+  instalação após compila-lo e instala-lo.
 
 
-### Rubinius segfaults when building on FreeBSD
+### Está ocorrendo erro de segfaults quando compilo o Rubinius no FreeBSD
 
-  On FreeBSD, including up to version 8.1 stable, there is an issue with execinfo that
-  causes Rubinius to segfault when it loads.
+  No FreeBSD, até a versão _8.1 stable_, existe um problema com o _execinfo_ que causa 
+  o erro de _segfault_ no Rubinius quando ele carrega.
+  
+#### Solução:
 
-#### Solution:
-
-  Disable execinfo when configuring Rubinius:
+  Desabilite o _execinfo_ quando for configurar o Rubinius:
 
     ./configure --without-execinfo
