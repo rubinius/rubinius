@@ -7,3 +7,4 @@ file.rbc
 math.rbc
 posix.rbc
 struct.rbc
+enum.rbc

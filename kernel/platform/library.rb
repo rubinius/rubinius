@@ -106,6 +106,63 @@ module FFI
       ffi_function_missing cname, mname, args, ret
     end
 
+    # Attach a C variable to this module. The arguments can have two forms:
+    #
+    #   attach_variable mod_name, type
+    #   attach_variable mod_name, c_name, type
+    #
+    # In the first form, +mod_name+ will also be used for the name of the C variable.
+    # In the second form, the C variable name is +c_name+.
+    #
+    # The +mod_name+ and +c_name+ can be given as Strings or Symbols.
+    #
+    # The final argument, +type+, is the type of the C variable
+    def attach_variable(mname, a1, a2=nil)
+      cname, type = a2 ? [ a1, a2 ] : [ mname.to_s, a1 ]
+      ptr = nil
+
+      ffi_libraries.each do |lib|
+        ptr = lib.find_symbol(cname.to_s)
+        break unless ptr.nil?
+      end
+
+      raise FFI::NotFoundError, "Unable to find '#{cname}'" if ptr.nil? || ptr.null?
+
+      if type.kind_of?(Class) and type.ancestors.include?(FFI::Struct)
+        c = type.new(ptr)
+
+        self.module_eval <<-code, __FILE__, __LINE__
+          @ffi_gvar_#{mname} = c
+          def self.#{mname}
+            @ffi_gvar_#{mname}
+          end
+        code
+
+      else
+        enclosing_module = self
+
+        cs = Class.new(FFI::Struct) do
+          @enclosing_module = enclosing_module
+        end
+
+        cs.layout :gvar, type
+        c = cs.new(ptr)
+
+        self.module_eval <<-code, __FILE__, __LINE__
+          @ffi_gvar_#{mname} = c
+          def self.#{mname}
+            @ffi_gvar_#{mname}[:gvar]
+          end
+          def self.#{mname}=(value)
+            @ffi_gvar_#{mname}[:gvar] = value
+          end
+        code
+
+      end
+
+      return ptr
+    end
+
     # Generic error method attached in place of missing foreign functions
     # during kernel loading. See kernel/delta/ffi.rb for a version that raises
     # immediately if the foreign function is unavaiblable.
@@ -190,6 +247,50 @@ module FFI
 
       FFI.find_type(name)
     end
+
+    def enum(*args)
+      @tagged_enums ||= Rubinius::LookupTable.new
+      @anon_enums ||= Array.new
+
+      tag, values = if args[0].kind_of?(Symbol) && args[1].kind_of?(Array)
+        [ args[0], args[1] ]
+      elsif args[0].kind_of?(Array)
+        [ nil, args[0] ]
+      else
+        [ nil, args ]
+      end
+
+      enum = FFI::Enum.new values, tag
+
+      if tag
+        typedef(:int, tag)
+        @tagged_enums[tag] = enum
+      else
+        @anon_enums << enum
+      end
+
+      return enum
+    end
+
+    def enum_type(tag)
+
+      if enum = @tagged_enums[tag]
+        enum
+      else
+        @anon_enums.detect { |enum| enum.symbols.include?(tag) }
+      end
+
+    end
+
+    def enum_value(value)
+
+      if enum = @anon_enums.detect { |enum| enum.symbols.include?(value) }
+        enum
+      else
+       @tagged_enums.detect { |tag,enum| enum.symbols.include?(value) }
+      end
+
+    end
   end
 
   class DynamicLibrary
@@ -231,6 +332,14 @@ module FFI
           FFI::LIB_SUFFIXES.detect do |suffix|
             @name = "#{name}.#{suffix}"
             @handle = DynamicLibrary.open_library @name, flags
+          end
+
+          # Try with a prefix
+          unless @handle
+            FFI::LIB_SUFFIXES.detect do |suffix|
+              @name = "lib#{name}"
+              @handle = DynamicLibrary.open_library @name, flags
+            end
           end
 
           # Try with suffixes and a prefix
