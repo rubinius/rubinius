@@ -9,7 +9,11 @@ describe "Kernel#exec" do
   it "raises a SystemCallError if cmd cannot execute" do
     lambda { exec "" }.should raise_error(SystemCallError)
   end
-  
+
+  it "raises a SystemCallError if cmd cannot execute and contains '-'" do
+    lambda { exec 'cmd-plugin' }.should raise_error(SystemCallError)
+  end
+
   it "runs the specified command, replacing current process" do
     result = `#{RUBY_EXE} -e 'exec "echo hello"; puts "fail"'`
     result.should == "hello\n"
