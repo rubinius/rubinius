@@ -46,7 +46,6 @@ namespace rubinius {
   attr_writer(name, type)
 
   /* Forwards */
-  class MetaClass;
   class Fixnum;
   class Integer;
   class String;
