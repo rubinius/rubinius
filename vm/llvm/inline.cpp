@@ -719,7 +719,7 @@ remember:
       Value* current_arg = arg(i);
       Value* call_args[] = { ops_.vm(), current_arg, ops_.valid_flag() };
 
-      switch(nf->ffi_data->arg_types[i]) {
+      switch(nf->ffi_data->args_info[i].type) {
       case RBX_FFI_TYPE_CHAR:
       case RBX_FFI_TYPE_UCHAR:
       case RBX_FFI_TYPE_SHORT:
@@ -736,7 +736,7 @@ remember:
         Value* val = sig.call("rbx_ffi_to_int", call_args, 3, "to_int",
                               ops_.b());
 
-        Type* type = find_type(ops_, nf->ffi_data->arg_types[i]);
+        Type* type = find_type(ops_, nf->ffi_data->args_info[i].type);
         ffi_type.push_back(type);
 
         if(type != ops_.NativeIntTy) {
