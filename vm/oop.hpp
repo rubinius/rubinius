@@ -117,9 +117,8 @@ Object* const cUndef = reinterpret_cast<Object*>(0x22L);
   typedef enum
   {
     UnspecifiedZone  = 0,
-    LargeObjectZone  = 1,
-    MatureObjectZone = 2,
-    YoungObjectZone  = 3,
+    MatureObjectZone = 1,
+    YoungObjectZone  = 2,
   } gc_zone;
 
   /* the sizeof(class ObjectHeader) must be a multiple of the platform
