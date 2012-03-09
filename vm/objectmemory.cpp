@@ -1074,14 +1074,14 @@ step1:
         // Rubinius specific code. If the finalizer is cTrue, then
         // send the object the finalize message
         if(fi->ruby_finalizer == cTrue) {
-          fi->object->send(state, call_frame, state->symbol("__finalize__"), true);
+          fi->object->send(state, call_frame, state->symbol("__finalize__"));
         } else {
           Array* ary = Array::create(state, 1);
           ary->set(state, 0, fi->object->id(state));
 
           OnStack<1> os(state, ary);
 
-          fi->ruby_finalizer->send(state, call_frame, state->symbol("call"), ary, cNil, true);
+          fi->ruby_finalizer->send(state, call_frame, state->symbol("call"), ary);
         }
       } else {
         std::cerr << "Unsupported object to be finalized: "
@@ -1128,14 +1128,14 @@ step1:
         // Rubinius specific code. If the finalizer is cTrue, then
         // send the object the finalize message
         if(fi->ruby_finalizer == cTrue) {
-          fi->object->send(state, call_frame, state->symbol("__finalize__"), true);
+          fi->object->send(state, call_frame, state->symbol("__finalize__"));
         } else {
           Array* ary = Array::create(state, 1);
           ary->set(state, 0, fi->object->id(state));
 
           OnStack<1> os(state, ary);
 
-          fi->ruby_finalizer->send(state, call_frame, state->symbol("call"), ary, cNil, true);
+          fi->ruby_finalizer->send(state, call_frame, state->symbol("call"), ary);
         }
       } else {
         std::cerr << "Unsupported object to be finalized: "
@@ -1170,14 +1170,14 @@ step1:
           // Rubinius specific code. If the finalizer is cTrue, then
           // send the object the finalize message
           if(fi.ruby_finalizer == cTrue) {
-            fi.object->send(state, 0, state->symbol("__finalize__"), true);
+            fi.object->send(state, 0, state->symbol("__finalize__"));
           } else {
             Array* ary = Array::create(state, 1);
             ary->set(state, 0, fi.object->id(state));
 
             OnStack<1> os(state, ary);
 
-            fi.ruby_finalizer->send(state, 0, state->symbol("call"), ary, cNil, true);
+            fi.ruby_finalizer->send(state, 0, state->symbol("call"), ary);
           }
         } else {
           std::cerr << "During shutdown, unsupported object to be finalized: "
@@ -1215,14 +1215,14 @@ step1:
           // Rubinius specific code. If the finalizer is cTrue, then
           // send the object the finalize message
           if(fi.ruby_finalizer == cTrue) {
-            fi.object->send(state, 0, state->symbol("__finalize__"), true);
+            fi.object->send(state, 0, state->symbol("__finalize__"));
           } else {
             Array* ary = Array::create(state, 1);
             ary->set(state, 0, fi.object->id(state));
 
             OnStack<1> os(state, ary);
 
-            fi.ruby_finalizer->send(state, 0, state->symbol("call"), ary, cNil, true);
+            fi.ruby_finalizer->send(state, 0, state->symbol("call"), ary);
           }
         } else {
           std::cerr << "During shutdown, unsupported object to be finalized: "
