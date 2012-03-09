@@ -971,10 +971,6 @@ class CPPParser
             args.pop
           end
 
-          if args.last == "Message& msg"
-            raise "Unsupported"
-          end
-
           if i = args.index("Arguments& args")
             pass_arguments = true
             args[i] = :arguments

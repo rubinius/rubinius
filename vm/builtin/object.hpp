@@ -52,7 +52,6 @@ namespace rubinius {
   class Module;
   class Executable;
   class Array;
-  class Message;
   class TypeInfo;
 
   class Object;

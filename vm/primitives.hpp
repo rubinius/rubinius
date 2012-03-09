@@ -10,7 +10,6 @@ namespace rubinius {
 
   /* Forwards */
   class Object;
-  class Message;
   class Primitives;
   class Symbol;
 
