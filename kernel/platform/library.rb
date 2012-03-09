@@ -231,7 +231,7 @@ module FFI
     def typedef(old, add)
       @typedefs ||= Rubinius::LookupTable.new
 
-      unless old.kind_of? Rubinius::NativeFunction
+      unless old.kind_of? Rubinius::NativeFunction or old.kind_of? FFI::Enum
         old = find_type(old)
       end
 
@@ -263,7 +263,7 @@ module FFI
       enum = FFI::Enum.new values, tag
 
       if tag
-        typedef(:int, tag)
+        typedef(enum, tag)
         @tagged_enums[tag] = enum
       else
         @anon_enums << enum
