@@ -47,7 +47,7 @@ namespace rubinius {
 
     static Pointer* adjust_tramp(STATE, Object* obj, NativeFunction* orig);
 
-    void prep(STATE, int arg_count, int *arg_types, int ret_type, NativeFunction** callbacks);
+    void prep(STATE, int arg_count, int *arg_types, int ret_type, Object** enums, NativeFunction** callbacks);
     Object* call(STATE, Arguments& args, CallFrame* call_frame);
 
     class Info : public Executable::Info {
@@ -64,6 +64,7 @@ namespace rubinius {
     ffi_closure* closure;
     Object* callable;
     NativeFunction* function;
+    Object** enums;
     NativeFunction** callbacks;
 
     size_t arg_count;
@@ -71,12 +72,12 @@ namespace rubinius {
     int ret_type;
     void *ep;
 
-    FFIData(NativeFunction* func,  int count, int* types, int ret, NativeFunction** callbacks);
+    FFIData(NativeFunction* func,  int count, int* types, int ret, Object** enums, NativeFunction** callbacks);
 
     virtual ~FFIData();
     void cleanup(State* state, CodeManager* cm) { }
 
-    static FFIData* create(NativeFunction* func, int count, int* types, int ret, NativeFunction** callbacks);
+    static FFIData* create(NativeFunction* func, int count, int* types, int ret, Object** enums, NativeFunction** callbacks);
   };
 
 }
