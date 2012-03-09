@@ -287,7 +287,8 @@ module FFI
       if enum = @anon_enums.detect { |enum| enum.symbols.include?(value) }
         enum
       else
-       @tagged_enums.detect { |tag,enum| enum.symbols.include?(value) }
+       tag,enum = @tagged_enums.detect { |tag,enum| enum.symbols.include?(value) }
+       return enum
       end
 
     end
