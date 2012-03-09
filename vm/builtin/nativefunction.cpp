@@ -76,6 +76,8 @@ namespace rubinius {
 
   FFIData::~FFIData() {
     free(arg_types);
+    free(enums);
+    free(callbacks);
     XFREE(cif.arg_types);
     if(closure) ffi_closure_free(closure);
   }
