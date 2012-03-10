@@ -1,4 +1,5 @@
 ffi.rbc
+enum.rbc
 library.rbc
 pointer_accessors.rbc
 pointer.rbc
@@ -8,4 +9,3 @@ math.rbc
 math19.rbc
 posix.rbc
 struct.rbc
-enum.rbc

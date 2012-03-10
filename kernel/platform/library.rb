@@ -230,16 +230,15 @@ module FFI
 
     def typedef(old, add)
       @typedefs ||= Rubinius::LookupTable.new
-
-      unless old.kind_of? Rubinius::NativeFunction or old.kind_of? FFI::Enum
-        old = find_type(old)
-      end
-
-      @typedefs[add] = old
+      @typedefs[add] = find_type(old)
     end
 
     def find_type(name)
       @typedefs ||= Rubinius::LookupTable.new
+
+      if name.kind_of? Rubinius::NativeFunction or name.kind_of? FFI::Enum
+          return name
+      end
 
       if type = @typedefs[name]
         return type
