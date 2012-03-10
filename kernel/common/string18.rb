@@ -3,6 +3,13 @@
 class String
   include Enumerable
 
+  def self.allocate
+    str = super()
+    str.__data__ = Rubinius::ByteArray.new(1)
+    str.num_bytes = 0
+    str
+  end
+
   alias_method :bytesize, :size
 
   # Treats leading characters from <i>self</i> as a string of hexadecimal digits

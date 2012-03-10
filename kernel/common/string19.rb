@@ -1,6 +1,14 @@
 # -*- encoding: us-ascii -*-
 
 class String
+  def self.allocate
+    str = super()
+    str.__data__ = Rubinius::ByteArray.new(1)
+    str.num_bytes = 0
+    str.force_encoding(Encoding::BINARY)
+    str
+  end
+
   def self.try_convert(obj)
     Rubinius::Type.try_convert obj, String, :to_str
   end
