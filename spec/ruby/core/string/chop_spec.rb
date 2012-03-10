@@ -31,9 +31,21 @@ describe "String#chop" do
     "".chop.should == ""
   end
 
+  it "returns a new string when applied to an empty string" do
+    s = ""
+    s.chop.should_not equal(s)
+  end
+
   it "taints result when self is tainted" do
     "hello".taint.chop.tainted?.should == true
     "".taint.chop.tainted?.should == true
+  end
+
+  ruby_version_is "1.9" do
+    it "untrusts result when self is untrusted" do
+      "hello".untrust.chop.untrusted?.should == true
+      "".untrust.chop.untrusted?.should == true
+    end
   end
 
   it "returns subclass instances when called on a subclass" do
