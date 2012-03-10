@@ -198,7 +198,7 @@ namespace rubinius {
 
   Object* Object::get_ivar_prim(STATE, Symbol* sym) {
     if(sym->is_ivar_p(state)->false_p()) {
-      return reinterpret_cast<Object*>(kPrimitiveFailed);
+      return Primitives::failure();
     }
 
     return get_ivar(state, sym);
@@ -259,7 +259,7 @@ namespace rubinius {
 
   Object* Object::ivar_defined_prim(STATE, Symbol* sym) {
     if(!sym->is_ivar_p(state)->true_p()) {
-      return reinterpret_cast<Object*>(kPrimitiveFailed);
+      return Primitives::failure();
     }
 
     return ivar_defined(state, sym);
@@ -558,7 +558,7 @@ namespace rubinius {
 
   Object* Object::set_ivar_prim(STATE, Symbol* sym, Object* val) {
     if(sym->is_ivar_p(state)->false_p()) {
-      return reinterpret_cast<Object*>(kPrimitiveFailed);
+      return Primitives::failure();
     }
 
     return set_ivar(state, sym, val);

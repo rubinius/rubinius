@@ -316,7 +316,7 @@ namespace rubinius {
     VM* vm = self->vm_;
     if(alive() == cFalse || !vm) {
       self->init_lock_.unlock();
-      return reinterpret_cast<Thread*>(kPrimitiveFailed);
+      return force_as<Thread>(Primitives::failure());
     }
 
     vm->wakeup(state, gct);

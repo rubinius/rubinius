@@ -298,7 +298,7 @@ namespace rubinius {
     char str[FLOAT_TO_S_STRLEN];
 
     if(g_dfmt(str, &val, 0, FLOAT_TO_S_STRLEN) == 0) {
-      return reinterpret_cast<String*>(kPrimitiveFailed);
+      return force_as<String>(Primitives::failure());
     }
 
     String* s = String::create(state, str);
