@@ -166,7 +166,12 @@ namespace rubinius {
   
   void Object::check_frozen(STATE) {
     if(frozen_p(state) == cTrue) {
-      Exception::runtime_error(state, "can't modify frozen object");
+      const char* reason = "can't modify frozen object";
+      if(LANGUAGE_18_ENABLED(state)) {
+        Exception::type_error(state, reason);
+      } else {
+        Exception::runtime_error(state, reason);
+      }
     }
   }
 
@@ -723,7 +728,10 @@ namespace rubinius {
   }
 
   Object* Object::taint(STATE) {
-    if(reference_p()) set_tainted();
+    if(!is_tainted_p()) {
+      check_frozen(state);
+      if (reference_p()) set_tainted();
+    }
     return this;
   }
 
@@ -758,7 +766,10 @@ namespace rubinius {
   }
 
   Object* Object::untaint(STATE) {
-    if(reference_p()) set_tainted(0);
+    if(is_tainted_p()) {
+      check_frozen(state);
+      if(reference_p()) set_tainted(0);
+    }
     return this;
   }
 
