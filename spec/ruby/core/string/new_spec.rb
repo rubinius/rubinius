@@ -43,4 +43,10 @@ describe "String.new" do
     lambda { String.new 5 }.should raise_error(TypeError)
     lambda { String.new nil }.should raise_error(TypeError)
   end
+
+  ruby_version_is "1.9" do
+    it "returns a binary String" do
+      String.new.encoding.should == Encoding::BINARY
+    end
+  end
 end
