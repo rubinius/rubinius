@@ -775,7 +775,7 @@ namespace rubinius {
 
     String* so = state->new_object<String>(cls);
 
-    so->set_tainted(is_tainted_p());
+    infect(state, so);
 
     so->num_bytes(state, num_bytes());
     so->data(state, data());
