@@ -52,5 +52,10 @@ module FFI
       @kv_map[sym]
     end
 
+    def symbol(value)
+      key,val = @kv_map.detect { |key,val| val==value }
+      return key
+    end
+
   end
 end

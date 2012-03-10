@@ -245,6 +245,7 @@ namespace rubinius {
       rtype = &ffi_type_ushort;
       break;
     case RBX_FFI_TYPE_INT:
+    case RBX_FFI_TYPE_ENUM:
       rtype = &ffi_type_sint;
       break;
     case RBX_FFI_TYPE_UINT:
@@ -351,9 +352,18 @@ namespace rubinius {
       args_info = NULL;
     }
 
-    ret_info.type = as<Integer>(ret)->to_native();
-    ret_info.enum_obj = NULL;
-    ret_info.callback = NULL;
+    if(ret->fixnum_p()) {
+      ret_info.type = as<Integer>(ret)->to_native();
+      ret_info.enum_obj = NULL;
+      ret_info.callback = NULL;
+    } else if(CBOOL(ret->respond_to(state, state->symbol("symbol"), cTrue))) {
+      ret_info.type = RBX_FFI_TYPE_ENUM;
+      ret_info.enum_obj = ret;
+      ret_info.callback = NULL;
+    } else {
+      XFREE(args_info);
+      return (NativeFunction*)Primitives::failure();
+    }
 
     NativeFunction* func = NativeFunction::create(state, name, arg_count);
     func->prep(state, tot, args_info, &ret_info);
@@ -596,9 +606,18 @@ namespace rubinius {
       args_info = NULL;
     }
 
-    ret_info.type = as<Integer>(ret)->to_native();
-    ret_info.enum_obj = NULL;
-    ret_info.callback = NULL;
+    if(ret->fixnum_p()) {
+      ret_info.type = as<Integer>(ret)->to_native();
+      ret_info.enum_obj = NULL;
+      ret_info.callback = NULL;
+    } else if(CBOOL(ret->respond_to(state, state->symbol("symbol"), cTrue))) {
+      ret_info.type = RBX_FFI_TYPE_ENUM;
+      ret_info.enum_obj = ret;
+      ret_info.callback = NULL;
+    } else {
+      XFREE(args_info);
+      return nil<Array>();
+    }
 
     NativeFunction* func = NativeFunction::create(state, name, tot);
     func->prep(state, tot, args_info, &ret_info);
@@ -1043,6 +1062,15 @@ namespace rubinius {
       } else {
         ret = Pointer::create(state, result);
       }
+      break;
+    }
+    case RBX_FFI_TYPE_ENUM: {
+      ffi_arg result;
+      ffi_call(&ffi_data_local->cif, FFI_FN(ffi_data_local->ep), &result, values);
+      state->gc_dependent();
+      Array* ary = Array::create(state, 1);
+      ary->set(state, 0, Integer::from(state, (native_int)result));
+      ret = ffi_data->ret_info.enum_obj->send(state, call_frame, state->symbol("symbol"), ary);
       break;
     }
     case RBX_FFI_TYPE_STRING: {
