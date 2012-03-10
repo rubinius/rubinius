@@ -425,17 +425,6 @@ module Kernel
 
   alias_method :is_a?, :kind_of?
 
-  def method(name)
-    name = Rubinius::Type.coerce_to_symbol name
-    cm = Rubinius.find_method(self, name)
-
-    if cm
-      return Method.new(self, cm[1], cm[0], name)
-    else
-      raise NameError, "undefined method `#{name}' for #{self.inspect}"
-    end
-  end
-
   def nil?
     false
   end

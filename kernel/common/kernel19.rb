@@ -1,6 +1,19 @@
 # -*- encoding: us-ascii -*-
 
 module Kernel
+  def method(name)
+    name = Rubinius::Type.coerce_to_symbol name
+    cm = Rubinius.find_method(self, name)
+
+    if cm
+      Method.new(self, cm[1], cm[0], name)
+    elsif respond_to_missing?(name, true)
+      Method.new(self, self.class, Rubinius::MissingMethod.new, name)
+    else
+      raise NameError, "undefined method `#{name}' for #{self.inspect}"
+    end
+  end
+
   alias_method :__callee__, :__method__
 
   def define_singleton_method(*args, &block)
