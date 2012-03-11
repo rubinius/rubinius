@@ -23,7 +23,6 @@ kernel.rbc
 lookuptable.rbc
 method_table.rbc
 nil.rbc
-object.rbc
 object18.rbc
 proc.rbc
 process.rbc

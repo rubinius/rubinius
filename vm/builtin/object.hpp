@@ -381,11 +381,6 @@ namespace rubinius {
     // Rubinius.primitive :object_respond_to_public
     Object* respond_to_public(STATE, Object* obj);
 
-    // Rubinius.primitive :object_is_fixnum
-    Object* is_fixnum() {
-      return fixnum_p() ? cTrue : cFalse;
-    }
-
     /**
      * Checks if object is frozen and raises RuntimeError if it is.
      * Similar to CRuby rb_check_frozen

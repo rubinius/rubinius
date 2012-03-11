@@ -25,7 +25,6 @@ kernel.rbc
 lookuptable.rbc
 method_table.rbc
 nil.rbc
-object.rbc
 proc.rbc
 process.rbc
 regexp.rbc
