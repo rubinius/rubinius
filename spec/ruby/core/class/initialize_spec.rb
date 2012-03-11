@@ -38,6 +38,10 @@ describe "Class#new" do
 end
 
 describe "Class#initialize" do
+  it "is private" do
+    Class.should have_private_method(:initialize)
+  end
+
   it "raises a TypeError when called on already initialized classes" do
     lambda{
       Fixnum.send :initialize
