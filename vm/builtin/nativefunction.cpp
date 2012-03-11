@@ -50,7 +50,7 @@ namespace rubinius {
   }
 
   FFIData* FFIData::create(NativeFunction* func, int count, FFIArgInfo* args,
-                           int ret)
+                           FFIArgInfo* ret)
   {
     void* ep;
 
@@ -63,13 +63,13 @@ namespace rubinius {
     return data;
   }
 
-  FFIData::FFIData(NativeFunction* func,  int count, FFIArgInfo* args, int ret)
+  FFIData::FFIData(NativeFunction* func,  int count, FFIArgInfo* args, FFIArgInfo* ret)
     : closure(0)
     , callable(0)
     , function(func)
     , args_info(args)
+    , ret_info(*ret)
     , arg_count(count)
-    , ret_type(ret)
   {}
 
   FFIData::~FFIData() {
@@ -171,7 +171,7 @@ namespace rubinius {
   }
 
   void NativeFunction::prep(STATE, int arg_count, FFIArgInfo* args,
-                            int ret_type) {
+                            FFIArgInfo* ret) {
 
     ffi_type** types;
     ffi_status status;
@@ -230,7 +230,7 @@ namespace rubinius {
       }
     }
 
-    switch(ret_type) {
+    switch(ret->type) {
     case RBX_FFI_TYPE_CHAR:
       rtype = &ffi_type_schar;
       break;
@@ -284,7 +284,7 @@ namespace rubinius {
     FFIArgInfo* out_args_info = ALLOC_N(FFIArgInfo, arg_count);
     memcpy(out_args_info, args, sizeof(FFIArgInfo) * arg_count);
 
-    FFIData* data = FFIData::create(this, arg_count, out_args_info, ret_type);
+    FFIData* data = FFIData::create(this, arg_count, out_args_info, ret);
 
     status = ffi_prep_cif(&data->cif, FFI_DEFAULT_ABI, arg_count, rtype, types);
 
@@ -303,9 +303,9 @@ namespace rubinius {
   NativeFunction* NativeFunction::generate(STATE, Pointer* ptr, Symbol* name,
                                            Array* args, Object* ret)
   {
-    int ret_type;
     int i, tot, arg_count;
     Object* type;
+    FFIArgInfo ret_info;
     FFIArgInfo* args_info;
 
     tot = args->size();
@@ -351,10 +351,12 @@ namespace rubinius {
       args_info = NULL;
     }
 
-    ret_type = as<Integer>(ret)->to_native();
+    ret_info.type = as<Integer>(ret)->to_native();
+    ret_info.enum_obj = NULL;
+    ret_info.callback = NULL;
 
     NativeFunction* func = NativeFunction::create(state, name, arg_count);
-    func->prep(state, tot, args_info, ret_type);
+    func->prep(state, tot, args_info, &ret_info);
     func->ffi_data->ep = ptr->pointer;
 
     if(args_info) XFREE(args_info);
@@ -475,7 +477,7 @@ namespace rubinius {
       obj = cNil;
     }
 
-    switch(stub->ret_type) {
+    switch(stub->ret_info.type) {
     case RBX_FFI_TYPE_CHAR:
     case RBX_FFI_TYPE_SHORT:
     case RBX_FFI_TYPE_INT:
@@ -554,9 +556,9 @@ namespace rubinius {
   Array* NativeFunction::generate_tramp(STATE, Object* obj, Symbol* name,
                                         Array* args, Object* ret)
   {
-    int ret_type;
     int i, tot;
     Object* type;
+    FFIArgInfo ret_info;
     FFIArgInfo* args_info;
 
     tot = args->size();
@@ -594,10 +596,12 @@ namespace rubinius {
       args_info = NULL;
     }
 
-    ret_type = as<Integer>(ret)->to_native();
+    ret_info.type = as<Integer>(ret)->to_native();
+    ret_info.enum_obj = NULL;
+    ret_info.callback = NULL;
 
     NativeFunction* func = NativeFunction::create(state, name, tot);
-    func->prep(state, tot, args_info, ret_type);
+    func->prep(state, tot, args_info, &ret_info);
 
     func->ffi_data->callable = obj;
 
@@ -628,7 +632,7 @@ namespace rubinius {
                              orig->ffi_data->arg_count);
 
     func->prep(state, orig->ffi_data->arg_count, orig->ffi_data->args_info,
-               orig->ffi_data->ret_type);
+               &orig->ffi_data->ret_info);
 
     func->ffi_data->callable = obj;
 
@@ -933,7 +937,7 @@ namespace rubinius {
     FFIData* ffi_data_local = ffi_data;
     state->gc_independent(gct);
 
-    switch(ffi_data_local->ret_type) {
+    switch(ffi_data_local->ret_info.type) {
     case RBX_FFI_TYPE_CHAR: {
       ffi_arg result;
       ffi_call(&ffi_data_local->cif, FFI_FN(ffi_data_local->ep), &result, values);
@@ -1129,7 +1133,21 @@ namespace rubinius {
           }
         }
       }
-
+      FFIArgInfo* arg = &func->ffi_data->ret_info;
+      if(arg->callback) {
+        Object* tmp = mark.call(arg->callback);
+        if(tmp) {
+          arg->callback = force_as<NativeFunction>(tmp);
+          mark.just_set(obj, tmp);
+        }
+      }
+      if(arg->enum_obj) {
+        Object* tmp = mark.call(arg->enum_obj);
+        if(tmp) {
+          arg->enum_obj = tmp;
+          mark.just_set(obj, tmp);
+        }
+      }
       func->ffi_data->function = func;
     }
   }

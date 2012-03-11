@@ -886,7 +886,7 @@ remember:
     Value* check_args[] = { ops_.vm(), ops_.call_frame() };
     check.call("rbx_enter_unmanaged", check_args, 2, "unused", ops_.b());
 
-    Type* return_type = find_type(ops_, nf->ffi_data->ret_type);
+    Type* return_type = find_type(ops_, nf->ffi_data->ret_info.type);
 
     FunctionType* ft = FunctionType::get(return_type, ffi_type, false);
     Value* ep_ptr = ops_.b().CreateIntToPtr(
@@ -900,7 +900,7 @@ remember:
     Value* res_args[] = { ops_.vm(), ffi_result };
 
     Value* result;
-    switch(nf->ffi_data->ret_type) {
+    switch(nf->ffi_data->ret_info.type) {
     case RBX_FFI_TYPE_CHAR:
     case RBX_FFI_TYPE_UCHAR:
     case RBX_FFI_TYPE_SHORT:
