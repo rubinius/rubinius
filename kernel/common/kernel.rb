@@ -10,6 +10,7 @@ module Kernel
     return nil if name == :__block__ or name == :__script__
     return name
   end
+  module_function :__method__
 
   ##
   # MRI uses a macro named StringValue which has essentially the same

@@ -15,6 +15,7 @@ module Kernel
   end
 
   alias_method :__callee__, :__method__
+  module_function :__callee__
 
   def define_singleton_method(*args, &block)
     class << self
