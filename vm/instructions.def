@@ -635,7 +635,7 @@ end
 #   2. If the input is an array, it is unmodified.
 #   3. If in 1.9 mode and the input is nil, an empty Array is returned
 #
-#   If the input is any other type, call `Array.coerce_into_array(value)`.
+#   If the input is any other type, call `Rubinius::Type.coerce_into_array(value)`.
 #   If the return value of the method call is an `Array`, make it the result.
 #   Otherwise make the result an 1 element `Array` contain the original value.
 #
@@ -650,7 +650,7 @@ instruction cast_array() [ value -- array ]
   } else if(Tuple* tup = try_as<Tuple>(t1)) {
     t1 = Array::from_tuple(state, tup);
   } else if(!kind_of<Array>(t1)) {
-    Object* recv = G(array);
+    Object* recv = G(type);
     Arguments args(G(sym_coerce_into_array), recv, 1, &t1);
     Dispatch dis(G(sym_coerce_into_array));
 
