@@ -7,37 +7,11 @@
 #   	$Date: 1998/07/08 10:05:28 $
 #   	by Keiju ISHITSUKA(SHL Japan Inc.)
 #
-# ----
-#
-# complex.rb implements the Complex class for complex numbers.  Additionally,
-# some methods in other Numeric classes are redefined or added to allow greater
-# interoperability with Complex numbers.
-#
-# Complex numbers can be created in the following manner:
-# - <tt>Complex(a, b)</tt>
-# - <tt>Complex.polar(radius, theta)</tt>
-#
-# Additionally, note the following:
-# - <tt>Complex::I</tt> (the mathematical constant <i>i</i>)
-# - <tt>Numeric#im</tt> (e.g. <tt>5.im -> 0+5i</tt>)
-#
-# The following +Math+ module methods are redefined to handle Complex arguments.
-# They will work as normal with non-Complex arguments.
-#    sqrt exp cos sin tan log log10
-#    cosh sinh tanh acos asin atan atan2 acosh asinh atanh
-#
 
-#
-# Creates a Complex number.  +a+ and +b+ should be Numeric.  The result will be
-# <tt>a+bi</tt>.
-#
 def Complex(*args)
   Complex.send :convert, *args
 end
 
-#
-# The complex number class.
-#
 class Complex < Numeric
   undef_method :%
   undef_method :<
@@ -106,9 +80,6 @@ class Complex < Numeric
   end
   class << self; alias_method :rectangular, :rect end
 
-  #
-  # Creates a +Complex+ number in terms of +r+ (radius) and +theta+ (angle).
-  #
   def Complex.polar(r, theta=0)
     raise TypeError, 'not a real' unless check_real?(r) && check_real?(theta)
 
@@ -129,9 +100,6 @@ class Complex < Numeric
     Complex(-real, -imag)
   end
 
-  #
-  # Addition with real or complex number.
-  #
   def +(other)
     if other.kind_of?(Complex)
       Complex(real + other.real, imag + other.imag)
@@ -142,9 +110,6 @@ class Complex < Numeric
     end
   end
 
-  #
-  # Subtraction with real or complex number.
-  #
   def -(other)
     if other.kind_of?(Complex)
       Complex(real - other.real, imag - other.imag)
@@ -155,9 +120,6 @@ class Complex < Numeric
     end
   end
 
-  #
-  # Multiplication with real or complex number.
-  #
   def *(other)
     if other.kind_of?(Complex)
       Complex(real * other.real - imag * other.imag,
@@ -169,9 +131,6 @@ class Complex < Numeric
     end
   end
 
-  #
-  # Division by real or complex number.
-  #
   def divide(other)
     if other.kind_of?(Complex)
       self * other.conjugate / other.abs2
@@ -185,9 +144,6 @@ class Complex < Numeric
   alias_method :/, :divide
   alias_method :quo, :divide
 
-  #
-  # Raise this complex number to the given (real or complex) power.
-  #
   def ** (other)
     if !other.kind_of?(Float) && other == 0
       return Complex(1)
@@ -230,50 +186,31 @@ class Complex < Numeric
     end
   end
 
-  #
-  # Absolute value (aka modulus): distance from the zero point on the complex
-  # plane.
-  #
   def abs
     Math.hypot(@real, @imag)
   end
 
   alias_method :magnitude, :abs
 
-  #
-  # Square of the absolute value.
-  #
   def abs2
     @real*@real + @imag*@imag
   end
 
-  #
-  # Argument (angle from (1,0) on the complex plane).
-  #
   def arg
     Math.atan2(@imag, @real)
   end
   alias_method :angle, :arg
   alias_method :phase, :arg
 
-  #
-  # Returns the absolute value _and_ the argument.
-  #
   def polar
     [abs, arg]
   end
 
-  #
-  # Complex conjugate (<tt>z + z.conjugate = 2 * z.real</tt>).
-  #
   def conjugate
     Complex(@real, -@imag)
   end
   alias conj conjugate
 
-  #
-  # Test for numerical equality (<tt>a == a + 0<i>i</i></tt>).
-  #
   def ==(other)
     if other.kind_of?(Complex)
       real == other.real && imag == other.imag
@@ -291,9 +228,6 @@ class Complex < Numeric
     self == other
   end
 
-  #
-  # Attempts to coerce +other+ to a Complex number.
-  #
   def coerce(other)
     if other.kind_of?(Numeric) && other.real?
       [Complex(other), self]
@@ -344,9 +278,6 @@ class Complex < Numeric
     real.rationalize(eps)
   end
 
-  #
-  # Standard string representation of the complex number.
-  #
   def to_s
     result = real.to_s
 
@@ -367,23 +298,14 @@ class Complex < Numeric
     result
   end
 
-  #
-  # Returns a hash code for the complex number.
-  #
   def hash
     @real.hash ^ @imag.hash
   end
 
-  #
-  # Returns "<tt>Complex(<i>real</i>, <i>imag</i>)</tt>".
-  #
   def inspect
     "(#{to_s})"
   end
 
-  #
-  # Divides each part of a <tt>Complex</tt> number as it is a float.
-  #
   def fdiv(other)
     raise TypeError, "#{other.class} can't be coerced into Complex" unless other.is_a?(Numeric)
 
@@ -407,15 +329,9 @@ class Complex < Numeric
     self
   end
 
-  #
-  # +I+ is the imaginary number.  It exists at point (0,1) on the complex plane.
-  #
   I = Complex(0, 1)
 
-  # The real part of a complex number.
   attr_reader :real
-
-  # The imaginary part of a complex number.
   attr_reader :imag
   alias_method :imaginary, :imag
 end
