@@ -864,9 +864,8 @@ namespace rubinius {
     return module;
   }
 
-  Tuple* System::vm_find_method(STATE, Object* recv, Symbol* name) {
-    LookupData lookup(recv, recv->lookup_begin(state));
-    lookup.priv = true;
+  static Tuple* find_method(STATE, Object* recv, Symbol* name, Symbol* min_visibility) {
+    LookupData lookup(recv, recv->lookup_begin(state), min_visibility);
 
     Dispatch dis(name);
 
@@ -875,6 +874,14 @@ namespace rubinius {
     }
 
     return Tuple::from(state, 2, dis.method, dis.module);
+  }
+
+  Tuple* System::vm_find_method(STATE, Object* recv, Symbol* name) {
+    return find_method(state, recv, name, G(sym_private));
+  }
+
+  Tuple* System::vm_find_public_method(STATE, Object* recv, Symbol* name) {
+    return find_method(state, recv, name, G(sym_public));
   }
 
   Object* System::vm_add_method(STATE, GCToken gct, Symbol* name,
@@ -1076,7 +1083,7 @@ namespace rubinius {
   Object* System::vm_catch(STATE, Object* dest, Object* obj,
                            CallFrame* call_frame)
   {
-    LookupData lookup(obj, obj->lookup_begin(state), false);
+    LookupData lookup(obj, obj->lookup_begin(state), G(sym_protected));
     Dispatch dis(state->symbol("call"));
     Arguments args(state->symbol("call"), 1, &dest);
     args.set_recv(obj);

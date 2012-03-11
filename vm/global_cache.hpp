@@ -21,7 +21,7 @@ namespace rubinius {
       Symbol* name;
       Module* module;
       Executable* method;
-      bool is_public;
+      Symbol* visibility;
       bool method_missing;
 
       void clear() {
@@ -29,7 +29,7 @@ namespace rubinius {
         name = NULL;
         module = NULL;
         method = NULL;
-        is_public = true;
+        visibility = NULL;
         method_missing = false;
       }
     };
@@ -73,15 +73,15 @@ namespace rubinius {
     void prune_unmarked(int mark);
 
     void retain(STATE, Module* cls, Symbol* name, Module* mod, Executable* meth,
-                bool missing, bool was_private = false) {
+                bool missing, Symbol* visibility) {
       thread::SpinLock::LockGuard guard(lock_);
-      retain_i(state, cls, name, mod, meth, missing, was_private);
+      retain_i(state, cls, name, mod, meth, missing, visibility);
     }
 
     private:
 
     void retain_i(STATE, Module* cls, Symbol* name, Module* mod, Executable* meth,
-                bool missing, bool was_private = false) {
+                bool missing, Symbol* visibility) {
       CacheEntry* entry;
 
       entry = entries + CPU_CACHE_HASH(cls, name);
@@ -91,7 +91,7 @@ namespace rubinius {
       entry->method_missing = missing;
 
       entry->method = meth;
-      entry->is_public = !was_private;
+      entry->visibility = visibility;
     }
 
     void clear() {

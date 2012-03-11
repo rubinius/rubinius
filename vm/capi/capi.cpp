@@ -198,7 +198,7 @@ namespace rubinius {
       // Unlock, we're leaving extension code.
       LEAVE_CAPI(env->state());
 
-      LookupData lookup(recv, recv->lookup_begin(env->state()), true);
+      LookupData lookup(recv, recv->lookup_begin(env->state()), env->state()->globals().sym_private.get());
       Arguments args_o(method, recv, block, arg_count, args);
       Dispatch dis(method);
 
@@ -242,7 +242,7 @@ namespace rubinius {
       Object* recv = env->get_object(receiver);
       Symbol* method = (Symbol*)method_name;
 
-      LookupData lookup(recv, recv->lookup_begin(env->state()), true);
+      LookupData lookup(recv, recv->lookup_begin(env->state()), env->state()->globals().sym_private.get());
       Arguments args_o(method, recv, cNil, arg_count, args);
       Dispatch dis(method);
 
@@ -330,7 +330,7 @@ namespace rubinius {
       // Unlock, we're leaving extension code.
       LEAVE_CAPI(env->state());
 
-      LookupData lookup(recv, mod->superclass(), true);
+      LookupData lookup(recv, mod->superclass(), env->state()->globals().sym_private.get());
       Arguments args_o(name, recv, arg_count, args);
       Dispatch dis(name);
 

@@ -115,6 +115,22 @@ module Kernel
     raise PrimitiveFailure, "#send primitive failed"
   end
 
+  def public_send(message, *args)
+    Rubinius.primitive :object_public_send
+    raise PrimitiveFailure, "#public_send primitive failed"
+  end
+
+  def public_method(name)
+    name = Rubinius::Type.coerce_to_symbol name
+    cm = Rubinius.find_public_method(self, name)
+
+    if cm
+      return Method.new(self, cm[1], cm[0], name)
+    else
+      raise NameError, "undefined method `#{name}' for #{self.inspect}"
+    end
+  end
+
   def proc(&prc)
     raise ArgumentError, "block required" unless prc
     return prc
