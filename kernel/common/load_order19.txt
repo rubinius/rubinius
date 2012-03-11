@@ -84,6 +84,7 @@ marshal19.rbc
 math.rbc
 math19.rbc
 method.rbc
+method_equality.rbc
 method19.rbc
 method_table.rbc
 missing_method.rbc
