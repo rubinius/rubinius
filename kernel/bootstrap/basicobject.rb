@@ -33,4 +33,9 @@ class BasicObject
     Rubinius.primitive :object_send
     raise PrimitiveFailure, "#__send__ primitive failed"
   end
+
+  def __id__
+    Rubinius.primitive :object_id
+    raise PrimitiveFailure, "#__id__ primitive failed"
+  end
 end

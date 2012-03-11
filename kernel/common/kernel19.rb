@@ -115,6 +115,14 @@ module Kernel
     raise PrimitiveFailure, "#send primitive failed"
   end
 
+  # In 1.8, :object_id is an alias to :__id__ because both methods are defined
+  # on Kernel. But in 1.9, :__id__ is defined on BasicObject.
+  #
+  def object_id
+    Rubinius.primitive :object_id
+    raise PrimitiveFailure, "#object_id primitive failed"
+  end
+
   def proc(&prc)
     raise ArgumentError, "block required" unless prc
     return prc

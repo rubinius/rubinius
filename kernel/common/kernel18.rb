@@ -13,6 +13,7 @@ module Kernel
   end
 
   alias_method :send, :__send__
+  alias_method :object_id, :__id__
 
   def to_a
     if self.kind_of? Array

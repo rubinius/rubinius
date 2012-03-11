@@ -237,8 +237,6 @@ module Kernel
     self
   end
 
-  alias_method :object_id, :__id__
-
   # The "sorta" operator, also known as the case equality operator.
   # Generally while #eql? and #== are stricter, #=== is often used
   # to denote an acceptable match or inclusion. It returns true if
