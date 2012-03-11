@@ -209,6 +209,9 @@ namespace rubinius {
       thread::Mutex::LockGuard guard(mutex_);
       if(state != cStopped) return;
       state = cUnknown;
+      stop_ = false;
+      pause_ = false;
+      paused_ = false;
       run();
     }
 

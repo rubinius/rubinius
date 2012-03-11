@@ -76,6 +76,24 @@ namespace rubinius {
     run(state);
   }
 
+  void SignalHandler::pause() {
+    if(handler_) {
+      handler_->pause_i();
+    }
+  }
+
+  void SignalHandler::pause_i() {
+    pthread_t os = self_->os_thread();
+
+    exit_ = true;
+    if(write(write_fd_, "!", 1) < 0) {
+      perror("SignalHandler::shutdown_i failed to write");
+    }
+
+    void* blah;
+    pthread_join(os, &blah);
+  }
+
   void SignalHandler::shutdown() {
     if(handler_) {
       handler_->shutdown_i();
@@ -90,16 +108,7 @@ namespace rubinius {
     {
       signal(*i, SIG_DFL);
     }
-
-    pthread_t os = self_->os_thread();
-
-    exit_ = true;
-    if(write(write_fd_, "!", 1) < 0) {
-      perror("SignalHandler::shutdown_i failed to write");
-    }
-
-    void* blah;
-    pthread_join(os, &blah);
+    pause_i();
   }
 
   void SignalHandler::run(STATE) {
@@ -185,11 +194,6 @@ namespace rubinius {
     SYNC(state);
 
 #ifndef RBX_WINDOWS
-    sigset_t sigs;
-    sigemptyset(&sigs);
-    sigaddset(&sigs, sig);
-    sigprocmask(SIG_UNBLOCK, &sigs, NULL);
-
     struct sigaction action;
 
     if(type == eDefault) {

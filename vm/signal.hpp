@@ -50,6 +50,9 @@ namespace rubinius {
     static void on_fork(STATE, bool full=true);
     void on_fork_i(STATE, bool full);
 
+    static void pause();
+    void pause_i();
+
     static void shutdown();
     void shutdown_i();
 

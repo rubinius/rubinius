@@ -191,7 +191,7 @@ namespace rubinius {
     LLVMState::shutdown(state);
 #endif
 
-    SignalHandler::shutdown();
+    SignalHandler::pause();
     QueryAgent::shutdown(state);
 
     state->shared().pre_exec();
@@ -216,8 +216,21 @@ namespace rubinius {
 
     // Reset all signal handlers to the defaults, so any we setup in Rubinius
     // won't leak through.
+    sigset_t sigs;
     for(int i = 0; i < NSIG; i++) {
-      old_handlers[i] = (void*)signal(i, SIG_DFL);
+      struct sigaction action;
+      struct sigaction old_action;
+
+      sigemptyset(&sigs);
+      sigaddset(&sigs, i);
+      sigprocmask(SIG_UNBLOCK, &sigs, NULL);
+
+      action.sa_handler = SIG_DFL;
+      action.sa_flags = 0;
+      sigfillset(&action.sa_mask);
+
+      sigaction(i, &action, &old_action);
+      old_handlers[i] = (void*)old_action.sa_handler;
     }
 
     (void)::execvp(path->c_str(state), argv);
@@ -225,7 +238,17 @@ namespace rubinius {
     // Hmmm, execvp failed, we need to recover here.
 
     for(int i = 0; i < NSIG; i++) {
-      signal(i, (void(*)(int))old_handlers[i]);
+      struct sigaction action;
+
+      sigemptyset(&sigs);
+      sigaddset(&sigs, i);
+      sigprocmask(SIG_UNBLOCK, &sigs, NULL);
+
+      action.sa_handler = (void(*)(int))old_handlers[i];
+      action.sa_flags = 0;
+      sigfillset(&action.sa_mask);
+
+      sigaction(i, &action, NULL);
     }
 
     delete[] argv;
@@ -234,7 +257,7 @@ namespace rubinius {
     LLVMState::start(state);
 #endif
 
-    SignalHandler::on_fork(state, false);
+    SignalHandler::on_fork(state);
 
     /* execvp() returning means it failed. */
     Exception::errno_error(state, "execvp(2) failed");
