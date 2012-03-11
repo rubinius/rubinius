@@ -216,6 +216,20 @@ module Kernel
   end
   module_function :Float
 
+  def Complex(*args)
+    Complex.send :convert, *args
+  end
+  module_function :Complex
+
+  def Rational(a, b = 1)
+    if a.kind_of?(Rational) && b == 1
+      a
+    else
+      Rational.send :convert, a, b
+    end
+  end
+  module_function :Rational
+
   # obj <=> other -> 0 or nil
   def <=>(other)
     self == other ? 0 : nil

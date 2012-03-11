@@ -21,24 +21,6 @@
 
 
 #
-# Creates a Rational number (i.e. a fraction).  +a+ and +b+ should be Integers:
-#
-#   Rational(1,3)           # -> 1/3
-#
-# Note: trying to construct a Rational with floating point or real values
-# produces errors:
-#
-#   Rational(1.1, 2.3)      # -> NoMethodError
-#
-def Rational(a, b = 1)
-  if a.kind_of?(Rational) && b == 1
-    a
-  else
-    Rational.send :convert, a, b
-  end
-end
-
-#
 # Rational implements a rational class for numbers.
 #
 # <em>A rational number is a number that can be expressed as a fraction p/q
