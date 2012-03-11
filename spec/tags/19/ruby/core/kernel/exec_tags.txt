@@ -1,1 +1,2 @@
 fails:Kernel#exec passes environment vars to the child environment
+unstable:Kernel#exec raises a SystemCallError if cmd cannot execute and contains '-'
