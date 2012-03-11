@@ -8,7 +8,7 @@ module Kernel
     if cm
       Method.new(self, cm[1], cm[0], name)
     elsif respond_to_missing?(name, true)
-      Method.new(self, self.class, Rubinius::MissingMethod.new, name)
+      Method.new(self, self.class, Rubinius::MissingMethod.new(self,  name), name)
     else
       raise NameError, "undefined method `#{name}' for #{self.inspect}"
     end
@@ -210,19 +210,5 @@ module Kernel
   # obj <=> other -> 0 or nil
   def <=>(other)
     self == other ? 0 : nil
-  end
-
-  def method(name)
-    name = Rubinius::Type.coerce_to_symbol name
-    cm = Rubinius.find_method(self, name)
-
-    if cm
-      return Method.new(self, cm[1], cm[0], name)
-    elsif respond_to_missing?(name, true)
-      delegted = Rubinius::DelegatedMethod.new(name, name, self, false)
-      return Method.new(self, self.class, delegted, name)
-    else
-      raise NameError, "undefined method `#{name}' for #{self.inspect}"
-    end
   end
 end

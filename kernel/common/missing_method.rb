@@ -6,8 +6,16 @@
 
 module Rubinius
   class MissingMethod < Executable
+    attr_reader :receiver
+    attr_reader :method
+
+    def initialize(receiver,  method)
+      @receiver = receiver
+      @method = method
+    end
+
     def call(called_object, called_method, *args, &block)
-      called_object.__send__(called_method, *args, &block)
+      @receiver.__send__(@method, *args, &block)
     end
 
     def arity
@@ -17,5 +25,13 @@ module Rubinius
     def parameters
       [[:rest]]
     end
+
+    def ==(other)
+      other.kind_of?(MissingMethod) &&
+      @receiver == other.receiver   &&
+      @method   == other.method
+    end
+
+    alias_method :eql?, :==
   end
 end
