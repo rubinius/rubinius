@@ -2,14 +2,12 @@
 
 module Rubinius
   module Compiler::Runtime
-    def matches_when(array, receiver)
+    def self.matches_when(array, receiver)
       array.each { |x| return true if x === receiver }
       false
     end
 
-    module_function :matches_when
-
-    def unwrap_block_arg(arg)
+    def self.unwrap_block_arg(arg)
       if arg.size == 1
         elem = arg.at(0)
         return elem if elem.kind_of?(Array)
@@ -18,9 +16,7 @@ module Rubinius
       arg
     end
 
-    module_function :unwrap_block_arg
-
-    def find_constant_for_op_asign_or(name, scope)
+    def self.find_constant_for_op_asign_or(name, scope)
       name = Rubinius::Type.coerce_to_constant_name name
 
       current, constant = scope.module, undefined
@@ -46,21 +42,15 @@ module Rubinius
       nil
     end
 
-    module_function :find_constant_for_op_asign_or
-
-    def get_flip_flop(scope, index)
+    def self.get_flip_flop(scope, index)
       scope.flip_flops ||= {}
       scope.flip_flops[index]
     end
 
-    module_function :get_flip_flop
-
-    def set_flip_flop(scope, index, value)
+    def self.set_flip_flop(scope, index, value)
       scope.flip_flops ||= {}
       scope.flip_flops[index] = value
     end
-
-    module_function :set_flip_flop
 
     def self.rbx_marshal_constant
       name
