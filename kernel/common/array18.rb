@@ -174,10 +174,6 @@ class Array
 
   private :set_index
 
-  # Repetition operator when supplied a #to_int argument:
-  # returns a new Array as a concatenation of the given number
-  # of the original Arrays. With an argument that responds to
-  # #to_str, functions exactly like #join instead.
   def *(multiplier)
     if multiplier.respond_to? :to_str
       return join(multiplier)
@@ -222,18 +218,15 @@ class Array
     end
   end
 
-  # Choose a random element from the array.
   def choice
     at Kernel.rand(size)
   end
 
-  # Returns a copy of self with all nil elements removed
   def compact
     out = dup
     out.compact! || out
   end
 
-  # Appends the elements in the other Array to self
   def concat(other)
     Rubinius.primitive :array_concat
 
@@ -245,8 +238,6 @@ class Array
     concat other
   end
 
-  # Recursively flatten any contained Arrays into an one-dimensional result.
-  # The optional level argument determines the level of recursion to flatten
   def flatten(level=-1)
     level = Rubinius::Type.coerce_to(level, Integer, :to_int)
     return self if level == 0
@@ -256,9 +247,6 @@ class Array
     out
   end
 
-  # Flattens self in place as #flatten. If no changes are
-  # made, returns nil, otherwise self.
-  # The optional level argument determines the level of recursion to flatten
   def flatten!(level=-1)
     level = Rubinius::Type.coerce_to(level, Integer, :to_int)
     return nil if level == 0
@@ -272,10 +260,6 @@ class Array
     nil
   end
 
-  # For a positive index, inserts the given values before
-  # the element at the given index. Negative indices count
-  # backwards from the end and the values are inserted
-  # after them.
   def insert(idx, *items)
     return self if items.length == 0
 
@@ -290,10 +274,6 @@ class Array
     self
   end
 
-  # Generates a string from converting all elements of
-  # the Array to strings, inserting a separator between
-  # each. The separator defaults to $,. Detects recursive
-  # Arrays.
   def join(sep=nil)
     return "" if @total == 0
 
@@ -340,70 +320,6 @@ class Array
     Rubinius::Type.infect(out, self)
   end
 
-  ##
-  #  call-seq:
-  #     arr.pack ( aTemplateString ) -> aBinaryString
-  #
-  #  Packs the contents of <i>arr</i> into a binary sequence according to
-  #  the directives in <i>aTemplateString</i> (see the table below)
-  #  Directives ``A,'' ``a,'' and ``Z'' may be followed by a count,
-  #  which gives the width of the resulting field. The remaining
-  #  directives also may take a count, indicating the number of array
-  #  elements to convert. If the count is an asterisk
-  #  (``<code>*</code>''), all remaining array elements will be
-  #  converted. Any of the directives ``<code>sSiIlL</code>'' may be
-  #  followed by an underscore (``<code>_</code>'') to use the underlying
-  #  platform's native size for the specified type; otherwise, they use a
-  #  platform-independent size. Spaces are ignored in the template
-  #  string. See also <code>String#unpack</code>.
-  #
-  #     a = [ "a", "b", "c" ]
-  #     n = [ 65, 66, 67 ]
-  #     a.pack("A3A3A3")   #=> "a  b  c  "
-  #     a.pack("a3a3a3")   #=> "a\000\000b\000\000c\000\000"
-  #     n.pack("ccc")      #=> "ABC"
-  #
-  #  Directives for +pack+.
-  #
-  #   Directive    Meaning
-  #   ---------------------------------------------------------------
-  #       @     |  Moves to absolute position
-  #       A     |  ASCII string (space padded, count is width)
-  #       a     |  ASCII string (null padded, count is width)
-  #       B     |  Bit string (descending bit order)
-  #       b     |  Bit string (ascending bit order)
-  #       C     |  Unsigned char
-  #       c     |  Char
-  #       D, d  |  Double-precision float, native format
-  #       E     |  Double-precision float, little-endian byte order
-  #       e     |  Single-precision float, little-endian byte order
-  #       F, f  |  Single-precision float, native format
-  #       G     |  Double-precision float, network (big-endian) byte order
-  #       g     |  Single-precision float, network (big-endian) byte order
-  #       H     |  Hex string (high nibble first)
-  #       h     |  Hex string (low nibble first)
-  #       I     |  Unsigned integer
-  #       i     |  Integer
-  #       L     |  Unsigned long
-  #       l     |  Long
-  #       M     |  Quoted printable, MIME encoding (see RFC2045)
-  #       m     |  Base64 encoded string
-  #       N     |  Long, network (big-endian) byte order
-  #       n     |  Short, network (big-endian) byte-order
-  #       P     |  Pointer to a structure (fixed-length string)
-  #       p     |  Pointer to a null-terminated string
-  #       Q, q  |  64-bit number
-  #       S     |  Unsigned short
-  #       s     |  Short
-  #       U     |  UTF-8
-  #       u     |  UU-encoded string
-  #       V     |  Long, little-endian byte order
-  #       v     |  Short, little-endian byte order
-  #       w     |  BER-compressed integer\fnm
-  #       X     |  Back up a byte
-  #       x     |  Null byte
-  #       Z     |  Same as ``a'', except that null is added with *
-
   def pack(directives)
     Rubinius.primitive :array_pack18
 
@@ -414,15 +330,9 @@ class Array
     raise ArgumentError, "invalid directives string: #{directives}"
   end
 
-  # Returns an array of all combinations of elements from all arrays.  The
-  # length of the returned array is the product of the length of ary and the
-  # argument arrays
-  #
-  # --
   # Implementation notes: We build a block that will generate all the
   # combinations by building it up successively using "inject" and starting
   # with one responsible to append the values.
-  # ++
   def product(*args)
     args.map! { |x| Rubinius::Type.coerce_to(x, Array, :to_ary) }
 
@@ -454,30 +364,21 @@ class Array
     result
   end
 
-  # Appends the given object(s) to the Array and returns
-  # the modified self.
   def push(*args)
     return self if args.empty?
 
     concat args
   end
 
-  # Returns a new Array by removing items from self for
-  # which block is true. An Array is also returned when
-  # invoked on subclasses. See #reject!
   def reject(&block)
     return to_enum(:reject) unless block_given?
     dup.delete_if(&block)
   end
 
-  # Returns a new array with elements of this array shuffled.
   def shuffle
     dup.shuffle!
   end
 
-  # Deletes the element(s) given by an index (optionally with a length)
-  # or by a range. Returns the deleted object, subarray, or nil if the
-  # index is out of range. Equivalent to:
   def slice!(start, length=undefined)
     Rubinius.check_frozen
 
@@ -525,19 +426,14 @@ class Array
     out
   end
 
-  # Produces a string by joining all elements without a
-  # separator. See #join
   def to_s
     join
   end
 
-  # Returns a new Array by removing duplicate entries
-  # from self. Equality is determined by using a Hash
   def uniq
     dup.uniq! or dup
   end
 
-  # Removes duplicates from the Array in place as #uniq
   def uniq!
     im = Rubinius::IdentityMap.from self
     return if im.size == size
@@ -552,25 +448,6 @@ class Array
     self
   end
 
-  #  call-seq:
-  #     array.zip(arg, ...)                   -> an_array
-  #     array.zip(arg, ...) { |arr| block }   -> nil
-  #
-  #  Converts any arguments to arrays, then merges elements of
-  #  <i>self</i> with corresponding elements from each argument. This
-  #  generates a sequence of <code>self.size</code> <em>n</em>-element
-  #  arrays, where <em>n</em> is one more that the count of arguments. If
-  #  the size of any argument is less than <code>enumObj.size</code>,
-  #  <code>nil</code> values are supplied. If a block given, it is
-  #  invoked for each output array, otherwise an array of arrays is
-  #  returned.
-  #
-  #     a = [ 4, 5, 6 ]
-  #     b = [ 7, 8, 9 ]
-  #     [1,2,3].zip(a, b)      #=> [[1, 4, 7], [2, 5, 8], [3, 6, 9]]
-  #     [1,2].zip(a,b)         #=> [[1, 4, 7], [2, 5, 8]]
-  #     a.zip([1,2],[8])       #=> [[4,1,8], [5,2,nil], [6,nil,nil]]
-  #
   def zip(*others)
     out = Array.new(size) { [] }
     others = others.map { |ary| ary.to_ary }

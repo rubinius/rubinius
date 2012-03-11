@@ -1,9 +1,6 @@
 # -*- encoding: us-ascii -*-
 
 class Symbol
-  ##
-  # Returns a pretty version of the symbol, fit for viewing
-  #  :symbol.inspect #=> ":symbol"
   def inspect
     str = to_s
 

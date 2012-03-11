@@ -1,14 +1,5 @@
 # -*- encoding: us-ascii -*-
 
-##
-# Arrays are ordered, integer-indexed collections of any object.  Array
-# indexing starts at 0, as in C or Java.  A negative index is assumed to be
-# relative to the end of the array---that is, an index of -1 indicates the
-# last element of the array, -2 is the next to last element in the array, and
-# so on.
-#
-# Arrays can be created with the <tt>[]</tt> syntax, or via <tt>Array.new</tt>.
-
 class Array
   include Enumerable
 
@@ -19,24 +10,12 @@ class Array
   # cases, to avoid mutual dependency. Apologies.
 
 
-  # Returns a new Array populated with the given objects
   def self.[](*args)
     ary = allocate
     ary.replace args
     ary
   end
 
-  # Creates a new Array. Without arguments, an empty
-  # Array is returned. If the only argument is an object
-  # that responds to +to_ary+, a copy of that Array is
-  # created. Otherwise the first argument is the size
-  # of the new Array (default 0.) The second argument
-  # may be an object used to fill the Array up to the
-  # size given (the same object, not a copy.) Alternatively,
-  # a block that takes the numeric index can be given and
-  # will be run size times to fill the Array with its
-  # result. The block supercedes any object given. If
-  # neither is provided, the Array is filled with nil.
   def initialize(size_or_array=undefined, obj=undefined)
     Rubinius.check_frozen
 
@@ -102,13 +81,6 @@ class Array
   alias_method :initialize_copy, :replace
   private :initialize_copy
 
-
-  # Element reference, returns the element at the given index or
-  # a subarray starting from the index continuing for length
-  # elements or returns a subarray from range elements. Negative
-  # indices count from the end. Returns nil if the index or subarray
-  # request cannot be completed. Array#slice is synonymous with #[].
-  # Subclasses return instances of themselves.
   def [](arg1, arg2=nil)
     case arg1
 
@@ -202,8 +174,6 @@ class Array
 
   alias_method :slice, :[]
 
-  # Appends the object to the end of the Array.
-  # Returns self so several appends can be chained.
   def <<(obj)
     set_index(@total, obj)
     self
@@ -211,9 +181,6 @@ class Array
 
   alias_method :__append__, :<<
 
-  # Creates a new Array containing only elements common to
-  # both Arrays, without duplicates. Also known as a 'set
-  # intersection'
   def &(other)
     other = Rubinius::Type.coerce_to other, Array, :to_ary
 
@@ -225,8 +192,6 @@ class Array
     array
   end
 
-  # Creates a new Array by combining the two Arrays' items,
-  # without duplicates. Also known as a 'set union.'
   def |(other)
     other = Rubinius::Type.coerce_to other, Array, :to_ary
 
@@ -234,15 +199,11 @@ class Array
     im.to_array
   end
 
-  # Create a concatenation of the two Arrays.
   def +(other)
     other = Rubinius::Type.coerce_to other, Array, :to_ary
     Array.new(self).concat(other)
   end
 
-  # Creates a new Array that contains the items of the original
-  # Array that do not appear in the other Array, effectively
-  # 'deducting' those items. The matching method is Hash-based.
   def -(other)
     other = Rubinius::Type.coerce_to other, Array, :to_ary
 
@@ -254,12 +215,6 @@ class Array
     array
   end
 
-  # Compares the two Arrays and returns -1, 0 or 1 depending
-  # on whether the first one is 'smaller', 'equal' or 'greater'
-  # in relation to the second. Two Arrays are equal only if all
-  # their elements are 0 using first_e <=> second_e and their
-  # lengths are the same. The element comparison is the primary
-  # and length is only checked if the former results in 0's.
   def <=>(other)
     other = Rubinius::Type.check_convert_type other, Array, :to_ary
     return 0 if equal? other
@@ -284,10 +239,6 @@ class Array
     @total <=> other_total
   end
 
-  # The two Arrays are considered equal only if their
-  # lengths are the same and each of their elements
-  # are equal according to first_e == second_e . Both
-  # Array subclasses and to_ary objects are accepted.
   def ==(other)
     return true if equal?(other)
     unless other.kind_of? Array
@@ -316,10 +267,6 @@ class Array
     true
   end
 
-  # Assumes the Array contains other Arrays and searches through
-  # it comparing the given object with the first element of each
-  # contained Array using elem == obj. Returns the first contained
-  # Array that matches (the first 'associated' Array) or nil.
   def assoc(obj)
     each do |x|
       if x.kind_of? Array and x.first == obj
@@ -330,10 +277,6 @@ class Array
     nil
   end
 
-  # Returns the element at the given index. If the
-  # index is negative, counts from the end of the
-  # Array. If the index is out of range, nil is
-  # returned. Slightly faster than +Array#[]+
   def at(idx)
     Rubinius.primitive :array_aref
     idx = Rubinius::Type.coerce_to idx, Fixnum, :to_int
@@ -350,7 +293,6 @@ class Array
     return @tuple.at(idx)
   end
 
-  # Removes all elements in the Array and leaves it empty
   def clear()
     Rubinius.check_frozen
 
@@ -360,10 +302,6 @@ class Array
     self
   end
 
-  # When invoked with a block, yields all combinations of length n of elements
-  # from ary and then returns ary itself. Even though the implementation makes
-  # no guarantees about the order in which the combinations are yielded, we copy MRI.
-  # When invoked without a block, returns an enumerator object instead.
   def combination(num)
     num = Rubinius::Type.coerce_to num, Fixnum, :to_int
     return to_enum(:combination, num) unless block_given?
@@ -400,7 +338,6 @@ class Array
     self
   end
 
-  # Removes all nil elements from self, returns nil if no changes
   def compact!
     Rubinius.check_frozen
 
@@ -413,9 +350,6 @@ class Array
     end
   end
 
-  # Calls block for each element repeatedly n times or forever if none
-  # or nil is given. If a non-positive number is given or the array is empty,
-  # does nothing. Returns nil if the loop has finished without getting interrupted.
   def cycle(n=nil, &block)
     return to_enum(:cycle, n) unless block_given?
 
@@ -433,10 +367,6 @@ class Array
     nil
   end
 
-  # Removes all elements from self that are #== to the given object.
-  # If the object does not appear at all, nil is returned unless a
-  # block is provided in which case the value of running it is
-  # returned instead.
   def delete(obj)
     key = undefined
     i = @start
@@ -468,9 +398,6 @@ class Array
     end
   end
 
-  # Deletes the element at the given index and returns
-  # the deleted element or nil if the index is out of
-  # range. Negative indices count backwards from end.
   def delete_at(idx)
     Rubinius.check_frozen
 
@@ -496,7 +423,6 @@ class Array
     obj
   end
 
-  # Deletes every element from self for which block evaluates to true
   def delete_if(&block)
     Rubinius.check_frozen
 
@@ -525,8 +451,6 @@ class Array
     self
   end
 
-  # Passes each index of the Array to the given block
-  # and returns self.
   def each_index
     return to_enum(:each_index) unless block_given?
 
@@ -541,8 +465,6 @@ class Array
     self
   end
 
-  # Returns true if both are the same object or if both
-  # have the same elements (#eql? used for testing.)
   def eql?(other)
     return true if equal? other
     return false unless other.kind_of?(Array)
@@ -559,15 +481,10 @@ class Array
     true
   end
 
-  # True if Array has no elements.
   def empty?
     @total == 0
   end
 
-  # Attempts to return the element at the given index. By default
-  # an IndexError is raised if the element is out of bounds. The
-  # user may supply either a default value or a block that takes
-  # the index object instead.
   def fetch(idx, default=undefined)
     orig = idx
     idx = Rubinius::Type.coerce_to(idx, Fixnum, :to_int)
@@ -587,23 +504,6 @@ class Array
     at(idx)
   end
 
-  # Fill some portion of the Array with a given element. The
-  # element to be used can be either given as the first argument
-  # or as a block that takes the index as its argument. The
-  # section that is to be filled can be defined by the following
-  # arguments. The first following argument is either a starting
-  # index or a Range. If the first argument is a starting index,
-  # the second argument can be the length. No length given
-  # defaults to rest of Array, no starting defaults to 0. Negative
-  # indices are treated as counting backwards from the end. Negative
-  # counts leave the Array unchanged. Returns self.
-  #
-  # array.fill(obj)                                -> array
-  # array.fill(obj, start [, length])              -> array
-  # array.fill(obj, range)                         -> array
-  # array.fill { |index| block }                   -> array
-  # array.fill(start [, length]) { |index| block } -> array
-  # array.fill(range) { |index| block }            -> array
   def fill(a=undefined, b=undefined, c=undefined)
     Rubinius.check_frozen
 
@@ -681,10 +581,6 @@ class Array
     self
   end
 
-  # Returns the first or first n elements of the Array.
-  # If no argument is given, returns nil if the item
-  # is not found. If there is an argument, an empty
-  # Array is returned instead.
   def first(n = undefined)
     return at(0) if n.equal? undefined
 
@@ -694,9 +590,6 @@ class Array
     self[0, n]
   end
 
-  # Computes a Fixnum hash code for this Array. Any two
-  # Arrays with the same content will have the same hash
-  # code (similar to #eql?)
   def hash
     hash_val = size
     mask = Fixnum::MAX >> 1
@@ -748,8 +641,6 @@ class Array
     return hash_val
   end
 
-  # Returns true if the given obj is present in the Array.
-  # Presence is determined by calling elem == obj until found.
   def include?(obj)
 
     # This explicit loop is for performance only. Preferably,
@@ -776,10 +667,6 @@ class Array
     false
   end
 
-  # Returns the index of the first element in the Array
-  # for which elem == obj is true or nil. If a block is
-  # given instead of an argument, returns first object
-  # for which block is true. Returns nil if no match is found.
   def index(obj=undefined)
     i = 0
     if obj.equal? undefined
@@ -796,8 +683,6 @@ class Array
     nil
   end
 
-  # Returns an Array populated with the objects at the given indices of the original.
-  # Range arguments are given as nested Arrays as from #[].
   def indexes(*args)
     warn 'Array#indexes is deprecated, use Array#values_at instead'
 
@@ -817,9 +702,6 @@ class Array
 
   alias_method :indices, :indexes
 
-  # Returns the last element or n elements of self. If
-  # the Array is empty, without a count nil is returned,
-  # otherwise an empty Array. Always returns an Array.
   def last(n=undefined)
     if size < 1
       return nil if n.equal? undefined
@@ -841,38 +723,12 @@ class Array
 
   alias_method :collect!, :map!
 
-  # Returns number of non-nil elements in self, may be zero
   def nitems
     sum = 0
     each { |elem| sum += 1 unless elem.equal? nil }
     sum
   end
 
-  ##
-  #  call-seq:
-  #     ary.permutation { |p| block }          -> array
-  #     ary.permutation                        -> enumerator
-  #     ary.permutation(n) { |p| block }       -> array
-  #     ary.permutation(n)                     -> enumerator
-  #
-  #  When invoked with a block, yield all permutations of length <i>n</i>
-  #  of the elements of <i>ary</i>, then return the array itself.
-  #  If <i>n</i> is not specified, yield all permutations of all elements.
-  #  The implementation makes no guarantees about the order in which
-  #  the permutations are yielded.
-  #
-  #  When invoked without a block, return an enumerator object instead.
-  #
-  #  Examples:
-  #
-  #     a = [1, 2, 3]
-  #     a.permutation.to_a     #=> [[1,2,3],[1,3,2],[2,1,3],[2,3,1],[3,1,2],[3,2,1]]
-  #     a.permutation(1).to_a  #=> [[1],[2],[3]]
-  #     a.permutation(2).to_a  #=> [[1,2],[1,3],[2,1],[2,3],[3,1],[3,2]]
-  #     a.permutation(3).to_a  #=> [[1,2,3],[1,3,2],[2,1,3],[2,3,1],[3,1,2],[3,2,1]]
-  #     a.permutation(0).to_a  #=> [[]] # one permutation of length 0
-  #     a.permutation(4).to_a  #=> []   # no permutations of length 4
-  #
   def permutation(num=undefined, &block)
     return to_enum(:permutation, num) unless block_given?
 
@@ -935,7 +791,6 @@ class Array
   end
   private :__permute__
 
-  # Removes and returns the last element from the Array.
   def pop(many=undefined)
     Rubinius.check_frozen
 
@@ -968,10 +823,6 @@ class Array
     end
   end
 
-  # Searches through contained Arrays within the Array,
-  # comparing obj with the second element of each using
-  # elem == obj. Returns the first matching Array, nil
-  # on failure. See also Array#assoc.
   def rassoc(obj)
     each do |elem|
       if elem.kind_of? Array and elem.at(1) == obj
@@ -982,8 +833,6 @@ class Array
     nil
   end
 
-  # Equivalent to #delete_if except that returns nil if
-  # no changes were made.
   def reject!(&block)
     Rubinius.check_frozen
 
@@ -996,14 +845,10 @@ class Array
     self
   end
 
-  # Returns a new Array or subclass populated from self
-  # but in reverse order.
   def reverse
     dup.reverse!
   end
 
-  # Reverses the order of elements in self. Returns self
-  # even if no changes are made
   def reverse!
     Rubinius.check_frozen
 
@@ -1014,8 +859,6 @@ class Array
     return self
   end
 
-  # Goes through the Array back to front and yields
-  # each element to the supplied block. Returns self.
   def reverse_each
     return to_enum(:reverse_each) unless block_given?
 
@@ -1031,10 +874,6 @@ class Array
     self
   end
 
-  # Returns the index of the last element in the Array
-  # for which elem == obj is true.
-  # If a block is given instead of an argument,
-  # returns last object for which block is true.
   def rindex(obj=undefined)
     if obj.equal? undefined
       return to_enum(:rindex, obj) unless block_given?
@@ -1065,9 +904,6 @@ class Array
   # not just using the Enumerable one. This alias achieves that.
   alias_method :select, :find_all
 
-  # Removes and returns the first element in the
-  # Array or nil if empty. All other elements are
-  # moved down one index.
   def shift(n=undefined)
     Rubinius.check_frozen
 
@@ -1087,19 +923,6 @@ class Array
     end
   end
 
-  ##
-  #  call-seq:
-  #     ary.drop(n)               => array
-  #
-  #  Drops first n elements from <i>ary</i>, and returns rest elements
-  #  in an array.
-  #
-  #     a = [1, 2, 3, 4, 5, 0]
-  #     a.drop(3)             # => [4, 5, 0]
-  #
-  #   enum.drop(n)   => an_array
-  #
-  # This a specialized version of the method found in Enumerable
   def drop(n)
     n = Rubinius::Type.coerce_to(n, Fixnum, :to_int)
     raise ArgumentError, "attempt to drop negative size" if n < 0
@@ -1112,7 +935,6 @@ class Array
     new_range n, new_size
   end
 
-  # Shuffles elements in self in place.
   def shuffle!
     Rubinius.check_frozen
 
@@ -1123,11 +945,6 @@ class Array
     self
   end
 
-  # Returns a new Array created by sorting elements in self. Comparisons
-  # to sort are either done using <=> or a block may be provided. The
-  # block must take two parameters and return -1, 0, 1 depending on
-  # whether the first parameter is smaller, equal or larger than the
-  # second parameter.
   def sort(&block)
     dup.sort_inplace(&block)
   end
@@ -1169,8 +986,6 @@ class Array
   alias_method :sort!, :sort_inplace
   public :sort!
 
-  # Returns self except on subclasses which are converted
-  # or 'upcast' to Arrays.
   def to_a
     if self.instance_of? Array
       self
@@ -1179,15 +994,10 @@ class Array
     end
   end
 
-  # Returns self
   def to_ary
     self
   end
 
-  # Produces a printable string of the Array. The string
-  # is constructed by calling #inspect on all elements.
-  # Descends through contained Arrays, recursive ones
-  # are indicated as [...].
   def inspect
     return "[]" if @total == 0
 
@@ -1203,10 +1013,6 @@ class Array
     result << "]"
   end
 
-  # Treats all elements as being Arrays of equal lengths and
-  # transposes their rows and columns so that the first contained
-  # Array in the result includes the first elements of all the
-  # Arrays and so on.
   def transpose
     return [] if empty?
 
@@ -1229,10 +1035,6 @@ class Array
     out
   end
 
-  # Returns a new Array populated from the elements in
-  # self corresponding to the given selector(s.) The
-  # arguments may be one or more integer indices or
-  # Ranges.
   def values_at(*args)
     out = []
 

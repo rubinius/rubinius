@@ -19,10 +19,6 @@ class Class
   end
   private :initialize
 
-  ##
-  # Returns the Class object that this Class inherits from. Included Modules
-  # are not considered for this purpose.
-
   def superclass
     cls = direct_superclass
     unless cls

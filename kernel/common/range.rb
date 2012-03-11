@@ -1,61 +1,7 @@
 # -*- encoding: us-ascii -*-
 
-##
-# A Range represents an interval, a set of values with a start and an end.
-#
-# Ranges may be constructed using the <tt>s..e</tt> and <tt>s...e</tt>
-# literals, or with Range::new.
-#
-# Ranges constructed using <tt>..</tt> run from the start to the end
-# inclusively. Those created using <tt>...</tt> exclude the end value. When
-# used as an iterator, ranges return each value in the sequence.
-#
-#   (-1..-5).to_a      #=> []
-#   (-5..-1).to_a      #=> [-5, -4, -3, -2, -1]
-#   ('a'..'e').to_a    #=> ["a", "b", "c", "d", "e"]
-#   ('a'...'e').to_a   #=> ["a", "b", "c", "d"]
-#
-# Ranges can be constructed using objects of any type, as long as the objects
-# can be compared using their <tt><=></tt> operator and they support the
-# <tt>succ</tt> method to return the next object in sequence.
-#
-#   class Xs # represent a string of 'x's
-#     include Comparable
-#     attr :length
-#     def initialize(n)
-#       @length = n
-#     end
-#     def succ
-#       Xs.new(@length + 1)
-#     end
-#     def <=>(other)
-#       @length <=> other.length
-#     end
-#     def to_s
-#       sprintf "%2d #{inspect}", @length
-#     end
-#     def inspect
-#       'x'# @length
-#     end
-#   end
-#
-#   r = Xs.new(3)..Xs.new(6)   #=> xxx..xxxxxx
-#   r.to_a                     #=> [xxx, xxxx, xxxxx, xxxxxx]
-#   r.member?(Xs.new(5))       #=> true
-#
-# In the previous code example, class Xs includes the Comparable module. This
-# is because Enumerable#member? checks for equality using ==. Including
-# Comparable ensures that the == method is defined in terms of the <=> method
-# implemented in Xs.
-
 class Range
   include Enumerable
-
-  ##
-  # Constructs a range using the given +start+ and +end+.
-  #
-  # If the third parameter is omitted or is false, the range will include the
-  # end object; otherwise, it will be excluded.
 
   def initialize(first, last, exclude_end = false)
     raise NameError, "`initialize' called twice" if @begin
@@ -75,13 +21,6 @@ class Range
 
   private :initialize
 
-  # Returns <tt>true</tt> only if <em>obj</em> is a Range, has
-  # equivalent beginning and end items (by comparing them with
-  # <tt>==</tt>), and has the same #exclude_end? setting as <i>rng</t>.
-  #
-  #   (0..2) == (0..2)            #=> true
-  #   (0..2) == Range.new(0,2)    #=> true
-  #   (0..2) == (0...2)           #=> false
   def ==(other)
     return true if equal? other
 
@@ -93,19 +32,6 @@ class Range
   end
   alias_method :eql?, :==
 
-  # Returns <tt>true</tt> if <em>obj</em> is an element of <em>rng</em>,
-  # <tt>false</tt> otherwise. Conveniently, <tt>===</tt> is the
-  # comparison operator used by <tt>case</tt> statements.
-  #
-  #   case 79
-  #     when 1..50   then   print "low\n"
-  #     when 51..75  then   print "medium\n"
-  #     when 76..100 then   print "high\n"
-  #   end
-  #
-  # <em>produces:</em>
-  #
-  #   high
   def ===(value)
     # MRI uses <=> to compare, so must we.
 
@@ -126,30 +52,7 @@ class Range
   alias_method :member?, :===
   alias_method :include?, :===
 
-  ##
-  # :call-seq:
-  #   rng.exclude_end?  => true or false
-  #
-  # Returns true if +rng+ excludes its end value.
-
   attr_reader_specific :excl, :exclude_end?
-
-  ##
-  # :call-seq:
-  #   rng.each { |i| block }  => rng
-  #
-  # Iterates over the elements +rng+, passing each in turn to the block. You
-  # can only iterate if the start object of the range supports the
-  # succ method (which means that you can't iterate over ranges of
-  # Float objects).
-  #
-  #   (10..15).each do |n|
-  #      print n, ' '
-  #   end
-  #
-  # produces:
-  #
-  #   10 11 12 13 14 15
 
   def each(&block)
     return to_enum unless block_given?
@@ -203,19 +106,9 @@ class Range
     return self
   end
 
-  ##
-  # :call-seq:
-  #   rng.first  => obj
-  #   rng.begin  => obj
-  #
-  # Returns the first object in +rng+.
-
   attr_reader :begin
   alias_method :first, :begin
 
-  # Generate a hash value such that two ranges with the same start and
-  # end points, and the same value for the "exclude end" flag, generate
-  # the same hash value.
   def hash
     excl = @excl ? 1 : 0
     hash = excl
@@ -226,43 +119,12 @@ class Range
     return hash & Fixnum::MAX
   end
 
-  # Convert this range object to a printable form (using
-  # <tt>inspect</tt> to convert the start and end objects).
   def inspect
     "#{@begin.inspect}#{@excl ? "..." : ".."}#{@end.inspect}"
   end
 
-  # Returns the object that defines the end of <em>rng</em>.
-  #
-  #    (1..10).end    #=> 10
-  #    (1...10).end   #=> 10
   attr_reader :end
   alias_method :last, :end
-
-  ##
-  # :call-seq:
-  #   rng.step(n = 1) { |obj| block }  => rng
-  #
-  # Iterates over +rng+, passing each +n+th element to the block. If the range
-  # contains numbers or strings, natural ordering is used. Otherwise
-  # +step+ invokes +succ+ to iterate through range elements. The following
-  # code uses class Xs, which is defined in the class-level documentation.
-  #
-  #   range = Xs.new(1)..Xs.new(10)
-  #   range.step(2) { |x| puts x }
-  #   range.step(3) { |x| puts x }
-  #
-  # produces:
-  #
-  #    1 x
-  #    3 xxx
-  #    5 xxxxx
-  #    7 xxxxxxx
-  #    9 xxxxxxxxx
-  #    1 x
-  #    4 xxxx
-  #    7 xxxxxxx
-  #   10 xxxxxxxxxx
 
   def step(step_size=1) # :yields: object
     return to_enum(:step, step_size) unless block_given?
@@ -323,9 +185,6 @@ class Range
 
     return self
   end
-
-  ##
-  # Convert this range object to a printable form.
 
   def to_s
     "#{@begin}#{@excl ? "..." : ".."}#{@end}"
