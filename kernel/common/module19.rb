@@ -78,11 +78,6 @@ class Module
 
   private :attr
 
-  def class_variable_set(key, value)
-    raise RuntimeError, "can't modify frozen #{self.class}" if frozen?
-    __class_variable_set__(key, value)
-  end
-
   # Install a new Autoload object into the constants table
   # See kernel/common/autoload.rb
   def autoload(name, path)

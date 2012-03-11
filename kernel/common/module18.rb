@@ -55,8 +55,6 @@ class Module
 
   private :attr
 
-  alias_method :class_variable_set, :__class_variable_set__
-
   # Install a new Autoload object into the constants table
   # See kernel/common/autoload.rb
   def autoload(name, path)

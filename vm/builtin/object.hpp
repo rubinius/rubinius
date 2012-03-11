@@ -378,6 +378,12 @@ namespace rubinius {
       return fixnum_p() ? cTrue : cFalse;
     }
 
+    /**
+     * Checks if object is frozen and raises RuntimeError if it is.
+     * Similar to CRuby rb_check_frozen
+     */
+    void check_frozen(STATE);
+
   public:   /* accessors */
 
     /* klass_ from ObjectHeader. */
@@ -403,12 +409,6 @@ namespace rubinius {
     };
 
   private:
-    /**
-     * Checks if object is frozen and raises RuntimeError if it is.
-     * Similar to CRuby rb_check_frozen
-     */
-    void check_frozen(STATE);
-
     // Define these as private and without implementation so we
     // don't accidently let C++ create them.
     Object();
