@@ -2,6 +2,13 @@
 
 module Rubinius
   module Compiler::Runtime
+    def matches_when(array, receiver)
+      array.each { |x| return true if x === receiver }
+      false
+    end
+
+    module_function :matches_when
+
     def unwrap_block_arg(arg)
       if arg.size == 1
         elem = arg.at(0)
