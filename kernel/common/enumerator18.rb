@@ -2,15 +2,6 @@
 
 module Enumerable
   class Enumerator
-    # Returns the next object in the enumerator
-    # and move the internal position forward.
-    # When the position reached at the end,
-    # internal position is rewound then StopIteration is raised.
-    #
-    # Note that enumeration sequence by next method
-    # does not affect other non-external enumeration methods,
-    # unless underlying iteration methods itself has side-effect, e.g. IO#each_line.
-    #
     def next
       unless @generator
         # Allow #to_generator to return nil, indicating it has none for
@@ -36,10 +27,6 @@ module Enumerable
       raise StopIteration, "iteration reached end"
     end
 
-    # Rewinds the enumeration sequence by the next method.
-    #
-    # If the enclosed object responds to a "rewind" method, it is called.
-    #
     def rewind
       @object.rewind if @object.respond_to? :rewind
       @generator.rewind if @generator
