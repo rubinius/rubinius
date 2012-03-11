@@ -1,1 +1,2 @@
 incomplete:Kernel.exec needs to be reviewed for spec completeness
+unstable:Kernel#exec raises a SystemCallError if cmd cannot execute and contains '-'

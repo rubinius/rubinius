@@ -3,6 +3,10 @@
 
 #include <sys/stat.h>
 
+#ifdef ENABLE_LLVM
+#include <llvm/Support/ManagedStatic.h>
+#endif
+
 #include "vm/environment.hpp"
 #include "vm/oop.hpp"
 #include "vm/type_info.hpp"
@@ -31,87 +35,101 @@ static void check_directory(std::string root);
  * skins it and shows it to the user.
  */
 int main(int argc, char** argv) {
-  Environment env(argc, argv);
-  env.setup_cpp_terminate();
+  int exit_code = 0;
 
-  try {
-    if(const char* var = getenv("RBX_OPTIONS")) {
-      env.load_string(var);
+  // Ensure to destruct an Environment before calling llvm_shutdown(), which
+  // follows this block. Because Environment's destructor uses LLVM API, it
+  // must precede llvm_shutdown().
+  {
+    Environment env(argc, argv);
+    env.setup_cpp_terminate();
+
+    try {
+      if(const char* var = getenv("RBX_OPTIONS")) {
+        env.load_string(var);
+      }
+
+      if(const char* path = getenv("RBX_OPTFILE")) {
+        env.load_conf(path);
+      }
+
+      const char* runtime = getenv("RBX_RUNTIME");
+
+      if(!runtime) runtime = RBX_RUNTIME;
+
+      check_directory(runtime);
+      env.run_from_filesystem(runtime);
+    } catch(Assertion *e) {
+      std::cout << "VM Assertion:" << std::endl;
+      std::cout << "  " << e->reason << std::endl << std::endl;
+      e->print_backtrace();
+
+      std::cout << std::endl << "Ruby backtrace:" << std::endl;
+      env.state->vm()->print_backtrace();
+      delete e;
+      exit_code = 1;
+    } catch(RubyException &e) {
+      std::cout << "Ruby Exception hit toplevel:\n";
+      // Prints Ruby backtrace, and VM backtrace if captured
+      e.show(env.state);
+      exit_code = 1;
+    } catch(TypeError &e) {
+
+      /* TypeError's here are dealt with specially so that they can deliver
+       * more information, such as _why_ there was a type error issue.
+       *
+       * This has the same name as the RubyException TypeError (run `5 + "string"`
+       * as an example), but these are NOT the same - this exception is raised
+       * internally when cNil gets passed to an array method, for instance, when
+       * an array was expected.
+       */
+      std::cout << "Type Error detected:" << std::endl;
+      TypeInfo* wanted = env.state->vm()->find_type(e.type);
+
+      if(!e.object->reference_p()) {
+        std::cout << "  Tried to use non-reference value " << e.object;
+      } else {
+        TypeInfo* was = env.state->vm()->find_type(e.object->type_id());
+        std::cout << "  Tried to use object of type " <<
+          was->type_name << " (" << was->type << ")";
+      }
+
+      std::cout << " as type " << wanted->type_name << " (" <<
+        wanted->type << ")" << std::endl;
+
+      e.print_backtrace();
+
+      std::cout << "Ruby backtrace:" << std::endl;
+      env.state->vm()->print_backtrace();
+      exit_code = 1;
+    } catch(BadKernelFile& e) {
+      std::cout << "ERROR: Unable to load: " << e.what() << std::endl << std::endl;
+      std::cout << "Please run the following commands to rebuild:" << std::endl;
+      std::cout << "  rake clean" << std::endl;
+      std::cout << "  rake or rake install" << std::endl << std::endl;
+      std::cout << "If the problem persists, please open an issue at:" << std::endl;
+      std::cout << "  http://github.com/rubinius/rubinius\n";
+      exit_code = 1;
+    } catch(VMException &e) {
+      std::cout << "Unknown VM exception detected." << std::endl;
+      e.print_backtrace();
+      exit_code = 1;
+    } catch(std::runtime_error& e) {
+      std::cout << "Runtime exception: " << e.what() << std::endl;
+      exit_code = 1;
     }
 
-    if(const char* path = getenv("RBX_OPTFILE")) {
-      env.load_conf(path);
+    if(!exit_code) {
+      env.halt(env.state);
+      exit_code = env.exit_code(env.state);
     }
-
-    const char* runtime = getenv("RBX_RUNTIME");
-
-    if(!runtime) runtime = RBX_RUNTIME;
-
-    check_directory(runtime);
-    env.run_from_filesystem(runtime);
-
-  } catch(Assertion *e) {
-    std::cout << "VM Assertion:" << std::endl;
-    std::cout << "  " << e->reason << std::endl << std::endl;
-    e->print_backtrace();
-
-    std::cout << std::endl << "Ruby backtrace:" << std::endl;
-    env.state->vm()->print_backtrace();
-    delete e;
-    return 1;
-  } catch(RubyException &e) {
-    std::cout << "Ruby Exception hit toplevel:\n";
-    // Prints Ruby backtrace, and VM backtrace if captured
-    e.show(env.state);
-    return 1;
-  } catch(TypeError &e) {
-
-    /* TypeError's here are dealt with specially so that they can deliver
-     * more information, such as _why_ there was a type error issue.
-     *
-     * This has the same name as the RubyException TypeError (run `5 + "string"`
-     * as an example), but these are NOT the same - this exception is raised
-     * internally when cNil gets passed to an array method, for instance, when
-     * an array was expected.
-     */
-    std::cout << "Type Error detected:" << std::endl;
-    TypeInfo* wanted = env.state->vm()->find_type(e.type);
-
-    if(!e.object->reference_p()) {
-      std::cout << "  Tried to use non-reference value " << e.object;
-    } else {
-      TypeInfo* was = env.state->vm()->find_type(e.object->type_id());
-      std::cout << "  Tried to use object of type " <<
-        was->type_name << " (" << was->type << ")";
-    }
-
-    std::cout << " as type " << wanted->type_name << " (" <<
-      wanted->type << ")" << std::endl;
-
-    e.print_backtrace();
-
-    std::cout << "Ruby backtrace:" << std::endl;
-    env.state->vm()->print_backtrace();
-    return 1;
-  } catch(BadKernelFile& e) {
-    std::cout << "ERROR: Unable to load: " << e.what() << std::endl << std::endl;
-    std::cout << "Please run the following commands to rebuild:" << std::endl;
-    std::cout << "  rake clean" << std::endl;
-    std::cout << "  rake or rake install" << std::endl << std::endl;
-    std::cout << "If the problem persists, please open an issue at:" << std::endl;
-    std::cout << "  http://github.com/rubinius/rubinius\n";
-    return 1;
-  } catch(VMException &e) {
-    std::cout << "Unknown VM exception detected." << std::endl;
-    e.print_backtrace();
-    return 1;
-  } catch(std::runtime_error& e) {
-    std::cout << "Runtime exception: " << e.what() << std::endl;
-    return 1;
   }
 
-  env.halt(env.state);
-  return env.exit_code(env.state);
+#ifdef ENABLE_LLVM
+  llvm::llvm_shutdown();
+#endif
+
+  return exit_code;
 }
 
 static void check_directory(std::string runtime) {

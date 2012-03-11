@@ -391,6 +391,22 @@ class Complex < Numeric
     self / other
   end
 
+  def marshal_dump
+    ary = [real, imag]
+    instance_variables.each do |ivar|
+      ary.instance_variable_set(ivar, instance_variable_get(ivar))
+    end
+    ary
+  end
+
+  def marshal_load(ary)
+    @real, @imag = ary
+    ary.instance_variables.each do |ivar|
+      instance_variable_set(ivar, ary.instance_variable_get(ivar))
+    end
+    self
+  end
+
   #
   # +I+ is the imaginary number.  It exists at point (0,1) on the complex plane.
   #

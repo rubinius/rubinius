@@ -16,7 +16,9 @@
 #include "capi/handle.hpp"
 #include "capi/tag.hpp"
 
+#ifdef ENABLE_LLVM
 #include "llvm/state.hpp"
+#endif
 
 namespace rubinius {
 
@@ -68,7 +70,7 @@ namespace rubinius {
 
     if(!obj->reference_p()) return obj;
 
-    if(obj->zone() != YoungObjectZone) return obj;
+    if(!obj->young_object_p()) return obj;
 
     if(obj->forwarded_p()) return obj->forward();
 
@@ -107,7 +109,7 @@ namespace rubinius {
     Object* iobj = next->next_unscanned(object_memory_->state());
 
     while(iobj) {
-      assert(iobj->zone() == YoungObjectZone);
+      assert(iobj->young_object_p());
       if(!iobj->forwarded_p()) scan_object(iobj);
       iobj = next->next_unscanned(object_memory_->state());
     }
@@ -153,7 +155,7 @@ namespace rubinius {
       // unremember_object throws a NULL in to remove an object
       // so we don't have to compact the set in unremember
       if(tmp) {
-        // assert(tmp->zone == MatureObjectZone);
+        // assert(tmp->mature_object_p());
         // assert(!tmp->forwarded_p());
 
         // Remove the Remember bit, since we're clearing the set.
@@ -252,7 +254,9 @@ namespace rubinius {
       }
     }
 
+#ifdef ENABLE_LLVM
     if(LLVMState* ls = data.llvm_state()) ls->gc_scan(this);
+#endif
 
     // Handle all promotions to non-young space that occurred.
     handle_promotions();

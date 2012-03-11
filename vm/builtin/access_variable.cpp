@@ -18,10 +18,9 @@ namespace rubinius {
 
   void AccessVariable::init(STATE) {
     // HACK test superclass of AccessVariable
-    GO(access_variable).set(ontology::new_class(state, 
+    GO(access_variable).set(ontology::new_class(state,
           "AccessVariable", G(executable), G(rubinius)));
     G(access_variable)->set_object_type(state, AccessVariableType);
-    G(access_variable)->name(state, state->symbol("Rubinius::AccessVariable"));
   }
 
   AccessVariable* AccessVariable::allocate(STATE) {
@@ -92,7 +91,7 @@ namespace rubinius {
         return NULL;
       }
 
-      if(self->reference_p()) {
+      if(kind_of<Class>(mod) && self->reference_p()) {
         // Promote this to use a direct accessor
         if(TypeInfo* ti = state->memory()->find_type_info(self)) {
           TypeInfo::Slots::iterator it = ti->slots.find(access->name()->index());
@@ -118,7 +117,7 @@ namespace rubinius {
       return NULL;
     }
 
-    if(self->reference_p()) {
+    if(kind_of<Class>(mod) && self->reference_p()) {
       // Promote this to use a direct accessor
       if(TypeInfo* ti = state->memory()->find_type_info(self)) {
         TypeInfo::Slots::iterator it = ti->slots.find(access->name()->index());

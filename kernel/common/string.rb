@@ -12,13 +12,6 @@ class String
   alias_method :__data__, :data
   alias_method :__data__=, :data=
 
-  def self.allocate
-    str = super()
-    str.__data__ = Rubinius::ByteArray.new(1)
-    str.num_bytes = 0
-    str
-  end
-
   ##
   # Creates a new string from copying _count_ bytes from the
   # _start_ of _bytes_.

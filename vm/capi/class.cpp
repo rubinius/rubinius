@@ -34,7 +34,7 @@ extern "C" {
   VALUE rb_class_name(VALUE class_handle) {
     NativeMethodEnvironment* env = NativeMethodEnvironment::get();
     Class* class_object = c_as<Class>(env->get_object(class_handle));
-    return env->get_handle(class_object->name()->to_str(env->state()));
+    return env->get_handle(class_object->get_name(env->state()));
   }
 
   VALUE rb_class_inherited(VALUE super_handle, VALUE class_handle)

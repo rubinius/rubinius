@@ -16,7 +16,7 @@ describe "Net::HTTPHeader#each_capitalized_name" do
       @headers.each_capitalized_name do |key|
         res << key
       end
-      res.should == ["My-Header", "My-Other-Header"]
+      res.sort.should == ["My-Header", "My-Other-Header"]
     end
   end
 
@@ -37,7 +37,7 @@ describe "Net::HTTPHeader#each_capitalized_name" do
           enumerator.each do |key|
             res << key
           end
-          res.should == ["My-Header", "My-Other-Header"]
+          res.sort.should == ["My-Header", "My-Other-Header"]
         end
       end
     end

@@ -288,8 +288,7 @@ namespace rubinius {
       ary->set(state, i + 2, args.get_argument(i));
     }
 
-    Object* ret = G(rubinius)->send(state, call_frame, state->symbol("bind_call"),
-                                    ary, cNil, true);
+    Object* ret = G(rubinius)->send(state, call_frame, state->symbol("bind_call"), ary);
 
     if(!ret) return 0;
 
@@ -697,12 +696,12 @@ namespace rubinius {
       if(mod) {
         if(SingletonClass* sc = try_as<SingletonClass>(mod)) {
           if(Module* inner = try_as<Module>(sc->attached_instance())) {
-            stream << "  SingletonClass:" << inner->name()->debug_str(state);
+            stream << "  SingletonClass:" << inner->debug_str(state);
           } else {
-            stream << "  SingletonClass:" << sc->attached_instance()->class_object(state)->name()->debug_str(state);
+            stream << "  SingletonClass:" << sc->attached_instance()->class_object(state)->debug_str(state);
           }
         } else {
-          stream << "  " << mod->name()->debug_str(state);
+          stream << "  " << mod->debug_str(state);
         }
 
         stream << "\n";

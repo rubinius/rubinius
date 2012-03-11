@@ -63,5 +63,5 @@ end
 
 def llvm_config_flags
   "--build=#{host_triple} --host=#{host_triple} " \
-  "--enable-optimized --enable-targets=host-only"
+  "--enable-optimized --enable-targets=host,cpp"
 end

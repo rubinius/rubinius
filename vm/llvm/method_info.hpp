@@ -268,7 +268,7 @@ namespace rubinius {
 
     void setup_return();
 
-    llvm::AllocaInst* create_alloca(const llvm::Type* type, llvm::Value* size = 0,
+    llvm::AllocaInst* create_alloca(llvm::Type* type, llvm::Value* size = 0,
                                     const llvm::Twine& name = "");
 
     llvm::BasicBlock* new_block(const char* name);

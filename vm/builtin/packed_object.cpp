@@ -109,17 +109,6 @@ namespace rubinius {
     }
   }
 
-  void PackedObject::Info::visit(Object* obj, ObjectVisitor& visit) {
-    PackedObject* po = reinterpret_cast<PackedObject*>(obj);
-
-    size_t fields = to_fields(object_size(obj));
-    Object** body = po->body_as_array();
-
-    for(size_t i = 0; i < fields; i++) {
-      visit.call(body[i]);
-    }
-  }
-
   void PackedObject::Info::show(STATE, Object* self, int level) {
     class_info(state, self, true);
     return;

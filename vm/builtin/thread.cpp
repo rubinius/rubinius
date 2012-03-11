@@ -8,6 +8,8 @@
 #include "builtin/float.hpp"
 #include "builtin/channel.hpp"
 #include "builtin/nativemethod.hpp"
+#include "builtin/fiber.hpp"
+#include "builtin/location.hpp"
 
 #include "objectmemory.hpp"
 #include "arguments.hpp"
@@ -65,6 +67,7 @@ namespace rubinius {
     thr->alive(state, cTrue);
     thr->sleep(state, cFalse);
     thr->control_channel(state, nil<Channel>());
+    thr->locals(state, LookupTable::create(state));
     thr->recursive_objects(state, LookupTable::create(state));
 
     thr->vm_ = target;
@@ -103,6 +106,78 @@ namespace rubinius {
     }
     los.clear();
     return cNil;
+  }
+
+  Object* Thread::locals_aref(STATE, Symbol* key) {
+    /*
+     * If we're not trying to set values on the current thread,
+     * we will set thread locals anyway and not use fiber locals.
+     */
+    if(state->vm() != vm()) {
+      return locals()->aref(state, key);
+    }
+    Fiber* fib = state->vm()->current_fiber.get();
+    if(fib->nil_p() || fib->root_p()) {
+      return locals()->aref(state, key);
+    }
+    if(try_as<LookupTable>(fib->locals())) {
+      return fib->locals()->aref(state, key);
+    }
+    return cNil;
+  }
+
+  Object* Thread::locals_store(STATE, Symbol* key, Object* value) {
+    /*
+     * If we're not trying to set values on the current thread,
+     * we will set thread locals anyway and not use fiber locals.
+     */
+    if(state->vm() != vm()) {
+      return locals()->store(state, key, value);
+    }
+    Fiber* fib = state->vm()->current_fiber.get();
+    if(fib->nil_p() || fib->root_p()) {
+      return locals()->store(state, key, value);
+    }
+    if(fib->locals()->nil_p()) {
+      fib->locals(state, LookupTable::create(state));
+    }
+    return fib->locals()->store(state, key, value);
+  }
+
+  Array* Thread::locals_keys(STATE) {
+    /*
+     * If we're not trying to set values on the current thread,
+     * we will set thread locals anyway and not use fiber locals.
+     */
+    if(state->vm() != vm()) {
+      return locals()->all_keys(state);
+    }
+    Fiber* fib = state->vm()->current_fiber.get();
+    if(fib->nil_p() || fib->root_p()) {
+      return locals()->all_keys(state);
+    }
+    if(try_as<LookupTable>(fib->locals())) {
+      return fib->locals()->all_keys(state);
+    }
+    return Array::create(state, 0);
+  }
+
+  Object* Thread::locals_has_key(STATE, Symbol* key) {
+    /*
+     * If we're not trying to set values on the current thread,
+     * we will set thread locals anyway and not use fiber locals.
+     */
+    if(state->vm() != vm()) {
+      return locals()->has_key(state, key);
+    }
+    Fiber* fib = state->vm()->current_fiber.get();
+    if(fib->nil_p() || fib->root_p()) {
+      return locals()->has_key(state, key);
+    }
+    if(try_as<LookupTable>(fib->locals())) {
+      return fib->locals()->has_key(state, key);
+    }
+    return cFalse;
   }
 
   void* Thread::in_new_thread(void* ptr) {
@@ -241,7 +316,7 @@ namespace rubinius {
     VM* vm = self->vm_;
     if(alive() == cFalse || !vm) {
       self->init_lock_.unlock();
-      return reinterpret_cast<Thread*>(kPrimitiveFailed);
+      return force_as<Thread>(Primitives::failure());
     }
 
     vm->wakeup(state, gct);
@@ -261,6 +336,18 @@ namespace rubinius {
     VariableScope* scope = cf->promote_scope(state);
 
     return Tuple::from(state, 3, Fixnum::from(cf->ip()), cf->cm, scope);
+  }
+
+  Array* Thread::mri_backtrace(STATE, GCToken gct, CallFrame* calling_environment) {
+    thread::SpinLock::LockGuard lg(init_lock_);
+
+    VM* vm = vm_;
+    if(!vm) return nil<Array>();
+    StopTheWorld stop(state, gct, calling_environment);
+
+    CallFrame* cf = vm->saved_call_frame();
+
+    return Location::mri_backtrace(state, cf);
   }
 
   void Thread::cleanup() {

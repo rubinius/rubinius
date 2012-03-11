@@ -15,6 +15,7 @@
 
 #include "agent.hpp"
 #include "world_state.hpp"
+#include "builtin/randomizer.hpp"
 
 #ifdef ENABLE_LLVM
 #include "llvm/state.hpp"
@@ -38,8 +39,8 @@ namespace rubinius {
     , tool_broker_(new tooling::ToolBroker)
     , ruby_critical_set_(false)
     , check_gc_(false)
-
     , om(0)
+
     , global_cache(new GlobalCache)
     , config(config)
     , user_variables(cp)
@@ -50,6 +51,8 @@ namespace rubinius {
     for(int i = 0; i < Primitives::cTotalPrimitives; i++) {
       primitive_hits_[i] = 0;
     }
+
+    hash_seed = Randomizer::random_uint32();
   }
 
   SharedState::~SharedState() {

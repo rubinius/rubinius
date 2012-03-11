@@ -115,9 +115,8 @@ namespace BlockEnvironment {
   const static int header = 0;
   const static int scope = 1;
   const static int top_scope = 2;
-  const static int local_count = 3;
-  const static int method = 4;
-  const static int module = 5;
+  const static int code = 3;
+  const static int module = 4;
 }
 namespace Dispatch {
   const static int name = 0;

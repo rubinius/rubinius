@@ -2,16 +2,14 @@
 
 #include "vm/config.h"
 #include "llvm/disassembler.hpp"
-#if RBX_LLVM_API_VER == 208
-#include <llvm/System/Host.h>
-#elif RBX_LLVM_API_VER == 209
 #include <llvm/Support/Host.h>
-#endif
 #include <llvm/Instructions.h>
-#include <llvm/Target/TargetRegistry.h>
-#include <llvm/Target/TargetSelect.h>
+#include <llvm/Support/TargetSelect.h>
+#include <llvm/Support/TargetRegistry.h>
+#include <llvm/Target/TargetMachine.h>
 #include <llvm/Target/TargetInstrInfo.h>
-#include <llvm/Target/TargetInstrDesc.h>
+#include <llvm/MC/MCDisassembler.h>
+#include <llvm/MC/MCSubtargetInfo.h>
 #include <llvm/MC/MCInstPrinter.h>
 #include <llvm/MC/MCAsmInfo.h>
 #include <llvm/MC/MCInst.h>
@@ -33,10 +31,12 @@ namespace rubinius {
     llvm::InitializeNativeTargetAsmPrinter();
     llvm::InitializeAllDisassemblers();
     target = llvm::TargetRegistry::lookupTarget(host, error);
-    target_machine = target->createTargetMachine(host, error);
-    asm_info = target_machine->getMCAsmInfo();
+    target_machine = target->createTargetMachine(host, llvm::sys::getHostCPUName(), "");
+
+    sub_target = target->createMCSubtargetInfo(host, llvm::sys::getHostCPUName(), "");
+    asm_info = target->createMCAsmInfo(host);
     if(asm_info) {
-      disassembler = target->createMCDisassembler();
+      disassembler = target->createMCDisassembler(*sub_target);
       memory_object = new JITMemoryObject((const uint8_t*)buffer, (uint64_t) size);
     }
   }
@@ -44,6 +44,7 @@ namespace rubinius {
   JITDisassembler::~JITDisassembler() {
     if(memory_object) delete memory_object;
     if(disassembler) delete disassembler;
+    if(sub_target) delete sub_target;
     if(target_machine) delete target_machine;
   }
 
@@ -56,7 +57,8 @@ namespace rubinius {
       return std::string("Can't create assembly information for target");
     }
 
-    llvm::MCInstPrinter* printer = target->createMCInstPrinter(asm_info->getAssemblerDialect(), *asm_info);
+    llvm::MCInstPrinter* printer = target->createMCInstPrinter(
+                                   asm_info->getAssemblerDialect(), *asm_info, *sub_target);
     if(!printer) {
       return std::string("No instruction printer for target");
     }
@@ -75,13 +77,13 @@ namespace rubinius {
       uint64_t instruction_position = instruction_offset + instruction_pointer;
       if(disassembler->getInstruction(instruction, instruction_size,
                                       *memory_object, instruction_pointer,
-                                      llvm::nulls())) {
-        printer->printInst(&instruction, out);
+                                      llvm::nulls(), llvm::nulls())) {
+        printer->printInst(&instruction, out, "");
 
         output << "0x" << instruction_position << "  ";
         output << std::setw(30) << std::left << out.str();
 
-        const llvm::TargetInstrDesc &inst_descr = inst_info->get(instruction.getOpcode());
+        const llvm::MCInstrDesc &inst_descr = inst_info->get(instruction.getOpcode());
 
         for(uint8_t i = 0; i < instruction.getNumOperands(); ++i) {
           llvm::MCOperand& op = instruction.getOperand(i);

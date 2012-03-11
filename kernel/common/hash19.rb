@@ -204,7 +204,10 @@ class Hash
 
         # Order of the comparison matters! We must compare our value with
         # the other Hash's value and not the other way around.
-        return false unless item.value == other_item.value
+        unless Rubinius::Type::object_equal(item.value, other_item.value) or
+               item.value == other_item.value
+          return false
+        end
       end
     end
     true
@@ -229,7 +232,10 @@ class Hash
 
         # Order of the comparison matters! We must compare our value with
         # the other Hash's value and not the other way around.
-        return false unless item.value.eql?(other_item.value)
+        unless Rubinius::Type::object_equal(item.value, other_item.value) or
+               item.value.eql?(other_item.value)
+          return false
+        end
       end
     end
     true

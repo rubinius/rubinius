@@ -8,6 +8,6 @@ next_url: tools/debugger
 review: true
 ---
 
-1. [Debugger](/doc/ru/tools/debugger/)
-1. [Profiler](/doc/ru/tools/profiler/)
-1. [Memory Analysis](/doc/ru/tools/memory-analysis/)
+1. [Отладчик](/doc/ru/tools/debugger/)
+1. [Профайлер](/doc/ru/tools/profiler/)
+1. [Анализ памяти](/doc/ru/tools/memory-analysis/)

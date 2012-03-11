@@ -4,7 +4,9 @@ class Object
   def __marshal__(ms, strip_ivars = false)
     out = ms.serialize_extended_object self
     out << "o"
-    out << ms.serialize(self.__class__.__name__.to_sym)
+    cls = Rubinius::Type.object_class self
+    name = Rubinius::Type.module_inspect cls
+    out << ms.serialize(name.to_sym)
     out << ms.serialize_instance_variables_suffix(self, true, strip_ivars)
   end
 end
@@ -39,9 +41,7 @@ class Symbol
       Rubinius.binary_string(";#{ms.serialize_integer(idx)}")
     else
       ms.add_symlink self
-
-      str = to_s
-      Rubinius.binary_string(":#{ms.serialize_integer(str.length)}#{str}")
+      ms.serialize_symbol(self)
     end
   end
 end
@@ -51,11 +51,8 @@ class String
     out =  ms.serialize_instance_variables_prefix(self)
     out << ms.serialize_extended_object(self)
     out << ms.serialize_user_class(self, String)
-    out << '"'
-    out << ms.serialize_integer(self.length)
-    out << self
+    out << ms.serialize_string(self)
     out << ms.serialize_instance_variables_suffix(self)
-
     out
   end
 end
@@ -263,11 +260,15 @@ module Marshal
       @call = true
     end
 
-    def const_lookup(name)
+    def const_lookup(name, type = nil)
       mod = Object
 
       parts = String(name).split '::'
       parts.each { |part| mod = mod.const_get(part) }
+
+      if type and not mod.instance_of? type
+        raise ArgumentError, "#{name} does not refer to a #{type}"
+      end
 
       mod
     end
@@ -299,15 +300,12 @@ module Marshal
               true
             when 70   # ?F
               false
-            when 99, 109, 77  # ?c, ?m, ?M
-              # Don't use construct_symbol, because we must not
-              # memoize this symbol.
-              name = get_byte_sequence.to_sym
-              obj = const_lookup name
-
-              store_unique_object obj
-
-              obj
+            when 99   # ?c
+              construct_class
+            when 109  # ?m
+              construct_module
+            when 77   # ?M
+              construct_old_module
             when 105  # ?i
               construct_integer
             when 108  # ?l
@@ -354,7 +352,7 @@ module Marshal
               @modules ||= []
 
               name = get_symbol
-              @modules << const_lookup(name)
+              @modules << const_lookup(name, Module)
 
               obj = construct nil, false
 
@@ -383,6 +381,24 @@ module Marshal
       call obj if @proc and call_proc
 
       @stream.tainted? ? obj.taint : obj
+    end
+
+    def construct_class
+      obj = const_lookup(get_byte_sequence.to_sym, Class)
+      store_unique_object obj
+      obj
+    end
+
+    def construct_module
+      obj = const_lookup(get_byte_sequence.to_sym, Module)
+      store_unique_object obj
+      obj
+    end
+
+    def construct_old_module
+      obj = const_lookup(get_byte_sequence.to_sym)
+      store_unique_object obj
+      obj
     end
 
     def construct_array
@@ -424,7 +440,7 @@ module Marshal
 
     def construct_data
       name = get_symbol
-      klass = const_lookup name
+      klass = const_lookup name, Class
       store_unique_object klass
 
       obj = klass.allocate
@@ -542,7 +558,7 @@ module Marshal
 
     def construct_object
       name = get_symbol
-      klass = const_lookup name
+      klass = const_lookup name, Class
       obj = klass.allocate
 
       raise TypeError, 'dump format error' unless Object === obj
@@ -578,7 +594,7 @@ module Marshal
       name = get_symbol
       store_unique_object name
 
-      klass = const_lookup name
+      klass = const_lookup name, Class
       members = klass.members
 
       obj = klass.allocate
@@ -606,7 +622,7 @@ module Marshal
 
     def construct_user_defined(ivar_index)
       name = get_symbol
-      klass = const_lookup name
+      klass = const_lookup name, Class
 
       data = get_byte_sequence
 
@@ -626,7 +642,7 @@ module Marshal
       name = get_symbol
       store_unique_object name
 
-      klass = const_lookup name
+      klass = const_lookup name, Class
       obj = klass.allocate
 
       extend_object obj if @modules
@@ -661,7 +677,7 @@ module Marshal
     end
 
     def get_user_class
-      cls = const_lookup @user_class
+      cls = const_lookup @user_class, Class
       @user_class = nil
       cls
     end
@@ -710,7 +726,7 @@ module Marshal
 
       @depth += 1
 
-      obj.tainted? ? str.taint : str
+      Rubinius::Type.infect(str, obj)
     end
 
     def serialize_extended_object(obj)
@@ -742,21 +758,35 @@ module Marshal
       Rubinius.binary_string(str)
     end
 
-    def serialize_instance_variables_prefix(obj, exclude_ivars = false)
+    def serializable_instance_variables(obj, exclude_ivars)
       ivars = obj.__instance_variables__
       ivars -= exclude_ivars if exclude_ivars
-      Rubinius.binary_string(ivars.length > 0 ? "I" : "")
+      ivars
+    end
+
+    def serialize_instance_variables_prefix(obj, exclude_ivars = false)
+      ivars = serializable_instance_variables(obj, exclude_ivars)
+      Rubinius.binary_string(!ivars.empty? || serialize_encoding?(obj) ? "I" : "")
     end
 
     def serialize_instance_variables_suffix(obj, force=false,
                                             strip_ivars=false,
                                             exclude_ivars=false)
-      ivars = obj.__instance_variables__
-      ivars -= exclude_ivars if exclude_ivars
+      ivars = serializable_instance_variables(obj, exclude_ivars)
 
-      return Rubinius.binary_string("") unless force or !ivars.empty?
+      unless force or !ivars.empty? or serialize_encoding?(obj)
+        return Rubinius.binary_string("")
+      end
 
-      str = serialize_integer(ivars.size)
+      count = ivars.size
+
+      if serialize_encoding?(obj)
+        str = serialize_integer(count + 1)
+        str << serialize_encoding(obj)
+      else
+        str = serialize_integer(count)
+      end
+
       ivars.each do |ivar|
         sym = ivar.to_sym
         val = obj.__instance_variable_get__(sym)
@@ -819,6 +849,15 @@ module Marshal
       Rubinius.binary_string(str[0..1] + serialize_fixnum(cnt / 2) + str[2..-1])
     end
 
+    def serialize_symbol(obj)
+      str = obj.to_s
+      Rubinius.binary_string(":#{serialize_integer(str.length)}#{str}")
+    end
+
+    def serialize_string(str)
+      Rubinius.binary_string("\"#{serialize_integer(str.length)}#{str}")
+    end
+
     def serialize_user_class(obj, cls)
       if obj.class != cls
         Rubinius.binary_string("C#{serialize(obj.class.name.to_sym)}")
@@ -847,7 +886,9 @@ module Marshal
 
       add_object val
 
-      Rubinius.binary_string("U#{serialize(obj.class.__name__.to_sym)}#{val.__marshal__(self)}")
+      cls = Rubinius::Type.object_class obj
+      name = Rubinius::Type.module_inspect cls
+      Rubinius.binary_string("U#{serialize(name.to_sym)}#{val.__marshal__(self)}")
     end
 
     def set_instance_variables(obj)
@@ -899,15 +940,12 @@ module Marshal
     end
 
     def consume_byte
-      raise ArgumentError, "marshal data too short" if @consumed > @byte_array.size
+      raise ArgumentError, "marshal data too short" if @consumed >= @stream.size
       data = @byte_array[@consumed]
       @consumed += 1
       return data
     end
-
   end
-
-
 
   def self.dump(obj, an_io=nil, limit=nil)
     unless limit

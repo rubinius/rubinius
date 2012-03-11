@@ -8,4 +8,10 @@ describe "The -p command line option" do
                                :args => " < #{@names}").should ==
       "ALICE\nBOB\nJAMES\n"
   end
+
+  it "sets $-p" do
+    ruby_exe("$_ = $-p", :options => "-p", :escape => true,
+                         :args => " < #{@names}").should ==
+      "truetruetrue"
+  end
 end

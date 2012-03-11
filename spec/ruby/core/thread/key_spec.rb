@@ -30,5 +30,35 @@ describe "Thread#key?" do
       lambda { Thread.current.key? nil }.should raise_error(TypeError)
       lambda { Thread.current.key? 5 }.should raise_error(TypeError)
     end
+
+    it "is not shared across fibers" do
+      fib = Fiber.new do
+        Thread.current[:val1] = 1
+        Fiber.yield
+        Thread.current.key?(:val1).should be_true
+        Thread.current.key?(:val2).should be_false
+      end
+      Thread.current.key?(:val1).should_not be_true
+      fib.resume
+      Thread.current[:val2] = 2
+      fib.resume
+      Thread.current.key?(:val1).should be_false
+      Thread.current.key?(:val2).should be_true
+    end
+
+    it "stores a local in another thread when in a fiber" do
+      fib = Fiber.new do
+        t = Thread.new do
+          sleep
+          Thread.current.key?(:value).should be_true
+        end
+
+        Thread.pass while t.status and t.status != "sleep"
+        t[:value] = 1
+        t.wakeup
+        t.join
+      end
+      fib.resume
+    end
   end
 end

@@ -35,6 +35,14 @@ module MethodSpecs
       [:handled_via_method_missing, :also_handled].include? method
     end
 
+    def method_missing(method, *arguments)
+      if [:handled_via_method_missing, :also_handled].include? method
+        arguments
+      else
+        super
+      end
+    end
+
     attr_accessor :attr
 
     def zero; end

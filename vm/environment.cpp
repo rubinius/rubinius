@@ -22,6 +22,7 @@
 #elif RBX_LLVM_API_VER == 209
 #include <llvm/Support/Threading.h>
 #endif
+#include <llvm/Support/ManagedStatic.h>
 #endif
 
 #ifdef USE_EXECINFO
@@ -521,7 +522,7 @@ namespace rubinius {
             << ", expected "
             << as<Fixnum>(exc->get_ivar(state, state->symbol("@expected")))->to_native();
       }
-      msg << " (" << exc->klass()->name()->debug_str(state) << ")";
+      msg << " (" << exc->klass()->debug_str(state) << ")";
       std::cout << msg.str() << "\n";
       exc->print_locations(state);
       Assertion::raise(msg.str().c_str());
@@ -532,7 +533,11 @@ namespace rubinius {
 
   void Environment::halt_and_exit(STATE) {
     halt(state);
-    exit(exit_code(state));
+    int code = exit_code(state);
+#ifdef ENABLE_LLVM
+    llvm::llvm_shutdown();
+#endif
+    exit(code);
   }
 
   void Environment::halt(STATE) {

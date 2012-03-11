@@ -78,9 +78,7 @@ namespace rubinius {
       return new_class(state, name, G(object), G(object));
     }
 
-    Class* new_class(STATE, const char* name, Class* sup,
-                     Module* under)
-    {
+    Class* new_class(STATE, const char* name, Class* sup, Module* under) {
       if(!under) under = G(object);
 
       Class* cls = new_basic_class(state, sup);
@@ -240,17 +238,12 @@ namespace rubinius {
 
     // Finish initializing the rest of the special 8
     G(tuple)->setup(state, "Tuple", G(rubinius));
-    G(tuple)->name(state, symbol("Rubinius::Tuple"));
 
     G(lookuptable)->setup(state, "LookupTable", G(rubinius));
-    G(lookuptable)->name(state, symbol("Rubinius::LookupTable"));
     G(lookuptablebucket)->setup(state, "Bucket", G(lookuptable));
-    G(lookuptablebucket)->name(state, symbol("Rubinius::LookupTable::Bucket"));
 
     G(methtbl)->setup(state, "MethodTable", G(rubinius));
-    G(methtbl)->name(state, symbol("Rubinius::MethodTable"));
     G(methtblbucket)->setup(state, "Bucket", G(methtbl));
-    G(methtblbucket)->name(state, symbol("Rubinius::MethodTable::Bucket"));
   }
 
   void VM::initialize_builtin_classes(STATE) {
@@ -291,10 +284,9 @@ namespace rubinius {
     globals().special_classes[(uintptr_t)cTrue ] = GO(true_class);
 
     /* Create IncludedModule */
-    GO(included_module).set(ontology::new_class(state, 
+    GO(included_module).set(ontology::new_class(state,
           "IncludedModule", G(module), G(rubinius)));
     G(included_module)->set_object_type(state, IncludedModuleType);
-    G(included_module)->name(state, symbol("Rubinius::IncludedModule"));
 
     // Let all the builtin classes initialize themselves. this
     // typically means creating a Ruby class.
@@ -377,10 +369,8 @@ namespace rubinius {
     GO(undefined).set(undef);
 
     GO(vm_class).set(ontology::new_class_under(state, "VM", G(rubinius)));
-    G(vm_class)->name(state, state->symbol("Rubinius::VM"));
 
     GO(type).set(ontology::new_module(state, "Type", G(rubinius)));
-    G(type)->name(state, state->symbol("Rubinius::Type"));
 
     System::bootstrap_methods(state);
     Module::bootstrap_methods(state);
@@ -512,7 +502,7 @@ namespace rubinius {
 
       // new_class has simply name setting logic that doesn't take into account
       // being not under Object. So we set it again using the smart method.
-      cls->set_name(state, ern, state->symbol(name));
+      cls->set_name(state, name, ern);
 
       cls->set_const(state, symbol("Errno"), key);
       cls->set_const(state, symbol("Strerror"), String::create(state, strerror(num)));

@@ -28,7 +28,6 @@ namespace rubinius {
     Object* call(Object*);
     void set(Object* target, Object** pos, Object* val);
     void just_set(Object* target, Object* val);
-    void remember_object(Object* target);
   };
 
 }

@@ -46,11 +46,9 @@ namespace rubinius {
     onig_init();  // in regexp.cpp too, but idempotent.
 
     Class* enc = ontology::new_class_under(state, "EncodingClass", G(rubinius));
-    enc->name(state, state->symbol("Rubinius::EncodingClass"));
 
     GO(encoding).set(ontology::new_class_under(state, "Encoding", enc));
     G(encoding)->set_object_type(state, EncodingType);
-    G(encoding)->name(state, state->symbol("Encoding"));
 
     enc->set_const(state, "EncodingMap", LookupTable::create(state));
     enc->set_const(state, "EncodingList", Array::create(state, 3));
@@ -471,24 +469,6 @@ namespace rubinius {
         enc->name = reinterpret_cast<const char*>(tmp->raw_bytes());
         mark.just_set(obj, tmp);
       }
-    }
-  }
-
-  void Encoding::Info::visit(Object* obj, ObjectVisitor& visit) {
-    auto_visit(obj, visit);
-
-    Encoding* enc_o = force_as<Encoding>(obj);
-    if(!enc_o->get_managed()) return;
-
-    OnigEncodingType* enc = enc_o->get_encoding();
-    if(!enc) return;
-
-    ByteArray* enc_ba = ByteArray::from_body(enc);
-    visit.call(enc_ba);
-
-    if(enc->name) {
-      ByteArray* name_ba = ByteArray::from_body(const_cast<char*>(enc->name));
-      visit.call(name_ba);
     }
   }
 

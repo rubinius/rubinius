@@ -117,9 +117,8 @@ Object* const cUndef = reinterpret_cast<Object*>(0x22L);
   typedef enum
   {
     UnspecifiedZone  = 0,
-    LargeObjectZone  = 1,
-    MatureObjectZone = 2,
-    YoungObjectZone  = 3,
+    MatureObjectZone = 1,
+    YoungObjectZone  = 2,
   } gc_zone;
 
   /* the sizeof(class ObjectHeader) must be a multiple of the platform
@@ -583,7 +582,10 @@ Object* const cUndef = reinterpret_cast<Object*>(0x22L);
     }
 
     bool is_tainted_p() {
-      return flags().Tainted == 1;
+      if(reference_p()) {
+        return flags().Tainted == 1;
+      }
+      return false;
     }
 
     void set_tainted(int val=1) {
@@ -591,7 +593,10 @@ Object* const cUndef = reinterpret_cast<Object*>(0x22L);
     }
 
     bool is_untrusted_p() {
-      return flags().Untrusted == 1;
+      if(reference_p()) {
+        return flags().Untrusted == 1;
+      }
+      return false;
     }
 
     void set_untrusted(int val=1) {

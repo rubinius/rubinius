@@ -111,7 +111,7 @@ namespace jit {
         int_pos
       };
 
-      Value* pos = b().CreateGEP(vars, idx2, idx2+3, "local_pos");
+      Value* pos = b().CreateGEP(vars, idx2, "local_pos");
 
       Value* arg_val = stack_args.at(i);
 

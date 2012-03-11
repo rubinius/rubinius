@@ -121,7 +121,7 @@ namespace rubinius {
     // then remember other. The up side to just remembering it like
     // this is that other is rarely mature, and the remember_set is
     // flushed on each collection anyway.
-    if(zone() == MatureObjectZone) {
+    if(mature_object_p()) {
       state->memory()->remember_object(this);
     }
 
@@ -166,7 +166,12 @@ namespace rubinius {
   
   void Object::check_frozen(STATE) {
     if(frozen_p(state) == cTrue) {
-      Exception::runtime_error(state, "can't modify frozen object");
+      const char* reason = "can't modify frozen object";
+      if(LANGUAGE_18_ENABLED(state)) {
+        Exception::type_error(state, reason);
+      } else {
+        Exception::runtime_error(state, reason);
+      }
     }
   }
 
@@ -198,7 +203,7 @@ namespace rubinius {
 
   Object* Object::get_ivar_prim(STATE, Symbol* sym) {
     if(sym->is_ivar_p(state)->false_p()) {
-      return reinterpret_cast<Object*>(kPrimitiveFailed);
+      return Primitives::failure();
     }
 
     return get_ivar(state, sym);
@@ -259,7 +264,7 @@ namespace rubinius {
 
   Object* Object::ivar_defined_prim(STATE, Symbol* sym) {
     if(!sym->is_ivar_p(state)->true_p()) {
-      return reinterpret_cast<Object*>(kPrimitiveFailed);
+      return Primitives::failure();
     }
 
     return ivar_defined(state, sym);
@@ -344,7 +349,7 @@ namespace rubinius {
   hashval Object::hash(STATE) {
     if(!reference_p()) {
 
-#ifdef _LP64
+#ifdef IS_X8664
       uintptr_t key = reinterpret_cast<uintptr_t>(this);
       key = (~key) + (key << 21); // key = (key << 21) - key - 1;
       key = key ^ (key >> 24);
@@ -372,7 +377,7 @@ namespace rubinius {
       } else if(Bignum* bignum = try_as<Bignum>(this)) {
         return bignum->hash_bignum(state);
       } else if(Float* flt = try_as<Float>(this)) {
-        return String::hash_str((unsigned char *)(&(flt->val)), sizeof(double));
+        return String::hash_str(state, (unsigned char *)(&(flt->val)), sizeof(double));
       } else {
         return id(state)->to_native();
       }
@@ -416,8 +421,10 @@ namespace rubinius {
       other->taint(state);
     }
 
-    if(is_untrusted_p()) {
-      other->untrust(state);
+    if(!LANGUAGE_18_ENABLED(state)) {
+      if(is_untrusted_p()) {
+        other->untrust(state);
+      }
     }
   }
 
@@ -556,7 +563,7 @@ namespace rubinius {
 
   Object* Object::set_ivar_prim(STATE, Symbol* sym, Object* val) {
     if(sym->is_ivar_p(state)->false_p()) {
-      return reinterpret_cast<Object*>(kPrimitiveFailed);
+      return Primitives::failure();
     }
 
     return set_ivar(state, sym, val);
@@ -669,21 +676,23 @@ namespace rubinius {
     } else {
       name << "#<";
       if(Module* mod = try_as<Module>(this)) {
-        if(mod->name()->nil_p()) {
+        if(mod->module_name()->nil_p()) {
           name << "Class";
         } else {
-          name << mod->name()->debug_str(state);
+          name << mod->debug_str(state);
         }
+        name << "(";
         if(SingletonClass* sc = try_as<SingletonClass>(mod)) {
-          name << "(" << sc->true_superclass(state)->name()->debug_str(state) << ")";
+          name << sc->true_superclass(state)->debug_str(state);
         } else {
-          name << "(" << this->class_object(state)->name()->debug_str(state) << ")";
+          name << class_object(state)->debug_str(state);
         }
+        name << ")";
       } else {
-        if(this->class_object(state)->name()->nil_p()) {
+        if(this->class_object(state)->module_name()->nil_p()) {
           name << "Object";
         } else {
-          name << this->class_object(state)->name()->debug_str(state);
+          name << class_object(state)->debug_str(state);
         }
       }
     }
@@ -719,25 +728,28 @@ namespace rubinius {
   }
 
   Object* Object::taint(STATE) {
-    if(reference_p()) set_tainted();
+    if(!is_tainted_p()) {
+      check_frozen(state);
+      if (reference_p()) set_tainted();
+    }
     return this;
   }
 
   Object* Object::tainted_p(STATE) {
-    if(reference_p() && is_tainted_p()) return cTrue;
+    if(is_tainted_p()) return cTrue;
     return cFalse;
   }
 
   Object* Object::trust(STATE) {
-    if(untrusted_p(state) == cTrue) {
+    if(is_untrusted_p()) {
       check_frozen(state);
-      if(reference_p()) set_untrusted(0);
+      set_untrusted(0);
     }
     return this;
   }
 
   Object* Object::untrust(STATE) {
-    if(untrusted_p(state) == cFalse) {
+    if(!is_untrusted_p()) {
       check_frozen(state);
       if(reference_p()) set_untrusted();
     }
@@ -745,7 +757,7 @@ namespace rubinius {
   }
 
   Object* Object::untrusted_p(STATE) {
-    if(reference_p() && is_untrusted_p()) return cTrue;
+    if(is_untrusted_p()) return cTrue;
     return cFalse;
   }
 
@@ -754,7 +766,10 @@ namespace rubinius {
   }
 
   Object* Object::untaint(STATE) {
-    if(reference_p()) set_tainted(0);
+    if(is_tainted_p()) {
+      check_frozen(state);
+      if(reference_p()) set_tainted(0);
+    }
     return this;
   }
 

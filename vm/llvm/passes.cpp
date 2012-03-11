@@ -22,7 +22,7 @@ namespace {
   using namespace llvm;
 
   class GuardEliminator : public FunctionPass {
-    const Type* float_type_;
+    Type* float_type_;
 
   public:
     static char ID;
@@ -301,10 +301,10 @@ namespace {
 
 
   class RubiniusAliasAnalysis : public FunctionPass, public AliasAnalysis {
-    const Type* class_type_;
-    const Type* object_type_;
-    const Type* args_type_;
-    const Type* float_type_;
+    Type* class_type_;
+    Type* object_type_;
+    Type* args_type_;
+    Type* float_type_;
 
   public:
     static char ID;

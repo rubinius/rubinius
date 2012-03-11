@@ -34,7 +34,7 @@
 #include <llvm/CallingConv.h>
 #include <llvm/Support/CFG.h>
 #include <llvm/Analysis/Passes.h>
-#include <llvm/Target/TargetSelect.h>
+#include <llvm/Support/TargetSelect.h>
 
 #include <llvm/Target/TargetOptions.h>
 
@@ -125,13 +125,13 @@ namespace rubinius {
     state->shared().llvm_state->unpause_i();
   }
 
-  const llvm::Type* LLVMState::ptr_type(std::string name) {
+  llvm::Type* LLVMState::ptr_type(std::string name) {
     std::string full_name = std::string("struct.rubinius::") + name;
     return llvm::PointerType::getUnqual(
         module_->getTypeByName(full_name.c_str()));
   }
 
-  const llvm::Type* LLVMState::type(std::string name) {
+  llvm::Type* LLVMState::type(std::string name) {
     std::string full_name = std::string("struct.rubinius::") + name;
     return module_->getTypeByName(full_name.c_str());
   }
@@ -371,7 +371,7 @@ namespace rubinius {
             req->method()->set_unspecialized(reinterpret_cast<executor>(func), rd);
           }
 
-          assert(req->method()->jit_data());
+          // assert(req->method()->jit_data());
 
           ls_->end_method_update();
 
@@ -732,7 +732,7 @@ namespace rubinius {
   }
 
   Symbol* LLVMState::symbol(const std::string sym) {
-    return symbols_.lookup(sym);
+    return symbols_.lookup(&shared_, sym);
   }
 
   std::string LLVMState::symbol_debug_str(const Symbol* sym) {
@@ -746,7 +746,7 @@ namespace rubinius {
       return "ANONYMOUS";
     }
 
-    return symbol_debug_str(ss->module()->name());
+    return symbol_debug_str(ss->module()->module_name());
   }
 
   void LLVMState::compile_soon(STATE, CompiledMethod* cm, Object* placement,

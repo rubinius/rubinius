@@ -456,7 +456,7 @@ namespace rubinius {
       perform->moveAfter(convert_block);
       ops.set_block(perform);
 
-      PHINode* rhs = ops.b().CreatePHI(fix_rhs->getType(), "rhs");
+      PHINode* rhs = ops.b().CreatePHI(fix_rhs->getType(), 2, "rhs");
       rhs->addIncoming(unboxed_rhs, unbox_block);
       rhs->addIncoming(fix_rhs, convert_block);
 
@@ -544,7 +544,7 @@ namespace rubinius {
 
       do_compare->moveAfter(converted_block);
 
-      PHINode* rhs = ops.b().CreatePHI(converted_rhs->getType(), "float_rhs");
+      PHINode* rhs = ops.b().CreatePHI(converted_rhs->getType(), 2, "float_rhs");
       rhs->addIncoming(unboxed_rhs, unboxed_block);
       rhs->addIncoming(converted_rhs, converted_block);
 

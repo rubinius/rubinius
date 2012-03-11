@@ -16,6 +16,7 @@ describe "REXML::Attributes#each" do
       attr.should be_kind_of(Array)
       attributes << attr
     end
+    attributes = attributes.sort_by {|a| a.first }
     attributes.first.should == ["name", "Joe"]
     attributes.last.should == ["xmlns:ns", "http://some_uri"]
   end

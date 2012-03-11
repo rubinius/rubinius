@@ -94,7 +94,7 @@ namespace rubinius {
   }
 
   void Data::Info::mark(Object* t, ObjectMark& mark) {
-    // auto_mark(t, mark);
+    auto_mark(t, mark);
 
     Data* data = force_as<Data>(t);
 

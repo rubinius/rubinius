@@ -65,12 +65,13 @@ class Configure
     @llvm_prebuilt_name     = nil
     @llvm_system_name       = get_system_name
 
-    @llvm_version           = "2.8"
-    @llvm_api_version       = 208
-    @llvm_source            = "llvm-2.8.tgz"
-    @llvm_source_dir        = "llvm-2.8"
-    @llvm_source_url        = "http://llvm.org/releases/2.8/llvm-2.8.tgz"
+    @llvm_version           = "3.0"
+    @llvm_api_version       = 300
+    @llvm_source            = "llvm-3.0.tgz"
+    @llvm_source_dir        = "llvm-3.0.src"
+    @llvm_source_url        = "http://llvm.org/releases/3.0/llvm-3.0.tar.gz"
     @llvm_asset_path        = "http://asset.rubini.us/prebuilt"
+    @llvm_source_build      = false
 
 
     if @host == "i686-pc-linux-gnu" || @host == "x86_64-unknown-linux-gnu"
@@ -123,7 +124,7 @@ class Configure
     @libversion = "2.0"
     @version = "#{@libversion}.0dev"
     @release_date = "yyyy-mm-dd"
-    @config_version = 155
+    @config_version = 156
 
     # TODO: add conditionals for platforms
     if RbConfig::CONFIG["build_os"] =~ /darwin/
@@ -525,6 +526,7 @@ Unsupported language version requested: #{ver}. Options are #{@supported_version
 
       if verify_llvm_source
         @log.write "  Code appears to be a proper tree."
+        @llvm_source_build = true
         return true
       end
     end
@@ -611,7 +613,7 @@ Unsupported language version requested: #{ver}. Options are #{@supported_version
     @log.print "  Checking for existing LLVM library tree: "
     if File.directory?("#{@llvm_default}/Release")
       version = `#{@perl} #{@llvm_default}/Release/bin/llvm-config --version`.strip
-      if version == "2.8"
+      if version == "3.0"
         # See if this has rtti turned off and reject it.
         if `#{@perl} #{@llvm_default}/Release/bin/llvm-config --cxxflags`.index("-fno-rtti")
           @log.write "incorrectly configure (rtti is off)"
@@ -670,10 +672,10 @@ Unsupported language version requested: #{ver}. Options are #{@supported_version
       api_version = ("%d%02d" % parts[0..1]).to_i
       if `#{@perl} #{config} --cxxflags`.index("-fno-rtti")
         @log.write "incorrectly configured llvm (rtti is off)"
-      elsif api_version != 208 and api_version != 209
-        @log.write "only LLVM 2.8 and 2.9 are supported"
+      elsif api_version != 300
+        @log.write "only LLVM 3.0 is supported"
       else
-        @log.write "found! (version #{version})"
+        @log.write "found! (version #{version} - api: #{api_version})"
         @llvm_configure = config
         @llvm = :config
         @llvm_api_version = api_version
@@ -1134,7 +1136,7 @@ int main() { return tgetnum(""); }
     output = `#{tool_name} #{opts}`
 
     if $?.exitstatus == 0
-      v = output.scan(regexp)[0].map(&:to_i)
+      v = output.scan(regexp)[0].map { |x| x.to_i }
       unless (v <=> version) >= 0
         failure " Expected #{tool_name} version >= #{version.join('.')}, found #{v.join('.')}"
       end
@@ -1527,6 +1529,25 @@ end
     check_force_clean if verify_config
 
     print_debug if @verbose
+
+    if @llvm_source_build
+      files = prebuilt_files.map { |f| File.basename f, ".tar.bz2" }.join("\n  ")
+
+      @log.write <<-EOM
+
+------------------------------------------------------------------
+Unable to find an existing binary build of LLVM for your platform.
+
+Please notify the Rubinius team at the #rubinius channel on
+irc.freenode.net and provide the following system information:
+
+  prebuilts:
+
+  #{files}
+------------------------------------------------------------------
+      EOM
+    end
+
     if @install
       @log.write "\nConfigured. Run 'rake install' to install Rubinius."
     else

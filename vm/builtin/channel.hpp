@@ -14,7 +14,6 @@ namespace rubinius {
   class List;
   class IO;
   class IOBuffer;
-  class Message;
   class Executable;
 
   class Channel : public Object {

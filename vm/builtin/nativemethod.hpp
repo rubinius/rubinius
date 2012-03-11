@@ -21,7 +21,6 @@
 
 namespace rubinius {
   class ExceptionPoint;
-  class Message;
   class NativeMethodFrame;
   class Pointer;
 
@@ -224,6 +223,10 @@ namespace rubinius {
 
     VALUE block() {
       return block_;
+    }
+
+    void set_block(VALUE blk) {
+      block_ = blk;
     }
 
     VALUE receiver() {

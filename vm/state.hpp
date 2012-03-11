@@ -50,6 +50,10 @@ namespace rubinius {
       return vm_->symbol(str);
     }
 
+    uint32_t hash_seed() {
+      return shared_.hash_seed;
+    }
+
     template <class T>
       T* new_object(Class *cls) {
         return reinterpret_cast<T*>(vm_->new_object_typed(cls, sizeof(T), T::type));

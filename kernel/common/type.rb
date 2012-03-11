@@ -101,5 +101,21 @@ module Rubinius
         sup = sup.direct_superclass()
       end
     end
+
+    def self.coerce_to_constant_name(name)
+      name = Rubinius::Type.coerce_to_symbol(name)
+
+      unless name.is_constant?
+        raise NameError, "wrong constant name #{name}"
+      end
+
+      name
+    end
+
+    # Taint host if source is tainted.
+    def self.infect(host, source)
+      Rubinius.primitive :object_infect
+      raise PrimitiveFailure, "Object.infect primitive failed"
+    end
   end
 end

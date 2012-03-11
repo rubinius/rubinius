@@ -15,6 +15,7 @@ namespace :web do
       'de',
       'es',
       'fr',
+      'it',
       'ja',
       'pl',
       'pt-br',

@@ -36,11 +36,15 @@ class Autoload
 
     while current
       constant = current.constant_table.fetch name, undefined
+
       unless constant.equal?(undefined)
         if constant.equal? self
-          @scope.constant_table.delete @name
-          Rubinius.inc_global_serial
-          return scope.const_missing(name)
+          constant = Object.constant_table.fetch name, undefined
+          if constant.equal?(undefined)
+            @scope.constant_table.delete @name
+            Rubinius.inc_global_serial
+            return scope.const_missing(name)
+          end
         end
         return constant
       end

@@ -785,23 +785,6 @@ void #{@name}::Info::auto_mark(Object* _t, ObjectMark& mark) {
     str
   end
 
-  def generate_visit
-    marks = generate_visits(self).rstrip
-
-    str = ''
-
-    str << <<-EOF unless marks.empty?
-void #{@name}::Info::auto_visit(Object* _t, ObjectVisitor& visit) {
-  #{@name}* target = as<#{@name}>(_t);
-
-#{marks}
-}
-
-    EOF
-
-    str
-  end
-
   def kind_of_code(what)
     case @name
     when "Fixnum"
@@ -988,10 +971,6 @@ class CPPParser
             args.pop
           end
 
-          if args.last == "Message& msg"
-            raise "Unsupported"
-          end
-
           if i = args.index("Arguments& args")
             pass_arguments = true
             args[i] = :arguments
@@ -1160,7 +1139,6 @@ write_if_new "vm/gen/typechecks.gen.cpp" do |f|
   parser.classes.each do |n, cpp|
     f.puts cpp.generate_typechecks
     f.puts cpp.generate_mark
-    f.puts cpp.generate_visit
   end
 end
 

@@ -256,6 +256,7 @@ containing the Rubinius standard library files.
 
       options.on "-a", "Used with -n and -p, splits $_ into $F" do
         @input_loop_split = true
+        Rubinius::Globals.set!(:$-a, true)
       end
 
       options.on "-c", "Only check the syntax" do
@@ -336,6 +337,7 @@ containing the Rubinius standard library files.
       options.on "-p", "Same as -n, but also print $_" do
         @input_loop = true
         @input_loop_print = true
+        Rubinius::Globals.set!(:$-p, true)
       end
 
       options.on "-r", "LIBRARY", "Require library before execution" do |file|
@@ -593,7 +595,7 @@ to rebuild the compiler.
         while gets
           $F = $_.split if @input_loop_split
           eval @evals.join("\n"), TOPLEVEL_BINDING, "-e", 1
-          puts $_ if @input_loop_print
+          print $_ if @input_loop_print
         end
       else
         eval @evals.join("\n"), TOPLEVEL_BINDING, "-e", 1

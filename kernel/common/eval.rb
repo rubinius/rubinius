@@ -61,14 +61,17 @@ module Kernel
       filename ||= "(eval)"
     end
 
-    binding.static_scope = binding.static_scope.dup
+    existing_scope = binding.static_scope
+    binding.static_scope = existing_scope.dup
 
     be = Rubinius::Compiler.construct_block string, binding,
                                             filename, lineno
 
     be.set_eval_binding binding
 
-    be.call_on_instance(binding.self)
+    result = be.call_on_instance(binding.self)
+    binding.static_scope = existing_scope
+    result
   end
   module_function :eval
   private :eval

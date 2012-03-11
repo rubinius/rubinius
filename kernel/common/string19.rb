@@ -1,6 +1,14 @@
 # -*- encoding: us-ascii -*-
 
 class String
+  def self.allocate
+    str = super()
+    str.__data__ = Rubinius::ByteArray.new(1)
+    str.num_bytes = 0
+    str.force_encoding(Encoding::BINARY)
+    str
+  end
+
   def self.try_convert(obj)
     Rubinius::Type.try_convert obj, String, :to_str
   end
@@ -598,12 +606,15 @@ class String
       end
 
       other = other.chr(encoding)
-    else
+    end
+    unless other.kind_of? String
       other = StringValue(other)
     end
 
-    enc = Rubinius::Type.compatible_encoding self, other
-    force_encoding enc
+    unless other.encoding == encoding
+      enc = Rubinius::Type.compatible_encoding self, other
+      force_encoding enc
+    end
 
     Rubinius::Type.infect(self, other)
     append(other)

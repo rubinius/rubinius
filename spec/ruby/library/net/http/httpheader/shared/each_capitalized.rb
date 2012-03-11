@@ -12,7 +12,7 @@ describe :net_httpheader_each_capitalized, :shared => true do
       @headers.send(@method) do |key, value|
         res << [key, value]
       end
-      res.should == [["My-Header", "test"], ["My-Other-Header", "a, b"]]
+      res.sort.should == [["My-Header", "test"], ["My-Other-Header", "a, b"]]
     end
   end
 
@@ -34,7 +34,7 @@ describe :net_httpheader_each_capitalized, :shared => true do
           enumerator.each do |*key|
             res << key
           end
-          res.should == [["My-Header", "test"], ["My-Other-Header", "a, b"]]
+          res.sort.should == [["My-Header", "test"], ["My-Other-Header", "a, b"]]
         end
       end
     end

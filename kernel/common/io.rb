@@ -345,7 +345,14 @@ class IO
   def self.pipe
     lhs = allocate
     rhs = allocate
-    connect_pipe(lhs, rhs)
+
+    begin
+      connect_pipe(lhs, rhs)
+    rescue Errno::EMFILE
+      GC.run(true)
+      connect_pipe(lhs, rhs)
+    end
+
     lhs.sync = true
     rhs.sync = true
     return [lhs, rhs]

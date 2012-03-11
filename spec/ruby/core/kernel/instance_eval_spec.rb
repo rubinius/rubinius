@@ -2,6 +2,10 @@ require File.expand_path('../../../spec_helper', __FILE__)
 require File.expand_path('../fixtures/classes', __FILE__)
 
 describe "Kernel#instance_eval" do
+  before :each do
+    ScratchPad.clear
+  end
+
   it "expects a block with no arguments" do
     lambda { "hola".instance_eval }.should raise_error(ArgumentError)
   end
@@ -10,15 +14,26 @@ describe "Kernel#instance_eval" do
     lambda { "hola".instance_eval(4, 5) {|a,b| a + b } }.should raise_error(ArgumentError)
   end
 
-  ruby_version_is ""..."1.9" do
-    it "passes the object to the block" do
-      "hola".instance_eval {|o| o.size }.should == 4
+  it "yields the object to the block" do
+    "hola".instance_eval {|o| ScratchPad.record o }
+    ScratchPad.recorded.should == "hola"
+  end
+
+  ruby_version_is "".."1.9.0" do
+    it "returns the result of the block" do
+      "hola".instance_eval { :result }.should == :result
     end
   end
 
-  ruby_version_is "1.9" do
-    it "doesn't pass the object to the block" do
-      "hola".instance_eval {|o| o }.should == "hola"
+  ruby_version_is "1.9.1".."1.9.2" do
+    it "returns nil" do
+      "hola".instance_eval { :result }.should == nil
+    end
+  end
+
+  ruby_version_is "1.9.2" do
+    it "returns the result of the block" do
+      "hola".instance_eval { :result }.should == :result
     end
   end
 
@@ -103,15 +118,13 @@ describe "Kernel#instance_eval" do
     end
   end
 
-  ruby_version_is ""..."1.9" do
-    it "makes the receiver metaclass the scoped class when used with a string" do
-      obj = Object.new
-      klass = obj.instance_eval %{
-        class B; end
-        B
-      }
-      klass.name.should =~ /(.+)::B/
-    end
+  it "makes the receiver metaclass the scoped class when used with a string" do
+    obj = Object.new
+    klass = obj.instance_eval %{
+      class B; end
+      B
+    }
+    obj.singleton_class.const_get(:B).should be_an_instance_of(Class)
   end
 
   it "gets constants in the receiver if a string given" do

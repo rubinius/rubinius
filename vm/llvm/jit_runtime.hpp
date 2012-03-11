@@ -16,7 +16,6 @@ namespace rubinius {
   class GarbageCollector;
   class RuntimeDataHolder;
   class ObjectMark;
-  class ObjectVisitor;
   class VM;
 
   namespace gc {
@@ -141,7 +140,6 @@ namespace rubinius {
       }
 
       void mark_all(Object* obj, ObjectMark& mark);
-      void visit_all(ObjectVisitor& visit);
       void run_write_barrier(gc::WriteBarrier* wb, Object* obj);
     };
   }

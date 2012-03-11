@@ -54,7 +54,7 @@ namespace rubinius {
               << ". Cache contains " << cache_->classes_seen() << " entries: ";
 
           for(int i = 0; i < cache_->classes_seen(); i++) {
-            log << ops_.state()->symbol_debug_str(cache_->tracked_class(i)->name())
+            log << ops_.state()->symbol_debug_str(cache_->tracked_class(i)->module_name())
                 << " ";
           }
           log << "\n";
@@ -140,14 +140,14 @@ namespace rubinius {
           check_recv(klass);
           ops_.setup_out_args(count_);
 
-          std::vector<const Type*> ftypes;
+          std::vector<Type*> ftypes;
           ftypes.push_back(ops_.state()->ptr_type("VM"));
           ftypes.push_back(ops_.state()->ptr_type("CallFrame"));
           ftypes.push_back(ops_.state()->ptr_type("Executable"));
           ftypes.push_back(ops_.state()->ptr_type("Module"));
           ftypes.push_back(ops_.state()->ptr_type("Arguments"));
 
-          const Type *ft = llvm::PointerType::getUnqual(FunctionType::get(ops_.state()->ptr_type("Object"), ftypes, false));
+          Type *ft = llvm::PointerType::getUnqual(FunctionType::get(ops_.state()->ptr_type("Object"), ftypes, false));
 
           // We can't extract and use a specialized version of cm because we don't
           // yet have the ability to check if the specialized version has been
@@ -184,7 +184,7 @@ namespace rubinius {
             ops_.out_args()
           };
 
-          Value* dc_res = ops_.b().CreateCall(func, call_args, call_args+5, "dc_res");
+          Value* dc_res = ops_.b().CreateCall(func, call_args, "dc_res");
           set_result(dc_res);
 
           goto remember;
@@ -237,9 +237,9 @@ namespace rubinius {
             << ops_.state()->symbol_debug_str(ops_.method_name());
 
           StaticScope* ss = cm->scope();
-          if(kind_of<StaticScope>(ss) && klass != ss->module() && !klass->name()->nil_p()) {
+          if(kind_of<StaticScope>(ss) && klass != ss->module() && !klass->module_name()->nil_p()) {
             ops_.state()->log() << " ("
-              << ops_.state()->symbol_debug_str(klass->name()) << ")";
+              << ops_.state()->symbol_debug_str(klass->module_name()) << ")";
           }
 
           if(inline_block_) {
@@ -275,7 +275,7 @@ namespace rubinius {
             << ops_.state()->symbol_debug_str(nf->name())
             << "() into "
             << ops_.state()->symbol_debug_str(ops_.method_name())
-            << " (" << ops_.state()->symbol_debug_str(klass->name()) << ")\n";
+            << " (" << ops_.state()->symbol_debug_str(klass->module_name()) << ")\n";
         }
       } else {
         return false;
@@ -283,7 +283,7 @@ namespace rubinius {
     } else {
       if(ops_.state()->config().jit_inline_debug) {
         context_.inline_log("NOT inlining")
-          << ops_.state()->symbol_debug_str(klass->name())
+          << ops_.state()->symbol_debug_str(klass->module_name())
           << "#"
           << ops_.state()->symbol_debug_str(cache_->name)
           << " into "
@@ -348,7 +348,7 @@ remember:
         << ops_.state()->symbol_debug_str(cm->name())
         << " into "
         << ops_.state()->symbol_debug_str(ops_.method_name())
-        << " (" << ops_.state()->symbol_debug_str(klass->name()) << ") trivial\n";
+        << " (" << ops_.state()->symbol_debug_str(klass->module_name()) << ") trivial\n";
     }
 
     VMMethod* vmm = cm->backend_method();
@@ -404,7 +404,7 @@ remember:
         << "writer to '"
         << ops_.state()->symbol_debug_str(acc->name())
         << "' on "
-        << ops_.state()->symbol_debug_str(klass->name())
+        << ops_.state()->symbol_debug_str(klass->module_name())
         << " in "
         << "#"
         << ops_.state()->symbol_debug_str(ops_.method_name())
@@ -463,7 +463,7 @@ remember:
         << "read to '"
         << ops_.state()->symbol_debug_str(acc->name())
         << "' on "
-        << ops_.state()->symbol_debug_str(klass->name())
+        << ops_.state()->symbol_debug_str(klass->module_name())
         << " in "
         << "#"
         << ops_.state()->symbol_debug_str(ops_.method_name());
@@ -658,7 +658,7 @@ remember:
     context_.leave_inline();
   }
 
-  const Type* find_type(JITOperations& ops_, size_t type) {
+  Type* find_type(JITOperations& ops_, size_t type) {
     switch(type) {
       case RBX_FFI_TYPE_CHAR:
       case RBX_FFI_TYPE_UCHAR:
@@ -709,9 +709,9 @@ remember:
     ///
 
     std::vector<Value*> ffi_args;
-    std::vector<const Type*> ffi_type;
+    std::vector<Type*> ffi_type;
 
-    std::vector<const Type*> struct_types;
+    std::vector<Type*> struct_types;
     struct_types.push_back(ops_.state()->Int32Ty);
     struct_types.push_back(ops_.state()->Int1Ty);
 
@@ -736,7 +736,7 @@ remember:
         Value* val = sig.call("rbx_ffi_to_int", call_args, 3, "to_int",
                               ops_.b());
 
-        const Type* type = find_type(ops_, nf->ffi_data->arg_types[i]);
+        Type* type = find_type(ops_, nf->ffi_data->arg_types[i]);
         ffi_type.push_back(type);
 
         if(type != ops_.NativeIntTy) {
@@ -829,7 +829,7 @@ remember:
         break;
 
       case RBX_FFI_TYPE_PTR: {
-        const Type* type = llvm::PointerType::getUnqual(ops_.state()->Int8Ty);
+        Type* type = llvm::PointerType::getUnqual(ops_.state()->Int8Ty);
 
         Signature sig(ops_.state(), type);
         sig << "VM";
@@ -852,7 +852,7 @@ remember:
       }
 
       case RBX_FFI_TYPE_STRING: {
-        const Type* type = llvm::PointerType::getUnqual(ops_.state()->Int8Ty);
+        Type* type = llvm::PointerType::getUnqual(ops_.state()->Int8Ty);
 
         Signature sig(ops_.state(), type);
         sig << "VM";
@@ -886,15 +886,14 @@ remember:
     Value* check_args[] = { ops_.vm(), ops_.call_frame() };
     check.call("rbx_enter_unmanaged", check_args, 2, "unused", ops_.b());
 
-    const Type* return_type = find_type(ops_, nf->ffi_data->ret_type);
+    Type* return_type = find_type(ops_, nf->ffi_data->ret_type);
 
     FunctionType* ft = FunctionType::get(return_type, ffi_type, false);
     Value* ep_ptr = ops_.b().CreateIntToPtr(
             ConstantInt::get(ops_.state()->IntPtrTy, (intptr_t)nf->ffi_data->ep),
             llvm::PointerType::getUnqual(ft), "cast_to_function");
 
-    Value* ffi_result = ops_.b().CreateCall(ep_ptr, ffi_args.begin(),
-                           ffi_args.end(), "ffi_result");
+    Value* ffi_result = ops_.b().CreateCall(ep_ptr, ffi_args, "ffi_result");
 
     check.call("rbx_exit_unmanaged", check_args, 2, "unused", ops_.b());
 

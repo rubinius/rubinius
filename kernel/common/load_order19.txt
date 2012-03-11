@@ -87,6 +87,7 @@ method.rbc
 method_equality.rbc
 method19.rbc
 method_table.rbc
+missing_method.rbc
 native_method.rbc
 nil.rbc
 nil19.rbc

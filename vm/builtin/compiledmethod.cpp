@@ -40,10 +40,9 @@
 namespace rubinius {
 
   void CompiledMethod::init(STATE) {
-    GO(cmethod).set(ontology::new_class(state, 
+    GO(cmethod).set(ontology::new_class(state,
                       "CompiledMethod", G(executable), G(rubinius)));
     G(cmethod)->set_object_type(state, CompiledMethodType);
-    G(cmethod)->name(state, state->symbol("Rubinius::CompiledMethod"));
   }
 
   CompiledMethod* CompiledMethod::create(STATE) {
@@ -433,41 +432,6 @@ namespace rubinius {
             mark.just_set(obj, tmp);
           }
         }
-      }
-    }
-  }
-
-  void CompiledMethod::Info::visit(Object* obj, ObjectVisitor& visit) {
-    auto_visit(obj, visit);
-
-    visit_inliners(obj, visit);
-
-    CompiledMethod* cm = as<CompiledMethod>(obj);
-    if(!cm->backend_method_) return;
-
-    VMMethod* vmm = cm->backend_method_;
-
-#ifdef ENABLE_LLVM
-    if(cm->jit_data()) {
-      cm->jit_data()->visit_all(visit);
-    }
-
-    for(int i = 0; i < VMMethod::cMaxSpecializations; i++) {
-      if(vmm->specializations[i].jit_data) {
-        vmm->specializations[i].jit_data->visit_all(visit);
-      }
-    }
-#endif
-
-    for(size_t i = 0; i < vmm->inline_cache_count(); i++) {
-      InlineCache* cache = &vmm->caches[i];
-
-      MethodCacheEntry* mce = cache->cache_;
-      if(mce) visit.call(mce);
-
-      for(int i = 0; i < cTrackedICHits; i++) {
-        Module* mod = cache->seen_classes_[i].klass();
-        if(mod) visit.call(mod);
       }
     }
   }

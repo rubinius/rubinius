@@ -86,7 +86,7 @@ namespace jit {
           cint(i)
         };
 
-        Value* gep = b().CreateGEP(vars, idx, idx+3, "local_pos");
+        Value* gep = b().CreateGEP(vars, idx, "local_pos");
         b().CreateStore(nil, gep);
       }
       return;
@@ -111,7 +111,7 @@ namespace jit {
       cur
     };
 
-    Value* gep = b().CreateGEP(vars, idx, idx+3, "local_pos");
+    Value* gep = b().CreateGEP(vars, idx, "local_pos");
     b().CreateStore(nil, gep);
 
     Value* added = b().CreateAdd(cur, one, "added");
@@ -164,7 +164,7 @@ namespace jit {
     };
 
     Value* self_class = b().CreateLoad(
-        b().CreateGEP(self, class_idx, class_idx+3),
+        b().CreateGEP(self, class_idx),
         "class");
 
     Value* runtime_id = b().CreateLoad(

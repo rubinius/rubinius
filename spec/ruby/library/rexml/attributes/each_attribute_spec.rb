@@ -15,6 +15,7 @@ describe "REXML::Attributes#each_attribute" do
       attributes << attr
     end
 
+    attributes = attributes.sort_by {|a| a.name }
     attributes.first.should == name
     attributes.last.should == ns_uri
   end

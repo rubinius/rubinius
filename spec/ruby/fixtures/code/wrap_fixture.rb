@@ -1,3 +1,3 @@
 class LoadSpecWrap
-  ScratchPad << self.name
+  ScratchPad << self
 end

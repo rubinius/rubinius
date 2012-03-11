@@ -16,7 +16,7 @@ describe "Net::HTTPHeader#each_value" do
       @headers.each_value do |value|
         res << value
       end
-      res.should == ["test", "a, b"]
+      res.sort.should == ["a, b", "test"]
     end
   end
 
@@ -38,7 +38,7 @@ describe "Net::HTTPHeader#each_value" do
           enumerator.each do |key|
             res << key
           end
-          res.should == ["test", "a, b"]
+          res.sort.should == ["a, b", "test"]
         end
       end
     end

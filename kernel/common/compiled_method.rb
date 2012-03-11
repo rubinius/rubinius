@@ -485,6 +485,29 @@ module Rubinius
     end
 
     ##
+    # For Method#parameters
+    def parameters
+      m = required_args - post_args
+      o = m + total_args - required_args
+      p = o + post_args
+      p += 1 if splat
+
+      local_names.each_with_index.map do |name, i|
+        if i < m
+          [:req, name]
+        elsif i < o
+          [:opt, name]
+        elsif splat == i
+          [:rest, name]
+        elsif i < p
+          [:req, name]
+        else
+          [:block, name]
+        end
+      end
+    end
+
+    ##
     # Represents virtual machine's CPU instruction.
     # Instructions are organized into instruction
     # sequences known as iSeq, forming body

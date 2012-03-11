@@ -19,7 +19,6 @@ namespace rubinius {
   void Executable::init(STATE) {
     GO(executable).set(ontology::new_class(state, "Executable", G(object), G(rubinius)));
     G(executable)->set_object_type(state, ExecutableType);
-    G(executable)->name(state, state->symbol("Rubinius::Executable"));
   }
 
   Executable* Executable::allocate(STATE, Object* self) {
@@ -112,22 +111,6 @@ namespace rubinius {
         *i = (CompiledMethod*)tmp;
         mark.just_set(obj, tmp);
       }
-    }
-  }
-
-  void Executable::Info::visit(Object* obj, ObjectVisitor& visit) {
-    auto_visit(obj, visit);
-    visit_inliners(obj, visit);
-  }
-
-  void Executable::Info::visit_inliners(Object* obj, ObjectVisitor& visit) {
-    Executable* exc = (Executable*)obj;
-    if(!exc->inliners_ || exc->inliners_ == (Inliners*)cNil) return;
-
-    for(std::list<CompiledMethod*>::iterator i = exc->inliners_->inliners().begin();
-        i != exc->inliners_->inliners().end();
-        ++i) {
-      visit.call(*i);
     }
   }
 

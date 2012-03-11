@@ -88,8 +88,8 @@ namespace rubinius {
     }
   }
 
-  FiberData* FiberStacks::new_data() {
-    FiberData* data = new FiberData(thread_);
+  FiberData* FiberStacks::new_data(bool root) {
+    FiberData* data = new FiberData(thread_, root);
     datas_.push_back(data);
 
     return data;

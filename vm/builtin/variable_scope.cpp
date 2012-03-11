@@ -16,10 +16,9 @@
 
 namespace rubinius {
   void VariableScope::init(STATE) {
-    GO(variable_scope).set(ontology::new_class(state, 
+    GO(variable_scope).set(ontology::new_class(state,
           "VariableScope", G(object), G(rubinius)));
     G(variable_scope)->set_object_type(state, VariableScopeType);
-    G(variable_scope)->name(state, state->symbol("Rubinius::VariableScope"));
   }
 
   void VariableScope::bootstrap_methods(STATE) {
@@ -123,32 +122,6 @@ namespace rubinius {
       for(size_t i = 0; i < locals; i++) {
         Object* tmp = mark.call(ary[i]);
         if(tmp) { ary[i] = tmp; }
-      }
-    }
-  }
-
-  void VariableScope::Info::visit(Object* obj, ObjectVisitor& visit) {
-    auto_visit(obj, visit);
-
-    VariableScope* vs = as<VariableScope>(obj);
-
-    if(!vs->isolated()) {
-      Object** ary = vs->stack_locals();
-
-      if(Fiber* fib = try_as<Fiber>(vs->fiber())) {
-        FiberData* data = fib->data();
-
-        AddressDisplacement dis(data->data_offset(),
-                                data->data_lower_bound(),
-                                data->data_upper_bound());
-
-        ary = dis.displace(ary);
-      }
-
-      size_t locals = vs->number_of_locals();
-
-      for(size_t i = 0; i < locals; i++) {
-        visit.call(ary[i]);
       }
     }
   }
