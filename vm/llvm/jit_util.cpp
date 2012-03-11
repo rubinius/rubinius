@@ -322,7 +322,7 @@ extern "C" {
     }
 
     // coerce
-    Object* recv = G(array);
+    Object* recv = G(type);
     Arguments args(G(sym_coerce_into_array), recv, 1, &top);
     Dispatch dis(G(sym_coerce_into_array));
 
