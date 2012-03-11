@@ -75,9 +75,9 @@ class Array
   # Replaces each element in self with the return value
   # of passing that element to the supplied block.
   def map!
-    Rubinius.check_frozen
-
     return to_enum(:map!) unless block_given?
+
+    Rubinius.check_frozen
 
     i = @start
     total = i + @total
