@@ -96,13 +96,4 @@ class Array
     tuple.copy_from @tuple, @start, @total, 0
     tuple
   end
-
-  # Runtime method to support case when *foo syntax
-  # TODO move to compiler runtimesupport (it might not
-  # exist yet, but it should)
-  def __matches_when__(receiver)
-    each { |x| return true if x === receiver }
-    false
-  end
-
 end
