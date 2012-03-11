@@ -159,4 +159,15 @@ module Kernel
     Kernel.warn "Object#type IS fully deprecated; use Object#class OR ELSE."
     self.class
   end
+
+  def method(name)
+    name = Rubinius::Type.coerce_to_symbol name
+    cm = Rubinius.find_method(self, name)
+
+    if cm
+      return Method.new(self, cm[1], cm[0], name)
+    else
+      raise NameError, "undefined method `#{name}' for #{self.inspect}"
+    end
+  end
 end

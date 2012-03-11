@@ -76,13 +76,20 @@ describe :method_equal, :shared => true do
       proc1.send(@method, block1).should be_true
     end
 
-    it "returns true for the same method missing" do
-      miss1 = @m.method(:handled_via_method_missing)
-      miss1bis = @m.method(:handled_via_method_missing)
-      miss2 = @m.method(:also_handled)
+    describe 'missing methods' do
+      it "returns true for the same method missing" do
+        miss1 = @m.method(:handled_via_method_missing)
+        miss1bis = @m.method(:handled_via_method_missing)
+        miss2 = @m.method(:also_handled)
 
-      miss1.send(@method, miss1bis).should be_true
-      miss1.send(@method, miss2).should be_false
+        miss1.send(@method, miss1bis).should be_true
+        miss1.send(@method, miss2).should be_false
+      end
+
+      it 'calls respond_to_missing? with true to include private methods' do
+        @m.should_receive(:respond_to_missing?).with(:some_missing_method, true).and_return(true)
+        @m.method(:some_missing_method)
+      end
     end
   end
 
