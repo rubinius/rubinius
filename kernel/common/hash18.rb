@@ -126,7 +126,7 @@ class Hash
 
   # Creates a fully-formed instance of Hash.
   def self.allocate
-    hash = __allocate__
+    hash = super()
     Rubinius.privately { hash.__setup__ }
     hash
   end
