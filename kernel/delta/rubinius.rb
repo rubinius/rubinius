@@ -130,7 +130,9 @@ module Rubinius
     mod.method_table.store name, executable, visibility
     Rubinius::VM.reset_method_cache(name)
 
-    mod.module_function name if vis == :module
+    Rubinius.privately do
+      mod.module_function name if vis == :module
+    end
 
     # Have to use Rubinius::Type.object_respond_to? rather than #respond_to?
     # because code will redefine #respond_to? itself, which is added
