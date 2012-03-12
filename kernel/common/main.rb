@@ -13,24 +13,6 @@ class << MAIN
     Object.private(*methods)
   end
 
-  def protected(*methods)
-    Object.protected(*methods)
-  end
-
-  def add_method(name, obj)
-    Object.add_method(name, obj)
-  end
-
-  def alias_method(new_name, current_name)
-    Rubinius.privately do
-      Object.alias_method new_name, current_name
-    end
-  end
-
-  def const_set(name, value)
-    Object.const_set name, value
-  end
-
   def to_s
     "main"
   end
