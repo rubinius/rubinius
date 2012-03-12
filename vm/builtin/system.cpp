@@ -215,15 +215,12 @@ namespace rubinius {
     void* old_handlers[NSIG];
 
     // Reset all signal handlers to the defaults, so any we setup in Rubinius
-    // won't leak through.
-    sigset_t sigs;
+    // won't leak through. We need to use sigaction() here since signal()
+    // provides no control over SA_RESTART and can use the wrong value causing
+    // blocking I/O methods to become uninterruptable.
     for(int i = 0; i < NSIG; i++) {
       struct sigaction action;
       struct sigaction old_action;
-
-      sigemptyset(&sigs);
-      sigaddset(&sigs, i);
-      sigprocmask(SIG_UNBLOCK, &sigs, NULL);
 
       action.sa_handler = SIG_DFL;
       action.sa_flags = 0;
@@ -239,10 +236,6 @@ namespace rubinius {
 
     for(int i = 0; i < NSIG; i++) {
       struct sigaction action;
-
-      sigemptyset(&sigs);
-      sigaddset(&sigs, i);
-      sigprocmask(SIG_UNBLOCK, &sigs, NULL);
 
       action.sa_handler = (void(*)(int))old_handlers[i];
       action.sa_flags = 0;
