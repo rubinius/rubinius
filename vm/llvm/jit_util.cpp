@@ -323,8 +323,8 @@ extern "C" {
 
     // coerce
     Object* recv = G(type);
-    Arguments args(G(sym_coerce_into_array), recv, 1, &top);
-    Dispatch dis(G(sym_coerce_into_array));
+    Arguments args(G(sym_coerce_to_array), recv, 1, &top);
+    Dispatch dis(G(sym_coerce_to_array));
 
     return dis.send(state, call_frame, args);
   }

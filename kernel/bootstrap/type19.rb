@@ -2,7 +2,7 @@
 
 module Rubinius
   module Type
-    def self.coerce_into_array(obj)
+    def self.coerce_to_array(obj)
       return [obj] unless obj
 
       return obj.to_a if obj.respond_to?(:to_a)
