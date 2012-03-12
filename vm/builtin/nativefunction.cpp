@@ -876,17 +876,21 @@ namespace rubinius {
       case RBX_FFI_TYPE_ENUM: {
         int* tmp = ALLOCA(int);
         obj = args.get_argument(i);
-        Array* ary = Array::create(state, 1);
-        ary->set(state, 0, obj);
-        Object* val = ffi_data->args_info[i].enum_obj->send(state, call_frame, state->symbol("[]"), ary);
-        if(val->nil_p()) {
-          *tmp = 0;
+        if(obj->fixnum_p()) {
+          *tmp = as<Fixnum>(obj)->to_int();
         } else {
-          if(val->fixnum_p()) {
-            *tmp = as<Fixnum>(val)->to_int();
+          Array* ary = Array::create(state, 1);
+          ary->set(state, 0, obj);
+          Object* val = ffi_data->args_info[i].enum_obj->send(state, call_frame, state->symbol("[]"), ary);
+          if(val->nil_p()) {
+            *tmp = 0;
           } else {
-            type_assert(state, val, BignumType, "converting to int");
-            *tmp = as<Bignum>(val)->to_int();
+            if(val->fixnum_p()) {
+              *tmp = as<Fixnum>(val)->to_int();
+            } else {
+              type_assert(state, val, BignumType, "converting to int");
+              *tmp = as<Bignum>(val)->to_int();
+            }
           }
         }
         values[i] = tmp;
