@@ -81,11 +81,6 @@ describe "Module#include" do
     end
   end
 
-  it "imports constants to the toplevel" do
-    eval "include ModuleSpecs::Z", TOPLEVEL_BINDING
-    MODULE_SPEC_TOPLEVEL_CONSTANT.should == 1
-  end
-
   ruby_version_is ""..."1.9" do
     it "does not import methods to modules and classes" do
       ModuleSpecs::A.methods.include?("cma").should == true

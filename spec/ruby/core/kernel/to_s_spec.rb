@@ -6,10 +6,6 @@ describe "Kernel#to_s" do
     Object.new.to_s.should =~ /Object/
   end
 
-  it "returns 'main' at the top-level" do
-    TOPLEVEL_BINDING.eval('to_s').should == "main"
-  end
-
   it "returns a tainted result if self is tainted" do
     Object.new.taint.to_s.tainted?.should be_true
   end
