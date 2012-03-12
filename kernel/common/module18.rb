@@ -1,6 +1,7 @@
 # -*- encoding: us-ascii -*-
 
 class Module
+  private :remove_class_variable
 
   def const_get(name)
     name = Rubinius::Type.coerce_to_constant_name name

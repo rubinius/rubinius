@@ -72,7 +72,6 @@ class Module
 
     remove_class_variable verify_class_variable_name(name)
   end
-  private :remove_class_variable
 
   def __class_variables__
     Rubinius.primitive :module_class_variables
