@@ -530,7 +530,7 @@ namespace rubinius {
       return cTrue;
     }
 
-    return String::create(state, ent->value.c_str());
+    return String::create(state, ent->value.c_str(), ent->value.size());
   }
 
   Object* System::vm_get_config_section(STATE, String* section) {
@@ -541,8 +541,10 @@ namespace rubinius {
 
     Array* ary = Array::create(state, list->size());
     for(size_t i = 0; i < list->size(); i++) {
-      String* var = String::create(state, list->at(i)->variable.c_str());
-      String* val = String::create(state, list->at(i)->value.c_str());
+      std::string variable = list->at(i)->variable;
+      std::string value    = list->at(i)->value;
+      String* var = String::create(state, variable.c_str(), variable.size());
+      String* val = String::create(state, value.c_str(), value.size());
 
       ary->set(state, i, Tuple::from(state, 2, var, val));
     }
@@ -647,10 +649,10 @@ namespace rubinius {
 
       if(!init(state->vm()->tooling_env())) {
         dlclose(handle);
-        return Tuple::from(state, 2, cFalse, String::create(state, path.c_str()));
+        return Tuple::from(state, 2, cFalse, String::create(state, path.c_str(), path.size()));
       }
     }
-    
+
     return Tuple::from(state, 1, cTrue);
   }
 

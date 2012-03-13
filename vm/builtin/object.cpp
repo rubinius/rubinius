@@ -672,10 +672,10 @@ namespace rubinius {
 
       if(Fixnum* fix = try_as<Fixnum>(this)) {
         name << fix->to_native();
-        return String::create(state, name.str().c_str());
+        return String::create(state, name.str().c_str(), name.str().size());
       } else if(Symbol* sym = try_as<Symbol>(this)) {
         name << ":\"" << sym->debug_str(state) << "\"";
-        return String::create(state, name.str().c_str());
+        return String::create(state, name.str().c_str(), name.str().size());
       }
     }
 
@@ -713,7 +713,7 @@ namespace rubinius {
     }
     name << ">";
 
-    return String::create(state, name.str().c_str());
+    return String::create(state, name.str().c_str(), name.str().size());
   }
 
   Object* Object::show(STATE) {
