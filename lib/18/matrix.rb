@@ -118,7 +118,7 @@ class Matrix
   #          -1 66
   #
   def Matrix.[](*rows)
-    Matrix.rows(rows, false)
+    rows(rows, false)
   end
 
   #
@@ -148,7 +148,7 @@ class Matrix
   #          93 66
   #
   def Matrix.columns(columns)
-    Matrix.rows(columns, false).transpose
+    rows(columns, false).transpose
   end
 
   #
@@ -200,7 +200,7 @@ class Matrix
   #        0 5
   #
   def Matrix.scalar(n, value)
-    Matrix.diagonal(*Array.new(n, value))
+    diagonal(*Array.new(n, value))
   end
 
   #
@@ -210,7 +210,7 @@ class Matrix
   #        0 1
   #
   def Matrix.identity(n)
-    Matrix.scalar(n, 1)
+    scalar(n, 1)
   end
   class << Matrix
     alias unit identity
@@ -224,7 +224,7 @@ class Matrix
   #        0 0
   #
   def Matrix.zero(n)
-    Matrix.scalar(n, 0)
+    scalar(n, 0)
   end
 
   #
@@ -283,7 +283,7 @@ class Matrix
   end
 
   def new_matrix(rows, column_size = rows[0].size) # :nodoc:
-    Matrix.send(:new, rows, column_size) # bypass privacy of Matrix.new
+    self.class.send(:new, rows, column_size) # bypass privacy of Matrix.new
   end
   private :new_matrix
 
@@ -538,7 +538,7 @@ class Matrix
       }
       return new_matrix rows, column_size
     when Vector
-      m = Matrix.column_vector(m)
+      m = self.class.column_vector(m)
       r = self * m
       return r.column(0)
     when Matrix
@@ -568,7 +568,7 @@ class Matrix
     when Numeric
       Matrix.Raise ErrOperationNotDefined, "+", self.class, m.class
     when Vector
-      m = Matrix.column_vector(m)
+      m = self.class.column_vector(m)
     when Matrix
     else
       return apply_through_coercion(m, __method__)
@@ -595,7 +595,7 @@ class Matrix
     when Numeric
       Matrix.Raise ErrOperationNotDefined, "-", self.class, m.class
     when Vector
-      m = Matrix.column_vector(m)
+      m = self.class.column_vector(m)
     when Matrix
     else
       return apply_through_coercion(m, __method__)
@@ -641,7 +641,7 @@ class Matrix
   #
   def inverse
     Matrix.Raise ErrDimensionMismatch unless square?
-    Matrix.I(row_size).send(:inverse_from, self)
+    self.class.I(row_size).send(:inverse_from, self)
   end
   alias inv inverse
 
@@ -703,7 +703,7 @@ class Matrix
       x = self
       if other <= 0
         x = self.inverse
-        return Matrix.identity(self.column_size) if other == 0
+        return self.class.identity(self.column_size) if other == 0
         other = -other
       end
       z = nil
@@ -890,7 +890,7 @@ class Matrix
   #        2 4 6
   #
   def transpose
-    return Matrix.empty(column_size, 0) if row_size.zero?
+    return self.class.empty(column_size, 0) if row_size.zero?
     new_matrix @rows.transpose, row_size
   end
   alias t transpose
@@ -1020,9 +1020,9 @@ class Matrix
   #
   def to_s
     if empty?
-      "Matrix.empty(#{row_size}, #{column_size})"
+      "#{self.class}.empty(#{row_size}, #{column_size})"
     else
-      "Matrix[" + @rows.collect{|row|
+      "#{self.class}[" + @rows.collect{|row|
         "[" + row.collect{|e| e.to_s}.join(", ") + "]"
       }.join(", ")+"]"
     end
@@ -1033,9 +1033,9 @@ class Matrix
   #
   def inspect
     if empty?
-      "Matrix.empty(#{row_size}, #{column_size})"
+      "#{self.class}.empty(#{row_size}, #{column_size})"
     else
-      "Matrix#{@rows.inspect}"
+      "#{self.class}#{@rows.inspect}"
     end
   end
 
