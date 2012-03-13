@@ -52,7 +52,7 @@ describe "String#to_f" do
 
   ruby_version_is "1.9" do
     it "returns 0 for strings with leading underscores" do
-      "_9".to_f.should == 0
+      "_9".to_f.should == 0.0
     end
   end
 
@@ -73,5 +73,11 @@ describe "String#to_f" do
   it "returns 0.0 if the conversion fails" do
     "bad".to_f.should == 0.0
     "thx1138".to_f.should == 0.0
+  end
+
+  it "returns 0.0 for strings represented as hex" do
+    "0x1".to_f.should == 0.0
+    "0x30".to_f.should == 0.0
+    " _0x1".to_f.should == 0.0
   end
 end
