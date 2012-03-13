@@ -903,42 +903,22 @@ namespace rubinius {
     return string_dup(state)->append(state, other);
   }
 
-  Float* String::to_f(STATE) {
-    return Float::create(state, to_double(state));
+  Float* String::to_f(STATE, Object* strict) {
+    const char* str = c_str(state);
+
+    if(strict == cTrue) {
+      if(byte_size() > (native_int)strlen(str)) return nil<Float>();
+    }
+
+    return Float::from_cstr(state, str, strict);
   }
 
-  double String::to_double(STATE) {
-    double value;
-    char *ba = data_->to_chars(state, num_bytes_);
-    char *p, *n, *rest;
-    int e_seen = 0;
+  Float* String::to_dbl_prim(STATE, Object* strict) {
+    Float* value = String::to_f(state, strict);
 
-    p = ba;
-    while(ISSPACE(*p)) p++;
-    n = p;
-
-    while(*p) {
-      if(*p == '_') {
-        p++;
-      } else {
-        if(*p == 'e' || *p == 'E') {
-          if(e_seen) {
-            *n = 0;
-            break;
-          }
-          e_seen = 1;
-        } else if(!(ISDIGIT(*p) || *p == '.' || *p == '-' || *p == '+')) {
-          *n = 0;
-          break;
-        }
-
-        *n++ = *p++;
-      }
+    if(value->nil_p()) {
+      return (Float*)Primitives::failure();
     }
-    *n = 0;
-
-    value = ruby_strtod(ba, &rest);
-    free(ba);
 
     return value;
   }

@@ -67,6 +67,133 @@ namespace rubinius {
     return Float::create(state, 0.0);
   }
 
+  Float* Float::from_cstr(STATE, const char* str, Object* strict) {
+    // Skip leading whitespace and underscores.
+    while(isspace(*str) || *str == '_') {
+      if(*str == '_') {
+        // Leading underscores are not allowed in strict mode.
+        if(strict == cTrue) {
+          return nil<Float>();
+        }
+
+        // And they return 0.0 in Ruby 1.9.
+        if(!LANGUAGE_18_ENABLED(state)) {
+          return Float::create(state, 0.0);
+        }
+      }
+
+      str++;
+    }
+
+    char* buffer = (char*)malloc(strlen(str));
+    char* p = buffer;
+    char prev = '\0';
+
+    while(*str) {
+      // Remove underscores between digits.
+      if(*str == '_') {
+        if(strict == cTrue) {
+          // Underscores are only allowed to be used as separators in strict mode.
+          char next = *++str;
+
+          if(!isdigit(prev) || !isdigit(next)) {
+            return nil<Float>();
+          }
+        } else {
+          // Else eat up all the underscores.
+          while(*++str == '_');
+          continue;
+        }
+      }
+
+      // Ensure there is a digit to the right side of the decimal in strict mode.
+      if(*str == '.' && !isdigit(str[1]) && strict == cTrue)  {
+        return nil<Float>();
+      }
+
+      prev = *str++;
+      *p++ = prev;
+    }
+
+    *p = '\0';
+    p = buffer;
+
+    // Check for the hex prefix.
+    if(p[0] == '0' && (p[1] == 'x' || p[1] == 'X')) {
+      if(strict == cTrue) {
+        // Only allow hex in Ruby > 1.8.
+        if(LANGUAGE_18_ENABLED(state)) {
+          return nil<Float>();
+        }
+      } else {
+        // Disallow hex values when not in strict mode.
+        return Float::create(state, 0.0);
+      }
+    }
+
+    // Check for special values like +/-Infinity and NaN.
+    const char* svalue;
+    bool special = true;
+
+    // Ignore number signs.
+    if(*p == '+' || *p == '-') {
+      p++;
+    }
+
+    if(*p == 'I' || *p == 'i') {
+      svalue = "infinity";
+    } else if(*p == 'N' || *p == 'n') {
+      svalue = "nan";
+    } else {
+      special = false;
+    }
+
+    // The string just might be either Infinity or NaN.
+    if(special) {
+      // Case-insensitive string comparison for the special value.
+      do {
+        if(tolower(*p) != *svalue) {
+          special = false;
+          break;
+        }
+      } while(*p++ && *svalue++);
+
+      // Disallow if the string is indeed a special value.
+      if(special) {
+        if(strict == cTrue) {
+          return nil<Float>();
+        } else {
+          return Float::create(state, 0.0);
+        }
+      }
+    }
+
+    p = buffer;
+
+    char *rest;
+    double value = ruby_strtod(p, &rest);
+
+    if(strict == cTrue) {
+      // Disallow empty strings in strict mode.
+      if(p == rest) {
+        return nil<Float>();
+      }
+
+      // Only trailing spaces are allowed in strict mode.
+      while(*rest) {
+        if(!isspace(*rest)) {
+          return nil<Float>();
+        }
+
+        rest++;
+      }
+    }
+
+    free(buffer);
+
+    return Float::create(state, value);
+  }
+
   Float* Float::add(STATE, Float* other) {
     return Float::create(state, this->val + other->val);
   }

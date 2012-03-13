@@ -220,14 +220,7 @@ module Kernel
     when Float
       obj
     when String
-      valid_re = /^\s*[+-]?((\d+_?)*\d+(\.(\d+_?)*\d+)?|\.(\d+_?)*\d+)(\s*|([eE][+-]?(\d+_?)*\d+)\s*)$/
-
-      m = valid_re.match(obj)
-
-      if !m or !m.pre_match.empty? or !m.post_match.empty?
-        raise ArgumentError, "invalid value for Float(): #{obj.inspect}"
-      end
-      obj.convert_float
+      obj.to_dbl(true)
     else
       Rubinius::Type.coerce_to(obj, Float, :to_f)
     end
