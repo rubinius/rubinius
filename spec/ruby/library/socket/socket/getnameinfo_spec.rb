@@ -40,7 +40,7 @@ describe "Socket.getnameinfo" do
     name_info.should == ['127.0.0.1', "#{SocketSpecs.port}"]
   end
 
-  it "gets a 3-element array and esolves the service" do
+  it "gets a 3-element array and resolves the service" do
     name_info = Socket.getnameinfo ["AF_INET", 80, '127.0.0.1']
     name_info[1].should =~ /^(www|http|www-http)$/
   end
@@ -50,7 +50,7 @@ describe "Socket.getnameinfo" do
     name_info.should == ['127.0.0.1', "#{SocketSpecs.port}"]
   end
 
-  it "gets a 4-element array and esolves the service" do
+  it "gets a 4-element array and resolves the service" do
     name_info = Socket.getnameinfo ["AF_INET", 80, 'foo', '127.0.0.1']
     name_info[1].should =~ /^(www|http|www-http)$/
   end
