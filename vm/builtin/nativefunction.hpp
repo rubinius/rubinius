@@ -8,7 +8,7 @@
 
 namespace rubinius {
   class FFIData;
-  class FFIArgInfo;
+  struct FFIArgInfo;
 
   class NativeFunction : public Executable {
   public:
