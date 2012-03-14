@@ -3,7 +3,7 @@
 #include "builtin/thread.hpp"
 
 namespace rubinius {
-  class CallFrame;
+  struct CallFrame;
 
   void Park::park(STATE, CallFrame* call_frame) {
     thread::Mutex::LockGuard lg(mutex_);
