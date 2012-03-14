@@ -230,16 +230,15 @@ module FFI
 
     def typedef(old, add)
       @typedefs ||= Rubinius::LookupTable.new
-
-      unless old.kind_of? Rubinius::NativeFunction
-        old = find_type(old)
-      end
-
-      @typedefs[add] = old
+      @typedefs[add] = find_type(old)
     end
 
     def find_type(name)
       @typedefs ||= Rubinius::LookupTable.new
+
+      if name.kind_of? Rubinius::NativeFunction or name.kind_of? FFI::Enum
+          return name
+      end
 
       if type = @typedefs[name]
         return type
@@ -263,7 +262,7 @@ module FFI
       enum = FFI::Enum.new values, tag
 
       if tag
-        typedef(:int, tag)
+        typedef(enum, tag)
         @tagged_enums[tag] = enum
       else
         @anon_enums << enum
@@ -287,7 +286,8 @@ module FFI
       if enum = @anon_enums.detect { |enum| enum.symbols.include?(value) }
         enum
       else
-       @tagged_enums.detect { |tag,enum| enum.symbols.include?(value) }
+       tag,enum = @tagged_enums.detect { |tag,enum| enum.symbols.include?(value) }
+       return enum
       end
 
     end
