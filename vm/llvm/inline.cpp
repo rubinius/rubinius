@@ -704,6 +704,16 @@ remember:
   }
 
   bool Inliner::inline_ffi(Class* klass, NativeFunction* nf) {
+
+    for(size_t i = 0; i < nf->ffi_data->arg_count; i++) {
+        if(nf->ffi_data->args_info[i].type==RBX_FFI_TYPE_ENUM || nf->ffi_data->args_info[i].type==RBX_FFI_TYPE_CALLBACK) {
+            return false;
+        }
+    }
+    if(nf->ffi_data->ret_info.type==RBX_FFI_TYPE_ENUM || nf->ffi_data->ret_info.type==RBX_FFI_TYPE_CALLBACK) {
+        return false;
+    }
+
     check_recv(klass);
 
     ///
@@ -719,7 +729,7 @@ remember:
       Value* current_arg = arg(i);
       Value* call_args[] = { ops_.vm(), current_arg, ops_.valid_flag() };
 
-      switch(nf->ffi_data->arg_types[i]) {
+      switch(nf->ffi_data->args_info[i].type) {
       case RBX_FFI_TYPE_CHAR:
       case RBX_FFI_TYPE_UCHAR:
       case RBX_FFI_TYPE_SHORT:
@@ -736,7 +746,7 @@ remember:
         Value* val = sig.call("rbx_ffi_to_int", call_args, 3, "to_int",
                               ops_.b());
 
-        Type* type = find_type(ops_, nf->ffi_data->arg_types[i]);
+        Type* type = find_type(ops_, nf->ffi_data->args_info[i].type);
         ffi_type.push_back(type);
 
         if(type != ops_.NativeIntTy) {
@@ -886,7 +896,7 @@ remember:
     Value* check_args[] = { ops_.vm(), ops_.call_frame() };
     check.call("rbx_enter_unmanaged", check_args, 2, "unused", ops_.b());
 
-    Type* return_type = find_type(ops_, nf->ffi_data->ret_type);
+    Type* return_type = find_type(ops_, nf->ffi_data->ret_info.type);
 
     FunctionType* ft = FunctionType::get(return_type, ffi_type, false);
     Value* ep_ptr = ops_.b().CreateIntToPtr(
@@ -900,7 +910,7 @@ remember:
     Value* res_args[] = { ops_.vm(), ffi_result };
 
     Value* result;
-    switch(nf->ffi_data->ret_type) {
+    switch(nf->ffi_data->ret_info.type) {
     case RBX_FFI_TYPE_CHAR:
     case RBX_FFI_TYPE_UCHAR:
     case RBX_FFI_TYPE_SHORT:

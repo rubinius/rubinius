@@ -49,12 +49,12 @@ namespace rubinius {
     G(native_function)->set_object_type(state, NativeFunctionType);
   }
 
-  FFIData* FFIData::create(NativeFunction* func, int count, int* types,
-                           int ret, NativeFunction** callbacks)
+  FFIData* FFIData::create(NativeFunction* func, int count, FFIArgInfo* args,
+                           FFIArgInfo* ret)
   {
     void* ep;
 
-    FFIData* data = new FFIData(func, count, types, ret, callbacks);
+    FFIData* data = new FFIData(func, count, args, ret);
     data->closure = reinterpret_cast<ffi_closure*>(
                       ffi_closure_alloc(sizeof(ffi_closure), &ep));
 
@@ -63,18 +63,17 @@ namespace rubinius {
     return data;
   }
 
-  FFIData::FFIData(NativeFunction* func,  int count, int* types, int ret, NativeFunction** callbacks)
+  FFIData::FFIData(NativeFunction* func,  int count, FFIArgInfo* args, FFIArgInfo* ret)
     : closure(0)
     , callable(0)
     , function(func)
-    , callbacks(callbacks)
+    , args_info(args)
+    , ret_info(*ret)
     , arg_count(count)
-    , arg_types(types)
-    , ret_type(ret)
   {}
 
   FFIData::~FFIData() {
-    free(arg_types);
+    free(args_info);
     XFREE(cif.arg_types);
     if(closure) ffi_closure_free(closure);
   }
@@ -171,8 +170,8 @@ namespace rubinius {
     return nf;
   }
 
-  void NativeFunction::prep(STATE, int arg_count, int *arg_types,
-                            int ret_type, NativeFunction** callbacks) {
+  void NativeFunction::prep(STATE, int arg_count, FFIArgInfo* args,
+                            FFIArgInfo* ret) {
 
     ffi_type** types;
     ffi_status status;
@@ -182,7 +181,7 @@ namespace rubinius {
     types = ALLOC_N(ffi_type*, arg_count);
 
     for(i = 0; i < arg_count; i++) {
-      switch(arg_types[i]) {
+      switch(args[i].type) {
       case RBX_FFI_TYPE_CHAR:
         types[i] = &ffi_type_schar;
         break;
@@ -197,6 +196,7 @@ namespace rubinius {
         types[i] = &ffi_type_ushort;
         break;
       case RBX_FFI_TYPE_INT:
+      case RBX_FFI_TYPE_ENUM:
         types[i] = &ffi_type_sint;
         break;
       case RBX_FFI_TYPE_UINT:
@@ -230,7 +230,7 @@ namespace rubinius {
       }
     }
 
-    switch(ret_type) {
+    switch(ret->type) {
     case RBX_FFI_TYPE_CHAR:
       rtype = &ffi_type_schar;
       break;
@@ -245,6 +245,7 @@ namespace rubinius {
       rtype = &ffi_type_ushort;
       break;
     case RBX_FFI_TYPE_INT:
+    case RBX_FFI_TYPE_ENUM:
       rtype = &ffi_type_sint;
       break;
     case RBX_FFI_TYPE_UINT:
@@ -281,18 +282,15 @@ namespace rubinius {
       break;
     }
 
-    int* out_arg_types = ALLOC_N(int, arg_count);
-    memcpy(out_arg_types, arg_types, sizeof(int) * arg_count);
-    NativeFunction** out_callbacks = ALLOC_N(NativeFunction*, arg_count);
-    memcpy(out_callbacks, callbacks, sizeof(NativeFunction*) * arg_count);
+    FFIArgInfo* out_args_info = ALLOC_N(FFIArgInfo, arg_count);
+    memcpy(out_args_info, args, sizeof(FFIArgInfo) * arg_count);
 
-    FFIData* data = FFIData::create(this, arg_count, out_arg_types, ret_type, out_callbacks);
+    FFIData* data = FFIData::create(this, arg_count, out_args_info, ret);
 
     status = ffi_prep_cif(&data->cif, FFI_DEFAULT_ABI, arg_count, rtype, types);
 
     if(status != FFI_OK) {
-      XFREE(out_arg_types);
-      XFREE(out_callbacks);
+      XFREE(out_args_info);
       if(status != FFI_OK) rubinius::bug("ffi_prep_cif failed");
     }
 
@@ -306,11 +304,10 @@ namespace rubinius {
   NativeFunction* NativeFunction::generate(STATE, Pointer* ptr, Symbol* name,
                                            Array* args, Object* ret)
   {
-    int* arg_types;
-    int ret_type;
     int i, tot, arg_count;
     Object* type;
-    NativeFunction** callbacks;
+    FFIArgInfo ret_info;
+    FFIArgInfo* args_info;
 
     tot = args->size();
     arg_count = tot;
@@ -318,50 +315,61 @@ namespace rubinius {
     NativeFunction* cb = 0;
 
     if(tot > 0) {
-      arg_types = ALLOC_N(int, tot);
-      callbacks = ALLOC_N(NativeFunction*, tot);
+      args_info = ALLOC_N(FFIArgInfo, tot);
 
       for(i = 0; i < tot; i++) {
         type = args->get(state, i);
-        if((cb = try_as<NativeFunction>(type))) {
-          arg_types[i] = RBX_FFI_TYPE_CALLBACK;
-          callbacks[i] = cb;
-        } else {
-          if(!type->fixnum_p()) {
-            XFREE(arg_types);
-            XFREE(callbacks);
-            return (NativeFunction*)Primitives::failure();
-          }
-          arg_types[i] = as<Integer>(type)->to_native();
-          callbacks[i] = NULL;
+        if(type->fixnum_p()) {
+          args_info[i].type = as<Integer>(type)->to_native();
+          args_info[i].enum_obj = NULL;
+          args_info[i].callback = NULL;
 
           /* State can only be passed as the first arg, and it's invisible,
              ie doesn't get seen as in onbound arg by ruby. But it can ONLY
              be the first arg. */
-          if(arg_types[i] == RBX_FFI_TYPE_STATE) {
+          if(args_info[i].type == RBX_FFI_TYPE_STATE) {
             if(i == 0) {
               arg_count--;
             } else {
-              XFREE(arg_types);
-              XFREE(callbacks);
+              XFREE(args_info);
               return (NativeFunction*)Primitives::failure();
             }
           }
+        } else if((cb = try_as<NativeFunction>(type))) {
+          args_info[i].type = RBX_FFI_TYPE_CALLBACK;
+          args_info[i].enum_obj = NULL;
+          args_info[i].callback = cb;
+        } else if(CBOOL(type->respond_to(state, state->symbol("[]"), cTrue))) {
+          args_info[i].type = RBX_FFI_TYPE_ENUM;
+          args_info[i].enum_obj = type;
+          args_info[i].callback = NULL;
+        } else {
+          XFREE(args_info);
+          return (NativeFunction*)Primitives::failure();
         }
       }
     } else {
-      arg_types = NULL;
-      callbacks = NULL;
+      args_info = NULL;
     }
 
-    ret_type = as<Integer>(ret)->to_native();
+    if(ret->fixnum_p()) {
+      ret_info.type = as<Integer>(ret)->to_native();
+      ret_info.enum_obj = NULL;
+      ret_info.callback = NULL;
+    } else if(CBOOL(ret->respond_to(state, state->symbol("symbol"), cTrue))) {
+      ret_info.type = RBX_FFI_TYPE_ENUM;
+      ret_info.enum_obj = ret;
+      ret_info.callback = NULL;
+    } else {
+      XFREE(args_info);
+      return (NativeFunction*)Primitives::failure();
+    }
 
     NativeFunction* func = NativeFunction::create(state, name, arg_count);
-    func->prep(state, tot, arg_types, ret_type, callbacks);
+    func->prep(state, tot, args_info, &ret_info);
     func->ffi_data->ep = ptr->pointer;
 
-    if(arg_types) XFREE(arg_types);
-    if(callbacks) XFREE(callbacks);
+    if(args_info) XFREE(args_info);
 
     return func;
   }
@@ -380,7 +388,7 @@ namespace rubinius {
     Array* args = Array::create(state, stub->arg_count);
 
     for(size_t i = 0; i < stub->arg_count; i++) {
-      switch(stub->arg_types[i]) {
+      switch(stub->args_info[i].type) {
       case RBX_FFI_TYPE_CHAR:
         args->set(state, i, Fixnum::from(*(int8_t*)parameters[i]));
         break;
@@ -423,6 +431,12 @@ namespace rubinius {
       case RBX_FFI_TYPE_OBJECT:
         args->set(state, i, *(Object**)parameters[i]);
         break;
+      case RBX_FFI_TYPE_ENUM:{
+        Array* ary = Array::create(state, 1);
+        ary->set(state, 0, Fixnum::from(*(int*)parameters[i]));
+        args->set(state, i, stub->args_info[i].enum_obj->send(state, env->current_call_frame(), state->symbol("symbol"), ary) );
+        break;
+      }
       case RBX_FFI_TYPE_PTR: {
         void* ptr = *(void**)parameters[i];
         args->set(state, i, Pointer::create(state,
@@ -478,7 +492,7 @@ namespace rubinius {
       obj = cNil;
     }
 
-    switch(stub->ret_type) {
+    switch(stub->ret_info.type) {
     case RBX_FFI_TYPE_CHAR:
     case RBX_FFI_TYPE_SHORT:
     case RBX_FFI_TYPE_INT:
@@ -544,6 +558,17 @@ namespace rubinius {
         *((void**)retval) = 0;
       }
       break;
+    case RBX_FFI_TYPE_ENUM: {
+      Array* ary = Array::create(state, 1);
+      ary->set(state, 0, obj);
+      Object* value = stub->ret_info.enum_obj->send(state, env->current_call_frame(), state->symbol("[]"), ary);
+      if(value->nil_p()) {
+        *((Object**)retval) = value;
+      } else {
+        *((ffi_sarg*)retval) = as<Integer>(value)->to_native();
+      }
+      break;
+    }
     default:
     case RBX_FFI_TYPE_VOID:
       *((ffi_arg*)retval) = 0;
@@ -557,58 +582,68 @@ namespace rubinius {
   Array* NativeFunction::generate_tramp(STATE, Object* obj, Symbol* name,
                                         Array* args, Object* ret)
   {
-    int* arg_types;
-    int ret_type;
     int i, tot;
     Object* type;
-    NativeFunction** callbacks;
+    FFIArgInfo ret_info;
+    FFIArgInfo* args_info;
 
     tot = args->size();
     NativeFunction* cb = 0;
 
     if(tot > 0) {
-      arg_types = ALLOC_N(int, tot);
-      callbacks = ALLOC_N(NativeFunction*, tot);
+      args_info = ALLOC_N(FFIArgInfo, tot);
 
       for(i = 0; i < tot; i++) {
         type = args->get(state, i);
-        if((cb = try_as<NativeFunction>(type))) {
-          arg_types[i] = RBX_FFI_TYPE_CALLBACK;
-          callbacks[i] = cb;
-        } else {
-          if(!type->fixnum_p()) {
-            XFREE(arg_types);
-            XFREE(callbacks);
-            return nil<Array>();
-          }
-          arg_types[i] = as<Integer>(type)->to_native();
-          callbacks[i] = NULL;
+        if(type->fixnum_p()) {
+          args_info[i].type = as<Integer>(type)->to_native();
+          args_info[i].enum_obj = NULL;
+          args_info[i].callback = NULL;
 
           /* State can not be passed. */
-          if(arg_types[i] == RBX_FFI_TYPE_STATE) {
-            XFREE(arg_types);
-            XFREE(callbacks);
+          if(args_info[i].type == RBX_FFI_TYPE_STATE) {
+            XFREE(args_info);
             return nil<Array>();
           }
+        } else if((cb = try_as<NativeFunction>(type))) {
+          args_info[i].type = RBX_FFI_TYPE_CALLBACK;
+          args_info[i].enum_obj = NULL;
+          args_info[i].callback = cb;
+        } else if(CBOOL(type->respond_to(state, state->symbol("[]"), cTrue))) {
+          args_info[i].type = RBX_FFI_TYPE_ENUM;
+          args_info[i].enum_obj = type;
+          args_info[i].callback = NULL;
+        } else {
+          XFREE(args_info);
+          return nil<Array>();
         }
       }
     } else {
-      arg_types = NULL;
-      callbacks = NULL;
+      args_info = NULL;
     }
 
-    ret_type = as<Integer>(ret)->to_native();
+    if(ret->fixnum_p()) {
+      ret_info.type = as<Integer>(ret)->to_native();
+      ret_info.enum_obj = NULL;
+      ret_info.callback = NULL;
+    } else if(CBOOL(ret->respond_to(state, state->symbol("symbol"), cTrue))) {
+      ret_info.type = RBX_FFI_TYPE_ENUM;
+      ret_info.enum_obj = ret;
+      ret_info.callback = NULL;
+    } else {
+      XFREE(args_info);
+      return nil<Array>();
+    }
 
     NativeFunction* func = NativeFunction::create(state, name, tot);
-    func->prep(state, tot, arg_types, ret_type, callbacks);
+    func->prep(state, tot, args_info, &ret_info);
 
     func->ffi_data->callable = obj;
 
     int status = ffi_prep_closure_loc(func->ffi_data->closure, &func->ffi_data->cif,
         invoke_callback, func->ffi_data, func->ffi_data->ep);
 
-    if(arg_types) XFREE(arg_types);
-    if(callbacks) XFREE(callbacks);
+    if(args_info) XFREE(args_info);
     if(status != FFI_OK) {
       return force_as<Array>(Primitives::failure());
     }
@@ -631,8 +666,8 @@ namespace rubinius {
     NativeFunction* func = NativeFunction::create(state, ffi_tramp,
                              orig->ffi_data->arg_count);
 
-    func->prep(state, orig->ffi_data->arg_count, orig->ffi_data->arg_types,
-               orig->ffi_data->ret_type, orig->ffi_data->callbacks);
+    func->prep(state, orig->ffi_data->arg_count, orig->ffi_data->args_info,
+               &orig->ffi_data->ret_info);
 
     func->ffi_data->callable = obj;
 
@@ -682,7 +717,7 @@ namespace rubinius {
     for(i = 0; i < ffi_data->arg_count; i++) {
       heap_allocations[i] = NULL;
 
-      switch(ffi_data->arg_types[i]) {
+      switch(ffi_data->args_info[i].type) {
       case RBX_FFI_TYPE_CHAR: {
         char* tmp = ALLOCA(char);
         obj = args.get_argument(i);
@@ -854,6 +889,29 @@ namespace rubinius {
         values[i] = tmp;
         break;
       }
+      case RBX_FFI_TYPE_ENUM: {
+        int* tmp = ALLOCA(int);
+        obj = args.get_argument(i);
+        if(obj->fixnum_p()) {
+          *tmp = as<Fixnum>(obj)->to_int();
+        } else {
+          Array* ary = Array::create(state, 1);
+          ary->set(state, 0, obj);
+          Object* val = ffi_data->args_info[i].enum_obj->send(state, call_frame, state->symbol("[]"), ary);
+          if(val->nil_p()) {
+            *tmp = 0;
+          } else {
+            if(val->fixnum_p()) {
+              *tmp = as<Fixnum>(val)->to_int();
+            } else {
+              type_assert(state, val, BignumType, "converting to int");
+              *tmp = as<Bignum>(val)->to_int();
+            }
+          }
+        }
+        values[i] = tmp;
+        break;
+      }
       case RBX_FFI_TYPE_CALLBACK: {
         void** tmp = ALLOCA(void*);
         if(use_cb_block) {
@@ -861,9 +919,8 @@ namespace rubinius {
         } else {
           obj = args.get_argument(i);
         }
-
         if(obj->reference_p()) {
-          Pointer* ptr = NativeFunction::adjust_tramp(state, obj, ffi_data->callbacks[i]);
+          Pointer* ptr = NativeFunction::adjust_tramp(state, obj, ffi_data->args_info[i].callback);
           *tmp = ptr->pointer;
         } else {
           *tmp = NULL;
@@ -919,7 +976,7 @@ namespace rubinius {
     FFIData* ffi_data_local = ffi_data;
     state->gc_independent(gct);
 
-    switch(ffi_data_local->ret_type) {
+    switch(ffi_data_local->ret_info.type) {
     case RBX_FFI_TYPE_CHAR: {
       ffi_arg result;
       ffi_call(&ffi_data_local->cif, FFI_FN(ffi_data_local->ep), &result, values);
@@ -1027,6 +1084,15 @@ namespace rubinius {
       }
       break;
     }
+    case RBX_FFI_TYPE_ENUM: {
+      ffi_arg result;
+      ffi_call(&ffi_data_local->cif, FFI_FN(ffi_data_local->ep), &result, values);
+      state->gc_dependent();
+      Array* ary = Array::create(state, 1);
+      ary->set(state, 0, Integer::from(state, (native_int)result));
+      ret = ffi_data->ret_info.enum_obj->send(state, call_frame, state->symbol("symbol"), ary);
+      break;
+    }
     case RBX_FFI_TYPE_STRING: {
       char* result;
       ffi_call(&ffi_data_local->cif, FFI_FN(ffi_data_local->ep), &result, values);
@@ -1099,15 +1165,37 @@ namespace rubinius {
         }
       }
       for(size_t i = 0; i<func->ffi_data->arg_count; i++) {
-        if(func->ffi_data->callbacks[i]) {
-          Object* tmp = mark.call(func->ffi_data->callbacks[i]);
+        FFIArgInfo* arg = &func->ffi_data->args_info[i];
+        if(arg->callback) {
+          Object* tmp = mark.call(arg->callback);
           if(tmp) {
-            func->ffi_data->callbacks[i] = force_as<NativeFunction>(tmp);
+            arg->callback = force_as<NativeFunction>(tmp);
+            mark.just_set(obj, tmp);
+          }
+        }
+        if(arg->enum_obj) {
+          Object* tmp = mark.call(arg->enum_obj);
+          if(tmp) {
+            arg->enum_obj = tmp;
             mark.just_set(obj, tmp);
           }
         }
       }
-
+      FFIArgInfo* arg = &func->ffi_data->ret_info;
+      if(arg->callback) {
+        Object* tmp = mark.call(arg->callback);
+        if(tmp) {
+          arg->callback = force_as<NativeFunction>(tmp);
+          mark.just_set(obj, tmp);
+        }
+      }
+      if(arg->enum_obj) {
+        Object* tmp = mark.call(arg->enum_obj);
+        if(tmp) {
+          arg->enum_obj = tmp;
+          mark.just_set(obj, tmp);
+        }
+      }
       func->ffi_data->function = func;
     }
   }
