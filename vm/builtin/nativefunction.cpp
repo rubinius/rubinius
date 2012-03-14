@@ -431,6 +431,12 @@ namespace rubinius {
       case RBX_FFI_TYPE_OBJECT:
         args->set(state, i, *(Object**)parameters[i]);
         break;
+      case RBX_FFI_TYPE_ENUM:{
+        Array* ary = Array::create(state, 1);
+        ary->set(state, 0, Fixnum::from(*(int*)parameters[i]));
+        args->set(state, i, stub->args_info[i].enum_obj->send(state, env->current_call_frame(), state->symbol("symbol"), ary) );
+        break;
+      }
       case RBX_FFI_TYPE_PTR: {
         void* ptr = *(void**)parameters[i];
         args->set(state, i, Pointer::create(state,
@@ -553,6 +559,17 @@ namespace rubinius {
         *((void**)retval) = 0;
       }
       break;
+    case RBX_FFI_TYPE_ENUM: {
+      Array* ary = Array::create(state, 1);
+      ary->set(state, 0, obj);
+      Object* value = stub->ret_info.enum_obj->send(state, env->current_call_frame(), state->symbol("[]"), ary);
+      if(value->nil_p()) {
+        *((Object**)retval) = value;
+      } else {
+        *((ffi_sarg*)retval) = as<Integer>(value)->to_native();
+      }
+      break;
+    }
     default:
     case RBX_FFI_TYPE_VOID:
       *((ffi_arg*)retval) = 0;
