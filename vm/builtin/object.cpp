@@ -460,15 +460,22 @@ namespace rubinius {
 
   Class* Object::singleton_class(STATE) {
     if(reference_p()) {
-      if(SingletonClass* sc = try_as<SingletonClass>(klass())) {
-        /* This test is very important! SingletonClasses can get their klass()
-         * hooked up to the SingletonClass of a parent class, so that the MOP
-         * works properly. BUT we should not return that parent singleton
-         * class, we need to only return a SingletonClass that is for this!
-         */
-        if(sc->attached_instance() == this) return sc;
+      SingletonClass* sc = try_as<SingletonClass>(klass());
+
+      /* This test is very important! SingletonClasses can get their klass()
+       * hooked up to the SingletonClass of a parent class, so that the MOP
+       * works properly. BUT we should not return that parent singleton
+       * class, we need to only return a SingletonClass that is for this!
+       */
+      if(!sc || sc->attached_instance() != this) {
+        sc = SingletonClass::attach(state, this);
       }
-      return SingletonClass::attach(state, this);
+
+      sc->set_frozen(is_frozen_p());
+      sc->set_tainted(is_tainted_p());
+      sc->set_untrusted(is_untrusted_p());
+
+      return sc;
     }
 
     return class_object(state);
