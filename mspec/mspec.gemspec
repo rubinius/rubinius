@@ -34,5 +34,4 @@ Gem::Specification.new do |gem|
 
   gem.add_development_dependency "rake",   "~> 0.9"
   gem.add_development_dependency "rspec",  "~> 2.8"
-  gem.add_development_dependency "ruby-debug", "~> 0.10"
 end

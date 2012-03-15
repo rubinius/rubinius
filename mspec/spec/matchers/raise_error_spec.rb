@@ -34,7 +34,12 @@ describe RaiseErrorMatcher do
   end
 
   it "does not match when the proc raises the expected exception with an unexpected message" do
-    proc = Proc.new { raise UnexpectedException, "unexpected" }
+    proc = Proc.new { raise ExpectedException, "unexpected" }
+    RaiseErrorMatcher.new(ExpectedException, "expected").matches?(proc).should == false
+  end
+
+  it "does not match when the proc does not raise an exception" do
+    proc = Proc.new {}
     RaiseErrorMatcher.new(ExpectedException, "expected").matches?(proc).should == false
   end
 

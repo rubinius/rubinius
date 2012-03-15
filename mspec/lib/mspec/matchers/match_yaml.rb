@@ -10,7 +10,7 @@ class MatchYAMLMatcher
 
   def matches?(actual)
     @actual = actual    
-    clean_yaml(@actual) == @expected
+    clean_yaml(@actual) == clean_yaml(@expected)
   end
 
   def failure_message
@@ -24,7 +24,7 @@ class MatchYAMLMatcher
   protected
   
   def clean_yaml(yaml)
-    yaml.gsub(/([^-])\s+\n/, "\\1\n")
+    yaml.gsub(/([^-]|^---)\s+\n/, "\\1\n")
   end
 
   def valid_yaml?(obj)
