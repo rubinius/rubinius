@@ -30,23 +30,11 @@ describe "Kernel#freeze" do
     end
   end
 
-  ruby_version_is "" ... "1.9" do
-    it "causes mutative calls to raise TypeError" do
-      o = Class.new do
-        def mutate; @foo = 1; end
-      end.new
-      o.freeze
-      lambda {o.mutate}.should raise_error(TypeError)
-    end
-  end
-
-  ruby_version_is "1.9" do
-    it "causes mutative calls to raise RuntimeError" do
-      o = Class.new do
-        def mutate; @foo = 1; end
-      end.new
-      o.freeze
-      lambda {o.mutate}.should raise_error(RuntimeError)
-    end
+  it "causes mutative calls to raise an error" do
+    o = Class.new do
+      def mutate; @foo = 1; end
+    end.new
+    o.freeze
+    lambda {o.mutate}.should raise_error(frozen_object_error_class)
   end
 end
