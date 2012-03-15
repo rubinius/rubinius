@@ -1,1 +1,0 @@
-incomplete:Mailbox::Filter.__class_init__ needs to be reviewed for spec completeness
