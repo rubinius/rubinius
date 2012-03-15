@@ -1,4 +1,6 @@
 # vim: filetype=ruby
+
+$:.unshift "."
 require 'spec/custom/mspec'
 
 class MSpecScript
