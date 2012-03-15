@@ -34,9 +34,18 @@ describe "Module#alias_method" do
     lambda { @class.make_alias :ni, :san }.should raise_error(NameError)
   end
 
-  it "fails if frozen" do
-    @class.freeze
-    lambda { @class.make_alias :uno, :public_one }.should raise_error(frozen_object_error_class)
+  ruby_version_is ""..."1.9" do
+    it "raises TypeError if frozen" do
+      @class.freeze
+      lambda { @class.make_alias :uno, :public_one }.should raise_error(TypeError)
+    end
+  end
+
+  ruby_version_is "1.9" do
+    it "raises RuntimeError if frozen" do
+      @class.freeze
+      lambda { @class.make_alias :uno, :public_one }.should raise_error(RuntimeError)
+    end
   end
 
   it "converts the names using #to_str" do
