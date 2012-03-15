@@ -34,6 +34,11 @@ describe "Module#alias_method" do
     lambda { @class.make_alias :ni, :san }.should raise_error(NameError)
   end
 
+  it "fails if frozen" do
+    @class.freeze
+    lambda { @class.make_alias :uno, :public_one }.should raise_error(frozen_object_error_class)
+  end
+
   it "converts the names using #to_str" do
     @class.make_alias "un", "public_one"
     @class.make_alias :deux, "public_one"

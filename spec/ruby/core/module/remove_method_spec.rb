@@ -54,4 +54,10 @@ describe "Module#remove_method" do
       end
     }.should raise_error(NameError)
   end
+
+  it "raises an error when frozen" do
+    c = Class.new { def method_to_remove; end }
+    c.freeze
+    lambda { c.send(:remove_method, :method_to_remove) }.should raise_error(frozen_object_error_class)
+  end
 end
