@@ -99,6 +99,7 @@ range19.rbc
 struct.rbc
 struct19.rbc
 process.rbc
+process19.rbc
 random.rbc
 random19.rbc
 regexp.rbc
