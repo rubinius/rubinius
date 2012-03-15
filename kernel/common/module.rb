@@ -637,4 +637,9 @@ class Module
 
     return cm
   end
+
+  def freeze
+    @method_table.freeze
+    super
+  end
 end
