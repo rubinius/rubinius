@@ -192,7 +192,7 @@ namespace rubinius {
 #endif
 
     SignalHandler::pause();
-    QueryAgent::shutdown(state);
+    bool agent_running = QueryAgent::shutdown(state);
 
     state->shared().pre_exec();
 
@@ -251,6 +251,10 @@ namespace rubinius {
 #endif
 
     SignalHandler::on_fork(state);
+
+    if(agent_running) {
+      state->shared().autostart_agent(state);
+    }
 
     /* execvp() returning means it failed. */
     Exception::errno_error(state, "execvp(2) failed");

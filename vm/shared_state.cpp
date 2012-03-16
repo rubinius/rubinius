@@ -150,6 +150,13 @@ namespace rubinius {
     return agent_;
   }
 
+  void SharedState::stop_agent(STATE) {
+    if(agent_) {
+      agent_->shutdown_i();
+      agent_ = NULL;
+    }
+  }
+
   void SharedState::pre_exec() {
     SYNC_TL;
     if(agent_) agent_->cleanup();

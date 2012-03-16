@@ -148,7 +148,7 @@ namespace rubinius {
     void on_fork();
     void cleanup();
 
-    static void shutdown(STATE);
+    static bool shutdown(STATE);
     void shutdown_i();
   };
 }
