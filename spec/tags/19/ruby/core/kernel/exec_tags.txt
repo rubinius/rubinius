@@ -1,5 +1,4 @@
 fails:Kernel#exec passes environment vars to the child environment
-unstable:Kernel#exec raises a SystemCallError if cmd cannot execute and contains '-'
 fails:Kernel#exec raises Errno::ENOENT if the script does not exist
 fails:Kernel#exec raises Errno::EACCES when the file does not have execute permissions
 fails:Kernel#exec raises Errno::ACCES when passed a directory
