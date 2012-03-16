@@ -260,8 +260,8 @@ describe :kernel_float, :shared => true do
   ruby_version_is '1.9' do
     %w(x X).each do |x|
       it "parses values represented as hex with a leading 0#{x}" do
-        Float("0x1").should == 1.0
-        Float("0x30").should == 48.0
+        Float("0#{x}1").should == 1.0
+        Float("0#{x}30").should == 48.0
       end
     end
   end
