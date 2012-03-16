@@ -51,16 +51,6 @@ ruby_version_is "1.9" do
       @io.internal_encoding.should == Encoding::UTF_16BE
     end
 
-    it "does not parse encoding names separated by ':' when passed a second argument" do
-      lambda { @io.set_encoding("utf-8:utf-16be", "us-ascii") }.should raise_error(ArgumentError)
-    end
-
-    ruby_bug "http://redmine.ruby-lang.org/issues/5567", "1.9.3" do
-      it "raises an ArgumentError if passed the name of a nonexistent Encoding" do
-        lambda { @io.set_encoding("nonexistent") }.should raise_error(ArgumentError)
-      end
-    end
-
     it "sets the external and internal encoding when passed two String arguments" do
       @io.set_encoding("utf-8", "utf-16be")
       @io.external_encoding.should == Encoding::UTF_8

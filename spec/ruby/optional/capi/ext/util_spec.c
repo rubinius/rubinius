@@ -11,7 +11,7 @@ VALUE util_spec_rb_scan_args(VALUE self, VALUE argv, VALUE fmt, VALUE expected, 
   VALUE args[4], failed, a1, a2, a3, a4;
 
   failed = rb_intern("failed");
-  a1 = a2 = a2 = a4 = failed;
+  a1 = a2 = a3 = a4 = failed;
 
   for(i = 0; i < argc; i++) {
     args[i] = rb_ary_entry(argv, i);

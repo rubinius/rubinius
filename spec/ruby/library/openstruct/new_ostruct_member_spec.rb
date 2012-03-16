@@ -8,14 +8,15 @@ describe "OpenStruct#new_ostruct_member when passed [method_name]" do
   end
 
   it "creates an attribute reader method for the passed method_name" do
+    @os.respond_to?(:age).should be_false
     @os.new_ostruct_member(:age)
-    @os.age.should eql(20)
+    @os.respond_to?(:age).should be_true
   end
 
   it "creates an attribute writer method for the passed method_name" do
+    @os.respond_to?(:age=).should be_false
     @os.new_ostruct_member(:age)
-    @os.age = 30
-    @os.age.should eql(30)
+    @os.respond_to?(:age=).should be_true
   end
 
   it "does not allow overwriting existing methods" do

@@ -14,6 +14,10 @@ describe "Kernel#exec" do
     lambda { exec 'cmd-plugin' }.should raise_error(SystemCallError)
   end
 
+  it "raises Errno::ENOENT if the script does not exist" do
+    lambda { exec "bogus-noent-script.sh" }.should raise_error(Errno::ENOENT)
+  end
+
   it "runs the specified command, replacing current process" do
     result = `#{RUBY_EXE} -e 'exec "echo hello"; puts "fail"'`
     result.should == "hello\n"
@@ -24,6 +28,25 @@ describe "Kernel#exec" do
       result = `#{RUBY_EXE} -e 'exec({"FOO" => "BAR"}, "echo $FOO"); puts "fail"'`
       result.should == "BAR\n"
     end
+  end
+end
+
+describe "Kernel#exec" do
+  before :each do
+    @script = tmp("tmp.sh")
+    touch @script
+  end
+
+  after :each do
+    rm_r @script
+  end
+
+  it "raises Errno::EACCES when the file does not have execute permissions" do
+    lambda { exec @script }.should raise_error(Errno::EACCES)
+  end
+
+  it "raises Errno::ACCES when passed a directory" do
+    lambda { exec File.dirname(@script) }.should raise_error(Errno::EACCES)
   end
 end
 

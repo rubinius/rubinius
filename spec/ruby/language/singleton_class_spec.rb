@@ -80,41 +80,6 @@ describe "A singleton class" do
     end
   end
 
-  it "is frozen if the object to which it is attached is frozen" do
-    o = Object.new
-    o.freeze
-    o.singleton_class.frozen?.should == true
-  end
-
-  it "is tainted if the object to which it is attached is tainted" do
-    o = Object.new
-    o.taint
-    o.singleton_class.tainted?.should == true
-  end
-
-  it "is untainted if the object to which it is attached becomes untainted again" do
-    o = Object.new
-    o.taint
-    o.singleton_class
-    o.untaint
-    o.singleton_class.tainted?.should == false
-  end
-
-  ruby_version_is "1.9" do
-    it "is untrusted if the object to which it is attached is untrusted" do
-      o = Object.new
-      o.untrust
-      o.singleton_class.untrusted?.should == true
-    end
-
-    it "is trusted if the object to which it is attached becomes trusted again" do
-      o = Object.new
-      o.untrust
-      o.singleton_class
-      o.trust
-      o.singleton_class.untrusted?.should == false
-    end
-  end
 end
 
 describe "A constant on a singleton class" do

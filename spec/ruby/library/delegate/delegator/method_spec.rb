@@ -13,10 +13,20 @@ describe "Delegator#method" do
     m.call.should == :foo
   end
 
-  it "returns a method object for protected methods of the delegate object" do
-    m = @delegate.method(:prot)
-    m.should be_an_instance_of(Method)
-    m.call.should == :protected
+  ruby_version_is ""..."2.0" do
+    it "returns a method object for protected methods of the delegate object" do
+      m = @delegate.method(:prot)
+      m.should be_an_instance_of(Method)
+      m.call.should == :protected
+    end
+  end
+
+  ruby_version_is "2.0" do
+    it "returns a method object for protected methods of the delegate object" do
+      lambda {
+        @delegate.method(:prot)
+      }.should raise_error(NameError)
+    end
   end
 
   it "raises a NameError for a private methods of the delegate object" do

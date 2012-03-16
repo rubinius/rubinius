@@ -7,21 +7,38 @@
 
 #include "rubyspec_version.h"
 
+#if RUBY_VERSION_MAJOR >= 2
+#define RUBY_VERSION_IS_2_0
+#endif
+
+#if defined(RUBY_VERSION_IS_2_0) || (RUBY_VERSION_MINOR == 9 && RUBY_VERSION_TEENY >= 3)
+#define RUBY_VERSION_IS_1_9_3
+#endif
+
+#if defined(RUBY_VERSION_IS_2_0) || (RUBY_VERSION_MINOR == 9 && RUBY_VERSION_TEENY >= 2)
+#define RUBY_VERSION_IS_1_9_2
+#endif
+
+#if defined(RUBY_VERSION_IS_2_0) || RUBY_VERSION_MINOR == 9
+#define RUBY_VERSION_IS_1_9
+#endif
+
 #if RUBY_VERSION_MAJOR == 1 && RUBY_VERSION_MINOR == 8
 #define RUBY_VERSION_IS_1_8_EX_1_9
 #endif
 
-#if RUBY_VERSION_MAJOR == 1 && RUBY_VERSION_MINOR >= 8
+#if defined(RUBY_VERSION_IS_2_0) || RUBY_VERSION_MINOR >= 8
 #define RUBY_VERSION_IS_1_8
+#endif
+
+#if defined(RUBY_VERSION_IS_1_9) || (RUBY_VERSION_MINOR == 8 && RUBY_VERSION_TEENY >= 7)
+#define RUBY_VERSION_IS_1_8_7
 #endif
 
 #if RUBY_VERSION_MAJOR == 1 && RUBY_VERSION_MINOR == 8 && RUBY_VERSION_TEENY < 7
 #define RUBY_VERSION_IS_1_8_EX_1_8_7
 #endif
 
-#if (RUBY_VERSION_MAJOR == 1 && RUBY_VERSION_MINOR == 9) || (RUBY_VERSION_MAJOR == 2)
-#define RUBY_VERSION_IS_1_9
-#endif
 
 /* Define all function flags */
 
@@ -196,7 +213,9 @@
 #define HAVE_RSTRING_LENINT                1
 #define HAVE_TIMET2NUM                     1
 
+#ifdef RUBY_VERSION_IS_1_9_3
 #define HAVE_RB_CLASS_SUPERCLASS           1
+#endif
 #define HAVE_RB_LONG2INT                   1
 #endif
 
@@ -319,7 +338,9 @@
 #define HAVE_RB_ATTR_GET                   1
 #define HAVE_RB_CHECK_ARRAY_TYPE           1
 #define HAVE_RB_CHECK_CONVERT_TYPE         1
+#ifdef RUBY_VERSION_IS_1_8_7
 #define HAVE_RB_CHECK_TO_INTEGER           1
+#endif
 #define HAVE_RB_CHECK_FROZEN               1
 #define HAVE_RB_CHECK_STRING_TYPE          1
 #define HAVE_RB_CLASS_OF                   1

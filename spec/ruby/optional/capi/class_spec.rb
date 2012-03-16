@@ -250,7 +250,7 @@ describe "C-API Class function" do
     end
   end
 
-  ruby_version_is "1.9" do
+  ruby_version_is "1.9.3" do
     describe "rb_class_superclass" do
       it "returns the superclass of a class" do
         cls = @s.rb_class_superclass(CApiClassSpecs::Sub)
