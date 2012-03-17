@@ -871,7 +871,7 @@ namespace rubinius {
               size = so->byte_size();
 
               char* data = ALLOCA_N(char, size + 1);
-              memcpy(data, so->c_str(state), size);
+              memcpy(data, so->byte_address(), size);
               data[size] = 0;
               *tmp = data;
             } else if(CBOOL(obj->respond_to(state, state->symbol("to_ptr"), cTrue))) {
@@ -948,7 +948,7 @@ namespace rubinius {
             rubinius::bug("could not allocate memory for string");
           }
 
-          memcpy(data, so->c_str(state), size);
+          memcpy(data, so->byte_address(), size);
           data[size] = 0;
 
           heap_allocations[i] = data;
