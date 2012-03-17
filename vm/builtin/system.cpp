@@ -268,11 +268,17 @@ namespace rubinius {
     // TODO: Windows
     return Primitives::failure();
 #else
+
+    const char* c_str = str->c_str(state);
+
+    if(str->byte_size() > (native_int) strlen(c_str)) {
+      Exception::argument_error(state, "string contains null byte");
+      return cNil;
+    }
+
     int fds[2];
 
     if(pipe(fds) != 0) return Primitives::failure();
-
-    const char* c_str = str->c_str(state);
 
     pid_t pid = fork();
 
