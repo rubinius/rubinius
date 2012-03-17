@@ -94,6 +94,28 @@ describe "Kernel#sprintf" do
   end
 
   ruby_version_is "1.9" do
+    describe "with format string that contains %{} sections" do
+      it "substitutes values for named references" do
+        sprintf("%{foo}f", {:foo => 1}).should == "1f"
+      end
+
+      it "raises KeyError when no matching key is in second argument" do
+        lambda { sprintf("%{foo}f", {}) }.should raise_error(KeyError)
+      end
+    end
+
+    describe "with format string that contains %<> sections" do
+      it "formats values for named references" do
+        sprintf("%<foo>f", {:foo => 1}).should == "1.000000"
+      end
+
+      it "raises KeyError when no matching key is in second argument" do
+        lambda { sprintf("%<foo>f", {}) }.should raise_error(KeyError)
+      end
+    end
+  end
+
+  ruby_version_is "1.9" do
     describe "with negative values" do
       describe "with format %x" do
         it "precedes the number with '..'" do
