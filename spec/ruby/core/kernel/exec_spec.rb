@@ -14,6 +14,10 @@ describe "Kernel#exec" do
     lambda { exec 'cmd-plugin' }.should raise_error(SystemCallError)
   end
 
+  it "raises an ArgumentError if the cmd includes a null byte" do
+    lambda { exec "\000" }.should raise_error(ArgumentError)
+  end
+
   it "raises Errno::ENOENT if the script does not exist" do
     lambda { exec "bogus-noent-script.sh" }.should raise_error(Errno::ENOENT)
   end
