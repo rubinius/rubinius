@@ -303,7 +303,7 @@ namespace rubinius {
       if(use_sh) {
         execl("/bin/sh", "sh", "-c", c_str, (char*)0);
       } else {
-        size_t c_size = strlen(c_str);
+        size_t c_size = str->byte_size();
         size_t max_spaces = (c_size / 2) + 2;
         char** args = new char*[max_spaces];
 
