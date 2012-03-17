@@ -101,7 +101,7 @@ namespace rubinius {
   }
 
   Fixnum* IO::open(STATE, String* path, Fixnum* mode, Fixnum* perm) {
-    int fd = ::open(path->c_str(state), mode->to_native(), perm->to_native());
+    int fd = ::open(path->c_str_null_safe(state), mode->to_native(), perm->to_native());
     return Fixnum::from(fd);
   }
 
@@ -303,7 +303,7 @@ namespace rubinius {
   Object* IO::reopen_path(STATE, String* path, Fixnum* mode) {
     native_int cur_fd   = to_fd();
 
-    int other_fd = ::open(path->c_str(state), mode->to_native(), 0666);
+    int other_fd = ::open(path->c_str_null_safe(state), mode->to_native(), 0666);
 
     if(other_fd == -1) {
       Exception::errno_error(state, "reopen");

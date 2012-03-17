@@ -722,6 +722,14 @@ namespace rubinius {
     return c_string;
   }
 
+  const char* String::c_str_null_safe(STATE) {
+    const char* str = c_str(state);
+    if(byte_size() > (native_int) strlen(str)) {
+      Exception::argument_error(state, "string contains NULL byte");
+    }
+    return str;
+  }
+
   Object* String::secure_compare(STATE, String* other) {
     native_int s1 = num_bytes()->to_native();
     native_int s2 = other->num_bytes()->to_native();

@@ -183,6 +183,19 @@ namespace rubinius {
   /* @todo Improve error messages */
   Object* System::vm_exec(STATE, String* path, Array* args) {
 
+    const char* c_path = path->c_str_null_safe(state);
+    size_t argc = args->size();
+
+    char** argv = new char*[argc + 1];
+
+    /* execvp() requires a NULL as last element */
+    argv[argc] = NULL;
+
+    for(size_t i = 0; i < argc; i++) {
+      /* strdup should be OK. Trying to exec with strings containing NUL == bad. --rue */
+      argv[i] = strdup(as<String>(args->get(state, i))->c_str_null_safe(state));
+    }
+
     // Some system (darwin) don't let execvp work if there is more
     // than one thread running. So we kill off any background LLVM
     // thread here.
@@ -199,18 +212,6 @@ namespace rubinius {
     // TODO Need to stop and kill off any ruby threads!
     // We haven't run into this because exec is almost always called
     // after fork(), which pulls over just one thread anyway.
-
-    size_t argc = args->size();
-
-    char** argv = new char*[argc + 1];
-
-    /* execvp() requires a NULL as last element */
-    argv[argc] = NULL;
-
-    for(size_t i = 0; i < argc; i++) {
-      /* strdup should be OK. Trying to exec with strings containing NUL == bad. --rue */
-      argv[i] = strdup(as<String>(args->get(state, i))->c_str(state));
-    }
 
     void* old_handlers[NSIG];
 
@@ -230,7 +231,7 @@ namespace rubinius {
       old_handlers[i] = (void*)old_action.sa_handler;
     }
 
-    (void)::execvp(path->c_str(state), argv);
+    (void)::execvp(c_path, argv);
 
     // Hmmm, execvp failed, we need to recover here.
 
@@ -269,7 +270,7 @@ namespace rubinius {
     return Primitives::failure();
 #else
 
-    const char* c_str = str->c_str(state);
+    const char* c_str = str->c_str_null_safe(state);
 
     if(str->byte_size() > (native_int) strlen(c_str)) {
       Exception::argument_error(state, "string contains null byte");

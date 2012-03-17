@@ -140,6 +140,11 @@ namespace rubinius {
     // NOTE: do not free() or realloc() this buffer.
     const char* c_str(STATE);
 
+    // Use this if you want to have a string that does not
+    // contain a \0 character. It will raise an exception
+    // if it does.
+    const char* c_str_null_safe(STATE);
+
     String* convert_escaped(STATE, Encoding*& enc, bool& fixed_encoding);
 
     void unshare(STATE);
