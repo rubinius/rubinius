@@ -15,3 +15,6 @@ class Exception
     end
   end
 end
+
+class KeyError < IndexError
+end

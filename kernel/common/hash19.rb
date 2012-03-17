@@ -443,7 +443,7 @@ class Hash
 
     return yield(key) if block_given?
     return default unless default.equal?(undefined)
-    raise IndexError, 'key not found'
+    raise KeyError, 'key not found'
   end
 
   # Searches for an item matching +key+. Returns the item
