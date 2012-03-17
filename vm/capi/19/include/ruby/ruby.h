@@ -719,6 +719,9 @@ VALUE rb_uint2big(unsigned long number);
   /** Returns the string associated with a symbol. */
   const char *rb_id2name(ID sym);
 
+  /** Returns the Ruby string associated with the symbol */
+  VALUE rb_id2str(ID sym);
+
   /** Infect obj2 if obj1 is tainted. @internal.*/
   void    capi_infect(VALUE obj1, VALUE obj2);
 
