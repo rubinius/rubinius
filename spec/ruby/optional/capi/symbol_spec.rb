@@ -20,6 +20,19 @@ describe "C-API Symbol function" do
     end
   end
 
+  ruby_version_is "1.9" do
+    describe "rb_id2str" do
+      it "converts a symbol to a Ruby string" do
+        @s.rb_id2str(:test_symbol).should === "test_symbol"
+      end
+
+      it "creates a string with the same encoding as the symbol" do
+        str = "test_symbol".encode(Encoding::UTF_16LE)
+        @s.rb_id2str(str.to_sym).encoding.should == Encoding::UTF_16LE
+      end
+    end
+  end
+
   describe "rb_is_const_id" do
     it "returns true given a const-like symbol" do
       @s.rb_is_const_id(:Foo).should == true
