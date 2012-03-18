@@ -196,6 +196,7 @@
 #define HAVE_RB_ENCODING_GET               1
 #define HAVE_RB_ENCODING_SET               1
 #define HAVE_RB_ENC_TO_INDEX               1
+#define HAVE_RB_OBJ_ENCODING               1
 
 #define HAVE_RB_USASCII_STR_NEW_CSTR       1
 #define HAVE_RB_EXTERNAL_STR_NEW           1
