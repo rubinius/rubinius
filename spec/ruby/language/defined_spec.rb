@@ -32,6 +32,16 @@ describe "The defined? keyword when called with a method name" do
     it "returns nil if the method is not defined" do
       defined?(defined_specs_undefined_method).should be_nil
     end
+
+    it "returns 'method' if the method is defined and private" do
+      obj = DefinedSpecs::Basic.new
+      obj.private_method_defined.should == "method"
+    end
+
+    it "returns 'method' if the predicate method is defined and private" do
+      obj = DefinedSpecs::Basic.new
+      obj.private_predicate_defined.should == "method"
+    end
   end
 
   describe "having a module as receiver" do

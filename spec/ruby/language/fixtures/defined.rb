@@ -33,6 +33,22 @@ module DefinedSpecs
     end
     protected :protected_method
 
+    def private_method
+    end
+    private :private_method
+
+    def private_method_defined
+      defined? private_method
+    end
+
+    def private_predicate?
+    end
+    private :private_predicate?
+
+    def private_predicate_defined
+      defined? private_predicate?
+    end
+
     def local_variable_defined
       x = 2
       defined? x
