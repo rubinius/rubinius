@@ -79,7 +79,7 @@ module Rubinius
 
         g.push_literal @name
 
-        if @vcall_style
+        if @vcall_style or @privately
           g.push :true
           g.send :__respond_to_p__, 2
         else
