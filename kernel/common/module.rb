@@ -91,7 +91,9 @@ class Module
     Rubinius::Type.module_inspect self
   end
 
-  alias_method :inspect, :to_s
+  def inspect
+    to_s
+  end
 
   def lookup_method(sym, check_object_too=true, trim_im=true)
     mod = self
