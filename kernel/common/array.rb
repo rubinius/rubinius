@@ -84,6 +84,25 @@ class Array
 
   private :initialize
 
+  # Replaces contents of self with contents of other,
+  # adjusting size as needed.
+  def replace(other)
+    Rubinius.check_frozen
+
+    other = Rubinius::Type.coerce_to other, Array, :to_ary
+
+    @tuple = other.tuple.dup
+    @total = other.total
+    @start = other.start
+
+    Rubinius::Type.infect(self, other)
+    self
+  end
+
+  alias_method :initialize_copy, :replace
+  private :initialize_copy
+
+
   # Element reference, returns the element at the given index or
   # a subarray starting from the index continuing for length
   # elements or returns a subarray from range elements. Negative

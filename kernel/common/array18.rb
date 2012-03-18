@@ -489,22 +489,6 @@ class Array
     dup.delete_if(&block)
   end
 
-  # Replaces contents of self with contents of other,
-  # adjusting size as needed.
-  def replace(other)
-    Rubinius.check_frozen
-
-    other = Rubinius::Type.coerce_to other, Array, :to_ary
-
-    @tuple = other.tuple.dup
-    @total = other.total
-    @start = other.start
-    self
-  end
-
-  alias_method :initialize_copy, :replace
-  private :initialize_copy
-
   # Returns a new array with elements of this array shuffled.
   def shuffle
     dup.shuffle!
