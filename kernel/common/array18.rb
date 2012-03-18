@@ -192,7 +192,7 @@ class Array
       when 0
         # Edge case
         out = self.class.allocate
-        out.taint if tainted?
+        Rubinius::Type.infect(out, self)
         return out
       when 1
         # Easy case
@@ -200,7 +200,7 @@ class Array
         out = self.class.allocate
         out.tuple = tuple
         out.total = multiplier
-        out.taint if tainted? && multiplier != 0
+        Rubinius::Type.infect(out, self) if multiplier != 0.0
         return out
       end
 
@@ -210,7 +210,7 @@ class Array
       out = self.class.allocate
       out.tuple = new_tuple
       out.total = new_total
-      out.taint if tainted? && multiplier != 0
+      Rubinius::Type.infect(out, self) if multiplier != 0.0
 
       offset = 0
       while offset < new_total
@@ -288,25 +288,6 @@ class Array
 
     self[idx, 0] = items   # Cheat
     self
-  end
-
-  # Produces a printable string of the Array. The string
-  # is constructed by calling #inspect on all elements.
-  # Descends through contained Arrays, recursive ones
-  # are indicated as [...].
-  def inspect
-    return "[]" if @total == 0
-
-    comma = ", "
-    result = "["
-
-    return "[...]" if Thread.detect_recursion self do
-      each { |o| result << o.inspect << comma }
-    end
-
-    result.taint if tainted?
-    result.shorten!(2)
-    result << "]"
   end
 
   # Generates a string from converting all elements of
