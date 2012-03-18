@@ -118,6 +118,13 @@ extern "C" {
     return enc->get_encoding();
   }
 
+  VALUE rb_obj_encoding(VALUE obj) {
+    NativeMethodEnvironment* env = NativeMethodEnvironment::get();
+    Object* val = env->get_object(obj);
+    Encoding* enc = Encoding::get_object_encoding(env->state(), val);
+    return env->get_handle(enc);
+  }
+
   int rb_enc_get_index(VALUE obj) {
     NativeMethodEnvironment* env = NativeMethodEnvironment::get();
 
