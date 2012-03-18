@@ -19,3 +19,41 @@ module Process
     return 0
   end
 end
+
+module Kernel
+  def exec(environment_or_cmd, *args)
+    if environment_or_cmd.kind_of? Hash
+      environment_or_cmd.each do |key, value|
+        ENV[key] = value
+      end
+
+      cmd = args.shift
+    else
+      cmd = environment_or_cmd
+    end
+
+    if args.empty? and cmd.kind_of? String
+      raise Errno::ENOENT if cmd.empty?
+      if /([*?{}\[\]<>()~&|$;'`"\n\s]|[^\w-])/o.match(cmd)
+        Process.perform_exec "/bin/sh", ["sh", "-c", cmd]
+      else
+        Process.perform_exec cmd, [cmd]
+      end
+    else
+      if cmd.kind_of? Array
+        prog = cmd[0]
+        name = cmd[1]
+      else
+        name = prog = cmd
+      end
+
+      argv = [name]
+      args.each do |arg|
+        argv << arg.to_s
+      end
+
+      Process.perform_exec prog, argv
+    end
+  end
+  module_function :exec
+end
