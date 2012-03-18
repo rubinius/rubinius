@@ -27,7 +27,7 @@ describe "Kernel#exec" do
     result.should == "hello\n"
   end
 
-  ruby_version_is "1.9.2" .. "1.9.3" do
+  ruby_version_is "1.9.2" do
     it "passes environment vars to the child environment" do
       result = `#{RUBY_EXE} -e 'exec({"FOO" => "BAR"}, "echo $FOO"); puts "fail"'`
       result.should == "BAR\n"
