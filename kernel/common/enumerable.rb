@@ -191,7 +191,7 @@ module Enumerable
   # (1..5).inject { |memo, obj| memo * obj }        #=> 120
 
   def inject(initial=undefined, sym=undefined, &block)
-    if !block or !sym.equal?(undefined)
+    if !block || !sym.equal?(undefined)
       if sym.equal?(undefined)
         sym = initial
         initial = undefined
@@ -623,7 +623,7 @@ module Enumerable
       object = Rubinius.single_block_arg
       result = yield object
 
-      if max_result.equal? undefined or \
+      if max_result.equal?(undefined) || \
            Rubinius::Type.coerce_to_comparison(max_result, result) < 0
         max_object = object
         max_result = result
@@ -656,7 +656,7 @@ module Enumerable
       object = Rubinius.single_block_arg
       result = yield object
 
-      if min_result.equal? undefined or \
+      if min_result.equal?(undefined) || \
            Rubinius::Type.coerce_to_comparison(min_result, result) > 0
         min_object = object
         min_result = result
@@ -720,13 +720,13 @@ module Enumerable
       object = Rubinius.single_block_arg
       result = yield object
 
-      if min_result.equal? undefined or \
+      if min_result.equal?(undefined) || \
            Rubinius::Type.coerce_to_comparison(min_result, result) > 0
         min_object = object
         min_result = result
       end
 
-      if max_result.equal? undefined or \
+      if max_result.equal?(undefined) || \
            Rubinius::Type.coerce_to_comparison(max_result, result) < 0
         max_object = object
         max_result = result
