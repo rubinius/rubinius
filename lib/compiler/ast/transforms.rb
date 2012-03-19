@@ -402,10 +402,11 @@ module Rubinius
     # Speeds up certain forms of Type.coerce_to
     #
     class SendFastCoerceTo < SendWithArguments
-      transform :default, :fast_coerce, "Fast Type.coerce_to path"
+      transform :default, :fast_coerce, "Fast Rubinius::Type.coerce_to path"
 
       def self.match?(line, receiver, name, arguments, privately)
-        match_send?(receiver, :Type, name, :coerce_to) and
+        methods = [:coerce_to, :check_convert_type, :try_convert]
+        receiver.kind_of?(TypeConstant) && methods.include?(name) &&
           arguments.body.size == 3
       end
 
@@ -414,16 +415,20 @@ module Rubinius
         var = @arguments.array[0]
         const = @arguments.array[1]
 
-        if var.kind_of? LocalVariableAccess and
-           const.kind_of? ConstantAccess and const.name == :Fixnum
+        if (var.kind_of?(LocalVariableAccess) ||
+            var.kind_of?(InstanceVariableAccess)) and
+           (const.kind_of?(ConstantAccess) ||
+            const.kind_of?(ScopedConstant) ||
+            const.kind_of?(ToplevelConstant))
           done = g.new_label
 
           var.bytecode(g)
           g.dup
-          g.send :__fixnum__, 0
+          const.bytecode(g)
+          g.swap
+          g.kind_of
           g.git done
-
-          g.pop # remove the dup
+          g.pop
           super(g)
 
           done.set!
