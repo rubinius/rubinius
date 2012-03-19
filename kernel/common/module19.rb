@@ -47,9 +47,13 @@ class Module
 
     if search_parents
       current = self.direct_superclass
-      while current and current != Object
+      while current
         return true if current.constant_table.has_key? name
         current = current.direct_superclass
+      end
+
+      if instance_of?(Module)
+        return true if Object.constant_table.has_key? name
       end
     end
 
