@@ -437,7 +437,7 @@ class Socket < BasicSocket
     include IO::Socketable
 
     def listen(backlog)
-      backlog = Type.coerce_to backlog, Fixnum, :to_int
+      backlog = Rubinius::Type.coerce_to backlog, Fixnum, :to_int
 
       err = Socket::Foreign.listen descriptor, backlog
 

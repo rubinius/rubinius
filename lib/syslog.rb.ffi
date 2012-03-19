@@ -219,7 +219,7 @@ module Syslog
   def self.log(pri, format, *args)
     raise "Syslog must be opened before write" unless @open
 
-    pri = Type.coerce_to(pri, Fixnum, :to_i)
+    pri = Rubinius::Type.coerce_to(pri, Fixnum, :to_i)
 
     message = StringValue(format) % args
     Foreign.write(pri, "%s", message)
