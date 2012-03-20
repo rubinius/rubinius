@@ -21,8 +21,6 @@
 #include "windows_compat.h"
 
 namespace rubinius {
-  struct CallFrame;
-
   static SignalHandler* handler_ = 0;
   pthread_t main_thread;
 
