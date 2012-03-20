@@ -100,7 +100,6 @@ section "Flow control"
 instruction goto(location) [ -- ] => branch
   call_frame->set_ip(location);
   cache_ip(location);
-  DISPATCH;
 end
 
 # [Description]
@@ -115,7 +114,6 @@ instruction goto_if_false(location) [ value -- ] => branch
   if(!CBOOL(t1)) {
     call_frame->set_ip(location);
     cache_ip(location);
-    DISPATCH;
   }
 end
 
@@ -131,7 +129,6 @@ instruction goto_if_true(location) [ value -- ] => branch
   if(CBOOL(t1)) {
     call_frame->set_ip(location);
     cache_ip(location);
-    DISPATCH;
   }
 end
 
