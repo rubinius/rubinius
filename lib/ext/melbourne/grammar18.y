@@ -2835,7 +2835,6 @@ lex_getline(rb_parser_state *parser_state)
 VALUE
 string_to_ast(VALUE ptp, const char *f, bstring s, int line)
 {
-    int n;
     VALUE ret;
     rb_parser_state *parser_state = parser_alloc_state();
 
@@ -2845,7 +2844,7 @@ string_to_ast(VALUE ptp, const char *f, bstring s, int line)
     ruby_sourceline = line - 1;
     compile_for_eval = 1;
 
-    n = yycompile(parser_state, (char*)f, line);
+    yycompile(parser_state, (char*)f, line);
 
     if(!parse_error) {
       for(std::vector<bstring>::iterator i = magic_comments->begin();
@@ -2892,7 +2891,6 @@ static bool parse_io_gets(rb_parser_state *parser_state) {
 VALUE
 file_to_ast(VALUE ptp, const char *f, FILE *file, int start)
 {
-    int n;
     VALUE ret;
     rb_parser_state *parser_state = parser_alloc_state();
 
@@ -2901,7 +2899,7 @@ file_to_ast(VALUE ptp, const char *f, FILE *file, int start)
     processor = ptp;
     ruby_sourceline = start - 1;
 
-    n = yycompile(parser_state, (char*)f, start);
+    yycompile(parser_state, (char*)f, start);
 
     if(!parse_error) {
       for(std::vector<bstring>::iterator i = magic_comments->begin();
