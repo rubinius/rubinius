@@ -272,7 +272,6 @@ void pop_start_line(rb_parser_state* parser_state) {
 
 #define POP_LINE() pop_start_line((rb_parser_state*)parser_state)
 
-static ID rb_parser_sym(const char *name);
 static ID rb_id_attrset(ID);
 
 static int scan_oct(const char *start, size_t len, size_t *retlen);
