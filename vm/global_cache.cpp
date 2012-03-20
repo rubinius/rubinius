@@ -89,8 +89,9 @@ keep_looking:
   MethodCacheEntry* GlobalCache::lookup_public(STATE, Module* mod, Class* cls, Symbol* name) {
     thread::SpinLock::LockGuard guard(lock_);
 
+    Symbol* entry_name = entry_names[CPU_CACHE_HASH(mod, name)];
     CacheEntry* entry = entries + CPU_CACHE_HASH(mod, name);
-    if(entry->name == name &&
+    if(entry_name == name &&
          entry->klass == mod &&
          entry->visibility != G(sym_private) &&
         !entry->method_missing) {
@@ -105,8 +106,9 @@ keep_looking:
   MethodCacheEntry* GlobalCache::lookup_private(STATE, Module* mod, Class* cls, Symbol* name) {
     thread::SpinLock::LockGuard guard(lock_);
 
+    Symbol* entry_name = entry_names[CPU_CACHE_HASH(mod, name)];
     CacheEntry* entry = entries + CPU_CACHE_HASH(mod, name);
-    if(entry->name == name &&
+    if(entry_name == name &&
          entry->klass == mod &&
         !entry->method_missing) {
 
@@ -185,6 +187,7 @@ keep_looking:
       }
 
       if(clear) {
+        entry_names[i] = NULL;
         entry->clear();
       }
     }
@@ -202,6 +205,7 @@ keep_looking:
       Object* exec = reinterpret_cast<Object*>(entry->method);
 
       if(!klass->marked_p(mark) || !mod->marked_p(mark) || !exec->marked_p(mark)) {
+        entry_names[i] = NULL;
         entry->clear();
       }
     }

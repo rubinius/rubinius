@@ -18,7 +18,6 @@ namespace rubinius {
   public:
     struct CacheEntry {
       Module* klass;
-      Symbol* name;
       Module* module;
       Executable* method;
       Symbol* visibility;
@@ -26,7 +25,6 @@ namespace rubinius {
 
       void clear() {
         klass = NULL;
-        name = NULL;
         module = NULL;
         method = NULL;
         visibility = NULL;
@@ -34,6 +32,7 @@ namespace rubinius {
       }
     };
 
+    Symbol *entry_names[CPU_CACHE_SIZE];
     CacheEntry entries[CPU_CACHE_SIZE];
     thread::SpinLock lock_;
 
@@ -53,18 +52,19 @@ namespace rubinius {
     void clear(STATE, Symbol* name) {
       thread::SpinLock::LockGuard guard(lock_);
       for(size_t i = 0; i < CPU_CACHE_SIZE; i++) {
-        if(entries[i].name == name) {
+        if(entry_names[i] == name) {
+          entry_names[i] = NULL;
           entries[i].clear();
         }
       }
     }
 
     void clear(STATE, Module* cls, Symbol* name) {
-      CacheEntry* entry;
       thread::SpinLock::LockGuard guard(lock_);
-      entry = entries + CPU_CACHE_HASH(cls, name);
-      if(entry->name == name && entry->klass == cls) {
-        entry->clear();
+      size_t i = CPU_CACHE_HASH(cls, name);
+      if(entry_names[i] == name && entries[i].klass == cls) {
+        entry_names[i] = NULL;
+        entries[i].clear();
       }
     }
 
@@ -85,8 +85,8 @@ namespace rubinius {
       CacheEntry* entry;
 
       entry = entries + CPU_CACHE_HASH(cls, name);
+      entry_names[CPU_CACHE_HASH(cls, name)] = name;
       entry->klass = cls;
-      entry->name = name;
       entry->module = mod;
       entry->method_missing = missing;
 
@@ -96,14 +96,16 @@ namespace rubinius {
 
     void clear() {
       for(size_t i = 0; i < CPU_CACHE_SIZE; i++) {
+        entry_names[i] = NULL;
         entries[i].clear();
       }
     }
 
     // Must be called with the lock held on +this+
     CacheEntry* lookup(STATE, Module* cls, Symbol* name) {
+      Symbol* entry_name = entry_names[CPU_CACHE_HASH(cls, name)];
       CacheEntry* entry = entries + CPU_CACHE_HASH(cls, name);
-      if(entry->name == name && entry->klass == cls) {
+      if(entry_name == name && entry->klass == cls) {
         return entry;
       }
 
