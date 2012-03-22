@@ -214,16 +214,6 @@ class Time
     self + 1
   end
 
-  def <=>(other)
-    if other.kind_of? Time
-      c = (seconds <=> other.seconds)
-      return c unless c == 0
-      usec <=> other.usec
-    else
-      nil
-    end
-  end
-
   def eql?(other)
     return false unless other.kind_of?(Time)
     seconds == other.seconds and usec == other.usec
