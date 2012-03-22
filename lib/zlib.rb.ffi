@@ -1349,12 +1349,17 @@ module Zlib
       end
 
       write_raw
+
+      data.length
     end
 
     ##
     # Same as IO.
 
-    alias << write
+    def <<(data)
+      write(data)
+      self
+    end
 
     def write_raw
       data = @zstream.detatch_output
