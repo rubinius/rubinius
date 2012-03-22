@@ -7,31 +7,36 @@ next: Virtual Machine
 next_url: virtual-machine
 ---
 
-Bootstrapping is the process of building up functionality of the system until
-all Ruby code can be executed. There are seven stages to the bootstrap process:
+L'amorçage (bootstrapping) est le process de mise en place de l'ensemble des 
+fonctions jusqu'à ce que du code Ruby puisse être exécuté. L'amorçage comporte
+7 étapes:
 
-  1. VM: The virtual machine is able to load and execute bytecode, send
-     messages (i.e. look up and execute methods), and all primitive functions
-     are available, but not yet hooked up as Ruby methods.
-
-     The Class class has to be manually set up this early in the process by
-     setting its class to be itself and its superclass to be Module. In
-     addition to Class and Module, a couple of other base classes are created
-     here including Object, Tuple, LookupTable, and MethodTable.
-
-     Now that classes can be defined, 35 or so built in classes are told to
-     initialize themselves, symbols for top level methods (:object_id, :call,
-     :protected, etc) are created, basic exceptions are defined, and
-     primitives are registered. Finally IO gets hooked up. Also at this stage,
-     several fundamental Ruby methods are bound to primitives.
-
-     At this point there is enough defined behavior to begin to load up the
-     rest of the runtime kernel which is all defined in ruby. This has to be
-     done in several passes as the language grows.
-
-  2. alpha: This starts the loading of Ruby code. The ability to open classes
-     and modules and define methods exists. The minimum functionality to
-     support the following methods is implemented in kernel/alpha.rb:
+  1. VM: La machine virtuelle est capable de charger et d'éxécuter du
+     bytecode, d'envoyer des messages (recherche et exécution de méthodes), et
+     toutes les  fonctions primitives sont disponibles, mais pas sous forme de
+     méthode Ruby.
+  
+     La classe Class doit être mise en place manuellement dès cette étape, 
+     en configurant sa classe : elle-même et sa super-class: Module. En plus
+     de Class et Module d'autres classes de base sont créées notamment Object,
+     Tuple, LookupTable et MethodTable.
+     
+     Dès lors que des classes peuvent être définies, environs 35 classes sont 
+     auto-initialiées, de même des symboles pour les méthodes de premier
+     niveau (:object_id, :call, :protected, etc) sont créés, les exceptions
+     basiques sont définies et les primitives sont enregistrées. Les
+     entrées-sorties sont mises en place. Enfin à cette étape, plusieurs
+     méthodes Ruby fondamentales sont reliées à des fonctions primitives.
+     
+     A ce niveau, les comportements définis sont sufissant pour démarrrer le
+     chargement du reste du noyau d'exécution entièrement défini en Ruby.
+     Ce chargement demande de plus en plus d'étapes au fur et à mesure que le
+     language grandit.
+     
+  2. alpha: Cette étape démarre le chargement de code Ruby. Il est possible
+     de réouvrir les classes et modules et de définir des méthodes. Le minimum
+     de fonctionnalités pour permettre l'implémentation des méthodes suivantes
+     est implémentée dans kernel/alpha.rb :
 
        attr_reader :sym
        attr_writer :sym
@@ -41,63 +46,64 @@ all Ruby code can be executed. There are seven stages to the bootstrap process:
        module_function :sym
        include mod
 
-     Also, it is possible to raise exceptions and cause the running process to
-     exit. This stage lays the foundation for the next two stages.
+     Il est aussi possible de lever des exceptions et de terminer le processus
+     courant. Cette étape est la fondation des deux suivantes.
 
-  3. bootstrap: This stage continues to add the minimum functionality to
-     support loading platform and common. The primitive functions are added
-     for most of the kernel classes.
+  3. boostrap: Cette étape continue d'ajouter les fonctionnalitées minimums
+     pour le support du chargement de la plateforme. Les fonctions primitives
+     sont ajoutés pour la plupart des classes noyaux.
+     
+  4. platform: Le système FFI (inteface pour les fonctions externes ) est
+     implémanté et les méthodes d'interface Ruby spécifique à une plateforme
+     sont créés. Une fois mis en place, ce qui est spécifique à une plateforme
+     est attaché (pointeurs, accès aux fichiers, math et commandes POSIX)
 
-  4. platform: The FFI (foreign function interface) system is implemented and
-     Ruby method interfaces to platform-specific functions are created.  Once
-     this is set up, platform specific things such as pointers, file access,
-     math, and POSIX commands are attached.
+  5. common: La vaste majorité de la librairie principale est implémentée.
+     Les classes sont gardées avec une implémentation aussi neutre que
+     possible. De plus la plupart des fonctionnalitées spécifiques à Rubinius
+     sont ajoutées.
+     
+  6. delta: La version finale des méthodes du type #attr_reader sont ajoutés.
+     Les implémentations spécifiques à une plateforme des méthodes surchagent
+     celles fournies à l'étape common.
 
-  5. common: The vast majority of the Ruby core library classes are
-     implemented. The Ruby core classes are kept as implementation-neutral as
-     possible. Also, most of the functionality for Rubinius specific classes
-     is added.
+  7. loader: La version compilé de kernel/loader.rb est exécutée.
+    
+     L'étape finale met en place le cycle de vie d'un process ruby. Elle
+     commence par connecter la VM au système, mettre en place les chemins
+     de chargement, et en lire les scripts de personnalisation du répertoire
+     home. Elle retient les signaux et traite les arguments de la ligne de
+     commande.
+     
+     Ensuite, soit le script passé en ligne de commande est exécuté, soit un
+     shell interactif ruby est démarré. Une fois fini, chaque bloc at_exit
+     enregistré est exécuté, tout les objets sont finalisés et le système se
+     termine.
+     
 
-  6. delta: Final versions of methods like #attr_reader, etc. are added. Also,
-     implementation-specific versions of methods that override the versions
-     provided in common are added.
+## Ordre de chargement
 
-  7. loader: The compiled version of kernel/loader.rb is run.
+Les fichiers dans les répértoires noyaux: boostrap, platform, common et delta 
+implémentent les étapes d'amorçage ci-dessus. L'ordre de chargement de ces
+répertoires est spécifié dans le fichier runtime/index.
 
-     The final stage sets up the life cycle of a ruby process. It starts by
-     connecting the VM to the system, sets up load paths, and reads
-     customization scripts from the home directory. It traps signals, and
-     processes command line arguments.
-
-     After that, it either runs the script passed to it from the command line
-     or boots up the interactive ruby shell. When that finishes, it runs any
-     at_exit blocks that had been registered, finalizes all objects, and
-     exits.
-
-## Load Order
-
-The files in the kernel directories bootstrap, platform, common, and delta,
-implement the respective bootstrapping stages above. The order in
-which these directories are loaded is specified in runtime/index.
-
-When an rbc file is loaded, code at the script level and in class or module
-bodies is executed. For instance, when loading
+Lorsqu'un fichier rbc est chargé, le code au niveau du script et dans les
+corps de class ou module est exécuté. Par exemple, lors du chargemnet de :
 
     class SomeClass
       attr_accessor :value
     end
 
-the call to #attr_accessor will be run. This requires that any code called in
-script, class, or module bodies be loaded before the file that calls the code.
-The kernel/alpha.rb defines most of the code that will be needed at the script
-or module level. However, other load order dependencies exist between some of
-the platform, common, delta, and compiler files.
+l'appel à #attr_accessor sera exécuté. Cela demande que le code appelé dans
+les corps de script, class ou module soit chargé avant le fichier qui appel
+ce code. Le fichier kernel/alpha.rb définit la plupart du code qui sera
+nécessaire au niveau du script ou du module. Cependant, d'autre dépendances
+de l'ordre du charement existent entre certains des fichiers de platform,
+common, delta et du compilateur.
 
-These load order dependencies are addressed by the load_order.txt file located
-in each of the kernel/\*\* directories. If you modify code that adds a load
-order dependency, you must edit the load_order.txt files to place the depended
-on file above the file that depends on it. Also, if you add a new file to one
-of the kernel directories, you must add the file name to the load_order.txt
-file in that directory. These files are copied to the appropriate runtime/\*\*
-directories during build. During each of the bootstrap stages above, the VM
-loads the files listed in load_order.txt in order.
+Ces ordres de chargement sont gérés par le fichier load_order.txt, situé dans
+chacun des répertoires kernel/\*\*. Si vous modifiez du code qui ajoute
+une dépendance à l'ordre de chargement, vous devez éditer le fichier
+load_order.txt en ajoutant le fichier dont vous dépendez au-dessus du fichier
+qui en dépend. De plus , si vous ajoutez un nouveau fichier à l'un des répertoires noyaux, vous devez ajouter le nom du fichier au fichier
+load_order.txt de ce répertoire. Ces fichiers sont copiés dans les répértoires runtime/\*\* correspondant pendant la phase de construction. A chaque étape de l'amorçage ci dessus, la VM charge les fichiers listé dans load_order.txt en respectant leur ordre.
