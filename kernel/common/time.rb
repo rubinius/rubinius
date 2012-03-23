@@ -67,19 +67,24 @@ class Time
     [major, minor].pack 'VV'
   end
 
-  def self.local(first, *args)
-    if args.size == 9
-      sec    = first.kind_of?(String)   ? first.to_i   : Rubinius::Type.num2long(first)
-      minute = args[0].kind_of?(String) ? args[0].to_i : Rubinius::Type.num2long(args[0])
-      hour =   args[1].kind_of?(String) ? args[1].to_i : Rubinius::Type.num2long(args[1])
-      day =    args[2].kind_of?(String) ? args[2].to_i : Rubinius::Type.num2long(args[2])
-      month =  args[3].kind_of?(String) ? args[3].to_i : Rubinius::Type.num2long(args[3])
-      year =   args[4].kind_of?(String) ? args[4].to_i : Rubinius::Type.num2long(args[4])
-      nsec =   0
-      isdst =  args[7] ? 1 : 0
+  def self.local(p1, p2=1, p3=1, p4=0, p5=0, p6=0, p7=0,
+                 yday=undefined, isdst=undefined, tz=undefined)
+    if !tz.equal?(undefined)
+      sec    = p1.kind_of?(String) ? p1.to_i : Rubinius::Type.num2long(p1)
+      minute = p2.kind_of?(String) ? p2.to_i : Rubinius::Type.num2long(p2)
+      hour   = p3.kind_of?(String) ? p3.to_i : Rubinius::Type.num2long(p3)
+      day    = p4.kind_of?(String) ? p4.to_i : Rubinius::Type.num2long(p4)
+      month  = p5.kind_of?(String) ? p5.to_i : Rubinius::Type.num2long(p5)
+      year   = p6.kind_of?(String) ? p6.to_i : Rubinius::Type.num2long(p6)
+      nsec   = 0
+      isdst  = isdst ? 1 : 0
     else
+      unless isdst.equal?(undefined)
+        raise ArgumentError, "wrong number of arguments (9 for 1..8)"
+      end
+
       # resolve month names to numbers
-      month = args[0]
+      month = p2
       if month
         if month.kind_of?(String) or month.respond_to?(:to_str)
           month = StringValue(month)
@@ -94,13 +99,13 @@ class Time
         month = 1
       end
 
-      year =   first.kind_of?(String)   ? first.to_i   : Rubinius::Type.num2long(first)
-      day =    args[1].kind_of?(String) ? args[1].to_i : Rubinius::Type.num2long(args[1] || 1)
-      hour =   args[2].kind_of?(String) ? args[2].to_i : Rubinius::Type.num2long(args[2] || 0)
-      minute = args[3].kind_of?(String) ? args[3].to_i : Rubinius::Type.num2long(args[3] || 0)
+      year   = p1.kind_of?(String) ? p1.to_i : Rubinius::Type.num2long(p1)
+      day    = p3.kind_of?(String) ? p3.to_i : Rubinius::Type.num2long(p3)
+      hour   = p4.kind_of?(String) ? p4.to_i : Rubinius::Type.num2long(p4)
+      minute = p5.kind_of?(String) ? p5.to_i : Rubinius::Type.num2long(p5)
 
-      sec  = args[4] || 0
-      usec = args[5]
+      sec  = p6
+      usec = p7
       nsec = nil
 
       if usec.kind_of?(String)
@@ -126,18 +131,23 @@ class Time
     from_array(sec, minute, hour, day, month, year, nsec, isdst, false)
   end
 
-  def self.gm(first, *args)
-    if args.size == 9
-      second = first.kind_of?(String)   ? first.to_i   : Rubinius::Type.num2long(first)
-      minute = args[0].kind_of?(String) ? args[0].to_i : Rubinius::Type.num2long(args[0])
-      hour =   args[1].kind_of?(String) ? args[1].to_i : Rubinius::Type.num2long(args[1])
-      day =    args[2].kind_of?(String) ? args[2].to_i : Rubinius::Type.num2long(args[2])
-      month =  args[3].kind_of?(String) ? args[3].to_i : Rubinius::Type.num2long(args[3])
-      year =   args[4].kind_of?(String) ? args[4].to_i : Rubinius::Type.num2long(args[4])
-      nsec =   0
+  def self.gm(p1, p2=1, p3=1, p4=0, p5=0, p6=0, p7=0,
+              yday=undefined, isdst=undefined, tz=undefined)
+    if !tz.equal?(undefined)
+      sec    = p1.kind_of?(String) ? p1.to_i : Rubinius::Type.num2long(p1)
+      minute = p2.kind_of?(String) ? p2.to_i : Rubinius::Type.num2long(p2)
+      hour   = p3.kind_of?(String) ? p3.to_i : Rubinius::Type.num2long(p3)
+      day    = p4.kind_of?(String) ? p4.to_i : Rubinius::Type.num2long(p4)
+      month  = p5.kind_of?(String) ? p5.to_i : Rubinius::Type.num2long(p5)
+      year   = p6.kind_of?(String) ? p6.to_i : Rubinius::Type.num2long(p6)
+      nsec   = 0
     else
+      unless isdst.equal?(undefined)
+        raise ArgumentError, "wrong number of arguments (9 for 1..8)"
+      end
+
       # resolve month names to numbers
-      month = args[0]
+      month = p2
       if month
         if month.kind_of?(String) or month.respond_to?(:to_str)
           month = StringValue(month)
@@ -152,14 +162,14 @@ class Time
         month = 1
       end
 
-      year =   first.kind_of?(String)   ? first.to_i   : Rubinius::Type.num2long(first)
-      day =    args[1].kind_of?(String) ? args[1].to_i : Rubinius::Type.num2long(args[1] || 1)
-      hour =   args[2].kind_of?(String) ? args[2].to_i : Rubinius::Type.num2long(args[2] || 0)
-      minute = args[3].kind_of?(String) ? args[3].to_i : Rubinius::Type.num2long(args[3] || 0)
+      year   = p1.kind_of?(String) ? p1.to_i : Rubinius::Type.num2long(p1)
+      day    = p3.kind_of?(String) ? p3.to_i : Rubinius::Type.num2long(p3)
+      hour   = p4.kind_of?(String) ? p4.to_i : Rubinius::Type.num2long(p4)
+      minute = p5.kind_of?(String) ? p5.to_i : Rubinius::Type.num2long(p5)
 
-      second = args[4] || 0
-      usec   = args[5]
-      nsec   = nil
+      sec  = p6
+      usec = p7
+      nsec = nil
 
       if usec.kind_of?(String)
         nsec = usec.to_i * 1000
@@ -179,7 +189,7 @@ class Time
       end
     end
 
-    from_array(second, minute, hour, day, month, year, nsec, -1, true)
+    from_array(sec, minute, hour, day, month, year, nsec, -1, true)
   end
 
   def self.times
