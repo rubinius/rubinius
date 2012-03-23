@@ -3,7 +3,6 @@
 class Time
   include Comparable
 
-
   MonthValue = {
     'JAN' => 1, 'FEB' => 2, 'MAR' => 3, 'APR' => 4, 'MAY' => 5, 'JUN' => 6,
     'JUL' => 7, 'AUG' => 8, 'SEP' => 9, 'OCT' =>10, 'NOV' =>11, 'DEC' =>12
@@ -67,8 +66,8 @@ class Time
     [major, minor].pack 'VV'
   end
 
-  def self.local(p1, p2=1, p3=1, p4=0, p5=0, p6=0, p7=0,
-                 yday=undefined, isdst=undefined, tz=undefined)
+  def self.compose(is_utc, p1, p2=1, p3=1, p4=0, p5=0, p6=0, p7=0,
+                   yday=undefined, isdst=undefined, tz=undefined)
     if !tz.equal?(undefined)
       sec    = p1.kind_of?(String) ? p1.to_i : Rubinius::Type.num2long(p1)
       minute = p2.kind_of?(String) ? p2.to_i : Rubinius::Type.num2long(p2)
@@ -128,68 +127,15 @@ class Time
       end
     end
 
-    from_array(sec, minute, hour, day, month, year, nsec, isdst, false)
+    from_array(sec, minute, hour, day, month, year, nsec, is_utc ? -1 : isdst, is_utc)
   end
 
-  def self.gm(p1, p2=1, p3=1, p4=0, p5=0, p6=0, p7=0,
-              yday=undefined, isdst=undefined, tz=undefined)
-    if !tz.equal?(undefined)
-      sec    = p1.kind_of?(String) ? p1.to_i : Rubinius::Type.num2long(p1)
-      minute = p2.kind_of?(String) ? p2.to_i : Rubinius::Type.num2long(p2)
-      hour   = p3.kind_of?(String) ? p3.to_i : Rubinius::Type.num2long(p3)
-      day    = p4.kind_of?(String) ? p4.to_i : Rubinius::Type.num2long(p4)
-      month  = p5.kind_of?(String) ? p5.to_i : Rubinius::Type.num2long(p5)
-      year   = p6.kind_of?(String) ? p6.to_i : Rubinius::Type.num2long(p6)
-      nsec   = 0
-    else
-      unless isdst.equal?(undefined)
-        raise ArgumentError, "wrong number of arguments (9 for 1..8)"
-      end
+  def self.local(*args)
+    compose(false, *args)
+  end
 
-      # resolve month names to numbers
-      month = p2
-      if month
-        if month.kind_of?(String) or month.respond_to?(:to_str)
-          month = StringValue(month)
-
-          month = MonthValue[month.upcase] || month.to_i
-
-          raise ArgumentError, "month argument out of range" unless month
-        else
-          month = Rubinius::Type.num2long(month) rescue month.to_i
-        end
-      else
-        month = 1
-      end
-
-      year   = p1.kind_of?(String) ? p1.to_i : Rubinius::Type.num2long(p1)
-      day    = p3.kind_of?(String) ? p3.to_i : Rubinius::Type.num2long(p3)
-      hour   = p4.kind_of?(String) ? p4.to_i : Rubinius::Type.num2long(p4)
-      minute = p5.kind_of?(String) ? p5.to_i : Rubinius::Type.num2long(p5)
-
-      sec  = p6
-      usec = p7
-      nsec = nil
-
-      if usec.kind_of?(String)
-        nsec = usec.to_i * 1000
-      elsif usec
-        nsec = (usec * 1000).to_i
-      end
-    end
-
-    # This logic is taken from MRI, on how to deal with 2 digit dates.
-    if year < 200
-      if 0 <= year and year < 39
-        warn "2 digit year used: #{year}" if $VERBOSE
-        year += 2000
-      elsif 69 <= year and year < 139
-        warn "2 or 3 digit year used: #{year}" if $VERBOSE
-        year += 1900
-      end
-    end
-
-    from_array(sec, minute, hour, day, month, year, nsec, -1, true)
+  def self.gm(*args)
+    compose(true, *args)
   end
 
   def self.times
