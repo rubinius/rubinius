@@ -84,15 +84,6 @@ module Rubinius
       cmp
     end
 
-    # Maps to rb_num2long in MRI
-    def self.num2long(obj)
-      if obj == nil
-        raise TypeError, "no implicit conversion from nil to integer"
-      else
-        Integer(obj)
-      end
-    end
-
     def self.each_ancestor(mod)
       unless object_kind_of?(mod, Class) and singleton_class_object(mod)
         yield mod

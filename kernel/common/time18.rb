@@ -34,10 +34,9 @@ class Time
   def self.from_array(sec, min, hour, mday, month, year, nsec, is_dst, from_gmt)
     Rubinius.primitive :time_s_from_array
 
-    sec = sec.kind_of?(String) ? sec.to_i : Rubinius::Type.num2long(sec || 0)
-    nsec = Rubinius::Type.num2long(nsec || 0)
+    sec = sec.kind_of?(String) ? sec.to_i : Rubinius::Type.coerce_to(sec || 0, Integer, :to_int)
 
-    from_array(sec, min, hour, mday, month, year, nsec, is_dst, from_gmt)
+    from_array(sec, min, hour, mday, month, year, nsec || 0, is_dst, from_gmt)
   end
 
   def inspect
