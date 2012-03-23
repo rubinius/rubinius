@@ -94,6 +94,20 @@ describe "Time#+" do
     end
   end
 
+  it "returns a UTC time if self is UTC" do
+    (Time.utc(2012) + 10).utc?.should == true
+  end
+
+  it "returns a non-UTC time if self is non-UTC" do
+    (Time.local(2012) + 10).utc?.should == false
+  end
+
+  ruby_version_is "1.9" do
+    it "returns a time with the same fixed offset as self" do
+      (Time.new(2012, 1, 1, 0, 0, 0, 3600) + 10).utc_offset.should == 3600
+    end
+  end
+
   it "does not returns a subclass instance" do
     c = Class.new(Time)
     x = c.now + 1

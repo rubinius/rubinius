@@ -8,4 +8,10 @@ describe "Time#zone" do
       Time.now.zone.should == "AST"
     end
   end
+
+  ruby_version_is "1.9" do
+    it "returns nil for a Time with a fixed offset" do
+      Time.new(2001, 1, 1, 0, 0, 0, "+05:00").zone.should == nil
+    end
+  end
 end
