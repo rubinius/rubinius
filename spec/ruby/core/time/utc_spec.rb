@@ -13,6 +13,8 @@ end
 describe "Time.utc" do
   it_behaves_like(:time_gm, :utc)
   it_behaves_like(:time_params, :utc)
+  it_behaves_like(:time_params_10_arg, :utc)
+  it_behaves_like(:time_params_microseconds, :utc)
 end
 
 describe "Time#utc" do

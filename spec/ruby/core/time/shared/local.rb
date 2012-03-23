@@ -12,7 +12,9 @@ describe :time_local, :shared => true do
         [0, 0, 0, 1, 1, 1910, 6, 1, false, "AMT"]
     end
   end
+end
 
+describe :time_local_10_arg, :shared => true do
   it "creates a time based on given C-style gmtime arguments, interpreted in the local time zone" do
     with_timezone("PST", -8) do
       Time.send(@method, 1, 15, 20, 1, 1, 2000, :ignored, :ignored, :ignored, :ignored).to_a.should ==
