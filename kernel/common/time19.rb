@@ -30,23 +30,26 @@ class Time
   def self.from_array(sec, min, hour, mday, month, year, nsec, is_dst, from_gmt)
     Rubinius.primitive :time_s_from_array
 
-    if sec.kind_of?(Integer) || nsec
-      sec  = Rubinius::Type.coerce_to sec, Integer, :to_i
-      nsec ||= 0
-
-      sec  = sec + (nsec / 1000000000)
-      nsec = nsec % 1000000000
+    if sec.kind_of?(String)
+      sec = sec.to_i
+    elsif nsec
+      sec = Rubinius::Type.coerce_to(sec || 0, Integer, :to_int)
     else
-      float = FloatValue(sec)
-      sec       = float.to_i
-      nsec_frac = float % 1.0
+      s = Rubinius::Type.coerce_to_exact_num(sec || 0)
 
-      if float < 0 && nsec_frac > 0
+      sec       = s.to_i
+      nsec_frac = s % 1.0
+
+      if s < 0 && nsec_frac > 0
         sec -= 1
       end
 
       nsec = (nsec_frac * 1_000_000_000 + 0.5).to_i
     end
+
+    nsec ||= 0
+    sec += nsec / 1_000_000_000
+    nsec %= 1_000_000_000
 
     from_array(sec, min, hour, mday, month, year, nsec, is_dst, from_gmt)
   end

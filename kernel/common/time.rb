@@ -66,68 +66,54 @@ class Time
     [major, minor].pack 'VV'
   end
 
-  def self.compose(is_utc, p1, p2=1, p3=1, p4=0, p5=0, p6=0, p7=0,
+  def self.compose(is_utc, p1, p2=nil, p3=nil, p4=nil, p5=nil, p6=nil, p7=nil,
                    yday=undefined, isdst=undefined, tz=undefined)
-    if !tz.equal?(undefined)
-      sec    = p1.kind_of?(String) ? p1.to_i : Rubinius::Type.num2long(p1)
-      minute = p2.kind_of?(String) ? p2.to_i : Rubinius::Type.num2long(p2)
-      hour   = p3.kind_of?(String) ? p3.to_i : Rubinius::Type.num2long(p3)
-      day    = p4.kind_of?(String) ? p4.to_i : Rubinius::Type.num2long(p4)
-      month  = p5.kind_of?(String) ? p5.to_i : Rubinius::Type.num2long(p5)
-      year   = p6.kind_of?(String) ? p6.to_i : Rubinius::Type.num2long(p6)
-      nsec   = 0
-      isdst  = isdst ? 1 : 0
-    else
+    if tz.equal?(undefined)
       unless isdst.equal?(undefined)
         raise ArgumentError, "wrong number of arguments (9 for 1..8)"
       end
 
-      # resolve month names to numbers
-      month = p2
-      if month
-        if month.kind_of?(String) or month.respond_to?(:to_str)
-          month = StringValue(month)
+      y, m, d, hr, min, sec, usec = p1, p2, p3, p4, p5, p6, p7
+      isdst = -1
+    else
+      y, m, d, hr, min, sec, usec = p6, p5, p4, p3, p2, p1, 0
+      isdst = isdst ? 1 : 0
+    end
 
-          month = MonthValue[month.upcase] || month.to_i
+    if m.kind_of?(String) or m.respond_to?(:to_str)
+      m = StringValue(m)
+      m = MonthValue[m.upcase] || m.to_i
 
-          raise ArgumentError, "month argument out of range" unless month
-        else
-          month = Rubinius::Type.num2long(month)
-        end
-      else
-        month = 1
-      end
+      raise ArgumentError, "month argument out of range" unless m
+    else
+      m = Rubinius::Type.coerce_to(m || 1, Integer, :to_int)
+    end
 
-      year   = p1.kind_of?(String) ? p1.to_i : Rubinius::Type.num2long(p1)
-      day    = p3.kind_of?(String) ? p3.to_i : Rubinius::Type.num2long(p3)
-      hour   = p4.kind_of?(String) ? p4.to_i : Rubinius::Type.num2long(p4)
-      minute = p5.kind_of?(String) ? p5.to_i : Rubinius::Type.num2long(p5)
+    y   = y.kind_of?(String)   ? y.to_i   : Rubinius::Type.coerce_to(y,        Integer, :to_int)
+    d   = d.kind_of?(String)   ? d.to_i   : Rubinius::Type.coerce_to(d   || 1, Integer, :to_int)
+    hr  = hr.kind_of?(String)  ? hr.to_i  : Rubinius::Type.coerce_to(hr  || 0, Integer, :to_int)
+    min = min.kind_of?(String) ? min.to_i : Rubinius::Type.coerce_to(min || 0, Integer, :to_int)
 
-      sec  = p6
-      usec = p7
-      nsec = nil
+    nsec = nil
 
-      if usec.kind_of?(String)
-        nsec = usec.to_i * 1000
-      elsif usec
-        nsec = (usec * 1000).to_i
-      end
-
-      isdst =  -1
+    if usec.kind_of?(String)
+      nsec = usec.to_i * 1000
+    elsif usec
+      nsec = (usec * 1000).to_i
     end
 
     # This logic is taken from MRI, on how to deal with 2 digit dates.
-    if year < 200
-      if 0 <= year and year < 39
-        warn "2 digit year used: #{year}" if $VERBOSE
-        year += 2000
-      elsif 69 <= year and year < 139
-        warn "2 or 3 digit year used: #{year}" if $VERBOSE
-        year += 1900
+    if y < 200
+      if 0 <= y and y < 39
+        warn "2 digit year used: #{y}" if $VERBOSE
+        y += 2000
+      elsif 69 <= y and y < 139
+        warn "2 or 3 digit year used: #{y}" if $VERBOSE
+        y += 1900
       end
     end
 
-    from_array(sec, minute, hour, day, month, year, nsec, is_utc ? -1 : isdst, is_utc)
+    from_array(sec, min, hr, d, m, y, nsec, is_utc ? -1 : isdst, is_utc)
   end
 
   def self.local(*args)
