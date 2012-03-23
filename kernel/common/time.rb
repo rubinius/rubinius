@@ -45,7 +45,7 @@ class Time
   #++
 
   def _dump(limit = nil)
-    tm = decomposed(true)
+    tm = getgm.decomposed
 
     if (year & 0xffff) != year || year < 1900 then
       raise ArgumentError, "year too big to marshal: #{year}"
@@ -66,18 +66,18 @@ class Time
     [major, minor].pack 'VV'
   end
 
-  def self.compose(is_utc, p1, p2=nil, p3=nil, p4=nil, p5=nil, p6=nil, p7=nil,
-                   yday=undefined, isdst=undefined, tz=undefined)
+  def self.compose(offset, p1, p2=nil, p3=nil, p4=nil, p5=nil, p6=nil, p7=nil,
+                   yday=undefined, is_dst=undefined, tz=undefined)
     if tz.equal?(undefined)
-      unless isdst.equal?(undefined)
+      unless is_dst.equal?(undefined)
         raise ArgumentError, "wrong number of arguments (9 for 1..8)"
       end
 
       y, m, d, hr, min, sec, usec = p1, p2, p3, p4, p5, p6, p7
-      isdst = -1
+      is_dst = -1
     else
       y, m, d, hr, min, sec, usec = p6, p5, p4, p3, p2, p1, 0
-      isdst = isdst ? 1 : 0
+      is_dst = is_dst ? 1 : 0
     end
 
     if m.kind_of?(String) or m.respond_to?(:to_str)
@@ -113,15 +113,28 @@ class Time
       end
     end
 
-    from_array(sec, min, hr, d, m, y, nsec, is_utc ? -1 : isdst, is_utc)
+    case offset
+      when :utc
+        is_dst = -1
+        is_utc = true
+        offset = nil
+      when :local
+        is_utc = false
+        offset = nil
+      else
+        is_dst = -1
+        is_utc = false
+    end
+
+    from_array(sec, min, hr, d, m, y, nsec, is_dst, is_utc, offset)
   end
 
   def self.local(*args)
-    compose(false, *args)
+    compose(:local, *args)
   end
 
   def self.gm(*args)
-    compose(true, *args)
+    compose(:utc, *args)
   end
 
   def self.times
@@ -137,7 +150,7 @@ class Time
   end
 
   def to_a
-    decomposed(@is_gmt)
+    decomposed
   end
 
   def sec
@@ -192,6 +205,7 @@ class Time
 
   def gmt_offset
     return 0 if @is_gmt
+    return @offset if @offset
 
     other = dup.gmtime
 
@@ -215,26 +229,14 @@ class Time
     offset += sec - other.sec
   end
 
-  def localtime
-    if @is_gmt
-      @is_gmt = false
-      @decomposed = nil
-    end
-
-    self
-  end
-
   def gmtime
     unless @is_gmt
       @is_gmt = true
+      @offset = nil
       @decomposed = nil
     end
 
     self
-  end
-
-  def getlocal
-    dup.localtime
   end
 
   def getgm
@@ -246,7 +248,6 @@ class Time
   end
 
   class << self
-    alias_method :new,    :now
     alias_method :mktime, :local
     alias_method :utc,    :gm
   end

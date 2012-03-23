@@ -23,24 +23,26 @@ namespace rubinius {
 
     Array* decomposed_; // slot
     Object* is_gmt_;  // slot
+    Object* offset_; // slot
 
   public:
     /* accessors */
     attr_accessor(decomposed, Array);
     attr_accessor(is_gmt, Object);
+    attr_accessor(offset, Object);
 
     /* interface */
 
     static void init(STATE);
 
     // Rubinius.primitive :time_s_specific
-    static Time* specific(STATE, Object* self, Integer* sec, Integer* nsec, Object* gmt);
+    static Time* specific(STATE, Object* self, Integer* sec, Integer* nsec, Object* gmt, Object* offset);
 
     // Rubinius.primitive :time_s_now
     static Time* now(STATE, Object* self);
 
     // Rubinius.primitive :time_s_from_array
-    static Time* from_array(STATE, Object* self, Fixnum* sec, Fixnum* min, Fixnum* hour, Fixnum* mday, Fixnum* mon, Fixnum* year, Fixnum* nsec, Fixnum* isdst, Object* from_gmt);
+    static Time* from_array(STATE, Object* self, Fixnum* sec, Fixnum* min, Fixnum* hour, Fixnum* mday, Fixnum* mon, Fixnum* year, Fixnum* nsec, Fixnum* isdst, Object* from_gmt, Object* offset);
 
     // Rubinius.primitive :time_s_dup
     static Time* dup(STATE, Object* self, Time* other);
@@ -61,7 +63,7 @@ namespace rubinius {
     }
 
     // Rubinius.primitive :time_decompose
-    Array* calculate_decompose(STATE, Object* gmt);
+    Array* calculate_decompose(STATE);
 
     // Rubinius.primitive :time_strftime
     String* strftime(STATE, String* format);

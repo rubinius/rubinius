@@ -60,7 +60,7 @@ namespace rubinius {
 #define NMOD(x,y) ((y)-(-((x)+1)%(y))-1)
 
   Time* Time::specific(STATE, Object* self, Integer* sec, Integer* nsec,
-                       Object* gmt)
+                       Object* gmt, Object* offset)
   {
     Time* tm = state->new_object<Time>(as<Class>(self));
 
@@ -88,14 +88,15 @@ namespace rubinius {
     }
 
     tm->is_gmt(state, CBOOL(gmt) ? cTrue : cFalse);
+    tm->offset(state, offset);
 
     return tm;
   }
 
   Time* Time::from_array(STATE, Object* self, 
-                      Fixnum* sec, Fixnum* min, Fixnum* hour,
-                      Fixnum* mday, Fixnum* mon, Fixnum* year, Fixnum* nsec,
-                      Fixnum* isdst, Object* from_gmt) {
+                         Fixnum* sec, Fixnum* min, Fixnum* hour,
+                         Fixnum* mday, Fixnum* mon, Fixnum* year, Fixnum* nsec,
+                         Fixnum* isdst, Object* from_gmt, Object* offset) {
     struct tm tm;
 
     tm.tm_sec = sec->to_native();
@@ -136,7 +137,7 @@ namespace rubinius {
 
     time_t seconds = -1;
 
-    if(CBOOL(from_gmt)) {
+    if(CBOOL(from_gmt) || !offset->nil_p()) {
       seconds = ::timegm(&tm);
     } else {
       tzset();
@@ -146,7 +147,7 @@ namespace rubinius {
     int err = 0;
 
     if(seconds == -1) {
-      int utc_p = from_gmt->true_p() ? 1 : 0;
+      int utc_p = (CBOOL(from_gmt) || !offset->nil_p()) ? 1 : 0;
       seconds = mktime_extended(&tm, utc_p, &err);
     }
 
@@ -156,6 +157,11 @@ namespace rubinius {
     obj->seconds_ = seconds;
     obj->nanoseconds_ = nsec->to_native();
     obj->is_gmt(state, CBOOL(from_gmt) ? cTrue : cFalse);
+
+    if(Fixnum* off = try_as<Fixnum>(offset)) {
+      obj->seconds_ -= off->to_native();
+      obj->offset(state, offset);
+    }
 
     return obj;
   }
@@ -168,13 +174,16 @@ namespace rubinius {
     return tm;
   }
 
-  Array* Time::calculate_decompose(STATE, Object* use_gmt) {
+  Array* Time::calculate_decompose(STATE) {
     if(!decomposed_->nil_p()) return decomposed_;
 
     time_t seconds = seconds_;
     struct tm tm = {0};
 
-    if(CBOOL(use_gmt)) {
+    if(Fixnum* off = try_as<Fixnum>(offset_)) {
+      seconds += off->to_native();
+      gmtime_r(&seconds, &tm);
+    } else if(CBOOL(is_gmt_)) {
       gmtime_r(&seconds, &tm);
     } else {
       tzset();
@@ -193,8 +202,8 @@ namespace rubinius {
     ary->set(state, 7, Integer::from(state, tm.tm_yday + 1));
     ary->set(state, 8, tm.tm_isdst ? cTrue : cFalse);
 
-    const char* tmzone = timezone_extended(&tm);
-    if(tmzone) {
+    const char* tmzone;
+    if(offset_->nil_p() && (tmzone = timezone_extended(&tm))) {
       ary->set(state, 9, String::create(state, tmzone));
     } else {
       ary->set(state, 9, cNil);

@@ -11,7 +11,7 @@ class Time
     raise ArgumentError, "descriptors reference invalid time"
   end
 
-  def self.specific(sec, nsec, from_gmt)
+  def self.specific(sec, nsec, from_gmt, offset)
     Rubinius.primitive :time_s_specific
     raise ArgumentError, "descriptors reference invalid time"
   end
@@ -30,7 +30,7 @@ class Time
     raise PrimitiveFailure, "Time#usec failed"
   end
 
-  def decomposed(gmt)
+  def decomposed
     Rubinius.primitive :time_decompose
     raise PrimitiveFailure, "Time#decompose primitive failed"
   end

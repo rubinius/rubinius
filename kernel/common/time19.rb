@@ -6,7 +6,7 @@ class Time
       if sec.kind_of?(Time)
         return duplicate(sec)
       elsif sec.kind_of?(Integer)
-        return specific(sec, 0, false)
+        return specific(sec, 0, false, nil)
       end
     end
 
@@ -24,10 +24,10 @@ class Time
     sec += nsec / 1_000_000_000
     nsec %= 1_000_000_000
 
-    specific(sec, nsec, false)
+    specific(sec, nsec, false, nil)
   end
 
-  def self.from_array(sec, min, hour, mday, month, year, nsec, is_dst, from_gmt)
+  def self.from_array(sec, min, hour, mday, month, year, nsec, is_dst, from_gmt, utc_offset)
     Rubinius.primitive :time_s_from_array
 
     if sec.kind_of?(String)
@@ -51,7 +51,17 @@ class Time
     sec += nsec / 1_000_000_000
     nsec %= 1_000_000_000
 
-    from_array(sec, min, hour, mday, month, year, nsec, is_dst, from_gmt)
+    from_array(sec, min, hour, mday, month, year, nsec, is_dst, from_gmt, utc_offset)
+  end
+
+  def self.new(year=undefined, month=nil, day=nil, hour=nil, minute=nil, second=nil, utc_offset=nil)
+    if year.equal?(undefined)
+      now
+    elsif utc_offset == nil
+      compose(:local, year, month, day, hour, minute, second)
+    else
+      compose(Rubinius::Type.coerce_to_utc_offset(utc_offset), year, month, day, hour, minute, second)
+    end
   end
 
   def inspect
@@ -111,47 +121,54 @@ class Time
     to_f.to_r
   end
 
-  def +(arg)
-    raise TypeError, 'time + time?' if arg.kind_of?(Time)
+  def +(other)
+    raise TypeError, 'time + time?' if other.kind_of?(Time)
 
-    case arg
-    when NilClass
-      raise TypeError, "can't convert nil into an exact number"
-    when String
-      raise TypeError, "can't convert String into an exact number"
+    case other = Rubinius::Type.coerce_to_exact_num(other)
     when Integer
-      other_sec = arg
+      other_sec = other
       other_nsec = 0
     else
-      arg = Rubinius::Type.coerce_to arg, Rational, :to_r
-      other_sec, nsec_frac = arg.divmod(1)
+      other_sec, nsec_frac = other.divmod(1)
       other_nsec = (nsec_frac * 1_000_000_000).to_i
     end
 
     # Don't use self.class, MRI doesn't honor subclasses here
-    Time.specific(seconds + other_sec, nsec + other_nsec, @is_gmt)
+    Time.specific(seconds + other_sec, nsec + other_nsec, @is_gmt, @offset)
   end
 
   def -(other)
-    case other
-    when NilClass
-      raise TypeError, "can't convert nil into an exact number"
-    when String
-      raise TypeError, "can't convert String into an exact number"
-    when Time
-      (seconds - other.seconds) + ((usec - other.usec) * 0.000001)
-    when Integer
-      # Don't use self.class, MRI doesn't honor subclasses here
-      Time.specific(seconds - other, nsec, @is_gmt)
-    else
-      other = Rubinius::Type.coerce_to other, Rational, :to_r
+    if other.kind_of?(Time)
+      return (seconds - other.seconds) + ((usec - other.usec) * 0.000001)
+    end
 
+    case other = Rubinius::Type.coerce_to_exact_num(other)
+    when Integer
+      other_sec = other
+      other_nsec = 0
+    else
       other_sec, nsec_frac = other.divmod(1)
       other_nsec = (nsec_frac * 1_000_000_000 + 0.5).to_i
-
-      # Don't use self.class, MRI doesn't honor subclasses here
-      Time.specific(seconds - other_sec, nsec - other_nsec, @is_gmt)
     end
+
+    # Don't use self.class, MRI doesn't honor subclasses here
+    Time.specific(seconds - other_sec, nsec - other_nsec, @is_gmt, @offset)
+  end
+
+  def localtime(offset=nil)
+    offset = Rubinius::Type.coerce_to_utc_offset(offset) unless offset.nil?
+
+    if @is_gmt or offset
+      @is_gmt = false
+      @offset = offset
+      @decomposed = nil
+    end
+
+    self
+  end
+
+  def getlocal(offset=nil)
+    dup.localtime(offset)
   end
 
   def eql?(other)

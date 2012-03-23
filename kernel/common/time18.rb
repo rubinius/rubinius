@@ -10,11 +10,11 @@ class Time
       sec = sec + (nsec / 1000000000)
       nsec = nsec % 1000000000
 
-      specific(sec, nsec, false)
+      specific(sec, nsec, false, nil)
     elsif sec.kind_of?(Time)
       duplicate(sec)
     elsif sec.kind_of?(Integer)
-      specific(sec, 0, false)
+      specific(sec, 0, false, nil)
     elsif sec.kind_of?(String)
       raise TypeError, "can't convert #{sec} into an exact number"
     else
@@ -27,16 +27,20 @@ class Time
       end
 
       nsec = (nsec_frac * 1_000_000_000 + 0.5).to_i
-      specific(sec, nsec, false)
+      specific(sec, nsec, false, nil)
     end
   end
 
-  def self.from_array(sec, min, hour, mday, month, year, nsec, is_dst, from_gmt)
+  class << self
+    alias_method :new, :now
+  end
+
+  def self.from_array(sec, min, hour, mday, month, year, nsec, is_dst, from_gmt, utc_offset)
     Rubinius.primitive :time_s_from_array
 
     sec = sec.kind_of?(String) ? sec.to_i : Rubinius::Type.coerce_to(sec || 0, Integer, :to_int)
 
-    from_array(sec, min, hour, mday, month, year, nsec || 0, is_dst, from_gmt)
+    from_array(sec, min, hour, mday, month, year, nsec || 0, is_dst, from_gmt, utc_offset)
   end
 
   def inspect
@@ -61,25 +65,39 @@ class Time
     end
 
     # Don't use self.class, MRI doesn't honor subclasses here
-    Time.specific(seconds + other_sec, (usec + other_usec) * 1000, @is_gmt)
+    Time.specific(seconds + other_sec, (usec + other_usec) * 1000, @is_gmt, @offset)
   end
 
   def -(other)
+    if other.kind_of?(Time)
+      return (seconds - other.seconds) + ((usec - other.usec) * 0.000001)
+    end
+
     case other
-    when Time
-      (seconds - other.seconds) + ((usec - other.usec) * 0.000001)
     when Integer
-      # Don't use self.class, MRI doesn't honor subclasses here
-      Time.specific(seconds - other, usec * 1000, @is_gmt)
+      other_sec = other
+      other_usec = 0
     else
       other = FloatValue(other)
-
       other_sec, usec_frac = FloatValue(other).divmod(1)
       other_usec = (usec_frac * 1_000_000 + 0.5).to_i
-
-      # Don't use self.class, MRI doesn't honor subclasses here
-      Time.specific(seconds - other_sec, (usec - other_usec) * 1000, @is_gmt)
     end
+
+    # Don't use self.class, MRI doesn't honor subclasses here
+    Time.specific(seconds - other_sec, (usec - other_usec) * 1000, @is_gmt, @offset)
+  end
+
+  def localtime
+    if @is_gmt
+      @is_gmt = false
+      @decomposed = nil
+    end
+
+    self
+  end
+
+  def getlocal
+    dup.localtime
   end
 
   def eql?(other)

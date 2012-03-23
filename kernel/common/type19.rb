@@ -104,5 +104,26 @@ module Rubinius
         check_convert_type(obj, Rational, :to_r) || coerce_to(obj, Integer, :to_int)
       end
     end
+
+    def self.coerce_to_utc_offset(offset)
+      offset = String.try_convert(offset) || offset
+
+      if offset.kind_of?(String)
+        unless offset.encoding.ascii_compatible? && offset.match(/\A(\+|-)(\d\d):(\d\d)\z/)
+          raise ArgumentError, '"+HH:MM" or "-HH:MM" expected for utc_offset'
+        end
+
+        offset = $2.to_i*60*60 + $3.to_i*60
+        offset = -offset if $1.ord == 45
+      else
+        offset = Rubinius::Type.coerce_to_exact_num(offset)
+      end
+
+      if offset <= -86400 || offset >= 86400
+        raise ArgumentError, "utc_offset out of range"
+      end
+
+      offset
+    end
   end
 end
