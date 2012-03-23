@@ -1,6 +1,36 @@
 # -*- encoding: us-ascii -*-
 
 class Time
+  def self.at(sec, usec=undefined)
+    if !usec.equal?(undefined)
+      sec  = Rubinius::Type.coerce_to(sec,  Integer, :to_int)
+      usec = Rubinius::Type.coerce_to(usec, Integer, :to_int)
+
+      nsec = (usec * 1000).to_i
+      sec = sec + (nsec / 1000000000)
+      nsec = nsec % 1000000000
+
+      specific(sec, nsec, false)
+    elsif sec.kind_of?(Time)
+      duplicate(sec)
+    elsif sec.kind_of?(Integer)
+      specific(sec, 0, false)
+    elsif sec.kind_of?(String)
+      raise TypeError, "can't convert #{sec} into an exact number"
+    else
+      float = FloatValue(sec)
+      sec       = float.to_i
+      nsec_frac = float % 1.0
+
+      if float < 0 && nsec_frac > 0
+        sec -= 1
+      end
+
+      nsec = (nsec_frac * 1_000_000_000 + 0.5).to_i
+      specific(sec, nsec, false)
+    end
+  end
+
   def self.from_array(sec, min, hour, mday, month, year, nsec, is_dst, from_gmt)
     Rubinius.primitive :time_s_from_array
 

@@ -1,6 +1,32 @@
 # -*- encoding: us-ascii -*-
 
 class Time
+  def self.at(sec, usec=undefined)
+    if usec.equal?(undefined)
+      if sec.kind_of?(Time)
+        return duplicate(sec)
+      elsif sec.kind_of?(Integer)
+        return specific(sec, 0, false)
+      end
+    end
+
+    usec = 0 if usec.equal?(undefined)
+
+    s = Rubinius::Type.coerce_to_exact_num(sec)
+    u = Rubinius::Type.coerce_to_exact_num(usec)
+
+    sec       = s.to_i
+    nsec_frac = s % 1.0
+
+    sec -= 1 if s < 0 && nsec_frac > 0
+    nsec = (nsec_frac * 1_000_000_000 + 0.5).to_i + (u * 1000).to_i
+
+    sec += nsec / 1_000_000_000
+    nsec %= 1_000_000_000
+
+    specific(sec, nsec, false)
+  end
+
   def self.from_array(sec, min, hour, mday, month, year, nsec, is_dst, from_gmt)
     Rubinius.primitive :time_s_from_array
 
