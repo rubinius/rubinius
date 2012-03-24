@@ -1,6 +1,6 @@
 ---
 layout: post
-title: &#35;rbxday In Real Life
+title: "&#35;rbxday In Real Life"
 author: Brian Ford
 ---
 
