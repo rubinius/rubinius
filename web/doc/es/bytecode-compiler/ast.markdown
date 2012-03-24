@@ -1,12 +1,11 @@
 ---
 layout: doc_es
 title: AST
-previous: Parser
+previous: Etapa de Parsing
 previous_url: bytecode-compiler/parser
-next: Compilador
-next_url: bytecode-compiler/compiler
+next: Etapa de Generación
+next_url: bytecode-compiler/generator
 review: true
-translated: true
 ---
 
 Una vez que el parser ha terminado de llamar los métodos `process_*`, se crea
