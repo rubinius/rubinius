@@ -1,6 +1,6 @@
 ---
 layout: post
-title: &#35;rbxday Blog Posts
+title: "&#35;rbxday Blog Posts"
 author: Shane Becker
 ---
 
