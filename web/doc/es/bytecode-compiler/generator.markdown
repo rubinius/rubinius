@@ -1,9 +1,9 @@
 ---
 layout: doc_es
-title: Generator
-previous: Transformations
+title: Generador
+previous: Transformaciones
 previous_url: bytecode-compiler/transformations
-next: JIT Compiler
+next: Compilador JIT
 next_url: jit
 review: true
 translated: true
