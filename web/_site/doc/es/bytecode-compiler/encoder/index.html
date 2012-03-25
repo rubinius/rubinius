@@ -147,28 +147,44 @@
   <h2>Etapa de Codificación</h2>
 
   
-    <div class="review">
-  <p>This page was machine translated. Please help us improve it.</p>
-
-  <p>
-    See <a href="/doc/es/how-to/translate-documentation">How-To - Translate Documentation</a>
-  </p>
-</div>
 
   
 
-  
-    <div class="review">
-  <p>This topic has missing or partial documentation. Please help us improve it.</p>
+    <p>Una vez el generador ha procesado el AST, necesita propiamente codificar el
+bytecode. Esta etapa es muy simple, y es básicamente para documentación
+formal.</p>
 
-  <p>
-    See <a href="/doc/es/how-to/write-documentation">How-To - Write Documentation</a>
-  </p>
-</div>
+<p>La etapa de Codificación es responsable de dos cosas:</p>
 
-  
+<ul>
+  <li>convertir el flujo de instrucciones creado en la etapa anterior (cuando se
+llamaba el método <code>bytecode</code> sobre los nodos del AST) en una secuencia de
+instrucciones.</li>
+  <li>validar que la pila no se desborde ni subdesborde, o que contenga algún otro
+tipo de semántica defectuosa.</li>
+</ul>
 
-    
+<p>Realiza estos pasos sobre el objeto Generator principal, así como en otros
+objetos Generator hijos (generadores para bloques, métodos u otras estructuras
+encontradas dentro del cuerpo principal).</p>
+
+<p>Una vez esta etapa ha sido completada, se pasa el objeto Generator codificado
+a la siguiente etapa, la etapa de Empaquetación.</p>
+
+<h2 id="ficheros-mencionados">Ficheros mencionados</h2>
+
+<ul>
+  <li><em>lib/compiler/generator.rb</em>: El método <code>encode</code> en este archivo realiza la
+mayor parte del trabajo en esta etapa.</li>
+</ul>
+
+<h2 id="personalizacin">Personalización</h2>
+
+<p>Dado que esta etapa es muy simple, no hace falta personalizarla. Quizás se
+quiera usarla con otros fines (por ejemplo, para profiling o impresión). Para
+aprender más acerca de la personalización de partes del compilador en general,
+lo cual puede ser usado para instrumentalizar cualquier etapa, léase
+<a href="/doc/en/bytecode-compiler/customization/">Personalizando las etapas</a>.</p>
 
 
 </div>
