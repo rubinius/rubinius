@@ -167,6 +167,18 @@ module Rubinius
         children { |c| c.visit visitor, self }
       end
 
+      # Just like the #visit method does, #lazy_visit calls a method
+      # (determined by the #node_name method) on the visitor. It differs from
+      # #visit in the sense that it does not traverse the tree, leaving this
+      # up to the Visitor.
+      #
+      # This satisfies some Visitor pattern use cases in which the visitor
+      # needs to decide when (or whether) to iterate over a particular node's
+      # children, e.g. when implementing a source-to-source compiler.
+      def lazy_visit(visitor, parent=nil)
+        visitor.__send__ self.node_name, self, parent
+      end
+
       # Called by #transform to update the child of a Node instance. The
       # default just calls the attr_accessor for the child. However, Node
       # subclasses that must synchronize other internal state can override
