@@ -372,7 +372,6 @@ class String
     return dup if @num_bytes == 0
 
     str = transform(Rubinius::CType::Lowered, true)
-    str = self.class.new(str) unless instance_of?(String)
 
     str.modify!
 
@@ -571,10 +570,7 @@ class String
   # "hEllO".downcase   #=> "hello"
   def downcase
     return dup if @num_bytes == 0
-    str = transform(Rubinius::CType::Lowered, true)
-    str = self.class.new(str) unless instance_of?(String)
-
-    return str
+    transform(Rubinius::CType::Lowered, true)
   end
 
   # Downcases the contents of <i>self</i>, returning <code>nil</code> if no
@@ -1738,7 +1734,7 @@ class String
       return dup
     end
 
-    str = self.class.new("\0") * (padsize + @num_bytes)
+    str = self.class.pattern(1, "\0") * (padsize + @num_bytes)
     str.taint if tainted? or padstr.tainted?
 
     case direction
@@ -1887,7 +1883,9 @@ class String
   end
 
   def dump
-    self.class.new %{"#{transform(Rubinius::CType::Printed, false)}"}
+    s = self.class.allocate
+    s.replace %{"#{transform(Rubinius::CType::Printed, false)}"}
+    s
   end
 
   def shared!

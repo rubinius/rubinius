@@ -1176,6 +1176,8 @@ namespace rubinius {
     String* result = String::create(state,
                                     reinterpret_cast<const char*>(output),
                                     out_p - output);
+
+    result->klass(state, class_object(state));
     free(output);
 
     infect(state, result);
