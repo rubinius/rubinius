@@ -162,4 +162,11 @@ describe "String#unpack with format 'm'" do
       ["vcO+w78=\n",                              ["\xbd\xc3\xbe\xc3\xbf"]]
     ].should be_computed_by(:unpack, "m")
   end
+
+  ruby_version_is "1.9" do
+    it "produces binary strings" do
+      "".unpack("m").first.encoding.should == Encoding::BINARY
+      "Ojs8PT4/QA==\n".unpack("m").first.encoding.should == Encoding::BINARY
+    end
+  end
 end
