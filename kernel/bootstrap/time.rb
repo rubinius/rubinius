@@ -30,9 +30,9 @@ class Time
     raise PrimitiveFailure, "Time#usec failed"
   end
 
-  def decomposed
+  def to_a
     Rubinius.primitive :time_decompose
-    raise PrimitiveFailure, "Time#decompose primitive failed"
+    raise PrimitiveFailure, "Time#to_a primitive failed"
   end
 
   def strftime(format)

@@ -45,7 +45,7 @@ class Time
   #++
 
   def _dump(limit = nil)
-    tm = getgm.decomposed
+    tm = getgm.to_a
 
     if (year & 0xffff) != year || year < 1900 then
       raise ArgumentError, "year too big to marshal: #{year}"
@@ -147,10 +147,6 @@ class Time
 
   def asctime
     strftime("%a %b %e %H:%M:%S %Y")
-  end
-
-  def to_a
-    decomposed
   end
 
   def sec
