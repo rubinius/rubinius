@@ -151,11 +151,15 @@ class Time
     end
   end
 
+  def eql?(other)
+    other.kind_of?(Time) and seconds == other.seconds and nsec == other.nsec
+  end
+
   def <=>(other)
     if other.kind_of? Time
       c = (seconds <=> other.seconds)
       return c unless c == 0
-      usec <=> other.usec
+      nsec <=> other.nsec
     else
       r = (other <=> self)
       return nil if r == nil

@@ -83,6 +83,10 @@ class Time
     end
   end
 
+  def eql?(other)
+    other.kind_of?(Time) and seconds == other.seconds and usec == other.usec
+  end
+
   def <=>(other)
     if other.kind_of? Time
       c = (seconds <=> other.seconds)
