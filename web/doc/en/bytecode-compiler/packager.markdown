@@ -66,4 +66,4 @@ In general, the `package` method is designed to populate the
 CompiledMethod with a group of variables. However, you could also use
 the packager to populate another object with the same interface.
 However, it would not necessarily be useful on its own, without
-additional customizations later on
+additional customizations later on.
