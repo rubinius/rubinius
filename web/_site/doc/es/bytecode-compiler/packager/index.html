@@ -147,28 +147,70 @@
   <h2>Etapa de Empaquetación</h2>
 
   
-    <div class="review">
-  <p>This page was machine translated. Please help us improve it.</p>
-
-  <p>
-    See <a href="/doc/es/how-to/translate-documentation">How-To - Translate Documentation</a>
-  </p>
-</div>
 
   
 
-  
-    <div class="review">
-  <p>This topic has missing or partial documentation. Please help us improve it.</p>
+    <p>Una vez que el generador ha sido correctamente codificado en la etapa de
+Codificación, Rubinius empaqueta el bytecode creando un nuevo método compilado
+(un objeto CompiledMethod) con ciertos atributos.</p>
 
-  <p>
-    See <a href="/doc/es/how-to/write-documentation">How-To - Write Documentation</a>
-  </p>
-</div>
+<p>Estos atributos están expuestos en cualquier CompiledMethod. Es posible
+extraer un CompiledMethod a partir de un método de Ruby llamando <code>executable</code>
+sobre el método.</p>
 
-  
+<ul>
+  <li><em>iseq</em>: un objeto Tuple con la secuencia de instrucciones</li>
+  <li><em>literals</em>: un objeto Tuple con los literales utilizados en el método. Los
+literales se utilizan internamente por Rubinius para valores como Strings,
+y las instrucciones que los manipulan son <code>push_literal</code> y <code>set_literal</code>.</li>
+  <li><em>lines</em>: un Array que contiene el primer puntero de instrucción para cada
+línea representada en el bytecode</li>
+  <li><em>required_args</em>: el número de argumentos requerido por el método</li>
+  <li><em>total_args</em>: el número total de argumentos, incluyendo argumentos
+opcionales exceptuando <code>*args</code></li>
+  <li><em>splat</em>: la posición del argumento splat, si existe</li>
+  <li><em>local_count</em>: el número de variables locales, incluyendo parámetros</li>
+  <li><em>local_names</em>: un objeto Tuple con una lista de nombres de todas las
+variables locales. Los primeros nombres serán los argumentos requeridos,
+opcionales, splat y de bloque, en ese orden exactamente.</li>
+  <li><em>file</em> el nombre del fichero que se utilizará en los stack traces y otra
+información de debugging.</li>
+  <li><em>name</em>: el nombre del método</li>
+  <li><em>primitive</em>: el nombre de la primitiva asociada a este método, si es que hay</li>
+  <li>metadatos: es posible almacenar metadatos adicionales en un método
+compilado. Éste tiene un metadato llamado <code>for_block</code> con el valor <code>true</code> si
+el generador original fue creado para un bloque.</li>
+</ul>
 
-    
+<p>La etapa de Empaquetación se encarga también de que cualquier generador hijo
+(como por ejemplo los generadores para bloques o métodos) también sean
+convertidos en métodos compilados. Estos métodos compilados hijos se incluyen
+en la tupla de literales del método compilado padre.</p>
+
+<p>Después de que el Generator ha terminado de empaquetarse a sí mismo como un
+CompiledMethod, invoca la etapa de Escritura, con el CompiledMethod como
+entrada.</p>
+
+<h2 id="ficheros-mencionados">Ficheros mencionados</h2>
+
+<ul>
+  <li><em>kernel/bootstrap/compiled_method.rb</em>: la implementación básica de
+CompiledMethod, básicamente compuesta de diversas primitivas</li>
+  <li><em>kernel/common/compiled_method.rb</em>: una implementación más robusta de
+CompiledMethod, una combinación de métodos primitivos y métodos escritos en
+Ruby</li>
+  <li><em>vm/builtin/compiledmethod.cpp</em>: la implementación en C++ de las primitivas
+de un CompiledMethod</li>
+  <li><em>lib/compiler/generator.rb</em>: La implementación del método <code>package</code>, el cual
+popula el CompiledMethod con información sobre el objeto Generator.</li>
+</ul>
+
+<h2 id="personalizacin">Personalización</h2>
+
+<p>En general, el método <code>package</code> está diseñado para popular el CompiledMethod
+con un grupo de variables. Sin embargo, también se podría utilizar el
+empaquetador para popular otro objeto con la misma interfaz. A pesar de todo,
+esto podría no ser útil en sí mismo sin otras personalizaciones más adelante.</p>
 
 
 </div>
