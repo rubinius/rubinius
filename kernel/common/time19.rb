@@ -157,9 +157,7 @@ class Time
 
   def <=>(other)
     if other.kind_of? Time
-      c = (seconds <=> other.seconds)
-      return c unless c == 0
-      nsec <=> other.nsec
+      (seconds <=> other.seconds).nonzero? or (nsec <=> other.nsec)
     else
       r = (other <=> self)
       return nil if r == nil

@@ -89,9 +89,7 @@ class Time
 
   def <=>(other)
     if other.kind_of? Time
-      c = (seconds <=> other.seconds)
-      return c unless c == 0
-      usec <=> other.usec
+      (seconds <=> other.seconds).nonzero? or (usec <=> other.usec)
     else
       nil
     end
