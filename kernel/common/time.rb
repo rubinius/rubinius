@@ -194,40 +194,48 @@ class Time
     strftime("%a %b %e %H:%M:%S %Y")
   end
 
-  def hour
-    decomposed(@is_gmt)[2]
-  end
-
-  def min
-    decomposed(@is_gmt)[1]
+  def to_a
+    decomposed(@is_gmt)
   end
 
   def sec
-    decomposed(@is_gmt)[0]
+    to_a[0]
+  end
+
+  def min
+    to_a[1]
+  end
+
+  def hour
+    to_a[2]
   end
 
   def day
-    decomposed(@is_gmt)[3]
-  end
-
-  def year
-    decomposed(@is_gmt)[5]
-  end
-
-  def yday
-    decomposed(@is_gmt)[7]
-  end
-
-  def wday
-    decomposed(@is_gmt)[6]
-  end
-
-  def zone
-    strftime("%Z")
+    to_a[3]
   end
 
   def mon
-    decomposed(@is_gmt)[4]
+    to_a[4]
+  end
+
+  def year
+    to_a[5]
+  end
+
+  def wday
+    to_a[6]
+  end
+
+  def yday
+    to_a[7]
+  end
+
+  def dst?
+    to_a[8]
+  end
+
+  def zone
+    to_a[9]
   end
 
   def gmt?
@@ -238,14 +246,6 @@ class Time
 
   def to_f
     seconds + (usec * 0.000001)
-  end
-
-  ##
-  # Returns:
-  #   [ sec, min, hour, day, month, year, wday, yday, isdst, zone ]
-
-  def to_a
-    decomposed(@is_gmt)
   end
 
   def gmt_offset
@@ -289,10 +289,6 @@ class Time
     end
 
     self
-  end
-
-  def dst?
-    decomposed(@is_gmt)[8]
   end
 
   def getlocal
