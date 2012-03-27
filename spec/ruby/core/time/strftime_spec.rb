@@ -118,6 +118,14 @@ describe "Time#strftime" do
     time.strftime('%j').should == '261'
   end
 
+  ruby_version_is "1.9" do
+    describe "with %L" do
+      it "formats the milliseconds of of the second" do
+        Time.local(2009, 1, 1, 0, 0, Rational(999, 1000)).strftime("%L").should == "999"
+      end
+    end
+  end
+
   it "returns the month with %m" do
     time = Time.local(2009, 9, 18, 12, 0, 0)
     time.strftime('%m').should == '09'
@@ -126,6 +134,30 @@ describe "Time#strftime" do
   it "returns the minute with %M" do
     time = Time.local(2009, 9, 18, 12, 6, 0)
     time.strftime('%M').should == '06'
+  end
+
+  ruby_version_is "1.9" do
+    describe "with %N" do
+      it "formats the nanoseconds of of the second with %N" do
+        Time.local(2009, 1, 1, 0, 0, Rational(999999999, 1000000000)).strftime("%N").should == "999999999"
+      end
+
+      it "formats the milliseconds of of the second with %3N" do
+        Time.local(2009, 1, 1, 0, 0, Rational(999, 1000)).strftime("%3N").should == "999"
+      end
+
+      it "formats the microseconds of of the second with %6N" do
+        Time.local(2009, 1, 1, 0, 0, Rational(999999, 1000000)).strftime("%6N").should == "999999"
+      end
+
+      it "formats the nanoseconds of of the second with %9N" do
+        Time.local(2009, 1, 1, 0, 0, Rational(999999999, 1000000000)).strftime("%9N").should == "999999999"
+      end
+
+      it "formats the picoseconds of of the second with %12N" do
+        Time.local(2009, 1, 1, 0, 0, Rational(999999999999, 1000000000000)).strftime("%12N").should == "999999999999"
+      end
+    end
   end
 
   it "returns the second with %S" do
