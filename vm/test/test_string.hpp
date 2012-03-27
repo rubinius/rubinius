@@ -206,6 +206,20 @@ public:
     ret = str->to_f(state, cFalse);
     TS_ASSERT(val->equal(state, ret));
 
+    str = String::create(state, "-Inf");
+    ret = str->to_f(state, cTrue);
+    TS_ASSERT_EQUALS(ret, cNil);
+    val = Float::create(state, 0.0);
+    ret = str->to_f(state, cFalse);
+    TS_ASSERT(val->equal(state, ret));
+
+    str = String::create(state, "Inf");
+    ret = str->to_f(state, cTrue);
+    TS_ASSERT_EQUALS(ret, cNil);
+    val = Float::create(state, 0.0);
+    ret = str->to_f(state, cFalse);
+    TS_ASSERT(val->equal(state, ret));
+
     str = String::create(state, "1.23e4");
     val = Float::create(state, 12300.0);
     ret = str->to_f(state);

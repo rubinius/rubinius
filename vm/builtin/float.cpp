@@ -131,7 +131,7 @@ namespace rubinius {
       }
     }
 
-    // Check for special values like +/-Infinity and NaN.
+    // Check for special values like +/-Inf[inity] and NaN.
     const char* svalue;
     bool special = true;
 
@@ -141,7 +141,7 @@ namespace rubinius {
     }
 
     if(*p == 'I' || *p == 'i') {
-      svalue = "infinity";
+      svalue = "inf";
     } else if(*p == 'N' || *p == 'n') {
       svalue = "nan";
     } else {
@@ -151,12 +151,13 @@ namespace rubinius {
     // The string just might be either Infinity or NaN.
     if(special) {
       // Case-insensitive string comparison for the special value.
-      do {
+      // Only check the next two characters.
+      while(*++svalue && *++p) {
         if(tolower(*p) != *svalue) {
           special = false;
           break;
         }
-      } while(*p++ && *svalue++);
+      }
 
       // Disallow if the string is indeed a special value.
       if(special) {
