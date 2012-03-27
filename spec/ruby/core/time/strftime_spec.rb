@@ -64,13 +64,6 @@ describe "Time#strftime" do
     now.strftime('%T').should == hhmmss
   end
 
-  it "supports timezone formatting with %z" do
-    with_timezone("UTC", 0) do
-      time = Time.utc(2005, 2, 21, 17, 44, 30)
-      time.strftime("%z").should == "+0000"
-    end
-  end
-
   it "supports 12-hr formatting with %l" do
     time = Time.local(2004, 8, 26, 22, 38, 3)
     time.strftime('%l').should == '10'
@@ -163,6 +156,48 @@ describe "Time#strftime" do
   it "returns the year with %Y" do
     time = Time.local(2009, 9, 18, 12, 0, 0)
     time.strftime('%Y').should == '2009'
+  end
+
+  describe "with %z" do
+    ruby_version_is "1.9" do
+      it "formats a UTC time offset as '+0000'" do
+        Time.utc(2005).strftime("%z").should == "+0000"
+      end
+    end
+
+    it "formats a local time with positive UTC offset as '+HHMM'" do
+      with_timezone("CET", 1) do
+        Time.local(2005).strftime("%z").should == "+0100"
+      end
+    end
+
+    it "formats a local time with negative UTC offset as '-HHMM'" do
+      with_timezone("PST", -8) do
+        Time.local(2005).strftime("%z").should == "-0800"
+      end
+    end
+
+    ruby_version_is "1.9" do
+      it "formats a time with fixed positive offset as '+HHMM'" do
+        Time.new(2012, 1, 1, 0, 0, 0, 3660).strftime("%z").should == "+0101"
+      end
+
+      it "formats a time with fixed negative offset as '-HHMM'" do
+        Time.new(2012, 1, 1, 0, 0, 0, -3660).strftime("%z").should == "-0101"
+      end
+
+      it "formats a time with fixed offset as '+/-HH:MM' with ':' specifier" do
+        Time.new(2012, 1, 1, 0, 0, 0, 3660).strftime("%:z").should == "+01:01"
+      end
+
+      it "formats a time with fixed offset as '+/-HH:MM:SS' with '::' specifier" do
+        Time.new(2012, 1, 1, 0, 0, 0, 3665).strftime("%::z").should == "+01:01:05"
+      end
+
+      it "rounds fixed offset to the nearest second" do
+        Time.new(2012, 1, 1, 0, 0, 0, Rational(36645, 10)).strftime("%::z").should == "+01:01:05"
+      end
+    end
   end
 
   it "returns the timezone with %Z" do
