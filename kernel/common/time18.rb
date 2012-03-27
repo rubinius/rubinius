@@ -111,4 +111,8 @@ class Time
       nil
     end
   end
+
+  def to_f
+    seconds + (usec * 0.000001)
+  end
 end

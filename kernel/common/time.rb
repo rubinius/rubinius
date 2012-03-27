@@ -195,10 +195,6 @@ class Time
 
   alias_method :to_i, :seconds
 
-  def to_f
-    seconds + (usec * 0.000001)
-  end
-
   def gmt_offset
     Rubinius.primitive :time_utc_offset
     raise PrimitiveFailure, "Time#gmt_offset failed"

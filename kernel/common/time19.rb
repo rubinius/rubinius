@@ -118,7 +118,11 @@ class Time
   end
 
   def to_r
-    to_f.to_r
+    (seconds + subsec).to_r
+  end
+
+  def to_f
+    to_r.to_f
   end
 
   def +(other)
