@@ -264,7 +264,7 @@ class Struct
 
   def each_pair
     return to_enum :each_pair unless block_given?
-    _attrs.map { |var| yield var, instance_variable_get(:"@#{var}") }
+    _attrs.each { |var| yield var, instance_variable_get(:"@#{var}") }
     self
   end
 
