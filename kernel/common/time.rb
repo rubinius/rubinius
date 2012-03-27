@@ -200,29 +200,8 @@ class Time
   end
 
   def gmt_offset
-    return 0 if @is_gmt
-    return @offset if @offset
-
-    other = dup.gmtime
-
-    if year != other.year
-      offset = year < other.year ? -1 : 1
-    elsif month != other.month
-      offset = month < other.month ? -1 : 1
-    elsif mday != other.mday
-      offset = mday < other.mday ? -1 : 1
-    else
-      offset = 0
-    end
-
-    offset *= 24
-    offset += hour - other.hour
-
-    offset *= 60
-    offset += min - other.min
-
-    offset *= 60
-    offset += sec - other.sec
+    Rubinius.primitive :time_utc_offset
+    raise PrimitiveFailure, "Time#gmt_offset failed"
   end
 
   def gmtime

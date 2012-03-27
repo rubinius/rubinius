@@ -62,11 +62,16 @@ namespace rubinius {
       return Integer::from(state, nanoseconds_);
     }
 
+    // Rubinius.primitive :time_utc_offset
+    Object* utc_offset(STATE);
+
     // Rubinius.primitive :time_decompose
     Array* calculate_decompose(STATE);
 
     // Rubinius.primitive :time_strftime
     String* strftime(STATE, String* format);
+
+    struct tm get_tm();
 
     class Info : public TypeInfo {
     public:

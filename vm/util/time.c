@@ -505,13 +505,12 @@ static inline int max(int a, int b) {
 /* strftime --- produce formatted time */
 
 size_t
-strftime_extended(char *s, size_t maxsize, const char *format, const struct tm *timeptr, const struct timespec *ts, int gmt)
+strftime_extended(char *s, size_t maxsize, const char *format, const struct tm *timeptr, const struct timespec *ts, int gmt, int off)
 {
 	char *endp = s + maxsize;
 	char *start = s;
 	const char *sp, *tp;
 	auto char tbuf[100];
-	long off;
 	int i, w;
 	long y;
 	static short first = 1;
@@ -529,7 +528,7 @@ strftime_extended(char *s, size_t maxsize, const char *format, const struct tm *
 #endif
 #endif /* HAVE_TM_NAME */
 #endif /* HAVE_TM_ZONE */
-	int precision, flags;
+	int precision, flags, colons;
 	char padding;
 	enum {LEFT, CHCASE, LOWER, UPPER, LOCALE_O, LOCALE_E};
 #define BIT_OF(n) (1U<<(n))
@@ -620,7 +619,7 @@ strftime_extended(char *s, size_t maxsize, const char *format, const struct tm *
 		} while (0)
 #define STRFTIME(fmt) \
 		do { \
-			i = strftime_extended(s, endp - s, fmt, timeptr, ts, gmt); \
+			i = strftime_extended(s, endp - s, fmt, timeptr, ts, gmt, off); \
 			if (!i) return 0; \
 			if (precision > i) {\
 				memmove(s + precision - i, s, i);\
@@ -639,6 +638,7 @@ strftime_extended(char *s, size_t maxsize, const char *format, const struct tm *
 		precision = -1;
 		flags = 0;
 		padding = 0;
+		colons = 0;
 	again:
 		switch (*++format) {
 		case '\0':
@@ -805,53 +805,25 @@ strftime_extended(char *s, size_t maxsize, const char *format, const struct tm *
 		 * us that muck around with various message processors.
 		 */
  		case 'z':	/* time zone offset east of GMT e.g. -0600 */
-			if (precision < 4) precision = 4;
-			NEEDS(precision + 1);
-			if (gmt) {
-				off = 0;
-			}
-			else {
-#ifdef HAVE_TM_NAME
-				/*
-				 * Systems with tm_name probably have tm_tzadj as
-				 * secs west of GMT.  Convert to mins east of GMT.
-				 */
-				off = -timeptr->tm_tzadj / 60;
-#else /* !HAVE_TM_NAME */
-#ifdef HAVE_TM_ZONE
-				/*
-				 * Systems with tm_zone probably have tm_gmtoff as
-				 * secs east of GMT.  Convert to mins east of GMT.
-				 */
-#ifdef HAVE_TM_GMTOFF
-        off = timeptr->tm_gmtoff / 60;
-#else
-        off = _timezone / 60;
-#endif
-#else /* !HAVE_TM_ZONE */
-#if HAVE_VAR_TIMEZONE
-#if HAVE_VAR_ALTZONE
-				off = -(daylight ? timezone : altzone) / 60;
-#else
-				off = -timezone / 60;
-#endif
-#else /* !HAVE_VAR_TIMEZONE */
-#ifdef HAVE_GETTIMEOFDAY
-				gettimeofday(&tv, &zone);
-				off = -zone.tz_minuteswest;
-#else
-				/* no timezone info, then calc by myself */
-				{
-					struct tm utc;
-					time_t now;
-					time(&now);
-					utc = *gmtime(&now);
-					off = (now - mktime(&utc)) / 60;
-				}
-#endif
-#endif /* !HAVE_VAR_TIMEZONE */
-#endif /* !HAVE_TM_ZONE */
-#endif /* !HAVE_TM_NAME */
+			switch (colons) {
+				case 0: /* %z -> +hhmm */
+					precision = precision <= 5 ? 2 : precision-3;
+					NEEDS(precision + 3);
+					break;
+
+				case 1: /* %:z -> +hh:mm */
+					precision = precision <= 6 ? 2 : precision-4;
+					NEEDS(precision + 4);
+					break;
+
+				case 2: /* %::z -> +hh:mm:ss */
+					precision = precision <= 9 ? 2 : precision-7;
+					NEEDS(precision + 7);
+					break;
+
+				default:
+					format--;
+					goto unknown;
 			}
 			if (off < 0) {
 				off = -off;
@@ -859,11 +831,22 @@ strftime_extended(char *s, size_t maxsize, const char *format, const struct tm *
 			} else {
 				*s++ = '+';
 			}
-			off = off/60*100 + off%60;
-			i = snprintf(s, endp - s, (padding == ' ' ? "%*ld" : "%.*ld"),
-				     precision - (precision > 4), off);
+			i = snprintf(s, endp - s, (padding == ' ' ? "%*d" : "%.*d"), precision, off / 3600);
 			if (i < 0) goto err;
 			s += i;
+			off = off % 3600;
+			if (1 <= colons)
+				*s++ = ':';
+			i = snprintf(s, endp - s, "%02d", off / 60);
+			if (i < 0) goto err;
+			s += i;
+			off = off % 60;
+			if (2 <= colons) {
+				*s++ = ':';
+				i = snprintf(s, endp - s, "%02d", off);
+				if (i < 0) goto err;
+			  s += i;
+			}
 			continue;
 #endif /* MAILHEADER_EXT */
 
@@ -1084,6 +1067,11 @@ strftime_extended(char *s, size_t maxsize, const char *format, const struct tm *
 		case '_':
 			FLAG_FOUND();
 			padding = ' ';
+			goto again;
+
+		case ':':
+			FLAG_FOUND();
+			colons++;
 			goto again;
 
 		case '0':

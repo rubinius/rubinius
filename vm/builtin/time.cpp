@@ -174,9 +174,7 @@ namespace rubinius {
     return tm;
   }
 
-  Array* Time::calculate_decompose(STATE) {
-    if(!decomposed_->nil_p()) return decomposed_;
-
+  struct tm Time::get_tm() {
     time_t seconds = seconds_;
     struct tm tm = {0};
 
@@ -189,6 +187,62 @@ namespace rubinius {
       tzset();
       localtime_r(&seconds, &tm);
     }
+
+    return tm;
+  }
+
+  Object* Time::utc_offset(STATE) {
+    if(CBOOL(is_gmt_)) {
+      return Fixnum::from(0);
+    } else if(!offset_->nil_p()) {
+      return offset_;
+    }
+
+    native_int off;
+
+#ifdef HAVE_TM_NAME
+    struct tm tm = get_tm();
+    off = -tm.tm_tzadj;
+#else /* !HAVE_TM_NAME */
+#ifdef HAVE_TM_ZONE
+#ifdef HAVE_TM_GMTOFF
+    struct tm tm = get_tm();
+    off = tm.tm_gmtoff;
+#else
+    off = _timezone;
+#endif
+#else /* !HAVE_TM_ZONE */
+#if HAVE_VAR_TIMEZONE
+#if HAVE_VAR_ALTZONE
+    off = -(daylight ? timezone : altzone);
+#else
+    off = -timezone;
+#endif
+#else /* !HAVE_VAR_TIMEZONE */
+#ifdef HAVE_GETTIMEOFDAY
+    gettimeofday(&tv, &zone);
+    off = -zone.tz_minuteswest * 60;
+#else
+    /* no timezone info, then calc by myself */
+    {
+      struct tm utc;
+      time_t now;
+      time(&now);
+      utc = *gmtime(&now);
+      off = (now - mktime(&utc));
+    }
+#endif
+#endif /* !HAVE_VAR_TIMEZONE */
+#endif /* !HAVE_TM_ZONE */
+#endif /* !HAVE_TM_NAME */
+
+    return Fixnum::from(off);
+  }
+
+  Array* Time::calculate_decompose(STATE) {
+    if(!decomposed_->nil_p()) return decomposed_;
+
+    struct tm tm = get_tm();
 
     /* update Time::TM_FIELDS when changing order of fields */
     Array* ary = Array::create(state, 11);
@@ -217,24 +271,18 @@ namespace rubinius {
 #define MAX_STRFTIME_OUTPUT 128
 
   String* Time::strftime(STATE, String* format) {
-    struct tm tm;
-    char str[MAX_STRFTIME_OUTPUT];
-    int is_gmt = 0;
+    struct tm tm = get_tm();
+    struct timespec ts = { seconds_, 0 };
 
-    time_t seconds = seconds_;
-
-    if(CBOOL(is_gmt_)) {
-      is_gmt = 1;
-      gmtime_r(&seconds, &tm);
-    } else {
-      tzset();
-      localtime_r(&seconds, &tm);
+    int off = 0;
+    if(Fixnum* offset = try_as<Fixnum>(utc_offset(state))) {
+      off = offset->to_int();
     }
 
-    struct timespec ts = { seconds, 0 };
+    char str[MAX_STRFTIME_OUTPUT];
 
     size_t chars = ::strftime_extended(str, MAX_STRFTIME_OUTPUT,
-                       format->c_str(state), &tm, &ts, is_gmt);
+                       format->c_str(state), &tm, &ts, CBOOL(is_gmt_) ? 1 : 0, off);
     str[MAX_STRFTIME_OUTPUT-1] = 0;
 
     return String::create(state, str, chars);
