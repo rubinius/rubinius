@@ -606,7 +606,7 @@ module Rubinius
 
     def send_with_splat(meth, args, priv=false, concat=false)
       val = 0
-      val |= CALL_FLAG_CONCAT  if concat
+      val |= CALL_FLAG_CONCAT if concat
       set_call_flags val unless val == 0
 
       allow_private if priv
