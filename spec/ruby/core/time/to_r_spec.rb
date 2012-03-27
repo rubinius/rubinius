@@ -2,12 +2,12 @@ require File.expand_path('../../../spec_helper', __FILE__)
 
 describe "Time#to_r" do
   ruby_version_is "1.9" do
-    it "returns the rational number of seconds + usecs since the epoch" do
-      Time.at(1.1).to_r.should == 1.1.to_r
+    it "returns the a Rational representing seconds and subseconds since the epoch" do
+      Time.at(Rational(11, 10)).to_r.should eql(Rational(11, 10))
     end
 
-    it "returns the numerator of the rational number when the denominator is 1" do
-      Time.at(2).to_r.should == 2
+    it "returns a Rational even for a whole number of seconds" do
+      Time.at(2).to_r.should eql(Rational(2))
     end
   end
 end
