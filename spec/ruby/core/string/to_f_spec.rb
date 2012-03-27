@@ -20,6 +20,8 @@ describe "String#to_f" do
     "NaN".to_f.should eql(0.0)
     "Infinity".to_f.should eql(0.0)
     "-Infinity".to_f.should eql(0.0)
+    "Inf".to_f.should eql(0.0)
+    "-Inf".to_f.should eql(0.0)
   end
 
   it "allows for varying case" do
