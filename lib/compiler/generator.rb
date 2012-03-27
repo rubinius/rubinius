@@ -4,7 +4,6 @@ module Rubinius
   class Generator
     include GeneratorMethods
 
-    CALL_FLAG_PRIVATE = 1
     CALL_FLAG_CONCAT = 2
 
     ##
