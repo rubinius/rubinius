@@ -6,8 +6,8 @@ module Rubinius
       StringValue(obj)
     end
 
-    def self.coerce_to_float(obj)
-      Float(obj)
+    def self.coerce_to_float_for_numeric(obj)
+      coerce_to_float(obj, true)
     end
 
     def self.coerce_to_symbol(obj)

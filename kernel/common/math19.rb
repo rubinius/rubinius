@@ -28,11 +28,11 @@ module Math
   ]
 
   def cbrt(x)
-    x = Rubinius::Type.coerce_to_float x
+    x = Rubinius::Type.coerce_to_float_for_numeric x
   end
 
   def gamma(x)
-    x = Rubinius::Type.coerce_to_float x
+    x = Rubinius::Type.coerce_to_float_for_numeric x
 
     return Float::INFINITY if x == 0.0
     return Float::NAN if x.nan?
@@ -57,7 +57,7 @@ module Math
   end
 
   def lgamma(x)
-    x = Rubinius::Type.coerce_to_float x
+    x = Rubinius::Type.coerce_to_float_for_numeric x
 
     if sign = x.infinite?
       raise DomainError, "lgamma" if sign == -1
@@ -72,12 +72,12 @@ module Math
   end
 
   def log(x, base=undefined)
-    x = Rubinius::Type.coerce_to_float x
+    x = Rubinius::Type.coerce_to_float_for_numeric x
     raise DomainError, 'log' unless x >= 0.0
     return -Float::INFINITY if x == 0.0
     y = FFI::Platform::Math.log x
     unless base.equal? undefined
-      base = Rubinius::Type.coerce_to_float base
+      base = Rubinius::Type.coerce_to_float_for_numeric base
       y /= log(base)
     end
     y

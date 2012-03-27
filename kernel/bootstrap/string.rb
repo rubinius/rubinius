@@ -10,7 +10,7 @@ class String
   end
 
   def to_f
-    to_dbl(false)
+    Rubinius::Type::coerce_to_float self
   end
 
   alias_method :convert_float, :to_f
@@ -129,10 +129,5 @@ class String
   def resize_capacity(count)
     Rubinius.primitive :string_resize_capacity
     raise PrimitiveFailure, "String#resize_capacity failed"
-  end
-
-  def to_dbl(strict)
-    Rubinius.primitive :string_to_dbl
-    raise ArgumentError, "invalid value for Float"
   end
 end

@@ -906,21 +906,11 @@ namespace rubinius {
   Float* String::to_f(STATE, Object* strict) {
     const char* str = c_str(state);
 
-    if(strict == cTrue) {
-      if(byte_size() > (native_int)strlen(str)) return nil<Float>();
+    if(strict == cTrue && byte_size() > (native_int)strlen(str)) {
+      return nil<Float>();
     }
 
     return Float::from_cstr(state, str, strict);
-  }
-
-  Float* String::to_dbl_prim(STATE, Object* strict) {
-    Float* value = String::to_f(state, strict);
-
-    if(value->nil_p()) {
-      return (Float*)Primitives::failure();
-    }
-
-    return value;
   }
 
   // Character-wise logical AND of two strings. Modifies the receiver.

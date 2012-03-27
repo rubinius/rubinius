@@ -220,7 +220,7 @@ module Kernel
     when Float
       obj
     when String
-      obj.to_dbl(true)
+      Rubinius::Type.coerce_to_float(obj, true)
     else
       Rubinius::Type.coerce_to(obj, Float, :to_f)
     end

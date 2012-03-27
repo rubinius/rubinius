@@ -132,7 +132,7 @@ module Kernel
     when Float
       obj
     when String
-      obj.to_dbl(true)
+      Rubinius::Type.coerce_to_float(obj, true)
     else
       coerced_value = Rubinius::Type.coerce_to(obj, Float, :to_f)
       if coerced_value.nan?
