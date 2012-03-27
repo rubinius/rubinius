@@ -272,7 +272,10 @@ namespace rubinius {
 
   String* Time::strftime(STATE, String* format) {
     struct tm tm = get_tm();
-    struct timespec ts = { seconds_, 0 };
+
+    struct timespec ts;
+    ts.tv_sec = seconds_;
+    ts.tv_nsec = nanoseconds_;
 
     int off = 0;
     if(Fixnum* offset = try_as<Fixnum>(utc_offset(state))) {
