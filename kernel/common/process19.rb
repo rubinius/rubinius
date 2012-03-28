@@ -18,10 +18,8 @@ module Process
 
     return 0
   end
-end
 
-module Kernel
-  def exec(environment_or_cmd, *args)
+  def self.exec(environment_or_cmd, *args)
     if environment_or_cmd.kind_of? Hash
       environment_or_cmd.each do |key, value|
         ENV[key] = value
@@ -55,5 +53,4 @@ module Kernel
       Process.perform_exec prog, argv
     end
   end
-  module_function :exec
 end

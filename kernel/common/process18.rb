@@ -1,5 +1,5 @@
-module Kernel
-  def exec(cmd, *args)
+module Process
+  def self.exec(cmd, *args)
     if args.empty? and cmd.kind_of? String
       raise Errno::ENOENT if cmd.empty?
       if /([*?{}\[\]<>()~&|$;'`"\n\s]|[^\w-])/o.match(cmd)
@@ -23,5 +23,4 @@ module Kernel
       Process.perform_exec prog, argv
     end
   end
-  module_function :exec
 end
