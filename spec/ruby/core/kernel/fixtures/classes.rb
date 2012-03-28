@@ -18,17 +18,7 @@ module KernelSpecs
   end
 
   class Method
-    def exit(*args)
-      super
-    end
-
-    def exit!(*args)
-      super
-    end
-
-    def abort(*msg)
-      super
-    end
+    public :abort, :exec, :exit, :exit!
   end
 
   class Methods
