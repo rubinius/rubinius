@@ -121,10 +121,16 @@ namespace rubinius {
     const static object_type type = ConverterType;
 
   private:
-    String* replacement_; // slot
+    Encoding* source_encoding_;       // slot
+    Encoding* destination_encoding_;  // slot
+    String* replacement_;             // slot
+    Array* convpath_;                 // slot
 
   public:
+    attr_accessor(source_encoding, Encoding);
+    attr_accessor(destination_encoding, Encoding);
     attr_accessor(replacement, String);
+    attr_accessor(convpath, Array);
 
     static void init(STATE);
 

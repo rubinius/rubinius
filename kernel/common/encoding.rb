@@ -24,7 +24,15 @@ class Encoding
   end
 
   class Converter
-    def initialize(from, to, options={})
+    attr_accessor :source_encoding
+    attr_accessor :destination_encoding
+    attr_accessor :replacement
+    attr_accessor :convpath
+
+    def initialize(from, to, options=undefined)
+      @source_encoding = Rubinius::Type.coerce_to_encoding from
+      @destination_encoding = Rubinius::Type.coerce_to_encoding to
+
     end
 
     def convert(str)
