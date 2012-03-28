@@ -74,7 +74,6 @@ module Kernel
   module_function :exit!
 
   def abort(msg=nil)
-    msg = StringValue(msg) if msg
     Process.abort msg
   end
   module_function :abort

@@ -143,7 +143,10 @@ module Process
   end
 
   def self.abort(msg=nil)
-    $stderr.puts(msg) if msg
+    if msg
+      msg = StringValue(msg)
+      $stderr.puts(msg)
+    end
     raise SystemExit.new(1, msg)
   end
 
