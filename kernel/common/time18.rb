@@ -1,6 +1,10 @@
 # -*- encoding: us-ascii -*-
 
 class Time
+  def self.times
+    Process.times
+  end
+
   def self.at(sec, usec=undefined)
     if !usec.equal?(undefined)
       sec  = Rubinius::Type.coerce_to(sec,  Integer, :to_int)

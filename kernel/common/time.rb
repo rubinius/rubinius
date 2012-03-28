@@ -137,10 +137,6 @@ class Time
     compose(:utc, *args)
   end
 
-  def self.times
-    Process.times
-  end
-
   def succ
     self + 1
   end
