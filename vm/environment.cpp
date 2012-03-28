@@ -327,7 +327,7 @@ namespace rubinius {
       char *s = b + strlen(rbxopt);
 
       while(b < s) {
-        while(*b && isspace(*b)) s++;
+        while(*b && isspace(*b)) b++;
 
         e = b;
         while(*e && !isspace(*e)) e++;
