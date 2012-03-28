@@ -259,13 +259,12 @@ extern "C" {
 
     VMMethod* vmm = call_frame->cm->backend_method();
     GCTokenImpl gct;
-    return BlockEnvironment::under_call_frame(state, gct, cm, vmm,
-                                              call_frame, index);
+    return BlockEnvironment::under_call_frame(state, gct, cm, vmm, call_frame);
 
     CPP_CATCH
   }
 
-  Object* rbx_create_block_multi(STATE, CompiledMethod* cm, int index, int count, ...) {
+  Object* rbx_create_block_multi(STATE, CompiledMethod* cm, int count, ...) {
     va_list ap;
 
     CallFrame* closest = 0;
@@ -292,7 +291,7 @@ extern "C" {
 
     VMMethod* vmm = closest->cm->backend_method();
     GCTokenImpl gct;
-    return BlockEnvironment::under_call_frame(state, gct, cm, vmm, closest, index);
+    return BlockEnvironment::under_call_frame(state, gct, cm, vmm, closest);
   }
 
   Object* rbx_promote_variables(STATE, CallFrame* call_frame) {

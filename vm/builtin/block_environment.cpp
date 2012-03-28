@@ -401,7 +401,7 @@ namespace rubinius {
 
   BlockEnvironment* BlockEnvironment::under_call_frame(STATE, GCToken gct,
       CompiledMethod* cm, VMMethod* caller,
-      CallFrame* call_frame, size_t index)
+      CallFrame* call_frame)
   {
     OnStack<1> os(state, cm);
 

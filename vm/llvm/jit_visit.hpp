@@ -1620,7 +1620,6 @@ namespace rubinius {
       if(in_inlined_block()) {
         types.push_back(ObjType);
         types.push_back(ls_->Int32Ty);
-        types.push_back(ls_->Int32Ty);
 
         FunctionType* ft = FunctionType::get(ObjType, types, true);
         Function* func = cast<Function>(
@@ -1629,7 +1628,6 @@ namespace rubinius {
         std::vector<Value*> call_args;
         call_args.push_back(vm_);
         call_args.push_back(get_literal(which));
-        call_args.push_back(cint(which));
 
         std::vector<JITMethodInfo*> mis;
 
