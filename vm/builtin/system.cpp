@@ -192,8 +192,9 @@ namespace rubinius {
     argv[argc] = NULL;
 
     for(size_t i = 0; i < argc; i++) {
-      /* strdup should be OK. Trying to exec with strings containing NUL == bad. --rue */
-      argv[i] = strdup(as<String>(args->get(state, i))->c_str_null_safe(state));
+      // POSIX guarantees that execvp does not modify the characters to which the argv
+      // pointers point, despite the argument not being declared as const char *const[].
+      argv[i] = const_cast<char*>(as<String>(args->get(state, i))->c_str_null_safe(state));
     }
 
     // Some system (darwin) don't let execvp work if there is more
