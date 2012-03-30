@@ -268,8 +268,6 @@ namespace rubinius {
     return ary;
   }
 
-#define MAX_STRFTIME_OUTPUT 128
-
   String* Time::strftime(STATE, String* format) {
     struct tm tm = get_tm();
 
@@ -282,12 +280,18 @@ namespace rubinius {
       off = offset->to_int();
     }
 
-    char str[MAX_STRFTIME_OUTPUT];
+    // We can't foresee the size needed so we allocate 1024 bytes for each byte
+    // in the format string, just like in MRI.
+    char* str = (char*)malloc(format->byte_size()*1024);
 
-    size_t chars = ::strftime_extended(str, MAX_STRFTIME_OUTPUT,
-                       format->c_str(state), &tm, &ts, CBOOL(is_gmt_) ? 1 : 0, off);
-    str[MAX_STRFTIME_OUTPUT-1] = 0;
+    size_t chars = ::strftime_extended(str, format->byte_size()*1024,
+                       format->c_str(state), &tm, &ts, CBOOL(is_gmt_) ? 1 : 0,
+                       off);
 
-    return String::create(state, str, chars);
+    String* result = String::create(state, str, chars);
+
+    free(str);
+
+    return result;
   }
 }
