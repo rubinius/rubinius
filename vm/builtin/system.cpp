@@ -180,7 +180,6 @@ namespace rubinius {
     return obj;
   }
 
-  /* @todo Improve error messages */
   Object* System::vm_exec(STATE, String* path, Array* args) {
 
     const char* c_path = path->c_str_null_safe(state);
@@ -233,6 +232,7 @@ namespace rubinius {
     }
 
     (void)::execvp(c_path, argv);
+    int erno = errno;
 
     // Hmmm, execvp failed, we need to recover here.
 
@@ -259,7 +259,7 @@ namespace rubinius {
     }
 
     /* execvp() returning means it failed. */
-    Exception::errno_error(state, "execvp(2) failed");
+    Exception::errno_error(state, "execvp(2) failed", erno);
     return NULL;
   }
 
