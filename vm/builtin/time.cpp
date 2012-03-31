@@ -268,6 +268,8 @@ namespace rubinius {
     return ary;
   }
 
+#define STRFTIME_OUTPUT_BUF 128
+
   String* Time::strftime(STATE, String* format) {
     struct tm tm = get_tm();
 
@@ -280,13 +282,21 @@ namespace rubinius {
       off = offset->to_int();
     }
 
-    // We can't foresee the size needed so we allocate 1024 bytes for each byte
-    // in the format string, just like in MRI.
-    char* str = (char*)malloc(format->byte_size()*1024);
+    size_t buf_size = STRFTIME_OUTPUT_BUF;
+    char* str = (char*)malloc(buf_size);
 
-    size_t chars = ::strftime_extended(str, format->byte_size()*1024,
+    size_t chars = ::strftime_extended(str, buf_size,
                        format->c_str(state), &tm, &ts, CBOOL(is_gmt_) ? 1 : 0,
                        off);
+
+    while (chars == 0 && format->byte_size() > 0) {
+      buf_size *= 2;
+      str = (char*)realloc(str, buf_size);
+
+      chars = ::strftime_extended(str, buf_size,
+                  format->c_str(state), &tm, &ts, CBOOL(is_gmt_) ? 1 : 0,
+                  off);
+    }
 
     String* result = String::create(state, str, chars);
 
