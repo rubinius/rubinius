@@ -249,15 +249,15 @@ Object* const cUndef = reinterpret_cast<Object*>(0x22L);
       return flags_;
     }
 
-    InflatedHeader* next() {
+    InflatedHeader* next() const {
       return next_;
     }
 
-    ObjectHeader* object() {
+    ObjectHeader* object() const {
       return object_;
     }
 
-    uint32_t object_id() {
+    uint32_t object_id() const {
       return object_id_;
     }
 
@@ -278,7 +278,7 @@ Object* const cUndef = reinterpret_cast<Object*>(0x22L);
       owner_id_ = 0;
     }
 
-    bool used_p() {
+    bool used_p() const {
       return object_ != 0;
     }
 
@@ -291,7 +291,7 @@ Object* const cUndef = reinterpret_cast<Object*>(0x22L);
       return flags_.Marked == which;
     }
 
-    capi::Handle* handle() {
+    capi::Handle* handle() const {
       return handle_;
     }
 
@@ -456,7 +456,7 @@ Object* const cUndef = reinterpret_cast<Object*>(0x22L);
       }
     }
 
-    size_t body_in_bytes(VM* state) {
+    size_t body_in_bytes(VM* state) const {
       return size_in_bytes(state) - sizeof(ObjectHeader);
     }
 
@@ -484,15 +484,15 @@ Object* const cUndef = reinterpret_cast<Object*>(0x22L);
       flags().Forwarded = 0;
     }
 
-    Object* forward() {
+    Object* forward() const {
       return ivars_;
     }
 
-    Object* ivars() {
+    Object* ivars() const {
       return ivars_;
     }
 
-    Class* reference_class() {
+    Class* reference_class() const {
       return klass_;
     }
 
@@ -529,7 +529,7 @@ Object* const cUndef = reinterpret_cast<Object*>(0x22L);
       flags().Marked = which;
     }
 
-    int which_mark() {
+    int which_mark() const {
       return flags().Marked;
     }
 
@@ -537,7 +537,7 @@ Object* const cUndef = reinterpret_cast<Object*>(0x22L);
       flags().Marked = 0;
     }
 
-    bool pinned_p() {
+    bool pinned_p() const {
       return flags().Pinned == 1;
     }
 
@@ -553,7 +553,7 @@ Object* const cUndef = reinterpret_cast<Object*>(0x22L);
       flags().Pinned = 0;
     }
 
-    bool in_immix_p() {
+    bool in_immix_p() const {
       return flags().InImmix == 1;
     }
 
@@ -561,7 +561,7 @@ Object* const cUndef = reinterpret_cast<Object*>(0x22L);
       flags().InImmix = 1;
     }
 
-    bool remembered_p() {
+    bool remembered_p() const {
       return flags().Remember == 1;
     }
 
@@ -573,7 +573,7 @@ Object* const cUndef = reinterpret_cast<Object*>(0x22L);
       flags().Remember = 0;
     }
 
-    bool is_frozen_p() {
+    bool is_frozen_p() const {
       return flags().Frozen == 1;
     }
 
@@ -581,7 +581,7 @@ Object* const cUndef = reinterpret_cast<Object*>(0x22L);
       flags().Frozen = val;
     }
 
-    bool is_tainted_p() {
+    bool is_tainted_p() const {
       if(reference_p()) {
         return flags().Tainted == 1;
       }
@@ -592,7 +592,7 @@ Object* const cUndef = reinterpret_cast<Object*>(0x22L);
       flags().Tainted = val;
     }
 
-    bool is_untrusted_p() {
+    bool is_untrusted_p() const {
       if(reference_p()) {
         return flags().Untrusted == 1;
       }

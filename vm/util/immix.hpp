@@ -223,7 +223,7 @@ namespace immix {
      * This is not the same as the start of the Block, as the Block maintains
      * some metadata (i.e. a BlockHeader) in the first line.
      */
-    Address first_address() {
+    Address first_address() const {
       return address_ + cLineSize; // skip line 0
     }
 
@@ -280,7 +280,7 @@ namespace immix {
     /**
      * Returns true if +line+ is currently free.
      */
-    bool is_line_free(int line) {
+    bool is_line_free(int line) const {
       return lines_[line] == 0;
     }
 
@@ -288,7 +288,7 @@ namespace immix {
      * Returns the offset in bytes from the start of the block to the start of
      * the specified +line+.
      */
-    int offset_of_line(int line) {
+    int offset_of_line(int line) const {
       return line * cLineSize;
     }
 
@@ -388,21 +388,21 @@ namespace immix {
      * unavailable. This differs from object_bytes in that it includes the
      * cost of wasted bytes in lines that are only partially filled.
      */
-    int bytes_from_lines() {
+    int bytes_from_lines() const {
       return lines_used_ * cLineSize;
     }
 
     /**
      * Returns true if the Block has free space available for allocations.
      */
-    bool usable() {
+    bool usable() const {
       return status_ == cFree || status_ == cRecyclable;
     }
 
     /**
      * Returns the status of the block as a string.
      */
-    const char* status_string() {
+    const char* status_string() const {
       switch(status_) {
       case cFree:
         return "free";
@@ -423,7 +423,7 @@ namespace immix {
      * likelihood of wasted space on lines that are marked in use but not
      * fully occupied.
      */
-    double fragmentation_ratio() {
+    double fragmentation_ratio() const {
       // We subtract the size of the first line because thats not data available to
       // use for objects, so we shouldn't count it.
       return ((double)object_bytes_) / ((double)(cBlockSize - cLineSize));
@@ -486,15 +486,15 @@ namespace immix {
       vfree(system_base_, system_size_);
     }
 
-    Address base() {
+    Address base() const {
       return base_;
     }
 
-    std::size_t size() {
+    std::size_t size() const {
       return system_size_;
     }
 
-    Address last_address() {
+    Address last_address() const {
       return system_base_ + system_size_;
     }
 
@@ -534,7 +534,7 @@ namespace immix {
     /**
      * Returns true if this Chunk contains the specified +addr+ Address.
      */
-    bool contains_address(Address addr) {
+    bool contains_address(Address addr) const {
       return addr > base_ && addr <= last_address();
     }
   };
@@ -771,14 +771,14 @@ namespace immix {
     /**
      * Returns the next available address from which allocations can be made.
      */
-    Address cursor() {
+    Address cursor() const {
       return cursor_;
     }
 
     /**
      * Returns the first non-free byte past the current cursor position.
      */
-    Address limit() {
+    Address limit() const {
       return limit_;
     }
 
@@ -786,7 +786,7 @@ namespace immix {
      * Returns the current line the seach is at.
      * Used for testing.
      */
-    int hole_start_line() {
+    int hole_start_line() const {
       return hole_start_line_;
     }
 
