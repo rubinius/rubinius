@@ -85,7 +85,7 @@ namespace rubinius {
       str++;
     }
 
-    char* buffer = (char*)malloc(strlen(str));
+    char* buffer = (char*)malloc(strlen(str) + 1);
     char* p = buffer;
     char prev = '\0';
 
