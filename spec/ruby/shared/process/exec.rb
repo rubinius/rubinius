@@ -52,5 +52,9 @@ describe :process_exec, :shared => true do
     it "passes environment vars to the child environment" do
       ruby_exe('exec({"FOO" => "BAR"}, "echo $FOO")', :escape => true).should == "BAR\n"
     end
+
+    it "coerces environment argument using to_hash" do
+      ruby_exe('o = Object.new; def o.to_hash; {"FOO" => "BAR"}; end; exec(o, "echo $FOO")', :escape => true).should == "BAR\n"
+    end
   end
 end
