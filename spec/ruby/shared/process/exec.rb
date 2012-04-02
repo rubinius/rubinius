@@ -16,14 +16,12 @@ describe :process_exec, :shared => true do
   end
 
   it "runs the specified command, replacing current process" do
-    result = `#{RUBY_EXE} -e 'exec "echo hello"; puts "fail"'`
-    result.should == "hello\n"
+    ruby_exe('exec "echo hello"; puts "fail"', :escape => true).should == "hello\n"
   end
 
   ruby_version_is "1.9.2" do
     it "passes environment vars to the child environment" do
-      result = `#{RUBY_EXE} -e 'exec({"FOO" => "BAR"}, "echo $FOO"); puts "fail"'`
-      result.should == "BAR\n"
+      ruby_exe('exec({"FOO" => "BAR"}, "echo $FOO")', :escape => true).should == "BAR\n"
     end
   end
 
