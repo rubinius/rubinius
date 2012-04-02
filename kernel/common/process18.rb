@@ -9,9 +9,10 @@ module Process
         Process.perform_exec args.first, args
       end
     else
-      if cmd.kind_of? Array
-        prog = cmd[0]
-        name = cmd[1]
+      if ary = Rubinius::Type.try_convert(cmd, Array, :to_ary)
+        raise ArgumentError, "wrong first argument" unless ary.size == 2
+        prog = ary[0]
+        name = ary[1]
       else
         name = prog = cmd
       end
