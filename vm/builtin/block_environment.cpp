@@ -259,7 +259,7 @@ namespace rubinius {
                             BlockEnvironment* env, Arguments& args,
                             BlockInvocation& invocation)
   {
-    // Don't use env->vmmethod() because it mighc lock and the work should already
+    // Don't use env->vmmethod() because it might lock and the work should already
     // be done.
     VMMethod* const vmm = env->code_->backend_method();
 
