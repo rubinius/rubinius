@@ -105,6 +105,7 @@ describe "#resolve_ruby_exe" do
     @script.should_receive(:ruby_exe_options).and_return(@name)
     File.should_receive(:exists?).with(@name).and_return(true)
     File.should_receive(:executable?).with(@name).and_return(true)
+    File.should_receive(:expand_path).with(@name).and_return(@name)
     @script.resolve_ruby_exe.should == @name
   end
 
@@ -113,7 +114,17 @@ describe "#resolve_ruby_exe" do
     @script.should_receive(:ruby_exe_options).and_return(@name)
     File.should_receive(:exists?).with(@name).and_return(true)
     File.should_not_receive(:executable?)
+    File.should_receive(:expand_path).with(@name).and_return(@name)
     @script.resolve_ruby_exe.should == @name
+  end
+
+  it "expands the path portion of the result of #ruby_exe_options" do
+    PlatformGuard.stub!(:windows?).and_return(false)
+    @script.should_receive(:ruby_exe_options).and_return("#{@name} -Xfoo")
+    File.should_receive(:exists?).with(@name).and_return(true)
+    File.should_receive(:executable?).with(@name).and_return(true)
+    File.should_receive(:expand_path).with(@name).and_return("/usr/bin/#{@name}")
+    @script.resolve_ruby_exe.should == "/usr/bin/#{@name} -Xfoo"
   end
 
   it "returns nil if no exe is found" do
@@ -175,6 +186,13 @@ describe Object, "#ruby_exe" do
   it "executes with options and arguments but without code or file" do
     @script.should_receive(:`).with("ruby_spec_exe -w -Q -c > file.txt")
     @script.ruby_exe nil, :options => "-c", :args => "> file.txt"
+  end
+
+  describe "with :dir option" do
+    it "executes the command in the given working directory" do
+      Dir.should_receive(:chdir).with("tmp")
+      @script.ruby_exe nil, :dir => "tmp"
+    end
   end
 
   describe "with :env option" do
