@@ -141,7 +141,7 @@ namespace rubinius {
           ops_.setup_out_args(count_);
 
           std::vector<Type*> ftypes;
-          ftypes.push_back(ops_.state()->ptr_type("VM"));
+          ftypes.push_back(ops_.state()->ptr_type("State"));
           ftypes.push_back(ops_.state()->ptr_type("CallFrame"));
           ftypes.push_back(ops_.state()->ptr_type("Executable"));
           ftypes.push_back(ops_.state()->ptr_type("Module"));
@@ -431,7 +431,7 @@ remember:
       ops_.set_object_slot(self, offset, val);
     } else {
       Signature sig2(ops_.state(), "Object");
-      sig2 << "VM";
+      sig2 << "State";
       sig2 << "CallFrame";
       sig2 << "Object";
       sig2 << "Object";
@@ -515,7 +515,7 @@ remember:
 
       if(!ivar) {
         Signature sig2(ops_.state(), "Object");
-        sig2 << "VM";
+        sig2 << "State";
         sig2 << "Object";
         sig2 << "Object";
 
@@ -739,7 +739,7 @@ remember:
       case RBX_FFI_TYPE_LONG:
       case RBX_FFI_TYPE_ULONG: {
         Signature sig(ops_.state(), ops_.NativeIntTy);
-        sig << "VM";
+        sig << "State";
         sig << "Object";
         sig << llvm::PointerType::getUnqual(ops_.state()->Int1Ty);
 
@@ -766,7 +766,7 @@ remember:
 
       case RBX_FFI_TYPE_FLOAT: {
         Signature sig(ops_.state(), ops_.state()->FloatTy);
-        sig << "VM";
+        sig << "State";
         sig << "Object";
         sig << llvm::PointerType::getUnqual(ops_.state()->Int1Ty);
 
@@ -787,7 +787,7 @@ remember:
 
       case RBX_FFI_TYPE_DOUBLE: {
         Signature sig(ops_.state(), ops_.state()->DoubleTy);
-        sig << "VM";
+        sig << "State";
         sig << "Object";
         sig << llvm::PointerType::getUnqual(ops_.state()->Int1Ty);
 
@@ -809,7 +809,7 @@ remember:
       case RBX_FFI_TYPE_LONG_LONG:
       case RBX_FFI_TYPE_ULONG_LONG: {
         Signature sig(ops_.state(), ops_.state()->Int64Ty);
-        sig << "VM";
+        sig << "State";
         sig << "Object";
         sig << llvm::PointerType::getUnqual(ops_.state()->Int1Ty);
 
@@ -842,7 +842,7 @@ remember:
         Type* type = llvm::PointerType::getUnqual(ops_.state()->Int8Ty);
 
         Signature sig(ops_.state(), type);
-        sig << "VM";
+        sig << "State";
         sig << "Object";
         sig << llvm::PointerType::getUnqual(ops_.state()->Int1Ty);
 
@@ -865,7 +865,7 @@ remember:
         Type* type = llvm::PointerType::getUnqual(ops_.state()->Int8Ty);
 
         Signature sig(ops_.state(), type);
-        sig << "VM";
+        sig << "State";
         sig << "Object";
         sig << llvm::PointerType::getUnqual(ops_.state()->Int1Ty);
 
@@ -890,7 +890,7 @@ remember:
     }
 
     Signature check(ops_.state(), ops_.NativeIntTy);
-    check << "VM";
+    check << "State";
     check << "CallFrame";
 
     Value* check_args[] = { ops_.vm(), ops_.call_frame() };
@@ -923,7 +923,7 @@ remember:
 #endif
     {
       Signature sig(ops_.state(), ops_.ObjType);
-      sig << "VM";
+      sig << "State";
       sig << ops_.state()->Int32Ty;
 
       res_args[1] = ops_.b().CreateSExtOrBitCast(res_args[1],
@@ -942,7 +942,7 @@ remember:
 #endif
     {
       Signature sig(ops_.state(), ops_.ObjType);
-      sig << "VM";
+      sig << "State";
       sig << ops_.state()->Int64Ty;
 
       result = sig.call("rbx_ffi_from_int64", res_args, 2, "to_obj",
@@ -952,7 +952,7 @@ remember:
 
     case RBX_FFI_TYPE_FLOAT: {
       Signature sig(ops_.state(), ops_.ObjType);
-      sig << "VM";
+      sig << "State";
       sig << ops_.state()->FloatTy;
 
       result = sig.call("rbx_ffi_from_float", res_args, 2, "to_obj",
@@ -962,7 +962,7 @@ remember:
 
     case RBX_FFI_TYPE_DOUBLE: {
       Signature sig(ops_.state(), ops_.ObjType);
-      sig << "VM";
+      sig << "State";
       sig << ops_.state()->DoubleTy;
 
       result = sig.call("rbx_ffi_from_double", res_args, 2, "to_obj",
@@ -972,7 +972,7 @@ remember:
 
     case RBX_FFI_TYPE_PTR: {
       Signature sig(ops_.state(), ops_.ObjType);
-      sig << "VM";
+      sig << "State";
       sig << llvm::PointerType::getUnqual(ops_.state()->Int8Ty);
 
       result = sig.call("rbx_ffi_from_ptr", res_args, 2, "to_obj",
@@ -986,7 +986,7 @@ remember:
 
     case RBX_FFI_TYPE_STRING: {
       Signature sig(ops_.state(), ops_.ObjType);
-      sig << "VM";
+      sig << "State";
       sig << llvm::PointerType::getUnqual(ops_.state()->Int8Ty);
 
       result = sig.call("rbx_ffi_from_string", res_args, 2, "to_obj",
@@ -996,7 +996,7 @@ remember:
 
     case RBX_FFI_TYPE_STRPTR: {
       Signature sig(ops_.state(), ops_.ObjType);
-      sig << "VM";
+      sig << "State";
       sig << llvm::PointerType::getUnqual(ops_.state()->Int8Ty);
 
       result = sig.call("rbx_ffi_from_string_with_pointer", res_args, 2, "to_obj",

@@ -18,7 +18,7 @@ namespace jit {
 
   void BlockBuilder::setup() {
     std::vector<Type*> ftypes;
-    ftypes.push_back(ls_->ptr_type("VM"));
+    ftypes.push_back(ls_->ptr_type("State"));
     ftypes.push_back(ls_->ptr_type("CallFrame"));
     ftypes.push_back(ls_->ptr_type("BlockEnvironment"));
     ftypes.push_back(ls_->ptr_type("Arguments"));
@@ -76,7 +76,7 @@ namespace jit {
       b().SetInsertPoint(setup_profiling);
 
       Signature sig(ls_, ls_->VoidTy);
-      sig << "VM";
+      sig << "State";
       sig << llvm::PointerType::getUnqual(ls_->Int8Ty);
       sig << "BlockEnvironment";
       sig << "Module";
@@ -224,7 +224,7 @@ namespace jit {
       b().SetInsertPoint(destruct);
 
       Signature sig(ls_, "Object");
-      sig << "VM";
+      sig << "State";
       sig << "CallFrame";
       sig << "Arguments";
 
@@ -447,7 +447,7 @@ namespace jit {
     // Phase 4 - splat
     if(vmm_->splat_position >= 0) {
       Signature sig(ls_, "Object");
-      sig << "VM";
+      sig << "State";
       sig << "Arguments";
       sig << ls_->Int32Ty;
       sig << ls_->Int32Ty;

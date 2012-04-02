@@ -1,5 +1,5 @@
 
-%"struct.rubinius::VM" = type opaque
+%"struct.rubinius::State" = type opaque
 %"struct.rubinius::TypeInfo" = type opaque
 %"struct.rubinius::VMMethod" = type opaque
 %"struct.rubinius::Fixnum" = type opaque
@@ -46,8 +46,8 @@ declare void @output3(%"struct.rubinius::Dispatch"*)
             %"struct.rubinius::Symbol"*, ; name
   %"struct.rubinius::MethodCacheEntry"*, ; cache
           %"struct.rubinius::CallUnit"*, ; call_unit
-  %"struct.rubinius::Object"* (%"struct.rubinius::VM"*, %"struct.rubinius::InlineCache"*, %"struct.rubinius::CallFrame"*, %"struct.rubinius::Arguments"*)*, ; initial
-  %"struct.rubinius::Object"* (%"struct.rubinius::VM"*, %"struct.rubinius::InlineCache"*, %"struct.rubinius::CallFrame"*, %"struct.rubinius::Arguments"*)*, ; execute
+  %"struct.rubinius::Object"* (%"struct.rubinius::State"*, %"struct.rubinius::InlineCache"*, %"struct.rubinius::CallFrame"*, %"struct.rubinius::Arguments"*)*, ; initial
+  %"struct.rubinius::Object"* (%"struct.rubinius::State"*, %"struct.rubinius::InlineCache"*, %"struct.rubinius::CallFrame"*, %"struct.rubinius::Arguments"*)*, ; execute
                                       i32*, ; hits
                                        i32, ; seen_classes_overflow
   [3 x %"struct.rubinius::InlineCacheHit"], ; seen_classes
@@ -195,7 +195,7 @@ declare void @output17(%"struct.rubinius::CompiledMethod"*)
    %"struct.rubinius::Object", ; header
   %"struct.rubinius::Symbol"*, ; primitive
   %"struct.rubinius::Fixnum"*, ; serial
-  %"struct.rubinius::Object"* (%"struct.rubinius::VM"*, %"struct.rubinius::CallFrame"*, %"struct.rubinius::Executable"*, %"struct.rubinius::Module"*, %"struct.rubinius::Arguments"*)*, ; execute
+  %"struct.rubinius::Object"* (%"struct.rubinius::State"*, %"struct.rubinius::CallFrame"*, %"struct.rubinius::Executable"*, %"struct.rubinius::Module"*, %"struct.rubinius::Arguments"*)*, ; execute
                             i32, ; prim_index
   %"struct.rubinius::Inliners"*  ; inliners
 }
