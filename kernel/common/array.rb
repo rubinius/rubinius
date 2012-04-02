@@ -1119,11 +1119,8 @@ class Array
 
   # Sorts this Array in-place. See #sort.
   #
-  # The threshold for choosing between Insertion sort and Quicksort
-  # is 10, as determined by a bit of quick tests.
-  # Solving directly for recurrence relations is impossible, since quicksort
-  # depends on the partition sizes, which is dependent upon the arrangement
-  # of the array.
+  # The threshold for choosing between Insertion sort and Mergesort
+  # is 13, as determined by a bit of quick tests.
   #
   # For results and methodology, see the commit message.
   def sort_inplace(&block)
