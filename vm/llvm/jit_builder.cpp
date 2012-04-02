@@ -180,7 +180,7 @@ namespace jit {
     Value* call_args[] = { info_.vm(), info_.previous(), exec, module, info_.args() };
 
     Signature sig(ls_, "Object");
-    sig << "VM";
+    sig << "State";
     sig << "CallFrame";
     sig << "Executable";
     sig << "Module";
@@ -548,7 +548,7 @@ namespace jit {
 
       b().SetInsertPoint(import_args_);
       Signature sig(ls_, obj_type);
-      sig << "VM";
+      sig << "State";
       sig << "CallFrame";
 
       Function* func_ci = sig.function("rbx_check_interrupts");
