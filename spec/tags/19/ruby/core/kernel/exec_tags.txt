@@ -1,6 +1,0 @@
-fails:Kernel#exec raises Errno::ENOENT if the script does not exist
-fails:Kernel#exec raises Errno::EACCES when the file does not have execute permissions
-fails:Kernel#exec raises Errno::ACCES when passed a directory
-fails:Kernel.exec raises Errno::ENOENT if the script does not exist
-fails:Kernel.exec raises Errno::EACCES when the file does not have execute permissions
-fails:Kernel.exec raises Errno::ACCES when passed a directory
