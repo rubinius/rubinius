@@ -92,7 +92,7 @@ namespace rubinius {
     llvm::Type* ObjArrayTy;
 
     // Frequently used types
-    llvm::Type* VMTy;
+    llvm::Type* StateTy;
     llvm::Type* CallFrameTy;
 
     // Commonly used constants
@@ -130,7 +130,7 @@ namespace rubinius {
       ObjType = ptr_type("Object");
       ObjArrayTy = llvm::PointerType::getUnqual(ObjType);
 
-      VMTy = ptr_type("VM");
+      StateTy = ptr_type("State");
       CallFrameTy = ptr_type("CallFrame");
 
       Function::arg_iterator input = function_->arg_begin();
@@ -715,7 +715,7 @@ namespace rubinius {
       set_block(do_flush);
 
       Signature sig(ls_, "Object");
-      sig << "VM";
+      sig << "State";
       sig << "StackVariables";
 
       Value* call_args[] = { vm_, vars };
@@ -946,7 +946,7 @@ namespace rubinius {
 
     void write_barrier(Value* obj, Value* val) {
       Signature wb(ls_, ObjType);
-      wb << VMTy;
+      wb << StateTy;
       wb << ObjType;
       wb << ObjType;
 

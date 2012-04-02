@@ -214,16 +214,16 @@ StructTy_struct_rubinius__Executable_fields.push_back(StructTy_struct_rubinius__
 StructTy_struct_rubinius__Executable_fields.push_back(PointerTy_2);
 StructTy_struct_rubinius__Executable_fields.push_back(PointerTy_9);
 std::vector<Type*>FuncTy_20_args;
-StructType *StructTy_struct_rubinius__VM = mod->getTypeByName("struct.rubinius::VM");
-if (!StructTy_struct_rubinius__VM) {
-StructTy_struct_rubinius__VM = StructType::create(mod->getContext(), "struct.rubinius::VM");
+StructType *StructTy_struct_rubinius__State = mod->getTypeByName("struct.rubinius::State");
+if (!StructTy_struct_rubinius__State) {
+StructTy_struct_rubinius__State = StructType::create(mod->getContext(), "struct.rubinius::State");
 }
-std::vector<Type*>StructTy_struct_rubinius__VM_fields;
-if (StructTy_struct_rubinius__VM->isOpaque()) {
-StructTy_struct_rubinius__VM->setBody(StructTy_struct_rubinius__VM_fields, /*isPacked=*/false);
+std::vector<Type*>StructTy_struct_rubinius__State_fields;
+if (StructTy_struct_rubinius__State->isOpaque()) {
+StructTy_struct_rubinius__State->setBody(StructTy_struct_rubinius__State_fields, /*isPacked=*/false);
 }
 
-PointerType* PointerTy_21 = PointerType::get(StructTy_struct_rubinius__VM, 0);
+PointerType* PointerTy_21 = PointerType::get(StructTy_struct_rubinius__State, 0);
 
 FuncTy_20_args.push_back(PointerTy_21);
 StructType *StructTy_struct_rubinius__CallFrame = mod->getTypeByName("struct.rubinius::CallFrame");

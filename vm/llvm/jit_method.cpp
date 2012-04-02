@@ -20,7 +20,7 @@ namespace jit {
 
   void MethodBuilder::setup() {
     std::vector<Type*> ftypes;
-    ftypes.push_back(ls_->ptr_type("VM"));
+    ftypes.push_back(ls_->ptr_type("State"));
     ftypes.push_back(ls_->ptr_type("CallFrame"));
     ftypes.push_back(ls_->ptr_type("Executable"));
     ftypes.push_back(ls_->ptr_type("Module"));
@@ -235,7 +235,7 @@ namespace jit {
     // Phase 4 - splat
     if(vmm_->splat_position >= 0) {
       Signature sig(ls_, "Object");
-      sig << "VM";
+      sig << "State";
       sig << "Arguments";
       sig << ls_->Int32Ty;
       sig << ls_->Int32Ty;
@@ -367,7 +367,7 @@ namespace jit {
     // Setup the splat.
     if(vmm_->splat_position >= 0) {
       Signature sig(ls_, "Object");
-      sig << "VM";
+      sig << "State";
       sig << "Arguments";
       sig << ls_->Int32Ty;
       sig << ls_->Int32Ty;
@@ -447,7 +447,7 @@ namespace jit {
     // Call our arg_error helper
     Signature sig(ls_, "Object");
 
-    sig << "VM";
+    sig << "State";
     sig << "CallFrame";
     sig << "Arguments";
     sig << ls_->Int32Ty;
@@ -576,7 +576,7 @@ namespace jit {
       b().SetInsertPoint(setup_profiling);
 
       Signature sig(ls_, ls_->VoidTy);
-      sig << "VM";
+      sig << "State";
       sig << llvm::PointerType::getUnqual(ls_->Int8Ty);
       sig << "Executable";
       sig << "Module";

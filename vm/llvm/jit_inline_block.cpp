@@ -96,7 +96,7 @@ namespace jit {
 
       if(stack_args.size() == 1 && vmm_->total_args > 1) {
         Signature sig(ls_, "Object");
-        sig << "VM";
+        sig << "State";
         sig << "CallFrame";
         sig << "Object";
         sig << vars->getType();
