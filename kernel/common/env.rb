@@ -44,8 +44,6 @@ module Rubinius
       env = environ()
       ptr_size = FFI.type_size FFI.find_type(:pointer)
 
-      i = 0
-
       offset = 0
       cur = env + offset
 
@@ -212,7 +210,6 @@ module Rubinius
 
     def shift
       env = environ()
-      ptr_size = FFI.type_size FFI.find_type(:pointer)
 
       offset = 0
       cur = env + offset
