@@ -121,15 +121,14 @@ module Rubinius
     def reject!
       return to_enum(:reject!) unless block_given?
 
-      rejected = false
-      each do |k, v|
-        if yield(k, v)
-          delete k
-          rejected = true
-        end
-      end
+      # Avoid deleting from environ while iterating because the
+      # OS can handle that in a million different bad ways.
 
-      rejected ? self : nil
+      keys = []
+      each { |k, v| keys << k if yield(k, v) }
+      keys.each { |k| delete k }
+
+      keys.empty? ? nil : self
     end
 
     def clear
