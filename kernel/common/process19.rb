@@ -20,14 +20,27 @@ module Process
   end
 
   def self.exec(environment_or_cmd, *args)
-    if env = Rubinius::Type.try_convert(environment_or_cmd, Hash, :to_hash)
-      env.each do |key, value|
-        ENV[key] = value
-      end
+    if options = Rubinius::Type.try_convert(args.last, Hash, :to_hash)
+      args.pop
+    else
+      options = {}
+    end
 
+    if env = Rubinius::Type.try_convert(environment_or_cmd, Hash, :to_hash)
       cmd = args.shift
     else
+      env = {}
       cmd = environment_or_cmd
+    end
+
+    env.each { |key, value| ENV[key] = value }
+
+    if options[:unsetenv_others]
+      ENV.keep_if { |key, _| env.key?(key) }
+    end
+
+    if chdir = options[:chdir]
+      Dir.chdir(chdir)
     end
 
     if args.empty? and cmd.kind_of? String
