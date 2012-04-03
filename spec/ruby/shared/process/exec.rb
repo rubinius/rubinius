@@ -49,12 +49,33 @@ describe :process_exec, :shared => true do
   end
 
   ruby_version_is "1.9.2" do
-    it "passes environment vars to the child environment" do
+    before(:each) do
+      ENV["FOO"] = "FOO"
+    end
+
+    after(:each) do
+      ENV["FOO"] = nil
+    end
+
+    it "sets environment variables in the child environment" do
       ruby_exe('exec({"FOO" => "BAR"}, "echo $FOO")', :escape => true).should == "BAR\n"
+    end
+
+    it "unsets environment variables whose value is nil" do
+      ruby_exe('exec({"FOO" => nil}, "echo $FOO")', :escape => true).should == "\n"
     end
 
     it "coerces environment argument using to_hash" do
       ruby_exe('o = Object.new; def o.to_hash; {"FOO" => "BAR"}; end; exec(o, "echo $FOO")', :escape => true).should == "BAR\n"
+    end
+
+    it "unsets other environment variables when given a true :unsetenv_others option" do
+      ruby_exe('exec("echo $FOO", :unsetenv_others => true)', :escape => true).should == "\n"
+    end
+
+    it "sets the current directory when given the :chdir option" do
+      tmpdir = tmp("")[0..-2]
+      ruby_exe("exec(\"pwd\", :chdir => #{tmpdir.inspect})", :escape => true).should == "#{tmpdir}\n"
     end
   end
 
