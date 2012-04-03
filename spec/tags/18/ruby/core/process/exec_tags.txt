@@ -1,3 +1,0 @@
-fails:Process.exec raises Errno::ENOENT for a command which does not exist
-fails:Process.exec raises Errno::EACCES when the file does not have execute permissions
-fails:Process.exec raises Errno::EACCES when passed a directory
