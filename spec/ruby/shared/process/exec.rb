@@ -36,6 +36,10 @@ describe :process_exec, :shared => true do
     it "subjects the specified command to shell expansion" do
       ruby_exe('exec "echo *"', :escape => true, :dir => tmp("")).should == "#{File.basename(@path)}\n"
     end
+
+    it "creates an argument array with shell parsing semantics for whitespace" do
+      ruby_exe('exec "echo a b  c 	d"', :escape => true).should == "a b c d\n"
+    end
   end
 
   describe "with multiple arguments" do
