@@ -32,11 +32,10 @@ module Process
 
     if args.empty? and cmd.kind_of? String
       raise Errno::ENOENT if cmd.empty?
-      if /([*?{}\[\]<>()~&|$;'`"\n])/o.match(cmd)
+      if /([*?{}\[\]<>()~&|$;'`"\n\s]|[^\w-])/o.match(cmd)
         Process.perform_exec "/bin/sh", ["sh", "-c", cmd]
       else
-        args = cmd.split(/[ \t]/o)
-        Process.perform_exec args.first, args
+        Process.perform_exec cmd, [cmd]
       end
     else
       if cmd.kind_of? Array
