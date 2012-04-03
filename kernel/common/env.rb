@@ -76,7 +76,7 @@ module Rubinius
     end
 
     def delete_if(&block)
-      return to_enum(:delete_it) unless block_given?
+      return to_enum(:delete_if) unless block_given?
       reject!(&block)
       self
     end
