@@ -22,6 +22,13 @@ describe "ENV.delete_if" do
     it "returns an Enumerator if no block given" do
       ENV.delete_if.should be_an_instance_of(enumerator_class)
     end
+
+    it "deletes pairs through enumerator" do
+      ENV["foo"] = "bar"
+      enum = ENV.delete_if
+      enum.each { |k, v| k == "foo" }
+      ENV["foo"].should == nil
+    end
   end
 
 end
