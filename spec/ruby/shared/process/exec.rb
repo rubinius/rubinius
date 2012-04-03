@@ -57,4 +57,20 @@ describe :process_exec, :shared => true do
       ruby_exe('o = Object.new; def o.to_hash; {"FOO" => "BAR"}; end; exec(o, "echo $FOO")', :escape => true).should == "BAR\n"
     end
   end
+
+  describe "with a command array" do
+    it "uses the first element as the command name and the second as the argv[0] value" do
+      ruby_exe('exec(["/bin/sh", "argv_zero"], "-c", "echo $0")', :escape => true).should == "argv_zero\n"
+    end
+
+    it "coerces the argument using to_ary" do
+      ruby_exe('o = Object.new; def o.to_ary; ["/bin/sh", "argv_zero"]; end; exec(o, "-c", "echo $0")', :escape => true).should == "argv_zero\n"
+    end
+
+    it "raises Argument error if the Array does not have exactly two elements" do
+      lambda { @object.exec([]) }.should raise_error(ArgumentError)
+      lambda { @object.exec([:a]) }.should raise_error(ArgumentError)
+      lambda { @object.exec([:a, :b, :c]) }.should raise_error(ArgumentError)
+    end
+  end
 end
