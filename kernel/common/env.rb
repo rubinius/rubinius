@@ -242,7 +242,9 @@ module Rubinius
     end
 
     def to_hash
-      return environ_as_hash()
+      hsh = {}
+      each { |k, v| hsh[k] = v }
+      hsh
     end
 
     def update(other, &block)
