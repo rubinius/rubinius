@@ -672,7 +672,7 @@ class CPPClass
   def generate_accessors
     str = ""
     all_fields.each do |name, type, idx, flags|
-      str << "Object* Primitives::access_#{@name}_#{name}(STATE, CallFrame* call_frame, Executable* exec, Module* mod, 
+      str << "Object* Primitives::access_#{@name}_#{name}(STATE, CallFrame* call_frame, Executable* exec, Module* mod,
                    Arguments& args) {\n"
       str << "  AccessVariable* access = as<AccessVariable>(exec);\n"
       str << "  if(access->write()->true_p()) {\n"
