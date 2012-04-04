@@ -567,12 +567,12 @@ class Array
   private :compile_repeated_permutations
 
   def rotate(n=1)
-    raise TypeError, "Can't convert #{n.class} into Integer" unless n.respond_to?(:to_int)
+    n = Rubinius::Type.coerce_to(n, Integer, :to_int)
     return Array.new(self) if length == 1
     return []       if empty?
 
-    ary = Array.new(dup)
-    idx = n.to_int % ary.size
+    ary = Array.new(self)
+    idx = n % ary.size
 
     ary[idx..-1].concat ary[0...idx]
   end
