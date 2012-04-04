@@ -14,18 +14,6 @@ module Rubinius
       value.freeze
     end
 
-    def []=(key, value)
-      key = StringValue(key)
-      if value.nil?
-        unsetenv(key)
-      else
-        setenv key, StringValue(value), 1
-      end
-      value
-    end
-
-    alias_method :store, :[]=
-
     def each_key
       return to_enum(:each_key) unless block_given?
 
