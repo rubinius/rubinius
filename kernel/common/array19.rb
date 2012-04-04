@@ -568,11 +568,11 @@ class Array
 
   def rotate(n=1)
     raise TypeError, "Can't convert #{n.class} into Integer" unless n.respond_to?(:to_int)
-    return self.dup if length == 1
+    return Array.new(self) if length == 1
     return []       if empty?
 
-    ary = self.dup
-    idx = n % ary.size
+    ary = Array.new(dup)
+    idx = n.to_int % ary.size
 
     ary[idx..-1].concat ary[0...idx]
   end
