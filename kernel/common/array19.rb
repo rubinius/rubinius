@@ -567,6 +567,7 @@ class Array
   private :compile_repeated_permutations
 
   def rotate(n=1)
+    raise TypeError, "Can't convert #{n.class} into Integer" unless n.respond_to?(:to_int)
     return self.dup if length == 1
     return []       if empty?
 
