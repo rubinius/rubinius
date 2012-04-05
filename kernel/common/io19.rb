@@ -24,6 +24,15 @@ class IO
     end
   end
 
+  def self.binwrite(file, string, offset=nil)
+    File.open(file, "wb:ASCII-8BIT") { } unless File.file?(file)
+    mode = offset.nil? ? "wb:ASCII-8BIT" : "rb+:ASCII-8BIT"
+    File.open(file, mode) do |f|
+      f.seek(offset || 0)
+      f.write(string)
+    end
+  end
+
   def self.for_fd(fd, mode=undefined, options=undefined)
     new fd, mode, options
   end
