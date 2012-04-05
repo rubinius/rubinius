@@ -57,7 +57,11 @@ module Rubinius
 
     def delete(key)
       existing_value = self[key]
-      self[key] = nil if existing_value
+      if existing_value
+        self[key] = nil
+      elsif block_given?
+        yield key
+      end
       existing_value
     end
 
