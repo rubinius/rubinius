@@ -20,6 +20,18 @@ module Rubinius
       self
     end
 
+    def assoc(key)
+      key = StringValue(key)
+      value = self[key]
+      value ? [key, value] : nil
+    end
+
+    def rassoc(value)
+      value = StringValue(value)
+      key = index(value)
+      key ? [key, value] : nil
+    end
+
     def set_encoding(value)
       return unless value.kind_of? String
       value.force_encoding Encoding.find("locale")
