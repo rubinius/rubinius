@@ -16,8 +16,13 @@ module Rubinius
 
     def keep_if(&block)
       return to_enum(:keep_if) unless block_given?
-      reject! {|k, v| !block.call(k, v) }
+      select!(&block)
       self
+    end
+
+    def select!(&block)
+      return to_enum(:select!) unless block_given?
+      reject! {|k, v| !block.call(k, v) }
     end
 
     def assoc(key)
