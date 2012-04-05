@@ -1,9 +1,31 @@
 require File.expand_path('../../../spec_helper', __FILE__)
 
-describe "ENV.select" do
+ruby_version_is "1.9" do
+  describe "ENV.select!" do
+    it "removes environment variables for which the block returns true" do
+      ENV["foo"] = "bar"
+      ENV.select! { |k, v| k != "foo" }
+      ENV["foo"].should == nil
+    end
 
+    it "returns self if any changes were made" do
+      ENV["foo"] = "bar"
+      ENV.select! { |k, v| k != "foo" }.should == ENV
+    end
+
+    it "returns nil if no changes were made" do
+      ENV.select! { true }.should == nil
+    end
+
+    it "returns an Enumerator if called without a block" do
+      ENV.select!.should be_an_instance_of(enumerator_class)
+    end
+  end
+end
+
+describe "ENV.select" do
   ruby_version_is ""..."1.9" do
-    it "returns the Hash for which block return true" do
+    it "returns an Array of names and value for which block returns true" do
       ENV["foo"] = "bar"
       ENV.select { |k, v| k == "foo" }.should == [["foo", "bar"]]
       ENV.delete "foo"
@@ -11,7 +33,7 @@ describe "ENV.select" do
   end
 
   ruby_version_is "1.9" do
-    it "returns the Hash for which block return true" do
+    it "returns a Hash of names and values for which block return true" do
       ENV["foo"] = "bar"
       ENV.select { |k, v| k == "foo" }.should == {"foo" => "bar"}
       ENV.delete "foo"
