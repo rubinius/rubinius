@@ -1,8 +1,3 @@
-fails:IO.write coerces the argument to a string using to_s
-fails:IO.write returns the number of bytes written
-fails:IO.write creates a file if missing
-fails:IO.write truncates the file and writes the given string
-fails:IO.write doesn't truncate the file and writes the given string if an offset is given
 fails:IO.write accepts a :mode option
 fails:IO.write raises an error if readonly mode is specified
 fails:IO.write uses encoding from given options, if provided

@@ -32,6 +32,14 @@ class IO
     end
   end
 
+  def self.write(file, string, offset=nil)
+    mode = (offset.nil? || !File.file?(file)) ? "w:ASCII-8BIT" : "r+:ASCII-8BIT"
+    File.open(file, mode) do |f|
+      f.seek(offset || 0)
+      f.write(string)
+    end
+  end
+
   def self.for_fd(fd, mode=undefined, options=undefined)
     new fd, mode, options
   end
