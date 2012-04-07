@@ -367,22 +367,37 @@ class Array
   def combination(num)
     num = Rubinius::Type.coerce_to num, Fixnum, :to_int
     return to_enum(:combination, num) unless block_given?
-    return self unless (0..size).include? num
-    # Implementation note: slightly tricky.
-                                             # Example: self = 1..7, num = 3
-    picks = (0...num).to_a                   # picks start at 0, 1, 2
-    max = ((size-num)...size).to_a           # max (index for a given pick) is [4, 5, 6]
-    pick_max_pairs = picks.zip(max).reverse  # pick_max_pairs = [[2, 6], [1, 5], [0, 4]]
 
-    return_proc = Proc.new { return self }
-    lookup = pick_max_pairs.find(return_proc)
-
-    while true
-      yield values_at(*picks)
-      move = lookup.each { |pick, max| picks[pick] < max }.first
-      new_index = picks[move] + 1
-      picks[move...num] = (new_index...(new_index+num-move)).to_a
+    if num == 0
+      yield []
+    elsif num == 1
+      each do |i|
+        yield [i]
+      end
+    elsif num == size
+      yield self.dup
+    elsif num >= 0 && num < size
+      stack = Rubinius::Tuple.pattern num + 1, 0
+      chosen = Rubinius::Tuple.new num
+      lev = 0
+      done = false
+      stack[0] = -1
+      until done
+        chosen[lev] = self[stack[lev+1]]
+        while lev < num - 1
+          lev += 1
+          chosen[lev] = self[stack[lev+1] = stack[lev] + 1]
+        end
+        yield chosen.to_a
+        lev += 1
+        begin
+          done = lev == 0
+          stack[lev] += 1
+          lev -= 1
+        end while stack[lev+1] + num == size + lev + 1
+      end
     end
+    self
   end
 
   # Removes all nil elements from self, returns nil if no changes
