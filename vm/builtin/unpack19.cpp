@@ -275,13 +275,13 @@ namespace rubinius {
     }
 
     static const int32_t utf8_limits[] = {
-      0x0,        /* 1 */
-      0x80,       /* 2 */
-      0x800,      /* 3 */
-      0x10000,    /* 4 */
-      0x200000,   /* 5 */
-      0x4000000,  /* 6 */
-      0x80000000, /* 7 */
+      (const int32_t) 0x0,        /* 1 */
+      (const int32_t) 0x80,       /* 2 */
+      (const int32_t) 0x800,      /* 3 */
+      (const int32_t) 0x10000,    /* 4 */
+      (const int32_t) 0x200000,   /* 5 */
+      (const int32_t) 0x4000000,  /* 6 */
+      (const int32_t) 0x80000000, /* 7 */
     };
 
 #define MALFORMED_UTF8_ERROR_SIZE 60
