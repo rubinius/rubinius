@@ -383,10 +383,10 @@ class Array
       done = false
       stack[0] = -1
       until done
-        chosen[lev] = self[stack[lev+1]]
+        chosen[lev] = self.at(stack[lev+1])
         while lev < num - 1
           lev += 1
-          chosen[lev] = self[stack[lev+1] = stack[lev] + 1]
+          chosen[lev] = self.at(stack[lev+1] = stack[lev] + 1)
         end
         yield chosen.to_a
         lev += 1
