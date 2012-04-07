@@ -528,7 +528,7 @@ class StringIO
           end
         end
       when 2
-        sep = Rubinius::Type.coerce_to(args[0], String, :to_str)
+        sep = Rubinius::Type.check_convert_type(args[0], String, :to_str)
         limit = Rubinius::Type.coerce_to(args[1], Integer, :to_int)
       end
 
