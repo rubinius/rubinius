@@ -268,7 +268,7 @@ namespace rubinius {
     return ary;
   }
 
-#define STRFTIME_OUTPUT_BUF 128
+#define STRFTIME_STACK_BUF 128
 
   String* Time::strftime(STATE, String* format) {
     struct tm tm = get_tm();
@@ -282,25 +282,39 @@ namespace rubinius {
       off = offset->to_int();
     }
 
-    size_t buf_size = STRFTIME_OUTPUT_BUF;
-    char* str = (char*)malloc(buf_size);
+    char stack_str[STRFTIME_STACK_BUF];
+    char* malloc_str = 0;
 
-    size_t chars = ::strftime_extended(str, buf_size,
+    size_t chars = ::strftime_extended(stack_str, STRFTIME_STACK_BUF,
                        format->c_str(state), &tm, &ts, CBOOL(is_gmt_) ? 1 : 0,
                        off);
 
-    while (chars == 0 && format->byte_size() > 0) {
-      buf_size *= 2;
-      str = (char*)realloc(str, buf_size);
+    size_t buf_size = format->byte_size();
 
-      chars = ::strftime_extended(str, buf_size,
+    String* result = 0;
+
+    if (chars == 0 && format->byte_size() > 0) {
+      malloc_str = (char*)malloc(buf_size);
+
+      chars = ::strftime_extended(malloc_str, buf_size,
                   format->c_str(state), &tm, &ts, CBOOL(is_gmt_) ? 1 : 0,
                   off);
+
+      while (chars == 0 && format->byte_size() > 0) {
+        buf_size *= 2;
+        malloc_str = (char*)realloc(malloc_str, buf_size);
+
+        chars = ::strftime_extended(malloc_str, buf_size,
+                    format->c_str(state), &tm, &ts, CBOOL(is_gmt_) ? 1 : 0,
+                    off);
+      }
+
+      result = String::create(state, malloc_str, chars);
+
+      free(malloc_str);
+    } else {
+      result = String::create(state, stack_str, chars);
     }
-
-    String* result = String::create(state, str, chars);
-
-    free(str);
 
     return result;
   }
