@@ -1082,7 +1082,7 @@ end
 write_if_new "vm/gen/typechecks.gen.cpp" do |f|
   f.puts "size_t TypeInfo::instance_sizes[(int)LastObjectType] = {ObjectHeader::align(sizeof(Object))};"
   f.puts "void TypeInfo::auto_init(ObjectMemory* om) {"
-  parser.classes.each do |n, cpp|
+  parser.classes.sort_by {|n, _| n }.each do |n, cpp|
     f.puts "  {"
     f.puts "    TypeInfo *ti = new #{n}::Info(#{n}::type);"
     f.puts "    ti->type_name = std::string(\"#{n}\");"
@@ -1100,7 +1100,7 @@ write_if_new "vm/gen/typechecks.gen.cpp" do |f|
   f.puts
 
   f.puts "void TypeInfo::auto_learn_fields(STATE) {"
-  parser.classes.each do |n, cpp|
+  parser.classes.sort_by {|n, _| n }.each do |n, cpp|
     f.puts "  {"
     f.puts "    TypeInfo* ti = state->vm()->find_type(#{n}::type);"
     f.puts "    ti->set_state(state);"
@@ -1117,7 +1117,7 @@ write_if_new "vm/gen/typechecks.gen.cpp" do |f|
   end
   f.puts "}"
 
-  parser.classes.each do |n, cpp|
+  parser.classes.sort_by {|n, _| n }.each do |n, cpp|
     next if cpp.all_fields.size == 0
 
     f.puts "void #{n}::Info::populate_slot_locations() {"
@@ -1136,7 +1136,7 @@ write_if_new "vm/gen/typechecks.gen.cpp" do |f|
     f.puts "}"
   end
 
-  parser.classes.each do |n, cpp|
+  parser.classes.sort_by {|n, _| n }.each do |n, cpp|
     f.puts cpp.generate_typechecks
     f.puts cpp.generate_mark
   end
@@ -1144,14 +1144,14 @@ end
 
 write_if_new "vm/gen/primitives_declare.hpp" do |f|
   total_prims = 0
-  parser.classes.each do |n, cpp|
+  parser.classes.sort_by {|n, _| n }.each do |n, cpp|
     total_prims += cpp.primitives.size
-    cpp.primitives.each do |pn, prim|
+    cpp.primitives.map{|pn, prim| pn }.sort.each do |pn|
       f.puts "static Object* #{pn}(STATE, CallFrame* call_frame, Executable* exec, Module* mod, Arguments& args);"
     end
 
     total_prims += cpp.access_primitives.size
-    cpp.access_primitives.each do |name|
+    cpp.access_primitives.sort.each do |name|
       f.puts "static Object* #{name}(STATE, CallFrame* call_frame, Executable* exec, Module* mod, Arguments& args);"
     end
   end
@@ -1176,7 +1176,7 @@ write_if_new "vm/gen/object_types.hpp" do |f|
 end
 
 write_if_new "vm/gen/kind_of.hpp" do |f|
-  parser.classes.each do |n, cpp|
+  parser.classes.sort_by {|n, _| n }.each do |n, cpp|
     next if cpp.name == "Object"
     f.puts "class #{cpp.name};"
     f.puts cpp.generate_kind_of
