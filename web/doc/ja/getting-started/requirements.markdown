@@ -5,7 +5,6 @@ previous: はじめに
 previous_url: getting-started
 next: Building
 next_url: getting-started/building
-translated: true
 ---
 
 以下に示すプログラムおよびライブラリがインストールされていることを確認してください。
