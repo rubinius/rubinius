@@ -69,7 +69,8 @@ describe "Kernel#system" do
   end
 
   it "does not expand shell variables when given multiples arguments" do
-    result = system("#{RUBY_EXE}", @helper_script, @shell_var, "foo")
+    args = RUBY_EXE.split(' ') + [@helper_script, @shell_var, "foo"]
+    result = system(*args)
     result.should be_false
   end
 
