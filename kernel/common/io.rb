@@ -314,51 +314,6 @@ class IO
   end
 
   ##
-  # Creates a pair of pipe endpoints (connected to each other)
-  # and returns them as a two-element array of IO objects:
-  # [ read_file, write_file ]. Not available on all platforms.
-  #
-  # In the example below, the two processes close the ends of
-  # the pipe that they are not using. This is not just a cosmetic
-  # nicety. The read end of a pipe will not generate an end of
-  # file condition if there are any writers with the pipe still
-  # open. In the case of the parent process, the rd.read will
-  # never return if it does not first issue a wr.close.
-  #
-  #  rd, wr = IO.pipe
-  #
-  #  if fork
-  #    wr.close
-  #    puts "Parent got: <#{rd.read}>"
-  #    rd.close
-  #    Process.wait
-  #  else
-  #    rd.close
-  #    puts "Sending message to parent"
-  #    wr.write "Hi Dad"
-  #    wr.close
-  #  end
-  # produces:
-  #
-  #  Sending message to parent
-  #  Parent got: <Hi Dad>
-  def self.pipe
-    lhs = allocate
-    rhs = allocate
-
-    begin
-      connect_pipe(lhs, rhs)
-    rescue Errno::EMFILE
-      GC.run(true)
-      connect_pipe(lhs, rhs)
-    end
-
-    lhs.sync = true
-    rhs.sync = true
-    return [lhs, rhs]
-  end
-
-  ##
   # Reads the entire file specified by name as individual
   # lines, and returns those lines in an array. Lines are
   # separated by sep_string.

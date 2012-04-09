@@ -227,6 +227,22 @@ class IO
     self
   end
 
+  def self.pipe
+    lhs = allocate
+    rhs = allocate
+
+    begin
+      connect_pipe(lhs, rhs)
+    rescue Errno::EMFILE
+      GC.run(true)
+      connect_pipe(lhs, rhs)
+    end
+
+    lhs.sync = true
+    rhs.sync = true
+    return [lhs, rhs]
+  end
+
   ##
   # Runs the specified command string as a subprocess;
   # the subprocess‘s standard input and output will be

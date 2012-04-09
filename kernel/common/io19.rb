@@ -537,6 +537,39 @@ class IO
     !@binmode.nil?
   end
 
+  def self.pipe(external_encoding=nil, internal_encoding=nil)
+    lhs = allocate
+    rhs = allocate
+
+    begin
+      connect_pipe(lhs, rhs)
+    rescue Errno::EMFILE
+      GC.run(true)
+      connect_pipe(lhs, rhs)
+    end
+
+    external_encoding ||= Encoding.default_external
+    internal_encoding ||= Encoding.default_internal
+
+    if external_encoding or internal_encoding
+      lhs.set_encoding(external_encoding, internal_encoding)
+    end
+
+    lhs.sync = true
+    rhs.sync = true
+
+    if block_given?
+      begin
+        yield lhs, rhs
+      ensure
+        lhs.close unless lhs.closed?
+        rhs.close unless rhs.closed?
+      end
+    else
+      [lhs, rhs]
+    end
+  end
+
   ##
   # Runs the specified command string as a subprocess;
   # the subprocess‘s standard input and output will be
