@@ -16,7 +16,6 @@ class IO
   end
 
   def self.binread(file, length=nil, offset=0)
-    raise Errno::EINVAL, file if offset < 0
     raise ArgumentError, "Negative length #{length} given" if !length.nil? && length < 0
 
     File.open(file, "rb") do |f|
