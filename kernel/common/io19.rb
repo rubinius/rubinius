@@ -15,13 +15,12 @@ class IO
     include ::IO::WaitWritable
   end
 
-  def self.binread(file, *arg)
-    unless arg.size < 3
-      raise ArgumentError, "wrong number of arguments (#{1+arg.size} for 1..3)"
-    end
+  def self.binread(file, length=nil, offset=0)
+    raise ArgumentError, "Negative length #{length} given" if !length.nil? && length < 0
 
-    File.open(file,"rb") do |f|
-      f.read(*arg)
+    File.open(file, "rb") do |f|
+      f.seek(offset)
+      f.read(length)
     end
   end
 
