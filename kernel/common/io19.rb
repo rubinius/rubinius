@@ -25,7 +25,7 @@ class IO
   end
 
   def self.binwrite(file, string, offset=nil)
-    mode = File::CREAT | File::RDWR
+    mode = File::CREAT | File::RDWR | File::BINARY
     mode |= File::TRUNC unless offset
     File.open(file, mode, :encoding => "ASCII-8BIT") do |f|
       f.seek(offset || 0)
@@ -34,8 +34,9 @@ class IO
   end
 
   def self.write(file, string, offset=nil)
-    mode = (offset.nil? || !File.file?(file)) ? "w:ASCII-8BIT" : "r+:ASCII-8BIT"
-    File.open(file, mode) do |f|
+    mode = File::CREAT | File::RDWR
+    mode |= File::TRUNC unless offset
+    File.open(file, mode, :encoding => "ASCII-8BIT") do |f|
       f.seek(offset || 0)
       f.write(string)
     end
