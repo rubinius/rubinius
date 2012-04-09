@@ -710,29 +710,6 @@ module Kernel
   end
   module_function :fork
 
-  def system(prog, *args)
-    pid = Process.fork
-    if pid
-      Process.waitpid(pid)
-      $?.exitstatus == 0
-    else
-      begin
-        Kernel.exec(prog, *args)
-      rescue Exception => e
-        if $DEBUG
-          e.render("Unable to execute subprogram", STDERR)
-        end
-        exit! 1
-      end
-
-      if $DEBUG
-        STDERR.puts "Unable to execute subprogram - exec silently returned"
-      end
-      exit! 1
-    end
-  end
-  module_function :system
-
   def `(str) #`
     str = StringValue(str) unless str.kind_of?(String)
     pid, output = Process.replace(str)

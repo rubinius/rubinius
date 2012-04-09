@@ -26,3 +26,28 @@ module Process
     end
   end
 end
+
+module Kernel
+  def system(prog, *args)
+    pid = Process.fork
+    if pid
+      Process.waitpid(pid)
+      $?.exitstatus == 0
+    else
+      begin
+        Kernel.exec(prog, *args)
+      rescue Exception => e
+        if $DEBUG
+          e.render("Unable to execute subprogram", STDERR)
+        end
+        exit! 1
+      end
+
+      if $DEBUG
+        STDERR.puts "Unable to execute subprogram - exec silently returned"
+      end
+      exit! 1
+    end
+  end
+  module_function :system
+end
