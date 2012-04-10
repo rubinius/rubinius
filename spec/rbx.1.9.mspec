@@ -84,8 +84,6 @@ class MSpecScript
 
     # Excluded while building out basic 1.9 infrastructure
     '^spec/ruby/core/module/name',
-    '^spec/ruby/core/kernel/spawn',
-    '^spec/ruby/core/process/spawn',
 
     # Excluded because the specs are extremely system dependent.
     '^spec/ruby/library/syslog',
