@@ -198,6 +198,9 @@ file 'runtime/platform.conf' => deps do |task|
         F_GETFL
         F_SETFL
         O_ACCMODE
+        F_GETFD
+        F_SETFD
+        FD_CLOEXEC
       ]
 
       fcntl_constants.each { |c| cg.const c }

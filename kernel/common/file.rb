@@ -24,6 +24,10 @@ class File < IO
     # O_ACCMODE is /undocumented/ for fcntl() on some platforms
     ACCMODE  = Rubinius::Config['rbx.platform.fcntl.O_ACCMODE']
 
+    F_GETFD  = Rubinius::Config['rbx.platform.fcntl.F_GETFD']
+    F_SETFD  = Rubinius::Config['rbx.platform.fcntl.F_SETFD']
+    FD_CLOEXEC = Rubinius::Config['rbx.platform.fcntl.FD_CLOEXEC']
+
     RDONLY   = Rubinius::Config['rbx.platform.file.O_RDONLY']
     WRONLY   = Rubinius::Config['rbx.platform.file.O_WRONLY']
     RDWR     = Rubinius::Config['rbx.platform.file.O_RDWR']

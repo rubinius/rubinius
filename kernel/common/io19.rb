@@ -537,6 +537,19 @@ class IO
     !@binmode.nil?
   end
 
+  def close_on_exec=(value)
+    if value
+      fcntl(F_SETFD, fcntl(F_GETFD) | FD_CLOEXEC)
+    else
+      fcntl(F_SETFD, fcntl(F_GETFD) & ~FD_CLOEXEC)
+    end
+    nil
+  end
+
+  def close_on_exec?
+    (fcntl(F_GETFD) & FD_CLOEXEC) != 0
+  end
+
   def self.pipe(external_encoding=nil, internal_encoding=nil)
     lhs = allocate
     rhs = allocate
