@@ -38,6 +38,12 @@ describe "Kernel#freeze" do
       o.freeze
       lambda {o.mutate}.should raise_error(TypeError)
     end
+
+    it "causes instance_variable_set to raise TypeError" do
+      o = Object.new
+      o.freeze
+      lambda {o.instance_variable_set(:@foo, 1)}.should raise_error(TypeError)
+    end
   end
 
   ruby_version_is "1.9" do
@@ -47,6 +53,12 @@ describe "Kernel#freeze" do
       end.new
       o.freeze
       lambda {o.mutate}.should raise_error(RuntimeError)
+    end
+
+    it "causes instance_variable_set to raise RuntimeError" do
+      o = Object.new
+      o.freeze
+      lambda {o.instance_variable_set(:@foo, 1)}.should raise_error(RuntimeError)
     end
   end
 end
