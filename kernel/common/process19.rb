@@ -276,27 +276,14 @@ module Process
 end
 
 module Kernel
-  def system(prog, *args)
-    IO.pipe do |read, write|
-      pid = Process.fork do
-        read.close
-
-        begin
-          Kernel.exec(prog, *args)
-        ensure
-          write.write false
-          exit! 1
-        end
-      end
-
-      write.close
+  def system(*args)
+    begin
+      pid = Process.spawn(*args)
+    rescue SystemCallError
+      nil
+    else
       Process.waitpid(pid)
-
-      if read.eof?
-        $?.exitstatus == 0
-      else
-        nil
-      end
+      $?.exitstatus == 0
     end
   end
   module_function :system
