@@ -581,6 +581,7 @@ namespace rubinius {
       return Primitives::failure();
     }
 
+    check_frozen(state);
     return set_ivar(state, sym, val);
   }
 
