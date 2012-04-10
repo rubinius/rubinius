@@ -144,4 +144,8 @@ describe :process_spawn, :shared => true do
     Process.wait @object.spawn('echo', 'a b', :out => @name)
     File.read(@name).should == "a b\n"
   end
+
+  it "raises a Errno::ENOENT if the command does not exist" do
+    lambda { @object.spawn("nonesuch") }.should raise_error(Errno::ENOENT)
+  end
 end
