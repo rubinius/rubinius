@@ -254,8 +254,23 @@ module Process
   end
 
   def self.spawn(*args)
-    Process.fork do
-      Process.exec(*args)
+    IO.pipe do |read, write|
+      pid = Process.fork do
+        read.close
+        write.close_on_exec = true
+
+        begin
+          Process.exec(*args)
+        rescue => e
+          write.write Marshal.dump(e)
+          exit! 1
+        end
+      end
+
+      write.close
+      raise Marshal.load(read) unless read.eof?
+
+      pid
     end
   end
 end
