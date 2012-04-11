@@ -24,6 +24,24 @@ class IO
     end
   end
 
+  def self.binwrite(file, string, offset=nil)
+    mode = File::CREAT | File::RDWR | File::BINARY
+    mode |= File::TRUNC unless offset
+    File.open(file, mode, :encoding => "ASCII-8BIT") do |f|
+      f.seek(offset || 0)
+      f.write(string)
+    end
+  end
+
+  def self.write(file, string, offset=nil)
+    mode = File::CREAT | File::RDWR
+    mode |= File::TRUNC unless offset
+    File.open(file, mode, :encoding => "ASCII-8BIT") do |f|
+      f.seek(offset || 0)
+      f.write(string)
+    end
+  end
+
   def self.for_fd(fd, mode=undefined, options=undefined)
     new fd, mode, options
   end
