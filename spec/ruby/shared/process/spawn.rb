@@ -145,7 +145,119 @@ describe :process_spawn, :shared => true do
     File.read(@name).should == "a b\n"
   end
 
-  it "raises a Errno::ENOENT if the command does not exist" do
-    lambda { @object.spawn("nonesuch") }.should raise_error(Errno::ENOENT)
+  # argv processing
+
+  describe "with a single argument" do
+    it "subjects the specified command to shell expansion" do
+      lambda { Process.wait @object.spawn("echo *") }.should_not output_to_fd("*\n")
+    end
+
+    it "creates an argument array with shell parsing semantics for whitespace" do
+      lambda { Process.wait @object.spawn("echo a b  c 	d") }.should output_to_fd("a b c d\n")
+    end
+
+    it "calls #to_str to convert the argument to a String" do
+      o = mock("to_str")
+      o.should_receive(:to_str).and_return("echo foo")
+      lambda { Process.wait @object.spawn(o) }.should output_to_fd("foo\n")
+    end
+
+    it "raises an ArgumentError if the command includes a null byte" do
+      lambda { @object.spawn "\000" }.should raise_error(ArgumentError)
+    end
+
+    it "raises a TypeError if the argument does not respond to #to_str" do
+      lambda { @object.spawn :echo }.should raise_error(TypeError)
+    end
+  end
+
+  describe "with multiple arguments" do
+    it "does not subject the arguments to shell expansion" do
+      lambda { Process.wait @object.spawn("echo", "*") }.should output_to_fd("*\n")
+    end
+
+    it "preserves whitespace in passed arguments" do
+      lambda { Process.wait @object.spawn("echo", "a b  c 	d") }.should output_to_fd("a b  c 	d\n")
+    end
+
+    it "calls #to_str to convert the arguments to Strings" do
+      o = mock("to_str")
+      o.should_receive(:to_str).and_return("foo")
+      lambda { Process.wait @object.spawn("echo", o) }.should output_to_fd("foo\n")
+    end
+
+    it "raises an ArgumentError if an argument includes a null byte" do
+      lambda { @object.spawn "echo", "\000" }.should raise_error(ArgumentError)
+    end
+
+    it "raises a TypeError if an argument does not respond to #to_str" do
+      lambda { @object.spawn "echo", :foo }.should raise_error(TypeError)
+    end
+  end
+
+  describe "with a command array" do
+    it "uses the first element as the command name and the second as the argv[0] value" do
+      lambda { Process.wait @object.spawn(["/bin/sh", "argv_zero"], "-c", "echo $0") }.should output_to_fd("argv_zero\n")
+    end
+
+    it "does not subject the arguments to shell expansion" do
+      lambda { Process.wait @object.spawn(["echo", "echo"], "*") }.should output_to_fd("*\n")
+    end
+
+    it "preserves whitespace in passed arguments" do
+      lambda { Process.wait @object.spawn(["echo", "echo"], "a b  c 	d") }.should output_to_fd("a b  c 	d\n")
+    end
+
+    it "calls #to_ary to convert the argument to an Array" do
+      o = mock("to_ary")
+      o.should_receive(:to_ary).and_return(["/bin/sh", "argv_zero"])
+      lambda { Process.wait @object.spawn(o, "-c", "echo $0") }.should output_to_fd("argv_zero\n")
+    end
+
+    it "calls #to_str to convert the first element to a String" do
+      o = mock("to_str")
+      o.should_receive(:to_str).and_return("echo")
+      lambda { Process.wait @object.spawn([o, "echo"], "foo") }.should output_to_fd("foo\n")
+    end
+
+    it "calls #to_str to convert the second element to a String" do
+      o = mock("to_str")
+      o.should_receive(:to_str).and_return("echo")
+      lambda { Process.wait @object.spawn(["echo", o], "foo") }.should output_to_fd("foo\n")
+    end
+
+    it "raises an ArgumentError if the Array does not have exactly two elements" do
+      lambda { @object.spawn([]) }.should raise_error(ArgumentError)
+      lambda { @object.spawn([:a]) }.should raise_error(ArgumentError)
+      lambda { @object.spawn([:a, :b, :c]) }.should raise_error(ArgumentError)
+    end
+
+    it "raises an ArgumentError if the Strings in the Array include a null byte" do
+      lambda { @object.spawn ["\000", "echo"] }.should raise_error(ArgumentError)
+      lambda { @object.spawn ["echo", "\000"] }.should raise_error(ArgumentError)
+    end
+
+    it "raises a TypeError if an element in the Array does not respond to #to_str" do
+      lambda { @object.spawn ["echo", :echo] }.should raise_error(TypeError)
+      lambda { @object.spawn [:echo, "echo"] }.should raise_error(TypeError)
+    end
+  end
+
+  # error handling
+
+  it "raises an Errno::ENOENT for an empty string" do
+    lambda { @object.spawn "" }.should raise_error(Errno::ENOENT)
+  end
+
+  it "raises an Errno::ENOENT if the command does not exist" do
+    lambda { @object.spawn "nonesuch" }.should raise_error(Errno::ENOENT)
+  end
+
+  it "raises an Errno::EACCES when the file does not have execute permissions" do
+    lambda { @object.spawn __FILE__ }.should raise_error(Errno::EACCES)
+  end
+
+  it "raises an Errno::EACCES when passed a directory" do
+    lambda { @object.spawn File.dirname(__FILE__) }.should raise_error(Errno::EACCES)
   end
 end
