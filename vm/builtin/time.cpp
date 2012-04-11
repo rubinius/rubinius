@@ -289,7 +289,7 @@ namespace rubinius {
                        format->c_str(state), &tm, &ts, CBOOL(is_gmt_) ? 1 : 0,
                        off);
 
-    size_t buf_size = format->byte_size();
+    size_t buf_size = format->byte_size() * 2;
 
     String* result = 0;
 
