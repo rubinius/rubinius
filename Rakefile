@@ -88,19 +88,35 @@ ENV['CXX'] = BUILD_CONFIG[:cxx] unless ENV['CXX']
 $dlext = RbConfig::CONFIG["DLEXT"]
 $CC = ENV['CC']
 
-def run_specs(flags=nil)
-  unless File.directory? BUILD_CONFIG[:runtime]
-    # Setting these enables the specs to run when rbx has been configured
-    # to be installed, but rake install has not been run yet.
-    ENV["RBX_RUNTIME"] = File.expand_path "../runtime", __FILE__
-    ENV["RBX_LIB"]     = File.expand_path "../lib", __FILE__
-    ENV["CFLAGS"]      = "-Ivm/capi"
+class SpecRunner
+  attr_reader :exit_status
+
+  def initialize
+    @exit_status = 0
+
+    unless File.directory? BUILD_CONFIG[:runtime]
+      # Setting these enables the specs to run when rbx has been configured
+      # to be installed, but rake install has not been run yet.
+      ENV["RBX_RUNTIME"] = File.expand_path "../runtime", __FILE__
+      ENV["RBX_LIB"]     = File.expand_path "../lib", __FILE__
+      ENV["CFLAGS"]      = "-Ivm/capi"
+    end
+
+    ENV.delete("RUBYOPT")
+
+    @handler = lambda do |ok, status|
+      @exit_status = status.exitstatus unless ok
+    end
   end
 
-  ENV.delete("RUBYOPT")
-
-  sh "bin/mspec ci #{ENV['CI_MODE_FLAG'] || flags} -d --background"
+  def run(flags=nil)
+    sh("bin/mspec ci #{ENV['CI_MODE_FLAG'] || flags} -d --background", &@handler)
+  end
 end
+
+spec_runner = SpecRunner.new
+
+at_exit { exit spec_runner.exit_status }
 
 task :default => :spec
 
@@ -203,17 +219,17 @@ end
 
 desc "Run the CI specs in 1.8 mode but do not rebuild on failure"
 task :spec18 => %w[build vm:test] do
-  run_specs "-T -X18"
+  spec_runner.run "-T -X18"
 end
 
 desc "Run the CI specs in 1.9 mode but do not rebuild on failure"
 task :spec19 => %w[build vm:test] do
-  run_specs "-T -X19"
+  spec_runner.run "-T -X19"
 end
 
 desc "Run the CI specs in 2.0 mode but do not rebuild on failure"
 task :spec20 => %w[build vm:test] do
-  run_specs "-T -X20"
+  spec_runner.run "-T -X20"
 end
 
 desc "Run CI in default (configured) mode but do not rebuild on failure"
