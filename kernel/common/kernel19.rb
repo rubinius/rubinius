@@ -182,6 +182,10 @@ module Kernel
   def String(obj)
     return obj if obj.kind_of? String
 
+    unless obj.respond_to?(:to_s)
+      raise TypeError, "can't convert #{obj.class} into String"
+    end
+
     begin
       str = obj.to_s
     rescue NoMethodError
