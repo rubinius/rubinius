@@ -161,31 +161,70 @@ module Rubinius
     # ['echo', 'fuuu'], 'hello'  => ['echo', ['fuuu', 'hello']]
     #
     # Returns [prog, argv]
-    def self.adjust_argv(cmd, *args)
-      if args.empty? and cmd.kind_of? String
-        raise Errno::ENOENT if cmd.empty?
-        if /([*?{}\[\]<>()~&|$;'`"\n])/o.match(cmd)
-          ["/bin/sh", ["sh", "-c", cmd]]
+    def self.adjust_argv(first, *args)
+      if args.empty? and cmd = Rubinius::Type.try_convert(first, String, :to_str)
+        if cmd.empty?
+          raise Errno::ENOENT
+        elsif /([*?{}\[\]<>()~&|$;'`"\n])/o.match(cmd)
+          return ["/bin/sh", ["sh", "-c", cmd]]
         else
           args = cmd.split(' ')
-          [args.first, args]
+          return [args.first, args]
         end
+      elsif cmd = Rubinius::Type.try_convert(first, Array, :to_ary)
+        raise ArgumentError, "wrong first argument" unless cmd.size == 2
+        prog = StringValue(cmd[0])
+        name = StringValue(cmd[1])
       else
-        if ary = Rubinius::Type.try_convert(cmd, Array, :to_ary)
-          raise ArgumentError, "wrong first argument" unless ary.size == 2
-          prog = ary[0]
-          name = ary[1]
-        else
-          name = prog = cmd
-        end
-
-        argv = [name]
-        args.each do |arg|
-          argv << arg.to_s
-        end
-
-        [prog, argv]
+        name = prog = StringValue(first)
       end
+
+      argv = [name]
+      args.each do |arg|
+        argv << StringValue(arg)
+      end
+
+      [prog, argv]
+    end
+
+    def self.exec(env, prog, argv, options)
+      # handle FD => {FD, :close, [file,mode,perms]} options
+      options.each do |key, val|
+        if fd?(key)
+          key = fd_to_io(key)
+
+          if fd?(val)
+            val = fd_to_io(val)
+            key.reopen(val)
+          elsif val == :close
+            if key.respond_to?(:close_on_exec=)
+              key.close_on_exec = true
+            else
+              key.close
+            end
+          elsif val.is_a?(Array)
+            file, mode_string, perms = *val
+            key.reopen(File.open(file, mode_string, perms))
+          end
+        end
+      end
+
+      env.each { |key, value| ENV[key] = value }
+
+      if options[:unsetenv_others]
+        ENV.keep_if { |key, _| env.key?(key) }
+      end
+
+      if chdir = options[:chdir]
+        Dir.chdir(chdir)
+      end
+
+      # { :pgroup => pgid } options
+      pgroup = options[:pgroup]
+      pgroup = 0 if pgroup == true
+      Process.setpgid(0, pgroup) if pgroup
+
+      Process.perform_exec prog, argv
     end
   end
 end
@@ -213,54 +252,19 @@ module Process
 
   def self.exec(*args)
     env, prog, argv, options = Rubinius::Spawn.extract_arguments(*args)
-
-    # handle FD => {FD, :close, [file,mode,perms]} options
-    options.each do |key, val|
-      if Rubinius::Spawn.fd?(key)
-        key = Rubinius::Spawn.fd_to_io(key)
-
-        if Rubinius::Spawn.fd?(val)
-          val = Rubinius::Spawn.fd_to_io(val)
-          key.reopen(val)
-        elsif val == :close
-          if key.respond_to?(:close_on_exec=)
-            key.close_on_exec = true
-          else
-            key.close
-          end
-        elsif val.is_a?(Array)
-          file, mode_string, perms = *val
-          key.reopen(File.open(file, mode_string, perms))
-        end
-      end
-    end
-
-    env.each { |key, value| ENV[key] = value }
-
-    if options[:unsetenv_others]
-      ENV.keep_if { |key, _| env.key?(key) }
-    end
-
-    if chdir = options[:chdir]
-      Dir.chdir(chdir)
-    end
-
-    # { :pgroup => pgid } options
-    pgroup = options[:pgroup]
-    pgroup = 0 if pgroup == true
-    Process.setpgid(0, pgroup) if pgroup
-
-    Process.perform_exec prog, argv
+    Rubinius::Spawn.exec(env, prog, argv, options)
   end
 
   def self.spawn(*args)
+    env, prog, argv, options = Rubinius::Spawn.extract_arguments(*args)
+
     IO.pipe do |read, write|
       pid = Process.fork do
         read.close
         write.close_on_exec = true
 
         begin
-          Process.exec(*args)
+          Rubinius::Spawn.exec(env, prog, argv, options)
         rescue => e
           write.write Marshal.dump(e)
           exit! 1
