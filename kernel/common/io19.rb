@@ -25,6 +25,24 @@ class IO
   end
 
   def self.binwrite(file, string, *args)
+    offset, opts = args
+    opts ||= {}
+    if offset.is_a?(Hash)
+      offset, opts = nil, offset
+    end
+
+    mode, binary, external, internal = IO.normalize_options(nil, opts)
+    unless mode
+      mode = File::CREAT | File::RDWR | File::BINARY
+      mode |= File::TRUNC unless offset
+    end
+    File.open(file, mode, :encoding => (external || "ASCII-8BIT")) do |f|
+      f.seek(offset || 0)
+      f.write(string)
+    end
+  end
+
+  def self.write(file, string, *args)
     if args.size > 2
       raise ArgumentError, "wrong number of arguments (#{args.size + 2} for 2..3)"
     end
@@ -35,23 +53,14 @@ class IO
       offset, opts = nil, offset
     end
 
-    if opts[:mode]
-      mode = opts[:mode]
-    else
-      mode = File::CREAT | File::RDWR | File::BINARY
+    mode, binary, external, internal = IO.normalize_options(nil, opts)
+    unless mode
+      mode = File::CREAT | File::RDWR
       mode |= File::TRUNC unless offset
     end
 
-    File.open(file, mode, :encoding => "ASCII-8BIT") do |f|
-      f.seek(offset || 0)
-      f.write(string)
-    end
-  end
-
-  def self.write(file, string, offset=nil)
-    mode = File::CREAT | File::RDWR
-    mode |= File::TRUNC unless offset
-    File.open(file, mode, :encoding => "ASCII-8BIT") do |f|
+    open_args = opts[:open_args] || [mode, :encoding => (external || "ASCII-8BIT")]
+    File.open(file, *open_args) do |f|
       f.seek(offset || 0)
       f.write(string)
     end
