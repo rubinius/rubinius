@@ -133,7 +133,7 @@ describe "#resolve_ruby_exe" do
   end
 end
 
-describe Object, "#ruby_exe" do
+describe Object, "#ruby_cmd" do
   before :all do
     @verbose = $VERBOSE
     $VERBOSE = nil
@@ -156,36 +156,49 @@ describe Object, "#ruby_exe" do
     $VERBOSE = @verbose
   end
 
-  it "executes the argument if it is a file that exists" do
+  it "returns a command that runs the given file if it is a file that exists" do
     File.should_receive(:exists?).with(@file).and_return(true)
-    @script.should_receive(:`).with("ruby_spec_exe -w -Q some/ruby/file.rb")
-    @script.ruby_exe @file
+    @script.ruby_cmd(@file).should == "ruby_spec_exe -w -Q some/ruby/file.rb"
   end
 
-  it "executes the file with options and arguments" do
+  it "includes the given options and arguments with a file" do
     File.should_receive(:exists?).with(@file).and_return(true)
-    @script.should_receive(:`).with(
-      "ruby_spec_exe -w -Q -w -Cdir some/ruby/file.rb < file.txt")
-    @script.ruby_exe @file, :options => "-w -Cdir", :args => "< file.txt"
+    @script.ruby_cmd(@file, :options => "-w -Cdir", :args => "< file.txt").should ==
+      "ruby_spec_exe -w -Q -w -Cdir some/ruby/file.rb < file.txt"
   end
 
-  it "executes the argument with -e" do
+  it "returns a command that runs code using -e" do
     File.should_receive(:exists?).with(@code).and_return(false)
-    @script.should_receive(:`).with(
-      %(ruby_spec_exe -w -Q -e "some \\"real\\" 'ruby' code"))
-    @script.ruby_exe @code
+    @script.ruby_cmd(@code).should == %(ruby_spec_exe -w -Q -e "some \\"real\\" 'ruby' code")
   end
 
-  it "executes the code with options and arguments" do
+  it "includes the given options and arguments with -e" do
     File.should_receive(:exists?).with(@code).and_return(false)
-    @script.should_receive(:`).with(
-      %(ruby_spec_exe -w -Q -W0 -Cdir -e "some \\"real\\" 'ruby' code" < file.txt))
-    @script.ruby_exe @code, :options => "-W0 -Cdir", :args => "< file.txt"
+    @script.ruby_cmd(@code, :options => "-W0 -Cdir", :args => "< file.txt").should ==
+      %(ruby_spec_exe -w -Q -W0 -Cdir -e "some \\"real\\" 'ruby' code" < file.txt)
   end
 
-  it "executes with options and arguments but without code or file" do
-    @script.should_receive(:`).with("ruby_spec_exe -w -Q -c > file.txt")
-    @script.ruby_exe nil, :options => "-c", :args => "> file.txt"
+  it "returns a command with options and arguments but without code or file" do
+    @script.ruby_cmd(nil, :options => "-c", :args => "> file.txt").should ==
+      "ruby_spec_exe -w -Q -c > file.txt"
+  end
+end
+
+describe Object, "#ruby_exe" do
+  before :all do
+    @script = RubyExeSpecs.new
+  end
+
+  before :each do
+    @script.stub!(:`)
+  end
+
+  it "executes (using `) the result of calling #ruby_cmd with the given arguments" do
+    code = "code"
+    options = {}
+    @script.should_receive(:ruby_cmd).with(code, options).and_return("ruby_cmd")
+    @script.should_receive(:`).with("ruby_cmd")
+    @script.ruby_exe(code, options)
   end
 
   describe "with :dir option" do
@@ -196,10 +209,6 @@ describe Object, "#ruby_exe" do
   end
 
   describe "with :env option" do
-    before :each do
-      @script.stub!(:`)
-    end
-
     it "preserves the values of existing ENV keys" do
       ENV["ABC"] = "123"
       ENV.should_receive(:[]).with("RUBY_FLAGS")
@@ -227,6 +236,5 @@ describe Object, "#ruby_exe" do
         @script.ruby_exe nil, :env => { :ABC => "xyz" }
       end.should raise_error(Exception)
     end
-
   end
 end

@@ -115,19 +115,9 @@ class Object
   end
 
   def ruby_exe(code, opts = {})
-    body = code
     env = opts[:env] || {}
     working_dir = opts[:dir] || "."
     Dir.chdir(working_dir) do
-      if code and not File.exists?(code)
-        if opts[:escape]
-          code = "'#{code}'"
-        else
-          code = code.inspect
-        end
-        body = "-e #{code}"
-      end
-
       saved_env = {}
       env.each do |key, value|
         key = key.to_s
@@ -136,8 +126,7 @@ class Object
       end
 
       begin
-        cmd = [RUBY_EXE, ENV['RUBY_FLAGS'], opts[:options], body, opts[:args]]
-        `#{cmd.compact.join(' ')}`
+        `#{ruby_cmd(code, opts)}`
       ensure
         saved_env.each { |key, value| ENV[key] = value }
         env.keys.each do |key|
@@ -146,6 +135,21 @@ class Object
         end
       end
     end
+  end
+
+  def ruby_cmd(code, opts = {})
+    body = code
+
+    if code and not File.exists?(code)
+      if opts[:escape]
+        code = "'#{code}'"
+      else
+        code = code.inspect
+      end
+      body = "-e #{code}"
+    end
+
+    [RUBY_EXE, ENV['RUBY_FLAGS'], opts[:options], body, opts[:args]].compact.join(' ')
   end
 
   unless Object.const_defined?(:RUBY_EXE) and RUBY_EXE
