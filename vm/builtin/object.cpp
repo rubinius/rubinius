@@ -143,10 +143,7 @@ namespace rubinius {
       };
     }
 
-    if(!LANGUAGE_18_ENABLED(state) && other->untrusted_p(state) == cTrue) {
-      untrust(state);
-    }
-
+    other->infect(state, this);
     return this;
   }
 
@@ -471,9 +468,8 @@ namespace rubinius {
         sc = SingletonClass::attach(state, this);
       }
 
+      infect(state, sc);
       sc->set_frozen(is_frozen_p());
-      sc->set_tainted(is_tainted_p());
-      sc->set_untrusted(is_untrusted_p());
 
       return sc;
     }
