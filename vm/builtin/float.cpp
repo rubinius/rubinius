@@ -21,6 +21,8 @@
 
 #include "missing/math.h"
 
+#include "util/local_buffer.hpp"
+
 namespace rubinius {
 
   void Float::init(STATE) {
@@ -85,7 +87,8 @@ namespace rubinius {
       str++;
     }
 
-    char* buffer = (char*)malloc(strlen(str) + 1);
+    LocalBuffer b(strlen(str) + 1);
+    char* buffer = (char*)b.buffer;
     char* p = buffer;
     char prev = '\0';
 
@@ -189,8 +192,6 @@ namespace rubinius {
         rest++;
       }
     }
-
-    free(buffer);
 
     return Float::create(state, value);
   }
