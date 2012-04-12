@@ -24,9 +24,24 @@ class IO
     end
   end
 
-  def self.binwrite(file, string, offset=nil)
-    mode = File::CREAT | File::RDWR | File::BINARY
-    mode |= File::TRUNC unless offset
+  def self.binwrite(file, string, *args)
+    if args.size > 2
+      raise ArgumentError, "wrong number of arguments (#{args.size + 2} for 2..3)"
+    end
+
+    offset, opts = args
+    opts ||= {}
+    if offset.is_a?(Hash)
+      offset, opts = nil, offset
+    end
+
+    if opts[:mode]
+      mode = opts[:mode]
+    else
+      mode = File::CREAT | File::RDWR | File::BINARY
+      mode |= File::TRUNC unless offset
+    end
+
     File.open(file, mode, :encoding => "ASCII-8BIT") do |f|
       f.seek(offset || 0)
       f.write(string)
