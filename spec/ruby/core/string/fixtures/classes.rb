@@ -21,6 +21,25 @@ module StringSpecs
     end
   end
 
+  class InitializeString < String
+    attr_reader :ivar
+
+    def initialize(other)
+      super
+      @ivar = 1
+    end
+
+    def initialize_copy(other)
+      ScratchPad.record object_id
+    end
+  end
+
+  module StringModule
+    def repr
+      1
+    end
+  end
+
   class StringWithRaisingConstructor < String
     def initialize(str)
       raise ArgumentError.new('constructor was called') unless str == 'silly:string'
