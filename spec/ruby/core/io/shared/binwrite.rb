@@ -66,4 +66,9 @@ describe :io_binwrite, :shared => true do
     lambda { IO.send(@method, @filename, "abcde", :mode => "r") }.should raise_error(IOError)
   end
 
+  it "truncates if empty :opts provided and offset skipped" do
+    IO.send(@method, @filename, "hello, world!", {})
+    File.read(@filename).should == "hello, world!"
+  end
+
 end
