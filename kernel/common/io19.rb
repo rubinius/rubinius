@@ -466,6 +466,39 @@ class IO
     nil
   end
 
+  def each_char
+    return to_enum(:each_char) unless block_given?
+
+    ensure_open_and_readable
+    is_utf = self.external_encoding.names.include?(Encoding::UTF_8.name)
+    if is_utf
+      # TODO zoinks. This is the slowest way possible to do this.
+      # We'll have to rewrite it.
+      lookup = 7.downto(4)
+      while n = read(1) do
+        c = n.getbyte(0)
+        leftmost_zero_bit = lookup.find { |i| c[i] == 0 }
+
+        case leftmost_zero_bit
+        when 7 # ASCII
+          yield n
+        when 6 # UTF 8 complementary characters
+          next # Encoding error, ignore
+        else
+          more = read(6 - leftmost_zero_bit)
+          break unless more
+          yield n + more
+        end
+      end
+    else
+      while s = read(1)
+        yield s
+      end
+    end
+
+    self
+  end
+
   ##
   # Writes the given objects to ios as with IO#print.
   # Writes a record separator (typically a newline)
