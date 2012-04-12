@@ -785,14 +785,7 @@ namespace rubinius {
 
     infect(state, so);
 
-    so->num_bytes(state, num_bytes());
-    so->data(state, data());
-    so->hash_value(state, hash_value());
-
-    so->encoding(state, encoding());
-    so->valid_encoding(state, valid_encoding());
-    so->ascii_only(state, ascii_only());
-
+    so->copy_object(state, this);
     so->shared(state, cTrue);
     shared(state, cTrue);
 
