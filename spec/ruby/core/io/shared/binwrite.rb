@@ -55,6 +55,11 @@ describe :io_binwrite, :shared => true do
     File.read(@filename).should == "hello, world!3456789hello, world!"
   end
 
+  it "doesn't truncate and writes at the given offset after passing empty opts" do
+    IO.send(@method, @filename, "hello world!", 1, {})
+    File.read(@filename).should == "0hello world!34567890123456789"
+  end
+
   it "accepts a :mode option" do
     IO.send(@method, @filename, "hello, world!", :mode => 'a')
     File.read(@filename).should == "012345678901234567890123456789hello, world!"
