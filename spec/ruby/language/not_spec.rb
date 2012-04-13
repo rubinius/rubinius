@@ -26,7 +26,7 @@ describe "The not keyword" do
   end
 
   it "returns true if the argument is nil" do
-    (not(false)).should be_true
+    (not(nil)).should be_true
   end
 end
 

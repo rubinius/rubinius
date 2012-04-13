@@ -126,6 +126,10 @@ describe "Kernel#open" do
       lambda { open(mock('x')) }.should raise_error(TypeError)
     end
   end
+
+  it "accepts nil for mode and permission" do
+    open(@name, nil, nil) { |f| f.gets }.should == @content
+  end
 end
 
 describe "Kernel.open" do

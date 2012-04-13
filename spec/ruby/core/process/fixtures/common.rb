@@ -11,20 +11,19 @@ module ProcessSpecs
     end
 
     def wait_for_daemon
-      while true
-        return if File.exists? @signal
+      5.times do
+        return true if File.exists? @signal and
+                       File.exists? @data and
+                       File.size? @data
         sleep 0.1
       end
+
+      return false
     end
 
     def invoke(behavior, arguments=[])
-      case arguments.size
-      when 0, 1
-        args = arguments.inspect
-      when 2
-        args = "[#{arguments.first.inspect},#{arguments.last.inspect}]"
-      end
-      args << " #{@input} #{@data} #{@signal} #{behavior}"
+      args = Marshal.dump(arguments).unpack("H*")
+      args << @input << @data << @signal << behavior
 
       ruby_exe @script, :args => args
 
@@ -32,7 +31,7 @@ module ProcessSpecs
 
       return unless File.exists? @data
 
-      File.open(@data, "rb") { |f| return f.gets.chomp }
+      File.open(@data, "rb") { |f| return f.read.chomp }
     end
   end
 end

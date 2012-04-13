@@ -2,7 +2,7 @@ module ProcessSpecs
   class Daemon
     def initialize(argv)
       args, @input, @data, @signal, @behavior = argv
-      @args = eval args
+      @args = Marshal.load [args].pack("H*")
       @no_at_exit = false
     end
 
