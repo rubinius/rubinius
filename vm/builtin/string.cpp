@@ -1022,9 +1022,7 @@ namespace rubinius {
           } else {
             std::stringstream ss;
             if (isprint(chr) && isprint(max)) {
-              char buffer[3];
-              sprintf(buffer, "%c-%c", (char)chr, (char)max);
-              ss << "invalid range \"" << std::string(buffer) << "\" in string transliteration";
+              ss << "invalid range \"" << (char)chr << "-" << (char)max << "\" in string transliteration";
             } else {
               ss << "invalid range in string transliteration";
             }
