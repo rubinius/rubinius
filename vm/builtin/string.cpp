@@ -783,8 +783,6 @@ namespace rubinius {
 
     String* so = state->new_object<String>(cls);
 
-    infect(state, so);
-
     so->copy_object(state, this);
     so->shared(state, cTrue);
     shared(state, cTrue);
