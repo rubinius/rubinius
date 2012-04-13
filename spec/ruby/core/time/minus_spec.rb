@@ -21,6 +21,16 @@ describe "Time#-" do
   end
 
   ruby_version_is "1.9" do
+    it "does NOT round" do
+      t = Time.at(0) - Rational(8_999_999_999_999_999, 1_000_000_000_000_000)
+      t.should_not == Time.at(9)
+      not_compliant_on :jruby do # only microseconds are supported
+        t.usec.should == 0
+        t.nsec.should == 0
+        t.subsec.should == Rational(1, 1_000_000_000_000_000)
+      end
+    end
+
     #see [ruby-dev:38446]
     it "accepts arguments that can be coerced into Rational" do
       (obj = mock('10')).should_receive(:to_r).and_return(Rational(10))
