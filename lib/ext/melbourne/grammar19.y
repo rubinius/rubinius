@@ -1548,7 +1548,7 @@ call_args       : command
                   }
                 | args ',' assocs opt_block_arg
                   {
-                    $$ = list_append($1, NEW_HASH($3));
+                    $$ = arg_append($1, NEW_HASH($3));
                     $$ = arg_blk_pass($$, $4);
                   }
                 | block_arg
@@ -1598,7 +1598,7 @@ args            : arg_value
                   {
                     NODE *n1;
                     if((n1 = splat_array($1)) != 0) {
-                      $$ = list_append($1, $3);
+                      $$ = list_append(n1, $3);
                     } else {
                       $$ = arg_append($1, $3);
                     }
@@ -1618,7 +1618,7 @@ mrhs            : args ',' arg_value
                   {
                     NODE *n1;
                     if((n1 = splat_array($1)) != 0) {
-                      $$ = list_append($1, $3);
+                      $$ = list_append(n1, $3);
                     } else {
                       $$ = arg_append($1, $3);
                     }

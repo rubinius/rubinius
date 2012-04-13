@@ -6200,7 +6200,7 @@ yyreduce:
   case 250:
 #line 1550 "grammar19.y"
     {
-                    (yyval.node) = list_append((yyvsp[(1) - (4)].node), NEW_HASH((yyvsp[(3) - (4)].node)));
+                    (yyval.node) = arg_append((yyvsp[(1) - (4)].node), NEW_HASH((yyvsp[(3) - (4)].node)));
                     (yyval.node) = arg_blk_pass((yyval.node), (yyvsp[(4) - (4)].node));
                   ;}
     break;
@@ -6269,7 +6269,7 @@ yyreduce:
     {
                     NODE *n1;
                     if((n1 = splat_array((yyvsp[(1) - (3)].node))) != 0) {
-                      (yyval.node) = list_append((yyvsp[(1) - (3)].node), (yyvsp[(3) - (3)].node));
+                      (yyval.node) = list_append(n1, (yyvsp[(3) - (3)].node));
                     } else {
                       (yyval.node) = arg_append((yyvsp[(1) - (3)].node), (yyvsp[(3) - (3)].node));
                     }
@@ -6293,7 +6293,7 @@ yyreduce:
     {
                     NODE *n1;
                     if((n1 = splat_array((yyvsp[(1) - (3)].node))) != 0) {
-                      (yyval.node) = list_append((yyvsp[(1) - (3)].node), (yyvsp[(3) - (3)].node));
+                      (yyval.node) = list_append(n1, (yyvsp[(3) - (3)].node));
                     } else {
                       (yyval.node) = arg_append((yyvsp[(1) - (3)].node), (yyvsp[(3) - (3)].node));
                     }

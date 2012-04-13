@@ -360,6 +360,11 @@ module Rubinius
     class CollectSplat < Node
       def initialize(line, *parts)
         @line = line
+
+        if parts.last.kind_of? HashLiteral
+          parts[-1] = ArrayLiteral.new line, [parts[-1]]
+        end
+
         @parts = parts
       end
 
@@ -376,6 +381,10 @@ module Rubinius
             collect = true
           end
         end
+      end
+
+      def to_sexp
+        [:collect_splat] + @parts.map { |x| x.to_sexp }
       end
     end
 
