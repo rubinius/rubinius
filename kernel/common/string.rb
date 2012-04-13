@@ -1474,7 +1474,7 @@ class String
     return if @num_bytes == 0
 
     invert = source[0] == ?^ && source.length > 1
-    expanded = source.tr_expand! nil, true
+    expanded = source.tr_expand! nil, false
     size = source.size
     src = source.__data__
 
