@@ -5,6 +5,7 @@
 #include "builtin/bytearray.hpp"
 #include "builtin/fixnum.hpp"
 
+#include "object_utils.hpp"
 #include "type_info.hpp"
 #include <ctype.h> // For isdigit and friends
 #include <errno.h> // For ERANGE
@@ -60,6 +61,7 @@ namespace rubinius {
     template <class T>
       void num_bytes(T state, Fixnum* obj) {
         num_bytes_ = obj;
+        num_chars_ = nil<Fixnum>();
         update_handle();
       }
 
