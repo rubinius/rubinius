@@ -884,6 +884,19 @@ class String
     end
   end
 
+  # Converts <i>pattern</i> to a <code>Regexp</code> (if it isn't already one),
+  # then invokes its <code>match</code> method on <i>self</i>.
+  #
+  #   'hello'.match('(.)\1')      #=> #<MatchData:0x401b3d30>
+  #   'hello'.match('(.)\1')[0]   #=> "ll"
+  #   'hello'.match(/(.)\1/)[0]   #=> "ll"
+  #   'hello'.match('xx')         #=> nil
+  def match(pattern)
+    match_data = get_pattern(pattern).search_region(self, 0, @num_bytes, true)
+    Regexp.last_match = match_data
+    return match_data
+  end
+
   # call-seq:
   #   str[fixnum] = fixnum
   #   str[fixnum] = new_str
