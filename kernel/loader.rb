@@ -52,7 +52,7 @@ module Rubinius
         begin
           `which tput &> /dev/null`
           if $?.exitstatus == 0
-            res = `tput cols 2>&1`.to_i
+            res = `tput cols`.to_i
             width = res if res > 0
           end
         end
