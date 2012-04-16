@@ -273,11 +273,6 @@ namespace rubinius {
 
     const char* c_str = str->c_str_null_safe(state);
 
-    if(str->byte_size() > (native_int) strlen(c_str)) {
-      Exception::argument_error(state, "string contains null byte");
-      return cNil;
-    }
-
     int fds[2];
 
     if(pipe(fds) != 0) return Primitives::failure();
