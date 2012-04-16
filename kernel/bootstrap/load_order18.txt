@@ -43,3 +43,4 @@ type18.rbc
 variable_scope.rbc
 vm.rbc
 weakref.rbc
+weakref18.rbc
