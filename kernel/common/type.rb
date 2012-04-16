@@ -117,5 +117,9 @@ module Rubinius
       Rubinius.primitive :object_infect
       raise PrimitiveFailure, "Object.infect primitive failed"
     end
+
+    def self.check_null_safe(string)
+      Rubinius.invoke_primitive(:string_check_null_safe, string)
+    end
   end
 end

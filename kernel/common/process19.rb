@@ -1,7 +1,7 @@
 module Rubinius
   module Spawn
     # Turns the various varargs incantations supported by Process.spawn into a
-    # simple [env, prog, argv, options] tuple.
+    # [env, prog, argv, redirects, options] tuple.
     #
     # The following method signature is supported:
     #   Process.spawn([env], command, ..., [options])
@@ -10,17 +10,15 @@ module Rubinius
     # number of strings or an Array full of strings that make up the new process's
     # argv.
     #
-    # Returns an [env, prog, argv, options] tuple. All elements are guaranteed to be
-    # non-nil. When no env or options are given, empty hashes are returned.
+    # Returns an [env, prog, argv, redirects, options] tuple. All elements are
+    # guaranteed to be non-nil. When no env or options are given, empty hashes
+    # are returned.
     def self.extract_arguments(*args)
       if options = Rubinius::Type.try_convert(args.last, Hash, :to_hash)
         args.pop
-        options = options.dup
       else
         options = {}
       end
-      flatten_options!(options)
-      normalize_redirect_file_options!(options)
 
       if env = Rubinius::Type.try_convert(args.first, Hash, :to_hash)
         args.shift
@@ -28,25 +26,28 @@ module Rubinius
         env = {}
       end
 
-      # remaining arguments are the argv supporting a number of variations.
-      prog, argv = adjust_argv(*args)
+      env         = adjust_env(env)
+      prog, argv  = adjust_argv(*args)
+      redir, opts = adjust_options(options)
 
-      [env, prog, argv, options]
+      [env, prog, argv, redir, opts]
     end
 
-    # Convert { [fd1, fd2, ...] => (:close|fd) } options to individual keys,
-    # like: { fd1 => :close, fd2 => :close }.
-    #
-    # options - The options hash. This is modified in place.
-    #
-    # Returns the modified options hash.
-    def self.flatten_options!(options)
-      options.to_a.each do |key, value|
-        if key.respond_to?(:to_ary)
-          key.to_ary.each { |fd| options[fd] = value }
-          options.delete(key)
+    def self.adjust_env(env)
+      adjusted = {}
+
+      env.each do |key, value|
+        key   = Rubinius::Type.check_null_safe(StringValue(key))
+        value = Rubinius::Type.check_null_safe(StringValue(value)) unless value.nil?
+
+        if key.include?("=")
+          raise ArgumentError, "environment name contains a equal : #{key}"
         end
+
+        adjusted[key] = value
       end
+
+      adjusted
     end
 
     # Mapping of string open modes to integer oflag versions.
@@ -59,6 +60,35 @@ module Rubinius
       "a+" => File::RDWR   | File::APPEND | File::CREAT
     }
 
+    def self.adjust_options(options)
+      redirects = {}
+      others = {}
+
+      options.each do |key, value|
+        case key
+          when Array
+            key.each do |fd|
+              redirects[fd] = adjust_redirect_value(fd, value)
+            end
+          when :in, :out, :err, Fixnum, IO
+            redirects[key] = adjust_redirect_value(key, value)
+          when :pgroup
+            raise ArgumentError, "negative process group ID : #{value}" if value && value < 0
+            others[key] = value
+          when :chdir
+            others[key] = Rubinius::Type.coerce_to_path(value)
+          when :unsetenv_others, :umask, :close_others
+            others[key] = value
+          when Symbol
+            raise ArgumentError, "wrong exec option symbol : #{key.inspect}"
+          else
+            raise ArgumentError, "wrong exec option"
+        end
+      end
+
+      [redirects, others]
+    end
+
     # Convert variations of redirecting to a file to a standard tuple.
     #
     # :in   => '/some/file'   => ['/some/file', 'r', 0644]
@@ -66,26 +96,29 @@ module Rubinius
     # :err  => '/some/file'   => ['/some/file', 'w', 0644]
     # STDIN => '/some/file'   => ['/some/file', 'r', 0644]
     #
-    # Returns the modified options hash.
-    def self.normalize_redirect_file_options!(options)
-      options.to_a.each do |key, value|
-        next if !fd?(key)
+    # Returns the modified value.
+    def self.adjust_redirect_value(key, value)
+      case value
+        when :in, :out, :err, :close, IO, Fixnum
+          value
+        when Array
+          if value.size < 3
+            defaults = default_file_reopen_info(key, value[0])
+            value += defaults[value.size..-1]
+          end
 
-        # convert string and short array values to
-        if value.respond_to?(:to_str)
-          value = default_file_reopen_info(key, value)
-        elsif value.respond_to?(:to_ary) && value.size < 3
-          defaults = default_file_reopen_info(key, value[0])
-          value += defaults[value.size..-1]
+          if value[1].respond_to?(:to_str)
+            value = value.dup
+            value[1] = OFLAGS[value[1]]
+          end
+
+          value
+        when String
+          default_file_reopen_info(key, value)
+        when Symbol
+          raise ArgumentError, "wrong exec redirect symbol : #{value.inspect}"
         else
-          value = nil
-        end
-
-        # replace string open mode flag maybe and replace original value
-        if value
-          value[1] = OFLAGS[value[1]] if value[1].respond_to?(:to_str)
-          options[key] = value
-        end
+          raise ArgumentError, "wrong exec redirect action"
       end
     end
 
@@ -102,28 +135,13 @@ module Rubinius
     def self.default_file_reopen_info(fd, file)
       case fd
       when :in, STDIN, $stdin, 0
-        [file, "r", 0644]
+        [file, OFLAGS["r"], 0644]
       when :out, STDOUT, $stdout, 1
-        [file, "w", 0644]
+        [file, OFLAGS["w"], 0644]
       when :err, STDERR, $stderr, 2
-        [file, "w", 0644]
+        [file, OFLAGS["w"], 0644]
       else
-        [file, "r", 0644]
-      end
-    end
-
-    # Determine whether object is fd-like.
-    #
-    # Returns true if object is an instance of IO, Fixnum >= 0, or one of the
-    # the symbolic names :in, :out, or :err.
-    def self.fd?(object)
-      case object
-      when Fixnum
-        object >= 0
-      when :in, :out, :err, STDIN, STDOUT, STDERR, $stdin, $stdout, $stderr, IO
-        true
-      else
-        object.respond_to?(:to_io) && !object.to_io.nil?
+        [file, OFLAGS["r"], 0644]
       end
     end
 
@@ -187,33 +205,23 @@ module Rubinius
       [prog, argv]
     end
 
-    def self.exec(env, prog, argv, options)
-      # handle FD => {FD, :close, [file,mode,perms]} options
-      options.each do |key, val|
-        if fd?(key)
-          key = fd_to_io(key)
+    def self.exec(env, prog, argv, redirects, options)
+      redirects.each do |key, val|
+        key = fd_to_io(key)
 
-          if fd?(val)
-            val = fd_to_io(val)
-            key.reopen(val)
-          elsif val == :close
-            if key.respond_to?(:close_on_exec=)
-              key.close_on_exec = true
-            else
-              key.close
-            end
-          elsif val.is_a?(Array)
-            file, mode_string, perms = *val
-            key.reopen(File.open(file, mode_string, perms))
-          end
+        if val == :close
+          key.close_on_exec = true
+        elsif val.is_a?(Array)
+          file, mode_string, perms = *val
+          key.reopen(File.open(file, mode_string, perms))
+        else
+          val = fd_to_io(val)
+          key.reopen(val)
         end
       end
 
-      env.each { |key, value| ENV[key] = value }
-
-      if options[:unsetenv_others]
-        ENV.keep_if { |key, _| env.key?(key) }
-      end
+      ENV.clear if options[:unsetenv_others]
+      ENV.update(env)
 
       if chdir = options[:chdir]
         Dir.chdir(chdir)
@@ -223,6 +231,10 @@ module Rubinius
       pgroup = options[:pgroup]
       pgroup = 0 if pgroup == true
       Process.setpgid(0, pgroup) if pgroup
+
+      if umask = options[:umask]
+        File.umask(umask)
+      end
 
       Process.perform_exec prog, argv
     end
@@ -251,12 +263,12 @@ module Process
   end
 
   def self.exec(*args)
-    env, prog, argv, options = Rubinius::Spawn.extract_arguments(*args)
-    Rubinius::Spawn.exec(env, prog, argv, options)
+    env, prog, argv, redirects, options = Rubinius::Spawn.extract_arguments(*args)
+    Rubinius::Spawn.exec(env, prog, argv, redirects, options)
   end
 
   def self.spawn(*args)
-    env, prog, argv, options = Rubinius::Spawn.extract_arguments(*args)
+    env, prog, argv, redirects, options = Rubinius::Spawn.extract_arguments(*args)
 
     IO.pipe do |read, write|
       pid = Process.fork do
@@ -264,7 +276,7 @@ module Process
         write.close_on_exec = true
 
         begin
-          Rubinius::Spawn.exec(env, prog, argv, options)
+          Rubinius::Spawn.exec(env, prog, argv, redirects, options)
         rescue => e
           write.write Marshal.dump(e)
           exit! 1

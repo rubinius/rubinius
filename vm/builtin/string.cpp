@@ -730,6 +730,11 @@ namespace rubinius {
     return str;
   }
 
+  String* String::check_null_safe(STATE) {
+    c_str_null_safe(state);
+    return this;
+  }
+
   Object* String::secure_compare(STATE, String* other) {
     native_int s1 = num_bytes()->to_native();
     native_int s2 = other->num_bytes()->to_native();

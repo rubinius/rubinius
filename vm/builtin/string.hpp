@@ -147,6 +147,9 @@ namespace rubinius {
     // if it does.
     const char* c_str_null_safe(STATE);
 
+    // Rubinius.primitive :string_check_null_safe
+    String* check_null_safe(STATE);
+
     String* convert_escaped(STATE, Encoding*& enc, bool& fixed_encoding);
 
     void unshare(STATE);
