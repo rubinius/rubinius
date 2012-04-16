@@ -8,6 +8,7 @@
 #include "builtin/system.hpp"
 #include "builtin/location.hpp"
 #include "builtin/nativemethod.hpp"
+#include "builtin/nativefunction.hpp"
 
 #include "arguments.hpp"
 
@@ -116,6 +117,8 @@ namespace rubinius {
       ret = block_->call(state, call_frame, args, flags);
     } else if(NativeMethod* nm = try_as<NativeMethod>(bound_method_)) {
       ret = nm->execute(state, call_frame, nm, G(object), args);
+    } else if(NativeFunction* nf = try_as<NativeFunction>(bound_method_)) {
+      ret = nf->call(state, args, call_frame);
     } else {
       Dispatch dis(state->symbol("__yield__"));
       ret = dis.send(state, call_frame, args);
@@ -130,6 +133,8 @@ namespace rubinius {
       return block_->call(state, call_frame, args, 0);
     } else if(NativeMethod* nm = try_as<NativeMethod>(bound_method_)) {
       return nm->execute(state, call_frame, nm, G(object), args);
+    } else if(NativeFunction* nf = try_as<NativeFunction>(bound_method_)) {
+      return nf->call(state, args, call_frame);
     } else {
       return call_prim(state, call_frame, NULL, NULL, args);
     }
