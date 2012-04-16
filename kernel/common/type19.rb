@@ -43,22 +43,6 @@ module Rubinius
       end
     end
 
-    # Analogous to MRI's rb_to_float. This is primarily used in Math.
-    def self.coerce_to_float_for_numeric(obj)
-      return obj if object_kind_of? obj, Float
-
-      unless object_kind_of? obj, Numeric
-        case obj
-        when nil, true, false
-          raise TypeError, "can't convert #{obj.inspect} into Float"
-        else
-          raise TypeError, "can't convert #{obj.class} into Float"
-        end
-      end
-
-      coerce_to obj, Float, :to_f
-    end
-
     def self.coerce_to_symbol(obj)
       obj = obj.to_str if obj.respond_to?(:to_str)
       coerce_to(obj, Symbol, :to_sym)

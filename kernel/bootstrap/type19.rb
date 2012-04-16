@@ -13,16 +13,18 @@ module Rubinius
       return [obj]
     end
 
-    def self.coerce_to_float(obj, strict=false)
+    def self.coerce_to_float(obj, strict=false, must_be_numeric=false)
+      if !must_be_numeric && object_kind_of?(obj, String)
+        value = Rubinius.invoke_primitive :string_to_f, obj, strict
+        raise ArgumentError, "invalid value for Float" if value.nil?
+        return value
+      end
+
       case obj
       when Numeric
         coerce_to obj, Float, :to_f
       when Float
         return obj
-      when String
-        value = Rubinius.invoke_primitive :string_to_f, obj, strict
-        raise ArgumentError, "invalid value for Float" if value.nil?
-        value
       when nil, true, false
         raise TypeError, "can't convert #{obj.inspect} into Float"
       else
