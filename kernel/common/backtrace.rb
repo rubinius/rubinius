@@ -6,7 +6,7 @@
 class Rubinius::Backtrace
   include Enumerable
 
-  MAX_WIDTH = 36
+  MAX_WIDTH_PERCENTAGE = 45
   MIN_WIDTH = 20
 
   attr_accessor :first_color
@@ -77,7 +77,8 @@ class Rubinius::Backtrace
       end
     end
 
-    max = MAX_WIDTH if max > MAX_WIDTH
+    max_width = (@width * (MAX_WIDTH_PERCENTAGE / 100.0)).to_i
+    max = max_width if max > max_width
 
     str = ""
     lines.each do |recv, location, rec_times|
