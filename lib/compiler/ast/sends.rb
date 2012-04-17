@@ -360,27 +360,45 @@ module Rubinius
     class CollectSplat < Node
       def initialize(line, *parts)
         @line = line
-
-        if parts.last.kind_of? HashLiteral
-          parts[-1] = ArrayLiteral.new line, [parts[-1]]
-        end
-
-        @parts = parts
+        @splat = parts.shift
+        @last = parts.pop
+        @array = parts
       end
 
       def bytecode(g)
-        collect = false
+        @splat.bytecode(g)
+        g.cast_array
 
-        @parts.each do |x|
+        @array.each do |x|
           x.bytecode(g)
           g.cast_array
-
-          if collect
-            g.send :+, 1
-          else
-            collect = true
-          end
+          g.send :+, 1
         end
+
+        return unless @last
+
+        not_hash = g.new_label
+        done = g.new_label
+
+        @last.bytecode(g)
+        g.dup
+
+        g.push_const :Hash
+
+        g.push_rubinius
+        g.find_const :Type
+        g.move_down 2
+        g.send :object_kind_of?, 2
+        g.gif not_hash
+
+        g.make_array 1
+        g.goto done
+
+        not_hash.set!
+        g.cast_array
+
+        done.set!
+        g.send :+, 1
       end
 
       def to_sexp
@@ -400,9 +418,14 @@ module Rubinius
           @splat = arguments
           @array = []
         when ConcatArgs
-          if arguments.array.kind_of? ArrayLiteral
+          case arguments.array
+          when ArrayLiteral
             @array = arguments.array.body
             @splat = SplatValue.new line, arguments.rest
+          when PushArgs
+            @array = []
+            node = SplatValue.new line, arguments.rest
+            @splat = CollectSplat.new line, arguments.array, node
           else
             @array = []
             @splat = CollectSplat.new line, arguments.array, arguments.rest
