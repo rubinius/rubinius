@@ -22,5 +22,10 @@ describe :hash_iteration_no_block, :shared => true do
     it "returns an Enumerator if called on an empty hash without a block" do
       @empty.send(@method).should be_an_instance_of(enumerator_class)
     end
+
+    it "returns an Enumerator if called on a frozen instance" do
+      @hsh.freeze
+      @hsh.send(@method).should be_an_instance_of(enumerator_class)
+    end
   end
 end
