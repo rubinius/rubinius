@@ -299,9 +299,9 @@ class Hash
   end
 
   def delete_if(&block)
-    Rubinius.check_frozen
-
     return to_enum(:delete_if) unless block_given?
+
+    Rubinius.check_frozen
 
     select(&block).each { |k, v| delete k }
     self
