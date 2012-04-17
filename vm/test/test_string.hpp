@@ -169,17 +169,83 @@ public:
     TS_ASSERT_EQUALS(str1->equal(state, str3), cFalse);
   }
 
-  void test_to_double() {
-    str = String::create(state, "2.10");
-    double val = 2.10;
-    double ret = str->to_double(state);
-    TS_ASSERT_EQUALS(val, ret);
-  }
-
   void test_to_f() {
-    str = String::create(state, "6.50");
-    Float* val = Float::create(state, 6.50);
+    str = String::create(state, "0");
+    Float* val = Float::create(state, 0.0);
     Float* ret = str->to_f(state);
+    TS_ASSERT(val->equal(state, ret));
+
+    str = String::create(state, "6.50");
+    val = Float::create(state, 6.50);
+    ret = str->to_f(state);
+    TS_ASSERT(val->equal(state, ret));
+
+    str = String::create(state, "6.50 43.2");
+    val = Float::create(state, 6.50);
+    ret = str->to_f(state, cFalse);
+    TS_ASSERT(val->equal(state, ret));
+
+    str = String::create(state, "NaN");
+    ret = str->to_f(state, cTrue);
+    TS_ASSERT_EQUALS(ret, cNil);
+    val = Float::create(state, 0.0);
+    ret = str->to_f(state, cFalse);
+    TS_ASSERT(val->equal(state, ret));
+
+    str = String::create(state, "-Infinity");
+    ret = str->to_f(state, cTrue);
+    TS_ASSERT_EQUALS(ret, cNil);
+    val = Float::create(state, 0.0);
+    ret = str->to_f(state, cFalse);
+    TS_ASSERT(val->equal(state, ret));
+
+    str = String::create(state, "Infinity");
+    ret = str->to_f(state, cTrue);
+    TS_ASSERT_EQUALS(ret, cNil);
+    val = Float::create(state, 0.0);
+    ret = str->to_f(state, cFalse);
+    TS_ASSERT(val->equal(state, ret));
+
+    str = String::create(state, "-Inf");
+    ret = str->to_f(state, cTrue);
+    TS_ASSERT_EQUALS(ret, cNil);
+    val = Float::create(state, 0.0);
+    ret = str->to_f(state, cFalse);
+    TS_ASSERT(val->equal(state, ret));
+
+    str = String::create(state, "Inf");
+    ret = str->to_f(state, cTrue);
+    TS_ASSERT_EQUALS(ret, cNil);
+    val = Float::create(state, 0.0);
+    ret = str->to_f(state, cFalse);
+    TS_ASSERT(val->equal(state, ret));
+
+    str = String::create(state, "1.23e4");
+    val = Float::create(state, 12300.0);
+    ret = str->to_f(state);
+    TS_ASSERT(val->equal(state, ret));
+    str = String::create(state, "1.23E4");
+    ret = str->to_f(state);
+    TS_ASSERT(val->equal(state, ret));
+
+    str = String::create(state, " _6.50_ ");
+    val = Float::create(state, 6.50);
+    ret = str->to_f(state, cFalse);
+    TS_ASSERT(val->equal(state, ret));
+
+    str = String::create(state, " _6.50");
+    ret = str->to_f(state);
+    TS_ASSERT_EQUALS(ret, cNil);
+
+    str = String::create(state, "6.50_");
+    ret = str->to_f(state);
+    TS_ASSERT_EQUALS(ret, cNil);
+
+    str = String::create(state, "0x3.4");
+    ret = str->to_f(state, cTrue);
+    TS_ASSERT_EQUALS(ret, cNil);
+    val = Float::create(state, 0.0);
+    ret = str->to_f(state, cFalse);
     TS_ASSERT(val->equal(state, ret));
   }
 
