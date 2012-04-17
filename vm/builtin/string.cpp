@@ -917,31 +917,36 @@ namespace rubinius {
     char *p, *n, *rest;
     int e_seen = 0;
 
-    p = ba;
-    while(ISSPACE(*p)) p++;
-    n = p;
+    if(!LANGUAGE_18_ENABLED(state) && *ba == '_') {
+      value = 0.0;
+    } else {
+      p = ba;
+      while(ISSPACE(*p)) p++;
+      n = p;
 
-    while(*p) {
-      if(*p == '_') {
-        p++;
-      } else {
-        if(*p == 'e' || *p == 'E') {
-          if(e_seen) {
+      while(*p) {
+        if(*p == '_') {
+          p++;
+        } else {
+          if(*p == 'e' || *p == 'E') {
+            if(e_seen) {
+              *n = 0;
+              break;
+            }
+            e_seen = 1;
+          } else if(!(ISDIGIT(*p) || *p == '.' || *p == '-' || *p == '+')) {
             *n = 0;
             break;
           }
-          e_seen = 1;
-        } else if(!(ISDIGIT(*p) || *p == '.' || *p == '-' || *p == '+')) {
-          *n = 0;
-          break;
+
+          *n++ = *p++;
         }
-
-        *n++ = *p++;
       }
-    }
-    *n = 0;
+      *n = 0;
 
-    value = ruby_strtod(ba, &rest);
+      value = ruby_strtod(ba, &rest);
+    }
+
     free(ba);
 
     return value;
