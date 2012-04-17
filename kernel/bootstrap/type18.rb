@@ -12,7 +12,7 @@ module Rubinius
       return obj.to_a
     end
 
-    def self.coerce_to_float(obj, strict=false, must_be_numeric=false)
+    def self.coerce_to_float(obj, strict=true, must_be_numeric=true)
       case obj
       when String
         value = Rubinius.invoke_primitive :string_to_f, obj, strict

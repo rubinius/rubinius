@@ -10,7 +10,7 @@ class String
   end
 
   def to_f
-    Rubinius::Type::coerce_to_float self
+    Rubinius::Type::coerce_to_float self, false, false
   end
 
   alias_method :convert_float, :to_f
