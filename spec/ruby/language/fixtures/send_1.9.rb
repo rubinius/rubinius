@@ -1,6 +1,7 @@
 module LangSendSpecs
   module_function
 
+  def fooR(*r); r; end
   def fooM0RQ1(*r, q); [r, q]; end
   def fooM0RQ2(*r, s, q); [r, s, q]; end
   def fooM1RQ1(a, *r, q); [a, r, q]; end
