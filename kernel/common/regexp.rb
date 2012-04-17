@@ -1,7 +1,7 @@
 # -*- encoding: us-ascii -*-
 
 class Regexp
-  ValidKcode    = [110, 101, 115, 117]  # [?n,?e,?s,?u]
+  ValidKcode    = [110, 101, 115, 117]
   KcodeValue    = [16, 32, 48, 64]
 
   IGNORECASE         = 1
@@ -233,7 +233,7 @@ class Regexp
 
     str = "/#{escape}/#{option_to_string(options)}"
     k = kcode()
-    str << k[0, 1] if k and k != "none"
+    str << k[0, 1] if k
     return str
   end
 
