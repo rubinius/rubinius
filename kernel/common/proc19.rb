@@ -117,6 +117,8 @@ class Proc
     "#<#{self.class}:0x#{self.object_id.to_s(16)}@#{@block.file}:#{@block.line}#{l}>"
   end
 
+  alias_method :inspect, :to_s
+
   class Method < Proc 
     def self.__from_method__(meth)
       obj = allocate()
