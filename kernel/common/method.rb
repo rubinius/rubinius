@@ -236,7 +236,13 @@ class UnboundMethod
   # Module it is defined in and the Module that it was extracted from.
 
   def inspect
-    "#<#{self.class}: #{@pulled_from}##{@name} (defined in #{@defined_in})>"
+    file, line = source_location()
+
+    if file
+      "#<#{self.class}: #{@pulled_from}##{@name} (defined in #{@defined_in} at #{file}:#{line})>"
+    else
+      "#<#{self.class}: #{@pulled_from}##{@name} (defined in #{@defined_in})>"
+    end
   end
 
   alias_method :to_s, :inspect
