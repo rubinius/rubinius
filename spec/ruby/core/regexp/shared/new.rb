@@ -122,6 +122,46 @@ describe :regexp_new_string, :shared => true do
     end
   end
 
+  ruby_version_is "1.9" do
+
+    it "ignores the third argument if it is 'e' or 'euc' (case-insensitive)" do
+      Regexp.send(@method, 'Hi', nil, 'e').encoding.should    == Encoding::US_ASCII
+      Regexp.send(@method, 'Hi', nil, 'E').encoding.should    == Encoding::US_ASCII
+      Regexp.send(@method, 'Hi', nil, 'euc').encoding.should  == Encoding::US_ASCII
+      Regexp.send(@method, 'Hi', nil, 'EUC').encoding.should  == Encoding::US_ASCII
+      Regexp.send(@method, 'Hi', nil, 'EuC').encoding.should  == Encoding::US_ASCII
+    end
+
+    it "ignores the third argument if it is 's' or 'sjis' (case-insensitive)" do
+      Regexp.send(@method, 'Hi', nil, 's').encoding.should     == Encoding::US_ASCII
+      Regexp.send(@method, 'Hi', nil, 'S').encoding.should     == Encoding::US_ASCII
+      Regexp.send(@method, 'Hi', nil, 'sjis').encoding.should  == Encoding::US_ASCII
+      Regexp.send(@method, 'Hi', nil, 'SJIS').encoding.should  == Encoding::US_ASCII
+      Regexp.send(@method, 'Hi', nil, 'sJiS').encoding.should  == Encoding::US_ASCII
+    end
+
+    it "ignores the third argument if it is 'u' or 'utf8' (case-insensitive)" do
+      Regexp.send(@method, 'Hi', nil, 'u').encoding.should     == Encoding::US_ASCII
+      Regexp.send(@method, 'Hi', nil, 'U').encoding.should     == Encoding::US_ASCII
+      Regexp.send(@method, 'Hi', nil, 'utf8').encoding.should  == Encoding::US_ASCII
+      Regexp.send(@method, 'Hi', nil, 'UTF8').encoding.should  == Encoding::US_ASCII
+      Regexp.send(@method, 'Hi', nil, 'uTf8').encoding.should  == Encoding::US_ASCII
+    end
+
+    it "uses US_ASCII encoding if third argument is 'n' or 'none' (case insensitive) and only ascii characters" do
+      Regexp.send(@method, 'Hi', nil, 'N').encoding.should     == Encoding::US_ASCII
+      Regexp.send(@method, 'Hi', nil, 'n').encoding.should     == Encoding::US_ASCII
+      Regexp.send(@method, 'Hi', nil, 'nONE').encoding.should  == Encoding::US_ASCII
+    end
+
+    it "uses ASCII_8BIT encoding if third argument is 'n' or 'none' (case insensitive) and non-ascii characters" do
+      Regexp.send(@method, "\xff", nil, 'N').encoding.should     == Encoding::ASCII_8BIT
+      Regexp.send(@method, "\xff", nil, 'n').encoding.should     == Encoding::ASCII_8BIT
+      Regexp.send(@method, "\xff", nil, 'nONE').encoding.should  == Encoding::ASCII_8BIT
+    end
+  end
+
+
   describe "with escaped characters" do
     it "raises a Regexp error if there is a trailing backslash" do
       lambda { Regexp.send(@method, "\\") }.should raise_error(RegexpError)
