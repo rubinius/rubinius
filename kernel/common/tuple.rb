@@ -97,10 +97,9 @@ module Rubinius
     end
 
     def to_a
-      ary = []
+      ary = Array.allocate
       ary.tuple = dup
       ary.total = fields
-      ary.start = 0
       return ary
     end
 
