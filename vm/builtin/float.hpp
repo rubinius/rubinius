@@ -31,6 +31,8 @@ namespace rubinius {
     double to_double(STATE) { return val; }
     void into_string(STATE, char* buf, size_t sz);
 
+    static Float* from_cstr(STATE, const char* str, Object* strict);
+
     // Rubinius.primitive! :float_add
     Float* add(STATE, Float* other);
     // Rubinius.primitive! :float_add

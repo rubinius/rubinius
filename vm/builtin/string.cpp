@@ -907,44 +907,14 @@ namespace rubinius {
     return string_dup(state)->append(state, other);
   }
 
-  Float* String::to_f(STATE) {
-    return Float::create(state, to_double(state));
-  }
+  Float* String::to_f(STATE, Object* strict) {
+    const char* str = c_str(state);
 
-  double String::to_double(STATE) {
-    double value;
-    char *ba = data_->to_chars(state, num_bytes_);
-    char *p, *n, *rest;
-    int e_seen = 0;
-
-    p = ba;
-    while(ISSPACE(*p)) p++;
-    n = p;
-
-    while(*p) {
-      if(*p == '_') {
-        p++;
-      } else {
-        if(*p == 'e' || *p == 'E') {
-          if(e_seen) {
-            *n = 0;
-            break;
-          }
-          e_seen = 1;
-        } else if(!(ISDIGIT(*p) || *p == '.' || *p == '-' || *p == '+')) {
-          *n = 0;
-          break;
-        }
-
-        *n++ = *p++;
-      }
+    if(strict == cTrue && byte_size() > (native_int)strlen(str)) {
+      return nil<Float>();
     }
-    *n = 0;
 
-    value = ruby_strtod(ba, &rest);
-    free(ba);
-
-    return value;
+    return Float::from_cstr(state, str, strict);
   }
 
   // Character-wise logical AND of two strings. Modifies the receiver.

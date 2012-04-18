@@ -186,8 +186,7 @@ namespace rubinius {
     String* append(STATE, const char* other, native_int length);
 
     // Rubinius.primitive :string_to_f
-    Float* to_f(STATE);
-    double to_double(STATE);
+    Float* to_f(STATE, Object* strict = cTrue);
 
     Integer* to_i(STATE, Fixnum* base = Fixnum::from(0), Object* strict = cTrue);
 

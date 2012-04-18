@@ -6,10 +6,6 @@ module Rubinius
       StringValue(obj)
     end
 
-    def self.coerce_to_float(obj)
-      Float(obj)
-    end
-
     def self.coerce_to_symbol(obj)
       if object_kind_of?(obj, Fixnum)
         raise ArgumentError, "Fixnums (#{obj}) cannot be used as symbols"
