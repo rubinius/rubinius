@@ -47,4 +47,10 @@ module ExceptionSpecs
       "this is from #to_s"
     end
   end
+
+  class EmptyToS < RuntimeError
+    def to_s
+      ""
+    end
+  end
 end
