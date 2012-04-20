@@ -309,6 +309,10 @@ module Zlib
       @func = nil
     end
 
+    def adler
+      self[:adler]
+    end
+
     def closing?
       @flags & CLOSING == CLOSING
     end
