@@ -110,7 +110,12 @@ class Exception
   end
 
   def inspect
-    "#<#{self.class.name}: #{self.to_s}>"
+    s = self.to_s
+    if s.empty?
+      self.class.name
+    else
+      "#<#{self.class.name}: #{s}>"
+    end
   end
 
   class << self
