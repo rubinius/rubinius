@@ -317,6 +317,14 @@ module Zlib
       self[:adler]
     end
 
+    def avail_in
+      self[:avail_in]
+    end
+
+    def avail_out
+      self[:avail_out]
+    end
+
     def closing?
       @flags & CLOSING == CLOSING
     end
