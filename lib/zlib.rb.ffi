@@ -117,6 +117,10 @@ module Zlib
     c.const 'Z_DEFAULT_STRATEGY',    nil, nil, 'DEFAULT_STRATEGY'
 
     c.const 'Z_DEFLATED',            nil, nil, 'DEFLATED'
+
+    c.const 'Z_ASCII',               nil, nil, 'ASCII'
+    c.const 'Z_BINARY',              nil, nil, 'BINARY'
+    c.const 'Z_UNKNOWN',             nil, nil, 'UNKNOWN'
   end
   @@@
 
@@ -315,6 +319,10 @@ module Zlib
 
     def closing?
       @flags & CLOSING == CLOSING
+    end
+
+    def data_type
+      self[:data_type]
     end
 
     def detatch_output
