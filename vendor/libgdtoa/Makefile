@@ -56,6 +56,10 @@ ifeq ($(UNAME),OpenBSD)
   CFLAGS+=-DNO_FENV_H
 endif
 
+ifeq ($(UNAME),NetBSD)
+  CFLAGS+=-DNO_FENV_H
+endif
+
 ifdef DEV
   OPTIMIZATIONS=
 else
