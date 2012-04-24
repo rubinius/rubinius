@@ -73,36 +73,5 @@ module Rubinius
       Rubinius.primitive :channel_try_receive
       raise PrimitiveFailure, "Channel#try_receive primitive failed"
     end
-
-    ##
-    # Converts +obj+ into a Channel using #to_channel.
-
-    def self.convert_to_channel(obj)
-      return obj if Channel === obj
-      begin
-        o2 = obj.to_channel
-        unless Channel === o2
-          raise ArgumentError, "to_channel on #{obj.inspect} did not return a Channel"
-        end
-        return o2
-      rescue NoMethodError
-         raise ArgumentError, "Unable to convert #{obj.inspect} into a channel"
-      end
-    end
-
-    ##
-    # Legacy API. To be removed.
-
-    def self.receive(obj) # :nodoc:
-      return convert_to_channel(obj).receive
-    end
-
-    ##
-    # API compliance, returns self.
-
-    def to_channel
-      self
-    end
-
   end
 end
