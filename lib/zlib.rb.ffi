@@ -333,6 +333,18 @@ module Zlib
       self[:data_type]
     end
 
+    def detach_input
+      if @input.nil? then
+        data = ''
+      else
+        data = @input
+
+        reset_input
+      end
+
+      data
+    end
+
     def detach_output
       if @output.nil? then
         data = ''
@@ -413,6 +425,10 @@ module Zlib
     end
 
     alias :stream_end? :finished?
+
+    def flush_next_in
+      detach_input
+    end
 
     ##
     # Flushes output buffer and returns all data in that buffer.
