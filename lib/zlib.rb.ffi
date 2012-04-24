@@ -412,6 +412,8 @@ module Zlib
       @flags & FINISHED == FINISHED
     end
 
+    alias :stream_end? :finished?
+
     ##
     # Flushes output buffer and returns all data in that buffer.
 
