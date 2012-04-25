@@ -1,4 +1,4 @@
-# coding: utf-8
+# -*- encoding: utf-8 -*-
 
 describe :symbol_length, :shared => true do
   it "returns 0 for empty name" do
