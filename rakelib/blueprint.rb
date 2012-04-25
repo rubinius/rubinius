@@ -62,7 +62,7 @@ Daedalus.blueprint do |i|
   when /freebsd/i
     gcc.ldflags << '-lcrypt' << '-pthread' << '-rdynamic'
     make = "gmake"
-  when /openbsd/i
+  when /openbsd|netbsd/i
     gcc.ldflags << '-lcrypto' << '-pthread' << '-lssl' << "-rdynamic" << "-Wl,--export-dynamic"
     make = "gmake"
   when /haiku/i

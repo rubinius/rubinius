@@ -333,7 +333,19 @@ module Zlib
       self[:data_type]
     end
 
-    def detatch_output
+    def detach_input
+      if @input.nil? then
+        data = ''
+      else
+        data = @input
+
+        reset_input
+      end
+
+      data
+    end
+
+    def detach_output
       if @output.nil? then
         data = ''
       else
@@ -402,7 +414,7 @@ module Zlib
     def finish
       run '', Zlib::FINISH
 
-      detatch_output
+      detach_output
     end
 
     ##
@@ -412,11 +424,17 @@ module Zlib
       @flags & FINISHED == FINISHED
     end
 
+    alias :stream_end? :finished?
+
+    def flush_next_in
+      detach_input
+    end
+
     ##
     # Flushes output buffer and returns all data in that buffer.
 
     def flush_next_out
-      detatch_output
+      detach_output
     end
 
     def in_stream?
@@ -681,7 +699,7 @@ module Zlib
     def deflate(data, flush = Zlib::NO_FLUSH)
       do_deflate data, flush
 
-      detatch_output
+      detach_output
     end
 
     ##
@@ -707,7 +725,7 @@ module Zlib
     def finish
       run '', Zlib::FINISH
 
-      detatch_output
+      detach_output
     end
 
     ##
@@ -718,7 +736,7 @@ module Zlib
     def flush(flush = Zlib::SYNC_FLUSH)
       run '', flush unless flush == Zlib::NO_FLUSH
 
-      detatch_output
+      detach_output
     end
 
     ##
@@ -1382,7 +1400,7 @@ module Zlib
     end
 
     def write_raw
-      data = @zstream.detatch_output
+      data = @zstream.detach_output
 
       unless data.empty? then
         @io.write data
@@ -1478,7 +1496,7 @@ module Zlib
 
       if finished? then
         if data.nil? then
-          unzipped = detatch_output
+          unzipped = detach_output
         else
           @input ||= ''
           @input << data
@@ -1492,7 +1510,7 @@ module Zlib
           run data, Zlib::SYNC_FLUSH
         end
 
-        unzipped = detatch_output
+        unzipped = detach_output
 
         if finished? and not @input.nil? then
           expand_output

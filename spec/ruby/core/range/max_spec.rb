@@ -4,7 +4,9 @@ ruby_version_is "1.8.7" do
   describe "Range#max" do
     it "returns the maximum value in the range when called with no arguments" do
       (1..10).max.should == 10
+      (1...10).max.should == 9
       ('f'..'l').max.should == 'l'
+      ('a'...'f').max.should == 'e'
     end
 
     ruby_version_is "1.9" do

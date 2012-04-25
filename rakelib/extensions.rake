@@ -145,7 +145,9 @@ if enabled_18
   compile_ext "18/nkf", :dir => "lib/18/nkf/ext", :env => "-X18"
 
   if BUILD_CONFIG[:readline] == :c_readline
-    compile_ext "18/readline", :dir => "lib/18/readline/ext"
+    compile_ext "18/readline", :dir => "lib/18/readline/ext",
+			       :deps => ["Makefile", "extconf.rb"],
+			       :env => "-X18"
   end
 
   # rbx must be able to run to build these because they use
