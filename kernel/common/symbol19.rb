@@ -45,6 +45,12 @@ class Symbol
   alias_method :intern, :to_sym
   alias_method :id2name, :to_s
 
+  def length
+    to_s.length
+  end
+
+  alias_method :size, :length
+
   def match(pattern)
     str = to_s
 
