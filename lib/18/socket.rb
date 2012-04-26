@@ -337,11 +337,7 @@ class Socket < BasicSocket
               err = _getnameinfo(sockaddr_p, sockaddr.length,
                                  node, Socket::Constants::NI_MAXHOST, nil, 0, 0)
 
-              unless err == 0 then
-                raise SocketError, gai_strerror(err)
-              end
-
-              name_info[2] = node.read_string
+              name_info[2] = node.read_string if err == 0
             end
 
             err = _getnameinfo(sockaddr_p, sockaddr.length,
@@ -441,7 +437,7 @@ class Socket < BasicSocket
     include IO::Socketable
 
     def listen(backlog)
-      backlog = Type.coerce_to backlog, Fixnum, :to_int
+      backlog = Rubinius::Type.coerce_to backlog, Fixnum, :to_int
 
       err = Socket::Foreign.listen descriptor, backlog
 

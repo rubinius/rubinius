@@ -1,3 +1,4 @@
 fails:Regexps with modifers does not do thread synchronization for /o
 fails:Regexps with modifers supports (?imx-imx) (inline modifiers)
 fails:Regexps with modifers supports (?imx-imx:expr) (scoped inline modifiers)
+fails:Regexps with modifers raises SyntaxError for ASII/Unicode modifiers

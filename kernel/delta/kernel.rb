@@ -125,6 +125,11 @@ module Kernel
   Rubinius::Globals.read_only :$<
   Rubinius::Globals.read_only :$?
 
+  Rubinius::Globals[:$-a] = false
+  Rubinius::Globals[:$-l] = false
+  Rubinius::Globals[:$-p] = false
+  Rubinius::Globals.read_only :$-a, :$-l, :$-p
+
   Rubinius::Globals.add_alias :$DEBUG,   :$-d
   Rubinius::Globals.add_alias :$VERBOSE, :$-v
   Rubinius::Globals.add_alias :$VERBOSE, :$-w

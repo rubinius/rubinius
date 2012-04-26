@@ -109,6 +109,8 @@ namespace rubinius {
   Object* MethodTable::store(STATE, GCToken gct, Symbol* name, Object* exec,
                              Symbol* vis)
   {
+    check_frozen(state);
+
     MethodTable* self = this;
 
     OnStack<2> os(state, self, exec);
@@ -166,6 +168,8 @@ namespace rubinius {
                              Symbol* orig_name, Object* orig_method,
                              Module* orig_mod)
   {
+    check_frozen(state);
+
     MethodTable* self = this;
 
     OnStack<3> os(state, self, orig_method, orig_mod);
@@ -263,6 +267,8 @@ namespace rubinius {
   }
 
   Executable* MethodTable::remove(STATE, GCToken gct, Symbol* name) {
+    check_frozen(state);
+
     MethodTable* self = this;
 
     OnStack<1> os(state, self);

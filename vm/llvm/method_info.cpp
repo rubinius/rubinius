@@ -10,7 +10,7 @@
 #include "object_utils.hpp"
 
 namespace rubinius {
-  llvm::AllocaInst* JITMethodInfo::create_alloca(const llvm::Type* type, llvm::Value* size,
+  llvm::AllocaInst* JITMethodInfo::create_alloca(llvm::Type* type, llvm::Value* size,
                                            const llvm::Twine& name)
   {
     return new llvm::AllocaInst(type, size, name,
@@ -54,7 +54,7 @@ namespace rubinius {
   void JITMethodInfo::setup_return() {
     return_pad_ = llvm::BasicBlock::Create(context_.state()->ctx(), "return_pad", function());
     return_phi_ = llvm::PHINode::Create(
-       context_.state()->ptr_type("Object"), "return_phi", return_pad_);
+       context_.state()->ptr_type("Object"), 0, "return_phi", return_pad_);
   }
 
   llvm::BasicBlock* JITMethodInfo::new_block(const char* name) {

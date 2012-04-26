@@ -18,7 +18,10 @@ module Rubinius
 
     def self.coerce_to(obj, cls, meth)
       return obj if object_kind_of?(obj, cls)
+      execute_coerce_to(obj, cls, meth)
+    end
 
+    def self.execute_coerce_to(obj, cls, meth)
       begin
         ret = obj.__send__(meth)
       rescue Exception => orig
@@ -40,7 +43,10 @@ module Rubinius
     def self.check_convert_type(obj, cls, meth)
       return obj if object_kind_of?(obj, cls)
       return nil unless obj.respond_to?(meth)
+      execute_check_convert_type(obj, cls, meth)
+    end
 
+    def self.execute_check_convert_type(obj, cls, meth)
       begin
         ret = obj.__send__(meth)
       rescue Exception
@@ -59,7 +65,10 @@ module Rubinius
     def self.try_convert(obj, cls, meth)
       return obj if object_kind_of?(obj, cls)
       return nil unless obj.respond_to?(meth)
+      execute_try_convert(obj, cls, meth)
+    end
 
+    def self.execute_try_convert(obj, cls, meth)
       ret = obj.__send__(meth)
 
       return ret if ret.nil? || object_kind_of?(ret, cls)
@@ -73,15 +82,6 @@ module Rubinius
         raise ArgumentError, "comparison of #{a.inspect} with #{b.inspect} failed"
       end
       cmp
-    end
-
-    # Maps to rb_num2long in MRI
-    def self.num2long(obj)
-      if obj == nil
-        raise TypeError, "no implicit conversion from nil to integer"
-      else
-        Integer(obj)
-      end
     end
 
     def self.each_ancestor(mod)
@@ -116,6 +116,10 @@ module Rubinius
     def self.infect(host, source)
       Rubinius.primitive :object_infect
       raise PrimitiveFailure, "Object.infect primitive failed"
+    end
+
+    def self.check_null_safe(string)
+      Rubinius.invoke_primitive(:string_check_null_safe, string)
     end
   end
 end

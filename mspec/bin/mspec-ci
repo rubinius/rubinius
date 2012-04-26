@@ -1,7 +1,6 @@
 #!/usr/bin/env ruby
 
 $:.unshift File.expand_path('../../lib', __FILE__)
-$:.unshift "."
 
 require 'mspec/commands/mspec-ci'
 require 'mspec'

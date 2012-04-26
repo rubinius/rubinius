@@ -19,8 +19,8 @@ namespace rubinius {
 namespace jit {
 
   void MethodBuilder::setup() {
-    std::vector<const Type*> ftypes;
-    ftypes.push_back(ls_->ptr_type("VM"));
+    std::vector<Type*> ftypes;
+    ftypes.push_back(ls_->ptr_type("State"));
     ftypes.push_back(ls_->ptr_type("CallFrame"));
     ftypes.push_back(ls_->ptr_type("Executable"));
     ftypes.push_back(ls_->ptr_type("Module"));
@@ -108,7 +108,7 @@ namespace jit {
         int_pos
       };
 
-      Value* pos = b().CreateGEP(vars, idx2, idx2+3, "var_pos");
+      Value* pos = b().CreateGEP(vars, idx2, "var_pos");
 
       b().CreateStore(arg_val, pos);
     }
@@ -158,7 +158,7 @@ namespace jit {
       b().CreateStore(
           b().CreateLoad(
             b().CreateGEP(arg_ary, loop_val)),
-          b().CreateGEP(vars, idx2, idx2+3));
+          b().CreateGEP(vars, idx2));
 
       // *loop_i = loop_val + 1
       b().CreateStore(
@@ -220,7 +220,7 @@ namespace jit {
       b().CreateStore(
           b().CreateLoad(
             b().CreateGEP(arg_ary, loop_val)),
-          b().CreateGEP(vars, idx2, idx2+3));
+          b().CreateGEP(vars, idx2));
 
       // *loop_i = loop_val + 1
       b().CreateStore(
@@ -235,7 +235,7 @@ namespace jit {
     // Phase 4 - splat
     if(vmm_->splat_position >= 0) {
       Signature sig(ls_, "Object");
-      sig << "VM";
+      sig << "State";
       sig << "Arguments";
       sig << ls_->Int32Ty;
       sig << ls_->Int32Ty;
@@ -262,7 +262,7 @@ namespace jit {
         cint(vmm_->splat_position)
       };
 
-      Value* pos = b().CreateGEP(vars, idx3, idx3+3, "splat_pos");
+      Value* pos = b().CreateGEP(vars, idx3, "splat_pos");
       b().CreateStore(splat_val, pos);
     }
   }
@@ -295,7 +295,7 @@ namespace jit {
           int_pos
         };
 
-        Value* pos = b().CreateGEP(vars, idx2, idx2+3, "var_pos");
+        Value* pos = b().CreateGEP(vars, idx2, "var_pos");
 
         b().CreateStore(arg_val, pos);
       }
@@ -351,7 +351,7 @@ namespace jit {
         loop_val
       };
 
-      Value* pos = b().CreateGEP(vars, idx2, idx2+3, "var_pos");
+      Value* pos = b().CreateGEP(vars, idx2, "var_pos");
 
       b().CreateStore(arg_val, pos);
 
@@ -367,7 +367,7 @@ namespace jit {
     // Setup the splat.
     if(vmm_->splat_position >= 0) {
       Signature sig(ls_, "Object");
-      sig << "VM";
+      sig << "State";
       sig << "Arguments";
       sig << ls_->Int32Ty;
       sig << ls_->Int32Ty;
@@ -394,7 +394,7 @@ namespace jit {
         cint(vmm_->splat_position)
       };
 
-      Value* pos = b().CreateGEP(vars, idx3, idx3+3, "splat_pos");
+      Value* pos = b().CreateGEP(vars, idx3, "splat_pos");
       b().CreateStore(splat_val, pos);
     }
   }
@@ -447,7 +447,7 @@ namespace jit {
     // Call our arg_error helper
     Signature sig(ls_, "Object");
 
-    sig << "VM";
+    sig << "State";
     sig << "CallFrame";
     sig << "Arguments";
     sig << ls_->Int32Ty;
@@ -576,7 +576,7 @@ namespace jit {
       b().SetInsertPoint(setup_profiling);
 
       Signature sig(ls_, ls_->VoidTy);
-      sig << "VM";
+      sig << "State";
       sig << llvm::PointerType::getUnqual(ls_->Int8Ty);
       sig << "Executable";
       sig << "Module";

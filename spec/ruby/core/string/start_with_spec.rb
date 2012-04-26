@@ -22,11 +22,22 @@ ruby_version_is '1.8.7' do
       s.start_with?(find).should be_true
     end
 
-    it "ignores arguments not convertible to string" do
-      "hello".start_with?().should be_false
-      "hello".start_with?(1).should be_false
-      "hello".start_with?(["h"]).should be_false
-      "hello".start_with?(1, nil, "h").should be_true
+    ruby_version_is '1.8.7'...'2.0' do
+      it "ignores arguments not convertible to string" do
+        "hello".start_with?().should be_false
+        "hello".start_with?(1).should be_false
+        "hello".start_with?(["h"]).should be_false
+        "hello".start_with?(1, nil, "h").should be_true
+      end
+    end
+
+    ruby_version_is '2.0' do
+      it "ignores arguments not convertible to string" do
+        "hello".start_with?().should be_false
+        lambda { "hello".start_with?(1) }.should  raise_error(TypeError)
+        lambda { "hello".start_with?(["h"]) }.should  raise_error(TypeError)
+        lambda { "hello".start_with?(1, nil, "h").should }.should raise_error(TypeError)
+      end
     end
 
     it "uses only the needed arguments" do

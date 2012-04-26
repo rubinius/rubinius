@@ -81,10 +81,8 @@ namespace rubinius {
       BASIC_TYPEINFO(TypeInfo)
 
       virtual void mark(Object* obj, ObjectMark& mark);
-      virtual void visit(Object* obj, ObjectVisitor& visit);
 
       void mark_inliners(Object* obj, ObjectMark& mark);
-      void visit_inliners(Object* obj, ObjectVisitor& visit);
     };
 
     friend class Info;

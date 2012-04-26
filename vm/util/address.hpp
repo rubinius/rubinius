@@ -27,11 +27,11 @@ namespace memory {
      * Type conversion operator; converts this Address to a void*, allowing
      * the implicit type conversion rules to handle comparisons etc.
      */
-    operator void*() {
+    operator void*() const {
       return reinterpret_cast<void*>(address_);
     }
 
-    Address operator+(int change) {
+    Address operator+(int change) const {
       return Address(reinterpret_cast<void*>(address_ + change));
     }
 
@@ -40,19 +40,19 @@ namespace memory {
       return *this;
     }
 
-    size_t operator-(Address change) {
+    size_t operator-(Address change) const {
       return address_ - change.address_;
     }
 
-    Address operator-(int change) {
+    Address operator-(int change) const {
       return Address(reinterpret_cast<void*>(address_ - change));
     }
 
-    Address operator&(uintptr_t mask) {
+    Address operator&(uintptr_t mask) const {
       return Address(reinterpret_cast<void*>(address_ & mask));
     }
 
-    bool is_null() {
+    bool is_null() const {
       return address_ == 0;
     }
 
@@ -60,7 +60,7 @@ namespace memory {
       return Address(0);
     }
 
-    intptr_t as_int() {
+    intptr_t as_int() const {
       return address_;
     }
 

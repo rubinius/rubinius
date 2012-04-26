@@ -247,4 +247,20 @@ describe "The super keyword" do
       Super::AliasWithSuper::Trigger.foo.should == [:b, :a]
     }.should_not raise_error(NoMethodError)
   end
+
+  it "passes along modified rest args when they weren't originally empty" do
+    Super::RestArgsWithSuper::B.new.a("bar").should == ["bar", "foo"]
+  end
+
+  ruby_version_is ""..."1.9" do
+    it "passes empty args instead of modified rest args when they were originally empty" do
+      Super::RestArgsWithSuper::B.new.a.should == []
+    end
+  end
+
+  ruby_version_is "1.9" do
+    it "passes along modified rest args when they were originally empty" do
+      Super::RestArgsWithSuper::B.new.a.should == ["foo"]
+    end
+  end
 end

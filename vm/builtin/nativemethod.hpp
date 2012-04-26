@@ -21,7 +21,6 @@
 
 namespace rubinius {
   class ExceptionPoint;
-  class Message;
   class NativeMethodFrame;
   class Pointer;
 

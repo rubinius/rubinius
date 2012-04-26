@@ -90,6 +90,12 @@
     
     
     
+    <li><a href="/doc/it/getting-started/building/"
+      
+      >it</a></li>
+    
+    
+    
     <li><a href="/doc/ja/getting-started/building/"
       
       >ja</a></li>
@@ -144,9 +150,16 @@
 
   
 
-    <p>Você pode compilar e executar o Rubinius a partir do código fonte. Você não precisa instalar o Rubinius para executa-lo. Abaixo você encontrará detalhes de como instalar e executa-lo a partir do código fonte.</p>
+    <p>Você pode compilar e executar o Rubinius a partir do código fonte. Você não precisa 
+instalar o Rubinius para executa-lo. Abaixo você encontrará detalhes de como instalar e 
+executa-lo a partir do código fonte.</p>
 
-<p>O Rubinus usa o LLVM como o compilador JIT. O Rubinius depende de uma versão particular do LLVM e o LLVM precisa estar compilado com o C++ RTTI (<em>run-time type information</em>) habilitado. O script <code>configure</code> irá verificar automaticamente esse requerimento quando este buscar a versão instalada do LLVM. Se você já tiver o LLVM instalado em sua máquina e o Rubinius falhar em linkar com o LLVM por qualquer motivo, passe <code>--skip-system</code> como argumento do script <code>configure</code> nas instruções abaixo.</p>
+<p>O Rubinus usa o LLVM como o compilador JIT. O Rubinius depende de uma versão particular 
+do LLVM e o LLVM precisa estar compilado com o C++ RTTI (<em>run-time type information</em>) 
+habilitado. O script <code>configure</code> irá verificar automaticamente esse requerimento quando 
+este buscar a versão instalada do LLVM. Se você já tiver o LLVM instalado em sua máquina 
+e o Rubinius falhar em linkar com o LLVM por qualquer motivo, passe <code>--skip-system</code> como 
+argumento do script <code>configure</code> nas instruções abaixo.</p>
 
 <h3 id="obtendo-o-cdigo-fonte">Obtendo o código fonte</h3>
 
@@ -162,9 +175,12 @@ Você pode <a href="http://rubini.us/download/latest">fazer o download do tarbal
 
 <h3 id="instalando-o-rubinius">Instalando o Rubinius</h3>
 
-<p>Se você planeja utilizar o Rubinius para executar sua aplicação, essa é melhor opção. Contudo, você também pode rodar o Rubinius diretamente do codigo fonte. Veja a próxima sessão para maiores detalhes.</p>
+<p>Se você planeja utilizar o Rubinius para executar sua aplicação, essa é melhor opção. 
+Contudo, você também pode rodar o Rubinius diretamente do codigo fonte. Veja a próxima 
+sessão para maiores detalhes.</p>
 
-<p>Nos recomendamos instalar o Rubinius em um local que não exija o uso de <code>sudo</code> or outros previlegio de <em>superuser</em>. Para instalar o Rubinius:</p>
+<p>Nos recomendamos instalar o Rubinius em um local que não exija o uso de <code>sudo</code> or outros 
+previlegio de <em>superuser</em>. Para instalar o Rubinius:</p>
 
 <ol>
   <li><code>./configure --prefix=/path/to/install/dir</code></li>
@@ -183,7 +199,10 @@ Você pode <a href="http://rubini.us/download/latest">fazer o download do tarbal
 
 <p>Se você estiver interessado em experimentar o Rubinius, siga as instruções de como adicionar a pasta <em>bin</em> ao seu PATH.</p>
 
-<p>Contudo, se você estiver desenvolvendo o Rubinius, você NÃO DEVE adicionar a pasta <em>bin</em> ao seu PATH por que o próprio Rubinius irá fazer os link do <code>ruby</code> e <code>rake</code> ao executavel do Rubinius. O Rubinius precisa de uma outra versão do executavel do Ruby para fazer a inicialização do seu processo de compilação (<em>bootstrap</em>).</p>
+<p>Contudo, se você estiver desenvolvendo o Rubinius, você NÃO DEVE adicionar a pasta <em>bin</em> 
+ao seu PATH por que o próprio Rubinius irá fazer os link do <code>ruby</code> e <code>rake</code> ao 
+executavel do Rubinius. O Rubinius precisa de uma outra versão do executavel do Ruby 
+para fazer a inicialização do seu processo de compilação (<em>bootstrap</em>).</p>
 
 
 </div>

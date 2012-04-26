@@ -272,7 +272,6 @@ void pop_start_line(rb_parser_state* parser_state) {
 
 #define POP_LINE() pop_start_line((rb_parser_state*)parser_state)
 
-static ID rb_parser_sym(const char *name);
 static ID rb_id_attrset(ID);
 
 static int scan_oct(const char *start, size_t len, size_t *retlen);
@@ -1549,7 +1548,7 @@ call_args       : command
                   }
                 | args ',' assocs opt_block_arg
                   {
-                    $$ = list_append($1, NEW_HASH($3));
+                    $$ = arg_append($1, NEW_HASH($3));
                     $$ = arg_blk_pass($$, $4);
                   }
                 | block_arg
@@ -1599,7 +1598,7 @@ args            : arg_value
                   {
                     NODE *n1;
                     if((n1 = splat_array($1)) != 0) {
-                      $$ = list_append($1, $3);
+                      $$ = list_append(n1, $3);
                     } else {
                       $$ = arg_append($1, $3);
                     }
@@ -1619,7 +1618,7 @@ mrhs            : args ',' arg_value
                   {
                     NODE *n1;
                     if((n1 = splat_array($1)) != 0) {
-                      $$ = list_append($1, $3);
+                      $$ = list_append(n1, $3);
                     } else {
                       $$ = arg_append($1, $3);
                     }
@@ -3216,7 +3215,6 @@ VALUE process_parse_tree(rb_parser_state*, VALUE, NODE*, ID*);
 VALUE
 string_to_ast(VALUE ptp, VALUE name, VALUE source, VALUE line)
 {
-  int n;
   int l = FIX2INT(line);
   VALUE ret;
   rb_parser_state* parser_state = parser_alloc_state();
@@ -3229,7 +3227,7 @@ string_to_ast(VALUE ptp, VALUE name, VALUE source, VALUE line)
   ruby_sourceline = l - 1;
   compile_for_eval = 1;
 
-  n = yycompile(parser_state, RSTRING_PTR(name), l);
+  yycompile(parser_state, RSTRING_PTR(name), l);
 
   if(!parse_error) {
     ret = process_parse_tree(parser_state, ptp, top_node, NULL);
@@ -3294,7 +3292,6 @@ static VALUE parse_io_gets(rb_parser_state* parser_state, VALUE s) {
 VALUE
 file_to_ast(VALUE ptp, const char *f, int fd, int start)
 {
-  int n;
   VALUE ret;
   rb_parser_state* parser_state = parser_alloc_state();
 
@@ -3306,7 +3303,7 @@ file_to_ast(VALUE ptp, const char *f, int fd, int start)
   rb_funcall(ptp, rb_intern("references="), 1, references);
   ruby_sourceline = start - 1;
 
-  n = yycompile(parser_state, (char*)f, start);
+  yycompile(parser_state, (char*)f, start);
 
   if(!parse_error) {
     ret = process_parse_tree(parser_state, ptp, top_node, NULL);

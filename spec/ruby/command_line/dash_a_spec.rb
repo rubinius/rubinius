@@ -8,4 +8,10 @@ describe "The -a command line option" do
                              :args => " < #{@names}").should ==
       "jones\nfield\ngrey\n"
   end
+
+  it "sets $-a" do
+    ruby_exe("puts $-a", :options => "-n -a", :escape => true,
+                         :args => " < #{@names}").should ==
+      "true\ntrue\ntrue\n"
+  end
 end

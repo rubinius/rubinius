@@ -1,26 +1,23 @@
 ---
 layout: doc_ja
-title: Requirements
-previous: Getting Started
+title: 必要要件
+previous: はじめに
 previous_url: getting-started
 next: Building
 next_url: getting-started/building
-translated: true
 ---
 
-を確認するには、次のプログラムおよびインストールされているライブラリを持っています。また、参照してください
-特定のオペレーティングシステム用の特別な要件については、以下のサブセクション
-システムです。
+以下に示すプログラムおよびライブラリがインストールされていることを確認してください。
+また、特定のオペレーティングシステムに対する特別な要件については、下のサブセクションを参照してください
 
-次のプログラムに関する詳細情報を取得するための提案です
-とライブラリがRubiniusのを構築する必要がありました。ご使用のオペレーティングシステムまたはパッケージ
-マネージャは、他のパッケージが利用できる場合があります。
+後ろに書かれているものは、必要となるプログラムやライブラリに関する提言です。
+ご使用のオペレーティングシステムまたはパッケージマネージャによっては、別のパッケージを利用できるかもしれません。
 
   * [GCC and G++ 4.x](http://gcc.gnu.org/)
   * [GNU Bison](http://www.gnu.org/software/bison/)
-  * [MRI Ruby 1.8.7+](http://www.ruby-lang.org/) If your system does not have
-    Ruby 1.8.7 installed, consider using [RVM](https://rvm.beginrescueend.com/)
-    to install it.
+  * [MRI Ruby 1.8.7+](http://www.ruby-lang.org/)
+    システム上に Ruby 1.8.7 がインストールされていないのならば、[RVM](https://rvm.beginrescueend.com/)
+    を使ってインストールすることをおすすめします。
   * [Rubygems](http://www.rubygems.org/)
   * [Git](http://git.or.cz/)
   * [ZLib](http://www.zlib.net/)
@@ -31,10 +28,10 @@ translated: true
 
 ### Apple OS X
 
-アップルのOS X上でビルド環境を取得する最も簡単な方法は、インストールすることです。
-Xcodeのツールとユーティリティ。インストールが完了すると、あなたは開発者モードの
-クラッシュを有効にすることができますでのレポート:
-/Developer/Applications/Utilities/CrashReporterPrefs.app
+Apple の OS X 上にビルド環境を構築する最も簡単な方法は、XCode Tools と 
+Utilities をインストールすることです。
+インストールすると、/Developer/Applications/Utilities/CrashReporterPrefs.app の 
+developer mode crash reporting を有効にできます。
 
 
 ### Debian/Ubuntu
@@ -43,3 +40,10 @@ Xcodeのツールとユーティリティ。インストールが完了すると
   * libreadline5-dev
   * zlib1g-dev
   * libssl-dev
+
+
+### FreeBSD
+
+Rubinius は、FreeBSD の ports ツリーに lang/rubinius という port をもっています。
+この port に関する情報は [http://freshports.org](http://freshports) で得ることができます。
+インストールされると、このポートは、全ての依存するものを自動的にインストールします。

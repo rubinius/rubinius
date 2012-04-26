@@ -467,6 +467,9 @@ typedef struct RIO rb_io_t;
 /** Interrupt checking (no-op). */
 #define CHECK_INTS        /* No-op */
 
+/** Rubinius doesn't need gc guards */
+#define RB_GC_GUARD       /* No-op */
+
 #define POSFIXABLE(f)     ((f) <= FIXNUM_MAX)
 #define NEGFIXABLE(f)     ((f) >= FIXNUM_MIN)
 #define FIXABLE(f)        (POSFIXABLE(f) && NEGFIXABLE(f))

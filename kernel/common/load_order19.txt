@@ -84,8 +84,10 @@ marshal19.rbc
 math.rbc
 math19.rbc
 method.rbc
+method_equality.rbc
 method19.rbc
 method_table.rbc
+missing_method.rbc
 native_method.rbc
 nil.rbc
 nil19.rbc
@@ -97,6 +99,7 @@ range19.rbc
 struct.rbc
 struct19.rbc
 process.rbc
+process19.rbc
 random.rbc
 random19.rbc
 regexp.rbc

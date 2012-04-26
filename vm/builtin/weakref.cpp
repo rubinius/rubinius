@@ -5,10 +5,17 @@
 #include "gc/gc.hpp"
 
 #include "ontology.hpp"
+#include "configuration.hpp"
 
 namespace rubinius {
   void WeakRef::init(STATE) {
-    GO(cls_weakref).set(ontology::new_class(state, "WeakRef", G(object)));
+    Class* super_class;
+    if(!LANGUAGE_18_ENABLED(state)) {
+      super_class = G(basicobject);
+    } else {
+      super_class = G(object);
+    }
+    GO(cls_weakref).set(ontology::new_class(state, "WeakRef", super_class));
      G(cls_weakref)->set_object_type(state, WeakRefType);
   }
 

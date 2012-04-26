@@ -57,6 +57,7 @@ int rb_ascii8bit_encindex(void);
 int rb_locale_encindex(void);
 int rb_filesystem_encindex(void);
 int rb_enc_get_index(VALUE obj);
+VALUE rb_obj_encoding(VALUE obj);
 void rb_enc_set_index(VALUE obj, int index);
 int rb_to_encoding_index(VALUE obj);
 

@@ -15,7 +15,8 @@ at_exit do
 
 -----------------------------------------------------
 The rubyspec temp directory is not empty. Ensure that
-all specs are cleaning up temporary files.
+all specs are cleaning up temporary files:
+  #{SPEC_TEMP_DIR}
 -----------------------------------------------------
 
     EOM

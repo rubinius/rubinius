@@ -88,6 +88,51 @@ describe "Invoking a method" do
     specs.fooM4(0,*a,3).should == [0,1,2,3]
   end
 
+  it "accepts final explicit literal Hash arguments after the splat" do
+    a = [1, 2]
+    specs.fooM0RQ1(*a, { :a => 1 }).should == [[1, 2], { :a => 1 }]
+  end
+
+  it "accepts final implicit literal Hash arguments after the splat" do
+    a = [1, 2]
+    specs.fooM0RQ1(*a, :a => 1).should == [[1, 2], { :a => 1 }]
+  end
+
+  it "accepts final Hash arguments after the splat" do
+    a = [1, 2]
+    b = { :a => 1 }
+    specs.fooM0RQ1(*a, b).should == [[1, 2], { :a => 1 }]
+  end
+
+  it "accepts mandatory and explicit literal Hash arguments after the splat" do
+    a = [1, 2]
+    specs.fooM0RQ2(*a, 3, { :a => 1 }).should == [[1, 2], 3, { :a => 1 }]
+  end
+
+  it "accepts mandatory and implicit literal Hash arguments after the splat" do
+    a = [1, 2]
+    specs.fooM0RQ2(*a, 3, :a => 1).should == [[1, 2], 3, { :a => 1 }]
+  end
+
+  it "accepts mandatory and Hash arguments after the splat" do
+    a = [1, 2]
+    b = { :a => 1 }
+    specs.fooM0RQ2(*a, 3, b).should == [[1, 2], 3, { :a => 1 }]
+  end
+
+  it "converts a final splatted explicit Hash to an Array" do
+    a = [1, 2]
+    specs.fooR(*a, 3, *{ :a => 1 }).should == [1, 2, 3, [:a, 1]]
+  end
+
+  it "calls #to_a to convert a final splatted Hash object to an Array" do
+    a = [1, 2]
+    b = { :a => 1 }
+    b.should_receive(:to_a).and_return([:a, 1])
+
+    specs.fooR(*a, 3, *b).should == [1, 2, 3, :a, 1]
+  end
+
   it "accepts multiple splat expansions in the same argument list" do
     a = [1,2,3]
     b = 7

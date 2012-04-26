@@ -9,14 +9,27 @@ describe "C-API Symbol function" do
 
   describe "rb_intern" do
     it "converts a string to a symbol, uniquely" do
-      @s.rb_intern("test_symbol").should === :test_symbol
+      @s.rb_intern("test_symbol").should == :test_symbol
       @s.rb_intern_c_compare("test_symbol", :test_symbol).should == true
     end
   end
 
   describe "rb_id2name" do
     it "converts a symbol to a C char array" do
-      @s.rb_id2name(:test_symbol).should === "test_symbol"
+      @s.rb_id2name(:test_symbol).should == "test_symbol"
+    end
+  end
+
+  ruby_version_is "1.9" do
+    describe "rb_id2str" do
+      it "converts a symbol to a Ruby string" do
+        @s.rb_id2str(:test_symbol).should == "test_symbol"
+      end
+
+      it "creates a string with the same encoding as the symbol" do
+        str = "test_symbol".encode(Encoding::UTF_16LE)
+        @s.rb_id2str(str.to_sym).encoding.should == Encoding::UTF_16LE
+      end
     end
   end
 

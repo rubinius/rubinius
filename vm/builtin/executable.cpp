@@ -114,22 +114,6 @@ namespace rubinius {
     }
   }
 
-  void Executable::Info::visit(Object* obj, ObjectVisitor& visit) {
-    auto_visit(obj, visit);
-    visit_inliners(obj, visit);
-  }
-
-  void Executable::Info::visit_inliners(Object* obj, ObjectVisitor& visit) {
-    Executable* exc = (Executable*)obj;
-    if(!exc->inliners_ || exc->inliners_ == (Inliners*)cNil) return;
-
-    for(std::list<CompiledMethod*>::iterator i = exc->inliners_->inliners().begin();
-        i != exc->inliners_->inliners().end();
-        ++i) {
-      visit.call(*i);
-    }
-  }
-
   Inliners::Inliners(ObjectMemory* om) {
     om->add_code_resource(this);
   }

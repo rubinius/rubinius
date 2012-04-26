@@ -17,8 +17,8 @@ namespace rubinius {
 namespace jit {
 
   void BlockBuilder::setup() {
-    std::vector<const Type*> ftypes;
-    ftypes.push_back(ls_->ptr_type("VM"));
+    std::vector<Type*> ftypes;
+    ftypes.push_back(ls_->ptr_type("State"));
     ftypes.push_back(ls_->ptr_type("CallFrame"));
     ftypes.push_back(ls_->ptr_type("BlockEnvironment"));
     ftypes.push_back(ls_->ptr_type("Arguments"));
@@ -76,7 +76,7 @@ namespace jit {
       b().SetInsertPoint(setup_profiling);
 
       Signature sig(ls_, ls_->VoidTy);
-      sig << "VM";
+      sig << "State";
       sig << llvm::PointerType::getUnqual(ls_->Int8Ty);
       sig << "BlockEnvironment";
       sig << "Module";
@@ -115,7 +115,7 @@ namespace jit {
         "invocation.module");
 
     Value* creation_mod = b().CreateLoad(
-        get_field(block_env, offset::blockenv_module),
+        get_field(block_env, offset::BlockEnvironment::module),
         "env.module");
 
     Value* mod = b().CreateSelect(
@@ -136,7 +136,7 @@ namespace jit {
     // the scope the block was created in, not the top scope for depth
     // variables to work.
     Value* be_scope = b().CreateLoad(
-        get_field(block_env, offset::blockenv_scope),
+        get_field(block_env, offset::BlockEnvironment::scope),
         "env.scope");
 
     b().CreateStore(be_scope, get_field(vars, offset::vars_parent));
@@ -148,7 +148,7 @@ namespace jit {
   void BlockBuilder::initialize_frame(int stack_size) {
     Value* cm_gep = get_field(call_frame, offset::CallFrame::cm);
 
-    method = b().CreateLoad(get_field(block_env, offset::blockenv_code),
+    method = b().CreateLoad(get_field(block_env, offset::BlockEnvironment::code),
                             "env.code");
 
     // previous
@@ -195,7 +195,7 @@ namespace jit {
 
     // top_scope
     top_scope = b().CreateLoad(
-        get_field(block_env, offset::blockenv_top_scope),
+        get_field(block_env, offset::BlockEnvironment::top_scope),
         "env.top_scope");
 
     b().CreateStore(top_scope, get_field(call_frame, offset::CallFrame::top_scope));
@@ -224,7 +224,7 @@ namespace jit {
       b().SetInsertPoint(destruct);
 
       Signature sig(ls_, "Object");
-      sig << "VM";
+      sig << "State";
       sig << "CallFrame";
       sig << "Arguments";
 
@@ -316,7 +316,7 @@ namespace jit {
       b().CreateStore(
           b().CreateLoad(
             b().CreateGEP(arg_ary, loop_val)),
-          b().CreateGEP(vars, idx2, idx2+3));
+          b().CreateGEP(vars, idx2));
 
       // *loop_i = loop_val + 1
       b().CreateStore(
@@ -375,7 +375,7 @@ namespace jit {
       b().CreateStore(
           b().CreateLoad(
             b().CreateGEP(arg_ary, loop_val)),
-          b().CreateGEP(vars, idx2, idx2+3));
+          b().CreateGEP(vars, idx2));
 
       // *loop_i = loop_val + 1
       b().CreateStore(
@@ -432,7 +432,7 @@ namespace jit {
       b().CreateStore(
           b().CreateLoad(
             b().CreateGEP(arg_ary, loop_val)),
-          b().CreateGEP(vars, idx2, idx2+3));
+          b().CreateGEP(vars, idx2));
 
       // *loop_i = loop_val + 1
       b().CreateStore(
@@ -447,7 +447,7 @@ namespace jit {
     // Phase 4 - splat
     if(vmm_->splat_position >= 0) {
       Signature sig(ls_, "Object");
-      sig << "VM";
+      sig << "State";
       sig << "Arguments";
       sig << ls_->Int32Ty;
       sig << ls_->Int32Ty;
@@ -474,7 +474,7 @@ namespace jit {
         cint(vmm_->splat_position)
       };
 
-      Value* pos = b().CreateGEP(vars, idx3, idx3+3, "splat_pos");
+      Value* pos = b().CreateGEP(vars, idx3, "splat_pos");
       b().CreateStore(splat_val, pos);
     }
   }

@@ -90,6 +90,12 @@
     
     
     
+    <li><a href="/doc/it/virtual-machine/instructions/"
+      
+      >it</a></li>
+    
+    
+    
     <li><a href="/doc/ja/virtual-machine/instructions/"
       
       >ja</a></li>
@@ -886,7 +892,7 @@ tuple data.</li>
   <li>If in 1.9 mode and the input is nil, an empty Array is returned</li>
 </ol>
 
-<p>If the input is any other type, call <code>Array.coerce_into_array(value)</code>.
+<p>If the input is any other type, call <code>Rubinius::Type.coerce_to_array(value)</code>.
    If the return value of the method call is an <code>Array</code>, make it the result.
    Otherwise make the result an 1 element <code>Array</code> contain the original value.</p>
 

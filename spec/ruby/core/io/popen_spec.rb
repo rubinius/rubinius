@@ -35,7 +35,6 @@ describe "IO.popen" do
       @io.write("bar")
       @io.close
 
-      system 'sync' # sync to flush writes for File.read below
       @fname.should have_data("bar")
     end
 
@@ -57,7 +56,6 @@ describe "IO.popen" do
 
       $?.exitstatus.should == 0
 
-      system 'sync' # sync to flush writes for File.read below
       @fname.should have_data("bar")
     end
   end

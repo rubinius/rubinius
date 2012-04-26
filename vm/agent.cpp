@@ -616,9 +616,10 @@ auth_error:
     remove_tmp_path();
   }
 
-  void QueryAgent::shutdown(STATE) {
-    if(!state->shared().agent()) return;
-    state->shared().agent()->shutdown_i();
+  bool QueryAgent::shutdown(STATE) {
+    if(!state->shared().agent()) return false;
+    state->shared().stop_agent(state);
+    return true;
   }
 
   void QueryAgent::shutdown_i() {

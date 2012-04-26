@@ -5,6 +5,9 @@ require "stringio"
 describe "Net::HTTPGenericRequest#exec when passed socket, version, path" do
   before(:each) do
     @socket = StringIO.new("")
+    def @socket.io # 2.0's @socket is BufferedIO
+      self
+    end
     def @socket.continue_timeout
       1
     end
@@ -95,11 +98,12 @@ describe "Net::HTTPGenericRequest#exec when passed socket, version, path" do
       str[-24..-1].should == "\r\n\r\naaaaaaaaaaaaaaaaaaaa"
     end
 
-    it "sends the request in chunks of 1024 bytes when 'Transfer-Encoding' is set to 'chunked'" do
+    it "sends the request in chunks when 'Transfer-Encoding' is set to 'chunked'" do
       request = Net::HTTPGenericRequest.new("POST", true, true, "/some/path",
                                             "Content-Type" => "text/html",
                                             "Transfer-Encoding" => "chunked")
-      request.body_stream = StringIO.new("a" * 1024 * 2)
+      datasize = 1024 * 10
+      request.body_stream = StringIO.new("a" * datasize)
 
       request.exec(@socket, "1.1", "/some/other/path")
       str = @socket.string
@@ -108,7 +112,17 @@ describe "Net::HTTPGenericRequest#exec when passed socket, version, path" do
       str.should =~ %r[Accept: \*/\*\r\n]
       str.should =~ %r[Content-Type: text/html\r\n]
       str.should =~ %r[Transfer-Encoding: chunked\r\n]
-      str.should =~ %r[400\r\n#{'a' * 1024}\r\n400\r\n#{'a' * 1024}\r\n0\r\n\r\n$]
+      str =~ %r[\r\n\r\n]
+      str = $'
+      while datasize > 0
+        chunk_size_line, str = str.split(/\r\n/, 2)
+        chunk_size = chunk_size_line[/\A[0-9A-Fa-f]+/].to_i(16)
+        str.slice!(0, chunk_size).should == 'a' * chunk_size
+        datasize -= chunk_size
+        str.slice!(0, 2).should == "\r\n"
+      end
+      datasize.should == 0
+      str.should == %"0\r\n\r\n"
     end
 
     it "raises an ArgumentError when the 'Content-Length' is not set or 'Transfer-Encoding' is not set to 'chunked'" do

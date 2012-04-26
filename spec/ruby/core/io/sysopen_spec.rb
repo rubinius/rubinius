@@ -42,7 +42,7 @@ describe "IO.sysopen" do
   end
 
   ruby_version_is "1.9" do
-    it "calls #to_str to convert an object to a String" do
+    it "calls #to_path to convert an object to a path" do
       path = mock('sysopen to_path')
       path.should_receive(:to_path).and_return(@filename)
       @fd = IO.sysopen(path, 'w')
@@ -57,6 +57,11 @@ describe "IO.sysopen" do
 
   it "accepts permissions as third argument" do
     @fd = IO.sysopen(@filename, "w", 777)
+    @fd.should_not equal(0)
+  end
+
+  it "accepts mode & permission that are nil" do
+    @fd = IO.sysopen(@filename, nil, nil)
     @fd.should_not equal(0)
   end
 end

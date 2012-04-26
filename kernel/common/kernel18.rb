@@ -1,7 +1,19 @@
 # -*- encoding: us-ascii -*-
 
 module Kernel
+  def method(name)
+    name = Rubinius::Type.coerce_to_symbol name
+    cm = Rubinius.find_method(self, name)
+
+    if cm
+      Method.new(self, cm[1], cm[0], name)
+    else
+      raise NameError, "undefined method `#{name}' for #{self.inspect}"
+    end
+  end
+
   alias_method :send, :__send__
+  alias_method :object_id, :__id__
 
   def to_a
     if self.kind_of? Array
@@ -120,14 +132,7 @@ module Kernel
     when Float
       obj
     when String
-      valid_re = /^\s*[+-]?((\d+_?)*\d+(\.(\d+_?)*\d+)?|\.(\d+_?)*\d+)(\s*|([eE][+-]?(\d+_?)*\d+)\s*)$/
-
-      m = valid_re.match(obj)
-
-      if !m or !m.pre_match.empty? or !m.post_match.empty?
-        raise ArgumentError, "invalid value for Float(): #{obj.inspect}"
-      end
-      obj.convert_float
+      Rubinius::Type.coerce_to_float(obj, true, false)
     else
       coerced_value = Rubinius::Type.coerce_to(obj, Float, :to_f)
       if coerced_value.nan?
@@ -146,5 +151,16 @@ module Kernel
   def type
     Kernel.warn "Object#type IS fully deprecated; use Object#class OR ELSE."
     self.class
+  end
+
+  def method(name)
+    name = Rubinius::Type.coerce_to_symbol name
+    cm = Rubinius.find_method(self, name)
+
+    if cm
+      return Method.new(self, cm[1], cm[0], name)
+    else
+      raise NameError, "undefined method `#{name}' for #{self.inspect}"
+    end
   end
 end

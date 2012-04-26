@@ -3,22 +3,25 @@ require File.expand_path('../fixtures/classes', __FILE__)
 
 describe "Kernel#trust" do
   ruby_version_is "1.9" do
-    it "clears the untrusted bit from a target object" do
-      o = mock('o')
-      o.untrusted?.should == false
-      o.untrust
-      o.untrusted?.should == true
+    it "returns self" do
+      o = Object.new
+      o.trust.should equal(o)
+    end
+
+    it "clears the untrusted bit" do
+      o = Object.new.untrust
       o.trust
       o.untrusted?.should == false
     end
 
-    it "can not be called on frozen object" do
-      o = mock('o')
-      o.untrust
-      lambda {o.trust}.should_not raise_error
-      o.untrust
-      o.freeze
-      lambda {o.trust}.should raise_error(RuntimeError)
+    it "raises RuntimeError on an untrusted, frozen object" do
+      o = Object.new.untrust.freeze
+      lambda { o.trust }.should raise_error(RuntimeError)
+    end
+
+    it "does not raise an error on a trusted, frozen object" do
+      o = Object.new.freeze
+      o.trust.should equal(o)
     end
   end
 end

@@ -14,7 +14,7 @@
 
 namespace rubinius {
   static bool hierarchy_resolve(STATE, Symbol* name, Dispatch& msg, LookupData& lookup,
-                                  bool* was_private)
+                                  Symbol** visibility)
   {
     Module* module = lookup.from;
     MethodTableBucket* entry;
@@ -32,10 +32,10 @@ namespace rubinius {
 
       /* If this was a private send, then we can handle use
        * any method seen. */
-      if(lookup.priv || skip_vis_check) {
+      if(lookup.min_visibility == G(sym_private) || skip_vis_check) {
         /* nil means that the actual method object is 'up' from here */
         if(entry->method()->nil_p()) goto keep_looking;
-        *was_private = entry->private_p(state);
+        *visibility = entry->visibility();
 
         if(Alias* alias = try_as<Alias>(entry->method())) {
           msg.method = alias->original_exec();
@@ -51,8 +51,8 @@ namespace rubinius {
           return false;
         } else if(entry->protected_p(state)) {
           /* The method is protected, but it's not being called from
-           * the same module */
-          if(!lookup.recv->kind_of_p(state, module)) {
+           * the same module, or we only want public methods. */
+          if(lookup.min_visibility == G(sym_public) || !lookup.recv->kind_of_p(state, module)) {
             return false;
           }
         }
@@ -72,6 +72,7 @@ namespace rubinius {
           msg.method = entry->method();
           msg.module = module;
         }
+        *visibility = entry->visibility();
         break;
       }
 
@@ -91,7 +92,7 @@ keep_looking:
     CacheEntry* entry = entries + CPU_CACHE_HASH(mod, name);
     if(entry->name == name &&
          entry->klass == mod &&
-         entry->is_public &&
+         entry->visibility != G(sym_private) &&
         !entry->method_missing) {
 
       return MethodCacheEntry::create(state, cls, entry->module,
@@ -127,7 +128,7 @@ keep_looking:
     CacheEntry* entry = this->lookup(state, klass, name);
 
     if(entry) {
-      if(lookup.priv || entry->is_public) {
+      if(lookup.min_visibility == G(sym_private) || entry->visibility == G(sym_public) || lookup.min_visibility == entry->visibility) {
         msg.method = entry->method;
         msg.module = entry->module;
         msg.method_missing = entry->method_missing;
@@ -136,10 +137,10 @@ keep_looking:
       }
     }
 
-    bool was_private = false;
-    if(hierarchy_resolve(state, name, msg, lookup, &was_private)) {
+    Symbol* visibility = G(sym_protected);
+    if(hierarchy_resolve(state, name, msg, lookup, &visibility)) {
       retain_i(state, lookup.from, name,
-          msg.module, msg.method, msg.method_missing, was_private);
+          msg.module, msg.method, msg.method_missing, visibility);
       return true;
     }
 
@@ -184,11 +185,7 @@ keep_looking:
       }
 
       if(clear) {
-        entry->klass = 0;
-        entry->name = 0;
-        entry->module = 0;
-        entry->is_public = true;
-        entry->method_missing = false;
+        entry->clear();
       }
     }
   }
@@ -205,11 +202,7 @@ keep_looking:
       Object* exec = reinterpret_cast<Object*>(entry->method);
 
       if(!klass->marked_p(mark) || !mod->marked_p(mark) || !exec->marked_p(mark)) {
-        entry->klass = 0;
-        entry->name = 0;
-        entry->module = 0;
-        entry->is_public = true;
-        entry->method_missing = false;
+        entry->clear();
       }
     }
   }

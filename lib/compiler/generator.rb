@@ -4,9 +4,6 @@ module Rubinius
   class Generator
     include GeneratorMethods
 
-    CALL_FLAG_PRIVATE = 1
-    CALL_FLAG_CONCAT = 2
-
     ##
     # Jump label for the branch instructions. The use scenarios for labels:
     #   1. Used and then set
@@ -606,7 +603,7 @@ module Rubinius
 
     def send_with_splat(meth, args, priv=false, concat=false)
       val = 0
-      val |= CALL_FLAG_CONCAT  if concat
+      val |= InstructionSet::CALL_FLAG_CONCAT if concat
       set_call_flags val unless val == 0
 
       allow_private if priv

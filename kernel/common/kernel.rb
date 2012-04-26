@@ -10,6 +10,7 @@ module Kernel
     return nil if name == :__block__ or name == :__script__
     return name
   end
+  module_function :__method__
 
   ##
   # MRI uses a macro named StringValue which has essentially the same
@@ -62,6 +63,11 @@ module Kernel
   end
   module_function :warning
 
+  def exec(*args)
+    Process.exec(*args)
+  end
+  module_function :exec
+
   def exit(code=0)
     Process.exit(code)
   end
@@ -73,7 +79,6 @@ module Kernel
   module_function :exit!
 
   def abort(msg=nil)
-    msg = StringValue(msg) if msg
     Process.abort msg
   end
   module_function :abort
@@ -236,8 +241,6 @@ module Kernel
     yield self
     self
   end
-
-  alias_method :object_id, :__id__
 
   # The "sorta" operator, also known as the case equality operator.
   # Generally while #eql? and #== are stricter, #=== is often used
@@ -424,17 +427,6 @@ module Kernel
   private :singleton_method_undefined
 
   alias_method :is_a?, :kind_of?
-
-  def method(name)
-    name = Rubinius::Type.coerce_to_symbol name
-    cm = Rubinius.find_method(self, name)
-
-    if cm
-      return Method.new(self, cm[1], cm[0], name)
-    else
-      raise NameError, "undefined method `#{name}' for #{self.inspect}"
-    end
-  end
 
   def nil?
     false

@@ -722,6 +722,19 @@ namespace rubinius {
     return c_string;
   }
 
+  const char* String::c_str_null_safe(STATE) {
+    const char* str = c_str(state);
+    if(byte_size() > (native_int) strlen(str)) {
+      Exception::argument_error(state, "string contains NULL byte");
+    }
+    return str;
+  }
+
+  String* String::check_null_safe(STATE) {
+    c_str_null_safe(state);
+    return this;
+  }
+
   Object* String::secure_compare(STATE, String* other) {
     native_int s1 = num_bytes()->to_native();
     native_int s2 = other->num_bytes()->to_native();
@@ -775,16 +788,7 @@ namespace rubinius {
 
     String* so = state->new_object<String>(cls);
 
-    so->set_tainted(is_tainted_p());
-
-    so->num_bytes(state, num_bytes());
-    so->data(state, data());
-    so->hash_value(state, hash_value());
-
-    so->encoding(state, encoding());
-    so->valid_encoding(state, valid_encoding());
-    so->ascii_only(state, ascii_only());
-
+    so->copy_object(state, this);
     so->shared(state, cTrue);
     shared(state, cTrue);
 
@@ -903,44 +907,14 @@ namespace rubinius {
     return string_dup(state)->append(state, other);
   }
 
-  Float* String::to_f(STATE) {
-    return Float::create(state, to_double(state));
-  }
+  Float* String::to_f(STATE, Object* strict) {
+    const char* str = c_str(state);
 
-  double String::to_double(STATE) {
-    double value;
-    char *ba = data_->to_chars(state, num_bytes_);
-    char *p, *n, *rest;
-    int e_seen = 0;
-
-    p = ba;
-    while(ISSPACE(*p)) p++;
-    n = p;
-
-    while(*p) {
-      if(*p == '_') {
-        p++;
-      } else {
-        if(*p == 'e' || *p == 'E') {
-          if(e_seen) {
-            *n = 0;
-            break;
-          }
-          e_seen = 1;
-        } else if(!(ISDIGIT(*p) || *p == '.' || *p == '-' || *p == '+')) {
-          *n = 0;
-          break;
-        }
-
-        *n++ = *p++;
-      }
+    if(strict == cTrue && byte_size() > (native_int)strlen(str)) {
+      return nil<Float>();
     }
-    *n = 0;
 
-    value = ruby_strtod(ba, &rest);
-    free(ba);
-
-    return value;
+    return Float::from_cstr(state, str, strict);
   }
 
   // Character-wise logical AND of two strings. Modifies the receiver.
@@ -1168,6 +1142,8 @@ namespace rubinius {
     String* result = String::create(state,
                                     reinterpret_cast<const char*>(output),
                                     out_p - output);
+
+    result->klass(state, class_object(state));
     free(output);
 
     infect(state, result);

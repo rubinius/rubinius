@@ -9,7 +9,6 @@ namespace rubinius {
   class CompiledMethod;
   class VariableScope;
   struct CallFrame;
-  class Message;
   class VMMethod;
   class VMExecutable;
 
@@ -63,7 +62,7 @@ namespace rubinius {
                             BlockInvocation& invocation);
 
     static BlockEnvironment* under_call_frame(STATE, GCToken gct, CompiledMethod* cm,
-      VMMethod* caller, CallFrame* call_frame, size_t index);
+      VMMethod* caller, CallFrame* call_frame);
 
     static Object* execute_interpreter(STATE, CallFrame* previous,
                             BlockEnvironment* env, Arguments& args,

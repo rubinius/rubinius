@@ -18,7 +18,6 @@ namespace rubinius {
   class Object;
   class Symbol;
   class Module;
-  class VMMethod;
   class VariableScope;
   class NativeMethodFrame;
 

@@ -75,9 +75,9 @@ class Array
   # Replaces each element in self with the return value
   # of passing that element to the supplied block.
   def map!
-    Rubinius.check_frozen
-
     return to_enum(:map!) unless block_given?
+
+    Rubinius.check_frozen
 
     i = @start
     total = i + @total
@@ -96,13 +96,4 @@ class Array
     tuple.copy_from @tuple, @start, @total, 0
     tuple
   end
-
-  # Runtime method to support case when *foo syntax
-  # TODO move to compiler runtimesupport (it might not
-  # exist yet, but it should)
-  def __matches_when__(receiver)
-    each { |x| return true if x === receiver }
-    false
-  end
-
 end

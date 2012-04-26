@@ -143,7 +143,10 @@ module Process
   end
 
   def self.abort(msg=nil)
-    $stderr.puts(msg) if msg
+    if msg
+      msg = StringValue(msg)
+      $stderr.puts(msg)
+    end
     raise SystemExit.new(1, msg)
   end
 
@@ -706,55 +709,6 @@ module Kernel
     Process.fork(&block)
   end
   module_function :fork
-
-  def system(prog, *args)
-    pid = Process.fork
-    if pid
-      Process.waitpid(pid)
-      $?.exitstatus == 0
-    else
-      begin
-        Kernel.exec(prog, *args)
-      rescue Exception => e
-        if $DEBUG
-          e.render("Unable to execute subprogram", STDERR)
-        end
-        exit! 1
-      end
-
-      if $DEBUG
-        STDERR.puts "Unable to execute subprogram - exec silently returned"
-      end
-      exit! 1
-    end
-  end
-  module_function :system
-
-  def exec(cmd, *args)
-    if args.empty? and cmd.kind_of? String
-      raise Errno::ENOENT if cmd.empty?
-      if /([*?{}\[\]<>()~&|$;'`"\n\s]|[^\w])/o.match(cmd)
-        Process.perform_exec "/bin/sh", ["sh", "-c", cmd]
-      else
-        Process.perform_exec cmd, [cmd]
-      end
-    else
-      if cmd.kind_of? Array
-        prog = cmd[0]
-        name = cmd[1]
-      else
-        name = prog = cmd
-      end
-
-      argv = [name]
-      args.each do |arg|
-        argv << arg.to_s
-      end
-
-      Process.perform_exec prog, argv
-    end
-  end
-  module_function :exec
 
   def `(str) #`
     str = StringValue(str) unless str.kind_of?(String)

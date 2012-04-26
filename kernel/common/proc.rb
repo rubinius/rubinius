@@ -58,12 +58,6 @@ class Proc
     bind
   end
 
-  def inspect
-    "#<#{self.class}:0x#{self.object_id.to_s(16)}@#{@block.file}:#{@block.line}>"
-  end
-
-  alias_method :to_s, :inspect
-
   def ==(other)
     return false unless other.kind_of? self.class
     @block == other.block

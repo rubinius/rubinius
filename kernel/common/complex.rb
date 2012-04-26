@@ -28,14 +28,6 @@
 #
 
 #
-# Creates a Complex number.  +a+ and +b+ should be Numeric.  The result will be
-# <tt>a+bi</tt>.
-#
-def Complex(*args)
-  Complex.send :convert, *args
-end
-
-#
 # The complex number class.
 #
 class Complex < Numeric

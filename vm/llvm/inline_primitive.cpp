@@ -456,7 +456,7 @@ namespace rubinius {
       perform->moveAfter(convert_block);
       ops.set_block(perform);
 
-      PHINode* rhs = ops.b().CreatePHI(fix_rhs->getType(), "rhs");
+      PHINode* rhs = ops.b().CreatePHI(fix_rhs->getType(), 2, "rhs");
       rhs->addIncoming(unboxed_rhs, unbox_block);
       rhs->addIncoming(fix_rhs, convert_block);
 
@@ -489,7 +489,7 @@ namespace rubinius {
       }
 
       Signature sig(ops.state(), ops.state()->ptr_type("Float"));
-      sig << "VM";
+      sig << "State";
 
       Function* func = sig.function("rbx_float_allocate");
       func->setDoesNotAlias(0, true); // return value
@@ -544,7 +544,7 @@ namespace rubinius {
 
       do_compare->moveAfter(converted_block);
 
-      PHINode* rhs = ops.b().CreatePHI(converted_rhs->getType(), "float_rhs");
+      PHINode* rhs = ops.b().CreatePHI(converted_rhs->getType(), 2, "float_rhs");
       rhs->addIncoming(unboxed_rhs, unboxed_block);
       rhs->addIncoming(converted_rhs, converted_block);
 
@@ -607,7 +607,7 @@ namespace rubinius {
       Value* V = i.recv();
 
       Signature sig(ops.state(), "Object");
-      sig << "VM";
+      sig << "State";
       sig << "CallFrame";
       sig << "Object";
 
@@ -636,7 +636,7 @@ namespace rubinius {
       i.context().enter_inline();
 
       Signature sig(ops.state(), ops.state()->ptr_type("Object"));
-      sig << "VM";
+      sig << "State";
       sig << "Object";
 
       Value* call_args[] = { ops.vm(), i.recv() };
@@ -655,7 +655,7 @@ namespace rubinius {
        ops.check_class(self, klass, i.failure());
 
        Signature sig(ops.state(), "Class");
-       sig << "VM";
+       sig << "State";
        sig << "Object";
 
        Value* call_args[] = { ops.vm(), self };
@@ -774,7 +774,7 @@ namespace rubinius {
           std::vector<Value*> call_args;
 
           Signature sig(ops_.state(), "Object");
-          sig << "VM";
+          sig << "State";
           call_args.push_back(ops_.vm());
 
           if(stub_res.pass_callframe()) {

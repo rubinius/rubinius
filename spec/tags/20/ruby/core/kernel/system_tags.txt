@@ -1,2 +1,0 @@
-fails:Kernel#system returns nil when command execution fails
-fails:Kernel#system is a private method

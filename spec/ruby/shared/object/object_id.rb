@@ -7,7 +7,7 @@ describe :basic_object_id, :shared => true do
 
   it "returns the same value on all calls to id for a given object" do
     o1 = @object.new
-    o1.__send__(@method).should == o1.send(@method)
+    o1.__send__(@method).should == o1.__send__(@method)
   end
 
   it "returns different values for different objects" do

@@ -187,6 +187,9 @@ namespace rubinius {
     // Rubinius.primitive :vm_find_method
     static Tuple* vm_find_method(STATE, Object* recv, Symbol* name);
 
+    // Rubinius.primitive :vm_find_public_method
+    static Tuple* vm_find_public_method(STATE, Object* recv, Symbol* name);
+
     // Rubinius.primitive :vm_add_method
     static Object* vm_add_method(STATE, GCToken gct, Symbol* name, CompiledMethod* meth, StaticScope* scope, Object* vis);
 

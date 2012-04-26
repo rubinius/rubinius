@@ -5,6 +5,8 @@ describe "Net::FTP#close" do
   before(:each) do
     @socket = mock("Socket")
     @socket.stub!(:closed?).and_return(false)
+    @socket.stub!(:read_timeout).and_return(60)
+    @socket.stub!(:read_timeout=).and_return(3)
 
     @ftp = Net::FTP.new
     @ftp.instance_variable_set(:@sock, @socket)

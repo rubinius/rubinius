@@ -36,16 +36,6 @@ describe "Time#+" do
   end
 
   ruby_version_is "1.9" do
-    it "does NOT round" do
-      t = Time.at(0) + Rational(8_999_999_999_999_999, 1_000_000_000_000_000)
-      t.should_not == Time.at(9)
-      not_compliant_on :jruby do # only microseconds are supported
-        t.usec.should == 999_999
-        t.nsec.should == 999_999_999
-        t.subsec.should == Rational(999_999_999_999_999, 1_000_000_000_000_000)
-      end
-    end
-
     it "adds a negative Float" do
       t = Time.at(100) + -1.3
       t.usec.should == 699999
@@ -83,14 +73,19 @@ describe "Time#+" do
       lambda { Time.now + Object.new }.should raise_error(TypeError)
       lambda { Time.now + "stuff" }.should raise_error(TypeError)
     end
+  end
 
-    #see [ruby-dev:38446]
-    it "tracks microseconds" do
-      time = Time.at(0)
-      time += Rational(123456, 1000000)
-      time.usec.should == 123456
-      time += Rational(654321, 1000000)
-      time.usec.should == 777777
+  it "returns a UTC time if self is UTC" do
+    (Time.utc(2012) + 10).utc?.should == true
+  end
+
+  it "returns a non-UTC time if self is non-UTC" do
+    (Time.local(2012) + 10).utc?.should == false
+  end
+
+  ruby_version_is "1.9" do
+    it "returns a time with the same fixed offset as self" do
+      (Time.new(2012, 1, 1, 0, 0, 0, 3600) + 10).utc_offset.should == 3600
     end
   end
 
@@ -106,5 +101,44 @@ describe "Time#+" do
 
   it "raises TypeError on nil argument" do
     lambda { Time.now + nil }.should raise_error(TypeError)
+  end
+
+  ruby_version_is "1.9" do
+    #see [ruby-dev:38446]
+    it "tracks microseconds" do
+      time = Time.at(0)
+      time += Rational(123_456, 1_000_000)
+      time.usec.should == 123_456
+      time += Rational(654_321, 1_000_000)
+      time.usec.should == 777_777
+    end
+
+    it "tracks nanoseconds" do
+      time = Time.at(0)
+      time += Rational(123_456_789, 1_000_000_000)
+      time.nsec.should == 123_456_789
+      time += Rational(876_543_210, 1_000_000_000)
+      time.nsec.should == 999_999_999
+    end
+
+    it "maintains precision" do
+      t = Time.at(0) + Rational(8_999_999_999_999_999, 1_000_000_000_000_000)
+      t.should_not == Time.at(9)
+    end
+
+    it "maintains microseconds precision" do
+      time = Time.at(0) + Rational(8_999_999_999_999_999, 1_000_000_000_000_000)
+      time.usec.should == 999_999
+    end
+
+    it "maintains nanoseconds precision" do
+      time = Time.at(0) + Rational(8_999_999_999_999_999, 1_000_000_000_000_000)
+      time.nsec.should == 999_999_999
+    end
+
+    it "maintains subseconds precision" do
+      time = Time.at(0) + Rational(8_999_999_999_999_999, 1_000_000_000_000_000)
+      time.subsec.should == Rational(999_999_999_999_999, 1_000_000_000_000_000)
+    end
   end
 end

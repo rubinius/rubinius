@@ -9,6 +9,7 @@
 #include "builtin/channel.hpp"
 #include "builtin/nativemethod.hpp"
 #include "builtin/fiber.hpp"
+#include "builtin/location.hpp"
 
 #include "objectmemory.hpp"
 #include "arguments.hpp"
@@ -227,8 +228,6 @@ namespace rubinius {
     vm->thread->cleanup();
     vm->thread->init_lock_.unlock();
 
-    vm->shared.remove_managed_thread(vm);
-
     // Clear the call_frame, so that if we wait for GC going independent,
     // the GC doesn't see pointers into now-unallocated CallFrames
     vm->set_call_frame(0);
@@ -315,7 +314,7 @@ namespace rubinius {
     VM* vm = self->vm_;
     if(alive() == cFalse || !vm) {
       self->init_lock_.unlock();
-      return reinterpret_cast<Thread*>(kPrimitiveFailed);
+      return force_as<Thread>(Primitives::failure());
     }
 
     vm->wakeup(state, gct);
@@ -335,6 +334,18 @@ namespace rubinius {
     VariableScope* scope = cf->promote_scope(state);
 
     return Tuple::from(state, 3, Fixnum::from(cf->ip()), cf->cm, scope);
+  }
+
+  Array* Thread::mri_backtrace(STATE, GCToken gct, CallFrame* calling_environment) {
+    thread::SpinLock::LockGuard lg(init_lock_);
+
+    VM* vm = vm_;
+    if(!vm) return nil<Array>();
+    StopTheWorld stop(state, gct, calling_environment);
+
+    CallFrame* cf = vm->saved_call_frame();
+
+    return Location::mri_backtrace(state, cf);
   }
 
   void Thread::cleanup() {

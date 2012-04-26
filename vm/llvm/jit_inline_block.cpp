@@ -96,7 +96,7 @@ namespace jit {
 
       if(stack_args.size() == 1 && vmm_->total_args > 1) {
         Signature sig(ls_, "Object");
-        sig << "VM";
+        sig << "State";
         sig << "CallFrame";
         sig << "Object";
         sig << vars->getType();
@@ -128,7 +128,7 @@ namespace jit {
             int_pos
           };
 
-          Value* pos = b().CreateGEP(vars, idx2, idx2+3, "local_pos");
+          Value* pos = b().CreateGEP(vars, idx2, "local_pos");
 
           b().CreateStore(stack_args.at(i), pos);
         }

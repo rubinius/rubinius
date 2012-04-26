@@ -96,6 +96,22 @@ describe "Module#define_method" do
     }.should raise_error(ArgumentError)
   end
 
+  ruby_version_is ""..."1.9" do
+    it "raises a TypeError if frozen" do
+      lambda {
+        Class.new { freeze; define_method(:foo) {} }
+      }.should raise_error(TypeError)
+    end
+  end
+
+  ruby_version_is "1.9" do
+    it "raises a RuntimeError if frozen" do
+      lambda {
+        Class.new { freeze; define_method(:foo) {} }
+      }.should raise_error(RuntimeError)
+    end
+  end
+
   it "accepts a Method (still bound)" do
     class DefineMethodSpecClass
       attr_accessor :data

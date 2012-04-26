@@ -23,7 +23,6 @@ kernel.rbc
 lookuptable.rbc
 method_table.rbc
 nil.rbc
-object.rbc
 object18.rbc
 proc.rbc
 process.rbc
@@ -40,6 +39,8 @@ time.rbc
 true.rbc
 tuple.rbc
 type.rbc
+type18.rbc
 variable_scope.rbc
 vm.rbc
 weakref.rbc
+weakref18.rbc

@@ -119,15 +119,47 @@ describe :array_collect_b, :shared => true do
     end
   end
 
-  ruby_version_is '' ... '1.9' do
-    it "raises a TypeError on a frozen array" do
-      lambda { ArraySpecs.frozen_array.send(@method) {} }.should raise_error(TypeError)
-    end
-  end
+  describe "when frozen" do
+    ruby_version_is '' ... '1.9' do
+      it "raises a TypeError" do
+        lambda { ArraySpecs.frozen_array.send(@method) {} }.should raise_error(TypeError)
+      end
 
-  ruby_version_is '1.9' do
-    it "raises a RuntimeError on a frozen array" do
-      lambda { ArraySpecs.frozen_array.send(@method) {} }.should raise_error(RuntimeError)
+      it "raises a TypeError when empty" do
+        lambda { ArraySpecs.empty_frozen_array.send(@method) {} }.should raise_error(TypeError)
+      end
+
+      ruby_version_is '1.8.7' do
+        it "raises a TypeError when calling #each on the returned Enumerator" do
+          enumerator = ArraySpecs.frozen_array.send(@method)
+          lambda { enumerator.each {|x| x } }.should raise_error(TypeError)
+        end
+
+        it "raises a TypeError when calling #each on the returned Enumerator when empty" do
+          enumerator = ArraySpecs.empty_frozen_array.send(@method)
+          lambda { enumerator.each {|x| x } }.should raise_error(TypeError)
+        end
+      end
+    end
+
+    ruby_version_is '1.9' do
+      it "raises a RuntimeError" do
+        lambda { ArraySpecs.frozen_array.send(@method) {} }.should raise_error(RuntimeError)
+      end
+
+      it "raises a RuntimeError when empty" do
+        lambda { ArraySpecs.empty_frozen_array.send(@method) {} }.should raise_error(RuntimeError)
+      end
+
+      it "raises a RuntimeError when calling #each on the returned Enumerator" do
+        enumerator = ArraySpecs.frozen_array.send(@method)
+        lambda { enumerator.each {|x| x } }.should raise_error(RuntimeError)
+      end
+
+      it "raises a RuntimeError when calling #each on the returned Enumerator when empty" do
+        enumerator = ArraySpecs.empty_frozen_array.send(@method)
+        lambda { enumerator.each {|x| x } }.should raise_error(RuntimeError)
+      end
     end
   end
 end

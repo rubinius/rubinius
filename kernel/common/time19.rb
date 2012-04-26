@@ -1,28 +1,67 @@
 # -*- encoding: us-ascii -*-
 
 class Time
-  def self.from_array(sec, min, hour, mday, month, year, nsec, is_dst, from_gmt)
+  def self.at(sec, usec=undefined)
+    if usec.equal?(undefined)
+      if sec.kind_of?(Time)
+        return duplicate(sec)
+      elsif sec.kind_of?(Integer)
+        return specific(sec, 0, false, nil)
+      end
+    end
+
+    usec = 0 if usec.equal?(undefined)
+
+    s = Rubinius::Type.coerce_to_exact_num(sec)
+    u = Rubinius::Type.coerce_to_exact_num(usec)
+
+    sec       = s.to_i
+    nsec_frac = s % 1.0
+
+    sec -= 1 if s < 0 && nsec_frac > 0
+    nsec = (nsec_frac * 1_000_000_000 + 0.5).to_i + (u * 1000).to_i
+
+    sec += nsec / 1_000_000_000
+    nsec %= 1_000_000_000
+
+    specific(sec, nsec, false, nil)
+  end
+
+  def self.from_array(sec, min, hour, mday, month, year, nsec, is_dst, from_gmt, utc_offset)
     Rubinius.primitive :time_s_from_array
 
-    if sec.kind_of?(Integer) || nsec
-      sec  = Rubinius::Type.coerce_to sec, Integer, :to_i
-      nsec ||= 0
-
-      sec  = sec + (nsec / 1000000000)
-      nsec = nsec % 1000000000
+    if sec.kind_of?(String)
+      sec = sec.to_i
+    elsif nsec
+      sec = Rubinius::Type.coerce_to(sec || 0, Integer, :to_int)
     else
-      float = FloatValue(sec)
-      sec       = float.to_i
-      nsec_frac = float % 1.0
+      s = Rubinius::Type.coerce_to_exact_num(sec || 0)
 
-      if float < 0 && nsec_frac > 0
+      sec       = s.to_i
+      nsec_frac = s % 1.0
+
+      if s < 0 && nsec_frac > 0
         sec -= 1
       end
 
       nsec = (nsec_frac * 1_000_000_000 + 0.5).to_i
     end
 
-    from_array(sec, min, hour, mday, month, year, nsec, is_dst, from_gmt)
+    nsec ||= 0
+    sec += nsec / 1_000_000_000
+    nsec %= 1_000_000_000
+
+    from_array(sec, min, hour, mday, month, year, nsec, is_dst, from_gmt, utc_offset)
+  end
+
+  def self.new(year=undefined, month=nil, day=nil, hour=nil, minute=nil, second=nil, utc_offset=nil)
+    if year.equal?(undefined)
+      now
+    elsif utc_offset == nil
+      compose(:local, year, month, day, hour, minute, second)
+    else
+      compose(Rubinius::Type.coerce_to_utc_offset(utc_offset), year, month, day, hour, minute, second)
+    end
   end
 
   def inspect
@@ -79,50 +118,76 @@ class Time
   end
 
   def to_r
-    to_f.to_r
+    (seconds + subsec).to_r
   end
 
-  def +(arg)
-    raise TypeError, 'time + time?' if arg.kind_of?(Time)
+  def to_f
+    to_r.to_f
+  end
 
-    case arg
-    when NilClass
-      raise TypeError, "can't convert nil into an exact number"
-    when String
-      raise TypeError, "can't convert String into an exact number"
+  def +(other)
+    raise TypeError, 'time + time?' if other.kind_of?(Time)
+
+    case other = Rubinius::Type.coerce_to_exact_num(other)
     when Integer
-      other_sec = arg
+      other_sec = other
       other_nsec = 0
     else
-      arg = Rubinius::Type.coerce_to arg, Rational, :to_r
-      other_sec, nsec_frac = arg.divmod(1)
+      other_sec, nsec_frac = other.divmod(1)
       other_nsec = (nsec_frac * 1_000_000_000).to_i
     end
 
     # Don't use self.class, MRI doesn't honor subclasses here
-    Time.specific(seconds + other_sec, nsec + other_nsec, @is_gmt)
+    Time.specific(seconds + other_sec, nsec + other_nsec, @is_gmt, @offset)
   end
 
   def -(other)
-    case other
-    when NilClass
-      raise TypeError, "can't convert nil into an exact number"
-    when String
-      raise TypeError, "can't convert String into an exact number"
-    when Time
-      (seconds - other.seconds) + ((usec - other.usec) * 0.000001)
-    when Integer
-      # Don't use self.class, MRI doesn't honor subclasses here
-      Time.specific(seconds - other, nsec, @is_gmt)
-    else
-      other = Rubinius::Type.coerce_to other, Rational, :to_r
+    if other.kind_of?(Time)
+      return (seconds - other.seconds) + ((usec - other.usec) * 0.000001)
+    end
 
+    case other = Rubinius::Type.coerce_to_exact_num(other)
+    when Integer
+      other_sec = other
+      other_nsec = 0
+    else
       other_sec, nsec_frac = other.divmod(1)
       other_nsec = (nsec_frac * 1_000_000_000 + 0.5).to_i
-
-      # Don't use self.class, MRI doesn't honor subclasses here
-      Time.specific(seconds - other_sec, nsec - other_nsec, @is_gmt)
     end
+
+    # Don't use self.class, MRI doesn't honor subclasses here
+    Time.specific(seconds - other_sec, nsec - other_nsec, @is_gmt, @offset)
   end
 
+  def localtime(offset=nil)
+    offset = Rubinius::Type.coerce_to_utc_offset(offset) unless offset.nil?
+
+    if @is_gmt or offset
+      @is_gmt = false
+      @offset = offset
+      @decomposed = nil
+    end
+
+    self
+  end
+
+  def getlocal(offset=nil)
+    dup.localtime(offset)
+  end
+
+  def eql?(other)
+    other.kind_of?(Time) and seconds == other.seconds and nsec == other.nsec
+  end
+
+  def <=>(other)
+    if other.kind_of? Time
+      (seconds <=> other.seconds).nonzero? or (nsec <=> other.nsec)
+    else
+      r = (other <=> self)
+      return nil if r == nil
+      return -1 if r > 0
+      return  1 if r < 0
+      0
+    end
+  end
 end

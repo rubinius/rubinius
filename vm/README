@@ -6,7 +6,7 @@
  Prerequisites
 ---------------
 
-* LLVM 2.3 or later, http://llvm.org
+* LLVM 3.0 or later, http://llvm.org
 
 
  Building

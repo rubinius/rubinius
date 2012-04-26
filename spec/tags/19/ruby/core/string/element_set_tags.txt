@@ -1,1 +1,0 @@
-fails:String#[]= with String allows assignment to the zero'th element of an empty String

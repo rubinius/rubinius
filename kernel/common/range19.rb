@@ -4,15 +4,19 @@ class Range
   alias_method :cover?, :===
 
   def max(&block)
+    raise TypeError, "cannot exclude non Integer end value" if @end.kind_of?(Float) && @excl
+
     return super(&block) if block_given?
     return nil if @end < @begin || (@excl && @end == @begin)
-    @end
+    return @end if @end.kind_of?(Float) || (!@end.kind_of?(Float) && !@excl)
+    super
   end
 
   def min(&block)
     return super(&block) if block_given?
     return nil if @end < @begin || (@excl && @end == @begin)
-    @begin
+    return @begin if @begin.kind_of?(Float)
+    super
   end
 
   protected

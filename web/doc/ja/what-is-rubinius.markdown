@@ -1,42 +1,45 @@
 ---
 layout: doc_ja
-next: Getting Started
+title: Rubinius とは
+next: はじめに
 next_url: getting-started
-translated: true
 ---
 
-## 何がRubiniusのです
+## Rubinius とは
 
-Rubiniusは[Rubyプログラミングの実装です。 言語](http://ruby-lang.org)。
+Rubinius は [プログラミング言語 Ruby](http://ruby-lang.org) の実装です。
 
-Rubiniusは、バイトコード仮想マシンを、Rubyの文法パーサーが含まれバイトコード
-コンパイラは、世代別ガベージコレクタ、ジャストインタイム（JIT）ネイティブのマシン
-コードコンパイラ、Rubyのコアおよび標準ライブラリ。
+Rubinius には、バイトコード仮想マシン、Ruby 
+の構文解析器、バイトコードコンパイラ、世代別ガベージコレクタ、ジャストインタイム 
+(JIT) ネイティブマシンコードコンパイラ、そして、Ruby 
+のコアライブラリと標準ライブラリが含まれています。
 
-Rubiniusは現在、Rubyのバージョン1.8.7を実装します。
+現在のところ、Rubinius は Ruby のバージョン 1.8.7 の実装となっています。
 
 
 ## ライセンス
 
-RubiniusはBSDライセンスを使用しています。ソース内のLICENSEファイルを参照してください。
+Rubinius は BSD ライセンスを使用しています。
+ソース内の LICENSE ファイルを参照してください。
 
 
 ## インストール
 
-RubiniusはMac OS Xと多くのUnix/
-Linuxオペレーティングシステム上で実行されます。サポートするための Microsoft
-Windowsは、すぐに来ている。
+Rubinius は、Mac OS X と多くの Unix/Linux オペレーティングシステム上で実行されます。
+Microsoft Windows のサポートも間近です。
 
-Rubiniusのをインストールするには、次の手順を実行します。詳細については、
-[はじめに](/doc/ja/getting-started/)を参照してください。
+Rubinius のをインストールするには、次の手順を実行します。
+詳細については、[はじめに](/doc/ja/getting-started/) を参照してください。
 
 1. `git clone git://github.com/rubinius/rubinius.git`
 1. `cd rubinius`
 1. `./configure --prefix=/path/to/install/dir`
 1. `rake install`
 
-インストールプロセスが完了したら、Rubiniusのを追加して指示に従ってくださいする
-PATHに実行可能ファイル（bin）にディレクトリを指定します。
+インストールプロセスが完了した後は、Rubinius の実行ディレクトリ (bin) 
+を PATH に追加するための指示に従ってください。
 
-RubiniusはRubyGemsのとビルトインとしたすくいとrdocの宝石を付属
-プリインストールされています。エゾノコギリソウ宝石をインストールするには、たとえば、インストール`rbx gem install nokogiri`。
+Rubinius には RubyGems が組み込まれており、rake と rdoc の 2 つの gem 
+は予めインストールされています。
+例として、nokogiri gem をインストールするには `rbx gem install nokogiri` 
+を実行してください。

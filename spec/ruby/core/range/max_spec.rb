@@ -4,12 +4,18 @@ ruby_version_is "1.8.7" do
   describe "Range#max" do
     it "returns the maximum value in the range when called with no arguments" do
       (1..10).max.should == 10
+      (1...10).max.should == 9
       ('f'..'l').max.should == 'l'
+      ('a'...'f').max.should == 'e'
     end
 
     ruby_version_is "1.9" do
       it "returns the maximum value in the Float range when called with no arguments" do
         (303.20..908.1111).max.should == 908.1111
+      end
+
+      it "raises TypeError when called on an exclusive range and a non Integer value" do
+        lambda { (303.20...908.1111).max }.should raise_error(TypeError)
       end
     end
 

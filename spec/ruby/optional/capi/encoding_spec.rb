@@ -89,6 +89,13 @@ ruby_version_is "1.9" do
       end
     end
 
+    describe "rb_obj_encoding" do
+      it "returns the encoding ossociated with an object" do
+        str = "abc".encode Encoding::ASCII_8BIT
+        @s.rb_obj_encoding(str).should == Encoding::ASCII_8BIT
+      end
+    end
+
     describe "rb_enc_get_index" do
       it "returns the index of the encoding of a String" do
         @s.rb_enc_get_index("string").should >= 0

@@ -25,6 +25,7 @@ ruby_version_is "1.8.7" do
   describe "Dir.mkdir when passed a block" do
     before(:each) do
       Dir.stub!(:tmpdir).and_return("/tmp")
+      FileUtils.stub!(:remove_entry)
       FileUtils.stub!(:remove_entry_secure)
     end
 
@@ -52,11 +53,23 @@ ruby_version_is "1.8.7" do
       end
     end
 
-    it "removes the tmp-dir after executing the block" do
-      Dir.stub!(:mkdir)
-      Dir.mktmpdir do |path|
-        @tmpdir = path
-        FileUtils.should_receive(:remove_entry_secure).with(path)
+    ruby_version_is "1.8.7"..."2.0" do
+      it "removes the tmp-dir after executing the block" do
+        Dir.stub!(:mkdir)
+        Dir.mktmpdir do |path|
+          @tmpdir = path
+          FileUtils.should_receive(:remove_entry_secure).with(path)
+        end
+      end
+    end
+
+    ruby_version_is "2.0" do
+      it "removes the tmp-dir after executing the block" do
+        Dir.stub!(:mkdir)
+        Dir.mktmpdir do |path|
+          @tmpdir = path
+          FileUtils.should_receive(:remove_entry).with(path)
+        end
       end
     end
 

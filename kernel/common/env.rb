@@ -14,18 +14,6 @@ module Rubinius
       value.freeze
     end
 
-    def []=(key, value)
-      key = StringValue(key)
-      if value.nil?
-        unsetenv(key)
-      else
-        setenv key, StringValue(value), 1
-      end
-      value
-    end
-
-    alias_method :store, :[]=
-
     def each_key
       return to_enum(:each_key) unless block_given?
 
@@ -43,8 +31,6 @@ module Rubinius
 
       env = environ()
       ptr_size = FFI.type_size FFI.find_type(:pointer)
-
-      i = 0
 
       offset = 0
       cur = env + offset
@@ -71,12 +57,16 @@ module Rubinius
 
     def delete(key)
       existing_value = self[key]
-      self[key] = nil if existing_value
+      if existing_value
+        self[key] = nil
+      elsif block_given?
+        yield key
+      end
       existing_value
     end
 
     def delete_if(&block)
-      return to_enum(:delete_it) unless block_given?
+      return to_enum(:delete_if) unless block_given?
       reject!(&block)
       self
     end
@@ -123,15 +113,14 @@ module Rubinius
     def reject!
       return to_enum(:reject!) unless block_given?
 
-      rejected = false
-      each do |k, v|
-        if yield(k, v)
-          delete k
-          rejected = true
-        end
-      end
+      # Avoid deleting from environ while iterating because the
+      # OS can handle that in a million different bad ways.
 
-      rejected ? self : nil
+      keys = []
+      each { |k, v| keys << k if yield(k, v) }
+      keys.each { |k| delete k }
+
+      keys.empty? ? nil : self
     end
 
     def clear
@@ -212,7 +201,6 @@ module Rubinius
 
     def shift
       env = environ()
-      ptr_size = FFI.type_size FFI.find_type(:pointer)
 
       offset = 0
       cur = env + offset
@@ -242,7 +230,9 @@ module Rubinius
     end
 
     def to_hash
-      return environ_as_hash()
+      hsh = {}
+      each { |k, v| hsh[k] = v }
+      hsh
     end
 
     def update(other, &block)

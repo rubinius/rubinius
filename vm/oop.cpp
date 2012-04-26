@@ -521,8 +521,6 @@ step2:
     ivars_ = other->ivars_;
 
     clear_forwarded();
-
-    if(other->is_tainted_p()) set_tainted();
   }
 
   void ObjectHeader::initialize_full_state(VM* state, Object* other, unsigned int age) {

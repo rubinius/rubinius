@@ -161,7 +161,10 @@ static VALUE array_spec_rb_ary_new3(VALUE self, VALUE first, VALUE second, VALUE
 
 #ifdef HAVE_RB_ARY_NEW4
 static VALUE array_spec_rb_ary_new4(VALUE self, VALUE first, VALUE second, VALUE third) {
-  VALUE values[3] = {first, second, third};
+  VALUE values[3];
+  values[0] = first;
+  values[1] = second;
+  values[2] = third;
   return rb_ary_new4(3, values);
 }
 #endif

@@ -108,9 +108,7 @@ namespace rubinius {
       }
 
       virtual void mark(Object* obj, ObjectMark& mark);
-      virtual void visit(Object* obj, ObjectVisitor& visit);
       virtual void auto_mark(Object* obj, ObjectMark& mark);
-      virtual void auto_visit(Object* obj, ObjectVisitor& visit);
       virtual void set_field(STATE, Object* target, size_t index, Object* val);
       virtual Object* get_field(STATE, Object* target, size_t index);
       virtual void populate_slot_locations();
@@ -123,10 +121,16 @@ namespace rubinius {
     const static object_type type = ConverterType;
 
   private:
-    String* replacement_; // slot
+    Encoding* source_encoding_;       // slot
+    Encoding* destination_encoding_;  // slot
+    String* replacement_;             // slot
+    Array* convpath_;                 // slot
 
   public:
+    attr_accessor(source_encoding, Encoding);
+    attr_accessor(destination_encoding, Encoding);
     attr_accessor(replacement, String);
+    attr_accessor(convpath, Array);
 
     static void init(STATE);
 

@@ -199,5 +199,8 @@ class Module
     return nil
   end
 
-  private :alias_method, :attr_reader, :attr_writer, :attr_accessor
+  private :remove_method, :undef_method, :alias_method,
+          :module_function, :append_features, :extend_object,
+          :include, :public, :private, :protected,
+          :attr_reader, :attr_writer, :attr_accessor
 end

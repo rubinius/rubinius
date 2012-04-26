@@ -180,8 +180,21 @@ namespace rubinius {
     return obj;
   }
 
-  /* @todo Improve error messages */
   Object* System::vm_exec(STATE, String* path, Array* args) {
+
+    const char* c_path = path->c_str_null_safe(state);
+    size_t argc = args->size();
+
+    char** argv = new char*[argc + 1];
+
+    /* execvp() requires a NULL as last element */
+    argv[argc] = NULL;
+
+    for(size_t i = 0; i < argc; i++) {
+      // POSIX guarantees that execvp does not modify the characters to which the argv
+      // pointers point, despite the argument not being declared as const char *const[].
+      argv[i] = const_cast<char*>(as<String>(args->get(state, i))->c_str_null_safe(state));
+    }
 
     // Some system (darwin) don't let execvp work if there is more
     // than one thread running. So we kill off any background LLVM
@@ -191,8 +204,8 @@ namespace rubinius {
     LLVMState::shutdown(state);
 #endif
 
-    SignalHandler::shutdown();
-    QueryAgent::shutdown(state);
+    SignalHandler::pause();
+    bool agent_running = QueryAgent::shutdown(state);
 
     state->shared().pre_exec();
 
@@ -200,32 +213,37 @@ namespace rubinius {
     // We haven't run into this because exec is almost always called
     // after fork(), which pulls over just one thread anyway.
 
-    size_t argc = args->size();
-
-    char** argv = new char*[argc + 1];
-
-    /* execvp() requires a NULL as last element */
-    argv[argc] = NULL;
-
-    for(size_t i = 0; i < argc; i++) {
-      /* strdup should be OK. Trying to exec with strings containing NUL == bad. --rue */
-      argv[i] = strdup(as<String>(args->get(state, i))->c_str(state));
-    }
-
     void* old_handlers[NSIG];
 
     // Reset all signal handlers to the defaults, so any we setup in Rubinius
-    // won't leak through.
+    // won't leak through. We need to use sigaction() here since signal()
+    // provides no control over SA_RESTART and can use the wrong value causing
+    // blocking I/O methods to become uninterruptable.
     for(int i = 0; i < NSIG; i++) {
-      old_handlers[i] = (void*)signal(i, SIG_DFL);
+      struct sigaction action;
+      struct sigaction old_action;
+
+      action.sa_handler = SIG_DFL;
+      action.sa_flags = 0;
+      sigfillset(&action.sa_mask);
+
+      sigaction(i, &action, &old_action);
+      old_handlers[i] = (void*)old_action.sa_handler;
     }
 
-    (void)::execvp(path->c_str(state), argv);
+    (void)::execvp(c_path, argv);
+    int erno = errno;
 
     // Hmmm, execvp failed, we need to recover here.
 
     for(int i = 0; i < NSIG; i++) {
-      signal(i, (void(*)(int))old_handlers[i]);
+      struct sigaction action;
+
+      action.sa_handler = (void(*)(int))old_handlers[i];
+      action.sa_flags = 0;
+      sigfillset(&action.sa_mask);
+
+      sigaction(i, &action, NULL);
     }
 
     delete[] argv;
@@ -234,10 +252,14 @@ namespace rubinius {
     LLVMState::start(state);
 #endif
 
-    SignalHandler::on_fork(state, false);
+    SignalHandler::on_fork(state);
+
+    if(agent_running) {
+      state->shared().autostart_agent(state);
+    }
 
     /* execvp() returning means it failed. */
-    Exception::errno_error(state, "execvp(2) failed");
+    Exception::errno_error(state, "execvp(2) failed", erno);
     return NULL;
   }
 
@@ -248,11 +270,12 @@ namespace rubinius {
     // TODO: Windows
     return Primitives::failure();
 #else
+
+    const char* c_str = str->c_str_null_safe(state);
+
     int fds[2];
 
     if(pipe(fds) != 0) return Primitives::failure();
-
-    const char* c_str = str->c_str(state);
 
     pid_t pid = fork();
 
@@ -283,7 +306,7 @@ namespace rubinius {
       if(use_sh) {
         execl("/bin/sh", "sh", "-c", c_str, (char*)0);
       } else {
-        size_t c_size = strlen(c_str);
+        size_t c_size = str->byte_size();
         size_t max_spaces = (c_size / 2) + 2;
         char** args = new char*[max_spaces];
 
@@ -514,7 +537,7 @@ namespace rubinius {
       return cTrue;
     }
 
-    return String::create(state, ent->value.c_str());
+    return String::create(state, ent->value.c_str(), ent->value.size());
   }
 
   Object* System::vm_get_config_section(STATE, String* section) {
@@ -525,8 +548,10 @@ namespace rubinius {
 
     Array* ary = Array::create(state, list->size());
     for(size_t i = 0; i < list->size(); i++) {
-      String* var = String::create(state, list->at(i)->variable.c_str());
-      String* val = String::create(state, list->at(i)->value.c_str());
+      std::string variable = list->at(i)->variable;
+      std::string value    = list->at(i)->value;
+      String* var = String::create(state, variable.c_str(), variable.size());
+      String* val = String::create(state, value.c_str(), value.size());
 
       ary->set(state, i, Tuple::from(state, 2, var, val));
     }
@@ -631,10 +656,10 @@ namespace rubinius {
 
       if(!init(state->vm()->tooling_env())) {
         dlclose(handle);
-        return Tuple::from(state, 2, cFalse, String::create(state, path.c_str()));
+        return Tuple::from(state, 2, cFalse, String::create(state, path.c_str(), path.size()));
       }
     }
-    
+
     return Tuple::from(state, 1, cTrue);
   }
 
@@ -864,9 +889,8 @@ namespace rubinius {
     return module;
   }
 
-  Tuple* System::vm_find_method(STATE, Object* recv, Symbol* name) {
-    LookupData lookup(recv, recv->lookup_begin(state));
-    lookup.priv = true;
+  static Tuple* find_method(STATE, Object* recv, Symbol* name, Symbol* min_visibility) {
+    LookupData lookup(recv, recv->lookup_begin(state), min_visibility);
 
     Dispatch dis(name);
 
@@ -875,6 +899,14 @@ namespace rubinius {
     }
 
     return Tuple::from(state, 2, dis.method, dis.module);
+  }
+
+  Tuple* System::vm_find_method(STATE, Object* recv, Symbol* name) {
+    return find_method(state, recv, name, G(sym_private));
+  }
+
+  Tuple* System::vm_find_public_method(STATE, Object* recv, Symbol* name) {
+    return find_method(state, recv, name, G(sym_public));
   }
 
   Object* System::vm_add_method(STATE, GCToken gct, Symbol* name,
@@ -1076,7 +1108,7 @@ namespace rubinius {
   Object* System::vm_catch(STATE, Object* dest, Object* obj,
                            CallFrame* call_frame)
   {
-    LookupData lookup(obj, obj->lookup_begin(state), false);
+    LookupData lookup(obj, obj->lookup_begin(state), G(sym_protected));
     Dispatch dis(state->symbol("call"));
     Arguments args(state->symbol("call"), 1, &dest);
     args.set_recv(obj);

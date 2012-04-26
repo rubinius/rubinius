@@ -4,7 +4,7 @@
 #include "util/thread.hpp"
 
 namespace rubinius {
-  class CallFrame;
+  struct CallFrame;
 
   class Park {
     thread::Condition cond_;

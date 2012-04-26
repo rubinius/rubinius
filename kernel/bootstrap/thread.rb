@@ -51,6 +51,11 @@ class Thread
     Kernel.raise PrimitiveFailure, "Thread#native_join failed"
   end
 
+  def mri_backtrace
+    Rubinius.primitive :thread_mri_backtrace
+    Kernel.raise PrimitiveFailure, "Thread#mri_backtrace primitive failed"
+  end
+
   def unlock_locks
     Rubinius.primitive :thread_unlock_locks
     Kernel.raise PrimitiveFailure, "Thread#unlock_locks failed"

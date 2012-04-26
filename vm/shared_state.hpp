@@ -218,6 +218,8 @@ namespace rubinius {
 
     QueryAgent* autostart_agent(STATE);
 
+    void stop_agent(STATE);
+
     Environment* env() {
       return env_;
     }

@@ -167,8 +167,7 @@ class Array
       when 0
         # Edge case
         out = self.class.allocate
-        out.taint if tainted?
-        out.untrust if untrusted?
+        Rubinius::Type.infect(out, self)
         return out
       when 1
         # Easy case
@@ -176,8 +175,7 @@ class Array
         out = self.class.allocate
         out.tuple = tuple
         out.total = multiplier
-        out.taint if tainted?
-        out.untrust if untrusted?
+        Rubinius::Type.infect(out, self)
         return out
       end
 
@@ -187,8 +185,7 @@ class Array
       out = self.class.allocate
       out.tuple = new_tuple
       out.total = new_total
-      out.taint if tainted?
-      out.untrust if untrusted?
+      Rubinius::Type.infect(out, self)
 
       offset = 0
       while offset < new_total
@@ -256,26 +253,6 @@ class Array
 
     self[idx, 0] = items   # Cheat
     self
-  end
-
-  # Produces a printable string of the Array. The string
-  # is constructed by calling #inspect on all elements.
-  # Descends through contained Arrays, recursive ones
-  # are indicated as [...].
-  def inspect
-    return "[]" if @total == 0
-
-    comma = ", "
-    result = "["
-
-    return "[...]" if Thread.detect_recursion self do
-      each { |o| result << o.inspect << comma }
-    end
-
-    result.taint if tainted?
-    result.untrust if untrusted?
-    result.shorten!(2)
-    result << "]"
   end
 
   # Generates a string from converting all elements of
@@ -589,30 +566,12 @@ class Array
 
   private :compile_repeated_permutations
 
-  # replaces contents of self with contents of other,
-  # adjusting size as needed.
-  def replace(other)
-    Rubinius.check_frozen
-
-    other = Rubinius::Type.coerce_to other, Array, :to_ary
-
-    @tuple = other.tuple.dup
-    @total = other.total
-    @start = other.start
-
-    untrust if other.untrusted?
-
-    self
-  end
-
-  alias_method :initialize_copy, :replace
-  private :initialize_copy
-
   def rotate(n=1)
-    return self.dup if length == 1
+    n = Rubinius::Type.coerce_to(n, Integer, :to_int)
+    return Array.new(self) if length == 1
     return []       if empty?
 
-    ary = self.dup
+    ary = Array.new(self)
     idx = n % ary.size
 
     ary[idx..-1].concat ary[0...idx]

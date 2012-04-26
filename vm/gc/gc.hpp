@@ -22,13 +22,6 @@ namespace rubinius {
 
   typedef std::vector<Object*> ObjectArray;
 
-  class ObjectVisitor {
-  public:
-    virtual ~ObjectVisitor() { }
-    virtual Object* call(Object*) = 0;
-  };
-
-
   /**
    * Holds all the root pointers from which garbage collections will commence.
    * This includes the globally accessible Ruby objects such as class and

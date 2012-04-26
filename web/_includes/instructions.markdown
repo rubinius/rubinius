@@ -775,7 +775,7 @@
    2. If the input is an array, it is unmodified.
    3. If in 1.9 mode and the input is nil, an empty Array is returned
 
-   If the input is any other type, call `Array.coerce_into_array(value)`.
+   If the input is any other type, call `Rubinius::Type.coerce_to_array(value)`.
    If the return value of the method call is an `Array`, make it the result.
    Otherwise make the result an 1 element `Array` contain the original value.
 

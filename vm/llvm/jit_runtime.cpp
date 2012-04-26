@@ -78,33 +78,6 @@ namespace jit {
     }
   }
 
-  void RuntimeDataHolder::visit_all(ObjectVisitor& visit) {
-    for(std::list<jit::RuntimeData*>::iterator i = runtime_data_.begin();
-        i != runtime_data_.end();
-        ++i) {
-      jit::RuntimeData* rd = *i;
-
-      if(rd->method()) {
-        visit.call(rd->method());
-      }
-
-      if(rd->name()) {
-        visit.call(rd->name());
-      }
-
-      if(rd->module()) {
-        visit.call(rd->module());
-      }
-
-      GCLiteral* lit = rd->literals();
-      while(lit) {
-        visit.call(lit->object());
-        lit = lit->next();
-      }
-    }
-
-  }
-
   void RuntimeDataHolder::run_write_barrier(gc::WriteBarrier* wb, Object* obj) {
     for(std::list<jit::RuntimeData*>::iterator i = runtime_data_.begin();
         i != runtime_data_.end();

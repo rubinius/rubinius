@@ -15,13 +15,30 @@ class IO
     include ::IO::WaitWritable
   end
 
-  def self.binread(file, *arg)
-    unless arg.size < 3
-      raise ArgumentError, "wrong number of arguments (#{1+arg.size} for 1..3)"
-    end
+  def self.binread(file, length=nil, offset=0)
+    raise ArgumentError, "Negative length #{length} given" if !length.nil? && length < 0
 
-    File.open(file,"rb") do |f|
-      f.read(*arg)
+    File.open(file, "rb") do |f|
+      f.seek(offset)
+      f.read(length)
+    end
+  end
+
+  def self.binwrite(file, string, offset=nil)
+    mode = File::CREAT | File::RDWR | File::BINARY
+    mode |= File::TRUNC unless offset
+    File.open(file, mode, :encoding => "ASCII-8BIT") do |f|
+      f.seek(offset || 0)
+      f.write(string)
+    end
+  end
+
+  def self.write(file, string, offset=nil)
+    mode = File::CREAT | File::RDWR
+    mode |= File::TRUNC unless offset
+    File.open(file, mode, :encoding => "ASCII-8BIT") do |f|
+      f.seek(offset || 0)
+      f.write(string)
     end
   end
 
@@ -536,6 +553,52 @@ class IO
 
   def binmode?
     !@binmode.nil?
+  end
+
+  def close_on_exec=(value)
+    if value
+      fcntl(F_SETFD, fcntl(F_GETFD) | FD_CLOEXEC)
+    else
+      fcntl(F_SETFD, fcntl(F_GETFD) & ~FD_CLOEXEC)
+    end
+    nil
+  end
+
+  def close_on_exec?
+    (fcntl(F_GETFD) & FD_CLOEXEC) != 0
+  end
+
+  def self.pipe(external_encoding=nil, internal_encoding=nil)
+    lhs = allocate
+    rhs = allocate
+
+    begin
+      connect_pipe(lhs, rhs)
+    rescue Errno::EMFILE
+      GC.run(true)
+      connect_pipe(lhs, rhs)
+    end
+
+    external_encoding ||= Encoding.default_external
+    internal_encoding ||= Encoding.default_internal
+
+    if external_encoding or internal_encoding
+      lhs.set_encoding(external_encoding, internal_encoding)
+    end
+
+    lhs.sync = true
+    rhs.sync = true
+
+    if block_given?
+      begin
+        yield lhs, rhs
+      ensure
+        lhs.close unless lhs.closed?
+        rhs.close unless rhs.closed?
+      end
+    else
+      [lhs, rhs]
+    end
   end
 
   ##

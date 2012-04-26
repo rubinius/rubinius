@@ -218,6 +218,10 @@ ruby_version_is "1.9" do
       @io.gets(obj, 5).should == "this>"
     end
 
+    it "does not raise TypeError if passed separator is nil" do
+      @io.gets(nil, 5).should == "this>"
+    end
+
     it "tries to convert the passed limit to an Integer using #to_int" do
       obj = mock('to_int')
       obj.should_receive(:to_int).and_return(5)

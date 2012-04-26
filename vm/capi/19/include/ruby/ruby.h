@@ -509,6 +509,9 @@ typedef struct RIO rb_io_t;
 /** Interrupt checking (no-op). */
 #define CHECK_INTS        /* No-op */
 
+/** Rubinius doesn't need gc guards */
+#define RB_GC_GUARD       /* No-op */
+
 #define POSFIXABLE(f)     ((f) <= FIXNUM_MAX)
 #define NEGFIXABLE(f)     ((f) >= FIXNUM_MIN)
 #define FIXABLE(f)        (POSFIXABLE(f) && NEGFIXABLE(f))
@@ -718,6 +721,9 @@ VALUE rb_uint2big(unsigned long number);
 
   /** Returns the string associated with a symbol. */
   const char *rb_id2name(ID sym);
+
+  /** Returns the Ruby string associated with the symbol */
+  VALUE rb_id2str(ID sym);
 
   /** Infect obj2 if obj1 is tainted. @internal.*/
   void    capi_infect(VALUE obj1, VALUE obj2);

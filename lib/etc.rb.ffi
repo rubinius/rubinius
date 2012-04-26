@@ -135,15 +135,22 @@ module Etc
   end
 
   def self.group
-    setgrent
+    Rubinius.synchronize(self) do
+      begin
+        raise "parallel group iteration" if @parallel_iteration
+        @parallel_iteration = true
+        setgrent
 
-    loop do
-      gr = getgrent
-      return if gr.nil?
+        loop do
+          gr = getgrent
+          return if gr.nil?
 
-      yield gr
+          yield gr
+        end
+      ensure
+        endgrent
+        @parallel_iteration = false
+      end
     end
-  ensure
-    endgrent
   end
 end

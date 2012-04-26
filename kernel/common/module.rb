@@ -49,7 +49,7 @@ class Module
   end
   private :verify_class_variable_name
 
-  def __class_variable_set__(name, val)
+  def class_variable_set(name, val)
     Rubinius.primitive :module_cvar_set
 
     class_variable_set verify_class_variable_name(name), val
@@ -72,7 +72,6 @@ class Module
 
     remove_class_variable verify_class_variable_name(name)
   end
-  private :remove_class_variable
 
   def __class_variables__
     Rubinius.primitive :module_class_variables
@@ -92,7 +91,9 @@ class Module
     Rubinius::Type.module_inspect self
   end
 
-  alias_method :inspect, :to_s
+  def inspect
+    to_s
+  end
 
   def lookup_method(sym, check_object_too=true, trim_im=true)
     mod = self
@@ -637,5 +638,10 @@ class Module
     Rubinius.add_method name, cm, self, :public
 
     return cm
+  end
+
+  def freeze
+    @method_table.freeze
+    super
   end
 end

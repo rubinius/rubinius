@@ -18,9 +18,8 @@ module KernelSpecs
   end
 
   class Method
-    def abort(*msg)
-      super
-    end
+    public :abort, :exec, :exit, :exit!, :fork, :system
+    public :spawn if respond_to?(:spawn, true)
   end
 
   class Methods
@@ -238,10 +237,6 @@ module KernelSpecs
     def self.call_yield
       yield
     end
-  end
-
-  def self.helper_script
-    File.dirname(__FILE__) + '/check_expansion.rb'
   end
 
   module DuplicateM

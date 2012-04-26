@@ -305,7 +305,7 @@ namespace rubinius {
         msg << reason;
         if(entity) msg << " - " << entity;
 
-        message = String::create(state, msg.str().c_str());
+        message = String::create(state, msg.str().c_str(), msg.str().size());
       }
 
       exc = make_errno_exception(state, exc_class, message);

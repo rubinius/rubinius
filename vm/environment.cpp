@@ -327,7 +327,7 @@ namespace rubinius {
       char *s = b + strlen(rbxopt);
 
       while(b < s) {
-        while(*b && isspace(*b)) s++;
+        while(*b && isspace(*b)) b++;
 
         e = b;
         while(*e && !isspace(*e)) e++;
@@ -726,7 +726,7 @@ namespace rubinius {
     } else {
       root += "/18";
     }
-    G(rubinius)->set_const(state, "RUNTIME_PATH", String::create(state, root.c_str()));
+    G(rubinius)->set_const(state, "RUNTIME_PATH", String::create(state, root.c_str(), root.size()));
 
     load_kernel(root);
 

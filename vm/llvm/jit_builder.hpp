@@ -19,11 +19,11 @@ namespace jit {
   public:
     LLVMState* ls_;
     VMMethod* vmm_;
-    const llvm::Type* cf_type;
-    const llvm::Type* vars_type;
-    const llvm::Type* stack_vars_type;
-    const llvm::Type* obj_type;
-    const llvm::Type* obj_ary_type;
+    llvm::Type* cf_type;
+    llvm::Type* vars_type;
+    llvm::Type* stack_vars_type;
+    llvm::Type* obj_type;
+    llvm::Type* obj_ary_type;
 
     llvm::Value* block_env;
     llvm::Value* block_inv;
@@ -84,7 +84,7 @@ namespace jit {
     llvm::Value* get_field(llvm::Value* val, int which);
 
     template <typename T>
-    llvm::Value* constant(T obj, const llvm::Type* obj_type) {
+    llvm::Value* constant(T obj, llvm::Type* obj_type) {
       return b().CreateIntToPtr(
         llvm::ConstantInt::get(ls_->Int64Ty, (intptr_t)obj),
         obj_type, "constant");

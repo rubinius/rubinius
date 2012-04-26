@@ -10,6 +10,11 @@ describe "Struct#each" do
     end
   end
 
+  it "returns self if passed a block" do
+    car = StructClasses::Car.new('Ford', 'Ranger')
+    car.each {}.should == car
+  end
+
   ruby_version_is "" ... "1.8.7" do
     it "fails if not passed a block" do
       car = StructClasses::Car.new('Ford', 'Ranger')

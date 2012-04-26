@@ -12,13 +12,6 @@ class String
   alias_method :__data__, :data
   alias_method :__data__=, :data=
 
-  def self.allocate
-    str = super()
-    str.__data__ = Rubinius::ByteArray.new(1)
-    str.num_bytes = 0
-    str
-  end
-
   ##
   # Creates a new string from copying _count_ bytes from the
   # _start_ of _bytes_.
@@ -268,106 +261,6 @@ class String
   end
   alias_method :slice, :[]
 
-  # call-seq:
-  #   str[fixnum] = fixnum
-  #   str[fixnum] = new_str
-  #   str[fixnum, fixnum] = new_str
-  #   str[range] = aString
-  #   str[regexp] = new_str
-  #   str[regexp, fixnum] = new_str
-  #   str[other_str] = new_str
-  #
-  # Element Assignment --- Replaces some or all of the content of <i>self</i>. The
-  # portion of the string affected is determined using the same criteria as
-  # <code>String#[]</code>. If the replacement string is not the same length as
-  # the text it is replacing, the string will be adjusted accordingly. If the
-  # regular expression or string is used as the index doesn't match a position
-  # in the string, <code>IndexError</code> is raised. If the regular expression
-  # form is used, the optional second <code>Fixnum</code> allows you to specify
-  # which portion of the match to replace (effectively using the
-  # <code>MatchData</code> indexing rules. The forms that take a
-  # <code>Fixnum</code> will raise an <code>IndexError</code> if the value is
-  # out of range; the <code>Range</code> form will raise a
-  # <code>RangeError</code>, and the <code>Regexp</code> and <code>String</code>
-  # forms will silently ignore the assignment.
-  def []=(index, replacement, three=undefined)
-    unless three.equal?(undefined)
-      if index.kind_of? Regexp
-        subpattern_set index,
-                       Rubinius::Type.coerce_to(replacement, Integer, :to_int),
-                       three
-      else
-        start = Rubinius::Type.coerce_to(index, Integer, :to_int)
-        fin =   Rubinius::Type.coerce_to(replacement, Integer, :to_int)
-
-        splice! start, fin, three
-      end
-
-      return three
-    end
-
-    case index
-    when Fixnum
-      # Handle this first because it's the most common.
-      # This is duplicated from the else branch, but don't dry it up.
-      if index < 0
-        index += @num_bytes
-        if index < 0 or index >= @num_bytes
-          raise IndexError, "index #{index} out of string"
-        end
-      else
-        raise IndexError, "index #{index} out of string" if index >= @num_bytes
-      end
-
-      if replacement.kind_of?(Fixnum)
-        modify!
-        @data[index] = replacement
-      else
-        splice! index, 1, replacement
-      end
-    when Regexp
-      subpattern_set index, 0, replacement
-    when String
-      unless start = self.index(index)
-        raise IndexError, "string not matched"
-      end
-
-      splice! start, index.length, replacement
-    when Range
-      start   = Rubinius::Type.coerce_to(index.first, Integer, :to_int)
-      length  = Rubinius::Type.coerce_to(index.last, Integer, :to_int)
-
-      start += @num_bytes if start < 0
-
-      return nil if start < 0 || start > @num_bytes
-
-      length = @num_bytes if length > @num_bytes
-      length += @num_bytes if length < 0
-      length += 1 unless index.exclude_end?
-
-      length = length - start
-      length = 0 if length < 0
-
-      splice! start, length, replacement
-    else
-      index = Rubinius::Type.coerce_to(index, Integer, :to_int)
-      raise IndexError, "index #{index} out of string" if @num_bytes <= index
-
-      if index < 0
-        raise IndexError, "index #{index} out of string" if -index > @num_bytes
-        index += @num_bytes
-      end
-
-      if replacement.kind_of?(Fixnum)
-        modify!
-        @data[index] = replacement
-      else
-        splice! index, 1, replacement
-      end
-    end
-    return replacement
-  end
-
   # Returns a copy of <i>self</i> with the first character converted to uppercase
   # and the remainder to lowercase.
   # Note: case conversion is effective only in ASCII region.
@@ -379,7 +272,6 @@ class String
     return dup if @num_bytes == 0
 
     str = transform(Rubinius::CType::Lowered, true)
-    str = self.class.new(str) unless instance_of?(String)
 
     str.modify!
 
@@ -578,10 +470,7 @@ class String
   # "hEllO".downcase   #=> "hello"
   def downcase
     return dup if @num_bytes == 0
-    str = transform(Rubinius::CType::Lowered, true)
-    str = self.class.new(str) unless instance_of?(String)
-
-    return str
+    transform(Rubinius::CType::Lowered, true)
   end
 
   # Downcases the contents of <i>self</i>, returning <code>nil</code> if no
@@ -811,19 +700,6 @@ class String
   def lstrip
     str = dup
     str.lstrip! || str
-  end
-
-  # Converts <i>pattern</i> to a <code>Regexp</code> (if it isn't already one),
-  # then invokes its <code>match</code> method on <i>self</i>.
-  #
-  #   'hello'.match('(.)\1')      #=> #<MatchData:0x401b3d30>
-  #   'hello'.match('(.)\1')[0]   #=> "ll"
-  #   'hello'.match(/(.)\1/)[0]   #=> "ll"
-  #   'hello'.match('xx')         #=> nil
-  def match(pattern)
-    match_data = get_pattern(pattern).search_region(self, 0, @num_bytes, true)
-    Regexp.last_match = match_data
-    return match_data
   end
 
   # Treats leading characters of <i>self</i> as a string of octal digits (with an
@@ -1745,7 +1621,7 @@ class String
       return dup
     end
 
-    str = self.class.new("\0") * (padsize + @num_bytes)
+    str = self.class.pattern(1, "\0") * (padsize + @num_bytes)
     str.taint if tainted? or padstr.tainted?
 
     case direction
@@ -1894,7 +1770,9 @@ class String
   end
 
   def dump
-    self.class.new %{"#{transform(Rubinius::CType::Printed, false)}"}
+    s = self.class.allocate
+    s.replace %{"#{transform(Rubinius::CType::Printed, false)}"}
+    s
   end
 
   def shared!

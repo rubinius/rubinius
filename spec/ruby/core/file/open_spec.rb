@@ -85,6 +85,11 @@ describe "File.open" do
     File.exist?(@file).should == true
   end
 
+  it "opens a file with mode and permission as nil" do
+    @fh = File.open(@file, nil, nil)
+    @fh.should be_kind_of(File)
+  end
+
   # For this test we delete the file first to reset the perms
   it "opens the file when passed mode, num and permissions" do
     rm_r @file

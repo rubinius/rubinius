@@ -143,10 +143,7 @@ namespace rubinius {
       };
     }
 
-    if(!LANGUAGE_18_ENABLED(state) && other->untrusted_p(state) == cTrue) {
-      untrust(state);
-    }
-
+    other->infect(state, this);
     return this;
   }
 
@@ -166,7 +163,12 @@ namespace rubinius {
   
   void Object::check_frozen(STATE) {
     if(frozen_p(state) == cTrue) {
-      Exception::runtime_error(state, "can't modify frozen object");
+      const char* reason = "can't modify frozen object";
+      if(LANGUAGE_18_ENABLED(state)) {
+        Exception::type_error(state, reason);
+      } else {
+        Exception::runtime_error(state, reason);
+      }
     }
   }
 
@@ -198,7 +200,7 @@ namespace rubinius {
 
   Object* Object::get_ivar_prim(STATE, Symbol* sym) {
     if(sym->is_ivar_p(state)->false_p()) {
-      return reinterpret_cast<Object*>(kPrimitiveFailed);
+      return Primitives::failure();
     }
 
     return get_ivar(state, sym);
@@ -259,7 +261,7 @@ namespace rubinius {
 
   Object* Object::ivar_defined_prim(STATE, Symbol* sym) {
     if(!sym->is_ivar_p(state)->true_p()) {
-      return reinterpret_cast<Object*>(kPrimitiveFailed);
+      return Primitives::failure();
     }
 
     return ivar_defined(state, sym);
@@ -455,15 +457,21 @@ namespace rubinius {
 
   Class* Object::singleton_class(STATE) {
     if(reference_p()) {
-      if(SingletonClass* sc = try_as<SingletonClass>(klass())) {
-        /* This test is very important! SingletonClasses can get their klass()
-         * hooked up to the SingletonClass of a parent class, so that the MOP
-         * works properly. BUT we should not return that parent singleton
-         * class, we need to only return a SingletonClass that is for this!
-         */
-        if(sc->attached_instance() == this) return sc;
+      SingletonClass* sc = try_as<SingletonClass>(klass());
+
+      /* This test is very important! SingletonClasses can get their klass()
+       * hooked up to the SingletonClass of a parent class, so that the MOP
+       * works properly. BUT we should not return that parent singleton
+       * class, we need to only return a SingletonClass that is for this!
+       */
+      if(!sc || sc->attached_instance() != this) {
+        sc = SingletonClass::attach(state, this);
       }
-      return SingletonClass::attach(state, this);
+
+      infect(state, sc);
+      sc->set_frozen(is_frozen_p());
+
+      return sc;
     }
 
     return class_object(state);
@@ -471,7 +479,7 @@ namespace rubinius {
 
   Object* Object::send(STATE, CallFrame* caller, Symbol* name, Array* ary,
       Object* block, bool allow_private) {
-    LookupData lookup(this, this->lookup_begin(state), allow_private);
+    LookupData lookup(this, this->lookup_begin(state), allow_private ? G(sym_private) : G(sym_protected));
     Dispatch dis(name);
 
     Arguments args(name, ary);
@@ -482,7 +490,7 @@ namespace rubinius {
   }
 
   Object* Object::send(STATE, CallFrame* caller, Symbol* name, bool allow_private) {
-    LookupData lookup(this, this->lookup_begin(state), allow_private);
+    LookupData lookup(this, this->lookup_begin(state), allow_private ? G(sym_private) : G(sym_protected));
     Dispatch dis(name);
 
     Arguments args(name);
@@ -493,7 +501,7 @@ namespace rubinius {
   }
 
   Object* Object::send_prim(STATE, CallFrame* call_frame, Executable* exec, Module* mod,
-                            Arguments& args) {
+                            Arguments& args, Symbol* min_visibility) {
     if(args.total() < 1) return Primitives::failure();
 
     // Don't shift the argument because we might fail and we need Arguments
@@ -521,9 +529,17 @@ namespace rubinius {
     args.set_name(sym);
 
     Dispatch dis(sym);
-    LookupData lookup(this, this->lookup_begin(state), true);
+    LookupData lookup(this, this->lookup_begin(state), min_visibility);
 
     return dis.send(state, call_frame, lookup, args);
+  }
+
+  Object* Object::private_send_prim(STATE, CallFrame* call_frame, Executable* exec, Module* mod, Arguments& args) {
+    return send_prim(state, call_frame, exec, mod, args, G(sym_private));
+  }
+
+  Object* Object::public_send_prim(STATE, CallFrame* call_frame, Executable* exec, Module* mod, Arguments& args) {
+    return send_prim(state, call_frame, exec, mod, args, G(sym_public));
   }
 
   void Object::set_field(STATE, size_t index, Object* val) {
@@ -558,9 +574,10 @@ namespace rubinius {
 
   Object* Object::set_ivar_prim(STATE, Symbol* sym, Object* val) {
     if(sym->is_ivar_p(state)->false_p()) {
-      return reinterpret_cast<Object*>(kPrimitiveFailed);
+      return Primitives::failure();
     }
 
+    check_frozen(state);
     return set_ivar(state, sym, val);
   }
 
@@ -659,10 +676,10 @@ namespace rubinius {
 
       if(Fixnum* fix = try_as<Fixnum>(this)) {
         name << fix->to_native();
-        return String::create(state, name.str().c_str());
+        return String::create(state, name.str().c_str(), name.str().size());
       } else if(Symbol* sym = try_as<Symbol>(this)) {
         name << ":\"" << sym->debug_str(state) << "\"";
-        return String::create(state, name.str().c_str());
+        return String::create(state, name.str().c_str(), name.str().size());
       }
     }
 
@@ -700,7 +717,7 @@ namespace rubinius {
     }
     name << ">";
 
-    return String::create(state, name.str().c_str());
+    return String::create(state, name.str().c_str(), name.str().size());
   }
 
   Object* Object::show(STATE) {
@@ -723,7 +740,10 @@ namespace rubinius {
   }
 
   Object* Object::taint(STATE) {
-    if(reference_p()) set_tainted();
+    if(!is_tainted_p()) {
+      check_frozen(state);
+      if (reference_p()) set_tainted();
+    }
     return this;
   }
 
@@ -758,13 +778,15 @@ namespace rubinius {
   }
 
   Object* Object::untaint(STATE) {
-    if(reference_p()) set_tainted(0);
+    if(is_tainted_p()) {
+      check_frozen(state);
+      if(reference_p()) set_tainted(0);
+    }
     return this;
   }
 
   Object* Object::respond_to(STATE, Symbol* name, Object* priv) {
-    LookupData lookup(this, lookup_begin(state));
-    lookup.priv = CBOOL(priv);
+    LookupData lookup(this, lookup_begin(state), CBOOL(priv) ? G(sym_private) : G(sym_protected));
 
     Dispatch dis(name);
 
@@ -786,9 +808,7 @@ namespace rubinius {
       return Primitives::failure();
     }
 
-    LookupData lookup(this, lookup_begin(state));
-    lookup.priv = false;
-
+    LookupData lookup(this, lookup_begin(state), G(sym_protected));
     Dispatch dis(name);
 
     if(!GlobalCache::resolve(state, name, dis, lookup)) {

@@ -125,6 +125,7 @@ namespace rubinius {
 
   void SharedState::remove_vm(VM* vm) {
     SYNC_TL;
+    threads_.remove(vm);
     this->deref();
 
     // Don't delete ourself here, it's too problematic.
@@ -147,6 +148,13 @@ namespace rubinius {
     if(agent_) return agent_;
     agent_ = new QueryAgent(*this, state);
     return agent_;
+  }
+
+  void SharedState::stop_agent(STATE) {
+    if(agent_) {
+      agent_->shutdown_i();
+      agent_ = NULL;
+    }
   }
 
   void SharedState::pre_exec() {

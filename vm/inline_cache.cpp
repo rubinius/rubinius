@@ -100,7 +100,7 @@ namespace rubinius {
 
             state->vm()->global_cache()->retain(state, klass, name, mce->stored_module(),
                   mce->method(), false,
-                  !vis_entry->public_p(state));
+                  vis_entry->visibility());
 
             return eNone;
           }
@@ -161,7 +161,7 @@ namespace rubinius {
 
           state->vm()->global_cache()->retain(state, start, name, mce->stored_module(),
                 mce->method(), false,
-                !vis_entry->public_p(state));
+                vis_entry->visibility());
 
           return true;
         } else {
@@ -288,8 +288,7 @@ namespace rubinius {
       ary->set(state, i + 2, args.get_argument(i));
     }
 
-    Object* ret = G(rubinius)->send(state, call_frame, state->symbol("bind_call"),
-                                    ary, cNil, true);
+    Object* ret = G(rubinius)->send(state, call_frame, state->symbol("bind_call"), ary);
 
     if(!ret) return 0;
 

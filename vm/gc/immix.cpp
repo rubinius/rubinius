@@ -72,10 +72,6 @@ namespace rubinius {
     return addr.as<Object>()->size_in_bytes(object_memory_->state());
   }
 
-  ImmixGC::~ImmixGC() {
-    // @todo free data
-  }
-
   Object* ImmixGC::allocate(int bytes) {
     if(bytes > immix::cMaxObjectSize) return 0;
 

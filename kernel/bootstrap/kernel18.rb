@@ -36,6 +36,11 @@ module Kernel
     __send__ message, *args
   end
 
+  def __id__
+    Rubinius.primitive :object_id
+    raise PrimitiveFailure, "Kernel#__id__ primitive failed"
+  end
+
   def respond_to?(meth, include_private=false)
     Rubinius.primitive :object_respond_to_public
     respond_to_all?(meth.to_sym, include_private);

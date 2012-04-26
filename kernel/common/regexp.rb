@@ -1,7 +1,16 @@
 # -*- encoding: us-ascii -*-
 
 class Regexp
-  ValidKcode    = [110, 101, 115, 117]  # [?n,?e,?s,?u]
+
+  # One might read this next array and think, why oh why is this done this way.
+  # The problem is how the 'n' KCODE works. This KCODE means no encoding,
+  # ASCII_8BIT or however you want to call it.
+  #
+  # In 1.9 you can use 'n' for specifying a regexp with the binary encoding,
+  # but all other KCODE encodings from 1.8 are ignored. Therefore we add ?n
+  # so 1.9 can recognize it but the other values only numerical so 1.9's
+  # String#[] won't find these.
+  ValidKcode    = [?n, 101, 115, 117]
   KcodeValue    = [16, 32, 48, 64]
 
   IGNORECASE         = 1
@@ -233,7 +242,7 @@ class Regexp
 
     str = "/#{escape}/#{option_to_string(options)}"
     k = kcode()
-    str << k[0, 1] if k and k != "none"
+    str << k[0, 1] if k
     return str
   end
 

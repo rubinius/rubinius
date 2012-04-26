@@ -381,9 +381,9 @@ class Hash
   end
 
   def delete_if(&block)
-    Rubinius.check_frozen
-
     return to_enum(:delete_if) unless block_given?
+
+    Rubinius.check_frozen
 
     select(&block).each { |k, v| delete k }
     self
@@ -443,7 +443,7 @@ class Hash
 
     return yield(key) if block_given?
     return default unless default.equal?(undefined)
-    raise IndexError, 'key not found'
+    raise KeyError, 'key not found'
   end
 
   # Searches for an item matching +key+. Returns the item
@@ -474,9 +474,9 @@ class Hash
   alias_method :index, :key
 
   def keep_if(&block)
-    Rubinius.check_frozen
-
     return to_enum(:keep_if) unless block_given?
+
+    Rubinius.check_frozen
 
     each_item { |e| delete e.key unless yield(e.key, e.value) }
 

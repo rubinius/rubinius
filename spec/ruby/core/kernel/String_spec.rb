@@ -42,16 +42,7 @@ describe :kernel_String, :shared => true do
     end
   end
 
-  ruby_version_is "1.9"..."1.9.4" do
-    it "doesn't raise a TypeError even if respond_to? returns false for #to_s" do
-      obj = mock("to_s")
-      obj.does_not_respond_to(:to_s)
-
-      lambda { @object.send(@method, obj) }.should_not raise_error(TypeError)
-    end
-  end
-
-  ruby_version_is "1.9.4" do
+  ruby_bug "#5158", "1.9.3.116" do
     it "raises a TypeError if respond_to? returns false for #to_s" do
       obj = mock("to_s")
       obj.does_not_respond_to(:to_s)

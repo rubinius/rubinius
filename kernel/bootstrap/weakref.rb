@@ -16,24 +16,25 @@ class WeakRef
 
   def __object__
     Rubinius.primitive :weakref_object
-    raise PrimitiveFailure, "WeakRef#object failed"
+    raise PrimitiveFailure, "WeakRef#__object__ failed"
   end
 
-  def object
+  def __getobj__
     obj = __object__()
     raise RefError, "Object has been collected as garbage" unless obj
     return obj
-  end
-
-  alias_method :__getobj__, :object
-  alias_method :object=, :__setobj__
-
-  def inspect
-    "#<WeakRef:0x#{object_id.to_s(16)} object=#{object.inspect}>"
   end
 
   def weakref_alive?
     !!__object__
   end
 
+  def method_missing(method, *args, &block)
+    target = __getobj__
+    if target.respond_to?(method)
+      target.__send__(method, *args, &block)
+    else
+      super(method, *args, &block)
+    end
+  end
 end

@@ -74,7 +74,6 @@ describe NameMap, "#class_or_module" do
       DTracer
       NameMap
       OptionParser
-      YAML
     ]
 
     excluded.each do |const|

@@ -92,6 +92,7 @@ range18.rbc
 struct.rbc
 struct18.rbc
 process.rbc
+process18.rbc
 random.rbc
 regexp.rbc
 regexp18.rbc

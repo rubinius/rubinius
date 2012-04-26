@@ -11,7 +11,3 @@ RUBY_REVISION     = 0
 # Must be last, it reads the above constants
 RUBY_DESCRIPTION  = Rubinius.version
 
-# Deprecated Ruby constants
-#
-VERSION           = RUBY_VERSION
-PLATFORM          = RUBY_PLATFORM

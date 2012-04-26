@@ -1,4 +1,5 @@
 ffi.rbc
+enum.rbc
 library.rbc
 pointer_accessors.rbc
 pointer.rbc

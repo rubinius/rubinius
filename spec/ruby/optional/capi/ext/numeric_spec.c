@@ -50,6 +50,7 @@ static VALUE numeric_spec_rb_num2ulong(VALUE self, VALUE num) {
 #ifdef HAVE_RB_NUM_ZERODIV
 static VALUE numeric_spec_rb_num_zerodiv(VALUE self) {
   rb_num_zerodiv();
+  return Qnil;
 }
 #endif
 

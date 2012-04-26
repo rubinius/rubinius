@@ -104,12 +104,14 @@ static VALUE thread_spec_rb_thread_local_aset(VALUE self, VALUE thr, VALUE sym, 
 #ifdef HAVE_RB_THREAD_SELECT
 static VALUE thread_spec_rb_thread_select_fd(VALUE self, VALUE fd_num, VALUE msec) {
   int fd = NUM2INT(fd_num);
-  struct timeval tv = {0, NUM2INT(msec)};
+  struct timeval tv;
   int n;
 
   fd_set read;
   FD_ZERO(&read);
   FD_SET(fd, &read);
+  tv.tv_sec = 0;
+  tv.tv_usec = NUM2INT(msec);
 
   n = rb_thread_select(fd + 1, &read, NULL, NULL, &tv);
   if(n == 1 && FD_ISSET(fd, &read)) return Qtrue;
@@ -117,7 +119,9 @@ static VALUE thread_spec_rb_thread_select_fd(VALUE self, VALUE fd_num, VALUE mse
 }
 
 static VALUE thread_spec_rb_thread_select(VALUE self, VALUE msec) {
-  struct timeval tv = {0, NUM2INT(msec)};
+  struct timeval tv;
+  tv.tv_sec = 0;
+  tv.tv_usec = NUM2INT(msec);
   rb_thread_select(0, NULL, NULL, NULL, &tv);
   return Qnil;
 }
@@ -131,7 +135,9 @@ static VALUE thread_spec_rb_thread_wakeup(VALUE self, VALUE thr) {
 
 #ifdef HAVE_RB_THREAD_WAIT_FOR
 static VALUE thread_spec_rb_thread_wait_for(VALUE self, VALUE s, VALUE ms) {
-  struct timeval tv = { NUM2INT(s), NUM2INT(ms) };
+  struct timeval tv;
+  tv.tv_sec = NUM2INT(s);
+  tv.tv_usec = NUM2INT(ms);
   rb_thread_wait_for(tv);
   return Qnil;
 }

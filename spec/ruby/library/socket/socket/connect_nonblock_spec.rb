@@ -31,6 +31,8 @@ describe "Socket#connect_nonblock" do
           r = @socket.getsockopt(Socket::SOL_SOCKET, Socket::SO_ERROR)
           if r.unpack('i').first == Errno::ECONNREFUSED::Errno
             raise Errno::ECONNREFUSED.new
+          else
+            raise r.inspect
           end
         end
       }.should raise_error(Errno::ECONNREFUSED)

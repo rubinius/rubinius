@@ -30,16 +30,6 @@ class Method
   attr_reader :executable
 
   ##
-  # Method objects are equal if they have the same body and are bound to the
-  # same object.
-
-  def ==(other)
-    other.class == Method and
-      @receiver.equal?(other.receiver) and
-      @executable == other.executable
-  end
-
-  ##
   # Indication of how many arguments this method takes. It is defined so that
   # a non-negative Integer means the method takes that fixed amount of
   # arguments (up to 1024 currently.) A negative Integer is used to indicate a
@@ -114,25 +104,10 @@ class Method
   end
 
   def parameters
-    return [] unless @executable.respond_to? :local_names
-
-    m = @executable.required_args - @executable.post_args
-    o = m + @executable.total_args - @executable.required_args
-    p = o + @executable.post_args
-    p += 1 if @executable.splat
-
-    @executable.local_names.each_with_index.map do |name, i|
-      if i < m
-        [:req, name]
-      elsif i < o
-        [:opt, name]
-      elsif @executable.splat == i
-        [:rest, name]
-      elsif i < p
-        [:req, name]
-      else
-        [:block, name]
-      end
+    if @executable.respond_to? :parameters
+      @executable.parameters
+    else
+      []
     end
   end
 
@@ -261,7 +236,13 @@ class UnboundMethod
   # Module it is defined in and the Module that it was extracted from.
 
   def inspect
-    "#<#{self.class}: #{@pulled_from}##{@name} (defined in #{@defined_in})>"
+    file, line = source_location()
+
+    if file
+      "#<#{self.class}: #{@pulled_from}##{@name} (defined in #{@defined_in} at #{file}:#{line})>"
+    else
+      "#<#{self.class}: #{@pulled_from}##{@name} (defined in #{@defined_in})>"
+    end
   end
 
   alias_method :to_s, :inspect

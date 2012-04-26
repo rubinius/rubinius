@@ -2,33 +2,21 @@
 
 class << MAIN
   def include(*mods)
-    Object.include(*mods)
-  end
-
-  def public(*methods)
-    Object.public(*methods)
-  end
-
-  def private(*methods)
-    Object.private(*methods)
-  end
-
-  def protected(*methods)
-    Object.protected(*methods)
-  end
-
-  def add_method(name, obj)
-    Object.add_method(name, obj)
-  end
-
-  def alias_method(new_name, current_name)
     Rubinius.privately do
-      Object.alias_method new_name, current_name
+      Object.include(*mods)
     end
   end
 
-  def const_set(name, value)
-    Object.const_set name, value
+  def public(*methods)
+    Rubinius.privately do
+      Object.public(*methods)
+    end
+  end
+
+  def private(*methods)
+    Rubinius.privately do
+      Object.private(*methods)
+    end
   end
 
   def to_s

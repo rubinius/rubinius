@@ -10,7 +10,6 @@ namespace rubinius {
 
   /* Forwards */
   class Object;
-  class Message;
   class Primitives;
   class Symbol;
 
@@ -21,6 +20,7 @@ namespace rubinius {
     kPrimitiveFailed = ((unsigned int)-1) & ~TAG_REF_MASK
   };
 
+#ifdef ENABLE_LLVM
   class JITStubResults {
     int arg_count_;
     const char* name_;
@@ -68,6 +68,7 @@ namespace rubinius {
     }
 
   };
+#endif
 
 
   class Primitives {
@@ -76,7 +77,9 @@ namespace rubinius {
       return reinterpret_cast<Object*>(kPrimitiveFailed);
     }
 
+#ifdef ENABLE_LLVM
     static void queue_for_jit(STATE, CallFrame* call_frame, int which);
+#endif
 
     /*
      * The primitive generator emits one 'executor' function per
@@ -87,7 +90,9 @@ namespace rubinius {
      */
     static executor resolve_primitive(STATE, Symbol* name, int* index = 0);
     static Object* unknown_primitive(STATE, CallFrame* call_frame, Executable* exec, Module* mod, Arguments& args);
+#ifdef ENABLE_LLVM
     static bool get_jit_stub(int index, JITStubResults& res);
+#endif
     static InvokePrimitive get_invoke_stub(STATE, Symbol* name);
 
 #include "gen/primitives_declare.hpp"

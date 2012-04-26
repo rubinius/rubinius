@@ -23,7 +23,7 @@ extern "C" {
     Time* obj = Time::specific(env->state(), cls,
                                 Integer::from(env->state(), sec),
                                 Integer::from(env->state(), usec * 1000),
-                                Qfalse);
+                                cFalse, cNil);
     return env->get_handle(obj);
   }
 

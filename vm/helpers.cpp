@@ -140,9 +140,7 @@ namespace rubinius {
 
     /** @todo Remove redundancy between this and sends. --rue */
     Tuple* locate_method_on(STATE, CallFrame* call_frame, Object* recv, Symbol* name, Object* priv) {
-      LookupData lookup(recv, recv->lookup_begin(state));
-      lookup.priv = (priv == cTrue);
-
+      LookupData lookup(recv, recv->lookup_begin(state), CBOOL(priv) ? G(sym_private) : G(sym_protected));
       Dispatch dis(name);
 
       if(!GlobalCache::resolve(state, dis.name, dis, lookup)) {

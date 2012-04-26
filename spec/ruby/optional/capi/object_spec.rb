@@ -237,18 +237,20 @@ describe "CApiObject" do
     end
   end
 
-  describe "rb_check_to_integer" do
-    it "tries to coerce to an integer, otherwise returns nil" do
-      x = mock("to_int")
-      x.should_receive(:to_int).and_return(5)
-      y = mock("fake_to_int")
-      y.should_receive(:to_int).and_return("Hello")
+  ruby_version_is "1.8.7" do
+    describe "rb_check_to_integer" do
+      it "tries to coerce to an integer, otherwise returns nil" do
+        x = mock("to_int")
+        x.should_receive(:to_int).and_return(5)
+        y = mock("fake_to_int")
+        y.should_receive(:to_int).and_return("Hello")
 
-      @o.rb_check_to_integer(5, "non_existing").should == 5
-      @o.rb_check_to_integer(5, "to_int").should == 5
-      @o.rb_check_to_integer(x, "to_int").should == 5
-      @o.rb_check_to_integer(y, "to_int").should == nil
-      @o.rb_check_to_integer("Hello", "to_int").should == nil
+        @o.rb_check_to_integer(5, "non_existing").should == 5
+        @o.rb_check_to_integer(5, "to_int").should == 5
+        @o.rb_check_to_integer(x, "to_int").should == 5
+        @o.rb_check_to_integer(y, "to_int").should == nil
+        @o.rb_check_to_integer("Hello", "to_int").should == nil
+      end
     end
   end
 

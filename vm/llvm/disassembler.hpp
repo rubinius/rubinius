@@ -5,8 +5,7 @@
 #include <string.h>
 #include <iostream>
 
-#include <llvm/Target/TargetRegistry.h>
-#include <llvm/Target/TargetMachine.h>
+#include <llvm/Support/TargetRegistry.h>
 #include <llvm/MC/MCAsmInfo.h>
 #include <llvm/MC/MCDisassembler.h>
 #include <llvm/Support/MemoryObject.h>
@@ -74,6 +73,7 @@ namespace rubinius {
 
       const llvm::Target* target;
       const llvm::TargetMachine* target_machine;
+      const llvm::MCSubtargetInfo* sub_target;
       const llvm::MCAsmInfo* asm_info;
       llvm::MCDisassembler* disassembler;
       const JITMemoryObject* memory_object;

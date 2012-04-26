@@ -10,8 +10,7 @@ class String
   end
 
   def to_f
-    Rubinius.primitive :string_to_f
-    raise PrimitiveFailure, "String#to_f primitive failed"
+    Rubinius::Type::coerce_to_float self, false, false
   end
 
   alias_method :convert_float, :to_f
@@ -60,8 +59,11 @@ class String
   end
 
   def dup
-    Rubinius.primitive :string_dup
-    raise PrimitiveFailure, "String#dup primitive failed"
+    other = Rubinius.invoke_primitive :string_dup, self
+    Rubinius.privately do
+      other.initialize_copy self
+    end
+    other
   end
 
   def copy_from(other, start, size, dest)

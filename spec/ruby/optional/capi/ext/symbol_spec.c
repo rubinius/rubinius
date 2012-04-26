@@ -23,6 +23,12 @@ VALUE symbol_spec_rb_id2name(VALUE self, VALUE symbol) {
 }
 #endif
 
+#ifdef HAVE_RB_ID2STR
+VALUE symbol_spec_rb_id2str(VALUE self, VALUE symbol) {
+  return rb_id2str(SYM2ID(symbol));
+}
+#endif
+
 #ifdef HAVE_RB_IS_CLASS_ID
 VALUE symbol_spec_rb_is_class_id(VALUE self, VALUE sym) {
   return rb_is_class_id(SYM2ID(sym)) ? Qtrue : Qfalse;
@@ -52,6 +58,10 @@ void Init_symbol_spec() {
 
 #ifdef HAVE_RB_ID2NAME
   rb_define_method(cls, "rb_id2name", symbol_spec_rb_id2name, 1);
+#endif
+
+#ifdef HAVE_RB_ID2STR
+  rb_define_method(cls, "rb_id2str", symbol_spec_rb_id2str, 1);
 #endif
 
 #ifdef HAVE_RB_IS_CLASS_ID

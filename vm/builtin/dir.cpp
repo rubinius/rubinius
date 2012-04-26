@@ -56,7 +56,7 @@ namespace rubinius {
   Object* Dir::open(STATE, String* path) {
     if(os_) closedir(os_);
 
-    os_ = opendir(path->c_str(state));
+    os_ = opendir(path->c_str_null_safe(state));
 
     if(!os_) {
       Exception::errno_error(state, "Unable to open directory", errno, path->c_str(state));

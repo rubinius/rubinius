@@ -259,11 +259,13 @@ class Struct
   def each(&block)
     return to_enum :each unless block_given?
     values.each(&block)
+    self
   end
 
   def each_pair
     return to_enum :each_pair unless block_given?
-    _attrs.map { |var| yield var, instance_variable_get(:"@#{var}") }
+    _attrs.each { |var| yield var, instance_variable_get(:"@#{var}") }
+    self
   end
 
   ##
@@ -388,4 +390,3 @@ class Struct
     to_a.values_at(*args)
   end
 end
-

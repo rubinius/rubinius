@@ -3,7 +3,8 @@ Daedalus.blueprint do |i|
 
   gcc.cflags << "-Ivm -Ivm/test/cxxtest -I. "
   gcc.cflags << "-pipe -Wall -fno-omit-frame-pointer"
-  gcc.cflags << "-ggdb3 -Werror"
+  gcc.cflags << "-Wno-unused-function"
+  gcc.cflags << "-g -ggdb3 -Werror"
   gcc.cflags << "-DRBX_PROFILER"
   gcc.cflags << "-D__STDC_LIMIT_MACROS -D__STDC_CONSTANT_MACROS"
   gcc.cflags << "-D_LARGEFILE_SOURCE"
@@ -61,7 +62,7 @@ Daedalus.blueprint do |i|
   when /freebsd/i
     gcc.ldflags << '-lcrypt' << '-pthread' << '-rdynamic'
     make = "gmake"
-  when /openbsd/i
+  when /openbsd|netbsd/i
     gcc.ldflags << '-lcrypto' << '-pthread' << '-lssl' << "-rdynamic" << "-Wl,--export-dynamic"
     make = "gmake"
   when /haiku/i

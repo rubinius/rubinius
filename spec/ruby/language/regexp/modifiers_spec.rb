@@ -97,7 +97,6 @@ describe "Regexps with modifers" do
     /(?i-i)foo/.match("FOO").should be_nil
     /(?ii)foo/.match("FOO").to_a.should == ["FOO"]
     /(?-)foo/.match("foo").to_a.should == ["foo"]
-    lambda { eval('/(?a)/') }.should raise_error(SyntaxError)
     lambda { eval('/(?o)/') }.should raise_error(SyntaxError)
   end
 
@@ -118,12 +117,30 @@ describe "Regexps with modifers" do
     /(?i-i:foo)/.match("FOO").should be_nil
     /(?ii:foo)/.match("FOO").to_a.should == ["FOO"]
     /(?-:)foo/.match("foo").to_a.should == ["foo"]
-    lambda { eval('/(?a:)/') }.should raise_error(SyntaxError)
     lambda { eval('/(?o:)/') }.should raise_error(SyntaxError)
   end
 
   it "supports . with /m" do
     # Basic matching
     /./m.match("\n").to_a.should == ["\n"]
+  end
+
+  ruby_version_is ""..."2.0" do
+    it "raises SyntaxError for ASII/Unicode modifiers" do
+      lambda { eval('/(?a)/') }.should raise_error(SyntaxError)
+      lambda { eval('/(?d)/') }.should raise_error(SyntaxError)
+      lambda { eval('/(?u)/') }.should raise_error(SyntaxError)
+    end
+  end
+
+  ruby_version_is "2.0" do
+    it "supports ASII/Unicode modifiers" do
+      eval('/(?a)[[:alpha:]]+/').match("a\u3042").to_a.should == ["a"]
+      eval('/(?d)[[:alpha:]]+/').match("a\u3042").to_a.should == ["a\u3042"]
+      eval('/(?u)[[:alpha:]]+/').match("a\u3042").to_a.should == ["a\u3042"]
+      eval('/(?a)\w+/').match("a\u3042").to_a.should == ["a"]
+      eval('/(?d)\w+/').match("a\u3042").to_a.should == ["a"]
+      eval('/(?u)\w+/').match("a\u3042").to_a.should == ["a\u3042"]
+    end
   end
 end

@@ -5,6 +5,7 @@
 #include "builtin/bytearray.hpp"
 #include "builtin/fixnum.hpp"
 
+#include "object_utils.hpp"
 #include "type_info.hpp"
 #include <ctype.h> // For isdigit and friends
 #include <errno.h> // For ERANGE
@@ -60,6 +61,7 @@ namespace rubinius {
     template <class T>
       void num_bytes(T state, Fixnum* obj) {
         num_bytes_ = obj;
+        num_chars_ = nil<Fixnum>();
         update_handle();
       }
 
@@ -140,6 +142,14 @@ namespace rubinius {
     // NOTE: do not free() or realloc() this buffer.
     const char* c_str(STATE);
 
+    // Use this if you want to have a string that does not
+    // contain a \0 character. It will raise an exception
+    // if it does.
+    const char* c_str_null_safe(STATE);
+
+    // Rubinius.primitive :string_check_null_safe
+    String* check_null_safe(STATE);
+
     String* convert_escaped(STATE, Encoding*& enc, bool& fixed_encoding);
 
     void unshare(STATE);
@@ -176,8 +186,7 @@ namespace rubinius {
     String* append(STATE, const char* other, native_int length);
 
     // Rubinius.primitive :string_to_f
-    Float* to_f(STATE);
-    double to_double(STATE);
+    Float* to_f(STATE, Object* strict = cTrue);
 
     Integer* to_i(STATE, Fixnum* base = Fixnum::from(0), Object* strict = cTrue);
 

@@ -42,11 +42,6 @@ module Kernel
     "#<#{self.class.name}"
   end
 
-  def __id__
-    Rubinius.primitive :object_id
-    raise PrimitiveFailure, "Kernel#object_id primitive failed"
-  end
-
   def respond_to_all?(meth, include)
     Rubinius.primitive :object_respond_to
     raise PrimitiveFailure, "Kernel#prim_respond_to? failed"

@@ -84,6 +84,25 @@ class Array
 
   private :initialize
 
+  # Replaces contents of self with contents of other,
+  # adjusting size as needed.
+  def replace(other)
+    Rubinius.check_frozen
+
+    other = Rubinius::Type.coerce_to other, Array, :to_ary
+
+    @tuple = other.tuple.dup
+    @total = other.total
+    @start = other.start
+
+    Rubinius::Type.infect(self, other)
+    self
+  end
+
+  alias_method :initialize_copy, :replace
+  private :initialize_copy
+
+
   # Element reference, returns the element at the given index or
   # a subarray starting from the index continuing for length
   # elements or returns a subarray from range elements. Negative
@@ -348,22 +367,37 @@ class Array
   def combination(num)
     num = Rubinius::Type.coerce_to num, Fixnum, :to_int
     return to_enum(:combination, num) unless block_given?
-    return self unless (0..size).include? num
-    # Implementation note: slightly tricky.
-                                             # Example: self = 1..7, num = 3
-    picks = (0...num).to_a                   # picks start at 0, 1, 2
-    max = ((size-num)...size).to_a           # max (index for a given pick) is [4, 5, 6]
-    pick_max_pairs = picks.zip(max).reverse  # pick_max_pairs = [[2, 6], [1, 5], [0, 4]]
 
-    return_proc = Proc.new { return self }
-    lookup = pick_max_pairs.find(return_proc)
-
-    while true
-      yield values_at(*picks)
-      move = lookup.each { |pick, max| picks[pick] < max }.first
-      new_index = picks[move] + 1
-      picks[move...num] = (new_index...(new_index+num-move)).to_a
+    if num == 0
+      yield []
+    elsif num == 1
+      each do |i|
+        yield [i]
+      end
+    elsif num == size
+      yield self.dup
+    elsif num >= 0 && num < size
+      stack = Rubinius::Tuple.pattern num + 1, 0
+      chosen = Rubinius::Tuple.new num
+      lev = 0
+      done = false
+      stack[0] = -1
+      until done
+        chosen[lev] = self.at(stack[lev+1])
+        while lev < num - 1
+          lev += 1
+          chosen[lev] = self.at(stack[lev+1] = stack[lev] + 1)
+        end
+        yield chosen.to_a
+        lev += 1
+        begin
+          done = lev == 0
+          stack[lev] += 1
+          lev -= 1
+        end while stack[lev+1] + num == size + lev + 1
+      end
     end
+    self
   end
 
   # Removes all nil elements from self, returns nil if no changes
@@ -1100,11 +1134,8 @@ class Array
 
   # Sorts this Array in-place. See #sort.
   #
-  # The threshold for choosing between Insertion sort and Quicksort
-  # is 10, as determined by a bit of quick tests.
-  # Solving directly for recurrence relations is impossible, since quicksort
-  # depends on the partition sizes, which is dependent upon the arrangement
-  # of the array.
+  # The threshold for choosing between Insertion sort and Mergesort
+  # is 13, as determined by a bit of quick tests.
   #
   # For results and methodology, see the commit message.
   def sort_inplace(&block)
@@ -1151,6 +1182,25 @@ class Array
   # Returns self
   def to_ary
     self
+  end
+
+  # Produces a printable string of the Array. The string
+  # is constructed by calling #inspect on all elements.
+  # Descends through contained Arrays, recursive ones
+  # are indicated as [...].
+  def inspect
+    return "[]" if @total == 0
+
+    comma = ", "
+    result = "["
+
+    return "[...]" if Thread.detect_recursion self do
+      each { |o| result << o.inspect << comma }
+    end
+
+    Rubinius::Type.infect(result, self)
+    result.shorten!(2)
+    result << "]"
   end
 
   # Treats all elements as being Arrays of equal lengths and

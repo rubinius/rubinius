@@ -1,6 +1,7 @@
 # -*- encoding: us-ascii -*-
 
 class Module
+  private :remove_class_variable
 
   def const_get(name)
     name = Rubinius::Type.coerce_to_constant_name name
@@ -54,8 +55,6 @@ class Module
   end
 
   private :attr
-
-  alias_method :class_variable_set, :__class_variable_set__
 
   # Install a new Autoload object into the constants table
   # See kernel/common/autoload.rb

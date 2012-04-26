@@ -472,24 +472,6 @@ namespace rubinius {
     }
   }
 
-  void Encoding::Info::visit(Object* obj, ObjectVisitor& visit) {
-    auto_visit(obj, visit);
-
-    Encoding* enc_o = force_as<Encoding>(obj);
-    if(!enc_o->get_managed()) return;
-
-    OnigEncodingType* enc = enc_o->get_encoding();
-    if(!enc) return;
-
-    ByteArray* enc_ba = ByteArray::from_body(enc);
-    visit.call(enc_ba);
-
-    if(enc->name) {
-      ByteArray* name_ba = ByteArray::from_body(const_cast<char*>(enc->name));
-      visit.call(name_ba);
-    }
-  }
-
   void Encoding::Info::show(STATE, Object* self, int level) {
     Encoding* enc = as<Encoding>(self);
 
@@ -550,7 +532,59 @@ namespace rubinius {
     table->store(state, encoding_symbol(state, tr->dst_encoding), t);
   }
 
+#define CONVERTER_ERROR_HANDLER_MASK                0x000000ff
+
+#define CONVERTER_INVALID_MASK                      0x0000000f
+#define CONVERTER_INVALID_REPLACE                   0x00000002
+
+#define CONVERTER_UNDEF_MASK                        0x000000f0
+#define CONVERTER_UNDEF_REPLACE                     0x00000020
+#define CONVERTER_UNDEF_HEX_CHARREF                 0x00000030
+
+#define CONVERTER_DECORATOR_MASK                    0x0000ff00
+#define CONVERTER_NEWLINE_DECORATOR_MASK            0x00003f00
+#define CONVERTER_NEWLINE_DECORATOR_READ_MASK       0x00000f00
+#define CONVERTER_NEWLINE_DECORATOR_WRITE_MASK      0x00003000
+
+#define CONVERTER_UNIVERSAL_NEWLINE_DECORATOR       0x00000100
+#define CONVERTER_CRLF_NEWLINE_DECORATOR            0x00001000
+#define CONVERTER_CR_NEWLINE_DECORATOR              0x00002000
+#define CONVERTER_XML_TEXT_DECORATOR                0x00004000
+#define CONVERTER_XML_ATTR_CONTENT_DECORATOR        0x00008000
+
+#define CONVERTER_STATEFUL_DECORATOR_MASK           0x00f00000
+#define CONVERTER_XML_ATTR_QUOTE_DECORATOR          0x00100000
+
+#if defined(_WIN32)
+#define CONVERTER_DEFAULT_NEWLINE_DECORATOR CONVERTER_CRLF_NEWLINE_DECORATOR
+#else
+#define CONVERTER_DEFAULT_NEWLINE_DECORATOR 0
+#endif
+
+#define CONVERTER_PARTIAL_INPUT                     0x00010000
+#define CONVERTER_AFTER_OUTPUT                      0x00020000
+
   void Converter::init(STATE) {
-    ontology::new_class_under(state, "Converter", G(encoding));
+    Class* cls = ontology::new_class_under(state, "Converter", G(encoding));
+
+    cls->set_const(state, "INVALID_MASK", Fixnum::from(CONVERTER_INVALID_MASK));
+    cls->set_const(state, "INVALID_REPLACE", Fixnum::from(CONVERTER_INVALID_REPLACE));
+    cls->set_const(state, "UNDEF_MASK", Fixnum::from(CONVERTER_UNDEF_MASK));
+    cls->set_const(state, "UNDEF_REPLACE", Fixnum::from(CONVERTER_UNDEF_REPLACE));
+    cls->set_const(state, "UNDEF_HEX_CHARREF", Fixnum::from(CONVERTER_UNDEF_HEX_CHARREF));
+    cls->set_const(state, "PARTIAL_INPUT", Fixnum::from(CONVERTER_PARTIAL_INPUT));
+    cls->set_const(state, "AFTER_OUTPUT", Fixnum::from(CONVERTER_AFTER_OUTPUT));
+    cls->set_const(state, "UNIVERSAL_NEWLINE_DECORATOR",
+                   Fixnum::from(CONVERTER_UNIVERSAL_NEWLINE_DECORATOR));
+    cls->set_const(state, "CRLF_NEWLINE_DECORATOR",
+                   Fixnum::from(CONVERTER_CRLF_NEWLINE_DECORATOR));
+    cls->set_const(state, "CR_NEWLINE_DECORATOR",
+                   Fixnum::from(CONVERTER_CR_NEWLINE_DECORATOR));
+    cls->set_const(state, "XML_TEXT_DECORATOR",
+                   Fixnum::from(CONVERTER_XML_TEXT_DECORATOR));
+    cls->set_const(state, "XML_ATTR_CONTENT_DECORATOR",
+                   Fixnum::from(CONVERTER_XML_ATTR_CONTENT_DECORATOR));
+    cls->set_const(state, "XML_ATTR_QUOTE_DECORATOR",
+                   Fixnum::from(CONVERTER_XML_ATTR_QUOTE_DECORATOR));
   }
 }

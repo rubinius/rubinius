@@ -1,18 +1,17 @@
 ---
 layout: doc_ja
-title: Getting Started
-previous: What is Rubinius?
+title: はじめに
+previous: Rubinius とは
 previous_url: what-is-rubinius
-next: Requirements
+next: 必要要件
 next_url: getting-started/requirements
-translated: true
 ---
 
-このガイドでは、Rubiniusは動作させるのに役立ちます。それはあなたが何かを知って
-いる前提としていますRubyと約システム上のソフトウェアをインストールします。
+ここでは、Rubinius を動作させるための方法を説明します。
+前提として、Ruby についてと、あなたのシステム上にソフトウェアをインストールすることについてある程度知っている必要があります。
 
-ここでの指示に従って問題が発生した場合は、#rubiniusのIRCを参照してください。
-ヘルプirc.freenode.netのチャネル。
+ここに書かれている指示に従って問題が発生した場合は、irc.freenode.net 
+上の #rubinius という IRC チャンネルで尋ねてみてください。
 
 
 1. [Requirements](/doc/ja/getting-started/requirements/)

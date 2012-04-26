@@ -20,6 +20,16 @@ describe "Module#const_defined?" do
       ConstantSpecs::ContainerA::ChildA.const_defined?(:CS_CONST10).should be_true
     end
 
+    it "returns true if the constant is defined in Object and the receiver is a module" do
+      # CS_CONST1 is defined in Object
+      ConstantSpecs::ModuleA.const_defined?(:CS_CONST1).should be_true
+    end
+
+    it "returns true if the constant is defined in Object and the receiver is a class that has Object among its ancestors" do
+      # CS_CONST1 is defined in Object
+      ConstantSpecs::ContainerA::ChildA.const_defined?(:CS_CONST1).should be_true
+    end
+
     it "returns false if the constant is defined in the receiver's superclass and the inherit flag is false" do
       ConstantSpecs::ContainerA::ChildA.const_defined?(:CS_CONST4, false).should be_false
     end

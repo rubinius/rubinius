@@ -9,7 +9,7 @@ require 'mspec/runner/example'
 describe ContextState, "#describe" do
   before :each do
     @state = ContextState.new "C#m"
-    @proc = lambda { ScratchPad.record :a }
+    @proc = lambda {|*| ScratchPad.record :a }
     ScratchPad.clear
   end
 
@@ -90,7 +90,7 @@ end
 describe ContextState, "#it" do
   before :each do
     @state = ContextState.new ""
-    @proc = lambda { }
+    @proc = lambda {|*| }
 
     @ex = ExampleState.new("", "", &@proc)
   end
@@ -129,7 +129,7 @@ end
 describe ContextState, "#before" do
   before :each do
     @state = ContextState.new ""
-    @proc = lambda { }
+    @proc = lambda {|*| }
   end
 
   it "records the block for :each" do
@@ -146,7 +146,7 @@ end
 describe ContextState, "#after" do
   before :each do
     @state = ContextState.new ""
-    @proc = lambda { }
+    @proc = lambda {|*| }
   end
 
   it "records the block for :each" do
@@ -162,9 +162,9 @@ end
 
 describe ContextState, "#pre" do
   before :each do
-    @a = lambda { }
-    @b = lambda { }
-    @c = lambda { }
+    @a = lambda {|*| }
+    @b = lambda {|*| }
+    @c = lambda {|*| }
 
     parent = ContextState.new ""
     parent.before(:each, &@c)
@@ -189,9 +189,9 @@ end
 
 describe ContextState, "#post" do
   before :each do
-    @a = lambda { }
-    @b = lambda { }
-    @c = lambda { }
+    @a = lambda {|*| }
+    @b = lambda {|*| }
+    @c = lambda {|*| }
 
     parent = ContextState.new ""
     parent.after(:each, &@c)
@@ -217,9 +217,9 @@ end
 describe ContextState, "#protect" do
   before :each do
     ScratchPad.record []
-    @a = lambda { ScratchPad << :a }
-    @b = lambda { ScratchPad << :b }
-    @c = lambda { raise Exception, "Fail!" }
+    @a = lambda {|*| ScratchPad << :a }
+    @b = lambda {|*| ScratchPad << :b }
+    @c = lambda {|*| raise Exception, "Fail!" }
   end
 
   it "returns true and does execute any blocks if check and MSpec.mode?(:pretend) are true" do
@@ -374,8 +374,8 @@ describe ContextState, "#process" do
     @state = ContextState.new ""
     @state.describe { }
 
-    @a = lambda { ScratchPad << :a }
-    @b = lambda { ScratchPad << :b }
+    @a = lambda {|*| ScratchPad << :a }
+    @b = lambda {|*| ScratchPad << :b }
     ScratchPad.record []
   end
 
@@ -658,8 +658,8 @@ describe ContextState, "#process when an exception is raised in before(:all)" do
     @state = ContextState.new ""
     @state.describe { }
 
-    @a = lambda { ScratchPad << :a }
-    @b = lambda { ScratchPad << :b }
+    @a = lambda {|*| ScratchPad << :a }
+    @b = lambda {|*| ScratchPad << :b }
     ScratchPad.record []
 
     @state.before(:all) { raise Exception, "Fail!" }
@@ -718,8 +718,8 @@ describe ContextState, "#process when an exception is raised in before(:each)" d
     @state = ContextState.new ""
     @state.describe { }
 
-    @a = lambda { ScratchPad << :a }
-    @b = lambda { ScratchPad << :b }
+    @a = lambda {|*| ScratchPad << :a }
+    @b = lambda {|*| ScratchPad << :b }
     ScratchPad.record []
 
     @state.before(:each) { raise Exception, "Fail!" }
@@ -815,8 +815,8 @@ describe ContextState, "#process in pretend mode" do
     @state = ContextState.new ""
     @state.describe { }
 
-    @a = lambda { ScratchPad << :a }
-    @b = lambda { ScratchPad << :b }
+    @a = lambda {|*| ScratchPad << :a }
+    @b = lambda {|*| ScratchPad << :b }
     ScratchPad.record []
   end
 
@@ -921,8 +921,8 @@ describe ContextState, "#it_should_behave_like" do
     MSpec.stub!(:retrieve_shared).and_return(@shared)
 
     @state = ContextState.new "Top level"
-    @a = lambda { }
-    @b = lambda { }
+    @a = lambda {|*| }
+    @b = lambda {|*| }
   end
 
   it "raises an Exception if unable to find the shared ContextState" do

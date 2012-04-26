@@ -48,17 +48,6 @@ namespace rubinius {
     auto_mark(obj, mark);
   }
 
-  /* By default, just call auto_mark(). This exists so that
-   * other types can overload this to perform work before or
-   * after auto_marking is done. */
-  void TypeInfo::visit(Object* obj, ObjectVisitor& visit) {
-    auto_visit(obj, visit);
-  }
-
-  void TypeInfo::auto_visit(Object* obj, ObjectVisitor& visit) {
-    // Must be implemented in subclasses!
-  }
-
   size_t TypeInfo::object_size(const ObjectHeader* obj) {
     abort();
     // Must be implemented, if goes here

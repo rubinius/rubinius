@@ -54,4 +54,20 @@ describe "Module#remove_method" do
       end
     }.should raise_error(NameError)
   end
+
+  ruby_version_is ""..."1.9" do
+    it "raises TypeError when frozen" do
+      c = Class.new { def method_to_remove; end }
+      c.freeze
+      lambda { c.send(:remove_method, :method_to_remove) }.should raise_error(TypeError)
+    end
+  end
+
+  ruby_version_is "1.9" do
+    it "raises RuntimeError when frozen" do
+      c = Class.new { def method_to_remove; end }
+      c.freeze
+      lambda { c.send(:remove_method, :method_to_remove) }.should raise_error(RuntimeError)
+    end
+  end
 end

@@ -86,8 +86,9 @@ module Rubinius
     end
 
     def __undef_method__(name)
-      mod = for_method_definition()
-      mod.undef_method name
+      Rubinius.privately do
+        for_method_definition.undef_method name
+      end
     end
 
     def active_path
