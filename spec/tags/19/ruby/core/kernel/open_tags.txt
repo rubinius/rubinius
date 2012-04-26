@@ -1,1 +1,0 @@
-fails:Kernel#open accepts nil for mode and permission
