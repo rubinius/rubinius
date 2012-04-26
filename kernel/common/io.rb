@@ -423,9 +423,10 @@ class IO
   ##
   # Opens the given path, returning the underlying file descriptor as a Fixnum.
   #  IO.sysopen("testfile")   #=> 3
-  def self.sysopen(path, mode = "r", perm = 0666)
+  def self.sysopen(path, mode = nil, perm = nil)
     path = Rubinius::Type.coerce_to_path path
-    mode = parse_mode mode
+    mode = parse_mode(mode || "r")
+    perm ||= 0666
 
     open_with_mode path, mode, perm
   end
