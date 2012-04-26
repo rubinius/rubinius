@@ -31,9 +31,7 @@ module Kernel
   module_function :__callee__
 
   def define_singleton_method(*args, &block)
-    class << self
-      self
-    end.send(:define_method, *args, &block)
+    singleton_class.send(:define_method, *args, &block)
   end
 
   def loop
