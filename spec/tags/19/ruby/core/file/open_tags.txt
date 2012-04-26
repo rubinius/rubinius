@@ -1,2 +1,1 @@
 fails:File.open defaults external_encoding to ASCII-8BIT for binary modes
-fails:File.open opens a file with mode and permission as nil
