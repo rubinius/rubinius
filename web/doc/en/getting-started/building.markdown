@@ -21,7 +21,8 @@ LLVM installed and Rubinius fails to link with it for any reason, pass
 ### Getting the Source
 
 The Rubinius source code is available as a tarball and as a project on Github.
-You can [download the tarball here](http://rubini.us/download/latest).
+You can [download the tarball
+here](https://github.com/rubinius/rubinius/tarball/master).
 
 To use Git:
 

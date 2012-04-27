@@ -21,7 +21,8 @@ argumento do script `configure` nas instruções abaixo.
 ### Obtendo o código fonte
 
 O código fonte do Rubinius está disponível como tarball e como projeto no Github.
-Você pode [fazer o download do tarball aqui](http://rubini.us/download/latest).
+Você pode [fazer o download do tarball
+aqui](https://github.com/rubinius/rubinius/tarball/master).
 
 Se preferir, utilize o Git:
 
