@@ -9,11 +9,16 @@
 #include <tr1/unordered_set>
 #include <vector>
 
+#ifndef RIO
+#define RIO rb_io_t
+#endif
+
 struct RArray;
 struct RString;
 struct RData;
 struct RFloat;
 struct RIO;
+struct RFile;
 
 namespace rubinius {
   class NativeMethodEnvironment;
@@ -26,7 +31,8 @@ namespace rubinius {
       cRString,
       cRData,
       cRFloat,
-      cRIO
+      cRIO,
+      cRFile
     };
 
     class Handle : public LinkedList::Node {
@@ -47,6 +53,7 @@ namespace rubinius {
         RData*    rdata;
         RFloat*   rfloat;
         RIO*      rio;
+        RFile*    rfile;
         intptr_t  cache_data;
       } as_;
 
@@ -138,6 +145,10 @@ namespace rubinius {
         return type_ == cRIO;
       }
 
+      bool is_rfile() {
+        return type_ == cRFile;
+      }
+
       HandleType type() {
          return type_;
       }
@@ -164,6 +175,7 @@ namespace rubinius {
       RString* as_rstring(NativeMethodEnvironment* env, int cache_level);
       RFloat* as_rfloat(NativeMethodEnvironment* env);
       RIO* as_rio(NativeMethodEnvironment* env);
+      RFile* as_rfile(NativeMethodEnvironment* env);
 
       void free_data();
       bool rio_close();

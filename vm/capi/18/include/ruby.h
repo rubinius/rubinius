@@ -348,19 +348,28 @@ struct RFloat {
 #define RHASH(obj)      ({ C_API_RHASH_is_not_supported_in_Rubinius })
 #define RHASH_TBL(obj)  ({ C_API_RHASH_TBL_is_not_supported_in_Rubinius })
 
-struct RIO {
+typedef struct rb_io_t {
   VALUE handle;
   int fd;
   FILE* f;
-};
+  FILE* f2;
+  FILE* stdio_file;
+  void (*finalize)(struct rb_io_t*,int);
+} rb_io_t;
 
-#define RIO(d)          capi_rio_struct(d)
 
-typedef struct RIO rb_io_t;
+#define RIO       rb_io_t
 
-#define OpenFile rb_io_t
+#define OpenFile  rb_io_t
 
 #define HAVE_RB_IO_T 1
+
+struct RFile {
+  VALUE handle;
+  rb_io_t *fptr;
+};
+
+#define RFILE(obj)      capi_rfile_struct(obj)
 
 // Fake it out, just make the ptr be the val
 // MRI checks also that it's not closed...
@@ -448,7 +457,6 @@ typedef struct RIO rb_io_t;
 #define rb_eTypeError         (capi_get_constant(cCApiTypeError))
 #define rb_eThreadError       (capi_get_constant(cCApiThreadError))
 #define rb_eZeroDivError      (capi_get_constant(cCApiZeroDivisionError))
-
 
 /* Interface macros */
 
@@ -670,6 +678,7 @@ VALUE rb_uint2big(unsigned long number);
   struct RString* capi_rstring_struct(VALUE string, int cache_level);
   struct RFloat* capi_rfloat_struct(VALUE data);
   struct RIO* capi_rio_struct(VALUE handle);
+  struct RFile* capi_rfile_struct(VALUE file);
 
 /* Real API */
 

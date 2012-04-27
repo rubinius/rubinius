@@ -77,6 +77,9 @@ namespace rubinius {
         rf->handle = as_value();
         rf->fd = fd;
         rf->f = f;
+        rf->f2 = NULL;
+        rf->stdio_file = NULL;
+        rf->finalize = NULL;
 
         // Disable all buffering so that it doesn't get out of sync with
         // the normal IO buffer.
@@ -93,6 +96,8 @@ namespace rubinius {
       if(type_ != cRIO) return true;
 
       RIO* rio = as_.rio;
+
+      if(rio->finalize) rio->finalize(rio, true);
 
       bool ok = (fclose(rio->f) == 0);
       rio->f = NULL;
