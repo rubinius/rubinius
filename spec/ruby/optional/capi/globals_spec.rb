@@ -68,4 +68,29 @@ describe "CApiGlobalSpecs" do
       end
     end
   end
+
+  describe "rb_rs" do
+    before :each do
+      @dollar_slash = $/
+    end
+
+    after :each do
+      $/ = @dollar_slash
+    end
+
+    it "returns \\n by default" do
+      @f.rb_rs.should == "\n"
+    end
+
+    it "returns the value of $/" do
+      $/ = "foo"
+      @f.rb_rs.should == "foo"
+    end
+  end
+
+  describe "rb_default_rs" do
+    it "returns \\n" do
+      @f.rb_default_rs.should == "\n"
+    end
+  end
 end
