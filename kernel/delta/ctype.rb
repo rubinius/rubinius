@@ -18,7 +18,11 @@ module Rubinius::CType
     when 92; '\\\\'
     else
       if num < 32 || num > 126
-        unprintable_chr(num)
+        str = "\\000"
+        str.modify!
+
+        c = num.to_s 8
+        str.copy_from c, 0, c.size, 4-c.size
       else
         num.chr
       end
