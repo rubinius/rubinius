@@ -258,10 +258,14 @@
 
 /* IO */
 #define HAVE_GET_OPEN_FILE                 1
+#define HAVE_RB_IO_ADDSTR                  1
 #define HAVE_RB_IO_CHECK_CLOSED            1
 #define HAVE_RB_IO_CHECK_READABLE          1
 #define HAVE_RB_IO_CHECK_WRITABLE          1
 #define HAVE_RB_IO_CLOSE                   1
+#define HAVE_RB_IO_PRINT                   1
+#define HAVE_RB_IO_PRINTF                  1
+#define HAVE_RB_IO_PUTS                    1
 #define HAVE_RB_IO_WAIT_READABLE           1
 #define HAVE_RB_IO_WAIT_WRITABLE           1
 #define HAVE_RB_IO_WRITE                   1
