@@ -872,8 +872,8 @@ VALUE rb_uint2big(unsigned long number);
   /** Remove and return first element of Array or nil. Changes other elements' indexes. */
   VALUE   rb_ary_shift(VALUE self);
 
-  /** Number of elements in given Array. @todo MRI specifies int return, problem? */
-  size_t  rb_ary_size(VALUE self);
+  /** Number of elements in given Array. */
+  long    rb_ary_size(VALUE self);
 
   /** Store object at given index. Supports negative indexes. Returns object. */
   void    rb_ary_store(VALUE self, long int index, VALUE object);
