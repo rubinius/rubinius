@@ -418,8 +418,12 @@ struct RFile {
 #define GetReadFile(ptr)  (ptr->f)
 #define GetWriteFile(ptr) (ptr->f)
 
+/* MRI Globals */
 #define ruby_verbose (*(mri_global_verbose()))
 #define ruby_debug   (*(mri_global_debug()))
+
+#define rb_rs           mri_global_rb_rs()
+#define rb_default_rs   mri_global_rb_default_rs()
 
 /* Global Class objects */
 
@@ -499,7 +503,6 @@ struct RFile {
 #define rb_eZeroDivError      (capi_get_constant(cCApiZeroDivisionError))
 #define rb_eMathDomainError   (capi_get_constant(cCApiMathDomainError))
 #define rb_eEncCompatError    (capi_get_constant(cCApiEncCompatError))
-
 
 /* Interface macros */
 
@@ -727,6 +730,12 @@ VALUE rb_uint2big(unsigned long number);
 
   /** Retrieve a Handle to a globally available object. @internal. */
   VALUE   capi_get_constant(CApiConstant type);
+
+  /** Get the current value of the record separator. @internal. */
+  VALUE   capi_get_rb_rs();
+
+  /** Get the value of the default record separator. @internal. */
+  VALUE   capi_get_rb_default_rs();
 
   /** Returns the string associated with a symbol. */
   const char *rb_id2name(ID sym);
@@ -1255,6 +1264,11 @@ VALUE rb_uint2big(unsigned long number);
 
   void    rb_eof_error();
 
+  VALUE rb_io_addstr(VALUE, VALUE);
+  VALUE rb_io_printf(int, VALUE*, VALUE);
+  VALUE rb_io_print(int, VALUE*, VALUE);
+  VALUE rb_io_puts(int, VALUE*, VALUE);
+
   /** Send #write to io passing str. */
   VALUE   rb_io_write(VALUE io, VALUE str);
 
@@ -1769,6 +1783,12 @@ VALUE rb_uint2big(unsigned long number);
   // variables can be read, but writes ignored.
   extern int* mri_global_debug();
   extern int* mri_global_verbose();
+
+  /** Get the current value of the record separator. @internal. */
+  VALUE   mri_global_rb_rs();
+
+  /** Get the value of the default record separator. @internal. */
+  VALUE   mri_global_rb_default_rs();
 
 #define HAVE_RB_THREAD_BLOCKING_REGION 1
 

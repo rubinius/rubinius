@@ -872,6 +872,7 @@ class IO
   # Formats and writes to ios, converting parameters under
   # control of the format string. See Kernel#sprintf for details.
   def printf(fmt, *args)
+    fmt = StringValue(fmt)
     write ::Rubinius::Sprinter.get(fmt).call(*args)
   end
 

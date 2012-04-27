@@ -116,6 +116,22 @@ extern "C" {
     rb_raise(rb_eEOFError, "end of file reached");
   }
 
+  VALUE rb_io_addstr(VALUE io, VALUE str) {
+    return rb_io_write(io, str);
+  }
+
+  VALUE rb_io_print(int argc, VALUE *argv, VALUE io) {
+    return rb_funcall2(io, rb_intern("print"), argc, argv);
+  }
+
+  VALUE rb_io_printf(int argc, VALUE *argv, VALUE io) {
+    return rb_funcall2(io, rb_intern("printf"), argc, argv);
+  }
+
+  VALUE rb_io_puts(int argc, VALUE *argv, VALUE io) {
+    return rb_funcall2(io, rb_intern("puts"), argc, argv);
+  }
+
   VALUE rb_io_write(VALUE io, VALUE str) {
     return rb_funcall(io, rb_intern("write"), 1, str);
   }
