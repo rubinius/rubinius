@@ -1,4 +1,5 @@
 agent.rbc
+ctype18.rbc
 ctype.rbc
 class.rbc
 exception.rbc
