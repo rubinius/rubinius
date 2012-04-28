@@ -46,11 +46,6 @@ class String
     self
   end
 
-  def hex
-    return 0 if self.chars.first == "_"
-    to_inum(16, false)
-  end
-
   def prepend(other)
     self[0,0] = other
     self

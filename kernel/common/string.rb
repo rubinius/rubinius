@@ -721,6 +721,18 @@ class String
     to_inum(-8, false)
   end
 
+  # Treats leading characters from <i>self</i> as a string of hexadecimal digits
+  # (with an optional sign and an optional <code>0x</code>) and returns the
+  # corresponding number. Zero is returned on error.
+  #
+  #    "0x0a".hex     #=> 10
+  #    "-1234".hex    #=> -4660
+  #    "0".hex        #=> 0
+  #    "wombat".hex   #=> 0
+  def hex
+    to_inum(16, false)
+  end
+
   def reverse
     dup.reverse!
   end
