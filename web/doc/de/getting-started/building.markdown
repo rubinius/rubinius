@@ -29,7 +29,7 @@ kompiliert.
 
 Der Rubinius Quellcode ist als Tarball und als Projekt auf Github
 verfügbar. Der Tarball kann [hier heruntergeladen
-werden](http://rubini.us/download/latest).
+werden](https://github.com/rubinius/rubinius/tarball/master).
 
 Um Git zu nutzen:
 

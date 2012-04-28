@@ -23,7 +23,8 @@ information). Скрипт "`configure`" автоматически провер
 ### Получение исходного кода
 
 Исходный код Rubinius доступен как tar-архив и как проект на Github.
-Tar-архив можно скачать [здесь](http://rubini.us/download/latest).
+Tar-архив можно скачать
+[здесь](https://github.com/rubinius/rubinius/tarball/master).
 
 Чтобы использовать Git:
 

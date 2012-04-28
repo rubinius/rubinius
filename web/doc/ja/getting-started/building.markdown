@@ -22,7 +22,7 @@ LLVMのバージョンの。お使いのシステムにLLVMのインストール
 ### Getting the Source
 
 RubiniusのソースコードはtarballとしてのGitHubにプロジェクトとして利用可能です。
-あなたは[ここのtarballをダウンロード](http://rubini.us/download/latest)することができます。
+あなたは[ここのtarballをダウンロード](https://github.com/rubinius/rubinius/tarball/master)することができます。
 
 To use Git:
 
