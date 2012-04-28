@@ -399,6 +399,10 @@ class File < IO
     if first == ?~
       case path[1]
       when ?/
+        unless home = ENV["HOME"]
+          raise ArgumentError, "couldn't find HOME environment variable when expanding '~'"
+        end
+
         path = ENV["HOME"] + path.byteslice(1, path.size - 1)
       when nil
         unless home = ENV["HOME"]
