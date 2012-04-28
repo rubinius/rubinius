@@ -21,7 +21,8 @@ las instrucciones que encontrará a continuación.
 ### Obtención del Código Fuente
 
 El código fuente de Rubinius esta disponible como un archivo comprimido y como un
-proyecto en Github.  Puede [descargar el archivo comprimido aquí](http://rubini.us/download/latest).
+proyecto en Github.  Puede [descargar el archivo comprimido
+aquí](https://github.com/rubinius/rubinius/tarball/master).
 
 Para usar Git:
 

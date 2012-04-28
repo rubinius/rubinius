@@ -23,7 +23,8 @@ rilevarlo per qualche motivo, passate l'opzione `--skip-system` allo script
 ### Ottenere i sorgenti
 
 I sorgenti di Rubinius sono disponibili come tarball e come progetto su
-Github. Potete [scaricare il tarball qui](http://rubini.us/download/latest).
+Github. Potete [scaricare il tarball
+qui](https://github.com/rubinius/rubinius/tarball/master).
 
 Per usare Git:
 

@@ -24,7 +24,8 @@ instructions suivantes.
 ### Récupérer les sources
 
 Le code source de Rubinius est disponible sous la forme d'une archive et d'un projet sur Github.
-Vous pouvez [télécharger l'archive ici](http://rubini.us/download/latest).
+Vous pouvez [télécharger l'archive
+ici](https://github.com/rubinius/rubinius/tarball/master).
 
 Pour utiliser Git :
 
