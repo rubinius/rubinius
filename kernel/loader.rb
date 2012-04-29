@@ -74,17 +74,14 @@ module Rubinius
     def system_load_path
       @stage = "setting up system load path"
 
-      @main_lib = nil
+      if env_lib = ENV['RBX_LIB'] and File.exists?(env_lib)
+        @main_lib = File.expand_path(env_lib)
+      else
+        # use configured library path and check its existence
+        @main_lib = Rubinius::LIB_PATH
 
-      if env_lib = ENV['RBX_LIB']
-        @main_lib = File.expand_path(env_lib) if File.exists?(env_lib)
-      end
-
-      # Use the env version if it's set.
-      @main_lib = Rubinius::LIB_PATH unless @main_lib
-
-      unless @main_lib
-        STDERR.puts <<-EOM
+        unless File.exists?(@main_lib)
+          STDERR.puts <<-EOM
 Rubinius was configured to find standard library files at:
 
   #{@main_lib}
@@ -93,7 +90,8 @@ but that directory does not exist.
 
 Set the environment variable RBX_LIB to the directory
 containing the Rubinius standard library files.
-        EOM
+          EOM
+        end
       end
 
       @main_lib_bin = File.join @main_lib, "bin"
@@ -101,13 +99,14 @@ containing the Rubinius standard library files.
 
       # This conforms more closely to MRI. It is necessary to support
       # paths that mkmf adds when compiling and installing native exts.
-      additions = []
-      additions << Rubinius::SITE_PATH
-      additions << "#{Rubinius::SITE_PATH}/#{Rubinius::CPU}-#{Rubinius::OS}"
-      additions << Rubinius::VENDOR_PATH
-      additions << "#{Rubinius::VENDOR_PATH}/#{Rubinius::CPU}-#{Rubinius::OS}"
-      additions << "#{@main_lib}/#{Rubinius::RUBY_LIB_VERSION}"
-      additions << @main_lib
+      additions = [
+        Rubinius::SITE_PATH,
+        "#{Rubinius::SITE_PATH}/#{Rubinius::CPU}-#{Rubinius::OS}",
+        Rubinius::VENDOR_PATH,
+        "#{Rubinius::VENDOR_PATH}/#{Rubinius::CPU}-#{Rubinius::OS}",
+        "#{@main_lib}/#{Rubinius::RUBY_LIB_VERSION}",
+        @main_lib,
+      ]
       additions.uniq!
 
       $LOAD_PATH.unshift(*additions)
@@ -160,7 +159,7 @@ containing the Rubinius standard library files.
       end
     end
 
-    # Checks if a subcammand with basename +base+ exists. Returns the full
+    # Checks if a subcommand with basename +base+ exists. Returns the full
     # path to the subcommand if it does; otherwise, returns nil.
     def find_subcommand(base)
       command = File.join @main_lib_bin, "#{base}.rb"
