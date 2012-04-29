@@ -32,4 +32,56 @@ class Thread
     sleep
     nil
   end
+
+  # Called by Thread#fork in the new thread
+  #
+  def __run__()
+    begin
+      begin
+        @lock.send nil
+        @result = @block.call(*@args)
+      ensure
+        @lock.receive
+        unlock_locks
+        @joins.each { |join| join.send self }
+      end
+    rescue Die
+      @killed = true
+      @exception = nil
+    rescue Exception => e
+      # I don't really get this, but this is MRI's behavior. If we're dying
+      # by request, ignore any raised exception.
+      @exception = e # unless @dying
+    ensure
+      @alive = false
+      @lock.send nil
+    end
+
+    if @exception
+      if abort_on_exception or Thread.abort_on_exception
+        Thread.main.raise @exception
+      elsif $DEBUG
+        STDERR.puts "Exception in thread: #{@exception.message} (#{@exception.class})"
+      end
+    end
+  end
+
+  def setup(prime_lock)
+    @group = nil
+    @alive = true
+    @result = false
+    @exception = nil
+    @critical = false
+    @dying = false
+    @lock = Rubinius::Channel.new
+    @lock.send nil if prime_lock
+    @joins = []
+    @killed = false
+  end
+
+  def value
+    join_inner do
+      @killed ? nil : @result
+    end
+  end
 end
