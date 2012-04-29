@@ -10,6 +10,10 @@ module Rubinius
       get
     end
 
+    def marshal_load(val)
+      set(val)
+    end
+
     def get
       Rubinius.primitive :atomic_get
       raise PrimitiveFailure, "get failed"
