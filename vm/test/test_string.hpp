@@ -413,7 +413,11 @@ public:
     str = String::create(state, "_12");
     val = str->to_i(state, Fixnum::from(10), cFalse);
     TS_ASSERT(kind_of<Fixnum>(val));
-    TS_ASSERT_EQUALS(as<Fixnum>(val)->to_native(), 12);
+    if(LANGUAGE_18_ENABLED(state)) {
+      TS_ASSERT_EQUALS(as<Fixnum>(val)->to_native(), 12);
+    } else {
+      TS_ASSERT_EQUALS(as<Fixnum>(val)->to_native(), 0);
+    }
 
     str = String::create(state, "-45q");
     val = str->to_i(state, Fixnum::from(10), cFalse);
