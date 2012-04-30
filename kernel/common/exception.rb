@@ -50,8 +50,14 @@ class Exception
   end
 
   def render(header="An exception occurred", io=STDERR, color=true)
+    message_lines = message.to_s.split("\n")
+
     io.puts header
-    io.puts "    #{message} (#{self.class})"
+    io.puts "    #{message_lines.shift} (#{self.class})"
+
+    message_lines.each do |line|
+      io.puts "    #{line}"
+    end
 
     if @custom_backtrace
       io.puts "\nUser defined backtrace:"
