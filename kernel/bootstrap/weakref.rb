@@ -11,17 +11,17 @@ class WeakRef
 
   def __setobj__(obj)
     Rubinius.primitive :weakref_set_object
-    raise PrimitiveFailure, "WeakRef#__setobj__ failed"
+    ::Kernel.raise PrimitiveFailure, "WeakRef#__setobj__ failed"
   end
 
   def __object__
     Rubinius.primitive :weakref_object
-    raise PrimitiveFailure, "WeakRef#__object__ failed"
+    ::Kernel.raise PrimitiveFailure, "WeakRef#__object__ failed"
   end
 
   def __getobj__
     obj = __object__()
-    raise RefError, "Object has been collected as garbage" unless obj
+    ::Kernel.raise RefError, "Object has been collected as garbage" unless obj
     return obj
   end
 
