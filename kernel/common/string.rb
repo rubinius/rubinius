@@ -955,7 +955,7 @@ class String
   # This method is specifically part of 1.9 but we enable it in 1.8 also
   # because we need it internally.
   def setbyte(index, byte)
-    Rubinius.check_frozen
+    self.modify!
 
     index = Rubinius::Type.coerce_to index, Fixnum, :to_int
     byte = Rubinius::Type.coerce_to byte, Fixnum, :to_int
