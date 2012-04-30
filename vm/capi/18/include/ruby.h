@@ -1184,7 +1184,7 @@ VALUE rb_uint2big(unsigned long number);
   void    rb_thread_wait_for(struct timeval time);
 
 /* This is a HACK. */
-#define rb_io_taint_check(io) io
+#define rb_io_taint_check(io)   rb_check_frozen(io)
 
   /** Mark ruby object ptr. */
   void    rb_gc_mark(VALUE ptr);
