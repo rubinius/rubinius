@@ -1531,7 +1531,7 @@ VALUE rb_uint2big(unsigned long number);
    *
    * @note This is NOT an MRI C-API function.
    */
-  size_t  rb_str_len(VALUE self);
+  long    rb_str_len(VALUE self);
 
   void    rb_str_set_len(VALUE self, size_t len);
 
