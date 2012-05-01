@@ -291,6 +291,21 @@ describe "Predefined global $_" do
     $_.should == match
   end
 
+  it "is Thread-local" do
+    $_ = nil
+    running = false
+
+    thr = Thread.new do
+      $_ = "last line"
+      running = true
+    end
+
+    Thread.pass until running
+    $_.should be_nil
+
+    thr.join
+  end
+
   it "can be assigned any value" do
     lambda { $_ = nil }.should_not raise_error
     lambda { $_ = "foo" }.should_not raise_error
