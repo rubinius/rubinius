@@ -728,43 +728,12 @@ class String
     return self
   end
 
-  # Converts <i>pattern</i> to a <code>Regexp</code> (if it isn't already one),
-  # then invokes its <code>match</code> method on <i>self</i>. If the second
-  # parameter is present, it specifies the position in the <i>self</i> to
-  # begin the search.
-  #
-  #   'hello'.match('(.)\1')      #=> #<MatchData:0x401b3d30>
-  #   'hello'.match('(.)\1')[0]   #=> "ll"
-  #   'hello'.match(/(.)\1/)[0]   #=> "ll"
-  #   'hello'.match('xx')         #=> nil
   def match(pattern, pos=0)
     match_data = get_pattern(pattern).search_region(self, pos, @num_bytes, true)
     Regexp.last_match = match_data
     return match_data
   end
 
-  # call-seq:
-  #   str[fixnum] = fixnum
-  #   str[fixnum] = new_str
-  #   str[fixnum, fixnum] = new_str
-  #   str[range] = aString
-  #   str[regexp] = new_str
-  #   str[regexp, fixnum] = new_str
-  #   str[other_str] = new_str
-  #
-  # Element Assignment --- Replaces some or all of the content of <i>self</i>. The
-  # portion of the string affected is determined using the same criteria as
-  # <code>String#[]</code>. If the replacement string is not the same length as
-  # the text it is replacing, the string will be adjusted accordingly. If the
-  # regular expression or string is used as the index doesn't match a position
-  # in the string, <code>IndexError</code> is raised. If the regular expression
-  # form is used, the optional second <code>Fixnum</code> allows you to specify
-  # which portion of the match to replace (effectively using the
-  # <code>MatchData</code> indexing rules. The forms that take a
-  # <code>Fixnum</code> will raise an <code>IndexError</code> if the value is
-  # out of range; the <code>Range</code> form will raise a
-  # <code>RangeError</code>, and the <code>Regexp</code> and <code>String</code>
-  # forms will silently ignore the assignment.
   def []=(index, replacement, three=undefined)
     unless three.equal?(undefined)
       if index.kind_of? Regexp
