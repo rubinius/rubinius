@@ -236,6 +236,10 @@ describe "String#split with Regexp" do
     "hello".split(//, 2).should == ["h", "ello"]
 
     "hi mom".split(/\s*/).should == ["h", "i", "m", "o", "m"]
+
+    "AABCCBAA".split(/(?=B)/).should == ["AA", "BCC", "BAA"]
+    "AABCCBAA".split(/(?=B)/, -1).should == ["AA", "BCC", "BAA"]
+    "AABCCBAA".split(/(?=B)/, 2).should == ["AA", "BCCBAA"]
   end
 
   it "respects $KCODE when splitting between characters" do
