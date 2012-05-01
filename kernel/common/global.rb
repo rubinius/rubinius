@@ -24,7 +24,6 @@ module Rubinius
       @internal[:$"] = loaded_features
       @internal[:$,] = nil              # Output field separator
       @internal[:$.] = 0
-      @internal[:$_] = nil
       @internal[:$?] = nil              # Process status. nil until set
       @internal[:$=] = false            # ignore case, whatever that is
       @internal[:$CONSOLE]         = STDOUT
@@ -68,6 +67,7 @@ module Rubinius
         if hook[2]
           @internal[key] = val
         end
+        val
       else
         @internal[key] = data
       end
