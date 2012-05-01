@@ -255,18 +255,6 @@ class Regexp
     return nil
   end
 
-  # Performs normal match and returns MatchData object from $~ or nil.
-  def match(str)
-    unless str
-      Regexp.last_match = nil
-      return nil
-    end
-
-    str = StringValue(str)
-
-    Regexp.last_match = search_region(str, 0, str.bytesize, true)
-  end
-
   def match_from(str, count)
     return nil unless str
     search_region(str, count, str.bytesize, true)

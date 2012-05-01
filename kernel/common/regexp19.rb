@@ -5,6 +5,23 @@ class Regexp
     Rubinius::Type.try_convert obj, Regexp, :to_regexp
   end
 
+  def match(str, pos=0)
+    unless str
+      Regexp.last_match = nil
+      return nil
+    end
+
+    str = StringValue(str)
+    result = search_region(str, pos, str.bytesize, true)
+    Regexp.last_match = result
+
+    if result && block_given?
+      yield result
+    else
+      result
+    end
+  end
+
   def ===(other)
     if other.kind_of? Symbol
       other = other.to_s
