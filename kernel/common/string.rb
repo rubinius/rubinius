@@ -1105,14 +1105,15 @@ class String
     end
 
     last_match = nil
+    last_match_end = 0
 
     while match = pattern.match_from(self, start)
       break if limited && limit - ret.size <= 1
 
       collapsed = match.collapsing?
 
-      unless collapsed && (match.begin(0) == 0)
-        ret << match.pre_match_from(last_match ? last_match.end(0) : 0)
+      unless collapsed && (match.begin(0) == last_match_end)
+        ret << match.pre_match_from(last_match_end)
         ret.push(*match.captures.compact)
       end
 
@@ -1125,6 +1126,7 @@ class String
       end
 
       last_match = match
+      last_match_end = last_match.end(0)
     end
 
     if last_match
