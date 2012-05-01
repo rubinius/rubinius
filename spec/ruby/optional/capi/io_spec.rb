@@ -233,6 +233,8 @@ describe "C-API IO function" do
 
       @o.rb_io_wait_readable(@r_io, true).should be_true
       @o.instance_variable_get(:@read_data).should == "rb_io_wait_re"
+
+      thr.join
     end
   end
 
@@ -248,6 +250,8 @@ describe "C-API IO function" do
       Thread.pass until start
 
       @o.rb_thread_wait_fd(@r_io).should be_nil
+
+      thr.join
     end
   end
 
