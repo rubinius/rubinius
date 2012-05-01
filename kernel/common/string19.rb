@@ -731,7 +731,11 @@ class String
   def match(pattern, pos=0)
     match_data = Rubinius::Type.coerce_to_regexp(pattern).search_region(self, pos, @num_bytes, true)
     Regexp.last_match = match_data
-    return match_data
+    if match_data && block_given?
+      yield match_data
+    else
+      match_data
+    end
   end
 
   def []=(index, replacement, three=undefined)
