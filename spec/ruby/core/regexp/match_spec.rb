@@ -25,6 +25,29 @@ describe "Regexp#match" do
     /(.)(.)(.)/.match("abc").should be_kind_of(MatchData)
   end
 
+  ruby_version_is "1.9" do
+    it "matches the input at a given position" do
+      /./.match("abc", 1).begin(0).should == 1
+    end
+
+    describe "when passed a block" do
+      it "yields the MatchData" do
+        /./.match("abc") {|m| ScratchPad.record m }
+        ScratchPad.recorded.should be_kind_of(MatchData)
+      end
+
+      it "returns the block result" do
+        /./.match("abc") { :result }.should == :result
+      end
+
+      it "does not yield if there is no match" do
+        ScratchPad.record []
+        /a/.match("b") {|m| ScratchPad << m }
+        ScratchPad.recorded.should == []
+      end
+    end
+  end
+
   it "resets $~ if passed nil" do
     # set $~
     /./.match("a")
