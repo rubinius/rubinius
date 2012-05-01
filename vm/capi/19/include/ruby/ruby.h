@@ -1790,6 +1790,8 @@ VALUE rb_uint2big(unsigned long number);
   /** Get the value of the default record separator. @internal. */
   VALUE   mri_global_rb_default_rs();
 
+  void    rb_lastline_set(VALUE obj);
+
 #define HAVE_RB_THREAD_BLOCKING_REGION 1
 
   /* 1.9 provides these, so we will too: */

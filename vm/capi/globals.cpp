@@ -41,6 +41,10 @@ extern "C" {
     return rs;
   }
 
+  void rb_lastline_set(VALUE obj) {
+    rb_thread_local_aset(rb_thread_current(), rb_intern("$_"), obj);
+  }
+
   void rb_free_global(VALUE global_handle) {
     capi::Handle* handle = capi::Handle::from(global_handle);
     if(REFERENCE_P(handle) && handle->object()->reference_p()) {
