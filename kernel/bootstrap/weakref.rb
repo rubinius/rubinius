@@ -21,12 +21,15 @@ class WeakRef
 
   def __getobj__
     obj = __object__()
-    ::Kernel.raise RefError, "Object has been collected as garbage" unless obj
+    unless weakref_alive?
+      ::Kernel.raise RefError, "Object has been collected as garbage"
+    end
     return obj
   end
 
   def weakref_alive?
-    !!__object__
+    Rubinius.primitive :weakref_alive_p
+    ::Kernel.raise PrimitiveFailure, "WeakRef#weakref_alive? failed"
   end
 
   def method_missing(method, *args, &block)
