@@ -18,7 +18,7 @@ ruby_version_is "1.8.8" do
       str = "a"
       str.setbyte(0,98)
       str.should == 'b'
-      
+
       # copy-on-write case
       str1, str2 = "fooXbar".split("X")
       str2.setbyte(0, 50)
@@ -64,6 +64,16 @@ ruby_version_is "1.8.8" do
       chr.bytesize.should == 3
       chr.setbyte(2, 150)
       chr.should == "\xe0\xa6\x96"
+    end
+
+    it "does not modify the original string when using String.new" do
+      str1 = "hedgehog"
+      str2 = String.new(str1)
+      str2.setbyte(0, 108)
+      str2.should == "ledgehog"
+      str2.should_not == "hedgehog"
+      str1.should == "hedgehog"
+      str1.should_not == "ledgehog"
     end
 
     it "raises a RuntimeError if self is frozen" do

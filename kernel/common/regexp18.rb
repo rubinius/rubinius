@@ -1,6 +1,17 @@
 # -*- encoding: us-ascii -*-
 
 class Regexp
+  def match(str)
+    unless str
+      Regexp.last_match = nil
+      return nil
+    end
+
+    str = StringValue(str)
+
+    Regexp.last_match = search_region(str, 0, str.bytesize, true)
+  end
+
   def ===(other)
     unless other.kind_of?(String)
       other = Rubinius::Type.check_convert_type other, String, :to_str

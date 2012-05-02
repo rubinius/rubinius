@@ -1,14 +1,6 @@
 # -*- encoding: us-ascii -*-
 
 class Struct
-
-  ##
-  # call-seq:
-  #   struct.to_s      => string
-  #   struct.inspect   => string
-  #
-  # Describe the contents of this struct in a string.
-
   def to_s
     return "[...]" if Thread.guarding? self
 

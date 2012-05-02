@@ -200,6 +200,10 @@ describe "Marshal.dump" do
       it "dumps a String in another encoding" do
         Marshal.dump("".encode("utf-16le")).should == "\x04\bI\"\x00\x06:\rencoding\"\rUTF-16LE"
       end
+
+      it "dumps multiple strings using symlinks for the :E (encoding) symbol" do
+        Marshal.dump(["".encode("us-ascii"), "".encode("utf-8")]).should == "\x04\b[\aI\"\x00\x06:\x06EFI\"\x00\x06;\x00T"
+      end
     end
   end
 

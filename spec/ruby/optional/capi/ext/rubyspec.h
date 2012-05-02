@@ -237,13 +237,17 @@
 #define HAVE_RFLOAT_VALUE                  1
 
 /* Globals */
+#define HAVE_RB_DEFAULT_RS                 1
 #define HAVE_RB_DEFINE_HOOKED_VARIABLE     1
 #define HAVE_RB_DEFINE_READONLY_VARIABLE   1
 #define HAVE_RB_DEFINE_VARIABLE            1
 #define HAVE_RB_F_GLOBAL_VARIABLES         1
 #define HAVE_RB_GV_GET                     1
 #define HAVE_RB_GV_SET                     1
+#define HAVE_RB_RS                         1
 #define HAVE_RB_SET_KCODE                  1
+
+#define HAVE_RB_LASTLINE_SET               1
 
 /* Hash */
 #define HAVE_RB_HASH                       1
@@ -258,10 +262,14 @@
 
 /* IO */
 #define HAVE_GET_OPEN_FILE                 1
+#define HAVE_RB_IO_ADDSTR                  1
 #define HAVE_RB_IO_CHECK_CLOSED            1
 #define HAVE_RB_IO_CHECK_READABLE          1
 #define HAVE_RB_IO_CHECK_WRITABLE          1
 #define HAVE_RB_IO_CLOSE                   1
+#define HAVE_RB_IO_PRINT                   1
+#define HAVE_RB_IO_PRINTF                  1
+#define HAVE_RB_IO_PUTS                    1
 #define HAVE_RB_IO_WAIT_READABLE           1
 #define HAVE_RB_IO_WAIT_WRITABLE           1
 #define HAVE_RB_IO_WRITE                   1

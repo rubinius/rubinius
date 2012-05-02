@@ -5,13 +5,99 @@ load_extension('io')
 describe "C-API IO function" do
   before :each do
     @o = CApiIOSpecs.new
+
+    @name = tmp("c_api_rb_io_specs")
+    touch @name
+
+    @io = new_io @name, fmode("w:utf-8")
+    @io.sync = true
+  end
+
+  after :each do
+    @io.close unless @io.closed?
+    rm_r @name
+  end
+
+  describe "rb_io_addstr" do
+    it "calls #to_s to convert the object to a String" do
+      obj = mock("rb_io_addstr string")
+      obj.should_receive(:to_s).and_return("rb_io_addstr")
+
+      @o.rb_io_addstr(@io, obj)
+      @name.should have_data("rb_io_addstr")
+    end
+
+    it "writes the String to the IO" do
+      @o.rb_io_addstr(@io, "rb_io_addstr")
+      @name.should have_data("rb_io_addstr")
+    end
+  end
+
+  describe "rb_io_printf" do
+    it "calls #to_str to convert the format object to a String" do
+      obj = mock("rb_io_printf format")
+      obj.should_receive(:to_str).and_return("%s")
+
+      @o.rb_io_printf(@io, [obj, "rb_io_printf"])
+      @name.should have_data("rb_io_printf")
+    end
+
+    it "calls #to_s to convert the object to a String" do
+      obj = mock("rb_io_printf string")
+      obj.should_receive(:to_s).and_return("rb_io_printf")
+
+      @o.rb_io_printf(@io, ["%s", obj])
+      @name.should have_data("rb_io_printf")
+    end
+
+    it "writes the Strings to the IO" do
+      @o.rb_io_printf(@io, ["%s_%s_%s", "rb", "io", "printf"])
+      @name.should have_data("rb_io_printf")
+    end
+  end
+
+  describe "rb_io_print" do
+    it "calls #to_s to convert the object to a String" do
+      obj = mock("rb_io_print string")
+      obj.should_receive(:to_s).and_return("rb_io_print")
+
+      @o.rb_io_print(@io, [obj])
+      @name.should have_data("rb_io_print")
+    end
+
+    it "writes the Strings to the IO with no separator" do
+      @o.rb_io_print(@io, ["rb_", "io_", "print"])
+      @name.should have_data("rb_io_print")
+    end
+  end
+
+  describe "rb_io_puts" do
+    it "calls #to_s to convert the object to a String" do
+      obj = mock("rb_io_puts string")
+      obj.should_receive(:to_s).and_return("rb_io_puts")
+
+      @o.rb_io_puts(@io, [obj])
+      @name.should have_data("rb_io_puts")
+    end
+
+    it "writes the Strings to the IO separated by newlines" do
+      @o.rb_io_puts(@io, ["rb", "io", "write"])
+      @name.should have_data("rb\nio\nwrite")
+    end
   end
 
   describe "rb_io_write" do
-    it "sends #write to the object passing the object to be written" do
-      io = mock("IO")
-      io.should_receive(:write).with("test").and_return(:written)
-      @o.rb_io_write(io, "test").should == :written
+    it "calls #to_s to convert the object to a String" do
+      obj = mock("rb_io_write string")
+      obj.should_receive(:to_s).and_return("rb_io_write")
+
+      @o.rb_io_write(@io, obj)
+      @name.should have_data("rb_io_write")
+    end
+
+    it "writes the String to the IO" do
+      @o.rb_io_write(@io, "rb_io_write")
+      @name.should have_data("rb_io_write")
     end
   end
 end
@@ -147,6 +233,8 @@ describe "C-API IO function" do
 
       @o.rb_io_wait_readable(@r_io, true).should be_true
       @o.instance_variable_get(:@read_data).should == "rb_io_wait_re"
+
+      thr.join
     end
   end
 
@@ -162,6 +250,8 @@ describe "C-API IO function" do
       Thread.pass until start
 
       @o.rb_thread_wait_fd(@r_io).should be_nil
+
+      thr.join
     end
   end
 

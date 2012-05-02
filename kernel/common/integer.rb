@@ -59,22 +59,18 @@ class Integer < Numeric
     true
   end
 
-  # Returns true if int is an even number.
   def even?
     self & 1 == 0
   end
 
-  # Returns true if int is an odd number.
   def odd?
     self & 1 == 1
   end
 
-  # Returns the int itself.
   def ord
     self
   end
 
-  # Returns the Integer equal to int - 1.
   def pred
     self - 1
   end

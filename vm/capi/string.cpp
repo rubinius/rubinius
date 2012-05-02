@@ -428,7 +428,7 @@ extern "C" {
     return rstr->ptr;
   }
 
-  size_t rb_str_len(VALUE self) {
+  long rb_str_len(VALUE self) {
     NativeMethodEnvironment* env = NativeMethodEnvironment::get();
 
     String* string = capi_get_string(env, self);

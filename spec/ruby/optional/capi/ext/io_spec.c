@@ -44,11 +44,60 @@ VALUE io_spec_GetOpenFile_fd(VALUE self, VALUE io) {
 }
 #endif
 
+#ifdef HAVE_RB_IO_ADDSTR
+VALUE io_spec_rb_io_addstr(VALUE self, VALUE io, VALUE str) {
+  return rb_io_addstr(io, str);
+}
+#endif
+
+#ifdef HAVE_RB_IO_PRINTF
+VALUE io_spec_rb_io_printf(VALUE self, VALUE io, VALUE ary) {
+  long argc = RARRAY_LEN(ary);
+  VALUE *argv = alloca(sizeof(VALUE) * argc);
+  int i;
+
+  for (i = 0; i < argc; i++) {
+    argv[i] = rb_ary_entry(ary, i);
+  }
+
+  return rb_io_printf((int)argc, argv, io);
+}
+#endif
+
+#ifdef HAVE_RB_IO_PRINT
+VALUE io_spec_rb_io_print(VALUE self, VALUE io, VALUE ary) {
+  long argc = RARRAY_LEN(ary);
+  VALUE *argv = alloca(sizeof(VALUE) * argc);
+  int i;
+
+  for (i = 0; i < argc; i++) {
+    argv[i] = rb_ary_entry(ary, i);
+  }
+
+  return rb_io_print((int)argc, argv, io);
+}
+#endif
+
+#ifdef HAVE_RB_IO_PUTS
+VALUE io_spec_rb_io_puts(VALUE self, VALUE io, VALUE ary) {
+  long argc = RARRAY_LEN(ary);
+  VALUE *argv = alloca(sizeof(VALUE) * argc);
+  int i;
+
+  for (i = 0; i < argc; i++) {
+    argv[i] = rb_ary_entry(ary, i);
+  }
+
+  return rb_io_puts((int)argc, argv, io);
+}
+#endif
+
 #ifdef HAVE_RB_IO_WRITE
 VALUE io_spec_rb_io_write(VALUE self, VALUE io, VALUE str) {
   return rb_io_write(io, str);
 }
 #endif
+
 
 #ifdef HAVE_RB_IO_CHECK_READABLE
 VALUE io_spec_rb_io_check_readable(VALUE self, VALUE io) {
@@ -149,6 +198,22 @@ void Init_io_spec() {
 
 #ifdef HAVE_GET_OPEN_FILE
   rb_define_method(cls, "GetOpenFile_fd", io_spec_GetOpenFile_fd, 1);
+#endif
+
+#ifdef HAVE_RB_IO_ADDSTR
+  rb_define_method(cls, "rb_io_addstr", io_spec_rb_io_addstr, 2);
+#endif
+
+#ifdef HAVE_RB_IO_PRINTF
+  rb_define_method(cls, "rb_io_printf", io_spec_rb_io_printf, 2);
+#endif
+
+#ifdef HAVE_RB_IO_PRINT
+  rb_define_method(cls, "rb_io_print", io_spec_rb_io_print, 2);
+#endif
+
+#ifdef HAVE_RB_IO_PUTS
+  rb_define_method(cls, "rb_io_puts", io_spec_rb_io_puts, 2);
 #endif
 
 #ifdef HAVE_RB_IO_WRITE

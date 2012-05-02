@@ -38,6 +38,9 @@ namespace rubinius {
           // When the IO is finalized, the FILE* is closed.
           delete as_.rio;
           break;
+        case cRFile:
+          delete as_.rfile;
+          break;
         case cRData:
           delete as_.rdata;
           break;

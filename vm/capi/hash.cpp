@@ -70,7 +70,7 @@ extern "C" {
     }
 
     if (rb_ary_size(to_delete) > 0) {
-      for (size_t i = 0; i < rb_ary_size(to_delete); i++) {
+      for (long i = 0; i < rb_ary_size(to_delete); i++) {
         capi_fast_call(self, rb_intern("delete"), 1, rb_ary_entry(to_delete, i));
       }
     }

@@ -26,7 +26,8 @@ systemowa LLVM podczas kompilacji, Rubinius użyje swojej wersji LLVM.
 ### Pobieranie kodu źródłowego
 
 Kod źródłowy Rubiniusa dostępny jest jako archiwum tar oraz jako
-projekt na Github'ie. Archiwum tar możesz [pobrać tutaj](http://rubini.us/download/latest).
+projekt na Github'ie. Archiwum tar możesz [pobrać
+tutaj](https://github.com/rubinius/rubinius/tarball/master).
 
 Pobieranie źródeł przy pomocy Git'a:
 

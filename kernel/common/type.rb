@@ -112,6 +112,20 @@ module Rubinius
       name
     end
 
+    def self.coerce_to_regexp(pattern, quote=false)
+      case pattern
+      when Regexp
+        return pattern
+      when String
+        # nothing
+      else
+        pattern = StringValue(pattern)
+      end
+
+      pattern = Regexp.quote(pattern) if quote
+      Regexp.new(pattern)
+    end
+
     # Taint host if source is tainted.
     def self.infect(host, source)
       Rubinius.primitive :object_infect

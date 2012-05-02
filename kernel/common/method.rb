@@ -184,6 +184,10 @@ class UnboundMethod
       @executable == other.executable
   end
 
+  def hash
+    @defined_in.hash ^ @executable.hash
+  end
+
   ##
   # See Method#arity.
 

@@ -108,6 +108,10 @@ module Kernel
     io
   end
 
+  get = proc { |key| Thread.current[:$_] }
+  set = proc { |key, val| Thread.current[:$_] = val }
+  Rubinius::Globals.set_hook(:$_, get, set)
+
   Rubinius::Globals.add_alias :$stdout, :$>
   Rubinius::Globals.set_filter(:$stdout, write_filter)
   Rubinius::Globals.set_filter(:$stderr, write_filter)

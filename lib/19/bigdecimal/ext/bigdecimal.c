@@ -65,9 +65,6 @@ static ID id_eq;
 #define SAVE(p)  // PUSH(p->obj);
 #define GUARD_OBJ(p,y) {p=y;SAVE(p);}
 
-// Rubinius does not scan the stack for raw C pointers.
-#define RB_GC_GUARD(p)  p
-
 #define BASE_FIG  RMPD_COMPONENT_FIGURES
 #define BASE      RMPD_BASE
 

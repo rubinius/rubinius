@@ -325,7 +325,7 @@ extern "C" {
     return env->get_handle(obj);
   }
 
-  size_t rb_ary_size(VALUE self) {
+  long rb_ary_size(VALUE self) {
     NativeMethodEnvironment* env = NativeMethodEnvironment::get();
 
     return capi_get_array(env, self)->size();
@@ -380,7 +380,7 @@ extern "C" {
 
     // Minor optimization.
     if(ifunc == rb_each && kind_of<Array>(env->get_object(ary))) {
-      for(size_t i = 0; i < rb_ary_size(ary); i++) {
+      for(long i = 0; i < rb_ary_size(ary); i++) {
         (*cb)(rb_ary_entry(ary, i), cb_data, Qnil);
       }
 

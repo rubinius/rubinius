@@ -387,17 +387,26 @@ struct RFloat {
 #define RHASH(obj)      ({ C_API_RHASH_is_not_supported_in_Rubinius })
 #define RHASH_TBL(obj)  ({ C_API_RHASH_TBL_is_not_supported_in_Rubinius })
 
-struct RIO {
+typedef struct rb_io_t {
   VALUE handle;
   int fd;
   FILE* f;
+  FILE* f2;
+  FILE* stdio_file;
+  void (*finalize)(struct rb_io_t*,int);
+} rb_io_t;
+
+
+#define RIO       rb_io_t
+
+#define OpenFile  rb_io_t
+
+struct RFile {
+  VALUE handle;
+  rb_io_t *fptr;
 };
 
-#define RIO(d)          capi_rio_struct(d)
-
-typedef struct RIO rb_io_t;
-
-#define OpenFile rb_io_t
+#define RFILE(obj)      capi_rfile_struct(obj)
 
 #define HAVE_RB_IO_T 1
 
@@ -409,8 +418,12 @@ typedef struct RIO rb_io_t;
 #define GetReadFile(ptr)  (ptr->f)
 #define GetWriteFile(ptr) (ptr->f)
 
+/* MRI Globals */
 #define ruby_verbose (*(mri_global_verbose()))
 #define ruby_debug   (*(mri_global_debug()))
+
+#define rb_rs           mri_global_rb_rs()
+#define rb_default_rs   mri_global_rb_default_rs()
 
 /* Global Class objects */
 
@@ -490,7 +503,6 @@ typedef struct RIO rb_io_t;
 #define rb_eZeroDivError      (capi_get_constant(cCApiZeroDivisionError))
 #define rb_eMathDomainError   (capi_get_constant(cCApiMathDomainError))
 #define rb_eEncCompatError    (capi_get_constant(cCApiEncCompatError))
-
 
 /* Interface macros */
 
@@ -719,6 +731,12 @@ VALUE rb_uint2big(unsigned long number);
   /** Retrieve a Handle to a globally available object. @internal. */
   VALUE   capi_get_constant(CApiConstant type);
 
+  /** Get the current value of the record separator. @internal. */
+  VALUE   capi_get_rb_rs();
+
+  /** Get the value of the default record separator. @internal. */
+  VALUE   capi_get_rb_default_rs();
+
   /** Returns the string associated with a symbol. */
   const char *rb_id2name(ID sym);
 
@@ -750,6 +768,7 @@ VALUE rb_uint2big(unsigned long number);
   struct RString* capi_rstring_struct(VALUE string, int cache_level);
   struct RFloat* capi_rfloat_struct(VALUE data);
   struct RIO* capi_rio_struct(VALUE handle);
+  struct RFile* capi_rfile_struct(VALUE file);
 
 /* Real API */
 
@@ -853,8 +872,8 @@ VALUE rb_uint2big(unsigned long number);
   /** Remove and return first element of Array or nil. Changes other elements' indexes. */
   VALUE   rb_ary_shift(VALUE self);
 
-  /** Number of elements in given Array. @todo MRI specifies int return, problem? */
-  size_t  rb_ary_size(VALUE self);
+  /** Number of elements in given Array. */
+  long    rb_ary_size(VALUE self);
 
   /** Store object at given index. Supports negative indexes. Returns object. */
   void    rb_ary_store(VALUE self, long int index, VALUE object);
@@ -1245,6 +1264,11 @@ VALUE rb_uint2big(unsigned long number);
 
   void    rb_eof_error();
 
+  VALUE rb_io_addstr(VALUE, VALUE);
+  VALUE rb_io_printf(int, VALUE*, VALUE);
+  VALUE rb_io_print(int, VALUE*, VALUE);
+  VALUE rb_io_puts(int, VALUE*, VALUE);
+
   /** Send #write to io passing str. */
   VALUE   rb_io_write(VALUE io, VALUE str);
 
@@ -1622,7 +1646,7 @@ VALUE rb_uint2big(unsigned long number);
    *
    * @note This is NOT an MRI C-API function.
    */
-  size_t  rb_str_len(VALUE self);
+  long    rb_str_len(VALUE self);
 
   void    rb_str_set_len(VALUE self, size_t len);
 
@@ -1759,6 +1783,14 @@ VALUE rb_uint2big(unsigned long number);
   // variables can be read, but writes ignored.
   extern int* mri_global_debug();
   extern int* mri_global_verbose();
+
+  /** Get the current value of the record separator. @internal. */
+  VALUE   mri_global_rb_rs();
+
+  /** Get the value of the default record separator. @internal. */
+  VALUE   mri_global_rb_default_rs();
+
+  void    rb_lastline_set(VALUE obj);
 
 #define HAVE_RB_THREAD_BLOCKING_REGION 1
 

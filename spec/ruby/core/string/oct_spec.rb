@@ -89,4 +89,20 @@ describe "String#oct" do
     "+-5".oct.should == 0
     "wombat".oct.should == 0
   end
+
+  ruby_version_is "" ... "1.9" do
+    it "accepts strings with leading underscores" do
+      "_7".oct.should == 7
+      "_07".oct.should == 7
+      " _7".oct.should == 7
+    end
+  end
+
+  ruby_version_is "1.9" do
+    it "returns 0 for strings with leading underscores" do
+      "_7".oct.should == 0
+      "_07".oct.should == 0
+      " _7".oct.should == 0
+    end
+  end
 end

@@ -77,6 +77,9 @@ namespace rubinius {
         rf->handle = as_value();
         rf->fd = fd;
         rf->f = f;
+        rf->f2 = NULL;
+        rf->stdio_file = NULL;
+        rf->finalize = NULL;
 
         // Disable all buffering so that it doesn't get out of sync with
         // the normal IO buffer.
@@ -94,6 +97,8 @@ namespace rubinius {
 
       RIO* rio = as_.rio;
 
+      if(rio->finalize) rio->finalize(rio, true);
+
       bool ok = (fclose(rio->f) == 0);
       rio->f = NULL;
 
@@ -109,6 +114,22 @@ extern "C" {
 
   void rb_eof_error() {
     rb_raise(rb_eEOFError, "end of file reached");
+  }
+
+  VALUE rb_io_addstr(VALUE io, VALUE str) {
+    return rb_io_write(io, str);
+  }
+
+  VALUE rb_io_print(int argc, VALUE *argv, VALUE io) {
+    return rb_funcall2(io, rb_intern("print"), argc, argv);
+  }
+
+  VALUE rb_io_printf(int argc, VALUE *argv, VALUE io) {
+    return rb_funcall2(io, rb_intern("printf"), argc, argv);
+  }
+
+  VALUE rb_io_puts(int argc, VALUE *argv, VALUE io) {
+    return rb_funcall2(io, rb_intern("puts"), argc, argv);
   }
 
   VALUE rb_io_write(VALUE io, VALUE str) {

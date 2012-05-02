@@ -35,15 +35,6 @@ module Enumerable
       end
     end
 
-    # Returns the next object in the enumerator
-    # and move the internal position forward.
-    # When the position reached at the end,
-    # internal position is rewound then StopIteration is raised.
-    #
-    # Note that enumeration sequence by next method
-    # does not affect other non-external enumeration methods,
-    # unless underlying iteration methods itself has side-effect, e.g. IO#each_line.
-    #
     def next
       return @lookahead.shift unless @lookahead.empty?
 
@@ -80,10 +71,6 @@ module Enumerable
       Array(self.peek)
     end
 
-    # Rewinds the enumeration sequence by the next method.
-    #
-    # If the enclosed object responds to a "rewind" method, it is called.
-    #
     def rewind
       @object.rewind if @object.respond_to? :rewind
       @generator.rewind if @generator
@@ -91,7 +78,6 @@ module Enumerable
       self
     end
 
-    # A supporting class for Enumerator that allows for easy proxying to a Generator's yield.
     class Yielder
       def initialize(&block)
         raise LocalJumpError, "Expected a block to be given" unless block_given?
@@ -99,12 +85,10 @@ module Enumerable
         @proc = block
       end
 
-      # Yield multiple values.
       def yield(*args)
         @proc.call *args
       end
 
-      # Chainable yield of a single value.
       def <<(value)
         self.yield value
 
@@ -112,16 +96,13 @@ module Enumerable
       end
     end
 
-    # A supporting class for Enumerator that encloses iteration over a Yielder's generated data.
     class Generator
-      # The block is given a yielder from which it can pass values for iteration.
       def initialize(&block)
         raise LocalJumpError, "Expected a block to be given" unless block_given?
 
         @proc = block
       end
 
-      # Iterate over values given to the yielder in the Generator's proc.
       def each
         enclosed_yield = Proc.new { |*args| yield *args }
 

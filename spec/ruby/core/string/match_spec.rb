@@ -44,6 +44,23 @@ describe "String#match" do
     it "matches the pattern against self starting at an optional index" do
       "hello".match(/(.+)/,2)[0].should == 'llo'
     end
+
+    describe "when passed a block" do
+      it "yields the MatchData" do
+        "abc".match(/./) {|m| ScratchPad.record m }
+        ScratchPad.recorded.should be_kind_of(MatchData)
+      end
+
+      it "returns the block result" do
+        "abc".match(/./) { :result }.should == :result
+      end
+
+      it "does not yield if there is no match" do
+        ScratchPad.record []
+        "b".match(/a/) {|m| ScratchPad << m }
+        ScratchPad.recorded.should == []
+      end
+    end
   end
 
   it "tries to convert pattern to a string via to_str" do

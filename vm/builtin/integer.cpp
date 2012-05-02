@@ -123,11 +123,15 @@ namespace rubinius {
     // Skip any combination of leading whitespace and underscores.
     // Leading whitespace is OK in strict mode, but underscores are not.
     while(isspace(*str) || *str == '_') {
-      if(*str == '_' && strict == cTrue) {
-        return nil<Integer>();
-      } else {
-        str++;
+      if(*str == '_') {
+        if(strict == cTrue) {
+          return nil<Integer>();
+        } else if(!LANGUAGE_18_ENABLED(state)) {
+          return value;
+        }
       }
+
+      str++;
     }
 
     if(*str == '-') {
