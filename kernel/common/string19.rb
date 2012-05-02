@@ -129,7 +129,7 @@ class String
 
     Rubinius.check_frozen
 
-    if match = get_pattern(pattern, true).match_from(self, 0)
+    if match = Rubinius::Type.coerce_to_regexp(pattern, true).match_from(self, 0)
       out = match.pre_match
 
       Regexp.last_match = match
@@ -533,7 +533,7 @@ class String
       use_yield = false
     end
 
-    pattern = get_pattern(pattern, true)
+    pattern = Rubinius::Type.coerce_to_regexp(pattern, true)
     orig_len = @num_bytes
     orig_data = @data
 
@@ -639,7 +639,7 @@ class String
       use_yield = false
     end
 
-    pattern = get_pattern(pattern, true)
+    pattern = Rubinius::Type.coerce_to_regexp(pattern, true)
     orig_len = @num_bytes
     orig_data = @data
 
@@ -729,7 +729,7 @@ class String
   end
 
   def match(pattern, pos=0)
-    match_data = get_pattern(pattern).search_region(self, pos, @num_bytes, true)
+    match_data = Rubinius::Type.coerce_to_regexp(pattern).search_region(self, pos, @num_bytes, true)
     Regexp.last_match = match_data
     return match_data
   end

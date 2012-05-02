@@ -581,7 +581,7 @@ class String
 
   def scan(pattern)
     taint = tainted? || pattern.tainted?
-    pattern = get_pattern(pattern, true)
+    pattern = Rubinius::Type.coerce_to_regexp(pattern, true)
     index = 0
 
     last_match = nil
@@ -838,7 +838,7 @@ class String
       raise ArgumentError, "wrong number of arguments (0 for 2)"
     end
 
-    if match = get_pattern(pattern, true).match_from(self, 0)
+    if match = Rubinius::Type.coerce_to_regexp(pattern, true).match_from(self, 0)
       out = match.pre_match
 
       Regexp.last_match = match
@@ -1306,19 +1306,5 @@ class String
 
   def shared!
     @shared = true
-  end
-
-  def get_pattern(pattern, quote=false)
-    case pattern
-    when Regexp
-      return pattern
-    when String
-      # nothing
-    else
-      pattern = StringValue(pattern)
-    end
-
-    pattern = Regexp.quote(pattern) if quote
-    Regexp.new(pattern)
   end
 end
