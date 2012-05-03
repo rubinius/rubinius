@@ -3,7 +3,7 @@ require File.expand_path('../../../spec_helper', __FILE__)
 ruby_version_is "1.9" do
   describe "Math.gamma" do
     it "returns +infinity given 0" do
-      Math.gamma(0).infinite?.should == 1
+      Math.gamma(0).should == Float::INFINITY
     end
 
     it "returns Math.sqrt(Math::PI) given 0.5" do
@@ -39,11 +39,11 @@ ruby_version_is "1.9" do
 
     # See http://redmine.ruby-lang.org/issues/show/2189
     it "returns +infinity given +infinity" do
-      Math.gamma(infinity_value).infinite?.should == 1
+      Math.gamma(Float::INFINITY).should == Float::INFINITY
     end
 
     it "raises Math::DomainError given negative infinity" do
-      lambda { Math.gamma(-infinity_value) }.should raise_error(Math::DomainError)
+      lambda { Math.gamma(-Float::INFINITY) }.should raise_error(Math::DomainError)
     end
 
     it "returns NaN given NaN" do
