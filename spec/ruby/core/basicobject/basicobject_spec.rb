@@ -19,6 +19,10 @@ ruby_version_is "1.9" do
     it "does not define built-in constants (according to defined?)" do
       BasicObjectSpecs::BOSubclass.kernel_defined?.should be_nil
     end
+
+    it "includes itself in its list of constants" do
+      BasicObject.constants.should include(:BasicObject)
+    end
   end
 
   describe "BasicObject metaclass" do

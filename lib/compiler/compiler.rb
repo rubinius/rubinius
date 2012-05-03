@@ -50,6 +50,10 @@ module Rubinius
         dir = Rubinius::OS_STARTUP_DIR
         db = "#{dir}/.rbx"
         unless name.prefix?(dir) and compiled_cache_writable?(db, dir)
+          # Yes, this retarded shit is necessary because people actually
+          # run under fucked environments with no HOME set.
+          return unless ENV["HOME"]
+
           dir = File.expand_path "~/"
           db = "#{dir}/.rbx"
           return unless compiled_cache_writable?(db, dir)

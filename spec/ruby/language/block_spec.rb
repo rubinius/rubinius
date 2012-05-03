@@ -504,6 +504,27 @@ describe "A block" do
       @y.m(1, [[2, 3], 4]) { |a, ((b, c), d)| [a, b, c, d] }.should == [1, 2, 3, 4]
     end
   end
+
+  describe "arguments with _" do
+
+    it "extracts arguments with _" do
+      @y.m([[1, 2, 3], 4]) { |(_, a, _), _| a }.should == 2
+    end
+
+    ruby_version_is ""..."1.9" do
+      it "assigns the last variable named" do
+        @y.m(1, 2) { |_, _| _ }.should == 2
+      end
+    end
+
+    ruby_version_is "1.9" do
+      it "assigns the first variable named" do
+        @y.m(1, 2) { |_, _| _ }.should == 1
+      end
+    end
+
+  end
+
 end
 
 language_version __FILE__, "block"

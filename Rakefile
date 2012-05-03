@@ -89,10 +89,23 @@ $dlext = RbConfig::CONFIG["DLEXT"]
 $CC = ENV['CC']
 
 class SpecRunner
-  attr_reader :exit_status
+
+  @at_exit_handler_set = false
+  @at_exit_status = 0
+
+  def self.set_at_exit_handler
+    return if @at_exit_handler_set
+
+    at_exit { exit @at_exit_status }
+    @at_exit_handler_set = true
+  end
+
+  def self.set_at_exit_status(status)
+    @at_exit_status = status
+  end
 
   def initialize
-    @exit_status = 0
+    self.class.set_at_exit_handler
 
     unless File.directory? BUILD_CONFIG[:runtime]
       # Setting these enables the specs to run when rbx has been configured
@@ -105,7 +118,7 @@ class SpecRunner
     ENV.delete("RUBYOPT")
 
     @handler = lambda do |ok, status|
-      @exit_status = status.exitstatus unless ok
+      self.class.set_at_exit_status(status.exitstatus) unless ok
     end
   end
 
@@ -113,10 +126,6 @@ class SpecRunner
     sh("bin/mspec ci #{ENV['CI_MODE_FLAG'] || flags} -d --background", &@handler)
   end
 end
-
-spec_runner = SpecRunner.new
-
-at_exit { exit spec_runner.exit_status }
 
 task :default => :spec
 
@@ -216,6 +225,8 @@ task :docs do
 
   Rubinius::Documentation.main
 end
+
+spec_runner = SpecRunner.new
 
 desc "Run the CI specs in 1.8 mode but do not rebuild on failure"
 task :spec18 => %w[build vm:test] do
