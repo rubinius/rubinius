@@ -10,9 +10,8 @@ ruby_version_is "1.9" do
       Math.gamma(0.5).should be_close(Math.sqrt(Math::PI), TOLERANCE)
     end
 
-    # stop at n=23 because 23! is too big to fit in a IEEE 754 double
     f = 1
-    2.upto(23) do |n|
+    2.upto(30) do |n|
       it "returns #{n-1}! given #{n}" do
         Math.gamma(n).should be_close(f*=(n-1), TOLERANCE)
       end
