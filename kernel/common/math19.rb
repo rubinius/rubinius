@@ -35,7 +35,6 @@ module Math
     x = Rubinius::Type.coerce_to_float x
 
     return Float::INFINITY if x == 0.0
-    return -Float::INFINITY if x == -0.0
     return Float::NAN if x.nan?
 
     if sign = x.infinite?
