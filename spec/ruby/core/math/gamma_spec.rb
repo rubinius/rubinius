@@ -18,7 +18,7 @@ ruby_version_is "1.9" do
     end
 
     it "returns good numerical approximation for gamma(3.2)" do
-      Math.gamma(3.2) .should be_close(2.423965, TOLERANCE)
+      Math.gamma(3.2).should be_close(2.423965, TOLERANCE)
     end
 
     it "returns good numerical approximation for gamma(-2.15)" do
@@ -65,6 +65,5 @@ ruby_version_is "1.9" do
     it "returns NaN given NaN" do
       Math.gamma(nan_value).nan?.should be_true
     end
-
   end
 end
