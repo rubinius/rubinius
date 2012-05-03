@@ -34,6 +34,8 @@ module Math
   def gamma(x)
     x = Rubinius::Type.coerce_to_float x
 
+    # if x is negative zero, return -infinity
+    return -Float::INFINITY if (1 / x) == -Float::INFINITY
     return Float::INFINITY if x == 0.0
     return Float::NAN if x.nan?
 
@@ -49,7 +51,7 @@ module Math
 
       if fractional == 0.0
         raise DomainError, "gamma" if int < 0
-        return FactorialTable[int - 1]
+        return FactorialTable[int - 1] if int <= FactorialTable.size
       end
     end
 
