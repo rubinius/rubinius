@@ -497,6 +497,8 @@ class Array
         range_end = Rubinius::Type.coerce_to range.end, Fixnum, :to_int
         if range_end < 0
           range_end = range_end + @total
+        elsif range_end >= @total
+          range_end = @total - 1
         end
 
         range_length = range_end - range_start
