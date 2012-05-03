@@ -34,6 +34,8 @@ module Math
   def gamma(x)
     x = Rubinius::Type.coerce_to_float x
 
+    # if x is negative zero, return -infinity
+    return -Float::INFINITY if (1 / x) == -Float::INFINITY
     return Float::INFINITY if x == 0.0
     return Float::NAN if x.nan?
 
