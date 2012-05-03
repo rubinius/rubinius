@@ -73,6 +73,10 @@ describe "Array#slice!" do
     a.should == [1]
     a.slice!(0..0).should == [1]
     a.should == []
+
+    a = [1,2,3]
+    a.slice!(0..3).should == [1,2,3]
+    a.should == []
   end
 
   it "calls to_int on range arguments" do
