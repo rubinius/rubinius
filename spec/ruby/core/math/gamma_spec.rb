@@ -6,6 +6,10 @@ ruby_version_is "1.9" do
       Math.gamma(0).should == Float::INFINITY
     end
 
+    it "returns -infinity given -0.0" do
+      Math.gamma(-0.0).should == -Float::INFINITY
+    end
+
     it "returns Math.sqrt(Math::PI) given 0.5" do
       Math.gamma(0.5).should be_close(Math.sqrt(Math::PI), TOLERANCE)
     end
