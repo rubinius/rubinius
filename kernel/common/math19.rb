@@ -49,7 +49,7 @@ module Math
 
       if fractional == 0.0
         raise DomainError, "gamma" if int < 0
-        return FactorialTable[int - 1]
+        return FactorialTable[int - 1] if int <= FactorialTable.size
       end
     end
 
