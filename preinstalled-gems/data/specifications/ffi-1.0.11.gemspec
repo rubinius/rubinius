@@ -2,7 +2,7 @@
 
 Gem::Specification.new do |s|
   s.name = "ffi"
-  s.version = "1.0.9"
+  s.version = "1.0.11"
 
   if s.respond_to? :required_rubygems_version=
     s.required_rubygems_version = Gem::Requirement.new(">= 0")
