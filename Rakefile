@@ -105,8 +105,6 @@ class SpecRunner
   end
 
   def initialize
-    self.class.set_at_exit_handler
-
     unless File.directory? BUILD_CONFIG[:runtime]
       # Setting these enables the specs to run when rbx has been configured
       # to be installed, but rake install has not been run yet.
@@ -123,6 +121,8 @@ class SpecRunner
   end
 
   def run(flags=nil)
+    self.class.set_at_exit_handler
+
     sh("bin/mspec ci #{ENV['CI_MODE_FLAG'] || flags} -d --background", &@handler)
   end
 end
