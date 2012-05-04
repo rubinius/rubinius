@@ -15,7 +15,6 @@ ruby_version_is "1.9" do
       @delegate.__setobj__(nil)
       @delegate.untrust
       @delegate.untrusted?.should be_true
-      lambda{$SAFE=4; @delegate.data = :foo }.should_not raise_error
     end
 
     it "untrusts the delegated object" do

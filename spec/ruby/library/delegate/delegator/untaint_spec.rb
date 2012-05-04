@@ -3,7 +3,10 @@ require File.expand_path('../../fixtures/classes', __FILE__)
 
 describe "Delegator#untaint" do
   before :each do
-    @delegate = lambda{$SAFE=4; DelegateSpecs::Delegator.new("")}.call
+    @delegate = lambda do
+      not_compliant_on(:rubinius) { $SAFE = 4 }
+      DelegateSpecs::Delegator.new("")
+    end.call
   end
 
   it "returns self" do

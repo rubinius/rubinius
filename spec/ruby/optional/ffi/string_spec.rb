@@ -28,15 +28,17 @@ describe "String tests" do
     lambda { FFISpecs::LibTest.string_equals(s, s) }.should raise_error
   end
 
-  it "Tainted String parameter should throw a SecurityError" do
-    $SAFE = 1
-    str = "test"
-    str.taint
-    begin
-      FFISpecs::LibTest.string_equals(str, str).should == false
-    rescue SecurityError => e
+  not_compliant_on :rubinius do
+    it "Tainted String parameter should throw a SecurityError" do
+      $SAFE = 1
+      str = "test"
+      str.taint
+      begin
+        FFISpecs::LibTest.string_equals(str, str).should == false
+      rescue SecurityError => e
+      end
     end
-  end if false
+  end
 
   it "casts nil as NULL pointer" do
     lambda { FFISpecs::LibTest.string_dummy(nil) }.should_not raise_error

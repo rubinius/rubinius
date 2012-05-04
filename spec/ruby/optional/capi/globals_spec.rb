@@ -9,8 +9,8 @@ describe "CApiGlobalSpecs" do
 
   it "correctly gets global values" do
     @f.sb_gv_get("$BLAH").should == nil
-    @f.sb_gv_get("$SAFE").should == 0
-    @f.sb_gv_get("SAFE").should == 0 # rb_gv_get should change SAFE to $SAFE
+    @f.sb_gv_get("$\\").should == nil
+    @f.sb_gv_get("\\").should == nil # rb_gv_get should change \ to $\
   end
 
   it "returns $~" do
