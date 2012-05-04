@@ -516,6 +516,29 @@ describe "Global variable $-w" do
   it_behaves_like :verbose_global_alias, '$-w'
 end
 
+describe "Global variable $0" do
+  before :each do
+    @orig_program_name = $0
+  end
+
+  after :each do
+    $0 = @orig_program_name
+  end
+
+  it "returns the program name" do
+    $0 = "rbx"
+    $0.should == "rbx"
+  end
+
+  it "returns the given value when set" do
+    ($0 = "rbx").should == "rbx"
+  end
+
+  it "raises a TypeError when not given an object that can be coerced to a String" do
+    lambda { $0 = nil }.should raise_error(TypeError)
+  end
+end
+
 =begin
 Standard Objects
 ---------------------------------------------------------------------------------------------------
