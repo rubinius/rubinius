@@ -986,6 +986,8 @@ int main() { return tgetnum(""); }
    end
 
     @vendor_zlib = true if @features["vendor-zlib"]
+
+    @defines << "HAVE_SPT_REUSEARGV" if @linux || @darwin || @bsd
   end
 
   def detect_functions
@@ -999,6 +1001,10 @@ int main() { return tgetnum(""); }
 
     if has_function("nl_langinfo", ["langinfo.h"])
       @defines << "HAVE_NL_LANGINFO"
+    end
+
+    if has_function("setproctitle", ["sys/types.h", "unistd.h"])
+      @defines << "HAVE_SETPROCTITLE"
     end
   end
 
@@ -1053,6 +1059,10 @@ int main() { return tgetnum(""); }
 
     if has_header("stdarg.h")
       @defines << "HAVE_STDARG_H"
+    end
+
+    if has_header("sys/pstat.h")
+      @defines << "HAVE_SYS_PSTAT_H"
     end
   end
 

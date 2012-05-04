@@ -54,6 +54,8 @@
 #include <unistd.h>
 #include <sys/param.h>
 
+#include "missing/setproctitle.h"
+
 namespace rubinius {
 
   // Used by the segfault reporter. Calculated up front to avoid
@@ -401,6 +403,8 @@ namespace rubinius {
     }
 
     state->vm()->set_const("ARGV", ary);
+
+    ruby_init_setproctitle(argc, argv);
 
     // Now finish up with the config
     if(config.print_config > 1) {

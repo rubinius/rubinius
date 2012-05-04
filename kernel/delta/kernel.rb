@@ -121,6 +121,12 @@ module Kernel
   set = proc { |key, val| Rubinius.kcode = val }
   Rubinius::Globals.set_hook(:$KCODE, get, set)
 
+  set = proc do |key, val|
+    val = Rubinius::Type.coerce_to val, String, :to_str
+    Rubinius.invoke_primitive :vm_set_process_title, val
+  end
+  Rubinius::Globals.set_hook(:$0, :[], set)
+
   # Alias $0 $PROGRAM_NAME
   Rubinius::Globals.add_alias(:$0, :$PROGRAM_NAME)
 

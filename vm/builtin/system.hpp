@@ -359,6 +359,9 @@ namespace rubinius {
     // Rubinius.primitive :vm_set_module_name
     static Object* vm_set_module_name(STATE, Module* mod, Object* name, Object* under);
 
+    // Rubinius.primitive :vm_set_process_title
+    static String* vm_set_process_title(STATE, String* name);
+
   public:   /* Type info */
 
     class Info : public TypeInfo {

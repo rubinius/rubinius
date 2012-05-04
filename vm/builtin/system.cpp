@@ -83,6 +83,8 @@
 #include <mach/mach.h>
 #endif
 
+#include "missing/setproctitle.h"
+
 namespace rubinius {
 
   void System::bootstrap_methods(STATE) {
@@ -1659,5 +1661,10 @@ namespace rubinius {
     mod->set_name(state, as<Symbol>(name), as<Module>(under));
 
     return cNil;
+  }
+
+  String* System::vm_set_process_title(STATE, String* title) {
+    setproctitle("%s", title->c_str_null_safe(state));
+    return title;
   }
 }

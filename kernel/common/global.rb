@@ -26,6 +26,7 @@ module Rubinius
       @internal[:$.] = 0
       @internal[:$?] = nil              # Process status. nil until set
       @internal[:$=] = false            # ignore case, whatever that is
+      @internal[:$0] = nil
       @internal[:$CONSOLE]         = STDOUT
       @internal[:$DEBUG]           = false
       @internal[:$LOADED_FEATURES] = loaded_features
@@ -110,6 +111,15 @@ module Rubinius
 
         @hooks[var] = [block, method(:illegal_set)]
       else
+        set_internal = false
+        set_internal = true if getter == :[]
+
+        if !getter
+          getter = method(:nil_return)
+        elsif getter.kind_of? Symbol
+          getter = method(getter)
+        end
+
         unless getter.respond_to?(:call)
           raise ArgumentError, "getter must respond to call"
         end
@@ -124,7 +134,7 @@ module Rubinius
           raise ArgumentError, "setter must respond to call"
         end
 
-        @hooks[var] = [getter, setter, false]
+        @hooks[var] = [getter, setter, set_internal]
       end
     end
 
