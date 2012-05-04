@@ -1340,8 +1340,9 @@ namespace rubinius {
 #endif
   }
 
-  IO* System::vm_agent_io(STATE) {
+  IO* System::vm_agent_loopback(STATE) {
     QueryAgent* agent = state->shared().autostart_agent(state);
+
     int sock = agent->loopback_socket();
     if(sock < 0) {
       if(!agent->setup_local()) return nil<IO>();
