@@ -22,10 +22,10 @@ namespace rubinius {
       long to_i() const;
     };
 
-    typedef std::map<std::string, Entry*> ConfigMap;
+    typedef std::vector< std::pair<std::string, Entry*> > ConfigVector;
     typedef std::vector<Entry*> EntryList;
 
-    ConfigMap variables;
+    ConfigVector variables;
 
     virtual ~ConfigParser();
 

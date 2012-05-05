@@ -37,7 +37,7 @@ namespace rubinius {
   }
 
   ConfigParser::~ConfigParser() {
-    ConfigParser::ConfigMap::iterator i = variables.begin();
+    ConfigParser::ConfigVector::iterator i = variables.begin();
     while(i != variables.end()) {
       delete i->second;
       ++i;
@@ -103,7 +103,7 @@ namespace rubinius {
   void ConfigParser::import_line(const char* line) {
     ConfigParser::Entry* entry = parse_line(line);
     if(entry) {
-      variables[entry->variable] = entry;
+      variables.push_back(std::pair<std::string, Entry*>(entry->variable, entry));
     }
   }
 
@@ -113,7 +113,7 @@ namespace rubinius {
       getline(stream, line);
       ConfigParser::Entry* entry = parse_line(line.c_str());
       if(entry) {
-        variables[entry->variable] = entry;
+        variables.push_back(std::pair<std::string, Entry*>(entry->variable, entry));
       }
     }
   }
@@ -132,24 +132,27 @@ namespace rubinius {
   }
 
   ConfigParser::Entry* ConfigParser::find(std::string name) {
-    ConfigParser::ConfigMap::iterator i = variables.find(name);
+    for(ConfigParser::ConfigVector::iterator i = variables.begin();
+        i != variables.end();
+        ++i) {
+        if (i->first == name) return i->second;
+    }
 
-    if(i == variables.end()) return NULL;
-
-    return i->second;
+    return NULL;
   }
 
   void ConfigParser::set(const char* name, const char* val) {
-    ConfigParser::ConfigMap::iterator i = variables.find(name);
-    if(i == variables.end()) {
-      i->second->value = val;
+    for(ConfigParser::ConfigVector::iterator i = variables.begin();
+        i != variables.end();
+        ++i) {
+        if (i->first == name) i->second->value = val;
     }
 
     Entry* entry = new ConfigParser::Entry();
     entry->variable = name;
     entry->value = val;
 
-    variables[entry->variable] = entry;
+    variables.push_back(std::pair<std::string, Entry*>(entry->variable, entry));
   }
 
   bool ConfigParser::Entry::is_number() const {
@@ -171,7 +174,7 @@ namespace rubinius {
   ConfigParser::EntryList* ConfigParser::get_section(std::string prefix) {
     ConfigParser::EntryList* list = new ConfigParser::EntryList(0);
 
-    ConfigParser::ConfigMap::iterator i = variables.begin();
+    ConfigParser::ConfigVector::iterator i = variables.begin();
     while(i != variables.end()) {
       if(i->second->in_section(prefix)) {
         list->push_back(i->second);
@@ -183,7 +186,7 @@ namespace rubinius {
   }
 
   void ConfigParser::update_configuration(Configuration& config) {
-    for(ConfigParser::ConfigMap::iterator i = variables.begin();
+    for(ConfigParser::ConfigVector::iterator i = variables.begin();
         i != variables.end();
         ++i) {
       if(!config.import(i->first.c_str(), i->second->value.c_str())) {
