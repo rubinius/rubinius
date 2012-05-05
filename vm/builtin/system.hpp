@@ -287,6 +287,9 @@ namespace rubinius {
     // Rubinius.primitive :vm_get_user_home
     static String* vm_get_user_home(STATE, String* name);
 
+    // Rubinius.primitive :vm_agent_start
+    static Object* vm_agent_start(STATE);
+
     // Rubinius.primitive :vm_agent_loopback
     static IO*     vm_agent_loopback(STATE);
 

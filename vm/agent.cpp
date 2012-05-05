@@ -44,23 +44,43 @@
 #endif
 
 namespace rubinius {
-  QueryAgent::QueryAgent(SharedState& shared, STATE)
-    : Thread()
-    , shared_(shared)
-    , state_(shared.new_vm())
-    , running_(false)
+  static char tmp_path[PATH_MAX];
+
+  static void remove_tmp_path(void) {
+    if(tmp_path[0]) unlink(tmp_path);
+    // Ignore any errors, this is happening at shutdown.
+  }
+
+  QueryAgent::QueryAgent(STATE)
+    : AuxiliaryThread()
+    , shared_(state->shared())
+    , thread_(0)
+    , thread_running_(false)
     , port_(0)
     , server_fd_(-1)
     , verbose_(false)
     , max_fd_(0)
-    , exit_(false)
     , vars_(0)
     , local_only_(true)
     , tmp_key_(0)
   {
+    shared_.auxiliary_threads()->register_thread(this);
+
+    initialize(state);
+    start_thread(state);
+  }
+
+  QueryAgent::~QueryAgent() {
+    shared_.auxiliary_threads()->unregister_thread(this);
+    delete vars_;
+  }
+
+  void QueryAgent::initialize(STATE) {
     FD_ZERO(&fds_);
 
-    vars_ = new agent::VariableAccess(this->state(), shared);
+    vars_ = new agent::VariableAccess(state, shared_);
+
+    tmp_path[0] = 0;
 
     if(pipe(control_) != 0) {
       perror("pipe");
@@ -102,18 +122,13 @@ namespace rubinius {
     }
   }
 
-  QueryAgent::~QueryAgent() {
-    VM::discard(&state_, state_.vm());
-    delete vars_;
-  }
-
   bool QueryAgent::setup_local() {
     if(socketpair(AF_UNIX, SOCK_STREAM, 0, loopback_)) {
       return false;
     }
 
     add_fd(loopback_[0]);
-    sockets_.push_back(loopback_[0]);
+    add_socket(loopback_[0]);
 
     return true;
   }
@@ -332,6 +347,42 @@ auth_error:
     return false;
   }
 
+  bool QueryAgent::process_clients(fd_set fds) {
+    bool found = false;
+    for(std::vector<Client>::iterator i = sockets_.begin();
+        i != sockets_.end(); /* nothing */) {
+      Client& client = *i;
+
+      if(FD_ISSET(client.socket, &fds)) {
+        found = true;
+        if(!process_commands(client)) {
+          if(verbose_) {
+            struct sockaddr_in sin;
+            socklen_t len = sizeof(sin);
+
+            getpeername(client.socket, (struct sockaddr*)&sin, &len);
+            std::cerr << "[QA: Disconnected " << inet_ntoa(sin.sin_addr)
+                      << ":" << ntohs(sin.sin_port) << "]\n";
+          }
+
+          remove_fd(client.socket);
+          close(client.socket);
+
+          i = sockets_.erase(i);
+          continue;
+        }
+      }
+      ++i;
+    }
+
+    if(!found) {
+      std::cerr << "[QA: Corruption in select set detected.]\n";
+      return false;
+    }
+
+    return true;
+  }
+
   bool QueryAgent::process_commands(Client& client) {
     if(client.needs_auth_p()) {
       if(local_only_) {
@@ -446,188 +497,59 @@ auth_error:
     return true;
   }
 
-  void QueryAgent::wakeup() {
+  void QueryAgent::start_thread(STATE) {
+    SYNC(state);
+
+    if(thread_running_) return;
+
+    thread_ = new Thread(this);
+
+    thread_running_ = true;
+  }
+
+  void QueryAgent::stop_thread(STATE) {
+    SYNC(state);
+
+    if(!thread_running_) return;
+
+    thread_->stop();
+
     char buf = '!';
     if(write(write_control(), &buf, 1) < 0) {
       std::cerr << "[QA: Write error: " << strerror(errno) << "]\n";
     }
+
+    thread_running_ = false;
   }
 
-  void QueryAgent::perform() {
-    running_ = true;
-
-    State state_obj(state_), *state = &state_obj;
-
-    // It's possible we call code that wants this to thread
-    // to be setup as a fully managed thread, so lets just make it one.
-    NativeMethod::init_thread(state);
-    set_delete_on_exit();
-
-    while(1) {
-      fd_set read_fds = fds_;
-
-      int ret = select(max_fd_ + 1, &read_fds, 0, 0, 0);
-      if(exit_) return;
-
-      if(ret < 0) {
-        if(errno == EINTR || errno == EAGAIN) continue;
-        std::cerr << "[QA: Select error: " << strerror(errno) << "]\n";
-        running_ = false;
-        return;
-      } else if(ret == 0) {
-        continue;
-      }
-
-      if(FD_ISSET(read_control(), &read_fds)) {
-        // Noop, just a wake up!
-        // Read the one byte written though so we don't clog up the
-        // pipe and have to use the ponies later.
-        char buf;
-        if(read(read_control(), &buf, 1) < 0) {
-          std::cerr << "[QA: Read error: " << strerror(errno) << "]\n";
-        }
-      } else if(FD_ISSET(r2a_agent(), &read_fds)) {
-        respond_from_ruby(this);
-      } else if(server_fd_ > 0 && FD_ISSET(server_fd_, &read_fds)) {
-        // now accept an incoming connection
-        struct sockaddr_in sin;
-        socklen_t addr_size = sizeof(sin);
-        int client = accept(server_fd_, (struct sockaddr *)&sin, &addr_size);
-
-        if(local_only_) {
-          if(sin.sin_addr.s_addr != inet_addr("127.0.0.1")) {
-            std::cerr << "[QA: Reject connection from " << inet_ntoa(sin.sin_addr)
-                      << ":" << ntohs(sin.sin_port) << "]\n";
-            close(client);
-            continue;
-          }
-
-          Client cl(client);
-
-          cl.begin_auth(tmp_key_++);
-
-          std::stringstream name;
-          name << "/tmp/agent-auth." << getuid() << "-" << getpid() << "." << cl.auth_key;
-
-          int file = open(name.str().c_str(), O_CREAT | O_WRONLY | O_EXCL, 0600);
-          if(file == -1) {
-            std::cerr << "[QA: Unable to open '" << name.str() << "' to begin local auth]\n";
-            close(client);
-            continue;
-          }
-
-          close(file);
-
-          if(verbose_) {
-            std::cerr << "[QA: Requesting file auth from " << inet_ntoa(sin.sin_addr)
-                      << ":" << ntohs(sin.sin_port) << "]\n";
-          }
-
-          request_auth(client, name.str());
-
-          add_fd(client);
-
-          sockets_.push_back(cl);
-
-          continue;
-        } else if(use_password_) {
-          Client cl(client);
-          cl.begin_auth(0);
-
-          if(verbose_) {
-            std::cerr << "[QA: Requesting password auth from " << inet_ntoa(sin.sin_addr)
-                      << ":" << ntohs(sin.sin_port) << "]\n";
-          }
-
-          request_password(client);
-
-          add_fd(client);
-
-          sockets_.push_back(cl);
-
-          continue;
-        }
-
-        if(verbose_) {
-          std::cerr << "[QA: Connection from " << inet_ntoa(sin.sin_addr)
-                    << ":" << ntohs(sin.sin_port) << "]\n";
-        }
-
-        write_welcome(client);
-
-        add_fd(client);
-
-        Client cl(client);
-        cl.set_running();
-
-        sockets_.push_back(cl);
-      } else {
-        bool found = false;
-        for(std::vector<Client>::iterator i = sockets_.begin();
-            i != sockets_.end(); /* nothing */) {
-          Client& client = *i;
-
-          if(FD_ISSET(client.socket, &read_fds)) {
-            found = true;
-            if(!process_commands(client)) {
-              if(verbose_) {
-                struct sockaddr_in sin;
-                socklen_t len = sizeof(sin);
-
-                getpeername(client.socket, (struct sockaddr*)&sin, &len);
-                std::cerr << "[QA: Disconnected " << inet_ntoa(sin.sin_addr)
-                          << ":" << ntohs(sin.sin_port) << "]\n";
-              }
-
-              remove_fd(client.socket);
-              close(client.socket);
-
-              i = sockets_.erase(i);
-              continue;
-            }
-          }
-          ++i;
-        }
-
-        if(!found) {
-          std::cerr << "[QA: Corruption in select set detected.]\n";
-          running_ = false;
-          return;
-        }
-      }
-    }
-
-    NativeMethod::cleanup_thread(state);
+  void QueryAgent::shutdown(STATE) {
+    cleanup();
+    stop_thread(state);
   }
 
-  static char tmp_path[PATH_MAX];
-
-  static void remove_tmp_path(void) {
-    if(tmp_path[0]) unlink(tmp_path);
-    // Ignore any errors, this is happening at shutdown.
+  void QueryAgent::before_exec(STATE) {
+    stop_thread(state);
   }
 
-  void QueryAgent::on_fork() {
-    // "clear" tmp_path
-    tmp_path[0] = 0;
+  void QueryAgent::after_exec(STATE) {
+    start_thread(state);
+  }
+
+  void QueryAgent::before_fork(STATE) {
+    stop_thread(state);
+  }
+
+  void QueryAgent::after_fork_parent(STATE) {
+    start_thread(state);
+  }
+
+  void QueryAgent::after_fork_child(STATE) {
+    initialize(state);
+    start_thread(state);
   }
 
   void QueryAgent::cleanup() {
     remove_tmp_path();
-  }
-
-  bool QueryAgent::shutdown(STATE) {
-    if(!state->shared().agent()) return false;
-    state->shared().stop_agent(state);
-    return true;
-  }
-
-  void QueryAgent::shutdown_i() {
-    exit_ = true;
-    wakeup();
-    cleanup();
-
-    if(!in_self_p()) join();
   }
 
   void QueryAgent::make_discoverable() {
@@ -726,6 +648,125 @@ auth_error:
       stream.close();
 
       atexit(remove_tmp_path);
+    }
+  }
+
+  QueryAgent::Thread::Thread(QueryAgent* agent)
+    : thread::Thread(0, true)
+    , agent_(agent)
+    , exit_(false)
+  {
+    run();
+  }
+
+  void QueryAgent::Thread::stop() {
+    exit_ = true;
+  }
+
+  void QueryAgent::Thread::perform() {
+    while(1) {
+      fd_set read_fds = agent_->fds();
+
+      int ret = select(agent_->max_fd() + 1, &read_fds, 0, 0, 0);
+      if(exit_) return;
+
+      if(ret < 0) {
+        if(errno == EINTR || errno == EAGAIN) continue;
+        std::cerr << "[QA: Select error: " << strerror(errno) << "]\n";
+        return;
+      } else if(ret == 0) {
+        continue;
+      }
+
+      if(FD_ISSET(agent_->read_control(), &read_fds)) {
+        // Noop, just a wake up!
+        // Read the one byte written though so we don't clog up the
+        // pipe and have to use the ponies later.
+        char buf;
+        if(read(agent_->read_control(), &buf, 1) < 0) {
+          std::cerr << "[QA: Read error: " << strerror(errno) << "]\n";
+        }
+      } else if(FD_ISSET(agent_->r2a_agent(), &read_fds)) {
+        respond_from_ruby(agent_);
+      } else if(agent_->server_fd() > 0 && FD_ISSET(agent_->server_fd(), &read_fds)) {
+        // now accept an incoming connection
+        struct sockaddr_in sin;
+        socklen_t addr_size = sizeof(sin);
+        int client = accept(agent_->server_fd(), (struct sockaddr *)&sin, &addr_size);
+
+        if(agent_->local_only()) {
+          if(sin.sin_addr.s_addr != inet_addr("127.0.0.1")) {
+            std::cerr << "[QA: Reject connection from " << inet_ntoa(sin.sin_addr)
+                      << ":" << ntohs(sin.sin_port) << "]\n";
+            close(client);
+            continue;
+          }
+
+          Client cl(client);
+
+          cl.begin_auth(agent_->incr_tmp_key());
+
+          std::stringstream name;
+          name << "/tmp/agent-auth." << getuid() << "-" << getpid() << "." << cl.auth_key;
+
+          int file = open(name.str().c_str(), O_CREAT | O_WRONLY | O_EXCL, 0600);
+          if(file == -1) {
+            std::cerr << "[QA: Unable to open '" << name.str() << "' to begin local auth]\n";
+            close(client);
+            continue;
+          }
+
+          close(file);
+
+          if(agent_->verbose()) {
+            std::cerr << "[QA: Requesting file auth from " << inet_ntoa(sin.sin_addr)
+                      << ":" << ntohs(sin.sin_port) << "]\n";
+          }
+
+          request_auth(client, name.str());
+
+          agent_->add_fd(client);
+
+          agent_->add_socket(cl);
+
+          continue;
+        } else if(agent_->use_password()) {
+          Client cl(client);
+          cl.begin_auth(0);
+
+          if(agent_->verbose()) {
+            std::cerr << "[QA: Requesting password auth from " << inet_ntoa(sin.sin_addr)
+                      << ":" << ntohs(sin.sin_port) << "]\n";
+          }
+
+          request_password(client);
+
+          agent_->add_fd(client);
+
+          agent_->add_socket(cl);
+
+          continue;
+        }
+
+        if(agent_->verbose()) {
+          std::cerr << "[QA: Connection from " << inet_ntoa(sin.sin_addr)
+                    << ":" << ntohs(sin.sin_port) << "]\n";
+        }
+
+        write_welcome(client);
+
+        agent_->add_fd(client);
+
+        Client cl(client);
+        cl.set_running();
+
+        agent_->add_socket(cl);
+      } else {
+        if(!agent_->process_clients(read_fds)) {
+          // TODO: cleanup
+          break;
+        }
+      }
     }
   }
 }

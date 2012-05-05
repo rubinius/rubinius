@@ -208,17 +208,8 @@ namespace rubinius {
     }
 
     // Some system (darwin) don't let execvp work if there is more
-    // than one thread running. So we kill off any background LLVM
-    // thread here.
-
-#ifdef ENABLE_LLVM
-    LLVMState::shutdown(state);
-#endif
-
-    SignalHandler::pause();
-    bool agent_running = QueryAgent::shutdown(state);
-
-    state->shared().pre_exec();
+    // than one thread running.
+    state->shared().auxiliary_threads()->before_exec(state);
 
     // TODO Need to stop and kill off any ruby threads!
     // We haven't run into this because exec is almost always called
@@ -259,15 +250,7 @@ namespace rubinius {
 
     delete[] argv;
 
-#ifdef ENABLE_LLVM
-    LLVMState::start(state);
-#endif
-
-    SignalHandler::on_fork(state);
-
-    if(agent_running) {
-      state->shared().autostart_agent(state);
-    }
+    state->shared().auxiliary_threads()->after_exec(state);
 
     /* execvp() returning means it failed. */
     Exception::errno_error(state, "execvp(2) failed", erno);
@@ -288,7 +271,9 @@ namespace rubinius {
 
     if(pipe(fds) != 0) return Primitives::failure();
 
-    pid_t pid = fork();
+    state->shared().auxiliary_threads()->before_fork(state);
+
+    pid_t pid = ::fork();
 
     // error
     if(pid == -1) {
@@ -354,6 +339,8 @@ namespace rubinius {
       // bad news, shouldn't be here.
       std::cerr << "execvp failed: " << strerror(errno) << std::endl;
       exit(1);
+    } else {
+      state->shared().auxiliary_threads()->after_fork_parent(state);
     }
 
     close(fds[1]);
@@ -477,12 +464,11 @@ namespace rubinius {
 #else
     int result = 0;
 
-#ifdef ENABLE_LLVM
     {
+      // TODO: Make this guard unnecessary
       GCIndependent guard(state, calling_environment);
-      LLVMState::pause(state);
+      state->shared().auxiliary_threads()->before_fork(state);
     }
-#endif
 
     /*
      * We have to bring all the threads to a safe point before we can
@@ -501,19 +487,13 @@ namespace rubinius {
       state->vm()->thread->init_lock();
       state->shared().reinit(state);
       state->shared().om->on_fork(state);
-      SignalHandler::on_fork(state, false);
-
-      // Re-initialize LLVM
-#ifdef ENABLE_LLVM
-      LLVMState::on_fork(state);
-#endif
+      state->shared().auxiliary_threads()->after_fork_child(state);
     } else {
-#ifdef ENABLE_LLVM
-    {
-      GCIndependent guard(state, calling_environment);
-      LLVMState::unpause(state);
-    }
-#endif
+      {
+        // TODO: Make this guard unnecessary
+        GCIndependent guard(state, calling_environment);
+        state->shared().auxiliary_threads()->after_fork_parent(state);
+      }
     }
 
     if(result == -1) {
@@ -1340,17 +1320,17 @@ namespace rubinius {
 #endif
   }
 
+  Object* System::vm_agent_start(STATE) {
+    state->shared().start_agent(state);
+    return cNil;
+  }
+
   IO* System::vm_agent_loopback(STATE) {
-    QueryAgent* agent = state->shared().autostart_agent(state);
+    QueryAgent* agent = state->shared().start_agent(state);
 
     int sock = agent->loopback_socket();
     if(sock < 0) {
       if(!agent->setup_local()) return nil<IO>();
-      if(agent->running()) {
-        agent->wakeup();
-      } else {
-        agent->run();
-      }
 
       sock = agent->loopback_socket();
     }

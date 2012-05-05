@@ -49,6 +49,9 @@ module Rubinius
 
       @thread = Thread.new do
 
+        # Ensure the Agent is started
+        Rubinius.agent_start
+
         dec = BERT::Decode.new Rubinius::FROM_AGENT
         enc = BERT::Encode.new Rubinius::TO_AGENT
 

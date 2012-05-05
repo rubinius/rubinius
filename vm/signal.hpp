@@ -2,6 +2,7 @@
 #define RBX_SIGNAL_HPP
 
 #include "lock.hpp"
+#include "auxiliary_threads.hpp"
 
 #include "gc/root.hpp"
 
@@ -15,7 +16,8 @@ namespace rubinius {
 
   Object* handle_tramp(STATE);
 
-  class SignalHandler : public Lockable {
+  class SignalHandler : public AuxiliaryThread, public Lockable {
+    SharedState& shared_;
     VM* target_;
     VM* self_;
 
@@ -38,6 +40,7 @@ namespace rubinius {
     };
 
     SignalHandler(STATE);
+    ~SignalHandler();
 
     void perform(State*);
 
@@ -47,16 +50,16 @@ namespace rubinius {
 
     bool deliver_signals(STATE, CallFrame* call_frame);
 
-    void reopen_pipes();
+    void open_pipes();
+    void start_thread(STATE);
+    void stop_thread(STATE);
 
-    static void on_fork(STATE, bool full=true);
-    void on_fork_i(STATE, bool full);
-
-    static void pause();
-    void pause_i();
-
-    static void shutdown();
-    void shutdown_i();
+    void shutdown(STATE);
+    void before_exec(STATE);
+    void after_exec(STATE);
+    void before_fork(STATE);
+    void after_fork_parent(STATE);
+    void after_fork_child(STATE);
 
     void run(State*);
   };

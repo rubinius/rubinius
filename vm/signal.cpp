@@ -30,7 +30,9 @@ namespace rubinius {
   }
 
   SignalHandler::SignalHandler(STATE)
-    : target_(state->vm())
+    : AuxiliaryThread()
+    , shared_(state->shared())
+    , target_(state->vm())
     , queued_signals_(0)
     , exit_(false)
     , thread_(state)
@@ -38,75 +40,87 @@ namespace rubinius {
     handler_ = this;
     main_thread = pthread_self();
 
+    shared_.auxiliary_threads()->register_thread(this);
+    shared_.set_signal_handler(this);
+
     for(int i = 0; i < NSIG; i++) {
       pending_signals_[i] = 0;
     }
 
-    reopen_pipes();
-
-    self_ = state->shared().new_vm();
-
-    thread_.set(Thread::create(state, self_, G(thread), handle_tramp, false));
+    open_pipes();
+    start_thread(state);
   }
 
-  void SignalHandler::reopen_pipes() {
+  SignalHandler::~SignalHandler() {
+    shared_.auxiliary_threads()->unregister_thread(this);
+    close(write_fd_);
+    close(read_fd_);
+  }
+
+  void SignalHandler::start_thread(STATE) {
+    self_ = state->shared().new_vm();
+    thread_.set(Thread::create(state, self_, G(thread), handle_tramp, false));
+    run(state);
+  }
+
+  void SignalHandler::stop_thread(STATE) {
+    pthread_t os = self_->os_thread();
+
+    exit_ = true;
+    if(write(write_fd_, "!", 1) < 0) {
+      perror("SignalHandler::stop_thread failed to write");
+    }
+
+    void* return_value;
+    if(!pthread_equal(os, pthread_self())) {
+      pthread_join(os, &return_value);
+    }
+  }
+
+  void SignalHandler::open_pipes() {
     int f[2];
     if(pipe(f) < 0) {
-      perror("SignalHandler::reopen_pipes failed");
+      perror("SignalHandler::open_pipes failed");
     }
     read_fd_ = f[0];
     write_fd_ = f[1];
   }
 
-  void SignalHandler::on_fork(STATE, bool full) {
-    if(handler_) handler_->on_fork_i(state, full);
-  }
-
-  void SignalHandler::on_fork_i(STATE, bool full) {
-    exit_ = false;
-    reopen_pipes();
-
-    if(full && self_) rubinius::bug("signal thread restart issue");
-
-    self_ = state->shared().new_vm();
-    thread_.set(Thread::create(state, self_, G(thread), handle_tramp, false));
-
-    run(state);
-  }
-
-  void SignalHandler::pause() {
-    if(handler_) {
-      handler_->pause_i();
-    }
-  }
-
-  void SignalHandler::pause_i() {
-    pthread_t os = self_->os_thread();
-
-    exit_ = true;
-    if(write(write_fd_, "!", 1) < 0) {
-      perror("SignalHandler::shutdown_i failed to write");
-    }
-
-    void* blah;
-    pthread_join(os, &blah);
-  }
-
-  void SignalHandler::shutdown() {
-    if(handler_) {
-      handler_->shutdown_i();
-      handler_ = 0;
-    }
-  }
-
-  void SignalHandler::shutdown_i() {
+  void SignalHandler::shutdown(STATE) {
     for(std::list<int>::iterator i = watched_signals_.begin();
         i != watched_signals_.end();
         ++i)
     {
       signal(*i, SIG_DFL);
     }
-    pause_i();
+
+    stop_thread(state);
+  }
+
+  void SignalHandler::before_exec(STATE) {
+    stop_thread(state);
+  }
+
+  void SignalHandler::after_exec(STATE) {
+    if(self_) rubinius::bug("SignalHandler::after_exec: signal thread still running");
+
+    exit_ = false;
+    start_thread(state);
+  }
+
+  void SignalHandler::before_fork(STATE) {
+    stop_thread(state);
+  }
+
+  void SignalHandler::after_fork_parent(STATE) {
+    exit_ = false;
+    start_thread(state);
+  }
+
+  void SignalHandler::after_fork_child(STATE) {
+    exit_ = false;
+    open_pipes();
+    start_thread(state);
   }
 
   void SignalHandler::run(STATE) {
@@ -144,8 +158,6 @@ namespace rubinius {
         }
 
         if(exit_) {
-          close(write_fd_);
-          close(read_fd_);
           self_ = 0;
           return;
         }

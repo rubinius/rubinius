@@ -19,6 +19,7 @@
 #include "builtin/class.hpp"
 #include "builtin/block_environment.hpp"
 
+#include "auxiliary_threads.hpp"
 #include "vmmethod.hpp"
 #include "field_offset.hpp"
 #include "objectmemory.hpp"
@@ -88,41 +89,6 @@ namespace rubinius {
     thread::Mutex::LockGuard lg(lock_);
 
     return vm->shared.llvm_state;
-  }
-
-  void LLVMState::shutdown(STATE) {
-    thread::Mutex::LockGuard lg(lock_);
-
-    if(!state->shared().llvm_state) return;
-    state->shared().llvm_state->shutdown_i();
-  }
-
-  void LLVMState::start(STATE) {
-    thread::Mutex::LockGuard lg(lock_);
-
-    if(!state->shared().llvm_state) return;
-    state->shared().llvm_state->start_i();
-  }
-
-  void LLVMState::on_fork(STATE) {
-    thread::Mutex::LockGuard lg(lock_);
-
-    if(!state->shared().llvm_state) return;
-    state->shared().llvm_state->on_fork_i();
-  }
-
-  void LLVMState::pause(STATE) {
-    thread::Mutex::LockGuard lg(lock_);
-
-    if(!state->shared().llvm_state) return;
-    state->shared().llvm_state->pause_i();
-  }
-
-  void LLVMState::unpause(STATE) {
-    thread::Mutex::LockGuard lg(lock_);
-
-    if(!state->shared().llvm_state) return;
-    state->shared().llvm_state->unpause_i();
   }
 
   llvm::Type* LLVMState::ptr_type(std::string name) {
@@ -472,7 +438,8 @@ namespace rubinius {
   static const bool debug_search = false;
 
   LLVMState::LLVMState(STATE)
-    : ManagedThread(state->shared().new_thread_id(),
+    : AuxiliaryThread()
+    , ManagedThread(state->shared().new_thread_id(),
                     state->shared(), ManagedThread::eSystem)
     , ctx_(llvm::getGlobalContext())
     , config_(state->shared().config)
@@ -489,6 +456,7 @@ namespace rubinius {
   {
 
     set_name("Background Compiler");
+    state->shared().auxiliary_threads()->register_thread(this);
     state->shared().add_managed_thread(this);
     state->shared().om->add_aux_barrier(state, &write_barrier_);
 
@@ -618,6 +586,8 @@ namespace rubinius {
   }
 
   LLVMState::~LLVMState() {
+    shared_.auxiliary_threads()->unregister_thread(this);
+
     shared_.remove_managed_thread(this);
     shared_.om->del_aux_barrier(&write_barrier_);
     delete passes_;
@@ -629,25 +599,29 @@ namespace rubinius {
     return config_.jit_debug;
   }
 
-  void LLVMState::shutdown_i() {
+  void LLVMState::shutdown(STATE) {
     background_thread_->stop();
   }
 
-  void LLVMState::start_i() {
+  void LLVMState::before_exec(STATE) {
+    background_thread_->stop();
+  }
+
+  void LLVMState::after_exec(STATE) {
     background_thread_->start();
   }
 
-  void LLVMState::on_fork_i() {
-    shared_.add_managed_thread(this);
-    background_thread_->restart();
-  }
-
-  void LLVMState::pause_i() {
+  void LLVMState::before_fork(STATE) {
     background_thread_->pause();
   }
 
-  void LLVMState::unpause_i() {
+  void LLVMState::after_fork_parent(STATE) {
     background_thread_->unpause();
+  }
+
+  void LLVMState::after_fork_child(STATE) {
+    shared_.add_managed_thread(this);
+    background_thread_->restart();
   }
 
   void LLVMState::gc_scan(GarbageCollector* gc) {

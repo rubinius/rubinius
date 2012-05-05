@@ -21,6 +21,7 @@
 
 #include "gc/managed.hpp"
 #include "gc/write_barrier.hpp"
+#include "auxiliary_threads.hpp"
 #include "configuration.hpp"
 #include "util/thread.hpp"
 
@@ -44,7 +45,7 @@ namespace rubinius {
     cMachineCode = 4
   };
 
-  class LLVMState : public ManagedThread {
+  class LLVMState : public AuxiliaryThread, public ManagedThread {
     llvm::LLVMContext& ctx_;
     llvm::Module* module_;
     llvm::ExecutionEngine* engine_;
@@ -105,7 +106,6 @@ namespace rubinius {
     static LLVMState* get(STATE);
     static LLVMState* get_if_set(STATE);
     static LLVMState* get_if_set(VM*);
-    static void shutdown(STATE);
     static void start(STATE);
     static void on_fork(STATE);
     static void pause(STATE);
@@ -241,11 +241,12 @@ namespace rubinius {
 
     std::string enclosure_name(CompiledMethod* cm);
 
-    void shutdown_i();
-    void start_i();
-    void on_fork_i();
-    void pause_i();
-    void unpause_i();
+    void shutdown(STATE);
+    void before_exec(STATE);
+    void after_exec(STATE);
+    void before_fork(STATE);
+    void after_fork_parent(STATE);
+    void after_fork_child(STATE);
 
     void gc_scan(GarbageCollector* gc);
 

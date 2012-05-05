@@ -27,6 +27,7 @@ namespace rubinius {
 
   SharedState::SharedState(Environment* env, Configuration& config, ConfigParser& cp)
     : initialized_(false)
+    , auxiliary_threads_(0)
     , signal_handler_(0)
     , global_handles_(new capi::Handles)
     , global_serial_(0)
@@ -48,6 +49,8 @@ namespace rubinius {
     , llvm_state(0)
   {
     ref();
+
+    auxiliary_threads_ = new AuxiliaryThreads();
 
     for(int i = 0; i < Primitives::cTotalPrimitives; i++) {
       primitive_hits_[i] = 0;
@@ -75,6 +78,8 @@ namespace rubinius {
     delete om;
     delete global_cache;
     delete global_handles_;
+    delete auxiliary_threads_;
+
     if(agent_) {
       delete agent_;
     }
@@ -162,23 +167,14 @@ namespace rubinius {
     cached_handles_.push_back(handle);
   }
 
-  QueryAgent* SharedState::autostart_agent(STATE) {
+  QueryAgent* SharedState::start_agent(STATE) {
     SYNC(state);
-    if(agent_) return agent_;
-    agent_ = new QueryAgent(*this, state);
-    return agent_;
-  }
 
-  void SharedState::stop_agent(STATE) {
-    if(agent_) {
-      agent_->shutdown_i();
-      agent_ = NULL;
+    if(!agent_) {
+      agent_ = new QueryAgent(state);
     }
-  }
 
-  void SharedState::pre_exec() {
-    SYNC_TL;
-    if(agent_) agent_->cleanup();
+    return agent_;
   }
 
   void SharedState::reinit(STATE) {
@@ -200,12 +196,6 @@ namespace rubinius {
     capi_lock_.init();
 
     world_->reinit();
-
-    if(agent_) {
-      agent_->on_fork();
-      delete agent_;
-      agent_ = 0;
-    }
   }
 
   bool SharedState::should_stop() {

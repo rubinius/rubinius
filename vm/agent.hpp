@@ -3,6 +3,8 @@
 #endif
 #include <vector>
 
+#include "auxiliary_threads.hpp"
+#include "gc/managed.hpp"
 #include "util/thread.hpp"
 
 #include "windows_compat.h"
@@ -15,9 +17,7 @@ namespace rubinius {
     class Output;
   }
 
-  class Thread;
-
-  class QueryAgent : public thread::Thread {
+  class QueryAgent : public AuxiliaryThread, public Lockable {
     struct Client {
       enum State {
         eUnknown,
@@ -31,6 +31,7 @@ namespace rubinius {
       Client(int s)
         : state(eUnknown)
         , socket(s)
+        , auth_key(0)
       {}
 
       void set_running() {
@@ -48,16 +49,27 @@ namespace rubinius {
 
     };
 
+    class Thread : public thread::Thread {
+    private:
+      QueryAgent* agent_;
+      bool exit_;
+
+    public:
+      Thread(QueryAgent* agent);
+
+      void stop();
+      virtual void perform();
+    };
+
   private:
     SharedState& shared_;
-    State state_;
-    bool running_;
+    Thread* thread_;
+    bool thread_running_;
     int port_;
     int server_fd_;
     bool verbose_;
     fd_set fds_;
     int max_fd_;
-    bool exit_;
 
     int control_[2];
     int loopback_[2];
@@ -77,23 +89,47 @@ namespace rubinius {
     const static int cBackLog = 10;
 
   public:
-    QueryAgent(SharedState& shared, STATE);
+    QueryAgent(STATE);
     ~QueryAgent();
 
     void set_verbose() {
       verbose_ = true;
     }
 
-    bool running() {
-      return running_;
-    }
-
     int port() {
       return port_;
     }
 
-    State* state() {
-      return &state_;
+    fd_set fds() {
+      return fds_;
+    }
+
+    int max_fd() {
+      return max_fd_;
+    }
+
+    int server_fd() {
+      return server_fd_;
+    }
+
+    bool local_only() {
+      return local_only_;
+    }
+
+    bool use_password() {
+      return use_password_;
+    }
+
+    bool verbose() {
+      return verbose_;
+    }
+
+    uint32_t incr_tmp_key() {
+      return tmp_key_++;
+    }
+
+    void add_socket(Client client) {
+      sockets_.push_back(client);
     }
 
     void add_fd(int fd) {
@@ -133,22 +169,27 @@ namespace rubinius {
       return r2a_[1];
     }
 
-    void wakeup();
+    void initialize(STATE);
+    void start_thread(STATE);
+    void stop_thread(STATE);
 
     bool setup_local();
     bool bind(int port);
 
     void make_discoverable();
 
-    virtual void perform();
     bool check_password(Client& client);
     bool check_file_auth(Client& client);
     bool process_commands(Client& client);
+    bool process_clients(fd_set fds);
 
-    void on_fork();
     void cleanup();
 
-    static bool shutdown(STATE);
-    void shutdown_i();
+    void shutdown(STATE);
+    void before_exec(STATE);
+    void after_exec(STATE);
+    void before_fork(STATE);
+    void after_fork_parent(STATE);
+    void after_fork_child(STATE);
   };
 }

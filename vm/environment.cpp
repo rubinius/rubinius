@@ -69,7 +69,6 @@ namespace rubinius {
     , argv_(argv)
     , signature_(0)
     , version_(0)
-    , agent(0)
   {
 #ifdef ENABLE_LLVM
     if(!llvm::llvm_start_multithreaded()) {
@@ -280,8 +279,6 @@ namespace rubinius {
 
     state->vm()->set_run_signals(true);
     sig_handler_ = new SignalHandler(state);
-    shared->set_signal_handler(sig_handler_);
-    sig_handler_->run(state);
 
 #ifndef RBX_WINDOWS
     // Ignore sigpipe.
@@ -569,11 +566,7 @@ namespace rubinius {
 
     NativeMethod::cleanup_thread(state);
 
-#ifdef ENABLE_LLVM
-    LLVMState::shutdown(state);
-#endif
-
-    SignalHandler::shutdown();
+    shared->auxiliary_threads()->shutdown(state);
 
     // Hold everyone.
     while(!state->stop_the_world());
@@ -609,14 +602,11 @@ namespace rubinius {
   }
 
   void Environment::start_agent(int port) {
-    agent = new QueryAgent(*shared, state);
+    QueryAgent* agent = state->shared().start_agent(state);
+
     if(config.agent_verbose) agent->set_verbose();
 
     if(!agent->bind(port)) return;
-
-    shared->set_agent(agent);
-
-    agent->run();
   }
 
   /**

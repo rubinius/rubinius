@@ -11,6 +11,7 @@
 
 #include "stats.hpp"
 
+#include "auxiliary_threads.hpp"
 #include "globals.hpp"
 #include "symboltable.hpp"
 
@@ -58,6 +59,7 @@ namespace rubinius {
   class SharedState : public RefCount, public Lockable {
   private:
     bool initialized_;
+    AuxiliaryThreads* auxiliary_threads_;
     SignalHandler* signal_handler_;
 
     capi::Handles* global_handles_;
@@ -114,6 +116,10 @@ namespace rubinius {
 
     void set_initialized() {
       initialized_ = true;
+    }
+
+    AuxiliaryThreads* auxiliary_threads() {
+      return auxiliary_threads_;
     }
 
     SignalHandler* signal_handler() {
@@ -214,13 +220,7 @@ namespace rubinius {
       return agent_;
     }
 
-    void set_agent(QueryAgent* agent) {
-      agent_ = agent;
-    }
-
-    QueryAgent* autostart_agent(STATE);
-
-    void stop_agent(STATE);
+    QueryAgent* start_agent(STATE);
 
     Environment* env() {
       return env_;
@@ -256,7 +256,6 @@ namespace rubinius {
 
     void scheduler_loop();
 
-    void pre_exec();
     void reinit(STATE);
 
     bool should_stop();

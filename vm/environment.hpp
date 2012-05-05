@@ -50,7 +50,6 @@ namespace rubinius {
   public:
     SharedState* shared;
     VM* root_vm;
-    QueryAgent* agent;
     State* state;
 
     ConfigParser  config_parser;
