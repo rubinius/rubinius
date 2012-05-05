@@ -378,9 +378,6 @@ containing the Rubinius standard library files.
         @script = file ? file : script
       end
 
-      options.on "-T", "[level]", "Set $SAFE level (NOT IMPLEMENTED)" do |l|
-      end
-
       options.on "-v", "Display the version and set $VERBOSE to true" do
         @run_irb = false
         $VERBOSE = true

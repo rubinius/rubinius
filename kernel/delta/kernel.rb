@@ -127,6 +127,9 @@ module Kernel
   end
   Rubinius::Globals.set_hook(:$0, :[], set)
 
+  set = proc { |key, val| STDERR.puts("WARNING: $SAFE is not supported on Rubinius."); val }
+  Rubinius::Globals.set_hook(:$SAFE, :[], set)
+
   # Alias $0 $PROGRAM_NAME
   Rubinius::Globals.add_alias(:$0, :$PROGRAM_NAME)
 
