@@ -145,7 +145,10 @@ namespace rubinius {
     for(ConfigParser::ConfigVector::iterator i = variables.begin();
         i != variables.end();
         ++i) {
-        if (i->first == name) i->second->value = val;
+        if (i->first == name) {
+          i->second->value = val;
+          return;
+        }
     }
 
     Entry* entry = new ConfigParser::Entry();
