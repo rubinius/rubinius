@@ -11,6 +11,10 @@ describe :net_ftp_request_head, :shared => true do
     @http = Net::HTTP.start("localhost", 3333)
   end
 
+  after(:each) do
+    @http.finish if @http.started?
+  end
+
   describe "when passed no block" do
     it "sends a head request to the passed path and returns the response" do
       response = @http.send(@method, "/request")

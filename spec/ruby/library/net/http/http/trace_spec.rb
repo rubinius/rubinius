@@ -15,6 +15,10 @@ describe "Net::HTTP#trace" do
     @http = Net::HTTP.start("localhost", 3333)
   end
 
+  after(:each) do
+    @http.finish if @http.started?
+  end
+
   it "sends a TRACE request to the passed path and returns the response" do
     response = @http.trace("/request")
     response.body.should == "Request type: TRACE"
