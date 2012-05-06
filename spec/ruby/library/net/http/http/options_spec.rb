@@ -15,6 +15,10 @@ describe "Net::HTTP#options" do
     @http = Net::HTTP.start("localhost", 3333)
   end
 
+  after(:each) do
+    @http.finish if @http.started?
+  end
+
   it "sends an options request to the passed path and returns the response" do
     response = @http.options("/request")
     # OPTIONS responses have no bodies

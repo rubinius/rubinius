@@ -15,6 +15,10 @@ describe "Net::HTTP#mkcol" do
     @http = Net::HTTP.start("localhost", 3333)
   end
 
+  after(:each) do
+    @http.finish if @http.started?
+  end
+
   it "sends a MKCOL request to the passed path and returns the response" do
     response = @http.mkcol("/request")
     response.should be_kind_of(Net::HTTPResponse)

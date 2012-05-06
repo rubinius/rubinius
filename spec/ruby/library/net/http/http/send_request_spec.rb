@@ -15,6 +15,10 @@ describe "Net::HTTP#send_request" do
     @http = Net::HTTP.start("localhost", 3333)
   end
 
+  after(:each) do
+    @http.finish if @http.started?
+  end
+
   # TODO: Does only work with GET and POST requests
   describe "when passed type, path" do
     it "sends a HTTP Request of the passed type to the passed path" do

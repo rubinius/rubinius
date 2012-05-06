@@ -15,6 +15,10 @@ describe "Net::HTTP#proppatch" do
     @http = Net::HTTP.start("localhost", 3333)
   end
 
+  after(:each) do
+    @http.finish if @http.started?
+  end
+
   it "sends an proppatch request to the passed path and returns the response" do
     response = @http.proppatch("/request", "test=test")
     response.body.should == "Request type: PROPPATCH"

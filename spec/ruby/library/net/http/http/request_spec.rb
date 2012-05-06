@@ -15,6 +15,10 @@ describe "Net::HTTP#request" do
     @http = Net::HTTP.start("localhost", 3333)
   end
 
+  after(:each) do
+    @http.finish if @http.started?
+  end
+
   describe "when passed request_object" do
     it "makes a HTTP Request based on the passed request_object" do
       response = @http.request(Net::HTTP::Get.new("/request"), "test=test")
