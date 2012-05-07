@@ -887,7 +887,6 @@ end
 #   Indicate that the next send is allowed to see `private` methods.
 
 instruction allow_private() [ -- ]
-  SET_ALLOW_PRIVATE(true);
 end
 
 # [Description]
@@ -904,8 +903,6 @@ instruction send_method(literal) [ receiver -- value ] => send
   flush_ip();
   Object* recv = stack_top();
   InlineCache* cache = reinterpret_cast<InlineCache*>(literal);
-
-  SET_ALLOW_PRIVATE(false);
 
   Arguments args(cache->name, recv, cNil, 0, 0);
   Object* ret = cache->execute(state, call_frame, args);
@@ -943,8 +940,6 @@ instruction send_stack(literal count) [ receiver +count -- value ] => send
   flush_ip();
   Object* recv = stack_back(count);
   InlineCache* cache = reinterpret_cast<InlineCache*>(literal);
-
-  SET_ALLOW_PRIVATE(false);
 
   Arguments args(cache->name, recv, cNil, count,
                  stack_back_position(count));
@@ -989,8 +984,6 @@ instruction send_stack_with_block(literal count) [ block receiver +count -- valu
 
   Arguments args(cache->name, recv, block, count,
                  stack_back_position(count));
-
-  SET_ALLOW_PRIVATE(false);
 
   Object* ret = cache->execute(state, call_frame, args);
 
@@ -1044,7 +1037,6 @@ instruction send_stack_with_splat(literal count) [ block array receiver +count -
   }
 
   SET_CALL_FLAGS(0);
-  SET_ALLOW_PRIVATE(false);
 
   Object* ret = cache->execute(state, call_frame, args);
 
@@ -1077,8 +1069,6 @@ instruction send_super_stack_with_block(literal count) [ block +count -- value ]
 
   Arguments new_args(cache->name, recv, block, count,
                      stack_back_position(count));
-
-  SET_ALLOW_PRIVATE(false);
 
   Object* ret = cache->execute(state, call_frame, new_args);
 
@@ -1122,7 +1112,6 @@ instruction send_super_stack_with_splat(literal count) [ block array +count -- v
   }
 
   SET_CALL_FLAGS(0);
-  SET_ALLOW_PRIVATE(false);
 
   Symbol* current_name = call_frame->original_name();
   if(cache->name != current_name) {
@@ -2074,8 +2063,6 @@ instruction zsuper(literal) [ block -- value ]
   Arguments new_args(cache->name, recv, block, arg_count, 0);
   new_args.use_tuple(tup, arg_count);
 
-  SET_ALLOW_PRIVATE(false);
-
   Object* ret;
 
   Symbol* current_name = call_frame->original_name();
@@ -2260,8 +2247,6 @@ instruction call_custom(literal count) [ receiver +count -- value ] => send
   Object* recv = stack_back(count);
   InlineCache* cache = reinterpret_cast<InlineCache*>(literal);
 
-  SET_ALLOW_PRIVATE(false);
-
   Arguments args(cache->name, recv, cNil, count,
                  stack_back_position(count));
 
@@ -2284,8 +2269,6 @@ instruction meta_to_s(literal) [ object -- string ] => send
   if(!kind_of<String>(stack_top())) {
     flush_ip();
     InlineCache* cache = reinterpret_cast<InlineCache*>(literal);
-
-    SET_ALLOW_PRIVATE(false);
 
     Arguments args(cache->name, stack_top(), cNil, 0, 0);
     Object* ret = cache->execute(state, call_frame, args);

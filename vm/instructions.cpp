@@ -74,8 +74,6 @@ using namespace rubinius;
 #define SET_CALL_FLAGS(val) is.call_flags = (val)
 #define CALL_FLAGS() is.call_flags
 
-#define SET_ALLOW_PRIVATE(val) is.allow_private = (val)
-
 Object* VMMethod::interpreter(STATE,
                               VMMethod* const vmm,
                               InterpreterCallFrame* const call_frame)
