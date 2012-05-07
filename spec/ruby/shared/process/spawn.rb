@@ -390,6 +390,32 @@ describe :process_spawn, :shared => true do
 
   # :close_others
 
+  it "closes file descriptors >= 3 in the child process" do
+    IO.pipe do |r, w|
+      begin
+        pid = @object.spawn(ruby_cmd("sleep"))
+        w.close
+        lambda { r.read_nonblock(1) }.should raise_error(EOFError)
+      ensure
+        Process.kill(:TERM, pid)
+        Process.wait(pid)
+      end
+    end
+  end
+
+  it "does not close file descriptors >= 3 in the child process when given a false :close_others option" do
+    IO.pipe do |r, w|
+      begin
+        pid = @object.spawn(ruby_cmd("sleep"), :close_others => false)
+        w.close
+        lambda { r.read_nonblock(1) }.should raise_error(Errno::EAGAIN)
+      ensure
+        Process.kill(:TERM, pid)
+        Process.wait(pid)
+      end
+    end
+  end
+
   # error handling
 
   it "raises an ArgumentError if passed no command arguments" do
