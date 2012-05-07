@@ -347,7 +347,6 @@ namespace rubinius {
     if(removed) return value;
 
     std::ostringstream ss;
-    mod = this;
     if(SingletonClass* sc = try_as<SingletonClass>(mod)) {
       mod = as<Module>(sc->attached_instance());
     }
