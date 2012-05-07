@@ -454,6 +454,21 @@ describe "Global variable $?" do
       $? = nil
     }.should raise_error(NameError)
   end
+
+  ruby_version_is ""..."1.9" do
+    it "is shared across threads" do
+      system("true")
+      pid = $?.pid
+      Thread.new { $?.pid.should == pid }.join
+    end
+  end
+
+  ruby_version_is "1.9" do
+    it "is thread-local" do
+      system("true")
+      Thread.new { $?.should be_nil }.join
+    end
+  end
 end
 
 describe "Global variable $-a" do
