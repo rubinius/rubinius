@@ -337,7 +337,7 @@ module Process
     status, termsig, stopsig, pid = value
 
     status = Process::Status.new(pid, status, termsig, stopsig)
-    Rubinius::Globals.set! :$?, status
+    set_status_global status
     [pid, status]
   end
 

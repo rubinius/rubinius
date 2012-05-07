@@ -136,7 +136,6 @@ module Kernel
   Rubinius::Globals.read_only :$:, :$LOAD_PATH, :$-I
   Rubinius::Globals.read_only :$", :$LOADED_FEATURES
   Rubinius::Globals.read_only :$<
-  Rubinius::Globals.read_only :$?
 
   Rubinius::Globals[:$-a] = false
   Rubinius::Globals[:$-l] = false

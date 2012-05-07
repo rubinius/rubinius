@@ -242,6 +242,13 @@ module Rubinius
 end
 
 module Process
+  Rubinius::Globals.read_only :$?
+  Rubinius::Globals.set_hook(:$?) { Thread.current[:$?] }
+
+  def self.set_status_global(status)
+    Thread.current[:$?] = status
+  end
+
   def self.daemon(stay_in_dir=false, keep_stdio_open=false)
     # Do not run at_exit handlers in the parent
     exit!(0) if fork

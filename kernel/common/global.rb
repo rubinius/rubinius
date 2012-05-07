@@ -24,7 +24,6 @@ module Rubinius
       @internal[:$"] = loaded_features
       @internal[:$,] = nil              # Output field separator
       @internal[:$.] = 0
-      @internal[:$?] = nil              # Process status. nil until set
       @internal[:$=] = false            # ignore case, whatever that is
       @internal[:$0] = nil
       @internal[:$CONSOLE]         = STDOUT

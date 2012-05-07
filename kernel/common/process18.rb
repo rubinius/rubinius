@@ -1,4 +1,10 @@
 module Process
+  Rubinius::Globals.read_only :$?
+
+  def self.set_status_global(status)
+    Rubinius::Globals.set! :$?, status
+  end
+
   def self.exec(cmd, *args)
     if args.empty? and cmd.kind_of? String
       raise Errno::ENOENT if cmd.empty?
