@@ -289,6 +289,23 @@ module Process
       pid
     end
   end
+
+  # TODO: Should an error be raised on ECHILD? --rue
+  #
+  # TODO: This operates on the assumption that waiting on
+  #       the event consumes very little resources. If this
+  #       is not the case, the check should be made WNOHANG
+  #       and called periodically.
+  #
+  def self.detach(pid)
+    raise ArgumentError, "Only positive pids may be detached" unless pid > 0
+
+    thread = Thread.new { Process.wait pid; $? }
+    thread[:pid] = pid
+    def thread.pid; self[:pid] end
+
+    thread
+  end
 end
 
 module Kernel
