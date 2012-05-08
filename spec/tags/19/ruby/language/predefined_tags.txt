@@ -1,3 +1,2 @@
 fails:Predefined global $~ raises an error if assigned an object not nil or instanceof MatchData
 fails:Execution variable $: does not include the current directory
-fails:Execution variable $: does not include '.' when the taint check level > 1
