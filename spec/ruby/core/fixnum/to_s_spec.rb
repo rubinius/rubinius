@@ -6,6 +6,7 @@ describe "Fixnum#to_s when given a base" do
     12345.to_s(8).should == "30071"
     12345.to_s(10).should == "12345"
     12345.to_s(16).should == "3039"
+    95.to_s(16).should == "5f"
     12345.to_s(36).should == "9ix"
   end
 
