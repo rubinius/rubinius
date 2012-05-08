@@ -11,4 +11,8 @@ describe "Regexp#hash" do
     (/cat/.hash   == /cat/ix.hash).should == false
     (/cat/.hash   == /dog/.hash).should == false
   end
+
+  it "returns the same value for two Regexps differing only in the /n option" do
+    (//.hash == //n.hash).should == true
+  end
 end

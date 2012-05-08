@@ -18,4 +18,26 @@ describe "Regexp#options" do
     (/cat/xi.options & Regexp::IGNORECASE).should_not == 0
     (/cat/xi.options & Regexp::EXTENDED).should_not == 0
   end
+
+  ruby_version_is "1.9" do
+    it "includes Regexp::FIXEDENCODING for a Regexp literal with the 'u' option" do
+      (//u.options & Regexp::FIXEDENCODING).should_not == 0
+    end
+
+    it "includes Regexp::FIXEDENCODING for a Regexp literal with the 'e' option" do
+      (//e.options & Regexp::FIXEDENCODING).should_not == 0
+    end
+
+    it "includes Regexp::FIXEDENCODING for a Regexp literal with the 's' option" do
+      (//s.options & Regexp::FIXEDENCODING).should_not == 0
+    end
+
+    it "does not include Regexp::FIXEDENCODING for a Regexp literal with the 'n' option" do
+      (//n.options & Regexp::FIXEDENCODING).should == 0
+    end
+
+    it "includes Regexp::NOENCODING for a Regexp literal with the 'n' option" do
+      (//n.options & Regexp::NOENCODING).should_not == 0
+    end
+  end
 end

@@ -9,6 +9,30 @@ describe "Regexp#inspect" do
     /a(.)+s/m.inspect.should == "/a(.)+s/m"     # But a specified one does
   end
 
+  it "returns options in the order 'mixn'" do
+    //nixm.inspect.should == "//mixn"
+  end
+
+  it "does not include the 'o' option" do
+    //o.inspect.should == "//"
+  end
+
+  ruby_version_is ""..."1.9" do
+    it "includes the character set code after other options" do
+      //xu.inspect.should  == "//xu"
+      //six.inspect.should == "//ixs"
+      //ni.inspect.should  == "//in"
+    end
+  end
+
+  ruby_version_is "1.9" do
+    it "does not include a character set code" do
+      //u.inspect.should == "//"
+      //s.inspect.should == "//"
+      //e.inspect.should == "//"
+    end
+  end
+
   it "correctly escapes forward slashes /" do
     Regexp.new("/foo/bar").inspect.should == "/\\/foo\\/bar/"
     Regexp.new("/foo/bar[/]").inspect.should == "/\\/foo\\/bar[\\/]/"
