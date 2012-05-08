@@ -1,7 +1,7 @@
 require File.expand_path('../../../spec_helper', __FILE__)
 require File.expand_path('../shared/new', __FILE__)
 
-describe "Range.compile" do
+describe "Regexp.compile" do
   it_behaves_like :regexp_new, :compile
 end
 
