@@ -100,7 +100,7 @@ typedef unsigned long unsigned_time_t;
 // lifted from MRI's configure on OS X, probably right on most unix platforms?
 #define NEGATIVE_TIME_T 1
 
-const char* timezone_extended(struct tm* tptr) {
+const char* timezone_extended(const struct tm* tptr) {
 #ifdef HAVE_TM_ZONE
   return tptr->tm_zone;
 #elif HAVE_TZNAME && HAVE_DAYLIGHT
@@ -860,27 +860,10 @@ strftime_extended(char *s, size_t maxsize, const char *format, const struct tm *
 				tp = "UTC";
 				break;
 			}
-#if defined(HAVE_TZNAME) && defined(HAVE_DAYLIGHT)
-			i = (daylight && timeptr->tm_isdst > 0); /* 0 or 1 */
-			tp = tzname[i];
-#else
-#ifdef HAVE_TM_ZONE
-			tp = timeptr->tm_zone;
-#else
-#ifdef HAVE_TM_NAME
-			tp = timeptr->tm_name;
-#else
-#ifdef HAVE_TIMEZONE
-			gettimeofday(& tv, & zone);
-#ifdef TIMEZONE_VOID
-			tp = timezone();
-#else
-			tp = timezone(zone.tz_minuteswest, timeptr->tm_isdst > 0);
-#endif /* TIMEZONE_VOID */
-#endif /* HAVE_TIMEZONE */
-#endif /* HAVE_TM_NAME */
-#endif /* HAVE_TM_ZONE */
-#endif /* HAVE_TZNAME */
+			tp = timezone_extended(timeptr);
+			if (!tp) {
+				tp = "";
+			}
 			i = strlen(tp);
 			break;
 
