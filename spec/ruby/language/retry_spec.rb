@@ -30,6 +30,12 @@ describe "The retry statement" do
 
     results.should == [1, 2, 3, 1, 2, 4, 5, 6, 4, 5]
   end
+
+  ruby_version_is "1.9" do
+    it "raises a SyntaxError when used outside of a begin statement" do
+      lambda { eval 'retry' }.should raise_error(SyntaxError)
+    end
+  end
 end
 
 describe "The retry keyword inside a begin block's rescue block" do

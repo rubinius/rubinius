@@ -34,9 +34,5 @@ with_feature :fiber do
       end
       o.f.should == 2
     end
-
-    it "raises a SyntaxError when the block contains a retry statement" do
-      lambda { eval 'Fiber.new { retry; }' }.should raise_error(SyntaxError)
-    end
   end
 end
