@@ -114,6 +114,10 @@ class Module
   def constants(all=undefined)
     tbl = Rubinius::LookupTable.new
 
+    # When calling `constants` on "normal" classes the result does not include
+    # their own class name. BasicObject is a special case in this regard.
+    tbl[:BasicObject] = true if self == BasicObject
+
     @constant_table.each do |name, val|
       tbl[name] = true
     end
