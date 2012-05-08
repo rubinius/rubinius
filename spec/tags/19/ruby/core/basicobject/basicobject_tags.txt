@@ -1,3 +1,2 @@
 fails:BasicObject raises NameError when referencing built-in constants
 fails:BasicObject does not define built-in constants (according to defined?)
-fails:BasicObject includes itself in its list of constants
