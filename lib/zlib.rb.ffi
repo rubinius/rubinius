@@ -392,6 +392,12 @@ module Zlib
 
     alias :close :end
 
+    def ended?
+      !ready?
+    end
+
+    alias :closed? :ended?
+
     def expand_output
       if @output.nil? then
         @output = ''
@@ -459,8 +465,6 @@ module Zlib
     def ready?
       @flags & READY == READY
     end
-    alias :closed? :ready?
-    alias :ended? :ready?
 
     ##
     # Resets and initializes the stream. All data in both input and output
