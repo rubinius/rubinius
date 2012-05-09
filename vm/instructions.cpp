@@ -47,8 +47,6 @@ using namespace rubinius;
 #define stack_pop() (*STACK_PTR--)
 #define stack_set_top(val) *STACK_PTR = (val)
 
-#define USE_JUMP_TABLE
-
 #define stack_top() (*STACK_PTR)
 #define stack_back(count) (*(STACK_PTR - count))
 #define stack_clear(count) STACK_PTR -= count
