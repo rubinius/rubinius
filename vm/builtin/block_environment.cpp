@@ -281,11 +281,7 @@ namespace rubinius {
     }
 #endif
 
-    size_t scope_size = sizeof(StackVariables) +
-                         (vmm->number_of_locals * sizeof(Object*));
-
-    StackVariables* scope =
-      reinterpret_cast<StackVariables*>(alloca(scope_size));
+    StackVariables* scope = ALLOCA_STACKVARIABLES(vmm->number_of_locals);
 
     Module* mod = invocation.module;
     if(!mod) mod = env->module();

@@ -562,10 +562,7 @@ namespace rubinius {
       CompiledMethod* cm = as<CompiledMethod>(exec);
       VMMethod* vmm = cm->backend_method();
 
-      size_t scope_size = sizeof(StackVariables) +
-        (vmm->number_of_locals * sizeof(Object*));
-      StackVariables* scope =
-        reinterpret_cast<StackVariables*>(alloca(scope_size));
+      StackVariables* scope = ALLOCA_STACKVARIABLES(vmm->number_of_locals);
       // Originally, I tried using msg.module directly, but what happens is if
       // super is used, that field is read. If you combine that with the method
       // being called recursively, msg.module can change, causing super() to
@@ -639,10 +636,7 @@ namespace rubinius {
   Object* VMMethod::execute_as_script(STATE, CompiledMethod* cm, CallFrame* previous) {
     VMMethod* vmm = cm->backend_method();
 
-    size_t scope_size = sizeof(StackVariables) +
-      (vmm->number_of_locals * sizeof(Object*));
-    StackVariables* scope =
-      reinterpret_cast<StackVariables*>(alloca(scope_size));
+    StackVariables* scope = ALLOCA_STACKVARIABLES(vmm->number_of_locals);
     // Originally, I tried using msg.module directly, but what happens is if
     // super is used, that field is read. If you combine that with the method
     // being called recursively, msg.module can change, causing super() to

@@ -75,6 +75,9 @@ namespace rubinius {
 
     friend class GarbageCollector;
   };
+
+#define ALLOCA_STACKVARIABLES(local_size) \
+  (StackVariables*)alloca(sizeof(StackVariables) + (sizeof(Object*) * local_size))
 }
 
 #endif
