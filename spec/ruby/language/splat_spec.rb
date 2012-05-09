@@ -52,6 +52,10 @@ describe "Splat operator" do
         a = *1; a.should == [1]
       end
 
+      it "assigns the splatted object contained into an array when the splatted object is a result of 'obj || []'" do
+        a = *(1 || []); a.should == [1]
+      end
+
       it "assigns the returned value of to_a when the splatted object responds to to_a" do
         o = mock(Object)
         o.should_receive(:to_a).once.and_return(["foo"])
