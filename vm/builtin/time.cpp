@@ -96,7 +96,8 @@ namespace rubinius {
   Time* Time::from_array(STATE, Object* self, 
                          Fixnum* sec, Fixnum* min, Fixnum* hour,
                          Fixnum* mday, Fixnum* mon, Fixnum* year, Fixnum* nsec,
-                         Fixnum* isdst, Object* from_gmt, Object* offset) {
+                         Fixnum* isdst, Object* from_gmt, Object* offset,
+                         Fixnum* offset_sec, Fixnum* offset_nsec) {
     struct tm tm;
 
     tm.tm_sec = sec->to_native();
@@ -158,8 +159,16 @@ namespace rubinius {
     obj->nanoseconds_ = nsec->to_native();
     obj->is_gmt(state, CBOOL(from_gmt) ? cTrue : cFalse);
 
-    if(Fixnum* off = try_as<Fixnum>(offset)) {
-      obj->seconds_ -= off->to_native();
+    if(!offset->nil_p()) {
+      obj->seconds_ -= offset_sec->to_native();
+      obj->nanoseconds_ -= offset_nsec->to_native();
+
+      // Deal with underflow wrapping
+      if(obj->nanoseconds_ < 0) {
+        obj->seconds_ += NDIV(obj->nanoseconds_, 1000000000);
+        obj->nanoseconds_ = NMOD(obj->nanoseconds_, 1000000000);
+      }
+
       obj->offset(state, offset);
     }
 
