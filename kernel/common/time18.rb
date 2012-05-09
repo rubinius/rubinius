@@ -44,7 +44,15 @@ class Time
 
     sec = sec.kind_of?(String) ? sec.to_i : Rubinius::Type.coerce_to(sec || 0, Integer, :to_int)
 
-    from_array(sec, min, hour, mday, month, year, nsec || 0, is_dst, from_gmt, utc_offset)
+    if utc_offset
+      utc_offset_sec = utc_offset.to_i
+      utc_offset_nsec = ((utc_offset % 1.0) * 1_000_000_000 + 0.5).to_i
+    else
+      utc_offset_sec = 0
+      utc_offset_nsec = 0
+    end
+
+    from_array(sec, min, hour, mday, month, year, nsec || 0, is_dst, from_gmt, utc_offset, utc_offset_sec, utc_offset_nsec)
   end
 
   def inspect
