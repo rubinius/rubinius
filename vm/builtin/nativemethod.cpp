@@ -18,7 +18,6 @@
 #include "builtin/string.hpp"
 #include "builtin/system.hpp"
 #include "builtin/tuple.hpp"
-#include "builtin/capi_handle.hpp"
 #include "builtin/location.hpp"
 #include "builtin/ffi_pointer.hpp"
 
