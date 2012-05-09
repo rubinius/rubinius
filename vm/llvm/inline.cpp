@@ -165,7 +165,7 @@ namespace rubinius {
           Value* rt_rd = ops_.constant(rd, ops_.state()->ptr_type("jit::RuntimeData"));
 
           // cm
-          Value* rd_method = 
+          Value* rd_method =
             ops_.b().CreateBitCast(
               ops_.b().CreateLoad(
                 ops_.b().CreateConstGEP2_32(rt_rd, 0, offset::runtime_data_method, "method_pos"),

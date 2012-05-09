@@ -50,7 +50,7 @@ class TestChannel : public CxxTest::TestSuite, public VMTest {
     TS_ASSERT_EQUALS(lst->size(), 0U);
   }
 
-  void compare_interval_in_range(struct timeval start, struct timeval finish, 
+  void compare_interval_in_range(struct timeval start, struct timeval finish,
 				 suseconds_t tmin, suseconds_t tmax) {
     time_t sec = finish.tv_sec - start.tv_sec;
     suseconds_t actual = sec * 1000000 - start.tv_usec + finish.tv_usec;

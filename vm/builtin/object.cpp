@@ -160,7 +160,7 @@ namespace rubinius {
     if(reference_p() && is_frozen_p()) return cTrue;
     return cFalse;
   }
-  
+
   void Object::check_frozen(STATE) {
     if(frozen_p(state) == cTrue) {
       const char* reason = "can't modify frozen object";

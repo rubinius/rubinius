@@ -17,7 +17,7 @@ namespace rubinius {
   class JITMethodInfo;
   class VMMethod;
   class BackgroundCompileRequest;
-  
+
 
 namespace jit {
   class Context;

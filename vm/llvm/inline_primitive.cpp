@@ -412,7 +412,7 @@ namespace rubinius {
       i.context().leave_inline();
     }
 
-    void float_op(MathOperation op) { 
+    void float_op(MathOperation op) {
       log("float_op");
       i.context().enter_inline();
 

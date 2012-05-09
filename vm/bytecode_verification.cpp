@@ -69,7 +69,7 @@ namespace rubinius {
     // FIXME
     //
     // This is conditional because in 1.8 mode, CM's for blocks have arity
-    // info that isn't used, but therefore fails these checks because 
+    // info that isn't used, but therefore fails these checks because
     // of the way 'for' works.
     //
     // FIXME

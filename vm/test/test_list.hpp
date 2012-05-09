@@ -39,7 +39,7 @@ public:
     lst->append(state, one);
     TS_ASSERT_EQUALS(lst->locate(state, 1), one);
     TS_ASSERT_EQUALS(lst->size(), (size_t)2);
-    
+
     lst->append(state, two);
     TS_ASSERT_EQUALS(lst->locate(state, 2), two);
     TS_ASSERT_EQUALS(lst->size(), (size_t)3);
@@ -52,7 +52,7 @@ public:
 
     TS_ASSERT_EQUALS(lst->shift(state), one);
     TS_ASSERT_EQUALS(lst->size(), (size_t)1);
-    
+
     TS_ASSERT_EQUALS(lst->shift(state), two);
     TS_ASSERT_EQUALS(lst->size(), (size_t)0);
   }
@@ -66,7 +66,7 @@ public:
 
     TS_ASSERT_EQUALS(lst->remove(state, one), (size_t)2);
     TS_ASSERT_EQUALS(lst->size(), (size_t)2);
-    
+
     TS_ASSERT_EQUALS(lst->remove(state, two), (size_t)2);
     TS_ASSERT_EQUALS(lst->size(), (size_t)0);
   }

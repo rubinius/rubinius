@@ -193,7 +193,7 @@ namespace rubinius {
     }
 
     // print out all the frames to stderr
-    static const char header[] = 
+    static const char header[] =
       "Rubinius Crash Report #rbxcrashreport\n\n"
       "Error: signal ";
 

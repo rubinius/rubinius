@@ -527,7 +527,7 @@ class TestFixnum : public CxxTest::TestSuite, public VMTest {
   }
 
   void test_right_shift_moves_to_zero() {
-    Integer* i = Fixnum::from(5)->right_shift(state, 
+    Integer* i = Fixnum::from(5)->right_shift(state,
                    Fixnum::from(sizeof(native_int) * 8));
     TS_ASSERT_EQUALS(i, Fixnum::from(0));
   }

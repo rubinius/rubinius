@@ -151,7 +151,7 @@ namespace thread {
       if(err != 0) {
         if(err == EDEADLK) {
           std::cout << "Thread deadlock in ::join()!\n";
-          abort();   
+          abort();
         }
 
         // Ignore the other errors, since they mean there is no thread

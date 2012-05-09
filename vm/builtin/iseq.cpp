@@ -8,7 +8,7 @@
 
 namespace rubinius {
   void InstructionSequence::init(STATE) {
-    GO(iseq).set(ontology::new_class(state, 
+    GO(iseq).set(ontology::new_class(state,
           "InstructionSequence", G(object), G(rubinius)));
     G(iseq)->set_object_type(state, InstructionSequenceType);
   }

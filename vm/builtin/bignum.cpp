@@ -189,7 +189,7 @@ namespace rubinius {
         }
 
         for(; i < l2; i++) {
-          DIGIT(n,i) = (sign == MP_ZPOS) ? 
+          DIGIT(n,i) = (sign == MP_ZPOS) ?
                           DIGIT(d2,i) :
                           (~DIGIT(d2,i) & (DIGIT_RADIX-1));
         }
@@ -1106,7 +1106,7 @@ namespace rubinius {
 
     for(int i = sz - 1; i >= 0; i--) {
       Integer* tmp = big->left_shift(state, Fixnum::from(32));
-      big = tmp->fixnum_p() ? 
+      big = tmp->fixnum_p() ?
               Bignum::from(state, tmp->to_native()) :
               as<Bignum>(tmp);
 

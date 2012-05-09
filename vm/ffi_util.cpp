@@ -70,8 +70,8 @@ void *ffi_read_pointer(void **ptr) {
   return *ptr;
 }
 
-void *ffi_add_ptr(char *ptr, int offset) { 
-  return (void*)(ptr + offset); 
+void *ffi_add_ptr(char *ptr, int offset) {
+  return (void*)(ptr + offset);
 }
 
 int ffi_type_size(int type) {

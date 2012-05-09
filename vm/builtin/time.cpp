@@ -93,7 +93,7 @@ namespace rubinius {
     return tm;
   }
 
-  Time* Time::from_array(STATE, Object* self, 
+  Time* Time::from_array(STATE, Object* self,
                          Fixnum* sec, Fixnum* min, Fixnum* hour,
                          Fixnum* mday, Fixnum* mon, Fixnum* year, Fixnum* nsec,
                          Fixnum* isdst, Object* from_gmt, Object* offset,

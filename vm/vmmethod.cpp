@@ -689,7 +689,7 @@ namespace rubinius {
   // If +disable+ is set, then the method is tagged as not being
   // available for JIT.
   void VMMethod::deoptimize(STATE, CompiledMethod* original,
-                            jit::RuntimeDataHolder* rd, 
+                            jit::RuntimeDataHolder* rd,
                             bool disable)
   {
 #ifdef ENABLE_LLVM
