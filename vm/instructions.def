@@ -216,9 +216,7 @@ end
 #   ...
 
 instruction pop_many(count) [ +count -- ]
-  for(intptr_t i = 0; i < count; i++) {
-    (void)stack_pop();
-  }
+  stack_clear(count);
 end
 
 # [Description]
