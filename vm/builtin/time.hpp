@@ -42,7 +42,7 @@ namespace rubinius {
     static Time* now(STATE, Object* self);
 
     // Rubinius.primitive :time_s_from_array
-    static Time* from_array(STATE, Object* self, Fixnum* sec, Fixnum* min, Fixnum* hour, Fixnum* mday, Fixnum* mon, Fixnum* year, Fixnum* nsec, Fixnum* isdst, Object* from_gmt, Object* offset);
+    static Time* from_array(STATE, Object* self, Fixnum* sec, Fixnum* min, Fixnum* hour, Fixnum* mday, Fixnum* mon, Fixnum* year, Fixnum* nsec, Fixnum* isdst, Object* from_gmt, Object* offset, Fixnum* offset_sec, Fixnum* offset_nsec);
 
     // Rubinius.primitive :time_s_dup
     static Time* dup(STATE, Object* self, Time* other);
