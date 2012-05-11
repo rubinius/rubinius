@@ -1,2 +1,0 @@
-This gem is bundled with Rubinius to satisfy dependencies on ffi gem. Rubinius
-provides FFI natively.
