@@ -25,4 +25,11 @@ describe :time_gmt_offset, :shared => true do
       Time.local(2010,4,4,3,0,0).send(@method).should == 12*60*60
     end
   end
+
+  ruby_version_is "1.9" do
+    it "returns offset as Rational" do
+      Time.new(2010,4,4,1,59,59,7245).send(@method).should == 7245
+      Time.new(2010,4,4,1,59,59,7245.5).send(@method).should == Rational(14491,2)
+    end
+  end
 end
