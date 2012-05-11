@@ -993,7 +993,7 @@ module Marshal
     end
 
     if major != MAJOR_VERSION or minor > MINOR_VERSION
-      raise TypeError, "incompatible marshal file format (can't be read)\n\tformat version #{MAJOR_VERSION}.#{MINOR_VERSION} required; #{major}.#{minor} given"
+      raise TypeError, "incompatible marshal file format (can't be read)\n\tformat version #{MAJOR_VERSION}.#{MINOR_VERSION} required; #{major.inspect}.#{minor.inspect} given"
     end
 
     ms.construct
