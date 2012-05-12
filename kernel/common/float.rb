@@ -102,6 +102,8 @@ class Float < Numeric
     Rubinius.primitive :float_compare
     b, a = math_coerce other, :compare_error
     a <=> b
+  rescue ArgumentError
+    nil
   end
 
   def ==(other)
