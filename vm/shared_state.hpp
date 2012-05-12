@@ -242,7 +242,9 @@ namespace rubinius {
 
     bool check_gc_p() {
       bool c = check_gc_;
-      check_gc_ = false;
+      if (unlikely(c)) {
+        check_gc_ = false;
+      }
       return c;
     }
 
