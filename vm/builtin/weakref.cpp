@@ -28,7 +28,7 @@ namespace rubinius {
 
   void WeakRef::Info::mark(Object* obj, ObjectMark& mark) {
     WeakRef* ref = as<WeakRef>(obj);
-    if(ref->alive_p()) {
+    if(ref->reference_alive_p()) {
       mark.gc->add_weak_ref(obj);
     }
   }

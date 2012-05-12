@@ -12,6 +12,7 @@ namespace rubinius {
 
   private:
     Object* object_;
+    bool reference_;
 
   public:
 
@@ -20,7 +21,7 @@ namespace rubinius {
       return object_;
     }
 
-    void set_object(gc::WriteBarrier* wb, Object* obj) {
+    void update_object(gc::WriteBarrier* wb, Object* obj) {
       object_ = obj;
       write_barrier(wb, obj);
     }
@@ -28,6 +29,7 @@ namespace rubinius {
     // Rubinius.primitive :weakref_set_object
     Object* set_object(STATE, Object* obj) {
       object_ = obj;
+      reference_ = obj->reference_p();
       write_barrier(state, obj);
       return obj;
     }
@@ -37,8 +39,18 @@ namespace rubinius {
     // Rubinius.primitive+ :weakref_new
     static WeakRef* create(STATE, Object* obj);
 
-    bool alive_p() {
-      return object_->reference_p();
+
+    bool reference_alive_p() {
+      return reference_ && object_->reference_p();
+    }
+
+    // Rubinius.primitive :weakref_alive_p
+    Object* alive_p() {
+      if(reference_ && !object_->reference_p()) {
+        return cFalse;
+      } else {
+        return cTrue;
+      }
     }
 
     class Info : public TypeInfo {
