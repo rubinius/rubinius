@@ -12,6 +12,10 @@ describe "Float#<=>" do
     (1771.176 <=> nan_value).should be_nil
   end
 
+  it "returns nil when the given argument is not a Float" do
+    (1.0 <=> "1").should be_nil
+  end
+
   # TODO: Remove duplicate ruby_bug guards when ruby_bug is fixed.
   ruby_bug "[ruby-dev:38672] [Bug #1645]", "1.8.7" do
     # The 4 tests below are taken from matz's revision 23730 for Ruby trunk
