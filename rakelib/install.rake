@@ -62,7 +62,7 @@ def install_file(source, pattern, dest)
 end
 
 desc "Install Rubinius"
-task :install => %w[ build install:files ]
+task :install => %w[ build:build install:files gem_bootstrap install:done]
 
 namespace :install do
   desc "Install all the Rubinius files"
@@ -160,8 +160,11 @@ namespace :install do
       rescue NotImplementedError
         # ignore
       end
+    end
+  end
 
-      STDOUT.puts <<-EOM
+  task :done do
+    STDOUT.puts <<-EOM
 --------
 
 Successfully installed Rubinius #{BUILD_CONFIG[:version]}
@@ -173,8 +176,7 @@ Add '#{BUILD_CONFIG[:bindir]}' to your PATH. Available commands are:
   1. Run Ruby files with '#{BUILD_CONFIG[:program_name]} path/to/file.rb'
   2. Start IRB by running '#{BUILD_CONFIG[:program_name]}' with no arguments
 
-      EOM
-    end
+    EOM
   end
 end
 
