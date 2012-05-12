@@ -204,15 +204,26 @@ namespace :clean do
   end
 end
 
-desc 'Move the preinstalled gem setup into place'
+desc 'Install the pre-installed gems'
 task :gem_bootstrap do
-  pre_gems = Dir["preinstalled-gems/data/specifications/*.gemspec"].sort
-  ins_gems = Dir["gems/rubinius/specifications/*.gemspec"].sort
-  unless pre_gems == ins_gems
-    FileUtils.rm_rf "gems/rubinius"
-    FileUtils.mkdir_p "gems/rubinius"
-    FileUtils.cp_r "preinstalled-gems/bin", "gems/bin"
-    FileUtils.cp_r "preinstalled-gems/data", "gems/rubinius/preinstalled"
+  STDOUT.puts "Installing pre-installed gems..."
+
+  rbx = "#{BUILD_CONFIG[:bindir]}/#{BUILD_CONFIG[:program_name]}"
+  gems = Dir["preinstalled-gems/*.gem"]
+  options = "--local --conservative --ignore-dependencies --no-rdoc --no-ri"
+
+  BUILD_CONFIG[:version_list].each do |ver|
+    gems.each do |gem|
+      parts = File.basename(gem, ".gem").split "-"
+      gem_name = parts[0..-2].join "-"
+      gem_version = parts[-1]
+
+      system "#{rbx} -X#{ver} -S gem query --name-matches #{gem_name} --installed --version #{gem_version} > #{DEV_NULL}"
+
+      unless $?.success?
+        sh "#{rbx} -X#{ver} -S gem install #{options} #{gem}"
+      end
+    end
   end
 end
 
