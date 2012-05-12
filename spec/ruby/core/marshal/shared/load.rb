@@ -323,6 +323,11 @@ describe :marshal_load, :shared => true do
       obj.instance_variable_set(:@self, obj)
       Marshal.send(@method, "\004\bI\"\ahi\006:\n@self@\000").should == obj
     end
+
+    it "loads a string through StringIO stream" do
+        obj = "This is a string which should be unmarshalled through StringIO stream!"
+        Marshal.send(@method, StringIO.new(Marshal.dump(obj))).should == obj
+    end
   end
 
   describe "for a Struct" do
