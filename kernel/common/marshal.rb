@@ -916,7 +916,7 @@ module Marshal
     end
 
     def consume_byte
-      b = @stream.getc
+      b = @stream.getbyte
       raise EOFError unless b
       b
     end
