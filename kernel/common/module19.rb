@@ -148,5 +148,7 @@ class Module
   end
 
   def public_constant(*names)
+    unknown_constants = names - @constant_table.keys
+    raise NameError, "Constant #{name}::#{unknown_constants.first} not defined" if unknown_constants.size > 0
   end
 end
