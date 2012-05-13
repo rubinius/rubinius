@@ -1,0 +1,2 @@
+class Hash
+end
