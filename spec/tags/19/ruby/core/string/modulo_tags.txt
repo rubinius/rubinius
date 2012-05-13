@@ -7,3 +7,5 @@ fails:String#% formats zero without prefix using %#x
 fails:String#% formats zero without prefix using %#X
 fails:String#% when format string contains %{} sections replaces %{} sections with values from passed-in hash
 fails:String#% when format string contains %{} sections raises KeyError if key is missing from passed-in hash
+fails:String#% supports negative integers using %d, giving priority to `-`
+fails:String#% supports negative integers using %i, giving priority to `-`
