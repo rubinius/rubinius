@@ -1,1 +1,0 @@
-fails:CApiBignumSpecs rb_big2ulong wraps around if passed a negative bignum

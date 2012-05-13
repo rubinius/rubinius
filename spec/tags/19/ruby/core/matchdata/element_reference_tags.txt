@@ -1,1 +1,0 @@
-fails:MatchData#[Symbol] returns matches in the String's encoding

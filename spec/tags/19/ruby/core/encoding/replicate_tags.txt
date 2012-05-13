@@ -1,1 +1,0 @@
-fails:Encoding#replicate returns a replica of ISO-2022-JP

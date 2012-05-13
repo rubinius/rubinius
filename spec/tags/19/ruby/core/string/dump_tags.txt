@@ -1,5 +1,2 @@
-fails:String#dump returns a string with non-printing ASCII characters replaced by \x notation
-fails:String#dump returns a string with non-printing single-byte UTF-8 characters replaced by \x notation
 fails:String#dump returns a string with multi-byte UTF-8 characters replaced by \u{} notation with lower-case hex digits
 fails:String#dump includes .force_encoding(name) if the encoding isn't ASCII compatible
-fails:String#dump untrusts the result if self is untrusted
