@@ -118,7 +118,6 @@ class Configure
     # Library configuration
     @rb_readline = false
     @vendor_zlib = false
-    @libyaml = false
 
     # Essential settings (modify these for creating releases)
     @libversion = "2.0"
@@ -735,9 +734,13 @@ Unsupported language version requested: #{ver}. Options are #{@supported_version
         yield f
       end
 
+      File.open source, "rb" do |f|
+        @log.log f.read
+      end
+
       libs = (default_link_libs + link_libs).map { |l| "-l#{l}" }.join(" ")
 
-      cmd = "#{@cxx} #{env('CFLAGS')} -lstdc++ #{libs} -o #{basename} #{source} >>#{@log.path} 2>&1"
+      cmd = "#{@cxx} #{env('CFLAGS')} -o #{basename} #{source} -lstdc++ #{libs} >>#{@log.path} 2>&1"
       @log.log cmd
       system cmd
       return $?.exitstatus unless run
@@ -947,6 +950,21 @@ int main() { return tgetnum(""); }
     end
   end
 
+  def has_library(name, function, libraries, includes=[])
+    @log.print "Checking for library: #{name}: "
+
+    status = check_program true, libraries do |src|
+      includes.each do |i|
+        src.puts "#include <#{i}>"
+      end
+      src.puts "int main() { void* ptr = (void*)(&#{function}); return 0; }"
+    end
+
+    success = status == 0
+    @log.write(success ? "found!" : "not found!")
+    success
+  end
+
   def compile_check(logpart, &block)
     @log.print "Checking for #{logpart}: "
 
@@ -1003,11 +1021,15 @@ int main() { return tgetnum(""); }
     @defines << "HAVE_SPT_REUSEARGV" if @linux || @darwin || @bsd
   end
 
-  def detect_functions
-    if has_function("yaml_parser_initialize", ["yaml.h"])
-      @libyaml = true
+  def detect_libraries
+    if @version_list.include? "19" or @version_list.include? "20"
+      unless has_library("libyaml", "yaml_parser_initialize", ["yaml"], ["yaml.h"])
+        failure "libyaml is required for 1.9 and above"
+      end
     end
+  end
 
+  def detect_functions
     if has_function("clock_gettime", ["time.h"])
       @defines << "HAVE_CLOCK_GETTIME"
     end
@@ -1118,6 +1140,7 @@ int main() { return tgetnum(""); }
     detect_tr1_hash
     detect_x86
     detect_features
+    detect_libraries
     detect_functions
     detect_structures
     detect_globals
@@ -1280,7 +1303,6 @@ module Rubinius
     :default_version => "#{@default_version}",
     :vendor_zlib    => #{@vendor_zlib},
     :readline       => :#{@rb_readline ? :rb_readline : :c_readline},
-    :libyaml        => #{@libyaml}
   }
 end
       EOC

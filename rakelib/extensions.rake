@@ -177,9 +177,7 @@ if enabled_19
                                :env => "-X19"
   end
 
-  if BUILD_CONFIG[:libyaml]
-    compile_ext "19/psych", :deps => ["Makefile"], :dir => "lib/19/psych/ext", :env => "-X19"
-  end
+  compile_ext "19/psych", :deps => ["Makefile"], :dir => "lib/19/psych/ext", :env => "-X19"
 
   compile_ext "19/syck", :deps => ["Makefile"], :dir => "lib/19/syck/ext", :env => "-X19"
 
