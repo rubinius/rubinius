@@ -1,3 +1,5 @@
+# -*- encoding: us-ascii -*-
+
 class Hash
   attr_reader :size
   attr_reader :capacity
