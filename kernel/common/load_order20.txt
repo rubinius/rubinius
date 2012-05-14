@@ -96,6 +96,8 @@ random19.rbc
 regexp.rbc
 regexp19.rbc
 signal.rbc
+splitter.rbc
+splitter19.rbc
 sprinter.rbc
 symbol.rbc
 symbol19.rbc

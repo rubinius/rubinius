@@ -733,44 +733,4 @@ class String
     end
     return replacement
   end
-
-  def split_characters(pattern, limit, tail_empty)
-    start = 0
-    ret = []
-
-    kcode = $KCODE
-
-    begin
-      if pattern.options and kc = pattern.kcode
-        $KCODE = kc
-      end
-
-      if limit
-        iterations = limit - 1
-        while c = self.find_character(start)
-          ret << c
-          start += c.size
-          iterations -= 1
-
-          break if iterations == 0
-        end
-
-        ret << self[start..-1]
-      else
-        while c = self.find_character(start)
-          ret << c
-          start += c.size
-        end
-
-        # Use #byteslice because it returns the right class and taints
-        # automatically. This is just appending a "", which is this
-        # strange protocol if a negative limit is passed in
-        ret << byteslice(0,0) if tail_empty
-      end
-    ensure
-      $KCODE = kcode
-    end
-
-    return ret
-  end
 end

@@ -848,17 +848,4 @@ class String
     end
     return replacement
   end
-
-  def split_characters(pattern, limit, tail_empty)
-    if limit
-      chars.take(limit - 1) << self[(limit - 1)..-1]
-    else
-      ret = chars.to_a
-      # Use #byteslice because it returns the right class and taints
-      # automatically. This is just appending a "", which is this
-      # strange protocol if a negative limit is passed in
-      ret << byteslice(0,0) if tail_empty
-      ret
-    end
-  end
 end
