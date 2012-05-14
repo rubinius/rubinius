@@ -91,7 +91,7 @@ class Hash
       end
     end
 
-    return val
+    val
   end
 
   def [](key)
