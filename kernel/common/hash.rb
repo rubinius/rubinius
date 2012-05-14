@@ -120,16 +120,14 @@ class Hash
   def each_key
     return to_enum(:each_key) unless block_given?
 
-    each_item { |e| yield e.key }
+    each_item { |item| yield item.key }
     self
   end
 
   def each_value
     return to_enum(:each_value) unless block_given?
 
-    each_item do |item|
-      yield item.value
-    end
+    each_item { |item| yield item.value }
     self
   end
 
