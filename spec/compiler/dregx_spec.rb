@@ -112,7 +112,7 @@ describe "A Dregx node" do
       g.meta_to_s
       g.string_build 1
 
-      g.push 16
+      g.push 512
       g.send :new, 2
     end
   end
@@ -131,7 +131,7 @@ describe "A Dregx node" do
 
         g.string_build 2
 
-        g.push 16
+        g.push 512
         g.send :new, 2
       end
     end

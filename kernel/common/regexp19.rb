@@ -1,6 +1,32 @@
 # -*- encoding: us-ascii -*-
 
 class Regexp
+  FIXEDENCODING = 16
+  NOENCODING    = 32
+
+  OPTION_MASK = IGNORECASE | EXTENDED | MULTILINE | FIXEDENCODING | NOENCODING | DONT_CAPTURE_GROUP | CAPTURE_GROUP
+
+  def initialize(pattern, opts=nil, lang=nil)
+    if pattern.kind_of?(Regexp)
+      opts = pattern.options
+      pattern = pattern.source
+    elsif opts.kind_of?(Fixnum)
+      opts = opts & (OPTION_MASK | KCODE_MASK) if opts > 0
+    elsif opts
+      opts = IGNORECASE
+    else
+      opts = 0
+    end
+
+    opts |= NOENCODING if lang == 'n'
+
+    compile pattern, opts
+  end
+
+  def initialize_copy(other)
+    initialize other.source, other.options
+  end
+
   def self.try_convert(obj)
     Rubinius::Type.try_convert obj, Regexp, :to_regexp
   end
@@ -42,8 +68,59 @@ class Regexp
     end
   end
 
+  def eql?(other)
+    return false unless other.kind_of?(Regexp)
+    return false unless source == other.source
+    (options & ~NOENCODING) == (other.options & ~NOENCODING)
+  end
+
+  alias_method :==, :eql?
+
+  def hash
+    str = '/' << source << '/' << option_to_string(options)
+    str.hash
+  end
+
+  def inspect
+    # the regexp matches any / that is after anything except for a \
+    escape = source.gsub(%r!(\\.)|/!) { $1 || '\/' }
+    str = "/#{escape}/#{option_to_string(options)}"
+    str << 'n' if (options & NOENCODING) > 0
+    str
+  end
+
   def encoding
     source.encoding
+  end
+
+  def self.union(*patterns)
+    case patterns.size
+    when 0
+      return %r/(?!)/
+    when 1
+      pat = patterns.first
+      case pat
+      when Array
+        return union(*pat)
+      when Regexp
+        return pat
+      else
+        return Regexp.new(Regexp.quote(StringValue(pat)))
+      end
+    end
+
+    str = ""
+    patterns.each_with_index do |pat, idx|
+      str << "|" if idx != 0
+
+      if pat.kind_of? Regexp
+        str << pat.to_s
+      else
+        str << Regexp.quote(StringValue(pat))
+      end
+    end
+
+    Regexp.new(str)
   end
 
   def self.escape(str)
