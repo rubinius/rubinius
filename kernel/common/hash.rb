@@ -142,7 +142,6 @@ class Hash
     each_item do |item|
       return item.key if item.value == value
     end
-    nil
   end
 
   def inspect

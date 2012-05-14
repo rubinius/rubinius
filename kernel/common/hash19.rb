@@ -199,7 +199,6 @@ class Hash
 
   def assoc(key)
     each_item { |e| return e.key, e.value if key == e.key }
-    nil
   end
 
   def compare_by_identity
@@ -434,7 +433,6 @@ class Hash
 
   def rassoc(value)
     each_item { |e| return e.key, e.value if value == e.value }
-    nil
   end
 
   def replace(other)
