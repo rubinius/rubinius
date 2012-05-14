@@ -138,6 +138,13 @@ class Hash
     @size == 0
   end
 
+  def index(value)
+    each_item do |item|
+      return item.key if item.value == value
+    end
+    nil
+  end
+
   def inspect
     out = []
     return '{...}' if Thread.detect_recursion self do

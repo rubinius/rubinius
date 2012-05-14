@@ -325,14 +325,7 @@ class Hash
     to_a.flatten(level)
   end
 
-  def key(value)
-    each_item do |item|
-      return item.key if item.value == value
-    end
-    nil
-  end
-
-  alias_method :index, :key
+  alias_method :key, :index
 
   def keep_if(&block)
     return to_enum(:keep_if) unless block_given?

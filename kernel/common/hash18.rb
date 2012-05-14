@@ -259,13 +259,6 @@ class Hash
     end
   end
 
-  def index(value)
-    each_item do |item|
-      return item.key if item.value == value
-    end
-    nil
-  end
-
   def initialize(default=undefined, &block)
     Rubinius.check_frozen
 
