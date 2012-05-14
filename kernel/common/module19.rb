@@ -149,6 +149,8 @@ class Module
 
   def public_constant(*names)
     unknown_constants = names - @constant_table.keys
-    raise NameError, "Constant #{name}::#{unknown_constants.first} not defined" if unknown_constants.size > 0
+    if unknown_constants.size > 0
+      raise NameError, "#{unknown_constants.size > 1 ? 'Constants' : 'Constant'} #{unknown_constants.map{|e| "#{name}::#{e}"}.join(', ')} undefined"
+    end
   end
 end
