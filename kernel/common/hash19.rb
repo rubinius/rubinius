@@ -349,11 +349,6 @@ class Hash
   end
   private :initialize
 
-  def initialize_copy(other)
-    replace other
-  end
-  private :initialize_copy
-
   alias_method :to_s, :inspect
 
   def merge!(other)
@@ -455,6 +450,9 @@ class Hash
 
     self
   end
+
+  alias_method :initialize_copy, :replace
+  private :initialize_copy
 
   def select
     return to_enum(:select) unless block_given?
