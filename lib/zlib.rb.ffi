@@ -325,6 +325,27 @@ module Zlib
       self[:avail_out]
     end
 
+    def avail_out=(size)
+      raise ArgumentError, "negative string size (or size too big)" if size < 0
+
+      return size if size == self[:avail_out]
+
+      if @output.nil?
+        @output = ''
+        @next_out = FFI::MemoryPointer.new(size) if @next_out.nil?
+        @next_out.write_string("\000" * size)
+      else
+        buf = @next_out.read_string(@next_out.total - self[:avail_out])
+        @next_out.free
+        @next_out = FFI::MemoryPointer.new(buf.size + size)
+        @next_out.write_string(buf)
+      end
+
+      self[:next_out] = @next_out
+
+      self[:avail_out] = size
+    end
+
     def closing?
       @flags & CLOSING == CLOSING
     end
