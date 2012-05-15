@@ -281,14 +281,6 @@ class Hash
   end
   private :each_item
 
-  def each
-    return to_enum(:each) unless block_given?
-
-    each_item { |item| yield [item.key, item.value] }
-
-    self
-  end
-
   alias_method :each_pair, :each
 
   def fetch(key, default=undefined)

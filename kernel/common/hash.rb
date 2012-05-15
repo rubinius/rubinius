@@ -117,6 +117,14 @@ class Hash
     self
   end
 
+  def each
+    return to_enum(:each) unless block_given?
+
+    each_item { |item| yield [item.key, item.value] }
+
+    self
+  end
+
   def each_key
     return to_enum(:each_key) unless block_given?
 
