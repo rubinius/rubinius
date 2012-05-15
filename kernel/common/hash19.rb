@@ -283,13 +283,7 @@ class Hash
   def each
     return to_enum(:each) unless block_given?
 
-    return unless @state
-
-    item = @state.head
-    while item
-      yield [item.key, item.value]
-      item = item.next
-    end
+    each_item { |item| yield [item.key, item.value] }
 
     self
   end

@@ -209,19 +209,7 @@ class Hash
   def each
     return to_enum(:each) unless block_given?
 
-    idx = 0
-    cap = @capacity
-    entries = @entries
-
-    while idx < cap
-      item = entries[idx]
-      while item
-        yield [item.key, item.value]
-        item = item.link
-      end
-
-      idx += 1
-    end
+    each_item { |item| yield [item.key, item.value] }
 
     self
   end
