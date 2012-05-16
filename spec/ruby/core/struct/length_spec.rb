@@ -6,4 +6,10 @@ describe "Struct#length" do
     StructClasses::Car.new('Cadillac', 'DeVille').length.should == 3
     StructClasses::Car.new.length.should == 3
   end
+
+  it "does not override the instance accessor method" do
+    struct = Struct.new :length
+    instance = struct.new 42
+    instance.length.should == 42
+  end
 end
