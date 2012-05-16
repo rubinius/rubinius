@@ -85,6 +85,8 @@ Daedalus.blueprint do |i|
     gcc.ldflags << "-lexecinfo"
   end
 
+  gcc.ldflags << Rubinius::BUILD_CONFIG[:user_ldflags]
+
   # Files
   subdirs = %w[ builtin capi util instruments gc llvm missing ].map do |x|
     "vm/#{x}/*.{cpp,c}"
