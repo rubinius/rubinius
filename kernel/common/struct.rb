@@ -35,6 +35,7 @@ class Struct
 
     klass = Class.new self do
 
+      _specialize attrs
       attr_accessor(*attrs)
 
       def self.new(*args, &block)
@@ -46,7 +47,6 @@ class Struct
       end
 
       const_set :STRUCT_ATTRS, attrs
-      _specialize attrs
     end
 
     Struct.const_set klass_name, klass if klass_name

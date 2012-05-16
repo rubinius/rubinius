@@ -1,5 +1,6 @@
 require File.expand_path('../../../spec_helper', __FILE__)
 require File.expand_path('../fixtures/classes', __FILE__)
+require File.expand_path('../shared/accessor', __FILE__)
 
 describe "Struct#select" do
   it "raises an ArgumentError if given any non-block arguments" do
@@ -15,4 +16,6 @@ describe "Struct#select" do
     struct = StructClasses::Car.new("Ford", "Escort", "1995")
     struct.select { true }.should be_kind_of(Array)
   end
+
+  it_behaves_like :struct_accessor, :length
 end
