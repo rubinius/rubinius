@@ -88,7 +88,7 @@ module Rubinius
     end
 
     def line
-      @code.line_from_ip(0)
+      @code.defined_line
     end
 
     class AsMethod < Executable

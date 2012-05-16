@@ -558,6 +558,7 @@ module Rubinius
         blk = new_block_generator g, @arguments
 
         blk.push_state self
+        blk.definition_line @line
         blk.state.push_super state.super
         blk.state.push_eval state.eval
 
