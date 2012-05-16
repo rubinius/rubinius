@@ -31,4 +31,10 @@ describe "Struct#hash" do
     end
   end
 
+  it "does not override the instance accessor method" do
+    expected = {:one => "one"}
+    struct = Struct.new(:hash)
+    instance = struct.new(expected)
+    instance.hash.should == expected
+  end
 end
