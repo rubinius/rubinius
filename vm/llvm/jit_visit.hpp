@@ -447,6 +447,9 @@ namespace rubinius {
       throw Unsupported();
     }
 
+    void visit_noop() {
+    }
+
     void visit_pop() {
       stack_remove(1);
     }
