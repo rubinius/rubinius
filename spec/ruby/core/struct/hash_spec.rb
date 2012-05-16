@@ -1,5 +1,6 @@
 require File.expand_path('../../../spec_helper', __FILE__)
 require File.expand_path('../fixtures/classes', __FILE__)
+require File.expand_path('../shared/accessor', __FILE__)
 
 describe "Struct#hash" do
 
@@ -31,10 +32,5 @@ describe "Struct#hash" do
     end
   end
 
-  it "does not override the instance accessor method" do
-    expected = {:one => "one"}
-    struct = Struct.new(:hash)
-    instance = struct.new(expected)
-    instance.hash.should == expected
-  end
+  it_behaves_like :struct_accessor, :hash
 end

@@ -1,5 +1,6 @@
 require File.expand_path('../../../spec_helper', __FILE__)
 require File.expand_path('../fixtures/classes', __FILE__)
+require File.expand_path('../shared/accessor', __FILE__)
 
 describe "Struct#length" do
   it "returns the number of attributes" do
@@ -7,9 +8,5 @@ describe "Struct#length" do
     StructClasses::Car.new.length.should == 3
   end
 
-  it "does not override the instance accessor method" do
-    struct = Struct.new :length
-    instance = struct.new 42
-    instance.length.should == 42
-  end
+  it_behaves_like :struct_accessor, :length
 end
