@@ -63,10 +63,16 @@ module Rubinius
       end
 
       def print_lines(cm)
-        print "Lines to IP: "
         lines = cm.lines
         size = lines.size - 1
         i = 1
+
+        if lines[0] == -1
+          puts  "Line:        #{lines[1]}"
+          i += 2
+        end
+
+        print "Lines to IP: "
         while i < size
           print "#{lines[i]}: #{lines[i - 1]}..#{lines[i + 1] - 1}"
           i += 2
