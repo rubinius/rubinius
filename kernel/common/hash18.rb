@@ -62,10 +62,6 @@ class Hash
 
   # Hash methods
 
-  # #entries is a method provided by Enumerable which calls #to_a,
-  # so we have to not collide with that.
-  attr_reader_specific :entries, :__entries__
-
   # Overridden in lib/1.8.7 or lib/1.9
   def self.[](*args)
     if args.size == 1

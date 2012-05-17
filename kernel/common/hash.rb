@@ -27,6 +27,10 @@ class Hash
     hash
   end
 
+  # #entries is a method provided by Enumerable which calls #to_a,
+  # so we have to not collide with that.
+  attr_reader_specific :entries, :__entries__
+
   def ==(other)
     return true if self.equal? other
     unless other.kind_of? Hash

@@ -113,12 +113,6 @@ class Hash
 
   # Hash methods
 
-  # #entries is a method provided by Enumerable which calls #to_a,
-  # so we have to not collide with that.
-  def __entries__
-    @entries
-  end
-
   # Overridden in lib/1.8.7 or lib/1.9
   def self.[](*args)
     if args.size == 1
