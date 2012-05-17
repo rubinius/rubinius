@@ -66,8 +66,8 @@ namespace rubinius {
       return bytes_used_;
     }
 
-    Symbol* lookup(SharedState* shared, std::string str);
-    Symbol* lookup(STATE, std::string str);
+    Symbol* lookup(SharedState* shared, const std::string& str);
+    Symbol* lookup(STATE, const std::string& str);
     Symbol* lookup(STATE, const char* str, size_t length);
     Symbol* lookup(STATE, String* str);
     String* lookup_string(STATE, const Symbol* sym);

@@ -96,11 +96,11 @@ namespace rubinius {
     return 0;
   }
 
-  Symbol* SymbolTable::lookup(SharedState* shared, std::string str) {
+  Symbol* SymbolTable::lookup(SharedState* shared, const std::string& str) {
     return lookup(str.data(), str.size(), shared->hash_seed);
   }
 
-  Symbol* SymbolTable::lookup(STATE, std::string str) {
+  Symbol* SymbolTable::lookup(STATE, const std::string& str) {
     return lookup(str.data(), str.size(), state->hash_seed());
   }
 
@@ -125,7 +125,7 @@ namespace rubinius {
         symbols[hash] = v;
       } else {
         SymbolIds& v = entry->second;
-        for(SymbolIds::iterator i = v.begin(); i != v.end(); ++i) {
+        for(SymbolIds::const_iterator i = v.begin(); i != v.end(); ++i) {
           std::string& s = strings[*i];
 
           if(!strncmp(s.data(), str, length)) return Symbol::from_index(*i);
