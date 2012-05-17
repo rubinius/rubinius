@@ -771,4 +771,23 @@ class IO
       to_enum :each_line, *args
     end
   end
+
+  def advise(advice, offset = 0, len = 0)
+    raise IOError, "stream is closed" if closed?
+    raise TypeError, "advice must be a Symbol" unless advice.kind_of?(Symbol)
+
+    if offset.kind_of?(Bignum) || len.kind_of?(Bignum)
+      raise RangeError, "bignum too big to convert into `long'"
+    end
+
+    unless [:normal, :sequential, :random, :noreuse, :dontneed, :willneed].include? advice
+      raise NotImplementedError, "Unsupported advice: #{advice}"
+    end
+
+    offset = Rubinius::Type.coerce_to offset, Integer, :to_int
+    len = Rubinius::Type.coerce_to len, Integer, :to_int
+
+    Rubinius.primitive :io_advise
+    nil
+  end
 end
