@@ -236,7 +236,7 @@ namespace rubinius {
     void compile_callframe(STATE, CompiledMethod* start, CallFrame* call_frame,
                            int primitive = -1);
 
-    Symbol* symbol(const std::string sym);
+    Symbol* symbol(const std::string& sym);
     std::string symbol_debug_str(const Symbol* sym);
 
     std::string enclosure_name(CompiledMethod* cm);

@@ -639,7 +639,7 @@ namespace rubinius {
     background_thread_->gc_scan(gc);
   }
 
-  Symbol* LLVMState::symbol(const std::string sym) {
+  Symbol* LLVMState::symbol(const std::string& sym) {
     return symbols_.lookup(&shared_, sym);
   }
 
