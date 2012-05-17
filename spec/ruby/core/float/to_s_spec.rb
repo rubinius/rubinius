@@ -70,7 +70,7 @@ describe "Float#to_s" do
   end
 
   ruby_version_is "1.9" do
-    it "uses non-e format for a positive value with whole part having 16 decimal places" do
+    it "uses non-e format for a positive value with whole part having 15 decimal places" do
       1000000000000000.0.to_s.should == "1000000000000000.0"
     end
 
