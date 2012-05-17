@@ -28,6 +28,7 @@
 #include "builtin/fixnum.hpp"
 #include "builtin/array.hpp"
 #include "builtin/string.hpp"
+#include "builtin/symbol.hpp"
 #include "primitives.hpp"
 
 #include "vm.hpp"
@@ -703,6 +704,37 @@ namespace rubinius {
     int n = ::write(descriptor_->to_native(), buf->byte_address(), buf_size);
     if(n == -1) Exception::errno_error(state, "write_nonblock");
     return Fixnum::from(n);
+  }
+
+  Object* IO::advise(STATE, Symbol* advice_name, Integer* offset, Integer* len) {
+#ifdef HAVE_POSIX_FADVISE
+    int advice = 0;
+
+    if (advice_name == state->symbol("normal")) {
+      advice = POSIX_FADV_NORMAL;
+    } else if (advice_name == state->symbol("sequential")) {
+      advice = POSIX_FADV_SEQUENTIAL;
+    } else if (advice_name == state->symbol("random")) {
+      advice = POSIX_FADV_RANDOM;
+    } else if (advice_name == state->symbol("willneed")) {
+      advice = POSIX_FADV_WILLNEED;
+    } else if (advice_name == state->symbol("dontneed")) {
+      advice = POSIX_FADV_DONTNEED;
+    } else if (advice_name == state->symbol("noreuse")) {
+      advice = POSIX_FADV_NOREUSE;
+    } else {
+      std::ostringstream msg;
+      msg << "Unsupported advice: " << advice_name->cpp_str(state);
+      Exception::not_implemented_error(state, msg.str().c_str());
+    }
+
+    int erno = posix_fadvise(to_fd(), offset->to_long_long(), len->to_long_long(), advice);
+
+    if (erno)
+      Exception::errno_error(state, "posfix_fadvise(2) failed", erno);
+#endif
+
+    return cNil;
   }
 
   Array* ipaddr(STATE, struct sockaddr* addr, socklen_t len) {

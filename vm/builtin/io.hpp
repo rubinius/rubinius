@@ -128,6 +128,9 @@ namespace rubinius {
     // Rubinius.primitive :io_write_nonblock
     Object* write_nonblock(STATE, String* buf);
 
+    // Rubinius.primitive :io_advise
+    Object* advise(STATE, Symbol* advice_name, Integer* offset, Integer* len);
+
     void set_nonblock(STATE);
 
     class Info : public TypeInfo {

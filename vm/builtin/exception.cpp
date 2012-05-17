@@ -343,6 +343,10 @@ namespace rubinius {
     RubyException::raise(make_exception(state, get_runtime_error(state), reason));
   }
 
+  void Exception::not_implemented_error(STATE, const char* reason) {
+    RubyException::raise(make_exception(state, get_not_implemented_error(state), reason));
+  }
+
   bool Exception::argument_error_p(STATE, Exception* exc) {
     return exc->kind_of_p(state, get_argument_error(state));
   }
@@ -445,6 +449,10 @@ namespace rubinius {
 
   Class* Exception::get_io_error(STATE) {
     return as<Class>(G(object)->get_const(state, "IOError"));
+  }
+
+  Class* Exception::get_not_implemented_error(STATE) {
+    return as<Class>(G(object)->get_const(state, "NotImplementedError"));
   }
 
   void Exception::Info::show(STATE, Object* self, int level) {
