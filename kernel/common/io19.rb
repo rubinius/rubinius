@@ -31,7 +31,7 @@ class IO
       offset, opts = nil, offset
     end
 
-    mode, binary, external, internal = IO.normalize_options(nil, opts)
+    mode, binary, external, internal, autoclose = IO.normalize_options(nil, opts)
     unless mode
       mode = File::CREAT | File::RDWR | File::BINARY
       mode |= File::TRUNC unless offset
@@ -53,7 +53,7 @@ class IO
       offset, opts = nil, offset
     end
 
-    mode, binary, external, internal = IO.normalize_options(nil, opts)
+    mode, binary, external, internal, autoclose = IO.normalize_options(nil, opts)
     unless mode
       mode = File::CREAT | File::RDWR
       mode |= File::TRUNC unless offset
@@ -203,6 +203,7 @@ class IO
 
   def self.normalize_options(mode, options)
     mode = nil if mode.equal?(undefined)
+    autoclose = true
 
     if options.equal?(undefined)
       options = Rubinius::Type.try_convert(mode, Hash, :to_hash)
@@ -228,6 +229,8 @@ class IO
       else
         mode = optmode
       end
+
+      autoclose = !!options[:autoclose] if options.key?(:autoclose)
     end
 
     if mode.kind_of?(String)
@@ -264,7 +267,7 @@ class IO
       end
     end
 
-    [mode, binary, external, internal]
+    [mode, binary, external, internal, autoclose]
   end
 
   #
@@ -275,7 +278,7 @@ class IO
       warn 'IO::new() does not take block; use IO::open() instead'
     end
 
-    mode, binary, external, internal = IO.normalize_options(mode, options)
+    mode, binary, external, internal, @autoclose = IO.normalize_options(mode, options)
 
     IO.setup self, Rubinius::Type.coerce_to(fd, Integer, :to_int), mode
 
@@ -284,6 +287,10 @@ class IO
   end
 
   private :initialize
+
+  def autoclose?
+    @autoclose
+  end
 
   # Argument matrix for IO#gets and IO#each:
   #
@@ -664,7 +671,7 @@ class IO
   #  26166 is here, f is #<IO:0x401b3d44>
   #  #<Process::Status: pid=26166,exited(0)>
   def self.popen(str, mode=undefined, options=undefined)
-    mode, binary, external, internal = IO.normalize_options(mode, options)
+    mode, binary, external, internal, autoclose = IO.normalize_options(mode, options)
     mode = parse_mode(mode || 'r')
 
     readable = false

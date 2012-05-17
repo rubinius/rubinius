@@ -1,2 +1,0 @@
-fails:IO.new accepts an :autoclose option
-fails:IO.new accepts any truthy option :autoclose

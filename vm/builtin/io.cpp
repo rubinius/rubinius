@@ -36,6 +36,7 @@
 
 #include "vm/object_utils.hpp"
 #include "vm/on_stack.hpp"
+#include "vm/configuration.hpp"
 
 #include "capi/handle.hpp"
 
@@ -540,7 +541,11 @@ namespace rubinius {
         }
       }
 
-      ::close(fd);
+      if (LANGUAGE_18_ENABLED(state)) {
+        ::close(fd);
+      } else if (io->autoclose_ != cFalse) {
+        ::close(fd);
+      }
     }
   }
 

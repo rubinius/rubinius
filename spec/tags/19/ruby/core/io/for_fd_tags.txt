@@ -1,2 +1,0 @@
-fails:IO.for_fd accepts an :autoclose option
-fails:IO.for_fd accepts any truthy option :autoclose

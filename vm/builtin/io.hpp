@@ -22,7 +22,7 @@ namespace rubinius {
     Object* sync_;       // slot
     Encoding* external_; // slot
     Encoding* internal_; // slot
-
+    Object* autoclose_;  // slot
 
   public:
     /* accessors */
@@ -35,6 +35,7 @@ namespace rubinius {
     attr_accessor(sync, Object);
     attr_accessor(external, Encoding);
     attr_accessor(internal, Encoding);
+    attr_accessor(autoclose, Object);
 
     /* interface */
 
