@@ -35,54 +35,54 @@ describe "Float#to_s" do
     1.0e20.to_s.should == "1.0e+20"
   end
 
-  it "uses non-e format for a positive value with fractional part having 4 decimal places" do
+  it "uses non-e format for a positive value with fractional part having 5 significant figures" do
     0.0001.to_s.should == "0.0001"
   end
 
-  it "uses non-e format for a negative value with fractional part having 4 decimal places" do
+  it "uses non-e format for a negative value with fractional part having 5 significant figures" do
     -0.0001.to_s.should == "-0.0001"
   end
 
-  it "uses e format for a positive value with fractional part having 5 decimal places" do
+  it "uses e format for a positive value with fractional part having 6 significant figures" do
     0.00001.to_s.should == "1.0e-05"
   end
 
-  it "uses e format for a negative value with fractional part having 5 decimal places" do
+  it "uses e format for a negative value with fractional part having 6 significant figures" do
     -0.00001.to_s.should == "-1.0e-05"
   end
 
-  it "uses non-e format for a positive value with whole part having 14 decimal places" do
+  it "uses non-e format for a positive value with whole part having 15 significant figures" do
     10000000000000.0.to_s.should == "10000000000000.0"
   end
 
-  it "uses non-e format for a negative value with whole part having 14 decimal places" do
+  it "uses non-e format for a negative value with whole part having 15 significant figures" do
     -10000000000000.0.to_s.should == "-10000000000000.0"
   end
 
   ruby_version_is "" ... "1.9" do
-    it "uses e format for a positive value with whole part having 15 decimal places" do
+    it "uses e format for a positive value with whole part having 16 significant figures" do
       100000000000000.0.to_s.should == "1.0e+14"
     end
 
-    it "uses e format for a negative value with whole part having 15 decimal places" do
+    it "uses e format for a negative value with whole part having 16 significant figures" do
       -100000000000000.0.to_s.should == "-1.0e+14"
     end
   end
 
   ruby_version_is "1.9" do
-    it "uses non-e format for a positive value with whole part having 16 decimal places" do
+    it "uses non-e format for a positive value with whole part having 17 significant figures" do
       1000000000000000.0.to_s.should == "1000000000000000.0"
     end
 
-    it "uses non-e format for a negative value with whole part having 15 decimal places" do
+    it "uses non-e format for a negative value with whole part having 17 significant figures" do
       -1000000000000000.0.to_s.should == "-1000000000000000.0"
     end
 
-    it "uses e format for a positive value with whole part having 16 decimal places" do
+    it "uses e format for a positive value with whole part having 18 significant figures" do
       10000000000000000.0.to_s.should == "1.0e+16"
     end
 
-    it "uses e format for a negative value with whole part having 16 decimal places" do
+    it "uses e format for a negative value with whole part having 18 significant figures" do
       -10000000000000000.0.to_s.should == "-1.0e+16"
     end
   end
