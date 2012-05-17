@@ -730,8 +730,10 @@ namespace rubinius {
 
     int erno = posix_fadvise(to_fd(), offset->to_long_long(), len->to_long_long(), advice);
 
-    if (erno)
+    if (erno) {
       Exception::errno_error(state, "posfix_fadvise(2) failed", erno);
+    }
+
 #endif
 
     return cNil;
