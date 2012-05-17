@@ -112,6 +112,11 @@ class Hash
     self
   end
 
+  def default=(value)
+    @default_proc = nil
+    @default = value
+  end
+
   def delete_if(&block)
     return to_enum(:delete_if) unless block_given?
 

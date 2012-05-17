@@ -148,11 +148,6 @@ class Hash
     end
   end
 
-  def default=(value)
-    @default_proc = false
-    @default = value
-  end
-
   def default_proc
     @default if @default_proc
   end
