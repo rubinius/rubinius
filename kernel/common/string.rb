@@ -254,29 +254,6 @@ class String
     str.delete!(*strings) || str
   end
 
-  def delete!(*strings)
-    raise ArgumentError, "wrong number of arguments" if strings.empty?
-    self.modify!
-
-    table = count_table(*strings).__data__
-
-    i, j = 0, -1
-    while i < @num_bytes
-      c = @data[i]
-      unless table[c] == 1
-        @data[j+=1] = c
-      end
-      i += 1
-    end
-
-    if (j += 1) < @num_bytes
-      self.num_bytes = j
-      self
-    else
-      nil
-    end
-  end
-
   def clear
     Rubinius.check_frozen
     self.num_bytes = 0
