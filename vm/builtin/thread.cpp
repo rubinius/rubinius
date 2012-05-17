@@ -101,7 +101,7 @@ namespace rubinius {
     std::list<ObjectHeader*>& los = vm_->locked_objects();
     for(std::list<ObjectHeader*>::iterator i = los.begin();
         i != los.end();
-        i++) {
+        ++i) {
       (*i)->unlock_for_terminate(state, gct);
     }
     los.clear();
@@ -218,7 +218,7 @@ namespace rubinius {
     std::list<ObjectHeader*>& los = vm->locked_objects();
     for(std::list<ObjectHeader*>::iterator i = los.begin();
         i != los.end();
-        i++) {
+        ++i) {
       (*i)->unlock_for_terminate(state, gct);
     }
 

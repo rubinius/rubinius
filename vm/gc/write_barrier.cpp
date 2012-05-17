@@ -78,7 +78,7 @@ namespace gc {
 
     for(ObjectArray::iterator oi = remember_set_->begin();
         oi != remember_set_->end();
-        oi++) {
+        ++oi) {
       tmp = *oi;
       // unremember_object throws a NULL in to remove an object
       // so we don't have to compact the set in unremember

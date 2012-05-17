@@ -264,7 +264,7 @@ namespace rubinius {
     std::list<ObjectHeader*>& los = thr->locked_objects();
     for(std::list<ObjectHeader*>::iterator i = los.begin();
         i != los.end();
-        i++) {
+        ++i) {
       *i = saw_object((Object*)*i);
     }
   }
