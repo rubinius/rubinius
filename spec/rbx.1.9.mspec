@@ -82,9 +82,6 @@ class MSpecScript
 
     'spec/build',
 
-    # Excluded while building out basic 1.9 infrastructure
-    '^spec/ruby/core/module/name',
-
     # Excluded because the specs are extremely system dependent.
     '^spec/ruby/library/syslog',
   ] + get(:obsolete_library) + get(:unsupported_library)
