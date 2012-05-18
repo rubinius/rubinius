@@ -4,7 +4,7 @@ class Thread
 
   def self.current
     Rubinius.primitive :thread_current
-    Kernel.raise PrimitiveFailure, "Threadcurrent primitive failed"
+    Kernel.raise PrimitiveFailure, "Thread.current primitive failed"
   end
 
   def self.allocate
@@ -13,7 +13,7 @@ class Thread
 
   def self.pass
     Rubinius.primitive :thread_pass
-    Kernel.raise PrimitiveFailure, "Thread#pass primitive failed"
+    Kernel.raise PrimitiveFailure, "Thread.pass primitive failed"
   end
 
   def fork
