@@ -586,9 +586,6 @@ step1:
     timer::Running<1000000> timer(gc_stats.total_young_collection_time,
                                   gc_stats.last_young_collection_time);
 
-    // validate_handles(data.handles());
-    // validate_handles(data.cached_handles());
-
     young_->reset_stats();
 
     young_->collect(data, stats);
@@ -618,9 +615,6 @@ step1:
   }
 
   void ObjectMemory::collect_mature(GCData& data) {
-
-    // validate_handles(data.handles());
-    // validate_handles(data.cached_handles());
 
     timer::Running<1000000> timer(gc_stats.total_full_collection_time,
                                   gc_stats.last_full_collection_time);
@@ -703,28 +697,6 @@ step1:
       rubinius::bug("Massive header state confusion detected. Call a doctor.");
     }
 
-  }
-
-  void ObjectMemory::validate_handles(capi::Handles* handles) {
-#ifndef NDEBUG
-    capi::Handle* handle = handles->front();
-    capi::Handle* current;
-
-    while(handle) {
-      current = handle;
-      handle = static_cast<capi::Handle*>(handle->next());
-
-      if(!handle->in_use_p()) continue;
-
-      Object* obj = current->object();
-
-      assert(obj->inflated_header_p());
-      InflatedHeader* ih = obj->inflated_header();
-
-      assert(ih->handle() == current);
-      assert(ih->object() == obj);
-    }
-#endif
   }
 
   void ObjectMemory::prune_handles(capi::Handles* handles, bool check_forwards) {
