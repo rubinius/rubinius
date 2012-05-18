@@ -1,4 +1,5 @@
 #include "builtin/nativemethod.hpp"
+#include "gc/baker.hpp"
 #include "capi/capi.hpp"
 #include "capi/handle.hpp"
 #include "capi/18/include/ruby.h"
@@ -77,6 +78,59 @@ namespace rubinius {
         delete handle;
 
         handle = next;
+      }
+    }
+
+    void Handles::deallocate_handles(int mark, BakerGC* young) {
+
+      capi::Handle* handle = front();
+      capi::Handle* current;
+
+      while(handle) {
+        current = handle;
+        handle = static_cast<Handle*>(handle->next());
+
+        Object* obj = current->object();
+
+        if(!current->in_use_p()) {
+          remove(current);
+          delete current;
+          continue;
+        }
+
+        // Strong references will already have been updated.
+        if(!current->weak_p()) {
+          continue;
+        }
+
+        if(young) {
+          if(obj->young_object_p()) {
+
+            // A weakref pointing to a valid young object
+            //
+            // TODO this only works because we run prune_handles right after
+            // a collection. In this state, valid objects are only in current.
+            if(young->in_current_p(obj)) {
+              continue;
+
+            // A weakref pointing to a forwarded young object
+            } else if(obj->forwarded_p()) {
+              current->set_object(obj->forward());
+
+            // A weakref pointing to a dead young object
+            } else {
+              current->forget_object();
+              remove(current);
+              delete current;
+            }
+          }
+
+        // A weakref pointing to a dead mature object
+        } else if(!obj->marked_p(mark)) {
+          current->forget_object();
+          remove(current);
+          delete current;
+        }
       }
     }
 

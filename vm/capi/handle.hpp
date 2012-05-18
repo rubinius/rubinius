@@ -22,6 +22,7 @@ struct RFile;
 
 namespace rubinius {
   class NativeMethodEnvironment;
+  class BakerGC;
 
   namespace capi {
 
@@ -200,6 +201,8 @@ namespace rubinius {
         add(handle);
         return handle;
       }
+
+      void deallocate_handles(int mark, BakerGC* young);
 
       typedef LinkedList::Iterator<Handles, Handle> Iterator;
     };
