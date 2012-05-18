@@ -3,6 +3,7 @@
 
 #include "vm/exception.hpp"
 #include "vm/type_info.hpp"
+#include "vm/signal.hpp"
 
 #include "builtin/object.hpp"
 #include "builtin/randomizer.hpp"
@@ -74,6 +75,10 @@ namespace rubinius {
 
     VM* vm() {
       return vm_;
+    }
+
+    bool signal_handler_thread_p() {
+      return runner_ == handle_tramp;
     }
 
   public:

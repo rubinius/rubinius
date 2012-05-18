@@ -13,6 +13,8 @@ namespace rubinius {
   struct CallFrame;
   class Thread;
 
+  Object* handle_tramp(STATE);
+
   class SignalHandler : public Lockable {
     VM* target_;
     VM* self_;

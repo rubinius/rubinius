@@ -17,6 +17,7 @@
 #include "world_state.hpp"
 #include "builtin/randomizer.hpp"
 #include "builtin/array.hpp"
+#include "builtin/thread.hpp"
 
 #ifdef ENABLE_LLVM
 #include "llvm/state.hpp"
@@ -140,7 +141,10 @@ namespace rubinius {
         i != threads_.end();
         ++i) {
       if(VM* vm = (*i)->as_vm()) {
-        threads->append(state, (Object*)vm->thread.get());
+        Thread *thread = vm->thread.get();
+        if(!thread->signal_handler_thread_p()) {
+          threads->append(state, (Object*)thread);
+        }
       }
     }
     return threads;
