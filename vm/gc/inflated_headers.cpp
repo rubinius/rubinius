@@ -7,12 +7,7 @@
 
 namespace rubinius {
   InflatedHeaders::~InflatedHeaders() {
-    for(Chunks::iterator i = chunks_.begin();
-        i != chunks_.end();
-        ++i) {
-      InflatedHeader* chunk = *i;
-      delete[] chunk;
-    }
+    delete allocator_;
   }
 
   /**
@@ -22,37 +17,10 @@ namespace rubinius {
    * /returns the InflatedHeader representing the new inflated object header.
    */
   InflatedHeader* InflatedHeaders::allocate(ObjectHeader* obj) {
-    if(!free_list_) allocate_chunk();
-    InflatedHeader* header = free_list_;
-    free_list_ = header->next();
-
+    InflatedHeader* header = allocator_->allocate();
     header->clear();
-
-    in_use_++;
     header->set_object(obj);
-
     return header;
-  }
-
-  /**
-   * Allocates a new chunk of storage for InflatedHeader objects, and then
-   * adds each InflatedHeader slot to the free list.
-   */
-  void InflatedHeaders::allocate_chunk() {
-    InflatedHeader* chunk = new InflatedHeader[cChunkSize];
-    for(size_t i = 0; i < cChunkSize; i++) {
-      chunk[i].clear();
-      chunk[i].set_next(free_list_);
-      free_list_ = &chunk[i];
-    }
-
-    chunks_.push_back(chunk);
-    allocations_++;
-    if(allocations_ >= cChunkLimit) {
-      state_->om->collect_mature_now = true;
-      allocations_ = 0;
-    }
-
   }
 
   /**
@@ -66,13 +34,13 @@ namespace rubinius {
    */
   void InflatedHeaders::deallocate_headers(int mark) {
     // Detect and free any full chunks first!
-    for(Chunks::iterator i = chunks_.begin();
-        i != chunks_.end();) {
+    for(std::vector<InflatedHeader*>::iterator i = allocator_->chunks_.begin();
+        i != allocator_->chunks_.end();) {
       InflatedHeader* chunk = *i;
 
       bool used = false;
 
-      for(size_t j = 0; j < cChunkSize; j++) {
+      for(size_t j = 0; j < allocator_->cChunkSize; j++) {
         InflatedHeader* header = &chunk[j];
 
         if(header->marked_p(mark)) {
@@ -84,30 +52,30 @@ namespace rubinius {
       // No header was marked, so it's completely empty. Free it.
       if(!used) {
         delete[] chunk;
-        i = chunks_.erase(i);
+        i = allocator_->chunks_.erase(i);
       } else {
         ++i;
       }
     }
 
     // Ok, now, rebuild the free_list
-    free_list_ = 0;
-    in_use_ = 0;
+    allocator_->free_list_ = 0;
+    allocator_->in_use_ = 0;
 
-    for(Chunks::iterator i = chunks_.begin();
-        i != chunks_.end();
+    for(std::vector<InflatedHeader*>::iterator i = allocator_->chunks_.begin();
+        i != allocator_->chunks_.end();
         ++i) {
       InflatedHeader* chunk = *i;
 
-      for(size_t j = 0; j < cChunkSize; j++) {
+      for(size_t j = 0; j < allocator_->cChunkSize; j++) {
         InflatedHeader* header = &chunk[j];
 
         if(!header->marked_p(mark)) {
           header->clear();
-          header->set_next(free_list_);
-          free_list_ = header;
+          header->set_next(allocator_->free_list_);
+          allocator_->free_list_ = header;
         } else {
-          in_use_++;
+          allocator_->in_use_++;
         }
       }
     }
