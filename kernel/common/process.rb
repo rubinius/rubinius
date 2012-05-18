@@ -64,7 +64,7 @@ module Process
 
   def self.setsid
     pgid = FFI::Platform::POSIX.setsid
-    Errno.handle if -1 == pgid
+    Errno.handle if pgid == -1
     pgid
   end
 
@@ -274,7 +274,7 @@ module Process
     @maxgroups = g.length if g.length > @maxgroups
     FFI::MemoryPointer.new(:int, @maxgroups) { |p|
       p.write_array_of_int(g)
-      Errno.handle if -1 == FFI::Platform::POSIX.setgroups(g.length, p)
+      Errno.handle if FFI::Platform::POSIX.setgroups(g.length, p) == -1
     }
     g
   end
