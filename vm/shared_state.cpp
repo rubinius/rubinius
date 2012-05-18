@@ -16,6 +16,7 @@
 #include "agent.hpp"
 #include "world_state.hpp"
 #include "builtin/randomizer.hpp"
+#include "builtin/array.hpp"
 
 #ifdef ENABLE_LLVM
 #include "llvm/state.hpp"
@@ -131,6 +132,19 @@ namespace rubinius {
     // Don't delete ourself here, it's too problematic.
   }
 
+  Array* SharedState::vm_threads(STATE) {
+    SYNC_TL;
+
+    Array* threads = Array::create(state, 0);
+    for(std::list<ManagedThread*>::iterator i = threads_.begin();
+        i != threads_.end();
+        ++i) {
+      if(VM* vm = (*i)->as_vm()) {
+        threads->append(state, (Object*)vm->thread.get());
+      }
+    }
+    return threads;
+  }
 
   void SharedState::add_global_handle(STATE, capi::Handle* handle) {
     SYNC(state);

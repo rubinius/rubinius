@@ -271,6 +271,10 @@ namespace rubinius {
     return cNil;
   }
 
+  Array* Thread::list(STATE) {
+    return state->shared().vm_threads(state);
+  }
+
   Object* Thread::priority(STATE) {
     pthread_t id = vm_->os_thread();
 

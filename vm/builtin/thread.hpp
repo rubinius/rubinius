@@ -113,6 +113,12 @@ namespace rubinius {
     // Rubinius.primitive :thread_pass
     static Object* pass(STATE, CallFrame* calling_environment);
 
+    /**
+     *   List all live threads.
+    */
+    // Rubinius.primitive :thread_list
+    static Array* list(STATE);
+
   public:   /* Instance primitives */
 
     /**

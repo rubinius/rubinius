@@ -132,6 +132,8 @@ namespace rubinius {
       return &threads_;
     }
 
+    Array* vm_threads(STATE);
+
     void add_managed_thread(ManagedThread* thr);
     void remove_managed_thread(ManagedThread* thr);
 

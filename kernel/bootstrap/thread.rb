@@ -16,6 +16,11 @@ class Thread
     Kernel.raise PrimitiveFailure, "Thread.pass primitive failed"
   end
 
+  def self.list
+    Rubinius.primitive :thread_list
+    Kernel.raise PrimitiveFailure, "Thread.list primitive failed"
+  end
+
   def fork
     Rubinius.primitive :thread_fork
     Kernel.raise PrimitiveFailure, "Thread#fork primitive failed"
@@ -339,10 +344,6 @@ class Thread
 
   def self.initialize_main_thread(thread)
     @main_thread = thread
-  end
-
-  def self.list
-    Thread.current.group.list
   end
 
   def self.exit
