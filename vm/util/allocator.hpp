@@ -7,8 +7,6 @@ namespace rubinius {
   class Allocator {
 
     public:
-      rubinius::VM* state_;
-
       std::vector<T*> chunks_;
       T* free_list_;
       size_t allocations_;
@@ -17,9 +15,8 @@ namespace rubinius {
       static const size_t cChunkSize = 1024;
       static const size_t cChunkLimit = 32;
 
-      Allocator(rubinius::VM* state)
-        : state_(state)
-        , free_list_(NULL)
+      Allocator()
+        : free_list_(NULL)
         , allocations_(0)
         , in_use_(0)
       {}
@@ -31,7 +28,7 @@ namespace rubinius {
         }
       }
 
-      void allocate_chunk() {
+      void allocate_chunk(bool* needs_gc) {
         T* chunk = new T[cChunkSize];
         for(size_t i = 0; i < cChunkSize; i++) {
           chunk[i].clear();
@@ -42,13 +39,13 @@ namespace rubinius {
         chunks_.push_back(chunk);
         allocations_++;
         if(allocations_ >= cChunkLimit) {
-          state_->om->collect_mature_now = true;
+          *needs_gc = true;
           allocations_ = 0;
         }
       }
 
-      T* allocate() {
-        if(!free_list_) allocate_chunk();
+      T* allocate(bool* needs_gc) {
+        if(!free_list_) allocate_chunk(needs_gc);
         T* t = free_list_;
         free_list_ = t->next();
 

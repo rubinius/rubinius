@@ -17,9 +17,13 @@ namespace rubinius {
    * /returns the InflatedHeader representing the new inflated object header.
    */
   InflatedHeader* InflatedHeaders::allocate(ObjectHeader* obj) {
-    InflatedHeader* header = allocator_->allocate();
+    bool needs_gc = false;
+    InflatedHeader* header = allocator_->allocate(&needs_gc);
     header->clear();
     header->set_object(obj);
+    if(needs_gc) {
+      state_->om->collect_mature_now = true;
+    }
     return header;
   }
 

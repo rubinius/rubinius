@@ -30,7 +30,7 @@ namespace rubinius {
   public:
     InflatedHeaders(VM* state)
       : state_(state)
-      , allocator_(new Allocator<InflatedHeader>(state))
+      , allocator_(new Allocator<InflatedHeader>())
     {}
 
     ~InflatedHeaders();
