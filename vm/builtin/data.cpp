@@ -28,13 +28,11 @@ namespace rubinius {
 
     assert(!handle && "can't already have a handle, it's brand new!");
 
-    handle = new capi::Handle(state, data);
+    handle = state->shared().add_global_handle(state, data);
     ih->set_handle(handle);
 
     // Don't call ->ref() on handle! We don't want the handle to keep the object
     // alive by default. The handle needs to have the lifetime of the object.
-
-    state->shared().add_global_handle(state, handle);
 
     RDataShadow* rdata = reinterpret_cast<RDataShadow*>(handle->as_rdata(0));
 

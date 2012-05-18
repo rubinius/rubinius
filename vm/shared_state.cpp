@@ -150,9 +150,9 @@ namespace rubinius {
     return threads;
   }
 
-  void SharedState::add_global_handle(STATE, capi::Handle* handle) {
+  capi::Handle* SharedState::add_global_handle(STATE, Object* obj) {
     SYNC(state);
-    global_handles_->add(handle);
+    return global_handles_->allocate(state, obj);
   }
 
   void SharedState::make_handle_cached(STATE, capi::Handle* handle) {

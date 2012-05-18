@@ -195,6 +195,12 @@ namespace rubinius {
         handles->add(node);
       }
 
+      Handle* allocate(STATE, Object* obj) {
+        Handle* handle = new Handle(state, obj);
+        add(handle);
+        return handle;
+      }
+
       typedef LinkedList::Iterator<Handles, Handle> Iterator;
     };
 

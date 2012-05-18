@@ -73,11 +73,8 @@ namespace rubinius {
         handle->update(NativeMethodEnvironment::get());
       }
     } else {
-      handle = new capi::Handle(state, obj);
+      handle = state->shared().add_global_handle(state, obj);
       ih->set_handle(handle);
-
-      state->shared().add_global_handle(state, handle);
-
       handles_.add_if_absent(handle);
     }
 

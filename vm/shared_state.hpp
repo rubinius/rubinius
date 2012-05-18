@@ -141,7 +141,7 @@ namespace rubinius {
       return global_handles_;
     }
 
-    void add_global_handle(State*, capi::Handle* handle);
+    capi::Handle* add_global_handle(State*, Object* obj);
     void make_handle_cached(State*, capi::Handle* handle);
 
     capi::Handles* cached_handles() {
