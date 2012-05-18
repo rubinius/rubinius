@@ -48,7 +48,7 @@ namespace rubinius {
 
   // 'self' is passed in automatically by the primitive glue
   Array* Array::allocate(STATE, Object* self) {
-    Array* ary = Array::create(state, 0U);
+    Array* ary = Array::create(state, 0);
     ary->klass(state, (Class*)self);
     return ary;
   }
