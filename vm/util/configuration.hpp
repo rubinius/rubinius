@@ -163,7 +163,7 @@ namespace config {
     }
 
     virtual void print_value(std::ostream& stream) {
-      if(value.size() == 0) {
+      if(value.empty()) {
         stream << "\"\"";
       } else {
         stream << value;

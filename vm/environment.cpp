@@ -457,7 +457,7 @@ namespace rubinius {
       stream.get(); // eat newline
 
       // skip empty lines
-      if(line.size() == 0) continue;
+      if(line.empty()) continue;
 
       run_file(dir + "/" + line);
     }
@@ -658,7 +658,7 @@ namespace rubinius {
       stream.get(); // eat newline
 
       // skip empty lines
-      if(line.size() == 0) continue;
+      if(line.empty()) continue;
 
       load_directory(root + "/" + line);
     }
