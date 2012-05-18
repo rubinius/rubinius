@@ -115,7 +115,7 @@ namespace rubinius {
 
     /**
      *   List all live threads.
-    */
+     */
     // Rubinius.primitive :thread_list
     static Array* list(STATE);
 
