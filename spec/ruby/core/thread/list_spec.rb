@@ -7,6 +7,13 @@ describe "Thread::list" do
     Thread.list.should include(Thread.main)
   end
 
+  it "includes threads of non-default thread groups" do
+    t = Thread.new { sleep }
+    ThreadGroup.new.add(t)
+    Thread.list.should include(t)
+    t.kill
+  end
+
   it "does not include deceased threads" do
     t = Thread.new { 1; }
     t.join
