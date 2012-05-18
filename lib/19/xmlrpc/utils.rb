@@ -6,7 +6,7 @@
 #
 # Copyright (C) 2001, 2002, 2003 by Michael Neumann (mneumann@ntecs.de)
 #
-# $Id: utils.rb 27537 2010-04-28 18:51:35Z jeg2 $
+# $Id$
 #
 
 module XMLRPC

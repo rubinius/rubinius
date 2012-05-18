@@ -3,7 +3,7 @@
 #
 # Copyright (C) 2001, 2002, 2003 by Michael Neumann (mneumann@ntecs.de)
 #
-# $Id: create.rb 31813 2011-05-30 04:44:04Z yugui $
+# $Id$
 #
 
 require "date"
@@ -206,6 +206,7 @@ module XMLRPC
           end
 
         when Float
+          raise "Wrong value #{param}. Not allowed!" unless param.finite?
           @writer.tag("double", param.to_s)
 
         when Struct

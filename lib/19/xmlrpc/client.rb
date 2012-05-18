@@ -268,7 +268,7 @@ Note: Inherited methods from class (({Object})) cannot be used as XML-RPC names,
 
 
 = History
-    $Id: client.rb 25189 2009-10-02 12:04:37Z akr $
+    $Id$
 
 =end
 
@@ -279,6 +279,7 @@ require "xmlrpc/create"
 require "xmlrpc/config"
 require "xmlrpc/utils"     # ParserWriterChooseMixin
 require "net/http"
+require "uri"
 
 module XMLRPC
 
@@ -324,8 +325,7 @@ module XMLRPC
       @proxy_port = @proxy_port.to_i if @proxy_port != nil
 
       # HTTP object for synchronous calls
-      Net::HTTP.version_1_2
-      @http = Net::HTTP.new(@host, @port, @proxy_host, @proxy_port)
+      @http = net_http(@host, @port, @proxy_host, @proxy_port)
       @http.use_ssl = @use_ssl if @use_ssl
       @http.read_timeout = @timeout
       @http.open_timeout = @timeout
@@ -338,21 +338,25 @@ module XMLRPC
     class << self
 
     def new2(uri, proxy=nil, timeout=nil)
-      if match = /^([^:]+):\/\/(([^@]+)@)?([^\/]+)(\/.*)?$/.match(uri)
-        proto = match[1]
-        user, passwd = (match[3] || "").split(":")
-        host, port = match[4].split(":")
-        path = match[5]
-
-        if proto != "http" and proto != "https"
-          raise "Wrong protocol specified. Only http or https allowed!"
-        end
-
-      else
-        raise "Wrong URI as parameter!"
+      begin
+        url = URI(uri)
+      rescue URI::InvalidURIError => e
+        raise ArgumentError, e.message, e.backtrace
       end
 
+      unless URI::HTTP === url
+        raise ArgumentError, "Wrong protocol specified. Only http or https allowed!"
+      end
+
+      proto  = url.scheme
+      user   = url.user
+      passwd = url.password
+      host   = url.host
+      port   = url.port
+      path   = url.path.empty? ? nil : url.request_uri
+
       proxy_host, proxy_port = (proxy || "").split(":")
+      proxy_port = proxy_port.to_i if proxy_port
 
       self.new(host, path, port, proxy_host, proxy_port, user, passwd, (proto == "https"), timeout)
     end
@@ -487,13 +491,17 @@ module XMLRPC
 
     private # ----------------------------------------------------------
 
+    def net_http(host, port, proxy_host, proxy_port)
+      Net::HTTP.new host, port, proxy_host, proxy_port
+    end
+
     def set_auth
       if @user.nil?
         @auth = nil
       else
         a =  "#@user"
         a << ":#@password" if @password != nil
-        @auth = ("Basic " + [a].pack("m")).chomp
+        @auth = "Basic " + [a].pack("m0")
       end
     end
 
@@ -501,7 +509,7 @@ module XMLRPC
       header = {
        "User-Agent"     =>  USER_AGENT,
        "Content-Type"   => "text/xml; charset=utf-8",
-       "Content-Length" => request.size.to_s,
+       "Content-Length" => request.bytesize.to_s,
        "Connection"     => (async ? "close" : "keep-alive")
       }
 
@@ -518,15 +526,14 @@ module XMLRPC
 
       if async
         # use a new HTTP object for each call
-        Net::HTTP.version_1_2
-        http = Net::HTTP.new(@host, @port, @proxy_host, @proxy_port)
+        http = net_http(@host, @port, @proxy_host, @proxy_port)
         http.use_ssl = @use_ssl if @use_ssl
         http.read_timeout = @timeout
         http.open_timeout = @timeout
 
         # post request
         http.start {
-          resp = http.post2(@path, request, header)
+          resp = http.request_post(@path, request, header)
         }
       else
         # reuse the HTTP object for each call => connection alive is possible
@@ -535,7 +542,7 @@ module XMLRPC
         @http.start if not @http.started?
 
         # post request
-        resp = @http.post2(@path, request, header)
+        resp = @http.request_post(@path, request, header)
       end
 
       @http_last_response = resp
@@ -549,7 +556,9 @@ module XMLRPC
         raise "HTTP-Error: #{resp.code} #{resp.message}"
       end
 
-      ct = parse_content_type(resp["Content-Type"]).first
+      # assume text/xml on instances where Content-Type header is not set
+      ct_expected = resp["Content-Type"] || 'text/xml'
+      ct = parse_content_type(ct_expected).first
       if ct != "text/xml"
         if ct == "text/html"
           raise "Wrong content-type (received '#{ct}' but expected 'text/xml'): \n#{data}"
@@ -559,10 +568,10 @@ module XMLRPC
       end
 
       expected = resp["Content-Length"] || "<unknown>"
-      if data.nil? or data.size == 0
-        raise "Wrong size. Was #{data.size}, should be #{expected}"
-      elsif expected != "<unknown>" and expected.to_i != data.size and resp["Transfer-Encoding"].nil?
-        raise "Wrong size. Was #{data.size}, should be #{expected}"
+      if data.nil? or data.bytesize == 0
+        raise "Wrong size. Was #{data.bytesize}, should be #{expected}"
+      elsif expected != "<unknown>" and expected.to_i != data.bytesize and resp["Transfer-Encoding"].nil?
+        raise "Wrong size. Was #{data.bytesize}, should be #{expected}"
       end
 
       set_cookies = resp.get_fields("Set-Cookie")
