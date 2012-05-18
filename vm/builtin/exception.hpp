@@ -63,7 +63,6 @@ namespace rubinius {
     static void io_error(STATE, const char* reason);
     static void range_error(STATE, const char* reason);
     static void runtime_error(STATE, const char* reason);
-    static void not_implemented_error(STATE, const char* reason);
 
     static void assertion_error(STATE, const char* reason = NULL);
     static void object_bounds_exceeded_error(STATE, Object* obj, int index);
@@ -127,7 +126,6 @@ namespace rubinius {
     static Class* get_errno_error(STATE, Fixnum* ern);
     static Class* get_runtime_error(STATE);
     static Class* get_encoding_compatibility_error(STATE);
-    static Class* get_not_implemented_error(STATE);
 
     class Info : public TypeInfo {
     public:

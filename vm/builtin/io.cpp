@@ -28,7 +28,6 @@
 #include "builtin/fixnum.hpp"
 #include "builtin/array.hpp"
 #include "builtin/string.hpp"
-#include "builtin/symbol.hpp"
 #include "primitives.hpp"
 
 #include "vm.hpp"
@@ -728,9 +727,7 @@ namespace rubinius {
     } else if (advice_name == state->symbol("noreuse")) {
       advice = POSIX_FADV_NOREUSE;
     } else {
-      std::ostringstream msg;
-      msg << "Unsupported advice: " << advice_name->cpp_str(state);
-      Exception::not_implemented_error(state, msg.str().c_str());
+      return Primitives::failure();
     }
 
     int erno = posix_fadvise(to_fd(), offset->to_long_long(), len->to_long_long(), advice);
