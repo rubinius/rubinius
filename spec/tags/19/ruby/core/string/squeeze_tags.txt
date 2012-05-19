@@ -1,0 +1,1 @@
+fails:String#squeeze! raises an ArgumentError when the parameter is out of sequence
