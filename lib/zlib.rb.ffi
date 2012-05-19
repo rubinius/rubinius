@@ -408,6 +408,8 @@ module Zlib
       self[:avail_out] = @next_out.total
     end
 
+    private :expand_output
+
     ##
     # Finishes the stream and flushes output buffer. See Zlib::Deflate#finish
     # and Zlib::Inflate#finish for details of this behavior.
@@ -460,6 +462,8 @@ module Zlib
       @flags & IN_STREAM == IN_STREAM
     end
 
+    private :in_stream?
+
     def input_empty?
       @input.nil? or @input.empty?
     end
@@ -474,6 +478,8 @@ module Zlib
     def ready
       @flags |= READY
     end
+
+    private :ready
 
     def ready?
       @flags & READY == READY
@@ -496,6 +502,8 @@ module Zlib
     def reset_input
       @input = nil
     end
+
+    private :reset_input
 
     def run(data, flush)
       if @input.nil? and data.empty? then
