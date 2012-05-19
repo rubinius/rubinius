@@ -123,6 +123,7 @@ describe "String#squeeze!" do
       s = "--subbookkeeper--"
       lambda { s.squeeze!("e-b") }.should raise_error(ArgumentError)
       lambda { s.squeeze!("^e-b") }.should raise_error(ArgumentError)
+      lambda { s.squeeze!("abc", "e-b") }.should raise_error(ArgumentError)
     end
   end
 
