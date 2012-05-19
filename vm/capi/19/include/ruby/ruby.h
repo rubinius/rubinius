@@ -271,6 +271,7 @@ typedef void (*RUBY_DATA_FUNC)(void*);
     cCApiEncCompatError,
     cCApiWaitReadable,
     cCApiWaitWritable,
+    cCApiEnumerator,
 
     // MUST be last
     cCApiMaxConstant
@@ -457,6 +458,7 @@ struct RFile {
 #define rb_cRational          (capi_get_constant(cCApiRational))
 #define rb_cComplex           (capi_get_constant(cCApiComplex))
 #define rb_cEncoding          (capi_get_constant(cCApiEncoding))
+#define rb_cEnumerator        (capi_get_constant(cCApiEnumerator))
 
 /* Global Module objects. */
 
@@ -1869,6 +1871,9 @@ VALUE rb_uint2big(unsigned long number);
 
   /** Retrieve the nth match for the given MatchData */
   VALUE   rb_reg_nth_match(long nth, VALUE match_data);
+
+  /** New Enumerator. */
+  VALUE   rb_enumeratorize(VALUE obj, VALUE meth, int argc, VALUE *argv);
 
   // include an extconf.h if one is provided
 #ifdef RUBY_EXTCONF_H

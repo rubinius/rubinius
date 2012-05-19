@@ -88,6 +88,7 @@ namespace rubinius {
         map[cCApiMethod]     = "Method";
         map[cCApiRational]   = "Rational";
         map[cCApiComplex]    = "Complex";
+        map[cCApiEnumerator] = "Enumerable::Enumerator";
 
         map[cCApiArgumentError]       = "ArgumentError";
         map[cCApiEOFError]            = "EOFError";

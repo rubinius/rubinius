@@ -129,6 +129,7 @@
 #define HAVE_RB_CSYMBOL                    1
 #define HAVE_RB_CTHREAD                    1
 #define HAVE_RB_CTRUECLASS                 1
+#define HAVE_RB_CNUMERATOR                 1
 #define HAVE_RB_EARGERROR                  1
 #define HAVE_RB_EEOFERROR                  1
 #define HAVE_RB_EEXCEPTION                 1
@@ -219,6 +220,9 @@
 #endif
 #define HAVE_RB_LONG2INT                   1
 #endif
+
+/* Enumerable */
+#define HAVE_RB_ENUMERATORIZE              1
 
 /* Exception */
 #define HAVE_RB_EXC_NEW                    1

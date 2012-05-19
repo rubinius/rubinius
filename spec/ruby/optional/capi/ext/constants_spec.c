@@ -155,6 +155,12 @@ static VALUE constants_spec_rb_cMethod(VALUE self) {
 }
 #endif
 
+#ifdef HAVE_RB_CENUMERATOR
+static VALUE constants_spec_rb_cEnumerator(VALUE self) {
+  return rb_cEnumerator;
+}
+#endif
+
 #ifdef HAVE_RB_MCOMPARABLE
 static VALUE constants_spec_rb_mComparable(VALUE self) {
   return rb_mComparable;
@@ -469,6 +475,10 @@ void Init_constants_spec() {
   rb_define_method(cls, "rb_cMethod", constants_spec_rb_cMethod, 0);
 #endif
 
+#ifdef HAVE_RB_CENUMERATOR
+  rb_define_method(cls, "rb_cEnumerator", constants_spec_rb_cEnumerator, 0);
+#endif
+
 #ifdef HAVE_RB_MCOMPARABLE
   rb_define_method(cls, "rb_mComparable", constants_spec_rb_mComparable, 0);
 #endif
@@ -480,7 +490,6 @@ void Init_constants_spec() {
 #ifdef HAVE_RB_MKERNEL
   rb_define_method(cls, "rb_mKernel", constants_spec_rb_mKernel, 0);
 #endif
-
 
 #ifdef HAVE_RB_EARGERROR
   rb_define_method(cls, "rb_eArgError", constants_spec_rb_eArgError, 0);
