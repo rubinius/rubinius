@@ -62,8 +62,9 @@ describe "String#delete" do
 
   ruby_version_is "1.9" do
     it "raises if the given ranges are invalid" do
-      lambda { "hello".delete("h-e") }.should raise_error(ArgumentError)
-      lambda { "hello".delete("^h-e") }.should raise_error(ArgumentError)
+      lambda { "hello".delete("h-e") }.should raise_error(ArgumentError, 'invalid range "h-e" in string transliteration')
+      lambda { "hello".delete("^h-e") }.should raise_error(ArgumentError, 'invalid range "h-e" in string transliteration')
+      lambda { "hello".delete("a-bjaph-e") }.should raise_error(ArgumentError, 'invalid range "h-e" in string transliteration')
     end
   end
 

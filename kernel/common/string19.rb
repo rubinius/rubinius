@@ -58,7 +58,7 @@ class String
       if string =~ /.+\-.+/
         ranges_found = string.scan(/\w{1}\-\w{1}/)
         ranges_found.map{ |range| range.gsub(/-/, '').split('') }.each do |range_array|
-          raise ArgumentError, "invalid range #{strings} in string transliteration" unless range_array == range_array.sort
+          raise ArgumentError, "invalid range \"#{range_array.join('-')}\" in string transliteration" unless range_array == range_array.sort
         end
       end
     end
