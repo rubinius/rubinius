@@ -82,7 +82,7 @@ namespace rubinius {
         if(update_) (*update_)(env, this);
       }
 
-      bool valid_p() {
+      bool valid_p() const {
         return checksum_ & 0xffff;
       }
 
@@ -94,11 +94,11 @@ namespace rubinius {
         checksum_ = 0;
       }
 
-      Object* object() {
+      Object* object() const {
         return object_;
       }
 
-      bool in_use_p() {
+      bool in_use_p() const {
         return object_ != 0;
       }
 
@@ -106,7 +106,7 @@ namespace rubinius {
         object_ = obj;
       }
 
-      bool weak_p() {
+      bool weak_p() const {
         return references_ == 0;
       }
 
@@ -121,7 +121,7 @@ namespace rubinius {
       void debug_print();
 
       // Explict conversion functions, to keep the code clean.
-      VALUE as_value() {
+      VALUE as_value() const {
         return reinterpret_cast<VALUE>(this);
       }
 
@@ -129,31 +129,31 @@ namespace rubinius {
         return reinterpret_cast<Handle*>(val);
       }
 
-      bool is_rarray() {
+      bool is_rarray() const {
         return type_ == cRArray;
       }
 
-      bool is_rdata() {
+      bool is_rdata() const {
         return type_ == cRData;
       }
 
-      bool is_rstring() {
+      bool is_rstring() const {
         return type_ == cRString;
       }
 
-      bool is_rfloat() {
+      bool is_rfloat() const {
         return type_ == cRFloat;
       }
 
-      bool is_rio() {
+      bool is_rio() const {
         return type_ == cRIO;
       }
 
-      bool is_rfile() {
+      bool is_rfile() const {
         return type_ == cRFile;
       }
 
-      HandleType type() {
+      HandleType type() const {
          return type_;
       }
 
@@ -171,7 +171,7 @@ namespace rubinius {
         object_ = 0;
       }
 
-      RString* get_rstring() {
+      RString* get_rstring() const {
         return as_.rstring;
       }
 
@@ -221,11 +221,11 @@ namespace rubinius {
 
       void flush_all(NativeMethodEnvironment* env);
 
-      Allocator<Handle>* allocator() {
+      Allocator<Handle>* allocator() const {
         return allocator_;
       }
 
-      int size() {
+      int size() const {
         return allocator_->in_use_;
       }
 
