@@ -503,6 +503,18 @@ namespace rubinius {
 
       return ba;
     }
+
+    void exceeds_length_of_string(STATE, native_int count) {
+      std::ostringstream msg;
+      msg << "X" << count << " exceeds length of string";
+      Exception::argument_error(state, msg.str().c_str());
+    }
+
+    void non_native_error(STATE, const char c) {
+      std::ostringstream msg;
+      msg << "'" << c << "' allowed only after types sSiIlL";
+      Exception::argument_error(state, msg.str().c_str());
+    }
   }
 
 
@@ -8476,9 +8488,7 @@ f25:
 	goto _again;
 f3:
 	{
-    std::ostringstream msg;
-    msg << "'" << *p << "' allowed only after types sSiIlL";
-    Exception::argument_error(state, msg.str().c_str());
+    pack18::non_native_error(state, *p);
   }
 	goto _again;
 f26:
@@ -8494,9 +8504,7 @@ f55:
     if(rest) count = 0;
 
     if(count > (native_int)str.size()) {
-      std::ostringstream msg;
-      msg << "X" << count << " exceeds length of string";
-      Exception::argument_error(state, msg.str().c_str());
+      pack18::exceeds_length_of_string(state, count);
     }
 
     str.resize(str.size() - count);
@@ -8543,9 +8551,7 @@ f106:
     if(rest) count = 0;
 
     if(count > (native_int)str.size()) {
-      std::ostringstream msg;
-      msg << "X" << count << " exceeds length of string";
-      Exception::argument_error(state, msg.str().c_str());
+      pack18::exceeds_length_of_string(state, count);
     }
 
     str.resize(str.size() - count);
@@ -9898,9 +9904,7 @@ _again:
     if(rest) count = 0;
 
     if(count > (native_int)str.size()) {
-      std::ostringstream msg;
-      msg << "X" << count << " exceeds length of string";
-      Exception::argument_error(state, msg.str().c_str());
+      pack18::exceeds_length_of_string(state, count);
     }
 
     str.resize(str.size() - count);
@@ -9956,9 +9960,7 @@ _again:
     if(rest) count = 0;
 
     if(count > (native_int)str.size()) {
-      std::ostringstream msg;
-      msg << "X" << count << " exceeds length of string";
-      Exception::argument_error(state, msg.str().c_str());
+      pack18::exceeds_length_of_string(state, count);
     }
 
     str.resize(str.size() - count);

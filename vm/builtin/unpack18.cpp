@@ -510,6 +510,18 @@ namespace rubinius {
 
       return ba;
     }
+
+    void outside_of_string(STATE, const char c) {
+      std::ostringstream msg;
+      msg << c << " outside of string";
+      Exception::argument_error(state, msg.str().c_str());
+    }
+
+    void non_native_error(STATE, const char c) {
+      std::ostringstream msg;
+      msg << "'" << c << "' allowed only after types sSiIlL";
+      Exception::argument_error(state, msg.str().c_str());
+    }
   }
 
 #define unpack_elements(create, bits)                     \
@@ -10194,9 +10206,7 @@ f36:
 	goto _again;
 f4:
 	{
-    std::ostringstream msg;
-    msg << "'" << *p << "' allowed only after types sSiIlL";
-    Exception::argument_error(state, msg.str().c_str());
+    unpack18::non_native_error(state, *p);
   }
 	goto _again;
 f1:
@@ -10224,9 +10234,7 @@ f81:
   }
 	{
     if(index < 0 || index > bytes_size) {
-      std::ostringstream msg;
-      msg << *p << " outside of string";
-      Exception::argument_error(state, msg.str().c_str());
+      unpack18::outside_of_string(state, *p);
     }
   }
 	{
@@ -10245,9 +10253,7 @@ f150:
   }
 	{
     if(index < 0 || index > bytes_size) {
-      std::ostringstream msg;
-      msg << *p << " outside of string";
-      Exception::argument_error(state, msg.str().c_str());
+      unpack18::outside_of_string(state, *p);
     }
   }
 	{
@@ -10264,9 +10270,7 @@ f7:
   }
 	{
     if(index < 0 || index > bytes_size) {
-      std::ostringstream msg;
-      msg << *p << " outside of string";
-      Exception::argument_error(state, msg.str().c_str());
+      unpack18::outside_of_string(state, *p);
     }
   }
 	{
@@ -10286,9 +10290,7 @@ f196:
   }
 	{
     if(index < 0 || index > bytes_size) {
-      std::ostringstream msg;
-      msg << *p << " outside of string";
-      Exception::argument_error(state, msg.str().c_str());
+      unpack18::outside_of_string(state, *p);
     }
   }
 	{
@@ -10311,9 +10313,7 @@ f153:
   }
 	{
     if(index < 0 || index > bytes_size) {
-      std::ostringstream msg;
-      msg << *p << " outside of string";
-      Exception::argument_error(state, msg.str().c_str());
+      unpack18::outside_of_string(state, *p);
     }
   }
 	{
@@ -10334,9 +10334,7 @@ f241:
   }
 	{
     if(index < 0 || index > bytes_size) {
-      std::ostringstream msg;
-      msg << *p << " outside of string";
-      Exception::argument_error(state, msg.str().c_str());
+      unpack18::outside_of_string(state, *p);
     }
   }
 	{
@@ -10352,9 +10350,7 @@ f80:
   }
 	{
     if(index < 0 || index > bytes_size) {
-      std::ostringstream msg;
-      msg << *p << " outside of string";
-      Exception::argument_error(state, msg.str().c_str());
+      unpack18::outside_of_string(state, *p);
     }
   }
 	{
@@ -10376,9 +10372,7 @@ f149:
   }
 	{
     if(index < 0 || index > bytes_size) {
-      std::ostringstream msg;
-      msg << *p << " outside of string";
-      Exception::argument_error(state, msg.str().c_str());
+      unpack18::outside_of_string(state, *p);
     }
   }
 	{
@@ -10398,9 +10392,7 @@ f6:
   }
 	{
     if(index < 0 || index > bytes_size) {
-      std::ostringstream msg;
-      msg << *p << " outside of string";
-      Exception::argument_error(state, msg.str().c_str());
+      unpack18::outside_of_string(state, *p);
     }
   }
 	{
@@ -10423,9 +10415,7 @@ f195:
   }
 	{
     if(index < 0 || index > bytes_size) {
-      std::ostringstream msg;
-      msg << *p << " outside of string";
-      Exception::argument_error(state, msg.str().c_str());
+      unpack18::outside_of_string(state, *p);
     }
   }
 	{
@@ -10451,9 +10441,7 @@ f152:
   }
 	{
     if(index < 0 || index > bytes_size) {
-      std::ostringstream msg;
-      msg << *p << " outside of string";
-      Exception::argument_error(state, msg.str().c_str());
+      unpack18::outside_of_string(state, *p);
     }
   }
 	{
@@ -10477,9 +10465,7 @@ f240:
   }
 	{
     if(index < 0 || index > bytes_size) {
-      std::ostringstream msg;
-      msg << *p << " outside of string";
-      Exception::argument_error(state, msg.str().c_str());
+      unpack18::outside_of_string(state, *p);
     }
   }
 	{
@@ -15217,9 +15203,7 @@ _again:
   }
 	{
     if(index < 0 || index > bytes_size) {
-      std::ostringstream msg;
-      msg << *p << " outside of string";
-      Exception::argument_error(state, msg.str().c_str());
+      unpack18::outside_of_string(state, *p);
     }
   }
 	{
@@ -15236,9 +15220,7 @@ _again:
   }
 	{
     if(index < 0 || index > bytes_size) {
-      std::ostringstream msg;
-      msg << *p << " outside of string";
-      Exception::argument_error(state, msg.str().c_str());
+      unpack18::outside_of_string(state, *p);
     }
   }
 	{
@@ -15253,9 +15235,7 @@ _again:
   }
 	{
     if(index < 0 || index > bytes_size) {
-      std::ostringstream msg;
-      msg << *p << " outside of string";
-      Exception::argument_error(state, msg.str().c_str());
+      unpack18::outside_of_string(state, *p);
     }
   }
 	{
@@ -15273,9 +15253,7 @@ _again:
   }
 	{
     if(index < 0 || index > bytes_size) {
-      std::ostringstream msg;
-      msg << *p << " outside of string";
-      Exception::argument_error(state, msg.str().c_str());
+      unpack18::outside_of_string(state, *p);
     }
   }
 	{
@@ -15296,9 +15274,7 @@ _again:
   }
 	{
     if(index < 0 || index > bytes_size) {
-      std::ostringstream msg;
-      msg << *p << " outside of string";
-      Exception::argument_error(state, msg.str().c_str());
+      unpack18::outside_of_string(state, *p);
     }
   }
 	{
@@ -15317,9 +15293,7 @@ _again:
   }
 	{
     if(index < 0 || index > bytes_size) {
-      std::ostringstream msg;
-      msg << *p << " outside of string";
-      Exception::argument_error(state, msg.str().c_str());
+      unpack18::outside_of_string(state, *p);
     }
   }
 	{
