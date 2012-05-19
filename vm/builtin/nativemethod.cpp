@@ -62,9 +62,8 @@ namespace rubinius {
   }
 
   VALUE NativeMethodFrame::get_handle(STATE, Object* obj) {
-    InflatedHeader* ih = state->memory()->inflate_header(state, obj);
 
-    capi::Handle* handle = ih->handle();
+    capi::Handle* handle = obj->handle();
 
     if(handle) {
       if(handles_.add_if_absent(handle)) {
@@ -74,7 +73,6 @@ namespace rubinius {
       }
     } else {
       handle = state->shared().add_global_handle(state, obj);
-      ih->set_handle(handle);
       handles_.add_if_absent(handle);
     }
 

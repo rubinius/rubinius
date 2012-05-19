@@ -23,13 +23,11 @@ namespace rubinius {
 
     // Data is just a heap alias for the handle, so go ahead and create
     // the handle and populate it as an RData now.
-    InflatedHeader* ih = state->memory()->inflate_header(state, data);
-    capi::Handle* handle = ih->handle();
+    capi::Handle* handle = data->handle();
 
     assert(!handle && "can't already have a handle, it's brand new!");
 
     handle = state->shared().add_global_handle(state, data);
-    ih->set_handle(handle);
 
     // Don't call ->ref() on handle! We don't want the handle to keep the object
     // alive by default. The handle needs to have the lifetime of the object.
@@ -52,8 +50,7 @@ namespace rubinius {
   }
 
   RDataShadow* Data::slow_rdata(STATE) {
-    InflatedHeader* ih = state->memory()->inflate_header(state, this);
-    capi::Handle* handle = ih->handle();
+    capi::Handle* handle = this->handle();
 
     assert(handle && handle->is_rdata() && "invalid initialized Data object");
 

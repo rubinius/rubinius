@@ -150,7 +150,10 @@ namespace rubinius {
 
   capi::Handle* SharedState::add_global_handle(STATE, Object* obj) {
     SYNC(state);
-    return global_handles_->allocate(state, obj);
+    InflatedHeader* ih = state->memory()->inflate_header(state, obj);
+    capi::Handle* handle = global_handles_->allocate(state, obj);
+    ih->set_handle(handle);
+    return handle;
   }
 
   void SharedState::make_handle_cached(STATE, capi::Handle* handle) {

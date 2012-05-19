@@ -969,13 +969,9 @@ step1:
         (*fi->finalizer)(state, fi->object);
         // Unhook any handle used by fi->object so that we don't accidentally
         // try and mark it later (after we've finalized it)
-        if(fi->object->inflated_header_p()) {
-          InflatedHeader* ih = fi->object->inflated_header();
-
-          if(capi::Handle* handle = ih->handle()) {
-            handle->forget_object();
-            ih->set_handle(0);
-          }
+        if(capi::Handle* handle = fi->object->handle()) {
+          handle->forget_object();
+          fi->object->set_handle(0);
         }
 
         // If the object was remembered, unremember it.
@@ -1023,13 +1019,9 @@ step1:
         (*fi->finalizer)(state, fi->object);
         // Unhook any handle used by fi->object so that we don't accidentally
         // try and mark it later (after we've finalized it)
-        if(fi->object->inflated_header_p()) {
-          InflatedHeader* ih = fi->object->inflated_header();
-
-          if(capi::Handle* handle = ih->handle()) {
-            handle->forget_object();
-            ih->set_handle(0);
-          }
+        if(capi::Handle* handle = fi->object->handle()) {
+          handle->forget_object();
+          fi->object->set_handle(0);
         }
 
         // If the object was remembered, unremember it.

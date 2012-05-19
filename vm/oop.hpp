@@ -393,6 +393,20 @@ Object* const cUndef = reinterpret_cast<Object*>(0x22L);
       flags().obj_type = type;
     }
 
+    capi::Handle* handle() {
+      if(inflated_header_p()) {
+        return inflated_header()->handle();
+      }
+      return NULL;
+    }
+
+    void set_handle(capi::Handle* handle) {
+      assert(inflated_header_p());
+      if(inflated_header_p()) {
+        inflated_header()->set_handle(handle);
+      }
+    }
+
   public:
 
     void initialize_copy(ObjectMemory* om, Object* other, unsigned int age);
