@@ -1092,7 +1092,7 @@ VALUE rb_uint2big(unsigned long number);
   VALUE   rb_cvar_get(VALUE module, ID name);
 
   /** Set module's named class variable to given value. Returns the value. @@ is optional. */
-  VALUE   rb_cvar_set(VALUE module, ID name, VALUE value, int unused);
+  VALUE   rb_cvar_set_internal(VALUE module, ID name, VALUE value);
 #define rb_cvar_set   rb_cvar_set_internal
 
   /** Set module's named class variable to given value. */
